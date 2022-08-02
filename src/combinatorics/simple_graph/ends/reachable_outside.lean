@@ -614,7 +614,43 @@ begin
     w is therefore outside of K', which by definition means that `co_o c d`, and thus d lies in C.
     -/
   },
-  { rintro C_K,
+  { rintro ⟨CK,Cinf⟩,
+    have Cconn : subconnected G C, from to_subconnected G K C CK,
+    have CdisK : disjoint C K, from to_disjoint G K C CK,
+    have Cdisall: ∀ C' ∈ ro_components G K, C' ≠ C → disjoint C C', by {
+      rintros C' C'comp C'neC,
+      exact disjoint_of_neq G K C C' CK C'comp C'neC.symm,
+    },
+    have : disjoint C L, by {
+      simp *,
+      unfold extend_to_fin_ro_components,
+      simp,
+      split,
+      {exact CdisK},
+      { rintro C' ⟨C'comp,C'fin⟩,
+        have : C' ≠ C, by { rintros rfl, exact Cinf C'fin, },
+        exact Cdisall C' C'comp this,
+      },
+    },
+    obtain ⟨D,Dcomp,CsubD⟩ := of_subconnected_disjoint G L C (Cinf.nonempty) this Cconn,
+    suffices : D ⊆ C,
+    { rw set.eq_of_subset_of_subset CsubD this,
+      exact Dcomp,},
+    rintros d dD,
+    obtain ⟨c,cC,rfl⟩ := CK,
+    let cD := CsubD cC,
+    obtain ⟨w,wD⟩ := to_subconnected G L D Dcomp c cD d dD,
+    have : disjoint K w.support.to_finset, by {
+      rw ←finset.disjoint_coe,
+      refine disjoint.mono_right wD _,
+      refine disjoint.mono_left (extend_to_fin_ro_components.sub G Gpc K) _,
+      exact (to_disjoint G L D Dcomp).symm,
+    },
+    exact ⟨w,this⟩,
+
+
+
+
     /-
     Assumption C_K : C ∈ inf_ro_components K.
     Goal: show C ∈ ro_components L.
@@ -623,7 +659,7 @@ begin
     Again, to show C = D, it suffices to choose some c ∈ C and show that any d ∈ D lies in C.
     Take a path w from c to d, entirely contained in D. By hypothesis, w does not intersect K, which implies that `co_o c d` and d lies in C.
     -/
-    sorry,},
+    },
 end
 
 lemma extend_to_fin_ro_components.subconnected_of_subconnected [locally_finite G] (Gpc : G.preconnected)

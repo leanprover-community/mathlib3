@@ -35,7 +35,7 @@ instance finset_directed : is_directed (finset V) (≤) := {
 def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
   obj := λ A, inf_ro_components G (unop A),
   map := λ A B f, ends.bwd_map G Gpc (le_of_hom f.unop),
-  map_id' := by {intro, funext, simp, apply ends.bwd_map_refl'}, -- tricky to get right
+  map_id' := by {intro, funext, simp, apply ends.bwd_map_refl',}, -- tricky to get right
   map_comp' := by {intros, funext, simp, apply eq.symm, apply ends.bwd_map_comp',},
   }
 

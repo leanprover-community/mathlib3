@@ -165,8 +165,7 @@ begin
       intros y1 hy1 y2 hy2,
       exact ⟨⟨y1, hy1⟩, ⟨y2, hy2⟩⟩ } },
   { apply_instance },
-  { intros, simp },
-  { intro, simp }
+  { intros, simp }
 end
 
 lemma smooth_inv :

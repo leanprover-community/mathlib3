@@ -3,8 +3,10 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
+import category_theory.adjunction.comma
 import category_theory.limits.preserves.shapes.terminal
 import category_theory.structured_arrow
+import category_theory.limits.shapes.equivalence
 
 /-!
 # Limits and the category of (co)cones
@@ -65,6 +67,16 @@ lemma has_limit_iff_has_terminal_cone (F : J ⥤ C) : has_limit F ↔ has_termin
 ⟨λ h, by exactI has_terminal_of_is_terminal (cone.is_limit_equiv_is_terminal _ (limit.is_limit F)),
  λ h, ⟨⟨by exactI ⟨⊤_ _, (cone.is_limit_equiv_is_terminal _).symm terminal_is_terminal⟩⟩⟩⟩
 
+lemma has_limits_of_shape_iff_is_left_adjoint_const :
+  has_limits_of_shape J C ↔ nonempty (is_left_adjoint (const J : C ⥤ _)) :=
+calc has_limits_of_shape J C
+      ↔ ∀ F : J ⥤ C, has_limit F : ⟨λ h, h.has_limit, λ h, by exactI has_limits_of_shape.mk⟩
+  ... ↔ ∀ F : J ⥤ C, has_terminal (cone F) : forall_congr has_limit_iff_has_terminal_cone
+  ... ↔ ∀ F : J ⥤ C, has_terminal (costructured_arrow (const J) F) :
+    forall_congr $ λ F, (cone.equiv_costructured_arrow F).has_terminal_iff
+  ... ↔ nonempty (is_left_adjoint (const J : C ⥤ _)) :
+    nonempty_is_left_adjoint_iff_has_terminal_costructured_arrow.symm
+
 lemma is_limit.lift_cone_morphism_eq_is_terminal_from {F : J ⥤ C} {c : cone F} (hc : is_limit c)
   (s : cone F) : hc.lift_cone_morphism s =
     is_terminal.from (cone.is_limit_equiv_is_terminal _ hc) _ := rfl
@@ -124,6 +136,16 @@ lemma has_colimit_iff_has_initial_cocone (F : J ⥤ C) : has_colimit F ↔ has_i
 ⟨λ h, by exactI has_initial_of_is_initial
   (cocone.is_colimit_equiv_is_initial _ (colimit.is_colimit F)),
  λ h, ⟨⟨by exactI ⟨⊥_ _, (cocone.is_colimit_equiv_is_initial _).symm initial_is_initial⟩⟩⟩⟩
+
+lemma has_colimits_of_shape_iff_is_right_adjoint_const :
+  has_colimits_of_shape J C ↔ nonempty (is_right_adjoint (const J : C ⥤ _)) :=
+calc has_colimits_of_shape J C
+      ↔ ∀ F : J ⥤ C, has_colimit F : ⟨λ h, h.has_colimit, λ h, by exactI has_colimits_of_shape.mk⟩
+  ... ↔ ∀ F : J ⥤ C, has_initial (cocone F) : forall_congr has_colimit_iff_has_initial_cocone
+  ... ↔ ∀ F : J ⥤ C, has_initial (structured_arrow F (const J)) :
+    forall_congr $ λ F, (cocone.equiv_structured_arrow F).has_initial_iff
+  ... ↔ nonempty (is_right_adjoint (const J : C ⥤ _)) :
+    nonempty_is_right_adjoint_iff_has_initial_structured_arrow.symm
 
 lemma is_colimit.desc_cocone_morphism_eq_is_initial_to {F : J ⥤ C} {c : cocone F}
   (hc : is_colimit c) (s : cocone F) :

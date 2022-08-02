@@ -19,14 +19,14 @@ provided a left adjoint.
 
 The duals are also shown.
 -/
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 noncomputable theory
 
 namespace category_theory
 open limits
 
-variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D] (G : D ⥤ C)
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] (G : D ⥤ C)
 
 section of_initials
 variables [∀ A, has_initial (structured_arrow A G)]
@@ -158,5 +158,15 @@ def mk_terminal_of_right_adjoint (h : F ⊣ G) (A : D) :
   end }
 
 end
+
+lemma nonempty_is_right_adjoint_iff_has_initial_structured_arrow {G : D ⥤ C} :
+  nonempty (is_right_adjoint G) ↔ ∀ A, has_initial (structured_arrow A G) :=
+⟨λ ⟨h⟩ A, by exactI has_initial_of_is_initial (mk_initial_of_left_adjoint _ h.adj A),
+ λ h, by exactI ⟨is_right_adjoint_of_structured_arrow_initials _⟩⟩
+
+lemma nonempty_is_left_adjoint_iff_has_terminal_costructured_arrow {F : C ⥤ D} :
+  nonempty (is_left_adjoint F) ↔ ∀ A, has_terminal (costructured_arrow F A) :=
+⟨λ ⟨h⟩ A, by exactI has_terminal_of_is_terminal (mk_terminal_of_right_adjoint _ h.adj A),
+ λ h, by exactI ⟨is_left_adjoint_of_costructured_arrow_terminals _⟩⟩
 
 end category_theory

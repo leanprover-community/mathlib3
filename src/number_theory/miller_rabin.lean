@@ -57,6 +57,14 @@ begin
   { left, exact sub_eq_zero.mp zero2 },
 end
 
+lemma square_roots_of_one'' {p α : ℕ} [fact (p.prime)] {x : zmod (p^α)} (root : x^2 = 1) :
+  x = 1 ∨ x = -1 :=
+begin
+  sorry,
+end
+
+
+
 lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=
 ⟨λ h, zero_lt_iff.2 (even_pow.1 h).2, λ h, (even_pow' h.ne').2 even_two⟩
 
@@ -278,8 +286,8 @@ begin
   unfold nat.miller_rabin_witness,
   unfold nat.miller_rabin_sequence,
   rw not_and_distrib,
-  simp only [not_not, mem_range, not_forall, exists_prop, list.mem_map, list.mem_range, cast_one,
-    forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
+  simp only [not_not, mem_range, not_forall, exists_prop, list.mem_map, list.mem_range,
+    zmod.cast_one, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
   split,
   { apply or.imp_left,
     intros h x hx,
@@ -426,6 +434,7 @@ open_locale nat  -- to use `φ` for `nat.totient`
 lemma strong_probable_prime_of_prime_power_iff (p α : ℕ) (hα0 : 0 < α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
+  haveI : fact (p.prime) := fact_iff.2 hp,
   have two_le_p : 2 ≤ p := nat.prime.two_le hp,
   have one_lt_n : 1 < p ^ α :=
     nat.succ_le_iff.mp (two_le_p.trans (le_self_pow hp.one_lt.le (succ_le_iff.mpr hα0))),
@@ -498,6 +507,8 @@ begin
       rw [←hk, hq, pow_mul, hj, one_pow],},
     -- In the case where j ≥ 1 we will show that (a^k)^(2^(j-1)) = -1, and so `a` is a nonwitness.
     {
+      have hj1 : 1 ≤ j := succ_le_iff.2 hj0.bot_lt,
+
       right,
       rw [←he, ←hk],
 
@@ -505,82 +516,34 @@ begin
       -- so all that remains is to show that a ^ (2^(j-1) * k) = -1 (mod p^α)
       refine ⟨j-1, lt_of_lt_of_le (pred_lt hj0) (hjf.trans hfe), _⟩,
 
-      have h_order : (a^l)^(2^j) = 1, { rw ←hj, apply pow_order_of_eq_one },
+      -- Since l ∣ k and k is odd (so k/l is also odd) ...
+      cases hlk with q hq,
+      have hq_odd : odd q, { rw [hq, odd_mul] at hk_odd, exact hk_odd.2 },
+      -- it suffices to show that a ^ (2^(j-1) * l) = -1 (mod p^α)
+      suffices : a ^ (2^(j-1) * l) = -1,
+      { rw [hq, ←mul_assoc, pow_mul, this], exact hq_odd.neg_one_pow },
 
-
+      rw [mul_comm, pow_mul],
       set x := (a^l)^(2^(j-1)) with hx,
 
-      have hx1 : x ≠ 1, {
-        intro H,
-        rw [H, eq_comm] at hx,
-        apply @pow_ne_one_of_lt_order_of' _ (a^l) (2^(j-1)) _ _ _ hx,
-        { apply pow_ne_zero (j-1) (show 2 ≠ 0, by linarith) },
-        { rw hj, exact pow_lt_pow (show 1 < 2, by linarith) (pred_lt hj0) } },
+      have h_order : (a^l)^(2^j) = 1, { rw ←hj, apply pow_order_of_eq_one },
 
-      have hx2 : x^2 = 1, {
-        rw hx,
-        rw ←pow_mul,
-        apply order_of_dvd_iff_pow_eq_one.1,
-        rw hj,
-        have : 2 ^ (j - 1) * 2 = 2^j,
-        { nth_rewrite_rhs 0 ←(tsub_add_cancel_of_le (succ_le_iff.mpr hj0.bot_lt)),
-          simp [pow_add] },
-        rw this },
+      have hx1 : ¬ x = 1,
+      { apply pow_ne_one_of_lt_order_of',
+        { apply pow_ne_zero, linarith },
+        { rw [hj, pow_lt_iff_lt_right rfl.le], exact pred_lt hj0 } },
 
-      have hx1' : ¬ (p^l : zmod (p^α)) ∣ x - 1, { sorry },
-      have hx2' : (p^l : zmod (p^α)) ∣ x^2 - 1, { sorry },
+      have hx2 : x^2 = 1,
+      { rw [hx, ←pow_mul, ←h_order],
+        apply congr_arg,
+        nth_rewrite_rhs 0 ←nat.sub_add_cancel hj1,
+        rw [pow_add, pow_one] },
 
-      have h3 : (p^l : zmod (p^α)) ∣ (x+1) * (x-1),
-      { simpa [←_root_.sq_sub_sq] using hx2' },
+      exact (or_iff_right hx1).1 (square_roots_of_one'' hx2),
 
-      have h4 : (p^l : zmod (p^α)) ∣ x + 1 ∨ (p : zmod (p^α))^l ∣ x - 1, { sorry },
-      have h4' : (p^l : zmod (p^α)) ∣ x + 1 := (or_iff_left hx1').1 h4,
-      have h5 : (p^α : zmod (p^α)) ∣ x + 1, { sorry },
-      have h6 : x = -1, {
-        suffices : x + 1 = 0, { rw [←add_sub_cancel x 1, this], simp },
-        cases h5 with i hi,
-        rw hi,
-        have : ((p^α) : zmod (p^α)) = 0, {
-          have := @zmod.nat_cast_self (p^α),
-          convert this,
-          rw eq_comm,
-          -- have := coe_pow
-
-
-
-          sorry },
-        rw this,
-        simp, },
-
-      rw [hx, ←pow_mul, mul_comm, pow_mul] at h6,
-      rw pow_mul,
-      cases hlk with q hq,
-      rw [hq, pow_mul, h6],
-      rw [hq, odd_mul] at hk_odd,
-      exact odd.neg_one_pow hk_odd.2,
     },
-  },
+  }
 end
-
-    -- by_cases j = 0,
-    -- { rw strong_probable_prime,
-    --   have hfoo : a ^ odd_part (p - 1) = 1,
-    --   { have stuff : order_of (a ^ odd_part (p - 1)) = 1,
-    --     rw hj,
-    --     rw h,
-    --     rw pow_zero,
-    --     rw order_of_eq_one_iff at stuff,
-    --     rw stuff },
-    --   left,
-    --   have thing := sub_one_dvd_pow_sub_one p α hp.one_lt.le,
-    --   rw dvd_iff_exists_eq_mul_left at thing,
-    --   rcases thing with ⟨c, hc⟩,
-    --   rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
-
-
-
-
-#exit
 
 
 --------------------------------------------------------------------------------------------------

@@ -84,6 +84,38 @@ begin
   { right, exact (prime_iff.mp pp).pow_dvd_of_dvd_mul_right α h_minus diffsquare },
 end
 
+lemma square_roots_of_one'' {p α : ℕ} (hα0 : 0 < α) (pp : p.prime) (hp_odd : odd p) {x : zmod (p^α)}
+  (root : x^2 = 1) :
+  x = 1 ∨ x = -1 :=
+begin
+  haveI : fact (p.prime) := fact_iff.2 pp,
+  haveI : fact (1 < p^α) := fact_iff.2 (nat.one_lt_pow _ _ hα0 pp.one_lt),
+  have hpα2 : p ^ α ≠ 2,
+  { intro H,
+    have := odd.pow hp_odd,
+    rw H at this,
+    rw odd_iff_not_even at this,
+    refine this even_two },
+  have diffsquare : (x + 1) * (x - 1) = 0, { rw ←_root_.sq_sub_sq, simp [root] },
+  have h2 : (x+1) ≠ 0 ∨ (x-1) ≠ 0, {
+    rw ←not_and_distrib,
+    rintro ⟨hp1, hp2⟩,
+    have h3 : (x+1) - (x-1) = 0, { simp [hp1, hp2] },
+    have h4 : (x+1) - (x-1) = 2, { ring },
+    rw [h4] at h3,
+    cases @ring.two_ne_zero (zmod (p^α)) _ _ _ h3,
+    rw ring_char.eq (zmod (p^α)) (p^α),
+    exact hpα2 },
+
+  cases h2 with h_plus h_minus,
+  { left, sorry },
+  { right, sorry },
+end
+
+
+
+#exit
+
 
 
 lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=

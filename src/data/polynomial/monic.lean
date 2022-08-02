@@ -26,6 +26,25 @@ variables {R : Type u} {S : Type v} {a b : R} {m n : ℕ} {ι : Type y}
 section semiring
 variables [semiring R] {p q r : R[X]}
 
+lemma not_monic_zero_iff : ¬ monic (0 : R[X]) ↔ (0 : R) ≠ 1 :=
+by simp [monic]
+
+lemma monic_zero_iff_subsingleton : monic (0 : R[X]) ↔ (∀ a b : R, a = b) :=
+by rw [← not_iff_not, not_monic_zero_iff, ne.def, subsingleton_iff_zero_eq_one, subsingleton_iff]
+
+lemma monic_zero_iff_subsingleton' :
+  monic (0 : R[X]) ↔ (∀ f g : R[X], f = g) ∧ (∀ a b : R, a = b) :=
+monic_zero_iff_subsingleton.trans (iff_and_self.mpr
+  (λ h, by { haveI := subsingleton_iff.mpr h, exact subsingleton.elim }))
+
+alias monic_zero_iff_subsingleton' ↔ subsingleton_of_monic_zero' monic_zero_of_subsingleton'
+
+lemma subsingleton_of_monic_zero (h : monic (0 : R[X])) :
+  (∀ p q : R[X], p = q) ∧ (∀ a b : R, a = b) :=
+by rw [monic.def, leading_coeff_zero] at h;
+  exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
+    λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
+
 lemma monic.as_sum (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
@@ -392,7 +411,7 @@ section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
 @[simp] lemma not_monic_zero : ¬monic (0 : R[X]) :=
-by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
+not_monic_zero_iff.mp zero_ne_one
 
 end nonzero_semiring
 

@@ -480,6 +480,14 @@ lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 calc C a = 0 ↔ C a = C 0 : by rw C_0
          ... ↔ a = 0 : C_inj
 
+lemma forall_eq_iff_forall_eq :
+  (∀ f g : R[X], f = g) ↔ (∀ a b : R, a = b) :=
+begin
+  refine ⟨_, _⟩; rw ← subsingleton_iff; introI h; intros,
+  { exact C_inj.mp (subsingleton_iff.mp h _ _) },
+  { exact (eq_iff_true_of_subsingleton _ _).mpr trivial },
+end
+
 theorem ext_iff {p q : R[X]} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 

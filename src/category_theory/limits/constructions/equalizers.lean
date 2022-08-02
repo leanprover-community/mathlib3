@@ -29,7 +29,7 @@ variables {C : Type u} [category.{v} C]
 variables {D : Type u'} [category.{v'} D] (G : C ⥤ D)
 
 -- We hide the "implementation details" inside a namespace
-namespace has_equalizers_of_pullbacks_and_binary_products
+namespace has_equalizers_of_has_pullbacks_and_binary_products
 
 variables [has_binary_products C] [has_pullbacks C]
 
@@ -76,12 +76,12 @@ def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equali
     { erw [limit.lift_π, ← J0, pullback_fst_eq_pullback_snd] }
   end }
 
-end has_equalizers_of_pullbacks_and_binary_products
+end has_equalizers_of_has_pullbacks_and_binary_products
 
-open has_equalizers_of_pullbacks_and_binary_products
+open has_equalizers_of_has_pullbacks_and_binary_products
 /-- Any category with pullbacks and binary products, has equalizers. -/
 -- This is not an instance, as it is not always how one wants to construct equalizers!
-lemma has_equalizers_of_pullbacks_and_binary_products [has_binary_products C] [has_pullbacks C] :
+lemma has_equalizers_of_has_pullbacks_and_binary_products [has_binary_products C] [has_pullbacks C] :
   has_equalizers C :=
 { has_limit := λ F, has_limit.mk
   { cone := equalizer_cone F,
@@ -90,7 +90,7 @@ lemma has_equalizers_of_pullbacks_and_binary_products [has_binary_products C] [h
 local attribute[instance] has_pullback_of_preserves_pullback
 
 /-- A functor that preserves pullbacks and binary products also presrves equalizers. -/
-def preserves_equalizers_of_pullbacks_and_binary_products
+def preserves_equalizers_of_preserves_pullbacks_and_binary_products
     [has_binary_products C] [has_pullbacks C]
     [preserves_limits_of_shape (discrete walking_pair) G]
     [preserves_limits_of_shape walking_cospan G] :
@@ -128,7 +128,7 @@ def preserves_equalizers_of_pullbacks_and_binary_products
 
 
 -- We hide the "implementation details" inside a namespace
-namespace has_coequalizers_of_pushouts_and_binary_coproducts
+namespace has_coequalizers_of_has_pushouts_and_binary_coproducts
 
 variables [has_binary_coproducts C] [has_pushouts C]
 
@@ -177,12 +177,12 @@ def coequalizer_cocone_is_colimit (F : walking_parallel_pair ⥤ C) :
     { rw [colimit.ι_desc, ← pushout_inl_eq_pushout_inr], exact J1 }
   end }
 
-end has_coequalizers_of_pushouts_and_binary_coproducts
+end has_coequalizers_of_has_pushouts_and_binary_coproducts
 
-open has_coequalizers_of_pushouts_and_binary_coproducts
+open has_coequalizers_of_has_pushouts_and_binary_coproducts
 /-- Any category with pullbacks and binary products, has equalizers. -/
 -- This is not an instance, as it is not always how one wants to construct equalizers!
-lemma has_coequalizers_of_pushouts_and_binary_coproducts
+lemma has_coequalizers_of_has_pushouts_and_binary_coproducts
   [has_binary_coproducts C] [has_pushouts C] : has_coequalizers C :=
 { has_colimit := λ F, has_colimit.mk
   { cocone := coequalizer_cocone F,
@@ -191,7 +191,7 @@ lemma has_coequalizers_of_pushouts_and_binary_coproducts
 local attribute[instance] has_pushout_of_preserves_pushout
 
 /-- A functor that preserves pushouts and binary coproducts also presrves coequalizers. -/
-def preserves_coequalizers_of_pushouts_and_binary_coproducts
+def preserves_coequalizers_of_preserves_pushouts_and_binary_coproducts
     [has_binary_coproducts C] [has_pushouts C]
     [preserves_colimits_of_shape (discrete walking_pair) G]
     [preserves_colimits_of_shape walking_span G] :

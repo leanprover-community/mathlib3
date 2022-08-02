@@ -83,11 +83,11 @@ begin
   reflexivity,
 end
 
-lemma bwd_map_refl  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) : bwd_map G Gpc (set.subset.refl K) C = C :=
+lemma bwd_map_refl'  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) : bwd_map G Gpc (set.subset.refl K) C = C :=
 by {rw bwd_map_def}
 
 lemma bwd_map_refl  (Gpc : G.preconnected) (K : finset V) : bwd_map G Gpc (subset.refl K) = id :=
-funext (bwd_map_refl G Gpc K)
+funext (bwd_map_refl' G Gpc K)
 
 lemma bwd_map_surjective [locally_finite G]  (Gpc : G.preconnected) {K L : finset V} (K_sub_L : K ⊆ L) :
 surjective (bwd_map G Gpc K_sub_L) :=
@@ -408,7 +408,7 @@ begin
     { unfold eval_for,
       simp only [*, equiv.inv_fun_as_coe],
       have bijK : bijective (bwd_map G Gpc (subset.refl K)), from ⟨inj_from_K K (subset.refl K),bwd_map_surjective G Gpc (subset.refl K)⟩,
-      nth_rewrite_lhs 0 ←(bwd_map_refl G Gpc K C),
+      nth_rewrite_lhs 0 ←(bwd_map_refl' G Gpc K C),
       exact equiv.of_bijective_symm_apply_apply (bwd_map G Gpc _) bijK C,}
   }
 end

@@ -37,14 +37,6 @@ lemma monic_zero_iff_subsingleton' :
 monic_zero_iff_subsingleton.trans (iff_and_self.mpr
   (λ h, by { haveI := subsingleton_iff.mpr h, exact subsingleton.elim }))
 
-alias monic_zero_iff_subsingleton' ↔ subsingleton_of_monic_zero' monic_zero_of_subsingleton'
-
-lemma subsingleton_of_monic_zero (h : monic (0 : R[X])) :
-  (∀ p q : R[X], p = q) ∧ (∀ a b : R, a = b) :=
-by rw [monic.def, leading_coeff_zero] at h;
-  exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
-    λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
-
 lemma monic.as_sum (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=
 begin

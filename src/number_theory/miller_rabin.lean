@@ -47,6 +47,9 @@ open_locale big_operators
 ---------------------------------------------------------------------------------------------------
 -- Lemmas to PR elsewhere
 ---------------------------------------------------------------------------------------------------
+lemma nat.succ_sub_self (x : ℕ) : x.succ - x = 1 :=
+by simp [succ_sub rfl.le]
+
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
@@ -57,10 +60,28 @@ begin
   { left, exact sub_eq_zero.mp zero2 },
 end
 
-lemma square_roots_of_one'' {p α : ℕ} [fact (p.prime)] {x : zmod (p^α)} (root : x^2 = 1) :
-  x = 1 ∨ x = -1 :=
+/-- If an odd prime power `p^α` divides `x^2 - 1` then it divides `x-1` or `x+1`. -/
+lemma square_roots_of_one' {p α x : ℕ} (pp : p.prime) (hp_odd : odd p) (root : p^α ∣ x^2 - 1) :
+  (p^α ∣ x - 1) ∨ (p^α ∣ x + 1) :=
 begin
-  sorry,
+  rcases x.eq_zero_or_pos with rfl | hx0, { simp },
+  have diffsquare : p^α ∣ (x + 1) * (x - 1), { rw ←nat.sq_sub_sq, simpa },
+
+  have h2 : ¬ p ∣ (x + 1) ∨ ¬ p ∣ (x - 1), {
+    rw ←not_and_distrib,
+    rintro ⟨hp1, hp2⟩,
+    have h3 : p ∣ (x+1) - (x-1), { refine nat.dvd_sub _ hp1 hp2, linarith },
+    have h4 : (x+1) - (x-1) = 2,
+    { cases x, { cases hx0 },
+      rw [succ_sub_succ_eq_sub, tsub_zero, nat.sub_add_comm (le_succ x), succ_sub rfl.le],
+      simp },
+    rw [h4, (nat.prime_dvd_prime_iff_eq pp prime_two)] at h3,
+    rw [h3, odd_iff_not_even] at hp_odd,
+    exact hp_odd even_two },
+
+  cases h2 with h_plus h_minus,
+  { left, exact (prime_iff.mp pp).pow_dvd_of_dvd_mul_left α h_plus diffsquare },
+  { right, exact (prime_iff.mp pp).pow_dvd_of_dvd_mul_right α h_minus diffsquare },
 end
 
 

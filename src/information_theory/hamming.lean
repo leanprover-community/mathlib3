@@ -37,7 +37,10 @@ def hamming_dist (x y : Π i, β i) : ℕ := (univ.filter (λ i, x i ≠ y i)).c
 
 /-- Corresponds to `dist_self`. -/
 @[simp] lemma hamming_dist_self (x : Π i, β i) : hamming_dist x x = 0 :=
-by { rw [hamming_dist, card_eq_zero, filter_eq_empty_iff], exact λ _ _ H, H rfl }
+begin
+  rw [hamming_dist, card_eq_zero, filter_eq_empty_iff],
+  exact λ _ _ H, H rfl
+end
 
 /-- Corresponds to `dist_nonneg`. -/
 lemma hamming_dist_nonneg {x y : Π i, β i} : 0 ≤ hamming_dist x y := zero_le _
@@ -71,8 +74,8 @@ by { funext x y, exact hamming_dist_comm _ _ }
 
 /-- Corresponds to `eq_of_dist_eq_zero`. -/
 lemma eq_of_hamming_dist_eq_zero {x y : Π i, β i} : hamming_dist x y = 0 → x = y :=
-by simp_rw [  hamming_dist, card_eq_zero, filter_eq_empty_iff, not_not,
-              funext_iff,  mem_univ, forall_true_left, imp_self]
+by simp_rw [hamming_dist, card_eq_zero, filter_eq_empty_iff, not_not,
+            funext_iff,  mem_univ, forall_true_left, imp_self]
 
 /-- Corresponds to `dist_eq_zero`. -/
 @[simp] lemma hamming_dist_eq_zero {x y : Π i, β i} : hamming_dist x y = 0 ↔ x = y :=
@@ -84,14 +87,14 @@ by rw [eq_comm, hamming_dist_eq_zero]
 
 /-- Corresponds to `dist_ne_zero`. -/
 lemma hamming_dist_ne_zero {x y : Π i, β i} : hamming_dist x y ≠ 0 ↔ x ≠ y :=
-not_iff_not.mpr hamming_dist_eq_zero
+not_congr hamming_dist_eq_zero
 
 /-- Corresponds to `dist_pos`. -/
 lemma hamming_dist_pos {x y : Π i, β i} : 0 < hamming_dist x y ↔ x ≠ y :=
 by rw [←hamming_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
 
 @[simp] lemma hamming_dist_lt_one {x y : Π i, β i} : hamming_dist x y < 1 ↔ x = y :=
-by {rw nat.lt_one_iff, exact hamming_dist_eq_zero}
+by rw [nat.lt_one_iff, hamming_dist_eq_zero]
 
 lemma hamming_dist_le_card_fintype {x y : Π i, β i} :
   hamming_dist x y ≤ fintype.card ι := card_le_univ _
@@ -174,13 +177,19 @@ lemma hamming_norm_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
   (hk : ∀ i, is_smul_regular (β i) k) (x : Π i, β i) : hamming_norm (k • x) = hamming_norm x :=
 hamming_norm_comp (λ i (c : β i), k • c) hk (λ i, by simp_rw smul_zero')
 
+/-- Corresponds to `dist_zero_right`. -/
+@[simp] lemma hamming_dist_zero_right (x : Π i, β i) : hamming_dist x 0 = hamming_norm x := rfl
+
+/-- Corresponds to `dist_zero_left`. -/
+@[simp] lemma hamming_dist_zero_left : hamming_dist (0 : Π i, β i) = hamming_norm :=
+funext $ λ x, by rw [hamming_dist_comm, hamming_dist_zero_right]
+
 end has_zero
 
 /-- Corresponds to `dist_eq_norm`. -/
 lemma hamming_dist_eq_hamming_norm [Π i, add_group (β i)] (x y : Π i, β i) :
   hamming_dist x y = hamming_norm (x - y) :=
-by simp_rw [← hamming_dist_zero_right, hamming_dist, pi.sub_apply,
-            pi.zero_apply, sub_ne_zero]
+by simp_rw [hamming_norm, hamming_dist, pi.sub_apply, sub_ne_zero]
 
 end hamming_dist_norm
 

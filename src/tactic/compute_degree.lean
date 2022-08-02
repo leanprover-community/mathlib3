@@ -40,52 +40,17 @@ coeff_add _ _ _
 
 lemma coeff_bit1_zero (P : R[X]) :
   (bit1 P).coeff 0 = bit1 P.coeff 0 :=
-by simp only [bit1, coeff_add, coeff_bit0, coeff_one_zero, pi.add_apply, pi.one_apply]
-
-lemma coeff_mul_of_nat_degree_le (df : f.nat_degree ≤ d) (eg : g.nat_degree ≤ e) :
-  (f * g).coeff (d + e) = f.coeff d * g.coeff e :=
-begin
-  refine (coeff_mul _ _ _).trans _,
-  refine finset.sum_eq_single (d, e) _ (by simp),
-  rintros ⟨d1, e1⟩ h de,
-  rcases (trichotomous d1 d : d1 < d ∨ _) with k|rfl|k,
-  { refine mul_eq_zero_of_right _ _,
-    refine coeff_eq_zero_of_nat_degree_lt (eg.trans_lt _),
-    linarith [finset.nat.mem_antidiagonal.mp h] },
-  { exact (de (by simpa using h)).elim },
-  { refine mul_eq_zero_of_left _ _,
-    exact coeff_eq_zero_of_nat_degree_lt (df.trans_lt k) }
-end
+by simp only [bit1, bit0, coeff_add, coeff_one_zero, pi.add_apply, pi.one_apply]
 
 /-  This lemma is useful to expose the right hypotheses for `tactic.interactive.compute_degree`. -/
 lemma coeff_mul_of_nat_degree_le' (de : d + e = n) (df : f.nat_degree ≤ d) (eg : g.nat_degree ≤ e) :
   (f * g).coeff n = f.coeff d * g.coeff e :=
 by rwa [← de, coeff_mul_of_nat_degree_le df eg]
 
-lemma coeff_pow_of_nat_degree_le {d e : ℕ}
-  (df : f.nat_degree ≤ d) :
-  (f ^ e).coeff (d * e) = (f.coeff d) ^ e :=
-begin
-  induction e with e he,
-  { simp },
-  { rw [pow_succ', pow_succ', ← he, nat.mul_succ, coeff_mul_of_nat_degree_le _ df],
-    refine nat_degree_pow_le.trans (le_trans _ (mul_comm _ _).le),
-    exact mul_le_mul_of_nonneg_left df e.zero_le }
-end
-
 /-  This lemma is useful to expose the right hypotheses for `tactic.interactive.compute_degree`. -/
 lemma coeff_pow_of_nat_degree_le' (de : d * e = n) (df : f.nat_degree ≤ d) :
   (f ^ e).coeff n = (f.coeff d) ^ e :=
 by rwa [← de, coeff_pow_of_nat_degree_le]
-
-lemma coeff_add_eq_left_of_succ (n : ℕ) (dg : g.nat_degree ≤ n) :
-  (f + g).coeff (n + 1) = f.coeff (n + 1) :=
-(coeff_add _ _ _).trans $ (congr_arg _ $ coeff_eq_zero_of_nat_degree_lt $
-  nat.lt_succ_iff.mpr dg).trans $ add_zero _
-
-lemma coeff_add_eq_right_of_succ (n : ℕ) (df : f.nat_degree ≤ n) :
-  (f + g).coeff (n + 1) = g.coeff (n + 1) :=
-by { rw add_comm, exact coeff_add_eq_left_of_succ _ df }
 
 lemma monic_of_nat_degree_le_of_coeff_eq_one (n : ℕ) (fn : f.nat_degree ≤ n) (fc : f.coeff n = 1) :
   monic f :=
@@ -96,19 +61,6 @@ begin
 end
 
 end semiring
-
-section ring
-variables [ring R] {f g : R[X]} (n : ℕ)
-
-lemma coeff_sub_eq_left_of_succ (dg : g.nat_degree ≤ n) :
-  (f - g).coeff (n + 1) = f.coeff (n + 1) :=
-by {rw [sub_eq_add_neg, coeff_add_eq_left_of_succ], rwa nat_degree_neg }
-
-lemma coeff_sub_eq_right_of_succ (df : f.nat_degree ≤ n) :
-  (f - g).coeff (n + 1) = - g.coeff (n + 1) :=
-by rwa [sub_eq_add_neg, coeff_add_eq_right_of_succ, coeff_neg]
-
-end ring
 
 end polynomial
 
@@ -404,8 +356,8 @@ match f with
 | `(%%a + %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   (if da ≠ db then do
-    if da < db then refine ``((coeff_add_eq_right_of_succ _ _).trans _)
-    else refine ``((coeff_add_eq_left_of_succ _ _).trans _),
+    if da < db then refine ``((coeff_add_succ_eq_right_of_le (nat.lt_succ_iff.mpr _)).trans _)
+    else refine ``((coeff_add_eq_left_of_lt (nat.lt_succ_iff.mpr _)).trans _),
     compute_degree_le
   else refine ``((coeff_add _ _ _).trans _);
   congr' (some 1));
@@ -413,8 +365,9 @@ match f with
 | `(%%a - %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   (if da ≠ db then do
-    if da < db then refine ``((coeff_sub_eq_right_of_succ _ _).trans (neg_inj.mpr _))
-    else refine ``((coeff_sub_eq_left_of_succ _ _).trans _),
+    if da < db then refine ``((coeff_sub_succ_eq_neg_right_of_le (nat.lt_succ_iff.mpr _)).trans
+      (neg_inj.mpr _))
+    else refine ``((coeff_sub_succ_eq_left_of_le (nat.lt_succ_iff.mpr _)).trans _),
     compute_degree_le
   else refine ``((coeff_sub _ _ _).trans _) >> congr' (some 1));
   resolve_coeff

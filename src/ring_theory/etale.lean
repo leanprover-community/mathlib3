@@ -387,18 +387,12 @@ begin
   simp,
 end
 
+/-- This actually does not need the localization instance, and is stated here again for
+consistency. See `algebra.formally_unramified.of_comp` instead. -/
+@[nolint unused_arguments]
 lemma formally_unramified.localization_base [formally_unramified R Sₘ] :
   formally_unramified Rₘ Sₘ :=
-begin
-  constructor,
-  introsI Q _ _ I e f₁ f₂ e',
-  letI := ((algebra_map Rₘ Q).comp (algebra_map R Rₘ)).to_algebra,
-  letI : is_scalar_tower R Rₘ Q := is_scalar_tower.of_algebra_map_eq' rfl,
-  refine alg_hom.restrict_scalars_injective R _,
-  refine formally_unramified.ext I ⟨2, e⟩ _,
-  intro x,
-  exact alg_hom.congr_fun e' x
-end
+formally_unramified.of_comp R Rₘ Sₘ
 
 lemma formally_etale.localization_base [formally_etale R Sₘ] : formally_etale Rₘ Sₘ :=
 formally_etale.iff_unramified_and_smooth.mpr

@@ -145,19 +145,7 @@ variable (R)
 /-- The trivial norm on a ring `R` is the `ring_norm` taking value `0` at `0` and `1` at every
   other element. -/
 def trivial_norm [decidable_eq R] : ring_norm R :=
-{ /- to_fun    := λ x, if x = 0 then 0 else 1,
-  map_zero' := by simp only [eq_self_iff_true, if_true],
-  nonneg'   := λ x, begin split_ifs, exacts [le_refl _, zero_le_one] end,
-  add_le'   := λ x y,
-  begin
-    by_cases hx : x = 0,
-    { rw [if_pos hx, hx, zero_add, zero_add], },
-    { rw if_neg hx, apply le_add_of_le_of_nonneg,
-      { split_ifs, exacts [zero_le_one, le_refl _] },
-      { split_ifs, exacts [le_refl _, zero_le_one] }}
-  end,
-  neg'      := λ x, by simp_rw neg_eq_zero, -/
-  mul_le'   := λ x y,
+{ mul_le'   := λ x y,
   begin by_cases h : x * y = 0,
     { simp only [add_group_seminorm.trivial_norm, if_pos h], apply mul_nonneg;
       { split_ifs, exacts [le_refl _, zero_le_one] }},

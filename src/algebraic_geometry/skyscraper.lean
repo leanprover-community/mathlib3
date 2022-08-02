@@ -112,11 +112,11 @@ def skyscraper_sheaf : sheaf C X :=
         have := hx (hom_of_le inf_le_left) (hom_of_le inf_le_right) h₂.some_spec.1 h rfl,
         dsimp at this,
         have hV' : p₀ ∈ h₁.some ⊓ V := ⟨h₂.some_spec.2, hV⟩,
-        split_ifs at this,
+        split_ifs at this;
         rw [category.id_comp, eq_to_hom_trans, eq_to_hom_trans, eq_comp_eq_to_hom,
-          category.assoc, eq_to_hom_trans] at this,
-        generalize_proofs h₆ at this,
-        rw [this, eq_comp_eq_to_hom], },
+          category.assoc, eq_to_hom_trans] at this;
+        generalize_proofs h₆ at this;
+        rw [this, category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id] },
       { dsimp,
         split_ifs,
         rw [←category.assoc, eq_comp_eq_to_hom],
@@ -234,7 +234,8 @@ noncomputable lemma skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit {y :
 /--
 If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S t` at `y` is `S`
 -/
-noncomputable def skyscraper_stalk_of_mem_closure₀ {y : X} (h : p₀ ⤳ y) :
+@[reducible]
+noncomputable def skyscraper_presheaf_stalk_of_mem_closure₀ {y : X} (h : p₀ ⤳ y) :
   (skyscraper_presheaf p₀ S ts).stalk y ≅ S :=
 colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit p₀ S ts h)⟩
 
@@ -364,6 +365,7 @@ noncomputable lemma skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit
 /--
 If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S t` at `y` is `*`
 -/
+@[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_mem_closure₀
   {y : X} (h : ¬p₀ ⤳ y) :
   (skyscraper_presheaf p₀ S ts).stalk y ≅ star :=
@@ -559,3 +561,224 @@ noncomputable def skyscraper_presheaf_as_pushforward :
   end }
 
 end
+
+section adjoints
+
+
+open topological_space
+open category_theory category_theory.limits
+open Top
+open opposite
+
+universes u v
+
+variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{u} C]
+variables {star : C} (ts : is_terminal star)
+variable [Π (U : opens X), decidable (p₀ ∈ U)]
+
+@[simps]
+def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
+{ obj := λ S, skyscraper_presheaf p₀ S ts,
+  map := λ x y f,
+  { app := λ U, if h : p₀ ∈ U.unop
+    then eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h) ≫ f ≫
+      eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h).symm
+    else ts.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ _ h).symm,
+    naturality' := λ U V inc,
+    begin
+      dsimp,
+      simp_rw [category.id_comp, eq_to_hom_trans],
+      by_cases hV : p₀ ∈ V.unop,
+      { have hU : p₀ ∈ U.unop := le_of_hom inc.unop hV,
+        split_ifs,
+        rw [←category.assoc, eq_to_hom_trans, category.assoc, category.assoc, eq_to_hom_trans],
+        refl, },
+      { split_ifs;
+        rw [←category.assoc, eq_comp_eq_to_hom];
+        exact ts.hom_ext _ _ }
+    end },
+  map_id' := λ c,
+  begin
+    ext U,
+    dsimp,
+    split_ifs,
+    { simp, },
+    { rw [eq_comp_eq_to_hom],
+      exact ts.hom_ext _ _ },
+  end,
+  map_comp' := λ x y z f g,
+  begin
+    ext U,
+    dsimp,
+    split_ifs,
+    { simp },
+    { rw [eq_comp_eq_to_hom],
+      exact ts.hom_ext _ _ },
+  end }
+
+
+variable [has_colimits C]
+
+@[simps]
+noncomputable def from_stalk_to_to_skyscraper_presheaf {𝓕 : presheaf C X} {c : C} (f : 𝓕.stalk p₀ ⟶ c) :
+  𝓕 ⟶ skyscraper_presheaf p₀ c ts :=
+{ app := λ U, if h : p₀ ∈ U.unop
+  then 𝓕.germ ⟨p₀, h⟩ ≫ f ≫ eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h).symm
+  else ts.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ _ h).symm,
+  naturality' := λ U V inc,
+  begin
+    dsimp,
+    by_cases hV : p₀ ∈ V.unop,
+    { have hU : p₀ ∈ U.unop := le_of_hom inc.unop hV,
+      split_ifs,
+      erw [←category.assoc, 𝓕.germ_res inc.unop, category.id_comp, eq_to_hom_trans,
+        category.assoc, category.assoc, eq_to_hom_trans],
+      refl, },
+    { split_ifs,
+      rw [←category.assoc, eq_comp_eq_to_hom, category.assoc, category.assoc, eq_to_hom_trans,
+        eq_to_hom_refl, category.comp_id],
+      exact ts.hom_ext _ _ },
+  end }
+
+@[reducible]
+noncomputable def to_skyscraper_presheaf_to_from_stalk {𝓕 : presheaf C X} {c : C} (f : 𝓕 ⟶ skyscraper_presheaf p₀ c ts) :
+  𝓕.stalk p₀ ⟶ c :=
+let CC : cocone ((open_nhds.inclusion p₀).op ⋙ 𝓕) :=
+{ X := c,
+  ι :=
+  { app := λ U, f.app (op U.unop.1) ≫ eq_to_hom
+    begin
+      dsimp,
+      rw if_pos,
+      exact U.unop.2,
+    end,
+    naturality' := λ U V inc,
+    begin
+      dsimp,
+      rw [category.comp_id, ←category.assoc, eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans],
+      generalize_proofs h,
+      erw f.naturality,
+      dsimp,
+      have hV : p₀ ∈ (open_nhds.inclusion p₀).obj V.unop := V.unop.2,
+      split_ifs,
+      rw [category.id_comp, eq_to_hom_trans, eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans,
+        eq_to_hom_refl, category.comp_id],
+      refl,
+    end} } in
+colimit.desc _ CC
+
+lemma from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk
+  {𝓕 : presheaf C X} {c : C} (f : 𝓕.stalk p₀ ⟶ c) :
+to_skyscraper_presheaf_to_from_stalk p₀ ts (from_stalk_to_to_skyscraper_presheaf p₀ ts f) = f :=
+begin
+  ext U,
+  dsimp,
+  simp only [subtype.val_eq_coe, unop_op, colimit.ι_desc, from_stalk_to_to_skyscraper_presheaf_app],
+  split_ifs,
+  { rw [category.assoc, category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
+    congr,
+    dunfold presheaf.germ,
+    dsimp,
+    congr,
+    convert op_unop _,
+    ext,
+    refl, },
+  { exfalso, exact h U.unop.2,  }
+end
+
+lemma to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf
+  {𝓕 : presheaf C X} {c : C} (f : 𝓕 ⟶ skyscraper_presheaf p₀ c ts) :
+from_stalk_to_to_skyscraper_presheaf p₀ ts (to_skyscraper_presheaf_to_from_stalk p₀ ts f) = f :=
+begin
+  ext U,
+  dsimp,
+  split_ifs,
+  { rw [to_skyscraper_presheaf_to_from_stalk],
+    dsimp,
+    dunfold presheaf.germ,
+    rw [←category.assoc, colimit.ι_desc],
+    dsimp,
+    rw [category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id], },
+  { rw [eq_comp_eq_to_hom],
+    exact ts.hom_ext _ _ , }
+end
+
+@[simps]
+noncomputable def stalk_skyscraper_presheaf_adj_unit :
+  𝟭 (presheaf C X) ⟶ presheaf.stalk_functor C p₀ ⋙ skyscraper_presheaf_functor p₀ ts :=
+{ app := λ 𝓕,
+  { app := λ U, if h : p₀ ∈ U.unop
+    then 𝓕.germ ⟨p₀, h⟩ ≫ eq_to_hom (if_pos h).symm
+    else ts.from _ ≫ eq_to_hom (if_neg h).symm,
+    naturality' := λ U V inc,
+    begin
+      dsimp,
+      by_cases hV : p₀ ∈ V.unop,
+      { have hU : p₀ ∈ U.unop := le_of_hom inc.unop hV,
+        split_ifs,
+        erw [←category.assoc, 𝓕.germ_res inc.unop, category.id_comp, eq_to_hom_trans, category.assoc, eq_to_hom_trans],
+        congr, },
+      { split_ifs,
+        rw [←category.assoc, eq_comp_eq_to_hom],
+        exact ts.hom_ext _ _, },
+    end },
+  naturality' := λ 𝓕 𝓖 f,
+  begin
+    ext U,
+    dsimp,
+    split_ifs,
+    { rw [←category.assoc, eq_comp_eq_to_hom],
+      simp only [category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
+      rw [←category.assoc _ _ ((presheaf.stalk_functor C p₀).map f), eq_to_hom_trans, eq_to_hom_refl,
+        category.id_comp],
+      erw [colimit.ι_map],
+      congr, },
+    { rw [←category.assoc, eq_comp_eq_to_hom],
+      exact ts.hom_ext _ _ },
+  end }
+
+@[simps]
+noncomputable def stalk_skyscraper_presheaf_adj_counit :
+  skyscraper_presheaf_functor p₀ ts ⋙ presheaf.stalk_functor C p₀ ⟶ 𝟭 C :=
+{ app := λ c, (skyscraper_presheaf_stalk_of_mem_closure₀ p₀ c ts (specializes_rfl : p₀ ⤳ p₀)).hom,
+  naturality' := λ x y f,
+  begin
+    ext U,
+    dsimp,
+    simp only [colimit.iso_colimit_cocone_ι_hom_assoc, skyscraper_presheaf_cocone_of_mem_closure₀_ι_app, category.assoc],
+    erw [category.id_comp, ←category.assoc, colimit.ι_map],
+    dsimp,
+    split_ifs,
+    { rw [category.assoc, skyscraper_presheaf_stalk_of_mem_closure₀, colimit.iso_colimit_cocone_ι_hom],
+      dsimp,
+      simpa, },
+    { exfalso, exact h U.unop.2 }
+  end }
+
+noncomputable example : presheaf.stalk_functor C p₀ ⊣ skyscraper_presheaf_functor p₀ ts :=
+{ hom_equiv := λ 𝓕 c, ⟨from_stalk_to_to_skyscraper_presheaf p₀ ts,
+    to_skyscraper_presheaf_to_from_stalk p₀ ts,
+    from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk p₀ ts,
+    to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf p₀ ts⟩,
+  unit := stalk_skyscraper_presheaf_adj_unit p₀ ts,
+  counit := stalk_skyscraper_presheaf_adj_counit p₀ ts,
+  hom_equiv_unit' := λ 𝓕 𝓖 f,
+  begin
+    ext U,
+    dsimp,
+    split_ifs,
+    { simp, },
+    { rw [eq_comp_eq_to_hom],
+      exact ts.hom_ext _ _ },
+  end,
+  hom_equiv_counit' := λ 𝓕 c g,
+  begin
+    ext U,
+    dsimp,
+    erw [colimit.ι_desc, ←category.assoc, colimit.ι_map, category.assoc, colimit.iso_colimit_cocone_ι_hom],
+    dsimp,
+    rw [category.comp_id],
+    refl,
+  end }
+
+end adjoints

@@ -16,7 +16,7 @@ In particular, we show that `terminal_comparison G` is an isomorphism iff `G` pr
 objects.
 -/
 
-universes v v₁ v₂ u u₁ u₂
+universes w v v₁ v₂ u u₁ u₂
 
 noncomputable theory
 
@@ -36,25 +36,31 @@ section terminal
 The map of an empty cone is a limit iff the mapped object is terminal.
 -/
 def is_limit_map_cone_empty_cone_equiv :
-  is_limit (G.map_cone (as_empty_cone.{v₁} X)) ≃ is_terminal (G.obj X) :=
+  is_limit (G.map_cone (as_empty_cone X)) ≃ is_terminal (G.obj X) :=
 is_limit_empty_cone_equiv D _ _ (eq_to_iso rfl)
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal.is_terminal_obj [preserves_limit (functor.empty.{v₁} C) G]
+def is_terminal.is_terminal_obj [preserves_limit (functor.empty.{0} C) G]
   (l : is_terminal X) : is_terminal (G.obj X) :=
 is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves l)
 
 /-- The property of reflecting terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal.is_terminal_of_obj [reflects_limit (functor.empty.{v₁} C) G]
+def is_terminal.is_terminal_of_obj [reflects_limit (functor.empty.{0} C) G]
   (l : is_terminal (G.obj X)) : is_terminal X :=
 reflects_limit.reflects ((is_limit_map_cone_empty_cone_equiv G X).symm l)
+
+/-- Preserving the terminal object implies preserving all limits of the empty diagram. -/
+def preserves_limits_of_shape_pempty_of_preserves_terminal
+  [preserves_limit (functor.empty.{0} C) G] : preserves_limits_of_shape (discrete pempty) G :=
+{ preserves_limit := λ K,
+    preserves_limit_of_iso_diagram G (functor.empty_ext (functor.empty.{0} C) _) }
 
 variables [has_terminal C]
 /--
 If `G` preserves the terminal object and `C` has a terminal object, then the image of the terminal
 object is terminal.
 -/
-def is_limit_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty.{v₁} C) G] :
+def is_limit_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty.{0} C) G] :
   is_terminal (G.obj (⊤_ C)) :=
 terminal_is_terminal.is_terminal_obj G (⊤_ C)
 
@@ -65,7 +71,7 @@ Note this property is somewhat unique to (co)limits of the empty diagram: for ge
 has limits of shape `J` and `G` preserves them, then `D` does not necessarily have limits of shape
 `J`.
 -/
-lemma has_terminal_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty.{v₁} C) G] :
+lemma has_terminal_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty.{0} C) G] :
   has_terminal D :=
 ⟨λ F,
 begin
@@ -82,7 +88,7 @@ def preserves_terminal.of_iso_comparison
 begin
   apply preserves_limit_of_preserves_limit_cone terminal_is_terminal,
   apply (is_limit_map_cone_empty_cone_equiv _ _).symm _,
-  apply is_limit.of_point_iso (limit.is_limit (functor.empty.{v₂} D)),
+  apply is_limit.of_point_iso (limit.is_limit (functor.empty.{0} D)),
   apply i,
 end
 
@@ -99,7 +105,7 @@ def preserves_terminal_of_iso
   (f : G.obj (⊤_ C) ≅ ⊤_ D) : preserves_limit (functor.empty C) G :=
 preserves_terminal_of_is_iso G f.hom
 
-variables [preserves_limit (functor.empty.{v₁} C) G]
+variables [preserves_limit (functor.empty.{0} C) G]
 
 /--
 If `G` preserves terminal objects, then the terminal comparison map for `G` is an isomorphism.
@@ -129,21 +135,27 @@ def is_colimit_map_cocone_empty_cocone_equiv :
 is_colimit_empty_cocone_equiv D _ _ (eq_to_iso rfl)
 
 /-- The property of preserving initial objects expressed in terms of `is_initial`. -/
-def is_initial.is_initial_obj [preserves_colimit (functor.empty.{v₁} C) G]
+def is_initial.is_initial_obj [preserves_colimit (functor.empty.{0} C) G]
   (l : is_initial X) : is_initial (G.obj X) :=
 is_colimit_map_cocone_empty_cocone_equiv G X (preserves_colimit.preserves l)
 
 /-- The property of reflecting initial objects expressed in terms of `is_initial`. -/
-def is_initial.is_initial_of_obj [reflects_colimit (functor.empty.{v₁} C) G]
+def is_initial.is_initial_of_obj [reflects_colimit (functor.empty.{0} C) G]
   (l : is_initial (G.obj X)) : is_initial X :=
 reflects_colimit.reflects ((is_colimit_map_cocone_empty_cocone_equiv G X).symm l)
+
+/-- Preserving the initial object implies preserving all colimits of the empty diagram. -/
+def preserves_colimits_of_shape_pempty_of_preserves_initial
+  [preserves_colimit (functor.empty.{0} C) G] : preserves_colimits_of_shape (discrete pempty) G :=
+{ preserves_colimit := λ K,
+    preserves_colimit_of_iso_diagram G (functor.empty_ext (functor.empty.{0} C) _) }
 
 variables [has_initial C]
 /--
 If `G` preserves the initial object and `C` has a initial object, then the image of the initial
 object is initial.
 -/
-def is_colimit_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty.{v₁} C) G] :
+def is_colimit_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty.{0} C) G] :
   is_initial (G.obj (⊥_ C)) :=
 initial_is_initial.is_initial_obj G (⊥_ C)
 
@@ -154,7 +166,7 @@ Note this property is somewhat unique to colimits of the empty diagram: for gene
 has colimits of shape `J` and `G` preserves them, then `D` does not necessarily have colimits of
 shape `J`.
 -/
-lemma has_initial_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty.{v₁} C) G] :
+lemma has_initial_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty.{0} C) G] :
   has_initial D :=
 ⟨λ F,
 begin
@@ -171,7 +183,7 @@ def preserves_initial.of_iso_comparison
 begin
   apply preserves_colimit_of_preserves_colimit_cocone initial_is_initial,
   apply (is_colimit_map_cocone_empty_cocone_equiv _ _).symm _,
-  apply is_colimit.of_point_iso (colimit.is_colimit (functor.empty.{v₂} D)),
+  apply is_colimit.of_point_iso (colimit.is_colimit (functor.empty.{0} D)),
   apply i,
 end
 
@@ -188,7 +200,7 @@ def preserves_initial_of_iso
   (f : ⊥_ D ≅ G.obj (⊥_ C)) : preserves_colimit (functor.empty C) G :=
 preserves_initial_of_is_iso G f.hom
 
-variables [preserves_colimit (functor.empty.{v₁} C) G]
+variables [preserves_colimit (functor.empty.{0} C) G]
 
 /-- If `G` preserves initial objects, then the initial comparison map for `G` is an isomorphism. -/
 def preserves_initial.iso : G.obj (⊥_ C) ≅ ⊥_ D :=

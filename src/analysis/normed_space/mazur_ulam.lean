@@ -27,9 +27,9 @@ The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theo
 isometry, affine map, linear map
 -/
 
-variables
-  {E PE : Type*} [normed_group E] [normed_space ℝ E] [metric_space PE] [normed_add_torsor E PE]
-  {F PF : Type*} [normed_group F] [normed_space ℝ F] [metric_space PF] [normed_add_torsor F PF]
+variables {E PE F PF : Type*} [normed_add_comm_group E] [normed_space ℝ E] [metric_space PE]
+  [normed_add_torsor E PE] [normed_add_comm_group F] [normed_space ℝ F] [metric_space PF]
+  [normed_add_torsor F PF]
 
 open set affine_map affine_isometry_equiv
 

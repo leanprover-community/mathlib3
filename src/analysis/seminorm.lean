@@ -92,8 +92,8 @@ protected lemma add_le : p (x + y) ≤ p x + p y := p.add_le' _ _
 @[simp] protected lemma neg : p (- x) = p x := p.neg' _
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
-instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
-  has_scalar R (add_group_seminorm E) :=
+instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  has_smul R (add_group_seminorm E) :=
 { smul := λ r p,
   { to_fun := λ x, r • p x,
     nonneg' := λ x, begin
@@ -109,16 +109,16 @@ instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
     end,
     neg' := λ x, by rw p.neg }}
 
-instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
-  [has_scalar R' ℝ] [has_scalar R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
-  [has_scalar R R'] [is_scalar_tower R R' ℝ] :
+instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
+  [has_smul R R'] [is_scalar_tower R R' ℝ] :
   is_scalar_tower R R' (add_group_seminorm E) :=
 { smul_assoc := λ r a p, ext $ λ x, smul_assoc r a (p x) }
 
-@[simp] lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+@[simp] lemma coe_smul [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : add_group_seminorm E) : ⇑(r • p) = r • p := rfl
 
-@[simp] lemma smul_apply [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+@[simp] lemma smul_apply [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : add_group_seminorm E) (x : E) : (r • p) x = r • p x := rfl
 
 instance : has_add (add_group_seminorm E) :=
@@ -155,7 +155,7 @@ noncomputable instance : has_sup (add_group_seminorm E) :=
 @[simp] lemma coe_sup (p q : add_group_seminorm E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 lemma sup_apply (p q : add_group_seminorm E) (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-lemma smul_sup [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+lemma smul_sup [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p q : add_group_seminorm E) :
   r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
@@ -288,7 +288,7 @@ end add_group_seminorm
 
 /-- A seminorm on a module over a normed ring is a function to the reals that is positive
 semidefinite, positive homogeneous, and subadditive. -/
-structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_group E] [has_scalar 𝕜 E]
+structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_group E] [has_smul 𝕜 E]
   extends add_group_seminorm E :=
 (smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 
@@ -311,7 +311,7 @@ have h: 0 ≤ 2 * f x, from
 calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero.of_smul smul]
 ...    ≤ f x + f (-x)  : add_le _ _
 ...    = 2 * f x : by rw [neg.of_smul smul, two_mul],
-nonneg_of_mul_nonneg_left h zero_lt_two
+nonneg_of_mul_nonneg_right h zero_lt_two
 
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
 `semi_norm_ring 𝕜`. -/
@@ -333,8 +333,8 @@ variables [semi_normed_ring 𝕜]
 section add_group
 variables [add_group E]
 
-section has_scalar
-variables [has_scalar 𝕜 E]
+section has_smul
+variables [has_smul 𝕜 E]
 
 instance zero_hom_class : zero_hom_class (seminorm 𝕜 E) E ℝ :=
 { coe := λ f, f.to_fun,
@@ -364,8 +364,8 @@ protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma add_le : p (x + y) ≤ p x + p y := p.add_le' _ _
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
-instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
-  has_scalar R (seminorm 𝕜 E) :=
+instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  has_smul R (seminorm 𝕜 E) :=
 { smul := λ r p,
   { to_fun  := λ x, r • p x,
     smul' := λ _ _, begin
@@ -374,16 +374,16 @@ instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
     end,
     ..(r • p.to_add_group_seminorm) }}
 
-instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
-  [has_scalar R' ℝ] [has_scalar R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
-  [has_scalar R R'] [is_scalar_tower R R' ℝ] :
+instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
+  [has_smul R R'] [is_scalar_tower R R' ℝ] :
   is_scalar_tower R R' (seminorm 𝕜 E) :=
 { smul_assoc := λ r a p, ext $ λ x, smul_assoc r a (p x) }
 
-lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+lemma coe_smul [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) : ⇑(r • p) = r • p := rfl
 
-@[simp] lemma smul_apply [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+@[simp] lemma smul_apply [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) (x : E) : (r • p) x = r • p x := rfl
 
 instance : has_add (seminorm 𝕜 E) :=
@@ -402,7 +402,7 @@ fun_like.coe_injective.add_monoid _ rfl coe_add (λ p n, coe_smul n p)
 instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
 fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add (λ p n, coe_smul n p)
 
-instance [monoid R] [mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+instance [monoid R] [mul_action R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   mul_action R (seminorm 𝕜 E) :=
 fun_like.coe_injective.mul_action _ coe_smul
 
@@ -418,11 +418,11 @@ show @function.injective (seminorm 𝕜 E) (E → ℝ) coe_fn, from fun_like.coe
 
 variables {𝕜 E}
 
-instance [monoid R] [distrib_mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+instance [monoid R] [distrib_mul_action R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   distrib_mul_action R (seminorm 𝕜 E) :=
 (coe_fn_add_monoid_hom_injective 𝕜 E).distrib_mul_action _ coe_smul
 
-instance [semiring R] [module R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+instance [semiring R] [module R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   module R (seminorm 𝕜 E) :=
 (coe_fn_add_monoid_hom_injective 𝕜 E).module R _ coe_smul
 
@@ -438,7 +438,7 @@ noncomputable instance : has_sup (seminorm 𝕜 E) :=
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 lemma sup_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-lemma smul_sup [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+lemma smul_sup [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p q : seminorm 𝕜 E) :
   r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
@@ -455,14 +455,14 @@ lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
 noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
-end has_scalar
+end has_smul
 
 end add_group
 
 section module
 variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
 variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
-variables [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+variables [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
 
 /-- Composition of a seminorm with a linear map is a seminorm. -/
 def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
@@ -637,7 +637,7 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
   ..seminorm.semilattice_sup }
 
-lemma smul_inf [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+lemma smul_inf [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p q : seminorm 𝕜 E) :
   r • (p ⊓ q) = r • p ⊓ r • q :=
 begin
@@ -656,8 +656,8 @@ variables [semi_normed_ring 𝕜]
 section add_comm_group
 variables [add_comm_group E]
 
-section has_scalar
-variables [has_scalar 𝕜 E] (p : seminorm 𝕜 E)
+section has_smul
+variables [has_smul 𝕜 E] (p : seminorm 𝕜 E)
 
 /-- The ball of radius `r` at `x` with respect to seminorm `p` is the set of elements `y` with
 `p (y - x) < `r`. -/
@@ -708,7 +708,7 @@ begin
   exact (p.add_le _ _).trans_lt (add_lt_add hy₁ hy₂),
 end
 
-end has_scalar
+end has_smul
 
 section module
 
@@ -860,8 +860,8 @@ end normed_field
 section convex
 variables [normed_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
 
-section has_scalar
-variables [has_scalar ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
+section has_smul
+variables [has_smul ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
 
 /-- A seminorm is convex. Also see `convex_on_norm`. -/
 protected lemma convex_on : convex_on ℝ univ p :=
@@ -875,7 +875,7 @@ begin
             real.norm_of_nonneg hb],
 end
 
-end has_scalar
+end has_smul
 
 section module
 variables [module ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E) (x : E) (r : ℝ)
@@ -896,7 +896,7 @@ end seminorm
 /-! ### The norm as a seminorm -/
 
 section norm_seminorm
-variables (𝕜) (E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
+variables (𝕜) (E) [normed_field 𝕜] [seminormed_add_comm_group E] [normed_space 𝕜 E] {r : ℝ}
 
 /-- The norm of a seminormed group as an add_monoid seminorm. -/
 def norm_add_group_seminorm : add_group_seminorm E :=

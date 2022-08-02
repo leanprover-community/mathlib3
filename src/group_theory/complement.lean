@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.group_action.quotient
-import group_theory.order_of_element
+import data.zmod.quotient
 
 /-!
 # Complements
@@ -20,6 +19,8 @@ In this file we define the complement of a subgroup.
   i.e. the set of all `S : set G` that contain exactly one element of each left coset of `T`.
 - `right_transversals S` where `S` is a subset of `G` is the set of all right-complements of `S`,
   i.e. the set of all `T : set G` that contain exactly one element of each right coset of `S`.
+- `transfer_transversal H g` is a specific `left_transversal` of `H` that is used in the
+  computation of the transfer homomorphism evaluated at an element `g : G`.
 
 ## Main results
 
@@ -173,9 +174,8 @@ end
   S ∈ left_transversals (H : set G) ↔
   ∀ q : quotient (quotient_group.left_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
-  have key : ∀ g h, quotient.mk' g = quotient.mk' h ↔ g⁻¹ * h ∈ H :=
-  @quotient.eq' G (quotient_group.left_rel H),
-  simp_rw [mem_left_transversals_iff_exists_unique_inv_mul_mem, set_like.mem_coe, ←key],
+  simp_rw [mem_left_transversals_iff_exists_unique_inv_mul_mem, set_like.mem_coe,
+    ← quotient_group.eq'],
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
@@ -183,9 +183,8 @@ end
   S ∈ right_transversals (H : set G) ↔
   ∀ q : quotient (quotient_group.right_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
-  have key : ∀ g h, quotient.mk' g = quotient.mk' h ↔ h * g⁻¹ ∈ H :=
-  @quotient.eq' G (quotient_group.right_rel H),
-  simp_rw [mem_right_transversals_iff_exists_unique_mul_inv_mem, set_like.mem_coe, ←key],
+  simp_rw [mem_right_transversals_iff_exists_unique_mul_inv_mem, set_like.mem_coe,
+    ← quotient_group.right_rel_apply, ← quotient.eq'],
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
@@ -258,7 +257,7 @@ to_equiv hS ∘ quotient.mk'
 
 @[to_additive] lemma inv_to_fun_mul_mem (hS : S ∈ subgroup.left_transversals (H : set G))
   (g : G) : (to_fun hS g : G)⁻¹ * g ∈ H :=
-quotient.exact' (mk'_to_equiv hS g)
+quotient_group.left_rel_apply.mp $ quotient.exact' $ mk'_to_equiv _ _
 
 @[to_additive] lemma inv_mul_to_fun_mem (hS : S ∈ subgroup.left_transversals (H : set G))
   (g : G) : g⁻¹ * to_fun hS g ∈ H :=
@@ -295,7 +294,7 @@ to_equiv hS ∘ quotient.mk'
 
 @[to_additive] lemma mul_inv_to_fun_mem (hS : S ∈ subgroup.right_transversals (H : set G))
   (g : G) : g * (to_fun hS g : G)⁻¹ ∈ H :=
-quotient.exact' (mk'_to_equiv hS _)
+quotient_group.right_rel_apply.mp $ quotient.exact' $ mk'_to_equiv _ _
 
 @[to_additive] lemma to_fun_mul_inv_mem (hS : S ∈ subgroup.right_transversals (H : set G))
   (g : G) : (to_fun hS g : G) * g⁻¹ ∈ H :=
@@ -405,6 +404,83 @@ begin
   specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
   refine prod.ext (eq_inv_of_mul_eq_one_right h1) (subtype.ext _),
   rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+end
+
+end subgroup
+
+namespace subgroup
+
+open equiv function mem_left_transversals mul_action mul_action.quotient zmod
+
+universe u
+
+variables {G : Type u} [group G] (H : subgroup G) (g : G)
+
+/-- Partition `G ⧸ H` into orbits of the action of `g : G`. -/
+noncomputable def quotient_equiv_sigma_zmod : G ⧸ H ≃
+  Σ (q : orbit_rel.quotient (zpowers g) (G ⧸ H)), zmod (minimal_period ((•) g) q.out') :=
+(self_equiv_sigma_orbits (zpowers g) (G ⧸ H)).trans
+  (sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
+
+lemma quotient_equiv_sigma_zmod_symm_apply
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
+  (quotient_equiv_sigma_zmod H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
+rfl
+
+lemma quotient_equiv_sigma_zmod_apply (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : ℤ) :
+  quotient_equiv_sigma_zmod H g (g ^ k • q.out') = ⟨q, k⟩ :=
+by rw [apply_eq_iff_eq_symm_apply, quotient_equiv_sigma_zmod_symm_apply,
+  zmod.coe_int_cast, zpow_smul_mod_minimal_period]
+
+/-- The transfer transversal as a function. Given a `⟨g⟩`-orbit `q₀, g • q₀, ..., g ^ (m - 1) • q₀`
+  in `G ⧸ H`, an element `g ^ k • q₀` is mapped to `g ^ k • g₀` for a fixed choice of
+  representative `g₀` of `q₀`. -/
+noncomputable def transfer_function : G ⧸ H → G :=
+λ q, g ^ ((quotient_equiv_sigma_zmod H g q).2 : ℤ) * (quotient_equiv_sigma_zmod H g q).1.out'.out'
+
+lemma transfer_function_apply (q : G ⧸ H) : transfer_function H g q =
+  g ^ ((quotient_equiv_sigma_zmod H g q).2 : ℤ) * (quotient_equiv_sigma_zmod H g q).1.out'.out' :=
+rfl
+
+lemma coe_transfer_function (q : G ⧸ H) : ↑(transfer_function H g q) = q :=
+by rw [transfer_function_apply, ←smul_eq_mul, coe_smul_out',
+  ←quotient_equiv_sigma_zmod_symm_apply, sigma.eta, symm_apply_apply]
+
+/-- The transfer transversal as a set. Contains elements of the form `g ^ k • g₀` for fixed choices
+  of representatives `g₀` of fixed choices of representatives `q₀` of `⟨g⟩`-orbits in `G ⧸ H`. -/
+def transfer_set : set G :=
+set.range (transfer_function H g)
+
+lemma mem_transfer_set (q : G ⧸ H) : transfer_function H g q ∈ transfer_set H g :=
+⟨q, rfl⟩
+
+/-- The transfer transversal. Contains elements of the form `g ^ k • g₀` for fixed choices
+  of representatives `g₀` of fixed choices of representatives `q₀` of `⟨g⟩`-orbits in `G ⧸ H`. -/
+def transfer_transversal : left_transversals (H : set G) :=
+⟨transfer_set H g, range_mem_left_transversals (coe_transfer_function H g)⟩
+
+lemma transfer_transversal_apply (q : G ⧸ H) :
+  ↑(to_equiv (transfer_transversal H g).2 q) = transfer_function H g q :=
+to_equiv_apply (coe_transfer_function H g) q
+
+lemma transfer_transversal_apply'
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
+  ↑(to_equiv (transfer_transversal H g).2 (g ^ (k : ℤ) • q.out')) = g ^ (k : ℤ) * q.out'.out' :=
+by rw [transfer_transversal_apply, transfer_function_apply,
+  ←quotient_equiv_sigma_zmod_symm_apply, apply_symm_apply]
+
+lemma transfer_transversal_apply''
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
+  ↑(to_equiv (g • transfer_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
+    if k = 0 then g ^ minimal_period ((•) g) q.out' * q.out'.out' else g ^ (k : ℤ) * q.out'.out' :=
+begin
+  rw [smul_apply_eq_smul_apply_inv_smul, transfer_transversal_apply, transfer_function_apply,
+      ←mul_smul, ←zpow_neg_one, ←zpow_add, quotient_equiv_sigma_zmod_apply, smul_eq_mul,
+      ←mul_assoc, ←zpow_one_add, int.cast_add, int.cast_neg, int.cast_one, int_cast_cast,
+      cast_id', id.def, ←sub_eq_neg_add, cast_sub_one, add_sub_cancel'_right],
+  by_cases hk : k = 0,
+  { rw [if_pos hk, if_pos hk, zpow_coe_nat] },
+  { rw [if_neg hk, if_neg hk] },
 end
 
 end subgroup

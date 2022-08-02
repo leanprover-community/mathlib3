@@ -115,8 +115,8 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {x : E} {f' : E →L[ℝ] ℝ}
-  {s : set E}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {x : E}
+  {f' : E →L[ℝ] ℝ} {s : set E}
 
 lemma has_fderiv_within_at.log (hf : has_fderiv_within_at f f' s x) (hx : f x ≠ 0) :
   has_fderiv_within_at (λ x, log (f x)) ((f x)⁻¹ • f') s x :=
@@ -230,7 +230,7 @@ begin
       have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
       simp [F, this] },
     apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
-    { simpa using abs_nonneg x },
+    { simp },
     { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
   -- fourth step: conclude by massaging the inequality of the third step
   simpa [F, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using C
@@ -284,9 +284,9 @@ begin
     convert h₁.add (has_sum_pow_div_log_of_abs_lt_1 h),
     ring_nf },
   { intros m hm,
-    rw [range_two_mul, set.mem_set_of_eq] at hm,
+    rw [range_two_mul, set.mem_set_of_eq, ← nat.even_add_one] at hm,
     dsimp [term],
-    rw [even.neg_pow (nat.even_succ.mpr hm), nat.succ_eq_add_one, neg_one_mul, neg_add_self] },
+    rw [even.neg_pow hm, neg_one_mul, neg_add_self] },
 end
 
 /-- Expansion of `log (1 + a⁻¹)` as a series in powers of `1 / (2 * a + 1)`. -/

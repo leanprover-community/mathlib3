@@ -83,8 +83,6 @@ they unfold around `polynomial.of_finsupp` and `polynomial.to_finsupp`.
 -/
 section add_monoid_algebra
 
-/-- The function version of `monomial`. Use `monomial` instead of this one. -/
-@[irreducible] def monomial_fun (n : ℕ) (a : R) : R[X] := ⟨finsupp.single n a⟩
 @[irreducible] private def add : R[X] → R[X] → R[X]
 | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
 @[irreducible] private def neg {R : Type u} [ring R] : R[X] → R[X]
@@ -93,25 +91,18 @@ section add_monoid_algebra
 | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
 
 instance : has_zero R[X] := ⟨⟨0⟩⟩
-instance : has_one R[X] := ⟨monomial_fun 0 (1 : R)⟩
+instance : has_one R[X] := ⟨⟨1⟩⟩
 instance : has_add R[X] := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg R[X] := ⟨neg⟩
 instance {R : Type u} [ring R] : has_sub R[X] := ⟨λ a b, a + -b⟩
 instance : has_mul R[X] := ⟨mul⟩
-instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S R[X] :=
+instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_smul S R[X] :=
 ⟨λ r p, ⟨r • p.to_finsupp⟩⟩
 @[priority 1]  -- to avoid a bug in the `ring` tactic
 instance has_pow : has_pow R[X] ℕ := { pow := λ p n, npow_rec n p }
 
-@[simp] lemma of_finsupp_zero : (⟨0⟩ : R[X]) = 0 :=
-rfl
-
-@[simp] lemma of_finsupp_one : (⟨1⟩ : R[X]) = 1 :=
-begin
-  change (⟨1⟩ : R[X]) = monomial_fun 0 (1 : R),
-  rw [monomial_fun],
-  refl
-end
+@[simp] lemma of_finsupp_zero : (⟨0⟩ : R[X]) = 0 := rfl
+@[simp] lemma of_finsupp_one : (⟨1⟩ : R[X]) = 1 := rfl
 
 @[simp] lemma of_finsupp_add {a b} : (⟨a + b⟩ : R[X]) = ⟨a⟩ + ⟨b⟩ := show _ = add _ _, by rw add
 @[simp] lemma of_finsupp_neg {R : Type u} [ring R] {a} : (⟨-a⟩ : R[X]) = -⟨a⟩ :=
@@ -133,12 +124,7 @@ end
 @[simp] lemma to_finsupp_zero : (0 : R[X]).to_finsupp = 0 :=
 rfl
 
-@[simp] lemma to_finsupp_one : (1 : R[X]).to_finsupp = 1 :=
-begin
-  change to_finsupp (monomial_fun _ _) = _,
-  rw monomial_fun,
-  refl,
-end
+@[simp] lemma to_finsupp_one : (1 : R[X]).to_finsupp = 1 := rfl
 
 @[simp] lemma to_finsupp_add (a b : R[X]) : (a + b).to_finsupp = a.to_finsupp + b.to_finsupp :=
 by { cases a, cases b, rw ←of_finsupp_add }
@@ -205,7 +191,7 @@ instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [di
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_comm] }⟩
 
-instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
+instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
   [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_assoc] }⟩
 
@@ -263,17 +249,17 @@ by simp
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) : R →ₗ[R] R[X] :=
-{ to_fun := monomial_fun n,
-  map_add' := by simp [monomial_fun],
-  map_smul' := by simp [monomial_fun, ←of_finsupp_smul] }
+{ to_fun := λ t, ⟨finsupp.single n t⟩,
+  map_add' := by simp,
+  map_smul' := by simp [←of_finsupp_smul] }
 
 @[simp] lemma to_finsupp_monomial (n : ℕ) (r : R) :
   (monomial n r).to_finsupp = finsupp.single n r :=
-by simp [monomial, monomial_fun]
+by simp [monomial]
 
 @[simp] lemma of_finsupp_single (n : ℕ) (r : R) :
   (⟨finsupp.single n r⟩ : R[X]) = monomial n r :=
-by simp [monomial, monomial_fun]
+by simp [monomial]
 
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
@@ -308,11 +294,7 @@ to_finsupp_injective $ by simp
 
 lemma monomial_injective (n : ℕ) :
   function.injective (monomial n : R → R[X]) :=
-begin
-  convert (to_finsupp_iso R).symm.injective.comp (single_injective n),
-  ext,
-  simp
-end
+(to_finsupp_iso R).symm.injective.comp (single_injective n)
 
 @[simp] lemma monomial_eq_zero_iff (t : R) (n : ℕ) :
   monomial n t = 0 ↔ t = 0 :=

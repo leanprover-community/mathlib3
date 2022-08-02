@@ -15,7 +15,7 @@ containing all powersets of members of `f`.
 `g` converges to `f.small_sets` if for all `s ∈ f`, eventually we have `g x ⊆ s`.
 
 An example usage is that if `f : ι → E → ℝ` is a family of nonnegative functions with integral 1,
-then saying that `λ i, support (f i)` tendsto `(𝓝 0).small_sets` is a way of saying that 
+then saying that `λ i, support (f i)` tendsto `(𝓝 0).small_sets` is a way of saying that
 `f` tends to the Dirac delta distribution.
 -/
 
@@ -118,7 +118,7 @@ calc _ ↔ ∃ s ∈ l, ∀ᶠ x in l', x ∈ s → p x :
   (∀ᶠ s in l.small_sets, ∀ x ∈ s, p x) ↔ ∀ᶠ x in l, p x :=
 by simpa only [inf_top_eq, eventually_top] using @eventually_small_sets_eventually α l ⊤ p
 
-alias eventually_small_sets_forall ↔ filter.eventually.of_small_sets filter.eventually.small_sets
+alias eventually_small_sets_forall ↔ eventually.of_small_sets eventually.small_sets
 
 @[simp] lemma eventually_small_sets_subset {s : set α} :
   (∀ᶠ t in l.small_sets, t ⊆ s) ↔ s ∈ l :=

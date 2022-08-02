@@ -144,6 +144,24 @@ end finite
 
 end module
 
+instance module.finite.base_change [comm_semiring R] [semiring A] [algebra R A]
+  [add_comm_monoid M] [module R M] [h : module.finite R M] :
+  module.finite A (tensor_product R A M) :=
+begin
+  classical,
+  obtain ⟨s, hs⟩ := h.out,
+  refine ⟨⟨s.image (tensor_product.mk R A M 1), eq_top_iff.mpr $ λ x _, _⟩⟩,
+  apply tensor_product.induction_on x,
+  { exact zero_mem _ },
+  { intros x y,
+    rw [finset.coe_image, ← submodule.span_span_of_tower R, submodule.span_image, hs,
+      submodule.map_top, linear_map.range_coe],
+      change _ ∈ submodule.span A (set.range $ tensor_product.mk R A M 1),
+    rw [← mul_one x, ← smul_eq_mul, ← tensor_product.smul_tmul'],
+    exact submodule.smul_mem _ x (submodule.subset_span $ set.mem_range_self y) },
+  { exact λ _ _, submodule.add_mem _ }
+end
+
 instance module.finite.tensor_product [comm_semiring R]
   [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
   [hM : module.finite R M] [hN : module.finite R N] : module.finite R (tensor_product R M N) :=
@@ -240,9 +258,8 @@ begin
   split,
   { rw iff_quotient_mv_polynomial',
     rintro ⟨ι, hfintype, ⟨f, hsur⟩⟩,
-    letI := hfintype,
-    obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) hfintype,
-    replace equiv := mv_polynomial.rename_equiv R equiv,
+    resetI,
+    have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
     exact ⟨fintype.card ι, alg_hom.comp f equiv.symm, function.surjective.comp hsur
       (alg_equiv.symm equiv).surjective⟩ },
   { rintro ⟨n, ⟨f, hsur⟩⟩,
@@ -262,6 +279,21 @@ instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A �
   rw ← subalgebra.prod_top,
   exact hA.1.prod hB.1
 end⟩
+
+lemma is_noetherian_ring (R S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
+  [h : algebra.finite_type R S] [is_noetherian_ring R] : is_noetherian_ring S :=
+begin
+  obtain ⟨s, hs⟩ := h.1,
+  apply is_noetherian_ring_of_surjective
+    (mv_polynomial s R) S (mv_polynomial.aeval coe : mv_polynomial s R →ₐ[R] S),
+  rw [← set.range_iff_surjective, alg_hom.coe_to_ring_hom, ← alg_hom.coe_range,
+    ← algebra.adjoin_range_eq_range_aeval, subtype.range_coe_subtype, finset.set_of_mem, hs],
+  refl
+end
+
+lemma _root_.subalgebra.fg_iff_finite_type {R A : Type*} [comm_semiring R] [semiring A]
+  [algebra R A] (S : subalgebra R A) : S.fg ↔ algebra.finite_type R S :=
+S.fg_top.symm.trans ⟨λ h, ⟨h⟩, λ h, h.out⟩
 
 end finite_type
 
@@ -304,8 +336,7 @@ variable (R)
 protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
   finite_presentation R (mv_polynomial ι R) :=
 begin
-  obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
-  replace equiv := mv_polynomial.rename_equiv R equiv,
+  have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
   refine ⟨_, alg_equiv.to_alg_hom equiv.symm, _⟩,
   split,
   { exact (alg_equiv.symm equiv).surjective },
@@ -363,9 +394,8 @@ begin
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
   { rintro ⟨ι, hfintype, f, hf⟩,
-    haveI : fintype ι := hfintype,
-    obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
-    replace equiv := mv_polynomial.rename_equiv R equiv,
+    resetI,
+    have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
     refine ⟨fintype.card ι, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
       ideal.fg_ker_comp _ f _ hf.2 equiv.symm.surjective⟩,
@@ -719,8 +749,10 @@ lemma mem_closure_of_mem_span_closure [nontrivial R] {m : M} {S : set M}
 begin
   suffices : multiplicative.of_add m ∈ submonoid.closure (multiplicative.to_add ⁻¹' S),
   { simpa [← to_submonoid_closure] },
-  rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x),
-    ← monoid_hom.map_mclosure] at h,
+  let S' := @submonoid.closure M multiplicative.mul_one_class S,
+  have h' : submonoid.map (of R M) S' = submonoid.closure ((λ (x : M), (of R M) x) '' S) :=
+    monoid_hom.map_mclosure _ _,
+  rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x), ← h'] at h,
   simpa using of'_mem_span.1 h
 end
 

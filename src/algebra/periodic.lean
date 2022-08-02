@@ -94,7 +94,7 @@ lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]
 s.prod_to_list f ▸ (s.to_list.map f).periodic_prod (by simpa [-periodic])
 
 @[to_additive]
-lemma periodic.smul [has_add α] [has_scalar γ β] (h : periodic f c) (a : γ) :
+lemma periodic.smul [has_add α] [has_smul γ β] (h : periodic f c) (a : γ) :
   periodic (a • f) c :=
 by simp * at *
 
@@ -329,7 +329,11 @@ by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, 
 /-- Lift a periodic function to a function from the quotient group. -/
 def periodic.lift [add_group α] (h : periodic f c) (x : α ⧸ add_subgroup.zmultiples c) : β :=
 quotient.lift_on' x f $
-  λ a b ⟨k, hk⟩, (h.zsmul k _).symm.trans $ congr_arg f $ add_eq_of_eq_neg_add hk
+  λ a b h', (begin
+    rw quotient_add_group.left_rel_apply at h',
+    obtain ⟨k, hk⟩ := h',
+    exact (h.zsmul k _).symm.trans (congr_arg f (add_eq_of_eq_neg_add hk)),
+   end)
 
 @[simp] lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
   h.lift (a : α ⧸ add_subgroup.zmultiples c) = f a :=
@@ -519,3 +523,7 @@ lemma antiperiodic.div [has_add α] [division_ring β]
 by simp [*, neg_div_neg_eq] at *
 
 end function
+
+lemma int.fract_periodic (α) [linear_ordered_ring α] [floor_ring α] :
+  function.periodic int.fract (1 : α) :=
+by exact_mod_cast λ a, int.fract_add_int a 1

@@ -3,7 +3,7 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.zmod.basic
+import algebra.ne_zero
 import group_theory.group_action.quotient
 import ring_theory.int.basic
 
@@ -97,6 +97,8 @@ namespace mul_action
 open add_action subgroup add_subgroup function
 
 variables {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+
+local attribute [semireducible] mul_opposite
 
 /-- The quotient `(a ^ ℤ) ⧸ (stabilizer b)` is cyclic of order `minimal_period ((•) a) b`. -/
 noncomputable def zpowers_quotient_stabilizer_equiv :

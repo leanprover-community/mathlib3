@@ -102,7 +102,7 @@ instance : has_mul (ring_quot r) := ⟨mul r⟩
 instance : has_pow (ring_quot r) ℕ := ⟨λ x n, npow r n x⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_neg (ring_quot r) := ⟨neg r⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_sub (ring_quot r) := ⟨sub r⟩
-instance [algebra S R] : has_scalar S (ring_quot r) := ⟨smul r⟩
+instance [algebra S R] : has_smul S (ring_quot r) := ⟨smul r⟩
 
 lemma zero_quot : (⟨quot.mk _ 0⟩ : ring_quot r) = 0 := show _ = zero r, by rw zero
 lemma one_quot : (⟨quot.mk _ 1⟩ : ring_quot r) = 1 := show _ = one r, by rw one

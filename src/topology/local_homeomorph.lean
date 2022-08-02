@@ -49,7 +49,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 /-- local homeomorphisms, defined on open subsets of the space -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure local_homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends local_equiv α β :=
 (open_source        : is_open source)
@@ -220,6 +220,12 @@ lemma source_inter_preimage_target_inter (s : set β) :
   e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
 e.to_local_equiv.source_inter_preimage_target_inter s
 
+lemma image_source_eq_target (e : local_homeomorph α β) : e '' e.source = e.target :=
+e.to_local_equiv.image_source_eq_target
+
+lemma symm_image_target_eq_source (e : local_homeomorph α β) : e.symm '' e.target = e.source :=
+e.symm.image_source_eq_target
+
 /-- Two local homeomorphisms are equal when they have equal `to_fun`, `inv_fun` and `source`.
 It is not sufficient to have equal `to_fun` and `source`, as this only determines `inv_fun` on
 the target. This would only be true for a weaker notion of equality, arguably the right one,
@@ -229,6 +235,10 @@ protected lemma ext (e' : local_homeomorph α β) (h : ∀x, e x = e' x)
   (hinv : ∀x, e.symm x = e'.symm x) (hs : e.source = e'.source) : e = e' :=
 eq_of_local_equiv_eq (local_equiv.ext h hinv hs)
 
+protected lemma ext_iff {e e' : local_homeomorph α β} : e = e' ↔ (∀ x, e x = e' x) ∧
+  (∀ x, e.symm x = e'.symm x) ∧ e.source = e'.source :=
+⟨by { rintro rfl, exact ⟨λ x, rfl, λ x, rfl, rfl⟩ }, λ h, e.ext e' h.1 h.2.1 h.2.2⟩
+
 @[simp, mfld_simps] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
 -- The following lemmas are already simp via local_equiv
 lemma symm_source : e.symm.source = e.target := rfl
@@ -237,7 +247,7 @@ lemma symm_target : e.symm.target = e.source := rfl
 
 /-- A local homeomorphism is continuous at any point of its source -/
 protected lemma continuous_at {x : α} (h : x ∈ e.source) : continuous_at e x :=
-(e.continuous_on x h).continuous_at (is_open.mem_nhds e.open_source h)
+(e.continuous_on x h).continuous_at (e.open_source.mem_nhds h)
 
 /-- A local homeomorphism inverse is continuous at any point of its target -/
 lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x :=
@@ -272,6 +282,50 @@ lemma map_nhds_within_preimage_eq (e : local_homeomorph α β) {x} (hx : x ∈ e
   map e (𝓝[e ⁻¹' s] x) = 𝓝[s] (e x) :=
 by rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.target_inter_inv_preimage_preimage,
   e.nhds_within_target_inter (e.map_source hx)]
+
+lemma eventually_nhds (e : local_homeomorph α β) {x : α} (p : β → Prop)
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p y) ↔ ∀ᶠ x in 𝓝 x, p (e x) :=
+iff.trans (by rw [e.map_nhds_eq hx]) eventually_map
+
+lemma eventually_nhds' (e : local_homeomorph α β) {x : α} (p : α → Prop)
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p (e.symm y)) ↔ ∀ᶠ x in 𝓝 x, p x :=
+begin
+  rw [e.eventually_nhds _ hx],
+  refine eventually_congr ((e.eventually_left_inverse hx).mono $ λ y hy, _),
+  rw [hy]
+end
+
+lemma eventually_nhds_within (e : local_homeomorph α β) {x : α} (p : β → Prop) {s : set α}
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝[e.symm ⁻¹' s] (e x), p y) ↔ ∀ᶠ x in 𝓝[s] x, p (e x) :=
+begin
+  refine iff.trans _ eventually_map,
+  rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.nhds_within_target_inter (e.maps_to hx)]
+end
+
+lemma eventually_nhds_within' (e : local_homeomorph α β) {x : α} (p : α → Prop) {s : set α}
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝[e.symm ⁻¹' s] (e x), p (e.symm y)) ↔ ∀ᶠ x in 𝓝[s] x, p x :=
+begin
+  rw [e.eventually_nhds_within _ hx],
+  refine eventually_congr ((eventually_nhds_within_of_eventually_nhds $
+    e.eventually_left_inverse hx).mono $ λ y hy, _),
+  rw [hy]
+end
+
+/-- This lemma is useful in the manifold library in the case that `e` is a chart. It states that
+  locally around `e x` the set `e.symm ⁻¹' s` is the same as the set intersected with the target
+  of `e` and some other neighborhood of `f x` (which will be the source of a chart on `γ`).  -/
+lemma preimage_eventually_eq_target_inter_preimage_inter
+  {e : local_homeomorph α β} {s : set α} {t : set γ} {x : α}
+  {f : α → γ} (hf : continuous_within_at f s x) (hxe : x ∈ e.source) (ht : t ∈ 𝓝 (f x)) :
+  e.symm ⁻¹' s =ᶠ[𝓝 (e x)] (e.target ∩ e.symm ⁻¹' (s ∩ f ⁻¹' t) : set β) :=
+begin
+  rw [eventually_eq_set, e.eventually_nhds _ hxe],
+  filter_upwards [(e.open_source.mem_nhds hxe),
+    mem_nhds_within_iff_eventually.mp (hf.preimage_mem_nhds_within ht)],
+  intros y hy hyu,
+  simp_rw [mem_inter_iff, mem_preimage, mem_inter_iff, e.maps_to hy, true_and, iff_self_and,
+    e.left_inv hy, iff_true_intro hyu]
+end
 
 lemma preimage_open_of_open {s : set β} (hs : is_open s) : is_open (e.source ∩ e ⁻¹' s) :=
 e.continuous_on.preimage_open_of_open e.open_source hs
@@ -330,27 +384,23 @@ h.symm.image_eq
 lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
 local_equiv.is_image.iff_preimage_eq
 
-alias iff_preimage_eq ↔ local_homeomorph.is_image.preimage_eq
-  local_homeomorph.is_image.of_preimage_eq
+alias iff_preimage_eq ↔ preimage_eq of_preimage_eq
 
 lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
 symm_iff.symm.trans iff_preimage_eq
 
-alias iff_symm_preimage_eq ↔ local_homeomorph.is_image.symm_preimage_eq
-  local_homeomorph.is_image.of_symm_preimage_eq
+alias iff_symm_preimage_eq ↔ symm_preimage_eq of_symm_preimage_eq
 
 lemma iff_symm_preimage_eq' :
   e.is_image s t ↔ e.target ∩ e.symm ⁻¹' (e.source ∩ s) = e.target ∩ t :=
 by rw [iff_symm_preimage_eq, ← image_source_inter_eq, ← image_source_inter_eq']
 
-alias iff_symm_preimage_eq' ↔ local_homeomorph.is_image.symm_preimage_eq'
-  local_homeomorph.is_image.of_symm_preimage_eq'
+alias iff_symm_preimage_eq' ↔ symm_preimage_eq' of_symm_preimage_eq'
 
 lemma iff_preimage_eq' : e.is_image s t ↔ e.source ∩ e ⁻¹' (e.target ∩ t) = e.source ∩ s :=
 symm_iff.symm.trans iff_symm_preimage_eq'
 
-alias iff_preimage_eq' ↔ local_homeomorph.is_image.preimage_eq'
-  local_homeomorph.is_image.of_preimage_eq'
+alias iff_preimage_eq' ↔ preimage_eq' of_preimage_eq'
 
 lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
 local_equiv.is_image.of_image_eq h
@@ -584,6 +634,7 @@ protected def trans : local_homeomorph α γ :=
   (e.trans e').to_local_equiv = e.to_local_equiv.trans e'.to_local_equiv := rfl
 @[simp, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
 @[simp, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+lemma trans_apply {x : α} : (e.trans e') x = e' (e x) := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
@@ -769,6 +820,25 @@ rfl
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
 local_homeomorph.eq_of_local_equiv_eq $
   by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
+
+lemma prod_eq_prod_of_nonempty {e₁ e₁' : local_homeomorph α β} {e₂ e₂' : local_homeomorph γ δ}
+  (h : (e₁.prod e₂).source.nonempty) :
+  e₁.prod e₂ = e₁'.prod e₂' ↔ e₁ = e₁' ∧ e₂ = e₂' :=
+begin
+  obtain ⟨⟨x, y⟩, -⟩ := id h,
+  haveI : nonempty α := ⟨x⟩,
+  haveI : nonempty β  := ⟨e₁ x⟩,
+  haveI : nonempty γ := ⟨y⟩,
+  haveI : nonempty δ := ⟨e₂ y⟩,
+  simp_rw [local_homeomorph.ext_iff, prod_apply, prod_symm_apply, prod_source, prod.ext_iff,
+    set.prod_eq_prod_iff_of_nonempty h,
+    forall_and_distrib, prod.forall, forall_const, forall_forall_const, and_assoc, and.left_comm]
+end
+
+lemma prod_eq_prod_of_nonempty' {e₁ e₁' : local_homeomorph α β} {e₂ e₂' : local_homeomorph γ δ}
+  (h : (e₁'.prod e₂').source.nonempty) :
+  e₁.prod e₂ = e₁'.prod e₂' ↔ e₁ = e₁' ∧ e₂ = e₂' :=
+by rw [eq_comm, prod_eq_prod_of_nonempty h, eq_comm, @eq_comm _ e₂']
 
 end prod
 

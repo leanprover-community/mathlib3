@@ -237,6 +237,8 @@ instance zero_hom_class : zero_hom_class (add_group_seminorm E) E ℝ :=
 /- TODO: All the following ought to be automated using `to_additive`. The problem is that it doesn't
 see that `has_smul R ℝ` should be fixed because `ℝ` is fixed. -/
 
+lemma add_group_seminorm_apply (x : E) : p x = p.to_fun x := rfl
+
 variable (E)
 
 /-- The trivial norm on an additive group `E` is the `add_group_seminorm` taking value `0` at `0`
@@ -256,6 +258,9 @@ def trivial_norm [decidable_eq E] : add_group_seminorm E :=
   neg'      := λ x, by simp_rw neg_eq_zero }
 
 variable {E}
+
+lemma trivial_norm_of_ne_zero [decidable_eq E] {z : E} (h : z ≠ 0) : trivial_norm E z = 1 :=
+by simp only [trivial_norm, add_group_seminorm_apply, h, if_false]
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
 instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :

@@ -238,6 +238,14 @@ begin
       ((splits_id_iff_splits (algebra_map F K)).mpr h), map_map, f.comp_algebra_map, ←root_set],
 end
 
+lemma adjoin_root_set_eq_range [algebra F K] [algebra F L] {p : F[X]}
+  (h : p.splits (algebra_map F K)) (f : K →ₐ[F] L) :
+  algebra.adjoin F (p.root_set L) = f.range ↔ algebra.adjoin F (p.root_set K) = ⊤ :=
+begin
+  rw [←image_root_set h f, algebra.adjoin_image, ←algebra.map_top],
+  exact (subalgebra.map_injective f.to_ring_hom.injective).eq_iff,
+end
+
 lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :
   p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
 begin
@@ -792,25 +800,14 @@ begin
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
 end
 
-variables {L} {L' : Type*} [field L'] [algebra K L']
-
-lemma _root_.polynomial.adjoin_root_set_eq_top_iff_adjoin_root_set_eq_range {p : K[X]}
-  (hp : p.splits (algebra_map K L)) (f : L →ₐ[K] L') :
-  algebra.adjoin K (p.root_set L) = ⊤ ↔ algebra.adjoin K (p.root_set L') = f.range :=
-begin
-  rw [←image_root_set hp f, algebra.adjoin_image, ←algebra.map_top],
-  exact (subalgebra.map_injective f.to_ring_hom.injective).eq_iff.symm,
-end
-
-lemma of_alg_equiv (p : K[X]) (f : L ≃ₐ[K] L') [is_splitting_field K L p] :
-  is_splitting_field K L' p :=
+lemma of_alg_equiv [algebra K F] (p : K[X]) (f : F ≃ₐ[K] L) [is_splitting_field K F p] :
+  is_splitting_field K L p :=
 begin
   split,
   { rw ← f.to_alg_hom.comp_algebra_map,
-    exact splits_comp_of_splits _ _ (is_splitting_field.splits L p) },
-  { rw [←root_set, ←(algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
-        ←adjoin_root_set_eq_top_iff_adjoin_root_set_eq_range (is_splitting_field.splits L p),
-        root_set, is_splitting_field.adjoin_roots L p] },
+    exact splits_comp_of_splits _ _ (splits F p) },
+  { rw [←(algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
+        ←root_set, adjoin_root_set_eq_range (splits F p), root_set, adjoin_roots F p] },
 end
 
 end is_splitting_field

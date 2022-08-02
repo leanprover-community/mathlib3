@@ -90,7 +90,7 @@ lemma hamming_dist_ne_zero {x y : Π i, β i} : hamming_dist x y ≠ 0 ↔ x ≠
 not_congr hamming_dist_eq_zero
 
 /-- Corresponds to `dist_pos`. -/
-lemma hamming_dist_pos {x y : Π i, β i} : 0 < hamming_dist x y ↔ x ≠ y :=
+@[simp] lemma hamming_dist_pos {x y : Π i, β i} : 0 < hamming_dist x y ↔ x ≠ y :=
 by rw [←hamming_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
 
 @[simp] lemma hamming_dist_lt_one {x y : Π i, β i} : hamming_dist x y < 1 ↔ x = y :=

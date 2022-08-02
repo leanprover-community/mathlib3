@@ -455,13 +455,11 @@ lemma adapted_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   (ℱ.mono (nat.succ_le_of_lt (finset.mem_range.1 hk)) _ (hs _))).sub
   (strongly_measurable_condexp.mono (ℱ.mono (finset.mem_range.1 hk).le)))
 
--- lemma mgale_nonneg : 0 ≤ mgale ℱ μ s :=
--- begin
---   intros n x,
---   simp only [mgale, pi.zero_apply, finset.sum_apply, pi.sub_apply,
---     finset.sum_sub_distrib, sub_nonneg],
--- end
-
+lemma martingale_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+  martingale (mgale ℱ μ s) ℱ μ :=
+begin
+  sorry,
+end
 
 end borel_cantelli
 

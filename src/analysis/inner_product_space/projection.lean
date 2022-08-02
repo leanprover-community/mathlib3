@@ -483,7 +483,7 @@ begin
     (submodule.coe_mem _) (λ w hw, _)),
   calc ⟪x - orthogonal_projection U (orthogonal_projection V x), w⟫
       = ⟪x - orthogonal_projection V x, w⟫ +
-        ⟪orthogonal_projection V x - orthogonal_projection U (orthogonal_projection V x), w⟫ :
+        ⟪(orthogonal_projection V x : E) - orthogonal_projection U (orthogonal_projection V x), w⟫ :
         by rw [← inner_add_left, add_sub, sub_add_cancel]
   ... = 0 : by rw [orthogonal_projection_inner_eq_zero _ w (h hw),
                     orthogonal_projection_inner_eq_zero _ w hw, add_zero]

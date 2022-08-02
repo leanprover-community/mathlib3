@@ -6,6 +6,7 @@ Authors: Jujian Zhang
 import algebraic_geometry.sheafed_space
 import topology.sheaves.sheaf_condition.unique_gluing
 import topology.sheaves.stalks
+import category_theory.preadditive.injective
 
 /-!
 # Skyscraper (pre)sheaves
@@ -616,6 +617,22 @@ def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
       exact ts.hom_ext _ _ },
   end }
 
+example : true := trivial
+
+@[simps]
+def skyscraper_sheaf_functor : C ⥤ sheaf C X :=
+{ obj := λ S, skyscraper_sheaf p₀ S ts,
+  map := λ x y f, ⟨(skyscraper_presheaf_functor p₀ ts).map f⟩,
+  map_id' := λ c,
+  begin
+    ext1,
+    exact (skyscraper_presheaf_functor p₀ ts).map_id c,
+  end,
+  map_comp' := λ x y z f g,
+  begin
+    ext1,
+    exact (skyscraper_presheaf_functor p₀ ts).map_comp f g,
+  end }
 
 variable [has_colimits C]
 
@@ -755,7 +772,7 @@ noncomputable def stalk_skyscraper_presheaf_adj_counit :
     { exfalso, exact h U.unop.2 }
   end }
 
-noncomputable example : presheaf.stalk_functor C p₀ ⊣ skyscraper_presheaf_functor p₀ ts :=
+noncomputable def stalk_skyscraper_presheaf_adj : presheaf.stalk_functor C p₀ ⊣ skyscraper_presheaf_functor p₀ ts :=
 { hom_equiv := λ 𝓕 c, ⟨from_stalk_to_to_skyscraper_presheaf p₀ ts,
     to_skyscraper_presheaf_to_from_stalk p₀ ts,
     from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk p₀ ts,
@@ -780,5 +797,21 @@ noncomputable example : presheaf.stalk_functor C p₀ ⊣ skyscraper_presheaf_fu
     rw [category.comp_id],
     refl,
   end }
+
+example : true := trivial
+
+example : sheaf.forget C X ⋙ presheaf.stalk_functor _ p₀ ⊣ skyscraper_sheaf_functor p₀ ts :=
+{ hom_equiv := λ 𝓕, _,
+  unit := _,
+  counit := _,
+  hom_equiv_unit' := _,
+  hom_equiv_counit' := _ }
+
+section
+
+-- lemma skyscraper_presheaf_injective (S : C) [injective S] : injective (skyscraper_presheaf p₀ S ts) :=
+-- injective.injective_of_adjoint (stalk_skyscraper_presheaf_adj p₀ ts)
+
+end
 
 end adjoints

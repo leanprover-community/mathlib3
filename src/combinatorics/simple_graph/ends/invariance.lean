@@ -40,11 +40,45 @@ open simple_graph
 
 def cofinite (f : V → V') := ∀ x : V', (set.preimage f {x}).finite
 
-lemma cofinite.comp {f : V → V'} {f' : V' → V''} (cof : cofinite f) (cof' : cofinite f') : cofinite (f' ∘ f) := sorry
+lemma cofinite.list_preimage (f : V → V') (cof : cofinite f) : ∀ l : list V', (set.preimage f l.to_finset).finite :=
+begin
+  intro l,
+  induction l,
+  { simp, },
+  { simp, rw [set.insert_eq, set.preimage_union],
+    apply set.finite.union,
+    {apply cof,},
+    {assumption,} }
+end
 
-def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V := sorry
-lemma cofinite.preimage.coe {f : V → V'} (cof : cofinite f) (K : finset V') : ↑(cof.preimage K) = set.preimage f K := sorry
+lemma cofinite.finite_preimage (f : V → V') (cof : cofinite f) : ∀ S : set V', S.finite → (set.preimage f S).finite :=
+begin
+  intros S Sfin,
+  rcases set.finite.exists_finset_coe Sfin with ⟨fS, hcoefin⟩,
+  rcases (list.to_finset_surjective fS) with ⟨l, hcoelst⟩,
+  rw [← hcoefin, ← hcoelst],
+  apply cofinite.list_preimage _ cof,
+end
 
+lemma cofinite.finite_preimage_iff (f : V → V') : cofinite f ↔ ∀ S : set V', S.finite → (set.preimage f S).finite :=
+⟨cofinite.finite_preimage _, λ h x, h {x} (set.finite_singleton x)⟩
+
+lemma cofinite.comp {f : V → V'} {f' : V' → V''} (cof : cofinite f) (cof' : cofinite f') : cofinite (f' ∘ f) :=
+begin
+  intro x,
+  rw [set.preimage_comp],
+  apply cofinite.finite_preimage _ cof,
+  apply cof',
+end
+
+def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V :=
+set.finite.to_finset (cofinite.finite_preimage f cof K (finset.finite_to_set K))
+
+lemma cofinite.preimage.coe {f : V → V'} (cof : cofinite f) (K : finset V') : ↑(cof.preimage K) = set.preimage f K :=
+begin
+  show ↑(set.finite.to_finset (cofinite.finite_preimage f cof K (finset.finite_to_set K))) = f⁻¹' ↑K,
+  simp,
+end
 
 def good_finset (f : V → V') (cof : cofinite f) (K : finset V') :=
   {L : finset V | cofinite.preimage cof K ⊆ L

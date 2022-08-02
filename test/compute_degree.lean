@@ -41,7 +41,7 @@ example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
 by compute_degree_le
 
 example (n : ℕ) (h : 1 + n < 11) :
-  degree (5 * X ^ n + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=
+  degree (250 * X ^ n + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=
 begin
   compute_degree_le,
   { exact nat.lt_succ_iff.mp h },
@@ -89,6 +89,14 @@ example {R} [ring R] [nontrivial R] {a b c d e : R} :
 begin
   compute_degree,
   norm_num,
+end
+
+example (h : (5 : R) ≠ 0) :
+  (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 + 5 * monomial 11 1 +
+    C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X).nat_degree = 11 :=
+begin
+  compute_degree,
+  rwa mul_one,
 end
 
 example {R} [ring R] [nontrivial R] {a b c d e : R} :

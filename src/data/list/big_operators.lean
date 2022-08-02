@@ -471,8 +471,8 @@ lemma prod_map_erase [decidable_eq ι] [comm_monoid M] (f : ι → M) {a} :
   begin
     obtain rfl | ⟨ne, h⟩ := decidable.list.eq_or_ne_mem_of_mem h,
     { simp only [map, erase_cons_head, prod_cons] },
-    { simp only [map, list.erase, if_neg (mt eq.symm ne),
-      prod_cons, prod_map_erase h, mul_left_comm (f a) (f b)], }
+    { simp only [map, erase_cons_tail _ ne.symm, prod_cons, prod_map_erase h,
+        mul_left_comm (f a) (f b)], }
   end
 
 lemma dvd_prod [comm_monoid M] {a} {l : list M} (ha : a ∈ l) : a ∣ l.prod :=

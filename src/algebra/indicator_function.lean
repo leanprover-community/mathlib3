@@ -419,6 +419,11 @@ begin
   exact (ne_of_mem_of_not_mem ha' haI).symm
 end
 
+@[to_additive] lemma mul_indicator_finset_bUnion_apply {ι} (I : finset ι)
+  (s : ι → set α) {f : α → M} (h : ∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (s i) (s j)) (x : α) :
+  mul_indicator (⋃ i ∈ I, s i) f x = ∏ i in I, mul_indicator (s i) f x :=
+by rw set.mul_indicator_finset_bUnion I s h
+
 end comm_monoid
 
 section mul_zero_class

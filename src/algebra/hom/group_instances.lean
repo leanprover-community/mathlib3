@@ -55,11 +55,17 @@ instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
   zpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
 
+instance [add_comm_monoid M] : add_comm_monoid (add_monoid.End M) :=
+add_monoid_hom.add_comm_monoid
+
 instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
 { zero_mul := λ x, add_monoid_hom.ext $ λ i, rfl,
   mul_zero := λ x, add_monoid_hom.ext $ λ i, add_monoid_hom.map_zero _,
   left_distrib := λ x y z, add_monoid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
   right_distrib := λ x y z, add_monoid_hom.ext $ λ i, rfl,
+  nat_cast := λ n, n • 1,
+  nat_cast_zero := add_monoid.nsmul_zero' _,
+  nat_cast_succ := λ n, (add_monoid.nsmul_succ' n 1).trans (add_comm _ _),
   .. add_monoid.End.monoid M,
   .. add_monoid_hom.add_comm_monoid }
 
@@ -202,7 +208,8 @@ variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_
 
 This is a more-strongly bundled version of `add_monoid_hom.mul_left` and `add_monoid_hom.mul_right`.
 
-A stronger version of this exists for algebras as `algebra.lmul`.
+Stronger versions of this exists for algebras as `linear_map.mul`, `non_unital_alg_hom.mul`
+and `algebra.lmul`.
 -/
 def add_monoid_hom.mul : R →+ R →+ R :=
 { to_fun := add_monoid_hom.mul_left,

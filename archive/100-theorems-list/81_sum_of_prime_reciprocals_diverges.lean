@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales
 -/
 import topology.instances.ennreal
-import algebra.squarefree
+import data.nat.squarefree
 
 /-!
 # Divergence of the Prime Reciprocal Series
@@ -126,7 +126,7 @@ begin
       ≤ ∑ p in P, card (N p)  : by assumption_mod_cast
   ... ≤ ∑ p in P, x * (1 / p) : sum_le_sum (λ p hp, _)
   ... = x * ∑ p in P, 1 / p   : mul_sum.symm,
-  simp only [mul_one_div, N, sep_def, filter_congr_decidable, card_multiples, nat.cast_div_le],
+  simp only [mul_one_div, N, sep_def, filter_congr_decidable, nat.card_multiples, nat.cast_div_le],
 end
 
 /--

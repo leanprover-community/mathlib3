@@ -47,7 +47,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes v u u' u₂
+universes v v₂ u u' u₂
 
 open category_theory
 open category_theory.limits.walking_parallel_pair
@@ -128,7 +128,7 @@ def is_limit_aux (t : kernel_fork f)
 This is a more convenient formulation to show that a `kernel_fork` constructed using
 `kernel_fork.of_ι` is a limit cone.
 -/
-def is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
+def kernel_fork.is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
   (lift : Π {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), W' ⟶ W)
   (fac : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), lift g' eq' ≫ g = g')
   (uniq :
@@ -149,6 +149,14 @@ lemma is_kernel_comp_mono_lift {c : kernel_fork f} (i : is_limit c) {Z} (g : Y �
   {h : X ⟶ Z} (hh : h = f ≫ g) (s : kernel_fork h) :
   (is_kernel_comp_mono i g hh).lift s
   = i.lift (fork.of_ι s.ι (by { rw [←cancel_mono g, category.assoc, ←hh], simp })) := rfl
+
+/-- Every kernel of `f ≫ g` is also a kernel of `f`, as long as `c.ι ≫ f` vanishes. -/
+def is_kernel_of_comp {W : C} (g : Y ⟶ W) (h : X ⟶ W) {c : kernel_fork h} (i : is_limit c)
+  (hf : c.ι ≫ f = 0) (hfg : f ≫ g = h) : is_limit (kernel_fork.of_ι c.ι hf) :=
+fork.is_limit.mk _
+  (λ s, i.lift (kernel_fork.of_ι s.ι (by simp [← hfg])))
+  (λ s, by simp only [kernel_fork.ι_of_ι, fork.is_limit.lift_ι])
+  (λ s m h, by { apply fork.is_limit.hom_ext i, simpa using h })
 
 end
 
@@ -457,7 +465,7 @@ def is_colimit_aux (t : cokernel_cofork f)
 This is a more convenient formulation to show that a `cokernel_cofork` constructed using
 `cokernel_cofork.of_π` is a limit cone.
 -/
-def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
+def cokernel_cofork.is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
   (desc : Π {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), Z ⟶ Z')
   (fac : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), g ≫ desc g' eq' = g')
   (uniq :
@@ -481,6 +489,14 @@ lemma is_cokernel_epi_comp_desc {c : cokernel_cofork f} (i : is_colimit c) {W}
   (g : W ⟶ X) [hg : epi g] {h : W ⟶ Y} (hh : h = g ≫ f) (s : cokernel_cofork h) :
   (is_cokernel_epi_comp i g hh).desc s
   = i.desc (cofork.of_π s.π (by { rw [←cancel_epi g, ←category.assoc, ←hh], simp })) := rfl
+
+/-- Every cokernel of `g ≫ f` is also a cokernel of `f`, as long as `f ≫ c.π` vanishes. -/
+def is_cokernel_of_comp {W : C} (g : W ⟶ X) (h : W ⟶ Y) {c : cokernel_cofork h} (i : is_colimit c)
+  (hf : f ≫ c.π = 0) (hfg : g ≫ f = h) : is_colimit (cokernel_cofork.of_π c.π hf) :=
+cofork.is_colimit.mk _
+  (λ s, i.desc (cokernel_cofork.of_π s.π (by simp [← hfg])))
+  (λ s, by simp only [cokernel_cofork.π_of_π, cofork.is_colimit.π_desc])
+  (λ s m h, by { apply cofork.is_colimit.hom_ext i, simpa using h })
 
 end
 
@@ -806,7 +822,7 @@ end transport
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables {D : Type u₂} [category.{v₂} D] [has_zero_morphisms D]
 variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
 
 /--

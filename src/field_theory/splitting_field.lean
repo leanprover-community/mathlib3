@@ -3,13 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import field_theory.minpoly
 import ring_theory.adjoin_root
-import linear_algebra.finite_dimensional
-import algebra.polynomial.big_operators
-import ring_theory.algebraic
-import ring_theory.algebra_tower
-import tactic.field_simp
 
 /-!
 # Splitting fields
@@ -68,8 +62,7 @@ f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1
 @[simp] lemma splits_C (a : K) : splits i (C a) :=
 if ha : a = 0 then ha.symm ▸ (@C_0 K _).symm ▸ splits_zero i
 else
-have hia : i a ≠ 0, from mt ((injective_iff_map_eq_zero i).1
-  i.injective _) ha,
+have hia : i a ≠ 0, from mt ((injective_iff_map_eq_zero i).1 i.injective _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
@@ -180,7 +173,7 @@ lemma degree_eq_one_of_irreducible_of_splits {p : L[X]}
   p.degree = 1 :=
 begin
   by_cases h_nz : p = 0,
-  { exfalso, simp [*] at *, },
+  { exfalso, simp * at *, },
   rcases hp_splits,
   { contradiction },
   { apply hp_splits hp, simp }
@@ -188,7 +181,7 @@ end
 
 lemma exists_root_of_splits {f : K[X]} (hs : splits i f) (hf0 : degree f ≠ 0) :
   ∃ x, eval₂ i x f = 0 :=
-if hf0 : f = 0 then ⟨37, by simp [hf0]⟩
+if hf0 : f = 0 then by simp [hf0]
 else
   let ⟨g, hg⟩ := wf_dvd_monoid.exists_irreducible_factor
     (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
@@ -197,31 +190,11 @@ else
   let ⟨i, hi⟩ := hg.2 in
   ⟨x, by rw [← eval_map, hi, eval_mul, show _ = _, from hx, zero_mul]⟩
 
-lemma exists_multiset_of_splits {f : K[X]} : splits i f →
-  ∃ (s : multiset L), f.map i = C (i f.leading_coeff) *
-  (s.map (λ a : L, (X : L[X]) - C a)).prod :=
-suffices splits (ring_hom.id _) (f.map i) → ∃ s : multiset L, f.map i =
-  (C (f.map i).leading_coeff) * (s.map (λ a : L, (X : L[X]) - C a)).prod,
-by rwa [splits_map_iff, leading_coeff_map i] at this,
-wf_dvd_monoid.induction_on_irreducible (f.map i)
-  (λ _, ⟨{37}, by simp [i.map_zero]⟩)
-  (λ u hu _, ⟨0,
-    by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
-      simp [leading_coeff, nat_degree_eq_of_degree_eq_some (is_unit_iff_degree_eq_zero.1 hu)]⟩)
-  (λ f p hf0 hp ih hfs,
-    have hpf0 : p * f ≠ 0, from mul_ne_zero hp.ne_zero hf0,
-    let ⟨s, hs⟩ := ih (splits_of_splits_mul _ hpf0 hfs).2 in
-    ⟨-(p * norm_unit p).coeff 0 ::ₘ s,
-      have hp1 : degree p = 1, from hfs.resolve_left hpf0 hp (by simp),
-      begin
-        rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,
-          mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, mul_left_inj' hf0],
-        conv_lhs {rw eq_X_add_C_of_degree_eq_one hp1},
-        simp only [mul_add, coe_norm_unit_of_ne_zero hp.ne_zero, mul_comm p, coeff_neg,
-          C_neg, sub_eq_add_neg, neg_neg, coeff_C_mul, (mul_assoc _ _ _).symm, C_mul.symm,
-          mul_inv_cancel (show p.leading_coeff ≠ 0, from mt leading_coeff_eq_zero.1
-            hp.ne_zero), one_mul],
-      end⟩)
+lemma roots_ne_zero_of_splits {f : K[X]} (hs : splits i f) (hf0 : nat_degree f ≠ 0) :
+  (f.map i).roots ≠ 0 :=
+let ⟨x, hx⟩ := exists_root_of_splits i hs (λ h, hf0 $ nat_degree_eq_of_degree_eq_some h) in
+λ h, by { rw ← eval_map at hx,
+  cases h.subst ((mem_roots _).2 hx), exact map_ne_zero (λ h, (h.subst hf0) rfl) }
 
 /-- Pick a root of a polynomial that splits. -/
 def root_of_splits {f : K[X]} (hf : f.splits i) (hfd : f.degree ≠ 0) : L :=
@@ -231,53 +204,42 @@ theorem map_root_of_splits {f : K[X]} (hf : f.splits i) (hfd) :
   f.eval₂ i (root_of_splits i hf hfd) = 0 :=
 classical.some_spec $ exists_root_of_splits i hf hfd
 
-theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
-  (f.map i).roots = (f.roots).map i :=
-if hf0 : f = 0 then by rw [hf0, polynomial.map_zero, roots_zero, roots_zero, multiset.map_zero] else
-have hmf0 : f.map i ≠ 0 := map_ne_zero hf0,
-let ⟨m, hm⟩ := exists_multiset_of_splits _ hf in
-have h1 : (0 : K[X]) ∉ m.map (λ r, X - C r),
-  from zero_nmem_multiset_map_X_sub_C _ _,
-have h2 : (0 : L[X]) ∉ m.map (λ r, X - C (i r)),
-  from zero_nmem_multiset_map_X_sub_C _ _,
+lemma nat_degree_eq_card_roots {p : K[X]} {i : K →+* L}
+  (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
 begin
-  rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw polynomial.map_mul at hmf0 ⊢,
-  rw [roots_mul hf0, roots_mul hmf0, map_C, roots_C, zero_add, roots_C, zero_add,
-      polynomial.map_multiset_prod, multiset.map_map],
-  simp_rw [(∘), polynomial.map_sub, map_X, map_C],
-  rw [roots_multiset_prod _ h2, multiset.bind_map,
-      roots_multiset_prod _ h1, multiset.bind_map],
-  simp_rw roots_X_sub_C,
-  rw [multiset.bind_singleton, multiset.bind_singleton, multiset.map_id']
+  by_cases hp : p = 0,
+  { rw [hp, nat_degree_zero, polynomial.map_zero, roots_zero, multiset.card_zero] },
+  obtain ⟨q, he, hd, hr⟩ := exists_prod_multiset_X_sub_C_mul (p.map i),
+  rw [← splits_id_iff_splits, ← he] at hsplit,
+  have hpm : p.map i ≠ 0 := map_ne_zero hp, rw ← he at hpm,
+  have hq : q ≠ 0 := λ h, hpm (by rw [h, mul_zero]),
+  rw [← nat_degree_map i, ← hd, add_right_eq_self],
+  by_contra,
+  have := roots_ne_zero_of_splits (ring_hom.id L) (splits_of_splits_mul _ _ hsplit).2 h,
+  { rw map_id at this, exact this hr },
+  { exact mul_ne_zero monic_prod_multiset_X_sub_C.ne_zero hq },
 end
 
-lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L}
-  (hsplit : splits i p) :
+lemma degree_eq_card_roots {p : K[X]} {i : K →+* L} (p_ne_zero : p ≠ 0)
+  (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
+by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
+
+theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
+  (f.map i).roots = f.roots.map i :=
+(roots_map_of_injective_card_eq_total_degree i.injective $
+  by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
+
+lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :
   p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
 begin
-  by_cases p_eq_zero : p = 0,
-  { rw [p_eq_zero, polynomial.map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
-
-  obtain ⟨s, hs⟩ := exists_multiset_of_splits i hsplit,
-  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
-  have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
-    by rwa hs at map_ne_zero,
-
-  have zero_nmem : (0 : L[X]) ∉ s.map (λ a, X - C a),
-    from zero_nmem_multiset_map_X_sub_C _ _,
-  have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
-  { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
-    intros a s ih,
-    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C, multiset.singleton_add] },
-
-  rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
-      roots_multiset_prod _ zero_nmem,
-      map_bind_roots_eq]
+  rw ← leading_coeff_map, symmetry,
+  apply C_leading_coeff_mul_prod_multiset_X_sub_C,
+  rw nat_degree_map, exact (nat_degree_eq_card_roots hsplit).symm,
 end
 
 lemma eq_prod_roots_of_splits_id {p : K[X]}
   (hsplit : splits (ring_hom.id K) p) :
-  p = C (p.leading_coeff) * (p.roots.map (λ a, X - C a)).prod :=
+  p = C p.leading_coeff * (p.roots.map (λ a, X - C a)).prod :=
 by simpa using eq_prod_roots_of_splits hsplit
 
 lemma eq_prod_roots_of_monic_of_splits_id {p : K[X]}
@@ -289,31 +251,12 @@ begin
 end
 
 lemma eq_X_sub_C_of_splits_of_single_root {x : K} {h : K[X]} (h_splits : splits i h)
-  (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
+  (h_roots : (h.map i).roots = {i x}) : h = C h.leading_coeff * (X - C x) :=
 begin
   apply polynomial.map_injective _ i.injective,
   rw [eq_prod_roots_of_splits h_splits, h_roots],
   simp,
 end
-
-lemma nat_degree_eq_card_roots {p : K[X]} {i : K →+* L}
-  (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
-begin
-  by_cases p_eq_zero : p = 0,
-  { rw [p_eq_zero, nat_degree_zero, polynomial.map_zero, roots_zero, multiset.card_zero] },
-  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
-  rw eq_prod_roots_of_splits hsplit at map_ne_zero,
-
-  conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_splits hsplit] },
-  have : (0 : L[X]) ∉ (map i p).roots.map (λ a, X - C a),
-    from zero_nmem_multiset_map_X_sub_C _ _,
-  simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
-        nat_degree_multiset_prod _ this]
-end
-
-lemma degree_eq_card_roots {p : K[X]} {i : K →+* L} (p_ne_zero : p ≠ 0)
-  (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
-by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 section UFD
 
@@ -323,30 +266,20 @@ local infix ` ~ᵤ ` : 50 := associated
 open unique_factorization_monoid associates
 
 lemma splits_of_exists_multiset {f : K[X]} {s : multiset L}
-  (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : L, (X : L[X]) - C a)).prod) :
+  (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : L, X - C a)).prod) :
   splits i f :=
 if hf0 : f = 0 then or.inl hf0
-else
-  or.inr $ λ p hp hdp,
-    have ht : multiset.rel associated
-      (normalized_factors (f.map i)) (s.map (λ a : L, (X : L[X]) - C a)) :=
-    factors_unique
-      (λ p hp, irreducible_of_normalized_factor _ hp)
-      (λ p' m, begin
-          obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
-          exact irreducible_of_degree_eq_one (degree_X_sub_C _),
-        end)
-      (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map C.to_monoid_hom : Lˣ →* (polynomial L)ˣ)
-          (units.mk0 (f.map i).leading_coeff
-            (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
-          by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
-        ... ~ᵤ _ : (unique_factorization_monoid.normalized_factors_prod (by simpa using hf0)).symm),
-  let ⟨q, hq, hpq⟩ := exists_mem_normalized_factors_of_dvd (by simpa) hp hdp in
-  let ⟨q', hq', hqq'⟩ := multiset.exists_mem_of_rel_of_mem ht hq in
-  let ⟨a, ha⟩ := multiset.mem_map.1 hq' in
-  by rw [← degree_X_sub_C a, ha.2];
-    exact degree_eq_degree_of_associated (hpq.trans hqq')
+else or.inr $ λ p hp hdp, begin
+  rw irreducible_iff_prime at hp,
+  rw [hs, ← multiset.prod_to_list] at hdp,
+  obtain (hd|hd) := hp.2.2 _ _ hdp,
+  { refine (hp.2.1 $ is_unit_of_dvd_unit hd _).elim,
+    exact is_unit_C.2 ((leading_coeff_ne_zero.2 hf0).is_unit.map i) },
+  { obtain ⟨q, hq, hd⟩ := hp.dvd_prod_iff.1 hd,
+    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 ((multiset.mem_to_list _ _).1 hq),
+    rw degree_eq_degree_of_associated ((hp.dvd_prime_iff_associated $ prime_X_sub_C a).1 hd),
+    exact degree_X_sub_C a },
+end
 
 lemma splits_of_splits_id {f : K[X]} : splits (ring_hom.id _) f → splits i f :=
 unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
@@ -361,9 +294,8 @@ unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
 end UFD
 
 lemma splits_iff_exists_multiset {f : K[X]} : splits i f ↔
-  ∃ (s : multiset L), f.map i = C (i f.leading_coeff) *
-  (s.map (λ a : L, (X : L[X]) - C a)).prod :=
-⟨exists_multiset_of_splits i, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
+  ∃ (s : multiset L), f.map i = C (i f.leading_coeff) * (s.map (λ a : L, X - C a)).prod :=
+⟨λ hf, ⟨(f.map i).roots, eq_prod_roots_of_splits hf⟩, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
 
 lemma splits_comp_of_splits (j : L →+* F) {f : K[X]}
   (h : splits i f) : splits (j.comp i) f :=
@@ -374,111 +306,6 @@ begin
   exact splits_of_splits_id _ h
 end
 
-/-- A monic polynomial `p` that has as many roots as its degree
-can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
-private lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field {p : K[X]}
-  (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
-  (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
-begin
-  have hprodmonic : (multiset.map (λ (a : K), X - C a) p.roots).prod.monic,
-  { simp only [prod_multiset_root_eq_finset_root,
-      monic_prod_of_monic, monic_X_sub_C, monic.pow, forall_true_iff] },
-  have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
-  { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],
-    simp only [eq_self_iff_true, mul_one, nat.cast_id, nsmul_eq_mul, multiset.sum_repeat,
-      multiset.map_const,nat_degree_X_sub_C, function.comp, multiset.map_map] },
-  obtain ⟨q, hq⟩ := prod_multiset_X_sub_C_dvd p,
-  have qzero : q ≠ 0,
-  { rintro rfl, apply hmonic.ne_zero, simpa only [mul_zero] using hq },
-  have degp :
-    p.nat_degree = (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree + q.nat_degree,
-  { nth_rewrite 0 [hq],
-    simp only [nat_degree_mul hprodmonic.ne_zero qzero] },
-  have degq : q.nat_degree = 0,
-  { rw hdegree at degp,
-    rw [← add_right_inj p.nat_degree, ← degp, add_zero], },
-  obtain ⟨u, hu⟩ := is_unit_iff_degree_eq_zero.2 ((degree_eq_iff_nat_degree_eq qzero).2 degq),
-  have hassoc : associated (multiset.map (λ (a : K), X - C a) p.roots).prod p,
-  { rw associated, use u, rw [hu, ← hq] },
-  exact eq_of_monic_of_associated hprodmonic hmonic hassoc
-end
-
-lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] [is_domain K]
-  {p : K[X]} (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
-  (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
-begin
-  apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw polynomial.map_multiset_prod,
-  simp only [map_C, function.comp_app, map_X, multiset.map_map, polynomial.map_sub],
-  have : p.roots.map (algebra_map K (fraction_ring K)) =
-    (map (algebra_map K (fraction_ring K)) p).roots :=
-    roots_map_of_injective_card_eq_total_degree
-      (is_fraction_ring.injective K (fraction_ring K)) hroots,
-  rw ← prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field
-    (hmonic.map (algebra_map K (fraction_ring K))),
-  { simp only [map_C, function.comp_app, map_X, polynomial.map_sub],
-    congr' 1,
-    rw ← this,
-    simp, },
-  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← this],
-    simp only [←hroots, multiset.card_map], },
-end
-
-/-- A polynomial `p` that has as many roots as its degree
-can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`.
-Used to prove the more general `C_leading_coeff_mul_prod_multiset_X_sub_C` below. -/
-private lemma C_leading_coeff_mul_prod_multiset_X_sub_C_of_field {p : K[X]}
-  (hroots : p.roots.card = p.nat_degree) :
-  C p.leading_coeff * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
-begin
-  by_cases hzero : p = 0,
-  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
-  { have hcoeff : p.leading_coeff ≠ 0,
-    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-    have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-    { rw [roots_normalize, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots,
-          coe_norm_unit, nat_degree_C, add_zero], },
-    have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero)
-                    hrootsnorm,
-    rw [roots_normalize, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
-    calc (C p.leading_coeff) * (multiset.map (λ (a : K), X - C a) p.roots).prod
-        = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) :
-        by rw [hprod, mul_comm, mul_assoc, ← C_mul]
-    ... = p * C 1 : by field_simp
-    ... = p : by simp only [mul_one, ring_hom.map_one], },
-end
-
-/-- A polynomial `p` that has as many roots as its degree
-can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C {K : Type*} [comm_ring K] [is_domain K]
-  {p : K[X]} (hroots : p.roots.card = p.nat_degree) :
-  C p.leading_coeff * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
-begin
-  by_cases hzero : p = 0,
-  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
-  have hcoeff : p.leading_coeff ≠ 0,
-  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-  apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw [polynomial.map_mul, polynomial.map_multiset_prod],
-  simp only [map_C, function.comp_app, map_X, multiset.map_map, polynomial.map_sub],
-  have h : p.roots.map (algebra_map K (fraction_ring K)) =
-    (map (algebra_map K (fraction_ring K)) p).roots :=
-    roots_map_of_injective_card_eq_total_degree
-      (is_fraction_ring.injective K (fraction_ring K)) hroots,
-  have : multiset.card (map (algebra_map K (fraction_ring K)) p).roots =
-    (map (algebra_map K (fraction_ring K)) p).nat_degree,
-  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← h],
-    simp only [←hroots, multiset.card_map], },
-  rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
-  simp only [map_C, function.comp_app, map_X, polynomial.map_sub],
-  have w : (algebra_map K (fraction_ring K)) p.leading_coeff ≠ 0,
-  { intro hn,
-    apply hcoeff,
-    apply is_fraction_ring.injective K (fraction_ring K),
-    simp [hn], },
-  rw [←h, leading_coeff_map_of_leading_coeff_ne_zero _ w, multiset.map_map],
-end
-
 /-- A polynomial splits if and only if it has as many roots as its degree. -/
 lemma splits_iff_card_roots {p : K[X]} :
   splits (ring_hom.id K) p ↔ p.roots.card = p.nat_degree :=
@@ -486,7 +313,7 @@ begin
   split,
   { intro H, rw [nat_degree_eq_card_roots H, map_id] },
   { intro hroots,
-    apply (splits_iff_exists_multiset (ring_hom.id K)).2,
+    rw splits_iff_exists_multiset (ring_hom.id K),
     use p.roots,
     simp only [ring_hom.id_apply, map_id],
     exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
@@ -494,8 +321,7 @@ end
 
 lemma aeval_root_derivative_of_splits [algebra K L] {P : K[X]} (hmo : P.monic)
   (hP : P.splits (algebra_map K L)) {r : L} (hr : r ∈ (P.map (algebra_map K L)).roots) :
-  aeval r P.derivative =
-  (multiset.map (λ a, r - a) ((P.map (algebra_map K L)).roots.erase r)).prod :=
+  aeval r P.derivative = (((P.map $ algebra_map K L).roots.erase r).map (λ a, r - a)).prod :=
 begin
   replace hmo := hmo.map (algebra_map K L),
   replace hP := (splits_id_iff_splits (algebra_map K L)).2 hP,
@@ -577,7 +403,7 @@ begin
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
-      (fg_adjoin_of_finite (set.finite_mem_finset s) H3)).of_subalgebra_to_submodule,
+      (fg_adjoin_of_finite s.finite_to_set H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
   have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
   have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
@@ -609,10 +435,16 @@ section splitting_field
 def factor (f : K[X]) : K[X] :=
 if H : ∃ g, irreducible g ∧ g ∣ f then classical.some H else X
 
-instance irreducible_factor (f : K[X]) : irreducible (factor f) :=
+lemma irreducible_factor (f : K[X]) : irreducible (factor f) :=
 begin
   rw factor, split_ifs with H, { exact (classical.some_spec H).1 }, { exact irreducible_X }
 end
+
+/-- See note [fact non-instances]. -/
+lemma fact_irreducible_factor (f : K[X]) : fact (irreducible (factor f)) :=
+⟨irreducible_factor f⟩
+
+local attribute [instance] fact_irreducible_factor
 
 theorem factor_dvd_of_not_is_unit {f : K[X]} (hf1 : ¬is_unit f) : factor f ∣ f :=
 begin
@@ -647,24 +479,29 @@ theorem nat_degree_remove_factor' {f : K[X]} {n : ℕ} (hfn : f.nat_degree = n+1
   f.remove_factor.nat_degree = n :=
 by rw [nat_degree_remove_factor, hfn, n.add_sub_cancel]
 
-/-- Auxiliary construction to a splitting field of a polynomial. Uses induction on the degree. -/
-def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]),
-  f.nat_degree = n → Type u :=
-nat.rec_on n (λ K _ _ _, K) $ λ n ih K _ f hf, by exactI
-ih f.remove_factor (nat_degree_remove_factor' hf)
+/-- Auxiliary construction to a splitting field of a polynomial, which removes
+`n` (arbitrarily-chosen) factors.
+
+Uses recursion on the degree. For better definitional behaviour, structures
+including `splitting_field_aux` (such as instances) should be defined using
+this recursion in each field, rather than defining the whole tuple through
+recursion.
+-/
+def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]), Type u :=
+nat.rec_on n (λ K _ _, K) $ λ n ih K _ f, by exactI
+ih f.remove_factor
 
 namespace splitting_field_aux
 
-theorem succ (n : ℕ) (f : K[X]) (hfn : f.nat_degree = n + 1) :
-  splitting_field_aux (n+1) f hfn =
-    splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn) := rfl
+theorem succ (n : ℕ) (f : K[X]) :
+  splitting_field_aux (n+1) f = splitting_field_aux n f.remove_factor := rfl
 
 instance field (n : ℕ) : Π {K : Type u} [field K], by exactI
-  Π {f : K[X]} (hfn : f.nat_degree = n), field (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ K _ _ _, ‹field K›) $ λ n ih K _ f hf, ih _
+  Π {f : K[X]}, field (splitting_field_aux n f) :=
+nat.rec_on n (λ K _ _, ‹field K›) $ λ n ih K _ f, ih
 
-instance inhabited {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n) :
-  inhabited (splitting_field_aux n f hfn) := ⟨37⟩
+instance inhabited {n : ℕ} {f : K[X]} :
+  inhabited (splitting_field_aux n f) := ⟨37⟩
 
 /-
 Note that the recursive nature of this definition and `splitting_field_aux.field` creates
@@ -687,66 +524,66 @@ example (x : ℕ) {α} (a₀ aₙ : α) : (cases_twice a₀ aₙ x).1 = (cases_t
 We don't really care at this point because this is an implementation detail (which is why this is
 not a docstring), but we do in `splitting_field.algebra'` below. -/
 instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [field K],
-  by exactI Π [algebra R K] {f : K[X]} (hfn : f.nat_degree = n),
-    algebra R (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
-         λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
+  by exactI Π [algebra R K] {f : K[X]},
+    algebra R (splitting_field_aux n f) :=
+nat.rec_on n (λ R K _ _ _ _, by exactI ‹algebra R K›) $
+         λ n ih R K _ _ _ f, by exactI ih R
 
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
-  [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
+  [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],
-  by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]} (hfn : f.nat_degree = n),
-    is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
-         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f hfn, by exactI ih R₁ R₂ (nat_degree_remove_factor' hfn)
+  by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]},
+    is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
+nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
+         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
 
-instance algebra''' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
+instance algebra''' {n : ℕ} {f : K[X]} :
   algebra (adjoin_root f.factor)
-    (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra n _ _
+    (splitting_field_aux n f.remove_factor) :=
+splitting_field_aux.algebra n _
 
-instance algebra' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
-  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f hfn) :=
-splitting_field_aux.algebra''' _
+instance algebra' {n : ℕ} {f : K[X]} :
+  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f) :=
+splitting_field_aux.algebra'''
 
-instance algebra'' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
-  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra n K _
+instance algebra'' {n : ℕ} {f : K[X]} :
+  algebra K (splitting_field_aux n f.remove_factor) :=
+splitting_field_aux.algebra n K
 
-instance scalar_tower' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
+instance scalar_tower' {n : ℕ} {f : K[X]} :
   is_scalar_tower K (adjoin_root f.factor)
-    (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
+    (splitting_field_aux n f.remove_factor) :=
 begin
   -- finding this instance ourselves makes things faster
   haveI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
     is_scalar_tower.right,
   exact
-    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor) (nat_degree_remove_factor' hfn),
+    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor),
 end
 
-instance scalar_tower {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
-  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ f hfn) :=
-splitting_field_aux.scalar_tower' _
+instance scalar_tower {n : ℕ} {f : K[X]} :
+  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux (n + 1) f) :=
+splitting_field_aux.scalar_tower'
 
-theorem algebra_map_succ (n : ℕ) (f : K[X]) (hfn : f.nat_degree = n + 1) :
-  by exact algebra_map K (splitting_field_aux _ _ hfn) =
+theorem algebra_map_succ (n : ℕ) (f : K[X]) :
+  by exact algebra_map K (splitting_field_aux (n+1) f) =
     (algebra_map (adjoin_root f.factor)
-        (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn))).comp
+        (splitting_field_aux n f.remove_factor)).comp
       (adjoin_root.of f.factor) :=
 is_scalar_tower.algebra_map_eq _ _ _
 
 protected theorem splits (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n),
-    splits (algebra_map K $ splitting_field_aux n f hfn) f :=
+    splits (algebra_map K $ splitting_field_aux n f) f :=
 nat.rec_on n (λ K _ _ hf, by exactI splits_of_degree_le_one _
   (le_trans degree_le_nat_degree $ hf.symm ▸ with_bot.coe_le_coe.2 zero_le_one)) $ λ n ih K _ f hf,
 by { resetI, rw [← splits_id_iff_splits, algebra_map_succ, ← map_map, splits_id_iff_splits,
     ← X_sub_C_mul_remove_factor f (λ h, by { rw h at hf, cases hf })],
-exact splits_mul _ (splits_X_sub_C _) (ih _ _) }
+exact splits_mul _ (splits_X_sub_C _) (ih _ (nat_degree_remove_factor' hf)) }
 
 theorem exists_lift (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n) {L : Type*} [field L], by exactI
-    ∀ (j : K →+* L) (hf : splits j f), ∃ k : splitting_field_aux n f hfn →+* L,
+    ∀ (j : K →+* L) (hf : splits j f), ∃ k : splitting_field_aux n f →+* L,
       k.comp (algebra_map _ _) = j :=
 nat.rec_on n (λ K _ _ _ L _ j _, by exactI ⟨j, j.comp_id⟩) $ λ n ih K _ f hf L _ j hj, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hf, cases hf },
@@ -764,51 +601,54 @@ let ⟨k, hk⟩ := ih f.remove_factor (nat_degree_remove_factor' hf) (adjoin_roo
 
 theorem adjoin_roots (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n),
-    algebra.adjoin K (↑(f.map $ algebra_map K $ splitting_field_aux n f hfn).roots.to_finset :
-      set (splitting_field_aux n f hfn)) = ⊤ :=
+    algebra.adjoin K (↑(f.map $ algebra_map K $ splitting_field_aux n f).roots.to_finset :
+      set (splitting_field_aux n f)) = ⊤ :=
 nat.rec_on n (λ K _ f hf, by exactI algebra.eq_top_iff.2 (λ x, subalgebra.range_le _ ⟨x, rfl⟩)) $
 λ n ih K _ f hfn, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hfn, cases hfn },
 have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
-have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := map_ne_zero hfn0,
+have hmf0 : map (algebra_map K (splitting_field_aux n.succ f)) f ≠ 0 := map_ne_zero hfn0,
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf,
          polynomial.map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add,
     finset.coe_union, multiset.to_finset_singleton, finset.coe_singleton,
     algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
+      (splitting_field_aux n f.remove_factor),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
     is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
-    ih, subalgebra.restrict_scalars_top] }
+      (splitting_field_aux n f.remove_factor),
+    ih _ (nat_degree_remove_factor' hfn), subalgebra.restrict_scalars_top] }
 
 end splitting_field_aux
 
 /-- A splitting field of a polynomial. -/
 def splitting_field (f : K[X]) :=
-splitting_field_aux _ f rfl
+splitting_field_aux f.nat_degree f
 
 namespace splitting_field
 
 variables (f : K[X])
 
 instance : field (splitting_field f) :=
-splitting_field_aux.field _ _
+splitting_field_aux.field _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
-/-- This should be an instance globally, but it creates diamonds with the `ℕ` and `ℤ` actions:
+/-- This should be an instance globally, but it creates diamonds with the `ℕ`, `ℤ`, and `ℚ` algebras
+(via their `smul` and `to_fun` fields):
 
 ```lean
 example :
-  (add_comm_monoid.nat_module : module ℕ (splitting_field f)) =
-    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+  (algebra_nat : algebra ℕ (splitting_field f)) = splitting_field.algebra' f :=
 rfl  -- fails
 
 example :
-  (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
-    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+  (algebra_int _ : algebra ℤ (splitting_field f)) = splitting_field.algebra' f :=
+rfl  -- fails
+
+example [char_zero K] [char_zero (splitting_field f)] :
+  (algebra_rat : algebra ℚ (splitting_field f)) = splitting_field.algebra' f :=
 rfl  -- fails
 ```
 
@@ -817,29 +657,29 @@ Until we resolve these diamonds, it's more convenient to only turn this instance
 
 In the meantime, the `splitting_field.algebra` instance below is immune to these particular diamonds
 since `K = ℕ` and `K = ℤ` are not possible due to the `field K` assumption. Diamonds in
-`algebra ℚ (splitting_field f)` instances are still possible, but this is a problem throughout the
-library and not unique to this `algebra` instance.
+`algebra ℚ (splitting_field f)` instances are still possible via this instance unfortunately, but
+these are less common as they require suitable `char_zero` instances to be present.
 -/
 instance algebra' {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
-splitting_field_aux.algebra _ _ _
+splitting_field_aux.algebra _ _
 
 instance : algebra K (splitting_field f) :=
-splitting_field_aux.algebra _ _ _
+splitting_field_aux.algebra _ _
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
-splitting_field_aux.splits _ _ _
+splitting_field_aux.splits _ _ rfl
 
 variables [algebra K L] (hb : splits (algebra_map K L) f)
 
 /-- Embeds the splitting field into any other field that splits the polynomial. -/
 def lift : splitting_field f →ₐ[K] L :=
-{ commutes' := λ r, by { have := classical.some_spec (splitting_field_aux.exists_lift _ _ _ _ hb),
+{ commutes' := λ r, by { have := classical.some_spec (splitting_field_aux.exists_lift _ _ rfl _ hb),
     exact ring_hom.ext_iff.1 this r },
   .. classical.some (splitting_field_aux.exists_lift _ _ _ _ hb) }
 
 theorem adjoin_roots : algebra.adjoin K
     (↑(f.map (algebra_map K $ splitting_field f)).roots.to_finset : set (splitting_field f)) = ⊤ :=
-splitting_field_aux.adjoin_roots _ _ _
+splitting_field_aux.adjoin_roots _ _ rfl
 
 theorem adjoin_root_set : algebra.adjoin K (f.root_set f.splitting_field) = ⊤ :=
 adjoin_roots f
@@ -915,7 +755,7 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
 
 theorem finite_dimensional (f : K[X]) [is_splitting_field K L f] : finite_dimensional K L :=
 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
-  fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
+  fg_adjoin_of_finite (finset.finite_to_set _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, polynomial.map_zero, roots_zero] at hy, cases hy }
   else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $

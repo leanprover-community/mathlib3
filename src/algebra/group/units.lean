@@ -25,6 +25,8 @@ resembling the notation $R^{\times}$ for the units of a ring, which is common in
 
 -/
 
+open function
+
 universe u
 variable {α : Type u}
 
@@ -114,19 +116,33 @@ lemma copy_eq (u : αˣ) (val hv inv hi) :
   u.copy val hv inv hi = u :=
 ext hv
 
-/-- Units of a monoid form a group. -/
-@[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
+@[to_additive] instance : mul_one_class αˣ :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
-    by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
-    by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
+    by rw [mul_assoc, ←mul_assoc u₂.val, val_inv, one_mul, val_inv],
+    by rw [mul_assoc, ←mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
   one := ⟨1, 1, one_mul 1, one_mul 1⟩,
-  mul_one := λ u, ext $ mul_one u,
   one_mul := λ u, ext $ one_mul u,
+  mul_one := λ u, ext $ mul_one u }
+
+/-- Units of a monoid form a group. -/
+@[to_additive "Additive units of an additive monoid form an additive group."]
+instance : group αˣ :=
+{ mul := (*),
+  one := 1,
   mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
   inv := has_inv.inv,
-  mul_left_inv := λ u, ext u.inv_val }
+  mul_left_inv := λ u, ext u.inv_val,
+  ..units.mul_one_class }
 
-variables (a b : αˣ) {c : αˣ}
+@[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
+{ mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
+
+@[to_additive] instance : inhabited αˣ := ⟨1⟩
+
+@[to_additive] instance [has_repr α] : has_repr αˣ := ⟨repr ∘ val⟩
+
+variables (a b c : αˣ) {u : αˣ}
+
 @[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
 
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
@@ -143,11 +159,8 @@ by rw [←units.coe_one, eq_iff]
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
-@[to_additive] lemma inv_mul_of_eq {u : αˣ} {a : α} (h : ↑u = a) : ↑u⁻¹ * a = 1 :=
-by { rw [←h, u.inv_mul], }
-
-@[to_additive] lemma mul_inv_of_eq {u : αˣ} {a : α} (h : ↑u = a) : a * ↑u⁻¹ = 1 :=
-by { rw [←h, u.mul_inv], }
+@[to_additive] lemma inv_mul_of_eq {a : α} (h : ↑u = a) : ↑u⁻¹ * a = 1 := by rw [←h, u.inv_mul]
+@[to_additive] lemma mul_inv_of_eq {a : α} (h : ↑u = a) : a * ↑u⁻¹ = 1 := by rw [←h, u.mul_inv]
 
 @[simp, to_additive] lemma mul_inv_cancel_left (a : αˣ) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
 by rw [← mul_assoc, mul_inv, one_mul]
@@ -160,13 +173,6 @@ by rw [mul_assoc, mul_inv, mul_one]
 
 @[simp, to_additive] lemma inv_mul_cancel_right (a : α) (b : αˣ) : a * ↑b⁻¹ * b = a :=
 by rw [mul_assoc, inv_mul, mul_one]
-
-@[to_additive] instance : inhabited αˣ := ⟨1⟩
-
-@[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
-{ mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
-
-@[to_additive] instance [has_repr α] : has_repr αˣ := ⟨repr ∘ val⟩
 
 @[simp, to_additive] theorem mul_right_inj (a : αˣ) {b c : α} : (a:α) * b = a * c ↔ b = c :=
 ⟨λ h, by simpa only [inv_mul_cancel_left] using congr_arg ((*) ↑(a⁻¹ : αˣ)) h, congr_arg _⟩
@@ -186,16 +192,34 @@ by rw [mul_assoc, inv_mul, mul_one]
 @[to_additive] theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
-@[to_additive] lemma inv_eq_of_mul_eq_one_right {u : αˣ} {a : α} (h : ↑u * a = 1) : ↑u⁻¹ = a :=
+@[to_additive] protected lemma inv_eq_of_mul_eq_one_left {a : α} (h : a * u = 1) : ↑u⁻¹ = a :=
+calc ↑u⁻¹ = 1 * ↑u⁻¹ : by rw one_mul
+      ... = a : by rw [←h, mul_inv_cancel_right]
+
+@[to_additive] protected lemma inv_eq_of_mul_eq_one_right {a : α} (h : ↑u * a = 1) : ↑u⁻¹ = a :=
 calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
-      ... = ↑u⁻¹ * ↑u * a : by rw [←h, ←mul_assoc]
-      ... = a : by rw [u.inv_mul, one_mul]
+      ... = a : by rw [←h, inv_mul_cancel_left]
 
-@[to_additive] lemma eq_iff_inv_mul {u : αˣ} {a : α} : ↑u = a ↔ ↑u⁻¹ * a = 1 :=
-⟨inv_mul_of_eq, inv_inv u ▸ inv_eq_of_mul_eq_one_right⟩
+@[to_additive] protected lemma eq_inv_of_mul_eq_one_left {a : α} (h : ↑u * a = 1) : a = ↑u⁻¹ :=
+(units.inv_eq_of_mul_eq_one_right h).symm
 
-lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
-inv_eq_of_mul_eq_one_right $ by rw [h, u₂.mul_inv]
+@[to_additive] protected lemma eq_inv_of_mul_eq_one_right {a : α} (h : a * u = 1) : a = ↑u⁻¹ :=
+(units.inv_eq_of_mul_eq_one_left h).symm
+
+@[simp, to_additive] lemma mul_inv_eq_one {a : α} : a * ↑u⁻¹ = 1 ↔ a = u :=
+⟨inv_inv u ▸ units.eq_inv_of_mul_eq_one_right, λ h, mul_inv_of_eq h.symm⟩
+
+@[simp, to_additive] lemma inv_mul_eq_one {a : α} : ↑u⁻¹ * a = 1 ↔ ↑u = a :=
+⟨inv_inv u ▸ units.inv_eq_of_mul_eq_one_right, inv_mul_of_eq⟩
+
+@[to_additive] lemma mul_eq_one_iff_eq_inv {a : α} : a * u = 1 ↔ a = ↑u⁻¹ :=
+by rw [←mul_inv_eq_one, inv_inv]
+
+@[to_additive] lemma mul_eq_one_iff_inv_eq {a : α} : ↑u * a = 1 ↔ ↑u⁻¹ = a :=
+by rw [←inv_mul_eq_one, inv_inv]
+
+@[to_additive] lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
+units.inv_eq_of_mul_eq_one_right $ by rw [h, u₂.mul_inv]
 
 end units
 
@@ -368,17 +392,11 @@ lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x 
 ⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
   λ h, is_unit.mul h.1 h.2⟩
 
-@[to_additive] theorem is_unit.mul_right_inj [monoid M] {a b c : M} (ha : is_unit a) :
-  a * b = a * c ↔ b = c :=
-by cases ha with a ha; rw [←ha, units.mul_right_inj]
-
-@[to_additive] theorem is_unit.mul_left_inj [monoid M] {a b c : M} (ha : is_unit a) :
-  b * a = c * a ↔ b = c :=
-by cases ha with a ha; rw [←ha, units.mul_left_inj]
-
-/-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+/-- The element of the group of units, corresponding to an element of a monoid which is a unit. When
+`α` is a `division_monoid`, use `is_unit.unit'` instead. -/
 @[to_additive "The element of the additive group of additive units, corresponding to an element of
-an additive monoid which is an additive unit."]
+an additive monoid which is an additive unit. When `α` is a `subtraction_monoid`, use
+`is_add_unit.add_unit'` instead."]
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 
@@ -386,16 +404,16 @@ noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
 units.ext $ rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
 units.mul_inv _
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
 begin
@@ -403,6 +421,31 @@ begin
   simp [h.unit_spec]
 end
 
+/-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
+instance [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
+
+section monoid
+variables [monoid M] {a b c : M}
+
+@[to_additive] lemma is_unit.mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=
+let ⟨u, hu⟩ := h in hu ▸ u.mul_left_inj
+
+@[to_additive] lemma is_unit.mul_right_inj (h : is_unit a) : a * b = a * c ↔ b = c :=
+let ⟨u, hu⟩ := h in hu ▸ u.mul_right_inj
+
+@[to_additive] protected lemma is_unit.mul_left_cancel (h : is_unit a) : a * b = a * c → b = c :=
+h.mul_right_inj.1
+
+@[to_additive] protected lemma is_unit.mul_right_cancel (h : is_unit b) : a * b = c * b → a = c :=
+h.mul_left_inj.1
+
+@[to_additive] protected lemma is_unit.mul_right_injective (h : is_unit a) : injective ((*) a) :=
+λ _ _, h.mul_left_cancel
+
+@[to_additive] protected lemma is_unit.mul_left_injective (h : is_unit b) : injective (* b) :=
+λ _ _, h.mul_right_cancel
+
+end monoid
 end is_unit
 
 section noncomputable_defs

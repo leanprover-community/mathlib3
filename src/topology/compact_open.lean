@@ -59,6 +59,9 @@ set.ext (λ f, subset_inter_iff)
   compact_open.gen (s ∪ t) u = compact_open.gen s u ∩ compact_open.gen t u :=
 set.ext (λ f, (iff_of_eq (congr_arg (⊆ u) (image_union f s t))).trans union_subset_iff)
 
+lemma gen_empty_right {s : set α} (h : s.nonempty) : compact_open.gen s (∅ : set β) = ∅ :=
+eq_empty_of_forall_not_mem $ λ f, (h.image _).not_subset_empty
+
 -- The compact-open topology on the space of continuous maps α → β.
 instance compact_open : topological_space C(α, β) :=
 topological_space.generate_from
@@ -84,6 +87,21 @@ end
 lemma continuous_comp : continuous (continuous_map.comp g : C(α, β) → C(α, γ)) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by rw [hm, preimage_gen g hs hu]; exact continuous_map.is_open_gen hs (hu.preimage g.2)
+
+variable (f : C(α, β))
+
+private lemma image_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
+  (λ g : C(β, γ), g.comp f) ⁻¹' compact_open.gen s u = compact_open.gen (f '' s) u :=
+begin
+  ext ⟨g, _⟩,
+  change g ∘ f '' s ⊆ u ↔ g '' (f '' s) ⊆ u,
+  rw set.image_comp,
+end
+
+/-- C(-, γ) is a functor. -/
+lemma continuous_comp_left : continuous (λ g, g.comp f : C(β, γ) → C(α, γ)) :=
+continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
+  by { rw [hm, image_gen f hs hu], exact continuous_map.is_open_gen (hs.image f.2) hu }
 
 end functorial
 
@@ -129,10 +147,8 @@ instance [t2_space β] : t2_space C(α, β) :=
       is_compact_singleton hu, continuous_map.is_open_gen is_compact_singleton hv, _, _, _⟩,
     { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
     { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
-    { rw [←continuous_map.gen_inter, huv],
-      refine subset_empty_iff.mp (λ f, _),
-      rw [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff],
-      exact id },
+    { rw [disjoint_iff_inter_eq_empty, ←gen_inter, huv.inter_eq,
+        gen_empty_right (singleton_nonempty _)] }
   end ⟩
 
 end ev
@@ -304,7 +320,7 @@ continuous_eval'.comp $ f.continuous.prod_map continuous_id
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
     function spaces, see `homeomorph.curry`. -/
-def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
+@[simps] def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
 ⟨_, continuous_uncurry_of_continuous f⟩
 
 /-- The uncurrying process is a continuous map between function spaces. -/

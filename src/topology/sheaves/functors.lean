@@ -66,13 +66,13 @@ namespace sheaf
 
 open presheaf
 
-variables [has_products C]
+variables [has_products.{v} C]
 
 /--
 The pushforward of a sheaf (by a continuous map) is a sheaf.
 -/
 theorem pushforward_sheaf_of_sheaf
-  {F : presheaf C X} (h : F.is_sheaf) : (f _* F).is_sheaf :=
+  {F : X.presheaf C} (h : F.is_sheaf) : (f _* F).is_sheaf :=
 by rw is_sheaf_iff_is_sheaf_pairwise_intersections at h ⊢;
    exact sheaf_condition_pairwise_intersections.pushforward_sheaf_of_sheaf f h
 
@@ -81,7 +81,7 @@ The pushforward functor.
 -/
 def pushforward (f : X ⟶ Y) : X.sheaf C ⥤ Y.sheaf C :=
 { obj := λ ℱ, ⟨f _* ℱ.1, pushforward_sheaf_of_sheaf f ℱ.2⟩,
-  map := λ _ _, pushforward_map f }
+  map := λ _ _ g, ⟨pushforward_map f g.1⟩ }
 
 end sheaf
 

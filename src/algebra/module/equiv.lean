@@ -45,7 +45,7 @@ section
 set_option old_structure_cmd true
 
 /-- A linear equivalence is an invertible linear map. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure linear_equiv {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   (M : Type*) (M₂ : Type*)
@@ -367,30 +367,6 @@ e.to_equiv.image_eq_preimage s
 protected lemma image_symm_eq_preimage (s : set M₂) : e.symm '' s = e ⁻¹' s :=
 e.to_equiv.symm.image_eq_preimage s
 
-section pointwise
-open_locale pointwise
-
-@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
-  e '' (c • s) = (σ c) • e '' s :=
-linear_map.image_smul_setₛₗ e.to_linear_map c s
-
-@[simp] lemma preimage_smul_setₛₗ (c : S) (s : set M₂) :
-  e ⁻¹' (c • s) = σ' c • e ⁻¹' s :=
-by rw [← linear_equiv.image_symm_eq_preimage, ← linear_equiv.image_symm_eq_preimage,
-  image_smul_setₛₗ]
-
-include module_M₁ module_N₁
-
-@[simp] lemma image_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set M₁) :
-  e '' (c • s) = c • e '' s :=
-linear_map.image_smul_set e.to_linear_map c s
-
-@[simp] lemma preimage_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set N₁) :
-  e ⁻¹' (c • s) = c • e ⁻¹' s :=
-e.preimage_smul_setₛₗ c s
-
-end pointwise
-
 end
 
 /-- Interpret a `ring_equiv` `f` as an `f`-semilinear equiv. -/
@@ -481,7 +457,7 @@ instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
   f • a = f a := rfl
 
 /-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
-instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+instance apply_has_faithful_smul : has_faithful_smul (M ≃ₗ[R] M) M :=
 ⟨λ _ _, linear_equiv.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=

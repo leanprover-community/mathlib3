@@ -36,7 +36,7 @@ variables {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, module R (M i
 instance : module R (⨁ i, M i) := dfinsupp.module
 instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class R S (M i)] :
   smul_comm_class R S (⨁ i, M i) := dfinsupp.smul_comm_class
-instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
+instance {S : Type*} [semiring S] [has_smul R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
 instance [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :
@@ -210,7 +210,7 @@ lequiv_congr_left R h f k = f (h.symm k) := equiv_congr_left_apply _ _ _
 end congr_left
 
 section sigma
-variables {α : ι → Type u} {δ : Π i, α i → Type w}
+variables {α : ι → Type*} {δ : Π i, α i → Type w}
 variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
 
 /--`curry` as a linear map.-/

@@ -94,8 +94,8 @@ begin
   classical,
   use x,
   simp_rw [← set_like.mem_coe, ← set.eq_univ_iff_forall],
-  apply set.eq_of_subset_of_card_le (set.subset_univ _),
-  rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_zpowers],
+  rw [←fintype.card_congr (equiv.set.univ α), order_eq_card_zpowers] at hx,
+  exact set.eq_of_subset_of_card_le (set.subset_univ _) (ge_of_eq hx),
 end
 
 /-- A finite group of prime order is cyclic. -/
@@ -130,7 +130,7 @@ lemma order_of_eq_card_of_forall_mem_zpowers [fintype α]
   {g : α} (hx : ∀ x, x ∈ zpowers g) : order_of g = fintype.card α :=
 begin
   classical,
-  simp_rw [order_eq_card_zpowers, set_like.coe_sort_coe],
+  rw order_eq_card_zpowers,
   apply fintype.card_of_finset',
   simpa using hx
 end
@@ -235,8 +235,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
   have hm0 : 0 < m, from nat.pos_of_ne_zero $
     λ hm0, by { rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm, exact hm.elim' 1 },
   begin
-    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_zpowers,
-        order_of_pow g, order_of_eq_card_of_forall_mem_zpowers hg],
+    simp only [set.to_finset_card, set_like.coe_sort_coe],
+    rw [←order_eq_card_zpowers, order_of_pow g, order_of_eq_card_of_forall_mem_zpowers hg],
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
       hm, nat.mul_div_cancel _ hm0],

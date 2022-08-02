@@ -193,14 +193,9 @@ iff.rfl
 @[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
 iff.rfl
 
-instance {n : ℕ} : linear_order (fin n) :=
-{ le := (≤), lt := (<),
-  decidable_le := fin.decidable_le,
-  decidable_lt := fin.decidable_lt,
-  decidable_eq := fin.decidable_eq _,
- ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
+instance {n : ℕ} : linear_order (fin n) := subtype.linear_order _
 
-instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+instance {n : ℕ}  : partial_order (fin n) := subtype.partial_order _
 
 lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
 
@@ -318,23 +313,6 @@ rel_embedding.ext $ funext_iff.1 $ strict_mono_unique f.strict_mono g.strict_mon
 
 end
 
-/-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
-lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
-  strict_mono f ↔ ∀ i (h : i + 1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
-begin
-  split,
-  { assume H i hi,
-    apply H,
-    exact nat.lt_succ_self _ },
-  { assume H,
-    have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
-    { assume i j h h',
-      induction h with k h IH,
-      { exact H _ _ },
-      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
-    assume i j hij,
-    convert A (i : ℕ) (j : ℕ) hij j.2; ext; simp only [subtype.coe_eta] }
-end
 
 end order
 
@@ -355,6 +333,12 @@ lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
 
 instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
 
+lemma nontrivial_iff_two_le : nontrivial (fin n) ↔ 2 ≤ n :=
+by rcases n with _|_|n; simp [fin.nontrivial, not_nontrivial, nat.succ_le_iff]
+
+lemma subsingleton_iff_le_one : subsingleton (fin n) ↔ n ≤ 1 :=
+by rcases n with _|_|n; simp [is_empty.subsingleton, unique.subsingleton, not_subsingleton]
+
 section monoid
 
 @[simp] protected lemma add_zero (k : fin (n + 1)) : k + 0 = k :=
@@ -370,6 +354,13 @@ instance add_comm_monoid (n : ℕ) : add_comm_monoid (fin (n + 1)) :=
   zero_add := fin.zero_add,
   add_zero := fin.add_zero,
   add_comm := by simp [eq_iff_veq, add_def, add_comm] }
+
+instance : add_monoid_with_one (fin (n + 1)) :=
+{ one := 1,
+  nat_cast := fin.of_nat,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ i, eq_of_veq (add_mod _ _ _),
+  .. fin.add_comm_monoid n }
 
 end monoid
 
@@ -441,12 +432,7 @@ section of_nat_coe
 
 @[simp]
 lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
-begin
-  induction a with a ih, { refl },
-  ext, show (a+1) % (n+1) = subtype.val (a+1 : fin (n+1)),
-  { rw [val_add, ← ih, of_nat],
-    exact add_mod _ _ _ }
-end
+rfl
 
 /-- Converting an in-range number to `fin (n + 1)` produces a result
 whose value is the original number.  -/
@@ -597,6 +583,14 @@ end
 @[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
   cast_le h i.succ = (cast_le (nat.succ_le_succ_iff.mp h) i).succ :=
 by simp [fin.eq_iff_veq]
+
+@[simp] lemma cast_le_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) (i : fin k) :
+  fin.cast_le mn (fin.cast_le km i) = fin.cast_le (km.trans mn) i :=
+fin.ext (by simp only [coe_cast_le])
+
+@[simp] lemma cast_le_comp_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) :
+  fin.cast_le mn ∘ fin.cast_le km = fin.cast_le (km.trans mn) :=
+funext (cast_le_cast_le km mn)
 
 /-- `cast eq i` embeds `i` into a equal `fin` type, see also `equiv.fin_congr`. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
@@ -850,6 +844,11 @@ ext $ add_comm _ _
   cast (add_comm _ _) (add_nat m i) = nat_add m i :=
 ext $ add_comm _ _
 
+@[simp] lemma nat_add_last {m n : ℕ} : nat_add n (last m) = last (n + m) := rfl
+
+lemma nat_add_cast_succ {m n : ℕ} {i : fin m} :
+  nat_add n (cast_succ i) = cast_succ (nat_add n i) := rfl
+
 end succ
 
 section pred
@@ -940,7 +939,7 @@ def div_nat (i : fin (m * n)) : fin m :=
 
 /-- Compute `i % n`, where `n` is a `nat` and inferred the type of `i`. -/
 def mod_nat (i : fin (m * n)) : fin n :=
-⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_left ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
+⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_right ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
 
 @[simp] lemma coe_mod_nat (i : fin (m * n)) : (i.mod_nat : ℕ) = i % n := rfl
 
@@ -1001,6 +1000,14 @@ begin
   { refine hs ⟨i, lt_of_succ_lt_succ hi⟩ _,
     exact IH (lt_of_succ_lt hi) }
 end
+
+@[simp] lemma induction_zero {C : fin (n + 1) → Sort*} (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) :
+  (induction h0 hs : _) 0 = h0 := rfl
+
+@[simp] lemma induction_succ {C : fin (n + 1) → Sort*} (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) (i : fin n) :
+  (induction h0 hs : _) i.succ = hs i (induction h0 hs i.cast_succ) := by cases i; refl
 
 /--
 Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
@@ -1145,6 +1152,42 @@ begin
 end
 
 end rec
+
+lemma lift_fun_iff_succ {α : Type*} (r : α → α → Prop) [is_trans α r] {f : fin (n + 1) → α} :
+  ((<) ⇒ r) f f ↔ ∀ i : fin n, r (f i.cast_succ) (f i.succ) :=
+begin
+  split,
+  { intros H i,
+    exact H i.cast_succ_lt_succ },
+  { refine λ H i, fin.induction _ _,
+    { exact λ h, (h.not_le (zero_le i)).elim },
+    { intros j ihj hij,
+      rw [← le_cast_succ_iff] at hij,
+      rcases hij.eq_or_lt with rfl|hlt,
+      exacts [H j, trans (ihj hlt) (H j)] } }
+end
+
+/-- A function `f` on `fin (n + 1)` is strictly monotone if and only if `f i < f (i + 1)`
+for all `i`. -/
+lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  strict_mono f ↔ ∀ i : fin n, f i.cast_succ < f i.succ :=
+lift_fun_iff_succ (<)
+
+/-- A function `f` on `fin (n + 1)` is monotone if and only if `f i ≤ f (i + 1)` for all `i`. -/
+lemma monotone_iff_le_succ {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  monotone f ↔ ∀ i : fin n, f i.cast_succ ≤ f i.succ :=
+monotone_iff_forall_lt.trans $ lift_fun_iff_succ (≤)
+
+/-- A function `f` on `fin (n + 1)` is strictly antitone if and only if `f (i + 1) < f i`
+for all `i`. -/
+lemma strict_anti_iff_succ_lt {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  strict_anti f ↔ ∀ i : fin n, f i.succ < f i.cast_succ :=
+lift_fun_iff_succ (>)
+
+/-- A function `f` on `fin (n + 1)` is antitone if and only if `f (i + 1) ≤ f i` for all `i`. -/
+lemma antitone_iff_succ_le {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  antitone f ↔ ∀ i : fin n, f i.succ ≤ f i.cast_succ :=
+antitone_iff_forall_lt.trans $ lift_fun_iff_succ (≥)
 
 section add_group
 
@@ -1636,5 +1679,18 @@ by simp [eq_iff_veq, mul_def]
 by simp [eq_iff_veq, mul_def]
 
 end mul
+
+section
+-- Note that here we are disabling the "safety" of reflected, to allow us to reuse `nat.mk_numeral`.
+-- The usual way to provide the required `reflected` instance would be via rewriting to prove that
+-- the expression we use here is equivalent.
+local attribute [semireducible] reflected
+meta instance reflect : Π n, has_reflect (fin n)
+| 0 := fin_zero_elim
+| (n + 1) := nat.mk_numeral `(fin n.succ)
+              `(by apply_instance : has_zero (fin n.succ))
+              `(by apply_instance : has_one (fin n.succ))
+              `(by apply_instance : has_add (fin n.succ)) ∘ subtype.val
+end
 
 end fin

@@ -298,7 +298,7 @@ instance opposite_quandle : quandle Qᵐᵒᵖ :=
 The conjugation quandle of a group.  Each element of the group acts by
 the corresponding inner automorphism.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def conj (G : Type*) := G
 
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
@@ -338,7 +338,7 @@ The dihedral quandle. This is the conjugation quandle of the dihedral group rest
 
 Used for Fox n-colorings of knots.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def dihedral (n : ℕ) := zmod n
 
 /--

@@ -110,12 +110,12 @@ variables (V)
 localized "notation `Φ(` p`,` k`)` := witt_vector.isocrystal.frobenius p k" in isocrystal
 
 /-- A homomorphism between isocrystals respects the Frobenius map. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure isocrystal_hom extends V →ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_map x) = to_linear_map (Φ(p, k) x) )
 
 /-- An isomorphism between isocrystals respects the Frobenius map. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure isocrystal_equiv extends V ≃ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_equiv x) = to_linear_equiv (Φ(p, k) x) )
 
@@ -139,7 +139,7 @@ def fraction_ring.module : module K(p, k) K(p, k) := semiring.to_module
 Type synonym for `K(p, k)` to carry the standard 1-dimensional isocrystal structure
 of slope `m : ℤ`.
 -/
-@[nolint unused_arguments has_inhabited_instance, derive [add_comm_group, module K(p, k)]]
+@[nolint unused_arguments has_nonempty_instance, derive [add_comm_group, module K(p, k)]]
 def standard_one_dim_isocrystal (m : ℤ) : Type* :=
 K(p, k)
 
@@ -197,7 +197,7 @@ begin
     linear_equiv.map_smulₛₗ, standard_one_dim_isocrystal.frobenius_apply, algebra.id.smul_eq_mul],
   simp only [←mul_smul],
   congr' 1,
-  linear_combination (hmb, φ(p,k) c),
+  linear_combination φ(p,k) c * hmb,
 end
 
 end witt_vector

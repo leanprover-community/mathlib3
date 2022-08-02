@@ -12,7 +12,7 @@ namespace d_array
 variables {n : ℕ} {α : fin n → Type u}
 
 instance [∀ i, inhabited (α i)] : inhabited (d_array n α) :=
-⟨⟨λ _, default⟩⟩
+⟨⟨default⟩⟩
 
 end d_array
 

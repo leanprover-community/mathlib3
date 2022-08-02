@@ -805,13 +805,12 @@ end
 lemma of_alg_equiv (p : K[X]) (f : L ≃ₐ[K] L') [is_splitting_field K L p] :
   is_splitting_field K L' p :=
 begin
-  have : p.splits (algebra_map K L'),
+  split,
   { rw ← f.to_alg_hom.comp_algebra_map,
     exact splits_comp_of_splits _ _ (is_splitting_field.splits L p) },
-  refine ⟨this, _⟩,
-  rw ← (algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
-  refine (adjoin_root_set_eq_top_iff_adjoin_root_set_eq_range (is_splitting_field.splits L p)
-    f.to_alg_hom).mp (is_splitting_field.adjoin_roots L p),
+  { rw [←root_set, ←(algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
+        ←adjoin_root_set_eq_top_iff_adjoin_root_set_eq_range (is_splitting_field.splits L p),
+        root_set, is_splitting_field.adjoin_roots L p] },
 end
 
 end is_splitting_field

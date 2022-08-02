@@ -247,22 +247,20 @@ a isometric isomorphism from E to `lp 2` of the subspaces.
 
 Note that this goes in the opposite direction from `orthogonal_family.linear_isometry`. -/
 noncomputable def linear_isometry_equiv [Π i, complete_space (G i)]
-  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) :
+  (hV' : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) :
   E ≃ₗᵢ[𝕜] lp G 2 :=
 linear_isometry_equiv.symm $
 linear_isometry_equiv.of_surjective
 hV.linear_isometry
 begin
   rw [←linear_isometry.coe_to_linear_map],
-  refine linear_map.range_eq_top.mp _,
-  rw ← hV',
-  rw hV.range_linear_isometry,
+  exact linear_map.range_eq_top.mp (eq_top_iff.mpr $ hV'.trans_eq hV.range_linear_isometry.symm)
 end
 
 /-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an orthogonal family `G`,
 a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`. -/
 protected lemma linear_isometry_equiv_symm_apply [Π i, complete_space (G i)]
-  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
+  (hV' : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) (w : lp G 2) :
   (hV.linear_isometry_equiv hV').symm w = ∑' i, V i (w i) :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply]
 
@@ -270,7 +268,7 @@ by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isome
 a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`, and this
 sum indeed converges. -/
 protected lemma has_sum_linear_isometry_equiv_symm [Π i, complete_space (G i)]
-  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
+  (hV' : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) (w : lp G 2) :
   has_sum (λ i, V i (w i)) ((hV.linear_isometry_equiv hV').symm w) :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.has_sum_linear_isometry]
 
@@ -278,7 +276,7 @@ by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.has_sum_line
 family `G`, an "elementary basis vector" in `lp G 2` supported at `i : ι` is the image of the
 associated element in `E`. -/
 @[simp] protected lemma linear_isometry_equiv_symm_apply_single [Π i, complete_space (G i)]
-  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) {i : ι} (x : G i) :
+  (hV' : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) {i : ι} (x : G i) :
   (hV.linear_isometry_equiv hV').symm (lp.single 2 i x) = V i x :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply_single]
 
@@ -287,7 +285,7 @@ family `G`, a finitely-supported vector in `lp G 2` is the image of the associat
 elements of `E`. -/
 @[simp] protected lemma linear_isometry_equiv_symm_apply_dfinsupp_sum_single
   [Π i, complete_space (G i)]
-  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
+  (hV' : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) (W₀ : Π₀ (i : ι), G i) :
   (hV.linear_isometry_equiv hV').symm (W₀.sum (lp.single 2)) = (W₀.sum (λ i, V i)) :=
 by simp [orthogonal_family.linear_isometry_equiv,
   orthogonal_family.linear_isometry_apply_dfinsupp_sum_single]
@@ -297,7 +295,7 @@ family `G`, a finitely-supported vector in `lp G 2` is the image of the associat
 elements of `E`. -/
 @[simp] protected lemma linear_isometry_equiv_apply_dfinsupp_sum_single
   [Π i, complete_space (G i)]
-  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
+  (hV' : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) (W₀ : Π₀ (i : ι), G i) :
   (hV.linear_isometry_equiv hV' (W₀.sum (λ i, V i)) : Π i, G i) = W₀ :=
 begin
   rw ← hV.linear_isometry_equiv_symm_apply_dfinsupp_sum_single hV',
@@ -411,6 +409,7 @@ protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk b.orthonormal
 begin
+  refine eq.ge _,
   have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
   simpa only [finset.coe_image, finset.coe_univ, set.image_univ, hilbert_basis.dense_span] using
     this.submodule_topological_closure_eq.symm
@@ -444,7 +443,7 @@ variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 
 /-- An orthonormal family of vectors whose span is dense in the whole module is a Hilbert basis. -/
-protected def mk (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) :
+protected def mk (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :
   hilbert_basis ι 𝕜 E :=
 hilbert_basis.of_repr $
 hv.orthogonal_family.linear_isometry_equiv
@@ -458,7 +457,7 @@ lemma _root_.orthonormal.linear_isometry_equiv_symm_apply_single_one (h i) :
 by rw [orthogonal_family.linear_isometry_equiv_symm_apply_single,
   linear_isometry.to_span_singleton_apply, one_smul]
 
-@[simp] protected lemma coe_mk (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) :
+@[simp] protected lemma coe_mk (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :
   ⇑(hilbert_basis.mk hv hsp) = v :=
 funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv _
 
@@ -466,7 +465,7 @@ funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv _
 basis. -/
 protected def mk_of_orthogonal_eq_bot (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) : hilbert_basis ι 𝕜 E :=
 hilbert_basis.mk hv
-(by rw [← orthogonal_orthogonal_eq_closure, orthogonal_eq_top_iff, hsp])
+(by rw [← orthogonal_orthogonal_eq_closure, ← eq_top_iff, orthogonal_eq_top_iff, hsp])
 
 @[simp] protected lemma coe_of_orthogonal_eq_bot_mk (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) :
   ⇑(hilbert_basis.mk_of_orthogonal_eq_bot hv hsp) = v :=

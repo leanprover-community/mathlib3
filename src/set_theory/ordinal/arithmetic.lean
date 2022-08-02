@@ -120,8 +120,7 @@ theorem nat_cast_succ (n : ℕ) : ↑n.succ = succ (n : ordinal) := rfl
 theorem add_left_cancel (a) {b c : ordinal} : a + b = a + c ↔ b = c :=
 by simp only [le_antisymm_iff, add_le_add_iff_left]
 
-theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
-by rw [←succ_zero, lt_succ_iff, ordinal.le_zero]
+theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 := by simpa using @lt_succ_bot_iff _ _ _ a _ _
 
 private theorem add_lt_add_iff_left' (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
@@ -185,13 +184,7 @@ unique.eq_default x
 by rw [one_out_eq x, typein_enum]
 
 theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
-begin
-  refine ⟨λ ha, _, _⟩,
-  { rcases eq_or_lt_of_le ha with rfl | ha,
-    exacts [or.inr rfl, or.inl (lt_one_iff_zero.1 ha)], },
-  { rintro (rfl | rfl),
-    exacts [zero_le_one, le_rfl], }
-end
+by simpa using @le_succ_bot_iff _ _ _ a _
 
 theorem add_eq_zero_iff {a b : ordinal} : a + b = 0 ↔ (a = 0 ∧ b = 0) :=
 induction_on a $ λ α r _, induction_on b $ λ β s _, begin

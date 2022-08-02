@@ -42,7 +42,7 @@ uniform integrable, uniformly absolutely continuous integral, Vitali convergence
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
 
@@ -942,6 +942,60 @@ lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ 
     ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
 ⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm hp'⟩,
  λ h, uniform_integrable_of hp hp' h.1 h.2⟩
+
+
+/-- The averaging of a uniformly integrable sequence is also uniformly integrable. -/
+lemma uniform_integrable_average (hp : 1 ≤ p)
+  {f : ℕ → α → ℝ} (hf : uniform_integrable f p μ) :
+  uniform_integrable (λ n, (∑ i in finset.range n, f i) / n) p μ :=
+begin
+  obtain ⟨hf₁, hf₂, hf₃⟩ := hf,
+  refine ⟨λ n, _, λ ε hε, _, _⟩,
+  { simp_rw div_eq_mul_inv,
+    exact (finset.ae_strongly_measurable_sum' _ (λ i _, hf₁ i)).mul
+      (ae_strongly_measurable_const : ae_strongly_measurable (λ x, (↑n : ℝ)⁻¹) μ) },
+  { obtain ⟨δ, hδ₁, hδ₂⟩ := hf₂ hε,
+    refine ⟨δ, hδ₁, λ n s hs hle, _⟩,
+    simp_rw [div_eq_mul_inv, finset.sum_mul, set.indicator_finset_sum],
+    refine le_trans (snorm_sum_le (λ i hi, ((hf₁ i).mul_const (↑n)⁻¹).indicator hs) hp) _,
+    have : ∀ i, s.indicator (f i * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • s.indicator (f i),
+    { intro i,
+      rw [mul_comm, (_ : (↑n)⁻¹ * f i = λ ω, (↑n : ℝ)⁻¹ • f i ω)],
+      { rw set.indicator_const_smul s (↑n)⁻¹ (f i),
+        refl },
+      { refl } },
+    simp_rw [this, snorm_const_smul, ← finset.mul_sum, nnnorm_inv, real.nnnorm_coe_nat],
+    by_cases hn : (↑(↑n : ℝ≥0)⁻¹ : ℝ≥0∞) = 0,
+    { simp only [hn, zero_mul, zero_le] },
+    refine le_trans _ (_ : ↑(↑n : ℝ≥0)⁻¹ * (n • ennreal.of_real ε) ≤ ennreal.of_real ε),
+    { refine (ennreal.mul_le_mul_left hn ennreal.coe_ne_top).2 _,
+      conv_rhs { rw ← finset.card_range n },
+      exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hδ₂ _ _ hs hle) },
+    { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
+      rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
+        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
+      { exact le_rfl },
+      all_goals { simpa only [ne.def, nat.cast_eq_zero] } } },
+  { obtain ⟨C, hC⟩ := hf₃,
+    simp_rw [div_eq_mul_inv, finset.sum_mul],
+    refine ⟨C, λ n, (snorm_sum_le (λ i hi, (hf₁ i).mul_const (↑n)⁻¹) hp).trans _⟩,
+    have : ∀ i, (λ ω, f i ω * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • λ ω, f i ω,
+    { intro i,
+      ext ω,
+      simp only [mul_comm, pi.smul_apply, algebra.id.smul_eq_mul] },
+    simp_rw [this, snorm_const_smul, ← finset.mul_sum, nnnorm_inv, real.nnnorm_coe_nat],
+    by_cases hn : (↑(↑n : ℝ≥0)⁻¹ : ℝ≥0∞) = 0,
+    { simp only [hn, zero_mul, zero_le] },
+    refine le_trans _ (_ : ↑(↑n : ℝ≥0)⁻¹ * (n • C : ℝ≥0∞) ≤ C),
+    { refine (ennreal.mul_le_mul_left hn ennreal.coe_ne_top).2 _,
+      conv_rhs { rw ← finset.card_range n },
+      exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hC i) },
+    { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
+      rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
+        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
+      { exact le_rfl },
+      all_goals { simpa only [ne.def, nat.cast_eq_zero] } } }
+end
 
 end uniform_integrable
 

@@ -336,4 +336,38 @@ begin
   refl
 end
 
+variables {R' S' : Type*} [comm_ring R'] [comm_ring S']
+variables [algebra R R'] [algebra S S'] [algebra R' S'] [algebra R S']
+variables [is_scalar_tower R R' S'] [is_scalar_tower R S S']
+
+lemma is_base_change.symm
+  (h : is_base_change S (is_scalar_tower.to_alg_hom R R' S').to_linear_map) :
+  is_base_change R' (is_scalar_tower.to_alg_hom R S S').to_linear_map :=
+begin
+  letI := (algebra.tensor_product.include_right : R' →ₐ[R] S ⊗ R').to_ring_hom.to_algebra,
+  let e : R' ⊗[R] S ≃ₗ[R'] S',
+  { refine { map_smul' := _, ..((tensor_product.comm R R' S).trans $ h.equiv.restrict_scalars R) },
+    intros r x,
+    change
+      h.equiv (tensor_product.comm R R' S (r • x)) = r • h.equiv (tensor_product.comm R R' S x),
+    apply tensor_product.induction_on x,
+    { simp only [smul_zero, map_zero] },
+    { intros x y,
+      simp [smul_tmul', algebra.smul_def, ring_hom.algebra_map_to_algebra, h.equiv_tmul],
+      ring },
+    { intros x y hx hy, simp only [map_add, smul_add, hx, hy] } },
+  have : (is_scalar_tower.to_alg_hom R S S').to_linear_map
+    = (e.to_linear_map.restrict_scalars R).comp (tensor_product.mk R R' S 1),
+  { ext, simp [e, h.equiv_tmul, algebra.smul_def] },
+  rw this,
+  exact (tensor_product.is_base_change R S R').comp (is_base_change.of_equiv e),
+end
+
+variables (R S R' S')
+
+lemma is_base_change.comm :
+  is_base_change S (is_scalar_tower.to_alg_hom R R' S').to_linear_map ↔
+    is_base_change R' (is_scalar_tower.to_alg_hom R S S').to_linear_map :=
+⟨is_base_change.symm, is_base_change.symm⟩
+
 end is_base_change

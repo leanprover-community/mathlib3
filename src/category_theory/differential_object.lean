@@ -35,7 +35,7 @@ A differential object in a category with zero morphisms and a shift is
 an object `X` equipped with
 a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure differential_object :=
 (X : C)
 (d : X ⟶ X⟦1⟧)
@@ -51,7 +51,7 @@ namespace differential_object
 /--
 A morphism of differential objects is a morphism commuting with the differentials.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure hom (X Y : differential_object C) :=
 (f : X.X ⟶ Y.X)
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)

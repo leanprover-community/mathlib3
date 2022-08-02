@@ -364,18 +364,15 @@ lemma direct_sum.is_internal.is_hilbert_sum {F : ι → submodule 𝕜 E}
   @is_hilbert_sum _ 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=
 hF'.is_hilbert_sum_internal _ (by rw hF.submodule_supr_eq_top; exact subset_closure)
 
+-- Should I keep this ? If so, where ?
 instance complete_space_cond (U V : submodule 𝕜 E) [complete_space U] [complete_space V]
   (b : bool) : complete_space (cond b U V : submodule 𝕜 E) :=
-
+by cases b; assumption
 
 lemma submodule.is_hilbert_sum_orthogonal (K : submodule 𝕜 E) [hK : complete_space K] :
   @is_hilbert_sum _ 𝕜 _ E _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
   (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
 begin
-  haveI : Π b, complete_space ((cond b K Kᗮ : submodule 𝕜 E) : Type*),
-  { intro b,
-    cases b;
-    exact orthogonal.complete_space K <|> assumption },
   refine direct_sum.is_internal.is_hilbert_sum _ K.orthogonal_family_self,
   convert (direct_sum.is_internal_submodule_iff_is_compl _ (by contradiction) bool.univ_eq).mpr _,
   exact submodule.is_compl_orthogonal_of_complete_space.symm

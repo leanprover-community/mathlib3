@@ -55,6 +55,12 @@ theorem modeq_iff_dvd : a ≡ b [ZMOD n] ↔ n ∣ b - a :=
 by rw [modeq, eq_comm];
    simp [mod_eq_mod_iff_mod_sub_eq_zero, dvd_iff_mod_eq_zero, -euclidean_domain.mod_eq_zero]
 
+theorem modeq_iff_add_fac {a b n : ℤ} : a ≡ b [ZMOD n] ↔ ∃ t, b = a + n * t :=
+begin
+  rw modeq_iff_dvd,
+  exact exists_congr (λ t, sub_eq_iff_eq_add'),
+end
+
 theorem modeq.dvd : a ≡ b [ZMOD n] → n ∣ b - a := modeq_iff_dvd.1
 theorem modeq_of_dvd : n ∣ b - a → a ≡ b [ZMOD n] := modeq_iff_dvd.2
 
@@ -162,6 +168,9 @@ theorem modeq_add_fac {a b n : ℤ} (c : ℤ) (ha : a ≡ b [ZMOD n]) : a + n*c 
 calc a + n*c ≡ b + n*c [ZMOD n] : ha.add_right _
          ... ≡ b + 0 [ZMOD n] : (dvd_mul_right _ _).modeq_zero_int.add_left _
          ... ≡ b [ZMOD n] : by rw add_zero
+
+theorem modeq_add_fac_self {a t n : ℤ} : a + n * t ≡ a [ZMOD n] :=
+modeq_add_fac _ modeq.rfl
 
 lemma mod_coprime {a b : ℕ} (hab : nat.coprime a b) : ∃ y : ℤ, a * y ≡ 1 [ZMOD b] :=
 ⟨ nat.gcd_a a b,

@@ -965,7 +965,7 @@ by simpa only [lift_lift, lift_univ, univ_umax] using
 @[simp] theorem ord_univ : ord univ.{u v} = ordinal.univ.{u v} :=
 le_antisymm (ord_card_le _) $ le_of_forall_lt $ λ o h,
 lt_ord.2 begin
-  rcases lift.principal_seg.{u v}.down'.1
+  rcases lift.principal_seg.{u v}.down.1
     (by simpa only [lift.principal_seg_coe] using h) with ⟨o', rfl⟩,
   simp only [lift.principal_seg_coe], rw [← lift_card],
   apply lift_lt_univ'
@@ -975,7 +975,7 @@ theorem lt_univ {c} : c < univ.{u (u+1)} ↔ ∃ c', c = lift.{(u+1) u} c' :=
 ⟨λ h, begin
   have := ord_lt_ord.2 h,
   rw ord_univ at this,
-  cases lift.principal_seg.{u (u+1)}.down'.1
+  cases lift.principal_seg.{u (u+1)}.down.1
     (by simpa only [lift.principal_seg_top]) with o e,
   have := card_ord c,
   rw [← e, lift.principal_seg_coe, ← lift_card] at this,

@@ -430,13 +430,14 @@ protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
   tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E))
     at_top (𝓝 x) :=
 begin
-  convert b.has_sum_repr x,
-  ext J,
-  let b' : orthonormal_basis J 𝕜 (span 𝕜 (J.image b : set E)) :=
-    orthonormal_basis.span b.orthonormal J,
-  simp_rw [b'.orthogonal_projection_eq_sum, coe_sum, coe_smul, b',
-            orthonormal_basis.span_apply b.orthonormal J,
-            J.sum_coe_sort (λ i : ι, ⟪b i, x⟫ • b i), b.repr_apply_apply],
+  haveI : ∀ J : finset ι, complete_space (span 𝕜 (J.image b : set E)) := λ j, infer_instance,
+  refine orthogonal_projection_tendsto_self 𝕜 _
+    (λ J₁ J₂ h, span_mono $ finset.coe_subset.mpr $ finset.image_mono _ h) x
+    (b.dense_span.ge.trans _),
+  rw ← submodule.span_Union,
+  exact topological_closure_mono (span_mono $ set.range_subset_iff.mpr $
+    λ i, set.mem_Union_of_mem {i} $ finset.mem_coe.mpr $ finset.mem_image_of_mem _ $
+    finset.mem_singleton_self i)
 end
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)

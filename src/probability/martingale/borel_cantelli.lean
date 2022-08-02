@@ -449,16 +449,57 @@ def mgale (ℱ : filtration ℕ m0) (μ : measure α) (s : ℕ → set α) (n : 
 
 variables {s : ℕ → set α}
 
+lemma mgale_succ (n : ℕ) :
+  mgale ℱ μ s (n + 1) =
+    mgale ℱ μ s n + ((s (n + 1)).indicator 1 - μ[(s (n + 1)).indicator 1 | ℱ n]) :=
+begin
+  rw [mgale, finset.sum_range_succ],
+  refl,
+end
+
 lemma adapted_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   adapted ℱ (mgale ℱ μ s) :=
 λ n, finset.strongly_measurable_sum' _ (λ k hk, (strongly_measurable_one.indicator
   (ℱ.mono (nat.succ_le_of_lt (finset.mem_range.1 hk)) _ (hs _))).sub
   (strongly_measurable_condexp.mono (ℱ.mono (finset.mem_range.1 hk).le)))
 
+variables [is_finite_measure μ]
+
+lemma integrable_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
+  integrable (mgale ℱ μ s n) μ :=
+integrable_finset_sum' _ (λ k hk,
+  ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
+  (integrable_const 1).integrable_on).sub integrable_condexp)
+
+section
+#exit
+variables {ι : Type*}
+lemma condexp_finset_sum {s : finset ι}
+
+end
+
+#check eventually_eq.add
 lemma martingale_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   martingale (mgale ℱ μ s) ℱ μ :=
 begin
-  sorry,
+  refine martingale_nat (adapted_mgale hs) (integrable_mgale hs) (λ n, eventually_eq.symm _),
+  rw [mgale, finset.sum_range_succ],
+  -- induction n with n ih,
+  -- { rw [zero_add, mgale, mgale, finset.range_one, finset.range_zero,
+  --     finset.sum_singleton, finset.sum_empty],
+  --   refine (condexp_sub ((integrable_indicator_iff (ℱ.le 1 _ (hs 1))).2
+  --     (integrable_const 1).integrable_on) integrable_condexp).trans _,
+  --   have : μ[μ[(s (0 + 1)).indicator (λ x, 1 : α → ℝ) | ℱ 0] | ℱ 0] =ᵐ[μ]
+  --     μ[(s (0 + 1)).indicator 1 | ℱ 0] := condexp_condexp_of_le le_rfl (ℱ.le 0),
+  --   filter_upwards [this] with x hx,
+  --   rwa [nat.nat_zero_eq_zero, zero_add, pi.sub_apply, pi.zero_apply, sub_eq_zero, eq_comm] },
+  -- { rw [mgale, finset.sum_range_succ, mgale_succ, ← mgale],
+  --   refine (condexp_add (integrable_mgale hs _) (((integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2
+  --     (integrable_const 1).integrable_on).sub integrable_condexp)).trans (eventually_eq.add _ _),
+  --   { dsimp,
+  --   },
+
+  -- }
 end
 
 end borel_cantelli

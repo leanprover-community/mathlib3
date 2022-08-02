@@ -60,8 +60,8 @@ A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ :
 is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 `f (c • x) = (σ c) • f x`. -/
 class semilinear_isometry_class (𝓕 : Type*) {R R₂ : out_param Type*} [semiring R] [semiring R₂]
-  (σ₁₂ : out_param $ R →+* R₂) (E E₂ : out_param Type*) [semi_normed_group E]
-  [semi_normed_group E₂] [module R E] [module R₂ E₂]
+  (σ₁₂ : out_param $ R →+* R₂) (E E₂ : out_param Type*) [seminormed_add_comm_group E]
+  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
   extends semilinear_map_class 𝓕 σ₁₂ E E₂ :=
 (norm_map : ∀ (f : 𝓕) (x : E), ∥f x∥ = ∥x∥)
 
@@ -71,7 +71,7 @@ class semilinear_isometry_class (𝓕 : Type*) {R R₂ : out_param Type*} [semir
 This is an abbreviation for `semilinear_isometry_class F (ring_hom.id R) E E₂`.
 -/
 abbreviation linear_isometry_class (𝓕 : Type*) (R E E₂ : out_param Type*) [semiring R]
-  [semi_normed_group E] [semi_normed_group E₂] [module R E] [module R E₂] :=
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R E₂] :=
 semilinear_isometry_class 𝓕 (ring_hom.id R) E E₂
 
 set_option old_structure_cmd false
@@ -348,7 +348,7 @@ is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 class semilinear_isometry_equiv_class (𝓕 : Type*) {R R₂ : out_param Type*}
   [semiring R] [semiring R₂] (σ₁₂ : out_param $ R →+* R₂) {σ₂₁ : out_param $ R₂ →+* R}
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : out_param Type*)
-  [semi_normed_group E] [semi_normed_group E₂] [module R E] [module R₂ E₂]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
   extends semilinear_equiv_class 𝓕 σ₁₂ E E₂ :=
 (norm_map : ∀ (f : 𝓕) (x : E), ∥f x∥ = ∥x∥)
 
@@ -358,7 +358,7 @@ class semilinear_isometry_equiv_class (𝓕 : Type*) {R R₂ : out_param Type*}
 This is an abbreviation for `semilinear_isometry_equiv_class F (ring_hom.id R) E E₂`.
 -/
 abbreviation linear_isometry_equiv_class (𝓕 : Type*) (R E E₂ : out_param Type*) [semiring R]
-  [semi_normed_group E] [semi_normed_group E₂] [module R E] [module R E₂] :=
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R E₂] :=
 semilinear_isometry_equiv_class 𝓕 (ring_hom.id R) E E₂
 
 set_option old_structure_cmd false

@@ -163,7 +163,6 @@ begin
   exact hT.2 (e i)
 end
 
--- This is annoying, can we make it easier ?
 lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
   (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
     re (trace_along U (conj_proj T V)) ≤
@@ -260,6 +259,59 @@ noncomputable def is_positive.trace [complete_space E] {T : E →L[𝕜] E} (hT 
   ℝ≥0∞ :=
 ⨆ (U : findim_subspace 𝕜 E), hT.trace_along_ennreal (U : submodule 𝕜 E)
 
+instance [complete_space E] (U : submodule 𝕜 E) : complete_space U.topological_closure := sorry
+
+lemma foo {U : submodule 𝕜 E} [complete_space U] (y : E) :
+  ∥y - orthogonal_projection U y∥ = ⨅ x : U, ∥y - x∥ :=
+begin
+  rw norm_eq_infi_iff_inner_eq_zero _ (submodule.coe_mem _),
+  exact orthogonal_projection_inner_eq_zero _
+end
+
+lemma our_masterpiece [complete_space E] {τ : Type*} [semilattice_sup τ] [nonempty τ]
+  (U : τ → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
+  (x : E) :
+  filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top
+    (𝓝 (orthogonal_projection (⨆ t, U t).topological_closure x : E)) :=
+begin
+  let y := (orthogonal_projection (⨆ t, U t).topological_closure x : E),
+  have proj_x : ∀ i, orthogonal_projection (U i) x = orthogonal_projection (U i) y,
+  { sorry },
+  suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ∥(orthogonal_projection (U i) y : E) - y∥ < ε,
+  { simpa only [proj_x, normed_add_comm_group.tendsto_at_top] using this },
+  intros ε hε,
+  have y_mem : y ∈ (⨆ t, U t).topological_closure := submodule.coe_mem _,
+  obtain ⟨a, ha, hay⟩ : ∃ a ∈ ⨆ t, U t, dist y a < ε,
+  { rw [← set_like.mem_coe, submodule.topological_closure_coe, metric.mem_closure_iff] at y_mem,
+    exact y_mem ε hε },
+  obtain ⟨I, hI⟩ : ∃ I, a ∈ U I,
+  { rwa [submodule.mem_supr_of_directed _ (hU.directed_le)] at ha },
+  refine ⟨I, λ i (hi : I ≤ i), _⟩,
+  have hai : a ∈ U i := hU hi hI,
+  rw [norm_sub_rev, foo],
+  refine lt_of_le_of_lt _ hay,
+  change _ ≤ ∥y - (⟨a, hai⟩ : (U i : set E))∥,
+  refine cinfi_le ⟨0, forall_range_iff.mpr $ λ _, norm_nonneg _⟩ _,
+  exact hU.directed_le
+end
+
+lemma our_masterpiece' [complete_space E] {τ : Type*} [semilattice_sup τ] [nonempty τ]
+  (U : τ → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
+  (x : E) (hU : ⊤ ≤ (⨆ t, U t).topological_closure) :
+  filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top
+    (𝓝 x) :=
+sorry
+
+lemma is_positive.trace_eq_supr [complete_space E]
+  {T : E →L[𝕜] E} (hT : T.is_positive) (τ : Type*) [partial_order τ]
+  (U : τ → submodule 𝕜 E) [∀ t, finite_dimensional 𝕜 (U t)] (hU : monotone U)
+  (hU' : ⊤ ≤ (⨆ t, U t).topological_closure) :
+  filter.tendsto (λ t, hT.trace_along_ennreal (U t)) at_top (nhds (hT.trace)) :=
+begin
+  --suffices
+  --have := our_masterpiece'
+end
+
 lemma is_positive.has_sum_trace {ι : Type*} [complete_space E] (e : hilbert_basis ι 𝕜 E)
   {T : E →L[𝕜] E} (hT : T.is_positive) :
   has_sum (λ i : ι, ennreal.of_real (re ⟪e i, T (e i)⟫)) hT.trace :=
@@ -302,3 +354,7 @@ end
 end positive
 
 end continuous_linear_map
+
+section
+
+end

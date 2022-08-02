@@ -9,7 +9,6 @@ import linear_algebra.matrix.determinant
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
-import ring_theory.tensor_product
 
 /-!
 # Integral closure of a subring.
@@ -480,24 +479,6 @@ end
 @[simp] lemma is_integral.pow_iff {x : A} {n : ℕ} (hn : 0 < n) :
   is_integral R (x ^ n) ↔ is_integral R x :=
 ⟨is_integral_of_pow hn, λ hx, is_integral.pow hx n⟩
-
-open_locale tensor_product
-
-lemma is_integral.tmul (x : A) {y : B} (h : is_integral R y) : is_integral A (x ⊗ₜ[R] y) :=
-begin
-  obtain ⟨p, hp, hp'⟩ := h,
-  refine ⟨(p.map (algebra_map R A)).scale_roots x, _, _⟩,
-  { rw polynomial.monic_scale_roots_iff, exact hp.map _ },
-  convert @polynomial.scale_roots_eval₂_mul (A ⊗[R] B) A _ _ _
-    algebra.tensor_product.include_left.to_ring_hom (1 ⊗ₜ y) x using 2,
-  { simp only [alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom, mul_one, one_mul,
-      algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul] },
-  convert (mul_zero _).symm,
-  rw [polynomial.eval₂_map, algebra.tensor_product.include_left_comp_algebra_map,
-    ← polynomial.eval₂_map],
-  convert polynomial.eval₂_at_apply algebra.tensor_product.include_right.to_ring_hom y,
-  rw [polynomial.eval_map, hp', _root_.map_zero],
-end
 
 section
 

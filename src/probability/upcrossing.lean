@@ -19,10 +19,12 @@ convergence theorems.
 
 ## Main definitions
 
-* `measure_theory.upper_crossing_time a b f N n`: is the stopping time corresponding to `f` crossing
-  above `b` the `n`-th time.
-* `measure_theory.lower_crossing_time a b f N n`: is the stopping time corresponding to `f` crossing
-  below `a` the `n`-th time.
+* `measure_theory.upper_crossing_time a b f N n`: is the stopping time corresponding to `f`
+  crossing above `b` the `n`-th time before time `N` (if this does not occur then the value is
+  taken to be `N`).
+* `measure_theory.lower_crossing_time a b f N n`: is the stopping time corresponding to `f`
+  crossing below `a` the `n`-th time before time `N` (if this does not occur then the value is
+  taken to be `N`).
 * `measure_theory.upcrossing_strat a b f N`: is the predictable process which is 1 if `n` is
   between a consecutive pair of lower and upper crossing and is 0 otherwise. Intuitively
   one might think of the `upcrossing_strat` as the strategy of buying 1 share whenever the process

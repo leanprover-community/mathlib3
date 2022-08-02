@@ -453,25 +453,25 @@ end
 private lemma inf_ro_component_to_preconnected (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) : (G.induce C.val).preconnected :=
 begin
   rintro ⟨x,xC⟩ ⟨y,yC⟩,
-  obtain ⟨w,wgood⟩ := to_subconnected G K C.val C.prop.1 x xC y yC,
-  induction w,
+  obtain ⟨w,wC⟩ := to_subconnected G K C.val C.prop.1 x xC y yC,
+  induction w with x x z y a u ih,
   { use nil, },
-  { have wgood' : ↑(w_p.support.to_finset) ⊆ C.val, by
-    { rw walk.support_cons at wgood,
-      simp at wgood,
-      exact (set.insert_subset.mp wgood).2,},
-    have vgood' : w_v ∈ C.val, by
-    { rw walk.support_cons at wgood,
-      simp at wgood,
-      let lol2 := (set.insert_subset.mp wgood).2,
-      let lol3 := walk.start_mem_support w_p,
+  { have uC : ↑(u.support.to_finset) ⊆ C.val, by
+    { rw walk.support_cons at wC,
+      simp at wC,
+      exact (set.insert_subset.mp wC).2,},
+    have zC : z ∈ C.val, by
+    { rw walk.support_cons at wC,
+      simp at wC,
+      let lol2 := (set.insert_subset.mp wC).2,
+      let lol3 := walk.start_mem_support u,
       rw ←list.mem_to_finset at lol3,
       exact lol2 lol3,
     },
 
-    let wC := (w_ih vgood' yC wgood').some,
-    let adjC : (G.induce C.val).adj ⟨w_u,xC⟩ ⟨w_v,vgood'⟩, by { simp, exact w_h },
-    exact ⟨walk.cons adjC wC⟩,
+    let u' := (ih zC yC uC).some,
+    let adjC : (G.induce C.val).adj ⟨x,xC⟩ ⟨z,zC⟩, by { simp, exact a },
+    exact ⟨walk.cons adjC u'⟩,
   }
 
 end

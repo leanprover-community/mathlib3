@@ -134,7 +134,11 @@ def is_base_change : Prop := is_tensor_product
 
 variables {S f} (h : is_base_change S f)
 variables {P Q : Type*} [add_comm_monoid P] [module R P]
-variables [add_comm_monoid Q] [module R Q] [module S Q] [is_scalar_tower R S Q]
+variables [add_comm_monoid Q] [module S Q]
+
+section
+
+variables [module R Q] [is_scalar_tower R S Q]
 
 /-- Suppose `f : M →ₗ[R] N` is the base change of `M` along `R → S`. Then any `R`-linear map from
 `M` to an `S`-module factors thorugh `f`. -/
@@ -164,6 +168,7 @@ end
 lemma is_base_change.lift_comp (g : M →ₗ[R] Q) : ((h.lift g).restrict_scalars R).comp f = g :=
 linear_map.ext (h.lift_eq g)
 
+end
 include h
 
 @[elab_as_eliminator]
@@ -185,14 +190,14 @@ begin
   { intros x y e₁ e₂, rw [map_add, map_add, e₁, e₂] }
 end
 
-lemma is_base_change.alg_hom_ext' (g₁ g₂ : N →ₗ[S] Q)
+lemma is_base_change.alg_hom_ext' [module R Q] [is_scalar_tower R S Q] (g₁ g₂ : N →ₗ[S] Q)
   (e : (g₁.restrict_scalars R).comp f = (g₂.restrict_scalars R).comp f) :
   g₁ = g₂ :=
 h.alg_hom_ext g₁ g₂ (linear_map.congr_fun e)
 
 variables (R M N S)
 
-omit f
+omit h f
 
 lemma tensor_product.is_base_change : is_base_change S (tensor_product.mk R S M 1) :=
 begin
@@ -209,7 +214,15 @@ variables {R M N S}
 
 /-- The base change of `M` along `R → S` is linearly equivalent to `S ⊗[R] M`. -/
 noncomputable
-def is_base_change.equiv : S ⊗[R] M ≃ₗ[R] N := h.equiv
+def is_base_change.equiv : S ⊗[R] M ≃ₗ[S] N :=
+{ map_smul' := λ r x, begin
+    change h.equiv (r • x) = r • h.equiv x,
+    apply tensor_product.induction_on x,
+    { rw [smul_zero, map_zero, smul_zero] },
+    { intros x y, simp [smul_tmul', algebra.of_id_apply] },
+    { intros x y hx hy, rw [map_add, smul_add, map_add, smul_add, hx, hy] },
+  end,
+  ..h.equiv }
 
 lemma is_base_change.equiv_tmul (s : S) (m : M) : h.equiv (s ⊗ₜ m) = s • (f m) :=
 tensor_product.lift.tmul s m
@@ -219,7 +232,6 @@ by rw [h.equiv.symm_apply_eq, h.equiv_tmul, one_smul]
 
 
 variable (f)
-include f S
 
 lemma is_base_change.of_lift_unique
   (h : ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_monoid Q], by exactI ∀ [module R Q] [module S Q],
@@ -234,7 +246,12 @@ begin
   { refine { map_smul' := λ r x, _, ..f' },
     apply tensor_product.induction_on x,
     { simp only [map_zero, smul_zero, linear_map.to_fun_eq_coe] },
-    { intros x y, simp [f', smul_tmul', algebra.of_id_apply] },
+    { intros x y,
+      simp only [algebra.of_id_apply, algebra.id.smul_eq_mul,
+        alg_hom.to_linear_map_apply, linear_map.mul_apply, tensor_product.lift.tmul',
+        linear_map.smul_apply, ring_hom.id_apply, module.algebra_map_End_apply, f',
+        _root_.map_mul, tensor_product.smul_tmul', linear_map.coe_restrict_scalars_eq_coe,
+        linear_map.flip_apply] },
     { intros x y hx hy, dsimp at hx hy ⊢, simp only [hx, hy, smul_add, map_add] } },
   change function.bijective f'',
   split,
@@ -281,8 +298,6 @@ lemma is_base_change.iff_lift_unique :
   exact ⟨h.lift g, h.lift_comp g, λ g' e, h.alg_hom_ext' _ _ (e.trans (h.lift_comp g).symm)⟩ },
   is_base_change.of_lift_unique f⟩
 
-omit f
-
 lemma is_base_change.of_equiv (e : M ≃ₗ[R] N) : is_base_change R e.to_linear_map :=
 begin
   apply is_base_change.of_lift_unique,
@@ -300,8 +315,6 @@ end
 variables {T O : Type*} [comm_ring T] [algebra R T] [algebra S T] [is_scalar_tower R S T]
 variables [add_comm_monoid O] [module R O] [module S O] [module T O] [is_scalar_tower S T O]
 variables [is_scalar_tower R S O] [is_scalar_tower R T O]
-
-omit h S
 
 lemma is_base_change.comp {f : M →ₗ[R] N} (hf : is_base_change S f) {g : N →ₗ[S] O}
   (hg : is_base_change T g) : is_base_change T ((g.restrict_scalars R).comp f) :=

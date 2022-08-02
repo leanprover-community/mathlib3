@@ -238,6 +238,19 @@ begin
   exact formally_unramified.ext I ⟨2, hI⟩ (alg_hom.congr_fun e),
 end
 
+lemma formally_unramified.of_comp [formally_unramified R B] :
+  formally_unramified A B :=
+begin
+  constructor,
+  introsI Q _ _ I e f₁ f₂ e',
+  letI := ((algebra_map A Q).comp (algebra_map R A)).to_algebra,
+  letI : is_scalar_tower R A Q := is_scalar_tower.of_algebra_map_eq' rfl,
+  refine alg_hom.restrict_scalars_injective R _,
+  refine formally_unramified.ext I ⟨2, e⟩ _,
+  intro x,
+  exact alg_hom.congr_fun e' x
+end
+
 lemma formally_etale.comp [formally_etale R A] [formally_etale A B] : formally_etale R B :=
 formally_etale.iff_unramified_and_smooth.mpr
   ⟨formally_unramified.comp R A B, formally_smooth.comp R A B⟩

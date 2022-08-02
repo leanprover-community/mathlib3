@@ -152,7 +152,7 @@ begin
   apply @open_embedding_cont_diff_on_cont_mdiff' 𝕜 _
     (R × R) _ _ (model_prod R R) _ _ (Rˣ × Rˣ) _ _ _ (λ x, (x.1, x.2))
     (by {apply open_embedding.prod open_embedding_coe open_embedding_coe; apply_instance}) _ _
-    R _ _ R _ _ Rˣ _ _ _ coe open_embedding_coe _ _ ⊤ (λ x, x.1 * x.2),
+    R _ _ R _ _ Rˣ _ _ _ coe open_embedding_coe _ ⊤ (λ x, x.1 * x.2),
   { exact cont_diff.cont_diff_on cont_diff_mul },
   { ext, simp },
   { apply_instance },

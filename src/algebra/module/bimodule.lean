@@ -55,6 +55,8 @@ Develop the theory of two-sided ideals, which have type `submodule (R ⊗[ℕ] R
 
 open_locale tensor_product
 
+local attribute [instance] tensor_product.algebra.module
+
 namespace subbimodule
 
 section algebra

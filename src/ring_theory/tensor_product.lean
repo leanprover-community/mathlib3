@@ -848,8 +848,16 @@ variables [smul_comm_class A B M]
 then it is a representation the `R`-algebra `A ⊗[R] B`.
 
 A important example arises from a semiring `S`; allowing `S` to act on itself via left and right
-multiplication, the roles of `R`, `A`, `B`, `M` are played by `ℕ`, `S`, `Sᵐᵒᵖ`, `S`. -/
-instance : module (A ⊗[R] B) M :=
+multiplication, the roles of `R`, `A`, `B`, `M` are played by `ℕ`, `S`, `Sᵐᵒᵖ`, `S`.
+
+NB: This is not an instance because in the case `B = A` and `M = A ⊗[R] A` we would have a diamond
+of `smul` actions. Furthermore, this would not be a mere definitional diamond but a true
+mathematical diamond in which `A ⊗[R] A` had two distinct scalar actions on itself: one from its
+multiplication, and one from this would-be instance. Arguably we could live with this but in any
+case the real fix is to address the ambiguity in notation, probably along the lines outlined here:
+https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.234773.20base.20change/near/240929258
+-/
+protected def module : module (A ⊗[R] B) M :=
 { smul := λ x m, module_aux x m,
   zero_smul := λ m, by simp only [map_zero, linear_map.zero_apply],
   smul_zero := λ x, by simp only [map_zero],
@@ -878,6 +886,8 @@ instance : module (A ⊗[R] B) M :=
       simp only at hz hw,
       simp only [add_mul, hz, hw, map_add, linear_map.add_apply], },
   end }
+
+local attribute [instance] tensor_product.algebra.module
 
 lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := module_aux_apply a b m
 

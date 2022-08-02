@@ -14,7 +14,7 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/Geometric.20g
 noncomputable theory
 
 universes u v w
-variables {V : Type*} [decidable_eq V] (Vinf : (@set.univ V).infinite)
+variables {V : Type*} [decidable_eq V] [Vinf : set.infinite (set.univ : set V)] (h : V ≃ ℕ)
 variables (G : simple_graph V) (Gpc : G.preconnected) [locally_finite G]
 
 instance finset_preorder : preorder (finset V) := {

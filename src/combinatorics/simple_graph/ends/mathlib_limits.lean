@@ -26,23 +26,19 @@ def fis.to_surjective  {J : Type u} [preorder J] [is_directed J has_le.le]
 
 
 
-
 /-
 def fis.cofinal_subsystem {J : Type u} [preorder J] [is_directed J has_le.le]
   (J' : set J) (J'cof : ∀ j : J, ∃ j' ∈ J', j ≤ j')
   (F : Jᵒᵖ ⥤ Type v) : F.sections ≃ ((category_theory.full_subcategory_inclusion J').comp F).sections := sorry
 -/
 
-/-
 def fis.decomposition  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
   F.sections ≃ Σ (x : F.obj j), {s : F.sections | s.val j = x} :=
 begin
-
-  rintro ⟨f,fs⟩,
-  use f j,
-  use f,
-  let lol := eq.refl (f j),
-  sorry,
+  split, rotate 2,
+  { intro s, use s.val j, use s, simp, },
+  { rintro ⟨_, s, _⟩, use s,},
+  { simp [function.left_inverse], },
+  { simp [function.right_inverse, function.left_inverse], tidy, }
 end
--/

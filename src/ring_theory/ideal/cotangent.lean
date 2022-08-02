@@ -132,7 +132,7 @@ begin
     refine ⟨I.to_cotangent ⟨x, hx⟩, subtype.ext rfl⟩ }
 end
 
-@[simp]
+@[simp, nolint simp_nf]
 lemma cotangent_equiv_ideal_apply (x : I.cotangent) :
   ↑(I.cotangent_equiv_ideal x) = I.cotangent_to_quotient_square x := rfl
 

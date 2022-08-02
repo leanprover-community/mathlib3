@@ -14,7 +14,7 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/Geometric.20g
 noncomputable theory
 
 universes u v w
-variables {V : Type*} [decidable_eq V] [Vinf : set.infinite (set.univ : set V)] (h : V ≃ ℕ)
+variables {V : Type u} [decidable_eq V] [Vinf : set.infinite (set.univ : set V)] (h : V ≃ ℕ)
 variables (G : simple_graph V) (Gpc : G.preconnected) [locally_finite G]
 
 instance finset_preorder : preorder (finset V) := {
@@ -32,10 +32,10 @@ instance finset_directed : is_directed (finset V) (≤) := {
   directed := λ A B, ⟨A ∪ B, ⟨finset.subset_union_left A B, finset.subset_union_right A B⟩⟩ }
 
 /-The functor assigning a finite set in `V` to the set of infinite connected components in its complement-/
-def ComplInfComp : (finset V)ᵒᵖ ⥤ Type* := {
+def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
   obj := λ A, inf_ro_components G (unop A),
   map := λ A B f, ends.bwd_map G Gpc (le_of_hom f.unop),
-  map_id' := by {intro, funext, simp, apply ends.bwd_map_refl}, -- tricky to get right
+  map_id' := by {intro, funext, simp, apply ends.bwd_map_refl'}, -- tricky to get right
   map_comp' := by {intros, funext, simp, apply eq.symm, apply ends.bwd_map_comp',},
   }
 
@@ -59,3 +59,5 @@ instance obj_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplInfComp G Gpc).
 
 theorem exists_end_inf_graph : (ComplInfComp G Gpc).sections.nonempty :=
   nonempty_sections_of_fintype_inverse_system (ComplInfComp G Gpc)
+
+lemma ends_eq_sections :  (ComplInfComp G Gpc) ≃ (ends.ends G Gpc)  := sorry

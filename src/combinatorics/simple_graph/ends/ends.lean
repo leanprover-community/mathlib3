@@ -450,10 +450,62 @@ begin
   exact eval_bijective G Gpc K inj_from_K,
 end
 
+private lemma inf_ro_component_to_preconnected (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) : (G.induce C.val).preconnected :=
+begin
+  rintro ⟨x,xC⟩ ⟨y,yC⟩,
+  obtain ⟨w,wgood⟩ := to_subconnected G K C.val C.prop.1 x xC y yC,
+  induction w,
+  { use nil, },
+  { have wgood' : ↑(w_p.support.to_finset) ⊆ C.val, by
+    { rw walk.support_cons at wgood,
+      simp at wgood,
+      exact (set.insert_subset.mp wgood).2,},
+    have vgood' : w_v ∈ C.val, by
+    { rw walk.support_cons at wgood,
+      simp at wgood,
+      let lol2 := (set.insert_subset.mp wgood).2,
+      let lol3 := walk.start_mem_support w_p,
+      rw ←list.mem_to_finset at lol3,
+      exact lol2 lol3,
+    },
 
+    let wC := (w_ih vgood' yC wgood').some,
+    let adjC : (G.induce C.val).adj ⟨w_u,xC⟩ ⟨w_v,vgood'⟩, by { simp, exact w_h },
+    exact ⟨walk.cons adjC wC⟩,
+  }
 
+end
 
-lemma end_from_component[locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) :
+private def finbwd (K : finset V) (C : inf_ro_components G K) (L : finset C.val) : finset V :=
+  K ∪ (finset.map (function.embedding.subtype (λ x, x ∈ C.val)) L)
+
+private def inf_ro_comp_sub_iff  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) (L : finset C.val)
+  (D : set V) (DC : D ⊆ C) :
+  D ∈ inf_ro_components G (finbwd G K C L) ↔  ((sorry /-D as a subset of C.val-/) : set C.val) \ L ∈ inf_ro_components (G.induce C.val) L := sorry
+
+lemma ends_decomposition [locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) :
+  {e : ends_for G Gpc (fin_fam_up K) | eval_for G Gpc (fin_fam_up K)  ⟨K,in_up K⟩ e = C}
+≃ ends (G.induce C.val) (inf_ro_component_to_preconnected G Gpc K C) :=
+begin
+  let GC := (G.induce C.val),
+  let GCpc := (inf_ro_component_to_preconnected G Gpc K C),
+
+  let φ : {e : ends_for G Gpc (fin_fam_up K) | eval_for G Gpc (fin_fam_up K)  ⟨K,in_up K⟩ e = C} →  (ends GC GCpc ), by {
+    rintro ⟨e,eKC⟩,
+    let f : Π (L : finset C.val), inf_ro_components GC L, by {
+      rintro L,
+      let L' : finset V := finbwd G K C L, --K ∪ L,
+      have : K ⊆ L', from subset_union_left K _,
+      let D' := e.val ⟨L',‹K⊆L'›⟩,
+      sorry,
+    },
+    sorry,
+  },
+  sorry,
+
+end
+
+lemma end_from_component [locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) :
   ∃ e : (ends G Gpc), e.val ⟨K,trivial⟩ = C := sorry
 
 

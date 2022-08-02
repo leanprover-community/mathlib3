@@ -39,7 +39,7 @@ and inverse maps are affine.
 
 We define it using an `equiv` for the map and a `linear_equiv` for the linear part in order
 to allow affine equivalences with good definitional equalities. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure affine_equiv (k P₁ P₂ : Type*) {V₁ V₂ : Type*} [ring k]
   [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
   [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂] extends P₁ ≃ P₂ :=

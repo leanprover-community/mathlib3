@@ -36,11 +36,12 @@ isomorphisms.
 open function
 
 universes u v w
-variables {α β γ : Type*} {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
+variables {α β γ δ : Type*}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop} {u : δ → δ → Prop}
 
 /-- A relation homomorphism with respect to a given pair of relations `r` and `s`
 is a function `f : α → β` such that `r a b → s (f a) (f b)`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
 (to_fun : α → β)
 (map_rel' : ∀ {a b}, r a b → s (to_fun a) (to_fun b))
@@ -212,6 +213,8 @@ initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_e
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 
+@[simp] theorem inj (f : r ↪r s) {a b} : f a = f b ↔ a = b := f.injective.eq_iff
+
 theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
 @[simp] theorem coe_fn_mk (f : α ↪ β) (o) :
@@ -340,6 +343,60 @@ end
 /-- A relation embedding from an empty type. -/
 def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
 ⟨embedding.of_is_empty, is_empty_elim⟩
+
+/-- `sum.inl` as a relation embedding into `sum.lift_rel r s`. -/
+@[simps] def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ↪r sum.lift_rel r s :=
+{ to_fun := sum.inl,
+  inj' := sum.inl_injective,
+  map_rel_iff' := λ a b, sum.lift_rel_inl_inl }
+
+/-- `sum.inr` as a relation embedding into `sum.lift_rel r s`. -/
+@[simps] def sum_lift_rel_inr (r : α → α → Prop) (s : β → β → Prop) : s ↪r sum.lift_rel r s :=
+{ to_fun := sum.inr,
+  inj' := sum.inr_injective,
+  map_rel_iff' := λ a b, sum.lift_rel_inr_inr }
+
+/-- `sum.map` as a relation embedding between `sum.lift_rel` relations. -/
+@[simps] def sum_lift_rel_map (f : r ↪r s) (g : t ↪r u) : sum.lift_rel r t ↪r sum.lift_rel s u :=
+{ to_fun := sum.map f g,
+  inj' := f.injective.sum_map g.injective,
+  map_rel_iff' := by { rintro (a | b) (c | d); simp [f.map_rel_iff, g.map_rel_iff] } }
+
+/-- `sum.inl` as a relation embedding into `sum.lex r s`. -/
+@[simps] def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ↪r sum.lex r s :=
+{ to_fun := sum.inl,
+  inj' := sum.inl_injective,
+  map_rel_iff' := λ a b, sum.lex_inl_inl }
+
+/-- `sum.inr` as a relation embedding into `sum.lex r s`. -/
+@[simps] def sum_lex_inr (r : α → α → Prop) (s : β → β → Prop) : s ↪r sum.lex r s :=
+{ to_fun := sum.inr,
+  inj' := sum.inr_injective,
+  map_rel_iff' := λ a b, sum.lex_inr_inr }
+
+/-- `sum.map` as a relation embedding between `sum.lex` relations. -/
+@[simps] def sum_lex_map (f : r ↪r s) (g : t ↪r u) : sum.lex r t ↪r sum.lex s u :=
+{ to_fun := sum.map f g,
+  inj' := f.injective.sum_map g.injective,
+  map_rel_iff' := by { rintro (a | b) (c | d); simp [f.map_rel_iff, g.map_rel_iff] } }
+
+/-- `λ b, prod.mk a b` as a relation embedding. -/
+@[simps] def prod_lex_mk_left (s : β → β → Prop) {a : α} (h : ¬ r a a) : s ↪r prod.lex r s :=
+{ to_fun := prod.mk a,
+  inj' := prod.mk.inj_left a,
+  map_rel_iff' := λ b₁ b₂, by simp [prod.lex_def, h] }
+
+/-- `λ a, prod.mk a b` as a relation embedding. -/
+@[simps] def prod_lex_mk_right (r : α → α → Prop) {b : β} (h : ¬ s b b) : r ↪r prod.lex r s :=
+{ to_fun := λ a, (a, b),
+  inj' := prod.mk.inj_right b,
+  map_rel_iff' := λ a₁ a₂, by simp [prod.lex_def, h] }
+
+/-- `prod.map` as a relation embedding. -/
+@[simps] def prod_lex_map (f : r ↪r s) (g : t ↪r u) : prod.lex r t ↪r prod.lex s u :=
+{ to_fun := prod.map f g,
+  inj' := f.injective.prod_map g.injective,
+  map_rel_iff' := λ a b, by simp [prod.lex_def, f.map_rel_iff, g.map_rel_iff] }
 
 end rel_embedding
 

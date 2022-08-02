@@ -71,7 +71,7 @@ begin
   rw finset.mul_sum,
   simp only [←mul_assoc],
   simp only [mul_inv_rev, mul_comm _ (f g : L)⁻¹, inv_inv],
-  simp only [←units.coe_inv' _, units.mul_inv_cancel_left _],
+  simp only [←units.coe_inv _, units.mul_inv_cancel_left _],
   show ∑ (x : L ≃ₐ[K] L), _ * (g * x) z = _,
   /- The goal is now `∑ f(g * φ) * (g * φ)(z) = ∑ f(φ) * φ(z)`; we apply the fact that we are summing the same function over different permutations of the same finite set. -/
   refine @finset.sum_bij _ (L ≃ₐ[K] L) (L ≃ₐ[K] L) _ finset.univ finset.univ

@@ -90,7 +90,7 @@ def quotient := M ⧸ A.to_add_subgroup
 
 instance : add_comm_group A.quotient :=
 by unfold quotient; apply_instance
-
+#exit
 instance : distrib_mul_action G A.quotient :=
 { smul := λ g m, quotient.lift_on' m (λ x, quotient_add_group.mk' A.to_add_subgroup (g • x))
   (λ x y (h : _ + _ ∈ _), quotient.eq'.2 $ show _ + _ ∈ _, by

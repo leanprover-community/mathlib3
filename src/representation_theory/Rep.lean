@@ -19,11 +19,12 @@ Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
+We construct the categorical equivalence `Rep k G ≌ Module (monoid_algebra k G)`.
 We verify that `Rep k G` is a `k`-linear abelian symmetric monoidal category with all (co)limits.
 -/
 
 universes u
-noncomputable theory
+
 open category_theory
 open category_theory.limits
 
@@ -42,20 +43,27 @@ variables {k G : Type u} [comm_ring k] [monoid G]
 
 instance : has_coe_to_sort (Rep k G) (Type u) := concrete_category.has_coe_to_sort _
 
-instance (V : Rep k G) : add_comm_monoid V :=
-by { change add_comm_monoid ((forget₂ (Rep k G) (Module k)).obj V), apply_instance, }
+instance (V : Rep k G) : add_comm_group V :=
+by { change add_comm_group ((forget₂ (Rep k G) (Module k)).obj V), apply_instance, }
 
 instance (V : Rep k G) : module k V :=
 by { change module k ((forget₂ (Rep k G) (Module k)).obj V), apply_instance, }
 
--- This works well with the new design for representations:
-example (V : Rep k G) : G →* (V →ₗ[k] V) := V.ρ
-
+/--
+Specialize the existing `Action.ρ`, changing the type to `representation k G V`.
+-/
 def ρ (V : Rep k G) : representation k G V := V.ρ
+
 /-- Lift an unbundled representation to `Rep`. -/
-@[simps ρ]
 def of {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) : Rep k G :=
 ⟨Module.of k V, ρ⟩
+
+@[simp]
+lemma coe_of {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) :
+  (of ρ : Type u) = V := rfl
+
+@[simp] lemma of_ρ {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) :
+  (of ρ).ρ = ρ := rfl
 
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=
@@ -63,7 +71,21 @@ by apply_instance
 noncomputable example : preserves_colimits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance
 
--- rest of file is from Scott
+end Rep
+
+/-!
+# The categorical equivalence `Rep k G ≌ Module.{u} (monoid_algebra k G)`.
+-/
+namespace Rep
+variables {k G : Type u} [comm_ring k] [monoid G]
+
+-- Verify that the symmetric monoidal structure is available.
+example : symmetric_category (Rep k G) := by apply_instance
+example : monoidal_preadditive (Rep k G) := by apply_instance
+example : monoidal_linear k (Rep k G) := by apply_instance
+
+noncomputable theory
+
 /-- Auxilliary lemma for `to_Module_monoid_algebra`. -/
 lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
   (V W : Type*) [add_comm_group V] [add_comm_group W] [module k V] [module k W]
@@ -75,14 +97,14 @@ lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
 begin
   apply monoid_algebra.induction_on r,
   { intro g,
-      simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
-      exact linear_map.congr_fun (w g) x, },
+    simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
+    exact linear_map.congr_fun (w g) x, },
   { intros g h gw hw, simp only [map_add, add_left_inj, linear_map.add_apply, hw, gw], },
   { intros r g w,
     simp only [alg_hom.map_smul, w, ring_hom.id_apply,
       linear_map.smul_apply, linear_map.map_smulₛₗ], }
 end
-
+#exit
 /-- Auxilliary definition for `to_Module_monoid_algebra`. -/
 def to_Module_monoid_algebra_map {V W : Rep k G} (f : V ⟶ W) :
   Module.of (monoid_algebra k G) V.ρ.as_module ⟶ Module.of (monoid_algebra k G) W.ρ.as_module :=
@@ -123,7 +145,7 @@ def unit_iso_add_equiv {V : Rep k G} :
 begin
   dsimp [of_Module_monoid_algebra, to_Module_monoid_algebra],
   refine V.ρ.as_module_equiv.symm.trans _,
-  exact (restrict_scalars.add_equiv k (monoid_algebra k G) _).symm,
+  exact (restrict_scalars.add_equiv _ _ _).symm,
 end
 
 /-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
@@ -142,8 +164,8 @@ lemma unit_iso_comm (V : Rep k G) (g : G) (x : V) :
       (unit_iso_add_equiv x) :=
 begin
   dsimp [unit_iso_add_equiv, of_Module_monoid_algebra, to_Module_monoid_algebra],
-  sorry, --simp only [add_equiv.apply_eq_iff_eq, add_equiv.apply_symm_apply,
-  --  representation.as_module_equiv_symm_map_rho, representation.of_module_as_module_act],
+  simp only [add_equiv.apply_eq_iff_eq, add_equiv.apply_symm_apply,
+    representation.as_module_equiv_symm_map_rho, representation.of_module_as_module_act],
 end
 
 /-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
@@ -152,8 +174,8 @@ def unit_iso (V : Rep k G) :
 Action.mk_iso (linear_equiv.to_Module_iso'
 { map_smul' := λ r x, begin
     dsimp [unit_iso_add_equiv],
-    sorry, --simp only [representation.as_module_equiv_symm_map_smul,
-    --  restrict_scalars.add_equiv_symm_map_algebra_map_smul],
+    simp only [representation.as_module_equiv_symm_map_smul,
+      restrict_scalars.add_equiv_symm_map_algebra_map_smul],
   end,
   ..unit_iso_add_equiv, })
   (λ g, by { ext, apply unit_iso_comm, })
@@ -165,18 +187,6 @@ def equivalence_Module_monoid_algebra : Rep k G ≌ Module.{u} (monoid_algebra k
   unit_iso := nat_iso.of_components (λ V, unit_iso V) (by tidy),
   counit_iso := nat_iso.of_components (λ M, counit_iso M) (by tidy), }
 
--- Verify that the symmetric monoidal structure is available.
-example : symmetric_category (Rep k G) := by apply_instance
-example : monoidal_preadditive (Rep k G) := by apply_instance
-example : monoidal_linear k (Rep k G) := by apply_instance
-end Rep
-
-namespace Rep
-variables {k G : Type u} [comm_ring k] [monoid G]
-
--- Verify that the symmetric monoidal structure is available.
-example : symmetric_category (Rep k G) := by apply_instance
-example : monoidal_preadditive (Rep k G) := by apply_instance
-example : monoidal_linear k (Rep k G) := by apply_instance
+-- TODO Verify that the equivalence with `Module (monoid_algebra k G)` is a monoidal functor.
 
 end Rep

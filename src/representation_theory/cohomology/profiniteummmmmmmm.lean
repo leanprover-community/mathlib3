@@ -113,8 +113,10 @@ begin
     dsimp at hx,
     rcases discrete_quotient.proj_surjective _ (Qs Q) with ⟨y,hy⟩,
     rw ← hy at *,
-    erw discrete_quotient.fiber_eq at hx,
-    exact quotient.sound' (Q.equiv.2.1 hx) },
+    sorry
+    /- erw discrete_quotient.fiber_eq at hx,
+    exact quotient.sound' (Q.equiv.2.1 hx) -/
+    },
   { refine ⟨A ⊓ B, λ a ha, _, λ a ha, _⟩,
     { dsimp only,
       erw ← compat (A ⊓ B) A inf_le_left,

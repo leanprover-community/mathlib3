@@ -195,7 +195,7 @@ def distrib_mul_action_equiv_of_unique_of_unique
 { map_smul' := λ _ _ , subsingleton.elim _ _,
   map_zero' := subsingleton.elim _ _,
   map_add' := λ _ _, subsingleton.elim _ _,
-  ..equiv_of_unique_of_unique }
+  ..equiv.equiv_of_unique _ _ }
 
 instance [unique A] [unique B] : unique (A ≃+[M] B) :=
 { default := distrib_mul_action_equiv_of_unique_of_unique ,

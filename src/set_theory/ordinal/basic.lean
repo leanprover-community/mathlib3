@@ -251,7 +251,7 @@ by { simp_rw ←type_lt o, apply typein_lt_type }
   typein s f.top = type r :=
 eq.symm $ quot.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _ f f.lt_top)
-  (λ ⟨a, h⟩, by rcases f.down'.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
+  (λ ⟨a, h⟩, by rcases f.down.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :

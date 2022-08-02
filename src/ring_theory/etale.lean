@@ -300,4 +300,131 @@ formally_etale.iff_unramified_and_smooth.mpr ⟨infer_instance, infer_instance�
 
 end base_change
 
+section localization
+
+variables {R S Rₘ Sₘ : Type u} [comm_ring R] [comm_ring S] [comm_ring Rₘ] [comm_ring Sₘ]
+variables (M : submonoid R)
+variables [algebra R S] [algebra R Sₘ] [algebra S Sₘ] [algebra R Rₘ] [algebra Rₘ Sₘ]
+variables [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
+variables [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
+local attribute [elab_as_eliminator] ideal.is_nilpotent.induction_on
+
+lemma is_unit.lift_of_nilpotent (x : R) {I : ideal R} (hI : is_nilpotent I)
+  (e : is_unit (ideal.quotient.mk I x)) : is_unit x :=
+begin
+  revert x e,
+  apply ideal.is_nilpotent.induction_on I hI; clear hI I,
+  swap,
+  { introv e h₁ h₂ h₃,
+    apply h₁,
+    apply h₂,
+    exactI h₃.map ((double_quot.quot_quot_equiv_quot_sup I J).trans
+      (ideal.quot_equiv_of_eq (sup_eq_right.mpr e))).symm.to_ring_hom },
+  { introv e H,
+    resetI,
+    obtain ⟨y, hy⟩ := ideal.quotient.mk_surjective (↑(H.unit⁻¹) : S ⧸ I),
+    have : ideal.quotient.mk I (x * y) = ideal.quotient.mk I 1,
+    { rw [map_one, map_mul, hy, is_unit.mul_coe_inv] },
+    rw ideal.quotient.eq at this,
+    have : (x * y - 1) ^ 2 = 0,
+    { rw [← ideal.mem_bot, ← e], exact ideal.pow_mem_pow this _ },
+    have : x * (y * (2 - x * y)) = 1,
+    { rw [eq_comm, ← sub_eq_zero, ← this], ring },
+    exact is_unit_of_mul_eq_one _ _ this }
+end
+
+include M
+
+lemma formally_smooth.to_localization : formally_smooth R Rₘ :=
+begin
+  constructor,
+  introsI Q _ _ I e f,
+  have : ∀ x : M, is_unit (algebra_map R Q x),
+  { intro x,
+    apply is_unit.lift_of_nilpotent _ ⟨2, e⟩,
+    convert (is_localization.map_units Rₘ x).map f,
+    simp only [ideal.quotient.mk_algebra_map, alg_hom.commutes] },
+  let : Rₘ →ₐ[R] Q := { commutes' := is_localization.lift_eq this, ..(is_localization.lift this) },
+  use this,
+  apply alg_hom.coe_ring_hom_injective,
+  refine is_localization.ring_hom_ext M _,
+  ext,
+  simp,
+end
+
+/-- This holds in general for epimorphisms. -/
+lemma formally_unramified.to_localization : formally_unramified R Rₘ :=
+begin
+  constructor,
+  introsI Q _ _ I e f₁ f₂ e,
+  apply alg_hom.coe_ring_hom_injective,
+  refine is_localization.ring_hom_ext M _,
+  ext,
+  simp,
+end
+
+lemma formally_etale.to_localization : formally_etale R Rₘ :=
+formally_etale.iff_unramified_and_smooth.mpr
+  ⟨formally_unramified.to_localization M, formally_smooth.to_localization M⟩
+
+lemma formally_smooth.localization_base [formally_smooth R Sₘ] : formally_smooth Rₘ Sₘ :=
+begin
+  constructor,
+  introsI Q _ _ I e f,
+  letI := ((algebra_map Rₘ Q).comp (algebra_map R Rₘ)).to_algebra,
+  letI : is_scalar_tower R Rₘ Q := is_scalar_tower.of_algebra_map_eq' rfl,
+  let f : Sₘ →ₐ[Rₘ] Q,
+  { refine { commutes' := _, ..(formally_smooth.lift I ⟨2, e⟩ (f.restrict_scalars R)) },
+    intro r,
+    change (ring_hom.comp (formally_smooth.lift I ⟨2, e⟩ (f.restrict_scalars R) : Sₘ →+* Q)
+      (algebra_map _ _)) r = algebra_map _ _ r,
+    congr' 1,
+    refine is_localization.ring_hom_ext M _,
+    rw [ring_hom.comp_assoc, ← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq,
+      alg_hom.comp_algebra_map] },
+  use f,
+  ext,
+  simp,
+end
+
+lemma formally_unramified.localization_base [formally_unramified R Sₘ] :
+  formally_unramified Rₘ Sₘ :=
+begin
+  constructor,
+  introsI Q _ _ I e f₁ f₂ e',
+  letI := ((algebra_map Rₘ Q).comp (algebra_map R Rₘ)).to_algebra,
+  letI : is_scalar_tower R Rₘ Q := is_scalar_tower.of_algebra_map_eq' rfl,
+  refine alg_hom.restrict_scalars_injective R _,
+  refine formally_unramified.ext I ⟨2, e⟩ _,
+  intro x,
+  exact alg_hom.congr_fun e' x
+end
+
+lemma formally_etale.localization_base [formally_etale R Sₘ] : formally_etale Rₘ Sₘ :=
+formally_etale.iff_unramified_and_smooth.mpr
+  ⟨formally_unramified.localization_base M, formally_smooth.localization_base M⟩
+
+lemma formally_smooth.localization_map [formally_smooth R S] : formally_smooth Rₘ Sₘ :=
+begin
+  haveI : formally_smooth S Sₘ := formally_smooth.to_localization (M.map (algebra_map R S)),
+  haveI : formally_smooth R Sₘ := formally_smooth.comp R S Sₘ,
+  exact formally_smooth.localization_base M
+end
+
+lemma formally_unramified.localization_map [formally_unramified R S] : formally_unramified Rₘ Sₘ :=
+begin
+  haveI : formally_unramified S Sₘ := formally_unramified.to_localization (M.map (algebra_map R S)),
+  haveI : formally_unramified R Sₘ := formally_unramified.comp R S Sₘ,
+  exact formally_unramified.localization_base M
+end
+
+lemma formally_etale.localization_map [formally_etale R S] : formally_etale Rₘ Sₘ :=
+begin
+  haveI : formally_etale S Sₘ := formally_etale.to_localization (M.map (algebra_map R S)),
+  haveI : formally_etale R Sₘ := formally_etale.comp R S Sₘ,
+  exact formally_etale.localization_base M
+end
+
+end localization
+
 end algebra

@@ -6,6 +6,7 @@ Authors: Kevin Buzzard, Sidharth Hariharan, [add your name if you want]
 import ring_theory.localization.fraction_ring -- field of fractions
 import data.polynomial.div -- theory of division and remainder for monic polynomials
 import tactic.field_simp
+import tactic
 /-
 
 # Partial fractions
@@ -233,40 +234,15 @@ begin
   rcases hcoprime with ⟨ c, d, hcd ⟩,
   refine ⟨ (f*d) /ₘ g₁ + (f*c) /ₘ g₂ , (f*d) %ₘ g₁ , (f*c) %ₘ g₂ ,
     (degree_mod_by_monic_lt _ hg₁) , (degree_mod_by_monic_lt _ hg₂) , _⟩,
-  conv_lhs {rw [← mul_one f , ← hcd]},
-  rw [mul_add, ← mul_assoc, ← mul_assoc],
-  push_cast,
-  conv_lhs
-  { rw [add_div (↑f * ↑c * ↑g₁) (↑f * ↑d * ↑g₂) (↑g₁ * ↑g₂),
-        ← div_div, mul_comm ↑g₁ ↑g₂, ← div_div], },
-  rw mul_div_cancel,
-  swap,
+  have hg₁' : (g₁ : K) ≠ 0,
+  { norm_cast, exact hg₁.ne_zero_of_ne zero_ne_one, },
+  have hg₂' : (g₂ : K) ≠ 0,
+  { norm_cast, exact hg₂.ne_zero_of_ne zero_ne_one, },
+  have hfc := mod_by_monic_add_div (f * c) hg₂,
+  have hfd := mod_by_monic_add_div (f * d) hg₁,
+  field_simp,
   norm_cast,
-  exact monic.ne_zero_of_ne zero_ne_one hg₁,
-  rw mul_div_cancel,
-  swap,
-  norm_cast,
-  exact monic.ne_zero_of_ne zero_ne_one hg₂,
-  conv_rhs
-  { rw [add_assoc (↑(f * d /ₘ g₁)) (↑(f * c /ₘ g₂)) ((↑(f * d %ₘ g₁) / ↑g₁)),
-        add_comm (↑(f * c /ₘ g₂)) (↑(f * d %ₘ g₁) / ↑g₁),
-        ← add_assoc (↑(f * d /ₘ g₁)) ((↑(f * d %ₘ g₁) / ↑g₁)) (↑(f * c /ₘ g₂)),
-        add_assoc], },
-  norm_cast,
-  conv_lhs { rw [← mod_by_monic_add_div (f * c) hg₂, ← mod_by_monic_add_div (f * d) hg₁]},
-  push_cast,
-  conv_lhs { rw [add_div, add_div, mul_comm ↑g₂ ↑(f * c /ₘ g₂), mul_comm ↑g₁ ↑(f * d /ₘ g₁)] },
-  rw mul_div_cancel,
-  swap,
-  norm_cast,
-  exact monic.ne_zero_of_ne zero_ne_one hg₂,
-  rw mul_div_cancel,
-  swap,
-  norm_cast,
-  exact monic.ne_zero_of_ne zero_ne_one hg₁,
-  rw [add_comm,
-     add_comm (↑(f * d %ₘ g₁) / ↑g₁) ↑(f * d /ₘ g₁),
-     add_comm (↑(f * c %ₘ g₂) / ↑g₂) ↑(f * c /ₘ g₂)],
+  linear_combination (-1) * f * hcd + (-1) * g₁ * hfc + (-1) * g₂ * hfd,
 end
 
 end two_denominators

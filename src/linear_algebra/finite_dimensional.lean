@@ -1215,10 +1215,10 @@ noncomputable def division_ring_of_finite_dimensional
   (F K : Type*) [field F] [ring K] [is_domain K]
   [algebra F K] [finite_dimensional F K] : division_ring K :=
 { inv := λ x, if H : x = 0 then 0 else classical.some $
-    (show function.surjective (algebra.lmul_left F x), from
+    (show function.surjective (linear_map.mul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' H).1) 1,
   mul_inv_cancel := λ x hx, show x * dite _ _ _ = _, by { rw dif_neg hx,
-    exact classical.some_spec ((show function.surjective (algebra.lmul_left F x), from
+    exact classical.some_spec ((show function.surjective (linear_map.mul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
   inv_zero := dif_pos rfl,
   .. ‹is_domain K›,

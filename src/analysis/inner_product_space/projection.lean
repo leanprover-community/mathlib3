@@ -43,7 +43,7 @@ open_locale big_operators topological_space
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `absR` := has_abs.abs
 
 /-! ### Orthogonal projection in inner product spaces -/
@@ -483,7 +483,7 @@ begin
     (submodule.coe_mem _) (λ w hw, _)),
   calc ⟪x - orthogonal_projection U (orthogonal_projection V x), w⟫
       = ⟪x - orthogonal_projection V x, w⟫ +
-        ⟪orthogonal_projection V x - orthogonal_projection U (orthogonal_projection V x), w⟫ :
+        ⟪(orthogonal_projection V x : E) - orthogonal_projection U (orthogonal_projection V x), w⟫ :
         by rw [← inner_add_left, add_sub, sub_add_cancel]
   ... = 0 : by rw [orthogonal_projection_inner_eq_zero _ w (h hw),
                     orthogonal_projection_inner_eq_zero _ w hw, add_zero]
@@ -913,7 +913,7 @@ begin
   let p2 := orthogonal_projection Sᗮ,
   have x_decomp : x = p1 x + p2 x :=
     eq_sum_orthogonal_projection_self_orthogonal_complement S x,
-  have x_orth : ⟪ p1 x, p2 x ⟫ = 0 :=
+  have x_orth : ⟪ (p1 x : E), p2 x ⟫ = 0 :=
     submodule.inner_right_of_mem_orthogonal (set_like.coe_mem (p1 x)) (set_like.coe_mem (p2 x)),
   nth_rewrite 0 [x_decomp],
   simp only [sq, norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero ((p1 x) : E) (p2 x) x_orth,
@@ -930,19 +930,24 @@ lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
+@[simp] lemma inner_orthogonal_projection_eq_of_mem_right [complete_space K] (u : K) (v : E) :
+  ⟪orthogonal_projection K v, u⟫ = ⟪v, u⟫ :=
+calc ⟪orthogonal_projection K v, u⟫
+    = ⟪(orthogonal_projection K v : E), u⟫ : K.coe_inner _ _
+... = ⟪(orthogonal_projection K v : E), u⟫ + ⟪v - orthogonal_projection K v, u⟫ :
+      by rw [orthogonal_projection_inner_eq_zero _ _ (submodule.coe_mem _), add_zero]
+... = ⟪v, u⟫ :
+      by rw [← inner_add_left, add_sub_cancel'_right]
+
+@[simp] lemma inner_orthogonal_projection_eq_of_mem_left [complete_space K] (u : K) (v : E) :
+  ⟪u, orthogonal_projection K v⟫ = ⟪(u : E), v⟫ :=
+by rw [← inner_conj_sym, ← inner_conj_sym (u : E), inner_orthogonal_projection_eq_of_mem_right]
+
 /-- The orthogonal projection is self-adjoint. -/
-lemma inner_orthogonal_projection_left_eq_right [complete_space E]
+lemma inner_orthogonal_projection_left_eq_right
   [complete_space K] (u v : E) :
   ⟪↑(orthogonal_projection K u), v⟫ = ⟪u, orthogonal_projection K v⟫ :=
-begin
-  nth_rewrite 0 eq_sum_orthogonal_projection_self_orthogonal_complement K v,
-  nth_rewrite 1 eq_sum_orthogonal_projection_self_orthogonal_complement K u,
-  rw [inner_add_left, inner_add_right,
-    submodule.inner_right_of_mem_orthogonal (submodule.coe_mem (orthogonal_projection K u))
-      (submodule.coe_mem (orthogonal_projection Kᗮ v)),
-    submodule.inner_left_of_mem_orthogonal (submodule.coe_mem (orthogonal_projection K v))
-      (submodule.coe_mem (orthogonal_projection Kᗮ u))],
-end
+by rw [← inner_orthogonal_projection_eq_of_mem_left, inner_orthogonal_projection_eq_of_mem_right]
 
 open finite_dimensional
 

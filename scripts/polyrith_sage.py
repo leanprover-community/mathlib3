@@ -19,23 +19,6 @@ def create_query(type: str, n_vars: int, eq_list, goal_type):
     """ Create a query to invoke Sage's `MPolynomial_libsingular.lift`. See
     https://github.com/sagemath/sage/blob/f8df80820dc7321dc9b18c9644c3b8315999670b/src/sage/rings/polynomial/multi_polynomial_libsingular.pyx#L4472-L4518
     for a description of this method. """
-    var_list = ", ".join([f"var{i}" for i in range(n_vars)])
-    query = f'''
-import json
-P = PolynomialRing({type_str(type)}, 'var', {n_vars!r})
-[{var_list}] = P.gens()
-gens = {eq_list}
-p = P({goal_type})
-I = ideal(gens)
-coeffs = p.lift(I)
-print(json.dumps([polynomial_to_string(c) for c in coeffs]))
-'''
-    return query
-
-def create_query_radical(type: str, n_vars: int, eq_list, goal_type):
-    """ Create a query to invoke Sage's `MPolynomial_libsingular.lift`. See
-    https://github.com/sagemath/sage/blob/f8df80820dc7321dc9b18c9644c3b8315999670b/src/sage/rings/polynomial/multi_polynomial_libsingular.pyx#L4472-L4518
-    for a description of this method. """
     var_list = [f"var{i}" for i in range(n_vars)] + ['aux']
     query = f'''
 import json
@@ -88,7 +71,7 @@ def main():
       error_value: Optional[str] }
     ```
     '''
-    command = create_query_radical(sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5])
+    command = create_query(sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5])
     final_query = polynomial_formatting_functions + "\n" + command
     if sys.argv[1] == 'tt': # trace dry run enabled
         output = dict(success=True, trace=command)

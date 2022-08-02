@@ -214,15 +214,7 @@ variables {R M N S}
 
 /-- The base change of `M` along `R → S` is linearly equivalent to `S ⊗[R] M`. -/
 noncomputable
-def is_base_change.equiv : S ⊗[R] M ≃ₗ[S] N :=
-{ map_smul' := λ r x, begin
-    change h.equiv (r • x) = r • h.equiv x,
-    apply tensor_product.induction_on x,
-    { rw [smul_zero, map_zero, smul_zero] },
-    { intros x y, simp [smul_tmul', algebra.of_id_apply] },
-    { intros x y hx hy, rw [map_add, smul_add, map_add, smul_add, hx, hy] },
-  end,
-  ..h.equiv }
+def is_base_change.equiv : S ⊗[R] M ≃ₗ[R] N := h.equiv
 
 lemma is_base_change.equiv_tmul (s : S) (m : M) : h.equiv (s ⊗ₜ m) = s • (f m) :=
 tensor_product.lift.tmul s m

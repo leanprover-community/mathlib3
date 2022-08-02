@@ -823,7 +823,7 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 /-- Left multiplication in a normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
-(algebra.lmul 𝕜 𝕜').to_linear_map.mk_continuous₂ 1 $
+(linear_map.mul 𝕜 𝕜').mk_continuous₂ 1 $
   λ x y, by simpa using norm_mul_le x y
 
 @[simp] lemma lmul_apply (x y : 𝕜') : lmul 𝕜 𝕜' x y = x * y := rfl

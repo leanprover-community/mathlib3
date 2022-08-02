@@ -474,7 +474,7 @@ begin
   simpa only [pi.zero_apply, pi.neg_apply, neg_sub_neg]
 end
 
-lemma martingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
+lemma martingale_of_condexp_sub_eq_zero_nat [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
   (hf : ∀ i, μ[f (i + 1) - f i | 𝒢 i] =ᵐ[μ] 0) :
   martingale f 𝒢 μ :=

@@ -408,11 +408,9 @@ induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is
 
 instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
 
-@[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
-by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
+@[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 := le_bot_iff
 
-protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
-by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
+protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 := bot_lt_iff_ne_bot
 
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
 by rw [←@type_eq_zero_iff_is_empty o.out.α (<), type_lt]

@@ -252,12 +252,13 @@ section n_denominators
 -- need notation for finite products
 open_locale big_operators
 
-lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} [fintype ι] {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j))) :
+lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
+  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
+  (s : finset ι) :
 ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
-  (f : K) / ∏ i, g i = q + ∑ i, (r i) / (g i) :=
+  (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
 begin
-  -- this might not be the best thing to do directly. Want to do "induction on ι"?
+  -- this might not be the best thing to do directly. Want to do induction on s?
   -- Haven't thought about it too hard
   sorry
 end

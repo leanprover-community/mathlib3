@@ -81,7 +81,8 @@ end has_equalizers_of_has_pullbacks_and_binary_products
 open has_equalizers_of_has_pullbacks_and_binary_products
 /-- Any category with pullbacks and binary products, has equalizers. -/
 -- This is not an instance, as it is not always how one wants to construct equalizers!
-lemma has_equalizers_of_has_pullbacks_and_binary_products [has_binary_products C] [has_pullbacks C] :
+lemma has_equalizers_of_has_pullbacks_and_binary_products
+  [has_binary_products C] [has_pullbacks C] :
   has_equalizers C :=
 { has_limit := λ F, has_limit.mk
   { cone := equalizer_cone F,

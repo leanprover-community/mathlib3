@@ -23,7 +23,7 @@ convergence theorems.
   above `b` the `n`-th time.
 * `measure_theory.lower_crossing a b f N n`: is the stopping time corresponding to `f` crossing
   below `a` the `n`-th time.
-* `measure_theory.upcrossing_strat a b f N`: is the predicatable process which is 1 if `n` is
+* `measure_theory.upcrossing_strat a b f N`: is the predictable process which is 1 if `n` is
   between a consecutive pair of lower and upper crossing and is 0 otherwise. Intuitively
   one might think of the `upcrossing_strat` as the strategy of buying 1 share whenever the process
   crosses below `a` for the first time after selling and selling 1 share whenever the process
@@ -61,7 +61,7 @@ variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α}
 
 ## Proof outline
 
-In the section, we will denote $U_N(a, b)$ the number of upcrossings of $(f_n)$ from below $a$ to
+In this section, we will denote $U_N(a, b)$ the number of upcrossings of $(f_n)$ from below $a$ to
 above $b$ before time $N$.
 
 To define $U_N(a, b)$, we will construct two stopping times corresponding to when $(f_n)$ crosses
@@ -70,7 +70,7 @@ $$
   \sigma_n := \inf \{n \ge \tau_n \mid f_n \le a\} \wedge N;
 $$
 $$
-  \tau_{n + 1} := \inf \{n \ge \sigma_n \mid f_n \le a\} \wedge N.
+  \tau_{n + 1} := \inf \{n \ge \sigma_n \mid f_n \ge b\} \wedge N.
 $$
 These are `lower_crossing` and `upper_crossing` in our formalization which are defined using
 `measure_theory.hitting` allowing us to specify a starting and ending time.

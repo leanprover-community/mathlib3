@@ -584,18 +584,16 @@ begin
       have : D' ≠ D, by {rintro eq, induction eq, exact Dinf D'fin,},
       exact disjoint.mono_left  wD (disjoint_of_neq G K D D' DcompK D'comp this.symm),},
     have wdisL : disjoint (w.support.to_finset : set V) L, by
-    { rw set.disjoint_iff,
+    { --rw set.disjoint_iff,
       simp *,
       unfold extend_to_fin_ro_components,
-      simp,
-      rw set.inter_distrib_left,
-      simp,
+      simp only [finset.disjoint_union_right],
       split,
-      { exact wdisK,  },
-      { rintro x ⟨xl,⟨xr1,xr2,xr3⟩⟩,
-        have lol := wdisF xr1 xr2,
-        rw set.disjoint_iff at lol,
-        exact lol ⟨xl,xr3⟩,}},
+      { rw ←finset.disjoint_coe,
+        exact wdisK, },
+      { rw  ←finset.disjoint_coe,
+        simp only [finite.coe_to_finset, disjoint_sUnion_right],
+        exact wdisF,},},
     unfold reachable_outside,
     simp only [mem_set_of_eq],
     use w,
@@ -647,10 +645,6 @@ begin
       exact (to_disjoint G L D Dcomp).symm,
     },
     exact ⟨w,this⟩,
-
-
-
-
     /-
     Assumption C_K : C ∈ inf_ro_components K.
     Goal: show C ∈ ro_components L.

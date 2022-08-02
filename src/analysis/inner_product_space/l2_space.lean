@@ -419,6 +419,27 @@ end
   (b.to_orthonormal_basis : ι → E) = b :=
 orthonormal_basis.coe_mk _ _
 
+/-- For `e : hilbert_basis ι 𝕜 E` and `J : finset ι`, `e.partial_span J` is the span of
+the `e j`s for `j ∈ J`. -/
+def partial_span (b : hilbert_basis ι 𝕜 E) (J : finset ι) : submodule 𝕜 E :=
+span 𝕜 (J.image b)
+
+instance {b : hilbert_basis ι 𝕜 E} {J : finset ι} : finite_dimensional 𝕜 (b.partial_span J) :=
+show finite_dimensional 𝕜 (span 𝕜 (J.image b : set E)), from infer_instance
+
+lemma partial_span_mono (b : hilbert_basis ι 𝕜 E) : monotone b.partial_span :=
+λ _ _ h, span_mono $ finset.coe_subset.mpr $ finset.image_mono _ h
+
+lemma partial_span_dense (b : hilbert_basis ι 𝕜 E) :
+  (⨆ J, b.partial_span J).topological_closure = ⊤ :=
+eq_top_iff.mpr $ b.dense_span.ge.trans
+begin
+  simp_rw [partial_span, ← submodule.span_Union],
+  exact topological_closure_mono (span_mono $ set.range_subset_iff.mpr $
+    λ i, set.mem_Union_of_mem {i} $ finset.mem_coe.mpr $ finset.mem_image_of_mem _ $
+    finset.mem_singleton_self i)
+end
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 

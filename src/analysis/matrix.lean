@@ -410,7 +410,8 @@ subtype.ext $ frobenius_norm_col v
 @[simp] lemma frobenius_nnnorm_diagonal [decidable_eq n] (v : n → α) :
   ∥diagonal v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 begin
-  simp_rw [frobenius_nnnorm_def, ←finset.sum_product', finset.univ_product_univ, pi_Lp.nnnorm_eq_of_L2],
+  simp_rw [frobenius_nnnorm_def, ←finset.sum_product', finset.univ_product_univ,
+    pi_Lp.nnnorm_eq_of_L2],
   let s := (finset.univ : finset n).map ⟨λ i : n, (i, i), λ i j h, congr_arg prod.fst h⟩,
   rw ←finset.sum_subset (finset.subset_univ s) (λ i hi his, _),
   { rw [finset.sum_map, nnreal.sqrt_eq_rpow],

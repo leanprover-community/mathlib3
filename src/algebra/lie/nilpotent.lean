@@ -691,9 +691,12 @@ lemma lie_algebra.ad_nilpotent_of_nilpotent {a : A} (h : is_nilpotent a) :
   is_nilpotent (lie_algebra.ad R A a) :=
 begin
   rw lie_algebra.ad_eq_lmul_left_sub_lmul_right,
-  have hl : is_nilpotent (algebra.lmul_left R a), { rwa algebra.is_nilpotent_lmul_left_iff, },
-  have hr : is_nilpotent (algebra.lmul_right R a), { rwa algebra.is_nilpotent_lmul_right_iff, },
-  exact (algebra.commute_lmul_left_right R a a).is_nilpotent_sub hl hr,
+  have hl : is_nilpotent (linear_map.mul_left R a),
+  { rwa linear_map.is_nilpotent_mul_left_iff, },
+  have hr : is_nilpotent (linear_map.mul_right R a),
+  { rwa linear_map.is_nilpotent_mul_right_iff, },
+  have := @linear_map.commute_mul_left_right R A _ _ _ _ _ a a,
+  exact this.is_nilpotent_sub hl hr,
 end
 
 variables {R}

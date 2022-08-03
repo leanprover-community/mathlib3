@@ -515,6 +515,14 @@ lemma nnnorm_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i
   ∥x∥₊ = nnreal.sqrt (∑ (i : ι), ∥x i∥₊ ^ 2) :=
 subtype.ext $ by { push_cast, exact norm_eq_of_L2 x }
 
+lemma norm_sq_eq_of_L2 (β : ι → Type*) [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
+  ∥x∥ ^ 2 = ∑ (i : ι), ∥x i∥ ^ 2 :=
+begin
+  suffices : ∥x∥₊ ^ 2 = ∑ (i : ι), ∥x i∥₊ ^ 2,
+  { simpa only [nnreal.coe_sum] using congr_arg (coe : ℝ≥0 → ℝ) this },
+  rw [nnnorm_eq_of_L2, nnreal.sq_sqrt],
+end
+
 lemma dist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x y : pi_Lp 2 β) :
   dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
 by simp_rw [dist_eq_norm, norm_eq_of_L2, pi.sub_apply]

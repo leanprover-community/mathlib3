@@ -316,7 +316,7 @@ begin
   simp only [as_algebra_hom_def, monoid_algebra.lift_apply,
     tprod_apply, monoid_hom.one_apply, linear_map.finsupp_sum_apply,
     linear_map.smul_apply, tensor_product.map_tmul, linear_map.one_apply],
-  erw tensor_product.sum_tmul,
+  simp only [finsupp.sum, tensor_product.sum_tmul],
   refl,
 end
 
@@ -327,9 +327,7 @@ begin
   simp only [as_algebra_hom_def, monoid_algebra.lift_apply,
     tprod_apply, monoid_hom.one_apply, linear_map.finsupp_sum_apply,
     linear_map.smul_apply, tensor_product.map_tmul, linear_map.one_apply],
-  erw tensor_product.tmul_sum,
-  simp only [tensor_product.tmul_smul],
-  refl,
+  simp only [finsupp.sum, tensor_product.tmul_sum, tensor_product.tmul_smul],
 end
 
 end tensor_product

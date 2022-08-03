@@ -614,8 +614,7 @@ begin
         nth_rewrite_rhs 0 ←nat.sub_add_cancel hj1,
         rw [pow_add, pow_one] },
 
-      refine (or_iff_right hx1).1 (square_roots_of_one_zmod hα0 hp
-         hp_odd hx2),   },
+      refine (or_iff_right hx1).1 (square_roots_of_one_zmod hp hp_odd hx2),   },
   }
 end
 

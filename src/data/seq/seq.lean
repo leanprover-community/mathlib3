@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.lazy_list
+import data.list.basic
 import data.nat.basic
-import data.stream.init
 import data.seq.computation
+import data.stream.init
 
 universes u v w
 
@@ -230,6 +231,11 @@ end⟩
 
 instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
 
+@[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
+
+theorem of_list_terminates (l : list α) : terminates (of_list l) :=
+⟨l.length, by simp [terminated_at]⟩
+
 section bisim
   variable (R : seq α → seq α → Prop)
 
@@ -439,6 +445,19 @@ def unzip (s : seq (α × β)) : seq α × seq β := (map prod.fst s, map prod.s
 def to_list (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) : list α :=
 take (nat.find h) s
 
+@[simp] theorem to_list_nth (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) (n : ℕ) :
+  (s.to_list h).nth n = s.nth n :=
+begin
+  simp [to_list],sorry,
+end
+
+@[simp] theorem to_list_of_list (l : list α) : (of_list l).to_list (of_list_terminates l) = l :=
+by { ext, simp }
+
+@[simp] theorem of_list_to_list (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) :
+  of_list (s.to_list h) = s :=
+by { apply seq.ext, simp only [option.mem_def], rw of_list_nth,}
+
 /-- Convert a sequence which is known not to terminate into a stream -/
 def to_stream (s : seq α) (h : ∀ n, (nth s n).is_some) : stream α :=
 λn, option.get (h n)
@@ -451,6 +470,21 @@ def to_list_or_stream (s : seq α) [decidable (∃ n, ¬ (nth s n).is_some)] :
 if h : ∃ n, ¬ (nth s n).is_some
 then sum.inl (to_list s h)
 else sum.inr (to_stream s (λn, decidable.by_contradiction (λ hn, h ⟨n, hn⟩)))
+
+noncomputable def equiv_list_sum_stream : seq α ≃ list α ⊕ stream α :=
+{ to_fun := λ s, @to_list_or_stream α s (classical.dec _),
+  inv_fun := λ x, match x with
+  | sum.inl l := of_list l
+  | sum.inr s := of_stream s
+  end,
+  left_inv := λ s, begin
+    classical,
+    by_cases h : ∃ n, ¬ (nth s n).is_some,
+    { simp_rw [to_list_or_stream, dif_pos h],
+    change of_list _ = _,
+      exact of_list_to_list s }
+  end,
+  right_inv := _ }
 
 @[simp] theorem nil_append (s : seq α) : append nil s = s :=
 begin

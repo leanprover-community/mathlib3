@@ -27,25 +27,6 @@ section semiring
 
 variables {R : Type*} [comm_semiring R]
 
-/-- TODO. This should go elsewhere... -/
-lemma sum_powerset_len {α : Type*} (S : multiset α) :
-  S.powerset = ∑ k in finset.range (S.card + 1), (S.powerset_len k) :=
-begin
-  classical,
-  apply eq.symm,
-  apply eq_of_le_of_card_le,
-  suffices : finset.sup (finset.range (S.card + 1)) (λ k, S.powerset_len k) ≤ S.powerset,
-  { apply eq.trans_le _ this,
-    exact finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ hxny _ htx hty,
-      hxny $ eq.trans (mem_powerset_len.mp htx).right.symm
-      (mem_powerset_len.mp hty).right), },
-  { rw finset.sup_le_iff,
-    exact λ b _, powerset_len_le_powerset b S, },
-  { rw [card_powerset, map_sum card],
-    simp_rw card_powerset_len,
-    exact eq.le (nat.sum_range_choose S.card).symm, },
-end
-
 /-- A sum version of Vieta's formula for `multiset`: the product of the linear terms `X + λ` where
 `λ` runs through a multiset `s` is equal to a linear combination of the symmetric functions
 `esymm s` of the `λ`'s .-/
@@ -54,7 +35,7 @@ lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
   ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X^(s.card - j)) :=
 begin
   classical,
-  rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, sum_powerset_len, function.comp,
+  rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, ←sum_powerset_len, function.comp,
     finset.sum_eq_multiset_sum, finset.sum_eq_multiset_sum, ←join, ←bind, map_bind, sum_bind],
   rw map_congr (eq.refl _),
   intros _ _,

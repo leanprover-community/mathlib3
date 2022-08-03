@@ -797,6 +797,13 @@ instance to_alg_hom_class (F R A B : Type*)
   map_one := map_one,
   .. h }
 
+@[priority 100]
+instance to_linear_equiv_class (F R A B : Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [h : alg_equiv_class F R A B] : linear_equiv_class F R A B :=
+{ map_smulₛₗ := λ f, map_smulₛₗ f,
+  ..h }
+
 end alg_equiv_class
 
 namespace alg_equiv

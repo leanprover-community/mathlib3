@@ -16,6 +16,7 @@ This file contains:
   * `decreasing_induction`: recursion growing downwards
   * `le_rec_on'`, `decreasing_induction'`: versions with slightly weaker assumptions
   * `strong_rec'`: recursion based on strong inequalities
+  * `div_mod_induction`: recursion based on decomposing a number into its base-`b` representation
 - decidability instances on predicates about the natural numbers
 
 -/
@@ -1020,6 +1021,18 @@ end
 
 /-! ### `mod`, `dvd` -/
 
+lemma le_mod_iff {n b : ℕ} (hb : b ≠ 0) :
+  n ≤ n % b ↔ n < b :=
+begin
+  split; intro h,
+  { exact h.trans_lt (mod_lt _ (nat.pos_of_ne_zero hb)) },
+  { rw mod_eq_of_lt h }
+end
+
+lemma mod_lt_iff {n b : ℕ} (hb : b ≠ 0) :
+  n % b < n ↔ b ≤ n :=
+not_iff_not.mp (by simp [le_mod_iff hb])
+
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=
 (nat.add_comm _ _).trans (mod_add_div _ _)
 
@@ -1372,6 +1385,28 @@ by rw [nat.mul_add_mod, nat.mod_eq_of_lt h]
 
 lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
 by { cases n; simp [(nat.succ_ne_self _).symm] }
+
+/-- Recursion principle based on the div and modulus decomposition against some base `b : ℕ`:
+given a map `C (b * k + r) → C (b * (k + 1) + r)` for each `r < b` and `k`,
+and the construction of `C r` for all `r < b`, one can construct `C n` for any `n : ℕ`.  -/
+def div_mod_induction {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0) (hr : ∀ r < b, C r)
+  (hm : ∀ (k : ℕ) (r < b), C (b * k + r) → C (b * (k + 1) + r)) : C n :=
+begin
+  refine nat.strong_rec_on n _, clear n,
+  intros n IH,
+  have bpos : 0 < b := nat.pos_of_ne_zero hb,
+  rw ←div_add_mod n b,
+  refine or.by_cases (eq_zero_or_eq_succ_pred (n / b)) (λ h, _) (λ h, _),
+  { rw [h, mul_zero, zero_add],
+    exact hr _ (mod_lt _ bpos) },
+  { rw h,
+    refine hm _ _ (mod_lt _ (nat.pos_of_ne_zero hb)) (IH _ _),
+    refine (div_add_mod n b).le.trans_lt' _,
+    rw add_lt_add_iff_right,
+    refine mul_lt_mul_of_pos_left (pred_lt _) bpos,
+    rw h,
+    exact succ_ne_zero _ }
+end
 
 /-! ### `find` -/
 section find

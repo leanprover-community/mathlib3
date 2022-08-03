@@ -25,7 +25,7 @@ instance {α} [inhabited α] : inhabited (stream α) :=
 protected theorem eta (s : stream α) : head s :: tail s = s :=
 funext (λ i, begin cases i; refl end)
 
-theorem nth_zero_cons (a : α) (s : stream α) : nth (a :: s) 0 = a := rfl
+@[simp] theorem nth_zero_cons (a : α) (s : stream α) : nth (a :: s) 0 = a := rfl
 
 theorem head_cons (a : α) (s : stream α) : head (a :: s) = a := rfl
 
@@ -43,6 +43,8 @@ funext (λ i, begin unfold drop, rw nat.add_assoc end)
 
 theorem nth_succ (n : nat) (s : stream α) : nth s (succ n) = nth (tail s) n := rfl
 
+@[simp] lemma nth_succ_cons (n : nat) (s : stream α) (x : α) : nth (x :: s) n.succ = nth s n := rfl
+
 theorem drop_succ (n : nat) (s : stream α) : drop (succ n) s = drop n (tail s) := rfl
 
 @[simp] lemma head_drop {α} (a : stream α) (n : ℕ) : (a.drop n).head = a.nth n :=
@@ -50,6 +52,12 @@ by simp only [drop, head, nat.zero_add, stream.nth]
 
 @[ext] protected theorem ext {s₁ s₂ : stream α} : (∀ n, nth s₁ n = nth s₂ n) → s₁ = s₂ :=
 assume h, funext h
+
+lemma cons_injective (x : α) : function.injective (cons x) :=
+λ s t h, stream.ext (λ n, by rw [←nth_succ_cons n _ x, h, nth_succ_cons])
+
+lemma cons_injective_right (s : stream α) : function.injective (λ x, cons x s) :=
+λ x y h, by { dsimp only at h, rw [←nth_zero_cons x s, h, nth_zero_cons] }
 
 theorem all_def (p : α → Prop) (s : stream α) : all p s = ∀ n, p (nth s n) := rfl
 

@@ -45,6 +45,15 @@ def cons (a : α) : seq α → seq α
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
+@[simp] lemma nth_cons_zero (s : seq α) (x : α) : nth (cons x s) 0 = some x :=
+by cases s; refl
+
+@[simp] lemma nth_cons_succ (s : seq α) (x : α) (n : ℕ) : nth (cons x s) (n + 1) = nth s n :=
+by cases s; refl
+
+@[simp] lemma val_cons (s : seq α) (x : α) : (cons x s).val = some x :: s.val :=
+by cases s; refl
+
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
@@ -642,6 +651,12 @@ begin
     assume n,
     simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
 end
+
+lemma cons_injective (x : α) : function.injective (cons x) :=
+λ s t h, seq.ext _ _ (λ n, by simp_rw [←nth_cons_succ _ x n, h])
+
+lemma cons_injective_right (s : seq α) : function.injective (λ x, cons x s) :=
+λ x y h, by { dsimp only at h, rw [←option.some_inj, ←nth_cons_zero s, h, nth_cons_zero] }
 
 @[simp] theorem head_dropn (s : seq α) (n) : head (drop s n) = nth s n :=
 begin

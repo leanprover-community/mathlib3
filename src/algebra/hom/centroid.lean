@@ -10,7 +10,14 @@ import algebra.hom.group_instances
 /-!
 # Centroid homomorphisms
 
-This file defines centroid homomorphisms.
+Let `A` be a (non unital, non associative) algebra. The centroid of `A` is the set of linear maps`T`
+on `A` such that `T` commutes with left and right multiplication, that is to say, for all `a` and
+`b` in `A`,
+$$
+T(ab) = (Ta)b, T(ab) = a(Tb).
+$$
+In mathlib we call elements of the centroid "centroid homomorphisms" (`centroid_hom`) in keeping
+with `add_monoid_hom` etc.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
 be satisfied by itself and all stricter types.

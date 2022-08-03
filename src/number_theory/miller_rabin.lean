@@ -114,28 +114,26 @@ lemma square_roots_of_one'' {p α : ℕ} (hα0 : 0 < α) (pp : p.prime) (hp_odd 
   (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
-  haveI : fact (p.prime) := fact_iff.2 pp,
-  haveI : fact (1 < p^α) := fact_iff.2 (nat.one_lt_pow _ _ hα0 pp.one_lt),
-  have hpα2 : p ^ α ≠ 2,
-  { intro H,
-    have := odd.pow hp_odd,
-    rw H at this,
-    rw odd_iff_not_even at this,
-    refine this even_two },
-  have diffsquare : (x + 1) * (x - 1) = 0, { rw ←_root_.sq_sub_sq, simp [root] },
-  have h2 : (x+1) ≠ 0 ∨ (x-1) ≠ 0, {
-    rw ←not_and_distrib,
-    rintro ⟨hp1, hp2⟩,
-    have h3 : (x+1) - (x-1) = 0, { simp [hp1, hp2] },
-    have h4 : (x+1) - (x-1) = 2, { ring },
-    rw [h4] at h3,
-    cases @ring.two_ne_zero (zmod (p^α)) _ _ _ h3,
-    rw ring_char.eq (zmod (p^α)) (p^α),
-    exact hpα2 },
+  have := @square_roots_of_one_int p α ↑x pp hp_odd _ ,
+  apply or.imp (λ h, _) (λ h, _) this,
+  {
+    have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x) (↑p^α),
+    simp at this,
+    rw ←this at h,
+    exact h.symm
+  },
+  {
+    have := int_coe_eq_int_coe_iff_dvd_sub (-1) (↑x) (↑p^α),
+    simp at this,
+    rw ←this at h,
+    exact h.symm
+    },
+  {
+    have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x^2) (↑p^α),
+    simp at this,
+    rw [←this, root]
+  },
 
-  cases h2 with h_plus h_minus,
-  { left, sorry },
-  { right, sorry },
 end
 
 

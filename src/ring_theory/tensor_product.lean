@@ -826,8 +826,7 @@ lemma basis_aux_tmul (r : R) (m : M) :
     (map_zero _) (b.repr m)) :=
 begin
   ext,
-  dsimp [basis_aux],
-  simp [←algebra.commutes, algebra.smul_def],
+  simp [basis_aux, ←algebra.commutes, algebra.smul_def],
 end
 
 lemma basis_aux_map_smul (r : R) (x : R ⊗[k] M) :

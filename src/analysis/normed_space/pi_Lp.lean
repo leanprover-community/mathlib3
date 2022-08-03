@@ -537,6 +537,23 @@ variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 @[simp] lemma smul_apply : (c • x) i = c • x i := rfl
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
 
+/-- The canonical map `pi_Lp.equiv` between `pi_Lp ∞ β` and `Π i, β i` as a linear isometric
+equivalence. -/
+def equivₗᵢ [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] :
+  pi_Lp ∞ β ≃ₗᵢ[𝕜] Π i, β i :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  norm_map' := λ f,
+  begin
+    suffices : finset.univ.sup (λ i, ∥f i∥₊) = ⨆ i, ∥f i∥₊,
+    { simpa only [nnreal.coe_supr] using congr_arg (coe : ℝ≥0 → ℝ) this },
+    refine antisymm (finset.sup_le (λ i _, le_csupr (fintype.bdd_above_range (λ i, ∥f i∥₊)) _)) _,
+    casesI is_empty_or_nonempty ι,
+    { simp only [csupr_of_empty, finset.univ_eq_empty, finset.sup_empty], },
+    { exact csupr_le (λ i, finset.le_sup (finset.mem_univ i)) },
+  end,
+  .. (pi_Lp.equiv p β) }
+
 variables {ι' : Type*}
 variables [fintype ι']
 

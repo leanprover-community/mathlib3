@@ -81,8 +81,7 @@ variables {k G n}
 lemma to_tensor_aux_single (f : Gⁿ⁺¹) (m : k) :
   to_tensor_aux k G n (single f m) = single (f 0) m ⊗ₜ single (λ i, (f i)⁻¹ * f i.succ) 1 :=
 begin
-  erw [lift_apply, sum_single_index, tensor_product.smul_tmul'],
-  { simp },
+  simp only [to_tensor_aux, lift_apply, sum_single_index, tensor_product.smul_tmul'],
   { simp },
 end
 
@@ -119,15 +118,14 @@ lemma to_tensor_aux_right_inv (x : (G →₀ k) ⊗[k] (Gⁿ →₀ k)) :
   to_tensor_aux _ _ _ (of_tensor_aux _ _ _ x) = x :=
 begin
   refine tensor_product.induction_on x (by simp) (λ y z, _) (λ z w hz hw, by simp [hz, hw]),
-  erw [←finsupp.sum_single y, tensor_product.sum_tmul],
+  rw [←finsupp.sum_single y, finsupp.sum, tensor_product.sum_tmul],
   simp only [finset.smul_sum, linear_map.map_sum],
   refine finset.sum_congr rfl (λ f hf, _),
   simp only [of_tensor_aux_single, finsupp.lift_apply, finsupp.smul_single',
     linear_map.map_finsupp_sum, to_tensor_aux_single, fin.partial_prod_right_inv],
   dsimp,
   simp only [fin.partial_prod_zero, mul_one],
-  conv_rhs {rw ←finsupp.sum_single z},
-  erw tensor_product.tmul_sum,
+  conv_rhs {rw [←finsupp.sum_single z, finsupp.sum, tensor_product.tmul_sum]},
   exact finset.sum_congr rfl (λ g hg, show _ ⊗ₜ _ = _, by
     rw [←finsupp.smul_single', tensor_product.smul_tmul, finsupp.smul_single_one])
 end

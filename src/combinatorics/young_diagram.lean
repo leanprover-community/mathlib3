@@ -10,13 +10,15 @@ import order.upper_lower
 
 A Young diagram is a finite set of up-left justified boxes:
 
-[5, 3, 3, 1]
+```text
 □□□□□
 □□□
 □□□
 □
+```
+This Young diagram corresponds to the [5, 3, 3, 1] partition of 12.
 
-Equivalently, a lower set in `ℕ × ℕ` in the product partial order. We write `(i, j) ∈ μ`
+We represent it as a lower set in `ℕ × ℕ` in the product partial order. We write `(i, j) ∈ μ`
 to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
 
 ## Main functions:
@@ -25,7 +27,7 @@ to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
   - `young_diagram.card` : the cardinality (number of boxes)
 
   - various constructors:
-      `young_diagram.has_empty` : the empty Young diagram
+      `young_diagram.has_emptyc` : the empty Young diagram
 
 ## Notation:
 

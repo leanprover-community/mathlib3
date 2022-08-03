@@ -61,7 +61,7 @@ begin
 end
 
 /-- If an odd prime power `p^α` divides `x^2 - 1` then it divides `x-1` or `x+1`. -/
-lemma square_roots_of_one' {p α x : ℕ} (pp : p.prime) (hp_odd : odd p) (root : p^α ∣ x^2 - 1) :
+lemma square_roots_of_one_nat {p α x : ℕ} (pp : p.prime) (hp_odd : odd p) (root : p^α ∣ x^2 - 1) :
   (p^α ∣ x - 1) ∨ (p^α ∣ x + 1) :=
 begin
   rcases x.eq_zero_or_pos with rfl | hx0, { simp },
@@ -83,6 +83,32 @@ begin
   { left, exact (prime_iff.mp pp).pow_dvd_of_dvd_mul_left α h_plus diffsquare },
   { right, exact (prime_iff.mp pp).pow_dvd_of_dvd_mul_right α h_minus diffsquare },
 end
+
+/-- If an odd prime power `p^α` divides `x^2 - 1` then it divides `x-1` or `x+1`. -/
+lemma square_roots_of_one_int {p α : ℕ} {x : ℤ} (pp : p.prime) (hp_odd : odd p)
+  (root : ↑p^α ∣ x^2 - 1) :
+  (↑p^α ∣ x - 1) ∨ (↑p^α ∣ x + 1) :=
+begin
+  have pp' := prime_iff_prime_int.1 pp,
+  have diffsquare : ↑(p^α) ∣ (x-1) * (x+1), { ring_nf, simp [root] },
+  have h2 : ¬ ↑p ∣ (x + 1) ∨ ¬ ↑p ∣ (x - 1), {
+    rw ←not_and_distrib,
+    rintro ⟨hp1, hp2⟩,
+    have h3 : ↑p ∣ (x+1) - (x-1), { exact dvd_sub hp1 hp2 },
+    have h4 : (x+1) - (x-1) = 2, { ring },
+    rw h4 at h3,
+    rw (show (2:ℤ) = 2*1^2, by linarith) at h3,
+    have := prime_two_or_dvd_of_dvd_two_mul_pow_self_two pp h3,
+    simp [pp.ne_one] at this,
+    rw [this, odd_iff_not_even] at hp_odd,
+    exact hp_odd even_two,
+  },
+  cases h2 with h_plus h_minus,
+  { left, apply prime.pow_dvd_of_dvd_mul_left pp' α h_plus, simpa [mul_comm] using diffsquare },
+  { right, apply prime.pow_dvd_of_dvd_mul_right pp' α h_minus, simpa [mul_comm] using diffsquare },
+end
+
+
 
 lemma square_roots_of_one'' {p α : ℕ} (hα0 : 0 < α) (pp : p.prime) (hp_odd : odd p) {x : zmod (p^α)}
   (root : x^2 = 1) :

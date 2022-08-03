@@ -41,6 +41,14 @@ open_locale topological_space classical big_operators ennreal nnreal inner_produ
 abbreviation findim_subspace (R E : Type*) [division_ring R] [add_comm_group E] [module R E] :=
 {U : submodule R E // finite_dimensional R U}
 
+instance {R E : Type*} [division_ring R] [add_comm_group E]
+  [module R E] : semilattice_sup (findim_subspace R E) :=
+subtype.semilattice_sup (λ U V, by introsI hU hV; apply_instance)
+
+instance {R E : Type*} [division_ring R] [add_comm_group E]
+  [module R E] : nonempty (findim_subspace R E) :=
+⟨⟨⊥, finite_dimensional_bot _ _⟩⟩
+
 lemma findim_subspace.finite_dimensional {R E : Type*} [division_ring R] [add_comm_group E]
   [module R E] (U : findim_subspace R E) : finite_dimensional R (U : submodule R E) := U.2
 
@@ -51,13 +59,20 @@ namespace continuous_linear_map
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
+--noncomputable def _root_.genial_filter : filter (findim_subspace 𝕜 E) :=
+--⨅ x : E, filter.comap
+--  (λ U : findim_subspace 𝕜 E, (orthogonal_projection (U : submodule 𝕜 E) x : E))
+--  (𝓝 x)
+--
+--lemma _root_.tendsto_genial_filter {ι : Type*} {l : filter ι} {U : ι → findim_subspace 𝕜 E}
+
 section trace_along
 
-private noncomputable def conj_proj [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
+private noncomputable def conj_proj (T : E →L[𝕜] E) (U : submodule 𝕜 E)
   [complete_space U] : E →L[𝕜] E :=
 (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L orthogonal_projection U)
 
-private lemma conj_proj_apply [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
+private lemma conj_proj_apply (T : E →L[𝕜] E) (U : submodule 𝕜 E)
   [complete_space U] (x : E) :
   conj_proj T U x = orthogonal_projection U (T (orthogonal_projection U x)) :=
 rfl
@@ -72,7 +87,7 @@ linear_map.trace 𝕜 U ∘ₗ (coe_lm 𝕜) ∘ₗ
   trace_along U T = linear_map.trace 𝕜 U (dom_restrict ((orthogonal_projection U).comp T) U) :=
 rfl
 
-lemma trace_along_eq_of_orthonormal_basis [complete_space E] {ι : Type*} [fintype ι]
+lemma trace_along_eq_of_orthonormal_basis {ι : Type*} [fintype ι]
   {U : submodule 𝕜 E} [finite_dimensional 𝕜 U] (T : E →L[𝕜] E)
   (e : orthonormal_basis ι 𝕜 (U : submodule 𝕜 E)) :
   trace_along U T = ∑ i, ⟪(e i : E), T (e i)⟫ :=
@@ -84,6 +99,37 @@ begin
       coe_inner, dom_restrict_apply, coe_coe, comp_apply,
       ← inner_orthogonal_projection_left_eq_right U,
       orthogonal_projection_eq_self_iff.mpr (subtype.coe_prop $ e i)]
+end
+
+lemma tendsto_trace_along_conj_proj_of_monotone [complete_space E] (T : E →L[𝕜] E) {τ : Type*}
+  [nonempty τ] [semilattice_sup τ] (U : submodule 𝕜 E) [finite_dimensional 𝕜 U]
+  (V : τ → submodule 𝕜 E) [∀ t, finite_dimensional 𝕜 (V t)] (hV : monotone V)
+  (hV' : ⊤ ≤ (⨆ t, V t).topological_closure) :
+  tendsto (λ t, trace_along (V t) (conj_proj T U)) at_top (𝓝 $ trace_along U T) :=
+begin
+  let e := std_orthonormal_basis 𝕜 U,
+  rw trace_along_eq_of_orthonormal_basis T e,
+  have : ∀ i, tendsto (λ t, (orthogonal_projection (V t) (conj_proj (T†) U (e i)) : E)) at_top
+    (𝓝 $ conj_proj (T†) U (e i)) :=
+    λ i, orthogonal_projection_tendsto_self 𝕜 V hV _ hV',
+  have := λ i, (this i).inner (@tendsto_const_nhds _ _ _ (e i : E) (at_top : filter τ)),
+  convert tendsto_finset_sum _ (λ i _, this i),
+  { ext t,
+    let f := std_orthonormal_basis 𝕜 (V t),
+    simp_rw [trace_along_eq_of_orthonormal_basis _ f, f.orthogonal_projection_eq_sum,
+              submodule.coe_sum, sum_inner, submodule.coe_smul, inner_smul_left,
+              inner_conj_sym],
+    rw finset.sum_comm,
+    congrm ∑ j, _,
+    rw [conj_proj_apply, ← inner_orthogonal_projection_eq_of_mem_right, ← e.sum_inner_mul_inner],
+    congrm ∑ i, _,
+    rw [mul_comm, inner_orthogonal_projection_eq_of_mem_right, coe_inner,
+        ← inner_orthogonal_projection_left_eq_right, ← adjoint_inner_left,
+        ← inner_orthogonal_projection_left_eq_right],
+    refl },
+  { ext i,
+    rw [conj_proj_apply, ← coe_inner, inner_orthogonal_projection_eq_of_mem_right,
+        orthogonal_projection_mem_subspace_eq_self, adjoint_inner_left] }
 end
 
 lemma has_sum_trace_along_of_hilbert_basis [complete_space E] {ι : Type*}
@@ -156,30 +202,53 @@ begin
   exact hT.2 (e i)
 end
 
+lemma is_positive.monotone_trace_along [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
+  {U V : submodule 𝕜 E} [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] (hUV : U ≤ V):
+    re (trace_along U T) ≤
+    re (trace_along V T) :=
+begin
+  sorry
+end
+
+--lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
+--  (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
+--    re (trace_along U (conj_proj T V)) ≤
+--    re (trace_along V T) :=
+--begin
+--  have := U.is_hilbert_sum_orthogonal,
+--  let e := is_hilbert_sum.collected_hilbert_basis this
+--    (λ b, std_hilbert_basis 𝕜 ((cond b U Uᗮ : submodule 𝕜 E) : Type*)),
+--  have key₁ := re_clm.has_sum ((conj_proj T V).has_sum_trace_along_of_hilbert_basis U e),
+--  have key₂ := re_clm.has_sum (T.has_sum_trace_along_of_hilbert_basis V e),
+--  refine has_sum_le (λ i, _) key₁ key₂,
+--  simp only [conj_proj, comp_apply, coe_subtypeL', subtype_apply, subtype.coe_mk],
+--  rcases i with ⟨b, i⟩,
+--  cases b,
+--  { rw [← inner_orthogonal_projection_left_eq_right,
+--        is_hilbert_sum.coe_collected_hilbert_basis_mk,
+--        orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
+--        submodule.coe_zero, inner_zero_left, _root_.map_zero],
+--    { exact (hT.conj_orthogonal_projection V).inner_nonneg_right _ },
+--    { exact submodule.coe_mem _ } },
+--  { rw [← inner_orthogonal_projection_left_eq_right,
+--        is_hilbert_sum.coe_collected_hilbert_basis_mk,
+--        orthogonal_projection_eq_self_iff.mpr],
+--    exact submodule.coe_mem _ }
+--end
+
 lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
-  (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
+  (U V : submodule 𝕜 E) [hU : finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
     re (trace_along U (conj_proj T V)) ≤
     re (trace_along V T) :=
 begin
-  have := U.is_hilbert_sum_orthogonal,
-  let e := is_hilbert_sum.collected_hilbert_basis this
-    (λ b, std_hilbert_basis 𝕜 ((cond b U Uᗮ : submodule 𝕜 E) : Type*)),
-  have key₁ := re_clm.has_sum ((conj_proj T V).has_sum_trace_along_of_hilbert_basis U e),
-  have key₂ := re_clm.has_sum (T.has_sum_trace_along_of_hilbert_basis V e),
-  refine has_sum_le (λ i, _) key₁ key₂,
-  simp only [conj_proj, comp_apply, coe_subtypeL', subtype_apply, subtype.coe_mk],
-  rcases i with ⟨b, i⟩,
-  cases b,
-  { rw [← inner_orthogonal_projection_left_eq_right,
-        is_hilbert_sum.coe_collected_hilbert_basis_mk,
-        orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
-        submodule.coe_zero, inner_zero_left, _root_.map_zero],
-    { exact (hT.conj_orthogonal_projection V).inner_nonneg_right _ },
-    { exact submodule.coe_mem _ } },
-  { rw [← inner_orthogonal_projection_left_eq_right,
-        is_hilbert_sum.coe_collected_hilbert_basis_mk,
-        orthogonal_projection_eq_self_iff.mpr],
-    exact submodule.coe_mem _ }
+  have : ⊤ ≤ ⨆ t : findim_subspace 𝕜 E, (t : submodule 𝕜 E) :=
+    (λ x _, mem_supr_of_mem ⟨span 𝕜 {x}, infer_instance⟩ $ mem_span_singleton_self x),
+  have := tendsto_trace_along_conj_proj_of_monotone T V
+    (@coe (findim_subspace 𝕜 E) (submodule 𝕜 E) _) (λ _ _ h, h)
+    (le_trans this $ submodule_topological_closure _),
+  have := (re_clm.continuous.tendsto _).comp this,
+  convert monotone.ge_of_tendsto (λ A B hAB, _) this ⟨U, infer_instance⟩,
+  exact (hT.conj_orthogonal_projection V).monotone_trace_along hAB
 end
 
 noncomputable def is_positive.trace_along_ennreal [complete_space E] (U : submodule 𝕜 E)

@@ -301,7 +301,7 @@ begin
       have : _ = i (f x) := (formally_smooth.mk_lift I ⟨2, hI⟩ (i.comp f) x : _),
       rwa [hx, map_zero, ← ideal.quotient.mk_eq_mk, submodule.quotient.mk_eq_zero] at this },
     intros x hx,
-    have := (ideal.pow_mono this 2).trans (ideal.le_comap_pow _ _ 2) hx,
+    have := (ideal.pow_mono this 2).trans (ideal.le_comap_pow _ 2) hx,
     rwa hI at this },
   have : i.comp P⧸J^2→A = (ideal.quotient.mkₐ R _).comp l,
   { apply alg_hom.coe_ring_hom_injective,

@@ -171,3 +171,10 @@ begin
   obtain ⟨b, rfl⟩ := ha,
   exact hM b,
 end
+
+/-! ### Induction -/
+
+lemma fintype.strong_induction [fintype α] [preorder α] {p : α → Prop}
+(H : ∀ k, ((∀ i < k, p i) → p k)) (a : α) :
+  p a :=
+@well_founded_lt.induction _ _ ⟨fintype.preorder.well_founded_lt⟩ _ _ H

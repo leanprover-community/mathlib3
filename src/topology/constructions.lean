@@ -67,8 +67,16 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
 
-instance [topological_space α] : topological_space (additive α) := ‹topological_space α›
-instance [topological_space α] : topological_space (multiplicative α) := ‹topological_space α›
+section
+variables [topological_space α]
+
+instance : topological_space (additive α) := ‹topological_space α›
+instance : topological_space (multiplicative α) := ‹topological_space α›
+
+instance [discrete_topology α] : discrete_topology (additive α) := ‹discrete_topology α›
+instance [discrete_topology α] : discrete_topology (multiplicative α) := ‹discrete_topology α›
+
+end
 
 lemma quotient.preimage_mem_nhds [topological_space α] [s : setoid α]
   {V : set $ quotient s} {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=

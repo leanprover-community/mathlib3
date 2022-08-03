@@ -1260,7 +1260,6 @@ uniform_continuous_id
 
 end
 
-
 instance {p : α → Prop} [t : uniform_space α] : uniform_space (subtype p) :=
 uniform_space.comap subtype.val t
 

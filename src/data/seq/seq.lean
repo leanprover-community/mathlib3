@@ -49,7 +49,7 @@ end⟩
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
-@[simp] theorem mk_nth (f : stream (option α)) (hf) (n : ℕ) : @nth α ⟨f, hf⟩ n = f n := rfl
+@[simp] theorem mk_nth (f : stream (option α)) (hf) : @nth α ⟨f, hf⟩ = f := rfl
 
 @[simp] theorem nil_nth (n : ℕ) : (@nil α).nth n = none := rfl
 
@@ -57,7 +57,7 @@ def nth : seq α → ℕ → option α := subtype.val
 
 @[simp] theorem cons_nth_succ (a : α) (s : seq α) (n : ℕ) : (cons a s).nth (n + 1) = s.nth n := rfl
 
-@[ext] protected lemma ext : ∀ (s s': seq α), (∀ (n : ℕ), s.nth n = s'.nth n) → s = s'
+@[ext] protected lemma ext : ∀ (s s': seq α), (∀ n : ℕ, s.nth n = s'.nth n) → s = s'
 | ⟨f, hf⟩ ⟨g, hg⟩ h := let H : f = g := funext h in by simp_rw [subtype.mk_eq_mk, H]
 
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/

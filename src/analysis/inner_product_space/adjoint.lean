@@ -508,10 +508,6 @@ begin
   refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
 end
 
-lemma is_symmetric_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
-  is_symmetric A ↔ A = A.adjoint :=
-by rw [is_symmetric, ← linear_map.eq_adjoint_iff]
-
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
@@ -520,6 +516,13 @@ instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 
 lemma star_eq_adjoint (A : E →ₗ[𝕜] E) : star A = A.adjoint := rfl
+
+/-- A continuous linear operator is self-adjoint iff it is equal to its adjoint. -/
+lemma is_self_adjoint_iff' {A : E →ₗ[𝕜] E} : is_self_adjoint A ↔ A.adjoint = A := iff.rfl
+
+lemma is_symmetric_iff_is_self_adjoint (A : E →ₗ[𝕜] E) :
+  is_symmetric A ↔ is_self_adjoint A :=
+by { rw [is_self_adjoint_iff', is_symmetric, ← linear_map.eq_adjoint_iff], exact eq_comm }
 
 section real
 
@@ -534,19 +537,18 @@ lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
 
 end real
 
-/-- The Gram operator T†T is self-adjoint. -/
-lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_symmetric (T.adjoint * T) :=
-λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left,
-  linear_map.adjoint_inner_right]
+/-- The Gram operator T†T is symmetric. -/
+lemma is_symmetric_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_symmetric (T.adjoint * T) :=
+λ x y, by simp only [mul_apply, adjoint_inner_left, adjoint_inner_right]
 
 /-- The Gram operator T†T is a positive operator. -/
 lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) (x : E) :
-  0 ≤ re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
-  linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
+  0 ≤ re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [mul_apply, adjoint_inner_right,
+    inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
 
 @[simp] lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
-  im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [linear_map.mul_apply,
-    linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
+  im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [mul_apply,
+    adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
 
 end linear_map
 

@@ -640,6 +640,10 @@ le_antisymm
   (le_inf (λ x hx y hy, hx _ $ or.inl hy) (λ x hx y hy, hx _ $ or.inr hy))
   (λ x hx y, or.rec (hx.1 _) (hx.2 _))
 
+lemma inner_dual_cone_insert (x : H) (s : set H) :
+  (insert x s).inner_dual_cone = set.inner_dual_cone {x} ⊓ s.inner_dual_cone :=
+by rw [insert_eq, inner_dual_cone_union]
+
 lemma inner_dual_cone_Union {ι : Sort*} (f : ι → set H) :
   (⋃ i, f i).inner_dual_cone = ⨅ i, (f i).inner_dual_cone :=
 begin

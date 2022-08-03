@@ -20,25 +20,25 @@ open polynomial
 
 variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
 
-@[simp] lemma T_aeval (x : A) (n : ℕ) : aeval x (T R n) = (T A n).eval x :=
+@[simp] lemma aeval_T (x : A) (n : ℕ) : aeval x (T R n) = (T A n).eval x :=
 by rw [aeval_def, eval₂_eq_eval_map, map_T]
 
-@[simp] lemma U_aeval (x : A) (n : ℕ) : aeval x (U R n) = (U A n).eval x :=
+@[simp] lemma aeval_U (x : A) (n : ℕ) : aeval x (U R n) = (U A n).eval x :=
 by rw [aeval_def, eval₂_eq_eval_map, map_U]
 
-@[simp] lemma algebra_map_T_eval (x : R) (n : ℕ) :
+@[simp] lemma algebra_map_eval_T (x : R) (n : ℕ) :
   algebra_map R A ((T R n).eval x) = (T A n).eval (algebra_map R A x) :=
-by rw [←aeval_algebra_map_apply, T_aeval]
+by rw [←aeval_algebra_map_apply, aeval_T]
 
-@[simp] lemma algebra_map_U_eval (x : R) (n : ℕ) :
+@[simp] lemma algebra_map_eval_U (x : R) (n : ℕ) :
   algebra_map R A ((U R n).eval x) = (U A n).eval (algebra_map R A x) :=
-by rw [←aeval_algebra_map_apply, U_aeval]
+by rw [←aeval_algebra_map_apply, aeval_U]
 
-@[simp, norm_cast] lemma of_real_T_eval : ∀ x n, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
-@algebra_map_T_eval ℝ ℂ _ _ _
+@[simp, norm_cast] lemma of_real_eval_T : ∀ x n, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
+@algebra_map_eval_T ℝ ℂ _ _ _
 
-@[simp, norm_cast] lemma of_real_U_eval : ∀ x n, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
-@algebra_map_U_eval ℝ ℂ _ _ _
+@[simp, norm_cast] lemma of_real_eval_U : ∀ x n, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
+@algebra_map_eval_U ℝ ℂ _ _ _
 
 /-! ### Complex versions -/
 

@@ -48,6 +48,8 @@ partial_order.lift subpresheaf.obj subpresheaf.ext
 instance : has_top (subpresheaf F) :=
 ⟨⟨λ U, ⊤, λ U V i x h, _root_.trivial⟩⟩
 
+instance : nonempty (subpresheaf F) := infer_instance
+
 /-- The subpresheaf as a presheaf. -/
 @[simps]
 def subpresheaf.to_presheaf : Cᵒᵖ ⥤ Type w :=

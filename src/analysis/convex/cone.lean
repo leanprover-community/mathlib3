@@ -630,6 +630,10 @@ lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
 lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
 
+lemma inner_dual_cone_singleton (x : H) :
+  ({x} : set H).inner_dual_cone = (convex_cone.positive_cone ℝ ℝ).comap (innerₛₗ x) :=
+convex_cone.ext $ λ i, forall_eq
+
 lemma inner_dual_cone_union (s t : set H) :
   (s ∪ t).inner_dual_cone = s.inner_dual_cone ⊓ t.inner_dual_cone :=
 le_antisymm
@@ -646,7 +650,7 @@ begin
   exact hx _ _ hj,
 end
 
-lemma inner_dual_cone_sUnion {ι : Sort*} (S : set (set H)) :
+lemma inner_dual_cone_sUnion (S : set (set H)) :
   (⋃₀ S).inner_dual_cone = Inf (set.inner_dual_cone '' S) :=
 by simp_rw [Inf_image, sUnion_eq_bUnion, inner_dual_cone_Union]
 

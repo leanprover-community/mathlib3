@@ -69,7 +69,8 @@ lemma smul_left_injective' [has_smul M α] [has_faithful_smul M α] :
 λ m₁ m₂ h, has_faithful_smul.eq_of_smul_eq_smul (congr_fun h)
 
 /-- See also `monoid.to_mul_action` and `mul_zero_class.to_smul_with_zero`. -/
-@[priority 910, to_additive] -- see Note [lower instance priority]
+@[priority 910, -- see Note [lower instance priority]
+to_additive "See also `add_monoid.to_add_action`"]
 instance has_mul.to_has_smul (α : Type*) [has_mul α] : has_smul α α := ⟨(*)⟩
 
 @[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
@@ -136,7 +137,8 @@ is_pretransitive.exists_smul_eq x y
 @[to_additive] lemma surjective_smul (x : α) : surjective (λ c : M, c • x) := exists_smul_eq M x
 
 /-- The regular action of a group on itself is transitive. -/
-@[to_additive] instance regular.is_pretransitive [group G] : is_pretransitive G G :=
+@[to_additive "The regular action of a group on itself is transitive."]
+instance regular.is_pretransitive [group G] : is_pretransitive G G :=
 ⟨λ x y, ⟨y * x⁻¹, inv_mul_cancel_right _ _⟩⟩
 
 end mul_action
@@ -309,7 +311,7 @@ section
 
 /-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
 -/
-@[to_additive]
+@[to_additive, nolint to_additive_doc]
 lemma mul_smul_comm [has_mul β] [has_smul α β] [smul_comm_class α β β] (s : α) (x y : β) :
   x * (s • y) = s • (x * y) :=
 (smul_comm s x y).symm
@@ -364,11 +366,11 @@ variable (M)
 @[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
 
 /-- `has_smul` version of `one_mul_eq_id` -/
-@[to_additive]
+@[to_additive "`has_vadd` version of `zero_add_eq_id`"]
 lemma one_smul_eq_id : ((•) (1 : M) : α → α) = id := funext $ one_smul _
 
 /-- `has_smul` version of `comp_mul_left` -/
-@[to_additive]
+@[to_additive "`has_vadd` version of `comp_add_left`"]
 lemma comp_smul_left (a₁ a₂ : M) : (•) a₁ ∘ (•) a₂ = ((•) (a₁ * a₂) : α → α) :=
 funext $ λ _, (mul_smul _ _ _).symm
 

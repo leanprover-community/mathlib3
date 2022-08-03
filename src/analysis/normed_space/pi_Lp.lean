@@ -73,7 +73,7 @@ lemma ennreal.to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.t
 lemma conditionally_complete_lattice.supr_equiv {ι ι' E : Type*} [conditionally_complete_lattice E]
   (e : ι ≃ ι') {f : ι → E} (hf :bdd_above (range f)) : (⨆ i, f (e.symm i)) = ⨆ i, f i :=
 begin
-  cases is_empty_or_nonempty ι; resetI,
+  casesI is_empty_or_nonempty ι,
   { haveI : is_empty ι' := (equiv.is_empty_congr e).mp h, simp only [supr, range_eq_empty] },
   { haveI : nonempty ι' := (equiv.nonempty_congr e).mp h,
     have hf' : bdd_above (range (λ i, f (e.symm i))),
@@ -186,7 +186,7 @@ def pseudo_emetric_aux [fact (1 ≤ p)] : pseudo_emetric_space (pi_Lp p β) :=
   begin
     unfreezingI { rcases p.dichotomy with (rfl | hp) },
     { simp only [edist_eq_supr],
-      cases is_empty_or_nonempty ι; resetI,
+      casesI is_empty_or_nonempty ι,
       { simp only [csupr_of_empty, ennreal.bot_eq_zero, add_zero, nonpos_iff_eq_zero] },
       exact supr_le (λ i, (edist_triangle _ (g i) _).trans $ add_le_add (le_supr _ i) (le_supr _ i))},
     { simp only [edist_eq_sum (zero_lt_one.trans_le hp)],
@@ -271,7 +271,7 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist dist
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { rw [edist_eq_supr, dist_eq_csupr],
-      { cases is_empty_or_nonempty ι; resetI,
+      { casesI is_empty_or_nonempty ι,
         { simp only [real.csupr_empty, csupr_of_empty, ennreal.bot_eq_zero, ennreal.zero_to_real] },
         { refine le_antisymm (csupr_le $ λ i, _) _,
           { rw [←ennreal.of_real_le_iff_le_to_real (supr_ne_top f g),

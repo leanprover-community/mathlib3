@@ -632,9 +632,9 @@ begin
   }
 end
 
+-- #print axioms strong_probable_prime_of_prime_power_iff
 
-
-#exit
+-- #exit
 
 
 --------------------------------------------------------------------------------------------------

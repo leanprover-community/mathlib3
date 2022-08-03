@@ -67,8 +67,8 @@ begin
   rcases x.eq_zero_or_pos with rfl | hx0, { simp },
   have diffsquare : p^α ∣ (x + 1) * (x - 1), { rw ←nat.sq_sub_sq, simpa },
 
-  have h2 : ¬ p ∣ (x + 1) ∨ ¬ p ∣ (x - 1), {
-    rw ←not_and_distrib,
+  have h2 : ¬ p ∣ (x + 1) ∨ ¬ p ∣ (x - 1),
+  { rw ←not_and_distrib,
     rintro ⟨hp1, hp2⟩,
     have h3 : p ∣ (x+1) - (x-1), { refine nat.dvd_sub _ hp1 hp2, linarith },
     have h4 : (x+1) - (x-1) = 2,
@@ -124,13 +124,6 @@ begin
     push_cast at this,
     rw [←this, root] },
 end
-
-
-
-#exit
-
-
-
 
 
 lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=

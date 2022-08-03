@@ -817,6 +817,15 @@ product over `α` of `β (some α)` and `β none` -/
   left_inv := λ f, funext $ λ a, by cases a; refl,
   right_inv := λ x, by simp }
 
+/-- The dependant product of a type family `β : α → Type` is equivalent to the pair of `β a` and
+the dependant product of all but `a`, for any `a:α` -/
+@[simps] def pi_equiv_at_prod_not_at {α : Type*} [decidable_eq α] {β : α → Type*} (a : α) :
+   (Π x, β x) ≃ (β a) × (Π a', a' ≠ a → β a') :=
+{ to_fun := λ f , ⟨f a, λ j _, f j⟩,
+  inv_fun := λ y j, if h : j = a then eq.rec_on h.symm y.fst else y.2 j h,
+  left_inv := λ y, by { ext j, dsimp only, split_ifs, { tidy }, { refl } },
+  right_inv := λ y, by { ext; dsimp only, {rw dif_pos rfl}, {rw [dif_neg x_1]} }  }
+
 /-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. Note that this definition assumes `α` and
 `β` to be types from the same universe, so it cannot by used directly to transfer theorems about
 sigma types to theorems about sum types. In many cases one can use `ulift` to work around this

@@ -16,7 +16,7 @@ others. They are so named since they can't be the successors of anything smaller
 ## Todo
 
 The plan is to eventually replace `ordinal.is_limit` and `cardinal.is_limit` with the common
-predicate `is_succ_limit`.
+predicate `order.is_succ_limit`.
 -/
 
 variables {α : Type*} {a b : α}

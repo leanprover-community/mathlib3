@@ -64,7 +64,7 @@ lemma young_diagram.nw_of (μ : young_diagram) {i1 i2 j1 j2 : ℕ}
 μ.is_lower_set (prod.mk_le_mk.mpr ⟨hi, hj⟩) hcell
 
 instance young_diagram.has_subset : has_subset young_diagram :=
-{ subset := λ μ ν, μ.cells ⊆ ν.cells }
+{ subset := λ μ ν, (μ : set (ℕ × ℕ)) ⊆ ν }
 
 /-- Cardinality of a Young diagram -/
 def young_diagram.card (μ : young_diagram) : ℕ := μ.cells.card

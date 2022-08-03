@@ -89,11 +89,6 @@ begin
     simpa only [equiv.apply_symm_apply, hfg (e.symm i)] using le_csupr hf (e.symm i) },
 end
 
-lemma fintype.supr_equiv {ι ι' E : Type*} [fintype ι] [conditionally_complete_lattice E]
-  (e : ι ≃ ι') (f : ι → E) (g : ι' → E) (hfg : ∀ i, f i = g (e i)) :
-  (⨆ i, f i) = ⨆ i, g i :=
-conditionally_complete_lattice.supr_equiv e (fintype.bdd_above_range f) g hfg
-
 /- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -/
 
 /-- A copy of a Pi type, on which we will put the `L^p` distance. Since the Pi type itself is
@@ -588,7 +583,8 @@ def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { simp_rw [norm_eq_csupr, linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _],
-      exact fintype.supr_equiv e.symm _ _ (λ i, rfl), },
+      exact conditionally_complete_lattice.supr_equiv e.symm
+        (fintype.bdd_above_range _) _ (λ i, rfl), },
     { simp only [norm_eq_sum (zero_lt_one.trans_le h)],
       simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
       congr,

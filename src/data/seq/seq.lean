@@ -291,7 +291,7 @@ end
 
 /-- Embed a list as a sequence -/
 def of_list (l : list α) : seq α :=
-⟨list.nth l, λn h, begin
+⟨list.nth l, λ n h, begin
   induction l with a l IH generalizing n, refl,
   dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
   { contradiction },

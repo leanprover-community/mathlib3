@@ -75,7 +75,7 @@ variables (F R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ri
 /-- The type of `Γ₀`-valued valuations on `R`.
 
 When you extend this structure, make sure to extend `valuation_class`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure valuation extends R →*₀ Γ₀ :=
 (map_add_le_max' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
 
@@ -580,7 +580,7 @@ section add_monoid
 variables (R) [ring R] (Γ₀ : Type*) [linear_ordered_add_comm_monoid_with_top Γ₀]
 
 /-- The type of `Γ₀`-valued additive valuations on `R`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def add_valuation := valuation R (multiplicative Γ₀ᵒᵈ)
 
 end add_monoid

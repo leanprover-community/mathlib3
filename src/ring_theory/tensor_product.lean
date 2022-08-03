@@ -200,8 +200,8 @@ def base_change (f : M →ₗ[R] N) : A ⊗[R] M →ₗ[A] A ⊗[R] N :=
 { to_fun := f.ltensor A,
   map_add' := (f.ltensor A).map_add,
   map_smul' := λ a x,
-    show (f.ltensor A) (rtensor M (algebra.lmul R A a) x) =
-      (rtensor N ((algebra.lmul R A) a)) ((ltensor A f) x),
+    show (f.ltensor A) (rtensor M (linear_map.mul R A a) x) =
+      (rtensor N ((linear_map.mul R A) a)) ((ltensor A f) x),
     by { rw [← comp_apply, ← comp_apply],
       simp only [ltensor_comp_rtensor, rtensor_comp_ltensor] } }
 
@@ -270,7 +270,7 @@ for a fixed pure tensor in the first argument,
 as an `R`-linear map.
 -/
 def mul_aux (a₁ : A) (b₁ : B) : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
-tensor_product.map (lmul_left R a₁) (lmul_left R b₁)
+tensor_product.map (linear_map.mul_left R a₁) (linear_map.mul_left R b₁)
 
 @[simp]
 lemma mul_aux_apply (a₁ a₂ : A) (b₁ b₂ : B) :
@@ -749,17 +749,17 @@ variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
 
 variables (R)
 
-/-- `algebra.lmul'` is an alg_hom on commutative rings. -/
+/-- `linear_map.mul'` is an alg_hom on commutative rings. -/
 def lmul' : S ⊗[R] S →ₐ[R] S :=
-alg_hom_of_linear_map_tensor_product (algebra.lmul' R)
-  (λ a₁ a₂ b₁ b₂, by simp only [algebra.lmul'_apply, mul_mul_mul_comm])
-  (λ r, by simp only [algebra.lmul'_apply, _root_.mul_one])
+alg_hom_of_linear_map_tensor_product (linear_map.mul' R S)
+  (λ a₁ a₂ b₁ b₂, by simp only [linear_map.mul'_apply, mul_mul_mul_comm])
+  (λ r, by simp only [linear_map.mul'_apply, _root_.mul_one])
 
 variables {R}
 
-lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = algebra.lmul' R := rfl
+lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = linear_map.mul' R S := rfl
 
-@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := lmul'_apply
+@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := linear_map.mul'_apply
 
 @[simp]
 lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=

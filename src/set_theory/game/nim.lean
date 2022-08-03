@@ -32,6 +32,10 @@ noncomputable theory
 
 universe u
 
+open_locale pgame
+
+namespace pgame
+
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
   take a positive number of stones from it on their turn. -/
 -- Uses `noncomputable!` to avoid `rec_fn_macro only allowed in meta definitions` VM error
@@ -42,15 +46,6 @@ noncomputable! def nim : ordinal.{u} → pgame.{u}
     nim (ordinal.typein o₁.out.r o₂)
   in ⟨o₁.out.α, o₁.out.α, f, f⟩
 using_well_founded { dec_tac := tactic.assumption }
-
-namespace pgame
-
-local infix ` ⧏ `:50 := lf
-local infix ` ≈ ` := equiv
-local infix ` ∥ `:50 := fuzzy
-local infix ` ≡r `:50 := relabelling
-
-namespace nim
 
 open ordinal
 
@@ -161,14 +156,14 @@ lemma exists_ordinal_move_left_eq {o : ordinal} (i) : ∃ o' < o, (nim o).move_l
 lemma exists_move_left_eq {o o' : ordinal} (h : o' < o) : ∃ i, (nim o).move_left i = nim o' :=
 ⟨to_left_moves_nim ⟨o', h⟩, by simp⟩
 
-lemma non_zero_first_wins {o : ordinal} (ho : o ≠ 0) : nim o ∥ 0 :=
+lemma nim_fuzzy_zero_of_ne_zero {o : ordinal} (ho : o ≠ 0) : nim o ∥ 0 :=
 begin
   rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],
   rw ←ordinal.pos_iff_ne_zero at ho,
   exact ⟨(ordinal.principal_seg_out ho).top, by simp⟩
 end
 
-@[simp] lemma add_equiv_zero_iff_eq (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
+@[simp] lemma nim_add_equiv_zero_iff (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
 begin
   split,
   { contrapose,
@@ -186,13 +181,11 @@ begin
     exact impartial.add_self (nim o₁) }
 end
 
-@[simp] lemma add_fuzzy_zero_iff_ne (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
-by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, add_equiv_zero_iff_eq]
+@[simp] lemma nim_add_fuzzy_zero_iff {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
+by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, nim_add_equiv_zero_iff]
 
-@[simp] lemma equiv_iff_eq (o₁ o₂ : ordinal) : nim o₁ ≈ nim o₂ ↔ o₁ = o₂ :=
-by rw [impartial.equiv_iff_add_equiv_zero, add_equiv_zero_iff_eq]
-
-end nim
+@[simp] lemma nim_equiv_iff_eq {o₁ o₂ : ordinal} : nim o₁ ≈ nim o₂ ↔ o₁ = o₂ :=
+by rw [impartial.equiv_iff_add_equiv_zero, nim_add_equiv_zero_iff]
 
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the
  game is equivalent to -/
@@ -216,7 +209,7 @@ begin
   { intro i₁,
     rw add_move_left_inl,
     apply (fuzzy_congr_left (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm)).1,
-    rw nim.add_fuzzy_zero_iff_ne,
+    rw nim_add_fuzzy_zero_iff,
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
     have h := ordinal.ne_mex _,
@@ -225,7 +218,7 @@ begin
   { intro i₂,
     rw [add_move_left_inr, ←impartial.exists_left_move_equiv_iff_fuzzy_zero],
     revert i₂,
-    rw nim.nim_def,
+    rw nim_def,
     intro i₂,
 
     have h' : ∃ i : G.left_moves, (grundy_value (G.move_left i)) =
@@ -247,9 +240,9 @@ using_well_founded { dec_tac := pgame_wf_tac }
 lemma grundy_value_eq_iff_equiv_nim {G : pgame} [G.impartial] {o : ordinal} :
   grundy_value G = o ↔ G ≈ nim o :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
-  by { intro h, rw ←nim.equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
+  by { intro h, rw ←nim_equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
 
-@[simp] lemma nim.grundy_value (o : ordinal.{u}) : grundy_value (nim o) = o :=
+@[simp] lemma nim_grundy_value (o : ordinal.{u}) : grundy_value (nim o) = o :=
 grundy_value_eq_iff_equiv_nim.2 pgame.equiv_rfl
 
 lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
@@ -257,13 +250,13 @@ lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
 grundy_value_eq_iff_equiv_nim.trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
 @[simp] lemma grundy_value_zero : grundy_value 0 = 0 :=
-grundy_value_eq_iff_equiv_nim.2 nim.nim_zero_equiv.symm
+grundy_value_eq_iff_equiv_nim.2 nim_zero_equiv.symm
 
 lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
 @[simp] lemma grundy_value_star : grundy_value star = 1 :=
-grundy_value_eq_iff_equiv_nim.2 nim.nim_one_equiv.symm
+grundy_value_eq_iff_equiv_nim.2 nim_one_equiv.symm
 
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
@@ -288,7 +281,7 @@ begin
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
       intro a,
-      obtain ⟨ok, hk, hk'⟩ := nim.exists_ordinal_move_left_eq a,
+      obtain ⟨ok, hk, hk'⟩ := exists_ordinal_move_left_eq a,
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,
 
@@ -319,11 +312,11 @@ begin
 
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨to_left_moves_add (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨to_left_moves_add (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
@@ -340,7 +333,7 @@ by rw [←grundy_value_eq_iff_equiv_nim, grundy_value_nim_add_nim]
 lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG : grundy_value G = n)
   (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=
 begin
-  rw [←nim.grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
+  rw [←nim_grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
   refine equiv.trans _ nim_add_nim_equiv,
   convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
   simp only [hG, hH]

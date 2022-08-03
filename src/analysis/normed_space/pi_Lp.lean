@@ -128,6 +128,10 @@ explaining why having definitionally the right uniformity is often important.
 
 variables [Π i, pseudo_metric_space (α i)] [Π i, pseudo_emetric_space (β i)] [fintype ι]
 
+/-- Endowing the space `pi_Lp p β` with the `L^p` edistance. We register this instance
+separate from `pi_Lp.pseudo_emetric` since the latter requires the type class hypothesis
+`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
+for a future quasi-emetric structure on `pi_Lp p β` for `p < 1`. -/
 instance : has_edist (pi_Lp p β) :=
 { edist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, edist (f i) (g i)
@@ -169,7 +173,7 @@ end
 
 variable (β)
 
-/-- Endowing the space `pi_Lp p β` with the `L^p` pseudoedistance. This definition is not
+/-- Endowing the space `pi_Lp p β` with the `L^p` pseudoemetric structure. This definition is not
 satisfactory, as it does not register the fact that the topology and the uniform structure coincide
 with the product one. Therefore, we do not register it as an instance. Using this as a temporary
 pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
@@ -199,6 +203,10 @@ def pseudo_emetric_aux [fact (1 ≤ p)] : pseudo_emetric_space (pi_Lp p β) :=
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
 
+/-- Endowing the space `pi_Lp p β` with the `L^p` distance. We register this instance
+separate from `pi_Lp.pseudo_metric` since the latter requires the type class hypothesis
+`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
+for a future quasi-metric structure on `pi_Lp p β` for `p < 1`. -/
 instance : has_dist (pi_Lp p α) :=
 { dist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, dist (f i) (g i)
@@ -232,7 +240,7 @@ begin
   exact_mod_cast hM i,
 end
 
-/-- Endowing the space `pi_Lp p α` with the `L^p` pseudodistance. This definition is not
+/-- Endowing the space `pi_Lp p α` with the `L^p` pseudometric structure. This definition is not
 satisfactory, as it does not register the fact that the topology, the uniform structure, and the
 bornology coincide with the product ones. Therefore, we do not register it as an instance. Using
 this as a temporary pseudoemetric space instance, we will show that the uniform structure is equal

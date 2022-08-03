@@ -147,7 +147,7 @@ variables (C D : Type*) [category C] [category D] [preadditive C] [preadditive D
 /-- Bundled additive functors. -/
 @[derive category, nolint has_nonempty_instance]
 def AdditiveFunctor :=
-{ F : C ⥤ D // functor.additive F }
+full_subcategory (λ (F : C ⥤ D), F.additive)
 
 infixr ` ⥤+ `:26 := AdditiveFunctor
 

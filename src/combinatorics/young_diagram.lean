@@ -27,7 +27,7 @@ to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
   - `young_diagram.card` : the cardinality (number of boxes)
 
   - various constructors:
-      `young_diagram.has_emptyc` : the empty Young diagram
+      `young_diagram.has_emptyc` : the empty Young diagram is (∅ : young_diagram)
 
 ## Notation:
 
@@ -72,11 +72,6 @@ instance young_diagram.has_subset : has_subset young_diagram :=
 def young_diagram.card (μ : young_diagram) : ℕ := μ.cells.card
 lemma young_diagram.card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
-/- (TODO) row and column lengths, and corners of a Young diagram.
-   (TODO: the transpose of a `young_diagram`)
-   (TODO: a `young_diagram` from a list of row or column lengths)
-   (TODO: adding or removing a corner box from a `young_diagram`) -/
-
 section μ_empty
 
 /-! The empty Young diagram -/
@@ -84,8 +79,7 @@ section μ_empty
 instance young_diagram.has_emptyc : has_emptyc young_diagram :=
 { emptyc := { cells := finset.empty, is_lower_set := λ _ _ _ h, h } }
 
-/-- The empty Young diagram -/
-def μ_empty := (∅ : young_diagram)
+/-- The empty Young diagram is (∅ : young_diagram). -/
 @[simp] lemma μ_empty_card : (∅ : young_diagram).card = 0 := rfl
 
 instance : inhabited young_diagram := ⟨∅⟩

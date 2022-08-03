@@ -596,6 +596,18 @@ instance : is_compactly_generated (submodule R M) :=
   apply singleton_span_is_compact_element,
 end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
 
+/-- A submodule is equal to the supremum of the spans of the submodule's nonzero elements. -/
+lemma submodule_eq_Sup_le_nonzero_spans (p : submodule R M) :
+  p = Sup {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}} :=
+begin
+  let S := {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}},
+  apply le_antisymm,
+  { intros m hm, by_cases h : m = 0,
+    { rw h, simp },
+    { exact @le_Sup _ _ S _ ⟨m, ⟨hm, ⟨h, rfl⟩⟩⟩ m (mem_span_singleton_self m) } },
+  { rw Sup_le_iff, rintros S ⟨_, ⟨_, ⟨_, rfl⟩⟩⟩, rwa span_singleton_le_iff_mem }
+end
+
 lemma lt_sup_iff_not_mem {I : submodule R M} {a : M} : I < I ⊔ (R ∙ a) ↔ a ∉ I :=
 begin
   split,

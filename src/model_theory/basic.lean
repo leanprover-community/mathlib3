@@ -112,14 +112,14 @@ protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language :=
 variable (L : language.{u v})
 
 /-- The type of constants in a given language. -/
-@[nolint has_inhabited_instance] protected def «constants» := L.functions 0
+@[nolint has_nonempty_instance] protected def «constants» := L.functions 0
 
 @[simp] lemma constants_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
   (language.mk₂ c f₁ f₂ r₁ r₂).constants = c :=
 rfl
 
 /-- The type of symbols in a given language. -/
-@[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
+@[nolint has_nonempty_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
 
 /-- The cardinality of a language is the cardinality of its type of symbols. -/
 def card : cardinal := # L.symbols

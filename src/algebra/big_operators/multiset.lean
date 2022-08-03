@@ -339,7 +339,8 @@ lemma prod_eq_one_iff [canonically_ordered_monoid α] {m : multiset α} :
 quotient.induction_on m $ λ l, by simpa using list.prod_eq_one_iff l
 
 /-- Slightly more general version of `multiset.prod_eq_one_iff` for a non-ordered `monoid` -/
-@[to_additive "Slightly more general version of `multiset.sum_eq_zero_iff` for a non-ordered `add_monoid`"]
+@[to_additive "Slightly more general version of `multiset.sum_eq_zero_iff`
+  for a non-ordered `add_monoid`"]
 lemma prod_eq_one [comm_monoid α] {m : multiset α} (h : ∀ x ∈ m, x = (1 : α)) : m.prod = 1 :=
 begin
   induction m using quotient.induction_on with l,

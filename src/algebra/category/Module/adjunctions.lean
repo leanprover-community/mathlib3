@@ -416,200 +416,75 @@ variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →
 include f
 
 include M
-localized "notation M `⊗[` R `,` f `]` S := @tensor_product R _ M S _ _ _
-  (module.comp_hom S f)" in change_of_rings
-localized "notation m `⊗ₜ[` R `,` f `]` s := @tensor_product.tmul R _ _ _ _ _ _
-  (module.comp_hom _ f) m s" in change_of_rings
+localized "notation S `⊗[` R `,` f `]` M := @tensor_product R _ S M _ _
+  (module.comp_hom S f) _" in change_of_rings
+localized "notation s `⊗ₜ[` R `,` f `]` m := @tensor_product.tmul R _ _ _ _ _
+  (module.comp_hom _ f) _ s m" in change_of_rings
 
 /--
-Given `R`-module M, consider M ⨂ S, we define an `S`-action on M ⨂ S by
-  `s • (m ⊗ s') := m ⊗ (s * s')`.
+Since `S` has an `R`-module structure, `S ⊗[R] M` can be given an `S`-module structure.
+The scalar multiplication is defined by `s • (s' ⊗ m) := (s * s') ⊗ m`
 -/
-def smul_by (s : S) : (M ⊗[R, f] S) ⟶ (M ⊗[R, f] S) :=
-@tensor_product.lift R _ M S (M ⊗[R, f] S) _ _ _ _ (module.comp_hom S f) _ $
-{ to_fun := λ m,
-  { to_fun := λ s', m ⊗ₜ[R, f] (s * s'),
-    map_add' := λ s₁ s₂, by rw [mul_add, tmul_add],
-    map_smul' := λ r s',
-    begin
-      rw [ring_hom.id_apply, restriction_of_scalars.smul_def f ⟨S⟩, smul_eq_mul, ←mul_assoc,
-        mul_comm s (f r), mul_assoc, ←smul_eq_mul, ←restriction_of_scalars.smul_def f ⟨S⟩,
-        smul_tmul'],
-      exact (@smul_tmul R _ R _ M S _ _ _ (module.comp_hom S f) _
-        (by { haveI := module.comp_hom S f, apply_instance }) _ _ _ _).symm,
-    end },
-  map_add' := λ m₁ m₂, fun_like.ext _ _ $ λ s', by rw [linear_map.coe_mk, add_tmul,
-    linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk],
-  map_smul' := λ r m, fun_like.ext _ _ $ λ s', begin
-    rw [linear_map.coe_mk, linear_map.smul_apply, ring_hom.id_apply, linear_map.coe_mk],
-    exact (@smul_tmul' R _ R _ M S _ _ _ (module.comp_hom S f) _
-        (by { haveI := module.comp_hom S f, apply_instance }) r m (s * s'))
-  end }
-
-lemma smul_by.pure_tensor (s s' : S) (m : M) :
-  (smul_by f M s (m ⊗ₜ[R, f] s')) = m ⊗ₜ[R, f] (s * s') :=
-by simp only [smul_by, tensor_product.lift.tmul, linear_map.coe_mk]
-
-lemma smul_by.one : smul_by f M 1 = 𝟙 _ :=
+def is_module : module S (S ⊗[R, f] M) :=
+@tensor_product.left_module R _ S _ S M _ _ (module.comp_hom S f) _ _
 begin
-  ext,
-  induction x using tensor_product.induction_on with _ _ _ _ ih1 ih2,
-  { simpa only [smul_by, map_zero], },
-  { simpa only [smul_by.pure_tensor, one_mul], },
-  { simp only [category_theory.types_id_apply] at ih1 ih2 ⊢,
-    conv_rhs { rw [← ih1, ← ih2] },
-    convert map_add _ _ _, },
-end
-
-lemma smul_by.mul (s s' : S) : smul_by f M (s * s') = smul_by f M s' ≫ smul_by f M s :=
-begin
-  ext,
-  induction x using tensor_product.induction_on with _ _ x y ih1 ih2,
-  { simp only [smul_by, map_zero, types_comp_apply], },
-  { simp [smul_by, mul_assoc], },
-  { convert congr_arg2 (+) ih1 ih2 using 1,
-    { convert map_add _ _ _ },
-    { simp only [types_comp_apply],
-      calc  smul_by f M s (smul_by f M s' (x + y))
-          = smul_by f M s (smul_by f M s' x + smul_by f M s' y)
-          : by { congr' 1, convert map_add _ _ _}
-      ... = smul_by f M s (smul_by f M s' x) + smul_by f M s (smul_by f M s' y)
-          : by convert map_add _ _ _, }, }
-end
-
-lemma smul_by.apply_zero (s : S) : smul_by f M s 0 = 0 :=
-by simp only [smul_by, map_zero]
-
-lemma smul_by.apply_add (s : S) (a b) : smul_by f M s (a + b) = smul_by f M s a + smul_by f M s b :=
-by simp [smul_by, map_add]
-
-
-lemma smul_by.add (s s') : smul_by f M (s + s') = smul_by f M s + smul_by f M s' :=
-begin
-  ext x,
-  induction x using tensor_product.induction_on with _ _ x y ih1 ih2,
-  { simp [smul_by], },
-  { simp [smul_by, add_mul, tmul_add], },
-  { simp only [pi.add_apply, smul_by.apply_add, ih1, ih2],
-    rw show ∀ (a b c d : M ⊗[R, f] S), a + b + (c + d) = a + c + (b + d), from _,
-    intros,
-    abel },
-end
-
-lemma smul_by.zero : smul_by f M 0 = 0 :=
-begin
-  ext,
-  induction x using tensor_product.induction_on with _ _ x y ih1 ih2,
-  { simp [smul_by], },
-  { simp [smul_by], },
-  { simp [smul_by.apply_add, ih1, ih2], }
+  fconstructor,
+  intros r s₁ s₂,
+  simp only [restriction_of_scalars.smul_def f ⟨S⟩, smul_eq_mul],
+  ring,
 end
 
 /--
-Since `S` has an `R`-module structure, `M ⊗[R] S` can be given an `S`-module structure.
-The scalar multiplication is defined by `s • (m ⊗ s') := m ⊗ (s * s')`
+S ⨂ M is also an `R`-module
 -/
-@[reducible] def has_smul_S_M_tensor_S : has_smul S (M ⊗[R, f] S) :=
-{ smul := λ s', smul_by f M s' }
-
-local attribute [instance] has_smul_S_M_tensor_S
-
-lemma smul_pure_tensor (s s' : S) (m : M) :
-  (s • (m ⊗ₜ[R, f] s')) =
-  m ⊗ₜ[R, f] (s * s') :=
-by simp only [smul_by, tensor_product.lift.tmul, linear_map.coe_mk]
-
-lemma smul_zero (s : S) : s • (0 : M ⊗[R, f] S) = 0 :=
-by simp [smul_by]
-
-lemma smul_def (s : S) (x : M ⊗[R, f] S) : s • x = smul_by f M s x := rfl
-
-/--
-Since `S` has an `R`-module structure, `M ⊗[R] S` can be given an `S`-module structure.
-The scalar multiplication is defined by `s • (m ⊗ s') := m ⊗ (s * s')`
--/
-def mul_action_S_M_tensor_S : mul_action S (M ⊗[R, f] S) :=
-{ one_smul := λ x, begin
-    rw [smul_def, smul_by.one f M],
-    refl,
-  end,
-  mul_smul := λ s s' x, begin
-    rw [smul_def, smul_def, smul_def, smul_by.mul f M],
-    refl,
-  end,
-  ..(has_smul_S_M_tensor_S f M) }.
-
-localized "attribute [instance] extension_of_scalars.mul_action_S_M_tensor_S" in change_of_rings
-
-/--
-Since `S` has an `R`-module structure, `M ⊗[R] S` can be given an `S`-module structure.
-The scalar multiplication is defined by `s • (m ⊗ s') := m ⊗ (s * s')`
--/
-def distrib_mul_action_S_M_tensor_S : _root_.distrib_mul_action S (M ⊗[R, f] S) :=
-{ smul_zero := λ s, by rw [smul_def, smul_by.apply_zero],
-  smul_add := λ s x y, by rw [smul_def, smul_by.apply_add, smul_def, smul_def] }
-
-/--
-Since `S` has an `R`-module structure, `M ⊗[R] S` can be given an `S`-module structure.
-The scalar multiplication is defined by `s • (m ⊗ s') := m ⊗ (s * s')`
--/
-def is_module : module S (M ⊗[R, f] S) :=
-{ add_smul := λ s s' x, by rw [smul_def, smul_by.add, smul_def, smul_def, pi.add_apply],
-  zero_smul := λ x, by rw [smul_def, smul_by.zero, pi.zero_apply],
-  ..(distrib_mul_action_S_M_tensor_S f M) }.
-
-/--
-M ⨂ S is also an `R`-module
--/
-def is_module' : module R (M ⊗[R, f] S) := infer_instance
+def is_module' : module R (S ⊗[R, f] M) := infer_instance
 
 localized "attribute [instance] extension_of_scalars.is_module extension_of_scalars.is_module'"
   in change_of_rings
 
 /--
-Extension of scalars turn an `R`-module into `S`-module by M ↦ M ⨂ S
+Extension of scalars turn an `R`-module into `S`-module by M ↦ S ⨂ M
 -/
 def obj' : Module S :=
-{ carrier := M ⊗[R, f] S,
+{ carrier := S ⊗[R, f] M,
   is_module := is_module f M }
 
 omit M
 /--
-Extension of scalars is a functor where an `R`-module `M` is sent to `M ⊗ S` and
-`l : M1 ⟶ M2` is sent to `m ⊗ s ↦ l m ⊗ s`
+Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
+`l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
 @[simps] def map' {M1 M2 : Module R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
-{ to_fun :=
-  @tensor_product.lift R _ M1 S (M2 ⊗[R, f] S) _ _ _ _ (module.comp_hom S f) _ $
-  { to_fun := λ m₁,
-    { to_fun := λ s, (l m₁) ⊗ₜ[R, f] s,
-      map_add' := λ s₁ s₂, by rw [tmul_add],
-      map_smul' := λ r s, begin
-        rw [ring_hom.id_apply, restriction_of_scalars.smul_def f ⟨S⟩, smul_tmul'],
-        convert (@smul_tmul R _ R _ M2 S _ _ _ (module.comp_hom S f) _
-          (by { haveI := module.comp_hom S f, apply_instance }) _ r (l m₁) s).symm,
+{ to_fun := @tensor_product.lift R _ S M1 _ _ _ _ (module.comp_hom S f) _ (is_module' f M2) $
+  { to_fun := λ s,
+    { to_fun := λ m, s ⊗ₜ[R, f] l m,
+      map_add' := λ m m', by rw [map_add, tmul_add],
+      map_smul' := λ r m, begin
+        rw [ring_hom.id_apply, smul_tmul', restriction_of_scalars.smul_def f ⟨S⟩],
+        convert (@smul_tmul R _ R _ S M2 _ _ (module.comp_hom S f) _
+          (by { haveI := module.comp_hom S f, apply_instance }) _ _ r s (l m)).symm,
+        rw [map_smul],
       end },
     map_add' := λ m₁ m₂, fun_like.ext _ _ $ λ s, by rw [linear_map.coe_mk, linear_map.add_apply,
-      linear_map.coe_mk, linear_map.coe_mk, map_add, add_tmul],
-    map_smul' := λ r m₁, fun_like.ext _ _ $ λ s,
-    begin
-      rw [linear_map.coe_mk, linear_map.smul_apply, ring_hom.id_apply, linear_map.coe_mk, map_smul],
-      exact (@smul_tmul' R _ R _ M2 S _ _ _ (module.comp_hom S f) _
-        (by { haveI := module.comp_hom S f, apply_instance }) r (l m₁) s).symm,
-    end },
+      linear_map.coe_mk, linear_map.coe_mk, add_tmul],
+    map_smul' := λ r s, fun_like.ext _ _ $ λ m, by { rw [linear_map.coe_mk, ring_hom.id_apply,
+      linear_map.smul_apply, linear_map.coe_mk, smul_tmul'], congr }, },
   map_add' := λ x y, by rw [map_add],
-  map_smul' := λ r x,
+  map_smul' := λ s x,
   begin
-    apply @tensor_product.induction_on R _ M1 S _ _ _ (module.comp_hom S f) _ x,
-    { simp only [map_zero, smul_zero] },
-    { intros, simp only [smul_pure_tensor, ring_hom.id_apply, linear_map.coe_mk, lift.tmul], },
+    apply @tensor_product.induction_on R _ S M1 _ _ (module.comp_hom S f) _ _ x,
+    { rw [smul_zero, map_zero, smul_zero], },
+    { intros,
+      rw [smul_tmul', smul_eq_mul, ring_hom.id_apply, tensor_product.lift.tmul,
+        tensor_product.lift.tmul, linear_map.coe_mk, linear_map.coe_mk, linear_map.coe_mk,
+        smul_tmul', smul_eq_mul], },
     { intros _ _ ih1 ih2,
-      rw [smul_add, map_add, ring_hom.id_apply, ih1, ih2, map_add, smul_add, ring_hom.id_apply], }
+      simp only [smul_add, map_add, ih1, ih2, ring_hom.id_apply] },
   end }
 
 /--
-Extension of scalars is a functor where an `R`-module `M` is sent to `M ⊗ S` and
-`l : M1 ⟶ M2` is sent to `m ⊗ s ↦ l m ⊗ s`
+Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
+`l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
 def functor : Module R ⥤ Module S :=
 { obj := λ M, obj' f M,

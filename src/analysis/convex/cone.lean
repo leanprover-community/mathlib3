@@ -346,18 +346,16 @@ variables (𝕜 E) [ordered_semiring 𝕜] [ordered_add_comm_group E] [module �
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
 module.
 -/
-def positive_cone : convex_cone 𝕜 E :=
-{ carrier := {x | 0 ≤ x},
-  smul_mem' :=
-    begin
-      rintro c hc x (hx : _ ≤ _),
-      rw ←smul_zero c,
-      exact smul_le_smul_of_nonneg hx hc.le,
-    end,
+def positive : convex_cone 𝕜 E :=
+{ carrier := set.Ici 0,
+  smul_mem' := λ c hc x (hx : _ ≤ _), smul_nonneg hc.le hx,
   add_mem' := λ x (hx : _ ≤ _) y (hy : _ ≤ _), add_nonneg hx hy }
 
+@[simp] lemma mem_positive {x : E} : x ∈ positive 𝕜 E ↔ 0 ≤ x := iff.rfl
+@[simp] lemma coe_positive {x : E} : ↑(positive 𝕜 E) = set.Ici (0 : E) := rfl
+
 /-- The positive cone of an ordered module is always salient. -/
-lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
+lemma salient_positive : salient (positive 𝕜 E) :=
 λ x xs hx hx', lt_irrefl (0 : E)
   (calc
     0   < x         : lt_of_le_of_ne xs hx.symm
@@ -365,7 +363,22 @@ lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
     ... = 0         : add_neg_self x)
 
 /-- The positive cone of an ordered module is always pointed. -/
-lemma pointed_positive_cone : pointed (positive_cone 𝕜 E) := le_refl 0
+lemma pointed_positive : pointed (positive 𝕜 E) := le_refl 0
+
+/-- The cone of strictly positive elements.
+
+Note that this naming diverges from the mathlib convention of `pos` and `nonneg` due to "positive
+cone" (`convex_cone.positive`) being established terminology for the non-negative elements. -/
+def strictly_positive : convex_cone 𝕜 E :=
+{ carrier := set.Ioi 0,
+  smul_mem' := λ c hc x (hx : _ < _), smul_pos hc hx,
+  add_mem' := λ x hx y hy, add_pos hx hy }
+
+@[simp] lemma mem_strictly_positive {x : E} : x ∈ strictly_positive 𝕜 E ↔ 0 < x := iff.rfl
+@[simp] lemma coe_strictly_positive {x : E} : ↑(strictly_positive 𝕜 E) = set.Ioi (0 : E) := rfl
+
+/-- The strictly positive cone of an ordered module is always blunt. -/
+lemma blunt_strictly_positive : blunt (strictly_positive 𝕜 E) := lt_irrefl 0
 
 end positive_cone
 end convex_cone

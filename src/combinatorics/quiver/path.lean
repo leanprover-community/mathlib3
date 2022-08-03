@@ -70,6 +70,8 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
 | b nil := []
 | b (@cons _ _ _ c _ p f) := c :: p.to_list
 
+/-- `quiver.path.to_list` is a contravariant functor. The inversion comes from `quiver.path` and
+`list` having different preferred directions for adding elements. -/
 @[simp] lemma to_list_comp (p : path a b) :
   ∀ {c} (q : path b c), (p.comp q).to_list = q.to_list ++ p.to_list
 | c nil := by simp

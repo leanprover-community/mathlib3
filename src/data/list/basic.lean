@@ -1157,6 +1157,8 @@ theorem nth_len_le : ∀ {l : list α} {n}, length l ≤ n → nth l n = none
 | []       n     h := rfl
 | (a :: l) (n+1) h := nth_len_le (le_of_succ_le_succ h)
 
+@[simp] theorem nth_length (l : list α) : l.nth l.length = none := nth_len_le le_rfl
+
 theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n h = a :=
 ⟨λ e,
   have h : n < length l, from lt_of_not_ge $ λ hn,

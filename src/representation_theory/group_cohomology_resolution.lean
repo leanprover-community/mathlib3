@@ -207,7 +207,7 @@ def of_mul_action_basis_aux : (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k
     { simp only [smul_zero] },
     { simp only [tensor_product.smul_tmul'],
       show (r * x) ⊗ₜ y = _,
-      rw [←of_mul_action_as_module_eq_mul, tprod_one_as_module] },
+      rw [←of_mul_action_self_smul_eq_mul, smul_tprod_one_as_module] },
     { rw [smul_add, hz, hy, smul_add], }
   end, .. ((Rep.equivalence_Module_monoid_algebra.1).map_iso
     (equiv_tensor k G n).symm).to_linear_equiv }

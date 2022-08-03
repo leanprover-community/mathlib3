@@ -261,12 +261,19 @@ begin
   simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
 end
 
-lemma of_mul_action_as_module_eq_mul
+lemma of_mul_action_self_smul_eq_mul
   (x : monoid_algebra k G) (y : (of_mul_action k G G).as_module) :
   x • y = (x * y : monoid_algebra k G) :=
 x.induction_on (λ g, by show as_algebra_hom _ _ _ = _; ext; simp)
   (λ x y hx hy, by simp only [hx, hy, add_mul, add_smul])
   (λ r x hx, by show as_algebra_hom _ _ _ = _; simpa [←hx])
+
+/-- If we equip `k[G]` with the `k`-linear `G`-representation induced by the left regular action of
+`G` on itself, the resulting object is isomorphic as a `k[G]`-module to `k[G]` with its natural
+`k[G]`-module structure. -/
+@[simps] noncomputable def of_mul_action_self_as_module_equiv :
+  (of_mul_action k G G).as_module ≃ₗ[monoid_algebra k G] monoid_algebra k G :=
+{ map_smul' := of_mul_action_self_smul_eq_mul, ..as_module_equiv _ }
 
 /--
 When `G` is a group, a `k`-linear representation of `G` on `V` can be thought of as
@@ -302,10 +309,8 @@ local notation ρV ` ⊗ ` ρW := tprod ρV ρW
 @[simp]
 lemma tprod_apply (g : G) : (ρV ⊗ ρW) g = tensor_product.map (ρV g) (ρW g) := rfl
 
-lemma tprod_one_as_module {V W : Type*} [add_comm_group V] [add_comm_group W] [module k V]
-  [module k W] (ρ : representation k G V) (r : monoid_algebra k G) (x : V)
-  (y : W) : (r • (x ⊗ₜ y : (ρ.tprod 1).as_module) : (ρ.tprod 1).as_module)
-    = (r • x : ρ.as_module) ⊗ₜ y :=
+lemma smul_tprod_one_as_module (r : monoid_algebra k G) (x : V) (y : W) :
+  (r • (x ⊗ₜ y) : (ρV.tprod 1).as_module) = (r • x : ρV.as_module) ⊗ₜ y :=
 begin
   show as_algebra_hom _ _ _ = as_algebra_hom _ _ _ ⊗ₜ _,
   simp only [as_algebra_hom_def, monoid_algebra.lift_apply,
@@ -315,10 +320,8 @@ begin
   refl,
 end
 
-lemma one_tprod_as_module {V W : Type*} [add_comm_group V] [add_comm_group W] [module k V]
-  [module k W] (ρ : representation k G W) (r : monoid_algebra k G) (x : V)
-  (y : W) : (r • (x ⊗ₜ y : (tprod 1 ρ).as_module) : (tprod 1 ρ).as_module)
-    = x ⊗ₜ (r • y : ρ.as_module) :=
+lemma smul_one_tprod_as_module (r : monoid_algebra k G) (x : V) (y : W) :
+  (r • (x ⊗ₜ y) : ((1 : representation k G V).tprod ρW).as_module) = x ⊗ₜ (r • y : ρW.as_module) :=
 begin
   show as_algebra_hom _ _ _ = _ ⊗ₜ as_algebra_hom _ _ _,
   simp only [as_algebra_hom_def, monoid_algebra.lift_apply,

@@ -40,11 +40,15 @@ def nil : seq α := ⟨stream.const none, λn h, rfl⟩
 instance : inhabited (seq α) := ⟨nil⟩
 
 /-- Prepend an element to a sequence -/
-def cons (a : α) : seq α → seq α
-| ⟨f, al⟩ := ⟨some a :: f, λn h, by {cases n with n, contradiction, exact al h}⟩
+def cons (a : α) (s : seq α) : seq α :=
+⟨some a :: s.1, λn h, by {cases n with n, contradiction, exact s.2 h}⟩
 
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
+
+@[simp] theorem nil_nth (n : ℕ) : (@nil α).nth n = none := rfl
+
+@[simp] theorem nth_cons_zero (a : α) (s : seq α) : (cons a s).nth 0 = a := rfl
 
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
@@ -161,6 +165,9 @@ by rw [head_eq_destruct, destruct_cons]; refl
 
 @[simp] theorem tail_cons (a : α) (s) : tail (cons a s) = s :=
 by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons]
+
+@[simp] theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
+| ⟨f, al⟩ n := rfl
 
 def cases_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
@@ -297,6 +304,24 @@ begin
   rw [h1, h2], apply H
 end
 
+@[ext]
+protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
+begin
+  let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
+  apply seq.eq_of_bisim ext _ hyp,
+  -- we have to show that ext is a bisimulation
+  clear hyp s s',
+  assume s s' (hyp : ext s s'),
+  unfold seq.destruct,
+  rw (hyp 0),
+  cases (s'.nth 0),
+  { simp [seq.bisim_o] }, -- option.none
+  { -- option.some
+    suffices : ext s.tail s'.tail, by simpa,
+    assume n,
+    simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
+end
+
 /-- Embed an infinite stream as a sequence -/
 def of_stream (s : stream α) : seq α :=
 ⟨s.map some, λn h, by contradiction⟩
@@ -374,8 +399,27 @@ def take : ℕ → seq α → list α
 | 0     s := []
 | (n+1) s := match destruct s with
   | none := []
-  | some (x, r) := list.cons x (take n r)
+  | some (x, r) := x :: (take n r)
   end
+
+@[simp] theorem take_zero (s : seq α) : s.take 0 = [] := rfl
+
+@[simp] theorem take_nil (n : ℕ) : take n (@nil α) = [] := by cases n; refl
+
+@[simp] theorem take_cons (n : ℕ) (a : α) (s : seq α) : take n.succ (cons a s) = a :: take n s :=
+by { rw [take, destruct_cons], refl }
+
+theorem nth_take {n m : ℕ} (s : seq α) (h : m < n) : (s.take n).nth m = s.nth m :=
+begin
+  induction n with n hn,
+  { exact (nat.not_lt_zero m h).elim },
+  { apply s.cases_on,
+    { simp },
+    { intros x s,
+      simp, }
+
+  }
+end
 
 /-- Split a sequence at `n`, producing a finite initial segment
   and an infinite tail. -/
@@ -448,7 +492,7 @@ def unzip (s : seq (α × β)) : seq α × seq β := (map prod.fst s, map prod.s
 def to_list (s : seq α) (h : s.terminates) : list α :=
 take (nat.find h) s
 
-@[simp] theorem to_list_nth (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) (n : ℕ) :
+@[simp] theorem to_list_nth (s : seq α) (h : s.terminates) (n : ℕ) :
   (s.to_list h).nth n = s.nth n :=
 begin
   simp [to_list],sorry,
@@ -457,9 +501,9 @@ end
 @[simp] theorem to_list_of_list (l : list α) : (of_list l).to_list (of_list_terminates l) = l :=
 by { ext, simp }
 
-@[simp] theorem of_list_to_list (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) :
+@[simp] theorem of_list_to_list (s : seq α) (h : s.terminates) :
   of_list (s.to_list h) = s :=
-by { apply seq.ext, simp only [option.mem_def], rw of_list_nth,}
+by { ext, simp }
 
 /-- Convert a sequence which is known not to terminate into a stream -/
 def to_stream (s : seq α) (h : ¬ s.terminates) : stream α :=
@@ -657,27 +701,6 @@ theorem dropn_add (s : seq α) (m) : ∀ n, drop s (m + n) = drop (drop s m) n
 
 theorem dropn_tail (s : seq α) (n) : drop (tail s) n = drop s (n + 1) :=
 by rw add_comm; symmetry; apply dropn_add
-
-theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
-| ⟨f, al⟩ n := rfl
-
-@[ext]
-protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
-begin
-  let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
-  apply seq.eq_of_bisim ext _ hyp,
-  -- we have to show that ext is a bisimulation
-  clear hyp s s',
-  assume s s' (hyp : ext s s'),
-  unfold seq.destruct,
-  rw (hyp 0),
-  cases (s'.nth 0),
-  { simp [seq.bisim_o] }, -- option.none
-  { -- option.some
-    suffices : ext s.tail s'.tail, by simpa,
-    assume n,
-    simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
-end
 
 @[simp] theorem head_dropn (s : seq α) (n) : head (drop s n) = nth s n :=
 begin

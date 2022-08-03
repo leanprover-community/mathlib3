@@ -210,6 +210,9 @@ lemma nsmul_apply (f : centroid_hom α) (n : ℕ) (a : α) : (n • f) a = n •
 instance : add_comm_monoid (centroid_hom α) :=
 coe_to_add_monoid_hom_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
+instance : has_nat_cast (centroid_hom α) :=
+{ nat_cast := λ n, n • 1 }
+
 instance : add_comm_monoid_with_one (centroid_hom α) :=
 { ..centroid_hom.add_comm_monoid,
   ..centroid_hom.has_one }

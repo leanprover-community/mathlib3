@@ -182,8 +182,8 @@ by rw [lagrange.basis, erase_singleton, prod_empty]
 
 @[simp] theorem basis_pair_left (hij : i ≠ j) :
   lagrange.basis {i, j} v i = basis_divisor (v i) (v j) :=
-by { simp only [lagrange.basis, hij, erase_insert_eq_erase, erase_eq_of_not_mem,
-                mem_singleton, not_false_iff, prod_singleton] }
+by simp only [lagrange.basis, hij, erase_insert_eq_erase, erase_eq_of_not_mem,
+              mem_singleton, not_false_iff, prod_singleton]
 
 @[simp] theorem basis_pair_right (hij : i ≠ j) :
   lagrange.basis {i, j} v j = basis_divisor (v j) (v i) :=
@@ -531,7 +531,7 @@ by rw [mul_comm, basis_eq_prod_sub_inv_mul_nodal_div hi, eval_mul, eval_C,
        ← mul_assoc (x - v i)⁻¹, inv_mul_cancel (sub_ne_zero_of_ne hxi), one_mul]
 
 lemma interpolate_eq_nodal_weight_mul_nodal_div_X_sub_C :
-interpolate s v r = ∑ i in s, C (nodal_weight s v i) * (nodal s v / (X - C (v i))) * C (r i) :=
+  interpolate s v r = ∑ i in s, C (nodal_weight s v i) * (nodal s v / (X - C (v i))) * C (r i) :=
 sum_congr rfl (λ j hj, by rw [mul_comm, basis_eq_prod_sub_inv_mul_nodal_div hj])
 
 /-- This is the first barycentric form of the Lagrange interpolant. -/

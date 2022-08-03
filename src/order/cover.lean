@@ -157,13 +157,13 @@ alias of_dual_covby_of_dual_iff ↔ _ covby.of_dual
 /-- A successor limit is a value that doesn't cover any other.
 
 It's so named because in an order with an appropriate successor definition, a successor limit can't
-be the succesor of anything smaller. -/
+be the successor of anything smaller. -/
 def is_succ_limit (a : α) : Prop := ∀ b, ¬ b ⋖ a
 
 lemma not_is_succ_limit_iff_exists_covby (a : α) : ¬ is_succ_limit a ↔ ∃ b, b ⋖ a :=
 by simp [is_succ_limit]
 
-lemma is_succ_limit_of_dense [densely_ordered α] (a : α) : is_succ_limit a := λ b, not_covby
+@[simp] lemma is_succ_limit_of_dense [densely_ordered α] (a : α) : is_succ_limit a := λ b, not_covby
 
 /-- A predecessor limit is a value that isn't covered by any other.
 
@@ -179,11 +179,10 @@ lemma is_pred_limit_of_dense [densely_ordered α] (a : α) : is_pred_limit a := 
 @[simp] lemma is_succ_limit_to_dual_iff : is_succ_limit (to_dual a) ↔ is_pred_limit a :=
 by simp [is_succ_limit, is_pred_limit]
 
-alias is_succ_limit_to_dual_iff ↔ _ is_pred_limit.dual
-
 @[simp] lemma is_pred_limit_to_dual_iff : is_pred_limit (to_dual a) ↔ is_succ_limit a :=
 by simp [is_succ_limit, is_pred_limit]
 
+alias is_succ_limit_to_dual_iff ↔ _ is_pred_limit.dual
 alias is_pred_limit_to_dual_iff ↔ _ is_succ_limit.dual
 
 end has_lt

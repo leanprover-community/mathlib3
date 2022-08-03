@@ -49,12 +49,10 @@ end⟩
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
-@[simp] theorem mk_nth (f : stream (option α)) (hf) : @nth α ⟨f, hf⟩ = f := rfl
+@[simp] theorem mk_nth (f hf) : @nth α ⟨f, hf⟩ = f := rfl
 
 @[simp] theorem nil_nth (n : ℕ) : (@nil α).nth n = none := rfl
-
 @[simp] theorem cons_nth_zero (a : α) (s : seq α) : (cons a s).nth 0 = a := rfl
-
 @[simp] theorem cons_nth_succ (a : α) (s : seq α) (n : ℕ) : (cons a s).nth (n + 1) = s.nth n := rfl
 
 @[ext] protected lemma ext : ∀ (s s': seq α), (∀ n : ℕ, s.nth n = s'.nth n) → s = s'

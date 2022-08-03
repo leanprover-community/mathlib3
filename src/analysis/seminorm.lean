@@ -78,6 +78,8 @@ variables [group E] [group F] [group G]
 `fun_like.has_coe_to_fun`. "]
 instance : has_coe_to_fun (group_seminorm E) (λ _, E → ℝ) := ⟨to_fun⟩
 
+@[simp, to_additive] lemma to_fun_eq_coe (p : group_seminorm E) : p.to_fun = p := rfl
+
 @[ext, to_additive] lemma ext {p q : group_seminorm E} : (∀ x, (p : E → ℝ) x = q x) → p = q :=
 fun_like.ext p q
 
@@ -237,8 +239,6 @@ instance zero_hom_class : zero_hom_class (add_group_seminorm E) E ℝ :=
 /- TODO: All the following ought to be automated using `to_additive`. The problem is that it doesn't
 see that `has_smul R ℝ` should be fixed because `ℝ` is fixed. -/
 
-lemma add_group_seminorm_apply (x : E) : p x = p.to_fun x := rfl
-
 variable (E)
 
 /-- The trivial norm on an additive group `E` is the `add_group_seminorm` taking value `0` at `0`
@@ -260,7 +260,7 @@ def trivial_norm [decidable_eq E] : add_group_seminorm E :=
 variable {E}
 
 lemma trivial_norm_of_ne_zero [decidable_eq E] {z : E} (h : z ≠ 0) : trivial_norm E z = 1 :=
-by simp only [trivial_norm, add_group_seminorm_apply, h, if_false]
+by simp only [trivial_norm, ← to_fun_eq_coe, h, if_false]
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
 instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :

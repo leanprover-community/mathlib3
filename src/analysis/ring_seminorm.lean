@@ -133,9 +133,9 @@ variable [non_unital_ring R]
 instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
 
 instance zero_hom_class : zero_hom_class (ring_norm R) R ℝ :=
- { coe := λ f, f.to_fun,
-   coe_injective' := λ f g h, by cases f; cases g; congr',
-   map_zero := λ f, f.map_zero' }
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_zero := λ f, f.map_zero' }
 
 @[ext] lemma ext {p q : ring_norm R} (h : ∀ x, p x = q x) : p = q :=
 fun_like.ext p q h
@@ -149,8 +149,9 @@ def trivial_norm [decidable_eq R] : ring_norm R :=
   begin by_cases h : x * y = 0,
     { simp only [add_group_seminorm.trivial_norm, if_pos h], apply mul_nonneg;
       { split_ifs, exacts [le_refl _, zero_le_one] }},
-    { simp only [add_group_seminorm.trivial_norm, if_neg h, if_neg (left_ne_zero_of_mul h),
-        if_neg (right_ne_zero_of_mul h), mul_one] }
+    { simp only [add_group_seminorm.to_fun_eq_coe, add_group_seminorm.trivial_norm_of_ne_zero h,
+        add_group_seminorm.trivial_norm_of_ne_zero (left_ne_zero_of_mul h),
+        add_group_seminorm.trivial_norm_of_ne_zero (right_ne_zero_of_mul h), mul_one] }
   end,
   ne_zero   := λ x hx,
   by { simp only [add_group_seminorm.trivial_norm, if_neg hx], exact zero_lt_one },

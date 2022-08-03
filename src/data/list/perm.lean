@@ -925,6 +925,10 @@ begin
   exact perm_append_comm.append_right _
 end
 
+theorem map_append_bind_perm (l : list α) (f : α → β) (g : α → list β) :
+  l.map f ++ l.bind g ~ l.bind (λ x, f x :: g x) :=
+by simpa [←map_eq_bind] using bind_append_perm l (λ x, [f x]) g
+
 theorem perm.product_right {l₁ l₂ : list α} (t₁ : list β) (p : l₁ ~ l₂) :
   product l₁ t₁ ~ product l₂ t₁ :=
 p.bind_right _

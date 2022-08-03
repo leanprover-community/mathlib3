@@ -464,7 +464,7 @@ local attribute [-instance] lp.has_norm
 
 def non_standard_norm_lp : has_norm (lp E p) :=
 { norm := λ f, if hp : p = 0 then by subst hp; exact (lp.mem_ℓp f).finite_dsupport.to_finset.card
-   else (if p = ∞ then ⨆ i, ∥f i∥ else (∑' i, ∥f i∥ ^ p.to_real)) }
+    else (if p = ∞ then ⨆ i, ∥f i∥ else (∑' i, ∥f i∥ ^ p.to_real)) }
 
 local attribute [instance] non_standard_norm_lp
 
@@ -507,7 +507,7 @@ instance : uniform_space (lp E p) := infer_instance
 
 end p_le_one
 
-instance [hp : fact (1 ≤ p)] [hp' : fact (p < ⊤)]: normed_add_comm_group (lp E p) :=
+instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
 exponentiate_norm.normed_add_comm_group (sorry : 0 < 1 / p.to_nnreal) (sorry : 1/p.to_nnreal ≤ 1)
   (lp E p) (non_standard_normed_group_lp)
 
@@ -641,7 +641,7 @@ end
 instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
 { norm_smul_le := λ c f, begin
     have hp : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
-    simp [norm_const_smul hp.ne']
+    rw [norm_const_smul hp.ne' f]
   end }
 
 variables {𝕜' : Type*} [normed_field 𝕜']
@@ -1034,9 +1034,9 @@ begin
   exact (norm_apply_le_norm ennreal.top_ne_zero (F k) a).trans hCFk,
 end
 
-variables [_i : fact (1 ≤ p)]
+-- variables [_i : fact (1 ≤ p)]
 
-include _i
+-- include _i
 
 lemma sum_rpow_le_of_tendsto (hp : p ≠ ∞) {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (s : finset α) :

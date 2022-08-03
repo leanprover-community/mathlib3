@@ -51,19 +51,4 @@ instance : field ℚ :=
 /- Extra instances to short-circuit type class resolution -/
 instance : division_ring ℚ      := by apply_instance
 
-/-- Denominator as `ℕ+`. -/
-def pnat_denom (x : ℚ) : ℕ+ := ⟨x.denom, x.pos⟩
-
-@[simp] lemma pnat_denom_eq_denom (x : ℚ) : (x.pnat_denom : ℕ) = x.denom :=
-begin
-  unfold rat.pnat_denom,
-  rw pnat.mk_coe,
-end
-
-@[simp] lemma one_pnat_denom : (1 : ℚ).pnat_denom = 1 :=
-begin
-  unfold rat.pnat_denom,
-  simp only [rat.denom_one, pnat.mk_one],
-end
-
 end rat

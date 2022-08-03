@@ -629,7 +629,7 @@ begin
   { refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
     rintro ⟨ ⟩,
     exact hx i hi },
-  { simp only [set.mem_Inter, convex_cone.mem_coe, mem_inner_dual_cone,
+  { simp only [set.mem_Inter, set_like.mem_coe, mem_inner_dual_cone,
       set.mem_singleton_iff, forall_eq, imp_self] }
 end
 

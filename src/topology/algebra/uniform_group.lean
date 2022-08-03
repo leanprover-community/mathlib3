@@ -145,6 +145,41 @@ namespace subgroup
 
 end subgroup
 
+section lattice_ops
+
+variables [group β]
+
+@[to_additive] lemma uniform_group_Inf {us : set (uniform_space β)}
+  (h : ∀ u ∈ us, @uniform_group β u _) :
+  @uniform_group β (Inf us) _ :=
+{ uniform_continuous_div := uniform_continuous_Inf_rng (λ u hu, uniform_continuous_Inf_dom₂ hu hu
+  (@uniform_group.uniform_continuous_div β u _ (h u hu))) }
+
+@[to_additive] lemma uniform_group_infi {ι : Sort*} {us' : ι → uniform_space β}
+  (h' : ∀ i, @uniform_group β (us' i) _) :
+  @uniform_group β (⨅ i, us' i) _ :=
+by {rw ← Inf_range, exact uniform_group_Inf (set.forall_range_iff.mpr h')}
+
+@[to_additive] lemma uniform_group_inf {u₁ u₂ : uniform_space β}
+  (h₁ : @uniform_group β u₁ _) (h₂ : @uniform_group β u₂ _) :
+  @uniform_group β (u₁ ⊓ u₂) _ :=
+by {rw inf_eq_infi, refine uniform_group_infi (λ b, _), cases b; assumption}
+
+@[to_additive] lemma uniform_group_comap {γ : Type*} [group γ] {u : uniform_space γ}
+  [uniform_group γ] {F : Type*} [monoid_hom_class F β γ] (f : F) :
+  @uniform_group β (u.comap f) _ :=
+{ uniform_continuous_div :=
+    begin
+      letI : uniform_space β := u.comap f,
+      refine uniform_continuous_comap' _,
+      simp_rw [function.comp, map_div],
+      change uniform_continuous ((λ p : γ × γ, p.1 / p.2) ∘ (prod.map f f)),
+      exact uniform_continuous_div.comp
+        (uniform_continuous_comap.prod_map uniform_continuous_comap),
+    end }
+
+end lattice_ops
+
 section
 variables (α)
 

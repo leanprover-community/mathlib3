@@ -368,9 +368,8 @@ end
 /-- `gauge s` as a seminorm when `s` is symmetric, convex and absorbent. -/
 @[simps] def gauge_seminorm (hs₀ : ∀ x ∈ s, -x ∈ s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
   seminorm ℝ E :=
-{ to_fun := gauge s,
-  smul' := λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance,
-  triangle' := gauge_add_le hs₁ hs₂ }
+seminorm.of (gauge s) (gauge_add_le hs₁ hs₂)
+  (λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance)
 
 section gauge_seminorm
 variables {hs₀ : ∀ x ∈ s, -x ∈ s} {hs₁ : convex ℝ s} {hs₂ : absorbent ℝ s}
@@ -417,7 +416,7 @@ lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
 end add_comm_group
 
 section norm
-variables [semi_normed_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
+variables [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
 
 lemma gauge_unit_ball (x : E) : gauge (metric.ball (0 : E) 1) x = ∥x∥ :=
 begin

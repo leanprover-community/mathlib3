@@ -53,7 +53,7 @@ lemma prime_dvd_char_iff_dvd_card {R : Type*} [comm_ring R] [fintype R] (p : ℕ
   p ∣ ring_char R ↔ p ∣ fintype.card R :=
 begin
   refine ⟨λ h, h.trans $ int.coe_nat_dvd.mp $ (char_p.int_cast_eq_zero_iff R (ring_char R)
-    (fintype.card R)).mp $ char_p.cast_card_eq_zero R, λ h, _⟩,
+    (fintype.card R)).mp $ by exact_mod_cast char_p.cast_card_eq_zero R, λ h, _⟩,
   by_contra h₀,
   rcases exists_prime_add_order_of_dvd_card p h with ⟨r, hr⟩,
   have hr₁ := add_order_of_nsmul_eq_zero r,

@@ -428,7 +428,7 @@ lemma ae_le_pi {β : ι → Type*} [Π i, preorder (β i)] {f f' : Π i, α i �
 
 lemma ae_le_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i ≤ᵐ[μ i] t i) :
   (set.pi I s) ≤ᵐ[measure.pi μ] (set.pi I t) :=
-((eventually_all_finite (finite.of_fintype I)).2
+((eventually_all_finite I.to_finite).2
   (λ i hi, tendsto_eval_ae_ae.eventually (h i hi))).mono $
     λ x hst hx i hi, hst i hi $ hx i hi
 

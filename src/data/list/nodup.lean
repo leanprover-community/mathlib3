@@ -191,7 +191,7 @@ theorem nodup_map_iff {f : α → β} {l : list α} (hf : injective f) : nodup (
 ⟨λ h, attach_map_val l ▸ h.map (λ a b, subtype.eq),
   λ h, nodup.of_map subtype.val ((attach_map_val l).symm ▸ h)⟩
 
-alias nodup_attach ↔ list.nodup.of_attach list.nodup.attach
+alias nodup_attach ↔ nodup.of_attach nodup.attach
 
 attribute [protected] nodup.attach
 
@@ -288,8 +288,8 @@ lemma nodup.inter [decidable_eq α] (l₂ : list α) : nodup l₁ → nodup (l�
 by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
        nodup_sublists, nodup_reverse]
 
-alias nodup_sublists ↔ list.nodup.of_sublists list.nodup.sublists
-alias nodup_sublists' ↔ list.nodup.of_sublists' list.nodup.sublists'
+alias nodup_sublists ↔ nodup.of_sublists nodup.sublists
+alias nodup_sublists' ↔ nodup.of_sublists' nodup.sublists'
 
 attribute [protected] nodup.sublists nodup.sublists'
 

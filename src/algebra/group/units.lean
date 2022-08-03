@@ -116,17 +116,23 @@ lemma copy_eq (u : αˣ) (val hv inv hi) :
   u.copy val hv inv hi = u :=
 ext hv
 
-/-- Units of a monoid form a group. -/
-@[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
+@[to_additive] instance : mul_one_class αˣ :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
-    by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
-    by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
+    by rw [mul_assoc, ←mul_assoc u₂.val, val_inv, one_mul, val_inv],
+    by rw [mul_assoc, ←mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
   one := ⟨1, 1, one_mul 1, one_mul 1⟩,
-  mul_one := λ u, ext $ mul_one u,
   one_mul := λ u, ext $ one_mul u,
+  mul_one := λ u, ext $ mul_one u }
+
+/-- Units of a monoid form a group. -/
+@[to_additive "Additive units of an additive monoid form an additive group."]
+instance : group αˣ :=
+{ mul := (*),
+  one := 1,
   mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
   inv := has_inv.inv,
-  mul_left_inv := λ u, ext u.inv_val }
+  mul_left_inv := λ u, ext u.inv_val,
+  ..units.mul_one_class }
 
 @[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
@@ -212,7 +218,7 @@ by rw [←mul_inv_eq_one, inv_inv]
 @[to_additive] lemma mul_eq_one_iff_inv_eq {a : α} : ↑u * a = 1 ↔ ↑u⁻¹ = a :=
 by rw [←inv_mul_eq_one, inv_inv]
 
-lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
+@[to_additive] lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
 units.inv_eq_of_mul_eq_one_right $ by rw [h, u₂.mul_inv]
 
 end units
@@ -431,16 +437,16 @@ noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
 units.ext $ rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
 units.mul_inv _
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
 begin
@@ -448,11 +454,8 @@ begin
   simp [h.unit_spec]
 end
 
-lemma is_unit_one_def {M : Type*} [monoid M] : (@is_unit_one M _).unit = 1 :=
-begin
-  have h : is_unit ((1 : Mˣ) : M) := by simp only [units.coe_one, is_unit_one],
-  exact h.unit_of_coe_units,
-end
+/-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
+instance [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
 
 section monoid
 variables [monoid M] {a b c : M}

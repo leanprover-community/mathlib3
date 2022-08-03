@@ -223,7 +223,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     unitary group: 'matrix.unitary_group'
     special orthogonal group: ''
     special unitary group: ''
-    self-adjoint endomorphism: 'continuous_linear_map.is_self_adjoint'
+    self-adjoint endomorphism: 'is_self_adjoint'
     normal endomorphism: 'https://en.wikipedia.org/wiki/Normal_operator'
     diagonalization of a self-adjoint endomorphism: 'linear_map.is_symmetric.diagonalization_basis_apply_self_apply'
     diagonalization of normal endomorphisms: 'https://en.wikipedia.org/wiki/Spectral_theorem#Normal_matrices'

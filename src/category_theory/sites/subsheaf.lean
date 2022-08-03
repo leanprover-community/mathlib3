@@ -45,6 +45,9 @@ variables {F F' : Cᵒᵖ ⥤ Type w} (G G' : subpresheaf F)
 instance : partial_order (subpresheaf F) :=
 partial_order.lift subpresheaf.obj subpresheaf.ext
 
+instance : has_top (subpresheaf F) :=
+⟨⟨λ U, ⊤, λ U V i x h, _root_.trivial⟩⟩
+
 /-- The subpresheaf as a presheaf. -/
 @[simps]
 def subpresheaf.to_presheaf : Cᵒᵖ ⥤ Type w :=
@@ -194,8 +197,6 @@ lemma subpresheaf.sheafify_sheafify (h : presieve.is_sheaf J F) :
   (G.sheafify J).sheafify J = G.sheafify J :=
 ((subpresheaf.eq_sheafify_iff _ h).mpr $ G.sheafify_is_sheaf h).symm
 
-attribute [elementwise] nat_trans.naturality
-
 /-- The lift of a presheaf morphism onto the sheafification subpresheaf.  -/
 noncomputable
 def subpresheaf.sheafify_lift (f : G.to_presheaf ⟶ F') (h : presieve.is_sheaf J F') :
@@ -226,7 +227,8 @@ begin
   ext U s,
   apply (h _ ((subpresheaf.hom_of_le (G.le_sheafify J)).app U s).prop).is_separated_for.ext,
   intros V i hi,
-  exact (presieve.is_sheaf_for.valid_glue _ _ _ hi).trans (f.naturality_apply _ _)
+  have := elementwise_of f.naturality,
+  exact (presieve.is_sheaf_for.valid_glue _ _ _ hi).trans (this _ _)
 end
 
 end category_theory.grothendieck_topology

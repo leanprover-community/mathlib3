@@ -223,10 +223,22 @@ def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
     { linarith },
   end }
 
-lemma aux_mem_I {t θ : I} : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧ ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 := sorry
+lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧ ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 :=
+begin
+  -- have : ∀ s : I, (0 : ℝ) ≤ (2 * s - θ) ∧ ((2 : ℝ) * s - θ) ≤ 1,
+  -- intro s,
+  split,
+  exact div_nonneg (le_of_lt $ sub_pos.mpr $ (div_lt_iff' two_pos).mp h)
+    (sub_nonneg.mpr $ (θ.2.2).trans one_le_two),
+  sorry,
 
--- lemma
--- open real
+  -- exact (sub_nonneg.mpr ((θ.2.2).trans one_le_two)),
+  -- linarith [θ.1],
+  -- linarith,
+end
+
+
+#exit
 
 lemma continuous_delayed_id {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
 begin
@@ -238,9 +250,9 @@ begin
     intros p hp,
     -- have h_eq : (λ (i : I × I), (i.snd : ℝ) ≤ (1 / 2)) =
     --   (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
-    have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
+    have := (@frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
       (continuous_induced_dom.comp continuous_fst)
-        (continuous_induced_dom.comp continuous_snd).div_const,
+        (continuous_induced_dom.comp continuous_snd).div_const),
     replace hp := this hp,
     --   (continuous_induced_dom.comp continuous_fst)
     --     (continuous_induced_dom.comp continuous_snd).div_const hp,

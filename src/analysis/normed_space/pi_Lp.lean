@@ -65,6 +65,9 @@ noncomputable theory
 
 variables {ι : Type*}
 
+/- These lemmas need to move.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -/
+
 -- this needs to go in `data.real.ennreal`
 instance : zero_le_one_class ℝ≥0∞ := ⟨zero_le 1⟩
 
@@ -90,6 +93,8 @@ lemma fintype.supr_equiv {ι ι' E : Type*} [fintype ι] [conditionally_complete
   (e : ι ≃ ι') (f : ι → E) (g : ι' → E) (hfg : ∀ i, f i = g (e i)) :
   (⨆ i, f i) = ⨆ i, g i :=
 conditionally_complete_lattice.supr_equiv e (fintype.bdd_above_range f) g hfg
+
+/- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -/
 
 /-- A copy of a Pi type, on which we will put the `L^p` distance. Since the Pi type itself is
 already endowed with the `L^∞` distance, we need the type synonym to avoid confusing typeclass

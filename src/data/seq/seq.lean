@@ -52,7 +52,7 @@ def nth : seq α → ℕ → option α := subtype.val
 @[simp] theorem nth_mk (f hf) : @nth α ⟨f, hf⟩ = f := rfl
 
 @[simp] theorem nth_nil (n : ℕ) : (@nil α).nth n = none := rfl
-@[simp] theorem nth_cons_zero (a : α) (s : seq α) : (cons a s).nth 0 = a := rfl
+@[simp] theorem nth_cons_zero (a : α) (s : seq α) : (cons a s).nth 0 = some a := rfl
 @[simp] theorem nth_cons_succ (a : α) (s : seq α) (n : ℕ) : (cons a s).nth (n + 1) = s.nth n := rfl
 
 @[ext] protected lemma ext : ∀ s t : seq α, (∀ n : ℕ, s.nth n = t.nth n) → s = t

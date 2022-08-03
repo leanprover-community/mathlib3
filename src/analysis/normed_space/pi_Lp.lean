@@ -452,22 +452,23 @@ begin
   rw [dif_neg hp.1.ne', if_neg hp.2.ne],
 end
 
-variables (p β)
+variables (p β) [fact (1 ≤ p)]
 /-- seminormed group instance on the product of finitely many normed groups, using the `L^p`
 norm. -/
-instance seminormed_add_comm_group [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] :
+instance seminormed_add_comm_group [Π i, seminormed_add_comm_group (β i)] :
   seminormed_add_comm_group (pi_Lp p β) :=
 { dist_eq := λ x y,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { simpa only [dist_eq_csupr, norm_eq_csupr, dist_eq_norm] },
     { have : p ≠ ∞, { intros hp, rw [hp, ennreal.top_to_real] at h, linarith,} ,
-      simpa only [dist_eq_sum (zero_lt_one.trans_le h), norm_eq_sum (zero_lt_one.trans_le h), dist_eq_norm], }
+      simpa only [dist_eq_sum (zero_lt_one.trans_le h), norm_eq_sum (zero_lt_one.trans_le h),
+        dist_eq_norm], }
   end,
   .. pi.add_comm_group, }
 
 /-- normed group instance on the product of finitely many normed groups, using the `L^p` norm. -/
-instance normed_add_comm_group [fact (1 ≤ p)] [Π i, normed_add_comm_group (α i)] :
+instance normed_add_comm_group [Π i, normed_add_comm_group (α i)] :
   normed_add_comm_group (pi_Lp p α) :=
 { ..pi_Lp.seminormed_add_comm_group p α }
 
@@ -521,12 +522,12 @@ variables [normed_field 𝕜]
 
 -- this was necessary to get Lean to accept `∥c • f∥₊` in the `normed_space` instance below
 -- can we just do this with `letI`?
-instance module [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] [Π i, module 𝕜 (β i)] :
+instance module [Π i, seminormed_add_comm_group (β i)] [Π i, module 𝕜 (β i)] :
   module 𝕜 (pi_Lp p β) := pi.module ι β 𝕜
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
-instance normed_space [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] :
-  normed_space 𝕜 (pi_Lp p β) :=
+instance normed_space [Π i, seminormed_add_comm_group (β i)]
+  [Π i, normed_space 𝕜 (β i)] : normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le := λ c f,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | hp) },
@@ -540,14 +541,14 @@ instance normed_space [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] 
       exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _) },
   end, }
 
-instance finite_dimensional [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)]
+instance finite_dimensional [Π i, seminormed_add_comm_group (β i)]
   [Π i, normed_space 𝕜 (β i)] [I : ∀ i, finite_dimensional 𝕜 (β i)] :
   finite_dimensional 𝕜 (pi_Lp p β) :=
 finite_dimensional.finite_dimensional_pi' _ _
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α} [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
+variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
 variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 @[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl

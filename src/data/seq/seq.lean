@@ -58,11 +58,15 @@ def nth : seq α → ℕ → option α := subtype.val
 @[ext] protected lemma ext : ∀ s t : seq α, (∀ n : ℕ, s.nth n = t.nth n) → s = t
 | ⟨f, hf⟩ ⟨g, hg⟩ h := let H : f = g := funext h in by simp_rw [subtype.mk_eq_mk, H]
 
-lemma cons_injective (x : α) : function.injective (cons x) :=
-λ s t h, seq.ext _ _ (λ n, by simp_rw [←nth_cons_succ x _ n, h])
+lemma cons_injective2 : function.injective2 (cons : α → seq α → seq α) :=
+λ x y s t h, ⟨by rw [←option.some_inj, ←nth_cons_zero, h, nth_cons_zero],
+  seq.ext _ _ $ λ n, by simp_rw [←nth_cons_succ x s n, h, nth_cons_succ]⟩
 
-lemma cons_injective_right (s : seq α) : function.injective (λ x, cons x s) :=
-λ x y h, by { dsimp only at h, rw [←option.some_inj, ←nth_cons_zero, h, nth_cons_zero] }
+lemma cons_left_injective (s : seq α) : function.injective (λ x, cons x s) :=
+cons_injective2.left _
+
+lemma cons_right_injective (x : α) : function.injective (cons x) :=
+cons_injective2.right _
 
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none

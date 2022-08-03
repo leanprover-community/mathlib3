@@ -1085,7 +1085,7 @@ begin
   { simp only [h0, finset.prod_range_zero] },
   { simp only [hk, finset.prod_range_succ, h, mul_comm] }
 end
-
+#qh
 /-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
 the ratio of the last and first factors. -/
 @[to_additive "A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued
@@ -1098,6 +1098,16 @@ by apply prod_range_induction; simp
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i / f (i + 1)) = f 0 / f n :=
 by apply prod_range_induction; simp
+
+@[to_additive]
+lemma eq_prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  f n = f 0 * ∏ i in range n, (f (i + 1) / f i) :=
+by rw [prod_range_div, mul_div_cancel'_right]
+
+@[to_additive]
+lemma eq_prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  f n = ∏ i in range (n + 1), if i = 0 then f 0 else f i / f (i - 1) :=
+by { conv_lhs { rw [finset.eq_prod_range_div f] }, simp [finset.prod_range_succ', mul_comm] }
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
@@ -1391,17 +1401,6 @@ end
 lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
-
-lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
-  f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
-by rw [finset.sum_range_sub, add_sub_cancel'_right]
-
-lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
-  f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
-begin
-  conv_lhs { rw [finset.eq_sum_range_sub f] },
-  simp [finset.sum_range_succ', add_comm]
-end
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
   (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :

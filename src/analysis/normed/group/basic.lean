@@ -46,18 +46,6 @@ variables {α β : Type*}
 open_locale big_operators
 
 section
-variables [comm_group β]
-
-@[to_additive]
-lemma eq_prod_range_div (f : ℕ → β) (n : ℕ) : f n = f 0 * ∏ i in range n, (f (i+1) / f i) := sorry
-
-@[to_additive]
-lemma eq_prod_range_div' (f : ℕ → β) (n : ℕ) :
-  f n = ∏ i in range (n + 1), if i = 0 then f 0 else f i / f (i - 1) := sorry
-
-end
-
-section
 variables [comm_monoid β]
 
 @[simp] lemma of_mul_prod (s : finset α) (f : α → β) :

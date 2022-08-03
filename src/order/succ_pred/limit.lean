@@ -9,10 +9,9 @@ import order.succ_pred.basic
 /-!
 # Successor and predecessor limits
 
-The predicates `is_succ_limit` and `is_pred_limit` are defined elsewhere, to refer to elements in an
-order that don't cover or aren't covered by another element, respectively. In this file, we prove
-theorems relating these predicates to successors in a `succ_order` and predecessors in a
-`pred_order`.
+We define the predicate `order.is_succ_limit` for "successor limits", values that don't cover any
+others. They are so named since they can't be the successors of anything smaller. We define
+`order.is_pred_limit` analogously, and prove basic results.
 
 ## Todo
 
@@ -22,12 +21,32 @@ predicate `is_succ_limit`.
 
 variables {α : Type*} {a b : α}
 
-open function set order order_dual
+namespace order
+open function set order_dual
 
 /-! ### Successor limits -/
 
+section has_lt
+variable [has_lt α]
+
+/-- A successor limit is a value that doesn't cover any other.
+
+It's so named because in a successor order, a successor limit can't be the successor of anything
+smaller. -/
+def is_succ_limit (a : α) : Prop := ∀ b, ¬ b ⋖ a
+
+lemma not_is_succ_limit_iff_exists_covby (a : α) : ¬ is_succ_limit a ↔ ∃ b, b ⋖ a :=
+by simp [is_succ_limit]
+
+@[simp] lemma is_succ_limit_of_dense [densely_ordered α] (a : α) : is_succ_limit a := λ b, not_covby
+
+end has_lt
+
 section preorder
 variables [preorder α] [succ_order α]
+
+protected lemma _root_.is_min.is_succ_limit : is_min a → is_succ_limit a :=
+λ h b hab, not_is_min_of_lt hab.lt h
 
 protected lemma is_succ_limit.is_max (h : is_succ_limit (succ a)) : is_max a :=
 by { by_contra H, exact h a (covby_succ_of_not_is_max H) }
@@ -44,6 +63,13 @@ by { rintro rfl, exact not_is_max _ h.is_max }
 @[simp] lemma not_is_succ_limit_succ (a : α) : ¬ is_succ_limit (succ a) := λ h, h.succ_ne _ rfl
 
 end no_max_order
+
+section order_bot
+variable [order_bot α]
+
+lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
+
+end order_bot
 
 section is_succ_archimedean
 variable [is_succ_archimedean α]
@@ -168,8 +194,36 @@ end partial_order
 
 /-! ### Predecessor limits -/
 
+section has_lt
+variable [has_lt α]
+
+/-- A predecessor limit is a value that isn't covered by any other.
+
+It's so named because in a predecessor order, a predecessor limit can't be the predecessor of
+anything greater. -/
+def is_pred_limit (a : α) : Prop := ∀ b, ¬ a ⋖ b
+
+lemma not_is_pred_limit_iff_exists_covby (a : α) : ¬ is_pred_limit a ↔ ∃ b, a ⋖ b :=
+by simp [is_pred_limit]
+
+lemma is_pred_limit_of_dense [densely_ordered α] (a : α) : is_pred_limit a := λ b, not_covby
+
+@[simp] lemma is_succ_limit_to_dual_iff : is_succ_limit (to_dual a) ↔ is_pred_limit a :=
+by simp [is_succ_limit, is_pred_limit]
+
+@[simp] lemma is_pred_limit_to_dual_iff : is_pred_limit (to_dual a) ↔ is_succ_limit a :=
+by simp [is_succ_limit, is_pred_limit]
+
+alias is_succ_limit_to_dual_iff ↔ _ is_pred_limit.dual
+alias is_pred_limit_to_dual_iff ↔ _ is_succ_limit.dual
+
+end has_lt
+
 section preorder
 variables [preorder α] [pred_order α]
+
+protected lemma _root_.is_max.is_pred_limit : is_max a → is_pred_limit a :=
+λ h b hab, not_is_max_of_lt hab.lt h
 
 protected lemma is_pred_limit.is_min (h : is_pred_limit (pred a)) : is_min a :=
 by { by_contra H, exact h a (pred_covby_of_not_is_min H) }
@@ -186,6 +240,13 @@ by { rintro rfl, exact not_is_min _ h.is_min }
 @[simp] lemma not_is_pred_limit_pred (a : α) : ¬ is_pred_limit (pred a) := λ h, h.pred_ne _ rfl
 
 end no_min_order
+
+section order_top
+variable [order_top α]
+
+lemma is_pred_limit_top : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
+
+end order_top
 
 section is_pred_archimedean
 variable [is_pred_archimedean α]
@@ -264,3 +325,4 @@ lemma not_is_pred_limit [no_max_order α] : ¬ is_pred_limit a := by simp
 
 end is_pred_archimedean
 end partial_order
+end order

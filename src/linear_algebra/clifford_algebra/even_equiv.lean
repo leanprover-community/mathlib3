@@ -93,12 +93,12 @@ def to_even : clifford_algebra Q →ₐ[R] clifford_algebra.even (Q' Q) :=
 begin
   refine clifford_algebra.lift Q ⟨_, λ m, _⟩,
   { refine linear_map.cod_restrict _ _ (λ m, submodule.mem_supr_of_mem ⟨2, rfl⟩ _),
-    exact (algebra.lmul_left R $ e0 Q).comp (v Q),
+    exact (linear_map.mul_left R $ e0 Q).comp (v Q),
     rw [subtype.coe_mk, pow_two],
     exact submodule.mul_mem_mul (linear_map.mem_range_self _ _) (linear_map.mem_range_self _ _), },
   { ext1,
     dsimp only [subalgebra.coe_mul, linear_map.cod_restrict_apply, linear_map.comp_apply,
-      algebra.lmul_left_apply, linear_map.inl_apply, subalgebra.coe_algebra_map],
+      linear_map.mul_left_apply, linear_map.inl_apply, subalgebra.coe_algebra_map],
     rw [←mul_assoc, e0_mul_v_mul_e0, v_sq_scalar] }
 end
 

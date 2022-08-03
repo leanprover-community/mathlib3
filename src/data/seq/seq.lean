@@ -49,6 +49,12 @@ end⟩
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
+@[simp] theorem nil_nth (n : ℕ) : (@nil α).nth n = none := rfl
+
+@[simp] theorem cons_nth_zero (a : α) (s : seq α) : (cons a s).nth 0 = a := rfl
+
+@[simp] theorem cons_nth_succ (a : α) (s : seq α) (n : ℕ) : (cons a s).nth (n + 1) = s.nth n := rfl
+
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
@@ -162,6 +168,9 @@ by rw [head_eq_destruct, destruct_cons]; refl
 @[simp] theorem tail_cons (a : α) (s) : tail (cons a s) = s :=
 by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons]
 
+@[simp] theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
+| ⟨f, al⟩ n := rfl
+
 def cases_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
   induction H : destruct s with v v,
@@ -223,17 +232,6 @@ begin
   dsimp [corec.F], rw h, refl
 end
 
-/-- Embed a list as a sequence -/
-def of_list (l : list α) : seq α :=
-⟨list.nth l, λn h, begin
-  induction l with a l IH generalizing n, refl,
-  dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
-  { contradiction },
-  { apply IH _ h }
-end⟩
-
-instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
-
 section bisim
   variable (R : seq α → seq α → Prop)
 
@@ -291,6 +289,42 @@ begin
   intros s1 s2 h, rcases h with ⟨s, h1, h2⟩,
   rw [h1, h2], apply H
 end
+
+@[ext] protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
+begin
+  let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
+  apply seq.eq_of_bisim ext _ hyp,
+  -- we have to show that ext is a bisimulation
+  clear hyp s s',
+  assume s s' (hyp : ext s s'),
+  unfold seq.destruct,
+  rw (hyp 0),
+  cases (s'.nth 0),
+  { simp [seq.bisim_o] }, -- option.none
+  { -- option.some
+    suffices : ext s.tail s'.tail, by simpa,
+    assume n,
+    simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
+end
+
+/-- Embed a list as a sequence -/
+def of_list (l : list α) : seq α :=
+⟨list.nth l, λn h, begin
+  induction l with a l IH generalizing n, refl,
+  dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
+  { contradiction },
+  { apply IH _ h }
+end⟩
+
+instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
+
+@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
+
+@[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
+
+@[simp] theorem of_list_cons (a : α) (l) :
+  of_list (a :: l) = cons a (of_list l) :=
+by ext (_|n); simp [option.coe_def]
 
 /-- Embed an infinite stream as a sequence -/
 def of_stream (s : stream α) : seq α :=
@@ -591,12 +625,6 @@ begin
   { refine ⟨nil, S, T, _, _⟩; simp }
 end
 
-@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
-
-@[simp] theorem of_list_cons (a : α) (l) :
-  of_list (a :: l) = cons a (of_list l) :=
-by ext (_|n) : 2; simp [of_list, cons, stream.nth, stream.cons]
-
 @[simp] theorem of_stream_cons (a : α) (s) :
   of_stream (a :: s) = cons a (of_stream s) :=
 by apply subtype.eq; simp [of_stream, cons]; rw stream.map_cons
@@ -625,27 +653,6 @@ theorem dropn_add (s : seq α) (m) : ∀ n, drop s (m + n) = drop (drop s m) n
 
 theorem dropn_tail (s : seq α) (n) : drop (tail s) n = drop s (n + 1) :=
 by rw add_comm; symmetry; apply dropn_add
-
-theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
-| ⟨f, al⟩ n := rfl
-
-@[ext]
-protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
-begin
-  let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
-  apply seq.eq_of_bisim ext _ hyp,
-  -- we have to show that ext is a bisimulation
-  clear hyp s s',
-  assume s s' (hyp : ext s s'),
-  unfold seq.destruct,
-  rw (hyp 0),
-  cases (s'.nth 0),
-  { simp [seq.bisim_o] }, -- option.none
-  { -- option.some
-    suffices : ext s.tail s'.tail, by simpa,
-    assume n,
-    simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
-end
 
 @[simp] theorem head_dropn (s : seq α) (n) : head (drop s n) = nth s n :=
 begin

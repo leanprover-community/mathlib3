@@ -334,7 +334,7 @@ exists.elim (int_fract_pair.exists_nth_stream_eq_none_of_rat q)
 ( assume n stream_nth_eq_none,
   exists.intro n
   ( have int_fract_pair.stream q (n + 1) = none, from
-      int_fract_pair.stream_is_seq q stream_nth_eq_none,
+      int_fract_pair.stream_is_seq q _ stream_nth_eq_none,
     (of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none.elim_right this) ) )
 
 end terminates_of_rat

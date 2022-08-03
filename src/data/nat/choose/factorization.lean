@@ -49,7 +49,7 @@ A `pow` form of `nat.factorization_choose_le`
 lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization p ≤ n :=
 begin
   cases le_or_lt p 1,
-  { exact (pow_le_pow_of_le h).trans ((le_of_eq (one_pow _)).trans hn) },
+  { exact (pow_le_pow_of_le_left' h _).trans ((le_of_eq (one_pow _)).trans hn) },
   { exact (pow_le_iff_le_log h hn).mpr factorization_choose_le_log },
 end
 

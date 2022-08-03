@@ -13,15 +13,22 @@ Note that some lemmas are in `algebra/group_power/lemmas.lean` as they import fi
 depend on this file.
 -/
 
+open function
+
 variables {A G M R : Type*}
 
-section preorder
+section monoid
+variable [monoid M]
 
-variables [monoid M] [preorder M] [covariant_class M M (*) (≤)]
+section preorder
+variable [preorder M]
+
+section covariant_le
+variables [covariant_class M M (*) (≤)]
 
 @[to_additive nsmul_le_nsmul_of_le_right, mono]
-lemma pow_le_pow_of_le_left' [covariant_class M M (function.swap (*)) (≤)]
-  {a b : M} (hab : a ≤ b) : ∀ i : ℕ, a ^ i ≤ b ^ i
+lemma pow_le_pow_of_le_left' [covariant_class M M (swap (*)) (≤)] {a b : M} (hab : a ≤ b) :
+  ∀ i : ℕ, a ^ i ≤ b ^ i
 | 0     := by simp
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul' hab (pow_le_pow_of_le_left' k) }
@@ -75,11 +82,55 @@ lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
   strict_mono ((^) a : ℕ → M) :=
 λ m n, pow_lt_pow' ha
 
+lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : M}, 1 ≤ x → 1 ≤ x^n
+| 0       x _ := (pow_zero x).symm.le
+| (n + 1) x H := calc 1 ≤ x          : H
+                    ... = x * 1      : (mul_one x).symm
+                    ... ≤ x * x ^ n  : mul_le_mul_left' (left.one_le_pow_of_le H) x
+                    ... = x ^ n.succ : (pow_succ x n).symm
+
+end covariant_le
+
+section right
+variables [covariant_class M M (swap (*)) (≤)] {x : M}
+
+@[to_additive right.pow_nonneg]
+lemma right.one_le_pow_of_le (hx : 1 ≤ x) : ∀ {n : ℕ}, 1 ≤ x^n
+| 0       := (pow_zero _).ge
+| (n + 1) := by { rw pow_succ, exact right.one_le_mul hx right.one_le_pow_of_le }
+
+@[to_additive right.pow_nonpos]
+lemma right.pow_le_one_of_le (hx : x ≤ 1) : ∀ {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero _).le
+| (n + 1) := by { rw pow_succ, exact right.mul_le_one hx right.pow_le_one_of_le }
+
+end right
+
+@[to_additive left.pow_neg]
+lemma left.pow_lt_one_of_lt [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) (h : x < 1) :
+  x^n < 1 :=
+nat.le_induction ((pow_one _).trans_lt h) (λ n _ ih, by { rw pow_succ, exact mul_lt_one h ih }) _
+  (nat.succ_le_iff.2 hn)
+
+@[to_additive right.pow_neg]
+lemma right.pow_lt_one_of_lt [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M}
+  (n0 : 0 < n) (H : x < 1) :
+  x^n < 1 :=
+begin
+  refine nat.le_induction ((pow_one _).le.trans_lt H) (λ n n1 hn, _) _ (nat.succ_le_iff.mpr n0),
+  calc x ^ (n + 1) = x ^ n * x : pow_succ' x n
+               ... < 1 * x     : mul_lt_mul_right' hn x
+               ... = x         : one_mul x
+               ... < 1         : H
+end
+
 end preorder
 
 section linear_order
+variables [linear_order M]
 
-variables [monoid M] [linear_order M] [covariant_class M M (*) (≤)]
+section covariant_le
+variables [covariant_class M M (*) (≤)]
 
 @[to_additive nsmul_nonneg_iff]
 lemma one_le_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 ≤ x ^ n ↔ 1 ≤ x :=
@@ -109,7 +160,21 @@ lemma pow_le_pow_iff' (ha : 1 < a) : a ^ m ≤ a ^ n ↔ m ≤ n := (pow_strict_
 @[to_additive nsmul_lt_nsmul_iff]
 lemma pow_lt_pow_iff' (ha : 1 < a) : a ^ m < a ^ n ↔ m < n := (pow_strict_mono_left ha).lt_iff_lt
 
+end covariant_le
+
+@[to_additive left.nsmul_neg_iff]
+lemma left.pow_lt_one_iff [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+by { haveI := has_mul.to_covariant_class_left M, exact pow_lt_one_iff hn.ne' }
+
+@[to_additive right.nsmul_neg_iff]
+lemma right.pow_lt_one_iff [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M} (hn : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+⟨λ H, not_le.mp $ λ k, H.not_le $ by { haveI := has_mul.to_covariant_class_right M,
+    exact right.one_le_pow_of_le k }, right.pow_lt_one_of_lt hn⟩
+
 end linear_order
+end monoid
 
 section div_inv_monoid
 
@@ -404,3 +469,45 @@ sub_nonneg.mp ((sub_add_eq_add_sub _ _ _).subst ((sub_sq a b).subst (sq_nonneg _
 alias two_mul_le_add_sq ← two_mul_le_add_pow_two
 
 end linear_ordered_comm_ring
+
+section linear_ordered_comm_monoid_with_zero
+variables [linear_ordered_comm_monoid_with_zero M] [no_zero_divisors M] {a : M} {n : ℕ}
+
+lemma pow_pos_iff (hn : 0 < n) : 0 < a ^ n ↔ 0 < a := by simp_rw [zero_lt_iff, pow_ne_zero_iff hn]
+
+end linear_ordered_comm_monoid_with_zero
+
+section linear_ordered_comm_group_with_zero
+variables [linear_ordered_comm_group_with_zero M] {a : M} {m n : ℕ}
+
+lemma pow_lt_pow_succ (ha : 1 < a) : a ^ n < a ^ n.succ :=
+by { rw [←one_mul (a ^ n), pow_succ],
+  exact mul_lt_right₀ _ ha (pow_ne_zero _ (zero_lt_one₀.trans ha).ne') }
+
+lemma pow_lt_pow₀ (ha : 1 < a) (hmn : m < n) : a ^ m < a ^ n :=
+by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ ha, lt_trans ih (pow_lt_pow_succ ha)] }
+
+end linear_ordered_comm_group_with_zero
+
+namespace monoid_hom
+variables [ring R] [monoid M] [linear_order M] [covariant_class M M (*) (≤)] (f : R →* M)
+
+lemma map_neg_one : f (-1) = 1 :=
+(pow_eq_one_iff (nat.succ_ne_zero 1)).1 $
+  calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
+              ... = f ((-1) * - 1) : (f.map_mul _ _).symm
+              ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
+              ... = f 1            : congr_arg _ (neg_neg _)
+              ... = 1              : map_one f
+
+@[simp] lemma map_neg (x : R) : f (-x) = f x :=
+calc f (-x) = f (-1 * x)   : congr_arg _ (neg_one_mul _).symm
+        ... = f (-1) * f x : map_mul _ _ _
+        ... = 1 * f x      : _root_.congr_arg (λ g, g * (f x)) (map_neg_one f)
+        ... = f x          : one_mul _
+
+lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
+calc f (x - y) = f (-(y - x)) : congr_arg _ (neg_sub _ _).symm
+           ... = _            : map_neg _ _
+
+end monoid_hom

@@ -205,7 +205,7 @@ begin
   { -- Show that the claim is true if a = b.
     intros x hx,
     suffices : k ≤ 1,
-    { rw [nat.le_add_one_iff, nat.le_zero_iff] at this,
+    { rw [nat.le_add_one_iff, le_zero_iff] at this,
       rcases this with rfl|rfl,
       { use 0, simp },
       { use 1, simp } },
@@ -286,7 +286,7 @@ begin
         end, } },
   { -- Show the base case.
     intros x y h h_base,
-    obtain rfl|rfl : x = 0 ∨ x = 1 := by rwa [nat.le_add_one_iff, nat.le_zero_iff] at h_base,
+    obtain rfl|rfl : x = 0 ∨ x = 1 := by rwa [nat.le_add_one_iff, le_zero_iff] at h_base,
     { simpa using h, },
     { simp only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,

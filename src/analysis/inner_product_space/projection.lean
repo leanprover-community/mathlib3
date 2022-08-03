@@ -938,7 +938,7 @@ begin
   { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
     refine ⟨[], rfl.le, show φ = 1, from _⟩,
     have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
-    { rwa [nat.le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
+    { rwa [le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
     symmetry,
     ext x,
     have := linear_map.congr_fun (linear_map.ker_eq_top.mp this) x,

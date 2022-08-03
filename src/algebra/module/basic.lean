@@ -200,7 +200,7 @@ instance add_comm_group.int_module : module ℤ M :=
   zero_smul := zero_zsmul,
   add_smul := λ r s x, add_zsmul x r s }
 
-lemma add_monoid.End.int_cast_def [add_comm_group M] (n : ℤ) :
+lemma add_monoid.End.int_cast_def [add_comm_group M] (z : ℤ) :
   (↑z : add_monoid.End M) = distrib_mul_action.to_add_monoid_End ℤ M z := rfl
 
 /-- A structure containing most informations as in a module, except the fields `zero_smul`

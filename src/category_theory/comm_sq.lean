@@ -80,7 +80,7 @@ variables {A B X Y : C} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g : B ⟶ Y}
 
 /-- The datum of a lift in a commutative square, i.e. a up-right-diagonal
 morphism which makes both triangles commute. -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure lift_struct (sq : comm_sq f i p g) :=
 (l : B ⟶ X) (fac_left' : i ≫ l = f) (fac_right' : l ≫ p = g)
 
@@ -182,4 +182,3 @@ hsq.exists_lift.some.fac_right
 end comm_sq
 
 end category_theory
-

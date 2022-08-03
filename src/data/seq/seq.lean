@@ -41,14 +41,23 @@ instance : inhabited (seq α) := ⟨nil⟩
 
 /-- Prepend an element to a sequence -/
 def cons (a : α) (s : seq α) : seq α :=
-⟨some a :: s.1, λn h, by {cases n with n, contradiction, exact s.2 h}⟩
+⟨some a :: s.1, begin
+  rintros (n | _) h,
+  { contradiction },
+  { exact s.2 h }
+end⟩
 
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
-@[simp] theorem nil_nth (n : ℕ) : (@nil α).nth n = none := rfl
+@[simp] theorem mk_nth (f hf) : @nth α ⟨f, hf⟩ = f := rfl
 
-@[simp] theorem nth_cons_zero (a : α) (s : seq α) : (cons a s).nth 0 = a := rfl
+@[simp] theorem nil_nth (n : ℕ) : (@nil α).nth n = none := rfl
+@[simp] theorem cons_nth_zero (a : α) (s : seq α) : (cons a s).nth 0 = a := rfl
+@[simp] theorem cons_nth_succ (a : α) (s : seq α) (n : ℕ) : (cons a s).nth (n + 1) = s.nth n := rfl
+
+@[ext] protected lemma ext : ∀ (s s': seq α), (∀ n : ℕ, s.nth n = s'.nth n) → s = s'
+| ⟨f, hf⟩ ⟨g, hg⟩ h := let H : f = g := funext h in by simp_rw [subtype.mk_eq_mk, H]
 
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
@@ -230,22 +239,6 @@ begin
   dsimp [corec.F], rw h, refl
 end
 
-/-- Embed a list as a sequence -/
-def of_list (l : list α) : seq α :=
-⟨list.nth l, λn h, begin
-  induction l with a l IH generalizing n, refl,
-  dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
-  { contradiction },
-  { apply IH _ h }
-end⟩
-
-instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
-
-@[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
-
-theorem of_list_terminates (l : list α) : terminates (of_list l) :=
-⟨l.length, by simp [terminated_at]⟩
-
 section bisim
   variable (R : seq α → seq α → Prop)
 
@@ -304,23 +297,27 @@ begin
   rw [h1, h2], apply H
 end
 
-@[ext]
-protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
-begin
-  let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
-  apply seq.eq_of_bisim ext _ hyp,
-  -- we have to show that ext is a bisimulation
-  clear hyp s s',
-  assume s s' (hyp : ext s s'),
-  unfold seq.destruct,
-  rw (hyp 0),
-  cases (s'.nth 0),
-  { simp [seq.bisim_o] }, -- option.none
-  { -- option.some
-    suffices : ext s.tail s'.tail, by simpa,
-    assume n,
-    simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
-end
+/-- Embed a list as a sequence -/
+def of_list (l : list α) : seq α :=
+⟨list.nth l, λn h, begin
+  induction l with a l IH generalizing n, refl,
+  dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
+  { contradiction },
+  { apply IH _ h }
+end⟩
+
+instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
+
+@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
+
+@[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
+
+@[simp] theorem of_list_cons (a : α) (l) :
+  of_list (a :: l) = cons a (of_list l) :=
+by ext (_|n); simp [option.coe_def]
+
+theorem of_list_terminates (l : list α) : terminates (of_list l) :=
+⟨l.length, by simp [terminated_at]⟩
 
 /-- Embed an infinite stream as a sequence -/
 def of_stream (s : stream α) : seq α :=
@@ -411,14 +408,14 @@ by { rw [take, destruct_cons], refl }
 
 theorem nth_take {n m : ℕ} (s : seq α) (h : m < n) : (s.take n).nth m = s.nth m :=
 begin
-  induction n with n hn,
+  induction n with n hn generalizing m s,
   { exact (nat.not_lt_zero m h).elim },
   { apply s.cases_on,
     { simp },
     { intros x s,
-      simp, }
-
-  }
+      cases m,
+      { simpa },
+      { simpa using hn s (nat.lt_of_succ_lt_succ h) } } }
 end
 
 /-- Split a sequence at `n`, producing a finite initial segment
@@ -666,12 +663,6 @@ begin
     end end },
   { refine ⟨nil, S, T, _, _⟩; simp }
 end
-
-@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
-
-@[simp] theorem of_list_cons (a : α) (l) :
-  of_list (a :: l) = cons a (of_list l) :=
-by ext (_|n) : 2; simp [of_list, cons, stream.nth, stream.cons]
 
 @[simp] theorem of_stream_cons (a : α) (s) :
   of_stream (a :: s) = cons a (of_stream s) :=

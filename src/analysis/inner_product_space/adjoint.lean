@@ -305,6 +305,8 @@ instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smu
 
 lemma star_eq_adjoint (A : E →L[𝕜] E) : star A = A† := rfl
 
+lemma is_self_adjoint_iff' {A : E →L[𝕜] E} : is_self_adjoint A ↔ A.adjoint = A := rfl
+
 instance : cstar_ring (E →L[𝕜] E) :=
 ⟨begin
   intros A,
@@ -338,34 +340,28 @@ lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
 
 end real
 
+end continuous_linear_map
+
 /-! ### Self-adjoint operators -/
-
-/-- An operator `A` on an inner product space is self-adjoint iff `A` is equal to its adjoint.
-
-TODO Extend this theory to unbounded operators. -/
-def is_self_adjoint (A : E →L[𝕜] E) : Prop := A.adjoint = A
-
-lemma is_self_adjoint_iff {A : E →L[𝕜] E} : A.is_self_adjoint ↔
-  A.adjoint = A := iff.rfl
-
-lemma is_self_adjoint_zero : (0 : E →L[𝕜] E).is_self_adjoint :=
-by { rw is_self_adjoint_iff, simp }
-
-lemma is_self_adjoint_id : (continuous_linear_map.id 𝕜 E).is_self_adjoint :=
-by { rw is_self_adjoint_iff, simp }
 
 namespace is_self_adjoint
 
-lemma adjoint_eq {A : E →L[𝕜] E} (hA : A.is_self_adjoint) : A.adjoint = A := hA
+variables [complete_space E]
+
+variables (A : E →L[𝕜] E)
+
+#check is_self_adjoint A
+
+lemma adjoint_eq' {A : E →L[𝕜] E} (hA : is_self_adjoint A) : A.adjoint = A := hA
 
 /-- Every self-adjoint operator on an inner product space is symmetric. -/
-lemma is_symmetric {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
+lemma is_symmetric {A : E →L[𝕜] E} (hA : is_self_adjoint A) :
   (A : E →ₗ[𝕜] E).is_symmetric :=
-λ x y, by rw_mod_cast [←adjoint_inner_right, is_self_adjoint_iff.mp hA]
+λ x y, by rw_mod_cast [←A.adjoint_inner_right, hA.adjoint_eq']
 
 /-- Conjugating preserves self-adjointness -/
-lemma conj_adjoint {T : E →L[𝕜] E} (hT : T.is_self_adjoint) (S : E →L[𝕜] F) :
-  (S ∘L T ∘L S†).is_self_adjoint :=
+lemma conj_adjoint {T : E →L[𝕜] E} (hT : is_self_adjoint T) (S : E →L[𝕜] F) :
+  is_self_adjoint (S ∘L T ∘L S.adjoint) :=
 begin
   rw is_self_adjoint_iff at ⊢ hT,
   simp only [hT, adjoint_comp, adjoint_adjoint],
@@ -373,8 +369,8 @@ begin
 end
 
 /-- Conjugating preserves self-adjointness -/
-lemma adjoint_conj {T : E →L[𝕜] E} (hT : T.is_self_adjoint) (S : F →L[𝕜] E) :
-  (S† ∘L T ∘L S).is_self_adjoint :=
+lemma adjoint_conj {T : E →L[𝕜] E} (hT : is_self_adjoint T) (S : F →L[𝕜] E) :
+  is_self_adjoint (S.adjoint ∘L T ∘L S) :=
 begin
   rw is_self_adjoint_iff at ⊢ hT,
   simp only [hT, adjoint_comp, adjoint_adjoint],
@@ -407,8 +403,6 @@ begin
 end
 
 end is_self_adjoint
-
-end continuous_linear_map
 
 namespace linear_map
 

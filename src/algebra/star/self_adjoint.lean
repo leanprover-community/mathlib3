@@ -54,7 +54,7 @@ is_star_normal.star_comm_self
 
 namespace is_self_adjoint
 
-lemma adjoint_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
+lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
 

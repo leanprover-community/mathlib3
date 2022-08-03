@@ -53,11 +53,15 @@ by simp only [drop, head, nat.zero_add, stream.nth]
 @[ext] protected theorem ext {s₁ s₂ : stream α} : (∀ n, nth s₁ n = nth s₂ n) → s₁ = s₂ :=
 assume h, funext h
 
-lemma cons_injective (x : α) : function.injective (cons x) :=
-λ s t h, stream.ext (λ n, by rw [←nth_succ_cons n _ x, h, nth_succ_cons])
+lemma cons_injective2 : function.injective2 (cons : α → stream α → stream α) :=
+λ x y s t h, ⟨by rw [←nth_zero_cons x s, h, nth_zero_cons],
+  stream.ext (λ n, by rw [←nth_succ_cons n _ x, h, nth_succ_cons])⟩
 
-lemma cons_injective_right (s : stream α) : function.injective (λ x, cons x s) :=
-λ x y h, by { dsimp only at h, rw [←nth_zero_cons x s, h, nth_zero_cons] }
+lemma cons_injective_left (s : stream α) : function.injective (λ x, cons x s) :=
+cons_injective2.left _
+
+lemma cons_injective_right (x : α) : function.injective (cons x) :=
+cons_injective2.right _
 
 theorem all_def (p : α → Prop) (s : stream α) : all p s = ∀ n, p (nth s n) := rfl
 

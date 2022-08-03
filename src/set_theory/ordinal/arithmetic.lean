@@ -2097,8 +2097,12 @@ else by simp only [log_of_not_one_lt_left hb, ordinal.zero_le]
 @[simp] theorem log_one_right (b : ordinal) : log b 1 = 0 :=
 if hb : 1 < b then log_eq_zero hb else log_of_not_one_lt_left hb 1
 
-theorem mod_opow_log_lt_self {b o : ordinal} (hb : b ≠ 0) (ho : o ≠ 0) : o % b ^ log b o < o :=
-(mod_lt _ $ opow_ne_zero _ hb).trans_le (opow_log_le_self _ ho)
+theorem mod_opow_log_lt_self (b : ordinal) {o : ordinal} (ho : o ≠ 0) : o % b ^ log b o < o :=
+begin
+  rcases eq_or_ne b 0 with rfl | hb,
+  { simpa using ordinal.pos_iff_ne_zero.2 ho },
+  { exact (mod_lt _ $ opow_ne_zero _ hb).trans_le (opow_log_le_self _ ho) }
+end
 
 theorem log_mod_opow_log_lt_log_self {b o : ordinal} (hb : 1 < b) (ho : o ≠ 0) (hbo : b ≤ o) :
   log b (o % b ^ log b o) < log b o :=

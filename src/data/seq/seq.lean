@@ -325,6 +325,11 @@ def of_stream (s : stream α) : seq α :=
 
 instance coe_stream : has_coe (stream α) (seq α) := ⟨of_stream⟩
 
+@[simp] theorem of_stream_nth (s : stream α) (n : ℕ) : (of_stream s).nth n = s.nth n := rfl
+
+theorem not_of_stream_terminates (s : stream α) : ¬ (of_stream s).terminates :=
+by { rintro ⟨n, h⟩, contradiction }
+
 /-- Embed a `lazy_list α` as a sequence. Note that even though this
   is non-meta, it will produce infinite sequences if used with
   cyclic `lazy_list`s created by meta constructions. -/
@@ -406,7 +411,17 @@ def take : ℕ → seq α → list α
 @[simp] theorem take_cons (n : ℕ) (a : α) (s : seq α) : take n.succ (cons a s) = a :: take n s :=
 by { rw [take, destruct_cons], refl }
 
-theorem nth_take {n m : ℕ} (s : seq α) (h : m < n) : (s.take n).nth m = s.nth m :=
+theorem length_take_le (n : ℕ) (s : seq α) : (s.take n).length ≤ n :=
+begin
+  induction n with n hn generalizing s,
+  { simp },
+  { apply s.cases_on,
+    { simp },
+    { intros x s,
+      simpa [nat.succ_le_succ_iff] using hn s } }
+end
+
+theorem nth_take {n m : ℕ} {s : seq α} (h : m < n) : (s.take n).nth m = s.nth m :=
 begin
   induction n with n hn generalizing m s,
   { exact (nat.not_lt_zero m h).elim },
@@ -415,8 +430,11 @@ begin
     { intros x s,
       cases m,
       { simpa },
-      { simpa using hn s (nat.lt_of_succ_lt_succ h) } } }
+      { simpa using hn (nat.lt_of_succ_lt_succ h) } } }
 end
+
+theorem nth_take_of_le {n m : ℕ} {s : seq α} (h : n ≤ m) : (s.take n).nth m = none :=
+list.nth_eq_none_iff.2 $ (length_take_le n s).trans h
 
 /-- Split a sequence at `n`, producing a finite initial segment
   and an infinite tail. -/
@@ -492,7 +510,11 @@ take (nat.find h) s
 @[simp] theorem to_list_nth (s : seq α) (h : s.terminates) (n : ℕ) :
   (s.to_list h).nth n = s.nth n :=
 begin
-  simp [to_list],sorry,
+  rw to_list,
+  cases lt_or_le n (nat.find h) with hn hn,
+  { rw nth_take hn },
+  { rw [nth_take_of_le hn, le_stable _ hn],
+    exact nat.find_spec h }
 end
 
 @[simp] theorem to_list_of_list (l : list α) : (of_list l).to_list (of_list_terminates l) = l :=
@@ -506,6 +528,17 @@ by { ext, simp }
 def to_stream (s : seq α) (h : ¬ s.terminates) : stream α :=
 λn, option.get $ not_terminates_iff.1 h n
 
+@[simp] theorem some_to_stream_nth (s : seq α) (h : ¬ s.terminates) (n : ℕ) :
+  some ((s.to_stream h).nth n) = s.nth n :=
+by rw [to_stream, stream.nth, option.some_get]
+
+@[simp] theorem to_stream_of_stream (s : stream α) :
+  (of_stream s).to_stream (not_of_stream_terminates s) = s := rfl
+
+@[simp] theorem of_stream_to_stream (s : seq α) (h : ¬ s.terminates) :
+  of_stream (s.to_stream h) = s :=
+by { ext, simp [option.coe_def] }
+
 /-- Convert a sequence into either a list or a stream depending on whether
   it is finite or infinite. (Without decidability of the infiniteness predicate,
   this is not constructively possible.) -/
@@ -514,7 +547,28 @@ if h : s.terminates
 then sum.inl (to_list s h)
 else sum.inr (to_stream s h)
 
-noncomputable def equiv_list_sum_stream : seq α ≃ list α ⊕ stream α :=
+theorem to_list_or_stream_pos {s : seq α} (h : s.terminates) [decidable s.terminates] :
+  s.to_list_or_stream = sum.inl (s.to_list h) := dif_pos h
+
+theorem to_list_or_stream_neg {s : seq α} (h : ¬ s.terminates) [decidable s.terminates] :
+  s.to_list_or_stream = sum.inr (s.to_stream h) := dif_neg h
+
+instance of_list_terminates_decidable (l : list α) : decidable (of_list l).terminates :=
+decidable.is_true $ of_list_terminates l
+
+@[simp] theorem of_list_to_list_or_stream (l : list α) [decidable (of_list l).terminates] :
+  (of_list l).to_list_or_stream = sum.inl l :=
+by simpa using to_list_or_stream_pos (of_list_terminates l)
+
+instance of_stream_terminates_decidable (s : stream α) : decidable (of_stream s).terminates :=
+decidable.is_false $ not_of_stream_terminates s
+
+@[simp] theorem of_stream_to_list_or_stream (s : stream α) [decidable (of_stream s).terminates]:
+  (of_stream s).to_list_or_stream = sum.inr s :=
+by simpa using to_list_or_stream_neg (not_of_stream_terminates s)
+
+/-- The equivalence between sequences and (finite) lists or (infinite) streams. -/
+@[simps apply] noncomputable def equiv_list_sum_stream : seq α ≃ list α ⊕ stream α :=
 { to_fun := λ s, @to_list_or_stream α s (classical.dec _),
   inv_fun := λ x, match x with
   | sum.inl l := of_list l
@@ -522,12 +576,23 @@ noncomputable def equiv_list_sum_stream : seq α ≃ list α ⊕ stream α :=
   end,
   left_inv := λ s, begin
     classical,
-    by_cases h : ∃ n, ¬ (nth s n).is_some,
-    { simp_rw [to_list_or_stream, dif_pos h],
-    change of_list _ = _,
-      exact of_list_to_list s }
+    by_cases h : s.terminates,
+    { simp_rw to_list_or_stream_pos h,
+      exact of_list_to_list s h },
+    { simp_rw to_list_or_stream_neg h,
+      exact of_stream_to_stream s h },
   end,
-  right_inv := _ }
+  right_inv := begin
+    rintro (l | s),
+    { exact of_list_to_list_or_stream l },
+    { exact of_stream_to_list_or_stream s }
+  end }
+
+@[simp] theorem equiv_list_sum_stream_symm_inl (l : list α) :
+  equiv_list_sum_stream.symm (sum.inl l) = of_list l := rfl
+
+@[simp] theorem equiv_list_sum_stream_symm_inr (l : stream α) :
+  equiv_list_sum_stream.symm (sum.inr l) = of_stream l := rfl
 
 @[simp] theorem nil_append (s : seq α) : append nil s = s :=
 begin

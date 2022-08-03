@@ -3,11 +3,6 @@ Copyright (c) 2022 Kevin H. Wilson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
--- import analysis.analytic.basic
--- import analysis.complex.cauchy_integral
--- import ring_theory.power_series.basic
--- import linear_algebra.multilinear.basic
--- import analysis.normed.field.basic
 import analysis.calculus.fderiv_analytic
 -- import analysis.calculus.uniform_limits_deriv
 
@@ -48,6 +43,19 @@ open_locale big_operators
 variables {ι 𝕜 E F : Type*} [fintype ι] [decidable_eq ι]
 
 section general
+
+@[simp] lemma norm_const_zero {ι M : Type*} [fintype ι] [nonempty ι] [normed_add_comm_group M] :
+  ∥(0 : ι → M)∥ = 0 :=
+by { convert pi_norm_const (0 : M), rw norm_zero, apply_instance }
+
+@[simp] lemma norm_const_one {ι M : Type*} [fintype ι] [nonempty ι] [has_one M]
+  [normed_add_comm_group M] [norm_one_class M] :
+  ∥(1 : ι → M)∥ = 1 :=
+by { convert pi_norm_const (1 : M), rw norm_one, apply_instance }
+
+@[simp] lemma norm_is_empty {ι M : Type*} [is_empty ι] [normed_add_comm_group M] (f : ι → M) :
+  ∥f∥ = 0 :=
+by { rw subsingleton.elim f 0, refl }
 
 lemma foo₁ [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] (f : multilinear_map 𝕜 (λ i : ι, 𝕜) E)
   (x : ι → 𝕜) : f x = (∏ i, x i) • (f 1) :=
@@ -134,6 +142,9 @@ end general
 section normed_field
 variables [normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
 
+/-- The formal antiderivative of a multilinear power series with a one-dimensional domain. Note
+that while we have defined this for any `normed_field`, it really only makes sense when that
+field is characterisitic 0. -/
 def formal_multilinear_series.antideriv (φ : formal_multilinear_series 𝕜 𝕜 E) : formal_multilinear_series 𝕜 𝕜 E
 | 0 := 0
 | (n + 1) := ((n + 1) : 𝕜)⁻¹ • (continuous_multilinear_map.mk_pi_algebra_fin 𝕜 (n + 1) 𝕜).smul_right (φ n 1)
@@ -141,23 +152,43 @@ def formal_multilinear_series.antideriv (φ : formal_multilinear_series 𝕜 �
 end normed_field
 
 section nontrivially_normed_field
--- TODO: Why doesn't `nontrivially_normed_field` get imported?
+
 variables [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
+
+lemma continuous_multilinear_map.norm_one_dim {f : continuous_multilinear_map 𝕜 (λ i : ι, 𝕜) E} :
+  ∥f∥ = ∥f 1∥ :=
+begin
+  refine le_antisymm _ _,
+  convert continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) _,
+  { intros m,
+    apply le_of_eq,
+    have : f m = (∏ i, m i) • (f 1),
+    { convert bar₁ _ m, },
+    rw [this, norm_smul, mul_comm, norm_prod], },
+
+  { convert continuous_multilinear_map.unit_le_op_norm _ 1 _,
+    refl,
+    casesI is_empty_or_nonempty ι,
+    { refine le_of_eq_of_le _ zero_le_one,
+      simp only [norm_eq_zero, eq_iff_true_of_subsingleton], },
+    { exact norm_const_one.le, }, },
+end
+
+lemma continuous_multilinear_map.norm_smul_right {f : continuous_multilinear_map 𝕜 (λ i : ι, 𝕜) 𝕜}
+  {x : E} : ∥f.smul_right x∥ = ∥f∥ * ∥x∥ :=
+by rw [continuous_multilinear_map.norm_one_dim, continuous_multilinear_map.norm_one_dim,
+  continuous_multilinear_map.smul_right_apply, norm_smul]
+
+end nontrivially_normed_field
+
+section is_R_or_C
+
+variables [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
   {φ : formal_multilinear_series 𝕜 𝕜 E}
 
-lemma antideriv_radius_mono {r : nnreal}
-  -- φ.radius ≤ φ.antideriv.radius :=
+lemma formal_multilinear_series.antideriv_radius_mono_aux {r : nnreal}
   (hr : ↑r < φ.radius) : ↑r ≤ φ.antideriv.radius :=
 begin
-  -- suffices : ∀ (r : nnreal), ↑r < φ.radius → ↑r ≤ φ.antideriv.radius,
-  -- {
-  --   intros r hr,
-  --   by_contradiction h,
-  --   push_neg at h,
-  --   obtain ⟨r, hr, hr'⟩ := ennreal.lt_iff_exists_nnreal_btwn.mp (this r hr),
-  --   -- exact not_lt_of_le rfl.le (lt_of_lt_of_le hr (antideriv_radius_mono hr')),
-  -- },
-  -- intros r hr,
   obtain ⟨C, hC, hm⟩ := φ.norm_mul_pow_le_of_lt_radius hr,
   refine formal_multilinear_series.le_radius_of_bound _ (C * r) _,
   intros n,
@@ -169,23 +200,18 @@ begin
   rw this,
   dunfold formal_multilinear_series.antideriv,
   rw norm_smul,
-  have : ∥(continuous_multilinear_map.mk_pi_algebra_fin 𝕜 (n + 1) 𝕜).smul_right ((φ n) 1)∥ = ∥(continuous_multilinear_map.mk_pi_algebra_fin 𝕜 (n + 1) 𝕜)∥ * ∥((φ n) 1)∥, {
-    rw continuous_multilinear_map.norm_def,
-    simp,
-    simp [has_norm.norm],
-    ext,
+  rw continuous_multilinear_map.norm_smul_right,
+  simp only [norm_inv, continuous_multilinear_map.norm_mk_pi_algebra_fin, one_mul],
 
-  },
-  simp only [continuous_multilinear_map.norm_mk_pi_algebra_fin, mul_one],
   rw [pow_add (r : ℝ) n 1, ←mul_assoc, pow_one],
   refine mul_le_mul _ rfl.le nnreal.zero_le_coe hC.lt.le,
-  rw [norm_mul, mul_assoc],
+  rw [mul_assoc],
   have : C = 1 * C, simp,
   rw this,
+  rw ← continuous_multilinear_map.norm_one_dim,
   have : ∥φ n 1∥ ≤ ∥φ n∥,
   { convert continuous_multilinear_map.unit_le_op_norm _ 1 _,
-    { refl },
-    { have : (1 : fin n → ℂ) = (λ i, 1), { ext, refl, refl, },
+    { have : (1 : fin n → 𝕜) = (λ i, 1), { ext, refl, },
       rw this,
       simp only [has_norm.norm, nnnorm_one],
       norm_cast,
@@ -197,31 +223,24 @@ begin
     (mul_nonneg (norm_nonneg _) (by simp only [pow_nonneg, nnreal.zero_le_coe]))
     zero_le_one,
 
-  rw norm_inv,
-  have : (n : ℂ) + 1 = (((n + 1) : ℝ) : ℂ), norm_cast,
-  rw this,
   norm_cast,
-  rw inv_le _ _,
-  rw real.norm_of_nonneg _,
-  simp only [inv_one, nat.cast_add, nat.cast_one, le_add_iff_nonneg_left, nat.cast_nonneg],
+  rw inv_le _ zero_lt_one,
+  rw [inv_one, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat],
   norm_cast,
-  simp only [zero_le'],
+  simp,
 
-  simp only [nat.cast_add, nat.cast_one, real.norm_eq_abs, abs_pos, ne.def],
+  rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat],
   norm_cast,
-  simp only [nat.succ_ne_zero, not_false_iff],
-
-  simp only [zero_lt_one],
+  linarith,
 end
 
--- The proof is by approximation below coupled with the above lemma
-lemma antideriv_radius_mono':
-  φ.radius ≤ (pad φ).radius :=
+lemma formal_multilinear_series.antideriv_radius_mono:
+  φ.radius ≤ φ.antideriv.radius :=
 begin
   by_contradiction h,
   push_neg at h,
   obtain ⟨r, hr, hr'⟩ := ennreal.lt_iff_exists_nnreal_btwn.mp h,
-  exact not_lt_of_le rfl.le (lt_of_lt_of_le hr (antideriv_radius_mono hr')),
+  exact not_lt_of_le rfl.le (lt_of_lt_of_le hr (formal_multilinear_series.antideriv_radius_mono_aux hr')),
 end
 
 lemma blahblah {y : ℂ} {n : ℕ} :

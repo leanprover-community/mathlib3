@@ -455,6 +455,11 @@ begin
   exact this hx,
 end
 
+lemma exists_finset_of_mem_supr' {ι : Type*} {f : ι → intermediate_field F E}
+  {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset (Σ i, f i), x ∈ ⨆ i ∈ s, F⟮(i.2 : E)⟯ :=
+exists_finset_of_mem_supr (set_like.le_def.mp (supr_le
+  (λ i x h, set_like.le_def.mp (le_supr_of_le ⟨i, x, h⟩ le_rfl) (mem_adjoin_simple_self F x))) hx)
+
 end adjoin_simple
 end adjoin_def
 
@@ -943,6 +948,18 @@ begin
   le_antisymm (supr_le (λ i, supr_le (λ h, le_supr (λ i : {i // i ∈ s}, f i) ⟨i, h⟩)))
     (supr_le (λ i, le_supr_of_le i (le_supr_of_le i.2 le_rfl))),
   exact this.symm ▸ intermediate_field.finite_dimensional_supr_of_finite,
+end
+
+lemma is_algebraic_supr {ι : Type*} {f : ι → intermediate_field K L}
+  (h : ∀ i, algebra.is_algebraic K (f i)) :
+  algebra.is_algebraic K (⨆ i, f i : intermediate_field K L) :=
+begin
+  rintros ⟨x, hx⟩,
+  obtain ⟨s, hx⟩ := exists_finset_of_mem_supr' hx,
+  rw [algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←algebraic_iff],
+  haveI : ∀ i : (Σ i, f i), finite_dimensional K K⟮(i.2 : L)⟯ :=
+  λ ⟨i, x⟩, adjoin.finite_dimensional (is_algebraic_iff_is_integral.mp (algebraic_iff.mp (h i x))),
+  apply algebra.is_algebraic_of_finite,
 end
 
 end supremum

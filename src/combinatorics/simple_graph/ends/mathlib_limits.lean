@@ -106,10 +106,41 @@ begin
     simp only [category_theory.functor.map_comp, set.maps_to.coe_restrict_apply, category_theory.types_comp_apply],},
 end
 
+lemma fis.to_surjective.subfunctor {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) :
+  ∀ (i j : Jᵒᵖ) (ij : i ⟶ j), subtype.simps.coe ∘ (fis.to_surjective F).map ij = (F.map ij) ∘ subtype.simps.coe :=
+begin
+  rintros i j ij,
+  apply funext,
+  rintros x,
+  simp [set.maps_to.coe_restrict_apply],
+  sorry,
+end
+
 lemma fis.to_surjective.is_surjective {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)  : fis.is_surjective (fis.to_surjective F) :=
 begin
+  unfold fis.is_surjective,
+  rintros i j ji ⟨x,xh⟩,
+  have xh : x ∈ (⋂ (j' : Jᵒᵖ) (m : j' ⟶ i), set.range (F.map m)), by {exact xh},
 
+  /-obtain ⟨y,rfl⟩ := set.mem_Inter₂.mp xh j ji,
+  simp,
+  use y,
+  { suffices : y ∈ (⋂ (j' : Jᵒᵖ) (m : j' ⟶ j), set.range (F.map m)),
+    { exact this },
+    rw set.mem_Inter₂,
+    rintro k kj,
+    obtain ⟨z,ztox⟩ := set.mem_Inter₂.mp xh k (kj ≫ ji),
+    induction ztox,
+    simp,
+    use z,
+
+    sorry,
+  },
+
+  { rw ←subtype.coe_inj, simp only [subtype.coe_mk], simpa only, }-/
+  sorry
 end
 
 /-

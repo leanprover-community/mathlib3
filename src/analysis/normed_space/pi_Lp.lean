@@ -9,21 +9,24 @@ import data.fintype.order
 /-!
 # `L^p` distance on finite products of metric spaces
 Given finitely many metric spaces, one can put the max distance on their product, but there is also
-a whole family of natural distances, indexed by a real parameter `p ∈ [1, ∞)`, that also induce
-the product topology. We define them in this file. The distance on `Π i, α i` is given by
+a whole family of natural distances, indexed by a parameter `p : ℝ≥0∞`, that also induce
+the product topology. We define them in this file. For `0 < p < ∞`, the distance on `Π i, α i`
+is given by
 $$
 d(x, y) = \left(\sum d(x_i, y_i)^p\right)^{1/p}.
-$$
+$$,
+whereas for `p = 0` it is the cardinality of the set ${ i | x_i ≠ y_i}$. For `p = ∞` the distance
+is the supremum of the distances.
 
 We give instances of this construction for emetric spaces, metric spaces, normed groups and normed
 spaces.
 
-To avoid conflicting instances, all these are defined on a copy of the original Pi type, named
+To avoid conflicting instances, all these are defined on a copy of the original Π-type, named
 `pi_Lp p α`. The assumpion `[fact (1 ≤ p)]` is required for the metric and normed space instances.
 
-We ensure that the topology and uniform structure on `pi_Lp p α` are (defeq to) the product
-topology and product uniformity, to be able to use freely continuity statements for the coordinate
-functions, for instance.
+We ensure that the topology, bornology and uniform structure on `pi_Lp p α` are (defeq to) the
+product topology, product bornology and product uniformity, to be able to use freely continuity
+statements for the coordinate functions, for instance.
 
 ## Implementation notes
 

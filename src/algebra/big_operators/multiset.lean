@@ -59,6 +59,12 @@ lemma prod_erase [decidable_eq α] (h : a ∈ s) : a * (s.erase a).prod = s.prod
 by rw [← s.coe_to_list, coe_erase, coe_prod, coe_prod, list.prod_erase ((s.mem_to_list a).2 h)]
 
 @[simp, to_additive]
+lemma prod_map_erase [decidable_eq ι] {a : ι} (h : a ∈ m) :
+  f a * ((m.erase a).map f).prod = (m.map f).prod :=
+by rw [← m.coe_to_list, coe_erase, coe_map, coe_map, coe_prod, coe_prod,
+  list.prod_map_erase f ((m.mem_to_list a).2 h)]
+
+@[simp, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=
 by simp only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
 
@@ -153,10 +159,7 @@ lemma dvd_prod : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
 lemma prod_dvd_prod_of_le (h : s ≤ t) : s.prod ∣ t.prod :=
-begin
-  obtain ⟨z, rfl⟩ := multiset.le_iff_exists_add.1 h,
-  simp only [prod_add, dvd_mul_right],
-end
+by { obtain ⟨z, rfl⟩ := exists_add_of_le h, simp only [prod_add, dvd_mul_right] }
 
 end comm_monoid
 

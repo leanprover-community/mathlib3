@@ -374,7 +374,7 @@ begin
       (ℝ ∙ ((-v):E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff).cont_diff_on }
 end
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 variables {H : Type*} [topological_space H] {I : model_with_corners ℝ F H}
 variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 

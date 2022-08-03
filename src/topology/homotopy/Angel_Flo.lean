@@ -198,7 +198,7 @@ def juxt_loop (X : Type u) [topological_space X] (x : X) (α β : Ω X x) : Ω X
 -/
 
 
-def R4 := euclidean_space ℝ (fin 4)
+--def R4 := euclidean_space ℝ (fin 4)
 
 --#check metric.sphere R4 1
 

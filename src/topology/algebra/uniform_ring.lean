@@ -201,18 +201,6 @@ lemma coe_algebra_map (s : S) :
   (algebra_map S R s : completion R) = algebra_map S (completion R) s :=
 rfl
 
-instance is_scalar_tower {T : Type*} [comm_semiring T] [algebra S T] [algebra T R]
-  [is_scalar_tower S T R] [has_uniform_continuous_const_smul T R] :
-  is_scalar_tower S T (completion R) :=
-⟨λ r k x,
-begin
-  simp only [← mul_assoc, algebra.smul_def, map_mul],
-  congr,
-  rw [← coe_algebra_map, ← coe_algebra_map],
-  simp only [algebra.algebra_map_eq_smul_one],
-  rw [smul_assoc, one_smul],
-end⟩
-
 end algebra
 
 end uniform_space.completion

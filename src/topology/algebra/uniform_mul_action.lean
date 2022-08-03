@@ -95,8 +95,33 @@ variable [has_scalar M X]
 @[to_additive has_vadd] instance : has_scalar M (completion X) :=
 ⟨λ c, completion.map ((•) c)⟩
 
+lemma smul_def (c : M) (x : completion X) : c • x = completion.map ((•) c) x := rfl
+
 @[to_additive] instance : has_uniform_continuous_const_smul M (completion X) :=
 ⟨λ c, uniform_continuous_map⟩
+
+instance [has_scalar N X] [has_scalar M N]
+  [has_uniform_continuous_const_smul M X] [has_uniform_continuous_const_smul N X]
+  [is_scalar_tower M N X] : is_scalar_tower M N (completion X) :=
+⟨λ m n x, begin
+  have : _ = (_ : completion X → completion X) :=
+    map_comp (uniform_continuous_const_smul m) (uniform_continuous_const_smul n),
+  refine eq.trans _ (congr_fun this.symm x),
+  exact congr_arg (λ f, completion.map f x) (by exact funext (smul_assoc _ _)),
+end⟩
+
+instance [has_scalar N X] [has_scalar M N] [smul_comm_class M N X]
+  [has_uniform_continuous_const_smul M X] [has_uniform_continuous_const_smul N X] :
+  smul_comm_class M N (completion X) :=
+⟨λ m n x, begin
+  have hmn : m • n • x =
+    (( completion.map (has_scalar.smul m)) ∘ (completion.map (has_scalar.smul n))) x := rfl,
+  have hnm : n • m • x =
+    (( completion.map (has_scalar.smul n)) ∘ (completion.map (has_scalar.smul m))) x := rfl,
+  rw [hmn, hnm, map_comp, map_comp],
+  exact congr_arg (λ f, completion.map f x) (by exact funext (smul_comm _ _)),
+  repeat{ exact uniform_continuous_const_smul _},
+ end⟩
 
 instance [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X] : is_central_scalar M (completion X) :=
 ⟨λ c a, congr_arg (λ f, completion.map f a) $ by exact funext (op_smul_eq_smul c)⟩

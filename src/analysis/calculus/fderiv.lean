@@ -122,10 +122,10 @@ noncomputable theory
 section
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
-variables {G' : Type*} [normed_group G'] [normed_space 𝕜 G']
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜 G']
 
 /-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` converges along the filter `L`. This definition
@@ -495,6 +495,11 @@ begin
   rcases h with ⟨f', hf'⟩,
   exact ⟨f', hf'.mono st⟩
 end
+
+lemma differentiable_within_at.mono_of_mem (h : differentiable_within_at 𝕜 f s x) {t : set E}
+  (hst : s ∈ nhds_within x t) :
+  differentiable_within_at 𝕜 f t x :=
+(h.has_fderiv_within_at.mono_of_mem hst).differentiable_within_at
 
 lemma differentiable_within_at_univ :
   differentiable_within_at 𝕜 f univ x ↔ differentiable_at 𝕜 f x :=
@@ -1771,7 +1776,7 @@ theorem:
   differentiability of `Φ`.
 -/
 
-variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_group (F' i)]
+variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_add_comm_group (F' i)]
   [Π i, normed_space 𝕜 (F' i)] {φ : Π i, E → F' i} {φ' : Π i, E →L[𝕜] F' i}
   {Φ : E → Π i, F' i} {Φ' : E →L[𝕜] Π i, F' i}
 
@@ -2165,7 +2170,7 @@ end bilinear_map
 section clm_comp_apply
 /-! ### Derivative of the pointwise composition/application of continuous linear maps -/
 
-variables {H : Type*} [normed_group H] [normed_space 𝕜 H] {c : E → G →L[𝕜] H}
+variables {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H] {c : E → G →L[𝕜] H}
   {c' : E →L[𝕜] G →L[𝕜] H} {d : E → F →L[𝕜] G} {d' : E →L[𝕜] F →L[𝕜] G} {u : E → G}
   {u' : E →L[𝕜] G}
 
@@ -2887,8 +2892,8 @@ section
 -/
 
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 variables {f : E → F} {f' : E →L[ℝ] F} {x : E}
 
 theorem has_fderiv_at_filter_real_equiv {L : filter E} :
@@ -2914,8 +2919,8 @@ end
 section tangent_cone
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {f : E → F} {s : set E} {f' : E →L[𝕜] F}
 
 /-- The image of a tangent cone under the differential of a map is included in the tangent cone to
@@ -2980,9 +2985,9 @@ respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`
 
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
 variables [is_scalar_tower 𝕜 𝕜' E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
 variables [is_scalar_tower 𝕜 𝕜' F]
 variables {f : E → F} {f' : E →L[𝕜'] F} {s : set E} {x : E}
 
@@ -3054,8 +3059,8 @@ end restrict_scalars
 section support
 
 open function
-variables (𝕜 : Type*) {E F : Type*} [nontrivially_normed_field 𝕜]
-variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
+variables (𝕜 : Type*) {E F : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
+  [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F] {f : E → F}
 
 lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=
 begin

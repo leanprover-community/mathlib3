@@ -77,8 +77,8 @@ instance has_lipschitz_mul.has_continuous_mul : has_continuous_mul β :=
     (lipschitz_with_lipschitz_const_mul_edist ⟨x₂.unop, x₁.unop⟩ ⟨y₂.unop, y₁.unop⟩).trans_eq
       (congr_arg _ $ max_comm _ _)⟩ }
 
--- this instance could be deduced from `normed_group.has_lipschitz_add`, but we prove it separately
--- here so that it is available earlier in the hierarchy
+-- this instance could be deduced from `normed_add_comm_group.has_lipschitz_add`, but we prove it
+-- separately here so that it is available earlier in the hierarchy
 instance real.has_lipschitz_add : has_lipschitz_add ℝ :=
 { lipschitz_add := ⟨2, begin
     rw lipschitz_with_iff_dist_le_mul,

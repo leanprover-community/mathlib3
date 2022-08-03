@@ -21,7 +21,7 @@ namespace category_theory
 open category_theory.monoidal_category
 
 /-- A type synonym for the monoidal opposite. Use the notation `Cᴹᵒᵖ`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def monoidal_opposite (C : Type u₁) := C
 
 namespace monoidal_opposite

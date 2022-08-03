@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.normed.group.completion
 import analysis.normed_space.operator_norm
-import topology.algebra.uniform_mul_action
+import topology.algebra.uniform_ring
 
 /-!
 # Normed space structure on the completion of a normed space
@@ -13,6 +13,8 @@ import topology.algebra.uniform_mul_action
 If `E` is a normed space over `𝕜`, then so is `uniform_space.completion E`. In this file we provide
 necessary instances and define `uniform_space.completion.to_complₗᵢ` - coercion
 `E → uniform_space.completion E` as a bundled linear isometry.
+
+We also show that if `A` is a normed algebra over `𝕜`, then so is `uniform_space.completion A`.
 -/
 
 noncomputable theory
@@ -54,6 +56,44 @@ to_complₗᵢ.to_continuous_linear_map
 @[simp] lemma norm_to_complL {𝕜 E : Type*} [nondiscrete_normed_field 𝕜]
   [normed_group E] [normed_space 𝕜 E] [nontrivial E] : ∥(to_complL : E →L[𝕜] completion E)∥ = 1 :=
 (to_complₗᵢ : E →ₗᵢ[𝕜] completion E).norm_to_continuous_linear_map
+
+section algebra
+
+variables (𝕜) (A : Type*)
+
+instance [semi_normed_ring A] [normed_algebra 𝕜 A] : normed_ring (completion A) :=
+{ dist_eq := λ x y,
+  begin
+    apply completion.induction_on₂ x y; clear x y,
+    { refine is_closed_eq (completion.uniform_continuous_extension₂ _).continuous _,
+      exact continuous.comp completion.continuous_extension continuous_sub },
+    { intros x y,
+      rw [← completion.coe_sub, norm_coe, completion.dist_eq, dist_eq_norm] }
+  end,
+  norm_mul := λ x y,
+  begin
+    apply completion.induction_on₂ x y; clear x y,
+    { exact is_closed_le (continuous.comp (continuous_norm) continuous_mul) (continuous.comp
+        real.continuous_mul (continuous.prod_map continuous_norm continuous_norm)) },
+    { intros x y,
+      simp only [← coe_mul, norm_coe], exact norm_mul_le x y, }
+  end,
+  ..completion.ring,
+  ..completion.metric_space }
+
+instance [semi_normed_comm_ring A] [normed_algebra 𝕜 A] [has_uniform_continuous_const_smul 𝕜 A] :
+  normed_algebra 𝕜 (completion A) :=
+{ norm_smul_le := λ r x,
+  begin
+    apply completion.induction_on x; clear x,
+    { exact is_closed_le (continuous.comp (continuous_norm) (continuous_const_smul r))
+      (continuous.comp (continuous_mul_left _) continuous_norm), },
+    { intros x,
+      simp only [← coe_smul, norm_coe], exact normed_space.norm_smul_le r x }
+  end,
+  ..completion.algebra' A 𝕜}
+
+end algebra
 
 end completion
 end uniform_space

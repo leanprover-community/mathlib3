@@ -352,7 +352,7 @@ def positive : convex_cone 𝕜 E :=
   add_mem' := λ x (hx : _ ≤ _) y (hy : _ ≤ _), add_nonneg hx hy }
 
 @[simp] lemma mem_positive {x : E} : x ∈ positive 𝕜 E ↔ 0 ≤ x := iff.rfl
-@[simp] lemma coe_positive {x : E} : ↑(positive 𝕜 E) = set.Ici (0 : E) := rfl
+@[simp] lemma coe_positive : ↑(positive 𝕜 E) = set.Ici (0 : E) := rfl
 
 /-- The positive cone of an ordered module is always salient. -/
 lemma salient_positive : salient (positive 𝕜 E) :=
@@ -375,7 +375,7 @@ def strictly_positive : convex_cone 𝕜 E :=
   add_mem' := λ x hx y hy, add_pos hx hy }
 
 @[simp] lemma mem_strictly_positive {x : E} : x ∈ strictly_positive 𝕜 E ↔ 0 < x := iff.rfl
-@[simp] lemma coe_strictly_positive {x : E} : ↑(strictly_positive 𝕜 E) = set.Ioi (0 : E) := rfl
+@[simp] lemma coe_strictly_positive : ↑(strictly_positive 𝕜 E) = set.Ioi (0 : E) := rfl
 
 /-- The strictly positive cone of an ordered module is always blunt. -/
 lemma blunt_strictly_positive : blunt (strictly_positive 𝕜 E) := lt_irrefl 0

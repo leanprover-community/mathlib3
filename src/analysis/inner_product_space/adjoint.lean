@@ -305,7 +305,8 @@ instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smu
 
 lemma star_eq_adjoint (A : E →L[𝕜] E) : star A = A† := rfl
 
-lemma is_self_adjoint_iff' {A : E →L[𝕜] E} : is_self_adjoint A ↔ A.adjoint = A := rfl
+/-- A continuous linear operator is self-adjoint iff it is equal to its adjoint. -/
+lemma is_self_adjoint_iff' {A : E →L[𝕜] E} : is_self_adjoint A ↔ A.adjoint = A := iff.rfl
 
 instance : cstar_ring (E →L[𝕜] E) :=
 ⟨begin
@@ -346,24 +347,22 @@ end continuous_linear_map
 
 namespace is_self_adjoint
 
-variables [complete_space E]
+open continuous_linear_map
 
-variables (A : E →L[𝕜] E)
+variables [complete_space E] [complete_space F]
 
-#check is_self_adjoint A
-
-lemma adjoint_eq' {A : E →L[𝕜] E} (hA : is_self_adjoint A) : A.adjoint = A := hA
+lemma adjoint_eq {A : E →L[𝕜] E} (hA : is_self_adjoint A) : A.adjoint = A := hA
 
 /-- Every self-adjoint operator on an inner product space is symmetric. -/
 lemma is_symmetric {A : E →L[𝕜] E} (hA : is_self_adjoint A) :
   (A : E →ₗ[𝕜] E).is_symmetric :=
-λ x y, by rw_mod_cast [←A.adjoint_inner_right, hA.adjoint_eq']
+λ x y, by rw_mod_cast [←A.adjoint_inner_right, hA.adjoint_eq]
 
 /-- Conjugating preserves self-adjointness -/
 lemma conj_adjoint {T : E →L[𝕜] E} (hT : is_self_adjoint T) (S : E →L[𝕜] F) :
   is_self_adjoint (S ∘L T ∘L S.adjoint) :=
 begin
-  rw is_self_adjoint_iff at ⊢ hT,
+  rw is_self_adjoint_iff' at ⊢ hT,
   simp only [hT, adjoint_comp, adjoint_adjoint],
   exact continuous_linear_map.comp_assoc _ _ _,
 end
@@ -372,30 +371,30 @@ end
 lemma adjoint_conj {T : E →L[𝕜] E} (hT : is_self_adjoint T) (S : F →L[𝕜] E) :
   is_self_adjoint (S.adjoint ∘L T ∘L S) :=
 begin
-  rw is_self_adjoint_iff at ⊢ hT,
+  rw is_self_adjoint_iff' at ⊢ hT,
   simp only [hT, adjoint_comp, adjoint_adjoint],
   exact continuous_linear_map.comp_assoc _ _ _,
 end
 
 lemma _root_.continuous_linear_map.is_self_adjoint_iff_is_symmetric {A : E →L[𝕜] E} :
-  A.is_self_adjoint ↔ (A : E →ₗ[𝕜] E).is_symmetric :=
+  is_self_adjoint A ↔ (A : E →ₗ[𝕜] E).is_symmetric :=
 ⟨λ hA, hA.is_symmetric, λ hA, ext $ λ x, inner_product_space.ext_inner_right 𝕜 $
   λ y, (A.adjoint_inner_left y x).symm ▸ (hA x y).symm⟩
 
 lemma _root_.linear_map.is_symmetric.is_self_adjoint {A : E →L[𝕜] E}
-  (hA : (A : E →ₗ[𝕜] E).is_symmetric) : A.is_self_adjoint :=
-by rwa ←is_self_adjoint_iff_is_symmetric at hA
+  (hA : (A : E →ₗ[𝕜] E).is_symmetric) : is_self_adjoint A :=
+by rwa ←continuous_linear_map.is_self_adjoint_iff_is_symmetric at hA
 
 /-- The orthogonal projection is self-adjoint. -/
 lemma _root_.orthogonal_projection_is_self_adjoint (U : submodule 𝕜 E)
   [complete_space U] :
-  (U.subtypeL ∘L orthogonal_projection U).is_self_adjoint :=
+  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U) :=
 (orthogonal_projection_is_symmetric U).is_self_adjoint
 
 lemma conj_orthogonal_projection {T : E →L[𝕜] E}
-  (hT : T.is_self_adjoint) (U : submodule 𝕜 E) [complete_space U] :
-  (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
-    orthogonal_projection U).is_self_adjoint :=
+  (hT : is_self_adjoint T) (U : submodule 𝕜 E) [complete_space U] :
+  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
+    orthogonal_projection U) :=
 begin
   rw ←continuous_linear_map.comp_assoc,
   nth_rewrite 0 ←(orthogonal_projection_is_self_adjoint U).adjoint_eq,
@@ -419,7 +418,7 @@ lemma coe_is_symmetric (hT : is_symmetric T) : (hT.clm : E →ₗ[𝕜] E) = T :
 lemma is_symmetric.clm_apply (hT : is_symmetric T) {x : E} : hT.clm x = T x := rfl
 
 lemma is_symmetric.clm_is_self_adjoint (hT : is_symmetric T) :
-  hT.clm.is_self_adjoint :=
+  is_self_adjoint hT.clm :=
 by rwa continuous_linear_map.is_self_adjoint_iff_is_symmetric
 
 end linear_map

@@ -57,8 +57,7 @@ begin
   rw [stopped_process_eq, this, finset.sum_range_succ_comm, ← add_assoc],
 end
 
-lemma not_mem_of_lt_hitting {ι : Type*}
-  [conditionally_complete_linear_order ι] [is_well_order ι (<)]
+lemma not_mem_of_lt_hitting {ι : Type*} [conditionally_complete_linear_order ι]
   {u : ι → α → β} {s : set β} {x : α} {n m k : ι}
   (hk₁ : k < hitting u s n m x) (hk₂ : n ≤ k) :
   u k x ∉ s :=
@@ -326,7 +325,7 @@ end
 
 variables {r : ℝ} {R : ℝ≥0}
 
-lemma norm_stopped_value_least_ge_le [is_finite_measure μ]
+lemma norm_stopped_value_least_ge_le
   {r : ℝ} (hr : 0 ≤ r) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) (i : ℕ) :
   ∀ᵐ x ∂μ, ∥stopped_value f (least_ge f r i) x∥ ≤ r + R :=
@@ -345,7 +344,7 @@ begin
       (add_le_add_left (abs_le.2 ⟨this.1.le, this.2.le⟩) _) }
 end
 
-lemma stopped_value_least_ge_snorm_le [is_finite_measure μ]
+lemma stopped_value_least_ge_snorm_le
   {r : ℝ} (hr : 0 ≤ r) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) (i : ℕ) :
   snorm (stopped_value f (least_ge f r i)) 1 μ ≤ μ set.univ * ennreal.of_real (r + R) :=
@@ -472,34 +471,62 @@ integrable_finset_sum' _ (λ k hk,
   (integrable_const 1).integrable_on).sub integrable_condexp)
 
 section
-#exit
-variables {ι : Type*}
-lemma condexp_finset_sum {s : finset ι}
+
+variables {ι F' : Type*} [normed_add_comm_group F'] [normed_space ℝ F'] [complete_space F']
+  {m n : measurable_space α}
+
+lemma finset.sum_eventually_eq {α β : Type*} [add_comm_monoid β]
+  {s : finset ι} {l : filter α} {f g : ι → α → β} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :
+  ∑ i in s, f i =ᶠ[l] ∑ i in s, g i :=
+begin
+  replace hs: ∀ᶠ x in l, ∀ i ∈ s, f i x = g i x,
+  { rwa eventually_all_finset },
+  filter_upwards [hs] with x hx,
+  simp only [finset.sum_apply, finset.sum_congr rfl hx],
+end
+
+lemma condexp_finset_sum {s : finset ι} {f : ι → α → F'} (hf : ∀ i ∈ s, integrable (f i) μ) :
+  μ[∑ i in s, f i | m] =ᵐ[μ] ∑ i in s, μ[f i | m] :=
+begin
+  classical,
+  revert hf,
+  refine finset.induction_on s _ _,
+  { intro hf,
+    rw [finset.sum_empty, finset.sum_empty, condexp_zero] },
+  { intros i s his heq hf,
+    rw [finset.sum_insert his, finset.sum_insert his],
+    exact (condexp_add (hf i $ finset.mem_insert_self i s) $ integrable_finset_sum' _
+      (λ j hmem, hf j $ finset.mem_insert_of_mem hmem)).trans
+      ((eventually_eq.refl _ _).add (heq $ λ j hmem, hf j $ finset.mem_insert_of_mem hmem)) }
+end
 
 end
 
-#check eventually_eq.add
 lemma martingale_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   martingale (mgale ℱ μ s) ℱ μ :=
 begin
-  refine martingale_nat (adapted_mgale hs) (integrable_mgale hs) (λ n, eventually_eq.symm _),
-  rw [mgale, finset.sum_range_succ],
-  -- induction n with n ih,
-  -- { rw [zero_add, mgale, mgale, finset.range_one, finset.range_zero,
-  --     finset.sum_singleton, finset.sum_empty],
-  --   refine (condexp_sub ((integrable_indicator_iff (ℱ.le 1 _ (hs 1))).2
-  --     (integrable_const 1).integrable_on) integrable_condexp).trans _,
-  --   have : μ[μ[(s (0 + 1)).indicator (λ x, 1 : α → ℝ) | ℱ 0] | ℱ 0] =ᵐ[μ]
-  --     μ[(s (0 + 1)).indicator 1 | ℱ 0] := condexp_condexp_of_le le_rfl (ℱ.le 0),
-  --   filter_upwards [this] with x hx,
-  --   rwa [nat.nat_zero_eq_zero, zero_add, pi.sub_apply, pi.zero_apply, sub_eq_zero, eq_comm] },
-  -- { rw [mgale, finset.sum_range_succ, mgale_succ, ← mgale],
-  --   refine (condexp_add (integrable_mgale hs _) (((integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2
-  --     (integrable_const 1).integrable_on).sub integrable_condexp)).trans (eventually_eq.add _ _),
-  --   { dsimp,
-  --   },
-
-  -- }
+  refine martingale_nat (adapted_mgale hs) (integrable_mgale hs)
+    (λ n, eventually_eq.symm $ (condexp_finset_sum _).trans $
+    (@finset.sum_eventually_eq _ _ _ _ _ _ _
+    (λ k, (μ[(s (k + 1)).indicator 1|ℱ n] - μ[(s (k + 1)).indicator 1|ℱ k])) _).trans _),
+  { intros k hk,
+    exact ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
+      (integrable_const 1).integrable_on).sub integrable_condexp },
+  { intros k hk,
+    rw finset.mem_range_succ_iff at hk,
+    refine (condexp_sub ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
+      (integrable_const 1).integrable_on) integrable_condexp).trans
+      ((ae_eq_refl _).sub _),
+    rw (condexp_of_strongly_measurable (ℱ.le _)
+      (strongly_measurable.mono strongly_measurable_condexp (ℱ.mono hk)) integrable_condexp),
+    apply_instance },
+  simp_rw [finset.sum_range_succ, sub_self, add_zero, mgale],
+  refine finset.sum_eventually_eq (λ i hi, eventually_eq.sub _ $ ae_eq_refl _),
+  rw [finset.mem_range, ← nat.succ_le_iff] at hi,
+  rw condexp_of_strongly_measurable (ℱ.le _)
+    (strongly_measurable_one.indicator (ℱ.mono hi _ $ hs _)),
+  { exact (integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2 (integrable_const 1).integrable_on },
+  { apply_instance },
 end
 
 end borel_cantelli

@@ -5,6 +5,7 @@ import data.real.basic
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
 import topology.continuous_function.compact
+import analysis.inner_product_space.pi_L2
 
 universe u
 
@@ -86,16 +87,6 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   m_e_e := by simp only [half_add_self],
   cont_m := continuous_add.div_const,
   m_e_dot_homotopic_to_id := begin
-  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
-  have cont_H : continuous H, sorry,
-  let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
-  use H',
-  { intro x,
-    dsimp [H],
-    ring_nf,
-  },
-  { intro x,
-    dsimp [H],
   use H' z,
   {
     intro x,
@@ -123,7 +114,6 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   {
    intro x,
     dsimp [H', H],
-  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
     ring_nf,
   },
   { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
@@ -134,65 +124,61 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   end
 }
 
-
-
-class Ω (X : Type u) [topological_space X] :=
+class Ω (X : Type u) [topological_space X] (x : X):=
     (loop : ℝ → X)
-    (boundary : loop 0 = loop 1)
+    (boundary_0 : loop 0 = x)
+    (boundary_1 : loop 1 = x)
 
-
-def my_loop : Ω ℝ :=
+def my_loop : Ω ℝ 0 :=
 {
   loop := λ t, t*(1-t),
-  boundary := by ring
+  boundary_0 := by ring,
+  boundary_1 := by ring
 }
 
-#check my_loop.loop
-
-def f := my_loop.loop
-
-#reduce f 0.4
-
-def juxt_loop (X : Type u) [topological_space X] (α β : Ω X) : Ω X :=
+def juxt_loop (X : Type u) [topological_space X] (x : X) (α β : Ω X x) : Ω X x:=
 {
-  loop :=  λ t, if t < 1/2 then (@Ω.loop X _ α (2*t)) else (@Ω.loop X _ β (1-2*t)),
-  boundary :=
+  loop :=  λ t, if t < 1/2 then (α.loop : ℝ → X) (2*t) else (β.loop : ℝ → X) (2*t-1),
+  boundary_0 :=
   begin
-    simp,
+    simp only [one_div, inv_pos, zero_lt_bit0, zero_lt_one, mul_zero, if_true],
+    exact α.boundary_0,
+  end,
+  boundary_1 := begin
+    simp only [one_div, mul_one],
+    split_ifs,
+    {
+      have eq : ¬ (1 < (2 : ℝ)⁻¹) := begin
+        have eq_aux : ¬ ((1:ℝ) < 1/2) := begin
+          simp only [not_lt],
+          nlinarith,
+        end,
+        simp only [not_lt],
+        rw inv_eq_one_div (2:ℝ),
+        apply not_lt.1,
+        exact eq_aux,
+      end,
+      contradiction
+    },
+    {
+      ring_nf,
+      exact β.boundary_1,
+    },
   end,
 }
 
 
-instance loop_space_is_H_space (X : Type u) [topological_space X]
-  : H_space C(circle, X) :=
-{
-  m := sorry,
-  e := sorry,
-  m_e_e := sorry,
-  cont_m := sorry,
-  m_e_dot_homotopic_to_id  := sorry,
-  m_dot_e_homotopic_to_id := sorry,
-}
+-- instance loop_space_is_H_space (X : Type u) [topological_space X] (x : X)
+--   : H_space (Ω X x) :=
+-- {
+--   m := sorry,
+--   e := sorry,
+--   m_e_e := sorry,
+--   cont_m := sorry,
+--   m_e_dot_homotopic_to_id  := sorry,
+--   m_dot_e_homotopic_to_id := sorry,
+-- }
 
-variables x y : ℝ
-
--- def our_m : ℝ := (x+y)/2
--- #check our_m
-
-lemma our_m_continuous : continuous our_m :=
-begin
-  sorry
-end
-
-def R_with_our_m : H_space ℝ :=
-
-example : H_space ℝ :=
-{
-  m := function.uncurry our_m,
-  e := z,
-  m_e_e := sorry,
-  cont_m := our_m_continuous,
-}
 /-
   Next, show that the sphere S^3 has a canonical H-space structure.
 
@@ -212,6 +198,10 @@ example : H_space ℝ :=
 -/
 
 
--- example : H_space S^3 :=
+def R4 := euclidean_space ℝ (fin 4)
+
+--#check metric.sphere R4 1
+
+--example : H_space S^3 :=
 
 end H_space

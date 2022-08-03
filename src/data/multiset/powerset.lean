@@ -253,4 +253,9 @@ begin
   { cases n; simp [ih, map_comp_cons], },
 end
 
+lemma disjoint_powerset_len (s : multiset α) {i j : ℕ} (h : i ≠ j) :
+  multiset.disjoint (s.powerset_len i) (s.powerset_len j) :=
+by exact λ x hi hj, h (eq.trans (multiset.mem_powerset_len.mp hi).right.symm
+  (multiset.mem_powerset_len.mp hj).right)
+
 end multiset

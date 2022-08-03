@@ -157,7 +157,7 @@ lemma eq_smul_self_of_is_local_extr_on (hT : is_self_adjoint T) {x₀ : E}
   T x₀ = (↑(rayleigh_quotient x₀) : 𝕜) • x₀ :=
 begin
   letI := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  let hSA := hT.is_symmetric.restrict_to_R_is_symmetric.clm_is_self_adjoint,
+  let hSA := hT.is_symmetric.restrict_scalars.clm_is_self_adjoint,
   exact hSA.eq_smul_self_of_is_local_extr_on_real hextr,
 end
 
@@ -229,8 +229,6 @@ lemma has_eigenvalue_supr_of_finite_dimensional (hT : T.is_symmetric) :
   has_eigenvalue T ↑(⨆ x : {x : E // x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2) :=
 begin
   haveI := finite_dimensional.proper_is_R_or_C 𝕜 E,
-  --let T' : E →L[𝕜] E := T.to_continuous_linear_map,
-  --have hT' : T'.is_self_adjoint := hT,
   obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,
   have H₁ : is_compact (sphere (0:E) ∥x∥) := is_compact_sphere _ _,
   have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simp⟩,

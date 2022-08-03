@@ -134,7 +134,7 @@ lemma is_symmetric.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_symmetric 
   is_symmetric (T.restrict hV) :=
 λ v w, hT v w
 
-lemma is_symmetric.restrict_to_R_is_symmetric {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
+lemma is_symmetric.restrict_scalars {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
   @linear_map.is_symmetric ℝ E _ (inner_product_space.is_R_or_C_to_real 𝕜 E)
   (@linear_map.restrict_scalars ℝ 𝕜 _ _ _ _ _ _
     (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module
@@ -413,7 +413,7 @@ variables {T : E →ₗ[𝕜] E}
 def is_symmetric.clm (hT : is_symmetric T) : E →L[𝕜] E :=
 ⟨T, hT.continuous⟩
 
-lemma coe_is_symmetric (hT : is_symmetric T) : (hT.clm : E →ₗ[𝕜] E) = T := rfl
+lemma is_symmetric.coe_clm (hT : is_symmetric T) : (hT.clm : E →ₗ[𝕜] E) = T := rfl
 
 lemma is_symmetric.clm_apply (hT : is_symmetric T) {x : E} : hT.clm x = T x := rfl
 

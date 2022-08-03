@@ -358,12 +358,12 @@ end
 
 /-! ### Instances on finite `L^p` products -/
 
-instance uniform_space [fact (1 ≤ p)] [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β) :=
+instance uniform_space [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β) :=
 Pi.uniform_space _
 
 variable [fintype ι]
 
-instance bornology [fact (1 ≤ p)] [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
+instance bornology [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
 
 /-- pseudoemetric space instance on the product of finitely many pseudoemetric spaces, using the
 `L^p` pseudoedistance, and having as uniformity the product uniformity. -/

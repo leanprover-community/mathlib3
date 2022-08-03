@@ -68,8 +68,7 @@ def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
 def head (s : seq α) : option α := nth s 0
 
 /-- Get the tail of a sequence (or `nil` if the sequence is `nil`) -/
-def tail : seq α → seq α
-| ⟨f, al⟩ := ⟨f.tail, λ n, al⟩
+def tail (s : seq α) : seq α := ⟨s.1.tail, λ n, by { cases s with f al, exact al }⟩
 
 protected def mem (a : α) (s : seq α) := some a ∈ s.1
 

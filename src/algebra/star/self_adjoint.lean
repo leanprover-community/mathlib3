@@ -68,16 +68,16 @@ lemma _root_.is_self_adjoint_zero : is_self_adjoint (0 : R) := star_zero R
 variables {R}
 
 lemma add {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x + y) :=
-by { rw is_self_adjoint_iff at ⊢ hx hy, simp only [hx, hy, star_add] }
+by simp only [is_self_adjoint_iff, star_add, hx.star_eq, hy.star_eq]
 
 lemma neg {x : R} (hx : is_self_adjoint x) : is_self_adjoint (-x) :=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [hx, star_neg] }
+by simp only [is_self_adjoint_iff, star_neg, hx.star_eq]
 
 lemma sub {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x - y) :=
-by { rw is_self_adjoint_iff at ⊢ hx hy, simp only [hx, hy, star_sub] }
+by simp only [is_self_adjoint_iff, star_sub, hx.star_eq, hy.star_eq]
 
 lemma bit0 {x : R} (hx : is_self_adjoint x) : is_self_adjoint (bit0 x) :=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [hx, star_bit0] }
+by simp only [is_self_adjoint_iff, star_bit0, hx.star_eq]
 
 end add_group
 
@@ -91,19 +91,19 @@ lemma _root_.is_self_adjoint_one : is_self_adjoint (1 : R) := star_one R
 variables {R}
 
 lemma bit1 {x : R} (hx : is_self_adjoint x) : is_self_adjoint (bit1 x) :=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [hx, star_bit1] }
+by simp only [is_self_adjoint_iff, star_bit1, hx.star_eq]
 
 lemma conjugate {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (z * x * star z) :=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [star_mul, star_star, mul_assoc, hx] }
+by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
 
 lemma conjugate' {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (star z * x * z) :=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [star_mul, star_star, mul_assoc, hx] }
+by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
 
 lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
-⟨by { rw is_self_adjoint_iff at hx, simp only [hx] }⟩
+⟨by simp only [hx.star_eq]⟩
 
-lemma npow {x : R} (hx : is_self_adjoint x) (n : ℕ) : is_self_adjoint (x^n):=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [hx, star_pow] }
+lemma pow {x : R} (hx : is_self_adjoint x) (n : ℕ) : is_self_adjoint (x^n):=
+by simp only [is_self_adjoint_iff, star_pow, hx.star_eq]
 
 end ring
 
@@ -111,7 +111,7 @@ section comm_ring
 variables [comm_ring R] [star_ring R]
 
 lemma mul {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x * y) :=
-by { rw is_self_adjoint_iff at ⊢ hx hy, simp only [hx, hy, star_mul'] }
+by simp only [is_self_adjoint_iff, star_mul', hx.star_eq, hy.star_eq]
 
 end comm_ring
 
@@ -119,13 +119,13 @@ section field
 variables [field R] [star_ring R]
 
 lemma inv {x : R} (hx : is_self_adjoint x) : is_self_adjoint x⁻¹ :=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [star_inv', hx] }
+by simp only [is_self_adjoint_iff, star_inv', hx.star_eq]
 
 lemma div {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x / y) :=
-by { rw is_self_adjoint_iff at ⊢ hx hy, simp only [hx, hy, star_div'] }
+by simp only [is_self_adjoint_iff, star_div', hx.star_eq, hy.star_eq]
 
 lemma zpow {x : R} (hx : is_self_adjoint x) (n : ℤ) : is_self_adjoint (x^n):=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [hx, star_zpow₀] }
+by simp only [is_self_adjoint_iff, star_zpow₀, hx.star_eq]
 
 end field
 
@@ -134,7 +134,7 @@ variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
 
 lemma smul [has_smul R A] [star_module R A] (r : R) {x : A} (hx : is_self_adjoint x) :
   is_self_adjoint (r • x) :=
-by { rw is_self_adjoint_iff at ⊢ hx, simp only [hx, star_smul, star_trivial] }
+by simp only [is_self_adjoint_iff, star_smul, star_trivial, hx.star_eq]
 
 end has_smul
 
@@ -201,7 +201,7 @@ instance : has_int_cast (self_adjoint R) :=
 instance (x : self_adjoint R) : is_star_normal (x : R) := x.prop.is_star_normal
 
 instance : has_pow (self_adjoint R) ℕ :=
-⟨λ x n, ⟨(x : R) ^ n, x.prop.npow n⟩⟩
+⟨λ x n, ⟨(x : R) ^ n, x.prop.pow n⟩⟩
 
 @[simp, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
 

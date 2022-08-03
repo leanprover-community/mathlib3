@@ -74,7 +74,7 @@ instance : has_mem α (seq α) :=
 
 theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
   s.nth m = none → s.nth n = none :=
-by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
+by { cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)] }
 
 /-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
 lemma terminated_stable (s : seq α) {m n : ℕ} (m_le_n : m ≤ n)

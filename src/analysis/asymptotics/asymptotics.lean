@@ -655,11 +655,8 @@ lemma is_O_with_prod_left :
 lemma is_O.prod_left (hf : f' =O[l] k') (hg : g' =O[l] k') : (λ x, (f' x, g' x)) =O[l] k' :=
 let ⟨c, hf⟩ := hf.is_O_with, ⟨c', hg⟩ := hg.is_O_with in (hf.prod_left hg).is_O
 
-lemma is_O.prod_left_fst (h : (λ x, (f' x, g' x)) =O[l] k') : f' =O[l] k' :=
-is_O_fst_prod.trans h
-
-lemma is_O.prod_left_snd (h : (λ x, (f' x, g' x)) =O[l] k') : g' =O[l] k' :=
-is_O_snd_prod.trans h
+lemma is_O.prod_left_fst : (λ x, (f' x, g' x)) =O[l] k' → f' =O[l] k' := is_O.trans is_O_fst_prod
+lemma is_O.prod_left_snd : (λ x, (f' x, g' x)) =O[l] k' → g' =O[l] k' := is_O.trans is_O_snd_prod
 
 @[simp] lemma is_O_prod_left : (λ x, (f' x, g' x)) =O[l] k' ↔ f' =O[l] k' ∧ g' =O[l] k' :=
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩
@@ -667,11 +664,11 @@ is_O_snd_prod.trans h
 lemma is_o.prod_left (hf : f' =o[l] k') (hg : g' =o[l] k') : (λ x, (f' x, g' x)) =o[l] k' :=
 is_o.of_is_O_with $ λ c hc, (hf.forall_is_O_with hc).prod_left_same (hg.forall_is_O_with hc)
 
-lemma is_o.prod_left_fst (h : (λ x, (f' x, g' x)) =o[l] k') : f' =o[l] k' :=
-is_O_fst_prod.trans_is_o h
+lemma is_o.prod_left_fst : (λ x, (f' x, g' x)) =o[l] k' → f' =o[l] k' :=
+is_O.trans_is_o is_O_fst_prod
 
-lemma is_o.prod_left_snd (h : (λ x, (f' x, g' x)) =o[l] k') : g' =o[l] k' :=
-is_O_snd_prod.trans_is_o h
+lemma is_o.prod_left_snd : (λ x, (f' x, g' x)) =o[l] k' → g' =o[l] k' :=
+is_O.trans_is_o is_O_snd_prod
 
 @[simp] lemma is_o_prod_left : (λ x, (f' x, g' x)) =o[l] k' ↔ f' =o[l] k' ∧ g' =o[l] k' :=
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩

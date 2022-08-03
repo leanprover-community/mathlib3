@@ -511,7 +511,6 @@ apply_nolint rbnode.is_bad_red_black doc_blame
 apply_nolint computation.bind.F doc_blame
 apply_nolint computation.bind.G doc_blame
 apply_nolint computation.bisim_o doc_blame
-apply_nolint computation.cases_on doc_blame
 apply_nolint computation.corec.F doc_blame
 apply_nolint computation.is_bisimulation doc_blame
 apply_nolint computation.lift_rel_aux doc_blame
@@ -533,7 +532,6 @@ apply_nolint seq.mem doc_blame
 
 -- data/seq/wseq.lean
 apply_nolint wseq.bisim_o doc_blame
-apply_nolint wseq.cases_on doc_blame
 apply_nolint wseq.destruct_append.aux doc_blame
 apply_nolint wseq.destruct_join.aux doc_blame
 apply_nolint wseq.drop.aux doc_blame

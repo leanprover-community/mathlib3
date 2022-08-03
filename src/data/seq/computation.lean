@@ -128,7 +128,8 @@ by cases s with f al; apply subtype.eq; dsimp [tail, think]; rw [stream.tail_con
 theorem think_empty : empty α = think (empty α) :=
 destruct_eq_think destruct_empty
 
-def cases_on {C : computation α → Sort v} (s : computation α)
+/-- Recursion principle for computations, compare with `list.rec_on`. -/
+def rec_on {C : computation α → Sort v} (s : computation α)
   (h1 : ∀ a, C (return a)) (h2 : ∀ s, C (think s)) : C s := begin
   induction H : destruct s with v v,
   { rw destruct_eq_ret H, apply h1 },
@@ -212,7 +213,7 @@ section bisim
         by cases s; refl, by cases s'; refl, r⟩) this,
       begin
         have := bisim r, revert r this,
-        apply cases_on s _ _; intros; apply cases_on s' _ _; intros; intros r this,
+        apply rec_on s _ _; intros; apply rec_on s' _ _; intros; intros r this,
         { constructor, dsimp at this, rw this, assumption },
         { rw [destruct_ret, destruct_think] at this,
           exact false.elim this },
@@ -441,7 +442,7 @@ theorem eq_thinkN {s : computation α} {a n} (h : results s a n) :
 begin
   revert s,
   induction n with n IH; intro s;
-  apply cases_on s (λ a', _) (λ s, _); intro h,
+  apply rec_on s (λ a', _) (λ s, _); intro h,
   { rw ←eq_of_ret_mem h.mem, refl },
   { cases of_results_think h with n h, cases h, contradiction },
   { have := h.len_unique (results_ret _), contradiction },
@@ -467,7 +468,7 @@ mem_rec_on (get_mem s) (h1 _) h2
 
 /-- Map a function on the result of a computation. -/
 def map (f : α → β) : computation α → computation β
-| ⟨s, al⟩ := ⟨s.map (λo, option.cases_on o none (some ∘ f)),
+| ⟨s, al⟩ := ⟨s.map (λo, option.rec_on o none (some ∘ f)),
 λn b, begin
   dsimp [stream.map, stream.nth],
   induction e : s n with a; intro h,
@@ -506,7 +507,7 @@ def join (c : computation (computation α)) : computation α := c >>= id
 
 @[simp]
 theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
-by apply s.cases_on; intro; simp
+by apply s.rec_on; intro; simp
 
 @[simp] theorem map_id : ∀ (s : computation α), map id s = s
 | ⟨f, al⟩ := begin
@@ -556,7 +557,7 @@ begin
     exact match c₁, c₂, h with
     | _, _, or.inl (eq.refl c) := begin cases destruct c with b cb; simp end
     | _, _, or.inr ⟨s, rfl, rfl⟩ := begin
-      apply cases_on s; intros s; simp,
+      apply rec_on s; intros s; simp,
       exact or.inr ⟨s, rfl, rfl⟩
     end end },
   { exact or.inr ⟨s, rfl, rfl⟩ }
@@ -574,9 +575,9 @@ begin
     exact match c₁, c₂, h with
     | _, _, or.inl (eq.refl c) := by cases destruct c with b cb; simp
     | ._, ._, or.inr ⟨s, rfl, rfl⟩ := begin
-      apply cases_on s; intros s; simp,
+      apply rec_on s; intros s; simp,
       { generalize : f s = fs,
-        apply cases_on fs; intros t; simp,
+        apply rec_on fs; intros t; simp,
         { cases destruct (g t) with b cb; simp } },
       { exact or.inr ⟨s, rfl, rfl⟩ }
     end end },
@@ -619,7 +620,7 @@ theorem of_results_bind {s : computation α} {f : α → computation β} {b k} :
   ∃ a m n, results s a m ∧ results (f a) b n ∧ k = n + m :=
 begin
   induction k with n IH generalizing s;
-  apply cases_on s (λ a, _) (λ s', _); intro e,
+  apply rec_on s (λ a, _) (λ s', _); intro e,
   { simp [thinkN] at e, refine ⟨a, _, _, results_ret _, e, rfl⟩ },
   { have := congr_arg head (eq_thinkN e), contradiction },
   { simp at e, refine ⟨a, _, n+1, results_ret _, e, rfl⟩ },
@@ -705,7 +706,7 @@ destruct_eq_think $ by unfold has_orelse.orelse; simp [orelse]
 begin
   apply eq_of_bisim (λc₁ c₂, (empty α <|> c₂) = c₁) _ rfl,
   intros s' s h, rw ←h,
-  apply cases_on s; intros s; rw think_empty; simp,
+  apply rec_on s; intros s; rw think_empty; simp,
   rw ←think_empty,
 end
 
@@ -713,7 +714,7 @@ end
 begin
   apply eq_of_bisim (λc₁ c₂, (c₂ <|> empty α) = c₁) _ rfl,
   intros s' s h, rw ←h,
-  apply cases_on s; intros s; rw think_empty; simp,
+  apply rec_on s; intros s; rw think_empty; simp,
   rw←think_empty,
 end
 
@@ -920,7 +921,7 @@ attribute [simp] lift_rel_aux
   (C : computation α → computation β → Prop) (a cb) :
   lift_rel_aux R C (sum.inl a) (destruct cb) ↔ ∃ {b}, b ∈ cb ∧ R a b :=
 begin
-  apply cb.cases_on (λ b, _) (λ cb, _),
+  apply cb.rec_on (λ b, _) (λ cb, _),
   { exact ⟨λ h, ⟨_, ret_mem _, h⟩, λ ⟨b', mb, h⟩,
     by rw [mem_unique (ret_mem _) mb]; exact h⟩ },
   { rw [destruct_think],
@@ -944,7 +945,7 @@ begin
   revert cb, refine mem_rec_on ha _ (λ ca' IH, _);
   intros cb Hc; have h := H Hc,
   { simp at h, simp [h] },
-  { have h := H Hc, simp, revert h, apply cb.cases_on (λ b, _) (λ cb', _);
+  { have h := H Hc, simp, revert h, apply cb.rec_on (λ b, _) (λ cb', _);
     intro h; simp at h; simp [h], exact IH _ h }
 end
 

@@ -205,7 +205,7 @@ begin
   apply eq.symm,
   apply finset_sum_eq_sup_iff_disjoint.mpr,
   exact λ _ _ _ _ hxy _ hx hy,
-   hxy (eq.trans (multiset.mem_powerset_len.mp hx).right.symm
+    hxy (eq.trans (multiset.mem_powerset_len.mp hx).right.symm
     (multiset.mem_powerset_len.mp hy).right),
 end
 

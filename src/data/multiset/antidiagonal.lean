@@ -69,16 +69,16 @@ end
 
 theorem antidiagonal_eq_map_powerset [decidable_eq α] (s : multiset α) :
    s.antidiagonal = s.powerset.map (λ t, (s - t, t)) :=
- begin
-   induction s using multiset.induction_on with a s hs,
-   { simp only [antidiagonal_zero, powerset_zero, zero_tsub, map_singleton] },
-   { simp_rw [antidiagonal_cons, powerset_cons, map_add, hs, map_map, function.comp, prod.map_mk,
-       id.def, sub_cons, erase_cons_head],
-     rw add_comm,
-     congr' 1,
-     refine multiset.map_congr rfl (λ x hx, _),
-     rw cons_sub_of_le _ (mem_powerset.mp hx) }
- end
+begin
+  induction s using multiset.induction_on with a s hs,
+  { simp only [antidiagonal_zero, powerset_zero, zero_tsub, map_singleton] },
+  { simp_rw [antidiagonal_cons, powerset_cons, map_add, hs, map_map, function.comp, prod.map_mk,
+      id.def, sub_cons, erase_cons_head],
+    rw add_comm,
+    congr' 1,
+    refine multiset.map_congr rfl (λ x hx, _),
+    rw cons_sub_of_le _ (mem_powerset.mp hx) }
+end
 
 @[simp] theorem card_antidiagonal (s : multiset α) :
   card (antidiagonal s) = 2 ^ card s :=

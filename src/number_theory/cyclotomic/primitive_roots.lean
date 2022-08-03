@@ -130,6 +130,8 @@ end
 
 variables {K} (C)
 
+-- We are not using @[simps] to avoid a timeout.
+
 /-- The equivalence between `L →ₐ[K] C` and `primitive_roots n C` given by a primitive root `ζ`. -/
 noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is_domain C]
   [algebra K C] (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=

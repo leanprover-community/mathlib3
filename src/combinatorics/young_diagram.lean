@@ -73,13 +73,12 @@ def young_diagram.card (μ : young_diagram) : ℕ := μ.cells.card
 lemma young_diagram.card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
 section μ_empty
-
 /-! The empty Young diagram -/
 
+/-- The empty Young diagram is (∅ : young_diagram). -/
 instance young_diagram.has_emptyc : has_emptyc young_diagram :=
 { emptyc := { cells := finset.empty, is_lower_set := λ _ _ _ h, h } }
 
-/-- The empty Young diagram is (∅ : young_diagram). -/
 @[simp] lemma μ_empty_card : (∅ : young_diagram).card = 0 := rfl
 
 instance : inhabited young_diagram := ⟨∅⟩

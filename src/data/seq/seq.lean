@@ -444,7 +444,7 @@ take (nat.find h) s
 
 /-- Convert a sequence which is known not to terminate into a stream -/
 def to_stream (s : seq α) (h : ¬ s.terminates) : stream α :=
-λn, option.get $ not_terminates_iff.1 h n
+λ n, option.get $ not_terminates_iff.1 h n
 
 /-- Convert a sequence into either a list or a stream depending on whether
   it is finite or infinite. (Without decidability of the infiniteness predicate,

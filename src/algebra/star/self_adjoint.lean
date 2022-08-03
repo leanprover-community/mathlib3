@@ -102,7 +102,7 @@ by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
 lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
 ⟨by simp only [hx.star_eq]⟩
 
-lemma pow {x : R} (hx : is_self_adjoint x) (n : ℕ) : is_self_adjoint (x^n):=
+lemma pow {x : R} (hx : is_self_adjoint x) (n : ℕ) : is_self_adjoint (x ^ n):=
 by simp only [is_self_adjoint_iff, star_pow, hx.star_eq]
 
 end ring

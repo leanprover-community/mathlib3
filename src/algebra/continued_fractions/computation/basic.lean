@@ -153,7 +153,7 @@ protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
   seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in the
   -- head create a sequence from `int_fract_pair.stream`
   ⟨ int_fract_pair.stream v, -- the underlying stream
-    @stream_is_seq _ _ _ v ⟩ ⟩ -- the proof that the stream is a sequence
+    stream_is_seq v ⟩ ⟩ -- the proof that the stream is a sequence
 
 end int_fract_pair
 

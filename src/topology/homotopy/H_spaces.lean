@@ -12,6 +12,8 @@ import topology.homotopy.path
 
 universes u v w
 
+classical theory
+
 noncomputable theory
 
 open_locale unit_interval
@@ -223,72 +225,61 @@ def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
     { linarith },
   end }
 
-lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧ ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 :=
-begin
-  -- have : ∀ s : I, (0 : ℝ) ≤ (2 * s - θ) ∧ ((2 : ℝ) * s - θ) ≤ 1,
-  -- intro s,
-  split,
-  exact div_nonneg (le_of_lt $ sub_pos.mpr $ (div_lt_iff' two_pos).mp h)
+lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧
+  ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 := ⟨div_nonneg (le_of_lt $ sub_pos.mpr $ (div_lt_iff' two_pos).mp h)
     (sub_nonneg.mpr $ (θ.2.2).trans one_le_two),
-  sorry,
+    (div_le_one (sub_pos.mpr $ lt_of_le_of_lt θ.2.2 one_lt_two)).mpr ((sub_le_sub_iff_right ↑θ).mpr
+    $ mul_nonneg_le_one_le (@zero_le_two ℝ _ _ _ _ _) (le_of_eq rfl) t.2.1 t.2.2)⟩
 
-  -- exact (sub_nonneg.mpr ((θ.2.2).trans one_le_two)),
-  -- linarith [θ.1],
-  -- linarith,
+def Q_ext : I × I → ℝ := λ p,
+ite ((p.1 : ℝ) ≤ p.2 / 2) 0 ((2 * p.1 - p.2)/(2 - p.2))
+
+
+lemma continuous_Q_ext : continuous Q_ext :=
+begin
+  refine @continuous_if (I × I) ℝ _ _ (λ p, (p.1 : ℝ) ≤ p.2/2) 0 (λ p, (2 * p.1 - p.2)/(2 - p.2))
+    _ _ _ _,
+  { intros _ hp,
+    have h := @continuous.div_const (I × I) ℝ _ _ _ (coe ∘ prod.snd) _ (continuous_subtype_coe.comp continuous_snd) 2,
+    replace hp := frontier_le_subset_eq (continuous_subtype_coe.comp continuous_fst) h hp,
+    simp only [pi.zero_apply, function.comp_app, set.mem_set_of_eq] at ⊢ hp,
+    field_simp [hp] },
+  { exact continuous_zero.continuous_on },
+  { refine (((continuous_const.mul (continuous_induced_dom.comp continuous_fst)).sub (continuous_induced_dom.comp continuous_snd)).div (continuous_const.sub (continuous_induced_dom.comp continuous_snd)) (λ p, _)).continuous_on,
+    exact sub_ne_zero_of_ne (ne_of_lt (lt_of_le_of_lt p.2.2.2 one_lt_two)).symm },
 end
 
+def Q : I × I → I := λ p, dite ((p.1 : ℝ) ≤ p.2 / 2) (λ h, 0)
+  (λ h, ⟨(2 * p.1 - p.2)/(2 - p.2), aux_mem_I $ not_le.mp h⟩)
 
-#exit
+lemma Q_ext_extends_Q : Q = (set.proj_Icc (0 : ℝ) _ zero_le_one) ∘ Q_ext :=
+begin
+  ext,
+  dsimp only [Q, Q_ext, zero_le_one],
+  split_ifs,
+  { simp only [unit_interval.coe_zero, function.comp_app, if_pos h, zero_div, set.proj_Icc_left,
+    unit_interval.mk_zero, unit_interval.coe_zero]},
+  { simp only [(set.proj_Icc_of_mem (@zero_le_one ℝ _ _ _ _) (aux_mem_I $ not_le.mp h)).symm, if_neg h,
+    function.comp_app] },
+end
+
+lemma continuous_Q : continuous Q := by simp only [Q_ext_extends_Q, continuous_proj_Icc.comp continuous_Q_ext]
+
 
 lemma continuous_delayed_id {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
 begin
   apply continuous_to_Ω_if_continuous_uncurry,
-  let Q : I × I → I := λ p, if (p.1 : ℝ) ≤ p.2 / 2 then 0
-                                else ⟨(2 * p.1 - p.2)/(2 - p.2), aux_mem_I⟩,
-  have hQ : continuous Q,
-  { apply continuous_if,
-    intros p hp,
-    -- have h_eq : (λ (i : I × I), (i.snd : ℝ) ≤ (1 / 2)) =
-    --   (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
-    have := (@frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
-      (continuous_induced_dom.comp continuous_fst)
-        (continuous_induced_dom.comp continuous_snd).div_const),
-    replace hp := this hp,
-    --   (continuous_induced_dom.comp continuous_fst)
-    --     (continuous_induced_dom.comp continuous_snd).div_const hp,
-
-
-    -- have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _ _ _,
-    -- replace hp := this hp,
-    simp only [set.mem_set_of_eq] at hp,
-    simp_rw hp,
-    field_simp,
-    exact continuous_on_const,
-    apply continuous.continuous_on,
-    refine continuous_subtype_mk (λ (x : ↥I × ↥I), aux_mem_I) _,
-    -- have : linear_ordered_field ℝ,
-    -- have : has_continuous_inv₀ ℝ,
-    -- apply_instance,
-    apply continuous.div,
-    sorry,
-    sorry,
-    sorry,
-    -- refine @continuous_if (I × I) I _ _ (λ p, (p.1 : ℝ) ≤ p.2 / 2) 0 (λ p, ⟨(2 * p.1 - p.2)/(2 - p.2),
-    -- aux_mem_I⟩) _ _ _ _,
-
-  },
   have hF₀ : continuous (λ p : I × Ω(x), p.2 p.1),
   exact (continuous_eval'.comp (continuous.prod_map (continuous_coe x) (@continuous_id I _))).comp
     continuous_swap,
-  replace hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
-    ((continuous.comp hQ continuous_fst).prod_mk continuous_snd)).comp continuous_swap,
+  have hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
+    ((continuous.comp continuous_Q continuous_fst).prod_mk continuous_snd)).comp continuous_swap,
   convert hF₀.comp hQ,
   ext,
   dsimp [delayed_id, prod.swap, homeomorph.prod_assoc, Q],
   split_ifs,
   { simp only [path.source] },
-  { simp only [aux_mem_I, set.mem_Icc, and_self, extend_extends],
-    refl },
+  { rw [extend_extends] },
 end
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
@@ -309,6 +300,8 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
     dsimp [path.refl, delayed_id],
     have temp : (ite ((t : ℝ) ≤ 0 / 2) x (γ.extend ((2 * ↑t - 0) / (2 - 0)))) = x, sorry,
     rw temp,
+    sorry,
+    sorry,
     sorry,
     -- simp,
     -- simp [path.has_coe_to_fun],

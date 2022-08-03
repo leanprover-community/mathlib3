@@ -140,6 +140,41 @@ begin
     mem_insert_self _ _, ha⟩, h.trans $ image₂_subset (subset_insert _ _) $ subset_insert _ _⟩⟩,
 end
 
+variables (s t)
+
+lemma card_image₂_singleton_left (hf : injective (f a)) : (image₂ f {a} t).card = t.card :=
+by rw [image₂_singleton_left, card_image_of_injective _ hf]
+
+lemma card_image₂_singleton_right (hf : injective (λ a, f a b)) : (image₂ f s {b}).card = s.card :=
+by rw [image₂_singleton_right, card_image_of_injective _ hf]
+
+lemma image₂_singleton_inter [decidable_eq β] (t₁ t₂ : finset β) (hf : injective (f a)) :
+  image₂ f {a} (t₁ ∩ t₂) = image₂ f {a} t₁ ∩ image₂ f {a} t₂ :=
+by simp_rw [image₂_singleton_left, image_inter _ _ hf]
+
+lemma image₂_inter_singleton [decidable_eq α] (s₁ s₂ : finset α) (hf : injective (λ a, f a b)) :
+  image₂ f (s₁ ∩ s₂) {b} = image₂ f s₁ {b} ∩ image₂ f s₂ {b} :=
+by simp_rw [image₂_singleton_right, image_inter _ _ hf]
+
+lemma card_le_card_image₂_left {s : finset α} (hs : s.nonempty) (hf : ∀ a, injective (f a)) :
+  t.card ≤ (image₂ f s t).card :=
+begin
+  obtain ⟨a, ha⟩ := hs,
+  rw ←card_image₂_singleton_left _ (hf a),
+  exact card_le_of_subset (image₂_subset_right $ singleton_subset_iff.2 ha),
+end
+
+lemma card_le_card_image₂_right {t : finset β} (ht : t.nonempty)
+  (hf : ∀ b, injective (λ a, f a b)) :
+  s.card ≤ (image₂ f s t).card :=
+begin
+  obtain ⟨b, hb⟩ := ht,
+  rw ←card_image₂_singleton_right _ (hf b),
+  exact card_le_of_subset (image₂_subset_left $ singleton_subset_iff.2 hb),
+end
+
+variables {s t}
+
 lemma bUnion_image_left : s.bUnion (λ a, t.image $ f a) = image₂ f s t :=
 coe_injective $ by { push_cast, exact set.Union_image_left _ }
 

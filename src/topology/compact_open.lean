@@ -320,7 +320,7 @@ continuous_eval'.comp $ f.continuous.prod_map continuous_id
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
     function spaces, see `homeomorph.curry`. -/
-def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
+@[simps] def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
 ⟨_, continuous_uncurry_of_continuous f⟩
 
 /-- The uncurrying process is a continuous map between function spaces. -/

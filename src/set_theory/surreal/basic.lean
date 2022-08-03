@@ -60,7 +60,7 @@ namespace pgame
 
 /-- A pre-game is numeric if everything in the L set is less than everything in the R set,
 and all the elements of L and R are also numeric. -/
-def numeric : set pgame
+def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ j, numeric (R j))
 
@@ -232,7 +232,7 @@ open pgame
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
 the order becomes a total order. -/
-def surreal := quotient (by apply_instance : setoid numeric)
+def surreal := quotient (subtype.setoid numeric)
 
 namespace surreal
 
@@ -246,7 +246,7 @@ instance : inhabited surreal := ⟨0⟩
 /-- Lift an equivalence-respecting function on pre-games to surreals. -/
 def lift {α} (f : ∀ x, numeric x → α)
   (H : ∀ {x y} (hx : numeric x) (hy : numeric y), x.equiv y → f x hx = f y hy) : surreal → α :=
-quotient.lift (λ x : numeric, f x.1 x.2) (λ x y, H x.2 y.2)
+quotient.lift (λ x : {x // numeric x}, f x.1 x.2) (λ x y, H x.2 y.2)
 
 /-- Lift a binary equivalence-respecting function on pre-games to surreals. -/
 def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)

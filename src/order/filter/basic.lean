@@ -1901,7 +1901,7 @@ comap_fst_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
 begin
   casesI is_empty_or_nonempty α with hα hα,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not];
-      [simpa using hα.elim, apply_instance] },
+      [simp, apply_instance] },
   { simp [comap_ne_bot_iff_frequently, hα] }
 end
 
@@ -1914,7 +1914,7 @@ lemma comap_eval_ne_bot_iff' {ι : Type*} {α : ι → Type*} {i : ι} {f : filt
 begin
   casesI is_empty_or_nonempty (Π j, α j) with H H,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [skip, assumption],
-    simpa [← classical.nonempty_pi] using H.elim },
+    simp [← classical.nonempty_pi] },
   { haveI : ∀ j, nonempty (α j), from classical.nonempty_pi.1 H,
     simp [comap_ne_bot_iff_frequently, *] }
 end

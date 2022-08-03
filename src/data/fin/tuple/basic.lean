@@ -690,4 +690,21 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
 
+/-- To show two sigma pairs of tuples agree, it to show the second elements are related via
+`fin.cast`. -/
+lemma sigma_eq_of_eq_comp_cast {α : Type*} :
+  ∀ {a b : Σ ii, fin ii → α} (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h → a = b
+| ⟨ai, a⟩ ⟨bi, b⟩ hi h :=
+begin
+  dsimp only at hi,
+  subst hi,
+  simpa using h,
+end
+
+/-- `fin.sigma_eq_of_eq_comp_cast` as an `iff`. -/
+lemma sigma_eq_iff_eq_comp_cast {α : Type*} {a b : Σ ii, fin ii → α} :
+  a = b ↔ ∃ (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h :=
+⟨λ h, h ▸ ⟨rfl, funext $ subtype.rec $ by exact λ i hi, rfl⟩,
+ λ ⟨h, h'⟩, sigma_eq_of_eq_comp_cast _ h'⟩
+
 end fin

@@ -641,28 +641,25 @@ def pow_eq_one_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
     rw [mul_pow, ha, hb, mul_one] },
   inv_mem' := by simp }
 
+/-- The elements of `zmod n` whose `e`th power equals `±1` form a subgroup -/
 def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
 { carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1)),
   one_mem' := by simp,
-  mul_mem' := begin
-    simp,
+  mul_mem' := by
+  { simp only [coe_filter, coe_univ, set.sep_univ, set.mem_set_of_eq],
     intros a b ha hb,
+    simp_rw [mul_pow],
     cases ha with ha1 ha2,
-    cases hb with hb1 hb2,
-    simp_rw [mul_pow, ha1, hb1, mul_one, eq_self_iff_true, true_or],
-    simp_rw [mul_pow, ha1, hb2, one_mul, eq_self_iff_true, or_true],
-    cases hb with hb1 hb2,
-    simp_rw [mul_pow, ha2, hb1, mul_one, eq_self_iff_true, or_true],
-    simp_rw [mul_pow, ha2, hb2, mul_neg, mul_one, neg_neg, eq_self_iff_true, true_or],
-  end,
-  inv_mem' := begin
-    simp,
+    { simp_rw [ha1, one_mul], exact hb },
+    { simp_rw [ha2],
+      rw [neg_mul, one_mul, neg_inj, or_comm],
+      apply or.imp id (λ h, _) hb,
+      rw [h, neg_neg] } },
+  inv_mem' := by
+  { simp only [coe_filter, coe_univ, set.sep_univ, set.mem_set_of_eq, inv_pow, inv_eq_one],
     intros a ha,
-    cases ha with ha1 ha2,
-    simp_rw [ha1, eq_self_iff_true, true_or],
-    simp_rw [ha2, inv_neg'],
-    simp,
-  end }
+    apply or.imp id (λ h, _) ha,
+    rw [h, inv_neg', inv_one] } }
 
 /-- Every positive natural is of the form of one of the rec_on_prime_coprime recursors. -/
 lemma coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :

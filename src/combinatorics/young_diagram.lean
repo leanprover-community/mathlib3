@@ -24,10 +24,11 @@ to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
 ## Main functions:
 
   - `young_diagram` : basic definition
+  - `young_diagram.distrib_lattice`
   - `young_diagram.card` : the cardinality (number of boxes)
 
   - various constructors:
-      `young_diagram.has_emptyc` : the empty Young diagram is (∅ : young_diagram)
+      `young_diagram.has_bot` : the empty Young diagram is (⊥ : young_diagram)
 
 ## Notation:
 
@@ -65,24 +66,39 @@ lemma young_diagram.nw_of (μ : young_diagram) {i1 i2 j1 j2 : ℕ}
   (hi : i1 ≤ i2) (hj : j1 ≤ j2) (hcell : (i2, j2) ∈ μ) : (i1, j1) ∈ μ :=
 μ.is_lower_set (prod.mk_le_mk.mpr ⟨hi, hj⟩) hcell
 
-instance young_diagram.has_subset : has_subset young_diagram :=
-{ subset := λ μ ν, (μ : set (ℕ × ℕ)) ⊆ ν }
+section distrib_lattice
+
+instance young_diagram.has_le : has_le young_diagram :=
+{ le := λ μ ν, (μ : set (ℕ × ℕ)) ⊆ ν }
+
+instance young_diagram.has_sup : has_sup young_diagram :=
+{ sup := λ μ ν, { cells        := μ.cells ∪ ν.cells,
+                  is_lower_set := by { rw finset.coe_union,
+                                       exact is_lower_set.union μ.is_lower_set ν.is_lower_set } } }
+
+instance young_diagram.has_inf : has_inf young_diagram :=
+{ inf := λ μ ν, { cells        := μ.cells ∩ ν.cells,
+                  is_lower_set := by { rw finset.coe_inter,
+                                       exact is_lower_set.inter μ.is_lower_set ν.is_lower_set } } }
+
+/-- The empty Young diagram is (⊥ : young_diagram). -/
+instance young_diagram.has_bot : has_bot young_diagram :=
+{ bot := { cells := finset.empty, is_lower_set := λ _ _ _ h, h } }
+
+instance young_diagram.distrib_lattice : distrib_lattice young_diagram :=
+function.injective.distrib_lattice
+  (λ (μ : young_diagram), μ.cells)
+  (λ μ ν h, by rwa young_diagram.ext_iff)
+  (λ _ _, rfl) (λ _ _, rfl)
+
+instance : inhabited young_diagram := ⟨⊥⟩
+
+end distrib_lattice
 
 /-- Cardinality of a Young diagram -/
 def young_diagram.card (μ : young_diagram) : ℕ := μ.cells.card
 lemma young_diagram.card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
-section μ_empty
-/-! The empty Young diagram -/
-
-/-- The empty Young diagram is (∅ : young_diagram). -/
-instance young_diagram.has_emptyc : has_emptyc young_diagram :=
-{ emptyc := { cells := finset.empty, is_lower_set := λ _ _ _ h, h } }
-
-@[simp] lemma μ_empty_card : (∅ : young_diagram).card = 0 := rfl
-
-instance : inhabited young_diagram := ⟨∅⟩
-
-end μ_empty
+@[simp] lemma μ_bot_card : (⊥ : young_diagram).card = 0 := rfl
 
 end young_diagram

@@ -529,6 +529,31 @@ begin
   { apply_instance },
 end
 
+-- you can show the difference is bounded by 1 but that is unnecessary for our purposes
+lemma mgale_diff_le (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
+  ∀ᵐ x ∂μ, |mgale ℱ μ s (n + 1) x - mgale ℱ μ s n x| ≤ 2 :=
+begin
+  have h₁ : μ[(s (n + 1)).indicator 1|ℱ n] ≤ᵐ[μ] 1,
+  { change _ ≤ᵐ[μ] (λ x, 1 : α → ℝ),
+    rw ← @condexp_const _ _ _ _ _ _ _ μ (ℱ.le n) (1 : ℝ),
+    refine condexp_mono ((integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2
+      (integrable_const 1).integrable_on) (integrable_const 1)
+      (eventually_of_forall $ λ x, set.indicator_le_self' (λ _ _, zero_le_one) x) },
+  have h₂ : (0 : α → ℝ) ≤ᵐ[μ] μ[(s (n + 1)).indicator 1|ℱ n],
+  { rw ← @condexp_zero α ℝ _ _ _ (ℱ n) _ μ,
+    exact condexp_mono (integrable_zero _ _ _)
+      ((integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2 (integrable_const 1).integrable_on)
+      (eventually_of_forall $ λ x, set.indicator_nonneg (λ _ _, zero_le_one) _) },
+  filter_upwards [h₁, h₂] with x hx₁ hx₂,
+  simp only [mgale, finset.sum_range_succ, pi.add_apply, pi.sub_apply,
+    finset.sum_apply, add_sub_cancel', ← one_add_one_eq_two],
+  refine (abs_add _ _).trans (add_le_add _ _),
+  { rw ← real.norm_eq_abs,
+    refine (norm_indicator_le_norm_self _ _).trans _,
+    simp only [pi.one_apply, cstar_ring.norm_one] },
+  { rwa [abs_neg, abs_of_nonneg hx₂] }
+end
+
 end borel_cantelli
 
 end measure_theory

@@ -98,7 +98,7 @@ instance {ι : Type*} (p : ℝ≥0∞) (α : ι → Type*) [Π i, inhabited (α 
 
 namespace pi_Lp
 
-variables (p : ℝ≥0∞) [fact_one_le_p : fact (1 ≤ p)] (𝕜 : Type*) (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ≥0∞) (𝕜 : Type*) (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -128,18 +128,16 @@ explaining why having definitionally the right uniformity is often important.
 
 variables [Π i, pseudo_metric_space (α i)] [Π i, pseudo_emetric_space (β i)] [fintype ι]
 
-def edist_aux : has_edist (pi_Lp p β) :=
+instance : has_edist (pi_Lp p β) :=
 { edist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, edist (f i) (g i)
     else (∑ i, (edist (f i) (g i) ^ p.to_real)) ^ (1/p.to_real)) }
 
-local attribute [instance] pi_Lp.edist_aux
-
 variable {β}
-lemma edist_aux_eq_card (f g : pi_Lp 0 β) : edist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
+lemma edist_eq_card (f g : pi_Lp 0 β) : edist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
 dif_pos rfl
 
-lemma edist_aux_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p β) :
+lemma edist_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p β) :
   edist f g = (∑ i, edist (f i) (g i) ^ p.to_real) ^ (1/p.to_real) :=
 begin
   dsimp [edist],
@@ -147,48 +145,26 @@ begin
   rw [dif_neg hp.1.ne', if_neg hp.2.ne],
 end
 
-lemma edist_aux_eq_supr (f g : pi_Lp ∞ β) : edist f g = ⨆ i, edist (f i) (g i) :=
+lemma edist_eq_supr (f g : pi_Lp ∞ β) : edist f g = ⨆ i, edist (f i) (g i) :=
 begin
   dsimp [edist],
   rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
 end
 
-lemma edist_aux_self (f : pi_Lp p β) : edist f f = 0 :=
+lemma edist_self (f : pi_Lp p β) : edist f f = 0 :=
 begin
   rcases p.trichotomy with (rfl | rfl | h),
-  { simp [edist_aux_eq_card], },
-  { simp [edist_aux_eq_supr], },
-  { simp [edist_aux_eq_sum h, ennreal.zero_rpow_of_pos h, ennreal.zero_rpow_of_pos (inv_pos.2 $ h)]}
+  { simp [edist_eq_card], },
+  { simp [edist_eq_supr], },
+  { simp [edist_eq_sum h, ennreal.zero_rpow_of_pos h, ennreal.zero_rpow_of_pos (inv_pos.2 $ h)]}
 end
 
-lemma edist_aux_comm (f g : pi_Lp p β) : edist f g = edist g f :=
+lemma edist_comm (f g : pi_Lp p β) : edist f g = edist g f :=
 begin
   rcases p.trichotomy with (rfl | rfl | h),
-  { simp only [edist_aux_eq_card, eq_comm, ne.def] },
-  { simp only [edist_aux_eq_supr, edist_comm] },
-  { simp only [edist_aux_eq_sum h, edist_comm] }
-end
-
-include fact_one_le_p
-
-lemma edist_aux_triangle (f g h : pi_Lp p β) : edist f h ≤ edist f g + edist g h :=
-begin
-  unfreezingI { rcases p.dichotomy with (rfl | hp) },
-  { simp only [edist_aux_eq_supr],
-    cases is_empty_or_nonempty ι; resetI,
-    { simp only [csupr_of_empty, ennreal.bot_eq_zero, add_zero, nonpos_iff_eq_zero] },
-    exact supr_le (λ i, (edist_triangle _ (g i) _).trans $ add_le_add (le_supr _ i) (le_supr _ i))},
-  { simp only [edist_aux_eq_sum (zero_lt_one.trans_le hp)],
-    calc (∑ i, edist (f i) (h i) ^ p.to_real) ^ (1 / p.to_real) ≤
-    (∑ i, (edist (f i) (g i) + edist (g i) (h i)) ^ p.to_real) ^ (1 / p.to_real) :
-    begin
-      apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ zero_le_one.trans hp),
-      refine finset.sum_le_sum (λ i hi, _),
-      exact ennreal.rpow_le_rpow (edist_triangle _ _ _) (zero_le_one.trans hp),
-    end
-    ... ≤ (∑ i, edist (f i) (g i) ^ p.to_real) ^ (1 / p.to_real)
-          + (∑ i, edist (g i) (h i) ^ p.to_real) ^ (1 / p.to_real) :
-      ennreal.Lp_add_le _ _ _ hp } ,
+  { simp only [edist_eq_card, eq_comm, ne.def] },
+  { simp only [edist_eq_supr, edist_comm] },
+  { simp only [edist_eq_sum h, edist_comm] }
 end
 
 variable (β)
@@ -199,27 +175,40 @@ with the product one. Therefore, we do not register it as an instance. Using thi
 pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
 the product one, and then register an instance in which we replace the uniform structure by the
 product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
-def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
-{ edist_self := edist_aux_self p,
-  edist_comm := edist_aux_comm p,
-  edist_triangle := edist_aux_triangle p }
-
-omit fact_one_le_p
+def pseudo_emetric_aux [fact (1 ≤ p)] : pseudo_emetric_space (pi_Lp p β) :=
+{ edist_self := edist_self p,
+  edist_comm := edist_comm p,
+  edist_triangle := λ f g h,
+  begin
+    unfreezingI { rcases p.dichotomy with (rfl | hp) },
+    { simp only [edist_eq_supr],
+      cases is_empty_or_nonempty ι; resetI,
+      { simp only [csupr_of_empty, ennreal.bot_eq_zero, add_zero, nonpos_iff_eq_zero] },
+      exact supr_le (λ i, (edist_triangle _ (g i) _).trans $ add_le_add (le_supr _ i) (le_supr _ i))},
+    { simp only [edist_eq_sum (zero_lt_one.trans_le hp)],
+      calc (∑ i, edist (f i) (h i) ^ p.to_real) ^ (1 / p.to_real) ≤
+      (∑ i, (edist (f i) (g i) + edist (g i) (h i)) ^ p.to_real) ^ (1 / p.to_real) :
+      begin
+        apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ zero_le_one.trans hp),
+        refine finset.sum_le_sum (λ i hi, _),
+        exact ennreal.rpow_le_rpow (edist_triangle _ _ _) (zero_le_one.trans hp),
+      end
+      ... ≤ (∑ i, edist (f i) (g i) ^ p.to_real) ^ (1 / p.to_real)
+            + (∑ i, edist (g i) (h i) ^ p.to_real) ^ (1 / p.to_real) : ennreal.Lp_add_le _ _ _ hp },
+  end }
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
 
-def dist_aux : has_dist (pi_Lp p α) :=
+instance : has_dist (pi_Lp p α) :=
 { dist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, dist (f i) (g i)
     else (∑ i, (dist (f i) (g i) ^ p.to_real)) ^ (1/p.to_real)) }
 
-local attribute [instance] pi_Lp.dist_aux
-
 variable {α}
-lemma dist_aux_eq_card (f g : pi_Lp 0 α) : dist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
+lemma dist_eq_card (f g : pi_Lp 0 α) : dist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
 dif_pos rfl
 
-lemma dist_aux_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p α) :
+lemma dist_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p α) :
   dist f g = (∑ i, dist (f i) (g i) ^ p.to_real) ^ (1/p.to_real) :=
 begin
   dsimp [dist],
@@ -227,14 +216,13 @@ begin
   rw [dif_neg hp.1.ne', if_neg hp.2.ne],
 end
 
-lemma dist_aux_eq_csupr (f g : pi_Lp ∞ α) : dist f g = ⨆ i, dist (f i) (g i) :=
+lemma dist_eq_csupr (f g : pi_Lp ∞ α) : dist f g = ⨆ i, dist (f i) (g i) :=
 begin
   dsimp [dist],
   rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
 end
 
 variable (α)
-include fact_one_le_p
 
 example (f g : pi_Lp ∞ α) : (⨆ i, edist (f i) (g i)) ≠ ⊤ :=
 begin
@@ -253,7 +241,7 @@ structure and the bornology by the product ones using this pseudometric space,
 `pseudo_metric_space.replace_uniformity`, and `pseudo_metric_space.replace_bornology`.
 
 See note [reducible non-instances] -/
-@[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
+@[reducible] def pseudo_metric_aux [fact (1 ≤ p)] : pseudo_metric_space (pi_Lp p α) :=
 have supr_ne_top : ∀ (f g : pi_Lp ∞ α), (⨆ i, edist (f i) (g i)) ≠ ⊤ := λ f g,
 begin
   obtain ⟨M, hM⟩ := fintype.exists_le (λ i, (⟨dist (f i) (g i), dist_nonneg⟩ : ℝ≥0)),
@@ -266,7 +254,7 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist dist
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { exact supr_ne_top f g },
-    { rw edist_aux_eq_sum (zero_lt_one.trans_le h),
+    { rw edist_eq_sum (zero_lt_one.trans_le h),
       exact ennreal.rpow_ne_top_of_nonneg (one_div_nonneg.2 (zero_le_one.trans h)) (ne_of_lt $
         (ennreal.sum_lt_top $ λ i hi, ennreal.rpow_ne_top_of_nonneg (zero_le_one.trans h)
         (edist_ne_top _ _)))}
@@ -274,7 +262,7 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist dist
   (λ f g,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
-    { rw [edist_aux_eq_supr, dist_aux_eq_csupr],
+    { rw [edist_eq_supr, dist_eq_csupr],
       { cases is_empty_or_nonempty ι; resetI,
         { simp only [real.csupr_empty, csupr_of_empty, ennreal.bot_eq_zero, ennreal.zero_to_real] },
         { refine le_antisymm (csupr_le $ λ i, _) _,
@@ -288,20 +276,20 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist dist
               exact ennreal.of_real_le_of_real (le_csupr (fintype.bdd_above_range _) i), } } } } },
     { have A : ∀ i, edist (f i) (g i) ^ p.to_real ≠ ⊤,
         from λ i, ennreal.rpow_ne_top_of_nonneg (zero_le_one.trans h) (edist_ne_top _ _),
-      simp only [edist_aux_eq_sum (zero_lt_one.trans_le h), dist_edist, ennreal.to_real_rpow,
-        dist_aux_eq_sum (zero_lt_one.trans_le h), ← ennreal.to_real_sum (λ i _, A i)] }
+      simp only [edist_eq_sum (zero_lt_one.trans_le h), dist_edist, ennreal.to_real_rpow,
+        dist_eq_sum (zero_lt_one.trans_le h), ← ennreal.to_real_sum (λ i _, A i)] }
   end)
 
 local attribute [instance] pi_Lp.pseudo_metric_aux
 
-lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
+lemma lipschitz_with_equiv_aux [fact (1 ≤ p)] : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
   intros f g,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
-  { simpa only [equiv_apply', ennreal.coe_one, one_mul, edist_aux_eq_supr, edist, finset.sup_le_iff,
+  { simpa only [equiv_apply', ennreal.coe_one, one_mul, edist_eq_supr, edist, finset.sup_le_iff,
       finset.mem_univ, forall_true_left] using le_supr (λ i, edist (f i) (g i)), },
   { have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (zero_lt_one.trans_le h).ne',
-    rw edist_aux_eq_sum (zero_lt_one.trans_le h),
+    rw edist_eq_sum (zero_lt_one.trans_le h),
     simp only [edist, forall_prop_of_true, one_mul, finset.mem_univ, finset.sup_le_iff,
       ennreal.coe_one],
     assume i,
@@ -315,18 +303,18 @@ begin
     end }
 end
 
-lemma antilipschitz_with_equiv_aux :
+lemma antilipschitz_with_equiv_aux [fact (1 ≤ p)] :
   antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1 / p).to_real) (pi_Lp.equiv p β) :=
 begin
   intros f g,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
-  { simp only [edist_aux_eq_supr, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero,
+  { simp only [edist_eq_supr, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero,
       ennreal.coe_one, equiv_apply', one_mul, supr_le_iff],
     exact λ i, finset.le_sup (finset.mem_univ i), },
   { have pos : 0 < p.to_real := zero_lt_one.trans_le h,
     have nonneg : 0 ≤ 1 / p.to_real := one_div_nonneg.2 (le_of_lt pos),
     have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
-    rw [edist_aux_eq_sum pos, ennreal.to_real_div 1 p],
+    rw [edist_eq_sum pos, ennreal.to_real_div 1 p],
     simp only [edist, equiv_apply', ←one_div, ennreal.one_to_real],
     calc (∑ i, edist (f i) (g i) ^ p.to_real) ^ (1 / p.to_real) ≤
     (∑ i, edist (pi_Lp.equiv p β f) (pi_Lp.equiv p β g) ^ p.to_real) ^ (1 / p.to_real) :
@@ -347,7 +335,7 @@ begin
     end }
 end
 
-lemma aux_uniformity_eq :
+lemma aux_uniformity_eq [fact (1 ≤ p)] :
   𝓤 (pi_Lp p β) = @uniformity _ (Pi.uniform_space _) :=
 begin
   have A : uniform_inducing (pi_Lp.equiv p β) :=
@@ -359,7 +347,7 @@ begin
   rw [← A.comap_uniformity, this, comap_id]
 end
 
-lemma aux_cobounded_eq :
+lemma aux_cobounded_eq [fact (1 ≤ p)] :
   cobounded (pi_Lp p α) = @cobounded _ pi.bornology :=
 calc cobounded (pi_Lp p α) = comap (pi_Lp.equiv p α) (cobounded _) :
   le_antisymm (antilipschitz_with_equiv_aux p α).tendsto_cobounded.le_comap
@@ -370,74 +358,51 @@ end
 
 /-! ### Instances on finite `L^p` products -/
 
-instance uniform_space [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β) :=
+instance uniform_space [fact (1 ≤ p)] [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β) :=
 Pi.uniform_space _
 
 variable [fintype ι]
 
-instance bornology [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
-
-include fact_one_le_p
+instance bornology [fact (1 ≤ p)] [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
 
 /-- pseudoemetric space instance on the product of finitely many pseudoemetric spaces, using the
 `L^p` pseudoedistance, and having as uniformity the product uniformity. -/
-instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β) :=
+instance [fact (1 ≤ p)] [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β) :=
 (pseudo_emetric_aux p β).replace_uniformity (aux_uniformity_eq p β).symm
 
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
-instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
+instance [fact (1 ≤ p)] [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
 @emetric.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
-
-omit fact_one_le_p
-variables {p β}
-lemma edist_eq_supr [Π i, pseudo_emetric_space (β i)] (x y : pi_Lp ∞ β) :
-  edist x y = ⨆ i, edist (x i) (y i) := rfl
-
-include fact_one_le_p
-lemma edist_eq_sum [Π i, pseudo_emetric_space (β i)] (hp : 0 < p.to_real) (x y : pi_Lp p β) :
-  edist x y = (∑ i, edist (x i) (y i) ^ p.to_real) ^ (1 / p.to_real) := edist_aux_eq_sum hp x y
-variables (p β)
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
-instance [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :=
+instance [fact (1 ≤ p)] [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :=
 ((pseudo_metric_aux p β).replace_uniformity (aux_uniformity_eq p β).symm).replace_bornology $
   λ s, filter.ext_iff.1 (aux_cobounded_eq p β).symm sᶜ
 
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
 and having as uniformity the product uniformity. -/
-instance [Π i, metric_space (α i)] : metric_space (pi_Lp p α) := metric.of_t0_pseudo_metric_space _
-
-omit fact_one_le_p
-lemma dist_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
-  [Π i, pseudo_metric_space (β i)] (hp : p ≠ ∞) (x y : pi_Lp p β) :
-  dist x y = (∑ i : ι, dist (x i) (y i) ^ p.to_real) ^ (1 / p.to_real) :=
-dist_aux_eq_sum (zero_lt_one.trans_le (p.dichotomy.resolve_left hp)) _ _
-
-lemma dist_eq_csupr {β : ι → Type*} [Π i, pseudo_metric_space (β i)] (x y : pi_Lp ∞ β) :
-  dist x y = ⨆ i, dist (x i) (y i) :=  rfl
+instance [fact (1 ≤ p)] [Π i, metric_space (α i)] : metric_space (pi_Lp p α) :=
+metric.of_t0_pseudo_metric_space _
 
 lemma nndist_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, pseudo_metric_space (β i)] (hp : p ≠ ∞) (x y : pi_Lp p β) :
   nndist x y = (∑ i : ι, nndist (x i) (y i) ^ p.to_real) ^ (1 / p.to_real) :=
-subtype.ext $ by { push_cast, exact dist_eq_sum hp _ _ }
+subtype.ext $ by { push_cast, exact dist_eq_sum (p.to_real_pos_iff_ne_top.mpr hp) _ _ }
 
 lemma nndist_eq_supr {β : ι → Type*} [Π i, pseudo_metric_space (β i)] (x y : pi_Lp ∞ β) :
   nndist x y = ⨆ i, nndist (x i) (y i) :=
 subtype.ext $ by { push_cast, exact dist_eq_csupr _ _ }
 
-include fact_one_le_p
-
-lemma lipschitz_with_equiv [Π i, pseudo_emetric_space (β i)] :
+lemma lipschitz_with_equiv [fact (1 ≤ p)] [Π i, pseudo_emetric_space (β i)] :
   lipschitz_with 1 (pi_Lp.equiv p β) :=
 lipschitz_with_equiv_aux p β
 
-lemma antilipschitz_with_equiv [Π i, pseudo_emetric_space (β i)] :
+lemma antilipschitz_with_equiv [fact (1 ≤ p)] [Π i, pseudo_emetric_space (β i)] :
   antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1 / p).to_real) (pi_Lp.equiv p β) :=
 antilipschitz_with_equiv_aux p β
 
-omit fact_one_le_p
 lemma isometry_pi_Lp_equiv_infty [Π i, pseudo_emetric_space (β i)] :
   isometry (pi_Lp.equiv ∞ β) :=
 λ x y, le_antisymm (by simpa only [ennreal.coe_one, one_mul] using lipschitz_with_equiv ∞ β x y)
@@ -468,28 +433,24 @@ begin
   rw [dif_neg hp.1.ne', if_neg hp.2.ne],
 end
 
-include fact_one_le_p
-
 variables (p β)
 /-- seminormed group instance on the product of finitely many normed groups, using the `L^p`
 norm. -/
-instance seminormed_add_comm_group [Π i, seminormed_add_comm_group (β i)] :
+instance seminormed_add_comm_group [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] :
   seminormed_add_comm_group (pi_Lp p β) :=
 { dist_eq := λ x y,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { simpa only [dist_eq_csupr, norm_eq_csupr, dist_eq_norm] },
     { have : p ≠ ∞, { intros hp, rw [hp, ennreal.top_to_real] at h, linarith,} ,
-      simpa only [dist_eq_sum this, norm_eq_sum (zero_lt_one.trans_le h), dist_eq_norm], }
+      simpa only [dist_eq_sum (zero_lt_one.trans_le h), norm_eq_sum (zero_lt_one.trans_le h), dist_eq_norm], }
   end,
   .. pi.add_comm_group, }
 
 /-- normed group instance on the product of finitely many normed groups, using the `L^p` norm. -/
-instance normed_add_comm_group [Π i, normed_add_comm_group (α i)] :
+instance normed_add_comm_group [fact (1 ≤ p)] [Π i, normed_add_comm_group (α i)] :
   normed_add_comm_group (pi_Lp p α) :=
 { ..pi_Lp.seminormed_add_comm_group p α }
-
-omit fact_one_le_p
 
 lemma nnnorm_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*} (hp : p ≠ ∞)
   [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp p β) :
@@ -537,17 +498,15 @@ lemma edist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)
   edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
 by simp [pi_Lp.edist_eq_sum]
 
-include fact_one_le_p
-
 variables [normed_field 𝕜]
 
 -- this was necessary to get Lean to accept `∥c • f∥₊` in the `normed_space` instance below
 -- can we just do this with `letI`?
-instance module [Π i, seminormed_add_comm_group (β i)] [Π i, module 𝕜 (β i)] :
+instance module [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] [Π i, module 𝕜 (β i)] :
   module 𝕜 (pi_Lp p β) := pi.module ι β 𝕜
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
-instance normed_space [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] :
+instance normed_space [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] :
   normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le := λ c f,
   begin
@@ -562,14 +521,14 @@ instance normed_space [Π i, seminormed_add_comm_group (β i)] [Π i, normed_spa
       exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _) },
   end, }
 
-instance finite_dimensional [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)]
-  [I : ∀ i, finite_dimensional 𝕜 (β i)] :
+instance finite_dimensional [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)]
+  [Π i, normed_space 𝕜 (β i)] [I : ∀ i, finite_dimensional 𝕜 (β i)] :
   finite_dimensional 𝕜 (pi_Lp p β) :=
 finite_dimensional.finite_dimensional_pi' _ _
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
+variables {𝕜 p α} [fact (1 ≤ p)] [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
 variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 @[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl

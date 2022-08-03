@@ -65,6 +65,10 @@ variables {ι : Type*}
 -- this needs to go in `data.real.ennreal`
 instance : zero_le_one_class ℝ≥0∞ := ⟨zero_le 1⟩
 
+lemma ennreal.to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.to_real ↔ p ≠ ∞ :=
+⟨λ h hp, let this : (0 : ℝ) ≠ 0 := ennreal.top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,
+ λ h, zero_lt_one.trans_le (p.dichotomy.resolve_left h)⟩
+
 -- this should be a bit more general, see `fintype.sum_equiv`
 lemma conditionally_complete_lattice.supr_equiv {ι ι' E : Type*} [conditionally_complete_lattice E]
   (e : ι ≃ ι') {f : ι → E} (hf :bdd_above (range f)) : (⨆ i, f (e.symm i)) = ⨆ i, f i :=
@@ -490,7 +494,7 @@ omit fact_one_le_p
 lemma nnnorm_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*} (hp : p ≠ ∞)
   [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp p β) :
   ∥f∥₊ = (∑ i, ∥f i∥₊ ^ p.to_real) ^ (1 / p.to_real) :=
-by { ext, simp [nnreal.coe_sum, norm_eq_sum (zero_lt_one.trans_le (p.dichotomy.resolve_left hp))] }
+by { ext, simp [nnreal.coe_sum, norm_eq_sum (p.to_real_pos_iff_ne_top.mpr hp)] }
 
 lemma nnnorm_eq_csupr {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp ∞ β) :
   ∥f∥₊ = ⨆ i, ∥f i∥₊ :=
@@ -500,7 +504,7 @@ lemma norm_eq_of_nat {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, seminormed_add_comm_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
   ∥f∥ = (∑ i, ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
 begin
-  have := zero_lt_one.trans_le (p.dichotomy.resolve_left $ ne_of_eq_of_ne h (ennreal.nat_ne_top n)),
+  have := p.to_real_pos_iff_ne_top.mpr (ne_of_eq_of_ne h $ ennreal.nat_ne_top n),
   simp only [one_div, h, real.rpow_nat_cast, ennreal.to_real_nat, eq_self_iff_true,
     finset.sum_congr, norm_eq_sum this],
 end

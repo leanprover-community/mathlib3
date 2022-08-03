@@ -92,9 +92,6 @@ def pi_Lp {ι : Type*} (p : ℝ≥0∞) (α : ι → Type*) : Type* := Π (i : �
 instance {ι : Type*} (p : ℝ≥0∞) (α : ι → Type*) [Π i, inhabited (α i)] : inhabited (pi_Lp p α) :=
 ⟨λ i, default⟩
 
-instance fact_one_le_one_real : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨rfl.le⟩
-instance fact_one_le_two_real : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨one_le_two⟩
-
 namespace pi_Lp
 
 variables (p : ℝ≥0∞) [fact_one_le_p : fact (1 ≤ p)] (𝕜 : Type*) (α : ι → Type*) (β : ι → Type*)

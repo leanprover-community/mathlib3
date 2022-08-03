@@ -517,7 +517,10 @@ end
 
 open_locale nat  -- to use `φ` for `nat.totient`
 
-/-- Theorem 3.4 of Conrad -/
+/-- Theorem 3.4 of Conrad:
+For odd `n > 1` of the form `n = p^α` for prime `p` and `α > 0`,
+the Miller–Rabin nonwitnesses for `n` are the solutions to `a^(p−1) ≡ 1 mod p^α`.
+-/
 lemma strong_probable_prime_of_prime_power_iff {p α : ℕ} (hp_odd : odd p) (hp : nat.prime p)
   (hα0 : 0 < α) (a : zmod (p^α)) :
   strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=

@@ -39,8 +39,12 @@ def nil : seq α := ⟨stream.const none, λn h, rfl⟩
 instance : inhabited (seq α) := ⟨nil⟩
 
 /-- Prepend an element to a sequence -/
-def cons (a : α) : seq α → seq α
-| ⟨f, al⟩ := ⟨some a :: f, λn h, by {cases n with n, contradiction, exact al h}⟩
+def cons (a : α) (s : seq α) : seq α :=
+⟨some a :: s.1, begin
+  rintros (n | _) h,
+  { contradiction },
+  { exact s.2 h }
+end⟩
 
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val

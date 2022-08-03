@@ -380,6 +380,8 @@ def strictly_positive : convex_cone 𝕜 E :=
 /-- The strictly positive cone of an ordered module is always blunt. -/
 lemma blunt_strictly_positive : blunt (strictly_positive 𝕜 E) := lt_irrefl 0
 
+lemma positive_le_strictly_positive : strictly_positive 𝕜 E ≤ positive 𝕜 E := λ x, le_of_lt
+
 end positive_cone
 end convex_cone
 

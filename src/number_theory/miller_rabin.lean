@@ -631,17 +631,15 @@ end
 
 
 -- https://leanprover.zulipchat.com/#narrow/stream/217875/near/277098292
+/-- The elements of `zmod n` whose `e`th power equals `1` form a subgroup -/
 def pow_eq_one_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
 { carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1)),
   one_mem' := by simp,
-  mul_mem' := begin
-    simp,
+  mul_mem' := by
+  { simp only [coe_filter, coe_univ, set.sep_univ, set.mem_set_of_eq],
     intros a b ha hb,
-    rw [mul_pow, ha, hb, mul_one],
-  end,
-  inv_mem' := begin
-    simp,
-  end }
+    rw [mul_pow, ha, hb, mul_one] },
+  inv_mem' := by simp }
 
 def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
 { carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1)),

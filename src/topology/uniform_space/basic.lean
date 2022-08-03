@@ -1241,6 +1241,26 @@ instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥
 
+section
+variables [uniform_space α]
+
+open additive multiplicative
+
+instance : uniform_space (additive α) := ‹uniform_space α›
+instance : uniform_space (multiplicative α) := ‹uniform_space α›
+
+lemma uniform_continuous_of_mul : uniform_continuous (of_mul : α → additive α) :=
+uniform_continuous_id
+lemma uniform_continuous_to_mul : uniform_continuous (to_mul : additive α → α) :=
+uniform_continuous_id
+lemma uniform_continuous_of_add : uniform_continuous (of_add : α → multiplicative α) :=
+uniform_continuous_id
+lemma uniform_continuous_to_add : uniform_continuous (to_add : multiplicative α → α) :=
+uniform_continuous_id
+
+end
+
+
 instance {p : α → Prop} [t : uniform_space α] : uniform_space (subtype p) :=
 uniform_space.comap subtype.val t
 

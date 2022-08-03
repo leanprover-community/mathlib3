@@ -1028,8 +1028,8 @@ instance : has_edist (multiplicative X) := ‹has_edist X›
 
 @[simp] lemma edist_of_mul (a b : X) : edist (of_mul a) (of_mul b) = edist a b := rfl
 @[simp] lemma edist_of_add (a b : X) : edist (of_add a) (of_add b) = edist a b := rfl
-@[simp] lemma edist_to_mul (a b) : edist (to_mul a : X) (to_mul b) = edist a b := rfl
-@[simp] lemma edist_to_add (a b) : edist (to_add a : X) (to_add b) = edist a b := rfl
+@[simp] lemma edist_to_mul (a b : additive X) : edist (to_mul a) (to_mul b) = edist a b := rfl
+@[simp] lemma edist_to_add (a b : multiplicative X) : edist (to_add a) (to_add b) = edist a b := rfl
 
 end
 
@@ -1049,7 +1049,7 @@ variables [has_edist X]
 instance : has_edist Xᵒᵈ := ‹has_edist X›
 
 @[simp] lemma edist_to_dual (a b : X) : edist (to_dual a) (to_dual b) = edist a b := rfl
-@[simp] lemma edist_of_dual (a b) : edist (of_dual a : X) (of_dual b) = edist a b := rfl
+@[simp] lemma edist_of_dual (a b : Xᵒᵈ) : edist (of_dual a) (of_dual b) = edist a b := rfl
 
 end
 

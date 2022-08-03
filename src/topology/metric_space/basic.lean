@@ -2882,7 +2882,11 @@ instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
 
 end eq_rel
 
-/-! ### `additive`, `multiplicative` -/
+/-!
+### `additive`, `multiplicative`
+
+The distance on those type synonyms is inherited without change.
+-/
 
 open additive multiplicative
 
@@ -2894,8 +2898,8 @@ instance : has_dist (multiplicative X) := ‹has_dist X›
 
 @[simp] lemma dist_of_mul (a b : X) : dist (of_mul a) (of_mul b) = dist a b := rfl
 @[simp] lemma dist_of_add (a b : X) : dist (of_add a) (of_add b) = dist a b := rfl
-@[simp] lemma dist_to_mul (a b) : dist (to_mul a : X) (to_mul b) = dist a b := rfl
-@[simp] lemma dist_to_add (a b) : dist (to_add a : X) (to_add b) = dist a b := rfl
+@[simp] lemma dist_to_mul (a b : additive X) : dist (to_mul a) (to_mul b) = dist a b := rfl
+@[simp] lemma dist_to_add (a b : multiplicative X) : dist (to_add a) (to_add b) = dist a b := rfl
 
 end
 
@@ -2907,8 +2911,9 @@ instance : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
 
 @[simp] lemma nndist_of_mul (a b : X) : nndist (of_mul a) (of_mul b) = nndist a b := rfl
 @[simp] lemma nndist_of_add (a b : X) : nndist (of_add a) (of_add b) = nndist a b := rfl
-@[simp] lemma nndist_to_mul (a b) : nndist (to_mul a : X) (to_mul b) = nndist a b := rfl
-@[simp] lemma nndist_to_add (a b) : nndist (to_add a : X) (to_add b) = nndist a b := rfl
+@[simp] lemma nndist_to_mul (a b : additive X) : nndist (to_mul a) (to_mul b) = nndist a b := rfl
+@[simp] lemma nndist_to_add (a b : multiplicative X) : nndist (to_add a) (to_add b) = nndist a b :=
+rfl
 
 end
 
@@ -2918,7 +2923,11 @@ instance [pseudo_metric_space X] [proper_space X] : proper_space (additive X) :=
 instance [pseudo_metric_space X] [proper_space X] : proper_space (multiplicative X) :=
 ‹proper_space X›
 
-/-! ### Order dual -/
+/-!
+### Order dual
+
+The distance on this type synonym is inherited without change.
+-/
 
 open order_dual
 
@@ -2928,7 +2937,7 @@ variables [has_dist X]
 instance : has_dist Xᵒᵈ := ‹has_dist X›
 
 @[simp] lemma dist_to_dual (a b : X) : dist (to_dual a) (to_dual b) = dist a b := rfl
-@[simp] lemma dist_of_dual (a b) : dist (of_dual a : X) (of_dual b) = dist a b := rfl
+@[simp] lemma dist_of_dual (a b : Xᵒᵈ) : dist (of_dual a) (of_dual b) = dist a b := rfl
 
 end
 
@@ -2938,7 +2947,7 @@ variables [pseudo_metric_space X]
 instance : pseudo_metric_space Xᵒᵈ := ‹pseudo_metric_space X›
 
 @[simp] lemma nndist_to_dual (a b : X) : nndist (to_dual a) (to_dual b) = nndist a b := rfl
-@[simp] lemma nndist_of_dual (a b) : nndist (of_dual a : X) (of_dual b) = nndist a b := rfl
+@[simp] lemma nndist_of_dual (a b : Xᵒᵈ) : nndist (of_dual a) (of_dual b) = nndist a b := rfl
 
 end
 

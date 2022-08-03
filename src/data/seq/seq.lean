@@ -301,11 +301,8 @@ end⟩
 instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
 
 @[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
-
 @[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
-
-@[simp] theorem of_list_cons (a : α) (l) :
-  of_list (a :: l) = cons a (of_list l) :=
+@[simp] theorem of_list_cons (a : α) (l : list α) : of_list (a :: l) = cons a (of_list l) :=
 by ext (_|n); simp [option.coe_def]
 
 /-- Embed an infinite stream as a sequence -/

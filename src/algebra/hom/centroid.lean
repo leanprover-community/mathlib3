@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Christopher Hoskin
 -/
 import algebra.group.pi
 import algebra.group_power.lemmas
+import algebra.hom.group_instances
 
 /-!
 # Centroid homomorphisms
@@ -213,21 +214,10 @@ coe_to_add_monoid_hom_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl
 instance : has_nat_cast (centroid_hom α) :=
 { nat_cast := λ n, n • 1 }
 
-instance : add_comm_monoid_with_one (centroid_hom α) :=
-{ ..centroid_hom.add_comm_monoid,
-  ..centroid_hom.has_one }
-
 -- cf `add_monoid.End.semiring`
 instance : semiring (centroid_hom α) :=
 to_End_injective.semiring _ (by { ext, refl }) (by { ext, refl }) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, by { ext, refl }) (λ n, begin
-    ext,
-    unfold to_End,
-    induction n,
-    rw [nat.cast_zero, coe_to_add_monoid_hom, zero_apply, nat.cast_zero, add_monoid_hom.zero_apply],
-    rw [nat.cast_succ, nat.cast_succ, add_monoid_hom.add_apply, ← n_ih, coe_to_add_monoid_hom,
-      add_apply, one_apply, coe_to_add_monoid_hom, add_monoid.coe_one, id.def],
-  end)
+  (λ _ _, rfl) (λ _ _, by { ext, refl }) (λ n, rfl)
 
 lemma comp_mul_comm (T S : centroid_hom α) (a b : α) : (T ∘ S) (a * b) = (S ∘ T) (a * b) :=
 by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]

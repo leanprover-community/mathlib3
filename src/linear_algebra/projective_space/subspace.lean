@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Blyth
 -/
 
-import linear_algebra.projective_space.basic
+import linear_algebra.projective_space.independence
 
 /-!
 # Subspaces of Projective Space
@@ -76,16 +76,6 @@ def span (S : set (ℙ K V)) : subspace K V :=
 /-- The span of a set of points contains the set of points. -/
 lemma subset_span (S : set (ℙ K V)) : S ⊆ span S := λ x hx, span_carrier.of _ hx
 
-/-- The span of a subspace is the subspace. -/
-@[simp] lemma span_coe (W : subspace K V) : span ↑W = W :=
-begin
-  ext, refine ⟨λ hx, _, λ hx, _⟩,
-  { induction hx with a ha u w hu hw huw _ _ hum hwm,
-      { exact ha },
-      { exact mem_add W u w hu hw huw hum hwm } },
-  { exact subset_span W hx },
-end
-
 /-- The span of a set of points is a Galois insertion between sets of points of a projective space
 and subspaces of the projective space. -/
 def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
@@ -98,6 +88,10 @@ def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
   end⟩,
   le_l_u := λ S, subset_span _,
   choice_eq := λ _ _, rfl }
+
+/-- The span of a subspace is the subspace. -/
+@[simp] lemma span_coe (W : subspace K V) : span ↑W = W :=
+by { exact galois_insertion.l_u_eq gi W }
 
 /-- The infimum of two subspaces exists. -/
 instance has_inf : has_inf (subspace K V) :=
@@ -126,6 +120,26 @@ instance : complete_lattice (subspace K V) :=
 
 instance subspace_inhabited : inhabited (subspace K V) :=
 { default := ⊤ }
+
+/-- The span of a set of points is contained in a subspace if and only if the set of points is
+contained in the subspace. -/
+lemma span_le_subspace_iff {S : set (ℙ K V)} {W : subspace K V} : span S ≤ W ↔ S ⊆ W :=
+gi.gc S W
+
+/-- If a set of points is a subset of another set of points, then its span will be contained in the
+span of that set. -/
+lemma span_mono {S T : set (ℙ K V)} (h : S ⊆ T) : span S ≤ span T :=
+galois_connection.monotone_l gi.gc h
+
+/-- The supremum of two subspaces is equal to the span of their union. -/
+lemma sup_eq_span_union (W S : subspace K V) : W ⊔ S = span (W ∪ S) :=
+by { apply symm, exact (galois_insertion.l_sup_u gi W S) }
+
+/-- The supremum of a collection of subspaces is equal to the span of the union of the
+collection. -/
+lemma Sup_eq_span_union (S : set (subspace K V)) :
+  Sup S = span ⋃ (W : subspace K V) (hW : W ∈ S), W :=
+by { apply symm, rw (Sup_eq_supr), exact galois_insertion.l_bsupr_u gi _ }
 
 end subspace
 

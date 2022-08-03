@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+import data.list.alist
 import set_theory.ordinal.arithmetic
 
 /-!
@@ -53,21 +54,73 @@ theorem CNF_rec_pos (b : ordinal) {o : ordinal} {C : ordinal → Sort*} (ho : o 
   @CNF_rec b C H0 H o = H o ho (@CNF_rec b C H0 H _) :=
 by rw [CNF_rec, dif_neg ho]
 
-/-- The Cantor normal form of an ordinal `o` is the list of coefficients and exponents in the
-base-`b` expansion of `o`.
+/-- The Cantor normal form unbundled from the proof that there's no duplicate keys. -/
+def CNF_aux (b o : ordinal) : list (sigma (λ x : ordinal, ordinal)) :=
+CNF_rec b [] (λ o ho IH, ⟨log b o, o / b ^ log b o⟩ :: IH) o
 
-We special-case `CNF 0 o = CNF 1 o = [(0, o)]` for `o ≠ 0`.
+@[simp] theorem CNF_aux_zero (b : ordinal) : CNF_aux b 0 = [] := CNF_rec_zero b _ _
 
-`CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)]` -/
-@[pp_nodot] def CNF (b o : ordinal) : list (ordinal × ordinal) :=
-CNF_rec b [] (λ o ho IH, (log b o, o / b ^ log b o) :: IH) o
+theorem CNF_aux_ne_zero {b o : ordinal} (ho : o ≠ 0) :
+  CNF_aux b o = ⟨log b o, o / b ^ log b o⟩ :: CNF_aux b (o % b ^ log b o) :=
+CNF_rec_pos b ho _ _
 
-@[simp] theorem CNF_zero (b : ordinal) : CNF b 0 = [] := CNF_rec_zero b _ _
+theorem zero_CNF_aux {o : ordinal} (ho : o ≠ 0) : CNF_aux 0 o = [⟨0, o⟩] :=
+by simp [CNF_aux_ne_zero ho]
+
+theorem one_CNF_aux {o : ordinal} (ho : o ≠ 0) : CNF_aux 1 o = [⟨0, o⟩] :=
+by simp [CNF_aux_ne_zero ho]
+
+theorem CNF_aux_of_le_one {b o : ordinal} (hb : b ≤ 1) (ho : o ≠ 0) : CNF_aux b o = [⟨0, o⟩] :=
+begin
+  rcases le_one_iff.1 hb with rfl | rfl,
+  { exact zero_CNF_aux ho },
+  { exact one_CNF_aux ho }
+end
+
+theorem CNF_aux_of_lt {b o : ordinal} (ho : o ≠ 0) (hb : o < b) : CNF_aux b o = [⟨0, o⟩] :=
+by simp [CNF_aux_ne_zero ho, log_eq_zero hb]
+
+theorem le_log_of_mem_keys_CNF_aux {b o x : ordinal} : x ∈ list.keys (CNF_aux b o) → x ≤ log b o :=
+begin
+  refine CNF_rec b (by simp) (λ o ho IH hx, _) o,
+  rw [CNF_aux_ne_zero ho, list.keys_cons, list.mem_cons_iff] at hx,
+  rcases hx with rfl | hx,
+  { refl },
+  { exact (IH hx).trans (log_mono_right b $ mod_le _ _) }
+end
+
+theorem CNF_aux_keys_sorted (b o : ordinal) : (CNF_aux b o).keys.sorted (>) :=
+begin
+  refine CNF_rec b (by simp) (λ o ho IH, _) o,
+  cases lt_or_le o b with hob hbo,
+  { rw CNF_aux_of_lt ho hob,
+    apply list.sorted_singleton },
+  { rw [CNF_aux_ne_zero ho, list.keys_cons, list.sorted_cons],
+    refine ⟨λ x hx, _, IH⟩,
+    cases le_or_lt b 1 with hb hb,
+    { rcases le_one_iff.1 hb with rfl | rfl;
+      simpa using hx },
+    { exact (le_log_of_mem_keys_CNF_aux hx).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } }
+end
+
+theorem CNF_aux_nodupkeys (b o : ordinal) : (CNF_aux b o).nodupkeys :=
+(CNF_aux_keys_sorted b o).imp (λ x y, has_lt.lt.ne')
+
+/-- The Cantor normal form of an ordinal `o` is the association list of exponents and coefficients
+in the base-`b` expansion of `o`, ordered by decreasing exponents.
+
+We special-case `CNF 0 o = CNF 1 o = [(0, o)]` for `o ≠ 0`. -/
+@[pp_nodot] def CNF (b o : ordinal) : alist (λ x : ordinal, ordinal) :=
+⟨CNF_aux b o, CNF_aux_nodupkeys b o⟩
+
+@[simp] theorem CNF_zero (b : ordinal) : CNF b 0 = ∅ := alist.ext $ CNF_aux_zero b
 
 /-- Recursive definition for the Cantor normal form. -/
 theorem CNF_ne_zero {b o : ordinal} (ho : o ≠ 0) :
-  CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
-CNF_rec_pos b ho _ _
+  CNF b o = alist.insert (log b o) (o / b ^ log b o) (CNF b (o % b ^ log b o)) :=
+begin
+  rw alist.to_alist_cons
+end
 
 theorem zero_CNF {o : ordinal} (ho : o ≠ 0) : CNF 0 o = [⟨0, o⟩] := by simp [CNF_ne_zero ho]
 

@@ -879,6 +879,8 @@ instance : has_mod ordinal := ⟨λ a b, a - b * (a / b)⟩
 
 theorem mod_def (a b : ordinal) : a % b = a - b * (a / b) := rfl
 
+theorem mod_le (a b : ordinal) : a % b ≤ a := sub_le_self a _
+
 @[simp] theorem mod_zero (a : ordinal) : a % 0 = a :=
 by simp only [mod_def, div_zero, zero_mul, sub_zero]
 

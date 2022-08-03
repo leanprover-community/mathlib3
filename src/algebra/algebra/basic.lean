@@ -112,7 +112,7 @@ An associative unital `R`-algebra is a semiring `A` equipped with a map into its
 
 See the implementation notes in this file for discussion of the details of this definition.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   extends has_smul R A, R →+* A :=
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
@@ -474,7 +474,7 @@ end module
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] extends ring_hom A B :=
 (commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)

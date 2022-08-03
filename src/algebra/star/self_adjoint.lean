@@ -124,7 +124,7 @@ by simp only [is_self_adjoint_iff, star_inv', hx.star_eq]
 lemma div {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x / y) :=
 by simp only [is_self_adjoint_iff, star_div', hx.star_eq, hy.star_eq]
 
-lemma zpow {x : R} (hx : is_self_adjoint x) (n : ℤ) : is_self_adjoint (x^n):=
+lemma zpow {x : R} (hx : is_self_adjoint x) (n : ℤ) : is_self_adjoint (x ^ n):=
 by simp only [is_self_adjoint_iff, star_zpow₀, hx.star_eq]
 
 end field

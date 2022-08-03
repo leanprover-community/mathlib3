@@ -411,7 +411,7 @@ lemma antilipschitz_with_equiv [fact (1 ≤ p)] [Π i, pseudo_emetric_space (β 
   antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1 / p).to_real) (pi_Lp.equiv p β) :=
 antilipschitz_with_equiv_aux p β
 
-lemma isometry_pi_Lp_equiv_infty [Π i, pseudo_emetric_space (β i)] :
+lemma infty_equiv_isometry [Π i, pseudo_emetric_space (β i)] :
   isometry (pi_Lp.equiv ∞ β) :=
 λ x y, le_antisymm (by simpa only [ennreal.coe_one, one_mul] using lipschitz_with_equiv ∞ β x y)
   (by simpa only [ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, ennreal.coe_one, one_mul]

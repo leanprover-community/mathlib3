@@ -72,22 +72,24 @@ lemma ennreal.to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.t
 ⟨λ h hp, let this : (0 : ℝ) ≠ 0 := ennreal.top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,
  λ h, zero_lt_one.trans_le (p.dichotomy.resolve_left h)⟩
 
--- this should be a bit more general, see `fintype.sum_equiv`
 lemma conditionally_complete_lattice.supr_equiv {ι ι' E : Type*} [conditionally_complete_lattice E]
-  (e : ι ≃ ι') {f : ι → E} (hf :bdd_above (range f)) : (⨆ i, f (e.symm i)) = ⨆ i, f i :=
+  (e : ι ≃ ι') {f : ι → E} (hf : bdd_above (range f)) (g : ι' → E) (hfg : ∀ i, f i = g (e i)) :
+  (⨆ i, f i) = ⨆ i, g i :=
 begin
   casesI is_empty_or_nonempty ι,
   { haveI : is_empty ι' := (equiv.is_empty_congr e).mp h, simp only [supr, range_eq_empty] },
   { haveI : nonempty ι' := (equiv.nonempty_congr e).mp h,
-    have hf' : bdd_above (range (λ i, f (e.symm i))),
-    { obtain ⟨M, hM⟩ := hf, use M, rintros - ⟨i, rfl⟩, exact hM ⟨(e.symm i), rfl⟩ },
-    refine le_antisymm (csupr_le (λ i, le_csupr hf (e.symm i))) (csupr_le (λ i, _)),
-    simpa only [equiv.symm_apply_apply] using le_csupr hf' (e i) },
+    have hg : bdd_above (range g),
+    { obtain ⟨M, hM⟩ := hf, use M, rintros - ⟨i, rfl⟩, refine hM ⟨(e.symm i), _⟩,
+      simpa only [equiv.apply_symm_apply] using hfg (e.symm i), },
+    refine le_antisymm (csupr_le (λ i, (hfg i).symm ▸ le_csupr hg (e i))) (csupr_le (λ i, _)),
+    simpa only [equiv.apply_symm_apply, hfg (e.symm i)] using le_csupr hf (e.symm i) },
 end
 
 lemma fintype.supr_equiv {ι ι' E : Type*} [fintype ι] [conditionally_complete_lattice E]
-  (e : ι ≃ ι') (f : ι → E) : (⨆ i, f (e.symm i)) = ⨆ i, f i :=
-conditionally_complete_lattice.supr_equiv e (fintype.bdd_above_range f)
+  (e : ι ≃ ι') (f : ι → E) (g : ι' → E) (hfg : ∀ i, f i = g (e i)) :
+  (⨆ i, f i) = ⨆ i, g i :=
+conditionally_complete_lattice.supr_equiv e (fintype.bdd_above_range f) g hfg
 
 /-- A copy of a Pi type, on which we will put the `L^p` distance. Since the Pi type itself is
 already endowed with the `L^∞` distance, we need the type synonym to avoid confusing typeclass
@@ -580,7 +582,7 @@ def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { simp_rw [norm_eq_csupr, linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _],
-      exact fintype.supr_equiv e (λ i, ∥x i∥), },
+      exact fintype.supr_equiv e.symm _ _ (λ i, rfl), },
     { simp only [norm_eq_sum (zero_lt_one.trans_le h)],
       simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
       congr,

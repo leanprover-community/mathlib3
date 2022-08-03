@@ -32,7 +32,7 @@ open_locale classical
 noncomputable theory
 universes u
 
-lemma uniform_continuous_mul_const (α : Type*) [ring α] [uniform_space α] [uniform_add_group α]
+lemma uniform_continuous_const_mul (α : Type*) [ring α] [uniform_space α] [uniform_add_group α]
   [topological_ring α] (r : α) : uniform_continuous ((*) r) :=
 uniform_continuous_of_continuous_at_zero (smul_add_hom α α r)
   (continuous.continuous_at (continuous_mul_left r))
@@ -162,7 +162,7 @@ begin
   ext x,
   refine completion.induction_on x _ (λ s, _),
   { exact is_closed_eq (completion.continuous_map) (continuous_mul_left (r : completion R)) },
-  { rw [map_coe (uniform_continuous_mul_const R r), coe_mul] },
+  { rw [map_coe (uniform_continuous_const_mul R r), coe_mul] },
 end
 
 instance : algebra R (completion R) :=

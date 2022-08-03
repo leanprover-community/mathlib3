@@ -39,7 +39,7 @@ We also define `is_star_normal R`, a `Prop` that states that an element `x` sati
 
 variables {R A : Type*}
 
-/-- An element of a star monoid is self-adjoint if it is equal to its adjoint. -/
+/-- An element is self-adjoint if it is equal to its star. -/
 def is_self_adjoint [has_star R] (x : R) : Prop := star x = x
 
 /-- An element of a star monoid is normal if it commutes with its adjoint. -/

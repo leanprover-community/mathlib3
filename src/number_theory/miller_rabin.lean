@@ -108,35 +108,21 @@ begin
   { right, apply prime.pow_dvd_of_dvd_mul_right pp' α h_minus, simpa [mul_comm] using diffsquare },
 end
 
-
-
-lemma square_roots_of_one'' {p α : ℕ} (hα0 : 0 < α) (pp : p.prime) (hp_odd : odd p) {x : zmod (p^α)}
-  (root : x^2 = 1) :
+lemma square_roots_of_one_zmod {p α : ℕ} (hα0 : 0 < α) (pp : p.prime) (hp_odd : odd p)
+  {x : zmod (p^α)} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
-  have := @square_roots_of_one_int p α ↑x pp hp_odd _ ,
-  apply or.imp (λ h, _) (λ h, _) this,
-  {
-    have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x) (↑p^α),
+  refine or.imp (λ h, _) (λ h, _) (@square_roots_of_one_int p α ↑x pp hp_odd _ ),
+  { have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x) (↑p^α),
     simp at this,
-    rw ←this at h,
-    exact h.symm
-  },
-  {
-    have := int_coe_eq_int_coe_iff_dvd_sub (-1) (↑x) (↑p^α),
+    rwa [eq_comm, this] },
+  { have := int_coe_eq_int_coe_iff_dvd_sub (-1) (↑x) (↑p^α),
     simp at this,
-    rw ←this at h,
-    exact h.symm
-    },
-  {
-    have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x^2) (↑p^α),
+    rwa [eq_comm, this] },
+  { have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x^2) (↑p^α),
     simp at this,
-    rw [←this, root]
-  },
-
+    rw [←this, root] },
 end
-
-
 
 
 
@@ -630,8 +616,8 @@ begin
         nth_rewrite_rhs 0 ←nat.sub_add_cancel hj1,
         rw [pow_add, pow_one] },
 
-      refine (or_iff_right hx1).1 (square_roots_of_one'' hα0 hp hp_odd hx2),
-    },
+      refine (or_iff_right hx1).1 (square_roots_of_one_zmod hα0 hp
+         hp_odd hx2),   },
   }
 end
 

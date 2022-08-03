@@ -165,7 +165,7 @@ begin
   rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
 end
 
-lemma edist_self (f : pi_Lp p β) : edist f f = 0 :=
+protected lemma edist_self (f : pi_Lp p β) : edist f f = 0 :=
 begin
   rcases p.trichotomy with (rfl | rfl | h),
   { simp [edist_eq_card], },
@@ -173,7 +173,7 @@ begin
   { simp [edist_eq_sum h, ennreal.zero_rpow_of_pos h, ennreal.zero_rpow_of_pos (inv_pos.2 $ h)]}
 end
 
-lemma edist_comm (f g : pi_Lp p β) : edist f g = edist g f :=
+protected lemma edist_comm (f g : pi_Lp p β) : edist f g = edist g f :=
 begin
   rcases p.trichotomy with (rfl | rfl | h),
   { simp only [edist_eq_card, eq_comm, ne.def] },
@@ -190,8 +190,8 @@ pseudoemetric space instance, we will show that the uniform structure is equal (
 the product one, and then register an instance in which we replace the uniform structure by the
 product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
 def pseudo_emetric_aux [fact (1 ≤ p)] : pseudo_emetric_space (pi_Lp p β) :=
-{ edist_self := edist_self p,
-  edist_comm := edist_comm p,
+{ edist_self := pi_Lp.edist_self p,
+  edist_comm := pi_Lp.edist_comm p,
   edist_triangle := λ f g h,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | hp) },

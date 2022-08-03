@@ -46,10 +46,10 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 /-- A continuous linear endomorphism `T` of a Hilbert space is **positive** if it is self adjoint
   and `∀ x, 0 ≤ re ⟪T x, x⟫`. -/
 def is_positive (T : E →L[𝕜] E) : Prop :=
-  T.is_self_adjoint ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
+  is_self_adjoint T ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
 
 lemma is_positive.is_self_adjoint {T : E →L[𝕜] E} (hT : is_positive T) :
-  T.is_self_adjoint :=
+  is_self_adjoint T :=
 hT.1
 
 lemma is_positive.inner_nonneg_left {T : E →L[𝕜] E} (hT : is_positive T) (x : E) :
@@ -62,13 +62,13 @@ by rw inner_re_symm; exact hT.inner_nonneg_left x
 
 lemma is_positive_zero : is_positive (0 : E →L[𝕜] E) :=
 begin
-  refine ⟨is_self_adjoint_zero, λ x, _⟩,
+  refine ⟨is_self_adjoint_zero _, λ x, _⟩,
   change 0 ≤ re ⟪_, _⟫,
   rw [zero_apply, inner_zero_left, zero_hom_class.map_zero]
 end
 
-lemma is_positive_id : is_positive (1 : E →L[𝕜] E) :=
-⟨is_self_adjoint_id, λ x, inner_self_nonneg⟩
+lemma is_positive_one : is_positive (1 : E →L[𝕜] E) :=
+⟨is_self_adjoint_one _, λ x, inner_self_nonneg⟩
 
 lemma is_positive.add {T S : E →L[𝕜] E} (hT : T.is_positive)
   (hS : S.is_positive) : (T + S).is_positive :=

@@ -1115,10 +1115,8 @@ lemma span_singleton_dvd_span_singleton_iff_dvd {a b : R} :
 ⟨λ h, mem_span_singleton.mp (dvd_iff_le.mp h (mem_span_singleton.mpr (dvd_refl b))),
   λ h, dvd_iff_le.mpr (λ d hd, mem_span_singleton.mpr (dvd_trans h (mem_span_singleton.mp hd)))⟩
 
-variables [decidable_eq R] [normalization_monoid R] [decidable_eq (ideal R)]
-
-lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors {a b : R}
-  (ha : a ∈ normalized_factors b) :
+lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors [normalization_monoid R]
+  [decidable_eq R] [decidable_eq (ideal R)] {a b : R} (ha : a ∈ normalized_factors b) :
   ideal.span ({a} : set R) ∈ normalized_factors (ideal.span ({b} : set R)) :=
 begin
   by_cases hb : b = 0,
@@ -1138,8 +1136,11 @@ begin
     exact (prime_of_normalized_factor a ha).ne_zero (span_singleton_eq_bot.mp h) },
 end
 
+/-- The bijection between the (normalized) prime factors of `r` and the (normalized) prime factors
+    of `span {r}` -/
 @[simps]
-noncomputable def normalized_factors_equiv_span_normalized_factors {r : R} (hr : r ≠ 0) :
+noncomputable def normalized_factors_equiv_span_normalized_factors [normalization_monoid R]
+  [decidable_eq R] [decidable_eq (ideal R)] {r : R} (hr : r ≠ 0) :
   {d : R | d ∈ normalized_factors r} ≃
   {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
 equiv.of_bijective
@@ -1177,12 +1178,11 @@ begin
           (finite_iff_dom.mp h) (nat.lt_succ_self _))) } },
     { suffices : ¬ (finite (ideal.span {a}) (ideal.span {b})),
       { rw [finite_iff_dom, part_enat.not_dom_iff_eq_top] at h,
-        rw [@finite_iff_dom  _ _ _inst_11 (span {a}) (span {b}),
+        rw [@finite_iff_dom  _ _ _inst_8 (span {a}) (span {b}),
           part_enat.not_dom_iff_eq_top] at this,
         rw [h, this] },
       refine not_finite_iff_forall.mpr (λ n, by {rw [ideal.span_singleton_pow,
         span_singleton_dvd_span_singleton_iff_dvd], exact not_finite_iff_forall.mp h n }) }
 end
-
 
 end PID

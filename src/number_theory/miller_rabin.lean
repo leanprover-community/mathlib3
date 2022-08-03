@@ -235,11 +235,21 @@ end
 ---------------------------------------------------------------------------------------------------
 -- PR'ed in #15793
 ---------------------------------------------------------------------------------------------------
-lemma ord_proj_dvd_ord_proj_of_dvd {a b p : ℕ} (hab : a ∣ b) (hb0 : b ≠ 0) :
-  ord_proj[p] a ∣ ord_proj[p] b := sorry
-
 lemma ord_compl_dvd_ord_compl_of_dvd {a b p : ℕ} (hab : a ∣ b) :
-  ord_compl[p] a ∣ ord_compl[p] b := sorry
+  ord_compl[p] a ∣ ord_compl[p] b :=
+begin
+  rcases em' p.prime with pp | pp, { simp [pp, hab] },
+  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  rcases eq_or_ne a 0 with rfl | ha0, { cases hb0 (zero_dvd_iff.1 hab) },
+  have ha := (nat.div_pos (ord_proj_le p ha0) (ord_proj_pos a p)).ne',
+  have hb := (nat.div_pos (ord_proj_le p hb0) (ord_proj_pos b p)).ne',
+  rw [←factorization_le_iff_dvd ha hb, factorization_ord_compl a p, factorization_ord_compl b p],
+  intro q,
+  rcases eq_or_ne q p with rfl | hqp, { simp },
+  simp_rw finsupp.erase_ne hqp,
+  exact (factorization_le_iff_dvd ha0 hb0).2 hab q,
+end
+
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------

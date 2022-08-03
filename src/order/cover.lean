@@ -154,9 +154,6 @@ and_congr_right' $ forall_congr $ λ c, forall_swap
 alias to_dual_covby_to_dual_iff ↔ _ covby.to_dual
 alias of_dual_covby_of_dual_iff ↔ _ covby.of_dual
 
-
-
-
 end has_lt
 
 section preorder

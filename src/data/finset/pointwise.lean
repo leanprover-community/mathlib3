@@ -810,6 +810,7 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
   smul_comm_class (finset α) (finset β) (finset γ) :=
 ⟨λ s t u, coe_injective $ by simp_rw [coe_smul, smul_comm]⟩
 
+@[to_additive]
 instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
   is_scalar_tower α β (finset γ) :=
@@ -817,11 +818,13 @@ instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
 
 variables [decidable_eq β]
 
+@[to_additive]
 instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
   is_scalar_tower α (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_assoc]⟩
 
+@[to_additive]
 instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
   is_scalar_tower (finset α) (finset β) (finset γ) :=

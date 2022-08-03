@@ -795,3 +795,4 @@ See note [reducible non-instances]. -/
 @[reducible]
 def add_action.of_End_hom [add_monoid M] (f : M →+ additive (function.End α)) : add_action M α :=
 add_action.comp_hom α f
+#lint

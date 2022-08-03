@@ -39,8 +39,12 @@ def nil : seq α := ⟨stream.const none, λn h, rfl⟩
 instance : inhabited (seq α) := ⟨nil⟩
 
 /-- Prepend an element to a sequence -/
-def cons (a : α) : seq α → seq α
-| ⟨f, al⟩ := ⟨some a :: f, λn h, by {cases n with n, contradiction, exact al h}⟩
+def cons (a : α) (s : seq α) : seq α :=
+⟨some a :: s.1, begin
+  rintros (n | _) h,
+  { contradiction },
+  { exact s.2 h }
+end⟩
 
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
@@ -64,8 +68,7 @@ def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
 def head (s : seq α) : option α := nth s 0
 
 /-- Get the tail of a sequence (or `nil` if the sequence is `nil`) -/
-def tail : seq α → seq α
-| ⟨f, al⟩ := ⟨f.tail, λ n, al⟩
+def tail (s : seq α) : seq α := ⟨s.1.tail, λ n, by { cases s with f al, exact al }⟩
 
 protected def mem (a : α) (s : seq α) := some a ∈ s.1
 

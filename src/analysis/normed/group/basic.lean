@@ -469,6 +469,50 @@ begin
   simp [dist_eq_norm]
 end
 
+lemma normed_add_comm_group.tendsto_uniformly_on_zero {f : ι → E → G} {s : set E} {l : filter ι} :
+  tendsto_uniformly_on f 0 l s ↔ ∀ ε > 0, ∀ᶠ (N : ι) in l, ∀ x : E, x ∈ s → ∥f N x∥ < ε :=
+begin
+  rw metric.tendsto_uniformly_on_iff,
+  split,
+  { exact (λ h ε hε, (h ε hε).mono (λ i hi x hx, by simpa using (hi x hx))), },
+  { exact (λ h ε hε, (h ε hε).mono (λ i hi x hx, by simpa using (hi x hx))), },
+end
+
+lemma normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero
+  {f : ι → E → G} {l : filter ι} {l' : filter E} :
+  uniform_cauchy_seq_on_filter f l l' ↔
+  tendsto_uniformly_on_filter (λ n : ι × ι, λ z : E, f n.fst z - f n.snd z) 0 (l.prod l) l' :=
+begin
+  split,
+  { intros hf u hu,
+    obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
+    have : {p : G × G | dist p.fst p.snd < ε} ∈ (𝓤 G),
+    { rw uniformity_basis_dist.mem_uniformity_iff,
+      exact ⟨ε, hε, by simp [H]⟩, },
+    refine (hf {p : G × G | dist p.fst p.snd < ε} this).mono (λ x hx,
+      H 0 (f x.fst.fst x.snd - f x.fst.snd x.snd) _),
+    simpa [dist_eq_norm, norm_sub_rev] using hx, },
+
+  { intros hf u hu,
+    obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
+    have : {p : G × G | dist p.fst p.snd < ε} ∈ (𝓤 G),
+    { rw uniformity_basis_dist.mem_uniformity_iff,
+      exact ⟨ε, hε, by simp [H]⟩, },
+    refine (hf {p : G × G | dist p.fst p.snd < ε} this).mono (λ x hx,
+      H (f x.fst.fst x.snd) (f x.fst.snd x.snd) _),
+    simpa [dist_eq_norm, norm_sub_rev] using hx, },
+end
+
+lemma normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero
+  {f : ι → E → G} {s : set E} {l : filter ι} :
+  uniform_cauchy_seq_on f l s ↔
+  tendsto_uniformly_on (λ n : ι × ι, λ z : E, f n.fst z - f n.snd z) 0 (l.prod l) s :=
+begin
+  rw tendsto_uniformly_on_iff_tendsto_uniformly_on_filter,
+  rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
+  exact normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
+end
+
 open finset
 
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that

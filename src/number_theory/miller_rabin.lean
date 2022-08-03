@@ -518,12 +518,10 @@ end
 open_locale nat  -- to use `φ` for `nat.totient`
 
 /-- Theorem 3.4 of Conrad -/
-lemma strong_probable_prime_of_prime_power_iff (p α : ℕ) (hα0 : 0 < α) (hp : nat.prime p)
-  (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
+lemma strong_probable_prime_of_prime_power_iff {p α : ℕ} (hp_odd : odd p) (hp : nat.prime p)
+  (hα0 : 0 < α) (a : zmod (p^α)) :
+  strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
-  rcases hp.eq_two_or_odd' with rfl | hp_odd, { sorry },
-
-
   haveI : fact (p.prime) := fact_iff.2 hp,
   have two_le_p : 2 ≤ p := nat.prime.two_le hp,
   have one_lt_n : 1 < p ^ α :=

@@ -191,7 +191,8 @@ def pseudo_emetric_aux [fact (1 ≤ p)] : pseudo_emetric_space (pi_Lp p β) :=
     { simp only [edist_eq_supr],
       casesI is_empty_or_nonempty ι,
       { simp only [csupr_of_empty, ennreal.bot_eq_zero, add_zero, nonpos_iff_eq_zero] },
-      exact supr_le (λ i, (edist_triangle _ (g i) _).trans $ add_le_add (le_supr _ i) (le_supr _ i))},
+      exact supr_le (λ i, (edist_triangle _ (g i) _).trans $
+        add_le_add (le_supr _ i) (le_supr _ i))},
     { simp only [edist_eq_sum (zero_lt_one.trans_le hp)],
       calc (∑ i, edist (f i) (h i) ^ p.to_real) ^ (1 / p.to_real) ≤
       (∑ i, (edist (f i) (g i) + edist (g i) (h i)) ^ p.to_real) ^ (1 / p.to_real) :
@@ -578,14 +579,12 @@ def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   norm_map' := λ x,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
-    { simp only [norm_eq_csupr],
-      simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
-      rw fintype.supr_equiv e (λ i, ∥x i∥),  },
+    { simp_rw [norm_eq_csupr, linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _],
+      exact fintype.supr_equiv e (λ i, ∥x i∥), },
     { simp only [norm_eq_sum (zero_lt_one.trans_le h)],
       simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
       congr,
-      rw fintype.sum_equiv (e.symm),
-      exact λ i, rfl,}
+      exact (fintype.sum_equiv (e.symm) _ _ (λ i, rfl)) }
   end, }
 
 variables {p 𝕜 E}

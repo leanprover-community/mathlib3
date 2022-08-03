@@ -91,8 +91,8 @@ lemma square_roots_of_one_int {p α : ℕ} {x : ℤ} (pp : p.prime) (hp_odd : od
 begin
   have pp' := prime_iff_prime_int.1 pp,
   have diffsquare : ↑(p^α) ∣ (x-1) * (x+1), { ring_nf, simp [root] },
-  have h2 : ¬ ↑p ∣ (x + 1) ∨ ¬ ↑p ∣ (x - 1), {
-    rw ←not_and_distrib,
+  have h2 : ¬ ↑p ∣ (x + 1) ∨ ¬ ↑p ∣ (x - 1),
+  { rw ←not_and_distrib,
     rintro ⟨hp1, hp2⟩,
     have h3 : ↑p ∣ (x+1) - (x-1), { exact dvd_sub hp1 hp2 },
     have h4 : (x+1) - (x-1) = 2, { ring },
@@ -101,28 +101,33 @@ begin
     have := prime_two_or_dvd_of_dvd_two_mul_pow_self_two pp h3,
     simp [pp.ne_one] at this,
     rw [this, odd_iff_not_even] at hp_odd,
-    exact hp_odd even_two,
-  },
+    exact hp_odd even_two },
   cases h2 with h_plus h_minus,
   { left, apply prime.pow_dvd_of_dvd_mul_left pp' α h_plus, simpa [mul_comm] using diffsquare },
   { right, apply prime.pow_dvd_of_dvd_mul_right pp' α h_minus, simpa [mul_comm] using diffsquare },
 end
 
-lemma square_roots_of_one_zmod {p α : ℕ} (hα0 : 0 < α) (pp : p.prime) (hp_odd : odd p)
-  {x : zmod (p^α)} (root : x^2 = 1) :
+/-- If `x : zmod (p^α)` (for odd prime `p`) satisfies `x^2 = 1` then `x = 1 ∨ x = -1` -/
+lemma square_roots_of_one_zmod {p α : ℕ} (pp : p.prime) (hp_odd : odd p) {x : zmod (p^α)}
+  (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
   refine or.imp (λ h, _) (λ h, _) (@square_roots_of_one_int p α ↑x pp hp_odd _ ),
   { have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x) (↑p^α),
-    simp at this,
-    rwa [eq_comm, this] },
+    norm_cast at this,
+    rwa [eq_comm, this, nat.cast_pow] },
   { have := int_coe_eq_int_coe_iff_dvd_sub (-1) (↑x) (↑p^α),
-    simp at this,
-    rwa [eq_comm, this] },
+    push_cast at this,
+    rw [eq_comm, this],
+    simpa using h },
   { have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x^2) (↑p^α),
-    simp at this,
+    push_cast at this,
     rw [←this, root] },
 end
+
+
+
+#exit
 
 
 

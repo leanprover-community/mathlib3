@@ -44,7 +44,7 @@ instance : inhabited (presieve X) := ⟨⊤⟩
 /-- Given a sieve `S` on `X : C`, its associated diagram `S.diagram` is defined to be
     the natural functor from the full subcategory of the over category `C/X` consisting
     of arrows in `S` to `C`. -/
-abbreviation diagram (S : presieve X) : {f : over X // S f.hom} ⥤ C :=
+abbreviation diagram (S : presieve X) : full_subcategory (λ (f : over X), S f.hom) ⥤ C :=
 full_subcategory_inclusion _ ⋙ over.forget X
 
 /-- Given a sieve `S` on `X : C`, its associated cocone `S.cocone` is defined to be

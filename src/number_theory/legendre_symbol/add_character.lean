@@ -15,6 +15,8 @@ Let `R` be a finite commutative ring. An *additive character* of `R` with values
 in another commutative ring `R'` is simply a morphism from the additive group
 of `R` into the multiplicative monoid of `R'`.
 
+The additive characters on `R` with values in `R'` form a commutative group.
+
 We use the namespace `add_char`.
 
 ## Main definitions and results
@@ -25,7 +27,7 @@ if `mul_shift ψ a` is trivial only when `a = 0`.
 
 We show that when `ψ` is primitive, then the map `a ↦ mul_shift ψ a` is injective
 (`add_char.to_mul_shift_inj_of_is_primitive`) and that `ψ` is primitive when `R` is a field
-and `ψ` is nontrivial (`add_char.is_primitive_of_is_nontrivial`).
+and `ψ` is nontrivial (`add_char.is_nontrivial.is_primitive`).
 
 We also show that there are primitive additive characters on `R` (with suitable
 target `R'`) when `R` is a field or `R = zmod n` (`add_char.primitive_char_finite_field`
@@ -50,16 +52,57 @@ universes u v
 -- The domain of our additive characters
 variables (R : Type u) [add_monoid R]
 -- The target
-variables (R' : Type v) [monoid R']
+variables (R' : Type v) [comm_monoid R']
 
 /-- Define `add_char R R'` as `(multiplicative R) →* R'`.
 The definition works for an additive monoid `R` and a monoid `R'`,
 but we will restrict to the case that both are commutative rings below.
+We assume right away that `R'` is commutative, so that `add_char R R'` carries
+a structure of commutative monoid.
 The trivial additive character (sending everything to `1`) is `(1 : add_char R R').` -/
-abbreviation add_char : Type (max u v) := (multiplicative R) →* R'
+@[derive [comm_monoid, inhabited]]
+def add_char : Type (max u v) := (multiplicative R) →* R'
+
+instance add_char.has_coe_to_fun : has_coe_to_fun (add_char R R') (λ x, multiplicative R → R') :=
+monoid_hom.has_coe_to_fun
+
+instance add_char.monoid_hom_class : monoid_hom_class (add_char R R') (multiplicative R) R' :=
+monoid_hom.monoid_hom_class
 
 end add_char_def
 
+section group_structure
+
+universes u v
+
+namespace add_char
+
+open multiplicative
+
+variables {R : Type u} [add_comm_group R] {R' : Type v} [comm_monoid R']
+
+/-- An additive character on a commutative additive group has an inverse.
+
+Note that this is a different inverse to the one provided by `monoid_hom.has_inv`,
+as it acts on the domain instead of the codomain. -/
+instance has_inv : has_inv (add_char R R') := ⟨λ ψ, ψ.comp inv_monoid_hom⟩
+
+lemma inv_apply (ψ : add_char R R') (x : multiplicative R) : ψ⁻¹ x = ψ (of_add (-(to_add x))) :=
+rfl
+
+lemma inv_apply' (ψ : add_char R R') (x : R) : ψ⁻¹ (of_add x) = ψ (of_add (-x)) := rfl
+
+/-- The additive characters on a commutative additive group form a commutative group. -/
+instance comm_group : comm_group (add_char R R') :=
+{ inv := has_inv.inv,
+  mul_left_inv :=
+  λ ψ, by { ext, rw [monoid_hom.mul_apply, monoid_hom.one_apply, inv_apply, ← map_mul, of_add_neg,
+                     of_add_to_add, mul_left_inv, map_one], },
+  ..monoid_hom.comm_monoid }
+
+end add_char
+
+end group_structure
 
 section additive
 
@@ -93,10 +136,24 @@ def mul_shift (ψ : add_char R R') (a : R) : add_char R R' :=
 @[simp] lemma mul_shift_apply {ψ : add_char R R'} {a : R} {x : multiplicative R} :
   mul_shift ψ a x = ψ (of_add (a * to_add x)) := rfl
 
+/-- `ψ⁻¹ = mul_shift ψ (-1))`. -/
+lemma inv_mul_shift (ψ : add_char R R') : ψ⁻¹ = mul_shift ψ (-1) :=
+begin
+  ext,
+  rw [inv_apply, mul_shift_apply, neg_mul, one_mul],
+end
+
 /-- If `n` is a natural number, then `mul_shift ψ n x = (ψ x) ^ n`. -/
 lemma mul_shift_spec' (ψ : add_char R R') (n : ℕ) (x : multiplicative R) :
   mul_shift ψ n x = (ψ x) ^ n :=
 by rw [mul_shift_apply, ← nsmul_eq_mul, of_add_nsmul, map_pow, of_add_to_add]
+
+/-- If `n` is a natural number, then `ψ ^ n = mul_shift ψ n`. -/
+lemma pow_mul_shift (ψ : add_char R R') (n : ℕ) : ψ ^ n = mul_shift ψ n :=
+begin
+  ext x,
+  rw [show (ψ ^ n) x = (ψ x) ^ n, from rfl, ← mul_shift_spec'],
+end
 
 /-- The product of `mul_shift ψ a` and `mul_shift ψ b` is `mul_shift ψ (a + b)`. -/
 lemma mul_shift_mul (ψ : add_char R R') (a b : R) :
@@ -127,7 +184,7 @@ begin
   intros a b h,
   apply_fun (λ x, x * mul_shift ψ (-b)) at h,
   simp only [mul_shift_mul, mul_shift_zero, add_right_neg] at h,
-  have h₂ := hψ (a + (- b)),
+  have h₂ := hψ (a + (-b)),
   rw [h, is_nontrivial_iff_ne_trivial, ← sub_eq_add_neg, sub_ne_zero] at h₂,
   exact not_not.mp (λ h, h₂ h rfl),
 end
@@ -314,6 +371,21 @@ end
 lemma sum_eq_card_of_is_trivial' {ψ : add_char R R'} (hψ : ¬ is_nontrivial ψ) :
   ∑ a, ψ a = fintype.card R :=
 sum_eq_card_of_is_trivial hψ
+
+/-- The sum over the values of `mul_shift ψ b` for `ψ` primitive is zero when `b ≠ 0`
+and `#R` otherwise. -/
+lemma sum_mul_shift [decidable_eq R] [is_domain R'] (ψ : add_char R R') (b : R)
+  (hψ : is_primitive ψ) :
+  ∑ (x : R), ψ (of_add (x * b)) = if b = 0 then fintype.card R else 0 :=
+begin
+  split_ifs with h,
+  { -- case `b = 0`
+    simp only [h, sub_self, mul_zero, of_add_zero, map_one, finset.sum_const, nat.smul_one_eq_coe],
+    refl, },
+  { -- case `b ≠ 0`
+    simp_rw mul_comm,
+    exact sum_eq_zero_of_is_nontrivial (hψ b h), },
+end
 
 end add_char
 

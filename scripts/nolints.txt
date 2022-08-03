@@ -527,7 +527,6 @@ apply_nolint computation.parallel_rec doc_blame
 
 -- data/seq/seq.lean
 apply_nolint seq.bisim_o doc_blame
-apply_nolint seq.cases_on doc_blame
 apply_nolint seq.corec.F doc_blame
 apply_nolint seq.is_bisimulation doc_blame
 apply_nolint seq.mem doc_blame

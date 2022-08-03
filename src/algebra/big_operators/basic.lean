@@ -1085,7 +1085,7 @@ begin
   { simp only [h0, finset.prod_range_zero] },
   { simp only [hk, finset.prod_range_succ, h, mul_comm] }
 end
-#qh
+
 /-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
 the ratio of the last and first factors. -/
 @[to_additive "A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued

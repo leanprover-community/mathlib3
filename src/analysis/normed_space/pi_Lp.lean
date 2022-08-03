@@ -639,34 +639,61 @@ end
 @[simp] lemma equiv_symm_smul :
   (pi_Lp.equiv p β).symm (c • x') = c • (pi_Lp.equiv p β).symm x' := rfl
 
--- this needs the `nonempty ι` hypothesis for the `p = ∞` case, but not for `1 ≤ p < ∞`
--- one way to fix this would be to make the right-hand side an `ite`
-lemma nnnorm_equiv_symm_const {β} [seminormed_add_comm_group β] [nonempty ι] (b : β) :
+/-- When `p = ∞`, this lemma does not hold without the additional assumption `nonempty ι` because
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+`pi_Lp.nnnorm_equiv_symm_const'` for a version which exchanges the hypothesis `p ≠ ∞` for
+`nonempty ι`. -/
+lemma nnnorm_equiv_symm_const {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊=
   fintype.card ι ^ (1 / p).to_real * ∥b∥₊ :=
 begin
-  unfreezingI { rcases p.dichotomy with (rfl | hp) },
-  { simp only [equiv_symm_apply', ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, one_mul,
-      nnnorm_eq_csupr, function.const_apply, csupr_const], },
-  { have ne_zero : p.to_real ≠ 0 := (zero_lt_one.trans_le hp).ne',
-    have ne_top : p ≠ ∞, { intros h, rw [h, ennreal.top_to_real] at hp, linarith,},
-    simp_rw [nnnorm_eq_sum ne_top, equiv_symm_apply, function.const_apply, finset.sum_const,
+  rcases p.dichotomy with (h | h),
+  { exact false.elim (hp h) },
+  { have ne_zero : p.to_real ≠ 0 := (zero_lt_one.trans_le h).ne',
+    simp_rw [nnnorm_eq_sum hp, equiv_symm_apply, function.const_apply, finset.sum_const,
       finset.card_univ, nsmul_eq_mul, nnreal.mul_rpow, ←nnreal.rpow_mul, mul_one_div_cancel ne_zero,
       nnreal.rpow_one, ennreal.to_real_div, ennreal.one_to_real], },
 end
 
-lemma norm_equiv_symm_const {β} [seminormed_add_comm_group β] [nonempty ι] (b : β) :
+/-- When `is_empty ι`, this lemma does not hold without the additional assumption `p ≠ ∞` because
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+`pi_Lp.nnnorm_equiv_symm_const'` for a version which exchanges the hypothesis `nonempty ι`.
+for `p ≠ ∞`. -/
+lemma nnnorm_equiv_symm_const' {β} [seminormed_add_comm_group β] [nonempty ι] (b : β) :
+  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊=
+  fintype.card ι ^ (1 / p).to_real * ∥b∥₊ :=
+begin
+  unfreezingI { rcases (em $ p = ∞) with (rfl | hp) },
+  { simp only [equiv_symm_apply', ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, one_mul,
+      nnnorm_eq_csupr, function.const_apply, csupr_const], },
+  { exact nnnorm_equiv_symm_const hp b, },
+end
+
+/-- When `p = ∞`, this lemma does not hold without the additional assumption `nonempty ι` because
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+`pi_Lp.norm_equiv_symm_const'` for a version which exchanges the hypothesis `p ≠ ∞` for
+`nonempty ι`. -/
+lemma norm_equiv_symm_const {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ =
   fintype.card ι ^ (1 / p).to_real * ∥b∥ :=
-(congr_arg coe $ nnnorm_equiv_symm_const b).trans $ by simp
+(congr_arg coe $ nnnorm_equiv_symm_const hp b).trans $ by simp
 
-lemma nnnorm_equiv_symm_one {β} [seminormed_add_comm_group β] [nonempty ι] [has_one β] :
+/-- When `is_empty ι`, this lemma does not hold without the additional assumption `p ≠ ∞` because
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+`pi_Lp.norm_equiv_symm_const` for a version which exchanges the hypothesis `nonempty ι`.
+for `p ≠ ∞`. -/
+lemma norm_equiv_symm_const' {β} [seminormed_add_comm_group β] [nonempty ι] (b : β) :
+  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ =
+  fintype.card ι ^ (1 / p).to_real * ∥b∥ :=
+(congr_arg coe $ nnnorm_equiv_symm_const' b).trans $ by simp
+
+lemma nnnorm_equiv_symm_one {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥₊ = fintype.card ι ^ (1 / p).to_real * ∥(1 : β)∥₊ :=
-(nnnorm_equiv_symm_const (1 : β)).trans rfl
+(nnnorm_equiv_symm_const hp (1 : β)).trans rfl
 
-lemma norm_equiv_symm_one {β} [seminormed_add_comm_group β] [nonempty ι] [has_one β] :
+lemma norm_equiv_symm_one {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p).to_real * ∥(1 : β)∥ :=
-(norm_equiv_symm_const (1 : β)).trans rfl
+(norm_equiv_symm_const hp (1 : β)).trans rfl
 
 variables (𝕜 p)
 

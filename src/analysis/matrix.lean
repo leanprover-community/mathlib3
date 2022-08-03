@@ -427,12 +427,11 @@ end
 
 end seminormed_add_comm_group
 
--- ack, we need to go back and avoid the nonempty thing. That's annoying.
-lemma frobenius_nnnorm_one [decidable_eq n] [nonempty n] [seminormed_add_comm_group α] [has_one α] :
+lemma frobenius_nnnorm_one [decidable_eq n] [seminormed_add_comm_group α] [has_one α] :
   ∥(1 : matrix n n α)∥₊ = nnreal.sqrt (fintype.card n) * ∥(1 : α)∥₊:=
 begin
   refine (frobenius_nnnorm_diagonal _).trans _,
-  simp_rw [pi_Lp.nnnorm_equiv_symm_const, nnreal.sqrt_eq_rpow],
+  simp_rw [pi_Lp.nnnorm_equiv_symm_const ennreal.two_ne_top, nnreal.sqrt_eq_rpow],
   simp only [ennreal.to_real_div, ennreal.one_to_real, ennreal.to_real_bit0],
 end
 

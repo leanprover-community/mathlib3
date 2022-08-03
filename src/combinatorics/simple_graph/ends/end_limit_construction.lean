@@ -60,4 +60,28 @@ instance obj_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplInfComp G Gpc).
 theorem exists_end_inf_graph : (ComplInfComp G Gpc).sections.nonempty :=
   nonempty_sections_of_fintype_inverse_system (ComplInfComp G Gpc)
 
-lemma ends_eq_sections :  (ComplInfComp G Gpc) ≃ (ends.ends G Gpc)  := sorry
+-- a slightly modified definition of ends, meant to make proving equivalence with the sections definition easier
+def ends :=
+  {f : Π (K : finset V), inf_ro_components G K // ∀ A B : finset V, Π h: A ⊆ B, ends.bwd_map G Gpc h (f B) = f A}
+
+lemma ends_eq_sections :  (ComplInfComp G Gpc).sections ≃ (ends G Gpc)  :=
+begin
+  rw [functor.sections, ends, ComplInfComp], simp,
+  split, rotate 2,
+  { rintro ⟨Kfmly : Π (K : (finset V)ᵒᵖ), G.inf_ro_components (unop K), hbwd⟩,
+    let endK : Π (K : finset V), G.inf_ro_components K := by {
+      intro K, rw [← opposite.unop_op K], apply Kfmly, },
+    use endK,
+    intros _ _ hsub,
+    exact hbwd (quiver.hom.op (hom_of_le hsub)), },
+  { rintro ⟨Kfmly, hbwd⟩,
+    apply subtype.mk, rotate,
+    let endKop : Π (K : (finset V)ᵒᵖ), G.inf_ro_components (unop K) := by {intro Kop, apply Kfmly,},
+    use endKop,
+    intros _ _ f,
+    simp, apply hbwd, },
+  { simp [function.left_inverse],
+    intros, ext, refl, },
+  { simp [function.right_inverse, function.left_inverse],
+    intros, ext, refl, }
+end

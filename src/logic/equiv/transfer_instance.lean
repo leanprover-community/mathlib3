@@ -273,16 +273,22 @@ e.surjective.nontrivial
 protected theorem is_domain [ring α] [ring β] [is_domain β] (e : α ≃+* β) : is_domain α :=
 function.injective.is_domain e.to_ring_hom e.injective
 
+/-- Transfer `has_rat_cast` across an `equiv` -/
+protected def has_rat_cast [has_rat_cast β] : has_rat_cast α :=
+{ rat_cast := λ n, e.symm n }
+
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=
 let add_group_with_one := e.add_group_with_one, mul := e.has_mul,
-  inv := e.has_inv, div := e.has_div, mul := e.has_mul, npow := e.has_pow ℕ, zpow := e.has_pow ℤ in
+  inv := e.has_inv, div := e.has_div, mul := e.has_mul, npow := e.has_pow ℕ, zpow := e.has_pow ℤ,
+  rat_cast := e.has_rat_cast, qsmul := e.has_smul ℚ in
 by resetI; apply e.injective.division_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `field` across an `equiv` -/
 protected def field [field β] : field α :=
 let add_group_with_one := e.add_group_with_one, mul := e.has_mul, neg := e.has_neg,
-  inv := e.has_inv, div := e.has_div, mul := e.has_mul, npow := e.has_pow ℕ, zpow := e.has_pow ℤ in
+  inv := e.has_inv, div := e.has_div, mul := e.has_mul, npow := e.has_pow ℕ, zpow := e.has_pow ℤ,
+  rat_cast := e.has_rat_cast, qsmul := e.has_smul ℚ in
 by resetI; apply e.injective.field _; intros; exact e.apply_symm_apply _
 
 section R

@@ -99,6 +99,10 @@ theorem coe_fn_coe_base'
   {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
+-- This instance should have low priority, to ensure we follow the chain
+-- `set_like → has_coe_to_sort`
+attribute [instance, priority 10] coe_sort_trans
+
 theorem coe_sort_coe_trans
   {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
   (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
@@ -1090,6 +1094,11 @@ exists.elim h (λ x hx, ⟨x, and.left hx⟩)
 
 @[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
+
+/-- For some reason simp doesn't use `forall_const` to simplify in this case. -/
+@[simp] lemma forall_forall_const {α β : Type*} (p : β → Prop) [nonempty α] :
+  (∀ x, α → p x) ↔ ∀ x, p x :=
+forall_congr $ λ x, forall_const α
 
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩

@@ -60,7 +60,7 @@ variables {M : Type*} [add_comm_group M] [module R M] [module Rₛ M] [is_scalar
 /-- Promote a basis for `M` over `R` to a basis for `M` over the localization `Rₛ` -/
 noncomputable def basis.localization {ι : Type*} (b : basis ι R M) : basis ι Rₛ M :=
 basis.mk (b.linear_independent.localization Rₛ S) $
-by { rw [← @submodule.restrict_scalars_eq_top_iff Rₛ R, eq_top_iff, ← b.span_eq],
+by { rw [← eq_top_iff, ← @submodule.restrict_scalars_eq_top_iff Rₛ R, eq_top_iff, ← b.span_eq],
      apply submodule.span_le_restrict_scalars }
 
 end add_comm_group

@@ -10,6 +10,7 @@ import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
 import data.finset.sigma
+import data.finite.defs
 import data.list.nodup_equiv_fin
 import data.sym.basic
 import data.ulift
@@ -125,14 +126,9 @@ instance : order_top (finset α) :=
 section boolean_algebra
 variables [decidable_eq α] {a : α}
 
-instance : boolean_algebra (finset α) :=
-{ compl := λ s, univ \ s,
-  inf_compl_le_bot := λ s x hx, by simpa using hx,
-  top_le_sup_compl := λ s x hx, by simp,
-  sdiff_eq := λ s t, by simp [ext_iff, compl],
-  ..finset.order_top,
-  ..finset.order_bot,
-  ..finset.generalized_boolean_algebra }
+instance : boolean_algebra (finset α) :=  generalized_boolean_algebra.to_boolean_algebra
+
+lemma sdiff_eq_inter_compl (s t : finset α) : s \ t = s ∩ tᶜ := sdiff_eq
 
 lemma compl_eq_univ_sdiff (s : finset α) : sᶜ = univ \ s := rfl
 
@@ -1021,6 +1017,44 @@ rfl
 
 end finset
 
+/-!
+### Relation to `finite`
+
+In this section we prove that `α : Type*` is `finite` if and only if `fintype α` is nonempty.
+-/
+
+@[nolint fintype_finite]
+protected lemma fintype.finite {α : Type*} (h : fintype α) : finite α := ⟨fintype.equiv_fin α⟩
+
+/-- For efficiency reasons, we want `finite` instances to have higher
+priority than ones coming from `fintype` instances. -/
+@[nolint fintype_finite, priority 900]
+instance finite.of_fintype (α : Type*) [fintype α] : finite α := fintype.finite ‹_›
+
+lemma finite_iff_nonempty_fintype (α : Type*) :
+  finite α ↔ nonempty (fintype α) :=
+⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
+  λ ⟨_⟩, by exactI infer_instance⟩
+
+lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
+(finite_iff_nonempty_fintype α).mp ‹_›
+
+/-- Noncomputably get a `fintype` instance from a `finite` instance. This is not an
+instance because we want `fintype` instances to be useful for computations. -/
+noncomputable def fintype.of_finite (α : Type*) [finite α] : fintype α := (nonempty_fintype α).some
+
+lemma finite.of_injective {α β : Sort*} [finite β] (f : α → β) (H : injective f) : finite α :=
+begin
+  casesI nonempty_fintype (plift β),
+  rw [← equiv.injective_comp equiv.plift f, ← equiv.comp_injective _ equiv.plift.symm] at H,
+  haveI := fintype.of_injective _ H,
+  exact finite.of_equiv _ equiv.plift,
+end
+
+lemma finite.of_surjective {α β : Sort*} [finite α] (f : α → β) (H : surjective f) :
+  finite β :=
+finite.of_injective _ $ injective_surj_inv H
+
 namespace fintype
 variables [fintype α] [fintype β]
 
@@ -1405,6 +1439,18 @@ lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ 
   pi_finset t₁ ⊆ pi_finset t₂ :=
 λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a
 
+@[simp] lemma pi_finset_empty [nonempty α] : pi_finset (λ _, ∅ : Π i, finset (δ i)) = ∅ :=
+eq_empty_of_forall_not_mem $ λ _, by simp
+
+@[simp] lemma pi_finset_singleton (f : Π i, δ i) :
+  pi_finset (λ i, {f i} : Π i, finset (δ i)) = {f} :=
+ext $ λ _, by simp only [function.funext_iff, fintype.mem_pi_finset, mem_singleton]
+
+lemma pi_finset_subsingleton {f : Π i, finset (δ i)}
+  (hf : ∀ i, (f i : set (δ i)).subsingleton) :
+  (fintype.pi_finset f : set (Π i, δ i)).subsingleton :=
+λ a ha b hb, funext $ λ i, hf _ (mem_pi_finset.1 ha _) (mem_pi_finset.1 hb _)
+
 lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
   (t₁ t₂ : Π a, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (pi_finset t₁) (pi_finset t₂) :=
@@ -1458,6 +1504,12 @@ fintype.of_equiv _ sym.sym_equiv_sym'.symm
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
+
+@[simp] lemma finset.powerset_univ [fintype α] : (univ : finset α).powerset = univ :=
+coe_injective $ by simp [-coe_eq_univ]
+
+@[simp] lemma finset.powerset_eq_univ [fintype α] {s : finset α} : s.powerset = univ ↔ s = univ :=
+by rw [←finset.powerset_univ, powerset_inj]
 
 lemma finset.mem_powerset_len_univ_iff [fintype α] {s : finset α} {k : ℕ} :
   s ∈ powerset_len k (univ : finset α) ↔ card s = k :=

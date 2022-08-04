@@ -70,8 +70,30 @@ t.induced ulift.down
 section
 variables [topological_space α]
 
+open additive multiplicative
+
 instance : topological_space (additive α) := ‹topological_space α›
 instance : topological_space (multiplicative α) := ‹topological_space α›
+
+lemma continuous_of_mul : continuous (of_mul : α → additive α) := continuous_id
+lemma continuous_to_mul : continuous (to_mul : additive α → α) := continuous_id
+lemma continuous_of_add : continuous (of_add : α → multiplicative α) := continuous_id
+lemma continuous_to_add : continuous (to_add : multiplicative α → α) := continuous_id
+
+lemma is_open_map_of_mul : is_open_map (of_mul : α → additive α) := is_open_map.id
+lemma is_open_map_to_mul : is_open_map (to_mul : additive α → α) := is_open_map.id
+lemma is_open_map_of_add : is_open_map (of_add : α → multiplicative α) := is_open_map.id
+lemma is_open_map_to_add : is_open_map (to_add : multiplicative α → α) := is_open_map.id
+
+lemma is_closed_map_of_mul : is_closed_map (of_mul : α → additive α) := is_closed_map.id
+lemma is_closed_map_to_mul : is_closed_map (to_mul : additive α → α) := is_closed_map.id
+lemma is_closed_map_of_add : is_closed_map (of_add : α → multiplicative α) := is_closed_map.id
+lemma is_closed_map_to_add : is_closed_map (to_add : multiplicative α → α) := is_closed_map.id
+
+lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := map_id.symm
+lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := map_id.symm
+lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := map_id.symm
+lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := map_id.symm
 
 instance [discrete_topology α] : discrete_topology (additive α) := ‹discrete_topology α›
 instance [discrete_topology α] : discrete_topology (multiplicative α) := ‹discrete_topology α›

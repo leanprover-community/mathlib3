@@ -1258,6 +1258,12 @@ uniform_continuous_id
 lemma uniform_continuous_to_add : uniform_continuous (to_add : multiplicative α → α) :=
 uniform_continuous_id
 
+lemma uniformity_additive : 𝓤 (additive α) = (𝓤 α).map (prod.map of_mul of_mul) :=
+by { convert map_id.symm, exact prod.map_id }
+
+lemma uniformity_multiplicative : 𝓤 (multiplicative α) = (𝓤 α).map (prod.map of_add of_add) :=
+by { convert map_id.symm, exact prod.map_id }
+
 end
 
 instance {p : α → Prop} [t : uniform_space α] : uniform_space (subtype p) :=

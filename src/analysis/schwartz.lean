@@ -130,11 +130,6 @@ begin
   exact continuous_multilinear_map.le_op_norm _ _,
 end
 
-#check add_mul
-
-#exit
-
-
 end seminorms
 
 section smul
@@ -152,7 +147,7 @@ instance : has_smul R (schwartz 𝕜 E F) :=
     intros x,
     specialize hf x,
     refine lt_of_le_of_lt _ hf,
-    refine mul_le_mul rfl.le _ (by positivity) (by positivity), -- Heather you are the best
+    refine mul_le_mul rfl.le _ (by positivity) (by positivity),
     sorry,
   end}⟩
 -- need iterated_fderiv_const_smul
@@ -176,12 +171,12 @@ instance : has_add (schwartz 𝕜 E F) :=
     intros k n,
     rcases f.decay k n with ⟨Cf, hCf, hf⟩,
     rcases g.decay k n with ⟨Cg, hCg, hg⟩,
-    refine ⟨Cf + Cg, by positivity, λ x, _⟩, -- Thank you Heather
+    refine ⟨Cf + Cg, by positivity, λ x, _⟩,
     specialize hf x,
     specialize hg x,
     refine lt_of_le_of_lt _ (add_lt_add hf hg),
     rw ←mul_add,
-    refine mul_le_mul rfl.le _ (by positivity) (by positivity), -- Heather you are the best
+    refine mul_le_mul rfl.le _ (by positivity) (by positivity),
     convert norm_add_le _ _,
     -- need lemma iterated_fderiv_add
     sorry,

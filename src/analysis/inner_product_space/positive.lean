@@ -53,7 +53,7 @@ hT.1
 
 lemma is_positive.adjoint [complete_space E] {T : E →L[𝕜] E} (hT : is_positive T) :
   is_positive (T†) :=
-by rwa ← hT.is_self_adjoint.eq_adjoint
+by rwa hT.is_self_adjoint.adjoint_eq
 
 lemma is_positive_adjoint_iff [complete_space E] {T : E →L[𝕜] E} :
   (T†).is_positive ↔ T.is_positive :=

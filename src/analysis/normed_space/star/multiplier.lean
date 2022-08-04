@@ -164,6 +164,8 @@ function.injective.module 𝕜 add_group_hom_prod_mk injective_prod_mk (λ x y, 
 instance : normed_add_comm_group 𝓜(𝕜, A) :=
 normed_add_comm_group.induced add_group_hom_prod_mk injective_prod_mk
 
+@[simp] lemma norm_eq (a : 𝓜(𝕜, A)) : ∥a∥ = max (∥a.left∥) (∥a.right∥) := rfl
+
 instance : normed_space 𝕜 𝓜(𝕜, A) :=
 { norm_smul_le := λ k a, show max (∥k • a.left∥) (∥k • a.right∥) ≤ ∥k∥ * max (∥a.left∥) (∥a.right∥),
     by simp only [mul_max_of_nonneg _ _ (norm_nonneg k), norm_smul],
@@ -316,7 +318,6 @@ begin
   exact le_antisymm (h0 _ _ h1) (h0 _ _ h2),
 end
 
-@[simp] lemma norm_eq (a : 𝓜(𝕜, A)) : ∥a∥ = max (∥a.left∥) (∥a.right∥) := rfl
 lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ :=
 by simp only [norm_eq, norm_left_eq_right, max_eq_right, eq_self_iff_true]
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]

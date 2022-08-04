@@ -349,7 +349,7 @@ instance : cstar_ring 𝓜(𝕜, A) :=
 ### Coercion from an algebra into its multiplier algebra
 -/
 
-noncomputable instance : has_coe A 𝓜(𝕜, A) :=
+noncomputable instance : has_coe_t A 𝓜(𝕜, A) :=
 { coe := λ a,
   { left := continuous_linear_map.lmul 𝕜 A a,
     right := continuous_linear_map.lmul_right 𝕜 A a,

@@ -6,6 +6,7 @@ Authors: Jujian Zhang
 import algebra.category.Group.basic
 import category_theory.epi_mono
 import group_theory.quotient_group
+import algebra.category.Group.equivalence_Group_AddGroup
 
 /-!
 # Monomorphisms and epimorphisms in `Group`
@@ -333,7 +334,7 @@ variables {A B : CommGroup.{u}} (f : A ⟶ B)
 @[to_additive AddCommGroup.ker_eq_bot_of_mono]
 lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
 monoid_hom.ker_eq_bot_of_cancel $ λ u v,
-  (@cancel_mono _ _ _ _ _ f _ (show Group.of f.ker ⟶ A, from u) _).1
+  (@cancel_mono _ _ _ _ _ f _ (show CommGroup.of f.ker ⟶ A, from u) _).1
 
 @[to_additive AddCommGroup.mono_iff_ker_eq_bot]
 lemma mono_iff_ker_eq_bot : mono f ↔ f.ker = ⊥ :=

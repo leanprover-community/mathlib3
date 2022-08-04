@@ -177,11 +177,11 @@ begin
   unfold fis.is_surjective,
   rintros i j ij ⟨x,xh⟩,
 
-  have S := set.range (λ k : bigger i, (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}),
+  let S := set.range (λ k : bigger i, (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}),
   have Ssnempty : ∀ s ∈ S, set.nonempty s, by
   { rintro s hs,
     have : ∃ k : bigger i, s = (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}, by
-    { sorry, }, -- should be hs
+    { simp at hs, cases hs, cases hs_h, induction hs_h_h, dsimp at *, simp at *, dsimp at *, fsplit, work_on_goal 2 { fsplit, work_on_goal 1 { assumption }, refl }}, -- thanks to `tidy`
     obtain ⟨⟨k,ki⟩,rfl⟩ := this,
     have ki : i.unop ≤ k.unop, from ki,
     have xh' : x ∈ ⋂ (l : (bigger j)), set.range (F.map (op_hom_of_le l.prop)) := xh,

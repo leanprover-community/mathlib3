@@ -410,16 +410,14 @@ variables {T : E →ₗ[𝕜] E}
 
 /-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
   defined symmetric operator.-/
-def is_symmetric.clm (hT : is_symmetric T) : E →L[𝕜] E :=
-⟨T, hT.continuous⟩
+def is_symmetric.to_self_adjoint (hT : is_symmetric T) : self_adjoint (E →L[𝕜] E) :=
+⟨⟨T, hT.continuous⟩, continuous_linear_map.is_self_adjoint_iff_is_symmetric.mpr hT⟩
 
-lemma is_symmetric.coe_clm (hT : is_symmetric T) : (hT.clm : E →ₗ[𝕜] E) = T := rfl
+lemma is_symmetric.coe_to_self_adjoint (hT : is_symmetric T) :
+  (hT.to_self_adjoint : E →ₗ[𝕜] E) = T := rfl
 
-lemma is_symmetric.clm_apply (hT : is_symmetric T) {x : E} : hT.clm x = T x := rfl
-
-lemma is_symmetric.clm_is_self_adjoint (hT : is_symmetric T) :
-  is_self_adjoint hT.clm :=
-by rwa continuous_linear_map.is_self_adjoint_iff_is_symmetric
+lemma is_symmetric.to_self_adjoint_apply (hT : is_symmetric T) {x : E} :
+  hT.to_self_adjoint x = T x := rfl
 
 end linear_map
 

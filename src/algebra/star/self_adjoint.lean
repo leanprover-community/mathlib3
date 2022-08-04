@@ -81,6 +81,20 @@ by simp only [is_self_adjoint_iff, star_bit0, hx.star_eq]
 
 end add_group
 
+section non_unital_semiring
+variables [non_unital_semiring R] [star_ring R]
+
+lemma conjugate {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (z * x * star z) :=
+by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
+
+lemma conjugate' {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (star z * x * z) :=
+by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
+
+lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
+⟨by simp only [hx.star_eq]⟩
+
+end non_unital_semiring
+
 section ring
 variables [ring R] [star_ring R]
 
@@ -93,27 +107,18 @@ variables {R}
 lemma bit1 {x : R} (hx : is_self_adjoint x) : is_self_adjoint (bit1 x) :=
 by simp only [is_self_adjoint_iff, star_bit1, hx.star_eq]
 
-lemma conjugate {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (z * x * star z) :=
-by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
-
-lemma conjugate' {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (star z * x * z) :=
-by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
-
-lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
-⟨by simp only [hx.star_eq]⟩
-
 lemma pow {x : R} (hx : is_self_adjoint x) (n : ℕ) : is_self_adjoint (x ^ n):=
 by simp only [is_self_adjoint_iff, star_pow, hx.star_eq]
 
 end ring
 
-section comm_ring
-variables [comm_ring R] [star_ring R]
+section non_unital_comm_ring
+variables [non_unital_comm_ring R] [star_ring R]
 
 lemma mul {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x * y) :=
 by simp only [is_self_adjoint_iff, star_mul', hx.star_eq, hy.star_eq]
 
-end comm_ring
+end non_unital_comm_ring
 
 section field
 variables [field R] [star_ring R]
@@ -194,8 +199,6 @@ instance : has_int_cast (self_adjoint R) :=
     refine add_mem (is_self_adjoint_one R).neg (n : self_adjoint R).2.neg,
   end ⟩ ⟩
 
-instance (x : self_adjoint R) : is_star_normal (x : R) := x.prop.is_star_normal
-
 instance : has_pow (self_adjoint R) ℕ :=
 ⟨λ x n, ⟨(x : R) ^ n, x.prop.pow n⟩⟩
 
@@ -203,13 +206,18 @@ instance : has_pow (self_adjoint R) ℕ :=
 
 end ring
 
-section comm_ring
-variables [comm_ring R] [star_ring R]
+section non_unital_comm_ring
+variables [non_unital_comm_ring R] [star_ring R]
 
 instance : has_mul (self_adjoint R) :=
 ⟨λ x y, ⟨(x : R) * y, x.prop.mul y.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
+
+end non_unital_comm_ring
+
+section comm_ring
+variables [comm_ring R] [star_ring R]
 
 instance : comm_ring (self_adjoint R) :=
 function.injective.comm_ring _ subtype.coe_injective

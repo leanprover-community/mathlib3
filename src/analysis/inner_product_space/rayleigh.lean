@@ -157,7 +157,7 @@ lemma eq_smul_self_of_is_local_extr_on (hT : is_self_adjoint T) {x₀ : E}
   T x₀ = (↑(rayleigh_quotient x₀) : 𝕜) • x₀ :=
 begin
   letI := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  let hSA := hT.is_symmetric.restrict_scalars.clm_is_self_adjoint,
+  let hSA := hT.is_symmetric.restrict_scalars.to_self_adjoint.prop,
   exact hSA.eq_smul_self_of_is_local_extr_on_real hextr,
 end
 
@@ -234,9 +234,9 @@ begin
   have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simp⟩,
   -- key point: in finite dimension, a continuous function on the sphere has a max
   obtain ⟨x₀, hx₀', hTx₀⟩ :=
-    H₁.exists_forall_ge H₂ hT.clm.re_apply_inner_self_continuous.continuous_on,
+    H₁.exists_forall_ge H₂ hT.to_self_adjoint.prop.re_apply_inner_self_continuous.continuous_on,
   have hx₀ : ∥x₀∥ = ∥x∥ := by simpa using hx₀',
-  have : is_max_on hT.clm.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
+  have : is_max_on hT.to_self_adjoint.prop.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
   { simpa only [← hx₀] using hTx₀ },
   have hx₀_ne : x₀ ≠ 0,
   { have : ∥x₀∥ ≠ 0 := by simp only [hx₀, norm_eq_zero, hx, ne.def, not_false_iff],

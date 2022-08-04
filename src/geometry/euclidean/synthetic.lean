@@ -2446,15 +2446,42 @@ begin
   exact habc ⟨L, aL, bL, cL⟩,
 end
 
-lemma B_of_greater_angle {a b c d : point} {Lab : line} (habc : ¬ colinear a b c)
-  (hbcd: colinear b c d) (aL : online a Lab) (bL : online b Lab) (adL : sameside a d Lab)
-  (h : angle b a c < angle b a d) : B b c d :=
+example (a b : ℝ) (h1 : ¬ a =b )  : a ≠ b :=
 begin
-  have := area_add_iff_B,
-  repeat {sorry},
+ exact h1,
 end
 
--- base angles differ → angle bisectors differ. Proof in Coxeter (by H.G. Forder)
+lemma B_of_greater_angle {a b c d : point} {L : line} (habc : ¬ colinear a b c)
+  (hbcd: colinear b c d) (aL : online a L) (bL : online b L) (cdL : sameside c d L)
+  (h : angle b a c < angle b a d) : B b c d :=
+begin
+  have a_ne_c := ne_13_of_not_colinear habc,
+  have a_ne_b := ne_12_of_not_colinear habc,
+  have b_ne_c := ne_23_of_not_colinear habc,
+  by_cases c_ne_d : c = d,
+  { rw c_ne_d at *; linarith, },
+  have dL := not_online_of_sameside (sameside_symm cdL),
+  by_cases b_ne_d : b = d,
+  { rw b_ne_d at *,
+    exact false.rec _ (dL bL), },
+  obtain ⟨M, bM, cM, dM⟩ := hbcd,
+  cases B_of_three_online_ne bM cM dM b_ne_c b_ne_d c_ne_d with Bbcd h₁,
+  { exact Bbcd, },
+  cases h₁ with Bcbd Bbdc,
+  { exact false.rec _ (not_sameside13_of_B123_online2 Bcbd bL cdL), },
+  have aM : ¬ online a M := λ hh, habc ⟨M, hh, bM, cM⟩,
+  --have := (area_add_iff_B b_ne_c c_ne_d (λ hh, b_ne_d hh.symm) bM cM dM aM).mp Bbdc,
+  obtain ⟨N, aN, cN⟩ := line_of_ne a_ne_c,
+  have dN : ¬ online d N := sorry,
+  have LN : L ≠ N := sorry,
+  have bdN : sameside b d N := sorry,
+  have cdL : sameside c d L := sorry,
+  have : 0 ≤ angle d a c := angle_nonneg _ _ _,
+  have := (angle_add_iff_sameside aL bL aN cN a_ne_b a_ne_c dN dL LN).mpr ⟨bdN, cdL⟩,
+  linarith,
+end
+
+-- If a base angle is smaller, then its bisector is longer. Proof in Coxeter (by H.G. Forder)
 lemma steiner_lehmus_prep {a b c y z : point} (habc : ¬ colinear a b c) (Bazb : B a z b)
   (Bayc : B a y c) (hb : angle a b y = angle y b c) (hc : angle a c z = angle z c b)
   (b_le_c : angle a b c < angle a c b) :
@@ -2471,14 +2498,14 @@ begin
   { intros hcz,
     rw ←hcz at Bazb,
     exact habc (colinear_of_B Bazb).symm_23, },
-  obtain ⟨Lab, aL, bL⟩ := line_of_ne (a_ne_b),
-  have y_not_on_Lab : ¬ online y Lab := sorry,
-  obtain ⟨Mcz, cM, zM⟩ := line_of_ne (c_ne_z),
-  have a_not_on_Mcz : ¬ online a Mcz := sorry,
+  obtain ⟨L, aL, bL⟩ := line_of_ne (a_ne_b),
+  have yL : ¬ online y L := sorry,
+  obtain ⟨M, cM, zM⟩ := line_of_ne (c_ne_z),
+  have aM : ¬ online a M := sorry,
   have : ∃ u : point, B a u z ∧ angle u c z = angle u b y,
   {
-    obtain ⟨f, hf⟩ := angcopy c_ne_z a_ne_b.symm bL aL y_not_on_Lab cM zM a_not_on_Mcz,
-    by_cases hf_on_ab : online f Lab,
+    obtain ⟨f, hf⟩ := angcopy c_ne_z a_ne_b.symm bL aL yL cM zM aM,
+    by_cases hf_on_ab : online f L,
     {
       use f,
       sorry,

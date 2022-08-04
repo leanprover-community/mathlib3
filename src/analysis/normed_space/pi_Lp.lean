@@ -79,8 +79,8 @@ lemma ennreal.to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.t
 ⟨λ h hp, let this : (0 : ℝ) ≠ 0 := ennreal.top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,
  λ h, zero_lt_one.trans_le (p.dichotomy.resolve_left h)⟩
 
-lemma conditionally_complete_lattice.supr_equiv {ι ι' E : Type*} [conditionally_complete_lattice E]
-  (e : ι ≃ ι') {f : ι → E} (hf : bdd_above (range f)) (g : ι' → E) (hfg : ∀ i, f i = g (e i)) :
+lemma equiv.csupr {ι ι' E : Type*} [conditionally_complete_lattice E]
+  (e : ι ≃ ι') {f : ι → E} (hf : bdd_above (range f)) {g : ι' → E} (hfg : ∀ i, f i = g (e i)) :
   (⨆ i, f i) = ⨆ i, g i :=
 begin
   casesI is_empty_or_nonempty ι,
@@ -92,6 +92,11 @@ begin
     refine le_antisymm (csupr_le (λ i, (hfg i).symm ▸ le_csupr hg (e i))) (csupr_le (λ i, _)),
     simpa only [equiv.apply_symm_apply, hfg (e.symm i)] using le_csupr hf (e.symm i) },
 end
+
+lemma equiv.cinfi {ι ι' E : Type*} [conditionally_complete_lattice E]
+  (e : ι ≃ ι') {f : ι → E} (hf : bdd_below (range f)) {g : ι' → E} (hfg : ∀ i, f i = g (e i)) :
+  (⨅ i, f i) = ⨅ i, g i :=
+@equiv.csupr _ _ Eᵒᵈ _ e _ hf _ hfg
 
 /- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -/
 
@@ -587,8 +592,7 @@ def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { simp_rw [norm_eq_csupr, linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _],
-      exact conditionally_complete_lattice.supr_equiv e.symm
-        (fintype.bdd_above_range _) _ (λ i, rfl), },
+      exact e.symm.csupr (fintype.bdd_above_range _) _ (λ i, rfl), },
     { simp only [norm_eq_sum (zero_lt_one.trans_le h)],
       simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
       congr,

@@ -407,10 +407,9 @@ begin
   { intros r hr,
     rw [mod_eq_of_lt hr, mod_eq_of_lt],
     rwa div_lt_iff_lt_mul (succ_pos _) },
-  { intros k r hr IH,
-    rw [add_mod, mul_assoc, add_div_of_dvd_right (dvd_mul_right _ _)] at IH ⊢,
-    simp only [mod_eq_of_lt hr, mul_mod_right, zero_add, ←mul_assoc] at IH ⊢,
-    rwa [mul_assoc, mul_div_cancel_left _ (succ_pos _), add_mod, mul_mod_right, zero_add] at IH ⊢ }
+  { intros k IH,
+    rw [add_mod, mod_self, add_zero, mod_mod, nat.add_div_of_dvd_left (dvd_mul_left _ _),
+        nat.mul_div_cancel _ (nat.succ_pos _), add_mod, mod_self, add_zero, mod_mod, IH] }
 end
 
 lemma odd_mul_odd {n m : ℕ} : n % 2 = 1 → m % 2 = 1 → (n * m) % 2 = 1 :=

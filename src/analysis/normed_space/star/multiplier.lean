@@ -16,14 +16,13 @@ coercion.
 
 The multiplier algebra corresponds to a non-commutative Stone–Čech compactification in the sense
 that when the algebra `A` is commutative, it can be identified with `C₀(X, ℂ)` for some locally
-compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified with `C(βX, ℂ)`.
+compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified with `C(β X, ℂ)`.
 
 ## Implementation notes
 
 ## TODO
 
 + show that `𝓜(𝕜, A)` is a C⋆-ring
-+ show that `𝓜(𝕜, A)` is complete in the norm topology
 + define a type synonym for `𝓜(𝕜, A)` which is equipped with the strict topology
 + after ⋆-algebra morphisms are implemented in mathlib, bundle the coercion `A → 𝓜(𝕜, A)`
 + show that the image of `A` in `𝓜(𝕜, A)` is an essential ideal

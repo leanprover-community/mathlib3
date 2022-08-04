@@ -21,14 +21,11 @@ This Young diagram corresponds to the [5, 3, 3, 1] partition of 12.
 We represent it as a lower set in `ℕ × ℕ` in the product partial order. We write `(i, j) ∈ μ`
 to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
 
-## Main functions:
+## Main definitions:
 
-  - `young_diagram` : basic definition
-  - `young_diagram.distrib_lattice`
-  - `young_diagram.card` : the cardinality (number of boxes)
-
-  - various constructors:
-      `young_diagram.has_bot` : the empty Young diagram is (⊥ : young_diagram)
+- `young_diagram` : Young diagrams
+- `young_diagram.card` : the number of cells in a Young diagram (its *cardinality*)
+- `young_diagram.distrib_lattice` : a distributive lattice instance for Young diagrams ordered by containment, with `(⊥ : young_diagram)` the empty diagram.
 
 ## Notation:
 

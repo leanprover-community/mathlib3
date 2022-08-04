@@ -258,7 +258,7 @@ lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f
 begin
   sorry
 end
-
+--test --
 -- Hard!
 lemma gaussian_rv_add (hf : gaussian_rv f m₁ s₁) (hg : gaussian_rv g m₂ s₂)
   (hfmeas : measurable f) (hgmeas : measurable g) (hfg : indep_fun f g) :

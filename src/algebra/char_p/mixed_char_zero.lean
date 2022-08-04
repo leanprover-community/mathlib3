@@ -31,15 +31,19 @@ into cases by characteristic.
 
 - `equal_char_zero` : class for a ring to be of 'equal characteristic zero'.
 - `mixed_char_zero` : class for a ring to be of 'mixed characteristic zero'.
-
 - `equal_char_zero.rat_cast` : The homomorphism `ℚ →+* R`.
 
 ## Main results
 
-- `equal_char_zero.of_rat_cast`: A ring has equal characteristic zero iff there is an
+- `equal_char_zero.of_rat_cast` : A ring has equal characteristic zero iff there is an
   injective homomorphism `ℚ →+* R`. This theorem is the backwards direction.
-- `split_by_characteristic`: Split a statement over a domain `R` into the three
-   different cases by characteristic.
+- `split_equal_mixed_char` : Split a statement into equal/mixed characteristic zero.
+
+This main theorem has the following three corollaries which include the positive
+characteristic case for convenience:
+- `split_by_characteristic` : Generally consider positive char `p ≠ 0`.
+- `split_by_characteristic_domain` : In a domain we can assume that `p` is prime.
+- `split_by_characteristic_local_ring` : In a local ring we can assume that `p` is a prime power.
 
 ## TODO
 
@@ -79,7 +83,7 @@ namespace equal_char_zero
   char_zero R :=
 ⟨begin
   intros x y h,
-  apply (equal_char_zero.residue_char_zero (⊥:ideal R) bot_ne_top).cast_injective,
+  apply (equal_char_zero.residue_char_zero (⊥ : ideal R) bot_ne_top).cast_injective,
   simp_rw [←map_nat_cast (ideal.quotient.mk (⊥ : ideal R)), h],
 end⟩
 
@@ -91,11 +95,17 @@ exists an injective homomorphism `ℚ →+* R`.
 
 Note: If `R` is nontrivial, then injectivity is automatically given by
 `(rat_cast R).injective` as `ℚ` is a field.
+
+The backwards direction is straight forward. For the forward direction,
+the construction of `ℚ →+* R` works by doing the division of numerator/denominator in `R`:
+`x ↦ (x.num : R) /ₚ ↑x.pnat_denom`.
+For this the essential ingredient is to show that any positive natural number is invertible in `R`,
+i.e. that there is a lift `ℕ+ → Rˣ`.
 -/
 
 section rat_cast
 
-/--  -/
+/-- Backwards direction. -/
 theorem of_rat_cast [char_zero R] (i : ℚ →+* R) : equal_char_zero R :=
 ⟨λI hI,
   ⟨begin
@@ -151,10 +161,11 @@ end
 @[priority 900] noncomputable instance pnat_has_coe : has_coe_t ℕ+ Rˣ :=
 ⟨λn, (pnat_coe_is_unit R n).unit⟩
 
+-- TODO: Does not belong here.
 lemma is_unit_one_def {M : Type*} [monoid M] : (@is_unit_one M _).unit = 1 :=
 begin
   have h : is_unit ((1 : Mˣ) : M) := by simp only [units.coe_one, is_unit_one],
-  exact h.unit_of_coe_units,
+  exact h.unit_of_coe_units
 end
 
 /-- `(1 : ℕ+)` lifts to `(1 : Rˣ)`. -/
@@ -162,14 +173,14 @@ end
 begin
   change (pnat_coe_is_unit R 1).unit = 1,
   convert is_unit_one_def,
-  rw [coe_coe, pnat.one_coe, nat.cast_one],
+  rw [coe_coe, pnat.one_coe, nat.cast_one]
 end
 
 /-- Lifting `(n : ℕ+)` trough `ℕ+ → Rˣ → R` and `ℕ+ → ℕ → R` are the same thing. -/
 @[simp, norm_cast] lemma coe_coe_eq_coe_coe (n : ℕ+) : ((n : Rˣ) : R) = ↑n :=
 begin
   change ((pnat_coe_is_unit R n).unit : R) = ↑n,
-  simp only [is_unit.unit_spec],
+  simp only [is_unit.unit_spec]
 end
 
 /-- The injective homomorphism `ℚ →+* R`. -/
@@ -185,7 +196,7 @@ noncomputable def rat_cast : ℚ →+* R :=
     { simp_rw [int.cast_mul, int.cast_coe_nat],
       ring },
     rw rat.mul_num_denom' a b,
-    simp only [int.cast_mul, int.cast_coe_nat],
+    simp only [int.cast_mul, int.cast_coe_nat]
   end,
   map_add' :=
   begin
@@ -195,16 +206,14 @@ noncomputable def rat_cast : ℚ →+* R :=
     { simp_rw [int.cast_mul, int.cast_coe_nat],
       ring },
     rw rat.add_num_denom' a b,
-    simp only [int.cast_mul, int.cast_add, int.cast_coe_nat],
+    simp only [int.cast_mul, int.cast_add, int.cast_coe_nat]
   end }
 
 lemma rat_cast_def (x : ℚ) : rat_cast R x = x.num /ₚ ↑(x.pnat_denom) := rfl
 
 -- see Note [coercion into rings]
-/--
-This instance has priority `< 900` to prioritise `rat.cast_coe` in the case
-when `R` is a field of characteristic zero, as this also defines a cast `ℚ → R`.
--/
+-- This instance has priority `< 900` to prioritise `rat.cast_coe` in the case
+-- when `R` is a field of characteristic zero, as this also defines a cast `ℚ → R`.
 @[priority 850] noncomputable instance rat_coe : has_coe_t ℚ R := ⟨rat_cast R⟩
 
 @[simp, norm_cast] lemma cast_nat (n : ℕ) : ((n : ℚ) : R) = ↑n := map_nat_cast (rat_cast R) n
@@ -228,7 +237,7 @@ lemma rat_cast_eq_cast_coe (x : ℚ) :
 begin
   rw [rat.cast_def, rat_cast_def],
   rw divp_eq_div,
-  simp,
+  simp
 end
 
 lemma field.algebra_map_eq_cast_coe (x : ℚ) :
@@ -239,7 +248,7 @@ begin
   change (algebra_map R K) (x.num /ₚ ↑(x.pnat_denom)) = (x.num /ₚ ↑(x.pnat_denom)),
   simp_rw [divp],
   simp only [map_mul, ring_hom.map_int_cast, ring_hom.map_units_inv,
-    coe_coe_eq_coe_coe, coe_coe, map_nat_cast, units.coe_inv],
+    coe_coe_eq_coe_coe, coe_coe, map_nat_cast, units.coe_inv]
 end
 
 end field
@@ -286,7 +295,7 @@ begin
       have q_zero := congr_arg (ideal.quotient.factor I M h_IM) (char_p.cast_eq_zero (R ⧸ I) q),
       simp only [map_nat_cast, map_zero] at q_zero,
       apply ne_zero_of_dvd_ne_zero q_mixed_char.p_pos,
-      exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero,
+      exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero
     end,
     have r_prime : nat.prime r :=
       or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
@@ -299,7 +308,7 @@ begin
         use M,
         split,
         exact hM_max.ne_top,
-        refine ring_char.of_eq rfl,
+        refine ring_char.of_eq rfl
       end }}
 end
 
@@ -329,7 +338,7 @@ begin
       have r_dvd_p : r ∣ p :=
       begin
         rw ←char_p.cast_eq_zero_iff (R ⧸ M) r p,
-        convert congr_arg (ideal.quotient.factor I M hM) (char_p.cast_eq_zero (R ⧸ I) p),
+        convert congr_arg (ideal.quotient.factor I M hM) (char_p.cast_eq_zero (R ⧸ I) p)
       end,
       rw eq_comm,
       apply or_iff_not_imp_left.mp (nat.prime.eq_one_or_self_of_dvd hp r r_dvd_p),
@@ -344,6 +353,14 @@ end mixed_char_zero
 
 /-!
 # Splitting statements into different characteristic
+
+Statements to split a proof by characteristic. There are 3 theorems here that are very
+similar that only differ in the assumptions we can make on the positive characteristic
+case:
+Generally we need to consider all `p ≠ 0`, but if `R` is a local ring, we can assume
+that `p` is a prime power and if `R` is a domain, we can even assume that `p` is prime.
+
+
 -/
 
 section char_zero
@@ -373,7 +390,7 @@ begin
       exact hp,
       { have h_mixed : mixed_char_zero R p.succ :=
           ⟨infer_instance, p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
-        exact absurd h_mixed (h p.succ) },
+        exact absurd h_mixed (h p.succ) }
     end⟩ }
 end
 
@@ -383,7 +400,7 @@ or_iff_not_imp_right.mpr (equal_iff_not_mixed_char R).mpr
 variable {P : Prop}
 
 /--
-  Split a `Prop` in characteristic zero into equal and mixed characteristic.
+Main Theorem: split a `Prop` in characteristic zero into equal and mixed characteristic.
 -/
 theorem split_equal_mixed_char
   (h_equal : equal_char_zero R → P)
@@ -400,12 +417,10 @@ end char_zero
 
 variable {P : Prop}
 
-/--
-Split a statement by characteristic:
-
-- Positive characteristic
-- Equal char. zero
-- Mixed char. `(0, p)` with `p` prime
+/-- Split any `Prop` over `R` into the three cases
+- positive characteristic
+- equal characteristic zero
+- mixed characteristic `(0, p)`.
 -/
 theorem split_by_characteristic
   (h1 : ∀ (p : ℕ), (p ≠ 0 → char_p R p → P))
@@ -421,8 +436,8 @@ begin
   exact h1 p h p_char,
 end
 
-/-- In a `is_domain R` one can reduce the positive characteristic case to prime `p`.-/
-lemma local_ring_split_by_characteristic [is_domain R]
+/-- In a `is_domain R` one can reduce the positive characteristic case to prime `p`. -/
+lemma split_by_characteristic_domain [is_domain R]
   (h1 : ∀ (p : ℕ), (nat.prime p → char_p R p → P))
   (h2 : equal_char_zero R → P)
   (h3 : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
@@ -434,7 +449,7 @@ begin
 end
 
 /-- In a `local_ring R` one can reduce the positive characteristic case to prime powers `p`. -/
-lemma is_domain_split_by_characteristic [local_ring R]
+lemma split_by_characteristic_local_ring [local_ring R]
   (h1 : ∀ (p : ℕ), (is_prime_pow p → char_p R p → P))
   (h2 : equal_char_zero R → P)
   (h3 : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=

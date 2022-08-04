@@ -188,6 +188,7 @@ begin
   unfold fis.is_surjective,
   rintros i j ij ⟨x,xh⟩,
 
+
   let S := set.range (λ k : bigger i, (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}),
   have Ssnempty : ∀ s ∈ S, set.nonempty s, by
   { rintro s hs,
@@ -213,40 +214,45 @@ begin
     unfold directed_on,
     -- only needs to show that S is directed
     rintros X ⟨⟨l,li⟩,rfl⟩ Y ⟨⟨k,ki⟩,rfl⟩,
-    unfold bigger at li, rw set.mem_prop_of_eq,
-    unfold bigger at ki,
-    obtain ⟨l',lk',lj'⟩ := directed_of (≤) k.unop j.unop,
-    let l := opposite.op l',
-    have lk : opposite.unop k ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lk'},
-    have lj : opposite.unop j ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lj'},
-    let hlk := op_hom_of_le lk,
-    let hlj := op_hom_of_le lj,
-    let hji := op_hom_of_le ij,
-    let hki := op_hom_of_le ki,
-    use set.range (F.map $ hlk ≫ hkj),
-    use l,
-    use kj.trans lk,
+    unfold bigger at li, rw set.mem_set_of_eq at li,
+    unfold bigger at ki, rw set.mem_set_of_eq at ki,
+    obtain ⟨m',mk',ml'⟩ := directed_of (≤) k.unop l.unop,
+    let m := opposite.op m',
+    have mk : opposite.unop k ≤ opposite.unop m, by {simp only [opposite.unop_op],exact mk'},
+    have ml : opposite.unop l ≤ opposite.unop m, by {simp only [opposite.unop_op],exact ml'},
+    use set.range (F.map $ op_hom_of_le $ ki.trans mk) ∩ set.preimage (F.map  $ op_hom_of_le ij) {x},
+    use m,
+    use ki.trans mk,
     { simp only, refl, },
-    { --have : op_hom_of_le ij = hlk ≫ hkj, by {sorry},
+    {
       simp only,
       split,
-      { have : hlk ≫ hkj = hlj ≫ hji, by reflexivity,
+      { apply set.inter_subset_inter_left,
+        have : op_hom_of_le (li.trans ml) = (op_hom_of_le ml) ≫ (op_hom_of_le li), by reflexivity,
         rw [this,functor.map_comp /-F hli hij-/,types_comp],
         apply set.range_comp_subset_range,},
-      {
-        rw [functor.map_comp /-F hlk hkj-/,types_comp],
+      {apply set.inter_subset_inter_left,
+        have : op_hom_of_le (ki.trans mk) = (op_hom_of_le mk) ≫ (op_hom_of_le ki), by reflexivity,
+        rw [this,functor.map_comp /-F hli hij-/,types_comp],
         apply set.range_comp_subset_range,},
-  },
+    },
 
   },
+
   obtain ⟨y,y_mem⟩ := this,
+  dsimp at y_mem,simp at y_mem,
   use y,
-  { },
-  {
-    sorry,
-  },
-
-
+  { rintro s ⟨⟨m,mi⟩,rfl⟩,
+    simp only [set.mem_range],
+    specialize y_mem m mi,
+    obtain ⟨⟨z,ztoy⟩,ytox⟩ := y_mem,
+    use [z,ztoy],},
+  { specialize y_mem i (le_refl i.unop),
+    obtain ⟨⟨z,ztoy⟩,ytox⟩ := y_mem,
+    dsimp only [set.mem_range],
+    apply subtype.mk_eq_mk.mpr,
+    simp only [subtype.coe_mk],
+    exact ytox,},
 end
 
 lemma fis.sections_in_surjective {J : Type u} [preorder J] [is_directed J has_le.le]
@@ -277,9 +283,7 @@ begin
     { unfold category_theory.functor.sections,
       rintro i j ij,
       simp,
-      sorry,
     }
-
   },
   {sorry,},
   {sorry,},

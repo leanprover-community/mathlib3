@@ -15,6 +15,7 @@ This file contains two equivalence:
   sending `X : CommGroup` to `additive X` and `Y : AddCommGroup` to `multiplicative Y`.
 -/
 
+open category_theory
 
 namespace Group
 
@@ -93,8 +94,8 @@ The equivalence of categories between `CommGroup` and `AddCommGroup`.
 @[simps] def CommGroup_AddCommGroup_equivalence : CommGroup ≌ AddCommGroup :=
 equivalence.mk CommGroup.to_AddCommGroup AddCommGroup.to_CommGroup
   (nat_iso.of_components
-    (λ X, mul_equiv.to_Group_iso (mul_equiv.multiplicative_additive X))
+    (λ X, mul_equiv.to_CommGroup_iso (mul_equiv.multiplicative_additive X))
     (λ X Y f, rfl))
   (nat_iso.of_components
-    (λ X, add_equiv.to_AddGroup_iso (add_equiv.additive_multiplicative X))
+    (λ X, add_equiv.to_AddCommGroup_iso (add_equiv.additive_multiplicative X))
     (λ X Y f, rfl))

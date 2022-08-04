@@ -271,6 +271,16 @@ begin
   { rintro s ⟨i,rfl⟩, simp only [set.mem_Inter], intro ij, exact this ⟨i,ij⟩, },
 end
 
+lemma fis.sections_in_surjective' {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (s : F.sections) (j : Jᵒᵖ) :
+  (s.val j) ∈ ⋂ (i : bigger j), set.range (F.map  (op_hom_of_le i.prop)) :=
+begin
+  rw set.mem_Inter,
+  rintro ⟨i,ij⟩,
+  use s.val i,
+  exact s.prop (op_hom_of_le ij),
+end
+
 def fis.sections_surjective_equiv_sections  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
   F.sections ≃ (fis.to_surjective F).sections :=
@@ -279,11 +289,12 @@ begin
   { rintro s,
     split,rotate,
     { rintro j,
-      exact (fis.sections_in_surjective F s j).some,},
+      exact ⟨s.val j, fis.sections_in_surjective' F s j⟩,},
     { unfold category_theory.functor.sections,
       rintro i j ij,
       simp,
-    }
+      apply subtype.mk_eq_mk.mpr,
+      exact s.prop ij,}
   },
   {sorry,},
   {sorry,},

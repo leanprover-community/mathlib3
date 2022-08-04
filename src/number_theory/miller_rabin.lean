@@ -708,26 +708,22 @@ end
 --   sorry,
 -- end
 
--- Version of Lagrange's theorem using the formalism of a closed subset
+/-- Version of Lagrange's theorem using the formalism of a closed subset.
+If `α` is a finite group and `s : finset α` is closed under multiplication and inverses and
+contains `1 : α`, then `|s|` divides `|α|`.
+-/
 lemma card_closed_subset_dvd_card {α : Type} [fintype α] [group α] (s : finset α)
   (closed_under_mul : ∀ a b ∈ s, a * b ∈ s) (closed_under_inv : ∀ a ∈ s, a⁻¹ ∈ s)
   (id_mem : (1 : α) ∈ s)  :
   finset.card s ∣ fintype.card α :=
 begin
-  let s_subgroup : subgroup α := subgroup.mk (s : set α) _ _ _,
+  let s_subgroup : subgroup α := subgroup.mk (s : set α) _ id_mem closed_under_inv,
+  swap, { intros a b ha hb, simp only [finset.mem_coe] at *, solve_by_elim },
   classical,
-  have : s.card = fintype.card s_subgroup,
-  { unfold_coes,
-    simp only [subgroup.mem_mk, finset.mem_coe] at *,
-    rw fintype.card_subtype,
-    congr,
-    ext,
-    simp_rw [finset.mem_filter, finset.mem_univ, true_and] },
-  rw this,
-  convert subgroup.card_subgroup_dvd_card s_subgroup,
-  { intros a b ha hb, simp only [finset.mem_coe] at *, solve_by_elim, },
-  { assumption, },
-  { assumption, },
+  suffices : s.card = fintype.card s_subgroup,
+  { rw this, convert subgroup.card_subgroup_dvd_card s_subgroup },
+  refine (fintype.card_of_finset' _ (λ x, _)).symm,
+  trivial,
 end
 
 noncomputable

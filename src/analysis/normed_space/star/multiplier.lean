@@ -50,48 +50,6 @@ lemma _root_.cstar_ring.nnnorm_self_mul_star {E : Type*} [non_unital_normed_ring
   [cstar_ring E] {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
 by simpa using @cstar_ring.nnnorm_star_mul_self _ _ _ _ (star x)
 
-namespace continuous_linear_map
-
--- `lmul` exists, but doesn't work for us because we have *non-unital* ring, so we need this
--- very similar version. There's a PR open to fix this: #15310
-noncomputable def lmul' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜]
-  [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] :
-  A →L[𝕜] A →L[𝕜] A :=
-linear_map.mk_continuous₂
-  ({ to_fun := λ a,
-     { to_fun := λ b, a * b,
-       map_add' := λ x y, mul_add _ _ _,
-       map_smul' := λ k x, mul_smul_comm _ _ _ },
-     map_add' := λ x y, by { ext, exact add_mul _ _ _ },
-     map_smul' := λ k x, by { ext, exact smul_mul_assoc _ _ _ } })
-  (1 : ℝ)
-  (by simpa only [linear_map.coe_mk, one_mul] using norm_mul_le)
-
-@[simp]
-lemma lmul'_apply (x y : A) : lmul' 𝕜 A x y = x * y := rfl
-
-@[simp] lemma op_norm_lmul'_apply_le (x : A) : ∥lmul' 𝕜 A x∥ ≤ ∥x∥ :=
-op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x)
-
-lemma lmul_eq_lmul' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜] [normed_ring A]
-  [normed_algebra 𝕜 A] : lmul 𝕜 A = lmul' 𝕜 A := by {ext, refl}
-
-noncomputable def lmul_right' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜]
-  [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] :
-  A →L[𝕜] A →L[𝕜] A :=
-(lmul' 𝕜 A).flip
-
-@[simp]
-lemma lmul_right'_apply (x y : A) : lmul_right' 𝕜 A x y = y * x := rfl
-
-@[simp] lemma op_norm_lmul_right'_apply_le (x : A) : ∥lmul_right' 𝕜 A x∥ ≤ ∥x∥ :=
-op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _))
-
-lemma lmul_right_eq_lmul' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜] [normed_ring A]
-  [normed_algebra 𝕜 A] : lmul_right 𝕜 A = lmul_right' 𝕜 A := by {ext, refl}
-
-end continuous_linear_map
-
 end prereqs
 
 @[ext]
@@ -393,14 +351,14 @@ instance : cstar_ring 𝓜(𝕜, A) :=
 
 noncomputable instance : has_coe A 𝓜(𝕜, A) :=
 { coe := λ a,
-  { left := continuous_linear_map.lmul' 𝕜 A a,
-    right := continuous_linear_map.lmul_right' 𝕜 A a,
+  { left := continuous_linear_map.lmul 𝕜 A a,
+    right := continuous_linear_map.lmul_right 𝕜 A a,
     central := λ x y, mul_assoc _ _ _ } }
 
 @[simp, norm_cast]
-lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul' 𝕜 A a := rfl
+lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul 𝕜 A a := rfl
 @[simp, norm_cast]
-lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right' 𝕜 A a := rfl
+lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right 𝕜 A a := rfl
 
 -- TODO: make this into a `non_unital_star_alg_hom` once we have those
 def non_unital_algebra_hom_coe : A →ₙₐ[𝕜] 𝓜(𝕜, A) :=
@@ -409,8 +367,8 @@ def non_unital_algebra_hom_coe : A →ₙₐ[𝕜] 𝓜(𝕜, A) :=
     smul_left, smul_right]},
   map_zero' := by {ext1; simp only [coe_left, coe_right, map_zero, zero_left, zero_right]},
   map_add' := λ a b, by {ext1; simp only [coe_left, coe_right, map_add, add_left, add_right]},
-  map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul'_apply,
-    continuous_linear_map.lmul_right'_apply, mul_left, mul_right, coe_mul, function.comp_app,
+  map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul_apply,
+    continuous_linear_map.lmul_right_apply, mul_left, mul_right, coe_mul, function.comp_app,
     mul_assoc]} }
 
 /-!

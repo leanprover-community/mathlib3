@@ -445,7 +445,7 @@ seminormed_add_comm_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg
 instance to_normed_add_comm_group {V₁ V₂ : Type*} [normed_add_comm_group V₁]
   [normed_add_comm_group V₂] :
   normed_add_comm_group (normed_add_group_hom V₁ V₂) :=
-normed_add_comm_group.of_core _ ⟨λ f, op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+normed_add_comm_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg, λ f, op_norm_zero_iff.1⟩
 
 /-- Coercion of a `normed_add_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.
 -/

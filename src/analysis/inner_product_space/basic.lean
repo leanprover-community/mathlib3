@@ -323,18 +323,15 @@ end
 /-- Normed group structure constructed from an `inner_product_space.core` structure -/
 def to_normed_add_comm_group : normed_add_comm_group F :=
 normed_add_comm_group.of_core F
-{ norm_eq_zero_iff := assume x,
+{ norm_zero := begin
+    change sqrt (re ⟪0, 0⟫) = 0,
+    simp only [sqrt_zero, inner_zero_right, add_monoid_hom.map_zero] }
+  end,
+  eq_zero_of_norm := λ x hx, (inner_self_eq_zero : ⟪x, x⟫ = 0 ↔ x = 0).1 $
   begin
-    split,
-    { intro H,
-      change sqrt (re ⟪x, x⟫) = 0 at H,
-      rw [sqrt_eq_zero inner_self_nonneg] at H,
-      apply (inner_self_eq_zero : ⟪x, x⟫ = 0 ↔ x = 0).mp,
-      rw ext_iff,
-      exact ⟨by simp [H], by simp [inner_self_im_zero]⟩ },
-    { rintro rfl,
-      change sqrt (re ⟪0, 0⟫) = 0,
-      simp only [sqrt_zero, inner_zero_right, add_monoid_hom.map_zero] }
+    change sqrt (re ⟪x, x⟫) = 0 at hx,
+    rw [sqrt_eq_zero inner_self_nonneg] at hx,
+    exact ext_iff.2 ⟨by simp [H], by simp [inner_self_im_zero]⟩,
   end,
   triangle := assume x y,
   begin

@@ -413,7 +413,7 @@ begin
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
 end
 
-lemma norm_eq_zero_iff ⦃f : lp E p⦄ : ∥f∥ = 0 ↔ f = 0 :=
+lemma norm_eq_zero_iff {f : lp E p} : ∥f∥ = 0 ↔ f = 0 :=
 begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
@@ -459,7 +459,8 @@ end
 
 instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
 normed_add_comm_group.of_core _
-{ norm_eq_zero_iff := norm_eq_zero_iff,
+{ norm_zero := norm_zero,
+  eq_zero_of_norm := λ f, norm_eq_zero_iff.1,
   triangle := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
     { cases is_empty_or_nonempty α; resetI,

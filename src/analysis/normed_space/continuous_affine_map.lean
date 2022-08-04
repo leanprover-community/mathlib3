@@ -160,10 +160,9 @@ calc ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) : by rw norm_def
 
 noncomputable instance : normed_add_comm_group (V →A[𝕜] W) :=
 normed_add_comm_group.of_core _
-{ norm_eq_zero_iff := λ f,
+{ norm_zero := by simp [norm_def],
+  norm_eq_zero_iff := λ f h₀,
     begin
-      rw norm_def,
-      refine ⟨λ h₀, _, by { rintros rfl, simp, }⟩,
       rcases max_eq_iff.mp h₀ with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩;
       rw h₁ at h₂,
       { rw [norm_le_zero_iff, cont_linear_eq_zero_iff_exists_const] at h₂,

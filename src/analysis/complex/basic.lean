@@ -40,7 +40,8 @@ instance : has_norm ℂ := ⟨abs⟩
 
 instance : normed_add_comm_group ℂ :=
 normed_add_comm_group.of_core ℂ
-{ norm_eq_zero_iff := λ z, abs_eq_zero,
+{ norm_zero := abs_zero,
+  eq_zero_of_norm := λ z, abs_eq_zero.1,
   triangle := abs_add,
   norm_neg := abs_neg }
 

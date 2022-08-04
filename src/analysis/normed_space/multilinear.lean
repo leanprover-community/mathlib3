@@ -347,17 +347,12 @@ cInf_le bounds_bdd_below
   ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
     exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
 
+lemma op_norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E G)∥ = 0 :=
+(op_norm_nonneg _).antisymm' $ op_norm_le_bound 0 le_rfl $ λ m, by simp
+
 /-- A continuous linear map is zero iff its norm vanishes. -/
 theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
-begin
-  split,
-  { assume h,
-    ext m,
-    simpa [h] using f.le_op_norm m },
-  { rintro rfl,
-    apply le_antisymm (op_norm_le_bound 0 le_rfl (λm, _)) (op_norm_nonneg _),
-    simp }
-end
+⟨λ h, by { ext m, simpa [h] using f.le_op_norm m }, by { rintro rfl, exact op_norm_zero }⟩
 
 section
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' G] [smul_comm_class 𝕜 𝕜' G]
@@ -376,7 +371,7 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
 instance normed_add_comm_group : normed_add_comm_group (continuous_multilinear_map 𝕜 E G) :=
-normed_add_comm_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+normed_add_comm_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg, λ f, op_norm_zero_iff.1⟩
 
 /-- An alias of `continuous_multilinear_map.normed_add_comm_group` with non-dependent types to help
 typeclass search. -/

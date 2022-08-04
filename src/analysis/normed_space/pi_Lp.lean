@@ -75,10 +75,6 @@ instance : linear_ordered_comm_monoid_with_zero ℝ≥0∞ :=
   .. ennreal.linear_ordered_add_comm_monoid_with_top,
   .. (show comm_semiring ℝ≥0∞, from infer_instance) }
 
-lemma ennreal.to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.to_real ↔ p ≠ ∞ :=
-⟨λ h hp, let this : (0 : ℝ) ≠ 0 := ennreal.top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,
- λ h, zero_lt_one.trans_le (p.dichotomy.resolve_left h)⟩
-
 lemma equiv.csupr {ι ι' E : Type*} [conditionally_complete_lattice E]
   (e : ι ≃ ι') {f : ι → E} (hf : bdd_above (range f)) {g : ι' → E} (hfg : ∀ i, f i = g (e i)) :
   (⨆ i, f i) = ⨆ i, g i :=

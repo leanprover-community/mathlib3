@@ -41,7 +41,8 @@ namespace algebraic_geometry
 open Spec (structure_sheaf)
 
 /-- The category of affine schemes -/
-def AffineScheme := Scheme.Spec.ess_image
+@[derive category, nolint has_nonempty_instance]
+def AffineScheme := Scheme.Spec.ess_image_subcategory
 
 /-- A Scheme is affine if the canonical map `X ⟶ Spec Γ(X)` is an isomorphism. -/
 class is_affine (X : Scheme) : Prop :=
@@ -54,18 +55,23 @@ def Scheme.iso_Spec (X : Scheme) [is_affine X] :
   X ≅ Scheme.Spec.obj (op $ Scheme.Γ.obj $ op X) :=
 as_iso (Γ_Spec.adjunction.unit.app X)
 
-lemma mem_AffineScheme (X : Scheme) : X ∈ AffineScheme ↔ is_affine X :=
+/-- Construct an affine scheme from a scheme and the information that it is affine. -/
+@[simps]
+def AffineScheme.mk (X : Scheme) (h : is_affine X) : AffineScheme :=
+⟨X, @@mem_ess_image_of_unit_is_iso _ _ _ _ h.1⟩
+
+lemma mem_Spec_ess_image (X : Scheme) : X ∈ Scheme.Spec.ess_image ↔ is_affine X :=
 ⟨λ h, ⟨functor.ess_image.unit_is_iso h⟩, λ h, @@mem_ess_image_of_unit_is_iso _ _ _ X h.1⟩
 
-instance is_affine_AffineScheme (X : AffineScheme.{u}) : is_affine (X : Scheme.{u}) :=
-(mem_AffineScheme _).mp X.prop
+instance is_affine_AffineScheme (X : AffineScheme.{u}) : is_affine X.obj :=
+⟨functor.ess_image.unit_is_iso X.property⟩
 
 instance Spec_is_affine (R : CommRingᵒᵖ) : is_affine (Scheme.Spec.obj R) :=
-(mem_AffineScheme _).mp (Scheme.Spec.obj_mem_ess_image R)
+algebraic_geometry.is_affine_AffineScheme ⟨_, Scheme.Spec.obj_mem_ess_image R⟩
 
 lemma is_affine_of_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] [h : is_affine Y] :
   is_affine X :=
-by { rw [← mem_AffineScheme] at h ⊢, exact functor.ess_image.of_iso (as_iso f).symm h }
+by { rw [← mem_Spec_ess_image] at h ⊢, exact functor.ess_image.of_iso (as_iso f).symm h }
 
 namespace AffineScheme
 

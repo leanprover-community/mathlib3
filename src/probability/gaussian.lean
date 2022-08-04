@@ -1,6 +1,7 @@
 import probability.density
 import probability.moments
 import analysis.special_functions.gaussian
+import measure_theory.group.integration
 
 /-
 We would like to define the Gaussian measure on ℝ.
@@ -47,18 +48,87 @@ open probability_theory measure
 
 variables {μ : measure ℝ} {m s : ℝ}
 
+
+
 lemma is_probability_measure_real_gaussian (hμ : μ.real_gaussian m s) :
   is_probability_measure μ :=
 begin
   rw real_gaussian at hμ,
   split_ifs at hμ,
-  { sorry }, -- the lemma `integral_gaussian` is useful!
-  { exact hμ.symm ▸ measure.dirac.is_probability_measure }
+ {
+    unfold gaussian_density at hμ,
+    refine {measure_univ := _},
+    rw hμ,
+    simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
+    rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
+    { sorry},
+    {
+      rw integrable, fconstructor,
+      {
+        measurability,
+      },
+      {
+        refine (has_finite_integral_norm_iff
+   (λ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)))).mp
+  _,
+        refine integrable.has_finite_integral _,
+        refine integrable.abs _,
+        refine integrable.const_mul _ (sqrt (2 * π * s ^ 2))⁻¹,
+        have hbp1 : 0 < s^2,
+          exact (sq_pos_iff s).mpr h,
+        --have hbp2 : 0 < 2
+        have hbp2 : 0 < 2*s^2,
+          simp,
+          exact hbp1,
+        have h_inveq : -(2*s^2)⁻¹ = -(s ^ 2)⁻¹ * 2⁻¹,
+          ring_nf,
+          simp,
+          ring,
+        have hb : 0 < (2*s^2)⁻¹,
+          exact inv_pos.mpr hbp2,
+          ---rw ← h_inveq,
+
+
+        have h_gaussexp : integrable (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * a ^ 2)) ℙ,
+          rw ← h_inveq,
+          ---rw h_minusmul (2*s^2)⁻¹ a,
+          ---simp [integrable_exp_neg_mul_sq hb],
+          exact integrable_exp_neg_mul_sq hb,
+
+        have h_eqfunc : (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * (a - m)^ 2)) = (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))  ,
+          ext x,
+          simp,
+
+        rw ← h_eqfunc,
+        exact measure_theory.integrable.comp_sub_right h_gaussexp m,
+      }
+    },
+    {
+      refine filter.germ.coe_le.mp _,
+
+      have const_pos: 0 < (sqrt (2 * π * s ^ 2))⁻¹,
+        sorry,
+      --refine eq.ge _,
+
+      sorry
+
+    }
+  },
+
+   -- the lemma `integral_gaussian` is useful!
+  { refine {measure_univ := _},
+  rw hμ,
+  simp
+  },
 end
 
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
 begin
+  rw real_gaussian at hμ,
+  unfold gaussian_density at hμ, dsimp at *,
+  simp [hs] at hμ,
+  --rw hμ,
   sorry
 end
 

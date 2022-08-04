@@ -128,7 +128,8 @@ instance : has_smul 𝕜 𝓜(𝕜, A) :=
 @[simp] lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).left = k • a.left := rfl
 @[simp] lemma smul_right (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).right = k • a.right := rfl
 
--- this is easier than defining the instances of `has_smul` for `ℕ` and `ℤ`.
+-- this is easier than defining the instances of `has_smul` for `ℕ` and `ℤ` and pulling the group
+-- structure back along `double_centralizer.prod_mk`.
 instance : add_comm_group 𝓜(𝕜, A) :=
 { add := (+),
   add_assoc := λ a b c, by {ext; exact add_assoc _ _ _},
@@ -146,9 +147,13 @@ def add_group_hom_prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜]
   map_zero' := rfl,
   map_add' := λ x y, rfl }
 
+/-- The module structure is inherited as the pullback under the additive group monomoprhism
+`double_centralizer.prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
 instance : module 𝕜 𝓜(𝕜, A) :=
 function.injective.module 𝕜 add_group_hom_prod_mk injective_prod_mk (λ x y, rfl)
 
+/-- The normed group structure is inherited as the pullback under the additive group monomoprhism
+`double_centralizer.prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
 instance : normed_add_comm_group 𝓜(𝕜, A) :=
 normed_add_comm_group.induced add_group_hom_prod_mk injective_prod_mk
 
@@ -267,10 +272,8 @@ noncomputable instance : normed_ring 𝓜(𝕜, A) :=
 
 variables [cstar_ring A]
 
-/-- For `a : 𝓜(𝕜, A)`, the norms of `a.left` and `a.right` coincide. Consequently,
-`double_centralizer.prod_mk : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)` is injective (see
-`double_centralizer.prod_mk_injective`). The `normed_space` structure on `𝓜(𝕜, A)` is
-defined as the pullback of the normed space structure along this map.  -/
+/-- For `a : 𝓜(𝕜, A)`, the norms of `a.left` and `a.right` coincide, and hence these
+also coincide with `∥a∥` which is `max (∥a.left∥) (∥a.right∥)`. -/
 lemma norm_left_eq_right (a : 𝓜(𝕜, A)) : ∥a.left∥ = ∥a.right∥ :=
 begin
   -- a handy lemma for this proof

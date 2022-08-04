@@ -64,8 +64,8 @@ open_locale topological_space manifold classical filter big_operators
 noncomputable theory
 
 variables {ι : Type uι}
-{E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-{F : Type uF} [normed_group F] [normed_space ℝ F]
+{E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{F : Type uF} [normed_add_comm_group F] [normed_space ℝ F]
 {H : Type uH} [topological_space H] (I : model_with_corners ℝ E H)
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -214,7 +214,7 @@ end smooth_partition_of_unity
 namespace bump_covering
 
 -- Repeat variables to drop [finite_dimensional ℝ E] and [smooth_manifold_with_corners I M]
-lemma smooth_to_partition_of_unity {E : Type uE} [normed_group E] [normed_space ℝ E]
+lemma smooth_to_partition_of_unity {E : Type uE} [normed_add_comm_group E] [normed_space ℝ E]
   {H : Type uH} [topological_space H] {I : model_with_corners ℝ E H}
   {M : Type uM} [topological_space M] [charted_space H M] {s : set M}
   (f : bump_covering ι M s) (hf : ∀ i, smooth I 𝓘(ℝ) (f i)) (i : ι) :

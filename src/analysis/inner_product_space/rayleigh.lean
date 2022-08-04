@@ -223,48 +223,48 @@ namespace is_symmetric
 
 include _i
 
-/-- The supremum of the Rayleigh quotient of a self-adjoint operator `T` on a nontrivial
+/-- The supremum of the Rayleigh quotient of a symmetric operator `T` on a nontrivial
 finite-dimensional vector space is an eigenvalue for that operator. -/
 lemma has_eigenvalue_supr_of_finite_dimensional (hT : T.is_symmetric) :
   has_eigenvalue T ↑(⨆ x : {x : E // x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2) :=
 begin
   haveI := finite_dimensional.proper_is_R_or_C 𝕜 E,
+  let T' := hT.to_self_adjoint,
   obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,
   have H₁ : is_compact (sphere (0:E) ∥x∥) := is_compact_sphere _ _,
   have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simp⟩,
   -- key point: in finite dimension, a continuous function on the sphere has a max
   obtain ⟨x₀, hx₀', hTx₀⟩ :=
-    H₁.exists_forall_ge H₂ hT.to_self_adjoint.prop.re_apply_inner_self_continuous.continuous_on,
+    H₁.exists_forall_ge H₂ T'.val.re_apply_inner_self_continuous.continuous_on,
   have hx₀ : ∥x₀∥ = ∥x∥ := by simpa using hx₀',
-  have : is_max_on hT.to_self_adjoint.prop.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
+  have : is_max_on T'.val.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
   { simpa only [← hx₀] using hTx₀ },
   have hx₀_ne : x₀ ≠ 0,
   { have : ∥x₀∥ ≠ 0 := by simp only [hx₀, norm_eq_zero, hx, ne.def, not_false_iff],
     simpa [← norm_eq_zero, ne.def] },
-  exact has_eigenvalue_of_has_eigenvector
-    (hT.clm_is_self_adjoint.has_eigenvector_of_is_max_on hx₀_ne this)
+  exact has_eigenvalue_of_has_eigenvector (T'.prop.has_eigenvector_of_is_max_on hx₀_ne this)
 end
 
-/-- The infimum of the Rayleigh quotient of a self-adjoint operator `T` on a nontrivial
+/-- The infimum of the Rayleigh quotient of a symmetric operator `T` on a nontrivial
 finite-dimensional vector space is an eigenvalue for that operator. -/
 lemma has_eigenvalue_infi_of_finite_dimensional (hT : T.is_symmetric) :
   has_eigenvalue T ↑(⨅ x : {x : E // x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2) :=
 begin
   haveI := finite_dimensional.proper_is_R_or_C 𝕜 E,
+  let T' := hT.to_self_adjoint,
   obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,
   have H₁ : is_compact (sphere (0:E) ∥x∥) := is_compact_sphere _ _,
   have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simp⟩,
   -- key point: in finite dimension, a continuous function on the sphere has a min
   obtain ⟨x₀, hx₀', hTx₀⟩ :=
-    H₁.exists_forall_le H₂ hT.clm.re_apply_inner_self_continuous.continuous_on,
+    H₁.exists_forall_le H₂ T'.val.re_apply_inner_self_continuous.continuous_on,
   have hx₀ : ∥x₀∥ = ∥x∥ := by simpa using hx₀',
-  have : is_min_on hT.clm.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
+  have : is_min_on T'.val.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
   { simpa only [← hx₀] using hTx₀ },
   have hx₀_ne : x₀ ≠ 0,
   { have : ∥x₀∥ ≠ 0 := by simp only [hx₀, norm_eq_zero, hx, ne.def, not_false_iff],
     simpa [← norm_eq_zero, ne.def] },
-  exact has_eigenvalue_of_has_eigenvector
-    (hT.clm_is_self_adjoint.has_eigenvector_of_is_min_on hx₀_ne this)
+  exact has_eigenvalue_of_has_eigenvector (T'.prop.has_eigenvector_of_is_min_on hx₀_ne this)
 end
 
 omit _i

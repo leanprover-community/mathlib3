@@ -517,7 +517,7 @@ finite_dimensional.finite_dimensional_pi' _ _
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
+variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, module 𝕜 (β i)] (c : 𝕜)
 variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 @[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl
@@ -528,7 +528,7 @@ variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 /-- The canonical map `pi_Lp.equiv` between `pi_Lp ∞ β` and `Π i, β i` as a linear isometric
 equivalence. -/
-def equivₗᵢ [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] :
+def equivₗᵢ :
   pi_Lp ∞ β ≃ₗᵢ[𝕜] Π i, β i :=
 { map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
@@ -541,7 +541,7 @@ def equivₗᵢ [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space �
     { simp only [csupr_of_empty, finset.univ_eq_empty, finset.sup_empty], },
     { exact csupr_le (λ i, finset.le_sup (finset.mem_univ i)) },
   end,
-  .. (pi_Lp.equiv p β) }
+  .. (pi_Lp.equiv ∞ β) }
 
 variables {ι' : Type*}
 variables [fintype ι']

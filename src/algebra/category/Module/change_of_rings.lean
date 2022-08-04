@@ -5,6 +5,18 @@ Authors: Jujian Zhang
 -/
 import algebra.category.Module.basic
 
+/-!
+# Change Of Rings
+
+## Main definitions
+
+* `category_theory.Module.restrict_scalars.functor`: given rings `R, S` and a ring homomorphism
+  `R ⟶ S`, then `restrict_scalars.functor : Module S ⥤ Module R` is defined by `M ↦ M` where
+  `M : S-module` is seen as `R-module` by `r • m := f r • m` and `S`-linear map `l : M ⟶ M'` is
+  `R`-linear as well.
+-/
+
+
 namespace category.Module
 
 namespace restrict_scalars

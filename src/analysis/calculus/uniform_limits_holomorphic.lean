@@ -3,8 +3,10 @@ Copyright (c) 2022 Kevin H. Wilson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
+import analysis.complex.cauchy_integral
 import analysis.calculus.fderiv_analytic
--- import analysis.calculus.uniform_limits_deriv
+import analysis.calculus.uniform_limits_deriv
+import topology.uniform_space.complete_separated
 
 /-!
 # Uniform limits of holomorphic functions are holomorphic
@@ -12,11 +14,23 @@ import analysis.calculus.fderiv_analytic
 The purpose of this file is to prove that a uniform limit of holomorphic functions is holomorphic,
 a critical component of many theories, notably that of Dirichlet series.
 
+## Definitions
+
+* `formal_multilinear_series.antideriv` : The formal antiderivative of a power series with a one
+  dimensional domain
+* `has_fpower_series_on_ball.antideriv` : The formal antiderivative of an analytic function on a
+  ball
+
 ## Main statements
 
-* `analytic_at_of_tendsto_uniformly_on_filter` : If `f : ℕ → ℂ → ℂ` is a sequence functions which
-  are analytic at `x` and they converge _uniformly_ to `g : ℂ → ℂ` on `𝓝 x`, then `f` is also
-  analytic at `x`
+* `has_fpower_series_on_ball.antideriv_has_deriv_at` : Morera's Theorem. A function on `ℝ` or `ℂ`
+  that is analytic on a ball admits an antiderivative on that ball.
+* `complex.analytic_at_of_tendsto_uniformly_on` : If `f : ℕ → ℂ → ℂ` is a sequence functions which
+  are analytic on a shared neighborhood of `x` and they converge _uniformly_ to `g : ℂ → ℂ` on that
+  neighborhood, then `f` is also analytic at `x`.
+* `complex.analytic_on_of_tendsto_uniformly_on` : Same as above, but if the shared neighborhood `s`
+  is _open_, then in fact `f` is analytic on all of `s`.
+
 
 ## Implementation notes
 
@@ -35,10 +49,11 @@ The steps to our proof are:
 
 ## Tags
 
-uniform convergence, holomorphic functions
+uniform convergence, holomorphic functions, morera's theorem
 -/
 
-open_locale big_operators
+open filter nat
+open_locale big_operators topological_space uniformity
 
 variables {ι 𝕜 E F : Type*} [fintype ι] [decidable_eq ι]
 
@@ -64,43 +79,11 @@ begin
   exact congr_arg f (funext $ λ i, by simp)
 end
 
-lemma foo₂ [comm_semiring 𝕜] (f : multilinear_map 𝕜 (λ i : ι, 𝕜) 𝕜)
-  (x : ι → 𝕜) : f x = (f 1) * (∏ i, x i) :=
-by rw [foo₁, smul_eq_mul, mul_comm]
-
 lemma bar₁ [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
   [topological_space 𝕜] [topological_space E]
   (f : continuous_multilinear_map 𝕜 (λ i : ι, 𝕜) E)
   (x : ι → 𝕜) : f x = (∏ i, x i) • (f 1) :=
 foo₁ f.to_multilinear_map x
-
-lemma bar₂ [comm_semiring 𝕜] [topological_space 𝕜]
-  (f : continuous_multilinear_map 𝕜 (λ i : ι, 𝕜) 𝕜)
-  (x : ι → 𝕜) : f x = (f 1) * (∏ i, x i) :=
-foo₂ f.to_multilinear_map x
-
-lemma sum₁ [comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  [topological_space 𝕜] [topological_add_group 𝕜] [has_continuous_const_smul 𝕜 𝕜]
-  [topological_space E] [topological_add_group E] [has_continuous_const_smul 𝕜 E]
-  (φ : formal_multilinear_series 𝕜 𝕜 E) (x : 𝕜) :
-  φ.sum x = ∑' (n : ℕ), x^n • (φ n 1) :=
-begin
-  rw formal_multilinear_series.sum,
-  congr,
-  ext n,
-  rw [bar₁, fin.prod_const]
-end
-
-lemma sum₂ [comm_ring 𝕜]
-  [topological_space 𝕜] [topological_add_group 𝕜] [has_continuous_const_smul 𝕜 𝕜]
-  (φ : formal_multilinear_series 𝕜 𝕜 𝕜) (x : 𝕜) :
-  φ.sum x = ∑' (n : ℕ), (φ n 1) * x^n :=
-begin
-  rw formal_multilinear_series.sum,
-  congr,
-  ext n,
-  rw [bar₂, fin.prod_const]
-end
 
 lemma partial_sum₁ [comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   [topological_space 𝕜] [topological_add_group 𝕜] [has_continuous_const_smul 𝕜 𝕜]
@@ -114,27 +97,14 @@ begin
   rw [bar₁, fin.prod_const],
 end
 
-lemma partial_sum₂ [comm_ring 𝕜]
+lemma partial_sum5 [comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   [topological_space 𝕜] [topological_add_group 𝕜] [has_continuous_const_smul 𝕜 𝕜]
-  (φ : formal_multilinear_series 𝕜 𝕜 𝕜) (x : 𝕜) (n : ℕ) :
-  φ.partial_sum n x = ∑ k in finset.range n, (φ k 1) * x^k :=
-begin
-  rw formal_multilinear_series.partial_sum,
-  congr,
-  ext n,
-  rw [bar₂, fin.prod_const],
-end
-
-lemma partial_sum₃ [comm_ring 𝕜]
-  [topological_space 𝕜] [topological_add_group 𝕜] [has_continuous_const_smul 𝕜 𝕜]
-  (φ : formal_multilinear_series 𝕜 𝕜 𝕜) (n : ℕ) :
-  φ.partial_sum n = (λ x, ∑ k in finset.range n, (φ k 1) * x^k) :=
+  [topological_space E] [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+  (φ : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) :
+  φ.partial_sum n = (λ x : 𝕜, ∑ k in finset.range n, x^k • (φ k 1)) :=
 begin
   ext,
-  rw formal_multilinear_series.partial_sum,
-  congr,
-  ext n,
-  rw [bar₂, fin.prod_const],
+  exact partial_sum₁ φ x n,
 end
 
 end general
@@ -145,9 +115,11 @@ variables [normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
 /-- The formal antiderivative of a multilinear power series with a one-dimensional domain. Note
 that while we have defined this for any `normed_field`, it really only makes sense when that
 field is characterisitic 0. -/
-def formal_multilinear_series.antideriv (φ : formal_multilinear_series 𝕜 𝕜 E) : formal_multilinear_series 𝕜 𝕜 E
+def formal_multilinear_series.antideriv (φ : formal_multilinear_series 𝕜 𝕜 E) :
+  formal_multilinear_series 𝕜 𝕜 E
 | 0 := 0
-| (n + 1) := ((n + 1) : 𝕜)⁻¹ • (continuous_multilinear_map.mk_pi_algebra_fin 𝕜 (n + 1) 𝕜).smul_right (φ n 1)
+| (n + 1) := ((n + 1) : 𝕜)⁻¹ •
+  (continuous_multilinear_map.mk_pi_algebra_fin 𝕜 (n + 1) 𝕜).smul_right (φ n 1)
 
 end normed_field
 
@@ -184,7 +156,7 @@ end nontrivially_normed_field
 section is_R_or_C
 
 variables [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
-  {φ : formal_multilinear_series 𝕜 𝕜 E}
+  (φ : formal_multilinear_series 𝕜 𝕜 E)
 
 lemma formal_multilinear_series.antideriv_radius_mono_aux {r : nnreal}
   (hr : ↑r < φ.radius) : ↑r ≤ φ.antideriv.radius :=
@@ -193,284 +165,280 @@ begin
   refine formal_multilinear_series.le_radius_of_bound _ (C * r) _,
   intros n,
   induction n with n hn,
-  simp only [formal_multilinear_series.antideriv, norm_zero, zero_mul],
-  refine mul_nonneg hC.lt.le nnreal.zero_le_coe,
+  { simp only [formal_multilinear_series.antideriv, norm_zero, zero_mul],
+    exact mul_nonneg hC.lt.le nnreal.zero_le_coe, },
 
   have : n.succ = n + 1, refl,
   rw this,
   dunfold formal_multilinear_series.antideriv,
-  rw norm_smul,
-  rw continuous_multilinear_map.norm_smul_right,
-  simp only [norm_inv, continuous_multilinear_map.norm_mk_pi_algebra_fin, one_mul],
+  rw [norm_smul, continuous_multilinear_map.norm_smul_right, norm_inv,
+    continuous_multilinear_map.norm_mk_pi_algebra_fin, one_mul, pow_add (r : ℝ) n 1,
+    ← mul_assoc, pow_one, ← continuous_multilinear_map.norm_one_dim],
 
-  rw [pow_add (r : ℝ) n 1, ←mul_assoc, pow_one],
   refine mul_le_mul _ rfl.le nnreal.zero_le_coe hC.lt.le,
-  rw [mul_assoc],
   have : C = 1 * C, simp,
-  rw this,
-  rw ← continuous_multilinear_map.norm_one_dim,
-  have : ∥φ n 1∥ ≤ ∥φ n∥,
-  { convert continuous_multilinear_map.unit_le_op_norm _ 1 _,
-    { have : (1 : fin n → 𝕜) = (λ i, 1), { ext, refl, },
-      rw this,
-      simp only [has_norm.norm, nnnorm_one],
-      norm_cast,
-      rw finset.sup_le_iff,
-      intros b hb,
-      exact rfl.le, } },
-  refine mul_le_mul _
-    ((mul_le_mul this rfl.le (by simp only [pow_nonneg, nnreal.zero_le_coe]) (norm_nonneg _)).trans (hm n))
-    (mul_nonneg (norm_nonneg _) (by simp only [pow_nonneg, nnreal.zero_le_coe]))
-    zero_le_one,
+  rw [this, mul_assoc],
+  refine mul_le_mul _ (hm n)
+    (mul_nonneg (norm_nonneg _) (by simp only [pow_nonneg, nnreal.zero_le_coe])) zero_le_one,
 
   norm_cast,
-  rw inv_le _ zero_lt_one,
-  rw [inv_one, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat],
-  norm_cast,
-  simp,
-
   rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat],
-  norm_cast,
-  linarith,
+  rw inv_le _ zero_lt_one,
+  { simp, },
+  { norm_cast, simp, },
+  { apply_instance, },
 end
 
-lemma formal_multilinear_series.antideriv_radius_mono:
+lemma formal_multilinear_series.antideriv_radius_mono :
   φ.radius ≤ φ.antideriv.radius :=
 begin
   by_contradiction h,
   push_neg at h,
   obtain ⟨r, hr, hr'⟩ := ennreal.lt_iff_exists_nnreal_btwn.mp h,
-  exact not_lt_of_le rfl.le (lt_of_lt_of_le hr (formal_multilinear_series.antideriv_radius_mono_aux hr')),
+  exact not_lt_of_le rfl.le
+    (lt_of_lt_of_le hr (φ.antideriv_radius_mono_aux hr')),
 end
 
-lemma blahblah {y : ℂ} {n : ℕ} :
-  has_deriv_at (λ z : ℂ, (pad φ) (n + 1) (λ i : fin (n + 1), z)) (φ n (λ i : fin n, y)) y :=
+lemma formal_multilinear_series.antideriv_has_deriv_at_parial_sum {y : 𝕜} {n : ℕ} :
+  has_deriv_at (φ.antideriv.partial_sum n.succ) (φ.partial_sum n y) y :=
 begin
-  rw bar₂,
-  conv {
-    congr, funext, rw bar₂, rw fin.prod_const,
-  },
-  rw fin.prod_const,
-  have : pad φ (n + 1) 1 = ((n + 1) : ℂ)⁻¹ * (φ n 1), {
-    simp only [pad],
-    rw continuous_multilinear_map.smul_apply,
-    simp only [continuous_multilinear_map.mk_pi_algebra_fin_apply, list.of_fn_succ, pi.one_apply, list.of_fn_const, list.prod_cons,
-  list.prod_repeat, one_pow, mul_one, algebra.id.smul_eq_mul],
-  },
-  rw this,
-  -- Now need to pull out the const with has_deriv_at_const
-  sorry,
-end
-
-lemma blahblah2 {y : ℂ} {n : ℕ} :
-  has_deriv_at ((pad φ).partial_sum n.succ) (φ.partial_sum n y) y :=
-begin
-  rw partial_sum₂,
-  rw partial_sum₃,
+  -- Proof is by induction and the fact that d/dx (x^n) = n x^(n - 1)
+  rw partial_sum₁,
+  rw partial_sum5,
   induction n with n hn,
-  simp only [finset.range_one, finset.sum_singleton, pow_zero, mul_one, finset.range_zero, finset.sum_empty, pad, continuous_multilinear_map.zero_apply],
-  exact has_deriv_at_const y 0,
+  { -- base case is trivial as it's an empty sum
+    simp only [finset.range_one, finset.sum_singleton, pow_zero, one_smul,
+    finset.range_zero, finset.sum_empty],
+    exact has_deriv_at_const y _, },
+
+  -- Inductive case's main difficulty is cancelling (n + 1)⁻¹ through a bunch of casts
   rw finset.sum_range_succ,
-  conv {
-    congr, funext, rw finset.sum_range_succ,
-  },
+  conv { congr, funext, rw finset.sum_range_succ, },
   refine has_deriv_at.add hn _,
-  dunfold pad,
-  simp only [continuous_multilinear_map.smul_apply, continuous_multilinear_map.mk_pi_algebra_fin_apply, list.of_fn_succ, pi.one_apply, list.of_fn_const, list.prod_cons, list.prod_repeat, one_pow, mul_one, algebra.id.smul_eq_mul],
-  have : n.succ = n + 1, simp,
-  rw this,
-  have : (φ n (λ i : fin n, y)) = ((φ n) 1 * y ^ n), { rw bar₂, rw fin.prod_const, },
-  rw ← this,
-  refine blahblah.congr_of_eventually_eq _,
-  apply filter.eventually_of_forall,
-  intros z,
-  simp only [pad, list.repeat_succ, mul_eq_mul_left_iff, mul_eq_zero, inv_eq_zero, continuous_multilinear_map.smul_apply, continuous_multilinear_map.mk_pi_algebra_fin_apply, list.of_fn_succ, pi.one_apply, list.of_fn_const, list.prod_cons, list.prod_repeat, one_pow, mul_one, algebra.id.smul_eq_mul],
-  left,
-  rw ←pow_one z,
-  rw pow_add,
-  rw mul_comm,
-  simp,
+  simp only [formal_multilinear_series.antideriv, continuous_multilinear_map.smul_apply,
+    continuous_multilinear_map.smul_right_apply, continuous_multilinear_map.mk_pi_algebra_fin_apply,
+    list.of_fn_succ, pi.one_apply, list.of_fn_const, list.prod_cons, list.prod_repeat, one_pow,
+    mul_one, one_smul],
+  conv { congr, funext, rw ← smul_assoc, },
+  refine has_deriv_at.smul_const _ (φ n 1),
+  have aa := (has_deriv_at_pow (n + 1) y).const_mul ((n : 𝕜) + 1)⁻¹,
+  simp only [cast_add, cast_one, add_succ_sub_one, add_zero] at aa,
+  have : (((n : 𝕜) + 1)⁻¹ * (((n : 𝕜) + 1) * y ^ n)) = y ^ n,
+  { rw ←mul_assoc,
+    conv { congr, skip, rw ← one_mul (y ^ n), },
+    congr,
+    rw inv_mul_cancel,
+    norm_cast,
+    simp, },
+  rw this at aa,
+  apply aa.congr_of_eventually_eq,
+  simp only [eventually_eq, algebra.id.smul_eq_mul, mul_eq_mul_left_iff, inv_eq_zero],
+  exact eventually_of_forall (λ y, by rw mul_comm),
 end
 
-lemma blahblah3 {y : ℂ} (hφ : 0 < φ.radius) (hy' : y ∈ emetric.ball (0 : ℂ) φ.radius):
-  has_deriv_at (pad φ).sum (φ.sum y) y :=
+lemma formal_multilinear_series.antideriv_has_deriv_at_sum [complete_space E] {y : 𝕜}
+  (hφ : 0 < φ.radius) (hy' : y ∈ emetric.ball (0 : 𝕜) φ.radius) :
+  has_deriv_at φ.antideriv.sum (φ.sum y) y :=
 begin
   -- For technical reasons involving uniform convergence, we need to shrink our radius
   obtain ⟨r, hr, hr'⟩ : ∃ (r : nnreal), nndist y 0 < r ∧ ↑r < φ.radius,
   { suffices : ∃ (r : nnreal), ((nndist y 0) : ennreal) < r ∧ ↑r < φ.radius,
     { obtain ⟨r, hr, hr'⟩ := this,
       refine ⟨r, (by simpa using hr), hr'⟩, },
+    rw [emetric.mem_ball, edist_nndist] at hy',
     exact ennreal.lt_iff_exists_nnreal_btwn.mp hy', },
 
-  have h1 : is_open (metric.ball (0 : ℂ) r), exact metric.is_open_ball,
-  have h2 : ∀ n : ℕ, ∀ z : ℂ, z ∈ metric.ball (0 : ℂ) r → has_deriv_at ((pad φ).partial_sum n.succ) (φ.partial_sum n z) z, {
-    intros n z hz,
-    exact blahblah2,
-  },
-  have foo : filter.tendsto (λ n : ℕ, n.succ) filter.at_top filter.at_top, {
-    rw filter.tendsto_at_top_at_top_iff_of_monotone,
-    intros b,
-    use b,
-    exact nat.le_succ b,
-    intros m n hmn,
-    exact nat.succ_le_succ hmn,
-  },
-  have h3 : ∀ z : ℂ, z ∈ metric.ball (0 : ℂ) r → filter.tendsto (λ n : ℕ, (pad φ).partial_sum n.succ z) filter.at_top (nhds ((pad φ).sum z)), {
-    intros z hz,
-    suffices : filter.tendsto (λ (n : ℕ), (pad φ).partial_sum n z) filter.at_top (nhds ((pad φ).sum z)), {
-      exact this.comp foo,
-    },
-    have : 0 < (pad φ).radius, exact lt_of_lt_of_le hφ antideriv_radius_mono',
-    have hh2 : ↑r < (pad φ).radius, exact lt_of_lt_of_le hr' antideriv_radius_mono',
-    simpa using (((pad φ).has_fpower_series_on_ball this).tendsto_uniformly_on hh2).tendsto_at hz,
-  },
-  have h4 : tendsto_uniformly_on (λ (n : ℕ) (z : ℂ), φ.partial_sum n z) φ.sum filter.at_top (metric.ball 0 r), {
-    simpa using (φ.has_fpower_series_on_ball hφ).tendsto_uniformly_on hr',
-  },
-  exact has_deriv_at_of_tendsto_uniformly_on h1 h2 h3 h4 y hr,
+  -- Ultimately, we'll use the fact that you can swap limits and derivatives when
+  -- the derivatives converge uniformly
+  have h3 : ∀ z : 𝕜, z ∈ metric.ball (0 : 𝕜) r →
+    tendsto (λ n : ℕ, φ.antideriv.partial_sum n.succ z) at_top (𝓝 (φ.antideriv.sum z)),
+    { intros z hz,
+      suffices ha : tendsto (λ (n : ℕ), φ.antideriv.partial_sum n z) at_top
+        (𝓝 (φ.antideriv.sum z)),
+      { exact ha.comp
+        (tendsto_at_top_at_top_of_monotone (λ b c, succ_le_succ) (λ b, ⟨b, le_succ b⟩)), },
+      have h1 := lt_of_lt_of_le hφ φ.antideriv_radius_mono,
+      have h2 := lt_of_lt_of_le hr' φ.antideriv_radius_mono,
+      have h3 := ((φ.antideriv.has_fpower_series_on_ball h1).tendsto_uniformly_on h2).tendsto_at hz,
+      simpa using h3, },
+
+  refine has_deriv_at_of_tendsto_uniformly_on metric.is_open_ball _ h3
+    (by simpa using (φ.has_fpower_series_on_ball hφ).tendsto_uniformly_on hr') y hr,
+  { intros n z hz, exact φ.antideriv_has_deriv_at_parial_sum, },
 end
 
-end nontrivially_normed_field
+end is_R_or_C
 
-section is_R_or_C
+section is_R_or_C_fpower_series
+variables [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {f : 𝕜 → E} {φ : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜} {r : ennreal}
 
-open filter
-open_locale filter topological_space
+/-- The antiderivative of an analytic funciton -/
+noncomputable def has_fpower_series_on_ball.antideriv
+  (h : has_fpower_series_on_ball f φ x r) : 𝕜 → E :=
+λ z, φ.antideriv.sum (z - x)
 
-variables
-  {f : ℕ → ℂ → ℂ}
-  {g : ℂ → ℂ}
-  {p : formal_multilinear_series ℂ ℂ ℂ}
-  {x : ℂ}
-  {r : ennreal}
-
-noncomputable def antideriv_func
-  (h : has_fpower_series_on_ball g p x r) : ℂ → ℂ :=
-λ z, (pad p).sum (z - x)
-
-lemma antideriv_func_has_fpower_series_on_ball
-  (h : has_fpower_series_on_ball g p x r) :
-  has_fpower_series_on_ball (antideriv_func h) (pad p) x r :=
+lemma has_fpower_series_on_ball.antideriv_has_fpower_series_on_ball
+  (h : has_fpower_series_on_ball f φ x r) :
+  has_fpower_series_on_ball h.antideriv φ.antideriv x r :=
 begin
   have : x = 0 + x, simp,
   conv {congr, skip, skip, rw this,},
-  dunfold antideriv_func,
+  dunfold has_fpower_series_on_ball.antideriv,
   apply has_fpower_series_on_ball.comp_sub,
-  refine has_fpower_series_on_ball.mono _ h.r_pos (h.r_le.trans antideriv_radius_mono'),
-  refine (pad p).has_fpower_series_on_ball _,
+  refine has_fpower_series_on_ball.mono _ h.r_pos (h.r_le.trans φ.antideriv_radius_mono),
+  refine φ.antideriv.has_fpower_series_on_ball _,
   calc 0 < r : h.r_pos
-    ... ≤ p.radius : h.r_le
-    ... ≤ (pad p).radius : antideriv_radius_mono',
+    ... ≤ φ.radius : h.r_le
+    ... ≤ φ.antideriv.radius : φ.antideriv_radius_mono,
 end
 
-lemma antideriv_func_has_deriv_at
-  (h : has_fpower_series_on_ball g p x r) {y : ℂ} (hy : y ∈ emetric.ball x r) :
-  has_deriv_at (antideriv_func h) (g y) y :=
+/-- **Morera's Theorem**: An analytic function over `ℝ` or `ℂ` admits an antiderivative -/
+lemma has_fpower_series_on_ball.antideriv_has_deriv_at
+  (h : has_fpower_series_on_ball f φ x r) {y : 𝕜} (hy : y ∈ emetric.ball x r) :
+  has_deriv_at h.antideriv (f y) y :=
 begin
-  let recenter : ℂ → ℂ := (λ z, z - x),
-  have : (antideriv_func h) = (pad p).sum ∘ recenter,
-  {
-    funext,
-    simp [antideriv_func, pad, recenter],
-  },
+  let recenter : 𝕜 → 𝕜 := (λ z, z - x),
+  have : h.antideriv = φ.antideriv.sum ∘ recenter,
+  { funext,
+    simp [has_fpower_series_on_ball.antideriv, formal_multilinear_series.antideriv, recenter], },
   rw this,
-  have : y - x ∈ emetric.ball (0 : ℂ) p.radius, sorry,
-  have := blahblah3 (lt_of_lt_of_le h.r_pos h.r_le) this,
-  have ugh : y - x = recenter y, simp [recenter],
-  conv at this {congr, skip, skip, rw ugh, },
-  have bah : has_deriv_at recenter 1 y, sorry,
-  have aa := has_deriv_at.comp y this bah,
-  have bb : g y = p.sum (y - x), sorry,
+  have hyr : y - x ∈ emetric.ball (0 : 𝕜) r,
+  { rw [emetric.mem_ball, edist_dist, dist_eq_norm] at hy ⊢,
+    rw sub_zero,
+    exact hy, },
+  have hyφ : y - x ∈ emetric.ball (0 : 𝕜) φ.radius,
+  { exact set.mem_of_mem_of_subset hyr (emetric.ball_subset_ball h.r_le), },
+  have := φ.antideriv_has_deriv_at_sum (lt_of_lt_of_le h.r_pos h.r_le) hyφ,
+  have aa := has_deriv_at.scomp y this ((has_deriv_at_id y).sub_const x),
+  have bb : f y = φ.sum (y - x), { simpa using h.sum hyr, },
   rw ←bb at aa,
-  simp at aa,
-  exact aa,
+  simpa using aa,
 end
 
-/-- If a sequence of holomorphic functions converges uniformly on a ball around `x`, then the limit
-is also holomorphic at `x` -/
-theorem main_theorem
-  {f : ℕ → ℂ → ℂ}
-  {g : ℂ → ℂ}
-  {x : ℂ}
-  {s : set ℂ}
-  (hs : s ∈ 𝓝 x)
-  (hf : ∀ (n : ℕ), analytic_on ℂ (f n) s)
-  (hfg : tendsto_uniformly_on f g at_top s) :
-  analytic_at ℂ g x :=
+/-- **Morera's Theorem**: An analytic function over `ℝ` or `ℂ` admits an antiderivative -/
+lemma has_fpower_series_at.antideriv_has_deriv_at
+  (h : has_fpower_series_at f φ x) :
+  has_deriv_at (classical.some_spec h).antideriv (f x) x :=
 begin
+  refine has_fpower_series_on_ball.antideriv_has_deriv_at _ _,
+  rw [emetric.mem_ball, edist_self],
+  exact (classical.some_spec h).r_pos,
+end
+
+end is_R_or_C_fpower_series
+
+section complex
+variables {η : Type*} {l : filter η} [ne_bot l]
+  [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
+  {f : η → ℂ → E} {g : ℂ → E} {φ : formal_multilinear_series ℂ ℂ E} {x : ℂ}
+  {r : ennreal} {s : set ℂ}
+
+/-- If a sequence of holomorphic functions converges uniformly on a neighborhhod of `x`, then the
+limit is also holomorphic at `x`. -/
+theorem complex.analytic_at_of_tendsto_uniformly_on (hs : s ∈ 𝓝 x)
+  (hf : ∀ (n : η), analytic_on ℂ (f n) s)
+  (hfg : tendsto_uniformly_on f g l s) : analytic_at ℂ g x :=
+begin
+  -- Proof strategy: We will use the fact that the complex derivative of a complex function is
+  -- analytic. To do so, we first construct antiderivatives of `f n` and `g` by shrinking to a
+  -- small ball around `x` and applying the above machinery
   obtain ⟨_r, h_r, h_r'⟩ := metric.nhds_basis_closed_ball.mem_iff.mp hs,
   let r : nnreal := _r.to_nnreal,
   have hr : 0 < r, exact real.to_nnreal_pos.mpr h_r,
-  have : max _r 0 = _r, {
-    exact max_eq_left_of_lt h_r,
-  },
+  have : max _r 0 = _r, { exact max_eq_left_of_lt h_r, },
   have hr' : metric.closed_ball x r ⊆ s, {simp [this, h_r'], },
 
-  have hf' : ∀ n : ℕ, differentiable_on ℂ (f n) (metric.closed_ball x r), {
-    intros n y hy,
-    exact (hf n y (set.mem_of_mem_of_subset hy hr')).differentiable_at.differentiable_within_at,
-  },
+  -- Our first use of `ℂ` instead of `ℝ`: An analytic function has a power series which converges on
+  -- the largest ball on which the function is differentiable. We use this to get a _common_ radius
+  -- of convergence.
+  have hfp : ∀ n, has_fpower_series_on_ball (f n) (cauchy_power_series (f n) x r) x r,
+  { intros n,
+    refine differentiable_on.has_fpower_series_on_ball _ hr,
+    intros y hy,
+    exact (hf n y (set.mem_of_mem_of_subset hy hr')).differentiable_at.differentiable_within_at, },
 
-  have hf'' : ∀ n : ℕ, has_fpower_series_on_ball (f n) (cauchy_power_series (f n) x r) x r, {
-    intros n,
-    exact (hf' n).has_fpower_series_on_ball hr,
-  },
+  -- Construct the antiderivatives
+  let F : η → ℂ → E := (λ n, (hfp n).antideriv),
+  let G : ℂ → E := (λ z, lim l (λ n, F n z)),
 
-  let F : ℕ → ℂ → ℂ := (λ n : ℕ, antideriv_func (hf'' n)),
-  let G : ℂ → ℂ := (λ z : ℂ, lim at_top (λ n : ℕ, F n z)),
-
-  have hF : ∀ (n : ℕ), ∀ (y : ℂ), y ∈ metric.ball x r → has_deriv_at (F n) (f n y) y,
+  -- Show that the `F` converge (necessarily to `G`) via
+  -- `uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv`
+  have hF : ∀ n y, y ∈ metric.ball x r → has_deriv_at (F n) (f n y) y,
   { intros n y hy,
     have : y ∈ emetric.ball x r,
     { rw [emetric.mem_ball, edist_nndist],
       rw [metric.mem_ball, dist_nndist] at hy,
       norm_cast at hy ⊢,
       exact hy, },
-    exact antideriv_func_has_deriv_at (hf'' n) this, },
-  have foo : tendsto (λ n, F n x) at_top (𝓝 (G x)),
-  { apply tendsto_nhds_lim,
-    use 0,
+    exact (hfp n).antideriv_has_deriv_at this, },
+  have hFG : tendsto (λ n, F n x) l (𝓝 (G x)),
+  { refine tendsto_nhds_lim ⟨0, _⟩,
     have : ∀ n, F n x = 0,
     { intros n,
-      have := (antideriv_func_has_fpower_series_on_ball (hf'' n)).coeff_zero,
-      simp [pad] at this,
+      have := (hfp n).antideriv_has_fpower_series_on_ball.coeff_zero,
+      simp only [formal_multilinear_series.antideriv, real.coe_to_nnreal',
+        continuous_multilinear_map.zero_apply, fin.forall_fin_zero_pi] at this,
       exact this.symm, },
     simp_rw this,
     exact tendsto_const_nhds, },
-  have hfgg := hfg.mono (metric.ball_subset_closed_ball.trans hr'),
-  have hFG : ∀ (y : ℂ), y ∈ metric.ball x r → tendsto (λ n : ℕ, F n y) at_top (𝓝 (G y)),
-  {
-    intros y hy,
-    have := uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv hr hF foo hfgg.uniform_cauchy_seq_on,
-    have : cauchy_seq (λ n : ℕ, F n y), {
-      rw metric.cauchy_seq_iff,
+  have hFG' := hfg.mono (metric.ball_subset_closed_ball.trans hr'),
+  have hFG : ∀ y, y ∈ metric.ball x r → tendsto (λ n, F n y) l (𝓝 (G y)),
+  { intros y hy,
+    have := uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv hr hF hFG
+      hFG'.uniform_cauchy_seq_on,
+    have : cauchy (map (λ n, F n y) l),
+    { rw metric.cauchy_iff,
+      split,
+      { exact filter.map_ne_bot, },
       intros ε hε,
-      rw metric.uniform_cauchy_seq_on_iff at this,
-      obtain ⟨N, hN⟩ := this ε hε,
-      use N,
-      intros m hm n hn,
-      exact hN m hm n hn y hy,
-    },
-    simpa using this.tendsto_lim,
-  },
+      obtain ⟨N, hN, hNm⟩ := (metric.uniform_cauchy_seq_on_iff'.mp this) ε hε,
+      refine ⟨_, image_mem_map hN, λ m hm n hn, _⟩,
+      obtain ⟨m', hm'⟩ := hm,
+      obtain ⟨n', hn'⟩ := hn,
+      simp only at hm' hn',
+      rw [←hm'.2, ←hn'.2],
+      exact hNm m' hm'.1 n' hn'.1 y hy, },
+    rw cauchy_map_iff_exists_tendsto at this,
+    simpa using tendsto_nhds_lim this, },
+
+  -- Since the `F` converge to `G`, we can use `has_deriv_at_of_tendsto_uniformly_on` to show that
+  -- the derivative of `G` is `g` at `x`
   have : is_open (metric.ball x r), exact metric.is_open_ball,
-  have foo := has_deriv_at_of_tendsto_uniformly_on this hF hFG (hfg.mono (metric.ball_subset_closed_ball.trans hr')),
-  have : analytic_on ℂ G (metric.ball x r), {
-    intros y hy,
+  have hfin := has_deriv_at_of_tendsto_uniformly_on this hF hFG
+    (hfg.mono (metric.ball_subset_closed_ball.trans hr')),
+
+  -- Our second use of `ℂ`: differentiability implies analyticity
+  have : analytic_on ℂ G (metric.ball x r),
+  { intros y hy,
     have : metric.ball x r ∈ 𝓝 y,
     { exact mem_nhds_iff.mpr ⟨metric.ball x r, rfl.subset, metric.is_open_ball, hy⟩, },
     refine differentiable_on.analytic_at _ this,
     intros z hz,
-    exact (foo z hz).differentiable_at.differentiable_within_at,
-  },
+    exact (hfin z hz).differentiable_at.differentiable_within_at, },
+
+  -- Analyticity implies the derivative is analytic
   obtain ⟨p, ⟨R, hR⟩⟩ := (this.deriv x (metric.mem_ball_self hr)),
+
+  -- The `congr` for replacing `deriv G` with `g` requires us to show that `deriv G` and
+  -- `g` match on a small ball around `x`. So shrink radii further so we can apply `hfin`
   obtain ⟨R', hlR', hrR'⟩ := ennreal.lt_iff_exists_nnreal_btwn.mp hR.r_pos,
   use [p, min R' r],
   have hR' := hR.mono hlR' hrR'.le,
   refine (hR'.mono (by simp [lt_min, hR'.r_pos, hr]) (min_le_left R' r)).congr _,
+
+  -- Finally, apply `hfin` on this small ball
   intros y hy,
-  simp at hy,
-  exact (foo y hy.2).deriv,
+  simp only [emetric.mem_ball, lt_min_iff, edist_lt_coe] at hy,
+  exact (hfin y hy.2).deriv,
 end
 
-end is_R_or_C
+/-- If a sequence of holomorphic functions converges uniformly on a domain, then the
+limit is also holomorphic on the domain -/
+theorem complex.analytic_on_of_tendsto_uniformly_on (hs : is_open s)
+  (hf : ∀ (n : η), analytic_on ℂ (f n) s)
+  (hfg : tendsto_uniformly_on f g l s) : analytic_on ℂ g s :=
+λ x hx, complex.analytic_at_of_tendsto_uniformly_on
+  (mem_nhds_iff.mpr ⟨s, rfl.subset, hs, hx⟩) hf hfg
+
+end complex

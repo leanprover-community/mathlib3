@@ -1335,6 +1335,30 @@ uniformity_basis_dist.cauchy_seq_iff'
 
 /-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
 the distance between all its elements is uniformly, arbitrarily small -/
+theorem metric.uniform_cauchy_seq_on_iff' {p : filter β} {γ : Type*}
+  {F : β → γ → α} {s : set γ} :
+  uniform_cauchy_seq_on F p s ↔
+    ∀ ε : ℝ, ε > 0 → ∃ t ∈ p, ∀ m, m ∈ t → ∀ n, n ∈ t → ∀ x, x ∈ s →  dist (F m x) (F n x) < ε :=
+begin
+  split,
+  { intros h ε hε,
+    let u := { a : α × α | dist a.fst a.snd < ε },
+    have hu : u ∈ 𝓤 α := metric.mem_uniformity_dist.mpr ⟨ε, hε, (λ a b, by simp)⟩,
+    obtain ⟨pa, hpa, pb, hpb, hpapb⟩ := eventually_prod_iff.mp (h u hu),
+    let t := {a : β | pa a ∧ pb a},
+    refine ⟨t, hpa.and hpb, λ m hm n hn x hx, _⟩,
+    have hpam := (set.mem_set_of.mp hm).1,
+    have hpan := (set.mem_set_of.mp hn).2,
+    simpa [u] using (hpapb hpam hpan x hx), },
+  { intros h u hu,
+    rcases (metric.mem_uniformity_dist.mp hu) with ⟨ε, hε, hab⟩,
+    rcases h ε hε with ⟨N, hN, hNm⟩,
+    exact eventually_prod_iff.mpr ⟨(λ z, z ∈ N), hN, (λ z, z ∈ N), hN,
+      (λ n hn m hm x hx, hab (hNm n hn m hm x hx))⟩, },
+end
+
+/-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
+the distance between all its elements is uniformly, arbitrarily small. Version for `at_top` -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.uniform_cauchy_seq_on_iff {γ : Type*}
   {F : β → γ → α} {s : set γ} :

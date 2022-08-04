@@ -49,87 +49,111 @@ noncomputable theory
 
 open_locale manifold
 
-/-- Continuous differentiability of a function between manifolds can be stated in terms of the
-continuous differentiability of the corresponding function on the model vector space. This requires
-that the extended charts on the manifolds coincide with an open embedding of the manifold into the
-model vector space.
+set_option trace.simplify.rewrite true
 
-TODO: Restructure proof and rearrange variables -/
-lemma open_embedding_cont_diff_on_cont_mdiff'
+lemma charted_space_is_open_map_target_mem_nhds
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
   {M : Type*} [topological_space M] [charted_space H M]
-  [smooth_manifold_with_corners I M]
-  (e : M → E) {he : open_embedding e} (hce : ∀ x y, (ext_chart_at I x) y = e y)
-  (htarg : ∀ x : M, (ext_chart_at I x).target = set.range e)
+  (hI : is_open_map I) (x: M) :
+  (ext_chart_at I x).target ∈ nhds ((ext_chart_at I x) x) :=
+begin
+  rw mem_nhds_iff,
+  have := ext_chart_at_target_mem_nhds_within I x,
+  rw mem_nhds_within at this,
+  rcases this with ⟨u, hu1, hu2, hu3⟩,
+  existsi u ∩ set.range ⇑I,
+  existsi hu3,
+  refine ⟨is_open.inter hu1 hI.is_open_range, _⟩,
+  refine ⟨hu2, _⟩,
+  apply set.mem_of_subset_of_mem (ext_chart_at_target_subset_range I x),
+  apply local_equiv.map_source,
+  apply mem_ext_chart_source
+end
+
+lemma open_embedding_cont_diff_on_cont_mdiff
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
+  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
   {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-  {M' : Type*} [topological_space M'] [charted_space H' M']
-  [smooth_manifold_with_corners I' M']
-  (e' : M' → E') {he' : open_embedding e'} (hce' : ∀ x y, (ext_chart_at I' x) y = e' y)
-  {n : with_top ℕ} {f : E → E'} (H : cont_diff_on 𝕜 n f (set.range e))
-  {g : M → M'} (hfg : e' ∘ g = f ∘ e) :
+  {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+  {n : with_top ℕ} {f : E → E'} {g : M → M'}
+  (hI : is_open_map I) (hI' : ∀ x : M', (ext_chart_at I' x).source = set.univ)
+  (hf : ∀ x : M, cont_diff_on 𝕜 n f (ext_chart_at I x).target)
+  (hfg : ∀ x y, f ∘ (ext_chart_at I x) = (ext_chart_at I' y) ∘ g ) :
   cont_mdiff I I' n g :=
 begin
   rw cont_mdiff_iff,
   split,
-  { rw continuous_def,
-    intros s hs,
-    rw ←set.preimage_image_eq s he'.inj,
-    rw ←set.preimage_comp,
-    rw hfg,
-    have hcont : continuous (f ∘ e),
-    { apply continuous_on.comp_continuous
-        (cont_diff_on.continuous_on H)
-        (open_embedding.continuous he),
-      exact λ y, ⟨y, rfl⟩ },
-    apply continuous.is_open_preimage hcont,
-    exact he'.open_iff_image_open.mp hs },
-    { intros,
-      apply cont_diff_on.congr_mono,
-      swap 4,
-      exact set.range e,
-      swap 4,
-      exact f,
-      swap 3,
-      rw set.subset_def,
-      intros a ha,
-      cases ha with ha ha',
-      rw htarg at ha,
-      exact ha,
-
-      exact H,
-
-      intros a ha,
-      rw [function.comp_app, hce', ←function.comp_app e' g, hfg, function.comp_app, ←hce x,
-        local_equiv.right_inv],
-      exact ha.1 }
+  { rw continuous_iff_continuous_at,
+    intro,
+    have : g = (ext_chart_at I' (g x)).symm ∘ f ∘ ext_chart_at I x,
+    { ext x',
+      rw function.comp_app,
+      rw local_equiv.eq_symm_apply,
+      { rw hfg },
+      { rw hI',
+        apply set.mem_univ },
+      { rw hfg,
+        rw function.comp_app,
+        apply local_equiv.map_source,
+        rw hI',
+        apply set.mem_univ } },
+    rw this,
+    apply continuous_at.comp,
+    { rw hfg,
+      rw function.comp_app,
+      apply ext_chart_continuous_at_symm },
+    apply continuous_at.comp,
+    { apply continuous_on.continuous_at (cont_diff_on.continuous_on (hf x)),
+      apply charted_space_is_open_map_target_mem_nhds hI },
+    { apply ext_chart_at_continuous_at } },
+  { intros,
+    apply cont_diff_on.congr_mono (hf x),
+    { intros a ha,
+      rw ←function.comp.assoc,
+      rw function.comp_app,
+      rw ←hfg x y,
+      rw function.comp_app,
+      congr,
+      apply local_equiv.right_inv,
+      exact ha.1 },
+    apply set.inter_subset_left }
 end
 
+
 /-- A weaker version of `units.open_embedding_cont_diff_on_cont_mdiff` in which the model space H
-coincides with the model vector space E via `model_with_corners_self` and the chart is given by the
-open embedding itself. -/
-lemma open_embedding_cont_diff_on_cont_mdiff
+coincides with the model vector space E via `model_with_corners_self`. -/
+lemma open_embedding_cont_diff_on_cont_mdiff'
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {M : Type*} [topological_space M] [nonempty M]
-  (e : M → E) {he : open_embedding e}
   {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
   {M' : Type*} [topological_space M'] [nonempty M']
-  (e' : M' → E') {he' : open_embedding e'}
-  {n : with_top ℕ} {f : E → E'} (H : cont_diff_on 𝕜 n f (set.range e))
-  {g : M → M'} (hfg : e' ∘ g = f ∘ e) :
+  {n : with_top ℕ} {f : E → E'} {g : M → M'}
+  (e : M → E) (he : open_embedding e)
+  (e' : M' → E') (he' : open_embedding e')
+  (hf : cont_diff_on 𝕜 n f (set.range e))
+  (hfg : f ∘ e = e' ∘ g) :
   @cont_mdiff _ _ _ _ _ _ _ 𝓘(𝕜, E) _ _ he.singleton_charted_space
     _ _ _ _ _ 𝓘(𝕜, E') _ _ he'.singleton_charted_space n g :=
 begin
-  apply @open_embedding_cont_diff_on_cont_mdiff' 𝕜 _
-    E _ _ E _ 𝓘(𝕜, E) M _ he.singleton_charted_space
-    (he.singleton_smooth_manifold_with_corners 𝓘(𝕜, E)) e he (_) (_)
-    E' _ _ E' _ 𝓘(𝕜, E') M' _ he'.singleton_charted_space
-    (he'.singleton_smooth_manifold_with_corners 𝓘(𝕜, E')) e' he' (_)
-    n f H _ hfg;
-  simp
+  haveI := he.singleton_smooth_manifold_with_corners 𝓘(𝕜, E),
+  haveI := he'.singleton_smooth_manifold_with_corners 𝓘(𝕜, E'),
+  apply open_embedding_cont_diff_on_cont_mdiff,
+  show E → E', exact f,
+  { rw model_with_corners_self_coe;
+    apply is_open_map.id },
+  { intro,
+    simp },
+  { intro,
+    simp [hf] },
+  { intros,
+    ext,
+    simp [hfg] }
 end
 
 namespace units
@@ -149,36 +173,28 @@ open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 lemma smooth_mul :
   smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
 begin
-  apply @open_embedding_cont_diff_on_cont_mdiff' 𝕜 _
-    (R × R) _ _ (model_prod R R) _ _ (Rˣ × Rˣ) _ _ _ (λ x, (x.1, x.2))
-    (by {apply open_embedding.prod open_embedding_coe open_embedding_coe; apply_instance}) _ _
-    R _ _ R _ _ Rˣ _ _ _ coe open_embedding_coe _ ⊤ (λ x, x.1 * x.2),
-  { exact cont_diff.cont_diff_on cont_diff_mul },
-  { ext, simp },
-  { apply_instance },
+  apply open_embedding_cont_diff_on_cont_mdiff,
+  { apply is_open_map.prod;
+    rw model_with_corners_self_coe;
+    apply is_open_map.id },
   { simp },
   { intro,
-    ext x',
-    cases x' with x1 x2,
-    split;
-    { simp,
-      intros y1 hy1 y2 hy2,
-      exact ⟨⟨y1, hy1⟩, ⟨y2, hy2⟩⟩ } },
-  { apply_instance },
-  { intros, simp }
+    exact cont_diff.cont_diff_on cont_diff_mul },
+  { intros,
+    ext,
+    simp }
 end
 
 lemma smooth_inv :
   smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
 begin
-  apply open_embedding_cont_diff_on_cont_mdiff,
-  intros x hx,
-  apply cont_diff_at.cont_diff_within_at,
-  rw set.mem_range at hx,
-  cases hx with y hy,
-  rw ←hy,
-  apply cont_diff_at_ring_inverse,
-
+  apply open_embedding_cont_diff_on_cont_mdiff',
+  { intros x hx,
+    apply cont_diff_at.cont_diff_within_at,
+    rw set.mem_range at hx,
+    cases hx with y hy,
+    rw ←hy,
+    apply cont_diff_at_ring_inverse },
   ext,
   simp
 end

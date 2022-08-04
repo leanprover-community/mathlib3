@@ -1,7 +1,25 @@
 import probability.density
 import probability.moments
 import analysis.special_functions.gaussian
+import measure_theory.integral.set_to_l1
+import analysis.normed_space.bounded_linear_maps
+import topology.sequences
+
+import algebra.order.ring
+import data.complex.exponential
+
+
+
+import measure_theory.covering.besicovitch_vector_space
+import measure_theory.measure.haar_lebesgue
+import analysis.normed_space.pointwise
+import measure_theory.covering.differentiation
+import measure_theory.constructions.polish
+
 import measure_theory.group.integration
+
+#check real.exp_pos
+#check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
 
 /-
 We would like to define the Gaussian measure on ℝ.
@@ -36,7 +54,7 @@ namespace measure_theory
 open real
 
 noncomputable def gaussian_density (m s : ℝ) : ℝ → ℝ≥0∞ :=
-λ x, ennreal.of_real $ (sqrt (2 * π * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2)
+λ x, ennreal.of_real $ (sqrt (2 * real.pi * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2)
 
 /-- We say a real measure is Gaussian if there exists some `m s : ℝ` such that the Radon-Nikodym
 derivative of `μ` with respect to the Lebesgue integral is the Gaussian density with mean `m` and
@@ -65,11 +83,22 @@ begin
     rw hμ,
     simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
     rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
-    {
 
-      --rw integral_smul_const _ (sqrt (2 * π * s ^ 2))⁻¹,
-      sorry
-    },
+    {have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
+      ext e,
+      split,
+      {intro h1,
+      use (e+m),
+      split,
+      simp,simp},
+      {intro h2,
+      simp},
+      have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
+     = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
+     simp,
+     rw h_integ_eq,
+
+      sorry},
     {
       rw integrable, fconstructor,
       {
@@ -197,8 +226,31 @@ variables {f g : α → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
 lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
   gaussian_rv (f + λ x, m) m 1 :=
 begin
+  unfold std_gaussian_rv at hf,
+  unfold gaussian_rv at *,
+  unfold real_gaussian at *,
+  simp at *,
+  ---unfold with_density at *,
 
-  sorry
+  ---unfold map at *,
+
+  have h_ae_m_one : ae_measurable (λ (a : α), 1) ℙ,
+    simp,
+  have h_ae_m_const : ae_measurable (λ (a : α), m) ℙ,
+    exact ae_measurable_const,
+  have h_eq_ae_m : ae_measurable f ℙ ↔ ae_measurable (f+λ (a : α), m) ℙ,
+    split,
+    intro h_eq_ae_m1,
+    exact ae_measurable.add' h_eq_ae_m1 h_ae_m_const,
+    intro h_eq_ae_m2,
+    exact measurable.ae_measurable hfmeas,
+  have h_zeroeqno : f = f + λ (a : α), 0,
+    ext x,
+    simp,
+  rw h_zeroeqno at hf,
+  sorry,
+
+
 end
 
 lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f) (s : ℝ) :

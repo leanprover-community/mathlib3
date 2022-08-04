@@ -887,7 +887,7 @@ end
 
 lemma inv_coe_nat_denom_of_pos {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
 begin
-  rw [← int.coe_nat_eq_coe_nat_iff, ← int.cast_coe_nat a, inv_coe_int_denom_pos],
+  rw [← int.coe_nat_eq_coe_nat_iff, ← int.cast_coe_nat a, inv_coe_int_denom_of_pos],
   rwa [← nat.cast_zero, nat.cast_lt]
 end
 

@@ -96,6 +96,6 @@ end distrib_lattice
 def young_diagram.card (μ : young_diagram) : ℕ := μ.cells.card
 lemma young_diagram.card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
-@[simp] lemma μ_bot_card : (⊥ : young_diagram).card = 0 := rfl
+@[simp] lemma young_diagram.card_bot : (⊥ : young_diagram).card = 0 := rfl
 
 end young_diagram

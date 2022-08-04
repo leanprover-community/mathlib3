@@ -454,7 +454,7 @@ open_locale tensor_product
 
 variables (R S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
 
-/-- The kernel of the map `S ⊗[R] S →ₐ[R] S`. -/
+/-- The kernel of the map `(𝟙, 𝟙) : S ⊗[R] S →ₐ[R] S`. -/
 abbreviation derivation_module.ideal : ideal (S ⊗[R] S) :=
 ring_hom.ker (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S)
 

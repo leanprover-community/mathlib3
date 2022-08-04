@@ -105,11 +105,31 @@ begin
     },
     {
       refine filter.germ.coe_le.mp _,
+      have hbp1 : 0 < s^2,
+          exact (sq_pos_iff s).mpr h,
+        -- have hbp2 : 0 < 2
+      have hbp2 : 0 < 2*s^2,
+          simp,
+          exact hbp1,
 
-      have const_pos: 0 < (sqrt (2 * π * s ^ 2))⁻¹,
-          suggest,
-      --refine eq.ge _,
-      rw zero_le_mul_left const_pos,
+      --have h_pipos : 0 < π,
+        --exact pi_pos,
+      have h_exppos : 0 < (2 * s ^ 2) * π,
+        exact mul_pos hbp2 pi_pos,
+
+      --simp at h_sqrt_pos,
+
+      have h_sqrt_pos :  0 < sqrt(2 * s ^ 2 * π),
+        exact sqrt_pos.mpr h_exppos,
+
+      have  h_const_pos :  0 < (sqrt(2 * s ^ 2 * π))⁻¹,
+        exact inv_pos.mpr h_sqrt_pos,
+      have h_mulpi_eq : 2 * s ^ 2 * π = 2 * π * s ^ 2,
+        ring,
+
+      rw h_mulpi_eq at h_const_pos,
+
+      --rw zero_le_mul_left h_const_pos,
       sorry
 
     }
@@ -165,6 +185,7 @@ variables {f g : α → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
 lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
   gaussian_rv (f + λ x, m) m 1 :=
 begin
+
   sorry
 end
 

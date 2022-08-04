@@ -502,6 +502,9 @@ class densely_normed_field (α : Type*) extends normed_field α :=
 
 section normed_field
 
+/-- A densely normed field is always a nontrivially normed field.
+See note [lower instance priority]. -/
+@[priority 100]
 instance densely_normed_field.to_nontrivially_normed_field [densely_normed_field α] :
   nontrivially_normed_field α :=
 { non_trivial := let ⟨a, h, _⟩ := densely_normed_field.lt_norm_lt 1 2 zero_le_one one_lt_two in

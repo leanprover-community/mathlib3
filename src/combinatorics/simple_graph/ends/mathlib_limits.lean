@@ -57,8 +57,10 @@ end
 
 def fis.is_surjective  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) /- [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] -/ : Prop :=
-∀ (j j' : Jᵒᵖ) (m : j' ⟶ j) (x : F.obj j), x ∈ set.range (F.map m)
+∀ (i j : Jᵒᵖ) (h : j.unop ≤ i.unop) (x : F.obj j), x ∈ set.range (F.map (op_hom_of_le h))
 
+
+def bigger  {J : Type u} [preorder J] : Π (j : Jᵒᵖ), set Jᵒᵖ := λ j, {i : Jᵒᵖ | j.unop ≤ i.unop}
 
 /-
 I CAN'T prove that this subfunctor is surjective in general.
@@ -69,52 +71,26 @@ The map from F 2 to F 1 is the identity
 The map from F 3 to F 2 sends 0 and 1 to 0, and is the identity elsewhere
 The map from F 4 to F 3 sends 0,1,2 to 0; and is the identity elsewhere
 …
-Then 1 ∈ F 0 is in all the ranges, but any preimage of 1 has no preimage "sufficiently high"
+Then 1 ∈ F 0 is in all the ranges, but any preimage of 1 has no preimage "sufficiently high".
+
+Btw, this is also a contrived example of a system with no section.
 -/
 def fis.to_surjective  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) /- [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] -/ : Jᵒᵖ ⥤ Type v :=
 begin
-  let bigger : Π (j : Jᵒᵖ), set Jᵒᵖ := λ j, {i : Jᵒᵖ | j.unop ≤ i.unop},
   let Fsur_obj : Π (j : Jᵒᵖ), set (F.obj j) := λ j, ⋂ (i : bigger j), set.range (F.map  (op_hom_of_le i.prop)),
 
-  --have allnempty : Π (j : Jᵒᵖ), (Fsur_obj j).nonempty, by sorry,
-  --have allfinite : Π (j : Jᵒᵖ), (Fsur_obj j).finite, by sorry,
-  --have surjective : Π (j j' : Jᵒᵖ) (m : j' ⟶ j), Fsur_obj j ⊆ (F.map m) '' (Fsur_obj j'), by sorry,
-
   have subfunctor : Π (i j : Jᵒᵖ) (hij : i ⟶ j), set.maps_to (F.map hij) (Fsur_obj i) (Fsur_obj j), by
+  -- Thanks Andrew Yang
   { rintro i j hij,
-    rintro x h,
-    /-
-    Assume x ∈ Fsur_obj i. Need to show F.map hij x ∈ Fsur_obj j.
-    This amounts to showing that for all kj : k ⟶ j, F.map hij x ∈ set.range (F.map kj)
-    -/
-    suffices h : ∀ (k : bigger j), F.map hij x ∈ set.range (F.map (op_hom_of_le k.prop)),
-    { rw set.mem_Inter,
-      exact h, },
-    rintros ⟨k,kj⟩,
-    simp only [set.mem_set_of_eq] at kj,
-    obtain ⟨l',lk',li'⟩ := directed_of (≤) k.unop i.unop,
-    let l := opposite.op l',
-    have lk : opposite.unop k ≤ opposite.unop l, by {simp,exact lk'},
-    have li : opposite.unop i ≤ opposite.unop l, by {simp,exact li'},
-    let hlk := op_hom_of_le lk,
-    let hli := op_hom_of_le li,
-    let hkj := op_hom_of_le kj,
-    simp only [set.mem_Inter, set.mem_range] at h,
-    obtain ⟨y,rfl⟩ := h ⟨l,li⟩,
-    simp only [set.mem_range],
-    use F.map hlk y,
-    simp *,
-    refine @eq.trans _ _ (F.map (hlk ≫ hkj) y) _ _ _,
-    { simp *,
-      dsimp,sorry,
-    },
-    { have : hlk ≫ hkj = hli ≫ hij, by { simp only [eq_iff_true_of_subsingleton], },
-      rw this,
-      simp,
-      sorry,
-    },
-  },
+    rintro x h s ⟨⟨k, _⟩, rfl⟩,
+    obtain ⟨l,lk,li⟩ := directed_of (≤) k.unop i.unop,
+    rw set.mem_Inter at h,
+    obtain ⟨y,rfl⟩ := h ⟨opposite.op l, li⟩,
+    use F.map (hom_of_le lk).op y,
+    rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
+    refl },
+
   refine ⟨(λ j, subtype (Fsur_obj j)),_,_,_⟩,
   { rintro j' j m, exact set.maps_to.restrict _ _ _ (subfunctor j' j m)},
   { rintro j,
@@ -136,10 +112,8 @@ begin
   rintros i j ij,
   apply funext,
   rintros x,
-  simp [set.maps_to.coe_restrict_apply],
-  unfold subtype.simps.coe,
-  dsimp,
-  sorry,
+  --simp [set.maps_to.coe_restrict_apply], -- Why don't we need this?
+  refl,
 end
 
 
@@ -162,9 +136,13 @@ begin
   simp only [nonempty_subtype],
   refine bInter_of_directed_nonempty _ _ _,
   { rintro s ⟨⟨i,ij⟩,rfl⟩,
+    unfold bigger at ij,
     simp only [set.mem_set_of_eq] at ij,
     exact set.range_nonempty _,},
-  { rintro X ⟨⟨i,ij⟩,rfl⟩ Y ⟨⟨k,kj⟩,rfl⟩,
+  { -- Probably heavily golfable
+    rintro X ⟨⟨i,ij⟩,rfl⟩ Y ⟨⟨k,kj⟩,rfl⟩,
+    unfold bigger at ij,
+    unfold bigger at kj,
     simp only [set.mem_set_of_eq] at ij, simp only [set.mem_set_of_eq] at kj,
     obtain ⟨l',lk',li'⟩ := directed_of (≤) k.unop i.unop,
     let l := opposite.op l',
@@ -175,41 +153,119 @@ begin
     let hkj := op_hom_of_le kj,
     let hij := op_hom_of_le ij,
     let hkj := op_hom_of_le kj,
-    have : hlk ≫ hkj = hli ≫ hij, by { simp only [eq_iff_true_of_subsingleton], },
+    have : hlk ≫ hkj = hli ≫ hij, by reflexivity,
     use set.range (F.map $ hlk ≫ hkj),
     use l,
     use kj.trans lk,
-    simp only [functor.map_comp],
-    {sorry},
-    {sorry},
+    { simp only, refl, },
+    { --have : op_hom_of_le ij = hlk ≫ hkj, by {sorry},
+      simp only,
+      split,
+      { have : hlk ≫ hkj = hli ≫ hij, by reflexivity,
+        rw [this,functor.map_comp /-F hli hij-/,types_comp],
+        apply set.range_comp_subset_range,},
+      {
+        rw [functor.map_comp /-F hlk hkj-/,types_comp],
+        apply set.range_comp_subset_range,},
+    },
   },
 end
 
-
-lemma fis.to_surjective.is_surjective {J : Type u} [preorder J] [is_directed J has_le.le]
-  (F : Jᵒᵖ ⥤ Type v)  : fis.is_surjective (fis.to_surjective F) :=
+lemma fis.to_surjective.is_surjective {J : Type u} [preorder J]  [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [nempties : Π (j : Jᵒᵖ), nonempty (F.obj j)] : fis.is_surjective (fis.to_surjective F) :=
 begin
   unfold fis.is_surjective,
-  rintros i j ji ⟨x,xh⟩,
-  have xh : x ∈ (⋂ (j' : Jᵒᵖ) (m : j' ⟶ i), set.range (F.map m)), by {exact xh},
+  rintros i j ij ⟨x,xh⟩,
 
-  /-obtain ⟨y,rfl⟩ := set.mem_Inter₂.mp xh j ji,
-  simp,
+  have S := set.range (λ k : bigger i, (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}),
+  have Ssnempty : ∀ s ∈ S, set.nonempty s, by
+  { rintro s hs,
+    have : ∃ k : bigger i, s = (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}, by
+    { sorry, }, -- should be hs
+    obtain ⟨⟨k,ki⟩,rfl⟩ := this,
+    have ki : i.unop ≤ k.unop, from ki,
+    have xh' : x ∈ ⋂ (l : (bigger j)), set.range (F.map (op_hom_of_le l.prop)) := xh,
+    rw set.mem_Inter at xh',
+    obtain ⟨z,rfl⟩ := xh' ⟨k,ij.trans ki⟩,
+    let y := F.map (op_hom_of_le ki) z,
+    use y,
+    use ⟨z,rfl⟩,
+    have : F.map (op_hom_of_le ij) y = F.map (op_hom_of_le (ij.trans ki)) z, by
+    { have : F.map (op_hom_of_le ij) (F.map (op_hom_of_le ki) z) = F.map (op_hom_of_le (ij.trans ki)) z, by {
+      rw ←functor_to_types.map_comp_apply,
+      reflexivity,},
+      exact this,},
+    exact this,},
+
+  have : (⋂₀ S).nonempty, by {
+    refine bInter_of_directed_nonempty S Ssnempty _,
+    unfold directed_on,
+    -- only needs to show that S is directed
+    rintros X ⟨⟨l,lj⟩,rfl⟩ Y ⟨⟨k,kj⟩,rfl⟩,
+    unfold bigger at lj,
+    unfold bigger at kj,
+    simp only [set.mem_set_of_eq] at ij, simp only [set.mem_set_of_eq] at kj,
+    obtain ⟨l',lk',li'⟩ := directed_of (≤) k.unop i.unop,
+    let l := opposite.op l',
+    have lk : opposite.unop k ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lk'},
+    have li : opposite.unop i ≤ opposite.unop l, by {simp only [opposite.unop_op],exact li'},
+    let hlk := op_hom_of_le lk,
+    let hli := op_hom_of_le li,
+    let hkj := op_hom_of_le kj,
+    let hij := op_hom_of_le ij,
+    let hkj := op_hom_of_le kj,
+    have : hlk ≫ hkj = hli ≫ hij, by reflexivity,
+    use set.range (F.map $ hlk ≫ hkj),
+    use l,
+    use kj.trans lk,
+    { simp only, refl, },
+    { --have : op_hom_of_le ij = hlk ≫ hkj, by {sorry},
+      simp only,
+      split,
+      { have : hlk ≫ hkj = hli ≫ hij, by reflexivity,
+        rw [this,functor.map_comp /-F hli hij-/,types_comp],
+        apply set.range_comp_subset_range,},
+      {
+        rw [functor.map_comp /-F hlk hkj-/,types_comp],
+        apply set.range_comp_subset_range,},
+  },
+
+  },
+  obtain ⟨y,y_mem⟩ := this,
   use y,
-  { suffices : y ∈ (⋂ (j' : Jᵒᵖ) (m : j' ⟶ j), set.range (F.map m)),
-    { exact this },
-    rw set.mem_Inter₂,
-    rintro k kj,
-    obtain ⟨z,ztox⟩ := set.mem_Inter₂.mp xh k (kj ≫ ji),
-    induction ztox,
-    simp,
-    use z,
-
+  {sorry,},
+  {
     sorry,
   },
 
-  { rw ←subtype.coe_inj, simp only [subtype.coe_mk], simpa only, }-/
-  sorry
+
+end
+
+lemma fis.sections_in_surjective {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (s : F.sections) (j : Jᵒᵖ) :
+  (s.val j) ∈ set.range (subtype.simps.coe : ((fis.to_surjective F).obj j) → F.obj j) :=
+begin
+  let y := s.val j,
+  have : ∀ (i : bigger j), y ∈ set.range (F.map $ op_hom_of_le i.prop), by {
+    rintro ⟨i,ij⟩,
+    use s.val i,
+    exact s.prop (op_hom_of_le ij),},
+  rw set.mem_range, simp,
+  use y,
+  split,
+  { refl, },
+  { rintro s ⟨i,rfl⟩, simp only [set.mem_Inter], intro ij, exact this ⟨i,ij⟩, },
+end
+
+def fis.sections_surjective_equiv_sections  {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
+  F.sections ≃ (fis.to_surjective F).sections :=
+begin
+  split, rotate 2,
+  {sorry,},
+  {sorry,},
+  {sorry,},
+  {sorry,},
 end
 
 /-

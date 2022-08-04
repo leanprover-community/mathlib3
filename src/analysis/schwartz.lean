@@ -44,7 +44,62 @@ Foobars, barfoos
 open filter
 open_locale big_operators ennreal nnreal
 
-variables {R E F ι : Type*}
+variables {R 𝕜 E F ι : Type*}
+
+section iterated_fderiv
+
+variables [nontrivially_normed_field 𝕜]
+variables [normed_add_comm_group E] [normed_space 𝕜 E]
+variables [normed_add_comm_group F] [normed_space 𝕜 F]
+.
+lemma cont_diff.differentiable_at_iterated_fderiv {n k : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f)
+  {x : E} (h : k < n):
+  differentiable 𝕜 (iterated_fderiv 𝕜 k f) :=
+begin
+  have : differentiable_on 𝕜 (iterated_fderiv_within 𝕜 k f set.univ) set.univ :=
+    hf.cont_diff_on.differentiable_on_iterated_fderiv_within (by simp only [h, with_top.coe_lt_coe])
+    unique_diff_on_univ,
+  simp at this,
+  sorry,
+end
+
+
+-- iterated_fderiv_add
+lemma iterated_fderiv_add {n : ℕ} {f g : E → F} (hf : cont_diff 𝕜 n f)
+  (hg : cont_diff 𝕜 n g):
+  iterated_fderiv 𝕜 n (λ x, f x + g x) = iterated_fderiv 𝕜 n f + iterated_fderiv 𝕜 n g :=
+begin
+  induction n with k hk,
+  { ext, simp },
+  specialize hk (hf.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
+  specialize hk (hg.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
+  ext x m,
+  rw [pi.add_apply, continuous_multilinear_map.add_apply],
+  simp_rw iterated_fderiv_succ_apply_left m,
+  rw [←continuous_multilinear_map.add_apply],
+  congr,
+  rw ←continuous_linear_map.add_apply,
+  congr,
+  have hf' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k f) x :=
+  begin
+    sorry,
+  end,
+  have hg' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k g) x :=
+  begin
+    sorry,
+  end,
+  rw ←fderiv_add hf' hg',
+  congr,
+  ext,
+  rw hk,
+  rw pi.add_apply,
+end
+-- iterated_fderiv_const_smul
+
+end iterated_fderiv
+
+#exit
+
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables [normed_add_comm_group F] [normed_space ℝ F]
 
@@ -132,22 +187,27 @@ end seminorms
 section smul
 
 variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
-variables [has_continuous_const_smul R F] [has_coe R ℝ]
+variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
 --[distrib_mul_action R 𝕜] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
 
 variables (r : R)
-#check ∥(r : ℝ)∥
+#check ∥r • (1 : ℝ)∥
 
 instance : has_smul R (schwartz E F) :=
 ⟨λ c f, { to_fun := c • f,
   smooth' := sorry,
   decay' := λ k n, begin
     rcases f.decay k n with ⟨C, hC, hf⟩,
-    refine ⟨C, by positivity, _⟩,
+    refine ⟨C * (∥c • (1 : ℝ)∥+1), by positivity, _⟩,
     intros x,
     specialize hf x,
-    refine has_le.le.trans _ hf,
-    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    have hc : 0 ≤ ∥c • (1 : ℝ)∥ := by positivity,
+    refine le_trans _ ((mul_le_mul_of_nonneg_right hf hc).trans _),
+    {
+      rw mul_assoc,
+      refine mul_le_mul_of_nonneg_left _ (by positivity),
+      sorry,
+    },
     sorry,
   end}⟩
 -- need iterated_fderiv_const_smul

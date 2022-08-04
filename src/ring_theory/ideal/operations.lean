@@ -253,6 +253,11 @@ begin
       intros; simp only [zero_smul, mul_smul] },
 end
 
+theorem mem_ideal_smul_span_iff_exists_sum' {ι : Type*} (s : set ι) (f : ι → M) (x : M) :
+  x ∈ I • span R (f '' s) ↔
+  ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
+by rw [← submodule.mem_ideal_smul_span_iff_exists_sum, ← set.image_eq_range]
+
 @[simp] lemma smul_comap_le_comap_smul (f : M →ₗ[R] M') (S : submodule R M') (I : ideal R) :
   I • S.comap f ≤ (I • S).comap f :=
 begin

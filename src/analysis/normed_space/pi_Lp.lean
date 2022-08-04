@@ -65,30 +65,6 @@ noncomputable theory
 
 variables {ι : Type*}
 
-/- These lemmas need to move.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -/
-
-lemma equiv.csupr {ι ι' E : Type*} [conditionally_complete_lattice E]
-  (e : ι ≃ ι') {f : ι → E} (hf : bdd_above (range f)) {g : ι' → E} (hfg : ∀ i, f i = g (e i)) :
-  (⨆ i, f i) = ⨆ i, g i :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { haveI : is_empty ι' := (equiv.is_empty_congr e).mp h, simp only [supr, range_eq_empty] },
-  { haveI : nonempty ι' := (equiv.nonempty_congr e).mp h,
-    have hg : bdd_above (range g),
-    { obtain ⟨M, hM⟩ := hf, use M, rintros - ⟨i, rfl⟩, refine hM ⟨(e.symm i), _⟩,
-      simpa only [equiv.apply_symm_apply] using hfg (e.symm i), },
-    refine le_antisymm (csupr_le (λ i, (hfg i).symm ▸ le_csupr hg (e i))) (csupr_le (λ i, _)),
-    simpa only [equiv.apply_symm_apply, hfg (e.symm i)] using le_csupr hf (e.symm i) },
-end
-
-lemma equiv.cinfi {ι ι' E : Type*} [conditionally_complete_lattice E]
-  (e : ι ≃ ι') {f : ι → E} (hf : bdd_below (range f)) {g : ι' → E} (hfg : ∀ i, f i = g (e i)) :
-  (⨅ i, f i) = ⨅ i, g i :=
-@equiv.csupr _ _ Eᵒᵈ _ e _ hf _ hfg
-
-/- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -/
-
 /-- A copy of a Pi type, on which we will put the `L^p` distance. Since the Pi type itself is
 already endowed with the `L^∞` distance, we need the type synonym to avoid confusing typeclass
 resolution. Also, we let it depend on `p`, to get a whole family of type on which we can put

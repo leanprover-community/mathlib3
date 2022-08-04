@@ -866,7 +866,7 @@ begin
     coe_nat_div_self]
 end
 
-lemma inv_coe_int_num_pos {a : ℤ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+lemma inv_coe_int_num_of_pos {a : ℤ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
 begin
   rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
   apply num_div_eq_of_coprime ha0,
@@ -874,10 +874,10 @@ begin
   exact nat.coprime_one_left _,
 end
 
-lemma inv_coe_nat_num_pos {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
-inv_coe_int_num_pos (by exact_mod_cast ha0 : 0 < (a : ℤ))
+lemma inv_coe_nat_num_of_pos {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+inv_coe_int_num_of_pos (by exact_mod_cast ha0 : 0 < (a : ℤ))
 
-lemma inv_coe_int_denom_pos {a : ℤ} (ha0 : 0 < a) : ((a : ℚ)⁻¹.denom : ℤ) = a :=
+lemma inv_coe_int_denom_of_pos {a : ℤ} (ha0 : 0 < a) : ((a : ℚ)⁻¹.denom : ℤ) = a :=
 begin
   rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
   apply denom_div_eq_of_coprime ha0,
@@ -885,7 +885,7 @@ begin
   exact nat.coprime_one_left _,
 end
 
-lemma inv_coe_nat_denom_pos {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
+lemma inv_coe_nat_denom_of_pos {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
 begin
   rw [← int.coe_nat_eq_coe_nat_iff, ← int.cast_coe_nat a, inv_coe_int_denom_pos],
   rwa [← nat.cast_zero, nat.cast_lt]
@@ -896,7 +896,7 @@ begin
   induction a using int.induction_on;
   simp [←int.neg_succ_of_nat_coe', int.neg_succ_of_nat_coe, -neg_add_rev, rat.inv_neg,
         int.coe_nat_add_one_out, -nat.cast_succ, inv_coe_nat_num_pos, -int.cast_neg_succ_of_nat,
-        @eq_comm ℤ 1, int.sign_eq_one_iff_pos]
+        @eq_comm ℤ 1, int.sign_eq_one_iff_of_pos]
 end
 
 @[simp] lemma inv_coe_nat_num (a : ℕ) : (a : ℚ)⁻¹.num = int.sign a :=
@@ -906,7 +906,8 @@ inv_coe_int_num a
 begin
   induction a using int.induction_on;
   simp [←int.neg_succ_of_nat_coe', int.neg_succ_of_nat_coe, -neg_add_rev, rat.inv_neg,
-        int.coe_nat_add_one_out, -nat.cast_succ, inv_coe_nat_denom_pos, -int.cast_neg_succ_of_nat]
+        int.coe_nat_add_one_out, -nat.cast_succ, inv_coe_nat_denom_of_pos,
+        -int.cast_neg_succ_of_nat]
 end
 
 @[simp] lemma inv_coe_nat_denom (a : ℕ) : (a : ℚ)⁻¹.denom = if a = 0 then 1 else a :=

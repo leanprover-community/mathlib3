@@ -730,38 +730,23 @@ noncomputable
 instance fintype.of_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H :=
 fintype.of_finite ↥H
 
+/-- The cardinality of any proper subgroup `H` of `G` is at most half that of `G`. -/
 lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G}
--- [fintype H]
   (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
 begin
   rcases subgroup.card_subgroup_dvd_card H with ⟨index, hindex⟩,
   by_cases h0 : index = 0,
-  { exfalso,
-    rw h0 at hindex,
-    simp at hindex,
-    have thing2 : 0 < fintype.card G,
-    exact fintype.card_pos,
-    rw hindex at thing2,
-    exact nat.lt_asymm thing2 thing2 },
+  { exfalso, apply (@fintype.card_pos G _ _).ne', simp [hindex, h0] },
   by_cases h1 : index = 1,
-  { by_contra,
-    rw h1 at hindex,
-    simp at hindex,
-    clear h h0 h1 index,
-    have htop := subgroup.eq_top_of_card_eq H hindex.symm,
-    clear hindex,
-    rw htop at *,
-    clear htop,
-    apply proper,
-    simp only [subgroup.mem_top] },
-  have two_le_index : 2 ≤ index,
-  { by_contra,
-    simp at h,
-    interval_cases index,
-    exact h0 rfl,
-    exact h1 rfl },
+  { rw [h1, mul_one] at hindex,
+    contrapose! proper,
+    rw subgroup.eq_top_of_card_eq H hindex.symm,
+    simp },
   rw hindex,
-  exact mul_le_mul_left' two_le_index (fintype.card ↥H),
+  apply mul_le_mul_left',
+  by_contra,
+  rw [not_le] at h,
+  interval_cases index; contradiction,
 end
 
 

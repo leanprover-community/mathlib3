@@ -167,4 +167,62 @@ instance reflects_epimorphisms_of_faithful (F : C ⥤ D) [faithful F] : reflects
 { reflects := λ X Y f hf, ⟨λ Z g h hgh, by exactI F.map_injective ((cancel_epi (F.map f)).1
     (by rw [← F.map_comp, hgh, F.map_comp]))⟩ }
 
+section
+
+variables (F : C ⥤ D) {X Y : C} (f : X ⟶ Y)
+
+/-- Split epimorphisms are preserved by the application of any functor. -/
+@[simps]
+def map_split_epi (s : split_epi f) : split_epi (F.map f) :=
+⟨F.map s.section_, by { rw [← F.map_comp, ← F.map_id], congr' 1, apply split_epi.id, }⟩
+
+/-- Split monomorphisms are preserved by the application of any functor. -/
+@[simps]
+def map_split_mono (s : split_mono f) : split_mono (F.map f) :=
+⟨F.map s.retraction, by { rw [← F.map_comp, ← F.map_id], congr' 1, apply split_mono.id, }⟩
+
+/-- If `F` is a fully faithful functor, split epimorphisms are preserved and reflected by `F`. -/
+def split_epi_equiv [full F] [faithful F] : split_epi f ≃ split_epi (F.map f) :=
+{ to_fun := F.map_split_epi f,
+  inv_fun := λ s, begin
+    refine ⟨F.preimage s.section_, _⟩,
+    apply F.map_injective,
+    simp only [map_comp, image_preimage, map_id],
+    apply split_epi.id,
+  end,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/-- If `F` is a fully faithful functor, split monomorphisms are preserved and reflected by `F`. -/
+def split_mono_equiv [full F] [faithful F] : split_mono f ≃ split_mono (F.map f) :=
+{ to_fun := F.map_split_mono f,
+  inv_fun := λ s, begin
+    refine ⟨F.preimage s.retraction, _⟩,
+    apply F.map_injective,
+    simp only [map_comp, image_preimage, map_id],
+    apply split_mono.id,
+  end,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+lemma epi_iff_epi_map [hF₁ : preserves_epimorphisms F] [hF₂ : reflects_epimorphisms F] :
+  epi f ↔ epi (F.map f) :=
+begin
+  split,
+  { introI h,
+    exact F.map_epi f, },
+  { exact F.epi_of_epi_map, },
+end
+
+lemma mono_iff_mono_map [hF₁ : preserves_monomorphisms F] [hF₂ : reflects_monomorphisms F] :
+  mono f ↔ mono (F.map f) :=
+begin
+  split,
+  { introI h,
+    exact F.map_mono f, },
+  { exact F.mono_of_mono_map, },
+end
+
+end
+
 end category_theory.functor

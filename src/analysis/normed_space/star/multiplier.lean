@@ -234,6 +234,8 @@ instance : ring 𝓜(𝕜, A) :=
 ### Star structure
 -/
 
+section star
+
 variables [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A]
 
 instance : has_star 𝓜(𝕜, A) :=
@@ -263,6 +265,8 @@ instance : star_module 𝕜 𝓜(𝕜, A) :=
 { star_smul := λ k a, by {ext; exact star_smul _ _},
   .. double_centralizer.star_add_monoid }
 
+end star
+
 /-!
 ### Norm structures
 -/
@@ -279,7 +283,7 @@ noncomputable instance : normed_ring 𝓜(𝕜, A) :=
   .. double_centralizer.ring,
   .. double_centralizer.normed_add_comm_group }
 
-variables [cstar_ring A]
+variables [star_ring A] [cstar_ring A]
 
 /-- For `a : 𝓜(𝕜, A)`, the norms of `a.left` and `a.right` coincide, and hence these
 also coincide with `∥a∥` which is `max (∥a.left∥) (∥a.right∥)`. -/
@@ -350,7 +354,7 @@ begin
     ...                    ≤ ∥a∥₊ : by simpa using (ennreal.coe_mono $ mul_le_mul_right' hb _) }
 end
 
-instance : cstar_ring 𝓜(𝕜, A) :=
+instance [star_ring 𝕜] [star_module 𝕜 A] [normed_star_group A] : cstar_ring 𝓜(𝕜, A) :=
 { norm_star_mul_self := sorry }
 
 /-!

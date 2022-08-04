@@ -38,7 +38,7 @@ instance finset_directed : is_directed (finset V) (≤) := {
 def ComplComp : (finset V)ᵒᵖ ⥤ Type u := {
   obj := λ A, ro_components G (unop A),
   map := λ A B f, bwd_map G Gpc (le_of_hom f.unop),
-  map_id' := by {intro, funext, simp, apply bwd_map_refl',}, -- tricky to get right
+  map_id' := by {intro, funext, simp, apply bwd_map_refl',},
   map_comp' := by {intros, funext, simp, apply eq.symm, apply bwd_map_comp',},
 }
 
@@ -48,15 +48,38 @@ def Ends := (ComplComp G Gpc).sections
 def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
   obj := λ A, {C : ro_components G (unop A) | C.val.infinite},
   map := λ A B f, set.maps_to.restrict (bwd_map G Gpc (le_of_hom f.unop)) _ _ (bwd_map_inf_to_inf G Gpc (le_of_hom f.unop)),
-  map_id' := by {sorry}, -- tricky to get right
-  map_comp' := by {sorry},
+  map_id' := by {intro, funext, simp [set.maps_to.restrict, subtype.map], cases x, apply subtype.eq, dsimp, apply bwd_map_refl', },
+  map_comp' := by {intros, funext, simp [set.maps_to.restrict, subtype.map], cases x, dsimp, apply eq.symm, apply bwd_map_comp', },
 }
 
 def Endsinfty := (ComplInfComp G Gpc).sections
 
-lemma Ends_are_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) := sorry
--- Should use `fis.sections_surjective_equiv_sections` and the fact that `inf_ro_components` is exactly the surjective part
-
+lemma Ends_are_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) :=
+begin
+rw [Ends, Endsinfty, ComplComp, ComplInfComp, functor.sections, functor.sections],
+simp,
+split, rotate 2,
+{
+  rintro ⟨x : Π A : (finset V)ᵒᵖ, G.ro_components (unop A), h⟩,
+  refine subtype.mk _ _,
+  intro Kop, refine subtype.mk (x Kop) _,
+  { show (x Kop).val.infinite,
+    -- Should use `fis.sections_surjective_equiv_sections` and the fact that `inf_ro_components` is exactly the surjective part
+    sorry,
+   },
+  { intros, simp [set.maps_to.restrict, subtype.map],
+    apply h,} },
+{ rintro ⟨x, h⟩,
+  refine subtype.mk _ _,
+  intro Kop, refine subtype.mk (x Kop).val _,
+  { dsimp at *, simp, },
+  { intros _ _ f,
+    have := h f,
+    rw [set.maps_to.restrict, subtype.map] at this,
+    dsimp at this, simp_rw [← this], refl, } },
+{ simp [function.left_inverse], },
+{ simp [function.right_inverse, function.left_inverse], }
+end
 
 
 instance obj_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplComp G Gpc).obj j) := by {

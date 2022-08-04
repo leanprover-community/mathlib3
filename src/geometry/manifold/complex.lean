@@ -28,6 +28,8 @@ complex-differentiable function is `is_locally_constant`.  There are some gaps i
 open_locale manifold topological_space
 open complex
 
+namespace mdifferentiable
+
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 variables {F : Type*} [normed_add_comm_group F] [normed_space ℂ F] [strict_convex_space ℝ F]
 
@@ -36,7 +38,7 @@ variables {M : Type*} [topological_space M] [charted_space E M]
 
 /-- A holomorphic function on a complex manifold is constant on every compact, preconnected, clopen
 subset. -/
-lemma mdifferentiable.const_of_is_preconnected {s : set M} (hs₁ : is_compact s)
+lemma mdifferentiable.apply_eq_of_is_compact_of_is_preconnected {s : set M} (hs₁ : is_compact s)
   (hs₂ : is_preconnected s) (hs₃ : is_clopen s)
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) {a b : M} (ha : a ∈ s) (hb : b ∈ s) :
   f a = f b :=
@@ -63,20 +65,15 @@ begin
     (local_homeomorph.open_target _).mem_nhds (mem_chart_target E p),
   -- `f` pulled back by the chart at `p` is differentiable around `chart_at E p p`
   have hf' : ∀ᶠ (z : E) in 𝓝 (chart_at E p p), differentiable_at ℂ (f ∘ (chart_at E p).symm) z,
-  { apply filter.eventually_of_mem key₂,
-    intros z hz,
+  { refine filter.eventually_of_mem key₂ (λ z hz, _),
     have H₁ : (chart_at E p).symm z ∈ (chart_at E p).source := (chart_at E p).map_target hz,
     have H₂ : f ((chart_at E p).symm z) ∈ (chart_at F (0:F)).source := trivial,
-    have H := hf ((chart_at E p).symm z),
-    rw mdifferentiable_at_iff_of_mem_source H₁ H₂ at H,
+    have H := (mdifferentiable_at_iff_of_mem_source H₁ H₂).mp (hf ((chart_at E p).symm z)),
     simp only [differentiable_within_at_univ] with mfld_simps at H,
-    simpa [local_homeomorph.right_inv _ hz] using H.2,
-    apply_instance,
-    apply_instance },
+    simpa [local_homeomorph.right_inv _ hz] using H.2, },
   -- `f` pulled back by the chart at `p` has a local max at `chart_at E p p`
   have hf'' : is_local_max (norm ∘ f ∘ (chart_at E p).symm) (chart_at E p p),
-  { apply filter.eventually_of_mem key₁,
-    intros z hz,
+  { refine filter.eventually_of_mem key₁ (λ z hz, _),
     refine (hp₀ ((chart_at E p).symm z) hz).trans (_ : ∥f p₀∥ ≤ ∥f _∥),
     rw [← hp, local_homeomorph.left_inv _ (mem_chart_source E p)] },
   -- so by the maximum principle `f` is equal to `f p` near `p`
@@ -91,7 +88,7 @@ begin
 end
 
 /-- A holomorphic function on a compact connected complex manifold is constant. -/
-lemma mdifferentiable.const_of_compact_space_of_preconnected_space [compact_space M]
+lemma mdifferentiable.apply_eq_of_compact_space_of_preconnected_space [compact_space M]
   [preconnected_space M] {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) (a b : M) :
   f a = f b :=
 hf.const_of_is_preconnected compact_univ is_preconnected_univ is_clopen_univ (set.mem_univ _)

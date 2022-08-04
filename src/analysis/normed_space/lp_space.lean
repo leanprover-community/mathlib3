@@ -239,7 +239,7 @@ begin
   { refine (real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp.le).trans _,
     dsimp [C],
     split_ifs with h h,
-    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
+    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp.le h.le) },
     { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
       have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
       simp only [not_lt] at h,

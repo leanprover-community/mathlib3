@@ -502,7 +502,7 @@ hs.induction_on (by simp) $ λ x, by simp
 
 @[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
   (closure s).subsingleton ↔ s.subsingleton :=
-⟨λ h, h.mono subset_closure, λ h, h.closure⟩
+⟨λ h, h.anti subset_closure, λ h, h.closure⟩
 
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=

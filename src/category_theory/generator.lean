@@ -260,6 +260,10 @@ begin
     simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
 end
 
+/-- An ingredient of the proof of the Special Adjoint Functor Theorem: a complete well-powered
+    category with a small coseparating set has an initial object.
+
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete. -/
 lemma has_initial_of_is_cosepatating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v} 𝒢]
   (h𝒢 : is_coseparating 𝒢) : has_initial C :=
 begin
@@ -279,14 +283,17 @@ begin
     exact ⟨subobject.of_le_mk _ (equalizer.ι f g ≫ subobject.arrow _) bot_le, by { ext, simp }⟩ }
 end
 
+/-- An ingredient of the proof of the Special Adjoint Functor Theorem: a cocomplete well-copowered
+    category with a small separating set has a terminal object.
+
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete. -/
 lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v} 𝒢]
   (h𝒢 : is_separating 𝒢) : has_terminal C :=
 begin
   haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
-  have h𝒢op : is_coseparating 𝒢.op := (is_coseparating_op_iff _).2 h𝒢,
-  haveI : small.{v} 𝒢.op := sorry,
-  haveI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating h𝒢op,
-  sorry,
+  haveI : small.{v} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
+  haveI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating ((is_coseparating_op_iff _).2 h𝒢),
+  exact has_terminal_of_has_initial_op
 end
 
 section well_powered

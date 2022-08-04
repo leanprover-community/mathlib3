@@ -278,6 +278,8 @@ def normed_comm_group.of_mul_dist' [has_norm E] [comm_group E] [metric_space E]
   normed_comm_group E :=
 { ..normed_group.of_mul_dist' h₁ h₂ }
 
+set_option old_structure_cmd true
+
 /-- A seminormed group can be built from a seminorm that satisfies algebraic properties. This is
 formalised in this structure. -/
 structure seminormed_add_group.core (E : Type*) [add_group E] [has_norm E] : Prop :=

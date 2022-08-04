@@ -297,7 +297,7 @@ def to_continuous_map (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
 /--`homeomorph.to_continuous_map` as a coercion. -/
 instance : has_coe (α ≃ₜ β) C(α, β) := ⟨homeomorph.to_continuous_map⟩
 
-@[simp] lemma to_continuous_map_as_coe : f.to_continuous_map = f := rfl
+lemma to_continuous_map_as_coe : f.to_continuous_map = f := rfl
 
 @[simp] lemma coe_refl : (homeomorph.refl α : C(α, α)) = continuous_map.id α := rfl
 

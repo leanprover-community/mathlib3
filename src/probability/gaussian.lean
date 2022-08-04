@@ -61,7 +61,11 @@ begin
     rw hμ,
     simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
     rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
-    {sorry},
+    {
+
+      --rw integral_smul_const _ (sqrt (2 * π * s ^ 2))⁻¹,
+      sorry
+    },
     {
       rw integrable, fconstructor,
       {
@@ -104,7 +108,8 @@ begin
       }
     },
     {
-      refine filter.germ.coe_le.mp _,
+      --refine filter.germ.coe_le.mp _,
+      refine filter.eventually_of_forall _,
       have hbp1 : 0 < s^2,
           exact (sq_pos_iff s).mpr h,
         -- have hbp2 : 0 < 2
@@ -128,10 +133,13 @@ begin
         ring,
 
       rw h_mulpi_eq at h_const_pos,
-
-      --rw zero_le_mul_left h_const_pos,
-      sorry
-
+      intro x,
+      have h_compexp_pos : 0 < exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)),
+        exact real.exp_pos (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)),
+      simp,
+      rw  le_iff_lt_or_eq,
+      left,
+      exact mul_pos h_const_pos h_compexp_pos,
     }
   },
 

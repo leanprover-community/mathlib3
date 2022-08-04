@@ -61,7 +61,7 @@ begin
     rw hμ,
     simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
     rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
-    { sorry},
+    {sorry},
     {
       rw integrable, fconstructor,
       {
@@ -106,8 +106,8 @@ begin
     {
       refine filter.germ.coe_le.mp _,
 
-      have const_pos: 0 < (sqrt (2 * π * s ^ 2))⁻¹,
-        sorry,
+      have const_pos: 0 ≤ (sqrt (2 * π * s ^ 2))⁻¹,
+        positivity,
       --refine eq.ge _,
 
       sorry

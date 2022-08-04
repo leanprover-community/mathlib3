@@ -1687,18 +1687,14 @@ end image
 
 /-! ### Subsingleton -/
 
-/-- A set `s` is a `subsingleton`, if it has at most one element. -/
+/-- A set `s` is a `subsingleton` if it has at most one element. -/
 protected def subsingleton (s : set α) : Prop :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x = y
 
-lemma subsingleton.mono (ht : t.subsingleton) (hst : s ⊆ t) : s.subsingleton :=
+lemma subsingleton.anti (hst : s ⊆ t) (ht : t.subsingleton) : s.subsingleton :=
 λ x hx y hy, ht (hst hx) (hst hy)
 
-lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
-λ _ ⟨x, hx, Hx⟩ _ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)
-
-lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ s) :
-  s = {x} :=
+lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ s) : s = {x} :=
 ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleton hy).symm ▸ hx⟩
 
 @[simp] lemma subsingleton_empty : (∅ : set α).subsingleton := λ x, false.elim
@@ -1707,7 +1703,7 @@ ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleto
 λ x hx y hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
 
 lemma subsingleton_of_subset_singleton (h : s ⊆ {a}) : s.subsingleton :=
-subsingleton_singleton.mono h
+subsingleton_singleton.anti h
 
 lemma subsingleton_of_forall_eq (a : α) (h : ∀ b ∈ s, b = a) : s.subsingleton :=
 λ b hb c hc, (h _ hb).trans (h _ hc).symm
@@ -1733,7 +1729,7 @@ lemma subsingleton_of_univ_subsingleton (h : (univ : set α).subsingleton) : sub
 ⟨subsingleton_of_univ_subsingleton, λ h, @subsingleton_univ _ h⟩
 
 lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
-subsingleton.mono subsingleton_univ (subset_univ s)
+subsingleton.anti (subset_univ s) subsingleton_univ
 
 lemma subsingleton_is_top (α : Type*) [partial_order α] : set.subsingleton {x : α | is_top x} :=
 λ x hx y hy, hx.is_max.eq_of_le (hy x)
@@ -1750,8 +1746,7 @@ begin
   { exact h.2.eq_empty_or_singleton.resolve_left h.1.ne_empty },
 end
 
-/-- `s`, coerced to a type, is a subsingleton type if and only if `s`
-is a subsingleton set. -/
+/-- `s`, coerced to a type, is a subsingleton type if and only if `s` is a subsingleton set. -/
 @[simp, norm_cast] lemma subsingleton_coe (s : set α) : subsingleton s ↔ s.subsingleton :=
 begin
   split,

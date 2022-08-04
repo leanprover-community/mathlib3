@@ -151,6 +151,12 @@ end
 @[priority 900] noncomputable instance pnat_has_coe : has_coe_t ℕ+ Rˣ :=
 ⟨λn, (pnat_coe_is_unit R n).unit⟩
 
+lemma is_unit_one_def {M : Type*} [monoid M] : (@is_unit_one M _).unit = 1 :=
+begin
+  have h : is_unit ((1 : Mˣ) : M) := by simp only [units.coe_one, is_unit_one],
+  exact h.unit_of_coe_units,
+end
+
 /-- `(1 : ℕ+)` lifts to `(1 : Rˣ)`. -/
 @[simp, norm_cast] lemma pnat_coe_eq_one : ((1 : ℕ+) : Rˣ) = 1 :=
 begin
@@ -170,22 +176,26 @@ end
 noncomputable def rat_cast : ℚ →+* R :=
 { to_fun := λ x, x.num /ₚ ↑(x.pnat_denom),
   map_zero' := by simp [divp],
-  map_one' := by simp [divp],
+  map_one' := by simp,
   map_mul' :=
   begin
     intros a b,
     field_simp,
-    simp_rw [←int.cast_coe_nat, ←int.cast_mul],
-    rw mul_comm ↑(b.denom),
-    assoc_rw rat.mul_num_denom' a b,
+    convert_to (↑((a * b).num * (a.denom) * (b.denom)) : R) = _,
+    { simp_rw [int.cast_mul, int.cast_coe_nat],
+      ring },
+    rw rat.mul_num_denom' a b,
+    simp only [int.cast_mul, int.cast_coe_nat],
   end,
   map_add' :=
   begin
     intros a b,
     field_simp,
-    simp_rw [←int.cast_coe_nat, ←int.cast_mul, ←int.cast_add, ←int.cast_mul],
-    rw mul_comm ↑(b.denom),
-    assoc_rw rat.add_num_denom',
+    convert_to (↑((a + b).num * a.denom * b.denom) : R)  = _,
+    { simp_rw [int.cast_mul, int.cast_coe_nat],
+      ring },
+    rw rat.add_num_denom' a b,
+    simp only [int.cast_mul, int.cast_add, int.cast_coe_nat],
   end }
 
 lemma rat_cast_def (x : ℚ) : rat_cast R x = x.num /ₚ ↑(x.pnat_denom) := rfl
@@ -218,7 +228,7 @@ lemma rat_cast_eq_cast_coe (x : ℚ) :
 begin
   rw [rat.cast_def, rat_cast_def],
   rw divp_eq_div,
-  simp only [coe_coe_eq_coe_coe, coe_coe, rat.pnat_denom_eq_denom],
+  simp,
 end
 
 lemma field.algebra_map_eq_cast_coe (x : ℚ) :
@@ -320,7 +330,6 @@ begin
       begin
         rw ←char_p.cast_eq_zero_iff (R ⧸ M) r p,
         convert congr_arg (ideal.quotient.factor I M hM) (char_p.cast_eq_zero (R ⧸ I) p),
-        simp only [map_nat_cast],
       end,
       rw eq_comm,
       apply or_iff_not_imp_left.mp (nat.prime.eq_one_or_self_of_dvd hp r r_dvd_p),
@@ -350,7 +359,8 @@ begin
     intro p,
     by_contradiction hp,
     rcases hp.residue_char_p with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
-    have hI_zero := @char_p.of_char_zero _ _ _ (equal_char_zero.residue_char_zero I hI_ne_top),
+    haveI hI_zero := (equal_char_zero.residue_char_zero I hI_ne_top),
+    replace hI_zero : char_p (R ⧸ I) 0 := char_p.of_char_zero _,
     exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) hp.p_pos },
   { intro h,
     push_neg at h,

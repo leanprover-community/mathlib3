@@ -907,6 +907,18 @@ by rw [pnat_denom, mk_pnat_eq, num_denom]
 lemma pnat_denom_eq_iff_denom_eq {x : ℚ} {n : ℕ+} : x.pnat_denom = n ↔ x.denom = ↑n :=
 subtype.ext_iff
 
+@[simp] lemma pnat_denom_one : (1 : ℚ).pnat_denom = 1 :=
+begin
+  unfold rat.pnat_denom,
+  simp,
+end
+
+@[simp] lemma pnat_denom_zero : (0 : ℚ).pnat_denom = 1 :=
+begin
+  unfold rat.pnat_denom,
+  simp,
+end
+
 end pnat_denom
 
 end rat

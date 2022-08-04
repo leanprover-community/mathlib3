@@ -236,6 +236,11 @@ lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
   dense (s : set M) ↔ s.topological_closure = ⊤ :=
 by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
 
+instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
+  [has_continuous_add M'] [has_continuous_smul R M'] [complete_space M'] (U : submodule R M') :
+  complete_space U.topological_closure :=
+is_closed_closure.complete_space_coe
+
 end closure
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
@@ -283,7 +288,7 @@ continuous_semilinear_map_class F (ring_hom.id R) M M₂
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
 topological semiring `R`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure continuous_linear_equiv
   {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]

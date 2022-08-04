@@ -240,7 +240,7 @@ variable {R}
 
 theorem of_irreducible_expand {p : ℕ} (hp : p ≠ 0) {f : R[X]}
   (hf : irreducible (expand R p f)) : irreducible f :=
-@@of_irreducible_map _ _ _ (is_local_ring_hom_expand R hp.bot_lt) hf
+let _ := is_local_ring_hom_expand R hp.bot_lt in by exactI of_irreducible_map ↑(expand R p) hf
 
 theorem of_irreducible_expand_pow {p : ℕ} (hp : p ≠ 0) {f : R[X]} {n : ℕ} :
   irreducible (expand R (p ^ n) f) → irreducible f :=

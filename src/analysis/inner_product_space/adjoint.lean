@@ -92,7 +92,7 @@ begin
 end
 
 /-- The orthogonal projection is self-adjoint. -/
-lemma orthogonal_projection_is_self_adjoint [complete_space E] (U : submodule 𝕜 E)
+lemma orthogonal_projection_is_self_adjoint (U : submodule 𝕜 E)
   [complete_space U] :
   is_self_adjoint (U.subtypeL ∘L orthogonal_projection U : E →ₗ[𝕜] E):=
 inner_orthogonal_projection_left_eq_right U

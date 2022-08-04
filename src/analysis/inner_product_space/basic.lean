@@ -128,7 +128,7 @@ instance defined on it, otherwise this will create a second non-defeq norm insta
 
 /-- A structure requiring that a scalar product is positive definite and symmetric, from which one
 can construct an `inner_product_space` instance in `inner_product_space.of_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure inner_product_space.core
   (𝕜 : Type*) (F : Type*)
   [is_R_or_C 𝕜] [add_comm_group F] [module 𝕜 F] :=
@@ -2309,6 +2309,20 @@ begin
   intro h,
   have : K ⊓ Kᗮ = ⊥ := K.orthogonal_disjoint.eq_bot,
   rwa [h, inf_comm, top_inf_eq] at this
+end
+
+lemma submodule.orthogonal_family_self :
+  @orthogonal_family 𝕜 E _ _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
+  (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
+λ i j hij x y,
+begin
+  cases i;
+  cases j;
+  contradiction <|>
+  { rcases x with ⟨x, hx⟩,
+    rcases y with ⟨y, hy⟩,
+    exact submodule.inner_right_of_mem_orthogonal hx hy <|>
+    exact submodule.inner_left_of_mem_orthogonal hy hx }
 end
 
 end orthogonal

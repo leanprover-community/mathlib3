@@ -418,21 +418,19 @@ lemma tsum_zero' (hz : is_closed ({0} : set α)) : ∑' b : β, (0 : α) = 0 :=
 begin
   classical,
   rw [tsum, dif_pos summable_zero],
-  have : ∀ (x : α), has_sum (λ (b : β), (0 : α)) x → x = 0,
-  { intros x hx,
-    contrapose! hx,
-    simp only [has_sum, tendsto_nhds, finset.sum_const_zero, filter.mem_at_top_sets, ge_iff_le,
-               finset.le_eq_subset, set.mem_preimage, not_forall, not_exists, exists_prop,
-               exists_and_distrib_right],
-    refine ⟨{0}ᶜ, ⟨is_open_compl_iff.mpr hz, _⟩, λ y, ⟨⟨y, subset_refl _⟩, _⟩⟩,
-    { simpa using hx },
-    { simp } },
-  refine this _ _,
-  exact classical.some_spec _
+  suffices : ∀ (x : α), has_sum (λ (b : β), (0 : α)) x → x = 0,
+  { exact this _ (classical.some_spec _) },
+  intros x hx,
+  contrapose! hx,
+  simp only [has_sum, tendsto_nhds, finset.sum_const_zero, filter.mem_at_top_sets, ge_iff_le,
+              finset.le_eq_subset, set.mem_preimage, not_forall, not_exists, exists_prop,
+              exists_and_distrib_right],
+  refine ⟨{0}ᶜ, ⟨is_open_compl_iff.mpr hz, _⟩, λ y, ⟨⟨y, subset_refl _⟩, _⟩⟩,
+  { simpa using hx },
+  { simp }
 end
 
-@[simp] lemma tsum_zero [t1_space α] : ∑'b:β, (0:α) = 0 :=
-tsum_zero' is_closed_singleton
+@[simp] lemma tsum_zero [t1_space α] : ∑' b : β, (0 : α) = 0 := tsum_zero' is_closed_singleton
 
 variables [t2_space α] {f g : β → α} {a a₁ a₂ : α}
 

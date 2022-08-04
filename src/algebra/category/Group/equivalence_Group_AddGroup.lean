@@ -22,13 +22,8 @@ namespace Group
 The functor `Group ⥤ AddGroup` by sending `X ↦ additive X` and `f ↦ f`.
 -/
 @[simps] def to_AddGroup : Group ⥤ AddGroup :=
-{ obj := λ X, ⟨additive X⟩,
-  map := λ X Y f,
-  { to_fun := λ x, f x,
-    map_zero' := by { erw [map_one], refl },
-    map_add' := λ x y, by { erw [map_mul], refl } },
-  map_id' := λ X, by { ext, refl },
-  map_comp' := λ X Y Z f g, by { ext, refl } }
+{ obj := λ X, AddGroup.of (additive X),
+  map := λ X Y, monoid_hom.to_additive }
 
 end Group
 
@@ -84,27 +79,13 @@ end AddCommGroup
 The equivalence of categories between `Group` and `AddGroup`
 -/
 @[simps] def Group_AddGroup_equivalence : Group ≌ AddGroup :=
-{ functor := Group.to_AddGroup,
-  inverse := AddGroup.to_Group,
-  unit_iso :=
-  { hom :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    inv :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    hom_inv_id' := rfl,
-    inv_hom_id' := rfl },
-  counit_iso :=
-  { hom :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    inv :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    hom_inv_id' := rfl,
-    inv_hom_id' := rfl },
-  functor_unit_iso_comp' := λ X, rfl }
+equivalence.mk Group.to_AddGroup AddGroup.to_Group
+  (nat_iso.of_components
+    (λ X, mul_equiv.to_Group_iso (mul_equiv.multiplicative_additive X))
+    (λ X Y f, rfl))
+  (nat_iso.of_components
+    (λ X, add_equiv.to_AddGroup_iso (add_equiv.additive_multiplicative X))
+    (λ X Y f, rfl))
 
 /--
 The equivalence of categories between `CommGroup` and `AddCommGroup`.

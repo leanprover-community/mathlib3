@@ -52,6 +52,8 @@ by simpa using @cstar_ring.nnnorm_star_mul_self _ _ _ _ (star x)
 
 end prereqs
 
+/-- The type of *double centralizers*, also known as the *multiplier algebra* and denoted by
+`𝓜(𝕜, A)`, of a non-unital normed algebra. -/
 @[ext]
 structure double_centralizer : Type v :=
 (left : A →L[𝕜] A)
@@ -72,7 +74,8 @@ We use this map to pull back the normed space structure from `(A →L[𝕜] A) �
 
 namespace double_centralizer
 
-def prod_mk : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A) := λ a, (a.left, a.right) -- (a.left, a.right)
+/-- the canonical map of `𝓜(𝕜, A)` into `(A →L[𝕜] A) × (A →L[𝕜] A)`. -/
+def prod_mk (a : 𝓜(𝕜, A)) : (A →L[𝕜] A) × (A →L[𝕜] A) := (a.left, a.right)
 
 @[simp] lemma prod_mk_def (a : 𝓜(𝕜, A)) : prod_mk 𝕜 A a = (a.left, a.right) := rfl
 
@@ -142,6 +145,7 @@ instance : add_comm_group 𝓜(𝕜, A) :=
   add_left_neg := λ a, by {ext; exact add_left_neg _},
   add_comm := λ a b, by {ext; exact add_comm _ _}, }
 
+/-- The canonical map `double_centralizer.prod_mk` as an additive group homomorphism. -/
 def add_group_hom_prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A) :=
 { to_fun := prod_mk 𝕜 A,
   map_zero' := rfl,
@@ -361,6 +365,7 @@ lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul �
 lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right 𝕜 A a := rfl
 
 -- TODO: make this into a `non_unital_star_alg_hom` once we have those
+/-- The coercion of an algebra into its multiplier algebra as a non-unital algebra homomorphism. -/
 def non_unital_algebra_hom_coe : A →ₙₐ[𝕜] 𝓜(𝕜, A) :=
 { to_fun := λ a, a,
   map_smul' := λ k a, by {ext1; simp only [coe_left, coe_right, continuous_linear_map.map_smul,

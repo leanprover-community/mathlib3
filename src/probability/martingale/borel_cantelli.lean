@@ -24,13 +24,13 @@ for a (sub)martingale `f` with bounded difference,
 `∀ᵐ x ∂μ, f n x converges ↔ (f n x) is bounded in n`
 -/
 
-/-- `least_ge f r n` is the stopping time corresponding to the first time `|f| ≥ r`. -/
+/-- `least_ge f r n` is the stopping time corresponding to the first time `f ≥ r`. -/
 noncomputable
-def least_ge (f : ℕ → α → ℝ) (r : ℝ) (n : ℕ) := hitting f (set.Iic (-r) ∪ set.Ici r) 0 n
+def least_ge (f : ℕ → α → ℝ) (r : ℝ) (n : ℕ) := hitting f (set.Ici r) 0 n
 
 lemma adapted.is_stopping_time_least_ge (r : ℝ) (n : ℕ) (hf : adapted ℱ f) :
   is_stopping_time ℱ (least_ge f r n) :=
-hitting_is_stopping_time hf $ measurable_set_Iic.union measurable_set_Ici
+hitting_is_stopping_time hf measurable_set_Ici
 
 section move
 
@@ -77,6 +77,20 @@ lemma hitting_eq_end_iff {ι : Type*} [conditionally_complete_linear_order ι]
     Inf (set.Icc n m ∩ {i : ι | u i x ∈ s}) = m :=
 by rw [hitting, ite_eq_right_iff]
 
+-- strictly stronger than `hitting_of_lt`
+lemma hitting_of_le {ι : Type*} [conditionally_complete_linear_order ι]
+  {u : ι → α → β} {s : set β} {n m : ι} {x : α} (hmn : m ≤ n) :
+  hitting u s n m x = m :=
+begin
+  obtain (rfl | h) := le_iff_eq_or_lt.1 hmn,
+  { simp only [hitting, set.Icc_self, ite_eq_right_iff, set.mem_Icc, exists_prop,
+      forall_exists_index, and_imp],
+    intros i hi₁ hi₂ hi,
+    rw [set.inter_eq_left_iff_subset.2, cInf_singleton],
+    exact set.singleton_subset_iff.2 (le_antisymm hi₂ hi₁ ▸ hi) },
+  { exact hitting_of_lt h }
+end
+
 end move
 
 lemma stopped_value_least_ge_eq (i : ℕ) (r : ℝ) :
@@ -100,7 +114,7 @@ begin
   { ext x,
     simp only [least_ge, hitting, set.Icc_self],
     split_ifs with hx,
-    { by_cases hmem : 0 ∈ {i | f i x ∈ set.Iic (-r) ∪ set.Ici r},
+    { by_cases hmem : 0 ∈ {i | f i x ∈ set.Ici r},
       { rw [set.inter_eq_left_iff_subset.2 (set.singleton_subset_iff.2 hmem),
           cInf_singleton, pi.zero_apply] },
       { rw [set.singleton_inter_eq_empty.2 hmem, nat.Inf_empty, pi.zero_apply] } },
@@ -162,11 +176,11 @@ begin
 end
 
 lemma least_ge_succ_eq_iff (n : ℕ) {r : ℝ} {x : α} :
-  least_ge f r (n + 1) x = n ↔ least_ge f r n x = n ∧ (f n x ≤ -r ∨ r ≤ f n x) :=
+  least_ge f r (n + 1) x = n ↔ least_ge f r n x = n ∧ r ≤ f n x :=
 begin
   split,
   { intro h,
-    refine ⟨_, (_ : f n x ∈ set.Iic (-r) ∪ set.Ici r)⟩,
+    refine ⟨_, (_ : f n x ∈ set.Ici r)⟩,
     { rw ← h,
       refine hitting_eq_hitting_of_exists (hitting_le _) _,
       have : least_ge f r (n + 1) x < n + 1 := h.symm ▸ n.lt_succ_self,
@@ -185,7 +199,7 @@ begin
 end
 
 lemma least_ge_succ_eq_iff' (n : ℕ) {r : ℝ} {x : α} :
-  least_ge f r (n + 1) x = n + 1 ↔ least_ge f r n x = n ∧ (-r < f n x ∧ f n x < r) :=
+  least_ge f r (n + 1) x = n + 1 ↔ least_ge f r n x = n ∧ f n x < r :=
 begin
   split,
   { intro h,
@@ -200,7 +214,7 @@ begin
       apply_instance },
     refine ⟨this, _⟩,
     by_contra h',
-    rw [not_and_distrib, not_lt, not_lt] at h',
+    rw not_lt at h',
     rw ((least_ge_succ_eq_iff n).2 ⟨this, h'⟩) at h,
     norm_num at h },
   { rintro ⟨h₁, h₂⟩,
@@ -209,9 +223,7 @@ begin
     have : least_ge f r (n + 1) x = least_ge f r n x :=
       le_antisymm (h₁.symm ▸ not_lt.1 h) (hitting_mono n.le_succ),
     rw h₁ at this,
-    refine not_and_distrib.2 _ h₂,
-    rw [not_lt, not_lt],
-    change f n x ∈ set.Iic (-r) ∪ set.Ici r,
+    refine not_lt.2 _ h₂,
     refine this ▸ hitting_mem_set_of_hitting_lt _,
     rw [← least_ge, this],
     exact n.lt_succ_self },
@@ -234,42 +246,40 @@ begin
   swap, { apply_instance },
   simp_rw [least_ge, hitting_eq_end_iff, imp_iff_not_or, set.set_of_or],
   rw set.indicator_union_of_disjoint,
-  { have heq₁ : {x | Inf (set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Iic (-r) ∪ set.Ici r}) = i} =
+  { have heq₁ : {x | Inf (set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Ici r}) = i} =
       {x | least_ge f r (i + 1) x = i},
     { ext x,
       rw [set.mem_set_of, set.mem_set_of, least_ge_succ_eq_iff],
       refine ⟨λ h, _, _⟩,
       { rw [least_ge, hitting, ite_eq_right_iff],
         refine ⟨λ _, h, _⟩,
-        have : i ∈ set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Iic (-r) ∪ set.Ici r},
+        have : i ∈ set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Ici r},
         { conv_lhs { rw ← h },
           exact nat.Inf_mem
             (set.ne_empty_iff_nonempty.1 (λ hemp, hi $ h ▸ hemp.symm ▸ nat.Inf_empty)) },
         exact this.2 },
       { rintro ⟨h₁, h₂⟩,
         exact hitting_eq_end_iff.1 h₁ ⟨i, ⟨zero_le _, le_rfl⟩, h₂⟩ } },
-    have heq₂ : {x | ¬∃ j ∈ set.Icc 0 i, f j x ∈ set.Iic (-r) ∪ set.Ici r} =
+    have heq₂ : {x | ¬∃ j ∈ set.Icc 0 i, f j x ∈ set.Ici r} =
       {x | least_ge f r (i + 1) x = i + 1},
     { ext x,
       rw [set.mem_set_of, set.mem_set_of, least_ge_succ_eq_iff'],
-      refine ⟨λ h, ⟨if_neg h, not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, or.inl hneq⟩,
-        not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, or.inr hneq⟩⟩, _⟩,
+      refine ⟨λ h, ⟨if_neg h, not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, hneq⟩⟩, _⟩,
       rintro ⟨h₁, h₂⟩ h,
       rw [least_ge, hitting_eq_end_iff] at h₁,
       rw ← h₁ h at h₂,
-      refine not_and_distrib.2 _ h₂,
-      rw [not_lt, not_lt],
+      refine not_lt.2 _ h₂,
       exact (set.inter_subset_right _ _ (nat.Inf_mem $
         set.ne_empty_iff_nonempty.1 (λ hemp, hi $ h₁ h ▸ hemp.symm ▸ nat.Inf_empty)) :
-        Inf (set.Icc 0 i ∩ {i | f i x ∈ set.Iic (-r) ∪ set.Ici r}) ∈
-          {i | f i x ∈ set.Iic (-r) ∪ set.Ici r}) },
+        Inf (set.Icc 0 i ∩ {i | f i x ∈ set.Ici r}) ∈
+          {i | f i x ∈ set.Ici r}) },
     have heq₃ : ∑ j in finset.range i, {x | least_ge f r i x = j}.indicator (f j) =
       ∑ j in finset.range i, {x | least_ge f r (i + 1) x = j}.indicator (f j),
     { refine finset.sum_congr rfl (λ j hj, _),
       simp_rw [least_ge_eq_lt_iff (finset.mem_range.1 hj)] },
-    calc ∑ j in finset.range i, {x | hitting f (set.Iic (-r) ∪ set.Ici r) 0 i x = j}.indicator (f j)
-      + (λ x, {x | ¬∃ j ∈ set.Icc 0 i, f j x ∈ set.Iic (-r) ∪ set.Ici r}.indicator (f i) x
-      + {x | Inf (set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Iic (-r) ∪ set.Ici r}) = i}.indicator (f i) x)
+    calc ∑ j in finset.range i, {x | hitting f (set.Ici r) 0 i x = j}.indicator (f j)
+      + (λ x, {x | ¬∃ j ∈ set.Icc 0 i, f j x ∈ set.Ici r}.indicator (f i) x
+      + {x | Inf (set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Ici r}) = i}.indicator (f i) x)
       = ∑ j in finset.range (i + 1), {x | least_ge f r (i + 1) x = j}.indicator (f j)
       + {x | least_ge f r (i + 1) x = i + 1}.indicator (f i) :
     begin
@@ -317,7 +327,7 @@ begin
         conv_rhs { rw [finset.sum_range_succ] } }
     end },
   { rintro x ⟨hx₁, hx₂⟩,
-    rw [set.mem_set_of, (_ : set.Icc 0 i ∩ {i | f i x ∈ set.Iic (-r) ∪ set.Ici r} = ∅),
+    rw [set.mem_set_of, (_ : set.Icc 0 i ∩ {i | f i x ∈ set.Ici r} = ∅),
       nat.Inf_empty] at hx₂,
     { exact false.elim (hi hx₂.symm) },
     { exact set.eq_empty_of_forall_not_mem (λ j ⟨hj₁, hj₂⟩, hx₁ ⟨j, hj₁, hj₂⟩) } },
@@ -325,60 +335,119 @@ end
 
 variables {r : ℝ} {R : ℝ≥0}
 
-lemma norm_stopped_value_least_ge_le
-  {r : ℝ} (hr : 0 ≤ r) (hf0 : f 0 = 0)
+lemma norm_stopped_value_least_ge_le (hr : 0 ≤ r) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) (i : ℕ) :
-  ∀ᵐ x ∂μ, ∥stopped_value f (least_ge f r i) x∥ ≤ r + R :=
+  ∀ᵐ x ∂μ, stopped_value f (least_ge f r i) x ≤ r + R :=
 begin
   filter_upwards [hbdd] with x hbddx,
-  change ∥f (least_ge f r i x) x∥ ≤ r + R,
-  rw real.norm_eq_abs,
+  change f (least_ge f r i x) x ≤ r + R,
   by_cases heq : least_ge f r i x = 0,
-  { rw [heq, hf0, pi.zero_apply, abs_zero],
+  { rw [heq, hf0, pi.zero_apply],
     exact add_nonneg hr R.coe_nonneg },
   { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero heq,
-    rw [hk, add_comm],
+    rw [hk, add_comm, ← sub_le_iff_le_add],
     have := not_mem_of_lt_hitting (hk.symm ▸ k.lt_succ_self : k < least_ge f r i x) (zero_le _),
     simp only [set.mem_union_eq, set.mem_Iic, set.mem_Ici, not_or_distrib, not_le] at this,
-    exact (sub_le_iff_le_add.1 ((abs_sub_abs_le_abs_sub _ _).trans (hbddx k))).trans
-      (add_le_add_left (abs_le.2 ⟨this.1.le, this.2.le⟩) _) }
+    exact (sub_lt_sub_left this _).le.trans ((le_abs_self _).trans (hbddx _)) }
 end
 
-lemma stopped_value_least_ge_snorm_le
-  {r : ℝ} (hr : 0 ≤ r) (hf0 : f 0 = 0)
-  (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) (i : ℕ) :
-  snorm (stopped_value f (least_ge f r i)) 1 μ ≤ μ set.univ * ennreal.of_real (r + R) :=
+-- the `pos_part` name is consistent with `integral_eq_integral_pos_part_sub_integral_neg_part`
+-- though it might be confusing with `pos`
+lemma abs_eq_pos_part_add_neg_part (x : ℝ) : |x| = x.to_nnreal + (-x).to_nnreal :=
+by simp
+
+lemma snorm_one_le_of_le {r : ℝ≥0} {f : α → ℝ}
+  (hfint : integrable f μ) (hfint' : 0 ≤ μ[f]) (hf : ∀ᵐ x ∂μ, f x ≤ r) :
+  snorm f 1 μ ≤ 2 * μ set.univ * r :=
 begin
-  have hbound := norm_stopped_value_least_ge_le hr hf0 hbdd i,
-  refine le_trans (snorm_le_of_ae_bound hbound) _,
-  rw [ennreal.one_to_real, inv_one, ennreal.rpow_one],
-  exact le_rfl,
+  by_cases hr : r = 0,
+  { suffices : f =ᵐ[μ] 0,
+    { rw [snorm_congr_ae this, snorm_zero, hr, ennreal.coe_zero, mul_zero],
+      exact le_rfl },
+    rw [hr, nonneg.coe_zero] at hf,
+    have hnegf : μ[-f] = 0,
+    { rw [integral_neg', neg_eq_zero],
+      exact le_antisymm (integral_nonpos_of_ae hf) hfint' },
+    have := (integral_eq_zero_iff_of_nonneg_ae _ hfint.neg).1 hnegf,
+    { filter_upwards [this] with x hx,
+      rwa [pi.neg_apply, pi.zero_apply, neg_eq_zero] at hx },
+    { filter_upwards [hf] with x hx,
+      rwa [pi.zero_apply, pi.neg_apply, right.nonneg_neg_iff] } },
+  by_cases hμ : is_finite_measure μ,
+  swap,
+  { have : μ set.univ = ∞,
+    { by_contra hμ',
+      exact hμ (is_finite_measure.mk $ lt_top_iff_ne_top.2 hμ') },
+    rw [this, ennreal.mul_top, if_neg, ennreal.top_mul, if_neg],
+    { exact le_top },
+    { simp [hr] },
+    { norm_num } },
+  haveI := hμ,
+  rw [integral_eq_integral_pos_part_sub_integral_neg_part hfint, sub_nonneg] at hfint',
+  have hposbdd : ∫ x, max (f x) 0 ∂μ ≤ (μ set.univ).to_real • r,
+  { rw ← integral_const,
+    refine integral_mono_ae hfint.real_to_nnreal (integrable_const r) _,
+    filter_upwards [hf] with x hx using real.to_nnreal_le_iff_le_coe.2 hx },
+  rw [mem_ℒp.snorm_eq_integral_rpow_norm one_ne_zero ennreal.one_ne_top
+      (mem_ℒp_one_iff_integrable.2 hfint),
+    ennreal.of_real_le_iff_le_to_real (ennreal.mul_ne_top
+      (ennreal.mul_ne_top ennreal.two_ne_top $ @measure_ne_top _ _ _ hμ _) ennreal.coe_ne_top)],
+  simp_rw [ennreal.one_to_real, inv_one, real.rpow_one, real.norm_eq_abs,
+    abs_eq_pos_part_add_neg_part],
+  rw integral_add hfint.real_to_nnreal,
+  { simp only [real.coe_to_nnreal', ennreal.to_real_mul, ennreal.to_real_bit0,
+    ennreal.one_to_real, ennreal.coe_to_real] at hfint' ⊢,
+    refine (add_le_add_left hfint' _).trans _,
+    rwa [← two_mul, mul_assoc, mul_le_mul_left (two_pos)],
+    apply_instance },
+  { exact hfint.neg.sup (integrable_zero _ _ μ) }
 end
 
-lemma stopped_value_least_ge_snorm_le' [is_finite_measure μ]
-  {r : ℝ} (hr : 0 ≤ r) (hf0 : f 0 = 0)
+lemma snorm_one_le_of_le' {r : ℝ} {f : α → ℝ}
+  (hfint : integrable f μ) (hfint' : 0 ≤ μ[f]) (hf : ∀ᵐ x ∂μ, f x ≤ r) :
+  snorm f 1 μ ≤ 2 * μ set.univ * ennreal.of_real r :=
+begin
+  refine snorm_one_le_of_le hfint hfint' _,
+  simp only [real.coe_to_nnreal', le_max_iff],
+  filter_upwards [hf] with x hx using or.inl hx,
+end
+
+lemma submartingale.stopped_value_least_ge_snorm_le [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hr : 0 ≤ r) (hf0 : f 0 = 0)
+  (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) (i : ℕ) :
+  snorm (stopped_value f (least_ge f r i)) 1 μ ≤ 2 * μ set.univ * ennreal.of_real (r + R) :=
+begin
+  refine snorm_one_le_of_le' ((hf.stopped_value_least_ge r).integrable _) _
+    (norm_stopped_value_least_ge_le hr hf0 hbdd i),
+  rw ← integral_univ,
+  refine le_trans _ ((hf.stopped_value_least_ge r).set_integral_le (zero_le _)
+    measurable_set.univ),
+  simp_rw [stopped_value, least_ge, hitting_of_le le_rfl, hf0, integral_zero']
+end
+
+lemma submartingale.stopped_value_least_ge_snorm_le' [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hr : 0 ≤ r) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) (i : ℕ) :
   snorm (stopped_value f (least_ge f r i)) 1 μ ≤
-    ennreal.to_nnreal (μ set.univ * ennreal.of_real (r + R)) :=
+    ennreal.to_nnreal (2 * μ set.univ * ennreal.of_real (r + R)) :=
 begin
-  refine (stopped_value_least_ge_snorm_le hr hf0 hbdd i).trans _,
-  rw [ennreal.coe_to_nnreal (ennreal.mul_ne_top (measure_ne_top μ _) (ennreal.of_real_ne_top))],
-  exact le_rfl,
+  refine (hf.stopped_value_least_ge_snorm_le hr hf0 hbdd i).trans _,
+  simp [ennreal.coe_to_nnreal (measure_ne_top μ _), ennreal.coe_to_nnreal],
 end
 
 lemma submartingale.exists_tendsto_of_abs_bdd_above [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
-  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, |f n x|) → ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
+  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) → ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
   have ht : ∀ᵐ x ∂μ, ∀ i : ℕ, ∃ c, tendsto (λ n, stopped_value f (least_ge f i n) x) at_top (𝓝 c),
   { rw ae_all_iff,
     exact λ i, submartingale.exists_ae_tendsto_of_bdd (hf.stopped_value_least_ge i)
-      (stopped_value_least_ge_snorm_le' i.cast_nonneg hf0 hbdd) },
+      (hf.stopped_value_least_ge_snorm_le' i.cast_nonneg hf0 hbdd) },
   filter_upwards [ht] with x hx hxb,
   rw bdd_above at hxb,
   obtain ⟨i, hi⟩ := exists_nat_gt hxb.some,
-  have hib : ∀ n, |f n x| < i,
+  have hib : ∀ n, f n x < i,
   { intro n,
     exact lt_of_le_of_lt ((mem_upper_bounds.1 hxb.some_mem) _ ⟨n, rfl⟩) hi },
   have heq : ∀ n, stopped_value f (least_ge f i n) x = f n x,
@@ -386,8 +455,7 @@ begin
     rw [least_ge, hitting, stopped_value],
     simp only,
     rw if_neg,
-    simp_rw abs_lt at hib,
-    simp only [set.mem_Icc, set.mem_union, set.mem_Iic, set.mem_Ici],
+    simp only [set.mem_Icc, set.mem_union, set.mem_Ici],
     push_neg,
     exact λ j _, hib j },
   simp only [← heq, hx i],
@@ -396,13 +464,13 @@ end
 lemma submartingale.bdd_above_iff_exists_tendsto_aux [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
-  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, |f n x|) ↔ ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
+  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) ↔ ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 by filter_upwards [hf.exists_tendsto_of_abs_bdd_above hf0 hbdd] with x hx using
-  ⟨hx, λ ⟨c, hc⟩, hc.abs.bdd_above_range⟩
+  ⟨hx, λ ⟨c, hc⟩, hc.bdd_above_range⟩
 
 lemma submartingale.bdd_above_iff_exists_tendsto [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
-  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, |f n x|) ↔ ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
+  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) ↔ ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
   set g : ℕ → α → ℝ := λ n x, f n x - f 0 x with hgdef,
   have hg : submartingale g ℱ μ :=
@@ -419,8 +487,9 @@ begin
     obtain ⟨b, hb⟩ := h;
     refine ⟨b + |f 0 x|, λ y hy, _⟩;
     obtain ⟨n, rfl⟩ := hy,
-    { exact (abs_sub _ _).trans (add_le_add_right (hb ⟨n, rfl⟩) _) },
-    { exact sub_le_iff_le_add.1 ((abs_sub_abs_le_abs_sub _ _).trans (hb ⟨n, rfl⟩)) } },
+    { simp_rw [sub_eq_add_neg],
+      exact add_le_add (hb ⟨n, rfl⟩) (neg_le_abs_self _) },
+    { exact sub_le_iff_le_add.1 (le_trans (sub_le_sub_left (le_abs_self _) _) (hb ⟨n, rfl⟩)) } },
   { simp only [hgdef],
     refine ⟨λ h, _, λ h, _⟩;
     obtain ⟨c, hc⟩ := h,

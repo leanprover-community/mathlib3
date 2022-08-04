@@ -398,12 +398,14 @@ by_contradiction $ λ hc,
   have (a + b) % c = a % c + b % c, from add_mod_of_add_mod_lt (lt_of_not_ge hc),
   by simp [dvd_iff_mod_eq_zero, *] at *
 
-lemma mod_mul_div_eq_div_mod (n b : ℕ) : n % (b * b) / b = n / b % b :=
+lemma mod_mul_div_eq_div_mod (n a b : ℕ) : n % (a * b) / b = n / b % a :=
 begin
   rcases b with _|_|b,
   { simp },
   { simp },
-  convert div_mod_induction n (b.succ.succ * b.succ.succ) (succ_ne_zero _) _ _,
+  cases a,
+  { simp },
+  convert div_mod_induction n (a.succ * b.succ.succ) (succ_ne_zero _) _ _,
   { intros r hr,
     rw [mod_eq_of_lt hr, mod_eq_of_lt],
     rwa div_lt_iff_lt_mul (succ_pos _) },

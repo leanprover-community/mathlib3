@@ -661,34 +661,17 @@ def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
     apply or.imp id (λ h, _) ha,
     rw [h, inv_neg', inv_one] } }
 
-/-- Every positive natural is of the form of one of the rec_on_prime_coprime recursors. -/
+/-- Every positive natural is either a prime or a prime power or the product of two coprime numbers
+both greater than 1 — i.e. it is of the form of one of the recursors of `rec_on_prime_coprime`. -/
 lemma coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
   (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1) ∨
   (∃ (p k : ℕ), p.prime ∧ p^k = n) :=
 begin
   revert h,
   refine nat.rec_on_prime_coprime _ _ _ n,
-  { simp, },
-  { intros p k hp hn,
-    right,
-    use p,
-    use k,
-    split,
-    exact hp,
-    refl },
-  { intros n0 n1 hn0 hn1 hn0n1 hn0' hn1' hmul,
-    clear hn0' hn1',
-    left,
-    use n0,
-    use n1,
-    split,
-    exact hn0n1,
-    split,
-    rw eq_self_iff_true,
-    trivial,
-    split,
-    exact hn0,
-    exact hn1 }
+  { simp },
+  { intros p k hp hn, exact or.inr ⟨p, k, hp, rfl⟩ },
+  { intros n0 n1 hn0 hn1 hn0n1 hn0' hn1' hmul, exact or.inl ⟨n0, n1, hn0n1, rfl, hn0, hn1⟩ }
 end
 
 lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :

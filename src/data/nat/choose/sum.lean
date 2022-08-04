@@ -178,32 +178,3 @@ begin
 end
 
 end finset
-
-namespace multiset
-
-lemma sum_powerset_len {α : Type*} (S : multiset α) :
-  ∑ k in finset.range (S.card + 1), (S.powerset_len k) = S.powerset :=
-begin
-  classical,
-  apply eq_of_le_of_card_le,
-  suffices : finset.sup (finset.range (S.card + 1)) (λ k, S.powerset_len k) ≤ S.powerset,
-  { apply eq.trans_le _ this,
-    exact finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ hxny _ htx hty,
-      hxny $ eq.trans (mem_powerset_len.mp htx).right.symm
-      (mem_powerset_len.mp hty).right), },
-  { rw finset.sup_le_iff,
-    exact λ b _, powerset_len_le_powerset b S, },
-  { rw [card_powerset, map_sum card],
-    simp_rw card_powerset_len,
-    exact eq.le (nat.sum_range_choose S.card).symm, },
-end
-
-lemma sup_powerset_len {α : Type*} [decidable_eq α] (S : multiset α) :
-  finset.sup (finset.range (S.card + 1)) (λ k, S.powerset_len k) = S.powerset :=
-begin
-  convert (sum_powerset_len S),
-  apply eq.symm,
-  exact (finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ h, disjoint_powerset_len S h)),
-end
-
-end multiset

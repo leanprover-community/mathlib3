@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.multiset.basic
-
+import data.multiset.range
+import data.multiset.bind
 /-!
 # The powerset of a multiset
 -/
@@ -257,5 +258,22 @@ lemma disjoint_powerset_len (s : multiset α) {i j : ℕ} (h : i ≠ j) :
   multiset.disjoint (s.powerset_len i) (s.powerset_len j) :=
 by exact λ x hi hj, h (eq.trans (multiset.mem_powerset_len.mp hi).right.symm
   (multiset.mem_powerset_len.mp hj).right)
+
+lemma bind_powerset_len {α : Type*} (S : multiset α) :
+  bind (multiset.range (S.card + 1)) (λ k, S.powerset_len k) = S.powerset :=
+begin
+  induction S using quotient.induction_on,
+  simp_rw [quot_mk_to_coe, powerset_coe', powerset_len_coe, ←coe_range, coe_bind, ←list.bind_map,
+    coe_card],
+  exact coe_eq_coe.mpr (list.perm.map _ (list.range_bind_sublists_len S)),
+end
+
+-- lemma sup_powerset_len {α : Type*} [decidable_eq α] (S : multiset α) :
+--  finset.sup (finset.range (S.card + 1)) (λ k, S.powerset_len k) = S.powerset :=
+-- begin
+--  convert (sum_powerset_len S),
+--  apply eq.symm,
+--  exact (finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ h, disjoint_powerset_len S h)),
+-- end
 
 end multiset

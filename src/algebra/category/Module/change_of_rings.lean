@@ -12,9 +12,13 @@ import linear_algebra.tensor_product
 ## Main definitions
 
 * `category_theory.Module.restrict_scalars.functor`: given rings `R, S` and a ring homomorphism
-  `R ⟶ S`, then `restrict_scalars.functor : Module S ⥤ Module R` is defined by `M ↦ M` where
+  `f : R ⟶ S`, then `restrict_scalars.functor : Module S ⥤ Module R` is defined by `M ↦ M` where
   `M : S-module` is seen as `R-module` by `r • m := f r • m` and `S`-linear map `l : M ⟶ M'` is
   `R`-linear as well.
+* `category_theory.Module.extend_scalars.funtor`: given **commutative** ring and a ring homomorphism
+  `f : R ⟶ S`, then `extend_scalars.functor : Module R ⥤ Module S` is defined by `M ↦ S ⨂ M` where
+  the module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
+  is sent to `S`-linear map `s ⊗ m ↦ s ⊗ l m : S ⨂ M ⟶ S ⨂ M'`.
 -/
 
 
@@ -63,7 +67,7 @@ The restriction of scalars operation is functorial. For any `f : R →+* S` a ri
 * an `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
 * an `S`-linear map is also `R`-linear
 -/
-@[simps] protected def functor : Module S ⥤ Module R :=
+@[simps, nolint check_univs] protected def functor : Module S ⥤ Module R :=
 { obj := obj' f,
   map := λ _ _, map' f,
   map_id' := λ _, linear_map.ext $ λ m, rfl,
@@ -151,7 +155,7 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` a
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
-def functor : Module R ⥤ Module S :=
+@[simps] def functor : Module R ⥤ Module S :=
 { obj := λ M, obj' f M,
   map := λ M1 M2 l, map' f l,
   map_id' := λ M, begin
@@ -164,7 +168,7 @@ def functor : Module R ⥤ Module S :=
   end,
   map_comp' := λ M1 M2 M3 g h, begin
     ext x,
-    simp only [map', linear_map.coe_mk, category_theory.comp_apply],
+    simp_rw [map'_apply, category_theory.comp_apply, map'_apply],
     induction x using tensor_product.induction_on with _ _ m s ihx ihy,
     { simp only [map_zero], },
     { simp only [tensor_product.lift.tmul, linear_map.coe_mk], },
@@ -172,6 +176,5 @@ def functor : Module R ⥤ Module S :=
   end }
 
 end extend_scalars
-
 
 end category.Module

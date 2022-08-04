@@ -468,6 +468,8 @@ lemma submartingale.bdd_above_iff_exists_tendsto_aux [is_finite_measure μ]
 by filter_upwards [hf.exists_tendsto_of_abs_bdd_above hf0 hbdd] with x hx using
   ⟨hx, λ ⟨c, hc⟩, hc.bdd_above_range⟩
 
+/-- One sided martingale bound: If `f` is a submartingale which has uniformly bounded difference,
+then for almost every `x`, `f n x` is bounded above (in `n`) if and only if it converges. -/
 lemma submartingale.bdd_above_iff_exists_tendsto [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
   ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) ↔ ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
@@ -497,6 +499,44 @@ begin
     { refine ⟨c + f 0 x, _⟩,
       have := hc.add_const (f 0 x),
       simpa only [sub_add_cancel] } }
+end
+
+-- do we not have this?
+lemma foo {x : ℕ → ℝ} (hx : tendsto x at_top at_top) : bdd_below (set.range x) :=
+begin
+  sorry
+end
+
+lemma martingale.ae_not_tendsto_at_top_at_top [is_finite_measure μ]
+  (hf : martingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
+  ∀ᵐ x ∂μ, ¬ tendsto (λ n, f n x) at_top at_top :=
+begin
+  have hbdd' : ∀ᵐ x ∂μ, ∀ i, |(-f) (i + 1) x - (-f) i x| ≤ R,
+  { filter_upwards [hbdd] with x hx i,
+    erw [← abs_neg, neg_sub, sub_neg_eq_add, neg_add_eq_sub],
+    exact hx i },
+  have hup := hf.submartingale.bdd_above_iff_exists_tendsto hbdd,
+  have hdown := hf.neg.submartingale.bdd_above_iff_exists_tendsto hbdd',
+  have hiff : ∀ᵐ x ∂μ, bdd_above (set.range (λ n, f n x)) ↔ bdd_below (set.range (λ n, f n x)),
+  { filter_upwards [hup, hdown] with x hx₁ hx₂,
+    have : (∃ c, tendsto (λ n, f n x) at_top (𝓝 c)) ↔ ∃ c, tendsto (λ n, (-f) n x) at_top (𝓝 c),
+    { split; rintro ⟨c, hc⟩,
+      { exact ⟨-c, hc.neg⟩ },
+      { refine ⟨-c, _⟩,
+        convert hc.neg,
+        simp only [neg_neg, pi.neg_apply] } },
+    rw [hx₁, this, ← hx₂],
+    sorry, },
+  filter_upwards [hiff] with x hx htop,
+  refine unbounded_of_tendsto_at_top htop (hx.2 _),
+  exact foo htop
+end
+
+lemma martingale.ae_not_tendsto_at_top_at_bot [is_finite_measure μ]
+  (hf : martingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
+  ∀ᵐ x ∂μ, ¬ tendsto (λ n, f n x) at_top at_bot :=
+begin
+  sorry
 end
 
 namespace borel_cantelli

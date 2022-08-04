@@ -1394,6 +1394,7 @@ cast (congr_arg _ (div_add_mod n b)) (hm (n / b) (n % b) (mod_lt _ $ nat.pos_of_
 /-- Recursion principle based on the div and modulus decomposition against some base `b : ℕ`:
 given a map `C k → C (k + b)` for each `k`, and the construction of `C r` for all `r < b`,
 one can construct `C n` for any `n : ℕ`.  -/
+@[elab_as_eliminator]
 def div_mod_rec {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0) (hr : ∀ r < b, C r)
   (hm : ∀ k, C k → C (k + b)) : C n :=
 div_mod_cases _ _ hb $ λ k r hrlt, begin

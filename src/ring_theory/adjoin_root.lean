@@ -230,7 +230,7 @@ end irreducible
 section is_noetherian_ring
 
 instance [comm_ring R] [is_noetherian_ring R] {f : R[X]} : is_noetherian_ring (adjoin_root f) :=
-by delta_instance adjoin_root
+ideal.quotient.is_noetherian_ring _
 
 end is_noetherian_ring
 

@@ -1122,7 +1122,7 @@ begin
   intros s s_sub hs,
   rcases eq_empty_or_nonempty s with rfl | ⟨x, x_in⟩,
   { exact subsingleton_empty },
-  { exact (h x).mono (hs.subset_connected_component x_in) }
+  { exact (h x).anti (hs.subset_connected_component x_in) }
 end
 
 /-- A space is totally disconnected iff its connected components are singletons. -/

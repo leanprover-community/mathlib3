@@ -1009,10 +1009,7 @@ variables {S}
 
 lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) (x : S) :
   ((sec M x).snd : R) ≠ 0 :=
-begin
-  change ((⟨(sec M x).snd.val, hM (sec M x).snd.property⟩ : non_zero_divisors R) : R) ≠ 0,
-  exact non_zero_divisors.coe_ne_zero _
-end
+non_zero_divisors.coe_ne_zero ⟨(sec M x).snd.val, hM (sec M x).snd.property⟩
 
 lemma sec_fst_ne_zero [nontrivial R] [no_zero_divisors S] (hM : M ≤ non_zero_divisors R) {x : S}
   (hx : x ≠ 0) : (sec M x).fst ≠ 0 :=

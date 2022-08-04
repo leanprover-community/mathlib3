@@ -1143,7 +1143,7 @@ begin
   have hv_coe : range (coe : v → E) = v := by simp,
   split,
   { refine λ h, ⟨basis.mk hv.linear_independent _, basis.coe_mk _ _⟩,
-    convert h },
+    convert h.ge },
   { rintros ⟨h, coe_h⟩,
     rw [← h.span_eq, coe_h, hv_coe] }
 end

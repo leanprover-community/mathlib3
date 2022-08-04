@@ -900,7 +900,7 @@ namespace module
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables [semiring S] [module S M] [smul_comm_class S R M]
 
-/-- Each element of the monoid defines a module endomorphism.
+/-- Each element of the semiring defines a module endomorphism.
 
 This is a stronger version of `distrib_mul_action.to_module_End`. -/
 @[simps]

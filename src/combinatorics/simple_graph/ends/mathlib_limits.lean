@@ -116,6 +116,17 @@ begin
   refl,
 end
 
+lemma fis.to_surjective.subfunctor_apply {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) :
+  ∀ (i j : Jᵒᵖ) (ij : i ⟶ j) (x : (fis.to_surjective F).obj i), subtype.simps.coe ((fis.to_surjective F).map ij x) = F.map ij (subtype.simps.coe x) :=
+begin
+  rintros i j ij,
+  rintros x,
+  --simp [set.maps_to.coe_restrict_apply], -- Why don't we need this?
+  refl,
+end
+
+
 
 instance fis.to_surjective.fintype  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] :
@@ -262,7 +273,17 @@ def fis.sections_surjective_equiv_sections  {J : Type u} [preorder J] [is_direct
   F.sections ≃ (fis.to_surjective F).sections :=
 begin
   split, rotate 2,
-  {sorry,},
+  { rintro s,
+    split,rotate,
+    { rintro j,
+      exact (fis.sections_in_surjective F s j).some,},
+    { unfold category_theory.functor.sections,
+      rintro i j ij,
+      simp,
+      sorry,
+    }
+
+  },
   {sorry,},
   {sorry,},
   {sorry,},

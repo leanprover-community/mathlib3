@@ -1683,7 +1683,7 @@ end image
 protected def subsingleton (s : set α) : Prop :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x = y
 
-lemma subsingleton.anti (hst : s ⊆ t) (ht : t.subsingleton) : s.subsingleton :=
+lemma subsingleton.anti (ht : t.subsingleton) (hst : s ⊆ t) : s.subsingleton :=
 λ x hx y hy, ht (hst hx) (hst hy)
 
 lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ s) : s = {x} :=
@@ -1721,7 +1721,7 @@ lemma subsingleton_of_univ_subsingleton (h : (univ : set α).subsingleton) : sub
 ⟨subsingleton_of_univ_subsingleton, λ h, @subsingleton_univ _ h⟩
 
 lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
-subsingleton.anti (subset_univ s) subsingleton_univ
+subsingleton_univ.anti (subset_univ s)
 
 lemma subsingleton_is_top (α : Type*) [partial_order α] : set.subsingleton {x : α | is_top x} :=
 λ x hx y hy, hx.is_max.eq_of_le (hy x)
@@ -1753,7 +1753,7 @@ instance subsingleton_coe_of_subsingleton [subsingleton α] {s : set α} : subsi
 by { rw [s.subsingleton_coe], exact subsingleton_of_subsingleton }
 
 theorem subsingleton_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : subsingleton t) :
-  subsingleton s := (subsingleton_coe _).2 (subsingleton.anti hst (t.subsingleton_coe.1 hs))
+  subsingleton s := (subsingleton_coe _).2 $ (t.subsingleton_coe.1 hs).anti hst
 
 /-- The image of a subsingleton is a subsingleton. -/
 lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
@@ -1797,7 +1797,7 @@ hs.some_spec.some_spec.some_spec.some
 protected lemma nontrivial.some_fst_ne_snd (hs : s.nontrivial) : hs.some.fst ≠ hs.some.snd :=
 hs.some_spec.some_spec.some_spec.some_spec
 
-lemma nontrivial.mono (hst : s ⊆ t) (hs : s.nontrivial) : t.nontrivial :=
+lemma nontrivial.mono (hs : s.nontrivial) (hst : s ⊆ t) : t.nontrivial :=
 let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨x, hst hx, y, hst hy, hxy⟩
 
 @[simp] lemma nontrivial_pair {x y} (hxy : x ≠ y) : ({x, y} : set α).nontrivial :=
@@ -1882,7 +1882,7 @@ lemma nontrivial_of_nontrivial_coe (hs : nontrivial s) : nontrivial α :=
 by { rw [s.nontrivial_coe] at hs, exact nontrivial_of_nontrivial hs }
 
 theorem nontrivial_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : nontrivial s) :
-  nontrivial t := (nontrivial_coe _).2 (nontrivial.mono hst (s.nontrivial_coe.1 hs))
+  nontrivial t := (nontrivial_coe _).2 $ (s.nontrivial_coe.1 hs).mono hst
 
 /-- The preimage of a nontrivial set under a surjective map is nontrivial. -/
 theorem nontrivial.preimage {s : set β} (hs : s.nontrivial) {f : α → β}

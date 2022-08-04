@@ -131,7 +131,7 @@ begin
     simp },
   { apply mem_ℓp_infty,
     simp only [norm_zero, pi.zero_apply],
-    exact bdd_above_singleton.mono set.range_const_subset, },
+    exact bdd_above_singleton.anti set.range_const_subset, },
   { apply mem_ℓp_gen,
     simp [real.zero_rpow hp.ne', summable_zero], }
 end

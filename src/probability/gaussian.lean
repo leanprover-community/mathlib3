@@ -68,9 +68,23 @@ open probability_theory measure
 
 variables {μ : measure ℝ} {m s : ℝ}
 
-lemma change_of_vr_gaussian:
+lemma change_of_vr_gaussian (hμ : μ.real_gaussian m s):
    ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))) = ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))):=
 begin
+     have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
+      ext e,
+      split,
+      {intro h1,
+      use (e+m),
+      split,
+      simp,simp},
+      {intro h2,
+      simp},
+    have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
+     = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
+      simp,
+    rw h_integ_eq,
+
 sorry
 end
 
@@ -86,20 +100,7 @@ begin
     simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
     rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
 
-    {have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
-      ext e,
-      split,
-      {intro h1,
-      use (e+m),
-      split,
-      simp,simp},
-      {intro h2,
-      simp},
-      have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
-     = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
-     simp,
-     rw h_integ_eq,
-
+    {
       sorry},
     {
       rw integrable, fconstructor,

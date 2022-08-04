@@ -287,30 +287,30 @@ end gluing
 end continuous_map
 
 namespace homeomorph
-variables {α β : Type*} [topological_space α] [topological_space β]
-variable (f : α ≃ₜ β)
+variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
+variables (f : α ≃ₜ β) (g : β ≃ₜ γ)
 
-/--
-The forward direction of a homeomorphism, as a bundled continuous map.
--/
+/-- The forward direction of a homeomorphism, as a bundled continuous map. -/
 @[simps]
 def to_continuous_map (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
 
 /--`homeomorph.to_continuous_map` as a coercion. -/
 instance : has_coe (α ≃ₜ β) C(α, β) := ⟨homeomorph.to_continuous_map⟩
 
-/--
-Left inverse to a continuous map from a homeomorphism, mirroring `equiv.symm_comp_self`.
--/
+@[simp] lemma to_continuous_map_as_coe : f.to_continuous_map = f := rfl
+
+@[simp] lemma coe_refl : (homeomorph.refl α : C(α, α)) = continuous_map.id α := rfl
+
+@[simp] lemma coe_trans : (f.trans g : C(α, γ)) = (g : C(β, γ)).comp f := rfl
+
+/-- Left inverse to a continuous map from a homeomorphism, mirroring `equiv.symm_comp_self`. -/
 lemma symm_comp_to_continuous_map :
   (f.symm : C(β, α)).comp (f : C(α, β)) = continuous_map.id α :=
-by { ext, apply f.to_equiv.symm_apply_apply }
+by rw [← coe_trans, self_trans_symm, coe_refl]
 
-/--
-Right inverse to a continuous map from a homeomorphism, mirroring `equiv.self_comp_symm`.
--/
+/-- Right inverse to a continuous map from a homeomorphism, mirroring `equiv.self_comp_symm`. -/
 lemma to_continuous_map_comp_symm :
   (f : C(α, β)).comp (f.symm : C(β, α)) = continuous_map.id β :=
-by { ext, apply f.to_equiv.apply_symm_apply }
+by rw [← coe_trans, symm_trans_self, coe_refl]
 
 end homeomorph

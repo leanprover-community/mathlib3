@@ -106,6 +106,12 @@ h.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (h : α ≃ₜ β) (x : α) : h.symm (h x) = x :=
 h.to_equiv.symm_apply_apply x
 
+@[simp] lemma self_trans_symm (h : α ≃ₜ β) : h.trans h.symm = homeomorph.refl α :=
+by { ext, apply symm_apply_apply }
+
+@[simp] lemma symm_trans_self (h : α ≃ₜ β) : h.symm.trans h = homeomorph.refl β :=
+by { ext, apply apply_symm_apply }
+
 protected lemma bijective (h : α ≃ₜ β) : function.bijective h := h.to_equiv.bijective
 protected lemma injective (h : α ≃ₜ β) : function.injective h := h.to_equiv.injective
 protected lemma surjective (h : α ≃ₜ β) : function.surjective h := h.to_equiv.surjective

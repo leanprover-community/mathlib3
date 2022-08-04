@@ -75,7 +75,9 @@ end
 /-- The continuous differentiability of a map `g : M → M'` between manifolds can be stated in terms
 of the continuous differentiability of a corresponding map `f : E → E'` between the model vector
 spaces, if one assumes that the `model_with_corners` for `M` is an open map and the
-`model_with_corners` for `M'` consists of a single chart. -/
+`model_with_corners` for `M'` consists of a single chart.
+
+TODO: How can the assumptions be relaxed? -/
 lemma open_embedding_cont_diff_on_cont_mdiff
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -129,7 +131,8 @@ begin
 end
 
 /-- A weaker version of `units.open_embedding_cont_diff_on_cont_mdiff` in which the model space H
-coincides with the model vector space E via `model_with_corners_self`. -/
+coincides with the model vector space E via `model_with_corners_self`, and the charts are given by
+open embeddings via `open_embedding.singleton_charted_space`. -/
 lemma open_embedding_cont_diff_on_cont_mdiff'
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -173,6 +176,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 R
 instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 
+/-- Multiplication of units of a complete normed ring is a smooth map between manifolds. -/
 lemma smooth_mul :
   smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
 begin
@@ -188,6 +192,7 @@ begin
     simp }
 end
 
+/-- Inversion of units of a complete normed ring is a smooth map between manifolds. -/
 lemma smooth_inv :
   smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
 begin
@@ -202,6 +207,7 @@ begin
   simp
 end
 
+/-- The units of a complete normed ring form a Lie group. -/
 instance : lie_group 𝓘(𝕜, R) Rˣ :=
 { smooth_mul := smooth_mul,
   smooth_inv := smooth_inv }

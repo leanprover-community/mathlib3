@@ -69,7 +69,11 @@ variables {ι : Type*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -/
 
 -- this needs to go in `data.real.ennreal`
-instance : zero_le_one_class ℝ≥0∞ := ⟨zero_le 1⟩
+instance : linear_ordered_comm_monoid_with_zero ℝ≥0∞ :=
+{ mul_le_mul_left := λ a b h c, ennreal.mul_le_mul (le_refl c) h,
+  zero_le_one := zero_le 1,
+  .. ennreal.linear_ordered_add_comm_monoid_with_top,
+  .. (show comm_semiring ℝ≥0∞, from infer_instance) }
 
 lemma ennreal.to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.to_real ↔ p ≠ ∞ :=
 ⟨λ h hp, let this : (0 : ℝ) ≠ 0 := ennreal.top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,

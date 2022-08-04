@@ -558,19 +558,6 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_rfl
 | (n+1) := let t := nat.mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
 
-lemma lt_mul_left {n m : ℕ} (hn : 1 < n) (hm : 1 < m) : n < m * n :=
-begin
-  obtain ⟨n, rfl⟩ := exists_eq_add_of_lt hn,
-  obtain ⟨m, rfl⟩ := exists_eq_add_of_lt hm,
-  simp [nat.mul_succ, nat.succ_mul]
-end
-
-lemma lt_mul_right {n m : ℕ} (hn : 1 < n) (hm : 1 < m) : n < n * m :=
-by { rw mul_comm, exact lt_mul_left hn hm }
-
-lemma lt_mul_self {k : ℕ} (hk : 1 < k) : k < k * k :=
-lt_mul_left hk hk
-
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},

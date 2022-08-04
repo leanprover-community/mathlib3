@@ -62,6 +62,9 @@ structure double_centralizer : Type v :=
 
 localized "notation `𝓜(` 𝕜 `, ` A `)` := double_centralizer 𝕜 A" in multiplier_algebra
 
+instance : inhabited 𝓜(𝕜, A) :=
+{ default := ⟨1, 1, by simp only [one_apply, eq_self_iff_true, forall_const]⟩ }
+
 /-!
 ### Normed space structure
 

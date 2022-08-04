@@ -390,9 +390,10 @@ end ring
 namespace linear_map
 
 variables {R₁ R₂ R₃ M₁ M₂ : Type*}
-variables [semiring R₁] [comm_semiring R₂] [semiring R₃]
+variables [semiring R₁] [semiring R₂] [semiring R₃]
 variables [add_comm_monoid M₁] [add_comm_monoid M₂]
-variables [module R₁ M₁] [module R₂ M₂] [module R₃ M₂] [algebra R₂ R₃] [is_scalar_tower R₂ R₃ M₂]
+variables [module R₁ M₁] [module R₂ M₂] [module R₃ M₂] [module R₂ R₃]
+variables [is_scalar_tower R₂ R₃ M₂]
 variables {σ₁₂ : R₁ →+* R₂}
 
 /--

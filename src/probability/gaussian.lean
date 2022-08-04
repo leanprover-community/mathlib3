@@ -68,6 +68,11 @@ open probability_theory measure
 
 variables {μ : measure ℝ} {m s : ℝ}
 
+lemma change_of_vr_gaussian:
+   ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))) = ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))):=
+begin
+sorry
+end
 
 lemma is_probability_measure_real_gaussian (hμ : μ.real_gaussian m s) :
   is_probability_measure μ :=
@@ -134,15 +139,15 @@ begin
           simp,
 
         rw ← h_eqfunc,
-        exact measure_theory.integrable.comp_sub_right h_gaussexp m
+        exact measure_theory.integrable.comp_sub_right h_gaussexp m,
       }
     },
-    {refine filter.eventually_of_forall _,
-
-
+    {
+      --refine filter.germ.coe_le.mp _,
+      refine filter.eventually_of_forall _,
       have hbp1 : 0 < s^2,
           exact (sq_pos_iff s).mpr h,
-        --have hbp2 : 0 < 2
+        -- have hbp2 : 0 < 2
       have hbp2 : 0 < 2*s^2,
           simp,
           exact hbp1,
@@ -157,15 +162,13 @@ begin
       have h_sqrt_pos :  0 < sqrt(2 * s ^ 2 * π),
         exact sqrt_pos.mpr h_exppos,
 
-
       have  h_const_pos :  0 < (sqrt(2 * s ^ 2 * π))⁻¹,
         exact inv_pos.mpr h_sqrt_pos,
-
       have h_mulpi_eq : 2 * s ^ 2 * π = 2 * π * s ^ 2,
         ring,
+
       rw h_mulpi_eq at h_const_pos,
       intro x,
-
       have h_compexp_pos : 0 < exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)),
         exact real.exp_pos (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)),
       simp,
@@ -255,8 +258,8 @@ begin
     ext x,
     simp,
   rw h_zeroeqno at hf,
+  sorry,
 
-sorry
 
 end
 

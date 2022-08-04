@@ -45,7 +45,12 @@ Young diagram
 
 section young_diagram
 
-/-- A Young diagram is a lower set in ℕ × ℕ -/
+/-- A Young diagram is a finite collection of cells on the `ℕ × ℕ` grid such that whenever
+a cell is present, so are all the ones above and to the left of it. Like matrices, an `(i, j)` cell
+is a cell in row `i` and column `j`, where rows are enumerated downward and columns rightward.
+
+Young diagrams are modeled as finite sets in `ℕ × ℕ` that are lower sets with respect to the
+standard order on products. -/
 @[ext] structure young_diagram :=
 (cells : finset (ℕ × ℕ))
 (is_lower_set : is_lower_set (cells : set (ℕ × ℕ)))
@@ -73,14 +78,28 @@ instance young_diagram.has_sup : has_sup young_diagram :=
                   is_lower_set := by { rw finset.coe_union,
                                        exact is_lower_set.union μ.is_lower_set ν.is_lower_set } } }
 
+@[simp] lemma young_diagram.cells_sup (μ ν : young_diagram) :
+   (μ ⊔ ν).cells = μ.cells ∪ ν.cells := rfl
+@[simp, norm_cast] lemma young_diagram.coe_sup (μ ν : young_diagram) :
+   ↑(μ ⊔ ν) = (μ ∪ ν : set (ℕ × ℕ)) := finset.coe_union _ _
+
 instance young_diagram.has_inf : has_inf young_diagram :=
 { inf := λ μ ν, { cells        := μ.cells ∩ ν.cells,
                   is_lower_set := by { rw finset.coe_inter,
                                        exact is_lower_set.inter μ.is_lower_set ν.is_lower_set } } }
 
+@[simp] lemma young_diagram.cells_inf (μ ν : young_diagram) :
+   (μ ⊓ ν).cells = μ.cells ∩ ν.cells := rfl
+@[simp, norm_cast] lemma young_diagram.coe_inf (μ ν : young_diagram) :
+   ↑(μ ⊓ ν) = (μ ∩ ν : set (ℕ × ℕ)) := finset.coe_inter _ _
+
 /-- The empty Young diagram is (⊥ : young_diagram). -/
 instance young_diagram.has_bot : has_bot young_diagram :=
-{ bot := { cells := finset.empty, is_lower_set := λ _ _ _ h, h } }
+{ bot := { cells := ∅, is_lower_set := λ _ _ _, false.elim } }
+instance young_diagram.order_bot : order_bot young_diagram :=
+{ bot := ⊥, bot_le := λ _ _, false.elim }
+
+instance young_diagram.inhabited : inhabited young_diagram := ⟨⊥⟩
 
 instance young_diagram.distrib_lattice : distrib_lattice young_diagram :=
 function.injective.distrib_lattice
@@ -88,12 +107,10 @@ function.injective.distrib_lattice
   (λ μ ν h, by rwa young_diagram.ext_iff)
   (λ _ _, rfl) (λ _ _, rfl)
 
-instance : inhabited young_diagram := ⟨⊥⟩
-
 end distrib_lattice
 
 /-- Cardinality of a Young diagram -/
-def young_diagram.card (μ : young_diagram) : ℕ := μ.cells.card
+@[reducible] def young_diagram.card (μ : young_diagram) : ℕ := μ.cells.card
 lemma young_diagram.card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
 @[simp] lemma young_diagram.card_bot : (⊥ : young_diagram).card = 0 := rfl

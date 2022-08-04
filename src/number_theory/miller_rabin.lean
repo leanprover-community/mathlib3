@@ -679,28 +679,13 @@ lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
   (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1) ∨
   (∃ (p k : ℕ), 1 ≤ k ∧ p.prime ∧ p^k = n) :=
 begin
-  by_cases is_one : n = 1,
-  left,
-  exact is_one,
-  rcases coprime_factorization_or_prime_power n h with ⟨n0, n1, h01⟩,
-  -- cases one with roo too,
+  by_cases hn1 : n = 1, { simp [hn1] },
   right,
-  left,
-  use n0,
-  use n1,
-  exact h01,
-  right,
-  right,
-  rcases h_1 with ⟨p, k, hpk⟩,
-  use p,
-  use k,
-  split,
-  by_contra hk,
-  simp at hk,
-  rw hk at *,
-  clear hk,
-  simp at *,
-  work_on_goal 1 { cases hpk, induction hpk_right, simp at *, assumption }, assumption,
+  rcases coprime_factorization_or_prime_power n h with ⟨n0, n1, h01⟩ | ⟨p, k, pp, hpk'⟩,
+  { exact or.inl ⟨n0, n1, h01⟩ },
+  { refine or.inr ⟨p, k, _, pp, hpk'⟩,
+    contrapose! hn1,
+    rwa [lt_one_iff.1 hn1, pow_zero, eq_comm] at hpk' },
 end
 
 -- noncomputable instance subgroup_fintype {G : Type} [fintype G] [group G] {H : subgroup G} :

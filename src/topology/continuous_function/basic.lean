@@ -304,12 +304,12 @@ instance : has_coe (α ≃ₜ β) C(α, β) := ⟨homeomorph.to_continuous_map�
 @[simp] lemma coe_trans : (f.trans g : C(α, γ)) = (g : C(β, γ)).comp f := rfl
 
 /-- Left inverse to a continuous map from a homeomorphism, mirroring `equiv.symm_comp_self`. -/
-lemma symm_comp_to_continuous_map :
+@[simp] lemma symm_comp_to_continuous_map :
   (f.symm : C(β, α)).comp (f : C(α, β)) = continuous_map.id α :=
 by rw [← coe_trans, self_trans_symm, coe_refl]
 
 /-- Right inverse to a continuous map from a homeomorphism, mirroring `equiv.self_comp_symm`. -/
-lemma to_continuous_map_comp_symm :
+@[simp] lemma to_continuous_map_comp_symm :
   (f : C(α, β)).comp (f.symm : C(β, α)) = continuous_map.id β :=
 by rw [← coe_trans, symm_trans_self, coe_refl]
 

@@ -88,38 +88,6 @@ lemma bwd_map_refl  (Gpc : G.preconnected) (K : finset V) : bwd_map G Gpc (subse
 funext (bwd_map_refl' G Gpc K)
 
 
-/- TODO : A converse lemma to the one below: if some component is in the image of all bwd_maps, it is infinite-/
-
-lemma bwd_map_surjective_on_inf [locally_finite G]  (Gpc : G.preconnected) {K L : finset V} (K_sub_L : K ⊆ L)
-  (C : ro_components G K) (Cinf : C.val.infinite) : C ∈ set.range (bwd_map G Gpc K_sub_L) :=
-
-begin
-  rcases C with ⟨C,C_comp⟩,
-
-  let L_comps := ro_components G L,
-  let L_comps_in_C := { D : set V | D ∈ ro_components G L ∧ D ⊆ C},
-  have sub : L_comps_in_C ⊆ L_comps, from (λ D ⟨a,b⟩,  a),
-  have : L_comps_in_C.finite, from set.finite.subset (ro_component.finite G Gpc L) sub,
-  have : (⋃₀ L_comps_in_C).infinite, by {
-    rintro hfin,
-    have lol := set.infinite.mono (ro_component.sub_ro_components_cover G Gpc K L K_sub_L C C_comp) Cinf,
-    have := set.finite_union.mpr ⟨finset.finite_to_set L,hfin⟩,
-    exact lol this,
-  },
-
-  have : ∃ D : set V, D ∈ L_comps_in_C ∧ D.infinite, by {
-    by_contra' all_fin,
-    simp at all_fin,
-    exact this ( set.finite.sUnion
-                 ‹L_comps_in_C.finite›
-                 ( λ D ⟨D_comp,D_sub_C⟩, all_fin D D_comp D_sub_C) ),},
-  rcases this with ⟨D,⟨⟨D_comp_L,D_sub_C⟩,Dinf⟩⟩,
-  simp,
-  use [D,D_comp_L],
-  rw (bwd_map_def G Gpc K_sub_L ⟨D,D_comp_L⟩ ⟨C,C_comp⟩),
-  exact D_sub_C,
-end
-
 
 def bwd_map_comp  (Gpc : G.preconnected) {K L M : finset V} (K_sub_L : K ⊆ L) (L_sub_M : L ⊆ M) :
   (bwd_map G Gpc K_sub_L) ∘ (bwd_map G Gpc L_sub_M) = (bwd_map G Gpc (K_sub_L.trans L_sub_M)) :=
@@ -150,6 +118,58 @@ def bwd_map_diamond  (Gpc : G.preconnected) {K L L' M : finset V}
   bwd_map G Gpc K_sub_L (bwd_map G Gpc L_sub_M E) = bwd_map G Gpc K_sub_L' (bwd_map G Gpc L'_sub_M E) :=
 by rw [bwd_map_comp',bwd_map_comp']
 
+
+/- TODO : A converse lemma to the one below: if some component is in the image of all bwd_maps, it is infinite-/
+
+lemma bwd_map_surjective_on_of_inf [locally_finite G]  (Gpc : G.preconnected) {K L : finset V} (K_sub_L : K ⊆ L)
+  (C : ro_components G K) (Cinf : C.val.infinite) : C ∈ set.range (bwd_map G Gpc K_sub_L) :=
+
+begin
+  rcases C with ⟨C,C_comp⟩,
+
+  let L_comps := ro_components G L,
+  let L_comps_in_C := { D : set V | D ∈ ro_components G L ∧ D ⊆ C},
+  have sub : L_comps_in_C ⊆ L_comps, from (λ D ⟨a,b⟩,  a),
+  have : L_comps_in_C.finite, from set.finite.subset (ro_component.finite G Gpc L) sub,
+  have : (⋃₀ L_comps_in_C).infinite, by {
+    rintro hfin,
+    have lol := set.infinite.mono (ro_component.sub_ro_components_cover G Gpc K L K_sub_L C C_comp) Cinf,
+    have := set.finite_union.mpr ⟨finset.finite_to_set L,hfin⟩,
+    exact lol this,
+  },
+
+  have : ∃ D : set V, D ∈ L_comps_in_C ∧ D.infinite, by {
+    by_contra' all_fin,
+    simp at all_fin,
+    exact this ( set.finite.sUnion
+                 ‹L_comps_in_C.finite›
+                 ( λ D ⟨D_comp,D_sub_C⟩, all_fin D D_comp D_sub_C) ),},
+  rcases this with ⟨D,⟨⟨D_comp_L,D_sub_C⟩,Dinf⟩⟩,
+  simp,
+  use [D,D_comp_L],
+  rw (bwd_map_def G Gpc K_sub_L ⟨D,D_comp_L⟩ ⟨C,C_comp⟩),
+  exact D_sub_C,
+end
+
+lemma bwd_map_inf_of_surjective_on [locally_finite G]  (Gpc : G.preconnected) (K : finset V)
+  (C : ro_components G K)
+  (surj_on : ∀ (L : finset V) (KL : K ⊆ L), C ∈ set.range (bwd_map G Gpc KL)) : C.val.infinite :=
+begin
+  intro Cfin,
+  let Cfinset := Cfin.to_finset,
+  let L := Cfinset ∪ K,
+  obtain ⟨D,DtoC⟩ := surj_on L (subset_union_right Cfinset K),
+  have : D.val ⊆ C.val, from DtoC ▸  bwd_map_sub G Gpc (subset_union_right Cfinset K) D,
+  sorry,
+  -- D is a subset of C, but at the same time it is disjoint from L, hence from C.
+  -- It follows that D is empty, a contradiction, since ro_components are not empty
+end
+
+lemma bwd_map_inf_to_inf [locally_finite G]  (Gpc : G.preconnected) {K L : finset V} (KL : K ⊆ L) :
+  maps_to (bwd_map G Gpc KL) {C : ro_components G L | C.val.infinite} {D : ro_components G K | D.val.infinite} :=
+begin
+  sorry,
+end
 
 end bwd_map
 

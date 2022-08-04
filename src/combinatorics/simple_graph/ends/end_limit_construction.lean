@@ -34,13 +34,30 @@ instance FinIncl : category (finset V) := infer_instance
 instance finset_directed : is_directed (finset V) (≤) := {
   directed := λ A B, ⟨A ∪ B, ⟨finset.subset_union_left A B, finset.subset_union_right A B⟩⟩ }
 
-/-The functor assigning a finite set in `V` to the set of infinite connected components in its complement-/
+/-The functor assigning a finite set in `V` to the set of connected components in its complement-/
 def ComplComp : (finset V)ᵒᵖ ⥤ Type u := {
   obj := λ A, ro_components G (unop A),
   map := λ A B f, bwd_map G Gpc (le_of_hom f.unop),
   map_id' := by {intro, funext, simp, apply bwd_map_refl',}, -- tricky to get right
   map_comp' := by {intros, funext, simp, apply eq.symm, apply bwd_map_comp',},
-  }
+}
+
+def Ends := (ComplComp G Gpc).sections
+
+/-The functor assigning a finite set in `V` to the set of **infinite** connected components in its complement-/
+def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
+  obj := λ A, {C : ro_components G (unop A) | C.val.infinite},
+  map := λ A B f, set.maps_to.restrict (bwd_map G Gpc (le_of_hom f.unop)) _ _ (bwd_map_inf_to_inf G Gpc (le_of_hom f.unop)),
+  map_id' := by {sorry}, -- tricky to get right
+  map_comp' := by {sorry},
+}
+
+def Endsinfty := (ComplInfComp G Gpc).sections
+
+lemma Ends_are_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) := sorry
+-- Should use `fis.sections_surjective_equiv_sections` and the fact that `inf_ro_components` is exactly the surjective part
+
+
 
 instance obj_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplComp G Gpc).obj j) := by {
   intro K,
@@ -53,5 +70,6 @@ instance obj_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplComp G Gpc).obj
   exact (ro_component.finite G Gpc K.unop).fintype,
 }
 
-theorem exists_end_inf_graph (Vinf : set.infinite  (@set.univ V)) : (ComplComp G Gpc).sections.nonempty :=
+
+theorem exists_end_inf_graph (Vinf : set.infinite  (@set.univ V)) : (Ends G Gpc).nonempty :=
   @nonempty_sections_of_fintype_inverse_system _ _ _ (ComplComp G Gpc) _ (obj_nonempty G Gpc Vinf)

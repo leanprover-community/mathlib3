@@ -1035,13 +1035,13 @@ end pi
 section ring
 
 variables
-{R : Type*} [ring R] {R₂ : Type*} [ring R₂]
+{R : Type*} [ring R] {R₂ : Type*} [ring R₂] {R₃ : Type*} [ring R₃]
 {M : Type*} [topological_space M] [add_comm_group M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
-[module R M] [module R₂ M₂]
-{σ₁₂ : R →+* R₂}
+[module R M] [module R₂ M₂] [module R₃ M₃]
+{σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
 
 section
 
@@ -1100,6 +1100,26 @@ lemma sub_apply (f g : M →SL[σ₁₂] M₂) (x : M) : (f - g) x = f x - g x :
 @[simp, norm_cast] lemma coe_sub' (f g : M →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
 
 end
+
+@[simp] lemma comp_neg [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₂]
+  [topological_add_group M₃] (g : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
+  g.comp (-f) = -g.comp f :=
+by { ext, simp }
+
+@[simp] lemma neg_comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₃]
+  (g : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
+  (-g).comp f = -g.comp f :=
+by { ext, simp }
+
+@[simp] lemma comp_sub [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₂]
+  [topological_add_group M₃] (g : M₂ →SL[σ₂₃] M₃) (f₁ f₂ : M →SL[σ₁₂] M₂) :
+  g.comp (f₁ - f₂) = g.comp f₁ - g.comp f₂ :=
+by { ext, simp }
+
+@[simp] lemma sub_comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₃]
+  (g₁ g₂ : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
+  (g₁ - g₂).comp f = g₁.comp f - g₂.comp f :=
+by { ext, simp }
 
 instance [topological_add_group M] : ring (M →L[R] M) :=
 { mul := (*),

@@ -65,15 +65,15 @@ end
 
 namespace measure_theory
 
-section normed_group
+section normed_add_comm_group
 
-lemma has_finite_integral_restrict_of_bounded [normed_group E] {f : α → E} {s : set α}
+lemma has_finite_integral_restrict_of_bounded [normed_add_comm_group E] {f : α → E} {s : set α}
   {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
   has_finite_integral f (μ.restrict s) :=
 by haveI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
 
-variables [normed_group E] {f g : α → E} {s t : set α} {μ ν : measure α}
+variables [normed_add_comm_group E] {f g : α → E} {s t : set α} {μ ν : measure α}
 
 /-- A function is `integrable_on` a set `s` if it is almost everywhere strongly measurable on `s`
 and if the integral of its pointwise norm over `s` is less than infinity. -/
@@ -216,7 +216,7 @@ lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 h.integrable_on.indicator hs
 
-lemma integrable_indicator_const_Lp {E} [normed_group E]
+lemma integrable_indicator_const_Lp {E} [normed_add_comm_group E]
   {p : ℝ≥0∞} {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
   integrable (indicator_const_Lp p hs hμs c) μ :=
 begin
@@ -234,7 +234,7 @@ begin
   rwa [← indicator_eq_self.2 h1s, integrable_indicator_iff h2s]
 end
 
-lemma integrable_on_Lp_of_measure_ne_top {E} [normed_group E]
+lemma integrable_on_Lp_of_measure_ne_top {E} [normed_add_comm_group E]
   {p : ℝ≥0∞} {s : set α} (f : Lp E p μ) (hp : 1 ≤ p) (hμs : μ s ≠ ∞) :
   integrable_on f s μ :=
 begin
@@ -327,13 +327,13 @@ begin
   { rw ← indicator_add_eq_right h, exact hfg.indicator hg.measurable_set_support }
 end
 
-end normed_group
+end normed_add_comm_group
 
 end measure_theory
 
 open measure_theory
 
-variables [normed_group E]
+variables [normed_add_comm_group E]
 
 /-- A function which is continuous on a set `s` is almost everywhere measurable with respect to
 `μ.restrict s`. -/

@@ -65,7 +65,7 @@ some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 integral, circle, Cauchy integral
 -/
 
-variables {E : Type*} [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 noncomputable theory
 

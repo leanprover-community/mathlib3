@@ -405,7 +405,7 @@ begin
   { simp },
   cases a,
   { simp },
-  convert div_mod_induction n (a.succ * b.succ.succ) (succ_ne_zero _) _ _,
+  convert div_mod_rec n (a.succ * b.succ.succ) (succ_ne_zero _) _ _,
   { intros r hr,
     rw [mod_eq_of_lt hr, mod_eq_of_lt],
     rwa div_lt_iff_lt_mul (succ_pos _) },

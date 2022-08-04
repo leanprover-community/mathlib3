@@ -1386,26 +1386,22 @@ by rw [nat.mul_add_mod, nat.mod_eq_of_lt h]
 lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
 by { cases n; simp [(nat.succ_ne_self _).symm] }
 
+/-- A recursor that splits `n` into a multiple of `b` and a remainder `r` -/
+def div_mod_cases {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0)
+  (hm : ∀ (k : ℕ) (r < b), C (b * k + r)) : C n :=
+cast (congr_arg _ (div_add_mod n b)) (hm (n / b) (n % b) (mod_lt _ $ nat.pos_of_ne_zero hb))
+
 /-- Recursion principle based on the div and modulus decomposition against some base `b : ℕ`:
 given a map `C k → C (k + b)` for each `k`, and the construction of `C r` for all `r < b`,
 one can construct `C n` for any `n : ℕ`.  -/
-def div_mod_induction {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0) (hr : ∀ r < b, C r)
+def div_mod_rec {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0) (hr : ∀ r < b, C r)
   (hm : ∀ k, C k → C (k + b)) : C n :=
-begin
-  refine nat.strong_rec_on n _, clear n,
-  intros n IH,
-  have bpos : 0 < b := nat.pos_of_ne_zero hb,
-  rw ←div_add_mod n b,
-  refine or.by_cases (eq_zero_or_eq_succ_pred (n / b)) (λ h, _) (λ h, _),
-  { rw [h, mul_zero, zero_add],
-    exact hr _ (mod_lt _ bpos) },
-  { rw [h, mul_succ, add_right_comm],
-    refine hm _ (IH _ _),
-    refine (div_add_mod n b).le.trans_lt' _,
-    rw add_lt_add_iff_right,
-    refine mul_lt_mul_of_pos_left (pred_lt _) bpos,
-    rw h,
-    exact succ_ne_zero _ }
+div_mod_cases _ _ hb $ λ k r hrlt, begin
+  induction k,
+  { convert hr _ hrlt,
+    rw [mul_zero, zero_add] },
+  { convert hm _ k_ih using 1,
+    rw [mul_succ, add_right_comm] }
 end
 
 /-! ### `find` -/

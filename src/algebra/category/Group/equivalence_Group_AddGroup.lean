@@ -90,25 +90,11 @@ equivalence.mk Group.to_AddGroup AddGroup.to_Group
 /--
 The equivalence of categories between `CommGroup` and `AddCommGroup`.
 -/
-def CommGroup_AddCommGroup_equivalence : CommGroup ≌ AddCommGroup :=
-{ functor := CommGroup.to_AddCommGroup,
-  inverse := AddCommGroup.to_CommGroup,
-  unit_iso :=
-  { hom :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    inv :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    hom_inv_id' := rfl,
-    inv_hom_id' := rfl },
-  counit_iso :=
-  { hom :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    inv :=
-    { app := λ X, (𝟙 X),
-      naturality' := λ _ _ _, by { ext, refl } },
-    hom_inv_id' := rfl,
-    inv_hom_id' := rfl },
-  functor_unit_iso_comp' := λ X, rfl }
+@[simps] def CommGroup_AddCommGroup_equivalence : CommGroup ≌ AddCommGroup :=
+equivalence.mk CommGroup.to_AddCommGroup AddCommGroup.to_CommGroup
+  (nat_iso.of_components
+    (λ X, mul_equiv.to_Group_iso (mul_equiv.multiplicative_additive X))
+    (λ X Y f, rfl))
+  (nat_iso.of_components
+    (λ X, add_equiv.to_AddGroup_iso (add_equiv.additive_multiplicative X))
+    (λ X Y f, rfl))

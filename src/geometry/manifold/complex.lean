@@ -9,7 +9,7 @@ import geometry.manifold.mfderiv
 /-! # Holomorphic functions on complex manifolds
 
 Thanks to the rigidity of complex-differentiability compared to real-differentiability, there are
-many results about complex manifolds with no analogue for manifolds a general normed field.  For
+many results about complex manifolds with no analogue for manifolds over a general normed field.  For
 now, this file contains just one such result:
 
 ## Main results

@@ -152,9 +152,8 @@ begin
     exact set.range_nonempty _,},
   { -- Probably heavily golfable
     rintro X ⟨⟨i,ij⟩,rfl⟩ Y ⟨⟨k,kj⟩,rfl⟩,
-    unfold bigger at ij,
-    unfold bigger at kj,
-    simp only [set.mem_set_of_eq] at ij, simp only [set.mem_set_of_eq] at kj,
+    unfold bigger at ij, rw set.mem_set_of_eq at ij,
+    unfold bigger at kj, rw set.mem_set_of_eq at kj,
     obtain ⟨l',lk',li'⟩ := directed_of (≤) k.unop i.unop,
     let l := opposite.op l',
     have lk : opposite.unop k ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lk'},
@@ -182,6 +181,7 @@ begin
   },
 end
 
+
 lemma fis.to_surjective.is_surjective {J : Type u} [preorder J]  [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [nempties : Π (j : Jᵒᵖ), nonempty (F.obj j)] : fis.is_surjective (fis.to_surjective F) :=
 begin
@@ -191,8 +191,8 @@ begin
   let S := set.range (λ k : bigger i, (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}),
   have Ssnempty : ∀ s ∈ S, set.nonempty s, by
   { rintro s hs,
-    have : ∃ k : bigger i, s = (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x}, by
-    { simp at hs, cases hs, cases hs_h, induction hs_h_h, dsimp at *, simp at *, dsimp at *, fsplit, work_on_goal 2 { fsplit, work_on_goal 1 { assumption }, refl }}, -- thanks to `tidy`
+    have : ∃ k : bigger i, (set.range (F.map (op_hom_of_le k.prop))) ∩ set.preimage (F.map  $op_hom_of_le ij) {x} = s, by
+    { rw set.mem_range at hs, exact hs }, -- should be hs
     obtain ⟨⟨k,ki⟩,rfl⟩ := this,
     have ki : i.unop ≤ k.unop, from ki,
     have xh' : x ∈ ⋂ (l : (bigger j)), set.range (F.map (op_hom_of_le l.prop)) := xh,
@@ -212,20 +212,17 @@ begin
     refine bInter_of_directed_nonempty S Ssnempty _,
     unfold directed_on,
     -- only needs to show that S is directed
-    rintros X ⟨⟨l,lj⟩,rfl⟩ Y ⟨⟨k,kj⟩,rfl⟩,
-    unfold bigger at lj,
-    unfold bigger at kj,
-    simp only [set.mem_set_of_eq] at ij, simp only [set.mem_set_of_eq] at kj,
-    obtain ⟨l',lk',li'⟩ := directed_of (≤) k.unop i.unop,
+    rintros X ⟨⟨l,li⟩,rfl⟩ Y ⟨⟨k,ki⟩,rfl⟩,
+    unfold bigger at li, rw set.mem_prop_of_eq,
+    unfold bigger at ki,
+    obtain ⟨l',lk',lj'⟩ := directed_of (≤) k.unop j.unop,
     let l := opposite.op l',
     have lk : opposite.unop k ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lk'},
-    have li : opposite.unop i ≤ opposite.unop l, by {simp only [opposite.unop_op],exact li'},
+    have lj : opposite.unop j ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lj'},
     let hlk := op_hom_of_le lk,
-    let hli := op_hom_of_le li,
-    let hkj := op_hom_of_le kj,
-    let hij := op_hom_of_le ij,
-    let hkj := op_hom_of_le kj,
-    have : hlk ≫ hkj = hli ≫ hij, by reflexivity,
+    let hlj := op_hom_of_le lj,
+    let hji := op_hom_of_le ij,
+    let hki := op_hom_of_le ki,
     use set.range (F.map $ hlk ≫ hkj),
     use l,
     use kj.trans lk,
@@ -233,7 +230,7 @@ begin
     { --have : op_hom_of_le ij = hlk ≫ hkj, by {sorry},
       simp only,
       split,
-      { have : hlk ≫ hkj = hli ≫ hij, by reflexivity,
+      { have : hlk ≫ hkj = hlj ≫ hji, by reflexivity,
         rw [this,functor.map_comp /-F hli hij-/,types_comp],
         apply set.range_comp_subset_range,},
       {
@@ -244,7 +241,7 @@ begin
   },
   obtain ⟨y,y_mem⟩ := this,
   use y,
-  {sorry,},
+  { },
   {
     sorry,
   },

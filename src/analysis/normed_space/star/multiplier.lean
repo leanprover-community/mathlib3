@@ -39,7 +39,7 @@ open nnreal continuous_linear_map
 universes u v
 
 variables (𝕜 : Type u) (A : Type v)
-  [nondiscrete_normed_field 𝕜]
+  [nontrivially_normed_field 𝕜]
   [non_unital_normed_ring A]
   [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A]
 
@@ -54,7 +54,7 @@ namespace continuous_linear_map
 
 -- `lmul` exists, but doesn't work for us because we have *non-unital* ring, so we need this
 -- very similar version. There's a PR open to fix this: #15310
-noncomputable def lmul' (𝕜 : Type u) (A : Type v) [nondiscrete_normed_field 𝕜]
+noncomputable def lmul' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜]
   [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] :
   A →L[𝕜] A →L[𝕜] A :=
 linear_map.mk_continuous₂
@@ -73,10 +73,10 @@ lemma lmul'_apply (x y : A) : lmul' 𝕜 A x y = x * y := rfl
 @[simp] lemma op_norm_lmul'_apply_le (x : A) : ∥lmul' 𝕜 A x∥ ≤ ∥x∥ :=
 op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x)
 
-lemma lmul_eq_lmul' (𝕜 : Type u) (A : Type v) [nondiscrete_normed_field 𝕜] [normed_ring A]
+lemma lmul_eq_lmul' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜] [normed_ring A]
   [normed_algebra 𝕜 A] : lmul 𝕜 A = lmul' 𝕜 A := by {ext, refl}
 
-noncomputable def lmul_right' (𝕜 : Type u) (A : Type v) [nondiscrete_normed_field 𝕜]
+noncomputable def lmul_right' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜]
   [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] :
   A →L[𝕜] A →L[𝕜] A :=
 (lmul' 𝕜 A).flip
@@ -87,7 +87,7 @@ lemma lmul_right'_apply (x y : A) : lmul_right' 𝕜 A x y = y * x := rfl
 @[simp] lemma op_norm_lmul_right'_apply_le (x : A) : ∥lmul_right' 𝕜 A x∥ ≤ ∥x∥ :=
 op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _))
 
-lemma lmul_right_eq_lmul' (𝕜 : Type u) (A : Type v) [nondiscrete_normed_field 𝕜] [normed_ring A]
+lemma lmul_right_eq_lmul' (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜] [normed_ring A]
   [normed_algebra 𝕜 A] : lmul_right 𝕜 A = lmul_right' 𝕜 A := by {ext, refl}
 
 end continuous_linear_map
@@ -191,7 +191,8 @@ def add_group_hom_prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜]
 instance : module 𝕜 𝓜(𝕜, A) :=
 function.injective.module 𝕜 add_group_hom_prod_mk injective_prod_mk (λ x y, rfl)
 
-instance : normed_group 𝓜(𝕜, A) := normed_group.induced add_group_hom_prod_mk injective_prod_mk
+instance : normed_add_comm_group 𝓜(𝕜, A) :=
+normed_add_comm_group.induced add_group_hom_prod_mk injective_prod_mk
 
 instance : normed_space 𝕜 𝓜(𝕜, A) :=
 { norm_smul_le := λ k a, show max (∥k • a.left∥) (∥k • a.right∥) ≤ ∥k∥ * max (∥a.left∥) (∥a.right∥),
@@ -307,7 +308,7 @@ noncomputable instance : normed_ring 𝓜(𝕜, A) :=
         (norm_nonneg _) ((norm_nonneg _).trans $ le_max_right _ _),
     end,
   .. double_centralizer.ring,
-  .. double_centralizer.normed_group }
+  .. double_centralizer.normed_add_comm_group }
 
 variables [cstar_ring A]
 
@@ -356,9 +357,9 @@ by simp only [norm_eq, norm_left_eq_right, max_eq_right, eq_self_iff_true]
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]
 
 /- I think we don't have the necessary type class to make this lemma true.
-`nondiscrete_normed_field 𝕜` is too weak, but `is_R_or_C 𝕜` is far too strong. What we
+`nontrivially_normed_field 𝕜` is too weak, but `is_R_or_C 𝕜` is far too strong. What we
 want is a type class for `𝕜` where we can say `λ k : 𝕜, ∥k∥` has dense range in `ℝ`. -/
-lemma normed_field.exists_nnnorm_lt_and_lt {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+lemma normed_field.exists_nnnorm_lt_and_lt {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   (r : ℝ) (hr : 0 < r) : ∃ k : 𝕜, 1 - r < ∥k∥ ∧ ∥k∥ < 1 :=
 begin
   sorry
@@ -366,7 +367,7 @@ end
 
 -- it would be nice if maybe we could get this for `ℝ≥0` instead, but we go to `ℝ≥0∞` because it
 -- is a complete lattice and therefore `supr` is well-behaved.
-lemma key_lemma {𝕜 E : Type*} [nondiscrete_normed_field 𝕜] [non_unital_normed_ring E] [star_ring E]
+lemma key_lemma {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [non_unital_normed_ring E] [star_ring E]
   [cstar_ring E] [module 𝕜 E] [is_scalar_tower 𝕜 E E] [normed_space 𝕜 E] (a : E) :
   (∥a∥₊ : ℝ≥0∞) = ⨆ b (hb : ∥b∥₊ ≤ 1), ∥b * a∥₊ :=
 begin

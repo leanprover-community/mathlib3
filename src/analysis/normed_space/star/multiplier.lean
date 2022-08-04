@@ -27,7 +27,8 @@ compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified 
 + after ⋆-algebra morphisms are implemented in mathlib, bundle the coercion `A → 𝓜(𝕜, A)`
 + show that the image of `A` in `𝓜(𝕜, A)` is an essential ideal
 + prove the universal property of `𝓜(𝕜, A)`
-
+* Construct a double centralizer from a pair of maps `L : A → A`, `R : A → A` satisfying the
+  centrality condition `∀ x y, R x * y = x * L y`.
 -/
 
 noncomputable theory
@@ -366,26 +367,5 @@ def non_unital_algebra_hom_coe : A →ₙₐ[𝕜] 𝓜(𝕜, A) :=
   map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul_apply,
     continuous_linear_map.lmul_right_apply, mul_left, mul_right, coe_mul, function.comp_app,
     mul_assoc]} }
-
-/-!
-### Constructing a double centralizer
-
-The main result here is that a pair of functions from the algebra to itself which satisfy the
-centrality condition are inherently continuous linear maps
--/
-
--- this requires approximate units, which we don't yet have, and it's a bit of a mess.
-def of_central_funs (L : A → A) (R : A → A) (h : ∀ x y : A, R x * y = x * L y) : 𝓜(𝕜, A) :=
-{ left :=
-  { to_fun := L,
-    map_add' := sorry,
-    map_smul' := sorry,
-    cont := sorry },
-  right :=
-  { to_fun := R,
-    map_add' := sorry,
-    map_smul' := sorry,
-    cont := sorry },
-  central := h }
 
 end double_centralizer

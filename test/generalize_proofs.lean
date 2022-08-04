@@ -30,3 +30,13 @@ begin
   guard_target classical.some a < 2,
   exact H,
 end
+
+local attribute [instance] classical.prop_decidable
+
+example (H : ∀ x, x = 1) : (if h : ∃ (k : ℕ), k = 1 then classical.some h else 0) = 1 :=
+begin
+  rw [dif_pos], tactic.swap, { exact ⟨1, rfl⟩ },
+  generalize_proofs h,
+  guard_target classical.some h = 1,
+  apply H
+end

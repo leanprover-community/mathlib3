@@ -81,17 +81,17 @@ def kernel_subobject_iso :
   (kernel_subobject f : C) ≅ kernel f :=
 subobject.underlying_iso (kernel.ι f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).hom ≫ kernel.ι f = (kernel_subobject f).arrow :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow' :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow_comp :
   (kernel_subobject f).arrow ≫ f = 0 :=
 by { rw [←kernel_subobject_arrow], simp only [category.assoc, kernel.condition, comp_zero], }
@@ -130,7 +130,7 @@ subobject.factor_thru _
   ((kernel_subobject f).arrow ≫ sq.left)
   (kernel_subobject_factors _ _ (by simp [sq.w]))
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_map_arrow (sq : arrow.mk f ⟶ arrow.mk f') :
   kernel_subobject_map sq ≫ (kernel_subobject f').arrow =
     (kernel_subobject f).arrow ≫ sq.left :=
@@ -235,7 +235,7 @@ factor_thru_image f ≫ (image_subobject_iso f).inv
 instance [has_equalizers C] : epi (factor_thru_image_subobject f) :=
 by { dsimp [factor_thru_image_subobject], apply epi_comp, }
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
@@ -327,6 +327,9 @@ lemma image_subobject_comp_iso_inv_arrow
 by simp [image_subobject_comp_iso]
 
 end
+
+lemma image_subobject_mono (f : X ⟶ Y) [mono f] : image_subobject f = mk f :=
+eq_of_comm (image_subobject_iso f ≪≫ image_mono_iso_source f ≪≫ (underlying_iso f).symm) (by simp)
 
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]

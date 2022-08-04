@@ -55,7 +55,7 @@ This is a structure, not a class, since the same algebra can have many power bas
 For the common case where `S` is defined by adjoining an integral element to `R`,
 the canonical power basis is given by `{algebra,intermediate_field}.adjoin.power_basis`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (gen : S)
 (dim : ℕ)
@@ -209,7 +209,7 @@ nat_degree_eq_of_degree_eq_some pb.degree_minpoly_gen
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
 begin
-  apply monic_sub_of_left (monic_pow (monic_X) _),
+  apply (monic_X_pow _).sub_of_left _,
   rw degree_X_pow,
   exact degree_sum_fin_lt _
 end

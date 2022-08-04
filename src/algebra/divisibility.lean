@@ -55,13 +55,12 @@ exists.elim H₁ H₂
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
-@[trans] theorem dvd_trans (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
-match h₁, h₂ with
-| ⟨d, (h₃ : b = a * d)⟩, ⟨e, (h₄ : c = b * e)⟩ :=
-  ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
-end
+@[trans] theorem dvd_trans : a ∣ b → b ∣ c → a ∣ c
+| ⟨d, h₁⟩ ⟨e, h₂⟩ := ⟨d * e, h₁ ▸ h₂.trans $ mul_assoc a d e⟩
 
 alias dvd_trans ← has_dvd.dvd.trans
+
+instance : is_trans α (∣) := ⟨λ a b c, dvd_trans⟩
 
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
 
@@ -75,13 +74,14 @@ theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
 
 section map_dvd
 
-variables {M N : Type*}
+variables {M N : Type*} [monoid M] [monoid N]
 
-lemma mul_hom.map_dvd [monoid M] [monoid N] (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b
-| ⟨c, h⟩ := ⟨f c, h.symm ▸ f.map_mul a c⟩
+lemma map_dvd {F : Type*} [mul_hom_class F M N] (f : F) {a b} : a ∣ b → f a ∣ f b
+| ⟨c, h⟩ := ⟨f c, h.symm ▸ map_mul f a c⟩
 
-lemma monoid_hom.map_dvd [monoid M] [monoid N] (f : M →* N) {a b} : a ∣ b → f a ∣ f b :=
-f.to_mul_hom.map_dvd
+lemma mul_hom.map_dvd (f : M →ₙ* N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
+
+lemma monoid_hom.map_dvd (f : M →* N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
 
 end map_dvd
 
@@ -91,13 +91,11 @@ section monoid
 
 variables [monoid α]
 
-@[refl, simp] theorem dvd_refl (a : α) : a ∣ a :=
-dvd.intro 1 (mul_one _)
+@[refl, simp] theorem dvd_refl (a : α) : a ∣ a := dvd.intro 1 (mul_one a)
+theorem dvd_rfl : ∀ {a : α}, a ∣ a := dvd_refl
+instance : is_refl α (∣) := ⟨dvd_refl⟩
 
-lemma dvd_rfl {a : α} : a ∣ a :=
-dvd_refl a
-
-theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
+theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul a)
 
 end monoid
 
@@ -153,12 +151,12 @@ section semigroup_with_zero
 variables [semigroup_with_zero α] {a : α}
 
 theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
-dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
+dvd.elim h (λ c H', H'.trans (zero_mul c))
 
 /-- Given an element `a` of a commutative semigroup with zero, there exists another element whose
     product with zero equals `a` iff `a` equals zero. -/
 @[simp] lemma zero_dvd_iff : 0 ∣ a ↔ a = 0 :=
-⟨eq_zero_of_zero_dvd, λ h, by { rw h, use 0, simp, }⟩
+⟨eq_zero_of_zero_dvd, λ h, by { rw h, use 0, simp }⟩
 
 @[simp] theorem dvd_zero (a : α) : a ∣ 0 := dvd.intro 0 (by simp)
 
@@ -257,6 +255,30 @@ end comm_monoid
 
 end is_unit
 
+section comm_monoid
+variables [comm_monoid α]
+
+theorem is_unit_iff_dvd_one {x : α} : is_unit x ↔ x ∣ 1 :=
+⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
+ λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
+
+theorem is_unit_iff_forall_dvd {x : α} :
+  is_unit x ↔ ∀ y, x ∣ y :=
+is_unit_iff_dvd_one.trans ⟨λ h y, h.trans (one_dvd _), λ h, h _⟩
+
+theorem is_unit_of_dvd_unit {x y : α}
+  (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
+is_unit_iff_dvd_one.2 $ xy.trans $ is_unit_iff_dvd_one.1 hu
+
+lemma is_unit_of_dvd_one : ∀a ∣ 1, is_unit (a:α)
+| a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
+
+lemma not_is_unit_of_not_is_unit_dvd {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
+  ¬ is_unit b :=
+mt (is_unit_of_dvd_unit hb) ha
+
+end comm_monoid
+
 section comm_monoid_with_zero
 
 variable [comm_monoid_with_zero α]
@@ -277,6 +299,13 @@ begin
 end
 
 end comm_monoid_with_zero
+
+lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
+  x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
+⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
+    mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
+  λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
+    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
 section monoid_with_zero
 

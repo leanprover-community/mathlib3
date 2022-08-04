@@ -29,7 +29,7 @@ variables {C : Type u₁} [category.{v₁} C]
 /--
 The Yoneda embedding, as a functor from `C` into presheaves on `C`.
 
-See https://stacks.math.columbia.edu/tag/001O.
+See <https://stacks.math.columbia.edu/tag/001O>.
 -/
 @[simps]
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
@@ -62,7 +62,7 @@ by { dsimp, simp }
 /--
 The Yoneda embedding is full.
 
-See https://stacks.math.columbia.edu/tag/001P.
+See <https://stacks.math.columbia.edu/tag/001P>.
 -/
 instance yoneda_full : full (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
 { preimage := λ X Y f, f.app (op X) (𝟙 X) }
@@ -70,7 +70,7 @@ instance yoneda_full : full (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
 /--
 The Yoneda embedding is faithful.
 
-See https://stacks.math.columbia.edu/tag/001P.
+See <https://stacks.math.columbia.edu/tag/001P>.
 -/
 instance yoneda_faithful : faithful (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
 { map_injective' := λ X Y f g p, by convert (congr_fun (congr_app p (op X)) (𝟙 X)); dsimp; simp }
@@ -87,8 +87,7 @@ def ext (X Y : C)
   (p : Π {Z : C}, (Z ⟶ X) → (Z ⟶ Y)) (q : Π {Z : C}, (Z ⟶ Y) → (Z ⟶ X))
   (h₁ : Π {Z : C} (f : Z ⟶ X), q (p f) = f) (h₂ : Π {Z : C} (f : Z ⟶ Y), p (q f) = f)
   (n : Π {Z Z' : C} (f : Z' ⟶ Z) (g : Z ⟶ X), p (f ≫ g) = f ≫ p g) : X ≅ Y :=
-@preimage_iso _ _ _ _ yoneda _ _ _ _
-  (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
+yoneda.preimage_iso (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
 /--
 If `yoneda.map f` is an isomorphism, so was `f`.
@@ -126,6 +125,10 @@ nat_iso.of_components
   (λ X, { hom := λ f, f ⟨⟩, inv := λ x _, x })
   (by tidy)
 
+/-- Taking the `unop` of morphisms is a natural isomorphism. -/
+@[simps] def obj_op_op (X : C) : coyoneda.obj (op (op X)) ≅ yoneda.obj X :=
+nat_iso.of_components (λ Y, (op_equiv _ _).to_iso) (λ X Y f, rfl)
+
 end coyoneda
 
 namespace functor
@@ -134,7 +137,7 @@ namespace functor
 /--
 A functor `F : Cᵒᵖ ⥤ Type v₁` is representable if there is object `X` so `F ≅ yoneda.obj X`.
 
-See https://stacks.math.columbia.edu/tag/001Q.
+See <https://stacks.math.columbia.edu/tag/001Q>.
 -/
 class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
 (has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
@@ -145,7 +148,7 @@ instance {X : C} : representable (yoneda.obj X) :=
 /--
 A functor `F : C ⥤ Type v₁` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
 
-See https://stacks.math.columbia.edu/tag/001Q.
+See <https://stacks.math.columbia.edu/tag/001Q>.
 -/
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
 (has_corepresentation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
@@ -290,7 +293,7 @@ The Yoneda lemma asserts that that the Yoneda pairing
 `(X : Cᵒᵖ, F : Cᵒᵖ ⥤ Type) ↦ (yoneda.obj (unop X) ⟶ F)`
 is naturally isomorphic to the evaluation `(X, F) ↦ F.obj X`.
 
-See https://stacks.math.columbia.edu/tag/001P.
+See <https://stacks.math.columbia.edu/tag/001P>.
 -/
 def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 { hom :=
@@ -387,7 +390,7 @@ lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X 
   ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
 rfl
 
-local attribute[ext] functor.ext
+local attribute [ext] functor.ext
 
 /-- The curried version of yoneda lemma when `C` is small. -/
 def curried_yoneda_lemma {C : Type u₁} [small_category C] :

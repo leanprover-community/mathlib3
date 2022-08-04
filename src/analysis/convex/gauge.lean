@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.convex.star
 import analysis.normed_space.pointwise
 import analysis.seminorm
+import tactic.congrm
 
 /-!
 # The Minkowksi functional
@@ -56,9 +57,7 @@ lemma gauge_def : gauge s x = Inf {r ∈ set.Ioi 0 | x ∈ r • s} := rfl
 the set. -/
 lemma gauge_def' : gauge s x = Inf {r ∈ set.Ioi 0 | r⁻¹ • x ∈ s} :=
 begin
-  unfold gauge,
-  congr' 1,
-  ext r,
+  congrm Inf (λ r, _),
   exact and_congr_right (λ hr, mem_smul_set_iff_inv_smul_mem₀ hr.ne' _ _),
 end
 
@@ -120,7 +119,7 @@ end
 lemma gauge_le_of_mem (ha : 0 ≤ a) (hx : x ∈ a • s) : gauge s x ≤ a :=
 begin
   obtain rfl | ha' := ha.eq_or_lt,
-  { rw [mem_singleton_iff.1 (zero_smul_subset _ hx), gauge_zero] },
+  { rw [mem_singleton_iff.1 (zero_smul_set_subset _ hx), gauge_zero] },
   { exact cInf_le gauge_set_bdd_below ⟨ha', hx⟩ }
 end
 
@@ -257,7 +256,7 @@ lemma gauge_smul_left_of_nonneg [mul_action_with_zero α E] [smul_comm_class α 
   gauge (a • s) = a⁻¹ • gauge s :=
 begin
   obtain rfl | ha' := ha.eq_or_lt,
-  { rw [inv_zero, zero_smul, gauge_of_subset_zero (zero_smul_subset _)] },
+  { rw [inv_zero, zero_smul, gauge_of_subset_zero (zero_smul_set_subset _)] },
   ext,
   rw [gauge_def', pi.smul_apply, gauge_def', ←real.Inf_smul_of_nonneg (inv_nonneg.2 ha)],
   congr' 1,
@@ -362,17 +361,15 @@ begin
   have hab : 0 < a + b := add_pos ha hb,
   apply gauge_le_of_mem hab.le,
   have := convex_iff_div.1 hs hx hy ha.le hb.le hab,
-  rwa [smul_smul, smul_smul, mul_comm_div', mul_comm_div', ←mul_div_assoc, ←mul_div_assoc,
-    mul_inv_cancel ha.ne', mul_inv_cancel hb.ne', ←smul_add, one_div,
-    ←mem_smul_set_iff_inv_smul_mem₀ hab.ne'] at this,
+  rwa [smul_smul, smul_smul, ←mul_div_right_comm, ←mul_div_right_comm, mul_inv_cancel ha.ne',
+    mul_inv_cancel hb.ne', ←smul_add, one_div, ←mem_smul_set_iff_inv_smul_mem₀ hab.ne'] at this,
 end
 
 /-- `gauge s` as a seminorm when `s` is symmetric, convex and absorbent. -/
 @[simps] def gauge_seminorm (hs₀ : ∀ x ∈ s, -x ∈ s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
   seminorm ℝ E :=
-{ to_fun := gauge s,
-  smul' := λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance,
-  triangle' := gauge_add_le hs₁ hs₂ }
+seminorm.of (gauge s) (gauge_add_le hs₁ hs₂)
+  (λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance)
 
 section gauge_seminorm
 variables {hs₀ : ∀ x ∈ s, -x ∈ s} {hs₁ : convex ℝ s} {hs₂ : absorbent ℝ s}
@@ -419,7 +416,7 @@ lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
 end add_comm_group
 
 section norm
-variables [semi_normed_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
+variables [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
 
 lemma gauge_unit_ball (x : E) : gauge (metric.ball (0 : E) 1) x = ∥x∥ :=
 begin
@@ -434,18 +431,15 @@ begin
     (absorbent_ball_zero zero_lt_one).absorbs (λ h, _),
   obtain hx' | hx' := eq_or_ne (∥x∥) 0,
   { rw hx' at h,
-    exact hx (zero_smul_subset _ h) },
+    exact hx (zero_smul_set_subset _ h) },
   { rw [mem_smul_set_iff_inv_smul_mem₀ hx', mem_ball_zero_iff, norm_smul, norm_inv, norm_norm,
       inv_mul_cancel hx'] at h,
     exact lt_irrefl _ h }
 end
 
-lemma smul_unit_ball {r : ℝ} (hr : 0 < r) : r • metric.ball (0 : E) 1 = metric.ball (0 : E) r :=
-by rw [smul_ball hr.ne', smul_zero, mul_one, real.norm_of_nonneg hr.le]
-
 lemma gauge_ball (hr : 0 < r) (x : E) : gauge (metric.ball (0 : E) r) x = ∥x∥ / r :=
 begin
-  rw [←smul_unit_ball hr, gauge_smul_left, pi.smul_apply, gauge_unit_ball, smul_eq_mul,
+  rw [←smul_unit_ball_of_pos hr, gauge_smul_left, pi.smul_apply, gauge_unit_ball, smul_eq_mul,
     abs_of_nonneg hr.le, div_eq_inv_mul],
   simp_rw [mem_ball_zero_iff, norm_neg],
   exact λ _, id,

@@ -53,10 +53,10 @@ lemma equivalence : equivalence (@commensurable G _) :=
 /--Equivalence of `K/H ⊓ K` with `gKg⁻¹/gHg⁻¹ ⊓ gKg⁻¹`-/
 def  quot_conj_equiv (H K : subgroup G) (g : conj_act G) :
   K ⧸ (H.subgroup_of K) ≃ (g • K).1 ⧸ ((g • H).subgroup_of (g • K)) :=
-quotient.congr (K.equiv_smul g).to_equiv (λ a b, by rw [←quotient.eq', ←quotient.eq',
+quotient.congr (K.equiv_smul g).to_equiv (λ a b, by { rw [←quotient.eq', ←quotient.eq',
   quotient_group.eq', quotient_group.eq', subgroup.mem_subgroup_of, subgroup.mem_subgroup_of,
-  mul_equiv.coe_to_equiv, ←mul_equiv.map_inv, ←mul_equiv.map_mul,
-  subgroup.equiv_smul_apply_coe, subgroup.smul_mem_pointwise_smul_iff])
+  mul_equiv.to_equiv_eq_coe, mul_equiv.coe_to_equiv, ←mul_equiv.map_inv, ←mul_equiv.map_mul,
+  subgroup.equiv_smul_apply_coe, subgroup.smul_mem_pointwise_smul_iff] })
 
 lemma commensurable_conj {H K : subgroup G} (g : conj_act G) :
    commensurable H K ↔ commensurable (g • H) (g • K) :=

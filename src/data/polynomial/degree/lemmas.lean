@@ -61,6 +61,22 @@ lemma nat_degree_le_iff_coeff_eq_zero :
   p.nat_degree ≤ n ↔ ∀ N : ℕ, n < N → p.coeff N = 0 :=
 by simp_rw [nat_degree_le_iff_degree_le, degree_le_iff_coeff_zero, with_bot.coe_lt_coe]
 
+lemma nat_degree_add_le_iff_left {n : ℕ} (p q : R[X]) (qn : q.nat_degree ≤ n) :
+  (p + q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
+begin
+  refine ⟨λ h, _, λ h, nat_degree_add_le_of_degree_le h qn⟩,
+  refine nat_degree_le_iff_coeff_eq_zero.mpr (λ m hm, _),
+  convert nat_degree_le_iff_coeff_eq_zero.mp h m hm using 1,
+  rw [coeff_add, nat_degree_le_iff_coeff_eq_zero.mp qn _ hm, add_zero],
+end
+
+lemma nat_degree_add_le_iff_right {n : ℕ} (p q : R[X]) (pn : p.nat_degree ≤ n) :
+  (p + q).nat_degree ≤ n ↔ q.nat_degree ≤ n :=
+begin
+  rw add_comm,
+  exact nat_degree_add_le_iff_left _ _ pn,
+end
+
 lemma nat_degree_C_mul_le (a : R) (f : R[X]) :
   (C a * f).nat_degree ≤ f.nat_degree :=
 calc
@@ -95,8 +111,6 @@ le_antisymm (nat_degree_mul_C_le p a) (calc
 
 /-- Although not explicitly stated, the assumptions of lemma `nat_degree_mul_C_eq_of_mul_ne_zero`
 force the polynomial `p` to be non-zero, via `p.leading_coeff ≠ 0`.
-Lemma `nat_degree_mul_C_eq_of_no_zero_divisors` below separates cases, in order to overcome this
-hurdle.
 -/
 lemma nat_degree_mul_C_eq_of_mul_ne_zero (h : p.leading_coeff * a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
@@ -108,8 +122,6 @@ end
 
 /-- Although not explicitly stated, the assumptions of lemma `nat_degree_C_mul_eq_of_mul_ne_zero`
 force the polynomial `p` to be non-zero, via `p.leading_coeff ≠ 0`.
-Lemma `nat_degree_C_mul_eq_of_no_zero_divisors` below separates cases, in order to overcome this
-hurdle.
 -/
 lemma nat_degree_C_mul_eq_of_mul_ne_zero (h : a * p.leading_coeff ≠ 0) :
   (C a * p).nat_degree = p.nat_degree :=
@@ -126,6 +138,38 @@ by simp only [coeff_nat_degree, coeff_mul_degree_add_degree]
 lemma nat_degree_lt_coeff_mul (h : p.nat_degree + q.nat_degree < m + n) :
   (p * q).coeff (m + n) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt h)
+
+lemma coeff_mul_of_nat_degree_le (pm : p.nat_degree ≤ m) (qn : q.nat_degree ≤ n) :
+  (p * q).coeff (m + n) = p.coeff m * q.coeff n :=
+begin
+  rcases eq_or_lt_of_le pm with rfl | hm;
+  rcases eq_or_lt_of_le qn with rfl | hn,
+  { exact nat_degree_add_coeff_mul _ _ },
+  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero],
+    exact nat_degree_lt_coeff_mul (add_lt_add_left hn _) },
+  { rw [coeff_eq_zero_of_nat_degree_lt hm, zero_mul],
+    exact nat_degree_lt_coeff_mul (add_lt_add_right hm _) },
+  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero],
+    exact nat_degree_lt_coeff_mul (add_lt_add hm hn) },
+end
+
+lemma coeff_pow_of_nat_degree_le (pn : p.nat_degree ≤ n) :
+  (p ^ m).coeff (n * m) = (p.coeff n) ^ m :=
+begin
+  induction m with m hm,
+  { simp },
+  { rw [pow_succ', pow_succ', ← hm, nat.mul_succ, coeff_mul_of_nat_degree_le _ pn],
+    refine nat_degree_pow_le.trans (le_trans _ (mul_comm _ _).le),
+    exact mul_le_mul_of_nonneg_left pn m.zero_le }
+end
+
+lemma coeff_add_eq_left_of_lt (qn : q.nat_degree < n) :
+  (p + q).coeff n = p.coeff n :=
+(coeff_add _ _ _).trans $ (congr_arg _ $ coeff_eq_zero_of_nat_degree_lt $ qn).trans $ add_zero _
+
+lemma coeff_add_succ_eq_right_of_le (pn : p.nat_degree < n) :
+  (p + q).coeff n = q.coeff n :=
+by { rw add_comm, exact coeff_add_eq_left_of_lt pn }
 
 lemma degree_sum_eq_of_disjoint (f : S → R[X]) (s : finset S)
   (h : set.pairwise { i | i ∈ s ∧ f i ≠ 0 } (ne on (degree ∘ f))) :
@@ -186,6 +230,12 @@ begin
     simp [H x hx] }
 end
 
+lemma nat_degree_bit0 (a : R[X]) : (bit0 a).nat_degree ≤ a.nat_degree :=
+(nat_degree_add_le _ _).trans (max_self _).le
+
+lemma nat_degree_bit1 (a : R[X]) : (bit1 a).nat_degree ≤ a.nat_degree :=
+(nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
+
 variables [semiring S]
 
 lemma nat_degree_pos_of_eval₂_root {p : R[X]} (hp : p ≠ 0) (f : R →+* S)
@@ -214,24 +264,70 @@ end
 end degree
 end semiring
 
+section ring
+
+variables [ring R] {p q : R[X]}
+
+lemma nat_degree_sub : (p - q).nat_degree = (q - p).nat_degree :=
+by rw [← nat_degree_neg, neg_sub]
+
+lemma nat_degree_sub_le_iff_left (qn : q.nat_degree ≤ n) :
+  (p - q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
+begin
+  rw ← nat_degree_neg at qn,
+  rw [sub_eq_add_neg, nat_degree_add_le_iff_left _ _ qn],
+end
+
+lemma nat_degree_sub_le_iff_right (pn : p.nat_degree ≤ n) :
+  (p - q).nat_degree ≤ n ↔ q.nat_degree ≤ n :=
+by rwa [nat_degree_sub, nat_degree_sub_le_iff_left]
+
+lemma coeff_sub_succ_eq_left_of_le (dg : q.nat_degree < n) :
+  (p - q).coeff n = p.coeff n :=
+begin
+  rw ← nat_degree_neg at dg,
+  rw [sub_eq_add_neg, coeff_add_eq_left_of_lt dg],
+end
+
+lemma coeff_sub_succ_eq_neg_right_of_le (df : p.nat_degree < n) :
+  (p - q).coeff n = - q.coeff n :=
+by rwa [sub_eq_add_neg, coeff_add_succ_eq_right_of_le, coeff_neg]
+
+end ring
+
 section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
-lemma nat_degree_mul_C_eq_of_no_zero_divisors (a0 : a ≠ 0) :
+lemma degree_mul_C (a0 : a ≠ 0) :
+  (p * C a).degree = p.degree :=
+by rw [degree_mul, degree_C a0, add_zero]
+
+lemma degree_C_mul (a0 : a ≠ 0) :
+  (C a * p).degree = p.degree :=
+by rw [degree_mul, degree_C a0, zero_add]
+
+lemma nat_degree_mul_C (a0 : a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
+by simp only [nat_degree, degree_mul_C a0]
+
+lemma nat_degree_C_mul (a0 : a ≠ 0) :
+  (C a * p).nat_degree = p.nat_degree :=
+by simp only [nat_degree, degree_C_mul a0]
+
+lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=
 begin
-  by_cases p0 : p = 0,
-  { rw [p0, zero_mul] },
-  { exact nat_degree_mul_C_eq_of_mul_ne_zero (mul_ne_zero (leading_coeff_ne_zero.mpr p0) a0) }
+  by_cases q0 : q.nat_degree = 0,
+  { rw [degree_le_zero_iff.mp (nat_degree_eq_zero_iff_degree_le_zero.mp q0), comp_C, nat_degree_C,
+      nat_degree_C, mul_zero] },
+  { by_cases p0 : p = 0, { simp only [p0, zero_comp, nat_degree_zero, zero_mul] },
+    refine le_antisymm nat_degree_comp_le (le_nat_degree_of_ne_zero _),
+    simp only [coeff_comp_degree_mul_degree q0, p0, mul_eq_zero, leading_coeff_eq_zero, or_self,
+      ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero q0), pow_ne_zero, ne.def, not_false_iff] }
 end
 
-lemma nat_degree_C_mul_eq_of_no_zero_divisors (a0 : a ≠ 0) :
-  (C a * p).nat_degree = p.nat_degree :=
-begin
-  by_cases p0 : p = 0,
-  { rw [p0, mul_zero] },
-  { exact nat_degree_C_mul_eq_of_mul_ne_zero (mul_ne_zero a0 (leading_coeff_ne_zero.mpr p0)) }
-end
+lemma leading_coeff_comp (hq : nat_degree q ≠ 0) :
+  leading_coeff (p.comp q) = leading_coeff p * leading_coeff q ^ nat_degree p :=
+by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp, coeff_nat_degree]
 
 end no_zero_divisors
 

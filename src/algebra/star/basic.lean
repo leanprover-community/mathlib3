@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.apply_fun
 import algebra.field.opposite
 import algebra.field_power
-import data.equiv.ring_aut
+import algebra.ring.aut
 import group_theory.group_action.units
 import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
@@ -77,7 +77,7 @@ star_involutive.injective
 
 /-- `star` as an equivalence when it is involutive. -/
 protected def equiv.star [has_involutive_star R] : equiv.perm R :=
-star_involutive.to_equiv _
+star_involutive.to_perm _
 
 lemma eq_star_of_eq_star [has_involutive_star R] {r s : R} (h : r = star s) : s = star r :=
 by simp [h]
@@ -117,14 +117,14 @@ attribute [simp] star_mul
 def star_mul_equiv [semigroup R] [star_semigroup R] : R ≃* Rᵐᵒᵖ :=
 { to_fun := λ x, mul_opposite.op (star x),
   map_mul' := λ x y, (star_mul x y).symm ▸ (mul_opposite.op_mul _ _),
-  ..(has_involutive_star.star_involutive.to_equiv star).trans op_equiv}
+  ..(has_involutive_star.star_involutive.to_perm star).trans op_equiv}
 
 /-- `star` as a `mul_aut` for commutative `R`. -/
 @[simps apply]
 def star_mul_aut [comm_semigroup R] [star_semigroup R] : mul_aut R :=
 { to_fun := star,
   map_mul' := star_mul',
-  ..(has_involutive_star.star_involutive.to_equiv star) }
+  ..(has_involutive_star.star_involutive.to_perm star) }
 
 variables (R)
 
@@ -194,7 +194,7 @@ attribute [simp] star_add
 def star_add_equiv [add_monoid R] [star_add_monoid R] : R ≃+ R :=
 { to_fun := star,
   map_add' := star_add,
-  ..(has_involutive_star.star_involutive.to_equiv star)}
+  ..(has_involutive_star.star_involutive.to_perm star)}
 
 variables (R)
 
@@ -217,11 +217,11 @@ star_eq_zero.not
   star (r - s) = star r - star s :=
 (star_add_equiv : R ≃+ R).map_sub _ _
 
-@[simp] lemma star_nsmul [add_comm_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
+@[simp] lemma star_nsmul [add_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
 
-@[simp] lemma star_zsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+@[simp] lemma star_zsmul [add_group R] [star_add_monoid R] (x : R) (n : ℤ) :
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
@@ -264,7 +264,7 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
 
 @[simp, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
   star (r : R) = r :=
-(congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_rat_cast r)).trans (unop_rat_cast _)
+(congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
 @[simps apply]
@@ -366,12 +366,12 @@ and the two star structures are compatible in the sense
 
 Note that it is up to the user of this typeclass to enforce
 `[semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A] [module R A]`, and that
-the statement only requires `[has_star R] [has_star A] [has_scalar R A]`.
+the statement only requires `[has_star R] [has_star A] [has_smul R A]`.
 
 If used as `[comm_ring R] [star_ring R] [semiring A] [star_ring A] [algebra R A]`, this represents a
 star algebra.
 -/
-class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] : Prop :=
+class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_smul R A] : Prop :=
 (star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
 
 export star_module (star_smul)
@@ -409,7 +409,7 @@ instance : star_semigroup Rˣ :=
 @[simp] lemma coe_star (u : Rˣ) : ↑(star u) = (star ↑u : R) := rfl
 @[simp] lemma coe_star_inv (u : Rˣ) : ↑(star u)⁻¹ = (star ↑u⁻¹ : R) := rfl
 
-instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_module Rˣ A :=
+instance {A : Type*} [has_star A] [has_smul R A] [star_module R A] : star_module Rˣ A :=
 ⟨λ u a, (star_smul ↑u a : _)⟩
 
 end units

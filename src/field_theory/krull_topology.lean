@@ -6,7 +6,8 @@ Authors: Sebastian Monnet
 
 import field_theory.galois
 import topology.algebra.filter_basis
-import algebra.algebra.subalgebra
+import topology.algebra.open_subgroup
+import tactic.by_contra
 
 /-!
 # Krull topology
@@ -34,9 +35,11 @@ all intermediate fields `E` with `E/K` finite dimensional.
 
 ## Main Results
 
-- `krull_topology_t2 K L h_int`. For an integral field extension `L/K` (one that satisfies
-  `h_int : algebra.is_integral K L`), the Krull topology on `L ≃ₐ[K] L`, `krull_topology K L`,
+- `krull_topology_t2 K L`. For an integral field extension `L/K`, the topology `krull_topology K L`
   is Hausdorff.
+
+- `krull_topology_totally_disconnected K L`. For an integral field extension `L/K`, the topology
+  `krull_topology K L` is totally disconnected.
 
 ## Notations
 
@@ -113,7 +116,7 @@ lemma finite_dimensional_sup {K L: Type*} [field K] [field L] [algebra K L]
 by exactI intermediate_field.finite_dimensional_sup E1 E2
 
 /-- An element of `L ≃ₐ[K] L` is in `Gal(L/E)` if and only if it fixes every element of `E`-/
-lemma mem_fixing_subgroup_iff {K L : Type*} [field K] [field L] [algebra K L]
+lemma intermediate_field.mem_fixing_subgroup_iff {K L : Type*} [field K] [field L] [algebra K L]
   (E : intermediate_field K L) (σ : (L ≃ₐ[K] L)) :
   σ ∈ E.fixing_subgroup ↔∀ (x : L), x ∈ E → σ x = x :=
 ⟨λ hσ x hx, hσ ⟨x, hx⟩, λ h ⟨x, hx⟩, h x hx⟩
@@ -171,12 +174,12 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
     { apply im_finite_dimensional σ.symm,
       exact hE },
     change σ * g * σ⁻¹ ∈ E.fixing_subgroup,
-    rw mem_fixing_subgroup_iff,
+    rw intermediate_field.mem_fixing_subgroup_iff,
     intros x hx,
     change σ(g(σ⁻¹ x)) = x,
     have h_in_F : σ⁻¹ x ∈ F := ⟨x, hx, by {dsimp, rw ← alg_equiv.inv_fun_eq_symm, refl }⟩,
     have h_g_fix : g (σ⁻¹ x) = (σ⁻¹ x),
-    { rw [subgroup.mem_carrier, mem_fixing_subgroup_iff F g] at hg,
+    { rw [subgroup.mem_carrier, intermediate_field.mem_fixing_subgroup_iff F g] at hg,
       exact hg (σ⁻¹ x) h_in_F },
     rw h_g_fix,
     change σ(σ⁻¹ x) = x,
@@ -198,23 +201,6 @@ section krull_t2
 
 open_locale topological_space filter
 
-/-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
-lemma subgroup.is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
-  [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
-  is_open (H : set G) :=
-begin
-  have h : 𝓝 1 ≤ 𝓟 (H : set G) :=
-    nhds_le_of_le h_1_int (is_open_interior) (filter.principal_mono.2 interior_subset),
-  rw is_open_iff_nhds,
-  intros g hg,
-  rw (show 𝓝 g = filter.map ⇑(homeomorph.mul_left g) (𝓝 1), by simp),
-  convert filter.map_mono h,
-  simp only [homeomorph.coe_mul_left, filter.map_principal, set.image_mul_left,
-  filter.principal_eq_iff_eq],
-  ext,
-  simp [H.mul_mem_cancel_left (H.inv_mem hg)],
-end
-
 /-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
   `L ≃ₐ[K] L`. -/
 lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field L] [algebra K L]
@@ -229,8 +215,15 @@ begin
   exact subgroup.is_open_of_one_mem_interior ⟨U, ⟨hU_open, hU_le⟩, h1U⟩,
 end
 
+/-- Given a tower of fields `L/E/K`, with `E/K` finite, the subgroup `Gal(L/E) ≤ L ≃ₐ[K] L` is
+  closed. -/
+lemma intermediate_field.fixing_subgroup_is_closed {K L : Type*} [field K] [field L] [algebra K L]
+  (E : intermediate_field K L) [finite_dimensional K E] :
+  is_closed (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
+open_subgroup.is_closed ⟨E.fixing_subgroup, E.fixing_subgroup_is_open⟩
+
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
-lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
+lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
   (h_int : algebra.is_integral K L) : t2_space (L ≃ₐ[K] L) :=
 { t2 := λ f g hfg,
   begin
@@ -251,17 +244,13 @@ lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
     refine ⟨left_coset f W, left_coset g W,
       ⟨hW_open.left_coset f, hW_open.left_coset g, ⟨1, hW_1, mul_one _⟩, ⟨1, hW_1, mul_one _⟩, _⟩⟩,
-    by_contra h_nonempty,
-    change left_coset f W ∩ left_coset g W ≠ ∅ at h_nonempty,
-    rw set.ne_empty_iff_nonempty at h_nonempty,
-    rcases h_nonempty with ⟨σ, ⟨⟨w1, hw1, hfw1⟩, ⟨w2, hw2, hgw2⟩⟩⟩,
-    rw ← hgw2 at hfw1,
-    rename hfw1 h,
+    rintro σ ⟨⟨w1, hw1, h⟩, w2, hw2, hgw2⟩,
+    rw ← hgw2 at h,
     rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
     have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
     rw h at h_in_H,
     change φ ∈ E.fixing_subgroup at h_in_H,
-    rw mem_fixing_subgroup_iff at h_in_H,
+    rw intermediate_field.mem_fixing_subgroup_iff at h_in_H,
     specialize h_in_H x,
     have hxE : x ∈ E,
     { apply intermediate_field.subset_adjoin,
@@ -270,3 +259,27 @@ lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
   end }
 
 end krull_t2
+
+section totally_disconnected
+
+/-- If `L/K` is an algebraic field extension, then the Krull topology on `L ≃ₐ[K] L` is
+  totally disconnected. -/
+lemma krull_topology_totally_disconnected {K L : Type*} [field K] [field L] [algebra K L]
+  (h_int : algebra.is_integral K L) : is_totally_disconnected (set.univ : set (L ≃ₐ[K] L)) :=
+begin
+  apply is_totally_disconnected_of_clopen_set,
+  intros σ τ h_diff,
+  have hστ : σ⁻¹ * τ ≠ 1,
+  { rwa [ne.def, inv_mul_eq_one] },
+  rcases (fun_like.exists_ne hστ) with ⟨x, hx : (σ⁻¹ * τ) x ≠ x⟩,
+  let E := intermediate_field.adjoin K ({x} : set L),
+  haveI := intermediate_field.adjoin.finite_dimensional (h_int x),
+  refine ⟨left_coset σ E.fixing_subgroup,
+    ⟨E.fixing_subgroup_is_open.left_coset σ, E.fixing_subgroup_is_closed.left_coset σ⟩,
+    ⟨1, E.fixing_subgroup.one_mem', by simp⟩, _⟩,
+  simp only [mem_left_coset_iff, set_like.mem_coe, intermediate_field.mem_fixing_subgroup_iff,
+    not_forall],
+  exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,
+end
+
+end totally_disconnected

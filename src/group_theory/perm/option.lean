@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import group_theory.perm.sign
-import data.equiv.option
+import logic.equiv.option
 
 /-!
 # Permutations of `option α`

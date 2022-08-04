@@ -235,4 +235,30 @@ set_like.ext_iff.mp (even_odd_comap_reverse Q n) x
 
 end submodule
 
+/-!
+### Related properties of the even and odd submodules
+
+TODO: show that these are `iff`s when `invertible (2 : R)`.
+-/
+
+lemma involute_eq_of_mem_even {x : clifford_algebra Q} (h : x ∈ even_odd Q 0) :
+  involute x = x :=
+begin
+  refine even_induction Q (alg_hom.commutes _) _ _ x h,
+  { rintros x y hx hy ihx ihy,
+    rw [map_add, ihx, ihy]},
+  { intros m₁ m₂ x hx ihx,
+    rw [map_mul, map_mul, involute_ι, involute_ι, ihx, neg_mul_neg], },
+end
+
+lemma involute_eq_of_mem_odd {x : clifford_algebra Q} (h : x ∈ even_odd Q 1) :
+  involute x = -x :=
+begin
+  refine odd_induction Q involute_ι _ _ x h,
+  { rintros x y hx hy ihx ihy,
+    rw [map_add, ihx, ihy, neg_add] },
+  { intros m₁ m₂ x hx ihx,
+    rw [map_mul, map_mul, involute_ι, involute_ι, ihx, neg_mul_neg, mul_neg] },
+end
+
 end clifford_algebra

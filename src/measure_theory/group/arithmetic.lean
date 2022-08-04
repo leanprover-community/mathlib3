@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.ae_measurable
 
 /-!
 # Typeclasses for measurability of operations
@@ -44,7 +44,7 @@ measurable function, arithmetic operator
 
 universes u v
 
-open_locale big_operators pointwise
+open_locale big_operators pointwise measure_theory
 open measure_theory
 
 /-!
@@ -56,6 +56,8 @@ For a typeclass assuming measurability of `uncurry (+)` see `has_measurable_add�
 class has_measurable_add (M : Type*) [measurable_space M] [has_add M] : Prop :=
 (measurable_const_add : ∀ c : M, measurable ((+) c))
 (measurable_add_const : ∀ c : M, measurable (+ c))
+
+export has_measurable_add (measurable_const_add measurable_add_const)
 
 /-- We say that a type `has_measurable_add` if `uncurry (+)` is a measurable functions.
 For a typeclass assuming measurability of `((+) c)` and `(+ c)` see `has_measurable_add`. -/
@@ -72,6 +74,8 @@ class has_measurable_mul (M : Type*) [measurable_space M] [has_mul M] : Prop :=
 (measurable_const_mul : ∀ c : M, measurable ((*) c))
 (measurable_mul_const : ∀ c : M, measurable (* c))
 
+export has_measurable_mul (measurable_const_mul measurable_mul_const)
+
 /-- We say that a type `has_measurable_mul` if `uncurry (*)` is a measurable functions.
 For a typeclass assuming measurability of `((*) c)` and `(* c)` see `has_measurable_mul`. -/
 @[to_additive has_measurable_add₂]
@@ -79,7 +83,6 @@ class has_measurable_mul₂ (M : Type*) [measurable_space M] [has_mul M] : Prop 
 (measurable_mul : measurable (λ p : M × M, p.1 * p.2))
 
 export has_measurable_mul₂ (measurable_mul)
-  has_measurable_mul (measurable_const_mul measurable_mul_const)
 
 section mul
 
@@ -152,8 +155,15 @@ instance pi.has_measurable_mul₂ {ι : Type*} {α : ι → Type*} [∀ i, has_m
 attribute [measurability] measurable.add' measurable.add ae_measurable.add ae_measurable.add'
   measurable.const_add ae_measurable.const_add measurable.add_const ae_measurable.add_const
 
-
 end mul
+
+/-- A version of `measurable_div_const` that assumes `has_measurable_mul` instead of
+  `has_measurable_div`. This can be nice to avoid unnecessary type-class assumptions. -/
+@[to_additive /-" A version of `measurable_sub_const` that assumes `has_measurable_add` instead of
+  `has_measurable_sub`. This can be nice to avoid unnecessary type-class assumptions. "-/]
+lemma measurable_div_const' {G : Type*} [div_inv_monoid G] [measurable_space G]
+  [has_measurable_mul G] (g : G) : measurable (λ h, h / g) :=
+by simp_rw [div_eq_mul_inv, measurable_mul_const]
 
 /-- This class assumes that the map `β × γ → β` given by `(x, y) ↦ x ^ y` is measurable. -/
 class has_measurable_pow (β γ : Type*) [measurable_space β] [measurable_space γ] [has_pow β γ] :=
@@ -161,13 +171,12 @@ class has_measurable_pow (β γ : Type*) [measurable_space β] [measurable_space
 
 export has_measurable_pow (measurable_pow)
 
-instance has_measurable_mul.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
+/-- `monoid.has_pow` is measurable. -/
+instance monoid.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_pow M ℕ :=
-⟨begin
-  haveI : measurable_singleton_class ℕ := ⟨λ _, trivial⟩,
-  refine measurable_from_prod_encodable (λ n, _),
+⟨measurable_from_prod_encodable $ λ n, begin
   induction n with n ih,
-  { simp [pow_zero, measurable_one] },
+  { simp only [pow_zero, ←pi.one_def, measurable_one] },
   { simp only [pow_succ], exact measurable_id.mul ih }
 end⟩
 
@@ -218,6 +227,8 @@ class has_measurable_sub (G : Type*) [measurable_space G] [has_sub G] : Prop :=
 (measurable_const_sub : ∀ c : G, measurable (λ x, c - x))
 (measurable_sub_const : ∀ c : G, measurable (λ x, x - c))
 
+export has_measurable_sub (measurable_const_sub measurable_sub_const)
+
 /-- We say that a type `has_measurable_sub` if `uncurry (-)` is a measurable functions.
 For a typeclass assuming measurability of `((-) c)` and `(- c)` see `has_measurable_sub`. -/
 class has_measurable_sub₂ (G : Type*) [measurable_space G] [has_sub G] : Prop :=
@@ -230,6 +241,8 @@ For a typeclass assuming measurability of `uncurry (/)` see `has_measurable_div�
 @[to_additive] class has_measurable_div (G₀: Type*) [measurable_space G₀] [has_div G₀] : Prop :=
 (measurable_const_div : ∀ c : G₀, measurable ((/) c))
 (measurable_div_const : ∀ c : G₀, measurable (/ c))
+
+export has_measurable_div (measurable_const_div measurable_div_const)
 
 /-- We say that a type `has_measurable_div` if `uncurry (/)` is a measurable functions.
 For a typeclass assuming measurability of `((/) c)` and `(/ c)` see `has_measurable_div`. -/
@@ -323,9 +336,22 @@ begin
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
 end
 
+lemma measurable_set_eq_fun_of_encodable {m : measurable_space α} {E} [measurable_space E]
+  [measurable_singleton_class E] [encodable E] {f g : α → E}
+  (hf : measurable f) (hg : measurable g) :
+  measurable_set {x | f x = g x} :=
+begin
+  have : {x | f x = g x} = ⋃ j, {x | f x = j} ∩ {x | g x = j},
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_eq_right'], },
+  rw this,
+  refine measurable_set.Union (λ j, measurable_set.inter _ _),
+  { exact hf (measurable_set_singleton j), },
+  { exact hg (measurable_set_singleton j), },
+end
+
 lemma ae_eq_trim_of_measurable {α E} {m m0 : measurable_space α} {μ : measure α}
   [measurable_space E] [add_group E] [measurable_singleton_class E] [has_measurable_sub₂ E]
-  (hm : m ≤ m0) {f g : α → E} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
+  (hm : m ≤ m0) {f g : α → E} (hf : measurable[m] f) (hg : measurable[m] g)
   (hfg : f =ᵐ[μ] g) :
   f =ᶠ[@measure.ae α m (μ.trim hm)] g :=
 begin
@@ -403,29 +429,15 @@ measurable_inv hs
 
 end inv
 
-/- There is something extremely strange here: copy-pasting the proof of this lemma in the proof
-of `has_measurable_zpow` fails, while `pp.all` does not show any difference in the goal.
-Keep it as a separate lemmas as a workaround. -/
-private lemma has_measurable_zpow_aux (G : Type u) [div_inv_monoid G] [measurable_space G]
-  [has_measurable_mul₂ G] [has_measurable_inv G] (k : ℕ) :
-  measurable (λ (x : G), x ^(-[1+ k])) :=
-begin
-  simp_rw [zpow_neg_succ_of_nat],
-  exact (measurable_id.pow_const (k + 1)).inv
-end
-
-instance has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
+/-- `div_inv_monoid.has_pow` is measurable. -/
+instance div_inv_monoid.has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
-begin
-  letI : measurable_singleton_class ℤ := ⟨λ _, trivial⟩,
-  constructor,
-  refine measurable_from_prod_encodable (λ n, _),
-  dsimp,
-  apply int.cases_on n,
-  { simpa using measurable_id.pow_const },
-  { exact has_measurable_zpow_aux G }
-end
+⟨measurable_from_prod_encodable $ λ n, begin
+  cases n with n n,
+  { simp_rw zpow_of_nat, exact measurable_id.pow_const _ },
+  { simp_rw zpow_neg_succ_of_nat, exact (measurable_id.pow_const (n + 1)).inv }
+end⟩
 
 @[priority 100, to_additive]
 instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
@@ -443,7 +455,7 @@ class has_measurable_vadd (M α : Type*) [has_vadd M α] [measurable_space M] [m
 /-- We say that the action of `M` on `α` `has_measurable_smul` if for each `c` the map `x ↦ c • x`
 is a measurable function and for each `x` the map `c ↦ c • x` is a measurable function. -/
 @[to_additive]
-class has_measurable_smul (M α : Type*) [has_scalar M α] [measurable_space M] [measurable_space α] :
+class has_measurable_smul (M α : Type*) [has_smul M α] [measurable_space M] [measurable_space α] :
   Prop :=
 (measurable_const_smul : ∀ c : M, measurable ((•) c : α → α))
 (measurable_smul_const : ∀ x : α, measurable (λ c : M, c • x))
@@ -457,14 +469,14 @@ class has_measurable_vadd₂ (M α : Type*) [has_vadd M α] [measurable_space M]
 /-- We say that the action of `M` on `α` `has_measurable_smul₂` if the map
 `(c, x) ↦ c • x` is a measurable function. -/
 @[to_additive has_measurable_vadd₂]
-class has_measurable_smul₂ (M α : Type*) [has_scalar M α] [measurable_space M]
+class has_measurable_smul₂ (M α : Type*) [has_smul M α] [measurable_space M]
   [measurable_space α] : Prop :=
 (measurable_smul : measurable (function.uncurry (•) : M × α → α))
 
 export has_measurable_smul (measurable_const_smul measurable_smul_const)
-  has_measurable_smul₂ (measurable_smul)
+export has_measurable_smul₂ (measurable_smul)
 export has_measurable_vadd (measurable_const_vadd measurable_vadd_const)
-  has_measurable_vadd₂ (measurable_vadd)
+export has_measurable_vadd₂ (measurable_vadd)
 
 @[to_additive]
 instance has_measurable_smul_of_mul (M : Type*) [has_mul M] [measurable_space M]
@@ -491,7 +503,7 @@ s.to_submonoid.has_measurable_smul
 
 section smul
 
-variables {M β α : Type*} [measurable_space M] [measurable_space β] [has_scalar M β]
+variables {M β α : Type*} [measurable_space M] [measurable_space β] [has_smul M β]
   {m : measurable_space α} {f : α → M} {g : α → β}
 
 include m
@@ -551,11 +563,35 @@ hf.const_smul' c
 omit m
 
 @[to_additive]
-instance pi.has_measurable_smul {ι : Type*} {α : ι → Type*} [∀ i, has_scalar M (α i)]
+instance pi.has_measurable_smul {ι : Type*} {α : ι → Type*} [∀ i, has_smul M (α i)]
   [∀ i, measurable_space (α i)] [∀ i, has_measurable_smul M (α i)] :
   has_measurable_smul M (Π i, α i) :=
 ⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).const_smul _,
  λ g, measurable_pi_iff.mpr $ λ i, measurable_smul_const _⟩
+
+/-- `add_monoid.has_smul_nat` is measurable. -/
+instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measurable_space M]
+  [has_measurable_add₂ M] : has_measurable_smul₂ ℕ M :=
+⟨begin
+  suffices : measurable (λ p : M × ℕ, p.2 • p.1),
+  { apply this.comp measurable_swap, },
+  refine measurable_from_prod_encodable (λ n, _),
+  induction n with n ih,
+  { simp only [zero_smul, ←pi.zero_def, measurable_zero] },
+  { simp only [succ_nsmul], exact measurable_id.add ih }
+end⟩
+
+/-- `sub_neg_monoid.has_smul_int` is measurable. -/
+instance sub_neg_monoid.has_measurable_smul_int₂ (M : Type*) [sub_neg_monoid M] [measurable_space M]
+  [has_measurable_add₂ M] [has_measurable_neg M] : has_measurable_smul₂ ℤ M :=
+⟨begin
+  suffices : measurable (λ p : M × ℤ, p.2 • p.1),
+  { apply this.comp measurable_swap, },
+  refine measurable_from_prod_encodable (λ n, _),
+  induction n with n n ih,
+  { simp only [of_nat_zsmul], exact measurable_const_smul _, },
+  { simp only [zsmul_neg_succ_of_nat], exact (measurable_const_smul _).neg }
+end⟩
 
 end smul
 
@@ -639,7 +675,7 @@ instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] 
 
 /-- If a scalar is central, then its right action is measurable when its left action is. -/
 instance has_measurable_smul.op {M α} [measurable_space M]
-  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [measurable_space α] [has_smul M α] [has_smul Mᵐᵒᵖ α] [is_central_scalar M α]
   [has_measurable_smul M α] : has_measurable_smul Mᵐᵒᵖ α :=
 ⟨ mul_opposite.rec $ λ c, show measurable (λ x, op c • x),
                           by simpa only [op_smul_eq_smul] using measurable_const_smul c,
@@ -648,7 +684,7 @@ instance has_measurable_smul.op {M α} [measurable_space M]
 
 /-- If a scalar is central, then its right action is measurable when its left action is. -/
 instance has_measurable_smul₂.op {M α} [measurable_space M]
-  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [measurable_space α] [has_smul M α] [has_smul Mᵐᵒᵖ α] [is_central_scalar M α]
   [has_measurable_smul₂ M α] : has_measurable_smul₂ Mᵐᵒᵖ α :=
 ⟨show measurable (λ x : Mᵐᵒᵖ × α, op (unop x.1) • x.2), begin
   simp_rw op_smul_eq_smul,

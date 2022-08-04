@@ -49,7 +49,7 @@ noncomputable theory
 
 namespace besicovitch
 
-variables {E : Type*} [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 namespace satellite_config
 variables [normed_space ℝ E] {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
@@ -123,7 +123,7 @@ end satellite_config
 
 /-- The maximum cardinality of a `1`-separated set in the ball of radius `2`. This is also the
 optimal number of families in the Besicovitch covering theorem. -/
-def multiplicity (E : Type*) [normed_group E] :=
+def multiplicity (E : Type*) [normed_add_comm_group E] :=
 Sup {N | ∃ s : finset E, s.card = N ∧ (∀ c ∈ s, ∥c∥ ≤ 2) ∧ (∀ c ∈ s, ∀ d ∈ s, c ≠ d → 1 ≤ ∥c - d∥)}
 
 section
@@ -139,8 +139,7 @@ begin
   /- We consider balls of radius `1/2` around the points in `s`. They are disjoint, and all
   contained in the ball of radius `5/2`. A volume argument gives `s.card * (1/2)^dim ≤ (5/2)^dim`,
   i.e., `s.card ≤ 5^dim`. -/
-  letI : measurable_space E := borel E,
-  letI : borel_space E := ⟨rfl⟩,
+  borelize E,
   let μ : measure E := measure.add_haar,
   let δ : ℝ := (1 : ℝ)/2,
   let ρ : ℝ := (5 : ℝ)/2,

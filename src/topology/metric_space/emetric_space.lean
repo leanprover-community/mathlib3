@@ -99,13 +99,11 @@ class pseudo_emetric_space (α : Type u) extends has_edist α : Type u :=
   uniform_space_of_edist edist edist_self edist_comm edist_triangle)
 (uniformity_edist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 
+attribute [priority 100, instance] pseudo_emetric_space.to_uniform_space
+
 /- Pseudoemetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
 variables [pseudo_emetric_space α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance pseudo_emetric_space.to_uniform_space' : uniform_space α :=
-pseudo_emetric_space.to_uniform_space
 
 export pseudo_emetric_space (edist_self edist_comm edist_triangle)
 
@@ -231,6 +229,12 @@ emetric.mk_uniformity_basis_le (λ _, and.left)
 theorem uniformity_basis_edist_nnreal :
   (𝓤 α).has_basis (λ ε : ℝ≥0, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
 emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
+  ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
+
+theorem uniformity_basis_edist_nnreal_le :
+  (𝓤 α).has_basis (λ ε : ℝ≥0, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 ≤ ε}) :=
+emetric.mk_uniformity_basis_le (λ _, ennreal.coe_pos.2)
   (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
   ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
 
@@ -399,8 +403,8 @@ theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist
 
 namespace mul_opposite
 
-/-- Pseudoemetric space instance on multiplicative opposites of pseudoemetric spaces -/
-@[to_additive]
+/-- Pseudoemetric space instance on the multiplicative opposite of a pseudoemetric space. -/
+@[to_additive "Pseudoemetric space instance on the additive opposite of a pseudoemetric space."]
 instance {α : Type*} [pseudo_emetric_space α] : pseudo_emetric_space αᵐᵒᵖ :=
 pseudo_emetric_space.induced unop ‹_›
 
@@ -408,6 +412,16 @@ pseudo_emetric_space.induced unop ‹_›
 @[to_additive] theorem edist_op (x y : α) : edist (op x) (op y) = edist x y := rfl
 
 end mul_opposite
+
+section ulift
+
+instance : pseudo_emetric_space (ulift α) :=
+pseudo_emetric_space.induced ulift.down ‹_›
+
+lemma ulift.edist_eq (x y : ulift α) : edist x y = edist x.down y.down := rfl
+@[simp] lemma ulift.edist_up_up (x y : α) : edist (ulift.up x) (ulift.up y) = edist x y := rfl
+
+end ulift
 
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
@@ -487,12 +501,16 @@ def ball (x : α) (ε : ℝ≥0∞) : set α := {y | edist y x < ε}
 
 @[simp] theorem mem_ball : y ∈ ball x ε ↔ edist y x < ε := iff.rfl
 
-theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε := by rw edist_comm; refl
+theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε :=
+by rw [edist_comm, mem_ball]
 
 /-- `emetric.closed_ball x ε` is the set of all points `y` with `edist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ≥0∞) := {y | edist y x ≤ ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
+
+theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ edist x y ≤ ε :=
+by rw [edist_comm, mem_closed_ball]
 
 @[simp] theorem closed_ball_top (x : α) : closed_ball x ∞ = univ :=
 eq_univ_of_forall $ λ y, le_top
@@ -510,7 +528,10 @@ theorem mem_closed_ball_self : x ∈ closed_ball x ε :=
 show edist x x ≤ ε, by rw edist_self; exact bot_le
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
-by simp [edist_comm]
+by rw [mem_ball', mem_ball]
+
+theorem mem_closed_ball_comm : x ∈ closed_ball y ε ↔ y ∈ closed_ball x ε :=
+by rw [mem_closed_ball', mem_closed_ball]
 
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
@@ -519,10 +540,8 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
-theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
-not_lt_of_le (edist_triangle_left x y z)
-  (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
+theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : disjoint (ball x ε₁) (ball y ε₂) :=
+λ z ⟨h₁, h₂⟩, (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
 
 theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
@@ -542,6 +561,14 @@ theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
 eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
+
+lemma ord_connected_set_of_closed_ball_subset (x : α) (s : set α) :
+  ord_connected {r | closed_ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (closed_ball_subset_closed_ball hr.2).trans hr₂⟩
+
+lemma ord_connected_set_of_ball_subset (x : α) (s : set α) :
+  ord_connected {r | ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (ball_subset_ball hr.2).trans hr₂⟩
 
 /-- Relation “two points are at a finite edistance” is an equivalence relation. -/
 def edist_lt_top_setoid : setoid α :=
@@ -571,8 +598,8 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem is_closed_ball_top : is_closed (ball x ⊤) :=
-is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2 $
-  ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
+is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top,
+  (ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }).subset_compl_right⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 is_open_ball.mem_nhds (mem_ball_self ε0)
@@ -603,6 +630,9 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_eball).trans $
   by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
+theorem inseparable_iff : inseparable x y ↔ edist x y = 0 :=
+by simp [inseparable_iff_mem_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
+
 /-- In a pseudoemetric space, Cauchy sequences are characterized by the fact that, eventually,
 the pseudoedistance between its elements is arbitrarily small -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -622,14 +652,14 @@ theorem cauchy_seq_iff_nnreal [nonempty β] [semilattice_sup β] {u : β → α}
 uniformity_basis_edist_nnreal.cauchy_seq_iff'
 
 theorem totally_bounded_iff {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, t.finite ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
   ⟨t, ft, h.trans $ Union₂_mono $ λ y yt z, hε⟩⟩
 
 theorem totally_bounded_iff' {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, set.finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, (totally_bounded_iff_subset.1 H) _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, _, ft, h⟩ := H ε ε0 in
@@ -640,8 +670,8 @@ section compact
 /-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
 set that is `ε`-dense in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
 lemma subset_countable_closure_of_almost_dense_set (s : set α)
-  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
-  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+  (hs : ∀ ε > 0, ∃ t : set α, t.countable ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
+  ∃ t ⊆ s, (t.countable ∧ s ⊆ closure t) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|⟨x₀, hx₀⟩,
   { exact ⟨∅, empty_subset _, countable_empty, empty_subset _⟩ },
@@ -668,7 +698,7 @@ end
 /-- A compact set in a pseudo emetric space is separable, i.e., it is a subset of the closure of a
 countable set.  -/
 lemma subset_countable_closure_of_compact {s : set α} (hs : is_compact s) :
-  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+  ∃ t ⊆ s, (t.countable ∧ s ⊆ closure t) :=
 begin
   refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
   rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
@@ -688,6 +718,7 @@ to avoid a loop with `sigma_compact_space_of_locally_compact_second_countable`. 
 lemma second_countable_of_sigma_compact [sigma_compact_space α] :
   second_countable_topology α :=
 begin
+
   suffices : separable_space α, by exactI uniform_space.second_countable_of_separable α,
   choose T hTsub hTc hsubT
     using λ n, subset_countable_closure_of_compact (is_compact_compact_covering α n),
@@ -699,7 +730,7 @@ end
 variable {α}
 
 lemma second_countable_of_almost_dense_set
-  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
+  (hs : ∀ ε > 0, ∃ t : set α, t.countable ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
   second_countable_topology α :=
 begin
   suffices : separable_space α, by exactI uniform_space.second_countable_of_separable α,
@@ -822,10 +853,6 @@ class emetric_space (α : Type u) extends pseudo_emetric_space α : Type u :=
 
 variables {γ : Type w} [emetric_space γ]
 
-@[priority 100] -- see Note [lower instance priority]
-instance emetric_space.to_uniform_space' : uniform_space γ :=
-pseudo_emetric_space.to_uniform_space
-
 export emetric_space (eq_of_edist_eq_zero)
 
 /-- Characterize the equality of points by the vanishing of their extended distance -/
@@ -873,15 +900,10 @@ instance to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
-/-- If a  `pseudo_emetric_space` is separated, then it is an `emetric_space`. -/
-def emetric_of_t2_pseudo_emetric_space {α : Type*} [pseudo_emetric_space α]
-  (h : separated_space α) : emetric_space α :=
-{ eq_of_edist_eq_zero := λ x y hdist,
-  begin
-    refine separated_def.1 h x y (λ s hs, _),
-    obtain ⟨ε, hε, H⟩ := mem_uniformity_edist.1 hs,
-    exact H (show edist x y < ε, by rwa [hdist])
-  end
+/-- If a `pseudo_emetric_space` is a T₀ space, then it is an `emetric_space`. -/
+def emetric.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
+  emetric_space α :=
+{ eq_of_edist_eq_zero := λ x y hdist, inseparable.eq $ emetric.inseparable_iff.2 hdist,
   ..‹pseudo_emetric_space α› }
 
 /-- Auxiliary function to replace the uniformity on an emetric space with
@@ -925,10 +947,13 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
 instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=
 emetric_space.induced coe subtype.coe_injective ‹_›
 
-/-- Emetric space instance on multiplicative opposites of emetric spaces -/
-@[to_additive]
+/-- Emetric space instance on the multiplicative opposite of an emetric space. -/
+@[to_additive "Emetric space instance on the additive opposite of an emetric space."]
 instance {α : Type*} [emetric_space α] : emetric_space αᵐᵒᵖ :=
 emetric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
+
+instance {α : Type*} [emetric_space α] : emetric_space (ulift α) :=
+emetric_space.induced ulift.down ulift.down_injective ‹_›
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
@@ -971,7 +996,7 @@ namespace emetric
 
 /-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set. -/
 lemma countable_closure_of_compact {s : set γ} (hs : is_compact s) :
-  ∃ t ⊆ s, (countable t ∧ s = closure t) :=
+  ∃ t ⊆ s, (t.countable ∧ s = closure t) :=
 begin
   rcases subset_countable_closure_of_compact hs with ⟨t, hts, htc, hsub⟩,
   exact ⟨t, hts, htc, subset.antisymm hsub (closure_minimal hts hs.is_closed)⟩
@@ -985,12 +1010,7 @@ lemma diam_eq_zero_iff : diam s = 0 ↔ s.subsingleton :=
 ⟨λ h x hx y hy, edist_le_zero.1 $ h ▸ edist_le_diam_of_mem hx hy, diam_subsingleton⟩
 
 lemma diam_pos_iff : 0 < diam s ↔ ∃ (x ∈ s) (y ∈ s), x ≠ y :=
-begin
-  have := not_congr (@diam_eq_zero_iff _ _ s),
-  dunfold set.subsingleton at this,
-  push_neg at this,
-  simpa only [pos_iff_ne_zero, exists_prop] using this
-end
+by simp only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_forall]
 
 end diam
 

@@ -100,7 +100,7 @@ begin
   classical,
   rw is_matching_iff_forall_degree at h,
   use M.coe.edge_finset.card,
-  rw ← M.coe.sum_degrees_eq_twice_card_edges,
+  rw [← two_mul, ← M.coe.sum_degrees_eq_twice_card_edges],
   simp [h, finset.card_univ],
 end
 

@@ -56,14 +56,13 @@ section atoms
 
 section is_atom
 
+section preorder
+
+variables [preorder α] [order_bot α] {a b x : α}
+
 /-- An atom of an `order_bot` is an element with no other element between it and `⊥`,
   which is not `⊥`. -/
-def is_atom [preorder α] [order_bot α] (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
-
-variables [partial_order α] [order_bot α] {a b x : α}
-
-lemma eq_bot_or_eq_of_le_atom (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
-hab.lt_or_eq.imp_left (ha.2 b)
+def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
 
 lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
@@ -71,9 +70,19 @@ lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set
 lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 
+end preorder
+
+variables [partial_order α] [order_bot α] {a b x : α}
+
+lemma is_atom.lt_iff (h : is_atom a) : x < a ↔ x = ⊥ := ⟨h.2 x, λ hx, hx.symm ▸ h.1.bot_lt⟩
+
+lemma is_atom.le_iff (h : is_atom a) : x ≤ a ↔ x = ⊥ ∨ x = a :=
+by rw [le_iff_lt_or_eq, h.lt_iff]
+
+lemma is_atom.Iic_eq (h : is_atom a) : set.Iic a = {⊥, a} := set.ext $ λ x, h.le_iff
+
 @[simp] lemma bot_covby_iff : ⊥ ⋖ a ↔ is_atom a :=
-⟨λ h, ⟨h.lt.ne', λ b hba, not_not.1 $ λ hb, h.2 (ne.bot_lt hb) hba⟩,
-  λ h, ⟨h.1.bot_lt, λ b hb hba, hb.ne' $ h.2 _ hba⟩⟩
+by simp only [covby, bot_lt_iff_ne_bot, is_atom, not_imp_not]
 
 alias bot_covby_iff ↔ covby.is_atom is_atom.bot_covby
 
@@ -81,25 +90,44 @@ end is_atom
 
 section is_coatom
 
+section preorder
+
+variables [preorder α]
+
 /-- A coatom of an `order_top` is an element with no other element between it and `⊤`,
   which is not `⊤`. -/
-def is_coatom [preorder α] [order_top α] (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
+def is_coatom [order_top α] (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
 
-variables [partial_order α] [order_top α] {a b x : α}
+@[simp] lemma is_coatom_dual_iff_is_atom [order_bot α] {a : α}:
+  is_coatom (order_dual.to_dual a) ↔ is_atom a :=
+iff.rfl
 
-lemma eq_top_or_eq_of_coatom_le (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
-hab.lt_or_eq.imp (ha.2 b) eq_comm.2
+@[simp] lemma is_atom_dual_iff_is_coatom [order_top α] {a : α} :
+  is_atom (order_dual.to_dual a) ↔ is_coatom a :=
+iff.rfl
+
+alias is_coatom_dual_iff_is_atom ↔ _ is_atom.dual
+alias is_atom_dual_iff_is_coatom ↔ _ is_coatom.dual
+
+variables [order_top α] {a x : α}
 
 lemma is_coatom.Ici (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
-⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
+ha.dual.Iic hax
 
 lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
-⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop hba.le⟩ hba)⟩
+@is_atom.of_is_atom_coe_Iic αᵒᵈ _ _ x a ha
+
+end preorder
+
+variables [partial_order α] [order_top α] {a b x : α}
+
+lemma is_coatom.lt_iff (h : is_coatom a) : a < x ↔ x = ⊤ := h.dual.lt_iff
+lemma is_coatom.le_iff (h : is_coatom a) : a ≤ x ↔ x = ⊤ ∨ x = a := h.dual.le_iff
+lemma is_coatom.Ici_eq (h : is_coatom a) : set.Ici a = {⊤, a} := h.dual.Iic_eq
 
 @[simp] lemma covby_top_iff : a ⋖ ⊤ ↔ is_coatom a :=
-⟨λ h, ⟨h.ne, λ b hab, not_not.1 $ λ hb, h.2 hab $ ne.lt_top hb⟩,
-  λ h, ⟨h.1.lt_top, λ b hab hb, hb.ne $ h.2 _ hab⟩⟩
+to_dual_covby_to_dual_iff.symm.trans bot_covby_iff
 
 alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
@@ -109,9 +137,7 @@ section pairwise
 
 lemma is_atom.inf_eq_bot_of_ne [semilattice_inf α] [order_bot α] {a b : α}
   (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : a ⊓ b = ⊥ :=
-or.elim (eq_bot_or_eq_of_le_atom ha inf_le_left) id
-  (λ h1, or.elim (eq_bot_or_eq_of_le_atom hb inf_le_right) id
-  (λ h2, false.rec _ (hab (le_antisymm (inf_eq_left.mp h1) (inf_eq_right.mp h2)))))
+hab.not_le_or_not_le.elim (ha.lt_iff.1 ∘ inf_lt_left.2) (hb.lt_iff.1 ∘ inf_lt_right.2)
 
 lemma is_atom.disjoint_of_ne [semilattice_inf α] [order_bot α] {a b : α}
   (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : disjoint a b :=
@@ -119,23 +145,9 @@ disjoint_iff.mpr (is_atom.inf_eq_bot_of_ne ha hb hab)
 
 lemma is_coatom.sup_eq_top_of_ne [semilattice_sup α] [order_top α] {a b : α}
   (ha : is_coatom a) (hb : is_coatom b) (hab : a ≠ b) : a ⊔ b = ⊤ :=
-or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
-  (λ h1, or.elim (eq_top_or_eq_of_coatom_le hb le_sup_right) id
-  (λ h2, false.rec _ (hab (le_antisymm (sup_eq_right.mp h2) (sup_eq_left.mp h1)))))
+ha.dual.inf_eq_bot_of_ne hb.dual hab
 
 end pairwise
-
-variables [partial_order α] {a : α}
-
-@[simp]
-lemma is_coatom_dual_iff_is_atom [order_bot α] :
-  is_coatom (order_dual.to_dual a) ↔ is_atom a :=
-iff.rfl
-
-@[simp]
-lemma is_atom_dual_iff_is_coatom [order_top α] :
-  is_atom (order_dual.to_dual a) ↔ is_coatom a :=
-iff.rfl
 
 end atoms
 
@@ -155,20 +167,17 @@ export is_atomic (eq_bot_or_exists_atom_le) is_coatomic (eq_top_or_exists_le_coa
 
 variable {α}
 
-@[simp] theorem is_coatomic_dual_iff_is_atomic [order_bot α] :
-  is_coatomic (order_dual α) ↔ is_atomic α :=
+@[simp] lemma is_coatomic_dual_iff_is_atomic [order_bot α] : is_coatomic αᵒᵈ ↔ is_atomic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩, λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩⟩
 
-@[simp] theorem is_atomic_dual_iff_is_coatomic [order_top α] :
-  is_atomic (order_dual α) ↔ is_coatomic α :=
+@[simp] lemma is_atomic_dual_iff_is_coatomic [order_top α] : is_atomic αᵒᵈ ↔ is_coatomic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩, λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩⟩
 
 namespace is_atomic
 
 variables [order_bot α] [is_atomic α]
 
-instance is_coatomic_dual : is_coatomic (order_dual α) :=
-is_coatomic_dual_iff_is_atomic.2 ‹is_atomic α›
+instance is_coatomic_dual : is_coatomic αᵒᵈ := is_coatomic_dual_iff_is_atomic.2 ‹is_atomic α›
 
 instance {x : α} : is_atomic (set.Iic x) :=
 ⟨λ ⟨y, hy⟩, (eq_bot_or_exists_atom_le y).imp subtype.mk_eq_mk.2
@@ -180,8 +189,7 @@ namespace is_coatomic
 
 variables [order_top α] [is_coatomic α]
 
-instance is_coatomic : is_atomic (order_dual α) :=
-is_atomic_dual_iff_is_coatomic.2 ‹is_coatomic α›
+instance is_coatomic : is_atomic αᵒᵈ := is_atomic_dual_iff_is_coatomic.2 ‹is_coatomic α›
 
 instance {x : α} : is_coatomic (set.Ici x) :=
 ⟨λ ⟨y, hy⟩, (eq_top_or_exists_le_coatom y).imp subtype.mk_eq_mk.2
@@ -199,6 +207,20 @@ theorem is_coatomic_iff_forall_is_coatomic_Ici [order_top α] :
   is_coatomic α ↔ ∀ (x : α), is_coatomic (set.Ici x) :=
 is_atomic_dual_iff_is_coatomic.symm.trans $ is_atomic_iff_forall_is_atomic_Iic.trans $ forall_congr
   (λ x, is_coatomic_dual_iff_is_atomic.symm.trans iff.rfl)
+
+section well_founded
+
+lemma is_atomic_of_order_bot_well_founded_lt [order_bot α]
+  (h : well_founded ((<) : α → α → Prop)) : is_atomic α :=
+⟨λ a, or_iff_not_imp_left.2 $
+  λ ha, let ⟨b, hb, hm⟩ := h.has_min { b | b ≠ ⊥ ∧ b ≤ a } ⟨a, ha, le_rfl⟩ in
+  ⟨b, ⟨hb.1, λ c, not_imp_not.1 $ λ hc hl, hm c ⟨hc, hl.le.trans hb.2⟩ hl⟩, hb.2⟩⟩
+
+lemma is_coatomic_of_order_top_gt_well_founded [order_top α]
+  (h : well_founded ((>) : α → α → Prop)) : is_coatomic α :=
+is_atomic_dual_iff_is_coatomic.1 (@is_atomic_of_order_bot_well_founded_lt αᵒᵈ _ _ h)
+
+end well_founded
 
 end atomic
 
@@ -219,16 +241,16 @@ export is_atomistic (eq_Sup_atoms) is_coatomistic (eq_Inf_coatoms)
 variable {α}
 
 @[simp]
-theorem is_coatomistic_dual_iff_is_atomistic : is_coatomistic (order_dual α) ↔ is_atomistic α :=
+theorem is_coatomistic_dual_iff_is_atomistic : is_coatomistic αᵒᵈ ↔ is_atomistic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_Inf_coatoms⟩, λ h, ⟨λ b, by apply h.eq_Sup_atoms⟩⟩
 
 @[simp]
-theorem is_atomistic_dual_iff_is_coatomistic : is_atomistic (order_dual α) ↔ is_coatomistic α :=
+theorem is_atomistic_dual_iff_is_coatomistic : is_atomistic αᵒᵈ ↔ is_coatomistic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_Sup_atoms⟩, λ h, ⟨λ b, by apply h.eq_Inf_coatoms⟩⟩
 
 namespace is_atomistic
 
-instance is_coatomistic_dual [h : is_atomistic α] : is_coatomistic (order_dual α) :=
+instance is_coatomistic_dual [h : is_atomistic α] : is_coatomistic αᵒᵈ :=
 is_coatomistic_dual_iff_is_atomistic.2 h
 
 variable [is_atomistic α]
@@ -270,7 +292,7 @@ end is_atomistic
 
 namespace is_coatomistic
 
-instance is_atomistic_dual [h : is_coatomistic α] : is_atomistic (order_dual α) :=
+instance is_atomistic_dual [h : is_coatomistic α] : is_atomistic αᵒᵈ :=
 is_atomistic_dual_iff_is_coatomistic.2 h
 
 variable [is_coatomistic α]
@@ -292,12 +314,12 @@ class is_simple_order (α : Type*) [has_le α] [bounded_order α] extends nontri
 export is_simple_order (eq_bot_or_eq_top)
 
 theorem is_simple_order_iff_is_simple_order_order_dual [has_le α] [bounded_order α] :
-  is_simple_order α ↔ is_simple_order (order_dual α) :=
+  is_simple_order α ↔ is_simple_order αᵒᵈ :=
 begin
   split; intro i; haveI := i,
   { exact { exists_pair_ne := @exists_pair_ne α _,
       eq_bot_or_eq_top := λ a, or.symm (eq_bot_or_eq_top ((order_dual.of_dual a)) : _ ∨ _) } },
-  { exact { exists_pair_ne := @exists_pair_ne (order_dual α) _,
+  { exact { exists_pair_ne := @exists_pair_ne αᵒᵈ _,
       eq_bot_or_eq_top := λ a, or.symm (eq_bot_or_eq_top (order_dual.to_dual a)) } }
 end
 
@@ -314,7 +336,7 @@ section is_simple_order
 
 variables [partial_order α] [bounded_order α] [is_simple_order α]
 
-instance {α} [has_le α] [bounded_order α] [is_simple_order α] : is_simple_order (order_dual α) :=
+instance {α} [has_le α] [bounded_order α] [is_simple_order α] : is_simple_order αᵒᵈ :=
 is_simple_order_iff_is_simple_order_order_dual.1 (by apply_instance)
 
 /-- A simple `bounded_order` induces a preorder. This is not an instance to prevent loops. -/
@@ -432,17 +454,6 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
         simp [h] }
     end,
   top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
-  sup_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top],
-  inf_inf_sdiff := λ x y, begin
-      rcases eq_bot_or_eq_top x with rfl | rfl,
-      { simpa },
-      rcases eq_bot_or_eq_top y with rfl | rfl,
-      { simpa },
-      { simp only [true_and, top_inf_eq, eq_self_iff_true],
-        split_ifs with h h;
-        simpa [h] }
-    end,
   .. (show bounded_order α, by apply_instance),
   .. is_simple_order.distrib_lattice }
 
@@ -540,13 +551,13 @@ is_simple_order_iff_is_simple_order_order_dual.trans is_simple_order_iff_is_atom
 
 namespace set
 
-theorem is_simple_order_Iic_iff_is_atom [partial_order α] [bounded_order α] {a : α} :
+theorem is_simple_order_Iic_iff_is_atom [partial_order α] [order_bot α] {a : α} :
   is_simple_order (Iic a) ↔ is_atom a :=
 is_simple_order_iff_is_atom_top.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
     λ h ⟨b, hab⟩ hbotb, subtype.mk_eq_mk.2 (h b (subtype.mk_lt_mk.1 hbotb))⟩
 
-theorem is_simple_order_Ici_iff_is_coatom [partial_order α] [bounded_order α] {a : α} :
+theorem is_simple_order_Ici_iff_is_coatom [partial_order α] [order_top α] {a : α} :
   is_simple_order (Ici a) ↔ is_coatom a :=
 is_simple_order_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
@@ -658,7 +669,7 @@ instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] :
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
   obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
-    (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
+    (set.to_finite _) ⟨b, le_rfl, ht⟩,
   refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
   by_contra hyt,
   obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,

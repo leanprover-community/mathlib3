@@ -55,8 +55,7 @@ namespace measure_theory
 
 open topological_space measure_theory.measure
 
-variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
-  [normed_space ℝ E] [complete_space E] [borel_space E]
+variables {α E : Type*} [measurable_space E]
 
 /-- A random variable `X : α → E` is said to `has_pdf` with respect to the measure `ℙ` on `α` and
 `μ` on `E` if there exists a measurable function `f` such that the push-forward measure of `ℙ`
@@ -156,7 +155,7 @@ lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [
   {f : E → ℝ} (hf : measurable f) :
   integrable (λ x, f (X x)) ℙ ↔ integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ :=
 begin
-  rw [← integrable_map_measure hf.ae_measurable (has_pdf.measurable X ℙ μ),
+  rw [← integrable_map_measure hf.ae_strongly_measurable (has_pdf.measurable X ℙ μ).ae_measurable,
       map_eq_with_density_pdf X ℙ μ,
       integrable_with_density_iff (measurable_pdf _ _ _) ae_lt_top],
   apply_instance
@@ -170,7 +169,7 @@ lemma integral_fun_mul_eq_integral [is_finite_measure ℙ]
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
   by_cases hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ,
-  { rw [← integral_map (has_pdf.measurable X ℙ μ) hf.ae_measurable,
+  { rw [← integral_map (has_pdf.measurable X ℙ μ).ae_measurable hf.ae_strongly_measurable,
         map_eq_with_density_pdf X ℙ μ,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part hpdf,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
@@ -190,7 +189,7 @@ begin
         simp_rw [this],
         exact lintegral_congr_ae (filter.eventually_eq.mul of_real_to_real_ae_eq
           (ae_eq_refl _)) } },
-    { refine ⟨hf.ae_measurable, _⟩,
+    { refine ⟨hf.ae_strongly_measurable, _⟩,
       rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
             (measurable_pdf _ _ _) hf.nnnorm.coe_nnreal_ennreal],
       have : (λ x, (pdf X ℙ μ * λ x, ↑∥f x∥₊) x) =ᵐ[μ] (λ x, ∥f x * (pdf X ℙ μ x).to_real∥₊),
@@ -239,8 +238,7 @@ by { rw has_pdf_iff, simp only [hX, true_and], }
 
 section
 
-variables {F : Type*} [normed_group F] [measurable_space F] [second_countable_topology F]
-  [normed_space ℝ F] [complete_space F] [borel_space F] {ν : measure F}
+variables {F : Type*} [measurable_space F] {ν : measure F}
 
 /-- A random variable that `has_pdf` transformed under a `quasi_measure_preserving`
 map also `has_pdf` if `(map g (map X ℙ)).have_lebesgue_decomposition μ`.
@@ -327,14 +325,14 @@ pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
 namespace is_uniform
 
 lemma has_pdf {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
-  {support : set E} (hns : μ support ≠ 0) (hnt : μ support ≠ ⊤) (hu : is_uniform X support ℙ μ) :
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ∞) (hu : is_uniform X s ℙ μ) :
   has_pdf X ℙ μ :=
 has_pdf_of_pdf_ne_zero
 begin
   intro hpdf,
   rw [is_uniform, hpdf] at hu,
-  suffices : μ (support ∩ function.support ((μ support)⁻¹ • 1)) = 0,
-  { have heq : function.support ((μ support)⁻¹ • (1 : E → ℝ≥0∞)) = set.univ,
+  suffices : μ (s ∩ function.support ((μ s)⁻¹ • 1)) = 0,
+  { have heq : function.support ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) = set.univ,
     { ext x,
       rw [function.mem_support],
       simp [hnt] },
@@ -349,12 +347,35 @@ lemma pdf_to_real_ae_eq {m : measurable_space α}
   (λ x, (s.indicator ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
 filter.eventually_eq.fun_comp hX ennreal.to_real
 
-variables [is_finite_measure ℙ] {X : α → ℝ}
-variables {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
+lemma measure_preimage {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ∞) (hms : measurable_set s)
+  (hu : is_uniform X s ℙ μ)
+  {A : set E} (hA : measurable_set A) :
+  ℙ (X ⁻¹' A) = μ (s ∩ A) / μ s :=
+begin
+  haveI := hu.has_pdf hns hnt,
+  rw [←measure.map_apply (has_pdf.measurable X ℙ μ) hA, map_eq_set_lintegral_pdf X ℙ μ hA,
+    lintegral_congr_ae hu.restrict],
+  simp only [hms, hA, lintegral_indicator, pi.smul_apply, pi.one_apply, algebra.id.smul_eq_mul,
+    mul_one, lintegral_const, restrict_apply', set.univ_inter],
+  rw ennreal.div_eq_inv_mul,
+end
+
+lemma is_probability_measure {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ∞) (hms : measurable_set s)
+  (hu : is_uniform X s ℙ μ) :
+  is_probability_measure ℙ :=
+⟨begin
+  have : X ⁻¹' set.univ = set.univ, { simp only [set.preimage_univ] },
+  rw [←this, hu.measure_preimage hns hnt hms measurable_set.univ, set.inter_univ,
+    ennreal.div_self hns hnt],
+end⟩
+
+variables {X : α → ℝ} {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
 
 include hms hns
 
-lemma mul_pdf_integrable (hcs : is_compact s) (huX : is_uniform X s ℙ) :
+lemma mul_pdf_integrable [is_finite_measure ℙ] (hcs : is_compact s) (huX : is_uniform X s ℙ) :
   integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) :=
 begin
   by_cases hsupp : volume s = ∞,
@@ -365,7 +386,8 @@ begin
     rw [(by simp : (λ x, 0 : ℝ → ℝ) = (λ x, x * (0 : ℝ≥0∞).to_real))],
     refine filter.eventually_eq.mul (ae_eq_refl _)
       (filter.eventually_eq.fun_comp this.symm ennreal.to_real) },
-  refine ⟨ae_measurable_id'.mul (measurable_pdf X ℙ).ae_measurable.ennreal_to_real, _⟩,
+  refine ⟨ae_strongly_measurable_id.mul
+    (measurable_pdf X ℙ).ae_measurable.ennreal_to_real.ae_strongly_measurable, _⟩,
   refine has_finite_integral_mul huX _,
   set ind := (volume s)⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
   have : ∀ x, ↑∥x∥₊ * s.indicator ind x = s.indicator (λ x, ∥x∥₊ * ind x) x :=
@@ -380,12 +402,12 @@ end
 
 /-- A real uniform random variable `X` with support `s` has expectation
 `(λ s)⁻¹ * ∫ x in s, x ∂λ` where `λ` is the Lebesgue measure. -/
-lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X s ℙ) :
+lemma integral_eq (hnt : volume s ≠ ∞) (huX : is_uniform X s ℙ) :
   ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
 begin
   haveI := has_pdf hns hnt huX,
+  haveI := huX.is_probability_measure hns hnt hms,
   rw ← integral_mul_eq_integral,
-  all_goals { try { apply_instance } },
   rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq huX)),
   have : ∀ x, x * (s.indicator ((volume s)⁻¹ • (1 : ℝ → ℝ≥0∞)) x).to_real =
     x * (s.indicator ((volume s)⁻¹.to_real • (1 : ℝ → ℝ)) x),

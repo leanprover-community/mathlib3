@@ -1,48 +1,32 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
-Neil Strickland
+Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
 import algebra.divisibility
 import algebra.regular.basic
+import data.int.cast.defs
+import data.pi.algebra
 
 /-!
-# Properties and homomorphisms of semirings and rings
+# Semirings and rings
 
-This file proves simple properties of semirings, rings and domains and their unit groups. It also
-defines bundled homomorphisms of semirings and rings. As with monoid and groups, we use the same
-structure `ring_hom a β`, a.k.a. `α →+* β`, for both homomorphism types.
-
-The unbundled homomorphisms are defined in `deprecated/ring`. They are deprecated and the plan is to
-slowly remove them from mathlib.
+This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and
+`algebra.group.basic`, the difference being that the former is about `+` and `*` separately, while
+the present file is about their interaction.
 
 ## Main definitions
 
-ring_hom, nonzero, domain, is_domain
-
-## Notations
-
-→+* for bundled ring homs (also use for semiring homs)
-
-## Implementation notes
-
-* There's a coercion from bundled homs to fun, and the canonical notation is to
-  use the bundled hom as a function via this coercion.
-
-* There is no `semiring_hom` -- the idea is that `ring_hom` is used.
-  The constructor for a `ring_hom` between semirings needs a proof of `map_zero`,
-  `map_one` and `map_add` as well as `map_mul`; a separate constructor
-  `ring_hom.mk'` will construct ring homs between rings from monoid homs given
-  only a proof that addition is preserved.
-
-* To avoid repeating lemmas for `units`, this introduces a `has_distrib_neg` typeclass
-  which both `R` and `units R` satisfy.
+* `distrib`: Typeclass for distributivity of multiplication over addition.
+* `has_distrib_neg`: Typeclass for commutativity of negation and multiplication. This is useful when
+  dealing with multiplicative submonoids which are closed under negation without being closed under
+  addition, for example `units`.
+* `(non_unital_)(non_assoc_)(semi)ring`: Typeclasses for possibly non-unital or non-associative
+  rings and semirings. Some combinations are not defined yet because they haven't found use.
 
 ## Tags
 
-`ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
-`is_domain`, `nonzero`, `units`
+`semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`, `is_domain`, `nonzero`, `units`
 -/
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
@@ -58,18 +42,42 @@ open function
 over addition. -/
 @[protect_proj, ancestor has_mul has_add]
 class distrib (R : Type*) extends has_mul R, has_add R :=
-(left_distrib : ∀ a b c : R, a * (b + c) = (a * b) + (a * c))
-(right_distrib : ∀ a b c : R, (a + b) * c = (a * c) + (b * c))
+(left_distrib : ∀ a b c : R, a * (b + c) = a * b + a * c)
+(right_distrib : ∀ a b c : R, (a + b) * c = a * c + b * c)
 
-lemma left_distrib [distrib R] (a b c : R) : a * (b + c) = a * b + a * c :=
-distrib.left_distrib a b c
+/-- A typeclass stating that multiplication is left distributive over addition. -/
+@[protect_proj]
+class left_distrib_class (R : Type*) [has_mul R] [has_add R] :=
+(left_distrib : ∀ a b c : R, a * (b + c) = a * b + a * c)
+
+/-- A typeclass stating that multiplication is right distributive over addition. -/
+@[protect_proj]
+class right_distrib_class (R : Type*) [has_mul R] [has_add R] :=
+(right_distrib : ∀ a b c : R, (a + b) * c = a * c + b * c)
+
+@[priority 100] -- see Note [lower instance priority]
+instance distrib.left_distrib_class (R : Type*) [distrib R] : left_distrib_class R :=
+⟨distrib.left_distrib⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance distrib.right_distrib_class (R : Type*) [distrib R] : right_distrib_class R :=
+⟨distrib.right_distrib⟩
+
+lemma left_distrib [has_mul R] [has_add R] [left_distrib_class R] (a b c : R) :
+  a * (b + c) = a * b + a * c :=
+left_distrib_class.left_distrib a b c
 
 alias left_distrib ← mul_add
 
-lemma right_distrib [distrib R] (a b c : R) : (a + b) * c = a * c + b * c :=
-distrib.right_distrib a b c
+lemma right_distrib [has_mul R] [has_add R] [right_distrib_class R] (a b c : R) :
+  (a + b) * c = a * c + b * c :=
+right_distrib_class.right_distrib a b c
 
 alias right_distrib ← add_mul
+
+lemma distrib_three_right [has_mul R] [has_add R] [right_distrib_class R] (a b c d : R) :
+  (a + b + c) * d = a * d + b * d + c * d :=
+by simp [right_distrib]
 
 /-- Pullback a `distrib` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -112,7 +120,7 @@ class non_unital_semiring (α : Type u) extends
 /-- A unital but not-necessarily-associative semiring. -/
 @[protect_proj, ancestor non_unital_non_assoc_semiring mul_zero_one_class]
 class non_assoc_semiring (α : Type u) extends
-  non_unital_non_assoc_semiring α, mul_zero_one_class α
+  non_unital_non_assoc_semiring α, mul_zero_one_class α, add_comm_monoid_with_one α
 
 /-- A semiring is a type with the following structures: additive commutative monoid
 (`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and
@@ -123,7 +131,7 @@ class semiring (α : Type u) extends non_unital_semiring α, non_assoc_semiring 
 
 section injective_surjective_maps
 
-variables [has_zero β] [has_add β] [has_mul β]
+variables [has_zero β] [has_add β] [has_mul β] [has_smul ℕ β]
 
 /-- Pullback a `non_unital_non_assoc_semiring` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -131,9 +139,10 @@ See note [reducible non-instances]. -/
 protected def function.injective.non_unital_non_assoc_semiring
   {α : Type u} [non_unital_non_assoc_semiring α]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
   non_unital_non_assoc_semiring β :=
-{ .. hf.mul_zero_class f zero mul, .. hf.add_comm_monoid f zero add, .. hf.distrib f add mul }
+{ .. hf.mul_zero_class f zero mul, .. hf.add_comm_monoid f zero add nsmul, .. hf.distrib f add mul }
 
 /-- Pullback a `non_unital_semiring` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -141,29 +150,41 @@ See note [reducible non-instances]. -/
 protected def function.injective.non_unital_semiring
   {α : Type u} [non_unital_semiring α]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
   non_unital_semiring β :=
-{ .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.semigroup_with_zero f zero mul }
+{ .. hf.non_unital_non_assoc_semiring f zero add mul nsmul, .. hf.semigroup_with_zero f zero mul }
 
 /-- Pullback a `non_assoc_semiring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_assoc_semiring
-  {α : Type u} [non_assoc_semiring α] [has_one β]
+  {α : Type u} [non_assoc_semiring α]
+  {β : Type v} [has_zero β] [has_one β] [has_mul β] [has_add β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   non_assoc_semiring β :=
-{ .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.mul_one_class f one mul }
+{ .. hf.add_monoid_with_one f zero one add nsmul nat_cast,
+  .. hf.non_unital_non_assoc_semiring f zero add mul nsmul,
+  .. hf.mul_one_class f one mul }
 
 /-- Pullback a `semiring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.semiring
-  {α : Type u} [semiring α] [has_one β]
+  {α : Type u} [semiring α]
+  {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   semiring β :=
-{ .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
+{ .. hf.non_assoc_semiring f zero one add mul nsmul nat_cast,
+  .. hf.monoid_with_zero f zero one mul npow,
   .. hf.distrib f add mul }
 
 /-- Pushforward a `non_unital_non_assoc_semiring` instance along a surjective function.
@@ -172,9 +193,10 @@ See note [reducible non-instances]. -/
 protected def function.surjective.non_unital_non_assoc_semiring
   {α : Type u} [non_unital_non_assoc_semiring α]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
   non_unital_non_assoc_semiring β :=
-{ .. hf.mul_zero_class f zero mul, .. hf.add_comm_monoid f zero add, .. hf.distrib f add mul }
+{ .. hf.mul_zero_class f zero mul, .. hf.add_comm_monoid f zero add nsmul, .. hf.distrib f add mul }
 
 /-- Pushforward a `non_unital_semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
@@ -182,50 +204,85 @@ See note [reducible non-instances]. -/
 protected def function.surjective.non_unital_semiring
   {α : Type u} [non_unital_semiring α]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
   non_unital_semiring β :=
-{ .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.semigroup_with_zero f zero mul }
+{ .. hf.non_unital_non_assoc_semiring f zero add mul nsmul, .. hf.semigroup_with_zero f zero mul }
 
 /-- Pushforward a `non_assoc_semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_assoc_semiring
-  {α : Type u} [non_assoc_semiring α] [has_one β]
+  {α : Type u} [non_assoc_semiring α]
+  {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   non_assoc_semiring β :=
-{ .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.mul_one_class f one mul }
+{ .. hf.add_monoid_with_one f zero one add nsmul nat_cast,
+  .. hf.non_unital_non_assoc_semiring f zero add mul nsmul, .. hf.mul_one_class f one mul }
 
 /-- Pushforward a `semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.semiring
-  {α : Type u} [semiring α] [has_one β]
+  {α : Type u} [semiring α]
+  {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   semiring β :=
-{ .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
+{ .. hf.non_assoc_semiring f zero one add mul nsmul nat_cast,
+  .. hf.monoid_with_zero f zero one mul npow, .. hf.add_comm_monoid f zero add nsmul,
   .. hf.distrib f add mul }
 
 end injective_surjective_maps
 
-section semiring
-variables [semiring α]
+section has_one_has_add
 
-lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
-by unfold bit0
+variables [has_one α] [has_add α]
 
-theorem two_mul (n : α) : 2 * n = n + n :=
+lemma one_add_one_eq_two : 1 + 1 = (2 : α) := rfl
+
+end has_one_has_add
+
+section distrib_semigroup
+variables [has_add α] [semigroup α]
+
+theorem dvd_add [left_distrib_class α] {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
+dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+
+end distrib_semigroup
+
+section distrib_mul_one_class
+variables [has_add α] [mul_one_class α]
+
+lemma add_one_mul [right_distrib_class α] (a b : α) : (a + 1) * b = a * b + b :=
+by rw [add_mul, one_mul]
+lemma mul_add_one [left_distrib_class α] (a b : α) : a * (b + 1) = a * b + a :=
+by rw [mul_add, mul_one]
+lemma one_add_mul [right_distrib_class α] (a b : α) : (1 + a) * b = b + a * b :=
+by rw [add_mul, one_mul]
+lemma mul_one_add [left_distrib_class α] (a b : α) : a * (1 + b) = a + a * b :=
+by rw [mul_add, mul_one]
+
+theorem two_mul [right_distrib_class α] (n : α) : 2 * n = n + n :=
 eq.trans (right_distrib 1 1 n) (by simp)
 
-lemma distrib_three_right (a b c d : α) : (a + b + c) * d = a * d + b * d + c * d :=
-by simp [right_distrib]
+theorem bit0_eq_two_mul [right_distrib_class α] (n : α) : bit0 n = 2 * n :=
+(two_mul _).symm
 
-theorem mul_two (n : α) : n * 2 = n + n :=
+theorem mul_two [left_distrib_class α] (n : α) : n * 2 = n + n :=
 (left_distrib n 1 1).trans (by simp)
 
-theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
-(two_mul _).symm
+end distrib_mul_one_class
+
+section semiring
+variables [semiring α]
 
 @[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
   a * (if P then b else c) = if P then a * b else a * c :=
@@ -245,11 +302,11 @@ by split_ifs; refl
 -- `mul_ite` and `ite_mul`.
 attribute [simp] mul_ite ite_mul
 
-@[simp] lemma mul_boole {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma mul_boole {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
 by simp
 
-@[simp] lemma boole_mul {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma boole_mul {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
 by simp
 
@@ -261,30 +318,10 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
-/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
-def even (a : α) : Prop := ∃ k, a = 2*k
-
-lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
-
-@[simp] lemma range_two_mul (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x) = {a | even a} :=
-by { ext x, simp [even, eq_comm] }
-
-@[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
-⟨a, by rw [bit0, two_mul]⟩
-
-/-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
-def odd (a : α) : Prop := ∃ k, a = 2*k + 1
-
-@[simp] lemma odd_bit1 (a : α) : odd (bit1 a) :=
-⟨a, by rw [bit1, bit0, two_mul]⟩
-
-@[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
-by { ext x, simp [odd, eq_comm] }
-
-theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
-dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+lemma ite_and_mul_zero {α : Type*} [mul_zero_class α]
+  (P Q : Prop) [decidable P] [decidable Q] (a b : α) :
+  ite (P ∧ Q) (a * b) 0 = ite P a 0 * ite Q b 0 :=
+by simp only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
 
 end semiring
 
@@ -299,6 +336,16 @@ namespace add_hom
 ⟨λ a, a * r, λ _ _, add_mul _ _ r⟩
 
 end add_hom
+
+section add_hom_class
+
+variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [add_hom_class F α β]
+
+/-- Additive homomorphisms preserve `bit0`. -/
+@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
+map_add _ _ _
+
+end add_hom_class
 
 namespace add_monoid_hom
 
@@ -325,274 +372,43 @@ lemma mul_right_apply {R : Type*} [non_unital_non_assoc_semiring R] (a r : R) :
 
 end add_monoid_hom
 
-/-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too.
-
-This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
-sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
-structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_semiring β]
-  extends α →* β, α →+ β, α →*₀ β
-
-infixr ` →+* `:25 := ring_hom
-
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid with zero homomorphism `R →*₀ S`.
-The `simp`-normal form is `(f : R →*₀ S)`. -/
-add_decl_doc ring_hom.to_monoid_with_zero_hom
-
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
-The `simp`-normal form is `(f : R →* S)`. -/
-add_decl_doc ring_hom.to_monoid_hom
-
-/-- Reinterpret a ring homomorphism `f : R →+* S` as an additive monoid homomorphism `R →+ S`.
-The `simp`-normal form is `(f : R →+ S)`. -/
-add_decl_doc ring_hom.to_add_monoid_hom
-
-section ring_hom_class
-
-/-- `ring_hom_class F R S` states that `F` is a type of (semi)ring homomorphisms.
-You should extend this class when you extend `ring_hom`.
-
-This extends from both `monoid_hom_class` and `monoid_with_zero_hom_class` in
-order to put the fields in a sensible order, even though
-`monoid_with_zero_hom_class` already extends `monoid_hom_class`. -/
-class ring_hom_class (F : Type*) (R S : out_param Type*)
-  [non_assoc_semiring R] [non_assoc_semiring S]
-  extends monoid_hom_class F R S, add_monoid_hom_class F R S, monoid_with_zero_hom_class F R S
-
-variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β]
-
-/-- Ring homomorphisms preserve `bit0`. -/
-@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
-map_add _ _ _
-
-/-- Ring homomorphisms preserve `bit1`. -/
-@[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) :=
-by simp [bit1]
-
-instance : has_coe_t F (α →+* β) :=
-⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
-  map_add' := map_add f }⟩
-
-end ring_hom_class
-
-namespace ring_hom
-
-section coe
-
-/-!
-Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
-See note [implicit instance arguments].
--/
-variables {rα : non_assoc_semiring α} {rβ : non_assoc_semiring β}
-
-include rα rβ
-
-instance : ring_hom_class (α →+* β) α β :=
-{ coe := ring_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_add := ring_hom.map_add',
-  map_zero := ring_hom.map_zero',
-  map_mul := ring_hom.map_mul',
-  map_one := ring_hom.map_one' }
-
-/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
-directly.
--/
-instance : has_coe_to_fun (α →+* β) (λ _, α → β) := ⟨ring_hom.to_fun⟩
-
-initialize_simps_projections ring_hom (to_fun → apply)
-
-@[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
-
-@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
-
-@[simp] lemma coe_coe {F : Type*} [ring_hom_class F α β] (f : F) : ((f : α →+* β) : α → β) = f :=
-rfl
-
-instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.to_monoid_hom⟩
-
-@[simp, norm_cast] lemma coe_monoid_hom (f : α →+* β) : ⇑(f : α →* β) = f := rfl
-
-@[simp] lemma to_monoid_hom_eq_coe (f : α →+* β) : f.to_monoid_hom = f := rfl
-@[simp] lemma to_monoid_with_zero_hom_eq_coe (f : α →+* β) :
-  (f.to_monoid_with_zero_hom : α → β) = f := rfl
-
-@[simp] lemma coe_monoid_hom_mk (f : α → β) (h₁ h₂ h₃ h₄) :
-  ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →* β) = ⟨f, h₁, h₂⟩ :=
-rfl
-
-@[simp, norm_cast] lemma coe_add_monoid_hom (f : α →+* β) : ⇑(f : α →+ β) = f := rfl
-
-@[simp] lemma to_add_monoid_hom_eq_coe (f : α →+* β) : f.to_add_monoid_hom = f := rfl
-
-@[simp] lemma coe_add_monoid_hom_mk (f : α → β) (h₁ h₂ h₃ h₄) :
-  ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →+ β) = ⟨f, h₃, h₄⟩ :=
-rfl
-
-/-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-def copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
-{ ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
-
-end coe
-
-variables [rα : non_assoc_semiring α] [rβ : non_assoc_semiring β]
-
-section
-include rα rβ
-
-variables (f : α →+* β) {x y : α} {rα rβ}
-
-theorem congr_fun {f g : α →+* β} (h : f = g) (x : α) : f x = g x :=
-fun_like.congr_fun h x
-
-theorem congr_arg (f : α →+* β) {x y : α} (h : x = y) : f x = f y :=
-fun_like.congr_arg f h
-
-theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
-fun_like.coe_injective h
-
-@[ext] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
-fun_like.ext _ _ h
-
-theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
-fun_like.ext_iff
-
-@[simp] lemma mk_coe (f : α →+* β) (h₁ h₂ h₃ h₄) : ring_hom.mk f h₁ h₂ h₃ h₄ = f :=
-ext $ λ _, rfl
-
-theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →+ β)) :=
-λ f g h, ext (λ x, add_monoid_hom.congr_fun h x)
-
-theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →* β)) :=
-λ f g h, ext (λ x, monoid_hom.congr_fun h x)
-
-/-- Ring homomorphisms map zero to zero. -/
-protected lemma map_zero (f : α →+* β) : f 0 = 0 := map_zero f
-
-/-- Ring homomorphisms map one to one. -/
-protected lemma map_one (f : α →+* β) : f 1 = 1 := map_one f
-
-/-- Ring homomorphisms preserve addition. -/
-protected lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := map_add f a b
-
-/-- Ring homomorphisms preserve multiplication. -/
-protected lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := map_mul f a b
-
-/-- Ring homomorphisms preserve `bit0`. -/
-protected lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
-
-/-- Ring homomorphisms preserve `bit1`. -/
-protected lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
-by simp [bit1]
-
-/-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
-lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 :=
-by rw [map_one, eq_comm]
-
-/-- `f : R →+* S` has a trivial codomain iff it has a trivial range. -/
-lemma codomain_trivial_iff_range_trivial : (0 : β) = 1 ↔ (∀ x, f x = 0) :=
-f.codomain_trivial_iff_map_one_eq_zero.trans
-  ⟨λ h x, by rw [←mul_one x, map_mul, h, mul_zero], λ h, h 1⟩
-
-/-- `f : R →+* S` has a trivial codomain iff its range is `{0}`. -/
-lemma codomain_trivial_iff_range_eq_singleton_zero : (0 : β) = 1 ↔ set.range f = {0} :=
-f.codomain_trivial_iff_range_trivial.trans
-  ⟨ λ h, set.ext (λ y, ⟨λ ⟨x, hx⟩, by simp [←hx, h x], λ hy, ⟨0, by simpa using hy.symm⟩⟩),
-    λ h x, set.mem_singleton_iff.mp (h ▸ set.mem_range_self x)⟩
-
-/-- `f : R →+* S` doesn't map `1` to `0` if `S` is nontrivial -/
-lemma map_one_ne_zero [nontrivial β] : f 1 ≠ 0 :=
-mt f.codomain_trivial_iff_map_one_eq_zero.mpr zero_ne_one
-
-/-- If there is a homomorphism `f : R →+* S` and `S` is nontrivial, then `R` is nontrivial. -/
-lemma domain_nontrivial [nontrivial β] : nontrivial α :=
-⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero⟩⟩
-
-
-end
-
-lemma is_unit_map [semiring α] [semiring β] (f : α →+* β) {a : α} (h : is_unit a) : is_unit (f a) :=
-h.map f.to_monoid_hom
-
-/-- The identity ring homomorphism from a semiring to itself. -/
-def id (α : Type*) [non_assoc_semiring α] : α →+* α :=
-by refine {to_fun := id, ..}; intros; refl
-
-include rα
-
-instance : inhabited (α →+* α) := ⟨id α⟩
-
-@[simp] lemma id_apply (x : α) : ring_hom.id α x = x := rfl
-@[simp] lemma coe_add_monoid_hom_id : (id α : α →+ α) = add_monoid_hom.id α := rfl
-@[simp] lemma coe_monoid_hom_id : (id α : α →* α) = monoid_hom.id α := rfl
-
-variable {rγ : non_assoc_semiring γ}
-include rβ rγ
-
-/-- Composition of ring homomorphisms is a ring homomorphism. -/
-def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
-{ to_fun := hnp ∘ hmn,
-  map_zero' := by simp,
-  map_one' := by simp,
-  map_add' := λ x y, by simp,
-  map_mul' := λ x y, by simp}
-
-/-- Composition of semiring homomorphisms is associative. -/
-lemma comp_assoc {δ} {rδ: non_assoc_semiring δ} (f : α →+* β) (g : β →+* γ) (h : γ →+* δ) :
-  (h.comp g).comp f = h.comp (g.comp f) := rfl
-
-@[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
-
-lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
-  (hnp (hmn x)) := rfl
-
-omit rγ
-
-@[simp] lemma comp_id (f : α →+* β) : f.comp (id α) = f := ext $ λ x, rfl
-
-@[simp] lemma id_comp (f : α →+* β) : (id β).comp f = f := ext $ λ x, rfl
-
-omit rβ
-
-instance : monoid (α →+* α) :=
-{ one := id α,
-  mul := comp,
-  mul_one := comp_id,
-  one_mul := id_comp,
-  mul_assoc := λ f g h, comp_assoc _ _ _ }
-
-lemma one_def : (1 : α →+* α) = id α := rfl
-
-@[simp] lemma coe_one : ⇑(1 : α →+* α) = _root_.id := rfl
-
-lemma mul_def (f g : α →+* α) : f * g = f.comp g := rfl
-
-@[simp] lemma coe_mul (f g : α →+* α) : ⇑(f * g) = f ∘ g := rfl
-
-include rβ rγ
-
-lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : surjective f) :
-  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, ring_hom.ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
-
-lemma cancel_left {g : β →+* γ} {f₁ f₂ : α →+* β} (hg : injective g) :
-  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, ring_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
-
-omit rα rβ rγ
-
-end ring_hom
-
-section semiring
-
-variables [semiring α] {a : α}
-
-@[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
-
-lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-f.to_monoid_hom.map_dvd
-
-end semiring
+@[simp] theorem two_dvd_bit0 [semiring α] {a : α} : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
+
+/-- A non-unital commutative semiring is a `non_unital_semiring` with commutative multiplication.
+In other words, it is a type with the following structures: additive commutative monoid
+(`add_comm_monoid`), commutative semigroup (`comm_semigroup`), distributive laws (`distrib`), and
+multiplication by zero law (`mul_zero_class`). -/
+@[protect_proj, ancestor non_unital_semiring comm_semigroup]
+class non_unital_comm_semiring (α : Type u) extends non_unital_semiring α, comm_semigroup α
+
+section non_unital_comm_semiring
+variables [non_unital_comm_semiring α] [non_unital_comm_semiring β] {a b c : α}
+
+/-- Pullback a `non_unital_semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_unital_comm_semiring [has_zero γ] [has_add γ] [has_mul γ]
+  [has_smul ℕ γ] (f : γ → α) (hf : injective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
+  non_unital_comm_semiring γ :=
+{ .. hf.non_unital_semiring f zero add mul nsmul, .. hf.comm_semigroup f mul }
+
+/-- Pushforward a `non_unital_semiring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_unital_comm_semiring [has_zero γ] [has_add γ] [has_mul γ]
+  [has_smul ℕ γ] (f : α → γ) (hf : surjective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
+  non_unital_comm_semiring γ :=
+{ .. hf.non_unital_semiring f zero add mul nsmul, .. hf.comm_semigroup f mul }
+
+lemma has_dvd.dvd.linear_comb {d x y : α} (hdx : d ∣ x) (hdy : d ∣ y) (a b : α) :
+  d ∣ (a * x + b * y) :=
+dvd_add (hdx.mul_left a) (hdy.mul_left b)
+
+end non_unital_comm_semiring
 
 /-- A commutative semiring is a `semiring` with commutative multiplication. In other words, it is a
 type with the following structures: additive commutative monoid (`add_comm_monoid`), multiplicative
@@ -600,6 +416,10 @@ commutative monoid (`comm_monoid`), distributive laws (`distrib`), and multiplic
 (`mul_zero_class`). -/
 @[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
+
+@[priority 100] -- see Note [lower instance priority]
+instance comm_semiring.to_non_unital_comm_semiring [comm_semiring α] : non_unital_comm_semiring α :=
+{ .. comm_semiring.to_comm_monoid α, .. comm_semiring.to_semiring α }
 
 @[priority 100] -- see Note [lower instance priority]
 instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid_with_zero α :=
@@ -611,27 +431,29 @@ variables [comm_semiring α] [comm_semiring β] {a b c : α}
 /-- Pullback a `semiring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
-  (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+protected def function.injective.comm_semiring
+  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_smul ℕ γ] [has_nat_cast γ]
+  [has_pow γ ℕ] (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   comm_semiring γ :=
-{ .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
+{ .. hf.semiring f zero one add mul nsmul npow nat_cast, .. hf.comm_semigroup f mul }
 
 /-- Pushforward a `semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
-  (f : α → γ) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+protected def function.surjective.comm_semiring
+  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_smul ℕ γ] [has_nat_cast γ]
+  [has_pow γ ℕ] (f : α → γ) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   comm_semiring γ :=
-{ .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
+{ .. hf.semiring f zero one add mul nsmul npow nat_cast, .. hf.comm_semigroup f mul }
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
-
-lemma has_dvd.dvd.linear_comb {d x y : α} (hdx : d ∣ x) (hdy : d ∣ y) (a b : α) :
-  d ∣ (a * x + b * y) :=
-dvd_add (hdx.mul_left a) (hdy.mul_left b)
 
 end comm_semiring
 
@@ -666,6 +488,39 @@ lemma neg_mul_eq_mul_neg (a b : α) : -(a * b) = a * -b :=
 lemma neg_mul_comm (a b : α) : -a * b = a * -b :=
 by simp
 
+/-- A type endowed with `-` and `*` has distributive negation, if it admits an injective map that
+preserves `-` and `*` to a type which has distributive negation. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.has_distrib_neg [has_neg β] [has_mul β] (f : β → α)
+  (hf : injective f) (neg : ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
+  has_distrib_neg β :=
+{ neg_mul := λ x y, hf $ by erw [neg, mul, neg, neg_mul, mul],
+  mul_neg := λ x y, hf $ by erw [neg, mul, neg, mul_neg, mul],
+  ..hf.has_involutive_neg _ neg, ..‹has_mul β› }
+
+/-- A type endowed with `-` and `*` has distributive negation, if it admits a surjective map that
+preserves `-` and `*` from a type which has distributive negation. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.surjective.has_distrib_neg [has_neg β] [has_mul β] (f : α → β)
+  (hf : surjective f) (neg : ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
+  has_distrib_neg β :=
+{ neg_mul := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, neg_mul, neg, mul], refl },
+  mul_neg := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, mul_neg, neg, mul], refl },
+  ..hf.has_involutive_neg _ neg, ..‹has_mul β› }
+
+namespace add_opposite
+
+instance : has_distrib_neg αᵃᵒᵖ := unop_injective.has_distrib_neg _ unop_neg unop_mul
+
+end add_opposite
+
+open mul_opposite
+
+instance : has_distrib_neg αᵐᵒᵖ :=
+{ neg_mul := λ _ _, unop_injective $ mul_neg _ _,
+  mul_neg := λ _ _, unop_injective $ neg_mul _ _,
+  ..mul_opposite.has_involutive_neg _ }
+
 end has_mul
 
 section mul_one_class
@@ -683,6 +538,43 @@ lemma mul_neg_one (a : α) : a * -1 = -a := by simp
 lemma neg_one_mul (a : α) : -1 * a = -a := by simp
 
 end mul_one_class
+
+section mul_zero_class
+variables [mul_zero_class α] [has_distrib_neg α]
+
+/-- Prefer `neg_zero` if `subtraction_monoid` is available. -/
+@[simp] lemma neg_zero' : (-0 : α) = 0 :=
+by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
+
+end mul_zero_class
+
+section semigroup
+
+variables [semigroup α] [has_distrib_neg α] {a b c : α}
+
+theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
+let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+
+theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
+let t := dvd_neg_of_dvd h in by rwa neg_neg at t
+
+/-- An element a of a semigroup with a distributive negation divides the negation of an element b
+iff a divides b. -/
+@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
+⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
+
+theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
+let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+
+theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
+let t := neg_dvd_of_dvd h in by rwa neg_neg at t
+
+/-- The negation of an element a of a semigroup with a distributive negation divides
+another element b iff a divides b. -/
+@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
+⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+
+end semigroup
 
 section group
 variables [group α] [has_distrib_neg α]
@@ -711,31 +603,34 @@ variables [non_unital_non_assoc_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_unital_non_assoc_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_unital_non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul }
+{ .. hf.add_comm_group f zero add neg sub nsmul zsmul, ..hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul }
 
 /-- Pushforward a `non_unital_non_assoc_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_unital_non_assoc_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_unital_non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul zsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul }
 
 @[priority 100]
 instance non_unital_non_assoc_ring.to_has_distrib_neg : has_distrib_neg α :=
 { neg := has_neg.neg,
   neg_neg := neg_neg,
-  neg_mul := λ a b, (neg_eq_of_add_eq_zero $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
-  mul_neg := λ a b, (neg_eq_of_add_eq_zero $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
+  neg_mul := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←right_distrib, add_left_neg, zero_mul],
+  mul_neg := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←left_distrib, add_left_neg, mul_zero] }
 
 lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
 by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
@@ -780,24 +675,26 @@ variables [non_unital_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_unital_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_unital_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
-  .. hf.semigroup f mul }
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, ..hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul, .. hf.semigroup f mul }
 
 /-- Pushforward a `non_unital_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_unital_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_unital_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul, .. hf.semigroup f mul }
 
 end non_unital_ring
@@ -805,7 +702,7 @@ end non_unital_ring
 /-- A unital but not-necessarily-associative ring. -/
 @[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring]
 class non_assoc_ring (α : Type*) extends
-  non_unital_non_assoc_ring α, non_assoc_semiring α
+  non_unital_non_assoc_ring α, non_assoc_semiring α, add_group_with_one α
 
 section non_assoc_ring
 variables [non_assoc_ring α]
@@ -815,11 +712,16 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul,
+  .. hf.add_group_with_one f zero one add neg sub nsmul gsmul nat_cast int_cast,
+  .. hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
   .. hf.mul_one_class f one mul }
 
 /-- Pushforward a `non_unital_ring` instance along a surjective function.
@@ -827,12 +729,25 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
+  .. hf.add_group_with_one f zero one add neg sub nsmul gsmul nat_cast int_cast,
   .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
+
+lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=
+by rw [sub_mul, one_mul]
+lemma mul_sub_one (a b : α) : a * (b - 1) = a * b - a :=
+by rw [mul_sub, mul_one]
+lemma one_sub_mul (a b : α) : (1 - a) * b = b - a * b :=
+by rw [sub_mul, one_mul]
+lemma mul_one_sub (a b : α) : a * (1 - b) = a - a * b :=
+by rw [mul_sub, mul_one]
 
 end non_assoc_ring
 
@@ -840,7 +755,7 @@ end non_assoc_ring
 multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
 `semiring` with a negation operation making it an additive group.  -/
 @[protect_proj, ancestor add_comm_group monoid distrib]
-class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
+class ring (α : Type u) extends add_comm_group_with_one α, monoid α, distrib α
 
 section ring
 variables [ring α] {a b c d e : α}
@@ -878,22 +793,34 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
+{ .. hf.add_group_with_one f zero one add neg sub nsmul zsmul nat_cast int_cast,
+  .. hf.add_comm_group f zero add neg sub nsmul zsmul,
+  .. hf.monoid f one mul npow, .. hf.distrib f add mul }
 
 /-- Pushforward a `ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
+{ .. hf.add_group_with_one f zero one add neg sub nsmul zsmul nat_cast int_cast,
+  .. hf.add_comm_group f zero add neg sub nsmul zsmul,
+  .. hf.monoid f one mul npow, .. hf.distrib f add mul }
 
 end ring
 
@@ -909,11 +836,33 @@ instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 
 @[simp, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
 
-instance : has_distrib_neg αˣ :=
-{ neg := has_neg.neg,
-  neg_neg := λ u, units.ext $ neg_neg _,
-  neg_mul := λ u₁ u₂, units.ext $ neg_mul _ _,
-  mul_neg := λ u₁ u₂, units.ext $ mul_neg _ _, }
+instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg units.coe_mul
+
+@[field_simps] lemma neg_divp (a : α) (u : αˣ) : -(a /ₚ u) = (-a) /ₚ u :=
+by simp only [divp, neg_mul]
+
+@[field_simps] lemma divp_add_divp_same (a b : α) (u : αˣ) :
+  a /ₚ u + b /ₚ u = (a + b) /ₚ u :=
+by simp only [divp, add_mul]
+
+@[field_simps] lemma divp_sub_divp_same (a b : α) (u : αˣ) :
+  a /ₚ u - b /ₚ u = (a - b) /ₚ u :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, neg_divp, divp_add_divp_same]
+
+@[field_simps] lemma add_divp (a b : α) (u : αˣ)  : a + b /ₚ u = (a * u + b) /ₚ u :=
+by simp only [divp, add_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma sub_divp (a b : α) (u : αˣ) : a - b /ₚ u = (a * u - b) /ₚ u :=
+by simp only [divp, sub_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma divp_add (a b : α) (u : αˣ) : a /ₚ u + b = (a + b * u) /ₚ u :=
+by simp only [divp, add_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma divp_sub (a b : α) (u : αˣ) : a /ₚ u - b = (a - b * u) /ₚ u :=
+begin
+  simp only [divp, sub_mul, sub_right_inj],
+  assoc_rw [units.mul_inv, mul_one],
+end
 
 end units
 
@@ -929,33 +878,16 @@ lemma is_unit.sub_iff [ring α] {x y : α} :
 
 namespace ring_hom
 
-/-- Ring homomorphisms preserve additive inverse. -/
-protected theorem map_neg {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x : α) :
-  f (-x) = -(f x) :=
-map_neg f x
-
-/-- Ring homomorphisms preserve subtraction. -/
-protected theorem map_sub {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := map_sub f x y
-
-/-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
-  function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
-(f : α →+ β).injective_iff
-
-/-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff' {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
-  function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
-(f : α →+ β).injective_iff'
-
-/-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
-def mk' {γ} [non_assoc_semiring α] [non_assoc_ring γ] (f : α →* γ)
-  (map_add : ∀ a b : α, f (a + b) = f a + f b) :
-  α →+* γ :=
-{ to_fun := f,
-  .. add_monoid_hom.mk' f map_add, .. f }
-
 end ring_hom
+
+/-- A non-unital commutative ring is a `non_unital_ring` with commutative multiplication. -/
+@[protect_proj, ancestor non_unital_ring comm_semigroup]
+class non_unital_comm_ring (α : Type u) extends non_unital_ring α, comm_semigroup α
+
+@[priority 100] -- see Note [lower instance priority]
+instance non_unital_comm_ring.to_non_unital_comm_semiring [s : non_unital_comm_ring α] :
+  non_unital_comm_semiring α :=
+{ ..s }
 
 /-- A commutative ring is a `ring` with commutative multiplication. -/
 @[protect_proj, ancestor ring comm_semigroup]
@@ -965,32 +897,12 @@ class comm_ring (α : Type u) extends ring α, comm_monoid α
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-section ring
-variables [ring α] {a b c : α}
+@[priority 100] -- see Note [lower instance priority]
+instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
+{ mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
-let t := dvd_neg_of_dvd h in by rwa neg_neg at t
-
-/-- An element a of a ring divides the additive inverse of an element b iff a divides b. -/
-@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
-⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
-
-theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
-let t := neg_dvd_of_dvd h in by rwa neg_neg at t
-
-/-- The additive inverse of an element a of a ring divides another element b iff a divides b. -/
-@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
-⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+section non_unital_ring
+variables [non_unital_ring α] {a b c : α}
 
 theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
 by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
@@ -1001,8 +913,6 @@ theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
 by rw add_comm; exact dvd_add_iff_left h
 
-theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
-
 /-- If an element a divides another element c in a commutative ring, a divides the sum of another
   element b with c iff a divides b. -/
 theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
@@ -1012,14 +922,6 @@ theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
   another element c iff a divides c. -/
 theorem dvd_add_right (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
 (dvd_add_iff_right h).symm
-
-/-- An element a divides the sum a + b if and only if a divides b.-/
-@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
-dvd_add_right (dvd_refl a)
-
-/-- An element a divides the sum b + a if and only if a divides b.-/
-@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
-dvd_add_left (dvd_refl a)
 
 lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
 begin
@@ -1032,46 +934,51 @@ begin
     exact eq_add_of_sub_eq rfl }
 end
 
-@[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
-dvd_neg _ _
+end non_unital_ring
 
-lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
-begin
-  obtain ⟨k, hk⟩ := hp,
-  use -(k + 1),
-  rw [mul_neg, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
-    neg_add_cancel_right, ←neg_add, hk],
-end
+section ring
+variables [ring α] {a b c : α}
 
-@[simp] lemma odd_neg (a : α) : odd (-a) ↔ odd a :=
-⟨λ h, neg_neg a ▸ h.neg, odd.neg⟩
+theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
+
+/-- An element a divides the sum a + b if and only if a divides b.-/
+@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
+dvd_add_right (dvd_refl a)
+
+/-- An element a divides the sum b + a if and only if a divides b.-/
+@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
+dvd_add_left (dvd_refl a)
 
 end ring
 
-section comm_ring
-variables [comm_ring α] {a b c : α}
+section non_unital_comm_ring
+variables [non_unital_comm_ring α] {a b c : α}
 
 /-- Pullback a `comm_ring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_ring
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+protected def function.injective.non_unital_comm_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
-  comm_ring β :=
-{ .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
+  non_unital_comm_ring β :=
+{ .. hf.non_unital_ring f zero add mul neg sub nsmul zsmul, .. hf.comm_semigroup f mul }
 
-/-- Pushforward a `comm_ring` instance along a surjective function.
+/-- Pushforward a `non_unital_comm_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.surjective.comm_ring
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
+protected def function.surjective.non_unital_comm_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
-  comm_ring β :=
-{ .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
+  non_unital_comm_ring β :=
+{ .. hf.non_unital_ring f zero add mul neg sub nsmul zsmul, .. hf.comm_semigroup f mul }
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
@@ -1082,8 +989,7 @@ local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
   ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
 begin
-  have : c = -(x * x - b * x) := (neg_eq_of_add_eq_zero h).symm,
-  have : c = x * (b - x), by subst this; simp [mul_sub, mul_comm],
+  have : c = x * (b - x) := (eq_neg_of_add_eq_zero_right h).trans (by simp [mul_sub, mul_comm]),
   refine ⟨b - x, _, by simp, by rw this⟩,
   rw [this, sub_add, ← sub_mul, sub_self]
 end
@@ -1096,45 +1002,81 @@ begin
   simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end
 
+end non_unital_comm_ring
+
+section comm_ring
+variables [comm_ring α] {a b c : α}
+
+/-- Pullback a `comm_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.comm_ring
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  comm_ring β :=
+{ .. hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
+  .. hf.comm_semigroup f mul }
+
+/-- Pushforward a `comm_ring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.comm_ring
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  comm_ring β :=
+{ .. hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
+  .. hf.comm_semigroup f mul }
+
 end comm_ring
 
-lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
+lemma succ_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
-lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
+lemma pred_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
 /-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_left_regular_of_non_zero_divisor [ring α] (k : α)
+lemma is_left_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
   (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
 begin
-  intros x y h',
-  rw ←sub_eq_zero,
-  refine h _ _,
+  refine λ x y (h' : k * x = k * y), sub_eq_zero.mp (h _ _),
   rw [mul_sub, sub_eq_zero, h']
 end
 
 /-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_right_regular_of_non_zero_divisor [ring α] (k : α)
+lemma is_right_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
   (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
 begin
-  intros x y h',
-  simp only at h',
-  rw ←sub_eq_zero,
-  refine h _ _,
+  refine λ x y (h' : x * k = y * k), sub_eq_zero.mp (h _ _),
   rw [sub_mul, sub_eq_zero, h']
 end
 
-lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) :
-  is_regular k :=
+lemma is_regular_of_ne_zero' [non_unital_non_assoc_ring α] [no_zero_divisors α] {k : α}
+  (hk : k ≠ 0) : is_regular k :=
 ⟨is_left_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
  is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
-/-- A ring with no zero divisors is a cancel_monoid_with_zero.
+lemma is_regular_iff_ne_zero' [nontrivial α] [non_unital_non_assoc_ring α] [no_zero_divisors α]
+  {k : α} : is_regular k ↔ k ≠ 0 :=
+⟨λ h, by { rintro rfl, exact not_not.mpr h.left not_is_left_regular_zero }, is_regular_of_ne_zero'⟩
+
+/-- A ring with no zero divisors is a `cancel_monoid_with_zero`.
 
 Note this is not an instance as it forms a typeclass loop. -/
 @[reducible]
@@ -1144,7 +1086,16 @@ def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] 
     @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
-  .. (infer_instance : semiring α) }
+  .. (by apply_instance : monoid_with_zero α) }
+
+/-- A commutative ring with no zero divisors is a `cancel_comm_monoid_with_zero`.
+
+Note this is not an instance as it forms a typeclass loop. -/
+@[reducible]
+def no_zero_divisors.to_cancel_comm_monoid_with_zero [comm_ring α] [no_zero_divisors α] :
+  cancel_comm_monoid_with_zero α :=
+{ .. no_zero_divisors.to_cancel_monoid_with_zero,
+  .. (by apply_instance : comm_monoid_with_zero α) }
 
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
@@ -1155,61 +1106,16 @@ def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] 
   extends no_zero_divisors α, nontrivial α : Prop
 
 section is_domain
-section ring
-
-variables [ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
+instance is_domain.to_cancel_monoid_with_zero [ring α] [is_domain α] : cancel_monoid_with_zero α :=
 no_zero_divisors.to_cancel_monoid_with_zero
-
-/-- Pullback an `is_domain` instance along an injective function. -/
-protected theorem function.injective.is_domain [ring β] (f : β →+* α) (hf : injective f) :
-  is_domain β :=
-{ .. pullback_nonzero f f.map_zero f.map_one,
-  .. hf.no_zero_divisors f f.map_zero f.map_mul }
-
-end ring
-
-section comm_ring
 
 variables [comm_ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
-{ ..comm_semiring.to_comm_monoid_with_zero, ..is_domain.to_cancel_monoid_with_zero }
-
-/--
-Makes a ring homomorphism from an additive group homomorphism from a commutative ring to an integral
-domain that commutes with self multiplication, assumes that two is nonzero and one is sent to one.
--/
-def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
-  (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
-{ map_one' := h_one,
-  map_mul' := begin
-    intros x y,
-    have hxy := h (x + y),
-    rw [mul_add, add_mul, add_mul, f.map_add, f.map_add, f.map_add, f.map_add, h x, h y, add_mul,
-      mul_add, mul_add, ← sub_eq_zero, add_comm, ← sub_sub, ← sub_sub, ← sub_sub,
-      mul_comm y x, mul_comm (f y) (f x)] at hxy,
-    simp only [add_assoc, add_sub_assoc, add_sub_cancel'_right] at hxy,
-    rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub, mul_eq_zero, sub_eq_zero,
-      or_iff_not_imp_left] at hxy,
-    exact hxy h_two,
-  end,
-  ..f }
-
-@[simp]
-lemma add_monoid_hom.coe_fn_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
-  (h h_two h_one) :
-  (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β → α) = f := rfl
-
-@[simp]
-lemma add_monoid_hom.coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β]
-  (f : β →+ α) (h h_two h_one) :
-  (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β →+ α) = f := by {ext, simp}
-
-end comm_ring
+no_zero_divisors.to_cancel_comm_monoid_with_zero
 
 end is_domain
 
@@ -1254,7 +1160,7 @@ variables [mul_one_class R] [has_distrib_neg R] {a x y : R}
 end
 
 section
-variables [ring R] {a b x y x' y' : R}
+variables [non_unital_non_assoc_ring R] {a b x y x' y' : R}
 
 @[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x - x') (y - y') :=
@@ -1284,10 +1190,10 @@ h.add_right h
 lemma bit0_left [distrib R] {x y : R} (h : commute x y) : commute (bit0 x) y :=
 h.add_left h
 
-lemma bit1_right [semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
+lemma bit1_right [non_assoc_semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
 h.bit0_right.add_right (commute.one_right x)
 
-lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
+lemma bit1_left [non_assoc_semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
 h.bit0_left.add_left (commute.one_left y)
 
 /-- Representation of a difference of two squares of commuting elements as a product. -/
@@ -1324,7 +1230,7 @@ variables [mul_one_class R] [has_distrib_neg R] {a : R}
 end
 
 section
-variables [ring R] {a b c : R}
+variables [non_unital_non_assoc_ring R] {a b c : R}
 
 @[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
 @[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
@@ -1348,12 +1254,28 @@ lemma mul_self_eq_one_iff [non_assoc_ring R] [no_zero_divisors R] {a : R} :
   a * a = 1 ↔ a = 1 ∨ a = -1 :=
 by rw [←(commute.one_right a).mul_self_eq_mul_self_iff, mul_one]
 
+namespace units
+
+@[field_simps] lemma divp_add_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
+a /ₚ u₁ + b /ₚ u₂ = (a * u₂ + u₁ * b) /ₚ (u₁ * u₂) :=
+begin
+  simp only [divp, add_mul, mul_inv_rev, coe_mul],
+  rw [mul_comm (↑u₁ * b), mul_comm b],
+  assoc_rw [mul_inv, mul_inv, mul_one, mul_one],
+end
+
+@[field_simps] lemma divp_sub_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
+  (a /ₚ u₁) - (b /ₚ u₂) = ((a * u₂) - (u₁ * b)) /ₚ (u₁ * u₂) :=
+by simp_rw [sub_eq_add_neg, neg_divp, divp_add_divp, mul_neg]
+
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
   one's additive inverse. -/
-lemma units.inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+lemma inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 begin
   rw inv_eq_iff_mul_eq_one,
-  simp only [units.ext_iff],
+  simp only [ext_iff],
   push_cast,
   exact mul_self_eq_one_iff
 end
+
+end units

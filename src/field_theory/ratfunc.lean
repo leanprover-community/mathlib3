@@ -62,6 +62,11 @@ We also have a set of recursion and induction principles:
  - `ratfunc.induction_on`: if `P` holds on `p / q` for all polynomials `p q`, then `P` holds on all
    rational functions
 
+We define the degree of a rational function, with values in `ℤ`:
+ - `int_degree` is the degree of a rational function, defined as the difference between the
+   `nat_degree` of its numerator and the `nat_degree` of its denominator. In particular,
+   `int_degree 0 = 0`.
+
 ## Implementation notes
 
 To provide good API encapsulation and speed up unification problems,
@@ -338,24 +343,25 @@ lemma mul_inv_cancel : ∀ {p : ratfunc K} (hp : p ≠ 0), p * p⁻¹ = 1
 by simpa only [← of_fraction_ring_inv, ← of_fraction_ring_mul, ← of_fraction_ring_one]
   using _root_.mul_inv_cancel this
 
-section has_scalar
+section has_smul
 omit hdomain
 
 variables {R : Type*}
 
 /-- Scalar multiplication of rational functions. -/
-@[irreducible] protected def smul [has_scalar R (fraction_ring K[X])] :
+@[irreducible] protected def smul [has_smul R (fraction_ring K[X])] :
   R → ratfunc K → ratfunc K
 | r ⟨p⟩ := ⟨r • p⟩
 
-instance [has_scalar R (fraction_ring K[X])] : has_scalar R (ratfunc K) :=
+@[nolint fails_quickly] -- cannot reproduce
+instance [has_smul R (fraction_ring K[X])] : has_smul R (ratfunc K) :=
 ⟨ratfunc.smul⟩
 
-lemma of_fraction_ring_smul [has_scalar R (fraction_ring K[X])]
+lemma of_fraction_ring_smul [has_smul R (fraction_ring K[X])]
   (c : R) (p : fraction_ring K[X]) :
   of_fraction_ring (c • p) = c • of_fraction_ring p :=
-by unfold has_scalar.smul ratfunc.smul
-lemma to_fraction_ring_smul [has_scalar R (fraction_ring K[X])]
+by unfold has_smul.smul ratfunc.smul
+lemma to_fraction_ring_smul [has_smul R (fraction_ring K[X])]
   (c : R) (p : ratfunc K) :
   to_fraction_ring (c • p) = c • to_fraction_ring p :=
 by { cases p, rw ←of_fraction_ring_smul }
@@ -387,7 +393,7 @@ end
 instance : is_scalar_tower R K[X] (ratfunc K) :=
 ⟨λ c p q, q.induction_on' (λ q r _, by rw [← mk_smul, smul_assoc, mk_smul, mk_smul])⟩
 
-end has_scalar
+end has_smul
 
 variables (K)
 
@@ -432,7 +438,7 @@ meta def smul_tac : tactic unit :=
   simp only [add_comm, mul_comm, zero_smul, succ_nsmul, zsmul_eq_mul, mul_add, mul_one, mul_zero,
     neg_add, mul_neg,
     int.of_nat_eq_coe, int.coe_nat_succ, int.cast_zero, int.cast_add, int.cast_one,
-    int.cast_neg_succ_of_nat, int.cast_coe_nat,
+    int.cast_neg_succ_of_nat, int.cast_coe_nat, nat.cast_succ,
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
     of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_neg]]
 
@@ -572,7 +578,7 @@ def lift_monoid_with_zero_hom (φ : R[X] →*₀ G₀) (hφ : R[X]⁰ ≤ G₀�
                    simp only [map_one, submonoid.coe_one, div_one] },
   map_mul' := λ x y, by { cases x, cases y, induction x with p q, induction y with p' q',
     { rw [←of_fraction_ring_mul, localization.mk_mul],
-      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm₀, map_mul, submonoid.coe_mul] },
+      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm, map_mul, submonoid.coe_mul] },
     { refl },
     { refl } },
   map_zero' := by { rw [←of_fraction_ring_zero, ←localization.mk_zero (1 : R[X]⁰),
@@ -746,7 +752,7 @@ end
 
 @[simp] lemma algebra_map_eq_zero_iff {x : K[X]} :
   algebra_map K[X] (ratfunc K) x = 0 ↔ x = 0 :=
-⟨(ring_hom.injective_iff _).mp (algebra_map_injective K) _, λ hx, by rw [hx, ring_hom.map_zero]⟩
+⟨(injective_iff_map_eq_zero _).mp (algebra_map_injective K) _, λ hx, by rw [hx, ring_hom.map_zero]⟩
 
 variables {K}
 
@@ -928,29 +934,43 @@ end
 normalized such that the denominator is monic. -/
 def num (x : ratfunc K) : K[X] := x.num_denom.1
 
-@[simp] lemma num_div (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+private lemma num_div' (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
   num (algebra_map _ _ p / algebra_map _ _ q) =
     polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (p / gcd p q) :=
 by rw [num, num_denom_div _ hq]
 
 @[simp] lemma num_zero : num (0 : ratfunc K) = 0 :=
-by { convert num_div (0 : K[X]) one_ne_zero; simp }
+by { convert num_div' (0 : K[X]) one_ne_zero; simp }
+
+@[simp] lemma num_div (p q : K[X]) :
+  num (algebra_map _ _ p / algebra_map _ _ q) =
+    polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (p / gcd p q) :=
+begin
+  by_cases hq : q = 0,
+  { simp [hq] },
+  { exact num_div' p hq, },
+end
 
 @[simp] lemma num_one : num (1 : ratfunc K) = 1 :=
-by { convert num_div (1 : K[X]) one_ne_zero; simp }
+by { convert num_div (1 : K[X]) 1; simp }
 
 @[simp] lemma num_algebra_map (p : K[X]) :
   num (algebra_map _ _ p) = p :=
-by { convert num_div p one_ne_zero; simp }
+by { convert num_div p 1; simp }
 
-@[simp] lemma num_div_dvd (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+lemma num_div_dvd (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
   num (algebra_map _ _ p / algebra_map _ _ q) ∣ p :=
 begin
-  rw [num_div _ hq, C_mul_dvd],
+  rw [num_div _ q, C_mul_dvd],
   { exact euclidean_domain.div_dvd_of_dvd (gcd_dvd_left p q) },
   { simpa only [ne.def, inv_eq_zero, polynomial.leading_coeff_eq_zero]
       using right_div_gcd_ne_zero hq },
 end
+
+/-- A version of `num_div_dvd` with the LHS in simp normal form -/
+@[simp] lemma num_div_dvd' (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+  C ((q / gcd p q).leading_coeff)⁻¹ * (p / gcd p q) ∣ p :=
+by simpa using num_div_dvd p hq
 
 /-- `ratfunc.denom` is the denominator of a rational function,
 normalized such that it is monic. -/
@@ -995,7 +1015,7 @@ end
   algebra_map _ _ (num x) / algebra_map _ _ (denom x) = x :=
 x.induction_on (λ p q hq, begin
   have q_div_ne_zero := right_div_gcd_ne_zero hq,
-  rw [num_div p hq, denom_div p hq, ring_hom.map_mul, ring_hom.map_mul,
+  rw [num_div p q, denom_div p hq, ring_hom.map_mul, ring_hom.map_mul,
     mul_div_mul_left, div_eq_div_iff, ← ring_hom.map_mul, ← ring_hom.map_mul, mul_comm _ q,
     ← euclidean_domain.mul_div_assoc, ← euclidean_domain.mul_div_assoc, mul_comm],
   { apply gcd_dvd_right },
@@ -1034,10 +1054,14 @@ begin
   { exact algebra_map_ne_zero (denom_ne_zero y) }
 end
 
+lemma num_denom_neg (x : ratfunc K) :
+  (-x).num * x.denom = - x.num * (-x).denom :=
+by rw [num_mul_eq_mul_denom_iff (denom_ne_zero x), _root_.map_neg, neg_div, num_div_denom]
+
 lemma num_denom_mul (x y : ratfunc K) :
   (x * y).num * (x.denom * y.denom) = x.num * y.num * (x * y).denom :=
 (num_mul_eq_mul_denom_iff (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y))).mpr $
-  by conv_lhs { rw [← num_div_denom x, ← num_div_denom y, div_mul_div_comm₀,
+  by conv_lhs { rw [← num_div_denom x, ← num_div_denom y, div_mul_div_comm,
                     ← ring_hom.map_mul, ← ring_hom.map_mul] }
 
 lemma num_dvd {x : ratfunc K} {p : K[X]} (hp : p ≠ 0) :
@@ -1047,7 +1071,7 @@ begin
   { rintro ⟨q, rfl⟩,
     obtain ⟨hx, hq⟩ := mul_ne_zero_iff.mp hp,
     use denom x * q,
-    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, div_self, mul_one, num_div_denom],
+    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, div_self, mul_one, num_div_denom],
     { exact ⟨mul_ne_zero (denom_ne_zero x) hq, rfl⟩ },
     { exact algebra_map_ne_zero hq } },
   { rintro ⟨q, hq, rfl⟩,
@@ -1061,7 +1085,7 @@ begin
   { rintro ⟨p, rfl⟩,
     obtain ⟨hx, hp⟩ := mul_ne_zero_iff.mp hq,
     use num x * p,
-    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, div_self, mul_one, num_div_denom],
+    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, div_self, mul_one, num_div_denom],
     { exact algebra_map_ne_zero hp } },
   { rintro ⟨p, rfl⟩,
     exact denom_div_dvd p q },
@@ -1075,14 +1099,14 @@ begin
   { simp [hy] },
   rw num_dvd (mul_ne_zero (num_ne_zero hx) (num_ne_zero hy)),
   refine ⟨x.denom * y.denom, mul_ne_zero (denom_ne_zero x) (denom_ne_zero y), _⟩,
-  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, num_div_denom, num_div_denom]
+  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, num_div_denom, num_div_denom]
 end
 
 lemma denom_mul_dvd (x y : ratfunc K) : denom (x * y) ∣ denom x * denom y :=
 begin
   rw denom_dvd (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y)),
   refine ⟨x.num * y.num, _⟩,
-  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, num_div_denom, num_div_denom]
+  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, num_div_denom, num_div_denom]
 end
 
 lemma denom_add_dvd (x y : ratfunc K) : denom (x + y) ∣ denom x * denom y :=
@@ -1122,6 +1146,15 @@ lemma lift_alg_hom_apply {L S : Type*} [field L] [comm_semiring S] [algebra S K[
   [algebra S L] (φ : K[X] →ₐ[S] L) (hφ : K[X]⁰ ≤ L⁰.comap φ) (f : ratfunc K) :
   lift_alg_hom φ hφ f = φ f.num / φ f.denom :=
 lift_monoid_with_zero_hom_apply _ _ _
+
+lemma num_mul_denom_add_denom_mul_num_ne_zero {x y : ratfunc K} (hxy : x + y ≠ 0) :
+  x.num * y.denom + x.denom * y.num ≠ 0 :=
+begin
+  intro h_zero,
+  have h := num_denom_add x y,
+  rw [h_zero, zero_mul] at h,
+  exact (mul_ne_zero (num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)) h
+end
 
 end num_denom
 
@@ -1164,6 +1197,9 @@ denom_algebra_map _
 num_algebra_map _
 @[simp] lemma denom_X : denom (X : ratfunc K) = 1 :=
 denom_algebra_map _
+
+lemma X_ne_zero : (ratfunc.X : ratfunc K) ≠ 0 :=
+ratfunc.algebra_map_ne_zero polynomial.X_ne_zero
 
 variables {L : Type*} [field L]
 
@@ -1234,7 +1270,7 @@ begin
   { have := polynomial.eval₂_eq_zero_of_dvd_of_eval₂_eq_zero f a (denom_mul_dvd x y) hxy,
     rw polynomial.eval₂_mul at this,
     cases mul_eq_zero.mp this; contradiction },
-  rw [div_mul_div_comm₀, eq_div_iff (mul_ne_zero hx hy), div_eq_mul_inv, mul_right_comm,
+  rw [div_mul_div_comm, eq_div_iff (mul_ne_zero hx hy), div_eq_mul_inv, mul_right_comm,
       ← div_eq_mul_inv, div_eq_iff hxy],
   repeat { rw ← polynomial.eval₂_mul },
   congr' 1,
@@ -1242,6 +1278,91 @@ begin
 end
 
 end eval
+
+section int_degree
+
+open polynomial
+
+omit hring
+
+variables [field K]
+
+/-- `int_degree x` is the degree of the rational function `x`, defined as the difference between
+the `nat_degree` of its numerator and the `nat_degree` of its denominator. In particular,
+`int_degree 0 = 0`. -/
+def int_degree (x : ratfunc K) : ℤ := nat_degree x.num - nat_degree x.denom
+
+@[simp] lemma int_degree_zero : int_degree (0 : ratfunc K) = 0 :=
+by rw [int_degree, num_zero, nat_degree_zero, denom_zero, nat_degree_one, sub_self]
+
+@[simp] lemma int_degree_one : int_degree (1 : ratfunc K) = 0 :=
+by rw [int_degree, num_one, denom_one, sub_self]
+
+@[simp] lemma int_degree_C (k : K): int_degree (ratfunc.C k) = 0 :=
+by rw [int_degree, num_C, nat_degree_C, denom_C, nat_degree_one, sub_self]
+
+@[simp] lemma int_degree_X : int_degree (X : ratfunc K) = 1 :=
+by rw [int_degree, ratfunc.num_X, polynomial.nat_degree_X, ratfunc.denom_X,
+  polynomial.nat_degree_one, int.coe_nat_one, int.coe_nat_zero, sub_zero]
+
+@[simp] lemma int_degree_polynomial {p : polynomial K} :
+  int_degree (algebra_map (polynomial K) (ratfunc K) p) = nat_degree p :=
+by rw [int_degree, ratfunc.num_algebra_map, ratfunc.denom_algebra_map, polynomial.nat_degree_one,
+  int.coe_nat_zero, sub_zero]
+
+lemma int_degree_mul {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) :
+  int_degree (x * y) = int_degree x + int_degree y :=
+begin
+  simp only [int_degree, add_sub, sub_add, sub_sub_eq_add_sub, sub_sub, sub_eq_sub_iff_add_eq_add],
+  norm_cast,
+  rw [← polynomial.nat_degree_mul x.denom_ne_zero y.denom_ne_zero,
+        ← polynomial.nat_degree_mul (ratfunc.num_ne_zero (mul_ne_zero hx hy))
+          (mul_ne_zero x.denom_ne_zero y.denom_ne_zero),
+        ← polynomial.nat_degree_mul (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy),
+        ← polynomial.nat_degree_mul (mul_ne_zero (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy))
+          (x * y).denom_ne_zero, ratfunc.num_denom_mul]
+end
+
+@[simp] lemma int_degree_neg (x : ratfunc K) : int_degree (-x) = int_degree x :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, neg_zero] },
+  { rw [int_degree, int_degree, ← nat_degree_neg x.num],
+    exact nat_degree_sub_eq_of_prod_eq (num_ne_zero (neg_ne_zero.mpr hx)) (denom_ne_zero (- x))
+      (neg_ne_zero.mpr (num_ne_zero hx)) (denom_ne_zero x) (num_denom_neg x) }
+end
+
+lemma int_degree_add {x y : ratfunc K}
+  (hxy : x + y ≠ 0) : (x + y).int_degree  =
+    (x.num * y.denom + x.denom * y.num).nat_degree - (x.denom * y.denom).nat_degree :=
+nat_degree_sub_eq_of_prod_eq (num_ne_zero hxy) ((x + y).denom_ne_zero)
+    (num_mul_denom_add_denom_mul_num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)
+    (num_denom_add x y)
+
+lemma nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree {x : ratfunc K}
+  (hx : x ≠ 0) {s : polynomial K} (hs : s ≠ 0) :
+  ((x.num * s).nat_degree : ℤ) - (s * x.denom).nat_degree = x.int_degree :=
+begin
+  apply nat_degree_sub_eq_of_prod_eq (mul_ne_zero (num_ne_zero hx) hs)
+    (mul_ne_zero hs x.denom_ne_zero) (num_ne_zero hx) x.denom_ne_zero,
+  rw mul_assoc
+end
+
+lemma int_degree_add_le {x y : ratfunc K} (hy : y ≠ 0) (hxy : x + y ≠ 0) :
+  int_degree (x + y) ≤ max (int_degree x) (int_degree y) :=
+begin
+  by_cases hx : x = 0,
+  { simp [hx] at *, },
+  rw [int_degree_add hxy,
+    ← nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree hx y.denom_ne_zero,
+    mul_comm y.denom,
+    ← nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree hy x.denom_ne_zero,
+    le_max_iff,sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right, int.coe_nat_le,
+    ← le_max_iff, mul_comm y.num],
+    exact nat_degree_add_le _ _,
+end
+
+end int_degree
 
 section laurent_series
 

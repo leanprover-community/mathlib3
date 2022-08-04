@@ -3,7 +3,6 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import tactic.fix_reflect_string
 
 /-!
 # Documentation commands
@@ -77,8 +76,8 @@ output. -/
 Example: ``mk_reflected_definition `foo 17`` constructs the definition
 declaration corresponding to `def foo : ℕ := 17`
 -/
-meta def mk_reflected_definition (decl_name : name) {type} [reflected type]
-  (body : type) [reflected body] : declaration :=
+meta def mk_reflected_definition (decl_name : name) {type} [reflected _ type]
+  (body : type) [reflected _ body] : declaration :=
 mk_definition decl_name (reflect type).collect_univ_params (reflect type) (reflect body)
 
 /-- If `note_name` and `note` are `pexpr`s representing strings,
@@ -379,7 +378,7 @@ Inside `conv` blocks, mathlib currently additionally provides
 * `conv` (within another `conv`).
 
 `apply_congr` applies congruence lemmas to step further inside expressions,
-and sometimes gives between results than the automatically generated
+and sometimes gives better results than the automatically generated
 congruence lemmas used by `congr`.
 
 Using `conv` inside a `conv` block allows the user to return to the previous

@@ -29,14 +29,17 @@ structure FinPartialOrder :=
 [is_fintype : fintype to_PartialOrder]
 
 namespace FinPartialOrder
+
 instance : has_coe_to_sort FinPartialOrder Type* := ⟨λ X, X.to_PartialOrder⟩
-
 instance (X : FinPartialOrder) : partial_order X := X.to_PartialOrder.str
-
 attribute [instance]  FinPartialOrder.is_fintype
+
+@[simp] lemma coe_to_PartialOrder (X : FinPartialOrder) : ↥X.to_PartialOrder = ↥X := rfl
 
 /-- Construct a bundled `FinPartialOrder` from `fintype` + `partial_order`. -/
 def of (α : Type*) [partial_order α] [fintype α] : FinPartialOrder := ⟨⟨α⟩⟩
+
+@[simp] lemma coe_of (α : Type*) [partial_order α] [fintype α] : ↥(of α) = α := rfl
 
 instance : inhabited FinPartialOrder := ⟨of punit⟩
 
@@ -61,7 +64,7 @@ instance has_forget_to_Fintype : has_forget₂ FinPartialOrder Fintype :=
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : FinPartialOrder ⥤ FinPartialOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : FinPartialOrder ≌ FinPartialOrder :=
@@ -73,4 +76,4 @@ end FinPartialOrder
 
 lemma FinPartialOrder_dual_comp_forget_to_PartialOrder :
   FinPartialOrder.dual ⋙ forget₂ FinPartialOrder PartialOrder =
-    forget₂ FinPartialOrder PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ FinPartialOrder PartialOrder ⋙ PartialOrder.dual := rfl

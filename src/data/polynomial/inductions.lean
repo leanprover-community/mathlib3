@@ -41,7 +41,7 @@ lemma div_X_mul_X_add (p : R[X]) : div_X p * X + C (p.coeff 0) = p :=
 ext $ by rintro ⟨_|_⟩; simp [coeff_C, nat.succ_ne_zero, coeff_mul_X]
 
 @[simp] lemma div_X_C (a : R) : div_X (C a) = 0 :=
-ext $ λ n, by cases n; simp [div_X, coeff_C]; simp [coeff]
+ext $ λ n, by simp [div_X, coeff_C]; simp [coeff]
 
 lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
 ⟨λ h, by simpa [eq_comm, h] using div_X_mul_X_add p,

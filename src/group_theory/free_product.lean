@@ -1,14 +1,14 @@
 /-
 Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: David Wärn
+Authors: David Wärn, Joachim Breitner
 -/
 import algebra.free_monoid
 import group_theory.congruence
 import group_theory.is_free_group
 import group_theory.subgroup.pointwise
 import data.list.chain
-import set_theory.cardinal
+import set_theory.cardinal.ordinal
 /-!
 # The free product of groups or monoids
 
@@ -62,6 +62,8 @@ another answer, which is constructively more satisfying, could be obtained by sh
 [van der Waerden, *Free products of groups*][MR25465]
 
 -/
+
+open set
 
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
@@ -136,12 +138,12 @@ lemma induction_on {C : free_product M → Prop}
   (h_mul : ∀ (x y), C x → C y → C (x * y)) :
   C m :=
 begin
-  let S : submonoid (free_product M) := ⟨set_of C, h_one, h_mul⟩,
-  convert subtype.prop (lift (λ i, of.cod_mrestrict S (h_of i)) m),
+  let S : submonoid (free_product M) := submonoid.mk (set_of C) h_mul h_one,
+  convert subtype.prop (lift (λ i, of.cod_restrict S (h_of i)) m),
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,
   ext,
-  simp [monoid_hom.cod_mrestrict],
+  simp [monoid_hom.cod_restrict],
 end
 
 lemma of_left_inverse [decidable_eq ι] (i : ι) :
@@ -150,6 +152,25 @@ lemma of_left_inverse [decidable_eq ι] (i : ι) :
 
 lemma of_injective (i : ι) : function.injective ⇑(of : M i →* _) :=
 by { classical, exact (of_left_inverse i).injective }
+
+lemma lift_mrange_le {N} [monoid N] (f : Π i, M i →* N) {s : submonoid N}
+  (h : ∀ i, (f i).mrange ≤ s) : (lift f).mrange ≤ s :=
+begin
+  rintros _ ⟨x, rfl⟩,
+  induction x using free_product.induction_on with i x x y hx hy,
+  { exact s.one_mem, },
+  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
+  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
+end
+
+lemma mrange_eq_supr {N} [monoid N] (f : Π i, M i →* N) :
+  (lift f).mrange = ⨆ i, (f i).mrange :=
+begin
+  apply le_antisymm (lift_mrange_le f (λ i, le_supr _ i)),
+  apply supr_le _,
+  rintros i _ ⟨x, rfl⟩,
+  exact ⟨of x, by simp only [lift_of]⟩
+end
 
 section group
 
@@ -175,6 +196,25 @@ instance : group (free_product G) :=
   end,
   ..free_product.has_inv G,
   ..free_product.monoid G }
+
+lemma lift_range_le {N} [group N] (f : Π i, G i →* N) {s : subgroup N}
+  (h : ∀ i, (f i).range ≤ s) : (lift f).range ≤ s :=
+begin
+  rintros _ ⟨x, rfl⟩,
+  induction x using free_product.induction_on with i x x y hx hy,
+  { exact s.one_mem, },
+  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
+  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
+end
+
+lemma range_eq_supr {N} [group N] (f : Π i, G i →* N) :
+  (lift f).range = ⨆ i, (f i).range :=
+begin
+  apply le_antisymm (lift_range_le _ f (λ i, le_supr _ i)),
+  apply supr_le _,
+  rintros i _ ⟨x, rfl⟩,
+  exact ⟨of x, by simp only [lift_of]⟩
+end
 
 end group
 
@@ -340,7 +380,7 @@ variable (M)
 /-- A `neword M i j` is a representation of a non-empty reduced words where the first letter comes
 from `M i` and the last letter comes from `M j`. It can be constructed from singletons and via
 concatentation, and thus provides a useful induction principle. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 inductive neword : ι → ι → Type (max u_1 u_2)
 | singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
 | append : ∀ {i j k l} (w₁ : neword i j) (hne : j ≠ k) (w₂ : neword k l), neword i l
@@ -627,7 +667,7 @@ lemma empty_of_word_prod_eq_one {w : word H} (h : lift f w.prod = 1) :
   w = word.empty :=
 begin
   by_contradiction hnotempty,
-  obtain ⟨i, j, w, rfl⟩ := neword.of_word _ hnotempty,
+  obtain ⟨i, j, w, rfl⟩ := neword.of_word w hnotempty,
   exact lift_word_prod_nontrivial_of_not_empty f hcard X hXnonempty hXdisj hpp w h,
 end
 
@@ -649,14 +689,12 @@ theorem lift_injective_of_ping_pong:
   function.injective (lift f) :=
 begin
   classical,
-  apply (monoid_hom.injective_iff (lift f)).mpr,
-  rw free_product.word.equiv.forall_congr_left',
+  apply (injective_iff_map_eq_one (lift f)).mpr,
+  rw (free_product.word.equiv : _ ≃ word H).forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,
     { rw empty_of_word_prod_eq_one f hcard X hXnonempty hXdisj hpp Heq,
       reflexivity, }, },
-  apply_instance,
-  apply_instance,
 end
 
 end ping_pong_lemma
@@ -666,14 +704,150 @@ end ping_pong_lemma
 instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_free_group (G i)] :
   is_free_group (free_product G) :=
 { generators := Σ i, is_free_group.generators (G i),
-  of := λ x, free_product.of (is_free_group.of x.2),
-  unique_lift' :=
-  begin
-    introsI X _ f,
-    refine ⟨free_product.lift (λ i, is_free_group.lift (λ x, f ⟨i, x⟩)), _ ⟩,
-    split,
-    { simp, },
-    { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
-  end, }
+  mul_equiv :=
+  monoid_hom.to_mul_equiv
+    (free_group.lift (λ (x : Σ i, is_free_group.generators (G i)),
+      free_product.of (is_free_group.of x.2 : G x.1)))
+    (free_product.lift (λ (i : ι),
+      (is_free_group.lift (λ (x : is_free_group.generators (G i)),
+        free_group.of (⟨i, x⟩ : Σ i, is_free_group.generators (G i)))
+        : G i →* (free_group (Σ i, is_free_group.generators (G i))))))
+    (by {ext, simp, })
+   (by {ext, simp, }) }
+
+/-- A free group is a free product of copies of the free_group over one generator. -/
+
+-- NB: One might expect this theorem to be phrased with ℤ, but ℤ is an additive group,
+-- and using `multiplicative ℤ` runs into diamond issues.
+@[simps]
+def _root_.free_group_equiv_free_product {ι : Type u_1} :
+  free_group ι ≃* free_product (λ (_ : ι), free_group unit) :=
+begin
+  refine monoid_hom.to_mul_equiv _ _ _ _,
+  exact free_group.lift (λ i, @free_product.of ι _ _ i (free_group.of unit.star)),
+  exact free_product.lift (λ i, free_group.lift (λ pstar, free_group.of i)),
+  { ext i, refl, },
+  { ext i a, cases a, refl, },
+end
+
+section ping_pong_lemma
+
+open_locale pointwise cardinal
+
+variables [nontrivial ι]
+variables {G : Type u_1} [group G] (a : ι → G)
+
+-- A group action on α, and the ping-pong sets
+variables {α : Type*} [mul_action G α]
+variables (X Y : ι → set α)
+variables (hXnonempty : ∀ i, (X i).nonempty)
+variables (hXdisj : pairwise (λ i j, disjoint (X i) (X j)))
+variables (hYdisj : pairwise (λ i j, disjoint (Y i) (Y j)))
+variables (hXYdisj : ∀ i j, disjoint (X i) (Y j))
+variables (hX : ∀ i, a i • (Y i)ᶜ ⊆ X i)
+variables (hY : ∀ i, a⁻¹ i • (X i)ᶜ ⊆ Y i)
+
+include hXnonempty hXdisj hYdisj hXYdisj hX hY
+
+/--
+The Ping-Pong-Lemma.
+
+Given a group action of `G` on `X` so that the generators of the free groups act in specific
+ways on disjoint subsets `X i` and `Y i` we can prove that `lift f` is injective, and thus the image
+of `lift f` is isomorphic to the free group.
+
+Often the Ping-Pong-Lemma is stated with regard to group elements that generate the whole group;
+we generalize to arbitrary group homomorphisms from the free group to `G`  and do not require the
+group to be generated by the elements.
+-/
+theorem _root_.free_group.injective_lift_of_ping_pong :
+  function.injective (free_group.lift a) :=
+begin
+  -- Step one: express the free group lift via the free product lift
+  have : free_group.lift a =
+    (free_product.lift (λ i, free_group.lift (λ _, a i))).comp
+    (((@free_group_equiv_free_product ι)).to_monoid_hom),
+  { ext i, simp, },
+  rw this, clear this,
+  refine function.injective.comp _ (mul_equiv.injective _),
+
+  -- Step two: Invoke the ping-pong lemma for free products
+  show function.injective (lift (λ (i : ι), free_group.lift (λ _, a i))),
+
+  -- Prepare to instantiate lift_injective_of_ping_pong
+  let H : ι → Type _ := λ i, free_group unit,
+  let f : Π i, H i →* G := λ i, free_group.lift (λ _, a i),
+  let X' : ι → set α := λ i, X i ∪ Y i,
+
+  apply lift_injective_of_ping_pong f _ X',
+
+  show _ ∨ ∃ i, 3 ≤ # (H i),
+  { inhabit ι,
+    right, use arbitrary ι,
+    simp only [H],
+    rw [free_group.free_group_unit_equiv_int.cardinal_eq, cardinal.mk_denumerable],
+    apply le_of_lt,
+    simp },
+
+  show ∀ i, (X' i).nonempty,
+  { exact (λ i, set.nonempty.inl (hXnonempty i)), },
+
+  show pairwise (λ i j, disjoint (X' i) (X' j)),
+  { intros i j hij,
+    simp only [X'],
+    apply disjoint.union_left; apply disjoint.union_right,
+    { exact hXdisj i j hij, },
+    { exact hXYdisj i j, },
+    { exact (hXYdisj j i).symm, },
+    { exact hYdisj i j hij, }, },
+
+  show pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X' j ⊆ X' i),
+  { rintros i j hij,
+    -- use free_group unit ≃ ℤ
+    refine free_group.free_group_unit_equiv_int.forall_congr_left'.mpr _,
+    intros n hne1,
+    change free_group.lift (λ _, a i) (free_group.of () ^ n) • X' j ⊆ X' i,
+    simp only [map_zpow, free_group.lift.of],
+    change a i ^ n • X' j ⊆ X' i,
+    have hnne0 : n ≠ 0, { rintro rfl, apply hne1, simpa, }, clear hne1,
+    simp only [X'],
+
+    -- Positive and negative powers separately
+    cases (lt_or_gt_of_ne hnne0).swap with hlt hgt,
+    { have h1n : 1 ≤ n := hlt,
+      calc a i ^ n • X' j ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono
+            ((hXYdisj j i).union_left $ hYdisj j i hij.symm).subset_compl_right
+      ... ⊆ X i :
+      begin
+        refine int.le_induction _ _ _ h1n,
+        { rw zpow_one, exact hX i, },
+        { intros n hle hi,
+          calc (a i ^ (n + 1)) • (Y i)ᶜ
+                = (a i ^ n * a i) • (Y i)ᶜ : by rw [zpow_add, zpow_one]
+            ... = a i ^ n • (a i • (Y i)ᶜ) : mul_action.mul_smul _ _ _
+            ... ⊆ a i ^ n • X i : smul_set_mono $ hX i
+            ... ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono (hXYdisj i i).subset_compl_right
+            ... ⊆ X i : hi, },
+      end
+      ... ⊆ X' i : set.subset_union_left _ _, },
+    { have h1n : n ≤ -1, { apply int.le_of_lt_add_one, simpa using hgt, },
+      calc a i ^ n • X' j ⊆ a i ^ n • (X i)ᶜ : smul_set_mono
+            ((hXdisj j i hij.symm).union_left (hXYdisj i j).symm).subset_compl_right
+      ... ⊆ Y i :
+      begin
+        refine int.le_induction_down _ _ _ h1n,
+        { rw [zpow_neg, zpow_one], exact hY i, },
+        { intros n hle hi,
+          calc (a i ^ (n - 1)) • (X i)ᶜ
+                = (a i ^ n * (a i)⁻¹) • (X i)ᶜ : by rw [zpow_sub, zpow_one]
+            ... = a i ^ n • ((a i)⁻¹ • (X i)ᶜ) : mul_action.mul_smul _ _ _
+            ... ⊆ a i ^ n • Y i : smul_set_mono $ hY i
+            ... ⊆ a i ^ n • (X i)ᶜ : smul_set_mono (hXYdisj i i).symm.subset_compl_right
+            ... ⊆ Y i : hi, },
+      end
+      ... ⊆ X' i : set.subset_union_right _ _, }, },
+end
+
+end ping_pong_lemma
 
 end free_product

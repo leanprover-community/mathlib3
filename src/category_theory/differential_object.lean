@@ -3,7 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.int.basic
 import category_theory.shift
+import category_theory.concrete_category.basic
 
 /-!
 # Differential objects in a category.
@@ -33,7 +35,7 @@ A differential object in a category with zero morphisms and a shift is
 an object `X` equipped with
 a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure differential_object :=
 (X : C)
 (d : X ⟶ X⟦1⟧)
@@ -49,7 +51,7 @@ namespace differential_object
 /--
 A morphism of differential objects is a morphism commuting with the differentials.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure hom (X Y : differential_object C) :=
 (f : X.X ⟶ Y.X)
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
@@ -182,11 +184,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_shift C ℤ]
 open_locale zero_object
 
 instance has_zero_object : has_zero_object (differential_object C) :=
-{ zero :=
-  { X := (0 : C),
-    d := 0, },
-  unique_to := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩,
-  unique_from := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩, }
+by { refine ⟨⟨⟨0, 0⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩⟩⟩; ext, }
 
 end differential_object
 
@@ -227,8 +225,8 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
-local attribute [instance] endofunctor_monoidal_category discrete.add_monoidal
-local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal shift_comm
+local attribute [simp] eq_to_hom_map
+local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
 @[simps] def shift_functor_add (m n : ℤ) :
@@ -236,11 +234,19 @@ local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal 
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    simp only [obj_μ_app, μ_naturality_assoc, μ_naturalityₗ_assoc, μ_inv_hom_app_assoc,
-      category.assoc, obj_μ_inv_app, functor.map_comp, μ_inv_naturalityᵣ_assoc],
-    simp [opaque_eq_to_iso] },
+    -- This is just `simp, simp [eq_to_hom_map]`.
+    simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
+      category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
+      μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
+    simp only [eq_to_hom_map, eq_to_hom_app, eq_to_iso.hom, eq_to_hom_trans_assoc,
+      eq_to_iso.inv], },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
+
+local attribute [reducible] endofunctor_monoidal_category
+
+section
+local attribute [instance] endofunctor_monoidal_category
 
 /-- The shift by zero is naturally isomorphic to the identity. -/
 @[simps]
@@ -250,6 +256,10 @@ begin
   { dsimp, simp, dsimp, simp },
   { introv, ext, dsimp, simp }
 end
+
+end
+
+local attribute [simp] eq_to_hom_map
 
 instance : has_shift (differential_object C) ℤ :=
 has_shift_mk _ _

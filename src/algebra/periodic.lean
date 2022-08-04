@@ -31,6 +31,8 @@ period, periodic, periodicity, antiperiodic
 
 variables {α β γ : Type*} {f g : α → β} {c c₁ c₂ x : α}
 
+open_locale big_operators
+
 namespace function
 
 /-! ### Periodicity -/
@@ -64,6 +66,36 @@ by simp * at *
 lemma periodic.div [has_add α] [has_div β]
   (hf : periodic f c) (hg : periodic g c) :
   periodic (f / g) c :=
+by simp * at *
+
+@[to_additive]
+lemma _root_.list.periodic_prod [has_add α] [comm_monoid β]
+  (l : list (α → β)) (hl : ∀ f ∈ l, periodic f c) :
+  periodic l.prod c :=
+begin
+  induction l with g l ih hl,
+  { simp, },
+  { simp only [list.mem_cons_iff, forall_eq_or_imp] at hl,
+    obtain ⟨hg, hl⟩ := hl,
+    simp only [list.prod_cons],
+    exact hg.mul (ih hl), },
+end
+
+@[to_additive]
+lemma _root_.multiset.periodic_prod [has_add α] [comm_monoid β]
+  (s : multiset (α → β)) (hs : ∀ f ∈ s, periodic f c) :
+  periodic s.prod c :=
+s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ (multiset.mem_to_list f s).mp hf
+
+@[to_additive]
+lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]
+  {ι : Type*} {f : ι → α → β} (s : finset ι) (hs : ∀ i ∈ s, periodic (f i) c) :
+  periodic (∏ i in s, f i) c :=
+s.prod_to_list f ▸ (s.to_list.map f).periodic_prod (by simpa [-periodic])
+
+@[to_additive]
+lemma periodic.smul [has_add α] [has_smul γ β] (h : periodic f c) (a : γ) :
+  periodic (a • f) c :=
 by simp * at *
 
 lemma periodic.const_smul [add_monoid α] [group γ] [distrib_mul_action γ α]
@@ -297,7 +329,11 @@ by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, 
 /-- Lift a periodic function to a function from the quotient group. -/
 def periodic.lift [add_group α] (h : periodic f c) (x : α ⧸ add_subgroup.zmultiples c) : β :=
 quotient.lift_on' x f $
-  λ a b ⟨k, hk⟩, (h.zsmul k _).symm.trans $ congr_arg f $ add_eq_of_eq_neg_add hk
+  λ a b h', (begin
+    rw quotient_add_group.left_rel_apply at h',
+    obtain ⟨k, hk⟩ := h',
+    exact (h.zsmul k _).symm.trans (congr_arg f (add_eq_of_eq_neg_add hk)),
+   end)
 
 @[simp] lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
   h.lift (a : α ⧸ add_subgroup.zmultiples c) = f a :=
@@ -357,7 +393,7 @@ lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [add_group β]
 begin
   rcases nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [hk, hi] using (h.nat_even_mul_periodic k).eq },
+  { simpa [← two_mul, hk, hi] using (h.nat_even_mul_periodic k).eq },
   { simpa [add_mul, hk, hi] using (h.nat_odd_mul_antiperiodic k).eq },
 end
 
@@ -367,7 +403,7 @@ lemma antiperiodic.int_mul_eq_of_eq_zero [comm_ring α] [add_group β]
 begin
   rcases int.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [hk, hi] using (h.int_even_mul_periodic k).eq },
+  { simpa [← two_mul, hk, hi] using (h.int_even_mul_periodic k).eq },
   { simpa [add_mul, hk, hi] using (h.int_odd_mul_antiperiodic k).eq },
 end
 
@@ -390,6 +426,11 @@ lemma antiperiodic.neg_eq [add_group α] [add_group β]
   (h : antiperiodic f c) :
   f (-c) = -f 0 :=
 by simpa only [zero_add] using h.neg 0
+
+lemma antiperiodic.smul [has_add α] [monoid γ] [add_group β] [distrib_mul_action γ β]
+  (h : antiperiodic f c) (a : γ) :
+  antiperiodic (a • f) c :=
+by simp * at *
 
 lemma antiperiodic.const_smul [add_monoid α] [has_neg β] [group γ] [distrib_mul_action γ α]
   (h : antiperiodic f c) (a : γ) :
@@ -482,3 +523,7 @@ lemma antiperiodic.div [has_add α] [division_ring β]
 by simp [*, neg_div_neg_eq] at *
 
 end function
+
+lemma int.fract_periodic (α) [linear_ordered_ring α] [floor_ring α] :
+  function.periodic int.fract (1 : α) :=
+by exact_mod_cast λ a, int.fract_add_int a 1

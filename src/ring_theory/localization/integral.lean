@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import data.equiv.ring
+import algebra.ring.equiv
 import group_theory.monoid_localization
 import ring_theory.algebraic
 import ring_theory.ideal.local_ring
@@ -236,7 +236,8 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  (map (localization (M.map (f : R →* S))) f M.le_comap_map : localization M →+* _).is_integral :=
+  (map (localization (M.map (f : R →* S))) f
+    (M.le_comap_map : _ ≤ submonoid.comap (f : R →* S) _) : localization M →+* _).is_integral :=
 @is_integral_localization R _ M S _ f.to_algebra _ _ _ _ _ _ _ _ hf
 
 end is_integral
@@ -258,7 +259,7 @@ lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
   is_fraction_ring C L :=
 { map_units := λ ⟨y, hy⟩,
     is_unit.mk0 _ (show algebra_map C L y ≠ 0, from λ h, mem_non_zero_divisors_iff_ne_zero.mp hy
-      ((algebra_map C L).injective_iff.mp (algebra_map_injective C A L) _ h)),
+      ((injective_iff_map_eq_zero (algebra_map C L)).mp (algebra_map_injective C A L) _ h)),
   surj := λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
     ⟨⟨mk' C (x : L) x.2, algebra_map _ _ y,
         mem_non_zero_divisors_iff_ne_zero.mpr (λ h, hy (inj _
@@ -336,7 +337,7 @@ begin
            from is_unit.invertible (is_unit_of_mem_non_zero_divisors
               (mem_non_zero_divisors_iff_ne_zero.2
                 (λ h, non_zero_divisors.ne_zero ha
-                    ((ring_hom.injective_iff (algebra_map S K)).1
+                    ((injective_iff_map_eq_zero (algebra_map S K)).1
                     (no_zero_smul_divisors.algebra_map_injective _ _) b h)))),
         rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
           polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
@@ -345,8 +346,46 @@ begin
     obtain ⟨f, hf₁, hf₂⟩ := h (algebra_map S K x),
     use [f, hf₁],
     rw [← is_scalar_tower.algebra_map_aeval] at hf₂,
-    exact (algebra_map S K).injective_iff.1
+    exact (injective_iff_map_eq_zero (algebra_map S K)).1
       (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
 end
 
+open_locale non_zero_divisors
+
+variables (R) {S K}
+/-- If the `S`-multiples of `a` are contained in some `R`-span, then `Frac(S)`-multiples of `a`
+are contained in the equivalent `Frac(R)`-span. -/
+lemma ideal_span_singleton_map_subset {L : Type*}
+  [is_domain R] [is_domain S] [field K] [field L]
+  [algebra R K] [algebra R L] [algebra S L] [is_integral_closure S R L]
+  [is_fraction_ring S L] [algebra K L] [is_scalar_tower R S L] [is_scalar_tower R K L]
+  {a : S} {b : set S} (alg : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
+  (h : (ideal.span ({a} : set S) : set S) ⊆ submodule.span R b) :
+  (ideal.span ({algebra_map S L a} : set L) : set L) ⊆ submodule.span K (algebra_map S L '' b) :=
+begin
+  intros x hx,
+  obtain ⟨x', rfl⟩ := ideal.mem_span_singleton.mp hx,
+  obtain ⟨y', z', rfl⟩ := is_localization.mk'_surjective (S⁰) x',
+  obtain ⟨y, z, hz0, yz_eq⟩ := is_integral_closure.exists_smul_eq_mul alg inj y'
+    (non_zero_divisors.coe_ne_zero z'),
+  have injRS : function.injective (algebra_map R S),
+  { refine function.injective.of_comp
+      (show function.injective (algebra_map S L ∘ algebra_map R S), from _),
+    rwa [← ring_hom.coe_comp, ← is_scalar_tower.algebra_map_eq] },
+  have hz0' : algebra_map R S z ∈ S⁰ := map_mem_non_zero_divisors (algebra_map R S) injRS
+    (mem_non_zero_divisors_of_ne_zero hz0),
+  have mk_yz_eq : is_localization.mk' L y' z' = is_localization.mk' L y ⟨_, hz0'⟩,
+  { rw [algebra.smul_def, mul_comm _ y, mul_comm _ y', ← set_like.coe_mk (algebra_map R S z) hz0']
+        at yz_eq,
+    exact is_localization.mk'_eq_of_eq yz_eq.symm },
+  suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
+  { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
+        ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,
+        div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
+        ← _root_.map_mul],
+    exact (submodule.span K _).smul_mem _ hy },
+  refine submodule.span_subset_span R K _ _,
+  rw submodule.span_algebra_map_image_of_tower,
+  exact submodule.mem_map_of_mem (h (ideal.mem_span_singleton.mpr ⟨y, rfl⟩))
+end
 end is_fraction_ring

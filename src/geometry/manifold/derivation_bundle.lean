@@ -20,8 +20,8 @@ of the Lie algebra for a Lie group.
 
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] (n : with_top ℕ)
 
@@ -31,7 +31,7 @@ open_locale manifold
 instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
 instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
-/-- Type synonym, introduced to put a different `has_scalar` action on `C^n⟮I, M; 𝕜⟯`
+/-- Type synonym, introduced to put a different `has_smul` action on `C^n⟮I, M; 𝕜⟯`
 which is defined as `f • r = f(x) * r`. -/
 @[nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
 
@@ -95,7 +95,7 @@ lemma eval_at_apply (x : M) : eval_at x X f = (X f) x := rfl
 
 end derivation
 
-variables {I} {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+variables {I} {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
 
@@ -131,7 +131,7 @@ localized "notation `𝒅ₕ` := hfdifferential" in manifold
 @[simp] lemma apply_hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y)
   (v : point_derivation I x) (g : C^∞⟮I', M'; 𝕜⟯) : 𝒅ₕh v g = 𝒅f x v g := rfl
 
-variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+variables {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 

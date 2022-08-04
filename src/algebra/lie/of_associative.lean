@@ -6,7 +6,7 @@ Authors: Oliver Nash
 import algebra.lie.basic
 import algebra.lie.subalgebra
 import algebra.lie.submodule
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 
 /-!
 # Lie algebras of associative algebras
@@ -48,6 +48,10 @@ instance : has_bracket A A := ⟨λ x y, x*y - y*x⟩
 lemma lie_def (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end ring
+
+lemma commute_iff_lie_eq {x y : A} : commute x y ↔ ⁅x, y⁆ = 0 := sub_eq_zero.symm
+
+lemma commute.lie_eq {x y : A} (h : commute x y) : ⁅x, y⁆ = 0 := sub_eq_zero_of_eq h
 
 namespace lie_ring
 
@@ -201,17 +205,36 @@ rfl
 
 variables {R L M}
 
-lemma lie_submodule.coe_map_to_endomorphism_le {N : lie_submodule R L M} {x : L} :
+namespace lie_submodule
+
+open lie_module
+
+variables {N : lie_submodule R L M} {x : L}
+
+lemma coe_map_to_endomorphism_le :
   (N : submodule R M).map (lie_module.to_endomorphism R L M x) ≤ N :=
 begin
   rintros n ⟨m, hm, rfl⟩,
   exact N.lie_mem hm,
 end
 
+variables (N x)
+
+lemma to_endomorphism_comp_subtype_mem (m : M) (hm : m ∈ N) :
+  (to_endomorphism R L M x).comp (N : submodule R M).subtype ⟨m, hm⟩ ∈ N :=
+by simpa using N.lie_mem hm
+
+@[simp] lemma to_endomorphism_restrict_eq_to_endomorphism
+  (h := N.to_endomorphism_comp_subtype_mem x) :
+  ((to_endomorphism R L M x).restrict h : (N : submodule R M) →ₗ[R] N) = to_endomorphism R L N x :=
+by { ext, simp [linear_map.restrict_apply], }
+
+end lie_submodule
+
 open lie_algebra
 
 lemma lie_algebra.ad_eq_lmul_left_sub_lmul_right (A : Type v) [ring A] [algebra R A] :
-  (ad R A : A → module.End R A) = algebra.lmul_left R - algebra.lmul_right R :=
+  (ad R A : A → module.End R A) = linear_map.mul_left R - linear_map.mul_right R :=
 by { ext a b, simp [lie_ring.of_associative_ring_bracket], }
 
 lemma lie_subalgebra.ad_comp_incl_eq (K : lie_subalgebra R L) (x : K) :

@@ -3,8 +3,9 @@ Copyright (c) 2019 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.opens
 import topology.algebra.ring
+import topology.algebra.filter_basis
+import topology.sets.opens
 /-!
 # Open subgroups of a topological groups
 
@@ -205,8 +206,27 @@ lemma is_open_of_open_subgroup {U : open_subgroup G} (h : U.1 ≤ H) :
   is_open (H : set G) :=
 H.is_open_of_mem_nhds (filter.mem_of_superset U.mem_nhds_one h)
 
+/-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
+@[to_additive "If a subgroup of an additive topological group has `0` in its interior, then it is
+open."]
+lemma is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
+  [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
+  is_open (H : set G) :=
+begin
+  have h : 𝓝 1 ≤ filter.principal (H : set G) :=
+    nhds_le_of_le h_1_int (is_open_interior) (filter.principal_mono.2 interior_subset),
+  rw is_open_iff_nhds,
+  intros g hg,
+  rw (show 𝓝 g = filter.map ⇑(homeomorph.mul_left g) (𝓝 1), by simp),
+  convert filter.map_mono h,
+  simp only [homeomorph.coe_mul_left, filter.map_principal, set.image_mul_left,
+  filter.principal_eq_iff_eq],
+  ext,
+  simp [H.mul_mem_cancel_left (H.inv_mem hg)],
+end
+
 @[to_additive]
-lemma is_open_mono {H₁ H₂ : subgroup G} (h : H₁ ≤ H₂) (h₁ : is_open (H₁  :set G)) :
+lemma is_open_mono {H₁ H₂ : subgroup G} (h : H₁ ≤ H₂) (h₁ : is_open (H₁ : set G)) :
   is_open (H₂ : set G) :=
 @is_open_of_open_subgroup _ _ _ _ H₂ { is_open' := h₁, .. H₁ } h
 

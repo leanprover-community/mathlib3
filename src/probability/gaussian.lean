@@ -48,7 +48,11 @@ open probability_theory measure
 
 variables {μ : measure ℝ} {m s : ℝ}
 
-
+lemma change_of_vr_gaussian:
+   ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))) = ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))):=
+begin
+sorry
+end
 
 lemma is_probability_measure_real_gaussian (hμ : μ.real_gaussian m s) :
   is_probability_measure μ :=

@@ -221,10 +221,15 @@ coe_to_add_monoid_hom_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl
 instance : has_nat_cast (centroid_hom α) :=
 { nat_cast := λ n, n • 1 }
 
+@[simp] lemma centroid_hom.nat_cast_apply (n : ℕ) (m : α):
+  (↑n : centroid_hom α) m = n • m := rfl
+
 -- cf `add_monoid.End.semiring`
 instance : semiring (centroid_hom α) :=
 to_End_injective.semiring _ (by { ext, refl }) (by { ext, refl }) (λ _ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl) (λ _ _, by { ext, refl }) (λ n, rfl)
+
+
 
 lemma comp_mul_comm (T S : centroid_hom α) (a b : α) : (T ∘ S) (a * b) = (S ∘ T) (a * b) :=
 by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]

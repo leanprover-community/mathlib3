@@ -363,19 +363,15 @@ include f
 
 /-- The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m` -/
 protected def has_smul : has_smul R M :=
-begin
-  haveI : module R M := (obj' f M).is_module,
-  apply_instance
-end
+(module.comp_hom M f).to_has_smul
 
 end
 
-localized "notation r ` r•[` f `] ` m :=
-  @@has_smul.smul (restriction_of_scalars.has_smul f _) r m"
+localized "notation r ` r•[` f `] ` :=
+  @@has_smul.smul (restriction_of_scalars.has_smul f _) r"
   in change_of_rings
 
-@[simp] lemma smul_def (r : R) (m : M) :
-  (r r•[f] m) = f r • m := rfl
+@[simp] lemma smul_def (r : R) (m : M) : r r•[f] m = f r • m := rfl
 
 /--
 Given an `S`-linear map `g : M → M'` between `S`-modules, `g` is also `R`-linear between `M` and
@@ -394,8 +390,8 @@ linear_map.ext $ λ (x : M), rfl
 
 /--
 The restriction of scalars operation is functorial. For any `f : R →+* S` a ring homomorphism,
-* `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
-* `S`-linear map is also `R`-linear
+* an `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
+* an `S`-linear map is also `R`-linear
 -/
 @[simps] protected def functor : Module S ⥤ Module R :=
 { obj := obj' f,

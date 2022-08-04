@@ -750,11 +750,8 @@ begin
 end
 
 
-instance (n : ℕ) [hn_pos : fact (0 < n)] :
-  decidable_pred (@is_unit (zmod n) _) :=
-λ a, begin
-  exact fintype.decidable_exists_fintype,
-end
+instance (n : ℕ) [hn_pos : fact (0 < n)] : decidable_pred (@is_unit (zmod n) _) :=
+λ a, fintype.decidable_exists_fintype
 
 /-- The finset of units of zmod n -/
 def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=

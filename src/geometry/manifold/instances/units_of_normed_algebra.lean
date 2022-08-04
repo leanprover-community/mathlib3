@@ -49,8 +49,8 @@ noncomputable theory
 
 open_locale manifold
 
-set_option trace.simplify.rewrite true
-
+/-- If the `model_with_corners` `I` is an open map, then the target of the extended chart at any point
+on a manifold modelled on `I` is a `nhds`, rather than just a `nhds_within`. -/
 lemma charted_space_is_open_map_target_mem_nhds
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -72,6 +72,10 @@ begin
   apply mem_ext_chart_source
 end
 
+/-- The continuous differentiability of a map `g : M → M'` between manifolds can be stated in terms
+of the continuous differentiability of a corresponding map `f : E → E'` between the model vector
+spaces, if one assumes that the `model_with_corners` for `M` is an open map and the
+`model_with_corners` for `M'` consists of a single chart. -/
 lemma open_embedding_cont_diff_on_cont_mdiff
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -123,7 +127,6 @@ begin
       exact ha.1 },
     apply set.inter_subset_left }
 end
-
 
 /-- A weaker version of `units.open_embedding_cont_diff_on_cont_mdiff` in which the model space H
 coincides with the model vector space E via `model_with_corners_self`. -/

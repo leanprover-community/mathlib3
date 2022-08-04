@@ -13,19 +13,14 @@ preserves finite colimits, and it is exact if it is both left exact and right ex
 
 In this file, we define the categories of bundled left exact, right exact and exact functors.
 
-## Implementation notes
-
-Due to the way preservation of finite limits is defined, we currently only define these categories
-when the morphisms of the source and target category live in the same unvierse.
-
 -/
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 open category_theory.limits
 
 namespace category_theory
-variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 section
 variables (C) (D)
@@ -33,7 +28,7 @@ variables (C) (D)
 /-- Bundled left-exact functors. -/
 @[derive category, nolint has_inhabited_instance]
 def LeftExactFunctor :=
-{ F : C ⥤ D // nonempty (preserves_finite_limits F) }
+full_subcategory (λ F : C ⥤ D, nonempty (preserves_finite_limits F))
 
 infixr ` ⥤ₗ `:26 := LeftExactFunctor
 
@@ -45,7 +40,7 @@ full_subcategory_inclusion _
 /-- Bundled right-exact functors. -/
 @[derive category, nolint has_inhabited_instance]
 def RightExactFunctor :=
-{ F : C ⥤ D // nonempty (preserves_finite_colimits F) }
+full_subcategory (λ F : C ⥤ D, nonempty (preserves_finite_colimits F))
 
 infixr ` ⥤ᵣ `:26 := RightExactFunctor
 
@@ -56,8 +51,8 @@ full_subcategory_inclusion _
 
 /-- Bundled exact functors. -/
 @[derive category, nolint has_inhabited_instance]
-def ExactFunctor :=
-{ F : C ⥤ D // nonempty (preserves_finite_limits F) ∧ nonempty (preserves_finite_colimits F) }
+def ExactFunctor := full_subcategory
+  (λ F : C ⥤ D, nonempty (preserves_finite_limits F) ∧ nonempty (preserves_finite_colimits F))
 
 infixr ` ⥤ₑ `:26 := ExactFunctor
 
@@ -112,11 +107,11 @@ def ExactFunctor.of (F : C ⥤ D) [preserves_finite_limits F] [preserves_finite_
   C ⥤ₑ D := ⟨F, ⟨⟨infer_instance⟩, ⟨infer_instance⟩⟩⟩
 
 @[simp] lemma LeftExactFunctor.of_fst (F : C ⥤ D) [preserves_finite_limits F] :
-  (LeftExactFunctor.of F).1 = F := rfl
+  (LeftExactFunctor.of F).obj = F := rfl
 @[simp] lemma RightExactFunctor.of_fst (F : C ⥤ D) [preserves_finite_colimits F] :
-  (RightExactFunctor.of F).1 = F := rfl
+  (RightExactFunctor.of F).obj = F := rfl
 @[simp] lemma ExactFunctor.of_fst (F : C ⥤ D) [preserves_finite_limits F]
-  [preserves_finite_colimits F] : (ExactFunctor.of F).1 = F := rfl
+  [preserves_finite_colimits F] : (ExactFunctor.of F).obj = F := rfl
 
 lemma LeftExactFunctor.forget_obj_of (F : C ⥤ D) [preserves_finite_limits F] :
   (LeftExactFunctor.forget C D).obj (LeftExactFunctor.of F) = F := rfl
@@ -125,10 +120,10 @@ lemma RightExactFunctor.forget_obj_of (F : C ⥤ D) [preserves_finite_colimits F
 lemma ExactFunctor.forget_obj_of (F : C ⥤ D) [preserves_finite_limits F]
   [preserves_finite_colimits F] : (ExactFunctor.forget C D).obj (ExactFunctor.of F) = F := rfl
 
-noncomputable instance (F : C ⥤ₗ D) : preserves_finite_limits F.1 := classical.choice F.2
-noncomputable instance (F : C ⥤ᵣ D) : preserves_finite_colimits F.1 := classical.choice F.2
-noncomputable instance (F : C ⥤ₑ D) : preserves_finite_limits F.1 := classical.choice F.2.1
-noncomputable instance (F : C ⥤ₑ D) : preserves_finite_colimits F.1 := classical.choice F.2.2
+noncomputable instance (F : C ⥤ₗ D) : preserves_finite_limits F.obj := F.property.some
+noncomputable instance (F : C ⥤ᵣ D) : preserves_finite_colimits F.obj := F.property.some
+noncomputable instance (F : C ⥤ₑ D) : preserves_finite_limits F.obj := F.property.1.some
+noncomputable instance (F : C ⥤ₑ D) : preserves_finite_colimits F.obj := F.property.2.some
 
 end
 

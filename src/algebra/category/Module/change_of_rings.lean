@@ -62,7 +62,7 @@ The restriction of scalars operation is functorial. For any `f : R →+* S` a ri
 * an `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
 * an `S`-linear map is also `R`-linear
 -/
-@[simps] protected def functor : Module S ⥤ Module R :=
+@[simps, nolint check_univs] protected def functor : Module S ⥤ Module R :=
 { obj := obj' f,
   map := λ _ _, map' f,
   map_id' := λ _, linear_map.ext $ λ m, rfl,

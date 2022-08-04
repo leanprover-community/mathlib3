@@ -1784,6 +1784,8 @@ lemma nontrivial_def : s.nontrivial ↔ ∃ x y ∈ s, x ≠ y := iff.rfl
 lemma nontrivial_of_mem_mem_ne {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.nontrivial :=
 ⟨x, hx, y, hy, hxy⟩
 
+/-- Extract witnesses from s.nontrivial. This function might be used instead of case analysis on the
+argument. Note that it makes a proof depend on the classical.choice axiom.-/
 protected noncomputable def nontrivial.some (hs : s.nontrivial) : α × α :=
 (hs.some, hs.some_spec.some_spec.some)
 
@@ -1813,7 +1815,7 @@ lemma nontrivial_iff_pair_subset : s.nontrivial ↔ ∃ x y (hxy : x ≠ y), {x,
 lemma nontrivial_of_exists_ne {x} (hx : x ∈ s) (h : ∃ y ∈ s, y ≠ x) : s.nontrivial :=
 let ⟨y, hy, hyx⟩ := h in ⟨y, hy, x, hx, hyx⟩
 
-lemma nontrivial.exists_ne (hs : s.nontrivial) (ha : a ∈ s) : ∃ b ∈ s, b ≠ a :=
+lemma nontrivial.exists_ne {z} (hs : s.nontrivial) : ∃ x ∈ s, x ≠ z :=
 begin
   by_contra H, push_neg at H,
   rcases hs with ⟨x, hx, y, hy, hxy⟩,
@@ -1822,7 +1824,7 @@ begin
 end
 
 lemma nontrivial_iff_exists_ne {x} (hx : x ∈ s) : s.nontrivial ↔ ∃ y ∈ s, y ≠ x :=
-⟨λ H, H.exists_ne hx, nontrivial_of_exists_ne hx⟩
+⟨λ H, H.exists_ne, nontrivial_of_exists_ne hx⟩
 
 lemma nontrivial_of_lt [preorder α] {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x < y) : s.nontrivial :=
 ⟨x, hx, y, hy, ne_of_lt hxy⟩
@@ -1876,7 +1878,7 @@ by simp_rw [← nontrivial_univ_iff, set.nontrivial, mem_univ,
 
 /-- A type with a set `s` whose `coe_sort` is a nontrivial type is nontrivial.
 For the corresponding result for `subtype`, see `subtype.nontrivial_iff_exists_ne`. -/
-instance nontrivial_of_nontrivial_coe [hs : nontrivial s] : nontrivial α :=
+lemma nontrivial_of_nontrivial_coe (hs : nontrivial s) : nontrivial α :=
 by { rw [s.nontrivial_coe] at hs, exact nontrivial_of_nontrivial hs }
 
 theorem nontrivial_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : nontrivial s) :

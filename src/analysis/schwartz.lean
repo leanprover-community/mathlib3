@@ -51,18 +51,15 @@ section iterated_fderiv
 variables [nontrivially_normed_field 𝕜]
 variables [normed_add_comm_group E] [normed_space 𝕜 E]
 variables [normed_add_comm_group F] [normed_space 𝕜 F]
-.
+
 lemma cont_diff.differentiable_at_iterated_fderiv {n k : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f)
-  {x : E} (h : k < n):
+  (h : k < n):
   differentiable 𝕜 (iterated_fderiv 𝕜 k f) :=
 begin
-  have : differentiable_on 𝕜 (iterated_fderiv_within 𝕜 k f set.univ) set.univ :=
-    hf.cont_diff_on.differentiable_on_iterated_fderiv_within (by simp only [h, with_top.coe_lt_coe])
-    unique_diff_on_univ,
-  simp at this,
-  sorry,
+  rw [←differentiable_on_univ, ←iterated_fderiv_within_univ],
+  refine hf.cont_diff_on.differentiable_on_iterated_fderiv_within _ unique_diff_on_univ,
+  simp only [h, with_top.coe_lt_coe],
 end
-
 
 -- iterated_fderiv_add
 lemma iterated_fderiv_add {n : ℕ} {f g : E → F} (hf : cont_diff 𝕜 n f)
@@ -81,24 +78,42 @@ begin
   rw ←continuous_linear_map.add_apply,
   congr,
   have hf' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k f) x :=
-  begin
-    sorry,
-  end,
+  (cont_diff.differentiable_at_iterated_fderiv hf (lt_add_one k)).differentiable_at,
   have hg' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k g) x :=
-  begin
-    sorry,
-  end,
+  (cont_diff.differentiable_at_iterated_fderiv hg (lt_add_one k)).differentiable_at,
   rw ←fderiv_add hf' hg',
   congr,
   ext,
   rw hk,
   rw pi.add_apply,
 end
+
+-- iterated_fderiv_add
+lemma iterated_fderiv_add_apply {n : ℕ} {f g : E → F} {x : E} (hf : cont_diff 𝕜 n f)
+  (hg : cont_diff 𝕜 n g):
+  iterated_fderiv 𝕜 n (λ x, f x + g x) x = iterated_fderiv 𝕜 n f x + iterated_fderiv 𝕜 n g x :=
+begin
+  refine (congr_fun (iterated_fderiv_add hf hg) x).trans _,
+  rw [pi.add_apply],
+end
+
+variables [semiring R] [module R F] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
 -- iterated_fderiv_const_smul
+lemma iterated_fderiv_const_smul {n : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f) (c : R) :
+  iterated_fderiv 𝕜 n (λ y, c • f y) = c • iterated_fderiv 𝕜 n f :=
+begin
+  induction n with k hk,
+  { ext, simp },
+  specialize hk (hf.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
+  ext x m,
+  rw [pi.smul_apply, continuous_multilinear_map.smul_apply],
+  simp_rw iterated_fderiv_succ_apply_left m,
+  rw [←continuous_multilinear_map.add_apply],
+  congr,
+  sorry,
+end
 
 end iterated_fderiv
-
-#exit
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables [normed_add_comm_group F] [normed_space ℝ F]
@@ -141,10 +156,11 @@ lemma seminorm_add_le_aux (k n : ℕ) (f g : schwartz E F) (x : E) :
   + ∥x∥^k * ∥iterated_fderiv ℝ n g x∥ :=
 begin
   rw ←mul_add,
-  refine mul_le_mul rfl.le _ (by positivity) (by positivity),
+  refine mul_le_mul_of_nonneg_left _ (by positivity),
   convert norm_add_le _ _,
-  -- need lemma iterated_fderiv_add
-  sorry,
+  refine iterated_fderiv_add_apply _ _,
+  { exact f.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
+  { exact g.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
 end
 
 end aux
@@ -239,12 +255,12 @@ instance : has_add (schwartz E F) :=
   end⟩ ⟩
 
 @[simp] lemma add_apply {f g : schwartz E F} {x : E} : (f + g) x = f x + g x := rfl
-
+/-
 instance : add_zero_class (schwartz E F) :=
 { zero := has_zero.zero,
   add := has_add.add,
   zero_add := λ _, by { ext, rw [add_apply, zero_apply, zero_add] },
-  add_zero := λ _, by { ext, rw [add_apply, zero_apply, add_zero] } }
+  add_zero := λ _, by { ext, rw [add_apply, zero_apply, add_zero] } }-/
 
 
 instance : add_comm_monoid (schwartz E F) :=

@@ -386,3 +386,21 @@ smul_right_injective _ hx
 end algebra
 
 end ring
+
+namespace linear_map
+
+variables {R₁ R₂ R₃ M₁ M₂ : Type*}
+variables [semiring R₁] [comm_semiring R₂] [semiring R₃]
+variables [add_comm_monoid M₁] [add_comm_monoid M₂]
+variables [module R₁ M₁] [module R₂ M₂] [module R₃ M₂] [algebra R₂ R₃] [is_scalar_tower R₂ R₃ M₂]
+variables {σ₁₂ : R₁ →+* R₂}
+
+/--
+A heterobasic version of `linear_map.cod_restrict`, restricting the codomain of a linear map.
+-/
+@[simps]
+def cod_restrict_of_tower
+  (p : submodule R₃ M₂) (f : M₁ →ₛₗ[σ₁₂] M₂) (h : ∀c, f c ∈ p) : M₁ →ₛₗ[σ₁₂] p :=
+by refine {to_fun := λc, ⟨f c, h c⟩, ..}; intros; apply set_coe.ext; simp
+
+end linear_map

@@ -159,7 +159,7 @@ begin
   let Cfinset := Cfin.to_finset,
   let L := Cfinset ∪ K,
   obtain ⟨D,DtoC⟩ := surj_on L (subset_union_right Cfinset K),
-  have : D.val ⊆ C.val, from DtoC ▸  bwd_map_sub G Gpc (subset_union_right Cfinset K) D,
+  have : D.val ⊆ C.val, from DtoC ▸ bwd_map_sub G Gpc (subset_union_right Cfinset K) D,
   sorry,
   -- D is a subset of C, but at the same time it is disjoint from L, hence from C.
   -- It follows that D is empty, a contradiction, since ro_components are not empty
@@ -168,7 +168,11 @@ end
 lemma bwd_map_inf_to_inf [locally_finite G]  (Gpc : G.preconnected) {K L : finset V} (KL : K ⊆ L) :
   maps_to (bwd_map G Gpc KL) {C : ro_components G L | C.val.infinite} {D : ro_components G K | D.val.infinite} :=
 begin
-  sorry,
+  simp,
+  unfold maps_to,
+  rintro C Cinf,
+  let sub := bwd_map_sub G Gpc KL C,
+  exact infinite.mono sub Cinf,
 end
 
 end bwd_map

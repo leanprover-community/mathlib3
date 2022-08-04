@@ -104,14 +104,28 @@ lemma iterated_fderiv_const_smul {n : ℕ} {f : E → F} (hf : cont_diff 𝕜 n 
 begin
   induction n with k hk,
   { ext, simp },
+  haveI : has_continuous_const_smul R (continuous_multilinear_map 𝕜 (λ (i : fin k), E) F) :=
+  begin
+    sorry,
+  end,
   specialize hk (hf.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
   ext x m,
   rw [pi.smul_apply, continuous_multilinear_map.smul_apply],
   simp_rw iterated_fderiv_succ_apply_left m,
-  rw [←continuous_multilinear_map.add_apply],
+  rw [←continuous_multilinear_map.smul_apply],
   congr,
-  sorry,
+  rw ←continuous_linear_map.smul_apply,
+  congr,
+  have hf' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k f) x :=
+  (cont_diff.differentiable_at_iterated_fderiv hf (lt_add_one k)).differentiable_at,
+  rw ←fderiv_const_smul hf',
+  congr,
+  exact hk,
 end
+
+lemma iterated_fderiv_const_smul_apply {n : ℕ} {f : E → F} {x : E} (hf : cont_diff 𝕜 n f) (c : R) :
+  iterated_fderiv 𝕜 n (λ y, c • f y) x = c • iterated_fderiv 𝕜 n f x :=
+(congr_fun (iterated_fderiv_const_smul hf c) x)
 
 end iterated_fderiv
 
@@ -161,6 +175,23 @@ begin
   refine iterated_fderiv_add_apply _ _,
   { exact f.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
   { exact g.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
+end
+
+variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
+variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
+
+lemma seminorm_smul_aux (k n : ℕ) (f : schwartz E F) (c : R) (x : E) :
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n (λ y, c • f y) x∥ =
+  ∥c • (1 : ℝ)∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
+begin
+  nth_rewrite 2 mul_comm,
+  rw mul_assoc,
+  congr,
+  rw iterated_fderiv_const_smul_apply ,
+  { rw ←smul_one_smul ℝ c,
+    rw norm_smul,
+    apply_instance },
+  { exact f.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
 end
 
 end aux
@@ -219,12 +250,13 @@ instance : has_smul R (schwartz E F) :=
     specialize hf x,
     have hc : 0 ≤ ∥c • (1 : ℝ)∥ := by positivity,
     refine le_trans _ ((mul_le_mul_of_nonneg_right hf hc).trans _),
-    {
-      rw mul_assoc,
-      refine mul_le_mul_of_nonneg_left _ (by positivity),
-      sorry,
+    { refine eq.le _,
+      nth_rewrite 1 mul_comm,
+      rw ←mul_assoc,
+      refine seminorm_smul_aux k n f c x,
     },
-    sorry,
+    rw [mul_le_mul_left hC, le_add_iff_nonneg_right],
+    exact zero_le_one,
   end}⟩
 -- need iterated_fderiv_const_smul
 

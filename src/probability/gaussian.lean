@@ -106,10 +106,10 @@ begin
     {
       refine filter.germ.coe_le.mp _,
 
-      have const_pos: 0 ≤ (sqrt (2 * π * s ^ 2))⁻¹,
-        positivity,
+      have const_pos: 0 < (sqrt (2 * π * s ^ 2))⁻¹,
+          suggest,
       --refine eq.ge _,
-
+      rw zero_le_mul_left const_pos,
       sorry
 
     }

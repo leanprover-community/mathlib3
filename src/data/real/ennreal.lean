@@ -560,7 +560,6 @@ lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r := ennreal.co
 lemma coe_lt_coe_nat {n : ℕ} : (r : ℝ≥0∞) < n ↔ r < n := ennreal.coe_nat n ▸ coe_lt_coe
 @[simp, norm_cast] lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ℝ≥0∞) < n ↔ m < n :=
 ennreal.coe_nat n ▸ coe_nat_lt_coe.trans nat.cast_lt
-lemma coe_nat_ne_top {n : ℕ} : (n : ℝ≥0∞) ≠ ∞ := ennreal.coe_nat n ▸ coe_ne_top
 lemma coe_nat_mono : strict_mono (coe : ℕ → ℝ≥0∞) := λ _ _, coe_nat_lt_coe_nat.2
 @[simp, norm_cast] lemma coe_nat_le_coe_nat {m n : ℕ} : (m : ℝ≥0∞) ≤ n ↔ m ≤ n :=
 coe_nat_mono.le_iff_le
@@ -582,7 +581,7 @@ begin
 end
 
 @[simp] lemma Union_Iic_coe_nat : (⋃ n : ℕ, Iic (n : ℝ≥0∞)) = {∞}ᶜ :=
-subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top coe_nat_ne_top hx) $
+subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top (nat_ne_top n) hx) $
   Union_Iio_coe_nat ▸ Union_mono (λ n, Iio_subset_Iic_self)
 
 @[simp] lemma Union_Ioc_coe_nat : (⋃ n : ℕ, Ioc a n) = Ioi a \ {∞} :=
@@ -1347,8 +1346,8 @@ begin
   rcases exists_nat_pos_mul_gt hb ha with ⟨n, npos, hn⟩,
   have : (n : ℝ≥0∞) ≠ 0 := nat.cast_ne_zero.2 npos.lt.ne',
   use [n, npos],
-  rwa [← one_mul b, ← inv_mul_cancel this coe_nat_ne_top,
-    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 coe_nat_ne_top) (inv_ne_top.2 this)]
+  rwa [← one_mul b, ← inv_mul_cancel this (nat_ne_top n),
+    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 $ nat_ne_top _) (inv_ne_top.2 this)]
 end
 
 lemma exists_nnreal_pos_mul_lt (ha : a ≠ ∞) (hb : b ≠ 0) :

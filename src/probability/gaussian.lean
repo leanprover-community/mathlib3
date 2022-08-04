@@ -7,6 +7,8 @@ import topology.sequences
 
 import algebra.order.ring
 import data.complex.exponential
+import topology.algebra.module.basic
+
 
 
 
@@ -188,8 +190,8 @@ begin
   rw hμ,
   unfold gaussian_density,
 
-  simpa using lintegral_with_density_eq_lintegral_mul₀ _ _ _,
-
+  ---simpa using lintegral_with_density_eq_lintegral_mul₀ _ _ _,
+sorry
 
 
   /-unfold gaussian_density,
@@ -254,7 +256,7 @@ begin
     simp,
   rw h_zeroeqno at hf,
 
-
+sorry
 
 end
 

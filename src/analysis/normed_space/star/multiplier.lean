@@ -160,19 +160,16 @@ instance : normed_space 𝕜 𝓜(𝕜, A) :=
 lemma uniform_embedding_prod_mk : uniform_embedding (prod_mk 𝕜 A) :=
 uniform_embedding_comap injective_prod_mk
 
--- does this really not exist in `mathlib`?
-def clm_apply (x : A) : (A →L[𝕜] A) →L[𝕜] A :=
-linear_map.mk_continuous ⟨λ f, f x, λ f g, rfl, λ k f, rfl⟩ (∥x∥)
-  (λ f, mul_comm (∥f∥) (∥x∥) ▸ f.le_op_norm x)
-
 instance [complete_space A] : complete_space 𝓜(𝕜, A) :=
 begin
   rw complete_space_iff_is_complete_range uniform_embedding_prod_mk.to_uniform_inducing,
   apply is_closed.is_complete,
   simp only [range_prod_mk, set.set_of_forall],
   refine is_closed_Inter (λ x, is_closed_Inter $ λ y, is_closed_eq _ _),
-  { exact ((continuous_mul_right y).comp (clm_apply x).continuous).comp continuous_snd },
-  { exact ((continuous_mul_left x).comp (clm_apply y).continuous).comp continuous_fst }
+  { exact ((continuous_mul_right y).comp (continuous_linear_map.apply 𝕜 A x).continuous).comp
+      continuous_snd },
+  { exact ((continuous_mul_left x).comp (continuous_linear_map.apply 𝕜 A y).continuous).comp
+      continuous_fst }
 end
 
 /-!

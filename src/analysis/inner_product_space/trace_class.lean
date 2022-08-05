@@ -267,6 +267,13 @@ begin
       _root_.map_sum, ennreal.of_real_sum_of_nonneg (fact J)]
 end
 
+lemma is_positive.trace_lt_top_iff_summable {ι : Type*} [complete_space E] (e : hilbert_basis ι 𝕜 E)
+  {T : E →L[𝕜] E} (hT : T.is_positive) :
+  hT.trace < ⊤ ↔ summable (λ i, ⟪e i, T (e i)⟫) :=
+begin
+  rw [lt_top_iff_ne_top, ← (hT.has_sum_trace e).tsum_eq, ← ennreal.tsum_coe_ne_top_iff_summable],
+end
+
 end positive
 
 end continuous_linear_map

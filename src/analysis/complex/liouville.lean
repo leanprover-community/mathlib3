@@ -24,8 +24,8 @@ open topological_space metric set filter asymptotics function measure_theory
 open_locale topological_space filter nnreal real
 
 universes u v
-variables {E : Type u} [normed_group E] [normed_space ℂ E]
-  {F : Type v} [normed_group F] [normed_space ℂ F]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E]
+  {F : Type v} [normed_add_comm_group F] [normed_space ℂ F]
 
 local postfix `̂`:100 := uniform_space.completion
 

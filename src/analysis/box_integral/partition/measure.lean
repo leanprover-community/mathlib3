@@ -115,11 +115,11 @@ namespace box_additive_map
 
 /-- Box-additive map sending each box `I` to the continuous linear endomorphism
 `x ↦ (volume I).to_real • x`. -/
-protected def volume {E : Type*} [normed_group E] [normed_space ℝ E] :
+protected def volume {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] :
   ι →ᵇᵃ (E →L[ℝ] E) :=
 (volume : measure (ι → ℝ)).to_box_additive.to_smul
 
-lemma volume_apply {E : Type*} [normed_group E] [normed_space ℝ E] (I : box ι) (x : E) :
+lemma volume_apply {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] (I : box ι) (x : E) :
   box_additive_map.volume I x = (∏ j, (I.upper j - I.lower j)) • x :=
 congr_arg2 (•) I.volume_apply rfl
 

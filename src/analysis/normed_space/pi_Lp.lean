@@ -240,7 +240,8 @@ from the edistance (which is equal to it, but not defeq). See Note [forgetful in
 explaining why having definitionally the right uniformity is often important.
 -/
 
-variables [Π i, pseudo_metric_space (α i)] [Π i, pseudo_emetric_space (β i)] [fintype ι]
+variables [fact (1 ≤ p)] [Π i, pseudo_metric_space (α i)] [Π i, pseudo_emetric_space (β i)]
+variables [fintype ι]
 
 /-- Endowing the space `pi_Lp p β` with the `L^p` pseudoemetric structure. This definition is not
 satisfactory, as it does not register the fact that the topology and the uniform structure coincide
@@ -248,7 +249,7 @@ with the product one. Therefore, we do not register it as an instance. Using thi
 pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
 the product one, and then register an instance in which we replace the uniform structure by the
 product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
-def pseudo_emetric_aux [fact (1 ≤ p)] : pseudo_emetric_space (pi_Lp p β) :=
+def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
 { edist_self := pi_Lp.edist_self p,
   edist_comm := pi_Lp.edist_comm p,
   edist_triangle := λ f g h,
@@ -290,7 +291,7 @@ structure and the bornology by the product ones using this pseudometric space,
 `pseudo_metric_space.replace_uniformity`, and `pseudo_metric_space.replace_bornology`.
 
 See note [reducible non-instances] -/
-@[reducible] def pseudo_metric_aux [fact (1 ≤ p)] : pseudo_metric_space (pi_Lp p α) :=
+@[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
 have supr_ne_top : ∀ (f g : pi_Lp ∞ α), (⨆ i, edist (f i) (g i)) ≠ ⊤ := λ f g,
 begin
   obtain ⟨M, hM⟩ := fintype.exists_le (λ i, (⟨dist (f i) (g i), dist_nonneg⟩ : ℝ≥0)),
@@ -331,7 +332,7 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist dist
 
 local attribute [instance] pi_Lp.pseudo_metric_aux
 
-lemma lipschitz_with_equiv_aux [fact (1 ≤ p)] : lipschitz_with 1 (pi_Lp.equiv p β) :=
+lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
   intros f g,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
@@ -352,7 +353,7 @@ begin
     end }
 end
 
-lemma antilipschitz_with_equiv_aux [fact (1 ≤ p)] :
+lemma antilipschitz_with_equiv_aux :
   antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1 / p).to_real) (pi_Lp.equiv p β) :=
 begin
   intros f g,
@@ -384,7 +385,7 @@ begin
     end }
 end
 
-lemma aux_uniformity_eq [fact (1 ≤ p)] :
+lemma aux_uniformity_eq :
   𝓤 (pi_Lp p β) = @uniformity _ (Pi.uniform_space _) :=
 begin
   have A : uniform_inducing (pi_Lp.equiv p β) :=
@@ -396,7 +397,7 @@ begin
   rw [← A.comap_uniformity, this, comap_id]
 end
 
-lemma aux_cobounded_eq [fact (1 ≤ p)] :
+lemma aux_cobounded_eq :
   cobounded (pi_Lp p α) = @cobounded _ pi.bornology :=
 calc cobounded (pi_Lp p α) = comap (pi_Lp.equiv p α) (cobounded _) :
   le_antisymm (antilipschitz_with_equiv_aux p α).tendsto_cobounded.le_comap
@@ -414,25 +415,28 @@ variable [fintype ι]
 
 instance bornology [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
 
+-- throughout the rest of the file, we assume `1 ≤ p`
+variables [fact (1 ≤ p)]
+
 /-- pseudoemetric space instance on the product of finitely many pseudoemetric spaces, using the
 `L^p` pseudoedistance, and having as uniformity the product uniformity. -/
-instance [fact (1 ≤ p)] [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β) :=
+instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β) :=
 (pseudo_emetric_aux p β).replace_uniformity (aux_uniformity_eq p β).symm
 
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
-instance [fact (1 ≤ p)] [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
+instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
 @emetric.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
-instance [fact (1 ≤ p)] [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :=
+instance [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :=
 ((pseudo_metric_aux p β).replace_uniformity (aux_uniformity_eq p β).symm).replace_bornology $
   λ s, filter.ext_iff.1 (aux_cobounded_eq p β).symm sᶜ
 
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
 and having as uniformity the product uniformity. -/
-instance [fact (1 ≤ p)] [Π i, metric_space (α i)] : metric_space (pi_Lp p α) :=
+instance [Π i, metric_space (α i)] : metric_space (pi_Lp p α) :=
 metric.of_t0_pseudo_metric_space _
 
 lemma nndist_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
@@ -444,11 +448,11 @@ lemma nndist_eq_supr {β : ι → Type*} [Π i, pseudo_metric_space (β i)] (x y
   nndist x y = ⨆ i, nndist (x i) (y i) :=
 subtype.ext $ by { push_cast, exact dist_eq_csupr _ _ }
 
-lemma lipschitz_with_equiv [fact (1 ≤ p)] [Π i, pseudo_emetric_space (β i)] :
+lemma lipschitz_with_equiv [Π i, pseudo_emetric_space (β i)] :
   lipschitz_with 1 (pi_Lp.equiv p β) :=
 lipschitz_with_equiv_aux p β
 
-lemma antilipschitz_with_equiv [fact (1 ≤ p)] [Π i, pseudo_emetric_space (β i)] :
+lemma antilipschitz_with_equiv [Π i, pseudo_emetric_space (β i)] :
   antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1 / p).to_real) (pi_Lp.equiv p β) :=
 antilipschitz_with_equiv_aux p β
 
@@ -458,7 +462,7 @@ lemma infty_equiv_isometry [Π i, pseudo_emetric_space (β i)] :
   (by simpa only [ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, ennreal.coe_one, one_mul]
     using antilipschitz_with_equiv ∞ β x y)
 
-variables (p β) [fact (1 ≤ p)]
+variables (p β)
 /-- seminormed group instance on the product of finitely many normed groups, using the `L^p`
 norm. -/
 instance seminormed_add_comm_group [Π i, seminormed_add_comm_group (β i)] :

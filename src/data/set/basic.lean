@@ -1905,7 +1905,7 @@ lemma nontrivial_of_preimage {f : α → β} (hf : function.injective f) (s : se
   (hs : (f ⁻¹' s).nontrivial) : s.nontrivial :=
 (hs.image hf).mono $ image_preimage_subset _ _
 
-lemma nontrivial_iff_not_subsingleton : s.nontrivial ↔ ¬ s.subsingleton :=
+@[simp] lemma nontrivial_iff_not_subsingleton : ¬ s.subsingleton ↔ s.nontrivial :=
 by simp_rw [set.subsingleton, set.nontrivial, not_forall]
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=

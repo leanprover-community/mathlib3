@@ -368,7 +368,44 @@ lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
 
 end real
 
+section complex
+
+variables {V W : Type*} [inner_product_space ℂ V] [inner_product_space ℂ W]
+  [complete_space V] [complete_space W]
+
+--/-- A polarization-like identity for the `(u, v) ↦ u† ∘ v` sesquilinear map. -/
+--lemma adjoint_comp_eq_polarization (S T : V →L[ℂ] W):
+--  S† ∘L T = (1 / 4 : ℂ) •
+--    ((S + T)† ∘L (S + T) - (S - T)† ∘L (S - T) +
+--      complex.I • (S - complex.I • T)† ∘L (S - complex.I • T) -
+--      complex.I • (S + complex.I • T)† ∘L (S + complex.I • T)) :=
+--begin
+--  simp,
+--end
+
+/-- A polarization-like identity for the `(u, v) ↦ u† ∘ v` sesquilinear map. -/
+lemma adjoint_comp_eq_polarization (S T : V →L[ℂ] W):
+  S† ∘L T = (1 / 4 : ℂ) •
+    ((T + S)† ∘L (T + S) - (T - S)† ∘L (T - S) +
+      complex.I • (T - complex.I • S)† ∘L (T - complex.I • S) -
+      complex.I • (T + complex.I • S)† ∘L (T + complex.I • S)) :=
+begin
+  rw [← coe_inj, ← ext_inner_map _ _],
+  intros x,
+  sorry
+  --rw [coe_coe, coe_coe, comp_apply, adjoint_inner_left, inner_eq_sum_norm_sq_div_four,
+  --    ← inner_self_eq_norm_sq_to_K, ← inner_self_eq_norm_sq_to_K, ← inner_self_eq_norm_sq_to_K,
+  --    ← inner_self_eq_norm_sq_to_K, ← add_apply, ← sub_apply, ← smul_apply, ← add_apply,
+  --    ← sub_apply, ← adjoint_inner_left, ← adjoint_inner_left, ← adjoint_inner_left,
+  --    ← adjoint_inner_left, ← inner_sub_left, ← inner_sub_left, mul_comm, ← smul_eq_mul,
+  --    ← inner_smul_left],
+end
+
+end complex
+
 end continuous_linear_map
+
+#exit
 
 namespace linear_map
 

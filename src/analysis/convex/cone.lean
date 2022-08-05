@@ -364,7 +364,7 @@ end convex_cone
 /-! ### Cone over a convex set -/
 
 section cone_from_convex
-variables [linear_ordered_field 𝕜] [ordered_add_comm_group E] [module 𝕜 E]
+variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 namespace convex
 

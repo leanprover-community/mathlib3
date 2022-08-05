@@ -56,7 +56,7 @@ by simp [test_bit]
 lemma test_bit_eq_inth (n i : ℕ) : n.test_bit i = n.bits.inth i :=
 begin
   induction i with i ih generalizing n,
-  { simp [test_bit, shiftr, bodd_eq_bits_head, list.nth_zero, list.head_eq_head'], },
+  { simp [test_bit, shiftr, bodd_eq_bits_head, list.inth_zero_eq_head], },
   conv_lhs { rw ← bit_decomp n, },
   rw [test_bit_succ, ih n.div2, div2_bits_eq_tail],
   cases n.bits; simp,

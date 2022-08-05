@@ -365,7 +365,7 @@ by simp only [←cons_zero, mem_cons, iff_self, or_false, not_mem_zero]
 theorem mem_singleton_self (a : α) : a ∈ ({a} : multiset α) :=
 by { rw ←cons_zero, exact mem_cons_self _ _ }
 
-theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
+@[simp] theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
 by { simp_rw [←cons_zero], exact cons_inj_left _ }
 
 @[simp] theorem singleton_ne_zero (a : α) : ({a} : multiset α) ≠ 0 :=
@@ -374,6 +374,9 @@ ne_of_gt (lt_cons_self _ _)
 @[simp] theorem singleton_le {a : α} {s : multiset α} : {a} ≤ s ↔ a ∈ s :=
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
+
+@[simp] lemma singleton_eq_cons_iff {a b : α} (m : multiset α) : {a} = b ::ₘ m ↔ a = b ∧ m = 0 :=
+by { rw [←cons_zero, cons_eq_cons], simp [eq_comm] }
 
 theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
 

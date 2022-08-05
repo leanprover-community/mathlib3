@@ -798,18 +798,17 @@ begin
   suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ∥(orthogonal_projection (U i) y : E) - y∥ < ε,
   { simpa only [proj_x, normed_add_comm_group.tendsto_at_top] using this },
   intros ε hε,
-  have y_mem : y ∈ (⨆ i, U i).topological_closure := submodule.coe_mem _,
   obtain ⟨a, ha, hay⟩ : ∃ a ∈ ⨆ i, U i, dist y a < ε,
-  { rw [← set_like.mem_coe, submodule.topological_closure_coe, metric.mem_closure_iff] at y_mem,
+  { have y_mem : y ∈ (⨆ i, U i).topological_closure := submodule.coe_mem _,
+    rw [← set_like.mem_coe, submodule.topological_closure_coe, metric.mem_closure_iff] at y_mem,
     exact y_mem ε hε },
   rw dist_eq_norm at hay,
   obtain ⟨I, hI⟩ : ∃ I, a ∈ U I,
   { rwa [submodule.mem_supr_of_directed _ (hU.directed_le)] at ha },
   refine ⟨I, λ i (hi : I ≤ i), _⟩,
-  have hai : a ∈ U i := hU hi hI,
   rw [norm_sub_rev, orthogonal_projection_minimal],
   refine lt_of_le_of_lt _ hay,
-  change _ ≤ ∥y - (⟨a, hai⟩ : U i)∥,
+  change _ ≤ ∥y - (⟨a, hU hi hI⟩ : U i)∥,
   exact cinfi_le ⟨0, set.forall_range_iff.mpr $ λ _, norm_nonneg _⟩ _,
 end
 
@@ -818,8 +817,7 @@ and a fixed `x : E`, the orthogonal projection of `x` on `U i` tends to `x` alon
 lemma orthogonal_projection_tendsto_self [complete_space E] {ι : Type*} [semilattice_sup ι]
   (U : ι → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
   (x : E) (hU' : ⊤ ≤ (⨆ t, U t).topological_closure) :
-  filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top
-    (𝓝 x) :=
+  filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top (𝓝 x) :=
 begin
   rw ← eq_top_iff at hU',
   convert orthogonal_projection_tendsto_closure_supr U hU x,

@@ -15,6 +15,10 @@ This file defines, given relations `rα : α → α → Prop` and `rβ : β → 
 `rβ b₁ b₂` and `a₁ = a₂`. It is so called since it models the subsequency relation on the addition
 of combinatorial games.
 
+## Main result
+
+- `well_founded.game_add`: formalizes induction on ordered pairs.
+
 ## Todo
 
 - Add custom `induction` and `fix` lemmas.

@@ -895,7 +895,7 @@ end
 begin
   induction a using int.induction_on;
   simp [←int.neg_succ_of_nat_coe', int.neg_succ_of_nat_coe, -neg_add_rev, rat.inv_neg,
-        int.coe_nat_add_one_out, -nat.cast_succ, inv_coe_nat_num_pos, -int.cast_neg_succ_of_nat,
+        int.coe_nat_add_one_out, -nat.cast_succ, inv_coe_nat_num_of_pos, -int.cast_neg_succ_of_nat,
         @eq_comm ℤ 1, int.sign_eq_one_iff_of_pos]
 end
 

@@ -420,6 +420,9 @@ by convert rfl
 @[simp] lemma update_self : f.update a (f a) = f :=
 by { ext, simp }
 
+@[simp] lemma zero_update : update 0 a b = single a b :=
+by { ext, rw single_eq_update, refl }
+
 lemma support_update [decidable_eq α] : support (f.update a b) =
   if b = 0 then f.support.erase a else insert a f.support := by convert rfl
 
@@ -818,7 +821,26 @@ absent keys to zero. -/
 
 alias lookup_finsupp_to_fun ← lookup_finsupp_apply
 
-@[simp] lemma to_alist_lookup_finsupp (f : α →₀ M) : f.to_alist.lookup_finsupp = f :=
+lemma lookup_finsupp_eq_iff_of_ne_zero {l : alist (λ x : α, M)} {a : α} {x : M} (hx : x ≠ 0) :
+  l.lookup_finsupp a = x ↔ x ∈ l.lookup a :=
+by { rw lookup_finsupp_to_fun, cases lookup a l with m; simp [hx.symm] }
+
+lemma lookup_finsupp_eq_zero_iff {l : alist (λ x : α, M)} {a : α} :
+  l.lookup_finsupp a = 0 ↔ a ∉ l ∨ (0 : M) ∈ l.lookup a :=
+by { rw [lookup_finsupp_to_fun, ←lookup_eq_none], cases lookup a l with m; simp }
+
+@[simp] lemma empty_lookup_finsupp : lookup_finsupp (∅ : alist (λ x : α, M)) = 0 :=
+by { ext, simp }
+
+@[simp] lemma insert_lookup_finsupp (l : alist (λ x : α, M)) (a : α) (m : M) :
+  (l.insert a m).lookup_finsupp = l.lookup_finsupp.update a m :=
+by { ext b, by_cases h : b = a; simp [h] }
+
+@[simp] lemma singleton_lookup_finsupp (a : α) (m : M) :
+  (singleton a m).lookup_finsupp = finsupp.single a m :=
+by simp [←alist.insert_empty]
+
+@[simp] lemma _root_.finsupp.to_alist_lookup_finsupp (f : α →₀ M) : f.to_alist.lookup_finsupp = f :=
 begin
   ext,
   by_cases h : f a = 0,
@@ -832,12 +854,12 @@ begin
 end
 
 lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
-λ f, ⟨_, to_alist_lookup_finsupp f⟩
+λ f, ⟨_, finsupp.to_alist_lookup_finsupp f⟩
 
 end alist
 
 end lookup_finsupp
-
+#exit
 namespace finsupp
 
 /-!

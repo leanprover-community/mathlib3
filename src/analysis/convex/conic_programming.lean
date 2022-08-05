@@ -2,14 +2,27 @@ import analysis.convex.cone
 
 noncomputable theory
 
+-- https://ti.inf.ethz.ch/ew/lehre/ApproxSDP09/notes/conelp.pdf
+
 structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E]:=
 (carrier : convex_cone ℝ E)
 (nonempty' : (carrier : set E).nonempty)
 (is_closed' : is_closed (carrier : set E))
 
-namespace proper_cone
-
 variables {E : Type*} [inner_product_space ℝ E] [complete_space E]
+variables {F : Type*} [inner_product_space ℝ F] [complete_space F]
+
+def convex_cone.closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
+{ carrier := closure (K : set E),
+  smul_mem' := by { simp_rw mem_closure_iff_seq_limit,
+    exact λ c hc x ⟨seq, mem, tends⟩,
+      ⟨ λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), filter.tendsto.const_smul tends c ⟩ ⟩ },
+  add_mem' := by { simp_rw mem_closure_iff_seq_limit,
+    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
+      ⟨ λ n, xseq n + yseq n,
+      ⟨ λ n, K.add_mem (xmem n) (ymem n), filter.tendsto.add xtends ytends ⟩ ⟩ } }
+
+namespace proper_cone
 
 instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨proper_cone.carrier⟩
 
@@ -24,6 +37,8 @@ lemma mem_cone (K : proper_cone E) {x : E} : x ∈ K ↔ x ∈ K.carrier := sorr
 lemma nonempty (K : proper_cone E) : (K.carrier : set E).nonempty := K.nonempty'
 
 lemma is_closed (K : proper_cone E) : is_closed (K.carrier : set E) := K.is_closed'
+
+lemma pointed (K : proper_cone E) : (K.carrier).pointed := sorry
 
 @[ext] theorem ext {S T : proper_cone E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := sorry
 
@@ -40,6 +55,17 @@ instance : has_involutive_star (proper_cone E) :=
 { star := has_star.star,
   star_involutive := λ K, proper_cone.ext $ λ x,
     by rw [mem_star, star_coe, dual_of_dual_eq_self K.nonempty K.is_closed, mem_cone] }
+
+/-- The image of a proper cone under a continuous linear map need not be closed. So, we define `map`
+to be the closure of the image.-/
+def map (K : proper_cone E) (A : E →ₗ[ℝ] F) : proper_cone F :=
+{ carrier := ((K.carrier).map A).closure,
+  nonempty' := ⟨0, by {
+    suffices h : (0 : F) ∈ (K.carrier).map A, from
+      (@subset_closure _ _ ((K.carrier).map A : set F)) 0 h ,
+    { simp only [convex_cone.mem_coe, convex_cone.mem_map, set.mem_image],
+      use ⟨ 0, K.pointed, map_zero _ ⟩ } } ⟩,
+  is_closed' := is_closed_closure }
 
 end proper_cone
 

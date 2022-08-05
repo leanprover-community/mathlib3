@@ -1319,19 +1319,6 @@ end
 end real
 
 section cauchy_seq
-variables [nonempty β] [semilattice_sup β]
-
-/-- In a pseudometric space, Cauchy sequences are characterized by the fact that, eventually,
-the distance between its elements is arbitrarily small -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem metric.cauchy_seq_iff {u : β → α} :
-  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u m) (u n) < ε :=
-uniformity_basis_dist.cauchy_seq_iff
-
-/-- A variation around the pseudometric characterization of Cauchy sequences -/
-theorem metric.cauchy_seq_iff' {u : β → α} :
-  cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
-uniformity_basis_dist.cauchy_seq_iff'
 
 /-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
 the distance between all its elements is uniformly, arbitrarily small -/
@@ -1356,6 +1343,8 @@ begin
     exact eventually_prod_iff.mpr ⟨(λ z, z ∈ N), hN, (λ z, z ∈ N), hN,
       (λ n hn m hm x hx, hab (hNm n hn m hm x hx))⟩, },
 end
+
+variables [nonempty β] [semilattice_sup β]
 
 /-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
 the distance between all its elements is uniformly, arbitrarily small. Version for `at_top` -/
@@ -1384,6 +1373,18 @@ begin
     rcases hb with ⟨hbl, hbr⟩,
     exact hab (hN b.fst hbl.ge b.snd hbr.ge x hx), },
 end
+
+/-- In a pseudometric space, Cauchy sequences are characterized by the fact that, eventually,
+the distance between its elements is arbitrarily small -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem metric.cauchy_seq_iff {u : β → α} :
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u m) (u n) < ε :=
+uniformity_basis_dist.cauchy_seq_iff
+
+/-- A variation around the pseudometric characterization of Cauchy sequences -/
+theorem metric.cauchy_seq_iff' {u : β → α} :
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
+uniformity_basis_dist.cauchy_seq_iff'
 
 /-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/

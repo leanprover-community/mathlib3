@@ -42,7 +42,7 @@ lemma rel_nodup {r : α → β → Prop} (hr : relator.bi_unique r) : (forall₂
 
 protected lemma nodup.cons (ha : a ∉ l) (hl : nodup l) : nodup (a :: l) := nodup_cons.2 ⟨ha, hl⟩
 
-lemma nodup_singleton (a : α) : nodup [a] := pairwise_singleton _ _
+@[simp] lemma nodup_singleton (a : α) : nodup [a] := pairwise_singleton _ _
 
 lemma nodup.of_cons (h : nodup (a :: l)) : nodup l := (nodup_cons.1 h).2
 lemma nodup.not_mem (h : (a :: l).nodup) : a ∉ l := (nodup_cons.1 h).1

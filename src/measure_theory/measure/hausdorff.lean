@@ -883,7 +883,7 @@ begin
     { simp only [hs, measure_empty, zero_le], },
     have : f ⁻¹' s = {x},
     { haveI : subsingleton X := hf.subsingleton,
-      have : (f ⁻¹' s).subsingleton, from subsingleton_univ.anti (subset_univ _),
+      have : (f ⁻¹' s).subsingleton, from subsingleton_univ.mono (subset_univ _),
       exact (subsingleton_iff_singleton hx).1 this },
     rw this,
     rcases eq_or_lt_of_le hd with rfl|h'd,

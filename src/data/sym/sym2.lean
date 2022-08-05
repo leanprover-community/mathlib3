@@ -94,8 +94,13 @@ protected lemma ind {f : sym2 α → Prop} (h : ∀ x y, f ⟦(x, y)⟧) : ∀ i
 quotient.ind $ prod.rec $ by exact h
 
 @[elab_as_eliminator]
-protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
+protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x, y)⟧) : f i :=
 i.ind hf
+
+@[elab_as_eliminator]
+protected lemma induction_on₂ {f : sym2 α → sym2 α → Prop} (i j : sym2 α)
+  (hf : ∀ x₁ x₂ y₁ y₂, f ⟦(x₁, x₂)⟧ ⟦(y₁, y₂)⟧) : f i j :=
+quotient.induction_on₂ i j $ by { rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, exact hf _ _ _ _ }
 
 protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} :
   (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
@@ -141,6 +146,21 @@ lemma lift_mk (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ 
 @[simp]
 lemma coe_lift_symm_apply (F : sym2 α → β) (a₁ a₂ : α) :
   (lift.symm F : α → α → β) a₁ a₂ = F ⟦(a₁, a₂)⟧ := rfl
+
+/-- A two-argument version of `sym2.lift`. -/
+def lift₂ : {f : α → α → α → α → β // ∀ a₁ a₂ a₃ a₄,
+  (f a₁ a₂ a₃ a₄ = f a₂ a₁ a₃ a₄ ∧ f a₁ a₂ a₃ a₄ = f a₁ a₂ a₄ a₃)} ≃ (sym2 α → sym2 α → β) :=
+{ to_fun := λ f, quotient.lift₂ (λ a b : α × α, f.1 a.1 a.2 b.1 b.2) begin
+    rintro _ _ _ _ ⟨⟩ ⟨⟩,
+    exacts [rfl, (f.2 _ _ _ _).2, (f.2 _ _ _ _).1, (f.2 _ _ _ _).1.trans (f.2 _ _ _ _).2]
+  end,
+  inv_fun := λ F, ⟨λ x₁ x₂ y₁ y₂, F ⟦(x₁, x₂)⟧ ⟦(y₁, y₂)⟧, λ a₁ a₂ b₁ b₂,
+    by { split, exacts [congr_arg2 F eq_swap rfl, congr_arg2 F rfl eq_swap] }⟩,
+  left_inv := λ f, subtype.ext rfl,
+  right_inv := λ F, begin
+    dsimp,
+    apply funext₂' (λ x y, _),
+  end }
 
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.

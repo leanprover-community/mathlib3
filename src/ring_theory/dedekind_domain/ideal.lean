@@ -575,8 +575,8 @@ variables {R A} [is_dedekind_domain A] [algebra A K] [is_fraction_ring A K]
 open fractional_ideal
 open ideal
 
-noncomputable instance fractional_ideal.comm_group_with_zero :
-  comm_group_with_zero (fractional_ideal A⁰ K) :=
+noncomputable instance fractional_ideal.semifield :
+  semifield (fractional_ideal A⁰ K) :=
 { inv := λ I, I⁻¹,
   inv_zero := inv_zero' _,
   div := (/),
@@ -753,12 +753,6 @@ open multiset unique_factorization_monoid ideal
 lemma prod_normalized_factors_eq_self (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
-lemma normalized_factors_prod {α : multiset (ideal T)}
-  (h : ∀ p ∈ α, prime p) : normalized_factors α.prod = α :=
-by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
-     exact prime_factors_unique (prime_of_normalized_factor) h
-      (normalized_factors_prod (α.prod_ne_zero_of_prime h)) }
-
 lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
   count K (normalized_factors J) ≤ count K (normalized_factors I) :=
 le_iff_count.1 ((dvd_iff_normalized_factors_le_normalized_factors (ne_bot_of_le_ne_bot hI h) hI).1
@@ -769,7 +763,7 @@ lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
 begin
   have H : normalized_factors (normalized_factors I ∩ normalized_factors J).prod =
     normalized_factors I ∩ normalized_factors J,
-  { apply _root_.normalized_factors_prod,
+  { apply normalized_factors_prod_of_prime,
     intros p hp,
     rw mem_inter at hp,
     exact prime_of_normalized_factor p hp.left },
@@ -783,7 +777,7 @@ begin
     { rw [dvd_iff_normalized_factors_le_normalized_factors this hJ, H],
       exact inf_le_right } },
   { rw [← dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors,
-      _root_.normalized_factors_prod, le_iff_count],
+      normalized_factors_prod_of_prime, le_iff_count],
     { intro a,
       rw multiset.count_inter,
       exact le_min (count_le_of_ideal_ge le_sup_left hI a)
@@ -806,17 +800,17 @@ begin
   by_cases hI : I = ⊥,
   { simp [*] at *, },
   rw [irreducible_pow_sup hI hJ, min_eq_right],
-  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J] at hn
+  rwa [multiplicity_eq_count_normalized_factors hJ hI, part_enat.coe_le_coe, normalize_eq J] at hn
 end
 
 lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
-  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (enat.dom_of_le_coe hn) :=
+  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (part_enat.dom_of_le_coe hn) :=
 begin
   rw [irreducible_pow_sup hI hJ, min_eq_left],
   congr,
-  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
+  { rw [← part_enat.coe_inj, part_enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
     normalize_eq J] },
-  { rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
+  { rwa [multiplicity_eq_count_normalized_factors hJ hI, part_enat.coe_le_coe, normalize_eq J]
       at hn }
 end
 
@@ -837,7 +831,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[ext, nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_nonempty_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)

@@ -369,6 +369,7 @@ to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 lemma is_sheaf_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
   F.is_sheaf ↔ F.is_sheaf_pairwise_intersections :=
+(is_sheaf_iff_is_sheaf_equalizer_products F).trans $
 iff.intro (λ h ι U, ⟨is_limit_map_cone_of_is_limit_sheaf_condition_fork F U (h U).some⟩)
   (λ h ι U, ⟨is_limit_sheaf_condition_fork_of_is_limit_map_cone F U (h U).some⟩)
 
@@ -393,7 +394,7 @@ end Top.presheaf
 
 namespace Top.sheaf
 
-variables {X : Top.{v}} {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {X : Top.{v}} {C : Type u} [category.{v} C]
 variables (F : X.sheaf C) (U V : opens X)
 open category_theory.limits
 
@@ -414,17 +415,24 @@ pullback_cone.mk (F.1.map (hom_of_le le_sup_left).op) (F.1.map (hom_of_le le_sup
 variable (s : pullback_cone
   (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op))
 
+variable [has_products.{v} C]
+
 /-- (Implementation).
-Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`. -/
+Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`.
+TODO: generalize to `C` without products.
+-/
 def inter_union_pullback_cone_lift : s.X ⟶ F.1.obj (op (U ∪ V)) :=
 begin
   let ι : ulift.{v} walking_pair → opens X := λ j, walking_pair.cases_on j.down U V,
   have hι : U ∪ V = supr ι,
-  { ext, split,
+  { ext,
+    rw [opens.coe_supr, set.mem_Union],
+    split,
     { rintros (h|h),
-    exacts [⟨_,⟨_,⟨⟨walking_pair.left⟩,rfl⟩,rfl⟩,h⟩, ⟨_,⟨_,⟨⟨walking_pair.right⟩,rfl⟩,rfl⟩,h⟩] },
-    { rintros ⟨_,⟨_,⟨⟨⟨⟩⟩,⟨⟩⟩,⟨⟩⟩,z⟩, exacts [or.inl z, or.inr z] } },
-  refine (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
+      exacts [⟨⟨walking_pair.left⟩, h⟩, ⟨⟨walking_pair.right⟩, h⟩] },
+    { rintro ⟨⟨_ | _⟩, h⟩,
+      exacts [or.inl h, or.inr h] } },
+  refine (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
     ⟨s.X, { app := _, naturality' := _ }⟩ ≫ F.1.map (eq_to_hom hι).op,
   { apply opposite.rec,
     rintro ((_|_)|(_|_)),
@@ -440,14 +448,14 @@ begin
       category.assoc],
     erw [← F.1.map_comp, ← F.1.map_comp],
     convert s.condition.symm },
-  { convert s.condition }
 end
 
 lemma inter_union_pullback_cone_lift_left :
   inter_union_pullback_cone_lift F U V s ≫ F.1.map (hom_of_le le_sup_left).op = s.fst :=
 begin
+  dsimp,
   erw [category.assoc, ←F.1.map_comp],
-  exact (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
     (op $ pairwise.single (ulift.up walking_pair.left))
 end
 
@@ -455,7 +463,7 @@ lemma inter_union_pullback_cone_lift_right :
   inter_union_pullback_cone_lift F U V s ≫ F.1.map (hom_of_le le_sup_right).op = s.snd :=
 begin
   erw [category.assoc, ←F.1.map_comp],
-  exact (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
     (op $ pairwise.single (ulift.up walking_pair.right))
 end
 
@@ -464,10 +472,13 @@ def is_limit_pullback_cone : is_limit (inter_union_pullback_cone F U V) :=
 begin
   let ι : ulift.{v} walking_pair → opens X := λ ⟨j⟩, walking_pair.cases_on j U V,
   have hι : U ∪ V = supr ι,
-  { ext, split,
+  { ext,
+    rw [opens.coe_supr, set.mem_Union],
+    split,
     { rintros (h|h),
-    exacts [⟨_,⟨_,⟨⟨walking_pair.left⟩,rfl⟩,rfl⟩,h⟩, ⟨_,⟨_,⟨⟨walking_pair.right⟩,rfl⟩,rfl⟩,h⟩] },
-    { rintros ⟨_,⟨_,⟨⟨⟨⟩⟩,⟨⟩⟩,⟨⟩⟩,z⟩, exacts [or.inl z, or.inr z] } },
+      exacts [⟨⟨walking_pair.left⟩, h⟩, ⟨⟨walking_pair.right⟩, h⟩] },
+    { rintro ⟨⟨_ | _⟩, h⟩,
+      exacts [or.inl h, or.inr h] } },
   apply pullback_cone.is_limit_aux',
   intro s,
   use inter_union_pullback_cone_lift F U V s,
@@ -476,7 +487,7 @@ begin
   { apply inter_union_pullback_cone_lift_right },
   { intros m h₁ h₂,
     rw ← cancel_mono (F.1.map (eq_to_hom hι.symm).op),
-    apply (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.hom_ext,
+    apply (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.hom_ext,
     apply opposite.rec,
     rintro ((_|_)|(_|_)); rw [category.assoc, category.assoc],
     { erw ← F.1.map_comp,

@@ -49,7 +49,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 /-- local homeomorphisms, defined on open subsets of the space -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure local_homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends local_equiv α β :=
 (open_source        : is_open source)
@@ -220,6 +220,12 @@ lemma source_inter_preimage_target_inter (s : set β) :
   e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
 e.to_local_equiv.source_inter_preimage_target_inter s
 
+lemma image_source_eq_target (e : local_homeomorph α β) : e '' e.source = e.target :=
+e.to_local_equiv.image_source_eq_target
+
+lemma symm_image_target_eq_source (e : local_homeomorph α β) : e.symm '' e.target = e.source :=
+e.symm.image_source_eq_target
+
 /-- Two local homeomorphisms are equal when they have equal `to_fun`, `inv_fun` and `source`.
 It is not sufficient to have equal `to_fun` and `source`, as this only determines `inv_fun` on
 the target. This would only be true for a weaker notion of equality, arguably the right one,
@@ -228,6 +234,10 @@ called `eq_on_source`. -/
 protected lemma ext (e' : local_homeomorph α β) (h : ∀x, e x = e' x)
   (hinv : ∀x, e.symm x = e'.symm x) (hs : e.source = e'.source) : e = e' :=
 eq_of_local_equiv_eq (local_equiv.ext h hinv hs)
+
+protected lemma ext_iff {e e' : local_homeomorph α β} : e = e' ↔ (∀ x, e x = e' x) ∧
+  (∀ x, e.symm x = e'.symm x) ∧ e.source = e'.source :=
+⟨by { rintro rfl, exact ⟨λ x, rfl, λ x, rfl, rfl⟩ }, λ h, e.ext e' h.1 h.2.1 h.2.2⟩
 
 @[simp, mfld_simps] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
 -- The following lemmas are already simp via local_equiv
@@ -624,6 +634,7 @@ protected def trans : local_homeomorph α γ :=
   (e.trans e').to_local_equiv = e.to_local_equiv.trans e'.to_local_equiv := rfl
 @[simp, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
 @[simp, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+lemma trans_apply {x : α} : (e.trans e') x = e' (e x) := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
@@ -809,6 +820,25 @@ rfl
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
 local_homeomorph.eq_of_local_equiv_eq $
   by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
+
+lemma prod_eq_prod_of_nonempty {e₁ e₁' : local_homeomorph α β} {e₂ e₂' : local_homeomorph γ δ}
+  (h : (e₁.prod e₂).source.nonempty) :
+  e₁.prod e₂ = e₁'.prod e₂' ↔ e₁ = e₁' ∧ e₂ = e₂' :=
+begin
+  obtain ⟨⟨x, y⟩, -⟩ := id h,
+  haveI : nonempty α := ⟨x⟩,
+  haveI : nonempty β  := ⟨e₁ x⟩,
+  haveI : nonempty γ := ⟨y⟩,
+  haveI : nonempty δ := ⟨e₂ y⟩,
+  simp_rw [local_homeomorph.ext_iff, prod_apply, prod_symm_apply, prod_source, prod.ext_iff,
+    set.prod_eq_prod_iff_of_nonempty h,
+    forall_and_distrib, prod.forall, forall_const, forall_forall_const, and_assoc, and.left_comm]
+end
+
+lemma prod_eq_prod_of_nonempty' {e₁ e₁' : local_homeomorph α β} {e₂ e₂' : local_homeomorph γ δ}
+  (h : (e₁'.prod e₂').source.nonempty) :
+  e₁.prod e₂ = e₁'.prod e₂' ↔ e₁ = e₁' ∧ e₂ = e₂' :=
+by rw [eq_comm, prod_eq_prod_of_nonempty h, eq_comm, @eq_comm _ e₂']
 
 end prod
 

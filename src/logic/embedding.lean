@@ -18,7 +18,7 @@ universes u v w x
 namespace function
 
 /-- `α ↪ β` is a bundled injective function. -/
-@[nolint has_inhabited_instance] -- depending on cardinalities, an injective function may not exist
+@[nolint has_nonempty_instance] -- depending on cardinalities, an injective function may not exist
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
 (inj'   : injective to_fun)

@@ -5,9 +5,9 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import data.rat.cast
 import group_theory.group_action.big_operators
 import group_theory.group_action.group
-import tactic.norm_num
 
 /-!
 # Modules over a ring
@@ -201,7 +201,7 @@ instance add_comm_group.int_module : module ℤ M :=
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
 this provides a way to construct a module structure by checking less properties, in
 `module.of_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure module.core extends has_smul R M :=
 (smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
@@ -524,7 +524,7 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
 @[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
-by { haveI := nat.no_zero_smul_divisors R M, norm_num [smul_eq_zero] }
+by { haveI := nat.no_zero_smul_divisors R M, simp [smul_eq_zero] }
 
 end nat
 

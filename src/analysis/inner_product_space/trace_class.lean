@@ -214,6 +214,16 @@ noncomputable def is_positive.trace_along_ennreal [complete_space E] (U : submod
   [finite_dimensional 𝕜 U] {T : E →L[𝕜] E} (hT : T.is_positive) : ℝ≥0∞ :=
 @coe ℝ≥0 ℝ≥0∞ _ ⟨re $ trace_along U T, hT.trace_along_nonneg U⟩
 
+@[simp] lemma is_positive.trace_along_eq_of_real [complete_space E] (U : submodule 𝕜 E)
+  [finite_dimensional 𝕜 U] {T : E →L[𝕜] E} (hT : T.is_positive) :
+  hT.trace_along_ennreal U = ennreal.of_real (re (trace_along U T)) :=
+by rw [is_positive.trace_along_ennreal, ← ennreal.of_real_eq_coe_nnreal]
+
+@[simp] lemma is_positive.trace_along_ennreal_to_real [complete_space E] (U : submodule 𝕜 E)
+  [finite_dimensional 𝕜 U] {T : E →L[𝕜] E} (hT : T.is_positive) :
+  (hT.trace_along_ennreal U).to_real = re (trace_along U T) :=
+by rw [is_positive.trace_along_eq_of_real, ennreal.to_real_of_real (hT.trace_along_nonneg U)]
+
 lemma is_positive.trace_along_ennreal_conj_proj_le [complete_space E] {T : E →L[𝕜] E}
   (hT : T.is_positive)
   (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
@@ -222,6 +232,16 @@ lemma is_positive.trace_along_ennreal_conj_proj_le [complete_space E] {T : E →
 begin
   rw [is_positive.trace_along_ennreal, is_positive.trace_along_ennreal, ennreal.coe_le_coe],
   exact hT.trace_along_conj_proj_le _ _
+end
+
+ lemma is_positive.monotone_trace_along_ennreal [complete_space E] {T : E →L[𝕜] E}
+  (hT : T.is_positive) {U V : submodule 𝕜 E} [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V]
+  (hUV : U ≤ V) :
+    hT.trace_along_ennreal U ≤
+    hT.trace_along_ennreal V :=
+begin
+  rw [is_positive.trace_along_ennreal, is_positive.trace_along_ennreal, ennreal.coe_le_coe],
+  exact hT.monotone_trace_along hUV
 end
 
 noncomputable def is_positive.trace [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive) :
@@ -267,11 +287,22 @@ begin
       _root_.map_sum, ennreal.of_real_sum_of_nonneg (fact J)]
 end
 
+lemma is_positive.trace_along_tendsto_at_top [complete_space E]
+  {T : E →L[𝕜] E} (hT : T.is_positive) :
+  tendsto (λ U : findim_subspace 𝕜 E, hT.trace_along_ennreal U) at_top (𝓝 $ hT.trace) :=
+tendsto_at_top_supr (λ U V hUV, hT.monotone_trace_along_ennreal hUV)
+
+lemma is_positive.trace_zero [complete_space E] :
+  (is_positive_zero : (0 : E →L[𝕜] E).is_positive).trace = 0 :=
+sorry
+
 lemma is_positive.trace_lt_top_iff_summable {ι : Type*} [complete_space E] (e : hilbert_basis ι 𝕜 E)
   {T : E →L[𝕜] E} (hT : T.is_positive) :
   hT.trace < ⊤ ↔ summable (λ i, ⟪e i, T (e i)⟫) :=
 begin
-  rw [lt_top_iff_ne_top, ← (hT.has_sum_trace e).tsum_eq, ← ennreal.tsum_coe_ne_top_iff_summable],
+  sorry
+  --simp_rw ← hT.is_self_adjoint.coe_re_inner_right,
+  --rw [lt_top_iff_ne_top, ← (hT.has_sum_trace e).tsum_eq],
 end
 
 end positive

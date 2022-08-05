@@ -136,6 +136,21 @@ begin
   exact hT.conj_inner_sym x x
 end
 
+/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
+@[simp] lemma is_self_adjoint.coe_re_inner_left
+  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
+  (re ⟪T x, x⟫ : 𝕜) = ⟪T x, x⟫ :=
+hT.coe_re_apply_inner_self_apply x
+
+/-- For a self-adjoint operator `T`, the function `λ x, ⟪x, T x⟫` is real-valued. -/
+@[simp] lemma is_self_adjoint.coe_re_inner_right
+  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
+  (re ⟪x, T x⟫ : 𝕜) = ⟪x, T x⟫ :=
+begin
+  rw [← T.coe_coe, ← hT],
+  exact hT.coe_re_inner_left x
+end
+
 /-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
 self-adjoint. -/
 lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)

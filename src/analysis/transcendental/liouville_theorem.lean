@@ -23,8 +23,8 @@ theorem abs_f_eval_around_α_continuous (f : ℝ[X]) (α : ℝ) : continuous_on 
 begin
   have H : (λ x : ℝ, (abs (f.eval x))) = abs ∘ (λ x, f.eval x) := rfl,
   rw H,
-  have H2 := polynomial.continuous_eval f,
-  have H3 := continuous.comp real.continuous_abs H2,
+  have H2 := polynomial.continuous f,
+  have H3 := continuous.comp continuous_abs H2,
   exact continuous.continuous_on H3
 end
 /--
@@ -37,19 +37,9 @@ end
 
 lemma same_support (f : ℤ[X]) : f.support = (f.map ℤembℝ).support :=
 begin
-  ext, split,
-  {
-    intro ha, replace ha : f.coeff a ≠ 0, exact finsupp.mem_support_iff.mp ha,
-    have ineq1 : ℤembℝ (f.coeff a) ≠ 0, norm_num, exact ha,
-    suffices : (polynomial.map ℤembℝ f).coeff a ≠ 0, exact finsupp.mem_support_iff.mpr this,
-    rwa [polynomial.coeff_map],
-  },
-  {
-    intro ha, replace ha : (polynomial.map ℤembℝ f).coeff a ≠ 0, exact finsupp.mem_support_iff.mp ha,
-    rw [<-same_coeff] at ha,
-    have ineq1 : f.coeff a ≠ 0,  simp only [int.cast_eq_zero, ring_hom.eq_int_cast, ne.def] at ha, exact ha,
-    exact finsupp.mem_support_iff.mpr ineq1,
-  }
+  ext,
+  rw [polynomial.mem_support_iff, polynomial.mem_support_iff, polynomial.coeff_map],
+  simp only [int.cast_eq_zero, ring_hom.eq_int_cast, iff_self, ne.def],
 end
 
 open_locale big_operators
@@ -60,32 +50,31 @@ private lemma sum_eq (S : finset ℕ) (f g : ℕ -> ℝ) : (∀ x ∈ S, f x = g
 private lemma eval_f_a_div_b (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
   ((f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ))) = ((1:ℝ)/(b:ℝ)^f.nat_degree) * (∑ i in f.support, (f.coeff i : ℝ)*(a:ℝ)^i*(b:ℝ)^(f.nat_degree - i)) :=
 begin
-  rw [finset.mul_sum, polynomial.eval_map, polynomial.eval₂, finsupp.sum, sum_eq], intros i hi,
-  rw polynomial.apply_eq_coeff,
-  simp only [one_div, ring_hom.eq_int_cast, div_pow], rw [<-mul_assoc (↑b ^ f.nat_degree)⁻¹, <-mul_assoc (↑b ^ f.nat_degree)⁻¹],
+  rw [finset.mul_sum, polynomial.eval_map, polynomial.eval₂, polynomial.sum, sum_eq], intros i hi,
+  simp only [one_div, ring_hom.eq_int_cast, div_pow],
+  rw [<-mul_assoc (↑b ^ f.nat_degree)⁻¹, <-mul_assoc (↑b ^ f.nat_degree)⁻¹],
   field_simp,
 
   suffices eq : ↑a ^ i / ↑b ^ i = ↑a ^ i * ↑b ^ (f.nat_degree - i) / ↑b ^ f.nat_degree,
   {
     have H := (@mul_left_inj' ℝ _ (↑a ^ i / ↑b ^ i) (↑a ^ i * ↑b ^ (f.nat_degree - i) / ↑b ^ f.nat_degree) ↑(f.coeff i) _).2 eq,
     conv_lhs at H {rw mul_comm, rw <-mul_div_assoc}, conv_rhs at H {rw mul_comm}, rw H, ring,
-
-    have H := (f.3 i).1 hi, rw polynomial.coeff, norm_cast, exact H,
-  },
-  have eq1 := @fpow_sub ℝ _ (b:ℝ) _ (f.nat_degree - i) f.nat_degree,
+    norm_cast,
+    exact polynomial.mem_support_iff.mp hi },
+  have eq1 := @zpow_sub₀ ℝ _ (b:ℝ) _ (f.nat_degree - i) f.nat_degree,
   have eq2 : (f.nat_degree:ℤ) - (i:ℤ) - (f.nat_degree:ℤ) = - i,
   {
     rw [sub_sub, add_comm, <-sub_sub], simp only [zero_sub, sub_self],
   },
-  rw eq2 at eq1, rw [fpow_neg, inv_eq_one_div] at eq1,
+  rw eq2 at eq1, rw [zpow_neg, inv_eq_one_div] at eq1,
   have eqb1 : (b:ℝ) ^ (i:ℤ) = (b:ℝ) ^ i := by norm_num,
   rw eqb1 at eq1,
   have eq3 : (f.nat_degree : ℤ) - (i:ℤ) = int.of_nat (f.nat_degree - i),
   {
     norm_num, rw int.coe_nat_sub, by_contra rid, simp at rid,
     have hi' := polynomial.coeff_eq_zero_of_nat_degree_lt rid,
-    have ineq2 := (f.3 i).1 hi, exact a_div_b_not_root (false.rec (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) = 0) (ineq2 hi')),
-  },
+    rw polynomial.mem_support_iff at hi,
+    exact hi hi', },
   have eqb2 : (b:ℝ) ^ ((f.nat_degree:ℤ) - (i:ℤ)) = (b:ℝ) ^ (f.nat_degree - i),
   {
     rw eq3, norm_num,
@@ -131,7 +120,8 @@ end
 private lemma ineqb (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
   abs (1/(b:ℝ)^f.nat_degree) = 1/(b:ℝ)^f.nat_degree :=
 begin
-  rw abs_of_pos, norm_num, norm_cast, refine pow_pos _ f.nat_degree, exact b_non_zero,
+  rw [abs_of_pos, one_div], simp only [one_div, inv_pos], norm_cast,
+  refine pow_pos _ f.nat_degree, exact b_non_zero,
 end
 
 private lemma abs_ℤembℝ (x : ℤ) : ℤembℝ (abs x) = abs (ℤembℝ x) := by simp only [ring_hom.eq_int_cast, int.cast_abs]
@@ -169,12 +159,13 @@ begin
     exact le_refl (1 / ↑b ^ polynomial.nat_degree f),
 
     -- here is the proof that the things should be positive are positive. All are more or less trival
-    norm_num, replace H := @pow_nonneg ℝ _ b _ f.nat_degree, exact H,
-    norm_cast, exact ge_trans b_non_zero trivial, exact abs_nonneg _,
+    {simp only [one_div, inv_nonneg], norm_cast, exact pow_nonneg b_non_zero.le _},
+    {exact abs_nonneg _},
   },
   rw <-abs_ℤembℝ, apply ineq3,
-  have ineq4 : abs (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)) > 0 := abs_pos_iff.2 ineq1,
-  exact ineq4,
+  rw [ge_iff_le, ←int.sub_one_lt_iff, sub_self],
+  refine lt_of_le_of_ne (abs_nonneg _) _,
+  rwa [ne.def, eq_comm, abs_eq_zero],
 end
 
 /--
@@ -194,22 +185,21 @@ lemma about_irrational_root (α : real) (hα : irrational' α) (f : ℤ[X])
 begin
   have f_nonzero : f ≠ 0,                                                         -- f ∈ ℤ[T] is not zero
   {
-    by_contra rid,
-    simp only [not_not] at rid, have f_nat_deg_zero : f.nat_degree = 0,
-    exact (congr_arg polynomial.nat_degree rid).trans rfl,
+    intro rid,
+    have f_nat_deg_zero : f.nat_degree = 0 := (congr_arg polynomial.nat_degree rid).trans rfl,
     rw f_nat_deg_zero at f_deg, linarith,
   },
   generalize hfℝ: f.map ℤembℝ = f_ℝ,
   have hfℝ_nonzero : f_ℝ ≠ 0,                                                     -- f ∈ ℝ[T] is not zero
   {
-    by_contra absurd, simp only [not_not] at absurd, rw [polynomial.ext_iff] at absurd,
-    suffices : f = 0, exact f_nonzero this,
+    intro absurd, rw [polynomial.ext_iff] at absurd,
+    apply f_nonzero,
       ext, replace absurd := absurd n, simp only [polynomial.coeff_zero] at absurd ⊢,
       rw [<-hfℝ, polynomial.coeff_map, ℤembℝ] at absurd,
       simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at absurd, exact absurd,
   },
   generalize hDf: f_ℝ.derivative = Df_ℝ,                                         -- We use Df_ℝ to denote the (formal) derivative of f ∈ ℝ[T]
-  have H := is_compact.exists_forall_ge (@compact_Icc (α-1) (α+1))                  -- x ↦ abs |Df_ℝ| has a maximum on interval (α - 1, α + 1)
+  have H := is_compact.exists_forall_ge (@is_compact_Icc _ _ _ _ (α-1) (α+1))      -- x ↦ abs |Df_ℝ| has a maximum on interval (α - 1, α + 1)
               begin rw set.nonempty, use α, rw set.mem_Icc, split; linarith end
               (abs_f_eval_around_α_continuous Df_ℝ α),
 
@@ -218,8 +208,8 @@ begin
   have hM := hx_max.2, rw M_def at hM,
   have M_non_zero : M ≠ 0,                                                       -- Then M is not zero :
   {
-    by_contra absurd,                                                            -- Otherwise Df_ℝ(x) = 0 ∀ x ∈ (α-1, α+1)
-    simp only [not_not] at absurd, rw absurd at hM,
+    intro absurd,                                                            -- Otherwise Df_ℝ(x) = 0 ∀ x ∈ (α-1, α+1)
+    rw absurd at hM,
     replace hM : ∀ (y : ℝ), y ∈ set.Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
     {
       intros y hy,
@@ -245,11 +235,11 @@ begin
   },
   have M_pos : M > 0,                                                             -- Since M is not zero, M > 0 being abs (sth.)
   {
-    rw <-M_def at M_non_zero ⊢,
-    have H := abs_pos_iff.2 M_non_zero, simp only [abs_abs] at H, exact H,
-  },
+    apply lt_of_le_of_ne _ M_non_zero.symm,
+    rw ←M_def,
+    apply abs_nonneg, },
   generalize roots_def :  f_ℝ.roots = f_roots,
-  generalize roots'_def : f_roots.erase α = f_roots',                             -- f_roots' is the root of f that is not α
+  generalize roots'_def : f_roots.to_finset.erase α = f_roots',                             -- f_roots' is the root of f that is not α
   generalize roots_distance_to_α : f_roots'.image (λ x, abs (α - x)) = distances,
   generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',    -- distances' is the (finite) set {1, 1/M} ⋃ { |β - α| | β ∈ f_roots' }
   have hnon_empty: distances'.nonempty,                                           -- which is not empty, say 1/M ∈ distances'
@@ -266,10 +256,14 @@ begin
     cases hx,                                                                     -- or 1
       rw hx, exact zero_lt_one,                                                   -- or |β - α| for some β which is a root of f but is not α.
       rw [<-roots_distance_to_α] at hx, simp only [exists_prop, finset.mem_image] at hx,
-      choose α0 hα0 using hx,
-      rw [<-roots'_def, finset.mem_erase] at hα0,
-      rw <-(hα0.2), simp only [gt_iff_lt], apply (@abs_pos_iff ℝ _ (α - α0)).2,
-      rw sub_ne_zero, exact ne.symm hα0.1.1,
+      obtain ⟨α0, hα0, hα0'⟩ := hx,
+      rw [<-roots'_def] at hα0,
+      rw <-hα0', simp only [gt_iff_lt],
+      refine lt_of_le_of_ne (abs_nonneg _) _,
+      rw [ne_comm, ne.def, abs_eq_zero, sub_eq_zero],
+      contrapose! hα0,
+      rw [hα0],
+      apply finset.not_mem_erase,
   },
   have B_pos : B > 0,                                                             -- Then B is positive.
   {
@@ -301,9 +295,10 @@ begin
   have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),                                      -- So a/b ∈ [α-1, α+1]
   {
     suffices : abs (α - a/b) ≤ 1,
-    rw [<-closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, abs_sub], exact this,
+    {rw [<-real.closed_ball_eq_Icc, metric.mem_closed_ball, real.dist_eq, abs_sub_comm], exact this},
     suffices : B ≤ 1, linarith,
-    rw <-hB, refine finset.min'_le distances' hnon_empty 1 _,
+    rw <-hB,
+    refine finset.min'_le distances' 1 _,
     rw [<-hdistances', finset.mem_insert, finset.mem_insert], tauto,
   },
   have hab1 : (a/b:ℝ) ≠ α,                                                      -- a/b is not α because α is irrational
@@ -312,14 +307,15 @@ begin
   {
     by_contra absurd,                                                             -- otherwise a/b ∈ f_roots' (roots of f other than α)
     have H : (a/b:ℝ) ∈ f_roots',
-      rw [<-roots'_def, finset.mem_erase], exact ⟨hab1, absurd⟩,
+    { rw [<-roots'_def, finset.mem_erase, multiset.mem_to_finset], exact ⟨hab1, absurd⟩},
     have H2 : abs (α - a/b) ∈ distances',                                       -- Then |α - a/b| is in {1, 1/M} ∪ {|β - α| | β ∈ f_roots' }
     {
       rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, right,
       rw [<-roots_distance_to_α, finset.mem_image], use (a/b:ℝ), split, exact H, refl,
     },
-    have H3 := finset.min'_le distances' hnon_empty (abs (α - a/b)) H2,       -- Then B > |α - a/b| ≥ B. A contradiction
-    rw hB at H3, linarith,
+    have H3 := finset.min'_le distances' (abs (α - a/b)) H2,       -- Then B > |α - a/b| ≥ B. A contradiction
+    generalize_proofs at hB H3,
+    rw hB at H3, exact H3.not_lt hb22,
   },
   /- Since α ≠ a/b, either α > a/b or α < a/b, two cases essentially have the same proof. -/
   have hab3 := ne_iff_lt_or_gt.1 hab1,
@@ -354,7 +350,7 @@ begin
     },
 
     have ineq : abs (α - a/b) ≥ 1/(M*b^(f.nat_degree)),                       -- By previous theorem |f(a/b)| ≥ 1/bⁿ and by definition                                                                             -- |Df_ℝ(x₀)| ≤ M. [M is maximum of x ↦ abs(Df_ℝ x) on (α-1,α+1)
-      rw [H2, abs_div],                                                           -- and x₀ ∈ (α - 1, α + 1)]
+    { rw [H2, abs_div],                                                           -- and x₀ ∈ (α - 1, α + 1)]
       have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',      -- So |α - a/b| ≥ 1/(M*bⁿ) where n is degree of f
       rw [<-hfℝ],
       have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
@@ -370,35 +366,35 @@ begin
       have ineq3 := a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
       suffices : 1 / (b:ℝ) ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
         linarith,
-      rw [div_div_eq_div_mul] at ineq3,
+      rw [div_div] at ineq3,
       have ineq4 : 1 / ((b:ℝ) ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
       {
         rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm},
         have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
         replace ineq := pow_pos hb.1 f.nat_degree, norm_cast, exact ineq, have ineq' : (b:ℝ) ^ f.nat_degree > 0, norm_cast,
         exact pow_pos hb.1 f.nat_degree, exact (mul_pos M_pos ineq'),
-        apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
+        apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos, exact Df_x0_nonzero,
       },
-      rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
-      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [abs_pos_iff], exact Df_x0_nonzero,
-
+      rw div_div, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
+      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [abs_pos], exact Df_x0_nonzero,
+    },
     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),                   -- Also 1/(M*bⁿ) > A/bⁿ since A < B ≤ 1/M
     {
       have ineq : A < B, rw [<-hA], exact @half_lt_self ℝ _ B B_pos,
-      have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' hnon_empty (1/M) _, exact H,
+      have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' (1/M) _, exact H,
       rw [<-hdistances', finset.mem_insert], left, refl,
       have ineq3 : A < 1/M, linarith,
-      rw [<-div_div_eq_div_mul], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
+      rw [<-div_div], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
       rw <-gt_iff_lt at ineq', exact ineq', norm_cast, exact pow_pos hb.1 f.nat_degree,
     },
     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,           -- So |α - a/b| > A/bⁿ
     have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,      -- But we assumed |α - a/b| ≤ A/bⁿ. This is the desired contradiction
 
-    exact @polynomial.continuous_on ℝ _ (set.Icc (a/b:ℝ) α) f_ℝ,                -- Since we used mean value theorem, we need to show continuity and differentiablity of x ↦ f(x),
-    exact @polynomial.differentiable_on ℝ _ (set.Ioo (a/b:ℝ) α) f_ℝ,            -- these are built in.
+    exact polynomial.continuous_on _,                -- Since we used mean value theorem, we need to show continuity and differentiablity of x ↦ f(x),
+    exact polynomial.differentiable_on _,            -- these are built in.
   },
   /- The other case is similar, In fact I copied and pasted the above proof and exchanged positions of α and a/b. Then it worked. -/
-
+  {
     have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
     choose x0 hx0 using H,
     have hx0r := hx0.2,
@@ -446,33 +442,34 @@ begin
       have ineq3 := a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
       suffices : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
         linarith,
-      rw [div_div_eq_div_mul] at ineq3,
+      rw [div_div] at ineq3,
       have ineq4 : 1 / ((b:ℝ) ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
       {
         rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm},
         have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
         replace ineq := pow_pos hb.1 f.nat_degree, norm_cast, exact ineq, have ineq' : (b:ℝ) ^ f.nat_degree > 0, norm_cast,
         exact pow_pos hb.1 f.nat_degree, exact (mul_pos M_pos ineq'),
-        apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
+        apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos, exact Df_x0_nonzero,
       },
-      rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
-      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [abs_pos_iff], exact Df_x0_nonzero,
+      rw div_div, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
+      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [abs_pos], exact Df_x0_nonzero,
     },
 
     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
     {
       have ineq : A < B, rw [<-hA], exact @half_lt_self ℝ _ B B_pos,
-      have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' hnon_empty (1/M) _, exact H,
+      have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' (1/M) _, exact H,
       rw [<-hdistances', finset.mem_insert], left, refl,
       have ineq3 : A < 1/M, linarith,
-      rw [<-div_div_eq_div_mul], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
+      rw [<-div_div], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
       rw <-gt_iff_lt at ineq', exact ineq', norm_cast, exact pow_pos hb.1 f.nat_degree,
     },
     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,
     have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,
 
-    exact @polynomial.continuous_on ℝ _ (set.Icc α (a/b:ℝ)) f_ℝ,
-    exact @polynomial.differentiable_on ℝ _ (set.Ioo α (a/b:ℝ)) f_ℝ,
+    exact polynomial.continuous_on _,
+    exact polynomial.differentiable_on _,
+  },
 end
 
 /--
@@ -505,7 +502,7 @@ begin
     have ineq2: (abs (a * q - b * p)) ≠ 0,
       by_contra rid, simp only [abs_eq_zero, not_not] at rid, norm_cast at h,
       simp only [abs_eq_zero] at h, exact h rid,
-    have ineq2':= abs_pos_iff.2 ineq2, rw [abs_abs] at ineq2',
+    have ineq2':= abs_pos.2 ineq2, rw [abs_abs] at ineq2',
     replace ineq2' : 1 ≤ abs (a * q - b * p), linarith,
     have ineq3 : 1 ≤ @abs ℝ _ (a * q - b * p), norm_cast, exact ineq2',           -- Then |aq - bp| ≠ 0, then |aq-bp| ≥ 1
 
@@ -595,7 +592,8 @@ begin
   have about_root : f_eval_on_ℝ f x = 0,
   {
     rw f_eval_on_ℝ, have H := hf.2, rw [polynomial.aeval_def] at H,
-    rw [polynomial.eval, polynomial.eval₂_map], rw [polynomial.eval₂, finsupp.sum] at H ⊢, rw [<-H, sum_eq],
+    rw [polynomial.eval, polynomial.eval₂_map], rw [polynomial.eval₂, polynomial.sum] at H ⊢,
+    rw [<-H, sum_eq],
     intros m hm, simp only [ring_hom.eq_int_cast, id.def],
   },
 
@@ -638,7 +636,7 @@ end
 
 function n ↦ 1/10^n!
 -/
-def ten_pow_n_fact_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n.fact
+def ten_pow_n_fact_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n.factorial
 /--
 function n ↦ 1/10^n
 -/
@@ -648,18 +646,20 @@ def ten_pow_n_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n
 lemma ten_pow_n_fact_inverse_ge_0 (n : nat) : 0 ≤ ten_pow_n_fact_inverse n :=
 begin
     unfold ten_pow_n_fact_inverse,
-    simp only [one_div, inv_nonneg, ge_iff_le, inv_pow'], have h := le_of_lt (@pow_pos _ _ (10:real) _ n.fact),
+    simp only [one_div, inv_nonneg, ge_iff_le, inv_pow],
+    have h := le_of_lt (@pow_pos _ _ (10:real) _ n.factorial),
     norm_cast at h ⊢, exact h, norm_num,
 end
 
 -- n ≤ n!
-lemma n_le_n_fact : ∀ n : nat, n ≤ n.fact
+lemma n_le_n_fact : ∀ n : nat, n ≤ n.factorial
 | 0       := by norm_num
 | 1       := by norm_num
 | (n+2)   := begin
     have H := n_le_n_fact n.succ,
-    conv_rhs {rw (nat.fact_succ n.succ)},
-    have ineq1 : n.succ.succ * n.succ ≤ n.succ.succ * n.succ.fact, {exact nat.mul_le_mul_left (nat.succ (nat.succ n)) (n_le_n_fact (nat.succ n))},
+    conv_rhs {rw (nat.factorial_succ n.succ)},
+    have ineq1 : n.succ.succ * n.succ ≤ n.succ.succ * n.succ.factorial,
+    {exact nat.mul_le_mul_left (nat.succ (nat.succ n)) (n_le_n_fact (nat.succ n))},
     suffices ineq2 : n.succ.succ ≤ n.succ.succ * n.succ, {exact nat.le_trans ineq2 ineq1},
     have H' : ∀ m : nat, m.succ.succ ≤ m.succ.succ * m.succ,
     {
@@ -671,15 +671,16 @@ end
 
 lemma ten_pow_n_fact_inverse_le_ten_pow_n_inverse (n : nat) : ten_pow_n_fact_inverse n ≤ ten_pow_n_inverse n :=
 begin
-  simp only [ten_pow_n_fact_inverse, ten_pow_n_inverse, one_div, inv_pow'],
-  rw [inv_le], simp only [inv_inv'], apply pow_le_pow, linarith, apply n_le_n_fact, apply pow_pos,
+  simp only [ten_pow_n_fact_inverse, ten_pow_n_inverse, one_div, inv_pow],
+  rw [inv_le], simp only [inv_inv], apply pow_le_pow, linarith, apply n_le_n_fact, apply pow_pos,
   linarith, rw inv_pos, apply pow_pos, linarith,
 end
 
 -- Σᵢ 1/10ⁱ exists because it is a geometric sequence with 1/10 < 1. The sum equals 10/9
 theorem summable_ten_pow_n_inverse : summable ten_pow_n_inverse :=
 begin
-  have H := @summable_geometric_of_abs_lt_1 (1/10:ℝ) _, have triv : ten_pow_n_inverse = (λ (n : ℕ), (1 / 10) ^ n) := rfl, rw triv, exact H,
+  have H := @summable_geometric_of_abs_lt_1 (1/10:ℝ) _,
+  have triv : ten_pow_n_inverse = (λ (n : ℕ), (1 / 10) ^ n) := rfl, rw triv, exact H,
   rw abs_of_pos, linarith, linarith,
 end
 
@@ -714,25 +715,32 @@ def α := ∑' n, ten_pow_n_fact_inverse n
 notation `α_k` k := ∑ ii in finset.range (k+1), ten_pow_n_fact_inverse ii
 
 -- `α_k k` is rational and can be written as $\frac{p}{10^{k!}}$ for some p ∈ ℕ.
-theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), (α_k k) = (p:ℝ) / ((10:ℝ) ^ k.fact) :=
+theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), (α_k k) = (p:ℝ) / ((10:ℝ) ^ k.factorial) :=
 begin
   induction k with k IH,
-  simp only [ten_pow_n_fact_inverse, pow_one, finset.sum_singleton, finset.range_one, nat.fact_zero],
+  simp only [ten_pow_n_fact_inverse, pow_one, finset.sum_singleton, finset.range_one,
+    nat.factorial_zero],
   use 1, norm_cast,
 
   choose pk hk using IH,                                                                 -- Then the (k+1)th partial sum = p/10^{k!} + 10^{(k+1)!}
-  generalize hm : 10^((k+1).fact - k.fact) = m,
-  have eqm : 10^k.fact * m = 10^(k+1).fact,                                       -- If we set m = 10^{(k+1)!-k!}, then pm+1 works. This is algebra.
-    rw <-hm, rw <-nat.pow_add, rw nat.add_sub_cancel', simp only [nat.fact_succ], rw le_mul_iff_one_le_left, exact inf_eq_left.mp rfl, exact nat.fact_pos k,
-  have eqm' : (10:ℝ)^k.fact * m = (10:ℝ)^(k+1).fact,
-    norm_cast, exact eqm,
+  generalize hm : 10^((k+1).factorial - k.factorial) = m,
+  have eqm : 10^k.factorial * m = 10^(k+1).factorial,                                       -- If we set m = 10^{(k+1)!-k!}, then pm+1 works. This is algebra.
+  { rw [<-hm, <-pow_add], rw add_tsub_cancel_of_le, simp only [nat.factorial_succ],
+    rw le_mul_iff_one_le_left, exact inf_eq_left.mp rfl, exact nat.factorial_pos k },
+  have eqm' : (10:ℝ)^k.factorial * m = (10:ℝ)^(k+1).factorial,
+  {norm_cast, exact eqm},
   generalize hp : pk * m + 1 = p,
   use p, rw finset.sum_range_succ, rw hk,
 
   rw [ten_pow_n_fact_inverse, div_pow], rw one_pow, rw nat.succ_eq_add_one,
-  rw <-eqm', rw <-hp,  conv_rhs {simp only [one_div, nat.cast_add, nat.cast_one, nat.cast_mul], rw <-div_add_div_same, simp only [one_div]}, rw mul_div_mul_right, simp only [one_div], exact add_comm (10 ^ nat.fact k * ↑m)⁻¹ (↑pk / 10 ^ nat.fact k),
-
-  intro rid, rw <-hm at rid, norm_cast at rid, have eq := @nat.pow_pos 10 _ ((k + 1).fact - k.fact), linarith, linarith,
+  rw <-eqm', rw <-hp,
+  conv_rhs
+  { simp only [one_div, nat.cast_add, nat.cast_one, nat.cast_mul],
+    rw <-div_add_div_same, simp only [one_div]},
+  rw mul_div_mul_right, simp only [one_div], rw [←hm],
+  simp only [nat.cast_bit0, nat.cast_bit1, nat.factorial_succ, ne.def, nat.cast_one, nat.cast_pow],
+  apply pow_ne_zero,
+  norm_num,
 end
 
 -- rest term `α_k_rest k` is $\sum_{i=0}^\infty \frac{1}{(i+k+1)!}=\sum_{i=k+1}^\infty \frac{1}{i!}$
@@ -740,26 +748,35 @@ notation `α_k_rest` k := ∑' ii, ten_pow_n_fact_inverse (ii + (k+1))
 
 private lemma sum_ge_term (f : ℕ -> ℝ) (hf : ∀ x:ℕ, f x > 0) (hf' : summable f): (∑' i, f i)  ≥ f 0 :=
 begin
-  rw <-(@tsum_ite_eq ℝ ℕ _ _ _ 0 (f 0)),
-  generalize hfunc : (λ b' : ℕ, ite (b' = 0) (f 0) 0) = fn, simp only [ge_iff_le], apply tsum_le_tsum,
-
-  intro n, by_cases (n=0), split_ifs, exact le_of_eq (congr_arg f (eq.symm h)),
-  split_ifs, exact le_of_lt (hf n),
-  swap, dsimp only [], assumption, rw summable, use (f 0),
-  have H := has_sum_ite_eq 0 (f 0), exact H,
+  rw <-(@tsum_ite_eq ℝ ℕ _ _ _ 0 _ (f 0)),
+  generalize hfunc : (λ b' : ℕ, ite (b' = 0) (f 0) 0) = fn,
+  simp only [ge_iff_le],
+  apply tsum_le_tsum _ _ hf',
+  { intro n,
+    rw ←hfunc, dsimp only, split_ifs,
+    { rw h, },
+    {exact le_of_lt (hf n)} },
+  dsimp only,
+  rw ←hfunc,
+  exact (has_sum_ite_eq 0 (f 0)).summable,
 end
 
 -- Since each summand in `α_k_rest k` is positive, the sum is positive.
 theorem α_k_rest_pos (k : ℕ) : 0 < (α_k_rest k) :=
 begin
   generalize hfunc : (λ n:ℕ, ten_pow_n_fact_inverse (n + (k + 1))) = fn,
-  have ineq1 := sum_ge_term fn _ _,
   have ineq2 : fn 0 > 0,
-    rw <-hfunc, simp only [gt_iff_lt, zero_add], rw ten_pow_n_fact_inverse, rw div_pow, apply div_pos, simp only [one_fpow, ne.def, triv, not_false_iff, one_ne_zero], exact zero_lt_one, apply pow_pos, linarith,
-  exact gt_of_ge_of_gt ineq1 ineq2,
+  { rw <-hfunc, simp only [gt_iff_lt, zero_add], rw ten_pow_n_fact_inverse, rw div_pow,
+    apply div_pos,
+    {simp only [one_zpow, ne.def, triv, not_false_iff, one_ne_zero], exact zero_lt_one},
+    {apply pow_pos, linarith} },
+  refine gt_of_ge_of_gt (sum_ge_term fn _ _) ineq2,
 
-  intro n, rw <-hfunc, simp only [gt_iff_lt], rw ten_pow_n_fact_inverse, rw div_pow, apply div_pos, simp only [one_fpow, ne.def, triv, not_false_iff, one_ne_zero], exact zero_lt_one, apply pow_pos, linarith,
-  rw <-hfunc, exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (k+1)).2 summable_ten_pow_n_fact_inverse,
+  { intro n, rw <-hfunc, simp only [gt_iff_lt], rw ten_pow_n_fact_inverse, rw div_pow, apply div_pos,
+    {simp only [one_zpow, ne.def, triv, not_false_iff, one_ne_zero], exact zero_lt_one},
+    {apply pow_pos, linarith}},
+  rw <-hfunc,
+  exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (k+1)).2 summable_ten_pow_n_fact_inverse,
 end
 
 -- We also have for any k ∈ ℕ, α = (α_k k) + (α_k_rest k)
@@ -770,82 +787,102 @@ begin
   rw eq1, exact summable_ten_pow_n_fact_inverse,
 end
 
-private lemma ten_pow_n_fact_gt_one (n : ℕ) : 10^(n.fact) > 1 :=
+private lemma ten_pow_n_fact_gt_one (n : ℕ) : 10^(n.factorial) > 1 :=
 begin
   induction n with n h,
-  simp only [gt_iff_lt, zero_le, one_le_bit1, nat.one_lt_bit0_iff, nat.fact_zero, nat.pow_one], simp only [gt_iff_lt, nat.fact_succ], rw nat.pow_mul,
-  have h' := @nat.lt_pow_self (10 ^ n.succ) _ n.fact,
-  have ineq := nat.fact_pos n, have ineq2 : 1 < (10 ^ n.succ) ^ n.fact := gt_of_gt_of_ge h' ineq, exact ineq2, exact nat.one_lt_pow' n 8,
+  simp only [gt_iff_lt, zero_le, one_le_bit1, nat.one_lt_bit0_iff, nat.factorial_zero, pow_one],
+  simp only [gt_iff_lt, nat.factorial_succ],
+  rw pow_mul,
+  have ineq := nat.factorial_pos n,
+  refine gt_of_gt_of_ge _ ineq,
+  refine @nat.lt_pow_self (10 ^ n.succ) _ n.factorial,
+  exact nat.one_lt_pow' n 8,
 end
 
-private lemma nat.fact_succ' (n : ℕ) : n.succ.fact = n.fact * n.succ :=
+private lemma nat.fact_succ' (n : ℕ) : n.succ.factorial = n.factorial * n.succ :=
 begin
-  rw nat.fact_succ, ring,
+  rw [nat.factorial_succ, nat.succ_eq_add_one, mul_comm],
 end
 
 -- Here we prove for any n ∈ ℕ, $\sum_{i} \left(\frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}\right) \le \frac{2}{10^{(n+1)!}}$
-private lemma lemma_ineq3 (n:ℕ) : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) :=
+private lemma lemma_ineq3 (n:ℕ) : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).factorial)
+  ≤ (2/10^n.succ.factorial:ℝ) :=
 begin
   rw tsum_mul_right,                                                              -- We factor out 1/10^{(n+1)!}
   have eq1 := β_eq, unfold ten_pow_n_inverse at eq1, rw eq1, rw div_pow, rw one_pow, field_simp,
-  rw div_le_div_iff, norm_cast, conv_rhs {rw <-mul_assoc},                     -- and use that what left is a geometric sum = 10/9
-  norm_cast,
-  have triv : 2 * 9 = 18 := by norm_num, rw triv,
-  apply mul_le_mul, norm_cast, linarith, linarith,
-  exact bot_le, exact bot_le,
-  apply mul_pos, linarith,
-  apply pow_pos, linarith, apply pow_pos, linarith,
-  have h := summable_ten_pow_n_inverse, have triv : ten_pow_n_inverse = (λ (b : ℕ), (1 / 10) ^ b) := rfl,
-  rwa <-triv,
+  rw div_le_div_iff,
+  { norm_cast,
+    conv_rhs {rw <-mul_assoc},                     -- and use that what left is a geometric sum = 10/9
+    norm_cast,
+    have triv : 2 * 9 = 18 := by norm_num, rw triv,
+    rw mul_le_mul_right (pow_pos _ _);
+    norm_num },
+  { apply mul_pos,
+    {norm_num},
+    {apply pow_pos, norm_num}},
+  {apply pow_pos, norm_num},
 end
 
 -- We use induction to prove 2 < 10 ^ n!
-private lemma aux_ineq (n:ℕ) : 2 < 10 ^ n.fact :=
+private lemma aux_ineq (n:ℕ) : 2 < 10 ^ n.factorial :=
 begin
-  induction n with n ih, simp only [nat.succ_pos', one_lt_bit1, bit0_lt_bit0, nat.fact_zero, nat.pow_one],
-  rw [nat.fact_succ, nat.pow_mul],
-  have ineq : 10 ^ n.fact ≤ (10 ^ n.succ) ^ n.fact, rw nat.pow_le_iff_le_left,
-    have h : ∀ m : ℕ, 10 ≤ 10 ^ m.succ,
-      intro m, induction m with m hm, simp only [nat.pow_one], rw nat.pow_succ, linarith,
-    exact h n,
-  linarith [nat.fact_pos n], linarith,
+  induction n with n ih,
+  {simp only [nat.succ_pos', one_lt_bit1, bit0_lt_bit0, nat.factorial_zero, pow_one]},
+  rw [nat.factorial_succ, pow_mul],
+  have ineq : 10 ^ n.factorial ≤ (10 ^ n.succ) ^ n.factorial,
+  { rw nat.pow_le_iff_le_left,
+    { have h : ∀ m : ℕ, 10 ≤ 10 ^ m.succ,
+      { intro m,
+        induction m with m hm,
+        { simp only [pow_one] },
+        { rw pow_succ, linarith } },
+      exact h n },
+    linarith [nat.factorial_pos n] },
+  linarith,
 end
 
 -- $\frac{2}{10^{(n+1)!}} < \frac{1}{(10^{n!})^n}$
-private lemma lemma_ineq4 (n:ℕ) : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n) :=
+private lemma lemma_ineq4 (n:ℕ) :
+  (2 / 10 ^ (n.factorial * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.factorial) ^ n) :=
 begin
-  rw div_lt_div_iff, rw one_mul, -- This is also algebra plus checking a lot of thing non-negative or positive.
-  conv_rhs {rw nat.succ_eq_add_one, rw mul_add, rw pow_add, rw mul_one, rw pow_mul, rw mul_comm},
-  apply mul_lt_mul,
-    norm_cast,
-    exact aux_ineq n,
-    linarith,
-    apply pow_pos, apply pow_pos, linarith,
-    apply pow_nonneg, linarith,
-    apply pow_pos, linarith,
-    apply pow_pos, apply pow_pos, linarith,
+  rw div_lt_div_iff,
+  { rw one_mul, -- This is also algebra plus checking a lot of thing non-negative or positive.
+    conv_rhs {rw nat.succ_eq_add_one, rw mul_add, rw pow_add, rw mul_one, rw pow_mul, rw mul_comm},
+    apply mul_lt_mul,
+    { norm_cast, exact aux_ineq n },
+    {linarith},
+    {apply pow_pos, apply pow_pos, linarith},
+    {apply pow_nonneg, linarith} },
+  {apply pow_pos, linarith},
+  {apply pow_pos, apply pow_pos, linarith},
 end
 
 -- This is i + n! ≤ (i+n)!. Proved by induction on n.
-private lemma ineq_i (i n : ℕ) : i + n.succ.fact ≤ (i + n.succ).fact :=
+private lemma ineq_i (i n : ℕ) : i + n.succ.factorial ≤ (i + n.succ).factorial :=
 begin
-  induction n with n hn, simp only [add_zero, nat.fact_succ, nat.fact_one], rw <-nat.succ_eq_add_one, have h := (@nat.mul_le_mul_right 1 i.fact i.succ) _, rw [one_mul, mul_comm] at h, exact h,
-  replace h := nat.fact_pos i, exact h,
+  induction n with n hn,
+  { simp only [add_zero, nat.factorial_succ, nat.factorial_one],
+    rw <-nat.succ_eq_add_one,
+    have h := (@nat.mul_le_mul_right 1 i.factorial i.succ) _,
+    { rwa [one_mul, mul_comm] at h },
+    { exact nat.factorial_pos i } },
 
   generalize hm : n.succ = m, rw hm at hn,
   have triv : i + m.succ = (m+i).succ, rw nat.add_succ, rw add_comm, rw triv,
-  conv_rhs {rw nat.fact_succ, rw nat.succ_eq_add_one,},
+  conv_rhs {rw nat.factorial_succ, },
 
-  have ineq1 : (m + i + 1) * (i + m.fact) ≤ (m + i + 1) * (m + i).fact,
-    apply mul_le_mul, linarith, rwa add_comm m, linarith, linarith,
-  suffices : i + m.succ.fact ≤ (m + i + 1) * (i + m.fact), exact le_trans this ineq1,
+  have ineq1 : (m + i + 1) * (i + m.factorial) ≤ (m + i + 1) * (m + i).factorial,
+  {apply mul_le_mul, linarith, rwa add_comm m, linarith, linarith},
+  suffices : i + m.succ.factorial ≤ (m + i + 1) * (i + m.factorial), exact le_trans this ineq1,
   rw mul_add,
-  have ineq2 : (m + i + 1) * m.fact ≤ (m + i + 1) * i + (m + i + 1) * m.fact := nat.le_add_left _ _,
-  suffices : i + m.succ.fact ≤ (m + i + 1) * m.fact, exact le_trans this ineq2,
-  replace triv :  (m + i + 1) = (m + 1 + i), ring, rw triv, rw add_mul, rw <-nat.succ_eq_add_one, rw <-nat.fact_succ, rw add_comm,
-  apply add_le_add, linarith,
-  replace triv := (@nat.mul_le_mul_right 1 m.fact i) _, simp only [one_mul] at triv, rw mul_comm at triv, exact triv,
-  replace triv := nat.fact_pos m, exact triv,
+  have ineq2 : (m + i + 1) * m.factorial ≤ (m + i + 1) * i + (m + i + 1) * m.factorial := nat.le_add_left _ _,
+  suffices : i + m.succ.factorial ≤ (m + i + 1) * m.factorial, {exact le_trans this ineq2},
+  replace triv :  (m + i + 1) = (m + 1 + i), ring, rw triv, rw add_mul,
+  rw <-nat.factorial_succ, rw add_comm,
+  apply add_le_add_left,
+  replace triv := (@nat.mul_le_mul_right 1 m.factorial i) _,
+  { simp only [one_mul] at triv, rwa mul_comm at triv },
+  { exact nat.factorial_pos m },
 end
 
 
@@ -859,50 +896,64 @@ begin
   replace lemma2 : (α_k_rest n) = α - α_k n,
     exact eq_sub_of_add_eq' (eq.symm lemma2),                                            -- We know that the first n terms sums to p/10^{n!}
   choose p hp using lemma1,                                                       -- for some p ∈ ℕ.
-  use p, use 10^(n.fact),
-  suffices :  0 < abs (α_k_rest n) ∧ abs (α_k_rest n) < 1/(10^ n.fact)^n,
+  use p, use 10^(n.factorial),
+  suffices :  0 < abs (α_k_rest n) ∧ abs (α_k_rest n) < 1/(10^ n.factorial)^n,
   {
-    split, norm_cast, exact ten_pow_n_fact_gt_one n,
-    rw [lemma2, hp] at this,
-    norm_cast at this,
-    tidy,
-  },
-  -- split, norm_cast, refine ten_pow_n_fact_gt_one n,                               -- and that 10^{n!} > 1
-  split,                                                                          -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
+    split,
+    { norm_cast, exact ten_pow_n_fact_gt_one n },
+    { rw [lemma2, hp] at this,
+      norm_cast at this,
+      tidy } },
+                                                                              -- and that 10^{n!} > 1
+  split,                                                                      -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
   {                                                                           -- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive.
-    rw abs_pos_iff, intro rid, have α_k_rest_pos := α_k_rest_pos n, linarith,
-  },
+    rw abs_pos,
+    exact (α_k_rest_pos n).ne', },
   {                                                                             -- next we prove |α - p/10^{n!}| < 1/10^{n! * n}
     rw [abs_of_pos (α_k_rest_pos n)],
-    have ineq2 : (∑' (j : ℕ), ten_pow_n_fact_inverse (j + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
+    have ineq2 : (∑' (j : ℕ), ten_pow_n_fact_inverse (j + (n + 1)))
+        ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).factorial),
     {                                                                           -- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!}
-      apply tsum_le_tsum, intro i,                                              -- [this is because of one of previous inequalities plus some inequality manipulation]
-      rw ten_pow_n_fact_inverse, field_simp, rw one_div_le_one_div, rw <-pow_add, apply pow_le_pow, linarith,
-      {                                                                         -- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$
-        rw <-nat.fact_succ, rw <-nat.succ_eq_add_one,
-        exact ineq_i _ _,
-      },
-      apply pow_pos, linarith, rw <-pow_add, apply pow_pos, linarith,
-      exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (n+1)).2 summable_ten_pow_n_fact_inverse,
+      apply tsum_le_tsum,                                                       -- [this is because of one of previous inequalities plus some inequality manipulation]
+      { intro i, rw ten_pow_n_fact_inverse, field_simp,
+        rw one_div_le_one_div,
+        { rw <-pow_add,
+          apply pow_le_pow,
+          { linarith },
+          {                                                                         -- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$
+            rw <-nat.factorial_succ, rw <-nat.succ_eq_add_one,
+            exact ineq_i _ _, } },
+        {apply pow_pos, norm_num},
+        {rw <-pow_add, apply pow_pos, norm_num} },
+      { exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (n+1)).2
+          summable_ten_pow_n_fact_inverse},
       {
         have s0 : summable (λ (b : ℕ), (1 / 10:ℝ) ^ b),
         {
           have triv : (λ (b : ℕ), (1 / 10:ℝ) ^ b) = ten_pow_n_inverse, ext, rw ten_pow_n_inverse, rw triv,
           exact summable_ten_pow_n_inverse,
         },
-        apply (summable_mul_right_iff _).1 s0, have triv : (1 / 10:ℝ) ^ (n + 1).fact > 0, apply pow_pos, linarith, linarith,
+        apply (summable_mul_right_iff _).1 s0, have triv : (1 / 10:ℝ) ^ (n + 1).factorial > 0, apply pow_pos, linarith, linarith,
       }
     },                                                                          -- by previous inequlity $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}} < \frac{2}{10^{(n+1)!}} \le \frac{1}{10^{n!\times n}}$
-    have ineq3 : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) := lemma_ineq3 _,
+    have ineq3 : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).factorial) ≤ (2/10^n.succ.factorial:ℝ)
+      := lemma_ineq3 _,
     rw nat.fact_succ' at ineq3,                                                 -- This what we want. So α is Liouville
-    have ineq4 : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n) := lemma_ineq4 _,
-    have ineq5 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) < (1 / ((10:ℝ) ^ n.fact) ^ n),
+    have ineq4 : (2 / 10 ^ (n.factorial * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.factorial) ^ n)
+      := lemma_ineq4 _,
+    have ineq5 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1)))
+      < (1 / ((10:ℝ) ^ n.factorial) ^ n),
     {
-      apply @lt_of_le_of_lt ℝ _ (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) (∑' (i : ℕ), (1 / 10) ^ i * (1 / 10) ^ (n + 1).fact) (1 / (10 ^ n.fact) ^ n),
-      exact ineq2, norm_cast at ineq2 ineq3 ineq4 ⊢, rw <-nat.succ_eq_add_one, rw nat.fact_succ', exact gt_of_gt_of_ge ineq4 ineq3,
+      apply @lt_of_le_of_lt ℝ _
+        (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1)))
+        (∑' (i : ℕ), (1 / 10) ^ i * (1 / 10) ^ (n + 1).factorial)
+        (1 / (10 ^ n.factorial) ^ n)
+        ineq2,
+      norm_cast at ineq2 ineq3 ineq4 ⊢, rw <-nat.succ_eq_add_one, rw nat.factorial_succ,
+      rw [←mul_comm n.factorial],
+      exact lt_of_le_of_lt ineq3 ineq4,
     },
-    tidy,
-  },
+    exact ineq5, },
 end
 
 -- Then our general theory about Liouville number in particular applies to α giving us α transcendental number

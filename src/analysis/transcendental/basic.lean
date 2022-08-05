@@ -13,30 +13,10 @@ notation α`[X]` := polynomial α
 
 theorem algebraic_over_Z_then_algebraic_over_Q (x : ℝ) : is_algebraic ℤ x -> is_algebraic ℚ x :=
 begin
-  rintro ⟨p, p_nonzero, root⟩,
-  use (p.map (algebra_map ℤ ℚ)),
-  split,
-  intro rid,
-  apply p_nonzero,
-  apply polynomial.map_injective (algebra_map ℤ ℚ) _,
-  simp only [polynomial.map_zero], exact rid,
-
-  intros x y h, simp only [ring_hom.eq_int_cast, int.cast_inj] at h ⊢, exact h,
-
-  rw polynomial.aeval_def,
-  rw polynomial.eval₂_map,
-  rw polynomial.as_sum p at root ⊢,
-  rw aeval_sum' at root,
-  rw eval₂_sum',
-  rw <-root,
-  apply finset.sum_congr, refl, intros m h,
-  simp only [polynomial.aeval_X, alg_hom.map_pow, polynomial.eval₂_mul, polynomial.eval₂_X_pow, alg_hom.map_mul],
-  apply congr_arg2,
-  rw polynomial.eval₂_C,
-  rw polynomial.aeval_C,
-  apply congr_fun, ext y,
-  simp only [ring_hom.eq_int_cast],
-  refl,
+  apply is_algebraic_of_larger_base_of_injective,
+  simp only [algebra_map_int_eq, int.coe_cast_ring_hom],
+  intros x y,
+  apply (rat.coe_int_inj _ _).mp,
 end
 
 /--
@@ -118,17 +98,14 @@ end
 lemma denom_dvd_coeffs_denom_prod (p : ℚ[X]) (n : ℕ) : (p.coeff n).denom ∣ coeffs_denom_prod p :=
 begin
   by_cases hn : n ∈ p.support,
-  unfold coeffs_denom_prod,
-  apply multiset.dvd_prod,
-  simp only [multiset.mem_erase_dup, id.def, multiset.map_id', multiset.mem_map, finset.image_val],
-  use (p.coeff n).denom, use n, split, exact hn, refl,
-
-  have H := (p.mem_support_to_fun n).2,
-  replace H := mt H hn,
-  simp only [not_not] at H,
-  replace H : p.coeff n = 0, rw <-H, refl,
-  rw H,
-  replace H : (0:ℚ).denom = 1, refl, rw H, exact one_dvd (coeffs_denom_prod p),
+  { unfold coeffs_denom_prod,
+    apply multiset.dvd_prod,
+    simp only [multiset.mem_dedup, id.def, multiset.map_id', multiset.map_congr, multiset.mem_map,
+      finset.image_val],
+    exact ⟨n, hn, rfl⟩ },
+  { rw [polynomial.mem_support_iff, not_ne_iff] at hn,
+    rw [hn, rat.denom_zero],
+    exact one_dvd (coeffs_denom_prod p) },
 end
 
 
@@ -136,32 +113,30 @@ end
 for any $p∈ℚ[X]$, we multiply $p$ by the product of denominator of its coefficients to get an integer polynomial
 -/
 def rat_poly_to_int_poly (p : ℚ[X]) : ℤ[X] :=
-{
+⟨{
   support := p.support,
   to_fun  := λ i, rat_to_int_by_mul (p.coeff i) (coeffs_denom_prod p),
   mem_support_to_fun :=
   begin
     intros n,
+    rw polynomial.mem_support_iff,
     split,
     {
       intros hn,
-      apply rat_to_int_by_mul_ne_zero,
-      exact (p.mem_support_to_fun n).1 hn,
-      apply denom_dvd_coeffs_denom_prod,
-      apply coeffs_denom_prod_ne_zero,
+      apply rat_to_int_by_mul_ne_zero _ _ hn,
+      {apply denom_dvd_coeffs_denom_prod},
+      {apply coeffs_denom_prod_ne_zero},
     },
     {
-      intro h,
-      have H := rat_to_int_by_mul_ne_zero' _ _ h,
-      exact (p.mem_support_to_fun n).2 H,
+      exact rat_to_int_by_mul_ne_zero' _ _
     }
   end,
-}
+}⟩
 
 lemma rat_poly_to_int_poly_coeff (p : ℚ[X]) (n : ℕ) :
   (rat_poly_to_int_poly p).coeff n = rat_to_int_by_mul (p.coeff n) (coeffs_denom_prod p) :=
 begin
-  simp only [rat_poly_to_int_poly, polynomial.coeff_mk],
+  simp [rat_poly_to_int_poly],
 end
 
 lemma rat_poly_to_int_coeff' (p : ℚ[X]) (n : ℕ) :
@@ -175,7 +150,7 @@ end
 lemma rat_poly_to_int_poly_eq (p : ℚ[X]) :
   (rat_poly_to_int_poly p).map (algebra_map ℤ ℚ) = ((polynomial.C (coeffs_denom_prod p : ℚ)) * p) :=
 begin
-  ext,
+  ext1,
   simp only [rat_poly_to_int_coeff', ring_hom.eq_int_cast, polynomial.coeff_map],
   rw polynomial.coeff_C_mul, rw mul_comm,
 end
@@ -188,9 +163,8 @@ begin
 
   replace hp : ∃ n : ℕ, p.coeff n ≠ 0,
   {
-    by_contra absurd,
-    simp only [not_exists_not] at absurd,
-    apply hp, ext, simp only [polynomial.coeff_zero], exact absurd n,
+    by_contra' absurd,
+    apply hp, ext1, simp only [polynomial.coeff_zero], exact absurd n,
   },
   rcases hp with ⟨n, hn⟩,
   replace rid := rid n,
@@ -219,8 +193,8 @@ begin
     }, rw eq at this, exact this,
   },
   rw p_eq,
-  simp only [alg_hom.map_nat_cast, polynomial.C_eq_nat_cast, nat.cast_eq_zero, alg_hom.map_mul, mul_eq_zero],
-  right, exact root,
+  simp only [polynomial.C_eq_nat_cast, nat.cast_eq_zero, alg_hom.map_mul, mul_eq_zero, root,
+    eq_self_iff_true, or_true],
 end
 
 
@@ -233,5 +207,3 @@ begin
   apply algebraic_over_Q_then_algebraic_over_Z _ h,
   apply algebraic_over_Z_then_algebraic_over_Q _ h,
 end
-
--- #lint

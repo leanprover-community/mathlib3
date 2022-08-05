@@ -16,7 +16,7 @@ This file contains:
   * `decreasing_induction`: recursion growing downwards
   * `le_rec_on'`, `decreasing_induction'`: versions with slightly weaker assumptions
   * `strong_rec'`: recursion based on strong inequalities
-  * `div_mod_induction`: recursion based on decomposing a number into its base-`b` representation
+  * `add_base_rec`: recursion based on decomposing a number into its base-`b` representation
 - decidability instances on predicates about the natural numbers
 
 -/
@@ -1387,7 +1387,7 @@ lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
 by { cases n; simp [(nat.succ_ne_self _).symm] }
 
 /-- A recursor that splits `n` into a multiple of `b` and a remainder `r` -/
-def div_mod_cases {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0)
+def mul_add_cases {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0)
   (hm : ∀ (k : ℕ) (r < b), C (b * k + r)) : C n :=
 cast (congr_arg _ (div_add_mod n b)) (hm (n / b) (n % b) (mod_lt _ $ nat.pos_of_ne_zero hb))
 
@@ -1395,9 +1395,9 @@ cast (congr_arg _ (div_add_mod n b)) (hm (n / b) (n % b) (mod_lt _ $ nat.pos_of_
 given a map `C k → C (k + b)` for each `k`, and the construction of `C r` for all `r < b`,
 one can construct `C n` for any `n : ℕ`.  -/
 @[elab_as_eliminator]
-def div_mod_rec {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0) (hr : ∀ r < b, C r)
+def add_base_rec {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0) (hr : ∀ r < b, C r)
   (hm : ∀ k, C k → C (k + b)) : C n :=
-div_mod_cases _ _ hb $ λ k r hrlt, begin
+ mul_add_cases _ _ hb $ λ k r hrlt, begin
   induction k,
   { convert hr _ hrlt,
     rw [mul_zero, zero_add] },

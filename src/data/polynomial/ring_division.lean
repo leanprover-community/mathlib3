@@ -427,7 +427,7 @@ begin
   rw [count_roots, root_multiplicity_X_sub_C],
   split_ifs with h,
   { rw [h, count_singleton_self] },
-  { rw [singleton_eq_cons, count_cons_of_ne h, count_zero] }
+  { rw [←cons_zero, count_cons_of_ne h, count_zero] }
 end
 
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=

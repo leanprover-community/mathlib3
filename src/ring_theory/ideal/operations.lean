@@ -718,7 +718,7 @@ begin
   obtain ⟨t, rfl⟩ : ∃ t, s = b ::ₘ t,
   from ⟨s.erase b, (multiset.cons_erase hb).symm⟩,
   refine t.induction_on _ _,
-  { simp only [exists_prop, ←multiset.singleton_eq_cons, multiset.prod_singleton,
+  { simp only [exists_prop, multiset.cons_zero, multiset.prod_singleton,
       multiset.mem_singleton, exists_eq_left, imp_self] },
   intros a s ih h,
   rw [multiset.cons_swap, multiset.prod_cons, hp.mul_le] at h,

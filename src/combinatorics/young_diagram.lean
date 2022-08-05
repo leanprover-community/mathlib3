@@ -21,14 +21,14 @@ This Young diagram corresponds to the [5, 3, 3, 1] partition of 12.
 We represent it as a lower set in `ℕ × ℕ` in the product partial order. We write `(i, j) ∈ μ`
 to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
 
-## Main definitions:
+## Main definitions
 
 - `young_diagram` : Young diagrams
 - `young_diagram.card` : the number of cells in a Young diagram (its *cardinality*)
 - `young_diagram.distrib_lattice` : a distributive lattice instance for Young diagrams
   ordered by containment, with `(⊥ : young_diagram)` the empty diagram.
 
-## Notation:
+## Notation
 
 In "English notation", a Young diagram is drawn so that (i1, j1) ≤ (i2, j2)
 means (i1, j1) is weakly up-and-left (northwest) of (i2, j2). This terminology is used
@@ -81,6 +81,7 @@ instance : has_sup young_diagram :=
 
 @[simp] lemma cells_sup (μ ν : young_diagram) :
    (μ ⊔ ν).cells = μ.cells ∪ ν.cells := rfl
+
 @[simp, norm_cast] lemma coe_sup (μ ν : young_diagram) :
    ↑(μ ⊔ ν) = (μ ∪ ν : set (ℕ × ℕ)) := finset.coe_union _ _
 
@@ -91,17 +92,17 @@ instance : has_inf young_diagram :=
 
 @[simp] lemma cells_inf (μ ν : young_diagram) :
    (μ ⊓ ν).cells = μ.cells ∩ ν.cells := rfl
+
 @[simp, norm_cast] lemma coe_inf (μ ν : young_diagram) :
    ↑(μ ⊓ ν) = (μ ∩ ν : set (ℕ × ℕ)) := finset.coe_inter _ _
 
 /-- The empty Young diagram is (⊥ : young_diagram). -/
-instance : has_bot young_diagram :=
-{ bot := { cells := ∅, is_lower_set := λ _ _ _, false.elim } }
 instance : order_bot young_diagram :=
-{ bot := ⊥, bot_le := λ _ _, false.elim }
+{ bot := { cells := ∅, is_lower_set := λ _ _ _, false.elim }, bot_le := λ _ _, false.elim }
 
 @[simp] lemma cells_bot :
    (⊥ : young_diagram).cells = ∅ := rfl
+
 @[simp, norm_cast] lemma coe_bot :
    ↑(⊥ : young_diagram) = (∅ : set (ℕ × ℕ)) := rfl
 

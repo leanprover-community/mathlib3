@@ -1,6 +1,27 @@
+/-
+Copyright (c) 2022 Junyan Xu. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Junyan Xu
+-/
+
 import logic.relation
 import order.basic
 
+/-!
+# Game addition relation
+
+This file defines, given relations `rα : α → α → Prop` and `rβ : β → β → Prop`, a relation
+`game_add` on pairs, such that `game_add rα rβ (a₁, b₁) (a₂, b₂)` iff `rα a₁ a₂` and `b₁ = b₂`, or
+`rβ b₁ b₂` and `a₁ = a₂`. It is so called since it models the subsequency relation on the addition
+of combinatorial games.
+
+## Todo
+
+- Add custom `induction` and `fix` lemmas.
+- Define `sym2.game_add`.
+-/
+
+namespace prod
 variables {α β : Type*} (rα : α → α → Prop) (rβ : β → β → Prop)
 
 /-- The "addition of games" relation in combinatorial game theory, on the product type: if
@@ -20,7 +41,7 @@ lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
 lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ relation.trans_gen (game_add rα rβ) :=
 λ _ _ h, h.rec begin
   intros _ _ _ _ hα hβ,
-  exact trans_gen.tail (trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
+  exact relation.trans_gen.tail (relation.trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
 end
 
 variables {rα rβ}
@@ -40,3 +61,5 @@ end
 /-- The sum of two well-founded games is well-founded. -/
 lemma _root_.well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
   well_founded (game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩
+
+end prod

@@ -25,8 +25,7 @@ adding back an arbitrary multiset `t` of heads such that all `a' ∈ t` satisfy 
 
 To prove this theorem, we follow the proof by Peter LeFanu Lumsdaine at
 https://mathoverflow.net/a/229084/3332, and along the way we introduce the notion of `fibration`
-of relations, and a new operation `game_add` that combines to relations to form a relation on the
-product type, which is used to define addition of games in combinatorial game theory.
+of relations.
 
 TODO: formalize the relations corresponding to more powerful (e.g. Kirby–Paris and Buchholz)
 hydras, and prove their well-foundedness.
@@ -36,7 +35,7 @@ namespace relation
 
 variables {α β : Type*}
 
-section two_rels
+section fibration
 variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
 
 /-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
@@ -60,12 +59,10 @@ lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.r
   (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
 ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
 
-variables (rα rβ)
-
-end two_rels
+end fibration
 
 section hydra
-open game_add multiset
+open multiset
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary

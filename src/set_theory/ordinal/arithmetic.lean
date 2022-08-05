@@ -2153,6 +2153,14 @@ begin
   rw [add_zero, mul_one]
 end
 
+theorem div_opow_log_pos (b : ordinal) {o : ordinal} (ho : o ≠ 0) : 0 < o / b ^ log b o :=
+begin
+  rcases eq_zero_or_pos b with (rfl | hb),
+  { simpa using ordinal.pos_iff_ne_zero.2 ho },
+  { rw div_pos (opow_ne_zero _ hb.ne'),
+    exact opow_log_le_self b ho }
+end
+
 theorem div_opow_log_lt {b : ordinal} (o : ordinal) (hb : 1 < b) : o / b ^ log b o < b :=
 begin
   rw [div_lt (opow_pos _ (zero_lt_one.trans hb)).ne', ←opow_succ],

@@ -154,6 +154,10 @@ end
 def foldl {δ : Type w} (f : δ → Π a, β a → δ) (d : δ) (m : alist β) : δ :=
 m.entries.foldl (λ r a, f r a.1 a.2) d
 
+/-- Fold a function over the key-value pairs in the map. -/
+def foldr {δ : Type w} (f : Π a, β a → δ → δ) (d : δ) (m : alist β) : δ :=
+m.entries.foldr (λ a r, f a.1 a.2 r) d
+
 /-! ### erase -/
 
 section

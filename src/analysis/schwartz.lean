@@ -56,6 +56,7 @@ lemma cont_diff.differentiable_at_iterated_fderiv {n k : ℕ} {f : E → F} (hf 
   (h : k < n):
   differentiable 𝕜 (iterated_fderiv 𝕜 k f) :=
 begin
+  -- easier with cont_diff_iff_continuous_differentiable
   rw [←differentiable_on_univ, ←iterated_fderiv_within_univ],
   refine hf.cont_diff_on.differentiable_on_iterated_fderiv_within _ unique_diff_on_univ,
   simp only [h, with_top.coe_lt_coe],
@@ -98,6 +99,7 @@ begin
 end
 
 variables [semiring R] [module R F] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
+
 -- iterated_fderiv_const_smul
 lemma iterated_fderiv_const_smul {n : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f) (c : R) :
   iterated_fderiv 𝕜 n (λ y, c • f y) = c • iterated_fderiv 𝕜 n f :=
@@ -126,6 +128,26 @@ end
 lemma iterated_fderiv_const_smul_apply {n : ℕ} {f : E → F} {x : E} (hf : cont_diff 𝕜 n f) (c : R) :
   iterated_fderiv 𝕜 n (λ y, c • f y) x = c • iterated_fderiv 𝕜 n f x :=
 (congr_fun (iterated_fderiv_const_smul hf c) x)
+
+variables {n : with_top ℕ} (c : R)
+
+/- The scalar multiplication is smooth. -/
+lemma cont_diff_const_smul {c : R} : cont_diff 𝕜 n (λ p : F, c • p) :=
+(c • continuous_linear_map.id 𝕜 F).cont_diff
+
+lemma cont_diff_within_at.const_smul {n : with_top ℕ} {f : E → F} {s : set E} {x : E} (c : R)
+  (hf : cont_diff_within_at 𝕜 n f s x) : cont_diff_within_at 𝕜 n (λ y, c • f y) s x :=
+cont_diff_const_smul.cont_diff_within_at.comp x hf set.subset_preimage_univ
+
+lemma cont_diff.const_smul {n : with_top ℕ} {f : E → F} (c : R)
+  (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ y, c • f y) :=
+begin
+  rw cont_diff_iff_cont_diff_at at hf ⊢,
+  intro x,
+  specialize hf x,
+  rw ←cont_diff_within_at_univ at hf ⊢,
+  exact hf.const_smul _,
+end
 
 end iterated_fderiv
 
@@ -235,14 +257,10 @@ section smul
 
 variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
 variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
---[distrib_mul_action R 𝕜] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
-
-variables (r : R)
-#check ∥r • (1 : ℝ)∥
 
 instance : has_smul R (schwartz E F) :=
 ⟨λ c f, { to_fun := c • f,
-  smooth' := sorry,
+  smooth' := f.smooth.const_smul c,
   decay' := λ k n, begin
     rcases f.decay k n with ⟨C, hC, hf⟩,
     refine ⟨C * (∥c • (1 : ℝ)∥+1), by positivity, _⟩,

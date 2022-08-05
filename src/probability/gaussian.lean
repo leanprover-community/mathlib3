@@ -125,7 +125,7 @@ begin
   exact h,
 end
 
--- equals to hbp2p
+-- 0 < 2*π*s^2
 lemma s_sq_pos_2_pi (s : ℝ) (hs : s ≠ 0): 0 < 2*π*s^2 :=
 begin
   ring_nf,
@@ -133,13 +133,15 @@ begin
   exact pi_pos,
 end
 
+-- commutativity inside the integral
 lemma comm_in_integ (f : ℝ → ℝ) (c : ℝ):
     ∫ x : ℝ, (f x) * c ∂ℙ = ∫ x : ℝ, c * f x :=
 begin
 simp_rw [mul_comm],
 end
 
-
+-- to remove the certain bracket of (2 • π) • s ^ 2
+--change it into 2 • π • s ^ 2
 lemma smul_no_bracket (s : ℝ) (hs : s ≠ 0): (2 • π) • s ^ 2 = 2 • π • s ^ 2 :=
 begin
 simp,

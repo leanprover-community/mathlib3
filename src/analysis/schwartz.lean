@@ -9,6 +9,7 @@ import analysis.normed_space.basic
 import analysis.locally_convex.with_seminorms
 import analysis.normed_space.multilinear
 import topology.algebra.uniform_filter_basis
+import analysis.inner_product_space.basic
 
 /-!
 # Schwartz space
@@ -178,8 +179,6 @@ end
 
 end iterated_fderiv
 
-variables [is_R_or_C 𝕜]
-
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables [normed_add_comm_group F] [normed_space ℝ F]
 
@@ -230,18 +229,19 @@ begin
   { exact g.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
 end
 
-variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
-variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
+variables [is_R_or_C 𝕜] [normed_space 𝕜 F]
+variables [semiring R] [module R 𝕜] [module R F] [smul_comm_class ℝ R F]
+variables [has_continuous_const_smul R F] [is_scalar_tower R 𝕜 F]
 
 lemma seminorm_smul_aux (k n : ℕ) (f : schwartz E F) (c : R) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n (λ y, c • f y) x∥ =
-  ∥c • (1 : ℝ)∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
+  ∥c • (1 : 𝕜)∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
 begin
   nth_rewrite 2 mul_comm,
   rw mul_assoc,
   congr,
   rw iterated_fderiv_const_smul_apply ,
-  { rw ←smul_one_smul ℝ c,
+  { rw ←smul_one_smul 𝕜 c,
     rw norm_smul,
     apply_instance },
   { exact f.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
@@ -259,18 +259,28 @@ end aux
 
 section smul
 
-variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
-variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
+#check ℂ
 
-instance : has_smul R (schwartz E F) :=
+variables [normed_space ℂ F]
+variables [semiring R] [module R ℂ] [module R F] [smul_comm_class ℝ R F]
+variables [has_continuous_const_smul R F] [is_scalar_tower R ℂ F]
+
+--variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
+--variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
+
+--variables [semiring R] [module R F] [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
+
+--instance (𝕜 : Type*) [is_R_or_C 𝕜] [normed_space 𝕜 F] [module R 𝕜] [is_scalar_tower R 𝕜 F]:
+instance :
+  has_smul R (schwartz E F) :=
 ⟨λ c f, { to_fun := c • f,
   smooth' := f.smooth.const_smul c,
   decay' := λ k n, begin
     rcases f.decay k n with ⟨C, hC, hf⟩,
-    refine ⟨C * (∥c • (1 : ℝ)∥+1), by positivity, _⟩,
+    refine ⟨C * (∥c • (1 : ℂ)∥+1), by positivity, _⟩,
     intros x,
     specialize hf x,
-    have hc : 0 ≤ ∥c • (1 : ℝ)∥ := by positivity,
+    have hc : 0 ≤ ∥c • (1 : ℂ)∥ := by positivity,
     refine le_trans _ ((mul_le_mul_of_nonneg_right hf hc).trans _),
     { refine eq.le _,
       nth_rewrite 1 mul_comm,
@@ -280,6 +290,8 @@ instance : has_smul R (schwartz E F) :=
     rw [mul_le_mul_left hC, le_add_iff_nonneg_right],
     exact zero_le_one,
   end}⟩
+
+@[simp] lemma smul_apply {f : schwartz E F} {c : R} {x : E} : (c • f) x = c • (f x) := rfl
 
 end smul
 
@@ -351,9 +363,23 @@ instance : has_sub (schwartz E F) :=
 
 @[simp] lemma sub_apply {f g : schwartz E F} {x : E} : (f - g) x = f x - g x := rfl
 
+variables [normed_space ℂ F]
+
 instance : add_comm_group (schwartz E F) :=
 fun_like.coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl)
+/-begin
+  haveI : has_smul ℕ (schwartz E F) := schwartz.has_smul ℝ,
+  haveI : has_smul ℤ (schwartz E F) := schwartz.has_smul ℝ,
+  exact fun_like.coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+    (λ x n, begin
+      ext,
+      exact smul_apply,
+      sorry,
+    end) (λ x z, begin
+      sorry,
+    end)
+end-/
 
 variables (E F)
 
@@ -370,8 +396,12 @@ by { rw coe_coe_hom, exact fun_like.coe_injective }
 
 section module
 
-variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
-variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
+variables [normed_space ℂ F]
+variables [semiring R] [module R ℂ] [module R F] [smul_comm_class ℝ R F]
+variables [has_continuous_const_smul R F] [is_scalar_tower R ℂ F]
+
+--variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
+--variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
 
 instance : module R (schwartz E F) :=
 coe_hom_injective.module R (coe_hom E F) (λ _ _, rfl)
@@ -433,7 +463,9 @@ instance : uniform_space (schwartz E F) :=
 instance : uniform_add_group (schwartz E F) :=
   (seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_add_group
 
-variables (f g : schwartz E F) (x : E)
+variables (f g : schwartz E F) (x : E) (c : ℂ)
 variables (fi : ℕ → schwartz E F) (T : schwartz E F →L[ℝ] schwartz E F)
+
+#check c • f
 
 end schwartz

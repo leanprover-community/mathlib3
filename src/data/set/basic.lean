@@ -1777,7 +1777,7 @@ theorem subsingleton_of_preimage {α β : Type*} {f : α → β} (hf : function.
 /-! ### Nontrivial -/
 
 /-- A set `s` is `nontrivial` if it has at least two distinct elements. -/
-protected def nontrivial (s : set α) : Prop := ∃ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x ≠ y
+protected def nontrivial (s : set α) : Prop := ∃ x y ∈ s, x ≠ y
 
 lemma nontrivial_of_mem_mem_ne {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.nontrivial :=
 ⟨x, hx, y, hy, hxy⟩

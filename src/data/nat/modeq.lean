@@ -398,22 +398,6 @@ by_contradiction $ λ hc,
   have (a + b) % c = a % c + b % c, from add_mod_of_add_mod_lt (lt_of_not_ge hc),
   by simp [dvd_iff_mod_eq_zero, *] at *
 
-lemma mod_mul_div_eq_div_mod (n a b : ℕ) : n % (a * b) / b = n / b % a :=
-begin
-  rcases b with _|_|b,
-  { simp },
-  { simp },
-  cases a,
-  { simp },
-  refine div_mod_rec n (a.succ * b.succ.succ) (succ_ne_zero _) _ _,
-  { intros r hr,
-    rw [mod_eq_of_lt hr, mod_eq_of_lt],
-    rwa div_lt_iff_lt_mul (succ_pos _) },
-  { intros k IH,
-    rw [add_mod, mod_self, add_zero, mod_mod, nat.add_div_of_dvd_left (dvd_mul_left _ _),
-        nat.mul_div_cancel _ (nat.succ_pos _), add_mod, mod_self, add_zero, mod_mod, IH] }
-end
-
 lemma odd_mul_odd {n m : ℕ} : n % 2 = 1 → m % 2 = 1 → (n * m) % 2 = 1 :=
 by simpa [nat.modeq] using @modeq.mul 2 n 1 m 1
 

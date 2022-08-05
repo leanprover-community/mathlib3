@@ -115,7 +115,7 @@ lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
 lemma is_algebraic_alg_hom_of_is_algebraic {B} [ring B] [algebra R B] (f : A →ₐ[R] B) {a : A}
   (h : is_algebraic R a) : is_algebraic R (f a) :=
 let ⟨p, hp, ha⟩ := h in
-⟨p, hp, by erw [aeval_def, ← f.comp_algebra_map, ← hom_eval₂, ← aeval_def, ha, map_zero]⟩
+⟨p, hp, by rw [aeval_alg_hom, f.comp_apply, ha, map_zero]⟩
 
 /-- Transfer `algebra.is_algebraic` across an `equiv`. -/
 lemma _root_.alg_equiv.is_algebraic {B} [ring B] [algebra R B] (e : A ≃ₐ[R] B)

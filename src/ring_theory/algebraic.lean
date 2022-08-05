@@ -110,6 +110,21 @@ lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
 λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [←algebra_map_aeval, hf₂, map_zero]⟩
 
+/-- This is slightly more general than `is_algebraic_algebra_map_of_is_algebraic` in that it
+  allows noncommutative intermediate rings `A`. -/
+lemma is_algebraic_alg_hom_of_is_algebraic {B} [ring B] [algebra R B] (f : A →ₐ[R] B) {a : A}
+  (h : is_algebraic R a) : is_algebraic R (f a) :=
+let ⟨p, hp, ha⟩ := h in
+⟨p, hp, by erw [aeval_def, ← f.comp_algebra_map, ← hom_eval₂, ← aeval_def, ha, map_zero]⟩
+
+/-- Transfer `algebra.is_algebraic` across an `equiv`. -/
+lemma _root_.alg_equiv.is_algebraic {B} [ring B] [algebra R B] (e : A ≃ₐ[R] B)
+  (h : algebra.is_algebraic R A) : algebra.is_algebraic R B :=
+λ b, by convert ← is_algebraic_alg_hom_of_is_algebraic e.to_alg_hom (h _); apply e.apply_symm_apply
+
+lemma _root_.alg_equiv.is_algebraic_iff {B} [ring B] [algebra R B] (e : A ≃ₐ[R] B) :
+  algebra.is_algebraic R A ↔ algebra.is_algebraic R B := ⟨e.is_algebraic, e.symm.is_algebraic⟩
+
 lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map S A)) :
   is_algebraic R (algebra_map S A a) ↔ is_algebraic R a :=
 ⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, algebra_map_aeval])⟩,
@@ -151,6 +166,27 @@ begin
   simp only [is_algebraic, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
   exact is_integral_trans L_alg A_alg,
 end
+
+theorem alg_hom_bijective_of_is_algebraic
+  (ha : algebra.is_algebraic K L) (f : L →ₐ[K] L) : function.bijective f :=
+begin
+  refine ⟨f.to_ring_hom.injective, λ b, _⟩,
+  obtain ⟨p, hp, he⟩ := ha b,
+  let f' : p.root_set L → p.root_set L :=
+    set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
+  have : function.surjective f' := fintype.injective_iff_surjective.1
+    (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
+  obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
+  exact ⟨a, subtype.ext_iff.1 ha⟩,
+end
+
+/-- Bijection between algebra equivalences and algebra homomorphisms -/
+noncomputable
+def alg_equiv_equiv_alg_hom (ha : algebra.is_algebraic K L) : (L ≃ₐ[K] L) ≃ (L →ₐ[K] L) :=
+{ to_fun := λ ϕ, ϕ.to_alg_hom,
+  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (alg_hom_bijective_of_is_algebraic ha ϕ),
+  left_inv := λ _, by {ext, refl},
+  right_inv := λ _, by {ext, refl} }
 
 variables (K L)
 

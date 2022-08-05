@@ -259,7 +259,7 @@ by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 grundy_value_eq_iff_equiv_nim.2 nim_one_equiv.symm
 
 @[simp] lemma grundy_value_neg (G : pgame) [G.impartial] : grundy_value (-G) = grundy_value G :=
-by rw [grundy_value_eq_iff_equiv_nim, neg_equiv_iff, nim.neg_nim, ←grundy_value_eq_iff_equiv_nim]
+by rw [grundy_value_eq_iff_equiv_nim, neg_equiv_iff, neg_nim, ←grundy_value_eq_iff_equiv_nim]
 
 lemma grundy_value_eq_mex_right : ∀ (G : pgame) [G.impartial],
   grundy_value G = ordinal.mex.{u u} (λ i, grundy_value (G.move_right i))

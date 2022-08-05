@@ -9,6 +9,10 @@ import algebra.order.ring
 import data.complex.exponential
 import topology.algebra.module.basic
 
+import measure_theory.integral.integrable_on
+import measure_theory.integral.bochner
+import order.filter.indicator_function
+import topology.metric_space.thickened_indicator
 
 
 
@@ -68,10 +72,10 @@ open probability_theory measure
 
 variables {μ : measure ℝ} {m s : ℝ}
 
-lemma change_of_vr_gaussian (hμ : μ.real_gaussian m s):
+lemma change_of_vr_gaussian:
    ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))) = ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))):=
 begin
-     have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
+    have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
       ext e,
       split,
       {intro h1,
@@ -84,10 +88,97 @@ begin
      = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
       simp,
     rw h_integ_eq,
+    have h_integ_eq2 : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+     = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ,
+      simp,
+    rw h_integ_eq2,
 
-sorry
+    --have h_integ_eq3 : ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+--= ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ∂ℙ,
+
+
+sorry,
 end
 
+lemma comm_in_integ (f : ℝ → ℝ) (c : ℝ):
+    ∫ x : ℝ, (f x) * c ∂ℙ = ∫ x : ℝ, c * f x :=
+begin
+simp_rw [mul_comm],
+end
+
+/-lemma smul_no_bracket (s : ℝ) (hs : s ≠ 0): (sqrt ((2 • π) • s ^ 2))⁻¹ = (sqrt (2 • π • s ^ 2))⁻¹:=
+begin
+have h1: ∀ (a b : ℝ), a = b ↔ sqrt a = sqrt b,
+  intros a b,
+
+end-/
+
+
+lemma smul_no_bracket (s : ℝ) (hs : s ≠ 0): (2 • π) • s ^ 2 = 2 • π • s ^ 2 :=
+begin
+simp,
+exact mul_assoc 2 π (s^2),
+end
+
+lemma change_onemul_to_smul (f:ℝ → ℝ): ∫ (x : ℝ), f x * (sqrt (2 * π * s ^ 2))⁻¹
+ = ∫ (x : ℝ), f x • (sqrt (2 * π * s ^ 2))⁻¹:=
+begin
+simp_rw[← smul_eq_mul],
+end
+---lemma integral_smul_const_special (f : ℝ → ℝ) : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ∂ℙ
+---    = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * f x ∂ℙ :=
+
+lemma like_gaussian_eval (s:ℝ) (hs : s≠0): ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) = sqrt (2 * π * s ^ 2) :=
+begin
+  have h : s * s⁻¹ = 1,
+    finish,
+  have h_inveq : (2*s^2)⁻¹ = (s ^ 2)⁻¹ * 2⁻¹,
+    ring_nf,
+    simp,
+    ring,
+  rw ← h_inveq,
+  simp_rw [← neg_mul],
+  rw integral_gaussian (2*s^2)⁻¹,
+  ring_nf,
+  simp,
+end
+
+lemma sqrt_not_zero (s:ℝ) (hs : s≠0): sqrt (2*π*s^2) ≠ 0:=
+begin
+  have hbp1 : 0 < s^2 :=(sq_pos_iff s).mpr hs,
+
+  have hbp2 : 0 < 2*s^2,
+    simp,
+    exact hbp1,
+
+  have hbp2p :  0 < 2*π*s^2,
+    ring_nf,
+    simp [hbp2],
+    exact pi_pos,
+
+  have hbp3 : ¬ 2*s^2 ≤ 0 := not_le.mpr hbp2,
+
+  have hbp4 : ∀ (x:ℝ), x ≥ 0 → sqrt x = 0 → x = 0 ,
+    intros x hx h,
+    rw ← sq_sqrt hx,
+    simp, exact h,
+
+  have h_conpos : ∀ (x:ℝ), x ≥ 0 → x ≠ 0 → sqrt x ≠ 0 ,
+    intros x hx h,
+    exact mt (hbp4 x hx) h,
+
+  apply h_conpos,
+  exact le_of_lt hbp2p,
+  exact ne_of_gt hbp2p,
+
+end
+
+lemma mul_inv_eq_one (a:ℝ) (ha: a≠0): a * a⁻¹ = 1:=
+begin
+finish,
+end
+
+---important result below
 lemma is_probability_measure_real_gaussian (hμ : μ.real_gaussian m s) :
   is_probability_measure μ :=
 begin
@@ -100,8 +191,30 @@ begin
     simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
     rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
 
-    {
-      sorry},
+    {rw change_of_vr_gaussian,
+     let f : ℝ → ℝ := λ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+     have h_changeform : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+    = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * f x,
+      refl,
+    rw h_changeform,
+    rw ← comm_in_integ f (sqrt (2 * π * s ^ 2))⁻¹,
+    --simp_rw [← smul_eq_mul],
+    ---rw integral_smul_const f (sqrt (2 * π * s ^ 2))⁻¹ ∂ℙ,
+    rw change_onemul_to_smul f,
+    have h_integral_smul_const_special : ∫ (x : ℝ), f x • (sqrt (2 * π * s ^ 2))⁻¹ ∂ℙ
+    = (∫ (x : ℝ), f x ∂ℙ) • (sqrt (2 * π * s ^ 2))⁻¹,
+      {
+        exact integral_smul_const f (sqrt (2 * π * s ^ 2))⁻¹,
+      },
+    rw h_integral_smul_const_special,
+    simp_rw [f],
+    rw like_gaussian_eval s h,
+    simp [h],
+    have h_sqrt_not_zero : sqrt (2*π*s^2) ≠ 0,
+      {exact sqrt_not_zero s h},
+
+    rw mul_inv_eq_one (sqrt (2*π*s^2)) h_sqrt_not_zero,
+    simp},
     {
       rw integrable, fconstructor,
       {
@@ -111,7 +224,7 @@ begin
         refine (has_finite_integral_norm_iff
    (λ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)))).mp
   _,
-        refine integrable.has_finite_integral _,
+        apply integrable.has_finite_integral _,
         refine integrable.abs _,
         refine integrable.const_mul _ (sqrt (2 * π * s ^ 2))⁻¹,
         have hbp1 : 0 < s^2,
@@ -121,11 +234,8 @@ begin
           simp,
           exact hbp1,
         have h_inveq : -(2*s^2)⁻¹ = -(s ^ 2)⁻¹ * 2⁻¹,
-          ring_nf,
-          simp,
-          ring,
-        have hb : 0 < (2*s^2)⁻¹,
-          exact inv_pos.mpr hbp2,
+        { simp [mul_comm] },
+        have hb : 0 < (2*s^2)⁻¹ := inv_pos.mpr hbp2,
           ---rw ← h_inveq,
 
 

@@ -5,20 +5,17 @@ Authors: Moritz Doll
 -/
 
 import analysis.calculus.cont_diff
-import analysis.inner_product_space.basic
 import analysis.normed_space.basic
-import analysis.normed_space.operator_norm
-import analysis.asymptotics.superpolynomial_decay
-import algebra.big_operators.fin
-import analysis.seminorm
+import analysis.locally_convex.with_seminorms
 import analysis.normed_space.multilinear
+import topology.algebra.uniform_filter_basis
 
 /-!
-# Schwartz
+# Schwartz space
 
 ## Main definitions
 
-* `foo_bar`
+* `schwartz`
 
 ## Main statements
 
@@ -41,8 +38,12 @@ import analysis.normed_space.multilinear
 Foobars, barfoos
 -/
 
+-- Todo: Fix complex scalar multiplication
+
 open filter
-open_locale big_operators ennreal nnreal
+open_locale big_operators ennreal nnreal topological_space
+
+noncomputable theory
 
 variables {R 𝕜 E F ι : Type*}
 
@@ -92,6 +93,30 @@ begin
   refine (congr_fun (iterated_fderiv_add hf hg) x).trans _,
   rw [pi.add_apply],
 end
+
+-- iterated_fderiv_add
+lemma iterated_fderiv_neg {n : ℕ} {f : E → F} :
+  iterated_fderiv 𝕜 n (-f) = -iterated_fderiv 𝕜 n f :=
+begin
+  induction n with k hk,
+  { ext, simp },
+  ext x m,
+  rw [pi.neg_apply, continuous_multilinear_map.neg_apply],
+  simp_rw iterated_fderiv_succ_apply_left m,
+  rw [←continuous_multilinear_map.neg_apply],
+  congr,
+  rw ←continuous_linear_map.neg_apply,
+  congr,
+  rw ←fderiv_neg,
+  congr,
+  ext,
+  rw hk,
+  rw pi.neg_apply,
+end
+
+lemma iterated_fderiv_neg_apply {n : ℕ} {f : E → F} {x : E}  :
+  iterated_fderiv 𝕜 n (-f) x = -iterated_fderiv 𝕜 n f x :=
+congr_fun iterated_fderiv_neg x
 
 variables [semiring R] [module R F] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
 
@@ -153,6 +178,8 @@ end
 
 end iterated_fderiv
 
+variables [is_R_or_C 𝕜]
+
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables [normed_add_comm_group F] [normed_space ℝ F]
 
@@ -170,6 +197,8 @@ variables {E F}
 namespace schwartz
 
 -- General nonsense for `fun_like` structures
+
+instance : has_coe (schwartz E F) (E → F) := ⟨to_fun⟩
 
 instance fun_like : fun_like (schwartz E F) E (λ _, F) :=
 { coe := λ f, f.to_fun,
@@ -218,42 +247,15 @@ begin
   { exact f.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
 end
 
+lemma seminorm_neg_aux (k n : ℕ) (f : schwartz E F) (x : E) :
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n (-f) x∥ = ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
+begin
+  nth_rewrite 3 ←norm_neg,
+  congr,
+  exact iterated_fderiv_neg_apply,
+end
+
 end aux
-
-section seminorms
-
-variables (e : basis ι ℝ E) (i : ι) (x : E) (n : ℕ) (a : fin n → ι)
-variables (f : E → F) (f': E → ℂ )
-
-#check iterated_fderiv ℝ n f x (e ∘ a)
-#check finset.univ.prod (λ i, ∥e (a i)∥)
-
-
-variables [has_smul ℝ F]
-
-@[protected]
-noncomputable
-def seminorm (k n : ℕ) (f : schwartz E F) : ℝ :=
-Inf {c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c}
-
-lemma bounds_nonempty (k n : ℕ) (f : schwartz E F) :
-  ∃ (c : ℝ), c ∈ {c : ℝ | 0 ≤ c ∧ ∀ (x : E), ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c} :=
-let ⟨M, hMp, hMb⟩ := f.decay k n in ⟨M, le_of_lt hMp, hMb⟩
-
-lemma bounds_bdd_below (k n : ℕ) (f : schwartz E F) :
-  bdd_below { c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c } :=
-⟨0, λ _ ⟨hn, _⟩, hn⟩
-
-/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
-lemma seminorm_le_bound (k n : ℕ) (f : schwartz E F) {M : ℝ} (hMp: 0 ≤ M)
-  (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) :
-  f.seminorm k n ≤ M :=
-cInf_le (bounds_bdd_below k n f) ⟨hMp, hM⟩
-
-lemma op_norm_nonneg (k n : ℕ) (f : schwartz E F) : 0 ≤ f.seminorm k n :=
-le_cInf (bounds_nonempty k n f) (λ _ ⟨hx, _⟩, hx)
-
-end seminorms
 
 section smul
 
@@ -278,11 +280,10 @@ instance : has_smul R (schwartz E F) :=
     rw [mul_le_mul_left hC, le_add_iff_nonneg_right],
     exact zero_le_one,
   end}⟩
--- need iterated_fderiv_const_smul
-
 
 end smul
 
+section zero
 
 instance : has_zero (schwartz E F) :=
 ⟨{ to_fun := λ _, 0,
@@ -291,7 +292,28 @@ instance : has_zero (schwartz E F) :=
 -- todo: `iterated_fderiv_within_zero_fun` should be `simp`
 -- (and be called `iterated_fderiv_zero_fun`)
 
+lemma coe_zero : ↑(0 : schwartz E F) = (0 : E → F) := rfl
+
 @[simp] lemma zero_apply {x : E} : (0 : schwartz E F) x = 0 := rfl
+
+end zero
+
+section neg
+
+instance : has_neg (schwartz E F) :=
+⟨λ f, ⟨-f, f.smooth.neg,
+  begin
+    intros k n,
+    rcases f.decay k n with ⟨C, hC, hf⟩,
+    use [C, hC],
+    intro x,
+    refine le_trans (eq.le _) (hf x),
+    exact seminorm_neg_aux k n f x,
+  end⟩ ⟩
+
+end neg
+
+section add
 
 instance : has_add (schwartz E F) :=
 ⟨λ f g, ⟨f + g, f.smooth.add g.smooth,
@@ -306,21 +328,112 @@ instance : has_add (schwartz E F) :=
     exact seminorm_add_le_aux k n f g x,
   end⟩ ⟩
 
+lemma coe_add (f g : schwartz E F) : (f : E → F) + g = f + g := rfl
+
 @[simp] lemma add_apply {f g : schwartz E F} {x : E} : (f + g) x = f x + g x := rfl
-/-
-instance : add_zero_class (schwartz E F) :=
-{ zero := has_zero.zero,
-  add := has_add.add,
-  zero_add := λ _, by { ext, rw [add_apply, zero_apply, zero_add] },
-  add_zero := λ _, by { ext, rw [add_apply, zero_apply, add_zero] } }-/
 
+end add
 
-instance : add_comm_monoid (schwartz E F) :=
-fun_like.coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
+instance : has_sub (schwartz E F) :=
+⟨λ f g, ⟨f - g, f.smooth.sub g.smooth,
+  begin
+    intros k n,
+    rcases f.decay k n with ⟨Cf, hCf, hf⟩,
+    rcases g.decay k n with ⟨Cg, hCg, hg⟩,
+    refine ⟨Cf + Cg, by positivity, λ x, _⟩,
+    specialize hf x,
+    specialize hg x,
+    refine le_trans _ (add_le_add hf hg),
+    rw sub_eq_add_neg,
+    rw ←seminorm_neg_aux k n g x,
+    convert seminorm_add_le_aux k n f (-g) x, -- for some reason exact fails with timeout
+  end⟩ ⟩
 
+@[simp] lemma sub_apply {f g : schwartz E F} {x : E} : (f - g) x = f x - g x := rfl
+
+instance : add_comm_group (schwartz E F) :=
+fun_like.coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
+
+variables (E F)
+
+/-- Coercion as an additive homomorphism. -/
+def coe_hom : (schwartz E F) →+ (E → F) :=
+{ to_fun := λ f, f, map_zero' := coe_zero, map_add' := coe_add }
+
+variables {E F}
+
+lemma coe_coe_hom : (coe_hom E F : (schwartz E F) → (E → F)) = coe_fn := rfl
+
+lemma coe_hom_injective : function.injective (coe_hom E F) :=
+by { rw coe_coe_hom, exact fun_like.coe_injective }
+
+section module
+
+variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
+variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
+
+instance : module R (schwartz E F) :=
+coe_hom_injective.module R (coe_hom E F) (λ _ _, rfl)
+
+end module
+
+section seminorms
+
+variables [has_smul ℝ F]
+
+@[protected]
+def seminorm (k n : ℕ) (f : schwartz E F) : ℝ :=
+Inf {c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c}
+
+lemma bounds_nonempty (k n : ℕ) (f : schwartz E F) :
+  ∃ (c : ℝ), c ∈ {c : ℝ | 0 ≤ c ∧ ∀ (x : E), ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c} :=
+let ⟨M, hMp, hMb⟩ := f.decay k n in ⟨M, le_of_lt hMp, hMb⟩
+
+lemma bounds_bdd_below (k n : ℕ) (f : schwartz E F) :
+  bdd_below { c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c } :=
+⟨0, λ _ ⟨hn, _⟩, hn⟩
+
+/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
+lemma seminorm_le_bound (k n : ℕ) (f : schwartz E F) {M : ℝ} (hMp: 0 ≤ M)
+  (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) :
+  f.seminorm k n ≤ M :=
+cInf_le (bounds_bdd_below k n f) ⟨hMp, hM⟩
+
+lemma op_norm_nonneg (k n : ℕ) (f : schwartz E F) : 0 ≤ f.seminorm k n :=
+le_cInf (bounds_nonempty k n f) (λ _ ⟨hx, _⟩, hx)
+
+def seminorm' (k n : ℕ) : seminorm ℝ (schwartz E F) := seminorm.of (schwartz.seminorm k n)
+  (λ x y, begin
+    sorry,
+  end)
+  (λ r x, begin
+    sorry,
+  end)
+
+end seminorms
+
+variables (E F)
+
+def seminorm_family : seminorm_family ℝ (schwartz E F) (ℕ × ℕ) := λ n, schwartz.seminorm' n.1 n.2
+
+variables {E F}
+
+instance : topological_space (schwartz E F) := (seminorm_family E F).module_filter_basis.topology'
+
+instance : has_continuous_smul ℝ (schwartz E F) :=
+  (seminorm_family E F).module_filter_basis.has_continuous_smul
+
+instance : topological_add_group (schwartz E F) :=
+  (seminorm_family E F).module_filter_basis.to_add_group_filter_basis.is_topological_add_group
+
+instance : uniform_space (schwartz E F) :=
+  (seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_space
+
+instance : uniform_add_group (schwartz E F) :=
+  (seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_add_group
 
 variables (f g : schwartz E F) (x : E)
-
-#check f + g
+variables (fi : ℕ → schwartz E F) (T : schwartz E F →L[ℝ] schwartz E F)
 
 end schwartz

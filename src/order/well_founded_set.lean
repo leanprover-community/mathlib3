@@ -231,12 +231,12 @@ begin
     ha.eq (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
 end
 
-lemma finite.partially_well_ordered_on {s : set α} {r : α → α → Prop} [is_refl α r] (h : s.finite) :
-  s.partially_well_ordered_on r :=
+lemma finite.partially_well_ordered_on {s : set α} {r : α → α → Prop} [is_refl α r]
+  (hs : s.finite) : s.partially_well_ordered_on r :=
 begin
   intros f hf,
-  obtain ⟨m, n, hmn, hf⟩ := h.exists_lt_map_eq_of_range_subset hf,
-  exact ⟨m, n, hmn, hf.subst $ refl (f m)⟩,
+  obtain ⟨m, n, hmn, h⟩ := hs.exists_lt_map_eq_of_range_subset hf,
+  exact ⟨m, n, hmn, h.subst $ refl (f m)⟩,
 end
 
 lemma _root_.is_antichain.partially_well_ordered_on_iff {s : set α} {r : α → α → Prop} [is_refl α r]

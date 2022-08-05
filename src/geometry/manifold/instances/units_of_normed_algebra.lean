@@ -49,119 +49,6 @@ noncomputable theory
 
 open_locale manifold
 
-/-- If the `model_with_corners` `I` is an open map, then the target of the extended chart at any
-point on a manifold modelled on `I` is a `nhds`, rather than just a `nhds_within`. -/
-lemma charted_space_is_open_map_target_mem_nhds
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-  {M : Type*} [topological_space M] [charted_space H M]
-  (hI : is_open_map I) (x: M) :
-  (ext_chart_at I x).target ∈ nhds ((ext_chart_at I x) x) :=
-begin
-  rw mem_nhds_iff,
-  have := ext_chart_at_target_mem_nhds_within I x,
-  rw mem_nhds_within at this,
-  rcases this with ⟨u, hu1, hu2, hu3⟩,
-  existsi u ∩ set.range ⇑I,
-  existsi hu3,
-  refine ⟨is_open.inter hu1 hI.is_open_range, _⟩,
-  refine ⟨hu2, _⟩,
-  apply set.mem_of_subset_of_mem (ext_chart_at_target_subset_range I x),
-  apply local_equiv.map_source,
-  apply mem_ext_chart_source
-end
-
-/-- The continuous differentiability of a map `g : M → M'` between manifolds can be stated in terms
-of the continuous differentiability of a corresponding map `f : E → E'` between the model vector
-spaces, if one assumes that the `model_with_corners` for `M` is an open map and the
-`model_with_corners` for `M'` consists of a single chart.
-
-TODO: How can the assumptions be relaxed? -/
-lemma open_embedding_cont_diff_on_cont_mdiff
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-  {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
-  {n : with_top ℕ} {f : E → E'} {g : M → M'}
-  (hI : is_open_map I) (hI' : ∀ x : M', (ext_chart_at I' x).source = set.univ)
-  (hf : ∀ x : M, cont_diff_on 𝕜 n f (ext_chart_at I x).target)
-  (hfg : ∀ x y, f ∘ (ext_chart_at I x) = (ext_chart_at I' y) ∘ g) :
-  cont_mdiff I I' n g :=
-begin
-  rw cont_mdiff_iff,
-  split,
-  { rw continuous_iff_continuous_at,
-    intro,
-    have : g = (ext_chart_at I' (g x)).symm ∘ f ∘ ext_chart_at I x,
-    { ext x',
-      rw function.comp_app,
-      rw local_equiv.eq_symm_apply,
-      { rw hfg },
-      { rw hI',
-        apply set.mem_univ },
-      { rw hfg,
-        rw function.comp_app,
-        apply local_equiv.map_source,
-        rw hI',
-        apply set.mem_univ } },
-    rw this,
-    apply continuous_at.comp,
-    { rw hfg,
-      rw function.comp_app,
-      apply ext_chart_continuous_at_symm },
-    apply continuous_at.comp,
-    { apply continuous_on.continuous_at (cont_diff_on.continuous_on (hf x)),
-      apply charted_space_is_open_map_target_mem_nhds hI },
-    { apply ext_chart_at_continuous_at } },
-  { intros,
-    apply cont_diff_on.congr_mono (hf x),
-    { intros a ha,
-      rw ←function.comp.assoc,
-      rw function.comp_app,
-      rw ←hfg x y,
-      rw function.comp_app,
-      congr,
-      apply local_equiv.right_inv,
-      exact ha.1 },
-    apply set.inter_subset_left }
-end
-
-/-- A weaker version of `units.open_embedding_cont_diff_on_cont_mdiff` in which the model space H
-coincides with the model vector space E via `model_with_corners_self`, and the charts are given by
-open embeddings via `open_embedding.singleton_charted_space`. -/
-lemma open_embedding_cont_diff_on_cont_mdiff'
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {M : Type*} [topological_space M] [nonempty M]
-  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-  {M' : Type*} [topological_space M'] [nonempty M']
-  {n : with_top ℕ} {f : E → E'} {g : M → M'}
-  (e : M → E) (he : open_embedding e)
-  (e' : M' → E') (he' : open_embedding e')
-  (hf : cont_diff_on 𝕜 n f (set.range e))
-  (hfg : f ∘ e = e' ∘ g) :
-  @cont_mdiff _ _ _ _ _ _ _ 𝓘(𝕜, E) _ _ he.singleton_charted_space
-    _ _ _ _ _ 𝓘(𝕜, E') _ _ he'.singleton_charted_space n g :=
-begin
-  haveI := he.singleton_smooth_manifold_with_corners 𝓘(𝕜, E),
-  haveI := he'.singleton_smooth_manifold_with_corners 𝓘(𝕜, E'),
-  apply open_embedding_cont_diff_on_cont_mdiff,
-  show E → E', exact f,
-  { rw model_with_corners_self_coe;
-    apply is_open_map.id },
-  { intro,
-    simp },
-  { intro,
-    simp [hf] },
-  { intros,
-    ext,
-    simp [hfg] }
-end
-
 lemma open_embedding.to_local_homeomorph_left_inv
  {α : Type*} {β : Type*} [topological_space α] [topological_space β]
  (f : α → β) (h : open_embedding f) [nonempty α] {x : α} :
@@ -184,7 +71,6 @@ begin
   exact hx
 end
 
-set_option trace.simplify.rewrite true
 lemma cont_mdiff_open_embedding
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -224,12 +110,11 @@ begin
   rw local_homeomorph.singleton_charted_space_chart_at_eq,
   rw open_embedding.to_local_homeomorph_target
 end
--- z ∈ ⇑(I.to_local_equiv.symm) ⁻¹' (chart_at H x).to_local_equiv.target
-/- Generalise this to all local homeomorphs? -/
+
 lemma cont_mdiff_on_open_embedding_symm
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
   {M : Type*} [topological_space M] [nonempty M]
   {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
   @cont_mdiff_on _ _ _ _ _ _ _ I _ _ _ _ _ _ _ _ I _ _ h.singleton_charted_space
@@ -267,8 +152,8 @@ end
 lemma cont_mdiff.of_comp_open_embedding
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
+  {M : Type*} [topological_space M] [charted_space H M]
   {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
   {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
   {M' : Type*} [topological_space M'] [nonempty M']
@@ -287,47 +172,8 @@ begin
   { exact set.range e' },
   { intros,
     simp },
-  exact cont_mdiff_on_open_embedding_symm I' h,
+  exact cont_mdiff_on_open_embedding_symm h
 end
-
-/-
-
-Strategy:
-
-E --f--> E'
-↑        ↑
-I        I'
-|        |
-H        H'
-↑        ↑
-e        e'
-|        |
-M --g--> M'
-
-1. If e' : M' → H' is an open embedding, then e' is cont_mdiff as a manifold map, where the charted
-  space on M' is induced by e', and the charted space on H' is given by charted_space_self.
-2. For g : M → M', if the charted space on M' is induced by an open embedding e' : M' → H', and
-  (e' ∘ g) : M → H' is cont_mdiff, then g is cont_mdiff.
-3. If there exists f : E → E' such that f ∘ e = e' ∘ g on M, where e is an open embedding that
-  induces a charted space on M (or coincides with its charted space), and f is cont_diff (therefore
-  cont_mdiff), then g is cont_mdiff.
-*. Let's prove it for open_embedding.singleton_charted_space first, prove smooth_inv, and then see
-  how to generalise for smooth_mul.
-
-R  ×  R
-↑     ↑
-I  ×  I (self × self)
-|     |
-R     R (prod)
-↑     ↑
-e     e (coe, open embedding)
-|     |
-Rˣ ×  Rˣ
-
--/
-
-
-
 
 namespace units
 
@@ -343,42 +189,48 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 R
 instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 
+lemma cont_mdiff_coe {m : with_top ℕ} : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) m (coe : Rˣ → R) :=
+cont_mdiff_open_embedding 𝓘(𝕜, R) units.open_embedding_coe
 
+/-- Multiplication of units of a complete normed ring is a smooth map between manifolds. -/
+lemma smooth_mul :
+  smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
+begin
+  apply cont_mdiff.of_comp_open_embedding,
+  have : (coe : Rˣ → R) ∘ (λ x : Rˣ × Rˣ, x.1 * x.2) =
+    (λ x : R × R, x.1 * x.2) ∘ (λ x : Rˣ × Rˣ, (x.1, x.2)),
+  { ext, simp },
+  rw this,
+  have : cont_mdiff (𝓘(𝕜, R).prod 𝓘(𝕜, R)) (𝓘(𝕜, R × R))
+    ⊤ (λ x : Rˣ × Rˣ, ((x.1 : R), (x.2 : R))) :=
+    cont_mdiff.prod_mk_space
+      (cont_mdiff.comp cont_mdiff_coe cont_mdiff_fst)
+      (cont_mdiff.comp cont_mdiff_coe cont_mdiff_snd),
+  apply cont_mdiff.comp _ this,
+  rw cont_mdiff_iff_cont_diff,
+  apply cont_diff_mul
+end
 
--- /-- Multiplication of units of a complete normed ring is a smooth map between manifolds. -/
--- lemma smooth_mul :
---   smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
--- begin
---   apply open_embedding_cont_diff_on_cont_mdiff,
---   { apply is_open_map.prod;
---     rw model_with_corners_self_coe;
---     apply is_open_map.id },
---   { simp },
---   { intro,
---     exact cont_diff.cont_diff_on cont_diff_mul },
---   { intros,
---     ext,
---     simp }
--- end
+/-- Inversion of units of a complete normed ring is a smooth map between manifolds. -/
+lemma smooth_inv :
+  smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
+begin
+  apply cont_mdiff.of_comp_open_embedding,
+  have : (coe : Rˣ → R) ∘ (λ x : Rˣ, x⁻¹) = ring.inverse ∘ coe,
+  { ext, simp },
+  rw this,
+  rw cont_mdiff,
+  intro,
+  have : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) ⊤ (coe : Rˣ → R) := cont_mdiff_coe,
+  rw cont_mdiff at this,
+  apply cont_mdiff_at.comp x _ (this x),
+  rw cont_mdiff_at_iff_cont_diff_at,
+  apply cont_diff_at_ring_inverse
+end
 
--- /-- Inversion of units of a complete normed ring is a smooth map between manifolds. -/
--- lemma smooth_inv :
---   smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
--- begin
---   apply open_embedding_cont_diff_on_cont_mdiff',
---   { intros x hx,
---     apply cont_diff_at.cont_diff_within_at,
---     rw set.mem_range at hx,
---     cases hx with y hy,
---     rw ←hy,
---     apply cont_diff_at_ring_inverse },
---   ext,
---   simp
--- end
-
--- /-- The units of a complete normed ring form a Lie group. -/
--- instance : lie_group 𝓘(𝕜, R) Rˣ :=
--- { smooth_mul := smooth_mul,
---   smooth_inv := smooth_inv }
+/-- The units of a complete normed ring form a Lie group. -/
+instance : lie_group 𝓘(𝕜, R) Rˣ :=
+{ smooth_mul := smooth_mul,
+  smooth_inv := smooth_inv }
 
 end units

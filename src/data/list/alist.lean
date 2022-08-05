@@ -198,6 +198,10 @@ theorem insert_entries_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
   (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
 by rw [insert_entries, kerase_of_not_mem_keys h]
 
+theorem insert_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
+  insert a b s = ⟨⟨a, b⟩ :: s.entries, nodupkeys_cons.2 ⟨h, s.2⟩⟩ :=
+ext $ insert_entries_of_neg h
+
 @[simp] theorem mem_insert {a a'} {b' : β a'} (s : alist β) :
   a ∈ insert a' b' s ↔ a = a' ∨ a ∈ s :=
 mem_keys_kinsert
@@ -240,6 +244,50 @@ ext $ by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.s
 
 theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) :
   list.to_alist (⟨a,b⟩ :: xs) = insert a b xs.to_alist := rfl
+
+theorem mk_cons_eq_insert (c : sigma β) (l : list (sigma β)) (h : (c :: l).nodupkeys) :
+  (⟨c :: l, h⟩ : alist β) = insert c.1 c.2 ⟨l, nodupkeys_of_nodupkeys_cons h⟩ :=
+by simpa [insert] using (kerase_of_not_mem_keys $ not_mem_keys_of_nodupkeys_cons h).symm
+
+/-- Recursion on an `alist`, using `insert`. Use as `induction l using alist.insert_rec`. -/
+@[elab_as_eliminator] def insert_rec {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b)) : Π l : alist β, C l
+| ⟨[], _⟩     := H0
+| ⟨c :: l, h⟩ := begin
+  rw mk_cons_eq_insert,
+  refine IH _ _ _ _ (insert_rec _),
+  exact not_mem_keys_of_nodupkeys_cons h
+end
+
+-- Test that the `induction` tactic works on `insert_rec`.
+example (l : alist β) : true := by induction l using alist.insert_rec; trivial
+
+@[simp] theorem insert_rec_empty {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b)) :
+  @insert_rec α β _ C H0 IH ∅ = H0 :=
+by { change @insert_rec α β _ C H0 IH ⟨[], _⟩ = H0, rw insert_rec }
+
+theorem insert_rec_insert {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b))
+  {c : sigma β} {l : alist β} (h : c.1 ∉ l) :
+  @insert_rec α β _ C H0 IH (l.insert c.1 c.2) = IH c.1 c.2 l h (@insert_rec α β _ C H0 IH l) :=
+begin
+  cases l with l hl,
+  suffices : @insert_rec α β _ C H0 IH ⟨c :: l, nodupkeys_cons.2 ⟨h, hl⟩⟩ ==
+    IH c.1 c.2 ⟨l, hl⟩ h (@insert_rec α β _ C H0 IH ⟨l, hl⟩),
+  { cases c,
+    apply eq_of_heq,
+    convert this;
+    rw insert_of_neg h },
+  rw insert_rec,
+  apply cast_heq
+end
+
+theorem recursion_insert_mk {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b))
+  {a : α} (b : β a) {l : alist β} (h : a ∉ l) :
+  @insert_rec α β _ C H0 IH (l.insert a b) = IH a b l h (@insert_rec α β _ C H0 IH l) :=
+@insert_rec_insert α β _ C H0 IH ⟨a, b⟩ l h
 
 /-! ### extract -/
 

@@ -1787,12 +1787,12 @@ argument. Note that it makes a proof depend on the classical.choice axiom.-/
 protected noncomputable def nontrivial.some (hs : s.nontrivial) : α × α :=
 (hs.some, hs.some_spec.some_spec.some)
 
-protected lemma nontrivial.some_mem_fst (hs : s.nontrivial) : hs.some.fst ∈ s := hs.some_spec.some
+protected lemma nontrivial.some_fst_mem (hs : s.nontrivial) : hs.some.fst ∈ s := hs.some_spec.some
 
-protected lemma nontrivial.some_mem_snd (hs : s.nontrivial) : hs.some.snd ∈ s :=
+protected lemma nontrivial.some_snd_mem (hs : s.nontrivial) : hs.some.snd ∈ s :=
 hs.some_spec.some_spec.some_spec.some
 
-protected lemma nontrivial.some_fst_ne_snd (hs : s.nontrivial) : hs.some.fst ≠ hs.some.snd :=
+protected lemma nontrivial.some_fst_ne_some_snd (hs : s.nontrivial) : hs.some.fst ≠ hs.some.snd :=
 hs.some_spec.some_spec.some_spec.some_spec
 
 lemma nontrivial.mono (hs : s.nontrivial) (hst : s ⊆ t) : t.nontrivial :=

@@ -702,6 +702,61 @@ begin
   { rwa [abs_neg, abs_of_nonneg hx₂] }
 end
 
+lemma limsup_eq_unbounded_sum_indicator :
+  at_top.limsup s = {x | ¬ bdd_above
+    (set.range $ (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → ℕ) x))} :=
+begin
+  ext x,
+  simp only [limsup_eq_infi_supr_of_nat, ge_iff_le, set.supr_eq_Union,
+      set.infi_eq_Inter, set.mem_Inter, set.mem_Union, exists_prop],
+  split,
+  { rintro hx ⟨i, h⟩,
+    simp only [mem_upper_bounds, set.mem_range, forall_exists_index, forall_apply_eq_imp_iff'] at h,
+    induction i with k hk,
+    { obtain ⟨j, hj₁, hj₂⟩ := hx 1,
+      refine not_lt.2 (h $ j + 1) (lt_of_le_of_lt
+        (finset.sum_const_zero.symm : 0 = ∑ k in finset.range (j + 1), 0).le _),
+      refine finset.sum_lt_sum (λ m _, set.indicator_nonneg (λ _ _, zero_le_one) _)
+        ⟨j - 1, finset.mem_range.2 (lt_of_le_of_lt (nat.sub_le _ _) j.lt_succ_self), _⟩,
+      rw [nat.sub_add_cancel hj₁, set.indicator_of_mem hj₂],
+      exact zero_lt_one },
+    { rw imp_false at hk,
+      push_neg at hk,
+      obtain ⟨i, hi⟩ := hk,
+      obtain ⟨j, hj₁, hj₂⟩ := hx (i + 1),
+      replace hi : ∑ k in finset.range i, (s (k + 1)).indicator 1 x = k + 1 := le_antisymm (h i) hi,
+      refine not_lt.2 (h $ j + 1) _,
+      rw [← finset.sum_range_add_sum_Ico _ (i.le_succ.trans (hj₁.trans j.le_succ)), hi],
+      refine lt_add_of_pos_right _ _,
+      rw (finset.sum_const_zero.symm : 0 = ∑ k in finset.Ico i (j + 1), 0),
+      refine finset.sum_lt_sum (λ m _, set.indicator_nonneg (λ _ _, zero_le_one) _)
+        ⟨j - 1, finset.mem_Ico.2
+        ⟨(nat.le_sub_iff_right (le_trans ((le_add_iff_nonneg_left _).2 zero_le') hj₁)).2 hj₁,
+          lt_of_le_of_lt (nat.sub_le _ _) j.lt_succ_self⟩, _⟩,
+      rw [nat.sub_add_cancel (le_trans ((le_add_iff_nonneg_left _).2 zero_le') hj₁),
+        set.indicator_of_mem hj₂],
+      exact zero_lt_one } },
+  { rintro hx i,
+    rw [set.mem_set_of_eq, not_bdd_above_iff] at hx,
+    by_contra hcon,
+    push_neg at hcon,
+    obtain ⟨-, ⟨j, rfl⟩, hpos⟩ := hx i,
+    have : ∑ k in finset.range j, (s (k + 1)).indicator 1 x ≤ i,
+    { have hle : ∀ j ≤ i, ∑ k in finset.range j, (s (k + 1)).indicator 1 x ≤ i,
+      { refine λ j hij, (finset.sum_le_card_nsmul _ _ _ _ : _ ≤ (finset.range j).card • 1).trans _,
+        { exact λ m hm, set.indicator_apply_le' (λ _, le_rfl) (λ _, zero_le_one) },
+        { simpa only [finset.card_range, algebra.id.smul_eq_mul, mul_one] } },
+      by_cases hij : j < i,
+      { exact hle _ hij.le },
+      { rw ← finset.sum_range_add_sum_Ico _ (not_lt.1 hij),
+        suffices : ∑ k in finset.Ico i j, (s (k + 1)).indicator 1 x = 0,
+        { rw [this, add_zero],
+          exact hle _ le_rfl },
+        rw finset.sum_eq_zero (λ m hm, _),
+        exact set.indicator_of_not_mem (hcon _ $ (finset.mem_Ico.1 hm).1.trans m.le_succ) _ } },
+    exact not_le.2 hpos this }
+end
+
 end borel_cantelli
 
 end measure_theory

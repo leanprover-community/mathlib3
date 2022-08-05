@@ -56,7 +56,7 @@ variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 /-- A pretrivialization for a (yet to be defined) topological vector bundle `total_space E` is a
 local equiv between sets of the form `proj ⁻¹' base_set` and `base_set × F` which respects the
 first coordinate, and is linear in each fiber. -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pretrivialization :
   topological_fiber_bundle.pretrivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -234,7 +234,7 @@ A structure extending local homeomorphisms, defining a local trivialization of t
 and `B × F` defined between two sets of the form `proj ⁻¹' base_set` and `base_set × F`,
 acting trivially on the first coordinate and linear in the fibers.
 -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
   topological_fiber_bundle.trivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -260,6 +260,11 @@ protected lemma linear (hb : b ∈ e.base_set) :
 e.linear' b hb
 
 protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
+
+lemma to_pretrivialization_injective :
+  function.injective (λ e : trivialization R F E, e.to_pretrivialization) :=
+by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
+  ← topological_fiber_bundle.trivialization.to_pretrivialization_injective.eq_iff], exact id }
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = x.proj := e.proj_to_fun x ex
@@ -475,8 +480,8 @@ section
 open topological_vector_bundle
 
 variables (B)
-variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_group F] [normed_space R F] [topological_space B]
+variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
 /-- The valid transition functions for a topological vector bundle over `B` modelled on
@@ -518,7 +523,8 @@ namespace trivialization
 @[simps apply {fully_applied := ff}]
 def continuous_linear_map_at (e : trivialization R F E) (b : B) :
   E b →L[R] F :=
-{ cont := begin
+{ to_fun := e.linear_map_at b, -- given explicitly to help `simps`
+  cont := begin
     dsimp,
     rw [e.coe_linear_map_at b],
     refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
@@ -530,7 +536,8 @@ def continuous_linear_map_at (e : trivialization R F E) (b : B) :
 /-- Backwards map of `continuous_linear_equiv_at`, defined everywhere. -/
 @[simps apply {fully_applied := ff}]
 def symmL (e : trivialization R F E) (b : B) : F →L[R] E b :=
-{ cont := begin
+{ to_fun := e.symm b, -- given explicitly to help `simps`
+  cont := begin
     by_cases hb : b ∈ e.base_set,
     { rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
       exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
@@ -554,8 +561,8 @@ is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply {fully_applied := ff}]
 def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e (total_space_mk b y)).2,
-  inv_fun := e.symm b,
+{ to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
+  inv_fun := e.symm b, -- given explicitly to help `simps`
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := (e.symmL b).continuous,
@@ -727,7 +734,7 @@ def trivial_topological_vector_bundle_core (ι : Type*) [inhabited ι] :
   topological_vector_bundle_core R B F ι :=
 { base_set := λ ι, univ,
   is_open_base_set := λ i, is_open_univ,
-  index_at := λ x, default,
+  index_at := default,
   mem_base_set_at := λ x, mem_univ x,
   coord_change := λ i j x, continuous_linear_map.id R F,
   coord_change_self := λ i x hx v, rfl,
@@ -742,14 +749,14 @@ namespace topological_vector_bundle_core
 variables {R B F} {ι : Type*} (Z : topological_vector_bundle_core R B F ι)
 
 /-- Natural identification to a `topological_fiber_bundle_core`. -/
-def to_topological_vector_bundle_core : topological_fiber_bundle_core ι B F :=
+def to_topological_fiber_bundle_core : topological_fiber_bundle_core ι B F :=
 { coord_change := λ i j b, Z.coord_change i j b,
   coord_change_continuous := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
       ((Z.coord_change_continuous i j).prod_map continuous_on_id),
   ..Z }
 
-instance to_topological_vector_bundle_core_coe : has_coe (topological_vector_bundle_core R B F ι)
-  (topological_fiber_bundle_core ι B F) := ⟨to_topological_vector_bundle_core⟩
+instance to_topological_fiber_bundle_core_coe : has_coe (topological_vector_bundle_core R B F ι)
+  (topological_fiber_bundle_core ι B F) := ⟨to_topological_fiber_bundle_core⟩
 
 include Z
 
@@ -758,7 +765,7 @@ lemma coord_change_linear_comp (i j k : ι): ∀ x ∈ (Z.base_set i) ∩ (Z.bas
 λ x hx, by { ext v, exact Z.coord_change_comp i j k x hx v }
 
 /-- The index set of a topological vector bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def index := ι
 
 /-- The base space of a topological vector bundle core, as a convenience function for dot notation-/
@@ -767,7 +774,7 @@ def base := B
 
 /-- The fiber of a topological vector bundle core, as a convenience function for dot notation and
 typeclass inference -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def fiber (x : B) := F
 
 instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
@@ -858,8 +865,13 @@ Z.local_triv (Z.index_at b)
 @[simp, mfld_simps] lemma mem_source_at : (⟨b, a⟩ : Z.total_space) ∈ (Z.local_triv_at b).source :=
 by { rw [local_triv_at, mem_local_triv_source], exact Z.mem_base_set_at b }
 
-@[simp, mfld_simps] lemma local_triv_at_apply : ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
-topological_fiber_bundle_core.local_triv_at_apply Z b a
+@[simp, mfld_simps] lemma local_triv_at_apply (p : Z.total_space) :
+  ((Z.local_triv_at p.1) p) = ⟨p.1, p.2⟩ :=
+topological_fiber_bundle_core.local_triv_at_apply Z p
+
+@[simp, mfld_simps] lemma local_triv_at_apply_mk (b : B) (a : F) :
+  ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
+Z.local_triv_at_apply _
 
 @[simp, mfld_simps] lemma mem_local_triv_at_base_set :
   b ∈ (Z.local_triv_at b).base_set :=
@@ -876,9 +888,9 @@ instance : topological_vector_bundle R F Z.fiber :=
       rw [preimage_inter, ←preimage_comp, function.comp],
       simp only [total_space_mk],
       refine ext_iff.mpr (λ a, ⟨λ ha, _, λ ha, ⟨Z.mem_base_set_at b, _⟩⟩),
-      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply] at ha,
+      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply_mk] at ha,
         exact ha.2.2, },
-      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply],
+      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply_mk],
         exact ⟨Z.mem_base_set_at b, ha⟩, } } end⟩,
   trivialization_atlas := set.range Z.local_triv,
   trivialization_at := Z.local_triv_at,
@@ -906,8 +918,8 @@ end
 /-! ### Topological vector prebundle -/
 
 section
-variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_group F] [normed_space R F] [topological_space B]
+variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B]
 
 open topological_space
 
@@ -922,7 +934,7 @@ The field `exists_coord_change` is stated as an existential statement (instead o
 fields), since it depends on propositional information (namely `e e' ∈ pretrivialization_atlas`).
 This makes it inconvenient to explicitly define a `coord_change` function when constructing a
 `topological_vector_prebundle`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure topological_vector_prebundle :=
 (pretrivialization_atlas : set (pretrivialization R F E))
 (pretrivialization_at : B → pretrivialization R F E)

@@ -10,6 +10,7 @@ import field_theory.finite.galois_field
 import logic.equiv.transfer_instance
 import ring_theory.localization.cardinality
 import set_theory.cardinal.divisibility
+import data.nat.factorization.prime_pow
 
 /-!
 # Cardinality of Fields

@@ -113,9 +113,9 @@ theorem card_sigma : # (Σ n, (L.term (α ⊕ fin n))) = max ℵ₀ (# (α ⊕ �
 begin
   refine le_antisymm _ _,
   { rw mk_sigma,
-    refine (sum_le_sup_lift _).trans _,
+    refine (sum_le_supr_lift _).trans _,
     rw [mk_nat, lift_aleph_0, mul_eq_max_of_aleph_0_le_left le_rfl, max_le_iff,
-      cardinal.sup_le_iff],
+      csupr_le_iff' (bdd_above_range _)],
     { refine ⟨le_max_left _ _, λ i, card_le.trans _⟩,
       rw max_le_iff,
       refine ⟨le_max_left _ _, _⟩,
@@ -125,7 +125,7 @@ begin
       rw [lift_le_aleph_0, ← encodable_iff],
       exact ⟨infer_instance⟩ },
     { rw [← one_le_iff_ne_zero],
-      refine trans _ (le_sup _ 1),
+      refine trans _ (le_csupr (bdd_above_range _) 1),
       rw [one_le_iff_ne_zero, mk_ne_zero_iff],
       exact ⟨var (sum.inr 0)⟩ } },
   { rw [max_le_iff, ← infinite_iff],
@@ -302,7 +302,7 @@ theorem card_le : # (Σ n, L.bounded_formula α n) ≤
   max ℵ₀ (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card) :=
 begin
   refine lift_le.1 ((bounded_formula.encoding.card_le_card_list).trans _),
-  rw [encoding_Γ, mk_list_eq_max_mk_aleph_0, lift_max',lift_aleph_0, lift_max', lift_aleph_0,
+  rw [encoding_Γ, mk_list_eq_max_mk_aleph_0, lift_max, lift_aleph_0, lift_max, lift_aleph_0,
     max_le_iff],
   refine ⟨_, le_max_left _ _⟩,
   rw [mk_sum, term.card_sigma, mk_sum, ← add_eq_max le_rfl, mk_sum, mk_nat],

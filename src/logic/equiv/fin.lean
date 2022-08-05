@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 import data.fin.vec_notation
 import logic.equiv.basic
-import tactic.norm_num
 
 /-!
 # Equivalences for `fin n`
@@ -25,22 +24,14 @@ equiv.equiv_pempty _
 
 /-- Equivalence between `fin 1` and `unit`. -/
 def fin_one_equiv : fin 1 ≃ unit :=
-equiv_punit_of_unique
+equiv.equiv_punit _
 
 /-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=
-⟨@fin.cases 1 (λ_, bool) ff (λ_, tt),
-  λb, cond b 1 0,
-  begin
-    refine fin.cases _ _, by norm_num,
-    refine fin.cases _ _, by norm_num,
-    exact λi, fin_zero_elim i
-  end,
-  begin
-    rintro ⟨_|_⟩,
-    { refl },
-    { rw ← fin.succ_zero_eq_one, refl }
-  end⟩
+{ to_fun := ![ff, tt],
+  inv_fun := λ b, cond b 1 0,
+  left_inv := fin.forall_fin_two.2 $ by simp,
+  right_inv := bool.forall_bool.2 $ by simp }
 
 /-- `Π i : fin 2, α i` is equivalent to `α 0 × α 1`. See also `fin_two_arrow_equiv` for a
 non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α β : Type u`. -/
@@ -225,6 +216,12 @@ def order_iso.pi_fin_succ_above_iso {n : ℕ} (α : fin (n + 1) → Type u) [Π 
   (Π j, α j) ≃o α i × (Π j, α (i.succ_above j)) :=
 { to_equiv := equiv.pi_fin_succ_above_equiv α i,
   map_rel_iff' := λ f g, i.forall_iff_succ_above.symm }
+
+/-- Equivalence between `fin (n + 1) → β` and `β × (fin n → β)`. -/
+@[simps { fully_applied := ff}]
+def equiv.pi_fin_succ (n : ℕ) (β : Type u) :
+  (fin (n+1) → β) ≃ β × (fin n → β) :=
+equiv.pi_fin_succ_above_equiv (λ _, β) 0
 
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def fin_sum_fin_equiv : fin m ⊕ fin n ≃ fin (m + n) :=

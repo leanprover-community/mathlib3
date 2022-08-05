@@ -121,7 +121,7 @@ end semiring
 begin
   induction n with k hk,
   { simp },
-  { simp only [geom_sum_succ', nat.even_succ, hk],
+  { simp only [geom_sum_succ', nat.even_add_one, hk],
     split_ifs,
     { rw [h.neg_one_pow, add_zero] },
     { rw [(nat.odd_iff_not_even.2 h).neg_one_pow, neg_add_self] } }
@@ -361,7 +361,7 @@ calc
 lemma nat.geom_sum_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in range n, a/b^i ≤ a * b/(b - 1) :=
 begin
-  refine (nat.le_div_iff_mul_le _ _ $ tsub_pos_of_lt hb).2 _,
+  refine (nat.le_div_iff_mul_le $ tsub_pos_of_lt hb).2 _,
   cases n,
   { rw [sum_range_zero, zero_mul],
     exact nat.zero_le _ },
@@ -373,7 +373,7 @@ lemma nat.geom_sum_Ico_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in Ico 1 n, a/b^i ≤ a/(b - 1) :=
 begin
   cases n,
-  { rw [Ico_eq_empty_of_le zero_le_one, sum_empty],
+  { rw [Ico_eq_empty_of_le (zero_le_one' ℕ), sum_empty],
     exact nat.zero_le _ },
   rw ←add_le_add_iff_left a,
   calc
@@ -395,13 +395,7 @@ section order
 variables {n : ℕ} {x : α}
 
 lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < ∑ i in range n, x ^ i :=
-begin
-  refine nat.le_induction _ _ _ (show 1 ≤ n, from hn.bot_lt),
-  { simp [@@zero_lt_one _ (nontrivial_of_lt _ _ hx)] },
-  intros k hk,
-  rw [geom_sum_succ'],
-  apply add_pos (pow_pos hx _)
-end
+sum_pos (λ k hk, pow_pos hx _) $ nonempty_range_iff.2 hn
 
 lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
   0 < ∑ i in range n, x ^ i ∧ ∑ i in range n, x ^ i < 1 :=
@@ -419,12 +413,12 @@ end
 lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
   if even n then ∑ i in range n, x ^ i < 0 else 1 < ∑ i in range n, x ^ i  :=
 begin
-  have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _)).trans_lt hx,
+  have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 zero_le_one).trans_lt hx,
   refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
   { simp only [geom_sum_two, hx, true_or, even_bit0, if_true_left_eq_or] },
   clear hn n,
   intros n hn ihn,
-  simp only [nat.even_succ, geom_sum_succ],
+  simp only [nat.even_add_one, geom_sum_succ],
   by_cases hn' : even n,
   { rw [if_pos hn'] at ihn, rw [if_neg, lt_add_iff_pos_left],
     exact mul_pos_of_neg_of_neg hx0 ihn, exact not_not_intro hn', },

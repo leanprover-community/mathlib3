@@ -71,6 +71,9 @@ lemma map_neg {X Y : C} {f : X ⟶ Y} : F.map (-f) = - F.map f :=
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 (F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_sub _ _
 
+lemma map_nsmul {X Y : C} {f : X ⟶ Y} {n : ℕ} : F.map (n • f) = n • F.map f :=
+(F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_nsmul _ _
+
 -- You can alternatively just use `functor.map_smul` here, with an explicit `(r : ℤ)` argument.
 lemma map_zsmul {X Y : C} {f : X ⟶ Y} {r : ℤ} : F.map (r • f) = r • F.map f :=
 (F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_zsmul _ _
@@ -95,10 +98,10 @@ section
 -- To talk about preservation of biproducts we need to specify universes explicitly.
 
 noncomputable theory
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 
-variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D]
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D]
   [preadditive C] [preadditive D] (F : C ⥤ D)
 
 open category_theory.limits
@@ -115,6 +118,7 @@ instance preserves_finite_biproducts_of_additive [additive F] : preserves_finite
         simp_rw [← F.map_id],
         refine congr_arg _ (hb.is_limit.hom_ext (λ j, hb.is_colimit.hom_ext (λ j', _))),
         cases j, cases j',
+        dsimp only [limits.bicone.to_cone_π_app],
         simp [sum_comp, comp_sum, bicone.ι_π, comp_dite, dite_comp],
       end } } }
 
@@ -141,9 +145,9 @@ section
 variables (C D : Type*) [category C] [category D] [preadditive C] [preadditive D]
 
 /-- Bundled additive functors. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def AdditiveFunctor :=
-{ F : C ⥤ D // functor.additive F }
+full_subcategory (λ (F : C ⥤ D), F.additive)
 
 infixr ` ⥤+ `:26 := AdditiveFunctor
 

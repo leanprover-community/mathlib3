@@ -83,15 +83,14 @@ def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
   map_zero' := by { ext1 (_|⟨⟨⟩⟩); refl },
   map_add' := begin
     rintros ⟨a1, b1⟩ ⟨a2, b2⟩,
-    have H : b1 + b2 - (a1 + a2) = b1 - a1 + (b2 - a2), by abel,
-    ext (_|⟨⟨⟩⟩) : 3;
-    simp only [prod.fst_add, prod.snd_add, add_apply, submodule.coe_add, prod.mk_add_mk, H];
-    repeat { erw of_eq_same }; repeat { erw of_eq_of_ne }; try { apply option.no_confusion };
-    dsimp; simp only [zero_add, add_zero]; refl,
+    rw [add_add_add_comm, ←map_add, ←map_add],
+    dsimp only [prod.mk_add_mk],
+    simp_rw [add_sub_add_comm],
+    congr,
   end }
 
-lemma grading.left_inv :
-  function.left_inverse grading.decompose (coe_linear_map (grading R)) := λ zz,
+lemma grading.right_inv :
+  function.right_inverse (coe_linear_map (grading R)) grading.decompose := λ zz,
 begin
   induction zz using direct_sum.induction_on with i zz d1 d2 ih1 ih2,
   { simp only [map_zero],},
@@ -100,8 +99,8 @@ begin
   { simp only [map_add, ih1, ih2], },
 end
 
-lemma grading.right_inv :
-  function.right_inverse grading.decompose (coe_linear_map (grading R)) := λ zz,
+lemma grading.left_inv :
+  function.left_inverse (coe_linear_map (grading R)) grading.decompose := λ zz,
 begin
   cases zz with a b,
   unfold grading.decompose,

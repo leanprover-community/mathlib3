@@ -109,6 +109,9 @@
   title  : Feuerbach’s Theorem
 30:
   title  : The Ballot Problem
+  author : Bhavik Mehta, Kexing Ying
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/30_ballot_problem.lean
 31:
   title  : Ramsey’s Theorem
   author : Bhavik Mehta
@@ -387,6 +390,8 @@
   author : Anne Baanen
 98:
   title  : Bertrand’s Postulate
+  decl   : nat.bertrand
+  author : Bolton Bailey, Patrick Stevens
 99:
   title  : Buffon Needle Problem
 100:

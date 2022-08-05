@@ -22,6 +22,6 @@ lemma cardinal_mk_le_max {R : Type u} [comm_semiring R] : #R[X] ≤ max (#R) ℵ
 calc #R[X] = #(mv_polynomial punit.{u + 1} R) :
   cardinal.eq.2 ⟨(mv_polynomial.punit_alg_equiv.{u u} R).to_equiv.symm⟩
 ... ≤ _ : mv_polynomial.cardinal_mk_le_max
-... ≤ _ : by rw [max_assoc, max_eq_right (lt_aleph_0_of_fintype punit).le]
+... ≤ _ : by rw [max_assoc, max_eq_right (lt_aleph_0_of_finite punit).le]
 
 end polynomial

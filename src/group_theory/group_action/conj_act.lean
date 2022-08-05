@@ -75,7 +75,7 @@ protected def rec {C : conj_act G → Sort*} (h : Π g, C (to_conj_act g)) : Π 
 @[simp] lemma to_conj_act_mul (x y : G) : to_conj_act (x * y) =
   to_conj_act x * to_conj_act y := rfl
 
-instance : has_scalar (conj_act G) G :=
+instance : has_smul (conj_act G) G :=
 { smul := λ g h, of_conj_act g * h * (of_conj_act g)⁻¹ }
 
 lemma smul_def (g : conj_act G) (h : G) : g • h = of_conj_act g * h * (of_conj_act g)⁻¹ := rfl
@@ -90,7 +90,7 @@ section units
 section monoid
 variables [monoid M]
 
-instance has_units_scalar : has_scalar (conj_act Mˣ) M :=
+instance has_units_scalar : has_smul (conj_act Mˣ) M :=
 { smul := λ g h, of_conj_act g * h * ↑(of_conj_act g)⁻¹ }
 
 lemma units_smul_def (g : conj_act Mˣ) (h : M) : g • h = of_conj_act g * h * ↑(of_conj_act g)⁻¹ :=
@@ -163,7 +163,7 @@ end
 /-- As normal subgroups are closed under conjugation, they inherit the conjugation action
   of the underlying group. -/
 instance subgroup.conj_action {H : subgroup G} [hH : H.normal] :
-  has_scalar (conj_act G) H :=
+  has_smul (conj_act G) H :=
 ⟨λ g h, ⟨g • h, hH.conj_mem h.1 h.2 (of_conj_act g)⟩⟩
 
 lemma subgroup.coe_conj_smul {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :

@@ -100,6 +100,11 @@ instance young_diagram.has_bot : has_bot young_diagram :=
 instance young_diagram.order_bot : order_bot young_diagram :=
 { bot := ⊥, bot_le := λ _ _, false.elim }
 
+@[simp] lemma young_diagram.cells_bot :
+   (⊥ : young_diagram).cells = ⊥ := rfl
+@[simp, norm_cast] lemma young_diagram.coe_bot :
+   ↑(⊥ : young_diagram) = (⊥ : set (ℕ × ℕ)) := rfl
+
 instance young_diagram.inhabited : inhabited young_diagram := ⟨⊥⟩
 
 instance young_diagram.distrib_lattice : distrib_lattice young_diagram :=

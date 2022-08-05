@@ -1212,9 +1212,7 @@ iff.intro
   (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (cInf_le bounds_bdd_below
-    ⟨le_rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
-    (op_norm_nonneg _))
+  (by { rintro rfl, exact op_norm_zero })
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
 @[simp] lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
@@ -1229,7 +1227,8 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
 instance to_normed_add_comm_group [ring_hom_isometric σ₁₂] : normed_add_comm_group (E →SL[σ₁₂] F) :=
-normed_add_comm_group.of_core _ ⟨λ f, op_norm_zero_iff f, op_norm_add_le, op_norm_neg⟩
+normed_add_comm_group.of_core _
+  ⟨op_norm_zero, op_norm_add_le, op_norm_neg, λ f, (op_norm_zero_iff f).1⟩
 
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=

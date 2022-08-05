@@ -385,7 +385,8 @@ begin
   { rintros S hS,
     rw hS.1.is_self_adjoint.adjoint_eq,
     exact subset_span hS },
-  { sorry }, -- API hole : adjoint of zero !
+  { rw _root_.map_zero,
+    exact is_trace_class_zero },
   { intros S₁ S₂ h₁ h₂,
     rw map_add,
     exact h₁.add h₂ },

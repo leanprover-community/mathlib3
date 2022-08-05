@@ -57,27 +57,12 @@ lemma is_HS_iff_summable (T : E →L[𝕜] F) (e : hilbert_basis ι 𝕜 E) :
 by simp_rw [is_HS_def, (is_positive_adjoint_comp T).is_trace_class_iff_summable e, comp_apply,
             adjoint_inner_right]
 
--- Should I keep this ?
-lemma foo (S T : E →L[𝕜] F) :
-  (S + T)† ∘L (S + T) = S† ∘L S + T† ∘L S + S† ∘L T + T† ∘L T :=
-begin
-  simp only [linear_isometry_equiv.map_add, add_comp, comp_add],
-  rw ← add_assoc
-end
-
---lemma is_HS.add_aux₁ {S T : E →L[𝕜] F} (V : submodule 𝕜 E) [finite_dimensional 𝕜 V] :
---  re (trace_along V (S† ∘L T + T† ∘L S)) ≤ re (trace_along V (S† ∘L S + T† ∘L T)) :=
---begin
---  rw [← sub_nonneg, ← map_sub, ← map_sub],
---  convert (is_positive_adjoint_comp (S - T)).trace_along_nonneg V,
---  -- Lack of `simp` lemmas
---  sorry --simp [sub_eq_add_neg, comp_neg],
---end
-
 private lemma add_aux₁ {S T : E →L[𝕜] F} :
   (S + T)† ∘L (S + T) = S† ∘L S + T† ∘L T + S† ∘L S + T† ∘L T - (S - T)† ∘L (S - T) :=
 begin
-  sorry -- API holes
+  simp only [linear_isometry_equiv.map_add, add_comp, comp_add, linear_isometry_equiv.map_sub,
+              sub_comp, comp_sub],
+  abel
 end
 
 private lemma add_aux₂ (S T : E →L[𝕜] F) (V : submodule 𝕜 E) [finite_dimensional 𝕜 V] :

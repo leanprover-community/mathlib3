@@ -90,23 +90,20 @@ lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i =
 @[simp] lemma equiv_apply' (x : pi_Lp p α) : pi_Lp.equiv p α x = x := rfl
 @[simp] lemma equiv_symm_apply' (x : Π i, α i) : (pi_Lp.equiv p α).symm x = x := rfl
 
-section
+section dist_norm
+variables [fintype ι]
+
 /-!
-### The uniformity on finite `L^p` products is the product uniformity
+### Definition of `edist`, `dist` and `norm` on `pi_Lp`
 
-In this section, we put the `L^p` edistance on `pi_Lp p α`, and we check that the uniformity
-coming from this edistance coincides with the product uniformity, by showing that the canonical
-map to the Pi type (with the `L^∞` distance) is a uniform embedding, as it is both Lipschitz and
-antiLipschitz.
-
-We only register this emetric space structure as a temporary instance, as the true instance (to be
-registered later) will have as uniformity exactly the product uniformity, instead of the one coming
-from the edistance (which is equal to it, but not defeq). See Note [forgetful inheritance]
-explaining why having definitionally the right uniformity is often important.
+In this section we define the `edist`, `dist` and `norm` functions on `pi_Lp p α` without assuming
+`[fact (1 ≤ p)]` or metric properties of the spaces `α i`. This allows us to provide the rewrite
+lemmas for each of three cases `p = 0`, `p = ∞` and `0 < p.to_real`.
 -/
 
-variables [Π i, pseudo_metric_space (α i)] [Π i, pseudo_emetric_space (β i)] [fintype ι]
+section edist
 
+variables [Π i, has_edist (β i)]
 /-- Endowing the space `pi_Lp p β` with the `L^p` edistance. We register this instance
 separate from `pi_Lp.pseudo_emetric` since the latter requires the type class hypothesis
 `[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
@@ -134,6 +131,14 @@ begin
   rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
 end
 
+end edist
+
+section edist_prop
+
+variables {β} [Π i, pseudo_emetric_space (β i)]
+
+/-- This holds independent of `p` and does not require `[fact (1 ≤ p)]`. We keep it separate
+from `pi_Lp.pseudo_emetric_space` so it can be used also for `p < 1`. -/
 protected lemma edist_self (f : pi_Lp p β) : edist f f = 0 :=
 begin
   rcases p.trichotomy with (rfl | rfl | h),
@@ -142,6 +147,8 @@ begin
   { simp [edist_eq_sum h, ennreal.zero_rpow_of_pos h, ennreal.zero_rpow_of_pos (inv_pos.2 $ h)]}
 end
 
+/-- This holds independent of `p` and does not require `[fact (1 ≤ p)]`. We keep it separate
+from `pi_Lp.pseudo_emetric_space` so it can be used also for `p < 1`. -/
 protected lemma edist_comm (f g : pi_Lp p β) : edist f g = edist g f :=
 begin
   rcases p.trichotomy with (rfl | rfl | h),
@@ -150,7 +157,90 @@ begin
   { simp only [edist_eq_sum h, edist_comm] }
 end
 
-variable (β)
+end edist_prop
+
+section dist
+
+variables [Π i, has_dist (α i)]
+/-- Endowing the space `pi_Lp p β` with the `L^p` distance. We register this instance
+separate from `pi_Lp.pseudo_metric` since the latter requires the type class hypothesis
+`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
+for a future quasi-metric structure on `pi_Lp p β` for `p < 1`. -/
+instance : has_dist (pi_Lp p α) :=
+{ dist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
+    else (if p = ∞ then ⨆ i, dist (f i) (g i)
+    else (∑ i, (dist (f i) (g i) ^ p.to_real)) ^ (1/p.to_real)) }
+
+variable {α}
+lemma dist_eq_card (f g : pi_Lp 0 α) : dist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
+dif_pos rfl
+
+lemma dist_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p α) :
+  dist f g = (∑ i, dist (f i) (g i) ^ p.to_real) ^ (1/p.to_real) :=
+begin
+  dsimp [dist],
+  rw ennreal.to_real_pos_iff at hp,
+  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
+end
+
+lemma dist_eq_csupr (f g : pi_Lp ∞ α) : dist f g = ⨆ i, dist (f i) (g i) :=
+begin
+  dsimp [dist],
+  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
+end
+
+end dist
+
+section norm
+
+variables [Π i, has_norm (β i)] [Π i, has_zero (β i)]
+
+/-- Endowing the space `pi_Lp p β` with the `L^p` norm. We register this instance
+separate from `pi_Lp.seminormed_add_comm_group` since the latter requires the type class hypothesis
+`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
+for a future quasi-norm structure on `pi_Lp p β` for `p < 1`. -/
+instance has_norm : has_norm (pi_Lp p β) :=
+{ norm := λ f, if hp : p = 0 then by subst hp; exact {i | f i ≠ 0}.to_finite.to_finset.card
+   else (if p = ∞ then ⨆ i, ∥f i∥ else (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real)) }
+
+variables {p β}
+lemma norm_eq_card (f : pi_Lp 0 β) : ∥f∥ = {i | f i ≠ 0}.to_finite.to_finset.card :=
+dif_pos rfl
+
+lemma norm_eq_csupr (f : pi_Lp ∞ β) : ∥f∥ = ⨆ i, ∥f i∥ :=
+begin
+  dsimp [norm],
+  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
+end
+
+lemma norm_eq_sum (hp : 0 < p.to_real) (f : pi_Lp p β) :
+  ∥f∥ = (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real) :=
+begin
+  dsimp [norm],
+  rw ennreal.to_real_pos_iff at hp,
+  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
+end
+
+end norm
+
+end dist_norm
+
+section aux
+/-!
+### The uniformity on finite `L^p` products is the product uniformity
+
+In this section, we put the `L^p` edistance on `pi_Lp p α`, and we check that the uniformity
+coming from this edistance coincides with the product uniformity, by showing that the canonical
+map to the Pi type (with the `L^∞` distance) is a uniform embedding, as it is both Lipschitz and
+antiLipschitz.
+
+We only register this emetric space structure as a temporary instance, as the true instance (to be
+registered later) will have as uniformity exactly the product uniformity, instead of the one coming
+from the edistance (which is equal to it, but not defeq). See Note [forgetful inheritance]
+explaining why having definitionally the right uniformity is often important.
+-/
+
+variables [Π i, pseudo_metric_space (α i)] [Π i, pseudo_emetric_space (β i)] [fintype ι]
 
 /-- Endowing the space `pi_Lp p β` with the `L^p` pseudoemetric structure. This definition is not
 satisfactory, as it does not register the fact that the topology and the uniform structure coincide
@@ -182,35 +272,6 @@ def pseudo_emetric_aux [fact (1 ≤ p)] : pseudo_emetric_space (pi_Lp p β) :=
   end }
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
-
-/-- Endowing the space `pi_Lp p β` with the `L^p` distance. We register this instance
-separate from `pi_Lp.pseudo_metric` since the latter requires the type class hypothesis
-`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
-for a future quasi-metric structure on `pi_Lp p β` for `p < 1`. -/
-instance : has_dist (pi_Lp p α) :=
-{ dist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
-    else (if p = ∞ then ⨆ i, dist (f i) (g i)
-    else (∑ i, (dist (f i) (g i) ^ p.to_real)) ^ (1/p.to_real)) }
-
-variable {α}
-lemma dist_eq_card (f g : pi_Lp 0 α) : dist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
-dif_pos rfl
-
-lemma dist_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p α) :
-  dist f g = (∑ i, dist (f i) (g i) ^ p.to_real) ^ (1/p.to_real) :=
-begin
-  dsimp [dist],
-  rw ennreal.to_real_pos_iff at hp,
-  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
-end
-
-lemma dist_eq_csupr (f g : pi_Lp ∞ α) : dist f g = ⨆ i, dist (f i) (g i) :=
-begin
-  dsimp [dist],
-  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
-end
-
-variable (α)
 
 example (f g : pi_Lp ∞ α) : (⨆ i, edist (f i) (g i)) ≠ ⊤ :=
 begin
@@ -342,7 +403,7 @@ calc cobounded (pi_Lp p α) = comap (pi_Lp.equiv p α) (cobounded _) :
     (lipschitz_with_equiv_aux p α).comap_cobounded_le
 ... = _ : comap_id
 
-end
+end aux
 
 /-! ### Instances on finite `L^p` products -/
 
@@ -396,30 +457,6 @@ lemma infty_equiv_isometry [Π i, pseudo_emetric_space (β i)] :
 λ x y, le_antisymm (by simpa only [ennreal.coe_one, one_mul] using lipschitz_with_equiv ∞ β x y)
   (by simpa only [ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, ennreal.coe_one, one_mul]
     using antilipschitz_with_equiv ∞ β x y)
-
-instance has_norm [Π i, has_norm (β i)] [Π i, has_zero (β i)] : has_norm (pi_Lp p β) :=
-{ norm := λ f, if hp : p = 0 then by subst hp; exact {i | f i ≠ 0}.to_finite.to_finset.card
-   else (if p = ∞ then ⨆ i, ∥f i∥ else (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real)) }
-
-variables {p β}
-lemma norm_eq_card [Π i, has_norm (β i)] [Π i, has_zero (β i)] (f : pi_Lp 0 β) :
-  ∥f∥ = {i | f i ≠ 0}.to_finite.to_finset.card :=
-dif_pos rfl
-
-lemma norm_eq_csupr [Π i, has_norm (β i)] [Π i, has_zero (β i)] (f : pi_Lp ∞ β) :
-  ∥f∥ = ⨆ i, ∥f i∥ :=
-begin
-  dsimp [norm],
-  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
-end
-
-lemma norm_eq_sum [Π i, has_norm (β i)] [Π i, has_zero (β i)] (hp : 0 < p.to_real) (f : pi_Lp p β) :
-  ∥f∥ = (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real) :=
-begin
-  dsimp [norm],
-  rw ennreal.to_real_pos_iff at hp,
-  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
-end
 
 variables (p β) [fact (1 ≤ p)]
 /-- seminormed group instance on the product of finitely many normed groups, using the `L^p`

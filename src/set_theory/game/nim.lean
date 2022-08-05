@@ -135,13 +135,13 @@ end
 theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
 
 /-- A recursion principle for left moves of a nim game. -/
-@[elab_as_eliminator] def nim_left_moves_rec_on {o : ordinal} {P : (nim o).left_moves → Sort*}
+@[elab_as_eliminator] def left_moves_nim_rec_on {o : ordinal} {P : (nim o).left_moves → Sort*}
   (i : (nim o).left_moves) (H : ∀ (a : ordinal) (ha : a < o), P (to_left_moves_nim ⟨a, ha⟩)) :
   P i :=
 by { rw ←to_left_moves_nim.apply_symm_apply i, apply H }
 
 /-- A recursion principle for right moves of a nim game. -/
-@[elab_as_eliminator] def nim_right_moves_rec_on {o : ordinal} {P : (nim o).right_moves → Sort*}
+@[elab_as_eliminator] def right_moves_nim_rec_on {o : ordinal} {P : (nim o).right_moves → Sort*}
   (i : (nim o).right_moves) (H : ∀ (a : ordinal) (ha : a < o), P (to_right_moves_nim ⟨a, ha⟩)) :
   P i :=
 by { rw ←to_right_moves_nim.apply_symm_apply i, apply H }
@@ -286,7 +286,7 @@ begin
   apply (ordinal.mex_le_of_ne.{u u} (λ i, _)).antisymm (ordinal.le_mex_of_forall (λ ou hu, _)),
   -- The Grundy value `nat.lxor n m` can't be reached by left moves.
   { apply left_moves_add_cases i;
-    { refine λ a, nim_left_moves_rec_on a (λ ok hk, _),
+    { refine λ a, left_moves_nim_rec_on a (λ ok hk, _),
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (hk.trans (ordinal.nat_lt_omega _)),
       simp only [add_move_left_inl, add_move_left_inr, move_left_nim', equiv.symm_apply_apply],
       rw nat_cast_lt at hk,

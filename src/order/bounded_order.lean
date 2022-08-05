@@ -344,13 +344,6 @@ begin
   { exact h'.symm }
 end
 
-/-- Propositions form a bounded order. -/
-instance Prop.bounded_order : bounded_order Prop :=
-{ top          := true,
-  le_top       := λ a Ha, true.intro,
-  bot          := false,
-  bot_le       := @false.elim }
-
 /-- Propositions form a distributive lattice. -/
 instance Prop.distrib_lattice : distrib_lattice Prop :=
 { sup          := or,
@@ -366,9 +359,15 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
     λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
   ..Prop.partial_order }
 
+/-- Propositions form a bounded order. -/
+instance Prop.bounded_order : bounded_order Prop :=
+{ top          := true,
+  le_top       := λ a Ha, true.intro,
+  bot          := false,
+  bot_le       := @false.elim }
+
 instance Prop.le_is_total : is_total Prop (≤) :=
 ⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
-
 
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl

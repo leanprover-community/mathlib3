@@ -96,22 +96,44 @@ lemma move_right_nim {o : ordinal} (i) :
   (nim o).move_right (to_right_moves_nim i) = nim i :=
 by simp
 
-instance : is_empty (nim 0).left_moves :=
+instance is_empty_nim_zero_left_moves : is_empty (nim 0).left_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-instance : is_empty (nim 0).right_moves :=
+instance is_empty_nim_zero_right_moves : is_empty (nim 0).right_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
-
-instance : unique (nim 1).left_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
-
-instance : unique (nim 1).right_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
 def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 
 theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
+
+noncomputable instance unique_nim_one_left_moves : unique (nim 1).left_moves :=
+(equiv.cast $ left_moves_nim 1).unique
+
+noncomputable instance unique_nim_one_right_moves : unique (nim 1).right_moves :=
+(equiv.cast $ right_moves_nim 1).unique
+
+@[simp] theorem default_nim_one_left_moves_eq :
+  (default : (nim 1).left_moves) = @to_left_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem default_nim_one_right_moves_eq :
+  (default : (nim 1).right_moves) = @to_right_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem to_left_moves_nim_one_symm (i) :
+  (@to_left_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+by simp
+
+@[simp] theorem to_right_moves_nim_one_symm (i) :
+  (@to_right_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+by simp
+
+theorem nim_one_move_left (x) : (nim 1).move_left x = nim 0 :=
+by simp
+
+theorem nim_one_move_right (x) : (nim 1).move_right x = nim 0 :=
+by simp
 
 /-- `nim 1` has exactly the same moves as `star`. -/
 def nim_one_relabelling : nim 1 ≡r star :=

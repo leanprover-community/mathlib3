@@ -416,6 +416,10 @@ protected lemma function.surjective.supr_congr {g : ι' → α} (h : ι → ι')
   (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
 by { convert h1.supr_comp g, exact (funext h2).symm }
 
+protected lemma equiv.supr_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g (e x) = f x) :
+  (⨆ x, f x) = ⨆ y, g y :=
+e.surjective.supr_congr _ h
+
 @[congr] lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α} (pq : p ↔ q)
   (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 by { obtain rfl := propext pq, congr' with x, apply f }
@@ -440,9 +444,13 @@ lemma function.surjective.infi_comp {f : ι → ι'} (hf : surjective f) (g : ι
   (⨅ x, g (f x)) = ⨅ y, g y :=
 @function.surjective.supr_comp αᵒᵈ _ _  _ f hf g
 
-lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
+protected lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
 @function.surjective.supr_congr αᵒᵈ _ _ _ _ _ h h1 h2
+
+protected lemma equiv.infi_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g (e x) = f x) :
+  (⨅ x, f x) = ⨅ y, g y :=
+@equiv.supr_congr αᵒᵈ _ _ _ _ _ e h
 
 @[congr]lemma infi_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=

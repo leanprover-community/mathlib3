@@ -412,6 +412,10 @@ lemma function.surjective.supr_comp {f : ι → ι'} (hf : surjective f) (g : ι
   (⨆ x, g (f x)) = ⨆ y, g y :=
 by simp only [supr, hf.range_comp]
 
+lemma equiv.supr_comp {g : ι' → α} (e : ι ≃ ι') :
+  (⨆ x, g (e x)) = ⨆ y, g y :=
+e.surjective.supr_comp _
+
 protected lemma function.surjective.supr_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
 by { convert h1.supr_comp g, exact (funext h2).symm }
@@ -443,6 +447,10 @@ lemma infi_congr (h : ∀ i, f i = g i) : (⨅ i, f i) = ⨅ i, g i := congr_arg
 lemma function.surjective.infi_comp {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   (⨅ x, g (f x)) = ⨅ y, g y :=
 @function.surjective.supr_comp αᵒᵈ _ _  _ f hf g
+
+lemma equiv.infi_comp {g : ι' → α} (e : ι ≃ ι') :
+  (⨅ x, g (e x)) = ⨅ y, g y :=
+@equiv.supr_comp αᵒᵈ _ _ _ _ e
 
 protected lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=

@@ -9,6 +9,10 @@ import algebra.order.ring
 import data.complex.exponential
 import topology.algebra.module.basic
 
+import measure_theory.integral.integrable_on
+import measure_theory.integral.bochner
+import order.filter.indicator_function
+import topology.metric_space.thickened_indicator
 
 
 
@@ -73,7 +77,7 @@ variables {μ : measure ℝ} {m s : ℝ}
 lemma change_of_vr_gaussian:
    ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))) = ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))):=
 begin
-     have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
+    have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
       ext e,
       split,
       {intro h1,
@@ -86,12 +90,102 @@ begin
      = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
       simp,
     rw h_integ_eq,
+    have h_integ_eq2 : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+     = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ,
+      simp,
+    rw h_integ_eq2,
 
-sorry
+    --have h_integ_eq3 : ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+--= ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ∂ℙ,
+
+
+sorry,
 end
 
 
--- an important lemma
+-- 0 < s^2
+lemma s_sq_pos (s : ℝ) (hs : s ≠ 0): 0 < s^2 :=
+begin
+  exact (sq_pos_iff s).mpr hs,
+end
+
+-- 0 < 2*s^2
+lemma s_sq_pos_2 (s : ℝ) (hs : s ≠ 0): 0 < 2*s^2 :=
+begin
+  simp,
+  exact s_sq_pos s hs,
+end
+
+-- nonegative x with sqrt equals to 0 is equal to zero
+lemma pos_sqrt_zero_eq_zero : ∀ (x:ℝ), x ≥ 0 → sqrt x = 0 → x = 0 :=
+begin
+  intros x hx h,
+  rw ← sq_sqrt hx,
+  simp,
+  exact h,
+end
+
+-- equals to hbp2p
+lemma s_sq_pos_2_pi (s : ℝ) (hs : s ≠ 0): 0 < 2*π*s^2 :=
+begin
+  ring_nf,
+  simp [s_sq_pos_2 s hs],
+  exact pi_pos,
+end
+
+lemma comm_in_integ (f : ℝ → ℝ) (c : ℝ):
+    ∫ x : ℝ, (f x) * c ∂ℙ = ∫ x : ℝ, c * f x :=
+begin
+simp_rw [mul_comm],
+end
+
+
+lemma smul_no_bracket (s : ℝ) (hs : s ≠ 0): (2 • π) • s ^ 2 = 2 • π • s ^ 2 :=
+begin
+simp,
+exact mul_assoc 2 π (s^2),
+end
+
+lemma change_onemul_to_smul (f:ℝ → ℝ): ∫ (x : ℝ), f x * (sqrt (2 * π * s ^ 2))⁻¹
+ = ∫ (x : ℝ), f x • (sqrt (2 * π * s ^ 2))⁻¹:=
+begin
+simp_rw[← smul_eq_mul],
+end
+
+
+lemma like_gaussian_eval (s:ℝ) (hs : s≠0): ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) = sqrt (2 * π * s ^ 2) :=
+begin
+  have h : s * s⁻¹ = 1,
+    finish,
+  have h_inveq : (2*s^2)⁻¹ = (s ^ 2)⁻¹ * 2⁻¹,
+    ring_nf,
+    simp,
+    ring,
+  rw ← h_inveq,
+  simp_rw [← neg_mul],
+  rw integral_gaussian (2*s^2)⁻¹,
+  ring_nf,
+  simp,
+end
+
+lemma sqrt_not_zero (s:ℝ) (hs : s≠0): sqrt (2*π*s^2) ≠ 0:=
+begin
+  have h_conpos : ∀ (x:ℝ), x ≥ 0 → x ≠ 0 → sqrt x ≠ 0 ,
+    intros x hx h,
+    exact mt (pos_sqrt_zero_eq_zero x hx) h,
+
+  apply h_conpos,
+  exact le_of_lt (s_sq_pos_2_pi s hs),
+  exact ne_of_gt (s_sq_pos_2_pi s hs),
+
+end
+
+lemma mul_inv_eq_one (a:ℝ) (ha: a≠0): a * a⁻¹ = 1:=
+begin
+finish,
+end
+
+---important result below
 lemma is_probability_measure_real_gaussian (hμ : μ.real_gaussian m s) :
   is_probability_measure μ :=
 begin
@@ -104,18 +198,28 @@ begin
     simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
     rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
 
-    {
-      rw change_of_vr_gaussian,
-      have h_inveq : (2*s^2)⁻¹ = (s ^ 2)⁻¹ * 2⁻¹,
-          ring_nf,
-          simp,
-          ring,
-      rw ← h_inveq,
-      simp_rw [← neg_mul],
-      --rw integral_gaussian ((2*s^2)⁻¹),
-      sorry
-    },
+    {rw change_of_vr_gaussian,
+     let f : ℝ → ℝ := λ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+     have h_changeform : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+    = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * f x,
+      refl,
+    rw h_changeform,
+    rw ← comm_in_integ f (sqrt (2 * π * s ^ 2))⁻¹,
+    rw change_onemul_to_smul f,
+    have h_integral_smul_const_special : ∫ (x : ℝ), f x • (sqrt (2 * π * s ^ 2))⁻¹ ∂ℙ
+    = (∫ (x : ℝ), f x ∂ℙ) • (sqrt (2 * π * s ^ 2))⁻¹,
+      {
+        exact integral_smul_const f (sqrt (2 * π * s ^ 2))⁻¹,
+      },
+    rw h_integral_smul_const_special,
+    simp_rw [f],
+    rw like_gaussian_eval s h,
+    simp [h],
+    have h_sqrt_not_zero : sqrt (2*π*s^2) ≠ 0,
+      {exact sqrt_not_zero s h},
 
+    rw mul_inv_eq_one (sqrt (2*π*s^2)) h_sqrt_not_zero,
+    simp},
     {
       rw integrable, fconstructor,
       {
@@ -125,28 +229,17 @@ begin
         refine (has_finite_integral_norm_iff
    (λ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)))).mp
   _,
-        refine integrable.has_finite_integral _,
+        apply integrable.has_finite_integral _,
         refine integrable.abs _,
         refine integrable.const_mul _ (sqrt (2 * π * s ^ 2))⁻¹,
-        have hbp1 : 0 < s^2,
-          exact (sq_pos_iff s).mpr h,
-        --have hbp2 : 0 < 2
-        have hbp2 : 0 < 2*s^2,
-          simp,
-          exact hbp1,
-        have h_inveq : -(2*s^2)⁻¹ = -(s ^ 2)⁻¹ * 2⁻¹,
-          ring_nf,
-          simp,
-          ring,
-        have hb : 0 < (2*s^2)⁻¹,
-          exact inv_pos.mpr hbp2,
-          ---rw ← h_inveq,
 
+        have neg_h_inveq : -(2*s^2)⁻¹ = -(s ^ 2)⁻¹ * 2⁻¹,
+        { simp [mul_comm] },
+
+        have hb : 0 < (2*s^2)⁻¹ := inv_pos.mpr (s_sq_pos_2 s h),
 
         have h_gaussexp : integrable (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * a ^ 2)) ℙ,
-          rw ← h_inveq,
-          ---rw h_minusmul (2*s^2)⁻¹ a,
-          ---simp [integrable_exp_neg_mul_sq hb],
+          rw ← neg_h_inveq,
           exact integrable_exp_neg_mul_sq hb,
 
         have h_eqfunc : (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * (a - m)^ 2)) = (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))  ,
@@ -157,22 +250,10 @@ begin
         exact measure_theory.integrable.comp_sub_right h_gaussexp m,
       }
     },
-    {
-      --refine filter.germ.coe_le.mp _,
-      refine filter.eventually_of_forall _,
-      have hbp1 : 0 < s^2,
-          exact (sq_pos_iff s).mpr h,
-        -- have hbp2 : 0 < 2
-      have hbp2 : 0 < 2*s^2,
-          simp,
-          exact hbp1,
+    {refine filter.eventually_of_forall _,
 
-      --have h_pipos : 0 < π,
-        --exact pi_pos,
       have h_exppos : 0 < (2 * s ^ 2) * π,
-        exact mul_pos hbp2 pi_pos,
-
-      --simp at h_sqrt_pos,
+        exact mul_pos (s_sq_pos_2 s h) pi_pos,
 
       have h_sqrt_pos :  0 < sqrt(2 * s ^ 2 * π),
         exact sqrt_pos.mpr h_exppos,

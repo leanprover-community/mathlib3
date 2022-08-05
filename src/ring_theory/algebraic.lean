@@ -112,12 +112,11 @@ lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
 
 /-- This is slightly more general than `is_algebraic_algebra_map_of_is_algebraic` in that it
   allows noncommutative intermediate rings `A`. -/
-lemma is_algebraic_alg_hom_of_is_algebraic {B} [ring B] [algebra R B] (f : A →ₐ[R] B) {a : A}
-  (h : is_algebraic R a) : is_algebraic R (f a) :=
-let ⟨p, hp, ha⟩ := h in
-⟨p, hp, by rw [aeval_alg_hom, f.comp_apply, ha, map_zero]⟩
+lemma is_algebraic_alg_hom_of_is_algebraic {B} [ring B] [algebra R B]
+  (f : A →ₐ[R] B) {a : A} (h : is_algebraic R a) : is_algebraic R (f a) :=
+let ⟨p, hp, ha⟩ := h in ⟨p, hp, by rw [aeval_alg_hom, f.comp_apply, ha, map_zero]⟩
 
-/-- Transfer `algebra.is_algebraic` across an `equiv`. -/
+/-- Transfer `algebra.is_algebraic` across an `alg_equiv`. -/
 lemma _root_.alg_equiv.is_algebraic {B} [ring B] [algebra R B] (e : A ≃ₐ[R] B)
   (h : algebra.is_algebraic R A) : algebra.is_algebraic R B :=
 λ b, by convert ← is_algebraic_alg_hom_of_is_algebraic e.to_alg_hom (h _); apply e.apply_symm_apply

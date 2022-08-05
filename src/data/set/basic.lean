@@ -1817,7 +1817,7 @@ lemma nontrivial.exists_ne {z} (hs : s.nontrivial) : ∃ x ∈ s, x ≠ z :=
 begin
   by_contra H, push_neg at H,
   rcases hs with ⟨x, hx, y, hy, hxy⟩,
-  rw [(H x hx), (H y hy)] at hxy,
+  rw [H x hx, H y hy] at hxy,
   exact hxy rfl
 end
 

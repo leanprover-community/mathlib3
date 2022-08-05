@@ -273,7 +273,7 @@ begin
   suffices : 0 ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ i] - f i,
   { filter_upwards [this] with x hx,
     rwa ← sub_nonneg },
-  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure
+  refine ae_nonneg_of_forall_set_integral_nonneg
     ((integrable_condexp.sub (hint i)).trim _ (strongly_measurable_condexp.sub $ hadp i))
     (λ s hs, _),
   specialize hf i j hij s hs,

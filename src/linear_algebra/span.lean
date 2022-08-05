@@ -51,6 +51,9 @@ lemma span_le {p} : span R s ≤ p ↔ s ⊆ p :=
 lemma span_mono (h : s ⊆ t) : span R s ≤ span R t :=
 span_le.2 $ subset.trans h subset_span
 
+lemma span_monotone : monotone (span R : set M → submodule R M) :=
+λ _ _, span_mono
+
 lemma span_eq_of_le (h₁ : s ⊆ p) (h₂ : p ≤ span R s) : span R s = p :=
 le_antisymm (span_le.2 h₁) h₂
 

@@ -283,6 +283,23 @@ end
 
 variables {R M}
 
+/-- A linearly-independent family of vectors in a module over a non-trivial ring must be finite if
+the module is Noetherian. -/
+lemma linear_independent.finite_of_is_noetherian [is_noetherian R M]
+  {v : ι → M} (hv : linear_independent R v) : finite ι :=
+begin
+  have hwf := is_noetherian_iff_well_founded.mp (by apply_instance : is_noetherian R M),
+  refine complete_lattice.well_founded.finite_of_independent hwf
+    hv.independent_span_singleton (λ i contra, _),
+  apply hv.ne_zero i,
+  have : v i ∈ R ∙ v i := submodule.mem_span_singleton_self (v i),
+  rwa [contra, submodule.mem_bot] at this,
+end
+
+lemma linear_independent.set_finite_of_is_noetherian [is_noetherian R M]
+  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
+@set.to_finite _ _ hi.finite_of_is_noetherian
+
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
 -/
@@ -434,7 +451,7 @@ begin
     exact i.prop },
   choose v hvV hv using hI,
   have : linear_independent R v,
-  { exact (hV.comp _ subtype.coe_injective).linear_independent _ hvV hv },
+  { exact (hV.comp subtype.coe_injective).linear_independent _ hvV hv },
   exact cardinal_lift_le_dim_of_linear_independent' this
 end
 
@@ -600,7 +617,7 @@ begin
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
-    { exact λ j, (cardinal.lt_aleph_0_of_fintype _).le },
+    { exact λ j, (cardinal.lt_aleph_0_of_finite _).le },
     { simpa } },
 end
 
@@ -681,26 +698,6 @@ begin
   exact le_top,
 end
 
-/-- A linearly-independent family of vectors in a module over a ring satisfying the strong rank
-condition must be finite if the module is Noetherian. -/
-noncomputable def fintype_of_is_noetherian_linear_independent [is_noetherian R M]
-  {v : ι → M} (hi : linear_independent R v) : fintype ι :=
-begin
-  have hfg : (⊤ : submodule R M).fg,
-  { exact is_noetherian_def.mp infer_instance ⊤, },
-  rw submodule.fg_def at hfg,
-  choose s hs hs' using hfg,
-  haveI : fintype s := hs.fintype,
-  apply linear_independent_fintype_of_le_span_fintype v hi s,
-  simp only [hs', set.subset_univ, submodule.top_coe, set.le_eq_subset],
-end
-
-/-- A linearly-independent subset of a module over a ring satisfying the strong rank condition
-must be finite if the module is Noetherian. -/
-lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
-  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-⟨fintype_of_is_noetherian_linear_independent hi⟩
-
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
 we handle the case where the basis `b` is infinite.
@@ -711,7 +708,7 @@ lemma linear_independent_le_infinite_basis
   #κ ≤ #ι :=
 begin
   by_contradiction,
-  rw [not_le, ← cardinal.mk_finset_eq_mk ι] at h,
+  rw [not_le, ← cardinal.mk_finset_of_infinite ι] at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
   obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (by apply_instance),
   let v' := λ k : Φ ⁻¹' {s}, v k,
@@ -973,7 +970,7 @@ end
 lemma dim_span_of_finset (s : finset V) :
   module.rank K (span K (↑s : set V)) < ℵ₀ :=
 calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_finset]
+                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_coe_finset]
                              ... < ℵ₀ : cardinal.nat_lt_aleph_0 _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
@@ -1283,6 +1280,24 @@ begin
       rw ←submodule.eq_bot_iff at hw,
       simp [hw] } }
 end
+
+lemma submodule.rank_le_one_iff_is_principal (W : submodule K V) :
+  module.rank K W ≤ 1 ↔ W.is_principal :=
+begin
+  simp only [dim_le_one_iff, submodule.is_principal_iff, le_antisymm_iff,
+    le_span_singleton_iff, span_singleton_le_iff_mem],
+  split,
+  { rintro ⟨⟨m, hm⟩, hm'⟩,
+    choose f hf using hm',
+    exact ⟨m, ⟨λ v hv, ⟨f ⟨v, hv⟩, congr_arg coe (hf ⟨v, hv⟩)⟩, hm⟩⟩ },
+  { rintro ⟨a, ⟨h, ha⟩⟩,
+    choose f hf using h,
+    exact ⟨⟨a, ha⟩, λ v, ⟨f v.1 v.2, subtype.ext (hf v.1 v.2)⟩⟩ }
+end
+
+lemma module.rank_le_one_iff_top_is_principal :
+  module.rank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
+by rw [← submodule.rank_le_one_iff_is_principal, dim_top]
 
 end division_ring
 

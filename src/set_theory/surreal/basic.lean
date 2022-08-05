@@ -101,21 +101,21 @@ begin
   refine numeric_rec (λ xl xr xL xR hx oxl oxr IHxl IHxr, _) x ox y oy,
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
   rw [mk_lf_mk, mk_lf_mk], rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
-  { exact IHxl _ _ (oyl _) (move_left_lf_of_le _ h₁) (move_left_lf_of_le _ h₂) },
+  { exact IHxl _ _ (oyl _) (h₁.move_left_lf _) (h₂.move_left_lf _) },
   { exact (le_trans h₂ h₁).not_gf (lf_of_lt (hy _ _)) },
   { exact (le_trans h₁ h₂).not_gf (lf_of_lt (hx _ _)) },
-  { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
+  { exact IHxr _ _ (oyr _) (h₁.lf_move_right _) (h₂.lf_move_right _) },
 end
 
 theorem le_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x ≤ y :=
 not_lf.1 (lf_asymm ox oy h)
 
-alias le_of_lf ← pgame.lf.le
+alias le_of_lf ← lf.le
 
 theorem lt_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x < y :=
 (lt_or_fuzzy_of_lf h).resolve_right (not_fuzzy_of_le (h.le ox oy))
 
-alias lt_of_lf ← pgame.lf.lt
+alias lt_of_lf ← lf.lt
 
 theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ x < y :=
 ⟨λ h, h.lt ox oy, lf_of_lt⟩
@@ -233,16 +233,10 @@ def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
 
 open pgame
 
-instance surreal.setoid : setoid {x // pgame.numeric x} :=
-⟨λ x y, x.1 ≈ y.1,
- λ x, equiv_rfl,
- λ x y, pgame.equiv.symm,
- λ x y z, pgame.equiv.trans⟩
-
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
 the order becomes a total order. -/
-def surreal := quotient surreal.setoid
+def surreal := quotient (subtype.setoid numeric)
 
 namespace surreal
 

@@ -232,6 +232,12 @@ emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
   (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
   ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
 
+theorem uniformity_basis_edist_nnreal_le :
+  (𝓤 α).has_basis (λ ε : ℝ≥0, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 ≤ ε}) :=
+emetric.mk_uniformity_basis_le (λ _, ennreal.coe_pos.2)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
+  ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
+
 theorem uniformity_basis_edist_inv_nat :
   (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | edist p.1 p.2 < (↑n)⁻¹}) :=
 emetric.mk_uniformity_basis
@@ -534,10 +540,8 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
-theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
-not_lt_of_le (edist_triangle_left x y z)
-  (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
+theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : disjoint (ball x ε₁) (ball y ε₂) :=
+λ z ⟨h₁, h₂⟩, (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
 
 theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
@@ -557,6 +561,14 @@ theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
 eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
+
+lemma ord_connected_set_of_closed_ball_subset (x : α) (s : set α) :
+  ord_connected {r | closed_ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (closed_ball_subset_closed_ball hr.2).trans hr₂⟩
+
+lemma ord_connected_set_of_ball_subset (x : α) (s : set α) :
+  ord_connected {r | ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (ball_subset_ball hr.2).trans hr₂⟩
 
 /-- Relation “two points are at a finite edistance” is an equivalence relation. -/
 def edist_lt_top_setoid : setoid α :=
@@ -586,8 +598,8 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem is_closed_ball_top : is_closed (ball x ⊤) :=
-is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2 $
-  ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
+is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top,
+  (ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }).subset_compl_right⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 is_open_ball.mem_nhds (mem_ball_self ε0)
@@ -619,7 +631,7 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
   by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
 theorem inseparable_iff : inseparable x y ↔ edist x y = 0 :=
-by simp [inseparable_iff_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
+by simp [inseparable_iff_mem_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
 
 /-- In a pseudoemetric space, Cauchy sequences are characterized by the fact that, eventually,
 the pseudoedistance between its elements is arbitrarily small -/

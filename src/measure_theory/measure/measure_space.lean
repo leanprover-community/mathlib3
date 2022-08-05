@@ -642,11 +642,11 @@ instance [measurable_space α] : has_add (measure α) :=
 theorem add_apply {m : measurable_space α} (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
-section has_scalar
-variables [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
-variables [has_scalar R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
+section has_smul
+variables [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+variables [has_smul R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
 
-instance [measurable_space α] : has_scalar R (measure α) :=
+instance [measurable_space α] : has_smul R (measure α) :=
 ⟨λ c μ,
   { to_outer_measure := c • μ.to_outer_measure,
     m_Union := λ s hs hd, begin
@@ -672,15 +672,15 @@ instance [smul_comm_class R R' ℝ≥0∞] [measurable_space α] :
   smul_comm_class R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_comm _ _ _⟩
 
-instance [has_scalar R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
+instance [has_smul R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
   is_scalar_tower R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_assoc _ _ _⟩
 
-instance [has_scalar Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
+instance [has_smul Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
   is_central_scalar R (measure α) :=
 ⟨λ _ _, ext $ λ _ _, op_smul_eq_smul _ _⟩
 
-end has_scalar
+end has_smul
 
 instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
   mul_action R (measure α) :=
@@ -1019,9 +1019,12 @@ lemma tendsto_ae_map {f : α → β} (hf : ae_measurable f μ) : tendsto f μ.ae
 
 omit m0
 
-/-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
-measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
-def comap [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
+/-- Pullback of a `measure` as a linear map. If `f` sends each measurable set to a measurable
+set, then for each measurable set `s` we have `comapₗ f μ s = μ (f '' s)`.
+
+If the linearity is not needed, please use `comap` instead, which works for a larger class of
+functions. -/
+def comapₗ [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
 if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
@@ -1032,13 +1035,46 @@ if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   end
 else 0
 
+lemma comapₗ_apply {β} [measurable_space α] {mβ : measurable_space β}
+  (f : α → β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
+  comapₗ f μ s = μ (f '' s) :=
+begin
+  rw [comapₗ, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
+  exact ⟨hfi, hf⟩
+end
+
+/-- Pullback of a `measure`. If `f` sends each measurable set to a null-measurable set,
+then for each measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
+def comap [measurable_space α] (f : α → β) (μ : measure β) : measure α :=
+if hf : injective f ∧ ∀ s, measurable_set s → null_measurable_set (f '' s) μ then
+  (outer_measure.comap f μ.to_outer_measure).to_measure $ λ s hs t,
+  begin
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
+      image_diff hf.1],
+    exact (measure_inter_add_diff₀ _ (hf.2 s hs)).symm
+  end
+else 0
+
+lemma comap_apply₀ [measurable_space α] (f : α → β) (μ : measure β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ)
+  (hs : null_measurable_set s (comap f μ)) :
+   comap f μ s = μ (f '' s) :=
+begin
+  rw [comap, dif_pos (and.intro hfi hf)] at hs ⊢,
+  rw [to_measure_apply₀ _ _ hs, outer_measure.comap_apply, coe_to_outer_measure]
+end
+
 lemma comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
   comap f μ s = μ (f '' s) :=
-begin
-  rw [comap, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
-  exact ⟨hfi, hf⟩
-end
+comap_apply₀ f μ hfi (λ s hs, (hf s hs).null_measurable_set) hs.null_measurable_set
+
+lemma comapₗ_eq_comap {β} [measurable_space α] {mβ : measurable_space β} (f : α → β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → measurable_set (f '' s))
+  (μ : measure β) (hs : measurable_set s) :
+  comapₗ f μ s = comap f μ s :=
+(comapₗ_apply f hfi hf μ hs).trans (comap_apply f hfi hf μ hs).symm
 
 /-! ### Restricting a measure -/
 
@@ -1386,7 +1422,7 @@ lemma ext_iff_of_Union_eq_univ [encodable ι] {s : ι → set α} (hs : (⋃ i, 
   μ = ν ↔ ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
 by rw [← restrict_Union_congr, hs, restrict_univ, restrict_univ]
 
-alias ext_iff_of_Union_eq_univ ↔ _ measure_theory.measure.ext_of_Union_eq_univ
+alias ext_iff_of_Union_eq_univ ↔ _ ext_of_Union_eq_univ
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
   (formulated using `bUnion`). -/
@@ -1395,7 +1431,7 @@ lemma ext_iff_of_bUnion_eq_univ {S : set ι} {s : ι → set α} (hc : S.countab
   μ = ν ↔ ∀ i ∈ S, μ.restrict (s i) = ν.restrict (s i) :=
 by rw [← restrict_bUnion_congr hc, hs, restrict_univ, restrict_univ]
 
-alias ext_iff_of_bUnion_eq_univ ↔ _ measure_theory.measure.ext_of_bUnion_eq_univ
+alias ext_iff_of_bUnion_eq_univ ↔ _ ext_of_bUnion_eq_univ
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
   (formulated using `sUnion`). -/
@@ -1403,7 +1439,7 @@ lemma ext_iff_of_sUnion_eq_univ {S : set (set α)} (hc : S.countable) (hs : (⋃
   μ = ν ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 ext_iff_of_bUnion_eq_univ hc $ by rwa ← sUnion_eq_bUnion
 
-alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
+alias ext_iff_of_sUnion_eq_univ ↔ _ ext_of_sUnion_eq_univ
 
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
   (h_gen : ‹_› = generate_from S) (hc : T.countable)
@@ -1594,7 +1630,7 @@ lemma map_eq_sum [encodable β] [measurable_singleton_class β]
 begin
   ext1 s hs,
   have : ∀ y ∈ s, measurable_set (f ⁻¹' {y}), from λ y _, hf (measurable_set_singleton _),
-  simp [← tsum_measure_preimage_singleton (countable_encodable s) this, *,
+  simp [← tsum_measure_preimage_singleton (to_countable s) this, *,
     tsum_subtype s (λ b, μ (f ⁻¹' {b})), ← indicator_mul_right s (λ b, μ (f ⁻¹' {b}))]
 end
 
@@ -1728,12 +1764,12 @@ localized "infix ` ≪ `:50 := measure_theory.measure.absolutely_continuous" in 
 lemma absolutely_continuous_of_le (h : μ ≤ ν) : μ ≪ ν :=
 λ s hs, nonpos_iff_eq_zero.1 $ hs ▸ le_iff'.1 h s
 
-alias absolutely_continuous_of_le ← has_le.le.absolutely_continuous
+alias absolutely_continuous_of_le ← _root_.has_le.le.absolutely_continuous
 
 lemma absolutely_continuous_of_eq (h : μ = ν) : μ ≪ ν :=
 h.le.absolutely_continuous
 
-alias absolutely_continuous_of_eq ← eq.absolutely_continuous
+alias absolutely_continuous_of_eq ← _root_.eq.absolutely_continuous
 
 namespace absolutely_continuous
 
@@ -1771,8 +1807,8 @@ lemma ae_le_iff_absolutely_continuous : μ.ae ≤ ν.ae ↔ μ ≪ ν :=
 ⟨λ h s, by { rw [measure_zero_iff_ae_nmem, measure_zero_iff_ae_nmem], exact λ hs, h hs },
   λ h s hs, h hs⟩
 
-alias ae_le_iff_absolutely_continuous ↔ has_le.le.absolutely_continuous_of_ae
-  measure_theory.measure.absolutely_continuous.ae_le
+alias ae_le_iff_absolutely_continuous ↔
+  _root_.has_le.le.absolutely_continuous_of_ae absolutely_continuous.ae_le
 alias absolutely_continuous.ae_le ← ae_mono'
 
 lemma absolutely_continuous.ae_eq (h : μ ≪ ν) {f g : α → δ} (h' : f =ᵐ[ν] g) : f =ᵐ[μ] g :=
@@ -2212,7 +2248,7 @@ instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_ne_top (measure_ne_top _ _) }
 
 instance is_finite_measure_smul_of_nnreal_tower
-  {R} [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
+  {R} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
   [is_finite_measure μ] {r : R} :
   is_finite_measure (r • μ) :=
@@ -2447,7 +2483,7 @@ lemma finite_at_bot {m0 : measurable_space α} (μ : measure α) : μ.finite_at_
   about the sets, such as that they are monotone.
   `sigma_finite` is defined in terms of this: `μ` is σ-finite if there exists a sequence of
   finite spanning sets in the collection of all measurable sets. -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure finite_spanning_sets_in {m0 : measurable_space α} (μ : measure α) (C : set (set α)) :=
 (set : ℕ → set α)
 (set_mem : ∀ i, set i ∈ C)
@@ -2980,7 +3016,7 @@ begin
   exact measure_mono_ae (mem_of_superset hu (λ x hu ht, ⟨ht, hu⟩))
 end
 
-alias inf_ae_iff ↔ measure_theory.measure.finite_at_filter.of_inf_ae _
+alias inf_ae_iff ↔ of_inf_ae _
 
 lemma filter_mono_ae (h : f ⊓ μ.ae ≤ g) (hg : μ.finite_at_filter g) : μ.finite_at_filter f :=
 inf_ae_iff.1 (hg.filter_mono h)
@@ -3217,6 +3253,26 @@ instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] :
   is_finite_measure (μ.trim hm) :=
 { measure_univ_lt_top :=
     by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
+
+lemma sigma_finite_trim_mono {m m₂ m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  (hm₂ : m₂ ≤ m) [sigma_finite (μ.trim (hm₂.trans hm))] :
+  sigma_finite (μ.trim hm) :=
+begin
+  have h := measure.finite_spanning_sets_in (μ.trim (hm₂.trans hm)) set.univ,
+  refine measure.finite_spanning_sets_in.sigma_finite _,
+  { use set.univ, },
+  { refine
+    { set := spanning_sets (μ.trim (hm₂.trans hm)),
+      set_mem := λ _, set.mem_univ _,
+      finite := λ i, _, -- This is the only one left to prove
+      spanning := Union_spanning_sets _, },
+    calc (μ.trim hm) (spanning_sets (μ.trim (hm₂.trans hm)) i)
+        = ((μ.trim hm).trim hm₂) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
+      by rw @trim_measurable_set_eq α m₂ m (μ.trim hm) _ hm₂ (measurable_spanning_sets _ _)
+    ... = (μ.trim (hm₂.trans hm)) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
+      by rw @trim_trim _ _ μ _ _ hm₂ hm
+    ... < ∞ : measure_spanning_sets_lt_top _ _, },
+end
 
 end trim
 

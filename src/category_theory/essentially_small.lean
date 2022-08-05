@@ -39,7 +39,7 @@ lemma essentially_small.mk' {C : Type u} [category.{v} C] {S : Type w} [small_ca
 /--
 An arbitrarily chosen small model for an essentially small category.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def small_model (C : Type u) [category.{v} C] [essentially_small.{w} C] : Type w :=
 classical.some (@essentially_small.equiv_small_category C _ _)
 
@@ -68,6 +68,10 @@ begin
     resetI,
     exact essentially_small.mk' (e.trans f), },
 end
+
+lemma discrete.essentially_small_of_small {α : Type u} [small.{w} α] :
+  essentially_small.{w} (discrete α) :=
+⟨⟨discrete (shrink α), ⟨infer_instance, ⟨discrete.equivalence (equiv_shrink _)⟩⟩⟩⟩
 
 /--
 A category is `w`-locally small if every hom set is `w`-small.
@@ -111,7 +115,7 @@ instance locally_small_of_essentially_small
 We define a type alias `shrink_homs C` for `C`. When we have `locally_small.{w} C`,
 we'll put a `category.{w}` instance on `shrink_homs C`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def shrink_homs (C : Type u) := C
 
 namespace shrink_homs

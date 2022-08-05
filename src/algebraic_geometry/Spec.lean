@@ -115,7 +115,7 @@ Spec, as a contravariant functor from commutative rings to sheafed spaces.
 /--
 Spec, as a contravariant functor from commutative rings to presheafed spaces.
 -/
-def Spec.to_PresheafedSpace : CommRingᵒᵖ ⥤ PresheafedSpace CommRing :=
+def Spec.to_PresheafedSpace : CommRingᵒᵖ ⥤ PresheafedSpace.{u} CommRing.{u} :=
   Spec.to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace
 
 @[simp] lemma Spec.to_PresheafedSpace_obj (R : CommRingᵒᵖ) :

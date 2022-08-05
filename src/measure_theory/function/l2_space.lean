@@ -29,11 +29,11 @@ namespace measure_theory
 
 section
 
-variables {α F : Type*} {m : measurable_space α} {μ : measure α} [normed_group F]
+variables {α F : Type*} {m : measurable_space α} {μ : measure α} [normed_add_comm_group F]
 
 lemma mem_ℒp.integrable_sq {f : α → ℝ} (h : mem_ℒp f 2 μ) :
   integrable (λ x, (f x)^2) μ :=
-by simpa [real.norm_eq_abs, ← mem_ℒp_one_iff_integrable]
+by simpa [← mem_ℒp_one_iff_integrable]
   using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top
 
 lemma mem_ℒp_two_iff_integrable_sq_norm {f : α → F} (hf : ae_strongly_measurable f μ) :
@@ -50,7 +50,7 @@ lemma mem_ℒp_two_iff_integrable_sq {f : α → ℝ} (hf : ae_strongly_measurab
 begin
   convert mem_ℒp_two_iff_integrable_sq_norm hf,
   ext x,
-  simp [real.norm_eq_abs],
+  simp,
 end
 
 end
@@ -58,7 +58,7 @@ end
 namespace L2
 
 variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
-  [inner_product_space 𝕜 E] [normed_group F]
+  [inner_product_space 𝕜 E] [normed_add_comm_group F]
 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y

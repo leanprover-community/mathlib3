@@ -180,12 +180,14 @@ This is the intermediate field version of `subalgebra.top_equiv`. -/
 @[simp] lemma top_equiv_symm_apply_coe (a : E) :
   ↑((top_equiv.symm) a : (⊤ : intermediate_field F E)) = a := rfl
 
-@[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
-by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
+@[simp] lemma restrict_scalars_bot_eq_self (K : intermediate_field F E) :
+  (⊥ : intermediate_field K E).restrict_scalars _ = K :=
+by { ext, rw [mem_restrict_scalars, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 
-@[simp] lemma coe_top_eq_top (K : intermediate_field F E) :
-  ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
-set_like.ext_iff.mpr $ λ _, mem_lift2.trans (iff_of_true mem_top mem_top)
+@[simp] lemma restrict_scalars_top {K : Type*} [field K] [algebra K E] [algebra K F]
+  [is_scalar_tower K F E] :
+  (⊤ : intermediate_field F E).restrict_scalars K = ⊤ :=
+rfl
 
 end lattice
 
@@ -251,7 +253,8 @@ lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
   λ ⟨hF, hS⟩, subfield.closure_le.mpr (set.union_subset hF hS)⟩
 
 /-- `F[S][T] = F[S ∪ T]` -/
-lemma adjoin_adjoin_left (T : set E) : ↑(adjoin (adjoin F S) T) = adjoin F (S ∪ T) :=
+lemma adjoin_adjoin_left (T : set E) :
+  (adjoin (adjoin F S) T).restrict_scalars _ = adjoin F (S ∪ T) :=
 begin
   rw set_like.ext'_iff,
   change ↑(adjoin (adjoin F S) T) = _,
@@ -273,7 +276,7 @@ le_antisymm
 
 /-- `F[S][T] = F[T][S]` -/
 lemma adjoin_adjoin_comm (T : set E) :
-  ↑(adjoin (adjoin F S) T) = (↑(adjoin (adjoin F T) S) : (intermediate_field F E)) :=
+  (adjoin (adjoin F S) T).restrict_scalars F = (adjoin (adjoin F T) S).restrict_scalars F :=
 by rw [adjoin_adjoin_left, adjoin_adjoin_left, set.union_comm]
 
 lemma adjoin_map {E' : Type*} [field E'] [algebra F E'] (f : E →ₐ[F] E') :
@@ -356,10 +359,10 @@ by { conv_rhs { rw ← adjoin_simple.algebra_map_gen F α },
      rw is_integral_algebra_map_iff (algebra_map F⟮α⟯ E).injective,
      apply_instance }
 
-lemma adjoin_simple_adjoin_simple (β : E) : ↑F⟮α⟯⟮β⟯ = F⟮α, β⟯ :=
+lemma adjoin_simple_adjoin_simple (β : E) : F⟮α⟯⟮β⟯.restrict_scalars F = F⟮α, β⟯ :=
 adjoin_adjoin_left _ _ _
 
-lemma adjoin_simple_comm (β : E) : ↑F⟮α⟯⟮β⟯ = (↑F⟮β⟯⟮α⟯ : intermediate_field F E) :=
+lemma adjoin_simple_comm (β : E) : F⟮α⟯⟮β⟯.restrict_scalars F = F⟮β⟯⟮α⟯.restrict_scalars F :=
 adjoin_adjoin_comm _ _ _
 
 -- TODO: develop the API for `subalgebra.is_field_of_algebraic` so it can be used here
@@ -372,7 +375,7 @@ begin
   { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
 
   let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly F α,
-  haveI := minpoly.irreducible hα,
+  haveI := fact.mk (minpoly.irreducible hα),
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
   { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
     refine inv_eq_of_mul_eq_one_right _,
@@ -385,6 +388,77 @@ begin
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
   rw [ϕ.injective key, subalgebra.coe_zero]
 end
+
+variables {F} {α}
+
+open set complete_lattice
+
+@[simp] lemma adjoin_simple_le_iff {K : intermediate_field F E} : F⟮α⟯ ≤ K ↔ α ∈ K :=
+adjoin_le_iff.trans singleton_subset_iff
+
+/-- Adjoining a single element is compact in the lattice of intermediate fields. -/
+lemma adjoin_simple_is_compact_element (x : E) : is_compact_element F⟮x⟯ :=
+begin
+  rw is_compact_element_iff_le_of_directed_Sup_le,
+  rintros s ⟨F₀, hF₀⟩ hs hx,
+  simp only [adjoin_simple_le_iff] at hx ⊢,
+  let F : intermediate_field F E :=
+  { carrier := ⋃ E ∈ s, ↑E,
+    add_mem' := by
+    { rintros x₁ x₂ ⟨-, ⟨F₁, rfl⟩, ⟨-, ⟨hF₁, rfl⟩, hx₁⟩⟩ ⟨-, ⟨F₂, rfl⟩, ⟨-, ⟨hF₂, rfl⟩, hx₂⟩⟩,
+      obtain ⟨F₃, hF₃, h₁₃, h₂₃⟩ := hs F₁ hF₁ F₂ hF₂,
+      exact mem_Union_of_mem F₃ (mem_Union_of_mem hF₃ (F₃.add_mem (h₁₃ hx₁) (h₂₃ hx₂))) },
+    neg_mem' := by
+    { rintros x ⟨-, ⟨E, rfl⟩, ⟨-, ⟨hE, rfl⟩, hx⟩⟩,
+      exact mem_Union_of_mem E (mem_Union_of_mem hE (E.neg_mem hx)) },
+    mul_mem' := by
+    { rintros x₁ x₂ ⟨-, ⟨F₁, rfl⟩, ⟨-, ⟨hF₁, rfl⟩, hx₁⟩⟩ ⟨-, ⟨F₂, rfl⟩, ⟨-, ⟨hF₂, rfl⟩, hx₂⟩⟩,
+      obtain ⟨F₃, hF₃, h₁₃, h₂₃⟩ := hs F₁ hF₁ F₂ hF₂,
+      exact mem_Union_of_mem F₃ (mem_Union_of_mem hF₃ (F₃.mul_mem (h₁₃ hx₁) (h₂₃ hx₂))) },
+    inv_mem' := by
+    { rintros x ⟨-, ⟨E, rfl⟩, ⟨-, ⟨hE, rfl⟩, hx⟩⟩,
+      exact mem_Union_of_mem E (mem_Union_of_mem hE (E.inv_mem hx)) },
+    algebra_map_mem' := λ x, mem_Union_of_mem F₀ (mem_Union_of_mem hF₀ (F₀.algebra_map_mem x)) },
+  have key : Sup s ≤ F := Sup_le (λ E hE, subset_Union_of_subset E (subset_Union _ hE)),
+  obtain ⟨-, ⟨E, rfl⟩, -, ⟨hE, rfl⟩, hx⟩ := key hx,
+  exact ⟨E, hE, hx⟩,
+end
+
+/-- Adjoining a finite subset is compact in the lattice of intermediate fields. -/
+lemma adjoin_finset_is_compact_element (S : finset E) :
+  is_compact_element (adjoin F S : intermediate_field F E) :=
+begin
+  have key : adjoin F ↑S = ⨆ x ∈ S, F⟮x⟯ :=
+  le_antisymm (adjoin_le_iff.mpr (λ x hx, set_like.mem_coe.mpr (adjoin_simple_le_iff.mp
+      (le_supr_of_le x (le_supr_of_le hx le_rfl)))))
+      (supr_le (λ x, supr_le (λ hx, adjoin_simple_le_iff.mpr (subset_adjoin F S hx)))),
+  rw [key, ←finset.sup_eq_supr],
+  exact finset_sup_compact_of_compact S (λ x hx, adjoin_simple_is_compact_element x),
+end
+
+/-- Adjoining a finite subset is compact in the lattice of intermediate fields. -/
+lemma adjoin_finite_is_compact_element {S : set E} (h : S.finite) :
+  is_compact_element (adjoin F S) :=
+finite.coe_to_finset h ▸ (adjoin_finset_is_compact_element h.to_finset)
+
+/-- The lattice of intermediate fields is compactly generated. -/
+instance : is_compactly_generated (intermediate_field F E) :=
+⟨λ s, ⟨(λ x, F⟮x⟯) '' s, ⟨by rintros t ⟨x, hx, rfl⟩; exact adjoin_simple_is_compact_element x,
+  Sup_image.trans (le_antisymm (supr_le (λ i, supr_le (λ hi, adjoin_simple_le_iff.mpr hi)))
+    (λ x hx, adjoin_simple_le_iff.mp (le_supr_of_le x (le_supr_of_le hx le_rfl))))⟩⟩⟩
+
+lemma exists_finset_of_mem_supr {ι : Type*} {f : ι → intermediate_field F E}
+  {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset ι, x ∈ ⨆ i ∈ s, f i :=
+begin
+  have := (adjoin_simple_is_compact_element x).exists_finset_of_le_supr (intermediate_field F E) f,
+  simp only [adjoin_simple_le_iff] at this,
+  exact this hx,
+end
+
+lemma exists_finset_of_mem_supr' {ι : Type*} {f : ι → intermediate_field F E}
+  {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset (Σ i, f i), x ∈ ⨆ i ∈ s, F⟮(i.2 : E)⟯ :=
+exists_finset_of_mem_supr (set_like.le_def.mp (supr_le
+  (λ i x h, set_like.le_def.mp (le_supr_of_le ⟨i, x, h⟩ le_rfl) (mem_adjoin_simple_self F x))) hx)
 
 end adjoin_simple
 end adjoin_def
@@ -512,7 +586,7 @@ alg_equiv.of_bijective
   (adjoin_root.lift_hom (minpoly F α) (adjoin_simple.gen F α) (aeval_gen_minpoly F α))
   (begin
     set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
-    haveI := minpoly.irreducible h,
+    haveI := fact.mk (minpoly.irreducible h),
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
@@ -598,8 +672,7 @@ lemma fg_adjoin_finset (t : finset E) : (adjoin F (↑t : set E)).fg :=
 ⟨t, rfl⟩
 
 theorem fg_def {S : intermediate_field F E} : S.fg ↔ ∃ t : set E, set.finite t ∧ adjoin F t = S :=
-⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
- λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+iff.symm set.exists_finite_iff_finset
 
 theorem fg_bot : (⊥ : intermediate_field F E).fg :=
 ⟨∅, adjoin_empty F E⟩
@@ -616,7 +689,8 @@ lemma fg_of_noetherian (S : intermediate_field F E)
 S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
 
 lemma induction_on_adjoin_finset (S : finset E) (P : intermediate_field F E → Prop) (base : P ⊥)
-  (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P ↑K⟮x⟯) : P (adjoin F ↑S) :=
+  (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P (K⟮x⟯.restrict_scalars F)) :
+  P (adjoin F ↑S) :=
 begin
   apply finset.induction_on' S,
   { exact base },
@@ -626,7 +700,7 @@ begin
 end
 
 lemma induction_on_adjoin_fg (P : intermediate_field F E → Prop)
-  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F))
   (K : intermediate_field F E) (hK : K.fg) : P K :=
 begin
   obtain ⟨S, rfl⟩ := hK,
@@ -634,7 +708,7 @@ begin
 end
 
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
-  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F))
   (K : intermediate_field F E) : P K :=
 begin
   letI : is_noetherian F E := is_noetherian.iff_fg.2 infer_instance,
@@ -766,7 +840,7 @@ let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
   splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero h1))
   ((splits_map_iff _ _).mpr (by {convert h2, exact ring_hom.ext (λ y, x.2.commutes y)}))
   (minpoly.dvd_map_of_is_scalar_tower _ _ _) in
-⟨↑x.1⟮s⟯, (@alg_hom_equiv_sigma F x.1 (↑x.1⟮s⟯ : intermediate_field F E) K _ _ _ _ _ _ _
+⟨x.1⟮s⟯.restrict_scalars F, (@alg_hom_equiv_sigma F x.1 (x.1⟮s⟯.restrict_scalars F) K _ _ _ _ _ _ _
   (intermediate_field.algebra x.1⟮s⟯) (is_scalar_tower.of_algebra_map_eq (λ _, rfl))).inv_fun
   ⟨x.2, (@alg_hom_adjoin_integral_equiv x.1 _ E _ _ s K _ x.2.to_ring_hom.to_algebra
   h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by
@@ -813,13 +887,13 @@ end alg_hom_mk_adjoin_splits
 
 section supremum
 
-lemma le_sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) :
+variables {K L : Type*} [field K] [field L] [algebra K L] (E1 E2 : intermediate_field K L)
+
+lemma le_sup_to_subalgebra :
   E1.to_subalgebra ⊔ E2.to_subalgebra ≤ (E1 ⊔ E2).to_subalgebra :=
 sup_le (show E1 ≤ E1 ⊔ E2, from le_sup_left) (show E2 ≤ E1 ⊔ E2, from le_sup_right)
 
-lemma sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
+lemma sup_to_subalgebra [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
   (E1 ⊔ E2).to_subalgebra = E1.to_subalgebra ⊔ E2.to_subalgebra :=
 begin
   let S1 := E1.to_subalgebra,
@@ -838,8 +912,7 @@ begin
     (field.to_is_field K),
 end
 
-lemma finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
+instance finite_dimensional_sup [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
   finite_dimensional K ↥(E1 ⊔ E2) :=
 begin
   let g := algebra.tensor_product.product_map E1.val E2.val,
@@ -847,6 +920,46 @@ begin
   { have h : finite_dimensional K g.range.to_submodule := g.to_linear_map.finite_dimensional_range,
     rwa this at h },
   rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val, sup_to_subalgebra],
+end
+
+instance finite_dimensional_supr_of_finite
+  {ι : Type*} {t : ι → intermediate_field K L} [h : finite ι] [Π i, finite_dimensional K (t i)] :
+  finite_dimensional K (⨆ i, t i : intermediate_field K L) :=
+begin
+  rw ← supr_univ,
+  let P : set ι → Prop := λ s, finite_dimensional K (⨆ i ∈ s, t i : intermediate_field K L),
+  change P set.univ,
+  apply set.finite.induction_on,
+  { exact set.finite_univ },
+  all_goals { dsimp only [P] },
+  { rw supr_emptyset,
+    exact (bot_equiv K L).symm.to_linear_equiv.finite_dimensional },
+  { intros _ s _ _ hs,
+    rw supr_insert,
+    exactI intermediate_field.finite_dimensional_sup _ _ },
+end
+
+instance finite_dimensional_supr_of_finset {ι : Type*}
+  {f : ι → intermediate_field K L} {s : finset ι} [h : Π i ∈ s, finite_dimensional K (f i)] :
+  finite_dimensional K (⨆ i ∈ s, f i : intermediate_field K L) :=
+begin
+  haveI : Π i : {i // i ∈ s}, finite_dimensional K (f i) := λ i, h i i.2,
+  have : (⨆ i ∈ s, f i) = ⨆ i : {i // i ∈ s}, f i :=
+  le_antisymm (supr_le (λ i, supr_le (λ h, le_supr (λ i : {i // i ∈ s}, f i) ⟨i, h⟩)))
+    (supr_le (λ i, le_supr_of_le i (le_supr_of_le i.2 le_rfl))),
+  exact this.symm ▸ intermediate_field.finite_dimensional_supr_of_finite,
+end
+
+lemma is_algebraic_supr {ι : Type*} {f : ι → intermediate_field K L}
+  (h : ∀ i, algebra.is_algebraic K (f i)) :
+  algebra.is_algebraic K (⨆ i, f i : intermediate_field K L) :=
+begin
+  rintros ⟨x, hx⟩,
+  obtain ⟨s, hx⟩ := exists_finset_of_mem_supr' hx,
+  rw [algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←algebraic_iff],
+  haveI : ∀ i : (Σ i, f i), finite_dimensional K K⟮(i.2 : L)⟯ :=
+  λ ⟨i, x⟩, adjoin.finite_dimensional (is_algebraic_iff_is_integral.mp (algebraic_iff.mp (h i x))),
+  apply algebra.is_algebraic_of_finite,
 end
 
 end supremum

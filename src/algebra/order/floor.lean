@@ -23,6 +23,7 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 * `int.floor a`: Greatest integer `z` such that `z ≤ a`.
 * `int.ceil a`: Least integer `z` such that `a ≤ z`.
 * `int.fract a`: Fractional part of `a`, defined as `a - floor a`.
+* `round a`: Nearest integer to `a`. It rounds halves towards infinity.
 
 ## Notations
 
@@ -198,6 +199,8 @@ eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
 
 @[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := by rw [← le_zero_iff, ceil_le, nat.cast_zero]
 
+@[simp] lemma ceil_pos : 0 < ⌈a⌉₊ ↔ 0 < a := by rw [lt_ceil, cast_zero]
+
 lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 
 lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.cast_le.2 h)
@@ -306,8 +309,8 @@ lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 end linear_ordered_ring
 
-section linear_ordered_field
-variables [linear_ordered_field α] [floor_semiring α]
+section linear_ordered_semifield
+variables [linear_ordered_semifield α] [floor_semiring α]
 
 lemma floor_div_nat (a : α) (n : ℕ) : ⌊a / n⌋₊ = ⌊a⌋₊ / n :=
 begin
@@ -330,7 +333,7 @@ end
 lemma floor_div_eq_div (m n : ℕ) : ⌊(m : α) / n⌋₊ = m / n :=
 by { convert floor_div_nat (m : α) n, rw m.floor_coe }
 
-end linear_ordered_field
+end linear_ordered_semifield
 
 end nat
 
@@ -518,6 +521,9 @@ lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
 
 @[simp] lemma fract_zero : fract (0 : α) = 0 := by rw [fract, floor_zero, cast_zero, sub_self]
 
+@[simp] lemma fract_one : fract (1 : α) = 0 :=
+by simp [fract]
+
 @[simp] lemma fract_coe (z : ℤ) : fract (z : α) = 0 :=
 by { unfold fract, rw floor_coe, exact sub_self _ }
 
@@ -590,7 +596,7 @@ end
 
 section linear_ordered_field
 
-variables {k : Type*} [linear_ordered_field k] [floor_ring k]
+variables {k : Type*} [linear_ordered_field k] [floor_ring k] {b : k}
 
 lemma fract_div_mul_self_mem_Ico (a b : k) (ha : 0 < a) : fract (b/a) * a ∈ Ico 0 a :=
 ⟨(zero_le_mul_right ha).2 (fract_nonneg (b/a)), (mul_lt_iff_lt_one_left ha).2 (fract_lt_one (b/a))⟩
@@ -598,6 +604,12 @@ lemma fract_div_mul_self_mem_Ico (a b : k) (ha : 0 < a) : fract (b/a) * a ∈ Ic
 lemma fract_div_mul_self_add_zsmul_eq (a b : k) (ha : a ≠ 0) :
   fract (b/a) * a + ⌊b/a⌋ • a = b :=
 by rw [zsmul_eq_mul, ← add_mul, fract_add_floor, div_mul_cancel b ha]
+
+lemma sub_floor_div_mul_nonneg (a : k) (hb : 0 < b) : 0 ≤ a - ⌊a / b⌋ * b :=
+sub_nonneg_of_le $ (le_div_iff hb).1 $ floor_le _
+
+lemma sub_floor_div_mul_lt (a : k) (hb : 0 < b) : a - ⌊a / b⌋ * b < b :=
+sub_lt_iff_lt_add.2 $ by { rw [←one_add_mul, ←div_lt_iff hb, add_comm], exact lt_floor_add_one _ }
 
 end linear_ordered_field
 
@@ -640,7 +652,7 @@ by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
 
-lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, int.cast_zero]
+@[simp] lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 
 @[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by rw [← int.cast_zero, ceil_coe]
 
@@ -694,6 +706,29 @@ by { ext, simp [lt_ceil] }
 by { ext, simp [le_floor] }
 
 end int
+
+open int
+
+/-! ### Round -/
+
+section round
+variables [linear_ordered_field α] [floor_ring α]
+
+/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
+def round (x : α) : ℤ := ⌊x + 1 / 2⌋
+
+@[simp] lemma round_zero : round (0 : α) = 0 := floor_eq_iff.2 (by norm_num)
+@[simp] lemma round_one : round (1 : α) = 1 := floor_eq_iff.2 (by norm_num)
+
+lemma abs_sub_round (x : α) : |x - round x| ≤ 1 / 2 :=
+begin
+  rw [round, abs_sub_le_iff],
+  have := floor_le (x + 1 / 2),
+  have := lt_floor_add_one (x + 1 / 2),
+  split; linarith
+end
+
+end round
 
 variables {α} [linear_ordered_ring α] [floor_ring α]
 

@@ -50,7 +50,7 @@ The definition is as general as possible and the assumption that we have
 fields or that the extension is finite is added to the lemmas as needed.
 
 We only define the trace for left multiplication (`algebra.left_mul_matrix`,
-i.e. `algebra.lmul_left`).
+i.e. `linear_map.mul_left`).
 For now, the definitions assume `S` is commutative, so the choice doesn't matter anyway.
 
 ## References
@@ -101,7 +101,7 @@ variables {R}
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
   trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
-by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
+by { rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, ←to_matrix_lmul_eq], refl }
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
 lemma trace_algebra_map_of_basis (x : R) :
@@ -111,7 +111,7 @@ begin
   rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
-  simp,
+  simp [-coe_lmul_eq_mul],
 end
 omit b
 
@@ -183,8 +183,8 @@ lemma trace_form_to_matrix [decidable_eq ι] (i j) :
 by rw [bilin_form.to_matrix_apply, trace_form_apply]
 
 lemma trace_form_to_matrix_power_basis (h : power_basis R S) :
-  bilin_form.to_matrix h.basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
-by { ext, rw [trace_form_to_matrix, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
+  bilin_form.to_matrix h.basis (trace_form R S) = of (λ i j, trace R S (h.gen ^ (↑i + ↑j : ℕ))) :=
+by { ext, rw [trace_form_to_matrix, of_apply, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
 
 end trace_form
 
@@ -390,7 +390,8 @@ open finset
 def trace_matrix (b : κ → B) : matrix κ κ A
 | i j := trace_form A B (b i) (b j)
 
-lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
+lemma trace_matrix_def (b : κ → B) : trace_matrix A b = of (λ i j, trace_form A B (b i) (b j)) :=
+rfl
 
 lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
   trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
@@ -419,7 +420,7 @@ end
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :
   trace_matrix A ((P.map (algebra_map A B)).mul_vec b) = P ⬝ (trace_matrix A b) ⬝ Pᵀ :=
 begin
-  refine add_equiv.injective transpose_add_equiv _,
+  refine add_equiv.injective (transpose_add_equiv _ _ _) _,
   rw [transpose_add_equiv_apply, transpose_add_equiv_apply, ← vec_mul_transpose,
     ← transpose_map, trace_matrix_of_matrix_vec_mul, transpose_transpose, transpose_mul,
     transpose_transpose, transpose_mul]
@@ -441,7 +442,7 @@ begin
   simp only [col_apply, trace_form_apply],
   conv_lhs
   { congr, skip, funext,
-    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, ← linear_map.map_smul] },
+    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, of_apply, ← linear_map.map_smul] },
     rw [← linear_map.map_sum],
     congr,
     conv_lhs

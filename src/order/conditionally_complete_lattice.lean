@@ -358,10 +358,10 @@ is_greatest_singleton.cSup_eq
 is_least_singleton.cInf_eq
 
 @[simp] theorem cSup_pair (a b : α) : Sup {a, b} = a ⊔ b :=
-(@is_lub_pair _ _ a b).cSup_eq (nonempty_insert _ _)
+(@is_lub_pair _ _ a b).cSup_eq (insert_nonempty _ _)
 
 @[simp] theorem cInf_pair (a b : α) : Inf {a, b} = a ⊓ b :=
-(@is_glb_pair _ _ a b).cInf_eq (nonempty_insert _ _)
+(@is_glb_pair _ _ a b).cInf_eq (insert_nonempty _ _)
 
 /--If a set is bounded below and above, and nonempty, its infimum is less than or equal to
 its supremum.-/
@@ -642,6 +642,8 @@ le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1
 
+lemma infi_mem [nonempty ι] (f : ι → α) : infi f ∈ range f := Inf_mem (range_nonempty f)
+
 lemma monotone_on.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β}
   (hf : monotone_on f s) (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
 (hf.map_is_least (is_least_Inf hs)).cInf_eq.symm
@@ -697,8 +699,15 @@ theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=
 le_cInf_iff ⟨⊥, λ a _, bot_le⟩ ne
 
+theorem le_cinfi_iff' [nonempty ι] {f : ι → α} {a : α} :
+  a ≤ infi f ↔ ∀ i, a ≤ f i :=
+le_cinfi_iff ⟨⊥, λ a _, bot_le⟩
+
 theorem cInf_le' {s : set α} {a : α} (h : a ∈ s) : Inf s ≤ a :=
 cInf_le ⟨⊥, λ a _, bot_le⟩ h
+
+theorem cinfi_le' (f : ι → α) (i : ι) : infi f ≤ f i :=
+cinfi_le ⟨⊥, λ a _, bot_le⟩ _
 
 lemma exists_lt_of_lt_cSup' {s : set α} {a : α} (h : a < Sup s) : ∃ b ∈ s, a < b :=
 by { contrapose! h, exact cSup_le' h }
@@ -1036,7 +1045,7 @@ end
 
 lemma inf'_eq_cInf_image [conditionally_complete_lattice β] (s : finset α) (H) (f : α → β) :
   s.inf' H f = Inf (f '' s) :=
-@sup'_eq_cSup_image _ βᵒᵈ _ _ _ _
+@sup'_eq_cSup_image _ βᵒᵈ _ _ H _
 
 lemma sup'_id_eq_cSup [conditionally_complete_lattice α] (s : finset α) (H) :
   s.sup' H id = Sup s :=
@@ -1044,7 +1053,7 @@ by rw [sup'_eq_cSup_image s H, set.image_id]
 
 lemma inf'_id_eq_cInf [conditionally_complete_lattice α] (s : finset α) (H) :
   s.inf' H id = Inf s :=
-@sup'_id_eq_cSup αᵒᵈ _ _ _
+@sup'_id_eq_cSup αᵒᵈ _ _ H
 
 end finset
 

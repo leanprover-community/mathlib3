@@ -3,6 +3,7 @@ import topology.category.Top.limits
 import data.finset.basic
 
 import .bwd_map
+import .mathlib_limits
 
 open category_theory
 open opposite
@@ -46,7 +47,7 @@ def Ends := (ComplComp G Gpc).sections
 
 /-The functor assigning a finite set in `V` to the set of **infinite** connected components in its complement-/
 def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
-  obj := λ A, {C : ro_components G (unop A) | C.val.infinite},
+  obj := λ A, subtype {C : ro_components G (unop A) | C.val.infinite},
   map := λ A B f, set.maps_to.restrict (bwd_map G Gpc (le_of_hom f.unop)) _ _ (bwd_map_inf_to_inf G Gpc (le_of_hom f.unop)),
   map_id' := by {intro, funext, simp [set.maps_to.restrict, subtype.map], cases x, apply subtype.eq, dsimp, apply bwd_map_refl', },
   map_comp' := by {intros, funext, simp [set.maps_to.restrict, subtype.map], cases x, dsimp, apply eq.symm, apply bwd_map_comp', },
@@ -54,32 +55,41 @@ def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
 
 def Endsinfty := (ComplInfComp G Gpc).sections
 
-lemma Ends_are_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) :=
+
+lemma ComplInfComp_eq_ComplComp_to_surjective : ComplInfComp G Gpc = fis.to_surjective (ComplComp G Gpc) :=
 begin
-rw [Ends, Endsinfty, ComplComp, ComplInfComp, functor.sections, functor.sections],
-simp,
-split, rotate 2,
-{
-  rintro ⟨x : Π A : (finset V)ᵒᵖ, G.ro_components (unop A), h⟩,
-  refine subtype.mk _ _,
-  intro Kop, refine subtype.mk (x Kop) _,
-  { show (x Kop).val.infinite,
-    -- Should use `fis.sections_surjective_equiv_sections` and the fact that `inf_ro_components` is exactly the surjective part
-    sorry,
-   },
-  { intros, simp [set.maps_to.restrict, subtype.map],
-    apply h,} },
-{ rintro ⟨x, h⟩,
-  refine subtype.mk _ _,
-  intro Kop, refine subtype.mk (x Kop).val _,
-  { dsimp at *, simp, },
-  { intros _ _ f,
-    have := h f,
-    rw [set.maps_to.restrict, subtype.map] at this,
-    dsimp at this, simp_rw [← this], refl, } },
-{ simp [function.left_inverse], },
-{ simp [function.right_inverse, function.left_inverse], }
+
+  have objeq : ∀ (X : (finset V)ᵒᵖ), (ComplInfComp G Gpc).obj X = (fis.to_surjective (ComplComp G Gpc)).obj X, by
+  { simp [ComplInfComp,fis.to_surjective,ComplComp],
+    rintro Kop,
+    have : {C : ↥(G.ro_components (unop Kop)) | (C.val : set V).infinite} = (⋂ (L ∈ bigger Kop), set.range (bwd_map G Gpc H)), by
+    { apply set.ext, rintro C, split,
+      { rintro Cinf, simp at Cinf, rw set.mem_Inter₂, rintro L KL, apply bwd_map_surjective_on_of_inf, exact Cinf,},
+      { rintro Crange, simp at Crange, apply bwd_map_inf_of_surjective_on G Gpc, rintro L KL, simp, exact Crange (opposite.op L) KL,},
+    },
+    rw this, simp, refl,},
+
+  -- TODO: this should be very clean, but isn't!!! please help me
+  apply category_theory.functor.hext,
+  { exact objeq, },
+  { rintro Kop Lop KL,
+    simp,
+    apply function.hfunext,
+    exact objeq Kop,
+    rintro a a' aeqa',
+    rw (objeq Kop) at a,
+    dsimp [ComplInfComp, fis.to_surjective],
+    -- lol tidy?
+    cases a, cases a', cases a, cases a_val_1, cases a'_val, cases a_val, cases a_val_property, cases a'_val_property, cases a_val_1_property, cases a_val_1_property_h, cases a'_val_property_h, cases a_val_property_h, dsimp at *, simp at *, dsimp at *,}, -- ???
 end
+
+lemma Ends_equiv_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) :=
+begin
+  dsimp [Ends,Endsinfty],
+  rw ComplInfComp_eq_ComplComp_to_surjective,
+  apply fis.sections_surjective_equiv_sections,
+end
+
 
 
 instance obj_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplComp G Gpc).obj j) := by {

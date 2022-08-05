@@ -282,12 +282,12 @@ begin
 end
 
 def fis.sections_surjective_equiv_sections  {J : Type u} [preorder J] [is_directed J has_le.le]
-  (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
+  (F : Jᵒᵖ ⥤ Type v) /-[Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]-/  :
   F.sections ≃ (fis.to_surjective F).sections :=
 begin
   split, rotate 2,
   { rintro s,
-    split,rotate,
+    split, rotate,
     { rintro j,
       exact ⟨s.val j, fis.sections_in_surjective' F s j⟩,},
     { unfold category_theory.functor.sections,
@@ -296,7 +296,16 @@ begin
       apply subtype.mk_eq_mk.mpr,
       exact s.prop ij,}
   },
-  {sorry,},
+  { rintro ⟨s,sec⟩,
+    split, rotate,
+    { rintro j, exact (s j).val,},
+    { unfold category_theory.functor.sections,
+      rintro i j ij,
+      simp,
+      have lol := sec ij,
+      dsimp [fis.to_surjective] at lol,
+      --simp [set.maps_to.coe_restrict_apply], sorry,
+      } },
   {sorry,},
   {sorry,},
 end

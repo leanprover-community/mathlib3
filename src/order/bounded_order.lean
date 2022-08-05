@@ -344,14 +344,16 @@ begin
   { exact h'.symm }
 end
 
+/-- Propositions form a bounded order. -/
+instance Prop.bounded_order : bounded_order Prop :=
+{ top          := true,
+  le_top       := λ a Ha, true.intro,
+  bot          := false,
+  bot_le       := @false.elim }
+
 /-- Propositions form a distributive lattice. -/
 instance Prop.distrib_lattice : distrib_lattice Prop :=
-{ le           := λ a b, a → b,
-  le_refl      := λ _, id,
-  le_trans     := λ a b c f g, g ∘ f,
-  le_antisymm  := λ a b Hab Hba, propext ⟨Hab, Hba⟩,
-
-  sup          := or,
+{ sup          := or,
   le_sup_left  := @or.inl,
   le_sup_right := @or.inr,
   sup_le       := λ a b c, or.rec,
@@ -361,24 +363,13 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
   inf_le_right := @and.right,
   le_inf       := λ a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
   le_sup_inf   := λ a b c H, or_iff_not_imp_left.2 $
-    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩ }
-
-/-- Propositions form a bounded order. -/
-instance Prop.bounded_order : bounded_order Prop :=
-{ top          := true,
-  le_top       := λ a Ha, true.intro,
-  bot          := false,
-  bot_le       := @false.elim }
+    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
+  ..Prop.partial_order }
 
 instance Prop.le_is_total : is_total Prop (≤) :=
 ⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
 
-noncomputable instance Prop.linear_order : linear_order Prop :=
-by classical; exact lattice.to_linear_order Prop
 
-lemma subrelation_iff_le {r s : α → α → Prop} : subrelation r s ↔ r ≤ s := iff.rfl
-
-@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 

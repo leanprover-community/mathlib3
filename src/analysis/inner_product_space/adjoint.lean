@@ -405,8 +405,6 @@ end complex
 
 end continuous_linear_map
 
-#exit
-
 namespace linear_map
 
 variables [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] [finite_dimensional 𝕜 G]

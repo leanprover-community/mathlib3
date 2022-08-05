@@ -17,7 +17,8 @@ of combinatorial games.
 
 ## Main result
 
-- `well_founded.game_add`: formalizes induction on ordered pairs.
+- `well_founded.game_add`: formalizes induction on ordered pairs, where at least one entry
+decreases.
 
 ## Todo
 

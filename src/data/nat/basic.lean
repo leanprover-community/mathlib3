@@ -1397,7 +1397,7 @@ one can construct `C n` for any `n : ℕ`.  -/
 @[elab_as_eliminator]
 def add_base_rec {C : ℕ → Sort*} (n b : ℕ) (hb : b ≠ 0) (hr : ∀ r < b, C r)
   (hm : ∀ k, C k → C (k + b)) : C n :=
- mul_add_cases _ _ hb $ λ k r hrlt, begin
+mul_add_cases _ _ hb $ λ k r hrlt, begin
   induction k,
   { convert hr _ hrlt,
     rw [mul_zero, zero_add] },

@@ -55,12 +55,7 @@ variables [normed_add_comm_group F] [normed_space 𝕜 F]
 lemma cont_diff.differentiable_at_iterated_fderiv {n k : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f)
   (h : k < n):
   differentiable 𝕜 (iterated_fderiv 𝕜 k f) :=
-begin
-  -- easier with cont_diff_iff_continuous_differentiable
-  rw [←differentiable_on_univ, ←iterated_fderiv_within_univ],
-  refine hf.cont_diff_on.differentiable_on_iterated_fderiv_within _ unique_diff_on_univ,
-  simp only [h, with_top.coe_lt_coe],
-end
+(cont_diff_iff_continuous_differentiable.mp hf).2 k (by simp only [h, with_top.coe_lt_coe])
 
 -- iterated_fderiv_add
 lemma iterated_fderiv_add {n : ℕ} {f g : E → F} (hf : cont_diff 𝕜 n f)
@@ -100,16 +95,23 @@ end
 
 variables [semiring R] [module R F] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
 
+lemma smul_continuous_multilinear_map {k : ℕ} {c : R}
+  (m : continuous_multilinear_map 𝕜 (λ (i : fin k), E) F):
+  (c • continuous_linear_map.id 𝕜 F).comp_continuous_multilinear_map m = c • m :=
+by { ext x, simp }
+
+instance {k : ℕ}: has_continuous_const_smul R (continuous_multilinear_map 𝕜 (λ (i : fin k), E) F) :=
+⟨λ c, begin
+  simp_rw ←smul_continuous_multilinear_map,
+  refine (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ F F (c • continuous_linear_map.id 𝕜 F)).2,
+end⟩
+
 -- iterated_fderiv_const_smul
 lemma iterated_fderiv_const_smul {n : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f) (c : R) :
   iterated_fderiv 𝕜 n (λ y, c • f y) = c • iterated_fderiv 𝕜 n f :=
 begin
   induction n with k hk,
   { ext, simp },
-  haveI : has_continuous_const_smul R (continuous_multilinear_map 𝕜 (λ (i : fin k), E) F) :=
-  begin
-    sorry,
-  end,
   specialize hk (hf.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
   ext x m,
   rw [pi.smul_apply, continuous_multilinear_map.smul_apply],

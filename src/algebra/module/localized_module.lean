@@ -70,7 +70,7 @@ instance r.setoid : setoid (M × S) :=
 If `S` is a multiplicative subset of a ring `R` and `M` an `R`-module, then
 we can localize `M` by `S`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def _root_.localized_module : Type (max u v) := quotient (r.setoid S M)
 
 section

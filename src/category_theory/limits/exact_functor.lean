@@ -26,7 +26,7 @@ section
 variables (C) (D)
 
 /-- Bundled left-exact functors. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def LeftExactFunctor :=
 full_subcategory (λ F : C ⥤ D, nonempty (preserves_finite_limits F))
 
@@ -38,7 +38,7 @@ def LeftExactFunctor.forget : (C ⥤ₗ D) ⥤ (C ⥤ D) :=
 full_subcategory_inclusion _
 
 /-- Bundled right-exact functors. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def RightExactFunctor :=
 full_subcategory (λ F : C ⥤ D, nonempty (preserves_finite_colimits F))
 
@@ -50,7 +50,7 @@ def RightExactFunctor.forget : (C ⥤ᵣ D) ⥤ (C ⥤ D) :=
 full_subcategory_inclusion _
 
 /-- Bundled exact functors. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def ExactFunctor := full_subcategory
   (λ F : C ⥤ D, nonempty (preserves_finite_limits F) ∧ nonempty (preserves_finite_colimits F))
 

@@ -249,7 +249,7 @@ begin
   intros b hb_neg,
   let s := {x | f x ≤ b},
   have hs : measurable_set s, from hfm.measurable_set_le strongly_measurable_const,
-  have mus : μ s < ⊤,
+  have mus : μ s < ∞,
   { let c : ℝ≥0 := ⟨|b|, abs_nonneg _⟩,
     have c_pos : (c : ℝ≥0∞) ≠ 0, by simpa using hb_neg.ne,
     calc μ s ≤ μ {x | (c : ℝ≥0∞) ≤ ∥f x∥₊} :

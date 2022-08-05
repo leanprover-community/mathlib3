@@ -193,7 +193,7 @@ noncomputable def grundy_value : Π (G : pgame.{u}), ordinal.{u}
 | G := ordinal.mex.{u u} (λ i, grundy_value (G.move_left i))
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma grundy_value_def (G : pgame) :
+lemma grundy_value_eq_mex_left (G : pgame) :
   grundy_value G = ordinal.mex.{u u} (λ i, grundy_value (G.move_left i)) :=
 by rw grundy_value
 
@@ -211,7 +211,7 @@ begin
     apply (fuzzy_congr_left (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm)).1,
     rw nim_add_fuzzy_zero_iff,
     intro heq,
-    rw [eq_comm, grundy_value_def G] at heq,
+    rw [eq_comm, grundy_value_eq_mex_left G] at heq,
     have h := ordinal.ne_mex _,
     rw heq at h,
     exact (h i₁).irrefl },
@@ -224,7 +224,7 @@ begin
     have h' : ∃ i : G.left_moves, (grundy_value (G.move_left i)) =
       ordinal.typein (quotient.out (grundy_value G)).r i₂,
     { revert i₂,
-      rw grundy_value_def,
+      rw grundy_value_eq_mex_left,
       intros i₂,
       have hnotin : _ ∉ _ := λ hin, (le_not_le_of_lt (ordinal.typein_lt_self i₂)).2 (cInf_le' hin),
       simpa using hnotin},
@@ -258,12 +258,26 @@ by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 @[simp] lemma grundy_value_star : grundy_value star = 1 :=
 grundy_value_eq_iff_equiv_nim.2 nim_one_equiv.symm
 
+@[simp] lemma grundy_value_neg (G : pgame) [G.impartial] : grundy_value (-G) = grundy_value G :=
+by rw [grundy_value_eq_iff_equiv_nim, neg_equiv_iff, neg_nim, ←grundy_value_eq_iff_equiv_nim]
+
+lemma grundy_value_eq_mex_right : ∀ (G : pgame) [G.impartial],
+  grundy_value G = ordinal.mex.{u u} (λ i, grundy_value (G.move_right i))
+| ⟨l, r, L, R⟩ := begin
+  introI H,
+  rw [←grundy_value_neg, grundy_value_eq_mex_left],
+  congr,
+  ext i,
+  haveI : (R i).impartial := @impartial.move_right_impartial ⟨l, r, L, R⟩ _ i,
+  apply grundy_value_neg
+end
+
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin
   induction n using nat.strong_induction_on with n hn generalizing m,
   induction m using nat.strong_induction_on with m hm,
-  rw [grundy_value_def],
+  rw [grundy_value_eq_mex_left],
 
   -- We want to show that `n xor m` is the smallest unreachable Grundy value. We will do this in two
   -- steps:

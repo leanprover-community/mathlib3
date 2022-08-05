@@ -70,10 +70,12 @@ begin
     rw this, simp, refl,},
 
   -- TODO: this should be very clean, but isn't!!! please help me
-  apply category_theory.functor.hext,
+  apply category_theory.functor.ext,
+  rotate,
   { exact objeq, },
   { rintro Kop Lop KL,
     simp,
+    dsimp [fis.to_surjective, ComplInfComp, eq_to_hom],
     sorry,
     }, -- ???
 end

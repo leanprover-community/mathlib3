@@ -299,15 +299,14 @@ begin
   { rintro ⟨s,sec⟩,
     split, rotate,
     { rintro j, exact (s j).val,},
-    { unfold category_theory.functor.sections,
-      rintro i j ij,
-      simp,
-      have lol := sec ij,
-      dsimp [fis.to_surjective] at lol,
-      --simp [set.maps_to.coe_restrict_apply], sorry,
-      } },
-  {sorry,},
-  {sorry,},
+    { rintro i j ij, -- not very pretty…
+      have : ((s i).val : F.obj i) = subtype.simps.coe (s i), by reflexivity,
+      rw [this,←fis.to_surjective.subfunctor_apply],
+      simp [subtype.simps.coe],
+      rw subtype.coe_inj,
+      exact sec ij,},},
+  { simp [function.left_inverse], },
+  { simp [function.right_inverse, function.left_inverse],  },
 end
 
 /-

@@ -74,13 +74,8 @@ begin
   { exact objeq, },
   { rintro Kop Lop KL,
     simp,
-    apply function.hfunext,
-    exact objeq Kop,
-    rintro a a' aeqa',
-    rw (objeq Kop) at a,
-    dsimp [ComplInfComp, fis.to_surjective],
-    -- lol tidy?
-    cases a, cases a', cases a, cases a_val_1, cases a'_val, cases a_val, cases a_val_property, cases a'_val_property, cases a_val_1_property, cases a_val_1_property_h, cases a'_val_property_h, cases a_val_property_h, dsimp at *, simp at *, dsimp at *,}, -- ???
+    sorry,
+    }, -- ???
 end
 
 lemma Ends_equiv_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) :=

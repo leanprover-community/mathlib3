@@ -772,7 +772,7 @@ end punit
 
 section prop
 
-instance Prop.has_le : has_le Prop := ⟨λ a b, a → b⟩
+instance Prop.has_le : has_le Prop := ⟨(→)⟩
 
 @[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
 

@@ -502,14 +502,40 @@ begin
 end
 
 -- do we not have this?
-lemma foo {x : ℕ → ℝ} (hx : tendsto x at_top at_top) : bdd_below (set.range x) :=
+lemma bdd_below_range_of_tendsto_at_top_at_top
+  {α : Type*} [linear_order α] {x : ℕ → α}
+  (hx : tendsto x at_top at_top) : bdd_below (set.range x) :=
 begin
-  sorry
+  classical,
+  by_cases hα : nonempty α,
+  swap,
+  { rw not_nonempty_iff at hα,
+    exact false.elim (@is_empty.false α hα (x 0)) },
+  specialize hx (Ici_mem_at_top hα.some),
+  rw [mem_map, mem_at_top_sets] at hx,
+  obtain ⟨N, hN⟩ := hx,
+  let s : finset α := {hα.some} ∪ finset.image x (finset.range N),
+  have hs : hα.some ∈ s := by simp [s],
+  refine ⟨finset.min' s ⟨hα.some, hs⟩, _⟩,
+  rintros _ ⟨d, rfl⟩,
+  cases lt_or_le d N,
+  { refine finset.min'_le s (x d) _,
+    simp only [finset.mem_union, finset.mem_singleton, finset.mem_image,
+      finset.mem_range, exists_prop],
+    exact or.inr ⟨d, h, rfl⟩, },
+  { specialize hN d h,
+    simp only [set.mem_preimage, set.mem_Ici] at hN,
+    exact le_trans (finset.min'_le s hα.some hs) hN }
 end
 
-lemma martingale.ae_not_tendsto_at_top_at_top [is_finite_measure μ]
+lemma bdd_above_range_of_tendsto_at_top_at_bot
+  {α : Type*} [linear_order α] {x : ℕ → α}
+  (hx : tendsto x at_top at_bot) : bdd_above (set.range x) :=
+@bdd_below_range_of_tendsto_at_top_at_top αᵒᵈ _ _ hx
+
+lemma martingale.bdd_above_range_iff_bdd_below_range [is_finite_measure μ]
   (hf : martingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
-  ∀ᵐ x ∂μ, ¬ tendsto (λ n, f n x) at_top at_top :=
+  ∀ᵐ x ∂μ, bdd_above (set.range (λ n, f n x)) ↔ bdd_below (set.range (λ n, f n x)) :=
 begin
   have hbdd' : ∀ᵐ x ∂μ, ∀ i, |(-f) (i + 1) x - (-f) i x| ≤ R,
   { filter_upwards [hbdd] with x hx i,
@@ -517,26 +543,39 @@ begin
     exact hx i },
   have hup := hf.submartingale.bdd_above_iff_exists_tendsto hbdd,
   have hdown := hf.neg.submartingale.bdd_above_iff_exists_tendsto hbdd',
-  have hiff : ∀ᵐ x ∂μ, bdd_above (set.range (λ n, f n x)) ↔ bdd_below (set.range (λ n, f n x)),
-  { filter_upwards [hup, hdown] with x hx₁ hx₂,
-    have : (∃ c, tendsto (λ n, f n x) at_top (𝓝 c)) ↔ ∃ c, tendsto (λ n, (-f) n x) at_top (𝓝 c),
-    { split; rintro ⟨c, hc⟩,
-      { exact ⟨-c, hc.neg⟩ },
-      { refine ⟨-c, _⟩,
-        convert hc.neg,
-        simp only [neg_neg, pi.neg_apply] } },
-    rw [hx₁, this, ← hx₂],
-    sorry, },
-  filter_upwards [hiff] with x hx htop,
-  refine unbounded_of_tendsto_at_top htop (hx.2 _),
-  exact foo htop
+  filter_upwards [hup, hdown] with x hx₁ hx₂,
+  have : (∃ c, tendsto (λ n, f n x) at_top (𝓝 c)) ↔ ∃ c, tendsto (λ n, (-f) n x) at_top (𝓝 c),
+  { split; rintro ⟨c, hc⟩,
+    { exact ⟨-c, hc.neg⟩ },
+    { refine ⟨-c, _⟩,
+      convert hc.neg,
+      simp only [neg_neg, pi.neg_apply] } },
+  rw [hx₁, this, ← hx₂],
+  split; rintro ⟨c, hc⟩; refine ⟨-c, λ x hx, _⟩,
+  { rw mem_upper_bounds at hc,
+    rw set.mem_range at hx,
+    refine neg_le.2 (hc _ _),
+    simpa only [pi.neg_apply, set.mem_range, neg_inj] },
+  { rw mem_lower_bounds at hc,
+    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_neg_eq, eq_comm] at hx,
+    refine le_neg.1 (hc _ _),
+    simpa only [set.mem_range] }
+end
+
+lemma martingale.ae_not_tendsto_at_top_at_top [is_finite_measure μ]
+  (hf : martingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
+  ∀ᵐ x ∂μ, ¬ tendsto (λ n, f n x) at_top at_top :=
+begin
+  filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with x hx htop using
+    unbounded_of_tendsto_at_top htop (hx.2 $ bdd_below_range_of_tendsto_at_top_at_top htop),
 end
 
 lemma martingale.ae_not_tendsto_at_top_at_bot [is_finite_measure μ]
   (hf : martingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
   ∀ᵐ x ∂μ, ¬ tendsto (λ n, f n x) at_top at_bot :=
 begin
-  sorry
+  filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with x hx htop using
+    unbounded_of_tendsto_at_bot htop (hx.1 $ bdd_above_range_of_tendsto_at_top_at_bot htop),
 end
 
 namespace borel_cantelli

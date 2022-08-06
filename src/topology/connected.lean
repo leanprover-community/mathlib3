@@ -1035,6 +1035,43 @@ by rw [← hf.preimage_connected_component h_fibers, image_preimage_eq _ hf.surj
 
 end preconnected
 
+section locally_connected
+
+/-- A locally connected space is a space where every neighborhood filter has a basis of open
+  connected sets. -/
+class locally_connected_space (α : Type*) [topological_space α] : Prop :=
+(has_basis : ∀ x, (𝓝 x).has_basis (λ s : set α, is_open s ∧ x ∈ s ∧ is_connected s) id)
+
+#check filter.has_basis_self
+
+lemma locally_connected_space_of_connected_subsets
+  (h : ∀ (x : α) (U ∈ 𝓝 x), ∃ V ⊆ U, is_open V ∧ x ∈ V ∧ is_connected V) :
+  locally_connected_space α :=
+begin
+  constructor,
+  intro x,
+  constructor,
+  intro t,
+  split,
+  { intro ht, obtain ⟨V, hVU, hV⟩ := h x t ht, exact ⟨V, hV, hVU⟩ },
+  { rintro ⟨V, ⟨hV, hxV, -⟩, hVU⟩, refine mem_nhds_iff.mpr ⟨V, hVU, hV, hxV⟩ }
+end
+
+lemma locally_connected_space_of_connected_subsets
+  (h : ∀ (x : α) (U ∈ 𝓝 x), ∃ V ⊆ U, is_open V ∧ x ∈ V ∧ is_connected V) :
+  locally_connected_space α :=
+begin
+  constructor,
+  intro x,
+  constructor,
+  intro t,
+  split,
+  { intro ht, obtain ⟨V, hVU, hV⟩ := h x t ht, exact ⟨V, hV, hVU⟩ },
+  { rintro ⟨V, ⟨hV, hxV, -⟩, hVU⟩, refine mem_nhds_iff.mpr ⟨V, hVU, hV, hxV⟩ }
+end
+
+end locally_connected
+
 section totally_disconnected
 
 /-- A set `s` is called totally disconnected if every subset `t ⊆ s` which is preconnected is

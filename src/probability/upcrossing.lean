@@ -487,12 +487,15 @@ begin
   convert not_mem_of_cSup_lt hn (upper_crossing_time_lt_bdd_above hab),
 end
 
-lemma upcrossings_before_le (f : ℕ → Ω → ℝ) (ω : Ω) (hN : 0 < N) (hab : a < b) :
+lemma upcrossings_before_le (f : ℕ → Ω → ℝ) (ω : Ω) (hab : a < b) :
   upcrossings_before a b f N ω ≤ N :=
 begin
-  refine cSup_le ⟨0, hN⟩ (λ n (hn : _ < _), _),
-  by_contra hnN,
-  exact hn.ne (upper_crossing_time_eq_of_bound_le hab (not_le.1 hnN).le),
+  by_cases hN : N = 0,
+  { subst hN,
+    rw upcrossings_before_zero },
+  { refine cSup_le ⟨0, zero_lt_iff.2 hN⟩ (λ n (hn : _ < _), _),
+    by_contra hnN,
+    exact hn.ne (upper_crossing_time_eq_of_bound_le hab (not_le.1 hnN).le) },
 end
 
 lemma crossing_eq_crossing_of_lower_crossing_time_lt {M : ℕ} (hNM : N ≤ M)
@@ -656,7 +659,7 @@ begin
            stopped_value f (lower_crossing_time a b f N k) ω) :
     begin
       refine finset.sum_le_sum_of_subset_of_nonneg
-        (finset.range_subset.2 (upcrossings_before_le f ω hN hab)) (λ i _ hi, _),
+        (finset.range_subset.2 (upcrossings_before_le f ω hab)) (λ i _ hi, _),
       by_cases hi' : i = upcrossings_before a b f N ω,
       { subst hi',
         simp only [stopped_value],
@@ -785,7 +788,7 @@ lemma upcrossings_before_eq_sum (hN : 0 < N) (hab : a < b) :
   ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing_time a b f N n ω < N}.indicator 1 i :=
 begin
   rw ← finset.sum_Ico_consecutive _ (nat.succ_le_succ zero_le')
-    (nat.succ_le_succ (upcrossings_before_le f ω hN hab)),
+    (nat.succ_le_succ (upcrossings_before_le f ω hab)),
   have h₁ : ∀ k ∈ finset.Ico 1 (upcrossings_before a b f N ω + 1),
     {n : ℕ | upper_crossing_time a b f N n ω < N}.indicator 1 k = 1,
   { rintro k hk,
@@ -824,29 +827,13 @@ lemma adapted.integrable_upcrossings_before [is_finite_measure μ]
   (hf : adapted ℱ f) (hab : a < b) :
   integrable (λ ω, (upcrossings_before a b f N ω : ℝ)) μ :=
 begin
-  by_cases hN : N = 0,
-  { rw [hN, upcrossings_before_zero'],
-    simp only [pi.zero_apply, nat.cast_zero, integrable_zero] },
-  { have h₁ : upcrossings_before a b f N =
-      λ ω, ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing_time a b f N n ω < N}.indicator 1 i,
-    { ext ω,
-      exact upcrossings_before_eq_sum (zero_lt_iff.2 hN) hab },
-    rw h₁,
-    simp only [nat.cast_sum],
-    refine integrable_finset_sum _ (λ i hi, _),
-    have h₂ : ∀ ω, (({n | upper_crossing_time a b f N n ω < N}.indicator 1 i : ℕ) : ℝ) =
-      {ω | upper_crossing_time a b f N i ω < N}.indicator 1 ω,
-    { intro ω,
-      by_cases i ∈ {n : ℕ | upper_crossing_time a b f N n ω < N},
-      { rw [set.indicator_of_mem h, set.indicator_of_mem, pi.one_apply, pi.one_apply, nat.cast_one],
-        exact h },
-      { rw [set.indicator_of_not_mem h, set.indicator_of_not_mem, nat.cast_zero],
-        exact h } },
-    simp_rw [h₂],
-    rw [integrable_indicator_iff (ℱ.le N _
-      (hf.is_stopping_time_upper_crossing_time.measurable_set_lt_of_pred N)),
-      pi.one_def, integrable_on_const],
-    exact or.inr (measure_lt_top _ _) },
+  have : ∀ᵐ ω ∂μ, ∥(upcrossings_before a b f N ω : ℝ)∥ ≤ N,
+  { refine eventually_of_forall (λ ω, _),
+    rw [real.norm_eq_abs, nat.abs_cast, nat.cast_le],
+    refine upcrossings_before_le _ _ hab },
+  exact ⟨measurable.ae_strongly_measurable
+    (measurable_from_top.comp (hf.measurable_upcrossings_before hab)),
+    has_finite_integral_of_bounded this⟩
 end
 
 /-- The number of upcrossings of a realization of a stochastic process (`upcrossing` takes value

@@ -2,7 +2,11 @@ import algebra.big_operators.ring
 import data.finset.powerset
 import data.nat.interval
 import data.rat.defs
+import data.rat.basic
 import order.upper_lower
+import data.finset.n_ary
+import data.finset.lattice
+import data.fintype.basic
 
 /-!
 # The Ahlswede-Zhang identity
@@ -200,207 +204,147 @@ open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] [fintype α]
 
-def Δ (𝒜 : finset (finset α)) : ℚ :=
+def sum_truncated_inf_div_card_mul_choose (𝒜 : finset (finset α)) : ℚ :=
 ∑ s, (truncated_inf 𝒜 s).card / (s.card * (card α).choose s.card)
 
-def Γ (𝒜 : finset (finset α)) : ℚ :=
+def sum_trancated_sup_div_sub_card_mul_choose (𝒜 : finset (finset α)) : ℚ :=
 ∑ s, (truncated_sup 𝒜 s).card / ((card α - s.card) * (card α).choose s.card)
 
-def Φ (n : nat) : ℚ := n * ∑ k in Ico 1 n, k⁻¹ -- `n * ∑ k in range n, k⁻¹`?
+-- def Φ (n : nat) : ℚ := n * ∑ k in Ico 1 n, k⁻¹ -- `n * ∑ k in range n, k⁻¹`?
+def mul_sum_range_inv (n : nat) : ℚ := n * ∑ k in range n, k⁻¹
 
-lemma truncated_sup_inters_product_eq_inter_z_star_of_nontriv
+lemma truncated_sup_union_eq_of_not_nontriv_of_nontriv
   {𝒜 ℬ : finset (finset α)} {s : finset α}
-  (nontriv_a : nontriv_z_star 𝒜 x) (nontriv_b : nontriv_z_star ℬ x) :
-  truncated_sup ((𝒜.product ℬ).image (function.uncurry (∩))) x = truncated_sup 𝒜 x ∩ truncated_sup ℬ x :=
+  (ha : ¬nontriv_z_star (𝒜 : set (finset α)) s) (hb : nontriv_z_star (ℬ : set (finset α)) s) :
+  truncated_sup (𝒜 ∪ ℬ) s = truncated_sup ℬ s :=
 begin
-  dunfold truncated_sup,
-  rw [ if_pos nontriv_a,
-       if_pos nontriv_b,
-       if_pos (nontriv_z_star_inters_product_iff.mpr ⟨nontriv_a, nontriv_b⟩) ],
-  ext n_1,
+  have := nontriv_z_star_union_iff.mpr (or.inr hb),
+  rw ←coe_union at this,
+  rw [truncated_sup_of_nontriv_z_star this,
+      truncated_sup_of_nontriv_z_star hb],
+  simp [nontriv_z_star] at ha,
+  rw filter_union,
+  simp_rw le_iff_subset,
+  rw filter_false_of_mem ha,
   simp,
-  split; intro h,
-  { rcases mem_sup.mp h with ⟨y, hy, hny⟩,
-    simp at hy,
-    rcases hy with ⟨⟨ya, yb, ⟨⟨hya, hyb⟩, hy⟩⟩, hxy⟩,
-    subst hy,
-    split;
-    apply mem_sup.mpr;
-    simp,
-    { exact ⟨ya, ⟨hya, (subset_inter_iff.mp hxy).1⟩, (mem_inter.mp hny).1⟩ },
-    { exact ⟨yb, ⟨hyb, (subset_inter_iff.mp hxy).2⟩, (mem_inter.mp hny).2⟩ } },
-  { rcases mem_sup.mp h.1 with ⟨ya, hya, hnya⟩,
-    rcases mem_sup.mp h.2 with ⟨yb, hyb, hnyb⟩,
-    simp at hya hyb,
-    cases hya with hya hxya,
-    cases hyb with hyb hxyb,
-    apply mem_sup.mpr,
-    simp,
-    exact ⟨ ya ∩ yb, ⟨⟨ya, yb, ⟨hya, hyb⟩, rfl⟩, subset_inter hxya hxyb⟩,
-            mem_inter.mpr ⟨hnya, hnyb⟩⟩ }
 end
 
-lemma truncated_sup_union_eq_of_triv_of_nontriv
+lemma truncated_sup_union_eq_of_nontriv_of_not_nontriv
   {𝒜 ℬ : finset (finset α)} {s : finset α}
-  (triv_a : ¬nontriv_z_star 𝒜 x) (nontriv_b : nontriv_z_star ℬ x) :
-  truncated_sup (𝒜 ∪ ℬ) x = truncated_sup ℬ x :=
-begin
-  dunfold truncated_sup,
-  rw [ if_pos (nontriv_z_star_union_iff.mpr (or.inr nontriv_b)),
-       if_pos nontriv_b ],
-  simp [nontriv_z_star] at triv_a,
-  congr' 1,
-  ext y,
-  rw [mem_filter, mem_filter], -- should i use `simp only [mem_filter]`?
-  exact ⟨ λ ⟨h₁, h₂⟩, (mem_union.mp h₁).elim (λ h, (triv_a _ h h₂).elim) (λ h, ⟨h, h₂⟩),
-          λ ⟨h₁, h₂⟩, ⟨mem_union_right _ h₁, h₂⟩⟩
-end
-
-lemma truncated_sup_union_eq_of_nontriv_of_triv
-  {𝒜 ℬ : finset (finset α)} {s : finset α}
-  (nontriv_a : nontriv_z_star 𝒜 x) (triv_b : ¬nontriv_z_star ℬ x) :
-  truncated_sup (𝒜 ∪ ℬ) x = truncated_sup 𝒜 x :=
+  (ha : nontriv_z_star (𝒜 : set (finset α)) s) (hb : ¬nontriv_z_star (ℬ : set (finset α)) s) :
+  truncated_sup (𝒜 ∪ ℬ) s = truncated_sup 𝒜 s :=
 begin
   rw union_comm,
-  apply truncated_sup_union_eq_of_triv_of_nontriv triv_b nontriv_a,
+  exact truncated_sup_union_eq_of_not_nontriv_of_nontriv hb ha,
 end
 
-lemma card_z_star_union_add_card_z_star_intetrs_product_eq_z_star_add_z_star
+lemma truncated_sup_union_eq_of_not_nontriv
+  {𝒜 ℬ : finset (finset α)} {s : finset α}
+  (ha : ¬nontriv_z_star (𝒜 : set (finset α)) s) (hb : ¬nontriv_z_star (ℬ : set (finset α)) s) :
+  truncated_sup (𝒜 ∪ ℬ) s = ⊤ :=
+begin
+  have := λ h, or.elim (nontriv_z_star_union_iff.mp h) ha hb,
+  rw ←coe_union at this,
+  rw truncated_sup_of_not_nontriv_z_star this,
+end
+
+lemma truncated_sup_image2_inf_eq_inter_z_star_of_nontriv
+  {𝒜 ℬ : finset (finset α)} {s : finset α}
+  (h𝒜 : nontriv_z_star (𝒜 : set (finset α)) s) (hℬ : nontriv_z_star (ℬ : set (finset α)) s) :
+  truncated_sup (image₂ (⊓) 𝒜 ℬ) s = truncated_sup 𝒜 s ⊓ truncated_sup ℬ s :=
+begin
+  rw [truncated_sup_of_nontriv_z_star h𝒜,
+      truncated_sup_of_nontriv_z_star hℬ,
+      truncated_sup_of_nontriv_z_star],
+  swap,
+  { exact (coe_image₂ (⊓) 𝒜 ℬ).symm ▸ nontriv_z_star_image2_inf_iff.mpr ⟨h𝒜, hℬ⟩, },
+  /- simp [sup_inf_distrib_left, sup_inf_distrib_right, ←bUnion_image_left, filter_bUnion], -/
+  ext,
+  split;
+  intro h,
+  { rcases mem_sup.mp h with ⟨u, hu, hau⟩,
+    cases mem_filter.mp hu with hu hsu,
+    rcases mem_image₂.mp hu with ⟨v, w, hv, hw, hvwu⟩,
+    rw ←hvwu at hsu,
+    cases _root_.le_inf_iff.mp hsu with hsv hsw,
+    refine mem_of_subset _ hau,
+    rw [←hvwu, id.def],
+    exact le_iff_subset.mp (inf_le_inf (le_sup (mem_filter.mpr ⟨hv, hsv⟩))
+                                       (le_sup (mem_filter.mpr ⟨hw, hsw⟩))), },
+  { simp at h,
+    rcases mem_sup.mp h.1 with ⟨v, hv, hav⟩,
+    rcases mem_sup.mp h.2 with ⟨w, hw, haw⟩,
+    rcases mem_filter.mp hv with ⟨hv, hsv⟩,
+    rcases mem_filter.mp hw with ⟨hw, hsw⟩,
+    exact mem_sup.mpr ⟨v ⊓ w, mem_filter.mpr ⟨mem_image₂.mpr ⟨v, w, hv, hw, rfl⟩, le_inf hsv hsw⟩,
+                              mem_inter.mpr ⟨hav, haw⟩⟩, },
+end
+
+lemma truncated_sup_image2_inf_of_not_nontriv_left {𝒜 ℬ : finset (finset α)} {s : finset α}
+  (h𝒜 : ¬nontriv_z_star (𝒜 : set (finset α)) s) :
+  truncated_sup (image₂ (⊓) 𝒜 ℬ) s = ⊤ :=
+begin
+  have := h𝒜 ∘ and.left ∘ nontriv_z_star_image2_inf_iff.mp,
+  rw ←coe_image₂ at this,
+  rw truncated_sup_of_not_nontriv_z_star this,
+end
+
+lemma truncated_sup_image2_inf_of_not_nontriv_right {𝒜 ℬ : finset (finset α)} {s : finset α}
+  (hℬ : ¬nontriv_z_star (ℬ : set (finset α)) s) :
+  truncated_sup (image₂ (⊓) 𝒜 ℬ) s = ⊤ :=
+begin
+  rw [image₂_comm (@_root_.inf_comm _ _), truncated_sup_image2_inf_of_not_nontriv_left hℬ],
+end
+
+lemma card_truncated_sup_union_add_card_truncated_sup_image₂_inf_eq_card_truncated_sup_add_card_truncated_sup
   (𝒜 ℬ : finset (finset α))
   (s : finset α) :
-  (z_star (𝒜 ∪ ℬ) x).card + (z_star ((𝒜.product ℬ).image (function.uncurry (∩))) x).card =
-    (z_star 𝒜 x).card + (z_star ℬ x).card :=
+  (truncated_sup (𝒜 ∪ ℬ) s).card + (truncated_sup (image₂ (⊓) 𝒜 ℬ) s).card =
+    (truncated_sup 𝒜 s).card + (truncated_sup ℬ s).card :=
 begin
-  cases decidable.em (nontriv_z_star 𝒜 x) with nontriv_a triv_a;
-  cases decidable.em (nontriv_z_star ℬ x) with nontriv_b triv_b,
-  { rw [ truncated_sup_union_distr_of_nontriv nontriv_a nontriv_b,
-         truncated_sup_inters_product_eq_inter_z_star_of_nontriv nontriv_a nontriv_b ],
+  cases decidable.em (nontriv_z_star (𝒜 : set (finset α)) s) with ha ha;
+  cases decidable.em (nontriv_z_star (ℬ : set (finset α)) s) with hb hb,
+  { rw [truncated_sup_union ha hb,
+        truncated_sup_image2_inf_eq_inter_z_star_of_nontriv ha hb],
     apply card_union_add_card_inter },
-  { rw truncated_sup_union_eq_of_nontriv_of_triv nontriv_a triv_b,
-    dunfold truncated_sup,
-    rw [ if_neg triv_b,
-         if_neg (λ contra, triv_b (nontriv_z_star_inters_product_iff.mp contra).2) ] },
-  { rw truncated_sup_union_eq_of_triv_of_nontriv triv_a nontriv_b,
-    dunfold truncated_sup,
-    rw [ if_neg triv_a,
-         if_neg (λ contra, triv_a (nontriv_z_star_inters_product_iff.mp contra).1) ],
-    rw add_comm },
-  { dunfold truncated_sup,
-    rw [ if_neg triv_a,
-         if_neg triv_b,
-         if_neg (λ contra, triv_a (nontriv_z_star_inters_product_iff.mp contra).1),
-         if_neg (λ contra, (nontriv_z_star_union_iff.mp contra).elim triv_a triv_b) ], }
+  { rw [truncated_sup_union_eq_of_nontriv_of_not_nontriv ha hb,
+        truncated_sup_of_not_nontriv_z_star hb,
+        truncated_sup_image2_inf_of_not_nontriv_right hb], },
+  { rw [truncated_sup_union_eq_of_not_nontriv_of_nontriv ha hb,
+        truncated_sup_of_not_nontriv_z_star ha,
+        truncated_sup_image2_inf_of_not_nontriv_left ha,
+        add_comm], },
+  { rw [truncated_sup_of_not_nontriv_z_star ha,
+        truncated_sup_of_not_nontriv_z_star hb,
+        truncated_sup_union_eq_of_not_nontriv ha hb,
+        truncated_sup_image2_inf_of_not_nontriv_left ha], },
 end
-lemma Γ_union_eq (𝒜 ℬ : finset (finset α)) :
-  Γ (𝒜 ∪ ℬ) = Γ 𝒜 + Γ ℬ - Γ ((𝒜.product ℬ).image (function.uncurry (∩))) :=
+
+lemma sum_truncated_inf_div_card_mul_choose_union_eq (𝒜 ℬ : finset (finset α)) :
+  sum_trancated_sup_div_sub_card_mul_choose (𝒜 ∪ ℬ) =
+  sum_trancated_sup_div_sub_card_mul_choose 𝒜 + sum_trancated_sup_div_sub_card_mul_choose ℬ -
+  sum_trancated_sup_div_sub_card_mul_choose (image₂ (⊓) 𝒜 ℬ) :=
 begin
   apply eq_sub_of_add_eq,
-  dunfold Γ,
+  dunfold sum_trancated_sup_div_sub_card_mul_choose,
   rw [←sum_add_distrib, ←sum_add_distrib],
   congr,
-  ext,
+  ext : 1,
   rw [div_add_div_same, div_add_div_same],
   congr' 1,
   rw [←nat.cast_add, ←nat.cast_add],
   congr' 1,
-  apply card_z_star_union_add_card_z_star_intetrs_product_eq_z_star_add_z_star,
+  exact card_truncated_sup_union_add_card_truncated_sup_image₂_inf_eq_card_truncated_sup_add_card_truncated_sup _ _ _,
 end
 
-lemma attach_compl_eq_bUnion_powerset_len :
-  ({univ}ᶜ : finset (finset α)) = (range α.card).bUnion (λ k, powerset_len k univ) :=
+lemma sum_div_sub_card_mul_choose_card_eq_mul_sum_range_inv_add_one [nonempty α] :
+  ∑ i : finset (finset α), (card α / ((card α - i.card) * (card α).choose i.card) : ℚ) =
+  mul_sum_range_inv (card α) + 1 :=
 begin
-  rw ←image_bUnion_filter_eq {univ}ᶜ card,
-  symmetry,
-  apply bUnion_congr,
-  { ext k,
-    split;
-    intro h;
-    simp at ⊢ h,
-    { rw ←card_attach at h,
-      rcases exists_smaller_set univ k (le_of_lt h) with ⟨x, hx, hcard⟩,
-      subst hcard,
-      use x,
-      split,
-      { intro contra,
-        rw contra at h,
-        cases (lt_self_iff_false _).mp h },
-      { refl } },
-    { rcases h with ⟨x, hx, hcard⟩,
-      subst hcard,
-      cases lt_or_eq_of_le (card_le_univ x),
-      { rw fintype.card_coe at h,
-        exact h },
-      { cases hx (eq_univ_of_card _ h), } } },
-  { intros x hx,
-    simp at hx,
-    ext k,
-    { split;
-      intro h,
-      { simp,
-        rw mem_powerset_len at h,
-        split,
-        { intro contra,
-          rw [←h.2, contra, card_attach] at hx,
-          exact (lt_self_iff_false _).mp hx },
-        { exact h.2 } },
-      { simp at h,
-        exact mem_powerset_len.mpr ⟨subset_univ _, h.2⟩ } } }
-end
-
-lemma pairwise_disjoint_powerset_len (s : finset α) :
-  (range α.card : set ℕ).pairwise_disjoint (λ k, powerset_len k s) :=
-begin
-  dunfold set.pairwise_disjoint,
-  -- why can't i unfold disjoint?
-  sorry
-end
-
-lemma sum_div_sub_card_mul_choose_card_eq_Φ_add_one [nonempty α] :
-  ({univ}ᶜ : finset (finset α)).sum
-    (λ i, (α.card / ((α.card - i.card) * α.card.choose i.card) : ℚ)) =
-  Φ α.card + 1 :=
-begin
-  rw attach_compl_eq_bUnion_powerset_len,
-  rw sum_bUnion (pairwise_disjoint_powerset_len _),
-  have : ∀ (x : ℕ) (i : finset ↥α) (hi : i ∈ powerset_len x (univ)),
-    (α.card / ((α.card - i.card) * α.card.choose i.card) : ℚ) =
-    (α.card / ((α.card - x) * α.card.choose x)),
-  { intros x i hi,
-    rw (mem_powerset_len.mp hi).2 },
-  simp_rw sum_congr rfl (this _),
-  simp_rw sum_const,
-  simp_rw card_powerset_len,
-  simp,
-  have : ∀ (x ∈ range α.card),
-    ((α.card.choose x) * (α.card / ((α.card - x) * α.card.choose x)) : ℚ) = α.card * (α.card - x)⁻¹,
-  { intros x hx,
-    have : (α.card.choose x : ℚ) ≠ 0
-      := (norm_num.ne_zero_of_pos _ $ nat.cast_pos.mpr $ nat.choose_pos $ mem_range_le hx),
-    rw [mul_div_left_comm, div_mul_left this, mul_one_div, div_eq_mul_inv] },
-  rw sum_congr rfl this,
-  rw ←mul_sum,
-  unfold Φ,
-  rw [ ←@mul_inv_cancel ℚ _ _ (nat.cast_ne_zero.mpr (hα ∘ card_eq_zero.mp)),
-      ←mul_add ],
-  simp,
-  left,
-  rw [add_comm],
-  rw ←@sum_insert _ _ _ _ (λ x : ℕ, (x⁻¹ : ℚ)) _ _ right_not_mem_Ico,
-  rw Ico_insert_right (nat.one_le_iff_ne_zero.mpr (hα ∘ card_eq_zero.mp)),
-  apply sum_bij (λ x _, α.card - x),
-  { intros x hx,
-    simp at ⊢ hx,
-    exact nat.succ_le_of_lt (nat.sub_pos_of_lt hx) },
-  { intros x hx,
-    simp at ⊢ hx,
-    exact (nat.cast_sub (le_of_lt hx)).symm },
-  { intros x y hx hy heq,
-    simp at ⊢ hx hy,
-    exact (tsub_right_inj (le_of_lt hx) (le_of_lt hy)).mp heq, },
-  { intros x hx,
-    simp at ⊢ hx,
-    exact ⟨ α.card - x, nat.sub_lt (nat.pos_of_ne_zero (hα ∘ card_eq_zero.mp)) (hx.1),
-                        (nat.sub_sub_self hx.2).symm ⟩ }
+  have := finset.powerset_univ,
+  have : (univ : finset (finset α)) = univ := rfl,
+  have := set.powerset_univ,
+  rw powerset_card_bUnion,
 end
 
 lemma finset.map_compl {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]

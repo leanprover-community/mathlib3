@@ -241,7 +241,7 @@ variables {f : α → ℝ}
 /-- Don't use this lemma. Use `ae_nonneg_of_forall_set_integral_nonneg`. -/
 lemma ae_nonneg_of_forall_set_integral_nonneg_of_strongly_measurable
   (hfm : strongly_measurable f)
-  (hf : integrable f μ) (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f x ∂μ) :
+  (hf : integrable f μ) (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
 begin
   simp_rw [eventually_le, pi.zero_apply],
@@ -273,7 +273,7 @@ begin
   by_contra,
   refine (lt_self_iff_false (∫ x in s, f x ∂μ)).mp (h_int_gt.trans_lt _),
   refine (mul_neg_iff.mpr (or.inr ⟨hb_neg, _⟩)).trans_le _,
-  swap, { simp_rw measure.restrict_restrict hs, exact hf_zero s hs, },
+  swap, { simp_rw measure.restrict_restrict hs, exact hf_zero s hs mus, },
   refine (ennreal.to_real_nonneg).lt_of_ne (λ h_eq, h _),
   cases (ennreal.to_real_eq_zero_iff _).mp h_eq.symm with hμs_eq_zero hμs_eq_top,
   { exact hμs_eq_zero, },
@@ -281,21 +281,21 @@ begin
 end
 
 lemma ae_nonneg_of_forall_set_integral_nonneg (hf : integrable f μ)
-  (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f x ∂μ) :
+  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
 begin
   rcases hf.1 with ⟨f', hf'_meas, hf_ae⟩,
   have hf'_integrable : integrable f' μ, from integrable.congr hf hf_ae,
-  have hf'_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f' x ∂μ,
-  { intros s hs,
+  have hf'_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f' x ∂μ,
+  { intros s hs h's,
     rw set_integral_congr_ae hs (hf_ae.mono (λ x hx hxs, hx.symm)),
-    exact hf_zero s hs, },
+    exact hf_zero s hs h's, },
   exact (ae_nonneg_of_forall_set_integral_nonneg_of_strongly_measurable hf'_meas
     hf'_integrable hf'_zero).trans hf_ae.symm.le,
 end
 
 lemma ae_le_of_forall_set_integral_le {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ)
-  (hf_le : ∀ s, measurable_set s → ∫ x in s, f x ∂μ ≤ ∫ x in s, g x ∂μ) :
+  (hf_le : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ ≤ ∫ x in s, g x ∂μ) :
   f ≤ᵐ[μ] g :=
 begin
   rw ← eventually_sub_nonneg,
@@ -305,12 +305,14 @@ begin
 end
 
 lemma ae_nonneg_restrict_of_forall_set_integral_nonneg_inter {f : α → ℝ} {t : set α}
-  (hf : integrable_on f t μ) (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in (s ∩ t), f x ∂μ) :
+  (hf : integrable_on f t μ)
+  (hf_zero : ∀ s, measurable_set s → μ (s ∩ t) < ∞ → 0 ≤ ∫ x in (s ∩ t), f x ∂μ) :
   0 ≤ᵐ[μ.restrict t] f :=
 begin
-  refine ae_nonneg_of_forall_set_integral_nonneg hf (λ s hs, _),
+  refine ae_nonneg_of_forall_set_integral_nonneg hf (λ s hs h's, _),
   simp_rw measure.restrict_restrict hs,
-  exact hf_zero s hs,
+  apply hf_zero s hs,
+  rwa measure.restrict_apply hs at h's,
 end
 
 lemma ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite [sigma_finite μ] {f : α → ℝ}
@@ -322,7 +324,7 @@ begin
   assume t t_meas t_lt_top,
   apply ae_nonneg_restrict_of_forall_set_integral_nonneg_inter
     (hf_int_finite t t_meas t_lt_top),
-  assume s s_meas,
+  assume s s_meas hs,
   exact hf_zero _ (s_meas.inter t_meas)
     (lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) t_lt_top)
 end
@@ -347,12 +349,6 @@ begin
     exact hf_zero (s ∩ t) (hs.inter hf.measurable_set) hμts, },
 end
 
-lemma integrable.ae_nonneg_of_forall_set_integral_nonneg {f : α → ℝ} (hf : integrable f μ)
-  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
-  0 ≤ᵐ[μ] f :=
-ae_fin_strongly_measurable.ae_nonneg_of_forall_set_integral_nonneg hf.ae_fin_strongly_measurable
-  (λ s hs hμs, hf.integrable_on) hf_zero
-
 lemma ae_nonneg_restrict_of_forall_set_integral_nonneg {f : α → ℝ}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ)
@@ -360,7 +356,7 @@ lemma ae_nonneg_restrict_of_forall_set_integral_nonneg {f : α → ℝ}
   0 ≤ᵐ[μ.restrict t] f :=
 begin
   refine ae_nonneg_restrict_of_forall_set_integral_nonneg_inter
-    (hf_int_finite t ht (lt_top_iff_ne_top.mpr hμt)) (λ s hs, _),
+    (hf_int_finite t ht (lt_top_iff_ne_top.mpr hμt)) (λ s hs h's, _),
   refine (hf_zero (s ∩ t) (hs.inter ht) _),
   exact (measure_mono (set.inter_subset_right s t)).trans_lt (lt_top_iff_ne_top.mpr hμt),
 end

@@ -5,6 +5,7 @@ Authors: Junyan Xu
 -/
 import data.multiset.basic
 import order.game_add
+import order.well_founded
 
 /-!
 # Termination of a hydra game
@@ -62,7 +63,7 @@ ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he�
 end fibration
 
 section hydra
-open multiset
+open multiset prod
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
@@ -115,10 +116,10 @@ begin
   rintro ⟨s₁, s₂⟩ s ⟨t, a, hr, he⟩, dsimp at he ⊢,
   classical, obtain ⟨ha, rfl⟩ := add_singleton_eq_iff.1 he,
   rw [add_assoc, mem_add] at ha, obtain (h|h) := ha,
-  { refine ⟨(s₁.erase a + t, s₂), fst ⟨t, a, hr, _⟩, _⟩,
+  { refine ⟨(s₁.erase a + t, s₂), game_add.fst ⟨t, a, hr, _⟩, _⟩,
     { rw [add_comm, ← add_assoc, singleton_add, cons_erase h] },
     { rw [add_assoc s₁, erase_add_left_pos _ h, add_right_comm, add_assoc] } },
-  { refine ⟨(s₁, (s₂ + t).erase a), snd ⟨t, a, hr, _⟩, _⟩,
+  { refine ⟨(s₁, (s₂ + t).erase a), game_add.snd ⟨t, a, hr, _⟩, _⟩,
     { rw [add_comm, singleton_add, cons_erase h] },
     { rw [add_assoc, erase_add_right_pos _ h] } },
 end

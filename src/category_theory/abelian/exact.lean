@@ -357,6 +357,7 @@ include h
 
 open_locale zero_object
 
+/-- A functor which preserves exactness preserves zero morphisms. -/
 lemma preserves_zero_morphisms_of_map_exact : L.preserves_zero_morphisms :=
 begin
   replace h := (h (exact_of_zero (𝟙 0) (𝟙 0))).w,
@@ -364,6 +365,7 @@ begin
   exact preserves_zero_morphisms_of_map_zero_object (id_zero_equiv_iso_zero _ h),
 end
 
+/-- A functor which preserves exactness preserves monomorphisms. -/
 lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
 { preserves := λ X Y f hf,
   begin
@@ -373,6 +375,7 @@ lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
     exact h (((tfae_mono 0 f).out 0 2).mp hf)
   end }
 
+/-- A functor which preserves exactness preserves epimorphisms. -/
 lemma preserves_epimorphisms_of_map_exact : L.preserves_epimorphisms :=
 { preserves := λ X Y f hf,
   begin
@@ -382,6 +385,7 @@ lemma preserves_epimorphisms_of_map_exact : L.preserves_epimorphisms :=
     exact h (((tfae_epi 0 f).out 0 2).mp hf)
   end }
 
+/-- A functor which preserves exactness preserves kernels. -/
 def preserves_kernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
   preserves_limit (parallel_pair f 0) L :=
 { preserves := λ c ic,
@@ -396,6 +400,7 @@ def preserves_kernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
     exact hf.of_iso_limit ((cones.functoriality _ L).map_iso (iso_of_ι _).symm),
   end }
 
+/-- A functor which preserves exactness preserves zero cokernels. -/
 def preserves_cokernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
   preserves_colimit (parallel_pair f 0) L :=
 { preserves := λ c ic,
@@ -403,14 +408,14 @@ def preserves_cokernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
     letI := preserves_zero_morphisms_of_map_exact L @h,
     letI := preserves_epimorphisms_of_map_exact L @h,
     letI := epi_of_is_colimit_cofork ic,
-    have hf := (is_colimit_map_cocone_cofork_equiv' L
-        (cokernel_cofork.condition c)).symm
+    have hf := (is_colimit_map_cocone_cofork_equiv' L (cokernel_cofork.condition c)).symm
       (is_colimit_of_exact_of_epi (L.map f) (L.map (cofork.π c))
         (h (exact_of_is_cokernel f (cofork.π c) (cokernel_cofork.condition c)
           (ic.of_iso_colimit (iso_of_π _))))),
     exact hf.of_iso_colimit ((cocones.functoriality _ L).map_iso (iso_of_π _).symm),
   end }
 
+/-- A functor which preserves exactness is left exact, i.e. preserves finite limits. -/
 def preserves_finite_limits_of_map_exact : limits.preserves_finite_limits L :=
 begin
   letI := preserves_zero_morphisms_of_map_exact L @h,
@@ -418,6 +423,7 @@ begin
   apply preserves_finite_limits_of_preserves_kernels,
 end
 
+/-- A functor which preserves exactness is left exact, i.e. preserves finite colimits. -/
 def preserves_finite_colimits_of_map_exact : limits.preserves_finite_colimits L :=
 begin
   letI := preserves_zero_morphisms_of_map_exact L @h,

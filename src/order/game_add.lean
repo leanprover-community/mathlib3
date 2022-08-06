@@ -11,12 +11,13 @@ import order.basic
 # Game addition relation
 
 This file defines, given relations `rα : α → α → Prop` and `rβ : β → β → Prop`, a relation
-`game_add` on pairs, such that `game_add rα rβ x y` iff `x` can be reached from `y` by decreasing
-either entry (with respect to `rα` and `rβ`). It is so called since it models the subsequency
-relation on the addition of combinatorial games.
+`prod.game_add` on pairs, such that `game_add rα rβ x y` iff `x` can be reached from `y` by
+decreasing either entry (with respect to `rα` and `rβ`). It is so called since it models the
+subsequency relation on the addition of combinatorial games.
 
-## Main result
+## Main definitions and results
 
+- `prod.game_add`: the game addition relation on ordered pairs.
 - `well_founded.game_add`: formalizes induction on ordered pairs, where exactly one entry decreases
   at a time.
 

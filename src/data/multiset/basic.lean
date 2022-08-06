@@ -353,11 +353,14 @@ end
 end
 
 /-! ### Singleton -/
+
 instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
 
 instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
 
 @[simp] theorem cons_zero (a : α) : a ::ₘ 0 = {a} := rfl
+
+@[simp] theorem coe_singleton (a : α) : ([a] : multiset α) = {a} := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
 by simp only [←cons_zero, mem_cons, iff_self, or_false, not_mem_zero]

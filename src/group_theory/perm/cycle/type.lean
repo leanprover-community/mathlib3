@@ -179,8 +179,8 @@ cycle_induction_on
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
-  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, cons_zero, lcm_singleton,
-    order_of_is_cycle hσ, normalize_eq])
+  (λ σ hσ, by rw [hσ.cycle_type, coe_singleton, lcm_singleton, order_of_is_cycle hσ,
+    normalize_eq])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, lcm_eq_nat_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
@@ -331,8 +331,7 @@ lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
 begin
   obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
   by_cases g'1 : g' = 1,
-  { rw [hd.cycle_type, hc.cycle_type, ←multiset.cons_zero, multiset.singleton_coe,
-      g'1, cycle_type_one, add_zero] },
+  { rw [hd.cycle_type, hc.cycle_type, coe_singleton, g'1, cycle_type_one, add_zero] },
   contrapose! hn2,
   apply le_trans _ (c * g').support.card_le_univ,
   rw [hd.card_support_mul],

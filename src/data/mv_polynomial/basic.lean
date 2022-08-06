@@ -882,7 +882,7 @@ end
 theorem eval_surjective : function.surjective (eval f) :=
 λ s, ⟨C s, eval_C s⟩
 
-lemma ker_eval_zero : (eval (0 : σ → R)).ker = ideal.span { t | ∃ s, t = C s } :=
+lemma ker_eval_zero : (eval (0 : σ → R)).ker = ideal.span { t | ∃ s, t = X s } :=
 begin
   sorry
 end

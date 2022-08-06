@@ -778,6 +778,31 @@ begin
       (integral_nonneg (λ ω, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
+/-
+
+### Variant of the upcrossing estimate
+
+Now, we would like to prove a variant of the upcrossing estimate obtained by taking the supremum
+over $N$ of the original upcrossing estimate. Namely, we want the inequality
+$$
+  (b - a) \sup_N \mathbb{E}[U_N(a, b)] \le \sup_N \mathbb{E}[f_N].
+$$
+This inequality is central for the martingale convergence theorem as it provides a uniform bound
+for the upcrossings.
+
+We note that on top of taking the supremum on both sides of the inequality, we had also used
+the monotone convergence theorem on the left hand side to take the supremum outside of the
+integral. To do this, we need to make sure $U_N(a, b)$ is measurable and integrable. Integrability
+is easy to check as $U_N(a, b) ≤ N$ and so it suffices to show measurability. Indeed, by
+noting that
+$$
+  U_N(a, b) = \sum_{i = 1}^N \mathbf{1}_{\{U_N(a, b) < N\}}
+$$
+$U_N(a, b)$ is measurable as $\{U_N(a, b) < N\}$ is a measurable set since $U_N(a, b)$ is a
+stopping time.
+
+-/
+
 lemma upcrossings_before_eq_sum (hab : a < b) :
   upcrossings_before a b f N ω =
   ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing_time a b f N n ω < N}.indicator 1 i :=
@@ -883,7 +908,7 @@ begin
         exact (ennreal.of_real_le_of_real
           (hf.mul_integral_upcrossings_before_le_integral_pos_part a b N)).trans (le_supr _ N) },
       { simp only [nnreal.coe_nat_cast, hf.adapted.integrable_upcrossings_before hab] } },
-    { refine λ n, measurable_from_top.comp_ae_measurable
+    { exact λ n, measurable_from_top.comp_ae_measurable
         (hf.adapted.measurable_upcrossings_before  hab).ae_measurable },
     { refine eventually_of_forall (λ ω N M hNM, _),
       rw ennreal.coe_nat_le_coe_nat,

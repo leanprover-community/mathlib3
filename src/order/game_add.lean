@@ -6,7 +6,6 @@ Authors: Junyan Xu
 
 import data.sym.sym2
 import logic.relation
-import order.basic
 
 /-!
 # Game addition relation
@@ -19,17 +18,23 @@ subsequency relation on the addition of combinatorial games.
 ## Main definitions and results
 
 - `prod.game_add`: the game addition relation on ordered pairs.
-- `well_founded.game_add`: formalizes induction on ordered pairs, where exactly one entry decreases
-  at a time.
+- `well_founded.prod_game_add`: formalizes induction on ordered pairs, where exactly one entry
+  decreases at a time.
+
+- `sym2.game_add`: the game addition relation on unordered pairs.
+- `well_founded.sym2_game_add`: formalizes induction on unordered pairs, where exactly one entry
+  decreases at a time.
 
 ## Todo
 
 - Define `sym2.game_add`.
 -/
 
-variables {α β : Type*} (rα : α → α → Prop) (rβ : β → β → Prop)
+variables {α β : Type*} {rα : α → α → Prop} {rβ : β → β → Prop}
 
 namespace prod
+
+variables (rα rβ)
 
 /-- `game_add rα rβ x y` means that `x` can be reached from `y` by decreasing either entry. -/
 inductive game_add : α × β → α × β → Prop
@@ -61,6 +66,10 @@ game_add_iff
     exacts [game_add.snd rb, game_add.fst ra] }
 end
 
+lemma game_add_swap_swap_mk (a₁ a₂ : α) (b₁ b₂ : β) :
+  game_add rα rβ (a₁, b₁) (a₂, b₂) ↔ game_add rβ rα (b₁, a₁) (b₂, a₂) :=
+game_add_swap_swap rβ rα (b₁, a₁) (b₂, a₂)
+
 /-- `prod.game_add` is a `subrelation` of `prod.lex`. -/
 lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
 λ _ _ h, h.rec (λ _ _ b, prod.lex.left b b) (λ a _ _, prod.lex.right a)
@@ -74,12 +83,10 @@ end
 
 end prod
 
-variables {rα rβ}
-
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
   accessible under `prod.game_add rα rβ`. Notice that `prod.lex_accessible` requires the
   stronger condition `∀ b, acc rβ b`. -/
-lemma acc.game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (prod.game_add rα rβ) (a, b) :=
+lemma acc.prod_game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (prod.game_add rα rβ) (a, b) :=
 begin
   induction ha with a ha iha generalizing b,
   induction hb with b hb ihb,
@@ -90,7 +97,7 @@ end
 
 /-- The `prod.game_add` relation is well-founded. -/
 lemma well_founded.prod_game_add (hα : well_founded rα) (hβ : well_founded rβ) :
-  well_founded (prod.game_add rα rβ) := ⟨λ ⟨a, b⟩, (hα.apply a).game_add (hβ.apply b)⟩
+  well_founded (prod.game_add rα rβ) := ⟨λ ⟨a, b⟩, (hα.apply a).prod_game_add (hβ.apply b)⟩
 
 namespace prod
 
@@ -118,3 +125,65 @@ game_add.fix
 end prod
 
 namespace sym2
+
+variables (rα rβ)
+
+/-- `game_add rα x y` means that `x` can be reached from `y` by decreasing either entry. -/
+def game_add : sym2 α → sym2 α → Prop :=
+sym2.lift₂
+⟨λ a₁ b₁ a₂ b₂, prod.game_add rα rα (a₁, b₁) (a₂, b₂) ∨ prod.game_add rα rα (b₁, a₁) (a₂, b₂),
+  λ a₁ b₁ a₂ b₂, begin
+    rw [prod.game_add_swap_swap_mk _ _ b₁ b₂ a₁ a₂, prod.game_add_swap_swap_mk _ _ a₁ b₂ b₁ a₂],
+    simp [or_comm]
+  end⟩
+
+lemma game_add_mk_iff {rα} {a₁ a₂ b₁ b₂ : α} : game_add rα ⟦(a₁, b₁)⟧ ⟦(a₂, b₂)⟧ ↔
+  prod.game_add rα rα (a₁, b₁) (a₂, b₂) ∨ prod.game_add rα rα (b₁, a₁) (a₂, b₂) :=
+iff.rfl
+
+lemma _root_.prod.game_add.to_sym2 {rα} {a₁ a₂ b₁ b₂ : α}
+  (h : prod.game_add rα rα (a₁, b₁) (a₂, b₂)) : sym2.game_add rα ⟦(a₁, b₁)⟧ ⟦(a₂, b₂)⟧ :=
+game_add_mk_iff.2 $ or.inl $ h
+
+lemma game_add.fst {a₁ a₂ b : α} (h : rα a₁ a₂) : game_add rα ⟦(a₁, b)⟧ ⟦(a₂, b)⟧ :=
+(prod.game_add.fst h).to_sym2
+
+lemma game_add.snd {a b₁ b₂ : α} (h : rα b₁ b₂) : game_add rα ⟦(a, b₁)⟧ ⟦(a, b₂)⟧ :=
+(prod.game_add.snd h).to_sym2
+
+end sym2
+
+private lemma acc_game_add_aux {a b} (ha : acc rα a) (hb : acc rα b) :
+  acc (sym2.game_add rα) ⟦(a, b)⟧ ∧ acc (sym2.game_add rα) ⟦(b, a)⟧ :=
+begin
+  induction ha with a ha iha generalizing b,
+  induction hb with b hb ihb,
+  split; split; rintros ⟨c, d⟩ ((⟨_, _, _, rc⟩ | ⟨_, _, _, rd⟩) | (⟨_, _, _, rd⟩ | ⟨_, _, _, rc⟩)),
+  exacts [(iha c rc ⟨b, hb⟩).1, (ihb d rd).1, (iha d rd ⟨b, hb⟩).2, (ihb c rc).2,
+    (ihb c rc).2, (iha d rd ⟨b, hb⟩).2, (ihb d rd).1, (iha c rc ⟨b, hb⟩).1]
+end
+
+lemma _root_.acc.sym2_game_add {a b} (ha : acc rα a) (hb : acc rα b) :
+  acc (sym2.game_add rα) ⟦(a, b)⟧ := (acc_game_add_aux ha hb).1
+
+/-- The `sym2.game_add` relation is well-founded. -/
+lemma _root_.well_founded.sym2_game_add (h : well_founded rα) : well_founded (sym2.game_add rα) :=
+⟨λ i, sym2.induction_on i $ λ x y, (h.apply x).sym2_game_add (h.apply y)⟩
+
+
+/-- Recursion on the well-founded `sym2.game_add` relation. -/
+def game_add_swap.fix {C : α → α → Sort*} (hr : well_founded rα)
+  (IH : Π a₁ b₁, (Π a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) (a b : α) :
+  C a b :=
+@well_founded.fix (α × α) (λ x, C x.1 x.2) _ hr.sym2_game_add.of_quotient_lift₂
+  (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) (a, b)
+
+lemma game_add_swap.fix_eq {C : α → α → Sort*} (hr : well_founded rα)
+  (IH : Π a₁ b₁, (Π a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) (a b : α) :
+  game_add_swap.fix hr IH a b = IH a b (λ a' b' h, game_add_swap.fix hr IH a' b') :=
+by { rw [game_add_swap.fix, well_founded.fix_eq], refl }
+
+/-- Induction on the well-founded `sym2.game_add` relation. -/
+lemma game_add_swap.induction {C : α → α → Prop} : well_founded rα →
+  (∀ a₁ b₁, (∀ a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
+game_add_swap.fix

@@ -70,14 +70,18 @@ begin
     rw this, simp, refl,},
 
   -- TODO: this should be very clean, but isn't!!! please help me
-  apply category_theory.functor.ext,
-  rotate,
+  apply category_theory.functor.hext,
   { exact objeq, },
   { rintro Kop Lop KL,
-    simp,
-    dsimp [fis.to_surjective, ComplInfComp, eq_to_hom],
-    sorry,
-    }, -- ???
+    dsimp [ComplInfComp, ComplComp, fis.to_surjective, set.maps_to.restrict],
+    apply heq.symm, apply heq_of_cast_eq,
+    { dsimp [subtype.map],
+      ext,
+      -- dsimp [cast],
+      sorry,
+     },
+    { sorry, }
+  },
 end
 
 lemma Ends_equiv_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) :=

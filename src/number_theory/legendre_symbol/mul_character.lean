@@ -221,6 +221,11 @@ lemma map_zero {R : Type u} [comm_monoid_with_zero R] [nontrivial R] (χ : mul_c
   χ (0 : R) = 0 :=
 by rw [map_nonunit χ not_is_unit_zero]
 
+/-- If the domain is a ring `R`, then `χ (ring_char R) = 0`. -/
+lemma map_ring_char {R : Type u} [comm_ring R] [nontrivial R] (χ : mul_char R R') :
+  χ (ring_char R) = 0 :=
+by { rw ring_char.nat.cast_ring_char, exact mul_char.map_zero χ }
+
 noncomputable
 instance has_one : has_one (mul_char R R') := ⟨trivial R R'⟩
 
@@ -359,6 +364,14 @@ by simp only [is_nontrivial, ne.def, ext_iff, not_forall, one_apply_coe]
 
 /-- A multiplicative character is *quadratic* if it takes only the values `0`, `1`, `-1`. -/
 def is_quadratic (χ : mul_char R R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨ χ a = -1
+
+/-- If two values of quadratic characters with target `ℤ` agree after coercion into a ring
+of characteristic not `2`, then they agree in `ℤ`. -/
+lemma is_quadratic.eq_of_eq_coe {χ : mul_char R ℤ} (hχ : is_quadratic χ)
+  {χ' : mul_char R' ℤ} (hχ' : is_quadratic χ') [nontrivial R''] (hR'' : ring_char R'' ≠ 2)
+  (a : R) (a' : R') (h : (χ a : R'') = χ' a') :
+  χ a = χ' a' :=
+int.cast_inj_on_of_ring_char_ne_two hR'' (hχ a) (hχ' a') h
 
 /-- We can post-compose a multiplicative character with a ring homomorphism. -/
 @[simps]

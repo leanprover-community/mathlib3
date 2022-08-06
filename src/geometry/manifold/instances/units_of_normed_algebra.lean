@@ -83,32 +83,24 @@ begin
   rw cont_mdiff_iff,
   split,
   { apply h.continuous },
-  intros,
+  intros, -- show the function is actually the identity on the range of I ∘ e
   apply cont_diff_on.congr cont_diff_on_id,
-  intros z hz,
-  rw ext_chart_at_coe,
-  rw ext_chart_at_coe_symm,
-  rw chart_at_self_eq,
+  intros z hz, -- factorise into the chart (=e) and the model (=id)
+  rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],
   repeat {rw function.comp_app},
-  rw local_homeomorph.refl_apply,
-  rw id.def,
-  rw local_homeomorph.singleton_charted_space_chart_at_eq,
-  rw open_embedding.to_local_homeomorph_right_inv e,
+  rw [local_homeomorph.refl_apply, id.def, local_homeomorph.singleton_charted_space_chart_at_eq,
+    open_embedding.to_local_homeomorph_right_inv e],
   { rw model_with_corners.right_inv,
     { refl },
     apply set.mem_of_subset_of_mem _ hz.1,
     apply ext_chart_at_target_subset_range },
-  rw model_with_corners.symm,
-  rw ←set.mem_preimage,
+  rw model_with_corners.symm, -- show hz implies z is in range of I ∘ e
   have := hz.1,
-  rw ext_chart_at at this,
-  rw local_equiv.trans_target at this,
+  rw [ext_chart_at, local_equiv.trans_target] at this,
   have := this.2,
-  revert this,
-  apply set.mem_of_subset_of_mem,
-  apply set.preimage_mono,
-  rw local_homeomorph.singleton_charted_space_chart_at_eq,
-  rw open_embedding.to_local_homeomorph_target
+  rw [set.mem_preimage, local_homeomorph.singleton_charted_space_chart_at_eq,
+    open_embedding.to_local_homeomorph_target] at this,
+  exact this
 end
 
 lemma cont_mdiff_on_open_embedding_symm
@@ -125,27 +117,20 @@ begin
   split,
   { rw ←open_embedding.to_local_homeomorph_target,
     apply local_homeomorph.continuous_on_symm (open_embedding.to_local_homeomorph e h) },
-  intros,
+  intros, -- show the function is actually the identity on the range of I ∘ e
   apply cont_diff_on.congr cont_diff_on_id,
-  intros z hz,
-  rw ext_chart_at_coe,
-  rw ext_chart_at_coe_symm,
-  rw chart_at_self_eq,
+  intros z hz, -- factorise into the chart (=e) and the model (=id)
+  rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],
   repeat {rw function.comp_app},
-  rw local_homeomorph.refl_symm,
-  rw local_homeomorph.refl_apply,
-  rw id.def,
-  rw local_homeomorph.singleton_charted_space_chart_at_eq,
-  rw local_homeomorph.right_inv,
+  rw [local_homeomorph.refl_symm, local_homeomorph.refl_apply, id.def,
+    local_homeomorph.singleton_charted_space_chart_at_eq, local_homeomorph.right_inv],
   { rw model_with_corners.right_inv,
     { refl },
     apply set.mem_of_subset_of_mem _ hz.1,
-    apply ext_chart_at_target_subset_range },
-  rw open_embedding.to_local_homeomorph_target,
-  rw model_with_corners.symm,
-  rw ←set.mem_preimage,
+    apply ext_chart_at_target_subset_range }, -- show hz implies z is in range of I ∘ e
+  rw [open_embedding.to_local_homeomorph_target, model_with_corners.symm, ←set.mem_preimage],
   have := hz.2,
-  rw set.preimage_inter at this,
+  rw [set.preimage_inter] at this,
   exact this.1
 end
 
@@ -163,9 +148,7 @@ lemma cont_mdiff.of_comp_open_embedding
 begin
   have : f = (open_embedding.to_local_homeomorph e' h).symm ∘ e' ∘ f,
   { ext,
-    rw function.comp_app,
-    rw function.comp_app,
-    rw open_embedding.to_local_homeomorph_left_inv },
+    rw [function.comp_app, function.comp_app, open_embedding.to_local_homeomorph_left_inv] },
   rw this,
   apply cont_mdiff_on.comp_cont_mdiff _ hf,
   show set H',
@@ -192,7 +175,11 @@ open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 lemma cont_mdiff_coe {m : with_top ℕ} : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) m (coe : Rˣ → R) :=
 cont_mdiff_open_embedding 𝓘(𝕜, R) units.open_embedding_coe
 
-/-- Multiplication of units of a complete normed ring is a smooth map between manifolds. -/
+/-- Multiplication of units of a complete normed ring is a smooth map between manifolds.
+
+It suffices to show that `coe ∘ mul : Rˣ × Rˣ → R` is smooth. This function is equal to the usual
+ring multiplication composed with the embedding from `Rˣ × Rˣ` to `R × R`, and we know each of these
+factors is smooth. -/
 lemma smooth_mul :
   smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
 begin
@@ -211,15 +198,17 @@ begin
   apply cont_diff_mul
 end
 
-/-- Inversion of units of a complete normed ring is a smooth map between manifolds. -/
+/-- Inversion of units of a complete normed ring is a smooth map between manifolds.
+
+It suffices to show that `coe ∘ inv : Rˣ → R` is smooth. This function is equal to the composition
+`ring.inverse ∘ coe`, and we know each of these factors is smooth. -/
 lemma smooth_inv :
   smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
 begin
   apply cont_mdiff.of_comp_open_embedding,
   have : (coe : Rˣ → R) ∘ (λ x : Rˣ, x⁻¹) = ring.inverse ∘ coe,
   { ext, simp },
-  rw this,
-  rw cont_mdiff,
+  rw [this, cont_mdiff],
   intro,
   have : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) ⊤ (coe : Rˣ → R) := cont_mdiff_coe,
   rw cont_mdiff at this,

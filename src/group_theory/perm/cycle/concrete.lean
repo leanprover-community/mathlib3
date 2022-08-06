@@ -105,7 +105,7 @@ begin
   rw cycle_type_eq [l.attach.form_perm],
   { simp only [map, function.comp_app],
     rw [support_form_perm_of_nodup _ hl, card_to_finset, dedup_eq_self.mpr hl],
-    { simpa },
+    { simp },
     { intros x h,
       simpa [h, nat.succ_le_succ_iff] using hn } },
   { simp },

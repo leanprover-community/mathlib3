@@ -917,7 +917,7 @@ congr_fun₂ (congr_fun h _) _ _
 lemma funext₂ {f g : Π a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
 funext $ λ _, funext $ h _
 
-lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+lemma funext₃ {f g : Π a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
 funext $ λ _, funext₂ $ h _
 
 end equality

@@ -783,10 +783,12 @@ begin
       (integral_nonneg (λ ω, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
-lemma upcrossings_before_eq_sum (hN : 0 < N) (hab : a < b) :
+lemma upcrossings_before_eq_sum (hab : a < b) :
   upcrossings_before a b f N ω =
   ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing_time a b f N n ω < N}.indicator 1 i :=
 begin
+  by_cases hN : N = 0,
+  { simp [hN] },
   rw ← finset.sum_Ico_consecutive _ (nat.succ_le_succ zero_le')
     (nat.succ_le_succ (upcrossings_before_le f ω hab)),
   have h₁ : ∀ k ∈ finset.Ico 1 (upcrossings_before a b f N ω + 1),
@@ -795,7 +797,8 @@ begin
     rw finset.mem_Ico at hk,
     rw set.indicator_of_mem,
     { refl },
-    { refine upper_crossing_time_lt_of_le_upcrossings_before hN hab (nat.lt_succ_iff.1 hk.2) } },
+    { exact upper_crossing_time_lt_of_le_upcrossings_before (zero_lt_iff.2 hN) hab
+        (nat.lt_succ_iff.1 hk.2) } },
   have h₂ : ∀ k ∈ finset.Ico (upcrossings_before a b f N ω + 1) (N + 1),
     {n : ℕ | upper_crossing_time a b f N n ω < N}.indicator 1 k = 0,
   { rintro k hk,
@@ -811,16 +814,13 @@ end
 lemma adapted.measurable_upcrossings_before (hf : adapted ℱ f) (hab : a < b) :
   measurable (upcrossings_before a b f N) :=
 begin
-  by_cases hN : N = 0,
-  { rw [hN, upcrossings_before_zero'],
-    exact measurable_zero },
-  { have : upcrossings_before a b f N =
-      λ ω, ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing_time a b f N n ω < N}.indicator 1 i,
-    { ext ω,
-      exact upcrossings_before_eq_sum (zero_lt_iff.2 hN) hab },
-    rw this,
-    exact finset.measurable_sum _ (λ i hi, measurable.indicator measurable_const $
-      ℱ.le N _ (hf.is_stopping_time_upper_crossing_time.measurable_set_lt_of_pred N)) },
+  have : upcrossings_before a b f N =
+    λ ω, ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing_time a b f N n ω < N}.indicator 1 i,
+  { ext ω,
+    exact upcrossings_before_eq_sum hab },
+  rw this,
+  exact finset.measurable_sum _ (λ i hi, measurable.indicator measurable_const $
+    ℱ.le N _ (hf.is_stopping_time_upper_crossing_time.measurable_set_lt_of_pred N))
 end
 
 lemma adapted.integrable_upcrossings_before [is_finite_measure μ]

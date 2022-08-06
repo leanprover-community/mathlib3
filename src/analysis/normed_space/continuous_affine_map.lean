@@ -170,7 +170,7 @@ normed_add_comm_group.of_core _
         simp only [function.const_apply, coe_const, norm_eq_zero] at h₁,
         rw h₁,
         refl, },
-      { rw [norm_eq_zero_iff', cont_linear_eq_zero_iff_exists_const] at h₁,
+      { rw [norm_eq_zero', cont_linear_eq_zero_iff_exists_const] at h₁,
         obtain ⟨q, rfl⟩ := h₁,
         simp only [function.const_apply, coe_const, norm_le_zero_iff] at h₂,
         rw h₂,

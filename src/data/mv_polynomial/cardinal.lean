@@ -118,6 +118,6 @@ end
 of `#R`, `#σ` and `ℵ₀` -/
 lemma cardinal_mk_le_max {σ R : Type u} [comm_semiring R] :
   #(mv_polynomial σ R) ≤ max (max (#R) (#σ)) ℵ₀ :=
-by { apply cardinal_lift_mk_le_max.trans, rw [lift_id, lift_id] }
+cardinal_lift_mk_le_max.trans $ by rw [lift_id, lift_id]
 
 end mv_polynomial

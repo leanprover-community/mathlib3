@@ -8,6 +8,7 @@ import data.fun_like.basic
 import logic.embedding
 import logic.equiv.set
 import order.rel_classes
+import order.well_founded
 
 /-!
 # Relation homomorphisms, embeddings, isomorphisms
@@ -184,6 +185,15 @@ theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
   (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
 ⟨λ a, hs.1 _, λ a b h, hs.2.1 h, λ a b c h₁ h₂, hs.2.2 h₁ h₂⟩
 
+/-- A relation embedding between the lift of a relation and the relation. -/
+@[simps] noncomputable def quotient.rel_embedding [s : setoid α] {r : α → α → Prop}
+  (H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂) : quotient.lift₂ r H ↪r r :=
+⟨embedding.quotient α, begin
+  refine λ x y, quotient.induction_on₂ x y (λ a b, _),
+  apply iff_iff_eq.2 (H _ _ _ _ _ _);
+  apply quotient.mk_out
+end⟩
+
 namespace rel_embedding
 
 /-- A relation embedding is also a relation homomorphism -/
@@ -306,6 +316,17 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+
+/-- If a relation is well-founded, so is its lift. -/
+theorem _root_.well_founded.to_quotient_lift₂ [s : setoid α] {r : α → α → Prop}
+  (H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂) (hr : well_founded r) :
+  well_founded (quotient.lift₂ r H) :=
+(quotient.rel_embedding H).well_founded hr
+
+@[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop}
+  (H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂) :
+  well_founded (quotient.lift₂ r H) ↔ well_founded r :=
+⟨well_founded.of_quotient_lift₂, well_founded.to_quotient_lift₂ H⟩
 
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it

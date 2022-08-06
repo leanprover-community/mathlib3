@@ -697,7 +697,7 @@ begin
   { intros i x,
     refine ⟨λ h, _, λ h, _⟩,
     { rwa [← sub_le_sub_iff_right a,
-        ← lattice_ordered_comm_group.pos_of_pos_pos (lt_of_lt_of_le hab' h)] },
+        ← lattice_ordered_comm_group.pos_eq_self_of_pos_pos (lt_of_lt_of_le hab' h)] },
     { rw ← sub_le_sub_iff_right a at h,
       rwa lattice_ordered_comm_group.pos_of_nonneg _ (le_trans hab'.le h) } },
   have hf' : ∀ x i, (f i x - a)⁺ ≤ 0 ↔ f i x ≤ a,

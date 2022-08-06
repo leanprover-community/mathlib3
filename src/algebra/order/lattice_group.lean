@@ -395,8 +395,8 @@ end
 lemma pos_of_one_le (a : α) (h : 1 ≤ a) : a⁺ = a :=
 by { rw m_pos_part_def, exact sup_of_le_left h, }
 
-@[to_additive] -- pos_of_pos_pos
-lemma pos_of_one_lt_pos {α} [linear_order α] [comm_group α]
+@[to_additive?] -- pos_eq_self_of_pos_pos
+lemma pos_eq_self_of_one_lt_pos {α} [linear_order α] [comm_group α]
   {x : α} (hx : 1 < x⁺) : x⁺ = x :=
 begin
   rw [m_pos_part_def, right_lt_sup, not_le] at hx,

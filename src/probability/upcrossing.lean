@@ -615,11 +615,13 @@ begin
       (le_trans this upper_crossing_time_le_lower_crossing_time)]
 end
 
-lemma mul_upcrossings_before_le (hf : a ≤ f N ω) (hN : 0 < N) (hab : a < b) :
+lemma mul_upcrossings_before_le (hf : a ≤ f N ω) (hab : a < b) :
   (b - a) * upcrossings_before a b f N ω ≤
   ∑ k in finset.range N, upcrossing_strat a b f N k ω * (f (k + 1) - f k) ω :=
 begin
   classical,
+  by_cases hN : N = 0,
+  { simp [hN] },
   simp_rw [upcrossing_strat, finset.sum_mul, ← set.indicator_mul_left, pi.one_apply,
     pi.sub_apply, one_mul],
   rw finset.sum_comm,
@@ -651,7 +653,7 @@ begin
           (stopped_value f (upper_crossing_time a b f N (k + 1)) ω -
            stopped_value f (lower_crossing_time a b f N k) ω) :
     begin
-      refine finset.sum_le_sum (λ i hi, le_sub_of_le_upcrossings_before hN hab _),
+      refine finset.sum_le_sum (λ i hi, le_sub_of_le_upcrossings_before (zero_lt_iff.2 hN) hab _),
       rwa finset.mem_range at hi,
     end
     ...≤ ∑ k in finset.range N,
@@ -677,16 +679,16 @@ begin
 end
 
 lemma integral_mul_upcrossings_before_le_integral [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) (hfN : ∀ ω, a ≤ f N ω) (hfzero : 0 ≤ f 0) (hN : 0 < N) (hab : a < b) :
+  (hf : submartingale f ℱ μ) (hfN : ∀ ω, a ≤ f N ω) (hfzero : 0 ≤ f 0)  (hab : a < b) :
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[f N] :=
 calc (b - a) * μ[upcrossings_before a b f N]
-     ≤ μ[∑ k in finset.range N, upcrossing_strat a b f N k * (f (k + 1) - f k)] :
+    ≤ μ[∑ k in finset.range N, upcrossing_strat a b f N k * (f (k + 1) - f k)] :
 begin
   rw ← integral_mul_left,
   refine integral_mono_of_nonneg _ ((hf.sum_upcrossing_strat_mul a b N).integrable N) _,
   { exact eventually_of_forall (λ ω, mul_nonneg (sub_nonneg.2 hab.le) (nat.cast_nonneg _)) },
   { refine eventually_of_forall (λ ω, _),
-    simpa using mul_upcrossings_before_le (hfN ω) hN hab },
+    simpa using mul_upcrossings_before_le (hfN ω) hab },
 end
   ...≤ μ[f N] - μ[f 0] : hf.sum_mul_upcrossing_strat_le
   ...≤ μ[f N] : (sub_le_self_iff _).2 (integral_nonneg hfzero)
@@ -745,13 +747,13 @@ lemma upcrossings_before_pos_eq (hab : a < b) :
 by simp_rw [upcrossings_before, (crossing_pos_eq hab).1]
 
 lemma mul_integral_upcrossings_before_le_integral_pos_part_aux1 [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) (hN : 0 < N) (hab : a < b) :
+  (hf : submartingale f ℱ μ) (hab : a < b) :
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ ω, (f N ω - a)⁺] :=
 begin
   refine le_trans (le_of_eq _) (integral_mul_upcrossings_before_le_integral
     (hf.sub_martingale (martingale_const _ _ _)).pos
     (λ ω, lattice_ordered_comm_group.pos_nonneg _)
-    (λ ω, lattice_ordered_comm_group.pos_nonneg _) hN (sub_pos.2 hab)),
+    (λ ω, lattice_ordered_comm_group.pos_nonneg _) (sub_pos.2 hab)),
   simp_rw [sub_zero, ← upcrossings_before_pos_eq hab],
   refl,
 end
@@ -759,14 +761,7 @@ end
 lemma mul_integral_upcrossings_before_le_integral_pos_part_aux2 [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hab : a < b) :
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ ω, (f N ω - a)⁺] :=
-begin
-  by_cases hN : N = 0,
-  { subst hN,
-    simp_rw [← bot_eq_zero, upcrossings_before_bot, bot_eq_zero, integral_const,
-      algebra.id.smul_eq_mul, nat.cast_zero, mul_zero],
-    exact integral_nonneg (λ ω, lattice_ordered_comm_group.pos_nonneg _) },
-  { exact mul_integral_upcrossings_before_le_integral_pos_part_aux1 hf (zero_lt_iff.2 hN) hab }
-end
+mul_integral_upcrossings_before_le_integral_pos_part_aux1 hf hab
 
 /-- **Doob's upcrossing estimate**: given a real valued discrete submartingale `f` and real
 values `a` and `b`, we have `(b - a) * 𝔼[upcrossings_before a b f N] ≤ 𝔼[(f N - a)⁺]` where

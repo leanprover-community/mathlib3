@@ -8,6 +8,8 @@ import group_theory.finiteness
 import ring_theory.algebra_tower
 import ring_theory.ideal.quotient
 import ring_theory.noetherian
+import algebra.module.projective
+import linear_algebra.dimension
 
 /-!
 # Finiteness conditions in commutative algebra
@@ -40,6 +42,11 @@ class module.finite [semiring R] [add_comm_monoid M] [module R M] :
 over the base ring as algebra. -/
 class algebra.finite_type [comm_semiring R] [semiring A] [algebra R A] : Prop :=
 (out : (⊤ : subalgebra R A).fg)
+
+/-- A module over a semiring is `finite` if it is the quotient of a
+polynomial ring in `n` variables by a finitely generated ideal. -/
+class module.finite_presentation [semiring R] [add_comm_monoid M] [module R M] : Prop :=
+(out : ∃ (n : ℕ) (f : (fin n → R) →ₗ[R] M), surjective f ∧ f.ker.fg)
 
 /-- An algebra over a commutative semiring is `finite_presentation` if it is the quotient of a
 polynomial ring in `n` variables by a finitely generated ideal. -/
@@ -104,6 +111,16 @@ begin
   exact this
 end
 
+noncomputable
+abbreviation min_generator_card : ℕ := (⊤ : submodule R M).min_generator_card
+
+noncomputable
+abbreviation repr [h : finite R M] : (fin (min_generator_card R M) → R) →ₗ[R] M :=
+h.out.repr
+
+lemma repr_surjective [finite R M] : function.surjective (repr R M) :=
+linear_map.range_eq_top.mp (fg.range_repr _)
+
 variables {R M}
 
 instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
@@ -143,6 +160,132 @@ end algebra
 end finite
 
 end module
+
+namespace module.finite_presentation
+
+section
+
+variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+
+@[priority 100]
+instance of_subsingleton [subsingleton M] : module.finite_presentation R M :=
+⟨⟨0, 0, λ x, ⟨0, subsingleton.elim _ _⟩, is_noetherian.noetherian _⟩⟩
+
+noncomputable
+def repr_n [h : module.finite_presentation R M] : ℕ := h.1.some
+
+noncomputable
+def repr [h : module.finite_presentation R M] : (fin (repr_n R M) → R) →ₗ[R] M := h.1.some_spec.some
+
+lemma repr_surjective [h : module.finite_presentation R M] : function.surjective (repr R M) :=
+h.1.some_spec.some_spec.1
+
+lemma ker_repr_fg [h : module.finite_presentation R M] : (repr R M).ker.fg :=
+h.1.some_spec.some_spec.2
+
+noncomputable
+def repr_m [module.finite_presentation R M] : ℕ := (repr R M).ker.min_generator_card
+
+noncomputable
+def repr2 [module.finite_presentation R M] : (fin (repr_m R M) → R) →ₗ[R] (fin (repr_n R M) → R) :=
+(ker_repr_fg R M).repr
+
+lemma repr2_range [module.finite_presentation R M] : (repr2 R M).range = (repr R M).ker :=
+(ker_repr_fg R M).range_repr
+
+lemma repr_repr2 [module.finite_presentation R M] (x) : repr R M (repr2 R M x) = 0 :=
+begin
+  change (repr2 R M) x ∈ (repr R M).ker,
+  rw ← repr2_range,
+  exact set.mem_range_self _
+end
+
+lemma repr_comp_repr2 [module.finite_presentation R M] : (repr R M).comp (repr2 R M) = 0 :=
+linear_map.ext (repr_repr2 R M)
+
+/-!
+We have now constructed a right exact sequence for a finitely presented module:
+`0 ⟵ M ⟵ R ^ (repr_n R M) ⟵ R ^ (repr_m R M)`
+where the morphisms are `repr R M` and `repr2 R M` respectively.
+-/
+
+@[priority 100]
+instance to_finite [module.finite_presentation R M] : module.finite R M :=
+module.finite.of_surjective _ (repr_surjective R M)
+
+end
+
+variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+
+variables {R M N}
+
+/- This is not an instance as it creates a loop with `module.finite_presentation.to_finite`. -/
+lemma of_free_of_finite [module.free R M] [module.finite R M] : module.finite_presentation R M :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { haveI := module.subsingleton R M, apply_instance },
+  obtain ⟨⟨s, hs⟩⟩ := id ‹module.finite R M›,
+  haveI := basis_fintype_of_finite_spans ↑s hs (module.free.choose_basis R M),
+  have e := ((module.free.repr R M).trans (finsupp.linear_equiv_fun_on_fintype _ _ _)).trans
+    (linear_equiv.Pi_congr_left' _ _ (fintype.equiv_fin _)),
+  refine ⟨⟨_, e.symm.to_linear_map, e.symm.surjective, _⟩⟩,
+  convert submodule.fg_bot,
+  exact linear_map.ker_eq_bot.mpr e.symm.injective
+end
+
+instance : module.finite_presentation R R :=
+of_free_of_finite
+
+lemma of_finite_presentation_of_surjective [module.finite_presentation R M] (f : M →ₗ[R] N)
+  (hf : function.surjective f) (hf' : f.ker.fg) : module.finite_presentation R N :=
+⟨⟨repr_n R M, f.comp (repr R M), hf.comp (repr_surjective R M),
+  submodule.fg_ker_comp _ _ (ker_repr_fg R M) hf' (repr_surjective R M)⟩⟩
+
+lemma iff_finite [is_noetherian_ring R] : module.finite_presentation R M ↔ module.finite R M :=
+begin
+  refine ⟨λ _, by exactI infer_instance, _⟩,
+  introI h,
+  exact ⟨⟨_, module.finite.repr R M, module.finite.repr_surjective R M, is_noetherian.noetherian _⟩⟩
+end
+
+lemma ker_fg_of_finite_of_surjective [module.finite R M] [module.finite_presentation R N]
+  (f : M →ₗ[R] N) (hf : function.surjective f) : f.ker.fg :=
+begin
+  obtain ⟨g, hg⟩ := module.projective_lifting_property f (repr R N) hf,
+  let f' : f.ker.map (g.comp (repr2 R N)).range.mkq →ₗ[R] M ⧸ g.range :=
+    linear_map.comp (submodule.mapq _ _ linear_map.id $ linear_map.range_comp_le_range _ _)
+      (submodule.subtype _),
+  have h₁ : function.injective f',
+  { rw [← linear_map.ker_eq_bot, eq_bot_iff],
+    rintros ⟨_, ⟨x, hx, rfl⟩⟩ (e : g.range.mkq x = 0),
+    ext,
+    apply (submodule.quotient.mk_eq_zero _).mpr,
+    obtain ⟨x, rfl⟩ := (submodule.quotient.mk_eq_zero _).mp e,
+    rw linear_map.range_comp,
+    apply submodule.mem_map_of_mem,
+    rwa [repr2_range, ← hg] },
+  have h₂ : function.surjective f',
+  { intro x,
+    obtain ⟨x, rfl⟩ := submodule.mkq_surjective _ x,
+    obtain ⟨y, e⟩ := repr_surjective R N (f x),
+    rw [← hg, linear_map.comp_apply, eq_comm, ← sub_eq_zero, ← map_sub] at e,
+    refine ⟨⟨_, submodule.mem_map_of_mem e⟩, _⟩,
+    change g.range.mkq (x - g y) = g.range.mkq x,
+    rw [map_sub, sub_eq_self],
+    exact (submodule.quotient.mk_eq_zero _).mpr (linear_map.mem_range_self g y) },
+  have e : f.ker.map (g.comp (repr2 R N)).range.mkq ≃ₗ[R] M ⧸ g.range :=
+    linear_equiv.of_bijective f' h₁ h₂,
+  have : (g.comp (repr2 R N)).range ≤ f.ker,
+  { rintro _ ⟨v, rfl⟩, change (f.comp g) (repr2 R N v) = 0, rw [hg, repr_repr2] },
+  apply submodule.fg_of_fg_map_of_fg_inf_ker (g.comp (repr2 R N)).range.mkq,
+  { rw [← submodule.fg_top, ← module.finite_def],
+    exact module.finite.of_surjective (e.symm.to_linear_map.comp $ submodule.mkq _)
+      (e.symm.surjective.comp (submodule.mkq_surjective _)) },
+  { rw [submodule.ker_mkq, inf_eq_right.mpr this, linear_map.range_eq_map],
+    exact module.finite.out.map _ }
+end
+
+end module.finite_presentation
 
 instance module.finite.base_change [comm_semiring R] [semiring A] [algebra R A]
   [add_comm_monoid M] [module R M] [h : module.finite R M] :
@@ -434,6 +577,84 @@ end
 end finite_presentation
 
 end algebra
+
+namespace module.finite_presentation
+
+lemma _root_.pi.linear_map_eq_fintype_total {ι R M : Type*} [decidable_eq ι] [fintype ι] [semiring R] [add_comm_monoid M]
+  [module R M] (f : (ι → R) →ₗ[R] M) :
+  f = fintype.total ι M R (λ i, f (pi.single i 1)) :=
+begin
+  ext,
+  dsimp,
+  rw [fintype.total_apply_single, one_smul],
+end
+
+lemma fintype.total_comp_left {ι R M A : Type*} [decidable_eq ι] [fintype ι] [comm_semiring R]
+  [semiring A] [algebra R A] [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+  (v : ι → M) (x : ι → R) :
+  fintype.total ι M A v ((algebra_map R A).comp_left ι x) = fintype.total ι M R v x :=
+begin
+  rw [fintype.total_apply, fintype.total_apply],
+  apply fintype.sum_congr,
+  exact λ k, algebra_map_smul _ _ _
+end
+
+lemma fintype.total_comp_comp_left {ι R M A : Type*} [decidable_eq ι] [fintype ι] [comm_semiring R]
+  [semiring A] [algebra R A] [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+  (v : ι → M) (x : ι → R) :
+  ((fintype.total ι M A v).restrict_scalars R).comp
+    ((algebra.of_id R A).comp_left ι).to_linear_map = fintype.total ι M R v :=
+linear_map.ext (fintype.total_comp_left v)
+.
+lemma of_restrict_scalars_finite_presentation (R A M : Type*) [comm_ring R] [comm_ring A]
+  [add_comm_group M] [module R M] [module A M] [algebra R A] [is_scalar_tower R A M]
+  [hRA : algebra.finite_type R A] [module.finite_presentation R M] :
+  module.finite_presentation A M :=
+begin
+  refine ⟨⟨_, (fintype.total (fin $ repr_n R M) M A (λ i, repr R M $ pi.single i 1)), _, _⟩⟩,
+  sorry; { have e : repr R M = fintype.total (fin $ repr_n R M) M R (λ i, repr R M $ pi.single i 1),
+    { ext, dsimp [linear_map.single], rw [fintype.total_apply_single R i 1, one_smul] },
+    have := repr_surjective R M,
+    rw e at this,
+    rw [← linear_map.range_eq_top, fintype.range_total] at this ⊢,
+    rw [← submodule.restrict_scalars_inj R, submodule.restrict_scalars_top],
+    rw eq_top_iff at this ⊢,
+    refine this.trans (submodule.span_le_restrict_scalars _ _ _) },
+  obtain ⟨n, f, hf⟩ := algebra.finite_type.iff_quotient_mv_polynomial''.mp hRA,
+  obtain ⟨s, hs⟩ := ker_repr_fg R M,
+  have := λ (i : fin n) (j : fin (repr_n R M)),
+    repr_surjective R M (f (mv_polynomial.X i) • (repr R M $ pi.single j 1)),
+  choose a ha,
+  let a' : fin n → fin (repr_n R M) → fin (repr_n R M) → A :=
+    λ i j, (algebra_map R A).comp_left _ (a i j) - pi.single j (f (mv_polynomial.X i)),
+  refine ⟨(set.range (function.uncurry a')).to_finset ∪ s.image ((algebra_map R A).comp_left _), _⟩,
+  rw [finset.coe_union, set.coe_to_finset, finset.coe_image],
+  apply le_antisymm,
+  sorry; { rw [submodule.span_le, set.union_subset_iff, set.range_subset_iff, set.image_subset_iff],
+    split,
+    { rintros ⟨i, j⟩,
+      change fintype.total _ _ _ _ (_ - _) = _,
+      rw [map_sub, fintype.total_apply_single, fintype.total_comp_left, sub_eq_zero,
+        ← pi.linear_map_eq_fintype_total],
+      exact ha _ _ },
+    { intros x hx,
+      change fintype.total _ _ _ _ _ = _,
+      rw [fintype.total_comp_left, ← pi.linear_map_eq_fintype_total],
+      change x ∈ (repr R M).ker,
+      rw ← hs,
+      exact submodule.subset_span hx } },
+  { intros x hx,
+    have := λ i, hf (x i),
+    choose y hy,
+    have : x = f.comp_left _ y := (funext hy).symm,
+    subst this, clear hy,
+    change y ∈ ((submodule.span A _).restrict_scalars R).comap (f.comp_left (fin (repr_n R M))).to_linear_map,
+    -- change
+
+  }
+end
+
+end module.finite_presentation
 
 end module_and_algebra
 

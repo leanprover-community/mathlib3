@@ -11,6 +11,7 @@ import ring_theory.ideal.operations
 import order.compactly_generated
 import linear_algebra.linear_independent
 import algebra.ring.idempotents
+import fintype_total
 
 /-!
 # Noetherian rings and modules
@@ -341,6 +342,44 @@ begin
       ←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
     exact ⟨t, ssup⟩, },
 end
+.
+
+noncomputable
+def min_generator_card (p : submodule R M) : ℕ :=
+  Inf (finset.card '' { s : finset M | span R (s : set M) = p })
+.
+
+lemma fg_iff_card_finset_nonempty {p : submodule R M} :
+  p.fg ↔ set.nonempty (finset.card '' { s : finset M | span R (s : set M) = p }) :=
+set.nonempty_image_iff.symm
+
+lemma fg.exists_generator_eq_min_generator_card {p : submodule R M} (h : p.fg) :
+  ∃ f : fin p.min_generator_card → M, span R (set.range f) = p :=
+begin
+  obtain ⟨s, h₁, h₂⟩ : p.min_generator_card ∈ _ := nat.Inf_mem (fg_iff_card_finset_nonempty.mp h),
+  rw ← h₂,
+  refine ⟨subtype.val ∘ s.equiv_fin.symm, _⟩,
+  rwa [set.range_comp, set.range_iff_surjective.mpr (equiv.surjective _), set.image_univ,
+    subtype.range_val]
+end
+
+noncomputable
+def fg.min_generator {p : submodule R M} (h : p.fg) : fin p.min_generator_card → M :=
+h.exists_generator_eq_min_generator_card.some
+
+lemma fg.span_min_generator_range {p : submodule R M} (h : p.fg) :
+  span R (set.range h.min_generator) = p :=
+h.exists_generator_eq_min_generator_card.some_spec
+
+lemma fg.min_generator_mem {p : submodule R M} (h : p.fg) (i) : h.min_generator i ∈ p :=
+by { conv_rhs { rw ← h.span_min_generator_range }, exact subset_span (set.mem_range_self i) }
+
+noncomputable
+def fg.repr {p : submodule R M} (h : p.fg) : (fin p.min_generator_card → R) →ₗ[R] M :=
+fintype.total _ _ _ h.min_generator
+
+lemma fg.range_repr {p : submodule R M} (h : p.fg) : h.repr.range = p :=
+by rw [fg.repr, fintype.range_total, h.span_min_generator_range]
 
 end submodule
 

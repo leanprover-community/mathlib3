@@ -1,6 +1,7 @@
 import ring_theory.algebraic
 import analysis.transcendental.e_transcendental_lemmas
-import analysis.transcendental.small_lemmas
+import analysis.transcendental.basic
+import data.real.irrational
 
 noncomputable theory
 open small_lemmas e_transcendental_lemmas
@@ -37,7 +38,7 @@ begin
     have triv' : (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree
                 = ∑ i in finset.range n, ((polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree,
     {
-      apply prod_deg,
+      refine polynomial.nat_degree_prod (finset.range n) _ _,
       intros i hi, intro rid,
       replace rid := @pow_eq_zero (ℤ[X]) _ _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
       rw sub_eq_zero at rid,
@@ -148,7 +149,7 @@ lemma coe_J (g : ℤ[X]) (p : ℕ) :
 begin
   rw ring_hom.map_sum, apply finset.sum_congr, exact rfl,
   intros i hi, rw ring_hom.map_sum, apply finset.sum_congr, refl,
-  intros j hj, rw ring_hom.map_mul, simp only [ring_hom.eq_int_cast], apply mul_eq_mul', exact rfl, rw f_eval_on_ℝ_nat, simp only [ring_hom.eq_int_cast],
+  intros j hj, rw ring_hom.map_mul, simp only [ring_hom.eq_int_cast], rw f_eval_on_ℝ_nat, simp only [ring_hom.eq_int_cast],
 end
 
 theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0)
@@ -1122,12 +1123,6 @@ begin
   have eq1 : g.nat_degree * p = p * g.nat_degree, rw mul_comm, rw eq1, exact ineq4,
 end
 
-
-lemma sum_sub_sum1 (m : ℕ) (f : ℕ -> ℂ) : (∑ i in finset.range m.succ, f i) - (∑ i in finset.range m, f i) = f m :=
-begin
-  rw [finset.sum_range_succ, add_sub_cancel'],
-end
-
 lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, N < n -> M ^ (n+1) < (n.factorial) :=
 begin
 by_cases h:  (M = 0),
@@ -1228,19 +1223,6 @@ theorem supp_after_change (f : ℤ[X]) (hf : f ≠ 0) :
   (make_const_term_nonzero f hf).support = finset.image (λ i : ℕ, i-(min_degree_term f hf)) f.support :=
 by simp [make_const_term_nonzero]
 
-theorem aeval_ (f : ℤ[X]) (r : ℝ) : @polynomial.aeval ℤ ℝ _ _ _ r f = ∑ i in f.support, (f.coeff i : ℝ) * r ^ i :=
-begin
-  rw [polynomial.aeval_def, polynomial.eval₂, polynomial.sum],
-  apply congr_arg, ext, simp only [ring_hom.eq_int_cast],
-end
-
-theorem non_zero_after_change (f : ℤ[X]) (hf : f ≠ 0) : (make_const_term_nonzero f hf) ≠ 0 :=
-begin
-  intro rid, rw polynomial.ext_iff at rid, simp only [polynomial.coeff_zero] at rid,
-  replace rid := rid 0,
-  exact coeff_zero_after_change f hf rid,
-end
-
 theorem coeff_sum (f : ℕ -> (ℤ[X])) (s : finset ℕ) (n : ℕ) : (∑ i in s, f i).coeff n = (∑ i in s, (f i).coeff n) :=
 begin
     apply finset.induction_on s, simp only [finset.sum_empty, polynomial.coeff_zero],
@@ -1316,18 +1298,6 @@ theorem non_zero_root_same (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r 
 begin
   have eq1 := transform_eq f hf, rw eq1 at root_r, simp only [polynomial.aeval_X, alg_hom.map_pow, alg_hom.map_mul, mul_eq_zero] at root_r,
   cases root_r, exact root_r, replace root_r := pow_eq_zero root_r, exfalso, exact r_nonzero root_r,
-end
-
-theorem nat_degree_decrease (f:ℤ[X]) (hf : f ≠ 0) : (make_const_term_nonzero f hf).nat_degree ≤ f.nat_degree :=
-begin
-  have transform_eq := transform_eq f hf,
-  have eq1 := @polynomial.nat_degree_mul ℤ _ _ (make_const_term_nonzero f hf) (polynomial.X ^ min_degree_term f hf) _ _,
-  have triv : (make_const_term_nonzero f hf * polynomial.X ^ min_degree_term f hf).nat_degree = f.nat_degree,
-    apply congr_arg, exact eq.symm transform_eq,
-  rw triv at eq1, exact nat.le.intro (eq.symm eq1),
-  intro rid, have contra := polynomial.ext_iff.1 rid, simp only [polynomial.coeff_zero] at contra, replace contra := contra 0,
-  exact coeff_zero_after_change f hf contra,
-  intro contra, replace contra := polynomial.ext_iff.1 (pow_eq_zero contra) 1, simp only [polynomial.coeff_X_one, one_ne_zero, polynomial.coeff_zero] at contra, exact contra,
 end
 
 notation `transcendental` x := ¬(is_algebraic ℤ x)
@@ -1421,54 +1391,9 @@ begin
   exact e_transcendental alg_e,
 end
 
-theorem zero_algebraic : is_algebraic ℤ (0 : ℝ) :=
-begin
-  use polynomial.X,
-  split, intro rid, rw polynomial.ext_iff at rid,
-  simp only [polynomial.coeff_zero] at rid,
-  replace rid := rid 1,
-  rw polynomial.coeff_X at rid,
-  simp only [if_true, eq_self_iff_true, one_ne_zero] at rid, exact rid,
-  simp only [polynomial.aeval_X],
-end
+theorem transcendental_irrational {x : ℝ} (trans_x : transcendental x) : irrational x :=
+transcendental.irrational $ (transcendental_iff_transcendental_over_ℚ x).mp trans_x
 
-theorem transcendental_irrational {x : ℝ} (trans_x : transcendental x) : irrational' x :=
-begin
-  by_cases (x = 0),
-  rw h at trans_x, exfalso, exact trans_x zero_algebraic,
+theorem e_irrational : irrational e := transcendental_irrational e_transcendental
 
-
-  by_contra rid,
-  unfold irrational' at rid,
-  simp only [gt_iff_lt, not_forall, ne.def, not_imp, not_not] at rid,
-  rcases rid with ⟨a, b, hb, H⟩,
-  set p : (ℤ[X]) := polynomial.C b * polynomial.X - polynomial.C a with hp,
-  have x_alg : is_algebraic ℤ x,
-  {
-    use p, split, intro rid,
-    rw polynomial.ext_iff at rid,
-    replace rid := rid 0,
-    simp only [zero_sub, polynomial.coeff_X_zero, polynomial.mul_coeff_zero, polynomial.coeff_sub, neg_eq_zero, polynomial.coeff_zero, mul_zero] at rid,
-    rw polynomial.coeff_C at rid,
-    simp only [if_true, eq_self_iff_true] at rid,
-    rw rid at H,
-    simp only [int.cast_zero, euclidean_domain.zero_div, sub_zero] at H,
-    exact h H,
-
-    simp only [polynomial.aeval_X, alg_hom.map_sub, alg_hom.map_mul],
-    rw polynomial.aeval_C, rw polynomial.aeval_C,
-    simp only [ring_hom.eq_int_cast],
-    rw sub_eq_zero at H ⊢,
-    rw eq_div_iff at H,
-    rwa mul_comm, norm_cast at ⊢ hb,
-    intro rid2, linarith,
-  },
-  exact trans_x x_alg,
-end
-
-theorem e_irrational : irrational' e := transcendental_irrational e_transcendental
-
-theorem e_pow_n_irrational (n : ℕ) (hn : 1 ≤ n) : irrational' (e ^ n) := transcendental_irrational (e_pow_transcendental n hn)
-
-
--- #lint
+theorem e_pow_n_irrational (n : ℕ) (hn : 1 ≤ n) : irrational (e ^ n) := transcendental_irrational (e_pow_transcendental n hn)

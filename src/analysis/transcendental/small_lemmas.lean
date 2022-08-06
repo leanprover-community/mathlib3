@@ -16,10 +16,6 @@ begin
   rw finset.sum_insert, exact ha, exact ha,
 end
 
-theorem eval₂_sum' (s : finset ℕ) (g : ℤ →+* ℝ) (f : ℕ -> (polynomial ℤ)) (t : ℝ) :
-  polynomial.eval₂ g t (∑ i in s, f i) = ∑ i in s, polynomial.eval₂ g t (f i) :=
-polynomial.eval₂_finset_sum _ _ _ _
-
 theorem eval_sum' (s : finset ℕ) (f : ℕ -> (polynomial ℤ)) (t : ℤ) : polynomial.eval t (∑ i in s, f i) = ∑ i in s, polynomial.eval t (f i) :=
 begin
   apply finset.induction_on s, simp only [finset.sum_empty, polynomial.eval_zero],
@@ -30,11 +26,6 @@ theorem eval_prod' (s : finset ℕ) (f : ℕ -> (polynomial ℤ)) (t : ℤ) : po
 begin
   apply finset.induction_on s, simp only [polynomial.eval_one, finset.prod_empty],
   intros a s ha ih, rw finset.prod_insert, rw polynomial.eval_mul, rw ih, rw finset.prod_insert, exact ha, exact ha,
-end
-
-theorem same_sum {s : finset ℕ} (f g : ℕ -> ℝ) (h : ∀ i ∈ s, f i = g i) : (∑ i in s, f i) = ∑ i in s, g i :=
-begin
-exact finset.sum_congr rfl h,
 end
 
 /--
@@ -193,28 +184,6 @@ begin
     },
 end
 
-theorem prod_deg (s : ℕ) (f : ℕ -> polynomial ℤ) (hf : ∀ i ∈ finset.range s, f i ≠ 0) : (∏ i in finset.range s, f i).nat_degree = ∑ i in finset.range s, (f i).nat_degree :=
-begin
-  induction s with s ih,
-  simp only [polynomial.nat_degree_one, finset.sum_empty, finset.range_zero, finset.prod_empty],
-
-  rw finset.sum_range_succ, rw finset.prod_range_succ,
-  have triv : (∀ (i : ℕ), i ∈ finset.range s → f i ≠ 0),
-  {
-    intros i hi, apply hf, simp only [finset.mem_range] at hi ⊢, exact nat.lt.step hi,
-  },
-  replace ih := ih triv, rw <-ih, apply polynomial.nat_degree_mul,
-  swap,
-  {apply hf, simp only [finset.self_mem_range_succ]},
-  intro rid, rw [finset.prod_eq_zero_iff] at rid,
-  choose a ha using rid,
-  refine hf a _ ha.2, simp only [finset.mem_range] at ha ⊢, exact nat.lt.step ha.left,
-end
-
-theorem degree_0_constant {α : Type} {inst : comm_semiring α} (f : polynomial α) (hf : f.nat_degree = 0) :
-    ∃ a : α, f = (polynomial.C a) :=
-⟨_, polynomial.eq_C_of_nat_degree_eq_zero hf⟩
-
 theorem derivative_emb (f : polynomial ℤ) : (polynomial.map ℤembℝ f.derivative) = (polynomial.map ℤembℝ f).derivative :=
 begin
     ext, rw polynomial.coeff_derivative, rw polynomial.coeff_map, rw polynomial.coeff_derivative, rw polynomial.coeff_map,
@@ -223,22 +192,6 @@ end
 
 -- power manipulation
 lemma triv (r : ℝ) (n : ℕ) : r ^ n = r ^ (n : ℤ) := by norm_num
-
--- inequality
-lemma a_ge_b_a_div_c_ge_b_div_c (a b c : ℝ) (hab : b ≤ a) (b_nonneg : 0 ≤ b) (hc : 0 < c) : b/ c ≤ a / c :=
-begin
-    apply div_le_div; linarith,
-end
-
--- archmedian-like
-theorem pow_big_enough (A : ℝ) : ∃ r : nat, 1/A ≤ 2 ^ r :=
-begin
-    have H := @pow_unbounded_of_one_lt ℝ _ _ (1/A) 2 _,
-    choose n hn using H,
-    use n, exact le_of_lt hn, exact lt_add_one 1,
-end
-
-lemma mul_eq_mul' (a b c d : ℝ) : a = c -> b = d -> a * b = c * d := λ h1 h2, by simp only [h1, h2]
 
 /--
 a number x is irrational if there is for every integers a and b

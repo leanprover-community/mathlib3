@@ -100,6 +100,10 @@ variables [nontrivially_normed_field 𝕜]
 variables [normed_add_comm_group E] [normed_space 𝕜 E]
 variables [normed_add_comm_group F] [normed_space 𝕜 F]
 
+@[simp] lemma iterated_fderiv_zero_map_apply {n : ℕ} {x : E} :
+  iterated_fderiv 𝕜 n (0 : E → F) x = 0 :=
+(congr_fun iterated_fderiv_within_zero_fun x).trans (pi.zero_apply _)
+
 lemma cont_diff.differentiable_at_iterated_fderiv {n k : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f)
   (h : k < n):
   differentiable 𝕜 (iterated_fderiv 𝕜 k f) :=
@@ -518,57 +522,53 @@ cInf_le (bounds_bdd_below k n f) ⟨hMp, hM⟩
 
 lemma seminorm_zero (k n : ℕ) :
   (0 : schwartz E F).seminorm k n = 0 :=
+le_antisymm (seminorm_le_bound k n _ rfl.le (λ _, by simp)) (by positivity)
+
+lemma seminorm_add_le (k n : ℕ) (f g : schwartz E F) :
+  (f + g).seminorm k n ≤ f.seminorm k n + g.seminorm k n :=
+(f + g).seminorm_le_bound k n (by positivity) $ λ x, (seminorm_add_le_aux k n f g x).trans $
+  add_le_add (f.le_seminorm k n x) (g.le_seminorm k n x)
+
+lemma seminorm_smul_le (k n : ℕ) (r : ℂ) (f : schwartz E F) :
+  (r • f).seminorm k n ≤ ∥r∥ * f.seminorm k n :=
 begin
-  refine le_antisymm _ (by positivity),
-  refine seminorm_le_bound k n _ rfl.le _,
-  intros x,
-  refine eq.le _,
-  simp [iterated_fderiv_within_zero_fun],
-  right,
-  rw ←iterated_fderiv_within_zero_fun,
-  sorry,
+  refine (r • f).seminorm_le_bound k n (by positivity) _,
+  intro x,
+  refine (seminorm_smul_aux' k n f r x).le.trans _,
+  rw mul_assoc,
+  refine mul_le_mul_of_nonneg_left (f.le_seminorm k n x) (norm_nonneg _),
+end
+
+lemma seminorm_neg_le (k n : ℕ) (f : schwartz E F) :
+  schwartz.seminorm k n (-f) ≤ schwartz.seminorm k n f :=
+seminorm_le_bound k n (-f) (by positivity)
+  (λ x, (seminorm_neg_aux k n f x).le.trans (le_seminorm k n f x))
+
+lemma seminorm_neg (k n : ℕ) (f : schwartz E F) :
+  schwartz.seminorm k n (-f) = schwartz.seminorm k n f :=
+begin
+  refine (f.seminorm_neg_le k n).antisymm _,
+  nth_rewrite 0 ←neg_neg f,
+  exact (-f).seminorm_neg_le k n,
 end
 
 def seminorm'' (k n : ℕ) : seminorm ℂ (schwartz E F) := seminorm.of_le (schwartz.seminorm k n)
   (schwartz.seminorm_zero k n)
-  (λ f g, (f + g).seminorm_le_bound k n (by positivity) $ λ x,
-    (seminorm_add_le_aux k n f g x).trans $ add_le_add (f.le_seminorm k n x) (g.le_seminorm k n x))
-  (sorry)
-  (λ r f,
-  begin
-    refine (r • f).seminorm_le_bound k n (by positivity) _,
-    intro x,
-    refine (seminorm_smul_aux' k n f r x).le.trans _,
-    rw mul_assoc,
-    refine mul_le_mul_of_nonneg_left (f.le_seminorm k n x) (norm_nonneg _),
-  end)
-
-def seminorm' (k n : ℕ) : seminorm ℂ (schwartz E F) := seminorm.of (schwartz.seminorm k n)
-  (λ f g, (f + g).seminorm_le_bound k n (by positivity) $ λ x,
-    (seminorm_add_le_aux k n f g x).trans $ add_le_add (f.le_seminorm k n x) (g.le_seminorm k n x))
-  (λ r f, begin
-    refine le_antisymm _ _,
-    { refine (r • f).seminorm_le_bound k n (by positivity) _,
-      intro x,
-      refine (seminorm_smul_aux' k n f r x).le.trans _,
-      rw mul_assoc,
-      refine mul_le_mul_of_nonneg_left (f.le_seminorm k n x) (norm_nonneg _),
-    },
-    dunfold schwartz.seminorm,
-    sorry,
-  end)
+  (schwartz.seminorm_add_le k n)
+  (schwartz.seminorm_neg k n)
+  (schwartz.seminorm_smul_le k n)
 
 end seminorms
 
 variables (E F)
 
-def seminorm_family : seminorm_family ℝ (schwartz E F) (ℕ × ℕ) := λ n, schwartz.seminorm' n.1 n.2
+def seminorm_family : seminorm_family ℂ (schwartz E F) (ℕ × ℕ) := λ n, schwartz.seminorm'' n.1 n.2
 
 variables {E F}
 
 instance : topological_space (schwartz E F) := (seminorm_family E F).module_filter_basis.topology'
 
-instance : has_continuous_smul ℝ (schwartz E F) :=
+instance : has_continuous_smul ℂ (schwartz E F) :=
   (seminorm_family E F).module_filter_basis.has_continuous_smul
 
 instance : topological_add_group (schwartz E F) :=
@@ -582,7 +582,5 @@ instance : uniform_add_group (schwartz E F) :=
 
 variables (f g : schwartz E F) (x : E) (c : ℂ)
 variables (fi : ℕ → schwartz E F) (T : schwartz E F →L[ℝ] schwartz E F)
-
-#check c • f
 
 end schwartz

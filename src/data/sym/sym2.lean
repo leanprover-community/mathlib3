@@ -99,7 +99,7 @@ i.ind hf
 
 @[elab_as_eliminator]
 protected lemma induction_on₂ {f : sym2 α → sym2 β → Prop} (i : sym2 α) (j : sym2 β)
-  (hf : ∀ x₁ x₂ y₁ y₂, f ⟦(x₁, x₂)⟧ ⟦(y₁, y₂)⟧) : f i j :=
+  (hf : ∀ a₁ a₂ b₁ b₂, f ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧) : f i j :=
 quotient.induction_on₂ i j $ by { rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, exact hf _ _ _ _ }
 
 protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} :
@@ -154,10 +154,10 @@ def lift₂ : {f : α → α → β → β → γ // ∀ a₁ a₂ b₁ b₂,
     rintro _ _ _ _ ⟨⟩ ⟨⟩,
     exacts [rfl, (f.2 _ _ _ _).2, (f.2 _ _ _ _).1, (f.2 _ _ _ _).1.trans (f.2 _ _ _ _).2]
   end,
-  inv_fun := λ F, ⟨λ x₁ x₂ y₁ y₂, F ⟦(x₁, x₂)⟧ ⟦(y₁, y₂)⟧, λ a₁ a₂ b₁ b₂,
+  inv_fun := λ F, ⟨λ a₁ a₂ b₁ b₂, F ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧, λ a₁ a₂ b₁ b₂,
     by { split, exacts [congr_arg2 F eq_swap rfl, congr_arg2 F rfl eq_swap] }⟩,
   left_inv := λ f, subtype.ext rfl,
-  right_inv := λ F, funext₂ $ λ x y, sym2.induction_on₂ x y $ λ _ _ _ _, rfl }
+  right_inv := λ F, funext₂ $ λ a b, sym2.induction_on₂ a b $ λ _ _ _ _, rfl }
 
 @[simp]
 lemma lift₂_mk (f : {f : α → α → β → β → γ // ∀ a₁ a₂ b₁ b₂,

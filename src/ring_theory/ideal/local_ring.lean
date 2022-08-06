@@ -345,6 +345,16 @@ lemma ker_eq_maximal_ideal [field K] (φ : R →+* K) (hφ : function.surjective
   φ.ker = maximal_ideal R :=
 local_ring.eq_maximal_ideal $ (ring_hom.ker_is_maximal_of_surjective φ) hφ
 
+lemma residue_map_is_local_ring_hom :
+  is_local_ring_hom (local_ring.residue R) :=
+begin
+  constructor,
+  intros a b,
+  by_contra,
+  erw ideal.quotient.eq_zero_iff_mem.mpr ((local_ring.mem_maximal_ideal _).mpr h) at b,
+  exact b.ne_zero rfl,
+end
+
 end
 
 end local_ring

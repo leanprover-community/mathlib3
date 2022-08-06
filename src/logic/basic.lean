@@ -914,10 +914,7 @@ lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c
   f a b c = g a b c :=
 congr_fun₂ (congr_fun h _) _ _
 
-lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
-funext $ λ _, funext $ h _
-
-lemma funext₂' {f g : Π a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
+lemma funext₂ {f g : Π a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
 funext $ λ _, funext $ h _
 
 lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=

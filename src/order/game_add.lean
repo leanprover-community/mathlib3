@@ -26,8 +26,9 @@ decreases.
 - Define `sym2.game_add`.
 -/
 
-namespace prod
 variables {α β : Type*} (rα : α → α → Prop) (rβ : β → β → Prop)
+
+namespace prod
 
 /-- The "addition of games" relation in combinatorial game theory, on the product type: if
   `rα a' a` means that `a ⟶ a'` is a valid move in game `α`, and `rβ b' b` means that `b ⟶ b'`
@@ -49,12 +50,14 @@ lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ relation.trans_gen (g
   exact relation.trans_gen.tail (relation.trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
 end
 
+end prod
+
 variables {rα rβ}
 
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
   accessible under `prod.game_add rα rβ`. Notice that `prod.lex_accessible` requires the
   stronger condition `∀ b, acc rβ b`. -/
-lemma _root_.acc.game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (game_add rα rβ) (a, b) :=
+lemma acc.game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (prod.game_add rα rβ) (a, b) :=
 begin
   induction ha with a ha iha generalizing b,
   induction hb with b hb ihb,
@@ -64,7 +67,5 @@ begin
 end
 
 /-- The sum of two well-founded games is well-founded. -/
-lemma _root_.well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
-  well_founded (game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩
-
-end prod
+lemma well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
+  well_founded (prod.game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩

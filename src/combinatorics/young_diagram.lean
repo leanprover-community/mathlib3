@@ -80,10 +80,10 @@ instance : has_sup young_diagram :=
                                        exact μ.is_lower_set.union ν.is_lower_set } } }
 
 @[simp] lemma cells_sup (μ ν : young_diagram) :
-   (μ ⊔ ν).cells = μ.cells ∪ ν.cells := rfl
+  (μ ⊔ ν).cells = μ.cells ∪ ν.cells := rfl
 
 @[simp, norm_cast] lemma coe_sup (μ ν : young_diagram) :
-   ↑(μ ⊔ ν) = (μ ∪ ν : set (ℕ × ℕ)) := finset.coe_union _ _
+  ↑(μ ⊔ ν) = (μ ∪ ν : set (ℕ × ℕ)) := finset.coe_union _ _
 
 instance : has_inf young_diagram :=
 { inf := λ μ ν, { cells        := μ.cells ∩ ν.cells,
@@ -91,7 +91,7 @@ instance : has_inf young_diagram :=
                                        exact μ.is_lower_set.inter ν.is_lower_set } } }
 
 @[simp] lemma cells_inf (μ ν : young_diagram) :
-   (μ ⊓ ν).cells = μ.cells ∩ ν.cells := rfl
+  (μ ⊓ ν).cells = μ.cells ∩ ν.cells := rfl
 
 @[simp, norm_cast] lemma coe_inf (μ ν : young_diagram) :
    ↑(μ ⊓ ν) = (μ ∩ ν : set (ℕ × ℕ)) := finset.coe_inter _ _
@@ -101,10 +101,10 @@ instance : order_bot young_diagram :=
 { bot := { cells := ∅, is_lower_set := λ _ _ _, false.elim }, bot_le := λ _ _, false.elim }
 
 @[simp] lemma cells_bot :
-   (⊥ : young_diagram).cells = ∅ := rfl
+  (⊥ : young_diagram).cells = ∅ := rfl
 
 @[simp, norm_cast] lemma coe_bot :
-   ↑(⊥ : young_diagram) = (∅ : set (ℕ × ℕ)) := rfl
+  ↑(⊥ : young_diagram) = (∅ : set (ℕ × ℕ)) := rfl
 
 instance : inhabited young_diagram := ⟨⊥⟩
 
@@ -117,7 +117,7 @@ function.injective.distrib_lattice
 end distrib_lattice
 
 /-- Cardinality of a Young diagram -/
-@[reducible] def card (μ : young_diagram) : ℕ := μ.cells.card
+@[reducible] protected def card (μ : young_diagram) : ℕ := μ.cells.card
 lemma card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
 @[simp] lemma card_bot : (⊥ : young_diagram).card = 0 := rfl

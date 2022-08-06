@@ -1099,6 +1099,16 @@ lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i / f (i + 1)) = f 0 / f n :=
 by apply prod_range_induction; simp
 
+@[to_additive]
+lemma eq_prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  f n = f 0 * ∏ i in range n, (f (i + 1) / f i) :=
+by rw [prod_range_div, mul_div_cancel'_right]
+
+@[to_additive]
+lemma eq_prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  f n = ∏ i in range (n + 1), if i = 0 then f 0 else f i / f (i - 1) :=
+by { conv_lhs { rw [finset.eq_prod_range_div f] }, simp [finset.prod_range_succ', mul_comm] }
+
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
 reduces to the difference of the last and first terms
@@ -1391,17 +1401,6 @@ end
 lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
-
-lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
-  f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
-by rw [finset.sum_range_sub, add_sub_cancel'_right]
-
-lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
-  f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
-begin
-  conv_lhs { rw [finset.eq_sum_range_sub f] },
-  simp [finset.sum_range_succ', add_comm]
-end
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
   (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :
@@ -1853,3 +1852,31 @@ begin
     simp only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
 end
+
+/-! ### `additive`, `multiplicative` -/
+
+namespace finset
+open additive multiplicative
+
+section comm_monoid
+variables [comm_monoid β]
+
+@[simp] lemma of_mul_prod (s : finset α) (f : α → β) :
+  of_mul (∏ i in s, f i) = ∑ i in s, of_mul (f i) := rfl
+
+@[simp] lemma to_mul_sum (s : finset α) (f : α → additive β) :
+  to_mul (∑ i in s, f i) = ∏ i in s, to_mul (f i) := rfl
+
+end comm_monoid
+
+section add_comm_monoid
+variables [add_comm_monoid β]
+
+@[simp] lemma of_add_sum (s : finset α) (f : α → β) :
+  of_add (∑ i in s, f i) = ∏ i in s, of_add (f i) := rfl
+
+@[simp] lemma to_add_prod (s : finset α) (f : α → β) :
+  to_add (∏ i in s, f i) = ∑ i in s, to_add (f i) := rfl
+
+end add_comm_monoid
+end finset

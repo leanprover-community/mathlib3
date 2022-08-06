@@ -360,7 +360,7 @@ lemma adapted.is_stopping_time_lower_crossing_time (hf : adapted ℱ f) :
 hf.is_stopping_time_crossing.2
 
 /-- `upcrossing_strat a b f N n` is 1 if `n` is between a consecutive pair of lower and upper
-crossing and is 0 otherwise. `upcrossing_strat` is shifted by one index so that it is adapted
+crossings and is 0 otherwise. `upcrossing_strat` is shifted by one index so that it is adapted
 rather than predictable. -/
 noncomputable
 def upcrossing_strat (a b : ℝ) (f : ℕ → α → ℝ) (N n : ℕ) (x : α) : ℝ :=
@@ -769,7 +769,7 @@ end
 values `a` and `b`, we have `(b - a) * 𝔼[upcrossings_before a b f N] ≤ 𝔼[(f N - a)⁺]` where
 `upcrossings_before a b f N` is the number of times the process `f` crossed from below `a` to above
 `b` before the time `N`. -/
-lemma submartingale.mul_integral_upcrossings_before_le_integral_pos_part [is_finite_measure μ]
+theorem submartingale.mul_integral_upcrossings_before_le_integral_pos_part [is_finite_measure μ]
   (a b : ℝ) (hf : submartingale f ℱ μ) (N : ℕ) :
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin

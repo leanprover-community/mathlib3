@@ -958,19 +958,17 @@ end continuous_multilinear_map
 
 section smul
 
-variables [semiring R] [module R F] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
+variables {R : Type*} [semiring R] [module R G] [smul_comm_class 𝕜 R G]
+  [has_continuous_const_smul R G]
 
 lemma smul_continuous_multilinear_map {k : ℕ} {c : R}
-  (m : continuous_multilinear_map 𝕜 (λ (i : fin k), E) F):
-  (c • continuous_linear_map.id 𝕜 F).comp_continuous_multilinear_map m = c • m :=
+  (m : continuous_multilinear_map 𝕜 E G):
+  (c • continuous_linear_map.id 𝕜 G).comp_continuous_multilinear_map m = c • m :=
 by { ext x, simp }
 
-instance {k : ℕ}: has_continuous_const_smul R (continuous_multilinear_map 𝕜 (λ (i : fin k), E) F) :=
-⟨λ c, begin
-  simp_rw ←smul_continuous_multilinear_map,
-  refine (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ F F
-    (c • continuous_linear_map.id 𝕜 F)).2,
-end⟩
+instance {k : ℕ}: has_continuous_const_smul R (continuous_multilinear_map 𝕜 E G) :=
+⟨λ c, (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ G G
+  (c • continuous_linear_map.id 𝕜 G)).2⟩
 
 end smul
 

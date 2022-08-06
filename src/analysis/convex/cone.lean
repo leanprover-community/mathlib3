@@ -191,8 +191,9 @@ def map (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) : convex_cone 𝕜 F :=
   add_mem' := λ y₁ ⟨x₁, hx₁, hy₁⟩ y₂ ⟨x₂, hx₂, hy₂⟩, hy₁ ▸ hy₂ ▸ f.map_add x₁ x₂ ▸
     mem_image_of_mem f (S.add_mem hx₁ hx₂) }
 
-@[simp] lemma mem_map {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 E} {x : F} : x ∈ S.map f ↔ x ∈ f '' S :=
-iff.rfl
+@[simp] lemma mem_map {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 E} {y : F} :
+  y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
+by simp_rw [map, mem_mk, mem_image, set_like.mem_coe, exists_prop]
 
 lemma map_map (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) :
   (S.map f).map g = S.map (g.comp f) :=

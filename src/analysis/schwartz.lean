@@ -179,7 +179,8 @@ by { ext x, simp }
 instance {k : ℕ}: has_continuous_const_smul R (continuous_multilinear_map 𝕜 (λ (i : fin k), E) F) :=
 ⟨λ c, begin
   simp_rw ←smul_continuous_multilinear_map,
-  refine (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ F F (c • continuous_linear_map.id 𝕜 F)).2,
+  refine (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ F F
+    (c • continuous_linear_map.id 𝕜 F)).2,
 end⟩
 
 -- iterated_fderiv_const_smul

@@ -1388,28 +1388,35 @@ end order_dual
 
 /-! ### Binary product of normed groups -/
 
-namespace prod
 section has_norm
 variables [has_norm E] [has_norm F] {x : E × F} {r : ℝ}
 
 noncomputable instance : has_norm (E × F) := ⟨λ x, max ∥x.1∥ ∥x.2∥⟩
 
-lemma norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
+lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ := le_max_left _ _
 lemma norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ := le_max_right _ _
 
-lemma norm_le_iff : ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r := max_le_iff
+lemma norm_prod_le_iff : ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r := max_le_iff
 
 end has_norm
 
-/-- Product of seminormed groups, using the sup norm. -/
-@[to_additive "Product of seminormed groups, using the sup norm."]
-noncomputable instance [seminormed_group E] [seminormed_group F] : seminormed_group (E × F) :=
-{ dist_eq := λ x y, by simp [norm_def, dist_eq, dist_eq_norm_div] }
+section seminormed_group
+variables [seminormed_group E] [seminormed_group F]
 
 /-- Product of seminormed groups, using the sup norm. -/
 @[to_additive "Product of seminormed groups, using the sup norm."]
-noncomputable instance seminormed_comm_group [seminormed_comm_group E] [seminormed_comm_group F] :
+noncomputable instance : seminormed_group (E × F) :=
+⟨λ x y, by simp only [prod.norm_def, prod.dist_eq, dist_eq_norm_div, prod.fst_div, prod.snd_div]⟩
+
+@[to_additive prod.nnnorm_def']
+lemma prod.nnorm_def (x : E × F) : ∥x∥₊ = (max ∥x.1∥₊ ∥x.2∥₊) := rfl
+
+end seminormed_group
+
+/-- Product of seminormed groups, using the sup norm. -/
+@[to_additive "Product of seminormed groups, using the sup norm."]
+noncomputable instance [seminormed_comm_group E] [seminormed_comm_group F] :
   seminormed_comm_group (E × F) :=
 { ..prod.seminormed_group }
 
@@ -1423,7 +1430,6 @@ noncomputable instance [normed_group E] [normed_group F] : normed_group (E × F)
 noncomputable instance [normed_comm_group E] [normed_comm_group F] : normed_comm_group (E × F) :=
 { ..prod.seminormed_group }
 
-end prod
 
 /-! ### Finite product of normed groups -/
 

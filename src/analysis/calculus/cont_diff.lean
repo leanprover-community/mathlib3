@@ -1521,7 +1521,7 @@ by simp [cont_diff_on_univ.symm, continuous_iff_continuous_on_univ,
 
 /-- If `f` is `C^n` then its `m`-times iterated derivative is continuous for `m ≤ n`. -/
 lemma cont_diff.continuous_iterated_fderiv {m : ℕ} (hm : (m : with_top ℕ) ≤ n)
-  (hf : cont_diff 𝕜 n f) : differentiable 𝕜 (λ x, iterated_fderiv 𝕜 m f x) :=
+  (hf : cont_diff 𝕜 n f) : continuous (λ x, iterated_fderiv 𝕜 m f x) :=
 (cont_diff_iff_continuous_differentiable.mp hf).1 m hm
 
 /-- If `f` is `C^n` then its `m`-times iterated derivative is differentiable for `m < n`. -/

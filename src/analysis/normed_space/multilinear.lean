@@ -371,7 +371,8 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
 instance normed_add_comm_group : normed_add_comm_group (continuous_multilinear_map 𝕜 E G) :=
-normed_add_comm_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg, λ f, op_norm_zero_iff.1⟩
+normed_add_comm_group.of_core _
+  ⟨op_norm_zero, op_norm_add_le, op_norm_neg, λ f, f.op_norm_zero_iff.1⟩
 
 /-- An alias of `continuous_multilinear_map.normed_add_comm_group` with non-dependent types to help
 typeclass search. -/

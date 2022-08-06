@@ -1562,7 +1562,8 @@ instance [hp : fact (1 ≤ p)] : normed_add_comm_group (Lp E p μ) :=
     rw [edist_def, dist_def, ←snorm_congr_ae (coe_fn_sub _ _),
       ennreal.of_real_to_real (snorm_ne_top (f - g))],
   .. normed_add_comm_group.of_core (Lp E p μ)
-    { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
+    { norm_zero := norm_zero,
+      eq_zero_of_norm := λ f, (norm_eq_zero_iff $ ennreal.zero_lt_one.trans_le hp.1).1,
       triangle := begin
         assume f g,
         simp only [norm_def],

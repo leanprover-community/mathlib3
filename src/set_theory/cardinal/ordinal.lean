@@ -784,7 +784,8 @@ theorem mk_multiset_eq_max_mk_aleph_0 (α : Type u) [nonempty α] : #(multiset �
 le_antisymm ((mk_le_of_surjective $ surjective_quot_mk _).trans (mk_list_eq_max_mk_aleph_0 α).le) $
   max_le ⟨⟨_, λ _ _, multiset.singleton_inj.1⟩⟩
     ⟨⟨_, (multiset.repeat_injective $ classical.arbitrary α).comp ulift.down_injective⟩⟩
--- could be proven using `mk_finsupp_nat` below, but data.finsupp.multiset isn't imported.
+/- could be proven using `multiset.to_finsupp` and `mk_finsupp_nat` below,
+  but data.finsupp.multiset isn't imported. -/
 
 @[simp] theorem mk_finset_of_infinite (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $

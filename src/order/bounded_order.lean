@@ -369,6 +369,9 @@ instance Prop.bounded_order : bounded_order Prop :=
 instance Prop.le_is_total : is_total Prop (≤) :=
 ⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
 
+noncomputable instance Prop.linear_order : linear_order Prop :=
+by classical; exact lattice.to_linear_order Prop
+
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 

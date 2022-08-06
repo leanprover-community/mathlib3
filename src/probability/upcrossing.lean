@@ -562,7 +562,7 @@ begin
     simp [hemp, cSup_empty, bot_eq_zero', zero_le'] }
 end
 
-lemma upcrossings_before_lt_upcrossing_of_exists_upcrossings_before (hab : a < b) {N₁ N₂ : ℕ}
+lemma upcrossings_before_lt_of_exists_upcrossing (hab : a < b) {N₁ N₂ : ℕ}
   (hN₁: N ≤ N₁) (hN₁': f N₁ x < a) (hN₂: N₁ ≤ N₂) (hN₂': b < f N₂ x) :
   upcrossings_before a b f N x < upcrossings_before a b f (N₂ + 1) x :=
 begin
@@ -741,7 +741,7 @@ lemma upcrossings_before_pos_eq (hab : a < b) :
   upcrossings_before 0 (b - a) (λ n x, (f n x - a)⁺) N x = upcrossings_before a b f N x :=
 by simp_rw [upcrossings_before, (crossing_pos_eq hab).1]
 
-private lemma mul_integral_upcrossings_before_le_integral_pos_part'' [is_finite_measure μ]
+lemma mul_integral_upcrossings_before_le_integral_pos_part_aux1 [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hN : 0 < N) (hab : a < b) :
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
@@ -753,7 +753,7 @@ begin
   refl,
 end
 
-private lemma mul_integral_upcrossings_before_le_integral_pos_part' [is_finite_measure μ]
+lemma mul_integral_upcrossings_before_le_integral_pos_part_aux2 [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hab : a < b) :
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
@@ -762,7 +762,7 @@ begin
     simp_rw [← bot_eq_zero, upcrossings_before_bot, bot_eq_zero, integral_const,
       algebra.id.smul_eq_mul, nat.cast_zero, mul_zero],
     exact integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _) },
-  { exact mul_integral_upcrossings_before_le_integral_pos_part'' hf (zero_lt_iff.2 hN) hab }
+  { exact mul_integral_upcrossings_before_le_integral_pos_part_aux1 hf (zero_lt_iff.2 hN) hab }
 end
 
 /-- **Doob's upcrossing estimate**: given a real valued discrete submartingale `f` and real
@@ -774,7 +774,7 @@ theorem submartingale.mul_integral_upcrossings_before_le_integral_pos_part [is_f
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
   by_cases hab : a < b,
-  { exact mul_integral_upcrossings_before_le_integral_pos_part' hf hab },
+  { exact mul_integral_upcrossings_before_le_integral_pos_part_aux2 hf hab },
   { rw [not_lt, ← sub_nonpos] at hab,
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (integral_nonneg (λ x, nat.cast_nonneg _)))
       (integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _)) }

@@ -54,6 +54,7 @@ variables {ι 𝕜 F : Type*} [finite ι] [semiring 𝕜] [topological_space �
 /-- A linear map on `ι → 𝕜` (where `ι` is finite) is continuous -/
 lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
 begin
+  casesI nonempty_fintype ι,
   classical,
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.

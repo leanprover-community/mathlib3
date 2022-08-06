@@ -751,7 +751,7 @@ lemma not_compact_space_iff : ¬compact_space α ↔ noncompact_space α :=
 instance : noncompact_space ℤ :=
 noncompact_space_of_ne_bot $ by simp only [filter.cocompact_eq_cofinite, filter.cofinite_ne_bot]
 
---Note: We can't make it an instance because it loops with `finite.compact_space`.
+-- Note: We can't make this into an instance because it loops with `finite.compact_space`.
 /-- A compact discrete space is finite. -/
 lemma finite_of_compact_of_discrete [compact_space α] [discrete_topology α] : finite α :=
 finite.of_finite_univ $ compact_univ.finite_of_discrete

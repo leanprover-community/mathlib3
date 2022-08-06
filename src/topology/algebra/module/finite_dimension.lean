@@ -47,11 +47,11 @@ open_locale big_operators
 
 section semiring
 
-variables {ι 𝕜 F : Type*} [fintype ι] [semiring 𝕜] [topological_space 𝕜]
+variables {ι 𝕜 F : Type*} [finite ι] [semiring 𝕜] [topological_space 𝕜]
   [add_comm_monoid F] [module 𝕜 F] [topological_space F]
   [has_continuous_add F] [has_continuous_smul 𝕜 F]
 
-/-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
+/-- A linear map on `ι → 𝕜` (where `ι` is finite) is continuous -/
 lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
 begin
   classical,
@@ -69,9 +69,8 @@ end semiring
 
 section field
 
-variables {ι 𝕜 E F : Type*} [fintype ι] [field 𝕜] [topological_space 𝕜]
-  [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [add_comm_group F] [module 𝕜 F] [topological_space F]
+variables {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜] [add_comm_group E] [module 𝕜 E]
+  [topological_space E] [add_comm_group F] [module 𝕜 F] [topological_space F]
   [topological_add_group F] [has_continuous_smul 𝕜 F]
 
 /-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/

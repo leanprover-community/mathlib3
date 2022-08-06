@@ -165,7 +165,7 @@ attribute [protected] finset.Inter_mem_sets
   ⋂₀ s ∈ f ↔ ∀ U ∈ s, U ∈ f :=
 by rw [sInter_eq_bInter, bInter_mem hfin]
 
-@[simp] lemma Inter_mem {β : Type v} {s : β → set α} [fintype β] :
+@[simp] lemma Inter_mem {β : Type v} {s : β → set α} [finite β] :
   (⋂ i, s i) ∈ f ↔ ∀ i, s i ∈ f :=
 by simpa using bInter_mem finite_univ
 
@@ -557,7 +557,7 @@ lemma exists_Inter_of_mem_infi {ι : Type*} {α : Type*} {f : ι → filter α} 
   (hs : s ∈ ⨅ i, f i) : ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
 let ⟨I, If, V, hVs, hV', hVU, hVU'⟩ := mem_infi'.1 hs in ⟨V, hVs, hVU'⟩
 
-lemma mem_infi_of_fintype {ι : Type*} [fintype ι] {α : Type*} {f : ι → filter α} (s) :
+lemma mem_infi_of_finite {ι : Type*} [finite ι] {α : Type*} {f : ι → filter α} (s) :
   s ∈ (⨅ i, f i) ↔ ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
 begin
   refine ⟨exists_Inter_of_mem_infi, _⟩,
@@ -774,7 +774,7 @@ lemma mem_infi_finset {s : finset α} {f : α → filter β} {t : set β} :
 begin
   simp only [← finset.set_bInter_coe, bInter_eq_Inter, infi_subtype'],
   refine ⟨λ h, _, _⟩,
-  { rcases (mem_infi_of_fintype _).1 h with ⟨p, hp, rfl⟩,
+  { rcases (mem_infi_of_finite _).1 h with ⟨p, hp, rfl⟩,
     refine ⟨λ a, if h : a ∈ s then p ⟨a, h⟩ else univ, λ a ha, by simpa [ha] using hp ⟨a, ha⟩, _⟩,
     refine Inter_congr_of_surjective id surjective_id _,
     rintro ⟨a, ha⟩, simp [ha] },
@@ -893,9 +893,9 @@ begin
   { rw [finset.infi_insert, finset.set_bInter_insert, hs, inf_principal] },
 end
 
-@[simp] lemma infi_principal_fintype {ι : Type w} [fintype ι] (f : ι → set α) :
+@[simp] lemma infi_principal {ι : Type w} [finite ι] (f : ι → set α) :
   (⨅ i, 𝓟 (f i)) = 𝓟 (⋂ i, f i) :=
-by simpa using infi_principal_finset finset.univ f
+by { casesI nonempty_fintype ι, simpa using infi_principal_finset finset.univ f }
 
 lemma infi_principal_finite {ι : Type w} {s : set ι} (hs : s.finite) (f : ι → set α) :
   (⨅ i ∈ s, 𝓟 (f i)) = 𝓟 (⋂ i ∈ s, f i) :=
@@ -986,9 +986,9 @@ lemma eventually_congr {f : filter α} {p q : α → Prop} (h : ∀ᶠ x in f, p
   (∀ᶠ x in f, p x) ↔ (∀ᶠ x in f, q x) :=
 ⟨λ hp, hp.congr h, λ hq, hq.congr $ by simpa only [iff.comm] using h⟩
 
-@[simp] lemma eventually_all {ι} [fintype ι] {l} {p : ι → α → Prop} :
+@[simp] lemma eventually_all {ι : Type*} [finite ι] {l} {p : ι → α → Prop} :
   (∀ᶠ x in l, ∀ i, p i x) ↔ ∀ i, ∀ᶠ x in l, p i x :=
-by simpa only [filter.eventually, set_of_forall] using Inter_mem
+by { casesI nonempty_fintype ι, simpa only [filter.eventually, set_of_forall] using Inter_mem }
 
 @[simp] lemma eventually_all_finite {ι} {I : set ι} (hI : I.finite) {l} {p : ι → α → Prop} :
   (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ (∀ i ∈ I, ∀ᶠ x in l, p i x) :=

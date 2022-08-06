@@ -24,7 +24,7 @@ open_locale bounded_continuous_function filter topological_space
 namespace topological_space
 
 variables {ι X Y : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
-  [fintype ι] [Π i, topological_space (π i)]
+  [finite ι] [Π i, topological_space (π i)]
 
 /-- A topological space is *pseudo metrizable* if there exists a pseudo metric space structure
 compatible with the topology. To endow such a space with a compatible distance, use

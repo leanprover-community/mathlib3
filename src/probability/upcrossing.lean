@@ -862,7 +862,7 @@ measurable_supr (λ N, measurable_from_top.comp (hf.measurable_upcrossings_befor
 lemma upcrossings_lt_top_iff :
   upcrossings a b f x < ∞ ↔ ∃ k, ∀ N, upcrossings_before a b f N x ≤ k :=
 begin
-  have : upcrossings a b f x < ⊤ ↔ ∃ k : ℝ≥0, upcrossings a b f x ≤ k,
+  have : upcrossings a b f x < ∞ ↔ ∃ k : ℝ≥0, upcrossings a b f x ≤ k,
   { split,
     { intro h,
       lift upcrossings a b f x to ℝ≥0 using h.ne with r hr,

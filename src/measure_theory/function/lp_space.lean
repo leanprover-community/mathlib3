@@ -760,7 +760,7 @@ end
 ... ≤ (∫⁻ a, (∥f a∥₊ : ℝ≥0∞) ^ q + (∥g a∥₊ : ℝ≥0∞) ^ q ∂μ) ^ (1 / q) :
 begin
   refine ennreal.rpow_le_rpow (lintegral_mono (λ a, _)) (by simp [hq_pos.le] : 0 ≤ 1 / q),
-  exact ennreal.rpow_add_le_add_rpow _ _ hq_pos hq1,
+  exact ennreal.rpow_add_le_add_rpow _ _ hq_pos.le hq1,
 end
 ... < ∞ :
 begin

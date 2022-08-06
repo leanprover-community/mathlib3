@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import field_theory.intermediate_field
 import ring_theory.adjoin_root
 
 /-!
@@ -356,7 +357,6 @@ end
 end splits
 
 end polynomial
-
 
 section embeddings
 
@@ -789,3 +789,26 @@ end is_splitting_field
 end splitting_field
 
 end polynomial
+
+namespace intermediate_field
+
+open polynomial
+
+variables [field K] [field L] [algebra K L] {p : polynomial K}
+
+lemma splits_of_splits {F : intermediate_field K L} (h : p.splits (algebra_map K L))
+  (hF : ∀ x ∈ p.root_set L, x ∈ F) : p.splits (algebra_map K F) :=
+begin
+  simp_rw [root_set, finset.mem_coe, multiset.mem_to_finset] at hF,
+  rw splits_iff_exists_multiset,
+  refine ⟨multiset.pmap subtype.mk _ hF, map_injective _ (algebra_map F L).injective _⟩,
+  conv_lhs { rw [polynomial.map_map, ←is_scalar_tower.algebra_map_eq,
+    eq_prod_roots_of_splits h, ←multiset.pmap_eq_map _ _ _ hF] },
+  simp_rw [polynomial.map_mul, polynomial.map_multiset_prod,
+    multiset.map_pmap, polynomial.map_sub, map_C, map_X],
+  refl,
+end
+
+-- TODO (Thomas): If `p` splits in `L/K`, then `p.is_splitting_field K (adjoin K (p.root_set L))`
+
+end intermediate_field

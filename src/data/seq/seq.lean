@@ -59,6 +59,9 @@ decidable_of_iff' (s.nth n).is_none $ by unfold terminated_at; cases s.nth n; si
 /-- A sequence terminates if there is some position `n` at which it has terminated. -/
 def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
 
+theorem not_terminates_iff {s : seq α} : ¬ s.terminates ↔ ∀ n, (s.nth n).is_some :=
+by simp [terminates, terminated_at, ←ne.def, option.ne_none_iff_is_some]
+
 /-- Functorial action of the functor `option (α × _)` -/
 @[simp] def omap (f : β → γ) : option (α × β) → option (α × γ)
 | none          := none
@@ -436,21 +439,20 @@ def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
 def unzip (s : seq (α × β)) : seq α × seq β := (map prod.fst s, map prod.snd s)
 
 /-- Convert a sequence which is known to terminate into a list -/
-def to_list (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) : list α :=
+def to_list (s : seq α) (h : s.terminates) : list α :=
 take (nat.find h) s
 
 /-- Convert a sequence which is known not to terminate into a stream -/
-def to_stream (s : seq α) (h : ∀ n, (nth s n).is_some) : stream α :=
-λ n, option.get (h n)
+def to_stream (s : seq α) (h : ¬ s.terminates) : stream α :=
+λ n, option.get $ not_terminates_iff.1 h n
 
 /-- Convert a sequence into either a list or a stream depending on whether
   it is finite or infinite. (Without decidability of the infiniteness predicate,
   this is not constructively possible.) -/
-def to_list_or_stream (s : seq α) [decidable (∃ n, ¬ (nth s n).is_some)] :
-  list α ⊕ stream α :=
-if h : ∃ n, ¬ (nth s n).is_some
+def to_list_or_stream (s : seq α) [decidable s.terminates] : list α ⊕ stream α :=
+if h : s.terminates
 then sum.inl (to_list s h)
-else sum.inr (to_stream s (λ n, decidable.by_contradiction (λ hn, h ⟨n, hn⟩)))
+else sum.inr (to_stream s h)
 
 @[simp] theorem nil_append (s : seq α) : append nil s = s :=
 begin

@@ -7,6 +7,7 @@ import category_theory.abelian.opposite
 import category_theory.limits.constructions.finite_products_of_binary_products
 import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.kernels
+import category_theory.preadditive.left_exact
 import category_theory.adjunction.limits
 import algebra.homology.exact
 import tactic.tfae
@@ -369,7 +370,7 @@ lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
     letI := preserves_zero_morphisms_of_map_exact L @h,
     apply ((tfae_mono (L.obj 0) (L.map f)).out 2 0).mp,
     rw ←L.map_zero,
-    exact h (((tfae_mono 0 f).out 2 0).mpr hf)
+    exact h (((tfae_mono 0 f).out 0 2).mp hf)
   end }
 
 lemma preserves_epimorphisms_of_map_exact : L.preserves_epimorphisms :=
@@ -378,8 +379,29 @@ lemma preserves_epimorphisms_of_map_exact : L.preserves_epimorphisms :=
     letI := preserves_zero_morphisms_of_map_exact L @h,
     apply ((tfae_epi (L.obj 0) (L.map f)).out 2 0).mp,
     rw ←L.map_zero,
-    exact h (((tfae_epi 0 f).out 2 0).mpr hf)
+    exact h (((tfae_epi 0 f).out 0 2).mp hf)
   end }
+
+def preserves_kernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
+  preserves_limit (parallel_pair f 0) L :=
+{ preserves := λ c ic,
+  begin
+    letI := preserves_zero_morphisms_of_map_exact L @h,
+    letI := preserves_monomorphisms_of_map_exact L @h,
+    letI := mono_of_is_limit_fork ic,
+    have hf := (is_limit_map_cone_fork_equiv' L (kernel_fork.condition c)).symm
+      (is_limit_of_exact_of_mono (L.map (fork.ι c)) (L.map f)
+        (h (exact_of_is_kernel (fork.ι c) f (kernel_fork.condition c)
+          (ic.of_iso_limit (iso_of_ι _))))),
+    exact hf.of_iso_limit ((cones.functoriality _ L).map_iso (iso_of_ι _).symm),
+  end }
+
+def preserves_finite_limits_of_map_exact : limits.preserves_finite_limits L :=
+begin
+  letI := preserves_zero_morphisms_of_map_exact L @h,
+  letI := preserves_kernels_of_map_exact L @h,
+  apply preserves_finite_limits_of_preserves_kernels,
+end
 
 end
 

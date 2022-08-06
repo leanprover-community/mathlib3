@@ -106,7 +106,7 @@ by { rw ←to_left_moves_nim.apply_symm_apply i, apply H }
   (i : (nim o).right_moves) (H : ∀ a < o, P $ to_right_moves_nim ⟨a, H⟩) : P i :=
 by { rw ←to_right_moves_nim.apply_symm_apply i, apply H }
 
-instance : is_empty (nim 0).left_moves :=
+instance is_empty_nim_zero_left_moves : is_empty (nim 0).left_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
 instance is_empty_nim_zero_right_moves : is_empty (nim 0).right_moves :=

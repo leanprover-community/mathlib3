@@ -149,7 +149,7 @@ lemma coe_lift_symm_apply (F : sym2 α → β) (a₁ a₂ : α) :
 
 /-- A two-argument version of `sym2.lift`. -/
 def lift₂ : {f : α → α → α → α → β // ∀ a₁ a₂ a₃ a₄,
-  (f a₁ a₂ a₃ a₄ = f a₂ a₁ a₃ a₄ ∧ f a₁ a₂ a₃ a₄ = f a₁ a₂ a₄ a₃)} ≃ (sym2 α → sym2 α → β) :=
+  f a₁ a₂ a₃ a₄ = f a₂ a₁ a₃ a₄ ∧ f a₁ a₂ a₃ a₄ = f a₁ a₂ a₄ a₃} ≃ (sym2 α → sym2 α → β) :=
 { to_fun := λ f, quotient.lift₂ (λ a b : α × α, f.1 a.1 a.2 b.1 b.2) begin
     rintro _ _ _ _ ⟨⟩ ⟨⟩,
     exacts [rfl, (f.2 _ _ _ _).2, (f.2 _ _ _ _).1, (f.2 _ _ _ _).1.trans (f.2 _ _ _ _).2]
@@ -161,7 +161,7 @@ def lift₂ : {f : α → α → α → α → β // ∀ a₁ a₂ a₃ a₄,
 
 @[simp]
 lemma lift₂_mk (f : {f : α → α → α → α → β // ∀ a₁ a₂ a₃ a₄,
-  (f a₁ a₂ a₃ a₄ = f a₂ a₁ a₃ a₄ ∧ f a₁ a₂ a₃ a₄ = f a₁ a₂ a₄ a₃)}) (a₁ a₂ a₃ a₄ : α) :
+  f a₁ a₂ a₃ a₄ = f a₂ a₁ a₃ a₄ ∧ f a₁ a₂ a₃ a₄ = f a₁ a₂ a₄ a₃}) (a₁ a₂ a₃ a₄ : α) :
   lift₂ f ⟦(a₁, a₂)⟧ ⟦(a₃, a₄)⟧ = (f : α → α → α → α → β) a₁ a₂ a₃ a₄ := rfl
 
 @[simp]

@@ -1131,12 +1131,12 @@ end
 
 end filter_mul
 
-instance additive.topological_add_group {G} [h : topological_space G]
-  [group G] [topological_group G] : topological_add_group (additive G) :=
+instance {G} [topological_space G] [group G] [topological_group G] :
+  topological_add_group (additive G) :=
 { continuous_neg := @continuous_inv G _ _ _ }
 
-instance multiplicative.topological_group {G} [h : topological_space G]
-  [add_group G] [topological_add_group G] : topological_group (multiplicative G) :=
+instance {G} [topological_space G] [add_group G] [topological_add_group G] :
+  topological_group (multiplicative G) :=
 { continuous_inv := @continuous_neg G _ _ _ }
 
 section quotient

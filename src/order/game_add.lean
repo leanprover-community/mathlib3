@@ -116,3 +116,5 @@ lemma game_add.induction {C : α → β → Prop} : well_founded rα → well_fo
 game_add.fix
 
 end prod
+
+namespace sym2

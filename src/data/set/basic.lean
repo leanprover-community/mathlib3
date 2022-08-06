@@ -1777,7 +1777,7 @@ lemma nontrivial_of_mem_mem_ne {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ 
 ⟨x, hx, y, hy, hxy⟩
 
 /-- Extract witnesses from s.nontrivial. This function might be used instead of case analysis on the
-argument. Note that it makes a proof depend on the classical.choice axiom.-/
+argument. Note that it makes a proof depend on the classical.choice axiom. -/
 protected noncomputable def nontrivial.some (hs : s.nontrivial) : α × α :=
 (hs.some, hs.some_spec.some_spec.some)
 
@@ -1792,7 +1792,7 @@ hs.some_spec.some_spec.some_spec.some_spec
 lemma nontrivial.mono (hs : s.nontrivial) (hst : s ⊆ t) : t.nontrivial :=
 let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨x, hst hx, y, hst hy, hxy⟩
 
-@[simp] lemma nontrivial_pair {x y} (hxy : x ≠ y) : ({x, y} : set α).nontrivial :=
+lemma nontrivial_pair {x y} (hxy : x ≠ y) : ({x, y} : set α).nontrivial :=
 ⟨x, mem_insert _ _, y, mem_insert_of_mem _ (mem_singleton _), hxy⟩
 
 lemma nontrivial_of_pair_subset {x y} (hxy : x ≠ y) (h : {x, y} ⊆ s) : s.nontrivial :=
@@ -1839,7 +1839,7 @@ lemma nontrivial.not_subset_empty (hs : s.nontrivial) : ¬ s ⊆ ∅ := hs.nonem
 
 @[simp] lemma not_nontrivial_empty : ¬ (∅ : set α).nontrivial := λ h, h.ne_empty rfl
 
-@[simp] lemma not_nontrivial_singleton {x} : ¬({x} : set α).nontrivial :=
+@[simp] lemma not_nontrivial_singleton {x} : ¬ ({x} : set α).nontrivial :=
 λ H, begin
   rw nontrivial_iff_exists_ne (mem_singleton x) at H,
   exact let ⟨y, hy, hya⟩ := H in hya (mem_singleton_iff.1 hy)
@@ -1899,8 +1899,11 @@ lemma nontrivial_of_preimage {f : α → β} (hf : function.injective f) (s : se
   (hs : (f ⁻¹' s).nontrivial) : s.nontrivial :=
 (hs.image hf).mono $ image_preimage_subset _ _
 
-@[simp] lemma nontrivial_iff_not_subsingleton : ¬ s.subsingleton ↔ s.nontrivial :=
+@[simp] lemma not_subsingleton_iff : ¬ s.subsingleton ↔ s.nontrivial :=
 by simp_rw [set.subsingleton, set.nontrivial, not_forall]
+
+@[simp] lemma not_nontrivial_iff : ¬ s.nontrivial ↔ s.subsingleton :=
+iff.not_left not_subsingleton_iff.symm
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)

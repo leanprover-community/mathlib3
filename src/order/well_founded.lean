@@ -33,6 +33,7 @@ protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_foun
 instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
 is_asymm.is_irrefl
 
+/-- If the lift of a relation is well-founded, so is the original. -/
 theorem of_quotient_lift₂ [s : setoid α] {r : α → α → Prop}
   {H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂}
   (hr : well_founded (quotient.lift₂ r H)) : well_founded r :=

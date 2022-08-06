@@ -571,21 +571,72 @@ that contains this point. -/
 def connected_component (x : α) : set α :=
 ⋃₀ { s : set α | is_preconnected s ∧ x ∈ s }
 
-/-- The connected component of a point inside a set. -/
-def connected_component_in (F : set α) (x : F) : set α := coe '' (connected_component x)
+/-- Given a set `F` in a topological space `α` and a point `x : α`, the connected
+component of `x` in `F` is the connected component of `x` in the subtype `F` seen as
+a set in `α`. This definition does not make sense if `x` is not in `F` so we return the
+empty set in this case. -/
+def connected_component_in (F : set α) (x : α) : set α :=
+if h : x ∈ F then coe '' (connected_component (⟨x, h⟩ : F)) else ∅
 
 theorem mem_connected_component {x : α} : x ∈ connected_component x :=
 mem_sUnion_of_mem (mem_singleton x) ⟨is_connected_singleton.is_preconnected, mem_singleton x⟩
 
+theorem mem_connected_component_in {x : α} {F : set α} (hx : x ∈ F) :
+  x ∈ connected_component_in F x :=
+by simp [connected_component_in, mem_connected_component, hx]
+
+theorem connected_component_nonempty {x : α} :
+  (connected_component x).nonempty :=
+⟨x, mem_connected_component⟩
+
+theorem connected_component_in_nonempty_iff {x : α} {F : set α} :
+  (connected_component_in F x).nonempty ↔ x ∈ F :=
+by { rw [connected_component_in], split_ifs; simp [connected_component_nonempty, h] }
+
+theorem connected_component_in_subset (F : set α) (x : α) :
+  connected_component_in F x ⊆ F :=
+by { rw [connected_component_in], split_ifs; simp }
+
+theorem connected_component_in_univ (x : α) :
+  connected_component_in univ x = connected_component x :=
+by { rw [connected_component_in], split_ifs; simp }
+
 theorem is_preconnected_connected_component {x : α} : is_preconnected (connected_component x) :=
 is_preconnected_sUnion x _ (λ _, and.right) (λ _, and.left)
+
+lemma is_preconnected_connected_comp_in {x : α} {F : set α} :
+  is_preconnected (connected_component_in F x) :=
+begin
+  rw [connected_component_in], split_ifs,
+  { refine embedding_subtype_coe.to_inducing.is_preconnected_image.mpr
+      is_preconnected_connected_component },
+  { exact is_preconnected_empty },
+end
 
 theorem is_connected_connected_component {x : α} : is_connected (connected_component x) :=
 ⟨⟨x, mem_connected_component⟩, is_preconnected_connected_component⟩
 
+lemma is_connected_connected_component_in_iff {x : α} {F : set α} :
+  is_connected (connected_component_in F x) ↔ x ∈ F :=
+by simp_rw [← connected_component_in_nonempty_iff, is_connected, is_preconnected_connected_comp_in,
+  and_true]
+
 theorem is_preconnected.subset_connected_component {x : α} {s : set α}
   (H1 : is_preconnected s) (H2 : x ∈ s) : s ⊆ connected_component x :=
 λ z hz, mem_sUnion_of_mem hz ⟨H1, H2⟩
+
+lemma is_preconnected.subset_connected_component_in {x : α} {F : set α} (hs : is_preconnected s)
+  (hxs : x ∈ s) (hsF : s ⊆ F) : s ⊆ connected_component_in F x :=
+begin
+  have : is_preconnected ((coe : F → α) ⁻¹' s),
+  { refine embedding_subtype_coe.to_inducing.is_preconnected_image.mp _,
+    rwa [subtype.image_preimage_coe, inter_eq_left_iff_subset.mpr hsF] },
+  have h2xs : (⟨x, hsF hxs⟩ : F) ∈ coe ⁻¹' s := by { rw [mem_preimage], exact hxs },
+  have := this.subset_connected_component h2xs,
+  rw [connected_component_in, dif_pos (hsF hxs)],
+  refine subset.trans _ (image_subset _ this),
+  rw [subtype.image_preimage_coe, inter_eq_left_iff_subset.mpr hsF]
+end
 
 theorem is_connected.subset_connected_component {x : α} {s : set α}
   (H1 : is_connected s) (H2 : x ∈ s) : s ⊆ connected_component x :=

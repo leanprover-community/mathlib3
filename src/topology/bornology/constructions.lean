@@ -156,3 +156,12 @@ instance : bornology (additive α) := ‹bornology α›
 instance : bornology (multiplicative α) := ‹bornology α›
 instance [bounded_space α] : bounded_space (additive α) := ‹bounded_space α›
 instance [bounded_space α] : bounded_space (multiplicative α) := ‹bounded_space α›
+
+/-!
+### Order dual
+
+The bornology on this type synonym is inherited without change.
+-/
+
+instance : bornology αᵒᵈ := ‹bornology α›
+instance [bounded_space α] : bounded_space αᵒᵈ := ‹bounded_space α›

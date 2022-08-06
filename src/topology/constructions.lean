@@ -67,6 +67,12 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
 
+/-!
+### `additive`, `multiplicative`
+
+The topology on those type synonyms is inherited without change.
+-/
+
 section
 variables [topological_space α]
 
@@ -74,6 +80,8 @@ open additive multiplicative
 
 instance : topological_space (additive α) := ‹topological_space α›
 instance : topological_space (multiplicative α) := ‹topological_space α›
+instance [discrete_topology α] : discrete_topology (additive α) := ‹discrete_topology α›
+instance [discrete_topology α] : discrete_topology (multiplicative α) := ‹discrete_topology α›
 
 lemma continuous_of_mul : continuous (of_mul : α → additive α) := continuous_id
 lemma continuous_to_mul : continuous (to_mul : additive α → α) := continuous_id
@@ -97,8 +105,35 @@ lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := rfl
 lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := rfl
 lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := rfl
 
-instance [discrete_topology α] : discrete_topology (additive α) := ‹discrete_topology α›
-instance [discrete_topology α] : discrete_topology (multiplicative α) := ‹discrete_topology α›
+end
+
+/-!
+### Order dual
+
+The topology on this type synonym is inherited without change.
+-/
+
+section
+variables [topological_space α]
+
+open order_dual
+
+instance : topological_space αᵒᵈ := ‹topological_space α›
+instance [discrete_topology α] : discrete_topology (αᵒᵈ) := ‹discrete_topology α›
+
+lemma continuous_to_dual : continuous (to_dual : α → αᵒᵈ) := continuous_id
+lemma continuous_of_dual : continuous (of_dual : αᵒᵈ → α) := continuous_id
+
+lemma is_open_map_to_dual : is_open_map (to_dual : α → αᵒᵈ) := is_open_map.id
+lemma is_open_map_of_dual : is_open_map (of_dual : αᵒᵈ → α) := is_open_map.id
+
+lemma is_closed_map_to_dual : is_closed_map (to_dual : α → αᵒᵈ) := is_closed_map.id
+lemma is_closed_map_of_dual : is_closed_map (of_dual : αᵒᵈ → α) := is_closed_map.id
+
+local attribute [semireducible] nhds
+
+lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := rfl
+lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := rfl
 
 end
 

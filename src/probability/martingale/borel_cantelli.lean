@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.martingale.convergence
+import probability.conditional_expectation
 
 /-!
 
@@ -11,7 +12,7 @@ import probability.martingale.convergence
 
 -/
 
-open topological_space filter
+open filter
 open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
 
 namespace measure_theory
@@ -856,5 +857,34 @@ begin
   filter_upwards [bdd_above_range_sum_indicator_iff μ hs] with x hx using not_iff_not.2 hx,
 end
 
+namespace borel_cantelli
+
+open probability_theory measurable_space
+
+def filt (s : ℕ → set α) (hs : ∀ n, measurable_set (s n)) : filtration ℕ m0 :=
+{ seq := λ n, generate_from {t | ∃ k ≤ n, s k = t},
+  mono' := λ n m hnm, generate_from_mono (λ t ⟨k, hk₁, hk₂⟩, ⟨k, hk₁.trans hnm, hk₂⟩),
+  le' := λ n, generate_from_le (λ t ⟨k, hk₁, hk₂⟩, hk₂ ▸ hs k) }
+
+include m0
+
+lemma filt_indep_sets {s : ℕ → set α} (hs : ∀ n, measurable_set (s n))
+  (hsindep : Indep_set s μ) (n : ℕ) :
+  indep_sets {s (n + 1)} {t | ∃ k ≤ n, s k = t} μ :=
+begin
+  rintros a b ha ⟨k, hk, rfl⟩,
+  exact hsindep.indep_sets ((lt_of_le_of_lt hk n.lt_succ_self).ne.symm) _ _
+    (measurable_set_generate_from ha) (measurable_set_generate_from $ set.mem_singleton _),
+end
+
+lemma filt_indep {s : ℕ → set α} (hs : ∀ n, measurable_set (s n))
+  (hsindep : Indep_set s μ) (n : ℕ) :
+  indep (generate_from {s (n + 1)}) (filt s hs n) μ :=
+begin
+  intros a b ha hb,
+  sorry,
+end
+
+end borel_cantelli
 
 end measure_theory

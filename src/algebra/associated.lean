@@ -173,7 +173,7 @@ theorem of_irreducible_pow {α} [monoid α] {x : α} {n : ℕ} (hn : n ≠ 1) :
   irreducible (x ^ n) → is_unit x :=
 begin
   obtain hn|hn := hn.lt_or_lt,
-  { simp only [nat.lt_one_iff.mp hn, forall_false_left, not_irreducible_one, pow_zero] },
+  { simp only [nat.lt_one_iff.mp hn, is_empty.forall_iff, not_irreducible_one, pow_zero] },
   intro h,
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_lt hn,
   rw [pow_succ, add_comm] at h,

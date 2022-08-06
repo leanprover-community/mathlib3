@@ -60,6 +60,7 @@ section
 variables (C : Type u₁) [category.{v₁} C]
 
 /-- `𝟭 C` is the identity functor on a category `C`. -/
+-- We don't use `@[simps]` here because we want `C` implicit for the simp lemmas.
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
@@ -72,6 +73,7 @@ variable {C}
 
 @[simp] lemma id_obj (X : C) : (𝟭 C).obj X = X := rfl
 @[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (𝟭 C).map f = f := rfl
+
 end
 
 section
@@ -82,13 +84,12 @@ variables {C : Type u₁} [category.{v₁} C]
 /--
 `F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
 -/
-def comp (F : C ⥤ D) (G : D ⥤ E) : C ⥤ E :=
+@[simps obj] def comp (F : C ⥤ D) (G : D ⥤ E) : C ⥤ E :=
 { obj := λ X, G.obj (F.obj X),
   map := λ _ _ f, G.map (F.map f) }
 
 infixr ` ⋙ `:80 := comp
 
-@[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) {X Y : C} (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 

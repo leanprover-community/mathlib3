@@ -11,7 +11,7 @@ This file proves lemmas relating (truncated) subtraction with an order. We provi
 `has_ordered_sub` stating that `a - b ≤ c ↔ a ≤ c + b`.
 
 The subtraction discussed here could both be normal subtraction in an additive group or truncated
-subtraction on a canonically ordered monoid (`ℕ`, `multiset`, `enat`, `ennreal`, ...)
+subtraction on a canonically ordered monoid (`ℕ`, `multiset`, `part_enat`, `ennreal`, ...)
 
 ## Implementation details
 
@@ -94,7 +94,7 @@ end
 
 /-! ### Preorder -/
 
-section ordered_add_comm_monoid
+section ordered_add_comm_semigroup
 
 section preorder
 variables [preorder α]
@@ -135,6 +135,10 @@ lemma tsub_le_tsub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 lemma add_tsub_le_assoc : a + b - c ≤ a + (b - c) :=
 by { rw [tsub_le_iff_left, add_left_comm], exact add_le_add_left le_add_tsub a }
 
+/-- See `tsub_add_eq_add_tsub` for the equality. -/
+lemma add_tsub_le_tsub_add : a + b - c ≤ a - c + b :=
+by { rw [add_comm, add_comm _ b], exact add_tsub_le_assoc }
+
 lemma add_le_add_add_tsub : a + b ≤ (a + c) + (b - c) :=
 by { rw [add_assoc], exact add_le_add_left le_add_tsub a }
 
@@ -158,6 +162,23 @@ tsub_le_iff_right.2 $ calc
     a ≤ a - b + b : le_tsub_add
   ... ≤ a - b + (c + (b - c)) : add_le_add_left le_add_tsub _
   ... = a - b + c + (b - c) : (add_assoc _ _ _).symm
+
+/-- See `tsub_add_tsub_comm` for the equality. -/
+lemma add_tsub_add_le_tsub_add_tsub : a + b - (c + d) ≤ a - c + (b - d) :=
+begin
+  rw [add_comm c, tsub_le_iff_left, add_assoc, ←tsub_le_iff_left, ←tsub_le_iff_left],
+  refine (tsub_le_tsub_right add_tsub_le_assoc c).trans _,
+  rw [add_comm a, add_comm (a - c)],
+  exact add_tsub_le_assoc,
+end
+
+/-- See `add_tsub_add_eq_tsub_left` for the equality. -/
+lemma add_tsub_add_le_tsub_left : a + b - (a + c) ≤ b - c :=
+by { rw [tsub_le_iff_left, add_assoc], exact add_le_add_left le_add_tsub _ }
+
+/-- See `add_tsub_add_eq_tsub_right` for the equality. -/
+lemma add_tsub_add_le_tsub_right : a + c - (b + c) ≤ a - b :=
+by { rw [tsub_le_iff_left, add_right_comm], exact add_le_add_right le_add_tsub c }
 
 end cov
 
@@ -221,24 +242,13 @@ begin
   { rw [tsub_le_iff_left, add_assoc, ← tsub_le_iff_left, ← tsub_le_iff_left] }
 end
 
-section cov
-variable [covariant_class α α (+) (≤)]
-
-lemma tsub_add_eq_tsub_tsub (a b c : α) : a - (b + c) = a - b - c :=
-begin
-  refine le_antisymm (tsub_le_iff_left.mpr _)
-    (tsub_le_iff_left.mpr $ tsub_le_iff_left.mpr _),
-  { rw [add_assoc], refine le_trans le_add_tsub (add_le_add_left le_add_tsub _) },
-  { rw [← add_assoc], apply le_add_tsub }
-end
+lemma tsub_add_eq_tsub_tsub (a b c : α) : a - (b + c) = a - b - c := (tsub_tsub _ _ _).symm
 
 lemma tsub_add_eq_tsub_tsub_swap (a b c : α) : a - (b + c) = a - c - b :=
 by { rw [add_comm], apply tsub_add_eq_tsub_tsub }
 
 lemma tsub_right_comm : a - b - c = a - c - b :=
 by simp_rw [← tsub_add_eq_tsub_tsub, add_comm]
-
-end cov
 
 /-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
 
@@ -278,6 +288,12 @@ begin
   simpa [hc] using h,
 end
 
+protected lemma lt_tsub_of_add_lt_right (hc : add_le_cancellable c) (h : a + c < b) : a < b - c :=
+(hc.le_tsub_of_add_le_right h.le).lt_of_ne $ by { rintro rfl, exact h.not_le le_tsub_add }
+
+protected lemma lt_tsub_of_add_lt_left (ha : add_le_cancellable a) (h : a + c < b) : c < b - a :=
+ha.lt_tsub_of_add_lt_right $ by rwa add_comm
+
 end add_le_cancellable
 
 /-! #### Lemmas where addition is order-reflecting. -/
@@ -308,6 +324,14 @@ contravariant.add_le_cancellable.lt_add_of_tsub_lt_left h
 lemma lt_add_of_tsub_lt_right (h : a - c < b) : a < b + c :=
 contravariant.add_le_cancellable.lt_add_of_tsub_lt_right h
 
+/-- This lemma (and some of its corollaries) also holds for `ennreal`, but this proof doesn't work
+for it. Maybe we should add this lemma as field to `has_ordered_sub`? -/
+lemma lt_tsub_of_add_lt_left : a + c < b → c < b - a :=
+contravariant.add_le_cancellable.lt_tsub_of_add_lt_left
+
+lemma lt_tsub_of_add_lt_right : a + c < b → a < b - c :=
+contravariant.add_le_cancellable.lt_tsub_of_add_lt_right
+
 end contra
 
 section both
@@ -315,12 +339,9 @@ variables [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)
 
 lemma add_tsub_add_eq_tsub_right (a c b : α) : (a + c) - (b + c) = a - b :=
 begin
-  apply le_antisymm,
-  { rw [tsub_le_iff_left, add_right_comm], exact add_le_add_right le_add_tsub c },
-  { rw [tsub_le_iff_left, add_comm b],
-    apply le_of_add_le_add_right,
-    rw [add_assoc],
-    exact le_tsub_add }
+  refine add_tsub_add_le_tsub_right.antisymm (tsub_le_iff_right.2 $ le_of_add_le_add_right _), swap,
+  rw add_assoc,
+  exact le_tsub_add,
 end
 
 lemma add_tsub_add_eq_tsub_left (a b c : α) : (a + b) - (a + c) = b - c :=
@@ -328,7 +349,7 @@ by rw [add_comm a b, add_comm a c, add_tsub_add_eq_tsub_right]
 
 end both
 
-end ordered_add_comm_monoid
+end ordered_add_comm_semigroup
 
 /-! ### Lemmas in a linearly ordered monoid. -/
 section linear_order
@@ -349,8 +370,6 @@ lt_iff_lt_of_le_iff_le tsub_le_iff_left
 lemma lt_tsub_comm : a < b - c ↔ c < b - a :=
 lt_tsub_iff_left.trans lt_tsub_iff_right.symm
 
-
-
 section cov
 variable [covariant_class α α (+) (≤)]
 
@@ -362,26 +381,27 @@ end cov
 
 end linear_order
 
-/-! ### Lemmas in a canonically ordered monoid. -/
+section ordered_add_comm_monoid
+variables [partial_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
 
-section canonically_ordered_add_monoid
-variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
+@[simp] lemma tsub_zero (a : α) : a - 0 = a :=
+add_le_cancellable.tsub_eq_of_eq_add add_le_cancellable_zero (add_zero _).symm
+
+end ordered_add_comm_monoid
+
+section has_exists_add_of_le
+variables [add_comm_semigroup α] [partial_order α] [has_exists_add_of_le α]
+  [covariant_class α α (+) (≤)] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
 @[simp] lemma add_tsub_cancel_of_le (h : a ≤ b) : a + (b - a) = b :=
 begin
   refine le_antisymm _ le_add_tsub,
-  obtain ⟨c, rfl⟩ := le_iff_exists_add.1 h,
+  obtain ⟨c, rfl⟩ := exists_add_of_le h,
   exact add_le_add_left add_tsub_le_left a,
 end
 
 lemma tsub_add_cancel_of_le (h : a ≤ b) : b - a + a = b :=
 by { rw [add_comm], exact add_tsub_cancel_of_le h }
-
-lemma add_tsub_cancel_iff_le : a + (b - a) = b ↔ a ≤ b :=
-⟨λ h, le_iff_exists_add.mpr ⟨b - a, h.symm⟩, add_tsub_cancel_of_le⟩
-
-lemma tsub_add_cancel_iff_le : b - a + a = b ↔ a ≤ b :=
-by { rw [add_comm], exact add_tsub_cancel_iff_le }
 
 lemma add_le_of_le_tsub_right_of_le (h : b ≤ c) (h2 : a ≤ c - b) : a + b ≤ c :=
 (add_le_add_right h2 b).trans_eq $ tsub_add_cancel_of_le h
@@ -395,63 +415,28 @@ by rw [tsub_le_iff_right, tsub_add_cancel_of_le h]
 lemma tsub_left_inj (h1 : c ≤ a) (h2 : c ≤ b) : a - c = b - c ↔ a = b :=
 by simp_rw [le_antisymm_iff, tsub_le_tsub_iff_right h1, tsub_le_tsub_iff_right h2]
 
+lemma tsub_inj_left (h₁ : a ≤ b) (h₂ : a ≤ c) : b - a = c - a → b = c := (tsub_left_inj h₁ h₂).1
+
 /-- See `lt_of_tsub_lt_tsub_right` for a stronger statement in a linear order. -/
 lemma lt_of_tsub_lt_tsub_right_of_le (h : c ≤ b) (h2 : a - c < b - c) : a < b :=
 by { refine ((tsub_le_tsub_iff_right h).mp h2.le).lt_of_ne _, rintro rfl, exact h2.false }
 
-@[simp] lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
-by rw [← nonpos_iff_eq_zero, tsub_le_iff_left, add_zero]
-
-/-- One direction of `tsub_eq_zero_iff_le`, as a `@[simp]`-lemma. -/
-@[simp] lemma tsub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
-tsub_eq_zero_iff_le.mpr h
-
-@[simp] lemma tsub_self (a : α) : a - a = 0 :=
-tsub_eq_zero_iff_le.mpr le_rfl
-
-@[simp] lemma tsub_le_self : a - b ≤ a :=
-tsub_le_iff_left.mpr $ le_add_left le_rfl
-
-@[simp] lemma tsub_zero (a : α) : a - 0 = a :=
-le_antisymm tsub_le_self $ le_add_tsub.trans_eq $ zero_add _
-
-@[simp] lemma zero_tsub (a : α) : 0 - a = 0 :=
-tsub_eq_zero_iff_le.mpr $ zero_le a
-
-lemma tsub_self_add (a b : α) : a - (a + b) = 0 :=
-by { rw [tsub_eq_zero_iff_le], apply self_le_add_right }
-
-lemma tsub_inj_left (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
-by rw [← tsub_add_cancel_of_le h₁, ← tsub_add_cancel_of_le h₂, h₃]
-
-lemma tsub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
-by rw [pos_iff_ne_zero, ne.def, tsub_eq_zero_iff_le]
-
-lemma tsub_pos_of_lt (h : a < b) : 0 < b - a :=
-tsub_pos_iff_not_le.mpr h.not_le
-
-lemma tsub_add_tsub_cancel (hab : b ≤ a) (hbc : c ≤ b) : (a - b) + (b - c) = a - c :=
+lemma tsub_add_tsub_cancel (hab : b ≤ a) (hcb : c ≤ b) : (a - b) + (b - c) = a - c :=
 begin
   convert tsub_add_cancel_of_le (tsub_le_tsub_right hab c) using 2,
-  rw [tsub_tsub, add_tsub_cancel_of_le hbc],
+  rw [tsub_tsub, add_tsub_cancel_of_le hcb],
 end
 
 lemma tsub_tsub_tsub_cancel_right (h : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [tsub_tsub, add_tsub_cancel_of_le h]
 
-lemma tsub_lt_of_lt (h : a < b) : a - c < b :=
-lt_of_le_of_lt tsub_le_self h
-
-/-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
+/-! #### Lemmas that assume that an element is `add_le_cancellable`. -/
 
 namespace add_le_cancellable
+
 protected lemma eq_tsub_iff_add_eq_of_le (hc : add_le_cancellable c) (h : c ≤ b) :
   a = b - c ↔ a + c = b :=
-begin
-  split,
-  { rintro rfl, exact tsub_add_cancel_of_le h },
-  { rintro rfl, exact (hc.add_tsub_cancel_right).symm }
-end
+⟨by { rintro rfl, exact tsub_add_cancel_of_le h }, hc.eq_tsub_of_add_eq⟩
 
 protected lemma tsub_eq_iff_eq_add_of_le (hb : add_le_cancellable b) (h : b ≤ a) :
   a - b = c ↔ a = c + b :=
@@ -468,8 +453,7 @@ by rw [add_comm a, hb.add_tsub_assoc_of_le h, add_comm]
 
 protected lemma tsub_tsub_assoc (hbc : add_le_cancellable (b - c)) (h₁ : b ≤ a) (h₂ : c ≤ b) :
   a - (b - c) = a - b + c :=
-by rw [hbc.tsub_eq_iff_eq_add_of_le (tsub_le_self.trans h₁), add_assoc,
-  add_tsub_cancel_of_le h₂, tsub_add_cancel_of_le h₁]
+hbc.tsub_eq_of_eq_add $ by rw [add_assoc, add_tsub_cancel_of_le h₂, tsub_add_cancel_of_le h₁]
 
 protected lemma tsub_add_tsub_comm (hb : add_le_cancellable b) (hd : add_le_cancellable d)
   (hba : b ≤ a) (hdc : d ≤ c) : a - b + (c - d) = a + c - (b + d) :=
@@ -493,17 +477,6 @@ protected lemma tsub_lt_iff_right (hb : add_le_cancellable b) (hba : b ≤ a) :
   a - b < c ↔ a < c + b :=
 by { rw [add_comm], exact hb.tsub_lt_iff_left hba }
 
-protected lemma lt_tsub_of_add_lt_right (hc : add_le_cancellable c) (h : a + c < b) : a < b - c :=
-begin
-  apply lt_of_le_of_ne,
-  { rw [← add_tsub_cancel_of_le h.le, add_right_comm, add_assoc],
-    rw [hc.add_tsub_assoc_of_le], refine le_self_add, refine le_add_self },
-  { rintro rfl, apply h.not_le, exact le_tsub_add }
-end
-
-protected lemma lt_tsub_of_add_lt_left (ha : add_le_cancellable a) (h : a + c < b) : c < b - a :=
-by { apply ha.lt_tsub_of_add_lt_right, rwa add_comm }
-
 protected lemma tsub_lt_iff_tsub_lt (hb : add_le_cancellable b) (hc : add_le_cancellable c)
   (h₁ : b ≤ a) (h₂ : c ≤ a) : a - b < c ↔ a - c < b :=
 by rw [hb.tsub_lt_iff_left h₁, hc.tsub_lt_iff_right h₂]
@@ -515,12 +488,9 @@ by rw [ha.le_tsub_iff_left h₁, hc.le_tsub_iff_right h₂]
 protected lemma lt_tsub_iff_right_of_le (hc : add_le_cancellable c) (h : c ≤ b) :
   a < b - c ↔ a + c < b :=
 begin
-  refine ⟨_, hc.lt_tsub_of_add_lt_right⟩,
-  intro h2,
-  refine (add_le_of_le_tsub_right_of_le h h2.le).lt_of_ne _,
+  refine ⟨λ h', (add_le_of_le_tsub_right_of_le h h'.le).lt_of_ne _, hc.lt_tsub_of_add_lt_right⟩,
   rintro rfl,
-  apply h2.not_le,
-  rw [hc.add_tsub_cancel_right]
+  exact h'.ne' hc.add_tsub_cancel_right,
 end
 
 protected lemma lt_tsub_iff_left_of_le (hc : add_le_cancellable c) (h : c ≤ b) :
@@ -533,20 +503,6 @@ begin
   conv_lhs at h { rw [← tsub_add_cancel_of_le hca] },
   exact lt_of_add_lt_add_left (hb.lt_add_of_tsub_lt_right h),
 end
-
-protected lemma tsub_le_tsub_iff_left (ha : add_le_cancellable a) (hc : add_le_cancellable c)
-  (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
-begin
-  refine ⟨_, λ h, tsub_le_tsub_left h a⟩,
-  rw [tsub_le_iff_left, ← hc.add_tsub_assoc_of_le h,
-    hc.le_tsub_iff_right (h.trans le_add_self), add_comm b],
-  apply ha,
-end
-
-protected lemma tsub_right_inj (ha : add_le_cancellable a) (hb : add_le_cancellable b)
-  (hc : add_le_cancellable c) (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
-by simp_rw [le_antisymm_iff, ha.tsub_le_tsub_iff_left hb hba, ha.tsub_le_tsub_iff_left hc hca,
-  and_comm]
 
 protected lemma tsub_lt_tsub_right_of_le (hc : add_le_cancellable c) (h : c ≤ a) (h2 : a < b) :
   a - c < b - c :=
@@ -567,12 +523,11 @@ end
 
 @[simp] protected lemma add_tsub_tsub_cancel (hac : add_le_cancellable (a - c)) (h : c ≤ a) :
   (a + b) - (a - c) = b + c :=
-(hac.tsub_eq_iff_eq_add_of_le $ tsub_le_self.trans le_self_add).mpr $
-  by rw [add_assoc, add_tsub_cancel_of_le h, add_comm]
+hac.tsub_eq_of_eq_add $ by rw [add_assoc, add_tsub_cancel_of_le h, add_comm]
 
 protected lemma tsub_tsub_cancel_of_le (hba : add_le_cancellable (b - a)) (h : a ≤ b) :
   b - (b - a) = a :=
-by rw [hba.tsub_eq_iff_eq_add_of_le tsub_le_self, add_tsub_cancel_of_le h]
+hba.tsub_eq_of_eq_add (add_tsub_cancel_of_le h).symm
 
 end add_le_cancellable
 
@@ -611,15 +566,6 @@ contravariant.add_le_cancellable.tsub_lt_iff_left hbc
 lemma tsub_lt_iff_right (hbc : b ≤ a) : a - b < c ↔ a < c + b :=
 contravariant.add_le_cancellable.tsub_lt_iff_right hbc
 
-/-- This lemma (and some of its corollaries also holds for `ennreal`,
-  but this proof doesn't work for it.
-  Maybe we should add this lemma as field to `has_ordered_sub`? -/
-lemma lt_tsub_of_add_lt_right (h : a + c < b) : a < b - c :=
-contravariant.add_le_cancellable.lt_tsub_of_add_lt_right h
-
-lemma lt_tsub_of_add_lt_left (h : a + c < b) : c < b - a :=
-contravariant.add_le_cancellable.lt_tsub_of_add_lt_left h
-
 lemma tsub_lt_iff_tsub_lt (h₁ : b ≤ a) (h₂ : c ≤ a) : a - b < c ↔ a - c < b :=
 contravariant.add_le_cancellable.tsub_lt_iff_tsub_lt contravariant.add_le_cancellable h₁ h₂
 
@@ -638,13 +584,6 @@ contravariant.add_le_cancellable.lt_tsub_iff_left_of_le h
 lemma lt_of_tsub_lt_tsub_left_of_le  [contravariant_class α α (+) (<)]
   (hca : c ≤ a) (h : a - b < a - c) : c < b :=
 contravariant.add_le_cancellable.lt_of_tsub_lt_tsub_left_of_le hca h
-
-lemma tsub_le_tsub_iff_left (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
-contravariant.add_le_cancellable.tsub_le_tsub_iff_left contravariant.add_le_cancellable h
-
-lemma tsub_right_inj (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
-contravariant.add_le_cancellable.tsub_right_inj contravariant.add_le_cancellable
-  contravariant.add_le_cancellable hba hca
 
 lemma tsub_lt_tsub_right_of_le (h : c ≤ a) (h2 : a < b) : a - c < b - c :=
 contravariant.add_le_cancellable.tsub_lt_tsub_right_of_le h h2
@@ -666,6 +605,72 @@ lemma tsub_tsub_cancel_of_le (h : a ≤ b) : b - (b - a) = a :=
 contravariant.add_le_cancellable.tsub_tsub_cancel_of_le h
 
 end contra
+end has_exists_add_of_le
+
+/-! ### Lemmas in a canonically ordered monoid. -/
+
+section canonically_ordered_add_monoid
+variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
+
+lemma add_tsub_cancel_iff_le : a + (b - a) = b ↔ a ≤ b :=
+⟨λ h, le_iff_exists_add.mpr ⟨b - a, h.symm⟩, add_tsub_cancel_of_le⟩
+
+lemma tsub_add_cancel_iff_le : b - a + a = b ↔ a ≤ b :=
+by { rw [add_comm], exact add_tsub_cancel_iff_le }
+
+@[simp] lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
+by rw [← nonpos_iff_eq_zero, tsub_le_iff_left, add_zero]
+
+alias tsub_eq_zero_iff_le ↔ _ tsub_eq_zero_of_le
+
+attribute [simp] tsub_eq_zero_of_le
+
+@[simp] lemma tsub_self (a : α) : a - a = 0 := tsub_eq_zero_of_le le_rfl
+
+@[simp] lemma tsub_le_self : a - b ≤ a := tsub_le_iff_left.mpr $ le_add_left le_rfl
+
+@[simp] lemma zero_tsub (a : α) : 0 - a = 0 := tsub_eq_zero_of_le $ zero_le a
+
+lemma tsub_self_add (a b : α) : a - (a + b) = 0 := tsub_eq_zero_of_le $ self_le_add_right _ _
+
+lemma tsub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
+by rw [pos_iff_ne_zero, ne.def, tsub_eq_zero_iff_le]
+
+lemma tsub_pos_of_lt (h : a < b) : 0 < b - a := tsub_pos_iff_not_le.mpr h.not_le
+
+lemma tsub_lt_of_lt (h : a < b) : a - c < b := lt_of_le_of_lt tsub_le_self h
+
+namespace add_le_cancellable
+
+protected lemma tsub_le_tsub_iff_left (ha : add_le_cancellable a) (hc : add_le_cancellable c)
+  (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
+begin
+  refine ⟨_, λ h, tsub_le_tsub_left h a⟩,
+  rw [tsub_le_iff_left, ← hc.add_tsub_assoc_of_le h, hc.le_tsub_iff_right (h.trans le_add_self),
+    add_comm b],
+  apply ha,
+end
+
+protected lemma tsub_right_inj (ha : add_le_cancellable a) (hb : add_le_cancellable b)
+  (hc : add_le_cancellable c) (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
+by simp_rw [le_antisymm_iff, ha.tsub_le_tsub_iff_left hb hba, ha.tsub_le_tsub_iff_left hc hca,
+  and_comm]
+
+end add_le_cancellable
+
+/-! #### Lemmas where addition is order-reflecting. -/
+
+section contra
+variable [contravariant_class α α (+) (≤)]
+
+lemma tsub_le_tsub_iff_left (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
+contravariant.add_le_cancellable.tsub_le_tsub_iff_left contravariant.add_le_cancellable h
+
+lemma tsub_right_inj (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
+contravariant.add_le_cancellable.tsub_right_inj contravariant.add_le_cancellable
+  contravariant.add_le_cancellable hba hca
+
+end contra
 
 end canonically_ordered_add_monoid
 
@@ -680,7 +685,7 @@ by rw [tsub_pos_iff_not_le, not_le]
 lemma tsub_eq_tsub_min (a b : α) : a - b = a - min a b :=
 begin
   cases le_total a b with h h,
-  { rw [min_eq_left h, tsub_self, tsub_eq_zero_iff_le.mpr h] },
+  { rw [min_eq_left h, tsub_self, tsub_eq_zero_of_le h] },
   { rw [min_eq_right h] },
 end
 
@@ -741,7 +746,7 @@ end contra
 lemma tsub_add_eq_max : a - b + b = max a b :=
 begin
   cases le_total a b with h h,
-  { rw [max_eq_right h, tsub_eq_zero_iff_le.mpr h, zero_add] },
+  { rw [max_eq_right h, tsub_eq_zero_of_le h, zero_add] },
   { rw [max_eq_left h, tsub_add_cancel_of_le h] }
 end
 
@@ -751,7 +756,7 @@ by rw [add_comm, max_comm, tsub_add_eq_max]
 lemma tsub_min : a - min a b = a - b :=
 begin
   cases le_total a b with h h,
-  { rw [min_eq_left h, tsub_self, tsub_eq_zero_iff_le.mpr h] },
+  { rw [min_eq_left h, tsub_self, tsub_eq_zero_of_le h] },
   { rw [min_eq_right h] }
 end
 

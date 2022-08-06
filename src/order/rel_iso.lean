@@ -8,7 +8,6 @@ import data.fun_like.basic
 import logic.embedding
 import logic.equiv.set
 import order.rel_classes
-import order.well_founded
 
 /-!
 # Relation homomorphisms, embeddings, isomorphisms
@@ -317,16 +316,20 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
 
-/-- If a relation is well-founded, so is its lift. -/
-theorem _root_.well_founded.to_quotient_lift₂ [s : setoid α] {r : α → α → Prop}
-  (H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂) (hr : well_founded r) :
-  well_founded (quotient.lift₂ r H) :=
-(quotient.rel_embedding H).well_founded hr
-
+/-- A relation is well founded iff its lift to a quotient is. -/
 @[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop}
   (H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂) :
   well_founded (quotient.lift₂ r H) ↔ well_founded r :=
-⟨well_founded.of_quotient_lift₂, well_founded.to_quotient_lift₂ H⟩
+⟨λ hr, begin
+  suffices : ∀ {x : quotient s} {a : α}, ⟦a⟧ = x → acc r a,
+  { exact ⟨λ a, this rfl⟩ },
+  { refine λ x, hr.induction x _,
+    rintros x IH a rfl,
+    exact ⟨_, λ b hb, IH ⟦b⟧ hb rfl⟩ }
+end, (quotient.rel_embedding H).well_founded⟩
+
+alias _root_.well_founded_lift₂_iff ↔
+  _root_.well_founded.of_quotient_lift₂ _root_.well_founded.to_quotient_lift₂
 
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it

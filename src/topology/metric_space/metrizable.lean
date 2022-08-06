@@ -68,7 +68,8 @@ inducing_coe.pseudo_metrizable_space
 
 instance pseudo_metrizable_space_pi [Π i, pseudo_metrizable_space (π i)] :
   pseudo_metrizable_space (Π i, π i) :=
-by { letI := λ i, pseudo_metrizable_space_pseudo_metric (π i), apply_instance }
+by { casesI nonempty_fintype ι, letI := λ i, pseudo_metrizable_space_pseudo_metric (π i),
+  apply_instance }
 
 /-- A topological space is metrizable if there exists a metric space structure compatible with the
 topology. To endow such a space with a compatible distance, use
@@ -117,7 +118,7 @@ instance metrizable_space.subtype [metrizable_space X] (s : set X) : metrizable_
 embedding_subtype_coe.metrizable_space
 
 instance metrizable_space_pi [Π i, metrizable_space (π i)] : metrizable_space (Π i, π i) :=
-by { letI := λ i, metrizable_space_metric (π i), apply_instance }
+by { casesI nonempty_fintype ι, letI := λ i, metrizable_space_metric (π i), apply_instance }
 
 variables (X) [t3_space X] [second_countable_topology X]
 

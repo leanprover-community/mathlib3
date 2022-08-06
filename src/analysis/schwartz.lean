@@ -10,6 +10,8 @@ import analysis.locally_convex.with_seminorms
 import analysis.normed_space.multilinear
 import topology.algebra.uniform_filter_basis
 import analysis.inner_product_space.basic
+import tactic.positivity
+import algebra.order.pointwise
 
 /-!
 # Schwartz space
@@ -47,6 +49,50 @@ open_locale big_operators ennreal nnreal topological_space
 noncomputable theory
 
 variables {R 𝕜 E F ι : Type*}
+
+section seminorm
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+
+private lemma nonneg.of_zero_le_neg {f : E → ℝ} (map_zero : f 0 = 0)
+  (add_le : ∀ x y, f (x + y) ≤ f x + f y) (neg : ∀ x, f (-x) = f x) (x : E) : 0 ≤ f x :=
+have h: 0 ≤ 2 * f x, from
+calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero]
+...    ≤ f x + f (-x)  : add_le _ _
+...    = 2 * f x : by rw [neg, two_mul],
+nonneg_of_mul_nonneg_right h zero_lt_two
+
+private lemma smul.of_smul_le {f : E → ℝ} (map_zero : f 0 = 0)
+  (add_le : ∀ x y, f (x + y) ≤ f x + f y) (neg : ∀ x, f (-x) = f x)
+  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) (r : 𝕜) (x : E) : f (r • x) = ∥r∥ * f x :=
+begin
+  refine le_antisymm (smul_le r x) _,
+  by_cases r = 0,
+  { simp [h, map_zero] },
+  rw ←mul_le_mul_left (inv_pos.mpr (norm_pos_iff.mpr h)),
+  rw inv_mul_cancel_left₀ (norm_ne_zero_iff.mpr h),
+  specialize smul_le r⁻¹ (r • x),
+  rw norm_inv at smul_le,
+  convert smul_le,
+  simp[h],
+end
+
+def seminorm.of_le (f : E → ℝ) (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
+  (neg : ∀ x, f (-x) = f x) (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
+{ to_fun := f,
+  map_zero' := map_zero,
+  nonneg' := nonneg.of_zero_le_neg map_zero add_le neg,
+  add_le' := add_le,
+  neg' := neg,
+  smul' := smul.of_smul_le map_zero add_le neg smul_le }
+
+@[simp] lemma seminorm.of_le_apply (f : E → ℝ) {map_zero : f 0 = 0}
+  {add_le : ∀ x y, f (x + y) ≤ f x + f y} {neg : ∀ x, f (-x) = f x}
+  {smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x} (x : E) :
+  seminorm.of_le f map_zero add_le neg smul_le x = f x := rfl
+
+end seminorm
+
 
 section iterated_fderiv
 
@@ -255,11 +301,24 @@ begin
   exact iterated_fderiv_neg_apply,
 end
 
+variables [normed_space ℂ F]
+
+lemma seminorm_smul_aux' (k n : ℕ) (f : schwartz E F) (c : ℂ) (x : E) :
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n (λ y, c • f y) x∥ =
+  ∥c∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
+begin
+  nth_rewrite 2 mul_comm,
+  rw mul_assoc,
+  congr,
+  rw iterated_fderiv_const_smul_apply ,
+  { rw norm_smul },
+  { exact f.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
+end
+
+
 end aux
 
 section smul
-
-#check ℂ
 
 variables [normed_space ℂ F]
 variables [semiring R] [module R ℂ] [module R F] [smul_comm_class ℝ R F]
@@ -271,6 +330,10 @@ variables [has_continuous_const_smul R F] [is_scalar_tower R ℂ F]
 --variables [semiring R] [module R F] [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
 
 --instance (𝕜 : Type*) [is_R_or_C 𝕜] [normed_space 𝕜 F] [module R 𝕜] [is_scalar_tower R 𝕜 F]:
+-- Note that we define the scalar multiplication only in the case that `F` is a vector space
+-- over `ℂ`. The reason for this is that the type-system cannot infer instances if we were to
+-- replace `ℂ` by `[is_R_or_C 𝕜]`. This is mathemically no problem, because the usual Schwartz
+-- space is `schwartz E ℂ` and the space `schwartz E ℝ` is never used in mathematics.
 instance :
   has_smul R (schwartz E F) :=
 ⟨λ c f, { to_fun := c • f,
@@ -305,6 +368,8 @@ instance : has_zero (schwartz E F) :=
 -- (and be called `iterated_fderiv_zero_fun`)
 
 lemma coe_zero : ↑(0 : schwartz E F) = (0 : E → F) := rfl
+
+@[simp] lemma coe_fn_zero : coe_fn (0 : schwartz E F) = (0 : E → F) := rfl
 
 @[simp] lemma zero_apply {x : E} : (0 : schwartz E F) x = 0 := rfl
 
@@ -416,6 +481,7 @@ variables [has_smul ℝ F]
 def seminorm (k n : ℕ) (f : schwartz E F) : ℝ :=
 Inf {c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c}
 
+
 lemma bounds_nonempty (k n : ℕ) (f : schwartz E F) :
   ∃ (c : ℝ), c ∈ {c : ℝ | 0 ≤ c ∧ ∀ (x : E), ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c} :=
 let ⟨M, hMp, hMb⟩ := f.decay k n in ⟨M, le_of_lt hMp, hMb⟩
@@ -424,20 +490,71 @@ lemma bounds_bdd_below (k n : ℕ) (f : schwartz E F) :
   bdd_below { c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c } :=
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
+lemma seminorm_nonneg (k n : ℕ) (f : schwartz E F) : 0 ≤ f.seminorm k n :=
+le_cInf (bounds_nonempty k n f) (λ _ ⟨hx, _⟩, hx)
+
+lemma le_seminorm (k n : ℕ) (f : schwartz E F) (x : E) :
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n ⇑f x∥ ≤ f.seminorm k n :=
+le_cInf (bounds_nonempty k n f) (λ y ⟨_, h⟩, h x)
+
+
+section
+
+open tactic tactic.positivity
+
+/-- Extension for the `positivity` tactic: seminorms are nonnegative. -/
+@[positivity]
+meta def _root_.tactic.positivity_schwartz_seminorm : expr → tactic strictness
+| `(schwartz.seminorm %%a %%b %%c) := nonnegative <$> mk_app ``seminorm_nonneg [a, b, c]
+| _ := failed
+
+end
+
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma seminorm_le_bound (k n : ℕ) (f : schwartz E F) {M : ℝ} (hMp: 0 ≤ M)
   (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) :
   f.seminorm k n ≤ M :=
 cInf_le (bounds_bdd_below k n f) ⟨hMp, hM⟩
 
-lemma op_norm_nonneg (k n : ℕ) (f : schwartz E F) : 0 ≤ f.seminorm k n :=
-le_cInf (bounds_nonempty k n f) (λ _ ⟨hx, _⟩, hx)
+lemma seminorm_zero (k n : ℕ) :
+  (0 : schwartz E F).seminorm k n = 0 :=
+begin
+  refine le_antisymm _ (by positivity),
+  refine seminorm_le_bound k n _ rfl.le _,
+  intros x,
+  refine eq.le _,
+  simp [iterated_fderiv_within_zero_fun],
+  right,
+  rw ←iterated_fderiv_within_zero_fun,
+  sorry,
+end
 
-def seminorm' (k n : ℕ) : seminorm ℝ (schwartz E F) := seminorm.of (schwartz.seminorm k n)
-  (λ x y, begin
-    sorry,
+def seminorm'' (k n : ℕ) : seminorm ℂ (schwartz E F) := seminorm.of_le (schwartz.seminorm k n)
+  (schwartz.seminorm_zero k n)
+  (λ f g, (f + g).seminorm_le_bound k n (by positivity) $ λ x,
+    (seminorm_add_le_aux k n f g x).trans $ add_le_add (f.le_seminorm k n x) (g.le_seminorm k n x))
+  (sorry)
+  (λ r f,
+  begin
+    refine (r • f).seminorm_le_bound k n (by positivity) _,
+    intro x,
+    refine (seminorm_smul_aux' k n f r x).le.trans _,
+    rw mul_assoc,
+    refine mul_le_mul_of_nonneg_left (f.le_seminorm k n x) (norm_nonneg _),
   end)
-  (λ r x, begin
+
+def seminorm' (k n : ℕ) : seminorm ℂ (schwartz E F) := seminorm.of (schwartz.seminorm k n)
+  (λ f g, (f + g).seminorm_le_bound k n (by positivity) $ λ x,
+    (seminorm_add_le_aux k n f g x).trans $ add_le_add (f.le_seminorm k n x) (g.le_seminorm k n x))
+  (λ r f, begin
+    refine le_antisymm _ _,
+    { refine (r • f).seminorm_le_bound k n (by positivity) _,
+      intro x,
+      refine (seminorm_smul_aux' k n f r x).le.trans _,
+      rw mul_assoc,
+      refine mul_le_mul_of_nonneg_left (f.le_seminorm k n x) (norm_nonneg _),
+    },
+    dunfold schwartz.seminorm,
     sorry,
   end)
 

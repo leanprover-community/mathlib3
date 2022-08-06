@@ -68,62 +68,6 @@ variables [add_comm_monoid β]
 end
 end finset
 
-section
-variables {E : Type*}
-
-open additive multiplicative
-
-section
-variables [has_dist E]
-
-instance : has_dist (additive E) := ‹has_dist E›
-instance : has_dist (multiplicative E) := ‹has_dist E›
-
-@[simp] lemma dist_of_mul (a b : E) : dist (of_mul a) (of_mul b) = dist a b := rfl
-@[simp] lemma dist_of_add (a b : E) : dist (of_add a) (of_add b) = dist a b := rfl
-@[simp] lemma dist_to_mul (a b) : dist (to_mul a : E) (to_mul b) = dist a b := rfl
-@[simp] lemma dist_to_add (a b) : dist (to_add a : E) (to_add b) = dist a b := rfl
-
-end
-
-section
-variables [has_edist E]
-
-instance : has_edist (additive E) := ‹has_edist E›
-instance : has_edist (multiplicative E) := ‹has_edist E›
-
-@[simp] lemma edist_of_mul (a b : E) : edist (of_mul a) (of_mul b) = edist a b := rfl
-@[simp] lemma edist_of_add (a b : E) : edist (of_add a) (of_add b) = edist a b := rfl
-@[simp] lemma edist_to_mul (a b) : edist (to_mul a : E) (to_mul b) = edist a b := rfl
-@[simp] lemma edist_to_add (a b) : edist (to_add a : E) (to_add b) = edist a b := rfl
-
-end
-
-section
-variables [has_nndist E]
-
-instance : has_nndist (additive E) := ‹has_nndist E›
-instance : has_nndist (multiplicative E) := ‹has_nndist E›
-
-@[simp] lemma nndist_of_mul (a b : E) : nndist (of_mul a) (of_mul b) = nndist a b := rfl
-@[simp] lemma nndist_of_add (a b : E) : nndist (of_add a) (of_add b) = nndist a b := rfl
-@[simp] lemma nndist_to_mul (a b) : nndist (to_mul a : E) (to_mul b) = nndist a b := rfl
-@[simp] lemma nndist_to_add (a b) : nndist (to_add a : E) (to_add b) = nndist a b := rfl
-
-end
-
-instance [pseudo_emetric_space E] : pseudo_emetric_space (additive E) := ‹pseudo_emetric_space E›
-instance [pseudo_emetric_space E] : pseudo_emetric_space (multiplicative E) :=
-‹pseudo_emetric_space E›
-instance [emetric_space E] : emetric_space (additive E) := ‹emetric_space E›
-instance [emetric_space E] : emetric_space (multiplicative E) := ‹emetric_space E›
-instance [pseudo_metric_space E] : pseudo_metric_space (additive E) := ‹pseudo_metric_space E›
-instance [pseudo_metric_space E] : pseudo_metric_space (multiplicative E) := ‹pseudo_metric_space E›
-instance [metric_space E] : metric_space (additive E) := ‹metric_space E›
-instance [metric_space E] : metric_space (multiplicative E) := ‹metric_space E›
-
-end
-
 variables {𝓕 𝕜 α ι E F G : Type*}
 
 open filter function metric

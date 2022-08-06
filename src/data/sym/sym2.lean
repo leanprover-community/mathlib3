@@ -157,10 +157,16 @@ def lift₂ : {f : α → α → α → α → β // ∀ a₁ a₂ a₃ a₄,
   inv_fun := λ F, ⟨λ x₁ x₂ y₁ y₂, F ⟦(x₁, x₂)⟧ ⟦(y₁, y₂)⟧, λ a₁ a₂ b₁ b₂,
     by { split, exacts [congr_arg2 F eq_swap rfl, congr_arg2 F rfl eq_swap] }⟩,
   left_inv := λ f, subtype.ext rfl,
-  right_inv := λ F, begin
-    dsimp,
-    apply funext₂' (λ x y, _),
-  end }
+  right_inv := λ F, funext₂' $ λ x y, sym2.induction_on₂ x y $ λ _ _ _ _, rfl }
+
+@[simp]
+lemma lift₂_mk (f : {f : α → α → α → α → β // ∀ a₁ a₂ a₃ a₄,
+  (f a₁ a₂ a₃ a₄ = f a₂ a₁ a₃ a₄ ∧ f a₁ a₂ a₃ a₄ = f a₁ a₂ a₄ a₃)}) (a₁ a₂ a₃ a₄ : α) :
+  lift₂ f ⟦(a₁, a₂)⟧ ⟦(a₃, a₄)⟧ = (f : α → α → α → α → β) a₁ a₂ a₃ a₄ := rfl
+
+@[simp]
+lemma coe_lift₂_symm_apply (F : sym2 α → sym2 α → β) (a₁ a₂ a₃ a₄ : α) :
+  (lift₂.symm F : α → α → α → α → β) a₁ a₂ a₃ a₄ = F ⟦(a₁, a₂)⟧ ⟦(a₃, a₄)⟧ := rfl
 
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.

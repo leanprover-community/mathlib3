@@ -1016,7 +1016,11 @@ end diam
 
 end emetric
 
-/-! ### `additive`, `multiplicative` -/
+/-!
+### `additive`, `multiplicative`
+
+The distance on those type synonyms is inherited without change.
+-/
 
 open additive multiplicative
 
@@ -1039,7 +1043,11 @@ instance [pseudo_emetric_space X] : pseudo_emetric_space (multiplicative X) :=
 instance [emetric_space X] : emetric_space (additive X) := ‹emetric_space X›
 instance [emetric_space X] : emetric_space (multiplicative X) := ‹emetric_space X›
 
-/-! ### Order dual -/
+/-!
+### Order dual
+
+The distance on this type synonym is inherited without change.
+-/
 
 open order_dual
 

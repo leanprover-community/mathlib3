@@ -172,6 +172,15 @@ calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_
 
 end total_degree
 
+section eval
+
+lemma ker_eval (f : σ → R) : (eval f).ker = ideal.span (set.range (λ s, X s - C (f s))) :=
+begin
+  sorry
+end
+
+end eval
+
 end comm_ring
 
 end mv_polynomial

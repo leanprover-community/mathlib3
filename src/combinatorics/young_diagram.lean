@@ -71,8 +71,8 @@ lemma nw_of (μ : young_diagram) {i1 i2 j1 j2 : ℕ}
 
 section distrib_lattice
 
-instance : has_le young_diagram :=
-{ le := λ μ ν, (μ : set (ℕ × ℕ)) ⊆ ν }
+@[simp] lemma cells_subset_iff (μ ν : young_diagram) : μ.cells ⊆ ν.cells ↔ μ ≤ ν := iff.rfl
+@[simp] lemma cells_ssubset_iff (μ ν : young_diagram) : μ.cells ⊂ ν.cells ↔ μ < ν := iff.rfl
 
 instance : has_sup young_diagram :=
 { sup := λ μ ν, { cells        := μ.cells ∪ ν.cells,

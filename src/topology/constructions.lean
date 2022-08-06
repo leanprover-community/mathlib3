@@ -90,10 +90,12 @@ lemma is_closed_map_to_mul : is_closed_map (to_mul : additive α → α) := is_c
 lemma is_closed_map_of_add : is_closed_map (of_add : α → multiplicative α) := is_closed_map.id
 lemma is_closed_map_to_add : is_closed_map (to_add : multiplicative α → α) := is_closed_map.id
 
-lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := map_id.symm
-lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := map_id.symm
-lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := map_id.symm
-lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := map_id.symm
+local attribute [semireducible] nhds
+
+lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := rfl
+lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := rfl
+lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := rfl
+lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := rfl
 
 instance [discrete_topology α] : discrete_topology (additive α) := ‹discrete_topology α›
 instance [discrete_topology α] : discrete_topology (multiplicative α) := ‹discrete_topology α›
@@ -1254,3 +1256,4 @@ have (a,b) ∈ closure (s ×ˢ t),
 show f (a, b).1 (a, b).2 ∈ closure u,
   from @mem_closure_of_continuous (α×β) _ _ _ (λp:α×β, f p.1 p.2) (a,b) _ u hf this $
     assume ⟨p₁, p₂⟩ ⟨h₁, h₂⟩, h p₁ h₁ p₂ h₂
+#lint

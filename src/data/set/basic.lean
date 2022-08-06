@@ -1760,9 +1760,6 @@ For the corresponding result for `subtype`, see `subtype.subsingleton`. -/
 instance subsingleton_coe_of_subsingleton [subsingleton α] {s : set α} : subsingleton s :=
 by { rw [s.subsingleton_coe], exact subsingleton_of_subsingleton }
 
-theorem subsingleton_anti {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : subsingleton t) :
-  subsingleton s := (subsingleton_coe _).2 $ (t.subsingleton_coe.1 hs).anti hst
-
 /-- The image of a subsingleton is a subsingleton. -/
 lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
 λ _ ⟨x, hx, Hx⟩ _ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)

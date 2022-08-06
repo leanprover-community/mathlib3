@@ -961,9 +961,6 @@ section smul
 variables {R : Type*} [semiring R] [module R G] [smul_comm_class 𝕜 R G]
   [has_continuous_const_smul R G]
 
-lemma smul_continuous_multilinear_map {c : R} (m : continuous_multilinear_map 𝕜 E G) :
-  (c • continuous_linear_map.id 𝕜 G).comp_continuous_multilinear_map m = c • m := rfl
-
 instance : has_continuous_const_smul R (continuous_multilinear_map 𝕜 E G) :=
 ⟨λ c, (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ G G
   (c • continuous_linear_map.id 𝕜 G)).2⟩

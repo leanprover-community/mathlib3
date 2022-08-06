@@ -24,10 +24,6 @@ subsequency relation on the addition of combinatorial games.
 - `sym2.game_add`: the game addition relation on unordered pairs.
 - `well_founded.sym2_game_add`: formalizes induction on unordered pairs, where exactly one entry
   decreases at a time.
-
-## Todo
-
-- Define `sym2.game_add`.
 -/
 
 variables {α β : Type*} {rα : α → α → Prop} {rβ : β → β → Prop}

@@ -780,6 +780,12 @@ begin
     apply le_max_right }
 end
 
+theorem mk_multiset_eq_max_mk_aleph_0 (α : Type u) [nonempty α] : #(multiset α) = max (#α) ℵ₀ :=
+le_antisymm ((mk_le_of_surjective $ surjective_quot_mk _).trans (mk_list_eq_max_mk_aleph_0 α).le) $
+  max_le ⟨⟨_, λ _ _, multiset.singleton_inj.1⟩⟩
+    ⟨⟨_, (multiset.repeat_injective $ classical.arbitrary α).comp ulift.down_injective⟩⟩
+-- could be proven using `mk_finsupp_nat` below, but data.finsupp.multiset isn't imported.
+
 @[simp] theorem mk_finset_of_infinite (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
@@ -804,6 +810,15 @@ end
 lemma mk_finsupp_of_infinite (α β : Type u) [infinite α] [has_zero β]
   [nontrivial β] : #(α →₀ β) = max (#α) (#β) :=
 by simp
+
+@[simp] lemma mk_finsupp_nat (α : Type u) [nonempty α] : #(α →₀ ℕ) = max (#α) ℵ₀ :=
+begin
+  casesI fintype_or_infinite α,
+  { rw mk_finsupp_lift_of_fintype,
+    rw [max_eq_right mk_le_aleph_0, mk_nat, lift_aleph_0, power_nat_eq le_rfl],
+    exacts [fintype.card_pos, fintype.to_encodable α] },
+  { rw [mk_finsupp_lift_of_infinite, lift_uzero], refl },
+end
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // #t ≤ c} ≤ #α ^ c :=

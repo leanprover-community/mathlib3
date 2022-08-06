@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.W.cardinal
-import data.mv_polynomial.basic
+import data.mv_polynomial.equiv
 /-!
 # Cardinality of Polynomial Ring
 
@@ -13,7 +13,7 @@ the cardinality of `mv_polynomial σ R` is bounded above by the maximum of `#R`,
 and `ℵ₀`.
 
 -/
-universes u
+universes u v
 /-
 The definitions `mv_polynomial_fun` and `arity` are motivated by defining the following
 inductive type as a `W_type` in order to be able to use theorems about the cardinality
@@ -89,14 +89,35 @@ calc #(mv_polynomial_fun σ R) = #R + #σ + #(ulift bool) :
 
 namespace mv_polynomial
 
+lemma cardinal_lift_mk_eq_max {σ : Type u} {R : Type v}
+  [nonempty σ] [comm_semiring R] [nontrivial R] :
+  #(mv_polynomial σ R) = max (max (cardinal.lift.{u} $ #R) $ cardinal.lift.{v} $ #σ) ℵ₀ :=
+begin
+  haveI : infinite (σ →₀ ℕ) := infinite_iff.2 ((le_max_right _ _).trans (mk_finsupp_nat σ).symm.le),
+  refine (mk_finsupp_lift_of_infinite _ R).trans _,
+  rw [mk_finsupp_nat, max_assoc, lift_max, lift_aleph_0, max_comm],
+end
+
+lemma cardinal_mk_eq_max {σ R : Type u} [nonempty σ] [comm_semiring R] [nontrivial R] :
+  #(mv_polynomial σ R) = max (max (#R) (#σ)) ℵ₀ :=
+by rw [cardinal_lift_mk_eq_max, lift_id, lift_id]
+
+lemma cardinal_lift_mk_le_max {σ : Type u} {R : Type v} [comm_semiring R] :
+  #(mv_polynomial σ R) ≤ max (max (cardinal.lift.{u} $ #R) $ cardinal.lift.{v} $ #σ) ℵ₀ :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { exact (le_one_iff_subsingleton.2 finsupp.coe_fn_injective.subsingleton).trans
+      (le_max_of_le_right one_le_aleph_0) },
+  casesI is_empty_or_nonempty σ,
+  { rw [((is_empty_ring_equiv R σ).to_equiv.trans equiv.ulift.{u}.symm).cardinal_eq, mk_ulift],
+    exact le_max_of_le_left (le_max_of_le_left le_rfl) },
+  { exact cardinal_lift_mk_eq_max.le },
+end
+
 /-- The cardinality of the multivariate polynomial ring, `mv_polynomial σ R` is at most the maximum
 of `#R`, `#σ` and `ℵ₀` -/
 lemma cardinal_mk_le_max {σ R : Type u} [comm_semiring R] :
   #(mv_polynomial σ R) ≤ max (max (#R) (#σ)) ℵ₀ :=
-calc #(mv_polynomial σ R) ≤ #(W_type (arity σ R)) :
-  cardinal.mk_le_of_surjective to_mv_polynomial_surjective
-... ≤ max (#(mv_polynomial_fun σ R)) ℵ₀ : W_type.cardinal_mk_le_max_aleph_0_of_finite
-... ≤ _ : max_le_max cardinal_mv_polynomial_fun_le le_rfl
-... ≤ _ : by simp only [max_assoc, max_self]
+by { apply cardinal_lift_mk_le_max.trans, rw [lift_id, lift_id] }
 
 end mv_polynomial

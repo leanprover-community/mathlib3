@@ -40,6 +40,8 @@ Definitions in the file:
 
 * `subsingleton s : Prop` : the predicate saying that `s` has at most one element.
 
+* `nontrivial s : Prop` : the predicate saying that `s` has at least two distinct elements.
+
 * `range f : set β` : the image of `univ` under `f`.
   Also works for `{p : Prop} (f : p → α)` (unlike `image`)
 

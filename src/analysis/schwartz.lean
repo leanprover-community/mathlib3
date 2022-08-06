@@ -353,8 +353,7 @@ instance :
     { refine eq.le _,
       nth_rewrite 1 mul_comm,
       rw ←mul_assoc,
-      refine seminorm_smul_aux k n f c x,
-    },
+      refine seminorm_smul_aux k n f c x },
     rw [mul_le_mul_left hC, le_add_iff_nonneg_right],
     exact zero_le_one,
   end}⟩

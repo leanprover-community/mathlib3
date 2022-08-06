@@ -317,7 +317,7 @@ begin
       rw hn _ hk <|> rw hm _ hk,
       refine λ h, hk.ne _,
       rw ordinal.nat_cast_inj at h,
-      exact nat.lxor_left_inj.1 h <|> exact nat.lxor_right_inj.1 h } },
+      rwa nat.lxor_left_inj at h <|> rwa nat.lxor_right_inj at h } },
   -- Every other smaller Grundy value can.
   { obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (hu.trans (ordinal.nat_lt_omega _)),
     replace hu := ordinal.nat_cast_lt.1 hu,

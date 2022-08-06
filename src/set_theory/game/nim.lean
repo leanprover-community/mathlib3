@@ -306,7 +306,7 @@ begin
   -- We do strong induction on both variables.
   induction n using nat.strong_induction_on with n hn generalizing m,
   induction m using nat.strong_induction_on with m hm,
-  rw grundy_value_def,
+  rw grundy_value_eq_mex_left,
   apply (ordinal.mex_le_of_ne.{u u} (λ i, _)).antisymm (ordinal.le_mex_of_forall (λ ou hu, _)),
   -- The Grundy value `nat.lxor n m` can't be reached by left moves.
   { apply left_moves_add_cases i;
@@ -317,7 +317,7 @@ begin
       rw hn _ hk <|> rw hm _ hk,
       refine λ h, hk.ne _,
       rw ordinal.nat_cast_inj at h,
-      exact nat.lxor_left_inj h <|> exact nat.lxor_right_inj h } },
+      exact nat.lxor_left_inj.1 h <|> exact nat.lxor_right_inj.1 h } },
   -- Every other smaller Grundy value can.
   { obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (hu.trans (ordinal.nat_lt_omega _)),
     replace hu := ordinal.nat_cast_lt.1 hu,

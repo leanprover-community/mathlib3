@@ -33,6 +33,17 @@ protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_foun
 instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
 is_asymm.is_irrefl
 
+theorem of_quotient_lift₂ [s : setoid α] {r : α → α → Prop}
+  {H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂}
+  (hr : well_founded (quotient.lift₂ r H)) : well_founded r :=
+begin
+  suffices : ∀ {x : quotient s} {a : α}, ⟦a⟧ = x → acc r a,
+  { exact ⟨λ a, this rfl⟩ },
+  { refine λ x, hr.induction x _,
+    rintros x IH a rfl,
+    exact ⟨_, λ b hb, IH ⟦b⟧ hb rfl⟩ }
+end
+
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)

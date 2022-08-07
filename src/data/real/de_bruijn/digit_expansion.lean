@@ -45,7 +45,6 @@ example : function.injective (succ : Z → Z) := succ_injective
 -- unique predecessor
 example : function.injective (pred : Z → Z) := pred_injective
 
-@[ext] -- extensionality of the structure is automatically generated
 structure formal_series (b : ℕ) := -- b will the base - 1
 (to_fun : Z → fin (b + 1))
 (bounded' : ¬ ∃ i₀, ∀ i > i₀, to_fun i = b)
@@ -55,12 +54,14 @@ namespace formal_series
 -- we can treat it like a function
 instance fun_like (b : ℕ) : fun_like (formal_series Z b) Z (λ _, fin (b + 1)) :=
 { coe := formal_series.to_fun,
-  coe_injective' := formal_series.ext }
+  coe_injective' := by { rintro ⟨⟩ ⟨⟩, simp } }
+
+variables {Z}
 
 variables {Z} {b : ℕ} (f g : formal_series Z b) (i : Z)
 
 -- extensional equality
-example : f = g ↔ ∀ z, f z = g z := fun_like.ext_iff
+@[ext] lemma ext (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
 @[simp] lemma to_fun_apply : f.to_fun i = f i := rfl
 
@@ -208,6 +209,12 @@ begin
     exact hz y hy hyz' }
 end
 
+@[simp] lemma difcar_zero_right (f : Σ) (z : Z) : difcar f 0 z = 0 :=
+by simp [difcar_eq_zero_iff]
+
+@[simp] lemma difcar_self (f : Σ) (z : Z) : difcar f f z = 0 :=
+by simp [difcar_eq_zero_iff]
+
 def sub_aux (x : Z) : fin (b + 1) := f x - g x - difcar f g x
 
 omit hb
@@ -283,52 +290,64 @@ end
 
 include hb
 
-instance [is_succ_archimedean Z] : has_sub Σ :=
+variables [is_succ_archimedean Z]
+
+instance : has_sub Σ :=
 ⟨λ f g,
   { to_fun := λ x, f x - g x - difcar f g x,
     bounded' := begin
-      rintro ⟨x, hx⟩,
-      obtain ⟨w, hw, hfgw⟩ : ∃ w ≥ x, difcar f g w = 0,
-      { cases difcar_eq_zero_or_one f g x with px px,
-        { exact ⟨x, le_rfl, px⟩ },
-        { rw difcar_eq_one_iff at px,
-          obtain ⟨y, hxy, hfgy, px⟩ := px,
-          have := hx y hxy,
-          rw sub_eq_iff_eq_add at this,
-          refine ⟨y, le_of_lt hxy, _⟩,
-          refine or.resolve_right (difcar_eq_zero_or_one _ _ _) (λ H, _),
-          rw [H, ←nat.cast_add_one, zmod.nat_cast_self, sub_eq_zero] at this,
-          exact absurd this hfgy.ne } },
-      suffices : ∀ z > w, difcar f g z = 0 ∧ f z = b,
-      {  obtain ⟨z, hwz, hz⟩ := f.exists_bounded w,
-        exact not_le_of_lt hz (this _ hwz).right.ge },
-      suffices : ∀ z > x, difcar f g (pred z) = 0 → f z = b ∧ g z = 0 ∧ difcar f g z = 0,
-      { intros z hwz,
-        refine succ.rec _ _ (succ_le_of_lt hwz),
-        { refine (this _ (lt_of_le_of_lt hw (lt_succ _)) _).symm.imp and.elim_right id,
-          rwa pred_succ },
-        { rintros k hk ⟨hd, hf⟩,
-          refine (this _ _ _).symm.imp and.elim_right id,
-          { exact lt_of_lt_of_le (lt_of_le_of_lt hw (succ_le_iff.mp hk)) (le_succ _) },
-          { rwa pred_succ } } },
-      intros z hxz hfgz,
-      specialize hx z hxz,
-      rw [sub_eq_iff_eq_add, sub_eq_iff_eq_add] at hx,
-      rcases lt_trichotomy (f z) (g z) with H|H|H,
-      { simpa [difcar_pred_eq_one H, ne_of_gt hb.out] using hfgz },
-      { simpa [←difcar_pred_eq_difcar H, H, hfgz, fin.ext_iff ↑b, ne_of_gt hb.out] using hx },
-      cases difcar_eq_zero_or_one f g z with hd hd,
-      { rw [hd, add_zero] at hx,
-        cases (fin.zero_le (g z)).eq_or_lt with hg hg,
-        { simp [hx, ←hg, hd] },
-        { have : g z - 1 = b + g z,
-          { simp [sub_eq_iff_eq_add, add_right_comm] },
-          casesI b, -- TODO
-          { simp [hd] },
-          rw [hx, ←this, fin.lt_sub_one_iff] at H,
-          simp [hx, H, hd] } },
-      { simpa [hd, H.ne'] using hx }
+      sorry
+      -- rintro ⟨x, hx⟩,
+      -- obtain ⟨w, hw, hfgw⟩ : ∃ w ≥ x, difcar f g w = 0,
+      -- { cases difcar_eq_zero_or_one f g x with px px,
+      --   { exact ⟨x, le_rfl, px⟩ },
+      --   { rw difcar_eq_one_iff at px,
+      --     obtain ⟨y, hxy, hfgy, px⟩ := px,
+      --     have := hx y hxy,
+      --     rw sub_eq_iff_eq_add at this,
+      --     refine ⟨y, le_of_lt hxy, _⟩,
+      --     refine or.resolve_right (difcar_eq_zero_or_one _ _ _) (λ H, _),
+      --     rw [H, ←nat.cast_add_one, zmod.nat_cast_self, sub_eq_zero] at this,
+      --     exact absurd this hfgy.ne } },
+      -- suffices : ∀ z > w, difcar f g z = 0 ∧ f z = b,
+      -- {  obtain ⟨z, hwz, hz⟩ := f.exists_bounded w,
+      --   exact not_le_of_lt hz (this _ hwz).right.ge },
+      -- suffices : ∀ z > x, difcar f g (pred z) = 0 → f z = b ∧ g z = 0 ∧ difcar f g z = 0,
+      -- { intros z hwz,
+      --   refine succ.rec _ _ (succ_le_of_lt hwz),
+      --   { refine (this _ (lt_of_le_of_lt hw (lt_succ _)) _).symm.imp and.elim_right id,
+      --     rwa pred_succ },
+      --   { rintros k hk ⟨hd, hf⟩,
+      --     refine (this _ _ _).symm.imp and.elim_right id,
+      --     { exact lt_of_lt_of_le (lt_of_le_of_lt hw (succ_le_iff.mp hk)) (le_succ _) },
+      --     { rwa pred_succ } } },
+      -- intros z hxz hfgz,
+      -- specialize hx z hxz,
+      -- rw [sub_eq_iff_eq_add, sub_eq_iff_eq_add] at hx,
+      -- rcases lt_trichotomy (f z) (g z) with H|H|H,
+      -- { simpa [difcar_pred_eq_one H, ne_of_gt hb.out] using hfgz },
+      -- { simpa [←difcar_pred_eq_difcar H, H, hfgz, fin.ext_iff ↑b, ne_of_gt hb.out] using hx },
+      -- cases difcar_eq_zero_or_one f g z with hd hd,
+      -- { rw [hd, add_zero] at hx,
+      --   cases (fin.zero_le (g z)).eq_or_lt with hg hg,
+      --   { simp [hx, ←hg, hd] },
+      --   { have : g z - 1 = b + g z,
+      --     { simp [sub_eq_iff_eq_add, add_right_comm] },
+      --     casesI b, -- TODO
+      --     { simp [hd] },
+      --     rw [hx, ←this, fin.lt_sub_one_iff] at H,
+      --     simp [hx, H, hd] } },
+      -- { simpa [hd, H.ne'] using hx }
     end }⟩
 
-end s03
+variables (f g)
 
+protected lemma formal_series.sub_def (x : Z) : (f - g) x = f x - g x - difcar f g x := rfl
+
+protected lemma formal_series.sub_zero (f : Σ) : f - 0 = f :=
+by { ext, simp [formal_series.sub_def] }
+
+protected lemma formal_series.sub_self (f : Σ) : f - f = 0 :=
+by { ext, simp [formal_series.sub_def] }
+
+end s03

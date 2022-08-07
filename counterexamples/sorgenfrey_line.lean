@@ -75,7 +75,7 @@ lemma nhds_basis_Ico_rat (a : ℝₗ) :
   (𝓝 a).has_countable_basis (λ r : ℚ, a < r) (λ r, Ico a r) :=
 begin
   refine ⟨(nhds_basis_Ico a).to_has_basis (λ b hb, _) (λ r hr, ⟨_, hr, subset.rfl⟩),
-    countable_encodable _⟩,
+    set.to_countable _⟩,
   rcases exists_rat_btwn hb with ⟨r, har, hrb⟩,
   exact ⟨r, har, Ico_subset_Ico_right hrb.le⟩
 end
@@ -93,7 +93,7 @@ end
 
 lemma nhds_countable_basis_Ico_inv_pnat (a : ℝₗ) :
   (𝓝 a).has_countable_basis (λ n : ℕ+, true) (λ n, Ico a (a + n⁻¹)) :=
-⟨nhds_basis_Ico_inv_pnat a, countable_encodable _⟩
+⟨nhds_basis_Ico_inv_pnat a, set.to_countable _⟩
 
 lemma nhds_antitone_basis_Ico_inv_pnat (a : ℝₗ) :
   (𝓝 a).has_antitone_basis (λ n : ℕ+, Ico a (a + n⁻¹)) :=

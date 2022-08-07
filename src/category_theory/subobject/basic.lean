@@ -578,6 +578,13 @@ lower_adjunction (mono_over.exists_pullback_adj f)
 
 end  «exists»
 
+section lift
+
+def lift (F : C ⥤ D) [F.preserves_monomorphisms] : subobject X ⥤ subobject (F.obj X) :=
+lower (mono_over.lift (over.post F) (λ f, by { dsimp, apply_instance }))
+
+end lift
+
 end subobject
 
 end category_theory

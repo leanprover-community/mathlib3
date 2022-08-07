@@ -170,7 +170,6 @@ section fintype
 
 open finite_dimensional
 
--- TODO : check explicit and implicit variables and open usage
 variables (K : Type*) [field K] [number_field K]
 variables (A : Type*) [field A] [char_zero A]
 
@@ -188,12 +187,11 @@ end fintype
 
 section roots
 
-open set finite_dimensional polynomial
+open set polynomial
 
--- TODO. fix docstring, name of lemma, opens, arguments
-/-- For `x ∈ K`, with `K` a number field, and `F` a sub-extension of `K`, the images of `x`
-by the embeddings of `K` fixing `F` are exactly the roots of the minimal polynomial of `x`
-over `F` -/
+/-- Let `A` an algebraically closed field and let `x ∈ K`, with `K` a number field. For `F`,
+subfield of `K`, the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
+the roots in `A` of the minimal polynomial of `x` over `F` -/
 lemma range_eq_roots (F K A : Type*) [field F] [number_field F] [field K] [number_field K]
 [field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
 range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
@@ -212,7 +210,7 @@ begin
     have hK : (aeval x) (minpoly F x) = 0 := minpoly.aeval _ _,
     have hA : (aeval a) (minpoly F x) = 0,
     { rwa [aeval_def, ←eval_map, ←mem_root_set_iff'],
-      exact polynomial.monic.ne_zero (polynomial.monic.map (algebra_map F A) (minpoly.monic hx)), },
+      exact monic.ne_zero (monic.map (algebra_map F A) (minpoly.monic hx)), },
     letI : algebra Fx A := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F A) a hA),
     letI : algebra Fx K := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F K) x hK),
     haveI : finite_dimensional Fx K := finite_dimensional.right ℚ  _ _ ,
@@ -230,6 +228,9 @@ end
 
 variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_alg_closed A] (x : K)
 
+/-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K` a number field.
+The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` of
+the minimal polynomial of `x` over `ℚ` -/
 lemma rat_range_eq_roots :
 range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin

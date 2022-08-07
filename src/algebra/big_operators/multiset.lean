@@ -66,7 +66,7 @@ by rw [← m.coe_to_list, coe_erase, coe_map, coe_map, coe_prod, coe_prod,
 
 @[simp, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=
-by simp only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
+by simp only [mul_one, prod_cons, ←cons_zero, eq_self_iff_true, prod_zero]
 
 @[to_additive]
 lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
@@ -389,7 +389,7 @@ le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (
   hs_nonempty (by simp)
 
 @[simp] lemma sum_map_singleton (s : multiset α) : (s.map (λ a, ({a} : multiset α))).sum = s :=
-multiset.induction_on s (by simp) (by simp [singleton_eq_cons])
+multiset.induction_on s (by simp) (by simp)
 
 lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=

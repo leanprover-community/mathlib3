@@ -76,4 +76,7 @@ begin
   rw [← polynomial.eval₂_at_apply, ← polynomial.eval₂_at_apply, h],
 end
 
+lemma mem_iff (hxy : x ≡ y [SMOD U]) : x ∈ U ↔ y ∈ U :=
+by { rw [← zero, ← zero], exact ⟨hxy.symm.trans, hxy.trans⟩ }
+
 end smodeq

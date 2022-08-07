@@ -10,6 +10,7 @@ import ring_theory.ideal.quotient
 import ring_theory.noetherian
 import algebra.module.projective
 import linear_algebra.dimension
+import data.mv_polynomial.pi
 
 /-!
 # Finiteness conditions in commutative algebra
@@ -606,13 +607,45 @@ lemma fintype.total_comp_comp_left {ι R M A : Type*} [decidable_eq ι] [fintype
     ((algebra.of_id R A).comp_left ι).to_linear_map = fintype.total ι M R v :=
 linear_map.ext (fintype.total_comp_left v)
 .
+
+lemma algebra_map_comp_smul {I R A : Type*} [comm_semiring R] [semiring A] [algebra R A] {a : I → R} {r : R} :
+  algebra_map R A ∘ (r • a) = algebra_map R A r • (algebra_map R A ∘ a) :=
+funext (λ _, map_mul _ _ _)
+
+lemma exists_smodeq_of_X_exists_smodeq {I R A : Type*} [comm_ring R] [ring A] [algebra R A] (p : submodule A (I → A)) [finite I] [decidable_eq I] (s : set A)
+  (h : ∀ i (x ∈ s), ∃ r : I → R, pi.single i x ≡ algebra_map R A ∘ r [SMOD p]) :
+  ∀ x : I → A, (∀ i, x i ∈ algebra.adjoin R s) → ∃ r : I → R, x ≡ algebra_map R A ∘ r [SMOD p] :=
+sorry
+-- begin
+--   let q := ((algebra_map R A).comp_left I).srange.to_add_submonoid.smodeq_closure p,
+--   have hq : ∀ x, x ∈ q ↔ ∃ r : I → R, x ≡ algebra_map R A ∘ r [SMOD p] := λ x, ⟨_, _⟩,
+--   rotate, { rintro ⟨_, ⟨r, rfl⟩, hr⟩, exact ⟨r, hr⟩ }, { rintros ⟨r, hr⟩, exact ⟨_, ⟨r, rfl⟩, hr⟩ },
+--   casesI nonempty_fintype I,
+--   intros x hx, rw [← hq, pi_eq_sum_univ_single x],
+--   refine @finset.sum_induction _ _ _ _ _ (∈ q) (λ _ _, q.add_mem) q.zero_mem (λ i _, _),
+--   apply subsemiring.smul_mem_of_mem_closure q _ _ _ (hx i); simp_rw hq,
+--   { use pi.single i 1, convert smodeq.refl, ext1,
+--     simp only [pi.single_apply, apply_ite (algebra_map R A), function.comp_app, map_one, map_zero] },
+--   rintro a (⟨r', rfl⟩ | ha) m ⟨r, hr⟩,
+--   { use r' • r, rw algebra_map_comp_smul, apply hr.smul },
+--   { rw [← hq, add_submonoid.mem_smodeq_closure_of_smodeq _ (hr.smul a),
+--       pi_eq_sum_univ_single (algebra_map R A ∘ r), finset.smul_sum],
+--     apply sum_mem,
+--     rintro i -,
+--     obtain ⟨r', hr'⟩ := h i a ha,
+--     rw hq,
+--     use r i • r',
+--     rw [smul_comm, ← pi.single_smul', smul_eq_mul, mul_one, algebra_map_comp_smul],
+--     apply hr'.smul },
+-- end
+
 lemma of_restrict_scalars_finite_presentation (R A M : Type*) [comm_ring R] [comm_ring A]
   [add_comm_group M] [module R M] [module A M] [algebra R A] [is_scalar_tower R A M]
   [hRA : algebra.finite_type R A] [module.finite_presentation R M] :
   module.finite_presentation A M :=
 begin
   refine ⟨⟨_, (fintype.total (fin $ repr_n R M) M A (λ i, repr R M $ pi.single i 1)), _, _⟩⟩,
-  sorry; { have e : repr R M = fintype.total (fin $ repr_n R M) M R (λ i, repr R M $ pi.single i 1),
+  { have e : repr R M = fintype.total (fin $ repr_n R M) M R (λ i, repr R M $ pi.single i 1),
     { ext, dsimp [linear_map.single], rw [fintype.total_apply_single R i 1, one_smul] },
     have := repr_surjective R M,
     rw e at this,
@@ -620,38 +653,50 @@ begin
     rw [← submodule.restrict_scalars_inj R, submodule.restrict_scalars_top],
     rw eq_top_iff at this ⊢,
     refine this.trans (submodule.span_le_restrict_scalars _ _ _) },
-  obtain ⟨n, f, hf⟩ := algebra.finite_type.iff_quotient_mv_polynomial''.mp hRA,
-  obtain ⟨s, hs⟩ := ker_repr_fg R M,
-  have := λ (i : fin n) (j : fin (repr_n R M)),
-    repr_surjective R M (f (mv_polynomial.X i) • (repr R M $ pi.single j 1)),
+    obtain ⟨s, hs⟩ := hRA.out,
+    obtain ⟨t, ht⟩ := ker_repr_fg R M,
+  have := λ (i : s) (j : fin (repr_n R M)),
+    repr_surjective R M ((i : A) • (repr R M $ pi.single j 1)),
   choose a ha,
-  let a' : fin n → fin (repr_n R M) → fin (repr_n R M) → A :=
-    λ i j, (algebra_map R A).comp_left _ (a i j) - pi.single j (f (mv_polynomial.X i)),
-  refine ⟨(set.range (function.uncurry a')).to_finset ∪ s.image ((algebra_map R A).comp_left _), _⟩,
+  let a' : s → fin (repr_n R M) → fin (repr_n R M) → A :=
+    λ i j, pi.single j i - (algebra_map R A).comp_left _ (a i j),
+  refine ⟨(set.range (function.uncurry a')).to_finset ∪
+    t.image ((algebra.of_id R A).comp_left _).to_linear_map, _⟩,
   rw [finset.coe_union, set.coe_to_finset, finset.coe_image],
-  apply le_antisymm,
-  sorry; { rw [submodule.span_le, set.union_subset_iff, set.range_subset_iff, set.image_subset_iff],
+  let X := _, let Y := _, change X = Y,
+  have hXY : X ≤ Y,
+  { rw [submodule.span_le, set.union_subset_iff, set.range_subset_iff, set.image_subset_iff],
     split,
     { rintros ⟨i, j⟩,
       change fintype.total _ _ _ _ (_ - _) = _,
       rw [map_sub, fintype.total_apply_single, fintype.total_comp_left, sub_eq_zero,
         ← pi.linear_map_eq_fintype_total],
-      exact ha _ _ },
+      exact (ha _ _).symm },
     { intros x hx,
-      change fintype.total _ _ _ _ _ = _,
+      change fintype.total _ _ _ _ ((algebra_map R A).comp_left _ x) = _,
       rw [fintype.total_comp_left, ← pi.linear_map_eq_fintype_total],
       change x ∈ (repr R M).ker,
-      rw ← hs,
+      rw ← ht,
       exact submodule.subset_span hx } },
-  { intros x hx,
-    have := λ i, hf (x i),
-    choose y hy,
-    have : x = f.comp_left _ y := (funext hy).symm,
-    subst this, clear hy,
-    change y ∈ ((submodule.span A _).restrict_scalars R).comap (f.comp_left (fin (repr_n R M))).to_linear_map,
-    -- change
-
-  }
+  refine hXY.antisymm _,
+  intros x hx,
+  have : ∀ x, x ∈ algebra.adjoin R (s : set A) := λ x, by { rw hs, trivial },
+  obtain ⟨r, e⟩ := exists_smodeq_of_X_exists_smodeq X s _ x (λ i, this (x i)),
+  swap,
+  { intros i x hx,
+    refine ⟨a ⟨x, hx⟩ i, _⟩,
+    rw smodeq.sub_mem,
+    apply submodule.span_mono (set.subset_union_left _ _),
+    apply submodule.subset_span,
+    refine ⟨⟨⟨x, hx⟩, i⟩, rfl⟩ },
+  rw e.mem_iff,
+  rw (e.mono hXY).mem_iff at hx,
+  change fintype.total _ M A _ ((algebra_map R A).comp_left _ r) = 0 at hx,
+  rw [fintype.total_comp_left, ← pi.linear_map_eq_fintype_total, ← linear_map.mem_ker, ← ht] at hx,
+  apply submodule.span_mono (set.subset_union_right _ _),
+  apply @submodule.span_le_restrict_scalars R (fin (repr_n R M) → A) A,
+  rw submodule.span_image,
+  exact submodule.mem_map_of_mem hx,
 end
 
 end module.finite_presentation

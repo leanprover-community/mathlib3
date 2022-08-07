@@ -193,7 +193,7 @@ def map (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) : convex_cone 𝕜 F :=
 
 @[simp] lemma mem_map {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 E} {y : F} :
   y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
-by simp_rw [map, mem_mk, mem_image, set_like.mem_coe, exists_prop]
+mem_image_iff_bex
 
 lemma map_map (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) :
   (S.map f).map g = S.map (g.comp f) :=

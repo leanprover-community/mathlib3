@@ -778,7 +778,7 @@ begin
       (integral_nonneg (λ ω, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
-/-
+/-!
 
 ### Variant of the upcrossing estimate
 

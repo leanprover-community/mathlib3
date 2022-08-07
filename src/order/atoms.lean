@@ -67,13 +67,6 @@ def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
 lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
-lemma is_atom.lt_iff (h : is_atom a) : x < a ↔ x = ⊥ := ⟨h.2 x, λ hx, hx.symm ▸ h.1.bot_lt⟩
-
-lemma is_atom.le_iff (h : is_atom a) : x ≤ a ↔ x = ⊥ ∨ x = a :=
-by rw [le_iff_lt_or_eq, h.lt_iff]
-
-lemma is_atom.Iic_eq (h : is_atom a) : set.Iic a = {⊥, a} := set.ext $ λ x, h.le_iff
-
 lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 

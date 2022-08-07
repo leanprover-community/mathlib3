@@ -164,3 +164,126 @@ lemma comp_formal_multilinear_series_apply'
 rfl
 
 end continuous_linear_map
+
+namespace formal_multilinear_series
+
+section order
+
+variables [comm_ring 𝕜] {n : ℕ}
+  [add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]
+  [has_continuous_const_smul 𝕜 E] [decidable_eq E]
+  [add_comm_group F] [module 𝕜 F] [topological_space F] [topological_add_group F]
+  [has_continuous_const_smul 𝕜 F] [decidable_eq F]
+  {p : formal_multilinear_series 𝕜 E F}
+
+open_locale classical
+
+lemma eq_zero_iff : p = 0 ↔ ∀ n, p n = 0 :=
+by simp only [function.funext_iff, pi.zero_apply]
+
+lemma exists_ne_zero_of_ne_zero (hp : p ≠ 0) : ∃ n, p n ≠ 0 :=
+by simpa using eq_zero_iff.not.mp hp
+
+/-- The index of the first non-zero coefficient in `p` (or `0` if all coefficients are zero). This
+  is the order of the isolated zero of an analytic function `f` at a point if `p` is the Taylor
+  series of `f` at that point. -/
+noncomputable def order (p : formal_multilinear_series 𝕜 E F) : ℕ :=
+Inf { n | p n ≠ 0 }
+
+@[simp] lemma order_zero : (0 : formal_multilinear_series 𝕜 E F).order = 0 := by simp [order]
+
+lemma ne_zero_of_order_ne_zero (hp : p.order ≠ 0) : p ≠ 0 :=
+λ h, by simpa [h] using hp
+
+lemma order_eq_find (hp : ∃ n, p n ≠ 0) : p.order = nat.find hp :=
+by simp [order, Inf, hp]
+
+lemma order_eq_find' (hp : p ≠ 0) : p.order = nat.find (exists_ne_zero_of_ne_zero hp) :=
+order_eq_find _
+
+lemma order_eq_zero_iff (hp : p ≠ 0) : p.order = 0 ↔ p 0 ≠ 0 :=
+begin
+  have : ∃ n, p n ≠ 0 := exists_ne_zero_of_ne_zero hp,
+  simp [order_eq_find this, hp]
+end
+
+lemma order_eq_zero_iff' : p.order = 0 ↔ p = 0 ∨ p 0 ≠ 0 :=
+by { by_cases h : p = 0; simp [h, order_eq_zero_iff] }
+
+lemma apply_order_ne_zero (hp : p ≠ 0) : p p.order ≠ 0 :=
+let h := exists_ne_zero_of_ne_zero hp in (order_eq_find h).symm ▸ nat.find_spec h
+
+lemma apply_order_ne_zero' (hp : p.order ≠ 0) : p p.order ≠ 0 :=
+apply_order_ne_zero (ne_zero_of_order_ne_zero hp)
+
+lemma apply_eq_zero_of_lt_order (hp : n < p.order) : p n = 0 :=
+begin
+  by_cases p = 0,
+  { simp [h] },
+  { rw [order_eq_find' h] at hp,
+    simpa using nat.find_min _ hp }
+end
+
+end order
+
+section coef
+
+variables [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
+  {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E}
+  {n : ℕ} {z z₀ : 𝕜} {y : fin n → 𝕜}
+
+open_locale big_operators
+
+/-- The `n`th coefficient of `p` when seen as a power series. -/
+def coef (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) : E := p n 1
+
+@[simp] lemma apply_eq_prod_smul_coef : p n y = (∏ i, y i) • p.coef n :=
+begin
+  convert (p n).to_multilinear_map.map_smul_univ y 1,
+  funext; simp only [pi.one_apply, algebra.id.smul_eq_mul, mul_one],
+end
+
+lemma coef_eq_zero : p.coef n = 0 ↔ p n = 0 :=
+begin
+  split; intro h,
+  { ext; simp [h] },
+  { simp [coef, h] }
+end
+
+@[simp] lemma apply_eq_pow_smul_coef : p n (λ _, z) = z ^ n • p.coef n :=
+by simp
+
+@[simp] lemma norm_apply_eq_norm_coef : ∥p n∥ = ∥coef p n∥ :=
+begin
+  apply le_antisymm,
+  { refine (p n).op_norm_le_bound (norm_nonneg (coef p n)) (λ y, _); simp [norm_smul, mul_comm] },
+  { apply le_of_le_of_eq ((p n).le_op_norm 1); simp }
+end
+
+end coef
+
+section fslope
+
+variables [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E]
+  {p : formal_multilinear_series 𝕜 𝕜 E} {n : ℕ}
+
+/-- The formal counterpart of `dslope`, corresponding to the expansion of `(f z - f 0) / z`. If `f`
+has `p` as a power series, then `dslope f` has `fslope p` as a power series. -/
+noncomputable def fslope (p : formal_multilinear_series 𝕜 𝕜 E) : formal_multilinear_series 𝕜 𝕜 E :=
+  λ n, (p (n + 1)).curry_left 1
+
+@[simp] lemma coef_fslope : p.fslope.coef n = p.coef (n + 1) :=
+begin
+  have : @fin.cons n (λ _, 𝕜) 1 (1 : fin n → 𝕜) = 1 := fin.cons_self_tail 1,
+  simp only [fslope, coef, continuous_multilinear_map.curry_left_apply, this],
+end
+
+@[simp] lemma coef_iterate_fslope (k n : ℕ) :
+  (fslope^[k] p).coef n = p.coef (n + k) :=
+by induction k with k ih generalizing p; refl <|> simpa [ih]
+
+end fslope
+
+end formal_multilinear_series

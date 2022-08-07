@@ -321,8 +321,7 @@ begin
   rwa Group.epi_iff_surjective at i1,
 end
 
-lemma epi_iff_range_eq_top :
-  epi f ↔ f.range = ⊤ :=
+lemma epi_iff_range_eq_top : epi f ↔ f.range = ⊤ :=
 iff.trans (epi_iff_surjective _) (add_subgroup.eq_top_iff' f.range).symm
 
 end AddGroup

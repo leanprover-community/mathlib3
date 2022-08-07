@@ -2434,6 +2434,8 @@ end add
 
 /-! ### Negative -/
 
+section neg
+
 /- The negative is smooth. -/
 lemma cont_diff_neg : cont_diff 𝕜 n (λp : F, -p) :=
 is_bounded_linear_map.id.neg.cont_diff
@@ -2457,6 +2459,38 @@ cont_diff_neg.comp hf
 lemma cont_diff_on.neg {s : set E} {f : E → F}
   (hf : cont_diff_on 𝕜 n f s) : cont_diff_on 𝕜 n (λx, -f x) s :=
 λ x hx, (hf x hx).neg
+
+variables {i : ℕ}
+
+lemma iterated_fderiv_within_neg_apply {f : E → F} (hu : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  iterated_fderiv_within 𝕜 i (-f) s x = -iterated_fderiv_within 𝕜 i f s x :=
+begin
+  induction i with i hi generalizing x,
+  { ext h, simp },
+  { ext h,
+    have hi' : (i : with_top ℕ) < i+1 :=
+      with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
+    calc iterated_fderiv_within 𝕜 (i+1) (-f) s x h
+        = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (-f) s) s x (h 0) (fin.tail h) : rfl
+    ... = fderiv_within 𝕜 (-iterated_fderiv_within 𝕜 i f s) s x
+              (h 0) (fin.tail h) :
+            begin
+              congr' 2,
+              exact fderiv_within_congr (hu x hx) (λ _, hi) (hi hx),
+            end
+    ... = -(fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s) x (h 0) (fin.tail h) :
+            by rw [pi.neg_def, fderiv_within_neg (hu x hx)]; refl
+    ... = - (iterated_fderiv_within 𝕜 (i+1) f s) x h : rfl }
+end
+
+lemma iterated_fderiv_neg_apply {i : ℕ} {f : E → F} :
+  iterated_fderiv 𝕜 i (-f) x = -iterated_fderiv 𝕜 i f x :=
+begin
+  simp_rw [←iterated_fderiv_within_univ],
+  exact iterated_fderiv_within_neg_apply unique_diff_on_univ (set.mem_univ _),
+end
+
+end neg
 
 /-! ### Subtraction -/
 

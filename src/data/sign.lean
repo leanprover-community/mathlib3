@@ -127,7 +127,7 @@ lemma lt_one_iff {a : sign_type} : a < 1 ↔ a ≤ 0 := by dec_trivial!
 
 @[simp] lemma neg_iff {a : sign_type} : a < 0 ↔ a = -1 := by dec_trivial!
 
-@[simp] lemma le_neg_one_iff {a : sign_type} : a ≤ -1 ↔ a = -1 := by dec_trivial!
+@[simp] lemma le_neg_one_iff {a : sign_type} : a ≤ -1 ↔ a = -1 := le_bot_iff
 
 @[simp] lemma pos_iff {a : sign_type} : 0 < a ↔ a = 1 := by dec_trivial!
 

@@ -360,22 +360,39 @@ end
 def fis.above_point {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) : {i : J | j.unop ≤ i}ᵒᵖ ⥤ Type v :=
 begin
-  let Fobj : Π (i : {i : J | j.unop ≤ i}ᵒᵖ), set (F.obj $ opposite.op (i.unop).val), by {
-    rintro ii,
-    obtain ⟨i,ij⟩ := ii.unop,
-    simp only [set.mem_set_of_eq] at ij, rw ←opposite.unop_op i at ij,
-    exact (set.preimage (F.map $ op_hom_of_le ij) {x}),},
+  let Fobj : Π (ii : {i : J | j.unop ≤ i}ᵒᵖ), set (F.obj $ opposite.op (ii.unop).val) :=
+    λ ii, set.preimage (F.map $ op_hom_of_le ii.unop.prop) {x},
+
+  have subfunctor : Π (ii kk : {i : J | j.unop ≤ i}ᵒᵖ) (ik : kk.unop ≤ ii.unop),
+    set.maps_to (F.map $ ((by { apply op_hom_of_le, simp, exact ik }) : opposite.op (ii.unop).val ⟶ opposite.op (kk.unop).val)) (Fobj ii) (Fobj kk), by {
+    rintro ii kk ik,
+    dsimp [Fobj],
+    unfold set.maps_to,
+    unfold set.preimage,
+    rintro y hy,
+    simp only [set.mem_singleton_iff, set.mem_set_of_eq] at hy,
+    rcases hy with rfl,
+    simp only [set.mem_singleton_iff, set.mem_set_of_eq],
+    rw ←functor_to_types.map_comp_apply,
+    reflexivity,},
 
   refine ⟨λ ii, subtype (Fobj ii),_,_,_⟩,
   { rintros ii kk ik,
-    obtain ⟨i,ij⟩ := ii.unop,
-    obtain ⟨k,kj⟩ := kk.unop,
-    dsimp [Fobj],
-    sorry,},
-  {sorry},
-  {sorry},
+    exact set.maps_to.restrict _ _ _ (subfunctor ii kk $ le_of_op_hom ik),},
+  { simp,
+    rintro ii,
+    apply funext,
+    rintro ⟨x,xh⟩,
+    simp, simp [set.maps_to.restrict, subtype.map],
+    nth_rewrite_rhs 0 ←functor_to_types.map_id_apply F x,
+    reflexivity, },
+  { simp, rintro ii kk ll ik kl, apply funext, rintro ⟨x,xh⟩,
+    simp, simp [set.maps_to.restrict, subtype.map],
+    rw ←functor_to_types.map_comp_apply,
+    reflexivity,},
 end
 
+  -- We can even weaken the condition to that of `x` being in all ranges.
 instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
@@ -386,7 +403,11 @@ instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_l
 begin
   rintro ii,
   obtain ⟨i,ij⟩ := ii.unop,
-  -- follows easily (normally) from Fsurj.
+  dsimp [fis.above_point],
+  unfold fis.is_surjective at Fsurj,
+  specialize Fsurj (opposite.op i) j ij x,
+  obtain ⟨y,rfl⟩ := Fsurj,
+
   sorry
 end
 

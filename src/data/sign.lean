@@ -37,9 +37,9 @@ end⟩
 
 /-- The multiplication on `sign_type`. -/
 def mul : sign_type → sign_type → sign_type
-| neg h    := -h
-| zero _   := zero
-| pos h    := h
+| neg h  := -h
+| zero _ := zero
+| pos h  := h
 
 instance : has_mul sign_type := ⟨mul⟩
 

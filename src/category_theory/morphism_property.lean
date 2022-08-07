@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.limits.shapes.pullbacks
+import category_theory.arrow
 
 /-!
 # Properties of morphisms
@@ -26,7 +27,7 @@ noncomputable theory
 
 namespace category_theory
 
-variables (C : Type u) [category.{v} C]
+variables (C : Type u) [category.{v} C] {D : Type*} [category D]
 
 /-- A `morphism_property C` is a class of morphisms between objects in `C`. -/
 @[derive complete_lattice]
@@ -66,6 +67,15 @@ lemma respects_iso.cancel_right_is_iso {P : morphism_property C}
   (hP : respects_iso P) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g] :
     P (f ≫ g) ↔ P f :=
 ⟨λ h, by simpa using hP.2 (as_iso g).symm (f ≫ g) h, hP.2 (as_iso g) f⟩
+
+lemma respects_iso.arrow_iso_iff {P : morphism_property C}
+  (hP : respects_iso P) {f g : arrow C} (e : f ≅ g) : P f.hom ↔ P g.hom :=
+by { rw [← arrow.inv_left_hom_right e.hom, hP.cancel_left_is_iso, hP.cancel_right_is_iso], refl }
+
+lemma respects_iso.arrow_mk_iso_iff {P : morphism_property C}
+  (hP : respects_iso P) {W X Y Z : C} {f : W ⟶ X} {g : Y ⟶ Z} (e : arrow.mk f ≅ arrow.mk g) :
+    P f ↔ P g :=
+hP.arrow_iso_iff e
 
 -- This is here to mirror `stable_under_base_change.snd`.
 @[nolint unused_arguments]
@@ -120,6 +130,12 @@ begin
   exacts [hP.base_change_map hP' _ (over.hom_mk _ e₂.symm : over.mk g ⟶ over.mk g') h₂,
     hP.base_change_map hP' _ (over.hom_mk _ e₁.symm : over.mk f ⟶ over.mk f') h₁],
 end
+
+/-- If `P : morphism_property C` and `F : C ⥤ D`, then
+`P.is_inverted_by F` means that all morphisms in `P` are mapped by `F`
+to isomorphisms in `D`. -/
+def is_inverted_by (P : morphism_property C) (F : C ⥤ D) : Prop :=
+∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P f), is_iso (F.map f)
 
 end morphism_property
 

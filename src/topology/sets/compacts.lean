@@ -178,8 +178,8 @@ end nonempty_compacts
 
 /-! ### Positive compact sets -/
 
-/-- The type of compact sets nonempty interior of a topological space. See also `compacts` and
-`nonempty_compacts` -/
+/-- The type of compact sets with nonempty interior of a topological space.
+See also `compacts` and `nonempty_compacts`. -/
 structure positive_compacts (α : Type*) [topological_space α] extends compacts α :=
 (interior_nonempty' : (interior carrier).nonempty)
 

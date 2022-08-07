@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Damiano Testa, Jens Wage
 -/
 import data.nat.interval
 import data.polynomial.degree.definitions
+import algebra.monoid_algebra.division
 
 /-!
 # Induction on polynomials
@@ -27,21 +28,16 @@ variables [semiring R] {p q : R[X]}
 /-- `div_X p` returns a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
 def div_X (p : R[X]) : R[X] :=
-∑ n in Ico 0 p.nat_degree, monomial n (p.coeff (n + 1))
+⟨add_monoid_algebra.div_of 1 p.to_finsupp⟩
 
 @[simp] lemma coeff_div_X : (div_X p).coeff n = p.coeff (n+1) :=
-begin
-  simp only [div_X, coeff_monomial, true_and, finset_sum_coeff, not_lt,
-    mem_Ico, zero_le, finset.sum_ite_eq', ite_eq_left_iff],
-  intro h,
-  rw coeff_eq_zero_of_nat_degree_lt (nat.lt_succ_of_le h)
-end
+by { rw [add_comm], cases p, refl }
 
 lemma div_X_mul_X_add (p : R[X]) : div_X p * X + C (p.coeff 0) = p :=
 ext $ by rintro ⟨_|_⟩; simp [coeff_C, nat.succ_ne_zero, coeff_mul_X]
 
 @[simp] lemma div_X_C (a : R) : div_X (C a) = 0 :=
-ext $ λ n, by simp [div_X, coeff_C]; simp [coeff]
+ext $ λ n, by simp [coeff_div_X, coeff_C, finsupp.single_eq_of_ne _]
 
 lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
 ⟨λ h, by simpa [eq_comm, h] using div_X_mul_X_add p,

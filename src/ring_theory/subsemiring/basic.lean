@@ -710,6 +710,20 @@ lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closu
 λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
   ht2 ▸ list_prod_mem _ (λ y hy, subset_closure $ HL1 t ht1 y hy))⟩
 
+lemma smul_mem_of_mem_closure {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
+  (N : add_submonoid M) (s : set R)
+  (hs : ∀ (a ∈ s) (m ∈ N), a • m ∈ N) :
+  ∀ (a ∈ subsemiring.closure s) (m ∈ N), a • m ∈ N :=
+begin
+  intros a ha,
+  apply subsemiring.closure_induction ha hs,
+  { intros, rw zero_smul, exact N.zero_mem },
+  { intro, rw one_smul, exact id },
+  all_goals { intros x y hx hy m hm },
+  { rw add_smul, exact N.add_mem (hx m hm) (hy m hm) },
+  { rw mul_smul, exact hx _ (hy m hm) },
+end
+
 variable (R)
 
 /-- `closure` forms a Galois insertion with the coercion to set. -/

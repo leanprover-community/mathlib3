@@ -124,6 +124,12 @@ lemma pi_eq_sum_univ {ι : Type*} [fintype ι] [decidable_eq ι] {R : Type*} [se
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
 by { ext, simp }
 
+lemma pi_eq_sum_univ_single {ι : Type*} [fintype ι] [decidable_eq ι] {R : Type*} [semiring R]
+  (x : ι → R) :
+  x = ∑ i, x i • (pi.single i 1) :=
+(pi_eq_sum_univ x).trans $
+  by { congr, ext i j, dsimp, rw pi.single_apply, congr' 2, rw @eq_comm _ i }
+
 /-! ### Properties of linear maps -/
 namespace linear_map
 

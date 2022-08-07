@@ -184,15 +184,6 @@ theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
   (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
 ⟨λ a, hs.1 _, λ a b h, hs.2.1 h, λ a b c h₁ h₂, hs.2.2 h₁ h₂⟩
 
-/-- A relation embedding between the lift of a relation and the relation. -/
-@[simps] noncomputable def quotient.rel_embedding [s : setoid α] {r : α → α → Prop}
-  (H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂) : quotient.lift₂ r H ↪r r :=
-⟨embedding.quotient α, begin
-  refine λ x y, quotient.induction_on₂ x y (λ a b, _),
-  apply iff_iff_eq.2 (H _ _ _ _ _ _);
-  apply quotient.mk_out
-end⟩
-
 namespace rel_embedding
 
 /-- A relation embedding is also a relation homomorphism -/
@@ -315,6 +306,15 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+
+/-- A relation embedding between the lift of a relation and the relation. -/
+@[simps] noncomputable def _root_.quotient.rel_embedding [s : setoid α] {r : α → α → Prop}
+  (H : ∀ a₁ a₂ b₁ b₂ : α, a₁ ≈ b₁ → a₂ ≈ b₂ → r a₁ a₂ = r b₁ b₂) : quotient.lift₂ r H ↪r r :=
+⟨embedding.quotient α, begin
+  refine λ x y, quotient.induction_on₂ x y (λ a b, _),
+  apply iff_iff_eq.2 (H _ _ _ _ _ _);
+  apply quotient.mk_out
+end⟩
 
 /-- A relation is well founded iff its lift to a quotient is. -/
 @[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop}

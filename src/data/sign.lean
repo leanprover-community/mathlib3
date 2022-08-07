@@ -252,7 +252,7 @@ begin
   { simpa [h, h.not_le] }
 end
 
-@[simp] lemma sign_nonpos_iff :  sign a ≤ 0 ↔ a ≤ 0 :=
+@[simp] lemma sign_nonpos_iff : sign a ≤ 0 ↔ a ≤ 0 :=
 begin
   rcases lt_trichotomy 0 a with (h|rfl|h),
   { simp [h, h.not_le] },

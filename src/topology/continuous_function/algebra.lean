@@ -165,8 +165,7 @@ def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topol
   [monoid β] [has_continuous_mul β] : submonoid (α → β) :=
 { carrier := { f : α → β | continuous f },
   one_mem' := @continuous_const _ _ _ _ 1,
-  mul_mem' := λ f g fc gc, continuous.comp
-    has_continuous_mul.continuous_mul (continuous.prod_mk fc gc : _) }
+  mul_mem' := λ f g fc gc, fc.mul gc }
 
 /-- The subgroup of continuous maps `α → β`. -/
 @[to_additive "The `add_subgroup` of continuous maps `α → β`. "]

@@ -3,7 +3,7 @@ import group_theory.group_action.basic
 variables (R M S : Type*)
 
 /-- Some arbitrary type depending on `has_smul R M` -/
-@[irreducible, nolint has_inhabited_instance unused_arguments]
+@[irreducible, nolint has_nonempty_instance unused_arguments]
 def foo [has_smul R M] : Type* := ℕ
 
 variables [has_smul R M] [has_smul S R] [has_smul S M]

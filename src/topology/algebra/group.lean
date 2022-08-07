@@ -231,12 +231,12 @@ end
 
 end pointwise_limits
 
-instance additive.has_continuous_neg [h : topological_space H] [has_inv H]
-  [has_continuous_inv H] : @has_continuous_neg (additive H) h _ :=
+instance [topological_space H] [has_inv H] [has_continuous_inv H] :
+  has_continuous_neg (additive H) :=
 { continuous_neg := @continuous_inv H _ _ _ }
 
-instance multiplicative.has_continuous_inv [h : topological_space H] [has_neg H]
-  [has_continuous_neg H] : @has_continuous_inv (multiplicative H) h _ :=
+instance [topological_space H] [has_neg H] [has_continuous_neg H] :
+  has_continuous_inv (multiplicative H) :=
 { continuous_inv := @continuous_neg H _ _ _ }
 
 end continuous_inv
@@ -279,7 +279,7 @@ variables {ι' : Sort*} [has_inv G]
 @[to_additive] lemma has_continuous_inv_Inf {ts : set (topological_space G)}
   (h : Π t ∈ ts, @has_continuous_inv G t _) :
   @has_continuous_inv G (Inf ts) _ :=
-{ continuous_inv := continuous_Inf_rng (λ t ht, continuous_Inf_dom ht
+{ continuous_inv := continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom ht
   (@has_continuous_inv.continuous_inv G t _ (h t ht))) }
 
 @[to_additive] lemma has_continuous_inv_infi {ts' : ι' → topological_space G}
@@ -1131,12 +1131,12 @@ end
 
 end filter_mul
 
-instance additive.topological_add_group {G} [h : topological_space G]
-  [group G] [topological_group G] : @topological_add_group (additive G) h _ :=
+instance {G} [topological_space G] [group G] [topological_group G] :
+  topological_add_group (additive G) :=
 { continuous_neg := @continuous_inv G _ _ _ }
 
-instance multiplicative.topological_group {G} [h : topological_space G]
-  [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
+instance {G} [topological_space G] [add_group G] [topological_add_group G] :
+  topological_group (multiplicative G) :=
 { continuous_inv := @continuous_neg G _ _ _ }
 
 section quotient
@@ -1145,7 +1145,7 @@ variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G
 @[to_additive]
 instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=
 { continuous_const_smul := λ g₀, begin
-    apply continuous_coinduced_dom,
+    apply continuous_coinduced_dom.2,
     change continuous (λ g : G, quotient_group.mk (g₀ * g)),
     exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
   end }
@@ -1181,7 +1181,7 @@ variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β]
   [has_continuous_mul β]
 
 @[to_additive] instance : topological_group αˣ :=
-{ continuous_inv := continuous_induced_rng ((continuous_unop.comp
+{ continuous_inv := continuous_induced_rng.2 ((continuous_unop.comp
     (@continuous_embed_product α _ _).snd).prod_mk (continuous_op.comp continuous_coe)) }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
@@ -1191,21 +1191,21 @@ def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
   begin
     show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
     refine continuous.prod_mk _ _,
-    { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
+    { refine continuous_induced_rng.2 ((continuous_fst.comp units.continuous_coe).prod_mk _),
       refine mul_opposite.continuous_op.comp (continuous_fst.comp _),
       simp_rw units.inv_eq_coe_inv,
       exact units.continuous_coe.comp continuous_inv, },
-    { refine continuous_induced_rng ((continuous_snd.comp units.continuous_coe).prod_mk _),
+    { refine continuous_induced_rng.2 ((continuous_snd.comp units.continuous_coe).prod_mk _),
       simp_rw units.coe_map_inv,
       exact continuous_op.comp (continuous_snd.comp (units.continuous_coe.comp continuous_inv)), }
   end,
   continuous_inv_fun :=
   begin
-    refine continuous_induced_rng (continuous.prod_mk _ _),
+    refine continuous_induced_rng.2 (continuous.prod_mk _ _),
     { exact (units.continuous_coe.comp continuous_fst).prod_mk
         (units.continuous_coe.comp continuous_snd), },
     { refine continuous_op.comp
-        (units.continuous_coe.comp $ continuous_induced_rng $ continuous.prod_mk _ _),
+        (units.continuous_coe.comp $ continuous_induced_rng.2 $ continuous.prod_mk _ _),
       { exact (units.continuous_coe.comp (continuous_inv.comp continuous_fst)).prod_mk
           (units.continuous_coe.comp (continuous_inv.comp continuous_snd)) },
       { exact continuous_op.comp ((units.continuous_coe.comp continuous_fst).prod_mk

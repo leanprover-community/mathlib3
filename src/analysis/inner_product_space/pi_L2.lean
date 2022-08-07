@@ -50,7 +50,7 @@ For consequences in infinite dimension (Hilbert bases, etc.), see the file
 
 -/
 
-open real set filter is_R_or_C
+open real set filter is_R_or_C submodule
 open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
@@ -319,9 +319,34 @@ end
 by {rw [← basis.equiv_fun_apply, orthonormal_basis.coe_to_basis_repr,
       linear_isometry_equiv.coe_to_linear_equiv]}
 
+protected lemma sum_repr (b : orthonormal_basis ι 𝕜 E) (x : E) :
+  ∑ i, b.repr x i • b i = x :=
+by { simp_rw [← b.coe_to_basis_repr_apply, ← b.coe_to_basis], exact b.to_basis.sum_repr x }
+
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
-by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+by { simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+
+protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
+  ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
+begin
+  have := congr_arg (@innerSL 𝕜 _ _ _ x) (b.sum_repr y),
+  rw map_sum at this,
+  convert this,
+  ext i,
+  rw [smul_hom_class.map_smul, b.repr_apply_apply, mul_comm],
+  refl,
+end
+
+/-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
+protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
+  (L : E ≃ₗᵢ[𝕜] G) :
+  orthonormal_basis ι 𝕜 G :=
+{ repr := L.symm.trans b.repr }
+
+@[simp] protected lemma map_apply {G : Type*} [inner_product_space 𝕜 G]
+  (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) (i : ι) :
+  b.map L i = L (b i) := rfl
 
 /-- A basis that is orthonormal is an orthonormal basis. -/
 def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
@@ -361,14 +386,40 @@ calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_ba
 variable {v : ι → E}
 
 /-- A finite orthonormal set that spans is an orthonormal basis -/
-protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
+protected def mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)):
   orthonormal_basis ι 𝕜 E :=
 (basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
 
 @[simp]
-protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
+protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
+
+/-- Any finite subset of a orthonormal family is an `orthonormal_basis` for its span. -/
+protected def span {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
+  orthonormal_basis s 𝕜 (span 𝕜 (s.image v' : set E)) :=
+let
+  e₀' : basis s 𝕜 _ := basis.span (h.linear_independent.comp (coe : s → ι') subtype.coe_injective),
+  e₀ : orthonormal_basis s 𝕜 _ := orthonormal_basis.mk
+    begin
+      convert orthonormal_span (h.comp (coe : s → ι') subtype.coe_injective),
+      ext,
+      simp [e₀', basis.span_apply],
+    end e₀'.span_eq.ge,
+  φ : span 𝕜 (s.image v' : set E) ≃ₗᵢ[𝕜] span 𝕜 (range (v' ∘ (coe : s → ι'))) :=
+    linear_isometry_equiv.of_eq _ _
+    begin
+      rw [finset.coe_image, image_eq_range],
+      refl
+    end
+in
+e₀.map φ.symm
+
+@[simp] protected lemma span_apply {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
+  (orthonormal_basis.span h s i : E) = v' i :=
+by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
+              orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
+              linear_isometry_equiv.coe_of_eq_apply]
 
 open submodule
 
@@ -378,6 +429,7 @@ protected def mk_of_orthogonal_eq_bot (hon : orthonormal 𝕜 v) (hsp : (span �
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk hon
 begin
+  refine eq.ge _,
   haveI : finite_dimensional 𝕜 (span 𝕜 (range v)) :=
     finite_dimensional.span_of_finite 𝕜 (finite_range v),
   haveI : complete_space (span 𝕜 (range v)) := finite_dimensional.complete 𝕜 _,

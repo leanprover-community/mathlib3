@@ -34,13 +34,8 @@ namespace CommGroup
 The functor `CommGroup ⥤ AddCommGroup` by sending `X ↦ additive X` and `f ↦ f`.
 -/
 @[simps] def to_AddCommGroup : CommGroup ⥤ AddCommGroup :=
-{ obj := λ X, ⟨additive X⟩,
-  map := λ X Y f,
-  { to_fun := λ x, f x,
-    map_zero' := by { erw [map_one], refl },
-    map_add' := λ x y, by { erw [map_mul], refl } },
-  map_id' := λ X, by { ext, refl },
-  map_comp' := λ X Y Z f g, by { ext, refl } }
+{ obj := λ X, AddCommGroup.of (additive X),
+  map := λ X Y, monoid_hom.to_additive }
 
 end CommGroup
 
@@ -50,13 +45,8 @@ namespace AddGroup
 The functor `AddGroup ⥤ Group` by sending `X ↦ multiplicative Y` and `f ↦ f`.
 -/
 @[simps] def to_Group : AddGroup ⥤ Group :=
-{ obj := λ X, ⟨multiplicative X⟩,
-  map := λ X Y f,
-  { to_fun := λ x, f x,
-    map_one' := by { erw [map_zero], refl },
-    map_mul' := λ x y, by { erw [map_add], refl } },
-  map_id' := λ X, by { ext, refl },
-  map_comp' := λ X Y Z f g, by { ext, refl } }
+{ obj := λ X, Group.of (multiplicative X),
+  map := λ X Y, add_monoid_hom.to_multiplicative }
 
 end AddGroup
 
@@ -66,13 +56,8 @@ namespace AddCommGroup
 The functor `AddCommGroup ⥤ CommGroup` by sending `X ↦ multiplicative Y` and `f ↦ f`.
 -/
 @[simps] def to_CommGroup : AddCommGroup ⥤ CommGroup :=
-{ obj := λ X, ⟨multiplicative X⟩,
-  map := λ X Y f,
-  { to_fun := λ x, f x,
-    map_one' := by { erw [map_zero], refl },
-    map_mul' := λ x y, by { erw [map_add], refl } },
-  map_id' := λ X, by { ext, refl },
-  map_comp' := λ X Y Z f g, by { ext, refl } }
+{ obj := λ X, CommGroup.of (multiplicative X),
+  map := λ X Y, add_monoid_hom.to_multiplicative }
 
 end AddCommGroup
 

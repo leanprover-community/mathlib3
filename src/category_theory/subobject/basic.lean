@@ -98,6 +98,43 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+section
+local attribute [ext] category_theory.comma
+
+protected lemma ind {X : C} (p : subobject X → Prop)
+  (h : ∀ ⦃A : C⦄ (f : A ⟶ X) [mono f], by exactI p (subobject.mk f)) (P : subobject X) : p P :=
+begin
+  apply quotient.induction_on',
+  intro a,
+  convert h a.arrow,
+  ext; refl
+end
+
+protected lemma ind₂ {X : C} (p : subobject X → subobject X → Prop)
+  (h : ∀ ⦃A B : C⦄ (f : A ⟶ X) (g : B ⟶ X) [mono f] [mono g],
+    by exactI p (subobject.mk f) (subobject.mk g)) (P Q : subobject X) : p P Q :=
+begin
+  apply quotient.induction_on₂',
+  intros a b,
+  convert h a.arrow b.arrow;
+  ext; refl
+end
+
+end
+
+/-- Declare a function on subobjects of `X` by specifying a function on monomorphisms with
+    codomain `X`. -/
+protected def lift {α : Sort*} {X : C} (F : Π ⦃A : C⦄ (f : A ⟶ X) [mono f], α)
+  (h : ∀ ⦃A B : C⦄ (f : A ⟶ X) (g : B ⟶ X) [mono f] [mono g] (i : A ≅ B),
+    i.hom ≫ g = f → by exactI F f = F g) : subobject X → α :=
+λ P, quotient.lift_on' P (λ m, by exactI F m.arrow) $ λ m n ⟨i⟩,
+  h m.arrow n.arrow ((mono_over.forget X ⋙ over.forget X).map_iso i) (over.w i.hom)
+
+@[simp]
+protected lemma lift_mk {α : Sort*} {X : C} (F : Π ⦃A : C⦄ (f : A ⟶ X) [mono f], α) {h A}
+  (f : A ⟶ X) [mono f] : subobject.lift F h (subobject.mk f) = F f :=
+rfl
+
 /-- The category of subobjects is equivalent to the `mono_over` category. It is more convenient to
 use the former due to the partial order instance, but oftentimes it is easier to define structures
 on the latter. -/

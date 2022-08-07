@@ -432,10 +432,13 @@ theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := no
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 
+@[simp] lemma val_eq_singleton_iff {a : α} {s : finset α} : s.val = {a} ↔ s = {a} :=
+by { rw ←val_inj, refl }
+
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
 
-theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
+@[simp] theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
 singleton_injective.eq_iff
 
 @[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
@@ -2447,6 +2450,11 @@ lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := by { cl
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
 by { ext, simp }
+
+@[simp] lemma to_list_eq_singleton_iff {a : α} {s : finset α} : s.to_list = [a] ↔ s = {a} :=
+by rw [to_list, to_list_eq_singleton_iff, val_eq_singleton_iff]
+
+@[simp] lemma to_list_singleton : ∀ a, ({a} : finset α).to_list = [a] := to_list_singleton
 
 lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
   ∃ (l : list α), l.nodup ∧ l.to_finset = s :=

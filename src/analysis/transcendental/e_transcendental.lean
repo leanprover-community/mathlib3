@@ -483,13 +483,16 @@ begin
 end
 
 
-private lemma p_sub_one_le (p m : ℕ) (hp : nat.prime p) : p - 1 ≤ m.succ * p - 1 :=
+private lemma p_le (p m : ℕ) (hp : nat.prime p) : p ≤ ((m + 1) * p - 1).succ :=
 begin
-  induction m with m IH, simp only [one_mul], rw nat.succ_eq_add_one, rw add_mul, simp only [one_mul],
-  suffices : m.succ * p - 1 ≤ m.succ * p + p - 1, exact le_trans IH this,
+  apply nat.le_succ_of_pred_le,
+  induction m with m IH,
+  { simp only [one_mul, nat.pred_eq_sub_one] },
+  rw nat.succ_eq_add_one, rw add_mul, simp only [one_mul],
+  apply le_trans IH,
   have triv : m.succ * p + p - 1 = m.succ * p - 1 + p,
-    rw nat.sub_add_comm, apply nat.mul_pos, exact nat.succ_pos m, exact nat.prime.pos hp,
-  rw triv, suffices : p ≥ 0, exact nat.le.intro rfl, exact bot_le,
+  { rw nat.sub_add_comm, apply nat.mul_pos, exact nat.succ_pos m, exact nat.prime.pos hp },
+  rw triv, apply nat.le_add_right,
 end
 
 theorem J_partial_sum_from_one_to_p_sub_one (g : ℤ[X])
@@ -537,38 +540,17 @@ finset.union_comm _ _
 theorem J_eq_final (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p) :
   ∃ M : ℤ, (J g p) = ℤembℝ ((-(g.coeff 0 * (↑((p - 1).factorial) * (-1) ^ (g.nat_degree * p) * ↑(g.nat_degree.factorial) ^ p))) + (p.factorial:ℤ) * M) :=
 begin
+  have : p ≤ (f_p p g.nat_degree).nat_degree.succ,
+  { rw deg_f_p _ hp,
+    apply p_le _ _  hp },
+
   obtain ⟨c, eq3⟩ := J_partial_sum_rest g p hp,
   use -c,
-  rw J_eq'' g e_root_g p hp,
-  rw <-ring_hom.map_neg,
-  apply congr_arg,
-  have seteq : finset.range (f_p p g.nat_degree).nat_degree.succ = finset.range p ∪ finset.Ico p (f_p p g.nat_degree).nat_degree.succ,
-  { rw [finset.range_eq_Ico, finset.Ico_union_Ico_eq_Ico (nat.zero_le _)],
-    rw deg_f_p _ hp,
-    apply nat.le_succ_of_pred_le,
-    apply p_sub_one_le _ _  hp },
-  have := finset.range_succ,
-  rw [nat.succ_pred_eq_of_pos hp.pos, nat.pred_eq_sub_one, ←finset.union_singleton] at this,
-  rw [this] at seteq,
-
-  rw seteq, rw finset.sum_union, rw finset.sum_union,
-  rw J_partial_sum_from_one_to_p_sub_one g, rw zero_add, rw finset.sum_singleton,
-  rw J_partial_sum_from_p_sub_one_to_p g p hp,
-  rw eq3, rw neg_add, rw neg_mul_eq_mul_neg ↑(p.factorial),
-
-  rw finset.disjoint_iff_inter_eq_empty, simp only [finset.not_mem_range_self, not_false_iff, finset.inter_singleton_of_not_mem],
-  {
-    rw finset.disjoint_iff_inter_eq_empty, rw finset.eq_empty_iff_forall_not_mem, intros, intro rid,
-    simp only [finset.mem_Ico, finset.mem_union, finset.mem_singleton, finset.mem_range,
-      finset.mem_inter] at rid,
-    have h1 := rid.1, have h2 := rid.2.1, have h3 := rid.2.2, cases h1,
-      have contra : p < p - 1, exact gt_of_gt_of_ge h1 h2,
-      replace contra : ¬ (p ≥  p - 1), exact not_le.mpr contra, have triv : p ≥ p - 1, exact nat.sub_le p 1, exact contra triv,
-
-    rw h1 at h2,
-    have triv : p > p - 1, have rid := @nat.sub_one_sub_lt p 0 (nat.prime.pos hp), simp only [nat.sub_zero] at rid, exact rid, have rid : p < p,
-    exact gt_of_gt_of_ge triv h2, exact lt_irrefl p rid,
-  },
+  rw [J_eq'' g e_root_g p hp, ←ring_hom.map_neg, ←finset.sum_range_add_sum_Ico _ this, eq3,
+    ←finset.sum_range_add_sum_Ico _ p.pred_le, nat.pred_eq_sub_one,
+    J_partial_sum_from_one_to_p_sub_one g, zero_add, nat.Ico_pred_singleton hp.pos,
+    finset.sum_singleton, J_partial_sum_from_p_sub_one_to_p g p hp, neg_add,
+    neg_mul_eq_mul_neg ↑(p.factorial)],
 end
 
 private lemma coe_abs_ineq (z1 z2 : ℤ) : z1 ≤ abs z2 -> (z1:ℝ) ≤ abs(ℤembℝ z2) :=

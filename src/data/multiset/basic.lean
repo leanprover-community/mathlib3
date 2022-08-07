@@ -1699,8 +1699,8 @@ theorem count_cons (a b : α) (s : multiset α) :
   count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
 countp_cons _ _ _
 
-@[simp] theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
-by simp only [count_cons_self, ←cons_zero, eq_self_iff_true, count_zero]
+theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
+count_eq_one_of_mem (nodup_singleton a) $ mem_singleton_self a
 
 theorem count_singleton (a b : α) : count a ({b} : multiset α) = if a = b then 1 else 0 :=
 by simp only [count_cons, ←cons_zero, count_zero, zero_add]

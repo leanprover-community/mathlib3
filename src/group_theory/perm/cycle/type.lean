@@ -331,8 +331,7 @@ lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
 begin
   obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
   by_cases g'1 : g' = 1,
-  { rw [hd.cycle_type, hc.cycle_type, ←multiset.cons_zero, multiset.singleton_coe,
-      g'1, cycle_type_one, add_zero] },
+  { rw [hd.cycle_type, hc.cycle_type, ←cons_zero, singleton_coe, g'1, cycle_type_one, add_zero] },
   contrapose! hn2,
   apply le_trans _ (c * g').support.card_le_univ,
   rw [hd.card_support_mul],

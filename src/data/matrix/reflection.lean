@@ -118,25 +118,13 @@ end fin_vec
 namespace matrix
 variables {l m n : ℕ} {α β : Type*}
 
--- TODO[gh-6025]: make this an instance once safe to do so
-def unique_of_empty_left {m n} [is_empty m] : unique (matrix m n α) :=
-{ default := of is_empty_elim,
-  uniq := λ a, matrix.ext is_empty_elim }
-
-local attribute [instance] matrix.unique_of_empty_left
-
--- TODO[gh-6025]: make this an instance once safe to do so
-def unique_of_empty_right {m n} [is_empty n] : unique (matrix m n α) :=
-{ default := @of m n α (λ i, is_empty_elim),
-  uniq := λ a, matrix.ext (λ i, is_empty_elim) }
-
 /-- `∀` with better defeq for `∀ x : matrix (fin m) (fin n) α, P x`. -/
 def «forall» : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), Prop
 | 0 n P := P (of ![])
 | (m + 1) n P := fin_vec.forall $ λ r, «forall» (λ A, P (of (matrix.vec_cons r A)))
 
 lemma forall_iff : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), «forall» P ↔ ∀ x, P x
-| 0 n P := by {simp only [«forall», unique.forall_iff], rw iff_iff_eq, congr}
+| 0 n P := iff.symm fin.forall_fin_zero_pi
 | (m + 1) n P := begin
   simp only [«forall», fin_vec.forall_iff, forall_iff],
   exact iff.symm fin.forall_fin_succ_pi,
@@ -152,7 +140,7 @@ def «exists» : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), Prop
 | (m + 1) n P := fin_vec.exists $ λ r, «exists» (λ A, P (of (matrix.vec_cons r A)))
 
 lemma exists_iff : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), «exists» P ↔ ∃ x, P x
-| 0 n P := by {simp only [«exists», unique.exists_iff], rw iff_iff_eq, congr}
+| 0 n P := iff.symm fin.exists_fin_zero_pi
 | (m + 1) n P := begin
   simp only [«exists», fin_vec.exists_iff, exists_iff],
   exact iff.symm fin.exists_fin_succ_pi,
@@ -167,6 +155,8 @@ def transposeᵣ : Π {m n}, matrix (fin m) (fin n) α → matrix (fin n) (fin m
 | _ 0 A := of ![]
 | m (n + 1) A := of $ vec_cons (fin_vec.map (λ v : fin _ → α, v 0) A)
                                (transposeᵣ (A.minor id fin.succ))
+
+local attribute [instance] matrix.subsingleton_of_empty_left
 
 @[simp]
 lemma transposeᵣ_eq : Π {m n} (A : matrix (fin m) (fin n) α),

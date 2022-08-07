@@ -325,3 +325,68 @@ begin
   { simp [function.left_inverse], },
   { simp [function.right_inverse, function.left_inverse], tidy, }
 end
+
+
+def fis.injective {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
+  (inj : ∀ i ∈ bigger j, function.injective $ F.map (op_hom_of_le H)) :
+  function.injective (λ (s :F.sections), s.val j) := sorry
+
+
+instance directed_of_cofinal {J : Type u} [preorder J] [is_directed J has_le.le]
+  (I : set J) [Icof : ∀ j : J, ∃ i ∈ I, i ≤ j] : is_directed I has_le.le := sorry
+
+instance bigger_directed {J : Type u} [preorder J] [is_directed J has_le.le]
+  (j : J) : is_directed {i : J | i ≤ j} has_le.le := sorry
+
+-- The functor mapping i.op to (F.map (op_hom_of_le _)) ⁻¹ {x}
+def fis.above_point {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) : {i : J | i ≤ j.unop}ᵒᵖ ⥤ Type v :=
+begin
+    sorry,
+end
+
+instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
+  [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
+  (x : F.obj j) :
+  Π (i : {i : J | i ≤ j.unop}ᵒᵖ), nonempty ((fis.above_point F j x).obj i)  := sorry
+
+instance fis.above_point.fintype {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
+  [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
+  (x : F.obj j) :
+  Π (i : {i : J | i ≤ j.unop}ᵒᵖ), fintype ((fis.above_point F j x).obj i)  := sorry
+
+
+def fis.sections_at_point {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) :
+  {s : F.sections | s.val j = x} ≃ (fis.above_point F j x).sections := sorry
+
+lemma fis.above_point.sections_nonempty  {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v)
+  [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
+  (j : Jᵒᵖ) (x : F.obj j) : nonempty (fis.above_point F j x).sections := sorry
+
+
+lemma fis.decomposition'  {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
+  F.sections ≃ Σ (x : F.obj j), (fis.above_point F j x).sections :=
+begin
+  apply equiv.trans,
+  rotate 2,
+  {exact Σ (x : F.obj j), {s : F.sections | s.val j = x},},
+  {exact fis.decomposition F j,},
+  {apply equiv.sigma_congr_right, exact fis.sections_at_point F j,},
+end
+
+
+lemma fis.surjective {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
+  (Fsur : fis.is_surjective F) (j : Jᵒᵖ) : function.surjective (λ (s : F.sections), s.val j) :=
+begin
+  rintro x,
+  obtain ⟨s_above⟩ := fis.above_point.sections_nonempty F j x,
+  obtain ⟨s,sgood⟩ := (fis.sections_at_point F j x).inv_fun s_above,
+  exact ⟨s,sgood⟩,
+end

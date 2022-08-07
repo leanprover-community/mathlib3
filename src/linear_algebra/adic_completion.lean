@@ -83,12 +83,12 @@ def adic_completion : submodule R (Π n : ℕ, (M ⧸ (I ^ n • ⊤ : submodule
 namespace is_Hausdorff
 
 instance bot : is_Hausdorff (⊥ : ideal R) M :=
-⟨λ x hx, by simpa only [pow_one ⊥, bot_smul, smodeq.bot] using hx 1⟩
+⟨λ x hx, by simpa only [pow_one ⊥, bot_smul, smodeq.bot_submodule] using hx 1⟩
 
 variables {M}
 protected theorem subsingleton (h : is_Hausdorff (⊤ : ideal R) M) : subsingleton M :=
 ⟨λ x y, eq_of_sub_eq_zero $ h.haus (x - y) $ λ n,
-  by { rw [ideal.top_pow, top_smul], exact smodeq.top }⟩
+  by { rw [ideal.top_pow, top_smul], exact smodeq.top_submodule }⟩
 variables (M)
 
 @[priority 100] instance of_subsingleton [subsingleton M] : is_Hausdorff I M :=
@@ -147,16 +147,17 @@ namespace is_precomplete
 instance bot : is_precomplete (⊥ : ideal R) M :=
 begin
   refine ⟨λ f hf, ⟨f 1, λ n, _⟩⟩, cases n,
-  { rw [pow_zero, ideal.one_eq_top, top_smul], exact smodeq.top },
+  { rw [pow_zero, ideal.one_eq_top, top_smul], exact smodeq.top_submodule },
   specialize hf (nat.le_add_left 1 n),
-  rw [pow_one, bot_smul, smodeq.bot] at hf, rw hf
+  rw [pow_one, bot_smul, smodeq.bot_submodule] at hf, rw hf,
+  exact smodeq.refl
 end
 
 instance top : is_precomplete (⊤ : ideal R) M :=
-⟨λ f hf, ⟨0, λ n, by { rw [ideal.top_pow, top_smul], exact smodeq.top }⟩⟩
+⟨λ f hf, ⟨0, λ n, by { rw [ideal.top_pow, top_smul], exact smodeq.top_submodule }⟩⟩
 
 @[priority 100] instance of_subsingleton [subsingleton M] : is_precomplete I M :=
-⟨λ f hf, ⟨0, λ n, by rw subsingleton.elim (f n) 0⟩⟩
+⟨λ f hf, ⟨0, λ n, by rw [smodeq.iff_mkq_eq, subsingleton.elim (f n) 0]⟩⟩
 
 end is_precomplete
 
@@ -196,7 +197,7 @@ variables (I M)
 instance : is_Hausdorff I (adic_completion I M) :=
 ⟨λ x hx, ext $ λ n, smul_induction_on (smodeq.zero.1 $ hx n)
   (λ r hr x _, ((eval I M n).map_smul r x).symm ▸ quotient.induction_on' (eval I M n x)
-    (λ x, smodeq.zero.2 $ smul_mem_smul hr mem_top))
+    (λ x, smodeq.iff_mkq_eq.mp $ smodeq.zero.2 $ smul_mem_smul hr mem_top))
   (λ _ _ ih1 ih2, by rw [linear_map.map_add, ih1, ih2, linear_map.map_zero, add_zero])⟩
 
 end adic_completion
@@ -222,7 +223,7 @@ begin
   let f : ℕ → R := λ n, ∑ i in range n, (x * y) ^ i,
   have hf : ∀ m n, m ≤ n → f m ≡ f n [SMOD I ^ m • (⊤ : submodule R R)],
   { intros m n h,
-    simp only [f, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
+    simp only [f, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.def],
     rw [← add_tsub_cancel_of_le h, finset.sum_range_add, ← sub_sub, sub_self, zero_sub,
       neg_mem_iff],
     apply submodule.sum_mem,
@@ -236,7 +237,7 @@ begin
     apply is_Hausdorff.haus (to_is_Hausdorff : is_Hausdorff I R),
     intros n,
     specialize hL n,
-    rw [smodeq.sub_mem, algebra.id.smul_eq_mul, ideal.mul_top] at ⊢ hL,
+    rw [smodeq.def, algebra.id.smul_eq_mul, ideal.mul_top] at ⊢ hL,
     rw sub_zero,
     suffices : (1 - x * y) * (f n) - 1 ∈ I ^ n,
     { convert (ideal.sub_mem _ this (ideal.mul_mem_left _ (1 + - (x * y)) hL)) using 1,

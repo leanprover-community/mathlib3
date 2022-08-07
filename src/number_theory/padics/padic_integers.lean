@@ -533,7 +533,7 @@ open cau_seq
 instance : is_adic_complete (maximal_ideal ℤ_[p]) ℤ_[p] :=
 { prec' := λ x hx,
   begin
-    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.sub_mem, maximal_ideal_eq_span_p,
+    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.def, maximal_ideal_eq_span_p,
       ideal.span_singleton_pow, ← norm_le_pow_iff_mem_span_pow] at hx ⊢,
     let x' : cau_seq ℤ_[p] norm := ⟨x, _⟩, swap,
     { intros ε hε, obtain ⟨m, hm⟩ := exists_pow_neg_lt p hε,

@@ -33,11 +33,11 @@ iff.rfl
 
 namespace smodeq
 
-protected lemma smodeq.iff_coe_eq : x ≡ y [SMOD Ug] ↔
+lemma iff_coe_eq : x ≡ y [SMOD Ug] ↔
   (x : M ⧸ Ug) = y :=
 by { rw [quotient_add_group.eq, ← neg_mem_iff, smodeq.def, neg_add', neg_neg] }
 
-protected lemma smodeq.iff_mkq_eq : x ≡ y [SMOD Us] ↔
+lemma iff_mkq_eq : x ≡ y [SMOD Us] ↔
   Us.mkq x = Us.mkq y :=
 @smodeq.iff_coe_eq _ _ Us.to_add_subgroup x y
 

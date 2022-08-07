@@ -31,7 +31,7 @@ von Neumann-bounded sets.
 
 -/
 
-variables {𝕜 E ι : Type*}
+variables {𝕜 E F ι : Type*}
 
 open filter
 open_locale topological_space pointwise
@@ -97,7 +97,7 @@ end multiple_topologies
 
 section image
 
-variables {𝕜₁ 𝕜₂ F : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
+variables {𝕜₁ 𝕜₂ : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
   [add_comm_group E] [module 𝕜₁ E] [add_comm_group F] [module 𝕜₂ F]
   [topological_space E] [topological_space F]
 
@@ -191,6 +191,53 @@ begin
 end
 
 end uniform_add_group
+
+section continuous_linear_map
+
+variables [nontrivially_normed_field 𝕜]
+variables [add_comm_group E] [module 𝕜 E]
+variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
+variables [add_comm_group F] [module 𝕜 F]
+variables [uniform_space F] [uniform_add_group F]
+
+/-- Construct a continuous linear map from a linear map `f : E →ₗ[𝕜] F` and the existence of a
+neighborhood of zero that gets mapped into a bounded set in `F`. -/
+def linear_map.of_exists_bounded_image (f : E →ₗ[𝕜] F)
+  (h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)) : E →L[𝕜] F :=
+⟨f, begin
+  -- It suffices to show that `f` is continuous at `0`.
+  refine continuous_of_continuous_at_zero f _,
+  rw [continuous_at_def, f.map_zero],
+  intros U hU,
+  -- Continuity means that `U ∈ 𝓝 0` implies that `f ⁻¹' U ∈ 𝓝 0`.
+  rcases h with ⟨V, hV, h⟩,
+  rcases h hU with ⟨r, hr, h⟩,
+  rcases normed_field.exists_lt_norm 𝕜 r with ⟨x, hx⟩,
+  specialize h x hx.le,
+  -- After unfolding all the definitions, we know that `f '' V ⊆ x • U`. We use this to show the
+  -- inclusion `x⁻¹ • V ⊆ f⁻¹' U`.
+  have x_ne := norm_pos_iff.mp (hr.trans hx),
+  have : x⁻¹ • V ⊆ f⁻¹' U :=
+  calc x⁻¹ • V ⊆  x⁻¹ • (f⁻¹' (f '' V)) : set.smul_set_mono (set.subset_preimage_image ⇑f V)
+  ... ⊆ x⁻¹ • (f⁻¹' (x • U)) : set.smul_set_mono (set.preimage_mono h)
+  ... = f⁻¹' (x⁻¹ • (x • U)) :
+      by ext; simp only [set.mem_inv_smul_set_iff₀ x_ne, set.mem_preimage, linear_map.map_smul]
+  ... ⊆ f⁻¹' U : by rw inv_smul_smul₀ x_ne _,
+  -- Using this inclusion, it suffices to show that `x⁻¹ • V` is in `𝓝 0`, which is trivial.
+  refine mem_of_superset _ this,
+  convert set_smul_mem_nhds_smul hV (inv_ne_zero x_ne),
+  exact (smul_zero _).symm,
+end⟩
+
+lemma linear_map.of_exists_bounded_image_coe {f : E →ₗ[𝕜] F}
+  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} :
+  (f.of_exists_bounded_image h : E →ₗ[𝕜] F) = f := rfl
+
+@[simp] lemma linear_map.of_exists_bounded_image_apply {f : E →ₗ[𝕜] F}
+  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} {x : E} :
+  f.of_exists_bounded_image h x = f x := rfl
+
+end continuous_linear_map
 
 section vonN_bornology_eq_metric
 

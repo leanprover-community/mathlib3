@@ -105,51 +105,41 @@ def fin3_equiv : sign_type ≃* fin 3 :=
   end,
   map_mul' := λ x y, by casesm* _; refl }
 
-lemma nonneg_iff {a : sign_type} : 0 ≤ a ↔ a = 0 ∨ a = 1 :=
-by dec_trivial!
+section case_bashing
+
+lemma nonneg_iff {a : sign_type} : 0 ≤ a ↔ a = 0 ∨ a = 1 := by dec_trivial!
 
 lemma nonneg_iff_ne_neg_one {a : sign_type} : 0 ≤ a ↔ a ≠ -1 := by dec_trivial!
 
 lemma neg_one_lt_iff {a : sign_type} : -1 < a ↔ 0 ≤ a := by dec_trivial!
 
-lemma nonpos_iff {a : sign_type} : a ≤ 0 ↔ a = -1 ∨ a = 0 :=
-by dec_trivial!
+lemma nonpos_iff {a : sign_type} : a ≤ 0 ↔ a = -1 ∨ a = 0 := by dec_trivial!
 
-lemma nonpos_iff_ne_one {a : sign_type} : a ≤ 0 ↔ a ≠ 1 :=
-by dec_trivial!
+lemma nonpos_iff_ne_one {a : sign_type} : a ≤ 0 ↔ a ≠ 1 := by dec_trivial!
 
-lemma lt_one_iff {a : sign_type} : a < 1 ↔ a ≤ 0 :=
-by dec_trivial!
+lemma lt_one_iff {a : sign_type} : a < 1 ↔ a ≤ 0 := by dec_trivial!
 
-@[simp] lemma neg_iff {a : sign_type} : a < 0 ↔ a = -1 :=
-by dec_trivial!
+@[simp] lemma neg_iff {a : sign_type} : a < 0 ↔ a = -1 := by dec_trivial!
 
-@[simp] lemma le_neg_one_iff {a : sign_type} : a ≤ -1 ↔ a = -1 :=
-by dec_trivial!
+@[simp] lemma le_neg_one_iff {a : sign_type} : a ≤ -1 ↔ a = -1 := by dec_trivial!
 
-@[simp] lemma pos_iff {a : sign_type} : 0 < a ↔ a = 1 :=
-by dec_trivial!
+@[simp] lemma pos_iff {a : sign_type} : 0 < a ↔ a = 1 := by dec_trivial!
 
-@[simp] lemma one_le_iff {a : sign_type} : 1 ≤ a ↔ a = 1 :=
-by dec_trivial!
+@[simp] lemma one_le_iff {a : sign_type} : 1 ≤ a ↔ a = 1 := by dec_trivial!
 
-@[simp] lemma neg_one_le (a : sign_type) : -1 ≤ a :=
-by dec_trivial!
+@[simp] lemma neg_one_le (a : sign_type) : -1 ≤ a := by dec_trivial!
 
-@[simp] lemma le_one (a : sign_type) : a ≤ 1 :=
-by dec_trivial!
+@[simp] lemma le_one (a : sign_type) : a ≤ 1 := by dec_trivial!
 
-@[simp] lemma not_lt_neg_one (a : sign_type) : ¬ a < -1 :=
-by dec_trivial!
+@[simp] lemma not_lt_neg_one (a : sign_type) : ¬ a < -1 := by dec_trivial!
 
-@[simp] lemma not_one_lt (a : sign_type) : ¬ 1 < a :=
-by dec_trivial!
+@[simp] lemma not_one_lt (a : sign_type) : ¬ 1 < a := by dec_trivial!
 
-@[simp] lemma self_eq_neg_iff (a : sign_type) : a = -a ↔ a = 0 :=
-by dec_trivial!
+@[simp] lemma self_eq_neg_iff (a : sign_type) : a = -a ↔ a = 0 := by dec_trivial!
 
-@[simp] lemma neg_eq_self_iff (a : sign_type) : -a = a ↔ a = 0 :=
-by dec_trivial!
+@[simp] lemma neg_eq_self_iff (a : sign_type) : -a = a ↔ a = 0 := by dec_trivial!
+
+end case_bashing
 
 section cast
 

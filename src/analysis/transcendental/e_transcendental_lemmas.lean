@@ -217,10 +217,8 @@ fundamental theorem of calculus and integration by part is assumed. I am waiting
 -/
 
 theorem integrate_by_part (f g : ℝ -> ℝ)
-  {hf : differentiable ℝ f} {hf2 : measurable (deriv f)}
-  {hf3 : measurable f} {hf4 : continuous (deriv f)}
-  {hg : differentiable ℝ g} {hg2 : measurable (deriv g)}
-  {hg3 : measurable g} {hg4 : continuous (deriv g)}
+  {hf : differentiable ℝ f} {hf4 : continuous (deriv f)}
+  {hg : differentiable ℝ g} {hg4 : continuous (deriv g)}
   (a b : ℝ) (h : a ≤ b) :
   (∫ x in a..b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in a..b, (deriv f x) * (g x)) :=
 
@@ -394,42 +392,15 @@ begin
         rw [triv, mul_comm],
     }, rw eq, ring,
 
-    apply polynomial.differentiable,
-    apply continuous.measurable,
-    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+    {apply polynomial.differentiable},
+    {apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
     rw f_eval_on_ℝ_deriv,
-    apply polynomial.differentiable,
-
-    apply continuous.measurable,
-    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
-    apply polynomial.differentiable,
-
-    rw f_eval_on_ℝ_deriv,
-    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
-    apply polynomial.differentiable,
+    apply polynomial.differentiable},
 
     apply differentiable.neg,
     change differentiable ℝ (real.exp ∘ (λ (y : ℝ), (t - y))),
     apply differentiable.comp,
     exact real.differentiable_exp,
-    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
-    ext y, rw neg_sub, rw this, apply differentiable.neg,
-    apply differentiable.sub_const, exact differentiable_id',
-
-    apply continuous.measurable,
-    rw deriv_exp_t_x',
-    change continuous (real.exp ∘ (λ (y : ℝ), (t - y))),
-    apply continuous.comp (real.continuous_exp) _,
-    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
-    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
-    ext y, rw neg_sub, rw this, apply differentiable.neg,
-    apply differentiable.sub_const, exact differentiable_id',
-
-    apply continuous.measurable,
-    refine continuous.neg _,
-    change continuous (real.exp ∘ (λ (y : ℝ), (t - y))),
-    apply continuous.comp (real.continuous_exp) _,
-    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
     have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
     ext y, rw neg_sub, rw this, apply differentiable.neg,
     apply differentiable.sub_const, exact differentiable_id',

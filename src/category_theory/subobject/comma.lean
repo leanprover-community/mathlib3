@@ -171,10 +171,10 @@ begin
   { exact quiver.hom.unop_inj (ext _ _ (by { dsimp, simp })) }
 end
 
-/-- Technical lemma for `quotient_equiv` -/
-lemma unop_left_comp_of_mk_le_mk_unop {A : costructured_arrow S T} {P Q : (costructured_arrow S T)ᵒᵖ} {f : P ⟶ op A }
-  {g : Q ⟶ op A} [mono f.unop.left.op] [mono g.unop.left.op]
-  (h : subobject.mk f.unop.left.op ≤ subobject.mk g.unop.left.op) :
+/-- Technical lemma for `quotient_equiv`. -/
+lemma unop_left_comp_of_mk_le_mk_unop {A : costructured_arrow S T}
+  {P Q : (costructured_arrow S T)ᵒᵖ} {f : P ⟶ op A } {g : Q ⟶ op A} [mono f.unop.left.op]
+  [mono g.unop.left.op] (h : subobject.mk f.unop.left.op ≤ subobject.mk g.unop.left.op) :
   g.unop.left ≫ (subobject.of_mk_le_mk f.unop.left.op g.unop.left.op h).unop = f.unop.left :=
 begin
   conv_lhs { congr, rw [← quiver.hom.unop_op g.unop.left] },

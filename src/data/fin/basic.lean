@@ -571,11 +571,7 @@ end
 
 @[simp] lemma last_le_iff {n : ℕ} {k : fin (n + 1)} :
   last n ≤ k ↔ k = last n :=
-begin
-  rcases (le_last k).eq_or_lt with rfl|hk,
-  { simp },
-  { simp [hk.not_le, hk.ne] }
-end
+top_le_iff
 
 @[simp] lemma lt_add_one_iff {n : ℕ} {k : fin (n + 1)} :
   k < k + 1 ↔ k < last n :=
@@ -586,10 +582,7 @@ end
 
 @[simp] lemma le_zero_iff {n : ℕ} {k : fin (n + 1)} :
   k ≤ 0 ↔ k = 0 :=
-begin
-  cases k,
-  simp [le_iff_coe_le_coe, fin.ext_iff]
-end
+le_bot_iff
 
 lemma succ_succ_ne_one (a : fin n) : fin.succ (fin.succ a) ≠ 1 := ne_of_gt (one_lt_succ_succ a)
 

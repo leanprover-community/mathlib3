@@ -2422,7 +2422,7 @@ begin
     ... = (iterated_fderiv_within 𝕜 (i+1) f s + iterated_fderiv_within 𝕜 (i+1) g s) x h : rfl }
 end
 
-lemma iterated_fderiv_const_smul_apply {i : ℕ} {f g : E → F} (hf : cont_diff 𝕜 i f)
+lemma iterated_fderiv_add_apply {i : ℕ} {f g : E → F} (hf : cont_diff 𝕜 i f)
   (hg : cont_diff 𝕜 i g) :
   iterated_fderiv 𝕜 i (f + g) x = iterated_fderiv 𝕜 i f x + iterated_fderiv 𝕜 i g x :=
 begin

@@ -330,33 +330,73 @@ end
 def fis.injective {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
   (inj : ∀ i ∈ bigger j, function.injective $ F.map (op_hom_of_le H)) :
-  function.injective (λ (s :F.sections), s.val j) := sorry
+  function.injective (λ (s :F.sections), s.val j) :=
+begin
+  sorry
+end
 
 
 instance directed_of_cofinal {J : Type u} [preorder J] [is_directed J has_le.le]
-  (I : set J) [Icof : ∀ j : J, ∃ i ∈ I, i ≤ j] : is_directed I has_le.le := sorry
+  (I : set J) (Icof : ∀ j : J, ∃ i ∈ I, j ≤ i) : is_directed I has_le.le :=
+begin
+  apply is_directed.mk,
+  rintros ⟨i,iI⟩ ⟨k,kI⟩,
+  obtain ⟨j,ij,kj⟩ := directed_of (has_le.le) i k,
+  obtain ⟨m,mI,jm⟩ := Icof j,
+  use ⟨m,mI⟩,simp,
+  exact ⟨ij.trans jm, kj.trans jm⟩,
+end
 
-instance bigger_directed {J : Type u} [preorder J] [is_directed J has_le.le]
-  (j : J) : is_directed {i : J | i ≤ j} has_le.le := sorry
+instance lower_directed {J : Type u} [preorder J] [is_directed J has_le.le]
+  (j : J) : is_directed {i : J | j ≤ i} has_le.le :=
+begin
+  apply directed_of_cofinal,
+  rintros i,
+  obtain ⟨k,ik,jk⟩ := directed_of (has_le.le) i j,
+  exact ⟨k,jk,ik⟩,
+end
 
 -- The functor mapping i.op to (F.map (op_hom_of_le _)) ⁻¹ {x}
 def fis.above_point {J : Type u} [preorder J] [is_directed J has_le.le]
-  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) : {i : J | i ≤ j.unop}ᵒᵖ ⥤ Type v :=
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) : {i : J | j.unop ≤ i}ᵒᵖ ⥤ Type v :=
 begin
-    sorry,
+  let Fobj : Π (i : {i : J | j.unop ≤ i}ᵒᵖ), set (F.obj $ opposite.op (i.unop).val), by {
+    rintro ii,
+    obtain ⟨i,ij⟩ := ii.unop,
+    simp only [set.mem_set_of_eq] at ij, rw ←opposite.unop_op i at ij,
+    exact (set.preimage (F.map $ op_hom_of_le ij) {x}),},
+
+  refine ⟨λ ii, subtype (Fobj ii),_,_,_⟩,
+  { rintros ii kk ik,
+    obtain ⟨i,ij⟩ := ii.unop,
+    obtain ⟨k,kj⟩ := kk.unop,
+    dsimp [Fobj],
+    sorry,},
+  {sorry},
+  {sorry},
 end
 
 instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
   (x : F.obj j) :
-  Π (i : {i : J | i ≤ j.unop}ᵒᵖ), nonempty ((fis.above_point F j x).obj i)  := sorry
+  Π (i : {i : J | j.unop ≤ i}ᵒᵖ), nonempty ((fis.above_point F j x).obj i)  :=
+begin
+  sorry,
+end
 
 instance fis.above_point.fintype {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
   (x : F.obj j) :
-  Π (i : {i : J | i ≤ j.unop}ᵒᵖ), fintype ((fis.above_point F j x).obj i)  := sorry
+  Π (i : {i : J | j.unop ≤ i}ᵒᵖ), fintype ((fis.above_point F j x).obj i)  :=
+begin
+  rintros ii,
+  obtain ⟨i,ij⟩ := ii.unop,
+  unfold fis.above_point,
+  simp,
+  apply subtype.fintype,
+end
 
 
 def fis.sections_at_point {J : Type u} [preorder J] [is_directed J has_le.le]

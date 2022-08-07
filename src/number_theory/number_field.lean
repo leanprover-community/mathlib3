@@ -6,7 +6,6 @@ Authors: Ashvni Narayanan, Anne Baanen
 
 import ring_theory.dedekind_domain.integral_closure
 import algebra.char_p.algebra
-import data.complex.basic
 
 /-!
 # Number fields

@@ -3,11 +3,13 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.creates
-import category_theory.limits.unit
-import category_theory.limits.preserves.basic
-import category_theory.structured_arrow
 import category_theory.arrow
+import category_theory.limits.constructions.epi_mono
+import category_theory.limits.creates
+import category_theory.limits.preserves.finite
+import category_theory.limits.shapes.finite_limits
+import category_theory.limits.unit
+import category_theory.structured_arrow
 
 /-!
 # Limits and colimits in comma categories
@@ -205,6 +207,14 @@ noncomputable instance creates_limits_of_shape [preserves_limits_of_shape J G] :
 noncomputable instance creates_limits [preserves_limits G] :
   creates_limits (proj X G : _) := ⟨⟩
 
+instance mono_right_of_mono [has_limits A] [preserves_limits G] {Y Z : structured_arrow X G}
+  (f : Y ⟶ Z) [mono f] : mono f.right :=
+show mono ((proj X G).map f), from infer_instance
+
+lemma mono_iff_mono_right [has_limits A] [preserves_limits G] {Y Z : structured_arrow X G}
+  (f : Y ⟶ Z) : mono f ↔ mono f.right :=
+⟨λ h, by exactI infer_instance, λ h, by exactI mono_of_mono_right f⟩
+
 end structured_arrow
 
 namespace costructured_arrow
@@ -233,6 +243,14 @@ noncomputable instance creates_colimits_of_shape [preserves_colimits_of_shape J 
 
 noncomputable instance creates_colimits [preserves_colimits G] :
   creates_colimits (proj G X : _) := ⟨⟩
+
+instance epi_left_of_epi [has_colimits A] [preserves_colimits G] {Y Z : costructured_arrow G X}
+  (f : Y ⟶ Z) [epi f] : epi f.left :=
+show epi ((proj G X).map f), from infer_instance
+
+lemma epi_iff_epi_left [has_colimits A] [preserves_colimits G] {Y Z : costructured_arrow G X}
+  (f : Y ⟶ Z) : epi f ↔ epi f.left :=
+⟨λ h, by exactI infer_instance, λ h, by exactI epi_of_epi_left f⟩
 
 end costructured_arrow
 

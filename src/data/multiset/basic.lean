@@ -240,6 +240,9 @@ theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 
 @[simp] lemma coe_eq_singleton {a : α} {l : list α} : (l : multiset α) = {a} ↔ l = [a] :=
 by rw [←multiset.coe_single, multiset.coe_eq_coe, list.perm_singleton]
 
+@[simp] lemma singleton_eq_cons_iff {a b : α} (m : multiset α) : {a} = b ::ₘ m ↔ a = b ∧ m = 0 :=
+by { rw [←cons_zero, cons_eq_cons], simp [eq_comm] }
+
 /-! ### `multiset.subset` -/
 
 section subset

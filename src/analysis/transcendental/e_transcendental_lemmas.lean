@@ -102,25 +102,6 @@ begin
     apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
 end
 
-/-Lemma
-if $i+1\le n$ then $n-(i+1)+1=n-i$
--/
-private lemma nat_sub_eq (n i : ℕ) (h : i + 1 ≤ n) : (n - (i + 1) + 1) = n - i :=
-begin
-    have triv : n - (i+1) = n - i - 1, exact rfl,
-    rw triv, apply nat.sub_add_cancel (le_tsub_of_add_le_left h),
-end
-
-/-Lemma
-We have the pascal triangle
-\[{n\choose k+1}+{n\choose k} = {n+1\choose k+1}\]
--/
-private lemma pascal_triangle (n k : ℕ) : (n.choose (k+1)) + (n.choose k) = (n+1).choose (k+1) :=
-begin
-    -- This is actually how `mathlib` defined binomial coefficient.
-    exact add_comm (nat.choose n (k + 1)) (nat.choose n k),
-end
-
 /-Theorem
 We also have that for $p,q\in\mathbb Z[x]$,
 \[
@@ -158,33 +139,40 @@ begin
                 (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - x)) * deriv_n q (x + 1) +
                  polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q (x+1)))),
         {
-            apply finset.sum_congr, exact rfl, intros i hi, simp only [deriv_succ, int.cast_coe_nat, ring_hom.eq_int_cast, add_left_inj], simp only [finset.mem_range] at hi,
-            replace hi : i + 1 ≤ n := hi,
-            rw nat_sub_eq _ _ hi,
+            apply finset.sum_congr rfl, intros i hi,
+            simp only [deriv_succ, int.cast_coe_nat, ring_hom.eq_int_cast, add_left_inj],
+            simp only [finset.mem_range, ←nat.succ_le_iff, nat.succ_eq_add_one] at hi,
+            rw [←nat.sub_sub, nat.sub_add_cancel (le_tsub_of_add_le_left hi)],
         },
 
         transitivity
             (∑ (x : ℕ) in finset.range n,
-                ((polynomial.C (n.choose (x + 1):ℤ) + polynomial.C (n.choose x:ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+                ((polynomial.C (n.choose x:ℤ) + polynomial.C (n.choose (x + 1):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
         {
             apply congr_arg, rw function.funext_iff, intro i, ring,
         },
 
         transitivity
             (∑ (x : ℕ) in finset.range n,
-                ((polynomial.C (n.choose (x + 1) + (n.choose x):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+                ((polynomial.C (n.choose x + (n.choose (x + 1)):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
         {
-            apply congr_arg, rw function.funext_iff, intro i, simp only [int.cast_add, ring_hom.eq_int_cast],
+            apply congr_arg, rw function.funext_iff, intro i,
+            simp only [int.cast_add, ring_hom.eq_int_cast],
         },
 
         transitivity
             (∑ (x : ℕ) in finset.range n,
                 ((polynomial.C ((n+1).choose (x + 1):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
         {
-            apply congr_arg, rw function.funext_iff, intro i, rw <-pascal_triangle, simp only [int.coe_nat_add],
+            apply congr_arg, rw function.funext_iff, intro i,
+            rw [nat.choose_succ_succ, int.coe_nat_add],
         },
 
-        conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ}, simp only [deriv_succ, zeroth_deriv, nat.succ_eq_add_one, nat.choose_self, int.cast_coe_nat, ring_hom.eq_int_cast, one_mul, nat.succ_sub_succ_eq_sub, nat.choose_zero_right, int.coe_nat_zero, nat.sub_self, int.cast_one, int.coe_nat_succ, nat.sub_zero, zero_add], ring,
+        conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ},
+        simp only [deriv_succ, zeroth_deriv, nat.succ_eq_add_one, nat.choose_self, int.cast_coe_nat,
+            ring_hom.eq_int_cast, one_mul, nat.succ_sub_succ_eq_sub, nat.choose_zero_right,
+            int.coe_nat_zero, nat.sub_self, int.cast_one, int.coe_nat_succ, nat.sub_zero, zero_add],
+        ring,
     }
 end
 

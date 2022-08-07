@@ -40,20 +40,15 @@ instance monoidal_predicate_finite_dimensional :
   prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, preadditive, linear K,
+@[derive [large_category, concrete_category, preadditive, linear K,
   monoidal_category, symmetric_category, monoidal_preadditive, monoidal_linear K]]
-def FinVect := { V : Module.{u} K // finite_dimensional K V }
+def FinVect := full_subcategory (λ (V : Module.{u} K), finite_dimensional K V)
 
 namespace FinVect
 
-instance finite_dimensional (V : FinVect K) : finite_dimensional K V := V.prop
+instance finite_dimensional (V : FinVect K) : finite_dimensional K V.obj := V.property
 
 instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
-
-instance : has_coe (FinVect.{u} K) (Module.{u} K) := { coe := λ V, V.1, }
-
-protected lemma coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
-  ((f ≫ g) : U → W) = (g : V → W) ∘ (f : U → V) := rfl
 
 /-- Lift an unbundled vector space to `FinVect K`. -/
 def of (V : Type u) [add_comm_group V] [module K V] [finite_dimensional K V] : FinVect K :=
@@ -85,42 +80,39 @@ variables (V : FinVect K)
 
 /-- The dual module is the dual in the rigid monoidal category `FinVect K`. -/
 def FinVect_dual : FinVect K :=
-⟨Module.of K (module.dual K V), subspace.module.dual.finite_dimensional⟩
-
-instance : has_coe_to_fun (FinVect_dual K V) (λ _, V → K) :=
-{ coe := λ v, by { change V →ₗ[K] K at v, exact v, } }
+⟨Module.of K (module.dual K V.obj), subspace.module.dual.finite_dimensional⟩
 
 open category_theory.monoidal_category
 
 /-- The coevaluation map is defined in `linear_algebra.coevaluation`. -/
 def FinVect_coevaluation : 𝟙_ (FinVect K) ⟶ V ⊗ (FinVect_dual K V) :=
-by apply coevaluation K V
+by apply coevaluation K V.obj
 
 lemma FinVect_coevaluation_apply_one : FinVect_coevaluation K V (1 : K) =
-   ∑ (i : basis.of_vector_space_index K V),
-    (basis.of_vector_space K V) i ⊗ₜ[K] (basis.of_vector_space K V).coord i :=
-by apply coevaluation_apply_one K V
+   ∑ (i : basis.of_vector_space_index K V.obj),
+    (basis.of_vector_space K V.obj) i ⊗ₜ[K] (basis.of_vector_space K V.obj).coord i :=
+by apply coevaluation_apply_one K V.obj
 
 /-- The evaluation morphism is given by the contraction map. -/
 def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
-by apply contract_left K V
+by apply contract_left K V.obj
 
 @[simp]
-lemma FinVect_evaluation_apply (f : (FinVect_dual K V)) (x : V) :
-  (FinVect_evaluation K V) (f ⊗ₜ x) = f x :=
+lemma FinVect_evaluation_apply (f : (FinVect_dual K V).obj) (x : V.obj) :
+  (FinVect_evaluation K V) (f ⊗ₜ x) = f.to_fun x :=
 by apply contract_left_apply f x
 
 private theorem coevaluation_evaluation :
   let V' : FinVect K := FinVect_dual K V in
   (𝟙 V' ⊗ (FinVect_coevaluation K V)) ≫ (α_ V' V V').inv ≫ (FinVect_evaluation K V ⊗ 𝟙 V')
   = (ρ_ V').hom ≫ (λ_ V').inv :=
-by apply contract_left_assoc_coevaluation K V
+by apply contract_left_assoc_coevaluation K V.obj
 
 private theorem evaluation_coevaluation :
   (FinVect_coevaluation K V ⊗ 𝟙 V)
   ≫ (α_ V (FinVect_dual K V) V).hom ≫ (𝟙 V ⊗ FinVect_evaluation K V)
   = (λ_ V).hom ≫ (ρ_ V).inv :=
-by apply contract_left_assoc_coevaluation' K V
+by apply contract_left_assoc_coevaluation' K V.obj
 
 instance exact_pairing : exact_pairing V (FinVect_dual K V) :=
 { coevaluation := FinVect_coevaluation K V,
@@ -136,7 +128,7 @@ variables {K V} (W : FinVect K)
 
 /-- Converts and isomorphism in the category `FinVect` to a `linear_equiv` between the underlying
 vector spaces. -/
-def iso_to_linear_equiv {V W : FinVect K} (i : V ≅ W) : V ≃ₗ[K] W :=
+def iso_to_linear_equiv {V W : FinVect K} (i : V ≅ W) : V.obj ≃ₗ[K] W.obj :=
   ((forget₂ (FinVect.{u} K) (Module.{u} K)).map_iso i).to_linear_equiv
 
 lemma iso.conj_eq_conj {V W : FinVect K} (i : V ≅ W) (f : End V) :

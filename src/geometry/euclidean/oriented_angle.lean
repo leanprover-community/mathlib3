@@ -6,6 +6,7 @@ Authors: Joseph Myers
 import analysis.inner_product_space.orientation
 import analysis.inner_product_space.pi_L2
 import analysis.special_functions.complex.circle
+import geometry.euclidean.basic
 
 /-!
 # Oriented angles.
@@ -39,6 +40,7 @@ generally use the definitions and results in the `orientation` namespace instead
 noncomputable theory
 
 open_locale real
+open_locale real_inner_product_space
 
 namespace orthonormal
 
@@ -788,6 +790,50 @@ begin
   rw [←submonoid.coe_mul, mul_left_inv, submonoid.coe_one, mul_one]
 end
 
+/-- The inner product of two vectors is the product of the norms and the cosine of the oriented
+angle between the vectors. -/
+lemma inner_eq_norm_mul_norm_mul_cos_oangle (x y : V) :
+  ⟪x, y⟫ = ∥x∥ * ∥y∥ * real.angle.cos (hb.oangle x y) :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0, { simp [hy] },
+  rw [oangle, real.angle.cos_coe, complex.cos_arg], swap, { simp [hx, hy] },
+  simp_rw [complex.abs_div, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map, complex.div_re,
+           ←complex.sq_abs, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map,
+           complex.isometry_of_orthonormal_symm_apply, complex.add_re, complex.add_im,
+           is_R_or_C.I, complex.mul_I_re, complex.mul_I_im, complex.of_real_re,
+           complex.of_real_im, basis.coord_apply, neg_zero, zero_add, add_zero],
+  conv_lhs { rw [←b.sum_repr x, ←b.sum_repr y] },
+  simp_rw [hb.inner_sum, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1}),
+           star_ring_end_apply, star_trivial],
+  rw [finset.sum_insert (dec_trivial : (0 : fin 2) ∉ ({1} : finset (fin 2))),
+      finset.sum_singleton],
+  field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],
+  ring
+end
+
+/-- The cosine of the oriented angle between two nonzero vectors is the inner product divided by
+the product of the norms. -/
+lemma cos_oangle_eq_inner_div_norm_mul_norm {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.angle.cos (hb.oangle x y) = ⟪x, y⟫ / (∥x∥ * ∥y∥) :=
+begin
+  rw hb.inner_eq_norm_mul_norm_mul_cos_oangle,
+  field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],
+  ring
+end
+
+/-- The cosine of the oriented angle between two nonzero vectors equals that of the unoriented
+angle. -/
+lemma cos_oangle_eq_cos_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.angle.cos (hb.oangle x y) = real.cos (inner_product_geometry.angle x y) :=
+by rw [hb.cos_oangle_eq_inner_div_norm_mul_norm hx hy, inner_product_geometry.cos_angle]
+
+/-- The oriented angle between two nonzero vectors is plus or minus the unoriented angle. -/
+lemma oangle_eq_angle_or_eq_neg_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  hb.oangle x y = inner_product_geometry.angle x y ∨
+    hb.oangle x y = -inner_product_geometry.angle x y :=
+real.angle.cos_eq_real_cos_iff_eq_or_eq_neg.1 $ hb.cos_oangle_eq_cos_angle hx hy
+
 end orthonormal
 
 namespace orientation
@@ -1214,5 +1260,29 @@ begin
   refine orthonormal.rotation_eq_rotation_neg_of_orientation_eq_neg _ _ _ _,
   simp_rw orientation.fin_orthonormal_basis_orientation
 end
+
+/-- The inner product of two vectors is the product of the norms and the cosine of the oriented
+angle between the vectors. -/
+lemma inner_eq_norm_mul_norm_mul_cos_oangle (x y : V) :
+  ⟪x, y⟫ = ∥x∥ * ∥y∥ * real.angle.cos (o.oangle x y) :=
+(ob).inner_eq_norm_mul_norm_mul_cos_oangle x y
+
+/-- The cosine of the oriented angle between two nonzero vectors is the inner product divided by
+the product of the norms. -/
+lemma cos_oangle_eq_inner_div_norm_mul_norm {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.angle.cos (o.oangle x y) = ⟪x, y⟫ / (∥x∥ * ∥y∥) :=
+(ob).cos_oangle_eq_inner_div_norm_mul_norm hx hy
+
+/-- The cosine of the oriented angle between two nonzero vectors equals that of the unoriented
+angle. -/
+lemma cos_oangle_eq_cos_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.angle.cos (o.oangle x y) = real.cos (inner_product_geometry.angle x y) :=
+(ob).cos_oangle_eq_cos_angle hx hy
+
+/-- The oriented angle between two nonzero vectors is plus or minus the unoriented angle. -/
+lemma oangle_eq_angle_or_eq_neg_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  o.oangle x y = inner_product_geometry.angle x y ∨
+    o.oangle x y = -inner_product_geometry.angle x y :=
+(ob).oangle_eq_angle_or_eq_neg_angle hx hy
 
 end orientation

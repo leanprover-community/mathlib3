@@ -47,13 +47,13 @@ instance : linear k (fdRep k G) := by apply_instance
 instance : has_coe_to_sort (fdRep k G) (Type u) := concrete_category.has_coe_to_sort _
 
 instance (V : fdRep k G) : add_comm_group V :=
-by { change add_comm_group ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
+by { change add_comm_group ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
 
 instance (V : fdRep k G) : module k V :=
-by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
+by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
 
 instance (V : fdRep k G) : finite_dimensional k V :=
-by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
+by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
 
 /-- All hom spaces are finite dimensional. -/
 instance (V W : fdRep k G) : finite_dimensional k (V ⟶ W) :=

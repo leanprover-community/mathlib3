@@ -68,8 +68,8 @@ lemma module.injective_module_of_injective_object
 { out := λ X Y ins1 ins2 ins3 ins4 f hf g, begin
     resetI,
     rcases @category_theory.injective.factors (Module R) _ ⟨Q⟩ _ ⟨X⟩ ⟨Y⟩ g f
-      ((Module.mono_iff_injective _).mpr hf) with ⟨h, eq1⟩,
-    refine ⟨h, λ x, by rw ← eq1; refl⟩,
+      ((Module.mono_iff_injective _).mpr hf) with ⟨h, rfl⟩,
+    exact ⟨h, λ x, rfl⟩
   end }
 
 lemma module.injective_iff_injective_object :
@@ -138,9 +138,7 @@ lemma chain_linear_pmap_of_chain_extension_of
   (is_chain (≤) $ (λ x : extension_of i f, x.to_linear_pmap) '' c) :=
 begin
   rintro _ ⟨a, a_mem, rfl⟩ _ ⟨b, b_mem, rfl⟩ neq,
-  rcases hchain a_mem b_mem (λ r, neq $ r ▸ rfl) with ⟨le1, le2⟩ | ⟨le1, le2⟩,
-  { left, exact ⟨le1, le2⟩, },
-  { right, exact ⟨le1, le2⟩, },
+  exact hchain a_mem b_mem (ne_of_apply_ne _ neq),
 end
 
 /-- The maximal element of every nonempty chain of `extension_of i f`. -/
@@ -280,7 +278,8 @@ lemma extension_of_max_adjoin.extend_ideal_to_eq (h : module.Baer R Q) {y : N} (
   (hr : r • y ∈ (extension_of_max i f).domain) :
   extension_of_max_adjoin.extend_ideal_to i f h y r =
     (extension_of_max i f).to_linear_pmap ⟨r • y, hr⟩ :=
-by rw extension_of_max_adjoin.extend_ideal_to_is_extension i f h _ _ hr; refl
+by simp only [extension_of_max_adjoin.extend_ideal_to_is_extension i f h _ _ hr,
+  extension_of_max_adjoin.ideal_to, linear_map.coe_mk, subtype.coe_mk]
 
 /--We can finally define a linear map `M ⊔ ⟨y⟩ ⟶ Q` by `x + r • y ↦ f x + φ r`
 -/
@@ -301,8 +300,7 @@ begin
   cases a with a ha,
   rw subtype.coe_mk at eq1,
   have eq2 : (extension_of_max_adjoin.fst i x - a : N) = (r - extension_of_max_adjoin.snd i x) • y,
-  { rwa [extension_of_max_adjoin.eqn, ← sub_eq_zero,
-      show ∀ (a b c d : N), (a + b) - (c + d) = (a - c) - (d - b), from λ _ _ _ _, by abel,
+  { rwa [extension_of_max_adjoin.eqn, ← sub_eq_zero, ←sub_sub_sub_eq,
       sub_eq_zero, ← sub_smul] at eq1 },
   have eq3 := extension_of_max_adjoin.extend_ideal_to_eq i f h (r - extension_of_max_adjoin.snd i x)
     (by rw ← eq2; exact submodule.sub_mem _ (extension_of_max_adjoin.fst i x).2 ha),
@@ -360,10 +358,8 @@ end⟩
 
 lemma extension_of_max_to_submodule_eq_top (h : module.Baer R Q) :
   (extension_of_max i f).domain = ⊤ :=
-classical.by_contradiction $ λ rid, begin
-  rw [submodule.eq_top_iff', not_forall] at rid,
-  rcases rid with ⟨y, hy⟩,
-  apply hy,
+begin
+  refine submodule.eq_top_iff'.mpr (λ y, _),
   rw [← extension_of_max_is_max i f _ (extension_of_max_le i f h), extension_of_max_adjoin,
       submodule.mem_sup],
   exact ⟨0, submodule.zero_mem _, y, submodule.mem_span_singleton_self _, zero_add _⟩

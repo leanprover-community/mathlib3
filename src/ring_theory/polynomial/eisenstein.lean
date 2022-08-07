@@ -115,7 +115,7 @@ lemma exists_mem_adjoin_mul_eq_pow_nat_degree_le {x : S} (hx : aeval x f = 0)
   ∃ y ∈ adjoin R ({x} : set S), (algebra_map R S) p * y = x ^ i :=
 begin
   intros i hi,
-  obtain ⟨k, hk⟩ := le_iff_exists_add.1 hi,
+  obtain ⟨k, hk⟩ := exists_add_of_le hi,
   rw [hk, pow_add],
   obtain ⟨y, hy, H⟩ := exists_mem_adjoin_mul_eq_pow_nat_degree hx hmo hf,
   refine ⟨y * x ^ k, _, _⟩,
@@ -131,7 +131,7 @@ lemma pow_nat_degree_le_of_root_of_monic_mem {x : R} (hroot : is_root f x) (hmo 
   ∀ i, f.nat_degree ≤ i → x ^ i ∈ 𝓟 :=
 begin
   intros i hi,
-  obtain ⟨k, hk⟩ := le_iff_exists_add.1 hi,
+  obtain ⟨k, hk⟩ := exists_add_of_le hi,
   rw [hk, pow_add],
   suffices : x ^ f.nat_degree ∈ 𝓟,
   { exact mul_mem_right (x ^ k) 𝓟 this },
@@ -147,7 +147,7 @@ lemma pow_nat_degree_le_of_aeval_zero_of_monic_mem_map {x : S} (hx : aeval x f =
 begin
   suffices : x ^ (f.map (algebra_map R S)).nat_degree ∈ 𝓟.map (algebra_map R S),
   { intros i hi,
-    obtain ⟨k, hk⟩ := le_iff_exists_add.1 hi,
+    obtain ⟨k, hk⟩ := exists_add_of_le hi,
     rw [hk, pow_add],
     refine mul_mem_right _ _ this },
   rw [aeval_def, eval₂_eq_eval_map, ← is_root.def] at hx,

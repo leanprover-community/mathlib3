@@ -59,6 +59,10 @@ def fis.is_surjective  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) /- [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] -/ : Prop :=
 ∀ (i j : Jᵒᵖ) (h : j.unop ≤ i.unop) (x : F.obj j), x ∈ set.range (F.map (op_hom_of_le h))
 
+def fis.is_surjective_iff  {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) /- [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] -/ :
+  (fis.is_surjective F) ↔ ∀ (i j : Jᵒᵖ) (h : j.unop ≤ i.unop), function.surjective (F.map (op_hom_of_le h)) := sorry
+
 
 def bigger  {J : Type u} [preorder J] : Π (j : Jᵒᵖ), set Jᵒᵖ := λ j, {i : Jᵒᵖ | j.unop ≤ i.unop}
 
@@ -335,6 +339,13 @@ begin
   sorry
 end
 
+def fis.bijective {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
+  (inj : ∀ i ∈ bigger j, function.bijective $ F.map (op_hom_of_le H)) :
+  function.bijective (λ (s :F.sections), s.val j) :=
+begin
+  sorry
+end
 
 instance directed_of_cofinal {J : Type u} [preorder J] [is_directed J has_le.le]
   (I : set J) (Icof : ∀ j : J, ∃ i ∈ I, j ≤ i) : is_directed I has_le.le :=
@@ -389,10 +400,10 @@ begin
   { simp, rintro ii kk ll ik kl, apply funext, rintro ⟨x,xh⟩,
     simp, simp [set.maps_to.restrict, subtype.map],
     rw ←functor_to_types.map_comp_apply,
-    reflexivity,},
+    reflexivity, },
 end
 
-  -- We can even weaken the condition to that of `x` being in all ranges.
+  -- We can (probably) weaken the condition to that of `x` being in all ranges.
 instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
@@ -407,8 +418,16 @@ begin
   unfold fis.is_surjective at Fsurj,
   specialize Fsurj (opposite.op i) j ij x,
   obtain ⟨y,rfl⟩ := Fsurj,
-
-  sorry
+  simp,
+  unfold set.preimage,
+  simp *,
+  apply Exists.intro,
+  rotate,
+  have : (opposite.op i) = opposite.op ↑(opposite.unop ii), by { sorry },
+  rw ←this,
+  use y,
+  dsimp,
+  sorry, -- wtf
 end
 
 instance fis.above_point.fintype {J : Type u} [preorder J] [is_directed J has_le.le]
@@ -428,7 +447,24 @@ end
 
 def fis.sections_at_point {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) :
-  {s : F.sections | s.val j = x} ≃ (fis.above_point F j x).sections := sorry
+  {s : F.sections | s.val j = x} ≃ (fis.above_point F j x).sections :=
+begin
+  split, rotate 2,
+  { rintro ⟨⟨s,sec⟩,sjx⟩,
+    simp at sjx, rcases sjx with rfl,
+    split, rotate,
+    { rintro ii, dsimp [fis.above_point], refine ⟨s (opposite.op ii.unop.val),_⟩, unfold set.preimage, dsimp,
+      unfold category_theory.functor.sections at sec,
+      let lol1 := (ii.unop.prop : j.unop ≤ ii.unop.val), simp at lol1, rw ←subtype.val_eq_coe at lol1,
+      let lol2 := (opposite.unop_op ii.unop.val),
+      rw ←lol2 at lol1,
+      exact sec (op_hom_of_le $ lol1),
+     },
+    { rintro ii kk ik, simp, dsimp [fis.above_point], rw ←subtype.coe_inj, simp, apply sec,},},
+  { sorry, },
+  { sorry, },
+  { sorry, },
+end
 
 lemma fis.above_point.sections_nonempty  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)

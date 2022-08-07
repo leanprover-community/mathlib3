@@ -29,8 +29,8 @@ true in more general settings.
   sequences.
 * `X ⟶ Y ⟶ Z ⟶ 0` is exact if and only if the second map is a cokernel of the first, and
   `0 ⟶ X ⟶ Y ⟶ Z` is exact if and only if the first map is a kernel of the second.
-* An exact functor preserves exactness, more specifically, if `F` preserves finite colimits and
-  limits, then `exact f g` implies `exact (F.map f) (F.map g)`
+* An exact functor preserves exactness, more specifically, `F` preserves finite colimits and
+  finite limits, if and only if `exact f g` implies `exact (F.map f) (F.map g)`.
 -/
 
 universes v₁ v₂ u₁ u₂
@@ -331,14 +331,16 @@ namespace functor
 open limits abelian
 
 variables {A : Type u₁} {B : Type u₂} [category.{v₁} A] [category.{v₂} B]
-variables [abelian A]
-variables [has_cokernels A] [abelian B]
+variables [abelian A] [abelian B]
 variables (L : A ⥤ B)
 
 section
 
 variables [preserves_finite_limits L] [preserves_finite_colimits L]
 
+/-- A functor preserving finite limits and finite colimits preserves exactness. The converse
+result is also true, see `functor.preserves_finite_limits_of_map_exact` and
+`functor.preserves_finite_colimits_of_map_exact`. -/
 lemma map_exact {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
   exact (L.map f) (L.map g) :=
 begin
@@ -352,7 +354,7 @@ end
 
 section
 
-variables (h : ∀ {X Y Z : A} {f : X ⟶ Y} {g : Y ⟶ Z}, exact f g → exact (L.map f) (L.map g))
+variables (h : ∀ ⦃X Y Z : A⦄ {f : X ⟶ Y} {g : Y ⟶ Z}, exact f g → exact (L.map f) (L.map g))
 include h
 
 open_locale zero_object
@@ -369,7 +371,7 @@ end
 lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
 { preserves := λ X Y f hf,
   begin
-    letI := preserves_zero_morphisms_of_map_exact L @h,
+    letI := preserves_zero_morphisms_of_map_exact L h,
     apply ((tfae_mono (L.obj 0) (L.map f)).out 2 0).mp,
     rw ←L.map_zero,
     exact h (((tfae_mono 0 f).out 0 2).mp hf)
@@ -379,7 +381,7 @@ lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
 lemma preserves_epimorphisms_of_map_exact : L.preserves_epimorphisms :=
 { preserves := λ X Y f hf,
   begin
-    letI := preserves_zero_morphisms_of_map_exact L @h,
+    letI := preserves_zero_morphisms_of_map_exact L h,
     apply ((tfae_epi (L.obj 0) (L.map f)).out 2 0).mp,
     rw ←L.map_zero,
     exact h (((tfae_epi 0 f).out 0 2).mp hf)
@@ -390,8 +392,8 @@ def preserves_kernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
   preserves_limit (parallel_pair f 0) L :=
 { preserves := λ c ic,
   begin
-    letI := preserves_zero_morphisms_of_map_exact L @h,
-    letI := preserves_monomorphisms_of_map_exact L @h,
+    letI := preserves_zero_morphisms_of_map_exact L h,
+    letI := preserves_monomorphisms_of_map_exact L h,
     letI := mono_of_is_limit_fork ic,
     have hf := (is_limit_map_cone_fork_equiv' L (kernel_fork.condition c)).symm
       (is_limit_of_exact_of_mono (L.map (fork.ι c)) (L.map f)
@@ -405,8 +407,8 @@ def preserves_cokernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
   preserves_colimit (parallel_pair f 0) L :=
 { preserves := λ c ic,
   begin
-    letI := preserves_zero_morphisms_of_map_exact L @h,
-    letI := preserves_epimorphisms_of_map_exact L @h,
+    letI := preserves_zero_morphisms_of_map_exact L h,
+    letI := preserves_epimorphisms_of_map_exact L h,
     letI := epi_of_is_colimit_cofork ic,
     have hf := (is_colimit_map_cocone_cofork_equiv' L (cokernel_cofork.condition c)).symm
       (is_colimit_of_exact_of_epi (L.map f) (L.map (cofork.π c))
@@ -415,19 +417,21 @@ def preserves_cokernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
     exact hf.of_iso_colimit ((cocones.functoriality _ L).map_iso (iso_of_π _).symm),
   end }
 
-/-- A functor which preserves exactness is left exact, i.e. preserves finite limits. -/
+/-- A functor which preserves exactness is left exact, i.e. preserves finite limits.
+This is part of the inverse implication to `functor.map_exact`. -/
 def preserves_finite_limits_of_map_exact : limits.preserves_finite_limits L :=
 begin
-  letI := preserves_zero_morphisms_of_map_exact L @h,
-  letI := preserves_kernels_of_map_exact L @h,
+  letI := preserves_zero_morphisms_of_map_exact L h,
+  letI := preserves_kernels_of_map_exact L h,
   apply preserves_finite_limits_of_preserves_kernels,
 end
 
-/-- A functor which preserves exactness is left exact, i.e. preserves finite colimits. -/
+/-- A functor which preserves exactness is right exact, i.e. preserves finite colimits.
+This is part of the inverse implication to `functor.map_exact`. -/
 def preserves_finite_colimits_of_map_exact : limits.preserves_finite_colimits L :=
 begin
-  letI := preserves_zero_morphisms_of_map_exact L @h,
-  letI := preserves_cokernels_of_map_exact L @h,
+  letI := preserves_zero_morphisms_of_map_exact L h,
+  letI := preserves_cokernels_of_map_exact L h,
   apply preserves_finite_colimits_of_preserves_cokernels,
 end
 

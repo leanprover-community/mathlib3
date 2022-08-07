@@ -1050,7 +1050,8 @@ begin
               congr' 2,
               exact fderiv_within_congr (hu x hx) (λ _, hi hcdf hcdf₁) (hi hcdf hcdf₁ hx),
             end
-    ... = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s + fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f₁ s) s)
+    ... = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s +
+            fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f₁ s) s)
               x (h 0) (fin.tail h) :
             by rw [pi.add_def, fderiv_within_add (hu x hx) (hdf x hx) (hdf₁ x hx)]; refl
     ... = (iterated_fderiv_within 𝕜 (i+1) f s + iterated_fderiv_within 𝕜 (i+1) f₁ s) x h : rfl }

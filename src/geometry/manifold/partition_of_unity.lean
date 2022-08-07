@@ -97,7 +97,7 @@ subordinate to `U`, see `smooth_bump_covering.exists_is_subordinate`.
 
 This covering can be used, e.g., to construct a partition of unity and to prove the weak
 Whitney embedding theorem. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure smooth_bump_covering (s : set M := univ) :=
 (c : ι → M)
 (to_fun : Π i, smooth_bump_function I (c i))

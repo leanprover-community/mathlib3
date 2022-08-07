@@ -118,6 +118,7 @@ instance preserves_finite_biproducts_of_additive [additive F] : preserves_finite
         simp_rw [← F.map_id],
         refine congr_arg _ (hb.is_limit.hom_ext (λ j, hb.is_colimit.hom_ext (λ j', _))),
         cases j, cases j',
+        dsimp only [limits.bicone.to_cone_π_app],
         simp [sum_comp, comp_sum, bicone.ι_π, comp_dite, dite_comp],
       end } } }
 
@@ -144,9 +145,9 @@ section
 variables (C D : Type*) [category C] [category D] [preadditive C] [preadditive D]
 
 /-- Bundled additive functors. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def AdditiveFunctor :=
-{ F : C ⥤ D // functor.additive F }
+full_subcategory (λ (F : C ⥤ D), F.additive)
 
 infixr ` ⥤+ `:26 := AdditiveFunctor
 

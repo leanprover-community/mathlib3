@@ -125,7 +125,7 @@ section model_with_corners
 model vector space `E` over the field `𝕜`. This is all what is needed to
 define a smooth manifold with model space `H`, and model vector space `E`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure model_with_corners (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=

@@ -231,12 +231,12 @@ end
 
 end pointwise_limits
 
-instance additive.has_continuous_neg [h : topological_space H] [has_inv H]
-  [has_continuous_inv H] : @has_continuous_neg (additive H) h _ :=
+instance [topological_space H] [has_inv H] [has_continuous_inv H] :
+  has_continuous_neg (additive H) :=
 { continuous_neg := @continuous_inv H _ _ _ }
 
-instance multiplicative.has_continuous_inv [h : topological_space H] [has_neg H]
-  [has_continuous_neg H] : @has_continuous_inv (multiplicative H) h _ :=
+instance [topological_space H] [has_neg H] [has_continuous_neg H] :
+  has_continuous_inv (multiplicative H) :=
 { continuous_inv := @continuous_neg H _ _ _ }
 
 end continuous_inv
@@ -1131,12 +1131,12 @@ end
 
 end filter_mul
 
-instance additive.topological_add_group {G} [h : topological_space G]
-  [group G] [topological_group G] : @topological_add_group (additive G) h _ :=
+instance {G} [topological_space G] [group G] [topological_group G] :
+  topological_add_group (additive G) :=
 { continuous_neg := @continuous_inv G _ _ _ }
 
-instance multiplicative.topological_group {G} [h : topological_space G]
-  [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
+instance {G} [topological_space G] [add_group G] [topological_add_group G] :
+  topological_group (multiplicative G) :=
 { continuous_inv := @continuous_neg G _ _ _ }
 
 section quotient

@@ -26,6 +26,8 @@ do not appear in the factorization of the `n`th central binomial coefficient.
 These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
 -/
 
+open_locale big_operators
+
 namespace nat
 
 variables {p n k : ℕ}
@@ -136,5 +138,32 @@ Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt`
 lemma le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
 le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt)
+
+/-- A binomial coefficient is the product of its prime factors, which are at most `n`. -/
+lemma prod_pow_factorization_choose (n k : ℕ) (hkn : k ≤ n) :
+  ∏ p in (finset.range (n + 1)),
+    p ^ ((nat.choose n k).factorization p)
+  = choose n k :=
+begin
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self (choose_pos hkn).ne',
+  rw eq_comm,
+  apply finset.prod_subset,
+  { intros p hp,
+    rw finset.mem_range,
+    contrapose! hp,
+    rw [finsupp.mem_support_iff, not_not, factorization_choose_eq_zero_of_lt hp] },
+  { intros p _ h2, simp [not_not.1 (mt finsupp.mem_support_iff.2 h2)] },
+end
+
+/-- The `n`th central binomial coefficient is the product of its prime factors, which are
+at most `2n`. -/
+lemma prod_pow_factorization_central_binom (n : ℕ) :
+  ∏ p in (finset.range (2 * n + 1)),
+    p ^ ((central_binom n).factorization p)
+  = central_binom n :=
+begin
+  apply prod_pow_factorization_choose,
+  linarith,
+end
 
 end nat

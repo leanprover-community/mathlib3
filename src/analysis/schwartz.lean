@@ -46,7 +46,7 @@ open_locale big_operators ennreal nnreal topological_space
 
 noncomputable theory
 
-variables {R 𝕜 E F ι : Type*}
+variables {R R' 𝕜 E F ι : Type*}
 
 section seminorm
 
@@ -108,40 +108,52 @@ lemma cont_diff.differentiable_at_iterated_fderiv {n k : ℕ} {f : E → F} (hf 
 (cont_diff_iff_continuous_differentiable.mp hf).2 k (by simp only [h, with_top.coe_lt_coe])
 
 -- iterated_fderiv_add
-lemma iterated_fderiv_add {n : ℕ} {f g : E → F} (hf : cont_diff 𝕜 n f)
-  (hg : cont_diff 𝕜 n g):
-  iterated_fderiv 𝕜 n (λ x, f x + g x) = iterated_fderiv 𝕜 n f + iterated_fderiv 𝕜 n g :=
+lemma iterated_fderiv_within_add {n : ℕ} {f g : E → F} {s : set E} (hs : is_open s)
+  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
+  ∀ (x : E) (hx : x ∈ s),
+  iterated_fderiv_within 𝕜 n (f + g) s x =
+  iterated_fderiv_within 𝕜 n f s x + iterated_fderiv_within 𝕜 n g s x :=
 begin
   induction n with k hk,
-  { ext, simp },
+  { intros x hx, ext, simp },
   specialize hk (hf.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
   specialize hk (hg.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
-  ext x m,
-  rw [pi.add_apply, continuous_multilinear_map.add_apply],
-  simp_rw iterated_fderiv_succ_apply_left m,
+  intros x hx,
+  -- Using linearity of the multilinear map:
+  ext m,
+  rw [continuous_multilinear_map.add_apply],
+  simp_rw iterated_fderiv_within_succ_apply_left m,
   rw [←continuous_multilinear_map.add_apply],
   congr,
   rw ←continuous_linear_map.add_apply,
   congr,
-  have hf' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k f) x :=
-  (cont_diff.differentiable_at_iterated_fderiv hf (lt_add_one k)).differentiable_at,
-  have hg' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k g) x :=
-  (cont_diff.differentiable_at_iterated_fderiv hg (lt_add_one k)).differentiable_at,
-  rw ←fderiv_add hf' hg',
-  congr,
-  ext,
-  rw hk,
-  rw pi.add_apply,
+  -- Using linearity of `fderiv`:
+  have hf' : differentiable_within_at 𝕜 (iterated_fderiv_within 𝕜 k f s) s x :=
+  ((hf.differentiable_on_iterated_fderiv_within (by simp [lt_add_one k]) hs.unique_diff_on)
+    .differentiable_at (hs.mem_nhds hx))
+    .differentiable_within_at,
+  have hg' : differentiable_within_at 𝕜 (iterated_fderiv_within 𝕜 k g s) s x :=
+  ((hg.differentiable_on_iterated_fderiv_within (by simp [lt_add_one k]) hs.unique_diff_on)
+    .differentiable_at (hs.mem_nhds hx))
+    .differentiable_within_at,
+  let hs' : unique_diff_within_at 𝕜 s x := hs.unique_diff_on.unique_diff_within_at hx,
+  rw ←fderiv_within_add hs' hf' hg',
+  exact fderiv_within_congr hs' hk (hk x hx),
 end
 
 -- iterated_fderiv_add
 lemma iterated_fderiv_add_apply {n : ℕ} {f g : E → F} {x : E} (hf : cont_diff 𝕜 n f)
   (hg : cont_diff 𝕜 n g):
-  iterated_fderiv 𝕜 n (λ x, f x + g x) x = iterated_fderiv 𝕜 n f x + iterated_fderiv 𝕜 n g x :=
+  iterated_fderiv 𝕜 n (f + g) x = iterated_fderiv 𝕜 n f x + iterated_fderiv 𝕜 n g x :=
 begin
-  refine (congr_fun (iterated_fderiv_add hf hg) x).trans _,
-  rw [pi.add_apply],
+  simp_rw [←cont_diff_on_univ, ←iterated_fderiv_within_univ] at *,
+  exact iterated_fderiv_within_add is_open_univ hf hg _ (set.mem_univ _),
 end
+
+lemma iterated_fderiv_add {n : ℕ} {f g : E → F} (hf : cont_diff 𝕜 n f)
+  (hg : cont_diff 𝕜 n g):
+  iterated_fderiv 𝕜 n (f + g) = iterated_fderiv 𝕜 n f + iterated_fderiv 𝕜 n g :=
+funext (λ _, iterated_fderiv_add_apply hf hg)
 
 -- iterated_fderiv_add
 lemma iterated_fderiv_neg {n : ℕ} {f : E → F} :
@@ -327,6 +339,8 @@ section smul
 variables [normed_space ℂ F]
 variables [semiring R] [module R ℂ] [module R F] [smul_comm_class ℝ R F]
 variables [has_continuous_const_smul R F] [is_scalar_tower R ℂ F]
+variables [semiring R'] [module R' ℂ] [module R' F] [smul_comm_class ℝ R' F]
+variables [has_continuous_const_smul R' F] [is_scalar_tower R' ℂ F]
 
 --instance (𝕜 : Type*) [is_R_or_C 𝕜] [normed_space 𝕜 F] [module R 𝕜] [is_scalar_tower R 𝕜 F]:
 -- Note that we define the scalar multiplication only in the case that `F` is a vector space
@@ -351,7 +365,15 @@ instance : has_smul R 𝓢(E, F) :=
     exact zero_le_one,
   end}⟩
 
+lemma coe_smul {f : 𝓢(E, F)} {c : R} : c • (f : E → F) = c • f := rfl
+
 @[simp] lemma smul_apply {f : 𝓢(E, F)} {c : R} {x : E} : (c • f) x = c • (f x) := rfl
+
+instance [has_smul R R'] [is_scalar_tower R R' F] : is_scalar_tower R R' 𝓢(E, F) :=
+⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
+
+instance [smul_comm_class R R' F] : smul_comm_class R R' 𝓢(E, F) :=
+⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
 
 end smul
 
@@ -550,23 +572,32 @@ end seminorms
 
 variables (E F)
 
-def seminorm_family : seminorm_family ℂ 𝓢(E, F) (ℕ × ℕ) := λ n, schwartz.seminorm n.1 n.2
+def _root_.schwartz_seminorm_family : seminorm_family ℂ 𝓢(E, F) (ℕ × ℕ) := λ n, schwartz.seminorm n.1 n.2
 
 variables {E F}
 
-instance : topological_space 𝓢(E, F) := (seminorm_family E F).module_filter_basis.topology'
+instance : topological_space 𝓢(E, F) := (schwartz_seminorm_family E F).module_filter_basis.topology'
 
 instance : has_continuous_smul ℂ 𝓢(E, F) :=
-  (seminorm_family E F).module_filter_basis.has_continuous_smul
+  (schwartz_seminorm_family E F).module_filter_basis.has_continuous_smul
 
 instance : topological_add_group 𝓢(E, F) :=
-  (seminorm_family E F).module_filter_basis.to_add_group_filter_basis.is_topological_add_group
+  (schwartz_seminorm_family E F).module_filter_basis.to_add_group_filter_basis.is_topological_add_group
 
 instance : uniform_space 𝓢(E, F) :=
-  (seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_space
+  (schwartz_seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_space
 
 instance : uniform_add_group 𝓢(E, F) :=
-  (seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_add_group
+  (schwartz_seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_add_group
+
+variables (E F)
+
+lemma _root_.schwartz_with_seminorms : with_seminorms (schwartz_seminorm_family E F) := ⟨rfl⟩
+
+variables {E F}
+
+instance : locally_convex_space ℝ 𝓢(E, F) :=
+  seminorm_family.to_locally_convex_space (schwartz_with_seminorms E F)
 
 variables (f g : 𝓢(E, F)) (x : E) (c : ℂ)
 variables (fi : ℕ → 𝓢(E, F)) (T : 𝓢(E, F) →L[ℝ] 𝓢(E, F)) (φ : 𝓢(E, F) →L[ℝ] ℂ)

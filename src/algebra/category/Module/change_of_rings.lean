@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebra.category.Module.basic
-import linear_algebra.tensor_product
+import algebra.category.Algebra.basic
+import ring_theory.tensor_product
 
 /-!
 # Change Of Rings
@@ -58,8 +59,27 @@ Given an `S`-linear map `g : M → M'` between `S`-modules, `g` is also `R`-line
 { map_smul' := λ r (x : M), by simp,
   ..g }
 
+/--
+If `R, S` are commutative rings and `f : R →+* S`, then any `S`-algebra is also an `R`-algebra
+-/
+def is_algebra {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
+  (A : Type v) [comm_semiring A] [algebra S A] : algebra R A :=
+{ smul := (module.comp_hom A f).to_has_smul.smul,
+  to_fun := algebra_map _ _ ∘ f,
+  map_one' := by simp only [function.comp_app, map_one],
+  map_mul' := λ _ _, by simp only [function.comp_app, map_mul],
+  map_zero' := by simp only [function.comp_app, map_zero],
+  map_add' := λ _ _, by simp only [function.comp_app, map_add],
+  commutes' := λ _ _, by ring,
+  smul_def' := λ r a, algebra.smul_def _ _ }
+
 end restrict_scalars
 
+/--
+ The restriction of scalars operation is functorial. For any `f : R →+* S` a ring homomorphism,
+ * an `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
+ * an `S`-linear map is also `R`-linear
+ -/
 @[simps] def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S) :
   Module.{v} S ⥤ Module.{v} R :=
 { obj := restrict_scalars.obj' f,
@@ -72,7 +92,7 @@ namespace extend_scalars
 open_locale tensor_product
 open tensor_product
 
-variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) (M : Module R)
+variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) (M : Module.{v} R)
 include f
 
 include M
@@ -94,18 +114,19 @@ begin
   ring,
 end
 
-notation s ` e•[` f `]` := @@has_smul.smul (is_module f _).to_has_smul s
+localized "notation s ` e•[` f `]` := @@has_smul.smul (is_module f _).to_has_smul s" in
+  change_of_rings
 
 /--
 S ⨂ M is also an `R`-module
 -/
 def is_module' : module R (S ⊗[R, f] M) := infer_instance
 
-lemma smul_tensor (s s' : S) (m : M) : s e•[f] (s' ⊗ₜ[R, f] m) = (s * s') ⊗ₜ[R, f] m :=
+lemma smul_tmul (s s' : S) (m : M) : s e•[f] (s' ⊗ₜ[R, f] m) = (s * s') ⊗ₜ[R, f] m :=
 by rw [smul_tmul', smul_eq_mul]
 
-lemma smul_tensor' (r : R) (s : S) (m : M) : r • (s ⊗ₜ[R, f] m) = s ⊗ₜ[R, f] (r • m) :=
-by rw [(@smul_tmul R _ R _ S M _ _ (module.comp_hom S f) _
+lemma smul_tmul' (r : R) (s : S) (m : M) : r • (s ⊗ₜ[R, f] m) = s ⊗ₜ[R, f] (r • m) :=
+by rw [(@tensor_product.smul_tmul R _ R _ S M _ _ (module.comp_hom S f) _
     (module.comp_hom S f).to_distrib_mul_action _ _ r s m).symm, smul_tmul']
 
 /--
@@ -120,26 +141,31 @@ omit M
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
-@[simps] def map' {M1 M2 : Module R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
-{ to_fun := @tensor_product.lift R _ S M1 _ _ _ _ (module.comp_hom S f) _ (is_module' f M2) $
-  { to_fun := λ s,
-    { to_fun := λ m, s ⊗ₜ[R, f] l m,
-      map_add' := λ m m', by rw [map_add, tmul_add],
-      map_smul' := λ r m, by rw [ring_hom.id_apply, smul_tensor', linear_map.map_smul], },
-    map_add' := λ m₁ m₂, fun_like.ext _ _ $
-      λ s, by simp only [linear_map.coe_mk, linear_map.add_apply, add_tmul],
-    map_smul' := λ r s, fun_like.ext _ _ $
-      λ m, by { simpa [linear_map.coe_mk, linear_map.smul_apply, smul_tmul'], }, },
-  map_add' := λ x y, by rw [map_add],
-  map_smul' := λ s x,
-  begin
-    apply @tensor_product.induction_on R _ S M1 _ _ (module.comp_hom S f) _ _ x,
-    { rw [smul_zero, map_zero, smul_zero], },
-    { intros,
-      simp only [smul_tensor, ring_hom.id_apply, tensor_product.lift.tmul, linear_map.coe_mk], },
-    { intros _ _ ih1 ih2,
-      simp only [smul_add, map_add, ih1, ih2, ring_hom.id_apply] },
-  end }
+def map' {M1 M2 : Module.{v} R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
+@linear_map.base_change R S M1 M2 _ _ (restrict_scalars.is_algebra f S) _ _ _ _ l
+
+lemma map'_id {M : Module R} : map' f (𝟙 M) = 𝟙 _ :=
+linear_map.ext $ λ (x : S ⊗[R, f] M),
+begin
+  dsimp [map'],
+  induction x using tensor_product.induction_on with _ _ m s ihx ihy,
+  { simp only [map_zero], },
+  { rw [linear_map.base_change_tmul, Module.id_apply], },
+  { rw [map_add, ihx, ihy] },
+end
+
+lemma map'_comp {M₁ M₂ M₃ : Module.{v} R} (l₁₂ : M₁ ⟶ M₂) (l₂₃ : M₂ ⟶ M₃) :
+  map' f (l₁₂ ≫ l₂₃) = map' f l₁₂ ≫ map' f l₂₃ :=
+linear_map.ext $ λ (x : S ⊗[R, f] M₁),
+begin
+  dsimp [map'],
+  induction x using tensor_product.induction_on with _ _ m s ihx ihy,
+  { simp only [map_zero], },
+  { rw [linear_map.base_change_tmul, category_theory.comp_apply, linear_map.base_change_tmul,
+      linear_map.base_change_tmul], },
+  { simp only [map_add, ihx, ihy], },
+end
+
 
 /--
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
@@ -148,22 +174,8 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` a
 @[simps] def functor : Module R ⥤ Module S :=
 { obj := λ M, obj' f M,
   map := λ M1 M2 l, map' f l,
-  map_id' := λ M, begin
-    ext x,
-    simp_rw [map', Module.id_apply, linear_map.coe_mk],
-    induction x using tensor_product.induction_on with _ _ m s ihx ihy,
-    { rw map_zero },
-    { simp only [linear_map.coe_mk, tensor_product.lift.tmul], },
-    { rw [map_add, ihx, ihy], }
-  end,
-  map_comp' := λ M1 M2 M3 g h, begin
-    ext x,
-    simp_rw [map'_apply, category_theory.comp_apply, map'_apply],
-    induction x using tensor_product.induction_on with _ _ m s ihx ihy,
-    { simp only [map_zero], },
-    { simp only [tensor_product.lift.tmul, linear_map.coe_mk], },
-    { simp only [map_add, ihx, ihy], }
-  end }
+  map_id' := λ _, map'_id f,
+  map_comp' := λ _ _ _, map'_comp f }
 
 end extend_scalars
 

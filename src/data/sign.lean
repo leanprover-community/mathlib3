@@ -133,7 +133,7 @@ lemma lt_one_iff {a : sign_type} : a < 1 ↔ a ≤ 0 := by dec_trivial!
 
 @[simp] lemma one_le_iff {a : sign_type} : 1 ≤ a ↔ a = 1 := by dec_trivial!
 
-@[simp] lemma neg_one_le (a : sign_type) : -1 ≤ a := by dec_trivial!
+@[simp] lemma neg_one_le (a : sign_type) : -1 ≤ a := bot_le
 
 @[simp] lemma le_one (a : sign_type) : a ≤ 1 := le_top
 

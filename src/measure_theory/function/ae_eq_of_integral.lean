@@ -266,7 +266,7 @@ begin
   have h_int_gt : ∫ x in s, f x ∂μ ≤ b * (μ s).to_real,
   { have h_const_le : ∫ x in s, f x ∂μ ≤ ∫ x in s, b ∂μ,
     { refine set_integral_mono_ae_restrict hf.integrable_on
-        (integrable_on_const.mpr (or.inr (mus))) _,
+        (integrable_on_const.mpr (or.inr mus)) _,
       rw [eventually_le, ae_restrict_iff hs],
       exact eventually_of_forall (λ x hxs, hxs), },
     rwa [set_integral_const, smul_eq_mul, mul_comm] at h_const_le, },

@@ -3,10 +3,9 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
-import algebra.category.Group.basic
+import algebra.category.Group.equivalence_Group_AddGroup
 import category_theory.epi_mono
 import group_theory.quotient_group
-import algebra.category.Group.equivalence_Group_AddGroup
 
 /-!
 # Monomorphisms and epimorphisms in `Group`

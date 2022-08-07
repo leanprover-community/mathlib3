@@ -343,8 +343,7 @@ section mul_fin
 private def name_suffix {m n : ℕ} : fin m → fin n → string :=
 let chars := "₀₁₂₃₄₅₆₇₈₉".data in
 if h : m ≤ 10 ∧ n ≤ 10
-then (λ i j, ["₀₁₂₃₄₅₆₇₈₉".data.nth_le i (i.prop.trans_le h.1),
-              "₀₁₂₃₄₅₆₇₈₉".data.nth_le j (j.prop.trans_le h.2)].as_string)
+then (λ i j, [chars.nth_le i (i.prop.trans_le h.1), chars.nth_le j (j.prop.trans_le h.2)].as_string)
 else (λ i j, "_" ++ to_string i ++ "_" ++ to_string j)
 
 /-- `pi_fin.to_pexpr` but for matrices -/
@@ -438,7 +437,9 @@ do
   --   tactic.unify target (t.instantiate_pis [α, A']),
   --   tactic.exact (pr α A')
 
-
+/-- This lemma uses an `auto_param` to populate the variables with names of the form `«![a₁₁ ⋱ aₗₘ]»`
+with an expression containing the coefficients in `![]` notation. The generated `abᵢₖ` entries
+contain the appropriate expressions in terms of `+`, `*`, `aᵢⱼ`, and `bⱼₖ`. -/
 theorem mul_fin {α} [has_mul α] [add_comm_monoid α] {l m n : ℕ}
   {«![a₁₁ ⋱ aₗₘ]» : fin l → fin m → α}
   {«![b₁₁ ⋱ bₘₙ]» : fin m → fin n → α}

@@ -178,12 +178,6 @@ begin
     rw deriv_n_C_mul, rw polynomial.eval_mul, simp only [polynomial.eval_C, dvd_mul_right], assumption,
 end
 
-
-private lemma succ_pred (a b : ℕ) (h : a.succ = b) : a = b.pred :=
-begin
-  rw <-h, simp only [nat.pred_succ],
-end
-
 lemma deriv_X_pow (n : ℕ) (k : ℕ) (hk : k ≤ n) :
   (deriv_n (polynomial.X^n) k) = ((finset.range k).prod (λ i, (n-i:ℤ))) • (polynomial.X ^ (n-k)) :=
 begin
@@ -199,8 +193,7 @@ begin
     apply congr_arg,
     norm_cast, rw h },
 
-  { rw nat.sub_succ at h_1, rw <-nat.succ_eq_add_one at h, exfalso,
-    exact h_1 (succ_pred i (n-k) h) },
+  { rw [nat.sub_succ, ←h, nat.pred_succ] at h_1, exfalso, exact h_1 rfl },
 
   { rw nat.sub_succ at h_1, rw h_1 at h, rw <-nat.succ_eq_add_one at h,
     rw nat.succ_pred_eq_of_pos at h, exfalso, simp only [eq_self_iff_true, not_true] at h,
@@ -537,49 +530,31 @@ begin
   simp only [finset.mem_Ico] at hx, exact hx.1,
 end
 
+lemma finset.union_singleton {α : Type*} [decidable_eq α] {s : finset α} {a : α} :
+  s ∪ {a} = insert a s :=
+finset.union_comm _ _
+
 theorem J_eq_final (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p) :
   ∃ M : ℤ, (J g p) = ℤembℝ ((-(g.coeff 0 * (↑((p - 1).factorial) * (-1) ^ (g.nat_degree * p) * ↑(g.nat_degree.factorial) ^ p))) + (p.factorial:ℤ) * M) :=
 begin
-  have J_eq := J_eq'' g e_root_g p hp, rw J_eq, rw <-ring_hom.map_neg,
-  have seteq : finset.range (f_p p g.nat_degree).nat_degree.succ = finset.range (p-1) ∪ {p-1} ∪ finset.Ico p (f_p p g.nat_degree).nat_degree.succ,
-  {
-    ext, split,
-    {
-      intros ha, simp only [finset.mem_range] at ha,
-      by_cases (a < p - 1),
-      { simp only [finset.mem_Ico, finset.mem_union, finset.union_assoc, finset.mem_singleton,
-          finset.mem_range],
-        left, exact h },
-      { replace h : a ≥ p - 1, exact not_lt.mp h,
-        replace h : p - 1 = a ∨ a > p - 1, exact eq_or_lt_of_le h,
-        simp only [finset.mem_Ico, finset.mem_union, finset.union_assoc, finset.mem_singleton,
-          finset.mem_range],
-        cases h,
-        { right, left, exact eq.symm h },
-        { right, right, split, exact nat.le_of_pred_lt h, assumption } },
-    },
-    {
-      intros ha,
-      simp only [finset.mem_Ico, finset.mem_union, finset.union_assoc, finset.mem_singleton,
-        finset.mem_range] at ha ⊢,
-      cases ha,
-      { have triv : p - 1 ≤ (f_p p g.nat_degree).nat_degree,
-        {rw deg_f_p _ hp, apply p_sub_one_le _ _  hp},
-        have ineq := lt_of_lt_of_le ha triv,
-        exact nat.lt.step ineq },
-      { cases ha,
-        { rw ha,
-          have triv : p - 1 ≤ (f_p p g.nat_degree).nat_degree,
-          { rw deg_f_p _ hp, apply p_sub_one_le _ _ hp },
-          exact nat.lt_succ_iff.mpr triv},
-        {exact ha.2} } },
-  },
+  obtain ⟨c, eq3⟩ := J_partial_sum_rest g p hp,
+  use -c,
+  rw J_eq'' g e_root_g p hp,
+  rw <-ring_hom.map_neg,
+  apply congr_arg,
+  have seteq : finset.range (f_p p g.nat_degree).nat_degree.succ = finset.range p ∪ finset.Ico p (f_p p g.nat_degree).nat_degree.succ,
+  { rw [finset.range_eq_Ico, finset.Ico_union_Ico_eq_Ico (nat.zero_le _)],
+    rw deg_f_p _ hp,
+    apply nat.le_succ_of_pred_le,
+    apply p_sub_one_le _ _  hp },
+  have := finset.range_succ,
+  rw [nat.succ_pred_eq_of_pos hp.pos, nat.pred_eq_sub_one, ←finset.union_singleton] at this,
+  rw [this] at seteq,
+
   rw seteq, rw finset.sum_union, rw finset.sum_union,
   rw J_partial_sum_from_one_to_p_sub_one g, rw zero_add, rw finset.sum_singleton,
-  rw J_partial_sum_from_p_sub_one_to_p g,
-
-  have H3 := J_partial_sum_rest g p hp,
-  obtain ⟨c, eq3⟩ := H3, rw eq3, rw neg_add, use -c, rw neg_mul_eq_mul_neg ↑(p.factorial), exact hp,
+  rw J_partial_sum_from_p_sub_one_to_p g p hp,
+  rw eq3, rw neg_add, rw neg_mul_eq_mul_neg ↑(p.factorial),
 
   rw finset.disjoint_iff_inter_eq_empty, simp only [finset.not_mem_range_self, not_false_iff, finset.inter_singleton_of_not_mem],
   {

@@ -195,7 +195,7 @@ def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 @[simp] lemma coe_subtype {α} (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 /-- `quotient.out` as an embedding. -/
-@[simps] noncomputable def quotient (α) [s : setoid α] : quotient s ↪ α :=
+@[simps] noncomputable def quotient_out (α) [s : setoid α] : quotient s ↪ α :=
 ⟨_, quotient.out_injective⟩
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/

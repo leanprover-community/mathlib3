@@ -108,11 +108,9 @@ def fin3_equiv : sign_type ≃* fin 3 :=
 lemma nonneg_iff {a : sign_type} : 0 ≤ a ↔ a = 0 ∨ a = 1 :=
 by dec_trivial!
 
-lemma nonneg_iff_ne_neg_one {a : sign_type} : 0 ≤ a ↔ a ≠ -1 :=
-by dec_trivial!
+lemma nonneg_iff_ne_neg_one {a : sign_type} : 0 ≤ a ↔ a ≠ -1 := by dec_trivial!
 
-lemma neg_one_lt_iff {a : sign_type} : -1 < a ↔ 0 ≤ a :=
-by dec_trivial!
+lemma neg_one_lt_iff {a : sign_type} : -1 < a ↔ 0 ≤ a := by dec_trivial!
 
 lemma nonpos_iff {a : sign_type} : a ≤ 0 ↔ a = -1 ∨ a = 0 :=
 by dec_trivial!

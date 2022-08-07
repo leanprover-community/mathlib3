@@ -336,7 +336,22 @@ def fis.injective {J : Type u} [preorder J] [is_directed J has_le.le]
   (inj : ∀ i ∈ bigger j, function.injective $ F.map (op_hom_of_le H)) :
   function.injective (λ (s :F.sections), s.val j) :=
 begin
-  sorry
+  dsimp [function.injective],
+  rintros ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ hyp,
+  dsimp [functor.sections] at *,
+  ext, dsimp,
+  rw [← h₁, ← h₂],
+  apply inj,
+  rotate,
+  {
+    dsimp [bigger, opposite.unop, set_of],
+    sorry -- maybe an additional hypothesis is needed
+  },
+  {sorry },
+  exact j,
+  sorry,
+  sorry,
+  sorry,
 end
 
 def fis.bijective {J : Type u} [preorder J] [is_directed J has_le.le]
@@ -461,7 +476,16 @@ begin
       exact sec (op_hom_of_le $ lol1),
      },
     { rintro ii kk ik, simp, dsimp [fis.above_point], rw ←subtype.coe_inj, simp, apply sec,},},
-  { sorry, },
+  {
+    rintro ⟨e, hes⟩,
+    split, rotate,
+    { dsimp [fis.above_point, category_theory.functor.sections] at *,
+      apply subtype.mk, rotate,
+      intro j',
+      sorry, sorry
+         },
+    sorry
+   },
   { sorry, },
   { sorry, },
 end

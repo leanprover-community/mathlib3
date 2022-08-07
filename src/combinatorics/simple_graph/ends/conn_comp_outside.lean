@@ -38,8 +38,24 @@ def conn_comp_outside (K : finset V) : Type u :=
 -- def inf_conn_comp_outside (K : finset V) : Type u :=
 --  {C : G.conn_comp_outside K // infinite C}
 
+/- not necessary for proofs, but maybe useful for mathlib -/
+lemma simple_graph.induce_univ : G = (G.induce univ).spanning_coe := sorry
+
 lemma conn_comp_outside.finite [Glf : locally_finite G] [preconnected G] (K : finset V) :
-  fintype (conn_comp_outside G K) := sorry
+  fintype (conn_comp_outside G K) :=
+begin
+  by_cases Knempty : K.nonempty,
+  {
+    sorry
+  },
+  { rw [finset.not_nonempty_iff_eq_empty] at Knempty,
+    subst Knempty,
+    dsimp [conn_comp_outside, simple_graph.subgraph.delete_verts],
+    have : (univ : set V) \ ∅ = univ := sdiff_bot,
+    rw [this, ← simple_graph.induce_eq_coe_induce_top],
+    sorry -- hard to proceed
+   }
+end
 
 lemma conn_comp_outside.nonempty (Ginf : (@set.univ V).infinite) (K : finset V) :
   nonempty (conn_comp_outside G K) := sorry

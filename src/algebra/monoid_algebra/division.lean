@@ -11,7 +11,14 @@ import data.finsupp.order
 
 ## Main definitions
 
-* `div_of`
+* `add_monoid_algebra.div_of g x`: divides `x` by the monomial `add_monoid_algebra.of k G g`
+* `add_monoid_algebra.mod_of g x`: the remainder upon dividing `x` by the monomial
+  `add_monoid_algebra.of k G g`.
+
+## Main results
+
+* `add_monoid_algebra.div_of_add_mod_of`, `add_monoid_algebra.mod_of_add_div_of`: `div_of` and
+  `mod_of` are well-behaved as quotient and remainder operators.
 
 -/
 

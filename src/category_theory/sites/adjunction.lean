@@ -98,7 +98,7 @@ abbreviation compose_and_sheafify_from_types (G : Type (max v u) ⥤ D) :
 is the forgetful functor to sheaves of types. -/
 def adjunction_to_types {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D) :
   compose_and_sheafify_from_types J G ⊣ Sheaf_forget J :=
-adjunction.comp _ _ ((Sheaf_equiv_SheafOfTypes J).symm.to_adjunction) (adjunction J adj)
+((Sheaf_equiv_SheafOfTypes J).symm.to_adjunction).comp (adjunction J adj)
 
 @[simp]
 lemma adjunction_to_types_unit_app_val {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)

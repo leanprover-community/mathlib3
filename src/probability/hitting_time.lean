@@ -58,7 +58,7 @@ begin
   { push_neg,
     intro j,
     rw set.Icc_eq_empty_of_lt h,
-    simp only [set.mem_empty_eq, forall_false_left], },
+    simp only [set.mem_empty_eq, is_empty.forall_iff], },
   simp only [h_not, if_false],
 end
 
@@ -158,6 +158,23 @@ begin
     exact hitting_le_of_mem hk₁.1 (hk₁.2.le.trans hi) hk₂, },
 end
 
+lemma hitting_eq_hitting_of_exists
+  {m₁ m₂ : ι} (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j x ∈ s) :
+  hitting u s n m₁ x = hitting u s n m₂ x :=
+begin
+  simp only [hitting, if_pos h'],
+  obtain ⟨j, hj₁, hj₂⟩ := h',
+  rw if_pos,
+  { refine le_antisymm _ (cInf_le_cInf bdd_below_Icc.inter_of_left ⟨j, hj₁, hj₂⟩
+      (set.inter_subset_inter_left _ (set.Icc_subset_Icc_right h))),
+    refine le_cInf ⟨j, set.Icc_subset_Icc_right h hj₁, hj₂⟩ (λ i hi, _),
+    by_cases hi' : i ≤ m₁,
+    { exact cInf_le bdd_below_Icc.inter_of_left ⟨⟨hi.1.1, hi'⟩, hi.2⟩ },
+    { exact ((cInf_le bdd_below_Icc.inter_of_left ⟨hj₁, hj₂⟩).trans (hj₁.2.trans le_rfl)).trans
+        (le_of_lt (not_le.1 hi')) } },
+  exact ⟨j, ⟨hj₁.1, hj₁.2.trans h⟩, hj₂⟩,
+end
+
 end inequalities
 
 /-- A discrete hitting time is a stopping time. -/
@@ -190,6 +207,33 @@ begin
   have : Inf (set.Icc n m ∩ {i | u i x ∈ s}) ∈ set.Icc n m ∩ {i | u i x ∈ s} :=
     Inf_mem (set.nonempty_of_mem ⟨hj₁, hj₂⟩),
   exact this.2,
+end
+
+/-- The hitting time of a discrete process with the starting time indexed by a stopping time
+is a stopping time. -/
+lemma is_stopping_time_hitting_is_stopping_time
+  [conditionally_complete_linear_order ι] [is_well_order ι (<)] [encodable ι]
+  [topological_space ι] [order_topology ι] [first_countable_topology ι]
+  [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
+  {f : filtration ι m} {u : ι → α → β} {τ : α → ι} (hτ : is_stopping_time f τ)
+  {N : ι} (hτbdd : ∀ x, τ x ≤ N) {s : set β} (hs : measurable_set s) (hf : adapted f u) :
+  is_stopping_time f (λ x, hitting u s (τ x) N x) :=
+begin
+  intro n,
+  have h₁ : {x | hitting u s (τ x) N x ≤ n} =
+    (⋃ i ≤ n, {x | τ x = i} ∩ {x | hitting u s i N x ≤ n}) ∪
+    (⋃ i > n, {x | τ x = i} ∩ {x | hitting u s i N x ≤ n}),
+  { ext x,
+    simp [← exists_or_distrib, ← or_and_distrib_right, le_or_lt] },
+  have h₂ : (⋃ i > n, {x | τ x = i} ∩ {x | hitting u s i N x ≤ n}) = ∅,
+  { ext x,
+    simp only [gt_iff_lt, set.mem_Union, set.mem_inter_eq, set.mem_set_of_eq,
+      exists_prop, set.mem_empty_eq, iff_false, not_exists, not_and, not_le],
+    rintro m hm rfl,
+    exact lt_of_lt_of_le hm (le_hitting (hτbdd _) _) },
+  rw [h₁, h₂, set.union_empty],
+  exact measurable_set.Union (λ i, measurable_set.Union_Prop
+    (λ hi, (f.mono hi _ (hτ.measurable_set_eq i)).inter (hitting_is_stopping_time hf hs n))),
 end
 
 section complete_lattice

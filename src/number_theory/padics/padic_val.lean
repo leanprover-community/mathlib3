@@ -9,7 +9,6 @@ import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
 import number_theory.divisors
-import data.nat.factorization.basic
 
 /-!
 # p-adic Valuation
@@ -237,6 +236,11 @@ begin
   solve_by_elim,
 end
 
+lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
+  (p ∣ n) ↔ padic_val_nat p n ≠ 0 :=
+⟨λ h, one_le_iff_ne_zero.mp (one_le_padic_val_nat_of_dvd hn0.bot_lt h),
+ λ h, not_not.1 (mt padic_val_nat.eq_zero_of_not_dvd h)⟩
+
 end padic_val_nat
 
 namespace padic_val_rat
@@ -323,7 +327,7 @@ have hf2 : finite (p : ℤ) (n₂ * d₁),
     norm_cast,
     rw [← multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1) hf1, add_comm,
       ← multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1) hf2,
-      enat.get_le_get, multiplicity_le_multiplicity_iff] }
+      part_enat.get_le_get, multiplicity_le_multiplicity_iff] }
 
 /--
 Sufficient conditions to show that the p-adic valuation of `q` is less than or equal to the
@@ -465,9 +469,9 @@ lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn :
 begin
   rw multiplicity.pow_dvd_iff_le_multiplicity,
   rw padic_val_nat_def hn,
-  { rw [nat.cast_add, enat.coe_get],
+  { rw [nat.cast_add, part_enat.coe_get],
     simp only [nat.cast_one, not_le],
-    exact enat.lt_add_one (ne_top_iff_finite.mpr
+    exact part_enat.lt_add_one (ne_top_iff_finite.mpr
       (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn⟩)), },
   { apply_instance }
 end
@@ -478,7 +482,7 @@ begin
   split,
   { rw [pow_dvd_iff_le_multiplicity, padic_val_nat],
     split_ifs,
-    { rw enat.coe_le_iff,
+    { rw part_enat.coe_le_iff,
       exact λ hn, or.inr (hn _) },
     { simp only [true_and, not_lt, ne.def, not_false_iff, nat.le_zero_iff, hp.out.ne_one] at h,
       exact λ hn, or.inl h } },
@@ -510,34 +514,7 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
       { exact hc } },
   end
 
-lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
-  padic_val_nat p n = n.factorization p :=
-begin
-  by_cases hn : n = 0, { subst hn, simp },
-  rw @padic_val_nat_def p _ n (nat.pos_of_ne_zero hn),
-  simp [@multiplicity_eq_factorization n p hp.elim hn],
-end
-
 open_locale big_operators
-
-lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
-  ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
-begin
-  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn,
-  rw eq_comm,
-  apply finset.prod_subset_one_on_sdiff,
-  { exact λ p hp, finset.mem_filter.mpr
-      ⟨finset.mem_range.mpr (gt_of_gt_of_ge pr (le_of_mem_factorization hp)),
-       prime_of_mem_factorization hp⟩ },
-  { intros p hp,
-    cases finset.mem_sdiff.mp hp with hp1 hp2,
-    haveI := fact_iff.mpr (finset.mem_filter.mp hp1).2,
-    rw padic_val_nat_eq_factorization p n,
-    simp [finsupp.not_mem_support_iff.mp hp2] },
-  { intros p hp,
-    haveI := fact_iff.mpr (prime_of_mem_factorization hp),
-    simp [padic_val_nat_eq_factorization] }
-end
 
 lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
   (finset.range (padic_val_nat p n + 1)).image (pow p) ⊆ n.divisors :=

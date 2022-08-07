@@ -90,15 +90,14 @@ variables [topological_division_ring K]
 
 lemma units_top_group : topological_group Kˣ :=
 { continuous_inv := begin
-     have : (coe : Kˣ → K) ∘ (λ x, x⁻¹ : Kˣ → Kˣ) =
-            (λ x, x⁻¹ : K → K) ∘ (coe : Kˣ → K), from funext units.coe_inv,
-     rw continuous_iff_continuous_at,
-     intros x,
-     rw [continuous_at, nhds_induced, nhds_induced, tendsto_iff_comap, comap_comm this],
-     apply comap_mono,
-     rw [← tendsto_iff_comap, units.coe_inv],
-     exact continuous_at_inv₀ x.ne_zero
-   end ,
+    rw continuous_iff_continuous_at,
+    intros x,
+    rw [continuous_at, nhds_induced, nhds_induced, tendsto_iff_comap,
+      ←function.semiconj.filter_comap units.coe_inv _],
+    apply comap_mono,
+    rw [← tendsto_iff_comap, units.coe_inv],
+    exact continuous_at_inv₀ x.ne_zero
+  end,
   ..topological_ring.top_monoid_units K}
 
 local attribute [instance] units_top_group

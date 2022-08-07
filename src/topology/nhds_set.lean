@@ -26,7 +26,8 @@ Furthermore, we have the following results:
 open set filter
 open_locale topological_space
 
-variables {α : Type*} [topological_space α] {s t s₁ s₂ t₁ t₂ : set α} {x : α}
+variables {α β : Type*} [topological_space α] [topological_space β]
+  {s t s₁ s₂ t₁ t₂ : set α} {x : α}
 
 /-- The filter of neighborhoods of a set in a topological space. -/
 def nhds_set (s : set α) : filter α :=
@@ -73,3 +74,10 @@ by simp only [nhds_set, image_union, Sup_union]
 
 lemma union_mem_nhds_set (h₁ : s₁ ∈ 𝓝ˢ t₁) (h₂ : s₂ ∈ 𝓝ˢ t₂) : s₁ ∪ s₂ ∈ 𝓝ˢ (t₁ ∪ t₂) :=
 by { rw nhds_set_union, exact union_mem_sup h₁ h₂ }
+
+/-- Preimage of a set neighborhood of `t` under a continuous map `f` is a set neighborhood of `s`
+provided that `f` maps `s` to `t`.  -/
+lemma continuous.tendsto_nhds_set {f : α → β} {t : set β} (hf : continuous f)
+  (hst : maps_to f s t) : tendsto f (𝓝ˢ s) (𝓝ˢ t) :=
+((has_basis_nhds_set s).tendsto_iff (has_basis_nhds_set t)).mpr $ λ U hU,
+  ⟨f ⁻¹' U, ⟨hU.1.preimage hf, hst.mono subset.rfl hU.2⟩, λ x, id⟩

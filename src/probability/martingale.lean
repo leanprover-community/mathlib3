@@ -62,6 +62,10 @@ filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ i, integrable (f i) μ
 
+lemma martingale_const (ℱ : filtration ι m0) (μ : measure α) [is_finite_measure μ] (x : E) :
+  martingale (λ _ _, x) ℱ μ :=
+⟨adapted_const ℱ _, λ i j hij, by rw condexp_const (ℱ.le _)⟩
+
 variables (E)
 lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) :
   martingale (0 : ι → α → E) ℱ μ :=

@@ -597,14 +597,10 @@ theorem connected_component_in_subset (F : set α) (x : α) :
   connected_component_in F x ⊆ F :=
 by { rw [connected_component_in], split_ifs; simp }
 
-theorem connected_component_in_univ (x : α) :
-  connected_component_in univ x = connected_component x :=
-by { rw [connected_component_in], split_ifs; simp }
-
 theorem is_preconnected_connected_component {x : α} : is_preconnected (connected_component x) :=
 is_preconnected_sUnion x _ (λ _, and.right) (λ _, and.left)
 
-lemma is_preconnected_connected_comp_in {x : α} {F : set α} :
+lemma is_preconnected_connected_component_in {x : α} {F : set α} :
   is_preconnected (connected_component_in F x) :=
 begin
   rw [connected_component_in], split_ifs,
@@ -618,8 +614,8 @@ theorem is_connected_connected_component {x : α} : is_connected (connected_comp
 
 lemma is_connected_connected_component_in_iff {x : α} {F : set α} :
   is_connected (connected_component_in F x) ↔ x ∈ F :=
-by simp_rw [← connected_component_in_nonempty_iff, is_connected, is_preconnected_connected_comp_in,
-  and_true]
+by simp_rw [← connected_component_in_nonempty_iff, is_connected,
+  is_preconnected_connected_component_in, and_true]
 
 theorem is_preconnected.subset_connected_component {x : α} {s : set α}
   (H1 : is_preconnected s) (H2 : x ∈ s) : s ⊆ connected_component x :=
@@ -642,6 +638,10 @@ theorem is_connected.subset_connected_component {x : α} {s : set α}
   (H1 : is_connected s) (H2 : x ∈ s) : s ⊆ connected_component x :=
 H1.2.subset_connected_component H2
 
+lemma is_preconnected.connected_component_in {x : α} {F : set α} (h : is_preconnected F)
+  (hx : x ∈ F) : connected_component_in F x = F :=
+(connected_component_in_subset F x).antisymm (h.subset_connected_component_in hx subset_rfl)
+
 theorem connected_component_eq {x y : α} (h : y ∈ connected_component x) :
   connected_component x = connected_component y :=
 eq_of_subset_of_subset
@@ -649,6 +649,23 @@ eq_of_subset_of_subset
   (is_connected_connected_component.subset_connected_component
     (set.mem_of_mem_of_subset mem_connected_component
       (is_connected_connected_component.subset_connected_component h)))
+
+lemma connected_component_in_eq {x y : α} {F : set α} (h : y ∈ connected_component_in F x) :
+  connected_component_in F x = connected_component_in F y :=
+begin
+  have hx : x ∈ F := connected_component_in_nonempty_iff.mp ⟨y, h⟩,
+  simp_rw [connected_component_in, dif_pos hx] at h ⊢,
+  obtain ⟨⟨y, hy⟩, h2y, rfl⟩ := h,
+  simp_rw [subtype.coe_mk, dif_pos hy, connected_component_eq h2y]
+end
+
+theorem connected_component_in_univ (x : α) :
+  connected_component_in univ x = connected_component x :=
+subset_antisymm
+  (is_preconnected_connected_component_in.subset_connected_component $
+    mem_connected_component_in trivial)
+  (is_preconnected_connected_component.subset_connected_component_in mem_connected_component $
+    subset_univ _)
 
 lemma connected_component_disjoint {x y : α} (h : connected_component x ≠ connected_component y) :
   disjoint (connected_component x) (connected_component y) :=

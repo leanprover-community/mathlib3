@@ -192,8 +192,8 @@ open set polynomial
 subfield of `K`, the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
 the roots in `A` of the minimal polynomial of `x` over `F` -/
 lemma range_eq_roots (F K A : Type*) [field F] [number_field F] [field K] [number_field K]
-[field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
-range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
+  [field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
+  range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
 begin
   haveI : finite_dimensional F K := finite_dimensional.right ℚ  _ _ ,
   have hx : is_integral F x := is_separable.is_integral F x,

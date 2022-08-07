@@ -17,7 +17,7 @@ import algebra.category.Module.basic
 -/
 
 
-namespace category.Module
+namespace category_theory.Module
 
 namespace restrict_scalars
 
@@ -32,9 +32,6 @@ def obj' : Module R :=
 { carrier := M,
   is_add_comm_group := infer_instance,
   is_module := module.comp_hom M f }
-
-section
-include f
 
 /-- The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m` -/
 protected def has_smul : has_smul R M :=
@@ -69,6 +66,5 @@ The restriction of scalars operation is functorial. For any `f : R →+* S` a ri
   map_comp' := λ _ _ _ g h, linear_map.ext $ λ m, rfl }
 
 end restrict_scalars
-
 
 end category.Module

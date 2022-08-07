@@ -84,6 +84,9 @@ instance : has_sup young_diagram :=
 @[simp, norm_cast] lemma coe_sup (μ ν : young_diagram) : ↑(μ ⊔ ν) = (μ ∪ ν : set (ℕ × ℕ)) :=
 finset.coe_union _ _
 
+@[simp] lemma mem_sup {μ ν : young_diagram} {x : ℕ × ℕ} : x ∈ (μ ⊔ ν) ↔ x ∈ μ ∨ x ∈ ν :=
+finset.mem_union
+
 instance : has_inf young_diagram :=
 { inf := λ μ ν, { cells        := μ.cells ∩ ν.cells,
                   is_lower_set := by { rw finset.coe_inter,
@@ -94,6 +97,9 @@ instance : has_inf young_diagram :=
 @[simp, norm_cast] lemma coe_inf (μ ν : young_diagram) : ↑(μ ⊓ ν) = (μ ∩ ν : set (ℕ × ℕ)) :=
 finset.coe_inter _ _
 
+@[simp] lemma mem_inf {μ ν : young_diagram} {x : ℕ × ℕ} : x ∈ (μ ⊓ ν) ↔ x ∈ μ ∧ x ∈ ν :=
+finset.mem_inter
+
 /-- The empty Young diagram is (⊥ : young_diagram). -/
 instance : order_bot young_diagram :=
 { bot := { cells := ∅, is_lower_set := λ _ _ _, false.elim }, bot_le := λ _ _, false.elim }
@@ -101,6 +107,8 @@ instance : order_bot young_diagram :=
 @[simp] lemma cells_bot : (⊥ : young_diagram).cells = ∅ := rfl
 
 @[simp, norm_cast] lemma coe_bot : ↑(⊥ : young_diagram) = (∅ : set (ℕ × ℕ)) := rfl
+
+@[simp] lemma not_mem_bot (x : ℕ × ℕ) : x ∉ (⊥ : young_diagram) := finset.not_mem_empty x
 
 instance : inhabited young_diagram := ⟨⊥⟩
 

@@ -147,10 +147,10 @@ by dec_trivial!
 @[simp] lemma not_one_lt (a : sign_type) : ¬ 1 < a :=
 by dec_trivial!
 
-@[simp] lemma self_eq_neg (a : sign_type) : a = -a ↔ a = 0 :=
+@[simp] lemma self_eq_neg_iff (a : sign_type) : a = -a ↔ a = 0 :=
 by dec_trivial!
 
-@[simp] lemma neg_eq_self (a : sign_type) : -a = a ↔ a = 0 :=
+@[simp] lemma neg_eq_self_iff (a : sign_type) : -a = a ↔ a = 0 :=
 by dec_trivial!
 
 section cast

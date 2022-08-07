@@ -639,7 +639,7 @@ lemma inner_dual_cone_Union {ι : Sort*} (f : ι → set H) :
 begin
   refine le_antisymm (le_infi $ λ i x hx y hy, hx _ $ mem_Union_of_mem _ hy) _,
   intros x hx y hy,
-  rw [set_like.mem_coe, convex_cone.mem_infi] at hx,
+  rw [convex_cone.mem_infi] at hx,
   obtain ⟨j, hj⟩ := mem_Union.mp hy,
   exact hx _ _ hj,
 end

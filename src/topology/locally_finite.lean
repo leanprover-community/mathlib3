@@ -19,7 +19,9 @@ In this file we give the definition and prove basic properties of locally finite
 open set function filter
 open_locale topological_space filter
 
-variables {ι ι' α X Y : Type*} [topological_space X] [topological_space Y] {f g : ι → set X}
+universe u
+variables {ι : Type u} {ι' α X Y : Type*} [topological_space X] [topological_space Y]
+  {f g : ι → set X}
 
 /-- A family of sets in `set X` is locally finite if at every point `x : X`,
 there is a neighborhood of `x` which meets only finitely many sets in the family. -/

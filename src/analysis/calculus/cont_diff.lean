@@ -2656,10 +2656,6 @@ variables {R : Type*}
 variables [semiring R] [module R F] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
 variables {i : ℕ} {a : R}
 
--- Your instance is in another PR
-instance {k : ℕ}: has_continuous_const_smul R (continuous_multilinear_map 𝕜 (λ (i : fin k), E) F) :=
-⟨λ c, sorry⟩
-
 lemma iterated_fderiv_within_const_smul_apply (hf : cont_diff_on 𝕜 i f s)
   (hu : unique_diff_on 𝕜 s) (hx : x ∈ s) :
 iterated_fderiv_within 𝕜 i (a • f) s x = a • (iterated_fderiv_within 𝕜 i f s x) :=

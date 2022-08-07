@@ -1927,7 +1927,7 @@ begin
   { intros c l IH,
     refine eq_of_forall_ge_iff (λ d, (((opow_is_normal a1).trans
       (add_is_normal b)).limit_le l).trans _),
-    dsimp,
+    dsimp only [function.comp],
     simp only [IH] {contextual := tt},
     exact (((mul_is_normal $ opow_pos b (ordinal.pos_iff_ne_zero.2 a0)).trans
       (opow_is_normal a1)).limit_le l).symm }
@@ -1963,7 +1963,7 @@ begin
   { intros c l IH,
     refine eq_of_forall_ge_iff (λ d, (((opow_is_normal a1).trans
       (mul_is_normal (ordinal.pos_iff_ne_zero.2 b0))).limit_le l).trans _),
-    dsimp,
+    dsimp only [function.comp],
     simp only [IH] {contextual := tt},
     exact (opow_le_of_limit (opow_ne_zero _ a0) l).symm }
 end

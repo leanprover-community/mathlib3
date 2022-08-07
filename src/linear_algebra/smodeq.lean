@@ -77,3 +77,13 @@ begin
 end
 
 end smodeq
+
+/-- The `add_submonoid` consisting of all elements equal to some element in `N` modulo `p`. -/
+def add_submonoid.smodeq_closure (N : add_submonoid M) (U : submodule R M) : add_submonoid M :=
+{ carrier := {x | ∃ r ∈ N, x ≡ r [SMOD U]},
+  add_mem' := λ x y ⟨rx, hx, ex⟩ ⟨ry, hy, ey⟩, ⟨rx + ry, add_mem hx hy, ex.add ey⟩,
+  zero_mem' := ⟨0, zero_mem _, smodeq.refl⟩ }
+
+lemma add_submonoid.mem_smodeq_closure_of_smodeq (N : add_submonoid M) {x y} (h : x ≡ y [SMOD U]) :
+  x ∈ N.smodeq_closure U ↔ y ∈ N.smodeq_closure U :=
+⟨λ ⟨r, hr, e⟩, ⟨r, hr, h.symm.trans e⟩, λ ⟨r, hr, e⟩, ⟨r, hr, h.trans e⟩⟩

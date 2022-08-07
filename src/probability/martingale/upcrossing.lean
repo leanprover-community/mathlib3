@@ -43,7 +43,7 @@ convergence theorems.
   stopping time whenever the process it is associated to is adapted.
 * `measure_theory.submartingale.mul_integral_upcrossings_before_le_integral_pos_part`: Doob's
   upcrossing estimate.
-* `measure_theory.submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part`: the inequality
+* `measure_theory.submartingale.mul_lintegral_upcrossings_le_lintegral_pos_part`: the inequality
   obtained by taking the supremum on both sides of Doob's upcrossing estimate.
 
 ### References

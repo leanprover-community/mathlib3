@@ -377,17 +377,23 @@ begin
 end
 
 instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_le.le]
-  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
+  (F : Jᵒᵖ ⥤ Type v)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
+  (Fsurj : fis.is_surjective F)
+  (j : Jᵒᵖ)
   (x : F.obj j) :
   Π (i : {i : J | j.unop ≤ i}ᵒᵖ), nonempty ((fis.above_point F j x).obj i)  :=
 begin
-  sorry,
+  rintro ii,
+  obtain ⟨i,ij⟩ := ii.unop,
+  -- follows easily (normally) from Fsurj.
+  sorry
 end
 
 instance fis.above_point.fintype {J : Type u} [preorder J] [is_directed J has_le.le]
-  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
+  (F : Jᵒᵖ ⥤ Type v)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
+  (j : Jᵒᵖ)
   (x : F.obj j) :
   Π (i : {i : J | j.unop ≤ i}ᵒᵖ), fintype ((fis.above_point F j x).obj i)  :=
 begin
@@ -405,9 +411,13 @@ def fis.sections_at_point {J : Type u} [preorder J] [is_directed J has_le.le]
 
 lemma fis.above_point.sections_nonempty  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)
+  (Fsurj : fis.is_surjective F)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
-  (j : Jᵒᵖ) (x : F.obj j) : nonempty (fis.above_point F j x).sections := sorry
-
+  (j : Jᵒᵖ) (x : F.obj j) : nonempty (fis.above_point F j x).sections :=
+begin
+  apply set.nonempty_coe_sort.mpr,
+  exact @nonempty_sections_of_fintype_inverse_system _ _ _ (fis.above_point F j x) (fis.above_point.fintype F j x)  (fis.above_point.nonempty F Fsurj j x),
+end
 
 lemma fis.decomposition'  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
@@ -423,10 +433,10 @@ end
 
 lemma fis.surjective {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
-  (Fsur : fis.is_surjective F) (j : Jᵒᵖ) : function.surjective (λ (s : F.sections), s.val j) :=
+  (Fsurj : fis.is_surjective F) (j : Jᵒᵖ) : function.surjective (λ (s : F.sections), s.val j) :=
 begin
   rintro x,
-  obtain ⟨s_above⟩ := fis.above_point.sections_nonempty F j x,
+  obtain ⟨s_above⟩ := fis.above_point.sections_nonempty F Fsurj j x,
   obtain ⟨s,sgood⟩ := (fis.sections_at_point F j x).inv_fun s_above,
   exact ⟨s,sgood⟩,
 end

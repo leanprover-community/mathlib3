@@ -347,6 +347,9 @@ quot.induction_on s $ λ l, (nil_sublist l).subperm
 
 instance : order_bot (multiset α) := ⟨0, zero_le⟩
 
+/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
+@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
+
 lemma le_zero : s ≤ 0 ↔ s = 0 := le_bot_iff
 
 theorem lt_cons_self (s : multiset α) (a : α) : s < a ::ₘ s :=
@@ -438,9 +441,6 @@ instance : canonically_ordered_add_monoid (multiset α) :=
     let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
   ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
-
-/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
-@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]

@@ -16,4 +16,4 @@ universes w v
 
 @[priority 100]
 instance small_of_countable (α : Type v) [countable α] : small.{w} α :=
-let ⟨e⟩ := nonempty_embedding_nat α in small_of_injective e.injective
+let ⟨f, hf⟩ := exists_injective_nat α in small_of_injective hf

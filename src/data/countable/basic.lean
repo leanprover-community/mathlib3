@@ -60,7 +60,7 @@ instance [countable α] [countable β] : countable (α × β) :=
 begin
   rcases exists_injective_nat α with ⟨f, hf⟩,
   rcases exists_injective_nat β with ⟨g, hg⟩,
-  exact (equiv.nat_prod_nat_equiv_nat.injective.comp $ hf.prod_map hg).countable
+  exact (nat.mkpair_equiv.injective.comp $ hf.prod_map hg).countable
 end
 
 instance [countable α] [Π a, countable (π a)] : countable (sigma π) :=

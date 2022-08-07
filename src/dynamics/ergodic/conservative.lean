@@ -82,10 +82,10 @@ begin
   rcases ihN with ⟨n, hn, hμn⟩,
   set T := s ∩ ⋃ n ≥ N + 1, (f^[n]) ⁻¹' s,
   have hT : measurable_set T,
-    from hs.inter (measurable_set.bUnion (countable_encodable _)
+    from hs.inter (measurable_set.bUnion (to_countable _)
       (λ _ _, hf.measurable.iterate _ hs)),
   have hμT : μ T = 0,
-  { convert (measure_bUnion_null_iff $ countable_encodable _).2 hN,
+  { convert (measure_bUnion_null_iff $ to_countable _).2 hN,
     rw ←inter_Union₂, refl },
   have : μ ((s ∩ (f^[n]) ⁻¹' s) \ T) ≠ 0, by rwa [measure_diff_null hμT],
   rcases hf.exists_mem_image_mem ((hs.inter (hf.measurable.iterate n hs)).diff hT) this
@@ -114,7 +114,7 @@ begin
   by_contradiction H,
   have : measurable_set (s ∩ {x | ∀ m ≥ n, f^[m] x ∉ s}),
   { simp only [set_of_forall, ← compl_set_of],
-    exact hs.inter (measurable_set.bInter (countable_encodable _)
+    exact hs.inter (measurable_set.bInter (to_countable _)
       (λ m _, hf.measurable.iterate m hs.compl)) },
   rcases (hf.exists_gt_measure_inter_ne_zero this H) n with ⟨m, hmn, hm⟩,
   rcases nonempty_of_measure_ne_zero hm with ⟨x, ⟨hxs, hxn⟩, hxm, -⟩,

@@ -318,6 +318,18 @@ protected lemma tendsto.mul {f : filter α} {ma : α → ℝ≥0∞} {mb : α �
 show tendsto ((λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
 tendsto.comp (ennreal.tendsto_mul ha hb) (hma.prod_mk_nhds hmb)
 
+lemma _root_.continuous_on.ennreal_mul [topological_space α] {f g : α → ℝ≥0∞} {s : set α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (h₁ : ∀ x ∈ s, f x ≠ 0 ∨ g x ≠ ∞)
+  (h₂ : ∀ x ∈ s, g x ≠ 0 ∨ f x ≠ ∞) :
+  continuous_on (λ x, f x * g x) s :=
+λ x hx, ennreal.tendsto.mul (hf x hx) (h₁ x hx) (hg x hx) (h₂ x hx)
+
+lemma _root_.continuous.ennreal_mul [topological_space α] {f g : α → ℝ≥0∞} (hf : continuous f)
+  (hg : continuous g) (h₁ : ∀ x, f x ≠ 0 ∨ g x ≠ ∞) (h₂ : ∀ x, g x ≠ 0 ∨ f x ≠ ∞) :
+  continuous (λ x, f x * g x) :=
+continuous_iff_continuous_at.2 $
+  λ x, ennreal.tendsto.mul hf.continuous_at (h₁ x) hg.continuous_at (h₂ x)
+
 protected lemma tendsto.const_mul {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=
 by_cases
@@ -449,8 +461,8 @@ begin
     casesI is_empty_or_nonempty ι,
     { rw [infi_of_empty, infi_of_empty, mul_top, if_neg],
       exact mt h0 (not_nonempty_iff.2 ‹_›) },
-    { exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-        ennreal.mul_left_mono).symm } }
+    { exact (ennreal.mul_left_mono.map_infi_of_continuous_at'
+            (ennreal.continuous_at_const_mul H)).symm } }
 end
 
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
@@ -507,7 +519,7 @@ protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ℝ≥0∞
 ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
 lemma supr_add {ι : Sort*} {s : ι → ℝ≥0∞} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
-map_supr_of_continuous_at_of_monotone' (continuous_at_id.add continuous_at_const) $
+monotone.map_supr_of_continuous_at' (continuous_at_id.add continuous_at_const) $
   monotone_id.add monotone_const
 
 lemma bsupr_add' {ι : Sort*} {p : ι → Prop} (h : ∃ i, p i) {f : ι → ℝ≥0∞} :
@@ -581,7 +593,7 @@ begin
   by_cases hf : ∀ i, f i = 0,
   { obtain rfl : f = (λ _, 0), from funext hf,
     simp only [supr_zero_eq_zero, mul_zero] },
-  { refine map_supr_of_continuous_at_of_monotone _ (monotone_id.const_mul' _) (mul_zero a),
+  { refine (monotone_id.const_mul' _).map_supr_of_continuous_at _ (mul_zero a),
     refine ennreal.tendsto.const_mul tendsto_id (or.inl _),
     exact mt supr_eq_zero.1 hf }
 end

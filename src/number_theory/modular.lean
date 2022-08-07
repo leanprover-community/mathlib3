@@ -108,7 +108,7 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
-local attribute [instance] matrix.normed_group matrix.normed_space
+local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
 local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.

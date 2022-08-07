@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.finite
+import data.countable.basic
 import logic.equiv.list
 
 /-!
@@ -26,6 +27,14 @@ constructive analogue of countability. (For the most part, theorems about
 `countable` will be classical and `encodable` will be constructive.)
 -/
 protected def countable (s : set α) : Prop := countable s
+
+@[simp] lemma countable_coe_iff {s : set α} : countable s ↔ s.countable := nonempty_encodable.symm
+
+/-- Prove `set.countable` from a `countable` instance on the subtype. -/
+lemma to_countable (s : set α) [countable s] : s.countable := countable_coe_iff.mp ‹_›
+
+/-- Restate `set.countable` as a `countable` instance. -/
+alias countable_coe_iff ↔ _root_.countable.to_set countable.to_subtype
 
 protected lemma countable_iff_exists_injective {s : set α} :
   s.countable ↔ ∃ f : s → ℕ, injective f :=

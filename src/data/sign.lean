@@ -145,6 +145,8 @@ lemma lt_one_iff {a : sign_type} : a < 1 ↔ a ≤ 0 := by dec_trivial!
 
 @[simp] lemma neg_eq_self_iff (a : sign_type) : -a = a ↔ a = 0 := by dec_trivial!
 
+@[simp] lemma neg_one_lt_one : (-1 : sign_type) < 1 := bot_lt_top
+
 end case_bashing
 
 section cast

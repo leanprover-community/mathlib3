@@ -81,6 +81,12 @@ instance : linear_order sign_type :=
   le_trans     := λ a b c hab hbc, by casesm* _; constructor,
   decidable_le := le.decidable_rel }
 
+instance : bounded_order sign_type :=
+{ top := 1,
+  le_top := le.of_pos,
+  bot := -1,
+  bot_le := le.of_neg }
+
 instance : has_distrib_neg sign_type :=
 { neg_neg := λ x, by cases x; refl,
   neg_mul := λ x y, by casesm* _; refl,

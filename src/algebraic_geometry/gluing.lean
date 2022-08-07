@@ -76,7 +76,7 @@ such that
 We can then glue the schemes `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subschemes of the glued space.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends category_theory.glue_data Scheme :=
 (f_open : ∀ i j, is_open_immersion (f i j))
 
@@ -106,7 +106,7 @@ begin
   refine ⟨_, _ ≫ D.to_LocallyRingedSpace_glue_data.to_glue_data.ι i, _⟩,
   swap, exact (D.U i).affine_cover.map y,
   split,
-  { dsimp,
+  { dsimp [-set.mem_range],
     rw [coe_comp, set.range_comp],
     refine set.mem_image_of_mem _ _,
     exact (D.U i).affine_cover.covers y },

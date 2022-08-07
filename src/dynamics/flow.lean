@@ -109,7 +109,7 @@ protected lemma continuous {β : Type*} [topological_space β]
   continuous (λ x, ϕ (t x) (f x)) :=
 ϕ.cont'.comp (ht.prod_mk hf)
 
-alias flow.continuous ← continuous.flow
+alias flow.continuous ← _root_.continuous.flow
 
 lemma map_add (t₁ t₂ : τ) (x : α) : ϕ (t₁ + t₂) x = ϕ t₁ (ϕ t₂ x) :=
 ϕ.map_add' _ _ _

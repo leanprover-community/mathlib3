@@ -14,7 +14,7 @@ This file defines exposed sets and exposed points for sets in a real vector spac
 
 An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
 (a continuous linear map `E → 𝕜`) over `A`. By convention, `∅` is an exposed subset of all sets.
-This allows for better functioriality of the definition (the intersection of two exposed subsets is
+This allows for better functoriality of the definition (the intersection of two exposed subsets is
 exposed, faces of a polytope form a bounded lattice).
 This is an analytic notion of "being on the side of". It is stronger than being extreme (see
 `is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
@@ -45,7 +45,7 @@ More not-yet-PRed stuff is available on the branch `sperner_again`.
 open_locale classical affine big_operators
 open set
 
-variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [normed_group E]
+variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [normed_add_comm_group E]
   [normed_space 𝕜 E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
 
 /-- A set `B` is exposed with respect to `A` iff it maximizes some functional over `A` (and contains

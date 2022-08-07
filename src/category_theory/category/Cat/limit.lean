@@ -54,7 +54,7 @@ def hom_diagram {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) : 
   end,
   map_comp' := λ X Y Z f g, begin
     ext h, dsimp,
-    simp [functor.congr_hom (F.map_comp f g) h],
+    simp [functor.congr_hom (F.map_comp f g) h, eq_to_hom_map],
     refl,
   end, }
 

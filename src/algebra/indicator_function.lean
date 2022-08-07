@@ -419,6 +419,11 @@ begin
   exact (ne_of_mem_of_not_mem ha' haI).symm
 end
 
+@[to_additive] lemma mul_indicator_finset_bUnion_apply {ι} (I : finset ι)
+  (s : ι → set α) {f : α → M} (h : ∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (s i) (s j)) (x : α) :
+  mul_indicator (⋃ i ∈ I, s i) f x = ∏ i in I, mul_indicator (s i) f x :=
+by rw set.mul_indicator_finset_bUnion I s h
+
 end comm_monoid
 
 section mul_zero_class
@@ -458,6 +463,19 @@ begin
   letI := classical.dec_pred (∈ t),
   simp [indicator_apply, ← ite_and],
 end
+
+variables (M) [nontrivial M]
+
+lemma indicator_eq_zero_iff_not_mem {U : set α} {x : α} :
+  indicator U 1 x = (0 : M) ↔ x ∉ U :=
+by { classical, simp [indicator_apply, imp_false] }
+
+lemma indicator_eq_one_iff_mem {U : set α} {x : α} :
+  indicator U 1 x = (1 : M) ↔ x ∈ U :=
+by { classical, simp [indicator_apply, imp_false] }
+
+lemma indicator_one_inj {U V : set α} (h : indicator U (1 : α → M) = indicator V 1) : U = V :=
+by { ext, simp_rw [← indicator_eq_one_iff_mem M, h] }
 
 end mul_zero_one_class
 

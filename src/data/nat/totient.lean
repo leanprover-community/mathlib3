@@ -3,13 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.big_operators.basic
-import data.nat.prime
-import data.zmod.basic
-import ring_theory.multiplicity
-import data.nat.periodic
 import algebra.char_p.two
-import number_theory.divisors
+import data.nat.factorization.basic
+import data.nat.periodic
+import data.zmod.basic
 
 /-!
 # Euler's totient function
@@ -92,22 +89,16 @@ open zmod
 
 /-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance
 diamonds. -/
-@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [fact (0 < n)] [fintype ((zmod n)ˣ)] :
+@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [h : fact (0 < n)] [fintype ((zmod n)ˣ)] :
   fintype.card ((zmod n)ˣ) = φ n :=
 calc fintype.card ((zmod n)ˣ) = fintype.card {x : zmod n // x.val.coprime n} :
   fintype.card_congr zmod.units_equiv_coprime
 ... = φ n :
 begin
-  apply finset.card_congr (λ (a : {x : zmod n // x.val.coprime n}) _, a.1.val),
-  { intro a, simp [(a : zmod n).val_lt, a.prop.symm] {contextual := tt} },
-  { intros _ _ _ _ h, rw subtype.ext_iff_val, apply val_injective, exact h, },
-  { intros b hb,
-    rw [finset.mem_filter, finset.mem_range] at hb,
-    refine ⟨⟨b, _⟩, finset.mem_univ _, _⟩,
-    { let u := unit_of_coprime b hb.2.symm,
-      exact val_coe_unit_coprime u },
-    { show zmod.val (b : zmod n) = b,
-      rw [val_nat_cast, nat.mod_eq_of_lt hb.1], } }
+  unfreezingI { obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := exists_eq_succ_of_ne_zero h.out.ne' },
+  simp only [totient, finset.card_eq_sum_ones, fintype.card_subtype, finset.sum_filter,
+    ← fin.sum_univ_eq_sum_range, @nat.coprime_comm (m + 1)],
+  refl
 end
 
 lemma totient_even {n : ℕ} (hn : 2 < n) : even n.totient :=
@@ -137,10 +128,10 @@ if hmn0 : m * n = 0
 lemma totient_div_of_dvd {n d : ℕ} (hnd : d ∣ n) :
   φ (n/d) = (filter (λ (k : ℕ), n.gcd k = d) (range n)).card :=
 begin
-  rcases d.eq_zero_or_pos with rfl | hd0, { simp [zero_dvd_iff.1 hnd] },
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [eq_zero_of_zero_dvd hnd] },
   rcases hnd with ⟨x, rfl⟩,
   rw nat.mul_div_cancel_left x hd0,
-  apply card_congr (λ k _, d * k),
+  apply finset.card_congr (λ k _, d * k),
   { simp only [mem_filter, mem_range, and_imp, coprime],
     refine λ a ha1 ha2, ⟨(mul_lt_mul_left hd0).2 ha1, _⟩,
     rw [gcd_mul_left, ha2, mul_one] },
@@ -216,21 +207,6 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
-
-lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
-  (p * n).totient = p * n.totient :=
-begin
-  by_cases hzero : n = 0,
-  { simp [hzero] },
-  { have hfin := (multiplicity.finite_nat_iff.2 ⟨hp.ne_one, zero_lt_iff.2 hzero⟩),
-    have h0 : 0 < (multiplicity p n).get hfin := multiplicity.pos_of_dvd hfin h,
-    obtain ⟨m, hm, hndiv⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
-    rw [hm, ← mul_assoc, ← pow_succ, nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd
-      hndiv)), nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd hndiv)), ← mul_assoc],
-    congr,
-    rw [ ← succ_pred_eq_of_pos h0, totient_prime_pow_succ hp, totient_prime_pow_succ hp,
-      succ_pred_eq_of_pos h0, ← mul_assoc p, ← pow_succ, ← succ_pred_eq_of_pos h0, nat.pred_succ] }
-end
 
 lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
 begin
@@ -333,6 +309,46 @@ begin
   have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),
   have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,
   rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
+end
+
+lemma totient_gcd_mul_totient_mul (a b : ℕ) : φ (a.gcd b) * φ (a * b) = φ a * φ b * (a.gcd b) :=
+begin
+  have shuffle : ∀ a1 a2 b1 b2 c1 c2 : ℕ, b1 ∣ a1 → b2 ∣ a2 →
+    (a1/b1 * c1) * (a2/b2 * c2) = (a1*a2)/(b1*b2) * (c1*c2),
+  { intros a1 a2 b1 b2 c1 c2 h1 h2,
+    calc
+      (a1/b1 * c1) * (a2/b2 * c2) = ((a1/b1) * (a2/b2)) * (c1*c2) : by apply mul_mul_mul_comm
+      ... = (a1*a2)/(b1*b2) * (c1*c2) : by { congr' 1, exact div_mul_div_comm h1 h2 } },
+  simp only [totient_eq_div_factors_mul],
+  rw [shuffle, shuffle],
+  rotate, repeat { apply prod_prime_factors_dvd },
+  { simp only [prod_factors_gcd_mul_prod_factors_mul],
+    rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],
+    exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b) }
+end
+
+lemma totient_super_multiplicative (a b : ℕ) : φ a * φ b ≤ φ (a * b) :=
+begin
+  let d := a.gcd b,
+  rcases (zero_le a).eq_or_lt with rfl | ha0, { simp },
+  have hd0 : 0 < d, from nat.gcd_pos_of_pos_left _ ha0,
+  rw [←mul_le_mul_right hd0, ←totient_gcd_mul_totient_mul a b, mul_comm],
+  apply mul_le_mul_left' (nat.totient_le d),
+end
+
+lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
+  (p * n).totient = p * n.totient :=
+begin
+  have h1 := totient_gcd_mul_totient_mul p n,
+  rw [(gcd_eq_left h), mul_assoc] at h1,
+  simpa [(totient_pos hp.pos).ne', mul_comm] using h1,
+end
+
+lemma totient_mul_of_prime_of_not_dvd {p n : ℕ} (hp : p.prime) (h : ¬ p ∣ n) :
+  (p * n).totient = (p - 1) * n.totient :=
+begin
+  rw [totient_mul _, totient_prime hp],
+  simpa [h] using coprime_or_dvd_of_prime hp n,
 end
 
 end nat

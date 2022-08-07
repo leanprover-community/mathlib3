@@ -52,8 +52,8 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := linear_map.add_comm_group
 
-instance : add_monoid_hom_class (dual R M) M R :=
-linear_map.add_monoid_hom_class
+instance : linear_map_class (dual R M) R M R :=
+linear_map.semilinear_map_class
 
 /-- The canonical pairing of a vector space and its algebraic dual. -/
 def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
@@ -351,10 +351,10 @@ section dual_pair
 open module
 
 variables {R M ι : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure dual_pair (e : ι → M) (ε : ι → (dual R M)) :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
@@ -448,7 +448,7 @@ namespace submodule
 
 universes u v w
 
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+variables {R : Type u} {M : Type v} [comm_semiring R] [add_comm_monoid M] [module R M]
 variable {W : submodule R M}
 
 /-- The `dual_restrict` of a submodule `W` of `M` is the linear map from the
@@ -464,7 +464,7 @@ linear_map.dom_restrict' W
 
 /-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
   that `φ w = 0` for all `w ∈ W`. -/
-def dual_annihilator {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M]
+def dual_annihilator {R : Type u} {M : Type v} [comm_semiring R] [add_comm_monoid M]
   [module R M] (W : submodule R M) : submodule R $ module.dual R M :=
 W.dual_restrict.ker
 
@@ -530,7 +530,7 @@ by { erw of_is_compl_left_apply _ w, refl }
 
 lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
   W.dual_lift φ w = φ ⟨w, hw⟩ :=
-dual_lift_of_subtype ⟨w, hw⟩
+by convert dual_lift_of_subtype ⟨w, hw⟩
 
 @[simp] lemma dual_restrict_comp_dual_lift (W : subspace K V) :
   W.dual_restrict.comp W.dual_lift = 1 :=
@@ -624,10 +624,11 @@ end
 
 end subspace
 
-variables {R : Type*} [comm_ring R] {M₁ : Type*} {M₂ : Type*}
-variables [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
-
 open module
+
+section dual_map
+variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}
+variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
 
 /-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
 `M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
@@ -680,7 +681,11 @@ lemma linear_equiv.dual_map_trans {M₃ : Type*} [add_comm_group M₃] [module R
   g.dual_map.trans f.dual_map = (f.trans g).dual_map :=
 rfl
 
+end dual_map
+
 namespace linear_map
+variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}
+variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
 
 variable (f : M₁ →ₗ[R] M₂)
 
@@ -767,9 +772,7 @@ end linear_map
 
 namespace tensor_product
 
-variables (R) (M : Type*) (N : Type*)
-variables [add_comm_group M] [add_comm_group N]
-variables [module R M] [module R N]
+variables (R : Type*) (M : Type*) (N : Type*)
 
 variables {ι κ : Type*}
 variables [decidable_eq ι] [decidable_eq κ]
@@ -782,7 +785,10 @@ local attribute [ext] tensor_product.ext
 
 open tensor_product
 open linear_map
-open module (dual)
+
+section
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N]
+variables [module R M] [module R N]
 
 /--
 The canonical linear map from `dual M ⊗ dual N` to `dual (M ⊗ N)`,
@@ -794,6 +800,18 @@ def dual_distrib : (dual R M) ⊗[R] (dual R N) →ₗ[R] dual R (M ⊗[R] N) :=
 
 variables {R M N}
 
+@[simp]
+lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
+  dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
+by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
+  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
+
+end
+
+variables {R M N}
+variables [comm_ring R] [add_comm_group M] [add_comm_group N]
+variables [module R M] [module R N]
+
 /--
 An inverse to `dual_tensor_dual_map` given bases.
 -/
@@ -802,12 +820,6 @@ def dual_distrib_inv_of_basis (b : basis ι R M) (c : basis κ R N) :
   dual R (M ⊗[R] N) →ₗ[R] (dual R M) ⊗[R] (dual R N) :=
 ∑ i j, (ring_lmap_equiv_self R ℕ _).symm (b.dual_basis i ⊗ₜ c.dual_basis j)
     ∘ₗ applyₗ (c j) ∘ₗ applyₗ (b i) ∘ₗ (lcurry R M N R)
-
-@[simp]
-lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
-  dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
-by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
-  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
 
 @[simp]
 lemma dual_distrib_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N)

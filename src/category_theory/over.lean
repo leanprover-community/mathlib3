@@ -6,7 +6,7 @@ Authors: Johan Commelin, Bhavik Mehta
 import category_theory.structured_arrow
 import category_theory.punit
 import category_theory.functor.reflects_isomorphisms
-import category_theory.epi_mono
+import category_theory.functor.epi_mono
 
 /-!
 # Over and under categories
@@ -50,7 +50,7 @@ variables {X : T}
   (h : f.left = g.left) : f = g :=
 by tidy
 
-@[simp] lemma over_right (U : over X) : U.right = punit.star := by tidy
+@[simp] lemma over_right (U : over X) : U.right = ⟨⟨⟩⟩ := by tidy
 
 @[simp] lemma id_left (U : over X) : comma_morphism.left (𝟙 U) = 𝟙 U.left := rfl
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
@@ -60,7 +60,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
-@[simps]
+@[simps left hom]
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 costructured_arrow.mk f
 
@@ -147,7 +147,7 @@ The converse does not hold without additional assumptions on the underlying cate
 -/
 -- TODO: Show the converse holds if `T` has binary products or pushouts.
 lemma epi_of_epi_left {f g : over X} (k : f ⟶ g) [hk : epi k.left] : epi k :=
-faithful_reflects_epi (forget X) hk
+(forget X).epi_of_epi_map hk
 
 /--
 If `k.left` is a monomorphism, then `k` is a monomorphism. In other words, `over.forget X` reflects
@@ -157,7 +157,7 @@ The converse of `category_theory.over.mono_left_of_mono`.
 This lemma is not an instance, to avoid loops in type class inference.
 -/
 lemma mono_of_mono_left {f g : over X} (k : f ⟶ g) [hk : mono k.left] : mono k :=
-faithful_reflects_mono (forget X) hk
+(forget X).mono_of_mono_map hk
 
 /--
 If `k` is a monomorphism, then `k.left` is a monomorphism. In other words, `over.forget X` preserves
@@ -248,7 +248,7 @@ variables {X : T}
   (h : f.right = g.right) : f = g :=
 by tidy
 
-@[simp] lemma under_left (U : under X) : U.left = punit.star := by tidy
+@[simp] lemma under_left (U : under X) : U.left = ⟨⟨⟩⟩ := by tidy
 
 @[simp] lemma id_right (U : under X) : comma_morphism.right (𝟙 U) = 𝟙 U.right := rfl
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
@@ -258,7 +258,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/
-@[simps]
+@[simps right hom]
 def mk {X Y : T} (f : X ⟶ Y) : under X :=
 structured_arrow.mk f
 

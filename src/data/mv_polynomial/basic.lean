@@ -106,13 +106,13 @@ instance [comm_semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
 instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] :
   distrib_mul_action R (mv_polynomial σ S₁) :=
 add_monoid_algebra.distrib_mul_action
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_scalar R S₁] :
-  has_faithful_scalar R (mv_polynomial σ S₁) :=
-add_monoid_algebra.has_faithful_scalar
+instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_smul R S₁] :
+  has_faithful_smul R (mv_polynomial σ S₁) :=
+add_monoid_algebra.has_faithful_smul
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
 instance [monoid R] [monoid S₁] [comm_semiring S₂]
-  [has_scalar R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
+  [has_smul R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
 instance [monoid R] [monoid S₁][comm_semiring S₂]
@@ -165,7 +165,7 @@ lemma C_apply : (C a : mv_polynomial σ R) = monomial 0 a := rfl
 lemma C_mul_monomial : C a * monomial s a' = monomial s (a * a') :=
 by simp [C_apply, monomial, single_mul_single]
 
-@[simp] lemma C_add : (C (a + a') : mv_polynomial σ R) = C a + C a' := single_add
+@[simp] lemma C_add : (C (a + a') : mv_polynomial σ R) = C a + C a' := single_add _ _ _
 
 @[simp] lemma C_mul : (C (a * a') : mv_polynomial σ R) = C a * C a' := C_mul_monomial.symm
 
@@ -241,7 +241,7 @@ lemma monomial_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
 @[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 :=
-single_zero
+single_zero _
 
 @[simp] lemma monomial_zero' : (monomial (0 : σ →₀ ℕ) : R → mv_polynomial σ R) = C := rfl
 
@@ -462,7 +462,7 @@ single_eq_of_ne (λ h, by cases single_eq_zero.1 h)
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ R) (m : σ →₀ ℕ) :
   coeff m (∑ x in s, f x) = ∑ x in s, coeff m (f x) :=
-(coeff_add_monoid_hom _).map_sum _ s
+(@coeff_add_monoid_hom R σ _ _).map_sum _ s
 
 lemma monic_monomial_eq (m) : monomial m (1:R) = (m.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp [monomial_eq]

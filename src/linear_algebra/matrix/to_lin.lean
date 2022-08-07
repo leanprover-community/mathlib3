@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import data.matrix.block
+import data.matrix.notation
 import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
@@ -125,12 +126,12 @@ linear_map.to_matrix_right'.symm
 @[simp] lemma matrix.to_linear_map_right'_mul [fintype l] [decidable_eq l] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_linear_map_right' (M ⬝ N) =
   (matrix.to_linear_map_right' N).comp (matrix.to_linear_map_right' M) :=
-by { ext, simp, }
+linear_map.ext $ λ x, (vec_mul_vec_mul _ M N).symm
 
 lemma matrix.to_linear_map_right'_mul_apply [fintype l] [decidable_eq l] (M : matrix l m R)
   (N : matrix m n R) (x) : matrix.to_linear_map_right' (M ⬝ N) x =
     (matrix.to_linear_map_right' N (matrix.to_linear_map_right' M x)) :=
-by rw [matrix.to_linear_map_right'_mul, linear_map.comp_apply]
+(vec_mul_vec_mul _ M N).symm
 
 @[simp] lemma matrix.to_linear_map_right'_one :
   matrix.to_linear_map_right' (1 : matrix m m R) = id :=
@@ -161,7 +162,7 @@ This should eventually be remedied.
 
 section to_matrix'
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {l m n : Type*}
 
 /-- `matrix.mul_vec M` is a linear map. -/
@@ -172,31 +173,29 @@ variables {l m n : Type*}
 
 variables [fintype n] [decidable_eq n]
 
-@[simp] lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
+lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
   M.mul_vec (std_basis R (λ _, R) j 1) i = M i j :=
-begin
-  have : (∑ j', M i j' * if j = j' then 1 else 0) = M i j,
-  { simp_rw [mul_boole, finset.sum_ite_eq, finset.mem_univ, if_true] },
-  convert this,
-  ext,
-  split_ifs with h; simp only [std_basis_apply],
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h), pi.zero_apply] }
-end
+(congr_fun (matrix.mul_vec_single _ _ (1 : R)) i).trans $ mul_one _
+
+@[simp] lemma matrix.mul_vec_std_basis_apply (M : matrix m n R) (j) :
+  M.mul_vec (std_basis R (λ _, R) j 1) = Mᵀ j :=
+funext $ λ i, matrix.mul_vec_std_basis M i j
 
 /-- Linear maps `(n → R) →ₗ[R] (m → R)` are linearly equivalent to `matrix m n R`. -/
 def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
-{ to_fun := λ f i j, f (std_basis R (λ _, R) j 1) i,
+{ to_fun := λ f, of (λ i j, f (std_basis R (λ _, R) j 1) i),
   inv_fun := matrix.mul_vec_lin,
-  right_inv := λ M, by { ext i j, simp only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply] },
+  right_inv := λ M, by { ext i j, simp only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply,
+                                             of_apply] },
   left_inv := λ f, begin
     apply (pi.basis_fun R n).ext,
     intro j, ext i,
-    simp only [pi.basis_fun_apply, matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply]
+    simp only [pi.basis_fun_apply, matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply,
+      of_apply]
   end,
-  map_add' := λ f g, by { ext i j, simp only [pi.add_apply, linear_map.add_apply] },
+  map_add' := λ f g, by { ext i j, simp only [pi.add_apply, linear_map.add_apply, of_apply] },
   map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply,
-                                               ring_hom.id_apply] } }
+                                               ring_hom.id_apply, of_apply] } }
 
 /-- A `matrix m n R` is linearly equivalent to a linear map `(n → R) →ₗ[R] (m → R)`. -/
 def matrix.to_lin' : matrix m n R ≃ₗ[R] ((n → R) →ₗ[R] (m → R)) :=
@@ -221,7 +220,7 @@ matrix.to_lin'.apply_symm_apply f
 @[simp] lemma linear_map.to_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) (i j) :
   linear_map.to_matrix' f i j = f (λ j', if j' = j then 1 else 0) i :=
 begin
-  simp only [linear_map.to_matrix', linear_equiv.coe_mk],
+  simp only [linear_map.to_matrix', linear_equiv.coe_mk, of_apply],
   congr,
   ext j',
   split_ifs with h,
@@ -242,7 +241,7 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
 @[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
-by { ext, simp }
+linear_map.ext $ λ x, (mul_vec_mul_vec _ _ _).symm
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
 lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)
@@ -317,23 +316,20 @@ by simp [linear_map.to_matrix_alg_equiv']
 
 @[simp] lemma matrix.to_lin_alg_equiv'_one :
   matrix.to_lin_alg_equiv' (1 : matrix n n R) = id :=
-by { ext, simp [matrix.one_apply, std_basis_apply] }
+matrix.to_lin'_one
 
 @[simp] lemma linear_map.to_matrix_alg_equiv'_id :
   (linear_map.to_matrix_alg_equiv' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
-by { ext, rw [matrix.one_apply, linear_map.to_matrix_alg_equiv'_apply, id_apply] }
+linear_map.to_matrix'_id
 
 @[simp] lemma matrix.to_lin_alg_equiv'_mul (M N : matrix n n R) :
   matrix.to_lin_alg_equiv' (M ⬝ N) =
     (matrix.to_lin_alg_equiv' M).comp (matrix.to_lin_alg_equiv' N) :=
-by { ext, simp }
+matrix.to_lin'_mul _ _
 
 lemma linear_map.to_matrix_alg_equiv'_comp (f g : (n → R) →ₗ[R] (n → R)) :
   (f.comp g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=
-suffices (f.comp g) = (f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv').to_lin_alg_equiv',
-  by rw [this, linear_map.to_matrix_alg_equiv'_to_lin_alg_equiv'],
-by rw [matrix.to_lin_alg_equiv'_mul, matrix.to_lin_alg_equiv'_to_matrix_alg_equiv',
-       matrix.to_lin_alg_equiv'_to_matrix_alg_equiv']
+linear_map.to_matrix'_comp _ _
 
 lemma linear_map.to_matrix_alg_equiv'_mul
   (f g : (n → R) →ₗ[R] (n → R)) :
@@ -354,9 +350,9 @@ end to_matrix'
 
 section to_matrix
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {l m n : Type*} [fintype n] [fintype m] [decidable_eq n]
-variables {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂] [module R M₁] [module R M₂]
+variables {M₁ M₂ : Type*} [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂]
 variables (v₁ : basis n R M₁) (v₂ : basis m R M₂)
 
 /-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
@@ -460,7 +456,7 @@ theorem linear_map.to_matrix_reindex_range [decidable_eq M₁] [decidable_eq M�
     linear_map.to_matrix v₁ v₂ f k i :=
 by simp_rw [linear_map.to_matrix_apply, basis.reindex_range_self, basis.reindex_range_repr]
 
-variables {M₃ : Type*} [add_comm_group M₃] [module R M₃] (v₃ : basis l R M₃)
+variables {M₃ : Type*} [add_comm_monoid M₃] [module R M₃] (v₃ : basis l R M₃)
 
 lemma linear_map.to_matrix_comp [fintype l] [decidable_eq m] (f : M₂ →ₗ[R] M₃) (g : M₁ →ₗ[R] M₂) :
   linear_map.to_matrix v₁ v₃ (f.comp g) =
@@ -601,6 +597,17 @@ lemma matrix.to_lin_alg_equiv_mul (A B : matrix n n R) :
   (matrix.to_lin_alg_equiv v₁ A).comp (matrix.to_lin_alg_equiv v₁ B) :=
 by convert matrix.to_lin_mul v₁ v₁ v₁ A B
 
+@[simp] lemma matrix.to_lin_fin_two_prod_apply (a b c d : R) (x : R × R) :
+  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) !![a, b; c, d] x =
+    (a * x.fst + b * x.snd, c * x.fst + d * x.snd) :=
+by simp [matrix.to_lin_apply, matrix.mul_vec, matrix.dot_product]
+
+lemma matrix.to_lin_fin_two_prod (a b c d : R) :
+  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) !![a, b; c, d] =
+    (a • linear_map.fst R R R + b • linear_map.snd R R R).prod
+    (c • linear_map.fst R R R + d • linear_map.snd R R R) :=
+linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
+
 end to_matrix
 
 namespace algebra
@@ -616,7 +623,7 @@ open algebra
 
 lemma to_matrix_lmul' (x : S) (i j) :
   linear_map.to_matrix b b (lmul R S x) i j = b.repr (x * b j) i :=
-by rw [linear_map.to_matrix_apply', lmul_apply]
+by simp only [linear_map.to_matrix_apply', coe_lmul_eq_mul, linear_map.mul_apply']
 
 @[simp] lemma to_matrix_lsmul (x : R) (i j) :
   linear_map.to_matrix b b (algebra.lsmul R S x) i j = if i = j then x else 0 :=
@@ -628,7 +635,7 @@ by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_equiv.map_smul, 
 
 `left_mul_matrix_eq_repr_mul` gives a formula for the entries of `left_mul_matrix`.
 
-This definition is useful for doing (more) explicit computations with `algebra.lmul`,
+This definition is useful for doing (more) explicit computations with `linear_map.mul_left`,
 such as the trace form or norm map for algebras.
 -/
 noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
@@ -651,10 +658,10 @@ by rw [left_mul_matrix_apply, to_matrix_lmul' b x i j]
 
 lemma left_mul_matrix_mul_vec_repr (x y : S) :
   (left_mul_matrix b x).mul_vec (b.repr y) = b.repr (x * y) :=
-linear_map.to_matrix_mul_vec_repr b b (algebra.lmul R S x) y
+(linear_map.mul_left R x).to_matrix_mul_vec_repr b b y
 
 @[simp] lemma to_matrix_lmul_eq (x : S) :
-  linear_map.to_matrix b b (lmul R S x) = left_mul_matrix b x :=
+  linear_map.to_matrix b b (linear_map.mul_left R x) = left_mul_matrix b x :=
 rfl
 
 lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
@@ -668,8 +675,8 @@ lemma smul_left_mul_matrix (x) (ik jk) :
   left_mul_matrix (b.smul c) x ik jk =
     left_mul_matrix b (left_mul_matrix c x ik.2 jk.2) ik.1 jk.1 :=
 by simp only [left_mul_matrix_apply, linear_map.to_matrix_apply, mul_comm, basis.smul_apply,
-              basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
-              linear_equiv.map_smul, mul_smul_comm]
+  basis.smul_repr, finsupp.smul_apply, id.smul_eq_mul, linear_equiv.map_smul, mul_smul_comm,
+  coe_lmul_eq_mul, linear_map.mul_apply']
 
 lemma smul_left_mul_matrix_algebra_map (x : S) :
   left_mul_matrix (b.smul c) (algebra_map _ _ x) = block_diagonal (λ k, left_mul_matrix b x) :=

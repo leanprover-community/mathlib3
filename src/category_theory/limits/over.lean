@@ -95,7 +95,7 @@ def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   pullback (f ≫ g) ≅ pullback g ⋙ pullback f :=
 adjunction.right_adjoint_uniq
   (map_pullback_adj _)
-  (((map_pullback_adj _).comp _ _ (map_pullback_adj _)).of_nat_iso_left
+  (((map_pullback_adj _).comp (map_pullback_adj _)).of_nat_iso_left
     (over.map_comp _ _).symm)
 
 instance pullback_is_right_adjoint {A B : C} (f : A ⟶ B) :

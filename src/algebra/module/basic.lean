@@ -5,9 +5,9 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import data.rat.cast
 import group_theory.group_action.big_operators
 import group_theory.group_action.group
-import tactic.norm_num
 
 /-!
 # Modules over a ring
@@ -89,7 +89,7 @@ convex.combo_self inv_of_two_add_inv_of_two _
 /-- Pullback a `module` structure along an injective additive monoid homomorphism.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.module [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)
+protected def function.injective.module [add_comm_monoid M₂] [has_smul R M₂] (f : M₂ →+ M)
   (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
   module R M₂ :=
 { smul := (•),
@@ -98,7 +98,7 @@ protected def function.injective.module [add_comm_monoid M₂] [has_scalar R M�
   .. hf.distrib_mul_action f smul }
 
 /-- Pushforward a `module` structure along a surjective additive monoid homomorphism. -/
-protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M₂] (f : M →+ M₂)
+protected def function.surjective.module [add_comm_monoid M₂] [has_smul R M₂] (f : M →+ M₂)
   (hf : surjective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
   module R M₂ :=
 { smul := (•),
@@ -113,7 +113,7 @@ See also `function.surjective.mul_action_left` and `function.surjective.distrib_
 -/
 @[reducible]
 def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoid M]
-  [module R M] [semiring S] [has_scalar S M]
+  [module R M] [semiring S] [has_smul S M]
   (f : R →+* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
   module S M :=
 { smul := (•),
@@ -128,7 +128,7 @@ variables {R} (M)
 See note [reducible non-instances]. -/
 @[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
-{ smul := has_scalar.comp.smul f,
+{ smul := has_smul.comp.smul f,
   add_smul := λ r s x, by simp [add_smul],
   .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
   .. distrib_mul_action.comp_hom M (f : S →* R) }
@@ -201,8 +201,8 @@ instance add_comm_group.int_module : module ℤ M :=
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
 this provides a way to construct a module structure by checking less properties, in
 `module.of_core`. -/
-@[nolint has_inhabited_instance]
-structure module.core extends has_scalar R M :=
+@[nolint has_nonempty_instance]
+structure module.core extends has_smul R M :=
 (smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
 (mul_smul : ∀(r s : R) (x : M), (r * s) • x = r • s • x)
@@ -213,7 +213,7 @@ variables {R M}
 /-- Define `module` without proving `zero_smul` and `smul_zero` by using an auxiliary
 structure `module.core`, when the underlying space is an `add_comm_group`. -/
 def module.of_core (H : module.core R M) : module R M :=
-by letI := H.to_has_scalar; exact
+by letI := H.to_has_smul; exact
 { zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, H.add_smul r s x)).map_zero,
   smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
@@ -297,7 +297,7 @@ instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R 
   f • a = f a := rfl
 
 /-- `ring_hom.apply_distrib_mul_action` is faithful. -/
-instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+instance ring_hom.apply_has_faithful_smul [semiring R] : has_faithful_smul (R →+* R) R :=
 ⟨ring_hom.ext⟩
 
 section add_comm_monoid
@@ -320,7 +320,7 @@ end
 mathlib all `add_comm_monoid`s should normally have exactly one `ℕ`-module structure by design.
 -/
 lemma nat_smul_eq_nsmul (h : module ℕ M) (n : ℕ) (x : M) :
-  @has_scalar.smul ℕ M h.to_has_scalar n x = n • x :=
+  @has_smul.smul ℕ M h.to_has_smul n x = n • x :=
 by rw [nsmul_eq_smul_cast ℕ n x, nat.cast_id]
 
 /-- All `ℕ`-module structures are equal. Not an instance since in mathlib all `add_comm_monoid`
@@ -353,7 +353,7 @@ end
 /-- Convert back any exotic `ℤ`-smul to the canonical instance. This should not be needed since in
 mathlib all `add_comm_group`s should normally have exactly one `ℤ`-module structure by design. -/
 lemma int_smul_eq_zsmul (h : module ℤ M) (n : ℤ) (x : M) :
-  @has_scalar.smul ℤ M h.to_has_scalar n x = n • x :=
+  @has_smul.smul ℤ M h.to_has_smul n x = n • x :=
 by rw [zsmul_eq_smul_cast ℤ n x, int.cast_id]
 
 /-- All `ℤ`-module structures are equal. Not an instance since in mathlib all `add_comm_group`
@@ -395,7 +395,7 @@ lemma map_inv_nat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
   (n : ℕ) (x : M) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
-map_inv_int_cast_smul f R S n x
+by exact_mod_cast map_inv_int_cast_smul f R S n x
 
 lemma map_rat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
@@ -483,26 +483,27 @@ is the result `smul_eq_zero`: a scalar multiple is `0` iff either argument is `0
 
 It is a generalization of the `no_zero_divisors` class to heterogeneous multiplication.
 -/
-class no_zero_smul_divisors (R M : Type*) [has_zero R] [has_zero M] [has_scalar R M] : Prop :=
+class no_zero_smul_divisors (R M : Type*) [has_zero R] [has_zero M] [has_smul R M] : Prop :=
 (eq_zero_or_eq_zero_of_smul_eq_zero : ∀ {c : R} {x : M}, c • x = 0 → c = 0 ∨ x = 0)
 
 export no_zero_smul_divisors (eq_zero_or_eq_zero_of_smul_eq_zero)
 
 /-- Pullback a `no_zero_smul_divisors` instance along an injective function. -/
 lemma function.injective.no_zero_smul_divisors {R M N : Type*} [has_zero R] [has_zero M]
-  [has_zero N] [has_scalar R M] [has_scalar R N] [no_zero_smul_divisors R N] (f : M → N)
+  [has_zero N] [has_smul R M] [has_smul R N] [no_zero_smul_divisors R N] (f : M → N)
   (hf : function.injective f) (h0 : f 0 = 0) (hs : ∀ (c : R) (x : M), f (c • x) = c • f x) :
   no_zero_smul_divisors R M :=
 ⟨λ c m h,
   or.imp_right (@hf _ _) $ h0.symm ▸ eq_zero_or_eq_zero_of_smul_eq_zero (by rw [←hs, h, h0])⟩
 
+@[priority 100] -- See note [lower instance priority]
+instance no_zero_divisors.to_no_zero_smul_divisors [has_zero R] [has_mul R] [no_zero_divisors R] :
+  no_zero_smul_divisors R R :=
+⟨λ c x, eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
 section module
 
 variables [semiring R] [add_comm_monoid M] [module R M]
-
-instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
-  no_zero_smul_divisors R R :=
-⟨λ c x, no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 @[simp]
 theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
@@ -523,7 +524,7 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
 @[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
-by { haveI := nat.no_zero_smul_divisors R M, norm_num [smul_eq_zero] }
+by { haveI := nat.no_zero_smul_divisors R M, simp [smul_eq_zero] }
 
 end nat
 
@@ -531,9 +532,10 @@ variables (R M)
 
 /-- If `M` is an `R`-module with one and `M` has characteristic zero, then `R` has characteristic
 zero as well. Usually `M` is an `R`-algebra. -/
-lemma char_zero.of_module [has_one M] [char_zero M] : char_zero R :=
+lemma char_zero.of_module (M) [add_comm_monoid_with_one M] [char_zero M] [module R M] :
+  char_zero R :=
 begin
-  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _ _⟩,
+  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _⟩,
   rw [← nsmul_one, ← nsmul_one, nsmul_eq_smul_cast R m (1 : M), nsmul_eq_smul_cast R n (1 : M), h]
 end
 
@@ -603,7 +605,7 @@ section division_ring
 variables [division_ring R] [add_comm_group M] [module R M]
 
 @[priority 100] -- see note [lower instance priority]
-instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
+instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
 end division_ring

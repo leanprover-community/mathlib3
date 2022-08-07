@@ -26,6 +26,7 @@ noncomputable theory
 
 open category_theory
 open category_theory.limits
+open opposite
 
 universes v u
 
@@ -44,7 +45,7 @@ section
 A projective presentation of an object `X` consists of an epimorphism `f : P ⟶ X`
 from some projective object `P`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure projective_presentation (X : C) :=
 (P : C)
 (projective : projective P . tactic.apply_instance)
@@ -105,10 +106,15 @@ instance {P Q : C} [has_binary_coproduct P Q] [projective P] [projective Q] :
 { factors := λ E X' f e epi, by exactI
   ⟨coprod.desc (factor_thru (coprod.inl ≫ f) e) (factor_thru (coprod.inr ≫ f) e), by tidy⟩, }
 
+section
+local attribute [tidy] tactic.discrete_cases
+
 instance {β : Type v} (g : β → C) [has_coproduct g] [∀ b, projective (g b)] :
   projective (∐ g) :=
 { factors := λ E X' f e epi, by exactI
   ⟨sigma.desc (λ b, factor_thru (sigma.ι g b ≫ f) e), by tidy⟩, }
+
+end
 
 instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   [projective P] [projective Q] :
@@ -116,10 +122,17 @@ instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
 { factors := λ E X' f e epi, by exactI
   ⟨biprod.desc (factor_thru (biprod.inl ≫ f) e) (factor_thru (biprod.inr ≫ f) e), by tidy⟩, }
 
-instance {β : Type v} [decidable_eq β] (g : β → C) [has_zero_morphisms C] [has_biproduct g]
+instance {β : Type v} (g : β → C) [has_zero_morphisms C] [has_biproduct g]
   [∀ b, projective (g b)] : projective (⨁ g) :=
 { factors := λ E X' f e epi, by exactI
   ⟨biproduct.desc (λ b, factor_thru (biproduct.ι g b ≫ f) e), by tidy⟩, }
+
+lemma projective_iff_preserves_epimorphisms_coyoneda_obj (P : C) :
+  projective P ↔ (coyoneda.obj (op P)).preserves_epimorphisms :=
+⟨λ hP, ⟨λ X Y f hf, (epi_iff_surjective _).2 $ λ g, have projective (unop (op P)), from hP,
+  by exactI ⟨factor_thru g f, factor_thru_comp _ _⟩⟩,
+ λ h, ⟨λ E X f e he, by exactI (epi_iff_surjective _).1
+  (infer_instance : epi ((coyoneda.obj (op P)).map e)) f⟩⟩
 
 section enough_projectives
 variables [enough_projectives C]

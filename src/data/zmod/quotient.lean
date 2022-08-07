@@ -3,8 +3,8 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.zmod.basic
-import group_theory.quotient_group
+import algebra.ne_zero
+import group_theory.group_action.quotient
 import ring_theory.int.basic
 
 /-!
@@ -94,19 +94,70 @@ end add_action
 
 namespace mul_action
 
-open subgroup function
+open add_action subgroup add_subgroup function
 
 variables {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+
+local attribute [semireducible] mul_opposite
 
 /-- The quotient `(a ^ ℤ) ⧸ (stabilizer b)` is cyclic of order `minimal_period ((•) a) b`. -/
 noncomputable def zpowers_quotient_stabilizer_equiv :
   zpowers a ⧸ stabilizer (zpowers a) b ≃* multiplicative (zmod (minimal_period ((•) a) b)) :=
-let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
+let f := zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
 ⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
 
 lemma zpowers_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((•) a) b)) :
-  (zpowers_quotient_stabilizer_equiv a b).symm n =
-    (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
+  (zpowers_quotient_stabilizer_equiv a b).symm n = (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
 rfl
+
+/-- The orbit `(a ^ ℤ) • b` is a cycle of order `minimal_period ((•) a) b`. -/
+noncomputable def orbit_zpowers_equiv : orbit (zpowers a) b ≃ zmod (minimal_period ((•) a) b) :=
+(orbit_equiv_quotient_stabilizer _ b).trans (zpowers_quotient_stabilizer_equiv a b).to_equiv
+
+/-- The orbit `(ℤ • a) +ᵥ b` is a cycle of order `minimal_period ((+ᵥ) a) b`. -/
+noncomputable def _root_.add_action.orbit_zmultiples_equiv
+  {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
+  add_action.orbit (zmultiples a) b ≃ zmod (minimal_period ((+ᵥ) a) b) :=
+(add_action.orbit_equiv_quotient_stabilizer (zmultiples a) b).trans
+  (zmultiples_quotient_stabilizer_equiv a b).to_equiv
+
+attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
+
+@[to_additive orbit_zmultiples_equiv_symm_apply]
+lemma orbit_zpowers_equiv_symm_apply (k : zmod (minimal_period ((•) a) b)) :
+  (orbit_zpowers_equiv a b).symm k =
+    (⟨a, mem_zpowers a⟩ : zpowers a) ^ (k : ℤ) • ⟨b, mem_orbit_self b⟩ :=
+rfl
+
+lemma orbit_zpowers_equiv_symm_apply' (k : ℤ) :
+  (orbit_zpowers_equiv a b).symm k =
+    (⟨a, mem_zpowers a⟩ : zpowers a) ^ k • ⟨b, mem_orbit_self b⟩ :=
+begin
+  rw [orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast],
+  exact subtype.ext (zpow_smul_mod_minimal_period _ _ k),
+end
+
+lemma _root_.add_action.orbit_zmultiples_equiv_symm_apply'
+  {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) (k : ℤ) :
+  (add_action.orbit_zmultiples_equiv a b).symm k =
+    (k • (⟨a, mem_zmultiples a⟩ : zmultiples a)) +ᵥ ⟨b, add_action.mem_orbit_self b⟩ :=
+begin
+  rw [add_action.orbit_zmultiples_equiv_symm_apply, zmod.coe_int_cast],
+  exact subtype.ext (zsmul_vadd_mod_minimal_period _ _ k),
+end
+
+attribute [to_additive orbit_zmultiples_equiv_symm_apply'] orbit_zpowers_equiv_symm_apply'
+
+@[to_additive] lemma minimal_period_eq_card [fintype (orbit (zpowers a) b)] :
+  minimal_period ((•) a) b = fintype.card (orbit (zpowers a) b) :=
+by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
+
+@[to_additive] instance minimal_period_pos [fintype $ orbit (zpowers a) b] :
+  ne_zero $ minimal_period ((•) a) b :=
+⟨begin
+  haveI : nonempty (orbit (zpowers a) b) := (orbit_nonempty b).to_subtype,
+  rw minimal_period_eq_card,
+  exact fintype.card_ne_zero,
+end⟩
 
 end mul_action

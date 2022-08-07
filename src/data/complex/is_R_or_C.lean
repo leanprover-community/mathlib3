@@ -47,7 +47,7 @@ open_locale complex_conjugate
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
 class is_R_or_C (K : Type*)
-  extends nondiscrete_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
+  extends nontrivially_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (I : K)                 -- Meant to be set to 0 for K=ℝ
@@ -699,7 +699,7 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-variables (K) (E : Type*) [normed_group E] [normed_space K E]
+variables (K) (E : Type*) [normed_add_comm_group E] [normed_space K E]
 
 /-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
 
@@ -738,13 +738,14 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   conj_re_ax := λ z, by simp only [star_ring_end_apply, star_id_of_comm],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [sq, norm, ←abs_mul, abs_mul_self z, add_zero,
+  norm_sq_eq_def_ax := λ z, by simp only [sq, real.norm_eq_abs, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
   inv_def_ax := λ z, by simp only [star_ring_end_apply, star, sq, real.norm_eq_abs,
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
-  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
+  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero],
+  .. real.nontrivially_normed_field, .. real.metric_space }
 
 end instances
 
@@ -874,6 +875,18 @@ noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_line
 linear_isometry.norm_to_continuous_linear_map of_real_li
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
+
+@[continuity] lemma continuous_abs : continuous (@is_R_or_C.abs K _) :=
+by simp only [show @is_R_or_C.abs K _ = has_norm.norm, by { ext, exact (norm_eq_abs _).symm },
+              continuous_norm]
+
+@[continuity] lemma continuous_norm_sq : continuous (@is_R_or_C.norm_sq K _) :=
+begin
+  have : (@is_R_or_C.norm_sq K _ : K → ℝ) = λ x, (is_R_or_C.abs x) ^ 2,
+  { ext,
+    exact norm_sq_eq_abs _ },
+  simp only [this, continuous_abs.pow 2],
+end
 
 end linear_maps
 

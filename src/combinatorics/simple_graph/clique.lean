@@ -22,7 +22,6 @@ adjacent.
 ## TODO
 
 * Clique numbers
-* Going back and forth between cliques and complete subgraphs or embeddings of complete graphs.
 * Do we need `clique_set`, a version of `clique_finset` for infinite graphs?
 -/
 
@@ -41,6 +40,21 @@ abbreviation is_clique (s : set α) : Prop := s.pairwise G.adj
 
 lemma is_clique_iff : G.is_clique s ↔ s.pairwise G.adj := iff.rfl
 
+/-- A clique is a set of vertices whose induced graph is complete. -/
+lemma is_clique_iff_induce_eq : G.is_clique s ↔ G.induce s = ⊤ :=
+begin
+  rw is_clique_iff,
+  split,
+  { intro h,
+    ext ⟨v, hv⟩ ⟨w, hw⟩,
+    simp only [comap_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk],
+    exact ⟨adj.ne, h hv hw⟩, },
+  { intros h v hv w hw hne,
+    have : (G.induce s).adj ⟨v, hv⟩ ⟨w, hw⟩ = _ := rfl,
+    conv_lhs at this { rw h },
+    simpa [hne], }
+end
+
 instance [decidable_eq α] [decidable_rel G.adj] {s : finset α} : decidable (G.is_clique s) :=
 decidable_of_iff' _ G.is_clique_iff
 
@@ -55,7 +69,7 @@ by { simp_rw is_clique_iff, exact set.pairwise.mono h }
 @[simp] lemma is_clique_bot_iff : (⊥ : simple_graph α).is_clique s ↔ (s : set α).subsingleton :=
 set.pairwise_bot_iff
 
-alias is_clique_bot_iff ↔ simple_graph.is_clique.subsingleton _
+alias is_clique_bot_iff ↔ is_clique.subsingleton _
 
 end clique
 
@@ -123,6 +137,57 @@ def clique_free (n : ℕ) : Prop := ∀ t, ¬ G.is_n_clique n t
 
 variables {G H}
 
+lemma not_clique_free_of_top_embedding {n : ℕ}
+  (f : (⊤ : simple_graph (fin n)) ↪g G) : ¬ G.clique_free n :=
+begin
+  simp only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not],
+  use finset.univ.map f.to_embedding,
+  simp only [card_map, finset.card_fin, eq_self_iff_true, and_true],
+  ext ⟨v, hv⟩ ⟨w, hw⟩,
+  simp only [coe_map, rel_embedding.coe_fn_to_embedding, set.mem_image,
+    coe_univ, set.mem_univ, true_and] at hv hw,
+  obtain ⟨v', rfl⟩ := hv,
+  obtain ⟨w', rfl⟩ := hw,
+  simp only [f.map_adj_iff, comap_adj, function.embedding.coe_subtype, subtype.coe_mk, top_adj,
+    ne.def, subtype.mk_eq_mk],
+  exact (function.embedding.apply_eq_iff_eq _ _ _).symm.not,
+end
+
+/-- An embedding of a complete graph that witnesses the fact that the graph is not clique-free. -/
+noncomputable
+def top_embedding_of_not_clique_free {n : ℕ} (h : ¬ G.clique_free n) :
+  (⊤ : simple_graph (fin n)) ↪g G :=
+begin
+  simp only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not] at h,
+  obtain ⟨ha, hb⟩ := h.some_spec,
+  have : (⊤ : simple_graph (fin h.some.card)) ≃g (⊤ : simple_graph h.some),
+  { apply iso.complete_graph,
+    simpa using (fintype.equiv_fin h.some).symm },
+  rw ← ha at this,
+  convert (embedding.induce ↑h.some).comp this.to_embedding;
+  exact hb.symm,
+end
+
+lemma not_clique_free_iff (n : ℕ) :
+  ¬ G.clique_free n ↔ nonempty ((⊤ : simple_graph (fin n)) ↪g G) :=
+begin
+  split,
+  { exact λ h, ⟨top_embedding_of_not_clique_free h⟩ },
+  { rintro ⟨f⟩,
+    exact not_clique_free_of_top_embedding f },
+end
+
+lemma clique_free_iff {n : ℕ} :
+  G.clique_free n ↔ is_empty ((⊤ : simple_graph (fin n)) ↪g G) :=
+by rw [← not_iff_not, not_clique_free_iff, not_is_empty_iff]
+
+lemma not_clique_free_card_of_top_embedding [fintype α] (f : (⊤ : simple_graph α) ↪g G) :
+  ¬ G.clique_free (card α) :=
+begin
+  rw [not_clique_free_iff],
+  use (iso.complete_graph (fintype.equiv_fin α)).symm.to_embedding.trans f,
+end
+
 lemma clique_free_bot (h : 2 ≤ n) : (⊥ : simple_graph α).clique_free n :=
 begin
   rintro t ht,
@@ -140,7 +205,42 @@ end
 lemma clique_free.anti (h : G ≤ H) : H.clique_free n → G.clique_free n :=
 forall_imp $ λ s, mt $ is_n_clique.mono h
 
+/-- See `simple_graph.clique_free_chromatic_number_succ` for a tighter bound. -/
+lemma clique_free_of_card_lt [fintype α] (hc : card α < n) : G.clique_free n :=
+begin
+  by_contra h,
+  refine nat.lt_le_antisymm hc _,
+  rw [clique_free_iff, not_is_empty_iff] at h,
+  simpa using fintype.card_le_of_embedding h.some.to_embedding,
+end
+
 end clique_free
+
+/-! ### Set of cliques -/
+
+section clique_set
+variables (G) {n : ℕ} {a b c : α} {s : finset α}
+
+/-- The `n`-cliques in a graph as a set. -/
+def clique_set (n : ℕ) : set (finset α) := {s | G.is_n_clique n s}
+
+lemma mem_clique_set_iff : s ∈ G.clique_set n ↔ G.is_n_clique n s := iff.rfl
+
+@[simp] lemma clique_set_eq_empty_iff : G.clique_set n = ∅ ↔ G.clique_free n :=
+by simp_rw [clique_free, set.eq_empty_iff_forall_not_mem, mem_clique_set_iff]
+
+alias clique_set_eq_empty_iff ↔ _ clique_free.clique_set
+
+attribute [protected] clique_free.clique_set
+
+variables {G H}
+
+@[mono] lemma clique_set_mono (h : G ≤ H) : G.clique_set n ⊆ H.clique_set n :=
+λ _, is_n_clique.mono h
+
+lemma clique_set_mono' (h : G ≤ H) : G.clique_set ≤ H.clique_set := λ _, clique_set_mono h
+
+end clique_set
 
 /-! ### Finset of cliques -/
 
@@ -150,19 +250,22 @@ variables (G) [fintype α] [decidable_eq α] [decidable_rel G.adj] {n : ℕ} {a 
 /-- The `n`-cliques in a graph as a finset. -/
 def clique_finset (n : ℕ) : finset (finset α) := univ.filter $ G.is_n_clique n
 
-lemma mem_clique_finset_iff (s : finset α) : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
+lemma mem_clique_finset_iff : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
 mem_filter.trans $ and_iff_right $ mem_univ _
+
+@[simp] lemma coe_clique_finset (n : ℕ) : (G.clique_finset n : set (finset α)) = G.clique_set n :=
+set.ext $ λ _, mem_clique_finset_iff _
 
 @[simp] lemma clique_finset_eq_empty_iff : G.clique_finset n = ∅ ↔ G.clique_free n :=
 by simp_rw [clique_free, eq_empty_iff_forall_not_mem, mem_clique_finset_iff]
 
-alias clique_finset_eq_empty_iff ↔ _ simple_graph.clique_free.clique_finset
+alias clique_finset_eq_empty_iff ↔ _ _root_.simple_graph.clique_free.clique_finset
 
 attribute [protected] clique_free.clique_finset
 
 variables {G} [decidable_rel H.adj]
 
-lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
+@[mono] lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
 monotone_filter_right _ $ λ _, is_n_clique.mono h
 
 end clique_finset

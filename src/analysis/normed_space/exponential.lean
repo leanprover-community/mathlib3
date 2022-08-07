@@ -161,7 +161,7 @@ section normed
 
 section any_field_any_algebra
 
-variables {𝕂 𝔸 𝔹 : Type*} [nondiscrete_normed_field 𝕂]
+variables {𝕂 𝔸 𝔹 : Type*} [nontrivially_normed_field 𝕂]
 variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
@@ -295,7 +295,7 @@ end any_field_any_algebra
 
 section any_field_division_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
 variables (𝕂)
 
@@ -334,7 +334,7 @@ end any_field_division_algebra
 
 section any_field_comm_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- In a commutative Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero,
@@ -562,7 +562,7 @@ lemma exp_zsmul (z : ℤ) (x : 𝔸) : exp 𝕂 (z • x) = (exp 𝕂 x) ^ z :=
 begin
   obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
   { rw [zpow_coe_nat, coe_nat_zsmul, exp_nsmul] },
-  { rw [zpow_neg₀, zpow_coe_nat, neg_smul, exp_neg, coe_nat_zsmul, exp_nsmul] },
+  { rw [zpow_neg, zpow_coe_nat, neg_smul, exp_neg, coe_nat_zsmul, exp_nsmul] },
 end
 
 lemma exp_conj (y : 𝔸) (x : 𝔸) (hy : y ≠ 0) :

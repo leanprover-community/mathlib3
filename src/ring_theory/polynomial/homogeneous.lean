@@ -152,7 +152,7 @@ lemma is_homogeneous_X (i : σ) :
   is_homogeneous (X i : mv_polynomial σ R) 1 :=
 begin
   apply is_homogeneous_monomial,
-  simp only [finsupp.support_single_ne_zero one_ne_zero, finset.sum_singleton],
+  simp only [finsupp.support_single_ne_zero _ one_ne_zero, finset.sum_singleton],
   exact finsupp.single_eq_same
 end
 

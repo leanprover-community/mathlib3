@@ -373,13 +373,16 @@ end
 
 end trans_gen
 
-lemma _root_.well_founded.trans_gen {α} {r : α → α → Prop} (h : well_founded r) :
-  well_founded (trans_gen r) :=
-⟨λ a, h.induction a (λ x H, acc.intro x (λ y hy, begin
+lemma _root_.acc.trans_gen {α} {r : α → α → Prop} {a : α} (h : acc r a) : acc (trans_gen r) a :=
+begin
+  induction h with x _ H,
+  refine acc.intro x (λ y hy, _),
   cases hy with _ hyx z _ hyz hzx,
-  { exact H y hyx },
-  { exact acc.inv (H z hzx) hyz }
-end))⟩
+  exacts [H y hyx, (H z hzx).inv hyz],
+end
+
+lemma _root_.well_founded.trans_gen {α} {r : α → α → Prop} (h : well_founded r) :
+  well_founded (trans_gen r) := ⟨λ a, (h.apply a).trans_gen⟩
 
 section trans_gen
 

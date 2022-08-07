@@ -81,7 +81,7 @@ lemma sum_smul_index_linear_map' {α : Type*} {R : Type*} {M : Type*} {M₂ : Ty
   (c • v).sum (λ a, h a) = c • (v.sum (λ a, h a)) :=
 begin
   rw [finsupp.sum_smul_index', finsupp.smul_sum],
-  { simp only [linear_map.map_smul], },
+  { simp only [map_smul], },
   { intro i, exact (h i).map_zero },
 end
 
@@ -119,15 +119,10 @@ by { ext, simp [linear_equiv_fun_on_fintype], }
 
 end finsupp
 
-section
-open_locale classical
-
 /-- decomposing `x : ι → R` as a sum along the canonical basis -/
-lemma pi_eq_sum_univ {ι : Type*} [fintype ι] {R : Type*} [semiring R] (x : ι → R) :
+lemma pi_eq_sum_univ {ι : Type*} [fintype ι] [decidable_eq ι] {R : Type*} [semiring R] (x : ι → R) :
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
 by { ext, simp }
-
-end
 
 /-! ### Properties of linear maps -/
 namespace linear_map
@@ -223,7 +218,7 @@ variables [semiring S] [module R S] [module S M] [is_scalar_tower R S M]
 def smul_right (f : M₁ →ₗ[R] S) (x : M) : M₁ →ₗ[R] M :=
 { to_fun := λb, f b • x,
   map_add' := λ x y, by rw [f.map_add, add_smul],
-  map_smul' := λ b y, by dsimp; rw [f.map_smul, smul_assoc] }
+  map_smul' := λ b y, by dsimp; rw [map_smul, smul_assoc] }
 
 @[simp] theorem coe_smul_right (f : M₁ →ₗ[R] S) (x : M) :
   (smul_right f x : M₁ → M) = λ c, f c • x := rfl
@@ -315,21 +310,34 @@ begin
   exact surjective.of_comp h,
 end
 
+lemma pow_apply_mem_of_forall_mem {p : submodule R M}
+  (n : ℕ) (h : ∀ x ∈ p, f' x ∈ p) (x : M) (hx : x ∈ p) :
+  (f'^n) x ∈ p :=
+begin
+  induction n with n ih generalizing x, { simpa, },
+  simpa only [iterate_succ, coe_comp, function.comp_app, restrict_apply] using ih _ (h _ hx),
 end
 
-section
-open_locale classical
+lemma pow_restrict {p : submodule R M} (n : ℕ)
+  (h : ∀ x ∈ p, f' x ∈ p) (h' := pow_apply_mem_of_forall_mem n h) :
+  (f'.restrict h)^n = (f'^n).restrict h' :=
+begin
+  induction n with n ih;
+  ext,
+  { simp [restrict_apply], },
+  { simp [restrict_apply, linear_map.iterate_succ, -linear_map.pow_apply, ih], },
+end
+
+end
 
 /-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
 of the canonical basis. -/
-lemma pi_apply_eq_sum_univ [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
+lemma pi_apply_eq_sum_univ [fintype ι] [decidable_eq ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
   f x = ∑ i, x i • (f (λj, if i = j then 1 else 0)) :=
 begin
   conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
   apply finset.sum_congr rfl (λl hl, _),
-  rw f.map_smul
-end
-
+  rw map_smul
 end
 
 end add_comm_monoid
@@ -391,8 +399,8 @@ include R
 to the space of linear maps `M₂ → M₃`. -/
 def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →ₗ[R] M₃) :=
 { to_fun := f.comp,
-  map_add' := λ _ _, linear_map.ext $ λ _, f.map_add _ _,
-  map_smul' := λ _ _, linear_map.ext $ λ _, f.map_smul _ _ }
+  map_add' := λ _ _, linear_map.ext $ λ _, map_add f _ _,
+  map_smul' := λ _ _, linear_map.ext $ λ _, map_smul f _ _ }
 
 @[simp]
 lemma comp_right_apply (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂) :
@@ -405,7 +413,7 @@ This is the `linear_map` version of `add_monoid_hom.eval`. -/
 @[simps]
 def applyₗ : M →ₗ[R] (M →ₗ[R] M₂) →ₗ[R] M₂ :=
 { to_fun := λ v, { to_fun := λ f, f v, ..applyₗ' R v },
-  map_smul' := λ x y, linear_map.ext $ λ f, f.map_smul _ _,
+  map_smul' := λ x y, linear_map.ext $ λ f, map_smul f _ _,
   ..applyₗ' R }
 
 /-- Alternative version of `dom_restrict` as a linear map. -/
@@ -417,12 +425,6 @@ def dom_restrict'
 
 @[simp] lemma dom_restrict'_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
   dom_restrict' p f x = f x := rfl
-
-end comm_semiring
-
-section comm_ring
-variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M] [module R M₂] [module R M₃]
 
 /--
 The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
@@ -438,7 +440,7 @@ def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
 @[simp] lemma smul_rightₗ_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
   (smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M) f x c = (f c) • x := rfl
 
-end comm_ring
+end comm_semiring
 
 end linear_map
 
@@ -550,7 +552,7 @@ def map (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) : submodule R₂ M�
   begin
     rintro c x ⟨y, hy, rfl⟩,
     obtain ⟨a, rfl⟩ := σ₁₂.is_surjective c,
-    exact ⟨_, p.smul_mem a hy, f.map_smulₛₗ _ _⟩,
+    exact ⟨_, p.smul_mem a hy, map_smulₛₗ f _ _⟩,
   end,
   .. p.to_add_submonoid.map f.to_add_monoid_hom }
 
@@ -558,6 +560,10 @@ def map (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) : submodule R₂ M�
   (map f p : set M₂) = f '' p := rfl
 
 lemma map_to_add_submonoid (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
+  (p.map f).to_add_submonoid = p.to_add_submonoid.map (f : M →+ M₂) :=
+set_like.coe_injective rfl
+
+lemma map_to_add_submonoid' (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
   (p.map f).to_add_submonoid = p.to_add_submonoid.map f :=
 set_like.coe_injective rfl
 
@@ -603,8 +609,8 @@ linearly equivalent to the original submodule. See also `linear_equiv.submodule_
 computable version when `f` has an explicit inverse. -/
 noncomputable def equiv_map_of_injective (f : M →ₛₗ[σ₁₂] M₂) (i : injective f)
   (p : submodule R M) : p ≃ₛₗ[σ₁₂] p.map f :=
-{ map_add' := by { intros, simp, refl, },
-  map_smul' := by { intros, simp, refl, },
+{ map_add' := by { intros, simp, refl },
+  map_smul' := by { intros, simp, refl },
   ..(equiv.set.image f p i) }
 
 @[simp] lemma coe_equiv_map_of_injective_apply (f : M →ₛₗ[σ₁₂] M₂) (i : injective f)
@@ -1519,8 +1525,8 @@ def of_eq (h : p = q) : p ≃ₗ[R] q :=
 variables {p q}
 
 @[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
-
 @[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
+@[simp] lemma of_eq_rfl : of_eq p p rfl = linear_equiv.refl R p := by ext; refl
 
 include σ₂₁
 /-- A linear equivalence which maps a submodule of one module onto another, restricts to a linear
@@ -1730,7 +1736,8 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
   left_inv := λ f, by { ext x, simp only [symm_apply_apply, comp_app, coe_comp, coe_coe]},
   right_inv := λ f, by { ext x, simp only [comp_app, apply_symm_apply, coe_comp, coe_coe]},
   map_add' := λ f g, by { ext x, simp only [map_add, add_apply, comp_app, coe_comp, coe_coe]},
-  map_smul' := λ c f, by { ext x, simp only [smul_apply, comp_app, coe_comp, map_smulₛₗ, coe_coe]} }
+  map_smul' := λ c f, by { ext x, simp only [smul_apply, comp_app, coe_comp, map_smulₛₗ e₂,
+                                             coe_coe]} }
 
 @[simp] lemma arrow_congr_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
   [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₂₁] [add_comm_monoid M₂₂]

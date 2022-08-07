@@ -338,7 +338,7 @@ instance : complete_space (completion α) := uniform_space.complete_space_separa
 
 instance : separated_space (completion α) := uniform_space.separated_separation
 
-instance : regular_space (completion α) := separated_regular
+instance : t3_space (completion α) := separated_t3
 
 /-- Automatic coercion from `α` to its completion. Not always injective. -/
 instance : has_coe_t α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩ -- note [use has_coe_t]

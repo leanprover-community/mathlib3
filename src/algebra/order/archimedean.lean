@@ -276,6 +276,30 @@ archimedean_iff_nat_lt.trans
  λ H x, let ⟨n, h⟩ := H x in ⟨n+1,
    lt_of_le_of_lt h (nat.cast_lt.2 (lt_add_one _))⟩⟩
 
+lemma archimedean_iff_int_lt : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x < n :=
+begin
+  rw archimedean_iff_nat_lt,
+  refine ⟨λ h x, _, λ h x, _⟩,
+  { rcases h x with ⟨n, h⟩,
+    refine ⟨n, _⟩,
+    exact_mod_cast h },
+  { rcases h x with ⟨n, h⟩,
+    refine ⟨n.to_nat, h.trans_le _⟩,
+    exact_mod_cast int.le_to_nat _ }
+end
+
+lemma archimedean_iff_int_le : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x ≤ n :=
+begin
+  rw archimedean_iff_nat_le,
+  refine ⟨λ h x, _, λ h x, _⟩,
+  { rcases h x with ⟨n, h⟩,
+    refine ⟨n, _⟩,
+    exact_mod_cast h },
+  { rcases h x with ⟨n, h⟩,
+    refine ⟨n.to_nat, h.trans _⟩,
+    exact_mod_cast int.le_to_nat _ }
+end
+
 lemma archimedean_iff_rat_lt : archimedean α ↔ ∀ x : α, ∃ q : ℚ, x < q :=
 ⟨@exists_rat_gt α _,
   λ H, archimedean_iff_nat_lt.2 $ λ x,
@@ -308,3 +332,10 @@ noncomputable def archimedean.floor_ring (α) [linear_ordered_ring α] [archimed
   floor_ring α :=
 floor_ring.of_floor α (λ a, classical.some (exists_floor a))
   (λ z a, (classical.some_spec (exists_floor a) z).symm)
+
+/-- A linear ordered field that is a floor ring is archimedean. -/
+lemma floor_ring.archimedean (α) [linear_ordered_field α] [floor_ring α] : archimedean α :=
+begin
+  rw archimedean_iff_int_le,
+  exact λ x, ⟨⌈x⌉, int.le_ceil x⟩
+end

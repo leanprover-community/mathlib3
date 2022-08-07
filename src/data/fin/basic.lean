@@ -547,6 +547,50 @@ begin
   { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact succ_pos a }
 end
 
+@[simp] lemma add_one_lt_iff {n : ℕ} {k : fin (n + 2)} :
+  k + 1 < k ↔ k = last _ :=
+begin
+  simp only [lt_iff_coe_lt_coe, coe_add, coe_last, ext_iff],
+  cases k with k hk,
+  rcases (le_of_lt_succ hk).eq_or_lt with rfl|hk',
+  { simp },
+  { simp [hk'.ne, mod_eq_of_lt (succ_lt_succ hk'), le_succ _] }
+end
+
+@[simp] lemma add_one_le_iff {n : ℕ} {k : fin (n + 1)} :
+  k + 1 ≤ k ↔ k = last _ :=
+begin
+  cases n,
+  { simp [subsingleton.elim (k + 1) k, subsingleton.elim (fin.last _) k] },
+  rw [←not_iff_not, ←add_one_lt_iff, lt_iff_le_and_ne, not_and'],
+  refine ⟨λ h _, h, λ h, h _⟩,
+  rw [ne.def, ext_iff, coe_add_one],
+  split_ifs with hk hk;
+  simp [hk, eq_comm],
+end
+
+@[simp] lemma last_le_iff {n : ℕ} {k : fin (n + 1)} :
+  last n ≤ k ↔ k = last n :=
+begin
+  rcases (le_last k).eq_or_lt with rfl|hk,
+  { simp },
+  { simp [hk.not_le, hk.ne] }
+end
+
+@[simp] lemma lt_add_one_iff {n : ℕ} {k : fin (n + 1)} :
+  k < k + 1 ↔ k < last n :=
+begin
+  rw ←not_iff_not,
+  simp
+end
+
+@[simp] lemma le_zero_iff {n : ℕ} {k : fin (n + 1)} :
+  k ≤ 0 ↔ k = 0 :=
+begin
+  cases k,
+  simp [le_iff_coe_le_coe, fin.ext_iff]
+end
+
 lemma succ_succ_ne_one (a : fin n) : fin.succ (fin.succ a) ≠ 1 := ne_of_gt (one_lt_succ_succ a)
 
 /-- `cast_lt i h` embeds `i` into a `fin` where `h` proves it belongs into.  -/
@@ -1232,6 +1276,34 @@ begin
   rw [sub_eq_add_neg, coe_add_eq_ite, coe_neg_one, if_pos, add_comm, add_tsub_add_eq_tsub_left],
   rw [add_comm ↑a, add_le_add_iff_left, nat.one_le_iff_ne_zero],
   rwa subtype.ext_iff at h
+end
+
+@[simp] lemma lt_sub_one_iff {n : ℕ} {k : fin (n + 2)} :
+  k < k - 1 ↔ k = 0 :=
+begin
+  rcases k with ⟨(_|k), hk⟩,
+  simp [lt_iff_coe_lt_coe],
+  have : (k + 1 + (n + 1)) % (n + 2) = k % (n + 2),
+  { rw [add_right_comm, add_assoc, add_mod_right] },
+  simp [lt_iff_coe_lt_coe, ext_iff, fin.coe_sub, succ_eq_add_one, this,
+        mod_eq_of_lt ((lt_succ_self _).trans hk)]
+end
+
+@[simp] lemma le_sub_one_iff {n : ℕ} {k : fin (n + 1)} :
+  k ≤ k - 1 ↔ k = 0 :=
+begin
+  cases n,
+  { simp [subsingleton.elim (k - 1) k, subsingleton.elim 0 k] },
+  rw [←lt_sub_one_iff, le_iff_lt_or_eq, lt_sub_one_iff, or_iff_left_iff_imp, eq_comm,
+      sub_eq_iff_eq_add],
+  simp
+end
+
+lemma sub_one_lt_iff {n : ℕ} {k : fin (n + 1)} :
+  k - 1 < k ↔ 0 < k :=
+begin
+  rw ←not_iff_not,
+  simp
 end
 
 /-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/

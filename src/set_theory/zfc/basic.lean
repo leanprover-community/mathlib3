@@ -482,10 +482,10 @@ quotient.induction_on₂ x y (λ u v h, quotient.sound (mem.ext (λ w, h ⟦w⟧
 theorem ext_iff {x y : Set.{u}} : x = y ↔ (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) :=
 ⟨λ h, by simp [h], ext⟩
 
-@[simp] theorem to_set_inj {x y : Set} : x.to_set = y.to_set ↔ x = y :=
-by simp_rw [ext_iff, ←mem_to_set, ←set.ext_iff]
+theorem to_set_injective : function.injective to_set := λ x y h, ext $ set.ext_iff.1 h
 
-theorem to_set_injective : function.injective to_set := λ x y, to_set_inj.1
+@[simp] theorem to_set_inj {x y : Set} : x.to_set = y.to_set ↔ x = y :=
+to_set_injective.eq_iff
 
 instance : is_antisymm Set (⊆) := ⟨λ a b hab hba, ext $ λ c, ⟨@hab c, @hba c⟩⟩
 

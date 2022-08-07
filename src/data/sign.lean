@@ -139,7 +139,7 @@ lemma lt_one_iff {a : sign_type} : a < 1 ↔ a ≤ 0 := by dec_trivial!
 
 @[simp] lemma not_lt_neg_one (a : sign_type) : ¬ a < -1 := by dec_trivial!
 
-@[simp] lemma not_one_lt (a : sign_type) : ¬ 1 < a := by dec_trivial!
+@[simp] lemma not_one_lt (a : sign_type) : ¬ 1 < a := not_top_lt
 
 @[simp] lemma self_eq_neg_iff (a : sign_type) : a = -a ↔ a = 0 := by dec_trivial!
 

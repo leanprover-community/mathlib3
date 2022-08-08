@@ -358,10 +358,41 @@ end
 
 def fis.bijective {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ)
-  (inj : ∀ i ∈ bigger j, function.bijective $ F.map (op_hom_of_le H)) :
+  (bij : ∀ i ∈ bigger j, function.bijective $ F.map (op_hom_of_le H)) :
   function.bijective (λ (s :F.sections), s.val j) :=
 begin
-  sorry
+  let inj := λ i H, (bij i H).1,
+  let surj := λ i H, (bij i H).2,
+  let eqv := λ i H, equiv.of_bijective _ (bij i H),
+  refine ⟨fis.injective F j inj,_⟩,
+
+  rintro x,
+
+  let s :  Π (i : Jᵒᵖ), {y : F.obj i | ∃ (k : Jᵒᵖ) (ik : i.unop ≤ k.unop) (jk : j.unop ≤ k.unop), F.map (op_hom_of_le ik) ((eqv k jk).inv_fun x) = y}, by {
+    rintro i,
+    let m' := (directed_of (≤) i.unop j.unop).some,
+    obtain ⟨mi',mj'⟩ := (directed_of (≤) i.unop j.unop).some_spec,
+    let m := opposite.op m',
+    have mi : opposite.unop i ≤ opposite.unop m, by {simp only [opposite.unop_op],exact mi'},
+    have mj : opposite.unop j ≤ opposite.unop m, by {simp only [opposite.unop_op],exact mj'},
+    use F.map (op_hom_of_le mi) ((eqv m mj).inv_fun x),
+    exact ⟨m,mi,mj,rfl⟩,
+  },
+  use (λ i, (s i).val),
+  {
+    rintro i k ik,
+    obtain ⟨mi,mii,mij,mieq⟩ := (s i).prop,
+    obtain ⟨mk,mkk,mkj,mkeq⟩ := (s k).prop,
+    sorry,
+
+
+  },
+  { obtain ⟨m,mj,mj',meq⟩ := (s j).prop,
+    simp, simp at meq, rw ←meq,
+    dsimp [eqv],
+    apply equiv.of_bijective_apply_symm_apply,},
+
+
 end
 
 instance directed_of_cofinal {J : Type u} [preorder J] [is_directed J has_le.le]

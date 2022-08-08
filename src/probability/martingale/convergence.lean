@@ -109,60 +109,55 @@ lemma upcrossings_eq_top_of_frequently_lt (hab : a < b)
 classical.by_contradiction (λ h, not_frequently_of_upcrossings_lt_top hab h ⟨h₁, h₂⟩)
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {x : ℕ → ℝ} (hx : liminf at_top (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
-  ∃ R, ∃ᶠ n in at_top, x n < R :=
+  {ι : Type*} [semilattice_sup ι] [nonempty ι] {l : filter ι}
+  {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
-  simp_rw [not_exists, not_frequently, not_lt, eventually_at_top] at h,
-  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, _),
-  obtain ⟨N, hN⟩ := h r,
-  exact le_Liminf_of_le (by is_bounded_default) (eventually_at_top.2
-    ⟨N, λ n hn, ennreal.coe_le_coe.2 $ nnreal.coe_le_coe.1 $ (hN n hn).trans (le_abs_self _)⟩),
+  simp_rw [not_exists, not_frequently, not_lt] at h,
+  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
+  simp only [eventually_map, ennreal.coe_le_coe],
+  filter_upwards [h r] with i hi using hi.trans ((coe_nnnorm (x i)).symm ▸ le_abs_self (x i)),
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {x : ℕ → ℝ} (hx : liminf at_top (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
-  ∃ R, ∃ᶠ n in at_top, R < x n :=
+  {ι : Type*} [semilattice_sup ι] [nonempty ι] {l : filter ι}
+  {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
-  simp_rw [not_exists, not_frequently, not_lt, eventually_at_top] at h,
-  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, _),
-  obtain ⟨N, hN⟩ := h (-r),
-  refine le_Liminf_of_le (by is_bounded_default) (eventually_at_top.2
-    ⟨N, λ n hn, ennreal.coe_le_coe.2 $ nnreal.coe_le_coe.1 $ (le_neg.1 $ hN n hn).trans _⟩),
-  rw [coe_nnnorm, real.norm_eq_abs, ← abs_neg],
-  exact le_abs_self _,
+  simp_rw [not_exists, not_frequently, not_lt] at h,
+  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
+  simp only [eventually_map, ennreal.coe_le_coe],
+  filter_upwards [h (-r)] with i hi using (le_neg.1 hi).trans (neg_le_abs_self _),
 end
 
 lemma exists_upcrossings_of_not_bounded_under
-  (hf : liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) ≠ ∞)
-  (hbdd : ¬ is_bounded_under (≤) at_top (λ n, |f n ω|)) :
-  ∃ a b : ℚ, a < b ∧ (∃ᶠ n in at_top, f n ω < a) ∧ (∃ᶠ n in at_top, ↑b < f n ω) :=
+  {ι : Type*} [semilattice_sup ι] [nonempty ι] {l : filter ι} {x : ι → ℝ}
+  (hf : liminf l (λ i, (∥x i∥₊ : ℝ≥0∞)) ≠ ∞)
+  (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
+  ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
 begin
   rw [is_bounded_under_le_abs, not_and_distrib] at hbdd,
   obtain hbdd | hbdd := hbdd,
   { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top hf,
     obtain ⟨q, hq⟩ := exists_rat_gt R,
     refine ⟨q, q + 1, (lt_add_iff_pos_right _).2 zero_lt_one, _, _⟩,
-    { rw frequently_at_top at hR ⊢,
-      intro a,
-      obtain ⟨b, hb₁, hb₂⟩ := hR a,
-      exact ⟨b, hb₁, hb₂.trans hq⟩ },
+    { refine λ hcon, hR _,
+      filter_upwards [hcon] with x hx using not_lt.2 (lt_of_lt_of_le hq (not_lt.1 hx)).le },
     { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
         ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
-      rw frequently_at_top,
-      exact λ a, let ⟨b, hb₁, hb₂⟩ := hbdd ↑(q + 1) a in ⟨b, hb₁, hb₂⟩ } },
+      refine λ hcon, hbdd ↑(q + 1) _,
+      filter_upwards [hcon] with x hx using not_lt.1 hx } },
   { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top' hf,
     obtain ⟨q, hq⟩ := exists_rat_lt R,
     refine ⟨q - 1, q, (sub_lt_self_iff _).2 zero_lt_one, _, _⟩,
     { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
         ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
-      rw frequently_at_top,
-      exact λ a, let ⟨b, hb₁, hb₂⟩ := hbdd ↑(q - 1) a in ⟨b, hb₁, hb₂⟩ },
-    { rw frequently_at_top at hR ⊢,
-      intro a,
-      obtain ⟨b, hb₁, hb₂⟩ := hR a,
-      exact ⟨b, hb₁, hq.trans hb₂⟩ } }
+      refine λ hcon, hbdd ↑(q - 1) _,
+      filter_upwards [hcon] with x hx using not_lt.1 hx },
+    { refine λ hcon, hR _,
+      filter_upwards [hcon] with x hx using not_lt.2 ((not_lt.1 hx).trans hq.le) } }
 end
 
 /-- A realization of a stochastic process with bounded upcrossings and bounded liminfs is
@@ -186,15 +181,30 @@ begin
       (upcrossings_eq_top_of_frequently_lt (rat.cast_lt.2 hab) h₁ h₂)) }
 end
 
-lemma liminf_at_top_ae_bdd_of_snorm_bdd
+lemma liminf_at_top_ae_bdd_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞)
+  (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
+  ∀ᵐ ω ∂μ, liminf at_top (λ n, (∥f n ω∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
+begin
+  refine ae_lt_top
+    (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
+    (lt_of_le_of_lt (lintegral_liminf_le
+      (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
+      (lt_of_le_of_lt _ (ennreal.rpow_lt_top_of_nonneg
+        ennreal.to_real_nonneg ennreal.coe_ne_top : ↑R ^ p.to_real < ∞))).ne,
+  simp_rw snorm_eq_lintegral_rpow_nnnorm hp hp' at hbdd,
+  simp_rw [liminf_eq, eventually_at_top],
+  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans
+    ((ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hp hp')).1 (hbdd _))),
+end
+
+lemma liminf_at_top_ae_bdd_of_snorm_one_bdd
   (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ ω ∂μ, liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞ :=
 begin
-  refine ae_lt_top (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal))
-    (lt_of_le_of_lt (lintegral_liminf_le (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal))
-    (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞))).ne,
-  simp_rw [← snorm_one_eq_lintegral_nnnorm, liminf_eq, eventually_at_top],
-  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hbdd _)),
+  filter_upwards [liminf_at_top_ae_bdd_of_snorm_bdd one_ne_zero ennreal.one_ne_top hfmeas hbdd]
+    with ω hω,
+  simp_rw [ennreal.one_to_real, ennreal.rpow_one] at hω,
+  assumption
 end
 
 variables [is_finite_measure μ]
@@ -247,7 +257,7 @@ lemma submartingale.exists_ae_tendsto_of_bdd
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ ω ∂μ, ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
 begin
-  filter_upwards [hf.upcrossings_ae_lt_top hbdd, liminf_at_top_ae_bdd_of_snorm_bdd
+  filter_upwards [hf.upcrossings_ae_lt_top hbdd, liminf_at_top_ae_bdd_of_snorm_one_bdd
     (λ n, (hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl) hbdd] with ω h₁ h₂,
   exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end

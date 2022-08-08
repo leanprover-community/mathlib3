@@ -31,6 +31,33 @@ begin
   rw [digits, zero_div, nat.floor_zero, nat.zero_mod, pi.zero_apply],
 end
 
+lemma digits_mul_base_pow {b : ℕ} (hb : 1 < b) (r : R) (z i : ℤ) :
+  digits b (r * b ^ z) i = digits b r (i - z) :=
+begin
+  have hb' : (b : R) ≠ 0 := by exact_mod_cast (zero_le_one.trans_lt hb).ne',
+  rw [digits, digits, zpow_sub₀ hb', div_div_eq_mul_div],
+end
+
+lemma digits_base_pow_mul {b : ℕ} (hb : 1 < b) (r : R) (z i : ℤ) :
+  digits b (↑b ^ z * r) i = digits b r (i - z) :=
+by rw [mul_comm, digits_mul_base_pow hb r]
+
+lemma digits_mul_base {b : ℕ} (hb : 1 < b) (r : R) (i : ℤ) :
+  digits b (r * b) i = digits b r (i - 1) :=
+by simpa using digits_mul_base_pow hb r 1 i
+
+lemma digits_base_mul {b : ℕ} (hb : 1 < b) (r : R) (i : ℤ) :
+  digits b (↑b * r) i = digits b r (i - 1) :=
+by simpa using digits_base_pow_mul hb r 1 i
+
+lemma digits_mul_base_inv {b : ℕ} (hb : 1 < b) (r : R) (i : ℤ) :
+  digits b (r * b⁻¹) i = digits b r (i + 1) :=
+by simpa using digits_mul_base_pow hb r (-1) i
+
+lemma digits_base_inv_mul {b : ℕ} (hb : 1 < b) (r : R) (i : ℤ) :
+  digits b ((↑b : R)⁻¹ * r) i = digits b r (i + 1) :=
+by simpa using digits_base_pow_mul hb r (-1) i
+
 /-- All the digits of greater powers than `int.log b r` are zero -/
 lemma digits_eq_zero_of_log_lt {b : ℕ} {r : R} (z : ℤ) (hz : int.log b r < z) :
   digits b r z = 0 :=
@@ -56,7 +83,7 @@ end
 
 @[simp] lemma digits_zpow {b : ℕ} (hb : 1 < b) (z : ℤ) : digits b (b ^ z : R) = pi.single z 1 :=
 begin
-  have hb' : (b : R) ≠ 0 :=  by exact_mod_cast (zero_le_one.trans_lt hb).ne',
+  have hb' : (b : R) ≠ 0 := by exact_mod_cast (zero_le_one.trans_lt hb).ne',
   ext z₂,
   rw [digits, div_eq_mul_inv, ←zpow_neg, ←zpow_add₀ hb', ←sub_eq_add_neg],
   obtain rfl | hz := decidable.eq_or_ne z z₂,
@@ -84,9 +111,59 @@ begin
   exact digits_zpow hb _,
 end
 
+
+lemma digits_nsmul_base_pow_add {b : ℕ} (hb : 1 < b) (n : ℕ) (r : R) (z : ℤ)
+  (hn : n < b) (hr : r < ↑b ^ z) :
+  digits b (n • ↑b ^ z + r) = pi.single z n + digits b r :=
+begin
+  have hb' : (b : R) ≠ 0 := by exact_mod_cast (zero_le_one.trans_lt hb).ne',
+  ext z₂,
+  rw [digits, div_eq_mul_inv, ←zpow_neg, add_mul, smul_mul_assoc, ←zpow_add₀ hb', ←sub_eq_add_neg],
+  obtain rfl | hz := decidable.eq_or_ne z z₂,
+  { rw [pi.add_apply, pi.single_eq_same, sub_self, zpow_zero, nsmul_one, add_comm,
+    @nat.floor_add_nat R _ _ _ _ _ n, nat.floor_one, nat.mod_eq_of_lt hb], },
+  rw [pi.single_eq_of_ne' hz],
+  rw ←sub_ne_zero at hz,
+  revert hz,
+  generalize : z - z₂ = dz,
+  intro hz,
+  obtain ⟨n, rfl | rfl⟩ := int.eq_coe_or_neg dz,
+  { rw [int.coe_nat_ne_zero] at hz,
+    rw [zpow_coe_nat, ←nat.cast_pow, nat.floor_coe],
+    exact nat.mod_eq_zero_of_dvd (dvd_pow_self _ hz) },
+  { rw [neg_ne_zero, int.coe_nat_ne_zero] at hz,
+    rw [zpow_neg],
+    convert nat.zero_mod _,
+    rw [zpow_coe_nat, nat.floor_eq_zero],
+    apply inv_lt_one _,
+    apply one_lt_pow; assumption_mod_cast },
+end
+
+
 /-- The digit at `int.log b r` is not zero -/
 lemma digits_log {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
   digits b r (int.log b r) ≠ 0 :=
+begin
+  rw [digits],
+  suffices : 1 ≤ r / (↑b ^ int.log b r) ∧ r / (↑b ^ int.log b r) < b,
+  { rw ←nat.floor_lt' at this,
+    { rw nat.mod_eq_of_lt this.2,
+      rw [ne.def, nat.floor_eq_zero, not_lt],
+      exact this.1 },
+    exact (zero_lt_one.trans hb).ne' },
+  have hb' : (1 : R) < b := nat.one_lt_cast.mpr hb,
+  have hb'' := zpow_pos_of_pos (zero_lt_one.trans hb') (int.log b r),
+  split,
+  { rw [one_le_div hb''],
+    exact int.zpow_log_le_self hb hr, },
+  { rw [div_lt_iff' hb'', ←zpow_add_one₀ (zero_lt_one.trans hb').ne'],
+    exact int.lt_zpow_succ_log_self hb r }
+end
+
+open_locale big_operators
+
+lemma sum_Ioc_log_digits_pow_lt {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) (j : ℤ):
+  ∑ i in finset.Ioc j (int.log b r), digits b r i • (b : R) ^ i < b ^ (int.log b r + 1) :=
 begin
   rw [digits],
   suffices : 1 ≤ r / (↑b ^ int.log b r) ∧ r / (↑b ^ int.log b r) < b,

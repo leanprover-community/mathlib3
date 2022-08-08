@@ -260,7 +260,7 @@ by { ext, simp [le_floor_iff, ha] }
 end linear_ordered_semiring
 
 section linear_ordered_ring
-variables [linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ}
+variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :=
 eq_of_forall_le_iff $ λ b, begin

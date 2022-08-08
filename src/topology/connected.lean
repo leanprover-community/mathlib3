@@ -1175,6 +1175,10 @@ begin
   exact is_open_univ.connected_component_in
 end
 
+lemma is_clopen_connected_component [locally_connected_space α] {x : α} :
+  is_clopen (connected_component x) :=
+⟨is_open_connected_component, is_closed_connected_component⟩
+
 lemma locally_connected_space_iff_connected_component_in_open :
   locally_connected_space α ↔ ∀ F : set α, is_open F → ∀ x ∈ F,
   is_open (connected_component_in F x) :=

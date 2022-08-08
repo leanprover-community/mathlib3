@@ -46,9 +46,11 @@ image_comm $ map_mul _ _
 end set
 
 namespace mul_action
-variables {α β γ : Type*} [group α] [mul_action α β] {a : α}
+variables {α β γ : Type*} [group α] [mul_action α β] [mul_action α γ] {a : α}
 
-open set
+open function set
+
+section set
 
 @[simp, to_additive] lemma stabilizer_empty : stabilizer α (∅ : set β) = ⊤ :=
 subgroup.coe_eq_univ.1 $ eq_univ_of_forall $ λ a, smul_set_empty
@@ -74,6 +76,28 @@ begin
   rintro a ha rfl,
   rw [←image_smul', ha],
 end
+
+lemma le_stabilizer_smul_left [has_smul β γ] [is_scalar_tower α β γ] (b : β) (c : γ) :
+  stabilizer α b ≤ stabilizer α (b • c) :=
+by { simp_rw [set_like.le_def, mem_stabilizer_iff, ←smul_assoc], rintro a h, rw h }
+
+@[to_additive]
+lemma le_stabilizer_smul_right [has_smul β γ] [smul_comm_class α β γ] (b : β) (c : γ) :
+  stabilizer α c ≤ stabilizer α (b • c) :=
+by { simp_rw [set_like.le_def, mem_stabilizer_iff, smul_comm], rintro a h, rw h }
+
+@[simp] lemma stabilizer_smul_left [group β] [mul_action β γ] [is_scalar_tower α β β] (b c : β) :
+  stabilizer α (b • c) = stabilizer α b :=
+(le_stabilizer_smul_left _ _).antisymm' $ λ a ha,
+  by { dsimp at ha, rwa [←smul_mul_assoc, mul_left_inj] at ha }
+
+@[simp, to_additive]
+lemma stabilizer_smul_right [group β] [mul_action β γ] [smul_comm_class α β γ] (b : β) (c : γ) :
+  stabilizer α (b • c) = stabilizer α c :=
+(le_stabilizer_smul_right _ _).antisymm' $ (le_stabilizer_smul_right b⁻¹ _).trans_eq $
+  by rw inv_smul_smul
+
+end set
 
 section
 variables [decidable_eq β]

@@ -47,9 +47,9 @@ the σ-algebra `ℱ∞ := ⨆ n, ℱ n`.
 Mathematically, we proceed by first noting that a real sequence $(x_n)$ converges if
 (a) $\limsup_{n \to \infty} |x_n| < \infty$, (b) for all $a < b \in \mathbb{Q}$ we have the
 number of upcrossings of $(x_n)$ from below $a$ to above $b$ is finite.
-Thus, for all $x$ satisfying $\limsup_{n \to \infty} |f_n(x)| < \infty$ and the number of
-upcrossings of $(f_n(x))$ from below $a$ to above $b$ is finite for all $a < b \in \mathbb{Q}$,
-we have $(f_n(x))$ is convergent.
+Thus, for all $\omega$ satisfying $\limsup_{n \to \infty} |f_n(\omega)| < \infty$ and the number of
+upcrossings of $(f_n(\omega))$ from below $a$ to above $b$ is finite for all $a < b \in \mathbb{Q}$,
+we have $(f_n(\omega))$ is convergent.
 
 Hence, assuming $(f_n)$ is L¹-bounded, using Fatou's lemma, we have
 $$
@@ -71,10 +71,10 @@ as required.
 Implementation wise, we have `tendsto_of_no_upcrossings` which showed that
 a bounded sequence converges if it does not visit below $a$ and above $b$ infinitely often
 for all $a, b ∈ s$ for some dense set $s$. So, we may skip the first step provided we can prove
-that the realizations are bounded almost everywhere. Indeed, suppose $(|f_n(x)|)$ is not bounded,
-then either $f_n(x) \to \pm \infty$ or one of $\limsup f_n(x)$ or $\liminf f_n(x)$ equals
-$\pm \infty$ while the other is finite. But the first case contradicts $\liminf |f_n(x)| < \infty$
-while the second case contradicts finite upcrossings.
+that the realizations are bounded almost everywhere. Indeed, suppose $(|f_n(\omega)|)$ is not
+bounded, then either $f_n(\omega) \to \pm \infty$ or one of $\limsup f_n(\omega)$ or
+$\liminf f_n(\omega)$ equals $\pm \infty$ while the other is finite. But the first case
+contradicts $\liminf |f_n(\omega)| < \infty$ while the second case contradicts finite upcrossings.
 
 -/
 

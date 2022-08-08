@@ -18,8 +18,6 @@ some basic statements about it.
 quadratic character
 -/
 
-namespace char
-
 /-!
 ### Definition of the quadratic character
 
@@ -274,8 +272,6 @@ is_nontrivial.sum_eq_zero (quadratic_char_is_nontrivial hF)
 
 end quadratic_char
 
-end char
-
 /-!
 ### Special values of the quadratic character
 
@@ -283,8 +279,6 @@ We express `quadratic_char F (-1)` in terms of `χ₄`.
 -/
 
 section special_values
-
-namespace char
 
 open zmod mul_char
 
@@ -304,7 +298,7 @@ begin
 end
 
 /-- `-1` is a square in `F` iff `#F` is not congruent to `3` mod `4`. -/
-lemma is_square_neg_one_iff : is_square (-1 : F) ↔ fintype.card F % 4 ≠ 3 :=
+lemma finite_field.is_square_neg_one_iff : is_square (-1 : F) ↔ fintype.card F % 4 ≠ 3 :=
 begin
   classical, -- suggested by the linter (instead of `[decidable_eq F]`)
   by_cases hF : ring_char F = 2,
@@ -327,7 +321,8 @@ is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F) is_quadratic_χ₈ hF
   ((quadratic_char_eq_pow_of_char_ne_two'' hF 2).trans (finite_field.two_pow_card hF))
 
 /-- `2` is a square in `F` iff `#F` is not congruent to `3` or `5` mod `8`. -/
-lemma is_square_two_iff : is_square (2 : F) ↔ fintype.card F % 8 ≠ 3 ∧ fintype.card F % 8 ≠ 5 :=
+lemma finite_field.is_square_two_iff :
+  is_square (2 : F) ↔ fintype.card F % 8 ≠ 3 ∧ fintype.card F % 8 ≠ 5 :=
 begin
   classical,
   by_cases hF : ring_char F = 2,
@@ -357,7 +352,7 @@ begin
 end
 
 /-- `-2` is a square in `F` iff `#F` is not congruent to `5` or `7` mod `8`. -/
-lemma is_square_neg_two_iff :
+lemma finite_field.is_square_neg_two_iff :
   is_square (-2 : F) ↔ fintype.card F % 8 ≠ 5 ∧ fintype.card F % 8 ≠ 7 :=
 begin
   classical,
@@ -398,7 +393,7 @@ begin
     rw [int.cast_neg, int.cast_one],
     exact ring.neg_one_ne_one_of_char_ne_two hF', },
   have hχ₂ : χ.is_quadratic := is_quadratic.comp (quadratic_char_is_quadratic F) _,
-  have h := card_pow_card hχ₁ hχ₂ h hF',
+  have h := char.card_pow_card hχ₁ hχ₂ h hF',
   rw [← quadratic_char_eq_pow_of_char_ne_two'' hF'] at h,
   exact (is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F')
              (quadratic_char_is_quadratic F) hF' h).symm,
@@ -417,7 +412,8 @@ end
 
 /-- An odd prime `p` is a square in `F` iff the quadratic character of `zmod p` does not
 take the value `-1` on `χ₄(#F) * #F`. -/
-lemma is_square_odd_prime_iff (hF : ring_char F ≠ 2) {p : ℕ} [fact p.prime] (hp : p ≠ 2) :
+lemma finite_field.is_square_odd_prime_iff (hF : ring_char F ≠ 2) {p : ℕ} [fact p.prime]
+  (hp : p ≠ 2) :
   is_square (p : F) ↔ quadratic_char (zmod p) (χ₄ (fintype.card F) * fintype.card F) ≠ -1 :=
 begin
   classical,
@@ -432,7 +428,5 @@ begin
         quadratic_char_odd_prime hF hp],
     exact hFp, },
 end
-
-end char
 
 end special_values

@@ -658,7 +658,7 @@ end charted_space
 have a topological structure, where the topology would come from the charts. For this, one needs
 charts that are only local equivs, and continuity properties for their composition.
 This is formalised in `charted_space_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure charted_space_core (H : Type*) [topological_space H] (M : Type*) :=
 (atlas            : set (local_equiv M H))
 (chart_at         : M → local_equiv M H)
@@ -949,7 +949,7 @@ end topological_space.opens
 /-- A `G`-diffeomorphism between two charted spaces is a homeomorphism which, when read in the
 charts, belongs to `G`. We avoid the word diffeomorph as it is too related to the smooth category,
 and use structomorph instead. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure structomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
   [topological_space M] [topological_space M'] [charted_space H M] [charted_space H M']
   extends homeomorph M M' :=

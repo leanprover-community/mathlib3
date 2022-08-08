@@ -376,7 +376,7 @@ private def from_vector : vector α 2 → α × α
 
 private lemma perm_card_two_iff {a₁ b₁ a₂ b₂ : α} :
   [a₁, b₁].perm [a₂, b₂] ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ a₁ = b₂ ∧ b₁ = a₂ :=
-{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
+{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons], tidy },
   mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl } }
 
 /--

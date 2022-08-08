@@ -349,10 +349,10 @@ lemma residue_map_is_local_ring_hom :
   is_local_ring_hom (local_ring.residue R) :=
 begin
   constructor,
-  intros a b,
+  intros a ha,
   by_contra,
-  erw ideal.quotient.eq_zero_iff_mem.mpr ((local_ring.mem_maximal_ideal _).mpr h) at b,
-  exact b.ne_zero rfl,
+  erw ideal.quotient.eq_zero_iff_mem.mpr ((local_ring.mem_maximal_ideal _).mpr h) at ha,
+  exact ha.ne_zero rfl,
 end
 
 end

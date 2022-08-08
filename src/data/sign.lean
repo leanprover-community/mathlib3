@@ -35,15 +35,12 @@ end⟩
 @[simp] lemma neg_eq_neg_one : neg = -1 := rfl
 @[simp] lemma pos_eq_one     : pos = 1  := rfl
 
-/-- The multiplication on `sign_type`. -/
-def mul : sign_type → sign_type → sign_type
-| neg neg  := pos
-| neg zero := zero
-| neg pos  := neg
-| zero _   := zero
-| pos h    := h
-
-instance : has_mul sign_type := ⟨mul⟩
+instance : has_mul sign_type :=
+⟨λ x y, match x with
+| neg  := -y
+| zero := zero
+| pos  := y
+end⟩
 
 /-- The less-than relation on signs. -/
 inductive le : sign_type → sign_type → Prop

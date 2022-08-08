@@ -184,7 +184,7 @@ section adjunction
  variables {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R) [preserves_monomorphisms L]
 
  include adj
- def injective_of_adjoint {J : 𝓑} [injective J] : injective $ R.obj J :=
+ lemma injective_of_adjoint {J : 𝓑} [injective J] : injective $ R.obj J :=
  { factors := λ A A' g f im,
    begin
      resetI,

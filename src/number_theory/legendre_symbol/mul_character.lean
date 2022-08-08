@@ -289,7 +289,8 @@ lemma inv_apply_eq_inv' {R' : Type v} [field R'] (χ : mul_char R R') (a : R) :
   χ⁻¹ a = (χ a)⁻¹ :=
 (inv_apply_eq_inv χ a).trans $ ring.inverse_eq_inv (χ a)
 
-/-- When the domain has a zero, we can as well take the inverse first. -/
+/-- When the domain has a zero, then the inverse of a multiplicative character `χ`,
+applied to `a`, is `χ` applied to the inverse of `a`. -/
 lemma inv_apply {R : Type u} [comm_monoid_with_zero R] (χ : mul_char R R') (a : R) :
   χ⁻¹ a = χ (ring.inverse a) :=
 begin
@@ -302,7 +303,8 @@ begin
     rw [map_nonunit _ ha, ring.inverse_non_unit a ha, mul_char.map_zero χ], },
 end
 
-/-- When the domain is a field, we can use the field inverse instead. -/
+/-- When the domain has a zero, then the inverse of a multiplicative character `χ`,
+applied to `a`, is `χ` applied to the inverse of `a`. -/
 lemma inv_apply' {R : Type u} [field R] (χ : mul_char R R') (a : R) : χ⁻¹ a = χ a⁻¹ :=
 (inv_apply χ a).trans $ congr_arg _ (ring.inverse_eq_inv a)
 
@@ -315,7 +317,7 @@ begin
       ring.inverse_mul_cancel _ (is_unit.map _ x.is_unit), one_apply_coe],
 end
 
-/-- Finally, the commutative group structure on `mul_char R R'`. -/
+/-- The commutative group structure on `mul_char R R'`. -/
 noncomputable
 instance comm_group : comm_group (mul_char R R') :=
 { one := 1,

@@ -719,7 +719,8 @@ lemma cont_mdiff_at_iff_cont_mdiff_on_nhds {n : ℕ} :
 by simp [← cont_mdiff_within_at_univ, cont_mdiff_within_at_iff_cont_mdiff_on_nhds,
   nhds_within_univ]
 
-/-- Note: does not hold for `n = ∞`. -/
+/-- Note: This does not hold for `n = ∞`. `f` being `C^∞` at `x` means that for every `n`, `f` is
+`C^n` on some neighborhood of `x`, but this neighborhood can depend on `n`. -/
 lemma cont_mdiff_at_iff_cont_mdiff_at_nhds {n : ℕ} :
   cont_mdiff_at I I' n f x ↔ ∀ᶠ x' in 𝓝 x, cont_mdiff_at I I' n f x' :=
 begin

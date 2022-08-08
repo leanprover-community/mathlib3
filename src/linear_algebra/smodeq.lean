@@ -76,6 +76,14 @@ lemma congr (hxy₁ : x₁ ≡ y₁ [SMOD U]) (hxy₂ : x₂ ≡ y₂ [SMOD U]) 
 lemma mem_iff (hxy : x ≡ y [SMOD U]) : x ∈ U ↔ y ∈ U :=
 by { rw [← zero, ← zero], exact congr hxy refl }
 
+lemma mem_iff_of_le {x y : M} (h : x ≡ y [SMOD U₁]) (h' : U₁ ≤ U₂) :
+  x ∈ U₂ ↔ y ∈ U₂ :=
+(h.mono h').mem_iff
+
+lemma mem_sup_right_iff {Ug₁ Ug₂ : add_subgroup M} {x y : M} (h : x ≡ y [SMOD Ug₂]) :
+  x ∈ Ug₁ ⊔ Ug₂ ↔ y ∈ Ug₁ ⊔ Ug₂ :=
+(h.mono (le_sup_right : Ug₂ ≤ Ug₁ ⊔ Ug₂)).mem_iff
+
 theorem map (hxy : x ≡ y [SMOD Us]) (f : M →ₗ[R] N) : f x ≡ f y [SMOD Us.map f] :=
 by { rw [smodeq.def, ← map_sub], exact mem_map_of_mem hxy }
 
@@ -89,6 +97,17 @@ begin
   show ideal.quotient.mk I (f.eval x) = ideal.quotient.mk I (f.eval y),
   change ideal.quotient.mk I x = ideal.quotient.mk I y at h,
   rw [← polynomial.eval₂_at_apply, ← polynomial.eval₂_at_apply, h],
+end
+
+lemma exists_iff_mem_sup {Ug₁ Ug₂ : add_subgroup M} {r : M} :
+  (∃ r' ∈ Ug₂, r ≡ r' [SMOD Ug₁]) ↔ r ∈ Ug₁ ⊔ Ug₂ :=
+begin
+  split,
+  { rintros ⟨r', hr', e : _ ∈ Ug₁⟩, rw ← sub_add_cancel r r',
+    exact add_subgroup.add_mem_sup e hr' },
+  { intro hr,
+    obtain ⟨x, hx, y, hy, rfl⟩ := add_subgroup.mem_sup.mp hr,
+    exact ⟨y, hy, (by rwa add_sub_cancel : _ ∈ _)⟩ }
 end
 
 end smodeq

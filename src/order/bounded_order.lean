@@ -346,12 +346,7 @@ end
 
 /-- Propositions form a distributive lattice. -/
 instance Prop.distrib_lattice : distrib_lattice Prop :=
-{ le           := λ a b, a → b,
-  le_refl      := λ _, id,
-  le_trans     := λ a b c f g, g ∘ f,
-  le_antisymm  := λ a b Hab Hba, propext ⟨Hab, Hba⟩,
-
-  sup          := or,
+{ sup          := or,
   le_sup_left  := @or.inl,
   le_sup_right := @or.inr,
   sup_le       := λ a b c, or.rec,
@@ -361,7 +356,8 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
   inf_le_right := @and.right,
   le_inf       := λ a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
   le_sup_inf   := λ a b c H, or_iff_not_imp_left.2 $
-    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩ }
+    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
+  ..Prop.partial_order }
 
 /-- Propositions form a bounded order. -/
 instance Prop.bounded_order : bounded_order Prop :=
@@ -376,9 +372,6 @@ instance Prop.le_is_total : is_total Prop (≤) :=
 noncomputable instance Prop.linear_order : linear_order Prop :=
 by classical; exact lattice.to_linear_order Prop
 
-lemma subrelation_iff_le {r s : α → α → Prop} : subrelation r s ↔ r ≤ s := iff.rfl
-
-@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 
@@ -1078,6 +1071,42 @@ lemma well_founded_gt [preorder α] (h : @well_founded α (>)) : @well_founded (
 lemma _root_.with_bot.well_founded_gt [preorder α] (h : @well_founded α (>)) :
   @well_founded (with_bot α) (>) :=
 @with_top.well_founded_lt αᵒᵈ _ h
+
+instance trichotomous.lt [preorder α] [is_trichotomous α (<)] : is_trichotomous (with_top α) (<) :=
+⟨begin
+  rintro (a | _) (b | _),
+  iterate 3 { simp },
+  simpa [option.some_inj] using @trichotomous _ (<) _ a b
+end⟩
+
+instance is_well_order.lt [preorder α] [h : is_well_order α (<)] : is_well_order (with_top α) (<) :=
+{ wf := well_founded_lt h.wf }
+
+instance trichotomous.gt [preorder α] [is_trichotomous α (>)] : is_trichotomous (with_top α) (>) :=
+⟨begin
+  rintro (a | _) (b | _),
+  iterate 3 { simp },
+  simpa [option.some_inj] using @trichotomous _ (>) _ a b
+end⟩
+
+instance is_well_order.gt [preorder α] [h : is_well_order α (>)] : is_well_order (with_top α) (>) :=
+{ wf := well_founded_gt h.wf }
+
+instance _root_.with_bot.trichotomous.lt [preorder α] [h : is_trichotomous α (<)] :
+  is_trichotomous (with_bot α) (<) :=
+@with_top.trichotomous.gt αᵒᵈ _ h
+
+instance _root_.with_bot.is_well_order.lt [preorder α] [h : is_well_order α (<)] :
+  is_well_order (with_bot α) (<) :=
+@with_top.is_well_order.gt αᵒᵈ _ h
+
+instance _root_.with_bot.trichotomous.gt [preorder α] [h : is_trichotomous α (>)] :
+  is_trichotomous (with_bot α) (>) :=
+@with_top.trichotomous.lt αᵒᵈ _ h
+
+instance _root_.with_bot.is_well_order.gt [preorder α] [h : is_well_order α (>)] :
+  is_well_order (with_bot α) (>) :=
+@with_top.is_well_order.lt αᵒᵈ _ h
 
 instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
 order_dual.densely_ordered (with_bot αᵒᵈ)

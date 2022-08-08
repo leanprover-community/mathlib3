@@ -239,6 +239,28 @@ lemma is_codetecting_empty_of_groupoid [∀ {X Y : C} (f : X ⟶ Y), is_iso f] :
 
 end empty
 
+lemma is_separating_iff_epi (𝒢 : set C)
+  [Π (A : C), has_coproduct (λ f : Σ G : 𝒢, (G : C) ⟶ A, (f.1 : C))] :
+  is_separating 𝒢 ↔ ∀ A : C, epi (sigma.desc (@sigma.snd 𝒢 (λ G, (G : C) ⟶ A))) :=
+begin
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ G hG f, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using (sigma.ι (λ f : Σ G : 𝒢, (G : C) ⟶ A, (f.1 : C)) ⟨⟨G, hG⟩, f⟩) ≫= huv },
+  { haveI := h X,
+    refine (cancel_epi (sigma.desc (@sigma.snd 𝒢 (λ G, (G : C) ⟶ X)))).1 (colimit.hom_ext (λ j, _)),
+    simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
+end
+
+lemma is_coseparating_iff_mono (𝒢 : set C)
+  [Π (A : C), has_product (λ f : Σ G : 𝒢, A ⟶ (G : C), (f.1 : C))] :
+  is_coseparating 𝒢 ↔ ∀ A : C, mono (pi.lift (@sigma.snd 𝒢 (λ G, A ⟶ (G : C)))) :=
+begin
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ G hG f, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using huv =≫ (pi.π (λ f : Σ G : 𝒢, A ⟶ (G : C), (f.1 : C)) ⟨⟨G, hG⟩, f⟩) },
+  { haveI := h Y,
+    refine (cancel_mono (pi.lift (@sigma.snd 𝒢 (λ G, Y ⟶ (G : C))))).1 (limit.hom_ext (λ j, _)),
+    simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
+end
+
 section well_powered
 
 namespace subobject
@@ -380,6 +402,28 @@ lemma is_coseparator_iff_faithful_yoneda_obj (G : C) :
 ⟨λ hG, ⟨λ X Y f g hfg, quiver.hom.unop_inj (hG.def _ _ (congr_fun hfg))⟩,
  λ h, (is_coseparator_def _).2 $ λ X Y f g hfg, quiver.hom.op_inj $
   by exactI (yoneda.obj G).map_injective (funext hfg)⟩
+
+lemma is_separator_iff_epi (G : C) [Π A : C, has_coproduct (λ (f : G ⟶ A), G)] :
+  is_separator G ↔ ∀ (A : C), epi (sigma.desc (λ (f : G ⟶ A), f)) :=
+begin
+  rw is_separator_def,
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using (sigma.ι _ i) ≫= huv },
+  { haveI := h X,
+    refine (cancel_epi (sigma.desc (λ (f : G ⟶ X), f))).1 (colimit.hom_ext (λ j, _)),
+    simpa using hh j.as }
+end
+
+lemma is_coseparator_iff_mono (G : C) [Π A : C, has_product (λ (f : A ⟶ G), G)] :
+  is_coseparator G ↔ ∀ (A : C), mono (pi.lift (λ (f : A ⟶ G), f)) :=
+begin
+  rw is_coseparator_def,
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using huv =≫ (pi.π _ i) },
+  { haveI := h Y,
+    refine (cancel_mono (pi.lift (λ (f : Y ⟶ G), f))).1 (limit.hom_ext (λ j, _)),
+    simpa using hh j.as }
+end
 
 section zero_morphisms
 variables [has_zero_morphisms C]

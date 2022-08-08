@@ -208,7 +208,8 @@ variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_
 
 This is a more-strongly bundled version of `add_monoid_hom.mul_left` and `add_monoid_hom.mul_right`.
 
-A stronger version of this exists for algebras as `algebra.lmul`.
+Stronger versions of this exists for algebras as `linear_map.mul`, `non_unital_alg_hom.mul`
+and `algebra.lmul`.
 -/
 def add_monoid_hom.mul : R →+ R →+ R :=
 { to_fun := add_monoid_hom.mul_left,

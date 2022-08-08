@@ -41,7 +41,8 @@ namespace algebraic_geometry
 open Spec (structure_sheaf)
 
 /-- The category of affine schemes -/
-def AffineScheme := Scheme.Spec.ess_image
+@[derive category, nolint has_nonempty_instance]
+def AffineScheme := Scheme.Spec.ess_image_subcategory
 
 /-- A Scheme is affine if the canonical map `X ⟶ Spec Γ(X)` is an isomorphism. -/
 class is_affine (X : Scheme) : Prop :=
@@ -54,18 +55,23 @@ def Scheme.iso_Spec (X : Scheme) [is_affine X] :
   X ≅ Scheme.Spec.obj (op $ Scheme.Γ.obj $ op X) :=
 as_iso (Γ_Spec.adjunction.unit.app X)
 
-lemma mem_AffineScheme (X : Scheme) : X ∈ AffineScheme ↔ is_affine X :=
+/-- Construct an affine scheme from a scheme and the information that it is affine. -/
+@[simps]
+def AffineScheme.mk (X : Scheme) (h : is_affine X) : AffineScheme :=
+⟨X, @@mem_ess_image_of_unit_is_iso _ _ _ _ h.1⟩
+
+lemma mem_Spec_ess_image (X : Scheme) : X ∈ Scheme.Spec.ess_image ↔ is_affine X :=
 ⟨λ h, ⟨functor.ess_image.unit_is_iso h⟩, λ h, @@mem_ess_image_of_unit_is_iso _ _ _ X h.1⟩
 
-instance is_affine_AffineScheme (X : AffineScheme.{u}) : is_affine (X : Scheme.{u}) :=
-(mem_AffineScheme _).mp X.prop
+instance is_affine_AffineScheme (X : AffineScheme.{u}) : is_affine X.obj :=
+⟨functor.ess_image.unit_is_iso X.property⟩
 
 instance Spec_is_affine (R : CommRingᵒᵖ) : is_affine (Scheme.Spec.obj R) :=
-(mem_AffineScheme _).mp (Scheme.Spec.obj_mem_ess_image R)
+algebraic_geometry.is_affine_AffineScheme ⟨_, Scheme.Spec.obj_mem_ess_image R⟩
 
 lemma is_affine_of_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] [h : is_affine Y] :
   is_affine X :=
-by { rw [← mem_AffineScheme] at h ⊢, exact functor.ess_image.of_iso (as_iso f).symm h }
+by { rw [← mem_Spec_ess_image] at h ⊢, exact functor.ess_image.of_iso (as_iso f).symm h }
 
 namespace AffineScheme
 
@@ -110,6 +116,10 @@ end AffineScheme
 def is_affine_open {X : Scheme} (U : opens X.carrier) : Prop :=
 is_affine (X.restrict U.open_embedding)
 
+/-- The set of affine opens as a subset of `opens X.carrier`. -/
+def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
+{ U : opens X.carrier | is_affine_open U }
+
 lemma range_is_affine_open_of_open_immersion {X Y : Scheme} [is_affine X] (f : X ⟶ Y)
   [H : is_open_immersion f] : is_affine_open ⟨set.range f.1.base, H.base_open.open_range⟩ :=
 begin
@@ -125,12 +135,16 @@ begin
   exact set.range_id.symm
 end
 
+instance Scheme.affine_cover_is_affine (X : Scheme) (i : X.affine_cover.J) :
+  is_affine (X.affine_cover.obj i) :=
+algebraic_geometry.Spec_is_affine _
+
 instance Scheme.affine_basis_cover_is_affine (X : Scheme) (i : X.affine_basis_cover.J) :
   is_affine (X.affine_basis_cover.obj i) :=
 algebraic_geometry.Spec_is_affine _
 
 lemma is_basis_affine_open (X : Scheme) :
-  opens.is_basis { U : opens X.carrier | is_affine_open U } :=
+  opens.is_basis X.affine_opens :=
 begin
   rw opens.is_basis_iff_nbhd,
   rintros U x (hU : x ∈ (U : set X.carrier)),
@@ -179,6 +193,17 @@ begin
     prime_spectrum.compact_space.1 (by continuity),
   convert hU.from_Spec_range.symm,
   exact set.image_univ
+end
+
+lemma is_affine_open.image_is_open_immersion {X Y : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U)
+  (f : X ⟶ Y) [H : is_open_immersion f] : is_affine_open (H.open_functor.obj U) :=
+begin
+  haveI : is_affine _ := hU,
+  convert range_is_affine_open_of_open_immersion (X.of_restrict U.open_embedding ≫ f),
+  ext1,
+  change f.1.base '' U.1 = set.range (f.1.base ∘ coe),
+  rw [set.range_comp, subtype.range_coe],
 end
 
 instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
@@ -509,12 +534,9 @@ begin
   refl
 end
 
-/-- The collection of affine open sets of `X`. -/
-def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
-{ U : opens X.carrier | is_affine_open U }
-
 /-- The basic open set of a section `f` on an an affine open as an `X.affine_opens`. -/
-abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
+@[simps]
+def Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
   (f : X.presheaf.obj $ op U) : X.affine_opens :=
 ⟨X.basic_open f, U.prop.basic_open_is_affine f⟩
 

@@ -169,10 +169,10 @@ segments.
 /-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≺i s` is an order
 embedding whose range is an open interval `(-∞, top)` for some element `top` of `β`. Such order
 embeddings are called principal segments -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (top : β)
-(down : ∀ b, s b top ↔ ∃ a, to_rel_embedding a = b)
+(down' : ∀ b, s b top ↔ ∃ a, to_rel_embedding a = b)
 
 localized "infix ` ≺i `:25 := principal_seg" in initial_seg
 
@@ -188,14 +188,12 @@ instance : has_coe_to_fun (r ≺i s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] theorem coe_coe_fn (f : r ≺i s) : ((f : r ↪r s) : α → β) = f := rfl
 
-theorem down' (f : r ≺i s) {b : β} : s b f.top ↔ ∃ a, f a = b :=
-f.down _
+theorem down (f : r ≺i s) : ∀ {b : β}, s b f.top ↔ ∃ a, f a = b := f.down'
 
-theorem lt_top (f : r ≺i s) (a : α) : s (f a) f.top :=
-f.down'.2 ⟨_, rfl⟩
+theorem lt_top (f : r ≺i s) (a : α) : s (f a) f.top := f.down.2 ⟨_, rfl⟩
 
 theorem init [is_trans β s] (f : r ≺i s) {a : α} {b : β} (h : s b (f a)) : ∃ a', f a' = b :=
-f.down'.1 $ trans h $ f.lt_top _
+f.down.1 $ trans h $ f.lt_top _
 
 /-- A principal segment is in particular an initial segment. -/
 instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
@@ -296,7 +294,7 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 def cod_restrict (p : set β) (f : r ≺i s)
   (H : ∀ a, f a ∈ p) (H₂ : f.top ∈ p) : r ≺i subrel s p :=
 ⟨rel_embedding.cod_restrict p f H, ⟨f.top, H₂⟩, λ ⟨b, h⟩,
-  f.down'.trans $ exists_congr $ λ a,
+  f.down.trans $ exists_congr $ λ a,
   show (⟨f a, H a⟩ : p).1 = _ ↔ _, from ⟨subtype.eq, congr_arg _⟩⟩
 
 @[simp]
@@ -308,7 +306,7 @@ theorem cod_restrict_top (p) (f : r ≺i s) (H H₂) : (cod_restrict p f H H₂)
 /-- Principal segment from an empty type into a type with a minimal element. -/
 def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) : r ≺i s :=
 { top := b,
-  down := by simp [H],
+  down' := by simp [H],
   ..rel_embedding.of_is_empty r s }
 
 @[simp] theorem of_is_empty_top (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) :

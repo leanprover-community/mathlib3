@@ -727,9 +727,8 @@ begin
   refine ⟨_, λ h, h.self_of_nhds⟩,
   rw [cont_mdiff_at_iff_cont_mdiff_on_nhds],
   rintro ⟨u, hu, h⟩,
-  obtain ⟨v, hvu, hv, hxv⟩ := mem_nhds_iff.mp hu,
-  refine eventually_of_mem (hv.mem_nhds hxv) (λ x' hx', _),
-  exact (h x' (hvu hx')).cont_mdiff_at (mem_of_superset (hv.mem_nhds hx') hvu)
+  refine (eventually_mem_nhds.mpr hu).mono (λ x' hx', _),
+  exact (h x' $ mem_of_mem_nhds hx').cont_mdiff_at hx'
 end
 
 omit Is I's

@@ -155,6 +155,11 @@ lemma preimage_continuous {g : Y → X} (hf : locally_finite f) (hg : continuous
 
 end locally_finite
 
+@[simp] lemma equiv.locally_finite_comp_iff (e : ι' ≃ ι) :
+  locally_finite (f ∘ e) ↔ locally_finite f :=
+⟨λ h, by simpa only [(∘), e.apply_symm_apply] using h.comp_injective e.symm.injective,
+  λ h, h.comp_injective e.injective⟩
+  
 lemma locally_finite_sum {f : ι ⊕ ι' → set X} :
   locally_finite f ↔ locally_finite (f ∘ sum.inl) ∧ locally_finite (f ∘ sum.inr) :=
 by simp only [locally_finite_iff_small_sets, ← forall_and_distrib, ← finite_preimage_inl_and_inr,
@@ -163,11 +168,6 @@ by simp only [locally_finite_iff_small_sets, ← forall_and_distrib, ← finite_
 lemma locally_finite.sum_elim {g : ι' → set X} (hf : locally_finite f) (hg : locally_finite g) :
   locally_finite (sum.elim f g) :=
 locally_finite_sum.mpr ⟨hf, hg⟩
-
-@[simp] lemma equiv.locally_finite_comp_iff (e : ι' ≃ ι) :
-  locally_finite (f ∘ e) ↔ locally_finite f :=
-⟨λ h, by simpa only [(∘), e.apply_symm_apply] using h.comp_injective e.symm.injective,
-  λ h, h.comp_injective e.injective⟩
 
 lemma locally_finite_option {f : option ι → set X} :
   locally_finite f ↔ locally_finite (f ∘ some) :=

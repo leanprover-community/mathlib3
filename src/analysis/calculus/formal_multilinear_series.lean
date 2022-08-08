@@ -176,8 +176,6 @@ variables [comm_ring 𝕜] {n : ℕ}
   [has_continuous_const_smul 𝕜 F] [decidable_eq F]
   {p : formal_multilinear_series 𝕜 E F}
 
-open_locale classical
-
 lemma eq_zero_iff : p = 0 ↔ ∀ n, p n = 0 :=
 by simp only [function.funext_iff, pi.zero_apply]
 
@@ -195,14 +193,17 @@ Inf { n | p n ≠ 0 }
 lemma ne_zero_of_order_ne_zero (hp : p.order ≠ 0) : p ≠ 0 :=
 λ h, by simpa [h] using hp
 
-lemma order_eq_find (hp : ∃ n, p n ≠ 0) : p.order = nat.find hp :=
+lemma order_eq_find [decidable_pred (λ n, p n ≠ 0)] (hp : ∃ n, p n ≠ 0) :
+  p.order = nat.find hp :=
 by simp [order, Inf, hp]
 
-lemma order_eq_find' (hp : p ≠ 0) : p.order = nat.find (exists_ne_zero_of_ne_zero hp) :=
+lemma order_eq_find' [decidable_pred (λ n, p n ≠ 0)] (hp : p ≠ 0) :
+  p.order = nat.find (exists_ne_zero_of_ne_zero hp) :=
 order_eq_find _
 
 lemma order_eq_zero_iff (hp : p ≠ 0) : p.order = 0 ↔ p 0 ≠ 0 :=
 begin
+  classical,
   have : ∃ n, p n ≠ 0 := exists_ne_zero_of_ne_zero hp,
   simp [order_eq_find this, hp]
 end
@@ -211,7 +212,11 @@ lemma order_eq_zero_iff' : p.order = 0 ↔ p = 0 ∨ p 0 ≠ 0 :=
 by { by_cases h : p = 0; simp [h, order_eq_zero_iff] }
 
 lemma apply_order_ne_zero (hp : p ≠ 0) : p p.order ≠ 0 :=
-let h := exists_ne_zero_of_ne_zero hp in (order_eq_find h).symm ▸ nat.find_spec h
+begin
+  classical,
+  let h := exists_ne_zero_of_ne_zero hp,
+  exact (order_eq_find h).symm ▸ nat.find_spec h
+end
 
 lemma apply_order_ne_zero' (hp : p.order ≠ 0) : p p.order ≠ 0 :=
 apply_order_ne_zero (ne_zero_of_order_ne_zero hp)
@@ -220,7 +225,8 @@ lemma apply_eq_zero_of_lt_order (hp : n < p.order) : p n = 0 :=
 begin
   by_cases p = 0,
   { simp [h] },
-  { rw [order_eq_find' h] at hp,
+  { classical,
+    rw [order_eq_find' h] at hp,
     simpa using nat.find_min _ hp }
 end
 

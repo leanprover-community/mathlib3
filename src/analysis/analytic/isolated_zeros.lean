@@ -10,8 +10,6 @@ import analysis.calculus.formal_multilinear_series
 import analysis.complex.basic
 import topology.algebra.infinite_sum
 
-open_locale classical
-
 /-!
 # Principle of isolated zeros
 
@@ -25,6 +23,8 @@ is useful in this setup.
   analytic at `z₀`, then either it is identically zero in a neighborhood of `z₀`, or it does not
   vanish in a punctured neighborhood of `z₀`.
 -/
+
+open_locale classical
 
 open filter function nat formal_multilinear_series emetric
 open_locale topological_space big_operators

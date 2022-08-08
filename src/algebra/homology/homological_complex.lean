@@ -27,7 +27,7 @@ and similarly `cochain_complex V α`, with `i = j + 1`.
 There is a category structure, where morphisms are chain maps.
 
 For `C : homological_complex V c`, we define `C.X_next i`, which is either `C.X j` for some
-arbitrarily chosen `j` such that `c.r i j`, or the zero object if there is no such `j`.
+arbitrarily chosen `j` such that `c.r i j`, or `C.X i` if there is no such `j`.
 Similarly we have `C.X_prev j`.
 Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
 `C.d_to j : C.X_prev j ⟶ C.X j`, which are either defined as `C.d i j`, or zero, as needed.
@@ -308,7 +308,7 @@ eq_to_iso $ congr_arg C.X begin
   rw this at h, contradiction,
 end
 
-/-- Either `C.X j`, if there is some `j` with `c.rel i j`, or `C.X j`. -/
+/-- Either `C.X j`, if there is some `j` with `c.rel i j`, or `C.X i`. -/
 abbreviation X_next (i : ι) : V := C.X (c.next i)
 
 /-- If `c.rel i j`, then `C.X_next i` is isomorphic to `C.X j`. -/
@@ -316,7 +316,7 @@ def X_next_iso {i j : ι} (r : c.rel i j) :
   C.X_next i ≅ C.X j :=
 eq_to_iso $ by rw ← c.next_eq' r
 
-/-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `0`. -/
+/-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `C.X i`. -/
 def X_next_iso_self {i : ι} (h : ¬c.rel i (c.next i)) :
   C.X_next i ≅ C.X i :=
 eq_to_iso $ congr_arg C.X begin

@@ -772,6 +772,7 @@ end punit
 
 section prop
 
+/-- Propositions form a complete boolean algebra, where the `≤` relation is given by implication. -/
 instance Prop.has_le : has_le Prop := ⟨(→)⟩
 
 @[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl

@@ -41,24 +41,37 @@ def conn_comp_outside (K : finset V) : Type u :=
 /- not necessary for proofs, but maybe useful for mathlib -/
 lemma simple_graph.induce_univ : G = (G.induce univ).spanning_coe := sorry
 
-lemma conn_comp_outside.finite [Glf : locally_finite G] [preconnected G] (K : finset V) :
+-- TODO: Define the boundary
+
+lemma conn_comp_outside.finite [Glf : locally_finite G] [Gpc : preconnected G] (K : finset V) :
   fintype (conn_comp_outside G K) :=
 begin
   by_cases Knempty : K.nonempty,
   {
-    sorry
+     refine fintype_of_not_infinite _,
+     intro hinf,
+     sorry -- needs some lemmas about boundary
   },
   { rw [finset.not_nonempty_iff_eq_empty] at Knempty,
     subst Knempty,
     dsimp [conn_comp_outside, simple_graph.subgraph.delete_verts],
     have : (univ : set V) \ ∅ = univ := sdiff_bot,
     rw [this, ← simple_graph.induce_eq_coe_induce_top],
-    sorry -- hard to proceed
+    refine ⟨{_}, _⟩,
+    dsimp [connected_component],
+    sorry, -- need to use `Gpc` here
+    sorry
    }
 end
 
 lemma conn_comp_outside.nonempty (Ginf : (@set.univ V).infinite) (K : finset V) :
-  nonempty (conn_comp_outside G K) := sorry
+  nonempty (conn_comp_outside G K) :=
+begin
+  by_contradiction,
+  rw [not_nonempty_iff, conn_comp_outside] at h,
+  apply Ginf, clear Ginf,
+  sorry, -- needs the fact that the set of vertices is the union of `K` and all the connected components
+end
 
 def conn_comp_outside.to_set (K : finset V) (C : conn_comp_outside G K) : set V :=
   { v : V | ∃ (p:v ∉ K), ((⊤ : G.subgraph).delete_verts K).coe.connected_component_mk (⟨v,by {simp,exact p}⟩) = C }
@@ -103,7 +116,6 @@ unique_of_exists_unique
 
 -- def ends_system := category_theory.functor.mk (conn_comp_outside G) (conn_comp_outside_back G)
 
--- TODO: Define the boundary
 
 -- TODO: Show that components are preserved under isomorphisms
 

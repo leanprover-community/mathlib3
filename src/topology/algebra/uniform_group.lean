@@ -204,6 +204,13 @@ end
   𝓤 α = comap (λx:α×α, x.1 / x.2) (𝓝 (1:α)) :=
 by { rw [← comap_swap_uniformity, uniformity_eq_comap_nhds_one, comap_comap, (∘)], refl }
 
+variables {α}
+
+@[to_additive] instance uniform_group.uniformity_countably_generated
+  [(𝓝 (1 : α)).is_countably_generated] :
+  (uniformity α).is_countably_generated :=
+by { rw uniformity_eq_comap_nhds_one, exact filter.comap.is_countably_generated _ _ }
+
 open mul_opposite
 
 @[to_additive]

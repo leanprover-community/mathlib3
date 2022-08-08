@@ -12,7 +12,7 @@ import measure_theory.constructions.polish
 # Martingale convergence theorems
 
 The martingale convergence theorems are a collection of theorems characterizing the convergence
-of a martingale provided it satisfy some boundedness conditions. This file contains the
+of a martingale provided it satisfies some boundedness conditions. This file contains the
 almost everywhere martingale convergence theorem which provides an almost everywhere limit to
 an L¹ bounded submartingale.
 
@@ -38,10 +38,10 @@ section ae_convergence
 
 ### Almost everywhere martingale convergence theorem
 
-We will now prove almost everywhere the martingale convergence theorem.
+We will now prove the almost everywhere martingale convergence theorem.
 
-The a.e. martingale convergence theorem states: if `f` is a L¹-bounded `ℱ`-submartingale, then
-it converges almost everywhere to a integrable function which is measurable with respect to
+The a.e. martingale convergence theorem states: if `f` is an L¹-bounded `ℱ`-submartingale, then
+it converges almost everywhere to an integrable function which is measurable with respect to
 the σ-algebra `ℱ∞ := ⨆ n, ℱ n`.
 
 Mathematically, we proceed by first noting that a real sequence $(x_n)$ converges if
@@ -165,7 +165,7 @@ begin
       exact ⟨b, hb₁, hq.trans hb₂⟩ } }
 end
 
-/-- A realization of a stochastic process with bounded upcrossings and bounded limit infimums is
+/-- A realization of a stochastic process with bounded upcrossings and bounded liminfs is
 convergent.
 
 We use the spelling `< ∞` instead of the standard `≠ ∞` in the assumptions since it is not as easy
@@ -264,7 +264,7 @@ begin
 end
 
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
-almost everywhere to a L¹-function which is measurable with respect to `⨆ n, ℱ n`. -/
+almost everywhere to an L¹-function which is measurable with respect to `⨆ n, ℱ n`. -/
 lemma submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∃ g : Ω → ℝ, mem_ℒp g 1 μ ∧ strongly_measurable[⨆ n, ℱ n] g ∧

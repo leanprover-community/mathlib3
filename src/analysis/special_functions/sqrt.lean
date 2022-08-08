@@ -98,7 +98,7 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {n : with_top ℕ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {n : with_top ℕ}
   {s : set E} {x : E} {f' : E →L[ℝ] ℝ}
 
 lemma has_fderiv_at.sqrt (hf : has_fderiv_at f f' x) (hx : f x ≠ 0) :

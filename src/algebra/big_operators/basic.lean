@@ -39,7 +39,7 @@ See the documentation of `to_additive.attr` for more information.
 -/
 
 universes u v w
-variables {β : Type u} {α : Type v} {γ : Type w}
+variables {ι : Type*} {β : Type u} {α : Type v} {γ : Type w}
 
 open fin
 
@@ -1855,28 +1855,50 @@ end
 
 /-! ### `additive`, `multiplicative` -/
 
-namespace finset
 open additive multiplicative
 
 section comm_monoid
-variables [comm_monoid β]
+variables [comm_monoid α]
 
-@[simp] lemma of_mul_prod (s : finset α) (f : α → β) :
+@[simp] lemma of_mul_list_prod (s : list α) : of_mul s.prod = (s.map of_mul).sum :=
+by simpa [of_mul]
+
+@[simp] lemma to_mul_list_sum (s : list (additive α)) :
+  to_mul s.sum = (s.map to_mul).prod := by simpa [to_mul, of_mul]
+
+@[simp] lemma of_mul_multiset_prod (s : multiset α) :
+  of_mul s.prod = (s.map of_mul).sum := by simpa [of_mul]
+
+@[simp] lemma to_mul_multiset_sum (s : multiset (additive α)) :
+  to_mul s.sum = (s.map to_mul).prod := by simpa [to_mul, of_mul]
+
+@[simp] lemma of_mul_prod (s : finset ι) (f : ι → α) :
   of_mul (∏ i in s, f i) = ∑ i in s, of_mul (f i) := rfl
 
-@[simp] lemma to_mul_sum (s : finset α) (f : α → additive β) :
+@[simp] lemma to_mul_sum (s : finset ι) (f : ι → additive α) :
   to_mul (∑ i in s, f i) = ∏ i in s, to_mul (f i) := rfl
 
 end comm_monoid
 
 section add_comm_monoid
-variables [add_comm_monoid β]
+variables [add_comm_monoid α]
 
-@[simp] lemma of_add_sum (s : finset α) (f : α → β) :
+@[simp] lemma of_add_list_prod (s : list α) : of_add s.sum = (s.map of_add).prod :=
+by simpa [of_add]
+
+@[simp] lemma to_add_list_sum (s : list (multiplicative α)) :
+  to_add s.prod = (s.map to_add).sum := by simpa [to_add, of_add]
+
+@[simp] lemma of_add_multiset_prod (s : multiset α) :
+  of_add s.sum = (s.map of_add).prod := by simpa [of_add]
+
+@[simp] lemma to_add_multiset_sum (s : multiset (multiplicative α)) :
+  to_add s.prod = (s.map to_add).sum := by simpa [to_add, of_add]
+
+@[simp] lemma of_add_sum (s : finset ι) (f : ι → α)  :
   of_add (∑ i in s, f i) = ∏ i in s, of_add (f i) := rfl
 
-@[simp] lemma to_add_prod (s : finset α) (f : α → β) :
+@[simp] lemma to_add_prod (s : finset ι) (f : ι → multiplicative α) :
   to_add (∏ i in s, f i) = ∑ i in s, to_add (f i) := rfl
 
 end add_comm_monoid
-end finset

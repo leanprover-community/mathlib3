@@ -94,6 +94,12 @@ canonically_ordered_comm_semiring.to_covariant_mul_le
 instance covariant_class_add_le : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
 ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
+noncomputable instance : linear_ordered_comm_monoid_with_zero ℝ≥0∞ :=
+{ mul_le_mul_left := λ a b, mul_le_mul_left',
+  zero_le_one := zero_le 1,
+  .. ennreal.linear_ordered_add_comm_monoid_with_top,
+  .. (show comm_semiring ℝ≥0∞, from infer_instance) }
+
 instance : inhabited ℝ≥0∞ := ⟨0⟩
 
 instance : has_coe ℝ≥0 ℝ≥0∞ := ⟨ option.some ⟩
@@ -221,7 +227,6 @@ protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
-lemma one_le_two : (1 : ℝ≥0∞) ≤ 2 := one_lt_two.le
 @[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
@@ -230,8 +235,7 @@ lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
 
 /-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces. -/
-instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
-⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
+instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨one_le_two⟩
 
 /-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces. -/
 instance _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩

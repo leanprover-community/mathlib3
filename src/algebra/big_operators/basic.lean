@@ -1015,6 +1015,10 @@ begin
   rw [count_eq_zero_of_not_mem hx, pow_zero],
 end
 
+lemma sum_filter_count_eq_countp [decidable_eq α] (p : α → Prop) [decidable_pred p] (l : list α) :
+  ∑ x in l.to_finset.filter p, l.count x = l.countp p :=
+by simp [finset.sum, sum_map_count_dedup_filter_eq_countp p l]
+
 open multiset
 
 @[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
@@ -1291,9 +1295,13 @@ begin
 end
 
 /-- Taking a product over `s : finset α` is the same as multiplying the value on a single element
-`f a` by the product of `s.erase a`. -/
+`f a` by the product of `s.erase a`.
+
+See `multiset.prod_map_erase` for the `multiset` version. -/
 @[to_additive "Taking a sum over `s : finset α` is the same as adding the value on a single element
-`f a` to the sum over `s.erase a`."]
+`f a` to the sum over `s.erase a`.
+
+See `multiset.sum_map_erase` for the `multiset` version."]
 lemma mul_prod_erase [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
   f a * (∏ x in s.erase a, f x) = ∏ x in s, f x :=
 by rw [← prod_insert (not_mem_erase a s), insert_erase h]

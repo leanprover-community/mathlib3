@@ -261,6 +261,9 @@ lemma strongly_measurable_le {i j : ι} (hf : adapted f u) (hij : i ≤ j) :
 
 end adapted
 
+lemma adapted_const (f : filtration ι m) (x : β) : adapted f (λ _ _, x) :=
+λ i, strongly_measurable_const
+
 variable (β)
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
 λ i, @strongly_measurable_zero α β (f i) _ _

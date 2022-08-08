@@ -520,7 +520,7 @@ begin
 end
 
 lemma exists_upcrossings_of_not_bounded_under
-  {ι : Type*} [semilattice_sup ι] [nonempty ι] {l : filter ι} {x : ι → ℝ}
+  {ι : Type*} {l : filter ι} {x : ι → ℝ}
   (hf : liminf l (λ i, (∥x i∥₊ : ℝ≥0∞)) ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=

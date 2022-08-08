@@ -234,10 +234,9 @@ lemma map_zero {R : Type u} [comm_monoid_with_zero R] [nontrivial R] (χ : mul_c
 by rw [map_nonunit χ not_is_unit_zero]
 
 /-- If the domain is a ring `R`, then `χ (ring_char R) = 0`. -/
-@[simp]
 lemma map_ring_char {R : Type u} [comm_ring R] [nontrivial R] (χ : mul_char R R') :
   χ (ring_char R) = 0 :=
-by simp -- rw [ring_char.nat.cast_ring_char, χ.map_zero]
+by rw [ring_char.nat.cast_ring_char, χ.map_zero]
 
 noncomputable
 instance has_one : has_one (mul_char R R') := ⟨trivial R R'⟩

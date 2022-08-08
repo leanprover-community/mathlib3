@@ -56,6 +56,9 @@ namespace gal
 instance : has_coe_to_fun p.gal (λ _, p.splitting_field → p.splitting_field) :=
 alg_equiv.has_coe_to_fun
 
+instance apply_mul_semiring_action : mul_semiring_action p.gal p.splitting_field :=
+alg_equiv.apply_mul_semiring_action
+
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin
   refine alg_equiv.ext (λ x, (alg_hom.mem_equalizer σ.to_alg_hom τ.to_alg_hom x).mp

@@ -225,6 +225,3 @@ begin
 end
 
 end add_group
-
-theorem int.not_acc (a : ℤ) : ¬ acc (<) a :=
-λ h, acc.rec_on h (λ x _ h, h _ (sub_one_lt x))

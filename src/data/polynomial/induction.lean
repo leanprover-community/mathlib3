@@ -63,9 +63,8 @@ polynomial.induction_on p (h_monomial 0) h_add
 open submodule polynomial set
 variables {f : R[X]} {I : ideal R[X]}
 
--- TODO: fix whatever this typo from #5693 was supposed to say
-/--  If the coefficients of a polynomial belong to n ideal contains the submodule span of the
-coefficients of a polynomial. -/
+/--  If the coefficients of a polynomial belong to an ideal, then that ideal contains
+the ideal spanned by the coefficients of the polynomial. -/
 lemma span_le_of_C_coeff_mem (cf : ∀ (i : ℕ), C (f.coeff i) ∈ I) :
   ideal.span {g | ∃ i, g = C (f.coeff i)} ≤ I :=
 begin

@@ -204,7 +204,7 @@ instance is_adic_complete.henselian_ring
       haveI := is_local_ring_hom_of_le_jacobson_bot I (is_adic_complete.le_jacobson_bot I),
       apply is_unit_of_map_unit (ideal.quotient.mk I),
       convert h₂ using 1,
-      exact smodeq.def.mp ((hc_mod n).eval _), },
+      exact smodeq.iff_mkq_eq.mp ((hc_mod n).eval _), },
     have hfcI : ∀ n, f.eval (c n) ∈ I ^ (n+1),
     { intro n,
       induction n with n ih, { simpa only [pow_one] },
@@ -249,7 +249,7 @@ instance is_adic_complete.henselian_ring
     { show a - a₀ ∈ I,
       specialize ha 1,
       rw [hc, pow_one, ← ideal.one_eq_top, ideal.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,
-      rw [← smodeq.sub_mem, ← add_zero a₀],
+      rw [← smodeq.def, ← add_zero a₀],
       refine ha.symm.trans (smodeq.refl.add _),
       rw [smodeq.zero, ideal.neg_mem_iff],
       exact ideal.mul_mem_right _ _ h₁, }

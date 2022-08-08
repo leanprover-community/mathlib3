@@ -497,4 +497,3 @@ end
 end mul_char
 
 end properties
-#lint

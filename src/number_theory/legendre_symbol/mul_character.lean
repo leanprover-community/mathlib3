@@ -283,7 +283,8 @@ lemma inv_apply_eq_inv (χ : mul_char R R') (a : R) :
   χ⁻¹ a = ring.inverse (χ a) :=
 eq.refl $ inv χ a
 
-/-- Variant when the target is a field -/
+/-- The inverse of a multiplicative character `χ`, applied to `a`, is the inverse of `χ a`.
+Variant when the target is a field -/
 lemma inv_apply_eq_inv' {R' : Type v} [field R'] (χ : mul_char R R') (a : R) :
   χ⁻¹ a = (χ a)⁻¹ :=
 (inv_apply_eq_inv χ a).trans $ ring.inverse_eq_inv (χ a)

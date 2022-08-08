@@ -132,35 +132,9 @@ begin
     { intros a ha b hb hab,
       obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨ha, hb⟩,
       exact not_frequently_of_upcrossings_lt_top hab (hf₂ a b (rat.cast_lt.1 hab)).ne } },
-  { obtain ⟨a, b, hab, h₁, h₂⟩ := exists_upcrossings_of_not_bounded_under hf₁.ne h,
+  { obtain ⟨a, b, hab, h₁, h₂⟩ := ennreal.exists_upcrossings_of_not_bounded_under hf₁.ne h,
     exact false.elim ((hf₂ a b hab).ne
       (upcrossings_eq_top_of_frequently_lt (rat.cast_lt.2 hab) h₁ h₂)) }
-end
-
-lemma liminf_at_top_ae_bdd_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞)
-  (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ ω ∂μ, liminf at_top (λ n, (∥f n ω∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
-begin
-  refine ae_lt_top
-    (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
-    (lt_of_le_of_lt (lintegral_liminf_le
-      (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
-      (lt_of_le_of_lt _ (ennreal.rpow_lt_top_of_nonneg
-        ennreal.to_real_nonneg ennreal.coe_ne_top : ↑R ^ p.to_real < ∞))).ne,
-  simp_rw snorm_eq_lintegral_rpow_nnnorm hp hp' at hbdd,
-  simp_rw [liminf_eq, eventually_at_top],
-  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans
-    ((ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hp hp')).1 (hbdd _))),
-end
-
-lemma liminf_at_top_ae_bdd_of_snorm_one_bdd
-  (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
-  ∀ᵐ ω ∂μ, liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞ :=
-begin
-  filter_upwards [liminf_at_top_ae_bdd_of_snorm_bdd one_ne_zero ennreal.one_ne_top hfmeas hbdd]
-    with ω hω,
-  simp_rw [ennreal.one_to_real, ennreal.rpow_one] at hω,
-  assumption
 end
 
 variables [is_finite_measure μ]

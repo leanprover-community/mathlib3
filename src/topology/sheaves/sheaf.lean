@@ -8,7 +8,6 @@ import category_theory.full_subcategory
 import category_theory.limits.unit
 import category_theory.sites.sheaf
 import category_theory.sites.spaces
-import category_theory.sites.sheafification
 
 /-!
 # Sheaves
@@ -138,39 +137,6 @@ Sheaf_to_presheaf _ _
 lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).1.app t = 𝟙 _ := rfl
 lemma comp_app {F G H : sheaf C X} (f : F ⟶ G) (g : G ⟶ H) (t) :
   (f ≫ g).1.app t = f.1.app t ≫ g.1.app t := rfl
-
-instance presheaf_mono_of_mono {D : Type u} [category.{w u} D] [concrete_category.{w} D]
-  [preserves_limits (category_theory.forget D)]
-  [Π (U : opens X),
-    preserves_colimits_of_shape ((opens.grothendieck_topology X).cover U)ᵒᵖ (category_theory.forget D)]
-  [reflects_isomorphisms (category_theory.forget D)]
-  [has_colimits D]
-  [∀ (P : (opens X)ᵒᵖ ⥤ D) (U : opens X) (S : (opens.grothendieck_topology X).cover U), has_multiequalizer (S.index P)]
-  {F G : sheaf D X} (f : F ⟶ G) [mono f] : mono f.1 :=
-{ right_cancellation := λ P g h eq₀,
-  begin
-    set P_plus : sheaf D X := (presheaf_to_Sheaf (opens.grothendieck_topology X) D).obj P,
-    set g_plus : P_plus ⟶ F := ⟨grothendieck_topology.sheafify_lift (opens.grothendieck_topology X) g F.2⟩ with g_plus_def,
-    set h_plus : P_plus ⟶ F := ⟨grothendieck_topology.sheafify_lift (opens.grothendieck_topology X) h F.2⟩ with h_plus_def,
-    have eq₁ : g_plus ≫ f = h_plus ≫ f,
-    { ext1,
-      dsimp,
-      apply grothendieck_topology.sheafify_hom_ext (opens.grothendieck_topology X),
-      { exact G.2 },
-      { simp [eq₀] }, },
-    have eq₂ : g_plus = h_plus,
-    { rwa cancel_mono at eq₁, },
-    rw [g_plus_def, h_plus_def, Sheaf.hom.ext_iff] at eq₂,
-    dsimp at eq₂,
-    have := grothendieck_topology.to_sheafify_sheafify_lift (opens.grothendieck_topology X) g F.2,
-    rw ←this,
-    clear this,
-    have := grothendieck_topology.to_sheafify_sheafify_lift (opens.grothendieck_topology X) h F.2,
-    rw ←this,
-    clear this,
-    rw eq₂,
-  end }
-
 
 end sheaf
 

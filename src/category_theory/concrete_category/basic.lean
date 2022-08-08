@@ -5,6 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudrya
 -/
 import category_theory.types
 import category_theory.functor.epi_mono
+import category_theory.limits.constructions.epi_mono
 
 /-!
 # Concrete categories
@@ -37,6 +38,8 @@ related work.
 universes w v v' u
 
 namespace category_theory
+
+open category_theory.limits
 
 /--
 A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`.
@@ -129,10 +132,36 @@ lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.
   mono f :=
 (forget C).mono_of_mono_map ((mono_iff_injective f).2 i)
 
+lemma concrete_category.injective_of_mono_of_preserves_pullback {X Y : C} (f : X ⟶ Y) [mono f]
+  [preserves_limits_of_shape walking_cospan (forget C)] : function.injective f :=
+begin
+  haveI := category_theory.preserves_monomorphisms_of_preserves_limits_of_shape (forget C),
+  haveI : mono ((forget C).map f) := infer_instance,
+  exact (mono_iff_injective ((forget C).map f)).mp infer_instance,
+end
+
+lemma concrete_category.mono_iff_injective_of_preserves_pullback {X Y : C} (f : X ⟶ Y) [mono f]
+  [preserves_limits_of_shape walking_cospan (forget C)] : mono f ↔ function.injective f :=
+⟨λ m, concrete_category.injective_of_mono_of_preserves_pullback _,
+ concrete_category.mono_of_injective f⟩
+
 /-- In any concrete category, surjective morphisms are epimorphisms. -/
 lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.surjective f) :
   epi f :=
 (forget C).epi_of_epi_map ((epi_iff_surjective f).2 s)
+
+lemma concrete_category.surjective_of_epi_of_preserves_pushout {X Y : C} (f : X ⟶ Y) [epi f]
+  [preserves_colimits_of_shape walking_span (forget C)] : function.surjective f :=
+begin
+  haveI := category_theory.preserves_epimorphisms_of_preserves_colimits_of_shape (forget C),
+  haveI : epi ((forget C).map f) := infer_instance,
+  exact (epi_iff_surjective ((forget C).map f)).mp infer_instance
+end
+
+lemma concrete_category.epi_iff_surjective_of_preserves_pushout {X Y : C} (f : X ⟶ Y)
+  [preserves_colimits_of_shape walking_span (forget C)] : epi f ↔ function.surjective f :=
+⟨λ m, @@concrete_category.surjective_of_epi_of_preserves_pushout _ _ _ m  _,
+ concrete_category.epi_of_surjective f⟩
 
 @[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
   coe_fn f = f :=

@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
 import data.matrix.block
+import data.matrix.notation
 import data.fintype.card
 import group_theory.perm.fin
 import group_theory.perm.sign
@@ -719,7 +720,7 @@ det_is_empty
 /-- Determinant of 1x1 matrix -/
 lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A
 
-lemma det_fin_one_mk (a : R) : det ![![a]] = a := det_fin_one _
+lemma det_fin_one_of (a : R) : det !![a] = a := det_fin_one _
 
 /-- Determinant of 2x2 matrix -/
 lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
@@ -730,7 +731,7 @@ begin
 end
 
 @[simp] lemma det_fin_two_of (a b c d : R) :
-  matrix.det (of ![![a, b], ![c, d]]) = a * d - b * c :=
+  matrix.det !![a, b; c, d] = a * d - b * c :=
 det_fin_two _
 
 /-- Determinant of 3x3 matrix -/

@@ -149,7 +149,7 @@ noncomputable theory
 
 universes u
 
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [complete_space E]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 

@@ -523,3 +523,7 @@ lemma antiperiodic.div [has_add α] [division_ring β]
 by simp [*, neg_div_neg_eq] at *
 
 end function
+
+lemma int.fract_periodic (α) [linear_ordered_ring α] [floor_ring α] :
+  function.periodic int.fract (1 : α) :=
+by exact_mod_cast λ a, int.fract_add_int a 1

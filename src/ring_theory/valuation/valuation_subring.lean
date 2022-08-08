@@ -560,7 +560,7 @@ def principal_unit_group_order_embedding :
 
 lemma coe_mem_principal_unit_group_iff {x : A.unit_group} :
   (x : Kˣ) ∈ A.principal_unit_group ↔
-  (A.unit_group_mul_equiv) x ∈ (units.map (local_ring.residue A).to_monoid_hom).ker :=
+  A.unit_group_mul_equiv x ∈ (units.map (local_ring.residue A).to_monoid_hom).ker :=
 begin
   rw [monoid_hom.mem_ker, units.ext_iff],
   dsimp,

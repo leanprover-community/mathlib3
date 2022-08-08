@@ -106,8 +106,11 @@ section edist
 variables [Π i, has_edist (β i)]
 /-- Endowing the space `pi_Lp p β` with the `L^p` edistance. We register this instance
 separate from `pi_Lp.pseudo_emetric` since the latter requires the type class hypothesis
-`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
-for a future quasi-emetric structure on `pi_Lp p β` for `p < 1`. -/
+`[fact (1 ≤ p)]` in order to prove the triangle inequality.
+
+Registering this separately allows for a future emetric-like structure on `pi_Lp p β` for `p < 1`
+satisfying a relaxed triangle inequality. The terminology for this varies throughout the
+literature, but it is sometimes called a *quasi-metric* or *semi-metric*. -/
 instance : has_edist (pi_Lp p β) :=
 { edist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, edist (f i) (g i)
@@ -164,8 +167,11 @@ section dist
 variables [Π i, has_dist (α i)]
 /-- Endowing the space `pi_Lp p β` with the `L^p` distance. We register this instance
 separate from `pi_Lp.pseudo_metric` since the latter requires the type class hypothesis
-`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
-for a future quasi-metric structure on `pi_Lp p β` for `p < 1`. -/
+`[fact (1 ≤ p)]` in order to prove the triangle inequality.
+
+Registering this separately allows for a future metric-like structure on `pi_Lp p β` for `p < 1`
+satisfying a relaxed triangle inequality. The terminology for this varies throughout the
+literature, but it is sometimes called a *quasi-metric* or *semi-metric*. -/
 instance : has_dist (pi_Lp p α) :=
 { dist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, dist (f i) (g i)
@@ -197,8 +203,10 @@ variables [Π i, has_norm (β i)] [Π i, has_zero (β i)]
 
 /-- Endowing the space `pi_Lp p β` with the `L^p` norm. We register this instance
 separate from `pi_Lp.seminormed_add_comm_group` since the latter requires the type class hypothesis
-`[fact (1 ≤ p)]` in order to prove the triangle inequality. Registering this separately allows
-for a future quasi-norm structure on `pi_Lp p β` for `p < 1`. -/
+`[fact (1 ≤ p)]` in order to prove the triangle inequality.
+
+Registering this separately allows for a future norm-like structure on `pi_Lp p β` for `p < 1`
+satisfying a relaxed triangle inequality. These are called *quasi-norms*. -/
 instance has_norm : has_norm (pi_Lp p β) :=
 { norm := λ f, if hp : p = 0 then by subst hp; exact {i | f i ≠ 0}.to_finite.to_finset.card
    else (if p = ∞ then ⨆ i, ∥f i∥ else (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real)) }

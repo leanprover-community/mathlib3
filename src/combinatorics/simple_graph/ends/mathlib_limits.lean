@@ -380,13 +380,55 @@ begin
   },
   use (λ i, (s i).val),
   {
-    rintro i k ik,
-    obtain ⟨mi,mii,mij,mieq⟩ := (s i).prop,
-    obtain ⟨mk,mkk,mkj,mkeq⟩ := (s k).prop,
-    sorry,
+    rintro i k ik',
+    let ik := le_of_op_hom ik',
+    obtain ⟨m,mi,mj,meq⟩ := (s i).prop,
+    obtain ⟨n,nk,nj,neq⟩ := (s k).prop,
+    let l' := (directed_of (≤) m.unop n.unop).some,
+    obtain ⟨lm',ln'⟩ := (directed_of (≤) m.unop n.unop).some_spec,
+    let l := opposite.op l',
+    have lm : opposite.unop m ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lm'},
+    have ln : opposite.unop n ≤ opposite.unop l, by {simp only [opposite.unop_op],exact ln'},
+
+    have lmbij : function.bijective (F.map $ op_hom_of_le lm), by
+    { refine (function.bijective.of_comp_iff' (bij m mj) (F.map $ op_hom_of_le lm)).mp _,
+      rw [←category_theory.types_comp,←category_theory.functor.map_comp],
+      exact bij l (mj.trans lm), },
+    have lnbij : function.bijective (F.map $ op_hom_of_le ln), by
+    { refine (function.bijective.of_comp_iff' (bij n nj) (F.map $ op_hom_of_le ln)).mp _,
+      rw [←category_theory.types_comp,←category_theory.functor.map_comp],
+      exact bij l (nj.trans ln), },
 
 
-  },
+    simp,
+    rw [←meq,←neq],
+
+    rw ←functor_to_types.map_comp_apply,
+    have : ∀ y, y = (F.map $ op_hom_of_le lm) ((equiv.of_bijective _ lmbij).inv_fun y), by
+    { rintro y, exact ((equiv.of_bijective _ lmbij).right_inv y).symm, },
+    rw this ((eqv m mj).inv_fun x),
+    rw ←functor_to_types.map_comp_apply,
+    have : ∀ y, y = (F.map $ op_hom_of_le ln) ((equiv.of_bijective _ lnbij).inv_fun y), by
+    { rintro y, exact ((equiv.of_bijective _ lnbij).right_inv y).symm,},
+    rw this ((eqv n nj).inv_fun x),
+    rw ←functor_to_types.map_comp_apply,
+
+    simp only [eqv],
+    simp only [equiv.inv_fun_as_coe],
+    rw [←equiv.symm_trans_apply,←equiv.symm_trans_apply],
+    --dsimp [equiv.of_bijective],
+    have : op_hom_of_le lm ≫ op_hom_of_le mi ≫ ik' = op_hom_of_le ln ≫ op_hom_of_le nk, by refl,
+    rw this,
+    apply congr_arg,
+    /-
+    We have as a goal:
+    ((equiv.of_bij _ ).trans (equiv.of_bij _ )).symm x = ((equiv.of_bij _ ).trans (equiv.of_bij _ )).symm x
+    We would like to first get to
+    (equiv.of_bij _ ).symm x = (equiv.of_bij _ ).symm x
+    Because the composite of bijectives is bijective, and applying `.trans` respects that or something.
+    And then probably there is a lemma taking care of the rest
+    -/
+    sorry, },
   { obtain ⟨m,mj,mj',meq⟩ := (s j).prop,
     simp, simp at meq, rw ←meq,
     dsimp [eqv],

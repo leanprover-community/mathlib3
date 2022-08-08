@@ -217,7 +217,7 @@ lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
 
 lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
-(finsupp.single_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)
+(monomial_left_injective $ @one_ne_zero R _ _).comp (finsupp.single_left_injective one_ne_zero)
 
 @[simp] lemma X_inj [nontrivial R] (m n : σ) : X m = (X n : mv_polynomial σ R) ↔ m = n :=
 X_injective.eq_iff

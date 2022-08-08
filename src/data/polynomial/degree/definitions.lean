@@ -127,6 +127,14 @@ lemma le_nat_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → a ≤ nat_degree p:=
 le_nat_degree_of_ne_zero ∘ mem_support_iff.mp
 
+lemma degree_eq_of_le_of_coeff_ne_zero (pn : p.degree ≤ n) (p1 : p.coeff n ≠ 0) :
+  p.degree = n :=
+pn.antisymm (polynomial.le_degree_of_ne_zero p1)
+
+lemma nat_degree_eq_of_le_of_coeff_ne_zero (pn : p.nat_degree ≤ n) (p1 : p.coeff n ≠ 0) :
+  p.nat_degree = n :=
+pn.antisymm (polynomial.le_nat_degree_of_ne_zero p1)
+
 lemma degree_mono [semiring S] {f : R[X]} {g : S[X]}
   (h : f.support ⊆ g.support) : f.degree ≤ g.degree := finset.sup_mono h
 

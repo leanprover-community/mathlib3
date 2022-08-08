@@ -158,7 +158,8 @@ begin
   set fI : ℝ → box (fin n) → E := λ y J,
     integral.{0 u u} J GP (λ x, f (i.insert_nth y x)) box_additive_map.volume,
   set fb : Icc (I.lower i) (I.upper i) → fin n →ᵇᵃ[↑(I.face i)] E :=
-    λ x, (integrable_of_continuous_on GP (box.continuous_on_face_Icc Hc x.2) volume).to_box_additive,
+    λ x, (integrable_of_continuous_on GP (box.continuous_on_face_Icc Hc x.2)
+      volume).to_box_additive,
   set F : fin (n + 1) →ᵇᵃ[I] E := box_additive_map.upper_sub_lower I i fI fb (λ x hx J, rfl),
   /- Thus our statement follows from some local estimates. -/
   change has_integral I GP (λ x, f' x (pi.single i 1)) _ (F I),

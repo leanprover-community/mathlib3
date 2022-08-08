@@ -54,7 +54,7 @@ end continuous_map
 
 namespace path
 
-open continuous_map
+open continuous_map path
 
 variables (X : Type u) [topological_space X]
 
@@ -62,12 +62,15 @@ instance (x y : X) : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
 instance (x y : X) : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
   continuous_map.compact_open
-`
--- @[simp] -- I would expect this to exist already
-lemma refl_trans (x : X) (γ : path x x) : γ = (refl x).trans γ :=
-begin
 
-end
+-- @[simp] -- I would expect this to exist already IT IS FALSE!
+-- lemma refl_trans (x : X) (γ : (path x x)) : γ = (refl x).trans γ :=
+-- begin
+--   ext t,
+--  dsimp [refl, trans],
+--  split_ifs,
+
+-- end
 
 end path
 
@@ -81,8 +84,8 @@ class H_space (X : Type u) [topological_space X]  :=
 (cont' : continuous Hmul)
 (Hmul_e_e : Hmul (e, e) = e)
 (left_Hmul_e : continuous_map.homotopy_rel
-  ⟨(λ a : X, Hmul (e, a)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
   ⟨id, continuous_id'⟩
+  ⟨(λ a : X, Hmul (e, a)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
   {e})
 (right_Hmul_e : continuous_map.homotopy_rel
   ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont'(continuous_id'.prod_mk continuous_const))⟩
@@ -187,6 +190,11 @@ lemma frontier_I_mem (θ t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 
 λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
   (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
 
+lemma frontier_I_mem' (θ : ℝ) (t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
+  = θ /2 := sorry
+-- λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
+--   (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
+
 lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin
   apply continuous.piecewise,
@@ -204,15 +212,16 @@ begin
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
 
-def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
+def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
 { to_fun := λ t, if  (t : ℝ) ≤ θ / 2 then x
                  else γ.extend ((2*t - θ)/(2 - θ)),
   continuous_to_fun :=
   begin
     apply continuous.piecewise,
     { intros t ht,
-      rw frontier_I_mem θ t ht,
-      field_simp },
+      rw [frontier_I_mem θ t ht, mul_div, mul_div_cancel_left, sub_self, zero_div],
+      simp only [γ.source, set.left_mem_Icc, zero_le_one, extend_extends, mk_zero],
+      exact two_ne_zero },
     exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul continuous_induced_dom).sub
       continuous_const).div_const ],
   end,
@@ -231,6 +240,66 @@ def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
     { simpa only [div_self, set.right_mem_Icc, zero_le_one, extend_extends, mk_one,
       to_fun_eq_coe, coe_to_continuous_map] using γ.3 },
     { linarith },
+  end }
+
+
+lemma delayed_refl_left_at_0 (γ : Ω(x)) : (delayed_refl_left 0 γ) = γ :=
+begin
+  ext t,
+  dsimp [delayed_refl_left],
+  rw [sub_zero, sub_zero, mul_div_assoc, mul_div_cancel' (t : ℝ) two_ne_zero, zero_div],
+  split_ifs with h,
+  { have := coe_eq_zero.mp (((nonneg t).antisymm) h).symm,
+    rwa [this, path.source] },
+  { exact extend_extends' _ _ },
+end
+
+lemma delayed_refl_left_at_1 (γ : Ω(x)) : (delayed_refl_left 1 γ) = (path.refl x).trans γ :=
+begin
+  ext t,
+  dsimp [delayed_refl_left],
+  norm_num,
+  refl,
+end
+
+lemma delayed_refl_left_e (θ : I) : delayed_refl_left θ (refl x) = refl x :=
+-- lemma delayed_it_e (γ : Ω(x)) (h : γ = refl x) (θ : I) : delayed_refl_left θ (refl x) = refl x :=
+begin
+ sorry ,-- γₑ
+end
+
+
+def delayed_refl_right {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
+{ to_fun := λ t, if  (t : ℝ) ≤ (1 + θ) / 2 then γ.extend (2 * t/(1 + θ))
+                 else x,
+  continuous_to_fun :=
+  begin
+    apply continuous.piecewise,
+    -- sorry,
+    { intros t ht,
+      rw frontier_I_mem' ((1 : ℝ) + θ) t ht,
+      ring_nf,
+      -- simp,
+      -- rw this,
+      -- field_simp,
+
+       },
+    exacts [(continuous_extend γ).comp (continuous_const.mul continuous_induced_dom),
+      continuous_const],
+  end,
+  source' :=
+  begin
+    simp only [path.source, coe_zero, set.left_mem_Icc, zero_le_one, mul_zero, extend_extends,
+      mk_zero, if_t_t],
+  end,
+  target' :=
+  begin
+    simp only [coe_one, mul_one, ite_eq_right_iff, one_le_div (@two_pos ℝ _ _),
+      ← sub_le_iff_le_add],
+    intro h,
+    have : (1 : ℝ) ≤ 2 - θ.1 := by {linarith [θ.2.2]},
+    simp only [(h.antisymm this), extend_extends, path.target, set.right_mem_Icc,
+      zero_le_one, mk_one],
   end }
 
 lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧
@@ -273,7 +342,7 @@ end
 
 lemma continuous_Q : continuous Q := by simp only [Q_ext_extends_Q, continuous_proj_Icc.comp continuous_Q_ext]
 
-lemma continuous_delayed_id {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
+lemma continuous_delayed_refl_left {x : X} : continuous (λ p : I × Ω(x), delayed_refl_left p.1 p.2) :=
 begin
   apply continuous_to_Ω_if_continuous_uncurry,
   have hF₀ : continuous (λ p : I × Ω(x), p.2 p.1),
@@ -283,34 +352,12 @@ begin
     ((continuous.comp continuous_Q continuous_fst).prod_mk continuous_snd)).comp continuous_swap,
   convert hF₀.comp hQ,
   ext,
-  dsimp [delayed_id, prod.swap, homeomorph.prod_assoc, Q],
+  dsimp [delayed_refl_left, prod.swap, homeomorph.prod_assoc, Q],
   split_ifs,
   { simp only [path.source] },
   { rw [extend_extends] },
 end
 
-example (a b : ℝ) : a ≤ b → b ≤ a → a = b := antisymm
-
-lemma delayed_id_at_0 (γ : Ω(x)) : (delayed_id 0 γ) = γ :=
-begin
-  ext t,
-  dsimp [delayed_id],
-  rw [sub_zero, sub_zero, mul_div_assoc, mul_div_cancel' (t : ℝ) two_ne_zero, zero_div],
-  split_ifs with h,
-  { have := coe_eq_zero.mp (((nonneg t).antisymm) h).symm,
-    rwa [this, path.source] },
-  { exact extend_extends' _ _ },
-end
-
-lemma delayed_id_at_1 (γ : Ω(x)) : (delayed_id 1 γ) = (path.refl x).trans γ :=
-begin
-  ext t,
-  dsimp [delayed_id],
-  norm_num,
-  refl,
-end
-
-#exit
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
@@ -319,53 +366,18 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   Hmul_e_e := refl_trans_refl,
   left_Hmul_e :=
   begin
-    -- existsi
-    -- let φ : C(I × Ω(x), Ω(x)) := ⟨λ p, delayed_id p.1 p.2, continuous_delayed_id⟩,
-    -- use φ,
-    use ⟨λ p, delayed_id p.1 p.2, continuous_delayed_id⟩,
-    intro γ,
-    simp,
-    -- dsimp
-    rw delayed_id_at_0 γ,
-    -- library_search,
-    -- simp,
-    -- simp only [continuous_map.coe_mk],
-    -- funext,
-    -- dsimp [path.refl],
-    -- ext t,
-    -- dsimp [path.refl, delayed_id, path.source],
-    -- have temp : (ite ((t : ℝ) ≤ 0 / 2) x (γ.extend ((2 * ↑t - 0) / (2 - 0)))) = x, sorry,
-    -- rw temp,
-    -- rw trans_apply,
-    -- simp only [not_le, zero_div, tsub_zero, path.coe_mk],
-    sorry,
-    sorry,
-    sorry,
-    -- simp,
-    -- simp [path.has_coe_to_fun],
-    -- convert,
-    -- simp only,
-    -- have := (delayed_id 0 γ).source',
-    -- erw this,
-
-    -- let φ : I × Ω(x) → (I → X) := λ p t, if  ≤ (p.1)/2 then p.2 t,
-    --                       else p.2 ((2t - p.1)/(2 - p.2)),
+    use ⟨λ p, delayed_refl_left p.1 p.2, continuous_delayed_refl_left⟩;
+    intro x,
+    { exact delayed_refl_left_at_0 x },
+    { exact delayed_refl_left_at_1 x },
+    { intros _ h,
+      simp only [set.mem_singleton_iff.mp h, continuous_map.coe_mk, refl_trans_refl, id.def,
+        and_self],
+      exact delayed_refl_left_e x },
   end,
   right_Hmul_e :=
   begin
     sorry,
-    -- use ⟨λ p, delayed_id p.1 p.2, continuous_delayed_id⟩,
-    -- intro γ,
-    -- -- dsimp
-    -- -- convert delayed_id_at_0 γ,
-    -- simp,
-
-    -- let φ : C(I × Ω(x), Ω(x)) := ⟨λ p, delayed_id p.1 p.2, continuous_delayed_id⟩,
-    -- use φ,
-    -- intro γ,
-    -- ext t,
-    -- simp [continuous_map.coe_mk, path.refl, path.trans, path.source, delayed_id],
-
   end  }
 
 end path_space_H_space

@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta, Kexing Ying
 import data.set.intervals.ord_connected
 import measure_theory.covering.differentiation
 import measure_theory.measure.lebesgue
+import measure_theory.covering.besicovitch_vector_space
 import order.upper_lower
 
 /-!
@@ -17,6 +18,137 @@ This file proves that order-connected sets in `ℝⁿ` under the pointwise order
 
 * `is_upper_set.null_frontier`/`is_lower_set.null_frontier`
 -/
+
+section
+variables {α : Type*} {r r' : α → α → Prop}
+
+lemma directed_on.mono' {s : set α} (hs : directed_on r s)
+  (h : ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b → r' a b) :
+  directed_on r' s :=
+λ x hx y hy, let ⟨z, hz, hxz, hyz⟩ := hs _ hx _ hy in ⟨z, hz, h hx hz hxz, h hy hz hyz⟩
+
+end
+
+section
+variables {α β : Type*} [semilattice_sup α] [preorder β] {f : α → β} {s : set α}
+
+lemma monotone_on.directed_ge (hf : monotone_on f s) : directed_on (≥) f := directed_of_inf hf
+
+end
+
+section
+variables {α β : Type*} [preorder α] {f : α → β}
+
+open set
+
+/-- An antitone function on an inf-semilattice is directed. -/
+lemma directed_on_of_inf {r : β → β → Prop} {s : set α} (hs : directed_on (≤) s)
+  (hf : ∀ ⦃a₁⦄, a₁ ∈ s → ∀ ⦃a₂⦄, a₂ ∈ s → a₁ ≤ a₂ → r (f a₁) (f a₂)) : directed_on r (f '' s) :=
+directed_on_image.2 $ hs.mono' hf
+
+variables [preorder β]
+
+lemma monotone.directed_ge (hf : monotone f) : directed (≥) f := directed_of_inf hf
+
+lemma monotone_on.directed_on_ge (hf : monotone_on f s) : directed_on (≥) s f := directed_of_inf hf
+
+end
+
+section
+variables {α β : Type*} [semilattice_sup α] [preorder β] {f : α → β} {s : set α}
+
+lemma monotone_on.directed_ge (hf : monotone_on f s) : directed_on (≥) f := directed_of_inf hf
+
+end
+
+section
+variables {α β : Type*} [semilattice_inf α] [preorder β] {f : α → β} {s : set α}
+
+lemma monotone.directed_ge (hf : monotone f) : directed (≥) f := directed_of_inf hf
+
+lemma monotone_on.directed_on_ge (hf : monotone_on f s) : directed_on (≥) s f := directed_of_inf hf
+
+end
+
+namespace emetric
+variables {α β : Type*} [pseudo_emetric_space α] [pseudo_emetric_space β] {f : α → β} {s t : set α}
+  {x : α}
+
+open filter set
+open_locale topological_space ennreal
+
+lemma nhds_within_basis_ball : (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, ball x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_eball s
+
+lemma nhds_within_basis_closed_ball :
+  (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, closed_ball x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_closed_eball s
+
+lemma mem_nhds_within_iff : s ∈ 𝓝[t] x ↔ ∃ ε > 0, ball x ε ∩ t ⊆ s :=
+nhds_within_basis_ball.mem_iff
+
+lemma tendsto_nhds_within_nhds_within {t : set β} {a b} :
+  tendsto f (𝓝[s] a) (𝓝[t] b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, x ∈ s → edist x a < δ → f x ∈ t ∧ edist (f x) b < ε :=
+(nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
+  forall₂_congr $ λ ε hε, exists₂_congr $ λ δ hδ,
+  forall_congr $ λ x, by simp; itauto
+
+lemma tendsto_nhds_within_nhds {a b} :
+  tendsto f (𝓝[s] a) (𝓝 b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → edist x a < δ → edist (f x) b < ε :=
+by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within], simp only [mem_univ, true_and] }
+
+lemma tendsto_nhds_nhds {a b} :
+  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, edist x a < δ → edist (f x) b < ε :=
+nhds_basis_eball.tendsto_iff nhds_basis_eball
+
+end emetric
+
+namespace ennreal
+open_locale ennreal
+variables {s : set ℝ≥0∞} {x : ℝ≥0∞}
+
+open filter set
+open_locale topological_space ennreal
+
+lemma nhds_basis_Icc (hx : x ≠ ⊤) :
+  (𝓝 x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, Icc (x - ε) (x + ε)) :=
+begin
+  rw nhds_of_ne_top hx,
+  refine has_basis_binfi_principal _ ⟨∞, with_top.coe_lt_top _⟩,
+
+end
+
+lemma nhds_within_basis_ball : (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, Icc x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_Icc s
+
+lemma nhds_within_basis_closed_ball :
+  (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, closed_ball x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_closed_eball s
+
+lemma mem_nhds_within_iff : s ∈ 𝓝[t] x ↔ ∃ ε > 0, ball x ε ∩ t ⊆ s :=
+nhds_within_basis_ball.mem_iff
+
+lemma tendsto_nhds_within_nhds_within {t : set β} {a b} :
+  tendsto f (𝓝[s] a) (𝓝[t] b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, x ∈ s → edist x a < δ → f x ∈ t ∧ edist (f x) b < ε :=
+(nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
+  forall₂_congr $ λ ε hε, exists₂_congr $ λ δ hδ,
+  forall_congr $ λ x, by simp; itauto
+
+lemma tendsto_nhds_within_nhds {a b} :
+  tendsto f (𝓝[s] a) (𝓝 b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → edist x a < δ → edist (f x) b < ε :=
+by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within], simp only [mem_univ, true_and] }
+
+lemma tendsto_nhds_nhds {a b} :
+  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, edist x a < δ → edist (f x) b < ε :=
+nhds_basis_eball.tendsto_iff nhds_basis_eball
+
+
+
+end ennreal
 
 section
 variables {ι α : Type*} [fintype ι] [pseudo_emetric_space α]
@@ -52,7 +184,7 @@ end
 end
 
 section
-variables {β : Type*} {π : β → Type*} [nonempty β] [fintype β] [Π b, semi_normed_group (π b)]
+variables {β : Type*} {π : β → Type*} [nonempty β] [fintype β] [Π b, seminormed_add_comm_group (π b)]
   {f : Π b, π b} {r : ℝ}
 
 lemma pi_norm_le_iff' : ∥f∥ ≤ r ↔ ∀ b, ∥f b∥ ≤ r :=
@@ -66,7 +198,7 @@ end
 end
 
 section
-variables {ι E : Type*} [fintype ι] [semi_normed_group E]
+variables {ι E : Type*} [fintype ι] [seminormed_add_comm_group E]
 
 lemma pi_norm_const_le (a : E) : ∥(λ _ : ι, a)∥ ≤ ∥a∥ :=
 (pi_norm_le_iff $ norm_nonneg _).2 $ λ _, le_rfl
@@ -126,14 +258,29 @@ begin
   ring,
 end
 
+open filter
+open_locale topological_space
+
 lemma is_upper_set.null_frontier (hs : is_upper_set s) : volume (frontier s) = 0 :=
 begin
   refine eq_bot_mono (volume.mono _)
-    (vitali_family.ae_tendsto_measure_inter_div_of_measurable_set _ _),
-  sorry,
-  sorry,
-  sorry,
-  sorry,
+    (besicovitch.ae_tendsto_measure_inter_div_of_measurable_set _ is_closed_closure.measurable_set),
+  exact s,
+  refine λ x hx h, _,
+  dsimp at h,
+
+  rw emetric.nhds_within_basis_closed_ball.tendsto_iff emetric.nhds_basis_closed_eball at h,
+  rw [nhds_within, tendsto_inf_left] at h,
+  rw emetric.nhds_basis_eball.tendsto_left_iff at h,
+  have := emetric.tendsto_nhds.1 h,
+  have := emetric.tendsto_nhds_within_nhds.1 _,
+  rotate 9,
+  convert h,
+  rotate 2,
+  apply_instance,
+  refl,
+  sorry,sorry,
+  sorry,sorry,
 end
 
 lemma is_lower_set.null_frontier (hs : is_lower_set s) : volume (frontier s) = 0 := sorry

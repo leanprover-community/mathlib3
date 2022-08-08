@@ -41,7 +41,8 @@ The structure `box_integral.integration_params` has 3 boolean fields with the fo
 
 * `bDistortion`: the value `tt` means that `r` can depend on the maximal ratio of sides of the same
   box of a partition. Presence of this case make quite a few proofs harder but we can prove the
-  divergence theorem only for the filter `⊥ = {bRiemann := ff, bHenstock := tt, bDistortion := tt}`.
+  divergence theorem only for the filter
+  `box_integral.integration_params.GP = ⊥ = {bRiemann := ff, bHenstock := tt, bDistortion := tt}`.
 
 ### Well-known sets of parameters
 
@@ -67,15 +68,15 @@ the library.
   that we allow tags to be outside of their boxes; the tags still have to be in the ambient closed
   box, and the partition still has to be subordinate to a function.
 
-* `⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`): this is the least integration theory
-  in our list, i.e., all functions integrable in any other theory is integrable in this one as well.
-  This is a non-standard generalization of the Henstock-Kurzweil integral to higher dimension.
-  In dimension one, it generates the same filter as `Henstock`. In higher dimension, this
-  generalization defines an integration theory such that the divergence of any Fréchet
-  differentiable function `f` is integrable, and its integral is equal to the sum of integrals of
-  `f` over the faces of the box, taken with appropriate signs.
+* `box_integral.integration_params.GP = ⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`):
+  this is the least integration theory in our list, i.e., all functions integrable in any other
+  theory is integrable in this one as well.  This is a non-standard generalization of the
+  Henstock-Kurzweil integral to higher dimension.  In dimension one, it generates the same filter as
+  `Henstock`. In higher dimension, this generalization defines an integration theory such that the
+  divergence of any Fréchet differentiable function `f` is integrable, and its integral is equal to
+  the sum of integrals of `f` over the faces of the box, taken with appropriate signs.
 
-  A function `f` is `⊥`-integrable if for any `ε > 0` and `c : ℝ≥0` there exists
+  A function `f` is `GP`-integrable if for any `ε > 0` and `c : ℝ≥0` there exists
   `r : (ι → ℝ) → {x : ℝ | 0 < x}` such that for any tagged partition `π` subordinate to `r`, if each
   tag belongs to the corresponding closed box and for each box `J ∈ π`, the maximal ratio of its
   sides is less than or equal to `c`, then the integral sum of `f` over `π` is `ε`-close to the
@@ -183,7 +184,8 @@ used in the definition of a box-integrable function.
 
 * `bDistortion`: the value `tt` means that `r` can depend on the maximal ratio of sides of the same
   box of a partition. Presence of this case makes quite a few proofs harder but we can prove the
-  divergence theorem only for the filter `⊥ = {bRiemann := ff, bHenstock := tt, bDistortion := tt}`.
+  divergence theorem only for the filter
+  `box_integral.integration_params.GP = ⊥ = {bRiemann := ff, bHenstock := tt, bDistortion := tt}`.
 -/
 @[ext] structure integration_params : Type :=
 (bRiemann bHenstock bDistortion : bool)
@@ -209,9 +211,10 @@ def iso_prod : integration_params ≃o bool × boolᵒᵈ × boolᵒᵈ :=
 instance : bounded_order integration_params :=
 iso_prod.symm.to_galois_insertion.lift_bounded_order
 
-/-- The value `⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`) corresponds to a
-generalization of the Henstock integral such that the Divergence theorem holds true without
-additional integrability assumptions, see the module docstring for details. -/
+/-- The value
+`box_integral.integration_params.GP = ⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`)
+corresponds to a generalization of the Henstock integral such that the Divergence theorem holds true
+without additional integrability assumptions, see the module docstring for details. -/
 instance : inhabited integration_params := ⟨⊥⟩
 
 instance : decidable_rel ((≤) : integration_params → integration_params → Prop) :=
@@ -239,9 +242,17 @@ discontinuous) positive function `r`; the tags may be outside of the correspondi
 (but still inside the ambient closed box `I.Icc`). -/
 def McShane : integration_params := ⟨ff, ff, ff⟩
 
+/-- The `box_integral.integration_params` corresponding to the generalized Perron integral. In the
+corresponding filter, we require that the tagged partition is subordinate to a (possibly,
+discontinuous) positive function `r` and each tag belongs to the corresponding closed box. We also
+require an upper estimate on the distortion of all boxes of the partition. -/
+def GP : integration_params := ⊥
+
 lemma Henstock_le_Riemann : Henstock ≤ Riemann := dec_trivial
 
 lemma Henstock_le_McShane : Henstock ≤ McShane := dec_trivial
+
+lemma GP_le : GP ≤ l := bot_le
 
 /-- The predicate corresponding to a base set of the filter defined by an
 `integration_params`. It says that

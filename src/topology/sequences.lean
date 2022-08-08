@@ -33,7 +33,7 @@ variables [topological_space X] [topological_space Y]
 /-- The sequential closure of a set `s : set X` in a topological space `X` is
 the set of all `a : X` which arise as limit of sequences in `s`. -/
 def seq_closure (s : set X) : set X :=
-{a | ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ (tendsto x at_top (𝓝 a))}
+{a | ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ tendsto x at_top (𝓝 a)}
 
 lemma subset_seq_closure {s : set X} : s ⊆ seq_closure s :=
 λ p hp, ⟨const ℕ p, λ _, hp, tendsto_const_nhds⟩

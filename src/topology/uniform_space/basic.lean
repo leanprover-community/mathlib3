@@ -661,7 +661,7 @@ lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, ball x s ×ˢ ball y s :=
 begin
   rw nhds_prod_eq,
-  apply (has_basis_nhds x).prod' (has_basis_nhds y),
+  apply (has_basis_nhds x).prod_same_index (has_basis_nhds y),
   rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
   exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, U_symm.inter V_symm⟩,
          ball_inter_left x U V, ball_inter_right y U V⟩,
@@ -1240,6 +1240,31 @@ instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥
+
+section
+variables [uniform_space α]
+
+open additive multiplicative
+
+instance : uniform_space (additive α) := ‹uniform_space α›
+instance : uniform_space (multiplicative α) := ‹uniform_space α›
+
+lemma uniform_continuous_of_mul : uniform_continuous (of_mul : α → additive α) :=
+uniform_continuous_id
+lemma uniform_continuous_to_mul : uniform_continuous (to_mul : additive α → α) :=
+uniform_continuous_id
+lemma uniform_continuous_of_add : uniform_continuous (of_add : α → multiplicative α) :=
+uniform_continuous_id
+lemma uniform_continuous_to_add : uniform_continuous (to_add : multiplicative α → α) :=
+uniform_continuous_id
+
+lemma uniformity_additive : 𝓤 (additive α) = (𝓤 α).map (prod.map of_mul of_mul) :=
+by { convert map_id.symm, exact prod.map_id }
+
+lemma uniformity_multiplicative : 𝓤 (multiplicative α) = (𝓤 α).map (prod.map of_add of_add) :=
+by { convert map_id.symm, exact prod.map_id }
+
+end
 
 instance {p : α → Prop} [t : uniform_space α] : uniform_space (subtype p) :=
 uniform_space.comap subtype.val t

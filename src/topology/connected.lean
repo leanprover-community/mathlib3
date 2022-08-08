@@ -1191,24 +1191,24 @@ begin
 end
 
 lemma locally_connected_space_iff_connected_subsets :
-  locally_connected_space α ↔ ∀ (x : α) (U ∈ 𝓝 x), ∃ V ∈ 𝓝 x, is_connected V ∧ V ⊆ U :=
+  locally_connected_space α ↔ ∀ (x : α) (U ∈ 𝓝 x), ∃ V ∈ 𝓝 x, is_preconnected V ∧ V ⊆ U :=
 begin
   split,
   { rw locally_connected_space_iff_open_connected_subsets,
     intros h x U hxU,
     rcases h x U hxU with ⟨V, hVU, hV₁, hxV, hV₂⟩,
-    exact ⟨V, hV₁.mem_nhds hxV, hV₂, hVU⟩ },
+    exact ⟨V, hV₁.mem_nhds hxV, hV₂.is_preconnected, hVU⟩ },
   { rw locally_connected_space_iff_connected_component_in_open,
     refine λ h U hU x hxU, is_open_iff_mem_nhds.mpr (λ y hy, _),
     rw connected_component_in_eq hy,
     rcases h y U (hU.mem_nhds $ (connected_component_in_subset _ _) hy) with ⟨V, hVy, hV, hVU⟩,
     exact filter.mem_of_superset hVy
-      (hV.is_preconnected.subset_connected_component_in (mem_of_mem_nhds hVy) hVU) }
+      (hV.subset_connected_component_in (mem_of_mem_nhds hVy) hVU) }
 end
 
 lemma locally_connected_space_iff_connected_basis :
   locally_connected_space α ↔
-  ∀ x, (𝓝 x).has_basis (λ s : set α, s ∈ 𝓝 x ∧ is_connected s) id :=
+  ∀ x, (𝓝 x).has_basis (λ s : set α, s ∈ 𝓝 x ∧ is_preconnected s) id :=
 begin
   rw locally_connected_space_iff_connected_subsets,
   congrm ∀ x, (_ : Prop),

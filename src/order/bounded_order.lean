@@ -1384,10 +1384,10 @@ lemma codisjoint.dual [semilattice_sup α] [order_top α] {a b : α} :
 section distrib_lattice
 variables [distrib_lattice α] [bounded_order α] {a b c : α}
 
-lemma disjoint.le_of_codisjoint (hb : disjoint a b) (hc : codisjoint a c) : b ≤ c :=
+lemma disjoint.le_of_codisjoint (hab : disjoint a b) (hbc : codisjoint b c) : a ≤ c :=
 begin
-  rw [←@top_inf_eq _ _ _ b, ←@bot_sup_eq _ _ _ c, ←hb.eq_bot, ←hc.eq_top, sup_inf_right],
-  exact inf_le_inf_left _ le_sup_left,
+  rw [←@inf_top_eq _ _ _ a, ←@bot_sup_eq _ _ _ c, ←hab.eq_bot, ←hbc.eq_top, sup_inf_right],
+  exact inf_le_inf_right _ le_sup_left,
 end
 
 end distrib_lattice

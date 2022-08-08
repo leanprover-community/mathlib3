@@ -30,19 +30,18 @@ namespace rel_embedding
 variables {r : α → α → Prop} [is_strict_order α r]
 
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
-def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
-  ((<) : ℕ → ℕ → Prop) ↪r r :=
+def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) : ((<) : ℕ → ℕ → Prop) ↪r r :=
 of_monotone f $ nat.rel_of_forall_rel_succ_of_lt r H
 
-@[simp]
-lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} : nat_lt f H n = f n :=
-rfl
+@[simp] lemma coe_nat_lt {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} : ⇑(nat_lt f H) = f := rfl
 
 /-- If `f` is a strictly `r`-decreasing sequence, then this returns `f` as an order embedding. -/
 def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) : ((>) : ℕ → ℕ → Prop) ↪r r :=
-by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
+by { haveI := is_strict_order.swap r, exact rel_embedding.swap (nat_lt f H) }
 
-theorem exists_not_acc_lt_of_not_acc {a} (h : ¬ acc r a) : ∃ b, ¬ acc r b ∧ r b a :=
+@[simp] lemma coe_nat_gt {f : ℕ → α} {H : ∀ n : ℕ, r (f (n + 1)) (f n)} : ⇑(nat_gt f H) = f := rfl
+
+theorem exists_not_acc_lt_of_not_acc {a : α} {r} (h : ¬ acc r a) : ∃ b, ¬ acc r b ∧ r b a :=
 begin
   contrapose! h,
   refine ⟨_, λ b hr, _⟩,
@@ -52,7 +51,7 @@ end
 
 /-- A value is accessible iff it isn't contained in any infinite decreasing sequence. -/
 theorem acc_iff_no_decreasing_seq {x} :
-  acc r x ↔ is_empty ({f : ((>) : ℕ → ℕ → Prop) ↪r r // x ∈ set.range f}) :=
+  acc r x ↔ is_empty {f : ((>) : ℕ → ℕ → Prop) ↪r r // x ∈ set.range f} :=
 begin
   split,
   { refine λ h, h.rec_on (λ x h IH, _),
@@ -83,6 +82,9 @@ begin
   { introI h,
     exact ⟨λ x, acc_iff_no_decreasing_seq.2 infer_instance⟩ }
 end
+
+theorem not_well_founded_of_decreasing_seq (f : ((>) : ℕ → ℕ → Prop) ↪r r) : ¬ well_founded r :=
+by { rw [well_founded_iff_no_descending_seq, not_is_empty_iff], exact ⟨f⟩ }
 
 end rel_embedding
 

@@ -16,16 +16,16 @@ import ring_theory.tensor_product
   then `restrict_scalars : Module S ⥤ Module R` is defined by `M ↦ M` where `M : S-module` is seen
   as `R-module` by `r • m := f r • m` and `S`-linear map `l : M ⟶ M'` is `R`-linear as well.
 
-* `category_theory.Module.extend_scalars.funtor`: given **commutative** ring and a ring homomorphism
-  `f : R ⟶ S`, then `extend_scalars.functor : Module R ⥤ Module S` is defined by `M ↦ S ⨂ M` where
-  the module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
+* `category_theory.Module.extend_scalars`: given **commutative** rings `R, S` and ring homomorphism
+  `f : R ⟶ S`, then `extend_scalars : Module R ⥤ Module S` is defined by `M ↦ S ⨂ M` where the
+  module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
   is sent to `S`-linear map `s ⊗ m ↦ s ⊗ l m : S ⨂ M ⟶ S ⨂ M'`.
 
 ## List of notations
 Let `R, S` be rings and `f : R →+* S`
 * if `M` is an `S`-module, `r : R` and `m : M` then notation `r r•[f] m` means `R`-scalar action on
   `M` defined by `f r • m`.
-* if `M` is an `R`-module, then notation `S ⊗[R, f] M` means the tensor product `S ⊗ M` where `S` is
+* if `M` is an `R`-module, then notation `S ⨂[R, f] M` means the tensor product `S ⨂ M` where `S` is
   considered as an `R`-module via restriction of scalars.
 * if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f]` is the pure tensor
   `s ⊗ m : S ⊗[R, f] M`
@@ -113,12 +113,13 @@ namespace extend_scalars
 open_locale tensor_product
 open tensor_product
 
+variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
+
 section unbundled
 
-variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
-  (M : Type v) [add_comm_monoid M] [module R M]
+variables (M : Type v) [add_comm_monoid M] [module R M]
 
-localized "notation S `⊗[` R `,` f `]` M := @tensor_product R _ S M _ _
+localized "notation S `⨂[` R `,` f `]` M := @tensor_product R _ S M _ _
   (module.comp_hom S f) _" in change_of_rings
 localized "notation s `⊗ₜ[` R `,` f `]` m := @tensor_product.tmul R _ _ _ _ _
   (module.comp_hom _ f) _ s m" in change_of_rings
@@ -127,7 +128,7 @@ localized "notation s `⊗ₜ[` R `,` f `]` m := @tensor_product.tmul R _ _ _ _ 
 Since `S` has an `R`-module structure, `S ⊗[R] M` can be given an `S`-module structure.
 The scalar multiplication is defined by `s • (s' ⊗ m) := (s * s') ⊗ m`
 -/
-instance is_module : module S (S ⊗[R, f] M) :=
+instance is_module : module S (S ⨂[R, f] M) :=
 @tensor_product.left_module R _ S _ S M _ _ (module.comp_hom S f) _ _
 begin
   fconstructor,
@@ -144,7 +145,7 @@ end unbundled
 
 open_locale change_of_rings
 
-variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) (M : Module.{v} R)
+variables (M : Module.{v} R)
 
 lemma smul_tmul (s s' : S) (m : M) : s e•[f] (s' ⊗ₜ[R, f] m) = (s * s') ⊗ₜ[R, f] m :=
 by rw [smul_tmul', smul_eq_mul]
@@ -156,7 +157,7 @@ by rw [(@tensor_product.smul_tmul R _ R _ S M _ _ (module.comp_hom S f) _
 /--
 Extension of scalars turn an `R`-module into `S`-module by M ↦ S ⨂ M
 -/
-def obj' : Module S := ⟨S ⊗[R, f] M⟩
+def obj' : Module S := ⟨S ⨂[R, f] M⟩
 
 /--
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
@@ -165,8 +166,8 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` a
 def map' {M1 M2 : Module.{v} R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
 @linear_map.base_change R S M1 M2 _ _ (restrict_scalars.is_algebra f S) _ _ _ _ l
 
-lemma map'_id {M : Module R} : map' f (𝟙 M) = 𝟙 _ :=
-linear_map.ext $ λ (x : S ⊗[R, f] M),
+lemma map'_id {M : Module.{v} R} : map' f (𝟙 M) = 𝟙 _ :=
+linear_map.ext $ λ (x : S ⨂[R, f] M),
 begin
   dsimp [map'],
   induction x using tensor_product.induction_on with _ _ m s ihx ihy,
@@ -177,7 +178,7 @@ end
 
 lemma map'_comp {M₁ M₂ M₃ : Module.{v} R} (l₁₂ : M₁ ⟶ M₂) (l₂₃ : M₂ ⟶ M₃) :
   map' f (l₁₂ ≫ l₂₃) = map' f l₁₂ ≫ map' f l₂₃ :=
-linear_map.ext $ λ (x : S ⊗[R, f] M₁),
+linear_map.ext $ λ (x : S ⨂[R, f] M₁),
 begin
   dsimp [map'],
   induction x using tensor_product.induction_on with _ _ m s ihx ihy,
@@ -187,16 +188,17 @@ begin
   { simp only [map_add, ihx, ihy], },
 end
 
+end extend_scalars
+
 /--
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
-@[simps] def functor : Module R ⥤ Module S :=
-{ obj := λ M, obj' f M,
-  map := λ M1 M2 l, map' f l,
-  map_id' := λ _, map'_id f,
-  map_comp' := λ _ _ _, map'_comp f }
-
-end extend_scalars
+@[simps] def extend_scalars {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) :
+  Module R ⥤ Module S :=
+{ obj := λ M, extend_scalars.obj' f M,
+  map := λ M1 M2 l, extend_scalars.map' f l,
+  map_id' := λ _, extend_scalars.map'_id f,
+  map_comp' := λ _ _ _, extend_scalars.map'_comp f }
 
 end category_theory.Module

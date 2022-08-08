@@ -40,8 +40,7 @@ protected def has_smul : has_smul R M :=
 (module.comp_hom M f).to_has_smul
 
 localized "notation r ` r•[` f `] ` :=
-  @@has_smul.smul (restrict_scalars.has_smul f _) r"
-  in change_of_rings
+  @@has_smul.smul (restrict_scalars.has_smul f _) r" in change_of_rings
 
 end unbundled
 

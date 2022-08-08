@@ -688,7 +688,7 @@ end
 
 lemma f_bar_1 : f_bar 1 = 1 :=
 begin
-  ext, simp only [bar_coeff, polynomial.coeff_one], split_ifs, exact rfl, exact rfl,
+  ext, simp only [bar_coeff, polynomial.coeff_one, apply_ite abs, abs_zero, abs_one],
 end
 
 
@@ -745,30 +745,20 @@ begin
   exact le_trans ineq1 ineq2,
 end
 
-private lemma coe_sum (s : finset ℕ) (f : ℕ -> ℤ) : ↑(∑ i in s, f i) = (∑ i in s, ((f i):ℝ)) :=
-begin
-  apply finset.induction_on s, simp only [int.cast_zero, finset.sum_empty], intros a s ha H, rw finset.sum_insert, simp only [int.cast_add], rw H, rw finset.sum_insert, assumption, assumption,
-end
-
 lemma coe_f_eval (f : ℤ[X]) (i : ℕ) : f_eval_on_ℝ f (i:ℝ) = ((@polynomial.eval ℤ _ (i : ℤ) f):ℝ) :=
 begin
-  simp only [f_eval_on_ℝ, polynomial.eval_map, polynomial.eval, polynomial.eval₂, polynomial.sum, coe_sum],
-  apply finset.sum_congr,
-  { apply polynomial.support_map_of_injective _ ℤembℝ_inj },
-  intros, simp only [int.cast_coe_nat, int.cast_pow, ring_hom.eq_int_cast, id.def, int.cast_mul],
-  simp only [int.cast_eq_zero,
- int.cast_id,
- ring_hom.eq_int_cast,
- ring_hom.map_int_cast,
- mul_eq_mul_left_iff,
- true_or,
- eq_self_iff_true,
- polynomial.coeff_map],
+  simp only [f_eval_on_ℝ, polynomial.eval_map, polynomial.eval, polynomial.eval₂, polynomial.sum],
+  rw [←int.coe_cast_ring_hom, (int.cast_ring_hom ℝ).map_sum, int.coe_cast_ring_hom],
+  apply finset.sum_congr (polynomial.support_map_of_injective _ ℤembℝ_inj),
+  intros,
+  simp only [int.cast_coe_nat, int.cast_eq_zero, int.cast_pow, int.cast_id, ring_hom.eq_int_cast,
+    ring_hom.map_int_cast, int.cast_mul, mul_eq_mul_left_iff, true_or, eq_self_iff_true,
+    polynomial.coeff_map],
 end
 
 private lemma f_bar_X_pow {n : ℕ} : f_bar (polynomial.X ^ n) = polynomial.X^n :=
 begin
-  ext, rw bar_coeff, simp only [polynomial.coeff_X_pow], split_ifs; exact rfl
+  ext, simp only [bar_coeff, polynomial.coeff_X_pow, apply_ite abs, abs_zero, abs_one],
 end
 
 private lemma f_bar_X_sub_pow (n k : ℕ) (c:ℕ) : polynomial.eval (k:ℤ) (f_bar ((polynomial.X - polynomial.C (c:ℤ))^n)) ≤ polynomial.eval (k:ℤ) (polynomial.X + polynomial.C (c:ℤ))^n :=

@@ -35,14 +35,14 @@ lemma mono_of_presheaf_mono [mono f.1] : mono f :=
     (Sheaf.hom.ext_iff _ _).mp eq₀ }
 
 instance sheaf.forget_reflects_mono : (sheaf.forget D X).reflects_monomorphisms :=
-{ reflects := λ F G f m, @@mono_of_presheaf_mono _ f m }
+infer_instance
 
 instance epi_of_presheaf_epi [epi f.1] : epi f :=
 { left_cancellation := λ P g h eq₀, Sheaf.hom.ext _ _ $ (cancel_epi f.1).mp $
     (Sheaf.hom.ext_iff _ _).mp eq₀ }
 
 instance sheaf_forget_reflects_epi : (sheaf.forget D X).reflects_epimorphisms :=
-{ reflects := λ F G f m, @@epi_of_presheaf_epi _ f m }
+infer_instance
 
 section to_presheaf
 
@@ -80,7 +80,7 @@ lemma presheaf_mono_of_mono [mono f] : mono f.1 :=
   end }
 
 instance sheaf.forget_preserves_mono : (sheaf.forget D X).preserves_monomorphisms :=
-{ preserves := λ F G f m, @presheaf_mono_of_mono X D _ F G f _ _ _ _ _ _ m }
+functor.preserves_monomorphisms_of_adjunction (sheafification_adjunction _ _)
 
 lemma sheaf.mono_iff_presheaf_mono : mono f ↔ mono f.1 :=
 ⟨λ m, @@presheaf_mono_of_mono _ f _ _ _ _ _ _ m, λ m, @@mono_of_presheaf_mono _ f m⟩

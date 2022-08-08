@@ -18,7 +18,7 @@ import algebra.category.Module.basic
 
 namespace category_theory.Module
 
-universes u₁ u₂ v
+universes v u₁ u₂
 
 namespace restrict_scalars
 

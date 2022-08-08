@@ -659,19 +659,6 @@ begin
   },
 end
 
-
-lemma abs_sum_le_sum_abs' {f : (ℕ×ℕ) → ℤ} {s : finset (ℕ×ℕ)} :
-  abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
-begin
-  apply finset.induction_on s,
-  { simp },
-    intros a s ha H,
-    rw finset.sum_insert, rw finset.sum_insert,
-    have triv := @abs_add ℤ _ (f a) (∑ (x : ℕ × ℕ) in s, f x),
-    have triv2 : abs (f a) + abs (∑ (x : ℕ × ℕ) in s, f x) ≤ abs (f a) + (∑ (x : ℕ × ℕ) in s, abs (f x)), exact add_le_add_left H (abs (f a)),
-    exact le_trans triv triv2, assumption, assumption,
-end
-
 theorem eval_f_bar_mul (f g : ℤ[X]) (k : ℕ) : polynomial.eval (k:ℤ) (f_bar (f * g)) ≤ (polynomial.eval (k:ℤ) (f_bar f)) * (polynomial.eval (k:ℤ) (f_bar g)) :=
 begin
   by_cases (f=0 ∨ g=0),
@@ -694,15 +681,9 @@ begin
         zero_pow (nat.succ_pos x), polynomial.eval_finset_sum],
       exact finset.sum_nonneg (λ i hi, le_rfl), } },
 
-   { have ineq : abs (∑ (p : ℕ × ℕ) in finset.nat.antidiagonal x, f.coeff p.fst * g.coeff p.snd) ≤
-              ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal x, abs(f.coeff p.fst * g.coeff p.snd) := abs_sum_le_sum_abs',
-    have triv : ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal x, abs(f.coeff p.fst * g.coeff p.snd) = ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal x, abs(f.coeff p.fst) * abs(g.coeff p.snd),
-    { apply congr_arg, ext, rw abs_mul },
-    rw triv at ineq,
-    simp only [polynomial.eval_monomial],
-    apply mul_le_mul ineq le_rfl,
-    { apply pow_nonneg, norm_cast, exact bot_le },
-    { apply finset.sum_nonneg, intros, rw <-abs_mul, exact abs_nonneg _ } }
+   { simp only [polynomial.eval_monomial, bar_coeff, ←abs_mul],
+    refine mul_le_mul_of_nonneg_right (finset.abs_sum_le_sum_abs _ _) _,
+    { apply pow_nonneg, norm_cast, exact bot_le } }
 end
 
 lemma f_bar_1 : f_bar 1 = 1 :=

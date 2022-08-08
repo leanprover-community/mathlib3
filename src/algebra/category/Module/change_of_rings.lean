@@ -34,10 +34,11 @@ universes v u₁ u₂
 
 namespace restrict_scalars
 
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+
 section unbundled
 
-variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
-  (M : Type v) [add_comm_monoid M] [module S M]
+variables (M : Type v) [add_comm_monoid M] [module S M]
 
 /-- The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m` -/
 protected def has_smul : has_smul R M :=
@@ -51,7 +52,6 @@ end unbundled
 
 open_locale change_of_rings
 
-variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 variable (M : Module.{v} S)
 
 /-- Any `S`-module M is also an `R`-module via a ring homomorphism `f : R ⟶ S` by defining

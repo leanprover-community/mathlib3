@@ -81,6 +81,12 @@ instance : linear_order sign_type :=
   le_trans     := λ a b c hab hbc, by casesm* _; constructor,
   decidable_le := le.decidable_rel }
 
+instance : bounded_order sign_type :=
+{ top := 1,
+  le_top := le.of_pos,
+  bot := -1,
+  bot_le := le.of_neg }
+
 instance : has_distrib_neg sign_type :=
 { neg_neg := λ x, by cases x; refl,
   neg_mul := λ x y, by casesm* _; refl,
@@ -104,6 +110,44 @@ def fin3_equiv : sign_type ≃* fin 3 :=
     | ⟨n+3, h⟩ := (h.not_le le_add_self).elim
   end,
   map_mul' := λ x y, by casesm* _; refl }
+
+section case_bashing
+
+lemma nonneg_iff {a : sign_type} : 0 ≤ a ↔ a = 0 ∨ a = 1 := by dec_trivial!
+
+lemma nonneg_iff_ne_neg_one {a : sign_type} : 0 ≤ a ↔ a ≠ -1 := by dec_trivial!
+
+lemma neg_one_lt_iff {a : sign_type} : -1 < a ↔ 0 ≤ a := by dec_trivial!
+
+lemma nonpos_iff {a : sign_type} : a ≤ 0 ↔ a = -1 ∨ a = 0 := by dec_trivial!
+
+lemma nonpos_iff_ne_one {a : sign_type} : a ≤ 0 ↔ a ≠ 1 := by dec_trivial!
+
+lemma lt_one_iff {a : sign_type} : a < 1 ↔ a ≤ 0 := by dec_trivial!
+
+@[simp] lemma neg_iff {a : sign_type} : a < 0 ↔ a = -1 := by dec_trivial!
+
+@[simp] lemma le_neg_one_iff {a : sign_type} : a ≤ -1 ↔ a = -1 := le_bot_iff
+
+@[simp] lemma pos_iff {a : sign_type} : 0 < a ↔ a = 1 := by dec_trivial!
+
+@[simp] lemma one_le_iff {a : sign_type} : 1 ≤ a ↔ a = 1 := top_le_iff
+
+@[simp] lemma neg_one_le (a : sign_type) : -1 ≤ a := bot_le
+
+@[simp] lemma le_one (a : sign_type) : a ≤ 1 := le_top
+
+@[simp] lemma not_lt_neg_one (a : sign_type) : ¬ a < -1 := not_lt_bot
+
+@[simp] lemma not_one_lt (a : sign_type) : ¬ 1 < a := not_top_lt
+
+@[simp] lemma self_eq_neg_iff (a : sign_type) : a = -a ↔ a = 0 := by dec_trivial!
+
+@[simp] lemma neg_eq_self_iff (a : sign_type) : -a = a ↔ a = 0 := by dec_trivial!
+
+@[simp] lemma neg_one_lt_one : (-1 : sign_type) < 1 := bot_lt_top
+
+end case_bashing
 
 section cast
 
@@ -160,6 +204,25 @@ lemma sign_apply : sign a = ite (0 < a) 1 (ite (a < 0) (-1) 0) := rfl
 @[simp] lemma sign_pos (ha : 0 < a) : sign a = 1 := by rwa [sign_apply, if_pos]
 @[simp] lemma sign_neg (ha : a < 0) : sign a = -1 := by rwa [sign_apply, if_neg $ asymm ha, if_pos]
 
+lemma sign_eq_one_iff : sign a = 1 ↔ 0 < a :=
+begin
+  refine ⟨λ h, _, λ h, sign_pos h⟩,
+  by_contra hn,
+  rw [sign_apply, if_neg hn] at h,
+  split_ifs at h;
+    simpa using h
+end
+
+lemma sign_eq_neg_one_iff : sign a = -1 ↔ a < 0 :=
+begin
+  refine ⟨λ h, _, λ h, sign_neg h⟩,
+  rw sign_apply at h,
+  split_ifs at h,
+  { simpa using h },
+  { exact h_2 },
+  { simpa using h }
+end
+
 end preorder
 
 section linear_order
@@ -176,6 +239,22 @@ end
 
 lemma sign_ne_zero : sign a ≠ 0 ↔ a ≠ 0 :=
 sign_eq_zero_iff.not
+
+@[simp] lemma sign_nonneg_iff : 0 ≤ sign a ↔ 0 ≤ a :=
+begin
+  rcases lt_trichotomy 0 a with (h|rfl|h),
+  { simp [h, h.le] },
+  { simp },
+  { simpa [h, h.not_le] }
+end
+
+@[simp] lemma sign_nonpos_iff : sign a ≤ 0 ↔ a ≤ 0 :=
+begin
+  rcases lt_trichotomy 0 a with (h|rfl|h),
+  { simp [h, h.not_le] },
+  { simp },
+  { simp [h, h.le] }
+end
 
 end linear_order
 

@@ -257,6 +257,20 @@ def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 instance : full (Sheaf_to_presheaf J A) := { preimage := λ X Y f, ⟨f⟩ }
 instance : faithful (Sheaf_to_presheaf J A) := {}
 
+instance Sheaf.hom.mono_of_presheaf_mono {F G : Sheaf J A} (f : F ⟶ G) [mono f.1] : mono f :=
+{ right_cancellation := λ P g h eq₀, Sheaf.hom.ext _ _ $ (cancel_mono f.1).mp $
+    (Sheaf.hom.ext_iff _ _).mp eq₀ }
+
+instance Sheaf.hom.epi_of_presheaf_epi {F G : Sheaf J A} (f : F ⟶ G) [epi f.1] : epi f :=
+{ left_cancellation := λ P g h eq₀, Sheaf.hom.ext _ _ $ (cancel_epi f.1).mp $
+    (Sheaf.hom.ext_iff _ _).mp eq₀ }
+
+instance Sheaf_to_presheaf_reflects_mono : (Sheaf_to_presheaf J A).reflects_monomorphisms :=
+infer_instance
+
+instance Sheaf_to_presheaf_reflects_epi : (Sheaf_to_presheaf J A).reflects_epimorphisms :=
+infer_instance
+
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
 @[simps] def sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
   (ℱ : Sheaf J A) (E : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op E), ℱ.cond E⟩

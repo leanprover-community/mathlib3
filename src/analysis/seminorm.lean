@@ -336,21 +336,6 @@ section normed_field
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
-private lemma smul.of_smul_le {f : E → ℝ} (map_zero : f 0 = 0)
-  (add_le : ∀ x y, f (x + y) ≤ f x + f y) (neg : ∀ x, f (-x) = f x)
-  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) (r : 𝕜) (x : E) : f (r • x) = ∥r∥ * f x :=
-begin
-  refine le_antisymm (smul_le r x) _,
-  by_cases r = 0,
-  { simp [h, map_zero] },
-  rw ←mul_le_mul_left (inv_pos.mpr (norm_pos_iff.mpr h)),
-  rw inv_mul_cancel_left₀ (norm_ne_zero_iff.mpr h),
-  specialize smul_le r⁻¹ (r • x),
-  rw norm_inv at smul_le,
-  convert smul_le,
-  simp [h],
-end
-
 /-- Alternative constructor for a `seminorm` over a normed field `𝕜` that only assumes an
   inequality for the scalar multiplication. -/
 def seminorm.of_smul_le (f : E → ℝ) (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
@@ -360,7 +345,18 @@ def seminorm.of_smul_le (f : E → ℝ) (map_zero : f 0 = 0) (add_le : ∀ x y, 
   nonneg'   := nonneg.of_zero_le_neg map_zero add_le neg,
   add_le'   := add_le,
   neg'      := neg,
-  smul'     := smul.of_smul_le map_zero add_le neg smul_le }
+  smul'     := λ r x,
+  begin
+    refine le_antisymm (smul_le r x) _,
+    by_cases r = 0,
+    { simp [h, map_zero] },
+    rw ←mul_le_mul_left (inv_pos.mpr (norm_pos_iff.mpr h)),
+    rw inv_mul_cancel_left₀ (norm_ne_zero_iff.mpr h),
+    specialize smul_le r⁻¹ (r • x),
+    rw norm_inv at smul_le,
+    convert smul_le,
+    simp [h],
+  end }
 
 end normed_field
 

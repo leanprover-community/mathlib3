@@ -156,6 +156,14 @@ variables {R σ}
 /-- `X n` is the degree `1` monomial $X_n$. -/
 def X (n : σ) : mv_polynomial σ R := monomial (single n 1) 1
 
+lemma monomial_left_injective {r : R} (hr : r ≠ 0) :
+  function.injective (λ s : σ →₀ ℕ, monomial s r) :=
+finsupp.single_left_injective hr
+
+@[simp] lemma monomial_left_inj {s t : σ →₀ ℕ} {r : R} (hr : r ≠ 0) :
+  monomial s r = monomial t r ↔ s = t :=
+finsupp.single_left_inj hr
+
 lemma C_apply : (C a : mv_polynomial σ R) = monomial 0 a := rfl
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ R) := by simp [C_apply, monomial]
@@ -195,8 +203,7 @@ instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semir
   [nontrivial R] :
   infinite (mv_polynomial σ R) :=
 infinite.of_injective ((λ s : σ →₀ ℕ, monomial s 1) ∘ single (classical.arbitrary σ)) $
-  function.injective.comp
-    (λ m n, (finsupp.single_left_inj one_ne_zero).mp) (finsupp.single_injective _)
+  (monomial_left_injective $ @one_ne_zero R _ _).comp (finsupp.single_injective _)
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ R) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
@@ -208,6 +215,12 @@ lemma smul_eq_C_mul (p : mv_polynomial σ R) (a : R) : a • p = C a * p := C_mu
 
 lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
+
+lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
+(finsupp.single_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)
+
+@[simp] lemma X_inj [nontrivial R] (m n : σ) : X m = (X n : mv_polynomial σ R) ↔ m = n :=
+X_injective.eq_iff
 
 lemma monomial_pow : monomial s a ^ e = monomial (e • s) (a ^ e) :=
 add_monoid_algebra.single_pow e

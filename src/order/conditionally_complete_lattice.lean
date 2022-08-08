@@ -482,23 +482,6 @@ lemma cinfi_set_le {f : β → α} {s : set β}
   (H : bdd_below (f '' s)) {c : β} (hc : c ∈ s) : (⨅ i : s, f i) ≤ f c :=
 @le_csupr_set αᵒᵈ _ _ _ _ H _ hc
 
-lemma equiv.csupr {ι ι' : Type*} (e : ι ≃ ι') {f : ι → α} (hf : bdd_above (range f)) {g : ι' → α}
-  (hfg : ∀ i, f i = g (e i)) : (⨆ i, f i) = ⨆ i, g i :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { haveI : is_empty ι' := (equiv.is_empty_congr e).mp h, simp only [supr, range_eq_empty] },
-  { haveI : nonempty ι' := (equiv.nonempty_congr e).mp h,
-    have hg : bdd_above (range g),
-    { obtain ⟨M, hM⟩ := hf, use M, rintros - ⟨i, rfl⟩, refine hM ⟨(e.symm i), _⟩,
-      simpa only [equiv.apply_symm_apply] using hfg (e.symm i), },
-    refine le_antisymm (csupr_le (λ i, (hfg i).symm ▸ le_csupr hg (e i))) (csupr_le (λ i, _)),
-    simpa only [equiv.apply_symm_apply, hfg (e.symm i)] using le_csupr hf (e.symm i) },
-end
-
-lemma equiv.cinfi {ι ι' : Type*} (e : ι ≃ ι') {f : ι → α} (hf : bdd_below (range f)) {g : ι' → α}
-  (hfg : ∀ i, f i = g (e i)) : (⨅ i, f i) = ⨅ i, g i :=
-@equiv.csupr αᵒᵈ _ _ _ e _ hf _ hfg
-
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b : ι, a) = a :=
 by rw [supr, range_const, cSup_singleton]
 

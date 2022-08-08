@@ -220,7 +220,7 @@ def limit_process (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure �
 if h : ∃ g : Ω → E, strongly_measurable[⨆ n, ℱ n] g ∧
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)) then classical.some h else 0
 
-lemma limit_process_measurable {f : ι → Ω → E} {ℱ : filtration ι m0} :
+lemma limit_process_measurable {f : ι → Ω → E} {ℱ : filtration ι m0} {μ : measure Ω} :
   strongly_measurable[⨆ n, ℱ n] (limit_process f ℱ μ) :=
 begin
   rw limit_process,
@@ -228,7 +228,7 @@ begin
   exacts [(classical.some_spec h).1, strongly_measurable_zero]
 end
 
-lemma limit_process_measurable' {f : ι → Ω → E} {ℱ : filtration ι m0} :
+lemma limit_process_measurable' {f : ι → Ω → E} {ℱ : filtration ι m0} {μ : measure Ω} :
   strongly_measurable[m0] (limit_process f ℱ μ) :=
 limit_process_measurable.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _))
 

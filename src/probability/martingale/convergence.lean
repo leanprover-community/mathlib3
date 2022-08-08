@@ -16,11 +16,19 @@ of a martingale provided it satisfies some boundedness conditions. This file con
 almost everywhere martingale convergence theorem which provides an almost everywhere limit to
 an L¹ bounded submartingale.
 
+## Main definitions
+
+* `measure_theory.limit_process`: given a process `f` and a filtration `ℱ`, the limit process of
+  `f` is the almost everywhere limit of `f` if it exists and is measurable with respect to
+  `⨆ n, ℱ n`, and is 0 otherwise.
+
 ## Main results
 
-* `measure_theory.submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd`: the almost everywhere martingale
-  convergence theorem: a L¹-bounded submartingale adapted to the filtration `ℱ` converges almost
-  everywhere to an integrable function which is measurable with respect to the σ-algebra `⨆ n, ℱ n`.
+* `measure_theory.submartingale.ae_tendsto_limit_process`: the almost everywhere martingale
+  convergence theorem: an L¹-bounded submartingale adapted to the filtration `ℱ` converges almost
+  everywhere to its limit process.
+* `measure_theory.submartingale.mem_ℒ1_limit_process`: the limit process of an L¹-bounded
+  submartingale is integrable.
 
 -/
 
@@ -109,8 +117,7 @@ lemma upcrossings_eq_top_of_frequently_lt (hab : a < b)
 classical.by_contradiction (λ h, not_frequently_of_upcrossings_lt_top hab h ⟨h₁, h₂⟩)
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} [semilattice_sup ι] [nonempty ι] {l : filter ι}
-  {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
   ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
@@ -121,8 +128,7 @@ begin
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} [semilattice_sup ι] [nonempty ι] {l : filter ι}
-  {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
   ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
@@ -273,14 +279,47 @@ begin
     (λ n, ((hf.strongly_measurable n).measurable.mono (le_Sup ⟨n, rfl⟩) le_rfl))) }
 end
 
+section limit
+
+open_locale classical
+
+variables [preorder ι] {E : Type*} [has_zero E] [topological_space E]
+
+/-- Given a process `f` and a filtration `ℱ`, if `f` converges to some `g` almost everywhere and
+`g` is `⨆ n, ℱ n`-measurable, then `limit_process f ℱ` chooses said `g`, else it returns 0.
+
+This definition is used to phrase the a.e. martingale convergence theorem
+`submartingale.ae_tendsto_limit_process` where an L¹-bounded submartingale `f` adapted to `ℱ`
+converges to `limit_process f ℱ μ` `μ`-almost everywhere. -/
+noncomputable
+def limit_process (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω) :=
+if h : ∃ g : Ω → E, strongly_measurable[⨆ n, ℱ n] g ∧
+  ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)) then classical.some h else 0
+
+lemma limit_process_measurable {f : ι → Ω → E} {ℱ : filtration ι m0} :
+  strongly_measurable[⨆ n, ℱ n] (limit_process f ℱ μ) :=
+begin
+  rw limit_process,
+  split_ifs with h h,
+  exacts [(classical.some_spec h).1, strongly_measurable_zero]
+end
+
+lemma limit_process_measurable' {f : ι → Ω → E} {ℱ : filtration ι m0} :
+  strongly_measurable[m0] (limit_process f ℱ μ) :=
+limit_process_measurable.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _))
+
+end limit
+
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
-almost everywhere to an L¹-function which is measurable with respect to `⨆ n, ℱ n`. -/
-lemma submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd
+almost everywhere to a `⨆ n, ℱ n`-measurable function. -/
+lemma submartingale.ae_tendsto_limit_process
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
-  ∃ g : Ω → ℝ, mem_ℒp g 1 μ ∧ strongly_measurable[⨆ n, ℱ n] g ∧
-  ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)) :=
+  ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (limit_process f ℱ μ ω)) :=
 begin
   classical,
+  suffices : ∃ g, strongly_measurable[⨆ n, ℱ n] g ∧ ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)),
+  { rw [limit_process, dif_pos this],
+    exact (classical.some_spec this).2 },
   set g' : Ω → ℝ := λ ω, if h : ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) then h.some else 0,
   have hle : (⨆ n, ℱ n) ≤ m0 := Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _),
   have hg' : ∀ᵐ ω ∂(μ.trim hle), tendsto (λ n, f n ω) at_top (𝓝 (g' ω)),
@@ -295,13 +334,21 @@ begin
   have hg : ∀ᵐ ω ∂μ.trim hle, tendsto (λ n, f n ω) at_top (𝓝 (g ω)),
   { filter_upwards [hae, hg'] with ω hω hg'ω,
     exact hω ▸ hg'ω },
-  refine ⟨g, ⟨(hgm.mono hle).ae_strongly_measurable, lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm
+  exact ⟨g, hgm, measure_eq_zero_of_trim_eq_zero hle hg⟩,
+end
+
+/-- The limiting process of an L¹-bounded submartingale is integrable. -/
+lemma submartingale.mem_ℒ1_limit_process
+  (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
+  mem_ℒp (limit_process f ℱ μ) 1 μ :=
+begin
+  refine ⟨limit_process_measurable'.ae_strongly_measurable,
+    lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm
       (λ n, ((hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl).ae_strongly_measurable)
-      g (measure_eq_zero_of_trim_eq_zero hle hg))
+      (limit_process f ℱ μ) (hf.ae_tendsto_limit_process hbdd))
       (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞))⟩,
-    hgm, measure_eq_zero_of_trim_eq_zero hle hg⟩,
   simp_rw [liminf_eq, eventually_at_top],
-  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hbdd _)),
+  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hbdd _))
 end
 
 end ae_convergence

@@ -339,19 +339,21 @@ begin
   dsimp [function.injective],
   rintros ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ hyp,
   dsimp [functor.sections] at *,
-  ext, dsimp,
-  rw [← h₁, ← h₂],
-  apply inj,
-  rotate,
-  {
-    dsimp [bigger, opposite.unop, set_of],
-    sorry -- maybe an additional hypothesis is needed
-  },
-  {sorry },
-  exact j,
-  sorry,
-  sorry,
-  sorry,
+  rw subtype.mk_eq_mk,
+  suffices : ∀ i ∈ bigger j, e₁ i = e₂ i,
+  { apply funext,
+    rintro k,
+    obtain ⟨m',mk',mj'⟩ := directed_of (≤) k.unop j.unop,
+    let m := opposite.op m',
+    have mk : opposite.unop k ≤ opposite.unop m, by {simp only [opposite.unop_op],exact mk'},
+    have mj : opposite.unop j ≤ opposite.unop m, by {simp only [opposite.unop_op],exact mj'},
+    rw  [←h₁ (op_hom_of_le mk), ←h₂ (op_hom_of_le mk)],
+    rw this m mj, },
+
+    rintro i ij,
+    apply inj i ij,
+    rw  [h₁ (op_hom_of_le ij), h₂ (op_hom_of_le ij)],
+    exact hyp,
 end
 
 def fis.bijective {J : Type u} [preorder J] [is_directed J has_le.le]

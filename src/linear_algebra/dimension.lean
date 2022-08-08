@@ -1281,6 +1281,24 @@ begin
       simp [hw] } }
 end
 
+lemma submodule.rank_le_one_iff_is_principal (W : submodule K V) :
+  module.rank K W ≤ 1 ↔ W.is_principal :=
+begin
+  simp only [dim_le_one_iff, submodule.is_principal_iff, le_antisymm_iff,
+    le_span_singleton_iff, span_singleton_le_iff_mem],
+  split,
+  { rintro ⟨⟨m, hm⟩, hm'⟩,
+    choose f hf using hm',
+    exact ⟨m, ⟨λ v hv, ⟨f ⟨v, hv⟩, congr_arg coe (hf ⟨v, hv⟩)⟩, hm⟩⟩ },
+  { rintro ⟨a, ⟨h, ha⟩⟩,
+    choose f hf using h,
+    exact ⟨⟨a, ha⟩, λ v, ⟨f v.1 v.2, subtype.ext (hf v.1 v.2)⟩⟩ }
+end
+
+lemma module.rank_le_one_iff_top_is_principal :
+  module.rank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
+by rw [← submodule.rank_le_one_iff_is_principal, dim_top]
+
 end division_ring
 
 section field

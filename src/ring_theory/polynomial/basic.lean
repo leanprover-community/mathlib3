@@ -80,7 +80,7 @@ end
 
 theorem mem_degree_lt {n : ℕ} {f : R[X]} :
   f ∈ degree_lt R n ↔ degree f < n :=
-by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
+by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree, finset.max_eq_sup_coe,
     finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
     with_bot.coe_lt_coe, lt_iff_not_le, ne, not_imp_not], refl }
 
@@ -130,6 +130,17 @@ def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n 
     { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← subtype.ext_iff] },
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
+
+@[simp] theorem degree_lt_equiv_eq_zero_iff_eq_zero {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) :
+  degree_lt_equiv _ _ ⟨p, hp⟩ = 0 ↔ p = 0 :=
+by rw [linear_equiv.map_eq_zero_iff, submodule.mk_eq_zero]
+
+theorem eval_eq_sum_degree_lt_equiv {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) (x : R) :
+  p.eval x = ∑ i, degree_lt_equiv _ _ ⟨p, hp⟩ i * (x ^ (i : ℕ)) :=
+begin
+  simp_rw [eval_eq_sum],
+  exact (sum_fin _ (by simp_rw [zero_mul, forall_const]) (mem_degree_lt.mp hp)).symm
+end
 
 /-- The finset of nonzero coefficients of a polynomial. -/
 def frange (p : R[X]) : finset R :=

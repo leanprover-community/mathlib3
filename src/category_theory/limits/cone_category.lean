@@ -35,6 +35,10 @@ is_limit.iso_unique_cone_morphism.to_equiv.trans
   left_inv := by tidy,
   right_inv := by tidy }
 
+lemma has_limit_iff_has_terminal_cone (F : J ⥤ C) : has_limit F ↔ has_terminal (cone F) :=
+⟨λ h, by exactI (cone.is_limit_equiv_is_terminal _ (limit.is_limit F)).has_terminal,
+ λ h, ⟨⟨by exactI ⟨⊤_ _, (cone.is_limit_equiv_is_terminal _).symm terminal_is_terminal⟩⟩⟩⟩
+
 lemma is_limit.lift_cone_morphism_eq_is_terminal_from {F : J ⥤ C} {c : cone F} (hc : is_limit c)
   (s : cone F) : hc.lift_cone_morphism s =
     is_terminal.from (cone.is_limit_equiv_is_terminal _ hc) _ := rfl
@@ -65,6 +69,10 @@ is_colimit.iso_unique_cocone_morphism.to_equiv.trans
   inv_fun := λ h s, ⟨⟨is_initial.to h s⟩, λ a, is_initial.hom_ext h a _⟩,
   left_inv := by tidy,
   right_inv := by tidy }
+
+lemma has_colimit_iff_has_initial_cocone (F : J ⥤ C) : has_colimit F ↔ has_initial (cocone F) :=
+⟨λ h, by exactI (cocone.is_colimit_equiv_is_initial _ (colimit.is_colimit F)).has_initial,
+ λ h, ⟨⟨by exactI ⟨⊥_ _, (cocone.is_colimit_equiv_is_initial _).symm initial_is_initial⟩⟩⟩⟩
 
 lemma is_colimit.desc_cocone_morphism_eq_is_initial_to {F : J ⥤ C} {c : cocone F}
   (hc : is_colimit c) (s : cocone F) :

@@ -15,6 +15,18 @@ that sends non-units to zero.
 
 We use the namespace `mul_char` for the definitions and results.
 
+## Main results
+
+We show that the multiplicative characters form a group (if `R'` is commutative);
+see `mul_char.comm_group`. We also provide an equivalence with the
+homomorphisms `Rˣ →* R'ˣ`; see `mul_hcar.equiv_to_unit_hom`.
+
+We define a multiplicative character to be *quadratic* if its values
+are among `0`, `1` and `-1`, and we prove some properties of quadratic characters.
+
+Finally, we show that the sum of all values of a nontrivial multiplicative
+character vanishes; see `mul_char.is_nontrivial.sum_eq_zero`.
+
 ## Tags
 
 multiplicative character
@@ -225,7 +237,7 @@ by rw [map_nonunit χ not_is_unit_zero]
 @[simp]
 lemma map_ring_char {R : Type u} [comm_ring R] [nontrivial R] (χ : mul_char R R') :
   χ (ring_char R) = 0 :=
-by rw [ring_char.nat.cast_ring_char, χ.map_zero]
+by simp -- rw [ring_char.nat.cast_ring_char, χ.map_zero]
 
 noncomputable
 instance has_one : has_one (mul_char R R') := ⟨trivial R R'⟩
@@ -486,3 +498,4 @@ end
 end mul_char
 
 end properties
+#lint

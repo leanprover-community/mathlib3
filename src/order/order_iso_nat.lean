@@ -74,7 +74,8 @@ theorem not_acc_of_decreasing_seq (f : ((>) : ℕ → ℕ → Prop) ↪r r) (k :
 by { rw [acc_iff_no_decreasing_seq, not_is_empty_iff], exact ⟨⟨f, k, rfl⟩⟩ }
 
 /-- A relation is well-founded iff it doesn't have any infinite decreasing sequence. -/
-theorem well_founded_iff_no_descending_seq : well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
+theorem well_founded_iff_no_descending_seq :
+  well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
 begin
   split,
   { rintro ⟨h⟩,

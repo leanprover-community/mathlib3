@@ -1122,25 +1122,43 @@ by { ext i, simp }
   φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R S₁)) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
-@[simp] lemma eval₂_hom_zero (f : R →+* S₂) (p : mv_polynomial σ R) :
-  eval₂_hom f (0 : σ → S₂) p = f (constant_coeff p) :=
-begin
-  suffices : eval₂_hom f (0 : σ → S₂) = f.comp constant_coeff,
-    from ring_hom.congr_fun this p,
-  ext; simp
-end
+@[simp] lemma eval₂_hom_zero (f : R →+* S₂) :
+  eval₂_hom f (0 : σ → S₂) = f.comp constant_coeff :=
+by { ext; simp }
 
-@[simp] lemma eval₂_hom_zero' (f : R →+* S₂) (p : mv_polynomial σ R) :
+@[simp] lemma eval₂_hom_zero' (f : R →+* S₂) :
+  eval₂_hom f (λ _, 0 : σ → S₂) = f.comp constant_coeff :=
+eval₂_hom_zero f
+
+lemma eval₂_hom_zero_apply (f : R →+* S₂) (p : mv_polynomial σ R) :
+  eval₂_hom f (0 : σ → S₂) p = f (constant_coeff p) :=
+ring_hom.congr_fun (eval₂_hom_zero f) p
+
+lemma eval₂_hom_zero'_apply (f : R →+* S₂) (p : mv_polynomial σ R) :
   eval₂_hom f (λ _, 0 : σ → S₂) p = f (constant_coeff p) :=
-eval₂_hom_zero f p
+eval₂_hom_zero_apply f p
+
+@[simp] lemma eval₂_zero_apply (f : R →+* S₂) (p : mv_polynomial σ R) :
+  eval₂ f (0 : σ → S₂) p = f (constant_coeff p) :=
+eval₂_hom_zero_apply _ _
+
+@[simp] lemma eval₂_zero'_apply (f : R →+* S₂) (p : mv_polynomial σ R) :
+  eval₂ f (λ _, 0 : σ → S₂) p = f (constant_coeff p) :=
+eval₂_zero_apply f p
 
 @[simp] lemma aeval_zero (p : mv_polynomial σ R) :
   aeval (0 : σ → S₁) p = algebra_map _ _ (constant_coeff p) :=
-eval₂_hom_zero (algebra_map R S₁) p
+eval₂_hom_zero_apply (algebra_map R S₁) p
 
 @[simp] lemma aeval_zero' (p : mv_polynomial σ R) :
   aeval (λ _, 0 : σ → S₁) p = algebra_map _ _ (constant_coeff p) :=
 aeval_zero p
+
+@[simp] lemma eval_zero : eval (0 : σ → R) = constant_coeff :=
+eval₂_hom_zero _
+
+@[simp] lemma eval_zero' : eval (λ _, 0 : σ → R) = constant_coeff :=
+eval₂_hom_zero _
 
 lemma aeval_monomial (g : σ → S₁) (d : σ →₀ ℕ) (r : R) :
   aeval g (monomial d r) = algebra_map _ _ r * d.prod (λ i k, g i ^ k) :=

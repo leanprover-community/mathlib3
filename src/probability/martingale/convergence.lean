@@ -68,7 +68,7 @@ $$
 $$
 as required.
 
-Implementation wise, a previous PR has given us `tendsto_of_no_upcrossings` which showed that
+Implementation wise, we have `tendsto_of_no_upcrossings` which showed that
 a bounded sequence converges if it does not visit below $a$ and above $b$ infinitely often
 for all $a, b ∈ s$ for some dense set $s$. So, we may skip the first step provided we can prove
 that the realizations are bounded almost everywhere. Indeed, suppose $(|f_n(x)|)$ is not bounded,

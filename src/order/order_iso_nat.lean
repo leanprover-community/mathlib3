@@ -42,22 +42,46 @@ rfl
 def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) : ((>) : ℕ → ℕ → Prop) ↪r r :=
 by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
 
-theorem well_founded_iff_no_descending_seq :
-  well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
-⟨λ ⟨h⟩, ⟨λ ⟨f, o⟩,
-  suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
-  λ a ac, begin
-    induction ac with a _ IH,
-    rintro n rfl,
-    exact IH (f (n+1)) (o.2 (nat.lt_succ_self _)) _ rfl
-  end⟩,
-λ E, ⟨λ a, classical.by_contradiction $ λ na,
-  let ⟨f, h⟩ := classical.axiom_of_choice $
-    show ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
-    from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
-      ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
-  E.elim' (nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
-    by { rw [function.iterate_succ'], apply h })⟩⟩
+theorem exists_not_acc_lt_of_not_acc {a} (h : ¬ acc r a) : ∃ b, ¬ acc r b ∧ r b a :=
+begin
+  contrapose! h,
+  refine ⟨_, λ b hr, _⟩,
+  by_contra hb,
+  exact h b hb hr
+end
+
+/-- A value is accessible iff it isn't contained in any infinite decreasing sequence. -/
+theorem acc_iff_no_decreasing_seq {x} :
+  acc r x ↔ is_empty ({f : ((>) : ℕ → ℕ → Prop) ↪r r // x ∈ set.range f}) :=
+begin
+  split,
+  { refine λ h, h.rec_on (λ x h IH, _),
+    split,
+    rintro ⟨f, k, hf⟩,
+    exact is_empty.elim' (IH (f (k + 1)) (hf ▸ f.map_rel_iff.2 (lt_add_one k))) ⟨f, _, rfl⟩ },
+  { have : ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
+    { rintro ⟨x, hx⟩,
+      cases exists_not_acc_lt_of_not_acc hx,
+      exact ⟨⟨w, h.1⟩, h.2⟩ },
+    obtain ⟨f, h⟩ := classical.axiom_of_choice this,
+    refine λ E, classical.by_contradiction (λ hx, E.elim'
+      ⟨(nat_gt (λ n, (f^[n] ⟨x, hx⟩).1) (λ n, _)), 0, rfl⟩),
+    rw function.iterate_succ',
+    apply h }
+end
+
+theorem not_acc_of_decreasing_seq (f : ((>) : ℕ → ℕ → Prop) ↪r r) (k : ℕ) : ¬ acc r (f k) :=
+by { rw [acc_iff_no_decreasing_seq, not_is_empty_iff], exact ⟨⟨f, k, rfl⟩⟩ }
+
+/-- A relation is well-founded iff it doesn't have any infinite decreasing sequence. -/
+theorem well_founded_iff_no_descending_seq : well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
+begin
+  split,
+  { rintro ⟨h⟩,
+    exact ⟨λ f, not_acc_of_decreasing_seq f 0 (h _)⟩ },
+  { introI h,
+    exact ⟨λ x, acc_iff_no_decreasing_seq.2 infer_instance⟩ }
+end
 
 end rel_embedding
 

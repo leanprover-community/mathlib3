@@ -1234,6 +1234,41 @@ begin
   rwa subtype.ext_iff at h
 end
 
+lemma coe_sub_of_le {n : ℕ} {a b : fin n} (h : b ≤ a) :
+  (↑(a - b) : ℕ) = a - b :=
+begin
+  rw fin.coe_sub,
+  cases a with a ha,
+  cases b with b hb,
+  simp only [coe_mk, le_iff_coe_le_coe] at h ha hb ⊢,
+  induction a with a IH generalizing b,
+  { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero] at h,
+    simp [h] },
+  { cases b,
+    { simpa using nat.mod_eq_of_lt ha },
+    rw [←add_tsub_assoc_of_le hb.le, nat.succ_add, nat.succ_sub_succ, nat.succ_sub_succ,
+        add_tsub_assoc_of_le (hb.trans' (nat.lt_succ_self _)).le,
+        IH (ha.trans' (nat.lt_succ_self _)) _ (hb.trans' (nat.lt_succ_self _))
+        (nat.succ_le_succ_iff.mp h)] }
+end
+
+lemma coe_sub_of_lt {n : ℕ} {a b : fin n} (h : a < b) :
+  (↑(a - b) : ℕ) = n + a - b :=
+begin
+  rw fin.coe_sub,
+  cases a with a ha,
+  cases b with b hb,
+  simp only [coe_mk, lt_iff_coe_lt_coe] at h ha hb ⊢,
+  induction b with b IH generalizing a,
+  { simpa using h },
+  { cases a,
+    { simp [nat.mod_eq_of_lt (tsub_lt_self ha _)] },
+    rw [←add_tsub_assoc_of_le hb.le, nat.succ_add, nat.succ_sub_succ, nat.add_succ,
+        nat.succ_sub_succ, add_tsub_assoc_of_le (hb.trans' (nat.lt_succ_self _)).le,
+        IH (hb.trans' (nat.lt_succ_self _)) _ (ha.trans' (nat.lt_succ_self _))
+        (nat.succ_lt_succ_iff.mp h)] }
+end
+
 /-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
 def _root_.order_iso.fin_equiv : ∀ {n}, (fin n)ᵒᵈ ≃o fin n
 | 0 := ⟨⟨elim0, elim0, elim0, elim0⟩, elim0⟩

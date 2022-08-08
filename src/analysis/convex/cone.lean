@@ -620,6 +620,8 @@ lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
 lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
 
+/-- The inner dual cone of a singleton is given by the preimage of the positive cone under the
+linear map `λ y, ⟪x, y⟫`. -/
 lemma inner_dual_cone_singleton (x : H) :
   ({x} : set H).inner_dual_cone = (convex_cone.positive_cone ℝ ℝ).comap (innerₛₗ x) :=
 convex_cone.ext $ λ i, forall_eq

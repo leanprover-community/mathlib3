@@ -299,7 +299,11 @@ end mono
 
 end prod
 
-/-! ### Diagonal -/
+/-! ### Diagonal
+
+In this section we prove some lemmas about the diagonal set `{p | p.1 = p.2}` and the diagonal map
+`λ x, (x, x)`.
+-/
 
 section diagonal
 variables {α : Type*} {s t : set α}
@@ -314,12 +318,16 @@ lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
 lemma preimage_coe_coe_diagonal (s : set α) : (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
 by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
 
-lemma diagonal_eq_range : diagonal α = range (λ x, (x, x)) :=
+@[simp] lemma range_diag : range (λ x, (x, x)) = diagonal α :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
 
 @[simp] lemma prod_subset_compl_diagonal_iff_disjoint : s ×ˢ t ⊆ (diagonal α)ᶜ ↔ disjoint s t :=
-subset_compl_comm.trans $ by simp_rw [diagonal_eq_range, range_subset_iff,
+subset_compl_comm.trans $ by simp_rw [← range_diag, range_subset_iff,
   disjoint_left, mem_compl_iff, prod_mk_mem_set_prod_eq, not_and]
+
+@[simp] lemma diag_preimage_prod (s t : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ t) = s ∩ t := rfl
+
+lemma diag_preimage_prod_self (s : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ s) = s := inter_self s
 
 end diagonal
 

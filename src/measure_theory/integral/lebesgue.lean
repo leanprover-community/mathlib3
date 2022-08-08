@@ -1824,7 +1824,7 @@ calc
      by simp only [liminf_eq_supr_infi_of_nat]
   ... = ⨆n:ℕ, ∫⁻ a, ⨅i≥n, f i a ∂μ :
     lintegral_supr'
-      (assume n, ae_measurable_binfi _ (countable_encodable _) h_meas)
+      (assume n, ae_measurable_binfi _ (to_countable _) h_meas)
       (ae_of_all μ (assume a n m hnm, infi_le_infi_of_subset $ λ i hi, le_trans hnm hi))
   ... ≤ ⨆n:ℕ, ⨅i≥n, ∫⁻ a, f i a ∂μ :
     supr_mono $ λ n, le_infi₂_lintegral _
@@ -1846,7 +1846,7 @@ calc
   ... = ∫⁻ a, ⨅n:ℕ, ⨆i≥n, f i a ∂μ :
     begin
       refine (lintegral_infi _ _ _).symm,
-      { assume n, exact measurable_bsupr _ (countable_encodable _) hf_meas },
+      { assume n, exact measurable_bsupr _ (to_countable _) hf_meas },
       { assume n m hnm a, exact (supr_le_supr_of_subset $ λ i hi, le_trans hnm hi) },
       { refine ne_top_of_le_ne_top h_fin (lintegral_mono_ae _),
         refine (ae_all_iff.2 h_bound).mono (λ n hn, _),
@@ -2434,7 +2434,7 @@ begin
   { exact hf (measurable_set_singleton 0).compl },
 end
 
-lemma ae_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]
+lemma ae_measurable_with_density_iff {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
   {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
   ae_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ ae_measurable (λ x, (f x : ℝ) • g x) μ :=
@@ -2731,7 +2731,7 @@ by rw [lintegral_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk),
 
 section sigma_finite
 
-variables {E : Type*} [normed_group E] [measurable_space E]
+variables {E : Type*} [normed_add_comm_group E] [measurable_space E]
   [opens_measurable_space E]
 
 lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [sigma_finite (μ.trim hm)]

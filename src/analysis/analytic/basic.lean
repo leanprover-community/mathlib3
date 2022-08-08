@@ -1185,8 +1185,7 @@ section
 
 open formal_multilinear_series
 
-variables [comm_ring 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
-  {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {z₀ : 𝕜}
+variables [comm_ring 𝕜] {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {z₀ : 𝕜}
 
 /-- A function `f : 𝕜 → E` has `p` as power series expansion at a point `z₀` iff it is the sum of
 `p` in a neighborhood of `z₀`. This makes some proofs easier by hiding the fact that

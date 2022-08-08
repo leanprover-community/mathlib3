@@ -171,9 +171,9 @@ section order
 
 variables [comm_ring 𝕜] {n : ℕ}
   [add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]
-  [has_continuous_const_smul 𝕜 E] [decidable_eq E]
+  [has_continuous_const_smul 𝕜 E]
   [add_comm_group F] [module 𝕜 F] [topological_space F] [topological_add_group F]
-  [has_continuous_const_smul 𝕜 F] [decidable_eq F]
+  [has_continuous_const_smul 𝕜 F]
   {p : formal_multilinear_series 𝕜 E F}
 
 lemma eq_zero_iff : p = 0 ↔ ∀ n, p n = 0 :=

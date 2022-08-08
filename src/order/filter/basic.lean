@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jeremy Avigad
 import control.traversable.instances
 import data.set.finite
 import order.copy
+import order.atoms
 import tactic.monotonicity
 
 /-!
@@ -568,6 +569,9 @@ end
 @[simp] lemma le_principal_iff {s : set α} {f : filter α} : f ≤ 𝓟 s ↔ s ∈ f :=
 show (∀ {t}, s ⊆ t → t ∈ f) ↔ s ∈ f,
   from ⟨λ h, h (subset.refl s), λ hs t ht, mem_of_superset hs ht⟩
+
+lemma Iic_principal (s : set α) : Iic (𝓟 s) = {l | s ∈ l} :=
+set.ext $ λ x, le_principal_iff
 
 lemma principal_mono {s t : set α} : 𝓟 s ≤ 𝓟 t ↔ s ⊆ t :=
 by simp only [le_principal_iff, iff_self, mem_principal]
@@ -2094,8 +2098,30 @@ instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=
 ⟨mt empty_mem_iff_bot.2 $ not_mem_empty a⟩
 
 @[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
-⟨λ h, h singleton_mem_pure,
-  λ h s hs, mem_of_superset h $ singleton_subset_iff.2 hs⟩
+by rw [← principal_singleton, le_principal_iff]
+
+lemma pure_le_iff {a : α} {l : filter α} : pure a ≤ l ↔ ∀ s ∈ l, a ∈ s :=
+iff.rfl
+
+lemma is_atom_pure (a : α) : is_atom (pure a : filter α) :=
+begin
+  refine ⟨filter.pure_ne_bot.ne, λ l hl, _⟩,
+  simp only [lt_iff_le_not_le, le_pure_iff, pure_le_iff, not_forall] at hl,
+  rcases hl with ⟨hl, s, hsl, has⟩,
+  refine empty_mem_iff_bot.1 _,
+  filter_upwards [hl, hsl] with x hxa hxs,
+  obtain rfl : x = a := hxa,
+  contradiction
+end
+
+@[simp] lemma lt_pure_iff {l : filter α} {a : α} : l < pure a ↔ l = ⊥ :=
+(is_atom_pure a).lt_iff
+
+lemma le_pure_iff' {l : filter α} {a : α} : l ≤ pure a ↔ l = ⊥ ∨ l = pure a :=
+(is_atom_pure a).le_iff
+
+@[simp] lemma Iic_pure (a : α) : Iic (pure a : filter α) = {⊥, pure a} :=
+(is_atom_pure a).Iic_eq
 
 lemma mem_seq_def {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃ u ∈ f, ∃ t ∈ g, ∀ x ∈ u, ∀ y ∈ t, (x : α → β) y ∈ s) :=
@@ -2476,9 +2502,6 @@ tendsto_pure.2 rfl
 
 lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λ x, b) a (pure b) :=
 tendsto_pure.2 $ univ_mem' $ λ _, rfl
-
-lemma pure_le_iff {a : α} {l : filter α} : pure a ≤ l ↔ ∀ s ∈ l, a ∈ s :=
-iff.rfl
 
 lemma tendsto_pure_left {f : α → β} {a : α} {l : filter β} :
   tendsto f (pure a) l ↔ ∀ s ∈ l, f a ∈ s :=

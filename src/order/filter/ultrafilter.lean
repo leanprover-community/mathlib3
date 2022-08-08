@@ -179,6 +179,8 @@ coe_injective $ comap_pure.trans $
 lemma pure_injective : injective (pure : α → ultrafilter α) :=
 λ a b h, filter.pure_injective (congr_arg ultrafilter.to_filter h : _)
 
+@[simp] lemma coe_pure (a : α) : ((pure a : ultrafilter α) : filter α) = pure a := rfl
+
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 

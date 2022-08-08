@@ -21,6 +21,17 @@ import ring_theory.tensor_product
   the module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
   is sent to `S`-linear map `s ⊗ m ↦ s ⊗ l m : S ⨂ M ⟶ S ⨂ M'`.
 
+## List of notations
+Let `R, S` be rings and `f : R →+* S`
+* if `M` is an `S`-module, `r : R` and `m : M` then notation `r r•[f] m` means `R`-scalar action on
+  `M` defined by `f r • m`.
+* if `M` is an `R`-module, then notation `S ⊗[R, f] M` means the tensor product `S ⊗ M` where `S` is
+  considered as an `R`-module via restriction of scalars.
+* if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f]` is the pure tensor
+  `s ⊗ m : S ⊗[R, f] M`
+* if `M` is an `R`-module, `s : S` and  `x : S ⊗[R, f] M` then notation `s e•[f] x` denotes the
+  `S`-scalar multiplication where if `x` is pure tensor `s' ⊗ m` then `s e•[f] (s' ⊗ m)` is defined
+  as `(s * s') ⊗ m`
 -/
 
 
@@ -29,6 +40,23 @@ namespace category_theory.Module
 universes u₁ u₂ v
 
 namespace restrict_scalars
+
+section unbundled
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+  (M : Type v) [add_comm_monoid M] [module S M]
+
+/-- The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m` -/
+protected def has_smul : has_smul R M :=
+(module.comp_hom M f).to_has_smul
+
+localized "notation r ` r•[` f `] ` :=
+  @@has_smul.smul (restrict_scalars.has_smul f _) r"
+  in change_of_rings
+
+end unbundled
+
+open_locale change_of_rings
 
 variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 variable (M : Module.{v} S)
@@ -40,13 +68,6 @@ def obj' : Module R :=
   is_add_comm_group := infer_instance,
   is_module := module.comp_hom M f }
 
-/-- The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m` -/
-protected def has_smul : has_smul R M :=
-(module.comp_hom M f).to_has_smul
-
-localized "notation r ` r•[` f `] ` :=
-  @@has_smul.smul (restrict_scalars.has_smul f _) r"
-  in change_of_rings
 
 @[simp] lemma smul_def (r : R) (m : M) : r r•[f] m = f r • m := rfl
 
@@ -92,10 +113,11 @@ namespace extend_scalars
 open_locale tensor_product
 open tensor_product
 
-variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) (M : Module.{v} R)
-include f
+section unbundled
 
-include M
+variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
+  (M : Type v) [add_comm_monoid M] [module R M]
+
 localized "notation S `⊗[` R `,` f `]` M := @tensor_product R _ S M _ _
   (module.comp_hom S f) _" in change_of_rings
 localized "notation s `⊗ₜ[` R `,` f `]` m := @tensor_product.tmul R _ _ _ _ _
@@ -105,7 +127,7 @@ localized "notation s `⊗ₜ[` R `,` f `]` m := @tensor_product.tmul R _ _ _ _ 
 Since `S` has an `R`-module structure, `S ⊗[R] M` can be given an `S`-module structure.
 The scalar multiplication is defined by `s • (s' ⊗ m) := (s * s') ⊗ m`
 -/
-def is_module : module S (S ⊗[R, f] M) :=
+instance is_module : module S (S ⊗[R, f] M) :=
 @tensor_product.left_module R _ S _ S M _ _ (module.comp_hom S f) _ _
 begin
   fconstructor,
@@ -114,13 +136,15 @@ begin
   ring,
 end
 
-localized "notation s ` e•[` f `]` := @@has_smul.smul (is_module f _).to_has_smul s" in
+localized "notation s ` e•[` f `]` :=
+  @@has_smul.smul (category_theory.Module.extend_scalars.is_module f _).to_has_smul s" in
   change_of_rings
 
-/--
-S ⨂ M is also an `R`-module
--/
-def is_module' : module R (S ⊗[R, f] M) := infer_instance
+end unbundled
+
+open_locale change_of_rings
+
+variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) (M : Module.{v} R)
 
 lemma smul_tmul (s s' : S) (m : M) : s e•[f] (s' ⊗ₜ[R, f] m) = (s * s') ⊗ₜ[R, f] m :=
 by rw [smul_tmul', smul_eq_mul]
@@ -132,11 +156,8 @@ by rw [(@tensor_product.smul_tmul R _ R _ S M _ _ (module.comp_hom S f) _
 /--
 Extension of scalars turn an `R`-module into `S`-module by M ↦ S ⨂ M
 -/
-def obj' : Module S :=
-{ carrier := S ⊗[R, f] M,
-  is_module := is_module f M }
+def obj' : Module S := ⟨S ⊗[R, f] M⟩
 
-omit M
 /--
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
@@ -165,7 +186,6 @@ begin
       linear_map.base_change_tmul], },
   { simp only [map_add, ihx, ihy], },
 end
-
 
 /--
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and

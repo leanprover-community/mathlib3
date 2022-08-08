@@ -1234,8 +1234,6 @@ begin
   rwa subtype.ext_iff at h
 end
 
--- set_option trace.class_instances true
-
 lemma coe_sub_of_le {n : ℕ} {a b : fin n} (h : b ≤ a) :
   (↑(a - b) : ℕ) = a - b :=
 begin

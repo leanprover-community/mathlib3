@@ -1234,39 +1234,24 @@ begin
   rwa subtype.ext_iff at h
 end
 
+-- set_option trace.class_instances true
+
 lemma coe_sub_of_le {n : ℕ} {a b : fin n} (h : b ≤ a) :
   (↑(a - b) : ℕ) = a - b :=
 begin
-  rw fin.coe_sub,
-  cases a with a ha,
-  cases b with b hb,
-  simp only [coe_mk, le_iff_coe_le_coe] at h ha hb ⊢,
-  induction a with a IH generalizing b,
-  { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero] at h,
-    simp [h] },
-  { cases b,
-    { simpa using nat.mod_eq_of_lt ha },
-    rw [←add_tsub_assoc_of_le hb.le, nat.succ_add, nat.succ_sub_succ, nat.succ_sub_succ,
-        add_tsub_assoc_of_le (hb.trans' (nat.lt_succ_self _)).le,
-        IH (ha.trans' (nat.lt_succ_self _)) _ (hb.trans' (nat.lt_succ_self _))
-        (nat.succ_le_succ_iff.mp h)] }
+  cases n, {exact fin_zero_elim a},
+  rw le_iff_coe_le_coe at h,
+  rw [fin.coe_sub, ←add_tsub_assoc_of_le b.prop.le, ←tsub_add_eq_add_tsub h, nat.add_mod_right],
+  exact nat.mod_eq_of_lt ((nat.sub_le _ _).trans_lt a.prop),
 end
 
 lemma coe_sub_of_lt {n : ℕ} {a b : fin n} (h : a < b) :
   (↑(a - b) : ℕ) = n + a - b :=
 begin
-  rw fin.coe_sub,
-  cases a with a ha,
-  cases b with b hb,
-  simp only [coe_mk, lt_iff_coe_lt_coe] at h ha hb ⊢,
-  induction b with b IH generalizing a,
-  { simpa using h },
-  { cases a,
-    { simp [nat.mod_eq_of_lt (tsub_lt_self ha _)] },
-    rw [←add_tsub_assoc_of_le hb.le, nat.succ_add, nat.succ_sub_succ, nat.add_succ,
-        nat.succ_sub_succ, add_tsub_assoc_of_le (hb.trans' (nat.lt_succ_self _)).le,
-        IH (hb.trans' (nat.lt_succ_self _)) _ (ha.trans' (nat.lt_succ_self _))
-        (nat.succ_lt_succ_iff.mp h)] }
+  cases n, {exact fin_zero_elim a},
+  rw lt_iff_coe_lt_coe at h,
+  rw [fin.coe_sub, add_comm, ← tsub_add_eq_add_tsub b.prop.le, ←tsub_tsub_assoc b.prop.le h.le],
+  exact nat.mod_eq_of_lt (tsub_lt_self (nat.succ_pos _) (tsub_pos_of_lt h)),
 end
 
 /-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
@@ -1281,14 +1266,9 @@ def _root_.order_iso.fin_equiv : ∀ {n}, (fin n)ᵒᵈ ≃o fin n
   begin
     rw [order_dual.has_le],
     simp only [equiv.coe_fn_mk],
-    rw [le_iff_coe_le_coe, fin.coe_sub, fin.coe_sub, coe_last],
-    have : (n - ↑b) % (n + 1) ≤ (n - ↑a) % (n + 1) ↔ a ≤ b,
-    { rw [nat.mod_eq_of_lt, nat.mod_eq_of_lt, tsub_le_tsub_iff_left a.is_le,
-          le_iff_coe_le_coe]; exact tsub_le_self.trans_lt n.lt_succ_self },
-    suffices key : ∀ {x : fin (n + 1)}, (n + (n + 1 - x)) % (n + 1) = (n - x) % (n + 1),
-    { convert this using 2; exact key },
-    intro x,
-    rw [add_comm, tsub_add_eq_add_tsub x.is_lt.le, add_tsub_assoc_of_le x.is_le, nat.add_mod_left]
+    rw [le_iff_coe_le_coe, coe_sub_of_le (le_last _), coe_sub_of_le (le_last _),
+      tsub_le_tsub_iff_left, le_iff_coe_le_coe],
+    exact le_last _,
   end }
 
 lemma _root_.order_iso.fin_equiv_apply (a) : order_iso.fin_equiv a = last n - a.of_dual := rfl

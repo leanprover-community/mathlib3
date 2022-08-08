@@ -16,11 +16,6 @@ import ring_theory.tensor_product
   then `restrict_scalars : Module S ⥤ Module R` is defined by `M ↦ M` where `M : S-module` is seen
   as `R-module` by `r • m := f r • m` and `S`-linear map `l : M ⟶ M'` is `R`-linear as well.
 
-* `category_theory.Module.extend_scalars.funtor`: given **commutative** ring and a ring homomorphism
-  `f : R ⟶ S`, then `extend_scalars.functor : Module R ⥤ Module S` is defined by `M ↦ S ⨂ M` where
-  the module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
-  is sent to `S`-linear map `s ⊗ m ↦ s ⊗ l m : S ⨂ M ⟶ S ⨂ M'`.
-
 ## List of notations
 Let `R, S` be rings and `f : R →+* S`
 * if `M` is an `S`-module, `r : R` and `m : M` then notation `r r•[f] m` means `R`-scalar action on

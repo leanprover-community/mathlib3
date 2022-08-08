@@ -362,7 +362,6 @@ lemma totient_mul_of_prime_of_not_dvd {p n : ℕ} (hp : p.prime) (h : ¬ p ∣ n
 begin
   rw [totient_mul _, totient_prime hp],
   simpa [h] using coprime_or_dvd_of_prime hp n,
-
 end
 
 end nat

@@ -86,7 +86,7 @@ continuous_induced_dom
 by simp only [inducing_embed_product.continuous_iff, embed_product_apply, (∘), continuous_prod_mk,
   op_homeomorph.symm.inducing.continuous_iff, op_homeomorph_symm_apply, unop_op]
 
-@[to_additive] protected lemma continuous_inv : continuous (inv : Mˣ → M) :=
+@[to_additive] lemma continuous_coe_inv : continuous (λ u, ↑u⁻¹ : Mˣ → M) :=
 (units.continuous_iff.1 continuous_id).2
 
 end units

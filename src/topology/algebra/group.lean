@@ -1180,17 +1180,17 @@ open mul_opposite (continuous_op continuous_unop)
 variables [monoid α] [topological_space α] [monoid β] [topological_space β]
 
 @[to_additive] instance [has_continuous_mul α] : topological_group αˣ :=
-{ continuous_inv := units.continuous_iff.2 $ ⟨units.continuous_inv, continuous_coe⟩ }
+{ continuous_inv := units.continuous_iff.2 $ ⟨continuous_coe_inv, continuous_coe⟩ }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
 of the units of each monoid. -/
 @[to_additive "The topological group isomorphism between the additive units of a product of two
 additive monoids, and the product of the additive units of each additive monoid."]
 def homeomorph.prod_units : (α × β)ˣ ≃ₜ (αˣ × βˣ) :=
-{ continuous_to_fun  := (continuous_fst.map_units (monoid_hom.fst α β)).prod_mk
-    (continuous_snd.map_units (monoid_hom.snd α β)),
+{ continuous_to_fun  := (continuous_fst.units_map (monoid_hom.fst α β)).prod_mk
+    (continuous_snd.units_map (monoid_hom.snd α β)),
   continuous_inv_fun := units.continuous_iff.2 ⟨continuous_coe.fst'.prod_mk continuous_coe.snd',
-    units.continuous_inv.fst'.prod_mk units.continuous_inv.snd'⟩,
+    continuous_coe_inv.fst'.prod_mk continuous_coe_inv.snd'⟩,
   to_equiv := mul_equiv.prod_units.to_equiv }
 
 end units

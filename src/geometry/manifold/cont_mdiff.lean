@@ -422,14 +422,6 @@ lemma ext_chart_at_symm_continuous_within_at_comp_right_iff {X} [topological_spa
   continuous_within_at (f ∘ (chart_at H x).symm) ((chart_at H x).symm ⁻¹' s) (chart_at H x x') :=
 by convert I.symm_continuous_within_at_comp_right_iff; refl
 
-lemma ext_chart_at_image_subset (hs : s ⊆ (chart_at H x).source) :
-  ext_chart_at I x '' s ⊆ (ext_chart_at I x).symm ⁻¹' s ∩ range I :=
-begin
-  rw [ext_chart_at_coe, ext_chart_at_coe_symm, preimage_comp, ← I.image_eq, image_comp,
-    (chart_at H x).image_eq_target_inter_inv_preimage hs],
-  exact image_subset _ (inter_subset_right _ _)
-end
-
 include Is
 
 lemma cont_mdiff_within_at_iff_source_of_mem_source
@@ -479,7 +471,7 @@ include I's
   that this set lies in `(ext_chart_at I x).target`. -/
 lemma cont_mdiff_on_iff_of_subset_source {x : M} {y : M'}
   (hs : s ⊆ (chart_at H x).source)
-  (h2s : f '' s ⊆ (chart_at H' y).source) :
+  (h2s : maps_to f s (chart_at H' y).source) :
   cont_mdiff_on I I' n f s ↔ continuous_on f s ∧
     cont_diff_on 𝕜 n (ext_chart_at I' y ∘ f ∘ (ext_chart_at I x).symm)
     (ext_chart_at I x '' s) :=
@@ -487,10 +479,12 @@ begin
   split,
   { refine λ H, ⟨λ x hx, (H x hx).1, _⟩,
     rintro _ ⟨x', hx', rfl⟩,
-    refine ((cont_mdiff_within_at_iff_of_mem_source (hs hx') (h2s $ mem_image_of_mem f hx')).mp
-      (H _ hx')).2.mono (ext_chart_at_image_subset hs) },
+    exact ((cont_mdiff_within_at_iff_of_mem_source (hs hx')
+      (h2s.image_subset $ mem_image_of_mem f hx')).mp (H _ hx')).2.mono
+        (maps_to_ext_chart_at I x hs).image_subset },
   { rintro ⟨h1, h2⟩ x' hx',
-    refine (cont_mdiff_within_at_iff_of_mem_source (hs hx') (h2s $ mem_image_of_mem f hx')).mpr
+    refine (cont_mdiff_within_at_iff_of_mem_source (hs hx')
+      (h2s.image_subset $ mem_image_of_mem f hx')).mpr
       ⟨h1.continuous_within_at hx', _⟩,
     refine (h2 _ $ mem_image_of_mem _ hx').mono_of_mem _,
     rw [← ext_chart_at_source I] at hs,
@@ -1550,7 +1544,7 @@ variables (Z : basic_smooth_vector_bundle_core I M E')
 lemma cont_mdiff_at_iff_target {f : N → Z.to_topological_vector_bundle_core.total_space}
   {x : N} {n : with_top ℕ} :
   cont_mdiff_at J (I.prod 𝓘(𝕜, E')) n f x ↔ continuous_at (bundle.total_space.proj ∘ f) x ∧
-  cont_mdiff_at J 𝓘(𝕜, E × E') n (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
+    cont_mdiff_at J 𝓘(𝕜, E × E') n (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
 begin
   let Z' := Z.to_topological_vector_bundle_core,
   rw [cont_mdiff_at_iff_target, and.congr_left_iff],

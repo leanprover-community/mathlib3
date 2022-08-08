@@ -14,8 +14,8 @@ now, this file contains just one such result:
 
 ## Main results
 
-* `mdifferentiable.const_of_compact_space_of_connected_space`: A complex-differentiable function on
-  a compact preconnected complex manifold is constant.
+* `mdifferentiable.exists_eq_const_of_compact_space`: A complex-differentiable function on a compact
+  preconnected complex manifold is constant.
 
 ## TODO
 
@@ -38,8 +38,8 @@ variables {M : Type*} [topological_space M] [charted_space E M]
 
 /-- A holomorphic function on a complex manifold is constant on every compact, preconnected, clopen
 subset. -/
-lemma mdifferentiable.apply_eq_of_is_compact_of_is_preconnected {s : set M} (hs₁ : is_compact s)
-  (hs₂ : is_preconnected s) (hs₃ : is_clopen s)
+lemma apply_eq_of_is_compact {s : set M} (hs₁ : is_compact s) (hs₂ : is_preconnected s)
+  (hs₃ : is_clopen s)
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) {a b : M} (ha : a ∈ s) (hb : b ∈ s) :
   f a = f b :=
 begin
@@ -88,8 +88,20 @@ begin
 end
 
 /-- A holomorphic function on a compact connected complex manifold is constant. -/
-lemma mdifferentiable.apply_eq_of_compact_space_of_preconnected_space [compact_space M]
-  [preconnected_space M] {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) (a b : M) :
+lemma apply_eq_of_compact_space [compact_space M] [preconnected_space M]
+  {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) (a b : M) :
   f a = f b :=
-hf.const_of_is_preconnected compact_univ is_preconnected_univ is_clopen_univ (set.mem_univ _)
+hf.apply_eq_of_is_compact compact_univ is_preconnected_univ is_clopen_univ (set.mem_univ _)
   (set.mem_univ _)
+
+/-- A holomorphic function on a compact connected complex manifold is the constant function `f ≡ v`,
+for some value `v`. -/
+lemma exists_eq_const_of_compact_space [nonempty M] [compact_space M] [preconnected_space M]
+  {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
+  ∃ v : F, f = function.const M v :=
+begin
+  inhabit M,
+  exact ⟨f default, funext $ λ a, hf.apply_eq_of_compact_space a default⟩,
+end
+
+end mdifferentiable

@@ -1258,14 +1258,13 @@ end
 def _root_.order_iso.fin_equiv : ∀ {n}, (fin n)ᵒᵈ ≃o fin n
 | 0 := ⟨⟨elim0, elim0, elim0, elim0⟩, elim0⟩
 | (n+1) := order_iso.symm $
-{ to_fun    := λ x, last n - x,
-  inv_fun   := λ x, last n - x,
+{ to_fun    := λ x, order_dual.to_dual (last n - x),
+  inv_fun   := λ x, last n - x.of_dual,
   left_inv  := sub_sub_cancel _,
   right_inv := sub_sub_cancel _,
   map_rel_iff' := λ a b,
   begin
-    rw [order_dual.has_le],
-    simp only [equiv.coe_fn_mk],
+    simp only [equiv.coe_fn_mk, order_dual.to_dual_le_to_dual],
     rw [le_iff_coe_le_coe, coe_sub_of_le (le_last _), coe_sub_of_le (le_last _),
       tsub_le_tsub_iff_left, le_iff_coe_le_coe],
     exact le_last _,

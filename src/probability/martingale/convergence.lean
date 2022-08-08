@@ -109,7 +109,7 @@ lemma upcrossings_eq_top_of_frequently_lt (hab : a < b)
 classical.by_contradiction (λ h, not_frequently_of_upcrossings_lt_top hab h ⟨h₁, h₂⟩)
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {x : ℕ → ℝ} (hx : at_top.liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {x : ℕ → ℝ} (hx : liminf at_top (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
   ∃ R, ∃ᶠ n in at_top, x n < R :=
 begin
   by_contra h,
@@ -121,7 +121,7 @@ begin
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {x : ℕ → ℝ} (hx : at_top.liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {x : ℕ → ℝ} (hx : liminf at_top (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
   ∃ R, ∃ᶠ n in at_top, R < x n :=
 begin
   by_contra h,
@@ -135,7 +135,7 @@ begin
 end
 
 lemma exists_upcrossings_of_not_bounded_under
-  (hf : at_top.liminf (λ n, (∥f n ω∥₊ : ℝ≥0∞)) ≠ ∞)
+  (hf : liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) at_top (λ n, |f n ω|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ n in at_top, f n ω < a) ∧ (∃ᶠ n in at_top, ↑b < f n ω) :=
 begin
@@ -171,7 +171,7 @@ convergent.
 We use the spelling `< ∞` instead of the standard `≠ ∞` in the assumptions since it is not as easy
 to change `<` to `≠` under binders. -/
 lemma tendsto_of_uncrossing_lt_top
-  (hf₁ : at_top.liminf (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞)
+  (hf₁ : liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞)
   (hf₂ : ∀ a b : ℚ, a < b → upcrossings a b f ω < ∞) :
   ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
 begin
@@ -188,7 +188,7 @@ end
 
 lemma liminf_at_top_ae_bdd_of_snorm_bdd
   (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
-  ∀ᵐ ω ∂μ, at_top.liminf (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞ :=
+  ∀ᵐ ω ∂μ, liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞ :=
 begin
   refine ae_lt_top (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal))
     (lt_of_le_of_lt (lintegral_liminf_le (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal))

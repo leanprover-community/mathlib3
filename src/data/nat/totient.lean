@@ -336,7 +336,7 @@ begin
   apply mul_le_mul_left' (nat.totient_le d),
 end
 
-lemma totient_dvd_of_dvd (a b : ℕ) (h : a ∣ b) : φ a ∣ φ b :=
+lemma totient_dvd_of_dvd {a b : ℕ} (h : a ∣ b) : φ a ∣ φ b :=
 begin
   rcases eq_or_ne a 0 with rfl | ha0, { simp [zero_dvd_iff.1 h] },
   rcases eq_or_ne b 0 with rfl | hb0, { simp },

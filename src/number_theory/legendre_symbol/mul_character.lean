@@ -382,7 +382,7 @@ def is_quadratic (χ : mul_char R R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨
 of characteristic not `2`, then they agree in `ℤ`. -/
 lemma is_quadratic.eq_of_eq_coe {χ : mul_char R ℤ} (hχ : is_quadratic χ)
   {χ' : mul_char R' ℤ} (hχ' : is_quadratic χ') [nontrivial R''] (hR'' : ring_char R'' ≠ 2)
-  (a : R) (a' : R') (h : (χ a : R'') = χ' a') :
+  {a : R} {a' : R'} (h : (χ a : R'') = χ' a') :
   χ a = χ' a' :=
 int.cast_inj_on_of_ring_char_ne_two hR'' (hχ a) (hχ' a') h
 

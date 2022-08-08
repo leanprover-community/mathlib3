@@ -323,7 +323,7 @@ end
 /-- The value of the quadratic character at `2` -/
 lemma quadratic_char_two [decidable_eq F] (hF : ring_char F ≠ 2) :
   quadratic_char F 2 = χ₈ (fintype.card F) :=
-is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F) is_quadratic_χ₈ hF _ _
+is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F) is_quadratic_χ₈ hF
   ((quadratic_char_eq_pow_of_char_ne_two'' hF 2).trans (finite_field.two_pow_card hF))
 
 /-- `2` is a square in `F` iff `#F` is not congruent to `3` or `5` mod `8`. -/
@@ -401,7 +401,7 @@ begin
   have h := card_pow_card hχ₁ hχ₂ h hF',
   rw [← quadratic_char_eq_pow_of_char_ne_two'' hF'] at h,
   exact (is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F')
-             (quadratic_char_is_quadratic F) hF' _ _ h).symm,
+             (quadratic_char_is_quadratic F) hF' h).symm,
 end
 
 /-- The value of the quadratic character at an odd prime `p` different from `ring_char F`. -/

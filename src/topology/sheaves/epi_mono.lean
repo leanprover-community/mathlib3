@@ -29,7 +29,8 @@ section sheaf
 
 variables {F G : sheaf D X} (f : F ⟶ G)
 
-instance mono_of_presheaf_mono [mono f.1] : mono f :=
+-- Not an instance to prevent class search forming a loop
+lemma mono_of_presheaf_mono [mono f.1] : mono f :=
 { right_cancellation := λ P g h eq₀, Sheaf.hom.ext _ _ $ (cancel_mono f.1).mp $
     (Sheaf.hom.ext_iff _ _).mp eq₀ }
 
@@ -58,7 +59,8 @@ variables [Π (U : opens X),
     preserves_colimits_of_shape ((opens.grothendieck_topology X).cover U)ᵒᵖ (forget D)]
 variables [reflects_isomorphisms (forget D)]
 
-instance presheaf_mono_of_mono [mono f] : mono f.1 :=
+-- Not an instance to prevent class search forming a loop
+lemma presheaf_mono_of_mono [mono f] : mono f.1 :=
 { right_cancellation := λ P g h eq₀,
   begin
     set P_plus : sheaf D X := (presheaf_to_Sheaf (opens.grothendieck_topology X) D).obj P,

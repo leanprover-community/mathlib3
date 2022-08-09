@@ -200,12 +200,19 @@ instance : ring 𝓜(𝕜, A) :=
   mul_one := λ a, ext _ _ (mul_one _) (mul_one _),
   left_distrib := λ a b c, ext _ _ (mul_add _ _ _) (add_mul _ _ _),
   right_distrib := λ a b c, ext _ _ (add_mul _ _ _) (mul_add _ _ _),
+  nat_cast := λ n,
+  { left := n,
+    right := n,
+    central := λ x y, by simp only [←nat.smul_one_eq_coe, continuous_linear_map.smul_apply n 1,
+      one_apply, mul_smul_comm, smul_mul_assoc] },
   .. double_centralizer.add_comm_group }
 
 @[simp] lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl
 @[simp] lemma one_right : (1 : 𝓜(𝕜, A)).right = 1 := rfl
 @[simp] lemma mul_left (a b : 𝓜(𝕜, A)) : (a * b).left = a.left * b.left := rfl
 @[simp] lemma mul_right (a b : 𝓜(𝕜, A)) : (a * b).right = b.right * a.right := rfl
+@[simp] lemma nat_cast_left (n : ℕ) : (n : 𝓜(𝕜 , A)).left = n := rfl
+@[simp] lemma nat_cast_right (n : ℕ) : (n : 𝓜(𝕜 , A)).right = n := rfl
 
 /-!
 ### Coercion from an algebra into its multiplier algebra

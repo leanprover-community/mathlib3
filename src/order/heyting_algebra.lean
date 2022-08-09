@@ -23,49 +23,8 @@ set_option old_structure_cmd true
 
 open order_dual
 
+universes u
 variables {ι α β : Type*}
-
-/-- Prove distributivity of a lattice using the dual distributive law. -/
-@[reducible] -- See note [reducible non-instances]
-def distrib_lattice.of_inf_sup_le [lattice α]
-  (inf_sup_le : ∀ a b c : α, a ⊓ (b ⊔ c) ≤ (a ⊓ b) ⊔ (a ⊓ c)) : distrib_lattice α :=
-{ ..‹lattice α›,
-  ..@order_dual.distrib_lattice αᵒᵈ
-    { le_sup_inf := λ a b c, inf_sup_le _ _ _, ..order_dual.lattice _ } }
-
-section disjoint
-variables [semilattice_inf α] [order_bot α] {a b c : α}
-
-lemma disjoint_left_comm : disjoint a (b ⊓ c) ↔ disjoint b (a ⊓ c) :=
-by simp_rw [disjoint, inf_left_comm]
-
-lemma disjoint_right_comm : disjoint (a ⊓ b) c ↔ disjoint (a ⊓ c) b :=
-by simp_rw [disjoint, inf_right_comm]
-
-end disjoint
-
-section codisjoint
-variables [semilattice_sup α] [order_top α] {a b c : α}
-
-lemma codisjoint_left_comm : codisjoint a (b ⊔ c) ↔ codisjoint b (a ⊔ c) :=
-by simp_rw [codisjoint, sup_left_comm]
-
-lemma codisjoint_right_comm : codisjoint (a ⊔ b) c ↔ codisjoint (a ⊔ c) b :=
-by simp_rw [codisjoint, sup_right_comm]
-
-end codisjoint
-
-section
-variables [distrib_lattice α] [bounded_order α] {a b c : α}
-
-lemma disjoint.le_of_codisjoint (hb : disjoint a b) (hc : codisjoint a c) : b ≤ c :=
-begin
-  rw [←@top_inf_eq _ _ _ b, ←@bot_sup_eq _ _ _ c, ←hb.eq_bot, ←hc.eq_top, sup_inf_right],
-  exact inf_le_inf_left _ le_sup_left,
-end
-
-end
-
 
 /-! ### Notation -/
 
@@ -75,13 +34,9 @@ end
 /-- Syntax typeclass for Heyting negation. -/
 @[notation_class] class has_hnot (α : Type*) := (hnot : α → α)
 
-/-- Syntax typeclass for lattice complement. -/
-@[notation_class] class has_compl (α : Type*) := (compl : α → α)
-
-export has_himp (himp) has_sdiff (sdiff) has_compl (compl) has_hnot (hnot)
+export has_himp (himp) has_sdiff (sdiff) has_hnot (hnot)
 
 infixr ` ⇨ `:60 := himp
-postfix `ᶜ`:(max+1) := compl
 prefix `￢`:72 := hnot
 
 instance [has_himp α] [has_himp β] : has_himp (α × β) := ⟨λ a b, (a.1 ⇨ b.1, a.2 ⇨ b.2)⟩
@@ -103,20 +58,13 @@ variables {π : ι → Type*}
 
 instance [Π i, has_himp (π i)] : has_himp (Π i, π i) := ⟨λ a b i, a i ⇨ b i⟩
 instance [Π i, has_hnot (π i)] : has_hnot (Π i, π i) := ⟨λ a i, ￢a i⟩
-instance [Π i, has_compl (π i)] : has_compl (Π i, π i) := ⟨λ a i, (a i)ᶜ⟩
-instance [Π i, has_sdiff (π i)] : has_sdiff (Π i, π i) := ⟨λ a b i, a i \ b i⟩
 
 lemma himp_def [Π i, has_himp (π i)] (a b : Π i, π i) : (a ⇨ b) = λ i, a i ⇨ b i := rfl
 lemma hnot_def [Π i, has_hnot (π i)] (a : Π i, π i) : ￢a = λ i, ￢a i := rfl
-lemma sdiff_def [Π i, has_sdiff (π i)] (a b : Π i, π i) : a \ b = λ i, a i \ b i := rfl
-lemma compl_def [Π i, has_compl (π i)] (a : Π i, π i) : aᶜ = λ i, (a i)ᶜ := rfl
 
 @[simp] lemma himp_apply [Π i, has_himp (π i)] (a b : Π i, π i) (i : ι) : (a ⇨ b) i = a i ⇨ b i :=
 rfl
 @[simp] lemma hnot_apply [Π i, has_hnot (π i)] (a : Π i, π i) (i : ι) : (￢a) i = ￢a i := rfl
-@[simp] lemma sdiff_apply [Π i, has_sdiff (π i)] (a b : Π i, π i) (i : ι) : (a \ b) i = a i \ b i :=
-rfl
-@[simp] lemma compl_apply [Π i, has_compl (π i)] (a : Π i, π i) (i : ι) : aᶜ i = (a i)ᶜ := rfl
 
 end pi
 
@@ -588,7 +536,7 @@ end coheyting_algebra
 section biheyting_algebra
 variables [biheyting_algebra α] {a : α}
 
-lemma compl_le_hnot : aᶜ ≤ ￢a := (disjoint_compl_right a).le_of_codisjoint $ codisjoint_hnot_right _
+lemma compl_le_hnot : aᶜ ≤ ￢a := (disjoint_compl_left a).le_of_codisjoint $ codisjoint_hnot_right _
 
 end biheyting_algebra
 
@@ -596,10 +544,9 @@ end biheyting_algebra
 complement. -/
 instance Prop.heyting_algebra : heyting_algebra Prop :=
 { himp := (→),
-  compl := not,
   le_himp_iff := λ p q r, and_imp.symm,
   himp_bot := λ p, rfl,
-  ..Prop.distrib_lattice, ..Prop.bounded_order }
+  ..Prop.has_compl, ..Prop.distrib_lattice, ..Prop.bounded_order }
 
 @[simp] lemma himp_iff_imp (p q : Prop) : p ⇨ q ↔ p → q := iff.rfl
 @[simp] lemma compl_iff_not (p : Prop) : pᶜ ↔ ¬ p := iff.rfl
@@ -628,3 +575,29 @@ def linear_order.to_biheyting_algebra [linear_order α] [bounded_order α] : bih
   end,
   top_sdiff := λ a, if_congr top_le_iff rfl rfl,
   ..linear_order.to_lattice, ..‹bounded_order α› }
+
+namespace punit
+variables (a b : punit.{u+1})
+
+instance : biheyting_algebra punit :=
+by refine_struct
+{ top := star,
+  bot := star,
+  sup := λ _ _, star,
+  inf := λ _ _, star,
+  compl := λ _, star,
+  sdiff := λ _ _, star,
+  hnot := λ _, star,
+  himp := λ _ _, star, ..punit.linear_order };
+    intros; trivial <|> exact subsingleton.elim _ _
+
+@[simp] lemma top_eq : (⊤ : punit) = star := rfl
+@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
+@[simp] lemma sup_eq : a ⊔ b = star := rfl
+@[simp] lemma inf_eq : a ⊓ b = star := rfl
+@[simp] lemma compl_eq : aᶜ = star := rfl
+@[simp] lemma sdiff_eq : a \ b = star := rfl
+@[simp] lemma hnot_eq : ￢a = star := rfl
+@[simp] lemma himp_eq : a ⇨ b = star := rfl
+
+end punit

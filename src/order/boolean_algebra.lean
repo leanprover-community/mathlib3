@@ -117,7 +117,7 @@ lemma sdiff_le' : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
        ... = x                 : sup_inf_sdiff x y
 
-lemma inf_sdiff_right : x ⊓ (x \ y) = x \ y := by rw [inf_of_le_right (@sdiff_le' _ x y _)]
+lemma inf_sdiff_right : x ⊓ (x \ y) = x \ y := inf_of_le_right (@sdiff_le' _ x y _)
 lemma inf_sdiff_left : (x \ y) ⊓ x = x \ y := by rw [inf_comm, inf_sdiff_right]
 
 @[simp] theorem sup_sdiff_self_right : x ⊔ (y \ x) = x ⊔ y :=
@@ -653,6 +653,7 @@ end boolean_algebra
 section boolean_algebra
 variables [boolean_algebra α]
 
+@[priority 100] -- See note [lower instance priority]
 instance boolean_algebra.to_biheyting_algebra : biheyting_algebra α :=
 { hnot := compl,
   le_himp_iff := λ a b c, by rw [himp_eq, is_compl_compl.le_sup_right_iff_inf_left_le],
@@ -695,9 +696,6 @@ instance Prop.boolean_algebra : boolean_algebra Prop :=
   inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
   .. Prop.heyting_algebra, ..generalized_heyting_algebra.to_distrib_lattice }
-
-instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
-instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=
@@ -773,24 +771,7 @@ protected def function.injective.boolean_algebra [has_sup α] [has_inf α] [has_
 
 end lift
 
-namespace punit
-variables (a b : punit.{u+1})
-
 instance : boolean_algebra punit :=
 by refine_struct
-{ top := star,
-  bot := star,
-  sup := λ _ _, star,
-  inf := λ _ _, star,
-  compl := λ _, star,
-  sdiff := λ _ _, star, ..punit.linear_order };
+{ ..punit.biheyting_algebra };
     intros; trivial <|> exact subsingleton.elim _ _
-
-@[simp] lemma top_eq : (⊤ : punit) = star := rfl
-@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
-@[simp] lemma sup_eq : a ⊔ b = star := rfl
-@[simp] lemma inf_eq : a ⊓ b = star := rfl
-@[simp] lemma compl_eq : aᶜ = star := rfl
-@[simp] lemma sdiff_eq : a \ b = star := rfl
-
-end punit

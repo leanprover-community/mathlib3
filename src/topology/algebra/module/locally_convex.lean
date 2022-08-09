@@ -43,7 +43,7 @@ class locally_convex_space (𝕜 E : Type*) [ordered_semiring 𝕜] [add_comm_mo
 variables (𝕜 E : Type*) [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E]
 
 lemma locally_convex_space_iff :
-  locally_convex_space 𝕜 E ↔
+  locally_convex_space 𝕜 E ↔S
   ∀ x : E, (𝓝 x).has_basis (λ (s : set E), s ∈ 𝓝 x ∧ convex 𝕜 s) id :=
 ⟨@locally_convex_space.convex_basis _ _ _ _ _ _, locally_convex_space.mk⟩
 

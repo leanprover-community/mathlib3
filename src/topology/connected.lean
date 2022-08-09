@@ -1126,8 +1126,10 @@ end preconnected
 
 section locally_connected_space
 
-/-- A locally connected space is a space where every neighborhood filter has a basis of *open*
-connected sets. -/
+/-- A topological space is **locally connected** if each neighborhood filter admits a basis
+of connected *open* sets. Note that it is equivalent to each point having a basis of connected
+(non necessarily open) sets but in a non-trivial way, so we choose this definition and prove the
+equivalence later in `locally_connected_space_iff_connected_basis`. -/
 class locally_connected_space (α : Type*) [topological_space α] : Prop :=
 (open_connected_basis : ∀ x, (𝓝 x).has_basis (λ s : set α, is_open s ∧ x ∈ s ∧ is_connected s) id)
 
@@ -1217,6 +1219,18 @@ begin
   rw locally_connected_space_iff_connected_subsets,
   congrm ∀ x, (_ : Prop),
   exact filter.has_basis_self.symm
+end
+
+lemma locally_connected_space_of_connected_bases {ι : Type*} (b : α → ι → set α) (p : α → ι → Prop)
+  (hbasis : ∀ x, (𝓝 x).has_basis (p x) (b x))
+  (hconnected : ∀ x i, p x i → is_preconnected (b x i)) :
+  locally_connected_space α :=
+begin
+  rw locally_connected_space_iff_connected_basis,
+  exact λ x, (hbasis x).to_has_basis
+    (λ i hi, ⟨b x i, ⟨(hbasis x).mem_of_mem hi, hconnected x i hi⟩, subset_rfl⟩)
+    (λ s hs, ⟨(hbasis x).index s hs.1,
+      ⟨(hbasis x).property_index hs.1, (hbasis x).set_index_subset hs.1⟩⟩)
 end
 
 end locally_connected_space

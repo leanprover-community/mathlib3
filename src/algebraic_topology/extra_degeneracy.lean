@@ -51,6 +51,26 @@ open_locale simplicial
 
 universes u
 
+lemma fin.is_succ_of_ne_zero {n : ℕ} (x : fin (n+1)) (hx : x ≠ 0) :
+  ∃ (y : fin n), x = y.succ :=
+⟨x.pred hx, by simp only [fin.succ_pred]⟩
+
+lemma fin.coe_cast_pred {n : ℕ} (x : fin (n+2)) (hx : x ≠ fin.last _) :
+  (x.cast_pred : ℕ) = x :=
+begin
+  dsimp only [fin.cast_pred, fin.pred_above],
+  split_ifs,
+  { exfalso,
+    simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ,
+      fin.coe_last] at h,
+    have h' := x.is_lt,
+    apply hx,
+    ext,
+    dsimp,
+    linarith, },
+  { refl, },
+end
+
 namespace algebraic_topology
 
 variables {C : Type*} [category C]
@@ -374,6 +394,37 @@ simplex_category.hom.mk
       simpa only [fin.pred_le_pred_iff] using ineq, },
   end }
 
+@[simp]
+lemma fin.succ_pred_above_succ {n : ℕ} (x : fin n) (y : fin (n+1)) :
+  x.succ.pred_above y.succ = (x.pred_above y).succ :=
+begin
+  obtain h₁ | h₂ := lt_or_le x.cast_succ y,
+  { rw [fin.pred_above_above _ _ h₁, fin.succ_pred,
+      fin.pred_above_above, fin.pred_succ],
+    simpa only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ,
+      fin.coe_succ, add_lt_add_iff_right] using h₁, },
+  { cases n,
+    { exfalso,
+      exact not_lt_zero' x.is_lt, },
+    { rw [fin.pred_above_below _ _ h₂, fin.pred_above_below],
+      ext,
+      have hx : (x : ℕ) < n+1 := x.is_lt,
+      rw [fin.coe_succ, fin.coe_cast_pred, fin.coe_cast_pred, fin.coe_succ],
+      { by_contra,
+        simp only [h, fin.le_iff_coe_le_coe, fin.coe_last, fin.coe_cast_succ] at h₂,
+        linarith, },
+      { by_contra,
+        rw [← fin.succ_le_succ_iff] at h₂,
+        simp only [h, fin.le_iff_coe_le_coe, fin.coe_last, fin.coe_succ, fin.coe_cast_succ,
+          add_le_add_iff_right] at h₂,
+        change n+1 ≤ x at h₂,
+        linarith, },
+      { rw ← fin.succ_le_succ_iff at h₂,
+        convert h₂,
+        ext,
+        simp only [fin.coe_cast_succ, fin.coe_succ], }, }, },
+end
+
 def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
   extra_degeneracy (augmented_std_simplex Δ) :=
 { s' := λ x, simplex_category.hom.mk (order_hom.const _ 0),
@@ -413,8 +464,7 @@ def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
       change fin.succ_above i.succ 0 = 0,
       rw fin.succ_above_eq_zero_iff,
       apply fin.succ_ne_zero, },
-    { have hx : ∃ (y : fin (n+1)), x = y.succ := ⟨x.pred h₂, by simp only [fin.succ_pred]⟩,
-      cases hx with y hy,
+    { cases x.is_succ_of_ne_zero h₂ with y hy,
       subst hy,
       congr' 1,
       simp only [fin.pred_succ],
@@ -428,29 +478,22 @@ def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
     split_ifs with h₁ h₂ h₂,
     { refl, },
     { exfalso,
-      sorry, },
+      change i.succ.pred_above x = 0 at h₁,
+      cases x.is_succ_of_ne_zero h₂ with y hy,
+      subst hy,
+      simp only [fin.succ_pred_above_succ] at h₁,
+      exact fin.succ_ne_zero _ h₁, },
     { exfalso,
-      sorry, },
+      rw h₂ at h₁,
+      apply h₁,
+      refl, },
     { congr' 1,
-      have hx : ∃ (y : fin (n+2)), x = y.succ := ⟨x.pred h₂, by simp only [fin.succ_pred]⟩,
-      cases hx with y hy,
+      cases x.is_succ_of_ne_zero h₂ with y hy,
       subst hy,
       simp only [fin.pred_succ],
       change (fin.pred_above i.succ y.succ).pred h₁ = fin.pred_above i y,
       apply fin.succ_injective,
-      simp only [fin.succ_pred],
-      obtain h₁ | h₂ := lt_or_le i.cast_succ y,
-      {-- have paf := fin.pred_above_below,
-        sorry, },
-      { rw fin.pred_above_below _ _ h₂,
-        rw fin.pred_above_below, swap,
-        { rw ← fin.succ_le_succ_iff at h₂,
-          apply le_trans h₂,
-          rw fin.le_iff_coe_le_coe,
-          simp only [fin.coe_succ, fin.coe_cast_succ], },
-        { ext,
-          simp only [fin.coe_succ],
-          sorry, }, }, },
+      simp only [fin.succ_pred, fin.succ_pred_above_succ], },
   end, }
 
 end sSet

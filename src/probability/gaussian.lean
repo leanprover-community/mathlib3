@@ -26,7 +26,7 @@ import measure_theory.group.integration
 
 #check real.exp_pos
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
-
+#check measurable_set.univ
 /-
 We would like to define the Gaussian measure on ℝ.
 There are two ways of doing this.
@@ -72,26 +72,83 @@ open probability_theory measure
 
 variables {μ : measure ℝ} {m s : ℝ}
 
-lemma change_of_vr_gaussian:
-   ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))) = ennreal.of_real (∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))):=
+lemma mulone_eq (g : ℝ → ℝ) (f : ℝ → ℝ): ∫ (x : ℝ) in set.univ, g (f x)
+= ∫ (x : ℝ) in set.univ, 1 • g (f x) :=
 begin
-    have h_set_eq : set.univ = (λ x, x-m) '' set.univ,
-      ext e,
+simp,
+end
+
+lemma onenng : 0 ≤ 1 := zero_le 1
+
+lemma detid_eq_one : |(continuous_linear_map.id ℝ ℝ).det| = 1 :=
+begin
+have h_deteq : (continuous_linear_map.id ℝ ℝ).det = linear_map.det (linear_map.id),
+  refl,
+rw h_deteq,
+simp,
+end
+
+lemma integ_smul_eq_mul (f : ℝ → ℝ) (g : ℝ → ℝ): ∫ (x : ℝ) in set.univ, 1 • g (f x)
+ = ∫ (x : ℝ) in set.univ, |(continuous_linear_map.id ℝ ℝ).det| • g (f x) :=
+begin
+rw detid_eq_one,
+simp,
+end
+
+lemma change_of_vr_gaussian:
+   ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)):=
+begin
+    let g : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+    let f : ℝ → ℝ := λ (x:ℝ), x-m,
+    have h_set_eq : set.univ = f '' set.univ,
+      {ext e,
       split,
       {intro h1,
       use (e+m),
       split,
-      simp,simp},
-      {intro h2,
-      simp},
-    have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
-     = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
       simp,
+      simp_rw [f],
+      simp},
+      {intro h2,
+      simp}},
+
+    have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
+     = ∫ (x : ℝ) in set.univ, g (x-m) ,
+     ---(sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
+      {simp_rw [g],
+        simp},
     rw h_integ_eq,
     have h_integ_eq2 : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
-     = ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ,
-      simp,
+     = ∫ (x : ℝ) in set.univ, g x ,
+      {simp_rw [g],
+        simp},
     rw h_integ_eq2,
+    nth_rewrite 1 [h_set_eq],
+    have h_comp_eq : ∀ (x:ℝ), g (x-m) = g (f x),
+      {intro x,
+      simp},
+
+    simp_rw [h_comp_eq],
+    let f_deriv : ℝ →L[ℝ] ℝ := continuous_linear_map.id ℝ ℝ,
+    let f': ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
+
+    /-have h_det_eq_one : ∀ (x:ℝ), (f' x).det = 1,
+      {intro x,
+      exact detid_eq_one},-/
+    rw mulone_eq g f,
+    rw integ_smul_eq_mul f g,
+    have h_use_f'_tosubst : ∫ (x : ℝ) in set.univ, |(continuous_linear_map.id ℝ ℝ).det| • g (f x)
+     = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x),
+     {refl},
+    rw h_use_f'_tosubst,
+
+    ---refine integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ _ _ g,
+
+    ---nth_rewrite 0 [← mulone_eq g],
+
+
+    ---refine integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ _ _ g,
+
 
     --have h_integ_eq3 : ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
 --= ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ∂ℙ,

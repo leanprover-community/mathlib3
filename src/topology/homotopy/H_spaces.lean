@@ -5,6 +5,7 @@ Authors: Filippo A. E. Nuccio
 -/
 import data.real.basic
 import tactic.field_simp
+import tactic.unit
 import topology.algebra.order.basic
 import topology.compact_open
 import topology.homotopy.basic
@@ -190,8 +191,8 @@ lemma frontier_I_mem (θ t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 
 λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
   (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
 
-lemma frontier_I_mem' (θ : ℝ) (t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
-  = θ /2 := sorry
+lemma frontier_I_mem' {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
+  = θ /2 := sorry --TRY TO REPLACE `frontier_I_mem` with this one
 -- λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
 --   (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
 
@@ -219,9 +220,8 @@ def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   begin
     apply continuous.piecewise,
     { intros t ht,
-      rw [frontier_I_mem θ t ht, mul_div, mul_div_cancel_left, sub_self, zero_div],
-      simp only [γ.source, set.left_mem_Icc, zero_le_one, extend_extends, mk_zero],
-      exact two_ne_zero },
+      rw frontier_I_mem θ t ht,
+      field_simp },
     exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul continuous_induced_dom).sub
       continuous_const).div_const ],
   end,
@@ -263,9 +263,11 @@ begin
 end
 
 lemma delayed_refl_left_e (θ : I) : delayed_refl_left θ (refl x) = refl x :=
--- lemma delayed_it_e (γ : Ω(x)) (h : γ = refl x) (θ : I) : delayed_refl_left θ (refl x) = refl x :=
 begin
- sorry ,-- γₑ
+  ext t,
+  dsimp [path.refl, delayed_refl_left],
+  split_ifs;
+  refl,
 end
 
 
@@ -275,32 +277,55 @@ def delayed_refl_right {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   continuous_to_fun :=
   begin
     apply continuous.piecewise,
-    -- sorry,
     { intros t ht,
-      rw frontier_I_mem' ((1 : ℝ) + θ) t ht,
-      ring_nf,
-      -- simp,
-      -- rw this,
-      -- field_simp,
-
-       },
-    exacts [(continuous_extend γ).comp (continuous_const.mul continuous_induced_dom),
+      rw [frontier_I_mem' ht, mul_div_cancel', div_self],
+      simp only [γ.target, set.right_mem_Icc, zero_le_one, extend_extends, mk_one],
+      exacts [ne_of_gt $ add_pos_of_pos_of_nonneg (@one_pos ℝ _ _) θ.2.1, two_ne_zero] },
+    exacts [(continuous_extend γ).comp (continuous_const.mul continuous_induced_dom).div_const,
       continuous_const],
   end,
   source' :=
   begin
-    simp only [path.source, coe_zero, set.left_mem_Icc, zero_le_one, mul_zero, extend_extends,
-      mk_zero, if_t_t],
+    simp only [zero_le_one, extend_extends, coe_zero, set.left_mem_Icc, mul_zero, zero_div, mk_zero,
+       path.source, if_t_t],
   end,
   target' :=
   begin
     simp only [coe_one, mul_one, ite_eq_right_iff, one_le_div (@two_pos ℝ _ _),
       ← sub_le_iff_le_add],
     intro h,
-    have : (1 : ℝ) ≤ 2 - θ.1 := by {linarith [θ.2.2]},
-    simp only [(h.antisymm this), extend_extends, path.target, set.right_mem_Icc,
-      zero_le_one, mk_one],
+    replace h : (1 : ℝ) ≤ θ := by linarith,
+    rw (h.antisymm θ.2.2).symm,
+    norm_num,
   end }
+
+lemma delayed_refl_right_at_0 (γ : Ω(x)) : (delayed_refl_right 0 γ) = γ.trans (path.refl x) :=
+begin
+  ext t,
+  dsimp [delayed_refl_right],
+  simp only [add_zero, div_one],
+  refl,
+end
+
+lemma delayed_refl_right_at_1 (γ : Ω(x)) : (delayed_refl_right 1 γ) = γ :=
+begin
+  ext t,
+  dsimp [delayed_refl_right],
+  split_ifs with h,
+  { norm_num,
+    rw [mul_div_assoc, mul_div_cancel' _ $ @two_ne_zero ℝ _ _, extend_extends'] },
+  { norm_num at h,
+    contrapose! h,
+    exact t.2.2 }
+end
+
+lemma delayed_refl_right_e (θ : I) : delayed_refl_right θ (refl x) = refl x :=
+begin
+  ext t,
+  dsimp [path.refl, delayed_refl_right],
+  split_ifs;
+  refl,
+end
 
 lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧
   ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 := ⟨div_nonneg (le_of_lt $ sub_pos.mpr $ (div_lt_iff' two_pos).mp h)
@@ -342,7 +367,8 @@ end
 
 lemma continuous_Q : continuous Q := by simp only [Q_ext_extends_Q, continuous_proj_Icc.comp continuous_Q_ext]
 
-lemma continuous_delayed_refl_left {x : X} : continuous (λ p : I × Ω(x), delayed_refl_left p.1 p.2) :=
+lemma continuous_delayed_refl_left {x : X} :
+  continuous (λ p : I × Ω(x), delayed_refl_left p.1 p.2) :=
 begin
   apply continuous_to_Ω_if_continuous_uncurry,
   have hF₀ : continuous (λ p : I × Ω(x), p.2 p.1),
@@ -357,6 +383,9 @@ begin
   { simp only [path.source] },
   { rw [extend_extends] },
 end
+
+lemma continuous_delayed_refl_right {x : X} :
+  continuous (λ p : I × Ω(x), delayed_refl_right p.1 p.2) := sorry
 
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
@@ -377,7 +406,14 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   end,
   right_Hmul_e :=
   begin
-    sorry,
+    use ⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩;
+    intro x,
+    { exact delayed_refl_right_at_0 x },
+    { exact delayed_refl_right_at_1 x },
+    { intros _ h,
+      simp only [set.mem_singleton_iff.mp h, continuous_map.coe_mk, refl_trans_refl, id.def,
+        and_self],
+      exact delayed_refl_right_e x },
   end  }
 
 end path_space_H_space

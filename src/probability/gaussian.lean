@@ -100,7 +100,7 @@ rw detid_eq_one,
 simp,
 end
 
-lemma change_of_vr_gaussian:
+lemma change_of_vr_gaussian (μ : measure ℝ):
    ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)):=
 begin
     let g : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
@@ -146,20 +146,21 @@ begin
      = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x),
      {refl},
     rw h_use_f'_tosubst,
+    have hf : set.inj_on f set.univ,
+      refine set.injective_iff_inj_on_univ.mp _,
+      unfold function.injective,
+      intros a1 a2,
+      simp_rw[f],
+      simp,
+    have hf' : ∀ (x : ℝ), x ∈ set.univ → has_fderiv_within_at f (f' x) set.univ x,
+      {intros x hx,
+      refine has_fderiv_within_at.sub_const _ m,
+      exact has_fderiv_within_at_id x set.univ,
+      },
+      {
+        rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ (measurable_set.univ) hf' hf g,
+      },
 
-    ---refine integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ _ _ g,
-
-    ---nth_rewrite 0 [← mulone_eq g],
-
-
-    ---refine integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ _ _ g,
-
-
-    --have h_integ_eq3 : ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
---= ∫ (x : ℝ) in set.univ, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)) ∂ℙ,
-
-
-sorry,
 end
 
 
@@ -281,7 +282,9 @@ begin
       {exact sqrt_not_zero s h},
 
     rw mul_inv_eq_one (sqrt (2*π*s^2)) h_sqrt_not_zero,
-    simp},
+    simp,
+    exact μ,
+    },
     {
       rw integrable, fconstructor,
       {

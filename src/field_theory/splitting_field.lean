@@ -796,7 +796,7 @@ end
 instance inhabited {n : ℕ} {f : K[X]} :
   inhabited (splitting_field_aux n f) := ⟨37⟩
 
-protected lemma lift_hom (n : ℕ) {α : Type*} [non_assoc_semiring α] {K : Type u} [field K]
+@[simps] protected def lift_hom (n : ℕ) {α : Type*} [non_assoc_semiring α] {K : Type u} [field K]
   (g : α →+* K) {f : K[X]} : α →+* splitting_field_aux n f :=
 { to_fun := splitting_field_aux.lift n g,
   map_one' :=
@@ -824,24 +824,20 @@ protected lemma lift_hom (n : ℕ) {α : Type*} [non_assoc_semiring α] {K : Typ
     exact hk ((adjoin_root.of f.factor).comp g)
   end }
 
-instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K] [algebra R K]
+protected def algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K] [algebra R K]
   {f : K[X]} : algebra R (splitting_field_aux n f) :=
-begin
-  refine_struct
-    { to_fun := splitting_field_aux.algebra_map n,
-      smul := @has_smul.smul R (splitting_field_aux n f) _ },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  iterate 6 { rotate, exact ih },
-  all_goals { dsimp only [splitting_field_aux, splitting_field_aux.algebra_map] },
-  { exact map_one (algebra_map R K) },
-  { exact map_mul (algebra_map R K) },
-  { exact map_zero (algebra_map R K) },
-  { exact map_add (algebra_map R K) },
-  { intros, rw mul_comm },
-  { exact algebra.smul_def }
-end
+{ to_fun := splitting_field_aux.lift n (algebra_map R K),
+  smul := @has_smul.smul R (splitting_field_aux n f) _,
+  smul_def' :=
+  begin
+    unfreezingI { induction n with k hk generalizing K },
+    { exact algebra.smul_def },
+    sorry,
+  end,
+  commutes' := λ a b, mul_comm _ _,
+  .. (splitting_field_aux.lift_hom n (algebra_map R K)) }
 
-#exit
+local attribute [-instance] nat_algebra_subsingleton
 
 /-- Because `splitting_field_aux` is defined by recursion, we have to make sure all instances
 on `splitting_field_aux` are defined by recursion within the fields. Otherwise, there will be
@@ -974,13 +970,7 @@ example [char_zero K] : (splitting_field.algebra' f) = algebra_rat :=
 rfl
 
 example [char_zero K] : (splitting_field.algebra' f) = algebra_rat :=
-begin
-  unfold algebra_rat splitting_field.algebra' splitting_field_aux.algebra,
-  congr,
-  unfold coe lift_t has_lift_t.lift coe_t has_coe_t.coe has_rat_cast.rat_cast division_ring.rat_cast field.rat_cast,
-  unfold splitting_field_aux.algebra_map splitting_field_aux.rat_cast,
-  congr,
-end
+rfl
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
 splitting_field_aux.splits _ _ rfl

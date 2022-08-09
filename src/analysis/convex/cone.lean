@@ -265,6 +265,10 @@ lemma pointed_iff_not_blunt (S : convex_cone 𝕜 E) : S.pointed ↔ ¬S.blunt :
 lemma blunt_iff_not_pointed (S : convex_cone 𝕜 E) : S.blunt ↔ ¬S.pointed :=
 by rw [pointed_iff_not_blunt, not_not]
 
+lemma pointed.mono {S T : convex_cone 𝕜 E} (h : S ≤ T) : S.pointed → T.pointed := @h _
+
+lemma blunt.anti {S T : convex_cone 𝕜 E} (h : T ≤ S) : S.blunt → T.blunt := (∘ @@h)
+
 end add_comm_monoid
 
 section add_comm_group
@@ -286,6 +290,12 @@ begin
     push_neg at h,
     exact h }
 end
+
+lemma flat.mono {S T : convex_cone 𝕜 E} (h : S ≤ T) : S.flat → T.flat
+| ⟨x, hxS, hx, hnxS⟩ := ⟨x, h hxS, hx, h hnxS⟩
+
+lemma salient.anti {S T : convex_cone 𝕜 E} (h : T ≤ S) : S.salient → T.salient :=
+λ hS x hxT hx hnT, hS x (h hxT) hx (h hnT)
 
 /-- A flat cone is always pointed (contains `0`). -/
 lemma flat.pointed {S : convex_cone 𝕜 E} (hS : S.flat) : S.pointed :=
@@ -377,10 +387,15 @@ def strictly_positive : convex_cone 𝕜 E :=
 @[simp] lemma mem_strictly_positive {x : E} : x ∈ strictly_positive 𝕜 E ↔ 0 < x := iff.rfl
 @[simp] lemma coe_strictly_positive : ↑(strictly_positive 𝕜 E) = set.Ioi (0 : E) := rfl
 
+lemma positive_le_strictly_positive : strictly_positive 𝕜 E ≤ positive 𝕜 E := λ x, le_of_lt
+
+/-- The strictly positive cone of an ordered module is always salient. -/
+lemma salient_strictly_positive : salient (strictly_positive 𝕜 E) :=
+(salient_positive 𝕜 E).anti $ positive_le_strictly_positive 𝕜 E
+
 /-- The strictly positive cone of an ordered module is always blunt. -/
 lemma blunt_strictly_positive : blunt (strictly_positive 𝕜 E) := lt_irrefl 0
 
-lemma positive_le_strictly_positive : strictly_positive 𝕜 E ≤ positive 𝕜 E := λ x, le_of_lt
 
 end positive_cone
 end convex_cone

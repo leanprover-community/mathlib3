@@ -191,12 +191,12 @@ at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
 
 lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_top_basis }
 
 lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [encodable α] :
   has_countable_basis (at_bot : filter α) (λ _, true) Iic :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_bot_basis }
 
 @[priority 200]
@@ -664,10 +664,10 @@ lemma tendsto_at_bot_add_const_right (C : β) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x + C) l at_bot :=
 @tendsto_at_top_add_const_right _ βᵒᵈ _ _ _ C hf
 
-@[simp] lemma map_neg_at_bot : map (has_neg.neg : β → β) at_bot = at_top :=
+lemma map_neg_at_bot : map (has_neg.neg : β → β) at_bot = at_top :=
 (order_iso.neg β).map_at_bot
 
-@[simp] lemma map_neg_at_top : map (has_neg.neg : β → β) at_top = at_bot :=
+lemma map_neg_at_top : map (has_neg.neg : β → β) at_top = at_bot :=
 (order_iso.neg β).map_at_top
 
 @[simp] lemma comap_neg_at_bot : comap (has_neg.neg : β → β) at_bot = at_top :=
@@ -682,10 +682,10 @@ lemma tendsto_neg_at_top_at_bot : tendsto (has_neg.neg : β → β) at_top at_bo
 lemma tendsto_neg_at_bot_at_top : tendsto (has_neg.neg : β → β) at_bot at_top :=
 @tendsto_neg_at_top_at_bot βᵒᵈ _
 
-lemma tendsto_neg_at_top_iff : tendsto (λ x, -f x) l at_top ↔ tendsto f l at_bot :=
+@[simp] lemma tendsto_neg_at_top_iff : tendsto (λ x, -f x) l at_top ↔ tendsto f l at_bot :=
 (order_iso.neg β).tendsto_at_bot_iff
 
-lemma tendsto_neg_at_bot_iff : tendsto (λ x, -f x) l at_bot ↔ tendsto f l at_top :=
+@[simp] lemma tendsto_neg_at_bot_iff : tendsto (λ x, -f x) l at_bot ↔ tendsto f l at_top :=
 (order_iso.neg β).tendsto_at_top_iff
 
 end ordered_group
@@ -868,7 +868,7 @@ begin
   { rintro rfl,
     simpa only [pow_zero, not_tendsto_const_at_top] using h },
   { rcases ((h.eventually_gt_at_top 0).and (eventually_ge_at_top 0)).exists with ⟨k, hck, hk⟩,
-    exact pos_of_mul_pos_right hck (pow_nonneg hk _) },
+    exact pos_of_mul_pos_left hck (pow_nonneg hk _) },
 end
 
 lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}

@@ -362,6 +362,10 @@ by induction p; simp [*]
   p.reverse.darts = (p.darts.map dart.symm).reverse :=
 by induction p; simp [*, sym2.eq_swap]
 
+lemma mem_darts_reverse {u v : V} {d : G.dart} {p : G.walk u v} :
+  d ∈ p.reverse.darts ↔ d.symm ∈ p.darts :=
+by simp
+
 lemma cons_map_snd_darts {u v : V} (p : G.walk u v) :
   u :: p.darts.map dart.snd = p.support :=
 by induction p; simp! [*]
@@ -408,16 +412,11 @@ lemma dart_fst_mem_support_of_mem_darts :
   { exact or.inr (dart_fst_mem_support_of_mem_darts _ hd), },
 end
 
-lemma dart_snd_mem_support_of_mem_darts :
-  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.snd ∈ p.support
-| u v (cons h p') d hd := begin
-  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
-  rcases hd with (rfl|hd),
-  { simp },
-  { exact or.inr (dart_snd_mem_support_of_mem_darts _ hd), },
-end
+lemma dart_snd_mem_support_of_mem_darts {u v : V} (p : G.walk u v) {d : G.dart} (h : d ∈ p.darts) :
+  d.snd ∈ p.support :=
+by simpa using p.reverse.dart_fst_mem_support_of_mem_darts (by simp [h] : d.symm ∈ p.reverse.darts)
 
-lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+lemma fst_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
   t ∈ p.support :=
 begin
   obtain ⟨d, hd, he⟩ := list.mem_map.mp he,
@@ -426,6 +425,10 @@ begin
   { exact dart_fst_mem_support_of_mem_darts _ hd, },
   { exact dart_snd_mem_support_of_mem_darts _ hd, },
 end
+
+lemma snd_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+  u ∈ p.support :=
+by { rw sym2.eq_swap at he, exact p.fst_mem_support_of_mem_edges he }
 
 lemma darts_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
   p.darts.nodup :=
@@ -442,7 +445,7 @@ begin
   induction p,
   { simp, },
   { simp only [edges_cons, support_cons, list.nodup_cons] at h ⊢,
-    exact ⟨λ h', h.1 (mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
+    exact ⟨λ h', h.1 (fst_mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
 end
 
 /-! ### Trails, paths, circuits, cycles -/
@@ -541,6 +544,9 @@ begin
   rw reverse_append at h,
   apply h.of_append_left,
 end
+
+@[simp] lemma is_cycle.not_of_nil {u : V} : ¬ (nil : G.walk u u).is_cycle :=
+λ h, h.ne_nil rfl
 
 /-! ### Walk decompositions -/
 
@@ -736,10 +742,64 @@ end walk_decomp
 
 end walk
 
-/-! ### Walks to paths -/
+/-! ### Type of paths -/
 
 /-- The type for paths between two vertices. -/
 abbreviation path (u v : V) := {p : G.walk u v // p.is_path}
+
+namespace path
+variables {G G'}
+
+@[simp] protected lemma is_path {u v : V} (p : G.path u v) : (p : G.walk u v).is_path :=
+p.property
+
+@[simp] protected lemma is_trail {u v : V} (p : G.path u v) : (p : G.walk u v).is_trail :=
+p.property.to_trail
+
+/-- The length-0 path at a vertex. -/
+@[refl, simps] protected def nil {u : V} : G.path u u := ⟨walk.nil, walk.is_path.nil⟩
+
+/-- The length-1 path between a pair of adjacent vertices. -/
+@[simps] def singleton {u v : V} (h : G.adj u v) : G.path u v :=
+⟨walk.cons h walk.nil, by simp [h.ne]⟩
+
+lemma mk_mem_edges_singleton {u v : V} (h : G.adj u v) :
+  ⟦(u, v)⟧ ∈ (singleton h : G.walk u v).edges := by simp [singleton]
+
+/-- The reverse of a path is another path.  See also `simple_graph.walk.reverse`. -/
+@[symm, simps] def reverse {u v : V} (p : G.path u v) : G.path v u :=
+⟨walk.reverse p, p.property.reverse⟩
+
+lemma count_support_eq_one [decidable_eq V] {u v w : V} {p : G.path u v}
+  (hw : w ∈ (p : G.walk u v).support) : (p : G.walk u v).support.count w = 1 :=
+list.count_eq_one_of_mem p.property.support_nodup hw
+
+lemma count_edges_eq_one [decidable_eq V] {u v : V} {p : G.path u v} (e : sym2 V)
+  (hw : e ∈ (p : G.walk u v).edges) : (p : G.walk u v).edges.count e = 1 :=
+list.count_eq_one_of_mem p.property.to_trail.edges_nodup hw
+
+@[simp] lemma nodup_support {u v : V} (p : G.path u v) : (p : G.walk u v).support.nodup :=
+(walk.is_path_def _).mp p.property
+
+lemma loop_eq {v : V} (p : G.path v v) : p = path.nil :=
+begin
+  obtain (p|p) := p,
+  { refl },
+  { simpa using p_property },
+end
+
+lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
+  ¬ e ∈ (p : G.walk v v).edges :=
+by simp [p.loop_eq]
+
+
+lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
+  (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
+by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
+
+end path
+
+/-! ### Walks to paths -/
 
 namespace walk
 variables {G} [decidable_eq V]
@@ -826,7 +886,7 @@ edges_bypass_subset _
 
 end walk
 
-/-! ## Mapping paths -/
+/-! ### Mapping paths -/
 
 namespace walk
 variables {G G'}

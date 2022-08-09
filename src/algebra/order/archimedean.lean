@@ -109,25 +109,12 @@ let ⟨n, h⟩ := archimedean.arch x hy in
                              (add_nonneg zero_le_two hy.le) _
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
-section linear_ordered_ring
-variables [linear_ordered_ring α] [archimedean α]
+section ordered_ring
+variables [ordered_ring α] [nontrivial α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
 sub_add_cancel y 1 ▸ add_one_pow_unbounded_of_pos _ (sub_pos.2 hy1)
-
-/-- Every x greater than or equal to 1 is between two successive
-natural-number powers of every y greater than one. -/
-lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
-  ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
-have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
-by classical; exact let n := nat.find h in
-  have hn  : x < y ^ n, from nat.find_spec h,
-  have hnp : 0 < n,     from pos_iff_ne_zero.2 (λ hn0,
-    by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
-  have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
-  have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
-  ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
 let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa int.cast_coe_nat⟩
@@ -148,6 +135,24 @@ begin
   cases h with h₁ h₂,
   exact ⟨λ h, le_trans (int.cast_le.2 h) h₁, h₂ z⟩,
 end
+
+end ordered_ring
+
+section linear_ordered_ring
+variables [linear_ordered_ring α] [archimedean α]
+
+/-- Every x greater than or equal to 1 is between two successive
+natural-number powers of every y greater than one. -/
+lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
+  ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
+by classical; exact let n := nat.find h in
+  have hn  : x < y ^ n, from nat.find_spec h,
+  have hnp : 0 < n,     from pos_iff_ne_zero.2 (λ hn0,
+    by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
+  have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
+  have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
+  ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
 
 end linear_ordered_ring
 

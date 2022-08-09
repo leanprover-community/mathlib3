@@ -457,8 +457,8 @@ begin
         subalgebra.restrict_scalars_top] },
     let g : t → AX := λ x, C (x : A) - map (algebra_map R A) (t' x),
     refine ⟨s.image (map (algebra_map R A)) ∪ t.attach.image g, _⟩,
-    rw [finset.coe_union, finset.coe_image, finset.coe_image, finset.attach_eq_univ, finset.coe_univ,
-      set.image_univ],
+    rw [finset.coe_union, finset.coe_image, finset.coe_image, finset.attach_eq_univ,
+      finset.coe_univ, set.image_univ],
     let s₀ := _, let I := _, change ideal.span s₀ = I,
     have leI : ideal.span s₀ ≤ I,
     { rw [ideal.span_le],
@@ -742,6 +742,10 @@ ring_hom.finite_presentation.of_surjective f hf hker
 lemma of_finite_type [is_noetherian_ring A] {f : A →ₐ[R] B} :
   f.finite_type ↔ f.finite_presentation :=
 ring_hom.finite_presentation.of_finite_type
+
+lemma of_comp_finite_type {f : A →ₐ[R] B} {g : B →ₐ[R] C} (h : (g.comp f).finite_presentation)
+  (h' : f.finite_type) : g.finite_presentation :=
+h.of_comp_finite_type h'
 
 end finite_presentation
 

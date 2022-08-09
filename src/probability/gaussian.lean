@@ -72,11 +72,16 @@ open probability_theory measure
 
 variables {μ : measure ℝ} {m s : ℝ}
 
+
 lemma mulone_eq (g : ℝ → ℝ) (f : ℝ → ℝ): ∫ (x : ℝ) in set.univ, g (f x)
 = ∫ (x : ℝ) in set.univ, 1 • g (f x) :=
 begin
 simp,
 end
+
+-- change of variables
+
+
 
 lemma onenng : 0 ≤ 1 := zero_le 1
 
@@ -157,14 +162,46 @@ begin
 sorry,
 end
 
+
+-- 0 < s^2
+lemma s_sq_pos (s : ℝ) (hs : s ≠ 0): 0 < s^2 :=
+begin
+  exact (sq_pos_iff s).mpr hs,
+end
+
+-- 0 < 2*s^2
+lemma s_sq_pos_2 (s : ℝ) (hs : s ≠ 0): 0 < 2*s^2 :=
+begin
+  simp,
+  exact s_sq_pos s hs,
+end
+
+-- nonegative x with sqrt equals to 0 is equal to zero
+lemma pos_sqrt_zero_eq_zero : ∀ (x:ℝ), x ≥ 0 → sqrt x = 0 → x = 0 :=
+begin
+  intros x hx h,
+  rw ← sq_sqrt hx,
+  simp,
+  exact h,
+end
+
+-- 0 < 2*π*s^2
+lemma s_sq_pos_2_pi (s : ℝ) (hs : s ≠ 0): 0 < 2*π*s^2 :=
+begin
+  ring_nf,
+  simp [s_sq_pos_2 s hs],
+  exact pi_pos,
+end
+
+-- commutativity inside the integral
 lemma comm_in_integ (f : ℝ → ℝ) (c : ℝ):
     ∫ x : ℝ, (f x) * c ∂ℙ = ∫ x : ℝ, c * f x :=
 begin
 simp_rw [mul_comm],
 end
 
-
-
+-- to remove the certain bracket of (2 • π) • s ^ 2
+--change it into 2 • π • s ^ 2
 lemma smul_no_bracket (s : ℝ) (hs : s ≠ 0): (2 • π) • s ^ 2 = 2 • π • s ^ 2 :=
 begin
 simp,
@@ -195,31 +232,13 @@ end
 
 lemma sqrt_not_zero (s:ℝ) (hs : s≠0): sqrt (2*π*s^2) ≠ 0:=
 begin
-  have hbp1 : 0 < s^2 :=(sq_pos_iff s).mpr hs,
-
-  have hbp2 : 0 < 2*s^2,
-    simp,
-    exact hbp1,
-
-  have hbp2p :  0 < 2*π*s^2,
-    ring_nf,
-    simp [hbp2],
-    exact pi_pos,
-
-  have hbp3 : ¬ 2*s^2 ≤ 0 := not_le.mpr hbp2,
-
-  have hbp4 : ∀ (x:ℝ), x ≥ 0 → sqrt x = 0 → x = 0 ,
-    intros x hx h,
-    rw ← sq_sqrt hx,
-    simp, exact h,
-
   have h_conpos : ∀ (x:ℝ), x ≥ 0 → x ≠ 0 → sqrt x ≠ 0 ,
     intros x hx h,
-    exact mt (hbp4 x hx) h,
+    exact mt (pos_sqrt_zero_eq_zero x hx) h,
 
   apply h_conpos,
-  exact le_of_lt hbp2p,
-  exact ne_of_gt hbp2p,
+  exact le_of_lt (s_sq_pos_2_pi s hs),
+  exact ne_of_gt (s_sq_pos_2_pi s hs),
 
 end
 
@@ -275,20 +294,14 @@ begin
         apply integrable.has_finite_integral _,
         refine integrable.abs _,
         refine integrable.const_mul _ (sqrt (2 * π * s ^ 2))⁻¹,
-        have hbp1 : 0 < s^2,
-          exact (sq_pos_iff s).mpr h,
 
-        have hbp2 : 0 < 2*s^2,
-          simp,
-          exact hbp1,
-
-        have h_inveq : -(2*s^2)⁻¹ = -(s ^ 2)⁻¹ * 2⁻¹,
+        have neg_h_inveq : -(2*s^2)⁻¹ = -(s ^ 2)⁻¹ * 2⁻¹,
         { simp [mul_comm] },
 
-        have hb : 0 < (2*s^2)⁻¹ := inv_pos.mpr hbp2,
+        have hb : 0 < (2*s^2)⁻¹ := inv_pos.mpr (s_sq_pos_2 s h),
 
         have h_gaussexp : integrable (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * a ^ 2)) ℙ,
-          rw ← h_inveq,
+          rw ← neg_h_inveq,
           exact integrable_exp_neg_mul_sq hb,
 
         have h_eqfunc : (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * (a - m)^ 2)) = (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))  ,
@@ -300,15 +313,9 @@ begin
       }
     },
     {refine filter.eventually_of_forall _,
-      have hbp1 : 0 < s^2,
-          exact (sq_pos_iff s).mpr h,
-
-      have hbp2 : 0 < 2*s^2,
-          simp,
-          exact hbp1,
 
       have h_exppos : 0 < (2 * s ^ 2) * π,
-        exact mul_pos hbp2 pi_pos,
+        exact mul_pos (s_sq_pos_2 s h) pi_pos,
 
       have h_sqrt_pos :  0 < sqrt(2 * s ^ 2 * π),
         exact sqrt_pos.mpr h_exppos,

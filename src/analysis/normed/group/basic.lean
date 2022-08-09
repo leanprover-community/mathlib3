@@ -932,7 +932,7 @@ s.le_sum_of_subadditive norm norm_zero norm_add_le f
 
 @[to_additive] lemma norm_prod_le (s : finset ι) (f : ι → E) : ∥∏ i in s, f i∥ ≤ ∑ i in s, ∥f i∥ :=
 begin
-  rw [←multiplicative.of_add_le, finset.of_add_sum],
+  rw [←multiplicative.of_add_le, of_add_sum],
   refine finset.le_prod_of_submultiplicative (multiplicative.of_add ∘ norm) _ (λ x y, _) _ _,
   { simp only [comp_app, norm_one', of_add_zero] },
   { exact norm_mul_le' _ _ }

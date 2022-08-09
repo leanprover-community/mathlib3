@@ -342,19 +342,19 @@ local attribute [instance] pi_Lp.pseudo_metric_aux
 
 lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
-  intros f g,
+  intros x y,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
   { simpa only [equiv_apply', ennreal.coe_one, one_mul, edist_eq_supr, edist, finset.sup_le_iff,
-      finset.mem_univ, forall_true_left] using le_supr (λ i, edist (f i) (g i)), },
+      finset.mem_univ, forall_true_left] using le_supr (λ i, edist (x i) (y i)), },
   { have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (zero_lt_one.trans_le h).ne',
     rw edist_eq_sum (zero_lt_one.trans_le h),
     simp only [edist, forall_prop_of_true, one_mul, finset.mem_univ, finset.sup_le_iff,
       ennreal.coe_one],
     assume i,
     calc
-    edist (f i) (g i) = (edist (f i) (g i) ^ p.to_real) ^ (1/p.to_real) :
+    edist (x i) (y i) = (edist (x i) (y i) ^ p.to_real) ^ (1/p.to_real) :
       by simp [← ennreal.rpow_mul, cancel, -one_div]
-    ... ≤ (∑ i, edist (f i) (g i) ^ p.to_real) ^ (1 / p.to_real) :
+    ... ≤ (∑ i, edist (x i) (y i) ^ p.to_real) ^ (1 / p.to_real) :
     begin
       apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ (zero_le_one.trans h)),
       exact finset.single_le_sum (λ i hi, (bot_le : (0 : ℝ≥0∞) ≤ _)) (finset.mem_univ i)
@@ -364,7 +364,7 @@ end
 lemma antilipschitz_with_equiv_aux :
   antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1 / p).to_real) (pi_Lp.equiv p β) :=
 begin
-  intros f g,
+  intros x y,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
   { simp only [edist_eq_supr, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero,
       ennreal.coe_one, equiv_apply', one_mul, supr_le_iff],
@@ -374,8 +374,8 @@ begin
     have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
     rw [edist_eq_sum pos, ennreal.to_real_div 1 p],
     simp only [edist, equiv_apply', ←one_div, ennreal.one_to_real],
-    calc (∑ i, edist (f i) (g i) ^ p.to_real) ^ (1 / p.to_real) ≤
-    (∑ i, edist (pi_Lp.equiv p β f) (pi_Lp.equiv p β g) ^ p.to_real) ^ (1 / p.to_real) :
+    calc (∑ i, edist (x i) (y i) ^ p.to_real) ^ (1 / p.to_real) ≤
+    (∑ i, edist (pi_Lp.equiv p β x) (pi_Lp.equiv p β y) ^ p.to_real) ^ (1 / p.to_real) :
     begin
       apply ennreal.rpow_le_rpow _ nonneg,
       apply finset.sum_le_sum (λ i hi, _),
@@ -383,7 +383,7 @@ begin
       exact finset.le_sup (finset.mem_univ i)
     end
     ... = (((fintype.card ι : ℝ≥0)) ^ (1 / p.to_real) : ℝ≥0) *
-      edist (pi_Lp.equiv p β f) (pi_Lp.equiv p β g) :
+      edist (pi_Lp.equiv p β x) (pi_Lp.equiv p β y) :
     begin
       simp only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
         ennreal.mul_rpow_of_nonneg _ _ nonneg, ←ennreal.rpow_mul, cancel],

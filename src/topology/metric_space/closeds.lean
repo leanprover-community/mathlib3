@@ -299,8 +299,6 @@ instance nonempty_compacts.compact_space [compact_space α] : compact_space (non
   exact nonempty_compacts.is_closed_in_closeds.is_compact
 end⟩
 
---set_option trace.class_instances true
-
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/
 instance nonempty_compacts.second_countable_topology [second_countable_topology α] :
   second_countable_topology (nonempty_compacts α) :=

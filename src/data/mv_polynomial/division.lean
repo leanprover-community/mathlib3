@@ -71,6 +71,13 @@ lemma mod_of_add_div_of (x : mv_polynomial σ R) (s : σ →₀ ℕ) :
   mod_monomial s x + monomial s 1 * div_monomial s x = x :=
 x.mod_of_add_div_of _ _
 
+/-- A property is true on all `mv_polynomial`s if it is true -/
+lemma X_mul_induction {P : mv_polynomial σ R → Prop}
+  (h : ∀ (r : R) (f : σ →₀ mv_polynomial σ R) (hx : ∀ i ∈ f.support, P (f i)),
+    P (C r + ∑ i in f.support, X i * f i)) : ∀ x, P x
+begin
+  intro x,
+  sorry
 end
 
 end mv_polynomial

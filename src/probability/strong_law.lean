@@ -19,6 +19,10 @@ If `X n` is a sequence of independent identically distributed integrable real-va
 variables, then `∑ i in range n, X i / n` converges almost surely to `𝔼[X 0]`.
 We give here the strong version, due to Etemadi, that only requires pairwise independence.
 
+This file also contains the Lᵖ version of the strong law of large numbers provided by
+`probability_theory.strong_law_Lp` which shows `∑ i in range n, X i / n` converges in Lᵖ to
+`𝔼[X 0]` provided `X n` is independent identically distributed and is Lᵖ.
+
 ## Implementation
 
 We follow the proof by Etemadi
@@ -279,7 +283,7 @@ begin
   ... = ∫ x in 0..N, x + 1 ∂ρ :
     begin
       rw interval_integral.sum_integral_adjacent_intervals (λ k hk, _),
-      { refl },
+      { norm_cast },
       { exact (continuous_id.add continuous_const).interval_integrable _ _ }
     end
   ... = ∫ x in 0..N, x ∂ρ + ∫ x in 0..N, 1 ∂ρ :
@@ -369,7 +373,7 @@ begin
       congr' 1 with j,
       congr' 1,
       rw interval_integral.sum_integral_adjacent_intervals,
-      { refl },
+      { norm_cast },
       assume k hk,
       exact (continuous_id.pow _).interval_integrable _ _,
     end
@@ -408,7 +412,7 @@ begin
       { calc 2 / (↑k + 1) * x ^ 2 = (x / (k+1)) * (2 * x) : by ring_exp
         ... ≤ 1 * (2 * x) :
           mul_le_mul_of_nonneg_right begin
-            apply (div_le_one _).2 hx.2,
+            apply_mod_cast (div_le_one _).2 hx.2,
             simp only [nat.cast_add, nat.cast_one],
             linarith only [show (0 : ℝ) ≤ k, from  nat.cast_nonneg k],
           end (mul_nonneg zero_le_two ((nat.cast_nonneg k).trans hx.1.le))
@@ -419,7 +423,7 @@ begin
       rw interval_integral.sum_integral_adjacent_intervals (λ k hk, _),
       swap, { exact (continuous_const.mul continuous_id').interval_integrable _ _ },
       rw interval_integral.integral_const_mul,
-      refl
+      norm_cast
     end
   ... ≤ 2 * 𝔼[X] :
     mul_le_mul_of_nonneg_left begin
@@ -727,5 +731,37 @@ begin
 end
 
 end strong_law_ae
+
+section strong_law_Lp
+
+variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
+
+/-- *Strong law of large numbers*, Lᵖ version: if `X n` is a sequence of independent
+identically distributed real-valued random variables in Lᵖ, then `∑ i in range n, X i / n`
+converges in Lᵖ to `𝔼[X 0]`. -/
+theorem strong_law_Lp
+  {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (X : ℕ → Ω → ℝ) (hℒp : mem_ℒp (X 0) p)
+  (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
+  (hident : ∀ i, ident_distrib (X i) (X 0)) :
+  tendsto (λ n, snorm (λ ω, (∑ i in range n, X i ω) / n - 𝔼[X 0]) p ℙ) at_top (𝓝 0) :=
+begin
+  have hmeas : ∀ i, ae_strongly_measurable (X i) ℙ :=
+    λ i, (hident i).ae_strongly_measurable_iff.2 hℒp.1,
+  have hint : integrable (X 0) ℙ := hℒp.integrable hp,
+  have havg : ∀ n, ae_strongly_measurable (λ ω, (∑ i in range n, X i ω) / n) ℙ,
+  { intro n,
+    simp_rw div_eq_mul_inv,
+    exact ae_strongly_measurable.mul_const (ae_strongly_measurable_sum _  (λ i _, hmeas i)) _ },
+  refine tendsto_Lp_of_tendsto_in_measure _ hp hp' havg (mem_ℒp_const _) _
+    (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
+  rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),
+  { exact (uniform_integrable_average hp $
+      mem_ℒp.uniform_integrable_of_ident_distrib hp hp' hℒp hident).2.1 },
+  { ext n ω,
+    simp only [pi.coe_nat, pi.div_apply, sum_apply] }
+end
+
+end strong_law_Lp
 
 end probability_theory

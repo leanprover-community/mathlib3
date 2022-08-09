@@ -236,7 +236,8 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  (map (localization (M.map (f : R →* S))) f M.le_comap_map : localization M →+* _).is_integral :=
+  (map (localization (M.map (f : R →* S))) f
+    (M.le_comap_map : _ ≤ submonoid.comap (f : R →* S) _) : localization M →+* _).is_integral :=
 @is_integral_localization R _ M S _ f.to_algebra _ _ _ _ _ _ _ _ hf
 
 end is_integral

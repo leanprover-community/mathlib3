@@ -36,6 +36,7 @@ example : ((1:real) / 2)⁻¹ = 2 := by norm_num
 example : 2 ^ 17 - 1 = 131071 :=
 by {norm_num, tactic.try_for 200 (tactic.result >>= tactic.type_check)}
 example : (3 : real) ^ (-2 : ℤ) = 1/9 := by norm_num
+example : (3 : real) ^ (-2 : ℤ) = 1/9 := by norm_num1
 example : (-3 : real) ^ (0 : ℤ) = 1 := by norm_num
 example : (-3 : real) ^ (-1 : ℤ) = -1/3 := by norm_num
 example : (-3 : real) ^ (2 : ℤ) = 9 := by norm_num
@@ -43,6 +44,7 @@ example : (-3 : real) ^ (2 : ℤ) = 9 := by norm_num
 example : (1:complex) ≠ 2 := by norm_num
 example : (1:complex) / 3 ≠ 2 / 7 := by norm_num
 
+example : (1:real) ≠ 2 := by norm_num
 example {α} [semiring α] [char_zero α] : (1:α) ≠ 2 := by norm_num
 example {α} [ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
@@ -296,3 +298,5 @@ example : ((3 / ((- 28 * 45) * (19 + ((- (- 88 - (- (- 1 + 90) + 8)) + 87) * 48)
 example : ((- - (28 + 48) / 75) + ((- 59 - 14) - 0)) = (-5399/75 : α) := by norm_num
 example : (- ((- (((66 - 86) - 36) / 94) - 3) / - - (77 / (56 - - - 79))) + 87) =
   (312254/3619 : α) := by norm_num
+
+example : 2 ^ 13 - 1 = int.of_nat 8191 := by norm_num

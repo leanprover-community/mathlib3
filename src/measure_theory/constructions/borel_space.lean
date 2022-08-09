@@ -64,7 +64,7 @@ lemma borel_eq_top_of_encodable [topological_space α] [t1_space α] [encodable 
   borel α = ⊤ :=
 begin
   refine (top_le_iff.1 $ λ s hs, bUnion_of_singleton s ▸ _),
-  apply measurable_set.bUnion s.countable_encodable,
+  apply measurable_set.bUnion s.to_countable,
   intros x hx,
   apply measurable_set.of_compl,
   apply generate_measurable.basic,
@@ -632,9 +632,9 @@ lemma ext_of_Ico' {α : Type*} [topological_space α] {m : measurable_space α}
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 begin
   rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
-  have : countable (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)),
+  have : (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)).countable,
     from hsc.bUnion (λ l hl, hsc.bUnion
-      (λ u hu, countable_Union_Prop $ λ _, countable_singleton _)),
+      (λ u hu, countable_Union $ λ _, countable_singleton _)),
   simp only [← set_of_eq_eq_singleton, ← set_of_exists] at this,
   refine measure.ext_of_generate_from_of_cover_subset
     (borel_space.measurable_eq.trans (borel_eq_generate_from_Ico α))
@@ -804,7 +804,7 @@ instance topological_group.has_measurable_inv [group γ] [topological_group γ] 
 @[priority 100]
 instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
   [topological_space α] [measurable_space M] [measurable_space α]
-  [opens_measurable_space M] [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [opens_measurable_space M] [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul M α :=
 ⟨λ c, (continuous_const_smul _).measurable,
   λ y, (continuous_id.smul continuous_const).measurable⟩
@@ -899,7 +899,7 @@ instance has_continuous_sub.has_measurable_sub₂ [second_countable_topology γ]
 instance has_continuous_smul.has_measurable_smul₂ {M α} [topological_space M]
   [second_countable_topology M] [measurable_space M] [opens_measurable_space M]
   [topological_space α] [second_countable_topology α] [measurable_space α]
-  [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul₂ M α :=
 ⟨continuous_smul.measurable⟩
 
@@ -1228,12 +1228,12 @@ lemma ae_measurable_infi {ι} {μ : measure δ} [encodable ι] {f : ι → δ �
   ae_measurable (λ b, ⨅ i, f i b) μ :=
 ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))
 
-lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨆ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [supr_subtype'],
      exact measurable_supr (λ i, hf i) }
 
-lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨆ i ∈ s, f i b) μ :=
 begin
   haveI : encodable s := hs.to_encodable,
@@ -1241,12 +1241,12 @@ begin
   exact ae_measurable_supr (λ i, hf i),
 end
 
-lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨅ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [infi_subtype'],
      exact measurable_infi (λ i, hf i) }
 
-lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨅ i ∈ s, f i b) μ :=
 begin
   haveI : encodable s := hs.to_encodable,
@@ -1281,14 +1281,14 @@ end
 @[measurability]
 lemma measurable_liminf {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ x, liminf at_top (λ i, f i x)) :=
-measurable_liminf' hf at_top_countable_basis (λ i, countable_encodable _)
+measurable_liminf' hf at_top_countable_basis (λ i, to_countable _)
 
 /-- `limsup` over `ℕ` is measurable. See `measurable_limsup'` for a version with a general filter.
 -/
 @[measurability]
 lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ x, limsup at_top (λ i, f i x)) :=
-measurable_limsup' hf at_top_countable_basis (λ i, countable_encodable _)
+measurable_limsup' hf at_top_countable_basis (λ i, to_countable _)
 
 end complete_linear_order
 
@@ -1575,7 +1575,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
   set_mem := λ n,
     begin
       simp only [mem_Union, mem_singleton_iff],
-      refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
+      refine ⟨-(n + 1 : ℕ), n + 1, _, by simp⟩, -- TODO: norm_cast fails here?
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
   finite := λ n, measure_Ioo_lt_top,
@@ -1600,7 +1600,7 @@ begin
     { have hg : ∀ q : ℚ, measurable_set[g] (Iio q) :=
         λ q, generate_measurable.basic (Iio q) (by simp),
       refine @measurable_set.inter _ g _ _ _ (hg _),
-      refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
+      refine @measurable_set.bUnion _ _ g _ _ (to_countable _) (λ c h, _),
       exact @measurable_set.compl _ _ g (hg _) },
     { suffices : x < ↑b → (↑a < x ↔ ∃ (i : ℚ), a < i ∧ ↑i ≤ x), by simpa,
       refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
@@ -1847,9 +1847,9 @@ lemma ae_measurable.coe_ereal_ennreal {f : α → ℝ≥0∞} {μ : measure α} 
   ae_measurable (λ x, (f x : ereal)) μ :=
 measurable_coe_ennreal_ereal.comp_ae_measurable hf
 
-section normed_group
+section normed_add_comm_group
 
-variables [normed_group α] [opens_measurable_space α] [measurable_space β]
+variables [normed_add_comm_group α] [opens_measurable_space α] [measurable_space β]
 
 @[measurability]
 lemma measurable_norm : measurable (norm : α → ℝ) :=
@@ -1891,7 +1891,7 @@ lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurabl
   ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
 measurable_ennnorm.comp_ae_measurable hf
 
-end normed_group
+end normed_add_comm_group
 
 section limits
 
@@ -2052,9 +2052,9 @@ end limits
 namespace continuous_linear_map
 
 variables {𝕜 : Type*} [normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E]
-variables [opens_measurable_space E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [measurable_space E]
+  [opens_measurable_space E] {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+  [measurable_space F] [borel_space F]
 
 @[measurability]
 protected lemma measurable (L : E →L[𝕜] F) : measurable L :=
@@ -2068,9 +2068,9 @@ end continuous_linear_map
 
 namespace continuous_linear_map
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-          {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+          {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
 instance : measurable_space (E →L[𝕜] F) := borel _
 
@@ -2094,11 +2094,11 @@ measurable_pi_lambda _ measurable_apply
 
 end continuous_linear_map
 
-section continuous_linear_map_nondiscrete_normed_field
+section continuous_linear_map_nontrivially_normed_field
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [measurable_space E]
+  [borel_space E] {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
 @[measurability]
 lemma measurable.apply_continuous_linear_map  {φ : α → F →L[𝕜] E} (hφ : measurable φ) (v : F) :
@@ -2110,12 +2110,12 @@ lemma ae_measurable.apply_continuous_linear_map {φ : α → F →L[𝕜] E} {μ
   (hφ : ae_measurable φ μ) (v : F) : ae_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).measurable.comp_ae_measurable hφ
 
-end continuous_linear_map_nondiscrete_normed_field
+end continuous_linear_map_nontrivially_normed_field
 
 section normed_space
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
-variables [borel_space 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
+variables [borel_space 𝕜] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  [measurable_space E] [borel_space E]
 
 lemma measurable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   measurable (λ x, f x • c) ↔ measurable f :=

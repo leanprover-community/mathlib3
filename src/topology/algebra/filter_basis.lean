@@ -348,6 +348,40 @@ def topology' {R M : Type*} [comm_ring R] {tR : topological_space R}
   [add_comm_group M] [module R M] (B : module_filter_basis R M) : topological_space M :=
   B.to_add_group_filter_basis.topology
 
+/-- A topological add group whith a basis of `𝓝 0` satisfying the axioms of `module_filter_basis`
+is a topological module.
+
+This lemma is mathematically useless because one could obtain such a result by applying
+`module_filter_basis.has_continuous_smul` and use the fact that group topologies are characterized
+by their neighborhoods of 0 to obtain the `has_continuous_smul` on the pre-existing topology.
+
+But it turns out it's just easier to get it as a biproduct of the proof, so this is just a free
+quality-of-life improvement. -/
+lemma _root_.has_continuous_smul.of_basis_zero {ι : Type*} [topological_ring R]
+  [topological_space M] [topological_add_group M] {p : ι → Prop} {b : ι → set M}
+  (h : has_basis (𝓝 0) p b) (hsmul : ∀ {i}, p i → ∃ (V ∈ 𝓝 (0 : R)) j (hj : p j), V • (b j) ⊆ b i)
+  (hsmul_left : ∀ (x₀ : R) {i}, p i → ∃ j (hj : p j), (b j) ⊆ (λ x, x₀ • x) ⁻¹' (b i))
+  (hsmul_right : ∀ (m₀ : M) {i}, p i → ∀ᶠ x in 𝓝 (0 : R), x • m₀ ∈ (b i)) :
+  has_continuous_smul R M :=
+begin
+  apply has_continuous_smul.of_nhds_zero,
+  { rw h.tendsto_right_iff,
+    intros i hi,
+    rcases hsmul hi with ⟨V, V_in, j, hj, hVj⟩,
+    apply mem_of_superset (prod_mem_prod V_in $ h.mem_of_mem hj),
+    rintros ⟨v, w⟩ ⟨v_in : v ∈ V, w_in : w ∈ (b j)⟩,
+    exact hVj (set.smul_mem_smul v_in w_in) },
+  { intro m₀,
+    rw h.tendsto_right_iff,
+    intros i hi,
+    exact hsmul_right m₀ hi },
+  { intro x₀,
+    rw h.tendsto_right_iff,
+    intros i hi,
+    rcases hsmul_left x₀ hi with ⟨j, hj, hji⟩,
+    exact mem_of_superset (h.mem_of_mem hj) hji },
+end
+
 /-- If a module is endowed with a topological structure coming from
 a module filter basis then it's a topological module. -/
 @[priority 100]
@@ -356,24 +390,9 @@ instance has_continuous_smul [topological_ring R] :
 begin
   let B' := B.to_add_group_filter_basis,
   letI := B'.topology,
-  have basis := B'.nhds_zero_has_basis,
   haveI := B'.is_topological_add_group,
-  apply has_continuous_smul.of_nhds_zero,
-  { rw basis.tendsto_right_iff,
-    intros U U_in,
-    rcases B.smul U_in with ⟨V, V_in, W, W_in, H⟩,
-    apply mem_of_superset (prod_mem_prod V_in $ B'.mem_nhds_zero W_in),
-    rintros ⟨v, w⟩ ⟨v_in : v ∈ V, w_in : w ∈ W⟩,
-    exact H (set.smul_mem_smul v_in w_in) },
-  { intro m₀,
-    rw basis.tendsto_right_iff,
-    intros U U_in,
-    exact B.smul_right m₀ U_in },
-  { intro x₀,
-    rw basis.tendsto_right_iff,
-    intros U U_in,
-    rcases B.smul_left x₀ U_in with ⟨V, V_in, hV⟩,
-    exact mem_of_superset (B'.mem_nhds_zero V_in) hV },
+  exact has_continuous_smul.of_basis_zero B'.nhds_zero_has_basis (λ _, B.smul) B.smul_left
+    B.smul_right,
 end
 
 /-- Build a module filter basis from compatible ring and additive group filter bases. -/

@@ -121,14 +121,12 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
       apply this,
       apply diag_subset,
       simp [h] },
-    -- Since γ is compact and Hausdorff, it is normal, hence regular.
+    -- Since γ is compact and Hausdorff, it is normal, hence T₃.
     haveI : normal_space γ := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
     -- U₁ and U₂.
     obtain
-      ⟨U₁, U₁_in, V₁, V₁_in, U₂, U₂_in₂, V₂, V₂_in, V₁_cl, V₂_cl, U₁_op, U₂_op, VU₁, VU₂, hU₁₂⟩ :
-        ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y),
-          is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧ V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
+      ⟨U₁, U₁_in, V₁, V₁_in, U₂, U₂_in₂, V₂, V₂_in, V₁_cl, V₂_cl, U₁_op, U₂_op, VU₁, VU₂, hU₁₂⟩ :=
        disjoint_nested_nhds x_ne_y,
     -- We set U₃ := (V₁ ∪ V₂)ᶜ so that W := U₁ ×ˢ U₁ ∪ U₂ ×ˢ U₂ ∪ U₃ ×ˢ U₃ is an open
     -- neighborhood of Δ.
@@ -150,30 +148,21 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
     -- So W ○ W ∈ F by definition of F
     have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
     -- And V₁ ×ˢ V₂ ∈ 𝓝 (x, y)
-    have hV₁₂ : V₁ ×ˢ V₂ ∈ 𝓝 (x, y) := prod_is_open.mem_nhds V₁_in V₂_in,
+    have hV₁₂ : V₁ ×ˢ V₂ ∈ 𝓝 (x, y) := prod_mem_nhds V₁_in V₂_in,
     -- But (x, y) is also a cluster point of F so (V₁ ×ˢ V₂) ∩ (W ○ W) ≠ ∅
-    have clF : cluster_pt (x, y) F := hxy.of_inf_left,
-    obtain ⟨p, p_in⟩ : ∃ p, p ∈ (V₁ ×ˢ V₂) ∩ (W ○ W) :=
-      cluster_pt_iff.mp clF hV₁₂ this,
     -- However the construction of W implies (V₁ ×ˢ V₂) ∩ (W ○ W) = ∅.
     -- Indeed assume for contradiction there is some (u, v) in the intersection.
+    obtain ⟨⟨u, v⟩, ⟨u_in, v_in⟩, w, huw, hwv⟩ := cluster_pt_iff.mp (hxy.of_inf_left) hV₁₂ this,
     -- So u ∈ V₁, v ∈ V₂, and there exists some w such that (u, w) ∈ W and (w ,v) ∈ W.
     -- Because u is in V₁ which is disjoint from U₂ and U₃, (u, w) ∈ W forces (u, w) ∈ U₁ ×ˢ U₁.
+    have uw_in : (u, w) ∈ U₁ ×ˢ U₁ := (huw.resolve_right $ λ h, (h.1 $ or.inl u_in)).resolve_right
+      (λ h, hU₁₂ ⟨VU₁ u_in, h.1⟩),
     -- Similarly, because v ∈ V₂, (w ,v) ∈ W forces (w, v) ∈ U₂ ×ˢ U₂.
+    have wv_in : (w, v) ∈ U₂ ×ˢ U₂ := (hwv.resolve_right $ λ h, (h.2 $ or.inr v_in)).resolve_left
+      (λ h, hU₁₂ ⟨h.2, VU₂ v_in⟩),
     -- Hence w ∈ U₁ ∩ U₂ which is empty.
-    have inter_empty : (V₁ ×ˢ V₂) ∩ (W ○ W) = ∅,
-    { rw eq_empty_iff_forall_not_mem,
-      rintros ⟨u, v⟩ ⟨⟨u_in, v_in⟩, w, huw, hwv⟩,
-      have uw_in : (u, w) ∈ U₁ ×ˢ U₁ :=
-        set.mem_prod.2 ((huw.resolve_right (λ h, (h.1 $ or.inl u_in))).resolve_right
-        (λ h, have u ∈ U₁ ∩ U₂, from ⟨VU₁ u_in, h.1⟩, by rwa hU₁₂ at this)),
-      have wv_in : (w, v) ∈ U₂ ×ˢ U₂ :=
-        set.mem_prod.2 ((hwv.resolve_right (λ h, (h.2 $ or.inr v_in))).resolve_left
-        (λ h, have v ∈ U₁ ∩ U₂, from ⟨h.2, VU₂ v_in⟩, by rwa hU₁₂ at this)),
-      have : w ∈ U₁ ∩ U₂ := ⟨uw_in.2, wv_in.1⟩,
-      rwa hU₁₂ at this },
     -- So we have a contradiction
-    rwa inter_empty at p_in,
+    exact hU₁₂ ⟨uw_in.2, wv_in.1⟩,
   end,
   is_open_uniformity := begin
     -- Here we need to prove the topology induced by the constructed uniformity is the

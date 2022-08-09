@@ -522,12 +522,13 @@ lemma quot_map_of_equiv_quot_map_C_map_span_mk_mk (x : adjoin_root f) :
     ideal.quotient.mk _ x :=
 rfl
 
-@[simp]
+--this lemma should have the simp tag but this causes a lint issue
 lemma quot_map_of_equiv_quot_map_C_map_span_mk_symm_mk (x : adjoin_root f) :
   (quot_map_of_equiv_quot_map_C_map_span_mk I f).symm
   (ideal.quotient.mk ((I.map (C : R →+* R[X])).map (span {f})^.quotient.mk) x) =
     ideal.quotient.mk (I.map (of f)) x :=
-rfl
+by rw [quot_map_of_equiv_quot_map_C_map_span_mk, ideal.quot_equiv_of_eq_symm,
+    ideal.quot_equiv_of_eq_mk ]
 
 /-- The natural isomorphism `R[α]/((I[x] ⊔ (f)) / (f)) ≅ (R[x]/I[x])/((f) ⊔ I[x] / I[x])`
   for `α` a root of `f : polynomial R` and `I : ideal R`-/

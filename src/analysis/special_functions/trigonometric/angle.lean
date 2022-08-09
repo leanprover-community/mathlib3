@@ -213,6 +213,63 @@ begin
   exact sin_eq_real_sin_iff_eq_or_add_eq_pi
 end
 
+@[simp] lemma sin_zero : sin (0 : angle) = 0 :=
+by rw [←coe_zero, sin_coe, real.sin_zero]
+
+@[simp] lemma sin_coe_pi : sin (π : angle) = 0 :=
+by rw [sin_coe, real.sin_pi]
+
+lemma sin_eq_zero_iff {θ : angle} : sin θ = 0 ↔ θ = 0 ∨ θ = π :=
+begin
+  nth_rewrite 0 ←sin_zero,
+  rw sin_eq_iff_eq_or_add_eq_pi,
+  simp
+end
+
+@[simp] lemma sin_neg (θ : angle) : sin (-θ) = -sin θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.sin_neg _
+end
+
+lemma sin_antiperiodic : function.antiperiodic sin (π : angle) :=
+begin
+  intro θ,
+  induction θ using real.angle.induction_on,
+  exact real.sin_antiperiodic θ
+end
+
+@[simp] lemma sin_add_pi (θ : angle) : sin (θ + π) = -sin θ :=
+sin_antiperiodic θ
+
+@[simp] lemma sin_sub_pi (θ : angle) : sin (θ - π) = -sin θ :=
+sin_antiperiodic.sub_eq θ
+
+@[simp] lemma cos_zero : cos (0 : angle) = 1 :=
+by rw [←coe_zero, cos_coe, real.cos_zero]
+
+@[simp] lemma cos_coe_pi : cos (π : angle) = -1 :=
+by rw [cos_coe, real.cos_pi]
+
+@[simp] lemma cos_neg (θ : angle) : cos (-θ) = cos θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.cos_neg _
+end
+
+lemma cos_antiperiodic : function.antiperiodic cos (π : angle) :=
+begin
+  intro θ,
+  induction θ using real.angle.induction_on,
+  exact real.cos_antiperiodic θ
+end
+
+@[simp] lemma cos_add_pi (θ : angle) : cos (θ + π) = -cos θ :=
+cos_antiperiodic θ
+
+@[simp] lemma cos_sub_pi (θ : angle) : cos (θ - π) = -cos θ :=
+cos_antiperiodic.sub_eq θ
+
 end angle
 
 end real

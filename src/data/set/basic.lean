@@ -1154,10 +1154,9 @@ sup_sdiff_self_left
 inf_sdiff_self_left
 
 @[simp] theorem diff_inter_self_eq_diff {s t : set α} : s \ (t ∩ s) = s \ t :=
-sdiff_inf_self_right
+sdiff_inf_self_right _ _
 
-@[simp] theorem diff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t :=
-sdiff_inf_self_left
+@[simp] theorem diff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t := sdiff_inf_self_left _ _
 
 @[simp] theorem diff_eq_self {s t : set α} : s \ t = s ↔ t ∩ s ⊆ ∅ :=
 show s \ t = s ↔ t ⊓ s ≤ ⊥, from sdiff_eq_self_iff_disjoint

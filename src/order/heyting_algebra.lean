@@ -175,7 +175,7 @@ lemma le_himp : a ≤ b ⇨ a := le_himp_iff.2 inf_le_left
 @[simp] lemma le_himp_iff_left : a ≤ a ⇨ b ↔ a ≤ b := by rw [le_himp_iff, inf_idem]
 
 -- `p → p`
-@[simp] lemma himp_self (a : α) : a ⇨ a = ⊤ := top_le_iff.1 $ le_himp_iff.2 inf_le_right
+@[simp] lemma himp_self : a ⇨ a = ⊤ := top_le_iff.1 $ le_himp_iff.2 inf_le_right
 
 -- `(p → q) ∧ p → q`
 lemma himp_inf_le : (a ⇨ b) ⊓ a ≤ b := le_himp_iff.1 le_rfl
@@ -192,12 +192,9 @@ le_antisymm (le_inf inf_le_left $ by rw [inf_comm, ←le_himp_iff]) $ inf_le_inf
 
 @[simp] lemma himp_eq_top_iff : a ⇨ b = ⊤ ↔ a ≤ b := by rw [←top_le_iff, le_himp_iff, top_inf_eq]
 
--- `p → true`
-@[simp] lemma himp_top (a : α) : a ⇨ ⊤ = ⊤ := himp_eq_top_iff.2 le_top
-
--- `true → p ↔ p`
-@[simp] lemma top_himp (a : α) : ⊤ ⇨ a = a :=
-eq_of_forall_le_iff $ λ b, by rw [le_himp_iff, inf_top_eq]
+-- `p → true`, `true → p ↔ p`
+@[simp] lemma himp_top : a ⇨ ⊤ = ⊤ := himp_eq_top_iff.2 le_top
+@[simp] lemma top_himp : ⊤ ⇨ a = a := eq_of_forall_le_iff $ λ b, by rw [le_himp_iff, inf_top_eq]
 
 -- `p → q → r ↔ p ∧ q → r`
 lemma himp_himp (a b c : α) : a ⇨ b ⇨ c = a ⊓ b ⇨ c :=
@@ -226,6 +223,12 @@ le_himp_iff.2 $ (inf_le_inf_left _ h).trans himp_inf_le
 
 lemma himp_le_himp (hab : a ≤ b) (hcd : c ≤ d) : b ⇨ c ≤ a ⇨ d :=
 (himp_le_himp_right hab).trans $ himp_le_himp_left hcd
+
+@[simp] lemma sup_himp_self_left (a b : α) : (a ⊔ b) ⇨ a = b ⇨ a :=
+by rw [sup_himp_distrib, himp_self, top_inf_eq]
+
+@[simp] lemma sup_himp_self_right (a b : α) : (a ⊔ b) ⇨ b = a ⇨ b :=
+by rw [sup_himp_distrib, himp_self, inf_top_eq]
 
 @[priority 100] -- See note [lower instance priority]
 instance generalized_heyting_algebra.to_distrib_lattice : distrib_lattice α :=
@@ -262,7 +265,7 @@ lemma disjoint.disjoint_sdiff_right (h : disjoint a b) : disjoint a (b \ c) := h
 
 @[simp] lemma sdiff_le_iff_left : a \ b ≤ b ↔ a ≤ b := by rw [sdiff_le_iff, sup_idem]
 
-@[simp] lemma sdiff_self (a : α) : a \ a = ⊥ := le_bot_iff.1 $ sdiff_le_iff.2 le_sup_left
+@[simp] lemma sdiff_self : a \ a = ⊥ := le_bot_iff.1 $ sdiff_le_iff.2 le_sup_left
 
 lemma le_sup_sdiff : a ≤ b ⊔ a \ b := sdiff_le_iff.1 le_rfl
 lemma le_sdiff_sup : a ≤ a \ b ⊔ b := by rw [sup_comm, ←sdiff_le_iff]
@@ -275,10 +278,8 @@ by rw [sup_comm, sup_sdiff_self, sup_comm]
 
 @[simp] lemma sdiff_eq_bot_iff : a \ b = ⊥ ↔ a ≤ b := by rw [←le_bot_iff, sdiff_le_iff, sup_bot_eq]
 
-@[simp] lemma sdiff_bot (a : α) : a \ ⊥ = a :=
-eq_of_forall_ge_iff $ λ b, by rw [sdiff_le_iff, bot_sup_eq]
-
-@[simp] lemma bot_sdiff (a : α) : ⊥ \ a = ⊥ := sdiff_eq_bot_iff.2 bot_le
+@[simp] lemma sdiff_bot : a \ ⊥ = a := eq_of_forall_ge_iff $ λ b, by rw [sdiff_le_iff, bot_sup_eq]
+@[simp] lemma bot_sdiff : ⊥ \ a = ⊥ := sdiff_eq_bot_iff.2 bot_le
 
 lemma sdiff_sdiff (a b c : α) : a \ b \ c = a \ (b ⊔ c) :=
 eq_of_forall_ge_iff $ λ d, by simp_rw [sdiff_le_iff, sup_assoc]
@@ -292,6 +293,12 @@ end
 
 lemma sdiff_right_comm (a b c : α) : a \ b \ c = a \ c \ b := by simp_rw [sdiff_sdiff, sup_comm]
 
+lemma sup_sdiff_distrib (a b c : α) : (a ⊔ b) \ c = a \ c ⊔ b \ c :=
+eq_of_forall_ge_iff $ λ d, by simp_rw [sdiff_le_iff, sup_le_iff, sdiff_le_iff]
+
+lemma sdiff_inf_distrib (a b c : α) : a \ (b ⊓ c) = a \ b ⊔ a \ c :=
+eq_of_forall_ge_iff $ λ d, by { rw [sup_le_iff, sdiff_le_comm, le_inf_iff], simp_rw sdiff_le_comm }
+
 lemma sdiff_le_sdiff_right (h : a ≤ b) : a \ c ≤ b \ c := sdiff_le_iff.2 $ h.trans $ le_sup_sdiff
 
 lemma sdiff_le_sdiff_left (h : a ≤ b) : c \ b ≤ c \ a :=
@@ -300,20 +307,14 @@ sdiff_le_iff.2 $ le_sup_sdiff.trans $ sup_le_sup_right h _
 lemma sdiff_le_sdiff (hab : a ≤ b) (hcd : c ≤ d) : a \ d ≤ b \ c :=
 (sdiff_le_sdiff_right hab).trans $ sdiff_le_sdiff_left hcd
 
-lemma sup_sdiff_distrib (a b c : α) : (a ⊔ b) \ c = a \ c ⊔ b \ c :=
-eq_of_forall_ge_iff $ λ d, by simp_rw [sdiff_le_iff, sup_le_iff, sdiff_le_iff]
-
-lemma sdiff_inf_distrib (a b c : α) : a \ (b ⊓ c) = a \ b ⊔ a \ c :=
-eq_of_forall_ge_iff $ λ d, by { rw [sup_le_iff, sdiff_le_comm, le_inf_iff], simp_rw sdiff_le_comm }
-
 -- cf. `is_compl.inf_sup`
 lemma sdiff_inf : a \ (b ⊓ c) = a \ b ⊔ a \ c := sdiff_inf_distrib _ _ _
 
+@[simp] lemma sdiff_inf_self_left (a b : α) : a \ (a ⊓ b) = a \ b :=
+by rw [sdiff_inf, sdiff_self, bot_sup_eq]
+
 @[simp] lemma sdiff_inf_self_right (a b : α) : b \ (a ⊓ b) = b \ a :=
 by rw [sdiff_inf, sdiff_self, sup_bot_eq]
-
-@[simp] lemma sdiff_inf_self_left (a b : α) : a \ (a ⊓ b) = a \ b :=
-by rw [inf_comm, sdiff_inf_self_right]
 
 @[priority 100] -- See note [lower instance priority]
 instance generalized_coheyting_algebra.to_distrib_lattice : distrib_lattice α :=

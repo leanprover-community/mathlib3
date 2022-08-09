@@ -232,6 +232,21 @@ lemma limit_process_measurable' {f : ι → Ω → E} {ℱ : filtration ι m0} {
   strongly_measurable[m0] (limit_process f ℱ μ) :=
 limit_process_measurable.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _))
 
+lemma mem_ℒ1_limit_process_of_snorm_bdd
+  (hfm : ∀ n, ae_strongly_measurable (f n) μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
+  mem_ℒp (limit_process f ℱ μ) 1 μ :=
+begin
+  rw limit_process,
+  split_ifs with h,
+  { refine ⟨strongly_measurable.ae_strongly_measurable
+      ((classical.some_spec h).1.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _))),
+      lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm hfm _ (classical.some_spec h).2)
+        (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞))⟩,
+    simp_rw [liminf_eq, eventually_at_top],
+    exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hbdd _)) },
+  { exact zero_mem_ℒp }
+end
+
 end limit
 
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
@@ -265,15 +280,8 @@ end
 lemma submartingale.mem_ℒ1_limit_process
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   mem_ℒp (limit_process f ℱ μ) 1 μ :=
-begin
-  refine ⟨limit_process_measurable'.ae_strongly_measurable,
-    lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm
-      (λ n, ((hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl).ae_strongly_measurable)
-      (limit_process f ℱ μ) (hf.ae_tendsto_limit_process hbdd))
-      (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞))⟩,
-  simp_rw [liminf_eq, eventually_at_top],
-  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hbdd _))
-end
+mem_ℒ1_limit_process_of_snorm_bdd
+  (λ n, ((hf.strongly_measurable n).mono (ℱ.le n)).ae_strongly_measurable) hbdd
 
 end ae_convergence
 

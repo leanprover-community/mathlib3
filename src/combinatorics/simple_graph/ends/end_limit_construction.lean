@@ -126,23 +126,25 @@ begin
   sorry,
 end
 
-
+lemma ComplInfComp.surjective : fis.is_surjective (ComplInfComp G Gpc) :=
+begin
+  dsimp [Endsinfty],
+  rw ComplInfComp_eq_ComplComp_to_surjective,
+  by_cases hfin : (set.finite (@set.univ V)),
+  { rintro i j h x,
+    let jempty := all_empty G Gpc hfin j.unop,
+    rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
+    exfalso,
+    exact is_empty_iff.mp jempty x, },
+  { exact @fis.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc hfin), },
+end
 
 lemma Endsinfty_surjective : Π (j : (finset V)ᵒᵖ), function.surjective (λ e : Endsinfty G Gpc, e.val j) :=
 begin
   rintro j,
   dsimp [Endsinfty],
-  rw ComplInfComp_eq_ComplComp_to_surjective,
+  have := ComplInfComp.surjective G Gpc,
+  rw fis.is_surjective_iff at this,
   apply fis.sections_surjective,
-  rintro i h,
-  by_cases hfin : (set.finite (@set.univ V)),
-  { let jempty := all_empty G Gpc hfin j.unop,
-    rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
-    rintro y,
-    exfalso,
-    exact is_empty_iff.mp jempty y,},
-  { have := @fis.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc hfin),
-    rw fis.is_surjective_iff at this,
-    exact this i j h,
-  },
+  rintro i h, exact this i j h,
 end

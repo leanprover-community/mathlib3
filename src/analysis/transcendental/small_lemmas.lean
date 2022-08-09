@@ -91,52 +91,6 @@ end
 lemma not_in_support_iff_coeff_zero {α : Type} [_inst_ : comm_semiring α] (f : polynomial α) (n : ℕ): (f.coeff n) = 0 ↔ n ∉ f.support :=
 polynomial.not_mem_support_iff.symm
 
-
--- f = 0 on an interval then f is zero (polynomial ℝ)
-/--
-n ↦ a + 1/(n+1)
--/
-
-def function_ℕ_Icc (a : ℝ) : ℕ -> set.Icc (a-1) (a+1) := λ n,
-⟨(n+1)⁻¹ + a,
- ⟨calc a - 1 ≤ a : by linarith
-      ...    ≤ a + (n+1)⁻¹ : begin norm_num, norm_cast, norm_num, end
-      ...    ≤ (n+1)⁻¹ + a : by linarith,
-    begin
-        have ineq1 : (n+1:ℝ)⁻¹ ≤ 1,
-        have ineq2 := (@inv_le _ _ (n+1:ℝ) 1 _ _).2, simp only [forall_prop_of_true, inv_one, le_add_iff_nonneg_left, nat.cast_nonneg] at ineq2, exact ineq2,
-        exact nat.cast_add_one_pos n, exact zero_lt_one, linarith,
-    end⟩⟩
-
-theorem function_ℕ_Icc_inj (a : ℝ) : function.injective $ function_ℕ_Icc a :=
-begin
-    intros m n hmn,
-    rw [function_ℕ_Icc] at hmn,
-    simpa only [add_left_inj, inv_inj, subtype.mk_eq_mk, nat.cast_inj] using hmn,
-end
-
-theorem f_zero_on_interval_f_zero' (f : polynomial ℝ) (s : set ℝ) (hs : s.infinite)
-  (f_zero: ∀ x ∈ s, f.eval x = 0) : f = 0 :=
-begin
-  by_contra absurd,
-  obtain ⟨roots, hroots⟩ := polynomial.exists_multiset_roots absurd,
-  refine set.infinite.mono (λ a ha, _) hs (finset.finite_to_set roots.to_finset),
-  simp only [multiset.mem_to_finset, finset.mem_coe],
-  rw [←multiset.count_ne_zero, hroots.2 a, ←pos_iff_ne_zero,
-    polynomial.root_multiplicity_pos absurd, polynomial.is_root.def],
-  exact f_zero a ha,
-end
-
-theorem f_zero_on_interval_f_zero {a : ℝ} (f : polynomial ℝ)
-  (f_zero: ∀ x : ℝ, x ∈ (set.Icc (a-1) (a+1)) -> f.eval x = 0) : f = 0 :=
-begin
-  apply f_zero_on_interval_f_zero' f _ _ f_zero,
-
-  rw ←set.infinite_coe_iff,
-
-  exact infinite.of_injective (function_ℕ_Icc a) (function_ℕ_Icc_inj a),
-end
-
 theorem zero_deriv_imp_const_poly_ℝ (f : polynomial ℝ) (h : f.derivative = 0) : f.nat_degree = 0 :=
 polynomial.nat_degree_eq_zero_of_derivative_eq_zero h
 

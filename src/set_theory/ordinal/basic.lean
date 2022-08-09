@@ -182,7 +182,7 @@ instance : partial_order ordinal :=
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
-      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, is_empty_elim $ f.lt_le g⟩,
+      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl⟩,
       λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
       (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
   le_antisymm := λ a b,

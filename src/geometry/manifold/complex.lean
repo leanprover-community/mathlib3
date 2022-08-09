@@ -96,12 +96,13 @@ hf.apply_eq_of_is_compact compact_univ is_preconnected_univ is_clopen_univ (set.
 
 /-- A holomorphic function on a compact connected complex manifold is the constant function `f ≡ v`,
 for some value `v`. -/
-lemma exists_eq_const_of_compact_space [nonempty M] [compact_space M] [preconnected_space M]
+lemma exists_eq_const_of_compact_space [compact_space M] [preconnected_space M]
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
   ∃ v : F, f = function.const M v :=
 begin
-  inhabit M,
-  exact ⟨f default, funext $ λ a, hf.apply_eq_of_compact_space a default⟩,
+  casesI is_empty_or_nonempty M,
+  { exact ⟨0, funext $ λ a, h.elim a⟩ },
+  { inhabit M, exact ⟨f default, funext $ λ a, hf.apply_eq_of_compact_space a default⟩ },
 end
 
 end mdifferentiable

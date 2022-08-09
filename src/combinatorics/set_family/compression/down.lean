@@ -16,7 +16,8 @@ when the resulting set is not already in `𝒜`.
 
 ## Main declarations
 
-* `finset.non_member_subfamily`: `𝒜.non_member_subfamily a` is the subfamily of sets not containing `a`.
+* `finset.non_member_subfamily`: `𝒜.non_member_subfamily a` is the subfamily of sets not containing
+  `a`.
 * `finset.member_subfamily`: `𝒜.member_subfamily a` is the image of the subfamily of sets containing
   `a` under removing `a`.
 * `down.compression`: Down-compression.
@@ -39,7 +40,8 @@ variables {α : Type*} [decidable_eq α] {𝒜 ℬ : finset (finset α)} {s : fi
 namespace finset
 
 /-- Elements of `𝒜` that do not contain `a`. -/
-def non_member_subfamily (a : α) (𝒜 : finset (finset α)) : finset (finset α) := 𝒜.filter $ λ s, a ∉ s
+def non_member_subfamily (a : α) (𝒜 : finset (finset α)) : finset (finset α) :=
+𝒜.filter $ λ s, a ∉ s
 
 /-- Image of the elements of `𝒜` which contain `a` under removing `a`. Finsets that do not contain
 `a` such that `insert a s ∈ 𝒜`. -/
@@ -103,7 +105,8 @@ end
 @[simp] lemma member_subfamily_member_subfamily : (𝒜.member_subfamily a).member_subfamily a = ∅ :=
 by { ext, simp }
 
-@[simp] lemma member_subfamily_non_member_subfamily : (𝒜.non_member_subfamily a).member_subfamily a = ∅ :=
+@[simp] lemma member_subfamily_non_member_subfamily :
+  (𝒜.non_member_subfamily a).member_subfamily a = ∅ :=
 by { ext, simp }
 
 @[simp] lemma non_member_subfamily_member_subfamily :

@@ -376,8 +376,6 @@ meta def tactic_view_goal {γ} (local_c : tc local_collection γ) (target_c : tc
   tc filter_type γ :=
 tc.stateless $ λ ft, do
   is ← tactic.frozen_local_instances,
-  let frozen : bool := is ≠ none,
-  let is' : list expr := option.cases_on is [] id,
   g@(expr.mvar u_n pp_n y) ← main_goal,
   t ← get_tag g,
   let case_tag : list (html γ) :=
@@ -397,11 +395,12 @@ tc.stateless $ λ ft, do
     ns ← lc.locals.mmap (λ n, do -- extract into function?
       let var_color : attr γ := if ¬ cls
         then attr.style [("color", "#cc7a00")]  -- "goal-hyp"
-        else if frozen
-          then if n ∈ is'
-            then attr.style [("color", "#2aa198")]  -- "goal-hyp-inst"
-            else attr.style [("font-style", "italic")] -- "goal-hyp-noninst"
-        else attr.style [("color", "#dc322f")], -- "goal-hyp-unfrozen"
+        else match is with
+        | some is' := if n ∈ is'
+                        then attr.style [("color", "#2aa198")]  -- "goal-hyp-inst"
+                        else attr.style [("font-style", "italic")] -- "goal-hyp-noninst"
+        | none := attr.style [("color", "#dc322f")] -- "goal-hyp-unfrozen"
+        end,
         pure $ h "span" [cn "goal-hyp b pr2", var_color] [html.of_name $ expr.local_pp_name n]),
     pure $ h "li" [key lc.key] (ns ++ [": ", h "span" [cn "goal-hyp-type", key "type"] [lh]])),
   t_comp ← target_c g,

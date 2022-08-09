@@ -5,6 +5,7 @@ Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
 import algebra.char_zero.quotient
+import data.sign
 
 /-!
 # The type of angles
@@ -269,6 +270,41 @@ cos_antiperiodic θ
 
 @[simp] lemma cos_sub_pi (θ : angle) : cos (θ - π) = -cos θ :=
 cos_antiperiodic.sub_eq θ
+
+/-- The sign of a `real.angle` is `0` if the angle is `0` or `π`, `1` if the angle is strictly
+between `0` and `π` and `-1` is the angle is strictly between `-π` and `0`. It is defined as the
+sign of the sine of the angle. -/
+def sign (θ : angle) : sign_type := _root_.sign (sin θ)
+
+@[simp] lemma sign_zero : (0 : angle).sign = 0 :=
+by rw [sign, sin_zero, _root_.sign_zero]
+
+@[simp] lemma sign_coe_pi : (π : angle).sign = 0 :=
+by rw [sign, sin_coe_pi, _root_.sign_zero]
+
+@[simp] lemma sign_neg (θ : angle) : (-θ).sign = -(θ.sign) :=
+by simp_rw [sign, sin_neg, left.sign_neg]
+
+lemma sign_antiperiodic : function.antiperiodic sign (π : angle) :=
+begin
+  intro θ,
+  rw [sign, sign, sin_add_pi, left.sign_neg]
+end
+
+@[simp] lemma sign_add_pi (θ : angle) : (θ + π).sign = -θ.sign :=
+sign_antiperiodic θ
+
+@[simp] lemma sign_pi_add (θ : angle) : ((π : angle) + θ).sign = -θ.sign :=
+by rw [add_comm, sign_add_pi]
+
+@[simp] lemma sign_sub_pi (θ : angle) : (θ - π).sign = -θ.sign :=
+sign_antiperiodic.sub_eq θ
+
+@[simp] lemma sign_pi_sub (θ : angle) : ((π : angle) - θ).sign = θ.sign :=
+by simp [sign_antiperiodic.sub_eq']
+
+lemma sign_eq_zero_iff {θ : angle} : θ.sign = 0 ↔ θ = 0 ∨ θ = π :=
+by rw [sign, _root_.sign_eq_zero_iff, sin_eq_zero_iff]
 
 end angle
 

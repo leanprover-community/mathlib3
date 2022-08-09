@@ -57,7 +57,11 @@ begin
       polynomial.C_eq_nat_cast, nat.cast_one, finset.sum_singleton, finset.range_one,
       zeroth_deriv, finset.sum_congr] },
 
-  { rw deriv_n, rw function.iterate_succ', dsimp, rw <-deriv_n,
+  {
+    transitivity
+      ∑ (x : ℕ) in finset.range n, ↑((n + 1).choose (x + 1)) * deriv_n p (n - x) * deriv_n q (x + 1) + (p * deriv_n q (n + 1) + deriv_n p (n + 1) * q),
+
+    { rw deriv_n, rw function.iterate_succ', dsimp, rw <-deriv_n,
     rw IH,
     simp only [polynomial.derivative_sum, polynomial.derivative_mul, zero_mul,
       polynomial.derivative_C, zero_add],
@@ -70,9 +74,14 @@ begin
         (∑ (i : ℕ) in finset.range n,
             polynomial.C (n.choose (i + 1):R) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1)) +
         (∑ (x : ℕ) in finset.range n, polynomial.C (n.choose x:R) * deriv_n p (n - x) * (deriv_n q x).derivative) +
-        ((deriv_n p n).derivative * q + (p * (deriv_n q n).derivative)),
+        ((p * (deriv_n q n).derivative) + (deriv_n p n).derivative * q),
     { simp[polynomial.C_eq_nat_cast], ring },
-    rw [<-finset.sum_add_distrib, ←eq_sub_iff_add_eq],
+    congr' 1,
+    swap, {
+      simp only [deriv_n],
+      rw function.iterate_succ',
+    },
+    rw [<-finset.sum_add_distrib],
 
     transitivity
         (∑ (x : ℕ) in finset.range n,
@@ -88,6 +97,8 @@ begin
       { simp only [map_add, eq_self_iff_true, polynomial.C_eq_nat_cast, nat.cast_add,
           nat.choose_succ_succ],
         rw [←add_mul, ←add_mul, add_comm] } },
+
+    simp} ,
 
     conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ},
     simp only [deriv_succ, zeroth_deriv, nat.succ_eq_add_one, nat.choose_self, int.cast_coe_nat,

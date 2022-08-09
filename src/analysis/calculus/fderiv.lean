@@ -2371,7 +2371,7 @@ variables {𝔸 𝔸' : Type*} [normed_ring 𝔸] [normed_comm_ring 𝔸'] [norm
 theorem has_strict_fderiv_at.mul' {x : E} (ha : has_strict_fderiv_at a a' x)
   (hb : has_strict_fderiv_at b b' x) :
   has_strict_fderiv_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) x :=
-((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_strict_fderiv_at (a x, b x)).comp x
+((continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.has_strict_fderiv_at (a x, b x)).comp x
   (ha.prod hb)
 
 theorem has_strict_fderiv_at.mul
@@ -2382,7 +2382,7 @@ by { convert hc.mul' hd, ext z, apply mul_comm }
 theorem has_fderiv_within_at.mul'
   (ha : has_fderiv_within_at a a' s x) (hb : has_fderiv_within_at b b' s x) :
   has_fderiv_within_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) s x :=
-((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at
+((continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at
   (a x, b x)).comp_has_fderiv_within_at x (ha.prod hb)
 
 theorem has_fderiv_within_at.mul
@@ -2393,7 +2393,7 @@ by { convert hc.mul' hd, ext z, apply mul_comm }
 theorem has_fderiv_at.mul'
   (ha : has_fderiv_at a a' x) (hb : has_fderiv_at b b' x) :
   has_fderiv_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) x :=
-((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at (a x, b x)).comp x
+((continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at (a x, b x)).comp x
   (ha.prod hb)
 
 theorem has_fderiv_at.mul (hc : has_fderiv_at c c' x) (hd : has_fderiv_at d d' x) :
@@ -2458,7 +2458,7 @@ lemma fderiv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 
 
 theorem has_strict_fderiv_at.mul_const' (ha : has_strict_fderiv_at a a' x) (b : 𝔸) :
   has_strict_fderiv_at (λ y, a y * b) (a'.smul_right b) x :=
-(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_strict_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸).flip b).has_strict_fderiv_at).comp x ha
 
 theorem has_strict_fderiv_at.mul_const (hc : has_strict_fderiv_at c c' x) (d : 𝔸') :
   has_strict_fderiv_at (λ y, c y * d) (d • c') x :=
@@ -2466,7 +2466,7 @@ by { convert hc.mul_const' d, ext z, apply mul_comm }
 
 theorem has_fderiv_within_at.mul_const' (ha : has_fderiv_within_at a a' s x) (b : 𝔸) :
   has_fderiv_within_at (λ y, a y * b) (a'.smul_right b) s x :=
-(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_fderiv_at).comp_has_fderiv_within_at x ha
+(((continuous_linear_map.mul 𝕜 𝔸).flip b).has_fderiv_at).comp_has_fderiv_within_at x ha
 
 theorem has_fderiv_within_at.mul_const (hc : has_fderiv_within_at c c' s x) (d : 𝔸') :
   has_fderiv_within_at (λ y, c y * d) (d • c') s x :=
@@ -2474,7 +2474,7 @@ by { convert hc.mul_const' d, ext z, apply mul_comm }
 
 theorem has_fderiv_at.mul_const' (ha : has_fderiv_at a a' x) (b : 𝔸) :
   has_fderiv_at (λ y, a y * b) (a'.smul_right b) x :=
-(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸).flip b).has_fderiv_at).comp x ha
 
 theorem has_fderiv_at.mul_const (hc : has_fderiv_at c c' x) (d : 𝔸') :
   has_fderiv_at (λ y, c y * d) (d • c') x :=
@@ -2517,16 +2517,16 @@ lemma fderiv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝔸') :
 
 theorem has_strict_fderiv_at.const_mul (ha : has_strict_fderiv_at a a' x) (b : 𝔸) :
   has_strict_fderiv_at (λ y, b * a y) (b • a') x :=
-(((continuous_linear_map.lmul 𝕜 𝔸) b).has_strict_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸) b).has_strict_fderiv_at).comp x ha
 
 theorem has_fderiv_within_at.const_mul
   (ha : has_fderiv_within_at a a' s x) (b : 𝔸) :
   has_fderiv_within_at (λ y, b * a y) (b • a') s x :=
-(((continuous_linear_map.lmul 𝕜 𝔸) b).has_fderiv_at).comp_has_fderiv_within_at x ha
+(((continuous_linear_map.mul 𝕜 𝔸) b).has_fderiv_at).comp_has_fderiv_within_at x ha
 
 theorem has_fderiv_at.const_mul (ha : has_fderiv_at a a' x) (b : 𝔸) :
   has_fderiv_at (λ y, b * a y) (b • a') x :=
-(((continuous_linear_map.lmul 𝕜 𝔸) b).has_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸) b).has_fderiv_at).comp x ha
 
 lemma differentiable_within_at.const_mul
   (ha : differentiable_within_at 𝕜 a s x) (b : 𝔸) :

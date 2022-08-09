@@ -191,6 +191,10 @@ def map (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) : convex_cone 𝕜 F :=
   add_mem' := λ y₁ ⟨x₁, hx₁, hy₁⟩ y₂ ⟨x₂, hx₂, hy₂⟩, hy₁ ▸ hy₂ ▸ f.map_add x₁ x₂ ▸
     mem_image_of_mem f (S.add_mem hx₁ hx₂) }
 
+@[simp] lemma mem_map {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 E} {y : F} :
+  y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
+mem_image_iff_bex
+
 lemma map_map (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) :
   (S.map f).map g = S.map (g.comp f) :=
 set_like.coe_injective $ image_image g f S
@@ -364,7 +368,7 @@ end convex_cone
 /-! ### Cone over a convex set -/
 
 section cone_from_convex
-variables [linear_ordered_field 𝕜] [ordered_add_comm_group E] [module 𝕜 E]
+variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 namespace convex
 

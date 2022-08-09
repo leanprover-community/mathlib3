@@ -177,6 +177,27 @@ lemma periodic.sub_period [add_comm_group α]
   periodic f (c₁ - c₂) :=
 let h := h2.neg in by simp [*, sub_eq_add_neg, add_comm c₁, ← add_assoc] at *
 
+lemma periodic.const_add [add_semigroup α] (h : periodic f c) (a : α) :
+  periodic (λ x, f (a + x)) c :=
+λ x, by simpa [add_assoc] using h (a + x)
+
+lemma periodic.add_const [add_comm_semigroup α] (h : periodic f c) (a : α) :
+  periodic (λ x, f (x + a)) c :=
+λ x, by simpa [add_assoc x c a, add_comm c, ←add_assoc x a c] using h (x + a)
+
+lemma periodic.const_sub [add_comm_group α] (h : periodic f c) (a : α) :
+  periodic (λ x, f (a - x)) c :=
+begin
+  rw [←neg_neg c],
+  refine periodic.neg _,
+  intro x,
+  simpa [sub_add_eq_sub_sub] using h (a - x)
+end
+
+lemma periodic.sub_const [add_comm_group α] (h : periodic f c) (a : α) :
+  periodic (λ x, f (x - a)) c :=
+λ x, by simpa [add_comm x c, add_sub_assoc, add_comm c (x - a)] using h (x - a)
+
 lemma periodic.nsmul [add_monoid α]
   (h : periodic f c) (n : ℕ) :
   periodic f (n • c) :=
@@ -426,6 +447,27 @@ lemma antiperiodic.neg_eq [add_group α] [add_group β]
   (h : antiperiodic f c) :
   f (-c) = -f 0 :=
 by simpa only [zero_add] using h.neg 0
+
+lemma antiperiodic.const_add [add_semigroup α] [has_neg β] (h : antiperiodic f c) (a : α) :
+  antiperiodic (λ x, f (a + x)) c :=
+λ x, by simpa [add_assoc] using h (a + x)
+
+lemma antiperiodic.add_const [add_comm_semigroup α] [has_neg β] (h : antiperiodic f c) (a : α) :
+  antiperiodic (λ x, f (x + a)) c :=
+λ x, by simpa [add_assoc x c a, add_comm c, ←add_assoc x a c] using h (x + a)
+
+lemma antiperiodic.const_sub [add_comm_group α] [add_group β] (h : antiperiodic f c) (a : α) :
+  antiperiodic (λ x, f (a - x)) c :=
+begin
+  rw [←neg_neg c],
+  refine antiperiodic.neg _,
+  intro x,
+  simpa [sub_add_eq_sub_sub] using h (a - x)
+end
+
+lemma antiperiodic.sub_const [add_comm_group α] [has_neg β] (h : antiperiodic f c) (a : α) :
+  antiperiodic (λ x, f (x - a)) c :=
+λ x, by simpa [add_comm x c, add_sub_assoc, add_comm c (x - a)] using h (x - a)
 
 lemma antiperiodic.smul [has_add α] [monoid γ] [add_group β] [distrib_mul_action γ β]
   (h : antiperiodic f c) (a : γ) :

@@ -62,7 +62,7 @@ begin
   apply finset.induction_on s, simp only [f_eval_on_ℝ, polynomial.eval_one, finset.prod_empty, polynomial.map_one], intros n s hn ih, rw finset.prod_insert, rw f_eval_on_ℝ_mul, rw ih, rw finset.prod_insert, assumption, assumption,
 end
 
-private lemma f_eval_on_ℝ_nat (f : polynomial ℤ) (k : ℕ) : (f_eval_on_ℝ f (k:ℝ)) = ℤembℝ (polynomial.eval k f) :=
+lemma f_eval_on_ℝ_nat (f : polynomial ℤ) (k : ℕ) : (f_eval_on_ℝ f (k:ℝ)) = ℤembℝ (polynomial.eval k f) :=
 begin
   apply polynomial.induction_on f,
   {
@@ -82,19 +82,13 @@ end
 theorem f_eval_on_ℝ_deriv (f : polynomial ℤ) : (deriv (f_eval_on_ℝ f)) = (f_eval_on_ℝ (f.derivative)) :=
 begin
   ext,
-  simp_rw [f_eval_on_ℝ],
-  have eq := @polynomial.deriv ℝ _ x (polynomial.map ℤembℝ f),
-  rw <-polynomial.derivative_map,
-  rw <-eq, refl,
+  rw [f_eval_on_ℝ, <-polynomial.derivative_map, ←polynomial.deriv],
+  refl,
 end
 
-lemma not_in_support_iff_coeff_zero {α : Type} [_inst_ : comm_semiring α] (f : polynomial α) (n : ℕ): (f.coeff n) = 0 ↔ n ∉ f.support :=
-polynomial.not_mem_support_iff.symm
-
-theorem zero_deriv_imp_const_poly_ℝ (f : polynomial ℝ) (h : f.derivative = 0) : f.nat_degree = 0 :=
-polynomial.nat_degree_eq_zero_of_derivative_eq_zero h
-
-theorem derivative_emb (f : polynomial ℤ) : (polynomial.map ℤembℝ f.derivative) = (polynomial.map ℤembℝ f).derivative :=
-(polynomial.derivative_map _ _).symm
+lemma coe_f_eval (f : polynomial ℤ) (i : ℕ) : f_eval_on_ℝ f (i:ℝ) = ((@polynomial.eval ℤ _ (i : ℤ) f):ℝ) :=
+begin
+  rw [f_eval_on_ℝ_nat, ℤembℝ, algebra_map_int_eq, ring_hom.eq_int_cast],
+end
 
 end small_lemmas

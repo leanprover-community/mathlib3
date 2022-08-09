@@ -168,27 +168,6 @@ begin
 end
 
 /-Theorem
-integrations on a set $S$ of two identical functions are indentical
--/
-theorem same_integral {S : set ℝ} (f g : ℝ -> ℝ) : f = g -> (∫ x in S, f x) = ∫ x in S, g x :=
-begin
-  rintro rfl, refl,
-end
-
-/-Theorem
-integrations of two identical functions are indentical
--/
-theorem same_integral' (f g : ℝ -> ℝ) : f = g -> (∫ x, f x) = ∫ x, g x :=
-begin
-    exact congr_arg (λ (f : ℝ → ℝ), ∫ (x : ℝ), f x),
-end
-
-/-Theorem
-identical function have identical derivatives
--/
-theorem same_deriv (f g : ℝ -> ℝ) (x : ℝ) : f = g -> deriv f x = deriv g x := λ h, congr_fun (congr_arg deriv h) x
-
-/-Theorem
 If forall $x\in(a,b), 0 \le f(x)\le c$ then
 $$
 \int_a^b f\le (b-a)c
@@ -312,13 +291,9 @@ begin
     {
         rw interval_integral.integral_of_le ht,
         rw interval_integral.integral_of_le ht,
-        apply congr_arg, ext, rw f_eval_on_ℝ,
-        rw derivative_emb, rw <-polynomial.deriv,
-        have triv : deriv (λ (x : ℝ), polynomial.eval x (polynomial.map ℤembℝ f)) x = deriv (f_eval_on_ℝ f) x,
-        {
-            apply same_deriv, ext, rw f_eval_on_ℝ,
-        },
-        rw [triv, mul_comm],
+        apply congr_arg, ext,
+        rw [mul_comm, f_eval_on_ℝ, ←polynomial.derivative_map, ←polynomial.deriv],
+        refl,
     }, rw eq, ring,
 
     {apply polynomial.differentiable},

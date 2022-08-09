@@ -131,14 +131,6 @@ begin
   exact e_root_g, exact hp, exact hp, exact hp,
 end
 
-private lemma f_eval_on_ℝ_nat (f : ℤ[X]) (k : ℕ) : (f_eval_on_ℝ f (k:ℝ)) = ℤembℝ (polynomial.eval k f) :=
-begin
-  simp only [f_eval_on_ℝ], rw polynomial.eval_map, rw polynomial.eval₂, rw polynomial.sum,
-  rw polynomial.eval,
-  rw polynomial.eval₂, rw polynomial.sum, simp only [ring_hom.id_apply], rw ring_hom.map_sum,
-  apply congr_arg, ext n, simp only [int.cast_coe_nat, int.cast_pow, ring_hom.eq_int_cast, int.cast_mul],
-end
-
 lemma coe_J (g : ℤ[X]) (p : ℕ) :
     ∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
       (∑ k in finset.range g.nat_degree.succ,
@@ -746,17 +738,6 @@ begin
     rw <-mul_assoc, exact ineq3, exact abs_nonneg (II (f_p p (polynomial.nat_degree g)) ↑x), exact abs_nonneg _,
   },
   exact le_trans ineq1 ineq2,
-end
-
-lemma coe_f_eval (f : ℤ[X]) (i : ℕ) : f_eval_on_ℝ f (i:ℝ) = ((@polynomial.eval ℤ _ (i : ℤ) f):ℝ) :=
-begin
-  simp only [f_eval_on_ℝ, polynomial.eval_map, polynomial.eval, polynomial.eval₂, polynomial.sum],
-  rw [←int.coe_cast_ring_hom, (int.cast_ring_hom ℝ).map_sum, int.coe_cast_ring_hom],
-  apply finset.sum_congr (polynomial.support_map_of_injective _ ℤembℝ_inj),
-  intros,
-  simp only [int.cast_coe_nat, int.cast_eq_zero, int.cast_pow, int.cast_id, ring_hom.eq_int_cast,
-    ring_hom.map_int_cast, int.cast_mul, mul_eq_mul_left_iff, true_or, eq_self_iff_true,
-    polynomial.coeff_map],
 end
 
 private lemma f_bar_X_pow {n : ℕ} : f_bar (polynomial.X ^ n) = polynomial.X^n :=

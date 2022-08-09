@@ -282,16 +282,14 @@ archimedean_iff_nat_lt.trans
    lt_of_le_of_lt h (nat.cast_lt.2 (lt_add_one _))⟩⟩
 
 lemma archimedean_iff_int_lt : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x < n :=
+⟨@exists_int_gt α _ _,
 begin
   rw archimedean_iff_nat_lt,
-  refine ⟨λ h x, _, λ h x, _⟩,
-  { rcases h x with ⟨n, h⟩,
-    refine ⟨n, _⟩,
-    exact_mod_cast h },
-  { rcases h x with ⟨n, h⟩,
-    refine ⟨n.to_nat, h.trans_le _⟩,
-    exact_mod_cast int.le_to_nat _ }
-end
+  intros h x,
+  obtain ⟨n, h⟩ := h x,
+  refine ⟨n.to_nat, h.trans_le _⟩,
+  exact_mod_cast int.le_to_nat _,
+end⟩
 
 lemma archimedean_iff_int_le : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x ≤ n :=
 begin

@@ -487,11 +487,12 @@ end
 
 variables (𝕜)
 
-/-- The function `lmul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear map. -/
-lemma continuous_linear_map.lmul_left_right_is_bounded_bilinear
+/-- The function `continuous_linear_map.mul_mul : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear
+map. -/
+lemma continuous_linear_map.mul_mul_is_bounded_bilinear
   (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
-  is_bounded_bilinear_map 𝕜 (λ p : 𝕜' × 𝕜', continuous_linear_map.lmul_left_right 𝕜 𝕜' p.1 p.2) :=
-(continuous_linear_map.lmul_left_right 𝕜 𝕜').is_bounded_bilinear_map
+  is_bounded_bilinear_map 𝕜 (λ p : 𝕜' × 𝕜', continuous_linear_map.mul_mul 𝕜 𝕜' p.1 p.2) :=
+(continuous_linear_map.mul_mul 𝕜 𝕜').is_bounded_bilinear_map
 
 variables {𝕜}
 

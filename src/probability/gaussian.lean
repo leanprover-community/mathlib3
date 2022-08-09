@@ -102,14 +102,8 @@ rw detid_eq_one,
 simp,
 end
 
----lemma linear_injonR : set.inj_on (λ x, x-m) set.univ:=
 
-lemma changelr (a b : ℝ) : a = b ↔ b = a :=
-begin
-
-end
-
-lemma change_of_vr_gaussian:
+/-lemma change_of_vr_gaussian (μ : measure ℝ):
    ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)):=
 begin
     let g : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
@@ -160,6 +154,21 @@ begin
      = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x),
      {refl},
     rw h_use_f'_tosubst,
+    have hf : set.inj_on f set.univ,
+      refine set.injective_iff_inj_on_univ.mp _,
+      unfold function.injective,
+      intros a1 a2,
+      simp_rw[f],
+      simp,
+    have hf' : ∀ (x : ℝ), x ∈ set.univ → has_fderiv_within_at f (f' x) set.univ x,
+      {intros x hx,
+      refine has_fderiv_within_at.sub_const _ m,
+      exact has_fderiv_within_at_id x set.univ,
+      },
+      {
+        rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ (measurable_set.univ) hf' hf g,
+      },
+
 
     have hf : set.inj_on f set.univ,
       {refine set.injective_iff_inj_on_univ.mp _,
@@ -178,11 +187,13 @@ begin
     {
 
     }-/
-    {sorry},
-    {exact num},
+    {
+        rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ (measurable_set.univ) hf' hf g,
+      },
+    /-{exact num},
     {refine {mem := _},
     intros h₁ h₂,
-    exact infi h₂},
+    exact infi h₂},-/
 
     ---exact measure_theory.integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ hf' hf g,
 
@@ -209,6 +220,69 @@ begin
 
 
 sorry,
+end-/
+
+lemma change_of_vr_gaussian (μ : measure ℝ):
+   ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)):=
+begin
+    let g : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+    let f : ℝ → ℝ := λ (x:ℝ), x-m,
+    have h_set_eq : set.univ = f '' set.univ,
+      {ext e,
+      split,
+      {intro h1,
+      use (e+m),
+      split,
+      simp,
+      simp_rw [f],
+      simp},
+      {intro h2,
+      simp}},
+
+    have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
+     = ∫ (x : ℝ) in set.univ, g (x-m) ,
+     ---(sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
+      {simp_rw [g],
+        simp},
+    rw h_integ_eq,
+    have h_integ_eq2 : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+     = ∫ (x : ℝ) in set.univ, g x ,
+      {simp_rw [g],
+        simp},
+    rw h_integ_eq2,
+    nth_rewrite 1 [h_set_eq],
+    have h_comp_eq : ∀ (x:ℝ), g (x-m) = g (f x),
+      {intro x,
+      simp},
+
+    simp_rw [h_comp_eq],
+    let f_deriv : ℝ →L[ℝ] ℝ := continuous_linear_map.id ℝ ℝ,
+    let f': ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
+
+    /-have h_det_eq_one : ∀ (x:ℝ), (f' x).det = 1,
+      {intro x,
+      exact detid_eq_one},-/
+    rw mulone_eq g f,
+    rw integ_smul_eq_mul f g,
+    have h_use_f'_tosubst : ∫ (x : ℝ) in set.univ, |(continuous_linear_map.id ℝ ℝ).det| • g (f x)
+     = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x),
+     {refl},
+    rw h_use_f'_tosubst,
+    have hf : set.inj_on f set.univ,
+      refine set.injective_iff_inj_on_univ.mp _,
+      unfold function.injective,
+      intros a1 a2,
+      simp_rw[f],
+      simp,
+    have hf' : ∀ (x : ℝ), x ∈ set.univ → has_fderiv_within_at f (f' x) set.univ x,
+      {intros x hx,
+      refine has_fderiv_within_at.sub_const _ m,
+      exact has_fderiv_within_at_id x set.univ,
+      },
+      {
+        rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ hf' hf g,
+      },
+
 end
 
 
@@ -330,7 +404,9 @@ begin
       {exact sqrt_not_zero s h},
 
     rw mul_inv_eq_one (sqrt (2*π*s^2)) h_sqrt_not_zero,
-    simp},
+    simp,
+    exact μ,
+    },
     {
       rw integrable, fconstructor,
       {

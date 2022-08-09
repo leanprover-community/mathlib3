@@ -40,7 +40,7 @@ finsupp.comap_domain.add_monoid_hom (add_right_injective g)
 @[simp] lemma support_div_of (g : G) (x : add_monoid_algebra k G)  :
   (div_of g x).support = x.support.preimage _ ((add_right_injective g).inj_on _) := rfl
 
-lemma div_of_0 (x : add_monoid_algebra k G) : div_of 0 x = x :=
+lemma div_of_zero (x : add_monoid_algebra k G) : div_of 0 x = x :=
 by { ext, simp only [add_monoid_algebra.div_of_apply, zero_add] }
 
 lemma div_of_add (x : add_monoid_algebra k G) (a b : G) :
@@ -70,26 +70,12 @@ section
 variables (G) [canonically_ordered_add_monoid G] [has_sub G] [has_ordered_sub G]
   [contravariant_class G G (+) (≤)]
 
-/-- TODO: move me -/
-def canonically_ordered_add_monoid.to_add_cancel_monoid :
-  add_cancel_monoid G :=
-{ add_left_cancel := λ a b c h, begin
-    have := congr_arg (λ x, x - a) h,
-    dsimp at this,
-    rwa [add_tsub_cancel_left, add_tsub_cancel_left] at this,
-  end,
-  add_right_cancel := λ a b c h, begin
-    have := congr_arg (λ x, x - b) h,
-    dsimp at this,
-    rwa [add_tsub_cancel_right, add_tsub_cancel_right] at this,
-  end,
-  ..(by apply_instance : add_monoid G) }
-
+-- While the `haveI` in the statement seems odd, this lemma can still be applied to `G = σ →₀ ℕ`.
 lemma div_of_add_mod_of (x : add_monoid_algebra k G) (g : G) :
-  by haveI := canonically_ordered_add_monoid.to_add_cancel_monoid G; exact
+  by haveI := canonically_ordered_add_monoid.to_add_cancel_comm_monoid G; exact
   of' k G g * div_of g x + mod_of g x = x :=
 begin
-  letI := canonically_ordered_add_monoid.to_add_cancel_monoid G,
+  letI := canonically_ordered_add_monoid.to_add_cancel_comm_monoid G,
   ext g',
   simp_rw [finsupp.add_apply],
   by_cases h : g ≤ g',

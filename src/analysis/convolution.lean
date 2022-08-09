@@ -18,7 +18,7 @@ group as domain. We use a continuous bilinear operation `L` on these function va
 "multiplication". The domain must be equipped with a Haar measure `μ`
 (though many individual results have weaker conditions on `μ`).
 
-For many applications we can take `L = lsmul ℝ ℝ` or `L = lmul ℝ ℝ`.
+For many applications we can take `L = lsmul ℝ ℝ` or `L = mul ℝ ℝ`.
 
 We also define `convolution_exists` and `convolution_exists_at` to state that the convolution is
 well-defined (everywhere or at a single point). These conditions are needed for pointwise
@@ -370,8 +370,8 @@ lemma convolution_lsmul [has_sub G] {f : G → 𝕜} {g : G → F} :
   (f ⋆[lsmul 𝕜 𝕜, μ] g : G → F) x = ∫ t, f t • g (x - t) ∂μ := rfl
 
 /-- The definition of convolution where the bilinear operator is multiplication. -/
-lemma convolution_lmul [has_sub G] [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G → 𝕜} {g : G → 𝕜} :
-  (f ⋆[lmul 𝕜 𝕜, μ] g) x = ∫ t, f t * g (x - t) ∂μ := rfl
+lemma convolution_mul [has_sub G] [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G → 𝕜} {g : G → 𝕜} :
+  (f ⋆[mul 𝕜 𝕜, μ] g) x = ∫ t, f t * g (x - t) ∂μ := rfl
 
 section group
 
@@ -538,8 +538,8 @@ lemma convolution_lsmul_swap {f : G → 𝕜} {g : G → F}:
 convolution_eq_swap _
 
 /-- The symmetric definition of convolution where the bilinear operator is multiplication. -/
-lemma convolution_lmul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G → 𝕜} {g : G → 𝕜} :
-  (f ⋆[lmul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
+lemma convolution_mul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G → 𝕜} {g : G → 𝕜} :
+  (f ⋆[mul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
 
 variables [second_countable_topology G]

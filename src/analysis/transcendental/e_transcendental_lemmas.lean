@@ -43,10 +43,7 @@ end
 the $n$-th derivative of zero polynomial is $0$
 -/
 lemma deriv_zero_p (n : ℕ) : deriv_n 0 n = 0 :=
-begin
-    -- We prove by induction. Base case and inductive case can all be done with `simp`
-    induction n with n hn; simp only [deriv_n, id.def, function.iterate_zero], rw <-deriv_n, assumption,
-end
+polynomial.iterate_derivative_zero
 
 /-Lemma
 If the $n$-th coefficient of $f$ is $a_n$, then the $n$-th coefficient in $f^{(k)}$ is $\left(\prod_{i=0}^{k-1} (n+k-i)\right)a_{n+k}$
@@ -56,51 +53,30 @@ begin
     -- So we use induction on $k$
     induction k with k ih,
     -- For the zeroth derivative, $f^{(0)}=f$. This case is true by `simp`.
-    simp only [add_zero, nat.nat_zero_eq_zero, one_mul, finset.range_zero, finset.prod_empty], rw deriv_n, simp only [forall_const, id.def, eq_self_iff_true, function.iterate_zero],
+    {   intros,
+        simp only [add_zero, nat.nat_zero_eq_zero, one_mul, finset.range_zero, finset.prod_empty,
+            zeroth_deriv] },
 
     -- Let us assume our claim is true for $k$ and consider the $m$-th coefficient.
     intro m,
     -- We know that $f^{(k+1)}=\left(f^{(k)}\right)'$ and for any polynomial $g$, the $m$-th coefficient of $g'$ is $(m+1)\times (m+1)$-th coefficient of $g$. Then we can use induction hypothesis with $m+1$.
-    rw [deriv_n, function.iterate_succ'], simp only [function.comp_app, int.coe_nat_succ], rw <-deriv_n,
+    rw [deriv_n, function.iterate_succ', function.comp_app, int.coe_nat_succ, <-deriv_n],
     rw polynomial.coeff_derivative, rw ih (m+1),
     rw finset.prod_range_succ, simp only [int.coe_nat_succ],
-    -- The rest of the proves are trivial to a pair of human eyes. But we need to give computers some hint to solve this triviality.
-    have triv : (∏ (x : ℕ) in finset.range k, ((m:ℤ) + 1 + ↑k - ↑x)) = ∏ (x : ℕ) in finset.range k, (↑m + (↑k + 1) - ↑x),
-    {
-        apply congr_arg, ext, simp only [sub_left_inj], ring,
-    }, rw triv,
-    replace triv : (m + 1 : ℤ) = (m + (k+1) - k:ℤ),
-    {
-        rw add_sub_assoc, simp only [add_sub_cancel'],
-    }, rw triv,
-    replace triv : f.coeff (m + 1 + k) = f.coeff (m + k.succ),
-    {
-        rw nat.succ_eq_add_one, congr' 1, ring,
-    },
-    rw triv, ring,
+    ring_nf,
 end
 
 /-Lemma
 Like first derivative, higher derivatives still respect addition
 -/
 lemma deriv_n_add (p q :ℤ[X]) (n : ℕ) : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
-begin
-    induction n with n ih, rw [deriv_n, deriv_n, deriv_n], simp only [id.def, function.iterate_zero],
-    rw [deriv_n, deriv_n, deriv_n, function.iterate_succ'], simp only [function.comp_app], rw [<-deriv_n,<-deriv_n,<-deriv_n, ih], simp only [polynomial.derivative_add],
-end
+polynomial.iterate_derivative_add
 
 /-Lemma
 For any polynomial $f$ with degree $d$, the $d+1$-th derivative is zero.
 -/
 theorem deriv_too_much (f : ℤ[X]): (deriv_n f (f.nat_degree + 1)) = 0 :=
-begin
-    -- We prove that all coefficient of $f^{(d+1)}$ is zero.
-    ext,
-    -- We use lemma `deriv_n_coeff` and all coefficient of zero polynomial is $0$.
-    rw deriv_n_coeff, simp only [int.coe_nat_succ, polynomial.coeff_zero, mul_eq_zero], right,
-    -- Then the problem reduces to prove that $d+1$-th coeffcient of $f$ is zero. But $f$ has degree $d$. So we just need $d < d+1$. This is proved by `linarith`.
-    apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
-end
+polynomial.iterate_derivative_eq_zero $ nat.lt_succ_self _
 
 /-Theorem
 We also have that for $p,q\in\mathbb Z[x]$,

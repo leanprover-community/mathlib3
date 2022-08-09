@@ -704,15 +704,17 @@ by simpa using continuous_id.dist (continuous_const : continuous (λ a, (1:E)))
 lemma continuous_nnnorm' : continuous (λ (a : E), ∥a∥₊) :=
 continuous_subtype_mk _ continuous_norm'
 
-@[to_additive] lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : E → ℝ) :=
+@[to_additive lipschitz_with_one_norm] lemma lipschitz_with_one_norm' :
+  lipschitz_with 1 (norm : E → ℝ) :=
 by simpa only [dist_one_left] using lipschitz_with.dist_right (1 : E)
 
-@[to_additive] lemma lipschitz_with_one_nnnorm : lipschitz_with 1 (has_nnnorm.nnnorm : E → ℝ≥0) :=
-lipschitz_with_one_norm
+@[to_additive lipschitz_with_one_nnnorm] lemma lipschitz_with_one_nnnorm' :
+  lipschitz_with 1 (has_nnnorm.nnnorm : E → ℝ≥0) :=
+lipschitz_with_one_norm'
 
 @[to_additive uniform_continuous_norm]
 lemma uniform_continuous_norm' : uniform_continuous (norm : E → ℝ) :=
-lipschitz_with_one_norm.uniform_continuous
+lipschitz_with_one_norm'.uniform_continuous
 
 @[to_additive uniform_continuous_nnnorm]
 lemma uniform_continuous_nnnorm' : uniform_continuous (λ (a : E), ∥a∥₊) :=

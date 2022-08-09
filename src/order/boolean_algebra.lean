@@ -165,7 +165,7 @@ calc x ⊓ (y \ x) = ((x ⊓ y) ⊔ (x \ y)) ⊓ (y \ x)         : by rw sup_inf
              ... = ⊥         : by rw [@inf_comm _ _ x y, inf_inf_sdiff, sdiff_inf_sdiff, bot_sup_eq]
 @[simp] theorem inf_sdiff_self_left : (y \ x) ⊓ x = ⊥ := by rw [inf_comm, inf_sdiff_self_right]
 
-@[priority 100]  -- see Note [lower instance priority]
+@[priority 100] -- see Note [lower instance priority]
 instance generalized_boolean_algebra.to_generalized_coheyting_algebra :
   generalized_coheyting_algebra α :=
 { sdiff := (\),
@@ -508,13 +508,11 @@ end generalized_boolean_algebra
 /-!
 ### Boolean algebras
 -/
-/-- A Boolean algebra is a bounded distributive lattice with
-a complement operator `ᶜ` such that `x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`.
-For convenience, it must also provide a set difference operation `\`
-satisfying `x \ y = x ⊓ yᶜ`.
+/-- A Boolean algebra is a bounded distributive lattice with a complement operator `ᶜ` such that
+`x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`. For convenience, it must also provide a set difference operation `\`
+and a Heyting implication `⇨` satisfying `x \ y = x ⊓ yᶜ` and `x ⇨ y = y ⊔ xᶜ`.
 
-This is a generalization of (classical) logic of propositions, or
-the powerset lattice.
+This is a generalization of (classical) logic of propositions, or the powerset lattice.
 
 Since `bounded_order`, `order_bot`, and `order_top` are mixins that require `has_le`
 to be present at define-time, the `extends` mechanism does not work with them.
@@ -532,7 +530,7 @@ class boolean_algebra (α : Type u) extends distrib_lattice α, has_compl α, ha
 (sdiff_eq : ∀ x y : α, x \ y = x ⊓ yᶜ . obviously)
 (himp_eq : ∀ x y : α, x ⇨ y = y ⊔ xᶜ . obviously)
 
-@[priority 100]  -- see Note [lower instance priority]
+@[priority 100] -- see Note [lower instance priority]
 instance boolean_algebra.to_bounded_order [h : boolean_algebra α] : bounded_order α :=
 { ..h }
 
@@ -632,13 +630,13 @@ theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
 ⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
 
 lemma sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
-lemma himp_eq : x ⇨ y = y ⊔ xᶜ  := boolean_algebra.himp_eq x y
+lemma himp_eq : x ⇨ y = y ⊔ xᶜ := boolean_algebra.himp_eq x y
 
 @[simp] lemma sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
 
 @[simp] lemma top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 
-@[priority 100]  -- see Note [lower instance priority]
+@[priority 100] -- see Note [lower instance priority]
 instance boolean_algebra.to_generalized_boolean_algebra : generalized_boolean_algebra α :=
 { sup_inf_sdiff := λ a b, by rw [sdiff_eq, ←inf_sup_left, sup_compl_eq_top, inf_top_eq],
   inf_inf_sdiff := λ a b, by { rw [sdiff_eq, ←inf_inf_distrib_left, inf_compl_eq_bot, inf_bot_eq],
@@ -647,11 +645,6 @@ instance boolean_algebra.to_generalized_boolean_algebra : generalized_boolean_al
 
 @[priority 100]
 instance boolean_algebra.to_is_complemented : is_complemented α := ⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
-
-end boolean_algebra
-
-section boolean_algebra
-variables [boolean_algebra α]
 
 @[priority 100] -- See note [lower instance priority]
 instance boolean_algebra.to_biheyting_algebra : biheyting_algebra α :=

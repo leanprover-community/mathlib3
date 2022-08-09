@@ -1229,7 +1229,7 @@ begin
   cases root_r, exact root_r, replace root_r := pow_eq_zero root_r, exfalso, exact r_nonzero root_r,
 end
 
-theorem e_transcendental : transcendental e :=
+theorem e_transcendental : transcendental ℤ e :=
 begin
   intro e_algebraic,
   rw is_algebraic at e_algebraic,
@@ -1248,7 +1248,7 @@ begin
   ... ≤ M g ^ p.val : abs_J_upper_bound g p.val p.property,
 end
 
-theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental (e^n) :=
+theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=
 begin
   intro alg,
   rcases alg with ⟨p, p_nonzero, hp⟩,
@@ -1297,7 +1297,7 @@ begin
   exact e_transcendental alg_e,
 end
 
-theorem transcendental_irrational {x : ℝ} (trans_x : transcendental x) : irrational x :=
+theorem transcendental_irrational {x : ℝ} (trans_x : transcendental ℤ x) : irrational x :=
 transcendental.irrational $ (transcendental_iff_transcendental_over_ℚ x).mp trans_x
 
 theorem e_irrational : irrational e := transcendental_irrational e_transcendental

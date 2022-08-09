@@ -351,6 +351,9 @@ def positive_cone : convex_cone 𝕜 E :=
     end,
   add_mem' := λ x (hx : _ ≤ _) y (hy : _ ≤ _), add_nonneg hx hy }
 
+@[simp] lemma mem_positive_cone {x : E} : x ∈ positive_cone 𝕜 E ↔ 0 ≤ x :=
+by { rw ← set_like.mem_coe, refl }
+
 /-- The positive cone of an ordered module is always salient. -/
 lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
 λ x xs hx hx', lt_irrefl (0 : E)
@@ -666,9 +669,11 @@ begin
   apply is_closed_Inter,
   intros x,
 
-  -- the dual cone of a singleton set is the preimage of `[0, ∞)` under `inner x`
-  have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0) :=
-  by { ext, simp },
+  -- the dual cone of a singleton `{x}` is the preimage of `[0, ∞)` under `inner x`
+  have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0) := by
+  { ext,
+    rw [inner_dual_cone_singleton, set_like.mem_coe, convex_cone.mem_comap, innerₛₗ_apply,
+        mem_preimage, mem_Ici, convex_cone.mem_positive_cone] },
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,

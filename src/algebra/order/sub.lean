@@ -214,21 +214,6 @@ contravariant.add_le_cancellable.le_tsub_of_add_le_left h
 lemma le_tsub_of_add_le_right (h : a + b ≤ c) : a ≤ c - b :=
 contravariant.add_le_cancellable.le_tsub_of_add_le_right h
 
-variables (α)
-
-/-- A `canonically_ordered_add_monoid` with ordered subtraction and order-reflecting addition is
-cancellative. This is not an instance at it would form a typeclass loop.
-
-See note [reducible non-instances]. -/
-@[reducible]
-def canonically_ordered_add_monoid.to_add_cancel_comm_monoid : add_cancel_comm_monoid α :=
-{ add_left_cancel := λ a b c h, begin
-    have := congr_arg (λ x, x - a) h,
-    dsimp at this,
-    rwa [add_tsub_cancel_left, add_tsub_cancel_left] at this,
-  end,
-  ..(by apply_instance : add_comm_monoid α) }
-
 end contra
 
 end add_comm_semigroup
@@ -684,6 +669,21 @@ contravariant.add_le_cancellable.tsub_le_tsub_iff_left contravariant.add_le_canc
 lemma tsub_right_inj (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
 contravariant.add_le_cancellable.tsub_right_inj contravariant.add_le_cancellable
   contravariant.add_le_cancellable hba hca
+
+variables (α)
+
+/-- A `canonically_ordered_add_monoid` with ordered subtraction and order-reflecting addition is
+cancellative. This is not an instance at it would form a typeclass loop.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def canonically_ordered_add_monoid.to_add_cancel_comm_monoid : add_cancel_comm_monoid α :=
+{ add_left_cancel := λ a b c h, begin
+    have := congr_arg (λ x, x - a) h,
+    dsimp at this,
+    rwa [add_tsub_cancel_left, add_tsub_cancel_left] at this,
+  end,
+  ..(by apply_instance : add_comm_monoid α) }
 
 end contra
 

@@ -254,7 +254,8 @@ end generalized_heyting_algebra
 section generalized_coheyting_algebra
 variables [generalized_coheyting_algebra α] {a b c d : α}
 
-@[simp] lemma sdiff_le_iff : a \ b ≤ c ↔ a ≤ b ⊔ c := generalized_coheyting_algebra.sdiff_le_iff _ _ _
+@[simp] lemma sdiff_le_iff : a \ b ≤ c ↔ a ≤ b ⊔ c :=
+generalized_coheyting_algebra.sdiff_le_iff _ _ _
 
 lemma sdiff_le_comm : a \ b ≤ c ↔ a \ c ≤ b := by rw [sdiff_le_iff, sdiff_le_iff, sup_comm]
 
@@ -326,7 +327,8 @@ instance : generalized_heyting_algebra αᵒᵈ :=
   le_himp_iff := λ a b c, by { rw inf_comm, exact sdiff_le_iff },
   ..order_dual.lattice α, ..order_dual.order_top α }
 
-instance prod.generalized_coheyting_algebra [generalized_coheyting_algebra β] : generalized_coheyting_algebra (α × β) :=
+instance prod.generalized_coheyting_algebra [generalized_coheyting_algebra β] :
+  generalized_coheyting_algebra (α × β) :=
 { sdiff_le_iff := λ a b c, and_congr sdiff_le_iff sdiff_le_iff,
   ..prod.lattice α β, ..prod.order_bot α β, ..prod.has_sdiff, ..prod.has_hnot }
 

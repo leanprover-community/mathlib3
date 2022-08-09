@@ -1177,69 +1177,45 @@ namespace units
 
 open mul_opposite (continuous_op continuous_unop)
 
-variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
-  [has_continuous_mul β]
+variables [monoid α] [topological_space α] [monoid β] [topological_space β]
 
-@[to_additive] instance : topological_group αˣ :=
-{ continuous_inv := continuous_induced_rng.2 ((continuous_unop.comp
-    (@continuous_embed_product α _ _).snd).prod_mk (continuous_op.comp continuous_coe)) }
+@[to_additive] instance [has_continuous_mul α] : topological_group αˣ :=
+{ continuous_inv := units.continuous_iff.2 $ ⟨continuous_coe_inv, continuous_coe⟩ }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
-    of the units of each monoid. -/
-def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
-{ continuous_to_fun  :=
-  begin
-    show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
-    refine continuous.prod_mk _ _,
-    { refine continuous_induced_rng.2 ((continuous_fst.comp units.continuous_coe).prod_mk _),
-      refine mul_opposite.continuous_op.comp (continuous_fst.comp _),
-      simp_rw units.inv_eq_coe_inv,
-      exact units.continuous_coe.comp continuous_inv, },
-    { refine continuous_induced_rng.2 ((continuous_snd.comp units.continuous_coe).prod_mk _),
-      simp_rw units.coe_map_inv,
-      exact continuous_op.comp (continuous_snd.comp (units.continuous_coe.comp continuous_inv)), }
-  end,
-  continuous_inv_fun :=
-  begin
-    refine continuous_induced_rng.2 (continuous.prod_mk _ _),
-    { exact (units.continuous_coe.comp continuous_fst).prod_mk
-        (units.continuous_coe.comp continuous_snd), },
-    { refine continuous_op.comp
-        (units.continuous_coe.comp $ continuous_induced_rng.2 $ continuous.prod_mk _ _),
-      { exact (units.continuous_coe.comp (continuous_inv.comp continuous_fst)).prod_mk
-          (units.continuous_coe.comp (continuous_inv.comp continuous_snd)) },
-      { exact continuous_op.comp ((units.continuous_coe.comp continuous_fst).prod_mk
-            (units.continuous_coe.comp continuous_snd)) }}
-  end,
-  ..mul_equiv.prod_units }
+of the units of each monoid. -/
+@[to_additive "The topological group isomorphism between the additive units of a product of two
+additive monoids, and the product of the additive units of each additive monoid."]
+def homeomorph.prod_units : (α × β)ˣ ≃ₜ (αˣ × βˣ) :=
+{ continuous_to_fun  := (continuous_fst.units_map (monoid_hom.fst α β)).prod_mk
+    (continuous_snd.units_map (monoid_hom.snd α β)),
+  continuous_inv_fun := units.continuous_iff.2 ⟨continuous_coe.fst'.prod_mk continuous_coe.snd',
+    continuous_coe_inv.fst'.prod_mk continuous_coe_inv.snd'⟩,
+  to_equiv := mul_equiv.prod_units.to_equiv }
 
 end units
 
 section lattice_ops
 
-variables {ι : Sort*} [group G] [group H]
-  {t : topological_space H} [topological_group H] {F : Type*}
-  [monoid_hom_class F G H] (f : F)
+variables {ι : Sort*} [group G]
 
 @[to_additive] lemma topological_group_Inf {ts : set (topological_space G)}
   (h : ∀ t ∈ ts, @topological_group G t _) :
   @topological_group G (Inf ts) _ :=
-{ continuous_inv := @has_continuous_inv.continuous_inv G (Inf ts) _
-    (@has_continuous_inv_Inf _ _ _
-      (λ t ht, @topological_group.to_has_continuous_inv G t _ (h t ht))),
-  continuous_mul := @has_continuous_mul.continuous_mul G (Inf ts) _
-    (@has_continuous_mul_Inf _ _ _
-      (λ t ht, @topological_group.to_has_continuous_mul G t _ (h t ht))) }
+{ to_has_continuous_inv := @has_continuous_inv_Inf _ _ _ $
+    λ t ht, @topological_group.to_has_continuous_inv G t _ $ h t ht,
+  to_has_continuous_mul := @has_continuous_mul_Inf _ _ _ $
+    λ t ht, @topological_group.to_has_continuous_mul G t _ $ h t ht }
 
 @[to_additive] lemma topological_group_infi {ts' : ι → topological_space G}
   (h' : ∀ i, @topological_group G (ts' i) _) :
   @topological_group G (⨅ i, ts' i) _ :=
-by {rw ← Inf_range, exact topological_group_Inf (set.forall_range_iff.mpr h')}
+by { rw ← Inf_range, exact topological_group_Inf (set.forall_range_iff.mpr h') }
 
 @[to_additive] lemma topological_group_inf {t₁ t₂ : topological_space G}
   (h₁ : @topological_group G t₁ _) (h₂ : @topological_group G t₂ _) :
   @topological_group G (t₁ ⊓ t₂) _ :=
-by {rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption}
+by { rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption }
 
 end lattice_ops
 

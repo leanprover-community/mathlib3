@@ -594,7 +594,8 @@ lemma principal_unit_group_symm_apply
 /-- The canonical map from the unit group of `A` to the units of the residue field of `A`. -/
 def unit_group_to_residue_field_units :
   A.unit_group →* (local_ring.residue_field A)ˣ :=
-(units.map $ (ideal.quotient.mk _).to_monoid_hom).comp A.unit_group_mul_equiv.to_monoid_hom
+monoid_hom.comp (units.map $ (ideal.quotient.mk _).to_monoid_hom)
+  A.unit_group_mul_equiv.to_monoid_hom
 
 @[simp]
 lemma coe_unit_group_to_residue_field_units_apply (x : A.unit_group) :

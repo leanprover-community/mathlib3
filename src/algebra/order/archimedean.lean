@@ -292,16 +292,10 @@ begin
 end⟩
 
 lemma archimedean_iff_int_le : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x ≤ n :=
-begin
-  rw archimedean_iff_nat_le,
-  refine ⟨λ h x, _, λ h x, _⟩,
-  { rcases h x with ⟨n, h⟩,
-    refine ⟨n, _⟩,
-    exact_mod_cast h },
-  { rcases h x with ⟨n, h⟩,
-    refine ⟨n.to_nat, h.trans _⟩,
-    exact_mod_cast int.le_to_nat _ }
-end
+archimedean_iff_int_lt.trans
+⟨λ H x, (H x).imp $ λ _, le_of_lt,
+ λ H x, let ⟨n, h⟩ := H x in ⟨n+1,
+   lt_of_le_of_lt h (int.cast_lt.2 (lt_add_one _))⟩⟩
 
 lemma archimedean_iff_rat_lt : archimedean α ↔ ∀ x : α, ∃ q : ℚ, x < q :=
 ⟨@exists_rat_gt α _,

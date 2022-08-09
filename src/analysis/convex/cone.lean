@@ -351,8 +351,7 @@ def positive_cone : convex_cone 𝕜 E :=
     end,
   add_mem' := λ x (hx : _ ≤ _) y (hy : _ ≤ _), add_nonneg hx hy }
 
-@[simp] lemma mem_positive_cone {x : E} : x ∈ positive_cone 𝕜 E ↔ 0 ≤ x :=
-by { rw ← set_like.mem_coe, refl }
+@[simp] lemma mem_positive_cone {x : E} : x ∈ positive_cone 𝕜 E ↔ 0 ≤ x := iff.rfl
 
 /-- The positive cone of an ordered module is always salient. -/
 lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=

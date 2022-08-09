@@ -78,9 +78,7 @@ We use this map to pull back the normed space structure from `(A →L[𝕜] A) �
 namespace double_centralizer
 
 /-- the canonical map of `𝓜(𝕜, A)` into `(A →L[𝕜] A) × (A →L[𝕜] A)`. -/
-def prod_mk (a : 𝓜(𝕜, A)) : (A →L[𝕜] A) × (A →L[𝕜] A) := (a.left, a.right)
-
-@[simp] lemma prod_mk_def (a : 𝓜(𝕜, A)) : prod_mk 𝕜 A a = (a.left, a.right) := rfl
+@[simp] def prod_mk (a : 𝓜(𝕜, A)) : (A →L[𝕜] A) × (A →L[𝕜] A) := (a.left, a.right)
 
 variables {𝕜 A}
 
@@ -116,12 +114,22 @@ instance : has_sub 𝓜(𝕜, A) :=
     central := λ x y, by simp only [continuous_linear_map.coe_sub', pi.sub_apply, sub_mul,
       mul_sub, central] } }
 
-instance : has_smul 𝕜 𝓜(𝕜, A) :=
-{ smul := λ k a,
-  { left := k • a.left,
-    right := k • a.right,
-    central := λ x y , by simp only [continuous_linear_map.coe_smul', pi.smul_apply, central,
-      mul_smul_comm, smul_mul_assoc] } }
+section scalars
+
+variables {S : Type*} [monoid S] [distrib_mul_action S A] [smul_comm_class 𝕜 S A]
+  [has_continuous_const_smul S A] [is_scalar_tower S A A] [smul_comm_class S A A]
+
+instance : has_smul S 𝓜(𝕜, A) :=
+{ smul := λ s a,
+  { left := s • a.left,
+    right := s • a.right,
+    central := λ x y, by simp only [continuous_linear_map.coe_smul', pi.smul_apply, mul_smul_comm,
+      smul_mul_assoc, central] } }
+
+@[simp] lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).left = k • a.left := rfl
+@[simp] lemma smul_right (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).right = k • a.right := rfl
+
+end scalars
 
 @[simp] lemma add_left (a b : 𝓜(𝕜, A)) : (a + b).left = a.left + b.left := rfl
 @[simp] lemma add_right (a b : 𝓜(𝕜, A)) : (a + b).right = a.right + b.right := rfl
@@ -131,22 +139,12 @@ instance : has_smul 𝕜 𝓜(𝕜, A) :=
 @[simp] lemma neg_right (a : 𝓜(𝕜, A)) : (-a).right = -a.right := rfl
 @[simp] lemma sub_left (a b : 𝓜(𝕜, A)) : (a - b).left = a.left - b.left := rfl
 @[simp] lemma sub_right (a b : 𝓜(𝕜, A)) : (a - b).right = a.right - b.right := rfl
-@[simp] lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).left = k • a.left := rfl
-@[simp] lemma smul_right (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).right = k • a.right := rfl
 
--- this is easier than defining the instances of `has_smul` for `ℕ` and `ℤ` and pulling the group
--- structure back along `double_centralizer.prod_mk`.
+/-- The module structure is inherited as the pullback under the injective map
+`double_centralizer.prod_mk : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)` -/
 instance : add_comm_group 𝓜(𝕜, A) :=
-{ add := (+),
-  add_assoc := λ a b c, by {ext; exact add_assoc _ _ _},
-  zero := 0,
-  zero_add := λ a, by {ext; exact zero_add _},
-  add_zero := λ a, by {ext; exact add_zero _},
-  neg := λ x, -x,
-  sub := λ x y,  x - y,
-  sub_eq_add_neg := λ a b, by {ext; exact sub_eq_add_neg _ _},
-  add_left_neg := λ a, by {ext; exact add_left_neg _},
-  add_comm := λ a b, by {ext; exact add_comm _ _}, }
+function.injective.add_comm_group (prod_mk 𝕜 A) injective_prod_mk rfl (λ x y, rfl) (λ x, rfl)
+  (λ x y, rfl) (λ x n, rfl) (λ x n, rfl)
 
 /-- The canonical map `double_centralizer.prod_mk` as an additive group homomorphism. -/
 def add_group_hom_prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A) :=

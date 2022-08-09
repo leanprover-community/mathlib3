@@ -63,6 +63,7 @@ begin
 end
 
 /-- Every pseudo-metrizable space is first countable. -/
+@[priority 100]
 instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space X] :
   topological_space.first_countable_topology X :=
 by unfreezingI { rcases h with ⟨_, hm⟩, rw ←hm, apply_instance }

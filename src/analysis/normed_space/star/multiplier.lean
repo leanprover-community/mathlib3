@@ -188,7 +188,6 @@ end
 ### Multiplicative structure
 -/
 
-
 instance : ring 𝓜(𝕜, A) :=
 { one := ⟨1, 1, λ x y, rfl⟩,
   mul := λ x y,
@@ -205,6 +204,11 @@ instance : ring 𝓜(𝕜, A) :=
     right := n,
     central := λ x y, by simp only [←nat.smul_one_eq_coe, continuous_linear_map.smul_apply n 1,
       one_apply, mul_smul_comm, smul_mul_assoc] },
+  int_cast := λ n,
+  { left := n,
+    right := n,
+    central := λ x y, by simp only [←int.smul_one_eq_coe, continuous_linear_map.smul_apply n 1,
+      one_apply, mul_smul_comm, smul_mul_assoc] },
   .. double_centralizer.add_comm_group }
 
 @[simp] lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl
@@ -213,6 +217,8 @@ instance : ring 𝓜(𝕜, A) :=
 @[simp] lemma mul_right (a b : 𝓜(𝕜, A)) : (a * b).right = b.right * a.right := rfl
 @[simp] lemma nat_cast_left (n : ℕ) : (n : 𝓜(𝕜 , A)).left = n := rfl
 @[simp] lemma nat_cast_right (n : ℕ) : (n : 𝓜(𝕜 , A)).right = n := rfl
+@[simp] lemma int_cast_left (n : ℤ) : (n : 𝓜(𝕜 , A)).left = n := rfl
+@[simp] lemma int_cast_right (n : ℤ) : (n : 𝓜(𝕜 , A)).right = n := rfl
 
 /-!
 ### Coercion from an algebra into its multiplier algebra

@@ -430,7 +430,7 @@ open_locale classical
 
 @[simp] lemma to_with_top_add {x y : part_enat} :
   to_with_top (x + y) = to_with_top x + to_with_top y :=
-by apply part_enat.cases_on y; apply part_enat.cases_on x; simp [← nat.cast_add, ← with_top.coe_add]
+by apply part_enat.cases_on y; apply part_enat.cases_on x; simp [← nat.cast_add, ← enat.coe_add]
 
 /-- `equiv` between `part_enat` and `ℕ∞` (for the order isomorphism see
 `with_top_order_iso`). -/

@@ -376,7 +376,7 @@ meta def tactic_view_goal {γ} (local_c : tc local_collection γ) (target_c : tc
   tc filter_type γ :=
 tc.stateless $ λ ft, do
   is ← tactic.frozen_local_instances,
-  let frozen : bool := (is ≠ option.none),
+  let frozen : bool := is ≠ none,
   let is' : list expr := option.cases_on is [] id,
   g@(expr.mvar u_n pp_n y) ← main_goal,
   t ← get_tag g,
@@ -393,8 +393,8 @@ tc.stateless $ λ ft, do
   let lcs := group_local_collection lcs,
   lchs ← lcs.mmap (λ lc, do
     lh ← local_c lc,
+    cls ← is_class lc.type,
     ns ← lc.locals.mmap (λ n, do -- extract into function?
-      cls ← is_class lc.type,
       let var_color : attr γ := if ¬ cls
         then attr.style [("color", "#cc7a00")]  -- "goal-hyp"
         else if frozen

@@ -1015,6 +1015,10 @@ begin
   rw [count_eq_zero_of_not_mem hx, pow_zero],
 end
 
+lemma sum_filter_count_eq_countp [decidable_eq α] (p : α → Prop) [decidable_pred p] (l : list α) :
+  ∑ x in l.to_finset.filter p, l.count x = l.countp p :=
+by simp [finset.sum, sum_map_count_dedup_filter_eq_countp p l]
+
 open multiset
 
 @[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)

@@ -100,7 +100,7 @@ begin
 end
 
 lemma mod_of_add_div_of (x : add_monoid_algebra k G) (g : G) :
-  by haveI := canonically_ordered_add_monoid.to_add_cancel_monoid G; exact
+  by haveI := canonically_ordered_add_monoid.to_add_cancel_comm_monoid G; exact
   mod_of g x + of' k G g * div_of g x = x :=
 by rw [add_comm, div_of_add_mod_of]
 

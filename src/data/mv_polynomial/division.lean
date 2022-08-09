@@ -11,9 +11,9 @@ import data.mv_polynomial.basic
 
 ## Main definitions
 
-* `mv_polynomial.div_monomial s x`: divides `x` by the monomial `mv_polynomial.of k G s`
+* `mv_polynomial.div_monomial s x`: divides `x` by the monomial `mv_polynomial.monomial 1 s`
 * `mv_polynomial.mod_monomial s x`: the remainder upon dividing `x` by the monomial
-  `mv_polynomial.of k G s`.
+  `mv_polynomial.monomial 1 s`.
 
 ## Main results
 

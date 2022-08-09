@@ -670,6 +670,8 @@ lemma tsub_right_inj (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :
 contravariant.add_le_cancellable.tsub_right_inj contravariant.add_le_cancellable
   contravariant.add_le_cancellable hba hca
 
+variables (α)
+
 /-- A `canonically_ordered_add_monoid` with ordered subtraction and order-reflecting addition is
 cancellative. This is not an instance at it would form a typeclass loop.
 

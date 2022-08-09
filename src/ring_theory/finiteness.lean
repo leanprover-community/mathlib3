@@ -431,6 +431,83 @@ begin
   exact equiv ((mv_polynomial_of_finite_presentation hfpA _).quotient hfg) (e.restrict_scalars R)
 end
 
+open mv_polynomial
+
+/-- This is used to prove the strictly stronger `ker_fg_of_surjective`. Use it instead. -/
+lemma ker_fg_of_mv_polynomial {n : ℕ} (f : mv_polynomial (fin n) R →ₐ[R] A)
+  (hf : function.surjective f) (hfp : finite_presentation R A) : f.to_ring_hom.ker.fg :=
+begin
+  obtain ⟨m, f', hf', s, hs⟩ := hfp,
+  let RXn := mv_polynomial (fin n) R, let RXm := mv_polynomial (fin m) R,
+  have := λ (i : fin n), hf' (f $ X i),
+  choose g hg,
+  have := λ (i : fin m), hf (f' $ X i),
+  choose h hh,
+  let aeval_h : RXm →ₐ[R] RXn := aeval h,
+  let g' : fin n → RXn := λ i, X i - aeval_h (g i),
+  refine ⟨finset.univ.image g' ∪ s.image aeval_h, _⟩,
+  simp only [finset.coe_image, finset.coe_union, finset.coe_univ, set.image_univ],
+  have hh' : ∀ x, f (aeval_h x) = f' x,
+  { intro x, rw [← f.coe_to_ring_hom, map_aeval], simp_rw [alg_hom.coe_to_ring_hom, hh],
+    rw [alg_hom.comp_algebra_map, ← aeval_eq_eval₂_hom, ← aeval_unique] },
+  let s' := set.range g' ∪ aeval_h '' s,
+  have leI : ideal.span s' ≤ f.to_ring_hom.ker,
+  { rw ideal.span_le,
+    rintros _ (⟨i, rfl⟩|⟨x, hx, rfl⟩),
+    { change f (g' i) = 0, rw [map_sub, ← hg, hh', sub_self], },
+    { change f (aeval_h x) = 0,
+      rw hh',
+      change x ∈ f'.to_ring_hom.ker,
+      rw ← hs,
+      exact ideal.subset_span hx } },
+  apply leI.antisymm,
+  intros x hx,
+  have : x ∈ aeval_h.range.to_add_submonoid ⊔ (ideal.span s').to_add_submonoid,
+  { have : x ∈ adjoin R (set.range X : set RXn) := by { rw [adjoin_range_X], trivial },
+    apply adjoin_induction this,
+    { rintros _ ⟨i, rfl⟩,
+      rw [← sub_add_cancel (X i) (aeval h (g i)), add_comm],
+      apply add_submonoid.add_mem_sup,
+    { exact set.mem_range_self _ },
+    { apply submodule.subset_span,
+      apply set.mem_union_left,
+      exact set.mem_range_self _ } },
+    { intros r, apply add_submonoid.mem_sup_left, exact ⟨C r, aeval_C _ _⟩ },
+    { intros _ _ h₁ h₂, exact add_mem h₁ h₂ },
+    { intros p₁ p₂ h₁ h₂,
+      obtain ⟨_, ⟨x₁, rfl⟩, y₁, hy₁, rfl⟩ := add_submonoid.mem_sup.mp h₁,
+      obtain ⟨_, ⟨x₂, rfl⟩, y₂, hy₂, rfl⟩ := add_submonoid.mem_sup.mp h₂,
+      rw [mul_add, add_mul, add_assoc, ← map_mul],
+      apply add_submonoid.add_mem_sup,
+    { exact set.mem_range_self _ },
+    { exact add_mem (ideal.mul_mem_right _ _ hy₁) (ideal.mul_mem_left _ _ hy₂) } } },
+  obtain ⟨_, ⟨x, rfl⟩, y, hy, rfl⟩ := add_submonoid.mem_sup.mp this,
+  refine add_mem _ hy,
+  simp only [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom, map_add,
+    (show f y = 0, from leI hy), add_zero, hh'] at hx,
+  suffices : ideal.span (s : set RXm) ≤ (ideal.span s').comap aeval_h,
+  { apply this, rwa hs },
+  rw ideal.span_le,
+  intros x hx,
+  apply submodule.subset_span,
+  apply set.mem_union_right,
+  exact set.mem_image_of_mem _ hx
+end
+.
+lemma comp_to_ring_hom {C : Type*} [semiring C] [algebra R C] (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) :
+  (φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
+
+/-- If `f : A →ₐ[R] B` is a sujection between finitely-presented `R`-algebras, then the kernel of
+`f` is finitely generated. -/
+lemma ker_fg_of_surjective (f : A →ₐ[R] B) (hf : function.surjective f)
+  (hRA : finite_presentation R A) (hRB : finite_presentation R B) : f.to_ring_hom.ker.fg :=
+begin
+  obtain ⟨n, g, hg, hg'⟩ := hRA,
+  convert (ker_fg_of_mv_polynomial (f.comp g) (hf.comp hg) hRB).map g.to_ring_hom,
+  simp_rw [ring_hom.ker_eq_comap_bot, alg_hom.to_ring_hom_eq_coe, comp_to_ring_hom],
+  rw [← ideal.comap_comap, ideal.map_comap_of_surjective (g : mv_polynomial (fin n) R →+* A) hg],
+end
+
 end finite_presentation
 
 end algebra

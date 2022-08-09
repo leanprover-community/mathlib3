@@ -293,22 +293,24 @@ by { convert ceil_add_nat ha 1, exact cast_one.symm }
 lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
-end linear_ordered_semiring
-
-section linear_ordered_ring
-variables [linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ}
-
-lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
+lemma floor_sub_nat [has_sub α] [has_ordered_sub α] [has_exists_add_of_le α] (a : α) (n : ℕ) :
+  ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
 begin
   obtain ha | ha := le_total a 0,
-  { rw [floor_of_nonpos ha, floor_of_nonpos (sub_nonpos_of_le (ha.trans n.cast_nonneg)),
+  { rw [floor_of_nonpos ha, floor_of_nonpos (tsub_nonpos.mpr (ha.trans n.cast_nonneg)),
       zero_tsub] },
   cases le_total a n,
   { rw [floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],
     exact nat.cast_le.1 ((nat.floor_le ha).trans h) },
-  { rw [eq_tsub_iff_add_eq_of_le (le_floor h), ←floor_add_nat (sub_nonneg_of_le h),
-      sub_add_cancel] }
+  { rw [eq_tsub_iff_add_eq_of_le (le_floor h), ←floor_add_nat _,
+      tsub_add_cancel_of_le h],
+    exact le_tsub_of_add_le_left ((add_zero _).trans_le h), }
 end
+
+end linear_ordered_semiring
+
+section linear_ordered_ring
+variables [linear_ordered_ring α] [floor_semiring α]
 
 lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋₊ := sub_lt_iff_lt_add.2 $ lt_floor_add_one a
 

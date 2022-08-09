@@ -208,7 +208,7 @@ variables {α}
 
 @[to_additive] theorem uniform_group.uniformity_countably_generated
   [(𝓝 (1 : α)).is_countably_generated] :
-  (uniformity α).is_countably_generated :=
+  (𝓤 α).is_countably_generated :=
 by { rw uniformity_eq_comap_nhds_one, exact filter.comap.is_countably_generated _ _ }
 
 open mul_opposite

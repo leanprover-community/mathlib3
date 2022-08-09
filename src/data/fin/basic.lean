@@ -1234,22 +1234,28 @@ begin
   rwa subtype.ext_iff at h
 end
 
-lemma coe_sub_of_le {n : ℕ} {a b : fin n} (h : b ≤ a) :
-  (↑(a - b) : ℕ) = a - b :=
+lemma coe_sub_iff_le {n : ℕ} {a b : fin n} :
+  (↑(a - b) : ℕ) = a - b ↔ b ≤ a :=
 begin
   cases n, {exact fin_zero_elim a},
-  rw le_iff_coe_le_coe at h,
-  rw [fin.coe_sub, ←add_tsub_assoc_of_le b.prop.le, ←tsub_add_eq_add_tsub h, nat.add_mod_right],
-  exact nat.mod_eq_of_lt ((nat.sub_le _ _).trans_lt a.prop),
+  rw [le_iff_coe_le_coe, fin.coe_sub, ←add_tsub_assoc_of_le b.is_lt.le],
+  cases le_or_lt (b : ℕ) a with h h,
+  { simp [←tsub_add_eq_add_tsub h, h, nat.mod_eq_of_lt ((nat.sub_le _ _).trans_lt a.is_lt)] },
+  { rw [nat.mod_eq_of_lt, tsub_eq_zero_of_le h.le, tsub_eq_zero_iff_le, ←not_iff_not],
+    { simpa [b.is_lt.trans_le (le_add_self)] using h },
+    { rwa [tsub_lt_iff_left (b.is_lt.le.trans (le_add_self)), add_lt_add_iff_right] } }
 end
 
-lemma coe_sub_of_lt {n : ℕ} {a b : fin n} (h : a < b) :
-  (↑(a - b) : ℕ) = n + a - b :=
+lemma coe_sub_iff_lt {n : ℕ} {a b : fin n} :
+  (↑(a - b) : ℕ) = n + a - b ↔ a < b :=
 begin
   cases n, {exact fin_zero_elim a},
-  rw lt_iff_coe_lt_coe at h,
-  rw [fin.coe_sub, add_comm, ← tsub_add_eq_add_tsub b.prop.le, ←tsub_tsub_assoc b.prop.le h.le],
-  exact nat.mod_eq_of_lt (tsub_lt_self (nat.succ_pos _) (tsub_pos_of_lt h)),
+  rw [lt_iff_coe_lt_coe, fin.coe_sub, add_comm],
+  cases le_or_lt (b : ℕ) a with h h,
+  { simpa [add_tsub_assoc_of_le h, ←not_le, h]
+    using ((nat.mod_lt _ (nat.succ_pos _)).trans_le le_self_add).ne },
+  { simp [←tsub_tsub_assoc b.is_lt.le h.le, ←tsub_add_eq_add_tsub b.is_lt.le,
+          nat.mod_eq_of_lt (tsub_lt_self (nat.succ_pos _) (tsub_pos_of_lt h)), h] }
 end
 
 /-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
@@ -1263,8 +1269,8 @@ def _root_.order_iso.fin_equiv : ∀ {n}, (fin n)ᵒᵈ ≃o fin n
   map_rel_iff' := λ a b,
   begin
     simp only [equiv.coe_fn_mk, order_dual.to_dual_le_to_dual],
-    rw [le_iff_coe_le_coe, coe_sub_of_le (le_last _), coe_sub_of_le (le_last _),
-      tsub_le_tsub_iff_left, le_iff_coe_le_coe],
+    rw [le_iff_coe_le_coe, coe_sub_iff_le.mpr (le_last b), coe_sub_iff_le.mpr (le_last _),
+        tsub_le_tsub_iff_left, le_iff_coe_le_coe],
     exact le_last _,
   end }
 

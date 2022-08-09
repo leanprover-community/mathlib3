@@ -2619,7 +2619,7 @@ lemma cont_diff_const_smul (c : R) : cont_diff 𝕜 n (λ p : F, c • p) :=
 within this set at this point. -/
 lemma cont_diff_within_at.const_smul {s : set E} {f : E → F} {x : E} (c : R)
   (hf : cont_diff_within_at 𝕜 n f s x) : cont_diff_within_at 𝕜 n (λ y, c • f y) s x :=
-(cont_diff_const_smul c).cont_diff_within_at.comp_cont_diff_within_at x hf
+(cont_diff_const_smul c).cont_diff_at.comp_cont_diff_within_at x hf
 
 /-- The scalar multiplication of a constant and a `C^n` function at a point is `C^n` at this
 point. -/

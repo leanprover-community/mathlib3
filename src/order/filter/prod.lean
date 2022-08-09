@@ -16,12 +16,12 @@ of two filters is the largest filter `l` such that `filter.tendsto prod.fst l f`
 
 The product filter cannot be defined using the monad structure on filters. For example:
 
-```
+```lean
 F := do {x ← seq, y ← top, return (x, y)}
 G := do {y ← top, x ← seq, return (x, y)}
 ```
 hence:
-```
+```lean
 s ∈ F  ↔  ∃ n, [n..∞] × univ ⊆ s
 s ∈ G  ↔  ∀ i:ℕ, ∃ n, [n..∞] × {i} ⊆ s
 ```

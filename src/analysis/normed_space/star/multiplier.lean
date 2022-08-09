@@ -199,16 +199,10 @@ instance : ring 𝓜(𝕜, A) :=
   mul_one := λ a, ext _ _ (mul_one _) (mul_one _),
   left_distrib := λ a b c, ext _ _ (mul_add _ _ _) (add_mul _ _ _),
   right_distrib := λ a b c, ext _ _ (add_mul _ _ _) (mul_add _ _ _),
-  nat_cast := λ n,
-  { left := n,
-    right := n,
-    central := λ x y, by simp only [←nat.smul_one_eq_coe, continuous_linear_map.smul_apply n 1,
-      one_apply, mul_smul_comm, smul_mul_assoc] },
-  int_cast := λ n,
-  { left := n,
-    right := n,
-    central := λ x y, by simp only [←int.smul_one_eq_coe, continuous_linear_map.smul_apply n 1,
-      one_apply, mul_smul_comm, smul_mul_assoc] },
+  nat_cast := λ n, ⟨n, n, λ x y,
+    by simp only [←nat.smul_one_eq_coe, smul_apply n 1, one_apply, mul_smul_comm, smul_mul_assoc]⟩,
+  int_cast := λ n, ⟨n, n, λ x y,
+    by simp only [←int.smul_one_eq_coe, smul_apply n 1, one_apply, mul_smul_comm, smul_mul_assoc]⟩,
   .. double_centralizer.add_comm_group }
 
 @[simp] lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl

@@ -870,7 +870,7 @@ variables [smul_comm_class A B M]
 /-- If `M` is a representation of two different `R`-algebras `A` and `B` whose actions commute,
 then it is a representation the `R`-algebra `A ⊗[R] B`.
 
-A important example arises from a semiring `S`; allowing `S` to act on itself via left and right
+An important example arises from a semiring `S`; allowing `S` to act on itself via left and right
 multiplication, the roles of `R`, `A`, `B`, `M` are played by `ℕ`, `S`, `Sᵐᵒᵖ`, `S`.
 
 NB: This is not an instance because in the case `B = A` and `M = A ⊗[R] A` we would have a diamond

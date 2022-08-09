@@ -305,6 +305,7 @@ end
 
 alias ring_hom.is_integral.to_finite ← ring_hom.finite.of_is_integral_of_finite_type
 
+/-- finite = integral + finite type -/
 lemma ring_hom.finite_iff_is_integral_and_finite_type :
   f.finite ↔ f.is_integral ∧ f.finite_type :=
 ⟨λ h, ⟨h.to_is_integral, h.to_finite_type⟩, λ ⟨h, h'⟩, h.to_finite h'⟩
@@ -323,6 +324,7 @@ begin
   delta ring_hom.finite, convert h, ext, exact (algebra.smul_def _ _).symm,
 end
 
+/-- finite = integral + finite type -/
 lemma algebra.finite_iff_is_integral_and_finite_type :
   module.finite R A ↔ algebra.is_integral R A ∧ algebra.finite_type R A :=
 ⟨λ h, by exactI ⟨algebra.is_integral.of_finite, infer_instance⟩, λ ⟨h, h'⟩, by exactI h.finite⟩

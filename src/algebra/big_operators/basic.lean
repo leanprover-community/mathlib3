@@ -1857,14 +1857,30 @@ end
 
 open additive multiplicative
 
-section comm_monoid
-variables [comm_monoid α]
+section monoid
+variables [monoid α]
 
 @[simp] lemma of_mul_list_prod (s : list α) : of_mul s.prod = (s.map of_mul).sum :=
 by simpa [of_mul]
 
 @[simp] lemma to_mul_list_sum (s : list (additive α)) :
   to_mul s.sum = (s.map to_mul).prod := by simpa [to_mul, of_mul]
+
+end monoid
+
+section add_monoid
+variables [add_monoid α]
+
+@[simp] lemma of_add_list_prod (s : list α) : of_add s.sum = (s.map of_add).prod :=
+by simpa [of_add]
+
+@[simp] lemma to_add_list_sum (s : list (multiplicative α)) :
+  to_add s.prod = (s.map to_add).sum := by simpa [to_add, of_add]
+
+end add_monoid
+
+section comm_monoid
+variables [comm_monoid α]
 
 @[simp] lemma of_mul_multiset_prod (s : multiset α) :
   of_mul s.prod = (s.map of_mul).sum := by simpa [of_mul]
@@ -1882,12 +1898,6 @@ end comm_monoid
 
 section add_comm_monoid
 variables [add_comm_monoid α]
-
-@[simp] lemma of_add_list_prod (s : list α) : of_add s.sum = (s.map of_add).prod :=
-by simpa [of_add]
-
-@[simp] lemma to_add_list_sum (s : list (multiplicative α)) :
-  to_add s.prod = (s.map to_add).sum := by simpa [to_add, of_add]
 
 @[simp] lemma of_add_multiset_prod (s : multiset α) :
   of_add s.sum = (s.map of_add).prod := by simpa [of_add]

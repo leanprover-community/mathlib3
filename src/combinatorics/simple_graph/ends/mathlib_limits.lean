@@ -12,6 +12,8 @@ import data.setoid.partition
 import set_theory.cardinal.basic
 import data.fintype.basic
 
+import .mathlib
+
 universes u v w
 
 open classical
@@ -420,14 +422,10 @@ begin
     have : op_hom_of_le lm ≫ op_hom_of_le mi ≫ ik' = op_hom_of_le ln ≫ op_hom_of_le nk, by refl,
     rw this,
     apply congr_arg,
-    /-
-    We have as a goal:
-    ((equiv.of_bij _ ).trans (equiv.of_bij _ )).symm x = ((equiv.of_bij _ ).trans (equiv.of_bij _ )).symm x
-    We would like to first get to
-    (equiv.of_bij _ ).symm x = (equiv.of_bij _ ).symm x
-    Because the composite of bijectives is bijective, and applying `.trans` respects that or something.
-    And then probably there is a lemma taking care of the rest
-    -/
+
+    rw [equiv.of_bijective_trans,equiv.of_bijective_trans],
+    rw [←equiv.inv_fun_as_coe,←equiv.inv_fun_as_coe],
+    -- Should be almost trivial!!!
     sorry, },
   { obtain ⟨m,mj,mj',meq⟩ := (s j).prop,
     simp, simp at meq, rw ←meq,
@@ -465,9 +463,9 @@ begin
     λ ii, set.preimage (F.map $ op_hom_of_le ii.unop.prop) {x},
 
   have subfunctor : Π (ii kk : {i : J | j.unop ≤ i}ᵒᵖ) (ik : kk.unop ≤ ii.unop),
-    set.maps_to (F.map $ ((by { apply op_hom_of_le, simp, exact ik }) : opposite.op (ii.unop).val ⟶ opposite.op (kk.unop).val)) (Fobj ii) (Fobj kk), by {
+    set.maps_to (F.map $ ((by { apply op_hom_of_le, simp only [subtype.val_eq_coe, opposite.unop_op, subtype.coe_le_coe], exact ik }) : opposite.op (ii.unop).val ⟶ opposite.op (kk.unop).val)) (Fobj ii) (Fobj kk), by {
     rintro ii kk ik,
-    dsimp [Fobj],
+    dsimp only [Fobj],
     unfold set.maps_to,
     unfold set.preimage,
     rintro y hy,
@@ -480,15 +478,15 @@ begin
   refine ⟨λ ii, subtype (Fobj ii),_,_,_⟩,
   { rintros ii kk ik,
     exact set.maps_to.restrict _ _ _ (subfunctor ii kk $ le_of_op_hom ik),},
-  { simp,
+  { simp only [auto_param_eq],
     rintro ii,
     apply funext,
     rintro ⟨x,xh⟩,
-    simp, simp [set.maps_to.restrict, subtype.map],
+    simp only [types_id_apply, set.maps_to.restrict, subtype.map, subtype.coe_mk, subtype.mk_eq_mk],
     nth_rewrite_rhs 0 ←functor_to_types.map_id_apply F x,
     reflexivity, },
-  { simp, rintro ii kk ll ik kl, apply funext, rintro ⟨x,xh⟩,
-    simp, simp [set.maps_to.restrict, subtype.map],
+  { simp only [auto_param_eq], rintro ii kk ll ik kl, apply funext, rintro ⟨x,xh⟩,
+    simp only [types_comp_apply, set.maps_to.restrict, subtype.map, subtype.coe_mk, subtype.mk_eq_mk],
     rw ←functor_to_types.map_comp_apply,
     reflexivity, },
 end
@@ -503,21 +501,16 @@ instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_l
   Π (i : {i : J | j.unop ≤ i}ᵒᵖ), nonempty ((fis.above_point F j x).obj i)  :=
 begin
   rintro ii,
-  obtain ⟨i,ij⟩ := ii.unop,
   dsimp [fis.above_point],
   unfold fis.is_surjective at Fsurj,
-  specialize Fsurj (opposite.op i) j ij x,
-  obtain ⟨y,rfl⟩ := Fsurj,
-  simp,
+  specialize Fsurj (opposite.op (ii.unop.val)) j ii.unop.prop x,
   unfold set.preimage,
-  simp *,
+  simp,
+  obtain ⟨y,rfl⟩ := Fsurj,
   apply Exists.intro,
   rotate,
-  have : (opposite.op i) = opposite.op ↑(opposite.unop ii), by { sorry },
-  rw ←this,
-  use y,
-  dsimp,
-  sorry, -- wtf
+  { rw ←subtype.val_eq_coe, use y, },
+  { dsimp only [subtype.val_eq_coe] at *, fsplit,  /-thanks tidy I don't know what I'm doing here-/},
 end
 
 instance fis.above_point.fintype {J : Type u} [preorder J] [is_directed J has_le.le]

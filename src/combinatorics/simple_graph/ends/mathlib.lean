@@ -381,6 +381,21 @@ end
 end simple_graph
 
 
+lemma  equiv.of_bijective_trans {α β γ : Type*} {f : α → β} {g : β → γ}
+  (hf : function.bijective f) (hg : function.bijective g) :
+(equiv.of_bijective f hf).trans (equiv.of_bijective g hg) = equiv.of_bijective (g ∘ f) (function.bijective.comp hg hf) :=
+begin
+  ext, simp,
+end
+
+lemma  equiv.of_bijective_inj {α β γ : Type*} {f : α → β}
+  (h₁ h₂ : function.bijective f) :
+(equiv.of_bijective f h₁) = (equiv.of_bijective f h₂) :=
+begin
+  ext, simp,
+end
+
+
 namespace finset
 
 def bInter {α : Type*} (S : set (finset α)) (Snempty : S.nonempty) : finset α :=

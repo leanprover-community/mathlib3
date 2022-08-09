@@ -15,23 +15,16 @@ import ring_theory.tensor_product
 * `category_theory.Module.restrict_scalars`: given rings `R, S` and a ring homomorphism `R ⟶ S`,
   then `restrict_scalars : Module S ⥤ Module R` is defined by `M ↦ M` where `M : S-module` is seen
   as `R-module` by `r • m := f r • m` and `S`-linear map `l : M ⟶ M'` is `R`-linear as well.
-
-* `category_theory.Module.extend_scalars`: given **commutative** rings `R, S` and ring homomorphism
-  `f : R ⟶ S`, then `extend_scalars : Module R ⥤ Module S` is defined by `M ↦ S ⨂ M` where the
-  module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
-  is sent to `S`-linear map `s ⊗ m ↦ s ⊗ l m : S ⨂ M ⟶ S ⨂ M'`.
+* `category_theory.Module.coextend_scalars`: given rings `R, S` and a ring homomorphism `R ⟶ S`m
+  then `coextend_scalars : Module R ⥤ Module S` is defined by `M ↦ (S →ₗ[R] M)` where `S` is seen as
+  `R-module` by restriction of scalars and `l ↦ l ∘ _`.
 
 ## List of notations
 Let `R, S` be rings and `f : R →+* S`
 * if `M` is an `S`-module, `r : R` and `m : M` then notation `r r•[f] m` means `R`-scalar action on
   `M` defined by `f r • m`.
-* if `M` is an `R`-module, then notation `S ⨂[R, f] M` means the tensor product `S ⨂ M` where `S` is
-  considered as an `R`-module via restriction of scalars.
-* if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f]` is the pure tensor
-  `s ⊗ m : S ⊗[R, f] M`
-* if `M` is an `R`-module, `s : S` and  `x : S ⊗[R, f] M` then notation `s e•[f] x` denotes the
-  `S`-scalar multiplication where if `x` is pure tensor `s' ⊗ m` then `s e•[f] (s' ⊗ m)` is defined
-  as `(s * s') ⊗ m`
+* if `M` is an `R`-module, `s : S` and `l : S →ₗ[R] M` then notation `s c•[f] l` means `S`-scalar
+  action defined by `(s c•[f] l) x = l (s • x)`
 -/
 
 

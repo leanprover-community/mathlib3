@@ -25,12 +25,12 @@ The determinant of a block matrix in terms of the Schur complement is expressed 
 namespace matrix
 
 open_locale matrix
-variables {n : Type*} {m : Type*} {R : Type*} [comm_ring R] [star_ring R]
+variables {n : Type*} {m : Type*} {𝕜 : Type*} [is_R_or_C 𝕜]
 
 localized "infix ` ⊕ᵥ `:65 := sum.elim" in matrix
 
 lemma schur_complement_eq₁₁ [fintype m] [decidable_eq m] [fintype n]
-  {A : matrix m m R} (B : matrix m n R) (D : matrix n n R) (x : m → R) (y : n → R)
+  {A : matrix m m 𝕜} (B : matrix m n 𝕜) (D : matrix n n 𝕜) (x : m → 𝕜) (y : n → 𝕜)
   [invertible A] (hA : A.is_hermitian) :
 vec_mul (star (x ⊕ᵥ y)) (from_blocks A B Bᴴ D) ⬝ᵥ (x ⊕ᵥ y) =
   vec_mul (star (x + (A⁻¹ ⬝ B).mul_vec y)) A ⬝ᵥ (x + (A⁻¹ ⬝ B).mul_vec y) +
@@ -43,7 +43,7 @@ begin
 end
 
 lemma schur_complement_eq₂₂ [fintype m] [fintype n] [decidable_eq n]
-  (A : matrix m m R) (B : matrix m n R) {D : matrix n n R} (x : m → R) (y : n → R)
+  (A : matrix m m 𝕜) (B : matrix m n 𝕜) {D : matrix n n 𝕜} (x : m → 𝕜) (y : n → 𝕜)
   [invertible D] (hD : D.is_hermitian) :
 vec_mul (star (x ⊕ᵥ y)) (from_blocks A B Bᴴ D) ⬝ᵥ (x ⊕ᵥ y) =
   vec_mul (star ((D⁻¹ ⬝ Bᴴ).mul_vec x + y)) D ⬝ᵥ ((D⁻¹ ⬝ Bᴴ).mul_vec x + y) +
@@ -61,10 +61,10 @@ namespace matrix
 
 open_locale matrix
 variables {n : Type*} {m : Type*}
-  {R : Type*} [ordered_comm_ring R] [star_ring R]
+  {𝕜 : Type*} [is_R_or_C 𝕜]
 
 lemma is_hermitian.from_blocks₁₁ [fintype m] [decidable_eq m]
-  {A : matrix m m R} (B : matrix m n R) (D : matrix n n R)
+  {A : matrix m m 𝕜} (B : matrix m n 𝕜) (D : matrix n n 𝕜)
   (hA : A.is_hermitian) :
   (from_blocks A B Bᴴ D).is_hermitian ↔ (D - Bᴴ ⬝ A⁻¹ ⬝ B).is_hermitian :=
 begin
@@ -82,7 +82,7 @@ begin
 end
 
 lemma is_hermitian.from_blocks₂₂ [fintype n] [decidable_eq n]
-  (A : matrix m m R) (B : matrix m n R) {D : matrix n n R}
+  (A : matrix m m 𝕜) (B : matrix m n 𝕜) {D : matrix n n 𝕜}
   (hD : D.is_hermitian) :
   (from_blocks A B Bᴴ D).is_hermitian ↔ (A - B ⬝ D⁻¹ ⬝ Bᴴ).is_hermitian :=
 begin
@@ -92,7 +92,7 @@ begin
 end
 
 lemma pos_semidef.from_blocks₁₁ [fintype m] [decidable_eq m] [fintype n]
-  {A : matrix m m R} (B : matrix m n R) (D : matrix n n R)
+  {A : matrix m m 𝕜} (B : matrix m n 𝕜) (D : matrix n n 𝕜)
   (hA : A.pos_def) [invertible A] :
   (from_blocks A B Bᴴ D).pos_semidef ↔ (D - Bᴴ ⬝ A⁻¹ ⬝ B).pos_semidef :=
 begin
@@ -104,7 +104,8 @@ begin
       dot_product_zero, zero_add] at this,
     rw [dot_product_mul_vec], exact this },
   { refine λ h, ⟨h.1, λ x, _⟩,
-    rw [dot_product_mul_vec, ← sum.elim_comp_inl_inr x, schur_complement_eq₁₁ B D _ _ hA.1],
+    rw [dot_product_mul_vec, ← sum.elim_comp_inl_inr x, schur_complement_eq₁₁ B D _ _ hA.1,
+      map_add],
     apply le_add_of_nonneg_of_le,
     { rw ← dot_product_mul_vec,
       apply hA.pos_semidef.2, },
@@ -112,7 +113,7 @@ begin
 end
 
 lemma pos_semidef.from_blocks₂₂ [fintype m] [fintype n] [decidable_eq n]
-  (A : matrix m m R) (B : matrix m n R) {D : matrix n n R}
+  (A : matrix m m 𝕜) (B : matrix m n 𝕜) {D : matrix n n 𝕜}
   (hD : D.pos_def) [invertible D] :
   (from_blocks A B Bᴴ D).pos_semidef ↔ (A - B ⬝ D⁻¹ ⬝ Bᴴ).pos_semidef :=
 begin

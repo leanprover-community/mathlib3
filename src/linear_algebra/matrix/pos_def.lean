@@ -32,14 +32,14 @@ lemma pos_def.is_hermitian {M : matrix n n 𝕜} (hM : M.pos_def) : M.is_hermiti
 /-- A matrix `M : matrix n n 𝕜` is positive semidefinite if it is hermitian
    and `xᴴMx` is nonnegative for all `x`. -/
 def pos_semidef (M : matrix n n 𝕜) :=
-M.is_hermitian ∧ ∀ x : n → 𝕜, 0 ≤ dot_product (star x) (M.mul_vec x)
+M.is_hermitian ∧ ∀ x : n → 𝕜, 0 ≤ is_R_or_C.re (dot_product (star x) (M.mul_vec x))
 
 lemma pos_def.pos_semidef {M : matrix n n 𝕜} (hM : M.pos_def) : M.pos_semidef :=
 begin
   refine ⟨hM.1, _⟩,
   intros x,
   by_cases hx : x = 0,
-  { simp only [hx, zero_dot_product, star_zero] },
+  { simp only [hx, zero_dot_product, star_zero, is_R_or_C.zero_re'] },
   { exact le_of_lt (hM.2 x hx) }
 end
 

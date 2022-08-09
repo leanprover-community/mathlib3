@@ -988,7 +988,7 @@ begin
     { exact (IH _ _ h).cons _ } }
 end
 
-lemma range_bind_sublists_len {α : Type*} (l : list α) :
+lemma range_bind_sublists_len_perm {α : Type*} (l : list α) :
   (list.range (l.length + 1)).bind (λ n, sublists_len n l) ~ sublists' l :=
 begin
   induction l with h tl,

@@ -238,42 +238,65 @@ map_prod (rat.cast_hom α) _ _
 
 end field
 
-@[simp, norm_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
-| ⟨n, d, h, c⟩ :=
-  by { rw [num_denom', cast_mk, mk_eq_div, div_nonneg_iff, div_nonneg_iff], norm_cast }
+section linear_ordered_field
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=
-by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
+variables {K : Type*} [linear_ordered_field K]
 
-@[simp, norm_cast] theorem cast_lt [linear_ordered_field α] {m n : ℚ} : (m : α) < n ↔ m < n :=
-by simpa [-cast_le] using not_congr (@cast_le α _ n m)
+lemma cast_pos_of_pos {r : ℚ} (hr : 0 < r) : (0 : K) < r :=
+begin
+  cases r with n d h c,
+  exact div_pos (int.cast_pos.2 $ num_pos_iff_pos.2 hr) (nat.cast_pos.2 h)
+end
 
-@[simp] theorem cast_nonpos [linear_ordered_field α] {n : ℚ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
+@[mono] lemma cast_strict_mono : strict_mono (coe : ℚ → K) :=
+λ m n, by simpa only [sub_pos, cast_sub] using @cast_pos_of_pos K _ (n - m)
+
+@[mono] lemma cast_mono : monotone (coe : ℚ → K) := cast_strict_mono.monotone
+
+/-- Coercion from `ℚ` as an order embedding. -/
+@[simps] def cast_order_embedding : ℚ ↪o K :=
+order_embedding.of_strict_mono coe cast_strict_mono
+
+@[simp, norm_cast] theorem cast_le {m n : ℚ} : (m : K) ≤ n ↔ m ≤ n :=
+cast_order_embedding.le_iff_le
+
+@[simp, norm_cast] theorem cast_nonneg {n : ℚ} : 0 ≤ (n : K) ↔ 0 ≤ n :=
 by rw [← cast_zero, cast_le]
 
-@[simp] theorem cast_pos [linear_ordered_field α] {n : ℚ} : (0 : α) < n ↔ 0 < n :=
-by rw [← cast_zero, cast_lt]
+@[simp, norm_cast] theorem cast_lt {m n : ℚ} : (m : K) < n ↔ m < n :=
+cast_strict_mono.lt_iff_lt
 
-@[simp] theorem cast_lt_zero [linear_ordered_field α] {n : ℚ} : (n : α) < 0 ↔ n < 0 :=
-by rw [← cast_zero, cast_lt]
+@[simp] theorem cast_nonpos {n : ℚ} : (n : K) ≤ 0 ↔ n ≤ 0 := by rw [← cast_zero, cast_le]
+@[simp] theorem cast_pos {n : ℚ} : (0 : K) < n ↔ 0 < n := by rw [← cast_zero, cast_lt]
+@[simp] theorem cast_lt_zero {n : ℚ} : (n : K) < 0 ↔ n < 0 := by rw [← cast_zero, cast_lt]
+
+@[simp, norm_cast] theorem cast_min {a b : ℚ} : (↑(min a b) : K) = min a b :=
+(@cast_mono K _).map_min
+
+@[simp, norm_cast] theorem cast_max {a b : ℚ} : (↑(max a b) : K) = max a b :=
+(@cast_mono K _).map_max
+
+@[simp, norm_cast] theorem cast_abs {q : ℚ} : ((|q| : ℚ) : K) = |q| :=
+by simp [abs_eq_max_neg]
+
+open set
+
+@[simp] lemma preimage_cast_Icc (a b : ℚ) : coe ⁻¹' (Icc (a : K) b) = Icc a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ico (a b : ℚ) : coe ⁻¹' (Ico (a : K) b) = Ico a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ioc (a b : ℚ) : coe ⁻¹' (Ioc (a : K) b) = Ioc a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ioo (a b : ℚ) : coe ⁻¹' (Ioo (a : K) b) = Ioo a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ici (a : ℚ) : coe ⁻¹' (Ici (a : K)) = Ici a := by { ext x, simp }
+@[simp] lemma preimage_cast_Iic (a : ℚ) : coe ⁻¹' (Iic (a : K)) = Iic a := by { ext x, simp }
+@[simp] lemma preimage_cast_Ioi (a : ℚ) : coe ⁻¹' (Ioi (a : K)) = Ioi a := by { ext x, simp }
+@[simp] lemma preimage_cast_Iio (a : ℚ) : coe ⁻¹' (Iio (a : K)) = Iio a := by { ext x, simp }
+
+end linear_ordered_field
 
 @[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
 
 @[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ :=
 ring_hom.ext cast_id
-
-@[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
-  (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min_def]
-
-@[simp, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
-  (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [h, max_def]
-
-@[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
-  ((|q| : ℚ) : α) = |q| :=
-by simp [abs_eq_max_neg]
 
 end rat
 

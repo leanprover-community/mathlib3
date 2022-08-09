@@ -92,18 +92,57 @@ begin
 end
 
 
-
-instance obj_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplComp G Gpc).obj j) := by {
+instance ComplComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplComp G Gpc).obj j) := by {
   intro K,
   obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K.unop Vinf,
   use [C,Ccomp],
 }
 
-instance obj_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplComp G Gpc).obj j) := by {
+instance ComplComp_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplComp G Gpc).obj j) := by {
   intro K,
   exact (ro_component.finite G Gpc K.unop).fintype,
 }
 
+instance ComplInfComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplInfComp G Gpc).obj j) := by {
+  intro K,
+  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K.unop Vinf,
+  use [C,Ccomp],
+}
+
+instance ComplInfComp_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplInfComp G Gpc).obj j) := by {
+  intro K,
+  haveI := (ro_component.finite G Gpc K.unop).fintype,
+  dsimp [ComplInfComp],
+  apply subtype.fintype,
+}
+
 
 theorem exists_end_inf_graph (Vinf : set.infinite  (@set.univ V)) : (Ends G Gpc).nonempty :=
-  @nonempty_sections_of_fintype_inverse_system _ _ _ (ComplComp G Gpc) _ (obj_nonempty G Gpc Vinf)
+  @nonempty_sections_of_fintype_inverse_system _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc Vinf)
+
+
+lemma all_empty (Vfin : set.finite (@set.univ V)) : ∀ (K : finset V), is_empty ((ComplInfComp G Gpc).obj $ opposite.op K) :=
+begin
+  sorry,
+end
+
+
+
+lemma Endsinfty_surjective : Π (j : (finset V)ᵒᵖ), function.surjective (λ e : Endsinfty G Gpc, e.val j) :=
+begin
+  rintro j,
+  dsimp [Endsinfty],
+  rw ComplInfComp_eq_ComplComp_to_surjective,
+  apply fis.sections_surjective,
+  rintro i h,
+  by_cases hfin : (set.finite (@set.univ V)),
+  { let jempty := all_empty G Gpc hfin j.unop,
+    rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
+    rintro y,
+    exfalso,
+    exact is_empty_iff.mp jempty y,},
+  { have := @fis.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc hfin),
+    rw fis.is_surjective_iff at this,
+    exact this i j h,
+  },
+end

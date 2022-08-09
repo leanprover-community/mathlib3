@@ -61,6 +61,11 @@ def fis.is_surjective  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) /- [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] -/ : Prop :=
 ∀ (i j : Jᵒᵖ) (h : j.unop ≤ i.unop) (x : F.obj j), x ∈ set.range (F.map (op_hom_of_le h))
 
+def fis.is_surjective_onto  {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) : Prop :=
+∀ (i : Jᵒᵖ) (h : j.unop ≤ i.unop), function.surjective (F.map (op_hom_of_le h))
+
+
 def fis.is_surjective_iff  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) /- [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] -/ :
   (fis.is_surjective F) ↔ ∀ (i j : Jᵒᵖ) (h : j.unop ≤ i.unop), function.surjective (F.map (op_hom_of_le h)) := sorry
@@ -260,6 +265,8 @@ begin
     simp only [subtype.coe_mk],
     exact ytox,},
 end
+
+
 
 lemma fis.sections_in_surjective {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (s : F.sections) (j : Jᵒᵖ) :
@@ -491,27 +498,19 @@ begin
     reflexivity, },
 end
 
-lemma fis.above_point.val  {J : Type u} [preorder J] [is_directed J has_le.le]
-  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) :
-  ∀ (s : (fis.above_point F j x).sections), (s.val $ opposite.op ⟨j.unop,le_refl j.unop⟩).val = x :=
-begin
-  -- I'm getting stupider…
-  sorry,
-end
 
-  -- We can (probably) weaken the condition to that of `x` being in all ranges.
 instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
-  (Fsurj : fis.is_surjective F)
   (j : Jᵒᵖ)
+  (Fsurj : fis.is_surjective_onto F j)
   (x : F.obj j) :
   Π (i : {i : J | j.unop ≤ i}ᵒᵖ), nonempty ((fis.above_point F j x).obj i)  :=
 begin
   rintro ii,
   dsimp [fis.above_point],
-  unfold fis.is_surjective at Fsurj,
-  specialize Fsurj (opposite.op (ii.unop.val)) j ii.unop.prop x,
+  unfold fis.is_surjective_onto at Fsurj,
+  specialize Fsurj (opposite.op (ii.unop.val)) ii.unop.prop x,
   unfold set.preimage,
   simp,
   obtain ⟨y,rfl⟩ := Fsurj,
@@ -536,6 +535,7 @@ begin
 end
 
 
+-- This should maybe be split into more basic components…
 def fis.sections_at_point {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) :
   {s : F.sections | s.val j = x} ≃ (fis.above_point F j x).sections :=
@@ -598,26 +598,30 @@ begin
         reflexivity, },},
     { simp only [subtype.val_eq_coe, set.mem_set_of_eq, subtype.coe_mk],
       obtain ⟨y,k,jk,jk',rfl⟩ := bwd_aux ss j,
-      simp,
-      have : (ss.val (opposite.op ⟨j.unop,le_refl j.unop⟩)).val = x, from fis.above_point.val F j x ss,
-
-       dsimp [fis.above_point,functor.sections] at ss, sorry,
-    }
+      simp only [subtype.val_eq_coe, subtype.coe_mk],
+      dsimp [fis.above_point,functor.sections] at ss,
+      obtain ⟨s,sec⟩ := ss,
+      simp only [subtype.coe_mk],
+      obtain ⟨y,yh⟩ := s (opposite.op ⟨k.unop,jk⟩),
+      dsimp only [set.preimage] at yh,
+      simp only [subtype.coe_mk],
+      exact yh,}
   },
 
-  refine ⟨fwd,bwd,_,_⟩,
+  refine ⟨fwd,bwd,_,_⟩, -- I get timeouts trying to work from here :(
   { sorry, },
   { sorry, },
 end
 
 lemma fis.above_point.sections_nonempty  {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)
-  (Fsurj : fis.is_surjective F)
+  (j : Jᵒᵖ)
+  (Fsurj : fis.is_surjective_onto F j)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
-  (j : Jᵒᵖ) (x : F.obj j) : nonempty (fis.above_point F j x).sections :=
+  (x : F.obj j) : nonempty (fis.above_point F j x).sections :=
 begin
   apply set.nonempty_coe_sort.mpr,
-  exact @nonempty_sections_of_fintype_inverse_system _ _ _ (fis.above_point F j x) (fis.above_point.fintype F j x)  (fis.above_point.nonempty F Fsurj j x),
+  exact @nonempty_sections_of_fintype_inverse_system _ _ _ (fis.above_point F j x) (fis.above_point.fintype F j x)  (fis.above_point.nonempty F j Fsurj x),
 end
 
 lemma fis.decomposition'  {J : Type u} [preorder J] [is_directed J has_le.le]
@@ -632,12 +636,22 @@ begin
 end
 
 
-lemma fis.surjective {J : Type u} [preorder J] [is_directed J has_le.le]
-  (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)]
-  (Fsurj : fis.is_surjective F) (j : Jᵒᵖ) : function.surjective (λ (s : F.sections), s.val j) :=
+lemma fis.sections_surjective {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) [Π (j : Jᵒᵖ), fintype (F.obj j)]
+   (j : Jᵒᵖ) (Fsurj : fis.is_surjective_onto F j) : function.surjective (λ (s : F.sections), s.val j) :=
 begin
-  rintro x,
-  obtain ⟨s_above⟩ := fis.above_point.sections_nonempty F Fsurj j x,
-  obtain ⟨s,sgood⟩ := (fis.sections_at_point F j x).inv_fun s_above,
-  exact ⟨s,sgood⟩,
+    rintro x,
+    haveI : Π (j : Jᵒᵖ), nonempty (F.obj j), by
+    { rintro i,
+      let l' := (directed_of (≤) i.unop j.unop).some,
+      obtain ⟨li',lj'⟩ := (directed_of (≤) i.unop j.unop).some_spec,
+      let l := opposite.op l',
+      have li : opposite.unop i ≤ opposite.unop l, by {simp only [opposite.unop_op],exact li'},
+      have lj : opposite.unop j ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lj'},
+      obtain ⟨y,rfl⟩ :=  Fsurj l lj x,
+      use F.map (op_hom_of_le li) y,},
+
+    obtain ⟨s_above⟩ := fis.above_point.sections_nonempty F j Fsurj x,
+    obtain ⟨s,sgood⟩ := (fis.sections_at_point F j x).inv_fun s_above,
+    exact ⟨s,sgood⟩,
 end

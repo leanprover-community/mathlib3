@@ -1159,6 +1159,12 @@ lemma aeval_prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
   aeval f (∏ i in s, φ i) = ∏ i in s, aeval f (φ i) :=
 (mv_polynomial.aeval f).map_prod _ _
 
+lemma aeval_map_algebra_map [algebra R S₂] [algebra S₁ S₂]
+  [is_scalar_tower R S₁ S₂] (f : σ → S₂) (p : mv_polynomial σ R) :
+  aeval f (map (algebra_map R S₁) p) = aeval f p :=
+by rw [aeval_eq_eval₂_hom, coe_eval₂_hom, eval₂_map, ← is_scalar_tower.algebra_map_eq,
+  ← coe_eval₂_hom, ← aeval_eq_eval₂_hom]
+
 variable (R)
 
 lemma _root_.algebra.adjoin_range_eq_range_aeval :

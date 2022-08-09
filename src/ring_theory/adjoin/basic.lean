@@ -249,8 +249,8 @@ algebra.subset_adjoin (set.mem_singleton_iff.mpr rfl)
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring A]
-variables [algebra R A] {s t : set A}
+variables [comm_semiring R] [comm_semiring A] [semiring B]
+variables [algebra R A] [algebra R B] [algebra A B] [is_scalar_tower R A B] {s t : set A}
 
 variables (R s t)
 theorem adjoin_union_eq_adjoin_adjoin :
@@ -268,6 +268,16 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
+end
+
+lemma adjoin_adjoin_of_tower (s : set B) :
+  adjoin A (adjoin R s : set B) = adjoin A s :=
+begin
+  apply le_antisymm (adjoin_le _),
+  { exact adjoin_mono subset_adjoin },
+  { change adjoin R s ≤ (adjoin A s).restrict_scalars R,
+    refine adjoin_le _,
+    exact subset_adjoin }
 end
 
 variable {R}

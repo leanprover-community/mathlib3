@@ -431,6 +431,85 @@ begin
   exact equiv ((mv_polynomial_of_finite_presentation hfpA _).quotient hfg) (e.restrict_scalars R)
 end
 
+open mv_polynomial
+
+-- We follow the proof of https://stacks.math.columbia.edu/tag/0561
+lemma of_restrict_scalars_finite_presentation [algebra A B] [is_scalar_tower R A B]
+  (hRB : finite_presentation R B) [hRA : finite_type R A] : finite_presentation A B :=
+begin
+  obtain ⟨n, f, hf, s, hs⟩ := hRB,
+  let RX := mv_polynomial (fin n) R, let AX := mv_polynomial (fin n) A,
+  refine ⟨n, mv_polynomial.aeval (f ∘ X), _, _⟩,
+  { rw [← algebra.range_top_iff_surjective, ← algebra.adjoin_range_eq_range_aeval, set.range_comp,
+      _root_.eq_top_iff, ← @adjoin_adjoin_of_tower R A B, adjoin_image,
+      adjoin_range_X, algebra.map_top, (algebra.range_top_iff_surjective _).mpr hf],
+    exact subset_adjoin },
+  { obtain ⟨t, ht⟩ := hRA.out,
+    have := λ i : t, hf (algebra_map A B i),
+    choose t' ht',
+    have ht'' : algebra.adjoin R ((algebra_map A AX) '' t ∪ set.range (X : _ → AX)) = ⊤,
+    { rw [adjoin_union_eq_adjoin_adjoin, ← subalgebra.restrict_scalars_top R],
+      congr' 1,
+      swap, { exact subalgebra.is_scalar_tower_mid _ },
+      rw [adjoin_algebra_map, ht],
+      apply subalgebra.restrict_scalars_injective R,
+      rw [← adjoin_restrict_scalars, adjoin_range_X, subalgebra.restrict_scalars_top,
+        subalgebra.restrict_scalars_top] },
+    let g : t → AX := λ x, C (x : A) - map (algebra_map R A) (t' x),
+    refine ⟨s.image (map (algebra_map R A)) ∪ t.attach.image g, _⟩,
+    rw [finset.coe_union, finset.coe_image, finset.coe_image, finset.attach_eq_univ, finset.coe_univ,
+      set.image_univ],
+    let s₀ := _, let I := _, change ideal.span s₀ = I,
+    have leI : ideal.span s₀ ≤ I,
+    { rw [ideal.span_le],
+      rintros _ (⟨x, hx, rfl⟩|⟨⟨x, hx⟩, rfl⟩),
+      all_goals
+        { dsimp [g], rw [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] },
+      { rw [aeval_map_algebra_map, ← aeval_unique],
+        have := ideal.subset_span hx,
+        rwa hs at this },
+      { rw [map_sub, aeval_map_algebra_map, ← aeval_unique,
+          aeval_C, ht', subtype.coe_mk, sub_self] } },
+    apply leI.antisymm,
+    intros x hx,
+    rw [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] at hx,
+    let s₀ := _, change x ∈ ideal.span s₀,
+    have : x ∈ (map (algebra_map R A) : _ →+* AX).srange.to_add_submonoid ⊔
+      (ideal.span s₀).to_add_submonoid,
+    { have : x ∈ (⊤ : subalgebra R AX) := trivial,
+      rw ← ht'' at this,
+      apply adjoin_induction this,
+      { rintros _ (⟨x, hx, rfl⟩|⟨i, rfl⟩),
+        { rw [algebra_map_eq, ← sub_add_cancel (C x) (map (algebra_map R A) (t' ⟨x, hx⟩)),
+          add_comm],
+          apply add_submonoid.add_mem_sup,
+          { exact set.mem_range_self _ },
+          { apply ideal.subset_span,
+            apply set.mem_union_right,
+            exact set.mem_range_self ⟨x, hx⟩ } },
+        { apply add_submonoid.mem_sup_left,
+          exact ⟨X i, map_X _ _⟩ } },
+      { intro r, apply add_submonoid.mem_sup_left, exact ⟨C r, map_C _ _⟩ },
+      { intros _ _ h₁ h₂, exact add_mem h₁ h₂ },
+      { intros x₁ x₂ h₁ h₂,
+        obtain ⟨_, ⟨p₁, rfl⟩, q₁, hq₁, rfl⟩ := add_submonoid.mem_sup.mp h₁,
+        obtain ⟨_, ⟨p₂, rfl⟩, q₂, hq₂, rfl⟩ := add_submonoid.mem_sup.mp h₂,
+        rw [add_mul, mul_add, add_assoc, ← map_mul],
+        apply add_submonoid.add_mem_sup,
+        { exact set.mem_range_self _ },
+        { refine add_mem (ideal.mul_mem_left _ _ hq₂) (ideal.mul_mem_right _ _ hq₁) } } },
+    obtain ⟨_, ⟨p, rfl⟩, q, hq, rfl⟩ := add_submonoid.mem_sup.mp this,
+    rw [map_add, aeval_map_algebra_map, ← aeval_unique, (show aeval (f ∘ X) q = 0, from leI hq),
+      add_zero] at hx,
+    suffices : ideal.span (s : set RX) ≤ (ideal.span s₀).comap (map $ algebra_map R A),
+    { refine add_mem _ hq, rw hs at this, exact this hx },
+    rw ideal.span_le,
+    intros x hx,
+    apply ideal.subset_span,
+    apply set.mem_union_left,
+    exact set.mem_image_of_mem _ hx }
+end
+
 end finite_presentation
 
 end algebra
@@ -560,6 +639,13 @@ lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite_presentation) (hf : f.
     refl
   end }
 hf hg
+
+lemma of_comp_finite_type {g : B →+* C} {f : A →+* B} (hg : (g.comp f).finite_presentation)
+  (hf : f.finite_type) : g.finite_presentation :=
+@@algebra.finite_presentation.of_restrict_scalars_finite_presentation _ _ f.to_algebra _
+  (g.comp f).to_algebra g.to_algebra
+  (@@is_scalar_tower.of_algebra_map_eq' _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra rfl)
+  hg hf
 
 end finite_presentation
 

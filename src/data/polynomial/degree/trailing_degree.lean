@@ -273,7 +273,7 @@ begin
   refine (add_le_add (inf_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)))
     (inf_le (mem_support_iff.mpr (right_ne_zero_of_mul hpq)))).trans (le_of_eq _),
   rwa [with_top.some_eq_coe, with_top.some_eq_coe, with_top.some_eq_coe,
-      ←with_top.coe_add, with_top.coe_eq_coe, ←nat.mem_antidiagonal],
+      ← with_top.coe_add, with_top.coe_eq_coe, ←nat.mem_antidiagonal],
 end
 
 lemma le_nat_trailing_degree_mul (h : p * q ≠ 0) :
@@ -310,7 +310,8 @@ begin
   have hp : p ≠ 0 := λ hp, h (by rw [hp, trailing_coeff_zero, zero_mul]),
   have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
   refine le_antisymm _ le_trailing_degree_mul,
-  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq],
+  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
+    ← enat.coe_add],
   apply le_trailing_degree_of_ne_zero,
   rwa coeff_mul_nat_trailing_degree_add_nat_trailing_degree,
 end

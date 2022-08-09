@@ -208,6 +208,8 @@ def comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : convex_cone 𝕜 E :
   smul_mem' := λ c hc x hx, by { rw [mem_preimage, f.map_smul c], exact S.smul_mem hc hx },
   add_mem' := λ x hx y hy, by { rw [mem_preimage, f.map_add], exact S.add_mem hx hy } }
 
+@[simp] lemma comap_coe (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : (S.comap f : set E) = f ⁻¹' S := rfl
+
 @[simp] lemma comap_id (S : convex_cone 𝕜 E) : S.comap linear_map.id = S :=
 set_like.coe_injective preimage_id
 
@@ -352,6 +354,8 @@ def positive_cone : convex_cone 𝕜 E :=
   add_mem' := λ x (hx : _ ≤ _) y (hy : _ ≤ _), add_nonneg hx hy }
 
 @[simp] lemma mem_positive_cone {x : E} : x ∈ positive_cone 𝕜 E ↔ 0 ≤ x := iff.rfl
+
+lemma positive_cone_eq_Ici : (positive_cone 𝕜 E : set E) = Ici 0 := rfl
 
 /-- The positive cone of an ordered module is always salient. -/
 lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
@@ -670,9 +674,8 @@ begin
 
   -- the dual cone of a singleton `{x}` is the preimage of `[0, ∞)` under `inner x`
   have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0) := by
-  { ext,
-    rw [inner_dual_cone_singleton, set_like.mem_coe, convex_cone.mem_comap, innerₛₗ_apply,
-        mem_preimage, mem_Ici, convex_cone.mem_positive_cone] },
+    rw [inner_dual_cone_singleton, convex_cone.comap_coe, convex_cone.positive_cone_eq_Ici,
+    innerₛₗ_apply_coe],
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,

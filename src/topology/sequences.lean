@@ -67,6 +67,12 @@ lemma seq_closure_eq_closure [frechet_urysohn_space X] (s : set X) :
   seq_closure s = closure s :=
 seq_closure_subset_closure.antisymm $ frechet_urysohn_space.closure_subset_seq_closure s
 
+/-- In a Fréchet-Urysohn space, a point belongs to the closure of a set iff it is a limit
+of a sequence taking values in this set. -/
+lemma mem_closure_iff_seq_limit [frechet_urysohn_space X] {s : set X} {a : X} :
+  a ∈ closure s ↔ ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ tendsto x at_top (𝓝 a) :=
+by { rw [← seq_closure_eq_closure], refl }
+
 /-- If the domain of a function `f : α → β` is a Fréchet-Urysohn space, then convergence
 is equivalent to sequential convergence. See also `filter.tendsto_iff_seq_tendsto` for a version
 that works for any pair of filters assuming that the filter in the domain is countably generated.
@@ -110,10 +116,8 @@ instance topological_space.first_countable_topology.frechet_urysohn_space
   [first_countable_topology X] : frechet_urysohn_space X :=
 frechet_urysohn_space.of_seq_tendsto_imp_tendsto $ λ f a, tendsto_iff_seq_tendsto.2
 
-/-- A sequential space is a space in which 'sequences are enough to probe the topology'. This can be
- formalised by demanding that the sequential closure and the closure coincide. The following
- statements show that other topological properties can be deduced from sequences in sequential
- spaces. -/
+/-- A topological space is said to be a *sequential space* if any sequentially closed set in this
+space is closed. This condition is weaker than being a Fréchet-Urysohn space. -/
 class sequential_space (X : Type*) [topological_space X] : Prop :=
 (is_closed_of_seq : ∀ s : set X, is_seq_closed s → is_closed s)
 

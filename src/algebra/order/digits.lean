@@ -111,34 +111,49 @@ begin
   exact digits_zpow hb _,
 end
 
-
-lemma digits_nsmul_base_pow_add {b : ℕ} (hb : 1 < b) (n : ℕ) (r : R) (z : ℤ)
-  (hn : n < b) (hr : r < ↑b ^ z) :
-  digits b (n • ↑b ^ z + r) = pi.single z n + digits b r :=
+lemma digits_add_nsmul_base_zpow {b : ℕ} (hb : 1 < b) (n : ℕ) (r : R) (z : ℤ)
+  (hn : n < b) (hr0 : 0 ≤ r) (hr : r < ↑b ^ z) :
+  digits b (r + n • ↑b ^ z) = pi.single z n + digits b r :=
 begin
-  have hb' : (b : R) ≠ 0 := by exact_mod_cast (zero_le_one.trans_lt hb).ne',
+  have hb1' : 1 < (b : R) := by exact_mod_cast hb,
+  have hb' : 0 < (b : R) := by exact_mod_cast (zero_le_one.trans_lt hb),
   ext z₂,
-  rw [digits, div_eq_mul_inv, ←zpow_neg, add_mul, smul_mul_assoc, ←zpow_add₀ hb', ←sub_eq_add_neg],
+  rw [pi.add_apply, digits, digits, div_eq_mul_inv, div_eq_mul_inv, ←zpow_neg, add_mul,
+    smul_mul_assoc, ←zpow_add₀ hb'.ne', ←sub_eq_add_neg],
   obtain rfl | hz := decidable.eq_or_ne z z₂,
-  { rw [pi.add_apply, pi.single_eq_same, sub_self, zpow_zero, nsmul_one, add_comm,
-    @nat.floor_add_nat R _ _ _ _ _ n, nat.floor_one, nat.mod_eq_of_lt hb], },
+  { have : r * ↑b ^ -z < 1,
+    { rw [zpow_neg, ←div_eq_mul_inv, div_lt_one (zpow_pos_of_pos hb' _)],
+      exact hr, },
+    rw [pi.single_eq_same, sub_self, zpow_zero, nsmul_one,
+      nat.floor_add_nat, nat.floor_eq_zero.mpr this, zero_add,
+      nat.zero_mod, nat.mod_eq_of_lt hn, add_zero],
+    apply mul_nonneg hr0 (zpow_nonneg hb'.le _) },
   rw [pi.single_eq_of_ne' hz],
   rw ←sub_ne_zero at hz,
-  revert hz,
+  replace hr := mul_lt_mul_of_pos_right hr (zpow_pos_of_pos hb' (-z₂)),
+  rw [←zpow_add₀ hb'.ne', ←sub_eq_add_neg] at hr,
+  revert hz hr,
   generalize : z - z₂ = dz,
-  intro hz,
-  obtain ⟨n, rfl | rfl⟩ := int.eq_coe_or_neg dz,
+  intros hz hr,
+  obtain ⟨n', rfl | rfl⟩ := int.eq_coe_or_neg dz,
   { rw [int.coe_nat_ne_zero] at hz,
-    rw [zpow_coe_nat, ←nat.cast_pow, nat.floor_coe],
-    exact nat.mod_eq_zero_of_dvd (dvd_pow_self _ hz) },
+    rw [zpow_coe_nat, ←nat.cast_pow, nsmul_eq_mul, ←nat.cast_mul, nat.floor_add_nat, zero_add,
+      nat.add_mod, nat.mod_eq_zero_of_dvd ((dvd_pow_self b hz).mul_left n), add_zero, nat.mod_mod],
+    apply mul_nonneg hr0 (zpow_nonneg hb'.le _) },
   { rw [neg_ne_zero, int.coe_nat_ne_zero] at hz,
-    rw [zpow_neg],
-    convert nat.zero_mod _,
-    rw [zpow_coe_nat, nat.floor_eq_zero],
-    apply inv_lt_one _,
-    apply one_lt_pow; assumption_mod_cast },
+    rw [zpow_neg, zpow_neg, zpow_coe_nat, zero_add, ←div_eq_mul_inv],
+    rw [zpow_neg, zpow_neg, zpow_coe_nat, ←div_eq_mul_inv] at hr,
+    have h₁ : r / ↑b ^ z₂ + n • (↑b ^ n')⁻¹ < 1,
+    { refine (add_lt_add_right hr _).trans_le _,
+      obtain ⟨n', rfl⟩  := nat.exists_eq_succ_of_ne_zero hz,
+      rw [←succ_nsmul, pow_succ, nsmul_eq_mul, mul_inv, ←mul_assoc, ←div_eq_mul_inv _ (b : R)],
+      exact mul_le_one
+        ((div_le_one hb').mpr $ nat.cast_le.mpr hn)
+        (inv_nonneg_of_nonneg $ pow_nonneg hb'.le _)
+        (inv_le_one $ one_le_pow_of_one_le hb1'.le _) },
+    have h₂ : r / ↑b ^ z₂ < 1 := hr.trans_le (inv_le_one $ one_le_pow_of_one_le hb1'.le _),
+    rw [nat.floor_eq_zero.mpr h₁, nat.floor_eq_zero.mpr h₂], }
 end
-
 
 /-- The digit at `int.log b r` is not zero -/
 lemma digits_log {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
@@ -160,25 +175,14 @@ begin
     exact int.lt_zpow_succ_log_self hb r }
 end
 
+/-!
+TODO
+```lean
 open_locale big_operators
-
 lemma sum_Ioc_log_digits_pow_lt {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) (j : ℤ):
   ∑ i in finset.Ioc j (int.log b r), digits b r i • (b : R) ^ i < b ^ (int.log b r + 1) :=
-begin
-  rw [digits],
-  suffices : 1 ≤ r / (↑b ^ int.log b r) ∧ r / (↑b ^ int.log b r) < b,
-  { rw ←nat.floor_lt' at this,
-    { rw nat.mod_eq_of_lt this.2,
-      rw [ne.def, nat.floor_eq_zero, not_lt],
-      exact this.1 },
-    exact (zero_lt_one.trans hb).ne' },
-  have hb' : (1 : R) < b := nat.one_lt_cast.mpr hb,
-  have hb'' := zpow_pos_of_pos (zero_lt_one.trans hb') (int.log b r),
-  split,
-  { rw [one_le_div hb''],
-    exact int.zpow_log_le_self hb hr, },
-  { rw [div_lt_iff' hb'', ←zpow_add_one₀ (zero_lt_one.trans hb').ne'],
-    exact int.lt_zpow_succ_log_self hb r }
-end
+sorry
+```
+-/
 
 end order

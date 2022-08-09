@@ -10,23 +10,13 @@ open_locale big_operators
 namespace small_lemmas
 
 theorem aeval_sum' (s : finset ℕ) (f : ℕ -> (polynomial ℤ)) (t : ℝ) : @polynomial.aeval ℤ ℝ _ _ _ t (∑ i in s, f i) = ∑ i in s, @polynomial.aeval ℤ ℝ _ _ _ t (f i) :=
-begin
-  apply finset.induction_on s, simp only [finset.sum_empty, alg_hom.map_zero],
-  intros a s ha ih, rw finset.sum_insert, simp only [alg_hom.map_add], rw ih,
-  rw finset.sum_insert, exact ha, exact ha,
-end
+map_sum _ _ _
 
 theorem eval_sum' (s : finset ℕ) (f : ℕ -> (polynomial ℤ)) (t : ℤ) : polynomial.eval t (∑ i in s, f i) = ∑ i in s, polynomial.eval t (f i) :=
-begin
-  apply finset.induction_on s, simp only [finset.sum_empty, polynomial.eval_zero],
-  intros a s ha ih, rw finset.sum_insert, rw polynomial.eval_add, rw ih, rw finset.sum_insert, exact ha, exact ha,
-end
+polynomial.eval_finset_sum _ _ _
 
 theorem eval_prod' (s : finset ℕ) (f : ℕ -> (polynomial ℤ)) (t : ℤ) : polynomial.eval t (∏ i in s, f i) = ∏ i in s, polynomial.eval t (f i) :=
-begin
-  apply finset.induction_on s, simp only [polynomial.eval_one, finset.prod_empty],
-  intros a s ha ih, rw finset.prod_insert, rw polynomial.eval_mul, rw ih, rw finset.prod_insert, exact ha, exact ha,
-end
+polynomial.eval_prod _ _ _
 
 /--
 The trivial embedding of ℤ into ℝ

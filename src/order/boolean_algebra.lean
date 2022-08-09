@@ -27,7 +27,6 @@ intervals.)
 
 ## Main declarations
 
-* `has_compl`: a type class for the complement operator
 * `generalized_boolean_algebra`: a type class for generalized Boolean algebras
 * `boolean_algebra`: a type class for Boolean algebras.
 * `Prop.boolean_algebra`: the Boolean algebra instance on `Prop`
@@ -42,11 +41,6 @@ The `sup_inf_sdiff` and `inf_inf_sdiff` axioms for the relative complement opera
 complement operator `a \ b` for all `a`, `b`. Instead, the postulates there amount to an assumption
 that for all `a, b : α` where `a ≤ b`, the equations `x ⊔ a = b` and `x ⊓ a = ⊥` have a solution
 `x`. `disjoint.sdiff_unique` proves that this `x` is in fact `b \ a`.
-
-## Notations
-
-* `xᶜ` is notation for `compl x`
-* `x \ y` is notation for `sdiff x y`.
 
 ## References
 
@@ -255,6 +249,9 @@ lemma le_iff_eq_sup_sdiff (hz : z ≤ y) (hx : x ≤ y) : x ≤ z ↔ y = z ⊔ 
     rw inf_sdiff_self_right,
     exact bot_le,
   end⟩
+
+lemma sup_sdiff_eq_sup (h : z ≤ x) : x ⊔ y \ z = x ⊔ y :=
+sup_congr_left (sdiff_le.trans le_sup_right) $ le_sup_sdiff.trans $ sup_le_sup_right h _
 
 -- cf. `set.union_diff_cancel'`
 lemma sup_sdiff_cancel' (hx : x ≤ z) (hz : z ≤ y) : z ⊔ (y \ x) = y :=
@@ -539,20 +536,23 @@ class boolean_algebra (α : Type u) extends distrib_lattice α, has_compl α, ha
 instance boolean_algebra.to_bounded_order [h : boolean_algebra α] : bounded_order α :=
 { ..h }
 
+/-- A bounded generalized boolean algebra is a boolean algebra. -/
+@[reducible] -- See note [reducible non instances]
+def generalized_boolean_algebra.to_boolean_algebra [generalized_boolean_algebra α] [order_top α] :
+  boolean_algebra α :=
+{ compl := λ a, ⊤ \ a,
+  inf_compl_le_bot := λ _, disjoint_sdiff_self_right,
+  top_le_sup_compl := λ _, le_sup_sdiff,
+  sdiff_eq := λ _ _, by { rw [←inf_sdiff_assoc, inf_top_eq], refl },
+  ..‹generalized_boolean_algebra α›, ..generalized_boolean_algebra.to_order_bot, ..‹order_top α› }
+
 section boolean_algebra
 variables [boolean_algebra α]
 
-@[simp] theorem inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
-bot_unique $ boolean_algebra.inf_compl_le_bot x
-
-@[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
-eq.trans inf_comm inf_compl_eq_bot
-
-@[simp] theorem sup_compl_eq_top : x ⊔ xᶜ = ⊤ :=
-top_unique $ boolean_algebra.top_le_sup_compl x
-
-@[simp] theorem compl_sup_eq_top : xᶜ ⊔ x = ⊤ :=
-eq.trans sup_comm sup_compl_eq_top
+@[simp] lemma inf_compl_eq_bot : x ⊓ xᶜ = ⊥ := bot_unique $ boolean_algebra.inf_compl_le_bot x
+@[simp] lemma sup_compl_eq_top : x ⊔ xᶜ = ⊤ := top_unique $ boolean_algebra.top_le_sup_compl x
+@[simp] lemma compl_inf_eq_bot : xᶜ ⊓ x = ⊥ := inf_comm.trans inf_compl_eq_bot
+@[simp] lemma compl_sup_eq_top : xᶜ ⊔ x = ⊤ := sup_comm.trans sup_compl_eq_top
 
 theorem is_compl_compl : is_compl x xᶜ :=
 is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
@@ -772,3 +772,25 @@ protected def function.injective.boolean_algebra [has_sup α] [has_inf α] [has_
   ..hf.generalized_boolean_algebra f map_sup map_inf map_bot map_sdiff }
 
 end lift
+
+namespace punit
+variables (a b : punit.{u+1})
+
+instance : boolean_algebra punit :=
+by refine_struct
+{ top := star,
+  bot := star,
+  sup := λ _ _, star,
+  inf := λ _ _, star,
+  compl := λ _, star,
+  sdiff := λ _ _, star, ..punit.linear_order };
+    intros; trivial <|> exact subsingleton.elim _ _
+
+@[simp] lemma top_eq : (⊤ : punit) = star := rfl
+@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
+@[simp] lemma sup_eq : a ⊔ b = star := rfl
+@[simp] lemma inf_eq : a ⊓ b = star := rfl
+@[simp] lemma compl_eq : aᶜ = star := rfl
+@[simp] lemma sdiff_eq : a \ b = star := rfl
+
+end punit

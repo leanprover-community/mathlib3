@@ -86,6 +86,7 @@ jobs:
       - name: leanpkg build
         id: build
         run: |
+          set -o pipefail
           leanpkg configure
           echo "::set-output name=started::true"
           lean --json -T150000 --make src | python3 scripts/detect_errors.py
@@ -199,7 +200,7 @@ jobs:
 
       - name: install Python dependencies
         if: ${{ ! 1 }}
-        run: python3 -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml requests
 
       - name: tests
         run: |

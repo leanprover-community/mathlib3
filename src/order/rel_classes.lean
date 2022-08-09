@@ -113,6 +113,13 @@ end
 
 lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
 
+/-- In a trichotomous irreflexive order, every element is determined by the set of predecessors. -/
+lemma extensional_of_trichotomous_of_irrefl (r : α → α → Prop) [is_trichotomous α r] [is_irrefl α r]
+  {a b : α} (H : ∀ x, r x a ↔ r x b) : a = b :=
+((@trichotomous _ r _ a b)
+  .resolve_left $ mt (H _).2 $ irrefl a)
+  .resolve_right $ mt (H _).1 $ irrefl b
+
 /-- Construct a partial order from a `is_strict_order` relation.
 
 See note [reducible non-instances]. -/
@@ -195,22 +202,68 @@ instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}
 
-/-! ### Extensional relation -/
+/-! ### Well-order -/
 
-/-- An extensional relation is one in which an element is determined by its set
-  of predecessors. It is named for the `x ∈ y` relation in set theory, whose
-  extensionality is one of the first axioms of ZFC. -/
-@[algebra] class is_extensional (α : Type u) (r : α → α → Prop) : Prop :=
-(ext : ∀ a b, (∀ x, r x a ↔ r x b) → a = b)
+/-- A well-founded relation. Not to be confused with `is_well_order`. -/
+@[algebra, mk_iff] class is_well_founded (α : Type u) (r : α → α → Prop) : Prop :=
+(wf : well_founded r)
+
+instance has_well_founded.is_well_founded [h : has_well_founded α] :
+  is_well_founded α has_well_founded.r := { ..h }
+
+namespace is_well_founded
+variables (r) [is_well_founded α r]
+
+/-- Induction on a well-founded relation. -/
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, r y x → C y) → C x) → C a :=
+wf.induction
+
+/-- All values are accessible under the well-founded relation. -/
+theorem apply : ∀ a, acc r a := wf.apply
+
+/-- Creates data, given a way to generate a value from all that compare as less under a well-founded
+relation. See also `is_well_founded.fix_eq`. -/
+def fix {C : α → Sort*} : (Π (x : α), (Π (y : α), r y x → C y) → C x) → Π (x : α), C x := wf.fix
+
+/-- The value from `is_well_founded.fix` is built from the previous ones as specified. -/
+theorem fix_eq {C : α → Sort*} (F : Π (x : α), (Π (y : α), r y x → C y) → C x) :
+  ∀ x, fix r F x = F x (λ y h, fix r F y) :=
+wf.fix_eq F
+
+/-- Derive a `has_well_founded` instance from an `is_well_founded` instance. -/
+def to_has_well_founded : has_well_founded α := ⟨r, is_well_founded.wf⟩
+
+end is_well_founded
+
+theorem well_founded.asymmetric {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
+  ∀ ⦃a b⦄, r a b → ¬ r b a
+| a := λ b hab hba, well_founded.asymmetric hba hab
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
+                     dec_tac := tactic.assumption }
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_extensional_of_is_strict_total_order'
-  [is_strict_total_order' α r] : is_extensional α r :=
-⟨λ a b H, ((@trichotomous _ r _ a b)
-  .resolve_left $ mt (H _).2 (irrefl a))
-  .resolve_right $ mt (H _).1 (irrefl b)⟩
+instance is_well_founded.is_asymm (r : α → α → Prop) [is_well_founded α r] : is_asymm α r :=
+⟨is_well_founded.wf.asymmetric⟩
 
-/-! ### Well-order -/
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_founded.is_irrefl (r : α → α → Prop) [is_well_founded α r] : is_irrefl α r :=
+is_asymm.is_irrefl
+
+/-- A class for a well founded relation `<`. -/
+@[reducible] def well_founded_lt (α : Type*) [has_lt α] : Prop := is_well_founded α (<)
+
+/-- A class for a well founded relation `>`. -/
+@[reducible] def well_founded_gt (α : Type*) [has_lt α] : Prop := is_well_founded α (>)
+
+@[priority 100] -- See note [lower instance priority]
+instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := h
+@[priority 100] -- See note [lower instance priority]
+instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := h
+
+theorem well_founded_gt_dual_iff (α : Type*) [has_lt α] : well_founded_gt αᵒᵈ ↔ well_founded_lt α :=
+⟨λ h, ⟨h.wf⟩, λ h, ⟨h.wf⟩⟩
+theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt αᵒᵈ ↔ well_founded_gt α :=
+⟨λ h, ⟨h.wf⟩, λ h, ⟨h.wf⟩⟩
 
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
@@ -220,9 +273,6 @@ instance is_extensional_of_is_strict_total_order'
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order α r := by apply_instance
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] :
-  is_extensional α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
   is_trichotomous α r := by apply_instance
@@ -235,6 +285,56 @@ instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] :
   is_asymm α r := by apply_instance
+
+namespace well_founded_lt
+variables [has_lt α] [well_founded_lt α]
+
+/-- Inducts on a well-founded `<` relation. -/
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a :=
+is_well_founded.induction _
+
+/-- All values are accessible under the well-founded `<`. -/
+theorem apply : ∀ a : α, acc (<) a := is_well_founded.apply _
+
+/-- Creates data, given a way to generate a value from all that compare as lesser. See also
+`well_founded_lt.fix_eq`. -/
+def fix {C : α → Sort*} : (Π (x : α), (Π (y : α), y < x → C y) → C x) → Π (x : α), C x :=
+is_well_founded.fix (<)
+
+/-- The value from `well_founded_lt.fix` is built from the previous ones as specified. -/
+theorem fix_eq {C : α → Sort*} (F : Π (x : α), (Π (y : α), y < x → C y) → C x) :
+  ∀ x, fix F x = F x (λ y h, fix F y) :=
+is_well_founded.fix_eq _ F
+
+/-- Derive a `has_well_founded` instance from a `well_founded_lt` instance. -/
+def to_has_well_founded : has_well_founded α := is_well_founded.to_has_well_founded (<)
+
+end well_founded_lt
+
+namespace well_founded_gt
+variables [has_lt α] [well_founded_gt α]
+
+/-- Inducts on a well-founded `>` relation. -/
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a :=
+is_well_founded.induction _
+
+/-- All values are accessible under the well-founded `>`. -/
+theorem apply : ∀ a : α, acc (>) a := is_well_founded.apply _
+
+/-- Creates data, given a way to generate a value from all that compare as greater. See also
+`well_founded_gt.fix_eq`. -/
+def fix {C : α → Sort*} : (Π (x : α), (Π (y : α), x < y → C y) → C x) → Π (x : α), C x :=
+is_well_founded.fix (>)
+
+/-- The value from `well_founded_gt.fix` is built from the successive ones as specified. -/
+theorem fix_eq {C : α → Sort*} (F : Π (x : α), (Π (y : α), x < y → C y) → C x) :
+  ∀ x, fix F x = F x (λ y h, fix F y) :=
+is_well_founded.fix_eq _ F
+
+/-- Derive a `has_well_founded` instance from a `well_founded_gt` instance. -/
+def to_has_well_founded : has_well_founded α := is_well_founded.to_has_well_founded (>)
+
+end well_founded_gt
 
 /-- Construct a decidable linear order from a well-founded linear order. -/
 noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
@@ -263,6 +363,10 @@ instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well
   trans        := is_empty_elim,
   wf           := well_founded_of_empty r }
 
+instance prod.lex.is_well_founded [is_well_founded α r] [is_well_founded β s] :
+  is_well_founded (α × β) (prod.lex r s) :=
+⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
+
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=
 { trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
@@ -286,6 +390,16 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
     { exact prod.lex.right _ (trans ab bc) }
   end,
   wf := prod.lex_wf is_well_order.wf is_well_order.wf }
+
+instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :
+  is_well_founded _ (inv_image r f) :=
+⟨inv_image.wf f is_well_founded.wf⟩
+
+instance measure.is_well_founded (f : α → ℕ) : is_well_founded _ (measure f) := ⟨measure_wf f⟩
+
+theorem subrelation.is_well_founded (r : α → α → Prop) [is_well_founded α r] {s : α → α → Prop}
+  (h : subrelation s r) : is_well_founded α s :=
+⟨h.wf is_well_founded.wf⟩
 
 namespace set
 
@@ -494,6 +608,7 @@ lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
+instance : well_founded_lt ℕ := ⟨nat.lt_wf⟩
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
 
 instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h

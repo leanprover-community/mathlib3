@@ -796,8 +796,6 @@ end
 instance inhabited {n : ℕ} {f : K[X]} :
   inhabited (splitting_field_aux n f) := ⟨37⟩
 
-#exit
-
 protected lemma lift_hom (n : ℕ) {α : Type*} [non_assoc_semiring α] {K : Type u} [field K]
   (g : α →+* K) {f : K[X]} : α →+* splitting_field_aux n f :=
 { to_fun := splitting_field_aux.lift n g,
@@ -805,13 +803,26 @@ protected lemma lift_hom (n : ℕ) {α : Type*} [non_assoc_semiring α] {K : Typ
   begin
     unfreezingI { induction n with k hk generalizing K },
     { simp [splitting_field_aux.lift] },
-    exact hk _
+    exact hk ((adjoin_root.of f.factor).comp g)
   end,
-  map_mul' := _,
-  map_zero' := _,
-  map_add' := _ }
-
-#exit
+  map_mul' :=
+  begin
+    unfreezingI { induction n with k hk generalizing K },
+    { simp [splitting_field_aux.lift] },
+    exact hk ((adjoin_root.of f.factor).comp g)
+  end,
+  map_zero' :=
+  begin
+    unfreezingI { induction n with k hk generalizing K },
+    { simp [splitting_field_aux.lift] },
+    exact hk ((adjoin_root.of f.factor).comp g)
+  end,
+  map_add' :=
+  begin
+    unfreezingI { induction n with k hk generalizing K },
+    { simp [splitting_field_aux.lift] },
+    exact hk ((adjoin_root.of f.factor).comp g)
+  end }
 
 instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K] [algebra R K]
   {f : K[X]} : algebra R (splitting_field_aux n f) :=
@@ -829,6 +840,8 @@ begin
   { intros, rw mul_comm },
   { exact algebra.smul_def }
 end
+
+#exit
 
 /-- Because `splitting_field_aux` is defined by recursion, we have to make sure all instances
 on `splitting_field_aux` are defined by recursion within the fields. Otherwise, there will be

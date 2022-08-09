@@ -449,27 +449,44 @@ lemma coe_comp (g : β → γ) (f : α → β) : ((g ∘ f : α → γ) : α →
 ext $ λ _ _, by simp only [coe_val, comp_apply, part.bind_some]
 
 /-- Product of partial functions. -/
-protected def prod (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
+def prod_lift (f : α →. β) (g : α →. γ) : α →. β × γ :=
+λ x, ⟨(f x).dom ∧ (g x).dom, λ h, ((f x).get h.1, (g x).get h.2)⟩
+
+@[simp] lemma dom_prod_lift (f : α →. β) (g : α →. γ) :
+  (f.prod_lift g).dom = {x | (f x).dom ∧ (g x).dom} := rfl
+
+lemma get_prod_lift (f : α →. β) (g : α →. γ) (x : α) (h) :
+  (f.prod_lift g x).get h = ((f x).get h.1, (g x).get h.2) := rfl
+
+@[simp] lemma prod_lift_apply (f : α →. β) (g : α →. γ) (x : α) :
+  f.prod_lift g x = ⟨(f x).dom ∧ (g x).dom, λ h, ((f x).get h.1, (g x).get h.2)⟩ := rfl
+
+lemma mem_prod_lift {f : α →. β} {g : α →. γ} {x : α} {y : β × γ} :
+  y ∈ f.prod_lift g x ↔ y.1 ∈ f x ∧ y.2 ∈ g x :=
+by { simp [prod_lift], tidy }
+
+/-- Product of partial functions. -/
+def prod_map (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
 λ x, ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩
 
-@[simp] lemma dom_prod (f : α →. γ) (g : β →. δ) :
-  (f.prod g).dom = {x | (f x.1).dom ∧ (g x.2).dom} := rfl
+@[simp] lemma dom_prod_map (f : α →. γ) (g : β →. δ) :
+  (f.prod_map g).dom = {x | (f x.1).dom ∧ (g x.2).dom} := rfl
 
-lemma get_prod (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
-  (f.prod g x).get h = ((f x.1).get h.1, (g x.2).get h.2) := rfl
+lemma get_prod_map (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
+  (f.prod_map g x).get h = ((f x.1).get h.1, (g x.2).get h.2) := rfl
 
-@[simp] lemma prod_apply (f : α →. γ) (g : β →. δ) (x : α × β) :
-  f.prod g x = ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩ := rfl
+@[simp] lemma prod_map_apply (f : α →. γ) (g : β →. δ) (x : α × β) :
+  f.prod_map g x = ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩ := rfl
 
-lemma mem_prod {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
-  y ∈ f.prod g x ↔ y.1 ∈ f x.1 ∧ y.2 ∈ g x.2 :=
-by { simp [pfun.prod], tidy }
+lemma mem_prod_map {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
+  y ∈ f.prod_map g x ↔ y.1 ∈ f x.1 ∧ y.2 ∈ g x.2 :=
+by { simp [prod_map], tidy }
 
-@[simp] lemma prod_id_id : (pfun.id α).prod (pfun.id β) = pfun.id _ :=
+@[simp] lemma prod_map_id_id : (pfun.id α).prod_map (pfun.id β) = pfun.id _ :=
 ext $ λ _ _, by simp [eq_comm]
 
-@[simp] lemma prod_comp_comp (f₁ : α →. β) (f₂ : β →. γ) (g₁ : δ →. ε) (g₂ : ε →. ι) :
-  (f₂.comp f₁).prod (g₂.comp g₁) = (f₂.prod g₂).comp (f₁.prod g₁) :=
+@[simp] lemma prod_map_comp_comp (f₁ : α →. β) (f₂ : β →. γ) (g₁ : δ →. ε) (g₂ : ε →. ι) :
+  (f₂.comp f₁).prod_map (g₂.comp g₁) = (f₂.prod_map g₂).comp (f₁.prod_map g₁) :=
 ext $ λ _ _, by tidy
 
 end pfun

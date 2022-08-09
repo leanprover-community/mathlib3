@@ -62,6 +62,10 @@ filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ i, integrable (f i) μ
 
+lemma martingale_const (ℱ : filtration ι m0) (μ : measure α) [is_finite_measure μ] (x : E) :
+  martingale (λ _ _, x) ℱ μ :=
+⟨adapted_const ℱ _, λ i j hij, by rw condexp_const (ℱ.le _)⟩
+
 variables (E)
 lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) :
   martingale (0 : ι → α → E) ℱ μ :=
@@ -273,9 +277,9 @@ begin
   suffices : 0 ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ i] - f i,
   { filter_upwards [this] with x hx,
     rwa ← sub_nonneg },
-  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure
+  refine ae_nonneg_of_forall_set_integral_nonneg
     ((integrable_condexp.sub (hint i)).trim _ (strongly_measurable_condexp.sub $ hadp i))
-    (λ s hs, _),
+    (λ s hs h's, _),
   specialize hf i j hij s hs,
   rwa [← set_integral_trim _ (strongly_measurable_condexp.sub $ hadp i) hs,
     integral_sub' integrable_condexp.integrable_on (hint i).integrable_on, sub_nonneg,
@@ -293,15 +297,17 @@ begin
   apply_instance
 end
 
-lemma submartingale.condexp_sub_nonneg [is_finite_measure μ]
+lemma submartingale.condexp_sub_nonneg
   {f : ι → α → ℝ} (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
   0 ≤ᵐ[μ] μ[f j - f i | ℱ i] :=
 begin
+  by_cases h : sigma_finite (μ.trim (ℱ.le i)),
+  swap, { rw condexp_of_not_sigma_finite (ℱ.le i) h },
   refine eventually_le.trans _ (condexp_sub (hf.integrable _) (hf.integrable _)).symm.le,
   rw [eventually_sub_nonneg,
     condexp_of_strongly_measurable (ℱ.le _) (hf.adapted _) (hf.integrable _)],
-  exact hf.2.1 i j hij,
-  apply_instance
+  { exact hf.2.1 i j hij },
+  { exact h }
 end
 
 lemma submartingale_iff_condexp_sub_nonneg [is_finite_measure μ] {f : ι → α → ℝ} :

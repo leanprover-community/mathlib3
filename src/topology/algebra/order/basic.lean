@@ -91,8 +91,6 @@ generally, and suffices to derive many interesting properties relating order and
 class order_closed_topology (α : Type*) [topological_space α] [preorder α] : Prop :=
 (is_closed_le' : is_closed {p:α×α | p.1 ≤ p.2})
 
-instance : Π [topological_space α], topological_space αᵒᵈ := id
-
 instance [topological_space α] [h : first_countable_topology α] : first_countable_topology αᵒᵈ := h
 
 instance [topological_space α] [h : second_countable_topology α] : second_countable_topology αᵒᵈ :=

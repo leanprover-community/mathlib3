@@ -19,7 +19,7 @@ We use the namespace `mul_char` for the definitions and results.
 
 We show that the multiplicative characters form a group (if `R'` is commutative);
 see `mul_char.comm_group`. We also provide an equivalence with the
-homomorphisms `Rˣ →* R'ˣ`; see `mul_hcar.equiv_to_unit_hom`.
+homomorphisms `Rˣ →* R'ˣ`; see `mul_char.equiv_to_unit_hom`.
 
 We define a multiplicative character to be *quadratic* if its values
 are among `0`, `1` and `-1`, and we prove some properties of quadratic characters.

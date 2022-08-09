@@ -175,11 +175,11 @@ end
 as `multilinear_map`
 -/
 
-section has_scalar
+section has_smul
 
 variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
 
-instance : has_scalar S (alternating_map R M N ι) :=
+instance : has_smul S (alternating_map R M N ι) :=
 ⟨λ c f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
@@ -193,7 +193,11 @@ instance : has_scalar S (alternating_map R M N ι) :=
 lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
 rfl
 
-end has_scalar
+instance [distrib_mul_action Sᵐᵒᵖ N] [is_central_scalar S N] :
+  is_central_scalar S (alternating_map R M N ι) :=
+⟨λ c f, ext $ λ x, op_smul_eq_smul _ _⟩
+
+end has_smul
 
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
@@ -692,7 +696,7 @@ abbreviation mod_sum_congr (α β : Type*) :=
 _ ⧸ (equiv.perm.sum_congr_hom α β).range
 
 lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
-  function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
+  function.involutive (has_smul.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
 λ σ, begin
   apply σ.induction_on' (λ σ, _),
   exact _root_.congr_arg quotient.mk' (equiv.swap_mul_involutive i j σ)
@@ -804,7 +808,7 @@ Here, we generalize this by replacing:
 * the additions in the subscripts of $\sigma$ with an index of type `sum`
 
 The specialized version can be obtained by combining this definition with `fin_sum_fin_equiv` and
-`algebra.lmul'`.
+`linear_map.mul'`.
 -/
 @[simps]
 def dom_coprod

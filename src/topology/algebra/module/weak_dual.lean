@@ -68,7 +68,7 @@ section weak_topology
 
 /-- The space `E` equipped with the weak topology induced by the bilinear form `B`. -/
 @[derive [add_comm_monoid, module 𝕜],
-nolint has_inhabited_instance unused_arguments]
+nolint has_nonempty_instance unused_arguments]
 def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F]
   [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) := E
 
@@ -83,7 +83,7 @@ instance module' [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [m
   module 𝕝 (weak_bilin B) := m
 
 instance [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
-  [add_comm_group F] [module 𝕜 F] [has_scalar 𝕝 𝕜] [module 𝕝 E] [s : is_scalar_tower 𝕝 𝕜 E]
+  [add_comm_group F] [module 𝕜 F] [has_smul 𝕝 𝕜] [module 𝕝 E] [s : is_scalar_tower 𝕝 𝕜 E]
   (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : is_scalar_tower 𝕝 𝕜 (weak_bilin B) := s
 
 section semiring
@@ -104,7 +104,7 @@ lemma eval_continuous (y : F) : continuous (λ x : weak_bilin B, B x y) :=
 
 lemma continuous_of_continuous_eval [topological_space α] {g : α → weak_bilin B}
   (h : ∀ y, continuous (λ a, B (g a) y)) : continuous g :=
-continuous_induced_rng (continuous_pi_iff.mpr h)
+continuous_induced_rng.2 (continuous_pi_iff.mpr h)
 
 /-- The coercion `(λ x y, B x y) : E → (F → 𝕜)` is an embedding. -/
 lemma embedding {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} (hB : function.injective B) :
@@ -118,7 +118,7 @@ by rw [← tendsto_pi_nhds, embedding.tendsto_nhds_iff (embedding hB)]
 /-- Addition in `weak_space B` is continuous. -/
 instance [has_continuous_add 𝕜] : has_continuous_add (weak_bilin B) :=
 begin
-  refine ⟨continuous_induced_rng _⟩,
+  refine ⟨continuous_induced_rng.2 _⟩,
   refine cast (congr_arg _ _) (((coe_fn_continuous B).comp continuous_fst).add
     ((coe_fn_continuous B).comp continuous_snd)),
   ext,
@@ -128,7 +128,7 @@ end
 /-- Scalar multiplication by `𝕜` on `weak_bilin B` is continuous. -/
 instance [has_continuous_smul 𝕜 𝕜] : has_continuous_smul 𝕜 (weak_bilin B) :=
 begin
-  refine ⟨continuous_induced_rng _⟩,
+  refine ⟨continuous_induced_rng.2 _⟩,
   refine cast (congr_arg _ _) (continuous_fst.smul ((coe_fn_continuous B).comp continuous_snd)),
   ext,
   simp only [function.comp_app, pi.smul_apply, linear_map.map_smulₛₗ, ring_hom.id_apply,
@@ -149,7 +149,7 @@ continuous. -/
 instance [has_continuous_add 𝕜] : topological_add_group (weak_bilin B) :=
 { to_has_continuous_add := by apply_instance,
   continuous_neg := begin
-    refine continuous_induced_rng (continuous_pi_iff.mpr (λ y, _)),
+    refine continuous_induced_rng.2 (continuous_pi_iff.mpr (λ y, _)),
     refine cast (congr_arg _ _) (eval_continuous B (-y)),
     ext,
     simp only [map_neg, function.comp_app, linear_map.neg_apply],
@@ -217,14 +217,14 @@ continuous_linear_map.module
 
 instance (M) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
   [has_continuous_const_smul M 𝕜] : has_continuous_const_smul M (weak_dual 𝕜 E) :=
-⟨λ m, continuous_induced_rng $ (weak_bilin.coe_fn_continuous (top_dual_pairing 𝕜 E)).const_smul m⟩
+⟨λ m, continuous_induced_rng.2 $ (weak_bilin.coe_fn_continuous (top_dual_pairing 𝕜 E)).const_smul m⟩
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it continuously acts on `weak_dual 𝕜 E`. -/
 instance (M) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
   [topological_space M] [has_continuous_smul M 𝕜] :
   has_continuous_smul M (weak_dual 𝕜 E) :=
-⟨continuous_induced_rng $ continuous_fst.smul ((weak_bilin.coe_fn_continuous
+⟨continuous_induced_rng.2 $ continuous_fst.smul ((weak_bilin.coe_fn_continuous
                           (top_dual_pairing 𝕜 E)).comp continuous_snd)⟩
 
 lemma coe_fn_continuous : continuous (λ (x : weak_dual 𝕜 E) y, x y) :=
@@ -235,14 +235,14 @@ continuous_pi_iff.mp coe_fn_continuous y
 
 lemma continuous_of_continuous_eval [topological_space α] {g : α → weak_dual 𝕜 E}
   (h : ∀ y, continuous (λ a, (g a) y)) : continuous g :=
-continuous_induced_rng (continuous_pi_iff.mpr h)
+continuous_induced_rng.2 (continuous_pi_iff.mpr h)
 
 end weak_dual
 
 /-- The weak topology is the topology coarsest topology on `E` such that all
 functionals `λ x, top_dual_pairing 𝕜 E v x` are continuous. -/
 @[derive [add_comm_monoid, module 𝕜, topological_space, has_continuous_add],
-nolint has_inhabited_instance]
+nolint has_nonempty_instance]
 def weak_space (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
   [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E).flip

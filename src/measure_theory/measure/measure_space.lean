@@ -642,11 +642,11 @@ instance [measurable_space α] : has_add (measure α) :=
 theorem add_apply {m : measurable_space α} (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
-section has_scalar
-variables [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
-variables [has_scalar R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
+section has_smul
+variables [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+variables [has_smul R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
 
-instance [measurable_space α] : has_scalar R (measure α) :=
+instance [measurable_space α] : has_smul R (measure α) :=
 ⟨λ c μ,
   { to_outer_measure := c • μ.to_outer_measure,
     m_Union := λ s hs hd, begin
@@ -672,15 +672,15 @@ instance [smul_comm_class R R' ℝ≥0∞] [measurable_space α] :
   smul_comm_class R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_comm _ _ _⟩
 
-instance [has_scalar R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
+instance [has_smul R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
   is_scalar_tower R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_assoc _ _ _⟩
 
-instance [has_scalar Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
+instance [has_smul Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
   is_central_scalar R (measure α) :=
 ⟨λ _ _, ext $ λ _ _, op_smul_eq_smul _ _⟩
 
-end has_scalar
+end has_smul
 
 instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
   mul_action R (measure α) :=
@@ -1019,9 +1019,12 @@ lemma tendsto_ae_map {f : α → β} (hf : ae_measurable f μ) : tendsto f μ.ae
 
 omit m0
 
-/-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
-measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
-def comap [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
+/-- Pullback of a `measure` as a linear map. If `f` sends each measurable set to a measurable
+set, then for each measurable set `s` we have `comapₗ f μ s = μ (f '' s)`.
+
+If the linearity is not needed, please use `comap` instead, which works for a larger class of
+functions. -/
+def comapₗ [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
 if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
@@ -1032,13 +1035,46 @@ if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   end
 else 0
 
+lemma comapₗ_apply {β} [measurable_space α] {mβ : measurable_space β}
+  (f : α → β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
+  comapₗ f μ s = μ (f '' s) :=
+begin
+  rw [comapₗ, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
+  exact ⟨hfi, hf⟩
+end
+
+/-- Pullback of a `measure`. If `f` sends each measurable set to a null-measurable set,
+then for each measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
+def comap [measurable_space α] (f : α → β) (μ : measure β) : measure α :=
+if hf : injective f ∧ ∀ s, measurable_set s → null_measurable_set (f '' s) μ then
+  (outer_measure.comap f μ.to_outer_measure).to_measure $ λ s hs t,
+  begin
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
+      image_diff hf.1],
+    exact (measure_inter_add_diff₀ _ (hf.2 s hs)).symm
+  end
+else 0
+
+lemma comap_apply₀ [measurable_space α] (f : α → β) (μ : measure β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ)
+  (hs : null_measurable_set s (comap f μ)) :
+   comap f μ s = μ (f '' s) :=
+begin
+  rw [comap, dif_pos (and.intro hfi hf)] at hs ⊢,
+  rw [to_measure_apply₀ _ _ hs, outer_measure.comap_apply, coe_to_outer_measure]
+end
+
 lemma comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
   comap f μ s = μ (f '' s) :=
-begin
-  rw [comap, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
-  exact ⟨hfi, hf⟩
-end
+comap_apply₀ f μ hfi (λ s hs, (hf s hs).null_measurable_set) hs.null_measurable_set
+
+lemma comapₗ_eq_comap {β} [measurable_space α] {mβ : measurable_space β} (f : α → β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → measurable_set (f '' s))
+  (μ : measure β) (hs : measurable_set s) :
+  comapₗ f μ s = comap f μ s :=
+(comapₗ_apply f hfi hf μ hs).trans (comap_apply f hfi hf μ hs).symm
 
 /-! ### Restricting a measure -/
 
@@ -1594,7 +1630,7 @@ lemma map_eq_sum [encodable β] [measurable_singleton_class β]
 begin
   ext1 s hs,
   have : ∀ y ∈ s, measurable_set (f ⁻¹' {y}), from λ y _, hf (measurable_set_singleton _),
-  simp [← tsum_measure_preimage_singleton (countable_encodable s) this, *,
+  simp [← tsum_measure_preimage_singleton (to_countable s) this, *,
     tsum_subtype s (λ b, μ (f ⁻¹' {b})), ← indicator_mul_right s (λ b, μ (f ⁻¹' {b}))]
 end
 
@@ -2212,7 +2248,7 @@ instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_ne_top (measure_ne_top _ _) }
 
 instance is_finite_measure_smul_of_nnreal_tower
-  {R} [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
+  {R} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
   [is_finite_measure μ] {r : R} :
   is_finite_measure (r • μ) :=
@@ -2447,7 +2483,7 @@ lemma finite_at_bot {m0 : measurable_space α} (μ : measure α) : μ.finite_at_
   about the sets, such as that they are monotone.
   `sigma_finite` is defined in terms of this: `μ` is σ-finite if there exists a sequence of
   finite spanning sets in the collection of all measurable sets. -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure finite_spanning_sets_in {m0 : measurable_space α} (μ : measure α) (C : set (set α)) :=
 (set : ℕ → set α)
 (set_mem : ∀ i, set i ∈ C)

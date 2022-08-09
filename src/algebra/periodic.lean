@@ -94,7 +94,7 @@ lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]
 s.prod_to_list f ▸ (s.to_list.map f).periodic_prod (by simpa [-periodic])
 
 @[to_additive]
-lemma periodic.smul [has_add α] [has_scalar γ β] (h : periodic f c) (a : γ) :
+lemma periodic.smul [has_add α] [has_smul γ β] (h : periodic f c) (a : γ) :
   periodic (a • f) c :=
 by simp * at *
 
@@ -523,3 +523,7 @@ lemma antiperiodic.div [has_add α] [division_ring β]
 by simp [*, neg_div_neg_eq] at *
 
 end function
+
+lemma int.fract_periodic (α) [linear_ordered_ring α] [floor_ring α] :
+  function.periodic int.fract (1 : α) :=
+by exact_mod_cast λ a, int.fract_add_int a 1

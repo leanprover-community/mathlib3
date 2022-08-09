@@ -19,9 +19,10 @@ by a sequence of simple functions.
 
 ## Main results
 
-* `tendsto_approx_on_univ_Lp` (Lᵖ convergence): If `E` is a `normed_group` and `f` is measurable
-  and `mem_ℒp` (for `p < ∞`), then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may
-  be considered as elements of `Lp E p μ`, and they tend in Lᵖ to `f`.
+* `tendsto_approx_on_univ_Lp` (Lᵖ convergence): If `E` is a `normed_add_comm_group` and `f` is
+  measurable and `mem_ℒp` (for `p < ∞`), then the simple functions
+  `simple_func.approx_on f hf s 0 h₀ n` may be considered as elements of `Lp E p μ`, and they tend
+  in Lᵖ to `f`.
 * `Lp.simple_func.dense_embedding`: the embedding `coe_to_Lp` of the `Lp` simple functions into
   `Lp` is dense.
 * `Lp.simple_func.induction`, `Lp.induction`, `mem_ℒp.induction`, `integrable.induction`: to prove
@@ -52,8 +53,8 @@ namespace simple_func
 /-! ### Lp approximation by simple functions -/
 
 section Lp
-variables [measurable_space β]
-variables [measurable_space E] [normed_group E] [normed_group F] {q : ℝ} {p : ℝ≥0∞}
+variables [measurable_space β] [measurable_space E] [normed_add_comm_group E]
+  [normed_add_comm_group F] {q : ℝ} {p : ℝ≥0∞}
 
 lemma nnnorm_approx_on_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
@@ -191,7 +192,7 @@ end Lp
 
 section integrable
 variables [measurable_space β]
-variables [measurable_space E] [normed_group E]
+variables [measurable_space E] [normed_add_comm_group E]
 
 lemma tendsto_approx_on_L1_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
@@ -235,7 +236,7 @@ end integrable
 section simple_func_properties
 
 variables [measurable_space α]
-variables [normed_group E] [normed_group F]
+variables [normed_add_comm_group E] [normed_add_comm_group F]
 variables {μ : measure α} {p : ℝ≥0∞}
 
 /-!
@@ -383,7 +384,8 @@ namespace Lp
 
 open ae_eq_fun
 
-variables [measurable_space α] [normed_group E] [normed_group F] (p : ℝ≥0∞) (μ : measure α)
+variables [measurable_space α] [normed_add_comm_group E] [normed_add_comm_group F] (p : ℝ≥0∞)
+  (μ : measure α)
 
 variables (E)
 
@@ -420,9 +422,9 @@ i.e. has no scalar action). -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E]
 
-/-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. Not declared as an
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_smul`. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λ k f, ⟨k • f,
+protected def has_smul : has_smul 𝕜 (Lp.simple_func E p μ) := ⟨λ k f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
   use k • s,
@@ -431,7 +433,7 @@ begin
   refl,
 end ⟩⟩
 
-local attribute [instance] simple_func.has_scalar
+local attribute [instance] simple_func.has_smul
 
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
@@ -829,7 +831,7 @@ end simple_func
 
 end Lp
 
-variables [measurable_space α] [normed_group E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
+variables [measurable_space α] [normed_add_comm_group E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
 
 /-- To prove something for an arbitrary `Lp` function in a second countable Borel normed group, it
 suffices to show that

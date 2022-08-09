@@ -135,16 +135,32 @@ theorem _root_.monotone.inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∩ g x) :=
 hf.inf hg
 
+theorem _root_.monotone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∩ g x) s :=
+hf.inf hg
+
 theorem _root_.antitone.inter [preorder β] {f g : β → set α}
   (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∩ g x) :=
+hf.inf hg
+
+theorem _root_.antitone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∩ g x) s :=
 hf.inf hg
 
 theorem _root_.monotone.union [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∪ g x) :=
 hf.sup hg
 
+theorem _root_.monotone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∪ g x) s :=
+hf.sup hg
+
 theorem _root_.antitone.union [preorder β] {f g : β → set α}
   (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∪ g x) :=
+hf.sup hg
+
+theorem _root_.antitone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∪ g x) s :=
 hf.sup hg
 
 theorem monotone_set_of [preorder α] {p : α → β → Prop}
@@ -740,6 +756,12 @@ by simp only [inter_Union]
 lemma Union₂_inter (s : Π i, κ i → set α) (t : set α) : (⋃ i j, s i j) ∩ t = ⋃ i j, s i j ∩ t :=
 by simp_rw Union_inter
 
+lemma union_Inter₂ (s : set α) (t : Π i, κ i → set α) : s ∪ (⋂ i j, t i j) = ⋂ i j, s ∪ t i j :=
+by simp_rw union_Inter
+
+lemma Inter₂_union (s : Π i, κ i → set α) (t : set α) : (⋂ i j, s i j) ∪ t = ⋂ i j, s i j ∪ t :=
+by simp_rw Inter_union
+
 theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t) (ht : t ∈ S) :
   x ∈ ⋃₀ S :=
 ⟨t, ht, hx⟩
@@ -896,6 +918,9 @@ theorem range_sigma_eq_Union_range {γ : α → Type*} (f : sigma γ → β) :
 set.ext $ by simp
 
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
+by simp [set.ext_iff]
+
+theorem Union_eq_range_psigma (s : ι → set β) : (⋃ i, s i) = range (λ a : Σ' i, s i, a.2) :=
 by simp [set.ext_iff]
 
 theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :
@@ -1260,12 +1285,6 @@ end preimage
 
 section prod
 
-theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
-  (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ×ˢ g x) :=
-λ a b h, prod_mono (hf h) (hg h)
-
-alias monotone_prod ← monotone.set_prod
-
 lemma prod_Union {s : set α} {t : ι → set β} : s ×ˢ (⋃ i, t i) = ⋃ i, s ×ˢ (t i) := by { ext, simp }
 
 lemma prod_Union₂ {s : set α} {t : Π i, κ i → set β} : s ×ˢ (⋃ i j, t i j) = ⋃ i j, s ×ˢ t i j :=
@@ -1298,7 +1317,6 @@ begin
 end
 
 end prod
-
 
 section image2
 
@@ -1509,7 +1527,7 @@ lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
-by simp [set.not_disjoint_iff, set.nonempty_def]
+not_disjoint_iff
 
 alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
 

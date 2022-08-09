@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Moritz Doll
 -/
 import linear_algebra.basic
 import linear_algebra.prod
@@ -19,11 +19,14 @@ a `semilattice_inf` with `order_bot` instance on this this, and define three ope
 * `Sup` takes a `directed_on (≤)` set of partial linear maps, and returns the unique
   partial linear map on the `Sup` of their domains that extends all these maps.
 
+Moreover, we define
+* `linear_pmap.graph` is the graph of the partial linear map viewed as a submodule of `E × F`.
+
 Partially defined maps are currently used in `mathlib` to prove Hahn-Banach theorem
 and its variations. Namely, `linear_pmap.Sup` implies that every chain of `linear_pmap`s
 is bounded above.
+They are also the basis for the theory of unbounded operators.
 
-Another possible use (not yet in `mathlib`) would be the theory of unbounded linear operators.
 -/
 
 open set
@@ -61,6 +64,12 @@ begin
 end
 
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
+
+lemma ext_iff {f g : linear_pmap R E F} :
+  f = g ↔
+  ∃ (domain_eq : f.domain = g.domain),
+    ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y :=
+⟨λ EQ, EQ ▸ ⟨rfl, λ x y h, by { congr, exact_mod_cast h }⟩, λ ⟨deq, feq⟩, ext deq feq⟩
 
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
@@ -306,7 +315,7 @@ section smul
 variables {M N : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F]
 variables [monoid N] [distrib_mul_action N F] [smul_comm_class R N F]
 
-instance : has_scalar M (linear_pmap R E F) :=
+instance : has_smul M (linear_pmap R E F) :=
 ⟨λ a f,
   { domain := f.domain,
     to_fun := a • f.to_fun }⟩
@@ -319,7 +328,7 @@ lemma smul_apply (a : M) (f : linear_pmap R E F) (x : ((a • f).domain)) :
 instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
 
-instance [has_scalar M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
+instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
 
 end smul
@@ -397,6 +406,15 @@ le_of_eq_locus_ge $ Sup_le $ λ _ ⟨f, hf, eq⟩, eq ▸
 have f ≤ (linear_pmap.Sup c hc) ⊓ g, from le_inf (linear_pmap.le_Sup _ hf) (hg f hf),
 this.1
 
+protected lemma Sup_apply {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
+  {l : linear_pmap R E F} (hl : l ∈ c) (x : l.domain) :
+  (linear_pmap.Sup c hc) ⟨x, (linear_pmap.le_Sup hc hl).1 x.2⟩ = l x :=
+begin
+  symmetry,
+  apply (classical.some_spec (Sup_aux c hc) hl).2,
+  refl,
+end
+
 end linear_pmap
 
 namespace linear_map
@@ -444,12 +462,8 @@ def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
   f.coprod g x = f ⟨(x : E × F).1, x.2.1⟩ + g ⟨(x : E × F).2, x.2.2⟩ :=
 rfl
 
-end linear_pmap
-
 /-! ### Graph -/
 section graph
-
-namespace linear_pmap
 
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
 def graph (f : linear_pmap R E F) : submodule R (E × F) :=
@@ -466,6 +480,60 @@ by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
 /-- The tuple `(x, f x)` is contained in the graph of `f`. -/
 lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
 by simp
+
+variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F] (y : M)
+
+/-- The graph of `z • f` as a pushforward. -/
+lemma smul_graph (f : linear_pmap R E F) (z : M) :
+  (z • f).graph = f.graph.map (linear_map.id.prod_map (z • linear_map.id)) :=
+begin
+  ext x, cases x,
+  split; intros h,
+  { rw mem_graph_iff at h,
+    rcases h with ⟨y, hy, h⟩,
+    rw linear_pmap.smul_apply at h,
+    rw submodule.mem_map,
+    simp only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
+      linear_map.smul_apply, prod.mk.inj_iff, prod.exists, exists_exists_and_eq_and],
+    use [x_fst, y],
+    simp [hy, h] },
+  rw submodule.mem_map at h,
+  rcases h with ⟨x', hx', h⟩,
+  cases x',
+  simp only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.smul_apply,
+    prod.mk.inj_iff] at h,
+  rw mem_graph_iff at hx' ⊢,
+  rcases hx' with ⟨y, hy, hx'⟩,
+  use y,
+  rw [←h.1, ←h.2],
+  simp[hy, hx'],
+end
+
+/-- The graph of `-f` as a pushforward. -/
+lemma neg_graph (f : linear_pmap R E F) :
+  (-f).graph = f.graph.map (linear_map.id.prod_map (-linear_map.id)) :=
+begin
+  ext, cases x,
+  split; intros h,
+  { rw mem_graph_iff at h,
+    rcases h with ⟨y, hy, h⟩,
+    rw linear_pmap.neg_apply at h,
+    rw submodule.mem_map,
+    simp only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
+      linear_map.neg_apply, prod.mk.inj_iff, prod.exists, exists_exists_and_eq_and],
+    use [x_fst, y],
+    simp [hy, h] },
+  rw submodule.mem_map at h,
+  rcases h with ⟨x', hx', h⟩,
+  cases x',
+  simp only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.neg_apply,
+    prod.mk.inj_iff] at h,
+  rw mem_graph_iff at hx' ⊢,
+  rcases hx' with ⟨y, hy, hx'⟩,
+  use y,
+  rw [←h.1, ←h.2],
+  simp [hy, hx'],
+end
 
 lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
   (hy : (y,y') ∈ f.graph) (hxy : x = y) : x' = y' :=
@@ -487,6 +555,158 @@ lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x')
   (hx : x = 0) : x' = 0 :=
 f.mem_graph_snd_inj h f.graph.zero_mem hx
 
-end linear_pmap
+lemma mem_domain_iff {f : linear_pmap R E F} {x : E} : x ∈ f.domain ↔ ∃ y : F, (x,y) ∈ f.graph :=
+begin
+  split; intro h,
+  { use f ⟨x, h⟩,
+    exact f.mem_graph ⟨x, h⟩ },
+  cases h with y h,
+  rw mem_graph_iff at h,
+  cases h with x' h,
+  simp only at h,
+  rw ←h.1,
+  simp,
+end
+
+lemma image_iff {f : linear_pmap R E F} {x : E} {y : F} (hx : x ∈ f.domain) :
+  y = f ⟨x, hx⟩ ↔ (x, y) ∈ f.graph :=
+begin
+  rw mem_graph_iff,
+  split; intro h,
+  { use ⟨x, hx⟩,
+    simp [h] },
+  rcases h with ⟨⟨x', hx'⟩, ⟨h1, h2⟩⟩,
+  simp only [submodule.coe_mk] at h1 h2,
+  simp only [←h2, h1],
+end
+
+lemma mem_range_iff {f : linear_pmap R E F} {y : F} : y ∈ set.range f ↔ ∃ x : E, (x,y) ∈ f.graph :=
+begin
+  split; intro h,
+  { rw set.mem_range at h,
+    rcases h with ⟨⟨x, hx⟩, h⟩,
+    use x,
+    rw ←h,
+    exact f.mem_graph ⟨x, hx⟩ },
+  cases h with x h,
+  rw mem_graph_iff at h,
+  cases h with x h,
+  rw set.mem_range,
+  use x,
+  simp only at h,
+  rw h.2,
+end
+
+lemma mem_domain_iff_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) {x : E} :
+  x ∈ f.domain ↔ x ∈ g.domain :=
+by simp_rw [mem_domain_iff, h]
+
+lemma le_of_le_graph {f g : linear_pmap R E F} (h : f.graph ≤ g.graph) : f ≤ g :=
+begin
+  split,
+  { intros x hx,
+    rw mem_domain_iff at hx ⊢,
+    cases hx with y hx,
+    use y,
+    exact h hx },
+  rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+  rw image_iff,
+  refine h _,
+  simp only [submodule.coe_mk] at hxy,
+  rw hxy at hx,
+  rw ←image_iff hx,
+  simp [hxy],
+end
+
+lemma eq_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) : f = g :=
+by {ext, exact mem_domain_iff_of_eq_graph h, exact (le_of_le_graph h.le).2 }
 
 end graph
+
+end linear_pmap
+
+namespace submodule
+
+section submodule_to_linear_pmap
+
+lemma exists_unique_from_graph {g : submodule R (E × F)}
+  (hg : ∀ {x : E × F} (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
+  (ha : a ∈ g.map (linear_map.fst R E F)) :
+  ∃! (b : F), (a,b) ∈ g :=
+begin
+  refine exists_unique_of_exists_of_unique _ _,
+  { convert ha, simp },
+  intros y₁ y₂ hy₁ hy₂,
+  have hy : ((0 : E), y₁ - y₂) ∈ g :=
+  begin
+    convert g.sub_mem hy₁ hy₂,
+    exact (sub_self _).symm,
+  end,
+  exact sub_eq_zero.mp (hg hy (by simp)),
+end
+
+/-- Auxiliary definition to unfold the existential quantifier. -/
+noncomputable
+def val_from_graph {g : submodule R (E × F)}
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
+  (ha : a ∈ g.map (linear_map.fst R E F)) : F :=
+(exists_of_exists_unique (exists_unique_from_graph hg ha)).some
+
+lemma val_from_graph_mem {g : submodule R (E × F)}
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
+  (ha : a ∈ g.map (linear_map.fst R E F)) : (a, val_from_graph hg ha) ∈ g :=
+(exists_of_exists_unique (exists_unique_from_graph hg ha)).some_spec
+
+/-- Define a `linear_pmap` from its graph. -/
+noncomputable
+def to_linear_pmap (g : submodule R (E × F))
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) : linear_pmap R E F :=
+{ domain := g.map (linear_map.fst R E F),
+  to_fun :=
+  { to_fun := λ x, val_from_graph hg x.2,
+    map_add' := λ v w, begin
+      have hadd := (g.map (linear_map.fst R E F)).add_mem v.2 w.2,
+      have hvw := val_from_graph_mem hg hadd,
+      have hvw' := g.add_mem (val_from_graph_mem hg v.2) (val_from_graph_mem hg w.2),
+      rw [prod.mk_add_mk] at hvw',
+      exact (exists_unique_from_graph hg hadd).unique hvw hvw',
+    end,
+    map_smul' := λ a v, begin
+      have hsmul := (g.map (linear_map.fst R E F)).smul_mem a v.2,
+      have hav := val_from_graph_mem hg hsmul,
+      have hav' := g.smul_mem a (val_from_graph_mem hg v.2),
+      rw [prod.smul_mk] at hav',
+      exact (exists_unique_from_graph hg hsmul).unique hav hav',
+    end } }
+
+lemma mem_graph_to_linear_pmap (g : submodule R (E × F))
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0)
+  (x : g.map (linear_map.fst R E F)) : (x.val, g.to_linear_pmap hg x) ∈ g :=
+val_from_graph_mem hg x.2
+
+@[simp] lemma to_linear_pmap_graph_eq (g : submodule R (E × F))
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) :
+  (g.to_linear_pmap hg).graph = g :=
+begin
+  ext,
+  split; intro hx,
+  { rw [linear_pmap.mem_graph_iff] at hx,
+    rcases hx with ⟨y,hx1,hx2⟩,
+    convert g.mem_graph_to_linear_pmap hg y,
+    rw [subtype.val_eq_coe],
+    exact prod.ext hx1.symm hx2.symm },
+  rw linear_pmap.mem_graph_iff,
+  cases x,
+  have hx_fst : x_fst ∈ g.map (linear_map.fst R E F) :=
+  begin
+    simp only [mem_map, linear_map.fst_apply, prod.exists, exists_and_distrib_right,
+      exists_eq_right],
+    exact ⟨x_snd, hx⟩,
+  end,
+  refine ⟨⟨x_fst, hx_fst⟩, subtype.coe_mk x_fst hx_fst, _⟩,
+  exact (exists_unique_from_graph hg hx_fst).unique (val_from_graph_mem hg hx_fst) hx,
+end
+
+end submodule_to_linear_pmap
+
+end submodule

@@ -50,8 +50,8 @@ rectangle are contained in `s` by convexity. The general case follows by lineari
 open asymptotics set
 open_locale topological_space
 
-variables {E F : Type*} [normed_group E] [normed_space ℝ E]
-[normed_group F] [normed_space ℝ F]
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+[normed_add_comm_group F] [normed_space ℝ F]
 {s : set E} (s_conv : convex ℝ s)
 {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
 (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
@@ -263,7 +263,7 @@ begin
       congr' 1,
       field_simp [has_lt.lt.ne' hpos] },
     { filter_upwards [self_mem_nhds_within] with _ hpos,
-      field_simp [has_lt.lt.ne' hpos, has_scalar.smul], }, },
+      field_simp [has_lt.lt.ne' hpos, has_smul.smul], }, },
   simpa only [sub_eq_zero] using is_o_const_const_iff.1 B,
 end
 

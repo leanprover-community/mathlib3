@@ -27,6 +27,8 @@ import measure_theory.group.integration
 #check real.exp_pos
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
 #check measurable_set.univ
+#check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
+
 /-
 We would like to define the Gaussian measure on ℝ.
 There are two ways of doing this.
@@ -100,6 +102,13 @@ rw detid_eq_one,
 simp,
 end
 
+---lemma linear_injonR : set.inj_on (λ x, x-m) set.univ:=
+
+lemma changelr (a b : ℝ) : a = b ↔ b = a :=
+begin
+
+end
+
 lemma change_of_vr_gaussian:
    ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)):=
 begin
@@ -129,11 +138,16 @@ begin
         simp},
     rw h_integ_eq2,
     nth_rewrite 1 [h_set_eq],
-    have h_comp_eq : ∀ (x:ℝ), g (x-m) = g (f x),
+    /-have h_comp_eq : ∀ (x:ℝ), g (x-m) = g (f x),
       {intro x,
-      simp},
+      simp},-/
 
-    simp_rw [h_comp_eq],
+    have h_comp_eq : ∫ (x : ℝ) in set.univ, g (x - m) = ∫ (x : ℝ) in set.univ, g (f x) ,
+      {simp},
+
+
+
+    rw h_comp_eq,
     let f_deriv : ℝ →L[ℝ] ℝ := continuous_linear_map.id ℝ ℝ,
     let f': ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
 
@@ -146,6 +160,41 @@ begin
      = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x),
      {refl},
     rw h_use_f'_tosubst,
+
+    have hf : set.inj_on f set.univ,
+      {refine set.injective_iff_inj_on_univ.mp _,
+      unfold function.injective,
+      intros x1 x2,
+      simp_rw [f],
+      simp},
+
+    have hf' : ∀ (x:ℝ), x ∈ set.univ → has_fderiv_within_at f (f' x) set.univ x,
+      {intros x hx,
+      refine has_fderiv_within_at.sub_const _ m,
+      exact has_fderiv_within_at_id x set.univ},
+
+    /-have h_add_bbP1 : ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x)
+    = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x) ∂ℙ,
+    {
+
+    }-/
+    {sorry},
+    {exact num},
+    {refine {mem := _},
+    intros h₁ h₂,
+    exact infi h₂},
+
+    ---exact measure_theory.integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ hf' hf g,
+
+
+
+    /-
+    have h_rwinteg : integral (ℙ.restrict (f '' set.univ)) g
+    = ∫ (x  : ℝ) in f '' set.univ, g x ,
+    {
+      --exact integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ hf hf' g,
+    }-/
+
 
     ---refine integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ _ _ g,
 

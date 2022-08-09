@@ -29,22 +29,22 @@ open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] {𝒜 ℬ : finset (finset α)} {s : finset α} {a : α}
 
-lemma is_lower_set.non_member_section (h : is_lower_set (𝒜 : set (finset α))) :
-  is_lower_set (𝒜.non_member_section a : set (finset α)) :=
-λ s t hts, by { simp_rw [mem_coe, mem_non_member_section], exact and.imp (h hts) (mt $ @hts _) }
+lemma is_lower_set.non_member_subfamily (h : is_lower_set (𝒜 : set (finset α))) :
+  is_lower_set (𝒜.non_member_subfamily a : set (finset α)) :=
+λ s t hts, by { simp_rw [mem_coe, mem_non_member_subfamily], exact and.imp (h hts) (mt $ @hts _) }
 
-lemma is_lower_set.member_section (h : is_lower_set (𝒜 : set (finset α))) :
-  is_lower_set (𝒜.member_section a : set (finset α)) :=
+lemma is_lower_set.member_subfamily (h : is_lower_set (𝒜 : set (finset α))) :
+  is_lower_set (𝒜.member_subfamily a : set (finset α)) :=
 begin
   rintro s t hts,
-  simp_rw [mem_coe, mem_member_section],
+  simp_rw [mem_coe, mem_member_subfamily],
   exact and.imp (h $ insert_subset_insert _ hts) (mt $ @hts _),
 end
 
-lemma is_lower_set.member_section_subset_non_member_section
+lemma is_lower_set.member_subfamily_subset_non_member_subfamily
   (h : is_lower_set (𝒜 : set (finset α))) :
-  𝒜.member_section a ⊆ 𝒜.non_member_section a :=
-λ s, by { rw [mem_member_section, mem_non_member_section],
+  𝒜.member_subfamily a ⊆ 𝒜.non_member_subfamily a :=
+λ s, by { rw [mem_member_subfamily, mem_non_member_subfamily],
   exact and.imp_left (h $ subset_insert _ _) }
 
 /-- **Harris-Kleitman inequality**: Any two lower sets of finsets correlate. -/
@@ -60,27 +60,27 @@ begin
     obtain rfl | rfl := hℬs,
     { simp only [card_empty, inter_empty, mul_zero, zero_mul] },
     { simp only [card_empty, pow_zero, inter_singleton_of_mem, mem_singleton, card_singleton] } },
-  rw [card_insert_of_not_mem hs, ←card_member_section_add_card_non_member_section a 𝒜,
-    ←card_member_section_add_card_non_member_section a ℬ, add_mul, mul_add, mul_add,
+  rw [card_insert_of_not_mem hs, ←card_member_subfamily_add_card_non_member_subfamily a 𝒜,
+    ←card_member_subfamily_add_card_non_member_subfamily a ℬ, add_mul, mul_add, mul_add,
     add_comm (_ * _), add_add_add_comm],
   refine (add_le_add_right (mul_add_mul_le_mul_add_mul
-    (card_le_of_subset h𝒜.member_section_subset_non_member_section) $
-    card_le_of_subset hℬ.member_section_subset_non_member_section) _).trans _,
+    (card_le_of_subset h𝒜.member_subfamily_subset_non_member_subfamily) $
+    card_le_of_subset hℬ.member_subfamily_subset_non_member_subfamily) _).trans _,
   rw [←two_mul, pow_succ, mul_assoc],
-  have h₀ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.non_member_section a,
+  have h₀ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.non_member_subfamily a,
     t ⊆ s,
   { rintro 𝒞 h𝒞 t ht,
-    rw mem_non_member_section at ht,
+    rw mem_non_member_subfamily at ht,
     exact (subset_insert_iff_of_not_mem ht.2).1 (h𝒞 _ ht.1) },
-  have h₁ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.member_section a, t ⊆ s,
+  have h₁ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.member_subfamily a, t ⊆ s,
   { rintro 𝒞 h𝒞 t ht,
-    rw mem_member_section at ht,
+    rw mem_member_subfamily at ht,
     exact (subset_insert_iff_of_not_mem ht.2).1 ((subset_insert _ _).trans $ h𝒞 _ ht.1) },
   refine mul_le_mul_left' _ _,
-  refine (add_le_add (ih (h𝒜.member_section) (hℬ.member_section) (h₁ _ h𝒜s) $ h₁ _ hℬs) $
-    ih (h𝒜.non_member_section) (hℬ.non_member_section) (h₀ _ h𝒜s) $ h₀ _ hℬs).trans_eq _,
-  rw [←mul_add, ←member_section_inter, ←non_member_section_inter,
-    card_member_section_add_card_non_member_section],
+  refine (add_le_add (ih (h𝒜.member_subfamily) (hℬ.member_subfamily) (h₁ _ h𝒜s) $ h₁ _ hℬs) $
+    ih (h𝒜.non_member_subfamily) (hℬ.non_member_subfamily) (h₀ _ h𝒜s) $ h₀ _ hℬs).trans_eq _,
+  rw [←mul_add, ←member_subfamily_inter, ←non_member_subfamily_inter,
+    card_member_subfamily_add_card_non_member_subfamily],
 end
 
 variables [fintype α]

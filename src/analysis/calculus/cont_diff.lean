@@ -2479,7 +2479,7 @@ variables {𝔸 𝔸' ι 𝕜' : Type*} [normed_ring 𝔸] [normed_algebra 𝕜 
 
 /- The product is smooth. -/
 lemma cont_diff_mul : cont_diff 𝕜 n (λ p : 𝔸 × 𝔸, p.1 * p.2) :=
-(continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.cont_diff
+(continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.cont_diff
 
 /-- The product of two `C^n` functions within a set at a point is `C^n` within this set
 at this point. -/

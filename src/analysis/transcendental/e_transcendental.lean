@@ -922,14 +922,6 @@ begin
   rw coe_f_eval,
 end
 
-lemma abs_J_ineq1'' (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
-  abs (J g p) ≤
-  ((∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@polynomial.eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ)))) :=
-begin
-  rw <-abs_J_ineq1'_coe, exact abs_J_ineq1' g p, exact hp,
-end
-
 lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
   ((∑ i in finset.range g.nat_degree.succ,
     (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@polynomial.eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ)))) ≤
@@ -1049,12 +1041,15 @@ end
 
 theorem abs_J_upper_bound (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) : abs (J g p) ≤ (M g)^p :=
 begin
-  have ineq1 := abs_J_ineq1'' g p hp,
-  have ineq2 := sum_ineq_1 g p hp,
-  have ineq3 := sum_ineq_2 g p hp,
-  have ineq4 := le_trans (le_trans ineq1 ineq2) ineq3,
-  rw [M, mul_pow, mul_pow, mul_pow, mul_pow, <-pow_mul, add_mul, one_mul],
-  have eq1 : g.nat_degree * p = p * g.nat_degree, rw mul_comm, rw eq1, exact ineq4,
+  refine (abs_J_ineq1' g p).trans _,
+  rw abs_J_ineq1'_coe g p hp,
+  refine (sum_ineq_1 g p hp).trans _,
+  rw M,
+  have ineq4 := sum_ineq_2 g p hp,
+  apply ineq4.trans_eq,
+  have : p + p * g.nat_degree = (1 + g.nat_degree) * p, ring,
+  rw [this, pow_mul],
+  simp only [←mul_pow],
 end
 
 lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, N < n -> M ^ (n+1) < (n.factorial) :=

@@ -12,12 +12,7 @@ notation `transcendental_over_ℚ` x := ¬(is_algebraic ℚ x)
 notation α`[X]` := polynomial α
 
 theorem algebraic_over_Z_then_algebraic_over_Q (x : ℝ) : is_algebraic ℤ x -> is_algebraic ℚ x :=
-begin
-  apply is_algebraic_of_larger_base_of_injective,
-  simp only [algebra_map_int_eq, int.coe_cast_ring_hom],
-  intros x y,
-  apply (rat.coe_int_inj _ _).mp,
-end
+is_algebraic_of_larger_base_of_injective (algebra_map ℤ ℚ).injective_int
 
 /--
 multiply a rational number $a/b$ by an integer $m$ to get the integer (a*m)/b
@@ -199,11 +194,4 @@ end
 
 
 theorem transcendental_iff_transcendental_over_ℚ (x : ℝ) : (transcendental x) <-> (transcendental_over_ℚ x) :=
-begin
-  split;
-  intro h;
-  contrapose h;
-  rw not_not at h ⊢,
-  apply algebraic_over_Q_then_algebraic_over_Z _ h,
-  apply algebraic_over_Z_then_algebraic_over_Q _ h,
-end
+iff.not ⟨algebraic_over_Z_then_algebraic_over_Q _, algebraic_over_Q_then_algebraic_over_Z _⟩

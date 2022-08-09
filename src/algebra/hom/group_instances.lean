@@ -84,7 +84,7 @@ instance [add_comm_group M] : ring (add_monoid.End M) :=
   .. add_monoid_hom.add_comm_group }
 
 /-- See also `add_monoid.End.int_cast_def`. -/
-@[simp] lemma add_monoid.End.int_cast_apply [add_comm_group M] (z : ℤ) (m : M):
+@[simp] lemma add_monoid.End.int_cast_apply [add_comm_group M] (z : ℤ) (m : M) :
   (↑z : add_monoid.End M) m = z • m := rfl
 
 /-!

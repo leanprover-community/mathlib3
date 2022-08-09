@@ -122,4 +122,15 @@ by { simp [finrank] }
 
 end comm_ring
 
+section field
+
+variables [field R]
+variables [add_comm_group M] [module R M] [module.finite R M]
+variables [add_comm_group N] [module R N] [module.finite R N]
+
+lemma finite_dimensional.tensor_product : finite_dimensional R (M ⊗[R] N) :=
+module.finite.tensor_product _ _ _
+
+end field
+
 end module.free

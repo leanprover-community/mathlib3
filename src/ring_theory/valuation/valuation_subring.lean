@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Adam Topaz, Junyan Xu
+Authors: Adam Topaz, Junyan Xu, Jack McKoen
 -/
 import ring_theory.valuation.valuation_ring
 import ring_theory.localization.as_subring
@@ -594,8 +594,7 @@ lemma principal_unit_group_symm_apply
 /-- The canonical map from the unit group of `A` to the units of the residue field of `A`. -/
 def unit_group_to_residue_field_units :
   A.unit_group →* (local_ring.residue_field A)ˣ :=
-monoid_hom.comp (units.map $ (ideal.quotient.mk _).to_monoid_hom)
-  A.unit_group_mul_equiv.to_monoid_hom
+(units.map $ (ideal.quotient.mk _).to_monoid_hom).comp A.unit_group_mul_equiv.to_monoid_hom
 
 @[simp]
 lemma coe_unit_group_to_residue_field_units_apply (x : A.unit_group) :
@@ -606,22 +605,10 @@ lemma ker_unit_group_to_residue_field_units :
   A.unit_group_to_residue_field_units.ker = A.principal_unit_group.comap A.unit_group.subtype :=
 by { ext, simpa only [subgroup.mem_comap, subgroup.coe_subtype, coe_mem_principal_unit_group_iff] }
 
-lemma residue_field_unit_exists_unit_rep (x : (local_ring.residue_field A)ˣ) :
-  ∃ (y : Aˣ), (local_ring.residue A) y = x :=
-begin
-  obtain ⟨y, hy⟩ : ∃ (y : A), (local_ring.residue A) y = x, from quot.exists_rep _,
-  have : is_unit y,
-  { apply local_ring.residue_map_is_local_ring_hom.1, rw hy, exact units.is_unit _},
-  exact ⟨this.unit, hy⟩,
-end
-
 lemma surjective_unit_group_to_residue_field_units :
   function.surjective A.unit_group_to_residue_field_units :=
-begin
-  intro x,
-  choose y hy using A.residue_field_unit_exists_unit_rep x,
-  exact ⟨A.unit_group_mul_equiv.symm y, by { ext, simpa }⟩,
-end
+(local_ring.surjective_units_map_of_local_ring_hom _
+ideal.quotient.mk_surjective local_ring.is_local_ring_hom_residue).comp (mul_equiv.surjective _)
 
 /-- The quotient of the unit group of `A` by the principal unit group of `A` agrees with
 the units of the residue field of `A`. -/

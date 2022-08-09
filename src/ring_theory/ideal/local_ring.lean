@@ -307,6 +307,16 @@ begin
     f.is_unit_map f.is_unit_map
 end
 
+/-- If `f : R →+* S` is a surjective local ring hom, then the induced units map is surjective. -/
+lemma surjective_units_map_of_local_ring_hom [comm_semiring R] [comm_semiring S]
+  (f : R →+* S) [is_local_ring_hom f] (hf : function.surjective f) :
+  function.surjective (units.map $ f.to_monoid_hom) :=
+begin
+  intro a,
+  obtain ⟨b,hb⟩ := hf (a : S),
+  use (is_unit_of_map_unit f _ (by { rw hb, exact units.is_unit _})).unit, ext, exact hb,
+end
+
 section
 variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
 
@@ -345,7 +355,7 @@ lemma ker_eq_maximal_ideal [field K] (φ : R →+* K) (hφ : function.surjective
   φ.ker = maximal_ideal R :=
 local_ring.eq_maximal_ideal $ (ring_hom.ker_is_maximal_of_surjective φ) hφ
 
-lemma residue_map_is_local_ring_hom :
+lemma is_local_ring_hom_residue :
   is_local_ring_hom (local_ring.residue R) :=
 begin
   constructor,

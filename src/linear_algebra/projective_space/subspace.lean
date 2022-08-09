@@ -146,41 +146,41 @@ open_locale big_operators
 /-- If a family of vectors is such that every nonzero vector in the family determines a point in the
 corresponding projective space which is contained in a subspace, then every nonzero finite sum of
 vectors from the family also determines a point contained in that subspace. -/
-lemma mem_add'' {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V)
+lemma mk_sum_mem {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V)
   (hf : ∀ i, i ∈ s →  f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
   (hs : ∑ i in s, f i ≠ 0) : projectivization.mk K (∑ i in s, f i) hs ∈ W :=
 begin
-suffices : (∑ (i : ι) in s, f i = 0) ∨
-  (∃ (h : (∑ (i : ι) in s, f i ≠ 0)), (projectivization.mk K (∑ (i : ι) in s, f i) h ∈ W)), by
-  { rcases this, contradiction, cases this, assumption },
-apply finset.sum_induction f (λ x, x = 0 ∨ (∃ hx : x ≠ 0, projectivization.mk K x hx ∈ W)),
-{ intros a b ha hb, by_cases hab : a + b = 0,
-  { left, exact hab },
-  { cases ha; cases hb,
-    { rw [ha, hb, zero_add], simp },
-    { simp_rw [ha, zero_add], right, exact hb },
-    { simp_rw [hb, add_zero], right, exact ha },
-    { right, cases ha, cases hb, exact ⟨hab, mem_add W a b ha_w hb_w hab ha_h hb_h⟩ } } },
-{ simp },
-{ intros i hi, exact hf i hi }
+  suffices : (∑ (i : ι) in s, f i = 0) ∨
+    (∃ (h : (∑ (i : ι) in s, f i ≠ 0)), (projectivization.mk K (∑ (i : ι) in s, f i) h ∈ W)), by
+    { rcases this, contradiction, cases this, assumption },
+  apply finset.sum_induction f (λ x, x = 0 ∨ (∃ hx : x ≠ 0, projectivization.mk K x hx ∈ W)),
+  { intros a b ha hb, by_cases hab : a + b = 0,
+    { left, exact hab },
+    { cases ha; cases hb,
+      { rw [ha, hb, zero_add], simp },
+      { simp_rw [ha, zero_add], right, exact hb },
+      { simp_rw [hb, add_zero], right, exact ha },
+      { right, cases ha, cases hb, exact ⟨hab, mem_add W a b ha_w hb_w hab ha_h hb_h⟩ } } },
+  { simp },
+  { intros i hi, exact hf i hi }
 end
 
 /-- If a family of vectors is such that every nonzero vector in the family determines a point in the
 corresponding projective space which is contained in a subspace, then every nonzero linear
 combination of vectors from the family also determines a point contained in that subspace. -/
-lemma mem_scalar_add {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V) (g : ι → K)
+lemma mk_sum_smul_mem {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V) (g : ι → K)
   (hf : ∀ i, i ∈ s →  f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
   (hs : ∑ i in s, (g i) • f i ≠ 0) : projectivization.mk K (∑ i in s, (g i) • f i) hs ∈ W :=
 begin
-refine mem_add'' s W (g • f) _ hs,
-intro i,
-by_cases hgz : g i = 0,
-{ rw [hgz, zero_smul], simp },
-{ by_cases hfz : f i = 0,
-  { rw [hfz, smul_zero], simp },
-  { intro hi, right,
-    refine ⟨by { rw [ne.def, smul_eq_zero, not_or_distrib], exact ⟨hgz, hfz⟩ }, _⟩,
-    cases (or.resolve_left (hf i hi) hfz), convert h using 1, rw mk_eq_mk_iff', use g i } }
+  refine mk_sum_mem s W (g • f) _ hs,
+  intro i,
+  by_cases hgz : g i = 0,
+  { rw [hgz, zero_smul], simp },
+  { by_cases hfz : f i = 0,
+    { rw [hfz, smul_zero], simp },
+    { intro hi, right,
+      refine ⟨by { rw [ne.def, smul_eq_zero, not_or_distrib], exact ⟨hgz, hfz⟩ }, _⟩,
+      cases (or.resolve_left (hf i hi) hfz), convert h using 1, rw mk_eq_mk_iff', use g i } }
 end
 
 /-- If a set of points in a projective space has the property that for any two unique points
@@ -191,20 +191,20 @@ def mk_of_dependent (S : set (ℙ K V))
 { carrier := S,
   mem_add' := λ u v hu hv huv huS hvS,
   begin
-  by_cases heq : projectivization.mk K u hu = projectivization.mk K v hv,
-  { convert hvS using 1,
-    rw mk_eq_mk_iff' at heq ⊢,
-    cases heq with a ha,
-    exact ⟨a + 1, by { rw [add_smul, ha, one_smul] }⟩ },
-  { refine h _ _ (projectivization.mk K (u + v) huv) heq huS hvS _,
-    convert dependent.mk ![u, v, u + v] _ _,
-    { ext i, fin_cases i; simp },
-    { intro i, fin_cases i; assumption },
-    { rw fintype.not_linear_independent_iff, refine ⟨![-1, -1, 1], _, ⟨2, by { simp }⟩⟩,
-      simp only [fin.sum_univ_succ, function.comp_app, matrix.cons_val_zero, matrix.cons_val_succ,
-        fin.succ_zero_eq_one, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
-        finset.sum_singleton, fin.succ_one_eq_two, ne.def, neg_smul, smul_add,
-        neg_add_cancel_comm_assoc, add_left_neg] } },
+    by_cases heq : projectivization.mk K u hu = projectivization.mk K v hv,
+    { convert hvS using 1,
+      rw mk_eq_mk_iff' at heq ⊢,
+      cases heq with a ha,
+      exact ⟨a + 1, by { rw [add_smul, ha, one_smul] }⟩ },
+    { refine h _ _ (projectivization.mk K (u + v) huv) heq huS hvS _,
+      convert dependent.mk ![u, v, u + v] _ _,
+      { ext i, fin_cases i; simp },
+      { intro i, fin_cases i; assumption },
+      { rw fintype.not_linear_independent_iff, refine ⟨![-1, -1, 1], _, ⟨2, by { simp }⟩⟩,
+        simp only [fin.sum_univ_succ, function.comp_app, matrix.cons_val_zero, matrix.cons_val_succ,
+          fin.succ_zero_eq_one, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+          finset.sum_singleton, fin.succ_one_eq_two, ne.def, neg_smul, smul_add,
+          neg_add_cancel_comm_assoc, add_left_neg] } },
   end }
 
 /-- If a set of points in a projective space has the property that for any independent family of
@@ -215,16 +215,16 @@ def mk_of_dependent' (S : set (ℙ K V)) (h : ∀ (ι : Type*) (f : ι → ℙ K
   (h : ∀ i, f i ∈ S), u ∈ S) : subspace K V :=
 mk_of_dependent S
 begin
-intros u v w huv huS hvS hdep,
-refine h (ulift $ fin 2) (![u, v] ∘ ulift.down) _ _ _ _,
-{ rw [independent_iff],
-  rw [← independent_pair_iff_neq, independent_iff] at huv,
-  apply linear_independent.comp huv ulift.down (ulift.down_injective) },
-{ rw [dependent_iff] at hdep ⊢, by_contra, apply hdep,
-  convert linear_independent.comp h (![sum.inl 0, sum.inl 1, sum.inr punit.star]) _,
-  { ext i, fin_cases i; refl },
-  { intros m n _, fin_cases m; fin_cases n; tidy } },
-{ simp_rw [ulift.forall, function.comp_app], intro x, fin_cases x; assumption },
+  intros u v w huv huS hvS hdep,
+  refine h (ulift $ fin 2) (![u, v] ∘ ulift.down) _ _ _ _,
+  { rw [independent_iff],
+    rw [← independent_pair_iff_neq, independent_iff] at huv,
+    apply linear_independent.comp huv ulift.down (ulift.down_injective) },
+  { rw [dependent_iff] at hdep ⊢, by_contra, apply hdep,
+    convert linear_independent.comp h (![sum.inl 0, sum.inl 1, sum.inr punit.star]) _,
+    { ext i, fin_cases i; refl },
+    { intros m n _, fin_cases m; fin_cases n; tidy } },
+  { simp_rw [ulift.forall, function.comp_app], intro x, fin_cases x; assumption },
 end
 
 end subspace

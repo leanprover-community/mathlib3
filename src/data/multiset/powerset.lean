@@ -265,7 +265,7 @@ begin
   induction S using quotient.induction_on,
   simp_rw [quot_mk_to_coe, powerset_coe', powerset_len_coe, ←coe_range, coe_bind, ←list.bind_map,
     coe_card],
-  exact coe_eq_coe.mpr (list.perm.map _ (list.range_bind_sublists_len S)),
+  exact coe_eq_coe.mpr ((list.range_bind_sublists_len_perm S).map _),
 end
 
 end multiset

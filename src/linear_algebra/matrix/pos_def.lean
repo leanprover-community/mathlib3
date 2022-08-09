@@ -10,9 +10,9 @@ import linear_algebra.quadratic_form.basic
 This file defines positive (semi)definite matrices and connects the notion to positive definiteness
 of quadratic forms.
 ## Main definition
- * `matrix.pos_def` : a matrix `M : matrix n n R` is positive definite if it is hermitian and `xᴴMx`
+ * `matrix.pos_def` : a matrix `M : matrix n n 𝕜` is positive definite if it is hermitian and `xᴴMx`
    is greater than zero for all nonzero `x`.
- * `matrix.pos_semidef` : a matrix `M : matrix n n R` is positive semidefinite if it is hermitian
+ * `matrix.pos_semidef` : a matrix `M : matrix n n 𝕜` is positive semidefinite if it is hermitian
    and `xᴴMx` is nonnegative for all `x`.
 -/
 
@@ -22,19 +22,19 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {m n : Type*} [fintype m] [fintype n]
 
 open_locale matrix
 
-/-- A matrix `M : matrix n n R` is positive definite if it is hermitian
+/-- A matrix `M : matrix n n 𝕜` is positive definite if it is hermitian
    and `xᴴMx` is greater than zero for all nonzero `x`. -/
 def pos_def (M : matrix n n 𝕜) :=
 M.is_hermitian ∧ ∀ x : n → 𝕜, x ≠ 0 → 0 < is_R_or_C.re (dot_product (star x) (M.mul_vec x))
 
 lemma pos_def.is_hermitian {M : matrix n n 𝕜} (hM : M.pos_def) : M.is_hermitian := hM.1
 
-/-- A matrix `M : matrix n n R` is positive semidefinite if it is hermitian
+/-- A matrix `M : matrix n n 𝕜` is positive semidefinite if it is hermitian
    and `xᴴMx` is nonnegative for all `x`. -/
-def pos_semidef (M : matrix n n R) :=
-M.is_hermitian ∧ ∀ x : n → R, 0 ≤ dot_product (star x) (M.mul_vec x)
+def pos_semidef (M : matrix n n 𝕜) :=
+M.is_hermitian ∧ ∀ x : n → 𝕜, 0 ≤ dot_product (star x) (M.mul_vec x)
 
-lemma pos_def.pos_semidef {M : matrix n n R} (hM : M.pos_def) : M.pos_semidef :=
+lemma pos_def.pos_semidef {M : matrix n n 𝕜} (hM : M.pos_def) : M.pos_semidef :=
 begin
   refine ⟨hM.1, _⟩,
   intros x,
@@ -43,7 +43,7 @@ begin
   { exact le_of_lt (hM.2 x hx) }
 end
 
-lemma pos_semidef.minor {M : matrix n n R} (hM : M.pos_semidef) (e : m ≃ n):
+lemma pos_semidef.minor {M : matrix n n 𝕜} (hM : M.pos_semidef) (e : m ≃ n):
   (M.minor e e).pos_semidef :=
 begin
   refine ⟨hM.1.minor e, λ x, _⟩,
@@ -61,7 +61,7 @@ begin
     minor_apply, equiv.apply_symm_apply, pi.star_apply],
 end
 
-@[simp] lemma pos_semidef_minor_equiv {M : matrix n n R} (e : m ≃ n) :
+@[simp] lemma pos_semidef_minor_equiv {M : matrix n n 𝕜} (e : m ≃ n) :
   (M.minor e e).pos_semidef ↔ M.pos_semidef :=
 ⟨λ h, by simpa using h.minor e.symm, λ h, h.minor _⟩
 

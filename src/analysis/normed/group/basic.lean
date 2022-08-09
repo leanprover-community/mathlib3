@@ -40,34 +40,6 @@ to for performance concerns.
 normed group
 -/
 
-namespace finset
-variables {α β : Type*}
-
-open_locale big_operators
-
-section
-variables [comm_monoid β]
-
-@[simp] lemma of_mul_prod (s : finset α) (f : α → β) :
-  additive.of_mul (∏ i in s, f i) = ∑ i in s, additive.of_mul (f i) := rfl
-
-@[simp] lemma to_mul_sum (s : finset α) (f : α → additive β) :
-  additive.to_mul (∑ i in s, f i) = ∏ i in s, additive.to_mul (f i) := rfl
-
-end
-
-section
-variables [add_comm_monoid β]
-
-@[simp] lemma of_add_sum (s : finset α) (f : α → β) :
-  multiplicative.of_add (∑ i in s, f i) = ∏ i in s, multiplicative.of_add (f i) := rfl
-
-@[simp] lemma to_add_prod (s : finset α) (f : α → β) :
-  multiplicative.to_add (∏ i in s, f i) = ∑ i in s, multiplicative.to_add (f i) := rfl
-
-end
-end finset
-
 variables {𝓕 𝕜 α ι E F G : Type*}
 
 open filter function metric

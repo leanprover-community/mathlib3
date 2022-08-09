@@ -52,14 +52,6 @@ lemma coeff_pow_of_nat_degree_le' (de : d * e = n) (df : f.nat_degree ≤ d) :
   (f ^ e).coeff n = (f.coeff d) ^ e :=
 by rwa [← de, coeff_pow_of_nat_degree_le]
 
-lemma monic_of_nat_degree_le_of_coeff_eq_one (n : ℕ) (fn : f.nat_degree ≤ n) (fc : f.coeff n = 1) :
-  monic f :=
-begin
-  nontriviality,
-  refine (congr_arg _ $ fn.antisymm $ le_nat_degree_of_ne_zero _).trans fc,
-  exact ne_of_eq_of_ne fc one_ne_zero,
-end
-
 end semiring
 
 end polynomial
@@ -356,7 +348,7 @@ match f with
 | `(%%a + %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   (if da ≠ db then do
-    if da < db then refine ``((coeff_add_succ_eq_right_of_le (nat.lt_succ_iff.mpr _)).trans _)
+    if da < db then refine ``((coeff_add_eq_right_of_lt (nat.lt_succ_iff.mpr _)).trans _)
     else refine ``((coeff_add_eq_left_of_lt (nat.lt_succ_iff.mpr _)).trans _),
     compute_degree_le
   else refine ``((coeff_add _ _ _).trans _);
@@ -365,9 +357,9 @@ match f with
 | `(%%a - %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   (if da ≠ db then do
-    if da < db then refine ``((coeff_sub_succ_eq_neg_right_of_le (nat.lt_succ_iff.mpr _)).trans
+    if da < db then refine ``((coeff_sub_eq_neg_right_of_lt (nat.lt_succ_iff.mpr _)).trans
       (neg_inj.mpr _))
-    else refine ``((coeff_sub_succ_eq_left_of_le (nat.lt_succ_iff.mpr _)).trans _),
+    else refine ``((coeff_sub_eq_left_of_lt (nat.lt_succ_iff.mpr _)).trans _),
     compute_degree_le
   else refine ``((coeff_sub _ _ _).trans _) >> congr' (some 1));
   resolve_coeff

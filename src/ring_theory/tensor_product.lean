@@ -854,7 +854,7 @@ variables [semiring A] [semiring B] [module A M] [module B M]
 variables [algebra R A] [algebra R B]
 variables [is_scalar_tower R A M] [is_scalar_tower R B M]
 
-/-- An auxiliary definition, used for constructing the `module (A ⊗[R] B) M` instance below. -/
+/-- An auxiliary definition, used for constructing the `module (A ⊗[R] B) M` in `tensor_product.algebra.module` below. -/
 def module_aux : A ⊗[R] B →ₗ[R] M →ₗ[R] M :=
 tensor_product.lift
 { to_fun := λ a, a • (algebra.lsmul R M : B →ₐ[R] module.End R M).to_linear_map,

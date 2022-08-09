@@ -90,7 +90,7 @@ class incidence_geometry :=
 (not_oncircle_of_inside : ∀ {a : point}, ∀ {α : circle}, inside_circle a α → ¬oncircle a α)
 
 --(B1 : ∀ {a b c : point}, B a b c → B c b a ∧ a ≠ b ∧ a ≠ c ∧ b ≠ c ∧ ¬B b a c)
-(Bsymm : ∀ {a b c : point}, B a b c → B c b a )
+(B_symm : ∀ {a b c : point}, B a b c → B c b a )
 (ne_12_of_B : ∀ {a b c : point}, B a b c → a ≠ b )
 (ne_13_of_B : ∀ {a b c : point}, B a b c → a ≠ c)
 (ne_23_of_B : ∀ {a b c : point}, B a b c → b ≠ c )
@@ -253,7 +253,7 @@ instance incidence_geometry_ℝ_ℝ : incidence_geometry :=
   center_circle_unique := sorry,
   inside_circle_of_center := sorry,
   not_oncircle_of_inside := sorry,
-  Bsymm := sorry,
+  B_symm := sorry,
   ne_12_of_B := sorry,
   ne_13_of_B := sorry,
   ne_23_of_B := sorry,
@@ -342,7 +342,7 @@ begin
   refine ⟨L, aL, bL, online_3_of_B Babc aL bL, (ne_12_of_B Babc), (ne_23_of_B Babc), (ne_13_of_B Babc).symm⟩,
 end
 
-theorem not_B_symm {a b c : point} (Babc : ¬B a b c) : ¬B c b a := λ Bcba, Babc (Bsymm Bcba)
+theorem not_B_symm {a b c : point} (Babc : ¬B a b c) : ¬B c b a := λ Bcba, Babc (B_symm Bcba)
 
 theorem Bbcd_or_Bbdc_of_Babc_Babd {a b c d : point} (cd : c ≠ d) (Babc : B a b c) (Babd : B a b d) :
   B b c d ∨ B b d c :=
@@ -358,7 +358,7 @@ theorem Beasy6 {a b c d : point} (bc : b ≠ c) (Babd : B a b d) (Bacd : B a c d
 begin
   rcases line_of_B Babd with ⟨L, aL, bL, dL, nq⟩,
   cases B_of_three_online_ne aL bL (online_2_of_B Bacd aL dL) nq.1 (ne_12_of_B Bacd) bc, left, exact h, cases h, exfalso,
-  exact (not_B_of_B (B124_of_B123_B234 (Bsymm h) Babd)) Bacd, right, exact h,
+  exact (not_B_of_B (B124_of_B123_B234 (B_symm h) Babd)) Bacd, right, exact h,
 end
 -/
 
@@ -368,15 +368,15 @@ begin
   have bd : b ≠ d,
   { intro bd,
     rw bd at Babc,
-    exact (not_B_of_B (Bsymm Babc)) (Bsymm Bacd), },
+    exact (not_B_of_B (B_symm Babc)) (B_symm Bacd), },
   have := B_of_three_online_ne bL cL (online_3_of_B Bacd aL cL) nq.2.1 bd (ne_23_of_B Bacd),
   cases this, exact this,
   exfalso, cases this,
-  have Bdba := B124_of_B134_B123 (Bsymm Bacd) (Bsymm this),
-  cases Bbcd_or_Bbdc_of_Babc_Babd nq.2.2.symm Bdba (Bsymm this) with Bet,
+  have Bdba := B124_of_B134_B123 (B_symm Bacd) (B_symm this),
+  cases Bbcd_or_Bbdc_of_Babc_Babd nq.2.2.symm Bdba (B_symm this) with Bet,
   exact (not_B_of_B Bet) Babc,
-  exact (not_B_of_B h) (Bsymm Babc),
-  exact (not_B_of_B (Bsymm (B124_of_B134_B123 Babc (Bsymm (B124_of_B123_B234 this (Bsymm Bacd)))))) (Bsymm Bacd),
+  exact (not_B_of_B h) (B_symm Babc),
+  exact (not_B_of_B (B_symm (B124_of_B134_B123 Babc (B_symm (B124_of_B123_B234 this (B_symm Bacd)))))) (B_symm Bacd),
 end
 
 theorem neq_of_online_offline {a b : point} {L : line} (aL : online a L) (bL : ¬online b L) : a ≠ b :=
@@ -393,13 +393,13 @@ theorem neq_of_online_offline3 {a b c : point} {L M : line} (ab : a ≠ b) (aL :
 theorem lines_neq_of_online_offline {a : point} {L M : line} (aL : online a L) (aM : ¬online a M) : L ≠ M
   := λ LM, aM (by rwa LM at aL)
 
-theorem angle_zero_iff_onlinemprmod {a b c : point} {L : line} (ab : a ≠ b) (aL : online a L) (bL : online b L)
+theorem angle_pos_of_not_colinear {a b c : point} {L : line} (ab : a ≠ b) (aL : online a L) (bL : online b L)
   (cL : ¬online c L) : 0 < angle b a c :=
 begin --can be simplified to one line probably
   by_contra, push_neg at h, exact cL ((angle_zero_iff_online ab (neq_of_online_offline aL cL) aL bL).mpr (by linarith [angle_nonneg b a c])).1,
 end
 
-theorem angle_add_iff_samesidemprmod {a b c d : point} {L M : line} (ab : a ≠ b) (ac : a ≠ c) (aL : online a L)
+theorem angles_add_of_sameside {a b c d : point} {L M : line} (ab : a ≠ b) (ac : a ≠ c) (aL : online a L)
   (bL : online b L) (aM : online a M) (cM : online c M) (bdM : sameside b d M)
   (cdL : sameside c d L) :
   angle b a c = angle b a d + angle d a c ∧ angle b a d < angle b a c ∧ angle d a c < angle b a c
@@ -408,8 +408,8 @@ begin
   have angsplit := (angle_add_iff_sameside aL bL aM cM ab ac (not_online_of_sameside (sameside_symm bdM)) (not_online_of_sameside (sameside_symm cdL))
     (λ LM, (not_online_of_sameside cdL) (by rwa ← LM at cM))).mpr ⟨bdM, cdL⟩,
   rcases line_of_ne (neq_of_online_offline aL (not_online_of_sameside (sameside_symm cdL))) with ⟨N, aN, dN⟩,
-  have ang1 := angle_zero_iff_onlinemprmod ab aL bL (not_online_of_sameside (sameside_symm cdL)),
-  have ang2 := angle_zero_iff_onlinemprmod (neq_of_online_offline aL (not_online_of_sameside (sameside_symm cdL))) aN dN (λ cN, (not_online_of_sameside (sameside_symm bdM))
+  have ang1 := angle_pos_of_not_colinear ab aL bL (not_online_of_sameside (sameside_symm cdL)),
+  have ang2 := angle_pos_of_not_colinear (neq_of_online_offline aL (not_online_of_sameside (sameside_symm cdL))) aN dN (λ cN, (not_online_of_sameside (sameside_symm bdM))
     (by rwa ← (line_unique_of_pts ac aM cM aN cN) at dN)),
   exact ⟨angsplit, by linarith, by linarith, ang1, ang2⟩,
 end
@@ -588,7 +588,7 @@ begin
     cases B_of_three_online_ne aL c2L bL (ne_23_of_B Bc1ac2) ab bc2.symm with Bac2b Bet,
     linarith [dist_sum_of_B Bac2b, dist_symm b c2],
     cases Bet with Bc2ab Babc2,
-    cases Bbcd_or_Bbdc_of_Babc_Babd bc1.symm (Bsymm Bc1ac2) Bc2ab with Bac1b Babc1,
+    cases Bbcd_or_Bbdc_of_Babc_Babd bc1.symm (B_symm Bc1ac2) Bc2ab with Bac1b Babc1,
     linarith [dist_sum_of_B Bac1b, dist_symm b c1],
     linarith [dist_sum_of_B Babc1],
     linarith [dist_sum_of_B Babc2], },
@@ -601,7 +601,7 @@ begin
     have ad2 : a ≠ d2 := nonzerolenconv (by linarith [nonzerolen (ne_23_of_B Bc1ac2)] :
       0 < dist a d2),
     cases B_of_three_online_ne aL bL d1L ab ad1 (ne_12_of_B Bd1bd2).symm with Babd1 Bet,
-    cases Bbcd_or_Bbdc_of_Babc_Babd ad2 (Bsymm Babd1) Bd1bd2 with Bbad2 Bbd2a,
+    cases Bbcd_or_Bbdc_of_Babc_Babd ad2 (B_symm Babd1) Bd1bd2 with Bbad2 Bbd2a,
     linarith [dist_symm a b, dist_sum_of_B Bbad2],
     linarith [dist_symm d2 a, dist_symm a b, dist_sum_of_B Bbd2a],
     cases Bet with Bbad1 Bad1b,
@@ -685,11 +685,11 @@ theorem quadext {a b c d e f : point} {L M N : line} (aL : online a L) (cL : onl
   area a b e + area d e a + area e b c + area e f c = area d a f + area f c a :=
 begin
   rcases quadiag (ne_13_of_B Babc) (ne_23_of_B Bdef) aL cL (online_2_of_B Bdef dM fM) fM cN fN acM
-    (sameside_trans (sameside12_of_B123_sameside13 Bdef dfL) dfL) (sameside_symm (sameside_trans (sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Bdef) fN (λ eN, (not_online_of_sameside (sameside_symm acM))
+    (sameside_trans (sameside12_of_B123_sameside13 Bdef dfL) dfL) (sameside_symm (sameside_trans (sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Bdef) fN (λ eN, (not_online_of_sameside (sameside_symm acM))
     (by rwa (line_unique_of_pts (ne_23_of_B Bdef) eN fN (online_2_of_B Bdef dM fM) fM) at cN)))) (sameside_symm adN))) with
     ⟨h, O, P, aO, fO, cP, eP, hO, hP, Bche, Bfha, eO, cO, fP, aP⟩,
   linarith [area_add_iff_Bmpmod aL cL (online_2_of_B Babc aL cL) (not_online_of_sameside (sameside_symm (sameside12_of_B123_sameside13 Bdef dfL))) Babc, area_add_iff_Bmpmod eP cP
-    (online_2_of_B Bche cP eP) aP (Bsymm Bche), area_add_iff_Bmpmod eP cP (online_2_of_B Bche cP eP) fP (Bsymm Bche),
+    (online_2_of_B Bche cP eP) aP (B_symm Bche), area_add_iff_Bmpmod eP cP (online_2_of_B Bche cP eP) fP (B_symm Bche),
     area_add_iff_Bmpmod fO aO (online_2_of_B Bfha fO aO) cO Bfha, area_add_iff_Bmpmod fO aO (online_2_of_B Bfha fO aO) eO Bfha,
     area_add_iff_Bmpmod dM fM (online_2_of_B Bdef dM fM) (not_online_of_sameside acM) Bdef, area_invariant e a c, area_invariant e c a, area_invariant f e a, area_invariant a f e,
     area_invariant f h e, area_invariant e f h, area_invariant c h a, area_invariant a c h],
@@ -829,7 +829,7 @@ begin
     rcases line_of_ne hbd.symm with ⟨N, dN, bN⟩,
     rcases circle_of_ne hbc with ⟨α, bcen, ccirc⟩,
     rcases pt_oncircle_of_inside_ne (inside_circle_of_center bcen) hbd.symm with ⟨g, gcirc, Bgbd⟩,
-    have hyp : dist d g = dist b a + dist b g := by linarith [dist_sum_of_B (Bsymm Bgbd), dist_symm d b],
+    have hyp : dist d g = dist b a + dist b g := by linarith [dist_sum_of_B (B_symm Bgbd), dist_symm d b],
     have hyp2 : dist d a < dist d g,
     { by_contra  h, -- by_contra and then push_neg?
       exact (ne.symm (ne_12_of_B Bgbd)) (dist_eq_zero_iff.mp (by linarith [dist_nonneg b g, flipboth len3, dist_symm a d])), },
@@ -848,7 +848,7 @@ begin
   rcases line_of_ne hab with ⟨L, aL, bL⟩,
   rcases circle_of_ne hbc with ⟨α, bcirc, ccirc⟩,
   rcases pt_oncircle_of_inside_ne (inside_circle_of_center bcirc) hab with ⟨p, pcirc, Bpba⟩,
-  refine ⟨p, (Bsymm Bpba), by rwa [dist_symm c b, ((oncircle_iff_dist_eq bcirc pcirc).2 ccirc)]⟩,
+  refine ⟨p, (B_symm Bpba), by rwa [dist_symm c b, ((oncircle_iff_dist_eq bcirc pcirc).2 ccirc)]⟩,
 end
 
 theorem excor2 {a b c d : point} (hab : a ≠ b) (hcd : c ≠ d) :
@@ -897,13 +897,13 @@ begin
   linarith [dist_sum_of_B h_1, nonzerolen (ne_23_of_B h_1)],
   cases h_1,
   exfalso,
-  exact (not_B324_of_B123_B124 Bqap (Bsymm Bbaq)) (Bsymm h_1), --exfalso + exact?
+  exact (not_B324_of_B123_B124 Bqap (B_symm Bbaq)) (B_symm h_1), --exfalso + exact?
   refine ⟨p, h_1, by rwa [flip2, h.symm]⟩,
   rcases excor2 (ne_23_of_B Bbaq).symm cd with ⟨p, Bqap, len⟩, --same as above but with a ≠ c
   have bp : b ≠ p, { intro bp, rw bp at big, linarith, }, --again
   cases B_of_three_online_ne aL bL (online_3_of_B Bqap (online_3_of_B Bbaq bL aL) aL) (ne_12_of_B Bbaq).symm (ne_23_of_B Bqap) bp,
   linarith [dist_sum_of_B h_1, nonzerolen (ne_23_of_B h_1)], cases h_1, exfalso,
-  exact (not_B324_of_B123_B124 Bqap (Bsymm Bbaq)) (Bsymm h_1),
+  exact (not_B324_of_B123_B124 Bqap (B_symm Bbaq)) (B_symm h_1),
   refine ⟨p, h_1, len⟩,
 end
 
@@ -940,12 +940,12 @@ begin
   { have := not_imp_not.2 (angle_zero_iff_online ab.symm bc bL aL).2,
     push_neg at this, -- any way to push_neg without extra line?
     exact (this (iff_of_true cL hyp).mp) (by linarith [((angle_zero_iff_online ca bc.symm cL aL).1
-      ⟨bL, not_B_symm (not_B_of_B (Bsymm hyp))⟩)]), },
+      ⟨bL, not_B_symm (not_B_of_B (B_symm hyp))⟩)]), },
   cases h,
   exact Bbac h,
   have := not_imp_not.2 (angle_zero_iff_online ca bc.symm cL aL).2, push_neg at this,
   exact (this (iff_of_true bL h).mp) (by linarith [(angle_zero_iff_online ab.symm bc bL aL).1
-    ⟨cL, not_B_symm (not_B_of_B (Bsymm h))⟩]),
+    ⟨cL, not_B_symm (not_B_of_B (B_symm h))⟩]),
 end
 
 --Euclid I.6
@@ -1031,7 +1031,7 @@ begin
   rcases line_of_B Bbdc with ⟨N, bN, dN, cN, bd, dc, cb⟩,
   have dM : ¬online d M := λ dM, LM (line_unique_of_pts ab aL bL aM (by rwa (line_unique_of_pts dc.symm cN dN cM dM) at bN)),
   have dL : ¬online d L := λ dL, LM (line_unique_of_pts ac aL (by rwa (line_unique_of_pts bd bN dN bL dL) at cN) aM cM),
-  refine ⟨d, (sss abeqac (flip2 len) rfl).2.1, sameside23_of_B123_online1_not_online2 (Bsymm Bbdc) cM dM, sameside23_of_B123_online1_not_online2 Bbdc bL dL, Bbdc⟩,
+  refine ⟨d, (sss abeqac (flip2 len) rfl).2.1, sameside23_of_B123_online1_not_online2 (B_symm Bbdc) cM dM, sameside23_of_B123_online1_not_online2 Bbdc bL dL, Bbdc⟩,
 end
 
 --Euclid I.9
@@ -1060,15 +1060,15 @@ theorem perpline {a b c : point} (Babc : B a b c) :
 begin
   rcases excor2 (ne_12_of_B Babc).symm (ne_23_of_B Babc) with ⟨e, Bbae, len1⟩,
   rcases excor2 (ne_23_of_B Babc) (ne_12_of_B Babc).symm with ⟨f, Bbcf, len2⟩,
-  rcases makeeqtri3 ((ne_13_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)))) with
+  rcases makeeqtri3 ((ne_13_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)))) with
     ⟨d, d1, L, ⟨len1, len2, len3, nq⟩, other, eL, fL, dL, d1L, nss⟩,
-  have bd := (neq_of_online_offline (online_3_of_B (Bsymm Bbae) eL (online_2_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)) dL),
+  have bd := (neq_of_online_offline (online_3_of_B (B_symm Bbae) eL (online_2_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)) dL),
   have := aflip2 (ne_13_of_B Bbcf).symm nq.2.1 (angle_extensionmod1 bd Bbcf),
   have := aflip2 (ne_13_of_B Bbae).symm nq.2.2.symm (angle_extensionmod1 bd Bbae),
   have := aflip1 (ne_23_of_B Babc).symm
-    (neq_of_online_offline (online_2_of_B (B124_of_B123_B234 (Bsymm Bbcf) (B124_of_B123_B234 (Bsymm Babc) Bbae)) fL eL) dL) (angle_extensionmod1 bd Bbcf),
+    (neq_of_online_offline (online_2_of_B (B124_of_B123_B234 (B_symm Bbcf) (B124_of_B123_B234 (B_symm Babc) Bbae)) fL eL) dL) (angle_extensionmod1 bd Bbcf),
   have len4 : dist e b = dist f b := by apply flipboth; linarith [dist_sum_of_B Bbcf, dist_sum_of_B Bbae], --proof
-  have key := (angle_eq_iff_rightangle (online_2_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL) (online_2_of_B (B124_of_B123_B234 (Bsymm Bbcf) (B124_of_B123_B234 (Bsymm Babc)
+  have key := (angle_eq_iff_rightangle (online_2_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL) (online_2_of_B (B124_of_B123_B234 (B_symm Bbcf) (B124_of_B123_B234 (B_symm Babc)
     Bbae)) fL eL) Babc dL).1 (by linarith [(angle_extensionmod1 bd Bbcf), (sss len3 len4 rfl).2.2]),
   refine ⟨d, key, by linarith [(sss len3 len4 rfl).2.2]⟩,
 end
@@ -1080,29 +1080,29 @@ theorem perplinecor {a b c p : point} {O : line} (aO : online a O) (cO : online 
 begin
   rcases excor2 (ne_12_of_B Babc).symm (ne_23_of_B Babc) with ⟨e, Bbae, len1⟩,
   rcases excor2 (ne_23_of_B Babc) (ne_12_of_B Babc).symm with ⟨f, Bbcf, len2⟩,
-  rcases makeeqtri3 ((ne_13_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)))) with ⟨d, d1, L,
+  rcases makeeqtri3 ((ne_13_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)))) with ⟨d, d1, L,
     ⟨len1, len2, len3, nq⟩, ⟨len4, len5, len6, nq1⟩, eL, fL, ds⟩,
-  have bd := (neq_of_online_offline (online_3_of_B (Bsymm Bbae) eL (online_2_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)) ds.1),
-  have bd1 := (neq_of_online_offline (online_3_of_B (Bsymm Bbae) eL (online_2_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)) ds.2.1),
+  have bd := (neq_of_online_offline (online_3_of_B (B_symm Bbae) eL (online_2_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)) ds.1),
+  have bd1 := (neq_of_online_offline (online_3_of_B (B_symm Bbae) eL (online_2_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)) ds.2.1),
   have := aflip2 (ne_13_of_B Bbcf).symm nq.2.1 (angle_extensionmod1 bd Bbcf),
   have := aflip2 (ne_13_of_B Bbae).symm nq.2.2.symm (angle_extensionmod1 bd Bbae),
   have := aflip1 (ne_23_of_B Babc).symm
-    (neq_of_online_offline (online_2_of_B (B124_of_B123_B234 (Bsymm Bbcf) (B124_of_B123_B234 (Bsymm Babc) Bbae)) fL eL) ds.1) (angle_extensionmod1 bd Bbcf),
+    (neq_of_online_offline (online_2_of_B (B124_of_B123_B234 (B_symm Bbcf) (B124_of_B123_B234 (B_symm Babc) Bbae)) fL eL) ds.1) (angle_extensionmod1 bd Bbcf),
   have := aflip2 (ne_13_of_B Bbcf).symm nq1.2.1 (angle_extensionmod1 bd1 Bbcf),
   have := aflip2 (ne_13_of_B Bbae).symm nq1.2.2.symm (angle_extensionmod1 bd1 Bbae),
   have := aflip1 (ne_23_of_B Babc).symm
-    (neq_of_online_offline (online_2_of_B (B124_of_B123_B234 (Bsymm Bbcf) (B124_of_B123_B234 (Bsymm Babc) Bbae)) fL eL) ds.2.1) (angle_extensionmod1 bd1 Bbcf),
+    (neq_of_online_offline (online_2_of_B (B124_of_B123_B234 (B_symm Bbcf) (B124_of_B123_B234 (B_symm Babc) Bbae)) fL eL) ds.2.1) (angle_extensionmod1 bd1 Bbcf),
   have len4 : dist e b = dist f b := by apply flipboth; linarith [dist_sum_of_B Bbcf, dist_sum_of_B Bbae], --proof
   by_cases sameside d p O,
-  { have key := (angle_eq_iff_rightangle (online_2_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL) (online_2_of_B (B124_of_B123_B234 (Bsymm Bbcf) (B124_of_B123_B234 (Bsymm Babc)
+  { have key := (angle_eq_iff_rightangle (online_2_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL) (online_2_of_B (B124_of_B123_B234 (B_symm Bbcf) (B124_of_B123_B234 (B_symm Babc)
       Bbae)) fL eL) Babc ds.1).1 (by linarith [angle_extensionmod1 bd Bbcf, (sss len3 len4 rfl).2.2]),
     refine ⟨d, key, by linarith [(sss len3 len4 rfl).2.2], h⟩, },
-  have OL := line_unique_of_pts (ne_13_of_B Babc) aO cO (online_2_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)
-    (online_2_of_B (B124_of_B123_B234 (Bsymm Bbcf) (B124_of_B123_B234 (Bsymm Babc) Bbae)) fL eL),
+  have OL := line_unique_of_pts (ne_13_of_B Babc) aO cO (online_2_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL)
+    (online_2_of_B (B124_of_B123_B234 (B_symm Bbcf) (B124_of_B123_B234 (B_symm Babc) Bbae)) fL eL),
   rw OL at h,
   rw OL at pO,
   rw OL, --anything better here? *** YES
-  have key := (angle_eq_iff_rightangle (online_2_of_B (B124_of_B123_B234 (Bsymm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL) (online_2_of_B (B124_of_B123_B234 (Bsymm Bbcf) (B124_of_B123_B234 (Bsymm Babc)
+  have key := (angle_eq_iff_rightangle (online_2_of_B (B124_of_B123_B234 (B_symm Bbae) (B124_of_B123_B234 Babc Bbcf)) eL fL) (online_2_of_B (B124_of_B123_B234 (B_symm Bbcf) (B124_of_B123_B234 (B_symm Babc)
     Bbae)) fL eL) Babc ds.2.1).1 (by linarith [angle_extensionmod1 bd1 Bbcf, (sss len6 len4 rfl).2.2]),
   refine ⟨d1, key, by linarith [(sss len6 len4 rfl).2.2], difdifsame ds ⟨ds.1, pO, h⟩⟩,
 end
@@ -1131,7 +1131,7 @@ begin
   by_cases (angle a b c = angle a b d),
   { linarith [(angle_eq_iff_rightangle dL cL Bdbc aL).mp ((aflip2 ab ((neq_of_online_offline dL aL).symm) h).symm),
       (aflip2 ab ((neq_of_online_offline dL aL).symm) h).symm], },
-  rcases perplinecor cL dL aL (Bsymm Bdbc) with ⟨e, a1, a2, eaL⟩,
+  rcases perplinecor cL dL aL (B_symm Bdbc) with ⟨e, a1, a2, eaL⟩,
   have eb := (neq_of_online_offline (online_2_of_B Bdbc dL cL) (not_online_of_sameside eaL)).symm,
   rcases line_of_ne eb with ⟨M, eM, bM⟩,
   have ra : angle e b c = angle e b d := by linarith [angle_symm (ne_23_of_B Bdbc).symm
@@ -1145,8 +1145,8 @@ begin
     cases h_1,
     exact (by rwa [angle_extensionmod1 (ne_23_of_B Bdbc) h_1,
       angle_extensionmod1 (ne_12_of_B Bdbc).symm h_1] at h : (¬(angle e b c = angle e b d))) ra,
-    exact (by rwa [←(angle_extensionmod1 (ne_23_of_B Bdbc) (Bsymm h_1)),
-      ←(angle_extensionmod1 (ne_12_of_B Bdbc).symm (Bsymm h_1))] at h : (¬(angle e b c = angle e b d))) ra, },
+    exact (by rwa [←(angle_extensionmod1 (ne_23_of_B Bdbc) (B_symm h_1)),
+      ←(angle_extensionmod1 (ne_12_of_B Bdbc).symm (B_symm h_1))] at h : (¬(angle e b c = angle e b d))) ra, },
   wlog acM : (sameside a c M) using [c d, d c],
   { by_cases h1 : sameside a c M,
     { left, assumption, },
@@ -1173,7 +1173,7 @@ begin
     have flipcbe := angle_symm (ne_23_of_B Bdbc).symm (neq_of_online_offline cL eNL.2),
     have flipabc := angle_symm ab (neq_of_online_offline cL aL).symm,
     linarith [(angle_eq_iff_rightangle dL cL Bdbc eNL.2).mp (by linarith)], },
-  linarith [this cL dL (Bsymm Bdbc) (λ hh, h hh.symm) a2 a1 ra.symm],
+  linarith [this cL dL (B_symm Bdbc) (λ hh, h hh.symm) a2 a1 ra.symm],
 end
 
 -- Euclid I.14
@@ -1185,12 +1185,12 @@ begin
   rcases excor (neq_of_online_offline bN cdN.1).symm (neq_of_online_offline bN cdN.1) with ⟨e, Bcbe, len⟩,
   rcases line_of_ne (neq_of_online_offline bN cdN.1) with ⟨M, bM, cM⟩,
   have eM := online_3_of_B Bcbe cM bM,
-  have eN : ¬online e N := λ eN, cdN.1 (online_3_of_B (Bsymm Bcbe) eN bN),
-  have edN := difdifsame ⟨cdN.1, eN, difsym (not_sameside13_of_B123_online2 (Bsymm Bcbe) bN)⟩ cdN,
+  have eN : ¬online e N := λ eN, cdN.1 (online_3_of_B (B_symm Bcbe) eN bN),
+  have edN := difdifsame ⟨cdN.1, eN, difsym (not_sameside13_of_B123_online2 (B_symm Bcbe) bN)⟩ cdN,
   rcases line_of_ne bd with ⟨L, bL, dL⟩,
   have LN : L ≠ N := λ LN, cdN.2.1 (by rwa LN at dL),
   by_cases eL : online e L,
-  { exact B_of_online_inter LN.symm cd (online_3_of_B (Bsymm Bcbe) eL bL) bL dL bN (neq_of_online_offline bN cdN.1).symm bd.symm cdN.2.2, },
+  { exact B_of_online_inter LN.symm cd (online_3_of_B (B_symm Bcbe) eL bL) bL dL bN (neq_of_online_offline bN cdN.1).symm bd.symm cdN.2.2, },
   have dM : ¬online d M := λ dM, eL (by rwa (line_unique_of_pts bd bM dM bL dL) at eM),
   have ae : a ≠ e := λ ae, eN (by rwa ae at aN),
   by_cases ed : e = d, { rwa ed at Bcbe, },
@@ -1243,9 +1243,9 @@ begin
   have ang2 := (sas (flip2 len2) (flip1 len) (by linarith [angle_symm be ba])).2.2,
   rcases line_of_B Bcea with ⟨N, cN, eN, aN, nq1⟩,
   have fN : ¬online f N := λ fN,
-    aL (by rwa (line_unique_of_pts (ne_12_of_B Bbcd) (online_3_of_B (Bsymm Bbef) fN eN) cN bL cL) at aN),
+    aL (by rwa (line_unique_of_pts (ne_12_of_B Bbcd) (online_3_of_B (B_symm Bbef) fN eN) cN bL cL) at aN),
   have bN : ¬online b N := λ bN, fN (online_3_of_B Bbef bN eN),
-  have dfN := sameside_symm (difdifsame ⟨bN, fN, not_sameside13_of_B123_online2 Bbef eN⟩ ⟨bN, (λ dN, bN (online_3_of_B (Bsymm Bbcd) dN cN)),
+  have dfN := sameside_symm (difdifsame ⟨bN, fN, not_sameside13_of_B123_online2 Bbef eN⟩ ⟨bN, (λ dN, bN (online_3_of_B (B_symm Bbcd) dN cN)),
     not_sameside13_of_B123_online2 Bbcd cN⟩),
   have NL : N ≠ L := λ NL, bN (by rwa ←NL at bL), --start of pf below, API above
   have splitang := (angle_add_iff_sameside cN aN cL dL nq1.2.2.symm (ne_23_of_B Bbcd) (not_online_of_sameside (sameside_symm afL))
@@ -1254,7 +1254,7 @@ begin
   have geq := lt_of_le_of_ne (angle_nonneg f c d) (ne_comm.mp (mt (angle_zero_iff_online cf (ne_23_of_B Bbcd) cP fP).mpr _)),--better way to deal with or?
   have geq2 := lt_of_le_of_ne (angle_nonneg b a c) (angeasy ca (ne_12_of_B Bbcd).symm
     (ne_comm.mp (mt (angle_zero_iff_online ca.symm ba.symm aN cN).mpr _))),
-  linarith [angle_symm ca (ne_12_of_B Bbcd).symm, angle_extensionmod1 ba.symm (Bsymm Bcea), angle_extensionmod1 cf Bcea],
+  linarith [angle_symm ca (ne_12_of_B Bbcd).symm, angle_extensionmod1 ba.symm (B_symm Bcea), angle_extensionmod1 cf Bcea],
   exact λ bN, NL (line_unique_of_pts (ne_12_of_B Bbcd) bN.1 cN bL cL),
   exact λ dP, not_online_of_sameside (sameside_symm (by rwa ←(line_unique_of_pts (ne_23_of_B Bbcd) cP dP.1 cL dL) at afL)) fP,
 end
@@ -1264,7 +1264,7 @@ theorem extangcor {a b c d : point} {L : line} (aL : ¬online a L) (bL : online 
   (dL : online d L) (Bbcd : B b c d) : angle a b c < angle a c d :=
 begin
   rcases excor (neq_of_online_offline (online_2_of_B Bbcd bL dL) aL).symm (neq_of_online_offline (online_2_of_B Bbcd bL dL) aL) with ⟨g, Bacg, len3⟩,
-  have gb : g ≠ b := λ gb, aL (online_3_of_B (Bsymm Bacg) (by rwa ← gb at bL) (online_2_of_B Bbcd bL dL)),
+  have gb : g ≠ b := λ gb, aL (online_3_of_B (B_symm Bacg) (by rwa ← gb at bL) (online_2_of_B Bbcd bL dL)),
   have := aflipboth (ne_23_of_B Bacg).symm gb (ne_23_of_B Bbcd).symm (neq_of_online_offline dL aL)
     (vertang bL dL aL Bbcd Bacg),
   rcases line_of_B Bacg with ⟨N, aN, cN, gN, nq⟩,
@@ -1277,20 +1277,20 @@ end
 begin
   rcases excor3 (neq_of_online_offline bL aL).symm len with ⟨d, Badc, len2⟩,
   rcases line_of_B Badc with ⟨M, aM, dM, cM, nq⟩,
-  have ang := extangcor (λ bM, aL (by rwa line_unique_of_pts bc bM cM bL cL at aM)) cM aM (Bsymm Badc),
+  have ang := extangcor (λ bM, aL (by rwa line_unique_of_pts bc bM cM bL cL at aM)) cM aM (B_symm Badc),
   have db : d ≠ b := neq_of_online_offline dM (λ bM, aL (by rwa line_unique_of_pts bc bM cM bL cL at aM)),
   have LM : L ≠ M := λ LM, aL (by rwa LM.symm at aM),
   rcases line_of_ne (neq_of_online_offline bL aL) with ⟨N, bN, aN⟩,
-  have adL : sameside a d L, {by_contra adL, exact not_B_symm (not_B_of_B (Bsymm Badc))
+  have adL : sameside a d L, {by_contra adL, exact not_B_symm (not_B_of_B (B_symm Badc))
     (B_of_online_inter LM (ne_12_of_B Badc) aM cM dM cL nq.2.2.symm nq.2.1 adL), },
   rcases line_of_ne db with ⟨P, dP, bP⟩,
   have aP : ¬online a P := λ aP, LM (line_unique_of_pts bc bL cL (by rwa (line_unique_of_pts nq.1 aP dP aM dM) at bP) cM),
-  have cdN := sameside_of_sameside_not_sameside bL bP bN cL dP aN (sameside_symm adL) (not_sameside13_of_B123_online2 (Bsymm Badc) dP) aP bc.symm,
+  have cdN := sameside_of_sameside_not_sameside bL bP bN cL dP aN (sameside_symm adL) (not_sameside13_of_B123_online2 (B_symm Badc) dP) aP bc.symm,
   have splitang := (angle_add_iff_sameside bL cL bN aN bc (neq_of_online_offline bL aL) (not_online_of_sameside (sameside_symm cdN)) (not_online_of_sameside (sameside_symm adL))
     (λ LN, aL (by rwa ← LN at aN))).mpr ⟨cdN, adL⟩,
   have := isoangle (ne_12_of_B Badc) db len2,
   linarith [angle_symm bc.symm nq.2.2, angle_symm db nq.1.symm, angle_symm nq.1 (neq_of_online_offline bL aL).symm, (angle_nonneg c b d),
-    angle_extensionmod1 bc.symm (Bsymm Badc), angle_symm bc db.symm, angle_symm bc (neq_of_online_offline bL aL)],
+    angle_extensionmod1 bc.symm (B_symm Badc), angle_symm bc db.symm, angle_symm bc (neq_of_online_offline bL aL)],
 end
 
 --Euclid I.19 -- Probably can be turned into one line
@@ -1318,9 +1318,9 @@ begin
   have aN : ¬online a N := λ aN,
     cL (by rwa ← (line_unique_of_pts (ne_23_of_B Bbad) aL (online_3_of_B Bbad bL aL) aN dN) at cN),
   have adM := sameside23_of_B123_online1_not_online2 Bbad bM (λ aM, cL (by rwa (line_unique_of_pts ab aM bM aL bL) at cM)),
-  have abN := sameside23_of_B123_online1_not_online2 (Bsymm Bbad) dN aN,
-  have angsplit := angle_add_iff_samesidemprmod dc.symm bc.symm cN dN cM bM (sameside_symm adM) (sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Bbad) dN aN)),
-  have bigside := angbigside dc.symm cN dN (not_online_of_sameside (sameside_symm abN)) (by linarith [angle_extensionmod1 dc (Bsymm Bbad),
+  have abN := sameside23_of_B123_online1_not_online2 (B_symm Bbad) dN aN,
+  have angsplit := angles_add_of_sameside dc.symm bc.symm cN dN cM bM (sameside_symm adM) (sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Bbad) dN aN)),
+  have bigside := angbigside dc.symm cN dN (not_online_of_sameside (sameside_symm abN)) (by linarith [angle_extensionmod1 dc (B_symm Bbad),
     angle_symm dc (ne_13_of_B Bbad).symm, angle_symm dc (ne_23_of_B Bbad).symm, angle_symm dc.symm bc.symm]),
   linarith [dist_symm b a, dist_symm c a, dist_sum_of_B Bbad],
 end
@@ -1395,7 +1395,7 @@ begin
       ⟨g, Bbga, len2⟩,
     have ac : a ≠ c, --why was this so hard to do?
     { intro ac,
-      have := mt (angle_zero_iff_online bc (ne_13_of_B Bbga) bM cM).mp (by linarith [angle_zero_iff_onlinemprmod ef eL fL dL]),
+      have := mt (angle_zero_iff_online bc (ne_13_of_B Bbga) bM cM).mp (by linarith [angle_pos_of_not_colinear ef eL fL dL]),
       push_neg at this,
       by_cases online a M,
       exact (ne_13_of_B (this h)).symm ac,
@@ -1417,13 +1417,13 @@ begin
     rcases line_of_B Bbga with ⟨O, bO, gO, aO, nq⟩,
     have gN : ¬online g N := λ gN, (lines_neq_of_online_offline gN gM) (line_unique_of_pts bc (by rwa (line_unique_of_pts nq.2.1 gO aO gN aN) at
       bO : online b N) cN bM cM),
-    have key := angle_add_iff_samesidemprmod ac.symm bc.symm cN aN cM bM (sameside_symm (sameside23_of_B123_online1_not_online2 Bbga bM gM))
-      (sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Bbga) aN gN)),
+    have key := angles_add_of_sameside ac.symm bc.symm cN aN cM bM (sameside_symm (sameside23_of_B123_online1_not_online2 Bbga bM gM))
+      (sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Bbga) aN gN)),
     linarith [angle_symm ef (neq_of_online_offline eL dL), angle_symm gc (ne_12_of_B Bbga).symm], },
   have ab : a ≠ b,--oneliner?
   { intro ab,
     rw ← ab at *,
-    linarith [angle_symm ef (neq_of_online_offline eL dL), angle_zero_iff_onlinemprmod ef.symm fL eL dL, (angle_zero_iff_online bc.symm bc.symm cM bM).mp
+    linarith [angle_symm ef (neq_of_online_offline eL dL), angle_pos_of_not_colinear ef.symm fL eL dL, (angle_zero_iff_online bc.symm bc.symm cM bM).mp
       ⟨bM, (λ Bcac, (ne_13_of_B Bcac) rfl)⟩], },
   push_neg at len1,
   rcases excor3 ab (by linarith [((ne.le_iff_lt len).mp len1), dist_symm d e] : dist a b < dist e d) with
@@ -1438,8 +1438,8 @@ begin
   { intro gN,
     have := line_unique_of_pts (ne_23_of_B Begd) gN dN (online_2_of_B Begd eM dM) dM,
     exact (lines_neq_of_online_offline gN gL) (line_unique_of_pts ef eL fL (by rwa ← this at eM : online e N) fN).symm, },
-  have key := angle_add_iff_samesidemprmod (neq_of_online_offline fL dL) ef.symm fN dN fL eL (sameside_symm (sameside23_of_B123_online1_not_online2 Begd eL gL))
-    (sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Begd) dN gN)),
+  have key := angles_add_of_sameside (neq_of_online_offline fL dL) ef.symm fN dN fL eL (sameside_symm (sameside23_of_B123_online1_not_online2 Begd eL gL))
+    (sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Begd) dN gN)),
   linarith [angle_symm bc ab.symm, angle_symm ef (ne_12_of_B Begd)],
 end
 
@@ -1461,24 +1461,24 @@ begin
   have dg : d ≠ g,
   { intro dg,
     rw dg at *,
-    linarith [angle_symm ae (neq_of_online_offline aM fM), angle_symm ef (neq_of_online_offline dN eN).symm, extang fM gMN.1 aM (Bsymm (B_of_online_inter ML.symm
+    linarith [angle_symm ae (neq_of_online_offline aM fM), angle_symm ef (neq_of_online_offline dN eN).symm, extang fM gMN.1 aM (B_symm (B_of_online_inter ML.symm
       (difneq adL) aM eM gMN.1 eL ae (neq_of_online_offline eL gL).symm adL.2.2))], },
   have ag : a ≠ g,
   { intro ag,
     rw ag at *,
-    linarith [extang eN gMN.2 dN (Bsymm (B_of_online_inter NL.symm dg dN fN gMN.2 fL fd.symm (neq_of_online_offline fL gL).symm
+    linarith [extang eN gMN.2 dN (B_symm (B_of_online_inter NL.symm dg dN fN gMN.2 fL fd.symm (neq_of_online_offline fL gL).symm
     (difsym adL.2.2)))], },
   cases sameside_or_of_diffside adL.2.1 adL.1 gL (difsym adL.2.2) with dgL agL,
   { by_cases Bfdg : B f d g,
     { have Baeg := B_of_online_inter ML.symm ag aM eM gMN.1 eL ae (neq_of_online_offline gMN.2 eN)
         (difsym (difsamedif dgL ⟨adL.2.1, adL.1, difsym adL.2.2⟩).2.2),
-      have ang1 := extang fM gMN.1 (online_3_of_B (Bsymm Baeg) gMN.1 eM) (Bsymm Baeg),
+      have ang1 := extang fM gMN.1 (online_3_of_B (B_symm Baeg) gMN.1 eM) (B_symm Baeg),
       linarith [angle_extensionmod1 (neq_of_online_offline eM fM).symm Bfdg, angle_symm (neq_of_online_offline fL (not_online_of_sameside dgL)).symm (neq_of_online_offline dN eN),
-        angle_symm (neq_of_online_offline eM fM).symm (neq_of_online_offline (online_3_of_B (Bsymm Baeg) gMN.1 eM) fM).symm], },
+        angle_symm (neq_of_online_offline eM fM).symm (neq_of_online_offline (online_3_of_B (B_symm Baeg) gMN.1 eM) fM).symm], },
     by_cases Bfgd : B f g d,
     { have Baeg := B_of_online_inter ML.symm ag aM eM gMN.1 eL ae (neq_of_online_offline gMN.2 eN) (difsym (difsamedif dgL
         ⟨adL.2.1, adL.1, difsym adL.2.2⟩).2.2),
-      have ang1 := extang fM gMN.1 (online_3_of_B (Bsymm Baeg) gMN.1 eM) (Bsymm Baeg),
+      have ang1 := extang fM gMN.1 (online_3_of_B (B_symm Baeg) gMN.1 eM) (B_symm Baeg),
       linarith [angle_symm ae (neq_of_online_offline aM fM), angle_symm ef (neq_of_online_offline gMN.2 eN).symm, angle_symm fd.symm (neq_of_online_offline dN eN),
         angle_extensionmod1 ef.symm Bfgd], },
     cases B_of_three_online_ne fN dN gMN.2 fd (neq_of_online_offline fL gL) dg,
@@ -1487,11 +1487,11 @@ begin
     exact (not_sameside13_of_B123_online2 Bdfg fL) dgL,
     exact Bfgd h, },
   by_cases Beag : B e a g,
-  { have ang1 := extang eN gMN.2 dN (Bsymm (B_of_online_inter NL.symm dg dN fN gMN.2 fL fd.symm (neq_of_online_offline fL gL).symm
+  { have ang1 := extang eN gMN.2 dN (B_symm (B_of_online_inter NL.symm dg dN fN gMN.2 fL fd.symm (neq_of_online_offline fL gL).symm
       (difsym (difsamedif agL adL).2.2))),
     linarith [angle_extensionmod1 ef Beag], },
   by_cases Bega : B e g a,
-  { have ang1 := extang eN gMN.2 dN (Bsymm (B_of_online_inter NL.symm dg dN fN gMN.2 fL fd.symm (neq_of_online_offline fL gL).symm
+  { have ang1 := extang eN gMN.2 dN (B_symm (B_of_online_inter NL.symm dg dN fN gMN.2 fL fd.symm (neq_of_online_offline fL gL).symm
       (difsym (difsamedif agL adL).2.2))),
     linarith [angle_extensionmod1 ef Bega], },
   cases B_of_three_online_ne eM aM gMN.1 ae.symm (neq_of_online_offline eL gL) ag,
@@ -1511,7 +1511,7 @@ begin
   have hM : ¬online h M, { cases par.2.2.2.2 h, exact h_1, exfalso, exact h_1 par.2.2.1, },--better way?
   have gN : ¬online g N, { cases par.2.2.2.2 g, exfalso, exact h_1 par.2.1, exact h_1 },--better way?
   have acL : sameside a c L := difdifsame (difsamedif bdL ⟨not_online_of_sameside bdL, λ aL, (not_online_of_sameside bdL) (online_3_of_B Bagb aL gL),
-    difsym (not_sameside13_of_B123_online2 Bagb gL)⟩) ⟨(not_online_of_sameside (sameside_symm bdL)), λ cL, (not_online_of_sameside (sameside_symm bdL)) (online_3_of_B (Bsymm Bdhc) cL hL),
+    difsym (not_sameside13_of_B123_online2 Bagb gL)⟩) ⟨(not_online_of_sameside (sameside_symm bdL)), λ cL, (not_online_of_sameside (sameside_symm bdL)) (online_3_of_B (B_symm Bdhc) cL hL),
     not_sameside13_of_B123_online2 Bdhc hL⟩,
   have := angle_symm (neq_of_online_offline par.2.1 hM).symm (neq_of_online_offline (online_3_of_B Bagb par.1 par.2.1) hM).symm,
   have := angle_symm (neq_of_online_offline par.2.1 hM).symm (neq_of_online_offline par.1 hM).symm,
@@ -1530,7 +1530,7 @@ begin
     rcases unparallel_postulate par.1 par.2.1 gL hL par.2.2.1 (online_3_of_B Bdhc par.2.2.2.1 par.2.2.1) (neq_of_online_offline par.2.1 hM) acL
       (by linarith) with ⟨e, eM, eN, junk⟩,
     cases par.2.2.2.2 e, exact h_1 eM, exact h_1 eN, },
-  exact ⟨key1, by linarith [vertang hL (online_3_of_B (Bsymm Begh) hL gL) (not_online_of_sameside bdL) (Bsymm Begh) (Bsymm Bagb)],
+  exact ⟨key1, by linarith [vertang hL (online_3_of_B (B_symm Begh) hL gL) (not_online_of_sameside bdL) (B_symm Begh) (B_symm Bagb)],
     by linarith⟩,
 end
 
@@ -1542,8 +1542,8 @@ begin
   { intro hg, rw hg at *, cases par.2.2.2.2 g, exact h_1 par.2.1, exact h_1 par.2.2.1, },
   rcases excor (neq_of_online_offline gL adL.1).symm (neq_of_online_offline gL adL.1) with ⟨b, Bagb, junk⟩,
   rcases excor hg hg.symm with ⟨e, Bhge, junk⟩,
-  exact (parapost dh hL gL par Bagb (Bsymm Bhge)
-    (difdifsame ⟨adL.1, (λ bL, adL.1 (online_3_of_B (Bsymm Bagb) bL gL)), not_sameside13_of_B123_online2 Bagb gL⟩ adL)).1,
+  exact (parapost dh hL gL par Bagb (B_symm Bhge)
+    (difdifsame ⟨adL.1, (λ bL, adL.1 (online_3_of_B (B_symm Bagb) bL gL)), not_sameside13_of_B123_online2 Bagb gL⟩ adL)).1,
 end
 
 --Euclid I.31
@@ -1560,7 +1560,7 @@ begin
   refine ⟨e, N, paraeasy bL (angeqpar ae.symm (neq_of_online_offline dL aL).symm (ne_23_of_B Bbdc)
     (lines_neq_of_online_offline aN aL) eN aN dL cL aM dM (by linarith [angle_symm ae.symm (neq_of_online_offline dM (not_online_of_sameside ebM)).symm,
     angle_symm (neq_of_online_offline dL aL).symm (neq_of_online_offline cL aL).symm]) (difsamedif (sameside_symm ebM)
-    ⟨bM, (λ cM, bM (online_3_of_B (Bsymm Bbdc) cM dM)), not_sameside13_of_B123_online2 Bbdc dM⟩))⟩,
+    ⟨bM, (λ cM, bM (online_3_of_B (B_symm Bbdc) cM dM)), not_sameside13_of_B123_online2 Bbdc dM⟩))⟩,
 end
 
 -- Euclid I.34
@@ -1629,20 +1629,20 @@ begin
     exact h,
     exfalso,
     cases h with Bdef Befd,
-    { cases or.swap (Bbcd_or_Bbdc_of_Babc_Babd af (Bsymm Baed) Bdef) with Befa Beaf,
+    { cases or.swap (Bbcd_or_Bbdc_of_Babc_Babd af (B_symm Baed) Bdef) with Befa Beaf,
       linarith [dist_sum_of_B Befa, dist_sum_of_B Baed, dist_symm e a, nonzerolen af, dist_symm a f, nonzerolen (ne_23_of_B Baed)],
       by_cases bfN : sameside b f N,
       { have dbP := difsym (not_sameside_of_sameside_sameside par1.2.2.2.1 par4.2.2.1 par3.2.2.2.1 par2.1  par4.2.2.2.1
           par3.2.2.1 (sameside_symm dfM) bfN),
-        have deP := sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Bdef) par4.2.2.2.1 eP),
-        exact (difsamedif deP ⟨(λ dP, eP (online_2_of_B (Bsymm Bdef) par4.2.2.2.1 dP)),
+        have deP := sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Bdef) par4.2.2.2.1 eP),
+        exact (difsamedif deP ⟨(λ dP, eP (online_2_of_B (B_symm Bdef) par4.2.2.2.1 dP)),
           (paraeasy2 par4).2.1, dbP⟩).2.2 (sameside_symm (paraeasy2 par4).2.2.2.2.2.1), },
-      exact bfN (sameside_symm (sameside_trans (sameside23_of_B123_online1_not_online2 (Bsymm (B124_of_B123_B234 (Bsymm Beaf) Baed)) par3.2.2.1 (paraeasy2 par3).2.1)
+      exact bfN (sameside_symm (sameside_trans (sameside23_of_B123_online1_not_online2 (B_symm (B124_of_B123_B234 (B_symm Beaf) Baed)) par3.2.2.1 (paraeasy2 par3).2.1)
         (paraeasy2 par3).2.2.2.2.2.1)), },
     linarith [dist_sum_of_B Befd, dist_sum_of_B Baed, nonzerolen (ne_12_of_B Baed), nonzerolen df, dist_symm d f], },
   have := area_add_iff_Bmpmod par1.1 par1.2.1 par2.2.2.1 (paraeasy2 par1).2.2.2.1 Baed,
-  have ebN := sameside_trans (sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Baed) par3.2.2.1 (λ eN, (paraeasy2 par3).2.1
-    (online_3_of_B (Bsymm Baed) par3.2.2.1 eN)))) (paraeasy2 par3).2.2.2.2.2.1,
+  have ebN := sameside_trans (sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Baed) par3.2.2.1 (λ eN, (paraeasy2 par3).2.1
+    (online_3_of_B (B_symm Baed) par3.2.2.1 eN)))) (paraeasy2 par3).2.2.2.2.2.1,
   have := quadarea (ne_23_of_B Baed) bc par2.2.2.1 par1.2.1 par2.1 par2.2.1 par3.2.2.1
     par3.2.2.2.1 edM (paraeasy2 par2).2.2.2.2.2.1 ebN,
   have := parasianar par3 par1,
@@ -1696,24 +1696,24 @@ begin
     exfalso,
     cases h with Bedf Bdfe,
     { by_cases bfN : sameside b f N,
-      { have dP : ¬online d P := λ dP, (paraeasy2 par4).2.2.1 (online_3_of_B (Bsymm Bedf) par4.2.2.2.1 dP),
+      { have dP : ¬online d P := λ dP, (paraeasy2 par4).2.2.1 (online_3_of_B (B_symm Bedf) par4.2.2.2.1 dP),
         have dbP := difsym (not_sameside_of_sameside_sameside par1.2.2.2.1 par4.2.2.1 par3.2.2.2.1 par2.1
           par4.2.2.2.1 par3.2.2.1 (sameside_symm dfM) bfN),
-        exact (difsamedif (sameside23_of_B123_online1_not_online2 (Bsymm Bedf) par4.2.2.2.1 dP) ⟨dP, (paraeasy2 par4).2.1, dbP⟩).2.2
+        exact (difsamedif (sameside23_of_B123_online1_not_online2 (B_symm Bedf) par4.2.2.2.1 dP) ⟨dP, (paraeasy2 par4).2.1, dbP⟩).2.2
           (sameside_symm (paraeasy2 par4).2.2.2.2.2.1), },
-      cases Bbcd_or_Bbdc_of_Babc_Babd af (Bsymm Bade) Bedf with Bdaf Bdfa,
+      cases Bbcd_or_Bbdc_of_Babc_Babd af (B_symm Bade) Bedf with Bdaf Bdfa,
       linarith [dist_sum_of_B Bdaf, dist_sum_of_B Bedf, nonzerolen (ne_23_of_B Bade).symm, nonzerolen af, dist_symm a d],
       have fN := λ fN, (paraeasy2 par3).2.1 (online_3_of_B Bdfa par3.2.2.1 fN),
       exact (difsamedif (sameside_symm (paraeasy2 par3).2.2.2.2.2.1) ⟨(paraeasy2 par3).2.2.1, fN, bfN⟩).2.2
         (sameside_symm (sameside23_of_B123_online1_not_online2 Bdfa par3.2.2.1 fN)), },
-    have Bfda := Bbcd_of_Babc_Bacd (Bsymm Bdfe) (Bsymm Bade),
+    have Bfda := Bbcd_of_Babc_Bacd (B_symm Bdfe) (B_symm Bade),
     by_cases bfN : sameside b f N,
     exact (not_sameside13_of_B123_online2 Bfda par3.2.2.1) (sameside_symm (sameside_trans (sameside_symm (paraeasy2 par3).2.2.2.2.2.1) bfN)),
     have fN := λ fN, (paraeasy2 par3).2.1 (online_3_of_B Bfda fN par3.2.2.1),
     exact (not_sameside13_of_B123_online2 Bdfe par4.2.2.2.1) (sameside_trans (sameside_of_sameside_not_sameside par1.2.2.2.1 par3.2.2.2.1 par4.2.2.1 par1.2.2.1
       par3.2.2.1 par4.2.2.2.1 dfM bfN fN bc) (paraeasy2 par4).2.2.2.2.2.1), },
   have dO := λ dO, (paraeasy2 par4).2.2.2.2.1 (online_3_of_B Bdef dO par4.2.1),
-  have eN := λ eN, (paraeasy2 par3).2.1 (online_3_of_B (Bsymm Bade) eN par3.2.2.1),
+  have eN := λ eN, (paraeasy2 par3).2.1 (online_3_of_B (B_symm Bade) eN par3.2.2.1),
   have cdO := (difsamedif (sameside_symm (paraeasy2 par4).2.2.2.2.2.2)
     ⟨(paraeasy2 par4).2.2.2.2.1, dO, difsym (not_sameside13_of_B123_online2 Bdef par4.2.1)⟩).2.2,
   have beN := (difsamedif (paraeasy2 par3).2.2.2.2.2.1 ⟨(paraeasy2 par3).2.1, eN,
@@ -1857,7 +1857,7 @@ begin
   cases B_of_three_online_ne par1.1 par2.2.2.1 par1.2.1 ae ad ed,
   exact parallelarea1 par1 par2 par3 par4 h,
   cases h,
-  exact parallelarea3 par1 par2 par3 par4 (Bsymm h),
+  exact parallelarea3 par1 par2 par3 par4 (B_symm h),
   exact parallelarea2 par1 par2 par3 par4 h,
 end
 
@@ -1873,7 +1873,7 @@ begin
     ad.symm,
   have deO := not_sameside13_of_B123_online2 Bdae aO,
   have dO := not_online_of_sameside dcO,
-  have ecO := (difsamedif dcO ⟨dO, λ eO, dO (online_3_of_B (Bsymm Bdae) eO aO), deO⟩),
+  have ecO := (difsamedif dcO ⟨dO, λ eO, dO (online_3_of_B (B_symm Bdae) eO aO), deO⟩),
   have par2 := paraeasy5 (paraeasy (online_3_of_B Bdae par.2.1 par.1)
     (paraeasy5 (paraeasy4 (paraeasy5 par)))),
   have := parapostcor (ne_23_of_B Bdae).symm aO bO (paraeasy5 (paraeasy (online_3_of_B Bdae par.2.1 par.1)
@@ -1938,7 +1938,7 @@ begin
   rcases excor (ne_23_of_B Bcad) (ne_23_of_B Bcad).symm with ⟨d1, Badd1, lend1⟩,
   rcases circle_of_ne (ne_23_of_B Bcad).symm with ⟨α, dcen, acirc⟩,
   rcases line_of_ne (ne_13_of_B Bcad) with ⟨M, cM, dM⟩,
-  have gdL := difsamedif cgL ⟨not_online_of_sameside cgL, (λ dL, (not_online_of_sameside cgL) (online_3_of_B (Bsymm Bcad) dL aL)), not_sameside13_of_B123_online2 Bcad aL⟩,
+  have gdL := difsamedif cgL ⟨not_online_of_sameside cgL, (λ dL, (not_online_of_sameside cgL) (online_3_of_B (B_symm Bcad) dL aL)), not_sameside13_of_B123_online2 Bcad aL⟩,
   rcases drawpar ab aL bL gdL.2.1 with ⟨e1, N, par1⟩,
   have bM : ¬online b M,-- := λ bM, (not_online_of_sameside cgL) (by rw (line_unique_of_pts ab aL bL (online_2_of_B Bcad cM dM) bM) at cM; exact cM),--why is this not a proof?
   { intro bM, have := line_unique_of_pts ab aL bL (online_2_of_B Bcad cM dM) bM, rw ← this at cM; exact  (not_online_of_sameside cgL) cM, },
@@ -1962,7 +1962,7 @@ begin
       have := line_unique_of_pts (ne_12_of_B Be2de3) e2M dM e2N par1.2.1,
       rw this at *,
       exact (paraeasy2 par1).2.2.2.1 (online_2_of_B Bcad cM dM), },
-    have e3M := λ e3M, e2M (online_3_of_B (Bsymm Be2de3) e3M dM),
+    have e3M := λ e3M, e2M (online_3_of_B (B_symm Be2de3) e3M dM),
     refine ⟨e3, e3N, difdifsame ⟨e2M, bM, difsym beM⟩ ⟨e2M, e3M, not_sameside13_of_B123_online2 Be2de3 dM⟩, e3circ,
       (ne_23_of_B Be2de3)⟩, },
   rcases eex with ⟨e, eN, beM, ecirc, de⟩,
@@ -1986,7 +1986,7 @@ begin
     (by linarith [angle_symm (neq_of_online_offline eN (paraeasy2 par1).2.2.2.1).symm ab]) ⟨bP, dP, bdP⟩,
   have := (paraeasy (online_3_of_B Badd1 (online_2_of_B Bcad cM dM) dM) par2),
   have par3 := paraeasy6 (paraeasy1 (paraeasy (online_3_of_B Badd1 (online_2_of_B Bcad cM dM) dM) par2)),
-  have := parapost (neq_of_online_offline eP bP).symm eN par1.2.1 par3 (Bsymm Badd1) (Bsymm Bede4)
+  have := parapost (neq_of_online_offline eP bP).symm eN par1.2.1 par3 (B_symm Badd1) (B_symm Bede4)
     (paraeasy2 par1).2.2.2.2.2.2,
   have := flatsumright cM dM bM Bcad,
   have := angle_symm ab.symm (neq_of_online_offline dM bM).symm,
@@ -2189,12 +2189,12 @@ begin
   have mQ : ¬online m Q,
   { intro mQ, have := line_unique_of_pts (ne_12_of_B Bbmc) bL mL bQ mQ, rw this at *, exact dL dQ, },
   have mO : ¬online m O,
-  { intro mO, have := line_unique_of_pts (ne_12_of_B (Bsymm Bbmc)) cL mL cO mO, rw this at *, exact eL eO, },
+  { intro mO, have := line_unique_of_pts (ne_12_of_B (B_symm Bbmc)) cL mL cO mO, rw this at *, exact eL eO, },
   have mcQ := sameside23_of_B123_online1_not_online2 Bbmc bQ mQ,
   have ceQ := (paraeasy2 sq3.2.2.2.2.2.2.2.1).2.2.2.2.2.2,
   have meQ := sameside_symm (sameside_trans ceQ (sameside_symm mcQ)),
   have mbP := (paraeasy2 (paraeasy mL (paraeasy1 sq3.2.2.2.2.2.2.2.2))).2.2.2.2.2.2,
-  have mbO := sameside23_of_B123_online1_not_online2 (Bsymm Bbmc) cO mO,
+  have mbO := sameside23_of_B123_online1_not_online2 (B_symm Bbmc) cO mO,
   have bdO := (paraeasy2 sq3.2.2.2.2.2.2.2.1).2.2.2.2.2.1,
   have mdO := sameside_symm (sameside_trans bdO (sameside_symm mbO)),
   have mcP := (paraeasy2 (paraeasy mL (paraeasy1 (paraeasy6 sq3.2.2.2.2.2.2.2.2)))).2.2.2.2.2.2,
@@ -2224,7 +2224,7 @@ begin
   have el : e ≠ l,
   { intro el,
     rw ← el at *,
-    rcases excor (ne_12_of_B (Bsymm Bbmc)).symm (ne_12_of_B (Bsymm Bbmc)) with ⟨b1, Bmcc1, junk⟩,
+    rcases excor (ne_12_of_B (B_symm Bbmc)).symm (ne_12_of_B (B_symm Bbmc)) with ⟨b1, Bmcc1, junk⟩,
     have := flatsumright mL (online_3_of_B Bmcc1 mL cL) eL Bmcc1,
     have := extangcor eL mL (online_3_of_B Bmcc1 mL cL) Bmcc1,
     have cdX' := not_sameside_of_sameside_sameside eO lX' eP cO mX' dP mdO (sameside_symm mcP),
@@ -2234,9 +2234,9 @@ begin
     { intro dX', have := line_unique_of_pts (neq_of_online_offline eO dO) eP dP lX' dX', rw this at *, exact mP mX', },
     have := parapostcor (ne_12_of_B Bmcc1).symm mX' lX' (paraeasy6 par1) ⟨dX', cX', difsym cdX'⟩,
     have := pythlem0 (ne_12_of_B Bp1lp2).symm (neq_of_online_offline eO dO) eP p1P dP mP (by linarith),
-    have := angle_extensionmod1 ec.symm (Bsymm Bbmc),
+    have := angle_extensionmod1 ec.symm (B_symm Bbmc),
     have := angle_symm de (neq_of_online_offline dP mP),
-    have := angle_symm (ne_12_of_B (Bsymm Bbmc)).symm me,
+    have := angle_symm (ne_12_of_B (B_symm Bbmc)).symm me,
     linarith, },
   have eX' : ¬online e X',
   { intro eX', have := line_unique_of_pts el eP lP eX' lX', rw this at *, exact mP mX', },
@@ -2255,8 +2255,8 @@ begin
   have mbP := (paraeasy2 par).2.2.2.2.2.2,
   have mcP := (paraeasy2 par1).2.2.2.2.2.2,
   have ml'P := not_sameside13_of_B123_online2 Bmll' lP,
-  have bl'P := difsamedif mbP ⟨mP, (λ l'P, mP (online_3_of_B (Bsymm Bmll') l'P lP)), ml'P⟩,
-  have cl'P := difsamedif mcP ⟨mP, (λ l'P, mP (online_3_of_B (Bsymm Bmll') l'P lP)), ml'P⟩,
+  have bl'P := difsamedif mbP ⟨mP, (λ l'P, mP (online_3_of_B (B_symm Bmll') l'P lP)), ml'P⟩,
+  have cl'P := difsamedif mcP ⟨mP, (λ l'P, mP (online_3_of_B (B_symm Bmll') l'P lP)), ml'P⟩,
   have par2 := paraeasy mX' (paraeasy5 (angeqpar db.symm dl (ne_23_of_B Bmll') (lines_neq_of_online_offline dQ dX')
     bQ dQ lX' (online_3_of_B Bmll' mX' lX') dP lP (by linarith) bl'P)),
   have par3 := paraeasy mX' (paraeasy5 (angeqpar ec.symm el (ne_23_of_B Bmll') (lines_neq_of_online_offline eO eX')
@@ -2291,7 +2291,7 @@ begin
   { have par7 := paraeasy cM (paraeasy5 sq1.2.2.2.2.2.2.2.1),
     have caW := (paraeasy2 par7).2.2.2.2.2.2,
     have faL := sameside_of_sameside_not_sameside bW bN bL fW aN cL (sameside_symm caW) fcN cN bf.symm, --(sameside_symm caW) ⟨cN, not_online_of_sameside fgN, sameside_symm cN⟩,
-    have := angle_add_iff_samesidemprmod bf bc bW fW bL cL faL caW,
+    have := angles_add_of_sameside bf bc bW fW bL cL faL caW,
     have par6 := paraeasy aX (paraeasy5 par2),
     have dmN := sameside_of_sameside_not_sameside bQ bL bN dQ mL aN (sameside_symm (paraeasy2 par6).2.2.2.2.2.2) daL aL db,
     rcases quadiag db ma dQ bQ mX aX bN aN (sameside_symm (paraeasy2 par6).2.2.2.2.2.1)
@@ -2301,7 +2301,7 @@ begin
     { intro yQ, have := line_unique_of_pts (ne_23_of_B Bayd) yY1 dY1 yQ dQ, rw this at *, exact bY1 bQ, },
     have yN : ¬online y N,
     { intro yN, have := line_unique_of_pts (ne_12_of_B Bayd) aY1 yY1 aN yN, rw this at *, exact bY1 bN, },
-    have := angle_add_iff_samesidemprmod ba db.symm bN aN bQ dQ (sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Bayd) dQ yQ)) (sameside_symm (sameside23_of_B123_online1_not_online2 Bayd aN yN)),
+    have := angles_add_of_sameside ba db.symm bN aN bQ dQ (sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Bayd) dQ yQ)) (sameside_symm (sameside23_of_B123_online1_not_online2 Bayd aN yN)),
     have := angle_extensionmod1 ba (B124_of_B134_B123 Bbmc Bbym),
     have := angle_extensionmod1 db.symm (B124_of_B134_B123 Bbmc Bbym),
     have := angle_symm ba.symm (ne_12_of_B Bayd),
@@ -2311,7 +2311,7 @@ begin
   { have par8 := paraeasy bN (paraeasy5 sq2.2.2.2.2.2.2.2.1),
     have baR := (paraeasy2 par8).2.2.2.2.2.2,
     have kaL := sameside_of_sameside_not_sameside cR cM cL kR aM bL (sameside_symm baR) kbM bM ck.symm, --(sameside_symm caW) ⟨cN, not_online_of_sameside fgN, sameside_symm cN⟩,
-    have := angle_add_iff_samesidemprmod ck bc.symm cR kR cL bL kaL baR,
+    have := angles_add_of_sameside ck bc.symm cR kR cL bL kaL baR,
     have par9 := paraeasy aX (paraeasy5 par3),
     have eaL := difsamedif (sameside_symm (paraeasy2 par).2.2.2.2.2.1) ⟨dL, aL, daL⟩,
     have emM := sameside_of_sameside_not_sameside cO cL cM eO mL aM (sameside_symm (paraeasy2 par9).2.2.2.2.2.2) eaL.2.2 aL ec,
@@ -2322,9 +2322,9 @@ begin
     { intro yO, have := line_unique_of_pts (ne_23_of_B Baye) yY1 eY1 yO eO, rw this at *, exact cY1 cO, },
     have yM : ¬online y M,
     { intro yM, have := line_unique_of_pts (ne_12_of_B Baye) aY1 yY1 aM yM, rw this at *, exact cY1 cM, },
-    have := angle_add_iff_samesidemprmod ca ec.symm cM aM cO eO (sameside_symm (sameside23_of_B123_online1_not_online2 (Bsymm Baye) eO yO)) (sameside_symm (sameside23_of_B123_online1_not_online2 Baye aM yM)),
-    have := angle_extensionmod1 ca (B124_of_B134_B123 (Bsymm Bbmc) Bcym),
-    have := angle_extensionmod1 ec.symm (B124_of_B134_B123 (Bsymm Bbmc) Bcym),
+    have := angles_add_of_sameside ca ec.symm cM aM cO eO (sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Baye) eO yO)) (sameside_symm (sameside23_of_B123_online1_not_online2 Baye aM yM)),
+    have := angle_extensionmod1 ca (B124_of_B134_B123 (B_symm Bbmc) Bcym),
+    have := angle_extensionmod1 ec.symm (B124_of_B134_B123 (B_symm Bbmc) Bcym),
     have := angle_symm ca.symm (ne_12_of_B Baye),
     have := angle_symm ca.symm ba.symm,
     linarith, },
@@ -2340,7 +2340,7 @@ begin
     (sameside_symm (paraeasy2 par).2.2.2.2.2.1) bdO,
   have := quadarea (ne_12_of_B Bbmc) (ne_12_of_B Bdle) bL mL dP lP mX lX' (sameside_symm mbP)
     (paraeasy2 par4).2.2.2.2.2.2 (paraeasy2 par2).2.2.2.2.2.1,
-  have := quadarea (ne_12_of_B (Bsymm Bbmc)) (ne_12_of_B (Bsymm Bdle)) cL mL eP lP mX lX' (sameside_symm mcP)
+  have := quadarea (ne_12_of_B (B_symm Bbmc)) (ne_12_of_B (B_symm Bdle)) cL mL eP lP mX lX' (sameside_symm mcP)
     (paraeasy2 par5).2.2.2.2.2.2 (paraeasy2 par3).2.2.2.2.2.1,
   linarith [area_invariant b c f, area_invariant c b k, area_invariant l d b, area_invariant l b d, area_invariant l m b, area_invariant b l m],
 end
@@ -2371,6 +2371,18 @@ begin
   obtain ⟨L, aL, bL, cL⟩ := h,
   exact ⟨L, bL, cL, aL⟩,
 end
+
+lemma diffside_of_B_diffside {a b c : point} {L : line} (Babc : B a b c) (h : diffside a b L) :
+  diffside a c L :=
+begin
+  obtain ⟨N, aN, bN, cN, a_ne_b, b_ne_c, c_ne_a⟩ := line_of_B Babc,
+  have := lines_inter_of_not_sameside h.2.2 aN bN,
+  obtain ⟨d, dL, dN⟩ := pt_of_line_line_inter this,
+
+  sorry,
+end
+
+-- change axiom angle_symm ! There is symmetry whether they're equal or not...
 
 -- change axiom line_of_ne ! There is a line whether they're equal or not...
 lemma line_of_pts (a b : point) : ∃ (L : line), online a L ∧ online b L :=
@@ -2446,11 +2458,6 @@ begin
   exact habc ⟨L, aL, bL, cL⟩,
 end
 
-example (a b : ℝ) (h1 : ¬ a =b )  : a ≠ b :=
-begin
- exact h1,
-end
-
 lemma B_of_greater_angle {a b c d : point} {L : line} (habc : ¬ colinear a b c)
   (hbcd: colinear b c d) (aL : online a L) (bL : online b L) (cdL : sameside c d L)
   (h : angle b a c < angle b a d) : B b c d :=
@@ -2470,12 +2477,13 @@ begin
   cases h₁ with Bcbd Bbdc,
   { exact false.rec _ (not_sameside13_of_B123_online2 Bcbd bL cdL), },
   have aM : ¬ online a M := λ hh, habc ⟨M, hh, bM, cM⟩,
-  --have := (area_add_iff_B b_ne_c c_ne_d (λ hh, b_ne_d hh.symm) bM cM dM aM).mp Bbdc,
   obtain ⟨N, aN, cN⟩ := line_of_ne a_ne_c,
-  have dN : ¬ online d N := sorry,
-  have LN : L ≠ N := sorry,
-  have bdN : sameside b d N := sorry,
-  have cdL : sameside c d L := sorry,
+  have dN : ¬ online d N :=
+    λ hh, habc ⟨N, aN, (by rwa ← (line_unique_of_pts c_ne_d cN hh cM dM) at bM), cN⟩,
+  have LN : L ≠ N := λ hh, habc ⟨L, aL, bL, by rwa ← hh at cN⟩,
+  have bdN : sameside b d N :=
+    sameside_symm (sameside23_of_B123_online1_not_online2 (B_symm Bbdc) cN dN),
+  have cdL : sameside c d L := sameside_symm (sameside23_of_B123_online1_not_online2 Bbdc bL dL),
   have : 0 ≤ angle d a c := angle_nonneg _ _ _,
   have := (angle_add_iff_sameside aL bL aN cN a_ne_b a_ne_c dN dL LN).mpr ⟨bdN, cdL⟩,
   linarith,
@@ -2487,6 +2495,7 @@ lemma steiner_lehmus_prep {a b c y z : point} (habc : ¬ colinear a b c) (Bazb :
   (b_le_c : angle a b c < angle a c b) :
   dist c z < dist b y :=
 begin
+  have aby_lt_zca : angle a b y < angle z c a := sorry,
   have a_ne_b := ne_12_of_not_colinear habc,
   have a_ne_c := ne_13_of_not_colinear habc,
   have b_ne_c := ne_23_of_not_colinear habc,
@@ -2501,24 +2510,47 @@ begin
   obtain ⟨L, aL, bL⟩ := line_of_ne (a_ne_b),
   have yL : ¬ online y L := sorry,
   obtain ⟨M, cM, zM⟩ := line_of_ne (c_ne_z),
+  have diffside_abM : diffside a b M := sorry,
+  obtain ⟨N, bN, yN⟩ := line_of_ne (b_ne_y),
+  have L_ne_N : L ≠ N := sorry,
   have aM : ¬ online a M := sorry,
-  have : ∃ u : point, B a u z ∧ angle u c z = angle u b y,
+  have zL : online z L := sorry,
+  have : ∃ u : point, B a u z ∧ angle u c z = angle u b y, -- draw half b at c
   {
     obtain ⟨f, hf⟩ := angcopy c_ne_z a_ne_b.symm bL aL yL cM zM aM,
-    by_cases hf_on_ab : online f L,
+    have a_ne_f : a ≠ f := sorry,
+    have b_ne_f : b ≠ f := sorry,
+    by_cases fL : online f L,
     {
-      use f,
-      sorry,
-    },
+      refine ⟨f, B_symm (B_of_greater_angle _ _ cM zM hf.2 _), _⟩,
+      { sorry, }, -- not colinear c z f
+      { refine ⟨L, zL, fL, aL⟩, },
+      { convert aby_lt_zca using 1,
+        exact hf.1, },
+      { convert hf.1 using 1,
+        { refine angle_symm _ _,
+          { sorry, }, -- f ne c
+          { sorry, }, -- f ne z
+        },
+        { refine angle_extensionmod2 b_ne_y _ bN yN bL fL aL _,
+          { sorry, }, -- f ne a
+          by_contra faN,
+          have diffside_faN : diffside f a N := sorry,
+          --have := lines_inter_of_not_sameside faN fL aL,
+          have Babf := B_of_online_inter L_ne_N.symm a_ne_f aL bL fL bN a_ne_b b_ne_f.symm _,
+          exact (diffside_of_B_diffside Babf diffside_abM).2.2 (sameside_symm hf.2),
+          intros hh,
+          exact diffside_faN.2.2 (sameside_symm hh), }, }, },
+    ---------- STOPPED HERE!!
     sorry,
   },
   obtain ⟨u, Bauz, angle_ucz_uby⟩ := this,
-  have : ∃ v : point, B u v b ∧ dist b v = dist u c,
+  have : ∃ v : point, B u v b ∧ dist b v = dist c u, -- draw circle at b of radius cu
   {
     sorry,
   },
   obtain ⟨v, Buvb, bv_eq_uc⟩ := this,
-  have : ∃ w, B b w y ∧ angle b c w = angle b u c,
+  have : ∃ w, B b w y ∧ angle b v w = angle b u c, -- drop parallel from v to uc
   {
     sorry,
   },

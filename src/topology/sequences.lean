@@ -10,15 +10,51 @@ import topology.metric_space.basic
 # Sequences in topological spaces
 
 In this file we define sequences in topological spaces and show how they are related to
-filters and the topology. In particular, we
-* define the sequential closure of a set and prove that it's contained in the closure,
-* define a type class "sequential_space" in which closure and sequential closure agree,
-* define sequential continuity and show that it coincides with continuity in sequential spaces,
-* provide an instance that shows that every first-countable (and in particular metric) space is
-  a sequential space.
-* define sequential compactness, prove that compactness implies sequential compactness in first
-  countable spaces, and prove they are equivalent for uniform spaces having a countable uniformity
-  basis (in particular metric spaces).
+filters and the topology.
+
+## Main definitions
+
+### Set operation
+* `seq_closure s`: sequential closure of a set, the set of limits of sequences of points of `s`;
+
+### Predicates
+
+* `is_seq_closed s`: predicate saying that a set is sequentially closed, i.e., `seq_closure s ⊆ s`;
+* `seq_continuous f`: predicate saying that a function is sequentially continuous, i.e.,
+  for any sequence `u : ℕ → X` that converges to a point `x`, the sequence `f ∘ u` converges to
+  `f x`;
+* `is_seq_compact s`: predicate saying that a set is sequentially compact, i.e., every sequence
+  taking values in `s` has a converging subsequence.
+
+### Type classes
+
+* `frechet_urysohn_space X`: a typeclass saying that a topological space is a *Fréchet-Urysohn
+  space*, i.e., the sequential closure of any set is equal to its closure.
+* `sequential_space X`: a typeclass saying that a topological space is a *sequential space*, i.e.,
+  any sequentially closed set in this space is closed. This condition is weaker than being a
+  Fréchet-Urysohn space.
+* `seq_compact_space X`: a typeclass saying that a topological space is sequentially compact, i.e.,
+  every sequence in `X` has a converging subsequence.
+
+## Main results
+
+* `seq_closure_subset_closure`: closure of a set includes its sequential closure;
+* `is_closed.is_seq_closed`: a closed set is sequentially closed;
+* `is_seq_closed.seq_closure_eq`: sequential closure of a sequentially closed set `s` is equal
+  to `s`;
+* `seq_closure_eq_closure`: in a Fréchet-Urysohn space, the sequential closure of a set is equal to
+  its closure;
+* `tendsto_nhds_iff_seq_tendsto`, `frechet_urysohn_space.of_seq_tendsto_imp_tendsto`: a topological
+  space is a Fréchet-Urysohn space if and only if sequential convergence implies convergence;
+* `topological_space.first_countable_topology.frechet_urysohn_space`: every topological space with
+  first countable topology is a Fréchet-Urysohn space;
+* `frechet_urysohn_space.to_sequential_space`: every Fréchet-Urysohn space is a sequential space;
+* `is_seq_compact.is_compact`: a sequentially compact set in a uniform space with countably
+  generated uniformity is compact.
+
+## Tags
+
+sequentially closed, sequentially compact, sequential space
 -/
 
 open set function filter bornology topological_space
@@ -46,7 +82,7 @@ lemma seq_closure_subset_closure {s : set X} : seq_closure s ⊆ closure s :=
 /-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`,
 the limit belongs to `s` as well. -/
 def is_seq_closed (s : set X) : Prop :=
-∀ ⦃x : ℕ → X⦄ ⦃p : X⦄, (∀ n, x n ∈ s) → (tendsto x at_top (𝓝 p)) → p ∈ s
+∀ ⦃x : ℕ → X⦄ ⦃p : X⦄, (∀ n, x n ∈ s) → tendsto x at_top (𝓝 p) → p ∈ s
 
 /-- The sequential closure of a sequentially closed set is the set itself. -/
 lemma is_seq_closed.seq_closure_eq {s : set X} (hs : is_seq_closed s) :

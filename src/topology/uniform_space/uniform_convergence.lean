@@ -62,48 +62,6 @@ open_locale topological_space classical uniformity filter
 
 open set filter
 
-section generic
-
-variables {α β γ ι : Type*} {p : filter ι} {p' : filter α}
-
-lemma filter.eventually_swap_iff {f : (ι × α) → Prop} : (∀ᶠ (x : ι × α) in (p.prod p'), f x) ↔
-  ∀ᶠ (y : α × ι) in (p'.prod p), f y.swap :=
-by { rw [prod_comm, eventually_map], simpa, }
-
-lemma eventually_prod_principal_iff {f : ι × α → Prop} {s : set α} :
-  (∀ᶠ (x : ι × α) in (p.prod (𝓟 s)), f x) ↔ ∀ᶠ (n : ι) in p, ∀ (y : α), y ∈ s → f (n, y) :=
-by { rw [eventually_iff, eventually_iff, mem_prod_principal], simp only [mem_set_of_eq], }
-
-lemma filter.prod_mono_left (p' : filter α) {p'' : filter ι} (hp : p ≤ p'') :
-  p ×ᶠ p' ≤ p'' ×ᶠ p' :=
-filter.prod_mono hp rfl.le
-
-lemma filter.prod_mono_right (p : filter ι) {p'' : filter α} (hp : p' ≤ p'') :
-  p ×ᶠ p' ≤ p ×ᶠ p'' :=
-filter.prod_mono rfl.le hp
-
-lemma filter.eventually.diag_of_prod_left {f : filter α} {g : filter γ}
-  {p : (α × α) × γ → Prop} :
-  (∀ᶠ x in (f ×ᶠ f ×ᶠ g), p x) →
-  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p ((x.1, x.1), x.2)) :=
-begin
-  intros h,
-  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
-  refine (ht.diag_of_prod.prod_mk hs).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
-end
-
-lemma filter.eventually.diag_of_prod_right {f : filter α} {g : filter γ}
-  {p : α × γ × γ → Prop} :
-  (∀ᶠ x in (f ×ᶠ (g ×ᶠ g)), p x) →
-  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p (x.1, x.2, x.2)) :=
-begin
-  intros h,
-  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
-  refine (ht.prod_mk hs.diag_of_prod).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
-end
-
-end generic
-
 universes u v w
 variables {α β γ ι : Type*} [uniform_space β]
 variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {p' : filter α}

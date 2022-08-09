@@ -14,8 +14,9 @@ We provide the basic framework for talking about properties of morphisms between
 
 A `morphism_property Scheme` is a predicate on morphisms between schemes, and an
 `affine_target_morphism_property` is a predicate on morphisms into affine schemes. Given a
-`P : affine_target_morphism_property`, we may construct a `morphism_property` that holds for
-`f : X ⟶ Y` whenever `P` holds for the restriction of `f` on every affine open subset of `Y`.
+`P : affine_target_morphism_property`, we may construct a `morphism_property` called
+`target_affine_locally P` that holds for `f : X ⟶ Y` whenever `P` holds for the
+restriction of `f` on every affine open subset of `Y`.
 
 ## Main definitions
 

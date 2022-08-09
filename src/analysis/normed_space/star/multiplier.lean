@@ -208,25 +208,11 @@ instance : has_mul 𝓜(𝕜, A) :=
 instance : ring 𝓜(𝕜, A) :=
 { one := 1,
   mul := λ x y, x * y,
-  mul_assoc := λ a b c, by {ext1; simp only [mul_left, mul_right, mul_assoc]},
-  one_mul := λ a, by {ext1; simp},
-  mul_one := λ a, by {ext1; simp},
-  left_distrib := λ a b c,
-  begin
-    ext1,
-    { rw [mul_left, add_left, add_left],
-      simp only [mul_add, mul_left] },
-    { rw [mul_right, add_right, add_right],
-      simp only [add_mul, mul_right] }
-  end,
-  right_distrib := λ a b c,
-  begin
-    ext1,
-    { rw [mul_left, add_left, add_left],
-      simp only [add_mul, mul_left] },
-    { rw [mul_right, add_right, add_right],
-      simp only [mul_add, mul_right] },
-  end,
+  mul_assoc := λ a b c, ext _ _ (mul_assoc _ _ _) (mul_assoc _ _ _),
+  one_mul := λ a, ext _ _ (one_mul _) (one_mul _),
+  mul_one := λ a, ext _ _ (mul_one _) (mul_one _),
+  left_distrib := λ a b c, ext _ _ (mul_add _ _ _) (add_mul _ _ _),
+  right_distrib := λ a b c, ext _ _ (add_mul _ _ _) (mul_add _ _ _),
   .. double_centralizer.add_comm_group }
 
 /-!

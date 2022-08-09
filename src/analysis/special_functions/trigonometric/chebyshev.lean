@@ -11,8 +11,8 @@ import ring_theory.polynomial.chebyshev
 /-!
 # Multiple angle formulas in terms of Chebyshev polynomials
 
-This file gives the trigonometric characterizations of Chebyshev polynomials, for both the real and
-complex cosine.
+This file gives the trigonometric characterizations of Chebyshev polynomials, for both the real
+(`real.cos`) and complex (`complex.cos`) cosine.
 -/
 
 namespace polynomial.chebyshev
@@ -34,10 +34,10 @@ by rw [←aeval_algebra_map_apply, aeval_T]
   algebra_map R A ((U R n).eval x) = (U A n).eval (algebra_map R A x) :=
 by rw [←aeval_algebra_map_apply, aeval_U]
 
-@[simp, norm_cast] lemma of_real_eval_T : ∀ x n, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
+@[simp, norm_cast] lemma complex_of_real_eval_T : ∀ x n, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
 @algebra_map_eval_T ℝ ℂ _ _ _
 
-@[simp, norm_cast] lemma of_real_eval_U : ∀ x n, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
+@[simp, norm_cast] lemma complex_of_real_eval_U : ∀ x n, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
 @algebra_map_eval_U ℝ ℂ _ _ _
 
 /-! ### Complex versions -/

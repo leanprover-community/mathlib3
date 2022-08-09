@@ -45,7 +45,7 @@ We derive most of our initial results from an auxiliary definition `tendsto_unif
 This definition in and of itself can sometimes be useful, e.g., when studying the local behavior
 of the `Fₙ` near a point, which would typically look like `tendsto_uniformly_on_filter F f p (𝓝 x)`.
 Still, while this may be the "correct" definition (see
-`tendsto_uniformly_on_iff_tendtso_uniformly_on_filter`), it is somewhat unwieldy to work with in
+`tendsto_uniformly_on_iff_tendsto_uniformly_on_filter`), it is somewhat unwieldy to work with in
 practice. Thus, we provide the more traditional definition in `tendsto_uniformly_on`.
 
 Most results hold under weaker assumptions of locally uniform approximation. In a first section,
@@ -68,44 +68,19 @@ variables {α β γ ι : Type*} {p : filter ι} {p' : filter α}
 
 lemma filter.eventually_swap_iff {f : (ι × α) → Prop} : (∀ᶠ (x : ι × α) in (p.prod p'), f x) ↔
   ∀ᶠ (y : α × ι) in (p'.prod p), f y.swap :=
-begin
-  rw [eventually_prod_iff, eventually_prod_iff],
-  split,
-  { intros h,
-    obtain ⟨pa, hpa, pb, hpb, hpapb⟩ := h,
-    exact ⟨pb, hpb, pa, hpa, λ x hx y hy, hpapb hy hx⟩, },
-  { intros h,
-    obtain ⟨pa, hpa, pb, hpb, hpapb⟩ := h,
-    exact ⟨pb, hpb, pa, hpa, λ x hx y hy, hpapb hy hx⟩, },
-end
+by { rw [prod_comm, eventually_map], simpa, }
 
 lemma eventually_prod_principal_iff {f : ι × α → Prop} {s : set α} :
   (∀ᶠ (x : ι × α) in (p.prod (𝓟 s)), f x) ↔ ∀ᶠ (n : ι) in p, ∀ (y : α), y ∈ s → f (n, y) :=
-begin
-  rw [eventually_prod_iff, eventually_iff_exists_mem],
-  split,
-  { rintros ⟨pa, hpa, pb, hpb, hpapb⟩,
-    exact ⟨_, hpa, (λ n hn y hy, hpapb hn ((eventually_principal.mp hpb) y hy))⟩, },
-  { rintros ⟨t, ht, htmem⟩,
-    exact ⟨_, ht, _, by simp, htmem⟩, },
-end
+by { rw [eventually_iff, eventually_iff, mem_prod_principal], simp only [mem_set_of_eq], }
 
-lemma filter.prod_le_of_le_of_le {p₁ p₂ : filter ι} {q₁ q₂ : filter α} (hp : p₁ ≤ p₂)
-  (hq : q₁ ≤ q₂) :  p₁ ×ᶠ q₁ ≤ p₂ ×ᶠ q₂ :=
-begin
-  intros s hs,
-  rw mem_prod_iff at hs ⊢,
-  obtain ⟨t₁, ht₁, t₂, ht₂, ht⟩ := hs,
-  exact ⟨t₁, hp ht₁, t₂, hq ht₂, ht⟩,
-end
-
-lemma filter.prod_le_of_left_le (p' : filter α) {p'' : filter ι} (hp : p ≤ p'') :
+lemma filter.prod_mono_left (p' : filter α) {p'' : filter ι} (hp : p ≤ p'') :
   p ×ᶠ p' ≤ p'' ×ᶠ p' :=
-filter.prod_le_of_le_of_le hp rfl.le
+filter.prod_mono hp rfl.le
 
-lemma filter.prod_le_of_right_le (p : filter ι) {p'' : filter α} (hp : p' ≤ p'') :
+lemma filter.prod_mono_right (p : filter ι) {p'' : filter α} (hp : p' ≤ p'') :
   p ×ᶠ p' ≤ p ×ᶠ p'' :=
-filter.prod_le_of_le_of_le rfl.le hp
+filter.prod_mono rfl.le hp
 
 lemma filter.eventually.diag_of_prod_left {f : filter α} {g : filter γ}
   {p : (α × α) × γ → Prop} :
@@ -171,9 +146,8 @@ begin
   simp,
 end
 
-lemma tendsto_uniformly_on.tendsto_uniformly_on_filter
-  (h : tendsto_uniformly_on F f p s) : tendsto_uniformly_on_filter F f p (𝓟 s) :=
-by rwa ← tendsto_uniformly_on_iff_tendsto_uniformly_on_filter
+alias tendsto_uniformly_on_iff_tendsto_uniformly_on_filter ↔
+  tendsto_uniformly_on.tendsto_uniformly_on_filter tendsto_uniformly_on_filter.tendsto_uniformly_on
 
 /--
 A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` w.r.t.
@@ -249,12 +223,12 @@ by simp [tendsto_uniformly_on, tendsto_uniformly]
 lemma tendsto_uniformly_on_filter.mono_left {p'' : filter ι}
   (h : tendsto_uniformly_on_filter F f p p') (hp : p'' ≤ p) :
   tendsto_uniformly_on_filter F f p'' p' :=
-λ u hu, (h u hu).filter_mono (p'.prod_le_of_left_le hp)
+λ u hu, (h u hu).filter_mono (p'.prod_mono_left hp)
 
 lemma tendsto_uniformly_on_filter.mono_right {p'' : filter α}
   (h : tendsto_uniformly_on_filter F f p p') (hp : p'' ≤ p') :
   tendsto_uniformly_on_filter F f p p'' :=
-λ u hu, (h u hu).filter_mono (p.prod_le_of_right_le hp)
+λ u hu, (h u hu).filter_mono (p.prod_mono_right hp)
 
 lemma tendsto_uniformly_on.mono {s' : set α}
   (h : tendsto_uniformly_on F f p s) (h' : s' ⊆ s) : tendsto_uniformly_on F f p s' :=
@@ -373,7 +347,7 @@ end
 lemma tendsto_uniformly_on_filter.prod {ι' β' : Type*} [uniform_space β']
   {F' : ι' → α → β'} {f' : α → β'} {q : filter ι'}
   (h : tendsto_uniformly_on_filter F f p p') (h' : tendsto_uniformly_on_filter F' f' q p') :
-  tendsto_uniformly_on_filter (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) 
+  tendsto_uniformly_on_filter (λ (i : ι × ι') a, (F i.1 a, F' i.2 a))
     (λ a, (f a, f' a)) (p.prod q) p' :=
 λ u hu, ((h.prod_map h') u hu).diag_of_prod_right
 
@@ -561,7 +535,7 @@ lemma uniform_cauchy_seq_on_filter.mono_left {p'' : filter ι}
   uniform_cauchy_seq_on_filter F p'' p' :=
 begin
   intros u hu,
-  have := (hf u hu).filter_mono (p'.prod_le_of_left_le (filter.prod_le_of_le_of_le hp hp)),
+  have := (hf u hu).filter_mono (p'.prod_mono_left (filter.prod_mono hp hp)),
   exact this.mono (by simp),
 end
 
@@ -570,7 +544,7 @@ lemma uniform_cauchy_seq_on_filter.mono_right {p'' : filter α}
   uniform_cauchy_seq_on_filter F p p'' :=
 begin
   intros u hu,
-  have := (hf u hu).filter_mono ((p ×ᶠ p).prod_le_of_right_le hp),
+  have := (hf u hu).filter_mono ((p ×ᶠ p).prod_mono_right hp),
   exact this.mono (by simp),
 end
 
@@ -767,7 +741,6 @@ begin
   obtain ⟨t, ht⟩ := compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
   replace hU := λ (x : t), (hU x).2,
   rw ← eventually_all at hU,
-  -- rw [← principal_univ, eventually_prod_principal_iff],
   refine hU.mono (λ i hi x, _),
   specialize ht (mem_univ x),
   simp only [exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right,subtype.coe_mk] at ht,

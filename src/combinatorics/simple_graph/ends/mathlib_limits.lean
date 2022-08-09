@@ -608,8 +608,14 @@ begin
       exact yh,}
   },
 
-  refine ⟨fwd,bwd,_,_⟩, -- I get timeouts trying to work from here :(
-  { sorry, },
+  split, rotate 2,
+  exact fwd,
+  exact bwd,
+  -- refine ⟨fwd,bwd,_,_⟩, -- I get timeouts trying to work from here :(
+  { dsimp [function.left_inverse],
+    rintro ⟨_, _⟩,
+    sorry -- maybe `dsimp fwd` will work
+   },
   { sorry, },
 end
 

@@ -8,7 +8,7 @@ import algebraic_topology.dold_kan.projections
 import category_theory.idempotents.functor_categories
 import category_theory.idempotents.functor_extension
 
-/-
+/-!
 
 # Construction of the projection `P_infty` for the Dold-Kan correspondence
 

@@ -368,18 +368,18 @@ by rw [le_compl_iff_disjoint_right, le_compl_iff_disjoint_left]
 alias le_compl_iff_disjoint_right ↔ _ disjoint.le_compl_right
 alias le_compl_iff_disjoint_left ↔ _ disjoint.le_compl_left
 
-lemma disjoint_compl_left (a : α) : disjoint aᶜ a := le_himp_iff.1 (himp_bot _).ge
-lemma disjoint_compl_right (a : α) : disjoint a aᶜ := (disjoint_compl_left _).symm
+lemma disjoint_compl_left : disjoint aᶜ a := le_himp_iff.1 (himp_bot _).ge
+lemma disjoint_compl_right : disjoint a aᶜ := disjoint_compl_left.symm
 
-@[simp] lemma inf_compl_self (a : α) : a ⊓ aᶜ = ⊥ := (disjoint_compl_right _).eq_bot
-@[simp] lemma compl_inf_self (a : α) : aᶜ ⊓ a = ⊥ := (disjoint_compl_left _).eq_bot
+@[simp] lemma inf_compl_self (a : α) : a ⊓ aᶜ = ⊥ := disjoint_compl_right.eq_bot
+@[simp] lemma compl_inf_self (a : α) : aᶜ ⊓ a = ⊥ := disjoint_compl_left.eq_bot
 
 @[simp] lemma compl_top : (⊤ : α)ᶜ = ⊥ :=
 eq_of_forall_le_iff $ λ a, by rw [le_compl_iff_disjoint_right, disjoint_top, le_bot_iff]
 
 @[simp] lemma compl_bot : (⊥ : α)ᶜ = ⊤ := by rw [←himp_bot, himp_self]
 
-lemma le_compl_compl : a ≤ aᶜᶜ := (disjoint_compl_right _).le_compl_right
+lemma le_compl_compl : a ≤ aᶜᶜ := disjoint_compl_right.le_compl_right
 
 lemma compl_anti : antitone (compl : α → α) := λ a b h, le_compl_comm.1 $ h.trans le_compl_compl
 
@@ -400,7 +400,7 @@ begin
   refine ((compl_anti compl_sup_compl_le).trans (compl_sup_distrib _ _).le).antisymm _,
   rw [le_compl_iff_disjoint_right, disjoint_assoc, disjoint_compl_compl_left_iff,
     disjoint_left_comm, disjoint_compl_compl_left_iff, ←disjoint_assoc, inf_comm],
-  exact disjoint_compl_right _,
+  exact disjoint_compl_right,
 end
 
 lemma compl_compl_himp_distrib (a b : α) : (a ⇨ b)ᶜᶜ = aᶜᶜ ⇨ bᶜᶜ :=
@@ -468,18 +468,18 @@ by rw [hnot_le_iff_codisjoint_right, hnot_le_iff_codisjoint_left]
 alias hnot_le_iff_codisjoint_right ↔ _ codisjoint.hnot_le_right
 alias hnot_le_iff_codisjoint_left ↔ _ codisjoint.hnot_le_left
 
-lemma codisjoint_hnot_right (a : α) : codisjoint a (￢a) := sdiff_le_iff.1 (top_sdiff' _).le
-lemma codisjoint_hnot_left (a : α) : codisjoint (￢a) a := (codisjoint_hnot_right _).symm
+lemma codisjoint_hnot_right : codisjoint a (￢a) := sdiff_le_iff.1 (top_sdiff' _).le
+lemma codisjoint_hnot_left : codisjoint (￢a) a := codisjoint_hnot_right.symm
 
-@[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := (codisjoint_hnot_right _).eq_top
-@[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := (codisjoint_hnot_left _).eq_top
+@[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := codisjoint_hnot_right.eq_top
+@[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := codisjoint_hnot_left.eq_top
 
 @[simp] lemma hnot_bot : ￢ (⊥ : α) = ⊤ :=
 eq_of_forall_ge_iff $ λ a, by rw [hnot_le_iff_codisjoint_left, codisjoint_bot, top_le_iff]
 
 @[simp] lemma hnot_top : ￢ (⊤ : α) = ⊥ := by rw [←top_sdiff', sdiff_self]
 
-lemma hnot_hnot_le : ￢￢a ≤ a := (codisjoint_hnot_right _).hnot_le_left
+lemma hnot_hnot_le : ￢￢a ≤ a := codisjoint_hnot_right.hnot_le_left
 
 lemma hnot_anti : antitone (hnot : α → α) := λ a b h, hnot_le_comm.1 $ hnot_hnot_le.trans h
 
@@ -499,7 +499,7 @@ begin
   refine ((hnot_inf_distrib _ _).ge.trans $ hnot_anti le_hnot_inf_hnot).antisymm' _,
   rw [hnot_le_iff_codisjoint_left, codisjoint_assoc, codisjoint_hnot_hnot_left_iff,
     codisjoint_left_comm, codisjoint_hnot_hnot_left_iff, ←codisjoint_assoc, sup_comm],
-  exact codisjoint_hnot_right _,
+  exact codisjoint_hnot_right,
 end
 
 lemma hnot_hnot_sdiff_distrib (a b : α) : ￢￢(a \ b) = ￢￢a \ ￢￢b :=
@@ -539,7 +539,8 @@ end coheyting_algebra
 section biheyting_algebra
 variables [biheyting_algebra α] {a : α}
 
-lemma compl_le_hnot : aᶜ ≤ ￢a := (disjoint_compl_left a).le_of_codisjoint $ codisjoint_hnot_right _
+lemma compl_le_hnot : aᶜ ≤ ￢a :=
+(disjoint_compl_left : disjoint _ a).le_of_codisjoint codisjoint_hnot_right
 
 end biheyting_algebra
 

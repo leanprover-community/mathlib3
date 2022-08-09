@@ -64,7 +64,7 @@ end
 
 /-- Every pseudo-metrizable space is first countable. -/
 instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space X] :
-  topological_space.first_countable_topology E :=
+  topological_space.first_countable_topology X :=
 by unfreezingI { rcases h with ⟨_, hm⟩, rw ←hm, apply_instance }
 
 instance pseudo_metrizable_space.subtype [pseudo_metrizable_space X]

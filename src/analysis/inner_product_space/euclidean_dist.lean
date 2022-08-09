@@ -20,7 +20,7 @@ distance. This way we hide the usage of `to_euclidean` behind an API.
 open_locale topological_space
 open set
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 
 noncomputable theory
 
@@ -106,7 +106,7 @@ nhds_basis_ball.mem_of_mem hr
 
 end euclidean
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F] {f g : F → E} {n : ℕ∞}
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] {f g : F → E} {n : ℕ∞}
 
 lemma cont_diff.euclidean_dist (hf : cont_diff ℝ n f) (hg : cont_diff ℝ n g)
   (h : ∀ x, f x ≠ g x) :

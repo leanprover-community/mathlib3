@@ -292,7 +292,7 @@ lemma R_pos {c : E} (f : cont_diff_bump_of_inner c) : 0 < f.R := f.r_pos.trans f
 
 instance (c : E) : inhabited (cont_diff_bump_of_inner c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
 
-variables [inner_product_space ℝ E] [normed_group X] [normed_space ℝ X]
+variables [inner_product_space ℝ E] [normed_add_comm_group X] [normed_space ℝ X]
 variables {c : E} (f : cont_diff_bump_of_inner c) {x : E} {n : ℕ∞}
 
 /-- The function defined by `f : cont_diff_bump_of_inner c`. Use automatic coercion to
@@ -467,12 +467,13 @@ a bundled smooth function such that
 
 The structure `cont_diff_bump` contains the data required to construct the function: real
 numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through `coe_fn`.-/
-structure cont_diff_bump [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] (c : E)
+structure cont_diff_bump [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  (c : E)
   extends cont_diff_bump_of_inner (to_euclidean c)
 
 namespace cont_diff_bump
 
-variables [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] {c x : E}
+variables [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] {c x : E}
   (f : cont_diff_bump c)
 
 /-- The function defined by `f : cont_diff_bump c`. Use automatic coercion to function
@@ -560,7 +561,7 @@ neighborhood `s` there exists an infinitely smooth function with the following p
 
 This lemma is a simple wrapper around lemmas about bundled smooth bump functions, see
 `cont_diff_bump`. -/
-lemma exists_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_space ℝ E]
+lemma exists_cont_diff_bump_function_of_mem_nhds [normed_add_comm_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :
   ∃ f : E → ℝ, f =ᶠ[𝓝 x] 1 ∧ (∀ y, f y ∈ Icc (0 : ℝ) 1) ∧ cont_diff ℝ ⊤ f ∧
     has_compact_support f ∧ tsupport f ⊆ s :=

@@ -131,8 +131,8 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ} {x : E}
-  {s : set E} {n : ℕ∞}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+  {x : E} {s : set E} {n : ℕ∞}
 
 lemma has_strict_fderiv_at.arctan (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) • f') x :=

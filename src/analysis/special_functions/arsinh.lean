@@ -167,7 +167,7 @@ end continuous
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {s : set E} {a : E}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {s : set E} {a : E}
   {f' : E →L[ℝ] ℝ} {n : ℕ∞}
 
 lemma has_strict_fderiv_at.arsinh (hf : has_strict_fderiv_at f f' a) :

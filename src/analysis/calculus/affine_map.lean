@@ -19,9 +19,9 @@ This file contains results about smoothness of affine maps.
 
 namespace continuous_affine_map
 
-variables {𝕜 V W : Type*} [nondiscrete_normed_field 𝕜]
-variables [normed_group V] [normed_space 𝕜 V]
-variables [normed_group W] [normed_space 𝕜 W]
+variables {𝕜 V W : Type*} [nontrivially_normed_field 𝕜]
+variables [normed_add_comm_group V] [normed_space 𝕜 V]
+variables [normed_add_comm_group W] [normed_space 𝕜 W]
 
 /-- A continuous affine map between normed vector spaces is smooth. -/
 lemma cont_diff {n : ℕ∞} (f : V →A[𝕜] W) :

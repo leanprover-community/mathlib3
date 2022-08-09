@@ -68,7 +68,7 @@ section fderiv
 
 open complex
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {f g : E → ℂ} {f' g' : E →L[ℂ] ℂ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f g : E → ℂ} {f' g' : E →L[ℂ] ℂ}
   {x : E} {s : set E} {c : ℂ}
 
 lemma has_strict_fderiv_at.cpow (hf : has_strict_fderiv_at f f' x)
@@ -339,7 +339,7 @@ open real
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
   {x : E} {s : set E} {c p : ℝ} {n : ℕ∞}
 
 lemma has_fderiv_within_at.rpow (hf : has_fderiv_within_at f f' s x)

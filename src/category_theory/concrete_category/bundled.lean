@@ -22,7 +22,7 @@ variables {c d : Type u → Type v} {α : Type u}
 
 /-- `bundled` is a type bundled with a type class instance for that type. Only
 the type class is exposed as a parameter. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
 (α : Type u)
 (str : c α . tactic.apply_instance)

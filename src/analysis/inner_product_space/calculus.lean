@@ -52,7 +52,7 @@ cont_diff_inner.cont_diff_at
 lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
 is_bounded_bilinear_map_inner.differentiable_at
 
-variables {G : Type*} [normed_group G] [normed_space ℝ G]
+variables {G : Type*} [normed_add_comm_group G] [normed_space ℝ G]
   {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : ℕ∞}
 
 include 𝕜
@@ -257,7 +257,7 @@ section pi_like
 
 open continuous_linear_map
 
-variables {𝕜 ι H : Type*} [is_R_or_C 𝕜] [normed_group H] [normed_space 𝕜 H]
+variables {𝕜 ι H : Type*} [is_R_or_C 𝕜] [normed_add_comm_group H] [normed_space 𝕜 H]
   [fintype ι] {f : H → euclidean_space 𝕜 ι} {f' : H →L[𝕜] euclidean_space 𝕜 ι} {t : set H} {y : H}
 
 lemma differentiable_within_at_euclidean :

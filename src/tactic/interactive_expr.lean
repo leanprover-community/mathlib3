@@ -375,6 +375,9 @@ meta def group_local_collection : list local_collection → list local_collectio
 meta def tactic_view_goal {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) :
   tc filter_type γ :=
 tc.stateless $ λ ft, do
+  is ← tactic.frozen_local_instances,
+  let frozen : bool := (is ≠ option.none),
+  let is' : list expr := option.cases_on is [] id,
   g@(expr.mvar u_n pp_n y) ← main_goal,
   t ← get_tag g,
   let case_tag : list (html γ) :=
@@ -390,8 +393,16 @@ tc.stateless $ λ ft, do
   let lcs := group_local_collection lcs,
   lchs ← lcs.mmap (λ lc, do
     lh ← local_c lc,
-    let ns : list (html γ) := lc.locals.map $ λ n,
-      h "span" [cn "goal-hyp b pr2", key n.local_uniq_name] [html.of_name n.local_pp_name],
+    ns ← lc.locals.mmap (λ n, do -- extract into function?
+      cls ← is_class lc.type,
+      let var_color : attr γ := if ¬ cls
+        then attr.style [("color", "#cc7a00")]  -- "goal-hyp"
+        else if frozen
+          then if n ∈ is'
+            then attr.style [("color", "#2aa198")]  -- "goal-hyp-inst"
+            else attr.style [("font-style", "italic")] -- "goal-hyp-noninst"
+        else attr.style [("color", "#dc322f")], -- "goal-hyp-unfrozen"
+        pure $ h "span" [cn "goal-hyp b pr2", var_color] [html.of_name $ expr.local_pp_name n]),
     pure $ h "li" [key lc.key] (ns ++ [": ", h "span" [cn "goal-hyp-type", key "type"] [lh]])),
   t_comp ← target_c g,
   pure $ h "ul" [key g.hash, className "list pl0 font-code"] $ case_tag ++ lchs ++ [

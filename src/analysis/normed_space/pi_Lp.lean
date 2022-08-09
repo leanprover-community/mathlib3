@@ -606,7 +606,7 @@ def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
     { simp_rw [norm_eq_csupr, linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _],
-      exact e.symm.csupr (fintype.bdd_above_range _) (λ i, rfl), },
+      exact e.symm.supr_congr (λ i, rfl) },
     { simp only [norm_eq_sum (zero_lt_one.trans_le h)],
       simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
       congr,

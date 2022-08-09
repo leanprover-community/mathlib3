@@ -115,90 +115,32 @@ begin
     simpa only [add_left_inj, inv_inj, subtype.mk_eq_mk, nat.cast_inj] using hmn,
 end
 
-theorem inf_set_cannot_be_subset_of_fin_set {a : Type} (S : set a) (T : set a) (hS : infinite S)
-  (hT : set.finite T) : ¬ (S ⊆ T) :=
+theorem f_zero_on_interval_f_zero' (f : polynomial ℝ) (s : set ℝ) (hs : s.infinite)
+  (f_zero: ∀ x ∈ s, f.eval x = 0) : f = 0 :=
 begin
-    intro absurd,
-    generalize hf : set.inclusion absurd = f,
-    have absurd2 := @not_injective_infinite_fintype ↥S _ _ (set.finite.fintype hT) f,
-    rw <-hf at absurd2,
-    have contra := set.inclusion_injective absurd, simpa,
+  by_contra absurd,
+  obtain ⟨roots, hroots⟩ := polynomial.exists_multiset_roots absurd,
+  refine set.infinite.mono (λ a ha, _) hs (finset.finite_to_set roots.to_finset),
+  simp only [multiset.mem_to_finset, finset.mem_coe],
+  rw [←multiset.count_ne_zero, hroots.2 a, ←pos_iff_ne_zero,
+    polynomial.root_multiplicity_pos absurd, polynomial.is_root.def],
+  exact f_zero a ha,
 end
 
 theorem f_zero_on_interval_f_zero {a : ℝ} (f : polynomial ℝ)
   (f_zero: ∀ x : ℝ, x ∈ (set.Icc (a-1) (a+1)) -> f.eval x = 0) : f = 0 :=
 begin
-    by_contra absurd,
-    choose roots hroots using polynomial.exists_multiset_roots absurd,
-    have absurd2 : (set.Icc (a-1) (a+1)) ⊆ ↑roots.to_finset,
-    {
-        intros a ha,
-        simp only [multiset.mem_to_finset, finset.mem_coe],
-        rw [←multiset.count_ne_zero, hroots.2 a, ←pos_iff_ne_zero,
-          polynomial.root_multiplicity_pos absurd, polynomial.is_root.def],
-        exact f_zero a ha },
-    have inf : infinite (set.Icc (a-1) (a+1)),
-    {
-        exact infinite.of_injective (function_ℕ_Icc a) (function_ℕ_Icc_inj a),
-    },
+  apply f_zero_on_interval_f_zero' f _ _ f_zero,
 
-    have inf2 := @infinite.of_injective _ _ inf (set.inclusion absurd2) (set.inclusion_injective absurd2),
-    have absurd3 := inf_set_cannot_be_subset_of_fin_set (set.Icc (a-1) (a+1)) _ inf _,
-    exact absurd (false.rec (f = 0) (absurd3 absurd2)),
-    apply finset.finite_to_set,
+  rw ←set.infinite_coe_iff,
+
+  exact infinite.of_injective (function_ℕ_Icc a) (function_ℕ_Icc_inj a),
 end
 
 theorem zero_deriv_imp_const_poly_ℝ (f : polynomial ℝ) (h : f.derivative = 0) : f.nat_degree = 0 :=
-begin
-    by_cases hf : (f = 0), exact (congr_arg polynomial.nat_degree hf).trans rfl,
-
-    rw polynomial.nat_degree_eq_zero_iff_degree_le_zero,
-    by_contradiction absurd, simp only [not_le] at absurd,
-    generalize hm : f.nat_degree - 1 = m,
-    have f_nat_degree_pos : f.nat_degree > 0,
-    {
-        have H := polynomial.degree_eq_nat_degree hf,
-        have ineq := @polynomial.degree_le_nat_degree _ _ f,
-        have ineq2 := lt_of_lt_of_le absurd ineq, exact with_bot.coe_lt_coe.mp ineq2,
-    },
-
-    rw polynomial.ext_iff at h,
-    rename_var n m at h, simp only [polynomial.coeff_zero] at h,
-    replace h := h m,
-    have H2 := polynomial.coeff_derivative f m, rw h at H2,
-    simp only [zero_eq_mul] at H2, cases H2,
-    {
-        have hm : m + 1 = f.nat_degree,
-        { rw [<-hm],
-          exact nat.sub_add_cancel f_nat_degree_pos },
-        have H := (polynomial.coeff_derivative f m), rw h at H, simp only [zero_eq_mul] at H,
-        cases H,
-        { rw hm at H,
-          have H2 := @polynomial.leading_coeff_eq_zero _ _ f,
-          rw [polynomial.leading_coeff] at H2,
-          exact hf (H2.1 H) },
-        exact (nat.cast_add_one_pos m).ne' H
-    },
-    {
-        exact (nat.cast_add_one_pos m).ne' H2,
-    },
-end
+polynomial.nat_degree_eq_zero_of_derivative_eq_zero h
 
 theorem derivative_emb (f : polynomial ℤ) : (polynomial.map ℤembℝ f.derivative) = (polynomial.map ℤembℝ f).derivative :=
-begin
-    ext, rw polynomial.coeff_derivative, rw polynomial.coeff_map, rw polynomial.coeff_derivative, rw polynomial.coeff_map,
-    simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_mul, int.cast_one],
-end
-
--- power manipulation
-lemma triv (r : ℝ) (n : ℕ) : r ^ n = r ^ (n : ℤ) := by norm_num
-
-/--
-a number x is irrational if there is for every integers a and b
-then x - a / b ≠ 0
--/
-def irrational' (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
+(polynomial.derivative_map _ _).symm
 
 end small_lemmas
-
--- #lint

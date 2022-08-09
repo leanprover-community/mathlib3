@@ -24,47 +24,19 @@ def deriv_n (f : ℤ[X]) (n : ℕ) : ℤ[X] := polynomial.derivative ^[n] f
 the zeroth derivative of polynomial $f$ is $f$ itself.
 -/
 lemma zeroth_deriv (f : ℤ[X]) : deriv_n f 0 = f :=
-begin
-    -- This is purely definition of `deriv_n f n`
-    -- We also used $f^{[n]}=\mathrm{id}$ and $\mathrm{id} x = x$.
-    rw deriv_n, simp only [id.def, function.iterate_zero],
-end
+function.iterate_zero_apply _ _
 
 /-Lemma
 the derivative of $f^{(n)}$ is $f^{(n+1)}$
 -/
 lemma deriv_succ (f : ℤ[X]) (n : ℕ) : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
-begin
-    -- By definition and $h^{[n+1]}=h\circ h^{[n]}$
-    rw [deriv_n, deriv_n, function.iterate_succ'],
-end
+(function.iterate_succ_apply' _ _ _).symm
 
 /-Lemma
 the $n$-th derivative of zero polynomial is $0$
 -/
 lemma deriv_zero_p (n : ℕ) : deriv_n 0 n = 0 :=
 polynomial.iterate_derivative_zero
-
-/-Lemma
-If the $n$-th coefficient of $f$ is $a_n$, then the $n$-th coefficient in $f^{(k)}$ is $\left(\prod_{i=0}^{k-1} (n+k-i)\right)a_{n+k}$
--/
-lemma deriv_n_coeff (f : ℤ[X]) (k : ℕ) : ∀ n : ℕ, (deriv_n f k).coeff n = (∏ i in finset.range k, (n+k-i)) * (f.coeff (n+k)) :=
-begin
-    -- So we use induction on $k$
-    induction k with k ih,
-    -- For the zeroth derivative, $f^{(0)}=f$. This case is true by `simp`.
-    {   intros,
-        simp only [add_zero, nat.nat_zero_eq_zero, one_mul, finset.range_zero, finset.prod_empty,
-            zeroth_deriv] },
-
-    -- Let us assume our claim is true for $k$ and consider the $m$-th coefficient.
-    intro m,
-    -- We know that $f^{(k+1)}=\left(f^{(k)}\right)'$ and for any polynomial $g$, the $m$-th coefficient of $g'$ is $(m+1)\times (m+1)$-th coefficient of $g$. Then we can use induction hypothesis with $m+1$.
-    rw [deriv_n, function.iterate_succ', function.comp_app, int.coe_nat_succ, <-deriv_n],
-    rw polynomial.coeff_derivative, rw ih (m+1),
-    rw finset.prod_range_succ, simp only [int.coe_nat_succ],
-    ring_nf,
-end
 
 /-Lemma
 Like first derivative, higher derivatives still respect addition
@@ -200,9 +172,7 @@ integrations on a set $S$ of two identical functions are indentical
 -/
 theorem same_integral {S : set ℝ} (f g : ℝ -> ℝ) : f = g -> (∫ x in S, f x) = ∫ x in S, g x :=
 begin
-  intro h,
-  simp only [],
-  exact congr_arg (measure_theory.integral (measure_theory.measure_space.volume.restrict S)) h,
+  rintro rfl, refl,
 end
 
 /-Theorem
@@ -327,12 +297,7 @@ begin
     rw II,
     -- We have $$\int_0^t \exp(t-x)f(x)\mathrm{d}x=\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$
     have eq : (∫ x in 0..t, (t - x).exp * f_eval_on_ℝ f x) = (∫ x in 0..t, f_eval_on_ℝ f x * (deriv (λ x, - (real.exp (t-x))) x)),
-    {
-        -- apply congr_arg,
-        rw interval_integral.integral_of_le ht,
-        rw interval_integral.integral_of_le ht,
-        apply same_integral, ext, simp only [deriv_exp_t_x'], ring,
-    },
+    { simp only [deriv_exp_t_x', mul_comm] },
     rw eq,
     -- Apply integration by part to $$\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$.
     replace eq := integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t ht,
@@ -347,7 +312,7 @@ begin
     {
         rw interval_integral.integral_of_le ht,
         rw interval_integral.integral_of_le ht,
-        apply same_integral, ext, rw f_eval_on_ℝ,
+        apply congr_arg, ext, rw f_eval_on_ℝ,
         rw derivative_emb, rw <-polynomial.deriv,
         have triv : deriv (λ (x : ℝ), polynomial.eval x (polynomial.map ℤembℝ f)) x = deriv (f_eval_on_ℝ f) x,
         {

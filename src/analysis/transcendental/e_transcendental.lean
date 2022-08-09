@@ -566,7 +566,10 @@ begin
   have J_eq := J_eq_final g e_root_g p hp,
   choose c eq1 using J_eq, rw eq1,
   have H := coe_abs_ineq ((p-1).factorial:ℤ) (-(g.coeff 0 * (↑((p - 1).factorial) * (-1) ^ (g.nat_degree * p) * ↑(g.nat_degree.factorial) ^ p)) + ↑(p.factorial) * c) _,
-  { conv_lhs at H {simp only [int.cast_coe_nat, int.cast_pow, int.cast_add, ring_hom.eq_int_cast, int.cast_mul, int.cast_one, ne.def, triv, not_false_iff, neg_eq_zero, one_ne_zero, int.cast_neg, int.coe_nat_mul],},
+  { conv_lhs at H {
+      simp only [int.cast_coe_nat, int.cast_pow, int.cast_add, ring_hom.eq_int_cast, int.cast_mul,
+        int.cast_one, ne.def, ←zpow_coe_nat, not_false_iff, neg_eq_zero, one_ne_zero, int.cast_neg,
+        int.coe_nat_mul],},
     exact H },
 
   norm_cast,

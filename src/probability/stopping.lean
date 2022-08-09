@@ -3,7 +3,7 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.function.condexp.real
+import measure_theory.function.conditional_expectation.real
 import topology.instances.discrete
 
 /-!

@@ -392,7 +392,7 @@ tc.stateless $ λ ft, do
   lchs ← lcs.mmap (λ lc, do
     lh ← local_c lc,
     cls ← is_class lc.type,
-    ns ← lc.locals.mmap (λ n, do -- extract into function?
+    let ns := lc.locals.map (λ n,
       let var_color : attr γ := if ¬ cls
         then attr.style [("color", "#cc7a00")]  -- "goal-hyp"
         else match is with
@@ -400,8 +400,7 @@ tc.stateless $ λ ft, do
                         then attr.style [("color", "#2aa198")]  -- "goal-hyp-inst"
                         else attr.style [("font-style", "italic")] -- "goal-hyp-noninst"
         | none := attr.style [("color", "#dc322f")] -- "goal-hyp-unfrozen"
-        end,
-        pure $ h "span" [cn "goal-hyp b pr2", var_color] [html.of_name $ expr.local_pp_name n]),
+        end in h "span" [cn "goal-hyp b pr2", var_color] [html.of_name $ expr.local_pp_name n]),
     pure $ h "li" [key lc.key] (ns ++ [": ", h "span" [cn "goal-hyp-type", key "type"] [lh]])),
   t_comp ← target_c g,
   pure $ h "ul" [key g.hash, className "list pl0 font-code"] $ case_tag ++ lchs ++ [

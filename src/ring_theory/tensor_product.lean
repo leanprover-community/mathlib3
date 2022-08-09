@@ -854,7 +854,8 @@ variables [semiring A] [semiring B] [module A M] [module B M]
 variables [algebra R A] [algebra R B]
 variables [is_scalar_tower R A M] [is_scalar_tower R B M]
 
-/-- An auxiliary definition, used for constructing the `module (A ⊗[R] B) M` in `tensor_product.algebra.module` below. -/
+/-- An auxiliary definition, used for constructing the `module (A ⊗[R] B) M` in
+`tensor_product.algebra.module` below. -/
 def module_aux : A ⊗[R] B →ₗ[R] M →ₗ[R] M :=
 tensor_product.lift
 { to_fun := λ a, a • (algebra.lsmul R M : B →ₐ[R] module.End R M).to_linear_map,
@@ -871,7 +872,8 @@ variables [smul_comm_class A B M]
 then it is a representation the `R`-algebra `A ⊗[R] B`.
 
 An important example arises from a semiring `S`; allowing `S` to act on itself via left and right
-multiplication, the roles of `R`, `A`, `B`, `M` are played by `ℕ`, `S`, `Sᵐᵒᵖ`, `S`.
+multiplication, the roles of `R`, `A`, `B`, `M` are played by `ℕ`, `S`, `Sᵐᵒᵖ`, `S`. This example
+is important because a submodule of `S` as a `module` over `S ⊗[ℕ] Sᵐᵒᵖ` is a two-sided ideal.
 
 NB: This is not an instance because in the case `B = A` and `M = A ⊗[R] A` we would have a diamond
 of `smul` actions. Furthermore, this would not be a mere definitional diamond but a true

@@ -824,20 +824,18 @@ instance inhabited {n : ℕ} {f : K[X]} :
     exact hk ((adjoin_root.of f.factor).comp g)
   end }
 
-protected def algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K] [algebra R K]
-  {f : K[X]} : algebra R (splitting_field_aux n f) :=
+instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K]
+  [algebra R K] {f : K[X]} : algebra R (splitting_field_aux n f) :=
 { to_fun := splitting_field_aux.lift n (algebra_map R K),
   smul := @has_smul.smul R (splitting_field_aux n f) _,
   smul_def' :=
   begin
     unfreezingI { induction n with k hk generalizing K },
     { exact algebra.smul_def },
-    sorry,
+    exact hk
   end,
   commutes' := λ a b, mul_comm _ _,
   .. (splitting_field_aux.lift_hom n (algebra_map R K)) }
-
-local attribute [-instance] nat_algebra_subsingleton
 
 /-- Because `splitting_field_aux` is defined by recursion, we have to make sure all instances
 on `splitting_field_aux` are defined by recursion within the fields. Otherwise, there will be

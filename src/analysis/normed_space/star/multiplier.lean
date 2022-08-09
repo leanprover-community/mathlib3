@@ -203,6 +203,15 @@ instance : ring 𝓜(𝕜, A) :=
     by simp only [←nat.smul_one_eq_coe, smul_apply n 1, one_apply, mul_smul_comm, smul_mul_assoc]⟩,
   int_cast := λ n, ⟨n, n, λ x y,
     by simp only [←int.smul_one_eq_coe, smul_apply n 1, one_apply, mul_smul_comm, smul_mul_assoc]⟩,
+  npow := λ n a, ⟨a.left ^ n, a.right ^ n, λ x y,
+  begin
+    induction n with k hk generalizing x y,
+    refl,
+    rw [pow_succ, mul_apply, a.central, hk, pow_succ', mul_apply],
+  end⟩,
+  npow_succ' := λ n a, nat.rec_on n (ext _ _ rfl rfl) (λ k hk, ext _ _
+    (by { change _ = a.left * _, simp only [congr_arg left hk, pow_succ] })
+    (by { change _ = _ * a.right, simp only [congr_arg right hk, pow_succ'] })),
   .. double_centralizer.add_comm_group }
 
 @[simp] lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl
@@ -213,6 +222,8 @@ instance : ring 𝓜(𝕜, A) :=
 @[simp] lemma nat_cast_right (n : ℕ) : (n : 𝓜(𝕜 , A)).right = n := rfl
 @[simp] lemma int_cast_left (n : ℤ) : (n : 𝓜(𝕜 , A)).left = n := rfl
 @[simp] lemma int_cast_right (n : ℤ) : (n : 𝓜(𝕜 , A)).right = n := rfl
+@[simp] lemma pow_left (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).left = a.left ^ n := rfl
+@[simp] lemma pow_right (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).right = a.right ^ n := rfl
 
 /-!
 ### Coercion from an algebra into its multiplier algebra

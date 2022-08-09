@@ -1578,7 +1578,7 @@ end
 
 /-! ### Constants -/
 
-lemma iterated_fderiv_within_zero_fun {n : ℕ} :
+@[simp] lemma iterated_fderiv_zero_fun {n : ℕ} :
   iterated_fderiv 𝕜 n (λ x : E, (0 : F)) = 0 :=
 begin
   induction n with n IH,
@@ -1594,7 +1594,7 @@ lemma cont_diff_zero_fun :
   cont_diff 𝕜 n (λ x : E, (0 : F)) :=
 begin
   apply cont_diff_of_differentiable_iterated_fderiv (λm hm, _),
-  rw iterated_fderiv_within_zero_fun,
+  rw iterated_fderiv_zero_fun,
   apply differentiable_const (0 : (E [×m]→L[𝕜] F))
 end
 

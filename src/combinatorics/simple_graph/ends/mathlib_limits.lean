@@ -491,6 +491,14 @@ begin
     reflexivity, },
 end
 
+lemma fis.above_point.val  {J : Type u} [preorder J] [is_directed J has_le.le]
+  (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) :
+  ∀ (s : (fis.above_point F j x).sections), (s.val $ opposite.op ⟨j.unop,le_refl j.unop⟩).val = x :=
+begin
+  -- I'm getting stupider…
+  sorry,
+end
+
   -- We can (probably) weaken the condition to that of `x` being in all ranges.
 instance fis.above_point.nonempty {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v)
@@ -532,28 +540,72 @@ def fis.sections_at_point {J : Type u} [preorder J] [is_directed J has_le.le]
   (F : Jᵒᵖ ⥤ Type v) (j : Jᵒᵖ) (x : F.obj j) :
   {s : F.sections | s.val j = x} ≃ (fis.above_point F j x).sections :=
 begin
-  split, rotate 2,
+
+  let fwd : {s : F.sections | s.val j = x} → (fis.above_point F j x).sections, by
   { rintro ⟨⟨s,sec⟩,sjx⟩,
-    simp at sjx, rcases sjx with rfl,
+    simp only [set.mem_set_of_eq] at sjx,
+    rcases sjx with rfl,
     split, rotate,
-    { rintro ii, dsimp [fis.above_point], refine ⟨s (opposite.op ii.unop.val),_⟩, unfold set.preimage, dsimp,
+    { rintro ii, dsimp only [fis.above_point],
+      refine ⟨s (opposite.op ii.unop.val),_⟩,
+      unfold set.preimage,
       unfold category_theory.functor.sections at sec,
-      let lol1 := (ii.unop.prop : j.unop ≤ ii.unop.val), simp at lol1, rw ←subtype.val_eq_coe at lol1,
+      let lol1 := (ii.unop.prop : j.unop ≤ ii.unop.val), simp only [set.mem_set_of_eq] at lol1, rw ←subtype.val_eq_coe at lol1,
       let lol2 := (opposite.unop_op ii.unop.val),
       rw ←lol2 at lol1,
       exact sec (op_hom_of_le $ lol1),
      },
-    { rintro ii kk ik, simp, dsimp [fis.above_point], rw ←subtype.coe_inj, simp, apply sec,},},
-  {
-    rintro ⟨e, hes⟩,
+    { rintro ii kk ik, simp only [id.def], dsimp only [fis.above_point], rw ←subtype.coe_inj, simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk], apply sec,},},
+
+
+  let bwd_aux :  Π (s : (fis.above_point F j x).sections) (i : Jᵒᵖ),
+                 {y : F.obj i | ∃ (k : Jᵒᵖ) (ik : i.unop ≤ k.unop) (jk : j.unop ≤ k.unop),
+                                y =  F.map (op_hom_of_le ik) (s.val $ opposite.op ⟨k.unop,jk⟩).val}, by
+  { rintro ⟨s,sec⟩ i,
+    let m' := (directed_of (≤) i.unop j.unop).some,
+    obtain ⟨mi',mj'⟩ := (directed_of (≤) i.unop j.unop).some_spec,
+    let m := opposite.op m',
+    have mi : opposite.unop i ≤ opposite.unop m, by {simp only [opposite.unop_op],exact mi'},
+    have mj : opposite.unop j ≤ opposite.unop m, by {simp only [opposite.unop_op],exact mj'},
+    use F.map (op_hom_of_le mi) (s $ opposite.op ⟨m.unop,mj⟩).val,
+    exact ⟨m,mi,mj,rfl⟩,},
+
+  let bwd : (fis.above_point F j x).sections → {s : F.sections | s.val j = x}, by
+  { rintro ss,
+    dsimp only [functor.sections],
     split, rotate,
-    { dsimp [fis.above_point, category_theory.functor.sections] at *,
-      apply subtype.mk, rotate,
-      intro j',
-      sorry, sorry
-         },
-    sorry
-   },
+    { split, rotate,
+      { exact (λ i, (bwd_aux ss i).val) },
+      { rintro i k ik',
+        obtain ⟨m,mi,mj,meq⟩ := (bwd_aux ss i).prop,
+        obtain ⟨n,nk,nj,neq⟩ := (bwd_aux ss k).prop,
+        let l' := (directed_of (≤) m.unop n.unop).some,
+        obtain ⟨lm',ln'⟩ := (directed_of (≤) m.unop n.unop).some_spec,
+        let l := opposite.op l',
+        have lm : opposite.unop m ≤ opposite.unop l, by {simp only [opposite.unop_op],exact lm'},
+        have ln : opposite.unop n ≤ opposite.unop l, by {simp only [opposite.unop_op],exact ln'},
+        simp only [subtype.val_eq_coe],
+        rw [meq,neq],
+        obtain ⟨s,sec⟩ := ss,
+        simp only [subtype.val_eq_coe],
+        unfold functor.sections at sec, simp at sec, dsimp [fis.above_point] at sec,
+        rw ←(@sec (opposite.op ⟨l.unop, mj.trans lm⟩) (opposite.op ⟨m.unop, mj⟩) (op_hom_of_le $ lm)),
+        rw ←(@sec (opposite.op ⟨l.unop, nj.trans ln⟩) (opposite.op ⟨n.unop, nj⟩) (op_hom_of_le $ ln)),
+        dsimp [fis.above_point],
+        rw ←functor_to_types.map_comp_apply,
+        rw ←functor_to_types.map_comp_apply,
+        rw ←functor_to_types.map_comp_apply,
+        reflexivity, },},
+    { simp only [subtype.val_eq_coe, set.mem_set_of_eq, subtype.coe_mk],
+      obtain ⟨y,k,jk,jk',rfl⟩ := bwd_aux ss j,
+      simp,
+      have : (ss.val (opposite.op ⟨j.unop,le_refl j.unop⟩)).val = x, from fis.above_point.val F j x ss,
+
+       dsimp [fis.above_point,functor.sections] at ss, sorry,
+    }
+  },
+
+  refine ⟨fwd,bwd,_,_⟩,
   { sorry, },
   { sorry, },
 end

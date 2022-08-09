@@ -280,7 +280,7 @@ lemma floor_sub_nat [has_sub α] [has_ordered_sub α] [has_exists_add_of_le α] 
   ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
 begin
   obtain ha | ha := le_total a 0,
-  { rw [floor_of_nonpos ha, floor_of_nonpos (tsub_nonpos.mpr (ha.trans n.cast_nonneg)),
+  { rw [floor_of_nonpos ha, floor_of_nonpos (tsub_nonpos_of_le (ha.trans n.cast_nonneg)),
       zero_tsub] },
   cases le_total a n,
   { rw [floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],

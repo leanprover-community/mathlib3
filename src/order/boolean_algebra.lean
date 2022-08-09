@@ -660,8 +660,8 @@ instance : boolean_algebra αᵒᵈ :=
 { compl := λ a, to_dual (of_dual a)ᶜ,
   sdiff := λ a b, to_dual (of_dual b ⇨ of_dual a),
   himp := λ a b, to_dual (of_dual b \ of_dual a),
-  inf_compl_le_bot := λ a, codisjoint_hnot_right (of_dual a),
-  top_le_sup_compl := λ a, disjoint_compl_right (of_dual a),
+  inf_compl_le_bot := λ a, @codisjoint_hnot_right _ _ (of_dual a),
+  top_le_sup_compl := λ a, @disjoint_compl_right _ _ (of_dual a),
   sdiff_eq := λ _ _, himp_eq,
   himp_eq := λ _ _, sdiff_eq,
   ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }

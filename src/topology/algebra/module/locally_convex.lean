@@ -43,7 +43,7 @@ class locally_convex_space (𝕜 E : Type*) [ordered_semiring 𝕜] [add_comm_mo
 variables (𝕜 E : Type*) [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E]
 
 lemma locally_convex_space_iff :
-  locally_convex_space 𝕜 E ↔S
+  locally_convex_space 𝕜 E ↔
   ∀ x : E, (𝓝 x).has_basis (λ (s : set E), s ∈ 𝓝 x ∧ convex 𝕜 s) id :=
 ⟨@locally_convex_space.convex_basis _ _ _ _ _ _, locally_convex_space.mk⟩
 
@@ -94,13 +94,9 @@ lemma locally_convex_space_iff_exists_convex_subset_zero :
 instance locally_convex_space.to_locally_connected_space [module ℝ E] [has_continuous_smul ℝ E]
   [locally_convex_space ℝ E] :
   locally_connected_space E :=
-begin
-  rw locally_connected_space_iff_connected_subsets,
-  intros x U hUx,
-  rcases (locally_convex_space_iff_exists_convex_subset ℝ E).mp infer_instance _ _ hUx with
-    ⟨V, hVx, hV, hVU⟩,
-  exact ⟨V, hVx, hV.is_preconnected, hVU⟩
-end
+locally_connected_space_of_connected_bases _ _
+  (λ x, @locally_convex_space.convex_basis ℝ _ _ _ _ _ _ x)
+  (λ x s hs, hs.2.is_preconnected)
 
 end module
 

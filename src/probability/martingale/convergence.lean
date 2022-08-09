@@ -137,10 +137,8 @@ begin
       (upcrossings_eq_top_of_frequently_lt (rat.cast_lt.2 hab) h₁ h₂)) }
 end
 
-variables [is_finite_measure μ]
-
 /-- An L¹-bounded submartingale has bounded upcrossings almost everywhere. -/
-lemma submartingale.upcrossings_ae_lt_top'
+lemma submartingale.upcrossings_ae_lt_top' [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) (hab : a < b) :
   ∀ᵐ ω ∂μ, upcrossings a b f ω < ∞ :=
 begin
@@ -173,7 +171,7 @@ begin
   { simp only [ne.def, ennreal.of_real_ne_top, not_false_iff, true_or] }
 end
 
-lemma submartingale.upcrossings_ae_lt_top
+lemma submartingale.upcrossings_ae_lt_top [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ ω ∂μ, ∀ a b : ℚ, a < b → upcrossings a b f ω < ∞ :=
 begin
@@ -183,7 +181,7 @@ begin
 end
 
 /-- An L¹-bounded submartingale converges almost everywhere. -/
-lemma submartingale.exists_ae_tendsto_of_bdd
+lemma submartingale.exists_ae_tendsto_of_bdd [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ ω ∂μ, ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
 begin
@@ -192,7 +190,7 @@ begin
   exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end
 
-lemma submartingale.exists_ae_trim_tendsto_of_bdd
+lemma submartingale.exists_ae_trim_tendsto_of_bdd [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ ω ∂(μ.trim (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _) : (⨆ n, ℱ n) ≤ m0)),
     ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
@@ -208,6 +206,7 @@ section limit
 open_locale classical
 
 variables [preorder ι] {E : Type*} [has_zero E] [topological_space E]
+  {𝒢 : filtration ι m0} {g : ι → Ω → E}
 
 /-- Given a process `f` and a filtration `ℱ`, if `f` converges to some `g` almost everywhere and
 `g` is `⨆ n, ℱ n`-measurable, then `limit_process f ℱ` chooses said `g`, else it returns 0.
@@ -220,19 +219,19 @@ def limit_process (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure �
 if h : ∃ g : Ω → E, strongly_measurable[⨆ n, ℱ n] g ∧
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)) then classical.some h else 0
 
-lemma limit_process_measurable {f : ι → Ω → E} {ℱ : filtration ι m0} {μ : measure Ω} :
-  strongly_measurable[⨆ n, ℱ n] (limit_process f ℱ μ) :=
+lemma limit_process_measurable :
+  strongly_measurable[⨆ n, 𝒢 n] (limit_process g 𝒢 μ) :=
 begin
   rw limit_process,
   split_ifs with h h,
   exacts [(classical.some_spec h).1, strongly_measurable_zero]
 end
 
-lemma limit_process_measurable' {f : ι → Ω → E} {ℱ : filtration ι m0} {μ : measure Ω} :
-  strongly_measurable[m0] (limit_process f ℱ μ) :=
-limit_process_measurable.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _))
+lemma limit_process_measurable' :
+  strongly_measurable[m0] (limit_process g 𝒢 μ) :=
+limit_process_measurable.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ 𝒢.le _))
 
-lemma mem_ℒ1_limit_process_of_snorm_bdd
+lemma mem_ℒ1_limit_process_of_snorm_bdd {F : Type*} [normed_add_comm_group F] {f : ℕ → Ω → F}
   (hfm : ∀ n, ae_strongly_measurable (f n) μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   mem_ℒp (limit_process f ℱ μ) 1 μ :=
 begin
@@ -251,7 +250,7 @@ end limit
 
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
 almost everywhere to a `⨆ n, ℱ n`-measurable function. -/
-lemma submartingale.ae_tendsto_limit_process
+lemma submartingale.ae_tendsto_limit_process [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (limit_process f ℱ μ ω)) :=
 begin

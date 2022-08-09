@@ -5,6 +5,7 @@ Authors: Michael Stoll
 -/
 import number_theory.legendre_symbol.zmod_char
 import field_theory.finite.basic
+import number_theory.legendre_symbol.gauss_sum
 
 /-!
 # Quadratic characters of finite fields
@@ -16,8 +17,6 @@ some basic statements about it.
 
 quadratic character
 -/
-
-namespace char
 
 /-!
 ### Definition of the quadratic character
@@ -80,9 +79,7 @@ lemma quadratic_char_eq_one_of_char_two' (hF : ring_char F = 2) {a : F} (ha : a 
   quadratic_char_fun F a = 1 :=
 begin
   simp only [quadratic_char_fun, ha, if_false, ite_eq_left_iff],
-  intro h,
-  exfalso,
-  exact h (finite_field.is_square_of_char_two hF a),
+  exact λ h, false.rec _ (h (finite_field.is_square_of_char_two hF a))
 end
 
 /-- If `ring_char F` is odd, then `quadratic_char_fun F a` can be computed in
@@ -159,7 +156,7 @@ lemma quadratic_char_dichotomy {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 ∨ quadratic_char F a = -1 :=
 sq_eq_one_iff.1 $ quadratic_char_sq_one ha
 
-/-- A variant -/
+/-- The quadratic character is `1` or `-1` on nonzero arguments. -/
 lemma quadratic_char_eq_neg_one_iff_not_one {a : F} (ha : a ≠ 0) :
   quadratic_char F a = -1 ↔ ¬ quadratic_char F a = 1 :=
 begin
@@ -191,6 +188,20 @@ terms of `a ^ (fintype.card F / 2)`. -/
 lemma quadratic_char_eq_pow_of_char_ne_two (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
   quadratic_char F a = if a ^ (fintype.card F / 2) = 1 then 1 else -1 :=
 quadratic_char_eq_pow_of_char_ne_two' hF ha
+
+lemma quadratic_char_eq_pow_of_char_ne_two'' (hF : ring_char F ≠ 2) (a : F) :
+  (quadratic_char F a : F) = a ^ (fintype.card F / 2) :=
+begin
+  by_cases ha : a = 0,
+  { have : 0 < fintype.card F / 2 := nat.div_pos fintype.one_lt_card two_pos,
+    simp only [ha, zero_pow this, quadratic_char_apply, quadratic_char_zero, int.cast_zero], },
+  { rw [quadratic_char_eq_pow_of_char_ne_two hF ha],
+    by_cases ha' : a ^ (fintype.card F / 2) = 1,
+    { simp only [ha', eq_self_iff_true, if_true, int.cast_one], },
+    { have ha'' := or.resolve_left (finite_field.pow_dichotomy hF ha) ha',
+      simp only [ha'', int.cast_ite, int.cast_one, int.cast_neg, ite_eq_right_iff],
+      exact eq.symm, } }
+end
 
 variables (F)
 
@@ -261,8 +272,6 @@ is_nontrivial.sum_eq_zero (quadratic_char_is_nontrivial hF)
 
 end quadratic_char
 
-end char
-
 /-!
 ### Special values of the quadratic character
 
@@ -271,11 +280,9 @@ We express `quadratic_char F (-1)` in terms of `χ₄`.
 
 section special_values
 
-namespace char
+open zmod mul_char
 
-open zmod
-
-variables {F : Type*} [field F] [fintype F]
+variables {F : Type} [field F] [fintype F]
 
 /-- The value of the quadratic character at `-1` -/
 lemma quadratic_char_neg_one [decidable_eq F] (hF : ring_char F ≠ 2) :
@@ -290,27 +297,136 @@ begin
     exact λ hf, false.rec (1 = -1) (ring.neg_one_ne_one_of_char_ne_two hF hf), },
 end
 
-/-- The interpretation in terms of whether `-1` is a square in `F` -/
-lemma is_square_neg_one_iff : is_square (-1 : F) ↔ fintype.card F % 4 ≠ 3 :=
+/-- `-1` is a square in `F` iff `#F` is not congruent to `3` mod `4`. -/
+lemma finite_field.is_square_neg_one_iff : is_square (-1 : F) ↔ fintype.card F % 4 ≠ 3 :=
 begin
   classical, -- suggested by the linter (instead of `[decidable_eq F]`)
   by_cases hF : ring_char F = 2,
   { simp only [finite_field.is_square_of_char_two hF, ne.def, true_iff],
-    exact (λ hf, one_ne_zero ((nat.odd_of_mod_four_eq_three hf).symm.trans
-                                (finite_field.even_card_of_char_two hF)))},
-  { have h₁ : (-1 : F) ≠ 0 := neg_ne_zero.mpr one_ne_zero,
-    have h₂ := finite_field.odd_card_of_char_ne_two hF,
-    rw [← quadratic_char_one_iff_is_square h₁, quadratic_char_neg_one hF,
-        χ₄_nat_eq_if_mod_four, h₂],
-    simp only [nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def],
-    norm_num,
-    split,
-    { intros h h',
-      have t := (of_not_not h).symm.trans h',
-      norm_num at t, },
-    exact λ h h', h' ((or_iff_left h).mp (nat.odd_mod_four_iff.mp h₂)), },
+    exact (λ hf, one_ne_zero  $ (nat.odd_of_mod_four_eq_three hf).symm.trans
+                              $ finite_field.even_card_of_char_two hF) },
+  { have h₁ := finite_field.odd_card_of_char_ne_two hF,
+    rw [← quadratic_char_one_iff_is_square (neg_ne_zero.mpr (@one_ne_zero F _ _)),
+        quadratic_char_neg_one hF, χ₄_nat_eq_if_mod_four, h₁],
+    simp only [nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def, (dec_trivial : (-1 : ℤ) ≠ 1),
+               imp_false, not_not],
+    exact ⟨λ h, ne_of_eq_of_ne h (dec_trivial : 1 ≠ 3),
+           or.resolve_right (nat.odd_mod_four_iff.mp h₁)⟩, },
 end
 
-end char
+/-- The value of the quadratic character at `2` -/
+lemma quadratic_char_two [decidable_eq F] (hF : ring_char F ≠ 2) :
+  quadratic_char F 2 = χ₈ (fintype.card F) :=
+is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F) is_quadratic_χ₈ hF
+  ((quadratic_char_eq_pow_of_char_ne_two'' hF 2).trans (finite_field.two_pow_card hF))
+
+/-- `2` is a square in `F` iff `#F` is not congruent to `3` or `5` mod `8`. -/
+lemma finite_field.is_square_two_iff :
+  is_square (2 : F) ↔ fintype.card F % 8 ≠ 3 ∧ fintype.card F % 8 ≠ 5 :=
+begin
+  classical,
+  by_cases hF : ring_char F = 2,
+  focus
+  { have h := finite_field.even_card_of_char_two hF,
+    simp only [finite_field.is_square_of_char_two hF, true_iff], },
+  rotate, focus
+  { have h := finite_field.odd_card_of_char_ne_two hF,
+    rw [← quadratic_char_one_iff_is_square (ring.two_ne_zero hF), quadratic_char_two hF,
+        χ₈_nat_eq_if_mod_eight],
+    simp only [h, nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def, (dec_trivial : (-1 : ℤ) ≠ 1),
+               imp_false, not_not], },
+  all_goals
+  { rw [← nat.mod_mod_of_dvd _ (by norm_num : 2 ∣ 8)] at h,
+    have h₁ := nat.mod_lt (fintype.card F) (dec_trivial : 0 < 8),
+    revert h₁ h,
+    generalize : fintype.card F % 8 = n,
+    dec_trivial!, }
+end
+
+/-- The value of the quadratic character at `-2` -/
+lemma quadratic_char_neg_two [decidable_eq F] (hF : ring_char F ≠ 2) :
+  quadratic_char F (-2) = χ₈' (fintype.card F) :=
+begin
+  rw [(by norm_num : (-2 : F) = (-1) * 2), map_mul, χ₈'_eq_χ₄_mul_χ₈, quadratic_char_neg_one hF,
+      quadratic_char_two hF, @cast_nat_cast _ (zmod 4) _ _ _ (by norm_num : 4 ∣ 8)],
+end
+
+/-- `-2` is a square in `F` iff `#F` is not congruent to `5` or `7` mod `8`. -/
+lemma finite_field.is_square_neg_two_iff :
+  is_square (-2 : F) ↔ fintype.card F % 8 ≠ 5 ∧ fintype.card F % 8 ≠ 7 :=
+begin
+  classical,
+  by_cases hF : ring_char F = 2,
+  focus
+  { have h := finite_field.even_card_of_char_two hF,
+    simp only [finite_field.is_square_of_char_two hF, true_iff], },
+  rotate, focus
+  { have h := finite_field.odd_card_of_char_ne_two hF,
+    rw [← quadratic_char_one_iff_is_square (neg_ne_zero.mpr (ring.two_ne_zero hF)),
+        quadratic_char_neg_two hF, χ₈'_nat_eq_if_mod_eight],
+    simp only [h, nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def, (dec_trivial : (-1 : ℤ) ≠ 1),
+               imp_false, not_not], },
+  all_goals
+  { rw [← nat.mod_mod_of_dvd _ (by norm_num : 2 ∣ 8)] at h,
+    have h₁ := nat.mod_lt (fintype.card F) (dec_trivial : 0 < 8),
+    revert h₁ h,
+    generalize : fintype.card F % 8 = n,
+    dec_trivial! }
+end
+
+/-- The relation between the values of the quadratic character of one field `F` at the
+cardinality of another field `F'` and of the quadratic character of `F'` at the cardinality
+of `F`. -/
+lemma quadratic_char_card_card [decidable_eq F] (hF : ring_char F ≠ 2) {F' : Type} [field F']
+  [fintype F'] [decidable_eq F'] (hF' : ring_char F' ≠ 2) (h : ring_char F' ≠ ring_char F) :
+  quadratic_char F (fintype.card F') = quadratic_char F' (quadratic_char F (-1) * fintype.card F) :=
+begin
+  let χ := (quadratic_char F).ring_hom_comp (algebra_map ℤ F'),
+  have hχ₁ : χ.is_nontrivial,
+  { obtain ⟨a, ha⟩ := quadratic_char_exists_neg_one hF,
+    have hu : is_unit a,
+    { contrapose ha,
+      exact ne_of_eq_of_ne (map_nonunit (quadratic_char F) ha)
+             (mt zero_eq_neg.mp one_ne_zero), },
+    use hu.unit,
+    simp only [is_unit.unit_spec, ring_hom_comp_apply, ring_hom.eq_int_cast, ne.def, ha],
+    rw [int.cast_neg, int.cast_one],
+    exact ring.neg_one_ne_one_of_char_ne_two hF', },
+  have hχ₂ : χ.is_quadratic := is_quadratic.comp (quadratic_char_is_quadratic F) _,
+  have h := char.card_pow_card hχ₁ hχ₂ h hF',
+  rw [← quadratic_char_eq_pow_of_char_ne_two'' hF'] at h,
+  exact (is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F')
+             (quadratic_char_is_quadratic F) hF' h).symm,
+end
+
+/-- The value of the quadratic character at an odd prime `p` different from `ring_char F`. -/
+lemma quadratic_char_odd_prime [decidable_eq F] (hF : ring_char F ≠ 2) {p : ℕ} [fact p.prime]
+  (hp₁ : p ≠ 2) (hp₂ : ring_char F ≠ p) :
+  quadratic_char F p = quadratic_char (zmod p) (χ₄ (fintype.card F) * fintype.card F) :=
+begin
+  rw [← quadratic_char_neg_one hF],
+  have h := quadratic_char_card_card hF (ne_of_eq_of_ne (ring_char_zmod_n p) hp₁)
+              (ne_of_eq_of_ne (ring_char_zmod_n p) hp₂.symm),
+  rwa [card p] at h,
+end
+
+/-- An odd prime `p` is a square in `F` iff the quadratic character of `zmod p` does not
+take the value `-1` on `χ₄(#F) * #F`. -/
+lemma finite_field.is_square_odd_prime_iff (hF : ring_char F ≠ 2) {p : ℕ} [fact p.prime]
+  (hp : p ≠ 2) :
+  is_square (p : F) ↔ quadratic_char (zmod p) (χ₄ (fintype.card F) * fintype.card F) ≠ -1 :=
+begin
+  classical,
+  by_cases hFp : ring_char F = p,
+  { rw [show (p : F) = 0, by { rw ← hFp, exact ring_char.nat.cast_ring_char }],
+    simp only [is_square_zero, ne.def, true_iff, map_mul],
+    obtain ⟨n, _, hc⟩ := finite_field.card F (ring_char F),
+    have hchar : ring_char F = ring_char (zmod p) := by {rw hFp, exact (ring_char_zmod_n p).symm},
+    conv {congr, to_lhs, congr, skip, rw [hc, nat.cast_pow, map_pow, hchar, map_ring_char], },
+    simp only [zero_pow n.pos, mul_zero, zero_eq_neg, one_ne_zero, not_false_iff], },
+  { rw [← iff.not_left (@quadratic_char_neg_one_iff_not_is_square F _ _ _ _),
+        quadratic_char_odd_prime hF hp],
+    exact hFp, },
+end
 
 end special_values

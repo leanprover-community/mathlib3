@@ -191,6 +191,10 @@ def map (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) : convex_cone 𝕜 F :=
   add_mem' := λ y₁ ⟨x₁, hx₁, hy₁⟩ y₂ ⟨x₂, hx₂, hy₂⟩, hy₁ ▸ hy₂ ▸ f.map_add x₁ x₂ ▸
     mem_image_of_mem f (S.add_mem hx₁ hx₂) }
 
+@[simp] lemma mem_map {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 E} {y : F} :
+  y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
+mem_image_iff_bex
+
 lemma map_map (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) :
   (S.map f).map g = S.map (g.comp f) :=
 set_like.coe_injective $ image_image g f S
@@ -364,7 +368,7 @@ end convex_cone
 /-! ### Cone over a convex set -/
 
 section cone_from_convex
-variables [linear_ordered_field 𝕜] [ordered_add_comm_group E] [module 𝕜 E]
+variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 namespace convex
 
@@ -620,17 +624,39 @@ lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
 lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
 
+/-- The inner dual cone of a singleton is given by the preimage of the positive cone under the
+linear map `λ y, ⟪x, y⟫`. -/
+lemma inner_dual_cone_singleton (x : H) :
+  ({x} : set H).inner_dual_cone = (convex_cone.positive_cone ℝ ℝ).comap (innerₛₗ x) :=
+convex_cone.ext $ λ i, forall_eq
+
+lemma inner_dual_cone_union (s t : set H) :
+  (s ∪ t).inner_dual_cone = s.inner_dual_cone ⊓ t.inner_dual_cone :=
+le_antisymm
+  (le_inf (λ x hx y hy, hx _ $ or.inl hy) (λ x hx y hy, hx _ $ or.inr hy))
+  (λ x hx y, or.rec (hx.1 _) (hx.2 _))
+
+lemma inner_dual_cone_insert (x : H) (s : set H) :
+  (insert x s).inner_dual_cone = set.inner_dual_cone {x} ⊓ s.inner_dual_cone :=
+by rw [insert_eq, inner_dual_cone_union]
+
+lemma inner_dual_cone_Union {ι : Sort*} (f : ι → set H) :
+  (⋃ i, f i).inner_dual_cone = ⨅ i, (f i).inner_dual_cone :=
+begin
+  refine le_antisymm (le_infi $ λ i x hx y hy, hx _ $ mem_Union_of_mem _ hy) _,
+  intros x hx y hy,
+  rw [convex_cone.mem_infi] at hx,
+  obtain ⟨j, hj⟩ := mem_Union.mp hy,
+  exact hx _ _ hj,
+end
+
+lemma inner_dual_cone_sUnion (S : set (set H)) :
+  (⋃₀ S).inner_dual_cone = Inf (set.inner_dual_cone '' S) :=
+by simp_rw [Inf_image, sUnion_eq_bUnion, inner_dual_cone_Union]
+
 /-- The dual cone of `s` equals the intersection of dual cones of the points in `s`. -/
 lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
-begin
-  simp_rw [set.Inter_coe_set, subtype.coe_mk],
-  refine set.ext (λ x, iff.intro (λ hx, _) _),
-  { refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
-    rintro ⟨ ⟩,
-    exact hx i hi },
-  { simp only [set.mem_Inter, set_like.mem_coe, mem_inner_dual_cone,
-      set.mem_singleton_iff, forall_eq, imp_self] }
-end
+by rw [←convex_cone.coe_infi, ←inner_dual_cone_Union, Union_of_singleton_coe]
 
 end dual

@@ -122,6 +122,10 @@ module.free.pi R _
 
 variables (ι)
 
+/-- The product of finitely many free modules is free (non-dependent version to help with typeclass
+search). -/
+instance function [finite ι] : module.free R (ι → M) := free.pi _ _
+
 instance finsupp : module.free R (ι →₀ M) :=
 of_basis (finsupp.basis $ λ i, choose_basis R M)
 

@@ -309,7 +309,7 @@ end
 
 /-- If `f : R →+* S` is a surjective local ring hom, then the induced units map is surjective. -/
 lemma surjective_units_map_of_local_ring_hom [comm_semiring R] [comm_semiring S]
-  (f : R →+* S) [is_local_ring_hom f] (hf : function.surjective f) :
+  (f : R →+* S) (hf : function.surjective f) (h : is_local_ring_hom f) :
   function.surjective (units.map $ f.to_monoid_hom) :=
 begin
   intro a,

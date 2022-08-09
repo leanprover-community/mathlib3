@@ -70,7 +70,7 @@ instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
   .. add_monoid_hom.add_comm_monoid }
 
 /-- See also `add_monoid.End.nat_cast_def`. -/
-@[simp] lemma add_monoid.End.nat_cast_apply [add_comm_monoid M] (n : ℕ) (m : M):
+@[simp] lemma add_monoid.End.nat_cast_apply [add_comm_monoid M] (n : ℕ) (m : M) :
   (↑n : add_monoid.End M) m = n • m := rfl
 
 instance [add_comm_group M] : add_comm_group (add_monoid.End M) :=

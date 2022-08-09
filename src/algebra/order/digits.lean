@@ -113,7 +113,7 @@ end
 
 lemma digits_add_nsmul_base_zpow {b : ℕ} (hb : 1 < b) (n : ℕ) (r : R) (z : ℤ)
   (hn : n < b) (hr0 : 0 ≤ r) (hr : r < ↑b ^ z) :
-  digits b (r + n • ↑b ^ z) = pi.single z n + digits b r :=
+  digits b (r + n • ↑b ^ z) = digits b r + pi.single z n :=
 begin
   have hb1' : 1 < (b : R) := by exact_mod_cast hb,
   have hb' : 0 < (b : R) := by exact_mod_cast (zero_le_one.trans_lt hb),
@@ -124,9 +124,8 @@ begin
   { have : r * ↑b ^ -z < 1,
     { rw [zpow_neg, ←div_eq_mul_inv, div_lt_one (zpow_pos_of_pos hb' _)],
       exact hr, },
-    rw [pi.single_eq_same, sub_self, zpow_zero, nsmul_one,
-      nat.floor_add_nat, nat.floor_eq_zero.mpr this, zero_add,
-      nat.zero_mod, nat.mod_eq_of_lt hn, add_zero],
+    rw [pi.single_eq_same, sub_self, zpow_zero, nsmul_one, nat.floor_add_nat,
+      nat.floor_eq_zero.mpr this, zero_add, nat.zero_mod, nat.mod_eq_of_lt hn, zero_add],
     apply mul_nonneg hr0 (zpow_nonneg hb'.le _) },
   rw [pi.single_eq_of_ne' hz],
   rw ←sub_ne_zero at hz,
@@ -137,12 +136,12 @@ begin
   intros hz hr,
   obtain ⟨n', rfl | rfl⟩ := int.eq_coe_or_neg dz,
   { rw [int.coe_nat_ne_zero] at hz,
-    rw [zpow_coe_nat, ←nat.cast_pow, nsmul_eq_mul, ←nat.cast_mul, nat.floor_add_nat, zero_add,
+    rw [zpow_coe_nat, ←nat.cast_pow, nsmul_eq_mul, ←nat.cast_mul, nat.floor_add_nat, add_zero,
       nat.add_mod, nat.mod_eq_zero_of_dvd ((dvd_pow_self b hz).mul_left n), add_zero, nat.mod_mod],
     apply mul_nonneg hr0 (zpow_nonneg hb'.le _) },
   { rw [neg_ne_zero, int.coe_nat_ne_zero] at hz,
-    rw [zpow_neg, zpow_neg, zpow_coe_nat, zero_add, ←div_eq_mul_inv],
     rw [zpow_neg, zpow_neg, zpow_coe_nat, ←div_eq_mul_inv] at hr,
+    rw [zpow_neg, zpow_neg, zpow_coe_nat, add_zero, ←div_eq_mul_inv],
     have h₁ : r / ↑b ^ z₂ + n • (↑b ^ n')⁻¹ < 1,
     { refine (add_lt_add_right hr _).trans_le _,
       obtain ⟨n', rfl⟩  := nat.exists_eq_succ_of_ne_zero hz,

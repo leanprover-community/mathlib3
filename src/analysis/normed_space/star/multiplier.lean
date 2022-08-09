@@ -188,32 +188,24 @@ end
 ### Multiplicative structure
 -/
 
-instance : has_one 𝓜(𝕜, A) :=
-{ one :=
-  { left := 1,
-    right := 1,
-    central := λ x y, rfl } }
-
-instance : has_mul 𝓜(𝕜, A) :=
-{ mul := λ a b,
-  { left := a.left.comp b.left,
-    right := b.right.comp a.right,
-    central := λ x y, by simp only [continuous_linear_map.coe_comp', function.comp_app, central]}}
-
-@[simp] lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl
-@[simp] lemma one_right : (1 : 𝓜(𝕜, A)).right = 1 := rfl
-@[simp] lemma mul_left (a b : 𝓜(𝕜, A)) : (a * b).left = a.left * b.left := rfl
-@[simp] lemma mul_right (a b : 𝓜(𝕜, A)) : (a * b).right = b.right * a.right := rfl
 
 instance : ring 𝓜(𝕜, A) :=
-{ one := 1,
-  mul := λ x y, x * y,
+{ one := ⟨1, 1, λ x y, rfl⟩,
+  mul := λ x y,
+  { left := x.left.comp y.left,
+    right := y.right.comp x.right,
+    central := λ x y, by simp only [continuous_linear_map.coe_comp', function.comp_app, central] },
   mul_assoc := λ a b c, ext _ _ (mul_assoc _ _ _) (mul_assoc _ _ _),
   one_mul := λ a, ext _ _ (one_mul _) (one_mul _),
   mul_one := λ a, ext _ _ (mul_one _) (mul_one _),
   left_distrib := λ a b c, ext _ _ (mul_add _ _ _) (add_mul _ _ _),
   right_distrib := λ a b c, ext _ _ (add_mul _ _ _) (mul_add _ _ _),
   .. double_centralizer.add_comm_group }
+
+@[simp] lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl
+@[simp] lemma one_right : (1 : 𝓜(𝕜, A)).right = 1 := rfl
+@[simp] lemma mul_left (a b : 𝓜(𝕜, A)) : (a * b).left = a.left * b.left := rfl
+@[simp] lemma mul_right (a b : 𝓜(𝕜, A)) : (a * b).right = b.right * a.right := rfl
 
 /-!
 ### Coercion from an algebra into its multiplier algebra

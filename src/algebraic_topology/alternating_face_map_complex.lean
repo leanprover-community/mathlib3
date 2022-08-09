@@ -8,6 +8,7 @@ import algebra.homology.additive
 import algebraic_topology.Moore_complex
 import algebra.big_operators.fin
 import category_theory.preadditive.opposite
+import tactic.equiv_rw
 
 /-!
 
@@ -220,7 +221,7 @@ def ε [limits.has_zero_object C] :
       fin.coe_one, pow_zero, pow_one, one_zsmul, preadditive.add_comp,
       preadditive.neg_comp, neg_smul],
     erw [X.hom.naturality, X.hom.naturality],
-    simp only [functor.const.obj_map, add_right_neg],
+    simp only [functor.const_obj_map, add_right_neg],
   end,
   naturality' := λ X Y f, chain_complex.to_single₀_ext _ _ (congr_app f.w (op [0])), }
 

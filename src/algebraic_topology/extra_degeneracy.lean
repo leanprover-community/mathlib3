@@ -7,6 +7,7 @@ Authors: Joël Riou
 import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.cech_nerve
 import algebra.homology.homotopy
+import algebraic_topology.simplicial_set
 import tactic.equiv_rw
 import tactic.fin_cases
 
@@ -47,6 +48,8 @@ open category_theory category_theory.category category_theory.limits
 open category_theory.simplicial_object.augmented
 open opposite simplex_category
 open_locale simplicial
+
+universes u
 
 namespace algebraic_topology
 
@@ -125,7 +128,7 @@ def of_iso {X Y : simplicial_object.augmented C} (e : X ≅ Y) (ed : extra_degen
 
 /-- The augmented Čech nerve associated to a split epimorphism has an extra degeneracy. -/
 def for_cech_nerve_of_split_epi (f : arrow C)
-  [∀ n : ℕ, has_wide_pullback f.right (λ i : ulift (fin (n+1)), f.left) (λ i, f.hom)]
+  [∀ n : ℕ, has_wide_pullback f.right (λ i : fin (n+1), f.left) (λ i, f.hom)]
   [split_epi f.hom] :
   extra_degeneracy (f.augmented_cech_nerve) :=
 { s' := section_ f.hom ≫ wide_pullback.lift f.hom (λ i, 𝟙 _) (λ i, by rw id_comp),
@@ -134,7 +137,7 @@ def for_cech_nerve_of_split_epi (f : arrow C)
     rintro ⟨i⟩,
     by_cases i = 0,
     { exact wide_pullback.base _ ≫ section_ f.hom, },
-    { exact wide_pullback.π _ (ulift.up ((σ 0).to_order_hom i)), },
+    { exact wide_pullback.π _ ((σ (0 : fin (n+1))).to_order_hom i), },
   end
   begin
     intro j,
@@ -148,6 +151,21 @@ def for_cech_nerve_of_split_epi (f : arrow C)
   d₀s' := by simp only [arrow.augmented_cech_nerve_hom_app, assoc,
     wide_pullback.lift_base, split_epi.id],
   ds₀ := begin
+    sorry,
+  end,
+  d₀s := begin
+    sorry,
+  end,
+  ds := begin
+    sorry,
+  end,
+  ss := begin
+    sorry,
+  end, }
+
+/-
+ds₀ := begin
+    sorry,
     ext; dsimp [simplicial_object.δ],
     { simp only [assoc, comp_id, wide_pullback.lift_π, ite_eq_left_iff],
       intro h,
@@ -243,7 +261,7 @@ def for_cech_nerve_of_split_epi (f : arrow C)
           simpa only [coe_coe, fin.coe_coe_eq_self] using hom.congr_eval eq k, }, }, },
       { dsimp [simplicial_object.σ],
         simp only [assoc, wide_pullback.lift_base], },
-  end, }
+  end, } -/
 
 namespace preadditive
 
@@ -271,7 +289,8 @@ def homotopy_equivalence [preadditive C] [has_zero_object C]
       { simp only [eq_self_iff_true], },
     end,
     comm := λ i, begin
-      cases i,
+      sorry,
+/-      cases i,
       { dsimp [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
         simp only [preadditive.neg_comp, homotopy.d_next_zero_chain_complex,
           homotopy.prev_d_chain_complex, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
@@ -305,7 +324,7 @@ def homotopy_equivalence [preadditive C] [has_zero_object C]
           congr' 1,
           exact (ed.ds i j).symm, },
         { erw [preadditive.neg_comp, ed.d₀s i.succ],
-          apply neg_add_self, }, },
+          apply neg_add_self, }, },-/
     end, },
   homotopy_inv_hom_id := homotopy.of_eq begin
     ext n,
@@ -319,3 +338,119 @@ end preadditive
 end extra_degeneracy
 
 end algebraic_topology
+
+open algebraic_topology
+
+namespace sSet
+
+abbreviation augmented := simplicial_object.augmented (Type u)
+
+@[simps]
+def augmented_std_simplex (Δ : simplex_category) : sSet.augmented :=
+{ left := yoneda.obj Δ,
+  right := terminal _,
+  hom := { app := λ Δ', terminal.from _, }, }
+
+@[simp]
+def shift {n : ℕ} {Δ : simplex_category} (f : [n] ⟶ Δ) : [n+1] ⟶ Δ :=
+simplex_category.hom.mk
+{ to_fun := λ x, begin
+    by_cases x = 0,
+    { exact 0, },
+    { exact f.to_order_hom (x.pred h), },
+  end,
+  monotone' := λ x₁ x₂ ineq, begin
+    dsimp,
+    split_ifs with h₁ h₂ h₂,
+    { refl, },
+    { simp only [fin.zero_le], },
+    { exfalso,
+      apply h₁,
+      rw [h₂] at ineq,
+      apply le_antisymm,
+      { exact ineq, },
+      { simp only [fin.zero_le], }, },
+    { apply f.to_order_hom.monotone,
+      simpa only [fin.pred_le_pred_iff] using ineq, },
+  end }
+
+def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
+  extra_degeneracy (augmented_std_simplex Δ) :=
+{ s' := λ x, simplex_category.hom.mk (order_hom.const _ 0),
+  s := λ n f, shift f,
+  d₀s' := by { dsimp, apply subsingleton.elim, },
+  ds₀ := begin
+    ext f x : 4,
+    dsimp at x f ⊢,
+    have eq : x = 0 := by { simp only [eq_iff_true_of_subsingleton], },
+    subst eq,
+    refl,
+  end,
+  d₀s := λ n, begin
+    ext f x : 4,
+    dsimp [simplicial_object.δ] at x f ⊢,
+    split_ifs,
+    { exfalso,
+      exact fin.succ_ne_zero _ h, },
+    { congr' 1,
+      apply fin.pred_succ, },
+  end,
+  ds := λ n i, begin
+    ext f x : 4,
+    dsimp [simplicial_object.δ],
+    split_ifs with h₁ h₂ h₂,
+    { refl, },
+    { exfalso,
+      change fin.succ_above i.succ x = 0 at h₁,
+      dsimp [fin.succ_above] at h₁,
+      split_ifs at h₁,
+      { apply h₂,
+        simpa only [fin.ext_iff] using h₁, },
+      { exact fin.succ_ne_zero x h₁, }, },
+    { subst h₂,
+      exfalso,
+      apply h₁,
+      change fin.succ_above i.succ 0 = 0,
+      rw fin.succ_above_eq_zero_iff,
+      apply fin.succ_ne_zero, },
+    { have hx : ∃ (y : fin (n+1)), x = y.succ := ⟨x.pred h₂, by simp only [fin.succ_pred]⟩,
+      cases hx with y hy,
+      subst hy,
+      congr' 1,
+      simp only [fin.pred_succ],
+      change (fin.succ_above i.succ y.succ).pred h₁ = fin.succ_above i y,
+      apply fin.succ_injective,
+      simp only [fin.succ_succ_above_succ, fin.pred_succ], },
+  end,
+  ss := λ n i, begin
+    ext f x : 4,
+    dsimp [simplicial_object.σ] at x f ⊢,
+    split_ifs with h₁ h₂ h₂,
+    { refl, },
+    { exfalso,
+      sorry, },
+    { exfalso,
+      sorry, },
+    { congr' 1,
+      have hx : ∃ (y : fin (n+2)), x = y.succ := ⟨x.pred h₂, by simp only [fin.succ_pred]⟩,
+      cases hx with y hy,
+      subst hy,
+      simp only [fin.pred_succ],
+      change (fin.pred_above i.succ y.succ).pred h₁ = fin.pred_above i y,
+      apply fin.succ_injective,
+      simp only [fin.succ_pred],
+      obtain h₁ | h₂ := lt_or_le i.cast_succ y,
+      {-- have paf := fin.pred_above_below,
+        sorry, },
+      { rw fin.pred_above_below _ _ h₂,
+        rw fin.pred_above_below, swap,
+        { rw ← fin.succ_le_succ_iff at h₂,
+          apply le_trans h₂,
+          rw fin.le_iff_coe_le_coe,
+          simp only [fin.coe_succ, fin.coe_cast_succ], },
+        { ext,
+          simp only [fin.coe_succ],
+          sorry, }, }, },
+  end, }
+
+end sSet

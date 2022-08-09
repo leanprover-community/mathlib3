@@ -537,7 +537,7 @@ initialize_simps_projections linear_isometry_equiv
 
 include σ₃₁ σ₃₂
 /-- Composition of `linear_isometry_equiv`s as a `linear_isometry_equiv`. -/
-def trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : E ≃ₛₗᵢ[σ₁₃] E₃ :=
+@[trans] def trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : E ≃ₛₗᵢ[σ₁₃] E₃ :=
 ⟨e.to_linear_equiv.trans e'.to_linear_equiv, λ x, (e'.norm_map _).trans (e.norm_map _)⟩
 
 include σ₁₃ σ₂₁

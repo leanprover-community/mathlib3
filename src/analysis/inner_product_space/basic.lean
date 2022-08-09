@@ -2311,4 +2311,18 @@ begin
   rwa [h, inf_comm, top_inf_eq] at this
 end
 
+lemma submodule.orthogonal_family_self :
+  @orthogonal_family 𝕜 E _ _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
+  (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
+λ i j hij x y,
+begin
+  cases i;
+  cases j;
+  contradiction <|>
+  { rcases x with ⟨x, hx⟩,
+    rcases y with ⟨y, hy⟩,
+    exact submodule.inner_right_of_mem_orthogonal hx hy <|>
+    exact submodule.inner_left_of_mem_orthogonal hy hx }
+end
+
 end orthogonal

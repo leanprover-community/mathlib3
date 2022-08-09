@@ -43,7 +43,7 @@ open_locale big_operators topological_space
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `absR` := has_abs.abs
 
 /-! ### Orthogonal projection in inner product spaces -/
@@ -318,7 +318,7 @@ Then point `v` minimizes the distance `∥u - v∥` over points in `K` if and on
 for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
 theorem norm_eq_infi_iff_inner_eq_zero {u : E} {v : E}
-  (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set E), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
+  (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
@@ -465,6 +465,30 @@ lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero
   (orthogonal_projection K u : E) = v :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hvm hvo
 
+/-- The orthogonal projection of `y` on `U` minimizes the distance `∥y - x∥` for `x ∈ U`. -/
+lemma orthogonal_projection_minimal {U : submodule 𝕜 E} [complete_space U] (y : E) :
+  ∥y - orthogonal_projection U y∥ = ⨅ x : U, ∥y - x∥ :=
+begin
+  rw norm_eq_infi_iff_inner_eq_zero _ (submodule.coe_mem _),
+  exact orthogonal_projection_inner_eq_zero _
+end
+
+/-- If `U ≤ V`, then projecting on `V` and then on `U` is the same as projecting on `U`. -/
+lemma orthogonal_projection_orthogonal_projection_of_le {U V : submodule 𝕜 E} [complete_space U]
+  [complete_space V] (h : U ≤ V) (x : E) :
+  orthogonal_projection U (orthogonal_projection V x) = orthogonal_projection U x :=
+begin
+  symmetry,
+  refine subtype.coe_injective (eq_orthogonal_projection_of_mem_of_inner_eq_zero
+    (submodule.coe_mem _) (λ w hw, _)),
+  calc ⟪x - orthogonal_projection U (orthogonal_projection V x), w⟫
+      = ⟪x - orthogonal_projection V x, w⟫ +
+        ⟪(orthogonal_projection V x : E) - orthogonal_projection U (orthogonal_projection V x), w⟫ :
+        by rw [← inner_add_left, add_sub, sub_add_cancel]
+  ... = 0 : by rw [orthogonal_projection_inner_eq_zero _ w (h hw),
+                    orthogonal_projection_inner_eq_zero _ w hw, add_zero]
+end
+
 /-- The orthogonal projections onto equal subspaces are coerced back to the same point in `E`. -/
 lemma eq_orthogonal_projection_of_eq_submodule
   {K' : submodule 𝕜 E} [complete_space K'] (h : K = K') (u : E) :
@@ -557,6 +581,55 @@ end
 lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
 by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
+
+/-- Given a monotone family `U` of complete submodules of `E` and a fixed `x : E`,
+the orthogonal projection of `x` on `U i` tends to the orthogonal projection of `x` on
+`(⨆ i, U i).topological_closure` along `at_top`. -/
+lemma orthogonal_projection_tendsto_closure_supr [complete_space E] {ι : Type*}
+  [semilattice_sup ι] (U : ι → submodule 𝕜 E) [∀ i, complete_space (U i)]
+  (hU : monotone U) (x : E) :
+  filter.tendsto (λ i, (orthogonal_projection (U i) x : E)) at_top
+    (𝓝 (orthogonal_projection (⨆ i, U i).topological_closure x : E)) :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { rw filter_eq_bot_of_is_empty (at_top : filter ι),
+    exact tendsto_bot },
+  let y := (orthogonal_projection (⨆ i, U i).topological_closure x : E),
+  have proj_x : ∀ i, orthogonal_projection (U i) x = orthogonal_projection (U i) y :=
+    λ i, (orthogonal_projection_orthogonal_projection_of_le
+      ((le_supr U i).trans (supr U).submodule_topological_closure) _).symm,
+  suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ∥(orthogonal_projection (U i) y : E) - y∥ < ε,
+  { simpa only [proj_x, normed_add_comm_group.tendsto_at_top] using this },
+  intros ε hε,
+  have y_mem : y ∈ (⨆ i, U i).topological_closure := submodule.coe_mem _,
+  obtain ⟨a, ha, hay⟩ : ∃ a ∈ ⨆ i, U i, dist y a < ε,
+  { rw [← set_like.mem_coe, submodule.topological_closure_coe, metric.mem_closure_iff] at y_mem,
+    exact y_mem ε hε },
+  rw dist_eq_norm at hay,
+  obtain ⟨I, hI⟩ : ∃ I, a ∈ U I,
+  { rwa [submodule.mem_supr_of_directed _ (hU.directed_le)] at ha },
+  refine ⟨I, λ i (hi : I ≤ i), _⟩,
+  have hai : a ∈ U i := hU hi hI,
+  rw [norm_sub_rev, orthogonal_projection_minimal],
+  refine lt_of_le_of_lt _ hay,
+  change _ ≤ ∥y - (⟨a, hai⟩ : U i)∥,
+  exact cinfi_le ⟨0, set.forall_range_iff.mpr $ λ _, norm_nonneg _⟩ _,
+end
+
+/-- Given a monotone family `U` of complete submodules of `E` with dense span supremum,
+and a fixed `x : E`, the orthogonal projection of `x` on `U i` tends to `x` along `at_top`. -/
+lemma orthogonal_projection_tendsto_self [complete_space E] {ι : Type*} [semilattice_sup ι]
+  (U : ι → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
+  (x : E) (hU' : ⊤ ≤ (⨆ t, U t).topological_closure) :
+  filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top
+    (𝓝 x) :=
+begin
+  rw ← eq_top_iff at hU',
+  convert orthogonal_projection_tendsto_closure_supr 𝕜 U hU x,
+  rw orthogonal_projection_eq_self_iff.mpr _,
+  rw hU',
+  trivial
+end
 
 end orthogonal_projection
 
@@ -840,7 +913,7 @@ begin
   let p2 := orthogonal_projection Sᗮ,
   have x_decomp : x = p1 x + p2 x :=
     eq_sum_orthogonal_projection_self_orthogonal_complement S x,
-  have x_orth : ⟪ p1 x, p2 x ⟫ = 0 :=
+  have x_orth : ⟪ (p1 x : E), p2 x ⟫ = 0 :=
     submodule.inner_right_of_mem_orthogonal (set_like.coe_mem (p1 x)) (set_like.coe_mem (p2 x)),
   nth_rewrite 0 [x_decomp],
   simp only [sq, norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero ((p1 x) : E) (p2 x) x_orth,
@@ -857,19 +930,24 @@ lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
+@[simp] lemma inner_orthogonal_projection_eq_of_mem_right [complete_space K] (u : K) (v : E) :
+  ⟪orthogonal_projection K v, u⟫ = ⟪v, u⟫ :=
+calc ⟪orthogonal_projection K v, u⟫
+    = ⟪(orthogonal_projection K v : E), u⟫ : K.coe_inner _ _
+... = ⟪(orthogonal_projection K v : E), u⟫ + ⟪v - orthogonal_projection K v, u⟫ :
+      by rw [orthogonal_projection_inner_eq_zero _ _ (submodule.coe_mem _), add_zero]
+... = ⟪v, u⟫ :
+      by rw [← inner_add_left, add_sub_cancel'_right]
+
+@[simp] lemma inner_orthogonal_projection_eq_of_mem_left [complete_space K] (u : K) (v : E) :
+  ⟪u, orthogonal_projection K v⟫ = ⟪(u : E), v⟫ :=
+by rw [← inner_conj_sym, ← inner_conj_sym (u : E), inner_orthogonal_projection_eq_of_mem_right]
+
 /-- The orthogonal projection is self-adjoint. -/
-lemma inner_orthogonal_projection_left_eq_right [complete_space E]
+lemma inner_orthogonal_projection_left_eq_right
   [complete_space K] (u v : E) :
   ⟪↑(orthogonal_projection K u), v⟫ = ⟪u, orthogonal_projection K v⟫ :=
-begin
-  nth_rewrite 0 eq_sum_orthogonal_projection_self_orthogonal_complement K v,
-  nth_rewrite 1 eq_sum_orthogonal_projection_self_orthogonal_complement K u,
-  rw [inner_add_left, inner_add_right,
-    submodule.inner_right_of_mem_orthogonal (submodule.coe_mem (orthogonal_projection K u))
-      (submodule.coe_mem (orthogonal_projection Kᗮ v)),
-    submodule.inner_left_of_mem_orthogonal (submodule.coe_mem (orthogonal_projection K v))
-      (submodule.coe_mem (orthogonal_projection Kᗮ u))],
-end
+by rw [← inner_orthogonal_projection_eq_of_mem_left, inner_orthogonal_projection_eq_of_mem_right]
 
 open finite_dimensional
 

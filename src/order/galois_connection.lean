@@ -389,7 +389,7 @@ end nat
 /-- A Galois insertion is a Galois connection where `l ∘ u = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual
 to `galois_coinsertion` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure galois_insertion {α β : Type*} [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx : α, u (l x) ≤ x → β)
 (gc : galois_connection l u)
@@ -582,7 +582,7 @@ end galois_insertion
 /-- A Galois coinsertion is a Galois connection where `u ∘ l = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual to
 `galois_insertion` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure galois_coinsertion [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx : β, x ≤ l (u x) → α)
 (gc : galois_connection l u)
@@ -719,7 +719,6 @@ gi.dual.is_lub_of_u_image hs
 lemma is_lub_of_l_image [preorder α] [preorder β] (gi : galois_coinsertion l u) {s : set α} {a : β}
   (hs : is_lub (l '' s) a) : is_lub s (u a) :=
 gi.dual.is_glb_of_u_image hs
-
 
 section lift
 

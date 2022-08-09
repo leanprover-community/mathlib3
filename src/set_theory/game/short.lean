@@ -150,7 +150,7 @@ begin
   haveI := fintype.of_equiv _ R,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
-    (λ j, short_of_relabelling (rR j) infer_instance)
+    (λ j, by simpa using short_of_relabelling (rR (R.symm j)) infer_instance)
 end
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)

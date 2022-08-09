@@ -98,7 +98,7 @@ meta instance {α} [json_serializable α] : non_null_json_serializable (list α)
     json.array l ← success j | exception (λ _, format!"array expected, got {j.typename}"),
     l.mmap (of_json α) }
 
-meta instance {α} [json_serializable α] : json_serializable (rbmap string α) :=
+meta instance {α} [json_serializable α] : non_null_json_serializable (rbmap string α) :=
 { to_json := λ m, json.object (m.to_list.map $ λ x, (x.1, to_json x.2)),
   of_json := λ j, do
     json.object l ← success j | exception (λ _, format!"object expected, got {j.typename}"),

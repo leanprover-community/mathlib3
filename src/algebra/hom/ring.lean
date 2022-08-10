@@ -317,6 +317,10 @@ instance : has_coe_to_fun (α →+* β) (λ _, α → β) := ⟨ring_hom.to_fun�
 
 initialize_simps_projections ring_hom (to_fun → apply)
 
+@[simp] lemma _root_.ring_hom_class.coe_fn_coe [ring_hom_class F α β] (f : F) :
+  ((f : α →+* β) : α → β) = f :=
+rfl
+
 @[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 
 @[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
@@ -372,6 +376,9 @@ lemma coe_add_monoid_hom_injective : injective (coe : (α →+* β) → (α →+
 
 lemma coe_monoid_hom_injective : injective (coe : (α →+* β) → (α →* β)) :=
 λ f g h, ext $ monoid_hom.congr_fun h
+
+lemma coe_monoid_with_zero_hom_injective : injective (coe : (α →+* β) → (α →*₀ β)) :=
+λ f g h, ext $ monoid_with_zero_hom.congr_fun h
 
 /-- Ring homomorphisms map zero to zero. -/
 protected lemma map_zero (f : α →+* β) : f 0 = 0 := map_zero f

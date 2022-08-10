@@ -973,16 +973,26 @@ end commute
 namespace monoid_with_zero_hom
 
 variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
+  [monoid_with_zero M₀']
 
 section monoid_with_zero
 
-variables (f : G₀ →*₀ M₀) {a : G₀}
+variables (f g : G₀ →*₀ M₀) {a : G₀}
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 :=
 not_iff_not.1 f.map_ne_zero
+
+lemma eq_on_inv (f g : G₀ →*₀ M₀') (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha, { simp },
+  lift a to units G₀ using is_unit.mk0 a ha,
+  rw [← units.coe_inv],
+  change f.to_monoid_hom.comp (units.coe_hom G₀) a⁻¹ = g.to_monoid_hom.comp (units.coe_hom G₀) a⁻¹,
+  exact monoid_hom.eq_on_inv h
+end
 
 end monoid_with_zero
 

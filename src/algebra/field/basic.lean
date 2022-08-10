@@ -372,7 +372,10 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 := f.to_monoid_with_zero_hom.map_ne_ze
 end semiring
 
 section division_semiring
-variables [division_semiring α] [division_semiring β] (f : α →+* β) (a b : α)
+variables [division_semiring α] [division_semiring β] (f g : α →+* β) (a b : α)
+
+lemma eq_on_inv {R : Type*} [semiring R] (f g : α →+* R) {a : α} (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
+f.to_monoid_with_zero_hom.eq_on_inv g.to_monoid_with_zero_hom h
 
 lemma map_inv : f a⁻¹ = (f a)⁻¹ := f.to_monoid_with_zero_hom.map_inv _
 lemma map_div : f (a / b) = f a / f b := f.to_monoid_with_zero_hom.map_div _ _

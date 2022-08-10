@@ -244,8 +244,8 @@ variables {K : Type*} [linear_ordered_field K]
 
 lemma cast_pos_of_pos {r : ℚ} (hr : 0 < r) : (0 : K) < r :=
 begin
-  cases r with n d h c,
-  exact div_pos (int.cast_pos.2 $ num_pos_iff_pos.2 hr) (nat.cast_pos.2 h)
+  rw [rat.cast_def],
+  exact div_pos (int.cast_pos.2 $ num_pos_iff_pos.2 hr) (nat.cast_pos.2 r.pos)
 end
 
 @[mono] lemma cast_strict_mono : strict_mono (coe : ℚ → K) :=
@@ -254,21 +254,15 @@ end
 @[mono] lemma cast_mono : monotone (coe : ℚ → K) := cast_strict_mono.monotone
 
 /-- Coercion from `ℚ` as an order embedding. -/
-@[simps] def cast_order_embedding : ℚ ↪o K :=
-order_embedding.of_strict_mono coe cast_strict_mono
+@[simps] def cast_order_embedding : ℚ ↪o K := order_embedding.of_strict_mono coe cast_strict_mono
 
-@[simp, norm_cast] theorem cast_le {m n : ℚ} : (m : K) ≤ n ↔ m ≤ n :=
-cast_order_embedding.le_iff_le
+@[simp, norm_cast] theorem cast_le {m n : ℚ} : (m : K) ≤ n ↔ m ≤ n := cast_order_embedding.le_iff_le
+@[simp, norm_cast] theorem cast_lt {m n : ℚ} : (m : K) < n ↔ m < n := cast_strict_mono.lt_iff_lt
 
-@[simp, norm_cast] theorem cast_nonneg {n : ℚ} : 0 ≤ (n : K) ↔ 0 ≤ n :=
-by rw [← cast_zero, cast_le]
-
-@[simp, norm_cast] theorem cast_lt {m n : ℚ} : (m : K) < n ↔ m < n :=
-cast_strict_mono.lt_iff_lt
-
-@[simp] theorem cast_nonpos {n : ℚ} : (n : K) ≤ 0 ↔ n ≤ 0 := by rw [← cast_zero, cast_le]
-@[simp] theorem cast_pos {n : ℚ} : (0 : K) < n ↔ 0 < n := by rw [← cast_zero, cast_lt]
-@[simp] theorem cast_lt_zero {n : ℚ} : (n : K) < 0 ↔ n < 0 := by rw [← cast_zero, cast_lt]
+@[simp] theorem cast_nonneg {n : ℚ} : 0 ≤ (n : K) ↔ 0 ≤ n := by norm_cast
+@[simp] theorem cast_nonpos {n : ℚ} : (n : K) ≤ 0 ↔ n ≤ 0 := by norm_cast
+@[simp] theorem cast_pos {n : ℚ} : (0 : K) < n ↔ 0 < n := by norm_cast
+@[simp] theorem cast_lt_zero {n : ℚ} : (n : K) < 0 ↔ n < 0 := by norm_cast
 
 @[simp, norm_cast] theorem cast_min {a b : ℚ} : (↑(min a b) : K) = min a b :=
 (@cast_mono K _).map_min
@@ -276,8 +270,7 @@ cast_strict_mono.lt_iff_lt
 @[simp, norm_cast] theorem cast_max {a b : ℚ} : (↑(max a b) : K) = max a b :=
 (@cast_mono K _).map_max
 
-@[simp, norm_cast] theorem cast_abs {q : ℚ} : ((|q| : ℚ) : K) = |q| :=
-by simp [abs_eq_max_neg]
+@[simp, norm_cast] theorem cast_abs {q : ℚ} : ((|q| : ℚ) : K) = |q| := by simp [abs_eq_max_neg]
 
 open set
 
@@ -292,73 +285,56 @@ open set
 
 end linear_ordered_field
 
-@[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
-| ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
-
-@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ :=
-ring_hom.ext cast_id
+@[norm_cast] theorem cast_id (n : ℚ) : (↑n : ℚ) = n := by rw [cast_def, num_div_denom]
+@[simp] theorem cast_eq_id : (coe : ℚ → ℚ) = id := funext cast_id
+@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ := ring_hom.ext cast_id
 
 end rat
 
-open rat ring_hom
+open rat
+
+@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [ring_hom_class F α β]
+  (f : F) (q : ℚ) : f q = q :=
+by rw [cast_def, ← ring_hom_class.coe_fn_coe f, ring_hom.map_div, (f : α →+* β).map_int_cast,
+  map_nat_cast, cast_def]
 
 lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
-calc f r = f (r.1 / r.2) : by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
-     ... = f r.1 / f r.2 : f.map_div _ _
-     ... = r             : by rw [map_nat_cast, map_int_cast, cast_def]
-
--- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
--- but the proof would be much longer
-@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [char_zero α] [ring_hom_class F α β]
-  (f : F) (q : ℚ) : f q = q :=
-((f : α →+* β).comp $ cast_hom α).eq_rat_cast q
-
-lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
-begin
-  ext r,
-  refine rat.num_denom_cases_on' r _,
-  intros a b b0,
-  let φ : ℤ →+* R := f.comp (int.cast_ring_hom ℚ),
-  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom ℚ),
-  rw [rat.mk_eq_div, int.cast_coe_nat],
-  have b0' : (b:ℚ) ≠ 0 := nat.cast_ne_zero.2 b0,
-  have : ∀ n : ℤ, f n = g n := λ n, show φ n = ψ n, by rw [φ.ext_int ψ],
-  calc f (a * b⁻¹)
-      = f a * f b⁻¹ * (g (b:ℤ) * g b⁻¹) :
-        by rw [int.cast_coe_nat, ← g.map_mul, mul_inv_cancel b0', g.map_one, mul_one, f.map_mul]
-  ... = g a * f b⁻¹ * (f (b:ℤ) * g b⁻¹) : by rw [this a, ← this b]
-  ... = g (a * b⁻¹) :
-        by rw [int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
-              ← f.map_mul, inv_mul_cancel b0', f.map_one, one_mul, g.map_mul]
-end
-
-instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
-⟨ring_hom.ext_rat⟩
+by rw [← map_rat_cast f, rat.cast_id]
 
 namespace monoid_with_zero_hom
 
-variables {M : Type*} [group_with_zero M]
+variables {M₀ : Type*} [monoid_with_zero M₀] {f g : ℚ →*₀ M₀}
+
+/-- If `f` and `g` agree on the integers then they are equal `φ`. -/
+theorem ext_rat' (h : ∀ m : ℤ, f m = g m) : f = g :=
+begin
+  ext r,
+  rw [← r.num_div_denom, div_eq_mul_inv, map_mul, map_mul, h, ← int.cast_coe_nat,
+    f.eq_on_inv g (h _)]
+end
 
 /-- If `f` and `g` agree on the integers then they are equal `φ`.
 
 See note [partially-applied ext lemmas] for why `comp` is used here. -/
-@[ext]
-theorem ext_rat {f g : ℚ →*₀ M}
-  (same_on_int : f.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
-    g.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : f = g :=
-begin
-  have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
-  ext x,
-  rw [← @rat.num_denom x, rat.mk_eq_div, f.map_div, g.map_div,
-    same_on_int' x.num, same_on_int' x.denom],
-end
+@[ext] theorem ext_rat
+  (h : f.comp (int.cast_ring_hom ℚ : ℤ →*₀ ℚ) = g.comp (int.cast_ring_hom ℚ)) : f = g :=
+ext_rat' $ congr_fun h
 
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
-theorem ext_rat_on_pnat {f g : ℚ →*₀ M}
+theorem ext_rat_on_pnat
   (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
 ext_rat $ ext_int' (by simpa) ‹_›
 
 end monoid_with_zero_hom
+
+/-- Any two ring homomorphisms from `ℚ` to a semiring are equal. If the codomain is a division ring,
+then the proof is trivial. -/
+lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
+ring_hom.coe_monoid_with_zero_hom_injective $ monoid_with_zero_hom.ext_rat' $
+  ring_hom.congr_fun $ (f.comp (int.cast_ring_hom ℚ)).ext_int (g.comp (int.cast_ring_hom ℚ))
+
+instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
+⟨ring_hom.ext_rat⟩
 
 namespace mul_opposite
 

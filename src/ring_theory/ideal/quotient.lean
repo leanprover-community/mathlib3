@@ -237,7 +237,7 @@ lemma quot_equiv_of_eq_mk {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) 
 rfl
 
 @[simp]
-lemma ideal.quot_equiv_of_eq_symm {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
+lemma quot_equiv_of_eq_symm {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
   (ideal.quot_equiv_of_eq h).symm = ideal.quot_equiv_of_eq h.symm :=
 by ext; refl
 

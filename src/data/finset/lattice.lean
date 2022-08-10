@@ -1050,6 +1050,35 @@ begin
   exact hf (min'_le _ _ hx)
 end
 
+lemma max_eq_max' {s : finset α} (hs : s.nonempty) : s.max = s.max' hs :=
+begin
+  revert hs,
+  refine s.induction_on _ _; clear s,
+  { rintro ⟨_, ⟨⟩⟩ },
+  { intros a s as hs as0,
+    by_cases s0 : s.nonempty,
+    { rw [max_insert, max'_insert _ _ s0, hs s0, with_bot.coe_max, max_comm] },
+    { rcases not_nonempty_iff_eq_empty.mp s0 with rfl,
+      simp only [insert_emptyc_eq, max_singleton, max'_singleton] } }
+end
+
+lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).max' s0 ≠ x :=
+begin
+  refine λ h, (s.not_mem_erase x) _,
+  nth_rewrite 0 ← h,
+  exact max'_mem _ _
+end
+
+lemma max_erase_ne_self {s : finset α} : (s.erase x).max ≠ x :=
+begin
+  by_cases s0 : (s.erase x).nonempty,
+  { refine ne_of_eq_of_ne (max_eq_max' s0) _,
+    exact with_bot.coe_eq_coe.not.mpr (max'_erase_ne_self _) },
+  { rw [not_nonempty_iff_eq_empty.mp s0, max_empty],
+    exact with_bot.bot_ne_coe }
+end
+
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:
 

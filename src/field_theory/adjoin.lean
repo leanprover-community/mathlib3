@@ -401,6 +401,8 @@ lemma adjoin_root_set_is_splitting_field {p : polynomial F} (hp : p.splits (alge
   p.is_splitting_field F (adjoin F (p.root_set E)) :=
 is_splitting_field_iff.mpr ⟨splits_of_splits hp (λ x hx, subset_adjoin F (p.root_set E) hx), rfl⟩
 
+end
+
 open set complete_lattice
 
 @[simp] lemma adjoin_simple_le_iff {K : intermediate_field F E} : F⟮α⟯ ≤ K ↔ α ∈ K :=

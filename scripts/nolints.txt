@@ -810,11 +810,6 @@ apply_nolint submodule.finite_dimensional_supr fintype_finite
 -- linear_algebra/finsupp_vector_space.lean
 apply_nolint cardinal_lt_aleph_0_of_finite_dimensional fintype_finite
 
--- linear_algebra/free_module/basic.lean
-apply_nolint module.free.matrix fintype_finite
-apply_nolint module.free.pi fintype_finite
-apply_nolint module.free.pi.free fintype_finite
-
 -- linear_algebra/free_module/finite/basic.lean
 apply_nolint module.finite.matrix fintype_finite
 apply_nolint module.finite.of_basis fintype_finite

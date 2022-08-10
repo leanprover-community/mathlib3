@@ -303,6 +303,10 @@ hf.comp continuous_at_snd
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng.2 ⟨continuous_induced_rng.2 hf, continuous_induced_rng.2 hg⟩
 
+@[simp] lemma continuous_prod_mk {f : α → β} {g : α → γ} :
+  continuous (λ x, (f x, g x)) ↔ continuous f ∧ continuous g :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.prod_mk h.2⟩
+
 @[continuity] lemma continuous.prod.mk (a : α) : continuous (λ b : β, (a, b)) :=
 continuous_const.prod_mk continuous_id'
 
@@ -893,6 +897,20 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
+lemma continuous_at_cod_restrict_iff {f : α → β} {t : set β} (h1 : ∀ x, f x ∈ t) {x : α} :
+  continuous_at (cod_restrict f t h1) x ↔ continuous_at f x :=
+by simp_rw [inducing_coe.continuous_at_iff, function.comp, coe_cod_restrict_apply]
+
+alias continuous_at_cod_restrict_iff ↔ _ continuous_at.cod_restrict
+
+lemma continuous_at.restrict {f : α → β} {s : set α} {t : set β} (h1 : maps_to f s t) {x : s}
+  (h2 : continuous_at f x) : continuous_at (h1.restrict f s t) x :=
+(h2.comp continuous_at_subtype_coe).cod_restrict _
+
+lemma continuous_at.restrict_preimage {f : α → β} {s : set β} {x : f ⁻¹' s}
+  (h : continuous_at f x) : continuous_at (s.restrict_preimage f) x :=
+h.restrict _
+
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
   (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
 
@@ -1121,7 +1139,7 @@ begin
   erw induced_compose,
 end
 
-variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
+variables [finite ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
 
 /-- A finite product of discrete spaces is discrete. -/
 instance Pi.discrete_topology : discrete_topology (Π i, π i) :=

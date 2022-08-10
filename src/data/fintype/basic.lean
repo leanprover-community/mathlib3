@@ -619,17 +619,6 @@ arbitrary `fintype` instances, use `finset.univ_eq_empty`. -/
 arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/
 @[simp] theorem card_of_is_empty [is_empty α] : fintype.card α = 0 := rfl
 
-open_locale classical
-variables (α)
-
-/-- Any subsingleton type is (noncomputably) a fintype (with zero or one term). -/
-@[priority 5] -- see Note [lower instance priority]
-noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
-if h : nonempty α then
-  of_subsingleton (nonempty.some h)
-else
-  @fintype.of_is_empty _ $ not_nonempty_iff.mp h
-
 end fintype
 
 namespace set
@@ -1488,11 +1477,8 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
--- irreducible due to this conversation on Zulip:
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
--- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
-@[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
-  [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
+instance function.embedding.fintype {α β} [fintype α] [fintype β] [decidable_eq α]
+  [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
 instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym.sym' α n) :=
@@ -2104,17 +2090,9 @@ begin
   intros x y, contrapose, apply hf,
 end
 
--- irreducible due to this conversation on Zulip:
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
--- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
-
-@[irreducible]
 instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_empty (α ↪ β) :=
-  ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
 
-@[priority 100]
-noncomputable instance function.embedding.fintype' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
-by casesI fintype_or_infinite α; apply_instance
 /--
 The strong pigeonhole principle for infinitely many pigeons in
 finitely many pigeonholes.  If there are infinitely many pigeons in

@@ -264,6 +264,10 @@ subtype.map f h
 lemma maps_to.coe_restrict (h : set.maps_to f s t) :
   coe ∘ h.restrict f s t = s.restrict f := rfl
 
+lemma maps_to.range_restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
+  range (h.restrict f s t) = coe ⁻¹' (f '' s) :=
+set.range_subtype_map f h
+
 lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x : s, f x = g x :=
 ⟨λ h, ⟨h.restrict f s t, λ _, rfl⟩,
   λ ⟨g, hg⟩ x hx, by { erw [hg ⟨x, hx⟩], apply subtype.coe_prop }⟩
@@ -381,10 +385,10 @@ variables (t f)
 (set.maps_to_preimage f t).restrict _ _ _
 
 lemma range_restrict_preimage :
-range (t.restrict_preimage f) = coe ⁻¹' (range f) :=
+  range (t.restrict_preimage f) = coe ⁻¹' (range f) :=
 begin
-  delta set.restrict_preimage set.maps_to.restrict,
-  rw [@set.range_subtype_map _ _ (f ⁻¹' t) t, set_of, set.image_preimage_eq_inter_range,
+  delta set.restrict_preimage,
+  rw [maps_to.range_restrict, set.image_preimage_eq_inter_range,
     set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
 end
 

@@ -99,6 +99,10 @@ theorem coe_fn_coe_base'
   {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
+-- This instance should have low priority, to ensure we follow the chain
+-- `set_like → has_coe_to_sort`
+attribute [instance, priority 10] coe_sort_trans
+
 theorem coe_sort_coe_trans
   {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
   (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
@@ -910,10 +914,10 @@ lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c
   f a b c = g a b c :=
 congr_fun₂ (congr_fun h _) _ _
 
-lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
+lemma funext₂ {f g : Π a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
 funext $ λ _, funext $ h _
 
-lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+lemma funext₃ {f g : Π a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
 funext $ λ _, funext₂ $ h _
 
 end equality

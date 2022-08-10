@@ -68,9 +68,16 @@ it returns `none` otherwise -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}
 
+/-- "default" `nth` function: returns `d` instead of `none` in the case
+  that the index is out of bounds. -/
+def nthd (d : α) : Π (l : list α) (n : ℕ), α
+| []      _       := d
+| (x::xs) 0       := x
+| (x::xs) (n + 1) := nthd xs n
+
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-@[simp] def inth [h : inhabited α] (l : list α) (n : nat) : α := (nth l n).iget
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.
@@ -1009,6 +1016,15 @@ def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → lis
 def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
 | (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
 | _       _       _       _       _       := []
+
+/--  Given a starting list `old`, a list of booleans and a replacement list `new`,
+read the items in `old` in succession and either replace them with the next element of `new` or
+not, according as to whether the corresponding boolean is `tt` or `ff`. -/
+def replace_if : list α → list bool → list α → list α
+| l  _  [] := l
+| [] _  _  := []
+| l  [] _  := l
+| (n::ns) (tf::bs) e@(c::cs) := if tf then c :: ns.replace_if bs cs else n :: ns.replace_if bs e
 
 /-- An auxiliary function for `list.map_with_prefix_suffix`. -/
 def map_with_prefix_suffix_aux {α β} (f : list α → α → list α → β) : list α → list α → list β

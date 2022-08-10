@@ -52,21 +52,21 @@ open_locale topological_space manifold
 
 /-! ### Definition of smooth functions between manifolds -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 -- declare a smooth manifold `M` over the pair `(E, H)`.
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
 -- declare a smooth manifold `M'` over the pair `(E', H')`.
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
 -- declare a smooth manifold `N` over the pair `(F, G)`.
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
 {N : Type*} [topological_space N] [charted_space G N] [Js : smooth_manifold_with_corners J N]
 -- declare a smooth manifold `N'` over the pair `(F', G')`.
-{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
 {G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
 {N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
 -- declare functions, sets, points and smoothness indices
@@ -232,7 +232,7 @@ lemma cont_mdiff_within_at_univ :
   cont_mdiff_within_at I I' n f univ x ↔ cont_mdiff_at I I' n f x :=
 iff.rfl
 
-lemma smooth_at_univ :
+lemma smooth_within_at_univ :
  smooth_within_at I I' f univ x ↔ smooth_at I I' f x := cont_mdiff_within_at_univ
 
 lemma cont_mdiff_on_univ :
@@ -240,8 +240,7 @@ lemma cont_mdiff_on_univ :
 by simp only [cont_mdiff_on, cont_mdiff, cont_mdiff_within_at_univ,
   forall_prop_of_true, mem_univ]
 
-lemma smooth_on_univ :
-  smooth_on I I' f univ ↔ smooth I I' f := cont_mdiff_on_univ
+lemma smooth_on_univ : smooth_on I I' f univ ↔ smooth I I' f := cont_mdiff_on_univ
 
 /-- One can reformulate smoothness within a set at a point as continuity within this set at this
 point, and smoothness in the corresponding extended chart. -/
@@ -625,6 +624,13 @@ lemma smooth_within_at.smooth_at
   smooth_at I I' f x :=
 cont_mdiff_within_at.cont_mdiff_at h ht
 
+lemma cont_mdiff_on.cont_mdiff_at (h : cont_mdiff_on I I' n f s) (hx : s ∈ 𝓝 x) :
+  cont_mdiff_at I I' n f x :=
+(h x (mem_of_mem_nhds hx)).cont_mdiff_at hx
+
+lemma smooth_on.smooth_at (h : smooth_on I I' f s) (hx : s ∈ 𝓝 x) : smooth_at I I' f x :=
+h.cont_mdiff_at hx
+
 include Is
 
 lemma cont_mdiff_on_ext_chart_at :
@@ -713,6 +719,18 @@ lemma cont_mdiff_at_iff_cont_mdiff_on_nhds {n : ℕ} :
 by simp [← cont_mdiff_within_at_univ, cont_mdiff_within_at_iff_cont_mdiff_on_nhds,
   nhds_within_univ]
 
+/-- Note: This does not hold for `n = ∞`. `f` being `C^∞` at `x` means that for every `n`, `f` is
+`C^n` on some neighborhood of `x`, but this neighborhood can depend on `n`. -/
+lemma cont_mdiff_at_iff_cont_mdiff_at_nhds {n : ℕ} :
+  cont_mdiff_at I I' n f x ↔ ∀ᶠ x' in 𝓝 x, cont_mdiff_at I I' n f x' :=
+begin
+  refine ⟨_, λ h, h.self_of_nhds⟩,
+  rw [cont_mdiff_at_iff_cont_mdiff_on_nhds],
+  rintro ⟨u, hu, h⟩,
+  refine (eventually_mem_nhds.mpr hu).mono (λ x' hx', _),
+  exact (h x' $ mem_of_mem_nhds hx').cont_mdiff_at hx'
+end
+
 omit Is I's
 
 /-! ### Congruence lemmas -/
@@ -772,7 +790,7 @@ lemma cont_mdiff_of_locally_cont_mdiff_on
 
 section composition
 
-variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+variables {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
@@ -1865,7 +1883,7 @@ We have no `model_with_corners.pi` yet, so we prove lemmas about functions `f : 
 use `𝓘(𝕜, Π i, F i)` as the model space.
 -/
 
-variables {ι : Type*} [fintype ι] {Fi : ι → Type*} [Π i, normed_group (Fi i)]
+variables {ι : Type*} [fintype ι] {Fi : ι → Type*} [Π i, normed_add_comm_group (Fi i)]
   [Π i, normed_space 𝕜 (Fi i)] {φ : M → Π i, Fi i}
 
 lemma cont_mdiff_within_at_pi_space :
@@ -1919,23 +1937,47 @@ L.cont_diff.cont_mdiff
 
 /-! ### Smoothness of standard operations -/
 
-variables {V : Type*} [normed_group V] [normed_space 𝕜 V]
+variables {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V]
 
 /-- On any vector space, multiplication by a scalar is a smooth operation. -/
 lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
 smooth_iff.2 ⟨continuous_smul, λ x y, cont_diff_smul.cont_diff_on⟩
 
-lemma smooth.smul {N : Type*} [topological_space N] [charted_space H N]
-  {f : N → 𝕜} {g : N → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
-  smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
-smooth_smul.comp (hf.prod_mk hg)
+lemma cont_mdiff_within_at.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff_within_at I 𝓘(𝕜) n f s x)
+  (hg : cont_mdiff_within_at I 𝓘(𝕜, V) n g s x) :
+  cont_mdiff_within_at I 𝓘(𝕜, V) n (λ p, f p • g p) s x :=
+(smooth_smul.of_le le_top).cont_mdiff_at.comp_cont_mdiff_within_at x (hf.prod_mk hg)
 
-lemma smooth_on.smul {N : Type*} [topological_space N] [charted_space H N]
-  {f : N → 𝕜} {g : N → V} {s : set N} (hf : smooth_on I 𝓘(𝕜) f s) (hg : smooth_on I 𝓘(𝕜, V) g s) :
-  smooth_on I 𝓘(𝕜, V) (λ p, f p • g p) s :=
-smooth_smul.comp_smooth_on (hf.prod_mk hg)
+lemma cont_mdiff_at.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff_at I 𝓘(𝕜) n f x)
+  (hg : cont_mdiff_at I 𝓘(𝕜, V) n g x) :
+  cont_mdiff_at I 𝓘(𝕜, V) n (λ p, f p • g p) x :=
+hf.smul hg
 
-lemma smooth_at.smul {N : Type*} [topological_space N] [charted_space H N]
-  {f : N → 𝕜} {g : N → V} {x : N} (hf : smooth_at I 𝓘(𝕜) f x) (hg : smooth_at I 𝓘(𝕜, V) g x) :
+lemma cont_mdiff_on.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff_on I 𝓘(𝕜) n f s)
+  (hg : cont_mdiff_on I 𝓘(𝕜, V) n g s) :
+  cont_mdiff_on I 𝓘(𝕜, V) n (λ p, f p • g p) s :=
+λ x hx, (hf x hx).smul (hg x hx)
+
+lemma cont_mdiff.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff I 𝓘(𝕜) n f)
+  (hg : cont_mdiff I 𝓘(𝕜, V) n g) :
+  cont_mdiff I 𝓘(𝕜, V) n (λ p, f p • g p) :=
+λ x, (hf x).smul (hg x)
+
+lemma smooth_within_at.smul {f : M → 𝕜} {g : M → V} (hf : smooth_within_at I 𝓘(𝕜) f s x)
+  (hg : smooth_within_at I 𝓘(𝕜, V) g s x) :
+  smooth_within_at I 𝓘(𝕜, V) (λ p, f p • g p) s x :=
+hf.smul hg
+
+lemma smooth_at.smul {f : M → 𝕜} {g : M → V} (hf : smooth_at I 𝓘(𝕜) f x)
+  (hg : smooth_at I 𝓘(𝕜, V) g x) :
   smooth_at I 𝓘(𝕜, V) (λ p, f p • g p) x :=
-smooth_smul.smooth_at.comp _ (hf.prod_mk hg)
+hf.smul hg
+
+lemma smooth_on.smul {f : M → 𝕜} {g : M → V} (hf : smooth_on I 𝓘(𝕜) f s)
+  (hg : smooth_on I 𝓘(𝕜, V) g s) :
+  smooth_on I 𝓘(𝕜, V) (λ p, f p • g p) s :=
+hf.smul hg
+
+lemma smooth.smul {f : M → 𝕜} {g : M → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
+  smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
+hf.smul hg

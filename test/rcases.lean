@@ -189,6 +189,19 @@ example : bool → false → true
 | ff := by rintro ⟨⟩
 | tt := by rintro ⟨⟩
 
+example : true :=
+begin
+  obtain h : true,
+  { trivial },
+  exact h
+end
+
+example {a b} (h : a ∧ b) : a ∧ b :=
+begin
+  rcases h with t,
+  exact t
+end
+
 open tactic
 meta def test_rcases_hint (s : string) (num_goals : ℕ) (depth := 5) : tactic unit :=
 do change `(true),

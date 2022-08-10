@@ -171,6 +171,8 @@ instance : has_coe (abs_convex_nhds_sets 𝕜 E) (set E) := ⟨subtype.val⟩
 
 namespace abs_convex_nhds_sets
 
+variables {𝕜 E}
+
 lemma coe_nhds (s : abs_convex_nhds_sets 𝕜 E) : ↑s ∈ 𝓝 (0 : E) := s.2.1
 lemma coe_balanced (s : abs_convex_nhds_sets 𝕜 E) : balanced 𝕜 (s : set E) := s.2.2.1
 lemma coe_convex (s : abs_convex_nhds_sets 𝕜 E) : convex ℝ (s : set E) := s.2.2.2
@@ -207,6 +209,8 @@ begin
   rw gauge_seminorm_to_fun,
 end
 
+#check abs_convex_nhds_sets.coe_nhds
+
 lemma maximal_seminorm_family_ball (s : abs_convex_nhds_sets 𝕜 E) :
   (maximal_seminorm_family 𝕜 E s).ball 0 1 = interior (s : set E) :=
 begin
@@ -216,6 +220,38 @@ begin
   ext,
   simp,
   simp_rw gauge_def,
+  split; intro h,
+  {
+    rw mem_interior_iff_mem_nhds,
+    have := exists_lt_of_cInf_lt _ h,
+    /-{
+      rcases this with ⟨a, ha⟩,
+      rcases ha with ⟨ha, h⟩,
+      use a • s,
+      simp only [mem_sep_eq, mem_Ioi] at ha,
+      refine ⟨_, _, ha.2⟩,
+      {
+        sorry,
+      },
+      sorry,
+    },-/
+    {
+      rcases this with ⟨a, ha⟩,
+      rcases ha with ⟨ha, h⟩,
+      simp only [mem_sep_eq, mem_Ioi] at ha,
+
+      sorry, },
+    {
+      have : absorbent 𝕜 (s : set E) := absorbent_nhds_zero s.coe_nhds,
+      rcases this x with ⟨r, hr, h⟩,
+      have hr' : r ≤ ∥(r : 𝕜)∥ := sorry,
+      use r,
+      simp only [mem_sep_eq, mem_Ioi],
+      refine ⟨hr, _⟩,
+      convert h r hr',
+      sorry,
+    },
+  },
   sorry,
 end
 
@@ -237,24 +273,18 @@ begin
   -- We have to show that the intersection is a zero neighborhood, balanced, and convex
   refine ⟨_, balanced_Inter₂ (λ _ _, seminorm.balanced_ball_zero _ _),
     convex_Inter₂ (λ _ _, seminorm.convex_ball _ _ _)⟩,
-  -- Only the zero neighbor is nontrivial
+  -- Only the zero neighborhood is nontrivial
   rw [filter.bInter_finset_mem],
   intros i hi,
-  rw ←mul_one r,
-  rw ←real.norm_of_nonneg (le_of_lt hr),
-  have h' : ∥r∥ = ∥(r : 𝕜)∥ := by sorry,
-  have hr' : 0 < ∥(r : 𝕜)∥ := by sorry,
-    --have hr' : 0 < ∥r∥ := by {rw real.norm_of_nonneg (le_of_lt hr), exact hr},
-  rw h',
-  rw ←@seminorm.smul_ball_zero 𝕜 E _ _ _ (maximal_seminorm_family 𝕜 E i) _ 1 hr',
-    --rw ←smul_zero (r : 𝕜),
-    sorry,
-    /-refine set_smul_mem_nhds_smul _ (ne_of_gt hr),
-    simp only [smul_zero],
-    rw maximal_seminorm_family_ball,
-    simp only [subtype.val_eq_coe, interior_mem_nhds],
-    exact abs_convex_nhds_sets.coe_nhds 𝕜 E i -/ -- },
-  --refine balanced_Inter₂ (λ _ _, seminorm.balanced_ball_zero _ _),
+  have h' : ∥r∥ = ∥(r : 𝕜)∥ :=
+  by rw [ is_R_or_C.of_real_alg, norm_smul, norm_one, mul_one],
+  have hr' : 0 < ∥(r : 𝕜)∥ :=
+  by { rw [←h', norm_pos_iff], exact ne_of_gt hr },
+  rw [←mul_one r, ←real.norm_of_nonneg (le_of_lt hr), h', ←seminorm.smul_ball_zero hr'],
+  nth_rewrite 1 ←smul_zero (r : 𝕜),
+  refine set_smul_mem_nhds_smul _ (norm_pos_iff.mp hr'),
+  simp only [maximal_seminorm_family_ball, subtype.val_eq_coe, interior_mem_nhds],
+  exact i.coe_nhds,
 end
 
 

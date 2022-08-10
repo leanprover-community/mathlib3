@@ -951,9 +951,9 @@ lemma is_algebraic_supr {ι : Type*} {f : ι → intermediate_field K L}
 begin
   rintros ⟨x, hx⟩,
   obtain ⟨s, hx⟩ := exists_finset_of_mem_supr' hx,
-  rw [algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←algebraic_iff],
+  rw [is_algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←is_algebraic_iff],
   haveI : ∀ i : (Σ i, f i), finite_dimensional K K⟮(i.2 : L)⟯ :=
-  λ ⟨i, x⟩, adjoin.finite_dimensional (is_algebraic_iff_is_integral.mp (algebraic_iff.mp (h i x))),
+  λ ⟨i, x⟩, adjoin.finite_dimensional (is_integral_iff.1 (is_algebraic_iff_is_integral.1 (h i x))),
   apply algebra.is_algebraic_of_finite,
 end
 

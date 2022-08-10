@@ -634,7 +634,7 @@ begin
   rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
   have : (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)).countable,
     from hsc.bUnion (λ l hl, hsc.bUnion
-      (λ u hu, countable_Union_Prop $ λ _, countable_singleton _)),
+      (λ u hu, countable_Union $ λ _, countable_singleton _)),
   simp only [← set_of_eq_eq_singleton, ← set_of_exists] at this,
   refine measure.ext_of_generate_from_of_cover_subset
     (borel_space.measurable_eq.trans (borel_eq_generate_from_Ico α))

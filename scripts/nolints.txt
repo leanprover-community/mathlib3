@@ -206,7 +206,7 @@ apply_nolint traversable.mfoldr doc_blame
 
 -- control/monad/cont.lean
 apply_nolint cont doc_blame
-apply_nolint cont_t has_inhabited_instance doc_blame
+apply_nolint cont_t has_nonempty_instance doc_blame
 apply_nolint cont_t.map doc_blame
 apply_nolint cont_t.monad_lift doc_blame
 apply_nolint cont_t.run doc_blame
@@ -216,7 +216,7 @@ apply_nolint except_t.mk_label doc_blame
 apply_nolint is_lawful_monad_cont doc_blame
 apply_nolint monad_cont doc_blame
 apply_nolint monad_cont.goto doc_blame
-apply_nolint monad_cont.label has_inhabited_instance doc_blame
+apply_nolint monad_cont.label has_nonempty_instance doc_blame
 apply_nolint option_t.call_cc doc_blame
 apply_nolint option_t.mk_label doc_blame
 apply_nolint reader_t.call_cc doc_blame
@@ -232,7 +232,7 @@ apply_nolint except_t.pass_aux doc_blame
 apply_nolint option_t.pass_aux doc_blame
 apply_nolint swap_right doc_blame
 apply_nolint writer doc_blame
-apply_nolint writer_t has_inhabited_instance doc_blame
+apply_nolint writer_t has_nonempty_instance doc_blame
 apply_nolint writer_t.adapt doc_blame
 apply_nolint writer_t.bind doc_blame
 apply_nolint writer_t.ext unused_arguments
@@ -270,26 +270,22 @@ apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
 
 -- data/analysis/filter.lean
-apply_nolint cfilter has_inhabited_instance
+apply_nolint cfilter has_nonempty_instance
 apply_nolint cfilter.to_realizer doc_blame
-apply_nolint filter.realizer has_inhabited_instance
+apply_nolint filter.realizer has_nonempty_instance
 apply_nolint filter.realizer.of_eq doc_blame
 
 -- data/analysis/topology.lean
-apply_nolint compact.realizer has_inhabited_instance doc_blame unused_arguments
-apply_nolint ctop has_inhabited_instance
-apply_nolint ctop.realizer has_inhabited_instance
+apply_nolint compact.realizer has_nonempty_instance doc_blame unused_arguments
+apply_nolint ctop has_nonempty_instance
+apply_nolint ctop.realizer has_nonempty_instance
 apply_nolint ctop.realizer.id doc_blame
 apply_nolint ctop.realizer.nhds doc_blame
 apply_nolint ctop.realizer.nhds_F unused_arguments
 apply_nolint ctop.realizer.nhds_σ unused_arguments
 apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
-apply_nolint locally_finite.realizer has_inhabited_instance doc_blame
-
--- data/finite/basic.lean
-apply_nolint finite.of_fintype fintype_finite
-apply_nolint fintype.finite fintype_finite
+apply_nolint locally_finite.realizer has_nonempty_instance doc_blame
 
 -- data/finset/noncomm_prod.lean
 apply_nolint add_monoid_hom.pi_ext fintype_finite
@@ -378,7 +374,7 @@ apply_nolint int.shift2 doc_blame
 -- data/holor.lean
 apply_nolint holor.assoc_left doc_blame
 apply_nolint holor.assoc_right doc_blame
-apply_nolint holor_index has_inhabited_instance
+apply_nolint holor_index has_nonempty_instance
 apply_nolint holor_index.assoc_left doc_blame
 apply_nolint holor_index.assoc_right doc_blame
 apply_nolint holor_index.drop doc_blame
@@ -701,13 +697,6 @@ apply_nolint pow_gcd_card_eq_one_iff to_additive_doc
 apply_nolint powers_eq_zpowers fintype_finite
 apply_nolint subgroup.pow_index_mem fintype_finite
 
--- group_theory/p_group.lean
-apply_nolint is_p_group.bot_lt_center fintype_finite
-apply_nolint is_p_group.center_nontrivial fintype_finite
-apply_nolint is_p_group.exists_fixed_point_of_prime_dvd_card_of_fixed_point fintype_finite
-apply_nolint is_p_group.index fintype_finite
-apply_nolint is_p_group.nonempty_fixed_point_of_prime_not_dvd_card fintype_finite
-
 -- group_theory/perm/cycle/basic.lean
 apply_nolint equiv.perm.closure_is_cycle fintype_finite
 apply_nolint equiv.perm.cycle_induction_on fintype_finite
@@ -821,11 +810,6 @@ apply_nolint submodule.finite_dimensional_supr fintype_finite
 -- linear_algebra/finsupp_vector_space.lean
 apply_nolint cardinal_lt_aleph_0_of_finite_dimensional fintype_finite
 
--- linear_algebra/free_module/basic.lean
-apply_nolint module.free.matrix fintype_finite
-apply_nolint module.free.pi fintype_finite
-apply_nolint module.free.pi.free fintype_finite
-
 -- linear_algebra/free_module/finite/basic.lean
 apply_nolint module.finite.matrix fintype_finite
 apply_nolint module.finite.of_basis fintype_finite
@@ -896,10 +880,6 @@ apply_nolint is_countably_spanning.pi fintype_finite
 -- measure_theory/constructions/prod.lean
 apply_nolint measure_theory.measure.prod_sum fintype_finite
 apply_nolint measure_theory.measure.sum_prod fintype_finite
-
--- measure_theory/function/uniform_integrable.lean
-apply_nolint measure_theory.unif_integrable_fintype fintype_finite
-apply_nolint measure_theory.uniform_integrable_fintype fintype_finite
 
 -- measure_theory/group/prod.lean
 apply_nolint measure_theory.map_prod_inv_mul_eq to_additive_doc
@@ -1591,9 +1571,6 @@ apply_nolint nonarchimedean_group.prod_subset to_additive_doc
 -- topology/algebra/order/compact.lean
 apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
 apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
-
--- topology/bases.lean
-apply_nolint topological_space.second_countable_topology_fintype fintype_finite
 
 -- topology/basic.lean
 apply_nolint closure_Union_of_fintype fintype_finite

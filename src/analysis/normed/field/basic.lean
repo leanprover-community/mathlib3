@@ -96,7 +96,7 @@ instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
 
 instance : normed_comm_ring punit :=
 { norm_mul := λ _ _, by simp,
-  ..punit.normed_group,
+  ..punit.normed_add_comm_group,
   ..punit.comm_ring, }
 
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
@@ -108,10 +108,12 @@ export norm_one_class (norm_one)
 
 attribute [simp] norm_one
 
-@[simp] lemma nnnorm_one [semi_normed_group α] [has_one α] [norm_one_class α] : ∥(1 : α)∥₊ = 1 :=
+@[simp] lemma nnnorm_one [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
+  ∥(1 : α)∥₊ = 1 :=
 nnreal.eq norm_one
 
-lemma norm_one_class.nontrivial (α : Type*) [semi_normed_group α] [has_one α] [norm_one_class α] :
+lemma norm_one_class.nontrivial (α : Type*) [seminormed_add_comm_group α] [has_one α]
+  [norm_one_class α] :
   nontrivial α :=
 nontrivial_of_ne 0 1 $ ne_of_apply_ne norm $ by simp
 
@@ -119,23 +121,24 @@ nontrivial_of_ne 0 1 $ ne_of_apply_ne norm $ by simp
 instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : comm_ring α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
-instance non_unital_normed_ring.to_normed_group [β : non_unital_normed_ring α] : normed_group α :=
+instance non_unital_normed_ring.to_normed_add_comm_group [β : non_unital_normed_ring α] :
+  normed_add_comm_group α :=
 { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
-instance non_unital_semi_normed_ring.to_semi_normed_group [β : non_unital_semi_normed_ring α] :
-  semi_normed_group α := { ..β }
+instance non_unital_semi_normed_ring.to_seminormed_add_comm_group [non_unital_semi_normed_ring α] :
+  seminormed_add_comm_group α := { ..‹non_unital_semi_normed_ring α› }
 
-instance [semi_normed_group α] [has_one α] [norm_one_class α] : norm_one_class (ulift α) :=
+instance [seminormed_add_comm_group α] [has_one α] [norm_one_class α] : norm_one_class (ulift α) :=
 ⟨by simp [ulift.norm_def]⟩
 
-instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
-  [semi_normed_group β] [has_one β] [norm_one_class β] :
+instance prod.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α]
+  [seminormed_add_comm_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
 instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [fintype ι]
-  [Π i, semi_normed_group (α i)] [Π i, has_one (α i)] [∀ i, norm_one_class (α i)] :
+  [Π i, seminormed_add_comm_group (α i)] [Π i, has_one (α i)] [∀ i, norm_one_class (α i)] :
   norm_one_class (Π i, α i) :=
 ⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
@@ -178,7 +181,7 @@ lemma mul_right_bound (x : α) :
 
 instance : non_unital_semi_normed_ring (ulift α) :=
 { norm_mul := λ x y, (norm_mul_le x.down y.down : _),
-  .. ulift.semi_normed_group }
+  .. ulift.seminormed_add_comm_group }
 
 /-- Non-unital seminormed ring structure on the product of two non-unital seminormed rings,
   using the sup norm. -/
@@ -195,7 +198,7 @@ instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
           by apply max_mul_mul_le_max_mul_max; simp [norm_nonneg]
         ... = (max (∥x.1∥) (∥x.2∥)) * (max (∥y.1∥) (∥y.2∥)) : by simp [max_comm]
         ... = (∥x∥*∥y∥) : rfl,
-  ..prod.semi_normed_group }
+  ..prod.seminormed_add_comm_group }
 
 /-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
 rings, using the sup norm. -/
@@ -208,7 +211,7 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
             finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
     ... ≤ finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊) :
             finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
-  ..pi.semi_normed_group }
+  ..pi.seminormed_add_comm_group }
 
 end non_unital_semi_normed_ring
 
@@ -222,7 +225,7 @@ See note [implicit instance arguments]. -/
 instance subalgebra.semi_normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
   {E : Type*} [semi_normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : semi_normed_ring s :=
 { norm_mul := λ a b, norm_mul_le a.1 b.1,
-  ..s.to_submodule.semi_normed_group }
+  ..s.to_submodule.seminormed_add_comm_group }
 
 /-- A subalgebra of a normed ring is also a normed ring, with the restriction of the norm.
 
@@ -308,21 +311,21 @@ eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
 
 instance : semi_normed_ring (ulift α) :=
 { .. ulift.non_unital_semi_normed_ring,
-  .. ulift.semi_normed_group }
+  .. ulift.seminormed_add_comm_group }
 
 /-- Seminormed ring structure on the product of two seminormed rings,
   using the sup norm. -/
 instance prod.semi_normed_ring [semi_normed_ring β] :
   semi_normed_ring (α × β) :=
 { ..prod.non_unital_semi_normed_ring,
-  ..prod.semi_normed_group, }
+  ..prod.seminormed_add_comm_group, }
 
 /-- Seminormed ring structure on the product of finitely many seminormed rings,
   using the sup norm. -/
 instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
   semi_normed_ring (Π i, π i) :=
 { ..pi.non_unital_semi_normed_ring,
-  ..pi.semi_normed_group, }
+  ..pi.seminormed_add_comm_group, }
 
 end semi_normed_ring
 
@@ -331,20 +334,20 @@ variables [non_unital_normed_ring α]
 
 instance : non_unital_normed_ring (ulift α) :=
 { .. ulift.non_unital_semi_normed_ring,
-  .. ulift.semi_normed_group }
+  .. ulift.seminormed_add_comm_group }
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
 instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
-  ..prod.semi_normed_group }
+  ..prod.seminormed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
 norm. -/
 instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
-  ..pi.normed_group }
+  ..pi.normed_add_comm_group }
 
 end non_unital_normed_ring
 
@@ -360,18 +363,18 @@ x.norm_pos
 
 instance : normed_ring (ulift α) :=
 { .. ulift.semi_normed_ring,
-  .. ulift.normed_group }
+  .. ulift.normed_add_comm_group }
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
-  ..prod.normed_group }
+  ..prod.normed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
 instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
-  ..pi.normed_group }
+  ..pi.normed_add_comm_group }
 
 end normed_ring
 
@@ -485,13 +488,27 @@ class normed_field (α : Type*) extends has_norm α, field α, metric_space α :
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
-/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
-`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
-by the powers of any element, and thus to relate algebra and topology. -/
-class nondiscrete_normed_field (α : Type*) extends normed_field α :=
+/-- A nontrivially normed field is a normed field in which there is an element of norm different
+from `0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by
+multiplication by the powers of any element, and thus to relate algebra and topology. -/
+class nontrivially_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃ x : α, 1 < ∥x∥)
 
+/-- A densely normed field is a normed field for which the image of the norm is dense in `ℝ≥0`,
+which means it is also nontrivially normed. However, not all nontrivally normed fields are densely
+normed; in particular, the `padic`s exhibit this fact. -/
+class densely_normed_field (α : Type*) extends normed_field α :=
+(lt_norm_lt : ∀ x y : ℝ, 0 ≤ x → x < y → ∃ a : α, x < ∥a∥ ∧ ∥a∥ < y)
+
 section normed_field
+
+/-- A densely normed field is always a nontrivially normed field.
+See note [lower instance priority]. -/
+@[priority 100]
+instance densely_normed_field.to_nontrivially_normed_field [densely_normed_field α] :
+  nontrivially_normed_field α :=
+{ non_trivial := let ⟨a, h, _⟩ := densely_normed_field.lt_norm_lt 1 2 zero_le_one one_lt_two in
+    ⟨a, h⟩ }
 
 variables [normed_field α]
 
@@ -515,9 +532,11 @@ end normed_field
 
 namespace normed_field
 
-variables (α) [nondiscrete_normed_field α]
+section nontrivially
 
-lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nondiscrete_normed_field α›.non_trivial
+variables (α) [nontrivially_normed_field α]
+
+lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nontrivially_normed_field α›.non_trivial
 
 lemma exists_lt_norm (r : ℝ) : ∃ x : α, r < ∥x∥ :=
 let ⟨w, hw⟩ := exists_one_lt_norm α in
@@ -547,14 +566,46 @@ end
 lemma nhds_within_is_unit_ne_bot : ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
+end nontrivially
+
+section densely
+
+variables (α) [densely_normed_field α]
+
+lemma exists_lt_norm_lt {r₁ r₂ : ℝ} (h₀ : 0 ≤ r₁) (h : r₁ < r₂) : ∃ x : α, r₁ < ∥x∥ ∧ ∥x∥ < r₂ :=
+densely_normed_field.lt_norm_lt r₁ r₂ h₀ h
+
+lemma exists_lt_nnnorm_lt {r₁ r₂ : ℝ≥0} (h : r₁ < r₂) : ∃ x : α, r₁ < ∥x∥₊ ∧ ∥x∥₊ < r₂ :=
+by exact_mod_cast exists_lt_norm_lt α r₁.prop h
+
+instance densely_ordered_range_norm : densely_ordered (set.range (norm : α → ℝ)) :=
+{ dense :=
+  begin
+    rintro ⟨-, x, rfl⟩ ⟨-, y, rfl⟩ hxy,
+    exact let ⟨z, h⟩ := exists_lt_norm_lt α (norm_nonneg _) hxy in ⟨⟨∥z∥, z, rfl⟩, h⟩,
+  end }
+
+instance densely_ordered_range_nnnorm : densely_ordered (set.range (nnnorm : α → ℝ≥0)) :=
+{ dense :=
+  begin
+    rintro ⟨-, x, rfl⟩ ⟨-, y, rfl⟩ hxy,
+    exact let ⟨z, h⟩ := exists_lt_nnnorm_lt α hxy in ⟨⟨∥z∥₊, z, rfl⟩, h⟩,
+  end }
+
+lemma dense_range_nnnorm : dense_range (nnnorm : α → ℝ≥0) :=
+dense_of_exists_between $ λ _ _ hr, let ⟨x, h⟩ := exists_lt_nnnorm_lt α hr in ⟨∥x∥₊, ⟨x, rfl⟩, h⟩
+
+end densely
+
 end normed_field
 
 instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
-  .. real.normed_group }
+  .. real.normed_add_comm_group }
 
-instance : nondiscrete_normed_field ℝ :=
-{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+instance : densely_normed_field ℝ :=
+{ lt_norm_lt := λ _ _ h₀ hr, let ⟨x, h⟩ := exists_between hr in
+    ⟨x, by rwa [real.norm_eq_abs, abs_of_nonneg (h₀.trans h.1.le)]⟩ }
 
 namespace real
 
@@ -608,24 +659,24 @@ nnreal.eq $ real.norm_of_nonneg x.2
 
 end nnreal
 
-@[simp] lemma norm_norm [semi_normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
+@[simp] lemma norm_norm [seminormed_add_comm_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 real.norm_of_nonneg (norm_nonneg _)
 
-@[simp] lemma nnnorm_norm [semi_normed_group α] (a : α) : ∥∥a∥∥₊ = ∥a∥₊ :=
+@[simp] lemma nnnorm_norm [seminormed_add_comm_group α] (a : α) : ∥∥a∥∥₊ = ∥a∥₊ :=
 by simpa [real.nnnorm_of_nonneg (norm_nonneg a)]
 
 /-- A restatement of `metric_space.tendsto_at_top` in terms of the norm. -/
-lemma normed_group.tendsto_at_top [nonempty α] [semilattice_sup α] {β : Type*} [semi_normed_group β]
-  {f : α → β} {b : β} :
+lemma normed_add_comm_group.tendsto_at_top [nonempty α] [semilattice_sup α] {β : Type*}
+  [seminormed_add_comm_group β] {f : α → β} {b : β} :
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N ≤ n → ∥f n - b∥ < ε :=
 (at_top_basis.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
 
 /--
-A variant of `normed_group.tendsto_at_top` that
+A variant of `normed_add_comm_group.tendsto_at_top` that
 uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
 -/
-lemma normed_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [no_max_order α]
-  {β : Type*} [semi_normed_group β]
+lemma normed_add_comm_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [no_max_order α]
+  {β : Type*} [seminormed_add_comm_group β]
   {f : α → β} {b : β} :
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=
 (at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
@@ -661,8 +712,9 @@ instance : normed_field ℚ :=
   norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
   dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
 
-instance : nondiscrete_normed_field ℚ :=
-{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+instance : densely_normed_field ℚ :=
+{ lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨q, h⟩ := exists_rat_btwn hr in
+    ⟨q, by { unfold norm, rwa abs_of_pos (h₀.trans_lt h.1) } ⟩ }
 
 @[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
 
@@ -672,7 +724,7 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 -- Now that we've installed the norm on `ℤ`,
 -- we can state some lemmas about `nsmul` and `zsmul`.
 section
-variables [semi_normed_group α]
+variables [seminormed_add_comm_group α]
 
 lemma norm_nsmul_le (n : ℕ) (a : α) : ∥n • a∥ ≤ n * ∥a∥ :=
 begin

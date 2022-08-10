@@ -233,13 +233,15 @@ end pointwise_limits
   @has_continuous_mul M (induced f ‹_›) _ :=
 by { letI := induced f ‹_›, exact inducing.has_continuous_mul f ⟨rfl⟩ }
 
-namespace submonoid
-
-@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] (S : submonoid α) :
+@[to_additive] instance subsemigroup.has_continuous_mul [topological_space M] [semigroup M]
+  [has_continuous_mul M] (S : subsemigroup M) :
   has_continuous_mul S :=
-inducing.has_continuous_mul S.subtype ⟨rfl⟩
+inducing.has_continuous_mul (⟨coe, λ _ _, rfl⟩ : mul_hom S M) ⟨rfl⟩
 
-end submonoid
+@[to_additive] instance submonoid.has_continuous_mul [topological_space M] [monoid M]
+  [has_continuous_mul M] (S : submonoid M) :
+  has_continuous_mul S :=
+S.to_subsemigroup.has_continuous_mul
 
 section has_continuous_mul
 
@@ -458,9 +460,9 @@ instance : has_continuous_mul αˣ := inducing_embed_product.has_continuous_mul 
 
 end units
 
-@[to_additive] lemma continuous.map_units [monoid M] [monoid N] [topological_space M]
+@[to_additive] lemma continuous.units_map [monoid M] [monoid N] [topological_space M]
   [topological_space N] (f : M →* N) (hf : continuous f) : continuous (units.map f) :=
-units.continuous_iff.2 ⟨hf.comp units.continuous_coe, hf.comp units.continuous_inv⟩
+units.continuous_iff.2 ⟨hf.comp units.continuous_coe, hf.comp units.continuous_coe_inv⟩
 
 section
 
@@ -533,12 +535,12 @@ end
 
 end
 
-instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
-  [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
+instance [topological_space M] [has_mul M] [has_continuous_mul M] :
+  has_continuous_add (additive M) :=
 { continuous_add := @continuous_mul M _ _ _ }
 
-instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
-  [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
+instance [topological_space M] [has_add M] [has_continuous_add M] :
+  has_continuous_mul (multiplicative M) :=
 { continuous_mul := @continuous_add M _ _ _ }
 
 section lattice_ops

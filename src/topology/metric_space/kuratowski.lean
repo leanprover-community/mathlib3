@@ -54,7 +54,7 @@ end
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/
 lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λa b, _),
+  refine isometry.of_dist_eq (λa b, _),
   refine (embedding_of_subset_dist_le x a b).antisymm (le_of_forall_pos_le_add (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
   rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,

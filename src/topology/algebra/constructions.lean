@@ -37,7 +37,7 @@ continuous_induced_dom
 continuous_induced_rng.2 continuous_id
 
 /-- `mul_opposite.op` as a homeomorphism. -/
-@[to_additive "`add_opposite.op` as a homeomorphism."]
+@[to_additive "`add_opposite.op` as a homeomorphism.", simps]
 def op_homeomorph : M ≃ₜ Mᵐᵒᵖ :=
 { to_equiv := op_equiv,
   continuous_to_fun := continuous_op,
@@ -85,7 +85,7 @@ continuous_induced_dom
   continuous f ↔ continuous (coe ∘ f : X → M) ∧ continuous (λ x, ↑(f x)⁻¹ : X → M) :=
 by simp only [continuous_induced_rng, embed_product_apply, (∘), continuous_prod_mk, unop_op]
 
-@[to_additive] protected lemma continuous_inv : continuous (inv : Mˣ → M) :=
+@[to_additive] lemma continuous_coe_inv : continuous (λ u, ↑u⁻¹ : Mˣ → M) :=
 (units.continuous_iff.1 continuous_id).2
 
 end units

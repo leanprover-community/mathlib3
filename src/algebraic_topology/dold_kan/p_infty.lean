@@ -57,9 +57,9 @@ by simp only [Q, homological_complex.sub_f_apply, P_is_eventually_constant hqn]
 
 /-- The endomorphism `P_infty : K[X] ⟶ K[X]` obtained from the `P q` by passing to the limit. -/
 def P_infty : K[X] ⟶ K[X] := chain_complex.of_hom _ _ _ _ _ _
-    (λ n, ((P n).f n : X _[n] ⟶ _ ))
-    (λ n, by simpa only [← P_is_eventually_constant (show n ≤ n, by refl),
-      alternating_face_map_complex.obj_d_eq] using (P (n+1)).comm (n+1) n)
+  (λ n, ((P n).f n : X _[n] ⟶ _ ))
+  (λ n, by simpa only [← P_is_eventually_constant (show n ≤ n, by refl),
+    alternating_face_map_complex.obj_d_eq] using (P (n+1)).comm (n+1) n)
 
 lemma P_infty_f (n : ℕ) : (P_infty.f n : X _[n] ⟶  X _[n] ) = (P n).f n := rfl
 

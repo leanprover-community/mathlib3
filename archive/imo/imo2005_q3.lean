@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales
 -/
 import data.real.basic
+import tactic.positivity
 
 /-!
 # IMO 2005 Q3
@@ -20,21 +21,17 @@ and then making use of `xyz ≥ 1` to show `(x^5-x^2)/(x^3*(x^2+y^2+z^2)) ≥ (x
 lemma key_insight (x y z : ℝ) (hx : x > 0) (hy : y > 0) (hz : z > 0) (h : x*y*z ≥ 1) :
   (x^5-x^2)/(x^5+y^2+z^2) ≥ (x^2-y*z)/(x^2+y^2+z^2) :=
 begin
-  have h₁ : 0 < x^5+y^2+z^2, linarith [pow_pos hx 5, pow_pos hy 2, pow_pos hz 2],
-  have h₂ : 0 < x^3, exact pow_pos hx 3,
-  have h₃ : 0 < x^2+y^2+z^2, linarith [pow_pos hx 2, pow_pos hy 2, pow_pos hz 2],
-  have h₄ : 0 < x^3*(x^2+y^2+z^2), exact mul_pos h₂ h₃,
+  have h₁ : 0 < x^5+y^2+z^2 := by positivity,
+  have h₂ : 0 < x^3 := by positivity,
+  have h₃ : 0 < x^2+y^2+z^2 := by positivity,
+  have h₄ : 0 < x^3*(x^2+y^2+z^2) := by positivity,
 
   have key : (x^5-x^2)/(x^5+y^2+z^2) - (x^5-x^2)/(x^3*(x^2+y^2+z^2))
            = ((x^3 - 1)^2*x^2*(y^2 + z^2))/((x^5+y^2+z^2)*(x^3*(x^2+y^2+z^2))),
   { field_simp [h₁.ne', h₄.ne'],
     ring },
 
-  have h₅ : ((x^3 - 1)^2*x^2*(y^2 + z^2))/((x^5+y^2+z^2)*(x^3*(x^2+y^2+z^2))) ≥ 0,
-  { refine div_nonneg _ _,
-    refine mul_nonneg (mul_nonneg (sq_nonneg _) (sq_nonneg _)) _,
-    exact add_nonneg (sq_nonneg _) (sq_nonneg _),
-    exact le_of_lt (mul_pos h₁ h₄) },
+  have h₅ : ((x^3 - 1)^2*x^2*(y^2 + z^2))/((x^5+y^2+z^2)*(x^3*(x^2+y^2+z^2))) ≥ 0 := by positivity,
 
   calc  (x^5-x^2)/(x^5+y^2+z^2)
       ≥ (x^5-x^2)/(x^3*(x^2+y^2+z^2)) : by linarith [key, h₅]

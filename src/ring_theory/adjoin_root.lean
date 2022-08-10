@@ -281,6 +281,13 @@ mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end irreducible
 
+section is_noetherian_ring
+
+instance [comm_ring R] [is_noetherian_ring R] {f : R[X]} : is_noetherian_ring (adjoin_root f) :=
+ideal.quotient.is_noetherian_ring _
+
+end is_noetherian_ring
+
 section power_basis
 
 variables [comm_ring R] {g : R[X]}

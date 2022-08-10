@@ -74,7 +74,7 @@ A `c : bicone F` is:
 * morphisms `π j : X ⟶ F j` and `ι j : F j ⟶ X` for each `j`,
 * such that `ι j ≫ π j'` is the identity when `j = j'` and zero otherwise.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure bicone (F : J → C) :=
 (X : C)
 (π : Π j, X ⟶ F j)
@@ -145,7 +145,7 @@ lemma π_of_is_colimit {f : J → C} {t : bicone f} (ht : is_colimit t.to_cocone
 ht.hom_ext (λ j', by { rw ht.fac, discrete_cases, simp [t.ι_π] })
 
 /-- Structure witnessing that a bicone is both a limit cone and a colimit cocone. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure is_bilimit {F : J → C} (B : bicone F) :=
 (is_limit : is_limit B.to_cone)
 (is_colimit : is_colimit B.to_cocone)
@@ -212,7 +212,7 @@ end bicone
 /--
 A bicone over `F : J → C`, which is both a limit cone and a colimit cocone.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure limit_bicone (F : J → C) :=
 (bicone : bicone F)
 (is_bilimit : bicone.is_bilimit)
@@ -740,7 +740,7 @@ A binary bicone for a pair of objects `P Q : C` consists of the cone point `X`,
 maps from `X` to both `P` and `Q`, and maps from both `P` and `Q` to `X`,
 so that `inl ≫ fst = 𝟙 P`, `inl ≫ snd = 0`, `inr ≫ fst = 0`, and `inr ≫ snd = 𝟙 Q`
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure binary_bicone (P Q : C) :=
 (X : C)
 (fst : X ⟶ P)
@@ -861,7 +861,7 @@ is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) (λ j, by { rcases j wit
 end bicone
 
 /-- Structure witnessing that a binary bicone is a limit cone and a limit cocone. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure binary_bicone.is_bilimit {P Q : C} (b : binary_bicone P Q) :=
 (is_limit : is_limit b.to_cone)
 (is_colimit : is_colimit b.to_cocone)
@@ -888,7 +888,7 @@ def bicone.to_binary_bicone_is_bilimit {X Y : C} (b : bicone (pair_function X Y)
 /--
 A bicone over `P Q : C`, which is both a limit cone and a colimit cocone.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure binary_biproduct_data (P Q : C) :=
 (bicone : binary_bicone P Q)
 (is_bilimit : bicone.is_bilimit)

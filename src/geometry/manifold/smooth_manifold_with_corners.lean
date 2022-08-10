@@ -113,19 +113,18 @@ noncomputable theory
 
 universes u v w u' v' w'
 
-open set filter
+open set filter function
 open_locale manifold filter topological_space
 
 localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
 
-section model_with_corners
 /-! ### Models with corners. -/
 
 /-- A structure containing informations on the way a space `H` embeds in a
 model vector space `E` over the field `𝕜`. This is all what is needed to
 define a smooth manifold with model space `H`, and model vector space `E`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure model_with_corners (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=
@@ -213,7 +212,10 @@ protected lemma unique_diff : unique_diff_on 𝕜 (range I) := I.target_eq ▸ I
 @[simp, mfld_simps] protected lemma left_inv (x : H) : I.symm (I x) = x :=
 by { refine I.left_inv' _, simp }
 
-protected lemma left_inverse : function.left_inverse I.symm I := I.left_inv
+protected lemma left_inverse : left_inverse I.symm I := I.left_inv
+
+lemma injective : injective I :=
+I.left_inverse.injective
 
 @[simp, mfld_simps] lemma symm_comp_self : I.symm ∘ I = id :=
 I.left_inverse.comp_eq_id
@@ -542,8 +544,6 @@ end
 
 end cont_diff_groupoid
 
-end model_with_corners
-
 section smooth_manifold_with_corners
 
 /-! ### Smooth manifolds with corners -/
@@ -603,9 +603,9 @@ def maximal_atlas := (cont_diff_groupoid ∞ I).maximal_atlas M
 
 variable {M}
 
-lemma mem_maximal_atlas_of_mem_atlas [smooth_manifold_with_corners I M]
-  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ maximal_atlas I M :=
-structure_groupoid.mem_maximal_atlas_of_mem_atlas _ he
+lemma subset_maximal_atlas [smooth_manifold_with_corners I M] :
+  atlas H M ⊆ maximal_atlas I M :=
+structure_groupoid.subset_maximal_atlas _
 
 lemma chart_mem_maximal_atlas [smooth_manifold_with_corners I M] (x : M) :
   chart_at H x ∈ maximal_atlas I M :=
@@ -707,6 +707,11 @@ by { rw ext_chart_at_source, exact (chart_at H x).open_source }
 
 lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
 by simp only [ext_chart_at_source, mem_chart_source]
+
+lemma ext_chart_at_target (x : M) : (ext_chart_at I x).target =
+  I.symm ⁻¹' (chart_at H x).target ∩ range I :=
+by simp_rw [ext_chart_at, local_equiv.trans_target, I.target_eq, I.to_local_equiv_coe_symm,
+  inter_comm]
 
 lemma ext_chart_at_to_inv :
   (ext_chart_at I x).symm ((ext_chart_at I x) x) = x :=
@@ -873,6 +878,13 @@ lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ 𝓝[s] x) :
     𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x) :=
 ext_chart_preimage_mem_nhds_within' I x (mem_ext_chart_source I x) ht
 
+lemma ext_chart_preimage_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) (ht : t ∈ 𝓝 x') :
+  (ext_chart_at I x).symm ⁻¹' t ∈ 𝓝 (ext_chart_at I x x') :=
+begin
+  apply (ext_chart_continuous_at_symm' I x h).preimage_mem_nhds,
+  rwa (ext_chart_at I x).left_inv h
+end
+
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
 is a neighborhood of the preimage. -/
 lemma ext_chart_preimage_mem_nhds (ht : t ∈ 𝓝 x) :
@@ -889,11 +901,41 @@ lemma ext_chart_preimage_inter_eq :
   = ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
 by mfld_set_tac
 
-end extended_charts
+/-! We use the name `ext_coord_change` for `(ext_chart_at I x').symm ≫ ext_chart_at I x`. -/
+
+lemma ext_coord_change_source (x x' : M) :
+  ((ext_chart_at I x').symm ≫ ext_chart_at I x).source =
+  I '' ((chart_at H x').symm ≫ₕ (chart_at H x)).source :=
+by { simp_rw [local_equiv.trans_source, I.image_eq, ext_chart_at_source, local_equiv.symm_source,
+      ext_chart_at_target, inter_right_comm _ (range I)], refl }
+
+lemma cont_diff_on_ext_coord_change [smooth_manifold_with_corners I M] (x x' : M) :
+  cont_diff_on 𝕜 ⊤ (ext_chart_at I x ∘ (ext_chart_at I x').symm)
+  ((ext_chart_at I x').symm ≫ ext_chart_at I x).source :=
+by { rw [ext_coord_change_source, I.image_eq], exact (has_groupoid.compatible
+  (cont_diff_groupoid ⊤ I) (chart_mem_atlas H x') (chart_mem_atlas H x)).1 }
+
+lemma cont_diff_within_at_ext_coord_change [smooth_manifold_with_corners I M] (x x' : M) {y : E}
+  (hy : y ∈ ((ext_chart_at I x').symm ≫ ext_chart_at I x).source) :
+  cont_diff_within_at 𝕜 ⊤ (ext_chart_at I x ∘ (ext_chart_at I x').symm) (range I) y :=
+begin
+  apply (cont_diff_on_ext_coord_change I x x' y hy).mono_of_mem,
+  rw [ext_coord_change_source] at hy ⊢,
+  obtain ⟨z, hz, rfl⟩ := hy,
+  exact I.image_mem_nhds_within ((local_homeomorph.open_source _).mem_nhds hz)
+end
+
+variable (𝕜)
+
+lemma ext_chart_self_eq {x : H} : ⇑(ext_chart_at I x) = I := rfl
+lemma ext_chart_self_apply {x y : H} : ext_chart_at I x y = I y := rfl
 
 /-- In the case of the manifold structure on a vector space, the extended charts are just the
 identity.-/
-lemma ext_chart_model_space_eq_id (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (x : E) :
-  ext_chart_at (model_with_corners_self 𝕜 E) x = local_equiv.refl E :=
+lemma ext_chart_model_space_eq_id (x : E) : ext_chart_at 𝓘(𝕜, E) x = local_equiv.refl E :=
 by simp only with mfld_simps
+
+lemma ext_chart_model_space_apply {x y : E} : ext_chart_at 𝓘(𝕜, E) x y = y := rfl
+
+
+end extended_charts

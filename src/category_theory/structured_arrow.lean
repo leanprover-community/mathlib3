@@ -6,6 +6,7 @@ Authors: Adam Topaz, Scott Morrison
 import category_theory.punit
 import category_theory.comma
 import category_theory.limits.shapes.terminal
+import category_theory.essentially_small
 
 /-!
 # The category of "structured arrows"
@@ -161,6 +162,14 @@ comma.pre_right _ F G
   map := λ X Y f, { right := f.right, w' :=
     by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
 
+instance small_proj_preimage_of_locally_small {𝒢 : set C} [small.{v₁} 𝒢] [locally_small.{v₁} D] :
+  small.{v₁} ((proj S T).obj ⁻¹' 𝒢) :=
+begin
+  suffices : (proj S T).obj ⁻¹' 𝒢 = set.range (λ f : Σ G : 𝒢, S ⟶ T.obj G, mk f.2),
+  { rw this, apply_instance },
+  exact set.ext (λ X, ⟨λ h, ⟨⟨⟨_, h⟩, X.hom⟩, (eq_mk _).symm⟩, by tidy⟩)
+end
+
 end structured_arrow
 
 
@@ -295,6 +304,14 @@ comma.pre_left F G _
 { obj := λ X, { left := X.left, hom := G.map X.hom },
   map := λ X Y f, { left := f.left, w' :=
     by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
+
+instance small_proj_preimage_of_locally_small {𝒢 : set C} [small.{v₁} 𝒢] [locally_small.{v₁} D] :
+  small.{v₁} ((proj S T).obj ⁻¹' 𝒢) :=
+begin
+  suffices : (proj S T).obj ⁻¹' 𝒢 = set.range (λ f : Σ G : 𝒢, S.obj G ⟶ T, mk f.2),
+  { rw this, apply_instance },
+  exact set.ext (λ X, ⟨λ h, ⟨⟨⟨_, h⟩, X.hom⟩, (eq_mk _).symm⟩, by tidy⟩)
+end
 
 end costructured_arrow
 

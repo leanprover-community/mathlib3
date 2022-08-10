@@ -52,12 +52,12 @@ We
 
 -/
 
-universes w v u
+universes w v₁ v₂ u₁ u₂
 
 open category_theory.limits opposite
 
 namespace category_theory
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /-- We say that `𝒢` is a separating set if the functors `C(G, -)` for `G ∈ 𝒢` are collectively
     faithful, i.e., if `h ≫ f = h ≫ g` for all `h` with domain in `𝒢` implies `f = g`. -/
@@ -291,12 +291,36 @@ calc P = P ⊓ Q : eq.symm $ inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h
 end subobject
 
 /-- A category with pullbacks and a small detecting set is well-powered. -/
-lemma well_powered_of_is_detecting [has_pullbacks C] {𝒢 : set C} [small.{v} 𝒢]
+lemma well_powered_of_is_detecting [has_pullbacks C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_detecting 𝒢) : well_powered C :=
 ⟨λ X, @small_of_injective _ _ _ (λ P : subobject X, { f : Σ G : 𝒢, G.1 ⟶ X | P.factors f.2 }) $
   λ P Q h, subobject.eq_of_is_detecting h𝒢 _ _ (by simpa [set.ext_iff] using h)⟩
 
 end well_powered
+
+namespace structured_arrow
+variables (S : D) (T : C ⥤ D)
+
+lemma is_coseparating_proj_preimage {𝒢 : set C} (h𝒢 : is_coseparating 𝒢) :
+  is_coseparating ((proj S T).obj ⁻¹' 𝒢) :=
+begin
+  refine λ X Y f g hfg, ext _ _ (h𝒢 _ _ (λ G hG h, _)),
+  exact congr_arg comma_morphism.right (hfg (mk (Y.hom ≫ T.map h)) hG (hom_mk h rfl))
+end
+
+end structured_arrow
+
+namespace costructured_arrow
+variables (S : C ⥤ D) (T : D)
+
+lemma is_separating_proj_preimage {𝒢 : set C} (h𝒢 : is_separating 𝒢) :
+  is_separating ((proj S T).obj ⁻¹' 𝒢) :=
+begin
+  refine λ X Y f g hfg, ext _ _ (h𝒢 _ _ (λ G hG h, _)),
+  convert congr_arg comma_morphism.left (hfg (mk (S.map h ≫ X.hom)) hG (hom_mk h rfl))
+end
+
+end costructured_arrow
 
 /-- We say that `G` is a separator if the functor `C(G, -)` is faithful. -/
 def is_separator (G : C) : Prop :=

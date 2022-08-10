@@ -31,8 +31,8 @@ to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
 ## Notation
 
 In "English notation", a Young diagram is drawn so that (i1, j1) ≤ (i2, j2)
-means (i1, j1) is weakly up-and-left (northwest) of (i2, j2). This terminology is used
-below, e.g. in `young_diagram.nw_of`.
+means (i1, j1) is weakly up-and-left of (i2, j2). This terminology is used
+below, e.g. in `young_diagram.up_left_mem`.
 
 ## Tags
 
@@ -64,8 +64,8 @@ instance : set_like young_diagram (ℕ × ℕ) :=
   c ∈ μ.cells ↔ c ∈ μ := iff.rfl
 
 /-- In "English notation", a Young diagram is drawn so that (i1, j1) ≤ (i2, j2)
-    means (i1, j1) is weakly up-and-left (northwest) of (i2, j2). -/
-lemma nw_of (μ : young_diagram) {i1 i2 j1 j2 : ℕ}
+    means (i1, j1) is weakly up-and-left of (i2, j2). -/
+lemma up_left_mem (μ : young_diagram) {i1 i2 j1 j2 : ℕ}
   (hi : i1 ≤ i2) (hj : j1 ≤ j2) (hcell : (i2, j2) ∈ μ) : (i1, j1) ∈ μ :=
 μ.is_lower_set (prod.mk_le_mk.mpr ⟨hi, hj⟩) hcell
 

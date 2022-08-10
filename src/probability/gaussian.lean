@@ -385,7 +385,9 @@ simp},
 end
 
 
-
+---define the equivalent gaussian density mapping ℝ → ℝ≥0 instead
+---of ℝ → ℝ≥0∞;
+---we do this for later using integral_with_density_eq_integral_smul
 noncomputable def gaussian_density_to_nnreal (m s : ℝ) : ℝ → ℝ≥0 :=
 λ x, ennreal.to_nnreal (ennreal.of_real $ (sqrt (2 * real.pi * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2))
 
@@ -403,6 +405,68 @@ begin
   measurability,
 end
 
+---lemma eqform_gauden_to_real (hs : s ≠ 0): :=
+/-
+lemma ennreal_no_act_on_posfunc (f : ℝ → ℝ) : f ≥ 0 →
+∀ (x:ℝ), f x = (λ x, ennreal.of_real (f x) x:=
+begin-/
+
+
+
+lemma simple_thing (x:ℝ) (hx : x≥0): x = ((ennreal.of_real x).to_nnreal):=
+begin
+  unfold ennreal.of_real,
+  simp,
+  by_cases (x=0),
+  rw h,
+  simp,
+  have hx2 : x>0,
+    exact (ne.symm h).lt_of_le hx,
+  have h : max x 0 = x,
+    {simp,
+    exact hx},
+  exact eq.symm h,
+end
+
+lemma not_that_simple_thing (hs : s ≠ 0): ∀ (x:ℝ),
+  (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x
+  = (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal • x :=
+begin
+  intro x,
+  rw smul_eq_mul,
+  have h_smul_eq_mul : (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal • x
+   = (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal * x,
+   {exact rfl},
+
+  rw h_smul_eq_mul,
+
+  have h_exprepos : (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) ≥ 0,
+    {exact gaussian_density_ennreal hs x},
+
+  have h_no_smul_eq : (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)
+    = (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal,
+    {exact simple_thing ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) h_exprepos},
+
+  by_cases (x=0),
+  rw h,
+  simp,
+  have h_nonneg_smul_nneg_eq : ∀ (a b : ℝ), a = b ↔ a * x = b * x,
+    {intros a b,
+    split,
+    intro h1,
+    simp,
+    left,
+    exact h1,
+    intro h2,
+    simp [h] at h2,
+    exact h2},
+  rw ← mul_assoc (sqrt (2 * π * s ^ 2))⁻¹  (exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) x,
+  rw ← h_nonneg_smul_nneg_eq ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal,
+  exact h_no_smul_eq,
+end
+
+
+
 --lemma eqform_of_gauden_to_nnreal_mea : measurable
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
@@ -418,13 +482,14 @@ begin
     unfold gaussian_density_to_nnreal,
     simp},
   rw h_lambdaform,---
-  ---rw eqform_of_gauden_to_nnreal,
-  ---have h_rw_form_with_integ_sign : integral (ℙ.with_density (λ (x : ℝ), ↑(gaussian_density_to_nnreal m s x))) id
-  ---= ∫ (x : ℝ), id x ∂ℙ.with_density (λ (x : ℝ), gaussian_density_to_nnreal m s x),
-
   rw integral_with_density_eq_integral_smul eqform_of_gauden_mea id,
-
-
+  unfold gaussian_density_to_nnreal,
+  simp [gaussian_density_ennreal, hs],
+  have h_eliminate_ennreal_nnreal :
+  ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))).to_nnreal • a
+  = ∫ (a : ℝ), ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2))) • a,
+  {sorry
+    },
 
   ---simp only [with_density_apply, measurable_set.univ, ],
 

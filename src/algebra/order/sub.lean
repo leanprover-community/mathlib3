@@ -39,33 +39,33 @@ TODO: generalize `nat.le_of_le_of_sub_le_sub_right`, `nat.sub_le_sub_right_iff`,
 
 variables {α β : Type*}
 
-/-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ c + b`.
+/-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ b + c`.
 In other words, `a - b` is the least `c` such that `a ≤ b + c`.
 
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids on many specific types.
 -/
 class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
-(tsub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
+(tsub_le_iff_left : ∀ a b c : α, a - b ≤ c ↔ a ≤ b + c)
 
 section has_add
 
 variables [preorder α] [has_add α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
-@[simp] lemma tsub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
-has_ordered_sub.tsub_le_iff_right a b c
+@[simp] lemma tsub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
+has_ordered_sub.tsub_le_iff_left a b c
 
-/-- See `add_tsub_cancel_right` for the equality if `contravariant_class α α (+) (≤)`. -/
-lemma add_tsub_le_right : a + b - b ≤ a :=
-tsub_le_iff_right.mpr le_rfl
+/-- See `add_tsub_cancel_left` for the equality if `contravariant_class α α (+) (≤)`. -/
+lemma add_tsub_le_left : a + b - a ≤ b :=
+tsub_le_iff_left.mpr le_rfl
 
-lemma le_tsub_add : b ≤ (b - a) + a :=
-tsub_le_iff_right.mp le_rfl
+lemma le_add_tsub : b ≤ a + (b - a) :=
+tsub_le_iff_left.mp le_rfl
 
 lemma add_hom.le_map_tsub [preorder β] [has_add β] [has_sub β] [has_ordered_sub β]
   (f : add_hom α β) (hf : monotone f) (a b : α) :
   f a - f b ≤ f (a - b) :=
-by { rw [tsub_le_iff_right, ← f.map_add], exact hf le_tsub_add }
+by { rw [tsub_le_iff_left, ← f.map_add], exact hf le_add_tsub }
 
 lemma le_mul_tsub {R : Type*} [distrib R] [preorder R] [has_sub R] [has_ordered_sub R]
   [covariant_class R R (*) (≤)] {a b c : R} :
@@ -102,21 +102,21 @@ variables [preorder α]
 section add_comm_semigroup
 variables [add_comm_semigroup α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
-lemma tsub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
-by rw [tsub_le_iff_right, add_comm]
+lemma tsub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
+by rw [tsub_le_iff_left, add_comm]
 
-lemma le_add_tsub : a ≤ b + (a - b) :=
-tsub_le_iff_left.mp le_rfl
+lemma le_tsub_add : b ≤ (b - a) + a  :=
+tsub_le_iff_right.mp le_rfl
 
 /-- See `add_tsub_cancel_left` for the equality if `contravariant_class α α (+) (≤)`. -/
-lemma add_tsub_le_left : a + b - a ≤ b :=
+lemma add_tsub_le_right : a + b - a ≤ b :=
 tsub_le_iff_left.mpr le_rfl
 
 lemma tsub_le_tsub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
 tsub_le_iff_left.mpr $ h.trans le_add_tsub
 
 lemma tsub_le_iff_tsub_le : a - b ≤ c ↔ a - c ≤ b :=
-by rw [tsub_le_iff_left, tsub_le_iff_right]
+by rw [tsub_le_iff_left, tsub_le_iff_right, add_comm]
 
 /-- See `tsub_tsub_cancel_of_le` for the equality. -/
 lemma tsub_tsub_le : b - (b - a) ≤ a :=
@@ -793,7 +793,7 @@ begin
   induction y using with_top.rec_top_coe, { simp },
   induction x using with_top.rec_top_coe, { simp },
   induction z using with_top.rec_top_coe, { simp },
-  norm_cast, exact tsub_le_iff_right
+  norm_cast, exact tsub_le_iff_left
 end
 
 end with_top

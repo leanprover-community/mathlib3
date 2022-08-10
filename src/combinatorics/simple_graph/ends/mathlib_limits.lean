@@ -432,8 +432,9 @@ begin
 
     rw [equiv.of_bijective_trans,equiv.of_bijective_trans],
     rw [←equiv.inv_fun_as_coe,←equiv.inv_fun_as_coe],
-    -- Should be almost trivial!!!
-    sorry, },
+    simp_rw ←types_comp,
+    simp_rw ←functor.map_comp',
+    reflexivity, },
   { obtain ⟨m,mj,mj',meq⟩ := (s j).prop,
     simp, simp at meq, rw ←meq,
     dsimp [eqv],
@@ -613,10 +614,16 @@ begin
   exact bwd,
   -- refine ⟨fwd,bwd,_,_⟩, -- I get timeouts trying to work from here :(
   { dsimp [function.left_inverse],
-    rintro ⟨_, _⟩,
+    rintro ⟨⟨s, sec⟩,sjx⟩,
+    dsimp only [fwd],
     sorry -- maybe `dsimp fwd` will work
    },
-  { sorry, },
+  { dsimp [function.right_inverse,function.left_inverse],
+    --rintro ⟨x,y⟩,
+    --dsimp only [fwd,bwd],
+    --obtain ⟨a,k,ki,kj,e⟩ := bwd_aux
+    --simp,
+    sorry, },
 end
 
 lemma fis.above_point.sections_nonempty  {J : Type u} [preorder J] [is_directed J has_le.le]

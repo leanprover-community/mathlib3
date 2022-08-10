@@ -281,18 +281,14 @@ end
 
 /-- There is a primitive additive character on `zmod n` if the characteristic of the target
 does not divide `n` -/
-noncomputable
-def primitive_zmod_char (n : ℕ) [hn : fact (0 < n)] (F' : Type v) [field F'] (h : (n : F') ≠ 0) :
-  primitive_add_char (zmod n) F' :=
-begin
-  let nn := n.to_pnat hn.1,
-  haveI : ne_zero ((nn : ℕ) : F') := ⟨h⟩,
-  haveI : ne_zero ((nn : ℕ) : cyclotomic_field nn F') := ne_zero.of_no_zero_smul_divisors F' _ n,
-  exact
+noncomputable! def primitive_zmod_char (n : ℕ) (F' : Type v) [field F'] (h : (n : F') ≠ 0) :
+  by { have := (@ne_zero.of_ne_zero_coe _ _ _ ⟨h⟩), exactI primitive_add_char (zmod n) F' } :=
+let hn : fact (0 < n) := ⟨(@ne_zero.of_ne_zero_coe _ _ _ ⟨h⟩).1.bot_lt⟩,
+    nn := n.to_pnat (hn.1),
+    ext := @cyclotomic_field.is_cyclotomic_extension nn F' _ ⟨h⟩ in by exactI
 { n := nn,
   char := zmod_char n (is_cyclotomic_extension.zeta_pow nn F' _),
   prim := zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec nn F' _) }
-end
 
 /-!
 ### Existence of a primitive additive character on a finite field

@@ -61,7 +61,7 @@ section algebra
 
 variables (𝕜) (A : Type*)
 
-instance [semi_normed_ring A] [normed_algebra 𝕜 A] : normed_ring (completion A) :=
+instance [semi_normed_ring A] : normed_ring (completion A) :=
 { dist_eq := λ x y,
   begin
     apply completion.induction_on₂ x y; clear x y,

@@ -110,7 +110,7 @@ instance [has_scalar N X] [has_scalar M N]
   exact congr_arg (λ f, completion.map f x) (by exact funext (smul_assoc _ _)),
 end⟩
 
-instance [has_scalar N X] [has_scalar M N] [smul_comm_class M N X]
+instance [has_scalar N X] [smul_comm_class M N X]
   [has_uniform_continuous_const_smul M X] [has_uniform_continuous_const_smul N X] :
   smul_comm_class M N (completion X) :=
 ⟨λ m n x, begin

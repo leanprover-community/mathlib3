@@ -973,7 +973,7 @@ begin
       exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hδ₂ _ _ hs hle) },
     { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
       rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
-        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
+        ennreal.inv_mul_cancel _ (ennreal.nat_ne_top _), one_mul],
       { exact le_rfl },
       all_goals { simpa only [ne.def, nat.cast_eq_zero] } } },
   { obtain ⟨C, hC⟩ := hf₃,
@@ -992,7 +992,7 @@ begin
       exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hC i) },
     { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
       rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
-        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
+        ennreal.inv_mul_cancel _ (ennreal.nat_ne_top _), one_mul],
       { exact le_rfl },
       all_goals { simpa only [ne.def, nat.cast_eq_zero] } } }
 end

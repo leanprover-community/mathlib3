@@ -19,10 +19,10 @@ We also show that `F : D ⥤ K ⥤ C` preserves (co)limits if it does so for eac
 `category_theory.limits.preserves_colimits_of_evaluation`).
 -/
 
-open category_theory category_theory.category
+open category_theory category_theory.category category_theory.functor
 
 -- morphism levels before object levels. See note [category_theory universes].
-universes v₁ v₂ u₁ u₂ v v' u u'
+universes w' w v₁ v₂ u₁ u₂ v v' u u'
 
 namespace category_theory.limits
 
@@ -308,11 +308,16 @@ def preserves_limits_of_shape_of_evaluation (F : D ⥤ K ⥤ C) (J : Type*) [cat
 ⟨λ G, preserves_limit_of_evaluation F G (λ k, preserves_limits_of_shape.preserves_limit)⟩
 
 /-- `F : D ⥤ K ⥤ C` preserves all limits if it does for each `k : K`. -/
-def {w' w} preserves_limits_of_evaluation (F : D ⥤ K ⥤ C)
+def preserves_limits_of_evaluation (F : D ⥤ K ⥤ C)
   (H : Π (k : K), preserves_limits_of_size.{w' w} (F ⋙ (evaluation K C).obj k)) :
   preserves_limits_of_size.{w' w} F :=
 ⟨λ L hL, by exactI preserves_limits_of_shape_of_evaluation
     F L (λ k, preserves_limits_of_size.preserves_limits_of_shape)⟩
+
+/-- The constant functor `C ⥤ (D ⥤ C)` preserves limits. -/
+instance preserves_limits_const : preserves_limits_of_size.{w' w} (const D : C ⥤ _) :=
+preserves_limits_of_evaluation _ $ λ X, preserves_limits_of_nat_iso $ iso.symm $
+  const_comp_evaluation_obj _ _
 
 instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
@@ -336,11 +341,17 @@ def preserves_colimits_of_shape_of_evaluation (F : D ⥤ K ⥤ C) (J : Type*) [c
 ⟨λ G, preserves_colimit_of_evaluation F G (λ k, preserves_colimits_of_shape.preserves_colimit)⟩
 
 /-- `F : D ⥤ K ⥤ C` preserves all colimits if it does for each `k : K`. -/
-def {w' w} preserves_colimits_of_evaluation (F : D ⥤ K ⥤ C)
+def preserves_colimits_of_evaluation (F : D ⥤ K ⥤ C)
   (H : Π (k : K), preserves_colimits_of_size.{w' w} (F ⋙ (evaluation K C).obj k)) :
   preserves_colimits_of_size.{w' w} F :=
 ⟨λ L hL, by exactI preserves_colimits_of_shape_of_evaluation
     F L (λ k, preserves_colimits_of_size.preserves_colimits_of_shape)⟩
+
+/-- The constant functor `C ⥤ (D ⥤ C)` preserves colimits. -/
+instance preserves_colimits_const : preserves_colimits_of_size.{w' w} (const D : C ⥤ _) :=
+preserves_colimits_of_evaluation _ $ λ X, preserves_colimits_of_nat_iso $ iso.symm $
+  const_comp_evaluation_obj _ _
+
 open category_theory.prod
 
 /-- The limit of a diagram `F : J ⥤ K ⥤ C` is isomorphic to the functor given by

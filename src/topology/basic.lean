@@ -141,8 +141,7 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bInter_insert; exact
     is_open.inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_open_Inter [fintype β] {s : β → set α}
-  (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
+lemma is_open_Inter [finite β] {s : β → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
 suffices is_open (⋂ (i : β) (hi : i ∈ @univ β), s i), by simpa,
 is_open_bInter finite_univ (λ i _, h i)
 
@@ -206,8 +205,8 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bUnion_insert; exact
     is_closed.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_closed_Union [fintype β] {s : β → set α}
-  (h : ∀ i, is_closed (s i)) : is_closed (Union s) :=
+lemma is_closed_Union [finite β] {s : β → set α} (h : ∀ i, is_closed (s i)) :
+  is_closed (⋃ i, s i) :=
 suffices is_closed (⋃ (i : β) (hi : i ∈ @univ β), s i),
   by convert this; simp [set.ext_iff],
 is_closed_bUnion finite_univ (λ i _, h i)
@@ -291,9 +290,9 @@ begin
   simp [h₂],
 end
 
-@[simp] lemma interior_Inter_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+@[simp] lemma interior_Inter {ι : Type*} [finite ι] (f : ι → set α) :
   interior (⋂ i, f i) = ⋂ i, interior (f i) :=
-by { convert finset.univ.interior_Inter f; simp, }
+by { casesI nonempty_fintype ι, convert finset.univ.interior_Inter f; simp }
 
 lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
   (h₂ : interior t = ∅) :
@@ -422,9 +421,9 @@ begin
   simp [h₂],
 end
 
-@[simp] lemma closure_Union_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+@[simp] lemma closure_Union {ι : Type*} [finite ι] (f : ι → set α) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=
-by { convert finset.univ.closure_bUnion f; simp, }
+by { casesI nonempty_fintype ι, convert finset.univ.closure_bUnion f; simp }
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure

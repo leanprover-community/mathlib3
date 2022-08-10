@@ -88,7 +88,7 @@ begin
   refine cont_diff_on.smul _
     (orthogonal_projection ((ℝ ∙ v)ᗮ)).cont_diff.cont_diff_on,
   refine cont_diff_const.cont_diff_on.div _ _,
-  { exact (cont_diff_const.sub (innerSL v).cont_diff).cont_diff_on },
+  { exact (cont_diff_const.sub (innerSL v : E →L[ℝ] ℝ).cont_diff).cont_diff_on },
   { intros x h h',
     exact h (sub_eq_zero.mp h').symm }
 end

@@ -35,26 +35,9 @@ Let `R, S` be rings and `f : R →+* S`
 
 namespace category_theory.Module
 
-universes u₁ u₂ v
+universes v u₁ u₂
 
 namespace restrict_scalars
-
-section unbundled
-
-variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
-  (M : Type v) [add_comm_monoid M] [module S M]
-
-/-- The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m` -/
-protected def has_smul : has_smul R M :=
-(module.comp_hom M f).to_has_smul
-
-localized "notation r ` r•[` f `] ` :=
-  @@has_smul.smul (restrict_scalars.has_smul f _) r"
-  in change_of_rings
-
-end unbundled
-
-open_locale change_of_rings
 
 variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 variable (M : Module.{v} S)
@@ -101,14 +84,21 @@ def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
   map_id' := λ _, linear_map.ext $ λ m, rfl,
   map_comp' := λ _ _ _ g h, linear_map.ext $ λ m, rfl }
 
-@[simp] lemma restrict_scalars.map_apply {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
-  {M M' : Module.{v} S} (g : M ⟶ M') (x) : (restrict_scalars f).map g x = g x := rfl
+namespace restrict_scalars
 
-@[simp] lemma restrict_scalars.smul_def {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
-  {M : Module.{v} S} (r : R) (m : (restrict_scalars f).obj M) : r • m = (f r • m : M) := rfl
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 
-@[simp] lemma restrict_scalars.smul_def' {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
-  {M : Module.{v} S} (r : R) (m : M) : (r • m : (restrict_scalars f).obj M) = (f r • m : M) := rfl
+@[simp] lemma map_apply  {M M' : Module.{v} S} (g : M ⟶ M') (x) :
+  (restrict_scalars f).map g x = g x := rfl
+
+@[simp] lemma smul_def {M : Module.{v} S} (r : R) (m : (restrict_scalars f).obj M) :
+  r • m = (f r • m : M) := rfl
+
+@[simp] lemma smul_def' {M : Module.{v} S} (r : R) (m : M) :
+  (r • m : (restrict_scalars f).obj M) = (f r • m : M) := rfl
+
+
+end restrict_scalars
 
 namespace extend_scalars
 

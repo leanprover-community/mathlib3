@@ -837,7 +837,8 @@ noncomputable instance : complete_linear_order (with_top α) :=
   Inf := Inf, le_Inf := λ s, (is_glb_Inf s).2, Inf_le := λ s, (is_glb_Inf s).1,
   .. with_top.linear_order, ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
 
-lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = ⨆ a ∈ s, ↑a :=
+@[norm_cast] lemma coe_Sup {s : set α} (hb : bdd_above s) :
+  ↑(Sup s) = (⨆ a ∈ s, ↑a : with_top α) :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
   { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },
@@ -847,14 +848,15 @@ begin
   { exact supr₂_le (λ a ha, coe_le_coe.2 $ le_cSup hb ha) }
 end
 
-lemma coe_supr {ι : Sort*} (f : ι → α) (h : bdd_above (set.range f)) :
+@[norm_cast] lemma coe_supr (f : ι → α) (h : bdd_above (set.range f)) :
   ↑(⨆ i, f i) = (⨆ i, f i : with_top α) :=
 begin
   rw [supr, coe_Sup h],
   simp_rw [mem_range, supr_exists, @supr_comm _ α, supr_supr_eq_right],
 end
 
-lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = ⨅ a ∈ s, ↑a :=
+@[norm_cast] lemma coe_Inf {s : set α} (hs : s.nonempty) :
+  ↑(Inf s) = (⨅ a ∈ s, ↑a : with_top α) :=
 begin
   obtain ⟨x, hx⟩ := hs,
   have : (⨅ a ∈ s, ↑a : with_top α) ≤ x := infi₂_le_of_le x hx le_rfl,
@@ -867,7 +869,7 @@ begin
     exact infi₂_le_of_le a has le_rfl }
 end
 
-lemma coe_infi {ι : Sort*} [nonempty ι] (f : ι → α) : ↑(⨅ i, f i) = (⨅ i, f i : with_top α) :=
+@[norm_cast] lemma coe_infi [nonempty ι] (f : ι → α) : ↑(⨅ i, f i) = (⨅ i, f i : with_top α) :=
 begin
   rw [infi, coe_Inf (range_nonempty f)],
   simp_rw [mem_range, infi_exists, @infi_comm _ α, infi_infi_eq_right],

@@ -454,7 +454,7 @@ open_locale tensor_product
 
 variables (R S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
 
-/-- The kernel of the map `(𝟙, 𝟙) : S ⊗[R] S →ₐ[R] S`. -/
+/-- The kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`. -/
 abbreviation derivation_module.ideal : ideal (S ⊗[R] S) :=
 ring_hom.ker (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S)
 
@@ -469,16 +469,16 @@ variables {R}
 variables {M : Type*} [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
 
 /-- For a `R`-derivation `S → M`, this is the map `S ⊗[R] S →ₗ[S] M` sending `s ⊗ₜ t ↦ s • D t`. -/
-def derivation.tensor_product_to (d : derivation R S M) : S ⊗[R] S →ₗ[S] M :=
-tensor_product.algebra_tensor_module.lift ((linear_map.lsmul S (S →ₗ[R] M)).flip d.to_linear_map)
+def derivation.tensor_product_to (D : derivation R S M) : S ⊗[R] S →ₗ[S] M :=
+tensor_product.algebra_tensor_module.lift ((linear_map.lsmul S (S →ₗ[R] M)).flip D.to_linear_map)
 
-lemma derivation.tensor_product_to_tmul (d : derivation R S M) (s t : S) :
-  d.tensor_product_to (s ⊗ₜ t) = s • d t :=
+lemma derivation.tensor_product_to_tmul (D : derivation R S M) (s t : S) :
+  D.tensor_product_to (s ⊗ₜ t) = s • D t :=
 tensor_product.lift.tmul s t
 
-lemma derivation.tensor_product_to_mul (d : derivation R S M) (x y : S ⊗[R] S) :
-  d.tensor_product_to (x * y) = tensor_product.lmul' R x • d.tensor_product_to y +
-    tensor_product.lmul' R y • d.tensor_product_to x :=
+lemma derivation.tensor_product_to_mul (D : derivation R S M) (x y : S ⊗[R] S) :
+  D.tensor_product_to (x * y) = tensor_product.lmul' R x • D.tensor_product_to y +
+    tensor_product.lmul' R y • D.tensor_product_to x :=
 begin
   apply tensor_product.induction_on x,
   { rw [zero_mul, map_zero, map_zero, zero_smul, smul_zero, add_zero] },
@@ -492,7 +492,7 @@ begin
     tensor_product.algebra_tensor_module.lift_apply, tensor_product.lift.tmul',
     tensor_product.lmul'_apply_tmul],
   dsimp,
-  rw d.leibniz,
+  rw D.leibniz,
   simp only [smul_smul, smul_add, mul_comm (x * y) x₁, mul_right_comm x₁ x₂, ← mul_assoc],
 end
 

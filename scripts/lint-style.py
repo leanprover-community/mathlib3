@@ -44,6 +44,7 @@ ERR_TAC = 9 # imported tactic{,.omega,.observe}
 ERR_UNF = 10 # unfreeze_local_instances
 WRN_IND = 11 # indentation
 WRN_BRC = 12 # curly braces
+ERR_NST = 13 # explicit reference to instance vars (_inst_1, etc)
 
 exceptions = []
 
@@ -80,6 +81,8 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(WRN_IND, path)]
         if errno == "WRN_BRC":
             exceptions += [(WRN_BRC, path)]
+        if errno == "ERR_NST":
+            exceptions += [(ERR_NST, path)]
 
 new_exceptions = False
 
@@ -125,6 +128,15 @@ def small_alpha_vrachy_check(lines, path):
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
         if 'ᾰ' in line:
             errors += [(ERR_SAV, line_nr, path)]
+    return errors
+
+def instance_check(lines, path):
+    errors = []
+    for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
+        if '_inst_' in line:
+        # if re.match(r'\b(_inst_)\d', line) is not None:
+        # if re.match("\b_inst_", line) is not None:
+            errors += [(ERR_NST, line_nr, path)]
     return errors
 
 def reserved_notation_check(lines, path):
@@ -356,6 +368,8 @@ def format_errors(errors):
             output_message(path, line_nr, "WRN_IND", "Probable indentation mistake in proof")
         if errno == WRN_BRC:
             output_message(path, line_nr, "WRN_BRC", "Probable misformatting of curly braces")
+        if errno == ERR_NST:
+            output_message(path, line_nr, "ERR_NST", "Explicit reference to implicit instance variable name (e.g. _inst_1)")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:
@@ -381,6 +395,8 @@ def lint(path):
         errs = braces_check(lines, path)
         format_errors(errs)
         errs = unfreeze_local_instances_check(lines, path)
+        format_errors(errs)
+        errs = instance_check(lines, path)
         format_errors(errs)
 
 for filename in sys.argv[1:]:

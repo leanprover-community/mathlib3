@@ -274,10 +274,10 @@ cos_antiperiodic.sub_eq θ
 /-- The sign of a `real.angle` is `0` if the angle is `0` or `π`, `1` if the angle is strictly
 between `0` and `π` and `-1` is the angle is strictly between `-π` and `0`. It is defined as the
 sign of the sine of the angle. -/
-def sign (θ : angle) : sign_type := _root_.sign (sin θ)
+def sign (θ : angle) : sign_type := sign (sin θ)
 
 @[simp] lemma sign_zero : (0 : angle).sign = 0 :=
-by rw [sign, sin_zero, _root_.sign_zero]
+by rw [sign, sin_zero, sign_zero]
 
 @[simp] lemma sign_coe_pi : (π : angle).sign = 0 :=
 by rw [sign, sin_coe_pi, _root_.sign_zero]
@@ -304,7 +304,7 @@ sign_antiperiodic.sub_eq θ
 by simp [sign_antiperiodic.sub_eq']
 
 lemma sign_eq_zero_iff {θ : angle} : θ.sign = 0 ↔ θ = 0 ∨ θ = π :=
-by rw [sign, _root_.sign_eq_zero_iff, sin_eq_zero_iff]
+by rw [sign, sign_eq_zero_iff, sin_eq_zero_iff]
 
 end angle
 

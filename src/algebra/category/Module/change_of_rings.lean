@@ -107,6 +107,8 @@ def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
 @[simp] lemma restrict_scalars.smul_def {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
   {M : Module.{v} S} (r : R) (m : (restrict_scalars f).obj M) : r • m = (f r • m : M) := rfl
 
+@[simp] lemma restrict_scalars.smul_def' {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+  {M : Module.{v} S} (r : R) (m : M) : (r • m : (restrict_scalars f).obj M) = (f r • m : M) := rfl
 
 namespace extend_scalars
 
@@ -133,7 +135,7 @@ instance is_module : module S (S ⨂[R, f] M) :=
 begin
   fconstructor,
   intros r s₁ s₂,
-  simp only [restrict_scalars.smul_def, smul_eq_mul],
+  simp only [smul_eq_mul, restrict_scalars.smul_def' f r (_ : (⟨S⟩ : Module S))],
   ring,
 end
 

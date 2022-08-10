@@ -33,7 +33,7 @@ structure continuous_linear_pmap (𝕜 E F : Type*)
   [ring 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
   [topological_space E] [topological_space F]
   extends (linear_pmap 𝕜 E F) :=
-  (cont : continuous to_linear_pmap.to_fun)
+(cont : continuous to_linear_pmap.to_fun)
 
 notation E ` →L.[`:25 R:25 `] `:0 F:0 := continuous_linear_pmap R E F
 

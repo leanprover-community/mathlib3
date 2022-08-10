@@ -65,8 +65,8 @@ protected lemma uniform_convergence.has_basis_nhds_one_of_basis {ι : Type*} {p 
   {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
   (𝓝 1 : filter (α → G)).has_basis p (λ i, {f : α → G | ∀ x, f x ∈ b i}) :=
 begin
-  have := h.comap (λ p : G × G, p.1 / p.2),
-  rw ← uniformity_eq_comap_nhds_one_swapped at this,
+  have := h.comap (λ p : G × G, p.2 / p.1),
+  rw ← uniformity_eq_comap_nhds_one at this,
   convert uniform_convergence.has_basis_nhds_of_basis α _ 1 this,
   ext i f,
   simp [uniform_convergence.gen]

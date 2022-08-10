@@ -359,10 +359,20 @@ begin
     { rw h, exact_mod_cast zero_le _ },
     { refine ennreal.le_of_forall_pos_le_add (λ ε hε h_lt, _),
       rw ennreal.bsupr_add' (⟨0, by simp only [nnnorm_zero, zero_le']⟩ : ∃ x : E, ∥x∥₊ ≤ 1),
-      /- we now want to choose some `k : 𝕜` such that `(1 + ε * ∥a∥₊⁻¹)⁻¹ * ∥a∥₊ < ∥k'∥₊ < 1`, then
-      we will apply `refine le_trans _ (le_supr₂ (k⁻¹ • (star a)) _)`; This is why we want that
-      lemma above. -/
-      sorry, } },
+      /- choose some `k : 𝕜` such that `(1 + ε * ∥a∥₊⁻¹) * ∥a∥₊⁻¹ < ∥k'∥₊ < ∥a∥₊⁻¹`. -/
+      have : (1 - ε * ∥a∥₊⁻¹) * ∥a∥₊⁻¹ < ∥a∥₊⁻¹,
+      { have a_pos := nnreal.inv_pos.mpr (zero_lt_iff.mpr h),
+        simpa only [one_mul] using (mul_lt_mul_right a_pos).mpr
+          (tsub_lt_self_iff.mpr ⟨zero_lt_one, mul_pos hε a_pos⟩) },
+      obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 this,
+      refine le_trans _ (le_supr₂ (k • (star a)) _),
+      { norm_cast,
+        simp only [smul_mul_assoc, nnnorm_smul, cstar_ring.nnnorm_star_mul_self],
+        convert mul_le_mul_right'
+          (le_tsub_add.trans (add_le_add_right ((mul_inv_le_iff₀ h).mp hk₁.le) _)) (∥a∥₊),
+        exact (one_mul _).symm,
+        rw [add_mul, inv_mul_cancel_right₀ h _, mul_assoc] },
+      { simpa only [nnnorm_smul, nnnorm_star] using ((nnreal.lt_inv_iff_mul_lt h).mp hk₂).le, } } },
   { calc (∥b * a∥₊ : ℝ≥0∞) ≤ ∥b∥₊ * ∥a∥₊ : by exact_mod_cast norm_mul_le _ _
     ...                    ≤ ∥a∥₊ : by simpa using (ennreal.coe_mono $ mul_le_mul_right' hb _) }
 end

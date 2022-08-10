@@ -621,14 +621,14 @@ adjunction.mk_of_hom_equiv
   end,
   hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc } }
 
-instance Sheaf_to_presheaf_preserves_mono : (Sheaf_to_presheaf J D).preserves_monomorphisms :=
-functor.preserves_monomorphisms_of_adjunction (sheafification_adjunction _ _)
+instance Sheaf_to_presheaf_is_right_adjoint : is_right_adjoint (Sheaf_to_presheaf J D) :=
+⟨_, sheafification_adjunction J D⟩
 
-lemma presheaf_mono_of_mono {F G : Sheaf J D} (f : F ⟶ G) [mono f] : mono f.1 :=
+instance presheaf_mono_of_mono {F G : Sheaf J D} (f : F ⟶ G) [mono f] : mono f.1 :=
 (Sheaf_to_presheaf J D).map_mono _
 
 lemma Sheaf.hom.mono_iff_presheaf_mono {F G : Sheaf J D} (f : F ⟶ G) : mono f ↔ mono f.1 :=
-⟨λ m, by { resetI, exact presheaf_mono_of_mono J D f },
+⟨λ m, by { resetI, apply_instance },
  λ m, by { resetI, exact Sheaf.hom.mono_of_presheaf_mono J D f }⟩
 
 variables {J D}

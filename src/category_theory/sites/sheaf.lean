@@ -257,7 +257,9 @@ def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 instance : full (Sheaf_to_presheaf J A) := { preimage := λ X Y f, ⟨f⟩ }
 instance : faithful (Sheaf_to_presheaf J A) := {}
 
-instance Sheaf.hom.mono_of_presheaf_mono {F G : Sheaf J A} (f : F ⟶ G) [h : mono f.1] : mono f :=
+/--This is stated as a lemma to prevent class search from forming a loop since a sheaf morphism is
+monic if and only if it is monic as a presheaf morphism (under suitable assumption).-/
+lemma Sheaf.hom.mono_of_presheaf_mono {F G : Sheaf J A} (f : F ⟶ G) [h : mono f.1] : mono f :=
 (Sheaf_to_presheaf J A).mono_of_mono_map h
 
 instance Sheaf.hom.epi_of_presheaf_epi {F G : Sheaf J A} (f : F ⟶ G) [h : epi f.1] : epi f :=

@@ -35,8 +35,8 @@ This file also proves the special adjoint functor theorem, in the form:
   set, then `G` has a left adjoint: `is_right_adjoint_of_preserves_limits_of_is_coseparating`
 
 Finally, we prove the following corollary of the special adjoint functor theorem:
-* If `C` is complete, well-powered and has a small coseparating set, then it is cocomplete.
-
+* If `C` is complete, well-powered and has a small coseparating set, then it is cocomplete:
+  `has_colimits_of_has_limits_of_is_coseparating`
 
 -/
 universes v u u'

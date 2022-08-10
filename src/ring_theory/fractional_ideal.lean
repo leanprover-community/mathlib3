@@ -988,8 +988,7 @@ end
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
 begin
   letI : field R₁ := hF.to_field,
-  -- TODO can this be less ugly?
-  exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
+  exact eq_zero_or_one I,
 end
 
 end field

@@ -81,13 +81,14 @@ formally_etale.iff_unramified_and_smooth.mpr ⟨h₁, h₂⟩
 
 omit R A
 
-lemma formally_unramified.lift_unique [formally_unramified R A] (I : ideal B)
+lemma formally_unramified.lift_unique {B : Type u} [comm_ring B] [_RB : algebra R B]
+  [formally_unramified R A] (I : ideal B)
   (hI : is_nilpotent I) (g₁ g₂ : A →ₐ[R] B) (h : (ideal.quotient.mkₐ R I).comp g₁ =
   (ideal.quotient.mkₐ R I).comp g₂) : g₁ = g₂ :=
 begin
   revert g₁ g₂,
   change function.injective (ideal.quotient.mkₐ R I).comp,
-  unfreezingI { revert _inst_5 },
+  unfreezingI { revert _RB },
   apply ideal.is_nilpotent.induction_on I hI,
   { introsI B _ I hI _, exact formally_unramified.comp_injective I hI },
   { introsI B _ I J hIJ h₁ h₂ _ g₁ g₂ e,
@@ -104,13 +105,14 @@ lemma formally_unramified.ext [formally_unramified R A] (hI : is_nilpotent I)
   g₁ = g₂ :=
 formally_unramified.lift_unique I hI g₁ g₂ (alg_hom.ext H)
 
-lemma formally_smooth.exists_lift [formally_smooth R A] (I : ideal B)
+lemma formally_smooth.exists_lift {B : Type u} [comm_ring B] [_RB : algebra R B]
+  [formally_smooth R A] (I : ideal B)
   (hI : is_nilpotent I) (g : A →ₐ[R] B ⧸ I) :
     ∃ f : A →ₐ[R] B, (ideal.quotient.mkₐ R I).comp f = g :=
 begin
   revert g,
   change function.surjective (ideal.quotient.mkₐ R I).comp,
-  unfreezingI { revert _inst_5 },
+  unfreezingI { revert _RB },
   apply ideal.is_nilpotent.induction_on I hI,
   { introsI B _ I hI _, exact formally_smooth.comp_surjective I hI },
   { introsI B _ I J hIJ h₁ h₂ _ g,

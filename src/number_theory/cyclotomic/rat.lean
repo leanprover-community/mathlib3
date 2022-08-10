@@ -128,19 +128,12 @@ begin
   exactI is_integral_closure_adjoing_singleton_of_prime_pow hζ,
 end
 
-local attribute [-instance] cyclotomic_field.algebra
-local attribute [instance] algebra_rat_subsingleton
-
 /-- The integral closure of `ℤ` inside `cyclotomic_field (p ^ k) ℚ` is
 `cyclotomic_ring (p ^ k) ℤ ℚ`. -/
 lemma cyclotomic_ring_is_integral_closure_of_prime_pow :
   is_integral_closure (cyclotomic_ring (p ^ k) ℤ ℚ) ℤ (cyclotomic_field (p ^ k) ℚ) :=
 begin
   haveI : char_zero ℚ := ordered_semiring.to_char_zero,
-  haveI : is_cyclotomic_extension {p ^ k} ℚ (cyclotomic_field (p ^ k) ℚ),
-  { convert cyclotomic_field.is_cyclotomic_extension (p ^ k) _,
-    { exact subsingleton.elim _ _ },
-    { exact ne_zero.char_zero } },
   have hζ := zeta_spec (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
   { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,

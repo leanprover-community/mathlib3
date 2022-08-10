@@ -258,7 +258,7 @@ Any quotient group of a rootable group is rootable.
 @[to_additive add_comm_group.divisible_by_quotient
 "Any quotient group of a divisible group is divisible"]
 noncomputable def rootable_by_quotient [rootable_by A ℕ] : rootable_by (A ⧸ B) ℕ :=
-rootable_by_of_surj _ (quotient_group.mk_surjective) $ λ _ _, rfl
+rootable_by_of_surj _ quotient_group.mk_surjective $ λ _ _, rfl
 
 end quotient
 

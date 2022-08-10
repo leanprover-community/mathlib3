@@ -1280,7 +1280,7 @@ def continuous.connected_components_lift (h : continuous f) :
 
 @[continuity] lemma continuous.connected_components_lift_continuous (h : continuous f) :
   continuous h.connected_components_lift :=
-continuous_quotient_lift_on' h.image_eq_of_connected_component_eq h
+h.quotient_lift_on' h.image_eq_of_connected_component_eq
 
 @[simp] lemma continuous.connected_components_lift_apply_coe (h : continuous f) (x : α) :
   h.connected_components_lift x = f x := rfl

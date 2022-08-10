@@ -930,13 +930,17 @@ quotient_map_quot_mk
 lemma continuous_quotient_mk : continuous (@quotient.mk α s) :=
 continuous_coinduced_rng
 
-lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
+lemma continuous.quotient_lift {f : α → β} (h : continuous f) (hs : ∀ a b, a ≈ b → f a = f b) :
+  continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom.2 h
 
-lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
-continuous_coinduced_dom.2 h
+lemma continuous.quotient_lift_on' {f : α → β} (h : continuous f) (hs : ∀ a b, a ≈ b → f a = f b) :
+  continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
+h.quotient_lift hs
+
+lemma continuous.quotient_map' {t : setoid β} {f : α → β} (hf : continuous f)
+  (H : (s.r ⇒ t.r) f f) : continuous (quotient.map' f H) :=
+(continuous_quotient_mk.comp hf).quotient_lift _
 
 end quotient
 

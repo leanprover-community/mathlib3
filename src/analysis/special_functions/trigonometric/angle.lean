@@ -177,7 +177,7 @@ def sin (θ : angle) : ℝ := sin_periodic.lift θ
 rfl
 
 @[continuity] lemma continuous_sin : continuous sin :=
-continuous_quotient_lift_on' _ real.continuous_sin
+real.continuous_sin.quotient_lift_on' _
 
 /-- The cosine of a `real.angle`. -/
 def cos (θ : angle) : ℝ := cos_periodic.lift θ
@@ -186,7 +186,7 @@ def cos (θ : angle) : ℝ := cos_periodic.lift θ
 rfl
 
 @[continuity] lemma continuous_cos : continuous cos :=
-continuous_quotient_lift_on' _ real.continuous_cos
+real.continuous_cos.quotient_lift_on' _
 
 lemma cos_eq_real_cos_iff_eq_or_eq_neg {θ : angle} {ψ : ℝ} : cos θ = real.cos ψ ↔ θ = ψ ∨ θ = -ψ :=
 begin

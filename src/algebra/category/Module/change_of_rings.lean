@@ -23,10 +23,8 @@ import ring_theory.tensor_product
 
 ## List of notations
 Let `R, S` be rings and `f : R →+* S`
-* if `M` is an `S`-module, `r : R` and `m : M` then notation `r r•[f] m` means `R`-scalar action on
-  `M` defined by `f r • m`.
-* if `M` is an `R`-module, then notation `S ⨂[R, f] M` means the tensor product `S ⨂ M` where `S` is
-  considered as an `R`-module via restriction of scalars.
+* if `M` is an `R`-module, then notation `S ⨂[R, f] M` means the tensor product `S ⨂ M` where `S`
+  is considered as an `R`-module via restriction of scalars.
 * if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f]` is the pure tensor
   `s ⊗ m : S ⊗[R, f] M`
 * if `M` is an `R`-module, `s : S` and  `x : S ⊗[R, f] M` then notation `s e•[f] x` denotes the
@@ -65,20 +63,15 @@ variable (M : Module.{v} S)
     `r • m := f r • m` (`module.comp_hom`). This is called restriction of scalars. -/
 def obj' : Module R :=
 { carrier := M,
-  is_add_comm_group := infer_instance,
   is_module := module.comp_hom M f }
-
-
-@[simp] lemma smul_def (r : R) (m : M) : r r•[f] m = f r • m := rfl
 
 /--
 Given an `S`-linear map `g : M → M'` between `S`-modules, `g` is also `R`-linear between `M` and
 `M'` by means of restriction of scalars.
 -/
-@[simps] def map' {M M' : Module.{v} S} (g : M ⟶ M') :
+def map' {M M' : Module.{v} S} (g : M ⟶ M') :
   obj' f M ⟶ obj' f M' :=
-{ map_smul' := λ r (x : M), by simp,
-  ..g }
+{ map_smul' := λ r, g.map_smul (f r), ..g }
 
 /--
 If `R, S` are commutative rings and `f : R →+* S`, then any `S`-algebra is also an `R`-algebra
@@ -97,16 +90,23 @@ def is_algebra {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : 
 end restrict_scalars
 
 /--
- The restriction of scalars operation is functorial. For any `f : R →+* S` a ring homomorphism,
- * an `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
- * an `S`-linear map is also `R`-linear
- -/
-@[simps] def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S) :
+The restriction of scalars operation is functorial. For any `f : R →+* S` a ring homomorphism,
+* an `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
+* an `S`-linear map is also `R`-linear
+-/
+def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S) :
   Module.{v} S ⥤ Module.{v} R :=
 { obj := restrict_scalars.obj' f,
   map := λ _ _, restrict_scalars.map' f,
   map_id' := λ _, linear_map.ext $ λ m, rfl,
   map_comp' := λ _ _ _ g h, linear_map.ext $ λ m, rfl }
+
+@[simp] lemma restrict_scalars.map_apply {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+  {M M' : Module.{v} S} (g : M ⟶ M') (x) : (restrict_scalars f).map g x = g x := rfl
+
+@[simp] lemma restrict_scalars.smul_def {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+  {M : Module.{v} S} (r : R) (m : (restrict_scalars f).obj M) : r • m = (f r • m : M) := rfl
+
 
 namespace extend_scalars
 
@@ -133,7 +133,7 @@ instance is_module : module S (S ⨂[R, f] M) :=
 begin
   fconstructor,
   intros r s₁ s₂,
-  simp only [restrict_scalars.smul_def f ⟨S⟩, smul_eq_mul],
+  simp only [restrict_scalars.smul_def, smul_eq_mul],
   ring,
 end
 

@@ -1068,6 +1068,9 @@ lemma contravariant.mul_le_cancellable [has_mul α] [has_le α] [contravariant_c
   {a : α} : mul_le_cancellable a :=
 λ b c, le_of_mul_le_mul_left'
 
+@[to_additive] lemma mul_le_cancellable_one [monoid α] [has_le α] : mul_le_cancellable (1 : α) :=
+λ a b, by simpa only [one_mul] using id
+
 namespace mul_le_cancellable
 
 @[to_additive]

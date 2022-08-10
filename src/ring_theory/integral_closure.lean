@@ -286,6 +286,51 @@ begin
   exact subalgebra.smul_mem _ (algebra.subset_adjoin $ hlx1 hr) _
 end
 
+variables {f}
+
+lemma ring_hom.finite.to_is_integral (h : f.finite) : f.is_integral :=
+by { letI := f.to_algebra, exact λ x, is_integral_of_mem_of_fg ⊤ h.1 _ trivial }
+
+alias ring_hom.finite.to_is_integral ← ring_hom.is_integral.of_finite
+
+lemma ring_hom.is_integral.to_finite (h : f.is_integral) (h' : f.finite_type) : f.finite :=
+begin
+  letI := f.to_algebra,
+  unfreezingI { obtain ⟨s, hs⟩ := h' },
+  constructor,
+  change (⊤ : subalgebra R S).to_submodule.fg,
+  rw ← hs,
+  exact fg_adjoin_of_finite (set.to_finite _) (λ x _, h x)
+end
+
+alias ring_hom.is_integral.to_finite ← ring_hom.finite.of_is_integral_of_finite_type
+
+/-- finite = integral + finite type -/
+lemma ring_hom.finite_iff_is_integral_and_finite_type :
+  f.finite ↔ f.is_integral ∧ f.finite_type :=
+⟨λ h, ⟨h.to_is_integral, h.to_finite_type⟩, λ ⟨h, h'⟩, h.to_finite h'⟩
+
+lemma algebra.is_integral.finite (h : algebra.is_integral R A) [h' : algebra.finite_type R A] :
+  module.finite R A :=
+begin
+  have := h.to_finite
+    (by { delta ring_hom.finite_type, convert h', ext, exact (algebra.smul_def _ _).symm }),
+  delta ring_hom.finite at this, convert this, ext, exact algebra.smul_def _ _,
+end
+
+lemma algebra.is_integral.of_finite [h : module.finite R A] : algebra.is_integral R A :=
+begin
+  apply ring_hom.finite.to_is_integral,
+  delta ring_hom.finite, convert h, ext, exact (algebra.smul_def _ _).symm,
+end
+
+/-- finite = integral + finite type -/
+lemma algebra.finite_iff_is_integral_and_finite_type :
+  module.finite R A ↔ algebra.is_integral R A ∧ algebra.finite_type R A :=
+⟨λ h, by exactI ⟨algebra.is_integral.of_finite, infer_instance⟩, λ ⟨h, h'⟩, by exactI h.finite⟩
+
+variables (f)
+
 lemma ring_hom.is_integral_of_mem_closure {x y z : S}
   (hx : f.is_integral_elem x) (hy : f.is_integral_elem y)
   (hz : z ∈ subring.closure ({x, y} : set S)) :
@@ -884,7 +929,7 @@ begin
   haveI : is_noetherian R A :=
   is_noetherian_of_fg_of_noetherian A.to_submodule (fg_adjoin_singleton_of_integral x (H x)),
   haveI : module.finite R A := module.is_noetherian.finite R A,
-  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@lmul_left_injective R A _ _ _ _
+  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@linear_map.mul_left_injective R A _ _ _ _
     ⟨x, subset_adjoin (set.mem_singleton x)⟩ (λ h, hx (subtype.ext_iff.mp h))) 1,
   exact ⟨y, subtype.ext_iff.mp hy⟩,
 end

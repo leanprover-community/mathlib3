@@ -145,8 +145,13 @@ instance is_module : module S $ Hom M :=
 end unbundled
 
 variable (M : Module.{v} R)
+
+/-- If `M` is an `R`-module, then the set of `R`-linear maps `S →ₗ[R] M` is an `S`-module with scalar
+multiplication defined by `s • l := x ↦ l (x • s)`-/
 def obj' : Module S := ⟨(restrict_scalars f).obj ⟨S⟩ →ₗ[R] M⟩
 
+/-- If `M, M'` are `R`-modules, then any `R`-linear map `g : M ⟶ M'` induces an `S`-linear map
+`(S →ₗ[R] M) ⟶ (S →ₗ[R] M')` defined by `h ↦ g ∘ h`-/
 @[simps] def map' {M M' : Module R} (g : M ⟶ M') : obj' f M ⟶ obj' f M' :=
 { to_fun := λ h, g.comp h,
   map_add' := λ _ _, linear_map.comp_add _ _ _,

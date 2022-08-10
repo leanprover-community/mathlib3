@@ -468,8 +468,11 @@ begin
     rw ← h_uniq hne.some hne.some_spec, exact hne.some_spec }
 end
 
-lemma nonempty.eq_singleton_default [unique α] {s : finset α} (hs : s.nonempty) : s = {default} :=
-eq_singleton_iff_nonempty_unique_mem.mpr ⟨hs, λ x hx, subsingleton.elim _ _⟩
+lemma nonempty_iff_eq_singleton_default [unique α] {s : finset α} :
+  s.nonempty ↔ s = {default} :=
+by simp [eq_singleton_iff_nonempty_unique_mem]
+
+alias nonempty_iff_eq_singleton_default ↔ nonempty.eq_singleton_default _
 
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=
 by simp only [eq_singleton_iff_unique_mem, exists_unique]

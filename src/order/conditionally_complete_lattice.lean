@@ -64,6 +64,21 @@ theorem with_top.cinfi_empty {α : Type*} [is_empty ι] [has_Inf α] (f : ι →
   (⨅ i, f i) = ⊤ :=
 by rw [infi, range_eq_empty, with_top.cInf_empty]
 
+lemma with_top.coe_Inf' [has_Inf α] {s : set α} (hs : s.nonempty) :
+  ↑(Inf s) = (Inf (coe '' s) : with_top α) :=
+begin
+  obtain ⟨x, hx⟩ := hs,
+  change _ = ite _ _ _,
+  split_ifs,
+  { cases h (mem_image_of_mem _ hx) },
+  { rw preimage_image_eq,
+    exact option.some_injective _ },
+end
+
+@[norm_cast] lemma with_top.coe_infi [nonempty ι] [has_Inf α] (f : ι → α) :
+  ↑(⨅ i, f i) = (⨅ i, f i : with_top α) :=
+by rw [infi, infi, with_top.coe_Inf' (range_nonempty f), range_comp]
+
 @[simp]
 theorem with_bot.cSup_empty {α : Type*} [has_Sup α] : Sup (∅ : set (with_bot α)) = ⊥ :=
 if_pos $ set.empty_subset _
@@ -72,6 +87,14 @@ if_pos $ set.empty_subset _
 theorem with_bot.csupr_empty {α : Type*} [is_empty ι] [has_Sup α] (f : ι → with_bot α) :
   (⨆ i, f i) = ⊥ :=
 by rw [supr, range_eq_empty, with_bot.cSup_empty]
+
+lemma with_bot.coe_Sup' [has_Sup α] {s : set α} (hs : s.nonempty) :
+  ↑(Sup s) = (Sup (coe '' s) : with_bot α) :=
+@with_top.coe_Inf' (αᵒᵈ) _ _ hs
+
+@[norm_cast] lemma with_bot.coe_supr [nonempty ι] [has_Sup α] (f : ι → α) :
+  ↑(⨆ i, f i) = (⨆ i, f i : with_bot α) :=
+@with_top.coe_infi (αᵒᵈ) _ _ _ _
 
 end -- section
 
@@ -855,25 +878,10 @@ begin
   simp_rw [mem_range, supr_exists, @supr_comm _ α, supr_supr_eq_right],
 end
 
+/-- A version of `with-top.coe_Inf'` with a more convenient but less general statement. -/
 @[norm_cast] lemma coe_Inf {s : set α} (hs : s.nonempty) :
   ↑(Inf s) = (⨅ a ∈ s, ↑a : with_top α) :=
-begin
-  obtain ⟨x, hx⟩ := hs,
-  have : (⨅ a ∈ s, ↑a : with_top α) ≤ x := infi₂_le_of_le x hx le_rfl,
-  rcases le_coe_iff.1 this with ⟨r, r_eq, hr⟩,
-  refine le_antisymm
-    (le_infi₂ $ λ a ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha) _,
-  { rw r_eq,
-    apply coe_le_coe.2 (le_cInf ⟨x, hx⟩ (λ a has, coe_le_coe.1 _)),
-    rw ←r_eq,
-    exact infi₂_le_of_le a has le_rfl }
-end
-
-@[norm_cast] lemma coe_infi [nonempty ι] (f : ι → α) : ↑(⨅ i, f i) = (⨅ i, f i : with_top α) :=
-begin
-  rw [infi, coe_Inf (range_nonempty f)],
-  simp_rw [mem_range, infi_exists, @infi_comm _ α, infi_infi_eq_right],
-end
+by rw [coe_Inf' hs, Inf_image]
 
 end with_top
 

@@ -40,6 +40,7 @@ structure Scheme extends to_LocallyRingedSpace : LocallyRingedSpace :=
 namespace Scheme
 
 /-- A morphism between schemes is a morphism between the underlying locally ringed spaces. -/
+@[nolint has_nonempty_instance] -- There isn't nessecarily a morphism between two schemes.
 def hom (X Y : Scheme) : Type* :=
 X.to_LocallyRingedSpace ⟶ Y.to_LocallyRingedSpace
 

@@ -76,12 +76,7 @@ by { haveI := fintype.of_finite α, exact fintype.exists_min f }
 
 @[priority 100] -- see Note [lower instance priority]
 instance of_subsingleton {α : Sort*} [subsingleton α] : finite α :=
-begin
-  casesI is_empty_or_nonempty α,
-  { exact finite.of_equiv _ (equiv.equiv_empty α).symm },
-  { casesI (unique_iff_subsingleton_and_nonempty α).mpr ⟨‹_›, ‹_›⟩,
-    exact finite.of_equiv unit (equiv.equiv_punit α).symm }
-end
+of_injective (function.const α ()) $ function.injective_of_subsingleton _
 
 @[nolint instance_priority] -- Higher priority for `Prop`s
 instance prop (p : Prop) : finite p := finite.of_subsingleton

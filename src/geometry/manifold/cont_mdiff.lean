@@ -719,6 +719,18 @@ lemma cont_mdiff_at_iff_cont_mdiff_on_nhds {n : ℕ} :
 by simp [← cont_mdiff_within_at_univ, cont_mdiff_within_at_iff_cont_mdiff_on_nhds,
   nhds_within_univ]
 
+/-- Note: This does not hold for `n = ∞`. `f` being `C^∞` at `x` means that for every `n`, `f` is
+`C^n` on some neighborhood of `x`, but this neighborhood can depend on `n`. -/
+lemma cont_mdiff_at_iff_cont_mdiff_at_nhds {n : ℕ} :
+  cont_mdiff_at I I' n f x ↔ ∀ᶠ x' in 𝓝 x, cont_mdiff_at I I' n f x' :=
+begin
+  refine ⟨_, λ h, h.self_of_nhds⟩,
+  rw [cont_mdiff_at_iff_cont_mdiff_on_nhds],
+  rintro ⟨u, hu, h⟩,
+  refine (eventually_mem_nhds.mpr hu).mono (λ x' hx', _),
+  exact (h x' $ mem_of_mem_nhds hx').cont_mdiff_at hx'
+end
+
 omit Is I's
 
 /-! ### Congruence lemmas -/

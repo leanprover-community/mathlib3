@@ -1714,7 +1714,7 @@ lemma sup_powerset_len {α : Type*} [decidable_eq α] (x : multiset α) :
 begin
   convert bind_powerset_len x,
   rw [multiset.bind, multiset.join, ←finset.range_coe, ←finset.sum_eq_multiset_sum],
-  exact eq_comm.mp (finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ h, disjoint_powerset_len x h)),
+  exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ h, disjoint_powerset_len x h)),
 end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :

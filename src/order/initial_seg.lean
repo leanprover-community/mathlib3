@@ -205,13 +205,15 @@ theorem init_iff [is_trans β s] (f : r ≺i s) {a : α} {b : β} :
   s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
 @initial_seg.init_iff α β r s f a b
 
-theorem irrefl (r : α → α → Prop) [is_well_order α r] (f : r ≺i r) : false :=
+theorem irrefl {r : α → α → Prop} [is_well_order α r] (f : r ≺i r) : false :=
 begin
   have := f.lt_top f.top,
   rw [show f f.top = f.top, from
       initial_seg.eq ↑f (initial_seg.refl r) f.top] at this,
   exact irrefl _ this
 end
+
+instance (r : α → α → Prop) [is_well_order α r] : is_empty (r ≺i r) := ⟨λ f, f.irrefl⟩
 
 /-- Composition of a principal segment with an initial segment, as a principal segment -/
 def lt_le (f : r ≺i s) (g : s ≼i t) : r ≺i t :=

@@ -307,6 +307,29 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
 
+/-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
+@[simps] noncomputable def _root_.quotient.out_rel_embedding [s : setoid α] {r : α → α → Prop} (H) :
+  quotient.lift₂ r H ↪r r :=
+⟨embedding.quotient_out α, begin
+  refine λ x y, quotient.induction_on₂ x y (λ a b, _),
+  apply iff_iff_eq.2 (H _ _ _ _ _ _);
+  apply quotient.mk_out
+end⟩
+
+/-- A relation is well founded iff its lift to a quotient is. -/
+@[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop} {H} :
+  well_founded (quotient.lift₂ r H) ↔ well_founded r :=
+⟨λ hr, begin
+  suffices : ∀ {x : quotient s} {a : α}, ⟦a⟧ = x → acc r a,
+  { exact ⟨λ a, this rfl⟩ },
+  { refine λ x, hr.induction x _,
+    rintros x IH a rfl,
+    exact ⟨_, λ b hb, IH ⟦b⟧ hb rfl⟩ }
+end, (quotient.out_rel_embedding H).well_founded⟩
+
+alias _root_.well_founded_lift₂_iff ↔
+  _root_.well_founded.of_quotient_lift₂ _root_.well_founded.quotient_lift₂
+
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
 suffices to give a function together with a proof that it satisfies `s (f a) (f b) ↔ r a b`.

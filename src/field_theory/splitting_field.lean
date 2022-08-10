@@ -230,6 +230,22 @@ theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
 (roots_map_of_injective_card_eq_total_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
+lemma image_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra_map F K))
+  (f : K →ₐ[F] L) : f '' p.root_set K = p.root_set L :=
+begin
+  classical,
+  rw [root_set, ←finset.coe_image, ←multiset.to_finset_map, ←f.coe_to_ring_hom, ←roots_map ↑f
+      ((splits_id_iff_splits (algebra_map F K)).mpr h), map_map, f.comp_algebra_map, ←root_set],
+end
+
+lemma adjoin_root_set_eq_range [algebra F K] [algebra F L] {p : F[X]}
+  (h : p.splits (algebra_map F K)) (f : K →ₐ[F] L) :
+  algebra.adjoin F (p.root_set L) = f.range ↔ algebra.adjoin F (p.root_set K) = ⊤ :=
+begin
+  rw [←image_root_set h f, algebra.adjoin_image, ←algebra.map_top],
+  exact (subalgebra.map_injective f.to_ring_hom.injective).eq_iff,
+end
+
 lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :
   p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
 begin
@@ -782,6 +798,16 @@ begin
   change function.surjective (lift L f $ splits (splitting_field f) f).to_linear_map,
   refine (linear_map.injective_iff_surjective_of_finrank_eq_finrank this).1 _,
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
+end
+
+lemma of_alg_equiv [algebra K F] (p : K[X]) (f : F ≃ₐ[K] L) [is_splitting_field K F p] :
+  is_splitting_field K L p :=
+begin
+  split,
+  { rw ← f.to_alg_hom.comp_algebra_map,
+    exact splits_comp_of_splits _ _ (splits F p) },
+  { rw [←(algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
+        ←root_set, adjoin_root_set_eq_range (splits F p), root_set, adjoin_roots F p] },
 end
 
 end is_splitting_field

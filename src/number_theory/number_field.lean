@@ -159,21 +159,18 @@ is a number field. -/
 instance {f : ℚ[X]} [hf : fact (irreducible f)] : number_field (adjoin_root f) :=
 { to_char_zero := char_zero_of_injective_algebra_map (algebra_map ℚ _).injective,
   to_finite_dimensional := by convert (adjoin_root.power_basis hf.out.ne_zero).finite_dimensional }
-
 end
 
 end adjoin_root
 
 namespace number_field.embeddings
 
-section number_field
+section fintype
 
-open set finite_dimensional polynomial
+open finite_dimensional
 
-variables {K L : Type*} [field K] [field L]
-variables [number_field K] [number_field L]  (x : K)
-
-variables {A : Type*} [field A] [char_zero A]
+variables (K : Type*) [field K] [number_field K]
+variables (A : Type*) [field A] [char_zero A]
 
 /-- There are finitely many embeddings of a number field. -/
 noncomputable instance : fintype (K →+* A) := fintype.of_equiv (K →ₐ[ℚ] A)
@@ -181,47 +178,66 @@ ring_hom.equiv_rat_alg_hom.symm
 
 variables [is_alg_closed A]
 
-/-- The number of embeddings of a number field is its finrank. -/
+/-- The number of embeddings of a number field is equal to its finrank. -/
 lemma card : fintype.card (K →+* A) = finrank ℚ K :=
 by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
 
-/-- For `x ∈ K`, with `K` a number field, the images of `x` by the embeddings of `K` are exactly
-the roots of the minimal polynomial of `x` over `ℚ` -/
-lemma eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
+end fintype
+
+section roots
+
+open set polynomial
+
+/-- Let `A` an algebraically closed field and let `x ∈ K`, with `K` a number field. For `F`,
+subfield of `K`, the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
+the roots in `A` of the minimal polynomial of `x` over `F` -/
+lemma range_eq_roots (F K A : Type*) [field F] [number_field F] [field K] [number_field K]
+  [field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
+  range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
 begin
-  have hx : is_integral ℚ x := is_separable.is_integral ℚ x,
+  haveI : finite_dimensional F K := finite_dimensional.right ℚ  _ _ ,
+  have hx : is_integral F x := is_separable.is_integral F x,
   ext a, split,
-  { rintro ⟨φ, hφ⟩,
-    rw [mem_root_set_iff, ←hφ],
-    { let ψ := ring_hom.equiv_rat_alg_hom φ,
-      show (aeval (ψ x)) (minpoly ℚ x) = 0,
-      rw aeval_alg_hom_apply ψ x (minpoly ℚ x),
+  { rintro ⟨ψ, hψ⟩,
+    rw [mem_root_set_iff, ←hψ],
+    { rw aeval_alg_hom_apply ψ x (minpoly F x),
       simp only [minpoly.aeval, map_zero], },
     exact minpoly.ne_zero hx, },
   { intro ha,
-    let Qx := adjoin_root (minpoly ℚ x),
-    haveI : fact (irreducible $ minpoly ℚ x) := ⟨minpoly.irreducible hx⟩,
-    have hK : (aeval x) (minpoly ℚ x) = 0 := minpoly.aeval _ _,
-    have hA : (aeval a) (minpoly ℚ x) = 0,
-    { rw [aeval_def, ←eval_map, ←mem_root_set_iff'],
-      exact ha,
-      refine polynomial.monic.ne_zero _,
-      exact polynomial.monic.map (algebra_map ℚ A) (minpoly.monic hx), },
-    let ψ : Qx →+* A := by convert adjoin_root.lift (algebra_map ℚ A) a hA,
-    letI : algebra Qx A := ring_hom.to_algebra ψ,
-    letI : algebra Qx K := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map ℚ K) x hK),
-    let φ₀ : K →ₐ[Qx] A,
-    { refine is_alg_closed.lift (algebra.is_algebraic_of_larger_base ℚ Qx _),
-      exact number_field.is_algebraic _, },
-    let φ := φ₀.to_ring_hom,
-    use φ,
-    rw (_ : x = (algebra_map Qx K) (adjoin_root.root (minpoly ℚ x))),
-    { rw (_ : a = ψ (adjoin_root.root (minpoly ℚ x))),
-      refine alg_hom.commutes _ _,
-      exact (adjoin_root.lift_root hA).symm, },
+    let Fx := adjoin_root (minpoly F x),
+    haveI : fact (irreducible $ minpoly F x) := ⟨minpoly.irreducible hx⟩,
+    have hK : (aeval x) (minpoly F x) = 0 := minpoly.aeval _ _,
+    have hA : (aeval a) (minpoly F x) = 0,
+    { rwa [aeval_def, ←eval_map, ←mem_root_set_iff'],
+      exact monic.ne_zero (monic.map (algebra_map F A) (minpoly.monic hx)), },
+    letI : algebra Fx A := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F A) a hA),
+    letI : algebra Fx K := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F K) x hK),
+    haveI : finite_dimensional Fx K := finite_dimensional.right ℚ  _ _ ,
+    let ψ₀ : K →ₐ[Fx] A := is_alg_closed.lift (algebra.is_algebraic_of_finite _ _),
+    haveI : is_scalar_tower F Fx K := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ hK),
+    haveI : is_scalar_tower F Fx A := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ hA),
+    let ψ : K →ₐ[F] A := alg_hom.restrict_scalars F ψ₀,
+    refine ⟨ψ, _⟩,
+    rw (_ : x = (algebra_map Fx K) (adjoin_root.root (minpoly F x))),
+    rw (_ : a = (algebra_map Fx A) (adjoin_root.root (minpoly F x))),
+    exact alg_hom.commutes _ _,
+    exact (adjoin_root.lift_root hA).symm,
     exact (adjoin_root.lift_root hK).symm, },
 end
 
-end number_field
+variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_alg_closed A] (x : K)
+
+/-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K` a number field.
+The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` of
+the minimal polynomial of `x` over `ℚ` -/
+lemma rat_range_eq_roots :
+range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
+begin
+  convert range_eq_roots ℚ K A x using 1,
+  ext a,
+  exact ⟨λ ⟨φ, hφ⟩, ⟨φ.to_rat_alg_hom, hφ⟩, λ ⟨φ, hφ⟩, ⟨φ.to_ring_hom, hφ⟩⟩,
+end
+
+end roots
 
 end number_field.embeddings

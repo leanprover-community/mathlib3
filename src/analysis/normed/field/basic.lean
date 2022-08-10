@@ -494,7 +494,21 @@ multiplication by the powers of any element, and thus to relate algebra and topo
 class nontrivially_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃ x : α, 1 < ∥x∥)
 
+/-- A densely normed field is a normed field for which the image of the norm is dense in `ℝ≥0`,
+which means it is also nontrivially normed. However, not all nontrivally normed fields are densely
+normed; in particular, the `padic`s exhibit this fact. -/
+class densely_normed_field (α : Type*) extends normed_field α :=
+(lt_norm_lt : ∀ x y : ℝ, 0 ≤ x → x < y → ∃ a : α, x < ∥a∥ ∧ ∥a∥ < y)
+
 section normed_field
+
+/-- A densely normed field is always a nontrivially normed field.
+See note [lower instance priority]. -/
+@[priority 100]
+instance densely_normed_field.to_nontrivially_normed_field [densely_normed_field α] :
+  nontrivially_normed_field α :=
+{ non_trivial := let ⟨a, h, _⟩ := densely_normed_field.lt_norm_lt 1 2 zero_le_one one_lt_two in
+    ⟨a, h⟩ }
 
 variables [normed_field α]
 
@@ -517,6 +531,8 @@ instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
 end normed_field
 
 namespace normed_field
+
+section nontrivially
 
 variables (α) [nontrivially_normed_field α]
 
@@ -550,14 +566,46 @@ end
 lemma nhds_within_is_unit_ne_bot : ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
+end nontrivially
+
+section densely
+
+variables (α) [densely_normed_field α]
+
+lemma exists_lt_norm_lt {r₁ r₂ : ℝ} (h₀ : 0 ≤ r₁) (h : r₁ < r₂) : ∃ x : α, r₁ < ∥x∥ ∧ ∥x∥ < r₂ :=
+densely_normed_field.lt_norm_lt r₁ r₂ h₀ h
+
+lemma exists_lt_nnnorm_lt {r₁ r₂ : ℝ≥0} (h : r₁ < r₂) : ∃ x : α, r₁ < ∥x∥₊ ∧ ∥x∥₊ < r₂ :=
+by exact_mod_cast exists_lt_norm_lt α r₁.prop h
+
+instance densely_ordered_range_norm : densely_ordered (set.range (norm : α → ℝ)) :=
+{ dense :=
+  begin
+    rintro ⟨-, x, rfl⟩ ⟨-, y, rfl⟩ hxy,
+    exact let ⟨z, h⟩ := exists_lt_norm_lt α (norm_nonneg _) hxy in ⟨⟨∥z∥, z, rfl⟩, h⟩,
+  end }
+
+instance densely_ordered_range_nnnorm : densely_ordered (set.range (nnnorm : α → ℝ≥0)) :=
+{ dense :=
+  begin
+    rintro ⟨-, x, rfl⟩ ⟨-, y, rfl⟩ hxy,
+    exact let ⟨z, h⟩ := exists_lt_nnnorm_lt α hxy in ⟨⟨∥z∥₊, z, rfl⟩, h⟩,
+  end }
+
+lemma dense_range_nnnorm : dense_range (nnnorm : α → ℝ≥0) :=
+dense_of_exists_between $ λ _ _ hr, let ⟨x, h⟩ := exists_lt_nnnorm_lt α hr in ⟨∥x∥₊, ⟨x, rfl⟩, h⟩
+
+end densely
+
 end normed_field
 
 instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_add_comm_group }
 
-instance : nontrivially_normed_field ℝ :=
-{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+instance : densely_normed_field ℝ :=
+{ lt_norm_lt := λ _ _ h₀ hr, let ⟨x, h⟩ := exists_between hr in
+    ⟨x, by rwa [real.norm_eq_abs, abs_of_nonneg (h₀.trans h.1.le)]⟩ }
 
 namespace real
 
@@ -664,8 +712,9 @@ instance : normed_field ℚ :=
   norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
   dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
 
-instance : nontrivially_normed_field ℚ :=
-{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+instance : densely_normed_field ℚ :=
+{ lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨q, h⟩ := exists_rat_btwn hr in
+    ⟨q, by { unfold norm, rwa abs_of_pos (h₀.trans_lt h.1) } ⟩ }
 
 @[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
 

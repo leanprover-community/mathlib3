@@ -468,6 +468,25 @@ theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f :
   (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
 @has_basis.limsup_eq_infi_supr αᵒᵈ _ _ _ _ _ _ _ h
 
+lemma limsup_eq_Inf_Sup {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
+  F.limsup a = Inf ((λ I, Sup (a '' I)) '' F.sets) :=
+begin
+  refine le_antisymm _ _,
+  { rw limsup_eq,
+    refine Inf_le_Inf (λ x hx, _),
+    rcases (mem_image _ F.sets x).mp hx with ⟨I, ⟨I_mem_F, hI⟩⟩,
+    filter_upwards [I_mem_F] with i hi,
+    exact hI ▸ le_Sup (mem_image_of_mem _ hi), },
+  { refine le_Inf_iff.mpr (λ b hb, Inf_le_of_le (mem_image_of_mem _ $ filter.mem_sets.mpr hb)
+      $ Sup_le _),
+    rintros _ ⟨_, h, rfl⟩,
+    exact h, },
+end
+
+lemma liminf_eq_Sup_Inf {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
+  F.liminf a = Sup ((λ I, Inf (a '' I)) '' F.sets) :=
+@filter.limsup_eq_Inf_Sup ι (order_dual R) _ _ a
+
 @[simp] lemma liminf_nat_add (f : ℕ → α) (k : ℕ) :
   at_top.liminf (λ i, f (i + k)) = at_top.liminf f :=
 by { simp_rw liminf_eq_supr_infi_of_nat, exact supr_infi_ge_nat_add f k }
@@ -497,6 +516,18 @@ lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
 end complete_lattice
 
 section conditionally_complete_linear_order
+
+lemma frequently_lt_of_lt_Limsup {f : filter α} [conditionally_complete_linear_order α] {a : α}
+  (hf : f.is_cobounded (≤) . is_bounded_default) (h : a < f.Limsup) : ∃ᶠ n in f, a < n :=
+begin
+  contrapose! h,
+  simp only [not_frequently, not_lt] at h,
+  exact Limsup_le_of_le hf h,
+end
+
+lemma frequently_lt_of_Liminf_lt {f : filter α} [conditionally_complete_linear_order α] {a : α}
+  (hf : f.is_cobounded (≥) . is_bounded_default) (h : f.Liminf < a) : ∃ᶠ n in f, n < a :=
+@frequently_lt_of_lt_Limsup (order_dual α) f _ a hf h
 
 lemma eventually_lt_of_lt_liminf {f : filter α} [conditionally_complete_linear_order β]
   {u : α → β} {b : β} (h : b < liminf f u) (hu : f.is_bounded_under (≥) u . is_bounded_default) :

@@ -52,21 +52,21 @@ open_locale topological_space manifold
 
 /-! ### Definition of smooth functions between manifolds -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 -- declare a smooth manifold `M` over the pair `(E, H)`.
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
 -- declare a smooth manifold `M'` over the pair `(E', H')`.
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
 -- declare a smooth manifold `N` over the pair `(F, G)`.
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
 {N : Type*} [topological_space N] [charted_space G N] [Js : smooth_manifold_with_corners J N]
 -- declare a smooth manifold `N'` over the pair `(F', G')`.
-{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
 {G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
 {N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
 -- declare functions, sets, points and smoothness indices
@@ -719,6 +719,18 @@ lemma cont_mdiff_at_iff_cont_mdiff_on_nhds {n : ℕ} :
 by simp [← cont_mdiff_within_at_univ, cont_mdiff_within_at_iff_cont_mdiff_on_nhds,
   nhds_within_univ]
 
+/-- Note: This does not hold for `n = ∞`. `f` being `C^∞` at `x` means that for every `n`, `f` is
+`C^n` on some neighborhood of `x`, but this neighborhood can depend on `n`. -/
+lemma cont_mdiff_at_iff_cont_mdiff_at_nhds {n : ℕ} :
+  cont_mdiff_at I I' n f x ↔ ∀ᶠ x' in 𝓝 x, cont_mdiff_at I I' n f x' :=
+begin
+  refine ⟨_, λ h, h.self_of_nhds⟩,
+  rw [cont_mdiff_at_iff_cont_mdiff_on_nhds],
+  rintro ⟨u, hu, h⟩,
+  refine (eventually_mem_nhds.mpr hu).mono (λ x' hx', _),
+  exact (h x' $ mem_of_mem_nhds hx').cont_mdiff_at hx'
+end
+
 omit Is I's
 
 /-! ### Congruence lemmas -/
@@ -778,7 +790,7 @@ lemma cont_mdiff_of_locally_cont_mdiff_on
 
 section composition
 
-variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+variables {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
@@ -1871,7 +1883,7 @@ We have no `model_with_corners.pi` yet, so we prove lemmas about functions `f : 
 use `𝓘(𝕜, Π i, F i)` as the model space.
 -/
 
-variables {ι : Type*} [fintype ι] {Fi : ι → Type*} [Π i, normed_group (Fi i)]
+variables {ι : Type*} [fintype ι] {Fi : ι → Type*} [Π i, normed_add_comm_group (Fi i)]
   [Π i, normed_space 𝕜 (Fi i)] {φ : M → Π i, Fi i}
 
 lemma cont_mdiff_within_at_pi_space :
@@ -1925,7 +1937,7 @@ L.cont_diff.cont_mdiff
 
 /-! ### Smoothness of standard operations -/
 
-variables {V : Type*} [normed_group V] [normed_space 𝕜 V]
+variables {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V]
 
 /-- On any vector space, multiplication by a scalar is a smooth operation. -/
 lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=

@@ -109,13 +109,15 @@ equivalent to some element of the second family and vice-versa. -/
 def equiv (x y : pSet) : Prop :=
 pSet.rec (λ α z m ⟨β, B⟩, (∀ a, ∃ b, m a (B b)) ∧ (∀ b, ∃ a, m a (B b))) x y
 
-theorem exists_equiv_left : Π {x y : pSet} (h : equiv x y) (i : x.type),
-  ∃ j, equiv (x.func i) (y.func j)
-| ⟨α, A⟩ ⟨β, B⟩ h := h.1
+theorem equiv_iff : Π {x y : pSet}, equiv x y ↔
+  (∀ i, ∃ j, equiv (x.func i) (y.func j)) ∧ (∀ j, ∃ i, equiv (x.func i) (y.func j))
+| ⟨α, A⟩ ⟨β, B⟩ := iff.rfl
 
-theorem exists_equiv_right : Π {x y : pSet} (h : equiv x y) (j : y.type),
-  ∃ i, equiv (x.func i) (y.func j)
-| ⟨α, A⟩ ⟨β, B⟩ h := h.2
+theorem equiv.exists_left {x y : pSet} (h : equiv x y) : ∀ i, ∃ j, equiv (x.func i) (y.func j) :=
+(equiv_iff.1 h).1
+
+theorem equiv.exists_right {x y : pSet} (h : equiv x y) : ∀ j, ∃ i, equiv (x.func i) (y.func j) :=
+(equiv_iff.1 h).2
 
 @[refl] protected theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
@@ -132,6 +134,9 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 
 @[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
+
+protected theorem equiv_of_is_empty (x y : pSet) [is_empty x.type] [is_empty y.type] : equiv x y :=
+equiv_iff.2 $ by simp
 
 instance setoid : setoid pSet :=
 ⟨pSet.equiv, equiv.refl, λ x y, equiv.symm, λ x y z, equiv.trans⟩
@@ -198,7 +203,7 @@ theorem mem.congr_left : Π {x y : pSet.{u}}, equiv x y → (∀ {w : pSet.{u}},
 private theorem mem_wf_aux : Π {x y : pSet.{u}}, equiv x y → acc (∈) y
 | ⟨α, A⟩ ⟨β, B⟩ H := ⟨_, begin
   rintros ⟨γ, C⟩ ⟨b, hc⟩,
-  cases exists_equiv_right H b with a ha,
+  cases H.exists_right b with a ha,
   have H := ha.trans hc.symm,
   rw mk_func at H,
   exact mem_wf_aux H
@@ -233,6 +238,9 @@ instance : is_empty (type (∅)) := pempty.is_empty
 @[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
 @[simp] theorem empty_subset (x : pSet.{u}) : (∅ : pSet) ⊆ x := λ x, x.elim
+
+protected theorem equiv_empty (x : pSet) [is_empty x.type] : equiv x ∅ :=
+pSet.equiv_of_is_empty x _
 
 /-- Insert an element into a pre-set -/
 protected def insert (x y : pSet) : pSet := ⟨option y.type, λ o, option.rec x y.func o⟩
@@ -594,8 +602,10 @@ mem_sUnion.2 ⟨z, hz, hy⟩
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 
-theorem singleton_inj {x y : Set.{u}} (H : ({x} : Set) = {y}) : x = y :=
-let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
+theorem singleton_injective : function.injective (@singleton Set Set _) :=
+λ x y H, let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
+
+@[simp] theorem singleton_inj {x y : Set} : ({x} : Set) = {y} ↔ x = y := singleton_injective.eq_iff
 
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
@@ -627,6 +637,7 @@ iff.trans mem_sUnion
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
 /-- Induction on the `∈` relation. -/
+@[elab_as_eliminator]
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
 quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
 show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
@@ -683,13 +694,13 @@ begin
   { rintro (rfl|rfl); [left, right]; assumption }
 end
 
-theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' :=
-begin
+theorem pair_injective : function.injective2 pair :=
+λ x x' y y' H, begin
   have ae := ext_iff.2 H,
   simp only [pair, mem_pair] at ae,
   obtain rfl : x = x',
   { cases (ae {x}).1 (by simp) with h h,
-    { exact singleton_inj h },
+    { exact singleton_injective h },
     { have m : x' ∈ ({x} : Set),
       { simp [h] },
       rw mem_singleton.mp m } },
@@ -707,6 +718,9 @@ begin
     { simp [yy'] } }
 end
 
+@[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
+pair_injective.eq_iff
+
 /-- The cartesian product, `{(a, b) | a ∈ x, b ∈ y}` -/
 def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λ a b, true)
 
@@ -715,7 +729,7 @@ by simp [prod]
 
 @[simp] theorem pair_mem_prod {x y a b : Set.{u}} : pair a b ∈ prod x y ↔ a ∈ x ∧ b ∈ y :=
 ⟨λ h, let ⟨a', a'x, b', b'y, e⟩ := mem_prod.1 h in
-  match a', b', pair_inj e, a'x, b'y with ._, ._, ⟨rfl, rfl⟩, ax, bY := ⟨ax, bY⟩ end,
+  match a', b', pair_injective e, a'x, b'y with ._, ._, ⟨rfl, rfl⟩, ax, bY := ⟨ax, bY⟩ end,
 λ ⟨ax, bY⟩, mem_prod.2 ⟨a, ax, b, bY, rfl⟩⟩
 
 /-- `is_func x y f` is the assertion that `f` is a subset of `x × y` which relates to each element
@@ -745,7 +759,7 @@ mem_image
 
 theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}} (zx : z ∈ x) :
   ∃! w, pair z w ∈ map f x :=
-⟨f z, image.mk _ _ zx, λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_inj we in
+⟨f z, image.mk _ _ zx, λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_injective we in
   by rw[←fy, wz]⟩
 
 @[simp] theorem map_is_func {f : Set → Set} [H : definable 1 f] {x y : Set} :
@@ -784,6 +798,26 @@ instance : has_mem Class Class := ⟨Class.mem⟩
 
 theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
+
+theorem mem_wf : @well_founded Class.{u} (∈) :=
+⟨begin
+  have H : ∀ x : Set.{u}, @acc Class.{u} (∈) ↑x,
+  { refine λ a, Set.induction_on a (λ x IH, ⟨x, _⟩),
+    rintros A ⟨z, rfl, hz⟩,
+    exact IH z hz },
+  { refine λ A, ⟨A, _⟩,
+    rintros B ⟨x, rfl, hx⟩,
+    exact H x }
+end⟩
+
+instance : has_well_founded Class := ⟨_, mem_wf⟩
+instance : is_asymm Class (∈) := mem_wf.is_asymm
+
+theorem mem_asymm {x y : Class} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : Class) : x ∉ x := irrefl x
+
+/-- There is no universal set. -/
+theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
@@ -867,7 +901,7 @@ namespace Set
   {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
 Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.mem_hom_right, mem_map], exact
-  ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_inj pr in by rw[←fw, wy],
+  ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_injective pr in by rw[←fw, wy],
   λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩ })
 
 variables (x : Set.{u}) (h : ∅ ∉ x)

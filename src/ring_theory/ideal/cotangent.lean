@@ -92,15 +92,11 @@ lemma to_cotangent_to_quotient_square (x : I) : I.cotangent_to_quotient_square (
   (I ^ 2).mkq x := rfl
 
 /-- `I ⧸ I ^ 2` as an ideal of `R ⧸ I ^ 2`. -/
-def cotangent_ideal : ideal (R ⧸ I ^ 2) :=
-{ carrier := (submodule.map (I ^ 2).mkq I).carrier,
-  add_mem' := λ _ _, (submodule.map (I  ^ 2).mkq I).add_mem,
-  zero_mem' := (submodule.map (I ^ 2).mkq I).zero_mem,
-  smul_mem' := begin
-    intros c x hx,
-    obtain ⟨c, rfl⟩ := ideal.quotient.mk_surjective c,
-    exact (submodule.map (I ^ 2).mkq I).smul_mem c hx,
-  end }
+def cotangent_ideal (I : ideal R) : ideal (R ⧸ I ^ 2) :=
+begin
+  haveI : @ring_hom_surjective R (R ⧸ I ^ 2) _ _ _ := ⟨ideal.quotient.mk_surjective⟩,
+  exact submodule.map (ring_hom.to_semilinear_map (I ^ 2)^.quotient.mk) I,
+end
 
 lemma to_quotient_square_range :
   I.cotangent_to_quotient_square.range = I.cotangent_ideal.restrict_scalars R :=

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anne Baanen
+Authors: Anne Baanen, Paul Lezeau
 -/
 
 import field_theory.minpoly
@@ -372,6 +372,17 @@ begin
   rw multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,
   rw normalized_factors_equiv_multiplicity_eq_multiplicity,
 end
+
+theorem kummer_dedekind.find_me_a_name  [is_domain R] [is_dedekind_domain R] [is_domain S]
+  [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I)
+  (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) : 
+  normalized_factors (I.map (algebra_map R S)) = multiset.map (λ J, (factors_equiv' pb hI hI' hpb J) : ideal S)
+    (normalized_factors (map I^.quotient.mk (minpoly R pb.gen))) := 
+begin 
+  ext J, 
+  by_cases h : J ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)),
+end
+
 /-
 
 

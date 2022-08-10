@@ -1064,16 +1064,17 @@ open asymptotics
 @[simp] lemma is_o_exp_mul_exp_mul_at_top {a b : ℝ} :
   (λ x, exp (a * x)) =o[at_top] (λ x, exp (b * x)) ↔ a < b :=
 begin
-  have key : ∀ {a b : ℝ}, a < b → (λ x, exp (a * x)) =o[at_top] (λ x, exp (b * x)),
-  { refine λ a b h, (is_o_iff_tendsto $ λ x hx, _).2 _,
-    { exact absurd hx (exp_ne_zero _) },
-    { simp only [← exp_sub, ← sub_mul, tendsto_exp_comp_nhds_zero],
-      exact tendsto_const_nhds.neg_mul_at_top (sub_neg.2 h) tendsto_id } },
-  have h₀ : ∃ᶠ (x : ℝ) in at_top, exp (b * x) ≠ 0 := frequently_of_forall (λ x, exp_ne_zero _),
-  rcases lt_trichotomy a b with hlt|rfl|hlt,
-  { simp only [key hlt, hlt] },
-  { simpa only [lt_irrefl, iff_false] using is_o_irrefl h₀ },
-  { simpa only [hlt.not_lt, iff_false] using (key hlt).is_O.not_is_o h₀ }
+  simp [← sub_mul],
+  -- have key : ∀ {a b : ℝ}, a < b → (λ x, exp (a * x)) =o[at_top] (λ x, exp (b * x)),
+  -- { refine λ a b h, (is_o_iff_tendsto $ λ x hx, _).2 _,
+  --   { exact absurd hx (exp_ne_zero _) },
+  --   { simp only [← exp_sub, ← sub_mul, tendsto_exp_comp_nhds_zero],
+  --     exact tendsto_const_nhds.neg_mul_at_top (sub_neg.2 h) tendsto_id } },
+  -- have h₀ : ∃ᶠ (x : ℝ) in at_top, exp (b * x) ≠ 0 := frequently_of_forall (λ x, exp_ne_zero _),
+  -- rcases lt_trichotomy a b with hlt|rfl|hlt,
+  -- { simp only [key hlt, hlt] },
+  -- { simpa only [lt_irrefl, iff_false] using is_o_irrefl h₀ },
+  -- { simpa only [hlt.not_lt, iff_false] using (key hlt).is_O.not_is_o h₀ }
 end
 
 @[simp] lemma is_o_exp_mul_exp_at_top {a : ℝ} :

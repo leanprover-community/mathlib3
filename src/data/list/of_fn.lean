@@ -114,8 +114,7 @@ end
 by cases n; simp only [of_fn_zero, of_fn_succ, eq_self_iff_true, nat.succ_ne_zero]
 
 lemma last_of_fn {n : ℕ} (f : fin n → α) (h : of_fn f ≠ [])
-  (hn : n - 1 < n := lt_of_not_le (mt (λ hn,
-    of_fn_eq_nil_iff.mpr (nat.pred_eq_self_iff.mp (le_antisymm (nat.pred_le _) hn))) h)) :
+  (hn : n - 1 < n := nat.pred_lt $ of_fn_eq_nil_iff.not.mp h) :
   last (of_fn f) h = f ⟨n - 1, hn⟩ :=
 by simp [last_eq_nth_le]
 

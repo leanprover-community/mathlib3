@@ -37,24 +37,24 @@ open_locale classical measure_theory nnreal ennreal topological_space big_operat
 
 namespace measure_theory
 
-variables {α β ι : Type*} {m : measurable_space α}
+variables {Ω β ι : Type*} {m : measurable_space Ω}
 
 /-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s n m` is the first time
 `u` is in `s` after time `n` and before time `m` (if `u` does not hit `s` after time `n` and
 before `m` then the hitting time is simply `m`).
 
 The hitting time is a stopping time if the process is adapted and discrete. -/
-noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n m : ι) : α → ι :=
+noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → Ω → β) (s : set β) (n m : ι) : Ω → ι :=
 λ x, if ∃ j ∈ set.Icc n m, u j x ∈ s then Inf (set.Icc n m ∩ {i : ι | u i x ∈ s}) else m
 
 section inequalities
 
-variables [conditionally_complete_linear_order ι] {u : ι → α → β} {s : set β} {n i : ι} {x : α}
+variables [conditionally_complete_linear_order ι] {u : ι → Ω → β} {s : set β} {n i : ι} {ω : Ω}
 
-lemma hitting_of_lt {m : ι} (h : m < n) : hitting u s n m x = m :=
+lemma hitting_of_lt {m : ι} (h : m < n) : hitting u s n m ω = m :=
 begin
   simp_rw [hitting],
-  have h_not : ¬∃ (j : ι) (H : j ∈ set.Icc n m), u j x ∈ s,
+  have h_not : ¬ ∃ (j : ι) (H : j ∈ set.Icc n m), u j ω ∈ s,
   { push_neg,
     intro j,
     rw set.Icc_eq_empty_of_lt h,
@@ -62,7 +62,7 @@ begin
   simp only [h_not, if_false],
 end
 
-lemma hitting_le {m : ι} (x : α) : hitting u s n m x ≤ m :=
+lemma hitting_le {m : ι} (ω : Ω) : hitting u s n m ω ≤ m :=
 begin
   cases le_or_lt n m with h_le h_lt,
   { simp only [hitting],
@@ -73,7 +73,7 @@ begin
   { rw hitting_of_lt h_lt, },
 end
 
-lemma le_hitting {m : ι} (hnm : n ≤ m) (x : α) : n ≤ hitting u s n m x :=
+lemma le_hitting {m : ι} (hnm : n ≤ m) (ω : Ω) : n ≤ hitting u s n m ω :=
 begin
   simp only [hitting],
   split_ifs,
@@ -85,23 +85,23 @@ begin
   { exact hnm },
 end
 
-lemma le_hitting_of_exists {m : ι} (h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s) :
-  n ≤ hitting u s n m x :=
+lemma le_hitting_of_exists {m : ι} (h_exists : ∃ j ∈ set.Icc n m, u j ω ∈ s) :
+  n ≤ hitting u s n m ω :=
 begin
-  refine le_hitting _ x,
+  refine le_hitting _ ω,
   by_contra,
   rw set.Icc_eq_empty_of_lt (not_le.mp h) at h_exists,
   simpa using h_exists,
 end
 
-lemma hitting_mem_Icc {m : ι} (hnm : n ≤ m) (x : α) : hitting u s n m x ∈ set.Icc n m :=
-⟨le_hitting hnm x, hitting_le x⟩
+lemma hitting_mem_Icc {m : ι} (hnm : n ≤ m) (ω : Ω) : hitting u s n m ω ∈ set.Icc n m :=
+⟨le_hitting hnm ω, hitting_le ω⟩
 
-lemma hitting_mem_set [is_well_order ι (<)] {m : ι} (h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s) :
-  u (hitting u s n m x) x ∈ s :=
+lemma hitting_mem_set [is_well_order ι (<)] {m : ι} (h_exists : ∃ j ∈ set.Icc n m, u j ω ∈ s) :
+  u (hitting u s n m ω) ω ∈ s :=
 begin
   simp_rw [hitting, if_pos h_exists],
-  have h_nonempty : (set.Icc n m ∩ {i : ι | u i x ∈ s}).nonempty,
+  have h_nonempty : (set.Icc n m ∩ {i : ι | u i ω ∈ s}).nonempty,
   { obtain ⟨k, hk₁, hk₂⟩ := h_exists,
     exact ⟨k, set.mem_inter hk₁ hk₂⟩, },
   have h_mem := Inf_mem h_nonempty,
@@ -109,34 +109,34 @@ begin
   exact h_mem.2,
 end
 
-lemma hitting_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i x ∈ s) :
-  hitting u s n m x ≤ i :=
+lemma hitting_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i ω ∈ s) :
+  hitting u s n m ω ≤ i :=
 begin
-  have h_exists : ∃ k ∈ set.Icc n m, u k x ∈ s := ⟨i, ⟨hin, him⟩, his⟩,
+  have h_exists : ∃ k ∈ set.Icc n m, u k ω ∈ s := ⟨i, ⟨hin, him⟩, his⟩,
   simp_rw [hitting, if_pos h_exists],
   exact cInf_le (bdd_below.inter_of_left bdd_below_Icc) (set.mem_inter ⟨hin, him⟩ his),
 end
 
 lemma hitting_le_iff_of_exists [is_well_order ι (<)] {m : ι}
-  (h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s) :
-  hitting u s n m x ≤ i ↔ ∃ j ∈ set.Icc n i, u j x ∈ s :=
+  (h_exists : ∃ j ∈ set.Icc n m, u j ω ∈ s) :
+  hitting u s n m ω ≤ i ↔ ∃ j ∈ set.Icc n i, u j ω ∈ s :=
 begin
   split; intro h',
-  { exact ⟨hitting u s n m x, ⟨le_hitting_of_exists h_exists, h'⟩, hitting_mem_set h_exists⟩, },
-  { have h'' : ∃ k ∈ set.Icc n (min m i), u k x ∈ s,
+  { exact ⟨hitting u s n m ω, ⟨le_hitting_of_exists h_exists, h'⟩, hitting_mem_set h_exists⟩, },
+  { have h'' : ∃ k ∈ set.Icc n (min m i), u k ω ∈ s,
     { obtain ⟨k₁, hk₁_mem, hk₁_s⟩ := h_exists,
       obtain ⟨k₂, hk₂_mem, hk₂_s⟩ := h',
       refine ⟨min k₁ k₂, ⟨le_min hk₁_mem.1 hk₂_mem.1, min_le_min hk₁_mem.2 hk₂_mem.2⟩, _⟩,
-      exact min_rec' (λ j, u j x ∈ s) hk₁_s hk₂_s, },
+      exact min_rec' (λ j, u j ω ∈ s) hk₁_s hk₂_s, },
     obtain ⟨k, hk₁, hk₂⟩ := h'',
     refine le_trans _ (hk₁.2.trans (min_le_right _ _)),
     exact hitting_le_of_mem hk₁.1 (hk₁.2.trans (min_le_left _ _)) hk₂, },
 end
 
 lemma hitting_le_iff_of_lt [is_well_order ι (<)] {m : ι} (i : ι) (hi : i < m) :
-  hitting u s n m x ≤ i ↔ ∃ j ∈ set.Icc n i, u j x ∈ s :=
+  hitting u s n m ω ≤ i ↔ ∃ j ∈ set.Icc n i, u j ω ∈ s :=
 begin
-  by_cases h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s,
+  by_cases h_exists : ∃ j ∈ set.Icc n m, u j ω ∈ s,
   { rw hitting_le_iff_of_exists h_exists, },
   { simp_rw [hitting, if_neg h_exists],
     push_neg at h_exists,
@@ -145,22 +145,22 @@ begin
 end
 
 lemma hitting_lt_iff [is_well_order ι (<)] {m : ι} (i : ι) (hi : i ≤ m) :
-  hitting u s n m x < i ↔ ∃ j ∈ set.Ico n i, u j x ∈ s :=
+  hitting u s n m ω < i ↔ ∃ j ∈ set.Ico n i, u j ω ∈ s :=
 begin
   split; intro h',
-  { have h : ∃ j ∈ set.Icc n m, u j x ∈ s,
+  { have h : ∃ j ∈ set.Icc n m, u j ω ∈ s,
     { by_contra,
       simp_rw [hitting, if_neg h, ← not_le] at h',
       exact h' hi, },
-    exact ⟨hitting u s n m x, ⟨le_hitting_of_exists h, h'⟩, hitting_mem_set h⟩, },
+    exact ⟨hitting u s n m ω, ⟨le_hitting_of_exists h, h'⟩, hitting_mem_set h⟩, },
   { obtain ⟨k, hk₁, hk₂⟩ := h',
     refine lt_of_le_of_lt _ hk₁.2,
     exact hitting_le_of_mem hk₁.1 (hk₁.2.le.trans hi) hk₂, },
 end
 
 lemma hitting_eq_hitting_of_exists
-  {m₁ m₂ : ι} (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j x ∈ s) :
-  hitting u s n m₁ x = hitting u s n m₂ x :=
+  {m₁ m₂ : ι} (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j ω ∈ s) :
+  hitting u s n m₁ ω = hitting u s n m₂ ω :=
 begin
   simp only [hitting, if_pos h'],
   obtain ⟨j, hj₁, hj₂⟩ := h',
@@ -181,15 +181,15 @@ end inequalities
 lemma hitting_is_stopping_time
   [conditionally_complete_linear_order ι] [is_well_order ι (<)] [encodable ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
-  {f : filtration ι m} {u : ι → α → β} {s : set β} {n n' : ι}
+  {f : filtration ι m} {u : ι → Ω → β} {s : set β} {n n' : ι}
   (hu : adapted f u) (hs : measurable_set s) :
   is_stopping_time f (hitting u s n n') :=
 begin
   intro i,
   cases le_or_lt n' i with hi hi,
-  { have h_le : ∀ x, hitting u s n n' x ≤ i := λ x, (hitting_le x).trans hi,
+  { have h_le : ∀ ω, hitting u s n n' ω ≤ i := λ x, (hitting_le x).trans hi,
     simp [h_le], },
-  { have h_set_eq_Union : {x | hitting u s n n' x ≤ i} = ⋃ j ∈ set.Icc n i, u j ⁻¹' s,
+  { have h_set_eq_Union : {ω | hitting u s n n' ω ≤ i} = ⋃ j ∈ set.Icc n i, u j ⁻¹' s,
     { ext x,
       rw [set.mem_set_of_eq, hitting_le_iff_of_lt _ hi],
       simp only [set.mem_Icc, exists_prop, set.mem_Union, set.mem_preimage], },
@@ -199,12 +199,12 @@ begin
 end
 
 lemma stopped_value_hitting_mem [conditionally_complete_linear_order ι] [is_well_order ι (<)]
-  {u : ι → α → β} {s : set β} {n m : ι} {x : α} (h : ∃ j ∈ set.Icc n m, u j x ∈ s) :
-  stopped_value u (hitting u s n m) x ∈ s :=
+  {u : ι → Ω → β} {s : set β} {n m : ι} {ω : Ω} (h : ∃ j ∈ set.Icc n m, u j ω ∈ s) :
+  stopped_value u (hitting u s n m) ω ∈ s :=
 begin
   simp only [stopped_value, hitting, if_pos h],
   obtain ⟨j, hj₁, hj₂⟩ := h,
-  have : Inf (set.Icc n m ∩ {i | u i x ∈ s}) ∈ set.Icc n m ∩ {i | u i x ∈ s} :=
+  have : Inf (set.Icc n m ∩ {i | u i ω ∈ s}) ∈ set.Icc n m ∩ {i | u i ω ∈ s} :=
     Inf_mem (set.nonempty_of_mem ⟨hj₁, hj₂⟩),
   exact this.2,
 end
@@ -215,7 +215,7 @@ lemma is_stopping_time_hitting_is_stopping_time
   [conditionally_complete_linear_order ι] [is_well_order ι (<)] [encodable ι]
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
-  {f : filtration ι m} {u : ι → α → β} {τ : α → ι} (hτ : is_stopping_time f τ)
+  {f : filtration ι m} {u : ι → Ω → β} {τ : Ω → ι} (hτ : is_stopping_time f τ)
   {N : ι} (hτbdd : ∀ x, τ x ≤ N) {s : set β} (hs : measurable_set s) (hf : adapted f u) :
   is_stopping_time f (λ x, hitting u s (τ x) N x) :=
 begin
@@ -238,9 +238,9 @@ end
 
 section complete_lattice
 
-variables [complete_lattice ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
+variables [complete_lattice ι] {u : ι → Ω → β} {s : set β} {f : filtration ι m}
 
-lemma hitting_eq_Inf (x : α) : hitting u s ⊥ ⊤ x = Inf {i : ι | u i x ∈ s} :=
+lemma hitting_eq_Inf (ω : Ω) : hitting u s ⊥ ⊤ ω = Inf {i : ι | u i ω ∈ s} :=
 begin
   simp only [hitting, set.mem_Icc, bot_le, le_top, and_self, exists_true_left, set.Icc_bot,
     set.Iic_top, set.univ_inter, ite_eq_left_iff, not_exists],
@@ -255,15 +255,15 @@ end complete_lattice
 section conditionally_complete_linear_order_bot
 
 variables [conditionally_complete_linear_order_bot ι] [is_well_order ι (<)]
-variables {u : ι → α → β} {s : set β} {f : filtration ℕ m}
+variables {u : ι → Ω → β} {s : set β} {f : filtration ℕ m}
 
-lemma hitting_bot_le_iff {i n : ι} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ s) :
-  hitting u s ⊥ n x ≤ i ↔ ∃ j ≤ i, u j x ∈ s :=
+lemma hitting_bot_le_iff {i n : ι} {ω : Ω} (hx : ∃ j, j ≤ n ∧ u j ω ∈ s) :
+  hitting u s ⊥ n ω ≤ i ↔ ∃ j ≤ i, u j ω ∈ s :=
 begin
   cases lt_or_le i n with hi hi,
   { rw hitting_le_iff_of_lt _ hi,
     simp, },
-  { simp only [(hitting_le x).trans hi, true_iff],
+  { simp only [(hitting_le ω).trans hi, true_iff],
     obtain ⟨j, hj₁, hj₂⟩ := hx,
     exact ⟨j, hj₁.trans hi, hj₂⟩, },
 end

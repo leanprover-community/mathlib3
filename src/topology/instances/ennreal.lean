@@ -497,56 +497,6 @@ by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_in
 
 instance : has_continuous_inv ℝ≥0∞ := ⟨order_iso.inv_ennreal.continuous⟩
 
-lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
-  ∃ R, ∃ᶠ n in l, x n < R :=
-begin
-  by_contra h,
-  simp_rw [not_exists, not_frequently, not_lt] at h,
-  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
-  simp only [eventually_map, ennreal.coe_le_coe],
-  filter_upwards [h r] with i hi using hi.trans ((coe_nnnorm (x i)).symm ▸ le_abs_self (x i)),
-end
-
-lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
-  ∃ R, ∃ᶠ n in l, R < x n :=
-begin
-  by_contra h,
-  simp_rw [not_exists, not_frequently, not_lt] at h,
-  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
-  simp only [eventually_map, ennreal.coe_le_coe],
-  filter_upwards [h (-r)] with i hi using (le_neg.1 hi).trans (neg_le_abs_self _),
-end
-
-lemma exists_upcrossings_of_not_bounded_under
-  {ι : Type*} {l : filter ι} {x : ι → ℝ}
-  (hf : liminf l (λ i, (∥x i∥₊ : ℝ≥0∞)) ≠ ∞)
-  (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
-  ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
-begin
-  rw [is_bounded_under_le_abs, not_and_distrib] at hbdd,
-  obtain hbdd | hbdd := hbdd,
-  { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top hf,
-    obtain ⟨q, hq⟩ := exists_rat_gt R,
-    refine ⟨q, q + 1, (lt_add_iff_pos_right _).2 zero_lt_one, _, _⟩,
-    { refine λ hcon, hR _,
-      filter_upwards [hcon] with x hx using not_lt.2 (lt_of_lt_of_le hq (not_lt.1 hx)).le },
-    { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
-        ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
-      refine λ hcon, hbdd ↑(q + 1) _,
-      filter_upwards [hcon] with x hx using not_lt.1 hx } },
-  { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top' hf,
-    obtain ⟨q, hq⟩ := exists_rat_lt R,
-    refine ⟨q - 1, q, (sub_lt_self_iff _).2 zero_lt_one, _, _⟩,
-    { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
-        ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
-      refine λ hcon, hbdd ↑(q - 1) _,
-      filter_upwards [hcon] with x hx using not_lt.1 hx },
-    { refine λ hcon, hR _,
-      filter_upwards [hcon] with x hx using not_lt.2 ((not_lt.1 hx).trans hq.le) } }
-end
-
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
 ⟨λ h, by simpa only [inv_inv] using tendsto.inv h,  tendsto.inv⟩
@@ -700,6 +650,60 @@ begin
 end
 
 end topological_space
+
+section liminf
+
+lemma exists_frequently_lt_of_liminf_ne_top
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  ∃ R, ∃ᶠ n in l, x n < R :=
+begin
+  by_contra h,
+  simp_rw [not_exists, not_frequently, not_lt] at h,
+  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
+  simp only [eventually_map, ennreal.coe_le_coe],
+  filter_upwards [h r] with i hi using hi.trans ((coe_nnnorm (x i)).symm ▸ le_abs_self (x i)),
+end
+
+lemma exists_frequently_lt_of_liminf_ne_top'
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  ∃ R, ∃ᶠ n in l, R < x n :=
+begin
+  by_contra h,
+  simp_rw [not_exists, not_frequently, not_lt] at h,
+  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
+  simp only [eventually_map, ennreal.coe_le_coe],
+  filter_upwards [h (-r)] with i hi using (le_neg.1 hi).trans (neg_le_abs_self _),
+end
+
+lemma exists_upcrossings_of_not_bounded_under
+  {ι : Type*} {l : filter ι} {x : ι → ℝ}
+  (hf : liminf l (λ i, (∥x i∥₊ : ℝ≥0∞)) ≠ ∞)
+  (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
+  ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
+begin
+  rw [is_bounded_under_le_abs, not_and_distrib] at hbdd,
+  obtain hbdd | hbdd := hbdd,
+  { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top hf,
+    obtain ⟨q, hq⟩ := exists_rat_gt R,
+    refine ⟨q, q + 1, (lt_add_iff_pos_right _).2 zero_lt_one, _, _⟩,
+    { refine λ hcon, hR _,
+      filter_upwards [hcon] with x hx using not_lt.2 (lt_of_lt_of_le hq (not_lt.1 hx)).le },
+    { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
+        ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
+      refine λ hcon, hbdd ↑(q + 1) _,
+      filter_upwards [hcon] with x hx using not_lt.1 hx } },
+  { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top' hf,
+    obtain ⟨q, hq⟩ := exists_rat_lt R,
+    refine ⟨q - 1, q, (sub_lt_self_iff _).2 zero_lt_one, _, _⟩,
+    { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
+        ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
+      refine λ hcon, hbdd ↑(q - 1) _,
+      filter_upwards [hcon] with x hx using not_lt.1 hx },
+    { refine λ hcon, hR _,
+      filter_upwards [hcon] with x hx using not_lt.2 ((not_lt.1 hx).trans hq.le) } }
+end
+
+end liminf
 
 section tsum
 

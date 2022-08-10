@@ -211,15 +211,15 @@ open limits adjunction
 
 universes v₁ v₂
 
-variables {𝓐 : Type u₁} {𝓑 : Type u₂} [category.{v₁} 𝓐] [category.{v₂} 𝓑] [enough_injectives 𝓑]
-variables (L : 𝓐 ⥤ 𝓑) (R : 𝓑 ⥤ 𝓐)
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] [enough_injectives D]
+variables (L : C ⥤ D) (R : D ⥤ A)
 
 namespace enough_injectives_of_adjunction_auxs
 
 /--
 Given injective presentation `L(A) → J`, then `injective_object_of_adjunction A` is defined to be
 `R(J)`. It will later be proven to be an injective object in `𝓐`.-/
-def RJ (A : 𝓐) : 𝓐 := R.obj $ injective.under (L.obj A)
+def RJ (A : C) : C := R.obj $ injective.under (L.obj A)
 
 local notation `RJ_of` := RJ L R
 
@@ -244,15 +244,13 @@ v                               v                 |
 Y                              L(Y) ---------------
 
 -/
-def LY_to_J [preserves_finite_limits L]
-  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
+def LY_to_J [preserves_finite_limits L] {A X Y : C} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
   L.obj Y ⟶ injective.under (L.obj A) :=
 let factors := (injective.injective_under $ L.obj A).factors in
 (factors ((adj.hom_equiv X $ injective.under $ L.obj A).symm g) (L.map f)).some
 
-lemma L_map_comp_to_J_eq [preserves_finite_limits L]
-  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
-  L.map f ≫ (LY_to_J _ adj g f) = (adj.hom_equiv X $ injective.under _).symm g :=
+lemma L_map_comp_to_J_eq [preserves_finite_limits L] {A X Y : C} (g : X ⟶ RJ_of A) (f : X ⟶ Y)
+  [mono f] : L.map f ≫ (LY_to_J _ adj g f) = (adj.hom_equiv X $ injective.under _).symm g :=
 let factors := (injective.injective_under $ L.obj A).factors in
 (factors ((adj.hom_equiv _ _).symm g) (L.map f)).some_spec
 
@@ -276,11 +274,11 @@ Y --------------                                      L(Y) ---------------
 
 -/
 def Y_to_RJ [preserves_finite_limits L]
-  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] : Y ⟶ RJ_of A :=
+  {A X Y : C} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] : Y ⟶ RJ_of A :=
 adj.hom_equiv _ _ $ LY_to_J _ adj g f
 
 lemma comp_Y_to_RJ [preserves_finite_limits L]
-  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] : f ≫ Y_to_RJ _ adj g f = g :=
+  {A X Y : C} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] : f ≫ Y_to_RJ _ adj g f = g :=
 begin
   have := L_map_comp_to_J_eq _ adj g f,
   rw ←adj.hom_equiv_apply_eq at this,
@@ -299,18 +297,17 @@ end
 
 include adj
 
-lemma injective_RJ [preserves_finite_limits L] (A : 𝓐) : injective (RJ_of A) :=
+lemma injective_RJ [preserves_finite_limits L] (A : C) : injective (RJ_of A) :=
 ⟨λ X Y g f m, ⟨by { resetI, exact Y_to_RJ _ adj g f }, by apply comp_Y_to_RJ⟩⟩
 
 /-- the morphism `A → R(J)` obtained by `L(A) → J` via adjunction, this morphism is mono, so that
 `A → R(J)` is an injective presentation of `A` in `𝓐`.-/
-def to_RJ (A : 𝓐) :
-  A ⟶ RJ_of A :=
+def to_RJ (A : C) : A ⟶ RJ_of A :=
 adj.hom_equiv A (injective.under $ L.obj A) (injective.ι _)
 
 local notation `to_RJ_of` A := to_RJ adj A
 
-instance mono_to_RJ (A : 𝓐) [abelian 𝓐] [abelian 𝓑] [preserves_finite_limits L] [faithful L] :
+instance mono_to_RJ (A : C) [abelian 𝓐] [abelian 𝓑] [preserves_finite_limits L] [faithful L] :
   mono $ to_RJ_of A :=
 have e2 : exact (L.map (kernel.ι $ to_RJ_of A)) (L.map $ to_RJ_of A),
 begin
@@ -339,10 +336,10 @@ end enough_injectives_of_adjunction_auxs
 
 /--
 faithful and exact left adjoint functor transfers enough injectiveness.-/
-lemma enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
-  [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
-  {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R) [faithful L] [preserves_finite_limits L]
-  [enough_injectives 𝓑] : enough_injectives 𝓐 :=
+lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
+  [category.{v₁} C] [category.{v₂} D] [abelian C] [abelian D]
+  {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) [faithful L] [preserves_finite_limits L]
+  [enough_injectives D] : enough_injectives C :=
 { presentation := λ A,
   ⟨⟨enough_injectives_of_adjunction_auxs.RJ L R A,
     enough_injectives_of_adjunction_auxs.injective_RJ adj A,
@@ -351,9 +348,9 @@ lemma enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
 
 /--
 equivalence of category transfers enough injectiveness.-/
-lemma enough_injectives.of_equivalence {𝓐 : Type u₁} {𝓑 : Type u₂}
-  [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
-  (e : 𝓐 ⥤ 𝓑) [is_equivalence e] [enough_injectives 𝓑] : enough_injectives 𝓐 :=
+lemma enough_injectives.of_equivalence {C : Type u₁} {D : Type u₂}
+  [category.{v₁} C] [category.{v₂} D] [abelian C] [abelian D]
+  (e : 𝓐 ⥤ 𝓑) [is_equivalence e] [enough_injectives D] : enough_injectives C :=
 @@enough_injectives.of_adjunction _ _ _ _ e.as_equivalence.to_adjunction _ _ _
 
 end transfer_enough_injectives

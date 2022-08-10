@@ -101,8 +101,12 @@ suffices ∀ a : α, 0 < a → 0 < a⁻¹,
 from ⟨λ h, inv_inv a ▸ this _ h, this a⟩,
 assume a ha, flip lt_of_mul_lt_mul_left ha.le $ by simp [ne_of_gt ha, zero_lt_one]
 
+alias inv_pos ↔ _ inv_pos_of_pos
+
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
 by simp only [le_iff_eq_or_lt, inv_pos, zero_eq_inv]
+
+alias inv_nonneg ↔ _ inv_nonneg_of_nonneg
 
 @[simp] lemma inv_lt_zero : a⁻¹ < 0 ↔ a < 0 :=
 by simp only [← not_le, inv_nonneg]

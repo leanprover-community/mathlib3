@@ -209,7 +209,7 @@ variables [preorder ι] {E : Type*} [has_zero E] [topological_space E]
   {𝒢 : filtration ι m0} {g : ι → Ω → E}
 
 /-- Given a process `f` and a filtration `ℱ`, if `f` converges to some `g` almost everywhere and
-`g` is `⨆ n, ℱ n`-measurable, then `limit_process f ℱ` chooses said `g`, else it returns 0.
+`g` is `⨆ n, ℱ n`-measurable, then `limit_process f ℱ μ` chooses said `g`, else it returns 0.
 
 This definition is used to phrase the a.e. martingale convergence theorem
 `submartingale.ae_tendsto_limit_process` where an L¹-bounded submartingale `f` adapted to `ℱ`

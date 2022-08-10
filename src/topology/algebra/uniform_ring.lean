@@ -191,12 +191,8 @@ instance algebra' : algebra S (completion R) :=
   smul_def' := λ s x, congr_fun (map_smul_eq_mul_coe R S s) x,
   ..((uniform_space.completion.coe_ring_hom : R →+* completion R).comp (algebra_map S R)) }
 
-@[simp] lemma algebra'_smul_eq (s : S) (x : completion R) :
-  s • x = (algebra_map S R s : completion R) * x :=
-by rw algebra.smul_def; refl
-
-lemma coe_algebra_map (s : S) :
-  (algebra_map S R s : completion R) = algebra_map S (completion R) s :=
+lemma algebra_map_def (s : S) :
+  algebra_map S (completion R) s = (algebra_map S R s : completion R) :=
 rfl
 
 end algebra

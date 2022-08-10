@@ -10,8 +10,10 @@ import category_theory.limits.constructions.weakly_initial
 import category_theory.limits.preserves.basic
 import category_theory.limits.creates
 import category_theory.limits.comma
+import category_theory.limits.cone_category
 import category_theory.punit
 import category_theory.subobject.comma
+import category_theory.limits.functor_category
 
 /-!
 # Adjoint functor theorem
@@ -31,6 +33,9 @@ factors through one of the `f_i`.
 This file also proves the special adjoint functor theorem, in the form:
 * If `G : D ⥤ C` preserves limits and `D` is complete, well-powered and has a small coseparating
   set, then `G` has a left adjoint: `is_right_adjoint_of_preserves_limits_of_is_coseparating`
+
+Finally, we prove the following corollary of the special adjoint functor theorem:
+* If `C` is complete, well-powered and has a small coseparating set, then it is cocomplete.
 
 
 -/
@@ -55,9 +60,8 @@ def solution_set_condition {D : Type u} [category.{v} D] (G : D ⥤ C) : Prop :=
 ∀ (A : C), ∃ (ι : Type v) (B : ι → D) (f : Π (i : ι), A ⟶ G.obj (B i)),
   ∀ X (h : A ⟶ G.obj X), ∃ (i : ι) (g : B i ⟶ X), f i ≫ G.map g = h
 
-variables {D : Type u} [category.{v} D]
-
 section general_adjoint_functor_theorem
+variables {D : Type u} [category.{v} D]
 
 variables (G : D ⥤ C)
 
@@ -96,6 +100,7 @@ end
 end general_adjoint_functor_theorem
 
 section special_adjoint_functor_theorem
+variables {D : Type u'} [category.{v} D]
 
 /--
 The special adjoint functor theorem: if `G : D ⥤ C` preserves limits and `D` is complete,
@@ -107,6 +112,7 @@ noncomputable def is_right_adjoint_of_preserves_limits_of_is_coseparating [has_l
 have ∀ A, has_initial (structured_arrow A G),
   from λ A, has_initial_of_is_coseparating (structured_arrow.is_coseparating_proj_preimage A G h𝒢),
 by exactI is_right_adjoint_of_structured_arrow_initials _
+
 
 /--
 The special adjoint functor theorem: if `F : C ⥤ D` preserves colimits and `C` is cocomplete,
@@ -120,5 +126,23 @@ have ∀ A, has_terminal (costructured_arrow F A),
 by exactI is_left_adjoint_of_costructured_arrow_terminals _
 
 end special_adjoint_functor_theorem
+
+namespace limits
+
+/-- A consequence of the special adjoint functor theorem: if `C` is complete, well-powered and
+    has a small coseparating set, then it is cocomplete. -/
+lemma has_colimits_of_has_limits_of_is_coseparating [has_limits C] [well_powered C]
+  {𝒢 : set C} [small.{v} 𝒢] (h𝒢 : is_coseparating 𝒢) : has_colimits C :=
+{ has_colimits_of_shape := λ J hJ, by exactI has_colimits_of_shape_iff_is_right_adjoint_const.2
+    ⟨is_right_adjoint_of_preserves_limits_of_is_coseparating h𝒢 _⟩ }
+
+/-- A consequence of the special adjoint functor theorem: if `C` is cocomplete, well-copowered and
+    has a small separating set, then it is complete. -/
+lemma has_limits_of_has_colimits_of_is_separating [has_colimits C] [well_powered Cᵒᵖ]
+  {𝒢 : set C} [small.{v} 𝒢] (h𝒢 : is_separating 𝒢) : has_limits C :=
+{ has_limits_of_shape := λ J hJ, by exactI has_limits_of_shape_iff_is_left_adjoint_const.2
+    ⟨is_left_adjoint_of_preserves_colimits_of_is_separatig h𝒢 _⟩ }
+
+end limits
 
 end category_theory

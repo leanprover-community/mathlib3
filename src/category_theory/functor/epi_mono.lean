@@ -205,22 +205,24 @@ def split_mono_equiv [full F] [faithful F] : split_mono f ≃ split_mono (F.map 
   left_inv := by tidy,
   right_inv := by tidy, }
 
+@[simp]
 lemma epi_iff_epi_map [hF₁ : preserves_epimorphisms F] [hF₂ : reflects_epimorphisms F] :
-  epi f ↔ epi (F.map f) :=
+  epi (F.map f) ↔ epi f :=
 begin
   split,
+  { exact F.epi_of_epi_map, },
   { introI h,
     exact F.map_epi f, },
-  { exact F.epi_of_epi_map, },
 end
 
+@[simp]
 lemma mono_iff_mono_map [hF₁ : preserves_monomorphisms F] [hF₂ : reflects_monomorphisms F] :
-  mono f ↔ mono (F.map f) :=
+  mono (F.map f) ↔ mono f :=
 begin
   split,
+  { exact F.mono_of_mono_map, },
   { introI h,
     exact F.map_mono f, },
-  { exact F.mono_of_mono_map, },
 end
 
 end

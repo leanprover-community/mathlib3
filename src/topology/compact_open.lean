@@ -121,6 +121,10 @@ continuous_generated_from begin
   exact mem_prod.mpr ⟨hKL, image_subset_iff.mpr hLU⟩,
 end
 
+lemma yuri1 (α β γ : Type*) [topological_space α] [topological_space β]
+  [locally_compact_space β] [topological_space γ] [has_mul γ] [has_continuous_mul γ]:
+  continuous (λ x y : C(α, β) × C(β, γ), (x.2.comp x.1) * (y.2.comp y.1)) := sorry
+
 end functorial
 
 section ev

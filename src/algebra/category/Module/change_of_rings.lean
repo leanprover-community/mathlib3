@@ -59,11 +59,11 @@ If `R, S` are commutative rings and `f : R →+* S`, then any `S`-algebra is als
 def is_algebra {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
   (A : Type v) [comm_semiring A] [algebra S A] : algebra R A :=
 { smul := (module.comp_hom A f).to_has_smul.smul,
-  to_fun := algebra_map _ _ ∘ f,
-  map_one' := by simp only [function.comp_app, map_one],
-  map_mul' := λ _ _, by simp only [function.comp_app, map_mul],
-  map_zero' := by simp only [function.comp_app, map_zero],
-  map_add' := λ _ _, by simp only [function.comp_app, map_add],
+  to_fun := (algebra_map _ _).comp f,
+  map_one' := by simp,
+  map_mul' := λ _ _, by simp [map_mul],
+  map_zero' := by simp,
+  map_add' := λ _ _, by simp [map_add],
   commutes' := λ _ _, by ring,
   smul_def' := λ r a, algebra.smul_def _ _ }
 

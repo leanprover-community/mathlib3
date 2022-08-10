@@ -837,6 +837,13 @@ begin
   { exact supr₂_le (λ a ha, coe_le_coe.2 $ le_cSup hb ha) }
 end
 
+lemma coe_supr {ι : Sort*} (f : ι → α) (h : bdd_above (set.range f)) :
+  ↑(⨆ i, f i) = (⨆ i, f i : with_top α) :=
+begin
+  rw [supr, coe_Sup h],
+  simp_rw [mem_range, supr_exists, @supr_comm _ α, supr_supr_eq_right],
+end
+
 lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = ⨅ a ∈ s, ↑a :=
 begin
   obtain ⟨x, hx⟩ := hs,
@@ -848,6 +855,12 @@ begin
     apply coe_le_coe.2 (le_cInf ⟨x, hx⟩ (λ a has, coe_le_coe.1 _)),
     rw ←r_eq,
     exact infi₂_le_of_le a has le_rfl }
+end
+
+lemma coe_infi {ι : Sort*} [nonempty ι] (f : ι → α) : ↑(⨅ i, f i) = (⨅ i, f i : with_top α) :=
+begin
+  rw [infi, coe_Inf (range_nonempty f)],
+  simp_rw [mem_range, infi_exists, @infi_comm _ α, infi_infi_eq_right],
 end
 
 end with_top

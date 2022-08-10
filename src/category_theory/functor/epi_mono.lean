@@ -206,7 +206,7 @@ def split_mono_equiv [full F] [faithful F] : split_mono f ≃ split_mono (F.map 
   right_inv := by tidy, }
 
 @[simp]
-lemma epi_iff_epi_map [hF₁ : preserves_epimorphisms F] [hF₂ : reflects_epimorphisms F] :
+lemma epi_map_iff_epi [hF₁ : preserves_epimorphisms F] [hF₂ : reflects_epimorphisms F] :
   epi (F.map f) ↔ epi f :=
 begin
   split,

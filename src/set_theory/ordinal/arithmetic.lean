@@ -1977,12 +1977,10 @@ end
 theorem opow_one_add (a b : ordinal) : a ^ (1 + b) = a * a ^ b :=
 by rw [opow_add, opow_one]
 
-theorem opow_dvd_opow (a) {b c : ordinal}
-  (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by { rw [← ordinal.add_sub_cancel_of_le h, opow_add], apply dvd_mul_right }
+theorem opow_dvd_opow (a) {b c : ordinal} (h : b ≤ c) : a ^ b ∣ a ^ c :=
+⟨a ^ (c - b), by rw [←opow_add, ordinal.add_sub_cancel_of_le h] ⟩
 
-theorem opow_dvd_opow_iff {a b c : ordinal}
-  (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
+theorem opow_dvd_opow_iff {a b c : ordinal} (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
 ⟨λ h, le_of_not_lt $ λ hn,
   not_le_of_lt ((opow_lt_opow_iff_right a1).2 hn) $
     le_of_dvd (opow_ne_zero _ $ one_le_iff_ne_zero.1 $ a1.le) h,
@@ -2007,9 +2005,6 @@ begin
     simp only [IH] {contextual := tt},
     exact (opow_le_of_limit (opow_ne_zero _ a0) l).symm }
 end
-
-theorem pow_dvd_pow (o : ordinal) {a b : ordinal} (h : a ≤ b) : o ^ a ∣ o ^ b :=
-⟨o ^ (b - a), by rw [←opow_add, ordinal.add_sub_cancel_of_le h]⟩
 
 /-! ### Ordinal logarithm -/
 

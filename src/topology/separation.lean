@@ -258,7 +258,7 @@ begin
     exact ⟨t, ssubset_iff_subset_ne.2 ⟨hts, mt finset.coe_inj.2 hts'⟩, htne, hto⟩ }
 end
 
-theorem exists_open_singleton_of_fintype [t0_space α] [fintype α] [nonempty α] :
+theorem exists_open_singleton_of_fintype [t0_space α] [finite α] [nonempty α] :
   ∃ x : α, is_open ({x} : set α) :=
 let ⟨x, _, h⟩ := exists_open_singleton_of_open_finite (set.to_finite _) univ_nonempty
   is_open_univ in ⟨x, h⟩

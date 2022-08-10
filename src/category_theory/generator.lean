@@ -264,11 +264,11 @@ end
     category with a small coseparating set has an initial object.
 
     In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete. -/
-lemma has_initial_of_is_cosepatating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v} 𝒢]
+lemma has_initial_of_is_cosepatating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_coseparating 𝒢) : has_initial C :=
 begin
   haveI := has_products_of_shape_of_small C 𝒢,
-  haveI := λ A, has_products_of_shape_of_small.{v} C (Σ G : 𝒢, A ⟶ (G : C)),
+  haveI := λ A, has_products_of_shape_of_small.{v₁} C (Σ G : 𝒢, A ⟶ (G : C)),
   letI := complete_lattice_of_complete_semilattice_Inf (subobject (pi_obj (coe : 𝒢 → C))),
   suffices : ∀ A : C, unique (((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) ⟶ A),
   { exactI has_initial_of_unique ((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) },
@@ -287,11 +287,11 @@ end
     category with a small separating set has a terminal object.
 
     In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete. -/
-lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v} 𝒢]
+lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_separating 𝒢) : has_terminal C :=
 begin
   haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
-  haveI : small.{v} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
+  haveI : small.{v₁} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
   haveI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating ((is_coseparating_op_iff _).2 h𝒢),
   exact has_terminal_of_has_initial_op
 end

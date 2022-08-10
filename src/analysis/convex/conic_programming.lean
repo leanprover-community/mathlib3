@@ -1,6 +1,8 @@
 import analysis.convex.cone
+import analysis.inner_product_space.adjoint
 
 noncomputable theory
+open filter continuous_linear_map
 
 -- https://ti.inf.ethz.ch/ew/lehre/ApproxSDP09/notes/conelp.pdf
 
@@ -12,15 +14,16 @@ structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E]
 variables {E : Type*} [inner_product_space ℝ E] [complete_space E]
 variables {F : Type*} [inner_product_space ℝ F] [complete_space F]
 
+-- TODO: generalize this to other fields
 def convex_cone.closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 { carrier := closure (K : set E),
   smul_mem' := by { simp_rw mem_closure_iff_seq_limit,
     exact λ c hc x ⟨seq, mem, tends⟩,
-      ⟨ λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), filter.tendsto.const_smul tends c ⟩ ⟩ },
+      ⟨ λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c ⟩ ⟩ },
   add_mem' := by { simp_rw mem_closure_iff_seq_limit,
     exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
       ⟨ λ n, xseq n + yseq n,
-      ⟨ λ n, K.add_mem (xmem n) (ymem n), filter.tendsto.add xtends ytends ⟩ ⟩ } }
+      ⟨ λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends ⟩ ⟩ } }
 
 namespace proper_cone
 
@@ -69,6 +72,21 @@ def map (K : proper_cone E) (A : E →ₗ[ℝ] F) : proper_cone F :=
 
 end proper_cone
 
+def subfeasible (K : proper_cone E) (A : E →L[ℝ] F) (b : E) :=
+  ∃ x : ℕ → E, tendsto x at_top (nhds b)
+
+-- #check inner_product_space
+
+#check @continuous_linear_map.adjoint
+#check adjoint_inner_left
+
+theorem farkas_lemma (K : proper_cone E) (A : E →L[ℝ] F) (b : E) :
+  subfeasible K A b ↔ true := ∀ y : F, ((adjoint A) y) = 0 :=
+begin
+  have := adjoint A,
+  sorry,
+end
+
 -- def convex_cone.cone_le (K : convex_cone ℝ E) (x y : E) := ∃ k : K, x + k = y
 
 -- def cone_preorder (K : closed_convex_cone E) : preorder E :=
@@ -83,23 +101,23 @@ end proper_cone
 --   lt_iff_le_not_le := _ }
 
 
-namespace dual_conic_program
-/-- A dual conic program for decision variables `x` is a system of inequalities
-`constraints_i x ≤K bounds_i` for all `i ∈ I` where `x ≤K y` means there exists a `k ∈ K` such that
-` x + k = y`. -/
-structure dual_conic_program (H H' : Type*) [inner_product_space ℝ H] [inner_product_space ℝ H'] [complete_space H] [complete_space H']:=
-(K : proper_cone H')
-(obj : H →L[ℝ] ℝ)
-(I : Type*)
-(constraints: I → H →L[ℝ] H')
-(bounds: I → H')
+-- namespace dual_conic_program
+-- /-- A dual conic program for decision variables `x` is a system of inequalities
+-- `constraints_i x ≤K bounds_i` for all `i ∈ I` where `x ≤K y` means there exists a `k ∈ K` such that
+-- ` x + k = y`. -/
+-- structure dual_conic_program (H H' : Type*) [inner_product_space ℝ H] [inner_product_space ℝ H'] [complete_space H] [complete_space H']:=
+-- (K : proper_cone H')
+-- (obj : H →L[ℝ] ℝ)
+-- (I : Type*)
+-- (constraints: I → H →L[ℝ] H')
+-- (bounds: I → H')
 
-variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F] [complete_space E] [complete_space F]
+-- variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F] [complete_space E] [complete_space F]
 
-def is_feasible (p : dual_conic_program E F) := { x : E | ∀ i, ∃ k : p.K.carrier, p.constraints i x + k = p.bounds i }
+-- def is_feasible (p : dual_conic_program E F) := { x : E | ∀ i, ∃ k : p.K.carrier, p.constraints i x + k = p.bounds i }
 
-def obj_value (p : dual_conic_program E F) (x : E) := p.obj x
+-- def obj_value (p : dual_conic_program E F) (x : E) := p.obj x
 
-def is_optimal (p : dual_conic_program E F) (x : E) := is_feasible p x ∧ ∀ y, is_feasible p y → obj_value p y ≤ obj_value p x
+-- def is_optimal (p : dual_conic_program E F) (x : E) := is_feasible p x ∧ ∀ y, is_feasible p y → obj_value p y ≤ obj_value p x
 
-end dual_conic_program
+-- end dual_conic_program

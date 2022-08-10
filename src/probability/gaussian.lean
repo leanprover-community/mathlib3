@@ -346,6 +346,9 @@ begin
   },
 end
 
+
+
+
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
 begin

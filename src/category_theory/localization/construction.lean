@@ -245,7 +245,6 @@ begin
       localization.construction.ι_paths W X₂), P (G.map p),
     { rcases X with ⟨⟨X⟩⟩,
       rcases Y with ⟨⟨Y⟩⟩,
-      have foo := this _ _ (G.preimage f),
       simpa only [functor.image_preimage] using this _ _ (G.preimage f), },
     intros X₁ X₂ p,
     induction p with X₂ X₃ p g hp,

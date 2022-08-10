@@ -250,12 +250,8 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
-calc
-(closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
-  image_closure_subset_closure_image continuous_mul
-... = closure s : by simp [s.coe_mul_self_eq]
+image2_subset_iff.2 $ λ x hx y hy, map_mem_closure₂ continuous_mul hx hy $
+  λ a ha b hb, s.mul_mem ha hb
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :

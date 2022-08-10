@@ -63,15 +63,6 @@ instance (x y : X) : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 instance (x y : X) : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
   continuous_map.compact_open
 
--- @[simp] -- I would expect this to exist already IT IS FALSE!
--- lemma refl_trans (x : X) (γ : (path x x)) : γ = (refl x).trans γ :=
--- begin
---   ext t,
---  dsimp [refl, trans],
---  split_ifs,
-
--- end
-
 end path
 
 namespace H_space
@@ -175,6 +166,9 @@ lemma closure_I_mem (θ t : I) : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2}
   by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
     apply_instance}
 
+lemma closure_I_mem' {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
+  by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq], apply_instance}
+
 lemma interior_I_not_mem (θ t : I) : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (θ / 2 : ℝ) ≤ t :=
 begin
   let half_θ : I := ⟨θ / 2, ⟨div_nonneg θ.2.1 zero_le_two, (half_le_self θ.2.1).trans θ.2.2⟩ ⟩,
@@ -186,14 +180,38 @@ begin
     ← subtype.coe_lt_coe, ← set.Iio_def],
 end
 
+lemma interior_I_not_mem' {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ θ / 2 ≤ t :=
+begin
+  sorry;{
+  have H_ne : (set.Ioi (θ / 2)).nonempty := ⟨(θ / 2) + 1, by {simp only [set.mem_Ioi, ← subtype.coe_lt_coe, subtype.coe_mk, coe_one, lt_add_iff_pos_right, zero_lt_one]}⟩,
+  have := interior_Iic' H_ne,
+  rw [not_iff_comm, ← lt_iff_not_ge],
+  simp,
+  -- convert_to t ∈ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) < θ / 2 using 0,
+  have := (is_open_lt continuous_induced_dom continuous_const).interior_eq,
+  --is_open.interior_eq,
+
+  rw mem_interior_iff_mem_nhds,
+  have := inducing.map_nhds_of_mem,
+  -- continuity,
+  -- convert_to t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2}  ↔ (t : ℝ) ∉ interior {s : ℝ | s ≤ θ / 2},
+  have : {s : ℝ | (s : ℝ) ≤ θ / 2} = set.Iic (θ / 2) := rfl,
+  have H_ne : (set.Ioi (θ / 2)).nonempty := ⟨(θ / 2) + 1, by {simp only [set.mem_Ioi, ← subtype.coe_lt_coe,
+    subtype.coe_mk, coe_one, lt_add_iff_pos_right, zero_lt_one]}⟩,
+  simp only [this, interior_Iic' H_ne, set.mem_Iio, not_lt],
+  -- rw [← set.mem_compl_iff, ← set.mem_compl_iff],
+  -- split,
+  -- intro h,
+  -- rw [mem_interior_iff_mem_nhds] at h,
+  }
+end
+
 lemma frontier_I_mem (θ t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ) = θ /2 :=
 λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
   (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
 
 lemma frontier_I_mem' {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
-  = θ /2 := sorry --TRY TO REPLACE `frontier_I_mem` with this one
--- λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
---   (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
+  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem').mp h_right) (not_lt_of_le $ (closure_I_mem').mp h_left)]}
 
 lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin

@@ -280,8 +280,7 @@ def Y_to_RJ [preserves_finite_limits L]
 adj.hom_equiv _ _ $ LY_to_J _ adj g f
 
 lemma comp_Y_to_RJ [preserves_finite_limits L]
-  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
-  f ≫ Y_to_RJ _ adj g f = g :=
+  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] : f ≫ Y_to_RJ _ adj g f = g :=
 begin
   have := L_map_comp_to_J_eq _ adj g f,
   rw ←adj.hom_equiv_apply_eq at this,
@@ -300,8 +299,7 @@ end
 
 include adj
 
-lemma injective_RJ [preserves_finite_limits L] (A : 𝓐) :
-  injective (RJ_of A) :=
+lemma injective_RJ [preserves_finite_limits L] (A : 𝓐) : injective (RJ_of A) :=
 ⟨λ X Y g f m, ⟨by { resetI, exact Y_to_RJ _ adj g f }, by apply comp_Y_to_RJ⟩⟩
 
 /-- the morphism `A → R(J)` obtained by `L(A) → J` via adjunction, this morphism is mono, so that
@@ -312,8 +310,7 @@ adj.hom_equiv A (injective.under $ L.obj A) (injective.ι _)
 
 local notation `to_RJ_of` A := to_RJ adj A
 
-instance mono_to_RJ (A : 𝓐)
-  [abelian 𝓐] [abelian 𝓑] [preserves_finite_limits L] [faithful L] :
+instance mono_to_RJ (A : 𝓐) [abelian 𝓐] [abelian 𝓑] [preserves_finite_limits L] [faithful L] :
   mono $ to_RJ_of A :=
 have e2 : exact (L.map (kernel.ι $ to_RJ_of A)) (L.map $ to_RJ_of A),
 begin

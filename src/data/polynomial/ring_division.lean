@@ -382,7 +382,7 @@ lemma ne_zero_of_mem_roots (h : a ∈ p.roots) : p ≠ 0 :=
 λ hp, by rwa [hp, roots_zero] at h
 
 lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a :=
-(mem_roots (ne_zero_of_mem_roots h)).mp h
+(mem_roots $ ne_zero_of_mem_roots h).mp h
 
 theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=

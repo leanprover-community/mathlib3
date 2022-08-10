@@ -35,8 +35,8 @@ lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
   ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X^(s.card - j)) :=
 begin
   classical,
-  rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, ←sum_powerset_len, function.comp,
-    finset.sum_eq_multiset_sum, finset.sum_eq_multiset_sum, ←join, ←bind, map_bind, sum_bind],
+  rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, ←bind_powerset_len, function.comp,
+    map_bind, sum_bind, finset.sum_eq_multiset_sum, finset.range_coe],
   rw map_congr (eq.refl _),
   intros _ _,
   rw [esymm, ←sum_hom', ←sum_map_mul_right, map_congr (eq.refl _)],

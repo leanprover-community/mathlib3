@@ -10,7 +10,7 @@ import category_theory.lifting_properties.basic
 # Strong epimorphisms
 
 In this file, we define strong epimorphisms. A strong epimorphism is an epimorphism `f`
-which has the (unique) left lifting property with respect ot monomorphisms. Similarly,
+which has the (unique) left lifting property with respect to monomorphisms. Similarly,
 a strong monomorphisms in a monomorphism which has the (unique) right lifting property
 with respect to epimorphisms.
 

@@ -124,6 +124,4 @@ end distrib_lattice
 @[reducible] protected def card (μ : young_diagram) : ℕ := μ.cells.card
 lemma card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
-@[simp] lemma card_bot : (⊥ : young_diagram).card = 0 := rfl
-
 end young_diagram

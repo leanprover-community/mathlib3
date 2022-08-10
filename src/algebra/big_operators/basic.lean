@@ -39,7 +39,7 @@ See the documentation of `to_additive.attr` for more information.
 -/
 
 universes u v w
-variables {β : Type u} {α : Type v} {γ : Type w}
+variables {ι : Type*} {β : Type u} {α : Type v} {γ : Type w}
 
 open fin
 
@@ -1015,6 +1015,10 @@ begin
   rw [count_eq_zero_of_not_mem hx, pow_zero],
 end
 
+lemma sum_filter_count_eq_countp [decidable_eq α] (p : α → Prop) [decidable_pred p] (l : list α) :
+  ∑ x in l.to_finset.filter p, l.count x = l.countp p :=
+by simp [finset.sum, sum_map_count_dedup_filter_eq_countp p l]
+
 open multiset
 
 @[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
@@ -1098,6 +1102,16 @@ by apply prod_range_induction; simp
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i / f (i + 1)) = f 0 / f n :=
 by apply prod_range_induction; simp
+
+@[to_additive]
+lemma eq_prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  f n = f 0 * ∏ i in range n, (f (i + 1) / f i) :=
+by rw [prod_range_div, mul_div_cancel'_right]
+
+@[to_additive]
+lemma eq_prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  f n = ∏ i in range (n + 1), if i = 0 then f 0 else f i / f (i - 1) :=
+by { conv_lhs { rw [finset.eq_prod_range_div f] }, simp [finset.prod_range_succ', mul_comm] }
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
@@ -1291,9 +1305,13 @@ begin
 end
 
 /-- Taking a product over `s : finset α` is the same as multiplying the value on a single element
-`f a` by the product of `s.erase a`. -/
+`f a` by the product of `s.erase a`.
+
+See `multiset.prod_map_erase` for the `multiset` version. -/
 @[to_additive "Taking a sum over `s : finset α` is the same as adding the value on a single element
-`f a` to the sum over `s.erase a`."]
+`f a` to the sum over `s.erase a`.
+
+See `multiset.sum_map_erase` for the `multiset` version."]
 lemma mul_prod_erase [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
   f a * (∏ x in s.erase a, f x) = ∏ x in s, f x :=
 by rw [← prod_insert (not_mem_erase a s), insert_erase h]
@@ -1387,17 +1405,6 @@ end
 lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
-
-lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
-  f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
-by rw [finset.sum_range_sub, add_sub_cancel'_right]
-
-lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
-  f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
-begin
-  conv_lhs { rw [finset.eq_sum_range_sub f] },
-  simp [finset.sum_range_succ', add_comm]
-end
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
   (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :
@@ -1849,3 +1856,63 @@ begin
     simp only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
 end
+
+/-! ### `additive`, `multiplicative` -/
+
+open additive multiplicative
+
+section monoid
+variables [monoid α]
+
+@[simp] lemma of_mul_list_prod (s : list α) : of_mul s.prod = (s.map of_mul).sum :=
+by simpa [of_mul]
+
+@[simp] lemma to_mul_list_sum (s : list (additive α)) :
+  to_mul s.sum = (s.map to_mul).prod := by simpa [to_mul, of_mul]
+
+end monoid
+
+section add_monoid
+variables [add_monoid α]
+
+@[simp] lemma of_add_list_prod (s : list α) : of_add s.sum = (s.map of_add).prod :=
+by simpa [of_add]
+
+@[simp] lemma to_add_list_sum (s : list (multiplicative α)) :
+  to_add s.prod = (s.map to_add).sum := by simpa [to_add, of_add]
+
+end add_monoid
+
+section comm_monoid
+variables [comm_monoid α]
+
+@[simp] lemma of_mul_multiset_prod (s : multiset α) :
+  of_mul s.prod = (s.map of_mul).sum := by simpa [of_mul]
+
+@[simp] lemma to_mul_multiset_sum (s : multiset (additive α)) :
+  to_mul s.sum = (s.map to_mul).prod := by simpa [to_mul, of_mul]
+
+@[simp] lemma of_mul_prod (s : finset ι) (f : ι → α) :
+  of_mul (∏ i in s, f i) = ∑ i in s, of_mul (f i) := rfl
+
+@[simp] lemma to_mul_sum (s : finset ι) (f : ι → additive α) :
+  to_mul (∑ i in s, f i) = ∏ i in s, to_mul (f i) := rfl
+
+end comm_monoid
+
+section add_comm_monoid
+variables [add_comm_monoid α]
+
+@[simp] lemma of_add_multiset_prod (s : multiset α) :
+  of_add s.sum = (s.map of_add).prod := by simpa [of_add]
+
+@[simp] lemma to_add_multiset_sum (s : multiset (multiplicative α)) :
+  to_add s.prod = (s.map to_add).sum := by simpa [to_add, of_add]
+
+@[simp] lemma of_add_sum (s : finset ι) (f : ι → α)  :
+  of_add (∑ i in s, f i) = ∏ i in s, of_add (f i) := rfl
+
+@[simp] lemma to_add_prod (s : finset ι) (f : ι → multiplicative α) :
+  to_add (∏ i in s, f i) = ∑ i in s, to_add (f i) := rfl
+
+end add_comm_monoid

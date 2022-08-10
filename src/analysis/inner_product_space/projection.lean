@@ -473,22 +473,6 @@ begin
   exact orthogonal_projection_inner_eq_zero _
 end
 
-/-- If `U ≤ V`, then projecting on `V` and then on `U` is the same as projecting on `U`. -/
-lemma orthogonal_projection_orthogonal_projection_of_le {U V : submodule 𝕜 E} [complete_space U]
-  [complete_space V] (h : U ≤ V) (x : E) :
-  orthogonal_projection U (orthogonal_projection V x) = orthogonal_projection U x :=
-begin
-  symmetry,
-  refine subtype.coe_injective (eq_orthogonal_projection_of_mem_of_inner_eq_zero
-    (submodule.coe_mem _) (λ w hw, _)),
-  calc ⟪x - orthogonal_projection U (orthogonal_projection V x), w⟫
-      = ⟪x - orthogonal_projection V x, w⟫ +
-        ⟪(orthogonal_projection V x : E) - orthogonal_projection U (orthogonal_projection V x), w⟫ :
-        by rw [← inner_add_left, add_sub, sub_add_cancel]
-  ... = 0 : by rw [orthogonal_projection_inner_eq_zero _ w (h hw),
-                    orthogonal_projection_inner_eq_zero _ w hw, add_zero]
-end
-
 /-- The orthogonal projections onto equal subspaces are coerced back to the same point in `E`. -/
 lemma eq_orthogonal_projection_of_eq_submodule
   {K' : submodule 𝕜 E} [complete_space K'] (h : K = K') (u : E) :
@@ -581,55 +565,6 @@ end
 lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
 by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
-
-/-- Given a monotone family `U` of complete submodules of `E` and a fixed `x : E`,
-the orthogonal projection of `x` on `U i` tends to the orthogonal projection of `x` on
-`(⨆ i, U i).topological_closure` along `at_top`. -/
-lemma orthogonal_projection_tendsto_closure_supr [complete_space E] {ι : Type*}
-  [semilattice_sup ι] (U : ι → submodule 𝕜 E) [∀ i, complete_space (U i)]
-  (hU : monotone U) (x : E) :
-  filter.tendsto (λ i, (orthogonal_projection (U i) x : E)) at_top
-    (𝓝 (orthogonal_projection (⨆ i, U i).topological_closure x : E)) :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { rw filter_eq_bot_of_is_empty (at_top : filter ι),
-    exact tendsto_bot },
-  let y := (orthogonal_projection (⨆ i, U i).topological_closure x : E),
-  have proj_x : ∀ i, orthogonal_projection (U i) x = orthogonal_projection (U i) y :=
-    λ i, (orthogonal_projection_orthogonal_projection_of_le
-      ((le_supr U i).trans (supr U).submodule_topological_closure) _).symm,
-  suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ∥(orthogonal_projection (U i) y : E) - y∥ < ε,
-  { simpa only [proj_x, normed_add_comm_group.tendsto_at_top] using this },
-  intros ε hε,
-  have y_mem : y ∈ (⨆ i, U i).topological_closure := submodule.coe_mem _,
-  obtain ⟨a, ha, hay⟩ : ∃ a ∈ ⨆ i, U i, dist y a < ε,
-  { rw [← set_like.mem_coe, submodule.topological_closure_coe, metric.mem_closure_iff] at y_mem,
-    exact y_mem ε hε },
-  rw dist_eq_norm at hay,
-  obtain ⟨I, hI⟩ : ∃ I, a ∈ U I,
-  { rwa [submodule.mem_supr_of_directed _ (hU.directed_le)] at ha },
-  refine ⟨I, λ i (hi : I ≤ i), _⟩,
-  have hai : a ∈ U i := hU hi hI,
-  rw [norm_sub_rev, orthogonal_projection_minimal],
-  refine lt_of_le_of_lt _ hay,
-  change _ ≤ ∥y - (⟨a, hai⟩ : U i)∥,
-  exact cinfi_le ⟨0, set.forall_range_iff.mpr $ λ _, norm_nonneg _⟩ _,
-end
-
-/-- Given a monotone family `U` of complete submodules of `E` with dense span supremum,
-and a fixed `x : E`, the orthogonal projection of `x` on `U i` tends to `x` along `at_top`. -/
-lemma orthogonal_projection_tendsto_self [complete_space E] {ι : Type*} [semilattice_sup ι]
-  (U : ι → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
-  (x : E) (hU' : ⊤ ≤ (⨆ t, U t).topological_closure) :
-  filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top
-    (𝓝 x) :=
-begin
-  rw ← eq_top_iff at hU',
-  convert orthogonal_projection_tendsto_closure_supr 𝕜 U hU x,
-  rw orthogonal_projection_eq_self_iff.mpr _,
-  rw hU',
-  trivial
-end
 
 end orthogonal_projection
 
@@ -835,6 +770,61 @@ lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   [complete_space E] {v : E} (hv : v ∈ K) :
   orthogonal_projection Kᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
+
+/-- If `U ≤ V`, then projecting on `V` and then on `U` is the same as projecting on `U`. -/
+lemma orthogonal_projection_orthogonal_projection_of_le {U V : submodule 𝕜 E} [complete_space U]
+  [complete_space V] (h : U ≤ V) (x : E) :
+  orthogonal_projection U (orthogonal_projection V x) = orthogonal_projection U x :=
+eq.symm $ by simpa only [sub_eq_zero, map_sub] using
+  orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
+  (submodule.orthogonal_le h (sub_orthogonal_projection_mem_orthogonal x))
+
+/-- Given a monotone family `U` of complete submodules of `E` and a fixed `x : E`,
+the orthogonal projection of `x` on `U i` tends to the orthogonal projection of `x` on
+`(⨆ i, U i).topological_closure` along `at_top`. -/
+lemma orthogonal_projection_tendsto_closure_supr [complete_space E] {ι : Type*}
+  [semilattice_sup ι] (U : ι → submodule 𝕜 E) [∀ i, complete_space (U i)]
+  (hU : monotone U) (x : E) :
+  filter.tendsto (λ i, (orthogonal_projection (U i) x : E)) at_top
+    (𝓝 (orthogonal_projection (⨆ i, U i).topological_closure x : E)) :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { rw filter_eq_bot_of_is_empty (at_top : filter ι),
+    exact tendsto_bot },
+  let y := (orthogonal_projection (⨆ i, U i).topological_closure x : E),
+  have proj_x : ∀ i, orthogonal_projection (U i) x = orthogonal_projection (U i) y :=
+    λ i, (orthogonal_projection_orthogonal_projection_of_le
+      ((le_supr U i).trans (supr U).submodule_topological_closure) _).symm,
+  suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ∥(orthogonal_projection (U i) y : E) - y∥ < ε,
+  { simpa only [proj_x, normed_add_comm_group.tendsto_at_top] using this },
+  intros ε hε,
+  obtain ⟨a, ha, hay⟩ : ∃ a ∈ ⨆ i, U i, dist y a < ε,
+  { have y_mem : y ∈ (⨆ i, U i).topological_closure := submodule.coe_mem _,
+    rw [← set_like.mem_coe, submodule.topological_closure_coe, metric.mem_closure_iff] at y_mem,
+    exact y_mem ε hε },
+  rw dist_eq_norm at hay,
+  obtain ⟨I, hI⟩ : ∃ I, a ∈ U I,
+  { rwa [submodule.mem_supr_of_directed _ (hU.directed_le)] at ha },
+  refine ⟨I, λ i (hi : I ≤ i), _⟩,
+  rw [norm_sub_rev, orthogonal_projection_minimal],
+  refine lt_of_le_of_lt _ hay,
+  change _ ≤ ∥y - (⟨a, hU hi hI⟩ : U i)∥,
+  exact cinfi_le ⟨0, set.forall_range_iff.mpr $ λ _, norm_nonneg _⟩ _,
+end
+
+/-- Given a monotone family `U` of complete submodules of `E` with dense span supremum,
+and a fixed `x : E`, the orthogonal projection of `x` on `U i` tends to `x` along `at_top`. -/
+lemma orthogonal_projection_tendsto_self [complete_space E] {ι : Type*} [semilattice_sup ι]
+  (U : ι → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
+  (x : E) (hU' : ⊤ ≤ (⨆ t, U t).topological_closure) :
+  filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top (𝓝 x) :=
+begin
+  rw ← eq_top_iff at hU',
+  convert orthogonal_projection_tendsto_closure_supr U hU x,
+  rw orthogonal_projection_eq_self_iff.mpr _,
+  rw hU',
+  trivial
+end
 
 /-- The orthogonal complement satisfies `Kᗮᗮᗮ = Kᗮ`. -/
 lemma submodule.triorthogonal_eq_orthogonal [complete_space E] : Kᗮᗮᗮ = Kᗮ :=

@@ -153,7 +153,7 @@ end
 def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,
-  index_at := λ x, ⟨chart_at H x, chart_mem_atlas H x⟩,
+  index_at := achart H,
   mem_base_set_at := λ x, mem_chart_source H x,
   coord_change := λ i j x, Z.coord_change i j (i.1 x),
   coord_change_self := λ i x hx v, Z.coord_change_self i (i.1 x) (i.1.map_source hx) v,

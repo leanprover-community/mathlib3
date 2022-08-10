@@ -252,7 +252,7 @@ in this way, the result is reduced to `card_pow_char_pow`.
 open zmod
 
 /-- For every finite field `F` of odd characteristic, we have `2^(#F/2) = χ₈(#F)` in `F`. -/
-lemma finite_field.two_pow_card {F : Type} [fintype F] [field F] (hF : ring_char F ≠ 2) :
+lemma finite_field.two_pow_card {F : Type*} [fintype F] [field F] (hF : ring_char F ≠ 2) :
   (2 : F) ^ (fintype.card F / 2) = χ₈ (fintype.card F) :=
 begin
   have hp2 : ∀ (n : ℕ), (2 ^ n : F) ≠ 0 := λ n, pow_ne_zero n (ring.two_ne_zero hF),

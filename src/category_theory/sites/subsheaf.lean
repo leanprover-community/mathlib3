@@ -34,7 +34,8 @@ namespace category_theory.grothendieck_topology
 
 variables {C : Type u} [category.{v} C] (J : grothendieck_topology C)
 
-/-- The subpresheaf of a presheaf. -/
+/-- A subpresheaf of a presheaf consists of a subset of `F.obj U` for every `U`,
+compatible with the restriction maps `F.map i`. -/
 @[ext]
 structure subpresheaf (F : Cᵒᵖ ⥤ Type w) :=
 (obj : Π U, set (F.obj U))

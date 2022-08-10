@@ -111,9 +111,7 @@ begin
 end
 
 /-- The equivalence of the two definitions of `I / I ^ 2`, either as the quotient of `I` or the
-ideal of `R / I ^ 2`.
-
-Note that this is only used when you really need  -/
+ideal of `R / I ^ 2`. -/
 noncomputable
 def cotangent_equiv_ideal : I.cotangent ≃ₗ[R] I.cotangent_ideal :=
 begin

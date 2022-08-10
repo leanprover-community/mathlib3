@@ -65,11 +65,11 @@ end
 
 /-- Every pseudo-metrizable space is first countable. -/
 @[priority 100]
-instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space E] :
-  topological_space.first_countable_topology E :=
+instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space X] :
+  topological_space.first_countable_topology X :=
 begin
   unfreezingI { rcases h with ⟨_, hm⟩, rw ←hm },
-  exact @uniform_space.first_countable_topology E pseudo_metric_space.to_uniform_space
+  exact @uniform_space.first_countable_topology X pseudo_metric_space.to_uniform_space
     emetric.uniformity.filter.is_countably_generated,
 end
 

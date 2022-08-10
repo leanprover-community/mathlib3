@@ -311,6 +311,18 @@ def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.un
 { desc := λ s, (t.from (opposite.op s.X)).unop,
   uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
+instance has_initial_op_of_has_terminal [has_terminal C] : has_initial Cᵒᵖ :=
+(initial_op_of_terminal terminal_is_terminal).has_initial
+
+instance has_terminal_op_of_has_initial [has_initial C] : has_terminal Cᵒᵖ :=
+(terminal_op_of_initial initial_is_initial).has_terminal
+
+lemma has_terminal_of_has_initial_op [has_initial Cᵒᵖ] : has_terminal C :=
+(terminal_unop_of_initial initial_is_initial).has_terminal
+
+lemma has_initial_of_has_terminal_op [has_terminal Cᵒᵖ] : has_initial C :=
+(initial_unop_of_terminal terminal_is_terminal).has_initial
+
 instance {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] :
   has_limit ((category_theory.functor.const J).obj (⊤_ C)) :=
 has_limit.mk

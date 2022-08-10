@@ -21,7 +21,9 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C]
 
 /-- In an abelian category, the subobjects and quotient objects of an object `X` are
-    order-isomorphic via taking kernels and cokernels. -/
+    order-isomorphic via taking kernels and cokernels.
+    Implemented here using subobjects in the opposite category,
+    since mathlib does not have a notion of quotient objects at the time of writing. -/
 @[simps]
 def subobject_iso_subobject_op [abelian C] (X : C) : subobject X ≃o (subobject (op X))ᵒᵈ :=
 begin
@@ -35,10 +37,10 @@ begin
     { exact (abelian.epi_desc f.unop _ (cokernel.condition (kernel.ι f.unop))).op },
     { exact (cokernel.desc _ _ (kernel.condition f.unop)).op },
     { simp only [← cancel_epi (cokernel.π (kernel.ι f.unop)), unop_comp, quiver.hom.unop_op,
-        unop_id_op, cokernel.π_desc_assoc, comp_epi_desc, category.comp_id]},
+        unop_id_op, cokernel.π_desc_assoc, comp_epi_desc, category.comp_id] },
     { simp only [← cancel_epi f.unop, unop_comp, quiver.hom.unop_op, unop_id, comp_epi_desc_assoc,
-        cokernel.π_desc, category.comp_id]},
-    { exact quiver.hom.unop_inj (by simp only [unop_comp, quiver.hom.unop_op, comp_epi_desc] ) } },
+        cokernel.π_desc, category.comp_id] },
+    { exact quiver.hom.unop_inj (by simp only [unop_comp, quiver.hom.unop_op, comp_epi_desc]) } },
   { change (kernel_order_hom X).comp (cokernel_order_hom X) = _,
     refine order_hom.ext _ _ (funext (subobject.ind _ _)),
     introsI A f hf,
@@ -50,7 +52,7 @@ begin
     { simp only [← cancel_mono (kernel.ι (cokernel.π f)), category.assoc, image.fac, mono_lift_comp,
         category.id_comp, auto_param_eq] },
     { simp only [← cancel_mono f, category.assoc, mono_lift_comp, image.fac, category.id_comp,
-        auto_param_eq]},
+        auto_param_eq] },
     { simp only [mono_lift_comp] } }
 end
 

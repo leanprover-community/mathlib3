@@ -167,7 +167,7 @@ lemma coeff_add_eq_left_of_lt (qn : q.nat_degree < n) :
   (p + q).coeff n = p.coeff n :=
 (coeff_add _ _ _).trans $ (congr_arg _ $ coeff_eq_zero_of_nat_degree_lt $ qn).trans $ add_zero _
 
-lemma coeff_add_succ_eq_right_of_le (pn : p.nat_degree < n) :
+lemma coeff_add_eq_right_of_lt (pn : p.nat_degree < n) :
   (p + q).coeff n = q.coeff n :=
 by { rw add_comm, exact coeff_add_eq_left_of_lt pn }
 
@@ -282,16 +282,16 @@ lemma nat_degree_sub_le_iff_right (pn : p.nat_degree ≤ n) :
   (p - q).nat_degree ≤ n ↔ q.nat_degree ≤ n :=
 by rwa [nat_degree_sub, nat_degree_sub_le_iff_left]
 
-lemma coeff_sub_succ_eq_left_of_le (dg : q.nat_degree < n) :
+lemma coeff_sub_eq_left_of_lt (dg : q.nat_degree < n) :
   (p - q).coeff n = p.coeff n :=
 begin
   rw ← nat_degree_neg at dg,
   rw [sub_eq_add_neg, coeff_add_eq_left_of_lt dg],
 end
 
-lemma coeff_sub_succ_eq_neg_right_of_le (df : p.nat_degree < n) :
+lemma coeff_sub_eq_neg_right_of_lt (df : p.nat_degree < n) :
   (p - q).coeff n = - q.coeff n :=
-by rwa [sub_eq_add_neg, coeff_add_succ_eq_right_of_le, coeff_neg]
+by rwa [sub_eq_add_neg, coeff_add_eq_right_of_lt, coeff_neg]
 
 end ring
 

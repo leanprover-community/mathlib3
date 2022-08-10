@@ -342,6 +342,21 @@ def to_ordered_add_comm_group (h₁ : S.pointed) (h₂ : S.salient) :
   ..show add_comm_group E, by apply_instance }
 
 end add_comm_group
+
+section module
+variables [add_comm_monoid E] [module 𝕜 E]
+
+instance : has_zero (convex_cone 𝕜 E) :=
+⟨ { carrier := 0,
+    smul_mem' := λ _ _, by simp,
+    add_mem' := λ _, by simp } ⟩
+
+@[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := iff.rfl
+@[simp] lemma coe_zero : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
+
+lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
+
+end module
 end ordered_semiring
 
 /-! ### Positive cone of an ordered module -/
@@ -394,25 +409,6 @@ lemma salient_strictly_positive : salient (strictly_positive 𝕜 E) :=
 lemma blunt_strictly_positive : blunt (strictly_positive 𝕜 E) := lt_irrefl 0
 
 end positive_cone
-
-section ordered_semiring
-variables [ordered_semiring 𝕜]
-
-section module
-variables [add_comm_monoid E] [module 𝕜 E]
-
-instance : has_zero (convex_cone 𝕜 E) :=
-⟨ { carrier := 0,
-    smul_mem' := λ _ _, by simp,
-    add_mem' := λ _, by simp } ⟩
-
-@[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := iff.rfl
-@[simp] lemma coe_zero : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
-
-lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
-
-end module
-end ordered_semiring
 end convex_cone
 
 /-! ### Cone over a convex set -/

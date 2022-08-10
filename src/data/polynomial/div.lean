@@ -150,11 +150,11 @@ begin
 end
 
 @[simp] lemma mod_by_monic_zero (p : R[X]) : p %ₘ 0 = p :=
-if h : monic (0 : R[X]) then forall_eq_iff_forall_eq.mpr (monic_zero_iff_subsingleton.mp h) _ _
+if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
 else by unfold mod_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 @[simp] lemma div_by_monic_zero (p : R[X]) : p /ₘ 0 = 0 :=
-if h : monic (0 : R[X]) then forall_eq_iff_forall_eq.mpr (monic_zero_iff_subsingleton.mp h) _ _
+if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
 else by unfold div_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 lemma div_by_monic_eq_of_not_monic (p : R[X]) (hq : ¬monic q) : p /ₘ q = 0 := dif_neg hq

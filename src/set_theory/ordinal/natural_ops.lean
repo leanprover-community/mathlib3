@@ -269,6 +269,8 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
   add_comm := nadd_comm,
   ..nat_ordinal.linear_order }
 
+instance : add_monoid_with_one nat_ordinal := add_monoid_with_one.unary
+
 @[simp] theorem add_one_eq_succ : ∀ a : nat_ordinal, a + 1 = succ a := nadd_one
 
 @[simp] theorem to_ordinal_cast_nat (n : ℕ) : to_ordinal n = n :=

@@ -106,22 +106,19 @@ lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
-calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : norm_div _ _
-   ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_int.norm_def]
-   ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp
+by simp [T, ← padic_int.norm_def]
 
 private lemma T_lt_one : T < 1 :=
 let h := (div_lt_one deriv_sq_norm_pos).2 hnorm in
 by rw T_def; apply h
 
-private lemma T_pow {n : ℕ} (hn : n > 0) : T ^ n < 1 :=
-have T ^ n ≤ T ^ 1,
-from pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) (succ_le_of_lt hn),
-lt_of_le_of_lt (by simpa) T_lt_one
+private lemma T_nonneg : 0 ≤ T := norm_nonneg _
 
-private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (pow_pos (by norm_num) _))
+private lemma T_pow_nonneg (n : ℕ) : 0 ≤ T ^ n := pow_nonneg T_nonneg _
 
-private lemma T_pow_nonneg (n : ℕ) : 0 ≤ T ^ n := pow_nonneg (norm_nonneg _) _
+private lemma T_pow {n : ℕ} (hn : n ≠ 0) : T ^ n < 1 := pow_lt_one T_nonneg T_lt_one hn
+
+private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := T_pow (pow_ne_zero _ two_ne_zero)
 
 /-- We will construct a sequence of elements of ℤ_p satisfying successive values of `ih`. -/
 private def ih (n : ℕ) (z : ℤ_[p]) : Prop :=
@@ -152,7 +149,7 @@ calc
   (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel _ _
 ... < ∥F.derivative.eval a∥ :
-  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
+  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow' _)
 
 private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
   (h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1) (hzeq : z1 = ⟨_, h1⟩) :
@@ -167,12 +164,12 @@ have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) :
 have F.derivative.eval z * (-z1) = -F.eval z, from calc
   F.derivative.eval z * (-z1)
     = (F.derivative.eval z) * -⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩ : by rw [hzeq]
-... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) :
-  by simp [subtype.ext_iff_val]
+... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : mul_neg _ _
 ... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) :
-  subtype.ext $ by simp
-... = -(F.eval z) : by simp [mul_div_cancel' _ hdzne'],
-have heq : F.eval z' = q * z1^2, by simpa [sub_eq_add_neg, this, hz'] using hq,
+  subtype.ext $ by simp only [padic_int.coe_neg, padic_int.coe_mul, subtype.coe_mk]
+... = -(F.eval z) : by simp only [mul_div_cancel' _ hdzne', subtype.coe_eta],
+have heq : F.eval z' = q * z1^2, by simpa only [sub_eq_add_neg, this, hz', add_right_neg, neg_sq,
+  zero_add] using hq,
 ⟨q, heq⟩
 
 private def calc_eval_z'_norm {z z' z1 : ℤ_[p]} {n} (hz : ih n z) {q}
@@ -319,15 +316,13 @@ begin
 end
 
 private lemma bound : ∀ {ε}, ε > 0 → ∃ N : ℕ, ∀ {n}, n ≥ N → ∥F.derivative.eval a∥ * T^(2^n) < ε :=
-have mtn : ∀ n : ℕ, ∥polynomial.eval a (polynomial.derivative F)∥ * T ^ (2 ^ n) ≥ 0,
-  from λ n, mul_nonneg (norm_nonneg _) (T_pow_nonneg _),
 begin
   have := bound' hnorm hnsol,
   simp [tendsto, nhds] at this,
   intros ε hε,
   cases this (ball 0 ε) (mem_ball_self hε) (is_open_ball) with N hN,
   existsi N, intros n hn,
-  simpa [norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
+  simpa [abs_of_nonneg (T_nonneg _)] using hN _ hn
 end
 
 private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (𝓝 0) :=

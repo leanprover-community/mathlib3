@@ -12,30 +12,6 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-section zero
-variables {M : Type*} [monoid_with_zero M]
-
-@[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
-| 0     h := absurd rfl h
-| (k+1) h := by { rw [pow_succ], exact zero_mul _ }
-
-lemma ne_zero_pow {a : M} {n : ℕ} (hn : n ≠ 0) : a ^ n ≠ 0 → a ≠ 0 :=
-by { contrapose!, rintro rfl, exact zero_pow' n hn }
-
-@[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
-begin
-  split; intro h,
-  { rw [pos_iff_ne_zero], rintro rfl, simpa using h },
-  { exact zero_pow' n h.ne.symm }
-end
-
-lemma ring.inverse_pow (r : M) : ∀ (n : ℕ), ring.inverse r ^ n = ring.inverse (r ^ n)
-| 0 := by rw [pow_zero, pow_zero, ring.inverse_one]
-| (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev' ((commute.refl r).pow_left n),
-                    ring.inverse_pow]
-
-end zero
-
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀] {a : G₀} {m n : ℕ}
 
@@ -84,9 +60,10 @@ begin
 end
 
 lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
-| (n : ℕ)    := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev, mul_assoc,
+| (n : ℕ)    := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
+| -[1+0]     := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, inv_mul_cancel ha]
+| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev, mul_assoc,
   inv_mul_cancel ha, mul_one]
 
 lemma zpow_sub_one₀ {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -143,11 +120,6 @@ begin
   right, left,
   apply bit1_ne_zero
 end
-
-@[simp, norm_cast] lemma units.coe_zpow₀ (u : G₀ˣ) :
-  ∀ (n : ℤ), ((u ^ n : G₀ˣ) : G₀) = u ^ n
-| (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact u.coe_pow n }
-| -[1+k] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, units.coe_inv', u.coe_pow]
 
 lemma zpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
 | (n : ℕ) := by { rw zpow_coe_nat, exact pow_ne_zero _ ha }

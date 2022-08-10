@@ -46,6 +46,10 @@ of `x` with `↑x`. This tactic also works for a function `f : α → ℝ` with 
 ## Notations
 
 This file defines `ℝ≥0` as a localized notation for `nnreal`.
+
+## TODO
+
+`semifield` instance
 -/
 
 open_locale classical big_operators
@@ -68,10 +72,7 @@ instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (n : ℝ≥0) : n.val = n := rfl
 
-instance : can_lift ℝ ℝ≥0 :=
-{ coe := coe,
-  cond := λ r, 0 ≤ r,
-  prf := λ x hx, ⟨⟨x, hx⟩, rfl⟩ }
+instance : can_lift ℝ ℝ≥0 := subtype.can_lift _
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
 
@@ -155,15 +156,15 @@ mul_action.comp_hom M to_real_hom.to_monoid_hom
 lemma smul_def {M : Type*} [mul_action ℝ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ) • x := rfl
 
-instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_scalar M N]
+instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_smul M N]
   [is_scalar_tower ℝ M N] : is_scalar_tower ℝ≥0 M N :=
 { smul_assoc := λ r, (smul_assoc (r : ℝ) : _)}
 
-instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_smul M N]
   [smul_comm_class ℝ M N] : smul_comm_class ℝ≥0 M N :=
 { smul_comm := λ r, (smul_comm (r : ℝ) : _)}
 
-instance smul_comm_class_right {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+instance smul_comm_class_right {M N : Type*} [mul_action ℝ N] [has_smul M N]
   [smul_comm_class M ℝ N] : smul_comm_class M ℝ≥0 N :=
 { smul_comm := λ m r, (smul_comm m (r : ℝ) : _)}
 
@@ -291,6 +292,16 @@ example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
 example : densely_ordered ℝ≥0 := by apply_instance
 example : no_max_order ℝ≥0 := by apply_instance
 
+/-- If `a` is a nonnegative real number, then the closed interval `[0, a]` in `ℝ` is order
+isomorphic to the interval `set.Iic a`. -/
+@[simps apply_coe_coe] def order_iso_Icc_zero_coe (a : ℝ≥0) : set.Icc (0 : ℝ) a ≃o set.Iic a :=
+{ to_equiv := equiv.set.sep (set.Ici 0) (λ x, x ≤ a),
+  map_rel_iff' := λ x y, iff.rfl }
+
+@[simp] lemma order_iso_Icc_zero_coe_symm_apply_coe (a : ℝ≥0) (b : set.Iic a) :
+  ((order_iso_Icc_zero_coe a).symm b : ℝ) = b :=
+rfl
+
 -- note we need the `@` to make the `has_mem.mem` have a sensible type
 lemma coe_image {s : set ℝ≥0} : coe '' s = {x : ℝ | ∃ h : 0 ≤ x, @has_mem.mem (ℝ≥0) _ _ ⟨x, h⟩ s} :=
 subtype.coe_image
@@ -346,16 +357,9 @@ ordered_comm_monoid.to_covariant_class_left ℝ≥0
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 begin
-  rcases le_iff_exists_add.1 (le_of_lt hxb) with ⟨ε, rfl⟩,
+  rcases exists_add_of_le (le_of_lt hxb) with ⟨ε, rfl⟩,
   exact h _ ((lt_add_iff_pos_right b).1 hxb)
 end
-
--- TODO: generalize to some ordered add_monoids, based on #6145
-lemma le_of_add_le_left {a b c : ℝ≥0} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, exact (le_add_iff_nonneg_right _).mpr zero_le' }
-
-lemma le_of_add_le_right {a b c : ℝ≥0} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, exact (le_add_iff_nonneg_left _).mpr zero_le' }
 
 lemma lt_iff_exists_rat_btwn (a b : ℝ≥0) :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < real.to_nnreal q ∧ real.to_nnreal q < b) :=
@@ -475,13 +479,17 @@ begin
       contradiction } }
 end
 
-@[simp] lemma to_nnreal_bit0 {r : ℝ} (hr : 0 ≤ r) :
-  real.to_nnreal (bit0 r) = bit0 (real.to_nnreal r) :=
-real.to_nnreal_add hr hr
+@[simp] lemma to_nnreal_bit0 (r : ℝ) : real.to_nnreal (bit0 r) = bit0 (real.to_nnreal r) :=
+begin
+  cases le_total r 0 with hr hr,
+  { rw [to_nnreal_of_nonpos hr, to_nnreal_of_nonpos, bit0_zero],
+    exact add_nonpos hr hr },
+  { exact to_nnreal_add hr hr }
+end
 
 @[simp] lemma to_nnreal_bit1 {r : ℝ} (hr : 0 ≤ r) :
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
-(real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [to_nnreal_one, bit1, hr])
+(real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
 
 end to_nnreal
 
@@ -574,8 +582,6 @@ by simp [pos_iff_ne_zero]
 
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
-
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev _ _
 
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
@@ -809,6 +815,35 @@ supr_mul_le $ λ i, mul_supr_le $ H _
 end csupr
 
 end nnreal
+
+namespace set
+namespace ord_connected
+
+variables {s : set ℝ} {t : set ℝ≥0}
+
+lemma preimage_coe_nnreal_real (h : s.ord_connected) : (coe ⁻¹' s : set ℝ≥0).ord_connected :=
+h.preimage_mono nnreal.coe_mono
+
+lemma image_coe_nnreal_real (h : t.ord_connected) : (coe '' t : set ℝ).ord_connected :=
+⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz,
+  ⟨⟨z, x.2.trans hz.1⟩, h.out hx hy hz, rfl⟩⟩
+
+lemma image_real_to_nnreal (h : s.ord_connected) : (real.to_nnreal '' s).ord_connected :=
+begin
+  refine ⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz, _⟩,
+  cases le_total y 0 with hy₀ hy₀,
+  { rw [mem_Icc, real.to_nnreal_of_nonpos hy₀, nonpos_iff_eq_zero] at hz,
+    exact ⟨y, hy, (to_nnreal_of_nonpos hy₀).trans hz.2.symm⟩ },
+  { lift y to ℝ≥0 using hy₀,
+    rw [to_nnreal_coe] at hz,
+    exact ⟨z, h.out hx hy ⟨to_nnreal_le_iff_le_coe.1 hz.1, hz.2⟩, to_nnreal_coe⟩ }
+end
+
+lemma preimage_real_to_nnreal (h : t.ord_connected) : (real.to_nnreal ⁻¹' t).ord_connected :=
+h.preimage_mono real.to_nnreal_mono
+
+end ord_connected
+end set
 
 namespace real
 

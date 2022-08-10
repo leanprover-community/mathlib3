@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fin.basic
+import data.fin.tuple.basic
 import data.list.basic
 import data.list.join
 
@@ -20,6 +20,8 @@ The main statements pertain to lists generated using `of_fn`
 - `list.length_of_fn`, which tells us the length of such a list
 - `list.nth_of_fn`, which tells us the nth element of such a list
 - `list.array_eq_of_fn`, which interprets the list form of an array as such a list.
+- `list.equiv_sigma_tuple`, which is an `equiv` between lists and the functions that generate them
+  via `list.of_fn`.
 -/
 
 universes u
@@ -107,6 +109,20 @@ begin
     simp_rw [fin.cast_succ_fin_succ], }
 end
 
+@[simp] lemma of_fn_eq_nil_iff {n : ℕ} {f : fin n → α} :
+  of_fn f = [] ↔ n = 0 :=
+by cases n; simp only [of_fn_zero, of_fn_succ, eq_self_iff_true, nat.succ_ne_zero]
+
+lemma last_of_fn {n : ℕ} (f : fin n → α) (h : of_fn f ≠ [])
+  (hn : n - 1 < n := nat.pred_lt $ of_fn_eq_nil_iff.not.mp h) :
+  last (of_fn f) h = f ⟨n - 1, hn⟩ :=
+by simp [last_eq_nth_le]
+
+lemma last_of_fn_succ {n : ℕ} (f : fin n.succ → α)
+  (h : of_fn f ≠ [] := mt of_fn_eq_nil_iff.mp (nat.succ_ne_zero _)) :
+  last (of_fn f) h = f (fin.last _) :=
+last_of_fn f h
+
 /-- Note this matches the convention of `list.of_fn_succ'`, putting the `fin m` elements first. -/
 theorem of_fn_add {m n} (f : fin (m + n) → α) :
   list.of_fn f = list.of_fn (λ i, f (fin.cast_add n i)) ++ list.of_fn (λ j, f (fin.nat_add m j)) :=
@@ -156,5 +172,47 @@ by simp only [mem_of_fn, set.forall_range_iff]
 @[simp] lemma of_fn_const (n : ℕ) (c : α) :
   of_fn (λ i : fin n, c) = repeat c n :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
+
+/-- Lists are equivalent to the sigma type of tuples of a given length. -/
+@[simps]
+def equiv_sigma_tuple : list α ≃ Σ n, fin n → α :=
+{ to_fun := λ l, ⟨l.length, λ i, l.nth_le ↑i i.2⟩,
+  inv_fun := λ f, list.of_fn f.2,
+  left_inv := list.of_fn_nth_le,
+  right_inv := λ ⟨n, f⟩, fin.sigma_eq_of_eq_comp_cast (length_of_fn _) $ funext $ λ i,
+    nth_le_of_fn' f i.prop }
+
+/-- A recursor for lists that expands a list into a function mapping to its elements.
+
+This can be used with `induction l using list.of_fn_rec`. -/
+@[elab_as_eliminator]
+def of_fn_rec {C : list α → Sort*} (h : Π n (f : fin n → α), C (list.of_fn f)) (l : list α) : C l :=
+cast (congr_arg _ l.of_fn_nth_le) $ h l.length (λ i, l.nth_le ↑i i.2)
+
+@[simp]
+lemma of_fn_rec_of_fn {C : list α → Sort*} (h : Π n (f : fin n → α), C (list.of_fn f))
+  {n : ℕ} (f : fin n → α) : @of_fn_rec _ C h (list.of_fn f) = h _ f :=
+equiv_sigma_tuple.right_inverse_symm.cast_eq (λ s, h s.1 s.2) ⟨n, f⟩
+
+lemma exists_iff_exists_tuple {P : list α → Prop} :
+  (∃ l : list α, P l) ↔ ∃ n (f : fin n → α), P (list.of_fn f) :=
+equiv_sigma_tuple.symm.surjective.exists.trans sigma.exists
+
+lemma forall_iff_forall_tuple {P : list α → Prop} :
+  (∀ l : list α, P l) ↔ ∀ n (f : fin n → α), P (list.of_fn f) :=
+equiv_sigma_tuple.symm.surjective.forall.trans sigma.forall
+
+/-- `fin.sigma_eq_iff_eq_comp_cast` may be useful to work with the RHS of this expression. -/
+lemma of_fn_inj' {m n : ℕ} {f : fin m → α} {g : fin n → α} :
+  of_fn f = of_fn g ↔ (⟨m, f⟩ : Σ n, fin n → α) = ⟨n, g⟩ :=
+iff.symm $ equiv_sigma_tuple.symm.injective.eq_iff.symm
+
+/-- Note we can only state this when the two functions are indexed by defeq `n`. -/
+lemma of_fn_injective {n : ℕ} : function.injective (of_fn : (fin n → α) → list α) :=
+λ f g h, eq_of_heq $ by injection of_fn_inj'.mp h
+
+/-- A special case of `list.of_fn_inj'` for when the two functions are indexed by defeq `n`. -/
+@[simp] lemma of_fn_inj {n : ℕ} {f g : fin n → α} : of_fn f = of_fn g ↔ f = g :=
+of_fn_injective.eq_iff
 
 end list

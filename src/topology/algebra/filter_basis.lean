@@ -348,6 +348,15 @@ def topology' {R M : Type*} [comm_ring R] {tR : topological_space R}
   [add_comm_group M] [module R M] (B : module_filter_basis R M) : topological_space M :=
   B.to_add_group_filter_basis.topology
 
+/-- A topological add group whith a basis of `𝓝 0` satisfying the axioms of `module_filter_basis`
+is a topological module.
+
+This lemma is mathematically useless because one could obtain such a result by applying
+`module_filter_basis.has_continuous_smul` and use the fact that group topologies are characterized
+by their neighborhoods of 0 to obtain the `has_continuous_smul` on the pre-existing topology.
+
+But it turns out it's just easier to get it as a biproduct of the proof, so this is just a free
+quality-of-life improvement. -/
 lemma _root_.has_continuous_smul.of_basis_zero {ι : Type*} [topological_ring R]
   [topological_space M] [topological_add_group M] {p : ι → Prop} {b : ι → set M}
   (h : has_basis (𝓝 0) p b) (hsmul : ∀ {i}, p i → ∃ (V ∈ 𝓝 (0 : R)) j (hj : p j), V • (b j) ⊆ b i)

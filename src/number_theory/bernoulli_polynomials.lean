@@ -11,15 +11,15 @@ import number_theory.bernoulli
 /-!
 # Bernoulli polynomials
 
-The Bernoulli polynomials (defined here : https://en.wikipedia.org/wiki/Bernoulli_polynomials)
+The [Bernoulli polynomials](https://en.wikipedia.org/wiki/Bernoulli_polynomials)
 are an important tool obtained from Bernoulli numbers.
 
 ## Mathematical overview
 
 The $n$-th Bernoulli polynomial is defined as
-$$ B_n(X) = ∑_{k = 0}^n {n \choose k} (-1)^k * B_k * X^{n - k} $$
+$$ B_n(X) = ∑_{k = 0}^n {n \choose k} (-1)^k  B_k  X^{n - k} $$
 where $B_k$ is the $k$-th Bernoulli number. The Bernoulli polynomials are generating functions,
-$$ t * e^{tX} / (e^t - 1) = ∑_{n = 0}^{\infty} B_n(X) * \frac{t^n}{n!} $$
+$$ \frac{t  e^{tX} }{ e^t - 1} = ∑_{n = 0}^{\infty} B_n(X)  \frac{t^n}{n!} $$
 
 ## Implementation detail
 
@@ -28,8 +28,8 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 ## Main theorems
 
 - `sum_bernoulli`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
-  coefficients up to n is `(n + 1) * X^n`.
-- `bernoulli_generating_function`: The Bernoulli polynomials act as generating functions
+  coefficients up to `n` is `(n + 1) * X^n`.
+- `polynomial.bernoulli_generating_function`: The Bernoulli polynomials act as generating functions
   for the exponential.
 
 ## TODO
@@ -110,7 +110,7 @@ lemma derivative_bernoulli (k : ℕ) : (bernoulli k).derivative = k * bernoulli 
 begin
   cases k,
   { rw [nat.cast_zero, zero_mul, bernoulli_zero, derivative_one], },
-  { exact derivative_bernoulli_add_one k, }
+  { exact_mod_cast derivative_bernoulli_add_one k, }
 end
 
 @[simp] theorem sum_bernoulli (n : ℕ) :
@@ -146,12 +146,8 @@ end
 /-- Another version of `polynomial.sum_bernoulli`. -/
 lemma bernoulli_eq_sub_sum (n : ℕ) : (n.succ : ℚ) • bernoulli n = monomial n (n.succ : ℚ) -
   ∑ k in finset.range n, ((n + 1).choose k : ℚ) • bernoulli k :=
-begin
-  change _ = (monomial n) ((n : ℚ) + 1) - ∑ (k : ℕ) in range n,
-    ↑((n + 1).choose k) • bernoulli k,
-  rw [←sum_bernoulli n, sum_range_succ, add_comm],
-  simp only [cast_succ, choose_succ_self_right, add_sub_cancel],
-end
+by rw [nat.cast_succ, ← sum_bernoulli n, sum_range_succ, add_sub_cancel',
+  choose_succ_self_right, nat.cast_succ]
 
 /-- Another version of `bernoulli.sum_range_pow`. -/
 lemma sum_range_pow_eq_bernoulli_sub (n p : ℕ) :
@@ -240,7 +236,8 @@ begin
   simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, power_series.coeff_one,
     units.coe_mk, coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
-    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],
+    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one,
+    ← polynomial.C_eq_algebra_map, polynomial.aeval_mul, polynomial.aeval_C],
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',
   apply congr_arg,

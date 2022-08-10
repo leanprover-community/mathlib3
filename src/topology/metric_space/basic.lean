@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.int.interval
+import tactic.positivity
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.bornology.constructions
@@ -53,7 +54,7 @@ open set filter topological_space bornology
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {X : Type*}
 
 /-- Construct a uniform structure core from a distance function and metric space axioms.
 This is a technical construction that can be immediately used to construct a uniform structure
@@ -141,7 +142,7 @@ private theorem pseudo_metric_space.dist_nonneg' {α} {x y : α} (dist : α → 
 have 2 * dist x y ≥ 0,
   from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
     ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
-nonneg_of_mul_nonneg_left this zero_lt_two
+nonneg_of_mul_nonneg_right this zero_lt_two
 
 /-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is
 used. -/
@@ -308,6 +309,17 @@ abs_sub_le_iff.2
 
 theorem dist_nonneg {x y : α} : 0 ≤ dist x y :=
 pseudo_metric_space.dist_nonneg' dist dist_self dist_comm dist_triangle
+
+section
+open tactic tactic.positivity
+
+/-- Extension for the `positivity` tactic: distances are nonnegative. -/
+@[positivity]
+meta def _root_.tactic.positivity_dist : expr → tactic strictness
+| `(dist %%a %%b) := nonnegative <$> mk_app ``dist_nonneg [a, b]
+| _ := failed
+
+end
 
 @[simp] theorem abs_dist {a b : α} : |dist a b| = dist a b :=
 abs_of_nonneg dist_nonneg
@@ -664,7 +676,8 @@ metric.mk_uniformity_basis (λ n _, div_pos zero_lt_one $ nat.cast_add_one_pos n
 theorem uniformity_basis_dist_inv_nat_pos :
   (𝓤 α).has_basis (λ n:ℕ, 0<n) (λ n:ℕ, {p:α×α | dist p.1 p.2 < 1 / ↑n }) :=
 metric.mk_uniformity_basis (λ n hn, div_pos zero_lt_one $ nat.cast_pos.2 hn)
-  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, hn.le⟩)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n,
+    by exact_mod_cast hn.le⟩)
 
 theorem uniformity_basis_dist_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
   (𝓤 α).has_basis (λ n:ℕ, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 < r ^ n }) :=
@@ -1274,7 +1287,7 @@ lemma filter.tendsto.congr_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter
   tendsto f₂ p (𝓝 a) :=
 h₁.congr_uniformity $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
 
-alias filter.tendsto.congr_dist ←  tendsto_of_tendsto_of_dist
+alias filter.tendsto.congr_dist ← tendsto_of_tendsto_of_dist
 
 lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {a : α}
   (h : tendsto (λ x, dist (f₁ x) (f₂ x)) p (𝓝 0)) :
@@ -2039,6 +2052,12 @@ def bounded (s : set α) : Prop :=
 section bounded
 variables {x : α} {s t : set α} {r : ℝ}
 
+lemma bounded_iff_is_bounded (s : set α) : bounded s ↔ is_bounded s :=
+begin
+  change bounded s ↔ sᶜ ∈ (cobounded α).sets,
+  simp [pseudo_metric_space.cobounded_sets, metric.bounded],
+end
+
 @[simp] lemma bounded_empty : bounded (∅ : set α) :=
 ⟨0, by simp⟩
 
@@ -2096,7 +2115,7 @@ let ⟨C, h⟩ := h in
 ⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
 $ ball_mem_comm.mp h⟩
 
-alias bounded_closure_of_bounded ← metric.bounded.closure
+alias bounded_closure_of_bounded ← bounded.closure
 
 @[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
@@ -2151,7 +2170,7 @@ h.totally_bounded.bounded
 lemma bounded_of_finite {s : set α} (h : s.finite) : bounded s :=
 h.is_compact.bounded
 
-alias bounded_of_finite ← set.finite.bounded
+alias bounded_of_finite ← _root_.set.finite.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
@@ -2862,3 +2881,75 @@ instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
     λxc yc zc, quotient.induction_on₃ xc yc zc (λx y z, pseudo_metric_space.dist_triangle _ _ _) }
 
 end eq_rel
+
+/-!
+### `additive`, `multiplicative`
+
+The distance on those type synonyms is inherited without change.
+-/
+
+open additive multiplicative
+
+section
+variables [has_dist X]
+
+instance : has_dist (additive X) := ‹has_dist X›
+instance : has_dist (multiplicative X) := ‹has_dist X›
+
+@[simp] lemma dist_of_mul (a b : X) : dist (of_mul a) (of_mul b) = dist a b := rfl
+@[simp] lemma dist_of_add (a b : X) : dist (of_add a) (of_add b) = dist a b := rfl
+@[simp] lemma dist_to_mul (a b : additive X) : dist (to_mul a) (to_mul b) = dist a b := rfl
+@[simp] lemma dist_to_add (a b : multiplicative X) : dist (to_add a) (to_add b) = dist a b := rfl
+
+end
+
+section
+variables [pseudo_metric_space X]
+
+instance : pseudo_metric_space (additive X) := ‹pseudo_metric_space X›
+instance : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
+
+@[simp] lemma nndist_of_mul (a b : X) : nndist (of_mul a) (of_mul b) = nndist a b := rfl
+@[simp] lemma nndist_of_add (a b : X) : nndist (of_add a) (of_add b) = nndist a b := rfl
+@[simp] lemma nndist_to_mul (a b : additive X) : nndist (to_mul a) (to_mul b) = nndist a b := rfl
+@[simp] lemma nndist_to_add (a b : multiplicative X) : nndist (to_add a) (to_add b) = nndist a b :=
+rfl
+
+end
+
+instance [metric_space X] : metric_space (additive X) := ‹metric_space X›
+instance [metric_space X] : metric_space (multiplicative X) := ‹metric_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space (additive X) := ‹proper_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space (multiplicative X) :=
+‹proper_space X›
+
+/-!
+### Order dual
+
+The distance on this type synonym is inherited without change.
+-/
+
+open order_dual
+
+section
+variables [has_dist X]
+
+instance : has_dist Xᵒᵈ := ‹has_dist X›
+
+@[simp] lemma dist_to_dual (a b : X) : dist (to_dual a) (to_dual b) = dist a b := rfl
+@[simp] lemma dist_of_dual (a b : Xᵒᵈ) : dist (of_dual a) (of_dual b) = dist a b := rfl
+
+end
+
+section
+variables [pseudo_metric_space X]
+
+instance : pseudo_metric_space Xᵒᵈ := ‹pseudo_metric_space X›
+
+@[simp] lemma nndist_to_dual (a b : X) : nndist (to_dual a) (to_dual b) = nndist a b := rfl
+@[simp] lemma nndist_of_dual (a b : Xᵒᵈ) : nndist (of_dual a) (of_dual b) = nndist a b := rfl
+
+end
+
+instance [metric_space X] : metric_space Xᵒᵈ := ‹metric_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space Xᵒᵈ := ‹proper_space X›

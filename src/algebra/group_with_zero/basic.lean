@@ -1024,14 +1024,6 @@ def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : G₀ �
 { map_zero' := inv_zero,
   ..inv_monoid_hom }
 
-@[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
-  (f : M →* G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
-by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv, monoid_hom.map_inv]
-
-@[simp] lemma monoid_with_zero_hom.map_units_inv {M G₀ : Type*} [monoid_with_zero M]
-  [group_with_zero G₀] (f : M →*₀ G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
-f.to_monoid_hom.map_units_inv u
-
 section noncomputable_defs
 
 variables {M : Type*} [nontrivial M]

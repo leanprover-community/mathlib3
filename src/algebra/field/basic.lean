@@ -371,14 +371,6 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 := f.to_monoid_with_zero_hom.map_ne_ze
 
 end semiring
 
-section division_semiring
-variables [division_semiring α] [division_semiring β] (f : α →+* β) (a b : α)
-
-lemma map_inv : f a⁻¹ = (f a)⁻¹ := map_inv₀ f a
-lemma map_div : f (a / b) = f a / f b := map_div₀ f a b
-
-end division_semiring
-
 protected lemma injective [division_ring α] [semiring β] [nontrivial β] (f : α →+* β) :
   injective f :=
 (injective_iff_map_eq_zero f).2 $ λ x, f.map_eq_zero.1

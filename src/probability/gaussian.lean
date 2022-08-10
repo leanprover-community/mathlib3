@@ -28,6 +28,8 @@ import measure_theory.group.integration
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
 #check measurable_set.univ
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
+#check real.coe_to_nnreal
+---#check probability_theory.moment,
 
 /-
 We would like to define the Gaussian measure on ℝ.
@@ -350,13 +352,83 @@ begin
   },
 end
 
+
+
+
+
+lemma gaussian_density_ennreal (hs : s ≠ 0) : ∀ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)≥ 0 :=
+begin
+  intro x,
+  simp,
+  have h_exp_pos :  exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) > 0 := (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)).exp_pos,
+  have h_invsqrt_pos : (sqrt (2 * π * s ^ 2))⁻¹ > 0,
+    {simp,
+    exact s_sq_pos_2_pi s hs},
+  have h_prod_of_poses_pos : (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) > 0 := mul_pos h_invsqrt_pos h_exp_pos,
+  exact le_of_lt h_prod_of_poses_pos,
+end
+
+lemma eq_integ_in_univ : ∫ (x : ℝ), id x ∂μ =  ∫ (x : ℝ) in set.univ, id x ∂μ :=
+begin
+  simp,
+end
+
+lemma univ_eq_nneg_union_neg : set.univ = {x:ℝ|0≤x} ∪ {x:ℝ|x<0}:=
+begin
+ext x,
+split,
+{intro hx,
+simp,
+exact le_or_lt 0 x},
+{intro hx,
+simp},
+end
+
+
+
+noncomputable def gaussian_density_to_nnreal (m s : ℝ) : ℝ → ℝ≥0 :=
+λ x, ennreal.to_nnreal (ennreal.of_real $ (sqrt (2 * real.pi * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2))
+
+lemma eqform_of_gauden_to_nnreal : ∀ (x:ℝ), gaussian_density m s x = gaussian_density_to_nnreal m s x:=
+---λ x, ennreal.to_nnreal (ennreal.of_real $ (sqrt (2 * real.pi * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2)):=
+begin
+  unfold gaussian_density,
+  unfold gaussian_density_to_nnreal,
+  simp,
+end
+
+lemma eqform_of_gauden_mea : measurable (gaussian_density_to_nnreal m s):=
+begin
+  unfold gaussian_density_to_nnreal,
+  measurability,
+end
+
+--lemma eqform_of_gauden_to_nnreal_mea : measurable
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
 begin
+  have h_is_prob_mea : is_probability_measure μ,
+  {exact is_probability_measure_real_gaussian hμ},
   rw real_gaussian at hμ,
   split_ifs at hμ,
   rw hμ,
-  unfold gaussian_density,
+  have h_lambdaform : gaussian_density m s = λ x, (gaussian_density_to_nnreal m s) x,
+    {ext x,
+    unfold gaussian_density,
+    unfold gaussian_density_to_nnreal,
+    simp},
+  rw h_lambdaform,---
+  ---rw eqform_of_gauden_to_nnreal,
+  ---have h_rw_form_with_integ_sign : integral (ℙ.with_density (λ (x : ℝ), ↑(gaussian_density_to_nnreal m s x))) id
+  ---= ∫ (x : ℝ), id x ∂ℙ.with_density (λ (x : ℝ), gaussian_density_to_nnreal m s x),
+
+  rw integral_with_density_eq_integral_smul eqform_of_gauden_mea id,
+
+
+
+  ---simp only [with_density_apply, measurable_set.univ, ],
+
+  ---have h_integsign : ∫ (a : ℝ), ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))
 
   ---simpa using lintegral_with_density_eq_lintegral_mul₀ _ _ _,
 sorry

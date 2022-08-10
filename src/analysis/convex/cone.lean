@@ -663,15 +663,14 @@ end
 lemma pointed_of_nonempty_closed
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
 begin
-  let hx := ne.some_mem,
-  let x  := (ne.some : H),
+  obtain ⟨x, hx⟩ := ne,
   let f  := λ r : ℝ, r • x,
 
   -- f (0, ∞) is a subset of K
   have fI : f '' set.Ioi 0 ⊆ (K : set H),
-    rw set.subset_def,
+  { rw set.subset_def,
     rintro _ ⟨_, h, rfl⟩,
-    exact K.smul_mem (set.mem_Ioi.1 h) hx,
+    exact K.smul_mem (set.mem_Ioi.1 h) hx },
 
   -- closure of f (0, ∞) is a subset of K
   have clf : closure (f '' set.Ioi 0) ⊆ (K : set H) := hc.closure_subset_iff.2 fI,
@@ -700,12 +699,10 @@ begin
   have hinner := (norm_eq_infi_iff_real_inner_le_zero K.convex hzK).1 infi,
   use z - b,
   split,
-  begin
-    rintros x hxK,
+  { rintros x hxK,
     specialize hinner _ (K.add_mem hxK hzK),
     rwa [add_sub_cancel, real_inner_comm, ← neg_nonneg, neg_eq_neg_one_mul,
-         ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner
-  end,
+         ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner },
   begin
     have hinner₀ := hinner 0 (pointed_of_nonempty_closed ne hc),
       rw [zero_sub, inner_neg_right, right.neg_nonpos_iff] at hinner₀,

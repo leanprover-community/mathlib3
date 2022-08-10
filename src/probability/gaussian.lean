@@ -27,6 +27,10 @@ import measure_theory.group.integration
 #check real.exp_pos
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
 #check measurable_set.univ
+#check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
+#check real.coe_to_nnreal
+---#check probability_theory.moment,
+
 /-
 We would like to define the Gaussian measure on ℝ.
 There are two ways of doing this.
@@ -79,7 +83,7 @@ begin
 simp,
 end
 
--- change of variables
+
 
 
 
@@ -100,7 +104,8 @@ rw detid_eq_one,
 simp,
 end
 
-lemma change_of_vr_gaussian (μ : measure ℝ):
+-- change of variables
+lemma change_of_vr_gaussian /-(μ : measure ℝ)-/:
    ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)):=
 begin
     let g : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
@@ -119,16 +124,19 @@ begin
 
     have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
      = ∫ (x : ℝ) in set.univ, g (x-m) ,
-     ---(sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) ,
       {simp_rw [g],
         simp},
+
     rw h_integ_eq,
+
     have h_integ_eq2 : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
      = ∫ (x : ℝ) in set.univ, g x ,
       {simp_rw [g],
         simp},
+
     rw h_integ_eq2,
     nth_rewrite 1 [h_set_eq],
+
     have h_comp_eq : ∀ (x:ℝ), g (x-m) = g (f x),
       {intro x,
       simp},
@@ -137,29 +145,27 @@ begin
     let f_deriv : ℝ →L[ℝ] ℝ := continuous_linear_map.id ℝ ℝ,
     let f': ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
 
-    /-have h_det_eq_one : ∀ (x:ℝ), (f' x).det = 1,
-      {intro x,
-      exact detid_eq_one},-/
     rw mulone_eq g f,
     rw integ_smul_eq_mul f g,
+
     have h_use_f'_tosubst : ∫ (x : ℝ) in set.univ, |(continuous_linear_map.id ℝ ℝ).det| • g (f x)
      = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x),
      {refl},
+
     rw h_use_f'_tosubst,
+
     have hf : set.inj_on f set.univ,
       refine set.injective_iff_inj_on_univ.mp _,
       unfold function.injective,
       intros a1 a2,
       simp_rw[f],
       simp,
+
     have hf' : ∀ (x : ℝ), x ∈ set.univ → has_fderiv_within_at f (f' x) set.univ x,
       {intros x hx,
       refine has_fderiv_within_at.sub_const _ m,
-      exact has_fderiv_within_at_id x set.univ,
-      },
-      {
-        rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ (measurable_set.univ) hf' hf g,
-      },
+      exact has_fderiv_within_at_id x set.univ},
+      {rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ hf' hf g},
 
 end
 
@@ -283,7 +289,7 @@ begin
 
     rw mul_inv_eq_one (sqrt (2*π*s^2)) h_sqrt_not_zero,
     simp,
-    exact μ,
+    ---exact μ,
     },
     {
       rw integrable, fconstructor,
@@ -349,15 +355,89 @@ end
 
 
 
+
+lemma gaussian_density_ennreal (hs : s ≠ 0) : ∀ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)≥ 0 :=
+begin
+  intro x,
+  simp,
+  have h_exp_pos :  exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) > 0 := (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)).exp_pos,
+  have h_invsqrt_pos : (sqrt (2 * π * s ^ 2))⁻¹ > 0,
+    {simp,
+    exact s_sq_pos_2_pi s hs},
+  have h_prod_of_poses_pos : (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) > 0 := mul_pos h_invsqrt_pos h_exp_pos,
+  exact le_of_lt h_prod_of_poses_pos,
+end
+
+lemma eq_integ_in_univ : ∫ (x : ℝ), id x ∂μ =  ∫ (x : ℝ) in set.univ, id x ∂μ :=
+begin
+  simp,
+end
+
+lemma univ_eq_nneg_union_neg : set.univ = {x:ℝ|0≤x} ∪ {x:ℝ|x<0}:=
+begin
+ext x,
+split,
+{intro hx,
+simp,
+exact le_or_lt 0 x},
+{intro hx,
+simp},
+end
+
+
+
+noncomputable def gaussian_density_to_nnreal (m s : ℝ) : ℝ → ℝ≥0 :=
+λ x, ennreal.to_nnreal (ennreal.of_real $ (sqrt (2 * real.pi * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2))
+
+lemma eqform_of_gauden_to_nnreal : ∀ (x:ℝ), gaussian_density m s x = gaussian_density_to_nnreal m s x:=
+---λ x, ennreal.to_nnreal (ennreal.of_real $ (sqrt (2 * real.pi * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2)):=
+begin
+  unfold gaussian_density,
+  unfold gaussian_density_to_nnreal,
+  simp,
+end
+
+lemma eqform_of_gauden_mea : measurable (gaussian_density_to_nnreal m s):=
+begin
+  unfold gaussian_density_to_nnreal,
+  measurability,
+end
+
+
+--lemma eqform_of_gauden_to_nnreal_mea : measurable
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
 begin
+  have h_is_prob_mea : is_probability_measure μ,
+  {exact is_probability_measure_real_gaussian hμ},
   rw real_gaussian at hμ,
   split_ifs at hμ,
   rw hμ,
-  unfold gaussian_density,
+  have h_lambdaform : gaussian_density m s = λ x, (gaussian_density_to_nnreal m s) x,
+    {ext x,
+    unfold gaussian_density,
+    unfold gaussian_density_to_nnreal,
+    simp},
+  rw h_lambdaform,
+  rw integral_with_density_eq_integral_smul eqform_of_gauden_mea id,
+  rw gaussian_density_to_nnreal,
+  let f : ℝ → ℝ := λ (x : ℝ), exp(-(2 * s ^ 2)⁻¹ * (x - m) ^ 2),
 
-  ---simpa using lintegral_with_density_eq_lintegral_mul₀ _ _ _,
+  have h_changeform : ∫ (a : ℝ), (λ (x : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ *
+  exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal) a • id a = ∫ (a : ℝ), (λ (x : ℝ),
+  (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * f x)).to_nnreal) a • id a,
+  {
+    simp_rw[f],
+  },
+  rw h_changeform,
+  dsimp at *,
+  /-
+  have move_const_out : ∫ (a : ℝ), (λ (x : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * f x)).to_nnreal) a
+• id a = (sqrt (2 * π * s ^ 2))⁻¹ * ∫ (a : ℝ), (λ (x : ℝ), (ennreal.of_real (f x)).to_nnreal) a • id a,
+-/
+
+  --rw ← comm_in_integ f (sqrt (2 * π * s ^ 2))⁻¹,
+
 sorry
 
 
@@ -422,6 +502,7 @@ begin
     ext x,
     simp,
   rw h_zeroeqno at hf,
+
   sorry,
 
 

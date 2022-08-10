@@ -55,9 +55,8 @@ def solution_set_condition {D : Type u} [category.{v} D] (G : D ⥤ C) : Prop :=
 ∀ (A : C), ∃ (ι : Type v) (B : ι → D) (f : Π (i : ι), A ⟶ G.obj (B i)),
   ∀ X (h : A ⟶ G.obj X), ∃ (i : ι) (g : B i ⟶ X), f i ≫ G.map g = h
 
-variables {D : Type u} [category.{v} D]
-
 section general_adjoint_functor_theorem
+variables {D : Type u} [category.{v} D]
 
 variables (G : D ⥤ C)
 
@@ -96,6 +95,7 @@ end
 end general_adjoint_functor_theorem
 
 section special_adjoint_functor_theorem
+variables {D : Type u'} [category.{v} D]
 
 /--
 The special adjoint functor theorem: if `G : D ⥤ C` preserves limits and `D` is complete,

@@ -39,11 +39,15 @@ structure Scheme extends to_LocallyRingedSpace : LocallyRingedSpace :=
 
 namespace Scheme
 
+/-- A morphism between schemes is a morphism between the underlying locally ringed spaces. -/
+def hom (X Y : Scheme) : Type* :=
+X.to_LocallyRingedSpace ⟶ Y.to_LocallyRingedSpace
+
 /--
 Schemes are a full subcategory of locally ringed spaces.
 -/
 instance : category Scheme :=
-induced_category.category Scheme.to_LocallyRingedSpace
+{ hom := hom, ..(induced_category.category Scheme.to_LocallyRingedSpace) }
 
 /-- The structure sheaf of a Scheme. -/
 protected abbreviation sheaf (X : Scheme) := X.to_SheafedSpace.sheaf
@@ -61,16 +65,11 @@ def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
 def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
-instance {X Y : Scheme} : has_lift_t (X ⟶ Y)
-  (X.to_SheafedSpace ⟶ Y.to_SheafedSpace) := (@@coe_to_lift $ @@coe_base coe_subtype)
-
-lemma id_val_base (X : Scheme) : (subtype.val (𝟙 X)).base = 𝟙 _ := rfl
-
-@[simp] lemma id_coe_base (X : Scheme) :
-  (↑(𝟙 X) : X.to_SheafedSpace ⟶ X.to_SheafedSpace).base = 𝟙 _ := rfl
+@[simp]
+lemma id_val_base (X : Scheme) : (𝟙 X : _).1.base = 𝟙 _ := rfl
 
 @[simp] lemma id_app {X : Scheme} (U : (opens X.carrier)ᵒᵖ) :
-  (subtype.val (𝟙 X)).c.app U = X.presheaf.map
+  (𝟙 X : _).val.c.app U = X.presheaf.map
     (eq_to_hom (by { induction U using opposite.rec, cases U, refl })) :=
 PresheafedSpace.id_c_app X.to_PresheafedSpace U
 
@@ -80,7 +79,7 @@ lemma comp_val {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
 
 @[reassoc, simp]
 lemma comp_coe_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  (↑(f ≫ g) : X.to_SheafedSpace ⟶ Z.to_SheafedSpace).base = f.val.base ≫ g.val.base := rfl
+  (f ≫ g).val.base = f.val.base ≫ g.val.base := rfl
 
 @[reassoc, elementwise]
 lemma comp_val_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
@@ -220,7 +219,7 @@ LocallyRingedSpace.preimage_basic_open f r
 @[simp]
 lemma preimage_basic_open' {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :
-  (opens.map (↑f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace).base).obj (Y.basic_open r) =
+  (opens.map f.1.base).obj (Y.basic_open r) =
     @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
 LocallyRingedSpace.preimage_basic_open f r
 

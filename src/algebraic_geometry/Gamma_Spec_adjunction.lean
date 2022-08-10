@@ -183,10 +183,10 @@ begin
 end
 
 /-- The canonical morphism from `X` to the spectrum of its global sections. -/
-@[simps coe_base]
+@[simps val_base]
 def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
 { val := X.to_Γ_Spec_SheafedSpace,
-  property :=
+  prop :=
   begin
     intro x,
     let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
@@ -246,7 +246,7 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.t
     apply LocallyRingedSpace.comp_ring_hom_ext,
     { ext1 x,
       dsimp [Spec.Top_map, LocallyRingedSpace.to_Γ_Spec_fun],
-      rw [← subtype.val_eq_coe, ← local_ring.comap_closed_point (PresheafedSpace.stalk_map _ x),
+      rw [← local_ring.comap_closed_point (PresheafedSpace.stalk_map _ x),
         ← prime_spectrum.comap_comp_apply, ← prime_spectrum.comap_comp_apply],
       congr' 2,
       exact (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩).symm,

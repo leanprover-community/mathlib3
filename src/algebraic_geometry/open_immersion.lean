@@ -610,8 +610,7 @@ omit H
 
 @[simp] lemma LocallyRingedSpace_to_LocallyRingedSpace {X Y : LocallyRingedSpace} (f : X ⟶ Y)
   [LocallyRingedSpace.is_open_immersion f] :
-  @to_LocallyRingedSpace X.to_PresheafedSpace Y (@@coe (@@coe_to_lift (@@coe_base coe_subtype)) f)
-    (show is_open_immersion f.val, by apply_instance) = X :=
+  to_LocallyRingedSpace Y f.1 = X :=
 by unfreezingI { cases X, delta to_LocallyRingedSpace, simp }
 
 end to_LocallyRingedSpace
@@ -901,7 +900,8 @@ begin
     rw ← is_iso.eq_inv_comp at this,
     rw this,
     apply_instance },
-  { exact subtype.eq (PresheafedSpace.is_open_immersion.pullback_cone_of_left_condition _ _) },
+  { exact LocallyRingedSpace.hom.ext _ _
+      (PresheafedSpace.is_open_immersion.pullback_cone_of_left_condition _ _) },
 end
 
 instance : LocallyRingedSpace.is_open_immersion (pullback_cone_of_left f g).snd :=
@@ -912,24 +912,26 @@ def pullback_cone_of_left_is_limit : is_limit (pullback_cone_of_left f g) :=
 pullback_cone.is_limit_aux' _ $ λ s,
 begin
   use PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift f.1 g.1
-    (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg subtype.val s.condition)),
+    (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg LocallyRingedSpace.hom.val s.condition)),
   { intro x,
     have := PresheafedSpace.stalk_map.congr_hom _ _
       (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_snd f.1 g.1
-        (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg subtype.val s.condition))) x,
+        (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg LocallyRingedSpace.hom.val s.condition))) x,
     change _ = _ ≫ PresheafedSpace.stalk_map s.snd.1 x at this,
     rw [PresheafedSpace.stalk_map.comp, ← is_iso.eq_inv_comp] at this,
     rw this,
     apply_instance },
   split,
-  exact subtype.eq (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_fst f.1 g.1 _),
+  { exact LocallyRingedSpace.hom.ext _ _
+      (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_fst f.1 g.1 _) },
   split,
-  exact subtype.eq (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_snd f.1 g.1 _),
+  { exact LocallyRingedSpace.hom.ext _ _
+      (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_snd f.1 g.1 _) },
   intros m h₁ h₂,
   rw ← cancel_mono (pullback_cone_of_left f g).snd,
-  exact (h₂.trans (subtype.eq
+  exact (h₂.trans (LocallyRingedSpace.hom.ext _ _
     (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_snd f.1 g.1
-      (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg subtype.val s.condition))).symm))
+      (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg LocallyRingedSpace.hom.val s.condition))).symm))
 end
 
 instance has_pullback_of_left :
@@ -995,7 +997,7 @@ begin
   apply_with limits.comp_preserves_limit { instances := ff },
   apply_instance,
   apply preserves_limit_of_iso_diagram _ (diagram_iso_cospan.{u} _).symm,
-  dsimp [SheafedSpace.forget_to_PresheafedSpace, -subtype.val_eq_coe],
+  dsimp [SheafedSpace.forget_to_PresheafedSpace],
   apply_instance,
 end
 
@@ -1792,7 +1794,7 @@ by { delta morphism_restrict, apply_instance }
 
 lemma morphism_restrict_base_coe {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (x) :
   @coe U Y.carrier _ ((f ∣_ U).1.base x) = f.1.base x.1 :=
-congr_arg (λ f, PresheafedSpace.hom.base (subtype.val f) x) (morphism_restrict_ι f U)
+congr_arg (λ f, PresheafedSpace.hom.base (LocallyRingedSpace.hom.val f) x) (morphism_restrict_ι f U)
 
 lemma image_morphism_restrict_preimage {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier)
   (V : opens U) :
@@ -1899,7 +1901,7 @@ def morphism_restrict_restrict_basic_open {X Y : Scheme} (f : X ⟶ Y) (U : open
 begin
   refine morphism_restrict_restrict _ _ _ ≪≫ morphism_restrict_eq _ _,
   have e := Scheme.preimage_basic_open (Y.of_restrict U.open_embedding) r,
-  erw [Scheme.of_restrict_coe_c_app, opens.adjunction_counit_app_self, eq_to_hom_op] at e,
+  erw [Scheme.of_restrict_val_c_app, opens.adjunction_counit_app_self, eq_to_hom_op] at e,
   rw [← (Y.restrict U.open_embedding).basic_open_res_eq _
     (eq_to_hom U.inclusion_map_eq_top).op, ← comp_apply],
   erw ← Y.presheaf.map_comp,

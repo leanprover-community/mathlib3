@@ -238,8 +238,8 @@ variables (f : A → B)
 /--
 If `f : A → B` is a surjective homomorphism and `A` is `α`-rootable, then `B` is also `α`-rootable.
 -/
-@[to_additive add_comm_group.divisible_by_of_surj
-"If `f : A → B` is a surjective homomorphism and `A` is `α`-divisible, then `B` is also `α`-divisible."]
+@[to_additive add_comm_group.divisible_by_of_surj "If `f : A → B` is a surjective homomorphism and
+`A` is `α`-divisible, then `B` is also `α`-divisible."]
 noncomputable def rootable_by_of_surj (hf : function.surjective f)
   (hpow : ∀ (a : A) (n : α), f (a ^ n) = f a ^ n) : rootable_by B α :=
 rootable_by_of_pow_surj _ _ $ λ n hn x,

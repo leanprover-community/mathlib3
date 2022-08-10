@@ -40,7 +40,7 @@ begin
     rintro x,
     split,
     { rintro xs₀,
-      rw set.mem_sInter,
+      --rw set.mem_sInter,
       rintro s hs,
       rcases dir s₀ hs₀ s hs with ⟨t,ht,ts₀,ts⟩,
       suffices : t = s₀,{
@@ -102,7 +102,7 @@ begin
     rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
     refl },
 
-  refine ⟨(λ j, subtype (Fsur_obj j)),_,_,_⟩,
+  refine_struct ⟨(λ j, subtype (Fsur_obj j)),_,_,_⟩,
   { rintro j' j m, exact set.maps_to.restrict _ _ _ (subfunctor j' j m)},
   { rintro j,
     apply funext,
@@ -182,8 +182,7 @@ begin
     { --have : op_hom_of_le ij = hlk ≫ hkj, by {sorry},
       simp only,
       split,
-      { have : hlk ≫ hkj = hli ≫ hij, by reflexivity,
-        rw [this,functor.map_comp /-F hli hij-/,types_comp],
+      { rw [‹hlk ≫ hkj = hli ≫ hij›,functor.map_comp /-F hli hij-/,types_comp],
         apply set.range_comp_subset_range,},
       {
         rw [functor.map_comp /-F hlk hkj-/,types_comp],
@@ -408,8 +407,7 @@ begin
       rw [←category_theory.types_comp,←category_theory.functor.map_comp],
       exact bij l (nj.trans ln), },
 
-
-    simp,
+    simp only [subtype.val_eq_coe],
     rw [←meq,←neq],
 
     rw ←functor_to_types.map_comp_apply,
@@ -425,11 +423,6 @@ begin
     simp only [eqv],
     simp only [equiv.inv_fun_as_coe],
     rw [←equiv.symm_trans_apply,←equiv.symm_trans_apply],
-    --dsimp [equiv.of_bijective],
-    have : op_hom_of_le lm ≫ op_hom_of_le mi ≫ ik' = op_hom_of_le ln ≫ op_hom_of_le nk, by refl,
-    rw this,
-    apply congr_arg,
-
     rw [equiv.of_bijective_trans,equiv.of_bijective_trans],
     rw [←equiv.inv_fun_as_coe,←equiv.inv_fun_as_coe],
     simp_rw ←types_comp,

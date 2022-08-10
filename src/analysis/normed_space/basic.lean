@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import analysis.normed.field.basic
 import analysis.normed.group.infinite_sum
+import data.real.sqrt
 import data.matrix.basic
 import topology.sequences
 
@@ -158,35 +159,50 @@ by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
 /-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
-This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`.
+This homeomorphism sends `x : E` to `(1 + ∥x∥²)^(- ½) • x`.
 
 In many cases the actual implementation is not important, so we don't mark the projection lemmas
 `homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`. -/
 @[simps { attrs := [] }]
-def homeomorph_unit_ball {E : Type*} [seminormed_add_comm_group E] [normed_space ℝ E] :
+def homeomorph_unit_ball [normed_space ℝ E] :
   E ≃ₜ ball (0 : E) 1 :=
-{ to_fun := λ x, ⟨(1 + ∥x∥)⁻¹ • x, begin
-    have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
-    rwa [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
-      div_lt_one ((norm_nonneg x).trans_lt this)],
+{ to_fun := λ x, ⟨(1 + ∥x∥^2).sqrt⁻¹ • x, begin
+    have : 0 < 1 + ∥x∥ ^ 2 := by linarith [sq_nonneg (∥x∥)],
+    rw [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
+      div_lt_one (abs_pos.mpr $ real.sqrt_ne_zero'.mpr this), ← abs_norm_eq_norm x, ← sq_lt_sq,
+      abs_norm_eq_norm, real.sq_sqrt this.le],
+    exact lt_one_add _,
   end⟩,
-  inv_fun := λ x, (1 - ∥(x : E)∥)⁻¹ • (x : E),
+  inv_fun := λ y, (1 - ∥(y : E)∥^2).sqrt⁻¹ • (y : E),
   left_inv := λ x,
-    begin
-      have : 0 < 1 + ∥x∥ := (norm_nonneg x).trans_lt (lt_one_add _),
-      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, abs_div]
-    end,
-  right_inv := λ x, subtype.ext
-    begin
-      have : 0 < 1 - ∥(x : E)∥ := sub_pos.2 (mem_ball_zero_iff.1 x.2),
-      field_simp [norm_smul, smul_smul, abs_div, abs_of_pos this, this.ne']
-    end,
+  begin
+    have : 0 < 1 + ∥x∥ ^ 2 := by linarith [sq_nonneg (∥x∥)],
+    field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
+  end,
+  right_inv := λ y,
+  begin
+    have : 0 < 1 - ∥(y : E)∥ ^ 2 :=
+      by nlinarith [norm_nonneg (y : E), (mem_ball_zero_iff.1 y.2 : ∥(y : E)∥ < 1)],
+    field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
+  end,
   continuous_to_fun := continuous_subtype_mk _ $
-    ((continuous_const.add continuous_norm).inv₀
-      (λ x, ((norm_nonneg x).trans_lt (lt_one_add _)).ne')).smul continuous_id,
-  continuous_inv_fun := continuous.smul
-    ((continuous_const.sub continuous_subtype_coe.norm).inv₀ $
-      λ x, (sub_pos.2 $ mem_ball_zero_iff.1 x.2).ne') continuous_subtype_coe }
+  begin
+    suffices : continuous (λ x, (1 + ∥x∥^2).sqrt⁻¹), { exact this.smul continuous_id, },
+    have h : ∀ (x : E), 0 < 1 + ∥x∥ ^ 2 := λ x, by linarith [sq_nonneg (∥x∥)],
+    refine continuous.inv₀ _ (λ x, real.sqrt_ne_zero'.mpr (h x)),
+    continuity,
+  end,
+  continuous_inv_fun :=
+  begin
+    suffices : ∀ (y : ball (0 : E) 1), (1 - ∥(y : E)∥ ^ 2).sqrt ≠ 0, { continuity, },
+    intros y,
+    rw real.sqrt_ne_zero',
+    nlinarith [norm_nonneg (y : E), (mem_ball_zero_iff.1 y.2 : ∥(y : E)∥ < 1)],
+  end }
+
+@[simp] lemma coe_homeomorph_unit_ball_apply_zero [normed_space ℝ E] :
+  (homeomorph_unit_ball (0 : E) : E) = 0 :=
+by simp [homeomorph_unit_ball]
 
 open normed_field
 

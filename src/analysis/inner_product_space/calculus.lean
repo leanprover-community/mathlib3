@@ -333,3 +333,12 @@ begin
 end
 
 end pi_like
+
+lemma cont_diff_homeomorph_unit_ball {n : with_top ℕ} {E : Type*} [inner_product_space ℝ E] :
+  cont_diff ℝ n ((coe : metric.ball (0 : E) 1 → E) ∘ homeomorph_unit_ball) :=
+begin
+  suffices : cont_diff ℝ n (λ x, (1 + ∥x∥^2).sqrt⁻¹), { exact this.smul cont_diff_id, },
+  have h : ∀ (x : E), 0 < 1 + ∥x∥ ^ 2 := λ x, by linarith [sq_nonneg (∥x∥)],
+  refine cont_diff.inv _ (λ x, real.sqrt_ne_zero'.mpr (h x)),
+  exact (cont_diff_const.add cont_diff_norm_sq).sqrt (λ x, (h x).ne.symm),
+end

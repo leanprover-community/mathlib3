@@ -699,7 +699,8 @@ begin
 
   -- the dual cone of a singleton `{x}` is the preimage of `[0, ∞)` under `inner x`
   have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0) := by
-  rw [inner_dual_cone_singleton, convex_cone.comap_coe, convex_cone.coe_positive, innerₛₗ_apply_coe],
+    rw [inner_dual_cone_singleton, convex_cone.comap_coe, convex_cone.coe_positive,
+    innerₛₗ_apply_coe],
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,
@@ -707,3 +708,4 @@ begin
 end
 
 end dual
+#lint

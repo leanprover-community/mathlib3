@@ -201,54 +201,6 @@ begin
     (λ n, ((hf.strongly_measurable n).measurable.mono (le_Sup ⟨n, rfl⟩) le_rfl))) }
 end
 
-section limit
-
-open_locale classical
-
-variables [preorder ι] {E : Type*} [has_zero E] [topological_space E]
-  {𝒢 : filtration ι m0} {g : ι → Ω → E}
-
-/-- Given a process `f` and a filtration `ℱ`, if `f` converges to some `g` almost everywhere and
-`g` is `⨆ n, ℱ n`-measurable, then `limit_process f ℱ μ` chooses said `g`, else it returns 0.
-
-This definition is used to phrase the a.e. martingale convergence theorem
-`submartingale.ae_tendsto_limit_process` where an L¹-bounded submartingale `f` adapted to `ℱ`
-converges to `limit_process f ℱ μ` `μ`-almost everywhere. -/
-noncomputable
-def limit_process (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω) :=
-if h : ∃ g : Ω → E, strongly_measurable[⨆ n, ℱ n] g ∧
-  ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)) then classical.some h else 0
-
-lemma strongly_measurable_limit_process :
-  strongly_measurable[⨆ n, 𝒢 n] (limit_process g 𝒢 μ) :=
-begin
-  rw limit_process,
-  split_ifs with h h,
-  exacts [(classical.some_spec h).1, strongly_measurable_zero]
-end
-
-lemma strongly_measurable_limit_process' :
-  strongly_measurable[m0] (limit_process g 𝒢 μ) :=
-strongly_measurable_limit_process.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ 𝒢.le _))
-
-lemma mem_ℒp_limit_process_of_snorm_bdd
-  {p : ℝ≥0∞} {F : Type*} [normed_add_comm_group F] {f : ℕ → Ω → F}
-  (hfm : ∀ n, ae_strongly_measurable (f n) μ) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  mem_ℒp (limit_process f ℱ μ) p μ :=
-begin
-  rw limit_process,
-  split_ifs with h,
-  { refine ⟨strongly_measurable.ae_strongly_measurable
-      ((classical.some_spec h).1.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _))),
-      lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm hfm _ (classical.some_spec h).2)
-        (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞))⟩,
-    simp_rw [liminf_eq, eventually_at_top],
-    exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hbdd _)) },
-  { exact zero_mem_ℒp }
-end
-
-end limit
-
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
 almost everywhere to a `⨆ n, ℱ n`-measurable function. -/
 lemma submartingale.ae_tendsto_limit_process [is_finite_measure μ]

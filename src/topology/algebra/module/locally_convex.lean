@@ -92,8 +92,8 @@ lemma locally_convex_space_iff_exists_convex_subset_zero :
 (locally_convex_space_iff_zero 𝕜 E).trans has_basis_self
 
 -- see Note [lower instance priority]
-@[priority 100] instance locally_convex_space.to_locally_connected_space [module ℝ E] [has_continuous_smul ℝ E]
-  [locally_convex_space ℝ E] :
+@[priority 100] instance locally_convex_space.to_locally_connected_space [module ℝ E]
+  [has_continuous_smul ℝ E] [locally_convex_space ℝ E] :
   locally_connected_space E :=
 locally_connected_space_of_connected_bases _ _
   (λ x, @locally_convex_space.convex_basis ℝ _ _ _ _ _ _ x)

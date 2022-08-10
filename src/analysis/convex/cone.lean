@@ -732,8 +732,10 @@ begin
 end
 
 section complete_space
-  variables [complete_space H]
+variables [complete_space H]
 
+/-- This is a stronger version of the Hahn-Banach separation theorem for closed convex cones. This
+is also the geometric interpretation of Farkas' lemma. -/
 theorem hyperplane_separation_point_nonempty_closed_convex_cone {K : convex_cone ℝ H}
   (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) {b : H} (disj : b ∉ K) :
   ∃ (y : H), (∀ x : H, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ) ∧ ⟪y, b⟫_ℝ < 0 :=
@@ -772,7 +774,8 @@ begin
   end,
 end
 
-theorem dual_of_dual_eq_self
+/-- The inner dual of inner dual of a non-empty, closed convex cone is itself.  -/
+theorem inner_dual_of_inner_dual_eq_self
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
   ((K : set H).inner_dual_cone : set H).inner_dual_cone = K := convex_cone.ext $ λ x, iff.intro
 begin

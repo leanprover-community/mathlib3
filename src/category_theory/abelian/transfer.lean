@@ -9,6 +9,7 @@ import category_theory.limits.preserves.shapes.kernels
 import category_theory.adjunction.limits
 import category_theory.abelian.exact
 import category_theory.preadditive.injective
+import category_theory.adjunction.limits
 
 /-!
 # Transferring categorical properties across a functor
@@ -312,10 +313,13 @@ adj.hom_equiv A (injective.under $ L.obj A) (injective.ι _)
 local notation `to_RJ_of` A := to_RJ adj A
 
 instance mono_to_RJ (A : 𝓐)
-  [abelian 𝓐] [abelian 𝓑] [preserves_finite_colimits L] [preserves_finite_limits L] [faithful L] :
+  [abelian 𝓐] [abelian 𝓑] [preserves_finite_limits L] [faithful L] :
   mono $ to_RJ_of A :=
 have e2 : exact (L.map (kernel.ι $ to_RJ_of A)) (L.map $ to_RJ_of A),
-from L.map_exact _ _ (exact_kernel_ι),
+begin
+  haveI := left_adjoint_preserves_colimits adj,
+  exact L.map_exact _ _ (exact_kernel_ι)
+end,
 have eq1 : L.map (to_RJ_of A) ≫ (adj.counit.app _) = injective.ι _, from by simp [to_RJ],
 have m1 : mono (L.map (to_RJ_of A) ≫ (adj.counit.app _)),
 begin
@@ -340,8 +344,7 @@ end enough_injectives_of_adjunction_auxs
 faithful and exact left adjoint functor transfers enough injectiveness.-/
 lemma enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
   [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
-  {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R)
-  [faithful L] [preserves_finite_limits L] [preserves_finite_colimits L]
+  {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R) [faithful L] [preserves_finite_limits L]
   [enough_injectives 𝓑] : enough_injectives 𝓐 :=
 { presentation := λ A,
   ⟨⟨enough_injectives_of_adjunction_auxs.RJ L R A,
@@ -354,9 +357,7 @@ equivalence of category transfers enough injectiveness.-/
 lemma enough_injectives.of_equivalence {𝓐 : Type u₁} {𝓑 : Type u₂}
   [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
   (e : 𝓐 ⥤ 𝓑) [is_equivalence e] [enough_injectives 𝓑] : enough_injectives 𝓐 :=
-@@enough_injectives.of_adjunction _ _ _ _ e.as_equivalence.to_adjunction _ _
-  (@@limits.preserves_colimits.preserves_finite_colimits _ _ _
-    (adjunction.is_equivalence_preserves_colimits e)) _
+@@enough_injectives.of_adjunction _ _ _ _ e.as_equivalence.to_adjunction _ _ _
 
 end transfer_enough_injectives
 

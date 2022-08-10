@@ -212,7 +212,7 @@ open limits adjunction
 universes v₁ v₂
 
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] [enough_injectives D]
-variables (L : C ⥤ D) (R : D ⥤ A)
+variables (L : C ⥤ D) (R : D ⥤ C)
 
 namespace enough_injectives_of_adjunction_auxs
 
@@ -307,7 +307,7 @@ adj.hom_equiv A (injective.under $ L.obj A) (injective.ι _)
 
 local notation `to_RJ_of` A := to_RJ adj A
 
-instance mono_to_RJ (A : C) [abelian 𝓐] [abelian 𝓑] [preserves_finite_limits L] [faithful L] :
+instance mono_to_RJ (A : C) [abelian C] [abelian D] [preserves_finite_limits L] [faithful L] :
   mono $ to_RJ_of A :=
 have e2 : exact (L.map (kernel.ι $ to_RJ_of A)) (L.map $ to_RJ_of A),
 begin
@@ -334,6 +334,10 @@ by rw [abelian.mono_iff_kernel_ι_eq_zero, eq3]
 
 end enough_injectives_of_adjunction_auxs
 
+-- Implementation note: only `abelian C` if `category C` and `category D` have the same morphism
+-- universe level, in that case `abelian D` is implied by `abelian_of_adjunction`; but in this
+-- implementation, we choose not to ask two categories with the same morphism universe level, so
+-- we need an additional assumption `abelian D`.
 /--
 faithful and exact left adjoint functor transfers enough injectiveness.-/
 lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
@@ -346,11 +350,15 @@ lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
     enough_injectives_of_adjunction_auxs.to_RJ adj A,
     enough_injectives_of_adjunction_auxs.mono_to_RJ adj A⟩⟩ }
 
+-- Implementation note: only `abelian C` if `category C` and `category D` have the same morphism
+-- universe level, in that case `abelian D` is implied by `abelian_of_equivalence`; but in this
+-- implementation, we choose not to ask two categories with the same morphism universe level, so
+-- we need an additional assumption `abelian D`.
 /--
 equivalence of category transfers enough injectiveness.-/
 lemma enough_injectives.of_equivalence {C : Type u₁} {D : Type u₂}
   [category.{v₁} C] [category.{v₂} D] [abelian C] [abelian D]
-  (e : 𝓐 ⥤ 𝓑) [is_equivalence e] [enough_injectives D] : enough_injectives C :=
+  (e : C ⥤ D) [is_equivalence e] [enough_injectives D] : enough_injectives C :=
 @@enough_injectives.of_adjunction _ _ _ _ e.as_equivalence.to_adjunction _ _ _
 
 end transfer_enough_injectives

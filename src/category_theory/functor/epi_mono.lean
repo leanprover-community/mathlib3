@@ -216,7 +216,7 @@ begin
 end
 
 @[simp]
-lemma mono_iff_mono_map [hF₁ : preserves_monomorphisms F] [hF₂ : reflects_monomorphisms F] :
+lemma mono_map_iff_mono [hF₁ : preserves_monomorphisms F] [hF₂ : reflects_monomorphisms F] :
   mono (F.map f) ↔ mono f :=
 begin
   split,

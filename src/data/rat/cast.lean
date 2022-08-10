@@ -277,18 +277,15 @@ by simp [abs_eq_max_neg]
 
 end rat
 
-open rat ring_hom
+open rat
+
+@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [ring_hom_class F α β]
+  (f : F) (q : ℚ) : f q = q :=
+calc f q = (f : α →+* β) q : rfl
+... = q : by rw [cast_def, ring_hom.map_div, (f : α →+* β).map_int_cast, map_nat_cast, cast_def]
 
 lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
-calc f r = f (r.1 / r.2) : by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
-     ... = f r.1 / f r.2 : f.map_div _ _
-     ... = r             : by rw [map_nat_cast, map_int_cast, cast_def]
-
--- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
--- but the proof would be much longer
-@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [char_zero α] [ring_hom_class F α β]
-  (f : F) (q : ℚ) : f q = q :=
-((f : α →+* β).comp $ cast_hom α).eq_rat_cast q
+by rw [← map_rat_cast f, rat.cast_id]
 
 lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
 begin

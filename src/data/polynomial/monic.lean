@@ -26,16 +26,16 @@ variables {R : Type u} {S : Type v} {a b : R} {m n : ℕ} {ι : Type y}
 section semiring
 variables [semiring R] {p q r : R[X]}
 
-lemma not_monic_zero_iff : ¬ monic (0 : R[X]) ↔ (0 : R) ≠ 1 :=
-by simp [monic]
+lemma monic_zero_iff_subsingleton : monic (0 : R[X]) ↔ subsingleton R :=
+subsingleton_iff_zero_eq_one
 
-lemma monic_zero_iff_subsingleton : monic (0 : R[X]) ↔ (∀ a b : R, a = b) :=
-by rw [← not_iff_not, not_monic_zero_iff, ne.def, subsingleton_iff_zero_eq_one, subsingleton_iff]
+lemma not_monic_zero_iff : ¬ monic (0 : R[X]) ↔ (0 : R) ≠ 1 :=
+(monic_zero_iff_subsingleton.trans subsingleton_iff_zero_eq_one.symm).not
 
 lemma monic_zero_iff_subsingleton' :
   monic (0 : R[X]) ↔ (∀ f g : R[X], f = g) ∧ (∀ a b : R, a = b) :=
-monic_zero_iff_subsingleton.trans (iff_and_self.mpr
-  (λ h, by { haveI := subsingleton_iff.mpr h, exact subsingleton.elim }))
+polynomial.monic_zero_iff_subsingleton.trans ⟨by { introI, simp },
+  λ h, subsingleton_iff.mpr h.2⟩
 
 lemma monic.as_sum (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=

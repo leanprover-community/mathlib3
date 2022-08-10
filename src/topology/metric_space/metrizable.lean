@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import topology.urysohns_lemma
 import topology.continuous_function.bounded
+import topology.uniform_space.cauchy
 
 /-!
 # Metrizability of a T₃ topological space with second countable topology
@@ -64,9 +65,13 @@ end
 
 /-- Every pseudo-metrizable space is first countable. -/
 @[priority 100]
-instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space X] :
-  topological_space.first_countable_topology X :=
-by unfreezingI { rcases h with ⟨_, hm⟩, rw ←hm, apply_instance }
+instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space E] :
+  topological_space.first_countable_topology E :=
+begin
+  unfreezingI { rcases h with ⟨_, hm⟩, rw ←hm },
+  exact @uniform_space.first_countable_topology E pseudo_metric_space.to_uniform_space
+    emetric.uniformity.filter.is_countably_generated,
+end
 
 instance pseudo_metrizable_space.subtype [pseudo_metrizable_space X]
   (s : set X) : pseudo_metrizable_space s :=

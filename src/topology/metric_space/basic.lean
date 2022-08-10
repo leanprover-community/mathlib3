@@ -999,13 +999,6 @@ lemma _root_.dense_range.exists_dist_lt {β : Type*} {f : β → α} (hf : dense
   ∃ y, dist x (f y) < ε :=
 exists_range_iff.1 (hf.exists_dist_lt x hε)
 
-/-- Every pseudo-metric space is first countable. -/
-@[priority 100]
-instance pseudo_metric_space.first_countable_topology {α : Type*}
-  [pseudo_metric_space α] : topological_space.first_countable_topology α :=
-⟨λ x, filter.has_countable_basis.is_countably_generated
-  (⟨metric.nhds_basis_ball_inv_nat_pos, {n : ℕ | 0 < n}.to_countable⟩)⟩
-
 end metric
 
 open metric

@@ -350,8 +350,8 @@ lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_le
 
 -- it would be nice if maybe we could get this for `ℝ≥0` instead, but we go to `ℝ≥0∞` because it
 -- is a complete lattice and therefore `supr` is well-behaved.
-lemma key_lemma {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [non_unital_normed_ring E] [star_ring E]
-  [cstar_ring E] [module 𝕜 E] [is_scalar_tower 𝕜 E E] [normed_space 𝕜 E] (a : E) :
+lemma key_lemma {𝕜 E : Type*} [densely_normed_field 𝕜] [non_unital_normed_ring E] [star_ring E]
+  [cstar_ring E] [normed_space 𝕜 E] [is_scalar_tower 𝕜 E E] (a : E) :
   (∥a∥₊ : ℝ≥0∞) = ⨆ b (hb : ∥b∥₊ ≤ 1), ∥b * a∥₊ :=
 begin
   refine le_antisymm _ (supr₂_le (λ b hb, _)),

@@ -6,6 +6,7 @@ Authors: Andrew Yang
 import category_theory.elementwise
 import category_theory.sites.compatible_sheafification
 import category_theory.limits.constructions.epi_mono
+import category_theory.adjunction.evaluation
 
 /-!
 
@@ -79,6 +80,20 @@ def subpresheaf.hom_of_le {G G' : subpresheaf F} (h : G ≤ G') : G.to_presheaf 
 instance {G G' : subpresheaf F} (h : G ≤ G') : mono (subpresheaf.hom_of_le h) :=
 ⟨λ H f₁ f₂ e, nat_trans.ext f₁ f₂ $ funext $ λ U,
   funext $ λ x, subtype.ext $ (congr_arg subtype.val $ (congr_fun (congr_app e U) x : _) : _)⟩
+
+@[simp, reassoc]
+lemma subpresheaf.hom_of_le_ι  {G G' : subpresheaf F} (h : G ≤ G') :
+  subpresheaf.hom_of_le h ≫ G'.ι = G.ι :=
+by { ext, refl }
+
+@[simps]
+def subpresheaf.lift (f : F' ⟶ F) (hf : ∀ U x, f.app U x ∈ G.obj U) : F' ⟶ G.to_presheaf :=
+{ app := λ U x, ⟨f.app U x, hf U x⟩,
+  naturality' := by { have := elementwise_of f.naturality, intros, ext, simp [this] } }
+
+@[simp, reassoc]
+lemma subpresheaf.lift_ι (f : F' ⟶ F) (hf : ∀ U x, f.app U x ∈ G.obj U) :
+  G.lift f hf ≫ G.ι = f := by { ext, refl }
 
 /-- Given a subpresheaf `G` of `F`, an `F`-section `s` on `U`, we may define a sieve of `U`
 consisting of all `f : V ⟶ U` such that the restriction of `s` along `f` is in `G`. -/
@@ -233,5 +248,84 @@ begin
   have := elementwise_of f.naturality,
   exact (presieve.is_sheaf_for.valid_glue _ _ _ hi).trans (this _ _)
 end
+
+omit J
+
+section image
+
+@[simps]
+def image_presheaf (f : F' ⟶ F) : subpresheaf F :=
+{ obj := λ U, set.range (f.app U),
+  map := λ U V i,
+    by { rintros _ ⟨x, rfl⟩, have := elementwise_of f.naturality, exact ⟨_, this i x⟩ } }
+
+@[simp] lemma top_subpresheaf_obj (U) : (⊤ : subpresheaf F).obj U = ⊤ := rfl
+
+@[simp]
+lemma image_presheaf_id : image_presheaf (𝟙 F) = ⊤ :=
+by { ext, simp }
+
+@[simps]
+def to_image_presheaf (f : F' ⟶ F) : F' ⟶ (image_presheaf f).to_presheaf :=
+(image_presheaf f).lift f (λ U x, set.mem_range_self _)
+
+instance (f : F' ⟶ F) : split_epi (to_image_presheaf f) :=
+begin
+  apply (nat_trans.epi_iff_app_epi _ _).mpr,
+  { intro U, rw epi_iff_surjective, rintro ⟨_, x, rfl⟩, exact ⟨x, rfl⟩ },
+  { apply_instance }
+end
+
+@[simp, reassoc]
+lemma to_image_presheaf_ι (f : F' ⟶ F) : to_image_presheaf f ≫ (image_presheaf f).ι = f :=
+(image_presheaf f).lift_ι _ _
+
+@[simps]
+def image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : Sheaf J (Type w) :=
+⟨((image_presheaf f.1).sheafify J).to_presheaf,
+  by { rw is_sheaf_iff_is_sheaf_of_type, apply subpresheaf.sheafify_is_sheaf,
+    rw ← is_sheaf_iff_is_sheaf_of_type, exact F'.2 }⟩
+
+@[simps]
+def to_image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : F ⟶ image_sheaf f :=
+⟨to_image_presheaf f.1 ≫ subpresheaf.hom_of_le ((image_presheaf f.1).le_sheafify J)⟩
+
+@[simps]
+def image_sheaf_ι {F F' : Sheaf J (Type w)} (f : F ⟶ F') : image_sheaf f ⟶ F' :=
+⟨subpresheaf.ι _⟩
+
+@[simp, reassoc]
+lemma to_image_sheaf_ι {F F' : Sheaf J (Type w)} (f : F ⟶ F') :
+  to_image_sheaf f ≫ image_sheaf_ι f = f :=
+by { ext1, simp }
+
+instance {F F' : Sheaf J (Type w)} (f : F ⟶ F') : mono (image_sheaf_ι f) :=
+(Sheaf_to_presheaf J _).mono_of_mono_map (by { dsimp, apply_instance })
+
+instance {F F' : Sheaf J (Type w)} (f : F ⟶ F') : epi (to_image_sheaf f) :=
+begin
+  refine ⟨λ G' g₁ g₂ e, _⟩,
+  ext U ⟨s, hx⟩,
+  apply ((is_sheaf_iff_is_sheaf_of_type J _).mp G'.2 _ hx).is_separated_for.ext,
+  rintros V i ⟨y, e'⟩,
+  change (g₁.val.app _ ≫ G'.val.map _) _ = (g₂.val.app _ ≫ G'.val.map _) _,
+  rw [← nat_trans.naturality, ← nat_trans.naturality],
+  have E : (to_image_sheaf f).val.app (op V) y =
+    (image_sheaf f).val.map i.op ⟨s, hx⟩ := subtype.ext e',
+  have := congr_arg (λ f : F ⟶ G', (Sheaf.hom.val f).app _ y) e,
+  dsimp at this ⊢,
+  convert this; exact E.symm
+end
+
+instance (f : F ⟶ F') [mono f] : is_iso (to_image_presheaf f) :=
+begin
+  apply_with nat_iso.is_iso_of_is_iso_app { instances := ff },
+  intro X,
+  rw is_iso_iff_bijective,
+  split,
+  { intros x y e, replace e := congr_arg subtype.val e, dsimp at e, have := nat_trans.mono_iff_app_mono, }
+end
+
+end image
 
 end category_theory.grothendieck_topology

@@ -50,8 +50,10 @@ instance : normed_field ℂ :=
   norm_mul' := abs_mul,
   .. complex.field, .. complex.normed_add_comm_group }
 
-instance : nontrivially_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp; norm_num⟩ }
+instance : densely_normed_field ℂ :=
+{ lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨x, h⟩ := normed_field.exists_lt_norm_lt ℝ h₀ hr in
+    have this : ∥(∥x∥ : ℂ)∥ = ∥(∥x∥)∥, by simp only [norm_eq_abs, abs_of_real, real.norm_eq_abs],
+    ⟨∥x∥, by rwa [this, norm_norm]⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_smul_le := λ r x, begin

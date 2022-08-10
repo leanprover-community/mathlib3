@@ -517,6 +517,11 @@ begin
 end
 hf hg
 
+lemma of_finite {f : A →+* B} (hf : f.finite) : f.finite_type :=
+@module.finite.finite_type _ _ _ _ f.to_algebra hf
+
+alias of_finite ← _root_.ring_hom.finite.to_finite_type
+
 lemma of_finite_presentation {f : A →+* B} (hf : f.finite_presentation) : f.finite_type :=
 @algebra.finite_type.of_finite_presentation A B _ _ f.to_algebra hf
 

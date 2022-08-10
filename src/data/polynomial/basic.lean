@@ -666,6 +666,12 @@ begin
   simpa [sum, support, coeff] using finsupp.sum_smul_index hf,
 end
 
+lemma sum_monomial_eq : ∀ p : R[X], p.sum (λ n a, monomial n a) = p
+| ⟨p⟩ := (of_finsupp_sum _ _).symm.trans (congr_arg _ $ finsupp.sum_single _)
+
+lemma sum_C_mul_X_eq (p : R[X]) : p.sum (λn a, C a * X^n) = p :=
+by simp_rw [←monomial_eq_C_mul_X, sum_monomial_eq]
+
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : R[X] → R[X]
 | ⟨p⟩ := ⟨p.erase n⟩

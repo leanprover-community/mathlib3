@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import field_theory.minpoly
 import field_theory.subfield
 import field_theory.tower
-import ring_theory.algebraic
 
 /-!
 # Intermediate fields
@@ -18,15 +18,14 @@ i.e. it is a `subfield L` and a `subalgebra K L`.
 
 ## Main definitions
 
- * `intermediate_field K L` : the type of intermediate fields between `K` and `L`.
-
- * `subalgebra.to_intermediate_field`: turns a subalgebra closed under `⁻¹`
-   into an intermediate field
-
- * `subfield.to_intermediate_field`: turns a subfield containing the image of `K`
-   into an intermediate field
-
+* `intermediate_field K L` : the type of intermediate fields between `K` and `L`.
+* `subalgebra.to_intermediate_field`: turns a subalgebra closed under `⁻¹`
+  into an intermediate field
+* `subfield.to_intermediate_field`: turns a subfield containing the image of `K`
+  into an intermediate field
 * `intermediate_field.map`: map an intermediate field along an `alg_hom`
+* `intermediate_field.restrict_scalars`: restrict the scalars of an intermediate field to a smaller
+  field in a tower of fields.
 
 ## Implementation notes
 
@@ -191,11 +190,30 @@ def subalgebra.to_intermediate_field (S : subalgebra K L) (inv_mem : ∀ x ∈ S
   (S.to_intermediate_field inv_mem).to_subalgebra = S :=
 by { ext, refl }
 
-@[simp] lemma to_intermediate_field_to_subalgebra
-  (S : intermediate_field K L) (inv_mem : ∀ x ∈ S.to_subalgebra, x⁻¹ ∈ S) :
-  S.to_subalgebra.to_intermediate_field inv_mem = S :=
+@[simp] lemma to_intermediate_field_to_subalgebra (S : intermediate_field K L) :
+  S.to_subalgebra.to_intermediate_field (λ x, S.inv_mem) = S :=
 by { ext, refl }
 
+/-- Turn a subalgebra satisfying `is_field` into an intermediate_field -/
+def subalgebra.to_intermediate_field' (S : subalgebra K L) (hS : is_field S) :
+  intermediate_field K L :=
+S.to_intermediate_field $ λ x hx, begin
+  by_cases hx0 : x = 0,
+  { rw [hx0, inv_zero],
+    exact S.zero_mem },
+  letI hS' := hS.to_field,
+  obtain ⟨y, hy⟩ := hS.mul_inv_cancel (show (⟨x, hx⟩ : S) ≠ 0, from subtype.ne_of_val_ne hx0),
+  rw [subtype.ext_iff, S.coe_mul, S.coe_one, subtype.coe_mk, mul_eq_one_iff_inv_eq₀ hx0] at hy,
+  exact hy.symm ▸ y.2,
+end
+
+@[simp] lemma to_subalgebra_to_intermediate_field' (S : subalgebra K L) (hS : is_field S) :
+  (S.to_intermediate_field' hS).to_subalgebra = S :=
+by { ext, refl }
+
+@[simp] lemma to_intermediate_field'_to_subalgebra (S : intermediate_field K L) :
+  S.to_subalgebra.to_intermediate_field' (field.to_is_field S) = S :=
+by { ext, refl }
 
 /-- Turn a subfield of `L` containing the image of `K` into an intermediate field -/
 def subfield.to_intermediate_field (S : subfield L)
@@ -269,10 +287,12 @@ variables {L' : Type*} [field L'] [algebra K L']
 
 /-- If `f : L →+* L'` fixes `K`, `S.map f` is the intermediate field between `L'` and `K`
 such that `x ∈ S ↔ f x ∈ S.map f`. -/
-def map (f : L →ₐ[K] L') : intermediate_field K L' :=
+def map (f : L →ₐ[K] L') (S : intermediate_field K L) : intermediate_field K L' :=
 { inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, S.inv_mem hx, f.map_inv x⟩ },
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
+
+@[simp] lemma coe_map (f : L →ₐ[K] L') : (S.map f : set L') = f '' S := rfl
 
 lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
   [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]
@@ -376,44 +396,46 @@ variables {S}
 section tower
 
 /-- Lift an intermediate_field of an intermediate_field -/
-def lift1 {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
-  map E (val F)
+def lift {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
+E.map (val F)
 
-/-- Lift an intermediate_field of an intermediate_field -/
-def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermediate_field K L :=
+instance has_lift {F : intermediate_field K L} :
+  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift⟩
+
+section restrict_scalars
+variables (K) [algebra L' L] [is_scalar_tower K L' L]
+
+/-- Given a tower `L / ↥E / L' / K` of field extensions, where `E` is an `L'`-intermediate field of
+`L`, reinterpret `E` as a `K`-intermediate field of `L`. -/
+def restrict_scalars (E : intermediate_field L' L) :
+  intermediate_field K L :=
 { carrier := E.carrier,
-  zero_mem' := zero_mem E,
-  add_mem' := λ x y (hx : x ∈ E), add_mem hx,
-  neg_mem' := λ x (hx : x ∈ E), neg_mem hx,
-  one_mem' := one_mem E,
-  mul_mem' := λ x y (hx : x ∈ E), mul_mem hx,
-  inv_mem' := λ x (hx : x ∈ E), inv_mem hx,
-  algebra_map_mem' := λ x, algebra_map_mem E (algebra_map K F x) }
+  ..E.to_subfield,
+  ..E.to_subalgebra.restrict_scalars K }
 
-instance has_lift1 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift1⟩
+@[simp] lemma coe_restrict_scalars {E : intermediate_field L' L} :
+  (restrict_scalars K E : set L) = (E : set L) := rfl
 
-instance has_lift2 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field F L) (intermediate_field K L) := ⟨lift2⟩
+@[simp] lemma restrict_scalars_to_subalgebra {E : intermediate_field L' L} :
+  (E.restrict_scalars K).to_subalgebra = E.to_subalgebra.restrict_scalars K :=
+set_like.coe_injective rfl
 
-@[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
-  x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
+@[simp] lemma restrict_scalars_to_subfield {E : intermediate_field L' L} :
+  (E.restrict_scalars K).to_subfield = E.to_subfield :=
+set_like.coe_injective rfl
+
+@[simp] lemma mem_restrict_scalars {E : intermediate_field L' L} {x : L} :
+  x ∈ restrict_scalars K E ↔ x ∈ E := iff.rfl
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars K : intermediate_field L' L → intermediate_field K L) :=
+λ U V H, ext $ λ x, by rw [← mem_restrict_scalars K, H, mem_restrict_scalars]
+
+end restrict_scalars
 
 /-- This was formerly an instance called `lift2_alg`, but an instance above already provides it. -/
 example {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
 by apply_instance
-
-lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} :
-  algebra_map K E = (algebra_map F E).comp (algebra_map K F) := rfl
-
-instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
-  is_scalar_tower K F E :=
-E.is_scalar_tower
-
-/-- `lift2` is isomorphic to the original `intermediate_field`. -/
-def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
-  (↑E : intermediate_field K L) ≃ₐ[K] E :=
-alg_equiv.refl
 
 end tower
 
@@ -422,7 +444,7 @@ section finite_dimensional
 variables (F E : intermediate_field K L)
 
 instance finite_dimensional_left [finite_dimensional K L] : finite_dimensional K F :=
-finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
+left K F L
 
 instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional F L :=
 right K F L
@@ -462,6 +484,19 @@ eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
 
+lemma is_algebraic_iff {x : S} : is_algebraic K x ↔ is_algebraic K (x : L) :=
+(is_algebraic_algebra_map_iff (algebra_map S L).injective).symm
+
+lemma is_integral_iff {x : S} : is_integral K x ↔ is_integral K (x : L) :=
+by rw [←is_algebraic_iff_is_integral, is_algebraic_iff, is_algebraic_iff_is_integral]
+
+lemma minpoly_eq (x : S) : minpoly K x = minpoly K (x : L) :=
+begin
+  by_cases hx : is_integral K x,
+  { exact minpoly.eq_of_algebra_map_eq (algebra_map S L).injective hx rfl },
+  { exact (minpoly.eq_zero hx).trans (minpoly.eq_zero (mt is_integral_iff.mpr hx)).symm },
+end
+
 end intermediate_field
 
 /-- If `L/K` is algebraic, the `K`-subalgebras of `L` are all fields.  -/
@@ -470,7 +505,7 @@ def subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L) :
 { to_fun := λ S, S.to_intermediate_field (λ x hx, S.inv_mem_of_algebraic (alg (⟨x, hx⟩ : S))),
   inv_fun := λ S, S.to_subalgebra,
   left_inv := λ S, to_subalgebra_to_intermediate_field _ _,
-  right_inv := λ S, to_intermediate_field_to_subalgebra _ _,
+  right_inv := to_intermediate_field_to_subalgebra,
   map_rel_iff' := λ S S', iff.rfl }
 
 @[simp] lemma mem_subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L)

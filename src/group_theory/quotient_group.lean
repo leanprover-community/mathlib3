@@ -486,12 +486,8 @@ lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G �
   (subgroup.center (G ⧸ H₂.comap (mk' H₁))).comap (mk' (H₂.comap (mk' H₁))) :=
 begin
   ext x,
-  simp only [mk'_apply, subgroup.mem_comap, subgroup.mem_center_iff, forall_coe],
-  apply forall_congr,
-  change ∀ (y : G), (↑↑(y * x) = ↑↑(x * y) ↔ ↑(y * x) = ↑(x * y)),
-  intro y,
-  repeat { rw [eq_iff_div_mem] },
-  simp,
+  simp only [mk'_apply, subgroup.mem_comap, subgroup.mem_center_iff, forall_coe,
+    ← coe_mul, eq_iff_div_mem, coe_div]
 end
 
 end quotient_group

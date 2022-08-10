@@ -66,7 +66,7 @@ instance self : is_galois F F :=
 
 variables (F) {E}
 
-lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral' x
+lemma integral [is_galois F E] (x : E) : is_integral F x := to_normal.is_integral x
 
 lemma separable [is_galois F E] (x : E) : (minpoly F x).separable := is_separable.separable F x
 
@@ -257,7 +257,7 @@ def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
   left_inv := λ K, fixed_field_fixing_subgroup K,
   right_inv := λ H, intermediate_field.fixing_subgroup_fixed_field H,
   map_rel_iff' := λ K L, by { rw [←fixed_field_fixing_subgroup L, intermediate_field.le_iff_le,
-                                  fixed_field_fixing_subgroup L, ←order_dual.dual_le], refl } }
+                                  fixed_field_fixing_subgroup L], refl } }
 
 /-- The Galois correspondence as a galois_insertion -/
 def galois_insertion_intermediate_field_subgroup [finite_dimensional F E] :
@@ -297,7 +297,7 @@ begin
   cases field.exists_primitive_element F E with α h1,
   use [minpoly F α, separable F α, is_galois.splits F α],
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
-  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α (integral F α),
+  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral (integral F α),
   apply algebra.adjoin_mono,
   rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
   { dsimp only [polynomial.is_root],
@@ -329,10 +329,14 @@ end
 
 variables {F} {E} {p : F[X]}
 
-lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
-  [sp : p.is_splitting_field F E] (hp : p.separable) (K : intermediate_field F E) {x : E}
-  (hx : x ∈ (p.map (algebra_map F E)).roots) :
-  fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
+lemma of_separable_splitting_field_aux
+  [hFE : finite_dimensional F E]
+  [sp : p.is_splitting_field F E] (hp : p.separable)
+  (K : Type*) [field K] [algebra F K] [algebra K E] [is_scalar_tower F K E]
+  {x : E} (hx : x ∈ (p.map (algebra_map F E)).roots)
+  -- these are both implied by `hFE`, but as they carry data this makes the lemma more general
+  [fintype (K →ₐ[F] E)] [fintype (K⟮x⟯.restrict_scalars F →ₐ[F] E)] :
+  fintype.card (K⟮x⟯.restrict_scalars F →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
   have h : is_integral K x := is_integral_of_is_scalar_tower x
@@ -340,12 +344,13 @@ begin
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
   { apply minpoly.dvd,
-    rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map],
+    rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map,
+      ←is_scalar_tower.algebra_map_eq],
     exact (polynomial.mem_roots (polynomial.map_ne_zero h1)).mp hx },
-  let key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
-    @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) :=
-  equiv.trans (alg_equiv.arrow_congr (intermediate_field.lift2_alg_equiv K⟮x⟯) (alg_equiv.refl))
-    alg_hom_equiv_sigma,
+  let key_equiv : (K⟮x⟯.restrict_scalars F →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
+    @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f),
+  { change (K⟮x⟯ →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E), _,
+    exact alg_hom_equiv_sigma },
   haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := λ f, by
   { apply fintype.of_injective (sigma.mk f) (λ _ _ H, eq_of_heq ((sigma.mk.inj H).2)),
     exact fintype.of_equiv _ key_equiv },
@@ -391,7 +396,8 @@ begin
   rw [of_separable_splitting_field_aux hp K (multiset.mem_to_finset.mp hx),
     hK, finrank_mul_finrank],
   symmetry,
-  exact linear_equiv.finrank_eq (alg_equiv.to_linear_equiv (intermediate_field.lift2_alg_equiv _))
+  refine linear_equiv.finrank_eq _,
+  refl,
 end
 
 /--Equivalent characterizations of a Galois extension of finite degree-/

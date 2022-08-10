@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
+import algebra.char_zero.quotient
 
 /-!
 # The type of angles
@@ -84,7 +85,30 @@ by simp [←coe_int_mul_eq_zsmul]
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
 
-theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
+lemma zsmul_eq_iff {ψ θ : angle} {z : ℤ} (hz : z ≠ 0) :
+  z • ψ = z • θ ↔ (∃ k : fin z.nat_abs, ψ = θ + (k : ℕ) • (2 * π / z : ℝ)) :=
+quotient_add_group.zmultiples_zsmul_eq_zsmul_iff hz
+
+lemma nsmul_eq_iff {ψ θ : angle} {n : ℕ} (hz : n ≠ 0) :
+  n • ψ = n • θ ↔ (∃ k : fin n, ψ = θ + (k : ℕ) • (2 * π / n : ℝ)) :=
+quotient_add_group.zmultiples_nsmul_eq_nsmul_iff hz
+
+lemma two_zsmul_eq_iff {ψ θ : angle} : (2 : ℤ) • ψ = (2 : ℤ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by rw [zsmul_eq_iff two_ne_zero, int.nat_abs_bit0, int.nat_abs_one,
+    fin.exists_fin_two, fin.coe_zero, fin.coe_one, zero_smul, add_zero, one_smul,
+    int.cast_two, mul_div_cancel_left (_ : ℝ) two_ne_zero]
+
+lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by simp_rw [←coe_nat_zsmul, int.coe_nat_bit0, int.coe_nat_one, two_zsmul_eq_iff]
+
+lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by convert two_nsmul_eq_iff; simp
+
+lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
+
+theorem cos_eq_iff_coe_eq_or_eq_neg {θ ψ : ℝ} :
+  cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,
   { intro Hcos,
@@ -109,12 +133,12 @@ begin
         zero_mul] }
 end
 
-theorem sin_eq_iff_eq_or_add_eq_pi {θ ψ : ℝ} :
+theorem sin_eq_iff_coe_eq_or_add_eq_pi {θ ψ : ℝ} :
   sin θ = sin ψ ↔ (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
 begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
-    cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
+    cases cos_eq_iff_coe_eq_or_eq_neg.mp Hsin with h h,
     { left, rw [coe_sub, coe_sub] at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
@@ -133,8 +157,8 @@ end
 
 theorem cos_sin_inj {θ ψ : ℝ} (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : (θ : angle) = ψ :=
 begin
-  cases cos_eq_iff_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
-  cases sin_eq_iff_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
+  cases cos_eq_iff_coe_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
+  cases sin_eq_iff_coe_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
   rw [eq_neg_iff_add_eq_zero, hs] at hc,
   obtain ⟨n, hn⟩ : ∃ n, n • _ = _ := quotient_add_group.left_rel_apply.mp (quotient.exact' hc),
   rw [← neg_one_mul, add_zero, ← sub_eq_zero, zsmul_eq_mul, ← mul_assoc, ← sub_mul,
@@ -163,6 +187,88 @@ rfl
 
 @[continuity] lemma continuous_cos : continuous cos :=
 continuous_quotient_lift_on' _ real.continuous_cos
+
+lemma cos_eq_real_cos_iff_eq_or_eq_neg {θ : angle} {ψ : ℝ} : cos θ = real.cos ψ ↔ θ = ψ ∨ θ = -ψ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact cos_eq_iff_coe_eq_or_eq_neg
+end
+
+lemma cos_eq_iff_eq_or_eq_neg {θ ψ : angle} : cos θ = cos ψ ↔ θ = ψ ∨ θ = -ψ :=
+begin
+  induction ψ using real.angle.induction_on,
+  exact cos_eq_real_cos_iff_eq_or_eq_neg
+end
+
+lemma sin_eq_real_sin_iff_eq_or_add_eq_pi {θ : angle} {ψ : ℝ} :
+  sin θ = real.sin ψ ↔ θ = ψ ∨ θ + ψ = π :=
+begin
+  induction θ using real.angle.induction_on,
+  exact sin_eq_iff_coe_eq_or_add_eq_pi
+end
+
+lemma sin_eq_iff_eq_or_add_eq_pi {θ ψ : angle} : sin θ = sin ψ ↔ θ = ψ ∨ θ + ψ = π :=
+begin
+  induction ψ using real.angle.induction_on,
+  exact sin_eq_real_sin_iff_eq_or_add_eq_pi
+end
+
+@[simp] lemma sin_zero : sin (0 : angle) = 0 :=
+by rw [←coe_zero, sin_coe, real.sin_zero]
+
+@[simp] lemma sin_coe_pi : sin (π : angle) = 0 :=
+by rw [sin_coe, real.sin_pi]
+
+lemma sin_eq_zero_iff {θ : angle} : sin θ = 0 ↔ θ = 0 ∨ θ = π :=
+begin
+  nth_rewrite 0 ←sin_zero,
+  rw sin_eq_iff_eq_or_add_eq_pi,
+  simp
+end
+
+@[simp] lemma sin_neg (θ : angle) : sin (-θ) = -sin θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.sin_neg _
+end
+
+lemma sin_antiperiodic : function.antiperiodic sin (π : angle) :=
+begin
+  intro θ,
+  induction θ using real.angle.induction_on,
+  exact real.sin_antiperiodic θ
+end
+
+@[simp] lemma sin_add_pi (θ : angle) : sin (θ + π) = -sin θ :=
+sin_antiperiodic θ
+
+@[simp] lemma sin_sub_pi (θ : angle) : sin (θ - π) = -sin θ :=
+sin_antiperiodic.sub_eq θ
+
+@[simp] lemma cos_zero : cos (0 : angle) = 1 :=
+by rw [←coe_zero, cos_coe, real.cos_zero]
+
+@[simp] lemma cos_coe_pi : cos (π : angle) = -1 :=
+by rw [cos_coe, real.cos_pi]
+
+@[simp] lemma cos_neg (θ : angle) : cos (-θ) = cos θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.cos_neg _
+end
+
+lemma cos_antiperiodic : function.antiperiodic cos (π : angle) :=
+begin
+  intro θ,
+  induction θ using real.angle.induction_on,
+  exact real.cos_antiperiodic θ
+end
+
+@[simp] lemma cos_add_pi (θ : angle) : cos (θ + π) = -cos θ :=
+cos_antiperiodic θ
+
+@[simp] lemma cos_sub_pi (θ : angle) : cos (θ - π) = -cos θ :=
+cos_antiperiodic.sub_eq θ
 
 end angle
 

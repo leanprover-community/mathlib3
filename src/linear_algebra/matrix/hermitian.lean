@@ -67,15 +67,10 @@ by simp [is_hermitian, add_comm]
   (0 : matrix n n α).is_hermitian :=
 conj_transpose_zero
 
--- TODO: move
-lemma conj_transpose_map {A : matrix n n α} (f : α → β) (hf : f ∘ star = star ∘ f) :
-  Aᴴ.map f = (A.map f)ᴴ :=
-by rw [conj_transpose, conj_transpose, ←transpose_map, map_map, map_map, hf]
-
 @[simp] lemma is_hermitian.map {A : matrix n n α} (h : A.is_hermitian) (f : α → β)
-    (hf : f ∘ star = star ∘ f) :
+  (hf : function.semiconj f star star) :
   (A.map f).is_hermitian :=
-by {refine (conj_transpose_map f hf).symm.trans _, rw h.eq }
+(conj_transpose_map f hf).symm.trans $ h.eq.symm ▸ rfl
 
 @[simp] lemma is_hermitian.transpose {A : matrix n n α} (h : A.is_hermitian) :
   Aᵀ.is_hermitian :=
@@ -83,7 +78,7 @@ by { rw [is_hermitian, conj_transpose, transpose_map], congr, exact h }
 
 @[simp] lemma is_hermitian.conj_transpose {A : matrix n n α} (h : A.is_hermitian) :
   Aᴴ.is_hermitian :=
-h.transpose.map _ rfl
+h.transpose.map _ $ λ _, rfl
 
 @[simp] lemma is_hermitian.add {A B : matrix n n α} (hA : A.is_hermitian) (hB : B.is_hermitian) :
   (A + B).is_hermitian :=
@@ -153,7 +148,7 @@ variables [is_R_or_C α] [is_R_or_C β]
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
 lemma is_hermitian_iff_is_self_adjoint [fintype n] [decidable_eq n] {A : matrix n n α} :
   is_hermitian A ↔ inner_product_space.is_self_adjoint
-    ((pi_Lp.linear_equiv α (λ _ : n, α)).symm.conj A.to_lin' : module.End α (pi_Lp 2 _)) :=
+    ((pi_Lp.linear_equiv 2 α (λ _ : n, α)).symm.conj A.to_lin' : module.End α (pi_Lp 2 _)) :=
 begin
   rw [inner_product_space.is_self_adjoint, (pi_Lp.equiv 2 (λ _ : n, α)).symm.surjective.forall₂],
   simp only [linear_equiv.conj_apply, linear_map.comp_apply, linear_equiv.coe_coe,

@@ -35,8 +35,8 @@ dimensions. -/
 @[pp_nodot]
 def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   matrix (n ⊕ o) (l ⊕ m) α :=
-sum.elim (λ i, sum.elim (A i) (B i))
-         (λ i, sum.elim (C i) (D i))
+of $ sum.elim (λ i, sum.elim (A i) (B i))
+              (λ i, sum.elim (C i) (D i))
 
 @[simp] lemma from_blocks_apply₁₁
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : l) :
@@ -61,22 +61,22 @@ rfl
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top left" submatrix. -/
 def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
-λ i j, M (sum.inl i) (sum.inl j)
+of $ λ i j, M (sum.inl i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top right" submatrix. -/
 def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
-λ i j, M (sum.inl i) (sum.inr j)
+of $ λ i j, M (sum.inl i) (sum.inr j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom left" submatrix. -/
 def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
-λ i j, M (sum.inr i) (sum.inl j)
+of $ λ i j, M (sum.inr i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom right" submatrix. -/
 def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
-λ i j, M (sum.inr i) (sum.inr j)
+of $ λ i j, M (sum.inr i) (sum.inr j)
 
 lemma from_blocks_to_blocks (M : matrix (n ⊕ o) (l ⊕ m) α) :
   from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ = M :=
@@ -124,6 +124,21 @@ lemma from_blocks_conj_transpose [has_star α]
 begin
   simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
+
+@[simp] lemma from_blocks_minor_sum_swap_left
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → l ⊕ m) :
+  (from_blocks A B C D).minor sum.swap f = (from_blocks C D A B).minor id f :=
+by { ext i j, cases i; dsimp; cases f j; refl }
+
+@[simp] lemma from_blocks_minor_sum_swap_right
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → n ⊕ o) :
+  (from_blocks A B C D).minor f sum.swap = (from_blocks B A D C).minor f id :=
+by { ext i j, cases j; dsimp; cases f i; refl }
+
+lemma from_blocks_minor_sum_swap_sum_swap {l m n o α : Type*}
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).minor sum.swap sum.swap = from_blocks D C B A :=
+by simp
 
 /-- A 2x2 block matrix is block diagonal if the blocks outside of the diagonal vanish -/
 def is_two_block_diagonal [has_zero α] (A : matrix (n ⊕ o) (l ⊕ m) α) : Prop :=
@@ -187,7 +202,7 @@ lemma from_blocks_multiply [fintype l] [fintype m] [non_unital_non_assoc_semirin
 begin
   ext i j, rcases i; rcases j;
   simp only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
-    pi.add_apply],
+    pi.add_apply, of_apply],
 end
 
 lemma from_blocks_mul_vec [fintype l] [fintype m] [non_unital_non_assoc_semiring α]

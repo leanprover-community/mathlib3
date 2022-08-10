@@ -672,7 +672,8 @@ eq_top_iff.mpr $ λ x hy y, false.elim
   by simp_rw [mem_inner_dual_cone, mem_zero, forall_eq, inner_zero_left, le_refl, true_iff]
 
 /-- Dual cone of the total space is the convex cone {0}. -/
-lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 := convex_cone.ext $ λ x, iff.intro
+lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 :=
+convex_cone.ext $ λ x, iff.intro
 begin
   simp_rw [mem_inner_dual_cone, convex_cone.mem_zero],
   rintro h,

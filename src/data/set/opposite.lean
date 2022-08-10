@@ -44,6 +44,10 @@ ext (by simp only [mem_unop, op_mem_op, iff_self, implies_true_iff])
 @[simp] lemma unop_op (s : set αᵒᵖ) : s.unop.op = s :=
 ext (by simp only [mem_op, unop_mem_unop, iff_self, implies_true_iff])
 
+/-- The members of the opposite of a set are in bijection with the members of the set itself. -/
+@[simps] def op_equiv_self (s : set α) : s.op ≃ s :=
+⟨λ x, ⟨unop x, x.2⟩, λ x, ⟨op x, x.2⟩, λ x, by simp, λ x, by simp⟩
+
 /-- Taking opposites as an equivalence of powersets. -/
 @[simps] def op_equiv : set α ≃ set αᵒᵖ :=
 ⟨set.op, set.unop, op_unop, unop_op⟩

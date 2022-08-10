@@ -2614,6 +2614,41 @@ lemma cont_diff_on.smul {s : set E} {f : E → 𝕜} {g : E → F}
   cont_diff_on 𝕜 n (λ x, f x • g x) s :=
 λ x hx, (hf x hx).smul (hg x hx)
 
+/-! ### Constant scalar multiplication -/
+
+section const_smul
+
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+variables [has_continuous_const_smul R F]
+
+/- The scalar multiplication with a constant is smooth. -/
+lemma cont_diff_const_smul (c : R) : cont_diff 𝕜 n (λ p : F, c • p) :=
+(c • continuous_linear_map.id 𝕜 F).cont_diff
+
+/-- The scalar multiplication of a constant and a `C^n` function within a set at a point is `C^n`
+within this set at this point. -/
+lemma cont_diff_within_at.const_smul {s : set E} {f : E → F} {x : E} (c : R)
+  (hf : cont_diff_within_at 𝕜 n f s x) : cont_diff_within_at 𝕜 n (λ y, c • f y) s x :=
+(cont_diff_const_smul c).cont_diff_at.comp_cont_diff_within_at x hf
+
+/-- The scalar multiplication of a constant and a `C^n` function at a point is `C^n` at this
+point. -/
+lemma cont_diff_at.const_smul {f : E → F} {x : E} (c : R)
+  (hf : cont_diff_at 𝕜 n f x) : cont_diff_at 𝕜 n (λ y, c • f y) x :=
+by rw [←cont_diff_within_at_univ] at *; exact hf.const_smul c
+
+/-- The scalar multiplication of a constant and a `C^n` function is `C^n`. -/
+lemma cont_diff.const_smul {f : E → F} (c : R)
+  (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ y, c • f y) :=
+(cont_diff_const_smul c).comp hf
+
+/-- The scalar multiplication of a constant and a `C^n` on a domain is `C^n`. -/
+lemma cont_diff_on.const_smul {s : set E} {f : E → F} (c : R)
+  (hf : cont_diff_on 𝕜 n f s) : cont_diff_on 𝕜 n (λ y, c • f y) s :=
+λ x hx, (hf x hx).const_smul c
+
+end const_smul
+
 /-! ### Cartesian product of two functions -/
 
 section prod_map

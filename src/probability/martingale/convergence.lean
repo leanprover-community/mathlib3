@@ -32,7 +32,7 @@ an L¹ bounded submartingale.
 
 -/
 
-open topological_space filter
+open topological_space filter measure_theory.filtration
 open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
 
 namespace measure_theory
@@ -205,7 +205,7 @@ end
 almost everywhere to a `⨆ n, ℱ n`-measurable function. -/
 lemma submartingale.ae_tendsto_limit_process [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
-  ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (limit_process f ℱ μ ω)) :=
+  ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (ℱ.limit_process f μ ω)) :=
 begin
   classical,
   suffices : ∃ g, strongly_measurable[⨆ n, ℱ n] g ∧ ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)),
@@ -231,7 +231,7 @@ end
 /-- The limiting process of an Lᵖ-bounded submartingale is integrable. -/
 lemma submartingale.mem_ℒp_limit_process {p : ℝ≥0∞}
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  mem_ℒp (limit_process f ℱ μ) p μ :=
+  mem_ℒp (ℱ.limit_process f μ) p μ :=
 mem_ℒp_limit_process_of_snorm_bdd
   (λ n, ((hf.strongly_measurable n).mono (ℱ.le n)).ae_strongly_measurable) hbdd
 

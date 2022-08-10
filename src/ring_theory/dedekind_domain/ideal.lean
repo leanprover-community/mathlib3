@@ -1165,7 +1165,7 @@ begin
 end
 
 lemma multiplicity_eq_multiplicity_span [decidable_rel ((∣) : R → R → Prop)]
-  [decidable_rel ((∣) : ideal R  → ideal R → Prop)] {a b : R} :
+  [decidable_rel ((∣) : ideal R → ideal R → Prop)] {a b : R} :
   multiplicity (ideal.span {a}) (ideal.span ({b} : set R)) = multiplicity a b :=
 begin
   by_cases h : finite a b,

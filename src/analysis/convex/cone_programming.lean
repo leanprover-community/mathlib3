@@ -19,11 +19,12 @@ def convex_cone.closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 { carrier := closure (K : set E),
   smul_mem' := by { simp_rw mem_closure_iff_seq_limit,
     exact λ c hc x ⟨seq, mem, tends⟩,
-      ⟨ λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c ⟩ ⟩ },
+      ⟨ λ n, c • seq n,
+        ⟨ λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c ⟩ ⟩ },
   add_mem' := by { simp_rw mem_closure_iff_seq_limit,
     exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
       ⟨ λ n, xseq n + yseq n,
-      ⟨ λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends ⟩ ⟩ } }
+        ⟨ λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends ⟩ ⟩ } }
 
 namespace proper_cone
 

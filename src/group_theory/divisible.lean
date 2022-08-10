@@ -247,16 +247,19 @@ end quotient
 
 section hom
 
-variables {A B : Type*} [comm_group A] [comm_group B] [rootable_by A ℕ] (f : A →* B)
+variables {α A B : Type*}
+variables [has_zero α] [monoid A] [monoid B] [has_pow A α] [has_pow B α] [rootable_by A α]
+variables (f : A → B)
 
 /--
-If `f : A → B` is a surjective homomorphism and `A` is rootable, then `B` is also rootable.
+If `f : A → B` is a surjective homomorphism and `A` is `α`-rootable, then `B` is also `α`-rootable.
 -/
 @[to_additive add_comm_group.divisible_by_of_surj
-"If `f : A → B` is a surjective homomorphism and `A` is divisble, then `B` is also divisible."]
-noncomputable def rootable_by_of_surj (hf : function.surjective f) : rootable_by B ℕ :=
+"If `f : A → B` is a surjective homomorphism and `A` is `α`-divisible, then `B` is also `α`-divisible."]
+noncomputable def rootable_by_of_surj (hf : function.surjective f)
+  (hpow : ∀ (a : A) (n : α), f (a ^ n) = f a ^ n) : rootable_by B α :=
 rootable_by_of_pow_surj _ _ $ λ n hn x,
-  let ⟨y, hy⟩ := hf x in ⟨f $ rootable_by.root y n, (by rw [←f.map_pow (rootable_by.root y n) n,
+  let ⟨y, hy⟩ := hf x in ⟨f $ rootable_by.root y n, (by rw [←hpow (rootable_by.root y n) n,
     rootable_by.root_cancel _ hn, hy] : _ ^ _ = x)⟩
 
 end hom

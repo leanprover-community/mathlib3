@@ -206,26 +206,21 @@ an arbitrary injective presentation of `L(A) ⟶ J`: by adjunction, there is an 
 prove that this `A ⟶ R(J)` is an injective presentation of `A`.
 -/
 
-open limits
+open limits adjunction
 
 universes v₁ v₂
 
 variables {𝓐 : Type u₁} {𝓑 : Type u₂} [category.{v₁} 𝓐] [category.{v₂} 𝓑] [enough_injectives 𝓑]
 variables (L : 𝓐 ⥤ 𝓑) (R : 𝓑 ⥤ 𝓐)
 
-namespace enough_injectives_of_adjunction
-
-/--
-Since `𝓑` has enough injectives, `L(A)` has an injective presentation for all `A ∈ 𝓐`, i.e.
-`L(A) → J` where `J` is injective.-/
-def injective_presentation_of_apply (A : 𝓐) :
-  injective_presentation (L.obj A) :=
-(nonempty.some (enough_injectives.presentation (L.obj A)))
+namespace enough_injectives_of_adjunction_auxs
 
 /--
 Given injective presentation `L(A) → J`, then `injective_object_of_adjunction A` is defined to be
 `R(J)`. It will later be proven to be an injective object in `𝓐`.-/
-def injective_object_of_adjunction (A : 𝓐) : 𝓐 := R.obj $ (injective_presentation_of_apply L A).J
+def RJ (A : 𝓐) : 𝓐 := R.obj $ injective.under (L.obj A)
+
+local notation `RJ_of` := RJ L R
 
 variables (adj : L ⊣ R)
 variables {L R}
@@ -243,26 +238,21 @@ A ---> R(J)                 L(A) -----> J <--------
    /                                /             |
   /                                /         by injectivity
 X                              L(X)               |
-|                               |                 |
+|                               |L.map f          |
 v                               v                 |
 Y                              L(Y) ---------------
 
 -/
-def to_J_of_injective_presentation_of_apply [preserves_finite_limits L]
-  {A X Y : 𝓐}
-  (g : X ⟶ injective_object_of_adjunction L R A)
-  (f : X ⟶ Y) [mono f] :
-  L.obj Y ⟶ (injective_presentation_of_apply L A).J :=
-let factors := (injective_presentation_of_apply L A).injective.factors in
-(factors ((adj.hom_equiv X (injective_presentation_of_apply L A).J).symm g) (L.map f)).some
+def LY_to_J [preserves_finite_limits L]
+  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
+  L.obj Y ⟶ injective.under (L.obj A) :=
+let factors := (injective.injective_under $ L.obj A).factors in
+(factors ((adj.hom_equiv X $ injective.under $ L.obj A).symm g) (L.map f)).some
 
-lemma comp_to_J_of_injective_presentation_of_apply [preserves_finite_limits L]
-  {A X Y : 𝓐}
-  (g : X ⟶ injective_object_of_adjunction L R A)
-  (f : X ⟶ Y) [mono f] :
-  L.map f ≫ (to_J_of_injective_presentation_of_apply adj g f) =
-  (adj.hom_equiv X (injective_presentation_of_apply L A).J).symm g :=
-let factors := (injective_presentation_of_apply L A).injective.factors in
+lemma L_map_comp_to_J_eq [preserves_finite_limits L]
+  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
+  L.map f ≫ (LY_to_J _ adj g f) = (adj.hom_equiv X $ injective.under _).symm g :=
+let factors := (injective.injective_under $ L.obj A).factors in
 (factors ((adj.hom_equiv _ _).symm g) (L.map f)).some_spec
 
 
@@ -284,94 +274,67 @@ v              |                                       v                 |
 Y --------------                                      L(Y) ---------------
 
 -/
-def injective_object_of_adjunction.factor [preserves_finite_limits L]
-  {A X Y : 𝓐}
-  (g: X ⟶ injective_object_of_adjunction L R A)
-  (f : X ⟶ Y) [mono f] :
-  Y ⟶ injective_object_of_adjunction L R A :=
-adj.hom_equiv _ _ $ to_J_of_injective_presentation_of_apply adj g f
+def Y_to_RJ [preserves_finite_limits L]
+  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] : Y ⟶ RJ_of A :=
+adj.hom_equiv _ _ $ LY_to_J _ adj g f
 
-lemma injective_object_of_adjunction.comp [preserves_finite_limits L]
-  {A X Y : 𝓐}
-  (g: X ⟶ injective_object_of_adjunction L R A)
-  (f : X ⟶ Y) [mono f]:
-  f ≫ injective_object_of_adjunction.factor adj g f = g :=
+lemma comp_Y_to_RJ [preserves_finite_limits L]
+  {A X Y : 𝓐} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
+  f ≫ Y_to_RJ _ adj g f = g :=
 begin
-  have := comp_to_J_of_injective_presentation_of_apply adj g f,
+  have := L_map_comp_to_J_eq _ adj g f,
   rw ←adj.hom_equiv_apply_eq at this,
   rw [←this],
-  simp only [injective_object_of_adjunction.factor, to_J_of_injective_presentation_of_apply,
-    adjunction.hom_equiv_counit, adjunction.hom_equiv_naturality_left_symm,
-    adjunction.hom_equiv_naturality_right_symm, adjunction.left_triangle_components,
-    category.id_comp, adjunction.hom_equiv_naturality_left,
-    adjunction.hom_equiv_unit, functor.map_comp, adjunction.unit_naturality_assoc],
+  simp only [LY_to_J, Y_to_RJ, L_map_comp_to_J_eq, hom_equiv_counit, hom_equiv_counit,
+    functor.map_comp, category.assoc, counit_naturality, left_triangle_components_assoc,
+    hom_equiv_naturality_left, hom_equiv_unit],
+  generalize_proofs h₁ h₂,
+  rw [←R.map_comp],
+  simp only [counit_naturality_assoc, left_triangle_components_assoc, functor.map_comp,
+    unit_naturality_assoc],
   congr,
   ext,
-  generalize_proofs h1,
-  rw h1.some_spec,
+  rw h₁.some_spec,
 end
-
-section
 
 include adj
 
-lemma injective_object_of_adjunction_is_injective [preserves_finite_limits L] (A : 𝓐) :
-  injective (injective_object_of_adjunction L R A) :=
-{ factors := λ X Y g f m,
-  ⟨by { resetI, exact injective_object_of_adjunction.factor adj g f },
-    by apply injective_object_of_adjunction.comp⟩ }
-
-end
-
-/-- just `R(J)`, rename for better clarity-/
-def of_adjunction.presentation.J (A : 𝓐) : 𝓐 :=
-injective_object_of_adjunction L R A
-
-section
-
-include adj
-
-/-- This `R(J)` is injective-/
-lemma of_adjunction.presentation.injective [preserves_finite_limits L] (A : 𝓐) :
-  injective (@of_adjunction.presentation.J 𝓐 𝓑 _ _ _ L R A) :=
-by apply injective_object_of_adjunction_is_injective adj
-
-end
+lemma injective_RJ [preserves_finite_limits L] (A : 𝓐) :
+  injective (RJ_of A) :=
+⟨λ X Y g f m, ⟨by { resetI, exact Y_to_RJ _ adj g f }, by apply comp_Y_to_RJ⟩⟩
 
 /-- the morphism `A → R(J)` obtained by `L(A) → J` via adjunction, this morphism is mono, so that
 `A → R(J)` is an injective presentation of `A` in `𝓐`.-/
-def of_adjunction.presentation.f (A : 𝓐) :
-  A ⟶ injective_object_of_adjunction L R A :=
-adj.hom_equiv A (injective_presentation_of_apply L A).J (injective_presentation_of_apply L A).f
+def to_RJ (A : 𝓐) :
+  A ⟶ RJ_of A :=
+adj.hom_equiv A (injective.under $ L.obj A) (injective.ι _)
 
-instance of_adjunction.presentation.mono (A : 𝓐)
+local notation `to_RJ_of` A := to_RJ adj A
+
+instance mono_to_RJ (A : 𝓐)
   [abelian 𝓐] [abelian 𝓑] [preserves_finite_colimits L] [preserves_finite_limits L] [faithful L] :
-  mono $ of_adjunction.presentation.f adj A :=
-have e2 : exact (L.map (kernel.ι (of_adjunction.presentation.f adj A)))
-  (L.map (of_adjunction.presentation.f adj A)), from L.map_exact _ _ (exact_kernel_ι),
-have eq1 : L.map (of_adjunction.presentation.f adj A) ≫ (adj.counit.app _) =
-  (injective_presentation_of_apply L A).f, begin
-  simp only [of_adjunction.presentation.f, adjunction.hom_equiv_unit, functor.map_comp,
-  category.assoc, adjunction.counit_naturality, adjunction.left_triangle_components_assoc],
+  mono $ to_RJ_of A :=
+have e2 : exact (L.map (kernel.ι $ to_RJ_of A)) (L.map $ to_RJ_of A),
+from L.map_exact _ _ (exact_kernel_ι),
+have eq1 : L.map (to_RJ_of A) ≫ (adj.counit.app _) = injective.ι _, from by simp [to_RJ],
+have m1 : mono (L.map (to_RJ_of A) ≫ (adj.counit.app _)),
+begin
+  rw eq1, exactI injective.ι_mono _
 end,
-have m1 : mono (L.map (of_adjunction.presentation.f adj A) ≫ (adj.counit.app _)), begin
-  rw eq1, exactI (injective_presentation_of_apply L A).mono
+have m2 : mono (L.map (to_RJ_of A)),
+begin
+  exactI mono_of_mono _ (adj.counit.app $ injective.under _),
 end,
-have m2 : mono (L.map (of_adjunction.presentation.f adj A)), begin
-  exactI mono_of_mono _ (adj.counit.app (injective_presentation_of_apply L A).J),
-end,
-have eq2 : L.map (kernel.ι (of_adjunction.presentation.f adj A)) =
-  (preserves_kernel.iso L (of_adjunction.presentation.f adj A)).hom ≫
-      kernel.ι (L.map (of_adjunction.presentation.f adj A)), begin
-  simp only [preserves_kernel.iso_hom, kernel_comparison_comp_ι],
-end,
-have eq3 : kernel.ι (of_adjunction.presentation.f adj A) = 0, from L.zero_of_map_zero _ begin
+have eq2 : L.map (kernel.ι (to_RJ_of A)) =
+  (preserves_kernel.iso L (to_RJ_of A)).hom ≫ kernel.ι (L.map (to_RJ_of A)), from by simp,
+have eq3 : kernel.ι (to_RJ_of A) = 0, from L.zero_of_map_zero _
+begin
   rw abelian.mono_iff_kernel_ι_eq_zero at m2,
   rw [eq2, m2, comp_zero],
 end,
 by rw [abelian.mono_iff_kernel_ι_eq_zero, eq3]
 
-end enough_injectives_of_adjunction
+end enough_injectives_of_adjunction_auxs
 
 /--
 faithful and exact left adjoint functor transfers enough injectiveness.-/
@@ -380,11 +343,11 @@ lemma enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
   {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R)
   [faithful L] [preserves_finite_limits L] [preserves_finite_colimits L]
   [enough_injectives 𝓑] : enough_injectives 𝓐 :=
-{ presentation := λ A, nonempty.intro
-  { J := enough_injectives_of_adjunction.of_adjunction.presentation.J _,
-    injective := enough_injectives_of_adjunction.of_adjunction.presentation.injective adj _,
-    f := enough_injectives_of_adjunction.of_adjunction.presentation.f adj _,
-    mono := enough_injectives_of_adjunction.of_adjunction.presentation.mono adj _ } }
+{ presentation := λ A,
+  ⟨⟨enough_injectives_of_adjunction_auxs.RJ L R A,
+    enough_injectives_of_adjunction_auxs.injective_RJ adj A,
+    enough_injectives_of_adjunction_auxs.to_RJ adj A,
+    enough_injectives_of_adjunction_auxs.mono_to_RJ adj A⟩⟩ }
 
 /--
 equivalence of category transfers enough injectiveness.-/

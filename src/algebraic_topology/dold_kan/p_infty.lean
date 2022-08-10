@@ -39,7 +39,7 @@ namespace dold_kan
 
 variables {C : Type*} [category C] [preadditive C] {X : simplicial_object C}
 
-lemma P_is_eventually_constant {q n : ℕ} (hqn : n≤q) :
+lemma P_is_eventually_constant {q n : ℕ} (hqn : n ≤ q) :
   ((P (q+1)).f n : X _[n] ⟶ _ ) = (P q).f n :=
 begin
   cases n,

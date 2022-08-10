@@ -229,7 +229,7 @@ theorem nonempty_def (u : pSet) : u.nonempty ↔ ∃ x, x ∈ u := iff.rfl
 
 theorem nonempty_of_mem {x u : pSet} (h : x ∈ u) : u.nonempty := ⟨x, h⟩
 
-@[simp] theorem to_set_nonempty_iff {u : pSet} : u.to_set.nonempty ↔ u.nonempty := iff.rfl
+@[simp] theorem nonempty_to_set_iff {u : pSet} : u.to_set.nonempty ↔ u.nonempty := iff.rfl
 
 theorem nonempty_type_iff_nonempty {x : pSet} : nonempty x.type ↔ pSet.nonempty x :=
 ⟨λ ⟨i⟩, ⟨_, func_mem _ i⟩, λ ⟨i, j, h⟩, ⟨j⟩⟩
@@ -489,7 +489,7 @@ theorem nonempty_def (u : Set) : u.nonempty ↔ ∃ x, x ∈ u := iff.rfl
 
 theorem nonempty_of_mem {x u : Set} (h : x ∈ u) : u.nonempty := ⟨x, h⟩
 
-@[simp] theorem to_set_nonempty_iff {u : Set} : u.to_set.nonempty ↔ u.nonempty := iff.rfl
+@[simp] theorem nonempty_to_set_iff {u : Set} : u.to_set.nonempty ↔ u.nonempty := iff.rfl
 
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
 protected def subset (x y : Set.{u}) :=
@@ -591,9 +591,6 @@ iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
 
-@[simp] theorem singleton_to_set (x : Set) : ({x} : Set).to_set = {x} :=
-by { ext, simp }
-
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
 
@@ -678,9 +675,6 @@ theorem singleton_injective : function.injective (@singleton Set Set _) :=
 @[simp] theorem singleton_inj {x y : Set} : ({x} : Set) = {y} ↔ x = y := singleton_injective.eq_iff
 
 @[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
-by { ext, simp }
-
-@[simp] theorem sUnion_to_set (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
 by { ext, simp }
 
 /-- The binary union operation -/

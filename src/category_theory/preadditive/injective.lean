@@ -175,24 +175,17 @@ begin
 end
 
 section adjunction
-
- open category_theory.functor
+open category_theory.functor
 
  universes v₁ v₂ u₁ u₂
 
- variables {𝓐 : Type u₁} {𝓑 : Type u₂} [category.{v₁ u₁} 𝓐] [category.{v₂ u₂} 𝓑]
+ variables {𝓐 : Type u₁} {𝓑 : Type u₂} [category.{v₁} 𝓐] [category.{v₂} 𝓑]
  variables {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R) [preserves_monomorphisms L]
 
  include adj
  lemma injective_of_adjoint {J : 𝓑} [injective J] : injective $ R.obj J :=
- { factors := λ A A' g f im,
-   begin
-     resetI,
-     haveI : mono (L.map f) := functor.map_mono L _,
-     refine ⟨adj.hom_equiv _ _ (factor_thru ((adj.hom_equiv A J).symm g) (L.map f)), _⟩,
-     apply_fun (adj.hom_equiv _ _).symm using equiv.injective,
-     simp,
-   end }
+ ⟨λ A A' g f im, by exactI ⟨adj.hom_equiv _ _ (factor_thru ((adj.hom_equiv A J).symm g) (L.map f)),
+  (adj.hom_equiv _ _).symm.injective (by simp)⟩⟩
 
  end adjunction
 

@@ -368,6 +368,25 @@ lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
 lemma pointed_positive_cone : pointed (positive_cone 𝕜 E) := le_refl 0
 
 end positive_cone
+
+section ordered_semiring
+variables [ordered_semiring 𝕜]
+
+section module
+variables [add_comm_monoid E] [module 𝕜 E]
+
+instance : has_zero (convex_cone 𝕜 E) :=
+⟨ { carrier := ({0} : set E),
+    smul_mem' := λ _ _, by simp_rw [set.mem_singleton_iff, forall_eq, smul_zero],
+    add_mem' := λ _, by simp_rw [set.mem_singleton_iff, forall_eq, add_zero, imp_self] } ⟩
+
+/-- An element is in the convex cone {0} iff it is 0. -/
+@[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := iff.rfl
+
+lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
+
+end module
+end ordered_semiring
 end convex_cone
 
 /-! ### Cone over a convex set -/
@@ -622,6 +641,30 @@ lemma mem_inner_dual_cone (y : H) (s : set H) :
 @[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
 convex_cone.ext' (eq_univ_of_forall
   (λ x y hy, false.elim (set.not_mem_empty _ hy)))
+
+/-- Dual cone of the convex cone {0} is the total space. -/
+@[simp] lemma inner_dual_cone_zero : (0 : set H).inner_dual_cone = ⊤ := convex_cone.ext $ λ x,
+  by simp_rw [mem_inner_dual_cone, mem_zero, forall_eq, inner_zero_left, le_refl, true_iff]
+
+/-- Dual cone of the total space is the convex cone {0}. -/
+lemma inner_dual_cone_top : (⊤ : set H).inner_dual_cone = 0 := convex_cone.ext $ λ x, iff.intro
+begin
+  simp_rw [mem_inner_dual_cone, ← convex_cone.mem_coe],
+  rw [convex_cone.mem_coe, convex_cone.mem_zero],
+  rintro h,
+  contrapose! h,
+  use -x,
+  split,
+  { simp_rw set.top_eq_univ },
+  { rw [inner_neg_left, right.neg_neg_iff],
+    contrapose! h,
+    exact real_inner_self_nonpos.1 h },
+end
+begin
+  rw [convex_cone.mem_zero, set.top_eq_univ, mem_inner_dual_cone],
+  rintros hx _ _,
+  rw [hx, inner_zero_right],
+end
 
 lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
   s.inner_dual_cone ≤ t.inner_dual_cone :=

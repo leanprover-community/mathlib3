@@ -376,12 +376,12 @@ section module
 variables [add_comm_monoid E] [module 𝕜 E]
 
 instance : has_zero (convex_cone 𝕜 E) :=
-⟨ { carrier := ({0} : set E),
-    smul_mem' := λ _ _, by simp_rw [set.mem_singleton_iff, forall_eq, smul_zero],
-    add_mem' := λ _, by simp_rw [set.mem_singleton_iff, forall_eq, add_zero, imp_self] } ⟩
+⟨ { carrier := 0,
+    smul_mem' := λ _ _, by simp,
+    add_mem' := λ _, by simp } ⟩
 
-/-- An element is in the convex cone {0} iff it is 0. -/
 @[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := iff.rfl
+@[simp] lemma coe_zero (x : E) : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
 
 lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
 
@@ -647,7 +647,7 @@ convex_cone.ext' (eq_univ_of_forall
   by simp_rw [mem_inner_dual_cone, mem_zero, forall_eq, inner_zero_left, le_refl, true_iff]
 
 /-- Dual cone of the total space is the convex cone {0}. -/
-lemma inner_dual_cone_top : (⊤ : set H).inner_dual_cone = 0 := convex_cone.ext $ λ x, iff.intro
+lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 := convex_cone.ext $ λ x, iff.intro
 begin
   simp_rw [mem_inner_dual_cone, ← convex_cone.mem_coe],
   rw [convex_cone.mem_coe, convex_cone.mem_zero],
@@ -655,14 +655,14 @@ begin
   contrapose! h,
   use -x,
   split,
-  { simp_rw set.top_eq_univ },
+  { exact mem_univ _, },
   { rw [inner_neg_left, right.neg_neg_iff],
     contrapose! h,
     exact real_inner_self_nonpos.1 h },
 end
 begin
-  rw [convex_cone.mem_zero, set.top_eq_univ, mem_inner_dual_cone],
-  rintros hx _ _,
+  simp only [convex_cone.mem_zero, mem_univ, mem_inner_dual_cone, forall_true_left],
+  rintros hx _ ,
   rw [hx, inner_zero_right],
 end
 

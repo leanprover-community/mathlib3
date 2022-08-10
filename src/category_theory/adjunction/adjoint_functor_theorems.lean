@@ -5,11 +5,13 @@ Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.basic
 import category_theory.adjunction.comma
+import category_theory.generator
 import category_theory.limits.constructions.weakly_initial
 import category_theory.limits.preserves.basic
 import category_theory.limits.creates
 import category_theory.limits.comma
 import category_theory.punit
+import category_theory.subobject.comma
 
 /-!
 # Adjoint functor theorem
@@ -26,8 +28,13 @@ We define the *solution set condition* for the functor `G : D ⥤ C` to mean, fo
 `A : C`, there is a set-indexed family ${f_i : A ⟶ G (B_i)}$ such that any morphism `A ⟶ G X`
 factors through one of the `f_i`.
 
+This file also proves the special adjoint functor theorem, in the form:
+* If `G : D ⥤ C` preserves limits and `D` is complete, well-powered and has a small coseparating
+  set, then `G` has a left adjoint: `is_right_adjoint_of_preserves_limits_of_is_coseparating`
+
+
 -/
-universes v u
+universes v u u'
 
 namespace category_theory
 open limits
@@ -87,5 +94,31 @@ begin
 end
 
 end general_adjoint_functor_theorem
+
+section special_adjoint_functor_theorem
+
+/--
+The special adjoint functor theorem: if `G : D ⥤ C` preserves limits and `D` is complete,
+well-powered and has a small coseparating set, then `G` has a left adjoint.
+-/
+noncomputable def is_right_adjoint_of_preserves_limits_of_is_coseparating [has_limits D]
+  [well_powered D] {𝒢 : set D} [small.{v} 𝒢] (h𝒢 : is_coseparating 𝒢) (G : D ⥤ C)
+  [preserves_limits G] : is_right_adjoint G :=
+have ∀ A, has_initial (structured_arrow A G),
+  from λ A, has_initial_of_is_coseparating (structured_arrow.is_coseparating_proj_preimage A G h𝒢),
+by exactI is_right_adjoint_of_structured_arrow_initials _
+
+/--
+The special adjoint functor theorem: if `F : C ⥤ D` preserves colimits and `C` is cocomplete,
+well-copowered and has a small separating set, then `F` has a right adjoint.
+-/
+noncomputable def is_left_adjoint_of_preserves_colimits_of_is_separatig [has_colimits C]
+  [well_powered Cᵒᵖ] {𝒢 : set C} [small.{v} 𝒢] (h𝒢 : is_separating 𝒢) (F : C ⥤ D)
+  [preserves_colimits F] : is_left_adjoint F :=
+have ∀ A, has_terminal (costructured_arrow F A),
+  from λ A, has_terminal_of_is_separating (costructured_arrow.is_separating_proj_preimage F A h𝒢),
+by exactI is_left_adjoint_of_costructured_arrow_terminals _
+
+end special_adjoint_functor_theorem
 
 end category_theory

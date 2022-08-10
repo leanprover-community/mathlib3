@@ -264,7 +264,7 @@ end
     category with a small coseparating set has an initial object.
 
     In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete. -/
-lemma has_initial_of_is_cosepatating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v₁} 𝒢]
+lemma has_initial_of_is_coseparating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_coseparating 𝒢) : has_initial C :=
 begin
   haveI := has_products_of_shape_of_small C 𝒢,
@@ -292,7 +292,7 @@ lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {�
 begin
   haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
   haveI : small.{v₁} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
-  haveI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating ((is_coseparating_op_iff _).2 h𝒢),
+  haveI : has_initial Cᵒᵖ := has_initial_of_is_coseparating ((is_coseparating_op_iff _).2 h𝒢),
   exact has_terminal_of_has_initial_op
 end
 

@@ -738,18 +738,30 @@ theorem hyperplane_separation_point_nonempty_closed_convex_cone {K : convex_cone
   (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) {b : H} (disj : b ∉ K) :
   ∃ (y : H), (∀ x : H, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ) ∧ ⟪y, b⟫_ℝ < 0 :=
 begin
+  -- let `z` be the point in `K` closest to `b`
   obtain ⟨z, hzK, infi⟩ := exists_norm_eq_infi_of_complete_convex ne hc.is_complete K.convex b,
+
+  -- for any `w` in `K`, we have `⟪b - z, w - z⟫_ℝ ≤ 0`
   have hinner := (norm_eq_infi_iff_real_inner_le_zero K.convex hzK).1 infi,
+
+  -- set `y := z - b`
   use z - b,
+
   split,
-  { rintros x hxK,
+  begin
+  -- the rest of the proof is a straightforward calculation
+    rintros x hxK,
     specialize hinner _ (K.add_mem hxK hzK),
     rwa [add_sub_cancel, real_inner_comm, ← neg_nonneg, neg_eq_neg_one_mul,
-         ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner },
+         ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner,
+  end,
   begin
+    -- as `K` is closed and non-empty, it is pointed
     have hinner₀ := hinner 0 (pointed_of_nonempty_closed ne hc),
-      rw [zero_sub, inner_neg_right, right.neg_nonpos_iff] at hinner₀,
-    have hbz : b - z ≠ 0, by { rw sub_ne_zero, contrapose! hzK, rwa ← hzK },
+
+    -- the rest of the proof is a straightforward calculation
+    rw [zero_sub, inner_neg_right, right.neg_nonpos_iff] at hinner₀,
+    have hbz : b - z ≠ 0 := by { rw sub_ne_zero, contrapose! hzK, rwa ← hzK },
     rw [← neg_zero, lt_neg, ← neg_one_mul, ← real_inner_smul_left, smul_sub, neg_smul, one_smul,
       neg_smul, neg_sub_neg, one_smul],
     calc 0 < ⟪b - z, b - z⟫_ℝ : lt_of_not_le ((iff.not real_inner_self_nonpos).2 hbz)

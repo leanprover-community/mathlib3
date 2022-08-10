@@ -53,20 +53,6 @@ def map' {M M' : Module.{v} S} (g : M ⟶ M') :
   obj' f M ⟶ obj' f M' :=
 { map_smul' := λ r, g.map_smul (f r), ..g }
 
-/--
-If `R, S` are commutative rings and `f : R →+* S`, then any `S`-algebra is also an `R`-algebra
--/
-def is_algebra {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
-  (A : Type v) [comm_semiring A] [algebra S A] : algebra R A :=
-{ smul := (module.comp_hom A f).to_has_smul.smul,
-  to_fun := (algebra_map _ _).comp f,
-  map_one' := by simp,
-  map_mul' := λ _ _, by simp [map_mul],
-  map_zero' := by simp,
-  map_add' := λ _ _, by simp [map_add],
-  commutes' := λ _ _, by ring,
-  smul_def' := λ r a, algebra.smul_def _ _ }
-
 end restrict_scalars
 
 /--
@@ -154,7 +140,7 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` a
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
 def map' {M1 M2 : Module.{v} R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
-@linear_map.base_change R S M1 M2 _ _ (restrict_scalars.is_algebra f S) _ _ _ _ l
+@linear_map.base_change R S M1 M2 _ _ ((algebra_map S _).comp f).to_algebra _ _ _ _ l
 
 lemma map'_id {M : Module.{v} R} : map' f (𝟙 M) = 𝟙 _ :=
 linear_map.ext $ λ (x : obj' f M),

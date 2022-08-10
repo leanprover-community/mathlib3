@@ -749,23 +749,6 @@ begin
   exact is_closed_Ici.preimage (by continuity),
 end
 
-lemma inner_dual_cone_closed :
-  is_closed (s.inner_dual_cone : set H) :=
-begin
-  rw inner_dual_cone_eq_Inter_inner_dual_cone_singleton,
-  apply is_closed_Inter,
-  simp only [set_coe.forall, subtype.coe_mk, convex_cone.mem_coe],
-  rintro x hx,
-  suffices h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0),
-  { rw h,
-    refine is_closed.preimage _ is_closed_Ici,
-    have := continuous.inner (@continuous_const _ _ _ _ x) continuous_id,
-    simp_rw [id.def] at this,
-    exact this },
-  apply set.ext,
-  simp [convex_cone.mem_coe, mem_inner_dual_cone],
-end
-
 lemma pointed_of_nonempty_closed
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
 begin

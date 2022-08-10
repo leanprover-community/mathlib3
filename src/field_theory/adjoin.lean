@@ -391,17 +391,14 @@ lemma is_splitting_field_iff {p : polynomial F} {K : intermediate_field F E} :
 begin
   suffices : _ → ((algebra.adjoin F (p.root_set K) = ⊤ ↔ K = adjoin F (p.root_set E))),
   { exact ⟨λ h, ⟨h.1, (this h.1).mp h.2⟩, λ h, ⟨h.1, (this h.1).mpr h.2⟩⟩ },
-  simp_rw [set_like.ext_iff, ←mem_to_subalgebra, ←set_like.ext_iff, ←K.range_val],
-  intro hp,
-  rw [←adjoin_root_set_eq_range hp K.val,
-      adjoin_algebraic_to_subalgebra (λ x, is_algebraic_of_mem_root_set), eq_comm],
+  simp_rw [set_like.ext_iff, ←mem_to_subalgebra, ←set_like.ext_iff],
+  rw [←K.range_val, adjoin_algebraic_to_subalgebra (λ x, is_algebraic_of_mem_root_set)],
+  exact λ hp, (adjoin_root_set_eq_range hp K.val).symm.trans eq_comm,
 end
 
 lemma adjoin_root_set_is_splitting_field {p : polynomial F} (hp : p.splits (algebra_map F E)) :
   p.is_splitting_field F (adjoin F (p.root_set E)) :=
 is_splitting_field_iff.mpr ⟨splits_of_splits hp (λ x hx, subset_adjoin F (p.root_set E) hx), rfl⟩
-
-end
 
 open set complete_lattice
 

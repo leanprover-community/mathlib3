@@ -649,8 +649,7 @@ convex_cone.ext' (eq_univ_of_forall
 /-- Dual cone of the total space is the convex cone {0}. -/
 lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 := convex_cone.ext $ λ x, iff.intro
 begin
-  simp_rw [mem_inner_dual_cone, ← convex_cone.mem_coe],
-  rw [convex_cone.mem_coe, convex_cone.mem_zero],
+  simp_rw [mem_inner_dual_cone, convex_cone.mem_zero],
   rintro h,
   contrapose! h,
   use -x,

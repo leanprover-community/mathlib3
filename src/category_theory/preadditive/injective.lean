@@ -21,7 +21,7 @@ open category_theory
 open category_theory.limits
 open opposite
 
-universes v₁ v₂ u₁ u₂
+universes v v₁ v₂ u₁ u₂
 
 namespace category_theory
 variables {C : Type u₁} [category.{v₁} C]
@@ -84,7 +84,7 @@ lemma iso_iff {P Q : C} (i : P ≅ Q) : injective P ↔ injective Q :=
 ⟨of_iso i, of_iso i.symm⟩
 
 /-- The axiom of choice says that every nonempty type is an injective object in `Type`. -/
-instance (X : Type u) [nonempty X] : injective X :=
+instance (X : Type u₁) [nonempty X] : injective X :=
 { factors := λ Y Z g f mono,
   ⟨λ z, by classical; exact
     if h : z ∈ set.range f
@@ -98,7 +98,7 @@ instance (X : Type u) [nonempty X] : injective X :=
     { exact false.elim (h ⟨y, rfl⟩) },
   end⟩ }
 
-instance Type.enough_injectives : enough_injectives (Type u) :=
+instance Type.enough_injectives : enough_injectives (Type u₁) :=
 { presentation := λ X, nonempty.intro
   { J := with_bot X,
     injective := infer_instance,
@@ -177,16 +177,14 @@ end
 section adjunction
 open category_theory.functor
 
- universes v₁ v₂ u₁ u₂
+variables {D : Type u₂} [category.{v₂} D]
+variables {L : C ⥤ D} {R : D ⥤ C} [preserves_monomorphisms L]
 
- variables {D : Type u₂} [category.{v₂} D]
- variables {L : C ⥤ D} {R : D ⥤ C} [preserves_monomorphisms L]
+lemma injective_of_adjoint (adj : L ⊣ R) {J : D} [injective J] : injective $ R.obj J :=
+⟨λ A A' g f im, by exactI ⟨adj.hom_equiv _ _ (factor_thru ((adj.hom_equiv A J).symm g) (L.map f)),
+ (adj.hom_equiv _ _).symm.injective (by simp)⟩⟩
 
- lemma injective_of_adjoint (adj : L ⊣ R) {J : 𝓑} [injective J] : injective $ R.obj J :=
- ⟨λ A A' g f im, by exactI ⟨adj.hom_equiv _ _ (factor_thru ((adj.hom_equiv A J).symm g) (L.map f)),
-  (adj.hom_equiv _ _).symm.injective (by simp)⟩⟩
-
- end adjunction
+end adjunction
 
 section enough_injectives
 variable [enough_injectives C]

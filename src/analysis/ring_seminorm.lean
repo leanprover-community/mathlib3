@@ -50,12 +50,14 @@ section non_unital_ring
 variables [non_unital_ring R]
 
 instance zero_hom_class : zero_hom_class (ring_seminorm R) R ℝ :=
- { coe := λ f, f.to_fun,
-   coe_injective' := λ f g h, by cases f; cases g; congr',
-   map_zero := λ f, f.map_zero' }
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_zero := λ f, f.map_zero' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_seminorm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe (p : ring_seminorm R) : p.to_fun = p := rfl
 
 @[ext] lemma ext {p q : ring_seminorm R} (h : ∀ x, p x = q x) : p = q :=
 fun_like.ext p q h
@@ -132,6 +134,8 @@ variable [non_unital_ring R]
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
 
+@[simp] lemma to_fun_eq_coe (p : ring_norm R) : p.to_fun = p := rfl
+
 instance zero_hom_class : zero_hom_class (ring_norm R) R ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
@@ -156,6 +160,9 @@ def trivial_norm [decidable_eq R] : ring_norm R :=
   ne_zero   := λ x hx,
   by { simp only [add_group_seminorm.trivial_norm, if_neg hx], exact zero_lt_one },
   ..add_group_seminorm.trivial_norm R }
+
+lemma trivial_norm_of_ne_zero [decidable_eq R] {z : R} (h : z ≠ 0) : trivial_norm R z = 1 :=
+if_neg h
 
 instance [decidable_eq R] : inhabited (ring_norm R) := ⟨trivial_norm R⟩
 

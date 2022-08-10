@@ -260,7 +260,7 @@ def trivial_norm [decidable_eq E] : add_group_seminorm E :=
 variable {E}
 
 lemma trivial_norm_of_ne_zero [decidable_eq E] {z : E} (h : z ≠ 0) : trivial_norm E z = 1 :=
-by simp only [trivial_norm, ← to_fun_eq_coe, h, if_false]
+if_neg h
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
 instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :

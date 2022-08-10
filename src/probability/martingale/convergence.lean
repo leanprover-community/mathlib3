@@ -219,7 +219,7 @@ def limit_process (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure �
 if h : ∃ g : Ω → E, strongly_measurable[⨆ n, ℱ n] g ∧
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)) then classical.some h else 0
 
-lemma limit_process_measurable :
+lemma strongly_measurable_limit_process :
   strongly_measurable[⨆ n, 𝒢 n] (limit_process g 𝒢 μ) :=
 begin
   rw limit_process,
@@ -227,13 +227,14 @@ begin
   exacts [(classical.some_spec h).1, strongly_measurable_zero]
 end
 
-lemma limit_process_measurable' :
+lemma strongly_measurable_limit_process' :
   strongly_measurable[m0] (limit_process g 𝒢 μ) :=
-limit_process_measurable.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ 𝒢.le _))
+strongly_measurable_limit_process.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ 𝒢.le _))
 
-lemma mem_ℒ1_limit_process_of_snorm_bdd {F : Type*} [normed_add_comm_group F] {f : ℕ → Ω → F}
-  (hfm : ∀ n, ae_strongly_measurable (f n) μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
-  mem_ℒp (limit_process f ℱ μ) 1 μ :=
+lemma mem_ℒp_limit_process_of_snorm_bdd
+  {p : ℝ≥0∞} {F : Type*} [normed_add_comm_group F] {f : ℕ → Ω → F}
+  (hfm : ∀ n, ae_strongly_measurable (f n) μ) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
+  mem_ℒp (limit_process f ℱ μ) p μ :=
 begin
   rw limit_process,
   split_ifs with h,
@@ -275,11 +276,11 @@ begin
   exact ⟨g, hgm, measure_eq_zero_of_trim_eq_zero hle hg⟩,
 end
 
-/-- The limiting process of an L¹-bounded submartingale is integrable. -/
-lemma submartingale.mem_ℒ1_limit_process
-  (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
-  mem_ℒp (limit_process f ℱ μ) 1 μ :=
-mem_ℒ1_limit_process_of_snorm_bdd
+/-- The limiting process of an Lᵖ-bounded submartingale is integrable. -/
+lemma submartingale.mem_ℒp_limit_process {p : ℝ≥0∞}
+  (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
+  mem_ℒp (limit_process f ℱ μ) p μ :=
+mem_ℒp_limit_process_of_snorm_bdd
   (λ n, ((hf.strongly_measurable n).mono (ℱ.le n)).ae_strongly_measurable) hbdd
 
 end ae_convergence

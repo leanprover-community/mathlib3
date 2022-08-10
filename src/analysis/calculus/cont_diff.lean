@@ -2730,6 +2730,7 @@ lemma cont_diff.const_smul {f : E → F} (c : R)
 lemma cont_diff_on.const_smul {s : set E} {f : E → F} (c : R)
   (hf : cont_diff_on 𝕜 n f s) : cont_diff_on 𝕜 n (λ y, c • f y) s :=
 λ x hx, (hf x hx).const_smul c
+
 variables {i : ℕ} {a : R}
 
 lemma iterated_fderiv_within_const_smul_apply (hf : cont_diff_on 𝕜 i f s)

@@ -170,9 +170,7 @@ instance : algebra R (completion R) :=
   smul_def' := λ r x, congr_fun (map_mul_eq_mul_coe R r) x,
   .. (uniform_space.completion.coe_ring_hom : R →+* completion R) }
 
-lemma algebra_smul_eq (r : R) (x : (completion R)) :
-  r • x = (r : completion R) * x :=
-by rw algebra.smul_def; refl
+lemma algebra_map_eq_coe (r : R) : algebra_map R (completion R) r = coe r := rfl
 
 section algebra
 variables (S : Type*) [comm_semiring S] [algebra S R] [has_uniform_continuous_const_smul S R]

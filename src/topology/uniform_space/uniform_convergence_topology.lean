@@ -275,7 +275,7 @@ end
 protected lemma tendsto_iff_tendsto_uniformly : tendsto F p (𝓝 f) ↔ tendsto_uniformly F f p :=
 begin
   letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
-  rw [(uniform_convergence.has_basis_nhds α β).tendsto_right_iff, tendsto_uniformly],
+  rw [(uniform_convergence.has_basis_nhds α β f).tendsto_right_iff, tendsto_uniformly],
   exact iff.rfl,
 end
 

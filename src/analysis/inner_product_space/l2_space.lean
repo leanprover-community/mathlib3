@@ -356,12 +356,6 @@ begin
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
-lemma direct_sum.is_internal.is_hilbert_sum {F : ι → submodule 𝕜 E}
-  [Π i, complete_space (F i)] (hF : direct_sum.is_internal F)
-  (hF' : @orthogonal_family 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ)) :
-  @is_hilbert_sum _ 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=
-hF'.is_hilbert_sum_internal _ (by rw hF.submodule_supr_eq_top; exact subset_closure)
-
 lemma submodule.is_hilbert_sum_orthogonal (K : submodule 𝕜 E) [hK : complete_space K] :
   @is_hilbert_sum _ 𝕜 _ E _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
   (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
@@ -370,7 +364,7 @@ begin
   { intro b,
     cases b;
     exact orthogonal.complete_space K <|> assumption },
-  refine K.orthogonal_family_self.is_hilbert_sum_internal _ _,
+  refine is_hilbert_sum.mk_internal _ K.orthogonal_family_self _,
   refine le_trans _ (submodule.submodule_topological_closure _),
   rw supr_bool_eq,
   exact submodule.is_compl_orthogonal_of_complete_space.2

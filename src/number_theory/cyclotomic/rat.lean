@@ -223,15 +223,15 @@ by erw [@integral_power_basis_dim p 1 K _ _ _ _ (by { convert hcycl, rw pow_one 
 extension of `ℚ`. -/
 noncomputable def sub_one_integral_power_basis [is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) : power_basis ℤ (𝓞 K) :=
-  power_basis.of_gen_mem_adjoin' hζ.integral_power_basis (is_integral_of_mem_ring_of_integers $
-    subalgebra.sub_mem _ (hζ.is_integral (p ^ k).pos) (subalgebra.one_mem _))
-  begin
-    simp only [integral_power_basis_gen],
-    convert subalgebra.add_mem _
-      (self_mem_adjoin_singleton ℤ (⟨ζ - 1, _⟩ : 𝓞 K))
-      (subalgebra.one_mem _),
-    simp
-  end
+power_basis.of_gen_mem_adjoin' hζ.integral_power_basis (is_integral_of_mem_ring_of_integers $
+  subalgebra.sub_mem _ (hζ.is_integral (p ^ k).pos) (subalgebra.one_mem _))
+begin
+  simp only [integral_power_basis_gen],
+  convert subalgebra.add_mem _
+    (self_mem_adjoin_singleton ℤ (⟨ζ - 1, _⟩ : 𝓞 K))
+    (subalgebra.one_mem _),
+  simp
+end
 
 @[simp] lemma sub_one_integral_power_basis_gen [is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) :

@@ -60,8 +60,18 @@ theorem with_top.cInf_empty {α : Type*} [has_Inf α] : Inf (∅ : set (with_top
 if_pos $ set.empty_subset _
 
 @[simp]
+theorem with_top.cinfi_empty {α : Type*} [is_empty ι] [has_Inf α] (f : ι → with_top α) :
+  (⨅ i, f i) = ⊤ :=
+by rw [infi, range_eq_empty, with_top.cInf_empty]
+
+@[simp]
 theorem with_bot.cSup_empty {α : Type*} [has_Sup α] : Sup (∅ : set (with_bot α)) = ⊥ :=
 if_pos $ set.empty_subset _
+
+@[simp]
+theorem with_bot.csupr_empty {α : Type*} [is_empty ι] [has_Sup α] (f : ι → with_bot α) :
+  (⨆ i, f i) = ⊥ :=
+by rw [supr, range_eq_empty, with_bot.cSup_empty]
 
 end -- section
 

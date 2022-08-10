@@ -107,7 +107,7 @@ def root : adjoin_root f := mk f X
 
 variables {f}
 
-instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
+instance has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 
 @[simp] lemma mk_eq_mk {g h : R[X]} : mk f g = mk f h ↔ f ∣ g - h :=
 ideal.quotient.eq.trans ideal.mem_span_singleton
@@ -226,6 +226,13 @@ lemma mul_div_root_cancel [fact (irreducible f)] :
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end irreducible
+
+section is_noetherian_ring
+
+instance [comm_ring R] [is_noetherian_ring R] {f : R[X]} : is_noetherian_ring (adjoin_root f) :=
+ideal.quotient.is_noetherian_ring _
+
+end is_noetherian_ring
 
 section power_basis
 

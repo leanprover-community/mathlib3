@@ -17,7 +17,7 @@ summable.  This construction is sometimes called the *Hilbert sum* of the family
 `G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this construction.
 
 We also define a *predicate* `is_hilbert_sum 𝕜 E V`, where `V : Π i, G i →ₗᵢ[𝕜] E`, expressing that
-that `V` is an `orthogonal_family` and that the associated map `lp G 2 →ₗᵢ[𝕜] E` is surjective.
+`V` is an `orthogonal_family` and that the associated map `lp G 2 →ₗᵢ[𝕜] E` is surjective.
 
 ## Main definitions
 
@@ -262,7 +262,7 @@ space `E` and an orthogonal family `V : Π i, G i →ₗᵢ[𝕜] E` such that t
 
 Keeping in mind that `lp G 2` is "the" external Hilbert sum of `G : ι → Type*`, this is analogous
 to `direct_sum.is_internal`, except that we don't express it in terms of actual submodules. -/
-@[protect_proj] structure is_hilbert_sum : Prop :=
+@[protect_proj] structure is_hilbert_sum : Prop := of_surjective ::
 (orthogonal_family : orthogonal_family 𝕜 V)
 (surjective_isometry : function.surjective (orthogonal_family.linear_isometry))
 
@@ -270,31 +270,30 @@ variables {𝕜 E V}
 
 /-- If `V : Π i, G i →ₗᵢ[𝕜] E` is an orthogonal family such that the supremum of the ranges of
 `V i` is dense, then `(E, V)` is a Hilbert sum of `G`. -/
-lemma orthogonal_family.is_hilbert_sum [Π i, complete_space $ G i]
+lemma is_hilbert_sum.mk [Π i, complete_space $ G i]
   (hVortho : orthogonal_family 𝕜 V)
   (hVtotal : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) :
   is_hilbert_sum 𝕜 E V :=
-⟨hVortho,
+{ orthogonal_family := hVortho,
+  surjective_isometry :=
   begin
     rw [←linear_isometry.coe_to_linear_map],
     exact linear_map.range_eq_top.mp (eq_top_iff.mpr $
       hVtotal.trans_eq hVortho.range_linear_isometry.symm)
-  end⟩
+  end }
 
 /-- This is `orthogonal_family.is_hilbert_sum` in the case of actual inclusions from subspaces. -/
-lemma orthogonal_family.is_hilbert_sum_internal [Π i, complete_space $ F i]
+lemma is_hilbert_sum.mk_internal [Π i, complete_space $ F i]
   (hFortho : @orthogonal_family 𝕜 E _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ))
   (hFtotal : ⊤ ≤ (⨆ i, (F i)).topological_closure) :
   @is_hilbert_sum _ 𝕜 _ E _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=
-hFortho.is_hilbert_sum
-(by simpa [subtypeₗᵢ_to_linear_map, range_subtype] using hFtotal)
+is_hilbert_sum.mk hFortho (by simpa [subtypeₗᵢ_to_linear_map, range_subtype] using hFtotal)
 
-/-- *A* Hilbert sum `(E, V)` of `G` is cannonically isomorphic to *the* Hilbert sum of `G`,
+/-- *A* Hilbert sum `(E, V)` of `G` is canonically isomorphic to *the* Hilbert sum of `G`,
 i.e `lp G 2`.
 
 Note that this goes in the opposite direction from `orthogonal_family.linear_isometry`. -/
-noncomputable def is_hilbert_sum.linear_isometry_equiv
-  (hV : is_hilbert_sum 𝕜 E V) :
+noncomputable def is_hilbert_sum.linear_isometry_equiv (hV : is_hilbert_sum 𝕜 E V) :
   E ≃ₗᵢ[𝕜] lp G 2 :=
 linear_isometry_equiv.symm $
 linear_isometry_equiv.of_surjective
@@ -351,7 +350,7 @@ lemma orthonormal.is_hilbert_sum {v : ι → E} (hv : orthonormal 𝕜 v)
   (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :
   @is_hilbert_sum _ 𝕜 _ _ _ _ (λ i : ι, 𝕜) _
     (λ i, linear_isometry.to_span_singleton 𝕜 E (hv.1 i)) :=
-hv.orthogonal_family.is_hilbert_sum
+is_hilbert_sum.mk hv.orthogonal_family
 begin
   convert hsp,
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],

@@ -260,6 +260,10 @@ lemma pointed_iff_not_blunt (S : convex_cone 𝕜 E) : S.pointed ↔ ¬S.blunt :
 lemma blunt_iff_not_pointed (S : convex_cone 𝕜 E) : S.blunt ↔ ¬S.pointed :=
 by rw [pointed_iff_not_blunt, not_not]
 
+lemma pointed.mono {S T : convex_cone 𝕜 E} (h : S ≤ T) : S.pointed → T.pointed := @h _
+
+lemma blunt.anti {S T : convex_cone 𝕜 E} (h : T ≤ S) : S.blunt → T.blunt := (∘ @@h)
+
 end add_comm_monoid
 
 section add_comm_group
@@ -281,6 +285,12 @@ begin
     push_neg at h,
     exact h }
 end
+
+lemma flat.mono {S T : convex_cone 𝕜 E} (h : S ≤ T) : S.flat → T.flat
+| ⟨x, hxS, hx, hnxS⟩ := ⟨x, h hxS, hx, h hnxS⟩
+
+lemma salient.anti {S T : convex_cone 𝕜 E} (h : T ≤ S) : S.salient → T.salient :=
+λ hS x hxT hx hnT, hS x (h hxT) hx (h hnT)
 
 /-- A flat cone is always pointed (contains `0`). -/
 lemma flat.pointed {S : convex_cone 𝕜 E} (hS : S.flat) : S.pointed :=
@@ -341,18 +351,16 @@ variables (𝕜 E) [ordered_semiring 𝕜] [ordered_add_comm_group E] [module �
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
 module.
 -/
-def positive_cone : convex_cone 𝕜 E :=
-{ carrier := {x | 0 ≤ x},
-  smul_mem' :=
-    begin
-      rintro c hc x (hx : _ ≤ _),
-      rw ←smul_zero c,
-      exact smul_le_smul_of_nonneg hx hc.le,
-    end,
+def positive : convex_cone 𝕜 E :=
+{ carrier := set.Ici 0,
+  smul_mem' := λ c hc x (hx : _ ≤ _), smul_nonneg hc.le hx,
   add_mem' := λ x (hx : _ ≤ _) y (hy : _ ≤ _), add_nonneg hx hy }
 
+@[simp] lemma mem_positive {x : E} : x ∈ positive 𝕜 E ↔ 0 ≤ x := iff.rfl
+@[simp] lemma coe_positive : ↑(positive 𝕜 E) = set.Ici (0 : E) := rfl
+
 /-- The positive cone of an ordered module is always salient. -/
-lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
+lemma salient_positive : salient (positive 𝕜 E) :=
 λ x xs hx hx', lt_irrefl (0 : E)
   (calc
     0   < x         : lt_of_le_of_ne xs hx.symm
@@ -360,7 +368,28 @@ lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
     ... = 0         : add_neg_self x)
 
 /-- The positive cone of an ordered module is always pointed. -/
-lemma pointed_positive_cone : pointed (positive_cone 𝕜 E) := le_refl 0
+lemma pointed_positive : pointed (positive 𝕜 E) := le_refl 0
+
+/-- The cone of strictly positive elements.
+
+Note that this naming diverges from the mathlib convention of `pos` and `nonneg` due to "positive
+cone" (`convex_cone.positive`) being established terminology for the non-negative elements. -/
+def strictly_positive : convex_cone 𝕜 E :=
+{ carrier := set.Ioi 0,
+  smul_mem' := λ c hc x (hx : _ < _), smul_pos hc hx,
+  add_mem' := λ x hx y hy, add_pos hx hy }
+
+@[simp] lemma mem_strictly_positive {x : E} : x ∈ strictly_positive 𝕜 E ↔ 0 < x := iff.rfl
+@[simp] lemma coe_strictly_positive : ↑(strictly_positive 𝕜 E) = set.Ioi (0 : E) := rfl
+
+lemma positive_le_strictly_positive : strictly_positive 𝕜 E ≤ positive 𝕜 E := λ x, le_of_lt
+
+/-- The strictly positive cone of an ordered module is always salient. -/
+lemma salient_strictly_positive : salient (strictly_positive 𝕜 E) :=
+(salient_positive 𝕜 E).anti $ positive_le_strictly_positive 𝕜 E
+
+/-- The strictly positive cone of an ordered module is always blunt. -/
+lemma blunt_strictly_positive : blunt (strictly_positive 𝕜 E) := lt_irrefl 0
 
 end positive_cone
 end convex_cone
@@ -627,7 +656,7 @@ lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 /-- The inner dual cone of a singleton is given by the preimage of the positive cone under the
 linear map `λ y, ⟪x, y⟫`. -/
 lemma inner_dual_cone_singleton (x : H) :
-  ({x} : set H).inner_dual_cone = (convex_cone.positive_cone ℝ ℝ).comap (innerₛₗ x) :=
+  ({x} : set H).inner_dual_cone = (convex_cone.positive ℝ ℝ).comap (innerₛₗ x) :=
 convex_cone.ext $ λ i, forall_eq
 
 lemma inner_dual_cone_union (s t : set H) :

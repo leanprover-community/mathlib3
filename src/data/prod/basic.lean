@@ -207,13 +207,6 @@ instance is_total_right {r : α → α → Prop} {s : β → β → Prop} [is_tr
   { exact or.inr (lex.left _ _ hji) }
 end⟩
 
-instance has_pow {γ : Type*} [has_pow α γ] [has_pow β γ] :
-  has_pow (α × β) γ :=
-{ pow := λ p c, (p.1 ^ c, p.2 ^ c) }
-
-@[simp] lemma pow_def {γ : Type*} [has_pow α γ] [has_pow β γ]
-  (a : α) (b : β) (c : γ) : (⟨a, b⟩ : α × β) ^ c = ⟨a ^ c, b ^ c⟩ := rfl
-
 end prod
 
 open prod

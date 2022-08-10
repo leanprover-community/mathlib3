@@ -122,6 +122,5 @@ end distrib_lattice
 
 /-- Cardinality of a Young diagram -/
 @[reducible] protected def card (μ : young_diagram) : ℕ := μ.cells.card
-lemma card_def (μ : young_diagram) : μ.card = μ.cells.card := rfl
 
 end young_diagram

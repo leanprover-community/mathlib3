@@ -349,7 +349,7 @@ begin
   exact (cont_diff_const.add cont_diff_norm_sq).sqrt (λ x, (h x).ne.symm),
 end
 
-lemma cont_diff_homeomorph_unit_ball_symm
+lemma cont_diff_on_homeomorph_unit_ball_symm
   {f : E → E} (h : ∀ y (hy : y ∈ ball (0 : E) 1), f y = homeomorph_unit_ball.symm ⟨y, hy⟩) :
   cont_diff_on ℝ n f $ ball 0 1 :=
 begin

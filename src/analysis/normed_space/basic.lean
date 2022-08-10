@@ -162,7 +162,10 @@ by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
 This homeomorphism sends `x : E` to `(1 + ∥x∥²)^(- ½) • x`.
 
 In many cases the actual implementation is not important, so we don't mark the projection lemmas
-`homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`. -/
+`homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`.
+
+See also `cont_diff_homeomorph_unit_ball` and `cont_diff_on_homeomorph_unit_ball_symm` for
+smoothness properties that hold when `E` is an inner-product space. -/
 @[simps { attrs := [] }]
 def homeomorph_unit_ball [normed_space ℝ E] :
   E ≃ₜ ball (0 : E) 1 :=

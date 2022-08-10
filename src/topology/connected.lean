@@ -8,6 +8,7 @@ import data.nat.succ_pred
 import order.partial_sups
 import order.succ_pred.relation
 import topology.subset_properties
+import tactic.congrm
 
 /-!
 # Connected subsets of topological spaces
@@ -1122,6 +1123,117 @@ lemma quotient_map.image_connected_component [topological_space β] {f : α → 
 by rw [← hf.preimage_connected_component h_fibers, image_preimage_eq _ hf.surjective]
 
 end preconnected
+
+section locally_connected_space
+
+/-- A topological space is **locally connected** if each neighborhood filter admits a basis
+of connected *open* sets. Note that it is equivalent to each point having a basis of connected
+(non necessarily open) sets but in a non-trivial way, so we choose this definition and prove the
+equivalence later in `locally_connected_space_iff_connected_basis`. -/
+class locally_connected_space (α : Type*) [topological_space α] : Prop :=
+(open_connected_basis : ∀ x, (𝓝 x).has_basis (λ s : set α, is_open s ∧ x ∈ s ∧ is_connected s) id)
+
+lemma locally_connected_space_iff_open_connected_basis : locally_connected_space α ↔
+  ∀ x, (𝓝 x).has_basis (λ s : set α, is_open s ∧ x ∈ s ∧ is_connected s) id :=
+⟨@locally_connected_space.open_connected_basis _ _, locally_connected_space.mk⟩
+
+lemma locally_connected_space_iff_open_connected_subsets :
+  locally_connected_space α ↔ ∀ (x : α) (U ∈ 𝓝 x), ∃ V ⊆ U, is_open V ∧ x ∈ V ∧ is_connected V :=
+begin
+  rw locally_connected_space_iff_open_connected_basis,
+  congrm ∀ x, (_ : Prop),
+  split,
+  { intros h U hU,
+    rcases h.mem_iff.mp hU with ⟨V, hV, hVU⟩,
+    exact ⟨V, hVU, hV⟩ },
+  { exact λ h, ⟨λ U, ⟨λ hU, let ⟨V, hVU, hV⟩ := h U hU in ⟨V, hV, hVU⟩,
+                λ ⟨V, ⟨hV, hxV, _⟩, hVU⟩, mem_nhds_iff.mpr ⟨V, hVU, hV, hxV⟩⟩⟩ }
+end
+
+lemma connected_component_in_mem_nhds [locally_connected_space α] {F : set α} {x : α}
+  (h : F ∈ 𝓝 x) :
+  connected_component_in F x ∈ 𝓝 x :=
+begin
+  rw (locally_connected_space.open_connected_basis x).mem_iff at h,
+  rcases h with ⟨s, ⟨h1s, hxs, h2s⟩, hsF⟩,
+  exact mem_nhds_iff.mpr ⟨s, h2s.is_preconnected.subset_connected_component_in hxs hsF, h1s, hxs⟩
+end
+
+lemma is_open.connected_component_in [locally_connected_space α] {F : set α} {x : α}
+  (hF : is_open F) :
+  is_open (connected_component_in F x) :=
+begin
+  rw [is_open_iff_mem_nhds],
+  intros y hy,
+  rw [connected_component_in_eq hy],
+  exact connected_component_in_mem_nhds (is_open_iff_mem_nhds.mp hF y $
+    connected_component_in_subset F x hy)
+end
+
+lemma is_open_connected_component [locally_connected_space α] {x : α} :
+  is_open (connected_component x) :=
+begin
+  rw ← connected_component_in_univ,
+  exact is_open_univ.connected_component_in
+end
+
+lemma is_clopen_connected_component [locally_connected_space α] {x : α} :
+  is_clopen (connected_component x) :=
+⟨is_open_connected_component, is_closed_connected_component⟩
+
+lemma locally_connected_space_iff_connected_component_in_open :
+  locally_connected_space α ↔ ∀ F : set α, is_open F → ∀ x ∈ F,
+  is_open (connected_component_in F x) :=
+begin
+  split,
+  { introI h,
+    exact λ F hF x _, hF.connected_component_in },
+  { intro h,
+    rw locally_connected_space_iff_open_connected_subsets,
+    refine (λ x U hU, ⟨connected_component_in (interior U) x,
+      (connected_component_in_subset _ _).trans interior_subset, h _ is_open_interior x _,
+      mem_connected_component_in _, is_connected_connected_component_in_iff.mpr _⟩);
+    exact (mem_interior_iff_mem_nhds.mpr hU) }
+end
+
+lemma locally_connected_space_iff_connected_subsets :
+  locally_connected_space α ↔ ∀ (x : α) (U ∈ 𝓝 x), ∃ V ∈ 𝓝 x, is_preconnected V ∧ V ⊆ U :=
+begin
+  split,
+  { rw locally_connected_space_iff_open_connected_subsets,
+    intros h x U hxU,
+    rcases h x U hxU with ⟨V, hVU, hV₁, hxV, hV₂⟩,
+    exact ⟨V, hV₁.mem_nhds hxV, hV₂.is_preconnected, hVU⟩ },
+  { rw locally_connected_space_iff_connected_component_in_open,
+    refine λ h U hU x hxU, is_open_iff_mem_nhds.mpr (λ y hy, _),
+    rw connected_component_in_eq hy,
+    rcases h y U (hU.mem_nhds $ (connected_component_in_subset _ _) hy) with ⟨V, hVy, hV, hVU⟩,
+    exact filter.mem_of_superset hVy
+      (hV.subset_connected_component_in (mem_of_mem_nhds hVy) hVU) }
+end
+
+lemma locally_connected_space_iff_connected_basis :
+  locally_connected_space α ↔
+  ∀ x, (𝓝 x).has_basis (λ s : set α, s ∈ 𝓝 x ∧ is_preconnected s) id :=
+begin
+  rw locally_connected_space_iff_connected_subsets,
+  congrm ∀ x, (_ : Prop),
+  exact filter.has_basis_self.symm
+end
+
+lemma locally_connected_space_of_connected_bases {ι : Type*} (b : α → ι → set α) (p : α → ι → Prop)
+  (hbasis : ∀ x, (𝓝 x).has_basis (p x) (b x))
+  (hconnected : ∀ x i, p x i → is_preconnected (b x i)) :
+  locally_connected_space α :=
+begin
+  rw locally_connected_space_iff_connected_basis,
+  exact λ x, (hbasis x).to_has_basis
+    (λ i hi, ⟨b x i, ⟨(hbasis x).mem_of_mem hi, hconnected x i hi⟩, subset_rfl⟩)
+    (λ s hs, ⟨(hbasis x).index s hs.1,
+      ⟨(hbasis x).property_index hs.1, (hbasis x).set_index_subset hs.1⟩⟩)
+end
+
+end locally_connected_space
 
 section totally_disconnected
 

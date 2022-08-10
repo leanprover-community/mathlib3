@@ -149,7 +149,6 @@ begin
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
   have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
-  letI : algebra F D := ring_hom.to_algebra ((algebra_map E D).comp (algebra_map F E)),
   haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   suffices : nonempty (D →ₐ[F] E),

@@ -282,7 +282,7 @@ by rw [sign, sin_zero, sign_zero]
 @[simp] lemma sign_coe_pi : (π : angle).sign = 0 :=
 by rw [sign, sin_coe_pi, _root_.sign_zero]
 
-@[simp] lemma sign_neg (θ : angle) : (-θ).sign = -(θ.sign) :=
+@[simp] lemma sign_neg (θ : angle) : (-θ).sign = - θ.sign :=
 by simp_rw [sign, sin_neg, left.sign_neg]
 
 lemma sign_antiperiodic : function.antiperiodic sign (π : angle) :=

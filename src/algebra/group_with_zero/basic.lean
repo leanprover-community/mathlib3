@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {M₀ G₀ M₀' G₀' : Type*}
+variables {M₀ G₀ M₀' G₀' F : Type*}
 
 section
 
@@ -973,37 +973,33 @@ end commute
 namespace monoid_with_zero_hom
 
 variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
-
-section monoid_with_zero
-
-variables (f : G₀ →*₀ M₀) {a : G₀}
+  [monoid_with_zero_hom_class F G₀ M₀] (f : F) {a : G₀}
+include M₀
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
-⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
+⟨λ hfa ha, hfa $ ha.symm ▸ map_zero f, λ ha, ((is_unit.mk0 a ha).map f).ne_zero⟩
 
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 :=
-not_iff_not.1 f.map_ne_zero
+@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-end monoid_with_zero
+end monoid_with_zero_hom
 
 section group_with_zero
 
-variables (f : G₀ →*₀ G₀') (a b : G₀)
+variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero_hom_class F G₀ G₀']
+  (f : F) (a b : G₀)
+include G₀'
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
-@[simp] lemma map_inv : f a⁻¹ = (f a)⁻¹ :=
+@[simp] lemma map_inv₀ : f a⁻¹ = (f a)⁻¹ :=
 begin
   by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_eq_one_left,
-  rw [← f.map_mul, inv_mul_cancel h, f.map_one]
+  rw [← map_mul, inv_mul_cancel h, map_one]
 end
 
-@[simp] lemma map_div : f (a / b) = f a / f b :=
-by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv b)
+@[simp] lemma map_div₀ : f (a / b) = f a / f b := map_div' f (map_inv₀ f) a b
 
 end group_with_zero
-
-end monoid_with_zero_hom
 
 /-- We define the inverse as a `monoid_with_zero_hom` by extending the inverse map by zero
 on non-units. -/

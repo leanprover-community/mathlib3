@@ -374,8 +374,8 @@ end semiring
 section division_semiring
 variables [division_semiring α] [division_semiring β] (f : α →+* β) (a b : α)
 
-lemma map_inv : f a⁻¹ = (f a)⁻¹ := f.to_monoid_with_zero_hom.map_inv _
-lemma map_div : f (a / b) = f a / f b := f.to_monoid_with_zero_hom.map_div _ _
+lemma map_inv : f a⁻¹ = (f a)⁻¹ := map_inv₀ f a
+lemma map_div : f (a / b) = f a / f b := map_div₀ f a b
 
 end division_semiring
 

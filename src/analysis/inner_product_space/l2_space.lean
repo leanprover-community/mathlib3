@@ -370,9 +370,10 @@ begin
   { intro b,
     cases b;
     exact orthogonal.complete_space K <|> assumption },
-  refine direct_sum.is_internal.is_hilbert_sum _ K.orthogonal_family_self,
-  convert (direct_sum.is_internal_submodule_iff_is_compl _ (by contradiction) bool.univ_eq).mpr _,
-  exact submodule.is_compl_orthogonal_of_complete_space.symm
+  refine K.orthogonal_family_self.is_hilbert_sum_internal _ _,
+  refine le_trans _ (submodule.submodule_topological_closure _),
+  rw supr_bool_eq,
+  exact submodule.is_compl_orthogonal_of_complete_space.2
 end
 
 end is_hilbert_sum

@@ -2316,15 +2316,9 @@ end
 lemma submodule.orthogonal_family_self :
   @orthogonal_family 𝕜 E _ _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
   (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
-λ i j hij x y,
-begin
-  cases i;
-  cases j;
-  contradiction <|>
-  { rcases x with ⟨x, hx⟩,
-    rcases y with ⟨y, hy⟩,
-    exact submodule.inner_right_of_mem_orthogonal hx hy <|>
-    exact submodule.inner_left_of_mem_orthogonal hy hx }
-end
+| tt tt := absurd rfl
+| tt ff := λ _ x y, submodule.inner_right_of_mem_orthogonal x.prop y.prop
+| ff tt := λ _ x y, submodule.inner_left_of_mem_orthogonal y.prop x.prop
+| ff ff := absurd rfl
 
 end orthogonal

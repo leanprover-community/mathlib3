@@ -51,7 +51,7 @@ begin
       (nat.succ_le_iff.mp hqn), },
 end
 
-lemma Q_is_eventually_constant {q n : ℕ} (hqn : n≤q) :
+lemma Q_is_eventually_constant {q n : ℕ} (hqn : n ≤ q) :
   ((Q (q+1)).f n : X _[n] ⟶ _ ) = (Q q).f n :=
 by simp only [Q, homological_complex.sub_f_apply, P_is_eventually_constant hqn]
 

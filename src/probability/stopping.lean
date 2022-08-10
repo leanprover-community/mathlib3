@@ -621,8 +621,7 @@ begin
     change coe '' (set.Iio i) = _,
     rw [h_Ioi_eq_Union, ← set.set_of_exists, ← set.set_of_exists,
       ← with_top.image_coe_eq_of_bdd_above],
-    { refine congr_arg _ _,
-      simp_rw [with_top.coe_le_coe] },
+    { simp_rw [with_top.coe_le_coe] },
     { rintro j ⟨k, hk⟩,
       exact (lt_of_le_of_lt hk $ with_top.coe_lt_top _).ne } },
   have h_lt_eq_preimage : {ω | τ ω < i} = τ ⁻¹' (set.Iio i),
@@ -632,7 +631,6 @@ begin
   exact measurable_set.Union
     (λ n, f.mono (h_bound n).le _ (hτ.measurable_set_le (seq n))),
 end
-#exit
 
 lemma is_stopping_time.measurable_set_lt (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω < i} :=
@@ -642,14 +640,22 @@ begin
   { rw ← hi'_eq_i at hi'_lub ⊢,
     exact hτ.measurable_set_lt_of_is_lub i' hi'_lub, },
   { have h_lt_eq_preimage : {ω : Ω | τ ω < i} = τ ⁻¹' (set.Iio i) := rfl,
-    rw [h_lt_eq_preimage, h_Iio_eq_Iic],
+    have heq : set.Iio (i : with_top ι) = set.Iic i',
+    { simp_rw [set.Iio, ← with_top.image_coe_eq_of_bdd_above (< (i : with_top ι))
+        (λ j hij, (lt_trans hij $ with_top.coe_lt_top i).ne), with_top.coe_lt_coe],
+      change coe '' (set.Iio i) = _,
+      rw [set.Iic, h_Iio_eq_Iic, ← with_top.image_coe_eq_of_bdd_above],
+      { simp_rw [with_top.coe_le_coe, set.Iic] },
+      { rintro j hle,
+        exact (lt_of_le_of_lt hle $ with_top.coe_lt_top _).ne } },
+    rw [h_lt_eq_preimage, heq],
     exact f.mono (lub_Iio_le i hi'_lub) _ (hτ.measurable_set_le i'), },
 end
 
 lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ι) :
-  measurable_set[f i] {ω | i ≤ τ ω} :=
+  measurable_set[f i] {ω | ↑i ≤ τ ω} :=
 begin
-  have : {ω | i ≤ τ ω} = {ω | τ ω < i}ᶜ,
+  have : {ω | ↑i ≤ τ ω} = {ω | τ ω < i}ᶜ,
   { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
   rw this,
   exact (hτ.measurable_set_lt i).compl,
@@ -679,13 +685,18 @@ end linear_order
 section encodable
 
 lemma is_stopping_time_of_measurable_set_eq [preorder ι] [encodable ι]
-  {f : filtration ι m} {τ : Ω → ι} (hτ : ∀ i, measurable_set[f i] {ω | τ ω = i}) :
+  {f : filtration ι m} {τ : Ω → with_top ι} (hτ : ∀ i, measurable_set[f i] {ω | τ ω = i}) :
   is_stopping_time f τ :=
 begin
   intro i,
-  rw show {ω | τ ω ≤ i} = ⋃ k ≤ i, {ω | τ ω = k}, by { ext, simp },
-  refine measurable_set.bUnion (set.to_countable _) (λ k hk, _),
-  exact f.mono hk _ (hτ k),
+  rw (_ : {ω | τ ω ≤ i} = ⋃ k ≤ i, {ω | τ ω = k}),
+  { exact measurable_set.bUnion (set.to_countable _) (λ k hk, f.mono hk _ (hτ k)) },
+  { ext ω,
+    simp only [set.mem_set_of_eq, set.mem_Union, exists_prop],
+    refine ⟨λ h, ⟨(τ ω).untop (lt_of_le_of_lt h $ with_top.coe_lt_top _).ne,
+        with_top.untop_le_coe_of_le h, (with_top.coe_untop _ _).symm⟩, _⟩,
+    rintro ⟨j, hle, hj⟩,
+    rwa [hj, with_top.coe_le_coe] }
 end
 
 end encodable
@@ -694,7 +705,7 @@ end measurable_set
 
 namespace is_stopping_time
 
-protected lemma max [linear_order ι] {f : filtration ι m} {τ π : Ω → ι}
+protected lemma max [linear_order ι] {f : filtration ι m} {τ π : Ω → with_top ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ ω, max (τ ω) (π ω)) :=
 begin
@@ -703,12 +714,12 @@ begin
   exact (hτ i).inter (hπ i),
 end
 
-protected lemma max_const [linear_order ι] {f : filtration ι m} {τ : Ω → ι}
+protected lemma max_const [linear_order ι] {f : filtration ι m} {τ : Ω → with_top ι}
   (hτ : is_stopping_time f τ) (i : ι) :
   is_stopping_time f (λ ω, max (τ ω) i) :=
 hτ.max (is_stopping_time_const f i)
 
-protected lemma min [linear_order ι] {f : filtration ι m} {τ π : Ω → ι}
+protected lemma min [linear_order ι] {f : filtration ι m} {τ π : Ω → with_top ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ ω, min (τ ω) (π ω)) :=
 begin
@@ -717,23 +728,33 @@ begin
   exact (hτ i).union (hπ i),
 end
 
-protected lemma min_const [linear_order ι] {f : filtration ι m} {τ : Ω → ι}
+protected lemma min_const [linear_order ι] {f : filtration ι m} {τ : Ω → with_top ι}
   (hτ : is_stopping_time f τ) (i : ι) :
   is_stopping_time f (λ ω, min (τ ω) i) :=
 hτ.min (is_stopping_time_const f i)
 
 lemma add_const [add_group ι] [preorder ι] [covariant_class ι ι (function.swap (+)) (≤)]
   [covariant_class ι ι (+) (≤)]
-  {f : filtration ι m} {τ : Ω → ι} (hτ : is_stopping_time f τ) {i : ι} (hi : 0 ≤ i) :
+  {f : filtration ι m} {τ : Ω → with_top ι} (hτ : is_stopping_time f τ) {i : ι} (hi : 0 ≤ i) :
   is_stopping_time f (λ ω, τ ω + i) :=
 begin
   intro j,
-  simp_rw [← le_sub_iff_add_le],
-  exact f.mono (sub_le_self j hi) _ (hτ (j - i)),
+  convert f.mono (sub_le_self j hi) _ (hτ (j - i)),
+  ext ω,
+  refine ⟨λ h, _, λ h, _⟩,
+  { have hτ : τ ω ≠ ⊤,
+    { refine (lt_of_le_of_lt ((le_add_of_nonneg_right _).trans h) $ with_top.coe_lt_top j).ne,
+      rwa [← with_top.coe_zero, with_top.coe_le_coe] },
+    lift τ ω to ι using hτ with t ht,
+    rwa [with_top.coe_le_coe, le_sub_iff_add_le, ← with_top.coe_le_coe, with_top.coe_add, ht] },
+  { lift τ ω to ι using (lt_of_le_of_lt h $ with_top.coe_lt_top _).ne with t ht,
+    simp_rw [← ht, ← with_top.coe_add, with_top.coe_le_coe, ← le_sub_iff_add_le],
+    rwa with_top.coe_le_coe at h }
 end
 
+#exit
 lemma add_const_nat
-  {f : filtration ℕ m} {τ : Ω → ℕ} (hτ : is_stopping_time f τ) {i : ℕ} :
+  {f : filtration ℕ m} {τ : Ω → with_top ℕ} (hτ : is_stopping_time f τ) {i : ℕ} :
   is_stopping_time f (λ ω, τ ω + i) :=
 begin
   refine is_stopping_time_of_measurable_set_eq (λ j, _),
@@ -1288,7 +1309,7 @@ lemma stopped_process_coe_eq_of_ge (h : π ω ≤ i) :
 by simp [stopped_process_coe_apply, min_eq_right h]
 
 -- temp
-instance : has_coe (Ω → ι) (Ω → with_top ι) := ⟨λ τ, λ i, τ i⟩
+instance : has_coe (Ω → ι) (Ω → with_top ι) := ⟨λ τ, λ ω, τ ω⟩
 #exit
 section prog_measurable
 

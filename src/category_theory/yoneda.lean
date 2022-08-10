@@ -22,7 +22,7 @@ Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation
 namespace category_theory
 open opposite
 
-universes v₁ u₁ u₂-- morphism levels before object levels. See note [category_theory universes].
+universes w v₁ u₁ u₂-- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C]
 
@@ -270,8 +270,8 @@ open yoneda
 The "Yoneda evaluation" functor, which sends `X : Cᵒᵖ` and `F : Cᵒᵖ ⥤ Type`
 to `F.obj X`, functorially in both `X` and `F`.
 -/
-def yoneda_evaluation : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
-evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
+def yoneda_evaluation : Cᵒᵖ × (Cᵒᵖ ⥤ Type w) ⥤ Type (max u₁ v₁ w) :=
+evaluation_uncurried Cᵒᵖ (Type w) ⋙ ulift_functor.{max u₁ v₁}
 
 @[simp] lemma yoneda_evaluation_map_down
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (x : (yoneda_evaluation C).obj P) :
@@ -284,9 +284,23 @@ to `yoneda.op.obj X ⟶ F`, functorially in both `X` and `F`.
 def yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
 functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
 
+/--
+`yoneda_pairing` with more general universes via `ulift_functor`s
+-/
+def ulift_yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type w) ⥤ Type (max u₁ v₁ w) :=
+functor.prod (yoneda ⋙ (whiskering_right _ _ _).obj ulift_functor.{w}).op
+  ((whiskering_right _ _ _).obj ulift_functor.{v₁}) ⋙ functor.hom (Cᵒᵖ ⥤ Type (max v₁ w))
+
+
 @[simp] lemma yoneda_pairing_map
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :
   (yoneda_pairing C).map α β = yoneda.map α.1.unop ≫ β ≫ α.2 := rfl
+
+
+@[simp] lemma ulift_yoneda_pairing_map
+  (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type w)) (α : P ⟶ Q) (β : (ulift_yoneda_pairing C).obj P) :
+  (ulift_yoneda_pairing C).map α β = whisker_right (yoneda.map α.1.unop) ulift_functor ≫ β ≫
+    whisker_right α.2 ulift_functor := rfl
 
 /--
 The Yoneda lemma asserts that that the Yoneda pairing
@@ -331,6 +345,39 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     rw [functor_to_types.map_id_apply]
   end }.
 
+def ulift_yoneda_lemma : ulift_yoneda_pairing.{w} C ≅ yoneda_evaluation C :=
+{ hom :=
+  { app := λ F x, ulift.up (ulift.down $ x.app F.1 (ulift.up (𝟙 _))),
+    naturality' :=
+    begin
+      intros X Y f, ext,
+      have := functor_to_types.naturality _ _ x f.1 (ulift.up (𝟙 _)),
+      dsimp [yoneda_evaluation] at this ⊢ ,
+      rw category.comp_id at this, rw [category.id_comp, this],
+    end },
+  inv :=
+  { app := λ F x,
+    { app := λ X a, ulift.up ((F.2.map a.down.op) x.down),
+      naturality' := by { intros X Y f, ext, dsimp, rw functor_to_types.map_comp_apply } },
+    naturality' :=
+    begin
+      intros X Y f, ext, dsimp [yoneda_evaluation],
+      rw [←functor_to_types.naturality, functor_to_types.map_comp_apply]
+    end },
+  hom_inv_id' :=
+  begin
+    ext X α U ⟨x⟩,
+    have := congr_arg ulift.down
+      (functor_to_types.naturality _ _ α x.op (ulift.up (𝟙 _))),
+    dsimp at this ⊢,
+    rw [← this, category.comp_id],
+  end,
+  inv_hom_id' :=
+  begin
+    ext, dsimp,
+    rw [functor_to_types.map_id_apply]
+  end }.
+
 variables {C}
 
 /--
@@ -339,7 +386,7 @@ The isomorphism between `yoneda.obj X ⟶ F` and `F.obj (op X)`
 given by the Yoneda lemma.
 -/
 @[simps] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) :
-  (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
+  (yoneda.obj X ⟶ F) ≅ ulift.{max u₁ v₁} (F.obj (op X)) :=
 (yoneda_lemma C).app (op X, F)
 
 /--

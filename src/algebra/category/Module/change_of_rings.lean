@@ -125,7 +125,6 @@ end restrict_scalars
 
 namespace extend_scalars
 
-open_locale tensor_product
 open tensor_product
 
 variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
@@ -133,7 +132,8 @@ variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →
 section unbundled
 
 variables (M : Type v) [add_comm_monoid M] [module R M]
-
+-- This notation is necessary because we need to reason about `s ⊗ₜ m` where `s : S` and `m : M`;
+-- without this notation, one need to work with `s : (restrict_scalars f).obj ⟨S⟩`.
 localized "notation s `⊗ₜ[` R `,` f `]` m := @tensor_product.tmul R _ _ _ _ _
   (module.comp_hom _ f) _ s m" in change_of_rings
 
@@ -147,7 +147,7 @@ variables (M : Module.{v} R)
 Extension of scalars turn an `R`-module into `S`-module by M ↦ S ⨂ M
 -/
 def obj' : Module S :=
-⟨@tensor_product R _ S M _ _ (module.comp_hom S f) _⟩
+⟨tensor_product R ((restrict_scalars f).obj ⟨S⟩) M⟩
 
 /--
 Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` and

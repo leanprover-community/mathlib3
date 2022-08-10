@@ -256,8 +256,8 @@ If `f : A → B` is a surjective homomorphism and `A` is rootable, then `B` is a
 "If `f : A → B` is a surjective homomorphism and `A` is divisble, then `B` is also divisible."]
 noncomputable def rootable_by_of_surj (hf : function.surjective f) : rootable_by B ℕ :=
 rootable_by_of_pow_surj _ _ $ λ n hn x,
-  ⟨f $ rootable_by.root (hf x).some n, (by rw [←f.map_pow (rootable_by.root (hf x).some n) n,
-    rootable_by.root_cancel _ hn, (hf x).some_spec] : _ ^ _ = x)⟩
+  let ⟨y, hy⟩ := hf x in ⟨f $ rootable_by.root y n, (by rw [←f.map_pow (rootable_by.root y n) n,
+    rootable_by.root_cancel _ hn, hy] : _ ^ _ = x)⟩
 
 end hom
 

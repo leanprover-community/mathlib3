@@ -763,10 +763,10 @@ end
 A (semi)ring is Noetherian if it is Noetherian as a module over itself,
 i.e. all its ideals are finitely generated.
 -/
-class is_noetherian_ring (R) [semiring R] extends is_noetherian R R : Prop
+@[reducible] def is_noetherian_ring (R) [semiring R] := is_noetherian R R
 
 theorem is_noetherian_ring_iff {R} [semiring R] : is_noetherian_ring R ↔ is_noetherian R R :=
-⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
+iff.rfl
 
 /-- A ring is Noetherian if and only if all its ideals are finitely-generated. -/
 lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [semiring R] :
@@ -783,11 +783,6 @@ instance is_noetherian_of_finite (R M) [finite M] [semiring R] [add_comm_monoid 
 instance is_noetherian_of_subsingleton (R M) [subsingleton R] [semiring R] [add_comm_monoid M]
   [module R M] : is_noetherian R M :=
 by { haveI := module.subsingleton R M, exact is_noetherian_of_finite R M }
-
-@[priority 100] -- see Note [lower instance priority]
-instance ring.is_noetherian_of_subsingleton {R} [semiring R] [subsingleton R] :
-  is_noetherian_ring R :=
-⟨⟩
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=

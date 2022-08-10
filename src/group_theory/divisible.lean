@@ -79,30 +79,6 @@ class divisible_by :=
 (div_zero : ∀ a, div a 0 = 0)
 (div_cancel : ∀ {n : α} (a : A), n ≠ 0 → n • (div a n) = a)
 
-section pi
-
-variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_smul β (B i)]
-variables [has_zero β] [Π (i : ι), add_monoid (B i)] [Π i, divisible_by (B i) β]
-
-instance divisible_by_pi : divisible_by (Π i, B i) β :=
-{ div := λ x n i, divisible_by.div (x i) n,
-  div_zero := λ x, funext $ λ i, divisible_by.div_zero _,
-  div_cancel := λ n x hn, funext $ λ i, divisible_by.div_cancel _ hn }
-
-end pi
-
-section prod
-
-variables {β B B' : Type*} [has_zero β] [add_monoid B] [add_monoid B']
-variables [has_smul β B] [has_smul β B'] [divisible_by B β] [divisible_by B' β]
-
-instance divisible_by_prod : divisible_by (B × B') β :=
-{ div := λ p n, (divisible_by.div p.1 n, divisible_by.div p.2 n),
-  div_zero := λ p, prod.ext (divisible_by.div_zero _) (divisible_by.div_zero _),
-  div_cancel := λ n p hn, prod.ext (divisible_by.div_cancel _ hn) (divisible_by.div_cancel _ hn) }
-
-end prod
-
 end add_monoid
 
 namespace monoid
@@ -115,11 +91,7 @@ Here we adopt a constructive approach where we ask an explicit `root : A → α 
 * `root a 0 = 1` for all `a ∈ A`
 * `(root a n)ⁿ = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
 -/
-@[to_additive add_monoid.divisible_by
-"An `add_monoid A` is `α`-divisible iff `n • x = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
-Here we adopt a constructive approach where we ask an explicit `div : A → α → A` function such that
-* `div a 0 = 0` for all `a ∈ A`
-* `n • div a n = a` for all `n ≠ 0 ∈ α` and `a ∈ A`."]
+@[to_additive add_monoid.divisible_by]
 class rootable_by :=
 (root : A → α → A)
 (root_zero : ∀ a, root a 0 = 1)

@@ -57,7 +57,7 @@ structure filtration {Ω : Type*} (ι : Type*) [preorder ι] (m : measurable_spa
 (mono' : monotone seq)
 (le'   : ∀ i : ι, seq i ≤ m)
 
-variables {Ω β ι : Type*} {m : measurable_space Ω}
+variables {Ω β ι κ : Type*} {m : measurable_space Ω}
 
 instance [preorder ι] : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space Ω) :=
 ⟨λ f, f.seq⟩
@@ -1155,23 +1155,65 @@ def stopped_value (u : ι → Ω → β) (τ : Ω → ι) : Ω → β :=
 lemma stopped_value_const (u : ι → Ω → β) (i : ι) : stopped_value u (λ ω, i) = u i :=
 rfl
 
-variable [linear_order ι]
+variables [linear_order ι]
 
-/-- Given a map `u : ι → Ω → E`, the stopped process with respect to `τ` is `u i x` if
-`i ≤ τ ω`, and `u (τ ω) x` otherwise.
+namespace with_top
+
+def min_untop (i : ι) (j : with_top ι) : ι :=
+(min (i : with_top ι) j).untop (lt_of_le_of_lt (min_le_left _ _) (with_top.coe_lt_top i)).ne
+
+variables {i : ι} {j : with_top ι}
+
+lemma min_untop_eq_left (hij : (i : with_top ι) ≤ j) : min_untop i j = i :=
+by simp [min_untop, min_eq_left hij]
+
+lemma min_untop_eq_right (hji : j ≤ i) :
+  min_untop i j = with_top.untop j (lt_of_le_of_lt hji $ with_top.coe_lt_top i).ne :=
+by simp [min_untop, min_eq_right hji]
+
+lemma min_untop_coe_eq_min {i j : ι} : min_untop i j = min i j :=
+by simp_rw [min_untop, ← with_top.coe_min, with_top.untop_coe]
+
+lemma min_untop_coe_eq_right (hji : j ≤ i) : ((min_untop i j : ι) : with_top ι) = j :=
+by rw [min_untop_eq_right hji, with_top.coe_untop]
+
+end with_top
+
+variables {u : ι → Ω → β} {τ : Ω → with_top ι} {π : Ω → ι} {i : ι} {k : κ} {ω : Ω}
+
+open with_top
+
+/-- **Fix doc string**
 
 Intuitively, the stopped process stops evolving once the stopping time has occured. -/
-def stopped_process (u : ι → Ω → β) (τ : Ω → ι) : ι → Ω → β :=
-λ i ω, u (min i (τ ω)) ω
+def stopped_process (u : ι → Ω → β) (τ : Ω → with_top ι) : ι → Ω → β :=
+λ i ω, u (min_untop i (τ ω)) ω
 
-lemma stopped_process_eq_of_le {u : ι → Ω → β} {τ : Ω → ι}
-  {i : ι} {ω : Ω} (h : i ≤ τ ω) : stopped_process u τ i ω = u i ω :=
-by simp [stopped_process, min_eq_left h]
+lemma stopped_process_apply : stopped_process u τ i ω = u (min_untop i (τ ω)) ω := rfl
 
-lemma stopped_process_eq_of_ge {u : ι → Ω → β} {τ : Ω → ι}
-  {i : ι} {ω : Ω} (h : τ ω ≤ i) : stopped_process u τ i ω = u (τ ω) ω :=
-by simp [stopped_process, min_eq_right h]
+lemma stopped_process_coe_apply : stopped_process u (λ i, π i) i ω = u (min i (π ω)) ω :=
+by rw [stopped_process_apply, min_untop_coe_eq_min]
 
+lemma stopped_process_eq_of_le (h : (i : with_top ι) ≤ τ ω) :
+  stopped_process u τ i ω = u i ω :=
+by simp [stopped_process, min_untop_eq_left h]
+
+lemma stopped_process_eq_of_ge (h : τ ω ≤ i) :
+  stopped_process u τ i ω =
+    u (with_top.untop (τ ω) (lt_of_le_of_lt h $ with_top.coe_lt_top i).ne) ω :=
+by simp [stopped_process, min_untop_eq_right h]
+
+lemma stopped_process_coe_eq_of_le (h : i ≤ π ω) :
+  stopped_process u (λ i, π i) i ω = u i ω :=
+by simp [stopped_process_coe_apply, min_eq_left h]
+
+lemma stopped_process_coe_eq_of_ge (h : π ω ≤ i) :
+  stopped_process u (λ i, π i) i ω = u (π ω) ω :=
+by simp [stopped_process_coe_apply, min_eq_right h]
+
+-- temp
+instance : has_coe (Ω → ι) (Ω → with_top ι) := ⟨λ τ, λ i, τ i⟩
+#exit
 section prog_measurable
 
 variables [measurable_space ι] [topological_space ι] [order_topology ι]

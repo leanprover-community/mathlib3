@@ -381,7 +381,7 @@ instance : has_zero (convex_cone 𝕜 E) :=
     add_mem' := λ _, by simp } ⟩
 
 @[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := iff.rfl
-@[simp] lemma coe_zero (x : E) : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
+@[simp] lemma coe_zero : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
 
 lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
 

@@ -451,6 +451,8 @@ by simp [subset_def]
 lemma univ_unique [unique α] : @set.univ α = {default} :=
 set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
 
+instance [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
+
 /-! ### Lemmas about union -/
 
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
@@ -685,6 +687,10 @@ ext $ λ x, or_iff_right_of_imp $ λ e, e.symm ▸ h
 
 lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} : a ∉ s → s ≠ insert a t :=
 mt $ λ e, e.symm ▸ mem_insert _ _
+
+@[simp] lemma insert_eq_self : insert a s = s ↔ a ∈ s := ⟨λ h, h ▸ mem_insert _ _, insert_eq_of_mem⟩
+
+lemma insert_ne_self : insert a s ≠ s ↔ a ∉ s := insert_eq_self.not
 
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp only [subset_def, or_imp_distrib, forall_and_distrib, forall_eq, mem_insert_iff]
@@ -1773,6 +1779,42 @@ theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.inj
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
+section preorder
+
+variables [preorder α] [preorder β] (f : α → β)
+
+/-! ### Monotonicity on singletons -/
+
+protected lemma subsingleton.monotone_on (h : s.subsingleton) :
+  monotone_on f s :=
+λ a ha b hb _, (congr_arg _ (h ha hb)).le
+
+protected lemma subsingleton.antitone_on (h : s.subsingleton) :
+  antitone_on f s :=
+λ a ha b hb _, (congr_arg _ (h hb ha)).le
+
+protected lemma subsingleton.strict_mono_on (h : s.subsingleton) :
+  strict_mono_on f s :=
+λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
+
+protected lemma subsingleton.strict_anti_on (h : s.subsingleton) :
+  strict_anti_on f s :=
+λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
+
+@[simp] lemma monotone_on_singleton : monotone_on f {a} :=
+subsingleton_singleton.monotone_on f
+
+@[simp] lemma antitone_on_singleton : antitone_on f {a} :=
+subsingleton_singleton.antitone_on f
+
+@[simp] lemma strict_mono_on_singleton : strict_mono_on f {a} :=
+subsingleton_singleton.strict_mono_on f
+
+@[simp] lemma strict_anti_on_singleton : strict_anti_on f {a} :=
+subsingleton_singleton.strict_anti_on f
+
+end preorder
+
 /-! ### Lemmas about range of a function. -/
 section range
 variables {f : ι → α}
@@ -1982,6 +2024,14 @@ range_subset_iff.2 $ λ x, rfl
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
+
+lemma range_subtype_map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀ x, p x → q (f x)) :
+  range (subtype.map f h) = coe ⁻¹' (f '' {x | p x}) :=
+begin
+  ext ⟨x, hx⟩,
+  simp_rw [mem_preimage, mem_range, mem_image, subtype.exists, subtype.map, subtype.coe_mk,
+    mem_set_of, exists_prop]
+end
 
 lemma image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse

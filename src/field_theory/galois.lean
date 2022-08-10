@@ -66,7 +66,7 @@ instance self : is_galois F F :=
 
 variables (F) {E}
 
-lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral' x
+lemma integral [is_galois F E] (x : E) : is_integral F x := to_normal.is_integral x
 
 lemma separable [is_galois F E] (x : E) : (minpoly F x).separable := is_separable.separable F x
 
@@ -297,7 +297,7 @@ begin
   cases field.exists_primitive_element F E with α h1,
   use [minpoly F α, separable F α, is_galois.splits F α],
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
-  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α (integral F α),
+  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral (integral F α),
   apply algebra.adjoin_mono,
   rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
   { dsimp only [polynomial.is_root],

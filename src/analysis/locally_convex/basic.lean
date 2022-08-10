@@ -3,7 +3,9 @@ Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
-import analysis.normed_space.basic
+import analysis.convex.basic
+import analysis.normed_space.lattice_ordered_group
+import analysis.normed_space.ordered
 
 /-!
 # Local convexity
@@ -324,8 +326,8 @@ lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
 
 lemma absorbs_zero_iff : absorbs 𝕜 s 0 ↔ (0 : E) ∈ s :=
 begin
@@ -340,4 +342,18 @@ end
 lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
 absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
+
+section real
+variables [add_comm_group E] [module ℝ E] {s : set E}
+
+lemma balanced_iff_neg_mem (hs : convex ℝ s) : balanced ℝ s ↔ ∀ ⦃x⦄, x ∈ s → -x ∈ s :=
+begin
+  refine ⟨λ h x, h.neg_mem_iff.2, λ h a ha, smul_set_subset_iff.2 $ λ x hx, _⟩,
+  rw [real.norm_eq_abs, abs_le] at ha,
+  rw [show a = -((1 - a) / 2) + (a - -1)/2, by ring, add_smul, neg_smul, ←smul_neg],
+  exact hs (h hx) hx (div_nonneg (sub_nonneg_of_le ha.2) zero_le_two)
+    (div_nonneg (sub_nonneg_of_le ha.1) zero_le_two) (by ring),
+end
+
+end real

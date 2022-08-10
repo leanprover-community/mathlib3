@@ -186,7 +186,7 @@ The morphism in `C` from the arbitrarily chosen underlying object to the ambient
 -/
 noncomputable
 def arrow {X : C} (Y : subobject X) : (Y : C) ⟶ X :=
-(representative.obj Y).val.hom
+(representative.obj Y).obj.hom
 
 instance arrow_mono {X : C} (Y : subobject X) : mono (Y.arrow) :=
 (representative.obj Y).property

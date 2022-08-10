@@ -348,15 +348,6 @@ lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ :=
 by simp only [norm_eq, norm_left_eq_right, max_eq_right, eq_self_iff_true]
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]
 
-/- I think we don't have the necessary type class to make this lemma true.
-`nontrivially_normed_field 𝕜` is too weak, but `is_R_or_C 𝕜` is far too strong. What we
-want is a type class for `𝕜` where we can say `λ k : 𝕜, ∥k∥` has dense range in `ℝ`. -/
-lemma normed_field.exists_nnnorm_lt_and_lt {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  (r : ℝ) (hr : 0 < r) : ∃ k : 𝕜, 1 - r < ∥k∥ ∧ ∥k∥ < 1 :=
-begin
-  sorry
-end
-
 -- it would be nice if maybe we could get this for `ℝ≥0` instead, but we go to `ℝ≥0∞` because it
 -- is a complete lattice and therefore `supr` is well-behaved.
 lemma key_lemma {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [non_unital_normed_ring E] [star_ring E]

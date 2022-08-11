@@ -569,7 +569,7 @@ end
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
-/-! ## Lemmas about the proportion of Miller_Rabin witnesses -/
+/-! ## Lemmas about the proportion of Miller-Rabin witnesses -/
 
 open_locale nat  -- to use `φ` for `nat.totient`
 

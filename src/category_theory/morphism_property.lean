@@ -51,7 +51,7 @@ def stable_under_composition (P : morphism_property C) : Prop :=
 /-- A morphism property is `stable_under_inverse` if the inverse of a morphism satisfying
 the property still falls in the class. -/
 def stable_under_inverse (P : morphism_property C) : Prop :=
-  ∀ ⦃X Y⦄ (e : X ≅ Y), P e.hom → P e.inv
+∀ ⦃X Y⦄ (e : X ≅ Y), P e.hom → P e.inv
 
 /-- A morphism property is `stable_under_base_change` if the base change of such a morphism
 still falls in the class. -/

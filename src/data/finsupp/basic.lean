@@ -859,7 +859,7 @@ lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
 end alist
 
 end lookup_finsupp
-#exit
+
 namespace finsupp
 
 /-!

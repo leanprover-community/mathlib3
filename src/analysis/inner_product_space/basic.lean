@@ -1684,7 +1684,8 @@ linear_map.mk_continuous₂ innerₛₗ 1
 `inner_product_space.dual` as `to_dual_map`.  -/
 @[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
 begin
-  refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,
+  refine le_antisymm ((innerSL x : E →L[𝕜] 𝕜).op_norm_le_bound (norm_nonneg _)
+    (λ y, norm_inner_le_norm _ _)) _,
   cases eq_or_lt_of_le (norm_nonneg x) with h h,
   { have : x = 0 := norm_eq_zero.mp (eq.symm h),
     simp [this] },
@@ -1693,7 +1694,7 @@ begin
     ... = re ⟪x, x⟫ : norm_sq_eq_inner _
     ... ≤ abs ⟪x, x⟫ : re_le_abs _
     ... = ∥innerSL x x∥ : by { rw [←is_R_or_C.norm_eq_abs], refl }
-    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
+    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x : E →L[𝕜] 𝕜).le_op_norm _ }
 end
 
 /-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
@@ -2132,6 +2133,7 @@ lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λ t, ⟪f t, g t⟫) s :=
 λ x hx, (hf x hx).inner (hg x hx)
 
+@[continuity]
 lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
 

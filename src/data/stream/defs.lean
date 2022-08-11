@@ -22,12 +22,9 @@ namespace stream
 variables {α : Type u} {β : Type v} {δ : Type w}
 
 /-- Prepend an element to a stream. -/
-def cons (a : α) (s : stream α) : stream α :=
-λ i,
-  match i with
-  | 0      := a
-  | succ n := s n
-  end
+def cons (a : α) (s : stream α) : stream α
+| 0       := a
+| (n + 1) := s n
 
 notation h :: t := cons h t
 

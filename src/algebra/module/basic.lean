@@ -71,6 +71,9 @@ instance add_comm_monoid.nat_module : module ℕ M :=
   zero_smul := zero_nsmul,
   add_smul := λ r s x, add_nsmul x r s }
 
+lemma add_monoid.End.nat_cast_def (n : ℕ) :
+  (↑n : add_monoid.End M) = distrib_mul_action.to_add_monoid_End ℕ M n := rfl
+
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
 
 lemma convex.combo_self {a b : R} (h : a + b = 1) (x : M) : a • x + b • x = x :=
@@ -196,6 +199,9 @@ instance add_comm_group.int_module : module ℤ M :=
   smul_zero := zsmul_zero,
   zero_smul := zero_zsmul,
   add_smul := λ r s x, add_zsmul x r s }
+
+lemma add_monoid.End.int_cast_def (z : ℤ) :
+  (↑z : add_monoid.End M) = distrib_mul_action.to_add_monoid_End ℤ M z := rfl
 
 /-- A structure containing most informations as in a module, except the fields `zero_smul`
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,

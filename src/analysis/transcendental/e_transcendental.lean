@@ -285,7 +285,7 @@ begin
     { simp only [nat.sub_zero] at h, rw h at j_ge_p,
       have this := @nat.sub_one_sub_lt p 0 (nat.prime.pos hp), simp only [nat.sub_zero] at this, linarith },
 
-    { rw finset.prod_pow, apply dvd_poly_pow_deriv, exact nat.prime.pos hp, exact nat.succ_pos x },
+    { rw finset.prod_pow, apply polynomial.dvd_iterate_derivative_pow _ _ _ _ x.succ_pos },
   },
   replace h : j - x < p - 1 ∨ j - x > p - 1, exact lt_or_gt_of_ne h,
   cases h,
@@ -320,7 +320,7 @@ begin
 
 
   intros j IH k p hp hk1 hk2,
-  rw [deriv_n, function.iterate_succ_apply, finset.prod_pow, poly_pow_deriv,
+  rw [deriv_n, function.iterate_succ_apply, finset.prod_pow, polynomial.derivative_pow,
     deriv_n_poly_prod, polynomial.eval_finset_sum],
   apply finset.dvd_sum,
   intros x hx,

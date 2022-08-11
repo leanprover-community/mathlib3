@@ -229,10 +229,9 @@ So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two def
 -/
 theorem II_eq_I (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : II f t = I f t :=
 begin
-    have II_integrate_by_part_m := II_integrate_by_part_m f t ht f.nat_degree,
-    have triv := deriv_too_much f, rw I,
-    rw [triv, II_0, add_zero] at II_integrate_by_part_m;
-    assumption,
+  have II_integrate_by_part_m := II_integrate_by_part_m f t ht f.nat_degree,
+  rwa [deriv_n, polynomial.iterate_derivative_eq_zero (nat.lt_succ_self _), II_0 _ ht, add_zero] at
+    II_integrate_by_part_m,
 end
 
 /-Theorem

@@ -1,7 +1,5 @@
 import data.polynomial.derivative
 
-open polynomial
-
 open_locale big_operators
 open_locale polynomial
 
@@ -10,52 +8,11 @@ open_locale polynomial
 
 variables {R : Type*} [comm_ring R]
 
-/-Definition
-For any integer polynomial $f$ and $n\in\mathbb N$ we define `deriv_n f n` to be the $n$-th derivative of polynomial $f$. $h^{[n]}$ means $h\circ h\circ h\cdots\circ h$ $n$-times.
--/
-noncomputable def deriv_n (f : R[X]) (n : ℕ) : R[X] := derivative ^[n] f
+namespace polynomial
 
-/-Lemma
-the zeroth derivative of polynomial $f$ is $f$ itself.
--/
-lemma zeroth_deriv (f : R[X]) : deriv_n f 0 = f :=
-function.iterate_zero_apply _ _
-
-/-Lemma
-the derivative of $f^{(n)}$ is $f^{(n+1)}$
--/
-lemma deriv_succ (f : R[X]) (n : ℕ) : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
-(function.iterate_succ_apply' _ _ _).symm
-
-/-Lemma
-the $n$-th derivative of zero polynomial is $0$
--/
-lemma deriv_zero_p (n : ℕ) : deriv_n (0 : R[X]) n = 0 :=
-iterate_derivative_zero
-
-/-Lemma
-Like first derivative, higher derivatives still respect addition
--/
-lemma deriv_n_add (p q :R[X]) (n : ℕ) : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
-iterate_derivative_add
-
-/-Lemma
-For any polynomial $f$ with degree $d$, the $d+1$-th derivative is zero.
--/
-theorem deriv_too_much (f : R[X]): (deriv_n f (f.nat_degree + 1)) = 0 :=
-iterate_derivative_eq_zero $ nat.lt_succ_self _
-
-/-Theorem
-We also have that for $p,q\in\mathbb Z[x]$,
-\[
-    (p\times q)^{(n)} = \sum_{i=0}^n\left({n\choose i}p^{(i)}q^{(n-i)}\right)
-\]
--/
-
-lemma deriv_n_poly_prod (p q : R[X]) (n : ℕ) :
+lemma iterate_derivative_mul (p q : R[X]) (n : ℕ) :
   derivative ^[n] (p * q) =
-  ∑ k in finset.range n.succ,
-    n.choose k * (derivative ^[n - k] p) * (derivative ^[k] q) :=
+  ∑ k in finset.range n.succ, n.choose k * (derivative ^[n - k] p) * (derivative ^[k] q) :=
 begin
   induction n with n IH,
   { simp only [finset.range_one, finset.sum_singleton, nat.choose_self, nat.cast_one, one_mul, zero_tsub,
@@ -90,42 +47,86 @@ begin
       ring } },
 end
 
+theorem dvd_iterate_derivative_pow (f : R[X]) (n m : ℕ) (c : R) (hm : 0 < m) :
+  (n:R) ∣ eval c (derivative^[m] (f^n)) :=
+begin
+  obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm.ne',
+  rw [function.iterate_succ_apply, derivative_pow, mul_assoc, iterate_derivative_cast_nat_mul,
+    eval_mul, eval_nat_cast],
+  exact dvd_mul_right _ _,
+end
+
+lemma iterate_derivative_X_pow_eq_C_mul (n : ℕ) (k : ℕ) (hk : k ≤ n) :
+  (derivative^[k] (X^n : R[X])) = (C ((finset.range k).prod (λ i, (n-i:R)))) * (X ^ (n-k)) :=
+begin
+  induction k with k ih,
+  { rw [function.iterate_zero_apply, finset.range_zero, finset.prod_empty, C_1, one_mul,
+      nat.sub_zero] },
+  have hk': k ≤ n := (nat.lt_of_succ_le hk).le,
+  rw [function.iterate_succ_apply', ih hk', derivative_C_mul_X_pow, nat.succ_eq_add_one,
+    finset.prod_range_succ, nat.sub_sub, ←nat.cast_sub hk'],
+end
+
+lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) (hk : k ≤ n) :
+  (derivative^[k] (X^n : R[X])) = (∏ i in finset.range k, (n - i : R)) • X ^ (n - k) :=
+by rw [iterate_derivative_X_pow_eq_C_mul n k hk, smul_eq_C_mul]
+
+end polynomial
+
+open polynomial
+
+/-Definition
+For any integer polynomial $f$ and $n\in\mathbb N$ we define `deriv_n f n` to be the $n$-th derivative of polynomial $f$. $h^{[n]}$ means $h\circ h\circ h\cdots\circ h$ $n$-times.
+-/
+noncomputable def deriv_n (f : R[X]) (n : ℕ) : R[X] := derivative ^[n] f
+
+/-Lemma
+the zeroth derivative of polynomial $f$ is $f$ itself.
+-/
+lemma zeroth_deriv (f : R[X]) : deriv_n f 0 = f :=
+function.iterate_zero_apply _ _
+
+/-Lemma
+the derivative of $f^{(n)}$ is $f^{(n+1)}$
+-/
+lemma deriv_succ (f : R[X]) (n : ℕ) : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
+(function.iterate_succ_apply' _ _ _).symm
+
+/-Lemma
+the $n$-th derivative of zero polynomial is $0$
+-/
+lemma deriv_zero_p (n : ℕ) : deriv_n (0 : R[X]) n = 0 :=
+iterate_derivative_zero
+
+/-Lemma
+Like first derivative, higher derivatives still respect addition
+-/
+lemma deriv_n_add (p q :R[X]) (n : ℕ) : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
+iterate_derivative_add
+
 /-Theorem
-For a polynomial $f$ we have $f^{(n)}=f^{(n-1)}\times f'$
+We also have that for $p,q\in\mathbb Z[x]$,
+\[
+    (p\times q)^{(n)} = \sum_{i=0}^n\left({n\choose i}p^{(i)}q^{(n-i)}\right)
+\]
 -/
 
-theorem poly_pow_deriv (f : R[X]) (n : ℕ) : (f ^ n).derivative = n * f ^ (n - 1) * f.derivative :=
-by simpa [mul_comm] using derivative_comp (X^n) f
+lemma deriv_n_poly_prod (p q : R[X]) (n : ℕ) :
+  derivative ^[n] (p * q) =
+  ∑ k in finset.range n.succ, n.choose k * (derivative ^[n - k] p) * (derivative ^[k] q) :=
+polynomial.iterate_derivative_mul p q n
 
 theorem deriv_n_C_mul (c : R) (n : ℕ) (f : R[X]) :
   (deriv_n (C c * f) n) = (C c) * (deriv_n f n) :=
 iterate_derivative_C_mul _ _ _
 
-theorem dvd_poly_pow_deriv (f : R[X]) (n m : ℕ) (c : R) (hn : 0 < n) (hm : 0 < m) :
-  (n:R) ∣ eval c (deriv_n (f^n) m) :=
-begin
-  obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm.ne',
-  rw [deriv_n, function.iterate_succ, function.comp_app, ←deriv_n, poly_pow_deriv, mul_assoc,
-    deriv_n, iterate_derivative_cast_nat_mul, eval_mul,
-    eval_nat_cast],
-  exact dvd_mul_right _ _,
-end
-
 lemma deriv_X_pow (n : ℕ) (k : ℕ) (hk : k ≤ n) :
   (derivative^[k] (X^n : R[X])) = ((finset.range k).prod (λ i, (n-i:R))) • (X ^ (n-k)) :=
-begin
-  induction k with k ih,
-  { simp only [function.iterate_zero_apply, one_smul, finset.range_zero, finset.prod_empty,
-      nat.sub_zero] },
-  have hk': k ≤ n := (nat.lt_of_succ_le hk).le,
-  rw [function.iterate_succ_apply', ih hk', derivative_smul, derivative_X_pow,
-    nat.succ_eq_add_one, finset.prod_range_succ, smul_eq_C_mul, smul_eq_C_mul, C_mul, mul_assoc,
-    ←nat.cast_sub hk', nat.sub_sub, C_eq_nat_cast],
-end
+iterate_derivative_X_pow_eq_smul n k hk
 
 lemma deriv_X_pow' (n : ℕ) (k : ℕ) (hk : k ≤ n) :
   (derivative^[k] (X^n : R[X])) = (C ((finset.range k).prod (λ i, (n-i:R)))) * (X ^ (n-k)) :=
-by rw [deriv_X_pow _ _ hk, smul_eq_C_mul]
+iterate_derivative_X_pow_eq_C_mul n k hk
 
 lemma deriv_X_pow_too_much (n : ℕ) (k : ℕ) (hk : n < k) :
   (deriv_n (X^n : R[X]) k) = 0 :=

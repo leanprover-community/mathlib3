@@ -543,6 +543,17 @@ begin
   simp_rw [simplify_sqrt_and_square_out_exp hs],
 
 end
+
+lemma simplify_complicated2 (hs : s≠0): ∀ (x:ℝ),
+(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2) =
+(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2):=
+begin
+  intro x,
+  simp,
+end
+
+
+
 ---lemma set_eq (hs : s≠0): set.univ = λ (x:ℝ), ((sqrt (2 * s ^ 2))⁻¹) * (x-m):=
 lemma change_of_vr_momentone_gaussian (hs: s≠0):
 ∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x * (sqrt (2*s^2))⁻¹
@@ -580,6 +591,7 @@ begin
    {
     simp_rw [g],
     simp,
+    sorry
    }
   sorry
 --(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)

@@ -503,6 +503,16 @@ lemma chart_source_mem_nhds (x : M) : (chart_at H x).source ∈ 𝓝 x :=
 lemma chart_target_mem_nhds (x : M) : (chart_at H x).target ∈ 𝓝 (chart_at H x x) :=
 (chart_at H x).open_target.mem_nhds $ mem_chart_target H x
 
+/-- `achart H x` is the chart at `x`, considered as an element of the atlas.
+Especially useful for working with `basic_smooth_vector_bundle_core` -/
+def achart (x : M) : atlas H M := ⟨chart_at H x, chart_mem_atlas H x⟩
+
+lemma achart_def (x : M) : achart H x = ⟨chart_at H x, chart_mem_atlas H x⟩ := rfl
+@[simp, mfld_simps]
+lemma coe_achart (x : M) : (achart H x : local_homeomorph M H) = chart_at H x := rfl
+@[simp, mfld_simps]
+lemma achart_val (x : M) : (achart H x).1 = chart_at H x := rfl
+
 open topological_space
 
 lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
@@ -792,13 +802,13 @@ def structure_groupoid.maximal_atlas : set (local_homeomorph M H) :=
 variable {M}
 
 /-- The elements of the atlas belong to the maximal atlas for any structure groupoid -/
-lemma structure_groupoid.mem_maximal_atlas_of_mem_atlas [has_groupoid M G]
-  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ G.maximal_atlas M :=
-λ e' he', ⟨G.compatible he he', G.compatible he' he⟩
+lemma structure_groupoid.subset_maximal_atlas [has_groupoid M G] :
+  atlas H M ⊆ G.maximal_atlas M :=
+λ e he e' he', ⟨G.compatible he he', G.compatible he' he⟩
 
 lemma structure_groupoid.chart_mem_maximal_atlas [has_groupoid M G]
   (x : M) : chart_at H x ∈ G.maximal_atlas M :=
-G.mem_maximal_atlas_of_mem_atlas (chart_mem_atlas H x)
+G.subset_maximal_atlas (chart_mem_atlas H x)
 
 variable {G}
 
@@ -835,7 +845,7 @@ variable (G)
 
 /-- In the model space, the identity is in any maximal atlas. -/
 lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
-G.mem_maximal_atlas_of_mem_atlas (by simp)
+G.subset_maximal_atlas $ by simp
 
 end maximal_atlas
 

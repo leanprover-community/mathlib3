@@ -770,6 +770,23 @@ instance : densely_ordered punit := ⟨λ _ _, false.elim⟩
 
 end punit
 
+section prop
+
+/-- Propositions form a complete boolean algebra, where the `≤` relation is given by implication. -/
+instance Prop.has_le : has_le Prop := ⟨(→)⟩
+
+@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
+
+lemma subrelation_iff_le {r s : α → α → Prop} : subrelation r s ↔ r ≤ s := iff.rfl
+
+instance Prop.partial_order : partial_order Prop :=
+{ le_refl      := λ _, id,
+  le_trans     := λ a b c f g, g ∘ f,
+  le_antisymm  := λ a b Hab Hba, propext ⟨Hab, Hba⟩,
+  ..Prop.has_le }
+
+end prop
+
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
 /-! ### Linear order from a total partial order -/

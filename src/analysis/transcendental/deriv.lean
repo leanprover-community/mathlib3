@@ -112,31 +112,19 @@ begin
 end
 
 lemma deriv_X_pow (n : ℕ) (k : ℕ) (hk : k ≤ n) :
-  (deriv_n (X^n : R[X]) k) = ((finset.range k).prod (λ i, (n-i:R))) • (X ^ (n-k)) :=
+  (derivative^[k] (X^n : R[X])) = ((finset.range k).prod (λ i, (n-i:R))) • (X ^ (n-k)) :=
 begin
   induction k with k ih,
-  {simp only [zeroth_deriv, one_smul, finset.range_zero, finset.prod_empty, nat.sub_zero]},
-  have hk': k ≤ n,
-  { rw nat.succ_le_iff at hk, exact hk.le },
-  rw [<-deriv_succ, ih hk', derivative_smul],
-  ext i, rw coeff_smul, rw coeff_smul, rw coeff_derivative,
-  simp only [coeff_X_pow, boole_mul, mul_ite, mul_zero],
-  split_ifs,
-  { rw [finset.prod_range_succ, smul_eq_mul, smul_eq_mul, mul_one],
-    apply congr_arg,
-    norm_cast, rw h },
-
-  { rw [nat.sub_succ, ←h, nat.pred_succ] at h_1, exfalso, exact h_1 rfl },
-
-  { rw nat.sub_succ at h_1, rw h_1 at h, rw <-nat.succ_eq_add_one at h,
-    rw nat.succ_pred_eq_of_pos at h, exfalso, simp only [eq_self_iff_true, not_true] at h,
-    exact h, exact nat.sub_pos_of_lt hk },
-
-  { rw [smul_zero, smul_zero] },
+  { simp only [function.iterate_zero_apply, one_smul, finset.range_zero, finset.prod_empty,
+      nat.sub_zero] },
+  have hk': k ≤ n := (nat.lt_of_succ_le hk).le,
+  rw [function.iterate_succ_apply', ih hk', derivative_smul, derivative_X_pow,
+    nat.succ_eq_add_one, finset.prod_range_succ, smul_eq_C_mul, smul_eq_C_mul, C_mul, mul_assoc,
+    ←nat.cast_sub hk', nat.sub_sub, C_eq_nat_cast],
 end
 
 lemma deriv_X_pow' (n : ℕ) (k : ℕ) (hk : k ≤ n) :
-  (deriv_n (X^n) k) = (C ((finset.range k).prod (λ i, (n-i:R)))) * (X ^ (n-k)) :=
+  (derivative^[k] (X^n : R[X])) = (C ((finset.range k).prod (λ i, (n-i:R)))) * (X ^ (n-k)) :=
 by rw [deriv_X_pow _ _ hk, smul_eq_C_mul]
 
 lemma deriv_X_pow_too_much (n : ℕ) (k : ℕ) (hk : n < k) :
@@ -147,15 +135,14 @@ lemma deriv1_X_sub_pow (c:R) (m:ℕ) : ((X - C c)^m).derivative = m * (X - C c)^
 by rw [derivative_pow, derivative_sub, derivative_X, derivative_C, sub_zero, mul_one]
 
 lemma deriv_X_sub_pow (n k : ℕ) (c : R) (hk : k ≤ n) :
-  (deriv_n ((X-C c)^n) k) =
+  (derivative^[k] ((X-C c)^n)) =
   (C ((finset.range k).prod (λ i, (n-i:R)))) * ((X - C c) ^ (n-k)) :=
 begin
   induction k with k IH,
-  { simp only [zeroth_deriv, one_mul, C_1, finset.range_zero, finset.prod_empty,
+  { simp only [function.iterate_zero_apply, one_mul, C_1, finset.range_zero, finset.prod_empty,
       nat.sub_zero] },
-  { rw [deriv_n, function.iterate_succ_apply', ←deriv_n, IH (nat.le_of_succ_le hk),
-      derivative_mul, derivative_C, zero_mul, zero_add,
-      finset.prod_range_succ],
+  { rw [function.iterate_succ_apply', IH (nat.le_of_succ_le hk), derivative_mul, derivative_C,
+      zero_mul, zero_add, finset.prod_range_succ],
     simp only [C_sub, C_mul],
     suffices : ((X - C c) ^ (n - k)).derivative  = (C (n:R) - C (k:R)) * (X - C c) ^ (n - k.succ),
       rw this, ring,

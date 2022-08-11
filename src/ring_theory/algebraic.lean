@@ -238,7 +238,7 @@ def is_algebraic.alg_equiv_equiv_alg_hom
   map_mul' := λ _ _, rfl }
 
 @[reducible] noncomputable def _root_.alg_equiv_equiv_alg_hom [finite_dimensional K L] :
-  (L ≃ₐ[K] L) ≃* (L →ₐ[K] L) := (algebra.is_algebraic_of_finite K L).alg_equiv_equiv_alg_hom
+  (L ≃ₐ[K] L) ≃* (L →ₐ[K] L) := (algebra.is_algebraic_of_finite K L).alg_equiv_equiv_alg_hom K L
 
 end algebra
 

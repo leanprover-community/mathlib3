@@ -716,9 +716,9 @@ protected def npow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]
   ℕ → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
 
-protected def lift (n : ℕ) {α : Type*} : Π {K : Type u} [field K] (g : α → K),
-  by exactI Π {f : K[X]}, α → splitting_field_aux n f :=
-nat.rec_on n (λ K fK g f, g) (λ n ih K fK g f, by exactI ih (coe ∘ g))
+protected def mk (n : ℕ) : Π {K : Type u} [field K],
+  by exactI Π {f : K[X]}, K → splitting_field_aux n f :=
+nat.rec_on n (λ K fK f, id) (λ n ih K fK f, by exactI ih ∘ coe)
 
 instance comm_ring (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   comm_ring (splitting_field_aux n f) :=
@@ -733,8 +733,8 @@ begin
       mul := splitting_field_aux.mul n,
       one := splitting_field_aux.one n,
       npow := splitting_field_aux.npow n,
-      nat_cast := splitting_field_aux.lift n (coe : ℕ → K),
-      int_cast := splitting_field_aux.lift n (coe : ℤ → K),
+      nat_cast := splitting_field_aux.mk n ∘ (coe : ℕ → K),
+      int_cast := splitting_field_aux.mk n ∘ (coe : ℤ → K),
       .. splitting_field_aux.add_comm_group n },
   all_goals { unfreezingI { induction n with n ih generalizing K } },
   -- Most of the `succ` cases follow by induction, handle them first.
@@ -743,7 +743,7 @@ begin
   all_goals { intros,
     dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
       splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.mul,
-      splitting_field_aux.one, splitting_field_aux.npow, splitting_field_aux.lift] },
+      splitting_field_aux.one, splitting_field_aux.npow, splitting_field_aux.mk] },
   -- `simp` can handle a couple of them
   any_goals { simp [nat.succ_eq_add_one, pow_succ] },
   -- and `ring` can handle the rest.
@@ -788,7 +788,7 @@ begin
     div := splitting_field_aux.div n,
     npow := splitting_field_aux.npow n,
     zpow := splitting_field_aux.zpow n,
-    rat_cast := splitting_field_aux.lift n (coe : ℚ → K),
+    rat_cast := splitting_field_aux.mk n ∘ (coe : ℚ → K),
     .. splitting_field_aux.comm_ring n },
   all_goals { unfreezingI { induction n with n ih generalizing K } },
   -- The `succ` cases follow by induction, handle them first.
@@ -800,49 +800,57 @@ begin
     dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
       splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.mul,
       splitting_field_aux.one, splitting_field_aux.inv, splitting_field_aux.div,
-      splitting_field_aux.npow, splitting_field_aux.zpow, splitting_field_aux.lift] },
+      splitting_field_aux.npow, splitting_field_aux.zpow, splitting_field_aux.mk,
+      function.comp_app, id] },
   any_goals { simp only [rat.smul_def, rat.cast_mk', div_eq_mul_inv, inv_zero, eq_self_iff_true,
                 forall_forall_const, forall_const, forall_true_iff, zpow_zero] },
   { intros n a, exact @field.zpow_succ' K _ n a },
   { intros n a, exact @field.zpow_neg' K _ n a },
   { exact ⟨_, _, zero_ne_one⟩ },
-  { intros a h, exact mul_inv_cancel h },
+  { intros a h, exact mul_inv_cancel h }
 end
 
 instance inhabited {n : ℕ} {f : K[X]} :
   inhabited (splitting_field_aux n f) := ⟨37⟩
 
-@[simps] protected def lift_hom (n : ℕ) {α : Type*} [non_assoc_semiring α] {K : Type u} [field K]
-  (g : α →+* K) {f : K[X]} : α →+* splitting_field_aux n f :=
-{ to_fun := splitting_field_aux.lift n g,
+@[simps] protected def mk_hom (n : ℕ) {K : Type u} [field K] {f : K[X]} :
+  K →+* splitting_field_aux n f :=
+{ to_fun := splitting_field_aux.mk n,
   map_one' :=
   begin
     unfreezingI { induction n with k hk generalizing K },
-    { simp [splitting_field_aux.lift] },
-    exact hk ((adjoin_root.of f.factor).comp g)
+    { simp [splitting_field_aux.mk] },
+    exact hk
   end,
   map_mul' :=
   begin
     unfreezingI { induction n with k hk generalizing K },
-    { simp [splitting_field_aux.lift] },
-    exact hk ((adjoin_root.of f.factor).comp g)
+    { simp [splitting_field_aux.mk] },
+    intros x y,
+    change (splitting_field_aux.mk k) ((adjoin_root.of f.factor) _) = _,
+    rw [map_mul],
+    exact hk _ _
   end,
   map_zero' :=
   begin
     unfreezingI { induction n with k hk generalizing K },
-    { simp [splitting_field_aux.lift] },
-    exact hk ((adjoin_root.of f.factor).comp g)
+    { simp [splitting_field_aux.mk] },
+    change (splitting_field_aux.mk k) ((adjoin_root.of f.factor) 0) = _,
+    rw [map_zero, hk],
   end,
   map_add' :=
   begin
     unfreezingI { induction n with k hk generalizing K },
-    { simp [splitting_field_aux.lift] },
-    exact hk ((adjoin_root.of f.factor).comp g)
+    { simp [splitting_field_aux.mk] },
+    intros x y,
+    change (splitting_field_aux.mk k) ((adjoin_root.of f.factor) _) = _,
+    rw [map_add],
+    exact hk _ _
   end }
 
 instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K]
   [algebra R K] {f : K[X]} : algebra R (splitting_field_aux n f) :=
-{ to_fun := splitting_field_aux.lift n (algebra_map R K),
+{ to_fun := (splitting_field_aux.mk_hom n).comp (algebra_map R K),
   smul := @has_smul.smul R (splitting_field_aux n f) _,
   smul_def' :=
   begin
@@ -851,7 +859,7 @@ instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K]
     exact hk
   end,
   commutes' := λ a b, mul_comm _ _,
-  .. (splitting_field_aux.lift_hom n (algebra_map R K)) }
+  .. (splitting_field_aux.mk_hom n).comp (algebra_map R K) }
 
 /-- Because `splitting_field_aux` is defined by recursion, we have to make sure all instances
 on `splitting_field_aux` are defined by recursion within the fields. Otherwise, there will be
@@ -985,6 +993,8 @@ rfl
 
 example [char_zero K] : (splitting_field.algebra' f) = algebra_rat :=
 rfl
+
+example {q : ℚ[X]} : algebra_int (splitting_field q) = splitting_field.algebra' q := rfl
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
 splitting_field_aux.splits _ _ rfl

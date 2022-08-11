@@ -505,11 +505,12 @@ lemma not_mem_span_of_apply_not_mem_span_image
    x ∉ submodule.span R s :=
 h.imp (apply_mem_span_image_of_mem_span f)
 
-lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
-  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
-le_antisymm
-  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
+lemma supr_span {ι : Sort*} (p : ι → set M) : (⨆ i, span R (p i)) = span R (⋃ i, p i) :=
+le_antisymm (supr_le $ λ i, span_mono $ subset_Union _ i) $
+  span_le.mpr $ Union_subset $ λ i m hm, mem_supr_of_mem i $ subset_span hm
+
+lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) : (⨆ i, p i) = span R (⋃ i, ↑(p i)) :=
+by simp_rw [← supr_span, span_eq]
 
 lemma supr_to_add_submonoid {ι : Sort*} (p : ι → submodule R M) :
   (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=

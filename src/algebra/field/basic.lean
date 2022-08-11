@@ -144,36 +144,8 @@ by rwa [add_comm, add_div', add_comm]
 
 end division_semiring
 
-section division_ring
-variables [division_ring K] {a b : K}
-
-namespace rat
-
-/-- Construct the canonical injection from `ℚ` into an arbitrary
-  division ring. If the field has positive characteristic `p`,
-  we define `1 / p = 1 / 0 = 0` for consistency with our
-  division by zero convention. -/
--- see Note [coercion into rings]
-@[priority 900] instance cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K :=
-⟨has_rat_cast.rat_cast⟩
-
-theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
-division_ring.rat_cast_mk _ _ _ _
-
-theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
-| ⟨a, b, h1, h2⟩ := (cast_mk' _ _ _ _).trans (div_eq_mul_inv _ _).symm
-
-@[priority 100]
-instance smul_division_ring : has_smul ℚ K :=
-⟨division_ring.qsmul⟩
-
-lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
-
-end rat
-
-local attribute [simp]
-  division_def mul_comm mul_assoc
-  mul_left_comm mul_inv_cancel inv_mul_cancel
+section division_monoid
+variables [division_monoid K] [has_distrib_neg K] {a b : K}
 
 lemma one_div_neg_one_eq_neg_one : (1:K) / (-1) = -1 :=
 have (-1) * (-1) = (1:K), by rw [neg_mul_neg, one_mul],
@@ -202,6 +174,44 @@ by simp [neg_div]
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
 by rw [div_neg_eq_neg_div, neg_div, neg_neg]
 
+lemma neg_inv : - a⁻¹ = (- a)⁻¹ :=
+by rw [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
+
+lemma div_neg (a : K) : a / -b = -(a / b) :=
+by rw [← div_neg_eq_neg_div]
+
+lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
+by rw neg_inv
+
+end division_monoid
+
+section division_ring
+variables [division_ring K] {a b : K}
+
+namespace rat
+
+/-- Construct the canonical injection from `ℚ` into an arbitrary
+  division ring. If the field has positive characteristic `p`,
+  we define `1 / p = 1 / 0 = 0` for consistency with our
+  division by zero convention. -/
+-- see Note [coercion into rings]
+@[priority 900] instance cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K :=
+⟨has_rat_cast.rat_cast⟩
+
+theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
+division_ring.rat_cast_mk _ _ _ _
+
+theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
+| ⟨a, b, h1, h2⟩ := (cast_mk' _ _ _ _).trans (div_eq_mul_inv _ _).symm
+
+@[priority 100]
+instance smul_division_ring : has_smul ℚ K :=
+⟨division_ring.qsmul⟩
+
+lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
+
+end rat
+
 @[simp] lemma div_neg_self {a : K} (h : a ≠ 0) : a / -a = -1 :=
 by rw [div_neg_eq_neg_div, div_self h]
 
@@ -221,17 +231,8 @@ by simpa only [← @div_self _ _ b h] using (div_sub_div_same a b b).symm
 
 lemma div_sub_one {a b : K} (h : b ≠ 0) : a / b - 1 = (a - b) / b := (div_sub_same h).symm
 
-lemma neg_inv : - a⁻¹ = (- a)⁻¹ :=
-by rw [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
-
 lemma sub_div (a b c : K) : (a - b) / c = a / c - b / c :=
 (div_sub_div_same _ _ _).symm
-
-lemma div_neg (a : K) : a / -b = -(a / b) :=
-by rw [← div_neg_eq_neg_div]
-
-lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
-by rw neg_inv
 
 lemma one_div_mul_sub_mul_one_div_eq_one_div_add_one_div (ha : a ≠ 0) (hb : b ≠ 0) :
           (1 / a) * (b - a) * (1 / b) = 1 / a - 1 / b :=

@@ -48,19 +48,11 @@ lemma zpow_pos_of_pos (ha : 0 < a) : ∀ (z : ℤ), 0 < a ^ z
 
 lemma zpow_le_of_le (ha : 1 ≤ a) (h : m ≤ n) : a ^ m ≤ a ^ n :=
 begin
-  induction m with m m; induction n with n n,
-  { simp only [of_nat_eq_coe, zpow_coe_nat],
-    exact pow_le_pow ha (le_of_coe_nat_le_coe_nat h) },
-  { cases h.not_lt ((neg_succ_lt_zero _).trans_le $ of_nat_nonneg _) },
-  { simp only [zpow_neg_succ_of_nat, one_div, of_nat_eq_coe, zpow_coe_nat],
-    apply le_trans (inv_le_one _); apply one_le_pow_of_one_le ha },
-  { simp only [zpow_neg_succ_of_nat],
-    apply (inv_le_inv _ _).2,
-    { apply pow_le_pow ha,
-      have : -(↑(m+1) : ℤ) ≤ -(↑(n+1) : ℤ), from h,
-      have h' := le_of_neg_le_neg this,
-      apply le_of_coe_nat_le_coe_nat h' },
-    repeat { apply pow_pos (zero_lt_one.trans_le ha) } }
+  have ha₀ : 0 < a, from one_pos.trans_le ha,
+  lift n - m to ℕ using sub_nonneg.2 h with k hk,
+  calc a ^ m = a ^ m * 1 : (mul_one _).symm
+  ... ≤ a ^ m * a ^ k : mul_le_mul_of_nonneg_left (one_le_pow_of_one_le ha _) (zpow_nonneg ha₀.le _)
+  ... = a ^ n : by rw [← zpow_coe_nat, ← zpow_add₀ ha₀.ne', hk, add_sub_cancel'_right]
 end
 
 lemma pow_le_max_of_min_le (hx : 1 ≤ x) {a b c : ℤ} (h : min a b ≤ c) :
@@ -159,17 +151,7 @@ lemma zpow_two_pos_of_ne_zero (h : a ≠ 0) : 0 < a ^ (2 : ℤ) := zpow_bit0_pos
 le_iff_le_iff_lt_iff_lt.2 zpow_bit1_neg_iff
 
 @[simp] theorem zpow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
-begin
-  rw [le_iff_lt_or_eq, zpow_bit1_neg_iff],
-  split,
-  { rintro (h | h),
-    { exact h.le },
-    { exact (zpow_eq_zero h).le } },
-  { intro h,
-    rcases eq_or_lt_of_le h with rfl|h,
-    { exact or.inr (zero_zpow _ (bit1_ne_zero n)) },
-    { exact or.inl h } }
-end
+by rw [le_iff_lt_or_eq, le_iff_lt_or_eq, zpow_bit1_neg_iff, zpow_eq_zero_iff (bit1_ne_zero n)]
 
 @[simp] theorem zpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff

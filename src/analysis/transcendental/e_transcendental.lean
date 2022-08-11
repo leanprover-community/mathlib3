@@ -320,7 +320,7 @@ begin
 
 
   intros j IH k p hp hk1 hk2,
-  rw [deriv_n, function.iterate_succ_apply, <-deriv_n, finset.prod_pow, poly_pow_deriv _ _ hp,
+  rw [deriv_n, function.iterate_succ_apply, finset.prod_pow, poly_pow_deriv,
     deriv_n_poly_prod, polynomial.eval_finset_sum],
   apply finset.dvd_sum,
   intros x hx,
@@ -332,11 +332,11 @@ begin
   apply dvd_mul_of_dvd_left,
   rw [polynomial.eval_mul],
   apply dvd_mul_of_dvd_right,
-  rw [deriv_n, polynomial.iterate_derivative_C_mul, polynomial.eval_mul, polynomial.eval_C],
+  rw [polynomial.iterate_derivative_cast_nat_mul, polynomial.eval_mul, polynomial.eval_nat_cast],
   rw ←nat.mul_factorial_pred (pos_of_gt h),
   simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one, int.coe_nat_mul],
   apply mul_dvd_mul, refl,
-  simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one, nat.factorial] at IH ⊢,
+  simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one] at IH ⊢,
   rw finset.prod_pow at IH, exact IH,
 end
 
@@ -345,7 +345,7 @@ private lemma k_ge_1_case_when_j_ge_p (p : ℕ) (hp : nat.prime p) (n:ℕ) :
     ∀ k : ℕ, k < n.succ -> k > 0 -> (p.factorial:ℤ) ∣ polynomial.eval (k:ℤ) (deriv_n (f_p p n) j) :=
 begin
   intros j hj k hk1 hk2,
-  rw f_p, rw deriv_n_poly_prod, rw polynomial.eval_finset_sum, apply finset.dvd_sum, intros x hx,
+  rw [f_p, deriv_n, deriv_n_poly_prod, polynomial.eval_finset_sum], apply finset.dvd_sum, intros x hx,
   rw polynomial.eval_mul, rw polynomial.eval_mul,
   apply dvd_mul_of_dvd_right,
   apply p_fact_dvd_prod_part n _ _ _ (nat.prime.pos hp) hk2 hk1,

@@ -558,23 +558,18 @@ end
 locally connected. -/
 lemma charted_space.locally_connected_space [locally_connected_space H] :
   locally_connected_space M :=
-{ open_connected_basis := λ x, begin
-    let e : local_homeomorph M H := chart_at H x,
-    have h : ∀ t : set M, is_open t ∧ x ∈ t ∧ is_connected t → t ∈ 𝓝 x,
-    { rintros t ⟨ht₁, ht₂, -⟩,
-      exact ht₁.mem_nhds ht₂, },
-    rw ← e.symm_map_nhds_eq (mem_chart_source H x) at ⊢ h,
-    have h' : (𝓝 (e x)).has_basis (λ s, (is_open s ∧ e x ∈ s ∧ is_connected s) ∧ s ⊆ e.target) id,
-    { exact (locally_connected_space.open_connected_basis (e x)).restrict_subset
-        (e.open_target.mem_nhds (mem_chart_target H x)) },
-    refine (h'.map e.symm).to_has_basis' _ h,
-    rintros s ⟨⟨hs₁, hs₂, hs₃⟩, hs₄ : s ⊆ _⟩,
-    have hs₅ : e.symm '' s = e.source ∩ e ⁻¹' s := e.symm_image_eq_source_inter_preimage hs₄,
-    refine ⟨e.source ∩ e ⁻¹' s, ⟨_, ⟨mem_chart_source H x, hs₂⟩, _⟩, hs₅.ge⟩,
-    { exact e.preimage_open_of_open hs₁ },
-    { rw ← hs₅,
-      exact hs₃.image e.symm (e.symm.continuous_on.mono hs₄) },
-  end }
+begin
+  let E : M → local_homeomorph M H := chart_at H,
+  refine locally_connected_space_of_connected_bases
+    (λ x s, (E x).symm '' s)
+    (λ x s, (is_open s ∧ E x x ∈ s ∧ is_connected s) ∧ s ⊆ (E x).target) _ _,
+  { intros x,
+    simpa only [local_homeomorph.symm_map_nhds_eq, mem_chart_source] using
+      ((locally_connected_space.open_connected_basis (E x x)).restrict_subset
+      ((E x).open_target.mem_nhds (mem_chart_target H x))).map (E x).symm },
+  { rintros x s ⟨⟨-, -, hsconn⟩, hssubset⟩,
+    exact hsconn.is_preconnected.image _ ((E x).continuous_on_symm.mono hssubset) },
+end
 
 end
 

@@ -185,7 +185,7 @@ lemma submartingale.exists_ae_tendsto_of_bdd [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ ω ∂μ, ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
 begin
-  filter_upwards [hf.upcrossings_ae_lt_top hbdd, liminf_at_top_ae_bdd_of_snorm_one_bdd
+  filter_upwards [hf.upcrossings_ae_lt_top hbdd, ae_bdd_liminf_at_top_of_snorm_bdd one_ne_zero
     (λ n, (hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl) hbdd] with ω h₁ h₂,
   exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end

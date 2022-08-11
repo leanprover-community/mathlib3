@@ -256,6 +256,49 @@ end
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
+
+/-- Version of Lagrange's theorem using the formalism of a closed subset.
+If `α` is a finite group and `s : finset α` is closed under multiplication and inverses and
+contains `1 : α`, then `|s|` divides `|α|`.
+-/
+lemma card_closed_subset_dvd_card {α : Type} [fintype α] [group α] (s : finset α)
+  (closed_under_mul : ∀ a b ∈ s, a * b ∈ s) (closed_under_inv : ∀ a ∈ s, a⁻¹ ∈ s)
+  (id_mem : (1 : α) ∈ s)  :
+  finset.card s ∣ fintype.card α :=
+begin
+  let s_subgroup : subgroup α := subgroup.mk (s : set α) _ id_mem closed_under_inv,
+  swap, { intros a b ha hb, simp only [finset.mem_coe] at *, solve_by_elim },
+  classical,
+  suffices : s.card = fintype.card s_subgroup,
+  { rw this, convert subgroup.card_subgroup_dvd_card s_subgroup },
+  refine (fintype.card_of_finset' _ (λ x, _)).symm,
+  trivial,
+end
+
+noncomputable
+instance fintype.of_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H :=
+fintype.of_finite ↥H
+
+/-- The cardinality of any proper subgroup `H` of `G` is at most half that of `G`. -/
+lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G}
+  (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
+begin
+  rcases subgroup.card_subgroup_dvd_card H with ⟨index, hindex⟩,
+  by_cases h0 : index = 0,
+  { exfalso, apply (@fintype.card_pos G _ _).ne', simp [hindex, h0] },
+  by_cases h1 : index = 1,
+  { rw [h1, mul_one] at hindex,
+    contrapose! proper,
+    rw subgroup.eq_top_of_card_eq H hindex.symm,
+    simp },
+  rw hindex,
+  apply mul_le_mul_left',
+  by_contra,
+  rw [not_le] at h,
+  interval_cases index; contradiction,
+end
+
+---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
@@ -735,47 +778,6 @@ end
 --   rw ← subgroup.mem_carrier,
 --   sorry,
 -- end
-
-/-- Version of Lagrange's theorem using the formalism of a closed subset.
-If `α` is a finite group and `s : finset α` is closed under multiplication and inverses and
-contains `1 : α`, then `|s|` divides `|α|`.
--/
-lemma card_closed_subset_dvd_card {α : Type} [fintype α] [group α] (s : finset α)
-  (closed_under_mul : ∀ a b ∈ s, a * b ∈ s) (closed_under_inv : ∀ a ∈ s, a⁻¹ ∈ s)
-  (id_mem : (1 : α) ∈ s)  :
-  finset.card s ∣ fintype.card α :=
-begin
-  let s_subgroup : subgroup α := subgroup.mk (s : set α) _ id_mem closed_under_inv,
-  swap, { intros a b ha hb, simp only [finset.mem_coe] at *, solve_by_elim },
-  classical,
-  suffices : s.card = fintype.card s_subgroup,
-  { rw this, convert subgroup.card_subgroup_dvd_card s_subgroup },
-  refine (fintype.card_of_finset' _ (λ x, _)).symm,
-  trivial,
-end
-
-noncomputable
-instance fintype.of_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H :=
-fintype.of_finite ↥H
-
-/-- The cardinality of any proper subgroup `H` of `G` is at most half that of `G`. -/
-lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G}
-  (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
-begin
-  rcases subgroup.card_subgroup_dvd_card H with ⟨index, hindex⟩,
-  by_cases h0 : index = 0,
-  { exfalso, apply (@fintype.card_pos G _ _).ne', simp [hindex, h0] },
-  by_cases h1 : index = 1,
-  { rw [h1, mul_one] at hindex,
-    contrapose! proper,
-    rw subgroup.eq_top_of_card_eq H hindex.symm,
-    simp },
-  rw hindex,
-  apply mul_le_mul_left',
-  by_contra,
-  rw [not_le] at h,
-  interval_cases index; contradiction,
-end
 
 
 instance (n : ℕ) [hn_pos : fact (0 < n)] : decidable_pred (@is_unit (zmod n) _) :=

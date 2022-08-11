@@ -7,9 +7,9 @@ import data.pi.lex
 import data.finsupp.basic
 
 /-!
-# Lexicographic order on finsupps
+# Lexicographic order on finitely supported functions
 
-This file defines the lexicographic order on finsupps.
+This file defines the lexicographic order on `finsupp`.
 -/
 
 namespace finsupp

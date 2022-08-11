@@ -16,8 +16,8 @@ namespace finsupp
 
 variables {α N : Type*} [has_zero N]
 
-@[simp] lemma to_lex_apply (x : α →₀ N) (a : α) : to_lex (x a) = x a := rfl
-@[simp] lemma of_lex_apply (x : α →₀ N) (a : α) : of_lex (x a) = x a := rfl
+@[simp] lemma to_lex_apply (x : α →₀ N) (a : α) : to_lex x a = x a := rfl
+@[simp] lemma of_lex_apply (x : lex (α →₀ N)) (a : α) : of_lex x a = x a := rfl
 
 /-- The lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
   and `N` is ordered by `s`. -/

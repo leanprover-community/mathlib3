@@ -295,7 +295,6 @@ def nat_trans_extension {F₁ F₂ : W.localization ⥤ D} (τ : W.Q ⋙ F₁ �
   F₁ ⟶ F₂ :=
 { app := nat_trans_extension.app τ,
   naturality' := λ X Y f, begin
-    have pif := morphism_property.naturality_property (nat_trans_extension.app τ),
     have h := morphism_property_is_top'
       (morphism_property.naturality_property (nat_trans_extension.app τ)) _
       (morphism_property.naturality_property.is_stable_under_inverse _)

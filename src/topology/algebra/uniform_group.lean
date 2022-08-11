@@ -345,7 +345,7 @@ end uniform_group
 
 section topological_comm_group
 open filter
-variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
+variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
 /-- The right uniformity on a topological group. -/
 @[to_additive "The right uniformity on a topological group"]
@@ -375,7 +375,7 @@ def topological_group.to_uniform_space : uniform_space G :=
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
-        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ Hz1 _ Hz2
+        simpa using V_sum _ Hz2 _ Hz1,
       end,
       exact set.subset.trans comp_rel_sub U_sub },
     { exact monotone_comp_rel monotone_id monotone_id }

@@ -114,16 +114,16 @@ lemma square_roots_of_one_zmod {p α : ℕ} (pp : p.prime) (hp_odd : odd p) {x :
   x = 1 ∨ x = -1 :=
 begin
   refine or.imp (λ h, _) (λ h, _) (@square_roots_of_one_int p α ↑x pp hp_odd _ ),
-  { have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x) (↑p^α),
-    norm_cast at this,
-    rwa [eq_comm, this, nat.cast_pow] },
-  { have := int_coe_eq_int_coe_iff_dvd_sub (-1) (↑x) (↑p^α),
+  { have := (int_coe_eq_int_coe_iff_dvd_sub 1 (x) (p^α)).2,
     push_cast at this,
-    rw [eq_comm, this],
-    simpa using h },
-  { have := int_coe_eq_int_coe_iff_dvd_sub 1 (↑x^2) (↑p^α),
+    simp [this h] },
+  { have := (int_coe_eq_int_coe_iff_dvd_sub (-1) (x) (p^α)).2,
     push_cast at this,
-    rw [←this, root] },
+    simp [this h] },
+  { have := (int_coe_eq_int_coe_iff_dvd_sub 1 (x^2) (p^α)).1,
+    push_cast at this,
+    apply this,
+    simp [root.symm] },
 end
 
 

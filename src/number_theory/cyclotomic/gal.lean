@@ -39,14 +39,16 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 
 local attribute [instance] pnat.fact_pos
 
-variables {n : ℕ+} (K : Type*) [field K] {L : Type*} [field L] {μ : L} (hμ : is_primitive_root μ n)
-          [algebra K L] [is_cyclotomic_extension {n} K L]
+variables {n : ℕ+} (K : Type*) [field K] {L : Type*} {μ : L}
 
 open polynomial is_cyclotomic_extension
 
 open_locale cyclotomic
 
 namespace is_primitive_root
+
+variables [comm_ring L] [is_domain L] (hμ : is_primitive_root μ n) [algebra K L]
+          [is_cyclotomic_extension {n} K L]
 
 /-- `is_primitive_root.aut_to_pow` is injective in the case that it's considered over a cyclotomic
 field extension. -/
@@ -77,6 +79,9 @@ end
 end is_primitive_root
 
 namespace is_cyclotomic_extension
+
+variables [comm_ring L] [is_domain L] (hμ : is_primitive_root μ n) [algebra K L]
+          [is_cyclotomic_extension {n} K L]
 
 /-- Cyclotomic extensions are abelian. -/
 noncomputable def aut.comm_group : comm_group (L ≃ₐ[K] L) :=
@@ -110,7 +115,7 @@ let hζ := zeta_spec n K L,
   end,
   right_inv := λ x, begin
     simp only [monoid_hom.to_fun_eq_coe],
-    generalize_proofs _ _ _ h,
+    generalize_proofs _ _ h,
     have key := hζ.aut_to_pow_spec K ((hζ.power_basis K).equiv_of_minpoly
                                       ((hμ x).power_basis K) h),
     have := (hζ.power_basis K).equiv_of_minpoly_gen ((hμ x).power_basis K) h,
@@ -139,7 +144,7 @@ let hζ := (zeta_spec n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos in
 lemma from_zeta_aut_spec : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin
   simp_rw [from_zeta_aut, aut_equiv_pow_symm_apply],
-  generalize_proofs _ _ hζ h _ hμ _,
+  generalize_proofs _ hζ h _ hμ _,
   rw [←hζ.power_basis_gen K] {occs := occurrences.pos [4]},
   rw [power_basis.equiv_of_minpoly_gen, hμ.power_basis_gen K],
   convert h.some_spec.some_spec,
@@ -150,7 +155,8 @@ end is_cyclotomic_extension
 
 section gal
 
-variables (h : irreducible (cyclotomic n K)) {K}
+variables [field L] (hμ : is_primitive_root μ n) [algebra K L]
+          [is_cyclotomic_extension {n} K L] (h : irreducible (cyclotomic n K)) {K}
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `cyclotomic n K` is irreducible in

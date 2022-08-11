@@ -5,13 +5,17 @@ Authors: Andrew Yang
 -/
 import topology.subset_properties
 import topology.sets.compacts
+import topology.noetherian_space
 
 /-!
 # Quasi-separated spaces
 
 A topological space is quasi-separated if the intersections of any pairs of compact open subsets
 are still compact.
-Notible examples include spectral spaces and Hausdorff spaces.
+Notable examples include spectral spaces, Noetherian spaces, and Hausdorff spaces.
+
+A non-example is the interval `[0, 1]` with doubled origin: the two copies of `[0, 1]` are compact
+open subsets, but their intersection `(0, 1]` is not.
 
 ## Main results
 
@@ -21,8 +25,9 @@ of any pairs of compact open subsets of `s` are still compact.
 of compact open subsets are still compact.
 - `quasi_separated_space.of_open_embedding`: If `f : α → β` is an open embedding, and `β` is
   a quasi-separated space, then so is `α`.
-
 -/
+
+open topological_space
 
 variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
 
@@ -98,6 +103,11 @@ end
 instance quasi_separated_space.of_t2_space [t2_space α] : quasi_separated_space α :=
 ⟨λ U V hU hU' hV hV', hU'.inter hV'⟩
 
+@[priority 100]
+instance quasi_separated_space.of_noetherian_space [noetherian_space α] :
+  quasi_separated_space α :=
+⟨λ _ _ _ _ _ _, noetherian_space.is_compact _⟩
+
 lemma is_quasi_separated.of_quasi_separated_space (s : set α) [quasi_separated_space α] :
   is_quasi_separated s :=
 ((is_quasi_separated_univ α).mpr infer_instance).of_subset (set.subset_univ _)
@@ -107,10 +117,10 @@ lemma quasi_separated_space.of_open_embedding (h : open_embedding f) [quasi_sepa
 (is_quasi_separated_univ α).mp
   (h.is_quasi_separated_iff.mpr $ is_quasi_separated.of_quasi_separated_space _)
 
-instance topological_space.compact_opens.has_inf_of_quasi_separated_space
-  [quasi_separated_space α] : has_inf (topological_space.compact_opens α) :=
+instance compact_opens.has_inf_of_quasi_separated_space
+  [quasi_separated_space α] : has_inf (compact_opens α) :=
 ⟨λ U V, ⟨⟨(U : set α) ∩ (V : set α),
   quasi_separated_space.inter_is_compact U.1.1 V.1.1 U.2 U.1.2 V.2 V.1.2⟩, U.2.inter V.2⟩⟩
 
-instance [quasi_separated_space α] : semilattice_inf (topological_space.compact_opens α) :=
+instance [quasi_separated_space α] : semilattice_inf (compact_opens α) :=
 set_like.coe_injective.semilattice_inf _ (λ _ _, rfl)

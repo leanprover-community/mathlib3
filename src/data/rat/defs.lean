@@ -910,6 +910,7 @@ subtype.ext_iff
 @[simp] lemma pnat_denom_one : (1 : ℚ).pnat_denom = 1 := rfl
 
 @[simp] lemma pnat_denom_zero : (0 : ℚ).pnat_denom = 1 := rfl
+
 end pnat_denom
 
 end rat

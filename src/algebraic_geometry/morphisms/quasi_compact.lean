@@ -206,8 +206,7 @@ lemma quasi_compact.affine_open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open
 quasi_compact_eq_affine_property.symm ▸
   quasi_compact_affine_property_is_local.affine_open_cover_iff f 𝒰
 
-lemma quasi_compact.open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y)
-  [∀ i, is_affine (𝒰.obj i)] (f : X ⟶ Y) :
+lemma quasi_compact.open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y) (f : X ⟶ Y) :
   quasi_compact f ↔ ∀ i, quasi_compact (pullback.snd : pullback f (𝒰.map i) ⟶ _) :=
 quasi_compact_eq_affine_property.symm ▸
   quasi_compact_affine_property_is_local.target_affine_locally_is_local.open_cover_iff f 𝒰

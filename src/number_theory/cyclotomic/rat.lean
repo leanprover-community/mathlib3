@@ -138,16 +138,10 @@ begin
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
   { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,
     obtain ⟨y, rfl⟩ := this.1 h,
-    convert adjoin_mono _ y.2,
-    { simp only [eq_iff_true_of_subsingleton] },
-    { simp only [eq_iff_true_of_subsingleton] },
-    { simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
-      exact hζ.pow_eq_one } },
-  { haveI : is_cyclotomic_extension {p ^ k} ℤ (cyclotomic_ring (p ^ k) ℤ ℚ),
-    { convert cyclotomic_ring.is_cyclotomic_extension _ ℤ ℚ,
-      { exact subsingleton.elim _ _ },
-      { exact ne_zero.char_zero } },
-    rintro ⟨y, rfl⟩,
+    refine adjoin_mono _ y.2,
+    simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
+    exact hζ.pow_eq_one },
+  { rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map ((is_cyclotomic_extension.integral {p ^ k} ℤ _) _) }
 end
 

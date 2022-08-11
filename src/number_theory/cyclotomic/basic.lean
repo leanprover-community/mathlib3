@@ -455,10 +455,10 @@ section cyclotomic_ring
 /-- If `K` is the fraction field of `A`, the `A`-algebra structure on `cyclotomic_field n K`.
 This is not an instance since it causes diamonds when `A = ℤ`. -/
 @[nolint unused_arguments]
-def cyclotomic_field.algebra_base : algebra A (cyclotomic_field n K) :=
-((algebra_map K (cyclotomic_field n K)).comp (algebra_map A K)).to_algebra
+instance cyclotomic_field.algebra_base : algebra A (cyclotomic_field n K) :=
+splitting_field.algebra' (cyclotomic n K)
 
-local attribute [instance] cyclotomic_field.algebra_base
+example : algebra_int (cyclotomic_field n ℚ) = cyclotomic_field.algebra_base _ _ _ := rfl
 
 instance cyclotomic_field.no_zero_smul_divisors : no_zero_smul_divisors A (cyclotomic_field n K) :=
 no_zero_smul_divisors.of_algebra_map_injective $ function.injective.comp

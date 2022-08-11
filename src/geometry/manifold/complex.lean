@@ -12,7 +12,7 @@ import topology.locally_constant.basic
 
 Thanks to the rigidity of complex-differentiability compared to real-differentiability, there are
 many results about complex manifolds with no analogue for manifolds over a general normed field. For
-now, this file contains just one such result:
+now, this file contains just two (closely related) such results:
 
 ## Main results
 

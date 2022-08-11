@@ -349,6 +349,7 @@ variables [heyting_algebra α] {a b c : α}
 @[simp] lemma bot_himp (a : α) : ⊥ ⇨ a = ⊤ := himp_eq_top_iff.2 bot_le
 
 lemma compl_sup_distrib (a b : α) : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ := by simp_rw [←himp_bot, sup_himp_distrib]
+@[simp] lemma compl_sup : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ := compl_sup_distrib _ _
 
 lemma compl_le_himp : aᶜ ≤ a ⇨ b := (himp_bot _).ge.trans $ himp_le_himp_left bot_le
 
@@ -377,6 +378,8 @@ lemma disjoint_compl_right : disjoint a aᶜ := disjoint_compl_left.symm
 
 @[simp] lemma inf_compl_self (a : α) : a ⊓ aᶜ = ⊥ := disjoint_compl_right.eq_bot
 @[simp] lemma compl_inf_self (a : α) : aᶜ ⊓ a = ⊥ := disjoint_compl_left.eq_bot
+lemma inf_compl_eq_bot : a ⊓ aᶜ = ⊥ := inf_compl_self _
+lemma compl_inf_eq_bot : aᶜ ⊓ a = ⊥ := compl_inf_self _
 
 @[simp] lemma compl_top : (⊤ : α)ᶜ = ⊥ :=
 eq_of_forall_le_iff $ λ a, by rw [le_compl_iff_disjoint_right, disjoint_top, le_bot_iff]
@@ -631,7 +634,8 @@ protected def function.injective.coheyting_algebra [has_sup α] [has_inf α] [ha
   coheyting_algebra α :=
 { le_top := λ a, by { change f _ ≤ _, rw map_top, exact le_top },
   top_sdiff := λ a, hf $ by erw [map_sdiff, map_hnot, map_top, top_sdiff'],
-  ..hf.generalized_coheyting_algebra f map_sup map_inf map_bot map_sdiff, ..‹has_top α›, ..‹has_hnot α› }
+  ..hf.generalized_coheyting_algebra f map_sup map_inf map_bot map_sdiff,
+  ..‹has_top α›, ..‹has_hnot α› }
 
 /-- Pullback a `biheyting_algebra` along an injection. -/
 @[reducible] -- See note [reducible non-instances]

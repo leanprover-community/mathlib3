@@ -547,13 +547,36 @@ def generalized_boolean_algebra.to_boolean_algebra [generalized_boolean_algebra 
 section boolean_algebra
 variables [boolean_algebra α]
 
-@[simp] lemma inf_compl_eq_bot : x ⊓ xᶜ = ⊥ := bot_unique $ boolean_algebra.inf_compl_le_bot x
+@[simp] lemma inf_compl_eq_bot' : x ⊓ xᶜ = ⊥ := bot_unique $ boolean_algebra.inf_compl_le_bot x
 @[simp] lemma sup_compl_eq_top : x ⊔ xᶜ = ⊤ := top_unique $ boolean_algebra.top_le_sup_compl x
-@[simp] lemma compl_inf_eq_bot : xᶜ ⊓ x = ⊥ := inf_comm.trans inf_compl_eq_bot
 @[simp] lemma compl_sup_eq_top : xᶜ ⊔ x = ⊤ := sup_comm.trans sup_compl_eq_top
 
-theorem is_compl_compl : is_compl x xᶜ :=
-is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
+lemma is_compl_compl : is_compl x xᶜ := is_compl.of_eq inf_compl_eq_bot' sup_compl_eq_top
+
+lemma sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
+lemma himp_eq : x ⇨ y = y ⊔ xᶜ := boolean_algebra.himp_eq x y
+
+@[simp] lemma top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
+
+@[priority 100]
+instance boolean_algebra.to_is_complemented : is_complemented α := ⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance boolean_algebra.to_generalized_boolean_algebra : generalized_boolean_algebra α :=
+{ sup_inf_sdiff := λ a b, by rw [sdiff_eq, ←inf_sup_left, sup_compl_eq_top, inf_top_eq],
+  inf_inf_sdiff := λ a b, by { rw [sdiff_eq, ←inf_inf_distrib_left, inf_compl_eq_bot', inf_bot_eq],
+    congr },
+  ..‹boolean_algebra α› }
+
+@[priority 100] -- See note [lower instance priority]
+instance boolean_algebra.to_biheyting_algebra : biheyting_algebra α :=
+{ hnot := compl,
+  le_himp_iff := λ a b c, by rw [himp_eq, is_compl_compl.le_sup_right_iff_inf_left_le],
+  himp_bot := λ _, himp_eq.trans bot_sup_eq,
+  top_sdiff := λ a, by rw [sdiff_eq, top_inf_eq],
+  ..‹boolean_algebra α›, ..generalized_boolean_algebra.to_generalized_coheyting_algebra }
+
+@[simp] lemma hnot_eq_compl : ￢x = xᶜ := rfl
 
 theorem is_compl.eq_compl (h : is_compl x y) : x = yᶜ :=
 h.left_unique is_compl_compl.symm
@@ -607,9 +630,6 @@ is_compl_top_bot.compl_eq_iff
 @[simp] theorem compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
 (is_compl_compl.inf_sup is_compl_compl).compl_eq
 
-@[simp] theorem compl_sup : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
-(is_compl_compl.sup_inf is_compl_compl).compl_eq
-
 theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
 is_compl_compl.antitone is_compl_compl h
 
@@ -629,32 +649,7 @@ theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
 theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
 ⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
 
-lemma sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
-lemma himp_eq : x ⇨ y = y ⊔ xᶜ := boolean_algebra.himp_eq x y
-
 @[simp] lemma sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
-
-@[simp] lemma top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
-
-@[priority 100] -- see Note [lower instance priority]
-instance boolean_algebra.to_generalized_boolean_algebra : generalized_boolean_algebra α :=
-{ sup_inf_sdiff := λ a b, by rw [sdiff_eq, ←inf_sup_left, sup_compl_eq_top, inf_top_eq],
-  inf_inf_sdiff := λ a b, by { rw [sdiff_eq, ←inf_inf_distrib_left, inf_compl_eq_bot, inf_bot_eq],
-    congr },
-  ..‹boolean_algebra α› }
-
-@[priority 100]
-instance boolean_algebra.to_is_complemented : is_complemented α := ⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
-
-@[priority 100] -- See note [lower instance priority]
-instance boolean_algebra.to_biheyting_algebra : biheyting_algebra α :=
-{ hnot := compl,
-  le_himp_iff := λ a b c, by rw [himp_eq, is_compl_compl.le_sup_right_iff_inf_left_le],
-  himp_bot := λ _, himp_eq.trans bot_sup_eq,
-  top_sdiff := λ a, by rw [sdiff_eq, top_inf_eq],
-  ..‹boolean_algebra α›, ..generalized_boolean_algebra.to_generalized_coheyting_algebra }
-
-@[simp] lemma hnot_eq_compl : ￢x = xᶜ := rfl
 
 instance : boolean_algebra αᵒᵈ :=
 { compl := λ a, to_dual (of_dual a)ᶜ,
@@ -728,16 +723,8 @@ protected def function.injective.generalized_boolean_algebra [has_sup α] [has_i
   (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
   (map_bot : f ⊥ = ⊥) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
   generalized_boolean_algebra α :=
-{ sup_inf_sdiff := λ a b, hf $ (map_sup _ _).trans begin
-    rw map_sdiff,
-    convert sup_inf_sdiff _ _,
-    exact map_inf _ _,
-  end,
-  inf_inf_sdiff := λ a b, hf $ (map_inf _ _).trans begin
-    rw map_sdiff,
-    convert inf_inf_sdiff _ _,
-    exact map_inf _ _,
-  end,
+{ sup_inf_sdiff := λ a b, hf $ by erw [map_sup, map_sdiff, map_inf, sup_inf_sdiff],
+  inf_inf_sdiff := λ a b, hf $ by erw [map_inf, map_sdiff, map_inf, inf_inf_sdiff, map_bot],
   ..hf.generalized_coheyting_algebra f map_sup map_inf map_bot map_sdiff,
   ..hf.distrib_lattice f map_sup map_inf }
 

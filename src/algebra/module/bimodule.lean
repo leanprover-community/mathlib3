@@ -44,8 +44,8 @@ This file is a place to collect results which are specific to bimodules.
 
 For many definitions and lemmas it is preferable to set things up without opposites, i.e., as:
 `[module S M] [smul_comm_class R S M]` rather than `[module Sᵐᵒᵖ M] [smul_comm_class R Sᵐᵒᵖ M]`.
-The corresponding results for opposites then follow automatically and since `(Sᵐᵒᵖ)ᵐᵒᵖ` is not defeq
-to `S`, this approach is more general.
+The corresponding results for opposites then follow automatically and do not require taking
+advantage of the fact that `(Sᵐᵒᵖ)ᵐᵒᵖ` is defeq to `S`.
 
 ## TODO
 

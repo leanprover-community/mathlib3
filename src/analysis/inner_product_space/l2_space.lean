@@ -344,7 +344,7 @@ begin
   simp [dfinsupp.sum, lp.single_apply] {contextual := tt},
 end
 
-/-- Given a total orthonormal family `v : ι → E`, `E` is a Hibert sum of `λ i : ι, 𝕜` relative to
+/-- Given a total orthonormal family `v : ι → E`, `E` is a Hilbert sum of `λ i : ι, 𝕜` relative to
 the family of linear isometries `λ i, λ k, k • v i`. -/
 lemma orthonormal.is_hilbert_sum {v : ι → E} (hv : orthonormal 𝕜 v)
   (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :

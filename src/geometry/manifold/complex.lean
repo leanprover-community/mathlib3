@@ -44,12 +44,11 @@ namespace mdifferentiable
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 variables {F : Type*} [normed_add_comm_group F] [normed_space ℂ F] [strict_convex_space ℝ F]
 
-variables {M : Type*} [topological_space M] [charted_space E M]
+variables {M : Type*} [topological_space M] [compact_space M] [charted_space E M]
   [smooth_manifold_with_corners 𝓘(ℂ, E) M]
 
 /-- A holomorphic function on a compact complex manifold is locally constant. -/
-protected lemma is_locally_constant [compact_space M]
-  {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
+protected lemma is_locally_constant {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
   is_locally_constant f :=
 begin
   haveI : locally_connected_space M := charted_space.locally_connected_space E M,
@@ -101,14 +100,14 @@ begin
 end
 
 /-- A holomorphic function on a compact connected complex manifold is constant. -/
-lemma apply_eq_of_compact_space [compact_space M] [preconnected_space M]
+lemma apply_eq_of_compact_space [preconnected_space M]
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) (a b : M) :
   f a = f b :=
 hf.is_locally_constant.apply_eq_of_preconnected_space _ _
 
 /-- A holomorphic function on a compact connected complex manifold is the constant function `f ≡ v`,
 for some value `v`. -/
-lemma exists_eq_const_of_compact_space [compact_space M] [preconnected_space M]
+lemma exists_eq_const_of_compact_space [preconnected_space M]
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
   ∃ v : F, f = function.const M v :=
 hf.is_locally_constant.exists_eq_const

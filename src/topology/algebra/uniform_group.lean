@@ -684,3 +684,18 @@ begin
       apply h ; tauto } }
 end
 end dense_inducing
+
+section quotients
+
+@[to_additive] instance uniform_group.uniform_space_quotient
+  {G : Type*} [group G] [uniform_space G] [uniform_group G]
+  (H : subgroup G) [H.normal] : uniform_space (G ⧸ H) :=
+topological_group.to_uniform_space _
+
+-- TODO This should be true without the commutativity assumption: remove it.
+@[to_additive] instance uniform_group.uniform_group_quotient
+  {G : Type*} [comm_group G] [uniform_space G] [uniform_group G]
+  (H : subgroup G) [H.normal] : uniform_group (G ⧸ H) :=
+topological_group_is_uniform
+
+end quotients

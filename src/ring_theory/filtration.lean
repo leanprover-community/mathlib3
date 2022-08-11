@@ -8,12 +8,30 @@ import ring_theory.noetherian
 import ring_theory.rees_algebra
 import ring_theory.finiteness
 import data.polynomial.module
+import order.hom.complete_lattice
 
 /-!
 
 # `I`-filtrations of modules
 
 This file contains the definitions and basic results around (stable) `I`-filtrations of modules.
+
+## Main results
+
+- `ideal.filtration`: An `I`-filtration on the module `M` is a sequence of decreasing submodules
+  `N i` such that `I • N ≤ I (i + 1)`. Note that we do not require the filtration to start from `⊤`.
+- `ideal.filtration.stable`: An `I`-filtration is stable if `I • (N i) = N (i + 1)` for large
+  enough `I`.
+- `ideal.filtration.submodule`: The associated module `⨁ Nᵢ` of a filtration, implemented as a
+  submodule of `M[X]`.
+- `ideal.filtration.submodule_fg_iff_stable`: If `F.N i` are all finitely generated, then
+  `F.stable` iff `F.submodule.fg`.
+- `ideal.filtration.stable.of_le`: In a finite module over a noetherian ring,
+  if `F' ≤ F`, then `F.stable → F'.stable`.
+- `ideal.exists_pow_inf_eq_pow_smul`: **Artin-Rees lemma**
+- `ideal.infi_pow_eq_bot_of_local_ring`:
+  **Krull's intersection theorem** for noetherian local rings.
+- `ideal.infi_pow_eq_bot_of_is_domain`: **Krull's intersection theorem** for noetherian domains.
 
 -/
 
@@ -26,7 +44,7 @@ open polynomial
 open_locale polynomial big_operators
 
 /-- An `I`-filtration on the module `M` is a sequence of decreasing submodules `N i` such that
-`I • N ≤ I (i + 1)`. Note that we do not require the filtration to start from `⊤`. -/
+`I • (N i) ≤ N (i + 1)`. Note that we do not require the filtration to start from `⊤`. -/
 @[ext]
 structure ideal.filtration (M : Type u) [add_comm_group M] [module R M] :=
 (N : ℕ → submodule R M)
@@ -201,6 +219,7 @@ open polynomial_module
 
 variables (F F')
 
+/-- The `R[IX]`-submodule of `M[X]` associated with an `I`-filtration. -/
 protected
 def submodule : submodule (rees_algebra I) (polynomial_module R M) :=
 { carrier := { f | ∀ i, f i ∈ F.N i },
@@ -215,8 +234,20 @@ def submodule : submodule (rees_algebra I) (polynomial_module R M) :=
     exact F.pow_smul_le j k (submodule.smul_mem_smul (r.2 j) (hf k))
   end }
 
+@[simp]
+lemma mem_submodule (f : polynomial_module R M) : f ∈ F.submodule ↔ ∀ i, f i ∈ F.N i := iff.rfl
+
 lemma inf_submodule : (F ⊓ F').submodule = F.submodule ⊓ F'.submodule :=
 by { ext, exact forall_and_distrib }
+
+variables (I M)
+
+/-- `ideal.filtration.submodule` as an `inf_hom` -/
+def submodule_inf_hom :
+  inf_hom (I.filtration M) (submodule (rees_algebra I) (polynomial_module R M)) :=
+{ to_fun := ideal.filtration.submodule, map_inf' := inf_submodule }
+
+variables {I M}
 
 lemma submodule_closure_single :
   add_submonoid.closure (⋃ i, single R i '' (F.N i : set M)) = F.submodule.to_add_submonoid :=
@@ -285,23 +316,8 @@ begin
     { intros x y hx hy, rw map_add, exact F'.add_mem hx hy } }
 end
 
-lemma _root_.submodule.fg.stablizes_of_supr_eq {M' : submodule R M} (hM' : M'.fg) (N : ℕ →o submodule R M)
-  (H : supr N = M') : ∃ n, M' = N n :=
-begin
-  obtain ⟨S, hS⟩ := hM',
-  have : ∀ s : S, ∃ n, (s : M) ∈ N n :=
-    λ s, (submodule.mem_supr_of_chain N s).mp
-      (by { rw [H, ← hS], exact submodule.subset_span s.2 }),
-  choose f hf,
-  use S.attach.sup f,
-  apply le_antisymm,
-  { conv_lhs { rw ← hS },
-    rw submodule.span_le,
-    intros s hs,
-    exact N.2 (finset.le_sup $ S.mem_attach ⟨s, hs⟩) (hf _) },
-  { rw ← H, exact le_supr _ _ }
-end
-
+/-- If the components of a filtration is finitely generated, then the filtration is stable iff
+its associated submodule of is finitely generated.  -/
 lemma submodule_fg_of_stable (hF' : ∀ i, (F.N i).fg) :
   F.submodule.fg ↔ F.stable :=
 begin
@@ -341,21 +357,24 @@ end
 .
 variables {F}
 
-lemma stable.inter_right [is_noetherian_ring R] [h : module.finite R M] (hF : F.stable) :
-  (F ⊓ F').stable :=
+lemma stable.of_le [is_noetherian_ring R] [h : module.finite R M] (hF : F.stable)
+  {F' : I.filtration M} (hf : F' ≤ F) : F'.stable :=
 begin
   haveI := is_noetherian_of_fg_of_noetherian' h.1,
   rw ← submodule_fg_of_stable at hF ⊢,
   any_goals { intro i, exact is_noetherian.noetherian _ },
-  rw inf_submodule,
   have := is_noetherian_of_fg_of_noetherian _ hF,
   rw is_noetherian_submodule at this,
-  exact this _ inf_le_left
+  exact this _ (order_hom_class.mono (submodule_inf_hom M I) hf),
 end
+
+lemma stable.inter_right [is_noetherian_ring R] [h : module.finite R M] (hF : F.stable) :
+  (F ⊓ F').stable :=
+hF.of_le inf_le_left
 
 lemma stable.inter_left [is_noetherian_ring R] [h : module.finite R M] (hF : F.stable) :
   (F' ⊓ F).stable :=
-by { rw inf_comm, exact hF.inter_right F' }
+hF.of_le inf_le_right
 
 end ideal.filtration
 
@@ -366,15 +385,6 @@ lemma ideal.exists_pow_inf_eq_pow_smul [is_noetherian_ring R] [h : module.finite
   (N : submodule R M) : ∃ k : ℕ, ∀ n ≥ k, I ^ n • ⊤ ⊓ N = I ^ (n - k) • (I ^ k • ⊤ ⊓ N) :=
 ((I.stable_filtration_stable ⊤).inter_right (I.trivial_filtration N)).exists_pow_smul_eq_of_ge
 
-lemma local_ring.jacobson_eq_maximal_ideal [local_ring R] (h : I ≠ ⊤) :
-  I.jacobson = local_ring.maximal_ideal R :=
-begin
-  apply le_antisymm,
-  { exact Inf_le ⟨local_ring.le_maximal_ideal h, local_ring.maximal_ideal.is_maximal R⟩ },
-  { exact le_Inf (λ J (hJ : I ≤ J ∧ J.is_maximal),
-      le_of_eq (local_ring.eq_maximal_ideal hJ.2).symm) }
-end
-
 lemma ideal.mem_infi_smul_pow_eq_bot_iff [is_noetherian_ring R] [hM : module.finite R M] (x : M) :
   x ∈ (⨅ i : ℕ, I ^ i • ⊤ : submodule R M) ↔ ∃ r : I, (r : R) • x = x :=
 begin
@@ -383,10 +393,9 @@ begin
   { intro k, exact inf_eq_right.mpr ((infi_le _ k).trans $ le_of_eq $ by simp) },
   split,
   { haveI := is_noetherian_of_fg_of_noetherian' hM.out,
-    obtain ⟨r, hr₁, hr₂⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I N
+    obtain ⟨r, hr₁, hr₂⟩ := submodule.exists_mem_and_smul_eq_self_of_fg_of_le_smul I N
       (is_noetherian.noetherian N) _,
-    intro H,
-    exact ⟨⟨-(r - 1), neg_mem hr₁⟩, by simp [sub_smul, hr₂ _ H]⟩,
+    { intro H, exact ⟨⟨r, hr₁⟩, hr₂ _ H⟩ },
     obtain ⟨k, hk⟩ := (I.stable_filtration_stable ⊤).inter_right (I.trivial_filtration N),
     have := hk k (le_refl _),
     rw [hN, hN] at this,

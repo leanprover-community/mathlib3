@@ -32,7 +32,7 @@ noncomputable theory
 
 universe u
 
-open order
+open list
 
 namespace ordinal
 
@@ -86,19 +86,17 @@ by simp [CNF_ne_zero ho, log_eq_zero hb]
 /-- Evaluating the Cantor normal form of an ordinal returns the ordinal. -/
 theorem CNF_foldr (b o : ordinal) : (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
 CNF_rec b (by { rw CNF_zero, refl })
-  (λ o ho IH, by rw [CNF_ne_zero ho, list.foldr_cons, IH, div_add_mod]) o
+  (λ o ho IH, by rw [CNF_ne_zero ho, foldr_cons, IH, div_add_mod]) o
 
 /-- Every exponent in the Cantor normal form `CNF b o` is less or equal to `log b o`. -/
 theorem CNF_fst_le_log {b o : ordinal.{u}} {x : ordinal × ordinal} :
   x ∈ CNF b o → x.1 ≤ log b o :=
 begin
-  refine CNF_rec b _ (λ o ho H, _) o,
-  { rw CNF_zero,
-    exact false.elim },
-  { rw [CNF_ne_zero ho, list.mem_cons_iff],
-    rintro (rfl | h),
-    { exact le_rfl },
-    { exact (H h).trans (log_mono_right _ (mod_opow_log_lt_self b ho).le) } }
+  refine CNF_rec b (by simp) (λ o ho H, _) o,
+  rw [CNF_ne_zero ho, mem_cons_iff],
+  rintro (rfl | h),
+  { exact le_rfl },
+  { exact (H h).trans (log_mono_right _ (mod_opow_log_lt_self b ho).le) } 
 end
 
 /-- Every exponent in the Cantor normal form `CNF b o` is less or equal to `o`. -/
@@ -129,17 +127,16 @@ end
 /-- The exponents of the Cantor normal form are decreasing. -/
 theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
 begin
-  refine CNF_rec b _ (λ o ho IH, _) o,
-  { simp },
-  { cases le_or_lt b 1 with hb hb,
-    { simp [CNF_of_le_one hb ho] },
-    { cases lt_or_le o b with hob hbo,
-      { simp [CNF_of_lt ho hob] },
-      { rw [CNF_ne_zero ho, list.map_cons, list.sorted_cons],
-        refine ⟨λ a H, _, IH⟩,
-        rw list.mem_map at H,
-        rcases H with ⟨⟨a, a'⟩, H, rfl⟩,
-        exact (CNF_fst_le_log H).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } } }
+  refine CNF_rec b (by simp) (λ o ho IH, _) o,
+  cases le_or_lt b 1 with hb hb,
+  { simp [CNF_of_le_one hb ho] },
+  { cases lt_or_le o b with hob hbo,
+    { simp [CNF_of_lt ho hob] },
+    { rw [CNF_ne_zero ho, map_cons, sorted_cons],
+      refine ⟨λ a H, _, IH⟩,
+      rw mem_map at H,
+      rcases H with ⟨⟨a, a'⟩, H, rfl⟩,
+      exact (CNF_fst_le_log H).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } }
 end
 
 end ordinal

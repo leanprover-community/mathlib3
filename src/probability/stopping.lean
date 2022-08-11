@@ -410,16 +410,31 @@ with respect to `f i`.
 Intuitively, the stopping time `τ` describes some stopping rule such that at time
 `i`, we may determine it with the information we have at time `i`. -/
 def is_stopping_time [preorder ι] (f : filtration ι m) (τ : Ω → with_top ι) :=
-∀ i, measurable_set[f i] $ {ω | τ ω ≤ i}
+∀ i, measurable_set[f i] {ω | τ ω ≤ i}
 
-lemma is_stopping_time_const [preorder ι] (f : filtration ι m) (i : ι) :
+lemma is_stopping_time_const [preorder ι] (f : filtration ι m) (i : with_top ι) :
   is_stopping_time f (λ x, i) :=
 λ j, by simp only [measurable_set.const]
+
 
 section measurable_set
 
 section preorder
 variables [preorder ι] {f : filtration ι m} {τ : Ω → with_top ι}
+
+lemma is_stopping_time_coe {τ : Ω → ι} (hτ : ∀ i, measurable_set[f i] {ω | τ ω ≤ i}) :
+  is_stopping_time f (λ ω, τ ω) :=
+begin
+  intro i,
+  simp only [with_top.coe_le_coe, hτ i],
+end
+
+lemma of_is_stopping_time_coe {τ : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) (i : ι):
+  measurable_set[f i] {ω | τ ω ≤ i} :=
+begin
+  specialize hτ i,
+  simpa using hτ,
+end
 
 protected lemma is_stopping_time.measurable_set_le (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω ≤ i} :=
@@ -462,6 +477,8 @@ instance [preorder ι] : topological_space (with_top ι) :=
 preorder.topology _
 
 instance [preorder ι] : order_topology (with_top ι) := ⟨rfl⟩
+
+instance [encodable ι] : encodable (with_top ι) := option.encodable
 
 lemma with_top.image_coe_eq_of_bdd_above (p : with_top ι → Prop) (hp : ∀ i, p i → i ≠ ⊤) :
   (coe : ι → with_top ι) '' {i | p i} = {i | p i} :=
@@ -733,8 +750,8 @@ protected lemma min_const [linear_order ι] {f : filtration ι m} {τ : Ω → w
   is_stopping_time f (λ ω, min (τ ω) i) :=
 hτ.min (is_stopping_time_const f i)
 
-lemma add_const [add_group ι] [preorder ι] [covariant_class ι ι (function.swap (+)) (≤)]
-  [covariant_class ι ι (+) (≤)]
+lemma add_const [add_group ι] [preorder ι]
+  [covariant_class ι ι (function.swap (+)) (≤)] [covariant_class ι ι (+) (≤)]
   {f : filtration ι m} {τ : Ω → with_top ι} (hτ : is_stopping_time f τ) {i : ι} (hi : 0 ≤ i) :
   is_stopping_time f (λ ω, τ ω + i) :=
 begin
@@ -752,26 +769,39 @@ begin
     rwa with_top.coe_le_coe at h }
 end
 
-#exit
 lemma add_const_nat
   {f : filtration ℕ m} {τ : Ω → with_top ℕ} (hτ : is_stopping_time f τ) {i : ℕ} :
   is_stopping_time f (λ ω, τ ω + i) :=
 begin
   refine is_stopping_time_of_measurable_set_eq (λ j, _),
   by_cases hij : i ≤ j,
-  { simp_rw [eq_comm, ← nat.sub_eq_iff_eq_add hij, eq_comm],
-    exact f.mono (j.sub_le i) _ (hτ.measurable_set_eq (j - i)) },
+  { rw (_ : {ω | τ ω + i = j} = {ω | τ ω = j - i}),
+    { exact f.mono (j.sub_le i) _ (hτ.measurable_set_eq (j - i)) },
+    { ext ω,
+      by_cases hτ : τ ω = ⊤,
+      { simp_rw [set.mem_set_of_eq, hτ, ← with_top.coe_sub,
+          with_top.top_add, with_top.top_ne_nat] },
+      { lift τ ω to ℕ using hτ with t ht,
+        simp only [← ht, nat.cast_with_bot, set.mem_set_of_eq],
+        norm_cast,
+        rw [eq_comm, ← nat.sub_eq_iff_eq_add hij, eq_comm] } } },
   { rw not_le at hij,
     convert measurable_set.empty,
     ext ω,
     simp only [set.mem_empty_eq, iff_false],
     rintro (hx : τ ω + i = j),
-    linarith },
+    by_cases hτ : τ ω = ⊤,
+    { rw [hτ, with_top.top_add] at hx,
+      exact with_top.coe_ne_top hx.symm },
+    { lift τ ω to ℕ using hτ with t ht,
+      norm_cast at hx,
+      linarith } }
 end
 
 -- generalize to certain encodable type?
 lemma add
-  {f : filtration ℕ m} {τ π : Ω → ℕ} (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
+  {f : filtration ℕ m} {τ π : Ω → with_top ℕ}
+  (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (τ + π) :=
 begin
   intro i,
@@ -780,14 +810,21 @@ begin
       (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
   ext ω,
   simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],
-  refine ⟨λ h, ⟨π ω, by linarith, rfl, h⟩, _⟩,
-  rintro ⟨j, hj, rfl, h⟩,
-  assumption
+  refine ⟨λ h, _, _⟩,
+  have hπ : π ω ≠ ⊤,
+  { intro hπ,
+    rw [hπ, with_top.add_top, top_le_iff] at h,
+    exact with_top.coe_ne_top h },
+  { exact ⟨(π ω).untop hπ, with_top.untop_le_coe_of_le
+      ((le_add_of_nonneg_left (zero_le _)).trans h),
+      (with_top.coe_untop _ _).symm, (with_top.coe_untop (π ω) hπ).symm ▸ h⟩ },
+  { rintro ⟨j, hle, hjeq, hadd⟩,
+    rwa hjeq }
 end
 
 section preorder
 
-variables [preorder ι] {f : filtration ι m} {τ π : Ω → ι}
+variables [preorder ι] {f : filtration ι m} {τ π : Ω → with_top ι}
 
 /-- The associated σ-algebra with a stopping time. -/
 protected def measurable_space (hτ : is_stopping_time f τ) : measurable_space Ω :=
@@ -829,12 +866,13 @@ begin
     exact le_trans (hle _) hle' },
 end
 
-lemma measurable_space_le_of_encodable [encodable ι] (hτ : is_stopping_time f τ) :
-  hτ.measurable_space ≤ m :=
+lemma measurable_space_le_of_encodable [encodable ι] {τ : Ω → ι}
+  (hτ : is_stopping_time f (λ ω, τ ω)) : hτ.measurable_space ≤ m :=
 begin
   intros s hs,
-  change ∀ i, measurable_set[f i] (s ∩ {ω | τ ω ≤ i}) at hs,
-  rw (_ : s = ⋃ i, s ∩ {ω | τ ω ≤ i}),
+  change ∀ i, measurable_set[f i] (s ∩ {ω | (τ ω : with_top ι) ≤ i}) at hs,
+  simp_rw [with_top.coe_le_coe] at hs,
+  rw (_ : s = ⋃ (i : ι), s ∩ {ω | τ ω ≤ i}),
   { exact measurable_set.Union (λ i, f.le i _ (hs i)) },
   { ext ω, split; rw set.mem_Union,
     { exact λ hx, ⟨τ ω, hx, le_rfl⟩ },
@@ -843,11 +881,12 @@ begin
 end
 
 lemma measurable_space_le' [is_countably_generated (at_top : filter ι)] [(at_top : filter ι).ne_bot]
-  (hτ : is_stopping_time f τ) :
+  {τ : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) :
   hτ.measurable_space ≤ m :=
 begin
   intros s hs,
-  change ∀ i, measurable_set[f i] (s ∩ {ω | τ ω ≤ i}) at hs,
+  change ∀ i, measurable_set[f i] (s ∩ {ω | (τ ω : with_top ι) ≤ i}) at hs,
+  simp_rw [with_top.coe_le_coe] at hs,
   obtain ⟨seq : ℕ → ι, h_seq_tendsto⟩ := at_top.exists_seq_tendsto,
   rw (_ : s = ⋃ n, s ∩ {ω | τ ω ≤ seq n}),
   { exact measurable_set.Union (λ i, f.le (seq i) _ (hs (seq i))), },
@@ -862,7 +901,7 @@ begin
 end
 
 lemma measurable_space_le {ι} [semilattice_sup ι] {f : filtration ι m} {τ : Ω → ι}
-  [is_countably_generated (at_top : filter ι)] (hτ : is_stopping_time f τ) :
+  [is_countably_generated (at_top : filter ι)] (hτ : is_stopping_time f (λ ω, τ ω)) :
   hτ.measurable_space ≤ m :=
 begin
   casesI is_empty_or_nonempty ι,
@@ -874,11 +913,11 @@ begin
   exact measurable_space_le' hτ,
 end
 
-example {f : filtration ℕ m} {τ : Ω → ℕ} (hτ : is_stopping_time f τ) : hτ.measurable_space ≤ m :=
-hτ.measurable_space_le
+-- example {f : filtration ℕ m} {τ : Ω → ℕ} (hτ : is_stopping_time f τ) : hτ.measurable_space ≤ m :=
+-- hτ.measurable_space_le
 
-example {f : filtration ℝ m} {τ : Ω → ℝ} (hτ : is_stopping_time f τ) : hτ.measurable_space ≤ m :=
-hτ.measurable_space_le
+-- example {f : filtration ℝ m} {τ : Ω → ℝ} (hτ : is_stopping_time f τ) : hτ.measurable_space ≤ m :=
+-- hτ.measurable_space_le
 
 @[simp] lemma measurable_space_const (f : filtration ι m) (i : ι) :
   (is_stopping_time_const f i).measurable_space = f i :=
@@ -891,16 +930,18 @@ begin
     simpa only [le_refl, set.set_of_true, set.inter_univ] using h, },
   { intro j,
     by_cases hij : i ≤ j,
-    { simp only [hij, set.set_of_true, set.inter_univ],
+    { simp only [with_top.coe_le_coe, hij, set.set_of_true, set.inter_univ],
       exact f.mono hij _ h, },
-    { simp only [hij, set.set_of_false, set.inter_empty, measurable_set.empty], }, },
+    { simp only [with_top.coe_le_coe, hij, set.set_of_false, set.inter_empty,
+        measurable_set.empty], }, },
 end
 
 lemma measurable_set_inter_eq_iff (hτ : is_stopping_time f τ) (s : set Ω) (i : ι) :
   measurable_set[hτ.measurable_space] (s ∩ {ω | τ ω = i})
     ↔ measurable_set[f i] (s ∩ {ω | τ ω = i}) :=
 begin
-  have : ∀ j, ({ω : Ω | τ ω = i} ∩ {ω : Ω | τ ω ≤ j}) = {ω : Ω | τ ω = i} ∩ {ω | i ≤ j},
+  have : ∀ j, ({ω : Ω | τ ω = i} ∩ {ω : Ω | τ ω ≤ j}) =
+    {ω : Ω | τ ω = i} ∩ {ω | ↑i ≤ j},
   { intro j,
     ext1 ω,
     simp only [set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
@@ -912,7 +953,7 @@ begin
   { intro j,
     rw [set.inter_assoc, this],
     by_cases hij : i ≤ j,
-    { simp only [hij, set.set_of_true, set.inter_univ],
+    { simp only [with_top.coe_le_coe, hij, set.set_of_true, set.inter_univ],
       exact f.mono hij _ h, },
     { simp [hij], }, },
 end
@@ -921,7 +962,7 @@ lemma measurable_space_le_of_le_const (hτ : is_stopping_time f τ) {i : ι} (h�
   hτ.measurable_space ≤ f i :=
 (measurable_space_mono hτ _ hτ_le).trans (measurable_space_const _ _).le
 
-lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ ω, i ≤ τ ω) :
+lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ ω, ↑i ≤ τ ω) :
   f i ≤ hτ.measurable_space :=
 (measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
 
@@ -930,7 +971,7 @@ end preorder
 instance sigma_finite_stopping_time {ι} [semilattice_sup ι] [order_bot ι]
   [(filter.at_top : filter ι).is_countably_generated]
   {μ : measure Ω} {f : filtration ι m} {τ : Ω → ι}
-  [sigma_finite_filtration μ f] (hτ : is_stopping_time f τ) :
+  [sigma_finite_filtration μ f] (hτ : is_stopping_time f (λ ω, τ ω)) :
   sigma_finite (μ.trim hτ.measurable_space_le) :=
 begin
   refine sigma_finite_trim_mono hτ.measurable_space_le _,
@@ -941,26 +982,31 @@ end
 
 section linear_order
 
-variables [linear_order ι] {f : filtration ι m} {τ π : Ω → ι}
+variables [linear_order ι] {f : filtration ι m} {τ π : Ω → with_top ι}
 
-protected lemma measurable_set_le' (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_le' (hτ : is_stopping_time f τ) (i : with_top ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω ≤ i} :=
 begin
+  rcases i with rfl | i,
+  { simp only [with_top.le_none, set.set_of_true, measurable_set.univ] },
   intro j,
-  have : {ω : Ω | τ ω ≤ i} ∩ {ω : Ω | τ ω ≤ j} = {ω : Ω | τ ω ≤ min i j},
-  { ext1 ω, simp only [set.mem_inter_eq, set.mem_set_of_eq, le_min_iff], },
-  rw this,
+  have : {ω : Ω | τ ω ≤ i} ∩ {ω : Ω | τ ω ≤ j} = {ω : Ω | τ ω ≤ ↑(min i j)},
+  { ext1 ω,
+    simp only [set.mem_inter_eq, set.mem_set_of_eq, with_top.coe_min, le_min_iff] },
+  rw [with_top.some_eq_coe, this],
   exact f.mono (min_le_right i j) _ (hτ _),
 end
 
-protected lemma measurable_set_gt' (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_gt' (hτ : is_stopping_time f τ) (i : with_top ι) :
   measurable_set[hτ.measurable_space] {ω | i < τ ω} :=
 begin
-  have : {ω : Ω | i < τ ω} = {ω : Ω | τ ω ≤ i}ᶜ, by { ext1 ω, simp, },
+  have : {ω : Ω | i < τ ω} = {ω : Ω | τ ω ≤ i}ᶜ, by { ext1 ω, simp },
   rw this,
   exact (hτ.measurable_set_le' i).compl,
 end
 
+-- `i` cannot be `⊤` in this case as `is_stopping_time` doesn't give us any information about
+-- when `τ = ⊤`
 protected lemma measurable_set_eq' [topological_space ι] [order_topology ι]
   [first_countable_topology ι]
   (hτ : is_stopping_time f τ) (i : ι) :
@@ -973,12 +1019,12 @@ end
 protected lemma measurable_set_ge' [topological_space ι] [order_topology ι]
   [first_countable_topology ι]
   (hτ : is_stopping_time f τ) (i : ι) :
-  measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
+  measurable_set[hτ.measurable_space] {ω | ↑i ≤ τ ω} :=
 begin
-  have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
+  have : {ω | ↑i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | ↑i < τ ω},
   { ext1 ω,
     simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
-    rw [@eq_comm _ i, or_comm], },
+    rw [@eq_comm _ ↑i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq' i).union (hτ.measurable_set_gt' i),
 end
@@ -1011,18 +1057,18 @@ hτ.measurable_set_eq_of_countable' (set.to_countable _) i
 
 protected lemma measurable_set_ge_of_countable'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
-  measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
+  measurable_set[hτ.measurable_space] {ω | ↑i ≤ τ ω} :=
 begin
-  have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
+  have : {ω | ↑i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | ↑i < τ ω},
   { ext1 ω,
     simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
-    rw [@eq_comm _ i, or_comm], },
+    rw [@eq_comm _ ↑i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq_of_countable' h_countable i).union (hτ.measurable_set_gt' i),
 end
 
 protected lemma measurable_set_ge_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
-  measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
+  measurable_set[hτ.measurable_space] {ω | ↑i ≤ τ ω} :=
 hτ.measurable_set_ge_of_countable' (set.to_countable _) i
 
 protected lemma measurable_set_lt_of_countable'
@@ -1040,14 +1086,15 @@ protected lemma measurable_set_lt_of_encodable' [encodable ι] (hτ : is_stoppin
   measurable_set[hτ.measurable_space] {ω | τ ω < i} :=
 hτ.measurable_set_lt_of_countable' (set.to_countable _) i
 
-protected lemma measurable_space_le_of_countable (hτ : is_stopping_time f τ)
+protected lemma measurable_space_le_of_countable {τ : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω))
   (h_countable : (set.range τ).countable) :
   hτ.measurable_space ≤ m :=
 begin
   intros s hs,
-  change ∀ i, measurable_set[f i] (s ∩ {ω | τ ω ≤ i}) at hs,
+  change ∀ i, measurable_set[f i] (s ∩ {ω | (τ ω : with_top ι) ≤ i}) at hs,
   rw (_ : s = ⋃ (i ∈ set.range τ), s ∩ {ω | τ ω ≤ i}),
-  { exact measurable_set.bUnion h_countable (λ i _, f.le i _ (hs i)), },
+  { simp_rw [with_top.coe_le_coe] at hs,
+    exact measurable_set.bUnion h_countable (λ i _, f.le i _ (hs i)), },
   { ext ω,
     split; rw set.mem_Union,
     { exact λ hx, ⟨τ ω, by simpa using hx⟩,},
@@ -1061,10 +1108,15 @@ end countable
 
 protected lemma measurable [topological_space ι] [measurable_space ι]
   [borel_space ι] [order_topology ι] [second_countable_topology ι]
-  (hτ : is_stopping_time f τ) :
+  {τ : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) :
   measurable[hτ.measurable_space] τ :=
-@measurable_of_Iic ι Ω _ _ _ hτ.measurable_space _ _ _ _ (λ i, hτ.measurable_set_le' i)
+@measurable_of_Iic ι Ω _ _ _ hτ.measurable_space _ _ _ τ (λ i,
+begin
+  have := hτ.measurable_set_le' i,
+  simpa using this,
+end)
 
+#exit
 protected lemma measurable_of_le [topological_space ι] [measurable_space ι]
   [borel_space ι] [order_topology ι] [second_countable_topology ι]
   (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ ω, τ ω ≤ i) :

@@ -818,7 +818,7 @@ begin
 end
 
 /-- The inner dual of inner dual of a non-empty, closed convex cone is itself.  -/
-theorem inner_dual_of_inner_dual_eq_self
+theorem inner_dual_cone_of_inner_dual_cone_eq_self
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
   ((K : set H).inner_dual_cone : set H).inner_dual_cone = K := convex_cone.ext $ λ x, iff.intro
 begin

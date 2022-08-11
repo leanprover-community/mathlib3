@@ -1045,7 +1045,7 @@ end
   (s.image f).min' h = f (s.min' ((nonempty.image_iff f).mp h)) :=
 begin
   convert @max'_image αᵒᵈ βᵒᵈ _ _ (λ a : αᵒᵈ, to_dual (f (of_dual a))) (by simpa) _ _; convert h,
-  apply eq_iff_iff.mpr (nonempty.image_iff _).symm,
+  rw nonempty.image_iff,
 end
 
 lemma max_eq_max' {s : finset α} (hs : s.nonempty) : s.max = s.max' hs :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
+import data.finsupp.multiset
 import order.bounded
 import set_theory.ordinal.principal
 import tactic.linarith
@@ -780,13 +781,6 @@ begin
     apply le_max_right }
 end
 
-theorem mk_multiset_eq_max_mk_aleph_0 (α : Type u) [nonempty α] : #(multiset α) = max (#α) ℵ₀ :=
-le_antisymm ((mk_le_of_surjective $ surjective_quot_mk _).trans (mk_list_eq_max_mk_aleph_0 α).le) $
-  max_le ⟨⟨_, λ _ _, multiset.singleton_inj.1⟩⟩
-    ⟨⟨_, (multiset.repeat_injective $ classical.arbitrary α).comp ulift.down_injective⟩⟩
-/- could be proven using `multiset.to_finsupp` and `mk_finsupp_nat` below,
-  but data.finsupp.multiset isn't imported. -/
-
 @[simp] theorem mk_finset_of_infinite (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
@@ -812,14 +806,29 @@ lemma mk_finsupp_of_infinite (α β : Type u) [infinite α] [has_zero β]
   [nontrivial β] : #(α →₀ β) = max (#α) (#β) :=
 by simp
 
-@[simp] lemma mk_finsupp_nat (α : Type u) [nonempty α] : #(α →₀ ℕ) = max (#α) ℵ₀ :=
+@[simp] lemma mk_finsupp_lift_of_infinite' (α : Type u) (β : Type v) [nonempty α]
+  [has_zero β] [infinite β] : #(α →₀ β) = max (lift.{v} (#α)) (lift.{u} (#β)) :=
 begin
   casesI fintype_or_infinite α,
   { rw mk_finsupp_lift_of_fintype,
-    rw [max_eq_right mk_le_aleph_0, mk_nat, lift_aleph_0, power_nat_eq le_rfl],
-    exacts [fintype.card_pos, fintype.to_encodable α] },
-  { rw [mk_finsupp_lift_of_infinite, lift_uzero], refl },
+    have : ℵ₀ ≤ (#β).lift := aleph_0_le_lift.2 (aleph_0_le_mk β),
+    rw [max_eq_right (le_trans _ this), power_nat_eq this],
+    exacts [fintype.card_pos, lift_le_aleph_0.2 (lt_aleph_0_of_finite _).le] },
+  { apply mk_finsupp_lift_of_infinite },
 end
+
+lemma mk_finsupp_of_infinite' (α β : Type u) [nonempty α] [has_zero β] [infinite β] :
+  #(α →₀ β) = max (#α) (#β) := by simp
+
+lemma mk_finsupp_nat (α : Type u) [nonempty α] : #(α →₀ ℕ) = max (#α) ℵ₀ := by simp
+
+@[simp] lemma mk_multiset_of_nonempty (α : Type u) [nonempty α] : #(multiset α) = max (#α) ℵ₀ :=
+multiset.to_finsupp.to_equiv.cardinal_eq.trans (mk_finsupp_nat α)
+
+lemma mk_multiset_of_infinite (α : Type u) [infinite α] : #(multiset α) = #α := by simp
+
+@[simp] lemma mk_multiset_of_subsingleton (α : Type u) [is_empty α] : #(multiset α) = 1 :=
+multiset.to_finsupp.to_equiv.cardinal_eq.trans (by simp)
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // #t ≤ c} ≤ #α ^ c :=

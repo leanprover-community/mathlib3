@@ -1,10 +1,10 @@
 /-
-Copyright (c) 2021 Chris Hughes. All rights reserved.
+Copyright (c) 2021 Chris Hughes, Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Junyan Xu
 -/
-import set_theory.cardinal.ordinal
 import data.polynomial.basic
+import set_theory.cardinal.ordinal
 /-!
 # Cardinality of Polynomial Ring
 
@@ -18,15 +18,14 @@ open cardinal
 
 namespace polynomial
 
-lemma cardinal_mk_eq_max {R : Type u} [semiring R] [nontrivial R] : #R[X] = max (#R) ℵ₀ :=
+@[simp] lemma cardinal_mk_eq_max {R : Type u} [semiring R] [nontrivial R] : #R[X] = max (#R) ℵ₀ :=
 (to_finsupp_iso R).to_equiv.cardinal_eq.trans $
   by { rw [add_monoid_algebra, mk_finsupp_lift_of_infinite, lift_uzero, max_comm], refl }
 
 lemma cardinal_mk_le_max {R : Type u} [semiring R] : #R[X] ≤ max (#R) ℵ₀ :=
 begin
   casesI subsingleton_or_nontrivial R,
-  { exact (to_finsupp_iso R).to_equiv.cardinal_eq.trans_le ((le_one_iff_subsingleton.2
-      finsupp.coe_fn_injective.subsingleton).trans $ le_max_of_le_right one_le_aleph_0) },
+  { exact (@mk_eq_one _ polynomial.unique).trans_le (le_max_of_le_right one_le_aleph_0) },
   { exact cardinal_mk_eq_max.le },
 end
 

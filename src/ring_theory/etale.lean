@@ -7,6 +7,7 @@ import ring_theory.ideal.operations
 import ring_theory.nilpotent
 import ring_theory.tensor_product
 import linear_algebra.isomorphisms
+import ring_theory.ideal.cotangent
 
 /-!
 

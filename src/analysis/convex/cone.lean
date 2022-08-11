@@ -813,7 +813,7 @@ theorem inner_dual_cone_of_inner_dual_cone_eq_self
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
   ((K : set H).inner_dual_cone : set H).inner_dual_cone = K := convex_cone.ext $ λ x, iff.intro
 begin
-  rw [mem_inner_dual_cone, ← convex_cone.coe_mem],
+  rw [mem_inner_dual_cone, ← set_like.coe_mem],
   contrapose!,
   rintro hx,
   exact hyperplane_separation_point_nonempty_closed_convex_cone ne hc hx,

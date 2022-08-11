@@ -75,7 +75,7 @@ namespace construction
 /-- If `W : morphism_property C`, `loc_quiver W` is a quiver with the same objects
 as `C`, and whose morphisms are those in `C` and placeholders for formal
 inverses of the morphisms in `W`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure loc_quiver (W : morphism_property C) := (obj : C)
 
 instance : quiver (loc_quiver W) :=
@@ -115,7 +115,7 @@ open localization.construction
 
 /-- The localized category obtained by formally inverting the morphisms
 in `W : morphism_property C` -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def localization := category_theory.quotient (localization.construction.relations W)
 
 /-- The obvious functor `C ⥤ W.localization` -/

@@ -575,8 +575,8 @@ variables {R A} [is_dedekind_domain A] [algebra A K] [is_fraction_ring A K]
 open fractional_ideal
 open ideal
 
-noncomputable instance fractional_ideal.comm_group_with_zero :
-  comm_group_with_zero (fractional_ideal A⁰ K) :=
+noncomputable instance fractional_ideal.semifield :
+  semifield (fractional_ideal A⁰ K) :=
 { inv := λ I, I⁻¹,
   inv_zero := inv_zero' _,
   div := (/),
@@ -586,11 +586,23 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
 
-noncomputable instance ideal.cancel_comm_monoid_with_zero :
+/-- Fractional ideals have cancellative multiplication in a Dedekind domain.
+
+Although this instance is a direct consequence of the instance
+`fractional_ideal.comm_group_with_zero`, we define this instance to provide
+a computable alternative.
+-/
+instance fractional_ideal.cancel_comm_monoid_with_zero :
+  cancel_comm_monoid_with_zero (fractional_ideal A⁰ K) :=
+{ .. fractional_ideal.comm_semiring, -- Project out the computable fields first.
+  .. (by apply_instance : cancel_comm_monoid_with_zero (fractional_ideal A⁰ K)) }
+
+instance ideal.cancel_comm_monoid_with_zero :
   cancel_comm_monoid_with_zero (ideal A) :=
-function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
-  coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
-  (ring_hom.map_pow _)
+{ .. ideal.comm_semiring,
+  .. function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+    coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
+    (ring_hom.map_pow _) }
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=
@@ -645,7 +657,7 @@ instance ideal.unique_factorization_monoid :
    prime.irreducible⟩,
   .. ideal.wf_dvd_monoid }
 
-noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
+instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
 normalization_monoid_of_unique_units
 
 @[simp] lemma ideal.dvd_span_singleton {I : ideal A} {x : A} :
@@ -831,7 +843,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[ext, nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_nonempty_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)

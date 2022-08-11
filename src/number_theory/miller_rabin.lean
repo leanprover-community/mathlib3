@@ -12,6 +12,7 @@ import data.zmod.basic
 import field_theory.finite.basic
 import data.fintype.basic
 import algebra.big_operators.intervals
+import algebra.is_prime_pow
 
 /-!
 # Lemmas and definitions that will be used in proving the Miller-Rabin primality test.
@@ -145,13 +146,13 @@ begin
   rw tsub_add_cancel_of_le h2,
 end
 
-lemma coprime_add_one (b : ℕ) : (b + 1).coprime b :=
+lemma coprime_succ (b : ℕ) : (b + 1).coprime b :=
 by simp [nat.coprime_self_add_left]
 
 lemma coprime_self_sub_one (a : ℕ) (ha : 0 < a) : a.coprime (a - 1) :=
 begin
   nth_rewrite_lhs 0 ←tsub_add_cancel_of_le (succ_le_iff.2 ha),
-  apply coprime_add_one,
+  apply coprime_succ,
 end
 
 theorem nat.sq_sub_sq' (a b : ℕ) : a ^ 2 - b ^ 2 = (a - b) * (a + b) :=

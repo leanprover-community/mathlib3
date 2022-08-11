@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.pi.lex
-import data.finsupp.basic
+import data.finsupp.order
 
 /-!
 # Lexicographic order on finitely supported functions
@@ -15,6 +15,24 @@ This file defines the lexicographic order on `finsupp`.
 namespace finsupp
 
 variables {α N : Type*} [has_zero N]
+
+/-- The lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
+  and `N` is ordered by `s`. -/
+protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
+∃ i, (∀ j, r j i → x j = y j) ∧ s (x i) (y i)
+
+instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) := ⟨finsupp.lex (<) (<)⟩
+
+instance lex.is_strict_order [linear_order α] [partial_order N] :
+  is_strict_order (lex (α →₀ N)) (<) :=
+{ irrefl := λ a ⟨_, _, h⟩, lt_irrefl _ h,
+  trans := begin
+      rintro a b c ⟨N₁, lt_N₁, a_lt_b⟩ ⟨N₂, lt_N₂, b_lt_c⟩,
+      rcases lt_trichotomy N₁ N₂ with (H|rfl|H),
+      exacts [⟨N₁, λ j hj, (lt_N₁ _ hj).trans (lt_N₂ _ $ hj.trans H), lt_N₂ _ H ▸ a_lt_b⟩,
+        ⟨N₁, λ j hj, (lt_N₁ _ hj).trans (lt_N₂ _ hj), a_lt_b.trans b_lt_c⟩,
+        ⟨N₂, λ j hj, (lt_N₁ _ (hj.trans H)).trans (lt_N₂ _ hj), (lt_N₁ _ H).symm ▸ b_lt_c⟩]
+    end }
 
 lemma filter_ne_eq_empty_iff [decidable_eq α] [decidable_eq N] {f g : α →₀ N} :
   (f.support ∪ g.support).filter (λ a, f a ≠ g a) = ∅ ↔ f = g :=
@@ -59,5 +77,17 @@ noncomputable instance lex.linear_order [linear_order N] : linear_order (lex (α
     end,
   decidable_le := by { classical, apply_instance },
   ..lex.partial_order }
+
+lemma lex.le_of_forall_le [linear_order α] [linear_order N]
+  {a b : lex (α →₀ N)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=
+le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
+
+lemma lex.le_of_of_lex_le [linear_order N]
+  {a b : lex (α →₀ N)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
+lex.le_of_forall_le h
+
+lemma to_lex_monotone [linear_order N] :
+  monotone (@to_lex (α →₀ N)) :=
+λ _ _, lex.le_of_forall_le
 
 end finsupp

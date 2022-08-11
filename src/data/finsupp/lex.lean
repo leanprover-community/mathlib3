@@ -7,9 +7,9 @@ import data.pi.lex
 import data.finsupp.basic
 
 /-!
-# Lexicographic order on finsupps
+# Lexicographic order on finitely supported functions
 
-This file defines the lexicographic order on finsupps.
+This file defines the lexicographic order on `finsupp`.
 -/
 
 lemma ne.or_ne_of_ne {α} {a b : α} (c : α) (ab : a ≠ b) :
@@ -52,9 +52,9 @@ noncomputable def lex [linear_order N] :
 { le_total := λ f g, begin
   let dfug : finset α := (f.support ∪ g.support).filter (λ a, of_lex f a ≠ of_lex g a),
   by_cases de : dfug = ∅,
-  { exact or.inl (le_of_eq (finsupp.filter_ne_eq_empty_iff.mp de)) },
+  { exact or.inl (finsupp.filter_ne_eq_empty_iff.mp de).le },
   { rw [← ne.def, ← finset.nonempty_iff_ne_empty] at de,
-    by_cases mf : of_lex f (dfug.min' de) ≤ of_lex g (dfug.min' de),
+    cases le_or_lt (of_lex f (dfug.min' de)) (of_lex g (dfug.min' de)) with mf mf,
     { refine or.inl (or.inr _),
       rcases finset.mem_filter.mp (finset.min'_mem _ de) with ⟨-, h⟩,
       refine ⟨_, λ j hj, _, lt_of_le_of_ne mf h⟩, clear h,
@@ -71,8 +71,6 @@ noncomputable def lex [linear_order N] :
         simp only [js] } } }
     end,
   decidable_le := infer_instance,
-  decidable_eq := infer_instance,
-  decidable_lt := infer_instance,
-  ..(infer_instance : partial_order (lex (α →₀ N))) }
+  ..lex.partial_order }
 
 end finsupp

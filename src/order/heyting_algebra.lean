@@ -17,11 +17,15 @@ This file defines Heyting algebras.
 * `heyting_algebra`
 * `coheyting_algebra`
 * `biheyting_algebra`
+
+## References
+
+* [Francis Borceux, *Handbook of Categorical Algebra III*][borceux-vol3]
 -/
 
 set_option old_structure_cmd true
 
-open order_dual
+open function order_dual
 
 universes u
 variables {ι α β : Type*}
@@ -579,6 +583,69 @@ def linear_order.to_biheyting_algebra [linear_order α] [bounded_order α] : bih
   end,
   top_sdiff := λ a, if_congr top_le_iff rfl rfl,
   ..linear_order.to_lattice, ..‹bounded_order α› }
+
+section lift
+
+/-- Pullback a `generalized_heyting_algebra` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.generalized_heyting_algebra [has_sup α] [has_inf α] [has_top α]
+  [has_himp α] [generalized_heyting_algebra β] (f : α → β) (hf : injective f)
+  (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
+  (map_top : f ⊤ = ⊤) (map_himp : ∀ a b, f (a ⇨ b) = f a ⇨ f b) :
+  generalized_heyting_algebra α :=
+{ le_top := λ a, by { change f _ ≤ _, rw map_top, exact le_top },
+  le_himp_iff := λ a b c, by { change f _ ≤ _ ↔ f _ ≤ _, erw [map_himp, map_inf, le_himp_iff] },
+  ..hf.lattice f map_sup map_inf, ..‹has_top α›, ..‹has_himp α› }
+
+/-- Pullback a `generalized_coheyting_algebra` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.generalized_coheyting_algebra [has_sup α] [has_inf α] [has_bot α]
+  [has_sdiff α] [generalized_coheyting_algebra β] (f : α → β) (hf : injective f)
+  (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
+  (map_bot : f ⊥ = ⊥) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
+  generalized_coheyting_algebra α :=
+{ bot_le := λ a, by { change f _ ≤ _, rw map_bot, exact bot_le },
+  sdiff_le_iff := λ a b c, by { change f _ ≤ _ ↔ f _ ≤ _, erw [map_sdiff, map_sup, sdiff_le_iff] },
+  ..hf.lattice f map_sup map_inf, ..‹has_bot α›, ..‹has_sdiff α› }
+
+/-- Pullback a `heyting_algebra` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.heyting_algebra [has_sup α] [has_inf α] [has_top α] [has_bot α]
+  [has_compl α] [has_himp α] [heyting_algebra β] (f : α → β) (hf : injective f)
+  (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
+  (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) (map_compl : ∀ a, f aᶜ = (f a)ᶜ)
+  (map_himp : ∀ a b, f (a ⇨ b) = f a ⇨ f b) :
+  heyting_algebra α :=
+{ bot_le := λ a, by { change f _ ≤ _, rw map_bot, exact bot_le },
+  himp_bot := λ a, hf $ by erw [map_himp, map_compl, map_bot, himp_bot],
+  ..hf.generalized_heyting_algebra f map_sup map_inf map_top map_himp,
+  ..‹has_bot α›, ..‹has_compl α› }
+
+/-- Pullback a `coheyting_algebra` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.coheyting_algebra [has_sup α] [has_inf α] [has_top α] [has_bot α]
+  [has_hnot α] [has_sdiff α] [coheyting_algebra β] (f : α → β) (hf : injective f)
+  (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
+  (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) (map_hnot : ∀ a, f ￢a = ￢f a)
+  (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
+  coheyting_algebra α :=
+{ le_top := λ a, by { change f _ ≤ _, rw map_top, exact le_top },
+  top_sdiff := λ a, hf $ by erw [map_sdiff, map_hnot, map_top, top_sdiff'],
+  ..hf.generalized_coheyting_algebra f map_sup map_inf map_bot map_sdiff, ..‹has_top α›, ..‹has_hnot α› }
+
+/-- Pullback a `biheyting_algebra` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.biheyting_algebra [has_sup α] [has_inf α] [has_top α] [has_bot α]
+  [has_compl α] [has_hnot α] [has_himp α] [has_sdiff α] [biheyting_algebra β] (f : α → β)
+  (hf : injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥)
+  (map_compl : ∀ a, f aᶜ = (f a)ᶜ) (map_hnot : ∀ a, f ￢a = ￢f a)
+  (map_himp : ∀ a b, f (a ⇨ b) = f a ⇨ f b) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
+  biheyting_algebra α :=
+{ ..hf.heyting_algebra f map_sup map_inf map_top map_bot map_compl map_himp,
+  ..hf.coheyting_algebra f map_sup map_inf map_top map_bot map_hnot map_sdiff }
+
+end lift
 
 namespace punit
 variables (a b : punit.{u+1})

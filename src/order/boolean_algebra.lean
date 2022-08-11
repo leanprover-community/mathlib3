@@ -728,9 +728,7 @@ protected def function.injective.generalized_boolean_algebra [has_sup α] [has_i
   (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
   (map_bot : f ⊥ = ⊥) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
   generalized_boolean_algebra α :=
-{ sdiff := (\),
-  bot := ⊥,
-  sup_inf_sdiff := λ a b, hf $ (map_sup _ _).trans begin
+{ sup_inf_sdiff := λ a b, hf $ (map_sup _ _).trans begin
     rw map_sdiff,
     convert sup_inf_sdiff _ _,
     exact map_inf _ _,
@@ -740,9 +738,8 @@ protected def function.injective.generalized_boolean_algebra [has_sup α] [has_i
     convert inf_inf_sdiff _ _,
     exact map_inf _ _,
   end,
-  le_sup_inf := λ a b c, (map_inf _ _).le.trans $ by { convert le_sup_inf, exact map_sup _ _,
-    exact map_sup _ _, convert map_sup _ _, exact (map_inf _ _).symm },
-  ..hf.lattice f map_sup map_inf }
+  ..hf.generalized_coheyting_algebra f map_sup map_inf map_bot map_sdiff,
+  ..hf.distrib_lattice f map_sup map_inf }
 
 /-- Pullback a `boolean_algebra` along an injection. -/
 @[reducible] -- See note [reducible non-instances]

@@ -1324,10 +1324,15 @@ section liminf
 
 variables [measurable_space E] [opens_measurable_space E] {R : ℝ≥0}
 
-lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0)
+lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞}
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
   ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
 begin
+  by_cases hp : p = 0,
+  { simp only [hp, ennreal.zero_to_real, ennreal.rpow_zero],
+    refine eventually_of_forall (λ x, _),
+    rw liminf_const (1 : ℝ≥0∞),
+    exacts [ennreal.one_lt_top, at_top_ne_bot] },
   by_cases hp' : p = ∞,
   { simp only [hp', ennreal.top_to_real, ennreal.rpow_zero],
     refine eventually_of_forall (λ x, _),
@@ -1359,7 +1364,7 @@ begin
     filter_upwards [this] with x hx using lt_of_le_of_lt
       (liminf_le_of_frequently_le' $ frequently_of_forall $ λ n, (hx n).le)
       (ennreal.add_lt_top.2 ⟨ennreal.coe_lt_top, ennreal.one_lt_top⟩) },
-  filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hp hfmeas hbdd] with x hx,
+  filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hfmeas hbdd] with x hx,
   have hppos : 0 < p.to_real := ennreal.to_real_pos hp hp',
   have : liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) =
     liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real,

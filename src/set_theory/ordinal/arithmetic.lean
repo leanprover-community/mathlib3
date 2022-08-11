@@ -2076,12 +2076,17 @@ begin
   { rwa [one_opow, one_le_iff_ne_zero] }
 end
 
+theorem le_log_of_opow_le {b x c : ordinal} (hb : 1 < b) (h : b ^ c ≤ x) : c ≤ log b x :=
+le_of_not_lt $ λ hn,
+  (lt_opow_succ_log_self hb x).not_le $
+  ((opow_le_opow_iff_right hb).2 (succ_le_of_lt hn)).trans h
+
 /-- `opow b` and `log b` (almost) form a Galois connection. -/
 theorem opow_le_iff_le_log {b x c : ordinal} (hb : 1 < b) (hx : x ≠ 0) : b ^ c ≤ x ↔ c ≤ log b x :=
-⟨λ h, le_of_not_lt $ λ hn,
-   (lt_opow_succ_log_self hb x).not_le $
-   ((opow_le_opow_iff_right hb).2 (succ_le_of_lt hn)).trans h,
-λ h, ((opow_le_opow_iff_right hb).2 h).trans (opow_log_le_self b hx)⟩
+⟨le_log_of_opow_le hb, λ h, ((opow_le_opow_iff_right hb).2 h).trans (opow_log_le_self b hx)⟩
+
+theorem lt_opow_of_log_lt {b x c : ordinal} (hb : 1 < b) (h : log b x < c) : x < b ^ c :=
+by { contrapose! h, exact le_log_of_opow_le hb h }
 
 theorem lt_opow_iff_log_lt {b x c : ordinal} (hb : 1 < b) (hx : x ≠ 0) : x < b ^ c ↔ log b x < c :=
 lt_iff_lt_of_le_iff_le (opow_le_iff_le_log hb hx)

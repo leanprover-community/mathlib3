@@ -101,6 +101,10 @@ begin
   { exact (IH hx).trans (log_mono_right b $ mod_le _ _) }
 end
 
+theorem not_mem_keys_CNF_list_of_log_lt {b o x : ordinal} (h : log b o < x) :
+  x ∉ (CNF_list b o).keys :=
+by { contrapose! h, exact le_log_of_mem_keys_CNF_list h }
+
 theorem le_self_of_mem_keys_CNF_list {b o x : ordinal} (h : x ∈ (CNF_list b o).keys) : x ≤ o :=
 (le_log_of_mem_keys_CNF_list h).trans (log_le_self b o)
 
@@ -149,6 +153,20 @@ begin
   { exact IH h }
 end
 
+theorem CNF_list_opow_mul_add {a b c e : ordinal.{u}} (ha : a ≠ 0) (hb : a < b) (hc : c < b ^ e) :
+  CNF_list b (b ^ e * a + c) = ⟨e, a⟩ :: CNF_list b c :=
+begin
+  cases le_or_lt b 1 with hb' hb',
+  { exact (ha (lt_one_iff_zero.1 (hb.trans_le hb'))).elim },
+  { have he : b ^ e ≠ 0 := opow_ne_zero e (zero_lt_one.trans hb').ne',
+    rw CNF_list_ne_zero,
+    { rwa [log_opow_mul_add hb' ha hb hc, mul_add_div, div_eq_zero_of_lt hc, add_zero,
+        mul_add_mod_self, mod_eq_of_lt hc] },
+    { intro h,
+      rw [add_eq_zero_iff, mul_eq_zero] at h,
+      tauto } }
+end
+
 /-! ### Cantor normal form as an alist -/
 
 /-- The Cantor normal form of an ordinal `o` is the association list of exponents and coefficients
@@ -189,6 +207,9 @@ CNF_list_foldr b o
 theorem le_log_of_mem_CNF {b o x : ordinal} : x ∈ CNF b o → x ≤ log b o :=
 le_log_of_mem_keys_CNF_list
 
+theorem not_mem_CNF_of_log_lt {b o x : ordinal} : log b o < x → x ∉ CNF b o :=
+not_mem_keys_CNF_list_of_log_lt
+
 /-- Every exponent in the Cantor normal form `CNF b o` is less or equal to `o`. -/
 theorem le_self_of_mem_CNF {b o x : ordinal} : x ∈ CNF b o → x ≤ o :=
 le_self_of_mem_keys_CNF_list
@@ -206,6 +227,10 @@ zero_not_mem_lookup_CNF_list
 /-- Every coefficient in the Cantor normal form `CNF b o` is less than `b`. -/
 theorem lt_of_mem_lookup_CNF {b o x e : ordinal} : 1 < b → x ∈ (CNF b o).lookup e → x < b :=
 lt_of_mem_lookup_CNF_list
+
+theorem CNF_opow_mul_add {a b c e : ordinal.{u}} (ha : a ≠ 0) (hb : a < b) (hc : c < b ^ e) :
+  CNF b (b ^ e * a + c) = (CNF b c).insert e a :=
+by simp_rw [CNF, CNF_list_opow_mul_add ha hb hc, alist.mk_cons_eq_insert]
 
 /-! ### Coefficients of the Cantor normal form -/
 
@@ -273,27 +298,59 @@ begin
   { simp [CNF_coeff, CNF_ne_zero ho, h.symm] }
 end
 
-theorem CNF_coeff_eq_CNF_coeff_mod_opow_gt (b o : ordinal) {e f : ordinal} (hf : e < f) :
-  CNF_coeff b o e = CNF_coeff b (o % b ^ f) e :=
+theorem CNF_coeff_eq_CNF_coeff_mod_opow_succ (o : ordinal) {b e : ordinal} (hb : b ≠ 1) :
+  CNF_coeff b o e = CNF_coeff b (o % b ^ succ e) e :=
 begin
-  cases lt_or_le o (b ^ e) with h h,
-  { rw [CNF_coeff_of_lt_opow h, CNF_coeff_of_lt_opow ((mod_le o _).trans_lt h)] },
-  { induction f using ordinal.induction with f IH,
-    intros f IH hf,
-    nth_rewrite_rhs 0 CNF_coeff_of_log_ne sorry },
-
+  cases le_or_lt b 1 with hb hb,
+  { rcases le_one_iff.1 hb with rfl | rfl,
+    { simp },
+    { contradiction } },
+  refine CNF_rec b (by simp) (λ a ha IH, _) o,
+  cases lt_or_le a (b ^ succ e) with h h,
+  { rw mod_eq_of_lt h },
+  { replace h := le_log_of_opow_le hb h,
+    have h' : log b a ≠ e,
+    { rintro rfl,
+      exact (lt_succ _).not_le h },
+    rw CNF_coeff_of_log_ne h',
+    rwa mod_mod_of_dvd a (opow_dvd_opow b h) at IH }
 end
 
-theorem CNF_coeff_eq_div_mod (b o e : ordinal) : CNF_coeff b o e = o / b ^ e % b :=
+theorem CNF_coeff_opow_mul_add {a b c e : ordinal.{u}} (hb : a < b) (hc : c < b ^ e) :
+  CNF_coeff b (b ^ e * a + c) e = a :=
 begin
-  refine CNF_rec b (by simp) (λ o ho IH, _) o,
-
-
+  rcases eq_or_ne a 0 with rfl | ha,
+  { apply CNF_coeff_of_lt_opow,
+    simpa using hc },
+  { rw [CNF_coeff_eq_iff_of_ne_zero ha, CNF_opow_mul_add ha hb hc],
+    apply alist.lookup_insert }
 end
 
-theorem CNF_coeff_apply_zero {b : ordinal} (o : ordinal) (hb : b ≠ 1) : CNF_coeff b o 0 = o % b :=
+theorem CNF_coeff_eq_div_mod {b : ordinal} (hb : b ≠ 1) (o e : ordinal) :
+  CNF_coeff b o e = o / b ^ e % b :=
 begin
-
+  cases le_or_lt b 1 with hb hb,
+  { rcases le_one_iff.1 hb with rfl | rfl,
+    { rcases eq_or_ne e 0 with rfl | he,
+      { simp },
+      { simpa [finsupp.single, zero_opow he] using λ he', (he (eq.symm he')).elim } },
+    { contradiction } },
+  { have : o / b ^ e % b = o % b ^ succ e / b ^ e % b,
+    { nth_rewrite 0 ←div_add_mod o (b ^ succ e),
+      rw [opow_succ, mul_assoc, mul_add_div _ (opow_ne_zero e $ λ h, zero_lt_one.not_lt $ h ▸ hb),
+        mul_add_mod_self] },
+    rw [this, CNF_coeff_eq_CNF_coeff_mod_opow_succ o hb.ne'],
+    set a := o % b ^ succ e with ha,
+    rw ←div_add_mod a (b ^ e),
+    have he : b ^ e ≠ 0 := opow_ne_zero e (zero_lt_one.trans hb).ne',
+    have ha' : a / b ^ e < b,
+    { rw [ha, div_lt he, opow_succ],
+      exact mod_lt o (mul_ne_zero he (zero_lt_one.trans hb).ne') },
+    rw [CNF_coeff_opow_mul_add ha' (mod_lt _ he), mul_add_div _ he, div_eq_zero_of_lt (mod_lt _ he),
+      add_zero, mod_eq_of_lt ha'] }
 end
+
+theorem CNF_coeff_apply_zero {b : ordinal} (hb : b ≠ 1) (o : ordinal) : CNF_coeff b o 0 = o % b :=
+by simpa using CNF_coeff_eq_div_mod hb o 0
 
 end ordinal

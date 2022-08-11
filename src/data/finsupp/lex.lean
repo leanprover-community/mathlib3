@@ -18,7 +18,7 @@ variables {α N : Type*} [has_zero N]
 
 open_locale classical
 
-lemma filter_ne_eq_empty_iff {f g : α →₀ N} :
+lemma filter_ne_eq_empty_iff [decidable_eq α] {f g : α →₀ N} :
   (f.support ∪ g.support).filter (λ a, f a ≠ g a) = ∅ ↔ f = g :=
 begin
   refine ⟨λ h, _, λ h, h ▸ by simp⟩,

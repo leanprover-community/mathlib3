@@ -108,7 +108,7 @@ instance quasi_separated_space.of_t2_space [t2_space α] : quasi_separated_space
 ⟨λ U V hU hU' hV hV', hU'.inter hV'⟩
 
 @[priority 100]
-instance quasi_separated_space.of_noetherian_space [noetherian_space α] :
+instance noetherian_space.to_quasi_separated_space [noetherian_space α] :
   quasi_separated_space α :=
 ⟨λ _ _ _ _ _ _, noetherian_space.is_compact _⟩
 

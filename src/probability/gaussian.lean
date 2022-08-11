@@ -646,6 +646,11 @@ begin
 simp_rw[← smul_eq_mul],
 end
 
+lemma this_is_useless_but_to_make_changes_to_push : 1+1=2:=
+begin
+sorry
+end
+
 lemma change_onemul_to_smul_t (f:ℝ → ℝ): ∫ (x : ℝ), f x * m
  = ∫ (x : ℝ), f x • m:=
 begin

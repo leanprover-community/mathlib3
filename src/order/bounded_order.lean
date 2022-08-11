@@ -1025,11 +1025,7 @@ lemma le_coe : ∀ {o : option α}, a ∈ o → (@has_le.le (with_top α) _ o b 
 coe_le_coe
 
 lemma le_coe_iff {x : with_top α} : x ≤ b ↔ ∃ a : α, x = a ∧ a ≤ b :=
-begin
-  simp only [←to_dual_le_to_dual_iff, to_dual_apply_coe, with_bot.coe_le_iff, order_dual.exists,
-             to_dual_le_to_dual],
-  exact exists_congr (λ _, and_congr_left' iff.rfl)
-end
+by simpa [←to_dual_le_to_dual_iff, with_bot.coe_le_iff]
 
 lemma coe_le_iff {x : with_top α} : ↑a ≤ x ↔ ∀ b, x = ↑b → a ≤ b :=
 begin

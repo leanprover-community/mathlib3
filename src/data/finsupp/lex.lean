@@ -25,14 +25,9 @@ instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) := ⟨finsupp.lex (
 
 instance lex.is_strict_order [linear_order α] [partial_order N] :
   is_strict_order (lex (α →₀ N)) (<) :=
-{ irrefl := λ a ⟨_, _, h⟩, lt_irrefl _ h,
-  trans := begin
-    rintro a b c ⟨N₁, lt_N₁, a_lt_b⟩ ⟨N₂, lt_N₂, b_lt_c⟩,
-    rcases lt_trichotomy N₁ N₂ with (H|rfl|H),
-    exacts [⟨N₁, λ j hj, (lt_N₁ _ hj).trans (lt_N₂ _ $ hj.trans H), lt_N₂ _ H ▸ a_lt_b⟩,
-      ⟨N₁, λ j hj, (lt_N₁ _ hj).trans (lt_N₂ _ hj), a_lt_b.trans b_lt_c⟩,
-      ⟨N₂, λ j hj, (lt_N₁ _ (hj.trans H)).trans (lt_N₂ _ hj), (lt_N₁ _ H).symm ▸ b_lt_c⟩]
-  end }
+let i : is_strict_order (lex (α → N)) (<) := pi.lex.is_strict_order in
+{ irrefl := to_lex.surjective.forall.2 $ λ a, @irrefl _ _ i.to_is_irrefl a,
+  trans := to_lex.surjective.forall₃.2 $ λ a b c, @trans _ _ i.to_is_trans a b c }
 
 lemma filter_ne_eq_empty_iff [decidable_eq α] [decidable_eq N] {f g : α →₀ N} :
   (f.support ∪ g.support).filter (λ a, f a ≠ g a) = ∅ ↔ f = g :=

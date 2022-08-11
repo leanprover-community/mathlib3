@@ -883,12 +883,12 @@ noncomputable instance : complete_linear_order (with_top α) :=
   Inf := Inf, le_Inf := λ s, (is_glb_Inf s).2, Inf_le := λ s, (is_glb_Inf s).1,
   .. with_top.linear_order, ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
 
-/-- A version of `with-top.coe_Sup'` with a more convenient but less general statement. -/
+/-- A version of `with_top.coe_Sup'` with a more convenient but less general statement. -/
 @[norm_cast] lemma coe_Sup {s : set α} (hb : bdd_above s) :
   ↑(Sup s) = (⨆ a ∈ s, ↑a : with_top α) :=
 by rw [coe_Sup' hb, Sup_image]
 
-/-- A version of `with-top.coe_Inf'` with a more convenient but less general statement. -/
+/-- A version of `with_top.coe_Inf'` with a more convenient but less general statement. -/
 @[norm_cast] lemma coe_Inf {s : set α} (hs : s.nonempty) :
   ↑(Inf s) = (⨅ a ∈ s, ↑a : with_top α) :=
 by rw [coe_Inf' hs, Inf_image]

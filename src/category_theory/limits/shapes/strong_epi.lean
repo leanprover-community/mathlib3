@@ -46,11 +46,23 @@ class strong_epi (f : P ⟶ Q) : Prop :=
 (epi : epi f)
 (llp : ∀ ⦃X Y : C⦄ (z : X ⟶ Y) [mono z], has_lifting_property f z)
 
+lemma strong_epi.mk' {f : P ⟶ Q} [epi f]
+  (hf : ∀ (X Y : C) (z : X ⟶ Y) (hz : mono z) (u : P ⟶ X) (v : Q ⟶ Y)
+    (sq : comm_sq u f z v), sq.has_lift) : strong_epi f :=
+{ epi := infer_instance,
+  llp := λ X Y z hz, ⟨λ u v sq, hf X Y z hz u v sq⟩, }
+
 /-- A strong monomorphism `f` is a monomorphism which has the right lifting property
 with respect to epimorphisms. -/
 class strong_mono (f : P ⟶ Q) : Prop :=
 (mono : mono f)
 (rlp : ∀ ⦃X Y : C⦄ (z : X ⟶ Y) [epi z], has_lifting_property z f)
+
+lemma strong_mono.mk' {f : P ⟶ Q} [mono f]
+  (hf : ∀ (X Y : C) (z : X ⟶ Y) (hz : epi z) (u : X ⟶ P) (v : Y ⟶ Q)
+    (sq : comm_sq u z f v), sq.has_lift) : strong_mono f :=
+{ mono := infer_instance,
+  rlp := λ X Y z hz, ⟨λ u v sq, hf X Y z hz u v sq⟩, }
 
 attribute [instance, priority 100] strong_epi.llp
 attribute [instance, priority 100] strong_mono.rlp

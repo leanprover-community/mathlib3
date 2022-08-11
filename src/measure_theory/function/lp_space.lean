@@ -1322,12 +1322,17 @@ end inner_product
 
 section liminf
 
-variables {f : ℕ → α → ℝ} {R : ℝ≥0}
+variables [measurable_space E] [opens_measurable_space E] {R : ℝ≥0}
 
-lemma liminf_at_top_ae_bdd_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞)
-  (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ ω ∂μ, liminf at_top (λ n, (∥f n ω∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
+lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0)
+  {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
+  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
 begin
+  by_cases hp' : p = ∞,
+  { simp only [hp', ennreal.top_to_real, ennreal.rpow_zero],
+    refine eventually_of_forall (λ x, _),
+    rw liminf_const (1 : ℝ≥0∞),
+    exacts [ennreal.one_lt_top, at_top_ne_bot] },
   refine ae_lt_top
     (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
     (lt_of_le_of_lt (lintegral_liminf_le
@@ -1340,14 +1345,32 @@ begin
     ((ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hp hp')).1 (hbdd _))),
 end
 
-lemma liminf_at_top_ae_bdd_of_snorm_one_bdd
-  (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
-  ∀ᵐ ω ∂μ, liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞ :=
+lemma ae_bdd_liminf_at_top_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0)
+  {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
+  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞ :=
 begin
-  filter_upwards [liminf_at_top_ae_bdd_of_snorm_bdd one_ne_zero ennreal.one_ne_top hfmeas hbdd]
-    with ω hω,
-  simp_rw [ennreal.one_to_real, ennreal.rpow_one] at hω,
-  assumption
+  by_cases hp' : p = ∞,
+  { subst hp',
+    simp_rw snorm_exponent_top at hbdd,
+    have : ∀ n, ∀ᵐ x ∂μ, (∥f n x∥₊ : ℝ≥0∞) < R + 1 :=
+      λ n, ae_lt_of_ess_sup_lt (lt_of_le_of_lt (hbdd n) $
+        ennreal.lt_add_right ennreal.coe_ne_top one_ne_zero),
+    rw ← ae_all_iff at this,
+    filter_upwards [this] with x hx using lt_of_le_of_lt
+      (liminf_le_of_frequently_le' $ frequently_of_forall $ λ n, (hx n).le)
+      (ennreal.add_lt_top.2 ⟨ennreal.coe_lt_top, ennreal.one_lt_top⟩) },
+  filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hp hfmeas hbdd] with x hx,
+  have hppos : 0 < p.to_real := ennreal.to_real_pos hp hp',
+  have : liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) =
+    liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real,
+  { change liminf at_top (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) =
+      ennreal.order_iso_rpow p.to_real hppos (liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞))),
+    refine (order_iso.liminf_apply (ennreal.order_iso_rpow p.to_real _) _ _ _ _).symm;
+    is_bounded_default },
+  rw this at hx,
+  rw [← ennreal.rpow_one (liminf at_top (λ n, ∥f n x∥₊)), ← mul_inv_cancel hppos.ne.symm,
+    ennreal.rpow_mul],
+  exact ennreal.rpow_lt_top_of_nonneg (inv_nonneg.2 hppos.le) hx.ne,
 end
 
 end liminf

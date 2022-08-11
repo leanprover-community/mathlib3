@@ -534,7 +534,7 @@ end
 
 
 
-lemma simplify_complicated1 (hs : s≠0): ∀ (x:ℝ), /-(sqrt (2 * s ^ 2))⁻¹ *--/ (exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x)
+lemma simplify_left_for_change_of_vr (hs : s≠0): ∀ (x:ℝ), /-(sqrt (2 * s ^ 2))⁻¹ *--/ (exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x)
 = (exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2) * (sqrt (2 * s ^ 2) * ((sqrt (2 * s ^ 2))⁻¹ * (x - m)) + m)) :=
 begin
   intro x,
@@ -544,15 +544,51 @@ begin
 
 end
 
-lemma simplify_complicated2 (hs : s≠0): ∀ (x:ℝ),
+lemma simplify_right_for_change_of_vr (hs : s≠0): ∀ (x:ℝ),
 (sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2) =
-(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2):=
+exp (-x ^ 2) * (sqrt 2 * sqrt (s ^ 2) * x + m) :=
 begin
   intro x,
-  simp,
+  simp [mul_comm, hs],
 end
 
 
+
+
+lemma equiv_change (func1 func2 : ℝ → ℝ) (c : ℝ) (hc : c≠0):
+  ∫ (x : ℝ) in set.univ, c⁻¹ * func1 x  = ∫ (x : ℝ) in set.univ, func2 x
+  →  ∫ (x : ℝ) in set.univ, func1 x  = ∫ (x : ℝ) in set.univ, (func2 x) • c :=
+begin
+  have h_no_univ1 : ∫ (x : ℝ) in set.univ, c⁻¹ * func1 x = ∫ (x : ℝ), c⁻¹ * func1 x,
+  {simp},
+  have h_no_univ2 : ∫ (x : ℝ) in set.univ, func2 x = ∫ (x : ℝ), func2 x,
+  {simp},
+  have h_no_univ3 : ∫ (x : ℝ) in set.univ, func1 x = ∫ (x : ℝ), func1 x,
+  {simp},
+  have h_no_univ4 : ∫ (x : ℝ) in set.univ, func2 x • c = ∫ (x : ℝ), func2 x • c,
+  {simp},
+  rw [h_no_univ1, h_no_univ2, h_no_univ3, h_no_univ4],
+
+
+  {intro h1,
+  rw ← comm_in_integ func1 c⁻¹ at h1,
+  simp_rw [← smul_eq_mul] at h1,
+  rw integral_smul_const func1  c⁻¹ at h1,
+  have h_mulc2sides : ((∫ (x : ℝ), func1 x) • c⁻¹) • c = (∫ (x : ℝ), func2 x) • c,
+    {simp [h1],},
+
+  have h_cancel_cinvc : ((∫ (x : ℝ), func1 x) • c⁻¹) • c = ∫ (x : ℝ), func1 x,
+    {
+      simp [mul_assoc (∫ (x : ℝ), func1 x) c⁻¹ c],
+      finish,
+    },
+  rw h_cancel_cinvc at h_mulc2sides,
+  rw integral_smul_const func2 c,
+  assumption,
+  },
+
+
+end
 
 ---lemma set_eq (hs : s≠0): set.univ = λ (x:ℝ), ((sqrt (2 * s ^ 2))⁻¹) * (x-m):=
 lemma change_of_vr_momentone_gaussian (hs: s≠0):
@@ -582,18 +618,18 @@ begin
    = ∫ (x : ℝ) in set.univ, g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)) ,
     {
       simp_rw [g],
-      simp_rw [← simplify_complicated1 hs],
+      simp_rw [← simplify_left_for_change_of_vr hs],
       simp,
     },
   rw h_integ_eq_form1,
-  have h_integ_eq_form2 : ∫ (x : ℝ), (sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)
-   = ∫ (x : ℝ), g x,
+  have h_integ_eq_form2 : ∫ (x : ℝ), (sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2) * (sqrt 2 * sqrt (s ^ 2))
+   = ∫ (x : ℝ) in set.univ, (g x) * (sqrt 2 * sqrt (s ^ 2)),
    {
     simp_rw [g],
     simp,
-    sorry
-
+    simp_rw [simplify_right_for_change_of_vr hs],
    },
+  rw h_integ_eq_form2,
 
   sorry
 --(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)

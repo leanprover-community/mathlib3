@@ -1646,18 +1646,6 @@ lemma inner_lt_one_iff_real_of_norm_one {x y : F} (hx : ∥x∥ = 1) (hy : ∥y�
   ⟪x, y⟫_ℝ < 1 ↔ x ≠ y :=
 by { convert inner_lt_norm_mul_iff_real; simp [hx, hy] }
 
-/-- An inner product space is strictly convex. We do not register this as an instance for an inner
-space over `𝕜`, `is_R_or_C 𝕜`, because there is no order of the typeclass argument that does not
-lead to a search of `[is_scalar_tower ℝ ?m E]` with unknown `?m`. -/
-instance inner_product_space.strict_convex_space : strict_convex_space ℝ F :=
-begin
-  refine strict_convex_space.of_pairwise_sphere_norm_ne_two (λ x hx y hy, mt $ λ hxy, _),
-  rw mem_sphere_zero_iff_norm at hx hy,
-  rw [← inner_eq_norm_mul_iff_of_norm_one hx hy,
-    real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two, hxy, hx, hy],
-  norm_num1
-end
-
 /-- The inner product of two weighted sums, where the weights in each
 sum add to 0, in terms of the norms of pairwise differences. -/
 lemma inner_sum_smul_sum_smul_of_sum_eq_zero {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ}

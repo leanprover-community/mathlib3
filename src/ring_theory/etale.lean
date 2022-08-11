@@ -330,7 +330,7 @@ begin
   introsI Q _ _ I e f,
   have : ∀ x : M, is_unit (algebra_map R Q x),
   { intro x,
-    rw is_nilpotent.is_unit_quotient_mk_iff ⟨2, e⟩,
+    apply (is_nilpotent.is_unit_quotient_mk_iff ⟨2, e⟩).mp,
     convert (is_localization.map_units Rₘ x).map f,
     simp only [ideal.quotient.mk_algebra_map, alg_hom.commutes] },
   let : Rₘ →ₐ[R] Q := { commutes' := is_localization.lift_eq this, ..(is_localization.lift this) },

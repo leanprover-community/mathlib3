@@ -484,11 +484,19 @@ begin
   rw h_lambdaform,---
   rw integral_with_density_eq_integral_smul eqform_of_gauden_mea id,
   unfold gaussian_density_to_nnreal,
-  simp [gaussian_density_ennreal, hs],
+  ---simp [gaussian_density_ennreal, hs],
+  have h_cancel_one_bracket : ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((2 * s ^ 2)⁻¹ * (a - m) ^ 2)))).to_nnreal • a
+  = ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2))).to_nnreal • a,
+    {simp},
+  ---rw h_cancel_one_bracket,
   have h_eliminate_ennreal_nnreal :
-  ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))).to_nnreal • a
-  = ∫ (a : ℝ), ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2))) • a,
-  {sorry
+  ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2))).to_nnreal • a
+  = ∫ (a : ℝ), ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2)) • a,
+  {
+    simp_rw [← not_that_simple_thing hs],
+    simp,
+
+
     },
 
   ---simp only [with_density_apply, measurable_set.univ, ],

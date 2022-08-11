@@ -25,6 +25,9 @@ We define the sub(pre)sheaf of a type valued presheaf.
   The sheafification is a sheaf
 - `category_theory.grothendieck_topology.subpresheaf.sheafify_lift` :
   The descent of a map into a sheaf to the sheafification.
+- `category_theory.grothendieck_topology.image_sheaf` : The image sheaf of a morphism.
+- `category_theory.grothendieck_topology.image_factorization` : The image sheaf as a
+  `limits.image_factorization`.
 -/
 
 universes w v u
@@ -286,6 +289,7 @@ omit J
 
 section image
 
+/-- The image presheaf of a morphism, whose components are the set-theoretic images. -/
 @[simps]
 def image_presheaf (f : F' ⟶ F) : subpresheaf F :=
 { obj := λ U, set.range (f.app U),
@@ -298,6 +302,7 @@ def image_presheaf (f : F' ⟶ F) : subpresheaf F :=
 lemma image_presheaf_id : image_presheaf (𝟙 F) = ⊤ :=
 by { ext, simp }
 
+/-- A morphism factors through the image presheaf. -/
 @[simps]
 def to_image_presheaf (f : F' ⟶ F) : F' ⟶ (image_presheaf f).to_presheaf :=
 (image_presheaf f).lift f (λ U x, set.mem_range_self _)
@@ -310,16 +315,34 @@ lemma image_presheaf_comp_le (f₁ : F ⟶ F') (f₂ : F' ⟶ F'') :
   image_presheaf (f₁ ≫ f₂) ≤ image_presheaf f₂ :=
 λ U x hx, ⟨f₁.app U hx.some, hx.some_spec⟩
 
+instance {F F' : Cᵒᵖ ⥤ Type (max v w)} (f : F ⟶ F') [hf : mono f] :
+  is_iso (to_image_presheaf f) :=
+begin
+  apply_with nat_iso.is_iso_of_is_iso_app { instances := ff },
+  intro X,
+  rw is_iso_iff_bijective,
+  split,
+  { intros x y e,
+    have := (nat_trans.mono_iff_app_mono _ _).mp hf X,
+    rw mono_iff_injective at this,
+    exact this (congr_arg subtype.val e : _) },
+  { rintro ⟨_, ⟨x, rfl⟩⟩, exact ⟨x, rfl⟩ }
+end
+
+/-- The image sheaf of a morphism between sheaves, defined to be the sheafification of
+`image_presheaf`. -/
 @[simps]
 def image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : Sheaf J (Type w) :=
 ⟨((image_presheaf f.1).sheafify J).to_presheaf,
   by { rw is_sheaf_iff_is_sheaf_of_type, apply subpresheaf.sheafify_is_sheaf,
     rw ← is_sheaf_iff_is_sheaf_of_type, exact F'.2 }⟩
 
+/-- A morphism factors through the image sheaf. -/
 @[simps]
 def to_image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : F ⟶ image_sheaf f :=
 ⟨to_image_presheaf f.1 ≫ subpresheaf.hom_of_le ((image_presheaf f.1).le_sheafify J)⟩
 
+/-- The inclusion of the image sheaf to the target. -/
 @[simps]
 def image_sheaf_ι {F F' : Sheaf J (Type w)} (f : F ⟶ F') : image_sheaf f ⟶ F' :=
 ⟨subpresheaf.ι _⟩
@@ -353,20 +376,6 @@ def image_mono_factorization {F F' : Sheaf J (Type w)} (f : F ⟶ F') :
 { I := image_sheaf f,
   m := image_sheaf_ι f,
   e := to_image_sheaf f }
-
-instance {F F' : Cᵒᵖ ⥤ Type (max v w)} (f : F ⟶ F') [hf : mono f] :
-  is_iso (to_image_presheaf f) :=
-begin
-  apply_with nat_iso.is_iso_of_is_iso_app { instances := ff },
-  intro X,
-  rw is_iso_iff_bijective,
-  split,
-  { intros x y e,
-    have := (nat_trans.mono_iff_app_mono _ _).mp hf X,
-    rw mono_iff_injective at this,
-    exact this (congr_arg subtype.val e : _) },
-  { rintro ⟨_, ⟨x, rfl⟩⟩, exact ⟨x, rfl⟩ }
-end
 
 /-- The mono factorization given by `image_sheaf` for a morphism is an image. -/
 noncomputable

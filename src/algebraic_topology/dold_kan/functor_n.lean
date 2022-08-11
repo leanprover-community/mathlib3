@@ -6,7 +6,7 @@ Authors: Joël Riou
 
 import algebraic_topology.dold_kan.p_infty
 
-/-
+/-!
 
 # Construction of functors N for the Dold-Kan correspondence
 

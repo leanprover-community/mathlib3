@@ -204,9 +204,9 @@ def indent_check(lines, path):
             check_rest_of_block = True
             ended_with_comma = False
             inside_special = 0
-        if re.match("\b(match|calc)\b", line) is not None:
+        if re.search("\b(match|calc)\b", line) is not None:
             check_rest_of_block = False
-        if re.match("\bbegin\b", line) is not None:
+        if re.search("\bbegin\b", line) is not None:
             # Don't check complicated proof block syntax (note, one if uses `line.find` the other `lstr.find`)
             # in this case, we ignore proof blocks whose outermost-block doesn't begin flush-left
             if line.find("begin") > 0 and in_prf == 0:
@@ -216,7 +216,7 @@ def indent_check(lines, path):
                 check_rest_of_block = False
             indent_lvl += 2
             in_prf += 1
-        if re.match("\bend\b", line) is not None:
+        if re.search("\bend\b", line) is not None:
             indent_lvl -= 2
             in_prf -= 1
         indent_lvl += 2 * line.count('{') # potential innocent(?) clash with set-builder notation

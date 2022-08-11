@@ -16,9 +16,7 @@ namespace finsupp
 
 variables {α N : Type*} [has_zero N]
 
-open_locale classical
-
-lemma filter_ne_eq_empty_iff [decidable_eq α] {f g : α →₀ N} :
+lemma filter_ne_eq_empty_iff [decidable_eq α] [decidable_eq N] {f g : α →₀ N} :
   (f.support ∪ g.support).filter (λ a, f a ≠ g a) = ∅ ↔ f = g :=
 begin
   refine ⟨λ h, _, λ h, h ▸ by simp⟩,
@@ -59,7 +57,7 @@ noncomputable instance lex.linear_order [linear_order N] : linear_order (lex (α
         { simp only [finset.mem_union, not_or_distrib, finsupp.mem_support_iff, not_not] at js,
           simp only [js] } } }
     end,
-  decidable_le := by apply_instance,
+  decidable_le := by { classical, apply_instance },
   ..lex.partial_order }
 
 end finsupp

@@ -1226,8 +1226,11 @@ lemma inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u := by { ext 
 
 lemma sdiff_inter_distrib_right (s t u : finset α) : s \ (t ∩ u) = (s \ t) ∪ (s \ u) := sdiff_inf
 
-@[simp] lemma sdiff_inter_self_left (s t : finset α) : s \ (s ∩ t) = s \ t := sdiff_inf_self_left
-@[simp] lemma sdiff_inter_self_right (s t : finset α) : s \ (t ∩ s) = s \ t := sdiff_inf_self_right
+@[simp] lemma sdiff_inter_self_left (s t : finset α) : s \ (s ∩ t) = s \ t :=
+sdiff_inf_self_left _ _
+
+@[simp] lemma sdiff_inter_self_right (s t : finset α) : s \ (t ∩ s) = s \ t :=
+sdiff_inf_self_right _ _
 
 @[simp] lemma sdiff_empty : s \ ∅ = s := sdiff_bot
 

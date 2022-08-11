@@ -288,6 +288,12 @@ def nat.miller_rabin_witness (n : ℕ) (a : zmod n) : Prop :=
   a^odd_part (n-1) ≠ 1 ∧
   ∀ i ∈ range ((n-1).factorization 2), a^(2^i * odd_part (n-1)) ≠ -1
 
+instance decidable_witness (n : ℕ) (a : zmod n) : decidable_pred n.miller_rabin_witness :=
+λ a, and.decidable
+
+instance decidable_witness' (n : ℕ) : decidable_pred (λ a : ℕ, n.miller_rabin_witness ↑a) :=
+λ a, and.decidable
+
 /-- `n` is a **strong probable prime** relative to base `a : zmod n` iff
 `a` is not a Miller-Rabin witness for `n`. -/
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=

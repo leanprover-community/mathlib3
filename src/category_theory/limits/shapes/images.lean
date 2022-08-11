@@ -784,22 +784,16 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
 @[priority 100]
 instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks C]
   [has_equalizers C] : has_strong_epi_images C :=
-{ strong_factor_thru_image := λ X Y f,
-  { epi := by apply_instance,
-    llp := begin
-      introsI A B h h_mono,
-      constructor,
-      intros x y sq,
-      exact comm_sq.has_lift.mk'
-      { l := image.lift
-          { I := pullback h y,
-            m := pullback.snd ≫ image.ι f,
-            m_mono := by exactI mono_comp _ _,
-            e := pullback.lift _ _ sq.w } ≫ pullback.fst,
-        fac_left' := by simp only [image.fac_lift_assoc, pullback.lift_fst],
-        fac_right' := by { ext, simp only [sq.w, category.assoc,
-          image.fac_lift_assoc, pullback.lift_fst_assoc], }, },
-    end, }, }
+{ strong_factor_thru_image := λ X Y f, strong_epi.mk'
+  (λ A B h h_mono x y sq, comm_sq.has_lift.mk'
+    { l := image.lift
+        { I := pullback h y,
+          m := pullback.snd ≫ image.ι f,
+          m_mono := by exactI mono_comp _ _,
+          e := pullback.lift _ _ sq.w } ≫ pullback.fst,
+      fac_left' := by simp only [image.fac_lift_assoc, pullback.lift_fst],
+      fac_right' := by { ext, simp only [sq.w, category.assoc,
+        image.fac_lift_assoc, pullback.lift_fst_assoc], }, }) }
 
 end has_strong_epi_images
 

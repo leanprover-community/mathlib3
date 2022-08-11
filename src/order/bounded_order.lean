@@ -884,7 +884,7 @@ option.rec h₁ h₂
 /-- `with_top.to_dual` is the equivalence sending `⊤` to `⊥` and any `a : α` to `to_dual a : αᵒᵈ`.
 See `with_top.to_dual_bot_equiv` for the related order-iso.
 -/
-protected def to_dual : with_top α ≃ with_bot αᵒᵈ := to_dual
+protected def to_dual : with_top α ≃ with_bot αᵒᵈ := equiv.refl _
 /-- `with_top.of_dual` is the equivalence sending `⊤` to `⊥` and any `a : αᵒᵈ` to `of_dual a : α`.
 See `with_top.to_dual_bot_equiv` for the related order-iso.
 -/

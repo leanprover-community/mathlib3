@@ -1048,17 +1048,7 @@ begin
   apply eq_iff_iff.mpr (nonempty.image_iff _).symm,
 end
 
-lemma max_eq_max' {s : finset α} (hs : s.nonempty) : s.max = s.max' hs :=
-begin
-  revert hs,
-  refine s.induction_on _ _; clear s,
-  { rintro ⟨_, ⟨⟩⟩ },
-  { intros a s as hs as0,
-    by_cases s0 : s.nonempty,
-    { rw [max_insert, max'_insert _ _ s0, hs s0, with_bot.coe_max, max_comm] },
-    { rcases not_nonempty_iff_eq_empty.mp s0 with rfl,
-      simp only [insert_emptyc_eq, max_singleton, max'_singleton] } }
-end
+lemma coe_max' {s : finset α} (hs : s.nonempty) : ↑(s.max' hs) = s.max := coe_sup' hs id
 
 lemma min_eq_min' {s : finset α} (hs : s.nonempty) : s.min = s.min' hs :=
 @max_eq_max' αᵒᵈ _ _ hs

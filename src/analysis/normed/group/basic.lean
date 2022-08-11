@@ -324,6 +324,14 @@ by simp [dist_eq_norm_div]
 @[simp, to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
 by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
 
+@[simp, to_additive] lemma dist_div_eq_dist_mul_left (a b c : E) :
+  dist (a / b) c = dist a (c * b) :=
+by rw [←dist_mul_right _ _ b, div_mul_cancel']
+
+@[simp, to_additive] lemma dist_div_eq_dist_mul_right (a b c : E) :
+  dist a (b / c) = dist (a * c) b :=
+by rw [←dist_mul_right _ _ c, div_mul_cancel']
+
 /-- In a (semi)normed group, inversion `x ↦ x⁻¹` tends to infinity at infinity. TODO: use
 `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
 @[to_additive "In a (semi)normed group, negation `x ↦ -x` tends to infinity at infinity. TODO: use

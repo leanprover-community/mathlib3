@@ -1336,7 +1336,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
     rw norm_le (norm_nonneg _),
     exact λ t, (i1 t).trans (norm_coe_le_norm g t),
   end,
-  ..bounded_continuous_function.lattice, }
+  ..bounded_continuous_function.lattice, ..bounded_continuous_function.seminormed_add_comm_group }
 
 end normed_lattice_ordered_group
 

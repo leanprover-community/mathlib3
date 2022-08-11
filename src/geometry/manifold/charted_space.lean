@@ -554,6 +554,23 @@ begin
   exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
 end
 
+/-- If a topological space admits an atlas with locally connected charts, then the space itself is
+locally connected. -/
+lemma charted_space.locally_connected_space [locally_connected_space H] :
+  locally_connected_space M :=
+begin
+  let E : M → local_homeomorph M H := chart_at H,
+  refine locally_connected_space_of_connected_bases
+    (λ x s, (E x).symm '' s)
+    (λ x s, (is_open s ∧ E x x ∈ s ∧ is_connected s) ∧ s ⊆ (E x).target) _ _,
+  { intros x,
+    simpa only [local_homeomorph.symm_map_nhds_eq, mem_chart_source] using
+      ((locally_connected_space.open_connected_basis (E x x)).restrict_subset
+      ((E x).open_target.mem_nhds (mem_chart_target H x))).map (E x).symm },
+  { rintros x s ⟨⟨-, -, hsconn⟩, hssubset⟩,
+    exact hsconn.is_preconnected.image _ ((E x).continuous_on_symm.mono hssubset) },
+end
+
 end
 
 /-- For technical reasons we introduce two type tags:

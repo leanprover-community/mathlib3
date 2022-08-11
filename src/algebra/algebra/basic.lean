@@ -261,6 +261,11 @@ search (and was here first). -/
   (r • x) * y = r • (x * y) :=
 smul_mul_assoc r x y
 
+@[simp]
+lemma _root_.smul_algebra_map {α : Type*} [monoid α] [mul_distrib_mul_action α A]
+  [smul_comm_class α R A] (a : α) (r : R) : a • algebra_map R A r = algebra_map R A r :=
+by rw [algebra_map_eq_smul_one, smul_comm a r (1 : A), smul_one]
+
 section
 variables {r : R} {a : A}
 
@@ -1243,7 +1248,9 @@ This is a stronger version of `mul_semiring_action.to_ring_hom` and
 `distrib_mul_action.to_linear_map`. -/
 @[simps]
 def to_alg_hom (m : M) : A →ₐ[R] A :=
-alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
+{ to_fun := λ a, m • a,
+  commutes' := smul_algebra_map _,
+  ..mul_semiring_action.to_ring_hom _ _ m }
 
 theorem to_alg_hom_injective [has_faithful_smul M A] :
   function.injective (mul_semiring_action.to_alg_hom R A : M → A →ₐ[R] A) :=

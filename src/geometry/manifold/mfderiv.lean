@@ -142,7 +142,7 @@ lemma differentiable_within_at_local_invariant_prop :
       by { rw [model_with_corners.left_inv], exact is_open.mem_nhds u_open xu },
     apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
   end,
-  right_invariance :=
+  right_invariance' :=
   begin
     assume s x f e he hx h,
     rw differentiable_within_at_prop at h ⊢,

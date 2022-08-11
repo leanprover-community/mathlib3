@@ -485,7 +485,7 @@ begin
   exact hs,
 end
 
-lemma simplify_sqrt_and_square (hs : s≠0) : ∀ (x:ℝ),
+lemma simplify_sqrt_and_square_in_exp (hs : s≠0) : ∀ (x:ℝ),
 exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) =
 exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2):=
 begin
@@ -496,31 +496,56 @@ begin
   have h1 : sqrt (s ^ 2) ^ 2 = s ^ 2,
     {simp [h_squarenn]},
 
-  have h2 : ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹ * (x - m)) ^ 2 =
-  ((sqrt (s ^ 2))⁻¹ ^ 2) * ((sqrt 2)⁻¹ ^ 2) * (x - m) ^ 2,
-    { ring_nf},
+  have h2 : (sqrt 2)⁻¹ ^ 2 = 2⁻¹,
+    {
+      simp,
+    },
 
-  rw h2,
+  have h3 : ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹ * (x - m)) ^ 2 =
+  ((sqrt (s ^ 2))⁻¹ ^ 2) * ((sqrt 2)⁻¹ ^ 2) * (x - m) ^ 2,
+    {ring_nf},
+
+  rw h3,
 
   have h_eliminate_sqrt_s: (sqrt (s ^ 2))⁻¹ ^ 2 = (s^2)⁻¹,
     {
       simp [h1],
-    }
-  sorry,
+    },
+  simp [h_eliminate_sqrt_s, h2],
 
 end
 
-lemma simplify_complicated1 (hs : s≠0): ∀ (x:ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x
-= (sqrt (2 * s ^ 2))⁻¹ * (exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2) * (sqrt (2 * s ^ 2) * ((sqrt (2 * s ^ 2))⁻¹ * (x - m)) + m)) :=
+
+lemma simplify_sqrt_and_square_out_exp (hs : s≠0) : ∀ (x:ℝ),
+(sqrt (2 * s ^ 2) * ((sqrt (2 * s ^ 2))⁻¹ * (x - m)) + m) = x :=
 begin
   intro x,
+  rw ← mul_assoc (sqrt (2 * s ^ 2)) (sqrt (2 * s ^ 2))⁻¹  (x - m),
+  have h1 : sqrt (2 * s ^ 2) ≠ 0 := twos_neq_zero hs,
+  have h2 : ∀ (x:ℝ), x≠0 → x * x⁻¹ = 1,
+    {intros x hx,
+    finish},
+  have h2 : (sqrt (2 * s ^ 2)) * (sqrt (2 * s ^ 2))⁻¹ = 1 := h2 (sqrt (2 * s ^ 2)) h1,
+  rw h2,
   simp,
-  sorry,
+
+end
+
+
+
+
+lemma simplify_complicated1 (hs : s≠0): ∀ (x:ℝ), /-(sqrt (2 * s ^ 2))⁻¹ *--/ (exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x)
+= (exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2) * (sqrt (2 * s ^ 2) * ((sqrt (2 * s ^ 2))⁻¹ * (x - m)) + m)) :=
+begin
+  intro x,
+  ---simp,
+  simp_rw [← simplify_sqrt_and_square_in_exp hs],
+  simp_rw [simplify_sqrt_and_square_out_exp hs],
 
 end
 ---lemma set_eq (hs : s≠0): set.univ = λ (x:ℝ), ((sqrt (2 * s ^ 2))⁻¹) * (x-m):=
 lemma change_of_vr_momentone_gaussian (hs: s≠0):
-∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x
+∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x * (sqrt (2*s^2))⁻¹
  = ∫ (x : ℝ), ((sqrt (2 * s ^ 2))* x + m) * exp (- x ^ 2) :=
 begin
   let g : ℝ → ℝ := λ (x:ℝ), exp (- x ^ 2) * ((sqrt (2 * s ^ 2))*x + m),
@@ -542,15 +567,22 @@ begin
     {intro h2,
     simp}},
   simp,
-  have h_integ_eq_form1 : ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x
-   = ∫ (x : ℝ) in set.univ, (sqrt (2 * s ^ 2))⁻¹ * g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)),
+  have h_integ_eq_form1 : ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x * ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹)
+   = ∫ (x : ℝ) in set.univ, g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)) * ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹),
     {
       simp_rw [g],
+      simp_rw [← simplify_complicated1 hs],
       simp,
-      sorry
     },
+  rw h_integ_eq_form1,
+  have h_integ_eq_form2 : ∫ (x : ℝ), (sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)
+   = ∫ (x : ℝ), g x,
+   {
+    simp_rw [g],
+    simp,
+   }
   sorry
-
+--(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)
 end
 
 --lemma eqform_of_gauden_to_nnreal_mea : measurable
@@ -570,22 +602,7 @@ begin
   rw h_lambdaform,
   rw integral_with_density_eq_integral_smul eqform_of_gauden_mea id,
   unfold gaussian_density_to_nnreal,
-  /-
-  ---simp [gaussian_density_ennreal, hs],
-  have h_cancel_one_bracket : ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((2 * s ^ 2)⁻¹ * (a - m) ^ 2)))).to_nnreal • a
-  = ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2))).to_nnreal • a,
-    {simp},
-  ---rw h_cancel_one_bracket,
-  have h_eliminate_ennreal_nnreal :
-  ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2))).to_nnreal • a
-  = ∫ (a : ℝ), ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2)) • a,
-  {
-    simp_rw [← not_that_simple_thing hs],
-    simp,
 
-
-    },
--/
 
   ---simp [gaussian_density_ennreal, hs],
   have h_eliminate_ennreal_nnreal :

@@ -52,6 +52,24 @@ end
 
 end continuous_map
 
+namespace unit_interval
+
+@[simp]
+lemma univ_eq_ge_zero : {s : I | 0 ≤ (s : ℝ)} = set.univ :=
+begin
+  rw set.eq_univ_iff_forall,
+  intro,
+  simpa only [set.mem_set_of_eq] using nonneg _,
+end
+
+@[simp]
+lemma univ_eq_le_one : {s : I | (s : ℝ) ≤ 1} = set.univ :=
+begin
+  rw set.eq_univ_iff_forall,
+  intro,
+  simpa only [set.mem_set_of_eq] using le_one _,
+end
+
 namespace path
 
 open continuous_map path
@@ -180,30 +198,46 @@ begin
     ← subtype.coe_lt_coe, ← set.Iio_def],
 end
 
-lemma interior_I_not_mem' {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ θ / 2 ≤ t :=
-begin
-  sorry;{
-  have H_ne : (set.Ioi (θ / 2)).nonempty := ⟨(θ / 2) + 1, by {simp only [set.mem_Ioi, ← subtype.coe_lt_coe, subtype.coe_mk, coe_one, lt_add_iff_pos_right, zero_lt_one]}⟩,
-  have := interior_Iic' H_ne,
-  rw [not_iff_comm, ← lt_iff_not_ge],
-  simp,
-  -- convert_to t ∈ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) < θ / 2 using 0,
-  have := (is_open_lt continuous_induced_dom continuous_const).interior_eq,
-  --is_open.interior_eq,
+lemma interior_I_not_mem' {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ θ / 2 ≤ t := sorry
 
-  rw mem_interior_iff_mem_nhds,
-  have := inducing.map_nhds_of_mem,
-  -- continuity,
-  -- convert_to t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2}  ↔ (t : ℝ) ∉ interior {s : ℝ | s ≤ θ / 2},
-  have : {s : ℝ | (s : ℝ) ≤ θ / 2} = set.Iic (θ / 2) := rfl,
-  have H_ne : (set.Ioi (θ / 2)).nonempty := ⟨(θ / 2) + 1, by {simp only [set.mem_Ioi, ← subtype.coe_lt_coe,
-    subtype.coe_mk, coe_one, lt_add_iff_pos_right, zero_lt_one]}⟩,
-  simp only [this, interior_Iic' H_ne, set.mem_Iio, not_lt],
-  -- rw [← set.mem_compl_iff, ← set.mem_compl_iff],
-  -- split,
-  -- intro h,
-  -- rw [mem_interior_iff_mem_nhds] at h,
-  }
+--The assumption `θ ≠ 1` in the lemma below is crucial: for `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}`
+-- is the whole `I`, whose interior (in the induced topology) is `I` again, and `t ∉ I` is always
+-- false whereas `1 ≤ t` is true for `t = 1`.
+lemma interior_I_not_mem'' {θ : ℝ} {t : I} (h : θ ≠ 2) : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2}
+  ↔ θ / 2 ≤ t :=
+begin
+  sorry,
+  -- by_cases H : θ ∈ I,
+  -- { let θI : I := ⟨θ, H⟩,
+  --   have : {s : ↥I | (s : ℝ) ≤ θ} = set.Iic θI := rfl,
+  --   have H_ne : (set.Ioi θI).nonempty := ⟨1, by {simp only [set.mem_Ioi],
+  --     exact (lt_of_le_of_ne H.2 ((coe_ne_one).mp h))}⟩,
+  --   simp only [this, interior_Iic' H_ne, not_lt, subtype.coe_mk, set.mem_set_of_eq,
+  --      ← subtype.coe_lt_coe, ← set.Iio_def] },
+  -- sorry,
+end
+
+lemma interior_I_not_mem₀ {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
+begin
+  -- For `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
+  -- topology) is `I` again, and `t ∉ I` is always false whereas `1 ≤ t` is true for `t = 1`.
+  -- So we split the proof in the cases `θ = 1` and `θ ≠ 1`, that is purely interval-theoretical.
+  by_cases θ_eq_one : θ = 1,
+  { rw [θ_eq_one, univ_eq_le_one, interior_univ],
+    tauto },
+  intro h,
+  by_cases H : θ ∈ I, -- this must be changed to `θ < 1` (the proof is basically the same) and
+  -- then 1 ≤ θ, which becomes `1 < θ` by virtue of `θ_eq_one`, in which case everything is OK
+  -- **Actually**, I suspect that the proof for `θ = 1` generalizes to `1 ≤ θ` and therefore we
+  -- can reduce the number of splittings.
+  { let θI : I := ⟨θ, H⟩,
+    have : {s : ↥I | (s : ℝ) ≤ θ} = set.Iic θI := rfl,
+    have H_ne : (set.Ioi θI).nonempty := ⟨1, _⟩,
+    simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
+      ← subtype.coe_le_coe] using h,
+    simp only [set.mem_Ioi, ← subtype.coe_lt_coe],
+    apply lt_of_le_of_ne H.2 H1},
+
 end
 
 lemma frontier_I_mem (θ t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ) = θ /2 :=
@@ -211,7 +245,12 @@ lemma frontier_I_mem (θ t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 
   (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
 
 lemma frontier_I_mem' {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
-  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem').mp h_right) (not_lt_of_le $ (closure_I_mem').mp h_left)]}
+  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (interior_I_not_mem₀
+    h_right) (not_lt_of_le $ (closure_I_mem').mp h_left)]}
+
+lemma frontier_I_mem'' {θ : ℝ} {t : I} (h : θ ≠ 2) : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ / 2 ) → (t : ℝ)
+  = θ / 2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem'' h).mp
+    h_right) (not_lt_of_le $ (closure_I_mem').mp h_left)]}
 
 lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin

@@ -888,36 +888,26 @@ protected def to_dual : with_top α ≃ with_bot αᵒᵈ := equiv.refl _
 /-- `with_top.of_dual` is the equivalence sending `⊤` to `⊥` and any `a : αᵒᵈ` to `of_dual a : α`.
 See `with_top.to_dual_bot_equiv` for the related order-iso.
 -/
-protected def of_dual : with_top αᵒᵈ ≃ with_bot α := of_dual
+protected def of_dual : with_top αᵒᵈ ≃ with_bot α := equiv.refl _
 /-- `with_bot.to_dual` is the equivalence sending `⊥` to `⊤` and any `a : α` to `to_dual a : αᵒᵈ`.
 See `with_bot.to_dual_top_equiv` for the related order-iso.
 -/
-protected def _root_.with_bot.to_dual : with_bot α ≃ with_top αᵒᵈ := to_dual
+protected def _root_.with_bot.to_dual : with_bot α ≃ with_top αᵒᵈ := equiv.refl _
 /-- `with_bot.of_dual` is the equivalence sending `⊥` to `⊤` and any `a : αᵒᵈ` to `of_dual a : α`.
 See `with_bot.to_dual_top_equiv` for the related order-iso.
 -/
-protected def _root_.with_bot.of_dual : with_bot αᵒᵈ ≃ with_top α := of_dual
+protected def _root_.with_bot.of_dual : with_bot αᵒᵈ ≃ with_top α := equiv.refl _
 
 @[simp] lemma to_dual_symm_apply (a : with_bot αᵒᵈ) :
   with_top.to_dual.symm a = a.of_dual := rfl
-@[simp] lemma _root_.with_bot.to_dual_symm_apply (a : with_top αᵒᵈ) :
-  with_bot.to_dual.symm a = a.of_dual := rfl
 @[simp] lemma of_dual_symm_apply (a : with_bot α) :
   with_top.of_dual.symm a = a.to_dual := rfl
-@[simp] lemma _root_.with_bot.of_dual_symm_apply (a : with_top α) :
-  with_bot.of_dual.symm a = a.to_dual := rfl
 
 @[simp] lemma to_dual_apply_top : with_top.to_dual (⊤ : with_top α) = ⊥ := rfl
 @[simp] lemma of_dual_apply_top : with_top.of_dual (⊤ : with_top α) = ⊥ := rfl
-@[simp] lemma _root_.with_bot.to_dual_apply_bot : with_bot.to_dual (⊥ : with_bot α) = ⊤ := rfl
-@[simp] lemma _root_.with_bot.of_dual_apply_bot : with_bot.of_dual (⊥ : with_bot α) = ⊤ := rfl
 
 @[simp] lemma to_dual_apply_coe (a : α) : with_top.to_dual (a : with_top α) = to_dual a := rfl
 @[simp] lemma of_dual_apply_coe (a : αᵒᵈ) : with_top.of_dual (a : with_top αᵒᵈ) = of_dual a := rfl
-@[simp] lemma _root_.with_bot.to_dual_apply_coe (a : α) :
-  with_bot.to_dual (a : with_bot α) = to_dual a := rfl
-@[simp] lemma _root_.with_bot.of_dual_apply_coe (a : αᵒᵈ) :
-  with_bot.of_dual (a : with_bot αᵒᵈ) = of_dual a := rfl
 
 /-- Specialization of `option.get_or_else` to values in `with_top α` that respects API boundaries.
 -/
@@ -938,19 +928,11 @@ lemma map_to_dual (f : αᵒᵈ → βᵒᵈ) (a : with_bot α) :
   map f (with_bot.to_dual a) = a.map (to_dual ∘ f) := rfl
 lemma map_of_dual (f : α → β) (a : with_bot αᵒᵈ) :
   map f (with_bot.of_dual a) = a.map (of_dual ∘ f) := rfl
-lemma _root_.with_bot.map_to_dual (f : αᵒᵈ → βᵒᵈ) (a : with_top α) :
-  with_bot.map f (with_top.to_dual a) = a.map (to_dual ∘ f) := rfl
-lemma _root_.with_bot.map_of_dual (f : α → β) (a : with_top αᵒᵈ) :
-  with_bot.map f (with_top.of_dual a) = a.map (of_dual ∘ f) := rfl
 
 lemma to_dual_map (f : α → β) (a : with_top α) :
   with_top.to_dual (map f a) = with_bot.map (to_dual ∘ f ∘ of_dual) a.to_dual := rfl
 lemma of_dual_map (f : αᵒᵈ → βᵒᵈ) (a : with_top αᵒᵈ) :
   with_top.of_dual (map f a) = with_bot.map (of_dual ∘ f ∘ to_dual) a.of_dual := rfl
-lemma _root_.with_bot.to_dual_map (f : α → β) (a : with_bot α) :
-  with_bot.to_dual (with_bot.map f a) = map (to_dual ∘ f ∘ of_dual) a.to_dual := rfl
-lemma _root_.with_bot.of_dual_map (f : αᵒᵈ → βᵒᵈ) (a : with_bot αᵒᵈ) :
-  with_bot.of_dual (with_bot.map f a) = map (of_dual ∘ f ∘ to_dual) a.of_dual := rfl
 
 lemma ne_top_iff_exists {x : with_top α} : x ≠ ⊤ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
@@ -988,20 +970,6 @@ lemma le_of_dual_iff {a : with_bot α} {b : with_top αᵒᵈ} :
   a ≤ with_top.of_dual b ↔ b ≤ with_bot.to_dual a := iff.rfl
 @[simp] lemma of_dual_le_of_dual_iff {a b : with_top αᵒᵈ} :
   with_top.of_dual a ≤ with_top.of_dual b ↔ b ≤ a := iff.rfl
-
-lemma _root_.with_bot.to_dual_le_iff {a : with_bot α} {b : with_top αᵒᵈ} :
-  with_bot.to_dual a ≤ b ↔ with_top.of_dual b ≤ a := iff.rfl
-lemma _root_.with_bot.le_to_dual_iff {a : with_top αᵒᵈ} {b : with_bot α} :
-  a ≤ with_bot.to_dual b ↔ b ≤ with_top.of_dual a := iff.rfl
-@[simp] lemma _root_.with_bot.to_dual_le_to_dual_iff {a b : with_bot α} :
-  with_bot.to_dual a ≤ with_bot.to_dual b ↔ b ≤ a := iff.rfl
-
-lemma _root_.with_bot.of_dual_le_iff {a : with_bot αᵒᵈ} {b : with_top α} :
-  with_bot.of_dual a ≤ b ↔ with_top.to_dual b ≤ a := iff.rfl
-lemma _root_.with_bot.le_of_dual_iff {a : with_top α} {b : with_bot αᵒᵈ} :
-  a ≤ with_bot.of_dual b ↔ b ≤ with_top.to_dual a := iff.rfl
-@[simp] lemma _root_.with_bot.of_dual_le_of_dual_iff {a b : with_bot αᵒᵈ} :
-  with_bot.of_dual a ≤ with_bot.of_dual b ↔ b ≤ a := iff.rfl
 
 @[simp, norm_cast] lemma coe_le_coe : (a : with_top α) ≤ b ↔ a ≤ b :=
 by simp only [←to_dual_le_to_dual_iff, to_dual_apply_coe, with_bot.coe_le_coe, to_dual_le_to_dual]
@@ -1064,19 +1032,75 @@ lemma lt_of_dual_iff {a : with_bot α} {b : with_top αᵒᵈ} :
 @[simp] lemma of_dual_lt_of_dual_iff {a b : with_top αᵒᵈ} :
   with_top.of_dual a < with_top.of_dual b ↔ b < a := iff.rfl
 
-lemma _root_.with_bot.to_dual_lt_iff {a : with_bot α} {b : with_top αᵒᵈ} :
+end has_lt
+
+end with_top
+
+namespace with_bot
+
+@[simp] lemma to_dual_symm_apply (a : with_top αᵒᵈ) : with_bot.to_dual.symm a = a.of_dual := rfl
+@[simp] lemma of_dual_symm_apply (a : with_top α) : with_bot.of_dual.symm a = a.to_dual := rfl
+
+@[simp] lemma to_dual_apply_bot : with_bot.to_dual (⊥ : with_bot α) = ⊤ := rfl
+@[simp] lemma of_dual_apply_bot : with_bot.of_dual (⊥ : with_bot α) = ⊤ := rfl
+@[simp] lemma to_dual_apply_coe (a : α) : with_bot.to_dual (a : with_bot α) = to_dual a := rfl
+@[simp] lemma of_dual_apply_coe (a : αᵒᵈ) : with_bot.of_dual (a : with_bot αᵒᵈ) = of_dual a := rfl
+
+lemma map_to_dual (f : αᵒᵈ → βᵒᵈ) (a : with_top α) :
+  with_bot.map f (with_top.to_dual a) = a.map (to_dual ∘ f) := rfl
+lemma map_of_dual (f : α → β) (a : with_top αᵒᵈ) :
+  with_bot.map f (with_top.of_dual a) = a.map (of_dual ∘ f) := rfl
+lemma to_dual_map (f : α → β) (a : with_bot α) :
+  with_bot.to_dual (with_bot.map f a) = map (to_dual ∘ f ∘ of_dual) a.to_dual := rfl
+lemma of_dual_map (f : αᵒᵈ → βᵒᵈ) (a : with_bot αᵒᵈ) :
+  with_bot.of_dual (with_bot.map f a) = map (of_dual ∘ f ∘ to_dual) a.of_dual := rfl
+
+section has_le
+
+variables [has_le α] {a b : α}
+
+lemma to_dual_le_iff {a : with_bot α} {b : with_top αᵒᵈ} :
+  with_bot.to_dual a ≤ b ↔ with_top.of_dual b ≤ a := iff.rfl
+lemma le_to_dual_iff {a : with_top αᵒᵈ} {b : with_bot α} :
+  a ≤ with_bot.to_dual b ↔ b ≤ with_top.of_dual a := iff.rfl
+@[simp] lemma to_dual_le_to_dual_iff {a b : with_bot α} :
+  with_bot.to_dual a ≤ with_bot.to_dual b ↔ b ≤ a := iff.rfl
+
+lemma of_dual_le_iff {a : with_bot αᵒᵈ} {b : with_top α} :
+  with_bot.of_dual a ≤ b ↔ with_top.to_dual b ≤ a := iff.rfl
+lemma le_of_dual_iff {a : with_top α} {b : with_bot αᵒᵈ} :
+  a ≤ with_bot.of_dual b ↔ b ≤ with_top.to_dual a := iff.rfl
+@[simp] lemma of_dual_le_of_dual_iff {a b : with_bot αᵒᵈ} :
+  with_bot.of_dual a ≤ with_bot.of_dual b ↔ b ≤ a := iff.rfl
+
+end has_le
+
+section has_lt
+
+variables [has_lt α] {a b : α}
+
+lemma to_dual_lt_iff {a : with_bot α} {b : with_top αᵒᵈ} :
   with_bot.to_dual a < b ↔ with_top.of_dual b < a := iff.rfl
-lemma _root_.with_bot.lt_to_dual_iff {a : with_top αᵒᵈ} {b : with_bot α} :
+lemma lt_to_dual_iff {a : with_top αᵒᵈ} {b : with_bot α} :
   a < with_bot.to_dual b ↔ b < with_top.of_dual a := iff.rfl
-@[simp] lemma _root_.with_bot.to_dual_lt_to_dual_iff {a b : with_bot α} :
+@[simp] lemma to_dual_lt_to_dual_iff {a b : with_bot α} :
   with_bot.to_dual a < with_bot.to_dual b ↔ b < a := iff.rfl
 
-lemma _root_.with_bot.of_dual_lt_iff {a : with_bot αᵒᵈ} {b : with_top α} :
+lemma of_dual_lt_iff {a : with_bot αᵒᵈ} {b : with_top α} :
   with_bot.of_dual a < b ↔ with_top.to_dual b < a := iff.rfl
-lemma _root_.with_bot.lt_of_dual_iff {a : with_top α} {b : with_bot αᵒᵈ} :
+lemma lt_of_dual_iff {a : with_top α} {b : with_bot αᵒᵈ} :
   a < with_bot.of_dual b ↔ b < with_top.to_dual a := iff.rfl
-@[simp] lemma _root_.with_bot.of_dual_lt_of_dual_iff {a b : with_bot αᵒᵈ} :
+@[simp] lemma of_dual_lt_of_dual_iff {a b : with_bot αᵒᵈ} :
   with_bot.of_dual a < with_bot.of_dual b ↔ b < a := iff.rfl
+
+end has_lt
+
+end with_bot
+
+namespace with_top
+
+section has_lt
+variables [has_lt α] {a b : α}
 
 @[simp, norm_cast] lemma coe_lt_coe : (a : with_top α) < b ↔ a < b :=
 by simp only [←to_dual_lt_to_dual_iff, to_dual_apply_coe, with_bot.coe_lt_coe, to_dual_lt_to_dual]

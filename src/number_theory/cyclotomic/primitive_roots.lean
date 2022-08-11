@@ -188,7 +188,9 @@ section norm
 
 namespace is_primitive_root
 
-variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
+section comm_ring
+
+variables [comm_ring L] [is_domain L] {ζ : L} (hζ : is_primitive_root ζ n)
 variables {K} [field K] [algebra K L]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
@@ -203,6 +205,7 @@ include hζ
 lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
+  haveI : is_domain L := ⟨by simp, 1, 0, one_ne_zero⟩,
   haveI := is_cyclotomic_extension.ne_zero' n K L,
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,
@@ -235,6 +238,15 @@ begin
     all_goals { apply_instance } },
   { exact hζ.norm_eq_one hn hirr }
 end
+
+end comm_ring
+
+section field
+
+variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
+variables {K} [field K] [algebra K L]
+
+include hζ
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
@@ -457,6 +469,8 @@ begin
       ← pow_succ] },
   { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hs htwo }
 end
+
+end field
 
 end is_primitive_root
 

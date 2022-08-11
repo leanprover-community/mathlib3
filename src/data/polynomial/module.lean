@@ -12,7 +12,7 @@ import ring_theory.finiteness
 In this file, we define the polynomial module for an `R`-module `M`, i.e. the `R[X]`-module `M[X]`.
 
 This is defined as an type alias `polynomial_module R M := ℕ →₀ M`, since there might be different
-module structures on `ℕ →₀ M` of interest. See the docstring of ``polynomial_module` for details.
+module structures on `ℕ →₀ M` of interest. See the docstring of `polynomial_module` for details.
 
 -/
 
@@ -31,11 +31,11 @@ The `R[X]`-module `M[X]` for an `R`-module `M`.
 We require all the module instances `module S (polynomial_module R M)` to factor through `R` except
 `module R[X] (polynomial_module R M)`.
 In this constraint, we have the following instances for example :
-- `R` acts on `polynomial_module R R[X]`.
+- `R` acts on `polynomial_module R R[X]`
 - `R[X]` acts on `polynomial_module R R[X]` as `R[Y]` acting on `R[X][Y]`
-- `R[X]` acts on `polynomial_module R[X] R[X]`.
+- `R` acts on `polynomial_module R[X] R[X]`
 - `R[X]` acts on `polynomial_module R[X] R[X]` as `R[X]` acting on `R[X][Y]`
-- `R[X][X]` acts on `polynomial_module R[X] R[X]` as `R[X][Y]` acting on itself.
+- `R[X][X]` acts on `polynomial_module R[X] R[X]` as `R[X][Y]` acting on itself
 
 This is also the reason why `R` is included in the alias, or else there will be two different
 instances of `module R[X] (polynomial_module R[X])`.
@@ -163,5 +163,25 @@ begin
     rw finset.sum_ite_eq,
     simp [nat.lt_succ_iff] }
 end
+
+/-- `polynomial R R` is isomorphic to `R[X]` as an `R[X]` module. -/
+noncomputable
+def equiv_polynomial_self : polynomial_module R R ≃ₗ[R[X]] R[X] :=
+{ map_smul' := λ r x, begin
+    induction r using polynomial.induction_on' with _ _ _ _ n p,
+    { simp only [add_smul, map_add, ring_equiv.to_fun_eq_coe, *] at * },
+    { ext i,
+      dsimp,
+      rw [monomial_smul_apply, polynomial.monomial_eq_C_mul_X, mul_assoc,
+        polynomial.coeff_C_mul, polynomial.coeff_X_pow_mul', mul_ite, mul_zero],
+      simp }
+  end,
+  ..(polynomial.to_finsupp_iso R).symm  }
+
+/-- `polynomial R S` is isomorphic to `S[X]` as an `R` module. -/
+noncomputable
+def equiv_polynomial {S : Type*} [comm_ring S] [algebra R S] :
+  polynomial_module R S ≃ₗ[R] S[X] :=
+{ map_smul' := λ r x, rfl, ..(polynomial.to_finsupp_iso S).symm  }
 
 end polynomial_module

@@ -399,7 +399,7 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 lemma conj_inv (x : ℂ) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-of_real.map_div r s
+map_div₀ of_real r s
 
 @[simp, norm_cast] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
 of_real.map_zpow r n
@@ -414,7 +414,7 @@ by simp [inv_eq_one_div]
 norm_sq.map_inv z
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-norm_sq.map_div z w
+map_div₀ norm_sq z w
 
 /-! ### Cast lemmas -/
 

@@ -361,13 +361,10 @@ namespace ring_hom
 section semiring
 variables [semiring α] [division_semiring β]
 
-@[simp] lemma map_units_inv (f : α →+* β) (u : αˣ) : f ↑u⁻¹ = (f ↑u)⁻¹ :=
-(f : α →* β).map_units_inv u
-
 variables [nontrivial α] (f : β →+* α) {a : β}
 
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := f.to_monoid_with_zero_hom.map_eq_zero
-lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
+@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := monoid_with_zero_hom.map_eq_zero f
+lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 := monoid_with_zero_hom.map_ne_zero f
 
 end semiring
 

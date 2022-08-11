@@ -839,8 +839,8 @@ eq.symm $ antitone.map_max $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma max_div_div_right_of_nonpos (hc : c ≤ 0) (a b : α) : max (a / c) (b / c) = (min a b) / c :=
 eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 
-lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := (abs_hom : α →*₀ α).map_inv a
-lemma abs_div (a b : α) : |a / b| = |a| / |b| := (abs_hom : α →*₀ α).map_div a b
+lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
+lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
 
 lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=

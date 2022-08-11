@@ -88,7 +88,7 @@ noncomputable def sqrt_hom : ℝ≥0 →*₀ ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt
 
 lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv x
 
-lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := sqrt_hom.map_div x y
+lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := map_div₀ sqrt_hom x y
 
 lemma continuous_sqrt : continuous sqrt := sqrt.continuous
 

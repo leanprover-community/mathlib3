@@ -383,7 +383,7 @@ lemma conj_inv (x : K) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_div (r s : ℝ) :
   ((r / s : ℝ) : K) = r / s :=
-(@is_R_or_C.coe_hom K _).map_div r s
+map_div₀ (@is_R_or_C.coe_hom K _) r s
 
 lemma div_re_of_real {z : K} {r : ℝ} : re (z / r) = re z / r :=
 begin
@@ -415,7 +415,7 @@ by field_simp
 (@norm_sq K _).map_inv z
 
 @[simp, is_R_or_C_simps] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-(@norm_sq K _).map_div z w
+map_div₀ (@norm_sq K _) z w
 
 @[is_R_or_C_simps] lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]

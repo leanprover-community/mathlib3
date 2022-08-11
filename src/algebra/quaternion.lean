@@ -597,7 +597,7 @@ instance : division_ring ℍ[R] :=
 monoid_with_zero_hom.map_inv norm_sq _
 
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
-monoid_with_zero_hom.map_div norm_sq a b
+map_div₀ norm_sq a b
 
 end field
 

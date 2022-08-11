@@ -155,15 +155,6 @@ apply_nolint nat.rfind_x doc_blame
 apply_nolint partrec doc_blame
 apply_nolint partrec₂ doc_blame
 
--- computability/primrec.lean
-apply_nolint nat.cases doc_blame
-apply_nolint nat.elim doc_blame
-apply_nolint nat.primrec'.vec doc_blame
-apply_nolint nat.unpaired doc_blame
-apply_nolint primcodable.of_equiv doc_blame
-apply_nolint primcodable.subtype doc_blame
-apply_nolint primrec.dom_fintype fintype_finite
-
 -- computability/turing_machine.lean
 apply_nolint turing.TM1to1.exists_enc_dec fintype_finite
 

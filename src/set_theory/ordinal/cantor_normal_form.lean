@@ -103,23 +103,6 @@ end
 theorem le_self_of_mem_keys_CNF_list {b o x : ordinal} (h : x ∈ (CNF_list b o).keys) : x ≤ o :=
 (le_log_of_mem_keys_CNF_list h).trans (log_le_self b o)
 
-theorem CNF_list_keys_sorted (b o : ordinal) : (CNF_list b o).keys.sorted (>) :=
-begin
-  refine CNF_rec b (by simp) (λ o ho IH, _) o,
-  cases lt_or_le o b with hob hbo,
-  { rw CNF_list_of_lt ho hob,
-    apply sorted_singleton },
-  { rw [CNF_list_ne_zero ho, keys_cons, sorted_cons],
-    refine ⟨λ x hx, _, IH⟩,
-    cases le_or_lt b 1 with hb hb,
-    { rcases le_one_iff.1 hb with rfl | rfl;
-      simpa using hx },
-    { exact (le_log_of_mem_keys_CNF_list hx).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } }
-end
-
-theorem CNF_list_nodupkeys (b o : ordinal) : (CNF_list b o).nodupkeys :=
-(CNF_list_keys_sorted b o).imp (λ x y, has_lt.lt.ne')
-
 theorem pos_of_mem_lookup_CNF_list {b o x e : ordinal.{u}} : x ∈ (CNF_list b o).lookup e → 0 < x :=
 begin
   rw mem_lookup_iff (CNF_list_nodupkeys b o),
@@ -144,6 +127,23 @@ begin
     exact div_opow_log_lt o hb },
   { exact IH h }
 end
+
+theorem CNF_list_keys_sorted (b o : ordinal) : (CNF_list b o).keys.sorted (>) :=
+begin
+  refine CNF_rec b (by simp) (λ o ho IH, _) o,
+  cases lt_or_le o b with hob hbo,
+  { rw CNF_list_of_lt ho hob,
+    apply sorted_singleton },
+  { rw [CNF_list_ne_zero ho, keys_cons, sorted_cons],
+    refine ⟨λ x hx, _, IH⟩,
+    cases le_or_lt b 1 with hb hb,
+    { rcases le_one_iff.1 hb with rfl | rfl;
+      simpa using hx },
+    { exact (le_log_of_mem_keys_CNF_list hx).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } }
+end
+
+theorem CNF_list_nodupkeys (b o : ordinal) : (CNF_list b o).nodupkeys :=
+(CNF_list_keys_sorted b o).imp (λ x y, has_lt.lt.ne')
 
 /-! ### Cantor normal form as an alist -/
 
@@ -185,9 +185,6 @@ le_log_of_mem_keys_CNF_list
 theorem le_self_of_mem_CNF {b o x : ordinal} : x ∈ CNF b o → x ≤ o :=
 le_self_of_mem_keys_CNF_list
 
-/-- The exponents of the Cantor normal form are decreasing. -/
-theorem CNF_keys_sorted : ∀ b o, (CNF b o).keys.sorted (>) := CNF_list_keys_sorted
-
 /-- Every coefficient in a Cantor normal form is positive. -/
 theorem pos_of_mem_lookup_CNF {b o x e : ordinal} : x ∈ (CNF b o).lookup e → 0 < x :=
 pos_of_mem_lookup_CNF_list
@@ -195,5 +192,8 @@ pos_of_mem_lookup_CNF_list
 /-- Every coefficient in the Cantor normal form `CNF b o` is less than `b`. -/
 theorem lt_of_mem_lookup_CNF {b o x e : ordinal} : 1 < b → x ∈ (CNF b o).lookup e → x < b :=
 lt_of_mem_lookup_CNF_list
+
+/-- The exponents of the Cantor normal form are decreasing. -/
+theorem CNF_keys_sorted : ∀ b o, (CNF b o).keys.sorted (>) := CNF_list_keys_sorted
 
 end ordinal

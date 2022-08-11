@@ -190,19 +190,20 @@ namespace is_primitive_root
 
 section comm_ring
 
-variables [comm_ring L] [is_domain L] {ζ : L} (hζ : is_primitive_root ζ n)
+variables [comm_ring L] {ζ : L} (hζ : is_primitive_root ζ n)
 variables {K} [field K] [algebra K L]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
-lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
-by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp,
-  algebra.norm_algebra_map]
+lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) [is_domain L] :
+  norm K ζ = (-1) ^ finrank K L :=
+by rw [hζ.eq_neg_one_of_two_right, show -1 = algebra_map K L (-1), by simp,
+       algebra.norm_algebra_map]
 
 include hζ
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), the norm of a primitive root is
 `1` if `n ≠ 2`. -/
-lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
+lemma norm_eq_one [is_domain L] [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
   haveI := is_cyclotomic_extension.ne_zero' n K L,
@@ -227,7 +228,7 @@ begin
   exact strict_mono.injective hodd.strict_mono_pow hz
 end
 
-lemma norm_of_cyclotomic_irreducible [is_cyclotomic_extension {n} K L]
+lemma norm_of_cyclotomic_irreducible [is_domain L] [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = ite (n = 2) (-1) 1 :=
 begin
   split_ifs with hn,

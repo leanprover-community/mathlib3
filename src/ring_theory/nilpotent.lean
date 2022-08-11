@@ -159,27 +159,27 @@ ideal.ext $ λ _, is_nilpotent_iff_eq_zero
 
 end comm_semiring
 
-namespace algebra
+namespace linear_map
 
 variables (R) {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
 
-@[simp] lemma is_nilpotent_lmul_left_iff (a : A) :
-  is_nilpotent (lmul_left R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_left_iff (a : A) :
+  is_nilpotent (mul_left R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_left_eq_zero_iff, pow_lmul_left] at ⊢ hn;
+  simp only [mul_left_eq_zero_iff, pow_mul_left] at ⊢ hn;
   exact hn,
 end
 
-@[simp] lemma is_nilpotent_lmul_right_iff (a : A) :
-  is_nilpotent (lmul_right R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_right_iff (a : A) :
+  is_nilpotent (mul_right R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_right_eq_zero_iff, pow_lmul_right] at ⊢ hn;
+  simp only [mul_right_eq_zero_iff, pow_mul_right] at ⊢ hn;
   exact hn,
 end
 
-end algebra
+end linear_map
 
 namespace module.End
 
@@ -194,3 +194,40 @@ begin
 end
 
 end module.End
+
+namespace ideal
+
+variables [comm_semiring R] [comm_ring S] [algebra R S] (I : ideal S)
+
+/-- Let `P` be a property on ideals. If `P` holds for square-zero ideals, and if
+  `P I → P (J ⧸ I) → P J`, then `P` holds for all nilpotent ideals. -/
+lemma is_nilpotent.induction_on
+  (hI : is_nilpotent I)
+  {P : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI ∀ I : ideal S, Prop}
+  (h₁ : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI ∀ I : ideal S, I ^ 2 = ⊥ → P I)
+  (h₂ : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI
+    ∀ I J : ideal S, I ≤ J → P I → P (J.map (ideal.quotient.mk I)) → P J) : P I :=
+begin
+  obtain ⟨n, hI : I ^ n = ⊥⟩ := hI,
+  unfreezingI { revert S },
+  apply nat.strong_induction_on n,
+  clear n,
+  introsI n H S _ I hI,
+  by_cases hI' : I = ⊥,
+  { subst hI', apply h₁, rw [← ideal.zero_eq_bot, zero_pow], exact zero_lt_two },
+  cases n,
+  { rw [pow_zero, ideal.one_eq_top] at hI,
+    haveI := subsingleton_of_bot_eq_top hI.symm,
+    exact (hI' (subsingleton.elim _ _)).elim },
+  cases n,
+  { rw [pow_one] at hI,
+    exact (hI' hI).elim },
+  apply h₂ (I ^ 2) _ (ideal.pow_le_self two_ne_zero),
+  { apply H n.succ _ (I ^ 2),
+    { rw [← pow_mul, eq_bot_iff, ← hI, nat.succ_eq_add_one, nat.succ_eq_add_one],
+      exact ideal.pow_le_pow (by linarith) },
+    { exact le_refl n.succ.succ } },
+  { apply h₁, rw [← ideal.map_pow, ideal.map_quotient_self] },
+end
+
+end ideal

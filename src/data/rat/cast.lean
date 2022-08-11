@@ -34,17 +34,8 @@ open_locale rat
 section with_div_ring
 variable [division_ring α]
 
-/-- Construct the canonical injection from `ℚ` into an arbitrary
-  division ring. If the field has positive characteristic `p`,
-  we define `1 / p = 1 / 0 = 0` for consistency with our
-  division by zero convention. -/
--- see Note [coercion into rings]
-@[priority 900] instance cast_coe : has_coe_t ℚ α := ⟨λ r, r.1 / r.2⟩
-
-theorem cast_def (r : ℚ) : (r : α) = r.num / r.denom := rfl
-
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
-show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
+(cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
 @[simp, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
 by rw [coe_int_eq_of_int, cast_of_int]
@@ -59,7 +50,7 @@ by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
 (cast_of_int _).trans int.cast_one
 
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
-(r.1.cast_commute a).div_left (r.2.cast_commute a)
+by simpa only [cast_def] using (r.1.cast_commute a).div_left (r.2.cast_commute a)
 
 theorem cast_comm (r : ℚ) (a : α) : (r : α) * a = a * r :=
 (cast_commute r a).eq
@@ -81,8 +72,8 @@ begin
   rw [num_denom'] at e,
   have := congr_arg (coe : ℤ → α) ((mk_eq b0' $ ne_of_gt $ int.coe_nat_pos.2 h).1 e),
   rw [int.cast_mul, int.cast_mul, int.cast_coe_nat] at this,
-  symmetry, change (a / b : α) = n / d,
-  rw [div_eq_mul_inv, eq_div_iff_mul_eq d0, mul_assoc, (d.commute_cast _).eq,
+  symmetry,
+  rw [cast_def, div_eq_mul_inv, eq_div_iff_mul_eq d0, mul_assoc, (d.commute_cast _).eq,
       ← mul_assoc, this, mul_assoc, mul_inv_cancel b0, mul_one]
 end
 
@@ -102,7 +93,7 @@ end
 end
 
 @[simp, norm_cast] theorem cast_neg : ∀ n, ((-n : ℚ) : α) = -n
-| ⟨n, d, h, c⟩ := show (↑-n / d : α) = -(n / d),
+| ⟨n, d, h, c⟩ := by simpa only [cast_def] using show (↑-n / d : α) = -(n / d),
   by rw [div_eq_mul_inv, div_eq_mul_inv, int.cast_neg, neg_mul_eq_neg_mul]
 
 @[norm_cast] theorem cast_sub_of_ne_zero {m n : ℚ}
@@ -291,7 +282,7 @@ open rat ring_hom
 lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
 calc f r = f (r.1 / r.2) : by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
      ... = f r.1 / f r.2 : f.map_div _ _
-     ... = r.1 / r.2     : by rw [map_nat_cast, map_int_cast]
+     ... = r             : by rw [map_nat_cast, map_int_cast, cast_def]
 
 -- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
 -- but the proof would be much longer

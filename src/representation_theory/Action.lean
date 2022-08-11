@@ -140,6 +140,14 @@ def mk_iso {M N : Action V G} (f : M.V ≅ N.V) (comm : ∀ g : G, M.ρ g ≫ f.
   { hom := f.inv,
     comm' := λ g, by { have w := comm g =≫ f.inv, simp at w, simp [w], }, }}
 
+@[priority 100]
+instance is_iso_of_hom_is_iso {M N : Action V G} (f : M ⟶ N) [is_iso f.hom] : is_iso f :=
+by { convert is_iso.of_iso (mk_iso (as_iso f.hom) f.comm), ext, refl, }
+
+instance is_iso_hom_mk {M N : Action V G} (f : M.V ⟶ N.V) [is_iso f] (w) :
+  @is_iso _ _ M N ⟨f, w⟩ :=
+is_iso.of_iso (mk_iso (as_iso f) w)
+
 namespace functor_category_equivalence
 
 /-- Auxilliary definition for `functor_category_equivalence`. -/
@@ -324,6 +332,8 @@ variables [monoidal_category V]
 instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
 
+@[simp] lemma tensor_unit_V : (𝟙_ (Action V G)).V = 𝟙_ V := rfl
+@[simp] lemma tensor_unit_rho {g : G} : (𝟙_ (Action V G)).ρ g = 𝟙 (𝟙_ V) := rfl
 @[simp] lemma tensor_V {X Y : Action V G} : (X ⊗ Y).V = X.V ⊗ Y.V := rfl
 @[simp] lemma tensor_rho {X Y : Action V G} {g : G} : (X ⊗ Y).ρ g = X.ρ g ⊗ Y.ρ g := rfl
 @[simp] lemma tensor_hom {W X Y Z : Action V G} (f : W ⟶ X) (g : Y ⟶ Z) :
@@ -542,3 +552,29 @@ variables {R : Type*} [semiring R] [category_theory.linear R V] [category_theory
 instance map_Action_linear [F.additive] [F.linear R] : (F.map_Action G).linear R := {}
 
 end category_theory.functor
+
+namespace category_theory.monoidal_functor
+
+open Action
+variables {V} {W : Type (u+1)} [large_category W] [monoidal_category V] [monoidal_category W]
+
+/-- A monoidal functor induces a monoidal functor between
+the categories of `G`-actions within those categories. -/
+@[simps] def map_Action (F : monoidal_functor V W) (G : Mon.{u}) :
+  monoidal_functor (Action V G) (Action W G) :=
+{ ε :=
+  { hom := F.ε,
+    comm' := λ g,
+    by { dsimp, erw [category.id_comp, category_theory.functor.map_id, category.comp_id], }, },
+  μ := λ X Y,
+  { hom := F.μ X.V Y.V,
+    comm' := λ g, F.to_lax_monoidal_functor.μ_natural (X.ρ g) (Y.ρ g), },
+  ε_is_iso := by apply_instance,
+  μ_is_iso := by apply_instance,
+  μ_natural' := by { intros, ext, dsimp, simp, },
+  associativity' := by { intros, ext, dsimp, simp, dsimp, simp, }, -- See note [dsimp, simp].
+  left_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
+  right_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
+  ..F.to_functor.map_Action G, }
+
+end category_theory.monoidal_functor

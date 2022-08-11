@@ -27,7 +27,7 @@ https://en.wikipedia.org/wiki/Euclid%E2%80%93Euler_theorem
 -/
 
 lemma odd_mersenne_succ (k : ℕ) : ¬ 2 ∣ mersenne (k + 1) :=
-by simp [← even_iff_two_dvd, ← nat.even_succ, nat.succ_eq_add_one] with parity_simps
+by simp [← even_iff_two_dvd, ← nat.even_add_one] with parity_simps
 
 namespace nat
 open arithmetic_function finset

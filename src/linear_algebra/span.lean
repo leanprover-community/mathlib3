@@ -200,8 +200,15 @@ by rw [submodule.span_union, p.span_eq]
 lemma span_sup : span R s ⊔ p = span R (s ∪ p) :=
 by rw [submodule.span_union, p.span_eq]
 
-lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
+/- Note that the character `∙` U+2219 used below is different from the scalar multiplication
+character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
+notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
+
+lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
+
+lemma span_range_eq_supr {ι : Type*} {v : ι → M} : span R (range v) = ⨆ i, R ∙ v i :=
+by rw [span_eq_supr_of_singleton_spans, supr_range]
 
 lemma span_smul_le (s : set M) (r : R) :
   span R (r • s) ≤ span R s :=
@@ -319,10 +326,6 @@ begin
 end
 
 end
-
-/- This is the character `∙`, with escape sequence `\.`, and is thus different from the scalar
-multiplication character `•`, with escape sequence `\bub`. -/
-notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma mem_span_singleton_self (x : M) : x ∈ R ∙ x := subset_span rfl
 
@@ -502,11 +505,12 @@ lemma not_mem_span_of_apply_not_mem_span_image
    x ∉ submodule.span R s :=
 h.imp (apply_mem_span_image_of_mem_span f)
 
-lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
-  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
-le_antisymm
-  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
+lemma supr_span {ι : Sort*} (p : ι → set M) : (⨆ i, span R (p i)) = span R (⋃ i, p i) :=
+le_antisymm (supr_le $ λ i, span_mono $ subset_Union _ i) $
+  span_le.mpr $ Union_subset $ λ i m hm, mem_supr_of_mem i $ subset_span hm
+
+lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) : (⨆ i, p i) = span R (⋃ i, ↑(p i)) :=
+by simp_rw [← supr_span, span_eq]
 
 lemma supr_to_add_submonoid {ι : Sort*} (p : ι → submodule R M) :
   (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
@@ -592,6 +596,18 @@ instance : is_compactly_generated (submodule R M) :=
   rcases (set.mem_image _ _ _).1 ht with ⟨x, hx, rfl⟩,
   apply singleton_span_is_compact_element,
 end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
+
+/-- A submodule is equal to the supremum of the spans of the submodule's nonzero elements. -/
+lemma submodule_eq_Sup_le_nonzero_spans (p : submodule R M) :
+  p = Sup {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}} :=
+begin
+  let S := {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}},
+  apply le_antisymm,
+  { intros m hm, by_cases h : m = 0,
+    { rw h, simp },
+    { exact @le_Sup _ _ S _ ⟨m, ⟨hm, ⟨h, rfl⟩⟩⟩ m (mem_span_singleton_self m) } },
+  { rw Sup_le_iff, rintros S ⟨_, ⟨_, ⟨_, rfl⟩⟩⟩, rwa span_singleton_le_iff_mem }
+end
 
 lemma lt_sup_iff_not_mem {I : submodule R M} {a : M} : I < I ⊔ (R ∙ a) ↔ a ∉ I :=
 begin
@@ -780,7 +796,9 @@ variables (R) (M) [semiring R] [add_comm_monoid M] [module R M]
 lemma span_singleton_eq_range (x : M) : (R ∙ x) = (to_span_singleton R M x).range :=
 submodule.ext $ λ y, by {refine iff.trans _ linear_map.mem_range.symm, exact mem_span_singleton }
 
-lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
+@[simp] lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
+
+@[simp] lemma to_span_singleton_zero : to_span_singleton R M 0 = 0 := by { ext, simp, }
 
 end
 

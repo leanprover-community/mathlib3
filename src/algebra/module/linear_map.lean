@@ -258,36 +258,40 @@ by simp
 section pointwise
 open_locale pointwise
 
-@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
-  f '' (c • s) = (σ c) • f '' s :=
+variables (M M₃ σ) {F : Type*} (h : F)
+
+@[simp] lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
+  h '' (c • s) = (σ c) • h '' s :=
 begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
-    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smulₛₗ _ _).symm ⟩ },
+    exact ⟨h z, set.mem_image_of_mem _ zs, (map_smulₛₗ _ _ _).symm ⟩ },
   { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
-    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smulₛₗ _ _⟩ }
+    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, map_smulₛₗ _ _ _⟩ }
 end
 
-lemma image_smul_set (c : R) (s : set M) :
-  fₗ '' (c • s) = c • fₗ '' s :=
-by simp
-
-lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
-  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
+lemma _root_.preimage_smul_setₛₗ [semilinear_map_class F σ M M₃] {c : R} (hc : is_unit c)
+  (s : set M₃) : h ⁻¹' (σ c • s) = c • h ⁻¹' s :=
 begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ys, hy⟩,
     refine ⟨(hc.unit.inv : R) • x, _, _⟩,
-    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ f, ← map_mul,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ h, ← map_mul,
         is_unit.coe_inv_mul, one_smul, map_one, ys] },
     { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
   { rintros x ⟨y, hy, rfl⟩,
-    refine ⟨f y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ f]⟩ }
+    refine ⟨h y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
 end
 
-lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
-  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
-fₗ.preimage_smul_setₛₗ hc s
+variables (R M₂)
+
+lemma _root_.image_smul_set [linear_map_class F R M M₂] (c : R) (s : set M) :
+  h '' (c • s) = c • h '' s :=
+image_smul_setₛₗ _ _ _ h c s
+
+lemma _root_.preimage_smul_set [linear_map_class F R M M₂] {c : R} (hc : is_unit c) (s : set M₂) :
+  h ⁻¹' (c • s) = c • h ⁻¹' s :=
+preimage_smul_setₛₗ _ _ _ h hc s
 
 end pointwise
 
@@ -807,12 +811,26 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,
   right_distrib := λ f g h, add_comp _ _ _,
+  nat_cast := λ n, n • 1,
+  nat_cast_zero := add_monoid.nsmul_zero' _,
+  nat_cast_succ := λ n, (add_monoid.nsmul_succ' n 1).trans (add_comm _ _),
   .. add_monoid_with_one.unary,
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 
+/-- See also `module.End.nat_cast_def`. -/
+@[simp] lemma _root_.module.End.nat_cast_apply (n : ℕ) (m : M) :
+  (↑n : module.End R M) m = n • m := rfl
+
 instance _root_.module.End.ring : ring (module.End R N₁) :=
-{ ..module.End.semiring, ..linear_map.add_comm_group }
+{ int_cast := λ z, z • 1,
+  int_cast_of_nat := of_nat_zsmul _,
+  int_cast_neg_succ_of_nat := zsmul_neg_succ_of_nat _,
+  ..module.End.semiring, ..linear_map.add_comm_group }
+
+/-- See also `module.End.int_cast_def`. -/
+@[simp] lemma _root_.module.End.int_cast_apply (z : ℤ) (m : N₁) :
+  (↑z : module.End R N₁) m = z • m := rfl
 
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
@@ -896,7 +914,7 @@ namespace module
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables [semiring S] [module S M] [smul_comm_class S R M]
 
-/-- Each element of the monoid defines a module endomorphism.
+/-- Each element of the semiring defines a module endomorphism.
 
 This is a stronger version of `distrib_mul_action.to_module_End`. -/
 @[simps]
@@ -925,5 +943,11 @@ def module_End_self_op : R ≃+* module.End Rᵐᵒᵖ R :=
   left_inv := mul_one,
   right_inv := λ f, linear_map.ext_ring_op $ mul_one _,
   ..module.to_module_End _ _ }
+
+lemma End.nat_cast_def (n : ℕ) [add_comm_monoid N₁] [module R N₁] :
+  (↑n : module.End R N₁) = module.to_module_End R N₁ n := rfl
+
+lemma End.int_cast_def (z : ℤ) [add_comm_group N₁] [module R N₁] :
+  (↑z : module.End R N₁) = module.to_module_End R N₁ z := rfl
 
 end module

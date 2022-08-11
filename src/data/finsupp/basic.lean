@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.hom.group_action
 import algebra.indicator_function
 import data.finset.preimage
+import data.list.alist
 
 /-!
 # Type of functions with finite support
@@ -45,7 +46,7 @@ non-pointwise multiplication.
 * `finsupp.update`: Changes one value of a `finsupp`.
 * `finsupp.erase`: Replaces one value of a `finsupp` by `0`.
 * `finsupp.on_finset`: The restriction of a function to a `finset` as a `finsupp`.
-* `finsupp.map_range`: Composition of a `zero_hom` with a`finsupp`.
+* `finsupp.map_range`: Composition of a `zero_hom` with a `finsupp`.
 * `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
 * `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing.
 * `finsupp.comap_domain`: Postcomposition of a `finsupp` with a function injective on the preimage
@@ -721,6 +722,123 @@ end
 by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
 end erase
+
+/-! ### Declarations about `graph` -/
+
+section graph
+
+variable [has_zero M]
+
+/-- The graph of a finitely supported function over its support, i.e. the finset of input and output
+pairs with non-zero outputs. -/
+def graph (f : α →₀ M) : finset (α × M) :=
+f.support.map ⟨λ a, prod.mk a (f a), λ x y h, (prod.mk.inj h).1⟩
+
+lemma mk_mem_graph_iff {a : α} {m : M} {f : α →₀ M} : (a, m) ∈ f.graph ↔ f a = m ∧ m ≠ 0 :=
+begin
+  simp_rw [graph, mem_map, mem_support_iff],
+  split,
+  { rintro ⟨b, ha, rfl, -⟩,
+    exact ⟨rfl, ha⟩ },
+  { rintro ⟨rfl, ha⟩,
+    exact ⟨a, ha, rfl⟩ }
+end
+
+@[simp] lemma mem_graph_iff {c : α × M} {f : α →₀ M} : c ∈ f.graph ↔ f c.1 = c.2 ∧ c.2 ≠ 0 :=
+by { cases c, exact mk_mem_graph_iff }
+
+lemma mk_mem_graph (f : α →₀ M) {a : α} (ha : a ∈ f.support) : (a, f a) ∈ f.graph :=
+mk_mem_graph_iff.2 ⟨rfl, mem_support_iff.1 ha⟩
+
+lemma apply_eq_of_mem_graph {a : α} {m : M} {f : α →₀ M} (h : (a, m) ∈ f.graph) : f a = m :=
+(mem_graph_iff.1 h).1
+
+@[simp] lemma not_mem_graph_snd_zero (a : α) (f : α →₀ M) : (a, (0 : M)) ∉ f.graph :=
+λ h, (mem_graph_iff.1 h).2.irrefl
+
+@[simp] lemma image_fst_graph (f : α →₀ M) : f.graph.image prod.fst = f.support :=
+by simp only [graph, map_eq_image, image_image, embedding.coe_fn_mk, (∘), image_id']
+
+lemma graph_injective (α M) [has_zero M] : injective (@graph α M _) :=
+begin
+  intros f g h,
+  have hsup : f.support = g.support, by rw [← image_fst_graph, h, image_fst_graph],
+  refine ext_iff'.2 ⟨hsup, λ x hx, apply_eq_of_mem_graph $ h.symm ▸ _⟩,
+  exact mk_mem_graph _ (hsup ▸ hx)
+end
+
+@[simp] lemma graph_inj {f g : α →₀ M} : f.graph = g.graph ↔ f = g :=
+(graph_injective α M).eq_iff
+
+@[simp] lemma graph_zero : graph (0 : α →₀ M) = ∅ := by simp [graph]
+
+@[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
+(graph_injective α M).eq_iff' graph_zero
+
+/-- Produce an association list for the finsupp over its support using choice. -/
+@[simps] def to_alist (f : α →₀ M) : alist (λ x : α, M) :=
+⟨f.graph.to_list.map prod.to_sigma, begin
+  rw [list.nodupkeys, list.keys, list.map_map, prod.fst_comp_to_sigma, list.nodup_map_iff_inj_on],
+  { rintros ⟨b, m⟩ hb ⟨c, n⟩ hc (rfl : b = c),
+    rw [mem_to_list, finsupp.mem_graph_iff] at hb hc,
+    dsimp at hb hc,
+    rw [←hc.1, hb.1] },
+  { apply nodup_to_list }
+end⟩
+
+@[simp] lemma to_alist_keys_to_finset (f : α →₀ M) : f.to_alist.keys.to_finset = f.support :=
+by { ext, simp [to_alist, alist.mem_keys, alist.keys, list.keys] }
+
+@[simp] lemma mem_to_alist {f : α →₀ M} {x : α} : x ∈ f.to_alist ↔ f x ≠ 0 :=
+by rw [alist.mem_keys, ←list.mem_to_finset, to_alist_keys_to_finset, mem_support_iff]
+
+end graph
+
+end finsupp
+
+/-! ### Declarations about `alist.lookup_finsupp` -/
+
+section lookup_finsupp
+
+variable [has_zero M]
+
+namespace alist
+open list
+
+/-- Converts an association list into a finitely supported function via `alist.lookup`, sending
+absent keys to zero. -/
+@[simps] def lookup_finsupp (l : alist (λ x : α, M)) : α →₀ M :=
+{ support := (l.1.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset,
+  to_fun := λ a, (l.lookup a).get_or_else 0,
+  mem_support_to_fun := λ a, begin
+    simp_rw [mem_to_finset, list.mem_keys, list.mem_filter, ←mem_lookup_iff],
+    cases lookup a l;
+    simp
+  end }
+
+alias lookup_finsupp_to_fun ← lookup_finsupp_apply
+
+@[simp] lemma to_alist_lookup_finsupp (f : α →₀ M) : f.to_alist.lookup_finsupp = f :=
+begin
+  ext,
+  by_cases h : f a = 0,
+  { suffices : f.to_alist.lookup a = none,
+    { simp [h, this] },
+    { simp [lookup_eq_none, h] } },
+  { suffices : f.to_alist.lookup a = some (f a),
+    { simp [h, this] },
+    { apply mem_lookup_iff.2,
+      simpa using h } }
+end
+
+lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
+λ f, ⟨_, to_alist_lookup_finsupp f⟩
+
+end alist
+
+end lookup_finsupp
+
+namespace finsupp
 
 /-!
 ### Declarations about `sum` and `prod`
@@ -1416,6 +1534,18 @@ have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
     by simp only [not_mem_support_iff.mp (disjoint_left.mp hd hx), add_zero]),
 by simp_rw [← this hd, ← this hd.symm,
   add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
+
+lemma prod_dvd_prod_of_subset_of_dvd [add_comm_monoid M] [comm_monoid N]
+  {f1 f2 : α →₀ M} {g1 g2 : α → M → N} (h1 : f1.support ⊆ f2.support)
+  (h2 : ∀ (a : α), a ∈ f1.support → g1 a (f1 a) ∣ g2 a (f2 a)) :
+  f1.prod g1 ∣ f2.prod g2 :=
+begin
+  simp only [finsupp.prod, finsupp.prod_mul],
+  rw [←sdiff_union_of_subset h1, prod_union sdiff_disjoint],
+  apply dvd_mul_of_dvd_right,
+  apply prod_dvd_prod_of_dvd,
+  exact h2,
+end
 
 section map_range
 

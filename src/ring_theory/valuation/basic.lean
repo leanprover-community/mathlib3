@@ -217,17 +217,6 @@ end monoid
 section group
 variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
-@[simp] lemma map_inv (v : valuation K Γ₀) {x : K} :
-  v x⁻¹ = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.map_inv x
-
-@[simp] lemma map_zpow (v : valuation K Γ₀) {x : K} {n : ℤ} :
-  v (x^n) = (v x)^n :=
-v.to_monoid_with_zero_hom.map_zpow x n
-
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 
@@ -438,13 +427,13 @@ begin
       by_contra h_1,
       cases ne_iff_lt_or_gt.1 h_1,
       { simpa [hh, lt_self_iff_false] using h.2 h_2 },
-      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv₀] at hh,
         exact hh.le.not_lt (h.2 ((one_lt_val_iff v' hx).1 h_2)) } },
     { intro hh,
       by_contra h_1,
       cases ne_iff_lt_or_gt.1 h_1,
       { simpa [hh, lt_self_iff_false] using h.1 h_2 },
-      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv₀] at hh,
         exact hh.le.not_lt (h.1 ((one_lt_val_iff v hx).1 h_2)) } } }
 end
 
@@ -703,10 +692,10 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
 
 @[simp] lemma map_inv (v : add_valuation K Γ₀) {x : K} :
   v x⁻¹ = - (v x) :=
-v.map_inv
+map_inv₀ v.valuation x
 
 lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
-v.map_units_inv x
+units.map_units_inv v.valuation x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.map_neg x

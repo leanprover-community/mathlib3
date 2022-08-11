@@ -664,27 +664,18 @@ def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
 eq_top_iff.mpr $ λ x hy y, false.elim
 
 /-- Dual cone of the convex cone {0} is the total space. -/
-@[simp] lemma inner_dual_cone_zero : (0 : set H).inner_dual_cone = ⊤ := convex_cone.ext $ λ x,
-  by simp_rw [mem_inner_dual_cone, mem_zero, forall_eq, inner_zero_left, le_refl, true_iff]
+@[simp] lemma inner_dual_cone_zero : (0 : set H).inner_dual_cone = ⊤ :=
+eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ inner_zero_left.ge
 
 /-- Dual cone of the total space is the convex cone {0}. -/
 lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 :=
-convex_cone.ext $ λ x, iff.intro
 begin
-  simp_rw [mem_inner_dual_cone, convex_cone.mem_zero],
-  rintro h,
-  contrapose! h,
-  use -x,
-  split,
-  { exact mem_univ _, },
-  { rw [inner_neg_left, right.neg_neg_iff],
-    contrapose! h,
-    exact real_inner_self_nonpos.1 h },
-end
-begin
-  simp only [convex_cone.mem_zero, mem_univ, mem_inner_dual_cone, forall_true_left],
-  rintros hx _ ,
-  rw [hx, inner_zero_right],
+  suffices : ∀ x : H, x ∈ (set.univ : set H).inner_dual_cone → x = 0,
+  { apply set_like.coe_injective,
+    exact eq_singleton_iff_unique_mem.mpr ⟨λ x hx, inner_zero_right.ge, this⟩ },
+  intros x hx,
+  rw ←real_inner_self_nonpos,
+  simpa using hx (-x) (mem_univ _),
 end
 
 lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :

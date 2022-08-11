@@ -108,31 +108,22 @@ theorem CNF_fst_le {b o : ordinal.{u}} {x : ordinal × ordinal} (h : x ∈ CNF b
 /-- Every coefficient in a Cantor normal form is positive. -/
 theorem CNF_lt_snd {b o : ordinal.{u}} {x : ordinal × ordinal} : x ∈ CNF b o → 0 < x.2 :=
 begin
-  refine CNF_rec b _ (λ o ho IH, _) o,
-  { simp },
-  { rcases eq_zero_or_pos b with rfl | hb,
-    { rw [zero_CNF ho, list.mem_singleton],
-      rintro rfl,
-      exact ordinal.pos_iff_ne_zero.2 ho },
-    { rw CNF_ne_zero ho,
-      rintro (rfl | h),
-      { simp,
-        rw div_pos,
-        { exact opow_log_le_self _ ho },
-        { exact (opow_pos _ hb).ne' } },
-      { exact IH h } } }
+  refine CNF_rec b (by simp) (λ o ho IH, _) o,
+  rw CNF_ne_zero ho,
+  rintro (rfl | h),
+  { exact div_opow_log_pos b ho },
+  { exact IH h }
 end
 
 /-- Every coefficient in the Cantor normal form `CNF b o` is less than `b`. -/
 theorem CNF_snd_lt {b o : ordinal.{u}} (hb : 1 < b) {x : ordinal × ordinal} :
   x ∈ CNF b o → x.2 < b :=
 begin
-  refine CNF_rec b _ (λ o ho IH, _) o,
-  { simp },
-  { rw CNF_ne_zero ho,
-    rintro (rfl | h),
-    { simpa using div_opow_log_lt o hb },
-    { exact IH h } }
+  refine CNF_rec b (by simp) (λ o ho IH, _) o,
+  rw CNF_ne_zero ho,
+  rintro (rfl | h),
+  { simpa using div_opow_log_lt o hb },
+  { exact IH h }
 end
 
 /-- The exponents of the Cantor normal form are decreasing. -/

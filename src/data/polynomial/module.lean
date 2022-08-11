@@ -27,6 +27,7 @@ include R
 
 /--
 The `R[X]`-module `M[X]` for an `R`-module `M`.
+This is isomorphic (as an `R`-module) to `polynomial M` when `M` is a ring.
 
 We require all the module instances `module S (polynomial_module R M)` to factor through `R` except
 `module R[X] (polynomial_module R M)`.

@@ -652,7 +652,7 @@ begin
       },
   rw h_integral_smul_const_special,
   simp_rw[f],
-  /-rw change_of_vr_momentone_gaussian hs,
+  rw change_of_vr_momentone_gaussian hs,
   rw h_depart,
 
   -- move the constant of the first integral out

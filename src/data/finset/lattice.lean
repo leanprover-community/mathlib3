@@ -1050,8 +1050,7 @@ end
 
 lemma coe_max' {s : finset α} (hs : s.nonempty) : ↑(s.max' hs) = s.max := coe_sup' hs id
 
-lemma min_eq_min' {s : finset α} (hs : s.nonempty) : s.min = s.min' hs :=
-@max_eq_max' αᵒᵈ _ _ hs
+lemma coe_min' {s : finset α} (hs : s.nonempty) : ↑(s.min' hs) = s.min := coe_inf' hs id
 
 lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
   (s.erase x).max' s0 ≠ x :=
@@ -1068,7 +1067,7 @@ by convert @max'_erase_ne_self αᵒᵈ _ _ _ _; convert s0
 lemma max_erase_ne_self {s : finset α} : (s.erase x).max ≠ x :=
 begin
   by_cases s0 : (s.erase x).nonempty,
-  { refine ne_of_eq_of_ne (max_eq_max' s0) _,
+  { refine ne_of_eq_of_ne (coe_max' s0).symm _,
     exact with_bot.coe_eq_coe.not.mpr (max'_erase_ne_self _) },
   { rw [not_nonempty_iff_eq_empty.mp s0, max_empty],
     exact with_bot.bot_ne_coe }

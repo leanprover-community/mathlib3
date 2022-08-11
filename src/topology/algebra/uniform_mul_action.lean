@@ -119,7 +119,7 @@ lemma smul_def (c : M) (x : completion X) : c • x = completion.map ((•) c) x
 @[to_additive] instance : has_uniform_continuous_const_smul M (completion X) :=
 ⟨λ c, uniform_continuous_map⟩
 
-instance [has_smul N X] [has_scalar M N]
+instance [has_smul N X] [has_smul M N]
   [has_uniform_continuous_const_smul M X] [has_uniform_continuous_const_smul N X]
   [is_scalar_tower M N X] : is_scalar_tower M N (completion X) :=
 ⟨λ m n x, begin

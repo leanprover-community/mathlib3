@@ -42,7 +42,7 @@ structure subpresheaf (F : Cᵒᵖ ⥤ Type w) :=
 (obj : Π U, set (F.obj U))
 (map : Π {U V : Cᵒᵖ} (i : U ⟶ V), (obj U) ⊆ (F.map i) ⁻¹' (obj V))
 
-variables {F F' : Cᵒᵖ ⥤ Type w} (G G' : subpresheaf F)
+variables {F F' F'' : Cᵒᵖ ⥤ Type w} (G G' : subpresheaf F)
 
 instance : partial_order (subpresheaf F) :=
 partial_order.lift subpresheaf.obj subpresheaf.ext
@@ -118,6 +118,11 @@ begin
   rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply,
     ← op_comp, ← op_comp, e],
 end
+
+lemma subpresheaf.nat_trans_naturality (f : F' ⟶ G.to_presheaf) {U V : Cᵒᵖ} (i : U ⟶ V)
+  (x : F'.obj U) :
+  (f.app V (F'.map i x)).1 = F.map i (f.app U x).1 :=
+congr_arg subtype.val (functor_to_types.naturality _ _ f i x)
 
 include J
 
@@ -249,6 +254,34 @@ begin
   exact (presieve.is_sheaf_for.valid_glue _ _ _ hi).trans (this _ _)
 end
 
+lemma subpresheaf.to_sheafify_lift_unique (f : G.to_presheaf ⟶ F') (h : presieve.is_sheaf J F')
+  (l₁ l₂ : (G.sheafify J).to_presheaf ⟶ F')
+  (e : subpresheaf.hom_of_le (G.le_sheafify J) ≫ l₁ =
+    subpresheaf.hom_of_le (G.le_sheafify J) ≫ l₂) : l₁ = l₂ :=
+begin
+  ext U ⟨s, hs⟩,
+  apply (h _ hs).is_separated_for.ext,
+  rintros V i hi,
+  dsimp at hi,
+  erw [← functor_to_types.naturality, ← functor_to_types.naturality],
+  exact (congr_fun (congr_app e $ op V) ⟨_, hi⟩ : _)
+end
+
+lemma subpresheaf.sheafify_le (h : G ≤ G') (hF : presieve.is_sheaf J F)
+  (hG' : presieve.is_sheaf J G'.to_presheaf) :
+  G.sheafify J ≤ G' :=
+begin
+  intros U x hx,
+  convert ((G.sheafify_lift (subpresheaf.hom_of_le h) hG').app U ⟨x, hx⟩).2,
+  apply (hF _ hx).is_separated_for.ext,
+  intros V i hi,
+  have := congr_arg (λ f : G.to_presheaf ⟶ G'.to_presheaf, (nat_trans.app f (op V) ⟨_, hi⟩).1)
+    (G.to_sheafify_lift (subpresheaf.hom_of_le h) hG'),
+  convert this.symm,
+  erw ← subpresheaf.nat_trans_naturality,
+  refl,
+end
+
 omit J
 
 section image
@@ -269,16 +302,13 @@ by { ext, simp }
 def to_image_presheaf (f : F' ⟶ F) : F' ⟶ (image_presheaf f).to_presheaf :=
 (image_presheaf f).lift f (λ U x, set.mem_range_self _)
 
-instance (f : F' ⟶ F) : split_epi (to_image_presheaf f) :=
-begin
-  apply (nat_trans.epi_iff_app_epi _ _).mpr,
-  { intro U, rw epi_iff_surjective, rintro ⟨_, x, rfl⟩, exact ⟨x, rfl⟩ },
-  { apply_instance }
-end
-
 @[simp, reassoc]
 lemma to_image_presheaf_ι (f : F' ⟶ F) : to_image_presheaf f ≫ (image_presheaf f).ι = f :=
 (image_presheaf f).lift_ι _ _
+
+lemma image_presheaf_comp_le (f₁ : F ⟶ F') (f₂ : F' ⟶ F'') :
+  image_presheaf (f₁ ≫ f₂) ≤ image_presheaf f₂ :=
+λ U x hx, ⟨f₁.app U hx.some, hx.some_spec⟩
 
 @[simps]
 def image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : Sheaf J (Type w) :=
@@ -317,14 +347,53 @@ begin
   convert this; exact E.symm
 end
 
-instance (f : F ⟶ F') [mono f] : is_iso (to_image_presheaf f) :=
+/-- The mono factorization given by `image_sheaf` for a morphism. -/
+def image_mono_factorization {F F' : Sheaf J (Type w)} (f : F ⟶ F') :
+  limits.mono_factorisation f :=
+{ I := image_sheaf f,
+  m := image_sheaf_ι f,
+  e := to_image_sheaf f }
+
+instance {F F' : Cᵒᵖ ⥤ Type (max v w)} (f : F ⟶ F') [hf : mono f] :
+  is_iso (to_image_presheaf f) :=
 begin
   apply_with nat_iso.is_iso_of_is_iso_app { instances := ff },
   intro X,
   rw is_iso_iff_bijective,
   split,
-  { intros x y e, replace e := congr_arg subtype.val e, dsimp at e, have := nat_trans.mono_iff_app_mono, }
+  { intros x y e,
+    have := (nat_trans.mono_iff_app_mono _ _).mp hf X,
+    rw mono_iff_injective at this,
+    exact this (congr_arg subtype.val e : _) },
+  { rintro ⟨_, ⟨x, rfl⟩⟩, exact ⟨x, rfl⟩ }
 end
+
+/-- The mono factorization given by `image_sheaf` for a morphism is an image. -/
+noncomputable
+def image_factorization {F F' : Sheaf J (Type (max v u))} (f : F ⟶ F') :
+  limits.image_factorisation f :=
+{ F := image_mono_factorization f,
+  is_image :=
+  { lift := λ I, begin
+      haveI := (Sheaf.hom.mono_iff_presheaf_mono J _ _).mp I.m_mono,
+      refine ⟨subpresheaf.hom_of_le _ ≫ inv (to_image_presheaf I.m.1)⟩,
+      apply subpresheaf.sheafify_le,
+      { conv_lhs { rw ← I.fac }, apply image_presheaf_comp_le },
+      { rw ← is_sheaf_iff_is_sheaf_of_type, exact F'.2 },
+      { apply presieve.is_sheaf_iso J (as_iso $ to_image_presheaf I.m.1),
+        rw ← is_sheaf_iff_is_sheaf_of_type, exact I.I.2 }
+    end,
+    lift_fac' := λ I, begin
+      ext1,
+      dsimp [image_mono_factorization],
+      generalize_proofs h,
+      rw [← subpresheaf.hom_of_le_ι h, category.assoc],
+      congr' 1,
+      rw [is_iso.inv_comp_eq, to_image_presheaf_ι],
+    end } }
+
+instance : limits.has_images (Sheaf J (Type (max v u))) :=
+⟨λ _ _ f, ⟨⟨image_factorization f⟩⟩⟩
 
 end image
 

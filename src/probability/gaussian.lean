@@ -556,8 +556,8 @@ end
 
 ---lemma set_eq (hs : s≠0): set.univ = λ (x:ℝ), ((sqrt (2 * s ^ 2))⁻¹) * (x-m):=
 lemma change_of_vr_momentone_gaussian (hs: s≠0):
-∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x * (sqrt (2*s^2))⁻¹
- = ∫ (x : ℝ), ((sqrt (2 * s ^ 2))* x + m) * exp (- x ^ 2) :=
+∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x
+ = ∫ (x : ℝ), ((sqrt (2 * s ^ 2))* x + m) * exp (- x ^ 2) * (sqrt (2*s^2)):=
 begin
   let g : ℝ → ℝ := λ (x:ℝ), exp (- x ^ 2) * ((sqrt (2 * s ^ 2))*x + m),
   let f : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * s ^ 2))⁻¹ * (x-m),
@@ -578,8 +578,8 @@ begin
     {intro h2,
     simp}},
   simp,
-  have h_integ_eq_form1 : ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x * ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹)
-   = ∫ (x : ℝ) in set.univ, g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)) * ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹),
+  have h_integ_eq_form1 : ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x
+   = ∫ (x : ℝ) in set.univ, g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)) ,
     {
       simp_rw [g],
       simp_rw [← simplify_complicated1 hs],
@@ -592,10 +592,38 @@ begin
     simp_rw [g],
     simp,
     sorry
-   }
+
+   },
+
   sorry
 --(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)
 end
+
+lemma h_depart: (∫ (x : ℝ), (sqrt (2 * s ^ 2) * x + m) * exp (-x ^ 2)) = (∫ (x : ℝ), sqrt (2 * s ^ 2) * x * exp(-x^2) ) + (∫ (x : ℝ), m * exp(-x^2)) :=
+begin
+sorry
+end
+
+lemma change_onemul_to_smul_k (f:ℝ → ℝ): ∫ (x : ℝ), f x * sqrt (2 * s ^ 2)
+ = ∫ (x : ℝ), f x • sqrt (2 * s ^ 2):=
+begin
+simp_rw[← smul_eq_mul],
+end
+
+lemma change_onemul_to_smul_t (f:ℝ → ℝ): ∫ (x : ℝ), f x * m
+ = ∫ (x : ℝ), f x • m:=
+begin
+simp_rw[← smul_eq_mul],
+end
+
+lemma change_onemul_to_smul_f2 (f:ℝ → ℝ): ∫ (x : ℝ), f x * sqrt (2 * s ^ 2)
+ = ∫ (x : ℝ), f x • sqrt (2 * s ^ 2):=
+begin
+simp_rw[← smul_eq_mul],
+end
+
+
+
 
 --lemma eqform_of_gauden_to_nnreal_mea : measurable
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
@@ -633,7 +661,7 @@ begin
   have h_changeform : ∫ (a : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2) • a =
   ∫ (a : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * f a,
   {
-    simp_rw[f]
+    simp_rw[f],
   },
   rw h_changeform,
   rw ← comm_in_integ f (sqrt (2 * π * s ^ 2))⁻¹,
@@ -645,7 +673,80 @@ begin
       },
   rw h_integral_smul_const_special,
   simp_rw[f],
+  --rw smul_eq_mul,
+  /-have h_rw_to_use_change_of_vr : ∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x
+   = ∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x * (sqrt (2*s^2))⁻¹,
+    {
+      sorry
+    },-/
+  rw change_of_vr_momentone_gaussian hs,
+  let f2 : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * s ^ 2) * x + m) * exp (-x ^ 2),
+  have h_changeform_3halves : ∫ (x : ℝ), (f2 x) * sqrt (2 * s ^ 2)
+  = ∫ (x : ℝ), (sqrt (2 * s ^ 2) * x + m) * exp (-x ^ 2) * sqrt (2 * s ^ 2),
+    {
+      simp_rw [f2],
+    },
+  rw ← h_changeform_3halves,
+  rw change_onemul_to_smul_f2 f2,
 
+  have h_integral_smul_const_moveout : ∫ (x : ℝ), f2 x • sqrt (2 * s ^ 2) ∂ℙ
+    = (∫ (x : ℝ), f2 x ∂ℙ) • sqrt (2 * s ^ 2),
+      {
+        exact integral_smul_const f2 (sqrt (2 * s ^ 2)),
+      },
+  rw h_integral_smul_const_moveout,
+
+  rw h_depart,
+
+  -- move the constant of the first integral out
+  let k : ℝ → ℝ := λ (x : ℝ), x * exp (-x ^ 2),
+  have h_changeform2 : (∫ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2)) = (∫ (x : ℝ), sqrt (2 * s ^ 2) * k x),
+    {
+      simp_rw[k],
+      have  remove_bracket : (λ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2)) = (λ (x : ℝ), sqrt (2 * s ^ 2) * (x * exp (-x ^ 2))),
+        {
+          ext x,
+          rw mul_assoc,
+        },
+      rw remove_bracket,
+    },
+  rw h_changeform2,
+  rw ← comm_in_integ k (sqrt (2 * s ^ 2)),
+  rw change_onemul_to_smul_k k,
+  have h_integral_smul_const_move_out : ∫ (x : ℝ), k x • sqrt (2 * s ^ 2) ∂ℙ
+    = (∫ (x : ℝ), k x ∂ℙ) • sqrt (2 * s ^ 2),
+      {
+        exact integral_smul_const k (sqrt (2 * s ^ 2)),
+      },
+  rw h_integral_smul_const_move_out,
+
+  -- move the constant of the second integral out
+  let t : ℝ → ℝ := λ (x : ℝ), exp (-x ^ 2),
+  have h_changeform3 : (∫ (x : ℝ), m * exp (-x ^ 2)) = (∫ (x : ℝ), m * t x),
+    {
+      simp_rw[t],
+    },
+  rw h_changeform3,
+  rw ← comm_in_integ t m,
+  rw change_onemul_to_smul_t t,
+  have h_integral_smul_const_move_out2 : ∫ (x : ℝ), t x • m ∂ℙ
+    = (∫ (x : ℝ), t x ∂ℙ) • m,
+      {
+        exact integral_smul_const t m,
+      },
+  rw h_integral_smul_const_move_out2,
+  simp_rw[t],
+  have ez_change_form : (λ (x : ℝ), exp (-x ^ 2)) = (λ (x : ℝ), exp ((-1)*x ^ 2)),
+    {
+      ext x,
+      simp,
+    },
+  rw ez_change_form,
+  rw integral_gaussian 1,
+  simp,
+
+
+sorry,
 
 
 end

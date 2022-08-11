@@ -142,6 +142,8 @@ lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
 
 instance : inhabited (α →₀ M) := ⟨0⟩
 
+instance [subsingleton M] : unique (α →₀ M) := fun_like.coe_injective.unique
+
 @[simp] lemma mem_support_iff {f : α →₀ M} : ∀{a:α}, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
 

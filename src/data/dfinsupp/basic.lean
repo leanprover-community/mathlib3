@@ -87,6 +87,7 @@ lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn
 
 instance : has_zero (Π₀ i, β i) := ⟨⟨0, trunc.mk $ ⟨∅, λ i, or.inr rfl⟩⟩⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
+instance unique' [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
 @[simp]
 lemma coe_mk' (f : Π i, β i) (s) : ⇑(⟨f, s⟩ : Π₀ i, β i) = f := rfl

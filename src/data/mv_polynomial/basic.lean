@@ -129,9 +129,8 @@ add_monoid_algebra.algebra
 instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
   is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
 is_scalar_tower.right
--- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
-protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
+instance [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
 add_monoid_algebra.unique
 
 end instances

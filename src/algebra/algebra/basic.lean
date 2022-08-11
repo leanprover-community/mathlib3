@@ -56,7 +56,7 @@ Given a commutative (semi)ring `R`, there are two ways to define an `R`-algebra 
 * By requiring `A` be an `R`-module such that the action associates and commutes with multiplication
   as `r • (a₁ * a₂) = (r • a₁) * a₂ = a₁ * (r • a₂)`.
 
-We define `algebra R A` in a way that subsumes both definitions, by extending `has_scalar R A` and
+We define `algebra R A` in a way that subsumes both definitions, by extending `has_smul R A` and
 requiring that this scalar action `r • x` must agree with left multiplication by the image of the
 structure morphism `algebra_map R A r * x`.
 
@@ -105,16 +105,16 @@ open_locale big_operators
 section prio
 -- We set this priority to 0 later in this file
 set_option extends_priority 200 /- control priority of
-`instance [algebra R A] : has_scalar R A` -/
+`instance [algebra R A] : has_smul R A` -/
 
 /--
 An associative unital `R`-algebra is a semiring `A` equipped with a map into its center `R → A`.
 
 See the implementation notes in this file for discussion of the details of this definition.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  extends has_scalar R A, R →+* A :=
+  extends has_smul R A, R →+* A :=
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
@@ -179,7 +179,7 @@ section semiring
 variables [comm_semiring R] [comm_semiring S]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 
-/-- We keep this lemma private because it picks up the `algebra.to_has_scalar` instance
+/-- We keep this lemma private because it picks up the `algebra.to_has_smul` instance
 which we set to priority 0 shortly. See `smul_def` below for the public version. -/
 private lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -218,7 +218,7 @@ instance to_module : module R A :=
 
 -- From now on, we don't want to use the following instance anymore.
 -- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.
-attribute [instance, priority 0] algebra.to_has_scalar
+attribute [instance, priority 0] algebra.to_has_smul
 
 lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -260,6 +260,11 @@ search (and was here first). -/
 @[simp] protected lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
 smul_mul_assoc r x y
+
+@[simp]
+lemma _root_.smul_algebra_map {α : Type*} [monoid α] [mul_distrib_mul_action α A]
+  [smul_comm_class α R A] (a : α) (r : R) : a • algebra_map R A r = algebra_map R A r :=
+by rw [algebra_map_eq_smul_one, smul_comm a r (1 : A), smul_one]
 
 section
 variables {r : R} {a : A}
@@ -447,7 +452,7 @@ instance : algebra R Aᵐᵒᵖ :=
   smul_def' := λ c x, unop_injective $
     by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
   commutes' := λ r, mul_opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
-  .. mul_opposite.has_scalar A R }
+  .. mul_opposite.has_smul A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵐᵒᵖ c = op (algebra_map R A c) := rfl
 
@@ -474,7 +479,7 @@ end module
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] extends ring_hom A B :=
 (commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
@@ -687,7 +692,7 @@ by { ext, refl }
   of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
 ext $ λ _, rfl
 
-lemma map_smul_of_tower {R'} [has_scalar R' A] [has_scalar R' B]
+lemma map_smul_of_tower {R'} [has_smul R' A] [has_smul R' B]
   [linear_map.compatible_smul A B R' R] (r : R') (x : A) : φ (r • x) = r • φ x :=
 φ.to_linear_map.map_smul_of_tower r x
 
@@ -758,7 +763,7 @@ end division_ring
 end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
-  m • (1 : A) = ↑m :=
+  @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
 by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
 
 set_option old_structure_cmd true
@@ -796,6 +801,13 @@ instance to_alg_hom_class (F R A B : Type*)
   map_zero := map_zero,
   map_one := map_one,
   .. h }
+
+@[priority 100]
+instance to_linear_equiv_class (F R A B : Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [h : alg_equiv_class F R A B] : linear_equiv_class F R A B :=
+{ map_smulₛₗ := λ f, map_smulₛₗ f,
+  ..h }
 
 end alg_equiv_class
 
@@ -1225,7 +1237,9 @@ This is a stronger version of `mul_semiring_action.to_ring_hom` and
 `distrib_mul_action.to_linear_map`. -/
 @[simps]
 def to_alg_hom (m : M) : A →ₐ[R] A :=
-alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
+{ to_fun := λ a, m • a,
+  commutes' := smul_algebra_map _,
+  ..mul_semiring_action.to_ring_hom _ _ m }
 
 theorem to_alg_hom_injective [has_faithful_smul M A] :
   function.injective (mul_semiring_action.to_alg_hom R A : M → A →ₐ[R] A) :=
@@ -1327,7 +1341,13 @@ end
 section rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
+{ smul := (•),
+  smul_def' := division_ring.qsmul_eq_mul',
+  to_ring_hom := rat.cast_hom α,
+  commutes' := rat.cast_commute }
+
+/-- The two `algebra ℚ ℚ` instances should coincide. -/
+example : algebra_rat = algebra.id ℚ := rfl
 
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _
@@ -1605,7 +1625,7 @@ are all defined in `linear_algebra/basic.lean`. -/
 section module
 open module
 
-variables (R S M N : Type*) [semiring R] [semiring S] [has_scalar R S]
+variables (R S M N : Type*) [semiring R] [semiring S] [has_smul R S]
 variables [add_comm_monoid M] [module R M] [module S M] [is_scalar_tower R S M]
 variables [add_comm_monoid N] [module R N] [module S N] [is_scalar_tower R S N]
 

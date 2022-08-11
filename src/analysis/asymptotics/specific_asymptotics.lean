@@ -54,7 +54,7 @@ lemma tendsto_zpow_at_top_at_top {n : ℤ}
 begin
   lift n to ℕ using hn.le,
   simp only [zpow_coe_nat],
-  exact tendsto_pow_at_top (nat.succ_le_iff.mpr $ int.coe_nat_pos.mp hn)
+  exact tendsto_pow_at_top (nat.cast_pos.mp hn).ne'
 end
 
 lemma tendsto_pow_div_pow_at_top_at_top {p q : ℕ}
@@ -104,7 +104,7 @@ section real
 open_locale big_operators
 open finset
 
-lemma asymptotics.is_o.sum_range {α : Type*} [normed_group α]
+lemma asymptotics.is_o.sum_range {α : Type*} [normed_add_comm_group α]
   {f : ℕ → α} {g : ℕ → ℝ} (h : f =o[at_top] g)
   (hg : 0 ≤ g) (h'g : tendsto (λ n, ∑ i in range n, g i) at_top at_top) :
   (λ n, ∑ i in range n, f i) =o[at_top] (λ n, ∑ i in range n, g i) :=
@@ -143,7 +143,7 @@ begin
   ... = ε * ∥(∑ i in range n, g i)∥ : by { simp [B], ring }
 end
 
-lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_group α]
+lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_add_comm_group α]
   {f : ℕ → α} (h : tendsto f at_top (𝓝 0)) :
   (λ n, ∑ i in range n, f i) =o[at_top] (λ n, (n : ℝ)) :=
 begin
@@ -153,7 +153,7 @@ begin
 end
 
 /-- The Cesaro average of a converging sequence converges to the same limit. -/
-lemma filter.tendsto.cesaro_smul {E : Type*} [normed_group E] [normed_space ℝ E]
+lemma filter.tendsto.cesaro_smul {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   {u : ℕ → E} {l : E} (h : tendsto u at_top (𝓝 l)) :
   tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) • (∑ i in range n, u i)) at_top (𝓝 l) :=
 begin

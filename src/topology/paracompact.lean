@@ -112,7 +112,7 @@ begin
   rcases compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
   have := hT, simp only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
-  refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_fintype _, λ t, ⟨t, subset.rfl⟩⟩,
+  refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_finite _, λ t, ⟨t, subset.rfl⟩⟩,
   simpa only [Union_coe_set, ← univ_subset_iff]
 end
 
@@ -251,9 +251,8 @@ begin
     exact λ y hyu hyv, huv i ⟨hsub _ hyu, hyv⟩ },
   /- Now we apply the lemma twice: first to `s` and `t`, then to `t` and each point of `s`. -/
   refine ⟨λ s t hs ht hst, this s t hs ht (λ x hx, _)⟩,
-  rcases this t {x} ht is_closed_singleton (λ y hyt, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
+  rcases this t {x} ht is_closed_singleton (λ y hy, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
   { exact ⟨u, v, hu, hv, singleton_subset_iff.1 hxu, htv, huv.symm⟩ },
-  { have : x ≠ y, by { rintro rfl, exact hst ⟨hx, hyt⟩ },
-    rcases t2_separation this with ⟨v, u, hv, hu, hxv, hyu, hd⟩,
-    exact ⟨u, v, hu, hv, hyu, singleton_subset_iff.2 hxv, disjoint.symm hd.le⟩ }
+  { simp_rw singleton_subset_iff,
+    exact t2_separation (hst.symm.ne_of_mem hy hx) }
 end

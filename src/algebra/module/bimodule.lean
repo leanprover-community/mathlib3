@@ -95,6 +95,13 @@ begin
   simp [tensor_product.algebra.smul_def],
 end
 
+/-- If `A` and `B` are also `algebra`s over yet another set of scalars `S` then we may "base change"
+from `R` to `S`. -/
+@[simps] def base_change (S : Type*) [comm_semiring S] [module S M] [algebra S A] [algebra S B]
+  [is_scalar_tower S A M] [is_scalar_tower S B M] (p : submodule (A ⊗[R] B) M) :
+  submodule (A ⊗[S] B) M :=
+mk p.to_add_submonoid (smul_mem p) (smul_mem' p)
+
 /-- Forgetting the `B` action, a `submodule` over `A ⊗[R] B` is just a `submodule` over `A`. -/
 @[simps] def to_submodule (p : submodule (A ⊗[R] B) M) : submodule A M :=
 { carrier := p,
@@ -117,12 +124,12 @@ variables [add_comm_group M] [module R M] [module S M] [smul_comm_class R S M]
 /-- A `submodule` over `R ⊗[ℕ] S` is naturally also a `submodule` over the canonically-isomorphic
 ring `R ⊗[ℤ] S`. -/
 @[simps] def to_subbimodule_int (p : submodule (R ⊗[ℕ] S) M) : submodule (R ⊗[ℤ] S) M :=
-mk p.to_add_submonoid (smul_mem p) (smul_mem' p)
+base_change ℤ p
 
 /-- A `submodule` over `R ⊗[ℤ] S` is naturally also a `submodule` over the canonically-isomorphic
 ring `R ⊗[ℕ] S`. -/
 @[simps] def to_subbimodule_nat (p : submodule (R ⊗[ℤ] S) M) : submodule (R ⊗[ℕ] S) M :=
-mk p.to_add_submonoid (smul_mem p) (smul_mem' p)
+base_change ℕ p
 
 end ring
 

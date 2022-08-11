@@ -1044,10 +1044,8 @@ end
   {f : α → β} (hf : monotone f) (s : finset α) (h : (s.image f).nonempty) :
   (s.image f).min' h = f (s.min' ((nonempty.image_iff f).mp h)) :=
 begin
-  refine le_antisymm (min'_le _ _ (mem_image.mpr ⟨_, min'_mem _ _, rfl⟩))
-    (le_min' _ _ _ (λ y hy, _)),
-  obtain ⟨x, hx, rfl⟩ := mem_image.mp hy,
-  exact hf (min'_le _ _ hx)
+  convert @max'_image αᵒᵈ βᵒᵈ _ _ (λ a : αᵒᵈ, to_dual (f (of_dual a))) (by simpa) _ _; convert h,
+  apply eq_iff_iff.mpr (nonempty.image_iff _).symm,
 end
 
 lemma max_eq_max' {s : finset α} (hs : s.nonempty) : s.max = s.max' hs :=
@@ -1062,6 +1060,9 @@ begin
       simp only [insert_emptyc_eq, max_singleton, max'_singleton] } }
 end
 
+lemma min_eq_min' {s : finset α} (hs : s.nonempty) : s.min = s.min' hs :=
+@max_eq_max' αᵒᵈ _ _ hs
+
 lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
   (s.erase x).max' s0 ≠ x :=
 begin
@@ -1069,6 +1070,10 @@ begin
   nth_rewrite 0 ← h,
   exact max'_mem _ _
 end
+
+lemma min'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).min' s0 ≠ x :=
+by convert @max'_erase_ne_self αᵒᵈ _ _ _ _; convert s0
 
 lemma max_erase_ne_self {s : finset α} : (s.erase x).max ≠ x :=
 begin
@@ -1078,6 +1083,9 @@ begin
   { rw [not_nonempty_iff_eq_empty.mp s0, max_empty],
     exact with_bot.bot_ne_coe }
 end
+
+lemma min_erase_ne_self {s : finset α} : (s.erase x).min ≠ x :=
+by convert @max_erase_ne_self αᵒᵈ _ _ _
 
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:

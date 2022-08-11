@@ -318,8 +318,8 @@ lemma norm_with_seminorms (𝕜 E) [normed_field 𝕜] [seminormed_add_comm_grou
   with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
 begin
   let p : seminorm_family 𝕜 E (fin 1) := λ _, norm_seminorm 𝕜 E,
-  refine ⟨topological_add_group.ext normed_top_group
-    (p.add_group_filter_basis.is_topological_add_group) _⟩,
+  refine ⟨(seminormed_add_comm_group.to_topological_add_group).ext
+    p.add_group_filter_basis.is_topological_add_group _⟩,
   refine filter.has_basis.eq_of_same_basis metric.nhds_basis_ball _,
   rw ←ball_norm_seminorm 𝕜 E,
   refine filter.has_basis.to_has_basis p.add_group_filter_basis.nhds_zero_has_basis _

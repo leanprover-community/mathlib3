@@ -15,16 +15,12 @@ variables {E : Type*} [inner_product_space ℝ E] [complete_space E]
 variables {F : Type*} [inner_product_space ℝ F] [complete_space F]
 
 -- TODO: generalize this to other fields
-def convex_cone.closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
-{ carrier := closure (K : set E),
-  smul_mem' := by { simp_rw mem_closure_iff_seq_limit,
-    exact λ c hc x ⟨seq, mem, tends⟩,
-      ⟨ λ n, c • seq n,
-        ⟨ λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c ⟩ ⟩ },
-  add_mem' := by { simp_rw mem_closure_iff_seq_limit,
-    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
-      ⟨ λ n, xseq n + yseq n,
-        ⟨ λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends ⟩ ⟩ } }
+def convex_cone.seq_closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
+{ carrier := seq_closure (K : set E),
+  smul_mem' :=  λ c hc x ⟨seq, mem, tends⟩,
+    ⟨ λ n, c • seq n, ⟨ λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c ⟩ ⟩,
+  add_mem' := λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
+    ⟨ λ n, xseq n + yseq n, ⟨ λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends ⟩ ⟩ }
 
 namespace proper_cone
 
@@ -53,41 +49,45 @@ instance : has_star (proper_cone E) := ⟨ λ K,
 
 @[simp] lemma mem_star (x : E) (K : proper_cone E) : x ∈ star K ↔ x ∈ (K.carrier : set E).inner_dual_cone := by sorry
 
-lemma star_coe (K : proper_cone E) : (star K).carrier = (K.carrier : set E).inner_dual_cone := sorry
+lemma coe_star (K : proper_cone E) : (star K).carrier = (K.carrier : set E).inner_dual_cone := sorry
 
 instance : has_involutive_star (proper_cone E) :=
 { star := has_star.star,
   star_involutive := λ K, proper_cone.ext $ λ x,
-    by rw [mem_star, star_coe, dual_of_dual_eq_self K.nonempty K.is_closed, mem_cone] }
+    by rw [mem_star, coe_star, dual_of_dual_eq_self K.nonempty K.is_closed, mem_cone] }
 
-/-- The image of a proper cone under a continuous linear map need not be closed. So, we define `map`
-to be the closure of the image.-/
+/-- The image of a proper cone under a linear map need not be closed. So, we define `map` to be the
+closure of the image.-/
 def map (K : proper_cone E) (A : E →ₗ[ℝ] F) : proper_cone F :=
-{ carrier := ((K.carrier).map A).closure,
-  nonempty' := ⟨0, by {
-    suffices h : (0 : F) ∈ (K.carrier).map A, from
-      (@subset_closure _ _ ((K.carrier).map A : set F)) 0 h ,
-    { simp only [convex_cone.mem_coe, convex_cone.mem_map, set.mem_image],
-      use ⟨ 0, K.pointed, map_zero _ ⟩ } } ⟩,
-  is_closed' := is_closed_closure }
+{ carrier := ((K.carrier).map A).seq_closure,
+  nonempty' := sorry,
+  -- ⟨0, by {
+  --   suffices h : (0 : F) ∈ (K.carrier).map A, from
+  --     (@subset_closure _ _ ((K.carrier).map A : set F)) 0 h ,
+  --   { simp only [convex_cone.mem_coe, convex_cone.mem_map, set.mem_image],
+  --     use ⟨ 0, K.pointed, map_zero _ ⟩ } } ⟩,
+  is_closed' := sorry, }--is_closed_closure }
+
+lemma mem_map (K : proper_cone E) (A : E →ₗ[ℝ] F) (y : F) : y ∈ K.map A ↔ y ∈ seq_closure (A '' K.carrier) := sorry
 
 end proper_cone
 
-def subfeasible (K : proper_cone E) (A : E →L[ℝ] F) (b : E) :=
-  ∃ x : ℕ → E, tendsto x at_top (nhds b)
-
--- #check inner_product_space
-
-#check @continuous_linear_map.adjoint
-#check adjoint_inner_left
-
-theorem farkas_lemma (K : proper_cone E) (A : E →L[ℝ] F) (b : E) :
-  subfeasible K A b ↔ true := ∀ y : F, ((adjoint A) y) = 0 :=
+def farkas_lemma (K : proper_cone E) (A : E →L[ℝ] F) (b : F) :
+   b ∈ K.map (A : E →ₗ[ℝ] F) ↔ ∀ y : F, ((adjoint A) y ∈ star K) → 0 ≤ ⟪b, y⟫_ℝ := iff.intro
 begin
-  have := adjoint A,
+  rintro ⟨seq, hmem, htendsto⟩ y hy,
+  -- rintro ⟨seq, htends⟩ y hy,
+  simp_rw [proper_cone.mem_star, mem_inner_dual_cone, adjoint_inner_right] at hy,
   sorry,
 end
+begin
 
+
+  -- simp_rw [proper_cone.mem_map, proper_cone.mem_star],
+
+
+  sorry,
+end
 -- def convex_cone.cone_le (K : convex_cone ℝ E) (x y : E) := ∃ k : K, x + k = y
 
 -- def cone_preorder (K : closed_convex_cone E) : preorder E :=

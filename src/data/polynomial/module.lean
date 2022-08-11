@@ -114,7 +114,7 @@ end
 
 @[simp]
 lemma monomial_smul_apply (i : ℕ) (r : R) (g : polynomial_module R M) (n : ℕ) :
-  (monomial i r • g) n = ite (i ≤ n) (r • (g $ n - i)) 0 :=
+  (monomial i r • g) n = ite (i ≤ n) (r • g (n - i)) 0 :=
 begin
   induction g using polynomial_module.induction_linear with p q hp hq,
   { simp only [smul_zero, finsupp.zero_apply, if_t_t] },

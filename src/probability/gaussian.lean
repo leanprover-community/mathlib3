@@ -466,7 +466,12 @@ begin
 end
 
 
-
+lemma change_of_vr: (∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x) = sqrt(s) * (∫ (x : ℝ), (sqrt(2)* s * x + m) * exp (-x^2)) :=
+begin
+  let g : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+  let f : ℝ → ℝ := λ (x:ℝ), (x-m)/(sqrt(2)* s),
+sorry
+end
 --lemma eqform_of_gauden_to_nnreal_mea : measurable
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
@@ -509,6 +514,7 @@ begin
       },
   rw h_integral_smul_const_special,
   simp_rw[f],
+
 sorry
 
 

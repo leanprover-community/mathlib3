@@ -65,30 +65,30 @@ by rw [CNF_rec, dif_neg ho]
 @[pp_nodot] def CNF_list (b o : ordinal) : list (sigma (λ x : ordinal, ordinal)) :=
 CNF_rec b [] (λ o ho IH, ⟨log b o, o / b ^ log b o⟩ :: IH) o
 
-@[simp] theorem CNF_list_zero (b : ordinal) : CNF_list b 0 = [] := CNF_rec_zero b _ _
+@[simp] theorem CNF_list_zero_right (b : ordinal) : CNF_list b 0 = [] := CNF_rec_zero b _ _
 
 theorem CNF_list_ne_zero {b o : ordinal} (ho : o ≠ 0) :
   CNF_list b o = ⟨log b o, o / b ^ log b o⟩ :: CNF_list b (o % b ^ log b o) :=
 CNF_rec_pos b ho _ _
 
-theorem zero_CNF_list {o : ordinal} (ho : o ≠ 0) : CNF_list 0 o = [⟨0, o⟩] :=
+theorem CNF_list_zero_left {o : ordinal} (ho : o ≠ 0) : CNF_list 0 o = [⟨0, o⟩] :=
 by simp [CNF_list_ne_zero ho]
 
-theorem one_CNF_list {o : ordinal} (ho : o ≠ 0) : CNF_list 1 o = [⟨0, o⟩] :=
+theorem CNF_list_one {o : ordinal} (ho : o ≠ 0) : CNF_list 1 o = [⟨0, o⟩] :=
 by simp [CNF_list_ne_zero ho]
 
 theorem CNF_list_of_le_one {b o : ordinal} (hb : b ≤ 1) (ho : o ≠ 0) : CNF_list b o = [⟨0, o⟩] :=
 begin
   rcases le_one_iff.1 hb with rfl | rfl,
-  { exact zero_CNF_list ho },
-  { exact one_CNF_list ho }
+  { exact CNF_list_zero_left ho },
+  { exact CNF_list_one ho }
 end
 
 theorem CNF_list_of_lt {b o : ordinal} (ho : o ≠ 0) (hb : o < b) : CNF_list b o = [⟨0, o⟩] :=
 by simp [CNF_list_ne_zero ho, log_eq_zero hb]
 
 theorem CNF_list_foldr (b o : ordinal) : (CNF_list b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
-CNF_rec b (by { rw CNF_list_zero, refl })
+CNF_rec b (by { rw CNF_list_zero_right, refl })
   (λ o ho IH, by rw [CNF_list_ne_zero ho, foldr_cons, IH, div_add_mod]) o
 
 theorem le_log_of_mem_keys_CNF_list {b o x : ordinal} : x ∈ (CNF_list b o).keys → x ≤ log b o :=
@@ -102,6 +102,23 @@ end
 
 theorem le_self_of_mem_keys_CNF_list {b o x : ordinal} (h : x ∈ (CNF_list b o).keys) : x ≤ o :=
 (le_log_of_mem_keys_CNF_list h).trans (log_le_self b o)
+
+theorem CNF_list_keys_sorted (b o : ordinal) : (CNF_list b o).keys.sorted (>) :=
+begin
+  refine CNF_rec b (by simp) (λ o ho IH, _) o,
+  cases lt_or_le o b with hob hbo,
+  { rw CNF_list_of_lt ho hob,
+    apply sorted_singleton },
+  { rw [CNF_list_ne_zero ho, keys_cons, sorted_cons],
+    refine ⟨λ x hx, _, IH⟩,
+    cases le_or_lt b 1 with hb hb,
+    { rcases le_one_iff.1 hb with rfl | rfl;
+      simpa using hx },
+    { exact (le_log_of_mem_keys_CNF_list hx).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } }
+end
+
+theorem CNF_list_nodupkeys (b o : ordinal) : (CNF_list b o).nodupkeys :=
+(CNF_list_keys_sorted b o).imp (λ x y, has_lt.lt.ne')
 
 theorem pos_of_mem_lookup_CNF_list {b o x e : ordinal.{u}} : x ∈ (CNF_list b o).lookup e → 0 < x :=
 begin
@@ -128,23 +145,6 @@ begin
   { exact IH h }
 end
 
-theorem CNF_list_keys_sorted (b o : ordinal) : (CNF_list b o).keys.sorted (>) :=
-begin
-  refine CNF_rec b (by simp) (λ o ho IH, _) o,
-  cases lt_or_le o b with hob hbo,
-  { rw CNF_list_of_lt ho hob,
-    apply sorted_singleton },
-  { rw [CNF_list_ne_zero ho, keys_cons, sorted_cons],
-    refine ⟨λ x hx, _, IH⟩,
-    cases le_or_lt b 1 with hb hb,
-    { rcases le_one_iff.1 hb with rfl | rfl;
-      simpa using hx },
-    { exact (le_log_of_mem_keys_CNF_list hx).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } }
-end
-
-theorem CNF_list_nodupkeys (b o : ordinal) : (CNF_list b o).nodupkeys :=
-(CNF_list_keys_sorted b o).imp (λ x y, has_lt.lt.ne')
-
 /-! ### Cantor normal form as an alist -/
 
 /-- The Cantor normal form of an ordinal `o` is the association list of exponents and coefficients
@@ -154,18 +154,18 @@ We special-case `CNF 0 o = CNF 1 o = [(0, o)]` for `o ≠ 0`. -/
 @[pp_nodot] def CNF (b o : ordinal.{u}) : alist (λ x : ordinal.{u}, ordinal.{u}) :=
 ⟨CNF_list b o, CNF_list_nodupkeys b o⟩
 
-@[simp] theorem CNF_zero (b : ordinal) : CNF b 0 = ∅ := alist.ext $ CNF_list_zero b
+@[simp] theorem CNF_zero_right (b : ordinal) : CNF b 0 = ∅ := alist.ext $ CNF_list_zero_right b
 
 /-- Recursive definition for the Cantor normal form. -/
 theorem CNF_ne_zero {b o : ordinal} (ho : o ≠ 0) :
   CNF b o = alist.insert (log b o) (o / b ^ log b o) (CNF b (o % b ^ log b o)) :=
 by simp_rw [CNF, CNF_list_ne_zero ho, alist.mk_cons_eq_insert]
 
-theorem zero_CNF {o : ordinal} (ho : o ≠ 0) : CNF 0 o = alist.singleton 0 o :=
-alist.ext $ zero_CNF_list ho
+theorem CNF_zero_left {o : ordinal} (ho : o ≠ 0) : CNF 0 o = alist.singleton 0 o :=
+alist.ext $ CNF_list_zero_left ho
 
 theorem one_CNF {o : ordinal} (ho : o ≠ 0) : CNF 1 o = alist.singleton 0 o :=
-alist.ext $ one_CNF_list ho
+alist.ext $ CNF_list_one ho
 
 theorem CNF_of_le_one {b o : ordinal} (hb : b ≤ 1) (ho : o ≠ 0) : CNF b o = alist.singleton 0 o :=
 alist.ext $ CNF_list_of_le_one hb ho

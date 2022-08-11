@@ -554,7 +554,7 @@ protected theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
 theorem sub_sub (a b c : ordinal) : a - b - c = a - (b + c) :=
 eq_of_forall_ge_iff $ λ d, by rw [sub_le, sub_le, sub_le, add_assoc]
 
-theorem add_sub_add_cancel (a b c : ordinal) : a + b - (a + c) = b - c :=
+@[simp] theorem add_sub_add_cancel (a b c : ordinal) : a + b - (a + c) = b - c :=
 by rw [← sub_sub, add_sub_cancel]
 
 theorem sub_is_limit {a b} (l : is_limit a) (h : b < a) : is_limit (a - b) :=
@@ -879,6 +879,8 @@ instance : has_mod ordinal := ⟨λ a b, a - b * (a / b)⟩
 
 theorem mod_def (a b : ordinal) : a % b = a - b * (a / b) := rfl
 
+theorem mod_le (a b : ordinal) : a % b ≤ a := sub_le_self a _
+
 @[simp] theorem mod_zero (a : ordinal) : a % 0 = a :=
 by simp only [mod_def, div_zero, zero_mul, sub_zero]
 
@@ -915,6 +917,24 @@ end
 
 theorem dvd_iff_mod_eq_zero {a b : ordinal} : b ∣ a ↔ a % b = 0 :=
 ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
+
+@[simp] theorem mul_add_mod_self (x y z : ordinal) : (x * y + z) % x = z % x :=
+begin
+  rcases eq_or_ne x 0 with rfl | hx,
+  { simp },
+  { rwa [mod_def, mul_add_div, mul_add, ←sub_sub, add_sub_cancel, mod_def] }
+end
+
+@[simp] theorem mul_mod (x y : ordinal) : x * y % x = 0 := by simpa using mul_add_mod_self x y 0
+
+theorem mod_mod_of_dvd (a : ordinal) {b c : ordinal} (h : c ∣ b) : a % b % c = a % c :=
+begin
+  nth_rewrite_rhs 0 ←div_add_mod a b,
+  rcases h with ⟨d, rfl⟩,
+  rw [mul_assoc, mul_add_mod_self]
+end
+
+@[simp] theorem mod_mod (a b : ordinal) : a % b % b = a % b := mod_mod_of_dvd a dvd_rfl
 
 /-! ### Families of ordinals
 
@@ -1957,12 +1977,10 @@ end
 theorem opow_one_add (a b : ordinal) : a ^ (1 + b) = a * a ^ b :=
 by rw [opow_add, opow_one]
 
-theorem opow_dvd_opow (a) {b c : ordinal}
-  (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by { rw [← ordinal.add_sub_cancel_of_le h, opow_add], apply dvd_mul_right }
+theorem opow_dvd_opow (a) {b c : ordinal} (h : b ≤ c) : a ^ b ∣ a ^ c :=
+⟨a ^ (c - b), by rw [←opow_add, ordinal.add_sub_cancel_of_le h] ⟩
 
-theorem opow_dvd_opow_iff {a b c : ordinal}
-  (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
+theorem opow_dvd_opow_iff {a b c : ordinal} (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
 ⟨λ h, le_of_not_lt $ λ hn,
   not_le_of_lt ((opow_lt_opow_iff_right a1).2 hn) $
     le_of_dvd (opow_ne_zero _ $ one_le_iff_ne_zero.1 $ a1.le) h,

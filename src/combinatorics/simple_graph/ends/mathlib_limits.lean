@@ -615,27 +615,19 @@ begin
     dsimp only [id],
     funext,
     dsimp only [bwd_aux],
-    -- apply eq_of_heq, -- not as helpful as I thought
-    sorry,
-    -- Tactic state (for reference):
-    -- if the tactics are too slow to load, this can be pasted instead
-    /-
-   (subtype.rec
-       (λ (s : Π (j_1 : (↥(set_of (has_le.le (opposite.unop j))))ᵒᵖ), (fis.above_point F j x).obj j_1)
-        (sec : s ∈ (fis.above_point F j x).sections),
-          and.rec
-            (λ (left : opposite.unop i ≤ _.some) (right : opposite.unop j ≤ _.some)
-             («_» : opposite.unop i ≤ _.some ∧ opposite.unop j ≤ _.some),
-               ⟨F.map (op_hom_of_le _) (s (opposite.op ⟨opposite.unop (opposite.op _.some), _⟩)).val, _⟩)
-            _
-            _)
-       (eq.rec
-          ⟨λ (ii : (↥(set_of (has_le.le (opposite.unop j))))ᵒᵖ),
-             ⟨s (opposite.op (opposite.unop ii).val), _⟩,
-           _⟩
-          _)).val =
-    s i
-    -/
+    conv
+    begin
+      to_lhs,
+      whnf,
+      dsimp,
+      congr,
+      dsimp only [fis.above_point],
+      dsimp [functor.sections],
+      whnf,
+      congr,
+      congr,
+    end,
+    sorry
    },
   { dsimp [function.right_inverse,function.left_inverse],
     --rintro ⟨x,y⟩,
@@ -687,3 +679,5 @@ begin
     obtain ⟨s,sgood⟩ := (fis.sections_at_point F j x).inv_fun s_above,
     exact ⟨s,sgood⟩,
 end
+
+#check subtype.rec

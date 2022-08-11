@@ -683,10 +683,8 @@ lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T 
   (f : S →ₐ[T] S') : (p.root_set S).maps_to f (p.root_set S') :=
 λ x hx, begin
   rw [mem_root_set_iff' hp, ← f.comp_algebra_map, ← map_map, eval_map],
-  erw [eval₂_hom, (mem_root_set_iff' (λ h, _) x).1 hx],
-  { apply _root_.map_zero },
-  rw [← f.comp_algebra_map, ← map_map, h] at hp,
-  exact hp (polynomial.map_zero f),
+  erw [eval₂_hom, (mem_root_set_iff' (mt (λ h, _) hp) x).1 hx, _root_.map_zero],
+  rw [← f.comp_algebra_map, ← map_map, h, polynomial.map_zero],
 end
 
 end roots

@@ -166,27 +166,6 @@ begin
   exact is_integral_trans L_alg A_alg,
 end
 
-theorem alg_hom_bijective_of_is_algebraic
-  (ha : algebra.is_algebraic K L) (f : L →ₐ[K] L) : function.bijective f :=
-begin
-  refine ⟨f.to_ring_hom.injective, λ b, _⟩,
-  obtain ⟨p, hp, he⟩ := ha b,
-  let f' : p.root_set L → p.root_set L :=
-    set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
-  have : function.surjective f' := fintype.injective_iff_surjective.1
-    (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
-  obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
-  exact ⟨a, subtype.ext_iff.1 ha⟩,
-end
-
-/-- Bijection between algebra equivalences and algebra homomorphisms -/
-noncomputable
-def alg_equiv_equiv_alg_hom (ha : algebra.is_algebraic K L) : (L ≃ₐ[K] L) ≃ (L →ₐ[K] L) :=
-{ to_fun := λ ϕ, ϕ.to_alg_hom,
-  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (alg_hom_bijective_of_is_algebraic ha ϕ),
-  left_inv := λ _, by {ext, refl},
-  right_inv := λ _, by {ext, refl} }
-
 variables (K L)
 
 /-- If x is algebraic over R, then x is algebraic over S when S is an extension of R,
@@ -213,7 +192,7 @@ _root_.is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_al
 lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
 is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
-variables {R S} (K L)
+variables (K L)
 
 /-- A field extension is integral if it is finite. -/
 lemma is_integral_of_finite [finite_dimensional K L] : algebra.is_integral K L :=
@@ -223,6 +202,37 @@ lemma is_integral_of_finite [finite_dimensional K L] : algebra.is_integral K L :
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 algebra.is_algebraic_iff_is_integral.mpr (is_integral_of_finite K L)
+
+variables {K L}
+
+theorem is_algebraic.alg_hom_bijective
+  (ha : algebra.is_algebraic K L) (f : L →ₐ[K] L) : function.bijective f :=
+begin
+  refine ⟨f.to_ring_hom.injective, λ b, _⟩,
+  obtain ⟨p, hp, he⟩ := ha b,
+  let f' : p.root_set L → p.root_set L :=
+    set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
+  have : function.surjective f' := fintype.injective_iff_surjective.1
+    (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
+  obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
+  exact ⟨a, subtype.ext_iff.1 ha⟩,
+end
+
+theorem _root_.alg_hom.bijective [finite_dimensional K L] (ϕ : L →ₐ[K] L) : function.bijective ϕ :=
+(algebra.is_algebraic_of_finite K L).alg_hom_bijective ϕ
+
+/-- Bijection between algebra equivalences and algebra homomorphisms -/
+@[simps] noncomputable
+def is_algebraic.alg_equiv_equiv_alg_hom
+  (ha : algebra.is_algebraic K L) : (L ≃ₐ[K] L) ≃* (L →ₐ[K] L) :=
+{ to_fun := λ ϕ, ϕ.to_alg_hom,
+  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (ha.alg_hom_bijective ϕ),
+  left_inv := λ _, by {ext, refl},
+  right_inv := λ _, by {ext, refl},
+  map_mul' := λ _ _, rfl }
+
+@[reducible] def _root_.alg_equiv_equiv_alg_hom [finite_dimensional K L] :
+  (L ≃ₐ[K] L) ≃* (L →ₐ[K] L) := (algebra.is_algebraic_of_finite K L).alg_equiv_equiv_alg_hom
 
 end algebra
 

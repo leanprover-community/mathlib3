@@ -1191,23 +1191,6 @@ linear_equiv.of_bijective f hf $
 
 end linear_map
 
-namespace alg_hom
-
-lemma bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
-  [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
-have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
-⟨inj, (linear_map.injective_iff_surjective_of_finrank_eq_finrank rfl).mp inj⟩
-
-end alg_hom
-
-/-- Bijection between algebra equivalences and algebra homomorphisms -/
-noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
-  [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
-{ to_fun := λ ϕ, ϕ.to_alg_hom,
-  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ ϕ.bijective,
-  left_inv := λ _, by {ext, refl},
-  right_inv := λ _, by {ext, refl} }
-
 section
 
 /-- A domain that is module-finite as an algebra over a field is a division ring. -/

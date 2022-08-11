@@ -695,6 +695,17 @@ lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=
 φ.to_ring_hom.map_list_prod s
 
+@[simps mul one {attrs := []}] instance End : monoid (A →ₐ[R] A) :=
+{ mul := comp,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := alg_hom.id R A,
+  one_mul := λ ϕ, ext $ λ x, rfl,
+  mul_one := λ ϕ, ext $ λ x, rfl }
+
+@[simp] lemma one_apply (x : A) : (1 : A →ₐ[R] A) x = x := rfl
+
+@[simp] lemma mul_apply (φ ψ : A →ₐ[R] A) (x : A) : (φ * ψ) x = φ (ψ x) := rfl
+
 section prod
 
 /-- First projection as `alg_hom`. -/

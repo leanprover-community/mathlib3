@@ -87,7 +87,7 @@ such that
 * both functions are strictly differentiable at `a`;
 * the derivatives are surjective;
 * the kernels of the derivatives are complementary subspaces of `E`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
   (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]

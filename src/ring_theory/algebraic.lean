@@ -225,6 +225,8 @@ end
 theorem _root_.alg_hom.bijective [finite_dimensional K L] (ϕ : L →ₐ[K] L) : function.bijective ϕ :=
 (algebra.is_algebraic_of_finite K L).alg_hom_bijective ϕ
 
+variables (K L)
+
 /-- Bijection between algebra equivalences and algebra homomorphisms -/
 @[simps] noncomputable
 def is_algebraic.alg_equiv_equiv_alg_hom

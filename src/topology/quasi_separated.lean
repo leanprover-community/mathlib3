@@ -104,7 +104,7 @@ begin
 end
 
 @[priority 100]
-instance quasi_separated_space.of_t2_space [t2_space α] : quasi_separated_space α :=
+instance t2_space.to_quasi_separated_space [t2_space α] : quasi_separated_space α :=
 ⟨λ U V hU hU' hV hV', hU'.inter hV'⟩
 
 @[priority 100]

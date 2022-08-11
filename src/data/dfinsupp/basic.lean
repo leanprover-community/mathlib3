@@ -461,10 +461,10 @@ begin
 end
 
 omit dec
-instance unique_of_left [is_empty ι] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
-instance unique_of_right [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) :=
-fun_like.coe_injective.unique
+instance unique [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
+
+instance unique_of_is_empty [is_empty ι] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/

@@ -142,8 +142,6 @@ lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
 
 instance : inhabited (α →₀ M) := ⟨0⟩
 
-instance [subsingleton M] : unique (α →₀ M) := fun_like.coe_injective.unique
-
 @[simp] lemma mem_support_iff {f : α →₀ M} : ∀{a:α}, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
 
@@ -2766,14 +2764,10 @@ section
 variables [has_zero R]
 
 /-- The `finsupp` version of `pi.unique`. -/
-instance unique_of_right [subsingleton R] : unique (α →₀ R) :=
-{ uniq := λ l, ext $ λ i, subsingleton.elim _ _,
-  .. finsupp.inhabited }
+instance unique_of_right [subsingleton R] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 /-- The `finsupp` version of `pi.unique_of_is_empty`. -/
-instance unique_of_left [is_empty α] : unique (α →₀ R) :=
-{ uniq := λ l, ext is_empty_elim,
-  .. finsupp.inhabited }
+instance unique_of_left [is_empty α] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 end
 

@@ -80,7 +80,7 @@ variables [division_monoid α]
 by rw [div_eq_mul_inv, divp, u.coe_inv]
 
 @[simp, to_additive]
-lemma map_units_inv {F : Type*} [monoid_hom_class F M α] (f : F) (u : units M) :
+lemma _root_.map_units_inv {F : Type*} [monoid_hom_class F M α] (f : F) (u : units M) :
   f ↑u⁻¹ = (f u)⁻¹ :=
 ((f : M →* α).comp (units.coe_hom M)).map_inv u
 

@@ -695,7 +695,7 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
 map_inv₀ v.valuation x
 
 lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
-units.map_units_inv v.valuation x
+map_units_inv v.valuation x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.map_neg x

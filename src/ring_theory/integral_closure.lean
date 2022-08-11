@@ -3,11 +3,12 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import data.polynomial.expand
 import linear_algebra.finite_dimensional
+import linear_algebra.matrix.determinant
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
-import linear_algebra.matrix.determinant
 
 /-!
 # Integral closure of a subring.
@@ -154,7 +155,7 @@ theorem is_integral_iff_is_integral_closure_finite {r : A} :
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
-    refine ⟨_, set.finite_mem_finset _, p.restriction, monic_restriction.2 hmp, _⟩,
+    refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
     erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
@@ -255,7 +256,7 @@ begin
     zero_mem' := (span S₀ (insert 1 ↑y : set A)).zero_mem,
     add_mem' := λ _ _, (span S₀ (insert 1 ↑y : set A)).add_mem,
     neg_mem' := λ _, (span S₀ (insert 1 ↑y : set A)).neg_mem },
-  have : S₁ = (algebra.adjoin S₀ (↑y : set A)).to_subring,
+  have : S₁ = subalgebra.to_subring (algebra.adjoin S₀ (↑y : set A)),
   { ext z,
     suffices : z ∈ span ↥S₀ (insert 1 ↑y : set A) ↔
       z ∈ (algebra.adjoin ↥S₀ (y : set A)).to_submodule,
@@ -284,6 +285,51 @@ begin
   rw finsupp.mem_supported at hlx1,
   exact subalgebra.smul_mem _ (algebra.subset_adjoin $ hlx1 hr) _
 end
+
+variables {f}
+
+lemma ring_hom.finite.to_is_integral (h : f.finite) : f.is_integral :=
+by { letI := f.to_algebra, exact λ x, is_integral_of_mem_of_fg ⊤ h.1 _ trivial }
+
+alias ring_hom.finite.to_is_integral ← ring_hom.is_integral.of_finite
+
+lemma ring_hom.is_integral.to_finite (h : f.is_integral) (h' : f.finite_type) : f.finite :=
+begin
+  letI := f.to_algebra,
+  unfreezingI { obtain ⟨s, hs⟩ := h' },
+  constructor,
+  change (⊤ : subalgebra R S).to_submodule.fg,
+  rw ← hs,
+  exact fg_adjoin_of_finite (set.to_finite _) (λ x _, h x)
+end
+
+alias ring_hom.is_integral.to_finite ← ring_hom.finite.of_is_integral_of_finite_type
+
+/-- finite = integral + finite type -/
+lemma ring_hom.finite_iff_is_integral_and_finite_type :
+  f.finite ↔ f.is_integral ∧ f.finite_type :=
+⟨λ h, ⟨h.to_is_integral, h.to_finite_type⟩, λ ⟨h, h'⟩, h.to_finite h'⟩
+
+lemma algebra.is_integral.finite (h : algebra.is_integral R A) [h' : algebra.finite_type R A] :
+  module.finite R A :=
+begin
+  have := h.to_finite
+    (by { delta ring_hom.finite_type, convert h', ext, exact (algebra.smul_def _ _).symm }),
+  delta ring_hom.finite at this, convert this, ext, exact algebra.smul_def _ _,
+end
+
+lemma algebra.is_integral.of_finite [h : module.finite R A] : algebra.is_integral R A :=
+begin
+  apply ring_hom.finite.to_is_integral,
+  delta ring_hom.finite, convert h, ext, exact (algebra.smul_def _ _).symm,
+end
+
+/-- finite = integral + finite type -/
+lemma algebra.finite_iff_is_integral_and_finite_type :
+  module.finite R A ↔ algebra.is_integral R A ∧ algebra.finite_type R A :=
+⟨λ h, by exactI ⟨algebra.is_integral.of_finite, infer_instance⟩, λ ⟨h, h'⟩, by exactI h.finite⟩
+
+variables (f)
 
 lemma ring_hom.is_integral_of_mem_closure {x y z : S}
   (hx : f.is_integral_elem x) (hy : f.is_integral_elem y)
@@ -356,6 +402,14 @@ lemma is_integral_smul [algebra S A] [algebra R S] [is_scalar_tower R S A] {x : 
 begin
   rw [algebra.smul_def, is_scalar_tower.algebra_map_apply R S A],
   exact is_integral_mul is_integral_algebra_map hx,
+end
+
+lemma is_integral_of_pow {x : A} {n : ℕ} (hn : 0 < n) (hx : is_integral R $ x ^ n) :
+  is_integral R x :=
+begin
+  rcases hx with ⟨p, ⟨hmonic, heval⟩⟩,
+  exact ⟨expand R n p, monic.expand hn hmonic,
+         by rwa [eval₂_eq_eval_map, map_expand, expand_eval, ← eval₂_eq_eval_map]⟩
 end
 
 variables (R A)
@@ -466,6 +520,10 @@ begin
   rw [matrix.det_apply],
   exact is_integral.sum _ (λ σ hσ, is_integral.zsmul (is_integral.prod _ (λ i hi, h _ _)) _)
 end
+
+@[simp] lemma is_integral.pow_iff {x : A} {n : ℕ} (hn : 0 < n) :
+  is_integral R (x ^ n) ↔ is_integral R x :=
+⟨is_integral_of_pow hn, λ hx, is_integral.pow hx n⟩
 
 section
 
@@ -871,12 +929,12 @@ begin
   haveI : is_noetherian R A :=
   is_noetherian_of_fg_of_noetherian A.to_submodule (fg_adjoin_singleton_of_integral x (H x)),
   haveI : module.finite R A := module.is_noetherian.finite R A,
-  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@lmul_left_injective R A _ _ _ _
+  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@linear_map.mul_left_injective R A _ _ _ _
     ⟨x, subset_adjoin (set.mem_singleton x)⟩ (λ h, hx (subtype.ext_iff.mp h))) 1,
   exact ⟨y, subtype.ext_iff.mp hy⟩,
 end
 
-lemma is_integral.is_field_iff_is_field
+lemma algebra.is_integral.is_field_iff_is_field
   {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S] [algebra R S]
   (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
   is_field R ↔ is_field S :=

@@ -68,8 +68,7 @@ namespace algebra
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] [algebra R A]
   [is_scalar_tower R S A] (s : set S) :
-  adjoin R (algebra_map S A '' s) =
-    subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
+  adjoin R (algebra_map S A '' s) = (adjoin R s).map (is_scalar_tower.to_alg_hom R S A) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 

@@ -66,6 +66,13 @@ variables [semiring R]
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) (λ _, (Π i, M₁ i) → M₂) :=
 ⟨λ f, f.to_fun⟩
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (L₁ : continuous_multilinear_map R M₁ M₂) (v : Π i, M₁ i) : M₂ := L₁ v
+
+initialize_simps_projections continuous_multilinear_map
+  (-to_multilinear_map, to_multilinear_map_to_fun → apply)
+
 @[continuity] lemma coe_continuous : continuous (f : (Π i, M₁ i) → M₂) := f.cont
 
 @[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
@@ -102,14 +109,14 @@ instance : inhabited (continuous_multilinear_map R M₁ M₂) := ⟨0⟩
 @[simp] lemma to_multilinear_map_zero :
   (0 : continuous_multilinear_map R M₁ M₂).to_multilinear_map = 0 :=
 rfl
-section has_scalar
+section has_smul
 
 variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
   [Π i, module A (M₁ i)] [module A M₂]
   [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
   [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
 
-instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
+instance : has_smul R' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
 
 @[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
@@ -123,7 +130,7 @@ instance [smul_comm_class R' R'' M₂] :
   smul_comm_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c₁ c₂ f, ext $ λ x, smul_comm _ _ _⟩
 
-instance [has_scalar R' R''] [is_scalar_tower R' R'' M₂] :
+instance [has_smul R' R''] [is_scalar_tower R' R'' M₂] :
   is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
 
@@ -134,7 +141,7 @@ instance [distrib_mul_action R'ᵐᵒᵖ M₂] [is_central_scalar R' M₂] :
 instance : mul_action R' (continuous_multilinear_map A M₁ M₂) :=
 function.injective.mul_action to_multilinear_map to_multilinear_map_inj (λ _ _, rfl)
 
-end has_scalar
+end has_smul
 
 section has_continuous_add
 variable [has_continuous_add M₂]
@@ -289,7 +296,7 @@ end apply_sum
 
 section restrict_scalar
 
-variables (R) {A : Type*} [semiring A] [has_scalar R A] [Π (i : ι), module A (M₁ i)]
+variables (R) {A : Type*} [semiring A] [has_smul R A] [Π (i : ι), module A (M₁ i)]
   [module A M₂] [∀ i, is_scalar_tower R A (M₁ i)] [is_scalar_tower R A M₂]
 
 /-- Reinterpret an `A`-multilinear map as an `R`-multilinear map, if `A` is an algebra over `R`
@@ -452,5 +459,19 @@ variables {R n A}
 rfl
 
 end algebra
+
+section smul_right
+
+variables [comm_semiring R] [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, module R (M₁ i)] [module R M₂] [topological_space R] [Π i, topological_space (M₁ i)]
+  [topological_space M₂] [has_continuous_smul R M₂] (f : continuous_multilinear_map R M₁ R) (z : M₂)
+
+/-- Given a continuous `R`-multilinear map `f` taking values in `R`, `f.smul_right z` is the
+continuous multilinear map sending `m` to `f m • z`. -/
+@[simps to_multilinear_map apply] def smul_right : continuous_multilinear_map R M₁ M₂ :=
+{ to_multilinear_map := f.to_multilinear_map.smul_right z,
+  cont := f.cont.smul continuous_const }
+
+end smul_right
 
 end continuous_multilinear_map

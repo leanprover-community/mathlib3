@@ -7,12 +7,12 @@ import topology.urysohns_lemma
 import topology.continuous_function.bounded
 
 /-!
-# Metrizability of a normal topological space with second countable topology
+# Metrizability of a T₃ topological space with second countable topology
 
 In this file we define metrizable topological spaces, i.e., topological spaces for which there
 exists a metric space structure that generates the same topology.
 
-We also show that a normal topological space with second countable topology `X` is metrizable.
+We also show that a T₃ topological space with second countable topology `X` is metrizable.
 
 First we prove that `X` can be embedded into `l^∞`, then use this embedding to pull back the metric
 space structure.
@@ -23,57 +23,110 @@ open_locale bounded_continuous_function filter topological_space
 
 namespace topological_space
 
-/-- A topological space is metrizable if there exists a metric space structure compatible with the
-topology. To endow such a space with a compatible distance, use
-`letI : metric_space α := metrizable_space_metric α` -/
-class metrizable_space (α : Type*) [t : topological_space α] : Prop :=
-(exists_metric : ∃ (m : metric_space α), m.to_uniform_space.to_topological_space = t)
+variables {ι X Y : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
+  [finite ι] [Π i, topological_space (π i)]
+
+/-- A topological space is *pseudo metrizable* if there exists a pseudo metric space structure
+compatible with the topology. To endow such a space with a compatible distance, use
+`letI : pseudo_metric_space X := topological_space.pseudo_metrizable_space_pseudo_metric X`. -/
+class pseudo_metrizable_space (X : Type*) [t : topological_space X] : Prop :=
+(exists_pseudo_metric : ∃ (m : pseudo_metric_space X), m.to_uniform_space.to_topological_space = t)
 
 @[priority 100]
-instance _root_.metric_space.to_metrizable_space {α : Type*} [m : metric_space α] :
-  metrizable_space α :=
+instance _root_.pseudo_metric_space.to_pseudo_metrizable_space {X : Type*}
+  [m : pseudo_metric_space X] :
+  pseudo_metrizable_space X :=
 ⟨⟨m, rfl⟩⟩
 
 /-- Construct on a metrizable space a metric compatible with the topology. -/
-noncomputable def metrizable_space_metric
-  (α : Type*) [topological_space α] [h : metrizable_space α] :
-  metric_space α :=
-h.exists_metric.some.replace_topology h.exists_metric.some_spec.symm
+noncomputable def pseudo_metrizable_space_pseudo_metric
+  (X : Type*) [topological_space X] [h : pseudo_metrizable_space X] :
+  pseudo_metric_space X :=
+h.exists_pseudo_metric.some.replace_topology h.exists_pseudo_metric.some_spec.symm
 
-@[priority 100]
-instance t2_space_of_metrizable_space
-  (α : Type*) [topological_space α] [metrizable_space α] : t2_space α :=
-by { letI : metric_space α := metrizable_space_metric α, apply_instance }
-
-instance metrizable_space_prod (α : Type*) [topological_space α] [metrizable_space α]
-  (β : Type*) [topological_space β] [metrizable_space β] :
-  metrizable_space (α × β) :=
+instance pseudo_metrizable_space_prod [pseudo_metrizable_space X] [pseudo_metrizable_space Y] :
+  pseudo_metrizable_space (X × Y) :=
 begin
-  letI : metric_space α := metrizable_space_metric α,
-  letI : metric_space β := metrizable_space_metric β,
+  letI : pseudo_metric_space X := pseudo_metrizable_space_pseudo_metric X,
+  letI : pseudo_metric_space Y := pseudo_metrizable_space_pseudo_metric Y,
   apply_instance
 end
 
-instance metrizable_space.subtype {α : Type*} [topological_space α] [metrizable_space α]
-  (s : set α) : metrizable_space s :=
-by { letI := metrizable_space_metric α, apply_instance }
+/-- Given an inducing map of a topological space into a pseudo metrizable space, the source space
+is also pseudo metrizable. -/
+lemma _root_.inducing.pseudo_metrizable_space [pseudo_metrizable_space Y] {f : X → Y}
+  (hf : inducing f) :
+  pseudo_metrizable_space X :=
+begin
+  letI : pseudo_metric_space Y := pseudo_metrizable_space_pseudo_metric Y,
+  exact ⟨⟨hf.comap_pseudo_metric_space, rfl⟩⟩
+end
+
+instance pseudo_metrizable_space.subtype [pseudo_metrizable_space X]
+  (s : set X) : pseudo_metrizable_space s :=
+inducing_coe.pseudo_metrizable_space
+
+instance pseudo_metrizable_space_pi [Π i, pseudo_metrizable_space (π i)] :
+  pseudo_metrizable_space (Π i, π i) :=
+by { casesI nonempty_fintype ι, letI := λ i, pseudo_metrizable_space_pseudo_metric (π i),
+  apply_instance }
+
+/-- A topological space is metrizable if there exists a metric space structure compatible with the
+topology. To endow such a space with a compatible distance, use
+`letI : metric_space X := topological_space.metrizable_space_metric X` -/
+class metrizable_space (X : Type*) [t : topological_space X] : Prop :=
+(exists_metric : ∃ (m : metric_space X), m.to_uniform_space.to_topological_space = t)
+
+@[priority 100]
+instance _root_.metric_space.to_metrizable_space {X : Type*} [m : metric_space X] :
+  metrizable_space X :=
+⟨⟨m, rfl⟩⟩
+
+@[priority 100]
+instance metrizable_space.to_pseudo_metrizable_space [h : metrizable_space X] :
+  pseudo_metrizable_space X :=
+⟨let ⟨m, hm⟩ := h.1 in ⟨m.to_pseudo_metric_space, hm⟩⟩
+
+/-- Construct on a metrizable space a metric compatible with the topology. -/
+noncomputable def metrizable_space_metric (X : Type*) [topological_space X]
+  [h : metrizable_space X] :
+  metric_space X :=
+h.exists_metric.some.replace_topology h.exists_metric.some_spec.symm
+
+@[priority 100]
+instance t2_space_of_metrizable_space [metrizable_space X] : t2_space X :=
+by { letI : metric_space X := metrizable_space_metric X, apply_instance }
+
+instance metrizable_space_prod [metrizable_space X] [metrizable_space Y] :
+  metrizable_space (X × Y) :=
+begin
+  letI : metric_space X := metrizable_space_metric X,
+  letI : metric_space Y := metrizable_space_metric Y,
+  apply_instance
+end
 
 /-- Given an embedding of a topological space into a metrizable space, the source space is also
 metrizable. -/
-lemma _root_.embedding.metrizable_space {α β : Type*} [topological_space α] [topological_space β]
-  [metrizable_space β] {f : α → β} (hf : embedding f) :
-  metrizable_space α :=
+lemma _root_.embedding.metrizable_space [metrizable_space Y] {f : X → Y} (hf : embedding f) :
+  metrizable_space X :=
 begin
-  letI : metric_space β := metrizable_space_metric β,
+  letI : metric_space Y := metrizable_space_metric Y,
   exact ⟨⟨hf.comap_metric_space f, rfl⟩⟩
 end
 
-variables (X : Type*) [topological_space X] [normal_space X] [second_countable_topology X]
+instance metrizable_space.subtype [metrizable_space X] (s : set X) : metrizable_space s :=
+embedding_subtype_coe.metrizable_space
 
-/-- A normal topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
+instance metrizable_space_pi [Π i, metrizable_space (π i)] : metrizable_space (Π i, π i) :=
+by { casesI nonempty_fintype ι, letI := λ i, metrizable_space_metric (π i), apply_instance }
+
+variables (X) [t3_space X] [second_countable_topology X]
+
+/-- A T₃ topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
 -/
 lemma exists_embedding_l_infty : ∃ f : X → (ℕ →ᵇ ℝ), embedding f :=
 begin
+  haveI : normal_space X := normal_space_of_t3_second_countable X,
   -- Choose a countable basis, and consider the set `s` of pairs of set `(U, V)` such that `U ∈ B`,
   -- `V ∈ B`, and `closure U ⊆ V`.
   rcases exists_countable_basis X with ⟨B, hBc, -, hB⟩,
@@ -142,7 +195,7 @@ begin
     `(U, V) ∈ T`. For `(U, V) ∉ T`, the same inequality is true because both `F y (U, V)` and
     `F x (U, V)` belong to the interval `[0, ε (U, V)]`. -/
     refine (nhds_basis_closed_ball.comap _).ge_iff.2 (λ δ δ0, _),
-    have h_fin : finite {UV : s | δ ≤ ε UV}, by simpa only [← not_lt] using hε (gt_mem_nhds δ0),
+    have h_fin : {UV : s | δ ≤ ε UV}.finite, by simpa only [← not_lt] using hε (gt_mem_nhds δ0),
     have : ∀ᶠ y in 𝓝 x, ∀ UV, δ ≤ ε UV → dist (F y UV) (F x UV) ≤ δ,
     { refine (eventually_all_finite h_fin).2 (λ UV hUV, _),
       exact (f UV).continuous.tendsto x (closed_ball_mem_nhds _ δ0) },
@@ -151,11 +204,12 @@ begin
     exacts [hy _ hle, (real.dist_le_of_mem_Icc (hf0ε _ _) (hf0ε _ _)).trans (by rwa sub_zero)] }
 end
 
-/-- A normal topological space with second countable topology `X` is metrizable: there exists a
-metric space structure that generates the same topology. -/
-lemma metrizable_space_of_normal_second_countable : metrizable_space X :=
+/-- *Urysohn's metrization theorem* (Tychonoff's version): a T₃ topological space with second
+countable topology `X` is metrizable, i.e., there exists a metric space structure that generates the
+same topology. -/
+lemma metrizable_space_of_t3_second_countable : metrizable_space X :=
 let ⟨f, hf⟩ := exists_embedding_l_infty X in hf.metrizable_space
 
-instance : metrizable_space ennreal := metrizable_space_of_normal_second_countable ennreal
+instance : metrizable_space ennreal := metrizable_space_of_t3_second_countable ennreal
 
 end topological_space

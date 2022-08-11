@@ -29,17 +29,17 @@ namespace filter
 
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
-{ sets             := {s | finite sᶜ},
+{ sets             := {s | sᶜ.finite},
   univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of_eq],
-  sets_of_superset := assume s t (hs : finite sᶜ) (st: s ⊆ t),
+  sets_of_superset := assume s t (hs : sᶜ.finite) (st: s ⊆ t),
     hs.subset $ compl_subset_compl.2 st,
-  inter_sets       := assume s t (hs : finite sᶜ) (ht : finite (tᶜ)),
+  inter_sets       := assume s t (hs : sᶜ.finite) (ht : tᶜ.finite),
     by simp only [compl_inter, finite.union, ht, hs, mem_set_of_eq] }
 
-@[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite sᶜ := iff.rfl
+@[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ sᶜ.finite := iff.rfl
 
 @[simp] lemma eventually_cofinite {p : α → Prop} :
-  (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
+  (∀ᶠ x in cofinite, p x) ↔ {x | ¬p x}.finite := iff.rfl
 
 lemma has_basis_cofinite : has_basis cofinite (λ s : set α, s.finite) compl :=
 ⟨λ s, ⟨λ h, ⟨sᶜ, h, (compl_compl s).subset⟩, λ ⟨t, htf, hts⟩, htf.subset $ compl_subset_comm.2 hts⟩⟩
@@ -95,7 +95,7 @@ filter.coext $ λ s, by simp only [compl_mem_coprod, mem_cofinite, compl_compl,
   finite_image_fst_and_snd_iff]
 
 /-- Finite product of finite sets is finite -/
-lemma Coprod_cofinite {α : ι → Type*} [fintype ι] :
+lemma Coprod_cofinite {α : ι → Type*} [finite ι] :
   filter.Coprod (λ i, (cofinite : filter (α i))) = cofinite :=
 filter.coext $ λ s, by simp only [compl_mem_Coprod, mem_cofinite, compl_compl,
   forall_finite_image_eval_iff]
@@ -123,7 +123,7 @@ lemma filter.tendsto.exists_within_forall_le {α β : Type*} [linear_order β] {
 begin
   rcases em (∃ y ∈ s, ∃ x, f y < x) with ⟨y, hys, x, hx⟩|not_all_top,
   { -- the set of points `{y | f y < x}` is nonempty and finite, so we take `min` over this set
-    have : finite {y | ¬x ≤ f y} := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
+    have : {y | ¬x ≤ f y}.finite := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
     simp only [not_le] at this,
     obtain ⟨a₀, ⟨ha₀ : f a₀ < x, ha₀s⟩, others_bigger⟩ :=
       exists_min_image _ f (this.inter_of_left s) ⟨y, hx, hys⟩,

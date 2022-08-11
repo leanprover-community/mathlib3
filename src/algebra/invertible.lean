@@ -138,8 +138,7 @@ Prefer `casesI h.nonempty_invertible` over `letI := h.invertible` if you want to
 noncomputable def is_unit.invertible [monoid α] {a : α} (h : is_unit a) : invertible a :=
 classical.choice h.nonempty_invertible
 
-@[simp]
-lemma nonempty_invertible_iff_is_unit [monoid α] (a : α) :
+@[simp] lemma nonempty_invertible_iff_is_unit [monoid α] (a : α) :
   nonempty (invertible a) ↔ is_unit a :=
 ⟨nonempty.rec $ @is_unit_of_invertible _ _ _, is_unit.nonempty_invertible⟩
 
@@ -171,14 +170,13 @@ inv_of_eq_right_inv (by simp)
 
 @[simp] lemma inv_of_two_add_inv_of_two [non_assoc_semiring α] [invertible (2 : α)] :
   (⅟2 : α) + (⅟2 : α) = 1 :=
-by simp only [←two_mul, mul_inv_of_self]
+by rw [←two_mul, mul_inv_of_self]
 
 /-- `a` is the inverse of `⅟a`. -/
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩
 
-@[simp] lemma inv_of_inv_of [monoid α] (a : α) [invertible a] [invertible (⅟a)] :
-  ⅟(⅟a) = a :=
+@[simp] lemma inv_of_inv_of [monoid α] (a : α) [invertible a] [invertible (⅟a)] : ⅟(⅟a) = a :=
 inv_of_eq_right_inv (inv_of_mul_self _)
 
 @[simp] lemma inv_of_inj [monoid α] {a b : α} [invertible a] [invertible b] :
@@ -189,8 +187,7 @@ inv_of_eq_right_inv (inv_of_mul_self _)
 def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invertible (a * b) :=
 ⟨ ⅟b * ⅟a, by simp [←mul_assoc], by simp [←mul_assoc] ⟩
 
-@[simp]
-lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
+@[simp] lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
 

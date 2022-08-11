@@ -65,7 +65,7 @@ as group homomorphism -/
 (app_hom X).map_nsmul α n
 
 @[simp] lemma app_zsmul (X : C) (α : F ⟶ G) (n : ℤ) : (n • α).app X = n • α.app X :=
-(app_hom X).map_zsmul α n
+(app_hom X : (F ⟶ G) →+ (F.obj X ⟶ G.obj X)).map_zsmul α n
 
 @[simp] lemma app_sum {ι : Type*} (s : finset ι) (X : C) (α : ι → (F ⟶ G)) :
   (∑ i in s, α i).app X = ∑ i in s, ((α i).app X) :=

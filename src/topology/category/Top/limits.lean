@@ -149,8 +149,9 @@ fan.mk (Top.of (Π i, α i)) (pi_π α)
 
 /-- The constructed fan is indeed a limit -/
 def pi_fan_is_limit {ι : Type v} (α : ι → Top.{max v u}) : is_limit (pi_fan α) :=
-{ lift := λ S, { to_fun := λ s i, S.π.app i s },
-  uniq' := by { intros S m h, ext x i, simp [← h i] } }
+{ lift := λ S, { to_fun := λ s i, S.π.app ⟨i⟩ s },
+  uniq' := by { intros S m h, ext x i, simp [← h ⟨i⟩] },
+  fac' := λ s j, by { cases j, tidy, }, }
 
 /--
 The product is homeomorphic to the product of the underlying spaces,
@@ -189,9 +190,10 @@ cofan.mk (Top.of (Σ i, α i)) (sigma_ι α)
 
 /-- The constructed cofan is indeed a colimit -/
 def sigma_cofan_is_colimit {ι : Type v} (α : ι → Top.{max v u}) : is_colimit (sigma_cofan α) :=
-{ desc := λ S, { to_fun := λ s, S.ι.app s.1 s.2,
+{ desc := λ S, { to_fun := λ s, S.ι.app ⟨s.1⟩ s.2,
     continuous_to_fun := by { continuity, dsimp only, continuity } },
-  uniq' := by { intros S m h,  ext ⟨i, x⟩, simp [← h i] } }
+  uniq' := by { intros S m h,  ext ⟨i, x⟩, simp [← h ⟨i⟩] },
+  fac' := λ s j, by { cases j, tidy, }, }
 
 /--
 The coproduct is homeomorphic to the disjoint union of the topological spaces.
@@ -249,10 +251,10 @@ def prod_binary_fan_is_limit (X Y : Top.{u}) : is_limit (prod_binary_fan X Y) :=
   uniq' := begin
     intros S m h,
     ext x,
-    { specialize h walking_pair.left,
+    { specialize h ⟨walking_pair.left⟩,
       apply_fun (λ e, (e x)) at h,
       exact h },
-     { specialize h walking_pair.right,
+     { specialize h ⟨walking_pair.right⟩,
       apply_fun (λ e, (e x)) at h,
       exact h },
   end }
@@ -314,7 +316,7 @@ begin
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
     use (prod_iso_prod W X).inv (x₁, x₂),
     apply concrete.limit_ext,
-    rintro ⟨⟩,
+    rintro ⟨⟨⟩⟩,
     { simp only [← comp_apply, category.assoc], erw limits.prod.map_fst, simp [hx₁] },
     { simp only [← comp_apply, category.assoc], erw limits.prod.map_snd, simp [hx₂] } }
 end
@@ -438,7 +440,7 @@ begin
   { intro h,
     use (pullback_iso_prod_subtype f g).inv ⟨⟨_, _⟩, h⟩,
     apply concrete.limit_ext,
-    rintro ⟨⟩; simp }
+    rintro ⟨⟨⟩⟩; simp }
 end
 
 lemma inducing_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -700,7 +702,7 @@ begin
   exact is_open_supr_iff
 end
 
-lemma coequalizer_is_open_iff (F : walking_parallel_pair.{u} ⥤ Top.{u})
+lemma coequalizer_is_open_iff (F : walking_parallel_pair ⥤ Top.{u})
   (U : set ((colimit F : _) : Type u)) :
   is_open U ↔ is_open (colimit.ι F walking_parallel_pair.one ⁻¹' U) :=
 begin

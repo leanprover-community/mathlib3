@@ -236,8 +236,54 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  (map (localization (M.map (f : R →* S))) f M.le_comap_map : localization M →+* _).is_integral :=
+  (map (localization (M.map (f : R →* S))) f
+    (M.le_comap_map : _ ≤ submonoid.comap (f : R →* S) _) : localization M →+* _).is_integral :=
 @is_integral_localization R _ M S _ f.to_algebra _ _ _ _ _ _ _ _ hf
+
+variable (M)
+
+lemma is_localization.scale_roots_common_denom_mem_lifts (p : Rₘ[X])
+  (hp : p.leading_coeff ∈ (algebra_map R Rₘ).range) :
+  p.scale_roots (algebra_map R Rₘ $ is_localization.common_denom M p.support p.coeff) ∈
+    polynomial.lifts (algebra_map R Rₘ) :=
+begin
+  rw polynomial.lifts_iff_coeff_lifts,
+  intro n,
+  rw [polynomial.coeff_scale_roots],
+  by_cases h₁ : n ∈ p.support,
+  by_cases h₂ : n = p.nat_degree,
+  { rwa [h₂, polynomial.coeff_nat_degree, tsub_self, pow_zero, _root_.mul_one] },
+  { have : n + 1 ≤ p.nat_degree := lt_of_le_of_ne (polynomial.le_nat_degree_of_mem_supp _ h₁) h₂,
+    rw [← tsub_add_cancel_of_le (le_tsub_of_add_le_left this), pow_add, pow_one, mul_comm,
+      _root_.mul_assoc, ← map_pow],
+    change _ ∈ (algebra_map R Rₘ).range,
+    apply mul_mem,
+    { exact ring_hom.mem_range_self _ _ },
+    { rw ← algebra.smul_def,
+      exact ⟨_, is_localization.map_integer_multiple M p.support p.coeff ⟨n, h₁⟩⟩ } },
+  { rw polynomial.not_mem_support_iff at h₁,
+    rw [h₁, zero_mul],
+    exact zero_mem (algebra_map R Rₘ).range }
+end
+
+lemma is_integral.exists_multiple_integral_of_is_localization
+  [algebra Rₘ S] [is_scalar_tower R Rₘ S] (x : S) (hx : is_integral Rₘ x) :
+    ∃ m : M, is_integral R (m • x) :=
+begin
+  cases subsingleton_or_nontrivial Rₘ with _ nontriv; resetI,
+  { haveI := (algebra_map Rₘ S).codomain_trivial,
+    exact ⟨1, polynomial.X, polynomial.monic_X, subsingleton.elim _ _⟩ },
+  obtain ⟨p, hp₁, hp₂⟩ := hx,
+  obtain ⟨p', hp'₁, -, hp'₂⟩ := lifts_and_nat_degree_eq_and_monic
+    (is_localization.scale_roots_common_denom_mem_lifts M p _) _,
+  { refine ⟨is_localization.common_denom M p.support p.coeff, p', hp'₂, _⟩,
+    rw [is_scalar_tower.algebra_map_eq R Rₘ S, ← polynomial.eval₂_map, hp'₁,
+      submonoid.smul_def, algebra.smul_def, is_scalar_tower.algebra_map_apply R Rₘ S],
+    exact polynomial.scale_roots_eval₂_eq_zero _ hp₂ },
+  { rw hp₁.leading_coeff, exact one_mem _ },
+  { rwa polynomial.monic_scale_roots_iff },
+end
+
 
 end is_integral
 

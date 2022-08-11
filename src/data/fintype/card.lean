@@ -184,8 +184,7 @@ e.bijective.prod_comp f
 lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
   ∏ i : fin n, f i = ∏ i in range n, f i :=
 calc (∏ i : fin n, f i) = ∏ i : {x // x ∈ range n}, f i :
-  ((equiv.fin_equiv_subtype n).trans
-    (equiv.subtype_equiv_right (λ _, mem_range.symm))).prod_comp (f ∘ coe)
+  (equiv.subtype_equiv_right $ λ m, (@mem_range n m).symm).prod_comp (f ∘ coe)
 ... = ∏ i in range n, f i : by rw [← attach_eq_univ, prod_attach]
 
 @[to_additive]

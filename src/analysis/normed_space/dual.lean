@@ -3,7 +3,7 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed_space.hahn_banach
+import analysis.normed_space.hahn_banach.extension
 import analysis.normed_space.is_R_or_C
 import analysis.locally_convex.polar
 
@@ -19,7 +19,7 @@ version `normed_space.inclusion_in_double_dual_li` of the map which is of type a
 isometric embedding, `E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E))`.
 
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
-theory for `semi_normed_group` and we specialize to `normed_group` when needed.
+theory for `seminormed_add_comm_group` and we specialize to `normed_add_comm_group` when needed.
 
 ## Main definitions
 
@@ -40,18 +40,19 @@ universes u v
 namespace normed_space
 
 section general
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables (E : Type*) [semi_normed_group E] [normed_space 𝕜 E]
-variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+variables (E : Type*) [seminormed_add_comm_group E] [normed_space 𝕜 E]
+variables (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F]
 
 /-- The topological dual of a seminormed space `E`. -/
-@[derive [inhabited, semi_normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+@[derive [inhabited, seminormed_add_comm_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
-instance : add_monoid_hom_class (dual 𝕜 E) E 𝕜 := continuous_linear_map.add_monoid_hom_class
+instance : continuous_linear_map_class (dual 𝕜 E) 𝕜 E 𝕜 :=
+continuous_linear_map.continuous_semilinear_map_class
 
 instance : has_coe_to_fun (dual 𝕜 E) (λ _, E → 𝕜) := continuous_linear_map.to_fun
 
-instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
+instance : normed_add_comm_group (dual 𝕜 F) := continuous_linear_map.to_normed_add_comm_group
 
 instance [finite_dimensional 𝕜 E] : finite_dimensional 𝕜 (dual 𝕜 E) :=
 continuous_linear_map.finite_dimensional
@@ -89,7 +90,7 @@ end general
 section bidual_isometry
 
 variables (𝕜 : Type v) [is_R_or_C 𝕜]
-  {E : Type u} [normed_group E] [normed_space 𝕜 E]
+  {E : Type u} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.
     Compare `continuous_linear_map.op_norm_le_bound`. -/
@@ -112,6 +113,7 @@ norm_le_zero_iff.mp (norm_le_dual_bound 𝕜 x le_rfl (λ f, by simp [h f]))
 lemma eq_zero_iff_forall_dual_eq_zero (x : E) : x = 0 ↔ ∀ g : dual 𝕜 E, g x = 0 :=
 ⟨λ hx, by simp [hx], λ h, eq_zero_of_forall_dual_eq_zero 𝕜 h⟩
 
+/-- See also `geometric_hahn_banach_point_point`. -/
 lemma eq_iff_forall_dual_eq {x y : E} :
   x = y ↔ ∀ g : dual 𝕜 E, g x = g y :=
 begin
@@ -141,12 +143,12 @@ open metric set normed_space
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
-def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
+def polar (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+  {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
 (dual_pairing 𝕜 E).flip.polar
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+variables {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ∥x' z∥ ≤ 1 := iff.rfl
 
@@ -166,7 +168,8 @@ end
 ((dual_pairing 𝕜 E).flip.polar_antitone subset_closure).antisymm $
   (dual_pairing 𝕜 E).flip.polar_gc.l_le $
   closure_minimal ((dual_pairing 𝕜 E).flip.polar_gc.le_u_l s) $
-  (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
+  by simpa [linear_map.flip_flip]
+    using (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
 
 variables {𝕜}
 
@@ -214,8 +217,8 @@ calc ∥x' x∥ ≤ ∥x'∥ * ∥x∥ : x'.le_op_norm x
 
 /-- The `polar` of closed ball in a normed space `E` is the closed ball of the dual with
 inverse radius. -/
-lemma polar_closed_ball
-  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] {r : ℝ} (hr : 0 < r) :
+lemma polar_closed_ball {𝕜 E : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
+  {r : ℝ} (hr : 0 < r) :
   polar 𝕜 (closed_ball (0 : E) r) = closed_ball (0 : dual 𝕜 E) r⁻¹ :=
 begin
   refine subset.antisymm _ (closed_ball_inv_subset_polar_closed_ball _),

@@ -266,7 +266,7 @@ begin
   dsimp [is_colimit_whisker_equiv],
   apply P.hom_ext,
   intro j,
-  dsimp, simp, dsimp, simp, -- See library note [dsimp, simp].
+  dsimp, simp,
 end
 
 instance colimit_pre_is_iso [has_colimit G] :
@@ -365,7 +365,7 @@ lemma cofinal_of_colimit_comp_coyoneda_iso_punit
     obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective'.{v v} this,
     exact ⟨structured_arrow.mk y⟩, },
   apply zigzag_is_connected,
-  rintros ⟨⟨⟩,X₁,f₁⟩ ⟨⟨⟩,X₂,f₂⟩,
+  rintros ⟨⟨⟨⟩⟩,X₁,f₁⟩ ⟨⟨⟨⟩⟩,X₂,f₂⟩,
   dsimp at *,
   let y₁ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₁ f₁,
   let y₂ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₂ f₂,

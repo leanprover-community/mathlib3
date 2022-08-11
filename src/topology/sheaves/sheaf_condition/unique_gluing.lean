@@ -128,7 +128,7 @@ lemma is_gluing_iff_eq_res (sf : pi_opens F U) (s : F.obj (op (supr U))):
   is_gluing F U ((pi_opens_iso_sections_family F U).hom sf) s ↔ res F U s = sf :=
 begin
   split ; intros h,
-  { ext i,
+  { ext ⟨i⟩,
     rw [res, types.limit.lift_π_apply', fan.mk_π_app],
     exact h i, },
   { intro i,
@@ -144,6 +144,7 @@ in terms of unique gluings.
 lemma is_sheaf_of_is_sheaf_unique_gluing_types (Fsh : F.is_sheaf_unique_gluing) :
   F.is_sheaf :=
 begin
+  rw is_sheaf_iff_is_sheaf_equalizer_products,
   intros ι U,
   refine ⟨fork.is_limit.mk' _ _⟩,
   intro s,
@@ -155,7 +156,7 @@ begin
   choose m m_spec m_uniq using
     λ x : s.X, Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) (h_compatible x),
   refine ⟨m, _, _⟩,
-  { ext i x,
+  { ext ⟨i⟩ x,
     simp [res],
     exact m_spec x i, },
   { intros l hl,
@@ -172,6 +173,7 @@ The sheaf condition in terms of unique gluings can be obtained from the usual
 lemma is_sheaf_unique_gluing_of_is_sheaf_types (Fsh : F.is_sheaf) :
   F.is_sheaf_unique_gluing :=
 begin
+  rw is_sheaf_iff_is_sheaf_equalizer_products at Fsh,
   intros ι U sf hsf,
   let sf' := (pi_opens_iso_sections_family F U).inv sf,
   have hsf' : left_res F U sf' = right_res F U sf',
@@ -241,7 +243,7 @@ A more convenient way of obtaining a unique gluing of sections for a sheaf.
 lemma exists_unique_gluing (sf : Π i : ι, F.1.obj (op (U i)))
   (h : is_compatible F.1 U sf ) :
   ∃! s : F.1.obj (op (supr U)), is_gluing F.1 U sf s :=
-(is_sheaf_iff_is_sheaf_unique_gluing F.1).mp F.property U sf h
+(is_sheaf_iff_is_sheaf_unique_gluing F.1).mp F.cond U sf h
 
 /--
 In this version of the lemma, the inclusion homs `iUV` can be specified directly by the user,

@@ -207,7 +207,7 @@ instance pi_pred.sampleable_ext [sampleable_ext (α → bool)] :
 
 @[priority 2000]
 instance pi_uncurry.sampleable_ext
-  [sampleable_ext (α × β → γ)] : sampleable_ext.{(imax (u+1) (v+1) w)} (α → β → γ) :=
+  [sampleable_ext (α × β → γ)] : sampleable_ext.{imax (u+1) (v+1) w} (α → β → γ) :=
 { proxy_repr := proxy_repr (α × β → γ),
   interp := λ m x y, interp (α × β → γ) m (x, y),
   sample := sample (α × β → γ),

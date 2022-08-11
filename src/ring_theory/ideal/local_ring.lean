@@ -84,9 +84,9 @@ lemma is_unit_or_is_unit_of_is_unit_add {a b : R} (h : is_unit (a + b)) :
   is_unit a ∨ is_unit b :=
 begin
   rcases h with ⟨u, hu⟩,
-  replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
-  cases is_unit_or_is_unit_of_add_one hu; [left, right];
-    exact (is_unit_of_mul_is_unit_right (by assumption))
+  rw [←units.inv_mul_eq_one, mul_add] at hu,
+  apply or.imp _ _ (is_unit_or_is_unit_of_add_one hu);
+    exact is_unit_of_mul_is_unit_right,
 end
 
 lemma nonunits_add {a b : R} (ha : a ∈ nonunits R) (hb : b ∈ nonunits R) : a + b ∈ nonunits R:=
@@ -240,7 +240,7 @@ lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_ho
 { map_nonunit := λ a ha,
   begin
     convert f.inv.is_unit_map ha,
-    rw category_theory.coe_hom_inv_id,
+    rw category_theory.iso.hom_inv_id_apply,
   end }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -302,9 +302,19 @@ begin
   intros a b hab,
   obtain ⟨a, rfl⟩ := hf a,
   obtain ⟨b, rfl⟩ := hf b,
-  replace hab : is_unit (f (a + b)), from by simpa only [map_add] using hab,
+  rw ←map_add at hab,
   exact (is_unit_or_is_unit_of_is_unit_add $ is_local_ring_hom.map_nonunit _ hab).imp
     f.is_unit_map f.is_unit_map
+end
+
+/-- If `f : R →+* S` is a surjective local ring hom, then the induced units map is surjective. -/
+lemma surjective_units_map_of_local_ring_hom [comm_ring R] [comm_ring S]
+  (f : R →+* S) (hf : function.surjective f) (h : is_local_ring_hom f) :
+  function.surjective (units.map $ f.to_monoid_hom) :=
+begin
+  intro a,
+  obtain ⟨b,hb⟩ := hf (a : S),
+  use (is_unit_of_map_unit f _ (by { rw hb, exact units.is_unit _})).unit, ext, exact hb,
 end
 
 section
@@ -343,7 +353,17 @@ end residue_field
 
 lemma ker_eq_maximal_ideal [field K] (φ : R →+* K) (hφ : function.surjective φ) :
   φ.ker = maximal_ideal R :=
-local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
+local_ring.eq_maximal_ideal $ (ring_hom.ker_is_maximal_of_surjective φ) hφ
+
+lemma is_local_ring_hom_residue :
+  is_local_ring_hom (local_ring.residue R) :=
+begin
+  constructor,
+  intros a ha,
+  by_contra,
+  erw ideal.quotient.eq_zero_iff_mem.mpr ((local_ring.mem_maximal_ideal _).mpr h) at ha,
+  exact ha.ne_zero rfl,
+end
 
 end
 

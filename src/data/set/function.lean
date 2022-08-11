@@ -48,6 +48,14 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 
 @[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : s.restrict f x = f x := rfl
 
+lemma restrict_eq_iff {f : Π a, π a} {s : set α} {g : Π a : s, π a} :
+  restrict s f = g ↔ ∀ a (ha : a ∈ s), f a = g ⟨a, ha⟩ :=
+funext_iff.trans subtype.forall
+
+lemma eq_restrict_iff {s : set α} {f : Π a : s, π a} {g : Π a, π a} :
+  f = restrict s g ↔ ∀ a (ha : a ∈ s), f ⟨a, ha⟩ = g a :=
+funext_iff.trans subtype.forall
+
 @[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (s.restrict f) = f '' s :=
 (range_comp _ _).trans $ congr_arg (('') f) subtype.range_coe
 
@@ -106,24 +114,24 @@ end
 
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/
-def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
+def cod_restrict (f : ι → α) (s : set α) (h : ∀ x, f x ∈ s) : ι → s :=
 λ x, ⟨f x, h x⟩
 
-@[simp] lemma coe_cod_restrict_apply (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) (x : α) :
-  (cod_restrict f s h x : β) = f x :=
+@[simp] lemma coe_cod_restrict_apply (f : ι → α) (s : set α) (h : ∀ x, f x ∈ s) (x : ι) :
+  (cod_restrict f s h x : α) = f x :=
 rfl
 
-@[simp] lemma restrict_comp_cod_restrict {f : α → β} {g : β → γ} {b : set β}
+@[simp] lemma restrict_comp_cod_restrict {f : ι → α} {g : α → β} {b : set α}
   (h : ∀ x, f x ∈ b) : (b.restrict g) ∘ (b.cod_restrict f h) = g ∘ f := rfl
+
+@[simp] lemma injective_cod_restrict {f : ι → α} {s : set α} (h : ∀ x, f x ∈ s) :
+  injective (cod_restrict f s h) ↔ injective f :=
+by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
+
+alias injective_cod_restrict ↔ _ _root_.function.injective.cod_restrict
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g g₁ g₂ : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
-
-@[simp] lemma injective_cod_restrict (h : ∀ x, f x ∈ t) :
-  injective (cod_restrict f t h) ↔ injective f :=
-by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
-
-alias injective_cod_restrict ↔ _ function.injective.cod_restrict
 
 /-! ### Equality on a set -/
 
@@ -133,6 +141,9 @@ def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
+
+@[simp] lemma restrict_eq_restrict_iff : restrict s f₁ = restrict s f₂ ↔ eq_on f₁ f₂ s :=
+restrict_eq_iff
 
 @[symm] lemma eq_on.symm (h : eq_on f₁ f₂ s) : eq_on f₂ f₁ s :=
 λ x hx, (h hx).symm
@@ -220,6 +231,20 @@ lemma _root_.strict_mono_on.mono (h : strict_mono_on f s) (h' : s₂ ⊆ s) : st
 lemma _root_.strict_anti_on.mono (h : strict_anti_on f s) (h' : s₂ ⊆ s) : strict_anti_on f s₂ :=
 λ x hx y hy, h (h' hx) (h' hy)
 
+protected lemma _root_.monotone_on.monotone (h : monotone_on f s) : monotone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.antitone_on.monotone (h : antitone_on f s) : antitone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.strict_mono_on.strict_mono (h : strict_mono_on f s) :
+  strict_mono (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
+
+protected lemma _root_.strict_anti_on.strict_anti (h : strict_anti_on f s) :
+  strict_anti (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
+
 end mono
 
 /-! ### maps to -/
@@ -235,6 +260,13 @@ subtype.map f h
 
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl
+
+lemma maps_to.coe_restrict (h : set.maps_to f s t) :
+  coe ∘ h.restrict f s t = s.restrict f := rfl
+
+lemma maps_to.range_restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
+  range (h.restrict f s t) = coe ⁻¹' (f '' s) :=
+set.range_subtype_map f h
 
 lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x : s, f x = g x :=
 ⟨λ h, ⟨h.restrict f s t, λ _, rfl⟩,
@@ -342,6 +374,26 @@ theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
 theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x ∈ t ↔ x ∈ s :=
 ⟨λ ht, by_contra $ λ hs, hc hs ht, λ hx, h hx⟩
 
+/-! ### Restriction onto preimage -/
+
+section
+
+variables (t f)
+
+/-- The restriction of a function onto the preimage of a set. -/
+@[simps] def restrict_preimage : f ⁻¹' t → t :=
+(set.maps_to_preimage f t).restrict _ _ _
+
+lemma range_restrict_preimage :
+  range (t.restrict_preimage f) = coe ⁻¹' (range f) :=
+begin
+  delta set.restrict_preimage,
+  rw [maps_to.range_restrict, set.image_preimage_eq_inter_range,
+    set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
+end
+
+end
+
 /-! ### Injectivity on a set -/
 
 /-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/
@@ -394,7 +446,7 @@ lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 lemma inj_on_of_injective (h : injective f) (s : set α) : inj_on f s :=
 λ x hx y hy hxy, h hxy
 
-alias inj_on_of_injective ← function.injective.inj_on
+alias inj_on_of_injective ← _root_.function.injective.inj_on
 
 theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
@@ -404,7 +456,12 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
-alias inj_on_iff_injective ↔ set.inj_on.injective _
+alias inj_on_iff_injective ↔ inj_on.injective _
+
+lemma exists_inj_on_iff_injective [nonempty β] :
+  (∃ f : α → β, inj_on f s) ↔ ∃ f : s → β, injective f :=
+⟨λ ⟨f, hf⟩, ⟨_, hf.injective⟩,
+  λ ⟨f, hf⟩, by { lift f to α → β using trivial, exact ⟨f, inj_on_iff_injective.2 hf⟩ }⟩
 
 lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ 𝒫 (range f)) :
   inj_on (preimage f) B :=

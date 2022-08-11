@@ -38,7 +38,7 @@ open_locale pointwise convex
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
 convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
 
-alias real.convex_iff_is_preconnected ↔ convex.is_preconnected is_preconnected.convex
+alias real.convex_iff_is_preconnected ↔ _ is_preconnected.convex
 
 /-! ### Standard simplex -/
 
@@ -245,7 +245,7 @@ variables [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- Convex hull of a finite set is compact. -/
-lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :
+lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
   is_compact (convex_hull ℝ s) :=
 begin
   rw [hs.convex_hull_eq_image],
@@ -255,7 +255,7 @@ begin
 end
 
 /-- Convex hull of a finite set is closed. -/
-lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) :
+lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : s.finite) :
   is_closed (convex_hull ℝ s) :=
 hs.compact_convex_hull.is_closed
 
@@ -297,6 +297,7 @@ lemma convex.subset_interior_image_homothety_of_one_lt {s : set E} (hs : convex 
   s ⊆ interior (homothety x t '' s) :=
 subset_closure.trans $ hs.closure_subset_interior_image_homothety_of_one_lt hx t ht
 
+/-- A nonempty convex set is path connected. -/
 protected lemma convex.is_path_connected {s : set E} (hconv : convex ℝ s) (hne : s.nonempty) :
   is_path_connected s :=
 begin
@@ -307,6 +308,16 @@ begin
   exact joined_in.of_line affine_map.line_map_continuous.continuous_on (line_map_apply_zero _ _)
     (line_map_apply_one _ _) H
 end
+
+/-- A nonempty convex set is connected. -/
+protected lemma convex.is_connected {s : set E} (h : convex ℝ s) (hne : s.nonempty) :
+  is_connected s :=
+(h.is_path_connected hne).is_connected
+
+/-- A convex set is preconnected. -/
+protected lemma convex.is_preconnected {s : set E} (h : convex ℝ s) : is_preconnected s :=
+s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ is_preconnected_empty)
+  (λ hne, (h.is_connected hne).is_preconnected)
 
 /--
 Every topological vector space over ℝ is path connected.
@@ -321,7 +332,7 @@ end has_continuous_smul
 /-! ### Normed vector space -/
 
 section normed_space
-variables [semi_normed_group E] [normed_space ℝ E] {s t : set E}
+variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 
 /-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/

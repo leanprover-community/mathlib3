@@ -282,7 +282,7 @@ lemma lt_iff_exists_real_btwn {a b : ereal} :
  λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
 /-- The set of numbers in `ereal` that are not equal to `±∞` is equivalent to `ℝ`. -/
-def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
+def ne_top_bot_equiv_real : ({⊥, ⊤}ᶜ : set ereal) ≃ ℝ :=
 { to_fun := λ x, ereal.to_real x,
   inv_fun := λ x, ⟨x, by simp⟩,
   left_inv := λ ⟨x, hx⟩, subtype.eq $ begin

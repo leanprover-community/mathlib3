@@ -48,7 +48,7 @@ Ideally this would conveniently interact with both `Mat_` and `matrix`.
 -/
 
 open category_theory category_theory.preadditive
-open_locale big_operators
+open_locale big_operators classical
 noncomputable theory
 
 namespace category_theory
@@ -59,20 +59,19 @@ variables (C : Type u₁) [category.{v₁} C] [preadditive C]
 /--
 An object in `Mat_ C` is a finite tuple of objects in `C`.
 -/
-structure Mat_ : Type (max (v₁+1) u₁) :=
-(ι : Type v₁)
+structure Mat_ :=
+(ι : Type)
 [F : fintype ι]
-[D : decidable_eq ι]
 (X : ι → C)
 
-attribute [instance] Mat_.F Mat_.D
+attribute [instance] Mat_.F
 
 namespace Mat_
 
 variables {C}
 
 /-- A morphism in `Mat_ C` is a dependently typed matrix of morphisms. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def hom (M N : Mat_ C) : Type v₁ := dmatrix M.ι N.ι (λ i j, M.X i ⟶ N.X j)
 
 namespace hom
@@ -145,7 +144,7 @@ even though the construction we give uses a sigma type.
 See however `iso_biproduct_embedding`.
 -/
 instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
-{ has_biproducts_of_shape := λ J 𝒟 ℱ, by exactI
+{ has_biproducts_of_shape := λ J 𝒟, by exactI
   { has_biproduct := λ f,
     has_biproduct_of_total
     { X := ⟨Σ j : J, (f j).ι, λ p, (f p.1).X p.2⟩,
@@ -210,7 +209,7 @@ end Mat_
 namespace functor
 variables {C} {D : Type*} [category.{v₁} D] [preadditive D]
 
-local attribute [simp] Mat_.id_apply
+local attribute [simp] Mat_.id_apply eq_to_hom_map
 
 /--
 A functor induces a functor of matrix categories.
@@ -407,9 +406,7 @@ nat_iso.of_components
   congr,
   ext j k ⟨⟩,
   dsimp, simp,
-  convert α.hom.naturality (f j k),
-  erw [biproduct.matrix_π],
-  simp,
+  exact α.hom.naturality (f j k),
 end).
 
 -- TODO is there some uniqueness statement for the natural isomorphism in `lift_unique`?
@@ -506,7 +503,7 @@ instance (M N : Mat R) : inhabited (M ⟶ N) := ⟨λ (i : M) (j : N), (0 : R)�
 
 end
 
-variables (R : Type u) [ring R]
+variables (R : Type) [ring R]
 
 open opposite
 

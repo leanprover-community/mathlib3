@@ -18,6 +18,8 @@ namespace omega
 @[derive inhabited]
 def term : Type := int × list int
 
+meta instance : has_reflect term := prod.has_reflect _ _
+
 namespace term
 
 /-- Evaluate a term using the valuation v. -/

@@ -3,7 +3,6 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import tactic.fix_reflect_string
 
 /-!
 # Documentation commands
@@ -33,10 +32,11 @@ information.
 def string.hash (s : string) : ℕ :=
 s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 
-/-- `mk_hashed_name nspace id` hashes the string `id` to a value `i` and returns the name
-`nspace._i` -/
-meta def string.mk_hashed_name (nspace : name) (id : string) : name :=
-nspace <.> ("_" ++ to_string id.hash)
+/-- Get the last component of a name, and convert it to a string. -/
+meta def name.last : name → string
+| (name.mk_string s _)  := s
+| (name.mk_numeral n _) := repr n
+| anonymous             := "[anonymous]"
 
 open tactic
 
@@ -77,16 +77,17 @@ output. -/
 Example: ``mk_reflected_definition `foo 17`` constructs the definition
 declaration corresponding to `def foo : ℕ := 17`
 -/
-meta def mk_reflected_definition (decl_name : name) {type} [reflected type]
-  (body : type) [reflected body] : declaration :=
+meta def mk_reflected_definition (decl_name : name) {type} [reflected _ type]
+  (body : type) [reflected _ body] : declaration :=
 mk_definition decl_name (reflect type).collect_univ_params (reflect type) (reflect body)
 
 /-- If `note_name` and `note` are `pexpr`s representing strings,
 `add_library_note note_name note` adds a declaration of type `string × string` and tags it with
 the `library_note` attribute. -/
 meta def tactic.add_library_note (note_name note : string) : tactic unit :=
-do let decl_name := note_name.mk_hashed_name `library_note,
-   add_decl $ mk_reflected_definition decl_name (note_name, note),
+do let decl_name := `library_note <.> note_name,
+   add_decl $ mk_reflected_definition decl_name (),
+   add_doc_string decl_name note,
    library_note_attr.set decl_name () tt none
 
 open tactic
@@ -111,7 +112,7 @@ add_library_note note_name doc_string
 Returns a list of pairs `(note_id, note_content)` -/
 meta def tactic.get_library_notes : tactic (list (string × string)) :=
 attribute.get_instances `library_note >>=
-  list.mmap (λ dcl, mk_const dcl >>= eval_expr (string × string))
+  list.mmap (λ dcl, prod.mk dcl.last <$> doc_string dcl)
 
 /-! ### The `add_tactic_doc_entry` command -/
 
@@ -136,42 +137,20 @@ structure tactic_doc_entry :=
 (category : doc_category)
 (decl_names : list _root_.name)
 (tags : list string := [])
-(description : string := "")
 (inherit_description_from : option _root_.name := none)
 
 /-- Turns a `tactic_doc_entry` into a JSON representation. -/
-meta def tactic_doc_entry.to_json (d : tactic_doc_entry) : json :=
+meta def tactic_doc_entry.to_json (d : tactic_doc_entry) (desc : string) : json :=
 json.object [
   ("name", d.name),
   ("category", d.category.to_string),
   ("decl_names", d.decl_names.map (json.of_string ∘ to_string)),
   ("tags", d.tags.map json.of_string),
-  ("description", d.description)
+  ("description", desc)
 ]
 
-meta instance : has_to_string tactic_doc_entry :=
-⟨json.unparse ∘ tactic_doc_entry.to_json⟩
-
-/-- `update_description_from tde inh_id` replaces the `description` field of `tde` with the
-    doc string of the declaration named `inh_id`. -/
-meta def tactic_doc_entry.update_description_from (tde : tactic_doc_entry) (inh_id : name) :
-  tactic tactic_doc_entry :=
-do ds ← doc_string inh_id <|> fail (to_string inh_id ++ " has no doc string"),
-   return { description := ds .. tde }
-
-/--
-`update_description tde` replaces the `description` field of `tde` with:
-
-* the doc string of `tde.inherit_description_from`, if this field has a value
-* the doc string of the entry in `tde.decl_names`, if this field has length 1
-
-If neither of these conditions are met, it returns `tde`. -/
-meta def tactic_doc_entry.update_description (tde : tactic_doc_entry) : tactic tactic_doc_entry :=
-match tde.inherit_description_from, tde.decl_names with
-| some inh_id, _ := tde.update_description_from inh_id
-| none, [inh_id] := tde.update_description_from inh_id
-| none, _ := return tde
-end
+meta instance tactic_doc_entry.has_to_string : has_to_string (tactic_doc_entry × string) :=
+⟨λ ⟨doc, desc⟩, json.unparse (doc.to_json desc)⟩
 
 /-- A user attribute `tactic_doc` for tagging decls of type `tactic_doc_entry`
 for use in doc output -/
@@ -181,26 +160,31 @@ for use in doc output -/
   parser := failed }
 
 /-- Collects everything in the environment tagged with the attribute `tactic_doc`. -/
-meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
+meta def tactic.get_tactic_doc_entries : tactic (list (tactic_doc_entry × string)) :=
 attribute.get_instances `tactic_doc >>=
-  list.mmap (λ dcl, mk_const dcl >>= eval_expr tactic_doc_entry)
+  list.mmap (λ dcl, prod.mk <$> (mk_const dcl >>= eval_expr tactic_doc_entry) <*> doc_string dcl)
 
 /-- `add_tactic_doc tde` adds a declaration to the environment
 with `tde` as its body and tags it with the `tactic_doc`
 attribute. If `tde.decl_names` has exactly one entry `` `decl`` and
 if `tde.description` is the empty string, `add_tactic_doc` uses the doc
 string of `decl` as the description. -/
-meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
-do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
-     fail "A tactic doc entry must either:
+meta def tactic.add_tactic_doc (tde : tactic_doc_entry) (doc : option string) : tactic unit :=
+do desc ← doc <|> (do
+    inh_id ← match tde.inherit_description_from, tde.decl_names with
+    | some inh_id, _ := pure inh_id
+    | none, [inh_id] := pure inh_id
+    | none, _ := fail "A tactic doc entry must either:
  1. have a description written as a doc-string for the `add_tactic_doc` invocation, or
  2. have a single declaration in the `decl_names` field, to inherit a description from, or
  3. explicitly indicate the declaration to inherit the description from using
-    `inherit_description_from`.",
-   tde ← if tde.description = "" then tde.update_description else return tde,
-   let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
-   add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
-   tactic_doc_entry_attr.set decl_name () tt none
+    `inherit_description_from`."
+    end,
+    doc_string inh_id <|> fail (to_string inh_id ++ " has no doc string")),
+  let decl_name := `tactic_doc <.> tde.category.to_string <.> tde.name,
+  add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
+  add_doc_string decl_name desc,
+  tactic_doc_entry_attr.set decl_name () tt none
 
 /--
 A command used to add documentation for a tactic, command, hole command, or attribute.
@@ -247,11 +231,7 @@ messages.
   (_ : parse $ tk "add_tactic_doc") : parser unit := do
 pe ← parser.pexpr,
 e ← eval_pexpr tactic_doc_entry pe,
-let e : tactic_doc_entry := match mi.doc_string with
-  | some desc := { description := desc, ..e }
-  | none := e
-  end,
-tactic.add_tactic_doc e .
+tactic.add_tactic_doc e mi.doc_string .
 
 /--
 At various places in mathlib, we leave implementation notes that are referenced from many other

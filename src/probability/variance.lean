@@ -33,7 +33,7 @@ namespace probability_theory
 /-- The variance of a random variable is `𝔼[X^2] - 𝔼[X]^2` or, equivalently, `𝔼[(X - 𝔼[X])^2]`. We
 use the latter as the definition, to ensure better behavior even in garbage situations. -/
 def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ :=
-μ[(f - (λ x, μ[f])) ^ 2]
+μ[(f - (λ ω, μ[f])) ^ 2]
 
 @[simp] lemma variance_zero {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
   variance 0 μ = 0 :=
@@ -41,12 +41,12 @@ by simp [variance]
 
 lemma variance_nonneg {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :
   0 ≤ variance f μ :=
-integral_nonneg (λ x, sq_nonneg _)
+integral_nonneg (λ ω, sq_nonneg _)
 
 lemma variance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
-  variance (λ x, c * f x) μ = c^2 * variance f μ :=
+  variance (λ ω, c * f ω) μ = c^2 * variance f μ :=
 calc
-variance (λ x, c * f x) μ
+variance (λ ω, c * f ω) μ
     = ∫ x, (c * f x - ∫ y, c * f y ∂μ) ^ 2 ∂μ : rfl
 ... = ∫ x, (c * (f x - ∫ y, f y ∂μ)) ^ 2 ∂μ :
   by { congr' 1 with x, simp_rw [integral_mul_left, mul_sub] }
@@ -100,9 +100,9 @@ begin
   { rw [variance, integral_undef],
     { exact integral_nonneg (λ a, sq_nonneg _) },
     { assume h,
-      have A : mem_ℒp (X - λ (x : Ω), 𝔼[X]) 2 ℙ := (mem_ℒp_two_iff_integrable_sq
+      have A : mem_ℒp (X - λ (ω : Ω), 𝔼[X]) 2 ℙ := (mem_ℒp_two_iff_integrable_sq
         (h_int.ae_strongly_measurable.sub ae_strongly_measurable_const)).2 h,
-      have B : mem_ℒp (λ (x : Ω), 𝔼[X]) 2 ℙ := mem_ℒp_const _,
+      have B : mem_ℒp (λ (ω : Ω), 𝔼[X]) 2 ℙ := mem_ℒp_const _,
       apply hX,
       convert A.add B,
       simp } }

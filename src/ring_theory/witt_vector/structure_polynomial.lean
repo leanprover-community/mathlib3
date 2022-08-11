@@ -345,12 +345,12 @@ lemma constant_coeff_witt_structure_rat_zero (Φ : mv_polynomial idx ℚ) :
   constant_coeff (witt_structure_rat p Φ 0) = constant_coeff Φ :=
 by simp only [witt_structure_rat, bind₁, map_aeval, X_in_terms_of_W_zero, constant_coeff_rename,
   constant_coeff_witt_polynomial, aeval_X, constant_coeff_comp_algebra_map,
-  eval₂_hom_zero', ring_hom.id_apply]
+  eval₂_hom_zero'_apply, ring_hom.id_apply]
 
 lemma constant_coeff_witt_structure_rat (Φ : mv_polynomial idx ℚ)
   (h : constant_coeff Φ = 0) (n : ℕ) :
   constant_coeff (witt_structure_rat p Φ n) = 0 :=
-by simp only [witt_structure_rat, eval₂_hom_zero', h, bind₁, map_aeval, constant_coeff_rename,
+by simp only [witt_structure_rat, eval₂_hom_zero'_apply, h, bind₁, map_aeval, constant_coeff_rename,
   constant_coeff_witt_polynomial, constant_coeff_comp_algebra_map, ring_hom.id_apply,
   constant_coeff_X_in_terms_of_W]
 

@@ -205,7 +205,6 @@ include hζ
 lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
-  haveI : is_domain L := ⟨by simp, 1, 0, one_ne_zero⟩,
   haveI := is_cyclotomic_extension.ne_zero' n K L,
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,

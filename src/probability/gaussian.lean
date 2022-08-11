@@ -465,7 +465,93 @@ begin
   exact h_no_smul_eq,
 end
 
+lemma simp_inv (a b : ℝ) (hb : b ≠ 0): a = a * b * b⁻¹ :=
+begin
+  have h_mulassoc : a * b * b⁻¹ = a * (b * b⁻¹) := mul_assoc a b b⁻¹,
+  rw h_mulassoc,
+  simp [hb],
+end
 
+lemma twos_neq_zero (hs : s ≠ 0) : sqrt (2 * s^2) ≠ 0 :=
+begin
+  have h_conpos : ∀ (x:ℝ), x ≥ 0 → x ≠ 0 → sqrt x ≠ 0 ,
+    intros x hx h,
+    exact mt (pos_sqrt_zero_eq_zero x hx) h,
+
+  apply h_conpos,
+  simp,
+  exact sq_nonneg s,
+  simp,
+  exact hs,
+end
+
+lemma simplify_sqrt_and_square (hs : s≠0) : ∀ (x:ℝ),
+exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) =
+exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2):=
+begin
+  intro x,
+  simp,
+  have h_squarenn : 0 ≤ s^2 := sq_nonneg s,
+
+  have h1 : sqrt (s ^ 2) ^ 2 = s ^ 2,
+    {simp [h_squarenn]},
+
+  have h2 : ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹ * (x - m)) ^ 2 =
+  ((sqrt (s ^ 2))⁻¹ ^ 2) * ((sqrt 2)⁻¹ ^ 2) * (x - m) ^ 2,
+    { ring_nf},
+
+  rw h2,
+
+  have h_eliminate_sqrt_s: (sqrt (s ^ 2))⁻¹ ^ 2 = (s^2)⁻¹,
+    {
+      simp [h1],
+    }
+  sorry,
+
+end
+
+lemma simplify_complicated1 (hs : s≠0): ∀ (x:ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x
+= (sqrt (2 * s ^ 2))⁻¹ * (exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2) * (sqrt (2 * s ^ 2) * ((sqrt (2 * s ^ 2))⁻¹ * (x - m)) + m)) :=
+begin
+  intro x,
+  simp,
+  sorry,
+
+end
+---lemma set_eq (hs : s≠0): set.univ = λ (x:ℝ), ((sqrt (2 * s ^ 2))⁻¹) * (x-m):=
+lemma change_of_vr_momentone_gaussian (hs: s≠0):
+∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x
+ = ∫ (x : ℝ), ((sqrt (2 * s ^ 2))* x + m) * exp (- x ^ 2) :=
+begin
+  let g : ℝ → ℝ := λ (x:ℝ), exp (- x ^ 2) * ((sqrt (2 * s ^ 2))*x + m),
+  let f : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * s ^ 2))⁻¹ * (x-m),
+
+  have h_set_eq : set.univ = f '' set.univ,
+    {ext e,
+    split,
+    {intro h1,
+    use (sqrt (2 * s ^ 2))*e+m,
+    split,
+    {simp},
+    {simp_rw [f],
+    ---simp,
+    ring_nf,
+    rw ← simp_inv e (sqrt (2 * s ^ 2)) (twos_neq_zero hs),
+    },
+    },
+    {intro h2,
+    simp}},
+  simp,
+  have h_integ_eq_form1 : ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x
+   = ∫ (x : ℝ) in set.univ, (sqrt (2 * s ^ 2))⁻¹ * g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)),
+    {
+      simp_rw [g],
+      simp,
+      sorry
+    },
+  sorry
+
+end
 
 --lemma eqform_of_gauden_to_nnreal_mea : measurable
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
@@ -481,9 +567,10 @@ begin
     unfold gaussian_density,
     unfold gaussian_density_to_nnreal,
     simp},
-  rw h_lambdaform,---
+  rw h_lambdaform,
   rw integral_with_density_eq_integral_smul eqform_of_gauden_mea id,
   unfold gaussian_density_to_nnreal,
+  /-
   ---simp [gaussian_density_ennreal, hs],
   have h_cancel_one_bracket : ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((2 * s ^ 2)⁻¹ * (a - m) ^ 2)))).to_nnreal • a
   = ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2))).to_nnreal • a,
@@ -498,17 +585,38 @@ begin
 
 
     },
+-/
 
-  ---simp only [with_density_apply, measurable_set.univ, ],
+  ---simp [gaussian_density_ennreal, hs],
+  have h_eliminate_ennreal_nnreal :
+  ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2))).to_nnreal • a
+  = ∫ (a : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2) • a,
+  {
+    simp_rw [← not_that_simple_thing hs],
 
-  ---have h_integsign : ∫ (a : ℝ), ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))
+  },
+  simp_rw [id],
 
-  ---simpa using lintegral_with_density_eq_lintegral_mul₀ _ _ _,
-sorry
+  rw h_eliminate_ennreal_nnreal,
+  --dsimp at *,
 
+  let f : ℝ → ℝ := λ (a : ℝ), exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2) • a,
+  have h_changeform : ∫ (a : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2) • a =
+  ∫ (a : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * f a,
+  {
+    simp_rw[f]
+  },
+  rw h_changeform,
+  rw ← comm_in_integ f (sqrt (2 * π * s ^ 2))⁻¹,
+  rw change_onemul_to_smul f,
+  have h_integral_smul_const_special : ∫ (x : ℝ), f x • (sqrt (2 * π * s ^ 2))⁻¹ ∂ℙ
+    = (∫ (x : ℝ), f x ∂ℙ) • (sqrt (2 * π * s ^ 2))⁻¹,
+      {
+        exact integral_smul_const f (sqrt (2 * π * s ^ 2))⁻¹,
+      },
+  rw h_integral_smul_const_special,
+  simp_rw[f],
 
-  /-unfold gaussian_density,
-  -/
 
 
 end
@@ -568,6 +676,7 @@ begin
     ext x,
     simp,
   rw h_zeroeqno at hf,
+
   sorry,
 
 

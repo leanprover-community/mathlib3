@@ -33,11 +33,9 @@ variables [linear_order α]
 
 /--  The partial order on `finsupp`s obtained by the lexicographic ordering.
 `finsupp.lex` is the proof that this partial order is in fact linear. -/
-def lex.partial_order [partial_order N] : partial_order (lex (α →₀ N)) :=
+instance lex.partial_order [partial_order N] : partial_order (lex (α →₀ N)) :=
 partial_order.lift _ (@id (function.injective (_ : lex (α →₀ N) → lex (α → N)))
   finsupp.coe_fn_injective)
-
-local attribute [instance] lex.partial_order
 
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
 noncomputable def lex [linear_order N] :

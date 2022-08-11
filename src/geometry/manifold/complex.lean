@@ -47,13 +47,15 @@ variables {F : Type*} [normed_add_comm_group F] [normed_space ℂ F] [strict_con
 variables {M : Type*} [topological_space M] [charted_space E M]
   [smooth_manifold_with_corners 𝓘(ℂ, E) M]
 
-/-- A holomorphic function on a complex manifold is constant on every compact, preconnected, clopen
-subset. -/
-lemma apply_eq_of_is_compact {s : set M} (hs₁ : is_compact s) (hs₂ : is_preconnected s)
-  (hs₃ : is_clopen s)
-  {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) {a b : M} (ha : a ∈ s) (hb : b ∈ s) :
-  f a = f b :=
+/-- A holomorphic function on a compact complex manifold is locally constant. -/
+protected lemma is_locally_constant [compact_space M]
+  {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
+  is_locally_constant f :=
 begin
+  haveI : locally_connected_space M := charted_space.locally_connected_space E M,
+  apply is_locally_constant.of_constant_on_preconnected_clopens,
+  intros s hs₂ hs₃ a ha b hb,
+  have hs₁ : is_compact s := hs₃.2.is_compact,
   -- for an empty set this fact is trivial
   rcases s.eq_empty_or_nonempty with rfl | hs',
   { exact false.rec _ ha },
@@ -61,7 +63,7 @@ begin
   obtain ⟨p₀, hp₀s, hp₀⟩ := hs₁.exists_forall_ge hs' hf.continuous.norm.continuous_on,
   -- we will show `f` agrees everywhere with `f p₀`
   suffices : s ⊆ {r : M | f r = f p₀} ∩ s,
-  { exact (this ha).1.trans (this hb).1.symm }, clear ha hb a b,
+  { exact (this hb).1.trans (this ha).1.symm }, clear ha hb a b,
   refine hs₂.subset_clopen _ ⟨p₀, hp₀s, ⟨rfl, hp₀s⟩⟩,
   -- closedness of the set of points sent to `f p₀`
   refine ⟨_, (is_closed_singleton.preimage hf.continuous).inter hs₃.2⟩,
@@ -98,33 +100,17 @@ begin
   simpa [local_homeomorph.left_inv _ hq', hp, -norm_eq_abs] using hUf (chart_at E p q) hq,
 end
 
-/-- A holomorphic function on a compact complex manifold is locally constant. -/
-protected lemma is_locally_constant [compact_space M]
-  {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
-  is_locally_constant f :=
-begin
-  haveI : locally_connected_space M := charted_space.locally_connected_space E M,
-  apply is_locally_constant.of_constant_on_preconnected_clopens,
-  intros s hs hs' x hx y hy,
-  exact hf.apply_eq_of_is_compact hs'.2.is_compact hs hs' hy hx,
-end
-
 /-- A holomorphic function on a compact connected complex manifold is constant. -/
 lemma apply_eq_of_compact_space [compact_space M] [preconnected_space M]
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) (a b : M) :
   f a = f b :=
-hf.apply_eq_of_is_compact compact_univ is_preconnected_univ is_clopen_univ (set.mem_univ _)
-  (set.mem_univ _)
+hf.is_locally_constant.apply_eq_of_preconnected_space _ _
 
 /-- A holomorphic function on a compact connected complex manifold is the constant function `f ≡ v`,
 for some value `v`. -/
 lemma exists_eq_const_of_compact_space [compact_space M] [preconnected_space M]
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
   ∃ v : F, f = function.const M v :=
-begin
-  casesI is_empty_or_nonempty M,
-  { exact ⟨0, funext $ λ a, h.elim a⟩ },
-  { inhabit M, exact ⟨f default, funext $ λ a, hf.apply_eq_of_compact_space a default⟩ },
-end
+hf.is_locally_constant.exists_eq_const
 
 end mdifferentiable

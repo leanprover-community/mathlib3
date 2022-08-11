@@ -144,8 +144,8 @@ end
 If `N` is a f.g. `R`-submodule of `M`, and `I` is an ideal of `R` contained in its jacobson radical,
 then `N/IN` is principal as an `R/I`-module implies that `N` is a principal `
 -/
-lemma submodule.is_principal_of_quotient_smul_is_principal (I : ideal R)
-  (hI : I ≤ (⊥ : ideal R).jacobson) (N : submodule R M) (hN : N.fg)
+lemma submodule.is_principal_of_quotient_smul_is_principal {M : Type*} [add_comm_monoid M]
+  [module R M] (I : ideal R) (hI : I ≤ (⊥ : ideal R).jacobson) (N : submodule R M) (hN : N.fg)
     [h : (⊤ : submodule (R ⧸ I) (N ⧸ I • (⊤ : submodule R N))).is_principal] :
     N.is_principal :=
 begin

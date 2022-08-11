@@ -290,28 +290,6 @@ lemma is_principal_ideal_ring.of_surjective [is_principal_ideal_ring R]
   is_principal_ideal_ring S :=
 ⟨λ I, ideal.is_principal.of_comap f hf I⟩
 
-instance submodule.is_principal.map (M' : submodule R M) (f : M →ₗ[R] N) [M'.is_principal] :
-    (M'.map f).is_principal :=
-begin
-  refine ⟨⟨f M'^.is_principal.generator, _⟩⟩,
-  conv_lhs { rw ← M'^.is_principal.span_singleton_generator },
-  rw [submodule.map_span, set.image_singleton],
-end
-
-lemma submodule.is_principal.map_iff (M' : submodule R M) (f : M →ₗ[R] N)
-  (hf : function.injective f) :
-   (M'.map f).is_principal ↔ M'.is_principal :=
-begin
-  symmetry,
-  split,
-  { exact λ _, by exactI infer_instance },
-  { introI,
-    obtain ⟨g, hg, e⟩ := (M'.map f)^.is_principal.generator_mem,
-  refine ⟨⟨g, _⟩⟩,
-  rw [← (submodule.map_injective_of_injective hf).eq_iff, submodule.map_span, set.image_singleton,
-    e, submodule.is_principal.span_singleton_generator] }
-end
-
 end surjective
 
 section

@@ -678,7 +678,7 @@ variables [monoid M] [group A] [mul_distrib_mul_action M A]
 (mul_distrib_mul_action.to_monoid_hom A r).map_inv x
 
 theorem smul_div' (r : M) (x y : A) : r • (x / y) = (r • x) / (r • y) :=
-map_div₀ (mul_distrib_mul_action.to_monoid_hom A r) x y
+map_div (mul_distrib_mul_action.to_monoid_hom A r) x y
 
 end
 

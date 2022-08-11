@@ -603,8 +603,6 @@ begin
 simp_rw[← smul_eq_mul],
 end
 
-lemma use_simp_break_bracket :
-
 
 --lemma eqform_of_gauden_to_nnreal_mea : measurable
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
@@ -654,7 +652,7 @@ begin
       },
   rw h_integral_smul_const_special,
   simp_rw[f],
-  rw change_of_vr_momentone_gaussian hs,
+  /-rw change_of_vr_momentone_gaussian hs,
   rw h_depart,
 
   -- move the constant of the first integral out
@@ -703,7 +701,7 @@ begin
   rw ez_change_form,
   rw integral_gaussian 1,
   simp,
-
+-/
 
 sorry
 

@@ -46,16 +46,16 @@ class quasi_separated_space (α : Type*) [topological_space α] : Prop :=
 (inter_is_compact : ∀ (U V : set α),
   is_open U → is_compact U → is_open V → is_compact V → is_compact (U ∩ V))
 
-lemma is_quasi_separated_univ_iff (α : Type*) [topological_space α] :
+lemma is_quasi_separated_univ_iff {α : Type*} [topological_space α] :
   is_quasi_separated (set.univ : set α) ↔ quasi_separated_space α :=
 begin
   rw quasi_separated_space_iff,
   simp [is_quasi_separated],
 end
 
-lemma is_quasi_separated_univ (α : Type*) [topological_space α] [quasi_separated_space α] :
+lemma is_quasi_separated_univ {α : Type*} [topological_space α] [quasi_separated_space α] :
   is_quasi_separated (set.univ : set α) :=
-(is_quasi_separated_univ_iff α).mpr infer_instance
+is_quasi_separated_univ_iff.mpr infer_instance
 
 lemma is_quasi_separated.image_of_embedding {s : set α}
   (H : is_quasi_separated s) (h : embedding f) : is_quasi_separated (f '' s) :=
@@ -114,9 +114,9 @@ instance noetherian_space.to_quasi_separated_space [noetherian_space α] :
 
 lemma is_quasi_separated.of_quasi_separated_space (s : set α) [quasi_separated_space α] :
   is_quasi_separated s :=
-(is_quasi_separated_univ α).of_subset (set.subset_univ _)
+is_quasi_separated_univ.of_subset (set.subset_univ _)
 
 lemma quasi_separated_space.of_open_embedding (h : open_embedding f) [quasi_separated_space β] :
   quasi_separated_space α :=
-(is_quasi_separated_univ_iff α).mp
+is_quasi_separated_univ_iff.mp
   (h.is_quasi_separated_iff.mpr $ is_quasi_separated.of_quasi_separated_space _)

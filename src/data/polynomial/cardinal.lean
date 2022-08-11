@@ -25,7 +25,7 @@ namespace polynomial
 lemma cardinal_mk_le_max {R : Type u} [semiring R] : #R[X] ≤ max (#R) ℵ₀ :=
 begin
   casesI subsingleton_or_nontrivial R,
-  { exact (@mk_eq_one _ polynomial.unique).trans_le (le_max_of_le_right one_le_aleph_0) },
+  { exact (mk_eq_one _).trans_le (le_max_of_le_right one_le_aleph_0) },
   { exact cardinal_mk_eq_max.le },
 end
 

@@ -71,6 +71,29 @@ lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) (hk : k ≤ n) :
   (derivative^[k] (X^n : R[X])) = (∏ i in finset.range k, (n - i : R)) • X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_C_mul n k hk, smul_eq_C_mul]
 
+lemma derivative_X_add_pow (c:R) (m:ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=
+by rw [derivative_pow, derivative_add, derivative_X, derivative_C, add_zero, mul_one]
+
+lemma derivative_X_sub_pow (c:R) (m:ℕ) : ((X - C c) ^ m).derivative = m * (X - C c) ^ (m - 1) :=
+by rw [derivative_pow, derivative_sub, derivative_X, derivative_C, sub_zero, mul_one]
+
+lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) (hk : k ≤ n) :
+  (derivative^[k] ((X + C c) ^ n)) =
+  (C (∏ i in finset.range k, (n - i : R))) * (X + C c) ^ (n - k) :=
+begin
+  induction k with k IH,
+  { simp only [function.iterate_zero_apply, one_mul, C_1, finset.range_zero, finset.prod_empty,
+      nat.sub_zero] },
+  { simp only [function.iterate_succ_apply', IH (nat.le_of_succ_le hk), derivative_mul, zero_mul,
+      derivative_C, zero_add, finset.prod_range_succ, C_eq_nat_cast, nat.sub_sub, mul_assoc,
+      ←nat.cast_sub (nat.le_of_succ_le hk), C_mul, derivative_X_add_pow, nat.succ_eq_add_one] },
+end
+
+lemma iterate_derivative_X_sub_pow (n k : ℕ) (c : R) (hk : k ≤ n) :
+  (derivative^[k] ((X - C c) ^ n)) =
+  (C (∏ i in finset.range k, (n - i : R))) * (X - C c) ^ (n - k) :=
+by simp_rw [sub_eq_add_neg, ←C_neg, iterate_derivative_X_add_pow _ _ _ hk, ←sub_eq_add_neg]
+
 end polynomial
 
 open polynomial
@@ -133,29 +156,12 @@ lemma deriv_X_pow_too_much (n : ℕ) (k : ℕ) (hk : n < k) :
 iterate_derivative_eq_zero $ (nat_degree_X_pow_le n).trans_lt hk
 
 lemma deriv1_X_sub_pow (c:R) (m:ℕ) : ((X - C c)^m).derivative = m * (X - C c)^ (m-1) :=
-by rw [derivative_pow, derivative_sub, derivative_X, derivative_C, sub_zero, mul_one]
+derivative_X_sub_pow _ _
 
 lemma deriv_X_sub_pow (n k : ℕ) (c : R) (hk : k ≤ n) :
   (derivative^[k] ((X-C c)^n)) =
   (C ((finset.range k).prod (λ i, (n-i:R)))) * ((X - C c) ^ (n-k)) :=
-begin
-  induction k with k IH,
-  { simp only [function.iterate_zero_apply, one_mul, C_1, finset.range_zero, finset.prod_empty,
-      nat.sub_zero] },
-  { rw [function.iterate_succ_apply', IH (nat.le_of_succ_le hk), derivative_mul, derivative_C,
-      zero_mul, zero_add, finset.prod_range_succ],
-    simp only [C_sub, C_mul],
-    suffices : ((X - C c) ^ (n - k)).derivative  = (C (n:R) - C (k:R)) * (X - C c) ^ (n - k.succ),
-      rw this, ring,
-    have triv : (C (n:R) - C (k:R)) = (C (n-k:R)),
-    { simp only [C_sub], },
-    rw deriv1_X_sub_pow,
-    rw triv,
-    simp only [C_eq_nat_cast, map_sub],
-    rw nat.cast_sub (nat.le_of_succ_le hk),
-    rw nat.sub_succ' n k,
-  },
-end
+iterate_derivative_X_sub_pow _ _ _ hk
 
 lemma deriv_X_sub_pow_too_much (n k : ℕ) (c : R) (hk : n < k) :
   (deriv_n ((X - C c)^n) k) = 0 :=

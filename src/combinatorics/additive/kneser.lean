@@ -38,12 +38,48 @@ image_comm
 
 end
 
-variables [monoid α] [monoid β] [mul_action α β]
+variables [monoid α] [monoid β]
 
 @[to_additive] lemma image_smul' (f : α →* β) (s : set α) (a : α) : f '' (a • s) = f a • f '' s :=
 image_comm $ map_mul _ _
 
 end set
+
+namespace subgroup
+variables {α : Type*} [group α] {H : subgroup α} [subgroup.normal H] {s t : set α}
+
+open set
+
+@[to_additive]
+lemma image_coe_quotient (H : subgroup α) [H.normal] : (coe : α → α ⧸ H) '' H = 1 :=
+begin
+  ext a,
+  dsimp,
+  split,
+  { rintro ⟨a, ha, rfl⟩,
+    rwa [quotient_group.eq_one_iff] },
+  { rintro rfl,
+    exact ⟨1, H.one_mem, rfl⟩ }
+end
+
+@[to_additive] lemma preimage_image_coe (s : set α) : (coe : α → α ⧸ H) ⁻¹' (coe '' s) = H * s :=
+begin
+  ext a,
+  split,
+  { rintro ⟨b, hb, h⟩,
+    refine ⟨a / b, b, (quotient_group.eq_one_iff _).1 _, hb, div_mul_cancel' _ _⟩,
+    simp only [h, quotient_group.coe_div, div_self'] },
+  { rintro ⟨a, b, ha, hb, rfl⟩,
+    refine ⟨b, hb, _⟩,
+    simpa only [quotient_group.coe_mul, self_eq_mul_left, quotient_group.eq_one_iff] }
+end
+
+@[to_additive]
+lemma image_coe_inj : (coe : α → α ⧸ H) '' s = (coe : α → α ⧸ H) '' t ↔ ↑H * s = H * t :=
+by { simp_rw ←preimage_image_coe,
+  exact quotient_group.mk_surjective.preimage_injective.eq_iff.symm }
+
+end subgroup
 
 namespace mul_action
 variables {α β γ : Type*} [group α] [mul_action α β] [mul_action α γ] {a : α}
@@ -75,6 +111,15 @@ begin
   simp only [subgroup.mem_map, mem_stabilizer_iff, exists_prop, forall_exists_index, and_imp],
   rintro a ha rfl,
   rw [←image_smul', ha],
+end
+
+@[simp, to_additive] lemma stabilizer_mul (s : set α) : (stabilizer α s : set α) * s = s :=
+begin
+  ext,
+  refine ⟨_, λ h, ⟨_, _, (stabilizer α s).one_mem, h, one_mul _⟩⟩,
+  rintro ⟨a, b, ha, hb, rfl⟩,
+  rw ←mem_stabilizer_iff.1 ha,
+  exact smul_mem_smul_set hb,
 end
 
 lemma le_stabilizer_smul_left [has_smul β γ] [is_scalar_tower α β γ] (b : β) (c : γ) :
@@ -117,6 +162,30 @@ end
 
 end mul_action
 
+namespace mul_action
+variables {α : Type*} [comm_group α] {s : set α}
+
+open function set
+open_locale pointwise
+
+@[simp, to_additive] lemma mul_stabilizer (s : set α) : s * (stabilizer α s : set α) = s :=
+by rw [mul_comm, stabilizer_mul]
+
+@[to_additive] lemma stabilizer_image_coe_quotient (s : set α) :
+  stabilizer (α ⧸ stabilizer α s) ((coe : α → α ⧸ stabilizer α s) '' s) = ⊥ :=
+begin
+  ext a,
+  induction a using quotient_group.induction_on',
+  simp only [mem_stabilizer_iff, subgroup.mem_bot, quotient_group.eq_one_iff],
+  have : ↑a • (coe : α → α ⧸ stabilizer α s) '' s = coe '' (a • s) :=
+    (image_smul' (quotient_group.mk' _) _ _).symm,
+  rw this,
+  refine ⟨λ h, _, λ h, by rw h⟩,
+  rwa [subgroup.image_coe_inj, mul_smul_comm, stabilizer_mul] at h,
+end
+
+end mul_action
+
 open mul_action
 
 namespace finset
@@ -137,6 +206,16 @@ begin
   rw [mul_stab, mem_filter, mem_div, and_iff_right_of_imp],
   obtain ⟨b, hb⟩ := hs,
   exact λ h, ⟨_, _, by { rw ←h, exact smul_mem_smul_finset hb }, hb, mul_div_cancel'' _ _⟩,
+end
+
+@[to_additive] lemma mul_stab_subset_div (s : finset α) : s.mul_stab ⊆ s / s := filter_subset _ _
+
+@[to_additive] lemma mul_stab_subset_div_right (ha : a ∈ s) : s.mul_stab ⊆ s / {a} :=
+begin
+  refine λ b hb, mem_div.2 ⟨_, _, _, mem_singleton_self _, mul_div_cancel'' _ _⟩,
+  rw mem_mul_stab ⟨a, ha⟩ at hb,
+  rw ←hb,
+  exact smul_mem_smul_finset ha,
 end
 
 @[simp, to_additive] lemma coe_mul_stab (hs : s.nonempty) :
@@ -168,12 +247,47 @@ begin
   rw [←smul_mul_assoc, h],
 end
 
+@[simp, to_additive] lemma mul_stab_mul (s : finset α) : s.mul_stab * s = s :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { exact mul_empty _ },
+  refine coe_injective _,
+  simp only [hs, coe_mul, coe_mul_stab, ←stabilizer_coe_finset, stabilizer_mul],
+end
+
 end group
 
 variables [comm_group α] [decidable_eq α] {s t : finset α} {a : α}
 
+@[to_additive] lemma mul_stab_subset_div_left (ha : a ∈ s) : s.mul_stab ⊆ {a} / s :=
+begin
+  refine λ b hb, mem_div.2 ⟨_, _, mem_singleton_self _, _, div_div_cancel _ _⟩,
+  rw mem_mul_stab ⟨a, ha⟩ at hb,
+  rwa [←hb, ←inv_smul_mem_iff, smul_eq_mul, inv_mul_eq_div] at ha,
+end
+
 lemma subset_mul_stab_mul_right (hs : s.nonempty) : t.mul_stab ⊆ (s * t).mul_stab :=
 by { rw mul_comm, exact subset_mul_stab_mul_left hs }
+
+@[simp, to_additive] lemma mul_mul_stab (s : finset α) : s * s.mul_stab = s :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { exact mul_empty _ },
+  { rw [←coe_inj, coe_mul, coe_mul_stab hs, ←stabilizer_coe_finset, mul_stabilizer] }
+end
+
+section classical
+open_locale classical
+
+@[to_additive] lemma mul_stab_image_coe_quotient (hs : s.nonempty) :
+  (s.image coe : finset (α ⧸ stabilizer α s)).mul_stab = 1 :=
+begin
+  refine coe_injective _,
+  rw [coe_mul_stab (hs.image _), ←stabilizer_coe_finset, ←stabilizer_coe_finset, coe_image, coe_one,
+    stabilizer_image_coe_quotient, subgroup.coe_bot, set.singleton_one],
+end
+
+end classical
 
 /-! ### Kneser's theorem -/
 
@@ -194,12 +308,8 @@ begin
   { simp },
   classical,
   obtain hstab | hstab := ne_or_eq (s * t).mul_stab 1,
-  { have : ((s * t).image quotient_group.mk : finset (α ⧸ stabilizer α (s * t))).mul_stab = 1,
-    { refine eq_singleton_iff_unique_mem.2 ⟨one_mem_mul_stab.2 $ (hs.mul ht).image _, λ a ha, _⟩,
-      rw mem_mul_stab ((hs.mul ht).image _) at ha,
-      induction a using quotient_group.induction_on,
-      refine (quotient_group.eq_one_iff _).2 _,
-      sorry },
+  { have : ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))).mul_stab = 1,
+    { exact mul_stab_image_coe_quotient (hs.mul ht) },
     sorry },
   sorry,
 end

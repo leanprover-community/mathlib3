@@ -16,6 +16,9 @@ namespace finsupp
 
 variables {α N : Type*} [has_zero N]
 
+@[simp] lemma to_lex_apply (x : α →₀ N) (a : α) : to_lex (x a) = x a := rfl
+@[simp] lemma of_lex_apply (x : α →₀ N) (a : α) : of_lex (x a) = x a := rfl
+
 /-- The lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
   and `N` is ordered by `s`. -/
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
@@ -78,7 +81,7 @@ noncomputable instance lex.linear_order [linear_order N] : linear_order (lex (α
   decidable_le := by { classical, apply_instance },
   ..lex.partial_order }
 
-lemma lex.le_of_forall_le [linear_order α] [linear_order N]
+lemma lex.le_of_forall_le [linear_order N]
   {a b : lex (α →₀ N)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=
 le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
 

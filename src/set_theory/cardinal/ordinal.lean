@@ -759,14 +759,13 @@ calc  #(list α)
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_aleph_0 n
 ... = #α : by simp [H1]
 
-theorem mk_list_eq_aleph_0 (α : Type u) [encodable α] [nonempty α] : #(list α) = ℵ₀ :=
+theorem mk_list_eq_aleph_0 (α : Type u) [countable α] [nonempty α] : #(list α) = ℵ₀ :=
 mk_le_aleph_0.antisymm (aleph_0_le_mk _)
 
 theorem mk_list_eq_max_mk_aleph_0 (α : Type u) [nonempty α] : #(list α) = max (#α) ℵ₀ :=
 begin
-  casesI fintype_or_infinite α,
-  { haveI : encodable α := fintype.to_encodable α,
-    rw [mk_list_eq_aleph_0, eq_comm, max_eq_right],
+  casesI finite_or_infinite α,
+  { rw [mk_list_eq_aleph_0, eq_comm, max_eq_right],
     exact mk_le_aleph_0 },
   { rw [mk_list_eq_mk, eq_comm, max_eq_left],
     exact aleph_0_le_mk α }
@@ -774,9 +773,8 @@ end
 
 theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ℵ₀ (#α) :=
 begin
-  casesI fintype_or_infinite α,
-  { haveI := fintype.to_encodable α,
-    exact mk_le_aleph_0.trans (le_max_left _ _) },
+  casesI finite_or_infinite α,
+  { exact mk_le_aleph_0.trans (le_max_left _ _) },
   { rw mk_list_eq_mk,
     apply le_max_right }
 end
@@ -827,7 +825,10 @@ multiset.to_finsupp.to_equiv.cardinal_eq.trans (mk_finsupp_nat α)
 
 lemma mk_multiset_of_infinite (α : Type u) [infinite α] : #(multiset α) = #α := by simp
 
-@[simp] lemma mk_multiset_of_subsingleton (α : Type u) [is_empty α] : #(multiset α) = 1 :=
+@[simp] lemma mk_multiset_of_is_empty (α : Type u) [is_empty α] : #(multiset α) = 1 :=
+multiset.to_finsupp.to_equiv.cardinal_eq.trans (by simp)
+
+lemma mk_multiset_of_countable (α : Type u) [countable α] [nonempty α] : #(multiset α) = ℵ₀ :=
 multiset.to_finsupp.to_equiv.cardinal_eq.trans (by simp)
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :

@@ -134,9 +134,9 @@ instance [has_smul N X] [smul_comm_class M N X]
   smul_comm_class M N (completion X) :=
 ⟨λ m n x, begin
   have hmn : m • n • x =
-    (( completion.map (has_scalar.smul m)) ∘ (completion.map (has_scalar.smul n))) x := rfl,
+    (( completion.map (has_smul.smul m)) ∘ (completion.map (has_smul.smul n))) x := rfl,
   have hnm : n • m • x =
-    (( completion.map (has_scalar.smul n)) ∘ (completion.map (has_scalar.smul m))) x := rfl,
+    (( completion.map (has_smul.smul n)) ∘ (completion.map (has_smul.smul m))) x := rfl,
   rw [hmn, hnm, map_comp, map_comp],
   exact congr_arg (λ f, completion.map f x) (by exact funext (smul_comm _ _)),
   repeat{ exact uniform_continuous_const_smul _},

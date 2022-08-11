@@ -569,15 +569,17 @@ end
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
+/-! ## Lemmas about the proportion of Miller_Rabin witnesses -/
+
 open_locale nat  -- to use `φ` for `nat.totient`
 
 /-- Theorem 3.4 of Conrad:
-For odd `n > 1` of the form `n = p^α` for prime `p` and `α > 0`,
-the Miller–Rabin nonwitnesses for `n` are the solutions to `a^(p−1) ≡ 1 mod p^α`.
+For odd prime `p` and `α > 0`, the Miller–Rabin nonwitnesses for `p^α` are exactly
+the solutions to `a^(p−1) ≡ 1 mod p^α`.
 -/
-lemma strong_probable_prime_of_prime_power_iff {p α : ℕ} (hp_odd : odd p) (hp : nat.prime p)
+lemma MR_nonwitness_for_prime_power_iff {p α : ℕ} (hp_odd : odd p) (hp : nat.prime p)
   (hα0 : 0 < α) (a : zmod (p^α)) :
-  strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
+  ¬ nat.miller_rabin_witness (p^α) a ↔ a^(p-1) = 1 :=
 begin
   haveI : fact (p.prime) := fact_iff.2 hp,
   have two_le_p : 2 ≤ p := nat.prime.two_le hp,
@@ -590,6 +592,7 @@ begin
   split,
   { -- Given that `a` is a Miller-Rabin nonwitness for `n = p^α`, prove `a^(p-1) = 1`
     intro hspp,
+    rw ←strong_probable_prime_iff_nonwitness at hspp,
     -- Euler's theorem tells us that `a^φ(n) = 1`.
     have euler : a ^ φ(p^α) = 1,
     { have a_unit : is_unit a,
@@ -622,7 +625,7 @@ begin
 
   { -- Given that `a^(p-1) = 1`, prove `a` is a Miller-Rabin nonwitness for `n = p^α`
     intro h,
-
+    rw ←strong_probable_prime_iff_nonwitness,
     set f := (p-1).factorization 2 with hf,
     set l := odd_part (p - 1) with hl,
     have hl_odd : odd l, { apply odd_of_odd_part, simp [hp.one_lt] },
@@ -651,9 +654,7 @@ begin
       rcases hlk with ⟨q, hq⟩,
       rw [←hk, hq, pow_mul, hj, one_pow],},
     -- In the case where j ≥ 1 we will show that (a^k)^(2^(j-1)) = -1, and so `a` is a nonwitness.
-    {
-      have hj1 : 1 ≤ j := succ_le_iff.2 hj0.bot_lt,
-
+    { have hj1 : 1 ≤ j := succ_le_iff.2 hj0.bot_lt,
       right,
       rw [←he, ←hk],
 
@@ -684,21 +685,23 @@ begin
         nth_rewrite_rhs 0 ←nat.sub_add_cancel hj1,
         rw [pow_add, pow_one] },
 
-      refine (or_iff_right hx1).1 (square_roots_of_one_zmod hp hp_odd hx2),   },
-  }
+      refine (or_iff_right hx1).1 (square_roots_of_one_zmod hp hp_odd hx2) } }
 end
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
 -- End of Theorem 3.4 of Conrad  ^^^^
--- For odd `n > 1` of the form `n = p^α` for prime `p` and `α > 0`,
--- the Miller–Rabin nonwitnesses for `n` are the solutions to `a^(p−1) ≡ 1 mod p^α`.
+-- For odd prime `p` and `α > 0`, the Miller–Rabin nonwitnesses for `p^α` are exactly
+-- the solutions to `a^(p−1) ≡ 1 mod p^α`.
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
+
+
+
 
 
 -- https://leanprover.zulipchat.com/#narrow/stream/217875/near/277098292

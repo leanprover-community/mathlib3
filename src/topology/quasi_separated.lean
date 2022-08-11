@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import topology.subset_properties
-import topology.sets.compacts
+import topology.separation
 import topology.noetherian_space
 
 /-!
@@ -46,15 +46,19 @@ class quasi_separated_space (α : Type*) [topological_space α] : Prop :=
 (inter_is_compact : ∀ (U V : set α),
   is_open U → is_compact U → is_open V → is_compact V → is_compact (U ∩ V))
 
-lemma is_quasi_separated_univ (α : Type*) [topological_space α] :
+lemma is_quasi_separated_univ_iff (α : Type*) [topological_space α] :
   is_quasi_separated (set.univ : set α) ↔ quasi_separated_space α :=
 begin
   rw quasi_separated_space_iff,
   simp [is_quasi_separated],
 end
 
-lemma is_quasi_separated.image_of_embedding (h : embedding f) (s : set α)
-  (H : is_quasi_separated s) : is_quasi_separated (f '' s) :=
+lemma is_quasi_separated_univ (α : Type*) [topological_space α] [quasi_separated_space α] :
+  is_quasi_separated (set.univ : set α) :=
+(is_quasi_separated_univ_iff α).mpr infer_instance
+
+lemma is_quasi_separated.image_of_embedding {s : set α}
+  (H : is_quasi_separated s) (h : embedding f) : is_quasi_separated (f '' s) :=
 begin
   intros U V hU hU' hU'' hV hV' hV'',
   convert (H (f ⁻¹' U) (f ⁻¹' V) _ (h.continuous.1 _ hU') _ _ (h.continuous.1 _ hV') _).image
@@ -77,7 +81,7 @@ end
 lemma open_embedding.is_quasi_separated_iff (h : open_embedding f) {s : set α} :
   is_quasi_separated s ↔ is_quasi_separated (f '' s) :=
 begin
-  refine ⟨is_quasi_separated.image_of_embedding h.to_embedding s, _⟩,
+  refine ⟨λ hs, hs.image_of_embedding h.to_embedding, _⟩,
   intros H U V hU hU' hU'' hV hV' hV'',
   rw [h.to_embedding.is_compact_iff_is_compact_image, ← set.image_inter h.inj],
   exact H (f '' U) (f '' V)
@@ -88,7 +92,7 @@ end
 lemma is_quasi_separated_iff_quasi_separated_space (s : set α) (hs : is_open s) :
   is_quasi_separated s ↔ quasi_separated_space s :=
 begin
-  rw ← is_quasi_separated_univ,
+  rw ← is_quasi_separated_univ_iff,
   convert hs.open_embedding_subtype_coe.is_quasi_separated_iff.symm; simp
 end
 
@@ -110,17 +114,9 @@ instance quasi_separated_space.of_noetherian_space [noetherian_space α] :
 
 lemma is_quasi_separated.of_quasi_separated_space (s : set α) [quasi_separated_space α] :
   is_quasi_separated s :=
-((is_quasi_separated_univ α).mpr infer_instance).of_subset (set.subset_univ _)
+(is_quasi_separated_univ α).of_subset (set.subset_univ _)
 
 lemma quasi_separated_space.of_open_embedding (h : open_embedding f) [quasi_separated_space β] :
   quasi_separated_space α :=
-(is_quasi_separated_univ α).mp
+(is_quasi_separated_univ_iff α).mp
   (h.is_quasi_separated_iff.mpr $ is_quasi_separated.of_quasi_separated_space _)
-
-instance compact_opens.has_inf_of_quasi_separated_space
-  [quasi_separated_space α] : has_inf (compact_opens α) :=
-⟨λ U V, ⟨⟨(U : set α) ∩ (V : set α),
-  quasi_separated_space.inter_is_compact U.1.1 V.1.1 U.2 U.1.2 V.2 V.1.2⟩, U.2.inter V.2⟩⟩
-
-instance [quasi_separated_space α] : semilattice_inf (compact_opens α) :=
-set_like.coe_injective.semilattice_inf _ (λ _ _, rfl)

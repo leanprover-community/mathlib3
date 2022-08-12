@@ -72,7 +72,7 @@ variables [smul_comm_class A B M]
 individually, rather than jointly via their tensor product.
 
 Note that `R` plays no role but it is convenient to make this generalisation to support the cases
-`R = ℕ` and `R = ℤ` which both show up naturally. -/
+`R = ℕ` and `R = ℤ` which both show up naturally. See also `base_change`. -/
 @[simps] def mk (p : add_submonoid M)
   (hA : ∀ (a : A) {m : M}, m ∈ p → a • m ∈ p)
   (hB : ∀ (b : B) {m : M}, m ∈ p → b • m ∈ p) : submodule (A ⊗[R] B) M :=

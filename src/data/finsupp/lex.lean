@@ -21,6 +21,9 @@ variables {α N : Type*} [has_zero N]
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
 ∃ i, (∀ j, r j i → x j = y j) ∧ s (x i) (y i)
 
+lemma lex_eq_lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) :
+  finsupp.lex r s x y = pi.lex r (λ _, s) x y := rfl
+
 instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) := ⟨finsupp.lex (<) (<)⟩
 
 instance lex.is_strict_order [linear_order α] [partial_order N] :
@@ -45,7 +48,7 @@ variables [linear_order α]
 /--  The partial order on `finsupp`s obtained by the lexicographic ordering.
 `finsupp.lex.linear_order` is the proof that this partial order is in fact linear. -/
 instance lex.partial_order [partial_order N] : partial_order (lex (α →₀ N)) :=
-partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective
+partial_order.lift (λ x, to_lex ⇑(of_lex x)) fun_like.coe_injective
 
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
 noncomputable instance lex.linear_order [linear_order N] : linear_order (lex (α →₀ N)) :=
@@ -61,13 +64,17 @@ noncomputable instance lex.linear_order [linear_order N] : linear_order (lex (α
         { contrapose! hj,
           exact finset.min'_le _ _ (finset.mem_filter.mpr ⟨js, hj⟩) },
         { simp only [finset.mem_union, not_or_distrib, finsupp.mem_support_iff, not_not] at js,
-          simp only [js] } },
+          cases js with fj gj,
+          rw ← gj at fj,
+          exact fj } },
       { refine or.inr (or.inr ⟨_, λ j hj, _, mg⟩),
         by_cases js : j ∈ f.support ∪ g.support,
         { contrapose! hj,
           exact finset.min'_le _ _ (finset.mem_filter.mpr ⟨js, hj.symm⟩) },
         { simp only [finset.mem_union, not_or_distrib, finsupp.mem_support_iff, not_not] at js,
-          simp only [js] } } }
+          cases js with fj gj,
+          rw ← fj at gj,
+          exact gj } } }
     end,
   decidable_le := by { classical, apply_instance },
   ..lex.partial_order }

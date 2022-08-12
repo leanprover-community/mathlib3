@@ -152,8 +152,7 @@ instance topological_group_H_space (G : Type u) [topological_space G] [group G]
   left_Hmul_e := by {simp only [function.uncurry_apply_pair, one_mul],
     exact continuous_map.homotopy_rel.refl _ _ },
   right_Hmul_e := by {simp only [function.uncurry_apply_pair, mul_one],
-    exact continuous_map.homotopy_rel.refl _ _ },
-}
+    exact continuous_map.homotopy_rel.refl _ _ }, }
 
 lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl

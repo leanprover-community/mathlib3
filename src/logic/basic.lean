@@ -1136,6 +1136,9 @@ by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, 
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=
 by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 
+lemma ne.ne_of_ne {x y z : α} (h : x ≠ y) : x ≠ z ∨ y ≠ z :=
+not_and_distrib.1 $ mt (and_imp.2 eq.substr) h.symm
+
 theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩

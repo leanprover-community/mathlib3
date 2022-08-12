@@ -33,9 +33,6 @@ lemma nontrivial_iff : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
 lemma exists_pair_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
 nontrivial.exists_pair_ne
 
-lemma ne_or_ne_of_ne {x y z : α} (h : x ≠ y) : x ≠ z ∨ y ≠ z :=
-not_and_distrib.1 $ mt (and_imp.2 eq.substr) h.symm
-
 -- See Note [decidable namespace]
 protected lemma decidable.exists_ne [nontrivial α] [decidable_eq α] (x : α) : ∃ y, y ≠ x :=
 begin

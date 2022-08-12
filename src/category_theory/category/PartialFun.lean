@@ -135,6 +135,7 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
       unfold_projs,
       dsimp,
       change option.elim _ _ _ = _,
+      dsimp,
       rw part.elim_to_option,
       split_ifs,
       { refl },

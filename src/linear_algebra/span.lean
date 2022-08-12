@@ -668,12 +668,11 @@ variables {M' : Type*} [add_comm_monoid M'] [module R M'] (q₁ q₁' : submodul
 
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M') :=
-{ carrier   := (p : set M) ×ˢ (q₁ : set M'),
+{ carrier   := p ×ˢ q₁,
   smul_mem' := by rintro a ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨smul_mem _ a hx, smul_mem _ a hy⟩,
   .. p.to_add_submonoid.prod q₁.to_add_submonoid }
 
-@[simp] lemma prod_coe :
-  (prod p q₁ : set (M × M')) = (p : set M) ×ˢ (q₁ : set M') := rfl
+@[simp] lemma prod_coe : (prod p q₁ : set (M × M')) = p ×ˢ q₁ := rfl
 
 @[simp] lemma mem_prod {p : submodule R M} {q : submodule R M'} {x : M × M'} :
   x ∈ prod p q ↔ x.1 ∈ p ∧ x.2 ∈ q := set.mem_prod

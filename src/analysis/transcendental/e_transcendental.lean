@@ -158,15 +158,14 @@ lemma deriv_f_p_k_eq_zero_k_eq_0_when_j_lt_p_sub_one (p : ℕ) (n j : ℕ) (hj :
   polynomial.eval 0 (deriv_n (f_p p n) j) = 0 :=
 begin
   rw [f_p, deriv_n, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
-  apply finset.sum_eq_zero, intros i hi, rw polynomial.eval_mul,
+  apply finset.sum_eq_zero, intros i hi, rw polynomial.eval_smul,
   simp only [nat.succ_pos', finset.mem_range] at hi,
-  rw [mul_eq_zero], left,
+  rw [smul_eq_zero], right,
   have ineq : j - i < p - 1 := gt_of_gt_of_ge hj (nat.sub_le j i),
-  rw [polynomial.eval_mul, mul_eq_zero], right,
+  rw [polynomial.eval_mul, mul_eq_zero], left,
   rw [polynomial.iterate_derivative_X_pow_eq_C_mul, polynomial.eval_mul],
   simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_zero, polynomial.eval_pow, mul_eq_zero], right, apply zero_pow,
   exact nat.sub_pos_of_lt ineq,
-  exact le_of_lt ineq,
 end
 
 lemma fact_eq_prod (n : ℕ) : (n.factorial:ℤ) = ∏ i in finset.range n, (i+1:ℤ) :=
@@ -199,10 +198,13 @@ begin
       polynomial.eval_prod, polynomial.eval_X, mul_one, algebra.id.smul_eq_mul, zero_sub,
       nat.sub_self, polynomial.eval_one, polynomial.eval_pow, int.cast_one, polynomial.eval_smul,
       polynomial.eval_nat_cast, nat.sub_zero, polynomial.eval_add, neg_add_rev, polynomial.eval_sub,
-      pow_zero],
+      pow_zero, one_smul],
     rw mul_assoc,
     congr' 1,
-    {rw fact_eq_prod'},
+    { rw [fact_eq_prod', nat.cast_prod],
+      apply finset.prod_congr rfl (λ i hi, _),
+      rw [finset.mem_range] at hi,
+      exact nat.cast_sub hi.le },
     rw fact_eq_prod, rw pow_mul, rw <-mul_pow, simp_rw <-neg_add,
 
     have rhs : ((-1:ℤ) ^ n * ∏ (i : ℕ) in finset.range n, (↑i + 1)) = (∏ (i : ℕ) in finset.range n, (-1) * (↑i + 1)),
@@ -211,18 +213,14 @@ begin
     rw neg_one_mul, rw add_comm },
 
   { intros i hi1 hi2,
-    simp only [polynomial.eval_mul, int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast,
-      int.coe_nat_eq_zero, int.cast_one, polynomial.eval_mul, polynomial.eval_nat_cast],
-    apply mul_eq_zero_of_left,
-    apply mul_eq_zero_of_right,
-    rw [polynomial.iterate_derivative_X_pow_eq_smul _ _ (nat.sub_le _ _), polynomial.eval_smul,
-      polynomial.eval_pow, polynomial.eval_X, algebra.id.smul_eq_mul],
-    apply mul_eq_zero_of_right,
-    apply zero_pow,
-
-    apply nat.sub_pos_of_lt, apply nat.sub_lt,
-    { apply nat.sub_pos_of_lt, exact nat.prime.one_lt hp },
-    { exact nat.pos_of_ne_zero hi2 } },
+    have : 0 < p - 1 - (p - 1 - i),
+    { apply nat.sub_pos_of_lt, apply nat.sub_lt,
+      { apply nat.sub_pos_of_lt, exact nat.prime.one_lt hp },
+      { exact nat.pos_of_ne_zero hi2 } },
+    simp only [nat.cast_prod, int.cast_coe_nat, polynomial.eval_X, int.cast_prod, int.cast_add,
+      ring_hom.eq_int_cast, polynomial.iterate_derivative_X_pow_eq_smul, zero_mul,
+      polynomial.eval_pow, nsmul_eq_mul, eq_self_iff_true, int.cast_one, polynomial.eval_mul,
+      polynomial.eval_nat_cast, finset.prod_congr, mul_zero, zsmul_eq_mul, zero_pow this], },
   { intro rid, exfalso, simp only [nat.succ_pos', not_true, finset.mem_range] at rid, exact rid },
 end
 
@@ -241,18 +239,15 @@ begin
   { intros x j hj hx1 hx2,
     rw [f_p_n_succ, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
     apply finset.sum_eq_zero, intros y hy, simp only [finset.mem_range] at hy,
-    rw polynomial.eval_mul, rw polynomial.eval_mul, rw polynomial.eval_nat_cast,
+    rw [polynomial.eval_smul, polynomial.eval_mul],
     replace hx2 : x < n.succ ∨ x = n.succ, exact nat.lt_succ_iff_lt_or_eq.mp hx2,
     cases hx2,
-    { simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, gt_iff_lt, int.coe_nat_eq_zero, int.cast_one, mul_eq_zero] at *,
-      rw IH x (j-y) (gt_of_gt_of_ge hj (nat.sub_le j y)) hx1 hx2, tauto },
-    {
-      -- x = n.succ
-      rw mul_eq_zero, right,
+    { rw IH x (j-y) (gt_of_gt_of_ge hj (nat.sub_le j y)) hx1 hx2,
+      rw [zero_mul, smul_zero] },
+    { rw smul_eq_zero, right,
       rw [hx2, polynomial.iterate_derivative_X_sub_pow, polynomial.eval_mul, polynomial.eval_pow],
       simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_succ, polynomial.eval_sub, sub_self, mul_eq_zero],
-      right, apply zero_pow (nat.sub_pos_of_lt (gt_of_ge_of_gt hj hy)),
-      exact le_of_lt (gt_of_ge_of_gt hj hy),
+      right, right, apply zero_pow (nat.sub_pos_of_lt (gt_of_ge_of_gt hj hy))
     },
   },
 end

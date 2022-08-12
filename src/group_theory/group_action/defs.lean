@@ -198,7 +198,7 @@ class vadd_assoc_class (M N α : Type*) [has_vadd M N] [has_vadd N α] [has_vadd
 /-- An instance of `is_scalar_tower M N α` states that the multiplicative
 action of `M` on `α` is determined by the multiplicative actions of `M` on `N`
 and `N` on `α`. -/
-@[to_additive vadd_assoc_class]
+@[to_additive]
 class is_scalar_tower (M N α : Type*) [has_smul M N] [has_smul N α] [has_smul M α] : Prop :=
 (smul_assoc : ∀ (x : M) (y : N) (z : α), (x • y) • z = x • (y • z))
 

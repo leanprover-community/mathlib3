@@ -213,7 +213,7 @@ le_gauge_of_not_mem hs₁ hs₂ $ by rwa one_smul
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] [mul_action_with_zero α ℝ] [ordered_smul α ℝ]
 
-lemma gauge_smul_of_nonneg [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E}
+lemma gauge_smul_of_nonneg [mul_action_with_zero α E] [smul_assoc_class α ℝ (set E)] {s : set E}
   {a : α} (ha : 0 ≤ a) (x : E) :
   gauge s (a • x) = a • gauge s x :=
 begin
@@ -241,7 +241,7 @@ begin
 end
 
 lemma gauge_smul_left_of_nonneg [mul_action_with_zero α E] [smul_comm_class α ℝ ℝ]
-  [is_scalar_tower α ℝ ℝ] [is_scalar_tower α ℝ E] {s : set E} {a : α} (ha : 0 ≤ a) :
+  [smul_assoc_class α ℝ ℝ] [smul_assoc_class α ℝ E] {s : set E} {a : α} (ha : 0 ≤ a) :
   gauge (a • s) = a⁻¹ • gauge s :=
 begin
   obtain rfl | ha' := ha.eq_or_lt,
@@ -263,8 +263,8 @@ begin
     rw [smul_inv₀, smul_assoc, inv_inv] }
 end
 
-lemma gauge_smul_left [module α E] [smul_comm_class α ℝ ℝ] [is_scalar_tower α ℝ ℝ]
-  [is_scalar_tower α ℝ E] {s : set E} (symmetric : ∀ x ∈ s, -x ∈ s) (a : α) :
+lemma gauge_smul_left [module α E] [smul_comm_class α ℝ ℝ] [smul_assoc_class α ℝ ℝ]
+  [smul_assoc_class α ℝ E] {s : set E} (symmetric : ∀ x ∈ s, -x ∈ s) (a : α) :
   gauge (a • s) = |a|⁻¹ • gauge s :=
 begin
   rw ←gauge_smul_left_of_nonneg (abs_nonneg a),
@@ -282,7 +282,7 @@ end
 end linear_ordered_field
 
 section is_R_or_C
-variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
+variables [is_R_or_C 𝕜] [module 𝕜 E] [smul_assoc_class ℝ 𝕜 E]
 
 lemma gauge_norm_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (∥r∥ • x) = gauge s (r • x) :=
 begin
@@ -375,7 +375,7 @@ begin
 end
 
 section is_R_or_C
-variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
+variables [is_R_or_C 𝕜] [module 𝕜 E] [smul_assoc_class ℝ 𝕜 E]
 
 /-- `gauge s` as a seminorm when `s` is  balanced, convex and absorbent. -/
 @[simps] def gauge_seminorm (hs₀ : balanced 𝕜 s)  (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :

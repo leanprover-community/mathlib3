@@ -31,16 +31,16 @@ instance has_smul_left [has_smul R M] :
 @[simp, to_additive]
 lemma smul_def [has_smul R M] (s : ulift R) (x : M) : s • x = s.down • x := rfl
 
-instance is_scalar_tower [has_smul R M] [has_smul M N] [has_smul R N]
-  [is_scalar_tower R M N] : is_scalar_tower (ulift R) M N :=
+instance smul_assoc_class [has_smul R M] [has_smul M N] [has_smul R N]
+  [smul_assoc_class R M N] : smul_assoc_class (ulift R) M N :=
 ⟨λ x y z, show (x.down • y) • z = x.down • y • z, from smul_assoc _ _ _⟩
 
-instance is_scalar_tower' [has_smul R M] [has_smul M N] [has_smul R N]
-  [is_scalar_tower R M N] : is_scalar_tower R (ulift M) N :=
+instance smul_assoc_class' [has_smul R M] [has_smul M N] [has_smul R N]
+  [smul_assoc_class R M N] : smul_assoc_class R (ulift M) N :=
 ⟨λ x y z, show (x • y.down) • z = x • y.down • z, from smul_assoc _ _ _⟩
 
-instance is_scalar_tower'' [has_smul R M] [has_smul M N] [has_smul R N]
-  [is_scalar_tower R M N] : is_scalar_tower R M (ulift N) :=
+instance smul_assoc_class'' [has_smul R M] [has_smul M N] [has_smul R N]
+  [smul_assoc_class R M N] : smul_assoc_class R M (ulift N) :=
 ⟨λ x y z, show up ((x • y) • z.down) = ⟨x • y • z.down⟩, by rw smul_assoc⟩
 
 instance [has_smul R M] [has_smul Rᵐᵒᵖ M] [is_central_scalar R M] :

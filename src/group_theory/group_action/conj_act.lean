@@ -103,11 +103,11 @@ instance units_mul_distrib_mul_action : mul_distrib_mul_action (conj_act Mˣ) M 
   smul_mul := by simp [units_smul_def, mul_assoc],
   smul_one := by simp [units_smul_def], }
 
-instance units_smul_comm_class [has_smul α M] [smul_comm_class α M M] [is_scalar_tower α M M] :
+instance units_smul_comm_class [has_smul α M] [smul_comm_class α M M] [smul_assoc_class α M M] :
   smul_comm_class α (conj_act Mˣ) M :=
 { smul_comm := λ a um m, by rw [units_smul_def, units_smul_def, mul_smul_comm, smul_mul_assoc] }
 
-instance units_smul_comm_class' [has_smul α M] [smul_comm_class M α M] [is_scalar_tower α M M] :
+instance units_smul_comm_class' [has_smul α M] [smul_comm_class M α M] [smul_assoc_class α M M] :
   smul_comm_class (conj_act Mˣ) α M :=
 by { haveI : smul_comm_class α M M := smul_comm_class.symm _ _ _, exact smul_comm_class.symm _ _ _ }
 
@@ -137,11 +137,11 @@ instance mul_action₀ : mul_action (conj_act G₀) G₀ :=
   one_smul := by simp [smul_def],
   mul_smul := by simp [smul_def, mul_assoc, mul_inv_rev] }
 
-instance smul_comm_class₀ [has_smul α G₀] [smul_comm_class α G₀ G₀] [is_scalar_tower α G₀ G₀] :
+instance smul_comm_class₀ [has_smul α G₀] [smul_comm_class α G₀ G₀] [smul_assoc_class α G₀ G₀] :
   smul_comm_class α (conj_act G₀) G₀ :=
 { smul_comm := λ a ug g, by rw [smul_def, smul_def, mul_smul_comm, smul_mul_assoc] }
 
-instance smul_comm_class₀' [has_smul α G₀] [smul_comm_class G₀ α G₀] [is_scalar_tower α G₀ G₀] :
+instance smul_comm_class₀' [has_smul α G₀] [smul_comm_class G₀ α G₀] [smul_assoc_class α G₀ G₀] :
   smul_comm_class (conj_act G₀) α G₀ :=
 by { haveI := smul_comm_class.symm G₀ α G₀, exact smul_comm_class.symm _ _ _ }
 
@@ -167,11 +167,11 @@ instance : mul_distrib_mul_action (conj_act G) G :=
   one_smul := by simp [smul_def],
   mul_smul := by simp [smul_def, mul_assoc] }
 
-instance smul_comm_class [has_smul α G] [smul_comm_class α G G] [is_scalar_tower α G G] :
+instance smul_comm_class [has_smul α G] [smul_comm_class α G G] [smul_assoc_class α G G] :
   smul_comm_class α (conj_act G) G :=
 { smul_comm := λ a ug g, by rw [smul_def, smul_def, mul_smul_comm, smul_mul_assoc] }
 
-instance smul_comm_class' [has_smul α G] [smul_comm_class G α G] [is_scalar_tower α G G] :
+instance smul_comm_class' [has_smul α G] [smul_comm_class G α G] [smul_assoc_class α G G] :
   smul_comm_class (conj_act G) α G :=
 by { haveI := smul_comm_class.symm G α G, exact smul_comm_class.symm _ _ _ }
 

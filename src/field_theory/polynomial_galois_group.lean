@@ -97,8 +97,8 @@ unique_gal_of_splits _ (splits_X_pow _ _)
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
 (is_splitting_field.lift p.splitting_field p h.1).to_ring_hom.to_algebra
 
-instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting_field E :=
-is_scalar_tower.of_algebra_map_eq
+instance [h : fact (p.splits (algebra_map F E))] : smul_assoc_class F p.splitting_field E :=
+smul_assoc_class.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
 
 -- The `algebra p.splitting_field E` instance above behaves badly when
@@ -123,7 +123,7 @@ section roots_action
 see `polynomial.gal.map_roots_bijective`. -/
 def map_roots [fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
-λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
+λ x, ⟨smul_assoc_class.to_alg_hom F p.splitting_field E x, begin
   have key := subtype.mem x,
   by_cases p = 0,
   { simp only [h, root_set_zero] at key,
@@ -138,7 +138,7 @@ begin
   { intro y,
     -- this is just an equality of two different ways to write the roots of `p` as an `E`-polynomial
     have key := roots_map
-      (is_scalar_tower.to_alg_hom F p.splitting_field E : p.splitting_field →+* E)
+      (smul_assoc_class.to_alg_hom F p.splitting_field E : p.splitting_field →+* E)
       ((splits_id_iff_splits _).mpr (is_splitting_field.splits p.splitting_field p)),
     rw [map_map, alg_hom.comp_algebra_map] at key,
     have hy := subtype.mem y,
@@ -177,7 +177,7 @@ variables {p E}
 @[simp] lemma restrict_smul [fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑((restrict p E ϕ) • x) = ϕ x :=
 begin
-  let ψ := alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F p.splitting_field E),
+  let ψ := alg_equiv.of_injective_field (smul_assoc_class.to_alg_hom F p.splitting_field E),
   change ↑(ψ (ψ.symm _)) = ϕ x,
   rw alg_equiv.apply_symm_apply ψ,
   change ϕ (roots_equiv_roots p E ((roots_equiv_roots p E).symm x)) = ϕ x,
@@ -366,7 +366,7 @@ begin
     refine eq.symm (nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
     simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
     apply_instance },
-  have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
+  have inj : function.injective (smul_assoc_class.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
   rw [←finset.card_image_of_injective _ subtype.coe_injective,
       ←finset.card_image_of_injective _ inj],
   let a : finset ℂ := _,
@@ -382,7 +382,7 @@ begin
     { rintros ⟨w, hw, rfl⟩,
       exact ⟨by rw [aeval_alg_hom_apply, hw, alg_hom.map_zero], rfl⟩ },
     { rintros ⟨hz1, hz2⟩,
-      have key : is_scalar_tower.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
+      have key : smul_assoc_class.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
       exact ⟨z.re, inj (by rwa [←aeval_alg_hom_apply, key, alg_hom.map_zero]), key⟩ } },
   have hc0 : ∀ w : p.root_set ℂ, gal_action_hom p ℂ
     (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,

@@ -480,8 +480,8 @@ end
 section restrict_scalars
 
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
-variables [normed_space 𝕜' G] [is_scalar_tower 𝕜' 𝕜 G]
-variables [Π i, normed_space 𝕜' (E i)] [∀ i, is_scalar_tower 𝕜' 𝕜 (E i)]
+variables [normed_space 𝕜' G] [smul_assoc_class 𝕜' 𝕜 G]
+variables [Π i, normed_space 𝕜' (E i)] [∀ i, smul_assoc_class 𝕜' 𝕜 (E i)]
 
 @[simp] lemma norm_restrict_scalars : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
 by simp only [norm_def, coe_restrict_scalars]

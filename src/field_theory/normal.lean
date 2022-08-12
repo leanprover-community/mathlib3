@@ -26,7 +26,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical polynomial
 
-open polynomial is_scalar_tower
+open polynomial smul_assoc_class
 
 variables (F K : Type*) [field F] [field K] [algebra F K]
 
@@ -80,16 +80,16 @@ end
 
 section normal_tower
 
-variables (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
+variables (E : Type*) [field E] [algebra F E] [algebra K E] [smul_assoc_class F K E]
 
 lemma normal.tower_top_of_normal [h : normal F E] : normal K E :=
 normal_iff.2 $ λ x, begin
   cases h.out x with hx hhx,
   rw algebra_map_eq F K E at hhx,
-  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
+  exact ⟨is_integral_of_smul_assoc_class x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
     (polynomial.map_ne_zero (minpoly.ne_zero hx))
     ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
-    (minpoly.dvd_map_of_is_scalar_tower F K x)⟩,
+    (minpoly.dvd_map_of_smul_assoc_class F K x)⟩,
 end
 
 lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.bijective ϕ :=
@@ -97,10 +97,10 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
 { letI : algebra E K := ϕ.to_ring_hom.to_algebra,
   obtain ⟨h1, h2⟩ := h.out (algebra_map K E x),
   cases minpoly.mem_range_of_degree_eq_one E x (or.resolve_left h2 (minpoly.ne_zero h1)
-    (minpoly.irreducible (is_integral_of_is_scalar_tower x
+    (minpoly.irreducible (is_integral_of_smul_assoc_class x
       ((is_integral_algebra_map_iff (algebra_map K E).injective).mp h1)))
     (minpoly.dvd E x ((algebra_map K E).injective (by
-    { rw [ring_hom.map_zero, aeval_map, ←is_scalar_tower.to_alg_hom_apply F K E,
+    { rw [ring_hom.map_zero, aeval_map, ←smul_assoc_class.to_alg_hom_apply F K E,
           ←alg_hom.comp_apply, ←aeval_alg_hom],
       exact minpoly.aeval F (algebra_map K E x) })))) with y hy,
   exact ⟨y, hy⟩ }⟩
@@ -143,7 +143,7 @@ begin
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
   have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
   letI : algebra F D := ring_hom.to_algebra ((algebra_map E D).comp (algebra_map F E)),
-  haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
+  haveI : smul_assoc_class F E D := of_algebra_map_eq (λ _, rfl),
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   suffices : nonempty (D →ₐ[F] E),
   { cases this with ϕ,
@@ -160,8 +160,8 @@ begin
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
   letI : algebra C E := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F E) x (minpoly.aeval F x)),
-  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
-  haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
+  haveI : smul_assoc_class F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
+  haveI : smul_assoc_class F C E := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
   suffices : nonempty (D →ₐ[C] E),
   { exact nonempty.map (alg_hom.restrict_scalars F) this },
   let S : set D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
@@ -204,7 +204,7 @@ variables {F} {K} {K₁ K₂ K₃:Type*} [field K₁] [field K₂] [field K₃]
 section restrict
 
 variables (E : Type*) [field E] [algebra F E] [algebra E K₁] [algebra E K₂] [algebra E K₃]
-[is_scalar_tower F E K₁] [is_scalar_tower F E K₂] [is_scalar_tower F E K₃]
+[smul_assoc_class F E K₁] [smul_assoc_class F E K₂] [smul_assoc_class F E K₃]
 
 /-- Restrict algebra homomorphism to image of normal subfield -/
 def alg_hom.restrict_normal_aux [h : normal F E] :
@@ -216,7 +216,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
     exact or.resolve_left (h.splits z) (minpoly.ne_zero (h.is_integral z))
-      (minpoly.irreducible $ is_integral_of_is_scalar_tower _ $
+      (minpoly.irreducible $ is_integral_of_smul_assoc_class _ $
         is_integral_alg_hom ϕ $ is_integral_alg_hom _ $ h.is_integral z)
       (minpoly.dvd E _ $ by rw [aeval_map, aeval_alg_hom, aeval_alg_hom, alg_hom.comp_apply,
         alg_hom.comp_apply, minpoly.aeval, alg_hom.map_zero, alg_hom.map_zero]) }⟩,
@@ -228,9 +228,9 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
 
 /-- Restrict algebra homomorphism to normal subfield -/
 def alg_hom.restrict_normal [normal F E] : E →ₐ[F] E :=
-((alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K₂)).symm.to_alg_hom.comp
+((alg_equiv.of_injective_field (smul_assoc_class.to_alg_hom F E K₂)).symm.to_alg_hom.comp
   (ϕ.restrict_normal_aux E)).comp
-    (alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K₁)).to_alg_hom
+    (alg_equiv.of_injective_field (smul_assoc_class.to_alg_hom F E K₁)).to_alg_hom
 
 /-- Restrict algebra homomorphism to normal subfield (`alg_equiv` version) -/
 def alg_hom.restrict_normal' [normal F E] : E ≃ₐ[F] E :=
@@ -239,8 +239,8 @@ alg_equiv.of_bijective (alg_hom.restrict_normal ϕ E) (alg_hom.normal_bijective 
 @[simp] lemma alg_hom.restrict_normal_commutes [normal F E] (x : E) :
   algebra_map E K₂ (ϕ.restrict_normal E x) = ϕ (algebra_map E K₁ x) :=
 subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_equiv.of_injective_field
-  (is_scalar_tower.to_alg_hom F E K₂)) (ϕ.restrict_normal_aux E
-    ⟨is_scalar_tower.to_alg_hom F E K₁ x, x, rfl⟩))
+  (smul_assoc_class.to_alg_hom F E K₂)) (ϕ.restrict_normal_aux E
+    ⟨smul_assoc_class.to_alg_hom F E K₁ x, x, rfl⟩))
 
 lemma alg_hom.restrict_normal_comp [normal F E] :
   (ψ.restrict_normal E).comp (ϕ.restrict_normal E) = (ψ.comp ϕ).restrict_normal E :=
@@ -271,7 +271,7 @@ variables (F K₁ E)
  equivalence. -/
 @[simps] def normal.alg_hom_equiv_aut [normal F E] : (E →ₐ[F] K₁) ≃ (E ≃ₐ[F] E) :=
 { to_fun := λ σ, alg_hom.restrict_normal' σ E,
-  inv_fun := λ σ, (is_scalar_tower.to_alg_hom F E K₁).comp σ.to_alg_hom,
+  inv_fun := λ σ, (smul_assoc_class.to_alg_hom F E K₁).comp σ.to_alg_hom,
   left_inv := λ σ, begin
     ext,
     simp[alg_hom.restrict_normal'],
@@ -290,20 +290,20 @@ end restrict
 section lift
 
 variables {F} {K₁ K₂} (E : Type*) [field E] [algebra F E] [algebra K₁ E] [algebra K₂ E]
-[is_scalar_tower F K₁ E] [is_scalar_tower F K₂ E]
+[smul_assoc_class F K₁ E] [smul_assoc_class F K₂ E]
 
 /-- If `E/Kᵢ/F` are towers of fields with `E/F` normal then we can lift
   an algebra homomorphism `ϕ : K₁ →ₐ[F] K₂` to `ϕ.lift_normal E : E →ₐ[F] E`. -/
 noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
 @alg_hom.restrict_scalars F K₁ E E _ _ _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K₂ E).comp ϕ).to_ring_hom.to_algebra _ _ _ _ $ nonempty.some $
+  ((smul_assoc_class.to_alg_hom F K₂ E).comp ϕ).to_ring_hom.to_algebra _ _ _ _ $ nonempty.some $
   @intermediate_field.alg_hom_mk_adjoin_splits' _ _ _ _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K₂ E).comp ϕ).to_ring_hom.to_algebra _
+  ((smul_assoc_class.to_alg_hom F K₂ E).comp ϕ).to_ring_hom.to_algebra _
   (intermediate_field.adjoin_univ _ _)
-  (λ x hx, ⟨is_integral_of_is_scalar_tower x (h.out x).1,
+  (λ x hx, ⟨is_integral_of_smul_assoc_class x (h.out x).1,
     splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
-    (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
-    (minpoly.dvd_map_of_is_scalar_tower F K₁ x)⟩)
+    (by { rw [splits_map_iff, ←smul_assoc_class.algebra_map_eq], exact (h.out x).2 })
+    (minpoly.dvd_map_of_smul_assoc_class F K₁ x)⟩)
 
 @[simp] lemma alg_hom.lift_normal_commutes [normal F E] (x : K₁) :
   ϕ.lift_normal E (algebra_map K₁ E x) = algebra_map K₂ E (ϕ x) :=
@@ -334,7 +334,7 @@ lemma alg_equiv.restrict_normal_hom_surjective [normal F K₁] [normal F E] :
 
 variables (F) (K₁) (E)
 
-lemma is_solvable_of_is_scalar_tower [normal F K₁] [h1 : is_solvable (K₁ ≃ₐ[F] K₁)]
+lemma is_solvable_of_smul_assoc_class [normal F K₁] [h1 : is_solvable (K₁ ≃ₐ[F] K₁)]
   [h2 : is_solvable (E ≃ₐ[K₁] E)] : is_solvable (E ≃ₐ[F] E) :=
 begin
   let f : (E ≃ₐ[K₁] E) →* (E ≃ₐ[F] E) :=

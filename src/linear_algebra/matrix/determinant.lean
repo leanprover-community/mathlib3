@@ -246,7 +246,7 @@ calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_di
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
 
-@[simp] lemma det_smul_of_tower {α} [monoid α] [distrib_mul_action α R] [is_scalar_tower α R R]
+@[simp] lemma det_smul_of_tower {α} [monoid α] [distrib_mul_action α R] [smul_assoc_class α R R]
   [smul_comm_class α R R] (c : α) (A : matrix n n R) :
   det (c • A) = c ^ fintype.card n • det A :=
 by rw [←smul_one_smul R c A, det_smul, smul_pow, one_pow, smul_mul_assoc, one_mul]

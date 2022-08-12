@@ -53,7 +53,7 @@ def of : X → free_non_unital_non_assoc_algebra R X :=
 (monoid_algebra.of_magma R _) ∘ free_magma.of
 
 variables {A : Type w} [non_unital_non_assoc_semiring A]
-variables [module R A] [is_scalar_tower R A A] [smul_comm_class R A A]
+variables [module R A] [smul_assoc_class R A A] [smul_comm_class R A A]
 
 /-- The functor `X ↦ free_non_unital_non_assoc_algebra R X` from the category of types to the
 category of non-unital, non-associative algebras over `R` is adjoint to the forgetful functor in the

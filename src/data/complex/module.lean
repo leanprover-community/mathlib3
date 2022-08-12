@@ -58,8 +58,8 @@ end
 instance [has_smul R ℝ] [has_smul S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
 { smul_comm := λ r s x, by ext; simp [smul_re, smul_im, smul_comm] }
 
-instance [has_smul R S] [has_smul R ℝ] [has_smul S ℝ] [is_scalar_tower R S ℝ] :
-  is_scalar_tower R S ℂ :=
+instance [has_smul R S] [has_smul R ℝ] [has_smul S ℝ] [smul_assoc_class R S ℝ] :
+  smul_assoc_class R S ℂ :=
 { smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
 
 instance [has_smul R ℝ] [has_smul Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
@@ -165,8 +165,8 @@ instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : 
 restrict_scalars.module ℝ ℂ E
 
 instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E] :
-  is_scalar_tower ℝ ℂ E :=
-restrict_scalars.is_scalar_tower ℝ ℂ E
+  smul_assoc_class ℝ ℂ E :=
+restrict_scalars.smul_assoc_class ℝ ℂ E
 
 @[simp, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
   (x : ℝ) (y : E) :

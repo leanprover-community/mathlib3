@@ -26,7 +26,7 @@ Also provided are typeclasses for faithful and transitive actions, and typeclass
 interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
-* `is_scalar_tower M N α` (no additive version).
+* `smul_assoc_class M N α` (no additive version).
 * `is_central_scalar M α` (no additive version).
 
 ## Notation
@@ -195,20 +195,20 @@ determined by the additive actions of `M` on `N` and `N` on `α`. -/
 class vadd_assoc_class (M N α : Type*) [has_vadd M N] [has_vadd N α] [has_vadd M α] : Prop :=
 (vadd_assoc : ∀ (x : M) (y : N) (z : α), (x +ᵥ y) +ᵥ z = x +ᵥ (y +ᵥ z))
 
-/-- An instance of `is_scalar_tower M N α` states that the multiplicative
+/-- An instance of `smul_assoc_class M N α` states that the multiplicative
 action of `M` on `α` is determined by the multiplicative actions of `M` on `N`
 and `N` on `α`. -/
 @[to_additive]
-class is_scalar_tower (M N α : Type*) [has_smul M N] [has_smul N α] [has_smul M α] : Prop :=
+class smul_assoc_class (M N α : Type*) [has_smul M N] [has_smul N α] [has_smul M α] : Prop :=
 (smul_assoc : ∀ (x : M) (y : N) (z : α), (x • y) • z = x • (y • z))
 
 @[simp, to_additive] lemma smul_assoc {M N} [has_smul M N] [has_smul N α] [has_smul M α]
-  [is_scalar_tower M N α] (x : M) (y : N) (z : α) :
+  [smul_assoc_class M N α] (x : M) (y : N) (z : α) :
   (x • y) • z = x • y • z :=
-is_scalar_tower.smul_assoc x y z
+smul_assoc_class.smul_assoc x y z
 
 @[to_additive]
-instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
+instance semigroup.smul_assoc_class [semigroup α] : smul_assoc_class α α α := ⟨mul_assoc⟩
 
 /-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
 equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
@@ -235,16 +235,16 @@ instance smul_comm_class.op_right [has_smul M α] [has_smul N α] [has_smul Nᵐ
 ⟨λ m n a, by rw [←unop_smul_eq_smul n (m • a), ←unop_smul_eq_smul n a, smul_comm]⟩
 
 @[priority 50]
-instance is_scalar_tower.op_left
+instance smul_assoc_class.op_left
   [has_smul M α] [has_smul Mᵐᵒᵖ α] [is_central_scalar M α]
   [has_smul M N] [has_smul Mᵐᵒᵖ N] [is_central_scalar M N]
-  [has_smul N α] [is_scalar_tower M N α] : is_scalar_tower Mᵐᵒᵖ N α :=
+  [has_smul N α] [smul_assoc_class M N α] : smul_assoc_class Mᵐᵒᵖ N α :=
 ⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m n, smul_assoc]⟩
 
 @[priority 50]
-instance is_scalar_tower.op_right [has_smul M α] [has_smul M N]
+instance smul_assoc_class.op_right [has_smul M α] [has_smul M N]
   [has_smul N α] [has_smul Nᵐᵒᵖ α] [is_central_scalar N α]
-  [is_scalar_tower M N α] : is_scalar_tower M Nᵐᵒᵖ α :=
+  [smul_assoc_class M N α] : smul_assoc_class M Nᵐᵒᵖ α :=
 ⟨λ m n a, by rw [←unop_smul_eq_smul n a, ←unop_smul_eq_smul (m • n) a, mul_opposite.unop_smul,
                  smul_assoc]⟩
 
@@ -283,8 +283,8 @@ of scalar actions `N → α → β`.
 
 This cannot be an instance because it can cause infinite loops whenever the `has_smul` arguments
 are still metavariables."]
-lemma comp.is_scalar_tower [has_smul M β] [has_smul α β] [is_scalar_tower M α β] (g : N → M) :
-  (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
+lemma comp.smul_assoc_class [has_smul M β] [has_smul α β] [smul_assoc_class M α β] (g : N → M) :
+  (by haveI := comp α g; haveI := comp β g; exact smul_assoc_class N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
 
 /--
@@ -316,29 +316,29 @@ lemma mul_smul_comm [has_mul β] [has_smul α β] [smul_comm_class α β β] (s 
   x * (s • y) = s • (x * y) :=
 (smul_comm s x y).symm
 
-/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
+/-- Note that the `smul_assoc_class α β β` typeclass argument is usually satisfied by `algebra α β`.
 -/
 @[to_additive, nolint to_additive_doc]
-lemma smul_mul_assoc [has_mul β] [has_smul α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
+lemma smul_mul_assoc [has_mul β] [has_smul α β] [smul_assoc_class α β β] (r : α) (x y : β)  :
   (r • x) * y = r • (x * y) :=
 smul_assoc r x y
 
 @[to_additive]
 lemma smul_smul_smul_comm [has_smul α β] [has_smul α γ] [has_smul β δ] [has_smul α δ]
-  [has_smul γ δ] [is_scalar_tower α β δ] [is_scalar_tower α γ δ] [smul_comm_class β γ δ]
+  [has_smul γ δ] [smul_assoc_class α β δ] [smul_assoc_class α γ δ] [smul_comm_class β γ δ]
   (a : α) (b : β) (c : γ) (d : δ) : (a • b) • (c • d) = (a • c) • b • d :=
 by { rw [smul_assoc, smul_assoc, smul_comm b], apply_instance }
 
 variables [has_smul M α]
 
 @[to_additive]
-lemma commute.smul_right [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+lemma commute.smul_right [has_mul α] [smul_comm_class M α α] [smul_assoc_class M α α]
   {a b : α} (h : commute a b) (r : M) :
   commute a (r • b) :=
 (mul_smul_comm _ _ _).trans ((congr_arg _ h).trans $ (smul_mul_assoc _ _ _).symm)
 
 @[to_additive]
-lemma commute.smul_left [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+lemma commute.smul_left [has_mul α] [smul_comm_class M α α] [smul_assoc_class M α α]
   {a b : α} (h : commute a b) (r : M) :
   commute (r • a) b :=
 (h.symm.smul_right r).symm
@@ -428,16 +428,16 @@ instance monoid.to_mul_action : mul_action M M :=
 This is promoted to an `add_torsor` by `add_group_is_add_torsor`. -/
 add_decl_doc add_monoid.to_add_action
 
-@[to_additive] instance is_scalar_tower.left : is_scalar_tower M M α :=
+@[to_additive] instance smul_assoc_class.left : smul_assoc_class M M α :=
 ⟨λ x y z, mul_smul x y z⟩
 
 variables {M}
 
-/-- Note that the `is_scalar_tower M α α` and `smul_comm_class M α α` typeclass arguments are
+/-- Note that the `smul_assoc_class M α α` and `smul_comm_class M α α` typeclass arguments are
 usually satisfied by `algebra M α`. -/
 @[to_additive, nolint to_additive_doc]
 lemma smul_mul_smul [has_mul α] (r s : M) (x y : α)
-  [is_scalar_tower M α α] [smul_comm_class M α α] :
+  [smul_assoc_class M α α] [smul_comm_class M α α] :
   (r • x) * (s • y) = (r * s) • (x * y) :=
 by rw [smul_mul_assoc, mul_smul_comm, ← smul_assoc, smul_eq_mul]
 
@@ -484,12 +484,12 @@ end
 section compatible_scalar
 
 @[simp, to_additive] lemma smul_one_smul {M} (N) [monoid N] [has_smul M N] [mul_action N α]
-  [has_smul M α] [is_scalar_tower M N α] (x : M) (y : α) :
+  [has_smul M α] [smul_assoc_class M N α] (x : M) (y : α) :
   (x • (1 : N)) • y = x • y :=
 by rw [smul_assoc, one_smul]
 
 @[simp, to_additive] lemma smul_one_mul {M N} [mul_one_class N] [has_smul M N]
-  [is_scalar_tower M N N] (x : M) (y : N) : (x • 1) * y = x • y :=
+  [smul_assoc_class M N N] (x : M) (y : N) : (x • 1) * y = x • y :=
 by rw [smul_mul_assoc, one_mul]
 
 @[simp, to_additive] lemma mul_smul_one
@@ -498,9 +498,9 @@ by rw [smul_mul_assoc, one_mul]
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
 
 @[to_additive]
-lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_smul M N]
+lemma smul_assoc_class.of_smul_one_mul {M N} [monoid N] [has_smul M N]
   (h : ∀ (x : M) (y : N), (x • (1 : N)) * y = x • y) :
-  is_scalar_tower M N N :=
+  smul_assoc_class M N N :=
 ⟨λ x y z, by rw [← h, smul_eq_mul, mul_assoc, h, smul_eq_mul]⟩
 
 @[to_additive] lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_smul M N]

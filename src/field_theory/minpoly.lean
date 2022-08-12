@@ -313,20 +313,20 @@ begin
     simpa using hp }
 end
 
-lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field K] [comm_ring R]
-  [algebra A K] [algebra A R] [algebra K R] [is_scalar_tower A K R] (x : R) :
+lemma dvd_map_of_smul_assoc_class (A K : Type*) {R : Type*} [comm_ring A] [field K] [comm_ring R]
+  [algebra A K] [algebra A R] [algebra K R] [smul_assoc_class A K R] (x : R) :
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
-by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeval] }
+by { refine minpoly.dvd K x _, rw [← smul_assoc_class.aeval_apply, minpoly.aeval] }
 
 /-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
-lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
-  [algebra R K] [algebra K T] [algebra R T] [is_scalar_tower R K T]
-  [comm_semiring U] [algebra K U] [algebra R U] [is_scalar_tower R K U]
+lemma aeval_of_smul_assoc_class (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
+  [algebra R K] [algebra K T] [algebra R T] [smul_assoc_class R K T]
+  [comm_semiring U] [algebra K U] [algebra R U] [smul_assoc_class R K U]
   (x : T) (y : U)
   (hy : polynomial.aeval y (minpoly K x) = 0) : polynomial.aeval y (minpoly R x) = 0 :=
-by { rw is_scalar_tower.aeval_apply R K,
+by { rw smul_assoc_class.aeval_apply R K,
      exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U) y
-        (minpoly.dvd_map_of_is_scalar_tower R K x) hy }
+        (minpoly.dvd_map_of_smul_assoc_class R K x) hy }
 
 variables {A x}
 
@@ -357,13 +357,13 @@ since `is_integral R y` depends on y.
 -/
 lemma eq_of_algebra_map_eq {K S T : Type*} [field K] [comm_ring S] [comm_ring T]
   [algebra K S] [algebra K T] [algebra S T]
-  [is_scalar_tower K S T] (hST : function.injective (algebra_map S T))
+  [smul_assoc_class K S T] (hST : function.injective (algebra_map S T))
   {x : S} {y : T} (hx : is_integral K x) (h : y = algebra_map S T x) :
   minpoly K x = minpoly K y :=
 minpoly.unique _ _ (minpoly.monic hx)
-  (by rw [h, ← is_scalar_tower.algebra_map_aeval, minpoly.aeval, ring_hom.map_zero])
+  (by rw [h, ← smul_assoc_class.algebra_map_aeval, minpoly.aeval, ring_hom.map_zero])
   (λ q q_monic root_q, minpoly.min _ _ q_monic
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
+    (smul_assoc_class.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
       (h ▸ root_q : polynomial.aeval (algebra_map S T x) q = 0)))
 
 lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
@@ -391,7 +391,7 @@ section gcd_domain
 
 variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
   [field K] [comm_ring S] [is_domain S] [algebra R K] [is_fraction_ring R K] [algebra R S] [field L]
-  [algebra S L] [algebra K L] [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
+  [algebra S L] [algebra K L] [algebra R L] [smul_assoc_class R K L] [smul_assoc_class R S L]
   {s : S} (hs : is_integral R s)
 
 include hs
@@ -405,7 +405,7 @@ begin
   refine (eq_of_irreducible_of_monic _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
       (polynomial.monic.is_primitive (monic hs))).1 (irreducible hs) },
-   { rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
+   { rw [aeval_map, aeval_def, smul_assoc_class.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
       eval_map, ← aeval_def, aeval, map_zero] },
   { exact (monic hs).map _ }
 end
@@ -413,13 +413,13 @@ end
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. Compared to `minpoly.gcd_domain_eq_field_fractions`, this version is useful
 if the element is in a ring that is already a `K`-algebra. -/
-lemma gcd_domain_eq_field_fractions' [algebra K S] [is_scalar_tower R K S] :
+lemma gcd_domain_eq_field_fractions' [algebra K S] [smul_assoc_class R K S] :
   minpoly K s = (minpoly R s).map (algebra_map R K) :=
 begin
   let L := fraction_ring S,
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
-    (is_integral_of_is_scalar_tower _ hs) rfl
+    (is_integral_of_smul_assoc_class _ hs) rfl
 end
 
 variable [no_zero_smul_divisors R S]
@@ -440,7 +440,7 @@ begin
   have hy : is_integral R y := hs.algebra_map,
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine dvd _ _ _,
-  rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
+  rw [aeval_map, aeval_def, smul_assoc_class.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
     eval_map, ← aeval_def, aeval_prim_part_eq_zero hP hroot, map_zero]
 end
 

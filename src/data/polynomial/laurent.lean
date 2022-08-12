@@ -471,7 +471,7 @@ end degrees
 instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent
 
-instance (R : Type*) [semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
+instance (R : Type*) [semiring R] : smul_assoc_class R[X] R[X] R[T;T⁻¹] :=
 { smul_assoc := λ x y z, by simp only [has_smul.smul, has_smul.comp.smul, map_mul, mul_assoc] }
 
 end semiring

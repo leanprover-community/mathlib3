@@ -27,7 +27,7 @@ variables {R K L : Type*} [comm_ring R]
 variables [field K] [field L] [decidable_eq L]
 variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L]
-variables [algebra R L] [is_scalar_tower R K L]
+variables [algebra R L] [smul_assoc_class R K L]
 
 open_locale non_zero_divisors
 

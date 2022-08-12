@@ -191,10 +191,10 @@ instance zero_hom_class : zero_hom_class (quadratic_form R M) M R :=
 { map_zero := map_zero,
   ..quadratic_form.fun_like }
 
-lemma map_smul_of_tower [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
+lemma map_smul_of_tower [comm_semiring S] [algebra S R] [module S M] [smul_assoc_class S R M]
   (a : S) (x : M) :
   Q (a • x) = (a * a) • Q x :=
-by rw [←is_scalar_tower.algebra_map_smul R a x, map_smul, ←ring_hom.map_mul, algebra.smul_def]
+by rw [←smul_assoc_class.algebra_map_smul R a x, map_smul, ←ring_hom.map_mul, algebra.smul_def]
 
 end semiring
 
@@ -275,17 +275,17 @@ def polar_bilin : bilin_form R M :=
   bilin_add_right := λ x y z, by simp_rw [polar_comm _ x, polar_add_left Q],
   bilin_smul_right := λ r x y, by simp_rw [polar_comm _ x, polar_smul_left Q] }
 
-variables [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
+variables [comm_semiring S] [algebra S R] [module S M] [smul_assoc_class S R M]
 
 @[simp]
 lemma polar_smul_left_of_tower (a : S) (x y : M) :
   polar Q (a • x) y = a • polar Q x y :=
-by rw [←is_scalar_tower.algebra_map_smul R a x, polar_smul_left, algebra.smul_def]
+by rw [←smul_assoc_class.algebra_map_smul R a x, polar_smul_left, algebra.smul_def]
 
 @[simp]
 lemma polar_smul_right_of_tower (a : S) (x y : M) :
   polar Q x (a • y) = a • polar Q x y :=
-by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul_def]
+by rw [←smul_assoc_class.algebra_map_smul R a y, polar_smul_right, algebra.smul_def]
 
 /-- An alternative constructor to `quadratic_form.mk`, for rings where `polar` can be used. -/
 @[simps]
@@ -448,7 +448,7 @@ def comp (Q : quadratic_form R N) (f : M →ₗ[R] N) :
 /-- Compose a quadratic form with a linear function on the left. -/
 @[simps {simp_rhs := tt}]
 def _root_.linear_map.comp_quadratic_form {S : Type*}
-  [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
+  [comm_semiring S] [algebra S R] [module S M] [smul_assoc_class S R M]
   (f : R →ₗ[S] S) (Q : quadratic_form R M) :
   quadratic_form S M :=
 { to_fun := λ x, f (Q x),

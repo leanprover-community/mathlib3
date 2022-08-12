@@ -273,7 +273,7 @@ end
 variable {R}
 
 lemma pow_smul_mem_of_smul_subset_of_mem_adjoin
-  [comm_semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  [comm_semiring B] [algebra R B] [algebra A B] [smul_assoc_class R A B]
   (r : A) (s : set B) (B' : subalgebra R B) (hs : r • s ⊆ B') {x : B} (hx : x ∈ adjoin R s)
   (hr : algebra_map A B r ∈ B') :
   ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ B' :=
@@ -290,8 +290,8 @@ begin
   have : n ≥ n₁ a := le_trans (finset.le_sup ha) hn,
   dsimp only,
   rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul,
-    ← is_scalar_tower.algebra_map_smul A (l a) (a : B), smul_smul (r ^ n₁ a),
-    mul_comm, ← smul_smul, smul_def, map_pow, is_scalar_tower.algebra_map_smul],
+    ← smul_assoc_class.algebra_map_smul A (l a) (a : B), smul_smul (r ^ n₁ a),
+    mul_comm, ← smul_smul, smul_def, map_pow, smul_assoc_class.algebra_map_smul],
   apply subalgebra.mul_mem _ (subalgebra.pow_mem _ hr _) _,
   refine subalgebra.smul_mem _ _ _,
   change _ ∈ B'.to_submonoid,

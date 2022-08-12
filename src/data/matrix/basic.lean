@@ -155,8 +155,8 @@ function.nontrivial
 instance [has_smul R α] : has_smul R (matrix m n α) := pi.has_smul
 instance [has_smul R α] [has_smul S α] [smul_comm_class R S α] :
   smul_comm_class R S (matrix m n α) := pi.smul_comm_class
-instance [has_smul R S] [has_smul R α] [has_smul S α] [is_scalar_tower R S α] :
-  is_scalar_tower R S (matrix m n α) := pi.is_scalar_tower
+instance [has_smul R S] [has_smul R α] [has_smul S α] [smul_assoc_class R S α] :
+  smul_assoc_class R S (matrix m n α) := pi.smul_assoc_class
 instance [has_smul R α] [has_smul Rᵐᵒᵖ α] [is_central_scalar R α] :
   is_central_scalar R (matrix m n α) := pi.is_central_scalar
 instance [monoid R] [mul_action R α] :
@@ -516,7 +516,7 @@ end non_unital_non_assoc_ring
 section distrib_mul_action
 variables [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
 
-@[simp] lemma smul_dot_product [is_scalar_tower R α α] (x : R) (v w : m → α) :
+@[simp] lemma smul_dot_product [smul_assoc_class R α α] (x : R) (v w : m → α) :
   (x • v) ⬝ᵥ w = x • (v ⬝ᵥ w) :=
 by simp [dot_product, finset.smul_sum, smul_mul_assoc]
 
@@ -578,7 +578,7 @@ section add_comm_monoid
 
 variables [add_comm_monoid α] [has_mul α]
 
-@[simp] lemma smul_mul [fintype n] [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
+@[simp] lemma smul_mul [fintype n] [monoid R] [distrib_mul_action R α] [smul_assoc_class R α α]
   (a : R) (M : matrix m n α) (N : matrix n l α) :
   (a • M) ⬝ N = a • M ⬝ N :=
 by { ext, apply smul_dot_product }
@@ -660,8 +660,8 @@ protected lemma mul_sum [fintype m] (s : finset β) (f : β → matrix m n α)
 (add_monoid_hom_mul_left M : matrix m n α →+ _).map_sum f s
 
 /-- This instance enables use with `smul_mul_assoc`. -/
-instance semiring.is_scalar_tower [fintype n] [monoid R] [distrib_mul_action R α]
-  [is_scalar_tower R α α] : is_scalar_tower R (matrix n n α) (matrix n n α) :=
+instance semiring.smul_assoc_class [fintype n] [monoid R] [distrib_mul_action R α]
+  [smul_assoc_class R α α] : smul_assoc_class R (matrix n n α) (matrix n n α) :=
 ⟨λ r m n, matrix.smul_mul r m n⟩
 
 /-- This instance enables use with `mul_smul_comm`. -/
@@ -1156,7 +1156,7 @@ by { ext, simp [mul_vec] }
 @[simp] lemma vec_mul_zero [fintype m] (v : m → α) : vec_mul v (0 : matrix m n α) = 0 :=
 by { ext, simp [vec_mul] }
 
-lemma smul_mul_vec_assoc [fintype n] [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
+lemma smul_mul_vec_assoc [fintype n] [monoid R] [distrib_mul_action R α] [smul_assoc_class R α α]
   (a : R) (A : matrix m n α) (b : n → α) :
   (a • A).mul_vec b = a • (A.mul_vec b) :=
 by { ext, apply smul_dot_product, }
@@ -1178,7 +1178,7 @@ lemma add_vec_mul [fintype m] (A : matrix m n α) (x y : m → α) :
 by { ext, apply add_dot_product }
 
 lemma vec_mul_smul [fintype n] [monoid R] [non_unital_non_assoc_semiring S] [distrib_mul_action R S]
-  [is_scalar_tower R S S] (M : matrix n m S) (b : R) (v : n → S)  :
+  [smul_assoc_class R S S] (M : matrix n m S) (b : R) (v : n → S)  :
   M.vec_mul (b • v) = b • M.vec_mul v :=
 by { ext i, simp only [vec_mul, dot_product, finset.smul_sum, pi.smul_apply, smul_mul_assoc] }
 

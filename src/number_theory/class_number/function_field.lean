@@ -24,7 +24,7 @@ open_locale polynomial
 
 variables (Fq F : Type) [field Fq] [fintype Fq] [field F]
 variables [algebra Fq[X] F] [algebra (ratfunc Fq) F]
-variables [is_scalar_tower Fq[X] (ratfunc Fq) F]
+variables [smul_assoc_class Fq[X] (ratfunc Fq) F]
 variables [function_field Fq F] [is_separable (ratfunc Fq) F]
 
 open_locale classical

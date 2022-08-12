@@ -157,7 +157,7 @@ lemma smul_def {M : Type*} [mul_action ℝ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ) • x := rfl
 
 instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_smul M N]
-  [is_scalar_tower ℝ M N] : is_scalar_tower ℝ≥0 M N :=
+  [smul_assoc_class ℝ M N] : smul_assoc_class ℝ≥0 M N :=
 { smul_assoc := λ r, (smul_assoc (r : ℝ) : _)}
 
 instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_smul M N]

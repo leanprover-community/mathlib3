@@ -100,8 +100,8 @@ def comp_continuous_linear_map (p : formal_multilinear_series 𝕜 F G) (u : E �
   (p.comp_continuous_linear_map u) n v = p n (u ∘ v) := rfl
 
 variables (𝕜) [comm_ring 𝕜'] [has_smul 𝕜 𝕜']
-variables [module 𝕜' E] [has_continuous_const_smul 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
-variables [module 𝕜' F] [has_continuous_const_smul 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
+variables [module 𝕜' E] [has_continuous_const_smul 𝕜' E] [smul_assoc_class 𝕜 𝕜' E]
+variables [module 𝕜' F] [has_continuous_const_smul 𝕜' F] [smul_assoc_class 𝕜 𝕜' F]
 
 /-- Reinterpret a formal `𝕜'`-multilinear series as a formal `𝕜`-multilinear series. -/
 @[simp] protected def restrict_scalars (p : formal_multilinear_series 𝕜' E F) :

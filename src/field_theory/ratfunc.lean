@@ -378,7 +378,7 @@ end
 
 include hdomain
 variables [monoid R] [distrib_mul_action R K[X]]
-variables [htower : is_scalar_tower R K[X] K[X]]
+variables [htower : smul_assoc_class R K[X] K[X]]
 include htower
 
 lemma mk_smul (c : R) (p q : K[X]) :
@@ -390,7 +390,7 @@ begin
          ←localization.smul_mk, ←of_fraction_ring_smul] }
 end
 
-instance : is_scalar_tower R K[X] (ratfunc K) :=
+instance : smul_assoc_class R K[X] (ratfunc K) :=
 ⟨λ c p q, q.induction_on' (λ q r _, by rw [← mk_smul, smul_assoc, mk_smul, mk_smul])⟩
 
 end has_smul
@@ -686,7 +686,7 @@ by rw [← mk_one, mk_one']
 by simp only [mk_eq_div', of_fraction_ring_div, of_fraction_ring_algebra_map]
 
 @[simp] lemma div_smul {R} [monoid R] [distrib_mul_action R K[X]]
-  [is_scalar_tower R K[X] K[X]] (c : R) (p q : K[X]) :
+  [smul_assoc_class R K[X] K[X]] (c : R) (p q : K[X]) :
   algebra_map _ (ratfunc K) (c • p) / (algebra_map _ _ q) =
     c • (algebra_map _ _ p / algebra_map _ _ q) :=
 by rw [←mk_eq_div, mk_smul, mk_eq_div]
@@ -1230,7 +1230,7 @@ variables (f a)
 @[simp] lemma eval_one : eval f a 1 = 1 := by simp [eval]
 @[simp] lemma eval_algebra_map {S : Type*} [comm_semiring S] [algebra S K[X]] (p : S) :
   eval f a (algebra_map _ _ p) = (algebra_map _ K[X] p).eval₂ f a :=
-by simp [eval, is_scalar_tower.algebra_map_apply S K[X] (ratfunc K)]
+by simp [eval, smul_assoc_class.algebra_map_apply S K[X] (ratfunc K)]
 
 /-- `eval` is an additive homomorphism except when a denominator evaluates to `0`.
 
@@ -1429,7 +1429,7 @@ begin
       algebra.of_id_apply]
 end
 
-instance : is_scalar_tower F[X] (ratfunc F) (laurent_series F) :=
+instance : smul_assoc_class F[X] (ratfunc F) (laurent_series F) :=
 ⟨λ x y z, by { ext, simp }⟩
 
 end laurent_series

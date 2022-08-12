@@ -12,7 +12,7 @@ import algebra.hom.non_unital_alg
 # Unitization of a non-unital algebra
 
 Given a non-unital `R`-algebra `A` (given via the type classes
-`[non_unital_ring A] [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]`) we construct
+`[non_unital_ring A] [module R A] [smul_comm_class R A A] [smul_assoc_class R A A]`) we construct
 the minimal unital `R`-algebra containing `A` as an ideal. This object `algebra.unitization R A` is
 a type synonym for `R × A` on which we place a different multiplicative structure, namely,
 `(r₁, a₁) * (r₂, a₂) = (r₁ * r₂, r₁ • a₂ + r₂ • a₁ + a₁ * a₂)` where the multiplicative identity
@@ -141,8 +141,8 @@ instance [has_smul S R] [has_smul S A] : has_smul S (unitization R A) :=
 prod.has_smul
 
 instance [has_smul T R] [has_smul T A] [has_smul S R] [has_smul S A] [has_smul T S]
-  [is_scalar_tower T S R] [is_scalar_tower T S A] : is_scalar_tower T S (unitization R A) :=
-prod.is_scalar_tower
+  [smul_assoc_class T S R] [smul_assoc_class T S A] : smul_assoc_class T S (unitization R A) :=
+prod.smul_assoc_class
 
 instance [has_smul T R] [has_smul T A] [has_smul S R] [has_smul S A]
   [smul_comm_class T S R] [smul_comm_class T S A] : smul_comm_class T S (unitization R A) :=
@@ -332,7 +332,7 @@ instance [semiring R] [non_unital_non_assoc_semiring A] [module R A] :
   .. unitization.mul_one_class,
   .. unitization.add_comm_monoid }
 
-instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [is_scalar_tower R A A]
+instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [smul_assoc_class R A A]
   [smul_comm_class R A A] : monoid (unitization R A) :=
 { mul_assoc := λ x y z, ext (mul_assoc x.1 y.1 z.1) $
     show (x.1 * y.1) • z.2 + z.1 • (x.1 • y.2 + y.1 • x.2 + x.2 * y.2) +
@@ -346,20 +346,20 @@ instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [is_sc
   ..unitization.mul_one_class }
 
 -- This should work for `non_unital_comm_semiring`s, but we don't seem to have those
-instance [comm_monoid R] [comm_semiring A] [distrib_mul_action R A] [is_scalar_tower R A A]
+instance [comm_monoid R] [comm_semiring A] [distrib_mul_action R A] [smul_assoc_class R A A]
   [smul_comm_class R A A] : comm_monoid (unitization R A) :=
 { mul_comm := λ x₁ x₂, ext (mul_comm x₁.1 x₂.1) $
     show x₁.1 • x₂.2 + x₂.1 • x₁.2 + x₁.2 * x₂.2 = x₂.1 • x₁.2 + x₁.1 • x₂.2 + x₂.2 * x₁.2,
     by rw [add_comm (x₁.1 • x₂.2), mul_comm],
   ..unitization.monoid }
 
-instance [comm_semiring R] [non_unital_semiring A] [module R A] [is_scalar_tower R A A]
+instance [comm_semiring R] [non_unital_semiring A] [module R A] [smul_assoc_class R A A]
   [smul_comm_class R A A] : semiring (unitization R A) :=
 { ..unitization.monoid,
   ..unitization.non_assoc_semiring }
 
 -- This should work for `non_unital_comm_semiring`s, but we don't seem to have those
-instance [comm_semiring R] [comm_semiring A] [module R A] [is_scalar_tower R A A]
+instance [comm_semiring R] [comm_semiring A] [module R A] [smul_assoc_class R A A]
   [smul_comm_class R A A] : comm_semiring (unitization R A) :=
 { ..unitization.comm_monoid,
   ..unitization.non_assoc_semiring }
@@ -410,7 +410,7 @@ instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A]
 { star_smul := λ r x, ext (by simp) (by simp) }
 
 instance [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
-  [module R A] [is_scalar_tower R A A] [smul_comm_class R A A] [star_module R A] :
+  [module R A] [smul_assoc_class R A A] [smul_comm_class R A A] [star_module R A] :
   star_ring (unitization R A) :=
 { star_mul := λ x y, ext (by simp [star_mul])
     (by simp [star_mul, add_comm (star x.fst • star y.snd)]),
@@ -423,8 +423,8 @@ end star
 section algebra
 variables (S R A : Type*)
 [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
-[module R A] [is_scalar_tower R A A] [smul_comm_class R A A]
-[algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
+[module R A] [smul_assoc_class R A A] [smul_comm_class R A A]
+[algebra S R] [distrib_mul_action S A] [smul_assoc_class S R A]
 
 instance algebra : algebra S (unitization R A) :=
 { commutes' := λ r x,
@@ -480,9 +480,9 @@ section alg_hom
 
 variables {S R A : Type*}
   [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+  [module R A] [smul_comm_class R A A] [smul_assoc_class R A A]
   {B : Type*} [semiring B] [algebra S B]
-  [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
+  [algebra S R] [distrib_mul_action S A] [smul_assoc_class S R A]
   {C : Type*} [ring C] [algebra R C]
 
 lemma alg_hom_ext {φ ψ : unitization R A →ₐ[S] B} (h : ∀ a : A, φ a = ψ a)

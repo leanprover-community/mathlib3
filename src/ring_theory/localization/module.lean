@@ -33,7 +33,7 @@ variables (S : submonoid R) [hT : is_localization S Rₛ]
 include hT
 
 section add_comm_monoid
-variables {M : Type*} [add_comm_monoid M] [module R M] [module Rₛ M] [is_scalar_tower R Rₛ M]
+variables {M : Type*} [add_comm_monoid M] [module R M] [module Rₛ M] [smul_assoc_class R Rₛ M]
 
 lemma linear_independent.localization {ι : Type*} {b : ι → M} (hli : linear_independent R b) :
   linear_independent Rₛ b :=
@@ -46,7 +46,7 @@ begin
   { rw [← @smul_zero _ M _ _ _ (a : R), ← hg, finset.smul_sum],
     refine finset.sum_congr rfl (λ i hi, _),
     dsimp only,
-    rw [dif_pos hi, ← is_scalar_tower.algebra_map_smul Rₛ, hg' i hi, smul_assoc],
+    rw [dif_pos hi, ← smul_assoc_class.algebra_map_smul Rₛ, hg' i hi, smul_assoc],
     apply_instance },
   refine ((is_localization.map_units Rₛ a).mul_right_eq_zero).mp _,
   rw [← algebra.smul_def, ← map_zero (algebra_map R Rₛ), ← hli],
@@ -55,7 +55,7 @@ end
 end add_comm_monoid
 
 section add_comm_group
-variables {M : Type*} [add_comm_group M] [module R M] [module Rₛ M] [is_scalar_tower R Rₛ M]
+variables {M : Type*} [add_comm_group M] [module R M] [module Rₛ M] [smul_assoc_class R Rₛ M]
 
 /-- Promote a basis for `M` over `R` to a basis for `M` over the localization `Rₛ` -/
 noncomputable def basis.localization {ι : Type*} (b : basis ι R M) : basis ι Rₛ M :=
@@ -70,7 +70,7 @@ end localization
 section fraction_ring
 
 variables (R K : Type*) [comm_ring R] [field K] [algebra R K] [is_fraction_ring R K]
-variables {V : Type*} [add_comm_group V] [module R V] [module K V] [is_scalar_tower R K V]
+variables {V : Type*} [add_comm_group V] [module R V] [module K V] [smul_assoc_class R K V]
 
 lemma linear_independent.iff_fraction_ring {ι : Type*} {b : ι → V} :
   linear_independent R b ↔ linear_independent K b :=

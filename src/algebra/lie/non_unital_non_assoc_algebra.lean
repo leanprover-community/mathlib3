@@ -50,8 +50,8 @@ local attribute [instance] lie_ring.to_non_unital_non_assoc_semiring
 namespace lie_algebra
 
 /-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
-reinterpret the `smul_lie` law as an `is_scalar_tower`. -/
-instance is_scalar_tower : is_scalar_tower R L L := ⟨smul_lie⟩
+reinterpret the `smul_lie` law as an `smul_assoc_class`. -/
+instance smul_assoc_class : smul_assoc_class R L L := ⟨smul_lie⟩
 
 /-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
 reinterpret the `lie_smul` law as an `smul_comm_class`. -/

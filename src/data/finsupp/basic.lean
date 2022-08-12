@@ -2628,8 +2628,8 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
 instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action S M]
-  [has_smul R S] [is_scalar_tower R S M] :
-  is_scalar_tower R S (α →₀ M) :=
+  [has_smul R S] [smul_assoc_class R S M] :
+  smul_assoc_class R S (α →₀ M) :=
 { smul_assoc := λ r s a, ext $ λ _, smul_assoc _ _ _ }
 
 instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action S M]

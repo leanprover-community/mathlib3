@@ -267,7 +267,7 @@ The implementation uses minimal assumptions about the relationship between `R`, 
 The version where `K` is an `R`-algebra is `linear_independent.restrict_scalars_algebras`.
  -/
 lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [module K M]
-  [is_scalar_tower R K M]
+  [smul_assoc_class R K M]
   (hinj : function.injective (λ r : R, r • (1 : K))) (li : linear_independent K v) :
   linear_independent R v :=
 begin
@@ -477,7 +477,7 @@ by convert linear_independent.image_of_comp s f id hs
 
 lemma linear_independent.group_smul
   {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
-  [is_scalar_tower G R M] [smul_comm_class G R M] {v : ι → M} (hv : linear_independent R v)
+  [smul_assoc_class G R M] [smul_comm_class G R M] {v : ι → M} (hv : linear_independent R v)
   (w : ι → G) : linear_independent R (w • v) :=
 begin
   rw linear_independent_iff'' at hv ⊢,

@@ -328,7 +328,7 @@ lemma smul_apply (a : M) (f : linear_pmap R E F) (x : ((a • f).domain)) :
 instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
 
-instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
+instance [has_smul M N] [smul_assoc_class M N F] : smul_assoc_class M N (linear_pmap R E F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
 
 end smul

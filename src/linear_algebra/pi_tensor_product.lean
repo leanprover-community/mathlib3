@@ -145,7 +145,7 @@ lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
  quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R₁)
-  [has_smul R₁ R] [is_scalar_tower R₁ R R] [has_smul R₁ (s i)] [is_scalar_tower R₁ R (s i)] :
+  [has_smul R₁ R] [smul_assoc_class R₁ R R] [has_smul R₁ (s i)] [smul_assoc_class R₁ R (s i)] :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
 begin
   have h₁ : r • z = (r • (1 : R)) * z := by rw [smul_mul_assoc, one_mul],
@@ -238,8 +238,8 @@ instance smul_comm_class' [smul_comm_class R₁ R₂ R] : smul_comm_class R₁ R
   (λ xr xf, by simp only [smul_tprod_coeff', smul_comm])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
 
-instance is_scalar_tower' [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ R] :
-  is_scalar_tower R₁ R₂ (⨂[R] i, s i) :=
+instance smul_assoc_class' [has_smul R₁ R₂] [smul_assoc_class R₁ R₂ R] :
+  smul_assoc_class R₁ R₂ (⨂[R] i, s i) :=
 ⟨λ r' r'' x, pi_tensor_product.induction_on' x
   (λ xr xf, by simp only [smul_tprod_coeff', smul_assoc])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
@@ -261,7 +261,7 @@ instance module' [semiring R₁] [module R₁ R] [smul_comm_class R₁ R R] : mo
 -- shortcut instances
 instance : module R (⨂[R] i, s i) := pi_tensor_product.module'
 instance : smul_comm_class R R (⨂[R] i, s i) := pi_tensor_product.smul_comm_class'
-instance : is_scalar_tower R R (⨂[R] i, s i) := pi_tensor_product.is_scalar_tower'
+instance : smul_assoc_class R R (⨂[R] i, s i) := pi_tensor_product.smul_assoc_class'
 
 variables {R}
 

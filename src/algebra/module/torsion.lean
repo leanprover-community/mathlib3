@@ -412,9 +412,9 @@ def is_torsion_by_set.module : module (R ⧸ I) M :=
 @function.surjective.module_left _ _ _ _ _ _ _ hM.has_smul
   _ ideal.quotient.mk_surjective (is_torsion_by_set.mk_smul hM)
 
-instance is_torsion_by_set.is_scalar_tower {S : Type*} [has_smul S R] [has_smul S M]
-  [is_scalar_tower S R M] [is_scalar_tower S R R] :
-  @@is_scalar_tower S (R ⧸ I) M _ (is_torsion_by_set.module hM).to_has_smul _ :=
+instance is_torsion_by_set.smul_assoc_class {S : Type*} [has_smul S R] [has_smul S M]
+  [smul_assoc_class S R M] [smul_assoc_class S R R] :
+  @@smul_assoc_class S (R ⧸ I) M _ (is_torsion_by_set.module hM).to_has_smul _ :=
 { smul_assoc := λ b d x, quotient.induction_on' d $ λ c, (smul_assoc b c x : _) }
 
 omit hM
@@ -437,8 +437,8 @@ module.is_torsion_by_set.module $ torsion_by_set_is_torsion_by_set I
   ideal.quotient.mk I b • x = b • x := rfl
 
 instance (I : ideal R) {S : Type*} [has_smul S R] [has_smul S M]
-  [is_scalar_tower S R M] [is_scalar_tower S R R] :
-  is_scalar_tower S (R ⧸ I) (torsion_by_set R M I) :=
+  [smul_assoc_class S R M] [smul_assoc_class S R R] :
+  smul_assoc_class S (R ⧸ I) (torsion_by_set R M I) :=
 infer_instance
 
 /-- The `a`-torsion submodule as a `(R ⧸ R∙a)`-module. -/
@@ -450,8 +450,8 @@ module.is_torsion_by_set.module $
   ideal.quotient.mk (R ∙ a) b • x = b • x := rfl
 
 instance (a : R) {S : Type*} [has_smul S R] [has_smul S M]
-  [is_scalar_tower S R M] [is_scalar_tower S R R] :
-  is_scalar_tower S (R ⧸ R ∙ a) (torsion_by R M a) :=
+  [smul_assoc_class S R M] [smul_assoc_class S R R] :
+  smul_assoc_class S (R ⧸ R ∙ a) (torsion_by R M a) :=
 infer_instance
 
 end submodule

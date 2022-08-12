@@ -62,9 +62,9 @@ namespace algebra_tensor_module
 
 section semiring
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [module R M] [module A M] [smul_assoc_class R A M]
 variables [add_comm_monoid N] [module R N]
-variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
+variables [add_comm_monoid P] [module R P] [module A P] [smul_assoc_class R A P]
 
 lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
@@ -97,9 +97,9 @@ end semiring
 
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [module R M] [module A M] [smul_assoc_class R A M]
 variables [add_comm_monoid N] [module R N]
-variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
+variables [add_comm_monoid P] [module R P] [module A P] [smul_assoc_class R A P]
 
 /-- Heterobasic version of `tensor_product.lift`:
 
@@ -378,7 +378,7 @@ def include_left_ring_hom : A →+* A ⊗[R] B :=
   map_one' := rfl,
   map_mul' := by simp }
 
-variables {S : Type*} [comm_semiring S] [algebra R S] [algebra S A] [is_scalar_tower R S A]
+variables {S : Type*} [comm_semiring S] [algebra R S] [algebra S A] [smul_assoc_class R S A]
 
 instance left_algebra : algebra S (A ⊗[R] B) :=
 { commutes' := λ r x,
@@ -406,7 +406,7 @@ instance : algebra R (A ⊗[R] B) := infer_instance
 lemma algebra_map_apply (r : S) :
   (algebra_map S (A ⊗[R] B)) r = ((algebra_map S A) r) ⊗ₜ 1 := rfl
 
-instance : is_scalar_tower R S (A ⊗[R] B) := ⟨λ a b c, by simp⟩
+instance : smul_assoc_class R S (A ⊗[R] B) := ⟨λ a b c, by simp⟩
 
 variables {C : Type v₃} [semiring C] [algebra R C]
 
@@ -803,8 +803,8 @@ section
 
 variables {R A A' B S : Type*}
 variables [comm_semiring R] [comm_semiring A] [semiring A'] [semiring B] [comm_semiring S]
-variables [algebra R A] [algebra R A'] [algebra A A'] [is_scalar_tower R A A'] [algebra R B]
-variables [algebra R S] [algebra A S] [is_scalar_tower R A S]
+variables [algebra R A] [algebra R A'] [algebra A A'] [smul_assoc_class R A A'] [algebra R B]
+variables [algebra R S] [algebra A S] [smul_assoc_class R A S]
 
 /-- If `A`, `B` are `R`-algebras, `A'` is an `A`-algebra, then the product map of `f : A' →ₐ[A] S`
 and `g : B →ₐ[R] S` is an `A`-algebra homomorphism. -/

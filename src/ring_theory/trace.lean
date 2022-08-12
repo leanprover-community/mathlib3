@@ -127,7 +127,7 @@ begin
   { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
-lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
+lemma trace_trace_of_basis [algebra S T] [smul_assoc_class R S T]
   {ι κ : Type*} [fintype ι] [fintype κ]
   (b : basis ι R S) (c : basis κ S T) (x : T) :
   trace R S (trace S T x) = trace R T x :=
@@ -143,20 +143,20 @@ begin
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
 
-lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T]
+lemma trace_comp_trace_of_basis [algebra S T] [smul_assoc_class R S T]
   {ι κ : Type*} [fintype ι] [fintype κ]
   (b : basis ι R S) (c : basis κ S T) :
   (trace R S).comp ((trace S T).restrict_scalars R) = trace R T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace_of_basis b c] }
 
 @[simp]
-lemma trace_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
+lemma trace_trace [algebra K T] [algebra L T] [smul_assoc_class K L T]
   [finite_dimensional K L] [finite_dimensional L T] (x : T) :
   trace K L (trace L T x) = trace K T x :=
 trace_trace_of_basis (basis.of_vector_space K L) (basis.of_vector_space L T) x
 
 @[simp]
-lemma trace_comp_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
+lemma trace_comp_trace [algebra K T] [algebra L T] [smul_assoc_class K L T]
   [finite_dimensional K L] [finite_dimensional L T] :
   (trace K L).comp ((trace L T).restrict_scalars K) = trace K T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace] }
@@ -274,19 +274,19 @@ lemma trace_eq_sum_roots [finite_dimensional K L]
   algebra_map K F (algebra.trace K L x) =
     finrank K⟮x⟯ L • ((minpoly K x).map (algebra_map K _)).roots.sum :=
 by rw [trace_eq_trace_adjoin K x, algebra.smul_def, ring_hom.map_mul, ← algebra.smul_def,
-    intermediate_field.adjoin_simple.trace_gen_eq_sum_roots _ hF, is_scalar_tower.algebra_map_smul]
+    intermediate_field.adjoin_simple.trace_gen_eq_sum_roots _ hF, smul_assoc_class.algebra_map_smul]
 
 end eq_sum_roots
 
 variables {F : Type*} [field F]
-variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
+variables [algebra R L] [algebra L F] [algebra R F] [smul_assoc_class R L F]
 
 open polynomial
 
 lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
   _root_.is_integral R (algebra.trace L F x) :=
 begin
-  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : _root_.is_integral L x := is_integral_of_smul_assoc_class _ hx,
   rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
       trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,
@@ -294,14 +294,14 @@ begin
     rw mem_roots_map (minpoly.ne_zero hx') at hy,
     use [minpoly R x, minpoly.monic hx],
     rw ← aeval_def at ⊢ hy,
-    exact minpoly.aeval_of_is_scalar_tower R x y hy },
+    exact minpoly.aeval_of_smul_assoc_class R x y hy },
   { apply is_alg_closed.splits_codomain },
   { apply_instance }
 end
 
 section eq_sum_embeddings
 
-variables [algebra K F] [is_scalar_tower K L F]
+variables [algebra K F] [smul_assoc_class K L F]
 
 open algebra intermediate_field
 
@@ -343,7 +343,7 @@ begin
     rw alg_hom.card L F E },
   { intros σ,
     simp only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
-         is_scalar_tower.coe_to_alg_hom'] }
+         smul_assoc_class.coe_to_alg_hom'] }
 end
 
 lemma trace_eq_sum_embeddings [finite_dimensional K L] [is_separable K L]

@@ -86,7 +86,7 @@ algebra.algebra_map_eq_smul_one x
 lemma real_smul_eq_coe_mul (r : ℝ) (z : K) : r • z = (r : K) * z :=
 by rw [is_R_or_C.of_real_alg, ←smul_eq_mul, smul_assoc, smul_eq_mul, one_mul]
 
-lemma real_smul_eq_coe_smul [add_comm_group E] [module K E] [module ℝ E] [is_scalar_tower ℝ K E]
+lemma real_smul_eq_coe_smul [add_comm_group E] [module K E] [module ℝ E] [smul_assoc_class ℝ K E]
   (r : ℝ) (x : E) : r • x = (r : K) • x :=
 by rw [is_R_or_C.of_real_alg, smul_one_smul]
 

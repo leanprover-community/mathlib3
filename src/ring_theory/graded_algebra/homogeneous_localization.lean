@@ -184,7 +184,7 @@ instance : has_pow (num_denom_same_deg 𝒜 x) ℕ :=
   ((c ^ n).denom : A) = c.denom ^ n := rfl
 
 section has_smul
-variables {α : Type*} [has_smul α R] [has_smul α A] [is_scalar_tower α R A]
+variables {α : Type*} [has_smul α R] [has_smul α A] [smul_assoc_class α R A]
 
 instance : has_smul α (num_denom_same_deg 𝒜 x) :=
 { smul := λ m c, ⟨c.deg, m • c.num, c.denom, c.denom_not_mem⟩ }
@@ -250,8 +250,8 @@ instance has_pow : has_pow (homogeneous_localization 𝒜 x) ℕ :=
     end) : homogeneous_localization 𝒜 x → homogeneous_localization 𝒜 x) z }
 
 section has_smul
-variables {α : Type*} [has_smul α R] [has_smul α A] [is_scalar_tower α R A]
-variables [is_scalar_tower α A A]
+variables {α : Type*} [has_smul α R] [has_smul α A] [smul_assoc_class α R A]
+variables [smul_assoc_class α A A]
 
 instance : has_smul α (homogeneous_localization 𝒜 x) :=
 { smul := λ m, quotient.map' ((•) m)

@@ -813,7 +813,7 @@ lemma mk_multiset_sum (l : multiset R) (b : M) :
   mk l.sum b = (l.map $ λ a, mk a b).sum :=
 (mk_add_monoid_hom b).map_multiset_sum l
 
-instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [smul_assoc_class S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
   smul_add := λ s x y, localization.induction_on₂ x y $
@@ -821,11 +821,11 @@ instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
       by simp only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
                     mul_comm _ r₁, mul_comm _ r₂, smul_mul_assoc] }
 
-instance {S : Type*} [semiring S] [mul_semiring_action S R] [is_scalar_tower S R R] :
+instance {S : Type*} [semiring S] [mul_semiring_action S R] [smul_assoc_class S R R] :
   mul_semiring_action S (localization M) :=
 { ..localization.mul_distrib_mul_action }
 
-instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
+instance {S : Type*} [semiring S] [module S R] [smul_assoc_class S R R] :
   module S (localization M) :=
 { zero_smul := localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, zero_smul, mk_zero] },

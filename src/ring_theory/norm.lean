@@ -247,7 +247,7 @@ by rw [norm_eq_norm_adjoin K x, map_pow,
 
 variables (F) (E : Type*) [field E] [algebra K E]
 
-lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F] [is_alg_closed E]
+lemma prod_embeddings_eq_finrank_pow [algebra L F] [smul_assoc_class K L F] [is_alg_closed E]
   [is_separable K F] [finite_dimensional K F] (pb : power_basis K L) :
   ∏ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
   ((@@finset.univ (power_basis.alg_hom.fintype pb)).prod
@@ -266,7 +266,7 @@ begin
     rw alg_hom.card L F E },
   { intros σ,
     simp only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
-         is_scalar_tower.coe_to_alg_hom'] }
+         smul_assoc_class.coe_to_alg_hom'] }
 end
 
 variable (K)
@@ -299,18 +299,18 @@ begin
                ring_hom.id_apply] },
 end
 
-lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]
+lemma is_integral_norm [algebra S L] [algebra S K] [smul_assoc_class S K L]
   [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral S x) :
   _root_.is_integral S (norm K x) :=
 begin
-  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : _root_.is_integral K x := is_integral_of_smul_assoc_class _ hx,
   rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
       norm_eq_prod_roots],
   { refine (is_integral.multiset_prod (λ y hy, _)).pow _,
     rw mem_roots_map (minpoly.ne_zero hx') at hy,
     use [minpoly S x, minpoly.monic hx],
     rw ← aeval_def at ⊢ hy,
-    exact minpoly.aeval_of_is_scalar_tower S x y hy },
+    exact minpoly.aeval_of_smul_assoc_class S x y hy },
   { apply is_alg_closed.splits_codomain },
   { apply_instance }
 end

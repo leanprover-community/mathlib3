@@ -620,8 +620,8 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
 
 variables {𝕜' : Type*} [normed_field 𝕜']
 
-instance [Π i, normed_space 𝕜' (E i)] [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
-  is_scalar_tower 𝕜' 𝕜 (lp E p) :=
+instance [Π i, normed_space 𝕜' (E i)] [has_smul 𝕜' 𝕜] [Π i, smul_assoc_class 𝕜' 𝕜 (E i)] :
+  smul_assoc_class 𝕜' 𝕜 (lp E p) :=
 begin
   refine ⟨λ r c f, _⟩,
   ext1,
@@ -713,9 +713,9 @@ instance : non_unital_normed_ring (lp B ∞) :=
 
 -- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
 
-instance infty_is_scalar_tower {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
-  [Π i, is_scalar_tower 𝕜 (B i) (B i)] :
-  is_scalar_tower 𝕜 (lp B ∞) (lp B ∞) :=
+instance infty_smul_assoc_class {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+  [Π i, smul_assoc_class 𝕜 (B i) (B i)] :
+  smul_assoc_class 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_assoc r ⇑f ⇑g⟩
 
 instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]

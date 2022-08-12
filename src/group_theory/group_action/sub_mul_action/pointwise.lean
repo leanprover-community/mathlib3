@@ -39,7 +39,7 @@ lemma subset_coe_one : (1 : set M) ⊆ (1 : sub_mul_action R M) :=
 end has_one
 
 section has_mul
-variables [monoid R] [mul_action R M] [has_mul M] [is_scalar_tower R M M]
+variables [monoid R] [mul_action R M] [has_mul M] [smul_assoc_class R M M]
 
 instance : has_mul (sub_mul_action R M) :=
 { mul := λ p q, { carrier := set.image2 (*) p q,
@@ -54,7 +54,7 @@ set.mem_mul
 end has_mul
 
 section mul_one_class
-variables [monoid R] [mul_action R M] [mul_one_class M] [is_scalar_tower R M M]
+variables [monoid R] [mul_action R M] [mul_one_class M] [smul_assoc_class R M M]
   [smul_comm_class R M M]
 
 instance : mul_one_class (sub_mul_action R M) :=
@@ -82,7 +82,7 @@ instance : mul_one_class (sub_mul_action R M) :=
 end mul_one_class
 
 section semigroup
-variables [monoid R] [mul_action R M] [semigroup M] [is_scalar_tower R M M]
+variables [monoid R] [mul_action R M] [semigroup M] [smul_assoc_class R M M]
 
 instance : semigroup (sub_mul_action R M) :=
 { mul := (*),
@@ -91,7 +91,7 @@ instance : semigroup (sub_mul_action R M) :=
 end semigroup
 
 section monoid
-variables [monoid R] [mul_action R M] [monoid M] [is_scalar_tower R M M] [smul_comm_class R M M]
+variables [monoid R] [mul_action R M] [monoid M] [smul_assoc_class R M M] [smul_comm_class R M M]
 
 instance : monoid (sub_mul_action R M) :=
 { mul := (*),

@@ -137,7 +137,7 @@ variables (R R' M N)
 /--
 A typeclass for `has_smul` structures which can be moved across a tensor product.
 
-This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
+This typeclass is generated automatically from a `smul_assoc_class` instance, but exists so that
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
 
@@ -151,10 +151,10 @@ class compatible_smul [distrib_mul_action R' N] :=
 end
 
 /-- Note that this provides the default `compatible_smul R R M N` instance through
-`mul_action.is_scalar_tower.left`. -/
+`mul_action.smul_assoc_class.left`. -/
 @[priority 100]
-instance compatible_smul.is_scalar_tower
-  [has_smul R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
+instance compatible_smul.smul_assoc_class
+  [has_smul R' R] [smul_assoc_class R' R M] [distrib_mul_action R' N] [smul_assoc_class R' R N] :
   compatible_smul R R' M N :=
 ⟨λ r m n, begin
   conv_lhs {rw ← one_smul R m},
@@ -290,9 +290,9 @@ section
 variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
 variables [smul_comm_class R R'₂ M] [has_smul R'₂ R']
 
-/-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
-instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
-  is_scalar_tower R'₂ R' (M ⊗[R] N) :=
+/-- `smul_assoc_class R'₂ R' M` implies `smul_assoc_class R'₂ R' (M ⊗[R] N)` -/
+instance smul_assoc_class_left [smul_assoc_class R'₂ R' M] :
+  smul_assoc_class R'₂ R' (M ⊗[R] N) :=
 ⟨λ s r x, tensor_product.induction_on x
   (by simp)
   (λ m n, by rw [smul_tmul', smul_tmul', smul_tmul', smul_assoc])
@@ -301,9 +301,9 @@ instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
 variables [distrib_mul_action R'₂ N] [distrib_mul_action R' N]
 variables [compatible_smul R R'₂ M N] [compatible_smul R R' M N]
 
-/-- `is_scalar_tower R'₂ R' N` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
-instance is_scalar_tower_right [is_scalar_tower R'₂ R' N] :
-    is_scalar_tower R'₂ R' (M ⊗[R] N) :=
+/-- `smul_assoc_class R'₂ R' N` implies `smul_assoc_class R'₂ R' (M ⊗[R] N)` -/
+instance smul_assoc_class_right [smul_assoc_class R'₂ R' N] :
+    smul_assoc_class R'₂ R' (M ⊗[R] N) :=
 ⟨λ s r x, tensor_product.induction_on x
   (by simp)
   (λ m n, by rw [←tmul_smul, ←tmul_smul, ←tmul_smul, smul_assoc])
@@ -313,9 +313,9 @@ end
 
 /-- A short-cut instance for the common case, where the requirements for the `compatible_smul`
 instances are sufficient. -/
-instance is_scalar_tower [has_smul R' R] [is_scalar_tower R' R M] :
-  is_scalar_tower R' R (M ⊗[R] N) :=
-tensor_product.is_scalar_tower_left  -- or right
+instance smul_assoc_class [has_smul R' R] [smul_assoc_class R' R M] :
+  smul_assoc_class R' R (M ⊗[R] N) :=
+tensor_product.smul_assoc_class_left  -- or right
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
@@ -1026,7 +1026,7 @@ While the tensor product will automatically inherit a ℤ-module structure from
 we use a `ℤ-module` instance provided by `tensor_product.left_module`.
 
 When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
-`is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
+`smul_assoc_class`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
 instance compatible_smul.int : compatible_smul R ℤ M N :=

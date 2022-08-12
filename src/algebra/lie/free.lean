@@ -88,7 +88,7 @@ by simpa only [sub_eq_add_neg] using h.neg.add_left a
 lemma rel.sub_right {a b : lib R X} (c : lib R X) (h : rel R X a b) : rel R X (a - c) (b - c) :=
 by simpa only [sub_eq_add_neg] using h.add_right (-c)
 
-lemma rel.smul_of_tower {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+lemma rel.smul_of_tower {S : Type*} [monoid S] [distrib_mul_action S R] [smul_assoc_class S R R]
   (t : S) (a b : lib R X)
   (h : rel R X a b) : rel R X (t • a) (t • b) :=
 begin
@@ -104,12 +104,12 @@ def free_lie_algebra := quot (free_lie_algebra.rel R X)
 
 namespace free_lie_algebra
 
-instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [smul_assoc_class S R R] :
   has_smul S (free_lie_algebra R X) :=
 { smul := λ t, quot.map ((•) t) (rel.smul_of_tower t) }
 
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
-  [is_scalar_tower S R R] [is_central_scalar S R] :
+  [smul_assoc_class S R R] [is_central_scalar S R] :
   is_central_scalar S (free_lie_algebra R X) :=
 { op_smul_eq_smul := λ t, quot.ind $ by exact λ a, congr_arg (quot.mk _) (op_smul_eq_smul t a) }
 
@@ -136,7 +136,7 @@ instance : add_comm_group (free_lie_algebra R X) :=
 { ..free_lie_algebra.add_group R X,
   ..free_lie_algebra.add_comm_semigroup R X }
 
-instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
+instance {S : Type*} [semiring S] [module S R] [smul_assoc_class S R R] :
   module S (free_lie_algebra R X) :=
 function.surjective.module S ⟨quot.mk _, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) (λ _ _, rfl)
 

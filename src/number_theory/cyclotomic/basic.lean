@@ -106,7 +106,7 @@ algebra.eq_top_iff.2 (λ x, by simpa [adjoin_singleton_one]
 
 /-- Transitivity of cyclotomic extensions. -/
 lemma trans (C : Type w) [comm_ring C] [nontrivial C] [algebra A C] [algebra B C]
-  [is_scalar_tower A B C] [hS : is_cyclotomic_extension S A B]
+  [smul_assoc_class A B C] [hS : is_cyclotomic_extension S A B]
   [hT : is_cyclotomic_extension T B C] [no_zero_smul_divisors B C] :
   is_cyclotomic_extension (S ∪ T) A C :=
 begin
@@ -119,10 +119,10 @@ begin
   { refine adjoin_induction (((is_cyclotomic_extension_iff _ _ _).1 hT).2 x) (λ c ⟨n, hn⟩,
       subset_adjoin ⟨n, or.inr hn.1, hn.2⟩) (λ b, _) (λ x y hx hy, subalgebra.add_mem _ hx hy)
       (λ x y hx hy, subalgebra.mul_mem _ hx hy),
-    { let f := is_scalar_tower.to_alg_hom A B C,
+    { let f := smul_assoc_class.to_alg_hom A B C,
       have hb : f b ∈ (adjoin A { b : B | ∃ (a : ℕ+), a ∈ S ∧ b ^ (a : ℕ) = 1 }).map f :=
         ⟨b, ((is_cyclotomic_extension_iff _ _ _).1 hS).2 b, rfl⟩,
-      rw [is_scalar_tower.to_alg_hom_apply, ← adjoin_image] at hb,
+      rw [smul_assoc_class.to_alg_hom_apply, ← adjoin_image] at hb,
       refine adjoin_mono (λ y hy, _) hb,
       obtain ⟨b₁, ⟨⟨n, hn⟩, h₁⟩⟩ := hy,
       exact ⟨n, ⟨mem_union_left T hn.1, by rw [← h₁, ← alg_hom.map_pow, hn.2, alg_hom.map_one]⟩⟩ } }
@@ -493,8 +493,8 @@ subtype.val_injective
 instance : no_zero_smul_divisors (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 no_zero_smul_divisors.of_algebra_map_injective (adjoin_algebra_injective n A K)
 
-instance : is_scalar_tower A (cyclotomic_ring n A K) (cyclotomic_field n K) :=
-is_scalar_tower.subalgebra' _ _ _ _
+instance : smul_assoc_class A (cyclotomic_ring n A K) (cyclotomic_field n K) :=
+smul_assoc_class.subalgebra' _ _ _ _
 
 instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
   is_cyclotomic_extension {n} A (cyclotomic_ring n A K) :=
@@ -542,12 +542,12 @@ instance [ne_zero ((n : ℕ) : A)] :
       obtain ⟨⟨z, w⟩, hw⟩ := this k,
       refine ⟨⟨algebra_map A _ z, algebra_map A _ w, map_mem_non_zero_divisors _
         (algebra_base_injective n A K) w.2⟩, _⟩,
-      letI : is_scalar_tower A K (cyclotomic_field n K) :=
-        is_scalar_tower.of_algebra_map_eq (congr_fun rfl),
-      rw [set_like.coe_mk, ← is_scalar_tower.algebra_map_apply,
-        ← is_scalar_tower.algebra_map_apply, @is_scalar_tower.algebra_map_apply A K _ _ _ _ _
+      letI : smul_assoc_class A K (cyclotomic_field n K) :=
+        smul_assoc_class.of_algebra_map_eq (congr_fun rfl),
+      rw [set_like.coe_mk, ← smul_assoc_class.algebra_map_apply,
+        ← smul_assoc_class.algebra_map_apply, @smul_assoc_class.algebra_map_apply A K _ _ _ _ _
         (_root_.cyclotomic_field.algebra n K) _ _ w, ← ring_hom.map_mul, hw,
-        ← is_scalar_tower.algebra_map_apply] },
+        ← smul_assoc_class.algebra_map_apply] },
     { rintro y z ⟨a, ha⟩ ⟨b, hb⟩,
       refine ⟨⟨a.1 * b.2 + b.1 * a.2, a.2 * b.2, mul_mem_non_zero_divisors.2 ⟨a.2.2, b.2.2⟩⟩, _⟩,
       rw [set_like.coe_mk, ring_hom.map_mul, add_mul, ← mul_assoc, ha,

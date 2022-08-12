@@ -637,18 +637,18 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
 ⟨λ f g h, map₂_left_comm smul_comm⟩
 
 @[to_additive]
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
-  is_scalar_tower α β (filter γ) :=
+instance smul_assoc_class [has_smul α β] [has_smul α γ] [has_smul β γ] [smul_assoc_class α β γ] :
+  smul_assoc_class α β (filter γ) :=
 ⟨λ a b f, by simp only [←map_smul, map_map, smul_assoc]⟩
 
 @[to_additive]
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
-  is_scalar_tower α (filter β) (filter γ) :=
+instance smul_assoc_class' [has_smul α β] [has_smul α γ] [has_smul β γ] [smul_assoc_class α β γ] :
+  smul_assoc_class α (filter β) (filter γ) :=
 ⟨λ a f g, by { refine (map_map₂_distrib_left $ λ _ _, _).symm, exact (smul_assoc a _ _).symm }⟩
 
 @[to_additive]
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
-  is_scalar_tower (filter α) (filter β) (filter γ) :=
+instance smul_assoc_class'' [has_smul α β] [has_smul α γ] [has_smul β γ] [smul_assoc_class α β γ] :
+  smul_assoc_class (filter α) (filter β) (filter γ) :=
 ⟨λ f g h, map₂_assoc smul_assoc⟩
 
 instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :

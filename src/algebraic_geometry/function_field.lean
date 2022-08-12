@@ -102,11 +102,11 @@ begin
   exact X.presheaf.stalk_specializes ((generic_point_spec X.carrier).specializes trivial)
 end
 
-instance function_field_is_scalar_tower [irreducible_space X.carrier] (U : opens X.carrier) (x : U)
+instance function_field_smul_assoc_class [irreducible_space X.carrier] (U : opens X.carrier) (x : U)
   [nonempty U] :
-  is_scalar_tower (X.presheaf.obj $ op U) (X.presheaf.stalk x) X.function_field :=
+  smul_assoc_class (X.presheaf.obj $ op U) (X.presheaf.stalk x) X.function_field :=
 begin
-  apply is_scalar_tower.of_algebra_map_eq',
+  apply smul_assoc_class.of_algebra_map_eq',
   simp_rw [ring_hom.algebra_map_to_algebra],
   change _ = X.presheaf.germ x ≫ _,
   rw X.presheaf.germ_stalk_specializes,

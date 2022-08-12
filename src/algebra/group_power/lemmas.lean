@@ -81,7 +81,7 @@ begin
   exact is_unit_of_invertible x
 end
 
-lemma smul_pow [mul_action M N] [is_scalar_tower M N N] [smul_comm_class M N N]
+lemma smul_pow [mul_action M N] [smul_assoc_class M N N] [smul_comm_class M N N]
   (k : M) (x : N) (p : ℕ) :
   (k • x) ^ p = k ^ p • x ^ p :=
 begin
@@ -350,9 +350,9 @@ instance non_unital_non_assoc_semiring.nat_smul_comm_class [non_unital_non_assoc
   | (n + 1) := by simp_rw [succ_nsmul, smul_eq_mul, mul_add, ←smul_eq_mul, _match n]
   end⟩
 
-/-- Note that `add_comm_monoid.nat_is_scalar_tower` requires stronger assumptions on `R`. -/
-instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc_semiring R] :
-  is_scalar_tower ℕ R R :=
+/-- Note that `add_comm_monoid.nat_smul_assoc_class` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_semiring.nat_smul_assoc_class [non_unital_non_assoc_semiring R] :
+  smul_assoc_class ℕ R R :=
 ⟨λ n x y, match n with
   | 0 := by simp_rw [zero_nsmul, smul_eq_mul, zero_mul]
   | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
@@ -401,9 +401,9 @@ instance non_unital_non_assoc_ring.int_smul_comm_class [non_unital_non_assoc_rin
   | -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, smul_eq_mul, mul_neg, mul_smul_comm]
   end⟩
 
-/-- Note that `add_comm_group.int_is_scalar_tower` requires stronger assumptions on `R`. -/
-instance non_unital_non_assoc_ring.int_is_scalar_tower [non_unital_non_assoc_ring R] :
-  is_scalar_tower ℤ R R :=
+/-- Note that `add_comm_group.int_smul_assoc_class` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_ring.int_smul_assoc_class [non_unital_non_assoc_ring R] :
+  smul_assoc_class ℤ R R :=
 ⟨λ n x y, match n with
   | (n : ℕ) := by simp_rw [coe_nat_zsmul, smul_assoc]
   | -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, smul_eq_mul, neg_mul, smul_mul_assoc]

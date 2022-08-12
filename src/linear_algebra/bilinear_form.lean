@@ -267,7 +267,7 @@ end flip
 
 section to_lin'
 
-variables [algebra R₂ R] [module R₂ M] [is_scalar_tower R₂ R M]
+variables [algebra R₂ R] [module R₂ M] [smul_assoc_class R₂ R M]
 
 /-- Auxiliary definition to define `to_lin_hom`; see below. -/
 def to_lin_hom_aux₁ (A : bilin_form R M) (x : M) : M →ₗ[R] R :=
@@ -406,7 +406,7 @@ end equiv_lin
 
 namespace linear_map
 
-variables {R' : Type} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
+variables {R' : Type} [comm_semiring R'] [algebra R' R] [module R' M] [smul_assoc_class R' R M]
 
 /-- Apply a linear map on the output of a bilinear form. -/
 @[simps]

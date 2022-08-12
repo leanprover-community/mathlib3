@@ -36,7 +36,7 @@ lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring 
   begin
     rw ←char_p.cast_eq_zero_iff R p x,
     change algebra_map ℕ A x = 0 ↔ algebra_map ℕ R x = 0,
-    rw is_scalar_tower.algebra_map_apply ℕ R A x,
+    rw smul_assoc_class.algebra_map_apply ℕ R A x,
     refine iff.trans _ h.eq_iff,
     rw ring_hom.map_zero,
   end }
@@ -51,8 +51,8 @@ lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiri
 { cast_injective := λ x y hxy,
   begin
     change algebra_map ℕ A x = algebra_map ℕ A y at hxy,
-    rw is_scalar_tower.algebra_map_apply ℕ R A x at hxy,
-    rw is_scalar_tower.algebra_map_apply ℕ R A y at hxy,
+    rw smul_assoc_class.algebra_map_apply ℕ R A x at hxy,
+    rw smul_assoc_class.algebra_map_apply ℕ R A y at hxy,
     exact char_zero.cast_injective (h hxy),
   end }
 -- `char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)` does not work

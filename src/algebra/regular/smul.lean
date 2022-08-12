@@ -51,7 +51,7 @@ variables {M}
 
 section has_smul
 
-variables [has_smul R M] [has_smul R S] [has_smul S M] [is_scalar_tower R S M]
+variables [has_smul R M] [has_smul R S] [has_smul S M] [smul_assoc_class R S M]
 
 /-- The product of `M`-regular elements is `M`-regular. -/
 lemma smul (ra : is_smul_regular M a) (rs : is_smul_regular M s) :
@@ -77,21 +77,21 @@ lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
 lemma is_right_regular [has_mul R] {a : R} (h : is_smul_regular R (mul_opposite.op a)) :
   is_right_regular a := h
 
-lemma mul [has_mul R] [is_scalar_tower R R M]
+lemma mul [has_mul R] [smul_assoc_class R R M]
   (ra : is_smul_regular M a) (rb : is_smul_regular M b) : is_smul_regular M (a * b) :=
 ra.smul rb
 
-lemma of_mul [has_mul R] [is_scalar_tower R R M] (ab : is_smul_regular M (a * b)) :
+lemma of_mul [has_mul R] [smul_assoc_class R R M] (ab : is_smul_regular M (a * b)) :
   is_smul_regular M b :=
 by { rw ← smul_eq_mul at ab, exact ab.of_smul _ }
 
-@[simp] lemma mul_iff_right [has_mul R] [is_scalar_tower R R M] (ha : is_smul_regular M a) :
+@[simp] lemma mul_iff_right [has_mul R] [smul_assoc_class R R M] (ha : is_smul_regular M a) :
   is_smul_regular M (a * b) ↔ is_smul_regular M b :=
 ⟨of_mul, ha.mul⟩
 
 /-- Two elements `a` and `b` are `M`-regular if and only if both products `a * b` and `b * a`
 are `M`-regular. -/
-lemma mul_and_mul_iff [has_mul R] [is_scalar_tower R R M] :
+lemma mul_and_mul_iff [has_mul R] [smul_assoc_class R R M] :
   is_smul_regular M (a * b) ∧ is_smul_regular M (b * a) ↔
   is_smul_regular M a ∧ is_smul_regular M b :=
 begin
@@ -141,7 +141,7 @@ end monoid
 
 section monoid_smul
 
-variables [monoid S] [has_smul R M] [has_smul R S] [mul_action S M] [is_scalar_tower R S M]
+variables [monoid S] [has_smul R M] [has_smul R S] [mul_action S M] [smul_assoc_class R S M]
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
 lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
@@ -153,7 +153,7 @@ section monoid_with_zero
 
 variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M]
           [mul_action_with_zero R M] [mul_action_with_zero R S] [mul_action_with_zero S M]
-          [is_scalar_tower R S M]
+          [smul_assoc_class R S M]
 
 /-- The element `0` is `M`-regular if and only if `M` is trivial. -/
 protected lemma subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
@@ -183,7 +183,7 @@ end monoid_with_zero
 
 section comm_semigroup
 
-variables [comm_semigroup R] [has_smul R M] [is_scalar_tower R R M]
+variables [comm_semigroup R] [has_smul R M] [smul_assoc_class R R M]
 
 /-- A product is `M`-regular if and only if the factors are. -/
 lemma mul_iff : is_smul_regular M (a * b) ↔

@@ -166,7 +166,7 @@ end monoid_with_zero
 section group_with_zero
 variables {α β : Type*} [group_with_zero α] [group_with_zero β] [mul_action_with_zero α β]
 
-lemma smul_inv₀ [smul_comm_class α β β] [is_scalar_tower α β β] (c : α) (x : β) :
+lemma smul_inv₀ [smul_comm_class α β β] [smul_assoc_class α β β] (c : α) (x : β) :
   (c • x)⁻¹ = c⁻¹ • x⁻¹ :=
 begin
   obtain rfl | hc := eq_or_ne c 0,
@@ -182,7 +182,7 @@ end group_with_zero
 /-- Scalar multiplication as a monoid homomorphism with zero. -/
 @[simps]
 def smul_monoid_with_zero_hom {α β : Type*} [monoid_with_zero α] [mul_zero_one_class β]
-  [mul_action_with_zero α β] [is_scalar_tower α β β] [smul_comm_class α β β] :
+  [mul_action_with_zero α β] [smul_assoc_class α β β] [smul_comm_class α β β] :
   α × β →*₀ β :=
 { map_zero' := smul_zero' _ _,
   .. smul_monoid_hom }

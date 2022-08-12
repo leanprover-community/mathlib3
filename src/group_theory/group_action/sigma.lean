@@ -30,7 +30,7 @@ variables [Π i, has_smul M (α i)] [Π i, has_smul N (α i)] (a : M) (i : ι) (
 @[to_additive] lemma smul_def : a • x = x.map id (λ i, (•) a) := rfl
 @[simp, to_additive] lemma smul_mk : a • mk i b = ⟨i, a • b⟩ := rfl
 
-instance [has_smul M N] [Π i, is_scalar_tower M N (α i)] : is_scalar_tower M N (Σ i, α i) :=
+instance [has_smul M N] [Π i, smul_assoc_class M N (α i)] : smul_assoc_class M N (Σ i, α i) :=
 ⟨λ a b x, by { cases x, rw [smul_mk, smul_mk, smul_mk, smul_assoc] }⟩
 
 @[to_additive] instance [Π i, smul_comm_class M N (α i)] : smul_comm_class M N (Σ i, α i) :=

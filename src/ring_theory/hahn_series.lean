@@ -420,8 +420,8 @@ instance : distrib_mul_action R (hahn_series Γ V) :=
 
 variables {S : Type*} [monoid S] [distrib_mul_action S V]
 
-instance [has_smul R S] [is_scalar_tower R S V] :
-  is_scalar_tower R S (hahn_series Γ V) :=
+instance [has_smul R S] [smul_assoc_class R S V] :
+  smul_assoc_class R S (hahn_series Γ V) :=
 ⟨λ r s a, by { ext, simp }⟩
 
 instance [smul_comm_class R S V] :

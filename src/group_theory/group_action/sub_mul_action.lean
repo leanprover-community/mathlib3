@@ -20,8 +20,8 @@ For most uses, typically `submodule R M` is more powerful.
 
 * `sub_mul_action.mul_action` - the `mul_action R M` transferred to the subtype.
 * `sub_mul_action.mul_action'` - the `mul_action S M` transferred to the subtype when
-  `is_scalar_tower S R M`.
-* `sub_mul_action.is_scalar_tower` - the `is_scalar_tower S R M` transferred to the subtype.
+  `smul_assoc_class S R M`.
+* `sub_mul_action.smul_assoc_class` - the `smul_assoc_class S R M` transferred to the subtype.
 
 ## Tags
 
@@ -105,7 +105,7 @@ section mul_action_monoid
 variables [monoid R] [mul_action R M]
 
 section
-variables [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
+variables [has_smul S R] [has_smul S M] [smul_assoc_class S R M]
 variables (p : sub_mul_action R M)
 
 lemma smul_of_tower_mem (s : S) {x : M} (h : x ∈ p) : s • x ∈ p :=
@@ -114,17 +114,17 @@ by { rw [←one_smul R x, ←smul_assoc], exact p.smul_mem _ h }
 instance has_smul' : has_smul S p :=
 { smul := λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩ }
 
-instance : is_scalar_tower S R p :=
+instance : smul_assoc_class S R p :=
 { smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }
 
 @[simp, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl
 
 @[simp] lemma smul_mem_iff' {G} [group G] [has_smul G R] [mul_action G M]
-  [is_scalar_tower G R M] (g : G) {x : M} :
+  [smul_assoc_class G R M] (g : G) {x : M} :
   g • x ∈ p ↔ x ∈ p :=
 ⟨λ h, inv_smul_smul g x ▸ p.smul_of_tower_mem g⁻¹ h, p.smul_of_tower_mem g⟩
 
-instance [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+instance [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M] [smul_assoc_class Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S p :=
 { op_smul_eq_smul := λ r x, subtype.ext $ op_smul_eq_smul r x }
 
@@ -132,7 +132,7 @@ end
 
 section
 
-variables [monoid S] [has_smul S R] [mul_action S M] [is_scalar_tower S R M]
+variables [monoid S] [has_smul S R] [mul_action S M] [smul_assoc_class S R M]
 variables (p : sub_mul_action R M)
 
 /-- If the scalar product forms a `mul_action`, then the subset inherits this action -/
@@ -220,7 +220,7 @@ end sub_mul_action
 namespace sub_mul_action
 
 variables [group_with_zero S] [monoid R] [mul_action R M]
-variables [has_smul S R] [mul_action S M] [is_scalar_tower S R M]
+variables [has_smul S R] [mul_action S M] [smul_assoc_class S R M]
 variables (p : sub_mul_action R M) {s : S} {x y : M}
 
 theorem smul_mem_iff (s0 : s ≠ 0) : s • x ∈ p ↔ x ∈ p :=

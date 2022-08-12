@@ -27,7 +27,7 @@ This file defines a function field and the ring of integers corresponding to it.
 ## Implementation notes
 The definitions that involve a field of fractions choose a canonical field of fractions,
 but are independent of that choice. We also omit assumptions like `finite Fq` or
-`is_scalar_tower Fq[X] (fraction_ring Fq[X]) F` in definitions,
+`smul_assoc_class Fq[X] (fraction_ring Fq[X]) F` in definitions,
 adding them back in lemmas when they are needed.
 
 ## References
@@ -56,8 +56,8 @@ finite_dimensional (ratfunc Fq) F
 protected lemma function_field_iff (Fqt : Type*) [field Fqt]
   [algebra Fq[X] Fqt] [is_fraction_ring Fq[X] Fqt]
   [algebra (ratfunc Fq) F] [algebra Fqt F]
-  [algebra Fq[X] F] [is_scalar_tower Fq[X] Fqt F]
-  [is_scalar_tower Fq[X] (ratfunc Fq) F] :
+  [algebra Fq[X] F] [smul_assoc_class Fq[X] Fqt F]
+  [smul_assoc_class Fq[X] (ratfunc Fq) F] :
   function_field Fq F ↔ finite_dimensional Fqt F :=
 begin
   let e := is_localization.alg_equiv Fq[X]⁰ (ratfunc Fq) Fqt,
@@ -68,7 +68,7 @@ begin
     refine congr_fun _ c,
     refine is_localization.ext (non_zero_divisors (Fq[X])) _ _ _ _ _ _ _;
       intros; simp only [alg_equiv.map_one, ring_hom.map_one, alg_equiv.map_mul, ring_hom.map_mul,
-                         alg_equiv.commutes, ← is_scalar_tower.algebra_map_apply], },
+                         alg_equiv.commutes, ← smul_assoc_class.algebra_map_apply], },
   split; intro h; resetI,
   { let b := finite_dimensional.fin_basis (ratfunc Fq) F,
     exact finite_dimensional.of_fintype_basis (b.map_coeffs e this) },
@@ -78,9 +78,9 @@ begin
 end
 
 lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F]
-  [is_scalar_tower Fq[X] (ratfunc Fq) F] : function.injective ⇑(algebra_map Fq[X] F) :=
+  [smul_assoc_class Fq[X] (ratfunc Fq) F] : function.injective ⇑(algebra_map Fq[X] F) :=
 begin
-  rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+  rw smul_assoc_class.algebra_map_eq Fq[X] (ratfunc Fq) F,
   exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
     (is_fraction_ring.injective Fq[X] (ratfunc Fq)),
 end
@@ -105,13 +105,13 @@ instance : is_domain (ring_of_integers Fq F) :=
 instance : is_integral_closure (ring_of_integers Fq F) Fq[X] F :=
 integral_closure.is_integral_closure _ _
 
-variables [algebra (ratfunc Fq) F] [is_scalar_tower Fq[X] (ratfunc Fq) F]
+variables [algebra (ratfunc Fq) F] [smul_assoc_class Fq[X] (ratfunc Fq) F]
 
 lemma algebra_map_injective :
   function.injective ⇑(algebra_map Fq[X] (ring_of_integers Fq F)) :=
 begin
   have hinj : function.injective ⇑(algebra_map Fq[X] F),
-  { rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+  { rw smul_assoc_class.algebra_map_eq Fq[X] (ratfunc Fq) F,
     exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
       (is_fraction_ring.injective Fq[X] (ratfunc Fq)), },
   rw injective_iff_map_eq_zero (algebra_map Fq[X] ↥(ring_of_integers Fq F)),

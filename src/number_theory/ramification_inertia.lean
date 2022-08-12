@@ -197,7 +197,7 @@ begin
 end
 
 @[simp] lemma inertia_deg_algebra_map [algebra R S] [algebra (R ⧸ p) (S ⧸ P)]
-  [is_scalar_tower R (R ⧸ p) (S ⧸ P)]
+  [smul_assoc_class R (R ⧸ p) (S ⧸ P)]
   [hp : p.is_maximal] :
   inertia_deg (algebra_map R S) p P = finrank (R ⧸ p) (S ⧸ P) :=
 begin
@@ -208,8 +208,8 @@ begin
   refine algebra.algebra_ext _ _ (λ x', quotient.induction_on' x' $ λ x, _),
   change ideal.quotient.lift p _ _ (ideal.quotient.mk p x) =
     algebra_map _ _ (ideal.quotient.mk p x),
-  rw [ideal.quotient.lift_mk, ← ideal.quotient.algebra_map_eq, ← is_scalar_tower.algebra_map_eq,
-      ← ideal.quotient.algebra_map_eq, ← is_scalar_tower.algebra_map_apply]
+  rw [ideal.quotient.lift_mk, ← ideal.quotient.algebra_map_eq, ← smul_assoc_class.algebra_map_eq,
+      ← ideal.quotient.algebra_map_eq, ← smul_assoc_class.algebra_map_apply]
 end
 
 end dec_eq
@@ -223,8 +223,8 @@ variables [algebra R S]
 variables {K : Type*} [field K] [algebra R K] [hRK : is_fraction_ring R K]
 variables {L : Type*} [field L] [algebra S L] [is_fraction_ring S L]
 variables {V V' V'' : Type*}
-variables [add_comm_group V] [module R V] [module K V] [is_scalar_tower R K V]
-variables [add_comm_group V'] [module R V'] [module S V'] [is_scalar_tower R S V']
+variables [add_comm_group V] [module R V] [module K V] [smul_assoc_class R K V]
+variables [add_comm_group V'] [module R V'] [module S V'] [smul_assoc_class R S V']
 variables [add_comm_group V''] [module R V'']
 
 variables (K)
@@ -266,10 +266,10 @@ begin
   have eq : f (∑ i in s, g' i • (b i)) = 0,
   { rw [linear_map.map_sum, ← smul_zero a, ← eq, finset.smul_sum, finset.sum_congr rfl],
     intros i hi,
-    rw [linear_map.map_smul, ← is_scalar_tower.algebra_map_smul K, hg' i hi, ← smul_assoc,
+    rw [linear_map.map_smul, ← smul_assoc_class.algebra_map_smul K, hg' i hi, ← smul_assoc,
         smul_eq_mul],
     apply_instance },
-  simp only [is_scalar_tower.algebra_map_smul, ← linear_map.map_smul, ← linear_map.map_sum,
+  simp only [smul_assoc_class.algebra_map_smul, ← linear_map.map_smul, ← linear_map.map_sum,
           (f.map_eq_zero_iff hf).mp eq, linear_map.map_zero],
 end
 
@@ -288,14 +288,14 @@ Here,
 More precisely, we avoid quotients in this statement and instead require that `b ∪ pS` spans `S`.
 -/
 lemma finrank_quotient_map.span_eq_top [is_domain R] [is_domain S] [algebra K L] [is_noetherian R S]
-  [algebra R L] [is_scalar_tower R S L] [is_scalar_tower R K L] [is_integral_closure S R L]
+  [algebra R L] [smul_assoc_class R S L] [smul_assoc_class R K L] [is_integral_closure S R L]
   [no_zero_smul_divisors R K]
   (hp : p ≠ ⊤)
   (b : set S) (hb' : submodule.span R b ⊔ (p.map (algebra_map R S)).restrict_scalars R = ⊤) :
   submodule.span K (algebra_map S L '' b) = ⊤ :=
 begin
   have hRL : function.injective (algebra_map R L),
-  { rw is_scalar_tower.algebra_map_eq R K L,
+  { rw smul_assoc_class.algebra_map_eq R K L,
     exact (algebra_map K L).injective.comp (no_zero_smul_divisors.algebra_map_injective R K) },
   -- Let `M` be the `R`-module spanned by the proposed basis elements.
   set M : submodule R S := submodule.span R b with hM,
@@ -372,7 +372,7 @@ begin
       refl } },
   -- And we conclude `L = span L {det A} ≤ span K b`, so `span K b` spans everything.
   { intros x hx,
-    rw [submodule.restrict_scalars_mem, is_scalar_tower.algebra_map_apply R S L] at hx,
+    rw [submodule.restrict_scalars_mem, smul_assoc_class.algebra_map_apply R S L] at hx,
     refine is_fraction_ring.ideal_span_singleton_map_subset R _ hRL span_d hx,
     haveI : no_zero_smul_divisors R L := no_zero_smul_divisors.of_algebra_map_injective hRL,
     rw ← is_fraction_ring.is_algebraic_iff' R S,
@@ -385,7 +385,7 @@ variables (K L)
 /-- If `p` is a maximal ideal of `R`, and `S` is the integral closure of `R` in `L`,
 then the dimension `[S/pS : R/p]` is equal to `[Frac(S) : Frac(R)]`. -/
 lemma finrank_quotient_map [is_domain R] [is_domain S] [is_dedekind_domain R]
-  [algebra K L] [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
+  [algebra K L] [algebra R L] [smul_assoc_class R K L] [smul_assoc_class R S L]
   [is_integral_closure S R L]
   [hp : p.is_maximal] [is_noetherian R S] :
   finrank (R ⧸ p) (S ⧸ map (algebra_map R S) p) = finrank K L :=

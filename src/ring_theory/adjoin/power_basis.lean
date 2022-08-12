@@ -49,7 +49,7 @@ begin
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
+      exact (smul_assoc_class.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
@@ -82,9 +82,9 @@ open polynomial
 
 open_locale polynomial
 
-variables {R : Type*} [comm_ring R] [algebra R S] [algebra R K] [is_scalar_tower R K S]
+variables {R : Type*} [comm_ring R] [algebra R S] [algebra R K] [smul_assoc_class R K S]
 variables {A : Type*} [comm_ring A] [algebra R A] [algebra S A]
-variables [is_scalar_tower R S A] {B : power_basis S A} (hB : is_integral R B.gen)
+variables [smul_assoc_class R S A] {B : power_basis S A} (hB : is_integral R B.gen)
 
 include hB
 
@@ -114,7 +114,7 @@ begin
   refine is_integral.sum _ (λ j hj, _),
   replace hj := finset.mem_range.1 hj,
   rw [← fin.coe_mk hj, ← B.basis_eq_pow, algebra.smul_def,
-    is_scalar_tower.algebra_map_apply R S A, ← algebra.smul_def, linear_equiv.map_smul],
+    smul_assoc_class.algebra_map_apply R S A, ← algebra.smul_def, linear_equiv.map_smul],
   simp only [algebra_map_smul, finsupp.coe_smul, pi.smul_apply, B.basis.repr_self_apply],
   by_cases hij : (⟨j, hj⟩ : fin _) = i,
   { simp only [hij, eq_self_iff_true, if_true],
@@ -180,7 +180,7 @@ begin
   refine repr_pow_is_integral hB (λ i, _) hmin _ _,
   rw [← h, aeval_eq_sum_range, linear_equiv.map_sum, finset.sum_apply'],
   refine is_integral.sum _ (λ n hn, _),
-  rw [algebra.smul_def, is_scalar_tower.algebra_map_apply R K S, ← algebra.smul_def,
+  rw [algebra.smul_def, smul_assoc_class.algebra_map_apply R K S, ← algebra.smul_def,
     linear_equiv.map_smul, algebra_map_smul],
   exact is_integral_smul _ (repr_gen_pow_is_integral hB hmin _ _),
 end

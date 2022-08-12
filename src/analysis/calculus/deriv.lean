@@ -792,7 +792,7 @@ section smul
 /-! ### Derivative of the multiplication of a scalar function and a vector function -/
 
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : 𝕜 → 𝕜'} {c' : 𝕜'}
+  [normed_space 𝕜' F] [smul_assoc_class 𝕜 𝕜' F] {c : 𝕜 → 𝕜'} {c' : 𝕜'}
 
 theorem has_deriv_within_at.smul
   (hc : has_deriv_within_at c c' s x) (hf : has_deriv_within_at f f' s x) :
@@ -1114,7 +1114,7 @@ usual multiplication in `comp` lemmas.
 /- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {s' t' : set 𝕜'}
+  [normed_space 𝕜' F] [smul_assoc_class 𝕜 𝕜' F] {s' t' : set 𝕜'}
   {h : 𝕜 → 𝕜'} {h₁ : 𝕜 → 𝕜} {h₂ : 𝕜' → 𝕜'} {h' h₂' : 𝕜'} {h₁' : 𝕜}
   {g₁ : 𝕜' → F} {g₁' : F} {L' : filter 𝕜'} (x)
 

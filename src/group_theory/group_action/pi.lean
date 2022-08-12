@@ -35,19 +35,19 @@ instance has_smul' {g : I → Type*} [Π i, has_smul (f i) (g i)] :
 lemma smul_apply' {g : I → Type*} [∀ i, has_smul (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
-instance is_scalar_tower {α β : Type*}
+instance smul_assoc_class {α β : Type*}
   [has_smul α β] [Π i, has_smul β $ f i] [Π i, has_smul α $ f i]
-  [Π i, is_scalar_tower α β (f i)] : is_scalar_tower α β (Π i : I, f i) :=
+  [Π i, smul_assoc_class α β (f i)] : smul_assoc_class α β (Π i : I, f i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc x y (z i)⟩
 
-instance is_scalar_tower' {g : I → Type*} {α : Type*}
+instance smul_assoc_class' {g : I → Type*} {α : Type*}
   [Π i, has_smul α $ f i] [Π i, has_smul (f i) (g i)] [Π i, has_smul α $ g i]
-  [Π i, is_scalar_tower α (f i) (g i)] : is_scalar_tower α (Π i : I, f i) (Π i : I, g i) :=
+  [Π i, smul_assoc_class α (f i) (g i)] : smul_assoc_class α (Π i : I, f i) (Π i : I, g i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc x (y i) (z i)⟩
 
-instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
+instance smul_assoc_class'' {g : I → Type*} {h : I → Type*}
   [Π i, has_smul (f i) (g i)] [Π i, has_smul (g i) (h i)] [Π i, has_smul (f i) (h i)]
-  [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
+  [Π i, smul_assoc_class (f i) (g i) (h i)] : smul_assoc_class (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc (x i) (y i) (z i)⟩
 
 @[to_additive]

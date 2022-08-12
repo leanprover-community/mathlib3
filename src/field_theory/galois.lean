@@ -125,7 +125,7 @@ end
 section is_galois_tower
 
 variables (F K E : Type*) [field F] [field K] [field E] {E' : Type*} [field E'] [algebra F E']
-variables [algebra F K] [algebra F E] [algebra K E] [is_scalar_tower F K E]
+variables [algebra F K] [algebra F E] [algebra K E] [smul_assoc_class F K E]
 
 lemma is_galois.tower_top_of_is_galois [is_galois F E] : is_galois K E :=
 { to_is_separable := is_separable_tower_top_of_is_separable F K E,
@@ -223,7 +223,7 @@ instance fixed_field.algebra : algebra K (fixed_field (fixing_subgroup K)) :=
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ _ _, rfl }
 
-instance fixed_field.is_scalar_tower : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
+instance fixed_field.smul_assoc_class : smul_assoc_class K (fixed_field (fixing_subgroup K)) E :=
 ⟨λ _ _ _, mul_assoc _ _ _⟩
 
 end intermediate_field
@@ -332,20 +332,20 @@ variables {F} {E} {p : F[X]}
 lemma of_separable_splitting_field_aux
   [hFE : finite_dimensional F E]
   [sp : p.is_splitting_field F E] (hp : p.separable)
-  (K : Type*) [field K] [algebra F K] [algebra K E] [is_scalar_tower F K E]
+  (K : Type*) [field K] [algebra F K] [algebra K E] [smul_assoc_class F K E]
   {x : E} (hx : x ∈ (p.map (algebra_map F E)).roots)
   -- these are both implied by `hFE`, but as they carry data this makes the lemma more general
   [fintype (K →ₐ[F] E)] [fintype (K⟮x⟯.restrict_scalars F →ₐ[F] E)] :
   fintype.card (K⟮x⟯.restrict_scalars F →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
-  have h : is_integral K x := is_integral_of_is_scalar_tower x
+  have h : is_integral K x := is_integral_of_smul_assoc_class x
     (is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
   { apply minpoly.dvd,
     rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map,
-      ←is_scalar_tower.algebra_map_eq],
+      ←smul_assoc_class.algebra_map_eq],
     exact (polynomial.mem_roots (polynomial.map_ne_zero h1)).mp hx },
   let key_equiv : (K⟮x⟯.restrict_scalars F →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
     @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f),
@@ -361,7 +361,7 @@ begin
   { apply fintype.card_congr, refl },
   { exact polynomial.separable.of_dvd ((polynomial.separable_map (algebra_map F K)).mpr hp) h2 },
   { refine polynomial.splits_of_splits_of_dvd _ (polynomial.map_ne_zero h1) _ h2,
-    rw [polynomial.splits_map_iff, ←is_scalar_tower.algebra_map_eq],
+    rw [polynomial.splits_map_iff, ←smul_assoc_class.algebra_map_eq],
     exact sp.splits },
 end
 

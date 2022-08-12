@@ -346,7 +346,7 @@ is_artinian_of_surjective M (submodule.mkq N) (submodule.quotient.mk_surjective 
 /-- If `M / S / R` is a scalar tower, and `M / R` is Artinian, then `M / S` is
 also Artinian. -/
 theorem is_artinian_of_tower (R) {S M} [comm_ring R] [ring S]
-  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  [add_comm_group M] [algebra R S] [module S M] [module R M] [smul_assoc_class R S M]
   (h : is_artinian R M) : is_artinian S M :=
 begin
   rw is_artinian_iff_well_founded at h ⊢,

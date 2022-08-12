@@ -83,8 +83,8 @@ instance module' [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [m
   module 𝕝 (weak_bilin B) := m
 
 instance [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
-  [add_comm_group F] [module 𝕜 F] [has_smul 𝕝 𝕜] [module 𝕝 E] [s : is_scalar_tower 𝕝 𝕜 E]
-  (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : is_scalar_tower 𝕝 𝕜 (weak_bilin B) := s
+  [add_comm_group F] [module 𝕜 F] [has_smul 𝕝 𝕜] [module 𝕝 E] [s : smul_assoc_class 𝕝 𝕜 E]
+  (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : smul_assoc_class 𝕝 𝕜 (weak_bilin B) := s
 
 section semiring
 

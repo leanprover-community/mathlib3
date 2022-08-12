@@ -1079,10 +1079,10 @@ instance smul_comm_class_right
   smul_comm_class α S β :=
 ⟨λ a s, (smul_comm a (s : M') : _)⟩
 
-/-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc`. -/
+/-- Note that this provides `smul_assoc_class S M' M'` which is needed by `smul_mul_assoc`. -/
 instance
-  [has_smul α β] [has_smul M' α] [has_smul M' β] [is_scalar_tower M' α β] (S : submonoid M') :
-  is_scalar_tower S α β :=
+  [has_smul α β] [has_smul M' α] [has_smul M' β] [smul_assoc_class M' α β] (S : submonoid M') :
+  smul_assoc_class S α β :=
 ⟨λ a, (smul_assoc (a : M') : _)⟩
 
 @[to_additive]
@@ -1109,7 +1109,7 @@ distrib_mul_action.comp_hom _ S.subtype
 instance [monoid α] [mul_distrib_mul_action M' α] (S : submonoid M') : mul_distrib_mul_action S α :=
 mul_distrib_mul_action.comp_hom _ S.subtype
 
-example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
+example {S : submonoid M'} : smul_assoc_class S M' M' := by apply_instance
 
 end submonoid
 

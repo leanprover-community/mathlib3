@@ -335,8 +335,8 @@ def add_comm_monoid.nat_module.unique : unique (module ℕ M) :=
 { default := by apply_instance,
   uniq := λ P, module.ext' P _ $ λ n, nat_smul_eq_nsmul P n }
 
-instance add_comm_monoid.nat_is_scalar_tower :
-  is_scalar_tower ℕ R M :=
+instance add_comm_monoid.nat_smul_assoc_class :
+  smul_assoc_class ℕ R M :=
 { smul_assoc := λ n x y, nat.rec_on n
     (by simp only [zero_smul])
     (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
@@ -458,12 +458,12 @@ lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ri
   (r : R) • x = (r : S) • x :=
 map_rat_cast_smul (add_monoid_hom.id E) R S r x
 
-instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [add_comm_group M]
-  [module R M]: is_scalar_tower ℤ R M :=
+instance add_comm_group.int_smul_assoc_class {R : Type u} {M : Type v} [ring R] [add_comm_group M]
+  [module R M]: smul_assoc_class ℤ R M :=
 { smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_zsmul x n }
 
-instance is_scalar_tower.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]
-  [module R M] [module ℚ R] [module ℚ M] : is_scalar_tower ℚ R M :=
+instance smul_assoc_class.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]
+  [module R M] [module ℚ R] [module ℚ M] : smul_assoc_class ℚ R M :=
 { smul_assoc := λ r x y, map_rat_smul ((smul_add_hom R M).flip y) r x }
 
 instance smul_comm_class.rat {R : Type u} {M : Type v} [semiring R] [add_comm_group M]

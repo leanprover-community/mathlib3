@@ -76,7 +76,7 @@ from derivation_eq_of_forall_mem_vars h
   D₁ = D₂ :=
 derivation.ext $ λ f, derivation_eq_of_forall_mem_vars (λ i _, h i)
 
-variables [is_scalar_tower R (mv_polynomial σ R) A]
+variables [smul_assoc_class R (mv_polynomial σ R) A]
 
 lemma leibniz_iff_X (D : mv_polynomial σ R →ₗ[R] A) (h₁ : D 1 = 0) :
   (∀ p q, D (p * q) = p • D q + q • D p) ↔

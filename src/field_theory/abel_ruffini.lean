@@ -87,7 +87,7 @@ begin
   have ϕ_inj : function.injective ϕ.to_monoid_hom := ϕ.injective,
   haveI : is_solvable (K ≃ₐ[F] K) := hp,
   haveI : is_solvable (L ≃ₐ[K] L) := solvable_of_solvable_injective ϕ_inj,
-  exact is_solvable_of_is_scalar_tower F p.splitting_field q.splitting_field,
+  exact is_solvable_of_smul_assoc_class F p.splitting_field q.splitting_field,
 end
 
 section gal_X_pow_sub_C
@@ -346,7 +346,7 @@ begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
       apply (algebra_map F⟮α, β⟯ (solvable_by_rad F E)).injective,
-      rw [ring_hom.map_zero, is_scalar_tower.algebra_map_aeval],
+      rw [ring_hom.map_zero, smul_assoc_class.algebra_map_aeval],
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],

@@ -255,8 +255,8 @@ fun_like.coe_injective.non_unital_comm_ring _ coe_zero coe_add coe_mul coe_neg c
   (λ _ _, rfl)
 
 instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topological_semiring β]
-  [module R β] [has_continuous_const_smul R β] [is_scalar_tower R β β] :
-  is_scalar_tower R C₀(α, β) C₀(α, β) :=
+  [module R β] [has_continuous_const_smul R β] [smul_assoc_class R β β] :
+  smul_assoc_class R C₀(α, β) C₀(α, β) :=
 { smul_assoc := λ r f g,
   begin
     ext,

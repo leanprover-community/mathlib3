@@ -215,7 +215,7 @@ instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   algebra A (A.of_prime P) := subalgebra.algebra _
 
 instance of_prime_scalar_tower (A : valuation_subring K) (P : ideal A) [P.is_prime] :
-  is_scalar_tower A (A.of_prime P) K := is_scalar_tower.subalgebra' A K K _
+  smul_assoc_class A (A.of_prime P) K := smul_assoc_class.subalgebra' A K K _
 
 instance of_prime_localization (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   is_localization.at_prime (A.of_prime P) P :=

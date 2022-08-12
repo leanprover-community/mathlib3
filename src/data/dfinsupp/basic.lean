@@ -264,8 +264,8 @@ instance {δ : Type*} [monoid γ] [monoid δ]
 
 instance {δ : Type*} [monoid γ] [monoid δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
-  [has_smul γ δ] [Π i, is_scalar_tower γ δ (β i)] :
-  is_scalar_tower γ δ (Π₀ i, β i) :=
+  [has_smul γ δ] [Π i, smul_assoc_class γ δ (β i)] :
+  smul_assoc_class γ δ (Π₀ i, β i) :=
 { smul_assoc := λ r s m, ext $ λ i, by simp only [smul_apply, smul_assoc r s (m i)] }
 
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]

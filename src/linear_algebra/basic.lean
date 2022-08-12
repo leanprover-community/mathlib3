@@ -228,7 +228,7 @@ add_monoid_hom.map_sum ((add_monoid_hom.eval b).comp to_add_monoid_hom') f _
 
 section smul_right
 
-variables [semiring S] [module R S] [module S M] [is_scalar_tower R S M]
+variables [semiring S] [module R S] [module S M] [smul_assoc_class R S M]
 
 /-- When `f` is an `R`-linear map taking values in `S`, then `λb, f b • x` is an `R`-linear map. -/
 def smul_right (f : M₁ →ₗ[R] S) (x : M) : M₁ →ₗ[R] M :=

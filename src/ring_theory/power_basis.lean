@@ -43,7 +43,7 @@ open polynomial
 open_locale polynomial
 
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
-variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables [algebra R S] [algebra S T] [algebra R T] [smul_assoc_class R S T]
 variables {A B : Type*} [comm_ring A]
   [comm_ring B] [is_domain B] [algebra A B]
 variables {K L : Type*} [field K] [field L] [algebra K L]

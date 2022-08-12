@@ -54,7 +54,7 @@ lemma dimension_le_one.principal_ideal_ring
 λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
 
 lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [is_domain B]
-  [nontrivial R] [algebra R A] [algebra R B] [algebra B A] [is_scalar_tower R B A]
+  [nontrivial R] [algebra R A] [algebra R B] [algebra B A] [smul_assoc_class R B A]
   [is_integral_closure B R A] (h : dimension_le_one R) :
   dimension_le_one B :=
 λ p ne_bot prime, by exactI

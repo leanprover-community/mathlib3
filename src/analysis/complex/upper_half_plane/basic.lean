@@ -193,7 +193,7 @@ instance SL_on_GL_pos : has_smul SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ s g, s * g�
 lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
   (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
 
-instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL(2, ℝ)⁺) ℍ :=
+instance SL_to_GL_tower : smul_assoc_class SL(2,ℤ) (GL(2, ℝ)⁺) ℍ :=
 { smul_assoc := by {intros s g z, simp only [SL_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
 instance subgroup_GL_pos : has_smul Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
@@ -201,7 +201,7 @@ instance subgroup_GL_pos : has_smul Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
   (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
 
-instance subgroup_on_GL_pos : is_scalar_tower Γ (GL(2, ℝ)⁺) ℍ :=
+instance subgroup_on_GL_pos : smul_assoc_class Γ (GL(2, ℝ)⁺) ℍ :=
 { smul_assoc :=
   by {intros s g z, simp only [subgroup_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
@@ -210,7 +210,7 @@ instance subgroup_SL : has_smul Γ SL(2,ℤ) := ⟨λ s g, s * g⟩
 lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
   (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl
 
-instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
+instance subgroup_to_SL_tower : smul_assoc_class Γ SL(2,ℤ) ℍ :=
 { smul_assoc := λ s g z, by { rw subgroup_on_SL_apply, apply mul_action.mul_smul } }
 
 end modular_scalar_towers

@@ -132,7 +132,7 @@ end topology
 section locally_convex
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [smul_assoc_class ℝ 𝕜 E]
 
 instance {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} : locally_convex_space ℝ (weak_bilin B) :=
 seminorm_family.to_locally_convex_space (B.weak_bilin_with_seminorms)

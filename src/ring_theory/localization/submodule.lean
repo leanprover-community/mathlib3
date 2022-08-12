@@ -115,7 +115,7 @@ begin
 end
 
 variables {S} (M)
-lemma mem_span_iff {N : Type*} [add_comm_group N] [module R N] [module S N] [is_scalar_tower R S N]
+lemma mem_span_iff {N : Type*} [add_comm_group N] [module R N] [module S N] [smul_assoc_class R S N]
   {x : N} {a : set N} :
   x ∈ submodule.span S a ↔ ∃ (y ∈ submodule.span R a) (z : M), x = mk' S 1 z • y :=
 begin
@@ -127,8 +127,8 @@ begin
     { rintros _ _ ⟨y, hy, z, rfl⟩ ⟨y', hy', z', rfl⟩,
       refine ⟨(z' : R) • y + (z : R) • y',
         (submodule.add_mem _ (submodule.smul_mem _ _ hy) (submodule.smul_mem _ _ hy')), z * z', _⟩,
-      rw [smul_add, ← is_scalar_tower.algebra_map_smul S (z : R),
-          ← is_scalar_tower.algebra_map_smul S (z' : R), smul_smul, smul_smul],
+      rw [smul_add, ← smul_assoc_class.algebra_map_smul S (z : R),
+          ← smul_assoc_class.algebra_map_smul S (z' : R), smul_smul, smul_smul],
       congr' 1,
       { rw [← mul_one (1 : R), mk'_mul, mul_assoc, mk'_spec,
             _root_.map_one, mul_one, mul_one] },
@@ -138,7 +138,7 @@ begin
     { rintros a _ ⟨y, hy, z, rfl⟩,
       obtain ⟨y', z', rfl⟩ := mk'_surjective M a,
       refine ⟨y' • y, submodule.smul_mem _ _ hy, z' * z, _⟩,
-      rw [← is_scalar_tower.algebra_map_smul S y', smul_smul, ← mk'_mul,
+      rw [← smul_assoc_class.algebra_map_smul S y', smul_smul, ← mk'_mul,
           smul_smul, mul_comm (mk' S _ _), mul_mk'_eq_mk'_of_mul],
       all_goals { apply_instance } } },
   { rintro ⟨y, hy, z, rfl⟩,

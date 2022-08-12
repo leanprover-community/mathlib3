@@ -1648,7 +1648,7 @@ by rw [← module.rank_le_one_iff_top_is_principal, ← finite_dimensional.finra
 
 -- We use the `linear_map.compatible_smul` typeclass here, to encompass two situations:
 -- * `A = K`
--- * `[field K] [algebra K A] [is_scalar_tower K A V] [is_scalar_tower K A W]`
+-- * `[field K] [algebra K A] [smul_assoc_class K A V] [smul_assoc_class K A W]`
 lemma surjective_of_nonzero_of_finrank_eq_one
   {K : Type*} [division_ring K] {A : Type*} [semiring A]
   [module K V] [module A V]

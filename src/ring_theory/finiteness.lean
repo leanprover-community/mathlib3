@@ -93,7 +93,7 @@ instance self : finite R R :=
 variable (M)
 
 lemma of_restrict_scalars_finite (R A M : Type*) [comm_semiring R] [semiring A] [add_comm_monoid M]
-  [module R M] [module A M] [algebra R A] [is_scalar_tower R A M] [hM : finite R M] :
+  [module R M] [module A M] [algebra R A] [smul_assoc_class R A M] [hM : finite R M] :
   finite A M :=
 begin
   rw [finite_def, fg_def] at hM ⊢,
@@ -125,7 +125,7 @@ of_surjective (e : M →ₗ[R] N) e.surjective
 section algebra
 
 lemma trans {R : Type*} (A B : Type*) [comm_semiring R] [comm_semiring A] [algebra R A]
-  [semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B] :
+  [semiring B] [algebra R B] [algebra A B] [smul_assoc_class R A B] :
   ∀ [finite R A] [finite A B], finite R B
 | ⟨⟨s, hs⟩⟩ ⟨⟨t, ht⟩⟩ := ⟨submodule.fg_def.2
   ⟨set.image2 (•) (↑s : set A) (↑t : set B),
@@ -192,7 +192,8 @@ protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_poly
 end⟩⟩
 end
 
-lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB : finite_type R B] :
+lemma of_restrict_scalars_finite_type [algebra A B] [smul_assoc_class R A B]
+  [hB : finite_type R B] :
   finite_type A B :=
 begin
   obtain ⟨S, hS⟩ := hB.out,
@@ -216,7 +217,7 @@ end⟩
 lemma equiv (hRA : finite_type R A) (e : A ≃ₐ[R] B) : finite_type R B :=
 hRA.of_surjective e e.surjective
 
-lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite_type R A) (hAB : finite_type A B) :
+lemma trans [algebra A B] [smul_assoc_class R A B] (hRA : finite_type R A) (hAB : finite_type A B) :
   finite_type R B :=
 ⟨fg_trans' hRA.1 hAB.1⟩
 
@@ -424,7 +425,7 @@ end
 
 /-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is
   finitely presented as `R`-algebra. -/
-lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R A)
+lemma trans [algebra A B] [smul_assoc_class R A B] (hfpA : finite_presentation R A)
   (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
@@ -483,7 +484,7 @@ begin
   letI := f.to_algebra,
   letI := g.to_algebra,
   letI := (g.comp f).to_algebra,
-  letI : is_scalar_tower A B C := restrict_scalars.is_scalar_tower A B C,
+  letI : smul_assoc_class A B C := restrict_scalars.smul_assoc_class A B C,
   letI : module.finite A C := h,
   exact module.finite.of_restrict_scalars_finite A B C
 end
@@ -531,7 +532,7 @@ begin
   letI := f.to_algebra,
   letI := g.to_algebra,
   letI := (g.comp f).to_algebra,
-  letI : is_scalar_tower A B C := restrict_scalars.is_scalar_tower A B C,
+  letI : smul_assoc_class A B C := restrict_scalars.smul_assoc_class A B C,
   letI : algebra.finite_type A C := h,
   exact algebra.finite_type.of_restrict_scalars_finite_type A B C
 end
@@ -976,7 +977,7 @@ def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
 
 include f
-lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _
+lemma module_polynomial_of_endo.smul_assoc_class : @smul_assoc_class R R[X] M _
   (by { letI := module_polynomial_of_endo f, apply_instance }) _ :=
 begin
   letI := module_polynomial_of_endo f,
@@ -997,7 +998,7 @@ theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
   (f_surj : function.surjective f) : function.injective f :=
 begin
   letI := module_polynomial_of_endo f,
-  haveI : is_scalar_tower R R[X] M := module_polynomial_of_endo.is_scalar_tower f,
+  haveI : smul_assoc_class R R[X] M := module_polynomial_of_endo.smul_assoc_class f,
   have hfgpoly : finite R[X] M, from finite.of_restrict_scalars_finite R _ _,
   have X_mul : ∀ o, (X : R[X]) • o = f o,
   { intro,

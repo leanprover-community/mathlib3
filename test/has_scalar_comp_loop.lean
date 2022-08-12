@@ -8,14 +8,14 @@ def foo [has_smul R M] : Type* := ℕ
 
 variables [has_smul R M] [has_smul S R] [has_smul S M]
 
-/-- This instance is incompatible with `has_smul.comp.is_scalar_tower`.
+/-- This instance is incompatible with `has_smul.comp.smul_assoc_class`.
 However, all its parameters are (instance) implicits or irreducible defs, so it
 should not be dangerous. -/
 @[nolint unused_arguments]
-instance foo.has_smul [is_scalar_tower S R M] : has_smul S (foo R M) :=
+instance foo.has_smul [smul_assoc_class S R M] : has_smul S (foo R M) :=
 ⟨λ _ _, by { unfold foo, exact 37 }⟩
 
--- If there is no `is_scalar_tower S R M` parameter, this should fail quickly,
+-- If there is no `smul_assoc_class S R M` parameter, this should fail quickly,
 -- not loop forever.
 example : has_smul S (foo R M) :=
 begin
@@ -27,8 +27,8 @@ begin
 end
 
 /-
-local attribute [instance] has_smul.comp.is_scalar_tower
--- When `has_smul.comp.is_scalar_tower` is an instance, this recurses indefinitely.
+local attribute [instance] has_smul.comp.smul_assoc_class
+-- When `has_smul.comp.smul_assoc_class` is an instance, this recurses indefinitely.
 example : has_smul S (foo R M) :=
 begin
   tactic.success_if_fail_with_msg tactic.interactive.apply_instance

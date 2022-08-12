@@ -205,7 +205,7 @@ section comp
 
 variables (R : Type u) [comm_semiring R]
 variables (A : Type u) [comm_semiring A] [algebra R A]
-variables (B : Type u) [semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+variables (B : Type u) [semiring B] [algebra R B] [algebra A B] [smul_assoc_class R A B]
 
 lemma formally_smooth.comp [formally_smooth R A] [formally_smooth A B] :
   formally_smooth R B :=
@@ -213,7 +213,7 @@ begin
   constructor,
   introsI C _ _ I hI f,
   obtain ⟨f', e⟩ := formally_smooth.comp_surjective I hI
-    (f.comp (is_scalar_tower.to_alg_hom R A B)),
+    (f.comp (smul_assoc_class.to_alg_hom R A B)),
   letI := f'.to_ring_hom.to_algebra,
   obtain ⟨f'', e'⟩ := formally_smooth.comp_surjective I hI
     { commutes' := alg_hom.congr_fun e.symm, ..f.to_ring_hom },
@@ -226,10 +226,10 @@ lemma formally_unramified.comp [formally_unramified R A] [formally_unramified A 
 begin
   constructor,
   introsI C _ _ I hI f₁ f₂ e,
-  have e' := formally_unramified.lift_unique I ⟨2, hI⟩ (f₁.comp $ is_scalar_tower.to_alg_hom R A B)
-    (f₂.comp $ is_scalar_tower.to_alg_hom R A B)
+  have e' := formally_unramified.lift_unique I ⟨2, hI⟩ (f₁.comp $ smul_assoc_class.to_alg_hom R A B)
+    (f₂.comp $ smul_assoc_class.to_alg_hom R A B)
     (by rw [← alg_hom.comp_assoc, e, alg_hom.comp_assoc]),
-  letI := (f₁.comp (is_scalar_tower.to_alg_hom R A B)).to_ring_hom.to_algebra,
+  letI := (f₁.comp (smul_assoc_class.to_alg_hom R A B)).to_ring_hom.to_algebra,
   let F₁ : B →ₐ[A] C := { commutes' := λ r, rfl, ..f₁ },
   let F₂ : B →ₐ[A] C := { commutes' := alg_hom.congr_fun e'.symm, ..f₂ },
   ext1,
@@ -259,7 +259,7 @@ begin
   constructor,
   introsI C _ _ I hI f₁ f₂ e,
   letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
-  haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
+  haveI : smul_assoc_class R B C := smul_assoc_class.of_algebra_map_eq' rfl,
   apply alg_hom.restrict_scalars_injective R,
   apply tensor_product.ext,
   any_goals { apply_instance },
@@ -281,7 +281,7 @@ begin
   constructor,
   introsI C _ _ I hI f,
   letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
-  haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
+  haveI : smul_assoc_class R B C := smul_assoc_class.of_algebra_map_eq' rfl,
   refine ⟨tensor_product.product_left_alg_hom (algebra.of_id B C) _, _⟩,
   { exact formally_smooth.lift I ⟨2, hI⟩
       ((f.restrict_scalars R).comp tensor_product.include_right) },

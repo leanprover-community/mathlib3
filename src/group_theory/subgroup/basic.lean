@@ -3101,11 +3101,11 @@ instance smul_comm_class_right
   smul_comm_class α S β :=
 S.to_submonoid.smul_comm_class_right
 
-/-- Note that this provides `is_scalar_tower S G G` which is needed by `smul_mul_assoc`. -/
+/-- Note that this provides `smul_assoc_class S G G` which is needed by `smul_mul_assoc`. -/
 instance
-  [has_smul α β] [mul_action G α] [mul_action G β] [is_scalar_tower G α β] (S : subgroup G) :
-  is_scalar_tower S α β :=
-S.to_submonoid.is_scalar_tower
+  [has_smul α β] [mul_action G α] [mul_action G β] [smul_assoc_class G α β] (S : subgroup G) :
+  smul_assoc_class S α β :=
+S.to_submonoid.smul_assoc_class
 
 instance [mul_action G α] [has_faithful_smul G α] (S : subgroup G) :
   has_faithful_smul S α :=

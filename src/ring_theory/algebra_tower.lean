@@ -14,7 +14,7 @@ import algebra.algebra.restrict_scalars
 
 We set up the basic theory of algebra towers.
 An algebra tower A/S/R is expressed by having instances of `algebra A S`,
-`algebra R S`, `algebra R A` and `is_scalar_tower R S A`, the later asserting the
+`algebra R S`, `algebra R A` and `smul_assoc_class R S A`, the later asserting the
 compatibility condition `(r • s) • a = r • (s • a)`.
 
 In `field_theory/tower.lean` we use this to prove the tower law for finite extensions,
@@ -31,12 +31,12 @@ universes u v w u₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
 
-namespace is_scalar_tower
+namespace smul_assoc_class
 
 section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra S B] [algebra R A] [algebra R B]
-variables [is_scalar_tower R S A] [is_scalar_tower R S B]
+variables [smul_assoc_class R S A] [smul_assoc_class R S B]
 
 variables (R S A B)
 
@@ -45,7 +45,7 @@ If an element `r : R` is invertible in `S`, then it is invertible in `A`. -/
 def invertible.algebra_tower (r : R) [invertible (algebra_map R S r)] :
   invertible (algebra_map R A r) :=
 invertible.copy (invertible.map (algebra_map S A) (algebra_map R S r)) (algebra_map R A r)
-  (is_scalar_tower.algebra_map_apply R S A r)
+  (smul_assoc_class.algebra_map_apply R S A r)
 
 /-- A natural number that is invertible when coerced to `R` is also invertible
 when coerced to any `R`-algebra. -/
@@ -57,29 +57,29 @@ end semiring
 
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
-variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
+variables [algebra R A] [algebra A B] [algebra R B] [smul_assoc_class R A B]
 
 end comm_semiring
 
-end is_scalar_tower
+end smul_assoc_class
 
 namespace algebra
 
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] [algebra R A]
-  [is_scalar_tower R S A] (s : set S) :
-  adjoin R (algebra_map S A '' s) = (adjoin R s).map (is_scalar_tower.to_alg_hom R S A) :=
+  [smul_assoc_class R S A] (s : set S) :
+  adjoin R (algebra_map S A '' s) = (adjoin R s).map (smul_assoc_class.to_alg_hom R S A) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
 lemma adjoin_restrict_scalars (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
-  [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
+  [algebra C D] [algebra C E] [algebra D E] [smul_assoc_class C D E] (S : set E) :
 (algebra.adjoin D S).restrict_scalars C =
   (algebra.adjoin
-    ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S).restrict_scalars C :=
+    ((⊤ : subalgebra C D).map (smul_assoc_class.to_alg_hom C D E)) S).restrict_scalars C :=
 begin
   suffices : set.range (algebra_map D E) =
-    set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
+    set.range (algebra_map ((⊤ : subalgebra C D).map (smul_assoc_class.to_alg_hom C D E)) E),
   { ext x, change x ∈ subsemiring.closure (_ ∪ S) ↔ x ∈ subsemiring.closure (_ ∪ S), rw this },
   ext x,
   split,
@@ -91,13 +91,13 @@ end
 
 lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semiring D]
   [comm_semiring E] [comm_semiring F] [algebra C D] [algebra C E] [algebra C F] [algebra D F]
-  [algebra E F] [is_scalar_tower C D F] [is_scalar_tower C E F] {S : set D} {T : set E}
+  [algebra E F] [smul_assoc_class C D F] [smul_assoc_class C E F] {S : set D} {T : set E}
   (hS : algebra.adjoin C S = ⊤) (hT : algebra.adjoin C T = ⊤) :
 (algebra.adjoin E (algebra_map D F '' S)).restrict_scalars C =
   (algebra.adjoin D (algebra_map E F '' T)).restrict_scalars C :=
 by rw [adjoin_restrict_scalars C E, adjoin_restrict_scalars C D, ←hS, ←hT, ←algebra.adjoin_image,
   ←algebra.adjoin_image, ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom,
-  is_scalar_tower.coe_to_alg_hom, is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_adjoin_adjoin,
+  smul_assoc_class.coe_to_alg_hom, smul_assoc_class.coe_to_alg_hom, ←adjoin_union_eq_adjoin_adjoin,
   ←adjoin_union_eq_adjoin_adjoin, set.union_comm]
 
 end algebra
@@ -105,19 +105,19 @@ end algebra
 section
 open_locale classical
 lemma algebra.fg_trans' {R S A : Type*} [comm_semiring R] [comm_semiring S] [comm_semiring A]
-  [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+  [algebra R S] [algebra S A] [algebra R A] [smul_assoc_class R S A]
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
 by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_adjoin_adjoin,
-  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ht,
+  algebra.adjoin_algebra_map, hs, algebra.map_top, smul_assoc_class.adjoin_range_to_alg_hom, ht,
   subalgebra.restrict_scalars_top]⟩
 end
 
 section algebra_map_coeffs
 
 variables {R} (A) {ι M : Type*} [comm_semiring R] [semiring A] [add_comm_monoid M]
-variables [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+variables [algebra R A] [module A M] [module R M] [smul_assoc_class R A M]
 variables (b : basis ι R M) (h : function.bijective (algebra_map R A))
 
 /-- If `R` and `A` have a bijective `algebra_map R A` and act identically on `M`,
@@ -142,7 +142,7 @@ universes v₁ w₁
 
 variables {R S A}
 variables [comm_semiring R] [semiring S] [add_comm_monoid A]
-variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
+variables [algebra R S] [module S A] [module R A] [smul_assoc_class R S A]
 
 theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
   (hb : linear_independent R b) (hc : linear_independent S c) :
@@ -215,7 +215,7 @@ variables (C : Type*)
 section semiring
 
 variables [comm_semiring A] [comm_semiring B] [semiring C]
-variables [algebra A B] [algebra B C] [algebra A C] [is_scalar_tower A B C]
+variables [algebra A B] [algebra B C] [algebra A C] [smul_assoc_class A B C]
 
 open finset submodule
 open_locale classical
@@ -258,7 +258,7 @@ end semiring
 section ring
 
 variables [comm_ring A] [comm_ring B] [comm_ring C]
-variables [algebra A B] [algebra B C] [algebra A C] [is_scalar_tower A B C]
+variables [algebra A B] [algebra B C] [algebra A C] [smul_assoc_class A B C]
 
 /-- Artin--Tate lemma: if A ⊆ B ⊆ C is a chain of subrings of commutative rings, and
 A is noetherian, and C is algebra-finite over A, and C is module-finite over B,
@@ -273,7 +273,7 @@ let ⟨B₀, hAB₀, hB₀C⟩ := exists_subalgebra_of_fg A B C hAC hBC in
 algebra.fg_trans' (B₀.fg_top.2 hAB₀) $ subalgebra.fg_of_submodule_fg $
 have is_noetherian_ring B₀, from is_noetherian_ring_of_fg hAB₀,
 have is_noetherian B₀ C, by exactI is_noetherian_of_fg_of_noetherian' hB₀C,
-by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map hBCi
+by exactI fg_of_injective (smul_assoc_class.to_alg_hom B₀ B C).to_linear_map hBCi
 
 end ring
 
@@ -284,10 +284,10 @@ section alg_hom_tower
 variables {A} {C D : Type*} [comm_semiring A] [comm_semiring C] [comm_semiring D]
   [algebra A C] [algebra A D]
 
-variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] [is_scalar_tower A B C]
+variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] [smul_assoc_class A B C]
 
 /-- Restrict the domain of an `alg_hom`. -/
-def alg_hom.restrict_domain : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
+def alg_hom.restrict_domain : B →ₐ[A] D := f.comp (smul_assoc_class.to_alg_hom A B C)
 
 /-- Extend the scalars of an `alg_hom`. -/
 def alg_hom.extend_scalars : @alg_hom B C D _ _ _ _ (f.restrict_domain B).to_ring_hom.to_algebra :=

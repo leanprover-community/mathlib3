@@ -115,7 +115,7 @@ protected lemma Union [encodable ι] {s : ι → set α} (h : ∀ i, ae_measurab
 by simp only [union_eq_Union, ae_measurable_Union_iff, bool.forall_bool, cond, and.comm]
 
 @[measurability]
-lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
   (h : ae_measurable f μ) (c : R) :
   ae_measurable f (c • μ) :=
 ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩

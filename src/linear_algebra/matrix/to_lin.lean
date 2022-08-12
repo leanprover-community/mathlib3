@@ -620,7 +620,7 @@ namespace algebra
 section lmul
 
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
-variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables [algebra R S] [algebra S T] [algebra R T] [smul_assoc_class R S T]
 variables {m n : Type*} [fintype m] [decidable_eq m] [decidable_eq n]
 variables (b : basis m R S) (c : basis n S T)
 
@@ -719,8 +719,8 @@ linear_equiv.finite_dimensional
 
 section
 
-variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V]
-  [module A W] [is_scalar_tower K A W]
+variables {A : Type*} [ring A] [algebra K A] [module A V] [smul_assoc_class K A V]
+  [module A W] [smul_assoc_class K A W]
 
 /-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
 target are, since they form a subspace of all `k`-linear maps. -/

@@ -106,9 +106,9 @@ instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polyno
 add_monoid_algebra.module
 
 instance [monoid R] [monoid S₁] [comm_semiring S₂]
-  [has_smul R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
-  is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
-add_monoid_algebra.is_scalar_tower
+  [has_smul R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_assoc_class R S₁ S₂] :
+  smul_assoc_class R S₁ (mv_polynomial σ S₂) :=
+add_monoid_algebra.smul_assoc_class
 
 instance [monoid R] [monoid S₁][comm_semiring S₂]
   [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
@@ -124,9 +124,9 @@ instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv
 add_monoid_algebra.algebra
 
 -- Register with high priority to avoid timeout in `data.mv_polynomial.pderiv`
-instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
-  is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
-is_scalar_tower.right
+instance smul_assoc_class' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
+  smul_assoc_class R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
+smul_assoc_class.right
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
@@ -362,8 +362,8 @@ hom_eq_hom f (ring_hom.id _) hC hX p
 
 @[ext] lemma alg_hom_ext' {A B : Type*} [comm_semiring A] [comm_semiring B]
   [algebra R A] [algebra R B] {f g : mv_polynomial σ A →ₐ[R] B}
-  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A (mv_polynomial σ A)) =
-        g.comp (is_scalar_tower.to_alg_hom R A (mv_polynomial σ A)))
+  (h₁ : f.comp (smul_assoc_class.to_alg_hom R A (mv_polynomial σ A)) =
+        g.comp (smul_assoc_class.to_alg_hom R A (mv_polynomial σ A)))
   (h₂ : ∀ i, f (X i) = g (X i)) : f = g :=
 alg_hom.coe_ring_hom_injective (mv_polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
@@ -1211,7 +1211,7 @@ variables [algebra S R] [algebra S A] [algebra S B]
   than `R`. -/
 def aeval_tower (f : R →ₐ[S] A) (x : σ → A) : mv_polynomial σ R →ₐ[S] A :=
 { commutes' := λ r,
-    by simp [is_scalar_tower.algebra_map_eq S R (mv_polynomial σ R), algebra_map_eq],
+    by simp [smul_assoc_class.algebra_map_eq S R (mv_polynomial σ R), algebra_map_eq],
   ..eval₂_hom ↑f x }
 
 variables (g : R →ₐ[S] A) (y : σ → A)
@@ -1231,11 +1231,11 @@ ring_hom.ext $ aeval_tower_C _ _
 aeval_tower_comp_C _ _
 
 lemma aeval_tower_to_alg_hom (x : R) :
-  aeval_tower g y (is_scalar_tower.to_alg_hom S R (mv_polynomial σ R) x) = g x :=
+  aeval_tower g y (smul_assoc_class.to_alg_hom S R (mv_polynomial σ R) x) = g x :=
 aeval_tower_algebra_map _ _ _
 
 @[simp] lemma aeval_tower_comp_to_alg_hom :
-  (aeval_tower g y).comp (is_scalar_tower.to_alg_hom S R (mv_polynomial σ R)) = g :=
+  (aeval_tower g y).comp (smul_assoc_class.to_alg_hom S R (mv_polynomial σ R)) = g :=
 alg_hom.coe_ring_hom_injective $ aeval_tower_comp_algebra_map _ _
 
 @[simp] lemma aeval_tower_id : aeval_tower (alg_hom.id S S) =

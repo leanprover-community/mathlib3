@@ -132,12 +132,12 @@ R/p → S/P
 then `P` lies over `p`.
 -/
 lemma comap_eq_of_scalar_tower_quotient [algebra R S] [algebra (R ⧸ p) (S ⧸ P)]
-  [is_scalar_tower R (R ⧸ p) (S ⧸ P)]
+  [smul_assoc_class R (R ⧸ p) (S ⧸ P)]
   (h : function.injective (algebra_map (R ⧸ p) (S ⧸ P))) :
   comap (algebra_map R S) P = p :=
 begin
   ext x, split; rw [mem_comap, ← quotient.eq_zero_iff_mem, ← quotient.eq_zero_iff_mem,
-    quotient.mk_algebra_map, is_scalar_tower.algebra_map_apply _ (R ⧸ p),
+    quotient.mk_algebra_map, smul_assoc_class.algebra_map_apply _ (R ⧸ p),
     quotient.algebra_map_eq],
   { intro hx,
     exact (injective_iff_map_eq_zero (algebra_map (R ⧸ p) (S ⧸ P))).mp h _ hx },
@@ -164,8 +164,8 @@ rfl
 rfl
 
 instance quotient.tower_quotient_map_quotient [algebra R S] :
-  is_scalar_tower R (R ⧸ p) (S ⧸ map (algebra_map R S) p) :=
-is_scalar_tower.of_algebra_map_eq $ λ x,
+  smul_assoc_class R (R ⧸ p) (S ⧸ map (algebra_map R S) p) :=
+smul_assoc_class.of_algebra_map_eq $ λ x,
 by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
        quotient.mk_algebra_map]
 
@@ -289,7 +289,7 @@ lemma is_maximal_comap_of_is_integral_of_is_maximal'
 section is_integral_closure
 
 variables (S) {A : Type*} [comm_ring A]
-variables [algebra R A] [algebra A S] [is_scalar_tower R A S] [is_integral_closure A R S]
+variables [algebra R A] [algebra A S] [smul_assoc_class R A S] [is_integral_closure A R S]
 
 lemma is_integral_closure.comap_lt_comap {I J : ideal A} [I.is_prime]
   (I_lt_J : I < J) :

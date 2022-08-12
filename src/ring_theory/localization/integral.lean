@@ -104,12 +104,12 @@ lemma integer_normalization_eval₂_eq_zero (g : S →+* R') (p : S[X])
   eval₂ (g.comp (algebra_map R S)) x (integer_normalization M p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map M p in
 trans (eval₂_map (algebra_map R S) g x).symm
-  (by rw [hb, ← is_scalar_tower.algebra_map_smul S (b : R) p, eval₂_smul, hx, mul_zero])
+  (by rw [hb, ← smul_assoc_class.algebra_map_smul S (b : R) p, eval₂_smul, hx, mul_zero])
 
-lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra S R'] [is_scalar_tower R S R']
+lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra S R'] [smul_assoc_class R S R']
   (p : S[X]) {x : R'} (hx : aeval x p = 0) :
   aeval x (integer_normalization M p) = 0 :=
-by rw [aeval_def, is_scalar_tower.algebra_map_eq R S R',
+by rw [aeval_def, smul_assoc_class.algebra_map_eq R S R',
        integer_normalization_eval₂_eq_zero _ _ _ hx]
 
 end integer_normalization
@@ -145,14 +145,14 @@ variables (A K C)
 /-- An element of a ring is algebraic over the ring `A` iff it is algebraic
 over the field of fractions of `A`.
 -/
-lemma is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C] {x : C} :
+lemma is_algebraic_iff [algebra A C] [algebra K C] [smul_assoc_class A K C] {x : C} :
   is_algebraic A x ↔ is_algebraic K x :=
 begin
   split; rintros ⟨p, hp, px⟩,
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
     { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
       exact to_map_eq_zero_iff.mp this },
-    { rwa is_scalar_tower.aeval_apply _ K at px } },
+    { rwa smul_assoc_class.aeval_apply _ K at px } },
   { exact ⟨integer_normalization _ p,
            mt integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero _ p px⟩ },
@@ -162,7 +162,7 @@ variables {A K C}
 
 /-- A ring is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
 -/
-lemma comap_is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C] :
+lemma comap_is_algebraic_iff [algebra A C] [algebra K C] [smul_assoc_class A K C] :
   algebra.is_algebraic A C ↔ algebra.is_algebraic K C :=
 ⟨λ h x, (is_algebraic_iff A K C).mp (h x), λ h x, (is_algebraic_iff A K C).mpr (h x)⟩
 
@@ -267,7 +267,7 @@ begin
 end
 
 lemma is_integral.exists_multiple_integral_of_is_localization
-  [algebra Rₘ S] [is_scalar_tower R Rₘ S] (x : S) (hx : is_integral Rₘ x) :
+  [algebra Rₘ S] [smul_assoc_class R Rₘ S] (x : S) (hx : is_integral Rₘ x) :
     ∃ m : M, is_integral R (m • x) :=
 begin
   cases subsingleton_or_nontrivial Rₘ with _ nontriv; resetI,
@@ -277,8 +277,8 @@ begin
   obtain ⟨p', hp'₁, -, hp'₂⟩ := lifts_and_nat_degree_eq_and_monic
     (is_localization.scale_roots_common_denom_mem_lifts M p _) _,
   { refine ⟨is_localization.common_denom M p.support p.coeff, p', hp'₂, _⟩,
-    rw [is_scalar_tower.algebra_map_eq R Rₘ S, ← polynomial.eval₂_map, hp'₁,
-      submonoid.smul_def, algebra.smul_def, is_scalar_tower.algebra_map_apply R Rₘ S],
+    rw [smul_assoc_class.algebra_map_eq R Rₘ S, ← polynomial.eval₂_map, hp'₁,
+      submonoid.smul_def, algebra.smul_def, smul_assoc_class.algebra_map_apply R Rₘ S],
     exact polynomial.scale_roots_eval₂_eq_zero _ hp₂ },
   { rw hp₁.leading_coeff, exact one_mem _ },
   { rwa polynomial.monic_scale_roots_iff },
@@ -293,7 +293,7 @@ namespace is_integral_closure
 
 variables (A) {L : Type*} [field K] [field L] [algebra A K] [algebra A L] [is_fraction_ring A K]
 variables (C : Type*) [comm_ring C] [is_domain C] [algebra C L] [is_integral_closure C A L]
-variables [algebra A C] [is_scalar_tower A C L]
+variables [algebra A C] [smul_assoc_class A C L]
 
 open algebra
 
@@ -308,8 +308,8 @@ lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
   surj := λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
     ⟨⟨mk' C (x : L) x.2, algebra_map _ _ y,
         mem_non_zero_divisors_iff_ne_zero.mpr (λ h, hy (inj _
-          (by rw [is_scalar_tower.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
-     by rw [set_like.coe_mk, algebra_map_mk', ← is_scalar_tower.algebra_map_apply A C L, hxy]⟩,
+          (by rw [smul_assoc_class.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
+     by rw [set_like.coe_mk, algebra_map_mk', ← smul_assoc_class.algebra_map_apply A C L, hxy]⟩,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by simpa using algebra_map_injective C A L h⟩, λ ⟨c, hc⟩,
     congr_arg (algebra_map _ L) (mul_right_cancel₀ (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
 
@@ -317,12 +317,12 @@ variables (K L)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure `C` of `A` in `L` has fraction field `L`. -/
-lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
+lemma is_fraction_ring_of_finite_extension [algebra K L] [smul_assoc_class A K L]
   [finite_dimensional K L] : is_fraction_ring C L :=
 is_fraction_ring_of_algebraic A C
   (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite K L))
   (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
-    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+    (smul_assoc_class.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end is_integral_closure
 
@@ -344,7 +344,7 @@ variables (K L)
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
 lemma is_fraction_ring_of_finite_extension [algebra A L] [algebra K L]
-  [is_scalar_tower A K L] [finite_dimensional K L] :
+  [smul_assoc_class A K L] [finite_dimensional K L] :
   is_fraction_ring (integral_closure A L) L :=
 is_integral_closure.is_fraction_ring_of_finite_extension A K L (integral_closure A L)
 
@@ -356,7 +356,7 @@ variables (R S K)
 
 /-- `S` is algebraic over `R` iff a fraction ring of `S` is algebraic over `R` -/
 lemma is_algebraic_iff' [field K] [is_domain R] [is_domain S] [algebra R K] [algebra S K]
-  [no_zero_smul_divisors R K] [is_fraction_ring S K] [is_scalar_tower R S K] :
+  [no_zero_smul_divisors R K] [is_fraction_ring S K] [smul_assoc_class R S K] :
   algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
 begin
   simp only [algebra.is_algebraic],
@@ -385,12 +385,12 @@ begin
                     ((injective_iff_map_eq_zero (algebra_map S K)).1
                     (no_zero_smul_divisors.algebra_map_injective _ _) b h)))),
         rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
-          polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
-          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } },
+          polynomial.eval₂_map, ← smul_assoc_class.algebra_map_eq, ← polynomial.aeval_def,
+          ← smul_assoc_class.algebra_map_aeval, hf₂, ring_hom.map_zero] } } },
   { intros h x,
     obtain ⟨f, hf₁, hf₂⟩ := h (algebra_map S K x),
     use [f, hf₁],
-    rw [← is_scalar_tower.algebra_map_aeval] at hf₂,
+    rw [← smul_assoc_class.algebra_map_aeval] at hf₂,
     exact (injective_iff_map_eq_zero (algebra_map S K)).1
       (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
 end
@@ -403,7 +403,7 @@ are contained in the equivalent `Frac(R)`-span. -/
 lemma ideal_span_singleton_map_subset {L : Type*}
   [is_domain R] [is_domain S] [field K] [field L]
   [algebra R K] [algebra R L] [algebra S L] [is_integral_closure S R L]
-  [is_fraction_ring S L] [algebra K L] [is_scalar_tower R S L] [is_scalar_tower R K L]
+  [is_fraction_ring S L] [algebra K L] [smul_assoc_class R S L] [smul_assoc_class R K L]
   {a : S} {b : set S} (alg : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
   (h : (ideal.span ({a} : set S) : set S) ⊆ submodule.span R b) :
   (ideal.span ({algebra_map S L a} : set L) : set L) ⊆ submodule.span K (algebra_map S L '' b) :=
@@ -416,7 +416,7 @@ begin
   have injRS : function.injective (algebra_map R S),
   { refine function.injective.of_comp
       (show function.injective (algebra_map S L ∘ algebra_map R S), from _),
-    rwa [← ring_hom.coe_comp, ← is_scalar_tower.algebra_map_eq] },
+    rwa [← ring_hom.coe_comp, ← smul_assoc_class.algebra_map_eq] },
   have hz0' : algebra_map R S z ∈ S⁰ := map_mem_non_zero_divisors (algebra_map R S) injRS
     (mem_non_zero_divisors_of_ne_zero hz0),
   have mk_yz_eq : is_localization.mk' L y' z' = is_localization.mk' L y ⟨_, hz0'⟩,
@@ -425,7 +425,7 @@ begin
     exact is_localization.mk'_eq_of_eq yz_eq.symm },
   suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
   { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
-        ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,
+        ← smul_assoc_class.algebra_map_apply, smul_assoc_class.algebra_map_apply R K L,
         div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
         ← _root_.map_mul],
     exact (submodule.span K _).smul_mem _ hy },

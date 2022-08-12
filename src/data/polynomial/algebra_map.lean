@@ -70,8 +70,8 @@ variables {R}
 -/
 @[ext] lemma alg_hom_ext' [algebra R A'] [algebra R B']
   {f g : A'[X] →ₐ[R] B'}
-  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')) =
-        g.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')))
+  (h₁ : f.comp (smul_assoc_class.to_alg_hom R A' (polynomial A')) =
+        g.comp (smul_assoc_class.to_alg_hom R A' (polynomial A')))
   (h₂ : f X = g X) : f = g :=
 alg_hom.coe_ring_hom_injective (polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
@@ -205,9 +205,9 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
 eval₂_comp (algebra_map R A)
 
 @[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
-  [is_scalar_tower R A B] (b : B) (p : R[X]) :
+  [smul_assoc_class R A B] (b : B) (p : R[X]) :
   aeval b (p.map (algebra_map R A)) = aeval b p :=
-by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
+by rw [aeval_def, eval₂_map, ←smul_assoc_class.algebra_map_eq, ←aeval_def]
 
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
 alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
@@ -313,11 +313,11 @@ ring_hom.ext $ aeval_tower_C _ _
 aeval_tower_comp_C _ _
 
 lemma aeval_tower_to_alg_hom (x : R) :
-  aeval_tower g y (is_scalar_tower.to_alg_hom S R R[X] x) = g x :=
+  aeval_tower g y (smul_assoc_class.to_alg_hom S R R[X] x) = g x :=
 aeval_tower_algebra_map _ _ _
 
 @[simp] lemma aeval_tower_comp_to_alg_hom :
-  (aeval_tower g y).comp (is_scalar_tower.to_alg_hom S R R[X]) = g :=
+  (aeval_tower g y).comp (smul_assoc_class.to_alg_hom S R R[X]) = g :=
 alg_hom.coe_ring_hom_injective $ aeval_tower_comp_algebra_map _ _
 
 @[simp] lemma aeval_tower_id : aeval_tower (alg_hom.id S S) = aeval :=

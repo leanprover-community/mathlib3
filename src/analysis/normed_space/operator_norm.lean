@@ -822,7 +822,7 @@ section multiplication_linear
 
 section non_unital
 variables (𝕜) (𝕜' : Type*) [non_unital_semi_normed_ring 𝕜'] [normed_space 𝕜 𝕜']
-  [is_scalar_tower 𝕜 𝕜' 𝕜'] [smul_comm_class 𝕜 𝕜' 𝕜']
+  [smul_assoc_class 𝕜 𝕜' 𝕜'] [smul_comm_class 𝕜 𝕜' 𝕜']
 
 /-- Left multiplication in a normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
@@ -903,7 +903,7 @@ end multiplication_linear
 section smul_linear
 
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+  [normed_space 𝕜' E] [smul_assoc_class 𝕜 𝕜' E]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
@@ -941,8 +941,8 @@ end smul_linear
 section restrict_scalars
 
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
-variables [normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
-variables [normed_space 𝕜' Fₗ] [is_scalar_tower 𝕜' 𝕜 Fₗ]
+variables [normed_space 𝕜' E] [smul_assoc_class 𝕜' 𝕜 E]
+variables [normed_space 𝕜' Fₗ] [smul_assoc_class 𝕜' 𝕜 Fₗ]
 
 @[simp] lemma norm_restrict_scalars (f : E →L[𝕜] Fₗ) : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
 le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
@@ -1666,7 +1666,7 @@ end
 
 This is `continuous_linear_map.op_norm_lsmul_le` as an equality. -/
 @[simp] lemma op_norm_lsmul [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E] [nontrivial E] :
+  [normed_space 𝕜' E] [smul_assoc_class 𝕜 𝕜' E] [nontrivial E] :
   ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ = 1 :=
 begin
   refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),

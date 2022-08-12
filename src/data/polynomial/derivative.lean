@@ -110,12 +110,12 @@ derivative.to_add_monoid_hom.iterate_map_add _ _ _
 derivative.map_sum
 
 @[simp] lemma derivative_smul {S : Type*} [monoid S]
-  [distrib_mul_action S R] [is_scalar_tower S R R]
+  [distrib_mul_action S R] [smul_assoc_class S R R]
   (s : S) (p : R[X]) : derivative (s • p) = s • derivative p :=
 derivative.map_smul_of_tower s p
 
 @[simp] lemma iterate_derivative_smul {S : Type*} [monoid S]
-  [distrib_mul_action S R] [is_scalar_tower S R R]
+  [distrib_mul_action S R] [smul_assoc_class S R R]
   (s : S) (p : R[X]) (k : ℕ) :
   derivative^[k] (s • p) = s • (derivative^[k] p) :=
 begin

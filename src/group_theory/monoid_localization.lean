@@ -334,7 +334,7 @@ section scalar
 variables {R R₁ R₂ : Type*}
 
 /-- Scalar multiplication in a monoid localization is defined as `c • ⟨a, b⟩ = ⟨c • a, b⟩`. -/
-@[irreducible] protected def smul [has_smul R M] [is_scalar_tower R M M]
+@[irreducible] protected def smul [has_smul R M] [smul_assoc_class R M M]
   (c : R) (z : localization S) : localization S :=
 localization.lift_on z (λ a b, mk (c • a) b) $
   λ a a' b b' h, mk_eq_mk_iff.2
@@ -347,48 +347,48 @@ begin
   simp only [smul_mul_assoc, ht]
 end
 
-instance [has_smul R M] [is_scalar_tower R M M] :
+instance [has_smul R M] [smul_assoc_class R M M] :
   has_smul R (localization S) :=
 { smul := localization.smul }
 
-lemma smul_mk [has_smul R M] [is_scalar_tower R M M] (c : R) (a b) :
+lemma smul_mk [has_smul R M] [smul_assoc_class R M M] (c : R) (a b) :
   c • (mk a b : localization S) = mk (c • a) b :=
 by { unfold has_smul.smul localization.smul, apply lift_on_mk }
 
-instance [has_smul R₁ M] [has_smul R₂ M] [is_scalar_tower R₁ M M] [is_scalar_tower R₂ M M]
+instance [has_smul R₁ M] [has_smul R₂ M] [smul_assoc_class R₁ M M] [smul_assoc_class R₂ M M]
   [smul_comm_class R₁ R₂ M] : smul_comm_class R₁ R₂ (localization S) :=
 { smul_comm := λ s t, localization.ind $ prod.rec $ by exact λ r x,
     by simp only [smul_mk, smul_comm s t r] }
 
-instance [has_smul R₁ M] [has_smul R₂ M] [is_scalar_tower R₁ M M] [is_scalar_tower R₂ M M]
-  [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ M] : is_scalar_tower R₁ R₂ (localization S) :=
+instance [has_smul R₁ M] [has_smul R₂ M] [smul_assoc_class R₁ M M] [smul_assoc_class R₂ M M]
+  [has_smul R₁ R₂] [smul_assoc_class R₁ R₂ M] : smul_assoc_class R₁ R₂ (localization S) :=
 { smul_assoc := λ s t, localization.ind $ prod.rec $ by exact λ r x,
     by simp only [smul_mk, smul_assoc s t r] }
 
-instance smul_comm_class_right {R : Type*} [has_smul R M] [is_scalar_tower R M M] :
+instance smul_comm_class_right {R : Type*} [has_smul R M] [smul_assoc_class R M M] :
   smul_comm_class R (localization S) (localization S) :=
 { smul_comm := λ s, localization.ind $ prod.rec $ by exact λ r₁ x₁,
                     localization.ind $ prod.rec $ by exact λ r₂ x₂,
     by simp only [smul_mk, smul_eq_mul, mk_mul, mul_comm r₁, smul_mul_assoc] }
 
-instance is_scalar_tower_right {R : Type*} [has_smul R M] [is_scalar_tower R M M] :
-  is_scalar_tower R (localization S) (localization S) :=
+instance smul_assoc_class_right {R : Type*} [has_smul R M] [smul_assoc_class R M M] :
+  smul_assoc_class R (localization S) (localization S) :=
 { smul_assoc := λ s, localization.ind $ prod.rec $ by exact λ r₁ x₁,
                      localization.ind $ prod.rec $ by exact λ r₂ x₂,
     by simp only [smul_mk, smul_eq_mul, mk_mul, smul_mul_assoc] }
 
-instance [has_smul R M] [has_smul Rᵐᵒᵖ M]  [is_scalar_tower R M M] [is_scalar_tower Rᵐᵒᵖ M M]
+instance [has_smul R M] [has_smul Rᵐᵒᵖ M]  [smul_assoc_class R M M] [smul_assoc_class Rᵐᵒᵖ M M]
   [is_central_scalar R M] : is_central_scalar R (localization S) :=
 { op_smul_eq_smul := λ s, localization.ind $ prod.rec $ by exact λ r x,
     by simp only [smul_mk, op_smul_eq_smul] }
 
-instance [monoid R] [mul_action R M] [is_scalar_tower R M M] : mul_action R (localization S) :=
+instance [monoid R] [mul_action R M] [smul_assoc_class R M M] : mul_action R (localization S) :=
 { one_smul := localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, one_smul] },
   mul_smul := λ s₁ s₂, localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, mul_smul] } }
 
-instance [monoid R] [mul_distrib_mul_action R M] [is_scalar_tower R M M] :
+instance [monoid R] [mul_distrib_mul_action R M] [smul_assoc_class R M M] :
   mul_distrib_mul_action R (localization S) :=
 { smul_one := λ s, by simp only [←localization.mk_one, localization.smul_mk, smul_one],
   smul_mul := λ s x y, localization.induction_on₂ x y $

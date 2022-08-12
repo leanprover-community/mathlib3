@@ -555,7 +555,7 @@ lemma smul_apply (c : S₂) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (c • 
 lemma coe_smul (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : (↑(c • f) : M₁ →ₛₗ[σ₁₂] M₂) = c • f := rfl
 @[simp, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
 
-instance [has_smul S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
+instance [has_smul S₂ T₂] [smul_assoc_class S₂ T₂ M₂] : smul_assoc_class S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
 
 instance [smul_comm_class S₂ T₂ M₂] : smul_comm_class S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
@@ -941,7 +941,7 @@ linear_map.range_coprod _ _
 section
 
 variables {R S : Type*} [semiring R] [semiring S] [module R M₁] [module R M₂] [module R S]
-  [module S M₂] [is_scalar_tower R S M₂] [topological_space S] [has_continuous_smul S M₂]
+  [module S M₂] [smul_assoc_class R S M₂] [topological_space S] [has_continuous_smul S M₂]
 
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
 `M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`).
@@ -1292,7 +1292,7 @@ end smul
 section smul_rightₗ
 
 variables {R S T M M₂ : Type*} [semiring R] [semiring S] [semiring T] [module R S]
-  [add_comm_monoid M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
+  [add_comm_monoid M₂] [module R M₂] [module S M₂] [smul_assoc_class R S M₂]
   [topological_space S] [topological_space M₂] [has_continuous_smul S M₂]
   [topological_space M] [add_comm_monoid M] [module R M] [has_continuous_add M₂]
   [module T M₂] [has_continuous_const_smul T M₂]

@@ -1611,7 +1611,7 @@ protected lemma Union [pseudo_metrizable_space β] {s : ι → set α}
 by simp only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
 
 lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
-  [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ae_strongly_measurable f μ) (c : R) :
+  [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] (h : ae_strongly_measurable f μ) (c : R) :
   ae_strongly_measurable f (c • μ) :=
 ⟨h.mk f, h.strongly_measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 

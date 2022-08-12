@@ -74,18 +74,18 @@ section
 variables {R₁ : Type*} [semiring R₁]
 
 /-- A Lie subalgebra inherits module structures from `L`. -/
-instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [smul_assoc_class R₁ R L]
   (L' : lie_subalgebra R L) : module R₁ L' :=
 L'.to_submodule.module'
 
 instance [has_smul R₁ R] [has_smul R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
-  [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
+  [smul_assoc_class R₁ R L] [smul_assoc_class R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
   (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
 L'.to_submodule.is_central_scalar
 
-instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
-  (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
-L'.to_submodule.is_scalar_tower
+instance [has_smul R₁ R] [module R₁ L] [smul_assoc_class R₁ R L]
+  (L' : lie_subalgebra R L) : smul_assoc_class R₁ R L' :=
+L'.to_submodule.smul_assoc_class
 
 instance (L' : lie_subalgebra R L) [is_noetherian R L] : is_noetherian R L' :=
 is_noetherian_submodule' ↑L'

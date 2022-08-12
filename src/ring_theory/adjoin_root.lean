@@ -85,9 +85,9 @@ instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
 instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algebra K R]
-  [is_scalar_tower S K R] :
-  is_scalar_tower S K (adjoin_root f) :=
-submodule.quotient.is_scalar_tower _ _
+  [smul_assoc_class S K R] :
+  smul_assoc_class S K (adjoin_root f) :=
+submodule.quotient.smul_assoc_class _ _
 
 instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
   smul_comm_class S K (adjoin_root f) :=

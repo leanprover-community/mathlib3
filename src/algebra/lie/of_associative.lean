@@ -115,7 +115,7 @@ local attribute [instance] lie_ring_module.of_associative_module
 
 section associative_representation
 
-variables {M : Type w} [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M]
+variables {M : Type w} [add_comm_group M] [module R M] [module A M] [smul_assoc_class R A M]
 
 /-- A representation of an associative algebra `A` is also a representation of `A`, regarded as a
 Lie algebra via the ring commutator.

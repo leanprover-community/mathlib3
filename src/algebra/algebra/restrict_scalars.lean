@@ -10,7 +10,7 @@ import algebra.algebra.tower
 # The `restrict_scalars` type alias
 
 See the documentation attached to the `restrict_scalars` definition for advice on how and when to
-use this type alias. As described there, it is often a better choice to use the `is_scalar_tower`
+use this type alias. As described there, it is often a better choice to use the `smul_assoc_class`
 typeclass instead.
 
 ## Main definitions
@@ -59,15 +59,15 @@ example : restrict_scalars R S M →ₗ[R] S := sorry
 However, it is usually better just to add this extra structure as an argument:
 ```lean
 -- an `R`-module structure on `M` and proof of its compatibility is provided by the user
-example [module R M] [is_scalar_tower R S M] : M →ₗ[R] S := sorry
+example [module R M] [smul_assoc_class R S M] : M →ₗ[R] S := sorry
 ```
 The advantage of the second approach is that it defers the duty of providing the missing typeclasses
-`[module R M] [is_scalar_tower R S M]`. If some concrete `M` naturally carries these (as is often
+`[module R M] [smul_assoc_class R S M]`. If some concrete `M` naturally carries these (as is often
 the case) then we have avoided `restrict_scalars` entirely. If not, we can pass
 `restrict_scalars R S M` later on instead of `M`.
 
 Note that this means we almost always want to state definitions and lemmas in the language of
-`is_scalar_tower` rather than `restrict_scalars`.
+`smul_assoc_class` rather than `restrict_scalars`.
 
 An example of when one might want to use `restrict_scalars` would be if one has a vector space
 over a field of characteristic zero and wishes to make use of the `ℚ`-algebra structure. -/
@@ -97,7 +97,7 @@ local attribute [instance] restrict_scalars.module_orig
 When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
 module structure over `R`.
 
-The preferred way of setting this up is `[module R M] [module S M] [is_scalar_tower R S M]`.
+The preferred way of setting this up is `[module R M] [module S M] [smul_assoc_class R S M]`.
 -/
 instance [module S M] : module R (restrict_scalars R S M) :=
 module.comp_hom M (algebra_map R S)
@@ -105,7 +105,7 @@ module.comp_hom M (algebra_map R S)
 /--
 This instance is only relevant when `restrict_scalars.module_orig` is available as an instance.
 -/
-instance [module S M] : is_scalar_tower R S (restrict_scalars R S M) :=
+instance [module S M] : smul_assoc_class R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
 end
@@ -114,7 +114,7 @@ end
 When `M` is a right-module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
 right-module structure over `R`.
 The preferred way of setting this up is
-`[module Rᵐᵒᵖ M] [module Sᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ Sᵐᵒᵖ M]`.
+`[module Rᵐᵒᵖ M] [module Sᵐᵒᵖ M] [smul_assoc_class Rᵐᵒᵖ Sᵐᵒᵖ M]`.
 -/
 instance restrict_scalars.op_module [module Sᵐᵒᵖ M] : module Rᵐᵒᵖ (restrict_scalars R S M) :=
 begin

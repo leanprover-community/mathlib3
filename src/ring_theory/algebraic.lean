@@ -76,7 +76,7 @@ end
 section zero_ne_one
 variables (R : Type u) {S : Type*} {A : Type v} [comm_ring R]
 variables [comm_ring S] [ring A] [algebra R A] [algebra R S] [algebra S A]
-variables [is_scalar_tower R S A]
+variables [smul_assoc_class R S A]
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic [nontrivial R] {x : A} : is_integral R x → is_algebraic R x :=
@@ -108,7 +108,7 @@ lemma is_algebraic_of_mem_root_set {R : Type u} {A : Type v} [field R] [field A]
   {p : R[X]} {x : A} (hx : x ∈ p.root_set A) : is_algebraic R x :=
 ⟨p, ne_zero_of_mem_root_set hx, aeval_eq_zero_of_mem_root_set hx⟩
 
-open is_scalar_tower
+open smul_assoc_class
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
@@ -158,8 +158,8 @@ end field
 namespace algebra
 variables {K : Type*} {L : Type*} {R : Type*} {S : Type*} {A : Type*}
 variables [field K] [field L] [comm_ring R] [comm_ring S] [comm_ring A]
-variables [algebra K L] [algebra L A] [algebra K A] [is_scalar_tower K L A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+variables [algebra K L] [algebra L A] [algebra K A] [smul_assoc_class K L A]
+variables [algebra R S] [algebra S A] [algebra R A] [smul_assoc_class R S A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
 then A is algebraic over K. -/
@@ -264,7 +264,7 @@ end
 /-- A fraction `(a : S) / (b : S)` can be reduced to `(c : S) / (d : R)`,
 if `S` is the integral closure of `R` in an algebraic extension `L` of `R`. -/
 lemma is_integral_closure.exists_smul_eq_mul {L : Type*} [field L]
-  [algebra R S] [algebra S L] [algebra R L] [is_scalar_tower R S L] [is_integral_closure S R L]
+  [algebra R S] [algebra S L] [algebra R L] [smul_assoc_class R S L] [is_integral_closure S R L]
   (h : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
   (a : S) {b : S} (hb : b ≠ 0) : ∃ (c : S) (d ≠ (0 : R)), d • a = b * c :=
 begin
@@ -274,7 +274,7 @@ begin
   refine ⟨is_integral_closure.mk' S (c : L) c.2, d, d_ne,
     is_integral_closure.algebra_map_injective S R L _⟩,
   simp only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
-    ← is_scalar_tower.algebra_map_apply],
+    ← smul_assoc_class.algebra_map_apply],
   rw [← mul_assoc _ (_ / _), mul_div_cancel' (algebra_map S L a), mul_comm],
   exact mt ((injective_iff_map_eq_zero _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
 end

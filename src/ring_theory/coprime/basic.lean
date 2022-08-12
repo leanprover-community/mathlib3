@@ -165,7 +165,7 @@ end comm_semiring
 
 section scalar_tower
 variables {R G : Type*} [comm_semiring R] [group G] [mul_action G R] [smul_comm_class G R R]
-  [is_scalar_tower G R R] (x : G) (y z : R)
+  [smul_assoc_class G R R] (x : G) (y z : R)
 
 lemma is_coprime_group_smul_left : is_coprime (x • y) z ↔ is_coprime y z :=
 ⟨λ ⟨a, b, h⟩, ⟨x • a, b, by rwa [smul_mul_assoc, ←mul_smul_comm]⟩,

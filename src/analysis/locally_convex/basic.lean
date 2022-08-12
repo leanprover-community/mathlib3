@@ -201,7 +201,7 @@ end semi_normed_ring
 
 section normed_field
 variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_comm_group E] [module 𝕜 E]
-  [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {x : E} {a b : 𝕜}
+  [smul_with_zero 𝕝 E] [smul_assoc_class 𝕜 𝕝 E] {s t u v A B : set E} {x : E} {a b : 𝕜}
 
 /-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
 lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ∥a∥ ≤ ∥b∥) : a • s ⊆ b • s :=

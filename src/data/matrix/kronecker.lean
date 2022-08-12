@@ -225,7 +225,7 @@ lemma kronecker_add [distrib α] (A : matrix l m α) (B₁ B₂ : matrix n p α)
   A ⊗ₖ (B₁ + B₂) = A ⊗ₖ B₁ + A ⊗ₖ B₂ :=
 kronecker_map_add_right _ mul_add _ _ _
 
-lemma smul_kronecker [monoid R] [monoid α] [mul_action R α] [is_scalar_tower R α α]
+lemma smul_kronecker [monoid R] [monoid α] [mul_action R α] [smul_assoc_class R α α]
   (r : R) (A : matrix l m α) (B : matrix n p α) :
   (r • A) ⊗ₖ B = r • (A ⊗ₖ B) :=
 kronecker_map_smul_left _ _ (λ _ _, smul_mul_assoc _ _ _) _ _

@@ -494,7 +494,7 @@ comp_to_germ _ _ _
 instance [smul_comm_class 𝕜 𝕜' γ] : smul_comm_class 𝕜 𝕜' (α →ₘ[μ] γ) :=
 ⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_comm]⟩
 
-instance [has_smul 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
+instance [has_smul 𝕜 𝕜'] [smul_assoc_class 𝕜 𝕜' γ] : smul_assoc_class 𝕜 𝕜' (α →ₘ[μ] γ) :=
 ⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_assoc]⟩
 
 instance [has_smul 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=

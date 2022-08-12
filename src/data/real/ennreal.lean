@@ -288,7 +288,7 @@ lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ≥0∞) • x := rfl
 
 instance {M N : Type*} [mul_action ℝ≥0∞ M] [mul_action ℝ≥0∞ N] [has_smul M N]
-  [is_scalar_tower ℝ≥0∞ M N] : is_scalar_tower ℝ≥0 M N :=
+  [smul_assoc_class ℝ≥0∞ M N] : smul_assoc_class ℝ≥0 M N :=
 { smul_assoc := λ r, (smul_assoc (r : ℝ≥0∞) : _)}
 
 instance smul_comm_class_left {M N : Type*} [mul_action ℝ≥0∞ N] [has_smul M N]
@@ -320,7 +320,7 @@ noncomputable example : algebra ℝ≥0 ℝ≥0∞ := infer_instance
 noncomputable example : distrib_mul_action ℝ≥0ˣ ℝ≥0∞ := infer_instance
 
 lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_smul R ℝ≥0] [has_smul R ℝ≥0∞]
-  [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
+  [smul_assoc_class R ℝ≥0 ℝ≥0] [smul_assoc_class R ℝ≥0 ℝ≥0∞] :
   (↑(r • s) : ℝ≥0∞) = r • ↑s :=
 by rw [←smul_one_smul ℝ≥0 r (s: ℝ≥0∞), smul_def, smul_eq_mul, ←ennreal.coe_mul, smul_mul_assoc,
     one_mul]

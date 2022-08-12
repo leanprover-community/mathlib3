@@ -34,7 +34,7 @@ variables (N : submonoid S) (T : Type*) [comm_ring T] [algebra R T]
 
 section
 
-variables [algebra S T] [is_scalar_tower R S T]
+variables [algebra S T] [smul_assoc_class R S T]
 
 /--
 Localizing wrt `M ⊆ R` and then wrt `N ⊆ S = M⁻¹R` is equal to the localization of `R` wrt this
@@ -63,7 +63,7 @@ lemma localization_localization_map_units [is_localization N T]
   (y : localization_localization_submodule M N) : is_unit (algebra_map R T y) :=
 begin
   obtain ⟨y', z, eq⟩ := mem_localization_localization_submodule.mp y.prop,
-  rw [is_scalar_tower.algebra_map_apply R S T, eq, ring_hom.map_mul, is_unit.mul_iff],
+  rw [smul_assoc_class.algebra_map_apply R S T, eq, ring_hom.map_mul, is_unit.mul_iff],
   exact ⟨is_localization.map_units T y',
     (is_localization.map_units _ z).map (algebra_map S T)⟩,
 end
@@ -80,7 +80,7 @@ begin
   { rw mem_localization_localization_submodule,
     refine ⟨s, t * t', _⟩,
     rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t, submonoid.coe_mul] },
-  { simp only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
+  { simp only [subtype.coe_mk, ring_hom.map_mul, smul_assoc_class.algebra_map_apply R S T,
       ← eq₃, ← eq₂, ← eq₁],
     ring },
 end
@@ -89,7 +89,7 @@ lemma localization_localization_eq_iff_exists [is_localization N T] (x y : R) :
   algebra_map R T x = algebra_map R T y ↔
     ∃ (c : localization_localization_submodule M N), x * c = y * c :=
 begin
-  rw [is_scalar_tower.algebra_map_apply R S T, is_scalar_tower.algebra_map_apply R S T,
+  rw [smul_assoc_class.algebra_map_apply R S T, smul_assoc_class.algebra_map_apply R S T,
       is_localization.eq_iff_exists N T],
   split,
   { rintros ⟨z, eq₁⟩,
@@ -155,8 +155,8 @@ instance (p : ideal (localization M)) [p.is_prime] : algebra R (localization.at_
 localization.algebra
 
 instance (p : ideal (localization M)) [p.is_prime] :
-  is_scalar_tower R (localization M) (localization.at_prime p) :=
-is_scalar_tower.of_algebra_map_eq' rfl
+  smul_assoc_class R (localization M) (localization.at_prime p) :=
+smul_assoc_class.of_algebra_map_eq' rfl
 
 instance localization_localization_at_prime_is_localization (p : ideal (localization M))
   [p.is_prime] : is_localization.at_prime (localization.at_prime p) (p.comap (algebra_map R _)) :=
@@ -185,12 +185,12 @@ def localization_algebra_of_submonoid_le
 
 /-- If `M ≤ N` are submonoids of `R`, then the natural map `M⁻¹S →+* N⁻¹S` commutes with the
 localization maps -/
-lemma localization_is_scalar_tower_of_submonoid_le
+lemma localization_smul_assoc_class_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
-  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_smul _ :=
+  @@smul_assoc_class R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_smul _ :=
 begin
   letI := localization_algebra_of_submonoid_le S T M N h,
-  exact is_scalar_tower.of_algebra_map_eq' (is_localization.lift_comp _).symm
+  exact smul_assoc_class.of_algebra_map_eq' (is_localization.lift_comp _).symm
 end
 
 noncomputable
@@ -202,17 +202,17 @@ localization_algebra_of_submonoid_le _ _ x.prime_compl (non_zero_divisors R)
 /-- If `M ≤ N` are submonoids of `R`, then `N⁻¹S` is also the localization of `M⁻¹S` at `N`. -/
 lemma is_localization_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T]
-  [algebra S T] [is_scalar_tower R S T] :
+  [algebra S T] [smul_assoc_class R S T] :
   is_localization (N.map (algebra_map R S).to_monoid_hom) T :=
 { map_units := begin
     rintro ⟨_, ⟨y, hy, rfl⟩⟩,
     convert is_localization.map_units T ⟨y, hy⟩,
-    exact (is_scalar_tower.algebra_map_apply _ _ _ _).symm
+    exact (smul_assoc_class.algebra_map_apply _ _ _ _).symm
   end,
   surj := λ y, begin
     obtain ⟨⟨x, s⟩, e⟩ := is_localization.surj N y,
     refine ⟨⟨algebra_map _ _ x, _, _, s.prop, rfl⟩, _⟩,
-    simpa [← is_scalar_tower.algebra_map_apply] using e
+    simpa [← smul_assoc_class.algebra_map_apply] using e
   end,
   eq_iff_exists := λ x₁ x₂, begin
     obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
@@ -223,8 +223,8 @@ lemma is_localization_of_submonoid_le
       ∃ (a : N), algebra_map R S (a * (y₁ * s₂)) = algebra_map R S (a * (y₂ * s₁)),
     { have h₁ := (is_localization.map_units T ⟨_, h s₁.prop⟩).mul_left_inj,
       have h₂ := (is_localization.map_units T ⟨_, h s₂.prop⟩).mul_left_inj,
-      simp only [is_scalar_tower.algebra_map_apply R S T, subtype.coe_mk] at h₁ h₂,
-      simp only [is_scalar_tower.algebra_map_apply R S T, map_mul, ← e₁, ← e₂, ← mul_assoc,
+      simp only [smul_assoc_class.algebra_map_apply R S T, subtype.coe_mk] at h₁ h₂,
+      simp only [smul_assoc_class.algebra_map_apply R S T, map_mul, ← e₁, ← e₂, ← mul_assoc,
         mul_right_comm _ (algebra_map R S s₂),
         mul_right_comm _ (algebra_map S T (algebra_map R S s₂)),
         (is_localization.map_units S s₁).mul_left_inj,
@@ -268,7 +268,7 @@ open is_localization
 variable (M)
 
 lemma is_fraction_ring_of_is_localization (S T : Type*) [comm_ring S] [comm_ring T]
-  [algebra R S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
+  [algebra R S] [algebra R T] [algebra S T] [smul_assoc_class R S T]
   [is_localization M S] [is_fraction_ring R T] (hM : M ≤ non_zero_divisors R) :
   is_fraction_ring S T :=
 begin
@@ -290,7 +290,7 @@ end
 
 lemma is_fraction_ring_of_is_domain_of_is_localization [is_domain R] (S T : Type*)
   [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] [algebra S T]
-  [is_scalar_tower R S T] [is_localization M S] [is_fraction_ring R T] : is_fraction_ring S T :=
+  [smul_assoc_class R S T] [is_localization M S] [is_fraction_ring R T] : is_fraction_ring S T :=
 begin
   haveI := is_fraction_ring.nontrivial R T,
   haveI := (algebra_map S T).domain_nontrivial,

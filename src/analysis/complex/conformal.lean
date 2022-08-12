@@ -52,7 +52,7 @@ begin
     simp only [linear_map.smul_apply],
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],
     nth_rewrite 0 [this],
-    rw [_root_.coe_coe map, linear_map.coe_coe_is_scalar_tower],
+    rw [_root_.coe_coe map, linear_map.coe_coe_smul_assoc_class],
     simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
     field_simp [minor₁], },
   { ext1,

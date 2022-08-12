@@ -178,8 +178,8 @@ rfl
 instance step.algebra (n) : algebra k (step k n) :=
 (to_step_of_le k 0 n n.zero_le).to_algebra
 
-instance step.scalar_tower (n) : is_scalar_tower k (step k n) (step k (n + 1)) :=
-is_scalar_tower.of_algebra_map_eq $ λ z,
+instance step.scalar_tower (n) : smul_assoc_class k (step k n) (step k (n + 1)) :=
+smul_assoc_class.of_algebra_map_eq $ λ z,
   @nat.le_rec_on_succ (step k) 0 n n.zero_le (n + 1).zero_le (λ n, to_step_succ k n) z
 
 theorem step.is_integral (n) : ∀ z : step k n, is_integral k z :=
@@ -245,10 +245,10 @@ lemma algebra_map_def {R : Type*} [comm_semiring R] [alg : algebra R k] :
 rfl
 
 instance {R S : Type*} [comm_semiring R] [comm_semiring S]
-  [algebra R S] [algebra S k] [algebra R k] [is_scalar_tower R S k] :
-  is_scalar_tower R S (algebraic_closure k) :=
-is_scalar_tower.of_algebra_map_eq (λ x,
-  ring_hom.congr_arg _ (is_scalar_tower.algebra_map_apply R S k x : _))
+  [algebra R S] [algebra S k] [algebra R k] [smul_assoc_class R S k] :
+  smul_assoc_class R S (algebraic_closure k) :=
+smul_assoc_class.of_algebra_map_eq (λ x,
+  ring_hom.congr_arg _ (smul_assoc_class.algebra_map_apply R S k x : _))
 
 /-- Canonical algebra embedding from the `n`th step to the algebraic closure. -/
 def of_step_hom (n) : step k n →ₐ[k] algebraic_closure k :=

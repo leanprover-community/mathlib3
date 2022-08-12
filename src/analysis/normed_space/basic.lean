@@ -212,7 +212,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]
   {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E] [module R E]
-  [is_scalar_tower 𝕜 R E] (s : submodule R E) :
+  [smul_assoc_class 𝕜 R E] (s : submodule R E) :
   normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
@@ -364,7 +364,7 @@ See the implementation notes for `algebra` for a discussion about non-unital alg
 the strategy there, a non-unital *normed* algebra can be written as:
 ```lean
 variables [normed_field 𝕜] [non_unital_semi_normed_ring 𝕜']
-variables [normed_module 𝕜 𝕜'] [smul_comm_class 𝕜 𝕜' 𝕜'] [is_scalar_tower 𝕜 𝕜' 𝕜']
+variables [normed_module 𝕜 𝕜'] [smul_comm_class 𝕜 𝕜' 𝕜'] [smul_assoc_class 𝕜 𝕜' 𝕜']
 ```
 -/
 class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
@@ -500,7 +500,7 @@ def module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E 
   normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 
 /-- Warning: This declaration should be used judiciously.
-Please consider using `is_scalar_tower` and/or `restrict_scalars 𝕜 𝕜' E` instead.
+Please consider using `smul_assoc_class` and/or `restrict_scalars 𝕜 𝕜' E` instead.
 
 This definition allows the `restrict_scalars.normed_space` instance to be put directly on `E`
 rather on `restrict_scalars 𝕜 𝕜' E`. This would be a very bad instance; both because `𝕜'` cannot be

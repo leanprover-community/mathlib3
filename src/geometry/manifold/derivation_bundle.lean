@@ -29,7 +29,7 @@ open_locale manifold
 
 -- the following two instances prevent poorly understood type class inference timeout problems
 instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
-instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
+instance smooth_functions_tower : smul_assoc_class 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
 /-- Type synonym, introduced to put a different `has_smul` action on `C^n⟮I, M; 𝕜⟯`
 which is defined as `f • r = f(x) * r`. -/
@@ -48,7 +48,7 @@ instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.comm_rin
 instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.algebra
 instance {x : M} : inhabited C^∞⟮I, M; 𝕜⟯⟨x⟩ := ⟨0⟩
 instance {x : M} : algebra C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ := algebra.id C^∞⟮I, M; 𝕜⟯
-instance {x : M} : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ := is_scalar_tower.right
+instance {x : M} : smul_assoc_class 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ := smul_assoc_class.right
 
 variable {I}
 
@@ -62,7 +62,7 @@ algebra.of_id C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜
 
 lemma smul_def (x : M) (f : C^∞⟮I, M; 𝕜⟯⟨x⟩) (k : 𝕜) : f • k = f x * k := rfl
 
-instance (x : M) : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜 :=
+instance (x : M) : smul_assoc_class 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜 :=
 { smul_assoc := λ k f h, by { simp only [smul_def, algebra.id.smul_eq_mul, smooth_map.coe_smul,
   pi.smul_apply, mul_assoc]} }
 

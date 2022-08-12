@@ -382,8 +382,8 @@ alg_equiv.of_bijective f
   ⟨ring_hom.injective f.to_ring_hom,
     begin
       letI : algebra L M := ring_hom.to_algebra f,
-      letI : is_scalar_tower R L M :=
-        is_scalar_tower.of_algebra_map_eq (by simp [ring_hom.algebra_map_to_algebra]),
+      letI : smul_assoc_class R L M :=
+        smul_assoc_class.of_algebra_map_eq (by simp [ring_hom.algebra_map_to_algebra]),
       show function.surjective (algebra_map L M),
       exact is_alg_closed.algebra_map_surjective_of_is_algebraic
         (algebra.is_algebraic_of_larger_base_of_injective
@@ -394,9 +394,9 @@ end
 
 section equiv_of_algebraic
 
-variables [algebra R S] [algebra R L] [is_scalar_tower R S L]
+variables [algebra R S] [algebra R L] [smul_assoc_class R S L]
 variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
-  [is_scalar_tower K J L]
+  [smul_assoc_class K J L]
 
 
 /-- A (random) isomorphism between an algebraic closure of `R` and an algebraic closure of
@@ -406,7 +406,7 @@ noncomputable def equiv_of_algebraic' [nontrivial S] [no_zero_smul_divisors R S]
 begin
   letI : no_zero_smul_divisors R L :=
     no_zero_smul_divisors.of_algebra_map_injective begin
-      rw [is_scalar_tower.algebra_map_eq R S L],
+      rw [smul_assoc_class.algebra_map_eq R S L],
       exact function.injective.comp
         (no_zero_smul_divisors.algebra_map_injective _ _)
         (no_zero_smul_divisors.algebra_map_injective _ _)
@@ -443,8 +443,8 @@ begin
       exact is_algebraic_algebra_map _
     end,
   letI : algebra R L := ring_hom.to_algebra ((algebra_map S L).comp (algebra_map R S)),
-  haveI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
-  haveI : is_scalar_tower S R L := is_scalar_tower.of_algebra_map_eq
+  haveI : smul_assoc_class R S L := smul_assoc_class.of_algebra_map_eq (λ _, rfl),
+  haveI : smul_assoc_class S R L := smul_assoc_class.of_algebra_map_eq
     (by simp [ring_hom.algebra_map_to_algebra]),
   haveI : no_zero_smul_divisors R S :=
     no_zero_smul_divisors.of_algebra_map_injective hSR.symm.injective,

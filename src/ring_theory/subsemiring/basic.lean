@@ -998,11 +998,11 @@ instance smul_comm_class_right
   smul_comm_class α S β :=
 S.to_submonoid.smul_comm_class_right
 
-/-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
-instance [has_smul α β] [has_smul R' α] [has_smul R' β] [is_scalar_tower R' α β]
+/-- Note that this provides `smul_assoc_class S R R` which is needed by `smul_mul_assoc`. -/
+instance [has_smul α β] [has_smul R' α] [has_smul R' β] [smul_assoc_class R' α β]
   (S : subsemiring R') :
-  is_scalar_tower S α β :=
-S.to_submonoid.is_scalar_tower
+  smul_assoc_class S α β :=
+S.to_submonoid.smul_assoc_class
 
 instance [has_smul R' α] [has_faithful_smul R' α] (S : subsemiring R') :
   has_faithful_smul S α :=

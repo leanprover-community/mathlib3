@@ -124,14 +124,14 @@ instance : lie_ring_module L N :=
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
+instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [smul_assoc_class S R M] :
   module S N :=
 N.to_submodule.module'
 
 instance : module R N := N.to_submodule.module
 
 instance {S : Type*} [semiring S] [has_smul S R] [has_smul Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
-  [is_scalar_tower S R M] [is_scalar_tower Sᵐᵒᵖ R M] [is_central_scalar S M] :
+  [smul_assoc_class S R M] [smul_assoc_class Sᵐᵒᵖ R M] [is_central_scalar S M] :
   is_central_scalar S N :=
 N.to_submodule.is_central_scalar
 

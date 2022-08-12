@@ -248,22 +248,22 @@ end
 
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
 
-instance module' {R} [semiring R] [has_smul R K] [module R L] [is_scalar_tower R K L] :
+instance module' {R} [semiring R] [has_smul R K] [module R L] [smul_assoc_class R K L] :
   module R S :=
 S.to_subalgebra.module'
 instance module : module K S := S.to_subalgebra.module
 
-instance is_scalar_tower {R} [semiring R] [has_smul R K] [module R L]
-  [is_scalar_tower R K L] :
-  is_scalar_tower R K S :=
-S.to_subalgebra.is_scalar_tower
+instance smul_assoc_class {R} [semiring R] [has_smul R K] [module R L]
+  [smul_assoc_class R K L] :
+  smul_assoc_class R K S :=
+S.to_subalgebra.smul_assoc_class
 
-@[simp] lemma coe_smul {R} [semiring R] [has_smul R K] [module R L] [is_scalar_tower R K L]
+@[simp] lemma coe_smul {R} [semiring R] [has_smul R K] [module R L] [smul_assoc_class R K L]
   (r : R) (x : S) :
   ↑(r • x) = (r • x : L) := rfl
 
 instance algebra' {K'} [comm_semiring K'] [has_smul K' K] [algebra K' L]
-  [is_scalar_tower K' K L] :
+  [smul_assoc_class K' K L] :
   algebra K' S :=
 S.to_subalgebra.algebra'
 instance algebra : algebra K S := S.to_subalgebra.algebra
@@ -271,17 +271,17 @@ instance algebra : algebra K S := S.to_subalgebra.algebra
 instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
 S.to_subalgebra.to_algebra
 
-instance is_scalar_tower_bot {R : Type*} [semiring R] [algebra L R] :
-  is_scalar_tower S L R :=
-is_scalar_tower.subalgebra _ _ _ S.to_subalgebra
+instance smul_assoc_class_bot {R : Type*} [semiring R] [algebra L R] :
+  smul_assoc_class S L R :=
+smul_assoc_class.subalgebra _ _ _ S.to_subalgebra
 
-instance is_scalar_tower_mid {R : Type*} [semiring R] [algebra L R] [algebra K R]
-  [is_scalar_tower K L R] : is_scalar_tower K S R :=
-is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
+instance smul_assoc_class_mid {R : Type*} [semiring R] [algebra L R] [algebra K R]
+  [smul_assoc_class K L R] : smul_assoc_class K S R :=
+smul_assoc_class.subalgebra' _ _ _ S.to_subalgebra
 
-/-- Specialize `is_scalar_tower_mid` to the common case where the top field is `L` -/
-instance is_scalar_tower_mid' : is_scalar_tower K S L :=
-S.is_scalar_tower_mid
+/-- Specialize `smul_assoc_class_mid` to the common case where the top field is `L` -/
+instance smul_assoc_class_mid' : smul_assoc_class K S L :=
+S.smul_assoc_class_mid
 
 variables {L' : Type*} [field L'] [algebra K L']
 
@@ -327,7 +327,7 @@ lemma range_val : S.val.range = S.to_subalgebra :=
 S.to_subalgebra.range_val
 
 lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
-  [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=
+  [smul_assoc_class R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=
 begin
   refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
   { rw [aeval_add, aeval_add, add_mem_class.coe_add, hf, hg] },
@@ -337,14 +337,14 @@ begin
 end
 
 lemma coe_is_integral_iff {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
-  [is_scalar_tower R K L] {x : S} : is_integral R (x : L) ↔ _root_.is_integral R x :=
+  [smul_assoc_class R K L] {x : S} : is_integral R (x : L) ↔ _root_.is_integral R x :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { obtain ⟨P, hPmo, hProot⟩ := h,
     refine ⟨P, hPmo, (injective_iff_map_eq_zero _).1 (algebra_map ↥S L).injective _ _⟩,
-    letI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (congr_fun rfl),
+    letI : smul_assoc_class R S L := smul_assoc_class.of_algebra_map_eq (congr_fun rfl),
     rwa [eval₂_eq_eval_map, ← eval₂_at_apply, eval₂_eq_eval_map, polynomial.map_map,
-      ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },
+      ← smul_assoc_class.algebra_map_eq, ← eval₂_eq_eval_map] },
   { obtain ⟨P, hPmo, hProot⟩ := h,
     refine ⟨P, hPmo, _⟩,
     rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
@@ -403,7 +403,7 @@ instance has_lift {F : intermediate_field K L} :
   has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift⟩
 
 section restrict_scalars
-variables (K) [algebra L' L] [is_scalar_tower K L' L]
+variables (K) [algebra L' L] [smul_assoc_class K L' L]
 
 /-- Given a tower `L / ↥E / L' / K` of field extensions, where `E` is an `L'`-intermediate field of
 `L`, reinterpret `E` as a `K`-intermediate field of `L`. -/

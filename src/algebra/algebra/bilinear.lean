@@ -24,7 +24,7 @@ namespace linear_map
 section non_unital_non_assoc
 
 variables (R A : Type*) [comm_semiring R] [non_unital_non_assoc_semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+  [module R A] [smul_comm_class R A A] [smul_assoc_class R A A]
 
 /-- The multiplication in a non-unital non-associative algebra is a bilinear map.
 
@@ -75,7 +75,7 @@ end non_unital_non_assoc
 section non_unital
 
 variables (R A : Type*) [comm_semiring R] [non_unital_semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+  [module R A] [smul_comm_class R A A] [smul_assoc_class R A A]
 
 /-- The multiplication in a non-unital algebra is a bilinear map.
 

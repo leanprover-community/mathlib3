@@ -3279,8 +3279,8 @@ over `𝕜`.
 -/
 
 variables (𝕜) {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
-variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
+variables [normed_space 𝕜' E] [smul_assoc_class 𝕜 𝕜' E]
+variables [normed_space 𝕜' F] [smul_assoc_class 𝕜 𝕜' F]
 variables {p' : E → formal_multilinear_series 𝕜' E F}
 
 lemma has_ftaylor_series_up_to_on.restrict_scalars

@@ -297,8 +297,8 @@ noncomputable instance [is_domain R] [field K] [algebra R K] [no_zero_smul_divis
 ring_hom.to_algebra (is_fraction_ring.lift (no_zero_smul_divisors.algebra_map_injective R _))
 
 instance [is_domain R] [field K] [algebra R K] [no_zero_smul_divisors R K] :
-  is_scalar_tower R (fraction_ring R) K :=
-is_scalar_tower.of_algebra_map_eq (λ x, (is_fraction_ring.lift_algebra_map _ x).symm)
+  smul_assoc_class R (fraction_ring R) K :=
+smul_assoc_class.of_algebra_map_eq (λ x, (is_fraction_ring.lift_algebra_map _ x).symm)
 
 variables (A)
 
@@ -312,7 +312,7 @@ localization.alg_equiv (non_zero_divisors A) K
 instance [algebra R A] [no_zero_smul_divisors R A] : no_zero_smul_divisors R (fraction_ring A) :=
 no_zero_smul_divisors.of_algebra_map_injective
   begin
-    rw [is_scalar_tower.algebra_map_eq R A],
+    rw [smul_assoc_class.algebra_map_eq R A],
     exact function.injective.comp
       (no_zero_smul_divisors.algebra_map_injective _ _)
       (no_zero_smul_divisors.algebra_map_injective _ _)

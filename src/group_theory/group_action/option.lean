@@ -32,7 +32,7 @@ variables [has_smul M α] [has_smul N α] (a : M) (b : α) (x : option α)
 @[simp, to_additive] lemma smul_none : a • (none : option α) = none := rfl
 @[simp, to_additive] lemma smul_some : a • some b = some (a • b) := rfl
 
-instance [has_smul M N] [is_scalar_tower M N α] : is_scalar_tower M N (option α) :=
+instance [has_smul M N] [smul_assoc_class M N α] : smul_assoc_class M N (option α) :=
 ⟨λ a b x, by { cases x, exacts [rfl, congr_arg some (smul_assoc _ _ _)] }⟩
 
 @[to_additive] instance [smul_comm_class M N α] : smul_comm_class M N (option α) :=

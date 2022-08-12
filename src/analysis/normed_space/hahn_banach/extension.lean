@@ -65,7 +65,7 @@ theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
   ∃ g : F →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
   letI : module ℝ F := restrict_scalars.module ℝ 𝕜 F,
-  letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
+  letI : smul_assoc_class ℝ 𝕜 F := restrict_scalars.smul_assoc_class _ _ _,
   letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),

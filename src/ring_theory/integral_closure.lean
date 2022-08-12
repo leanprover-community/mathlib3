@@ -121,33 +121,33 @@ hx in ⟨p, hp, by rw [← aeval_def, aeval_alg_hom_apply, aeval_def, hpx, f.map
 theorem is_integral_alg_equiv (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) ↔ is_integral R x :=
 ⟨λ h, by simpa using is_integral_alg_hom f.symm.to_alg_hom h, is_integral_alg_hom f.to_alg_hom⟩
 
-theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
+theorem is_integral_of_smul_assoc_class [algebra A B] [smul_assoc_class R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
-  by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
+  by rw [← aeval_def, ← smul_assoc_class.aeval_apply, aeval_def, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=
-is_integral_of_is_scalar_tower x hx
+is_integral_of_smul_assoc_class x hx
 
-lemma is_integral.algebra_map [algebra A B] [is_scalar_tower R A B]
+lemma is_integral.algebra_map [algebra A B] [smul_assoc_class R A B]
   {x : A} (h : is_integral R x) :
   is_integral R (algebra_map A B x) :=
 begin
   rcases h with ⟨f, hf, hx⟩,
   use [f, hf],
-  rw [is_scalar_tower.algebra_map_eq R A B, ← hom_eval₂, hx, ring_hom.map_zero]
+  rw [smul_assoc_class.algebra_map_eq R A B, ← hom_eval₂, hx, ring_hom.map_zero]
 end
 
-lemma is_integral_algebra_map_iff [algebra A B] [is_scalar_tower R A B]
+lemma is_integral_algebra_map_iff [algebra A B] [smul_assoc_class R A B]
   {x : A} (hAB : function.injective (algebra_map A B)) :
   is_integral R (algebra_map A B x) ↔ is_integral R x :=
 begin
   refine ⟨_, λ h, h.algebra_map⟩,
   rintros ⟨f, hf, hx⟩,
   use [f, hf],
-  exact is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B hAB hx,
+  exact smul_assoc_class.aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B hAB hx,
 end
 
 theorem is_integral_iff_is_integral_closure_finite {r : A} :
@@ -156,7 +156,7 @@ begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
     refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
-    erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
+    erw [← aeval_def, smul_assoc_class.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
 end
@@ -397,10 +397,10 @@ theorem is_integral_mul {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x * y) :=
 (algebra_map R A).is_integral_mul hx hy
 
-lemma is_integral_smul [algebra S A] [algebra R S] [is_scalar_tower R S A] {x : A} (r : R)
+lemma is_integral_smul [algebra S A] [algebra R S] [smul_assoc_class R S A] {x : A} (r : R)
   (hx : is_integral S x) : is_integral S (r • x) :=
 begin
-  rw [algebra.smul_def, is_scalar_tower.algebra_map_apply R S A],
+  rw [algebra.smul_def, smul_assoc_class.algebra_map_apply R S A],
   exact is_integral_mul is_integral_algebra_map hx,
 end
 
@@ -664,11 +664,11 @@ variables {R A B : Type*} [comm_ring R] [comm_ring A] [comm_ring B]
 variables [algebra R B] [algebra A B] [is_integral_closure A R B]
 
 variables (R) {A} (B)
-protected theorem is_integral [algebra R A] [is_scalar_tower R A B] (x : A) : is_integral R x :=
+protected theorem is_integral [algebra R A] [smul_assoc_class R A B] (x : A) : is_integral R x :=
 (is_integral_algebra_map_iff (algebra_map_injective A R B)).mp $
 show is_integral R (algebra_map A B x), from is_integral_iff.mpr ⟨x, rfl⟩
 
-theorem is_integral_algebra [algebra R A] [is_scalar_tower R A B] :
+theorem is_integral_algebra [algebra R A] [smul_assoc_class R A B] :
   algebra.is_integral R A :=
 λ x, is_integral_closure.is_integral R B x
 
@@ -698,15 +698,15 @@ algebra_map_injective A R B $ by simp only [algebra_map_mk', ring_hom.map_add]
   mk' A (x * y) (is_integral_mul hx hy) = mk' A x hx * mk' A y hy :=
 algebra_map_injective A R B $ by simp only [algebra_map_mk', ring_hom.map_mul]
 
-@[simp] lemma mk'_algebra_map [algebra R A] [is_scalar_tower R A B] (x : R)
+@[simp] lemma mk'_algebra_map [algebra R A] [smul_assoc_class R A B] (x : R)
   (h : is_integral R (algebra_map R B x) := is_integral_algebra_map) :
   is_integral_closure.mk' A (algebra_map R B x) h = algebra_map R A x :=
-algebra_map_injective A R B $ by rw [algebra_map_mk', ← is_scalar_tower.algebra_map_apply]
+algebra_map_injective A R B $ by rw [algebra_map_mk', ← smul_assoc_class.algebra_map_apply]
 
 section lift
 
-variables {R} (A B) {S : Type*} [comm_ring S] [algebra R S] [algebra S B] [is_scalar_tower R S B]
-variables [algebra R A] [is_scalar_tower R A B] (h : algebra.is_integral R S)
+variables {R} (A B) {S : Type*} [comm_ring S] [algebra R S] [algebra S B] [smul_assoc_class R S B]
+variables [algebra R A] [smul_assoc_class R A B] (h : algebra.is_integral R S)
 
 /-- If `B / S / R` is a tower of ring extensions where `S` is integral over `R`,
 then `S` maps (uniquely) into an integral closure `B / A / R`. -/
@@ -716,7 +716,7 @@ noncomputable def lift : S →ₐ[R] A :=
   map_zero' := by simp only [ring_hom.map_zero, mk'_zero],
   map_add' := λ x y, by simp_rw [← mk'_add, ring_hom.map_add],
   map_mul' := λ x y, by simp_rw [← mk'_mul, ring_hom.map_mul],
-  commutes' := λ x, by simp_rw [← is_scalar_tower.algebra_map_apply, mk'_algebra_map] }
+  commutes' := λ x, by simp_rw [← smul_assoc_class.algebra_map_apply, mk'_algebra_map] }
 
 @[simp] lemma algebra_map_lift (x : S) : algebra_map A B (lift A B h x) = algebra_map S B x :=
 algebra_map_mk' _ _ _
@@ -726,7 +726,7 @@ end lift
 section equiv
 
 variables (R A B) (A' : Type*) [comm_ring A'] [algebra A' B] [is_integral_closure A' R B]
-variables [algebra R A] [algebra R A'] [is_scalar_tower R A B] [is_scalar_tower R A' B]
+variables [algebra R A] [algebra R A'] [smul_assoc_class R A B] [smul_assoc_class R A' B]
 
 /-- Integral closures are all isomorphic to each other. -/
 noncomputable def equiv : A ≃ₐ[R] A' :=
@@ -772,7 +772,7 @@ begin
     convert hq using 1; symmetry; apply eval_map },
 end
 
-variables [algebra R A] [is_scalar_tower R A B]
+variables [algebra R A] [smul_assoc_class R A B]
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
@@ -786,7 +786,7 @@ begin
   { rw [finset.mem_coe, frange, finset.mem_image] at hx,
     rcases hx with ⟨i, _, rfl⟩,
     rw coeff_map,
-    exact is_integral_alg_hom (is_scalar_tower.to_alg_hom R A B) (A_int _) },
+    exact is_integral_alg_hom (smul_assoc_class.to_alg_hom R A B) (A_int _) },
   { apply fg_adjoin_singleton_of_integral,
     exact is_integral_trans_aux _ pmonic hp }
 end
@@ -800,7 +800,7 @@ lemma algebra.is_integral_trans (hA : is_integral R A) (hB : is_integral A B) : 
 lemma ring_hom.is_integral_trans (hf : f.is_integral) (hg : g.is_integral) :
   (g.comp f).is_integral :=
 @algebra.is_integral_trans R S T _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
-  (@is_scalar_tower.of_algebra_map_eq R S T _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
+  (@smul_assoc_class.of_algebra_map_eq R S T _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
   (ring_hom.comp_apply g f)) hf hg
 
 lemma ring_hom.is_integral_of_surjective (hf : function.surjective f) : f.is_integral :=
@@ -816,7 +816,7 @@ lemma is_integral_tower_bot_of_is_integral (H : function.injective (algebra_map 
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p, ⟨hp, _⟩⟩,
-  rw [is_scalar_tower.algebra_map_eq R A B, ← eval₂_map,
+  rw [smul_assoc_class.algebra_map_eq R A B, ← eval₂_map,
       eval₂_hom, ← ring_hom.map_zero (algebra_map A B)] at hp',
   rw [eval₂_eq_eval_map],
   exact H hp',
@@ -826,11 +826,11 @@ lemma ring_hom.is_integral_tower_bot_of_is_integral (hg : function.injective g)
   (hfg : (g.comp f).is_integral) : f.is_integral :=
 λ x,
   @is_integral_tower_bot_of_is_integral R S T _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
-  (@is_scalar_tower.of_algebra_map_eq R S T _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
+  (@smul_assoc_class.of_algebra_map_eq R S T _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
   (ring_hom.comp_apply g f))  hg x (hfg (g x))
 
 lemma is_integral_tower_bot_of_is_integral_field {R A B : Type*} [comm_ring R] [field A]
-  [comm_ring B] [nontrivial B] [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
+  [comm_ring B] [nontrivial B] [algebra R A] [algebra A B] [algebra R B] [smul_assoc_class R A B]
   {x : A} (h : is_integral R (algebra_map A B x)) : is_integral R x :=
 is_integral_tower_bot_of_is_integral (algebra_map A B).injective h
 
@@ -847,7 +847,7 @@ lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_in
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p.map (algebra_map R A), ⟨hp.map (algebra_map R A), _⟩⟩,
-  rw [is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
+  rw [smul_assoc_class.algebra_map_eq R A B, ← eval₂_map] at hp',
   exact hp',
 end
 

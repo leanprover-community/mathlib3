@@ -59,8 +59,8 @@ lemma pow_def (p : α × β) (c : E) : p ^ c = (p.1 ^ c, p.2 ^ c) := rfl
 @[simp, to_additive smul_swap, to_additive_reorder 6]
 lemma pow_swap (p : α × β) (c : E) : (p ^ c).swap = p.swap ^ c := rfl
 
-instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
-  is_scalar_tower M N (α × β) :=
+instance [has_smul M N] [smul_assoc_class M N α] [smul_assoc_class M N β] :
+  smul_assoc_class M N (α × β) :=
 ⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩
 
 @[to_additive] instance [smul_comm_class M N α] [smul_comm_class M N β] :
@@ -89,9 +89,9 @@ instance smul_comm_class_both [has_mul N] [has_mul P] [has_smul M N] [has_smul M
   smul_comm_class M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, mul_smul_comm]⟩
 
-instance is_scalar_tower_both [has_mul N] [has_mul P] [has_smul M N] [has_smul M P]
-  [is_scalar_tower M N N] [is_scalar_tower M P P] :
-  is_scalar_tower M (N × P) (N × P) :=
+instance smul_assoc_class_both [has_mul N] [has_mul P] [has_smul M N] [has_smul M P]
+  [smul_assoc_class M N N] [smul_assoc_class M P P] :
+  smul_assoc_class M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, smul_mul_assoc]⟩
 
 @[to_additive] instance {m : monoid M} [mul_action M α] [mul_action M β] : mul_action M (α × β) :=
@@ -116,7 +116,7 @@ section bundled_smul
 
 /-- Scalar multiplication as a multiplicative homomorphism. -/
 @[simps]
-def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
+def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [smul_assoc_class α β β]
   [smul_comm_class α β β] :
   (α × β) →ₙ* β :=
 { to_fun := λ a, a.1 • a.2,
@@ -124,7 +124,7 @@ def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α
 
 /-- Scalar multiplication as a monoid homomorphism. -/
 @[simps]
-def smul_monoid_hom [monoid α] [mul_one_class β] [mul_action α β] [is_scalar_tower α β β]
+def smul_monoid_hom [monoid α] [mul_one_class β] [mul_action α β] [smul_assoc_class α β β]
   [smul_comm_class α β β] :
   α × β →* β :=
 { map_one' := one_smul _ _,

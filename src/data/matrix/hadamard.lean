@@ -65,7 +65,7 @@ ext $ λ _ _, right_distrib _ _ _
 /- scalar multiplication -/
 section scalar
 
-@[simp] lemma smul_hadamard [has_mul α] [has_smul R α] [is_scalar_tower R α α] (k : R) :
+@[simp] lemma smul_hadamard [has_mul α] [has_smul R α] [smul_assoc_class R α α] (k : R) :
   (k • A) ⊙ B = k • A ⊙ B :=
 ext $ λ _ _, smul_mul_assoc _ _ _
 

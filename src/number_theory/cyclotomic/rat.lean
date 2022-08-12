@@ -102,7 +102,7 @@ begin
     obtain ⟨y, rfl⟩ := mem_bot.1 this,
     replace h := (is_integral_algebra_map_iff (algebra_map ℚ K).injective).1 h,
     obtain ⟨z, hz⟩ := is_integrally_closed.is_integral_iff.1 h,
-    rw [← hz, ← is_scalar_tower.algebra_map_apply],
+    rw [← hz, ← smul_assoc_class.algebra_map_apply],
     exact subalgebra.algebra_map_mem  _ _ },
   { have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
     { have h₁ := minpoly.gcd_domain_eq_field_fractions' ℚ hint,

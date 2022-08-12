@@ -486,18 +486,18 @@ from λ x, algebra.is_integral_of_finite _ _ _,
 
 section is_separable_tower
 variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
-  [algebra K E] [is_scalar_tower F K E]
+  [algebra K E] [smul_assoc_class F K E]
 
 lemma is_separable_tower_top_of_is_separable [is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
- λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
+⟨λ x, is_integral_of_smul_assoc_class x (is_separable.is_integral F x),
+ λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_smul_assoc_class _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
 is_separable_iff.2 $ λ x, begin
   refine (is_separable_iff.1 h (algebra_map K E x)).imp
     is_integral_tower_bot_of_is_integral_field (λ hs, _),
   obtain ⟨q, hq⟩ := minpoly.dvd F x
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
+    (smul_assoc_class.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
       (minpoly.aeval F ((algebra_map K E) x))),
   rw hq at hs,
   exact hs.of_mul_left
@@ -509,7 +509,7 @@ lemma is_separable.of_alg_hom (E' : Type*) [field E'] [algebra F E']
   (f : E →ₐ[F] E') [is_separable F E'] : is_separable F E :=
 begin
   letI : algebra E E' := ring_hom.to_algebra f.to_ring_hom,
-  haveI : is_scalar_tower F E E' := is_scalar_tower.of_algebra_map_eq (λ x, (f.commutes x).symm),
+  haveI : smul_assoc_class F E E' := smul_assoc_class.of_algebra_map_eq (λ x, (f.commutes x).symm),
   exact is_separable_tower_bot_of_is_separable F E E',
 end
 

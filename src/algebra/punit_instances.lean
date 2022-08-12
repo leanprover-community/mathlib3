@@ -90,7 +90,7 @@ instance : is_central_scalar R punit := ⟨λ _ _, rfl⟩
 
 instance : smul_comm_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
-instance [has_smul R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
+instance [has_smul R S] : smul_assoc_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
 instance [has_zero R] : smul_with_zero R punit :=
 by refine { ..punit.has_smul, .. };

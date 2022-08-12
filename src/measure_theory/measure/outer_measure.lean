@@ -234,8 +234,8 @@ instance : has_add (outer_measure α) :=
 theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) : (m₁ + m₂) s = m₁ s + m₂ s := rfl
 
 section has_smul
-variables [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
-variables [has_smul R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
+variables [has_smul R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
+variables [has_smul R' ℝ≥0∞] [smul_assoc_class R' ℝ≥0∞ ℝ≥0∞]
 
 instance : has_smul R (outer_measure α) :=
 ⟨λ c m,
@@ -257,7 +257,7 @@ lemma smul_apply (c : R) (m : outer_measure α) (s : set α) : (c • m) s = c �
 instance [smul_comm_class R R' ℝ≥0∞] : smul_comm_class R R' (outer_measure α) :=
 ⟨λ _ _ _, ext $ λ _, smul_comm _ _ _⟩
 
-instance [has_smul R R'] [is_scalar_tower R R' ℝ≥0∞] : is_scalar_tower R R' (outer_measure α) :=
+instance [has_smul R R'] [smul_assoc_class R R' ℝ≥0∞] : smul_assoc_class R R' (outer_measure α) :=
 ⟨λ _ _ _, ext $ λ _, smul_assoc _ _ _⟩
 
 instance [has_smul Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] :
@@ -266,7 +266,7 @@ instance [has_smul Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] :
 
 end has_smul
 
-instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] :
+instance [monoid R] [mul_action R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] :
   mul_action R (outer_measure α) :=
 injective.mul_action _ coe_fn_injective coe_smul
 
@@ -278,11 +278,11 @@ injective.add_comm_monoid (show outer_measure α → set α → ℝ≥0∞, from
 @[simps] def coe_fn_add_monoid_hom : outer_measure α →+ (set α → ℝ≥0∞) :=
 ⟨coe_fn, coe_zero, coe_add⟩
 
-instance [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] :
+instance [monoid R] [distrib_mul_action R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] :
   distrib_mul_action R (outer_measure α) :=
 injective.distrib_mul_action coe_fn_add_monoid_hom coe_fn_injective coe_smul
 
-instance [semiring R] [module R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] : module R (outer_measure α) :=
+instance [semiring R] [module R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] : module R (outer_measure α) :=
 injective.module R coe_fn_add_monoid_hom coe_fn_injective coe_smul
 
 instance : has_bot (outer_measure α) := ⟨0⟩
@@ -334,7 +334,7 @@ funext $ λ s, by rw [supr_apply, _root_.supr_apply]
 by have := supr_apply (λ b, cond b m₁ m₂) s;
   rwa [supr_bool_eq, supr_bool_eq] at this
 
-theorem smul_supr [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] {ι}
+theorem smul_supr [has_smul R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] {ι}
   (f : ι → outer_measure α) (c : R) :
   c • (⨆ i, f i) = ⨆ i, c • f i :=
 ext $ λ s, by simp only [smul_apply, supr_apply, ←smul_one_mul c (f _ _),
@@ -1399,7 +1399,7 @@ theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim
 ext $ trim_binop (add_apply m₁ m₂)
 
 /-- `trim` respects scalar multiplication. -/
-theorem trim_smul {R : Type*} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+theorem trim_smul {R : Type*} [has_smul R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
   (c : R) (m : outer_measure α) :
   (c • m).trim = c • m.trim :=
 ext $ trim_op (smul_apply c m)

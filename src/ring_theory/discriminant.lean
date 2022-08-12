@@ -33,7 +33,7 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
   coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the embedding in an algebraically closed
   field `E` corresponding to `j : ι` via a bijection `e : ι ≃ (L →ₐ[K] E)`.
 * `algebra.discr_of_power_basis_eq_prod` : the discriminant of a power basis.
-* `discr_is_integral` : if `K` and `L` are fields and `is_scalar_tower R K L`, is `b : ι → L`
+* `discr_is_integral` : if `K` and `L` are fields and `smul_assoc_class R K L`, is `b : ι → L`
   satisfies ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`.
 * `discr_mul_is_integral_mem_adjoin` : let `K` be the fraction field of an integrally closed domain
   `R` and let `L` be a finite separable extension of `K`. Let `B : power_basis K L` be such that
@@ -258,11 +258,11 @@ end
 
 section integral
 
-variables {R : Type z} [comm_ring R] [algebra R K] [algebra R L] [is_scalar_tower R K L]
+variables {R : Type z} [comm_ring R] [algebra R K] [algebra R L] [smul_assoc_class R K L]
 
 local notation `is_integral` := _root_.is_integral
 
-/-- If `K` and `L` are fields and `is_scalar_tower R K L`, and `b : ι → L` satisfies
+/-- If `K` and `L` are fields and `smul_assoc_class R K L`, and `b : ι → L` satisfies
 ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`. -/
 lemma discr_is_integral {b : ι → L} (h : ∀ i, is_integral R (b i)) :
   is_integral R (discr K b) :=

@@ -421,7 +421,7 @@ begin
     (submodule.fg_iff_finite_dimensional _).1
       (fg_adjoin_of_finite s.finite_to_set H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
-  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
+  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_smul_assoc_class a H1,
   have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
     (algebra_map (algebra.adjoin F (↑s : set K)) L),
   { refine polynomial.splits_of_splits_of_dvd _
@@ -429,8 +429,8 @@ begin
         polynomial.map (algebra_map _ _) _ ≠ 0)
       ((polynomial.splits_map_iff _ _).2 _)
       (minpoly.dvd _ _ _),
-    { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
-    { rw [← is_scalar_tower.aeval_apply, minpoly.aeval] } },
+    { rw ← smul_assoc_class.algebra_map_eq, exact H2 },
+    { rw [← smul_assoc_class.aeval_apply, minpoly.aeval] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
   refine ⟨subalgebra.of_restrict_scalars _ _ _⟩,
   refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,
@@ -545,12 +545,12 @@ instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [fiel
 nat.rec_on n (λ R K _ _ _ _, by exactI ‹algebra R K›) $
          λ n ih R K _ _ _ f, by exactI ih R
 
-instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
+instance smul_assoc_class (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
   [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],
-  by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]},
-    is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
-nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
+  by exactI Π [smul_assoc_class R₁ R₂ K] {f : K[X]},
+    smul_assoc_class R₁ R₂ (splitting_field_aux n f) :=
+nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _, by exactI ‹smul_assoc_class R₁ R₂ K›) $
          λ n ih R₁ R₂ K _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
 
 instance algebra''' {n : ℕ} {f : K[X]} :
@@ -567,18 +567,18 @@ instance algebra'' {n : ℕ} {f : K[X]} :
 splitting_field_aux.algebra n K
 
 instance scalar_tower' {n : ℕ} {f : K[X]} :
-  is_scalar_tower K (adjoin_root f.factor)
+  smul_assoc_class K (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor) :=
 begin
   -- finding this instance ourselves makes things faster
-  haveI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
-    is_scalar_tower.right,
+  haveI : smul_assoc_class K (adjoin_root f.factor) (adjoin_root f.factor) :=
+    smul_assoc_class.right,
   exact
-    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor),
+    splitting_field_aux.smul_assoc_class n K (adjoin_root f.factor),
 end
 
 instance scalar_tower {n : ℕ} {f : K[X]} :
-  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux (n + 1) f) :=
+  smul_assoc_class K (adjoin_root f.factor) (splitting_field_aux (n + 1) f) :=
 splitting_field_aux.scalar_tower'
 
 theorem algebra_map_succ (n : ℕ) (f : K[X]) :
@@ -586,7 +586,7 @@ theorem algebra_map_succ (n : ℕ) (f : K[X]) :
     (algebra_map (adjoin_root f.factor)
         (splitting_field_aux n f.remove_factor)).comp
       (adjoin_root.of f.factor) :=
-is_scalar_tower.algebra_map_eq _ _ _
+smul_assoc_class.algebra_map_eq _ _ _
 
 protected theorem splits (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n),
@@ -632,7 +632,7 @@ rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
-    is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
+    smul_assoc_class.adjoin_range_to_alg_hom K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor),
     ih _ (nat_degree_remove_factor' hfn), subalgebra.restrict_scalars_top] }
 
@@ -716,14 +716,14 @@ instance splitting_field (f : K[X]) : is_splitting_field K (splitting_field f) f
 
 section scalar_tower
 
-variables {K L F} [algebra F K] [algebra F L] [is_scalar_tower F K L]
+variables {K L F} [algebra F K] [algebra F L] [smul_assoc_class F K L]
 
 variables {K}
 instance map (f : F[X]) [is_splitting_field F L f] :
   is_splitting_field K L (f.map $ algebra_map F K) :=
-⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits L f },
+⟨by { rw [splits_map_iff, ← smul_assoc_class.algebra_map_eq], exact splits L f },
  subalgebra.restrict_scalars_injective F $
-  by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.restrict_scalars_top,
+  by { rw [map_map, ← smul_assoc_class.algebra_map_eq, subalgebra.restrict_scalars_top,
     eq_top_iff, ← adjoin_roots L f, algebra.adjoin_le_iff],
   exact λ x hx, @algebra.subset_adjoin K _ _ _ _ _ _ hx }⟩
 
@@ -741,16 +741,16 @@ theorem splits_iff (f : K[X]) [is_splitting_field K L f] :
 theorem mul (f g : F[X]) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f]
   [is_splitting_field K L (g.map $ algebra_map F K)] :
   is_splitting_field F L (f * g) :=
-⟨(is_scalar_tower.algebra_map_eq F K L).symm ▸ splits_mul _
+⟨(smul_assoc_class.algebra_map_eq F K L).symm ▸ splits_mul _
   (splits_comp_of_splits _ _ (splits K f))
   ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
  by rw [polynomial.map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
         (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union,
       algebra.adjoin_union_eq_adjoin_adjoin,
-      is_scalar_tower.algebra_map_eq F K L, ← map_map,
+      smul_assoc_class.algebra_map_eq F K L, ← map_map,
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
-      algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ← map_map, adjoin_roots,
+      algebra.map_top, smul_assoc_class.adjoin_range_to_alg_hom, ← map_map, adjoin_roots,
       subalgebra.restrict_scalars_top]⟩
 
 end scalar_tower
@@ -828,7 +828,7 @@ begin
   simp_rw [root_set, finset.mem_coe, multiset.mem_to_finset] at hF,
   rw splits_iff_exists_multiset,
   refine ⟨multiset.pmap subtype.mk _ hF, map_injective _ (algebra_map F L).injective _⟩,
-  conv_lhs { rw [polynomial.map_map, ←is_scalar_tower.algebra_map_eq,
+  conv_lhs { rw [polynomial.map_map, ←smul_assoc_class.algebra_map_eq,
     eq_prod_roots_of_splits h, ←multiset.pmap_eq_map _ _ _ hF] },
   simp_rw [polynomial.map_mul, polynomial.map_multiset_prod,
     multiset.map_pmap, polynomial.map_sub, map_C, map_X],

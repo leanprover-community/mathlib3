@@ -33,8 +33,8 @@ variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M
 @[simp, to_additive] lemma smul_inr : a • (inr c : α ⊕ β) = inr (a • c) := rfl
 @[simp, to_additive] lemma smul_swap : (a • x).swap = a • x.swap := by cases x; refl
 
-instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
-  is_scalar_tower M N (α ⊕ β) :=
+instance [has_smul M N] [smul_assoc_class M N α] [smul_assoc_class M N β] :
+  smul_assoc_class M N (α ⊕ β) :=
 ⟨λ a b x,
   by { cases x, exacts [congr_arg inl (smul_assoc _ _ _), congr_arg inr (smul_assoc _ _ _)] }⟩
 

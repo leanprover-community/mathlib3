@@ -67,7 +67,7 @@ As a result, there are two ways to talk about an `R`-algebra `A` when `A` is a s
    ```
 2. ```lean
    variables [comm_semiring R] [semiring A]
-   variables [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+   variables [module R A] [smul_comm_class R A A] [smul_assoc_class R A A]
    ```
 
 The first approach implies the second via typeclass search; so any lemma stated with the second set
@@ -75,7 +75,7 @@ of arguments will automatically apply to the first set. Typeclass search does no
 second approach implies the first, but this can be shown with:
 ```lean
 example {R A : Type*} [comm_semiring R] [semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A] : algebra R A :=
+  [module R A] [smul_comm_class R A A] [smul_assoc_class R A A] : algebra R A :=
 algebra.of_module smul_mul_assoc mul_smul_comm
 ```
 
@@ -244,14 +244,14 @@ theorem right_comm (x : A) (r : R) (y : A) :
   (x * algebra_map R A r) * y = (x * y) * algebra_map R A r :=
 by rw [mul_assoc, commutes, ←mul_assoc]
 
-instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
+instance _root_.smul_assoc_class.right : smul_assoc_class R A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩
 
 /-- This is just a special case of the global `mul_smul_comm` lemma that requires less typeclass
 search (and was here first). -/
 @[simp] protected lemma mul_smul_comm (s : R) (x y : A) :
   x * (s • y) = s • (x * y) :=
--- TODO: set up `is_scalar_tower.smul_comm_class` earlier so that we can actually prove this using
+-- TODO: set up `smul_assoc_class.smul_comm_class` earlier so that we can actually prove this using
 -- `mul_smul_comm s x y`.
 by rw [smul_def, smul_def, left_comm]
 
@@ -1562,12 +1562,12 @@ rfl
 
 end alg_equiv
 
-section is_scalar_tower
+section smul_assoc_class
 
 variables {R : Type*} [comm_semiring R]
 variables (A : Type*) [semiring A] [algebra R A]
-variables {M : Type*} [add_comm_monoid M] [module A M] [module R M] [is_scalar_tower R A M]
-variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A N]
+variables {M : Type*} [add_comm_monoid M] [module A M] [module R M] [smul_assoc_class R A M]
+variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [smul_assoc_class R A N]
 
 lemma algebra_compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
 by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
@@ -1576,7 +1576,7 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 (algebra_compatible_smul A r m).symm
 
 lemma no_zero_smul_divisors.trans (R A M : Type*) [comm_ring R] [ring A] [is_domain A] [algebra R A]
-  [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M] [no_zero_smul_divisors R A]
+  [add_comm_group M] [module R M] [module A M] [smul_assoc_class R A M] [no_zero_smul_divisors R A]
   [no_zero_smul_divisors A M] : no_zero_smul_divisors R M :=
 begin
   refine ⟨λ r m h, _⟩,
@@ -1593,12 +1593,12 @@ end
 variable {A}
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_scalar_tower.to_smul_comm_class : smul_comm_class R A M :=
+instance smul_assoc_class.to_smul_comm_class : smul_comm_class R A M :=
 ⟨λ r a m, by rw [algebra_compatible_smul A r (a • m), smul_smul, algebra.commutes, mul_smul,
   ←algebra_compatible_smul]⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_scalar_tower.to_smul_comm_class' : smul_comm_class A R M :=
+instance smul_assoc_class.to_smul_comm_class' : smul_comm_class A R M :=
 smul_comm_class.symm _ _ _
 
 lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
@@ -1606,7 +1606,7 @@ smul_comm _ _ _
 
 namespace linear_map
 
-instance coe_is_scalar_tower : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
+instance coe_smul_assoc_class : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
 ⟨restrict_scalars R⟩
 
 variables (R) {A M N}
@@ -1614,7 +1614,7 @@ variables (R) {A M N}
 @[simp, norm_cast squash] lemma coe_restrict_scalars_eq_coe (f : M →ₗ[A] N) :
   (f.restrict_scalars R : M → N) = f := rfl
 
-@[simp, norm_cast squash] lemma coe_coe_is_scalar_tower (f : M →ₗ[A] N) :
+@[simp, norm_cast squash] lemma coe_coe_smul_assoc_class (f : M →ₗ[A] N) :
   ((f : M →ₗ[R] N) : M → N) = f := rfl
 
 /-- `A`-linearly coerce a `R`-linear map from `M` to `A` to a function, given an algebra `A` over
@@ -1628,7 +1628,7 @@ def lto_fun (R : Type u) (M : Type v) (A : Type w)
 
 end linear_map
 
-end is_scalar_tower
+end smul_assoc_class
 
 /-! TODO: The following lemmas no longer involve `algebra` at all, and could be moved closer
 to `algebra/module/submodule.lean`. Currently this is tricky because `ker`, `range`, `⊤`, and `⊥`
@@ -1637,8 +1637,8 @@ section module
 open module
 
 variables (R S M N : Type*) [semiring R] [semiring S] [has_smul R S]
-variables [add_comm_monoid M] [module R M] [module S M] [is_scalar_tower R S M]
-variables [add_comm_monoid N] [module R N] [module S N] [is_scalar_tower R S N]
+variables [add_comm_monoid M] [module R M] [module S M] [smul_assoc_class R S M]
+variables [add_comm_monoid N] [module R N] [module S N] [smul_assoc_class R S N]
 
 variables {S M N}
 
@@ -1653,7 +1653,7 @@ namespace submodule
 
 variables (R A M : Type*)
 variables [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M]
-variables [module R M] [module A M] [is_scalar_tower R A M]
+variables [module R M] [module A M] [smul_assoc_class R A M]
 
 /-- If `A` is an `R`-algebra such that the induced morhpsim `R →+* A` is surjective, then the
 `R`-module generated by a set `X` equals the `A`-module generated by `X`. -/
@@ -1685,5 +1685,5 @@ variables [algebra R A] [algebra R B]
 end alg_hom
 
 example {R A} [comm_semiring R] [semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A] : algebra R A :=
+  [module R A] [smul_comm_class R A A] [smul_assoc_class R A A] : algebra R A :=
 algebra.of_module smul_mul_assoc mul_smul_comm

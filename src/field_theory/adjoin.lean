@@ -162,13 +162,13 @@ lemma coe_algebra_map_over_bot :
     (intermediate_field.bot_equiv F E) :=
 rfl
 
-instance is_scalar_tower_over_bot : is_scalar_tower (⊥ : intermediate_field F E) F E :=
-is_scalar_tower.of_algebra_map_eq
+instance smul_assoc_class_over_bot : smul_assoc_class (⊥ : intermediate_field F E) F E :=
+smul_assoc_class.of_algebra_map_eq
 begin
   intro x,
   obtain ⟨y, rfl⟩ := (bot_equiv F E).symm.surjective x,
   rw [coe_algebra_map_over_bot, (bot_equiv F E).apply_symm_apply, bot_equiv_symm,
-      is_scalar_tower.algebra_map_apply F (⊥ : intermediate_field F E) E]
+      smul_assoc_class.algebra_map_apply F (⊥ : intermediate_field F E) E]
 end
 
 /-- The top intermediate_field is isomorphic to the field.
@@ -185,7 +185,7 @@ This is the intermediate field version of `subalgebra.top_equiv`. -/
 by { ext, rw [mem_restrict_scalars, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 
 @[simp] lemma restrict_scalars_top {K : Type*} [field K] [algebra K E] [algebra K F]
-  [is_scalar_tower K F E] :
+  [smul_assoc_class K F E] :
   (⊤ : intermediate_field F E).restrict_scalars K = ⊤ :=
 rfl
 
@@ -571,7 +571,7 @@ begin
   ext,
   convert minpoly.aeval F α,
   conv in (aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
-  exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
+  exact smul_assoc_class.algebra_map_aeval F F⟮α⟯ E _ _
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
@@ -830,13 +830,13 @@ end⟩
 /-- Extend a lift `x : lifts F E K` to an element `s : E` whose conjugates are all in `K` -/
 noncomputable def lifts.lift_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
   (h2 : (minpoly F s).splits (algebra_map F K)) : lifts F E K :=
-let h3 : is_integral x.1 s := is_integral_of_is_scalar_tower s h1 in
+let h3 : is_integral x.1 s := is_integral_of_smul_assoc_class s h1 in
 let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
   splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero h1))
   ((splits_map_iff _ _).mpr (by {convert h2, exact ring_hom.ext (λ y, x.2.commutes y)}))
-  (minpoly.dvd_map_of_is_scalar_tower _ _ _) in
+  (minpoly.dvd_map_of_smul_assoc_class _ _ _) in
 ⟨x.1⟮s⟯.restrict_scalars F, (@alg_hom_equiv_sigma F x.1 (x.1⟮s⟯.restrict_scalars F) K _ _ _ _ _ _ _
-  (intermediate_field.algebra x.1⟮s⟯) (is_scalar_tower.of_algebra_map_eq (λ _, rfl))).inv_fun
+  (intermediate_field.algebra x.1⟮s⟯) (smul_assoc_class.of_algebra_map_eq (λ _, rfl))).inv_fun
   ⟨x.2, (@alg_hom_adjoin_integral_equiv x.1 _ E _ _ s K _ x.2.to_ring_hom.to_algebra
   h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by
 { simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero h3)), is_root, ←eval₂_eq_eval_map],

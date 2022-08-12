@@ -45,12 +45,12 @@ namespace quotient
 variables {N I}
 
 instance add_comm_group : add_comm_group (M ⧸ N) := submodule.quotient.add_comm_group _
-instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
+instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [smul_assoc_class S R M] :
   module S (M ⧸ N) := submodule.quotient.module' _
 instance module : module R (M ⧸ N) := submodule.quotient.module _
 instance is_central_scalar {S : Type*} [semiring S]
-  [has_smul S R] [module S M] [is_scalar_tower S R M]
-  [has_smul Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [has_smul S R] [module S M] [smul_assoc_class S R M]
+  [has_smul Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [smul_assoc_class Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S (M ⧸ N) :=
 submodule.quotient.is_central_scalar _
 instance inhabited : inhabited (M ⧸ N) := ⟨0⟩

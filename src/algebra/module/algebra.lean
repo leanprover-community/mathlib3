@@ -15,8 +15,8 @@ namespace linear_map
 section restrict_scalars
 
 variables (k : Type*) [comm_semiring k] (A : Type*) [semiring A] [algebra k A]
-variables (M : Type*) [add_comm_monoid M] [module k M] [module A M] [is_scalar_tower k A M]
-variables (N : Type*) [add_comm_monoid N] [module k N] [module A N] [is_scalar_tower k A N]
+variables (M : Type*) [add_comm_monoid M] [module k M] [module A M] [smul_assoc_class k A M]
+variables (N : Type*) [add_comm_monoid N] [module k N] [module A N] [smul_assoc_class k A N]
 
 /--
 Restriction of scalars for linear maps between modules over a `k`-algebra is itself `k`-linear.

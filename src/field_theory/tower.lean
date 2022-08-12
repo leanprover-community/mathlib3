@@ -39,7 +39,7 @@ open cardinal
 
 variables (F : Type u) (K : Type v) (A : Type w)
 variables [field F] [field K] [add_comm_group A]
-variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
+variables [algebra F K] [module K A] [module F A] [smul_assoc_class F K A]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
@@ -55,7 +55,7 @@ by rw [← (module.rank F K).lift_id, ← b.mk_eq_dim,
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [add_comm_group A]
-  [algebra F K] [module K A] [module F A] [is_scalar_tower F K A] :
+  [algebra F K] [module K A] [module F A] [smul_assoc_class F K A] :
   module.rank F K * module.rank K A = module.rank F A :=
 by convert dim_mul_dim' F K A; rw lift_id
 
@@ -74,10 +74,10 @@ of_fintype_basis $ b.smul c
 Note this cannot be an instance as Lean cannot infer `L`.
 -/
 theorem left (L : Type*) [ring L] [nontrivial L]
-  [algebra F L] [algebra K L] [is_scalar_tower F K L]
+  [algebra F L] [algebra K L] [smul_assoc_class F K L]
   [finite_dimensional F L] : finite_dimensional F K :=
 finite_dimensional.of_injective
-  (is_scalar_tower.to_alg_hom F K L).to_linear_map
+  (smul_assoc_class.to_alg_hom F K L).to_linear_map
   (ring_hom.injective _)
 
 lemma right [hf : finite_dimensional F A] : finite_dimensional K A :=

@@ -488,7 +488,7 @@ instance [has_smul R M] [has_continuous_const_smul R M]
 
 instance [has_smul R M] [has_continuous_const_smul R M]
   [has_smul R₁ M] [has_continuous_const_smul R₁ M]
-  [has_smul R R₁] [is_scalar_tower R R₁ M] : is_scalar_tower R R₁ C(α, M) :=
+  [has_smul R R₁] [smul_assoc_class R R₁ M] : smul_assoc_class R R₁ C(α, M) :=
 { smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
 
 instance [has_smul R M] [has_smul Rᵐᵒᵖ M] [has_continuous_const_smul R M]

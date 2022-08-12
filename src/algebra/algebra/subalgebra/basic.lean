@@ -234,17 +234,17 @@ section
 
 /-! `subalgebra`s inherit structure from their `submodule` coercions. -/
 
-instance module' [semiring R'] [has_smul R' R] [module R' A] [is_scalar_tower R' R A] :
+instance module' [semiring R'] [has_smul R' R] [module R' A] [smul_assoc_class R' R A] :
   module R' S :=
 S.to_submodule.module'
 instance : module R S := S.module'
 
-instance [semiring R'] [has_smul R' R] [module R' A] [is_scalar_tower R' R A] :
-  is_scalar_tower R' R S :=
-S.to_submodule.is_scalar_tower
+instance [semiring R'] [has_smul R' R] [module R' A] [smul_assoc_class R' R A] :
+  smul_assoc_class R' R S :=
+S.to_submodule.smul_assoc_class
 
 instance algebra' [comm_semiring R'] [has_smul R' R] [algebra R' A]
-  [is_scalar_tower R' R A] : algebra R' S :=
+  [smul_assoc_class R' R A] : algebra R' S :=
 { commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
   .. (algebra_map R' A).cod_restrict S $ λ x, begin
@@ -272,9 +272,9 @@ protected lemma coe_neg {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebr
 protected lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_smul [semiring R'] [has_smul R' R] [module R' A]
-  [is_scalar_tower R' R A] (r : R') (x : S) : (↑(r • x) : A) = r • ↑x := rfl
+  [smul_assoc_class R' R A] (r : R') (x : S) : (↑(r • x) : A) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_algebra_map [comm_semiring R'] [has_smul R' R] [algebra R' A]
-  [is_scalar_tower R' R A] (r : R') :
+  [smul_assoc_class R' R A] (r : R') :
   ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
 protected lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n := submonoid_class.coe_pow x n
@@ -933,15 +933,15 @@ instance smul_comm_class_right
   smul_comm_class α S β :=
 S.to_subsemiring.smul_comm_class_right
 
-/-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
-instance is_scalar_tower_left
-  [has_smul α β] [has_smul A α] [has_smul A β] [is_scalar_tower A α β] (S : subalgebra R A) :
-  is_scalar_tower S α β :=
-S.to_subsemiring.is_scalar_tower
+/-- Note that this provides `smul_assoc_class S R R` which is needed by `smul_mul_assoc`. -/
+instance smul_assoc_class_left
+  [has_smul α β] [has_smul A α] [has_smul A β] [smul_assoc_class A α β] (S : subalgebra R A) :
+  smul_assoc_class S α β :=
+S.to_subsemiring.smul_assoc_class
 
-instance is_scalar_tower_mid {R S T : Type*} [comm_semiring R] [semiring S] [add_comm_monoid T]
-  [algebra R S] [module R T] [module S T] [is_scalar_tower R S T] (S' : subalgebra R S) :
-  is_scalar_tower R S' T :=
+instance smul_assoc_class_mid {R S T : Type*} [comm_semiring R] [semiring S] [add_comm_monoid T]
+  [algebra R S] [module R T] [module S T] [smul_assoc_class R S T] (S' : subalgebra R S) :
+  smul_assoc_class R S' T :=
 ⟨λ x y z, (smul_assoc _ (y : S) _ : _)⟩
 
 instance [has_smul A α] [has_faithful_smul A α] (S : subalgebra R A) :

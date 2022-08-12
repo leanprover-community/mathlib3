@@ -140,7 +140,7 @@ end
 Build a `representation k G M` from a `[module (monoid_algebra k G) M]`.
 
 This version is not always what we want, as it relies on an existing `[module k M]`
-instance, along with a `[is_scalar_tower k (monoid_algebra k G) M]` instance.
+instance, along with a `[smul_assoc_class k (monoid_algebra k G) M]` instance.
 
 We remedy this below in `of_module`
 (with the tradeoff that the representation is defined
@@ -148,7 +148,7 @@ only on a type synonym of the original module.)
 -/
 noncomputable
 def of_module' (M : Type*) [add_comm_monoid M] [module k M] [module (monoid_algebra k G) M]
-  [is_scalar_tower k (monoid_algebra k G) M] : representation k G M :=
+  [smul_assoc_class k (monoid_algebra k G) M] : representation k G M :=
 (monoid_algebra.lift k G (M →ₗ[k] M)).symm (algebra.lsmul k M)
 
 section

@@ -447,7 +447,7 @@ section locally_convex_space
 open locally_convex_space
 
 variables [nonempty ι] [normed_field 𝕜] [normed_space ℝ 𝕜]
-  [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
+  [add_comm_group E] [module 𝕜 E] [module ℝ E] [smul_assoc_class ℝ 𝕜 E] [topological_space E]
   [topological_add_group E]
 
 lemma seminorm_family.to_locally_convex_space {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p) :
@@ -472,7 +472,7 @@ variables (𝕜) [normed_field 𝕜] [normed_space ℝ 𝕜] [seminormed_add_com
 /-- Not an instance since `𝕜` can't be inferred. See `normed_space.to_locally_convex_space` for a
 slightly weaker instance version. -/
 lemma normed_space.to_locally_convex_space' [normed_space 𝕜 E] [module ℝ E]
-  [is_scalar_tower ℝ 𝕜 E] : locally_convex_space ℝ E :=
+  [smul_assoc_class ℝ 𝕜 E] : locally_convex_space ℝ E :=
 seminorm_family.to_locally_convex_space (norm_with_seminorms 𝕜 E)
 
 /-- See `normed_space.to_locally_convex_space'` for a slightly stronger version which is not an

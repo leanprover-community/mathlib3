@@ -255,7 +255,7 @@ def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
 section
 
 -- this speeds up typeclass search in the lemma below
-local attribute [instance, priority 2000] is_scalar_tower.right
+local attribute [instance, priority 2000] smul_assoc_class.right
 
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and
@@ -282,7 +282,7 @@ alg_equiv.of_alg_hom
   begin
     ext : 2;
     simp only [mv_polynomial.algebra_map_eq, option.elim, alg_hom.coe_comp, alg_hom.id_comp,
-      is_scalar_tower.coe_to_alg_hom', comp_app, aeval_tower_C, polynomial.aeval_X, aeval_X,
+      smul_assoc_class.coe_to_alg_hom', comp_app, aeval_tower_C, polynomial.aeval_X, aeval_X,
       option.elim, aeval_tower_X, alg_hom.coe_id, id.def, eq_self_iff_true, implies_true_iff],
   end
   begin

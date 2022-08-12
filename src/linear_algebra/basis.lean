@@ -293,7 +293,7 @@ variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (
 
 include f h b
 
-local attribute [instance] has_smul.comp.is_scalar_tower
+local attribute [instance] has_smul.comp.smul_assoc_class
 
 /-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
 then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
@@ -304,7 +304,7 @@ See also `basis.algebra_map_coeffs` for the case where `f` is equal to `algebra_
 def map_coeffs : basis ι R' M :=
 begin
   letI : module R' R := module.comp_hom R (↑f.symm : R' →+* R),
-  haveI : is_scalar_tower R' R M :=
+  haveI : smul_assoc_class R' R M :=
   { smul_assoc := λ x y z, begin dsimp [(•)],  rw [mul_smul, ←h, f.apply_symm_apply], end },
   exact (of_repr $ (b.repr.restrict_scalars R').trans $
     finsupp.map_range.linear_equiv (module.comp_hom.to_linear_equiv f.symm).symm )
@@ -976,7 +976,7 @@ end span
 
 lemma group_smul_span_eq_top
   {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
-  [is_scalar_tower G R M] {v : ι → M} (hv : submodule.span R (set.range v) = ⊤) {w : ι → G} :
+  [smul_assoc_class G R M] {v : ι → M} (hv : submodule.span R (set.range v) = ⊤) {w : ι → G} :
   submodule.span R (set.range (w • v)) = ⊤ :=
 begin
   rw eq_top_iff,
@@ -992,13 +992,13 @@ end
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` are elements of a group,
 `group_smul` provides the basis corresponding to `w • v`. -/
 def group_smul {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
-  [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
+  [smul_assoc_class G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
   (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq).ge
 
 lemma group_smul_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
-  [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
+  [smul_assoc_class G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
   v.group_smul w i = (w • v : ι → M) i :=
 mk_apply
   (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq).ge i

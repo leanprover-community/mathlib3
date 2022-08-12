@@ -643,8 +643,8 @@ theorem add_apply {m : measurable_space α} (μ₁ μ₂ : measure α) (s : set 
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
 section has_smul
-variables [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
-variables [has_smul R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
+variables [has_smul R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
+variables [has_smul R' ℝ≥0∞] [smul_assoc_class R' ℝ≥0∞ ℝ≥0∞]
 
 instance [measurable_space α] : has_smul R (measure α) :=
 ⟨λ c μ,
@@ -672,8 +672,8 @@ instance [smul_comm_class R R' ℝ≥0∞] [measurable_space α] :
   smul_comm_class R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_comm _ _ _⟩
 
-instance [has_smul R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
-  is_scalar_tower R R' (measure α) :=
+instance [has_smul R R'] [smul_assoc_class R R' ℝ≥0∞] [measurable_space α] :
+  smul_assoc_class R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_assoc _ _ _⟩
 
 instance [has_smul Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
@@ -682,7 +682,7 @@ instance [has_smul Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [meas
 
 end has_smul
 
-instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
+instance [monoid R] [mul_action R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
   mul_action R (measure α) :=
 injective.mul_action _ to_outer_measure_injective smul_to_outer_measure
 
@@ -702,13 +702,13 @@ theorem finset_sum_apply {m : measurable_space α} (I : finset ι) (μ : ι → 
   (∑ i in I, μ i) s = ∑ i in I, μ i s :=
 by rw [coe_finset_sum, finset.sum_apply]
 
-instance [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+instance [monoid R] [distrib_mul_action R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
   [measurable_space α] :
   distrib_mul_action R (measure α) :=
 injective.distrib_mul_action ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
-instance [semiring R] [module R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
+instance [semiring R] [module R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
   module R (measure α) :=
 injective.module R ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
@@ -1801,7 +1801,7 @@ instance [measurable_space α] : is_refl (measure α) (≪) := ⟨λ μ, absolut
 @[mono] protected lemma map (h : μ ≪ ν) {f : α → β} (hf : measurable f) : μ.map f ≪ ν.map f :=
 absolutely_continuous.mk $ λ s hs, by simpa [hf, hs] using @h _
 
-protected lemma smul [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+protected lemma smul [monoid R] [distrib_mul_action R ℝ≥0∞] [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
   (h : μ ≪ ν) (c : R) : c • μ ≪ ν :=
 λ s hνs, by simp only [h hνs, smul_eq_mul, smul_apply, smul_zero]
 
@@ -2056,7 +2056,7 @@ lemma mem_map_restrict_ae_iff {β} {s : set α} {t : set β} {f : α → β} (hs
 by rw [mem_map, mem_ae_iff, measure.restrict_apply' hs]
 
 lemma ae_smul_measure {p : α → Prop} [monoid R] [distrib_mul_action R ℝ≥0∞]
-  [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ∀ᵐ x ∂μ, p x) (c : R) :
+  [smul_assoc_class R ℝ≥0∞ ℝ≥0∞] (h : ∀ᵐ x ∂μ, p x) (c : R) :
   ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, smul_zero]
 
@@ -2256,8 +2256,8 @@ instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_ne_top (measure_ne_top _ _) }
 
 instance is_finite_measure_smul_of_nnreal_tower
-  {R} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
-  [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  {R} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [smul_assoc_class R ℝ≥0 ℝ≥0∞]
+  [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
   [is_finite_measure μ] {r : R} :
   is_finite_measure (r • μ) :=
 begin

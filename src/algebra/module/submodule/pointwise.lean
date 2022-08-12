@@ -184,7 +184,7 @@ instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ M] [smul_comm_
 ⟨λ a S, congr_arg (λ f, S.map f) $ linear_map.ext $ by exact op_smul_eq_smul _⟩
 
 @[simp] lemma smul_le_self_of_tower {α : Type*}
-  [semiring α] [module α R] [module α M] [smul_comm_class α R M] [is_scalar_tower α R M]
+  [semiring α] [module α R] [module α M] [smul_comm_class α R M] [smul_assoc_class α R M]
   (a : α) (S : submodule R M) : a • S ≤ S :=
 begin
   rintro y ⟨x, hx, rfl⟩,

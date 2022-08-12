@@ -126,7 +126,7 @@ open is_integrally_closed
 
 variables {R : Type*} [comm_ring R] [is_domain R]
 variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
-variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
+variables {L : Type*} [field L] [algebra K L] [algebra R L] [smul_assoc_class R K L]
 
 -- Can't be an instance because you need to supply `K`.
 lemma is_integrally_closed_of_finite_extension [finite_dimensional K L] :

@@ -2273,7 +2273,7 @@ normed vector space.
 -/
 
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
+  [normed_space 𝕜' F] [smul_assoc_class 𝕜 𝕜' F]
 variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'}
 
 theorem has_strict_fderiv_at.smul (hc : has_strict_fderiv_at c c' x)
@@ -2986,9 +2986,9 @@ respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
-variables [is_scalar_tower 𝕜 𝕜' E]
+variables [smul_assoc_class 𝕜 𝕜' E]
 variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
-variables [is_scalar_tower 𝕜 𝕜' F]
+variables [smul_assoc_class 𝕜 𝕜' F]
 variables {f : E → F} {f' : E →L[𝕜'] F} {s : set E} {x : E}
 
 lemma has_strict_fderiv_at.restrict_scalars (h : has_strict_fderiv_at f f' x) :

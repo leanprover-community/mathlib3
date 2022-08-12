@@ -50,7 +50,7 @@ def add_equiv.to_real_linear_equiv (e : E ≃+ F) (h₁ : continuous e)
 topological `ℝ`-algebra `A` (e.g. `A = ℂ`) and any topological group that is both a topological
 `ℝ`-module and a topological `A`-module, these structures agree. -/
 @[priority 900]
-instance real.is_scalar_tower [t2_space E] {A : Type*} [topological_space A]
+instance real.smul_assoc_class [t2_space E] {A : Type*} [topological_space A]
   [ring A] [algebra ℝ A] [module A E] [has_continuous_smul ℝ A]
-  [has_continuous_smul A E] : is_scalar_tower ℝ A E :=
+  [has_continuous_smul A E] : smul_assoc_class ℝ A E :=
 ⟨λ r x y, ((smul_add_hom A E).flip y).map_real_smul (continuous_id.smul continuous_const) r x⟩

@@ -34,7 +34,7 @@ rfl
 lemma coe_smul [group G] [mul_action G β] (g : G) (f : α ↪ β) : ⇑(g • f) = g • f := rfl
 
 instance [group G] [group G'] [has_smul G G'] [mul_action G β] [mul_action G' β]
-  [is_scalar_tower G G' β] : is_scalar_tower G G' (α ↪ β) :=
+  [smul_assoc_class G G' β] : smul_assoc_class G G' (α ↪ β) :=
 ⟨λ x y z, function.embedding.ext $ λ i, smul_assoc x y (z i)⟩
 
 @[to_additive]

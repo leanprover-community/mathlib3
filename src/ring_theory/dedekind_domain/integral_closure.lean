@@ -50,8 +50,8 @@ open_locale big_operators
 
 variables {A K} [algebra A K] [is_fraction_ring A K]
 variables {L : Type*} [field L] (C : Type*) [comm_ring C]
-variables [algebra K L] [finite_dimensional K L] [algebra A L] [is_scalar_tower A K L]
-variables [algebra C L] [is_integral_closure C A L] [algebra A C] [is_scalar_tower A C L]
+variables [algebra K L] [finite_dimensional K L] [algebra A L] [smul_assoc_class A K L]
+variables [algebra C L] [is_integral_closure C A L] [algebra A C] [smul_assoc_class A C L]
 
 lemma is_integral_closure.range_le_span_dual_basis [is_separable K L]
   {ι : Type*} [fintype ι] [decidable_eq ι] (b : basis ι K L)
@@ -77,7 +77,7 @@ begin
     use λ i, classical.some (hc' i),
     refine hx.trans (finset.sum_congr rfl (λ i _, _)),
     conv_lhs { rw [← classical.some_spec (hc' i)] },
-    rw [← is_scalar_tower.algebra_map_smul K (classical.some (hc' i)) (db i)] },
+    rw [← smul_assoc_class.algebra_map_smul K (classical.some (hc' i)) (db i)] },
   refine ⟨λ i, db.repr (algebra_map C L x) i, (λ i, _), (db.sum_repr _).symm⟩,
   rw bilin_form.dual_basis_repr_apply,
   exact is_integral_trace (is_integral_mul hx (hb_int i))
@@ -117,7 +117,7 @@ begin
       exact is_integral_mul is_integral_algebra_map x'.2 },
     { rw [mul_comm, mul_smul, algebra.smul_def],
       exact is_integral_mul is_integral_algebra_map (hs _ hx'') },
-    { rw is_scalar_tower.algebra_map_eq A K L,
+    { rw smul_assoc_class.algebra_map_eq A K L,
       apply (algebra_map K L).injective.comp,
       exact is_fraction_ring.injective _ _ } }
 end
@@ -136,7 +136,7 @@ begin
   obtain ⟨y, hy, his'⟩ := exists_integral_multiples A K (finset.univ.image bs'),
   have hy' : algebra_map A L y ≠ 0,
   { refine mt ((injective_iff_map_eq_zero (algebra_map A L)).mp _ _) hy,
-    rw is_scalar_tower.algebra_map_eq A K L,
+    rw smul_assoc_class.algebra_map_eq A K L,
     exact (algebra_map K L).injective.comp (is_fraction_ring.injective A K) },
   refine ⟨s', bs'.map { to_fun := λ x, algebra_map A L y * x,
                         inv_fun := λ x, (algebra_map A L y)⁻¹ * x,
@@ -221,7 +221,7 @@ is_integral_closure.is_dedekind_domain A K L (integral_closure A L)
 
 omit K
 
-variables [algebra (fraction_ring A) L] [is_scalar_tower A (fraction_ring A) L]
+variables [algebra (fraction_ring A) L] [smul_assoc_class A (fraction_ring A) L]
 variables [finite_dimensional (fraction_ring A) L] [is_separable (fraction_ring A) L]
 
 /- If `L` is a finite separable extension of `Frac(A)`, where `A` is a Dedekind domain,

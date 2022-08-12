@@ -405,7 +405,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right
 
 lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
   [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
-  [is_scalar_tower 𝕜 𝕜' E] :
+  [smul_assoc_class 𝕜 𝕜' E] :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=
 (lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E).is_bounded_bilinear_map
 

@@ -158,7 +158,7 @@ begin
   transitivity euclidean_domain.gcd (_ : E[X]) (_ : E[X]),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },
-  { simpa [map_comp, polynomial.map_map, ←is_scalar_tower.algebra_map_eq, h] },
+  { simpa [map_comp, polynomial.map_map, ←smul_assoc_class.algebra_map_eq, h] },
 end
 
 end primitive_element_inf

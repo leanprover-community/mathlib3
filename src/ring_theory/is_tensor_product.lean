@@ -120,8 +120,8 @@ end is_tensor_product
 section is_base_change
 
 variables {R : Type*} {M : Type v₁} {N : Type v₂} (S : Type v₃)
-variables [add_comm_monoid M] [add_comm_monoid N] [comm_ring R]
-variables [comm_ring S] [algebra R S] [module R M] [module R N] [module S N] [is_scalar_tower R S N]
+variables [add_comm_monoid M] [add_comm_monoid N] [comm_ring R] [comm_ring S] [algebra R S]
+  [module R M] [module R N] [module S N] [smul_assoc_class R S N]
 variables (f : M →ₗ[R] N)
 
 include f
@@ -138,7 +138,7 @@ variables [add_comm_monoid Q] [module S Q]
 
 section
 
-variables [module R Q] [is_scalar_tower R S Q]
+variables [module R Q] [smul_assoc_class R S Q]
 
 /-- Suppose `f : M →ₗ[R] N` is the base change of `M` along `R → S`. Then any `R`-linear map from
 `M` to an `S`-module factors thorugh `f`. -/
@@ -190,7 +190,7 @@ begin
   { intros x y e₁ e₂, rw [map_add, map_add, e₁, e₂] }
 end
 
-lemma is_base_change.alg_hom_ext' [module R Q] [is_scalar_tower R S Q] (g₁ g₂ : N →ₗ[S] Q)
+lemma is_base_change.alg_hom_ext' [module R Q] [smul_assoc_class R S Q] (g₁ g₂ : N →ₗ[S] Q)
   (e : (g₁.restrict_scalars R).comp f = (g₂.restrict_scalars R).comp f) :
   g₁ = g₂ :=
 h.alg_hom_ext g₁ g₂ (linear_map.congr_fun e)
@@ -227,7 +227,7 @@ variable (f)
 
 lemma is_base_change.of_lift_unique
   (h : ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_monoid Q], by exactI ∀ [module R Q] [module S Q],
-    by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
+    by exactI ∀ [smul_assoc_class R S Q], by exactI ∀ (g : M →ₗ[R] Q),
       ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g) : is_base_change S f :=
 begin
   delta is_base_change is_tensor_product,
@@ -284,7 +284,7 @@ variable {f}
 lemma is_base_change.iff_lift_unique :
   is_base_change S f ↔
     ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_monoid Q], by exactI ∀ [module R Q] [module S Q],
-    by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
+    by exactI ∀ [smul_assoc_class R S Q], by exactI ∀ (g : M →ₗ[R] Q),
       ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g :=
 ⟨λ h, by { introsI,
   exact ⟨h.lift g, h.lift_comp g, λ g' e, h.alg_hom_ext' _ _ (e.trans (h.lift_comp g).symm)⟩ },
@@ -304,9 +304,9 @@ begin
   simp,
 end
 
-variables {T O : Type*} [comm_ring T] [algebra R T] [algebra S T] [is_scalar_tower R S T]
-variables [add_comm_monoid O] [module R O] [module S O] [module T O] [is_scalar_tower S T O]
-variables [is_scalar_tower R S O] [is_scalar_tower R T O]
+variables {T O : Type*} [comm_ring T] [algebra R T] [algebra S T] [smul_assoc_class R S T]
+variables [add_comm_monoid O] [module R O] [module S O] [module T O] [smul_assoc_class S T O]
+variables [smul_assoc_class R S O] [smul_assoc_class R T O]
 
 lemma is_base_change.comp {f : M →ₗ[R] N} (hf : is_base_change S f) {g : N →ₗ[S] O}
   (hg : is_base_change T g) : is_base_change T ((g.restrict_scalars R).comp f) :=
@@ -314,10 +314,10 @@ begin
   apply is_base_change.of_lift_unique,
   introsI Q _ _ _ _ i,
   letI := module.comp_hom Q (algebra_map S T),
-  haveI : is_scalar_tower S T Q := ⟨λ x y z, by { rw [algebra.smul_def, mul_smul], refl }⟩,
-  haveI : is_scalar_tower R S Q,
+  haveI : smul_assoc_class S T Q := ⟨λ x y z, by { rw [algebra.smul_def, mul_smul], refl }⟩,
+  haveI : smul_assoc_class R S Q,
   { refine ⟨λ x y z, _⟩,
-    change (is_scalar_tower.to_alg_hom R S T) (x • y) • z = x • (algebra_map S T y • z),
+    change (smul_assoc_class.to_alg_hom R S T) (x • y) • z = x • (algebra_map S T y • z),
     rw [alg_hom.map_smul, smul_assoc],
     refl },
   refine ⟨hg.lift (hf.lift i), by { ext, simp [is_base_change.lift_eq] }, _⟩,
@@ -330,11 +330,11 @@ end
 
 variables {R' S' : Type*} [comm_ring R'] [comm_ring S']
 variables [algebra R R'] [algebra S S'] [algebra R' S'] [algebra R S']
-variables [is_scalar_tower R R' S'] [is_scalar_tower R S S']
+variables [smul_assoc_class R R' S'] [smul_assoc_class R S S']
 
 lemma is_base_change.symm
-  (h : is_base_change S (is_scalar_tower.to_alg_hom R R' S').to_linear_map) :
-  is_base_change R' (is_scalar_tower.to_alg_hom R S S').to_linear_map :=
+  (h : is_base_change S (smul_assoc_class.to_alg_hom R R' S').to_linear_map) :
+  is_base_change R' (smul_assoc_class.to_alg_hom R S S').to_linear_map :=
 begin
   letI := (algebra.tensor_product.include_right : R' →ₐ[R] S ⊗ R').to_ring_hom.to_algebra,
   let e : R' ⊗[R] S ≃ₗ[R'] S',
@@ -348,7 +348,7 @@ begin
       simp [smul_tmul', algebra.smul_def, ring_hom.algebra_map_to_algebra, h.equiv_tmul],
       ring },
     { intros x y hx hy, simp only [map_add, smul_add, hx, hy] } },
-  have : (is_scalar_tower.to_alg_hom R S S').to_linear_map
+  have : (smul_assoc_class.to_alg_hom R S S').to_linear_map
     = (e.to_linear_map.restrict_scalars R).comp (tensor_product.mk R R' S 1),
   { ext, simp [e, h.equiv_tmul, algebra.smul_def] },
   rw this,
@@ -358,8 +358,8 @@ end
 variables (R S R' S')
 
 lemma is_base_change.comm :
-  is_base_change S (is_scalar_tower.to_alg_hom R R' S').to_linear_map ↔
-    is_base_change R' (is_scalar_tower.to_alg_hom R S S').to_linear_map :=
+  is_base_change S (smul_assoc_class.to_alg_hom R R' S').to_linear_map ↔
+    is_base_change R' (smul_assoc_class.to_alg_hom R S S').to_linear_map :=
 ⟨is_base_change.symm, is_base_change.symm⟩
 
 end is_base_change

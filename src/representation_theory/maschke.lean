@@ -46,9 +46,9 @@ section
 variables {k : Type u} [comm_ring k] {G : Type u} [group G]
 
 variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
-variables [is_scalar_tower k (monoid_algebra k G) V]
+variables [smul_assoc_class k (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
-variables [is_scalar_tower k (monoid_algebra k G) W]
+variables [smul_assoc_class k (monoid_algebra k G) W]
 
 /-!
 We now do the key calculation in Maschke's theorem.
@@ -155,9 +155,9 @@ namespace monoid_algebra
 variables {k : Type u} [field k] {G : Type u} [fintype G] [invertible (fintype.card G : k)]
 variables [group G]
 variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
-variables [is_scalar_tower k (monoid_algebra k G) V]
+variables [smul_assoc_class k (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
-variables [is_scalar_tower k (monoid_algebra k G) W]
+variables [smul_assoc_class k (monoid_algebra k G) W]
 
 lemma exists_left_inverse_of_injective
   (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :

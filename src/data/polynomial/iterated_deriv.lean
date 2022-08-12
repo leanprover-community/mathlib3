@@ -50,7 +50,7 @@ begin
 end
 
 @[simp] lemma iterated_deriv_smul {S : Type*} [monoid S]
-  [distrib_mul_action S R] [is_scalar_tower S R R]
+  [distrib_mul_action S R] [smul_assoc_class S R R]
   (s : S) : iterated_deriv (s • p) n = s • iterated_deriv p n :=
 begin
   induction n with n ih,

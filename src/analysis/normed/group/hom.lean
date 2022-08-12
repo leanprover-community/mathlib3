@@ -393,8 +393,8 @@ rfl
 instance [smul_comm_class R R' V₂] : smul_comm_class R R' (normed_add_group_hom V₁ V₂) :=
 { smul_comm := λ r r' f, ext $ λ v, smul_comm _ _ _ }
 
-instance [has_smul R R'] [is_scalar_tower R R' V₂] :
-  is_scalar_tower R R' (normed_add_group_hom V₁ V₂) :=
+instance [has_smul R R'] [smul_assoc_class R R' V₂] :
+  smul_assoc_class R R' (normed_add_group_hom V₁ V₂) :=
 { smul_assoc := λ r r' f, ext $ λ v, smul_assoc _ _ _ }
 
 instance [distrib_mul_action Rᵐᵒᵖ V₂] [is_central_scalar R V₂] :

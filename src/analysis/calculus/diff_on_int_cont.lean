@@ -108,13 +108,13 @@ lemma const_smul {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F
 ⟨hf.1.const_smul c, hf.2.const_smul c⟩
 
 lemma smul {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : E → 𝕜'} {f : E → F} {s : set E}
+  [normed_space 𝕜' F] [smul_assoc_class 𝕜 𝕜' F] {c : E → 𝕜'} {f : E → F} {s : set E}
   (hc : diff_cont_on_cl 𝕜 c s) (hf : diff_cont_on_cl 𝕜 f s) :
   diff_cont_on_cl 𝕜 (λ x, c x • f x) s :=
 ⟨hc.1.smul hf.1, hc.2.smul hf.2⟩
 
 lemma smul_const {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : E → 𝕜'} {s : set E}
+  [normed_space 𝕜' F] [smul_assoc_class 𝕜 𝕜' F] {c : E → 𝕜'} {s : set E}
   (hc : diff_cont_on_cl 𝕜 c s) (y : F) :
   diff_cont_on_cl 𝕜 (λ x, c x • y) s :=
 hc.smul diff_cont_on_cl_const

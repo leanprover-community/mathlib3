@@ -183,7 +183,7 @@ algebraic_independent.of_comp (adjoin R (range x)).val hs
 /-- A set of algebraically independent elements in an algebra `A` over a ring `K` is also
 algebraically independent over a subring `R` of `K`. -/
 lemma algebraic_independent.restrict_scalars {K : Type*} [comm_ring K] [algebra R K]
-   [algebra K A] [is_scalar_tower R K A]
+   [algebra K A] [smul_assoc_class R K A]
   (hinj : function.injective (algebra_map R K)) (ai : algebraic_independent K x) :
   algebraic_independent R x :=
 have (aeval x : mv_polynomial ι K →ₐ[K] A).to_ring_hom.comp
@@ -413,10 +413,10 @@ lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_C
     polynomial.C (algebra_map _ _ r) :=
 begin
   -- TODO: this instance is slow to infer
-  have h : is_scalar_tower R (mv_polynomial ι R) (polynomial (mv_polynomial ι R)) :=
-    @polynomial.is_scalar_tower (mv_polynomial ι R) _ R _ _ _ _ _ _ _,
+  have h : smul_assoc_class R (mv_polynomial ι R) (polynomial (mv_polynomial ι R)) :=
+    @polynomial.smul_assoc_class (mv_polynomial ι R) _ R _ _ _ _ _ _ _,
   rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_C,
-    @is_scalar_tower.algebra_map_apply _ _ _ _ _ _ _ _ _ h, ← polynomial.C_eq_algebra_map,
+    @smul_assoc_class.algebra_map_apply _ _ _ _ _ _ _ _ _ h, ← polynomial.C_eq_algebra_map,
     polynomial.map_C, ring_hom.coe_coe, alg_equiv.commutes]
 end
 
@@ -448,7 +448,7 @@ begin
         alg_hom.coe_to_ring_hom, alg_hom.coe_to_ring_hom],
   { intro r,
     rw [hx.mv_polynomial_option_equiv_polynomial_adjoin_C,
-        aeval_C, polynomial.aeval_C, is_scalar_tower.algebra_map_apply R (adjoin R (range x)) A] },
+        aeval_C, polynomial.aeval_C, smul_assoc_class.algebra_map_apply R (adjoin R (range x)) A] },
   { rintro (⟨⟩|⟨i⟩),
     { rw [hx.mv_polynomial_option_equiv_polynomial_adjoin_X_none,
           aeval_X, polynomial.aeval_X, option.elim] },

@@ -285,9 +285,9 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k
 finsupp.has_faithful_smul
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_smul R S] [is_scalar_tower R S k] :
-  is_scalar_tower R S (monoid_algebra k G) :=
-finsupp.is_scalar_tower G k
+  [has_smul R S] [smul_assoc_class R S k] :
+  smul_assoc_class R S (monoid_algebra k G) :=
+finsupp.smul_assoc_class G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
   [smul_comm_class R S k] :
@@ -486,8 +486,8 @@ section non_unital_non_assoc_algebra
 
 variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
 
-instance is_scalar_tower_self [is_scalar_tower R k k] :
-  is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
+instance smul_assoc_class_self [smul_assoc_class R k k] :
+  smul_assoc_class R (monoid_algebra k G) (monoid_algebra k G) :=
 ⟨λ t a b,
 begin
   ext m,
@@ -533,7 +533,7 @@ non_unital_alg_hom_ext k $ mul_hom.congr_fun h
 
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
-@[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
+@[simps] def lift_magma [module k A] [smul_assoc_class k A A] [smul_comm_class k A A] :
   (G →ₙ* A) ≃ (monoid_algebra k G →ₙₐ[k] A) :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),
@@ -752,7 +752,7 @@ variables (k)
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
 def group_smul.linear_map [monoid G] [comm_semiring k]
   (V : Type u₃) [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
-  [is_scalar_tower k (monoid_algebra k G) V] (g : G) :
+  [smul_assoc_class k (monoid_algebra k G) V] (g : G) :
   V →ₗ[k] V :=
 { to_fun    := λ v, (single g (1 : k) • v : V),
   map_add'  := λ x y, smul_add (single g (1 : k)) x y,
@@ -761,7 +761,7 @@ def group_smul.linear_map [monoid G] [comm_semiring k]
 @[simp]
 lemma group_smul.linear_map_apply [monoid G] [comm_semiring k]
   (V : Type u₃) [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
-  [is_scalar_tower k (monoid_algebra k G) V] (g : G) (v : V) :
+  [smul_assoc_class k (monoid_algebra k G) V] (g : G) (v : V) :
   (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
 rfl
 
@@ -769,9 +769,9 @@ section
 variables {k}
 variables [monoid G] [comm_semiring k] {V W : Type u₃}
   [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
-  [is_scalar_tower k (monoid_algebra k G) V]
+  [smul_assoc_class k (monoid_algebra k G) V]
   [add_comm_monoid W] [module k W] [module (monoid_algebra k G) W]
-  [is_scalar_tower k (monoid_algebra k G) W]
+  [smul_assoc_class k (monoid_algebra k G) W]
   (f : V →ₗ[k] W)
   (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
 include h
@@ -885,7 +885,7 @@ section submodule
 
 variables {k G} [comm_semiring k] [monoid G]
 variables {V : Type*} [add_comm_monoid V]
-variables [module k V] [module (monoid_algebra k G) V] [is_scalar_tower k (monoid_algebra k G) V]
+variables [module k V] [module (monoid_algebra k G) V] [smul_assoc_class k (monoid_algebra k G) V]
 
 /-- A submodule over `k` which is stable under scalar multiplication by elements of `G` is a
 submodule over `monoid_algebra k G`  -/
@@ -1135,9 +1135,9 @@ instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k
 finsupp.module G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_smul R S] [is_scalar_tower R S k] :
-  is_scalar_tower R S (add_monoid_algebra k G) :=
-finsupp.is_scalar_tower G k
+  [has_smul R S] [smul_assoc_class R S k] :
+  smul_assoc_class R S (add_monoid_algebra k G) :=
+finsupp.smul_assoc_class G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
   [smul_comm_class R S k] :
@@ -1375,9 +1375,9 @@ section non_unital_non_assoc_algebra
 
 variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
 
-instance is_scalar_tower_self [is_scalar_tower R k k] :
-  is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
-@monoid_algebra.is_scalar_tower_self k (multiplicative G) R _ _ _ _ _
+instance smul_assoc_class_self [smul_assoc_class R k k] :
+  smul_assoc_class R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
+@monoid_algebra.smul_assoc_class_self k (multiplicative G) R _ _ _ _ _
 
 /-- Note that if `k` is a `comm_semiring` then we have `smul_comm_class k k k` and so we can take
 `R = k` in the below. In other words, if the coefficients are commutative amongst themselves, they
@@ -1408,7 +1408,7 @@ lemma non_unital_alg_hom_ext [distrib_mul_action k A]
 /-- The functor `G ↦ add_monoid_algebra k G`, from the category of magmas to the category of
 non-unital, non-associative algebras over `k` is adjoint to the forgetful functor in the other
 direction. -/
-@[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
+@[simps] def lift_magma [module k A] [smul_assoc_class k A A] [smul_comm_class k A A] :
   (multiplicative G →ₙ* A) ≃ (add_monoid_algebra k G →ₙₐ[k] A) :=
 { to_fun := λ f, { to_fun := λ a, sum a (λ m t, t • f (multiplicative.of_add m)),
                    .. (monoid_algebra.lift_magma k f : _)},

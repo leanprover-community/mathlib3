@@ -37,9 +37,9 @@ variables (R S K L : Type*) [euclidean_domain R] [comm_ring S] [is_domain S]
 variables [field K] [field L]
 variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L] [is_separable K L]
-variables [algRL : algebra R L] [is_scalar_tower R K L]
+variables [algRL : algebra R L] [smul_assoc_class R K L]
 variables [algebra R S] [algebra S L]
-variables [ist : is_scalar_tower R S L] [iic : is_integral_closure S R L]
+variables [ist : smul_assoc_class R S L] [iic : is_integral_closure S R L]
 
 variables {R S} (abv : absolute_value R ℤ)
 variables {ι : Type*} [decidable_eq ι] [fintype ι] (bS : basis ι R S)
@@ -259,7 +259,7 @@ theorem exists_mem_finset_approx' (h : algebra.is_algebraic R L) (a : S) {b : S}
   abv (algebra.norm R (r • a - q * b)) < abv (algebra.norm R b) :=
 begin
   have inj : function.injective (algebra_map R L),
-  { rw is_scalar_tower.algebra_map_eq R S L,
+  { rw smul_assoc_class.algebra_map_eq R S L,
     exact (is_integral_closure.algebra_map_injective S R L).comp bS.algebra_map_injective },
   obtain ⟨a', b', hb', h⟩ := is_integral_closure.exists_smul_eq_mul h inj a hb,
   obtain ⟨q, r, hr, hqr⟩ := exists_mem_finset_approx bS adm a' hb',

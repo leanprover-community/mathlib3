@@ -34,7 +34,7 @@ instance : inhabited I.cotangent := ⟨0⟩
 instance cotangent.module_of_tower : module S I.cotangent :=
 submodule.quotient.module' _
 
-instance : is_scalar_tower S R I.cotangent := by { delta cotangent, apply_instance }
+instance : smul_assoc_class S R I.cotangent := by { delta cotangent, apply_instance }
 
 instance [is_noetherian R I] : is_noetherian R I.cotangent := by { delta cotangent, apply_instance }
 
@@ -152,8 +152,8 @@ variables (R : Type*) [comm_ring R] [local_ring R]
 instance : module (residue_field R) (cotangent_space R) :=
 ideal.cotangent.module _
 
-instance : is_scalar_tower R (residue_field R) (cotangent_space R) :=
-module.is_torsion_by_set.is_scalar_tower _
+instance : smul_assoc_class R (residue_field R) (cotangent_space R) :=
+module.is_torsion_by_set.smul_assoc_class _
 
 instance [is_noetherian_ring R] : finite_dimensional (residue_field R) (cotangent_space R) :=
 module.finite.of_restrict_scalars_finite R _ _

@@ -298,7 +298,7 @@ end pointwise
 variables (M M₂)
 /--
 A typeclass for `has_smul` structures which can be moved through a `linear_map`.
-This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
+This typeclass is generated automatically from a `smul_assoc_class` instance, but exists so that
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
 -/
@@ -308,10 +308,10 @@ class compatible_smul (R S : Type*) [semiring S] [has_smul R M]
 variables {M M₂}
 
 @[priority 100]
-instance is_scalar_tower.compatible_smul
+instance smul_assoc_class.compatible_smul
   {R S : Type*} [semiring S] [has_smul R S]
-  [has_smul R M] [module S M] [is_scalar_tower R S M]
-  [has_smul R M₂] [module S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
+  [has_smul R M] [module S M] [smul_assoc_class R S M]
+  [has_smul R M₂] [module S M₂] [smul_assoc_class R S M₂] : compatible_smul M M₂ R S :=
 ⟨λ fₗ c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (fₗ x), map_smul]⟩
 
 @[simp, priority 900]
@@ -638,7 +638,7 @@ instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂]
 
 -- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
 -- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
-instance [has_smul S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
+instance [has_smul S T] [smul_assoc_class S T M₂] : smul_assoc_class S T (M →ₛₗ[σ₁₂] M₂) :=
 { smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
 
 instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
@@ -835,14 +835,14 @@ instance _root_.module.End.ring : ring (module.End R N₁) :=
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
 
-instance _root_.module.End.is_scalar_tower :
-  is_scalar_tower S (module.End R M) (module.End R M) := ⟨smul_comp⟩
+instance _root_.module.End.smul_assoc_class :
+  smul_assoc_class S (module.End R M) (module.End R M) := ⟨smul_comp⟩
 
-instance _root_.module.End.smul_comm_class [has_smul S R] [is_scalar_tower S R M] :
+instance _root_.module.End.smul_comm_class [has_smul S R] [smul_assoc_class S R M] :
   smul_comm_class S (module.End R M) (module.End R M) :=
 ⟨λ s _ _, (comp_smul _ s _).symm⟩
 
-instance _root_.module.End.smul_comm_class' [has_smul S R] [is_scalar_tower S R M] :
+instance _root_.module.End.smul_comm_class' [has_smul S R] [smul_assoc_class S R M] :
   smul_comm_class (module.End R M) S (module.End R M) :=
 smul_comm_class.symm _ _ _
 
@@ -874,8 +874,8 @@ instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
 instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 { smul_comm := linear_map.map_smul }
 
-instance apply_is_scalar_tower {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
-  is_scalar_tower R (module.End R M) M :=
+instance apply_smul_assoc_class {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  smul_assoc_class R (module.End R M) M :=
 ⟨λ t f m, rfl⟩
 
 end endomorphisms

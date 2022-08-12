@@ -306,7 +306,7 @@ begin
 end
 
 lemma fg_restrict_scalars {R S M : Type*} [comm_semiring R] [semiring S] [algebra R S]
-  [add_comm_group M] [module S M] [module R M] [is_scalar_tower R S M] (N : submodule S M)
+  [add_comm_group M] [module S M] [module R M] [smul_assoc_class R S M] (N : submodule S M)
   (hfin : N.fg) (h : function.surjective (algebra_map R S)) : (submodule.restrict_scalars R N).fg :=
 begin
   obtain ⟨X, rfl⟩ := hfin,
@@ -372,9 +372,9 @@ begin
   letI : algebra R S := ring_hom.to_algebra f,
   letI : algebra R A := ring_hom.to_algebra (g.comp f),
   letI : algebra S A := ring_hom.to_algebra g,
-  letI : is_scalar_tower R S A := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
+  letI : smul_assoc_class R S A := smul_assoc_class.of_algebra_map_eq (λ _, rfl),
   let f₁ := algebra.linear_map R S,
-  let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
+  let g₁ := (smul_assoc_class.to_alg_hom R S A).to_linear_map,
   exact submodule.fg_ker_comp f₁ g₁ hf (submodule.fg_restrict_scalars g.ker hg hsur) hsur
 end
 
@@ -806,7 +806,7 @@ end
 /-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
 also noetherian. -/
 theorem is_noetherian_of_tower (R) {S M} [semiring R] [semiring S]
-  [add_comm_monoid M] [has_smul R S] [module S M] [module R M] [is_scalar_tower R S M]
+  [add_comm_monoid M] [has_smul R S] [module S M] [module R M] [smul_assoc_class R S M]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,

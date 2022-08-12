@@ -130,8 +130,8 @@ instance [smul_comm_class R' R'' M₂] :
   smul_comm_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c₁ c₂ f, ext $ λ x, smul_comm _ _ _⟩
 
-instance [has_smul R' R''] [is_scalar_tower R' R'' M₂] :
-  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
+instance [has_smul R' R''] [smul_assoc_class R' R'' M₂] :
+  smul_assoc_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
 
 instance [distrib_mul_action R'ᵐᵒᵖ M₂] [is_central_scalar R' M₂] :
@@ -297,7 +297,7 @@ end apply_sum
 section restrict_scalar
 
 variables (R) {A : Type*} [semiring A] [has_smul R A] [Π (i : ι), module A (M₁ i)]
-  [module A M₂] [∀ i, is_scalar_tower R A (M₁ i)] [is_scalar_tower R A M₂]
+  [module A M₂] [∀ i, smul_assoc_class R A (M₁ i)] [smul_assoc_class R A M₂]
 
 /-- Reinterpret an `A`-multilinear map as an `R`-multilinear map, if `A` is an algebra over `R`
 and their actions on all involved modules agree with the action of `R` on `A`. -/

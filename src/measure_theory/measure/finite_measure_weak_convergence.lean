@@ -189,8 +189,8 @@ instance : inhabited (finite_measure α) := ⟨0⟩
 instance : has_add (finite_measure α) :=
 { add := λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩ }
 
-variables {R : Type*} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
-  [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+variables {R : Type*} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [smul_assoc_class R ℝ≥0 ℝ≥0∞]
+  [smul_assoc_class R ℝ≥0∞ ℝ≥0∞]
 
 instance : has_smul R (finite_measure α) :=
 { smul := λ (c : R) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_of_nnreal_tower⟩, }
@@ -209,7 +209,7 @@ instance : has_smul R (finite_measure α) :=
   (⇑(μ + ν) : set α → ℝ≥0) = (⇑μ + ⇑ν : set α → ℝ≥0) :=
 by { funext, simp [← ennreal.coe_eq_coe], }
 
-@[simp, norm_cast] lemma coe_fn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] (c : R) (μ : finite_measure α) :
+@[simp, norm_cast] lemma coe_fn_smul [smul_assoc_class R ℝ≥0 ℝ≥0] (c : R) (μ : finite_measure α) :
   (⇑(c • μ) : set α → ℝ≥0) = c • (⇑μ : set α → ℝ≥0) :=
 by { funext, simp [← ennreal.coe_eq_coe, ennreal.coe_smul], }
 
@@ -224,7 +224,7 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
 function.injective.module _ coe_add_monoid_hom coe_injective coe_smul
 
-@[simp] lemma coe_fn_smul_apply [is_scalar_tower R ℝ≥0 ℝ≥0]
+@[simp] lemma coe_fn_smul_apply [smul_assoc_class R ℝ≥0 ℝ≥0]
   (c : R) (μ : finite_measure α) (s : set α) :
   (c • μ) s  = c • (μ s) :=
 by { simp only [coe_fn_smul, pi.smul_apply], }
@@ -304,7 +304,7 @@ begin
   exact lintegral_add_left (bounded_continuous_function.nnreal.to_ennreal_comp_measurable _) _
 end
 
-lemma test_against_nn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] [pseudo_metric_space R] [has_zero R]
+lemma test_against_nn_smul [smul_assoc_class R ℝ≥0 ℝ≥0] [pseudo_metric_space R] [has_zero R]
   [has_bounded_smul R ℝ≥0]
   (μ : finite_measure α) (c : R) (f : α →ᵇ ℝ≥0) :
   μ.test_against_nn (c • f) = c • μ.test_against_nn f :=

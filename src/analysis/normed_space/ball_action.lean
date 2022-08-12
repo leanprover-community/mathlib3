@@ -86,47 +86,47 @@ instance has_continuous_smul_sphere_sphere :
 
 end sphere
 
-section is_scalar_tower
+section smul_assoc_class
 
-variables [normed_algebra 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' E]
+variables [normed_algebra 𝕜 𝕜'] [smul_assoc_class 𝕜 𝕜' E]
 
-instance is_scalar_tower_closed_ball_closed_ball_closed_ball :
-  is_scalar_tower (closed_ball (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (closed_ball (0 : E) r) :=
+instance smul_assoc_class_closed_ball_closed_ball_closed_ball :
+  smul_assoc_class (closed_ball (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (closed_ball (0 : E) r) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : E)⟩
 
-instance is_scalar_tower_closed_ball_closed_ball_ball :
-  is_scalar_tower (closed_ball (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (ball (0 : E) r) :=
+instance smul_assoc_class_closed_ball_closed_ball_ball :
+  smul_assoc_class (closed_ball (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (ball (0 : E) r) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : E)⟩
 
-instance is_scalar_tower_sphere_closed_ball_closed_ball :
-  is_scalar_tower (sphere (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (closed_ball (0 : E) r) :=
+instance smul_assoc_class_sphere_closed_ball_closed_ball :
+  smul_assoc_class (sphere (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (closed_ball (0 : E) r) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : E)⟩
 
-instance is_scalar_tower_sphere_closed_ball_ball :
-  is_scalar_tower (sphere (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (ball (0 : E) r) :=
+instance smul_assoc_class_sphere_closed_ball_ball :
+  smul_assoc_class (sphere (0 : 𝕜) 1) (closed_ball (0 : 𝕜') 1) (ball (0 : E) r) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : E)⟩
 
-instance is_scalar_tower_sphere_sphere_closed_ball :
-  is_scalar_tower (sphere (0 : 𝕜) 1) (sphere (0 : 𝕜') 1) (closed_ball (0 : E) r) :=
+instance smul_assoc_class_sphere_sphere_closed_ball :
+  smul_assoc_class (sphere (0 : 𝕜) 1) (sphere (0 : 𝕜') 1) (closed_ball (0 : E) r) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : E)⟩
 
-instance is_scalar_tower_sphere_sphere_ball :
-  is_scalar_tower (sphere (0 : 𝕜) 1) (sphere (0 : 𝕜') 1) (ball (0 : E) r) :=
+instance smul_assoc_class_sphere_sphere_ball :
+  smul_assoc_class (sphere (0 : 𝕜) 1) (sphere (0 : 𝕜') 1) (ball (0 : E) r) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : E)⟩
 
-instance is_scalar_tower_sphere_sphere_sphere :
-  is_scalar_tower (sphere (0 : 𝕜) 1) (sphere (0 : 𝕜') 1) (sphere (0 : E) r) :=
+instance smul_assoc_class_sphere_sphere_sphere :
+  smul_assoc_class (sphere (0 : 𝕜) 1) (sphere (0 : 𝕜') 1) (sphere (0 : E) r) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : E)⟩
 
-instance is_scalar_tower_sphere_ball_ball :
-  is_scalar_tower (sphere (0 : 𝕜) 1) (ball (0 : 𝕜') 1) (ball (0 : 𝕜') 1) :=
+instance smul_assoc_class_sphere_ball_ball :
+  smul_assoc_class (sphere (0 : 𝕜) 1) (ball (0 : 𝕜') 1) (ball (0 : 𝕜') 1) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : 𝕜')⟩
 
-instance is_scalar_tower_closed_ball_ball_ball :
-  is_scalar_tower (closed_ball (0 : 𝕜) 1) (ball (0 : 𝕜') 1) (ball (0 : 𝕜') 1) :=
+instance smul_assoc_class_closed_ball_ball_ball :
+  smul_assoc_class (closed_ball (0 : 𝕜) 1) (ball (0 : 𝕜') 1) (ball (0 : 𝕜') 1) :=
 ⟨λ a b c, subtype.ext $ smul_assoc (a : 𝕜) (b : 𝕜') (c : 𝕜')⟩
 
-end is_scalar_tower
+end smul_assoc_class
 
 section smul_comm_class
 

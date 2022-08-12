@@ -1044,18 +1044,18 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
 ⟨λ _ _ _, image2_left_comm smul_comm⟩
 
 @[to_additive]
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
-  is_scalar_tower α β (set γ) :=
+instance smul_assoc_class [has_smul α β] [has_smul α γ] [has_smul β γ] [smul_assoc_class α β γ] :
+  smul_assoc_class α β (set γ) :=
 { smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
 
 @[to_additive]
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
-  is_scalar_tower α (set β) (set γ) :=
+instance smul_assoc_class' [has_smul α β] [has_smul α γ] [has_smul β γ] [smul_assoc_class α β γ] :
+  smul_assoc_class α (set β) (set γ) :=
 ⟨λ _ _ _, image2_image_left_comm $ smul_assoc _⟩
 
 @[to_additive]
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
-  is_scalar_tower (set α) (set β) (set γ) :=
+instance smul_assoc_class'' [has_smul α β] [has_smul α γ] [has_smul β γ] [smul_assoc_class α β γ] :
+  smul_assoc_class (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
 instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
@@ -1397,7 +1397,7 @@ le_antisymm
 
 @[to_additive]
 lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
-  [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
+  [smul_assoc_class M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
   ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
 begin
   apply @closure_induction N _ s

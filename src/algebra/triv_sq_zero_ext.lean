@@ -137,8 +137,8 @@ instance [has_smul S R] [has_smul S M] : has_smul S (tsze R M) :=
 prod.has_smul
 
 instance [has_smul T R] [has_smul T M] [has_smul S R] [has_smul S M] [has_smul T S]
-  [is_scalar_tower T S R] [is_scalar_tower T S M] : is_scalar_tower T S (tsze R M) :=
-prod.is_scalar_tower
+  [smul_assoc_class T S R] [smul_assoc_class T S M] : smul_assoc_class T S (tsze R M) :=
+prod.smul_assoc_class
 
 instance [has_smul T R] [has_smul T M] [has_smul S R] [has_smul S M]
   [smul_comm_class T S R] [smul_comm_class T S M] : smul_comm_class T S (tsze R M) :=
@@ -362,7 +362,7 @@ end mul
 section algebra
 variables (S : Type*) (R : Type u) (M : Type v)
 variables [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
-variables [algebra S R] [module S M] [module R M] [is_scalar_tower S R M]
+variables [algebra S R] [module S M] [module R M] [smul_assoc_class S R M]
 
 instance algebra'  : algebra S (tsze R M) :=
 { commutes' := λ r x, mul_comm _ _,

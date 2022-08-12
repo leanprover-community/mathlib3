@@ -1737,8 +1737,8 @@ instance quotient.algebra {I : ideal A} : algebra R₁ (A ⧸ I) :=
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R₁ A) }
 
 -- Lean can struggle to find this instance later if we don't provide this shortcut
-instance quotient.is_scalar_tower [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
-  is_scalar_tower R₁ R₂ (A ⧸ I) :=
+instance quotient.smul_assoc_class [has_smul R₁ R₂] [smul_assoc_class R₁ R₂ A] (I : ideal A) :
+  smul_assoc_class R₁ R₂ (A ⧸ I) :=
 by apply_instance
 
 /-- The canonical morphism `A →ₐ[R₁] A ⧸ I` as morphism of `R₁`-algebras, for `I` an ideal of

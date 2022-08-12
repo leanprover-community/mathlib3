@@ -306,7 +306,7 @@ eval₂_monomial _ _
 
 @[simp] lemma eval_bit1 : (bit1 p).eval x = bit1 (p.eval x) := eval₂_bit1 _ _
 
-@[simp] lemma eval_smul [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+@[simp] lemma eval_smul [monoid S] [distrib_mul_action S R] [smul_assoc_class S R R]
   (s : S) (p : R[X]) (x : R) :
   (s • p).eval x = s • p.eval x :=
 by rw [← smul_one_smul R s p, eval, eval₂_smul, ring_hom.id_apply, smul_one_mul]
@@ -484,7 +484,7 @@ by simp only [bit0, add_comp]
 @[simp] lemma bit1_comp : comp (bit1 p : R[X]) q = bit1 (p.comp q) :=
 by simp only [bit1, add_comp, bit0_comp, one_comp]
 
-@[simp] lemma smul_comp [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+@[simp] lemma smul_comp [monoid S] [distrib_mul_action S R] [smul_assoc_class S R R]
   (s : S) (p q : R[X]) : (s • p).comp q = s • p.comp q :=
 by rw [← smul_one_smul R s p, comp, comp, eval₂_smul, ← smul_eq_C_mul, smul_assoc, one_smul]
 

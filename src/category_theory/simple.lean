@@ -191,7 +191,8 @@ begin
   split,
   { intro h, replace h := h =≫ biprod.snd,
     simpa [←is_zero.iff_is_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y)] using h, },
-  { intro h, rw is_zero.iff_is_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y) at h, rw [h, zero_comp], },
+  { intro h, rw is_zero.iff_is_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y) at h,
+    rw [h, zero_comp], },
 end
 
 /-- Any simple object in a preadditive category is indecomposable. -/

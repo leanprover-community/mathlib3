@@ -42,9 +42,6 @@ open_locale classical
 
 variables {α β γ : Type*}
 
-lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
-by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]
-
 lemma finite_or_infinite (α : Type*) :
   finite α ∨ infinite α :=
 begin
@@ -54,15 +51,6 @@ end
 
 lemma not_finite (α : Type*) [h1 : infinite α] [h2 : finite α] : false :=
 not_finite_iff_infinite.mpr h1 h2
-
-lemma finite.of_not_infinite {α : Type*} (h : ¬ infinite α) : finite α :=
-by rwa [← not_finite_iff_infinite, not_not] at h
-
-lemma infinite.of_not_finite {α : Type*} (h : ¬ finite α) : infinite α :=
-not_finite_iff_infinite.mp h
-
-lemma not_infinite_iff_finite {α : Type*} : ¬ infinite α ↔ finite α :=
-not_finite_iff_infinite.not_right.symm
 
 namespace finite
 

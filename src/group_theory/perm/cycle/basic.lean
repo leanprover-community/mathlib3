@@ -101,7 +101,7 @@ let ⟨a, ha⟩ := hg.2 x hx in
 let ⟨b, hb⟩ := hg.2 y hy in
 ⟨b - a, by rw [← ha, ← mul_apply, ← zpow_add, sub_add_cancel, hb]⟩
 
-lemma is_cycle.exists_pow_eq [fintype β] {f : perm β} (hf : is_cycle f) {x y : β}
+lemma is_cycle.exists_pow_eq [finite β] {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℕ, (f ^ i) x = y :=
 let ⟨n, hn⟩ := hf.exists_zpow_eq hx hy in
 by classical; exact ⟨(n % order_of f).to_nat, by
@@ -1090,11 +1090,12 @@ end
 
 end cycle_factors_finset
 
-@[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
+@[elab_as_eliminator] lemma cycle_induction_on [finite β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
   (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → is_cycle σ → P σ → P τ → P (σ * τ)) :
   P σ :=
 begin
+  casesI nonempty_fintype β,
   suffices :
     ∀ l : list (perm β), (∀ τ : perm β, τ ∈ l → τ.is_cycle) → l.pairwise disjoint → P l.prod,
   { classical,
@@ -1224,15 +1225,18 @@ end
 
 section generation
 
-variables [fintype α] [fintype β]
+variables [finite β]
 
 open subgroup
 
-lemma closure_is_cycle : closure {σ : perm β | is_cycle σ} = ⊤ :=
+lemma closure_is_cycle [finite α] : closure {σ : perm β | is_cycle σ} = ⊤ :=
 begin
   classical,
+  casesI nonempty_fintype β,
   exact top_le_iff.mp (le_trans (ge_of_eq closure_is_swap) (closure_mono (λ _, is_swap.is_cycle))),
 end
+
+variables [fintype α]
 
 lemma closure_cycle_adjacent_swap {σ : perm α} (h1 : is_cycle σ) (h2 : σ.support = ⊤) (x : α) :
   closure ({σ, swap x (σ x)} : set (perm α)) = ⊤ :=
@@ -1377,12 +1381,13 @@ by simp
 
 end
 
-theorem disjoint.is_conj_mul {α : Type*} [fintype α] {σ τ π ρ : perm α}
+theorem disjoint.is_conj_mul {α : Type*} [finite α] {σ τ π ρ : perm α}
   (hc1 : is_conj σ π) (hc2 : is_conj τ ρ)
   (hd1 : disjoint σ τ) (hd2 : disjoint π ρ) :
   is_conj (σ * τ) (π * ρ) :=
 begin
   classical,
+  casesI nonempty_fintype α,
   obtain ⟨f, rfl⟩ := is_conj_iff.1 hc1,
   obtain ⟨g, rfl⟩ := is_conj_iff.1 hc2,
   have hd1' := coe_inj.2 hd1.support_mul,

@@ -429,14 +429,14 @@ lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
 end comm_monoid
 
 section fintype
-variables [fintype G] [fintype A]
+variables
 
 section finite_monoid
-variables [monoid G] [add_monoid A]
+variables [monoid G]
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq G] (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
   = (finset.univ.filter (λ x : G, x ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
@@ -457,19 +457,19 @@ variables [left_cancel_monoid G] [add_left_cancel_monoid A]
 
 -- TODO: Use this to show that a finite left cancellative monoid is a group.
 @[to_additive]
-lemma exists_pow_eq_one (x : G) : is_of_fin_order x :=
+lemma exists_pow_eq_one [finite G] (x : G) : is_of_fin_order x :=
 begin
   refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
   obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), x ^ i = x ^ j ∧ i ≠ j :=
     by simpa only [not_forall, exists_prop, injective]
-      using (not_injective_infinite_fintype (λi:ℕ, x^i)),
+      using (not_injective_infinite_finite (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
   refine ⟨i - j, tsub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
   rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
 end
 
 @[to_additive add_order_of_le_card_univ]
-lemma order_of_le_card_univ : order_of x ≤ fintype.card G :=
+lemma order_of_le_card_univ [fintype G] : order_of x ≤ fintype.card G :=
 finset.le_card_of_inj_on_range ((^) x)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, pow_injective_of_lt_order_of x hi hj)

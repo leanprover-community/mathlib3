@@ -5,11 +5,17 @@ import analysis.transcendental.small_lemmas
 import analysis.transcendental.deriv
 
 noncomputable theory
-open_locale classical
 open_locale big_operators
+open_locale classical
+open_locale polynomial
 open small_lemmas
 
-notation α`[X]` := polynomial α
+/-Definition
+For any integer polynomial $f$ and $n\in\mathbb N$ we define `deriv_n f n` to be the $n$-th derivative of polynomial $f$. $h^{[n]}$ means $h\circ h\circ h\cdots\circ h$ $n$-times.
+
+TODO: Remove this entirely.
+-/
+def deriv_n (f : ℤ[X]) (n : ℕ) : ℤ[X] := polynomial.derivative ^[n] f
 
 namespace e_transcendental_lemmas
 

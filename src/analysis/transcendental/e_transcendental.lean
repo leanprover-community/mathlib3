@@ -157,13 +157,14 @@ end
 lemma deriv_f_p_k_eq_zero_k_eq_0_when_j_lt_p_sub_one (p : ℕ) (n j : ℕ) (hj : j < p - 1):
   polynomial.eval 0 (deriv_n (f_p p n) j) = 0 :=
 begin
-  rw [f_p, deriv_n, deriv_n_poly_prod, polynomial.eval_finset_sum],
+  rw [f_p, deriv_n, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
   apply finset.sum_eq_zero, intros i hi, rw polynomial.eval_mul,
   simp only [nat.succ_pos', finset.mem_range] at hi,
   rw [mul_eq_zero], left,
   have ineq : j - i < p - 1 := gt_of_gt_of_ge hj (nat.sub_le j i),
   rw [polynomial.eval_mul, mul_eq_zero], right,
-  rw [deriv_X_pow', polynomial.eval_mul], simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_zero, polynomial.eval_pow, mul_eq_zero], right, apply zero_pow,
+  rw [polynomial.iterate_derivative_X_pow_eq_C_mul, polynomial.eval_mul],
+  simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_zero, polynomial.eval_pow, mul_eq_zero], right, apply zero_pow,
   exact nat.sub_pos_of_lt ineq,
   exact le_of_lt ineq,
 end
@@ -190,13 +191,13 @@ end
 theorem deriv_f_p_zero_when_j_eq_p_sub_one (p : ℕ) (hp : nat.prime p) (n : ℕ) :
   polynomial.eval 0 (deriv_n (f_p p n) (p-1)) = (p-1).factorial * (-1)^(n*p)*(n.factorial)^p :=
 begin
-  rw [f_p, deriv_n, deriv_n_poly_prod, polynomial.eval_finset_sum],
+  rw [f_p, deriv_n, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
   rw finset.sum_eq_single 0,
   { simp only [nat.choose_self, int.cast_add, one_mul, int.coe_nat_zero, polynomial.eval_mul,
       int.coe_nat_succ, zero_add, nat.factorial, function.iterate_zero_apply, int.cast_coe_nat,
-      ring_hom.eq_int_cast, nat.choose_zero_right, deriv_X_pow, polynomial.eval_prod,
-      polynomial.eval_X, mul_one, algebra.id.smul_eq_mul, zero_sub, nat.sub_self,
-      polynomial.eval_one, polynomial.eval_pow, int.cast_one, polynomial.eval_smul,
+      ring_hom.eq_int_cast, nat.choose_zero_right, polynomial.iterate_derivative_X_pow_eq_smul,
+      polynomial.eval_prod, polynomial.eval_X, mul_one, algebra.id.smul_eq_mul, zero_sub,
+      nat.sub_self, polynomial.eval_one, polynomial.eval_pow, int.cast_one, polynomial.eval_smul,
       polynomial.eval_nat_cast, nat.sub_zero, polynomial.eval_add, neg_add_rev, polynomial.eval_sub,
       pow_zero],
     rw mul_assoc,
@@ -214,8 +215,8 @@ begin
       int.coe_nat_eq_zero, int.cast_one, polynomial.eval_mul, polynomial.eval_nat_cast],
     apply mul_eq_zero_of_left,
     apply mul_eq_zero_of_right,
-    rw [deriv_X_pow _ _ (nat.sub_le _ _), polynomial.eval_smul, polynomial.eval_pow,
-      polynomial.eval_X, algebra.id.smul_eq_mul],
+    rw [polynomial.iterate_derivative_X_pow_eq_smul _ _ (nat.sub_le _ _), polynomial.eval_smul,
+      polynomial.eval_pow, polynomial.eval_X, algebra.id.smul_eq_mul],
     apply mul_eq_zero_of_right,
     apply zero_pow,
 
@@ -238,7 +239,7 @@ begin
   { intros x j hj hx1 hx2,
     linarith },
   { intros x j hj hx1 hx2,
-    rw [f_p_n_succ, deriv_n_poly_prod, polynomial.eval_finset_sum],
+    rw [f_p_n_succ, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
     apply finset.sum_eq_zero, intros y hy, simp only [finset.mem_range] at hy,
     rw polynomial.eval_mul, rw polynomial.eval_mul, rw polynomial.eval_nat_cast,
     replace hx2 : x < n.succ ∨ x = n.succ, exact nat.lt_succ_iff_lt_or_eq.mp hx2,
@@ -247,7 +248,8 @@ begin
       rw IH x (j-y) (gt_of_gt_of_ge hj (nat.sub_le j y)) hx1 hx2, tauto },
     {
       -- x = n.succ
-      rw mul_eq_zero, right, rw [hx2, deriv_X_sub_pow, polynomial.eval_mul, polynomial.eval_pow],
+      rw mul_eq_zero, right,
+      rw [hx2, polynomial.iterate_derivative_X_sub_pow, polynomial.eval_mul, polynomial.eval_pow],
       simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_succ, polynomial.eval_sub, sub_self, mul_eq_zero],
       right, apply zero_pow (nat.sub_pos_of_lt (gt_of_ge_of_gt hj hy)),
       exact le_of_lt (gt_of_ge_of_gt hj hy),
@@ -265,13 +267,13 @@ end
 private lemma k_eq_0_case_when_j_ge_p (p : ℕ) (hp : nat.prime p) (n:ℕ) :
   ∀ j : ℕ, p ≤ j -> (p.factorial:ℤ) ∣ polynomial.eval 0 (deriv_n (f_p p n) j) :=
 begin
-  rw f_p, intros j j_ge_p, rw [deriv_n, deriv_n_poly_prod, polynomial.eval_finset_sum],
+  rw f_p, intros j j_ge_p, rw [deriv_n, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
   apply finset.dvd_sum,
   intros x hx,
   simp only [polynomial.eval_C, polynomial.C_add, polynomial.C_1, polynomial.eval_mul, nat.factorial],
-  by_cases j - x = p - 1,
+  obtain h|h := eq_or_ne (j - x) (p - 1),
   {
-    rw h, rw deriv_X_pow' _ _ le_rfl,
+    rw h, rw polynomial.iterate_derivative_X_pow_eq_C_mul _ _ le_rfl,
     simp only [mul_one, polynomial.eval_C, polynomial.eval_nat_cast, nat.sub_self, pow_zero],
     rw <-fact_eq_prod',
     rw ←deriv_n,
@@ -287,10 +289,13 @@ begin
 
     { rw finset.prod_pow, apply polynomial.dvd_iterate_derivative_pow _ _ _ _ x.succ_pos },
   },
-  replace h : j - x < p - 1 ∨ j - x > p - 1, exact lt_or_gt_of_ne h,
-  cases h,
-  { rw (deriv_X_pow' (p-1) (j-x) (le_of_lt h)), rw polynomial.eval_mul, simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow], rw (zero_pow (nat.sub_pos_of_lt h)), simp only [zero_mul, mul_zero, dvd_zero] },
-  { rw [←deriv_n, deriv_X_pow_too_much], simp only [zero_mul, mul_zero, polynomial.eval_zero, dvd_zero], assumption },
+  obtain h|h := h.lt_or_lt,
+  { rw [polynomial.iterate_derivative_X_pow_eq_C_mul (p-1) (j-x) h.le, polynomial.eval_mul],
+    simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow],
+    rw (zero_pow (nat.sub_pos_of_lt h)),
+    simp only [zero_mul, mul_zero, dvd_zero] },
+  { rw [polynomial.iterate_derivative_eq_zero ((polynomial.nat_degree_X_pow_le _).trans_lt h)],
+    simp only [zero_mul, mul_zero, polynomial.eval_zero, dvd_zero] },
 end
 
 private lemma p_fact_dvd_prod_part (n : ℕ) :  ∀ j : ℕ, ∀ k : ℕ, ∀ p : ℕ, p > 0 ->
@@ -315,7 +320,7 @@ begin
 
   intros j IH k p hp hk1 hk2,
   rw [function.iterate_succ_apply, finset.prod_pow, polynomial.derivative_pow,
-    deriv_n_poly_prod, polynomial.eval_finset_sum],
+    polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
   apply finset.dvd_sum,
   intros x hx,
   obtain rfl|h := (nat.succ_le_iff.mpr hp).eq_or_lt,
@@ -339,7 +344,7 @@ private lemma k_ge_1_case_when_j_ge_p (p : ℕ) (hp : nat.prime p) (n:ℕ) :
     ∀ k : ℕ, k < n.succ -> k > 0 -> (p.factorial:ℤ) ∣ polynomial.eval (k:ℤ) (deriv_n (f_p p n) j) :=
 begin
   intros j hj k hk1 hk2,
-  rw [f_p, deriv_n, deriv_n_poly_prod, polynomial.eval_finset_sum], apply finset.dvd_sum, intros x hx,
+  rw [f_p, deriv_n, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum], apply finset.dvd_sum, intros x hx,
   rw polynomial.eval_mul, rw polynomial.eval_mul,
   apply dvd_mul_of_dvd_right,
   apply p_fact_dvd_prod_part n _ _ _ (nat.prime.pos hp) hk2 hk1,

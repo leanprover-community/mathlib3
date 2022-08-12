@@ -323,7 +323,7 @@ variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [nontriv
   (hf : is_compact_operator f) : continuous f :=
 begin
   letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
-  haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+  haveI : uniform_add_group M₂ := topological_add_comm_group_is_uniform,
   -- Since `f` is linear, we only need to show that it is continuous at zero.
   -- Let `U` be a neighborhood of `0` in `M₂`.
   refine continuous_of_continuous_at_zero f (λ U hU, _),

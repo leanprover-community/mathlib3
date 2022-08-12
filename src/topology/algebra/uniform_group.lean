@@ -23,8 +23,8 @@ group naturally induces a uniform structure.
 
 ## Main results
 
-* `topological_add_group.to_uniform_space` and `topological_add_group_is_uniform` can be used to
-  construct a canonical uniformity for a topological add group.
+* `topological_add_group.to_uniform_space` and `topological_add_comm_group_is_uniform` can be used
+  to construct a canonical uniformity for a topological add group.
 
 * extension of ℤ-bilinear maps to complete groups (useful for ring completions)
 -/
@@ -360,7 +360,7 @@ uniformity).
 Warning: in general the right and left uniformities do not coincide and so one does not obtain
 `uniform_add_group` structure. Two important special cases where they _do_ coincide are for
 commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact Hausdorff
-additive groups (see `topological_add_group_is_uniform_of_compact_space`)."]
+additive groups (see `topological_add_comm_group_is_uniform_of_compact_space`)."]
 def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=

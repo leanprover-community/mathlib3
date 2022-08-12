@@ -122,6 +122,7 @@ begin
   exact smul_mem_smul_set hb,
 end
 
+@[to_additive]
 lemma le_stabilizer_smul_left [has_smul β γ] [is_scalar_tower α β γ] (b : β) (c : γ) :
   stabilizer α b ≤ stabilizer α (b • c) :=
 by { simp_rw [set_like.le_def, mem_stabilizer_iff, ←smul_assoc], rintro a h, rw h }
@@ -238,7 +239,7 @@ by { simp_rw [nonempty_iff_ne_empty, not_imp_not], rintro rfl, exact mul_stab_em
 @[simp, to_additive] lemma mul_stab_nonempty : s.mul_stab.nonempty ↔ s.nonempty :=
 ⟨nonempty.of_mul_stab, nonempty.mul_stab⟩
 
-lemma subset_mul_stab_mul_left (ht : t.nonempty) : s.mul_stab ⊆ (s * t).mul_stab :=
+@[to_additive] lemma subset_mul_stab_mul_left (ht : t.nonempty) : s.mul_stab ⊆ (s * t).mul_stab :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
@@ -266,7 +267,7 @@ begin
   rwa [←hb, ←inv_smul_mem_iff, smul_eq_mul, inv_mul_eq_div] at ha,
 end
 
-lemma subset_mul_stab_mul_right (hs : s.nonempty) : t.mul_stab ⊆ (s * t).mul_stab :=
+@[to_additive] lemma subset_mul_stab_mul_right (hs : s.nonempty) : t.mul_stab ⊆ (s * t).mul_stab :=
 by { rw mul_comm, exact subset_mul_stab_mul_left hs }
 
 @[simp, to_additive] lemma mul_mul_stab (s : finset α) : s * s.mul_stab = s :=

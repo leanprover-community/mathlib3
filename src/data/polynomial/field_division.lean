@@ -369,6 +369,15 @@ lemma root_set_X_pow {R S : Type*} [field R] [field S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) : (X ^ n : R[X]).root_set S = {0} :=
 by { rw [←one_mul (X ^ n : R[X]), ←C_1, root_set_C_mul_X_pow hn], exact one_ne_zero }
 
+lemma root_set_prod {R S : Type*} [field R] [comm_ring S] [is_domain S] [algebra R S]
+  {ι : Type*} (f : ι → R[X]) (s : finset ι) (h : s.prod f ≠ 0) :
+  (s.prod f).root_set S = ⋃ (i ∈ s), (f i).root_set S :=
+begin
+  simp only [root_set, ←finset.mem_coe],
+  rw [polynomial.map_prod, roots_prod, finset.bind_to_finset, s.val_to_finset, finset.coe_bUnion],
+  rwa [←polynomial.map_prod, ne, map_eq_zero],
+end
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,

@@ -64,7 +64,8 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 namespace tensor_algebra
 
 instance {S : Type*} [comm_ring S] [module S M] : ring (tensor_algebra S M) :=
-ring_quot.ring (rel S M)
+{ zero := 0, add := (+), one := 1, mul := (*), nsmul := (•), npow := λ n x, x ^ n,
+  ..ring_quot.ring _ }
 
 variables {M}
 /--

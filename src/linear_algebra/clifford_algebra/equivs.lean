@@ -63,21 +63,30 @@ open clifford_algebra
 namespace clifford_algebra_ring
 open_locale complex_conjugate
 
-variables {R : Type*} [comm_ring R]
+variables {R R' : Type*} [comm_semiring R] [comm_ring R']
 
 @[simp]
 lemma ι_eq_zero : ι (0 : quadratic_form R unit) = 0 :=
 subsingleton.elim _ _
 
-/-- Since the vector space is empty the ring is commutative. -/
-instance : comm_ring (clifford_algebra (0 : quadratic_form R unit)) :=
-{ mul_comm := λ x y, begin
+/-- Since the vector space is empty the semiring is commutative. -/
+instance comm_semiring : comm_semiring (clifford_algebra (0 : quadratic_form R unit)) :=
+{ zero := 0, one := 1, add := (+), mul := (*),
+  nsmul := (•), npow := λ n x, x ^ n,
+  mul_comm := λ x y, begin
     induction x using clifford_algebra.induction,
     case h_grade0 : r { apply algebra.commutes, },
     case h_grade1 : x { simp, },
     case h_add : x₁ x₂ hx₁ hx₂ { rw [mul_add, add_mul, hx₁, hx₂], },
     case h_mul : x₁ x₂ hx₁ hx₂ { rw [mul_assoc, hx₂, ←mul_assoc, hx₁, ←mul_assoc], },
   end,
+  ..clifford_algebra.semiring _ }
+
+/-- Since the vector space is empty the ring is commutative. -/
+instance comm_ring : comm_ring (clifford_algebra (0 : quadratic_form R' unit)) :=
+{ zero := 0, one := 1, add := (+), mul := (*), sub := has_sub.sub, neg := has_neg.neg,
+  nsmul := (•), zsmul := (•), npow := λ n x, x ^ n,
+  ..clifford_algebra_ring.comm_semiring,
   ..clifford_algebra.ring _ }
 
 lemma reverse_apply (x : clifford_algebra (0 : quadratic_form R unit)) : x.reverse = x :=
@@ -94,7 +103,7 @@ end
 linear_map.ext reverse_apply
 
 @[simp] lemma involute_eq_id :
-  (involute : clifford_algebra (0 : quadratic_form R unit) →ₐ[R] _) = alg_hom.id R _ :=
+  (involute : clifford_algebra (0 : quadratic_form R' unit) →ₐ[R'] _) = alg_hom.id R' _ :=
 by { ext, simp }
 
 /-- The clifford algebra over a 0-dimensional vector space is isomorphic to its scalars. -/
@@ -136,23 +145,27 @@ clifford_algebra.lift_ι_apply _ _ r
   to_complex (c.involute) = conj (to_complex c) :=
 begin
   have : to_complex (involute (ι Q 1)) = conj (to_complex (ι Q 1)),
-  { simp only [involute_ι, to_complex_ι, alg_hom.map_neg, one_smul, complex.conj_I] },
+  { simp only [involute_ι, to_complex_ι, map_neg, one_smul, complex.conj_I] },
   suffices : to_complex.comp involute = complex.conj_ae.to_alg_hom.comp to_complex,
   { exact alg_hom.congr_fun this c },
   ext : 2,
   exact this
 end
 
+section
 /-- Intermediate result for `clifford_algebra_complex.equiv`: `ℂ` can be converted to
 `clifford_algebra_complex.Q` above can be converted to. -/
 def of_complex : ℂ →ₐ[ℝ] clifford_algebra Q :=
-complex.lift ⟨
-  clifford_algebra.ι Q 1,
-  by rw [clifford_algebra.ι_sq_scalar, Q_apply, one_mul, ring_hom.map_neg, ring_hom.map_one]⟩
+begin
+  -- times out if in the same expression
+  refine complex.lift ⟨clifford_algebra.ι Q 1, _⟩,
+  rw [ι_sq_scalar Q, Q_apply, one_mul, map_neg, map_one],
+end
 
 @[simp]
 lemma of_complex_I : of_complex complex.I = ι Q 1 :=
 complex.lift_aux_apply_I _ _
+end
 
 @[simp] lemma to_complex_comp_of_complex : to_complex.comp of_complex = alg_hom.id ℝ ℂ :=
 begin
@@ -200,8 +213,8 @@ begin
   case h_add : x₁ x₂ hx₁ hx₂ { rw [reverse.map_add, hx₁, hx₂] },
 end
 
-@[simp]
-lemma reverse_eq_id : (reverse : clifford_algebra Q →ₗ[ℝ] _) = linear_map.id :=
+-- TODO: why does a type ascription fail here?
+@[simp] lemma reverse_eq_id : @reverse ℝ ℝ _ _ _ Q = linear_map.id :=
 linear_map.ext reverse_apply
 
 /-- `complex.conj` is analogous to `clifford_algebra.involute`. -/
@@ -233,21 +246,23 @@ lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * 
 
 /-- The quaternion basis vectors within the algebra. -/
 @[simps i j k]
-def quaternion_basis : quaternion_algebra.basis (clifford_algebra (Q c₁ c₂)) c₁ c₂ :=
+def quaternion_basis :
+  @quaternion_algebra.basis _ (clifford_algebra (Q c₁ c₂)) _ _
+  (by have := clifford_algebra.algebra (Q c₁ c₂); exact this) c₁ c₂ :=
 { i := ι (Q c₁ c₂) (1, 0),
   j := ι (Q c₁ c₂) (0, 1),
   k := ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1),
   i_mul_i := begin
-    rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
+    rw [ι_sq_scalar (Q c₁ c₂), Q_apply, ←algebra.algebra_map_eq_smul_one],
     simp,
   end,
   j_mul_j := begin
-    rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
+    rw [ι_sq_scalar (Q c₁ c₂), Q_apply, ←algebra.algebra_map_eq_smul_one],
     simp,
   end,
   i_mul_j := rfl,
   j_mul_i := begin
-    rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap, quadratic_form.polar],
+    rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap (Q c₁ c₂), quadratic_form.polar],
     simp,
   end }
 
@@ -281,12 +296,12 @@ begin
   { simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
       quaternion_algebra.conj_coe], },
   case h_grade1 : x
-  { rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
+  { rw [reverse_ι, involute_ι, to_quaternion_ι, map_neg, to_quaternion_ι,
       quaternion_algebra.neg_mk, conj_mk, neg_zero], },
   case h_mul : x₁ x₂ hx₁ hx₂
-  { simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
+  { simp only [reverse.map_mul, map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
   case h_add : x₁ x₂ hx₁ hx₂
-  { simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
+  { simp only [reverse.map_add, map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
 end
 
 /-- Map a quaternion into the clifford algebra. -/
@@ -356,7 +371,7 @@ namespace clifford_algebra_dual_number
 open_locale dual_number
 open dual_number triv_sq_zero_ext
 
-variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
 
 lemma ι_mul_ι (r₁ r₂) : ι (0 : quadratic_form R R) r₁ * ι (0 : quadratic_form R R) r₂ = 0 :=
 by rw [←mul_one r₁, ←mul_one r₂, ←smul_eq_mul R, ←smul_eq_mul R, linear_map.map_smul,
@@ -368,11 +383,12 @@ the dual numbers. -/
 protected def equiv : clifford_algebra (0 : quadratic_form R R) ≃ₐ[R] R[ε] :=
 alg_equiv.of_alg_hom
   (clifford_algebra.lift (0 : quadratic_form R R) ⟨inr_hom R _, λ m, inr_mul_inr _ m m⟩)
-  (dual_number.lift ⟨ι _ (1 : R), ι_mul_ι (1 : R) 1⟩)
+  (dual_number.lift ⟨ι (0 : quadratic_form R R) (1 : R), ι_mul_ι (1 : R) 1⟩)
   (by { ext x : 1, dsimp, rw [lift_apply_eps, subtype.coe_mk, lift_ι_apply, inr_hom_apply, eps] })
   (by { ext : 2, dsimp, rw [lift_ι_apply, inr_hom_apply, ←eps, lift_apply_eps, subtype.coe_mk] })
 
-@[simp] lemma equiv_ι (r : R) : clifford_algebra_dual_number.equiv (ι _ r) = r • ε :=
+@[simp] lemma equiv_ι (r : R) :
+  clifford_algebra_dual_number.equiv (ι (0 : quadratic_form R R) r) = r • ε :=
 (lift_ι_apply _ _ r).trans (inr_eq_smul_eps _)
 
 @[simp] lemma equiv_symm_eps :

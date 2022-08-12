@@ -31,7 +31,7 @@ For convenience, this file also provides `clifford_algebra.foldl`, implemented v
 universes u1 u2 u3
 
 variables {R M N : Type*}
-variables [comm_ring R] [add_comm_group M] [add_comm_group N]
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N]
 variables [module R M] [module R N]
 variables (Q : quadratic_form R M)
 

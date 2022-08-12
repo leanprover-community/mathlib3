@@ -359,11 +359,18 @@ lemma fermat_cprime_iff_nonwitness (n : nat) (a : (zmod n)) :
 by simp [fermat_cprime, nat.fermat_witness]
 
 /-- The Fermat nonwitnesses are closed under multiplication. -/
-lemma fermat_nonwitness_mul (n : ℕ) (a  b : zmod n)
+lemma fermat_nonwitness_mul (n : ℕ) {a b : zmod n}
   (ha : ¬ n.fermat_witness a) (hb : ¬ n.fermat_witness b) : ¬ n.fermat_witness (a * b) :=
 begin
   simp only [nat.fermat_witness, not_not] at *,
   simp [mul_pow, ha, hb],
+end
+
+lemma fermat_nonwitness_of_prime {p : ℕ} {a : zmod p} (hp : p.prime) (ha : a ≠ 0) :
+  ¬ p.fermat_witness a :=
+begin
+  haveI := fact_iff.2 hp,
+  simp only [nat.fermat_witness, not_not, pow_card_sub_one_eq_one ha],
 end
 
 /-! ## Lemmas about Miller–Rabin witnesses and strong probable primes -/

@@ -463,7 +463,11 @@ lemma get_prod_lift (f : α →. β) (g : α →. γ) (x : α) (h) :
 
 lemma mem_prod_lift {f : α →. β} {g : α →. γ} {x : α} {y : β × γ} :
   y ∈ f.prod_lift g x ↔ y.1 ∈ f x ∧ y.2 ∈ g x :=
-by { simp [prod_lift], tidy }
+begin
+  transitivity ∃ hp hq, (f x).get hp = y.1 ∧ (g x).get hq = y.2,
+  { simp only [prod_lift, part.mem_mk_iff, and.exists, prod.ext_iff] },
+  { simpa only [exists_and_distrib_left, exists_and_distrib_right] }
+end
 
 /-- Product of partial functions. -/
 def prod_map (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=

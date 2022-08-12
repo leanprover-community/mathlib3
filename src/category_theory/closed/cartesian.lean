@@ -306,8 +306,8 @@ lemma strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
 begin
   haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,
-  haveI: is_split_epi f := ⟨t.to _, t.hom_ext _ _⟩,
-  apply is_iso_of_mono_of_is_split_epi
+  haveI: is_split_epi f := is_split_epi.mk' ⟨t.to _, t.hom_ext _ _⟩,
+  apply is_iso_of_mono_of_split_epi
 end
 
 instance to_initial_is_iso [has_initial C] (f : A ⟶ ⊥_ C) : is_iso f :=

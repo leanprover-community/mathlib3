@@ -119,7 +119,7 @@ instance section_is_split_mono {X Y : C} (f : X ⟶ Y) [hf : is_split_epi f] :
 is_split_mono.mk' (split_epi.split_mono _)
 
 /-- A split epi which is mono is an iso. -/
-lemma is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [is_split_epi f] : is_iso f :=
+lemma is_iso_of_mono_of_is_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [is_split_epi f] : is_iso f :=
 ⟨⟨section_ f, ⟨by simp [← cancel_mono f], by simp⟩⟩⟩
 
 /-- Every iso is a split mono. -/

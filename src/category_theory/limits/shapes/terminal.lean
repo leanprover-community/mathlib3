@@ -116,12 +116,12 @@ t.hom_ext _ _
 t.hom_ext _ _
 
 /-- Any morphism from a terminal object is split mono. -/
-def is_terminal.is_split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : is_split_mono f :=
-⟨t.from _, t.hom_ext _ _⟩
+def is_terminal.is_split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) :
+  is_split_mono f := is_split_mono.mk' ⟨t.from _, t.hom_ext _ _⟩
 
 /-- Any morphism to an initial object is split epi. -/
-def is_initial.is_split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : is_split_epi f :=
-⟨t.to _, t.hom_ext _ _⟩
+def is_initial.is_split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) :
+  is_split_epi f := is_split_epi.mk' ⟨t.to _, t.hom_ext _ _⟩
 
 /-- Any morphism from a terminal object is mono. -/
 lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
@@ -285,11 +285,11 @@ terminal_is_terminal.unique_up_to_iso t
 
 /-- Any morphism from a terminal object is split mono. -/
 instance terminal.is_split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : is_split_mono f :=
-is_terminal.split_mono_from terminal_is_terminal _
+is_terminal.is_split_mono_from terminal_is_terminal _
 
 /-- Any morphism to an initial object is split epi. -/
 instance initial.is_split_epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : is_split_epi f :=
-is_initial.split_epi_to initial_is_initial _
+is_initial.is_split_epi_to initial_is_initial _
 
 /-- An initial object is terminal in the opposite category. -/
 def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=

@@ -1,7 +1,7 @@
 import ring_theory.algebraic
 import analysis.transcendental.e_transcendental_lemmas
 import analysis.transcendental.basic
-import analysis.transcendental.deriv
+import data.polynomial.derivative
 import data.real.irrational
 
 noncomputable theory

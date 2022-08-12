@@ -1029,10 +1029,12 @@ lemma finite.of_surjective {α β : Sort*} [finite α] (f : α → β) (H : surj
   finite β :=
 finite.of_injective _ $ injective_surj_inv H
 
-lemma exists_max [finite α] [nonempty α] [linear_order β] (f : α → β) : ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
+lemma finite.exists_max [finite α] [nonempty α] [linear_order β] (f : α → β) :
+ ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
 by { casesI nonempty_fintype α, simpa using exists_max_image univ f univ_nonempty }
 
-lemma exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) : ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
+lemma finite.exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
+  ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
 by { casesI nonempty_fintype α, simpa using exists_min_image univ f univ_nonempty }
 
 lemma exists_univ_list (α) [finite α] : ∃ l : list α, l.nodup ∧ ∀ x : α, x ∈ l :=

@@ -49,18 +49,7 @@ begin
   apply em
 end
 
-lemma not_finite (α : Type*) [h1 : infinite α] [h2 : finite α] : false :=
-not_finite_iff_infinite.mpr h1 h2
-
 namespace finite
-
-lemma exists_max [finite α] [nonempty α] [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
-by { haveI := fintype.of_finite α, exact fintype.exists_max f }
-
-lemma exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
-by { haveI := fintype.of_finite α, exact fintype.exists_min f }
 
 @[priority 100] -- see Note [lower instance priority]
 instance of_subsingleton {α : Sort*} [subsingleton α] : finite α :=

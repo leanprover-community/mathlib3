@@ -43,19 +43,20 @@ begin
 end
 
 open category_theory
-variables {k} {i j : ℕ} (hj : i = j + 1) (g : G) (a : fin i → G)
+variables {k G} {i j : ℕ} (hj : i = j + 1) (g : G) (a : fin i → G)
 
-lemma d_comm {i j : ℕ} (hj : i = j + 1) (g : G) (a : fin i → G) (r : k) :
-  finsupp.lift _ k (fin i → G) (d_aux k hj) (representation.of_mul_action k G (fin i → G) g (finsupp.single a r)) =
-    representation.of_mul_action k G (fin j → G) g (finsupp.lift _ k (fin i → G) (d_aux k hj) (finsupp.single a r)) :=
+lemma d_aux_comm {i j : ℕ} (hj : i = j + 1) (g : G) (a : fin i → G) (r : k) :
+  finsupp.lift _ k (fin i → G) (d_aux k hj) (representation.of_mul_action k G (fin i → G) g
+    (finsupp.single a r)) =
+  representation.of_mul_action k G (fin j → G) g (finsupp.lift _ k (fin i → G) (d_aux k hj)
+    (finsupp.single a r)) :=
 begin
   dsimp,
+  simp only [representation.of_mul_action_def, finsupp.lmap_domain_apply,
+    finsupp.map_domain_single, finsupp.sum_single_index],
   simp only [finsupp.map_domain_smul, finsupp.map_domain_single,
-    finsupp.sum_single_index, zero_smul],
-  unfold d_aux,
-  sorry,
-  --rw ←finsupp.map_domain_comp,
-  --refl,
+    finsupp.sum_single_index, zero_smul, d_aux, ←finsupp.map_domain_comp],
+  refl,
 end
 
 variables (k G)
@@ -67,28 +68,29 @@ finsupp.lift _ k (fin i → G) (d_aux k hj)
 def d {i j : ℕ} (hj : i = j + 1) :
   of_mul_action k G (fin i → G) ⟶ of_mul_action k G (fin j → G) :=
 { comm' := λ g, linear_map.to_add_monoid_hom_injective
-    (finsupp.add_hom_ext (λ a r, d_comm hj g a r)),
+    (finsupp.add_hom_ext (λ a r, d_aux_comm hj g a r)),
   hom := d_hom k G hj }
 
-variables {G}
+variables {k G}
 
-lemma d_single {i j : ℕ} (hj : i = j + 1) (c : fin i → G) (n : k) :
-  (d k G hj).hom (finsupp.single c n) = (finset.range i).sum (λ p : ℕ, finsupp.single (c ∘ fin.delta hj p) ((-1 : k) ^ p * n)):=
+@[simp] lemma d_def {i j : ℕ} (hj : i = j + 1) : ⇑(d k G hj).hom = ⇑(d_hom k G hj) := rfl
+
+lemma d_hom_single {i j : ℕ} (hj : i = j + 1) (c : fin i → G) (n : k) :
+  d_hom k G hj (finsupp.single c n) = (finset.range i).sum (λ p : ℕ, finsupp.single
+    (c ∘ fin.delta hj p) ((-1 : k) ^ p * n)):=
 begin
   simp only [mul_comm _ n],
   simp only [←smul_eq_mul, ←finsupp.smul_single, ←finset.smul_sum],
   erw finsupp.lift_apply,
-  rw finsupp.sum_single_index,
-  rw d_aux_eq,
+  rw [finsupp.sum_single_index, d_aux_eq],
   rw zero_smul,
 end
 
-lemma d_of {i j : ℕ} (hj : i = j + 1) (c : fin i → G) :
-  (d k G hj).hom (finsupp.single c 1) = d_aux k hj c :=
+lemma d_hom_of {i j : ℕ} (hj : i = j + 1) (c : fin i → G) :
+  d_hom k G hj (finsupp.single c 1) = d_aux k hj c :=
 begin
   erw finsupp.lift_apply,
-  rw finsupp.sum_single_index,
-  rw one_smul,
+  rw [finsupp.sum_single_index, one_smul],
   rw zero_smul,
 end
 
@@ -100,13 +102,13 @@ finset.sum_bij (λ a ha, (a : ℕ)) (λ a ha, finset.mem_range.2 a.2) (λ a ha, 
      finsupp.mem_support_iff.2 (is_unit.ne_zero
       (is_unit.pow _ (is_unit.neg is_unit_one))), rfl⟩)
 
-theorem d_squared_of {i j l : ℕ} (hj : i = j + 1) (hl : j = l + 1) (c : fin i → G) (r : k) :
-  ((d k G hl).hom ((d k G hj).hom $ finsupp.single c r)) = 0 :=
+theorem d_hom_squared_of {i j l : ℕ} (hj : i = j + 1) (hl : j = l + 1) (c : fin i → G) (r : k) :
+  (d_hom k G hl (d_hom k G hj $ finsupp.single c r)) = 0 :=
 begin
   rw [←finsupp.smul_single_one, linear_map.map_smul, linear_map.map_smul],
   convert smul_zero _,
-  rw [d_of, d_aux_eq, linear_map.map_sum],
-  simp only [d_single, ←finset.sum_product'],
+  rw [d_hom_of, d_aux_eq, linear_map.map_sum],
+  simp only [d_hom_single, ←finset.sum_product'],
   refine finset.sum_involution (λ pq h, invo pq) _ _ _ _,
   { intros pq hpq,
     unfold invo,
@@ -150,11 +152,11 @@ begin
     exact invo_invo _ }
 end
 
-theorem d_squared {i j l : ℕ} (hj : i = j + 1) (hl : j = l + 1) (c : of_mul_action k G (fin i → G)) :
-  ((d k G hl).hom ((d k G hj).hom c)) = 0 :=
+theorem d_hom_squared {i j l : ℕ} (hj : i = j + 1) (hl : j = l + 1) (c : of_mul_action k G (fin i → G)) :
+  (d_hom k G hl (d_hom k G hj c)) = 0 :=
 begin
   refine @monoid_algebra.induction_on k (fin i → G) _ _ _ c (λ g, _) _ _,
-  { exact d_squared_of k hj hl g (1 : k) },
+  { exact d_hom_squared_of hj hl g (1 : k) },
   { intros a b ha hb,
     simp only [linear_map.map_add, ha, hb, zero_add] },
   { intros r a ha,
@@ -163,13 +165,13 @@ end
 
 variables (k G)
 
---probably unsustainable, disagrees with Scott's definition
-abbreviation Left_reg : Rep k G :=
-Rep.of (representation.of_module' (monoid_algebra k G))
+instance {k : Type u} [comm_ring k] {G : Type u} [group G]
+  {V : Type u} [add_comm_group V] [module k V] [nontrivial V] (ρ : representation k G V) :
+  nontrivial (Rep.of ρ) := by assumption
 
-lemma Left_reg_apply (g : G) (x : Left_reg k G) :
-  (Left_reg k G).ρ g x = (monoid_algebra.of k G g * (x : monoid_algebra k G) : monoid_algebra k G) :=
-  rfl
+instance {k : Type u} [comm_ring k] {G : Type u} [group G]
+  {V : Type u} [add_comm_group V] [module k V] [nontrivial V] (ρ : representation k G V) :
+  nontrivial (Rep.of ρ).V := by assumption
 
 abbreviation Trivial : Rep k G :=
 Rep.of representation.trivial
@@ -179,50 +181,30 @@ open category_theory
 /-- The chain complex `... → k[Gⁿ] → ... → k[G]`. -/
 def std_resn_complex : chain_complex (Rep k G) ℕ :=
 chain_complex.of (λ n, of_mul_action k G (fin (n + 1) → G))
-(λ n, d k G rfl) (λ n, Action.hom.ext _ _ $ linear_map.ext $ d_squared k rfl rfl)
+(λ n, d k G rfl) (λ n, Action.hom.ext _ _ $ linear_map.ext $ d_hom_squared rfl rfl)
 
 variables {k G}
 
 lemma coeff_sum_comm (g : G) (x : monoid_algebra k G) :
- finsupp.total G k k (λ g : G, 1) (monoid_algebra.of k G g * x : monoid_algebra k G) =
-   finsupp.total G k k (λ g : G, 1) x :=
+  finsupp.total G k k (λ g : G, 1) (representation.of_mul_action k G G g x) =
+    finsupp.total G k k (λ g : G, 1) x :=
 begin
-  refine (finset.sum_bij (λ a ha, g * a) _ _ _ _).symm,
-  { intros a ha,
-    dsimp,
-    rw [finsupp.mem_support_iff, monoid_algebra.single_mul_apply, one_mul, inv_mul_cancel_left],
-    exact finsupp.mem_support_iff.1 ha },
-  { intros,
-    dsimp,
-    simp only [monoid_algebra.single_mul_apply, one_mul, mul_one, inv_mul_cancel_left] },
-  { intros a b ha hb hab,
-    exact mul_left_cancel hab },
-  { intros,
-    use g⁻¹ * b,
-    rw finsupp.mem_support_iff at H,
-    constructor,
-    { exact (mul_inv_cancel_left _ _).symm },
-    { erw [monoid_algebra.single_mul_apply, one_mul] at H,
-      exact finsupp.mem_support_iff.2 H }}
+  refine (finset.sum_bij (λ a ha, g * a) (λ a ha, finsupp.mem_support_iff.2 $ _) (λ a ha, _)
+    (λ a b ha hb hab, mul_left_cancel hab) (λ b H, _)).symm,
+  { simpa only [representation.of_mul_action_apply,
+      smul_eq_mul, inv_mul_cancel_left, ←finsupp.mem_support_iff], },
+  { simp only [representation.of_mul_action_apply, one_mul, smul_eq_mul, mul_one,
+      inv_mul_cancel_left] },
+  { rw [finsupp.mem_support_iff, representation.of_mul_action_apply] at H,
+    exact ⟨g⁻¹ * b, ⟨finsupp.mem_support_iff.2 H, (mul_inv_cancel_left _ _).symm⟩⟩ }
 end
 
-variables {k G}
-def uhmm {V W : Type*} [add_comm_group V] [add_comm_group W] [module k V] [module k W]
-  (ρ : representation k G V) (τ : representation k G W) (f : V →ₗ[k] W) :
-  Rep.of ρ →ₗ[k] Rep.of τ :=
-f
-
-#exit
 variables (k G)
-set_option pp.universes true
+
 /-- The hom `k[G] → k` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
-def coeff_sum : @Rep.of k G _ _ _ _ _ (representation.of_module' (monoid_algebra k G)) ⟶ Trivial k G :=
-{ hom := uhmm (representation.of_module' (monoid_algebra k G)) (@representation.trivial k G _ _)
-   (monoid_algebra.lift k G k 1).to_linear_map,
-  comm' := _ }
-#exit
-{ comm' := λ g, linear_map.ext (λ x, @coeff_sum_comm k _ (by assumption) G _ g x),
- hom := (finsupp.total G (Trivial k G) k (λ g, (1 : k)))}
+def coeff_sum : Rep.of_mul_action k G G ⟶ Trivial k G :=
+{ hom := finsupp.total G (Trivial k G) k (λ g, (1 : k)),
+  comm' := λ g, by ext; exact coeff_sum_comm g (finsupp.single a 1) }
 
 variables {k G}
 
@@ -242,15 +224,18 @@ begin
   exact mul_one _,
 end
 
-lemma ugh (g : G) (x : monoid_algebra k (fin 1 → G)) :
-  @finsupp.dom_lcongr k k _ _ _ _ _ (fin.dom_one_equiv G) ((representation.of_mul_action k G (fin 1 → G)) g x)
-    = (monoid_algebra.of k G g * @finsupp.dom_lcongr k k _ _ _ _ _ (fin.dom_one_equiv G) x : monoid_algebra k G) :=
+lemma dom_one_iso_comm (g : G) (x : monoid_algebra k (fin 1 → G)) :
+  @finsupp.dom_lcongr k k _ _ _ _ _ (fin.dom_one_equiv G)
+    ((representation.of_mul_action k G (fin 1 → G)) g x)
+  = representation.of_mul_action k G G g (@finsupp.dom_lcongr k k _ _ _ _ _
+    (fin.dom_one_equiv G) x) :=
 begin
   refine x.induction_on _ _ _,
   { intro x,
-    simp only [representation.of_mul_action_apply, monoid_algebra.of_apply, finsupp.lmap_domain_apply,
-      finsupp.map_domain_single, finsupp.dom_lcongr_single, monoid_algebra.single_mul_single, mul_one],
-    refl, },
+    simp only [monoid_algebra.of_apply, finsupp.dom_lcongr_apply,
+      finsupp.dom_congr_apply, finsupp.dom_lcongr_single, representation.of_mul_action_single,
+      finsupp.equiv_map_domain_single],
+    refl },
   { intros w z hw hz,
     simp only [map_add, mul_add, hw, hz] },
   { intros r f hf,
@@ -259,15 +244,18 @@ end
 
 variables (k G)
 
-def dom_one_iso : Rep.of_mul_action k G (fin 1 → G) ≅ Rep.of_module k G (monoid_algebra k G) :=
+def dom_one_iso : Rep.of_mul_action k G (fin 1 → G) ≅ Rep.of_mul_action k G G :=
 Action.mk_iso (@finsupp.dom_lcongr k k _ _ _ _ _ (fin.dom_one_equiv G)).to_Module_iso $
-begin
-  intro g,
-  refine linear_map.ext (λ x, _),
-  exact ugh _ _
-end
+  λ g, linear_map.ext (λ x, dom_one_iso_comm _ _)
 
 variables {k G}
+
+lemma dom_one_iso_map_one (r : k) :
+  (dom_one_iso k G).hom.hom (finsupp.single 1 r) = (finsupp.single 1 r) :=
+begin
+  ext,
+  simp [dom_one_iso, fin.dom_one_equiv],
+end
 
 lemma coeff_sum_dom_one_iso_apply {g : of_mul_action k G (fin 1 → G)} :
   (coeff_sum k G).hom ((dom_one_iso k G).hom.hom g) = finsupp.total (fin 1 → G)
@@ -279,23 +267,34 @@ begin
   simp [dom_one_iso, coeff_sum_single],
 end
 
-lemma coeff_sum_d (x : of_mul_action k G (fin 2 → G)) :
-  (coeff_sum k G).hom ((dom_one_iso k G).hom.hom $ (d k G rfl).hom x) = 0 :=
+lemma coeff_sum_d_hom (x : (fin 2 → G) →₀ k) :
+  (coeff_sum k G).hom ((dom_one_iso k G).hom.hom $ d_hom k G rfl x) = 0 :=
 begin
   refine linear_map.ext_iff.1 (@finsupp.lhom_ext _ _ _ _ _ _ _ _ _
   ((coeff_sum k G).hom.comp ((@finsupp.dom_lcongr _ k _ _ _ _ _  $ fin.dom_one_equiv G).to_linear_map.comp
     (d k G rfl).hom)) 0 _) x,
   intros g b,
   dsimp,
-  rw [d_single, ←finsupp.dom_congr_apply, add_equiv.map_sum, linear_map.map_sum],
+  rw [d_hom_single, ←finsupp.dom_congr_apply, add_equiv.map_sum, linear_map.map_sum],
   simp only [mul_one, finsupp.dom_congr_apply, finsupp.equiv_map_domain_single, coeff_sum_single],
   rw [finset.range_add_one, finset.sum_insert (@finset.not_mem_range_self 1)],
   simp only [pow_one, neg_mul, finset.range_one, finset.sum_singleton, pow_zero, add_left_neg],
 end
 
-
 variables (k G)
-#exit
+
+instance fdsf : (@to_Module_monoid_algebra k G _ _).additive :=
+{ map_add' := λ X Y f g, by refl }
+
+instance fdsfdf : (@equivalence_Module_monoid_algebra k G _ _).functor.additive :=
+{ map_add' := λ X Y f g, by refl }
+
+instance fdffsf : (@of_Module_monoid_algebra k G _ _).additive :=
+{ map_add' := λ X Y f g, by refl }
+
+def std_resn_Module_complex : chain_complex (Module (monoid_algebra k G)) ℕ :=
+(equivalence_Module_monoid_algebra.functor.map_homological_complex _).obj (std_resn_complex k G)
+
 /-- The hom `... → ℤ[G²] → ℤ[G]` → `... → 0 → ℤ → 0 → ...` which is `coeff_sum` at 0
   and 0 everywhere else. -/
 def std_resn_π : std_resn_complex k G ⟶ ((chain_complex.single₀
@@ -307,7 +306,7 @@ def std_resn_π : std_resn_complex k G ⟶ ((chain_complex.single₀
       refine linear_map.ext (λ x, _),
       cases hij,
       dsimp,
-      exact (coeff_sum_d x).symm },
+      exact (coeff_sum_d_hom x).symm },
     { simp only [chain_complex.single₀_obj_X_d, category_theory.limits.comp_zero] }}}
 
 variables {k G}
@@ -352,8 +351,8 @@ end
 
 variables (n : ℕ)
 
-lemma d_two_apply (x : Rep.of_mul_action k G (fin 2 → G)) :
-  (d k G (show 2 = 1 + 1, from rfl)).hom x =
+lemma d_hom_two_apply (x : (fin 2 → G) →₀ k) :
+  d_hom k G (show 2 = 1 + 1, from rfl) x =
   finsupp.map_domain (λ v : fin 2 → G, v ∘ fin.delta rfl 0) x
     - finsupp.map_domain (λ v : fin 2 → G, v ∘ fin.delta rfl 1) x :=
 begin
@@ -369,12 +368,12 @@ begin
     exact finset.not_mem_range_self }
 end
 
-lemma d_cons (x : Rep.of_mul_action k G (fin 1 → G)) (hx : x ∈ ((coeff_sum k G).hom.comp
+lemma d_hom_cons (x : (fin 1 → G) →₀ k) (hx : x ∈ ((coeff_sum k G).hom.comp
     (dom_one_iso k G).hom.hom).ker) :
-  (d k G (show 2 = 1 + 1, from rfl)).hom (finsupp.map_domain (fin.cons 1) x) = x :=
+  d_hom k G (show 2 = 1 + 1, from rfl) (finsupp.map_domain (fin.cons 1) x) = x :=
 begin
   cases x with x hx,
-  rw [d_two_apply, delta_zero_cons, delta_one_cons],
+  rw [d_hom_two_apply, delta_zero_cons, delta_one_cons],
   convert sub_zero _,
   rw finsupp.single_eq_zero,
   erw linear_map.mem_ker.1 hx,
@@ -382,48 +381,44 @@ end
 
 open category_theory category_theory.limits
 
-#exit
-lemma std_resn_exact₀ : category_theory.exact (d k G (show 2 = 1 + 1, from rfl))
- ((dom_one_iso k G).hom ≫ (coeff_sum k G)) :=
-(Module.exact_iff _ _).2 $
-begin
-  ext,
-  split,
-  { rintros ⟨y, rfl⟩,
-    exact coeff_sum_d _ },
-  { intro hx,
-    use cons 1 1 x,
-    exact d_cons x hx }
-end
+lemma std_resn_Module_exact₀ : category_theory.exact
+  (equivalence_Module_monoid_algebra.functor.map (d k G (show 2 = 1 + 1, from rfl)))
+ (equivalence_Module_monoid_algebra.functor.map $
+   (dom_one_iso k G).hom ≫ (coeff_sum k G)) :=
+(Module.exact_iff _ _).2 $ by ext; exact ⟨by rintros ⟨y, rfl⟩; exact coeff_sum_d_hom _,
+  λ hx, ⟨finsupp.map_domain (fin.cons 1) x, d_hom_cons x hx⟩⟩
 
--- idk where this is .
-instance : functor.additive (forget₂ (Module (group_ring G)) AddCommGroup) :=
+instance jkdgfds : (category_theory.forget₂ (Rep k G) (Module k)).additive :=
 { map_add' := λ x y f g, rfl }
 
-variables (G)
+variables (k G)
 
-/-- The exact sequence of `AddCommGroup`s `... → ℤ[G²] → ℤ[G] → ℤ → 0`.
-  We need this to show 1 is null-homotopic as a map of `AddCommGroup` complexes. -/
-abbreviation std_resn_aug_AddCommGroup :=
-((forget₂ _ AddCommGroup).map_homological_complex _).obj ((std_resn_complex G).augment
-((coeff_sum G).comp (dom_one_equiv G).to_linear_map) (by ext1; exact coeff_sum_d))
+/-- The exact sequence of `k`-modules `... → k[G²] → k[G] → k → 0`.
+  We need this to show 1 is null-homotopic as a map of `k`-module complexes. -/
+def std_resn_aug_forget₂ :=
+((category_theory.forget₂ _ (Module.{u} k)).map_homological_complex _).obj
+  ((std_resn_complex k G).augment ((dom_one_iso k G).hom ≫ (coeff_sum k G))
+  (by ext; exact coeff_sum_d_hom _))
 
-/-- Basically the map `ℤ → ℤ[G]` sending `n ↦ n • 1` -/
-def std_resn_homotopy_aux : trivial G →+ group_ring (fin 1 → G) :=
-{ to_fun := λ n, finsupp.single 1 n.down,
-  map_zero' := finsupp.single_zero,
-  map_add' := λ x y, finsupp.single_add }
+lemma std_resn_aug_forget₂_d_succ : (std_resn_aug_forget₂ k G).d (n + 2) (n + 1) = d_hom k G rfl :=
+show (category_theory.forget₂ _ _).map (((chain_complex.of _ _ _).augment _ _).d _ _) = _,
+by rw [chain_complex.augment_d_succ_succ, chain_complex.of_d]; refl
+
+/-/-- Basically the map `k → k[G]` sending `n ↦ n • 1` -/
+def std_resn_homotopy_aux : k →ₗ[k] (fin 1 → G) →₀ k :=
+finsupp.lsingle 1-/
 
 /-- Homotopy constructor for when you have a family `fₙ : Cₙ → Dₙ₊₁` (as opposed
   to `Cᵢ → Dⱼ` with `j = i + 1`).-/
-def homotopy.of {C D : chain_complex AddCommGroup ℕ} (f g : C ⟶ D)
+def homotopy.of {V : Type u} [category_theory.category V]
+  [category_theory.preadditive V] {C D : chain_complex V ℕ} (f g : C ⟶ D)
 (hom : Π n, C.X n ⟶ D.X (n + 1))
 (comm0 : f.f 0 = hom 0 ≫ D.d 1 0 + g.f 0)
 (comm : ∀ i, f.f (i + 1) = C.d (i + 1) i ≫ hom i + hom (i + 1)
     ≫ D.d (i + 2) (i + 1) + g.f (i + 1) . obviously') :
   homotopy f g :=
 { hom := λ i j, if h : i + 1 = j then
-    hom i ≫ eq_to_hom (congr_arg D.X h)
+    hom i ≫ category_theory.eq_to_hom (congr_arg D.X h)
   else
     0,
   zero' := λ i j w, by rwa dif_neg,
@@ -434,16 +429,23 @@ def homotopy.of {C D : chain_complex AddCommGroup ℕ} (f g : C ⟶ D)
     { simpa using comm i},
   end }
 
-variables {G}
+variables {k G}
+
+lemma yeah (x : fin 1 → G) : finsupp.single x (1 : k) = finsupp.single 1
+  ((coeff_sum k G).hom ((dom_one_iso k G).hom.hom (finsupp.single x 1)))
+  + d_hom k G rfl (finsupp.map_domain (fin.cons 1) (finsupp.single x 1)) :=
+by rw [d_hom_two_apply, delta_zero_cons, delta_one_cons, add_sub_cancel'_right]
 
 lemma cons_d (g : G) (x : fin (n + 1) → G) :
-  d G rfl (of (fin (n + 2) → G) $ fin.cons g x) + cons n g (d G rfl (of _ x)) = of _ x :=
+  finsupp.map_domain (@fin.cons _ (λ i , G) g) (d_hom k G rfl (finsupp.single x 1))
+  + d_hom k G rfl (finsupp.single (fin.cons g x) 1)
+  = finsupp.single x 1 :=
 begin
-  show _ + finsupp.map_domain.add_monoid_hom _ _ = _,
-  rw [d_of, finset.range_succ', finset.sum_insert, add_assoc],
+  conv_lhs {rw add_comm},
+  rw [d_hom_of, d_aux_eq, finset.range_succ', finset.sum_insert, add_assoc],
   { convert add_zero _,
-    { rw [finset.sum_image (λ i hi j hj hij, nat.succ_injective hij), d_of,
-        add_monoid_hom.map_sum, ←finset.sum_add_distrib],
+    { rw [finset.sum_image (λ i hi j hj hij, nat.succ_injective hij), d_hom_of,
+        d_aux_eq, finsupp.map_domain_finset_sum, ←finset.sum_add_distrib],
       refine finset.sum_eq_zero _,
       intros i hi,
       dsimp,
@@ -451,127 +453,187 @@ begin
         finsupp.single_neg, neg_add_eq_sub, sub_eq_zero],
       congr,
       exact (fin.cons_delta_succ x g i).symm },
-    { rw [pow_zero, of_apply],
-      congr,
-      ext i,
-      rw [fin.delta_zero_succ, fin.cons_succ] }},
+    { rw fin.cons_delta_zero },
+    { rw pow_zero }},
   { intro h,
     obtain ⟨i, hi, hi'⟩ := finset.mem_image.1 h,
     exact nat.succ_ne_zero _ hi' }
 end
 
-variables (G)
+
+lemma fucksake (g : G) (x : fin (n + 1) → G) :
+  finsupp.map_domain (@fin.cons _ (λ i , G) g) (d_hom k G rfl (finsupp.single x 1))
+  + d_hom k G rfl (finsupp.map_domain (@fin.cons _ (λ i, G) g) (finsupp.single x 1))
+  = finsupp.single x 1 :=
+begin
+  rw finsupp.map_domain_single,
+  rw cons_d,
+end
+
+/-#check homotopy.mk_inductive (𝟙 (std_resn_aug_forget₂ k G))
+  (finsupp.lsingle 1)
+  (begin
+    ext,
+    show (1 : k) = (coeff_sum k G).hom ((dom_one_iso k G).hom.hom (finsupp.single 1 1)),
+    rw [dom_one_iso_map_one, coeff_sum_single],
+  end) (finsupp.lmap_domain k k (@fin.cons 1 (λ i, G) 1))
+  (begin
+    ext1 x, ext1,
+    exact yeah _ _
+  end) (λ n f, ⟨finsupp.lmap_domain k k (@fin.cons _ (λ i, G) 1),
+  begin
+    ext,
+    dsimp,
+
+  end⟩)-/
+
+variables (k G)
+
+def std_resn_homotopy_aux :
+  (std_resn_aug_forget₂ k G).X n →ₗ[k] (std_resn_aug_forget₂ k G).X (n + 1) :=
+nat.rec_on n (finsupp.lsingle 1) (λ m fm, finsupp.lmap_domain k k (@fin.cons _ (λ i, G) 1))
+
+lemma std_resn_homotopy_cond :
+  @linear_map.id k ((std_resn_aug_forget₂ k G).X (n + 1)) _ _ _ =
+  (std_resn_homotopy_aux k G n).comp ((std_resn_aug_forget₂ k G).d _ _)
+  + ((std_resn_aug_forget₂ k G).d _ _).comp (std_resn_homotopy_aux k G (n + 1)) + 0 :=
+begin
+  rw [add_zero, std_resn_aug_forget₂_d_succ],
+  ext1, ext1,
+  induction n with n hn,
+  { dsimp [std_resn_homotopy_aux, std_resn_complex],
+    rw [d_hom_two_apply, delta_zero_cons, delta_one_cons],
+    exact (add_sub_cancel'_right _ _).symm },
+  { dsimp [std_resn_homotopy_aux],
+    rw [std_resn_aug_forget₂_d_succ, finsupp.map_domain_single],
+    exact (cons_d _ (1 : G) _).symm, }
+end
 
 /-- The identity chain map on `... ℤ[G²] → ℤ[G] → ℤ` (as a complex of `AddCommGroup`s)
   is homotopic to 0. -/
 def std_resn_homotopy :
-  homotopy (𝟙 (std_resn_aug_AddCommGroup G)) 0 :=
-homotopy.of _ _ (λ n, nat.rec_on n (std_resn_homotopy_aux G) (λ m fm, cons _ (1 : G)))
-(by { ext1,
-  show x = coeff_sum G (dom_one_equiv G (finsupp.single _ _)) + 0,
-  rw [coeff_sum_dom_one_equiv_apply, finsupp.total_single, add_zero],
-  ext,
-  simp only [mul_one, algebra.id.smul_eq_mul, ulift.smul_down']}) $
-λ i, nat.rec_on i
-(begin
-  ext1,
-  refine x.induction_on _ _ _,
-  { intro x,
-    dsimp,
-    show finsupp.single _ _ = finsupp.single _ (coeff_sum G (dom_one_equiv _ _)).down
-      + d _ _ _ + _,
-    simp only [coeff_sum_dom_one_equiv_apply, finsupp.total_single, add_zero],
-    simp only [cons, finsupp.map_domain.add_monoid_hom_apply, one_zsmul,
-      finsupp.map_domain_single, eq_to_hom_refl, Module.id_apply],
-    erw d_two_apply,
-    simp only [cons_delta_two, add_sub_cancel'_right, finsupp.map_domain_single],
-    sorry
-    /-congr,
-    ext j,
-    rw [function.comp_app, @subsingleton.elim (fin 1) _ j 0],
-    convert (@fin.cons_succ 1 (λ i, G) 1 x _).symm -/
-    },
-  { intros f g hf hg,
-    rw [add_monoid_hom.map_add, add_monoid_hom.map_add, hf, hg]},
-  { intros r f hf,
-    rw [add_monoid_hom.map_zsmul, add_monoid_hom.map_zsmul, hf]}
-end)
-(λ j hj,
-begin
-  clear hj,
-  ext1,
-  refine x.induction_on _ _ _,
-  { intro y,
-    dsimp at *,
-    show finsupp.single _ _ = cons _ (1 : G) _ + _ + 0,
-    simp only [add_zero, comp_apply, finsupp.map_domain.add_monoid_hom_apply,
-      chain_complex.augment_d_succ_succ, finsupp.map_domain_single],
-    simp only [add_comm],
-    dunfold std_resn_complex,
-    rw [chain_complex.of_d, chain_complex.of_d],
-    unfold cons,
-    dsimp,
-    rw finsupp.map_domain_single,
-    exact (cons_d _ _ _).symm },
-  { intros f g hf hg,
-    rw [add_monoid_hom.map_add, add_monoid_hom.map_add, hf, hg]},
-  { intros r f hf,
-    rw [add_monoid_hom.map_zsmul, add_monoid_hom.map_zsmul, hf] }
-end)
+  homotopy (𝟙 (std_resn_aug_forget₂ k G)) 0 :=
+homotopy.of (𝟙 (std_resn_aug_forget₂ k G)) _ (std_resn_homotopy_aux k G)
+(by { ext,
+  show (1 : k) = (coeff_sum k G).hom ((dom_one_iso k G).hom.hom (finsupp.single 1 1)) + 0,
+  rw [dom_one_iso_map_one, coeff_sum_single, add_zero] }) (std_resn_homotopy_cond k G)
 
-/- Don't know what assumptions on the category I need to make this compile & be
-  maximally general so it will just be AddCommGroup for now -/
+open_locale zero_object
+
 /-- A complex on which 1 is nullhomotopic is homotopy equivalent to the zero complex. -/
-def homotopy_equiv_of_null_homotopic {ι : Type*}
-  (c : complex_shape ι) (C : homological_complex AddCommGroup c)
+def homotopy_equiv_of_null_homotopic_id {V : Type u}
+  [category_theory.category V] [category_theory.preadditive V]
+  [has_zero_object V] {ι : Type*}
+  (c : complex_shape ι) (C : homological_complex V c)
   (H : homotopy (𝟙 C) 0) : homotopy_equiv C 0 :=
-⟨0, 0, H.symm, homotopy.of_eq (limits.has_zero_object.to_zero_ext _ _)⟩
-
+⟨0, 0, (homotopy.of_eq zero_comp).trans H.symm, homotopy.of_eq (has_zero_object.to_zero_ext _ _)⟩
+/-
+def exact_of_null_homotopic_id' {V : Type u}
+  [category_theory.category V] [category_theory.preadditive V]
+  [has_zero_object V] [has_images V] [has_kernels V] [has_cokernels V]
+  [has_image_maps V] [has_equalizers V] {ι : Type*}
+  (c : complex_shape ι) (C : homological_complex V c)
+  (h : homotopy (𝟙 C) 0) (i j k : ι) (hij : c.rel i j) (hjk : c.rel j k) :
+  category_theory.exact (C.d i j) (C.d j k) :=
+(category_theory.preadditive.exact_iff_homology_zero _ _).2 $
+⟨homological_complex.d_comp_d _ _ _ _, ⟨_⟩⟩-/
 /-- A chain complex (of `AddCommGroup`s) on which the identity is null-homotopic is exact. -/
-def exact_of_homotopy_zero {ι : Type*}
-  {c : complex_shape ι} {C : homological_complex AddCommGroup c}
+def exact_of_null_homotopic_id {V : Type u}
+  [category_theory.category V] [category_theory.preadditive V]
+  [has_zero_object V] [has_images V] [has_kernels V] [has_cokernels V]
+  [has_image_maps V] [has_equalizers V] {ι : Type*}
+  (c : complex_shape ι) (C : homological_complex V c)
   (h : homotopy (𝟙 C) 0) (j : ι) :
-  exact (C.d_to j) (C.d_from j) :=
-(preadditive.exact_iff_homology_zero (C.d_to j) (C.d_from j)).2 $
+  category_theory.exact (C.d_to j) (C.d_from j) :=
+(category_theory.preadditive.exact_iff_homology_zero (C.d_to j) (C.d_from j)).2 $
 ⟨homological_complex.d_to_comp_d_from _ _, ⟨
-  (homology_obj_iso_of_homotopy_equiv (homotopy_equiv_of_null_homotopic c C h) _).trans
-  (functor.map_zero_object (homology_functor AddCommGroup c j))⟩⟩
+  (homology_obj_iso_of_homotopy_equiv (homotopy_equiv_of_null_homotopic_id c C h) _).trans
+  (homology_functor _ c j).map_zero_object⟩⟩
 
-lemma exact_to_from_iff {V : Type*} [category V] [limits.has_images V] [limits.has_zero_morphisms V]
-  [limits.has_zero_object V] [limits.has_equalizers V] {C : chain_complex V ℕ} {j : ℕ} :
-  exact (C.d_to (j + 1)) (C.d_from (j + 1)) ↔ exact (C.d (j + 2) (j + 1)) (C.d (j + 1) j) :=
+lemma exact_to_from_iff {V : Type u} [category_theory.category V] [has_images V]
+  [has_zero_morphisms V] [has_zero_object V] [has_equalizers V] (C : chain_complex V ℕ) {j : ℕ} :
+  category_theory.exact (C.d_to (j + 1)) (C.d_from (j + 1))
+    ↔ category_theory.exact (C.d (j + 2) (j + 1)) (C.d (j + 1) j) :=
+by rw [C.d_to_eq rfl, C.d_from_eq rfl, category_theory.exact_iso_comp,
+  category_theory.exact_comp_iso]
+#check category_theory.functor.exact_of_exact_map
+
+lemma ugh (n : ℕ) : category_theory.exact ((std_resn_complex k G).d (n + 2) (n + 1))
+  ((std_resn_complex k G).d (n + 1) n) :=
+(category_theory.forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map $
+(exact_to_from_iff _).1 (exact_of_null_homotopic_id _ _ (std_resn_homotopy k G) (n + 2))
+
+lemma exact_d_to_d_from (n : ℕ) : category_theory.exact ((std_resn_complex k G).d_to (n + 1))
+  ((std_resn_complex k G).d_from (n + 1)) :=
+(category_theory.forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map $
 begin
-  rw [C.d_to_eq rfl, C.d_from_eq rfl, exact_iso_comp, exact_comp_iso],
-end
-
-instance exact_of_AddCommGroup_exact {k : Type*} [ring k]
-  {A B C : Module k} (f : A ⟶ B) (g : B ⟶ C)
-  [h : exact ((forget₂ (Module k) AddCommGroup).map f)
-    ((forget₂ (Module k) AddCommGroup).map g)] :
-  exact f g :=
-sorry
-
-instance exact_d_to_d_from (n : ℕ) : exact ((std_resn_complex G).d_to (n + 1))
-  ((std_resn_complex G).d_from (n + 1)) :=
-@group_ring.exact_of_AddCommGroup_exact _ _ _ _ _ _ _ $
-begin
-  rw [(std_resn_complex G).d_to_eq rfl, (std_resn_complex G).d_from_eq rfl,
+  rw [(std_resn_complex k G).d_to_eq rfl, (std_resn_complex k G).d_from_eq rfl,
      category_theory.functor.map_comp, category_theory.functor.map_comp,
-     exact_iso_comp, exact_comp_iso],
-  exact exact_to_from_iff.1 (exact_of_homotopy_zero (std_resn_homotopy G) (n + 2)),
+     category_theory.exact_iso_comp, category_theory.exact_comp_iso],
+  exact (exact_to_from_iff _).1 (exact_of_null_homotopic_id _ _ (std_resn_homotopy k G) (n + 2)),
+end
+#check (Rep.equivalence_Module_monoid_algebra.functor.map_homological_complex _).obj (std_resn_complex k G)
+
+variables (k G)
+
+def std_Module_resn := (Rep.equivalence_Module_monoid_algebra.functor.map_homological_complex _).obj
+  (std_resn_complex k G)
+
+lemma exact_blah (n : ℕ) : category_theory.exact ((std_Module_resn k G).d_to (n + 1))
+  ((std_Module_resn k G).d_from (n + 1)) :=
+begin
+  simp only [(std_Module_resn k G).d_to_eq rfl, (std_Module_resn k G).d_from_eq rfl,
+    category_theory.exact_comp_iso, category_theory.exact_iso_comp],
+  refine (category_theory.abelian.is_equivalence.exact_iff _ _ _).2 _,
+  rw ←exact_to_from_iff,
+  exact exact_d_to_d_from _ _ _,
 end
 
+abbreviation Trivial_Module := Rep.equivalence_Module_monoid_algebra.functor.obj (Trivial k G)
+--(category_theory.abelian.is_equivalence.exact_iff _ _ _).2 (exact_d_to_d_from _ _ _)
+
+#check dom_one_iso
+/-{ f := λ n, nat.rec_on n ((dom_one_iso k G).hom.comp (coeff_sum k G)) (λ n hn, 0),
+  comm' := λ i j hij, by
+  { induction j with j hj,
+    { ext1,
+      refine linear_map.ext (λ x, _),
+      cases hij,
+      dsimp,
+      exact (coeff_sum_d_hom x).symm },
+    { simp only [chain_complex.single₀_obj_X_d, category_theory.limits.comp_zero] }}}-/
+
+#check Trivial
+#check (⇑(Rep.equivalence_Module_monoid_algebra.functor.map
+  ((dom_one_iso k G).hom ≫ (coeff_sum k G))) : ((fin 1 → G) →₀ k) → k)
+
+#check (⇑((dom_one_iso k G).hom.hom ≫ (coeff_sum k G).hom) : ((fin 1 → G) →₀ k) → k)
+
+example : ((Rep.equivalence_Module_monoid_algebra.functor.map
+  ((dom_one_iso k G).hom ≫ (coeff_sum k G))) : ((fin 1 → G) →₀ k) → k) =
+  (((dom_one_iso k G).hom.hom ≫ (coeff_sum k G).hom) : ((fin 1 → G) →₀ k) → k) := rfl
+  --(representation.of_mul_action k G (fin 1 → G)).as_module → (@representation.trivial k G _ _).as_module)
+
+lemma hmmm : (Rep.equivalence_Module_monoid_algebra.functor.map
+  ((dom_one_iso k G).hom ≫ (coeff_sum k G))).range = ⊤ :=
+linear_map.range_eq_top.2 $
+  show function.surjective ((dom_one_iso k G).hom.hom ≫ (coeff_sum k G).hom),
+  from linear_map.range_eq_top.1 ((linear_equiv.range_comp _ (coeff_sum k G).hom).trans (@range_coeff_sum_eq_top k _ _ G _))
 /-- The resolution `... → ℤ[G²] → ℤ[G]` of the trivial `ℤ[G]`-module `ℤ` as
 a projective resolution. -/
-def std_resn : ProjectiveResolution (trivial G) :=
-{ complex := std_resn_complex G,
-  π := std_resn_π G,
-  projective := λ n, @Module.projective_of_free.{u u u} _ _
-    (Module.of (group_ring G) (group_ring (fin (n + 1) → G))) _ (basis.{u} G n),
-  exact₀ := group_ring.std_resn_exact₀,
-  exact := λ n, exact_to_from_iff.1 $ group_ring.exact_d_to_d_from G _,
-  epi := (Module.epi_iff_range_eq_top _).2 $ ((dom_one_equiv G).range_comp _).trans
-    range_coeff_sum_eq_top }
-
-
-end group_ring
+def std_resn : category_theory.ProjectiveResolution (Trivial_Module k G) :=
+{ complex := std_Module_resn k G,
+  π := (Rep.equivalence_Module_monoid_algebra.functor.map_homological_complex _).map
+  (std_resn_π k G) ≫ ((chain_complex.single₀_map_homological_complex
+Rep.equivalence_Module_monoid_algebra.functor).hom.app (Trivial k G)),
+  projective := λ n, @Module.projective_of_free.{u u u} (monoid_algebra k G) _
+    (Module.of _ (representation.of_mul_action k G (fin (n + 1) → G)).as_module) (fin n → G)
+    (group_cohomology.resolution.of_mul_action_basis k G n),
+  exact₀ := std_resn_Module_exact₀,
+  exact := λ n, (exact_to_from_iff _).1 $ exact_blah _ _ _,
+  epi := (Module.epi_iff_range_eq_top _).2 $ linear_map.range_eq_top.2 $
+    show function.surjective ((dom_one_iso k G).hom.hom ≫ (coeff_sum k G).hom), from
+      linear_map.range_eq_top.1 ((linear_equiv.range_comp _ (coeff_sum k G).hom).trans
+      (@range_coeff_sum_eq_top k _ _ G _)) }
+#where
+end Rep

@@ -95,9 +95,9 @@ variables {k : Type u} [comm_ring k] [nontrivial k] {G : Type u} [group G] {V : 
 variables {i j : ℕ} (hj : j = i + 1) (c : homog_cochain ρ i) (g : fin j → G)
 
 theorem total_d_eq_d :
-  finsupp.total (fin i → G) V k c ((Rep.d k G hj).hom (finsupp.single g (1 : k))) = d ρ hj c g :=
+  finsupp.total (fin i → G) V k c (Rep.d_hom k G hj (finsupp.single g (1 : k))) = d ρ hj c g :=
 begin
-  simp only [d_eval, Rep.d_of, Rep.d_aux_eq, linear_map.map_sum, finsupp.total_single],
+  simp only [d_eval, Rep.d_hom_of, Rep.d_aux_eq, linear_map.map_sum, finsupp.total_single],
   refl,
 end
 
@@ -105,21 +105,15 @@ theorem d_squared_eq_zero {i j l : ℕ} (hj : j = i + 1) (hl : l = j + 1) (c : h
   d ρ hl (d ρ hj c) = 0 :=
 begin
   ext g,
-  suffices : d ρ hl (d ρ hj c) g = finsupp.total (fin i → G) V k c ((Rep.d k G hj).hom
-    ((Rep.d k G hl).hom (finsupp.single g (1 : k)))),
-  by rwa [Rep.d_squared, map_zero] at this,
-  rw ←total_d_eq_d,
-  rw Rep.d_of,
-  conv_lhs { rw Rep.d_aux_eq },
-  rw linear_map.map_sum,
-  simp only [finsupp.total_single], sorry
-/-  rw ←total_d_eq_d, rw Rep.d_of, rw Rep.d_aux_eq,
-  rw linear_map.map_sum,
-  simp only [finsupp.total_single, linear_map.map_sum, Rep.d_single, ←total_d_eq_d],
-  squeeze_simp,
-  simp only [←total_d_eq_d, Rep.d_of, linear_map.map_sum,
-    finsupp.total_single, mul_comm, mul_smul, finset.smul_sum],-/
- end
+  suffices : d ρ hl (d ρ hj c) g = finsupp.total (fin i → G) V k c (Rep.d_hom k G hj
+    (Rep.d_hom k G hl (finsupp.single g (1 : k)))),
+  by rwa [Rep.d_hom_squared, map_zero] at this,
+  rw [←total_d_eq_d, Rep.d_hom_of, finsupp.total_apply, finsupp.total_apply,
+    Rep.d_hom, finsupp.lift_apply, finsupp.sum_sum_index],
+  { simp only [←total_d_eq_d, Rep.d_hom_of, ←finsupp.total_apply, linear_map.map_smul] },
+  { exact (λ a, zero_smul _ _) },
+  { exact (λ a r r', add_smul _ _ _) },
+end
 
 end
 end homog_cochain

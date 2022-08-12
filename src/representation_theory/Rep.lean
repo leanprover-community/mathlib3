@@ -104,7 +104,7 @@ begin
     simp only [alg_hom.map_smul, w, ring_hom.id_apply,
       linear_map.smul_apply, linear_map.map_smulₛₗ], }
 end
-#exit
+
 /-- Auxilliary definition for `to_Module_monoid_algebra`. -/
 def to_Module_monoid_algebra_map {V W : Rep k G} (f : V ⟶ W) :
   Module.of (monoid_algebra k G) V.ρ.as_module ⟶ Module.of (monoid_algebra k G) W.ρ.as_module :=

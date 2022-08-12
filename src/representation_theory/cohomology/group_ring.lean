@@ -3,7 +3,7 @@ Copyright (c) 2022 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-
+#exit
 import representation_theory.Rep
 import representation_theory.basic
 

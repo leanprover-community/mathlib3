@@ -36,7 +36,7 @@ variables {C : Type*} [category C] [abelian C] (X : cochain_complex C ℕ)
 #exit
 /-- The group of homogeneous cochains `Gⁿ → M` is isomorphic to the group of
 `ℤ[G]`-linear homs `ℤ[Gⁿ] → M`. -/
-def cochain_succ_add_equiv : homog_cochain ρ n ≃+ (group_ring (fin n → G) →ₗ[group_ring G] M) :=
+def cochain_succ_equiv : homog_cochain ρ n ≃ₗ[k] (group_ring (fin n → G) →ₗ[group_ring G] M) :=
 { to_fun := λ f,
   { map_smul' := λ g x, by { refine group_ring.map_smul_of_map_smul_of
         (finsupp.lift_add_hom (λ v, zmultiples_hom M (f v))) _ _ _,

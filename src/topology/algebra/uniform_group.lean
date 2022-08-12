@@ -6,6 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
+import topology.uniform_space.compact_separated
 import topology.algebra.group
 import tactic.abel
 
@@ -347,8 +348,19 @@ section topological_group
 open filter
 variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
-/-- The right uniformity on a topological group. -/
-@[to_additive "The right uniformity on a topological additive group"]
+/-- The right uniformity on a topological group (as opposed to the left uniformity).
+
+Warning: in general the right and left uniformities do not coincide and so one does not obtain
+`uniform_group` structure. Two important special cases where they _do_ coincide are for
+commutative groups (see `topological_comm_group_is_uniform`) and for compact Hausdorff groups (see
+`topological_group_is_uniform_of_compact_space`). -/
+@[to_additive "The right uniformity on a topological additive group (as opposed to the left
+uniformity).
+
+Warning: in general the right and left uniformities do not coincide and so one does not obtain
+`uniform_add_group` structure. Two important special cases where they _do_ coincide are for
+commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact Hausdorff
+additive groups (see `topological_add_group_is_uniform_of_compact_space`)."]
 def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
@@ -400,6 +412,14 @@ local attribute [instance] topological_group.to_uniform_space
 @[to_additive] lemma uniformity_eq_comap_nhds_one' :
   𝓤 G = comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)) := rfl
 
+@[to_additive] lemma topological_group_is_uniform_of_compact_space
+  [compact_space G] [t2_space G] : uniform_group G :=
+⟨begin
+  haveI : separated_space G := separated_iff_t2.mpr (by apply_instance),
+  apply compact_space.uniform_continuous_of_continuous,
+  exact continuous_div',
+end⟩
+
 variables {G}
 
 @[to_additive] lemma topological_group.tendsto_uniformly_iff
@@ -442,7 +462,7 @@ section
 local attribute [instance] topological_group.to_uniform_space
 
 variable {G}
-@[to_additive] lemma topological_group_is_uniform : uniform_group G :=
+@[to_additive] lemma topological_comm_group_is_uniform : uniform_group G :=
 have tendsto
     ((λp:(G×G), p.1 / p.2) ∘ (λp:(G×G)×(G×G), (p.1.2 / p.1.1, p.2.2 / p.2.1)))
     (comap (λp:(G×G)×(G×G), (p.1.2 / p.1.1, p.2.2 / p.2.1)) ((𝓝 1).prod (𝓝 1)))
@@ -460,7 +480,7 @@ open set
 @[to_additive] lemma topological_group.t2_space_iff_one_closed :
   t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  haveI : uniform_group G := topological_group_is_uniform,
+  haveI : uniform_group G := topological_comm_group_is_uniform,
   rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,

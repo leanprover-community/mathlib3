@@ -1328,16 +1328,13 @@ lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞}
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
   ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
 begin
-  by_cases hp : p = 0,
-  { simp only [hp, ennreal.zero_to_real, ennreal.rpow_zero],
+  by_cases hp0 : p.to_real = 0,
+  { simp only [hp0, ennreal.rpow_zero],
     refine eventually_of_forall (λ x, _),
     rw liminf_const (1 : ℝ≥0∞),
     exacts [ennreal.one_lt_top, at_top_ne_bot] },
-  by_cases hp' : p = ∞,
-  { simp only [hp', ennreal.top_to_real, ennreal.rpow_zero],
-    refine eventually_of_forall (λ x, _),
-    rw liminf_const (1 : ℝ≥0∞),
-    exacts [ennreal.one_lt_top, at_top_ne_bot] },
+  have hp : p ≠ 0 := λ h, by simpa [h] using hp0,  
+  have hp' : p ≠ ∞ := λ h, by simpa [h] using hp0,  
   refine ae_lt_top
     (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
     (lt_of_le_of_lt (lintegral_liminf_le

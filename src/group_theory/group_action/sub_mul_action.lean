@@ -117,7 +117,7 @@ instance has_smul' : has_smul S p :=
 instance : is_scalar_tower S R p :=
 { smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }
 
-instance sub_mul_action.is_scalar_tower' {S' : Type*} [has_smul S' R] [has_smul S' S]
+instance is_scalar_tower' {S' : Type*} [has_smul S' R] [has_smul S' S]
   [has_smul S' M] [is_scalar_tower S' R M] [is_scalar_tower S' S M] :
   is_scalar_tower S' S p :=
 { smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }

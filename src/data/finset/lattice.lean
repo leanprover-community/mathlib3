@@ -1054,15 +1054,11 @@ lemma coe_min' {s : finset α} (hs : s.nonempty) : ↑(s.min' hs) = s.min := coe
 
 lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
   (s.erase x).max' s0 ≠ x :=
-begin
-  refine λ h, (s.not_mem_erase x) _,
-  nth_rewrite 0 ← h,
-  exact max'_mem _ _
-end
+ne_of_mem_erase (max'_mem _ s0)
 
 lemma min'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
   (s.erase x).min' s0 ≠ x :=
-by convert @max'_erase_ne_self αᵒᵈ _ _ _ _; convert s0
+ne_of_mem_erase (min'_mem _ s0)
 
 lemma max_erase_ne_self {s : finset α} : (s.erase x).max ≠ x :=
 begin

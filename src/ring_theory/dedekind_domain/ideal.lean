@@ -1144,7 +1144,7 @@ noncomputable def normalized_factors_equiv_span_normalized_factors [normalizatio
   {d : R | d ∈ normalized_factors r} ≃
   {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
 equiv.of_bijective
-  (λ d, ⟨ideal.span {↑d }, singleton_span_mem_normalized_factors_of_mem_normalized_factors d.prop⟩)
+  (λ d, ⟨ideal.span {↑d}, singleton_span_mem_normalized_factors_of_mem_normalized_factors d.prop⟩)
 begin
   split,
   { rintros ⟨a, ha⟩ ⟨b, hb⟩ h,
@@ -1176,10 +1176,8 @@ begin
       exact pow_multiplicity_dvd h ,
       { exact multiplicity.is_greatest ((part_enat.lt_coe_iff _ _).mpr (exists.intro
           (finite_iff_dom.mp h) (nat.lt_succ_self _))) } },
-    { suffices : ¬ (finite (ideal.span {a}) (ideal.span {b})),
-      { rw [finite_iff_dom, part_enat.not_dom_iff_eq_top] at h,
-        rw [@finite_iff_dom  _ _ _inst_8 (span {a}) (span {b}),
-          part_enat.not_dom_iff_eq_top] at this,
+    { suffices : ¬ (finite (ideal.span ({a} : set R)) (ideal.span ({b} : set R))),
+      { rw [finite_iff_dom, part_enat.not_dom_iff_eq_top] at h this,
         rw [h, this] },
       refine not_finite_iff_forall.mpr (λ n, by {rw [ideal.span_singleton_pow,
         span_singleton_dvd_span_singleton_iff_dvd], exact not_finite_iff_forall.mp h n }) }

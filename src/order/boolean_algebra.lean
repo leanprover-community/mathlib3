@@ -630,9 +630,6 @@ is_compl_top_bot.compl_eq_iff
 @[simp] theorem compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
 (is_compl_compl.inf_sup is_compl_compl).compl_eq
 
-theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
-is_compl_compl.antitone is_compl_compl h
-
 @[simp] theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
 ⟨assume h, by have h := compl_le_compl h; simp at h; assumption,
   compl_le_compl⟩

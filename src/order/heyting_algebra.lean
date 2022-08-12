@@ -8,19 +8,43 @@ import order.bounded_order
 /-!
 # Heyting algebras
 
-This file defines Heyting algebras.
+This file defines Heyting, co-Heyting and bi-Heyting algebras.
+
+An Heyting algebra is a bounded distributive lattice with an implication operation `⇨` such that
+`a ≤ b ⇨ c ↔ a ⊓ b ≤ c`. It also comes with a pseudo-complement `ᶜ`, such that `aᶜ = a ⇨ ⊥`.
+
+Co-Heyting algebras are dual to Heyting algebras. They have a difference `\` and a negation `￢`
+such that `a \ b ≤ c ↔ a ≤ b ⊔ c` and `￢a = ⊤ \ a`.
+
+Bi-Heyting algebras are Heyting algebras that are also co-Heyting algebras.
+
+From a logic standpoint, Heyting algebras precisely model intuitionistic logic, whereas boolean
+algebras model classical logic.
+
+Heyting algebras are the order theoretic equivalent of cartesian-closed categories.
 
 ## Main declarations
 
-* `generalized_heyting_algebra`
-* `generalized_coheyting_algebra`
-* `heyting_algebra`
-* `coheyting_algebra`
-* `biheyting_algebra`
+* `generalized_heyting_algebra`: Heyting algebra without a top element (nor negation).
+* `generalized_coheyting_algebra`: Co-Heyting algebra without a bottom element (nor complement).
+* `heyting_algebra`: Heyting algebra.
+* `coheyting_algebra`: Co-Heyting algebra.
+* `biheyting_algebra`: bi-Heyting algebra.
+
+## Notation
+
+* `⇨`: Heyting implication
+* `\`: Difference
+* `￢`: Heyting negation
+* `ᶜ`: (Pseudo-)complement
 
 ## References
 
 * [Francis Borceux, *Handbook of Categorical Algebra III*][borceux-vol3]
+
+## Tags
+
+Heyting, Brouwer, algebra, implication, negation, intuitionistic
 -/
 
 set_option old_structure_cmd true
@@ -37,7 +61,10 @@ variables {ι α β : Type*}
 
 /-- Syntax typeclass for Heyting negation `￢`.
 
- The difference between `has_hnot` and `has_compl` is ... -/
+The difference between `has_hnot` and `has_compl` is that the former belongs to Heyting algebras,
+while the latter belongs to co-Heyting algebras. They are both pseudo-complements, but `compl`
+underestimates while `hnot` overestimates. In boolean algebras, they are equal. See `hnot_eq_compl`.
+-/
 @[notation_class] class has_hnot (α : Type*) := (hnot : α → α)
 
 export has_himp (himp) has_sdiff (sdiff) has_hnot (hnot)
@@ -196,7 +223,7 @@ lemma le_himp : a ≤ b ⇨ a := le_himp_iff.2 inf_le_left
 lemma himp_inf_le : (a ⇨ b) ⊓ a ≤ b := le_himp_iff.1 le_rfl
 
 -- `p ∧ (p → q) → q`
-lemma inf_himp_le (a b : α) : a ⊓ (a ⇨ b) ≤ b := by rw [inf_comm, ←le_himp_iff]
+lemma inf_himp_le : a ⊓ (a ⇨ b) ≤ b := by rw [inf_comm, ←le_himp_iff]
 
 -- `p ∧ (p → q) ↔ p ∧ q`
 @[simp] lemma inf_himp (a b : α) : a ⊓ (a ⇨ b) = a ⊓ b :=
@@ -216,7 +243,7 @@ lemma himp_himp (a b c : α) : a ⇨ b ⇨ c = a ⊓ b ⇨ c :=
 eq_of_forall_le_iff $ λ d, by simp_rw [le_himp_iff, inf_assoc]
 
 -- `(q → r) → (p → q) → q → r`
-@[simp] lemma himp_le_himp_himp (a b c : α) : b ⇨ c ≤ (a ⇨ b) ⇨ a ⇨ c :=
+@[simp] lemma himp_le_himp_himp : b ⇨ c ≤ (a ⇨ b) ⇨ a ⇨ c :=
 begin
   rw [le_himp_iff, le_himp_iff, inf_assoc, himp_inf_self, ←inf_assoc, himp_inf_self, inf_assoc],
   exact inf_le_left,
@@ -365,6 +392,7 @@ lemma compl_sup_distrib (a b : α) : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ := by simp_rw 
 lemma compl_le_himp : aᶜ ≤ a ⇨ b := (himp_bot _).ge.trans $ himp_le_himp_left bot_le
 
 lemma compl_sup_le_himp : aᶜ ⊔ b ≤ a ⇨ b := sup_le compl_le_himp le_himp
+lemma sup_compl_le_himp : b ⊔ aᶜ ≤ a ⇨ b := sup_le le_himp compl_le_himp
 
 -- `p → ¬ p ↔ ¬ p`
 @[simp] lemma himp_compl (a : α) : a ⇨ aᶜ = aᶜ := by rw [←himp_bot, himp_himp, inf_idem]
@@ -401,6 +429,8 @@ lemma le_compl_compl : a ≤ aᶜᶜ := disjoint_compl_right.le_compl_right
 
 lemma compl_anti : antitone (compl : α → α) := λ a b h, le_compl_comm.1 $ h.trans le_compl_compl
 
+lemma compl_le_compl (h : a ≤ b) : bᶜ ≤ aᶜ := compl_anti h
+
 @[simp] lemma compl_compl_compl (a : α) : aᶜᶜᶜ = aᶜ :=
 (compl_anti le_compl_compl).antisymm le_compl_compl
 
@@ -429,7 +459,7 @@ begin
   { refine le_compl_comm.1 ((compl_anti compl_sup_le_himp).trans _),
     rw [compl_sup_distrib, le_compl_iff_disjoint_right, disjoint_right_comm,
       ←le_compl_iff_disjoint_right],
-    exact inf_himp_le _ _ }
+    exact inf_himp_le }
 end
 
 instance : coheyting_algebra αᵒᵈ :=
@@ -492,14 +522,16 @@ lemma codisjoint_hnot_left : codisjoint (￢a) a := codisjoint_hnot_right.symm
 @[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := codisjoint_hnot_right.eq_top
 @[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := codisjoint_hnot_left.eq_top
 
-@[simp] lemma hnot_bot : ￢ (⊥ : α) = ⊤ :=
+@[simp] lemma hnot_bot : ￢(⊥ : α) = ⊤ :=
 eq_of_forall_ge_iff $ λ a, by rw [hnot_le_iff_codisjoint_left, codisjoint_bot, top_le_iff]
 
-@[simp] lemma hnot_top : ￢ (⊤ : α) = ⊥ := by rw [←top_sdiff', sdiff_self]
+@[simp] lemma hnot_top : ￢(⊤ : α) = ⊥ := by rw [←top_sdiff', sdiff_self]
 
 lemma hnot_hnot_le : ￢￢a ≤ a := codisjoint_hnot_right.hnot_le_left
 
 lemma hnot_anti : antitone (hnot : α → α) := λ a b h, hnot_le_comm.1 $ hnot_hnot_le.trans h
+
+lemma hnot_le_hnot (h : a ≤ b) : ￢b ≤ ￢a := hnot_anti h
 
 @[simp] lemma hnot_hnot_hnot (a : α) : ￢￢￢a = ￢a := hnot_hnot_le.antisymm $ hnot_anti hnot_hnot_le
 
@@ -683,7 +715,7 @@ by refine_struct
 @[simp] lemma inf_eq : a ⊓ b = star := rfl
 @[simp] lemma compl_eq : aᶜ = star := rfl
 @[simp] lemma sdiff_eq : a \ b = star := rfl
-@[simp] lemma hnot_eq : ￢a = star := rfl
+@[simp, nolint simp_nf] lemma hnot_eq : ￢a = star := rfl -- eligible for `dsimp`
 @[simp] lemma himp_eq : a ⇨ b = star := rfl
 
 end punit

@@ -170,5 +170,5 @@ lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] 
 | (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
 | -[1+n] := begin
     rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat],
-    exact ((f.map_inv _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
+    exact ((map_inv₀ _ _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _),
   end

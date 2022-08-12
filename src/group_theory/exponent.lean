@@ -235,7 +235,7 @@ section left_cancel_monoid
 variable [left_cancel_monoid G]
 
 @[to_additive]
-lemma exponent_ne_zero_of_fintype [fintype G] : exponent G ≠ 0 :=
+lemma exponent_ne_zero_of_fintype [finite G] : exponent G ≠ 0 :=
 by simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne'
 
 end left_cancel_monoid

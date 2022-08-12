@@ -774,7 +774,7 @@ section finite_pi
 
 -- Now for finite products
 
-variables {η : Type*} [fintype η] {Gs : η → Type*} [∀ i, group (Gs i)]
+variables {η : Type*} [finite η] {Gs : η → Type*} [∀ i, group (Gs i)]
 
 lemma lower_central_series_pi_of_fintype (n : ℕ):
   lower_central_series (Π i, Gs i) n = subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
@@ -786,7 +786,7 @@ begin
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆          : rfl
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆   : by rw ih
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : commutator_pi_pi_of_fintype _ _
+    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : commutator_pi_pi_of_finite _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)     : rfl }
 end
 
@@ -854,13 +854,14 @@ section with_finite_group
 
 open group fintype
 
-variables {G : Type*} [hG : group G] [hf : fintype G]
+variables {G : Type*} [hG : group G]
 include hG hf
 
 /-- A p-group is nilpotent -/
-lemma is_p_group.is_nilpotent {p : ℕ} [hp : fact (nat.prime p)] (h : is_p_group p G) :
+lemma is_p_group.is_nilpotent [finite G] {p : ℕ} [hp : fact (nat.prime p)] (h : is_p_group p G) :
   is_nilpotent G :=
 begin
+  casesI nonempty_fintype G,
   classical,
   unfreezingI
   { revert hG,
@@ -875,6 +876,8 @@ begin
     have hnq : is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
     exact (of_quotient_center_nilpotent hnq), }
 end
+
+variables [fintype G]
 
 /-- If a finite group is the direct product of its Sylow groups, it is nilpotent -/
 theorem is_nilpotent_of_product_of_sylow_group

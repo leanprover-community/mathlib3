@@ -186,10 +186,11 @@ end
 variable (hcomm)
 
 @[to_additive]
-lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
+lemma independent_range_of_coprime_order {ι : Type*} [finite ι] [∀ i, fintype (H i)]
   (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
   complete_lattice.independent (λ i, (ϕ i).range) :=
 begin
+  casesI nonempty_fintype ι,
   classical,
   rintros i f ⟨hxi, hxp⟩, dsimp at hxi hxp,
   rw [supr_subtype', ← noncomm_pi_coprod_range] at hxp,
@@ -264,13 +265,11 @@ end
 variable (hcomm)
 
 @[to_additive]
-lemma independent_of_coprime_order [∀ i, fintype (H i)]
+lemma independent_of_coprime_order {ι : Type*} [finite ι] [∀ i, fintype (H i)]
   (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
   complete_lattice.independent H :=
-begin
-  simpa using monoid_hom.independent_range_of_coprime_order
-    (λ i, (H i).subtype) (commute_subtype_of_commute hcomm) hcoprime,
-end
+by { casesI nonempty_fintype ι, simpa using monoid_hom.independent_range_of_coprime_order
+    (λ i, (H i).subtype) (commute_subtype_of_commute hcomm) hcoprime }
 
 end commuting_subgroups
 

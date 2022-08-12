@@ -69,7 +69,8 @@ lemma is_of_fin_order_iff_pow_eq_one (x : G) :
 by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
 
 /-- Elements of finite order are of finite order in submonoids.-/
-@[to_additive is_of_fin_add_order_iff_coe]
+@[to_additive is_of_fin_add_order_iff_coe "Elements of finite order are of finite order in
+submonoids."]
 lemma is_of_fin_order_iff_coe (H : submonoid G) (x : H) :
   is_of_fin_order x ↔ is_of_fin_order (x : G) :=
 by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
@@ -192,11 +193,10 @@ begin
   exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
 end
 
-/--
-If `x^n = 1`, but `x^(n/p) ≠ 1` for all prime factors `p` of `r`,
-then `x` has order `n` in `G`.
+/-- If `x^n = 1`, but `x^(n/p) ≠ 1` for all prime factors `p` of `n`, then `x` has order `n` in `G`.
 -/
-@[to_additive add_order_of_eq_of_nsmul_and_div_prime_nsmul]
+@[to_additive add_order_of_eq_of_nsmul_and_div_prime_nsmul "If `n * x = 0`, but `n/p * x ≠ 0` for
+all prime factors `p` of `n`, then `x` has order `n` in `G`."]
 theorem order_of_eq_of_pow_and_pow_div_prime (hn : 0 < n) (hx : x^n = 1)
   (hd : ∀ p : ℕ, p.prime → p ∣ n → x^(n/p) ≠ 1) :
   order_of x = n :=

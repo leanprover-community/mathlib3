@@ -1021,12 +1021,12 @@ instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_
   is_scalar_tower α β (set γ) :=
 { smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
 
-@[to_additive']
+@[to_additive]
 instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (set β) (set γ) :=
 ⟨λ _ _ _, image2_image_left_comm $ smul_assoc _⟩
 
-@[to_additive'']
+@[to_additive]
 instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }

@@ -641,12 +641,12 @@ instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_
   is_scalar_tower α β (filter γ) :=
 ⟨λ a b f, by simp only [←map_smul, map_map, smul_assoc]⟩
 
-@[to_additive']
+@[to_additive]
 instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (filter β) (filter γ) :=
 ⟨λ a f g, by { refine (map_map₂_distrib_left $ λ _ _, _).symm, exact (smul_assoc a _ _).symm }⟩
 
-@[to_additive'']
+@[to_additive]
 instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (filter α) (filter β) (filter γ) :=
 ⟨λ f g h, map₂_assoc smul_assoc⟩

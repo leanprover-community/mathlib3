@@ -52,22 +52,23 @@ end
 
 end continuous_map
 
+
 namespace unit_interval
 
 @[simp]
-lemma univ_eq_ge_zero : {s : I | 0 ≤ (s : ℝ)} = set.univ :=
+lemma univ_eq_ge_zero {θ : ℝ} (h : θ ≤ 0): {s : I | θ ≤ (s : ℝ)} = set.univ :=
 begin
   rw set.eq_univ_iff_forall,
   intro,
-  simpa only [set.mem_set_of_eq] using nonneg _,
+  simpa only [set.mem_set_of_eq] using (h.trans $ nonneg _),
 end
 
 @[simp]
-lemma univ_eq_le_one : {s : I | (s : ℝ) ≤ 1} = set.univ :=
+lemma univ_eq_le_one {θ : ℝ} (h : 1 ≤ θ) : {s : I | (s : ℝ) ≤ θ} = set.univ :=
 begin
   rw set.eq_univ_iff_forall,
   intro,
-  simpa only [set.mem_set_of_eq] using le_one _,
+  simpa only [set.mem_set_of_eq] using (le_one _).trans h,
 end
 
 lemma mem_closure_iff {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ} ↔ (t : ℝ) ≤ θ :=
@@ -77,33 +78,21 @@ lemma mem_closure_iff {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) �
 lemma not_mem_interior {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
 begin
   -- For `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
-  -- topology) is `I` again, and `t ∉ I` is always false whereas `1 ≤ t` is true for `t = 1`.
-  -- So we split the proof in the cases `θ = 1` and `θ ≠ 1`, that is purely interval-theoretical.
-  by_cases θ_eq_one : θ = 1,
-  { rw [θ_eq_one, univ_eq_le_one, interior_univ],
-    tauto, },
+  -- topology) is `I` again, and `t ∉ interior I = I` is always false, whereas `1 ≤ t` is true for
+  -- `t = 1`. So we split the proof in the cases `1 ≤ θ ` and `θ < 1`.
+  by_cases h_θ_1 : 1 ≤ θ,
+  { rw [univ_eq_le_one h_θ_1, interior_univ],
+    tauto },
   intro h,
-  by_cases H : θ ∈ I, -- this must be changed to `θ < 1` (the proof is basically the same) and
-  -- then 1 ≤ θ, which becomes `1 < θ` by virtue of `θ_eq_one`, in which case everything is OK
-  -- **Actually**, I suspect that the proof for `θ = 1` generalizes to `1 ≤ θ` and therefore we
-  -- can reduce the number of splittings.
-  { let θI : I := ⟨θ, H⟩,
+  by_cases h_θ_0 : 0 ≤ θ,
+  { let θI : I := ⟨θ, set.mem_Icc.mpr ⟨h_θ_0, le_of_lt $ lt_of_not_ge h_θ_1⟩⟩,
     have : {s : ↥I | (s : ℝ) ≤ θ} = set.Iic θI := rfl,
     have H_ne : (set.Ioi θI).nonempty := ⟨1, _⟩,
     simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
       ← subtype.coe_le_coe] using h,
-    simp only [set.mem_Ioi, ← subtype.coe_lt_coe],
-    apply lt_of_le_of_ne H.2 θ_eq_one},
-  by_cases H1 : θ < 0,
-  { exact (le_of_lt $ lt_of_lt_of_le H1 t.2.1) },
-  { replace H1 : 1 < θ,
-    simpa only [set.mem_Icc, not_le, not_lt.mp H1, true_and] using H,
-    contrapose! h,
-    suffices : {s : ↥I | (s : ℝ) ≤ θ} = set.univ,
-    simp only [this, interior_univ],
-    rw set.eq_univ_iff_forall,
-    intro s,
-    simpa only [set.mem_set_of_eq] using (le_of_lt $ lt_of_le_of_lt s.2.2 H1) },
+    simpa only [set.mem_Ioi, ← subtype.coe_lt_coe, subtype.coe_mk, coe_one] using
+      lt_of_not_ge h_θ_1 },
+  { exact le_of_lt (lt_of_lt_of_le (lt_of_not_ge h_θ_0) t.2.1) },
 end
 
 lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ)
@@ -111,6 +100,7 @@ lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ 
     h_right) (not_lt_of_le $ mem_closure_iff.mp h_left)]}
 
 end unit_interval
+
 
 namespace path
 

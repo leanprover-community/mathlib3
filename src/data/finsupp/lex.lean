@@ -56,7 +56,7 @@ partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_li
 variable [linear_order N]
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
 noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
-{ le_total := λ f g, begin
+{ le_total := to_lex.surjective.forall₂.2 $ λ f g : lex (α →₀ N), begin
     let dfug : finset α := (f.support ∪ g.support).filter (λ a, of_lex f a ≠ of_lex g a),
     cases dfug.eq_empty_or_nonempty,
     { exact or.inl (finsupp.filter_ne_eq_empty_iff.mp h).le },
@@ -68,13 +68,13 @@ noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
         { contrapose! hj,
           exact finset.min'_le _ _ (finset.mem_filter.mpr ⟨js, hj⟩) },
         { simp only [finset.mem_union, not_or_distrib, finsupp.mem_support_iff, not_not] at js,
-          simp [of_lex, js] } },
+          simp only [js, of_lex_to_lex, pi.to_lex_apply] } },
       { refine or.inr (or.inr ⟨_, λ j hj, _, mg⟩),
         by_cases js : j ∈ f.support ∪ g.support,
         { contrapose! hj,
           exact finset.min'_le _ _ (finset.mem_filter.mpr ⟨js, hj.symm⟩) },
         { simp only [finset.mem_union, not_or_distrib, finsupp.mem_support_iff, not_not] at js,
-          simp [of_lex, js] } } }
+          simp only [js, of_lex_to_lex, pi.to_lex_apply] } } }
     end,
   decidable_le := by { classical, apply_instance },
   ..lex.partial_order }

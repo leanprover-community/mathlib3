@@ -114,12 +114,12 @@ instance is_artinian_of_finite [finite M] : is_artinian R M :=
 let ⟨_⟩ := nonempty_fintype M in by exactI
 ⟨fintype.well_founded_of_trans_of_irrefl _⟩
 
-local attribute [elab_as_eliminator] fintype.induction_empty_option
+local attribute [elab_as_eliminator] finite.induction_empty_option
 
-instance is_artinian_pi {R ι : Type*} [fintype ι] : Π {M : ι → Type*} [ring R]
+instance is_artinian_pi {R ι : Type*} [finite ι] : Π {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)], by exactI Π [Π i, module R (M i)],
   by exactI Π [∀ i, is_artinian R (M i)], is_artinian R (Π i, M i) :=
-fintype.induction_empty_option
+finite.induction_empty_option
   (begin
     introsI α β e hα M _ _ _ _,
     exact is_artinian_of_linear_equiv

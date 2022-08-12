@@ -2229,7 +2229,7 @@ end
 /-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
 that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
 @[elab_as_eliminator]
-lemma induction_empty_option' {P : Π (α : Type u) [fintype α], Prop}
+lemma induction_empty_option {P : Π (α : Type u) [fintype α], Prop}
   (of_equiv : ∀ α β [fintype β] (e : α ≃ β), @P α (@fintype.of_equiv α β ‹_› e.symm) → @P β ‹_›)
   (h_empty : P pempty)
   (h_option : ∀ α [fintype α], by exactI P α → P (option α))
@@ -2242,20 +2242,20 @@ begin
   { rintro α hα - Pα hα', resetI, convert h_option α (Pα _) }
 end
 
+end fintype
+
 /-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
 that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
-lemma induction_empty_option {P : Type u → Prop}
+lemma finite.induction_empty_option {P : Type u → Prop}
   (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
   (h_empty : P pempty)
   (h_option : ∀ {α} [fintype α], P α → P (option α))
   (α : Type u) [finite α] : P α :=
 begin
   casesI nonempty_fintype α,
-  refine induction_empty_option' _ _ _ α,
+  refine fintype.induction_empty_option _ _ _ α,
   exacts [λ α β _, of_equiv, h_empty, @h_option]
 end
-
-end fintype
 
 /-- Auxiliary definition to show `exists_seq_of_forall_finset_exists`. -/
 noncomputable def seq_of_forall_finset_exists_aux

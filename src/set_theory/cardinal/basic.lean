@@ -314,7 +314,7 @@ mk_congr ((equiv.ulift).symm.sum_congr (equiv.ulift).symm)
 
 @[simp] lemma mk_fintype (α : Type u) [fintype α] : #α = fintype.card α :=
 begin
-  refine fintype.induction_empty_option' _ _ _ α,
+  refine fintype.induction_empty_option _ _ _ α,
   { introsI α β h e hα, letI := fintype.of_equiv β e.symm,
     rwa [mk_congr e, fintype.card_congr e] at hα },
   { refl },

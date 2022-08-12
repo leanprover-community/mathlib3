@@ -12,9 +12,10 @@ import algebraic_topology.dold_kan.p_infty
 
 TODO (@joelriou) continue adding the various files referenced below
 
-In this file, we construct the functors `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)`
+In this file, we construct functors `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)`
 and `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ)`
-for any preadditive category `C`.
+for any preadditive category `C`. (The indices of these functors are the number of occurrences
+of `karoubi` at the source or the target.)
 
 In the case `C` is additive, the functor `N₂` shall be the functor of the equivalence
 `category_theory.preadditive.dold_kan.equivalence` defined in `equivalence_additive.lean`.

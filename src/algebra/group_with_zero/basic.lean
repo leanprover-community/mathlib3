@@ -643,7 +643,7 @@ begin
     simpa only [eq_comm] using units.exists_iff_ne_zero.mpr h }
 end
 
-@[simp] lemma smul_mk0 {α : Type*} [has_scalar G₀ α] {g : G₀} (hg : g ≠ 0) (a : α) :
+@[simp] lemma smul_mk0 {α : Type*} [has_smul G₀ α] {g : G₀} (hg : g ≠ 0) (a : α) :
   (mk0 g hg) • a = g • a :=
 rfl
 

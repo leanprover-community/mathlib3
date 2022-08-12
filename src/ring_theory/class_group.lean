@@ -96,13 +96,6 @@ noncomputable def class_group.mk0 [is_dedekind_domain R] :
 
 variables {K}
 
-lemma quotient_group.mk'_eq_mk' {G : Type*} [group G] {N : subgroup G} [hN : N.normal] {x y : G} :
-  quotient_group.mk' N x = quotient_group.mk' N y ↔ ∃ z ∈ N, x * z = y :=
-(@quotient.eq _ (quotient_group.left_rel _) _ _).trans
-  ⟨λ (h : x⁻¹ * y ∈ N), ⟨_, h, by rw [← mul_assoc, mul_right_inv, one_mul]⟩,
-   λ ⟨z, z_mem, eq_y⟩,
-     by { rw ← eq_y, show x⁻¹ * (x * z) ∈ N, rwa [← mul_assoc, mul_left_inv, one_mul] }⟩
-
 lemma class_group.mk0_eq_mk0_iff_exists_fraction_ring [is_dedekind_domain R] {I J : (ideal R)⁰} :
   class_group.mk0 K I = class_group.mk0 K J ↔
     ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=
@@ -164,6 +157,8 @@ begin
     rwa [ring_hom.map_mul, ← mul_assoc, inv_mul_cancel fa_ne_zero, one_mul] },
   { symmetry,
     apply quotient.sound,
+    change setoid.r _ _,
+    rw quotient_group.left_rel_apply,
     refine ⟨units.mk0 (algebra_map R K a) fa_ne_zero, _⟩,
     apply @mul_left_cancel _ _ I,
     rw [← mul_assoc, mul_right_inv, one_mul, eq_comm, mul_comm I],

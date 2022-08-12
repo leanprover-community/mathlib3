@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 -/
 import data.int.basic
 import data.nat.cast
-import algebra.field.basic
 import tactic.pi_instances
+import data.sum.basic
 
 /-!
 # Cast of integers (additional theorems)
@@ -145,15 +145,6 @@ lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
 ring_hom.map_dvd (int.cast_ring_hom α) h
 
-/--
-Auxiliary lemma for norm_cast to move the cast `-↑n` upwards to `↑-↑n`.
-
-(The restriction to `field` is necessary, otherwise this would also apply in the case where
-`R = ℤ` and cause nontermination.)
--/
-@[norm_cast]
-lemma cast_neg_nat_cast {R} [field R] (n : ℕ) : ((-n : ℤ) : R) = -n := by simp
-
 end cast
 
 end int
@@ -279,6 +270,10 @@ lemma int_apply (n : ℤ) (a : α) : (n : ∀ a, β a) a = n := rfl
 @[simp] lemma coe_int (n : ℤ) : (n : ∀ a, β a) = λ _, n := rfl
 
 end pi
+
+lemma sum.elim_int_cast_int_cast {α β γ : Type*} [has_int_cast γ] (n : ℤ) :
+  sum.elim (n : α → γ) (n : β → γ) = n :=
+@sum.elim_lam_const_lam_const α β γ n
 
 namespace pi
 variables {α : Type*} {β : α → Type*} [∀ a, add_group_with_one (β a)]

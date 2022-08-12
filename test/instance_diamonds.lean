@@ -15,27 +15,27 @@ import data.zmod.basic
 /-! # Tests that instances do not form diamonds -/
 
 /-! ## Scalar action instances -/
-section has_scalar
+section has_smul
 open_locale polynomial
 
 example :
-  (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
+  (sub_neg_monoid.has_smul_int : has_smul ℤ ℂ) = (complex.has_smul : has_smul ℤ ℂ) :=
 rfl
 
 example : restrict_scalars.module ℝ ℂ ℂ = complex.module := rfl
 example : restrict_scalars.algebra ℝ ℂ ℂ = complex.algebra := rfl
 
 example (α β : Type*) [add_monoid α] [add_monoid β] :
-  (prod.has_scalar : has_scalar ℕ (α × β)) = add_monoid.has_scalar_nat := rfl
+  (prod.has_smul : has_smul ℕ (α × β)) = add_monoid.has_smul_nat := rfl
 
 example (α β : Type*) [sub_neg_monoid α] [sub_neg_monoid β] :
-  (prod.has_scalar : has_scalar ℤ (α × β)) = sub_neg_monoid.has_scalar_int := rfl
+  (prod.has_smul : has_smul ℤ (α × β)) = sub_neg_monoid.has_smul_int := rfl
 
 example (α : Type*) (β : α → Type*) [Π a, add_monoid (β a)] :
-  (pi.has_scalar : has_scalar ℕ (Π a, β a)) = add_monoid.has_scalar_nat := rfl
+  (pi.has_smul : has_smul ℕ (Π a, β a)) = add_monoid.has_smul_nat := rfl
 
 example (α : Type*) (β : α → Type*) [Π a, sub_neg_monoid (β a)] :
-  (pi.has_scalar : has_scalar ℤ (Π a, β a)) = sub_neg_monoid.has_scalar_int := rfl
+  (pi.has_smul : has_smul ℤ (Π a, β a)) = sub_neg_monoid.has_smul_int := rfl
 
 section units
 
@@ -61,7 +61,7 @@ rfl -- fails
 
 end units
 
-end has_scalar
+end has_smul
 
 /-! ## `with_top` (Type with point at infinity) instances -/
 section with_top
@@ -108,13 +108,13 @@ end multiplicative
 section finsupp
 open finsupp
 
-/-- `finsupp.comap_has_scalar` can form a non-equal diamond with `finsupp.has_scalar` -/
+/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.has_smul` -/
 example {k : Type*} [semiring k] [nontrivial k] :
-  (finsupp.comap_has_scalar : has_scalar k (k →₀ k)) ≠ finsupp.has_scalar :=
+  (finsupp.comap_has_smul : has_smul k (k →₀ k)) ≠ finsupp.has_smul :=
 begin
   obtain ⟨u : k, hu⟩ := exists_ne (1 : k),
   intro h,
-  simp only [has_scalar.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
+  simp only [has_smul.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
   replace h := h u (finsupp.single 1 1) u,
   classical,
   rw [comap_smul_single, smul_apply, smul_eq_mul, mul_one, single_eq_same,
@@ -122,15 +122,15 @@ begin
   exact one_ne_zero h,
 end
 
-/-- `finsupp.comap_has_scalar` can form a non-equal diamond with `finsupp.has_scalar` even when
+/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.has_smul` even when
 the domain is a group. -/
 example {k : Type*} [semiring k] [nontrivial kˣ] :
-  (finsupp.comap_has_scalar : has_scalar kˣ (kˣ →₀ k)) ≠ finsupp.has_scalar :=
+  (finsupp.comap_has_smul : has_smul kˣ (kˣ →₀ k)) ≠ finsupp.has_smul :=
 begin
   obtain ⟨u : kˣ, hu⟩ := exists_ne (1 : kˣ),
   haveI : nontrivial k := ⟨⟨u, 1, units.ext.ne hu⟩⟩,
   intro h,
-  simp only [has_scalar.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
+  simp only [has_smul.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
   replace h := h u (finsupp.single 1 1) u,
   classical,
   rw [comap_smul_single, smul_apply, units.smul_def, smul_eq_mul, mul_one, single_eq_same,
@@ -147,30 +147,50 @@ variables (R A : Type*)
 open_locale polynomial
 open polynomial
 
-/-- `polynomial.has_scalar_pi` forms a diamond with `pi.has_scalar`. -/
+/-- `polynomial.has_smul_pi` forms a diamond with `pi.has_smul`. -/
 example [semiring R] [nontrivial R] :
-  polynomial.has_scalar_pi _ _ ≠ (pi.has_scalar : has_scalar R[X] (R → R[X])) :=
+  polynomial.has_smul_pi _ _ ≠ (pi.has_smul : has_smul R[X] (R → R[X])) :=
 begin
   intro h,
-  simp_rw [has_scalar.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
+  simp_rw [has_smul.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
   simpa using h X 1 1 0,
 end
 
-/-- `polynomial.has_scalar_pi'` forms a diamond with `pi.has_scalar`. -/
+/-- `polynomial.has_smul_pi'` forms a diamond with `pi.has_smul`. -/
 example [comm_semiring R] [nontrivial R] :
-  polynomial.has_scalar_pi' _ _ _ ≠ (pi.has_scalar : has_scalar R[X] (R → R[X])) :=
+  polynomial.has_smul_pi' _ _ _ ≠ (pi.has_smul : has_smul R[X] (R → R[X])) :=
 begin
   intro h,
-  simp_rw [has_scalar.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
+  simp_rw [has_smul.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
   simpa using h X 1 1 0,
 end
 
-/-- `polynomial.has_scalar_pi'` is consistent with `polynomial.has_scalar_pi`. -/
+/-- `polynomial.has_smul_pi'` is consistent with `polynomial.has_smul_pi`. -/
 example [comm_semiring R] [nontrivial R] :
-  polynomial.has_scalar_pi' _ _ _ = (polynomial.has_scalar_pi _ _ : has_scalar R[X] (R → R[X])) :=
+  polynomial.has_smul_pi' _ _ _ = (polynomial.has_smul_pi _ _ : has_smul R[X] (R → R[X])) :=
 rfl
 
+/-- `polynomial.algebra_of_algebra` is consistent with `algebra_nat`. -/
+example [semiring R] : (polynomial.algebra_of_algebra : algebra ℕ R[X]) = algebra_nat := rfl
+
+/-- `polynomial.algebra_of_algebra` is consistent with `algebra_int`. -/
+example [ring R] : (polynomial.algebra_of_algebra : algebra ℤ R[X]) = algebra_int _ := rfl
+
 end polynomial
+
+/-! ## `subtype` instances -/
+section subtype
+
+-- this diamond is the reason that `fintype.to_locally_finite_order` is not an instance
+example {α} [preorder α] [locally_finite_order α] [fintype α] [@decidable_rel α (<)]
+  [@decidable_rel α (≤)] (p : α → Prop) [decidable_pred p] :
+  subtype.locally_finite_order p = fintype.to_locally_finite_order :=
+begin
+  success_if_fail { refl, },
+  exact subsingleton.elim _ _
+end
+
+end subtype
 
 /-! ## `zmod` instances -/
 section zmod

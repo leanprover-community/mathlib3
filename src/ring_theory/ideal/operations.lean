@@ -25,7 +25,7 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 open_locale pointwise
 
-instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
+instance has_smul' : has_smul (ideal R) (submodule R M) :=
 ⟨submodule.map₂ (linear_map.lsmul R M)⟩
 
 /-- This duplicates the global `smul_eq_mul`, but doesn't have to unfold anywhere near as much to
@@ -153,6 +153,17 @@ le_antisymm (smul_le.2 $ λ rs hrsij t htn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
   from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
 
+lemma smul_inf_le (M₁ M₂ : submodule R M) : I • (M₁ ⊓ M₂) ≤ I • M₁ ⊓ I • M₂ :=
+le_inf (submodule.smul_mono_right inf_le_left) (submodule.smul_mono_right inf_le_right)
+
+lemma smul_supr {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • supr t = ⨆ i, I • t i :=
+map₂_supr_right _ _ _
+
+lemma smul_infi_le {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • infi t ≤ ⨅ i, I • t i :=
+le_infi (λ i, smul_mono_right (infi_le _ _))
+
 variables (S : set R) (T : set M)
 
 theorem span_smul_span : (ideal.span S) • (span R T) =
@@ -217,17 +228,20 @@ variables (I)
 
 /-- If `x` is an `I`-multiple of the submodule spanned by `f '' s`,
 then we can write `x` as an `I`-linear combination of the elements of `f '' s`. -/
-lemma exists_sum_of_mem_ideal_smul_span {ι : Type*} (s : set ι) (f : ι → M) (x : M)
-  (hx : x ∈ I • span R (f '' s)) :
-  ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
+lemma mem_ideal_smul_span_iff_exists_sum {ι : Type*} (f : ι → M) (x : M) :
+  x ∈ I • span R (set.range f) ↔
+  ∃ (a : ι →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
 begin
-  refine span_induction (mem_smul_span.mp hx) _ _ _ _,
+  split, swap,
+  { rintro ⟨a, ha, rfl⟩,
+    exact submodule.sum_mem _ (λ c _, smul_mem_smul (ha c) $ subset_span $ set.mem_range_self _) },
+  refine λ hx, span_induction (mem_smul_span.mp hx) _ _ _ _,
   { simp only [set.mem_Union, set.mem_range, set.mem_singleton_iff],
-    rintros x ⟨y, hy, x, ⟨i, hi, rfl⟩, rfl⟩,
-    refine ⟨finsupp.single ⟨i, hi⟩ y, λ j, _, _⟩,
-    { letI := classical.dec_eq s,
+    rintros x ⟨y, hy, x, ⟨i, rfl⟩, rfl⟩,
+    refine ⟨finsupp.single i y, λ j, _, _⟩,
+    { letI := classical.dec_eq ι,
       rw finsupp.single_apply, split_ifs, { assumption }, { exact I.zero_mem } },
-    refine @finsupp.sum_single_index s R M _ _ ⟨i, hi⟩ _ (λ i y, y • f i) _,
+    refine @finsupp.sum_single_index ι R M _ _ i _ (λ i y, y • f i) _,
     simp },
   { exact ⟨0, λ i, I.zero_mem, finsupp.sum_zero_index⟩ },
   { rintros x y ⟨ax, hax, rfl⟩ ⟨ay, hay, rfl⟩,
@@ -238,6 +252,11 @@ begin
     rw [finsupp.sum_smul_index, finsupp.smul_sum];
       intros; simp only [zero_smul, mul_smul] },
 end
+
+theorem mem_ideal_smul_span_iff_exists_sum' {ι : Type*} (s : set ι) (f : ι → M) (x : M) :
+  x ∈ I • span R (f '' s) ↔
+  ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
+by rw [← submodule.mem_ideal_smul_span_iff_exists_sum, ← set.image_eq_range]
 
 @[simp] lemma smul_comap_le_comap_smul (f : M →ₗ[R] M') (S : submodule R M') (I : ideal R) :
   I • S.comap f ≤ (I • S).comap f :=
@@ -283,14 +302,21 @@ end submodule
 
 namespace ideal
 
+section add
+
+variables {R : Type u} [semiring R]
+
+@[simp] lemma add_eq_sup {I J : ideal R} : I + J = I ⊔ J := rfl
+@[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
+
+end add
+
 section mul_and_radical
 variables {R : Type u} {ι : Type*} [comm_semiring R]
 variables {I J K L : ideal R}
 
 instance : has_mul (ideal R) := ⟨(•)⟩
 
-@[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
-@[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
 @[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
 by erw [submodule.one_eq_range, linear_map.range_id]
 
@@ -301,10 +327,7 @@ theorem mul_mem_mul_rev {r s} (hr : r ∈ I) (hs : s ∈ J) : s * r ∈ I * J :=
 mul_comm r s ▸ mul_mem_mul hr hs
 
 lemma pow_mem_pow {x : R} (hx : x ∈ I) (n : ℕ) : x ^ n ∈ I ^ n :=
-begin
-  induction n with n ih, { simp only [pow_zero, ideal.one_eq_top], },
-  simpa only [pow_succ] using mul_mem_mul hx ih,
-end
+submodule.pow_mem_pow _ hx _
 
 lemma prod_mem_prod {ι : Type*} {s : finset ι} {I : ι → ideal R} {x : ι → R} :
   (∀ i ∈ s, x i ∈ I i) → ∏ i in s, x i ∈ ∏ i in s, I i :=
@@ -554,14 +577,14 @@ lemma pow_le_self {n : ℕ} (hn : n ≠ 0) : I^n ≤ I :=
 calc I^n ≤ I ^ 1 : pow_le_pow (nat.pos_of_ne_zero hn)
      ... = I : pow_one _
 
-lemma mul_eq_bot {R : Type*} [comm_ring R] [is_domain R] {I J : ideal R} :
+lemma mul_eq_bot {R : Type*} [comm_semiring R] [no_zero_divisors R] {I J : ideal R} :
   I * J = ⊥ ↔ I = ⊥ ∨ J = ⊥ :=
 ⟨λ hij, or_iff_not_imp_left.mpr (λ I_ne_bot, J.eq_bot_iff.mpr (λ j hj,
   let ⟨i, hi, ne0⟩ := I.ne_bot_iff.mp I_ne_bot in
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
-instance {R : Type*} [comm_ring R] [is_domain R] : no_zero_divisors (ideal R) :=
+instance {R : Type*} [comm_semiring R] [no_zero_divisors R] : no_zero_divisors (ideal R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ I J, mul_eq_bot.1 }
 
 /-- A product of ideals in an integral domain is zero if and only if one of the terms is zero. -/
@@ -658,7 +681,7 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
       (m.mul_mem_left _ hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-@[simp] lemma radical_bot_of_is_domain {R : Type u} [comm_ring R] [is_domain R] :
+@[simp] lemma radical_bot_of_is_domain {R : Type u} [comm_semiring R] [no_zero_divisors R] :
   radical (⊥ : ideal R) = ⊥ :=
 eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
 
@@ -733,7 +756,7 @@ theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp 
 ⟨λ h, (hp.prod_le hsne).1 $ le_trans prod_le_inf h,
   λ ⟨i, his, hip⟩, le_trans (finset.inf_le his) hip⟩
 
-theorem subset_union {R : Type u} [comm_ring R] {I J K : ideal R} :
+theorem subset_union {R : Type u} [ring R] {I J K : ideal R} :
   (I : set R) ⊆ J ∪ K ↔ I ≤ J ∨ I ≤ K :=
 ⟨λ h, or_iff_not_imp_left.2 $ λ hij s hsi,
   let ⟨r, hri, hrj⟩ := set.not_subset.1 hij in classical.by_contradiction $ λ hsk,
@@ -1382,9 +1405,53 @@ end⟩
 
 end is_primary
 
+section total
+
+variables (ι : Type*)
+variables (M : Type*) [add_comm_group M] {R : Type*} [comm_ring R] [module R M] (I : ideal R)
+variables (v : ι → M) (hv : submodule.span R (set.range v) = ⊤)
+
+
+open_locale big_operators
+
+/-- A variant of `finsupp.total` that takes in vectors valued in `I`. -/
+noncomputable
+def finsupp_total : (ι →₀ I) →ₗ[R] M :=
+(finsupp.total ι M R v).comp (finsupp.map_range.linear_map I.subtype)
+
+variables {ι M v}
+
+lemma finsupp_total_apply (f : ι →₀ I) :
+  finsupp_total ι M I v f = f.sum (λ i x, (x : R) • v i) :=
+begin
+  dsimp [finsupp_total],
+  rw [finsupp.total_apply, finsupp.sum_map_range_index],
+  exact λ _, zero_smul _ _
+end
+
+lemma finsupp_total_apply_eq_of_fintype [fintype ι] (f : ι →₀ I) :
+  finsupp_total ι M I v f = ∑ i, (f i : R) • v i :=
+by { rw [finsupp_total_apply, finsupp.sum_fintype], exact λ _, zero_smul _ _ }
+
+lemma range_finsupp_total :
+  (finsupp_total ι M I v).range = I • (submodule.span R (set.range v)) :=
+begin
+  ext,
+  rw submodule.mem_ideal_smul_span_iff_exists_sum,
+  refine ⟨λ ⟨f, h⟩, ⟨finsupp.map_range.linear_map I.subtype f, λ i, (f i).2, h⟩, _⟩,
+  rintro ⟨a, ha, rfl⟩,
+  classical,
+  refine ⟨a.map_range (λ r, if h : r ∈ I then ⟨r, h⟩ else 0) (by split_ifs; refl), _⟩,
+  rw [finsupp_total_apply, finsupp.sum_map_range_index],
+  { apply finsupp.sum_congr, intros i _, rw dif_pos (ha i), refl },
+  { exact λ _, zero_smul _ _ },
+end
+
+end total
+
 end ideal
 
-lemma associates.mk_ne_zero' {R : Type*} [comm_ring R] {r : R} :
+lemma associates.mk_ne_zero' {R : Type*} [comm_semiring R] {r : R} :
   (associates.mk (ideal.span {r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
 by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]
 
@@ -1670,7 +1737,7 @@ instance quotient.algebra {I : ideal A} : algebra R₁ (A ⧸ I) :=
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R₁ A) }
 
 -- Lean can struggle to find this instance later if we don't provide this shortcut
-instance quotient.is_scalar_tower [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
+instance quotient.is_scalar_tower [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
   is_scalar_tower R₁ R₂ (A ⧸ I) :=
 by apply_instance
 

@@ -21,7 +21,6 @@ The symmetric difference is the addition operator in the Boolean ring structure 
 ## Main declarations
 
 * `symm_diff`: the symmetric difference operator, defined as `(A \ B) ⊔ (B \ A)`
-* `equiv.symm_diff`: Symmetric difference by `a` as an `equiv`.
 
 In generalized Boolean algebras, the symmetric difference operator is:
 
@@ -136,6 +135,16 @@ begin
   { exact h.symm_diff_eq_sup, },
 end
 
+@[simp] lemma le_symm_diff_iff_left : a ≤ a ∆ b ↔ disjoint a b :=
+begin
+  refine ⟨λ h, _, λ h, h.symm_diff_eq_sup.symm ▸ le_sup_left⟩,
+  rw symm_diff_eq_sup_sdiff_inf at h,
+  exact (le_sdiff_iff.1 $ inf_le_of_left_le h).le,
+end
+
+@[simp] lemma le_symm_diff_iff_right : b ≤ a ∆ b ↔ disjoint a b :=
+by rw [symm_diff_comm, le_symm_diff_iff_left, disjoint.comm]
+
 lemma symm_diff_symm_diff_left :
   a ∆ b ∆ c = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) ⊔ (c \ (a ⊔ b)) ⊔ (a ⊓ b ⊓ c) :=
 calc a ∆ b ∆ c = ((a ∆ b) \ c) ⊔ (c \ (a ∆ b))   : symm_diff_def _ _
@@ -159,6 +168,13 @@ by rw [symm_diff_eq_iff_sdiff_eq (symm_diff_le_sup _ _), sup_sdiff_symm_diff]
 
 @[simp] lemma inf_symm_diff_symm_diff : (a ⊓ b) ∆ (a ∆ b) = a ⊔ b :=
 by rw [symm_diff_comm, symm_diff_symm_diff_inf]
+
+lemma symm_diff_triangle : a ∆ c ≤ a ∆ b ⊔ b ∆ c :=
+begin
+  refine (sup_le_sup (sdiff_triangle a b c) $ sdiff_triangle _ b _).trans_eq _,
+  rw [@sup_comm _ _ (c \ b), sup_sup_sup_comm],
+  refl,
+end
 
 lemma symm_diff_assoc : a ∆ b ∆ c = a ∆ (b ∆ c) :=
 by rw [symm_diff_symm_diff_left, symm_diff_symm_diff_right]

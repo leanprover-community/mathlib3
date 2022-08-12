@@ -12,9 +12,23 @@ import data.finsupp.order
 This file defines the lexicographic order on `finsupp`.
 -/
 
+variables {α N : Type*}
+
 namespace finsupp
 
-variables {α N : Type*} [has_zero N]
+lemma filter_ne_eq_empty_iff [decidable_eq α] [decidable_eq N] [has_zero N] {f g : α →₀ N} :
+  (f.support ∪ g.support).filter (λ a, f a ≠ g a) = ∅ ↔ f = g :=
+begin
+  refine ⟨λ h, _, λ h, h ▸ by simp⟩,
+  ext a,
+  contrapose h,
+  refine finset.ne_empty_of_mem (_ : a ∈ _),
+  simp only [ne.def, finset.mem_filter, finset.mem_union, finsupp.mem_support_iff],
+  exact ⟨not_and_distrib.1 $ mt (and_imp.2 eq.substr) (ne.symm h), h⟩,
+end
+
+section N_has_zero
+variables [has_zero N]
 
 /-- The lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
   and `N` is ordered by `s`. -/
@@ -32,17 +46,6 @@ let i : is_strict_order (lex (α → N)) (<) := pi.lex.is_strict_order in
 { irrefl := to_lex.surjective.forall.2 $ λ a, @irrefl _ _ i.to_is_irrefl a,
   trans := to_lex.surjective.forall₃.2 $ λ a b c, @trans _ _ i.to_is_trans a b c }
 
-lemma filter_ne_eq_empty_iff [decidable_eq α] [decidable_eq N] {f g : α →₀ N} :
-  (f.support ∪ g.support).filter (λ a, f a ≠ g a) = ∅ ↔ f = g :=
-begin
-  refine ⟨λ h, _, λ h, h ▸ by simp⟩,
-  ext a,
-  contrapose h,
-  refine finset.ne_empty_of_mem (_ : a ∈ _),
-  simp only [ne.def, finset.mem_filter, finset.mem_union, finsupp.mem_support_iff],
-  exact ⟨not_and_distrib.1 $ mt (and_imp.2 eq.substr) (ne.symm h), h⟩,
-end
-
 variables [linear_order α]
 
 /--  The partial order on `finsupp`s obtained by the lexicographic ordering.
@@ -50,8 +53,9 @@ variables [linear_order α]
 instance lex.partial_order [partial_order N] : partial_order (lex (α →₀ N)) :=
 partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_like.coe_injective
 
+variable [linear_order N]
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
-noncomputable instance lex.linear_order [linear_order N] : linear_order (lex (α →₀ N)) :=
+noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
 { le_total := λ f g, begin
     let dfug : finset α := (f.support ∪ g.support).filter (λ a, of_lex f a ≠ of_lex g a),
     cases dfug.eq_empty_or_nonempty,
@@ -75,16 +79,15 @@ noncomputable instance lex.linear_order [linear_order N] : linear_order (lex (α
   decidable_le := by { classical, apply_instance },
   ..lex.partial_order }
 
-lemma lex.le_of_forall_le [linear_order N]
-  {a b : lex (α →₀ N)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=
+lemma lex.le_of_forall_le {a b : lex (α →₀ N)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=
 le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
 
-lemma lex.le_of_of_lex_le [linear_order N]
-  {a b : lex (α →₀ N)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
+lemma lex.le_of_of_lex_le {a b : lex (α →₀ N)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
 lex.le_of_forall_le h
 
-lemma to_lex_monotone [linear_order N] :
-  monotone (@to_lex (α →₀ N)) :=
+lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 λ _ _, lex.le_of_forall_le
+
+end N_has_zero
 
 end finsupp

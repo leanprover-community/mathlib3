@@ -413,7 +413,7 @@ This definition is used to phrase the a.e. martingale convergence theorem
 `submartingale.ae_tendsto_limit_process` where an L¹-bounded submartingale `f` adapted to `ℱ`
 converges to `limit_process f ℱ μ` `μ`-almost everywhere. -/
 noncomputable
-def limit_process (f : ι → Ω → E) (ℱ : filtration ι m) (μ : measure Ω) :=
+def limit_process (f : ι → Ω → E) (ℱ : filtration ι m) (μ : measure Ω . volume_tac) :=
 if h : ∃ g : Ω → E, strongly_measurable[⨆ n, ℱ n] g ∧
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top (𝓝 (g ω)) then classical.some h else 0
 

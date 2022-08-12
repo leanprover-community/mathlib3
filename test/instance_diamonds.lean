@@ -170,6 +170,12 @@ example [comm_semiring R] [nontrivial R] :
   polynomial.has_smul_pi' _ _ _ = (polynomial.has_smul_pi _ _ : has_smul R[X] (R → R[X])) :=
 rfl
 
+/-- `polynomial.algebra_of_algebra` is consistent with `algebra_nat`. -/
+example [semiring R] : (polynomial.algebra_of_algebra : algebra ℕ R[X]) = algebra_nat := rfl
+
+/-- `polynomial.algebra_of_algebra` is consistent with `algebra_int`. -/
+example [ring R] : (polynomial.algebra_of_algebra : algebra ℤ R[X]) = algebra_int _ := rfl
+
 end polynomial
 
 /-! ## `subtype` instances -/

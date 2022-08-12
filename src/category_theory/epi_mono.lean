@@ -38,6 +38,7 @@ such that `f ≫ retraction f = 𝟙 X`.
 
 Every split monomorphism is a monomorphism.
 -/
+@[ext]
 class split_mono {X Y : C} (f : X ⟶ Y) :=
 (retraction : Y ⟶ X)
 (id' : f ≫ retraction = 𝟙 X . obviously)
@@ -49,6 +50,7 @@ such that `section_ f ≫ f = 𝟙 Y`.
 
 Every split epimorphism is an epimorphism.
 -/
+@[ext]
 class split_epi {X Y : C} (f : X ⟶ Y) :=
 (section_ : Y ⟶ X)
 (id' : section_ ≫ f = 𝟙 Y . obviously)

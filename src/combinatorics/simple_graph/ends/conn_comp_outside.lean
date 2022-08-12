@@ -27,23 +27,44 @@ namespace simple_graph
 variables  {V : Type u}
            (G : simple_graph V)
            [Gpc : preconnected G]
+           (K : finset V)
 
 section ends
 
-def conn_comp_outside (K : finset V) : Type u :=
+def conn_comp_outside : Type u :=
 ((⊤ : G.subgraph).delete_verts K).coe.connected_component
 
+def conn_comp_outside.to_vertex_set {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) :=
+  {v // connected_component_mk _ v = C}
+
 -- TODO: Define and prove theorems about infinite connected components
--- not working due to universe issues
--- def inf_conn_comp_outside (K : finset V) : Type u :=
---  {C : G.conn_comp_outside K // infinite C}
+def inf_conn_comp_outside :=
+ {C : G.conn_comp_outside K // infinite C.to_vertex_set}
 
-/- not necessary for proofs, but maybe useful for mathlib -/
-lemma simple_graph.induce_univ : G = (G.induce univ).spanning_coe := sorry
+def fin_conn_comp_outside :=
+  {C : G.conn_comp_outside K // finite C.to_vertex_set}
 
--- TODO: Define the boundary
+namespace conn_comp_outside
 
-lemma conn_comp_outside.finite [Glf : locally_finite G] [Gpc : preconnected G] (K : finset V) :
+
+def component_of (v : V) (hv : v ∉ K) :
+  conn_comp_outside G K := sorry
+
+-- TODO: Make an analog of the above function for any connected set.
+-- TODO: Show that the corresponding component contains the set.
+
+
+-- TODO: Define the boundary and related lemmas
+def bdry := {v : V | v ∉ K ∧ ∃ k ∈ K, G.adj v k}
+
+lemma bdry_finite [locally_finite G] : finite (bdry G K) := sorry
+
+/- This is the portion of the connected component that is a part of the boundary -/
+def border (C : conn_comp_outside G K) : set V := sorry
+
+-- TODO: Show that the boundary is precisely the union of all the borders.
+
+lemma finite_components [Glf : locally_finite G] [Gpc : preconnected G] (K : finset V) :
   fintype (conn_comp_outside G K) :=
 begin
   by_cases Knempty : K.nonempty,
@@ -64,7 +85,7 @@ begin
    }
 end
 
-lemma conn_comp_outside.nonempty (Ginf : (@set.univ V).infinite) (K : finset V) :
+lemma nonempty_components (Ginf : (@set.univ V).infinite) (K : finset V) :
   nonempty (conn_comp_outside G K) :=
 begin
   by_contradiction,
@@ -113,19 +134,22 @@ unique_of_exists_unique
      (exists_of_exists_unique (conn_comp_outside_back_unique G k (conn_comp_outside_back G h C))).some_spec)
   (classical.some_spec (exists_of_exists_unique (conn_comp_outside_back_unique G (k.trans h) C)))
 
+-- TODO: An infinite graph has at least one infinite connected component
+-- TODO: A locally finite graph has finitely many infinite connected components
 
 -- def ends_system := category_theory.functor.mk (conn_comp_outside G) (conn_comp_outside_back G)
 
-
+-- TODO: Mapping of connected sets under homomorphisms
 -- TODO: Show that components are preserved under isomorphisms
 
 -- Returns K ∪ (all finite connected components in the complement)
 def conn_comp_outside.extend_fin [Glf : locally_finite G] (K : finset V) : finset V := sorry
 
--- TODO: Build all the associated lemmas
+-- TODO: Build all the associated lemmas. Mainly prove that the resulting set of connected components are precisely the infinite connected components of the original graph.
 
 -- TODO: Prove lemmas about cofinite infinite components
 
+end conn_comp_outside
 
 end ends
 

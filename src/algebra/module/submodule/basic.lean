@@ -164,10 +164,14 @@ instance : inhabited p := ⟨0⟩
 instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
   has_smul S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 
-instance {S' : Type*} [has_smul S R] [has_smul S M] [has_smul S' R] [has_smul S' M] [has_smul S S']
+instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
+p.to_sub_mul_action.is_scalar_tower
+
+instance is_scalar_tower' {S' : Type*}
+  [has_smul S R] [has_smul S M] [has_smul S' R] [has_smul S' M] [has_smul S S']
   [is_scalar_tower S' R M] [is_scalar_tower S S' M] [is_scalar_tower S R M] :
   is_scalar_tower S S' p :=
-p.to_sub_mul_action.is_scalar_tower
+p.to_sub_mul_action.is_scalar_tower'
 
 instance
   [has_smul S R] [has_smul S M] [is_scalar_tower S R M]

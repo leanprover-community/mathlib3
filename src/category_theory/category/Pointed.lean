@@ -5,6 +5,8 @@ Authors: Yaël Dillies
 -/
 import category_theory.concrete_category.basic
 import category_theory.monoidal.category
+import category_theory.monoidal.of_chosen_finite_products
+import category_theory.limits.shapes.types
 
 /-!
 # The category of pointed types
@@ -47,6 +49,10 @@ instance : inhabited Pointed := ⟨of ((), ())⟩
 (to_fun : X → Y)
 (map_point : to_fun X.point = Y.point)
 
+instance fun_like (X Y : Pointed.{u}) : fun_like (Pointed.hom X Y) X (λ _, Y) :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' } }
+
 namespace hom
 
 /-- The identity morphism of `X : Pointed`. -/
@@ -88,8 +94,41 @@ instance monoidal_category : monoidal_category Pointed.{u} :=
   left_unitor := λ X, iso.mk (equiv.punit_prod _) rfl,
   right_unitor := λ X, iso.mk (equiv.prod_punit _) rfl }
 
+instance : symmetric_category Pointed.{u} := { braiding := λ X Y, iso.mk (equiv.prod_comm _ _) rfl }
+
+@[simp] lemma coe_tensor (X Y : Pointed) : ↥(X ⊗ Y) = (↥X × ↥Y) := rfl
 @[simp] lemma point_tensor (X Y : Pointed) : (X ⊗ Y).point = (X.point, Y.point) := rfl
 
+@[simp] lemma coe_unit : ↥(𝟙_ Pointed) = punit := rfl
+@[simp] lemma point_unit : (𝟙_ Pointed).point = () := rfl
+
+namespace monoidal_category
+variables {W X Y Z : Pointed.{u}}
+
+@[simp] lemma tensor_apply (f : W ⟶ X) (g : Y ⟶ Z) (p : W ⊗ Y) : (f ⊗ g) p = (f p.1, g p.2) :=
+rfl
+
+@[simp] lemma left_unitor_hom_apply {x : X} {p : punit} :
+  ((λ_ X).hom : (𝟙_ (Pointed.{u})) ⊗ X → X) (p, x) = x := rfl
+@[simp] lemma left_unitor_inv_apply {X : Pointed.{u}} {x : X} :
+  ((λ_ X).inv : X ⟶ (𝟙_ (Pointed.{u})) ⊗ X) x = (punit.star, x) := rfl
+
+@[simp] lemma right_unitor_hom_apply {X : Pointed.{u}} {x : X} {p : punit} :
+  ((ρ_ X).hom : X ⊗ (𝟙_ (Pointed.{u})) → X) (x, p) = x := rfl
+@[simp] lemma right_unitor_inv_apply {X : Pointed.{u}} {x : X} :
+  ((ρ_ X).inv : X ⟶ X ⊗ (𝟙_ (Pointed.{u}))) x = (x, punit.star) := rfl
+
+@[simp] lemma associator_hom_apply {X Y Z : Pointed.{u}} {x : X} {y : Y} {z : Z} :
+  ((α_ X Y Z).hom : (X ⊗ Y) ⊗ Z → X ⊗ (Y ⊗ Z)) ((x, y), z) = (x, (y, z)) := rfl
+@[simp] lemma associator_inv_apply {X Y Z : Pointed.{u}} {x : X} {y : Y} {z : Z} :
+  ((α_ X Y Z).inv : X ⊗ (Y ⊗ Z) → (X ⊗ Y) ⊗ Z) (x, (y, z)) = ((x, y), z) := rfl
+
+@[simp] lemma braiding_hom_apply {X Y : Pointed.{u}} {x : X} {y : Y} :
+  ((β_ X Y).hom : X ⊗ Y → Y ⊗ X) (x, y) = (y, x) := rfl
+@[simp] lemma braiding_inv_apply {X Y : Pointed.{u}} {x : X} {y : Y} :
+  ((β_ X Y).inv : Y ⊗ X → X ⊗ Y) (y, x) = (x, y) := rfl
+
+end monoidal_category
 end Pointed
 
 /-- `option` as a functor from types to pointed types. This is the free functor. -/

@@ -89,6 +89,7 @@ lemma subpresheaf.hom_of_le_ι  {G G' : subpresheaf F} (h : G ≤ G') :
   subpresheaf.hom_of_le h ≫ G'.ι = G.ι :=
 by { ext, refl }
 
+/-- If the image of a morphism falls in a subpresheaf, then the morphism factors through it. -/
 @[simps]
 def subpresheaf.lift (f : F' ⟶ F) (hf : ∀ U x, f.app U x ∈ G.obj U) : F' ⟶ G.to_presheaf :=
 { app := λ U x, ⟨f.app U x, hf U x⟩,
@@ -257,7 +258,7 @@ begin
   exact (presieve.is_sheaf_for.valid_glue _ _ _ hi).trans (this _ _)
 end
 
-lemma subpresheaf.to_sheafify_lift_unique (f : G.to_presheaf ⟶ F') (h : presieve.is_sheaf J F')
+lemma subpresheaf.to_sheafify_lift_unique (h : presieve.is_sheaf J F')
   (l₁ l₂ : (G.sheafify J).to_presheaf ⟶ F')
   (e : subpresheaf.hom_of_le (G.le_sheafify J) ≫ l₁ =
     subpresheaf.hom_of_le (G.le_sheafify J) ≫ l₂) : l₁ = l₂ :=

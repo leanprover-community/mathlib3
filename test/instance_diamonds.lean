@@ -49,24 +49,32 @@ open complex
 `algebra.tensor_product.tensor_product.semiring`. Given a commutative semiring `A` over a
 commutative semiring `R`, we get two mathematically different scalar actions of `A ⊗[R] A` on
 itself. -/
+def f : ℂ ⊗[ℝ] ℂ →ₗ[ℝ] ℝ :=
+tensor_product.lift
+{ to_fun    := λ z, z.re • re_lm,
+  map_add'  := λ z w, by simp [add_smul],
+  map_smul' := λ r z, by simp [mul_smul], }
+
+@[simp] lemma f_apply (z w : ℂ) : f (z ⊗ₜ[ℝ] w) = z.re * w.re := by simp [f]
+
+/- `tensor_product.algebra.module` forms a diamond with `has_mul.to_has_smul` and
+`algebra.tensor_product.tensor_product.semiring`. Given a commutative semiring `A` over a
+commutative semiring `R`, we get two mathematically different scalar actions of `A ⊗[R] A` on
+itself. -/
 example :
   has_mul.to_has_smul (ℂ ⊗[ℝ] ℂ) ≠
   (@tensor_product.algebra.module ℝ ℂ ℂ (ℂ ⊗[ℝ] ℂ) _ _ _ _ _ _ _ _ _ _ _ _).to_has_smul :=
 begin
-  have contra : I ⊗ₜ[ℝ] I ≠ (-1) ⊗ₜ[ℝ] 1,
-  { let f : ℂ ⊗[ℝ] ℂ →ₗ[ℝ] ℝ := tensor_product.lift
-      { to_fun    := λ z, z.re • re_lm,
-        map_add'  := λ z w, by simp only [add_smul, add_re],
-        map_smul' := λ r z, by simp only [mul_smul, real_smul, mul_re, of_real_re, of_real_im, zero_mul, tsub_zero, ring_hom.id_apply], },
-    exact λ c, by simpa only [tensor_product.lift.tmul, linear_map.coe_mk, I_re, zero_smul, linear_map.zero_apply, neg_re, one_re, neg_smul,
-  one_smul, linear_map.neg_apply, re_lm_coe, zero_eq_neg, one_ne_zero] using congr_arg ⇑f c, },
+  have contra : I ⊗ₜ[ℝ] I ≠ (-1) ⊗ₜ[ℝ] 1 := λ c, by simpa using congr_arg f c,
   contrapose! contra,
   rw has_smul.ext_iff at contra,
   replace contra := congr_fun (congr_fun contra (1 ⊗ₜ I)) (I ⊗ₜ 1),
-  rw tensor_product.algebra.smul_def (1 : ℂ) I (I ⊗ₜ[ℝ] (1 : ℂ)) at contra,
+  rw @tensor_product.algebra.smul_def ℝ ℂ ℂ (ℂ ⊗[ℝ] ℂ) _ _ _ _ _ _ _ _ _ _ _ _
+    (1 : ℂ) I (I ⊗ₜ[ℝ] (1 : ℂ)) at contra,
   simpa only [algebra.id.smul_eq_mul, algebra.tensor_product.tmul_mul_tmul, one_mul, mul_one,
     one_smul, tensor_product.smul_tmul', I_mul_I] using contra,
 end
+
 -/
 
 end tensor_product

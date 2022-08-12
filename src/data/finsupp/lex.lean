@@ -53,7 +53,7 @@ partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_li
 variable [linear_order N]
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
 noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
-{ le_total := to_lex.surjective.forall₂.2 $ λ f g : lex (α →₀ N), begin
+{ le_total := to_lex.surjective.forall₂.2 $ λ f g, begin
     let dfug : finset α := (f.support ∪ g.support).filter (λ a, of_lex f a ≠ of_lex g a),
     cases dfug.eq_empty_or_nonempty,
     { exact or.inl (finsupp.filter_ne_eq_empty_iff.mp h).le },

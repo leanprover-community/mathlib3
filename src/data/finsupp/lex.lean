@@ -33,10 +33,7 @@ variables [has_zero N]
 /-- The lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
   and `N` is ordered by `s`. -/
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
-∃ i, (∀ j, r j i → x j = y j) ∧ s (x i) (y i)
-
-lemma lex_eq_lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) :
-  finsupp.lex r s x y = pi.lex r (λ _, s) x y := rfl
+pi.lex r (λ _, s) x y
 
 instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) := ⟨finsupp.lex (<) (<)⟩
 

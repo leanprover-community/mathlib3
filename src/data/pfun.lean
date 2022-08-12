@@ -480,7 +480,16 @@ lemma get_prod_map (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
 
 lemma mem_prod_map {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
   y ∈ f.prod_map g x ↔ y.1 ∈ f x.1 ∧ y.2 ∈ g x.2 :=
-by { simp [prod_map], tidy }
+begin
+  transitivity ∃ hp hq, (f x.1).get hp = y.1 ∧ (g x.2).get hq = y.2,
+  { simp only [prod_map, part.mem_mk_iff, and.exists, prod.ext_iff] },
+  { simpa only [exists_and_distrib_left, exists_and_distrib_right] }
+end
+
+@[simp] lemma prod_lift_fst_comp_snd_comp (f : α →. γ) (g : β →. δ) :
+  prod_lift (f.comp ((prod.fst : α × β → α) : α × β →. α))
+    (g.comp ((prod.snd : α × β → β) : α × β →. β)) = prod_map f g :=
+ext $ λ a, by simp
 
 @[simp] lemma prod_map_id_id : (pfun.id α).prod_map (pfun.id β) = pfun.id _ :=
 ext $ λ _ _, by simp [eq_comm]

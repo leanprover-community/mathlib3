@@ -450,7 +450,7 @@ begin
     exact sin_nonneg_of_nonneg_of_le_pi h.le (to_real_le_pi θ) }
 end
 
-lemma sign_to_real {θ : angle} (h : θ ≠ π) : _root_.sign θ.to_real = θ.sign :=
+@[simp] lemma sign_to_real {θ : angle} (h : θ ≠ π) : _root_.sign θ.to_real = θ.sign :=
 begin
   rcases lt_trichotomy θ.to_real 0 with (ht|ht|ht),
   { simp [ht, to_real_neg_iff_sign_neg.1 ht] },

@@ -23,7 +23,7 @@ noncomputable theory
 variables (K : Type*) [field K]
 
 /-- A valuation subring of a field `K` is a subring `A` such that for every `x : K`,
-either `x ∈ A` or `x⁻¹ ∈ K`. -/
+either `x ∈ A` or `x⁻¹ ∈ A`. -/
 structure valuation_subring extends subring K :=
 (mem_or_inv_mem' : ∀ x : K, x ∈ carrier ∨ x⁻¹ ∈ carrier)
 

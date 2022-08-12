@@ -9,7 +9,7 @@ Linear algebra:
     vector subspace: 'subspace'
     quotient space: 'submodule.has_quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: 'direct_sum.submodule_is_internal'
+    direct sum: 'direct_sum.is_internal'
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
@@ -51,7 +51,7 @@ Linear algebra:
     Gaussian elimination: 'https://en.wikipedia.org/wiki/Gaussian_elimination'
     row-reduced matrices: 'https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form'
   Endomorphism polynomials:
-    annihilating polynomials: 'https://en.wikipedia.org/wiki/Minimal_polynomial_(linear_algebra)#Formal_definition'
+    annihilating polynomials: 'polynomial.ann_ideal'
     minimal polynomial: 'minpoly'
     characteristic polynomial: 'matrix.charpoly'
     Cayley-Hamilton theorem: 'matrix.aeval_self_charpoly'
@@ -71,7 +71,7 @@ Linear algebra:
     examples: ''
   Exponential:
     endomorphism exponential: ''
-    matrix exponential: 'https://en.wikipedia.org/wiki/Matrix_exponential'
+    matrix exponential: 'exp'
 
 # 2.
 Group Theory:
@@ -92,7 +92,7 @@ Group Theory:
     conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
-    finite type abelian groups: 'https://en.wikipedia.org/wiki/Finitely_generated_abelian_group#Classification'
+    finite type abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
     complex roots of unity: 'complex.mem_roots_of_unity'
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
@@ -219,8 +219,8 @@ Bilinear and Quadratic Forms Over a Vector Space:
     norm: 'inner_product_space.of_core.to_has_norm'
     orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
-    orthogonal group: ''
-    unitary group: ''
+    orthogonal group: 'matrix.orthogonal_group'
+    unitary group: 'matrix.unitary_group'
     special orthogonal group: ''
     special unitary group: ''
     self-adjoint endomorphism: 'inner_product_space.is_self_adjoint'
@@ -337,16 +337,15 @@ Single Variable Real Analysis:
     inverse hyperbolic trigonometric functions: 'real.arsinh'
   Integration:
     integral over a segment of piecewise continuous functions: ''
-    antiderivatives: 'https://en.wikipedia.org/wiki/Antiderivative'
     Riemann sums: 'box_integral.integral_sum'
-    antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
+    antiderivative of a continuous function: 'continuous.deriv_integral'
     change of variable: 'interval_integral.integral_comp_smul_deriv'
     integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
     improper integrals: 'https://en.wikipedia.org/wiki/Improper_integral'
     absolute vs conditional convergence of improper integrals: 'https://en.wikipedia.org/wiki/Conditional_convergence'
     comparison test for improper integrals: 'https://mathbooks.unl.edu/Calculus/sec-5-11-comparison.html'
   Sequences and series of functions:
-    pointwise convergence: 'https://en.wikipedia.org/wiki/Pointwise_convergence'
+    pointwise convergence: 'tendsto_pi_nhds'
     uniform convergence: 'tendsto_uniformly'
     normal convergence: 'https://en.wikipedia.org/wiki/Normal_convergence'
     continuity of the limit: 'continuous_of_uniform_approx_of_continuous'
@@ -371,7 +370,7 @@ Single Variable Complex Analysis:
     extension of trigonometric functions to the complex plane: 'complex.sin'
     power series expansion of elementary functions: ''
   Functions on one complex variable:
-    holomorphic functions: ''
+    holomorphic functions: 'differentiable_on'
     Cauchy-Riemann conditions: ''
     contour integrals of continuous functions in $\C$: ''
     antiderivatives of a holomorphic function: ''
@@ -379,10 +378,10 @@ Single Variable Complex Analysis:
     theorem of holomorphic functions under integral domains: ''
     winding number of a closed curve in $\C$ with respect to a point: ''
     Cauchy formulas: ''
-    analyticity of a holomorphic function: ''
+    analyticity of a holomorphic function: 'differentiable_on.analytic_at'
     principle of isolated zeros: ''
     principle of analytic continuation: ''
-    maximum principle: ''
+    maximum principle: 'complex.eventually_eq_of_is_local_max_norm'
     isolated singularities: ''
     Laurent series: ''
     meromorphic functions: ''
@@ -514,10 +513,11 @@ Measures and integral calculus:
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
-    change of variables to polar co-ordinates: ''
+    change of variables to polar co-ordinates: 'integral_comp_polar_coord_symm '
     change of variables to spherical co-ordinates: ''
-    convolution: ''
-    regularization and approximation by convolution: ''
+    convolution: 'convolution'
+    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: ''
     Riemann-Lebesgue lemma: ''
@@ -547,9 +547,10 @@ Probability Theory:
     probability density function: 'measure_theory.has_pdf'
     law of joint probability: ''
     independence of random variables: 'probability_theory.Indep_fun'
-    mean and variance of a real-valued random variable: ''
+    mean of a random variable: 'measure_theory.integral'
+    variance of a real-valued random variable: 'probability_theory.variance'
     transfer theorem: ''
-    moments: ''
+    moments: 'probability_theory.moment'
     Bernoulli law: 'pmf.bernoulli'
     binomial law: ''
     geometric law: ''
@@ -560,15 +561,15 @@ Probability Theory:
     characteristic function: ''
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
-  Convergence of series of random variables:
+  Convergence of a sequence of random variables:
     convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'
     Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
-    Tchebychev inequality: ''
+    Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
     Levy's theorem: ''
     weak law of large numbers: ''
-    strong law of large numbers: ''
+    strong law of large numbers: 'probability_theory.strong_law_ae'
     central limit theorem: ''
 
 # 12.
@@ -581,12 +582,14 @@ Distribution calculus:
     constructing approximations of probability density functions in spaces of common functions (trig, exp, rational, log, etc): ''
   Distributions on $\R^d$:
     definition of distributions: ''
-    locally integrable functions: ''
+    locally integrable functions as distributions: ''
+    derivative of a distribution: ''
     Dirac measures: ''
+    derivatives of Dirac measures: ''
+    derivative of the Heaviside function: ''
     Cauchy principal values: ''
     multiplication by a smooth function: ''
-    probability distribution function from a dataset: ''
-    convergent distribution series: ''
+    convergence of sequences of distributions: ''
     support of a distribution: ''
   Spaces $\mathcal{S}(\R^d)$:
     Schwartz space of rapidly decreasing functions: ''

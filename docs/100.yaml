@@ -109,6 +109,9 @@
   title  : Feuerbach’s Theorem
 30:
   title  : The Ballot Problem
+  author : Bhavik Mehta, Kexing Ying
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/30_ballot_problem.lean
 31:
   title  : Ramsey’s Theorem
   author : Bhavik Mehta
@@ -183,7 +186,10 @@
 53:
   title  : Pi is Transcendental
 54:
-  title  : Konigsberg Bridges Problem
+  title  : Königsberg Bridges Problem
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/54_konigsberg.lean
+  author : Kyle Miller
 55:
   title  : Product of Segments of Chords
   decl   : euclidean_geometry.mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi
@@ -203,6 +209,8 @@
   author : mathlib <!--Jeremy Avigad in lean 2-->
 59:
   title  : The Laws of Large Numbers
+  decl   : probability_theory.strong_law_ae
+  author : Sébastien Gouëzel
 60:
   title  : Bezout’s Theorem
   decl   : nat.gcd_eq_gcd_ab
@@ -211,6 +219,8 @@
   title  : Theorem of Ceva
 62:
   title  : Fair Games Theorem
+  decl   : measure_theory.submartingale_iff_expected_stopped_value_mono
+  author : Kexing Ying
 63:
   title  : Cantor’s Theorem
   decl   : cardinal.cantor
@@ -226,7 +236,7 @@
 66:
   title  : Sum of a Geometric Series
   decls  :
-    - geom_sum
+    - geom_sum_Ico
     - nnreal.has_sum_geometric
   author : Sander R. Dahmen (finite) and Johannes Hölzl (infinite)
 67:
@@ -383,6 +393,8 @@
   author : Anne Baanen
 98:
   title  : Bertrand’s Postulate
+  decl   : nat.bertrand
+  author : Bolton Bailey, Patrick Stevens
 99:
   title  : Buffon Needle Problem
 100:

@@ -3,11 +3,10 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import category_theory.concrete_category.bundled_hom
-import algebra.punit_instances
-import order.hom.basic
 import category_theory.category.Cat
 import category_theory.category.preorder
+import category_theory.concrete_category.bundled_hom
+import order.hom.basic
 
 /-!
 # Category of preorders
@@ -52,7 +51,7 @@ instance (α : Preorder) : preorder α := α.str
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : Preorder ⥤ Preorder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : Preorder ≌ Preorder :=

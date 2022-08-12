@@ -15,7 +15,8 @@ import linear_algebra.finsupp
 
 # Ideals over a ring
 
-This file defines `ideal R`, the type of ideals over a commutative ring `R`.
+This file defines `ideal R`, the type of (left) ideals over a ring `R`.
+Note that over commutative rings, left ideals and two-sided ideals are equivalent.
 
 ## Implementation notes
 
@@ -23,7 +24,7 @@ This file defines `ideal R`, the type of ideals over a commutative ring `R`.
 
 ## TODO
 
-Support one-sided ideals, and ideals over non-commutative rings.
+Support right ideals, and two-sided ideals over non-commutative rings.
 -/
 
 universes u v w
@@ -232,7 +233,7 @@ end
 
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/
-lemma maximal_of_no_maximal {R : Type u} [comm_semiring R] {P : ideal R}
+lemma maximal_of_no_maximal {R : Type u} [semiring R] {P : ideal R}
 (hmax : ∀ m : ideal R, P < m → ¬is_maximal m) (J : ideal R) (hPJ : P < J) : J = ⊤ :=
 begin
   by_contradiction hnonmax,

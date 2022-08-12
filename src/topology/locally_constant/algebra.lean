@@ -72,6 +72,29 @@ instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
 instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
 { .. locally_constant.mul_zero_class, .. locally_constant.mul_one_class }
 
+section char_fn
+
+variables (Y) [mul_zero_one_class Y] {U V : set X}
+
+/-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
+  where `U` is a clopen set, and `0` otherwise. -/
+noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y := indicator 1 hU
+
+lemma coe_char_fn (hU : is_clopen U) : (char_fn Y hU : X → Y) = set.indicator U 1 :=
+rfl
+
+lemma char_fn_eq_one [nontrivial Y] (x : X) (hU : is_clopen U) :
+  char_fn Y hU x = (1 : Y) ↔ x ∈ U := set.indicator_eq_one_iff_mem _
+
+lemma char_fn_eq_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
+  char_fn Y hU x = (0 : Y) ↔ x ∉ U := set.indicator_eq_zero_iff_not_mem _
+
+lemma char_fn_inj [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
+  (h : char_fn Y hU = char_fn Y hV) : U = V :=
+set.indicator_one_inj Y $ coe_inj.mpr h
+
+end char_fn
+
 @[to_additive] instance [has_div Y] : has_div (locally_constant X Y) :=
 { div := λ f g, ⟨f / g, f.is_locally_constant.div g.is_locally_constant⟩ }
 
@@ -97,6 +120,12 @@ instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
 { mul := (*),
   .. locally_constant.semigroup, .. locally_constant.mul_one_class }
 
+instance [add_monoid_with_one Y] : add_monoid_with_one (locally_constant X Y) :=
+{ nat_cast := λ n, const X n,
+  nat_cast_zero := by ext; simp [nat.cast],
+  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  .. locally_constant.add_monoid, .. locally_constant.has_one }
+
 @[to_additive] instance [comm_monoid Y] : comm_monoid (locally_constant X Y) :=
 { .. locally_constant.comm_semigroup, .. locally_constant.monoid }
 
@@ -121,7 +150,8 @@ instance [non_unital_semiring Y] : non_unital_semiring (locally_constant X Y) :=
 { .. locally_constant.semigroup, .. locally_constant.non_unital_non_assoc_semiring }
 
 instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
-{ .. locally_constant.mul_one_class, .. locally_constant.non_unital_non_assoc_semiring }
+{ .. locally_constant.mul_one_class, .. locally_constant.add_monoid_with_one,
+  .. locally_constant.non_unital_non_assoc_semiring }
 
 /-- The constant-function embedding, as a ring hom.  -/
 @[simps] def const_ring_hom [non_assoc_semiring Y] : Y →+* locally_constant X Y :=
@@ -130,8 +160,10 @@ instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
   .. const_add_monoid_hom, }
 
 instance [semiring Y] : semiring (locally_constant X Y) :=
-{ .. locally_constant.add_comm_monoid, .. locally_constant.monoid,
-  .. locally_constant.distrib, .. locally_constant.mul_zero_class }
+{ .. locally_constant.non_assoc_semiring, .. locally_constant.monoid }
+
+instance [non_unital_comm_semiring Y] : non_unital_comm_semiring (locally_constant X Y) :=
+{ .. locally_constant.non_unital_semiring, .. locally_constant.comm_semigroup }
 
 instance [comm_semiring Y] : comm_semiring (locally_constant X Y) :=
 { .. locally_constant.semiring, .. locally_constant.comm_monoid }
@@ -149,19 +181,22 @@ instance [non_assoc_ring Y] : non_assoc_ring (locally_constant X Y) :=
 instance [ring Y] : ring (locally_constant X Y) :=
 { .. locally_constant.semiring, .. locally_constant.add_comm_group }
 
+instance [non_unital_comm_ring Y] : non_unital_comm_ring (locally_constant X Y) :=
+{ .. locally_constant.non_unital_comm_semiring, .. locally_constant.non_unital_ring }
+
 instance [comm_ring Y] : comm_ring (locally_constant X Y) :=
 { .. locally_constant.comm_semiring, .. locally_constant.ring }
 
 variables {R : Type*}
 
-instance [has_scalar R Y] : has_scalar R (locally_constant X Y) :=
+instance [has_smul R Y] : has_smul R (locally_constant X Y) :=
 { smul := λ r f,
   { to_fun := r • f,
     is_locally_constant := ((is_locally_constant f).comp ((•) r) : _), } }
 
-@[simp] lemma coe_smul [has_scalar R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
+@[simp] lemma coe_smul [has_smul R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
 
-lemma smul_apply [has_scalar R Y] (r : R) (f : locally_constant X Y) (x : X) :
+lemma smul_apply [has_smul R Y] (r : R) (f : locally_constant X Y) (x : X) :
   (r • f) x = r • (f x) :=
 rfl
 

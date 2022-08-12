@@ -39,14 +39,12 @@ dif_neg h
 lemma pi.cons_swap {a a' : α} {b : δ a} {b' : δ a'} {m : multiset α} {f : Πa∈m, δ a} (h : a ≠ a') :
   pi.cons (a' ::ₘ m) a b (pi.cons m a' b' f) == pi.cons (a ::ₘ m) a' b' (pi.cons m a b f) :=
 begin
-  apply hfunext, { refl }, intros a'' _ h, subst h,
-  apply hfunext, { rw [cons_swap] }, intros ha₁ ha₂ h,
-  by_cases h₁ : a'' = a,
-  simp [*, pi.cons_same, pi.cons_ne] at *,
-  { subst h₁, rw [pi.cons_same, pi.cons_same] },
-  by_cases h₂ : a'' = a';
-    simp [*, pi.cons_same, pi.cons_ne] at *;
-    subst h₂; rw [pi.cons_same, pi.cons_same]
+  apply hfunext rfl,
+  rintro a'' _ rfl,
+  refine hfunext (by rw [cons_swap]) (λ ha₁ ha₂ _, _),
+  rcases ne_or_eq a'' a with h₁ | rfl,
+  rcases eq_or_ne a'' a' with rfl | h₂,
+  all_goals { simp [*, pi.cons_same, pi.cons_ne] },
 end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/

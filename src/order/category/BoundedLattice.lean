@@ -98,7 +98,7 @@ between them. -/
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : BoundedLattice ⥤ BoundedLattice :=
-{ obj := λ X, of (order_dual X), map := λ X Y, bounded_lattice_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, bounded_lattice_hom.dual }
 
 /-- The equivalence between `BoundedLattice` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : BoundedLattice ≌ BoundedLattice :=

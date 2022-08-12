@@ -3,10 +3,11 @@ Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
-import algebraic_geometry.prime_spectrum.noetherian
-import ring_theory.fractional_ideal
-import ring_theory.dedekind_domain.basic
 import algebra.algebra.subalgebra.pointwise
+import algebraic_geometry.prime_spectrum.noetherian
+import order.hom.basic
+import ring_theory.dedekind_domain.basic
+import ring_theory.fractional_ideal
 
 /-!
 # Dedekind domains and ideals
@@ -184,7 +185,7 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma one_inv : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
+@[simp] lemma inv_one : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
 fractional_ideal.div_one
 
 end fractional_ideal
@@ -211,7 +212,7 @@ begin
   let h := fractional_ideal.map_equiv (fraction_ring.alg_equiv A K),
   refine h.to_equiv.forall_congr (λ I, _),
   rw ← h.to_equiv.apply_eq_iff_eq,
-  simp
+  simp [is_dedekind_domain_inv, show ⇑h.to_equiv = h, from rfl],
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
@@ -428,7 +429,7 @@ lemma mul_inv_cancel_of_le_one [h : is_dedekind_domain A]
 begin
   -- Handle a few trivial cases.
   by_cases hI1 : I = ⊤,
-  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.one_inv] },
+  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.inv_one] },
   by_cases hNF : is_field A,
   { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
@@ -574,8 +575,8 @@ variables {R A} [is_dedekind_domain A] [algebra A K] [is_fraction_ring A K]
 open fractional_ideal
 open ideal
 
-noncomputable instance fractional_ideal.comm_group_with_zero :
-  comm_group_with_zero (fractional_ideal A⁰ K) :=
+noncomputable instance fractional_ideal.semifield :
+  semifield (fractional_ideal A⁰ K) :=
 { inv := λ I, I⁻¹,
   inv_zero := inv_zero' _,
   div := (/),
@@ -585,11 +586,23 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
 
-noncomputable instance ideal.cancel_comm_monoid_with_zero :
+/-- Fractional ideals have cancellative multiplication in a Dedekind domain.
+
+Although this instance is a direct consequence of the instance
+`fractional_ideal.comm_group_with_zero`, we define this instance to provide
+a computable alternative.
+-/
+instance fractional_ideal.cancel_comm_monoid_with_zero :
+  cancel_comm_monoid_with_zero (fractional_ideal A⁰ K) :=
+{ .. fractional_ideal.comm_semiring, -- Project out the computable fields first.
+  .. (by apply_instance : cancel_comm_monoid_with_zero (fractional_ideal A⁰ K)) }
+
+instance ideal.cancel_comm_monoid_with_zero :
   cancel_comm_monoid_with_zero (ideal A) :=
-function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
-  coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
-  (ring_hom.map_pow _)
+{ .. ideal.comm_semiring,
+  .. function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+    coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
+    (ring_hom.map_pow _) }
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=
@@ -644,7 +657,7 @@ instance ideal.unique_factorization_monoid :
    prime.irreducible⟩,
   .. ideal.wf_dvd_monoid }
 
-noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
+instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
 normalization_monoid_of_unique_units
 
 @[simp] lemma ideal.dvd_span_singleton {I : ideal A} {x : A} :
@@ -672,6 +685,13 @@ are exactly the prime ideals. -/
 theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
   prime P ↔ is_prime P :=
 ⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
+
+/-- In a Dedekind domain, the the prime ideals are the zero ideal together with the prime elements
+of the monoid with zero `ideal A`. -/
+theorem ideal.is_prime_iff_bot_or_prime {P : ideal A} :
+  is_prime P ↔ P = ⊥ ∨ prime P :=
+⟨λ hp, (eq_or_ne P ⊥).imp_right $ λ hp0, (ideal.prime_of_is_prime hp0 hp),
+ λ hp, hp.elim (λ h, h.symm ▸ ideal.bot_prime) ideal.is_prime_of_prime⟩
 
 lemma ideal.strict_anti_pow (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) :
   strict_anti ((^) I : ℕ → ideal A) :=
@@ -745,12 +765,6 @@ open multiset unique_factorization_monoid ideal
 lemma prod_normalized_factors_eq_self (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
-lemma normalized_factors_prod {α : multiset (ideal T)}
-  (h : ∀ p ∈ α, prime p) : normalized_factors α.prod = α :=
-by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
-     exact prime_factors_unique (prime_of_normalized_factor) h
-      (normalized_factors_prod (α.prod_ne_zero_of_prime h)) }
-
 lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
   count K (normalized_factors J) ≤ count K (normalized_factors I) :=
 le_iff_count.1 ((dvd_iff_normalized_factors_le_normalized_factors (ne_bot_of_le_ne_bot hI h) hI).1
@@ -761,7 +775,7 @@ lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
 begin
   have H : normalized_factors (normalized_factors I ∩ normalized_factors J).prod =
     normalized_factors I ∩ normalized_factors J,
-  { apply _root_.normalized_factors_prod,
+  { apply normalized_factors_prod_of_prime,
     intros p hp,
     rw mem_inter at hp,
     exact prime_of_normalized_factor p hp.left },
@@ -775,7 +789,7 @@ begin
     { rw [dvd_iff_normalized_factors_le_normalized_factors this hJ, H],
       exact inf_le_right } },
   { rw [← dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors,
-      _root_.normalized_factors_prod, le_iff_count],
+      normalized_factors_prod_of_prime, le_iff_count],
     { intro a,
       rw multiset.count_inter,
       exact le_min (count_le_of_ideal_ge le_sup_left hI a)
@@ -798,17 +812,17 @@ begin
   by_cases hI : I = ⊥,
   { simp [*] at *, },
   rw [irreducible_pow_sup hI hJ, min_eq_right],
-  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J] at hn
+  rwa [multiplicity_eq_count_normalized_factors hJ hI, part_enat.coe_le_coe, normalize_eq J] at hn
 end
 
 lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
-  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (enat.dom_of_le_coe hn) :=
+  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (part_enat.dom_of_le_coe hn) :=
 begin
   rw [irreducible_pow_sup hI hJ, min_eq_left],
   congr,
-  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
+  { rw [← part_enat.coe_inj, part_enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
     normalize_eq J] },
-  { rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
+  { rwa [multiplicity_eq_count_normalized_factors hJ hI, part_enat.coe_le_coe, normalize_eq J]
       at hn }
 end
 
@@ -829,7 +843,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[ext, nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_nonempty_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)
@@ -857,3 +871,246 @@ end
 end is_dedekind_domain
 
 end height_one_spectrum
+
+section
+
+open ideal
+
+variables {R} {A} [is_dedekind_domain A] {I : ideal R} {J : ideal A}
+
+/-- The map from ideals of `R` dividing `I` to the ideals of `A` dividing `J` induced by
+  a homomorphism `f : R/I →+* A/J` -/
+@[simps]
+def ideal_factors_fun_of_quot_hom {f : R ⧸ I →+* A ⧸ J} (hf : function.surjective f ) :
+  {p : ideal R | p ∣ I} →o {p : ideal A | p ∣ J} :=
+{ to_fun := λ X, ⟨comap J^.quotient.mk (map f (map I^.quotient.mk X)),
+    begin
+      have : (J^.quotient.mk).ker ≤ comap J^.quotient.mk (map f (map I^.quotient.mk X)),
+      { exact ker_le_comap J^.quotient.mk },
+      rw mk_ker at this,
+      exact dvd_iff_le.mpr this,
+    end ⟩,
+  monotone' :=
+    begin
+      rintros ⟨X, hX⟩ ⟨Y, hY⟩ h,
+      rw [← subtype.coe_le_coe, subtype.coe_mk, subtype.coe_mk] at h ⊢,
+      rw [subtype.coe_mk, comap_le_comap_iff_of_surjective J^.quotient.mk quotient.mk_surjective,
+        map_le_iff_le_comap, subtype.coe_mk, comap_map_of_surjective _ hf (map I^.quotient.mk Y)],
+      suffices : map I^.quotient.mk X ≤ map I^.quotient.mk Y,
+      { exact le_sup_of_le_left this },
+      rwa [map_le_iff_le_comap, comap_map_of_surjective I^.quotient.mk quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr $ le_of_dvd hY],
+    end }
+
+@[simp]
+lemma ideal_factors_fun_of_quot_hom_id :
+  ideal_factors_fun_of_quot_hom  (ring_hom.id (A ⧸ J)).is_surjective = order_hom.id :=
+order_hom.ext _ _ (funext $ λ X, by simp only [ideal_factors_fun_of_quot_hom, map_id,
+  order_hom.coe_fun_mk, order_hom.id_coe, id.def, comap_map_of_surjective J^.quotient.mk
+  quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot J^.quotient.mk, mk_ker, sup_eq_left.mpr
+  (dvd_iff_le.mp X.prop), subtype.coe_eta] )
+
+variables {B : Type*} [comm_ring B] [is_domain B] [is_dedekind_domain B] {L : ideal B}
+
+lemma ideal_factors_fun_of_quot_hom_comp {f : R ⧸ I →+* A ⧸ J}  {g : A ⧸ J →+* B ⧸ L}
+  (hf : function.surjective f) (hg : function.surjective g) :
+  (ideal_factors_fun_of_quot_hom hg).comp (ideal_factors_fun_of_quot_hom hf)
+    = ideal_factors_fun_of_quot_hom (show function.surjective (g.comp f), from hg.comp hf) :=
+begin
+  refine order_hom.ext _ _ (funext $ λ x, _),
+  rw [ideal_factors_fun_of_quot_hom, ideal_factors_fun_of_quot_hom, order_hom.comp_coe,
+    order_hom.coe_fun_mk, order_hom.coe_fun_mk, function.comp_app,
+    ideal_factors_fun_of_quot_hom,  order_hom.coe_fun_mk, subtype.mk_eq_mk, subtype.coe_mk,
+    map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_map],
+end
+
+variables [is_domain R] [is_dedekind_domain R]
+
+/-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
+  an isomorphism `f : R/I ≅ A/J`. -/
+@[simps]
+def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
+  {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
+order_iso.of_hom_inv
+  (ideal_factors_fun_of_quot_hom (show function.surjective
+    (f : R ⧸I →+* A ⧸ J), from f.surjective))
+    (ideal_factors_fun_of_quot_hom (show function.surjective
+    (f.symm : A ⧸J →+* R ⧸ I), from f.symm.surjective))
+  (by simp only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
+    ideal_factors_fun_of_quot_hom_comp, ← ring_equiv.to_ring_hom_eq_coe,
+    ← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_trans, ring_equiv.symm_trans_self,
+    ring_equiv.to_ring_hom_refl])
+  (by simp only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
+    ideal_factors_fun_of_quot_hom_comp, ← ring_equiv.to_ring_hom_eq_coe,
+    ← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_trans, ring_equiv.self_trans_symm,
+    ring_equiv.to_ring_hom_refl])
+
+end
+
+section chinese_remainder
+
+open ideal unique_factorization_monoid
+open_locale big_operators
+
+variables {R}
+
+lemma ring.dimension_le_one.prime_le_prime_iff_eq (h : ring.dimension_le_one R)
+  {P Q : ideal R} [hP : P.is_prime] [hQ : Q.is_prime] (hP0 : P ≠ ⊥) :
+  P ≤ Q ↔ P = Q :=
+⟨(h P hP0 hP).eq_of_le hQ.ne_top, eq.le⟩
+
+lemma ideal.coprime_of_no_prime_ge {I J : ideal R} (h : ∀ P, I ≤ P → J ≤ P → ¬ is_prime P) :
+  I ⊔ J = ⊤ :=
+begin
+  by_contra hIJ,
+  obtain ⟨P, hP, hIJ⟩ := ideal.exists_le_maximal _ hIJ,
+  exact h P (le_trans le_sup_left hIJ) (le_trans le_sup_right hIJ) hP.is_prime
+end
+
+section dedekind_domain
+
+variables {R} [is_domain R] [is_dedekind_domain R]
+
+lemma ideal.is_prime.mul_mem_pow (I : ideal R) [hI : I.is_prime] {a b : R} {n : ℕ}
+  (h : a * b ∈ I^n) : a ∈ I ∨ b ∈ I^n :=
+begin
+  cases n, { simp },
+  by_cases hI0 : I = ⊥, { simpa [pow_succ, hI0] using h },
+  simp only [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq, ← ideal.dvd_iff_le,
+    ← ideal.span_singleton_mul_span_singleton] at h ⊢,
+  by_cases ha : I ∣ span {a},
+  { exact or.inl ha },
+  rw mul_comm at h,
+  exact or.inr (prime.pow_dvd_of_dvd_mul_right ((ideal.prime_iff_is_prime hI0).mpr hI) _ ha h),
+end
+
+section
+
+open_locale classical
+
+lemma ideal.count_normalized_factors_eq {p x : ideal R} [hp : p.is_prime] {n : ℕ}
+  (hle : x ≤ p^n) (hlt : ¬ (x ≤ p^(n+1))) :
+  (normalized_factors x).count p = n :=
+count_normalized_factors_eq'
+  ((ideal.is_prime_iff_bot_or_prime.mp hp).imp_right prime.irreducible)
+  (by { haveI : unique (ideal R)ˣ := ideal.unique_units, apply normalize_eq })
+  (by convert ideal.dvd_iff_le.mpr hle) (by convert mt ideal.le_of_dvd hlt)
+/- Warning: even though a pure term-mode proof typechecks (the `by convert` can simply be
+  removed), it's slower to the point of a possible timeout. -/
+
+end
+
+lemma ideal.le_mul_of_no_prime_factors
+  {I J K : ideal R} (coprime : ∀ P, J ≤ P → K ≤ P → ¬ is_prime P) (hJ : I ≤ J) (hK : I ≤ K) :
+  I ≤ J * K :=
+begin
+  simp only [← ideal.dvd_iff_le] at coprime hJ hK ⊢,
+  by_cases hJ0 : J = 0,
+  { simpa only [hJ0, zero_mul] using hJ },
+  obtain ⟨I', rfl⟩ := hK,
+  rw mul_comm,
+  exact mul_dvd_mul_left K
+    (unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors hJ0
+      (λ P hPJ hPK, mt ideal.is_prime_of_prime (coprime P hPJ hPK))
+      hJ)
+end
+
+lemma ideal.le_of_pow_le_prime {I P : ideal R} [hP : P.is_prime] {n : ℕ} (h : I^n ≤ P) : I ≤ P :=
+begin
+  by_cases hP0 : P = ⊥,
+  { simp only [hP0, le_bot_iff] at ⊢ h,
+    exact pow_eq_zero h },
+  rw ← ideal.dvd_iff_le at ⊢ h,
+  exact ((ideal.prime_iff_is_prime hP0).mpr hP).dvd_of_dvd_pow h
+end
+
+lemma ideal.pow_le_prime_iff {I P : ideal R} [hP : P.is_prime] {n : ℕ} (hn : n ≠ 0) :
+  I^n ≤ P ↔ I ≤ P :=
+⟨ideal.le_of_pow_le_prime, λ h, trans (ideal.pow_le_self hn) h⟩
+
+lemma ideal.prod_le_prime {ι : Type*} {s : finset ι} {f : ι → ideal R} {P : ideal R}
+  [hP : P.is_prime] :
+  ∏ i in s, f i ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
+begin
+  by_cases hP0 : P = ⊥,
+  { simp only [hP0, le_bot_iff],
+    rw [← ideal.zero_eq_bot, finset.prod_eq_zero_iff] },
+  simp only [← ideal.dvd_iff_le],
+  exact ((ideal.prime_iff_is_prime hP0).mpr hP).dvd_finset_prod_iff _
+end
+
+/-- The intersection of distinct prime powers in a Dedekind domain is the product of these
+prime powers. -/
+lemma is_dedekind_domain.inf_prime_pow_eq_prod {ι : Type*}
+  (s : finset ι) (f : ι → ideal R) (e : ι → ℕ)
+  (prime : ∀ i ∈ s, prime (f i)) (coprime : ∀ i j ∈ s, i ≠ j → f i ≠ f j) :
+  s.inf (λ i, f i ^ e i) = ∏ i in s, f i ^ e i :=
+begin
+  letI := classical.dec_eq ι,
+  revert prime coprime,
+  refine s.induction _ _,
+  { simp },
+  intros a s ha ih prime coprime,
+  specialize ih (λ i hi, prime i (finset.mem_insert_of_mem hi))
+    (λ i hi j hj, coprime i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj)),
+  rw [finset.inf_insert, finset.prod_insert ha, ih],
+  refine le_antisymm (ideal.le_mul_of_no_prime_factors _ inf_le_left inf_le_right) ideal.mul_le_inf,
+  intros P hPa hPs hPp,
+  haveI := hPp,
+  obtain ⟨b, hb, hPb⟩ := ideal.prod_le_prime.mp hPs,
+  haveI := ideal.is_prime_of_prime (prime a (finset.mem_insert_self a s)),
+  haveI := ideal.is_prime_of_prime (prime b (finset.mem_insert_of_mem hb)),
+  refine coprime a (finset.mem_insert_self a s) b (finset.mem_insert_of_mem hb) _
+    (((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq _).mp
+        (ideal.le_of_pow_le_prime hPa)).trans
+      ((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq _).mp
+        (ideal.le_of_pow_le_prime hPb)).symm),
+  { unfreezingI { rintro rfl }, contradiction },
+  { exact (prime a (finset.mem_insert_self a s)).ne_zero },
+  { exact (prime b (finset.mem_insert_of_mem hb)).ne_zero },
+end
+
+/-- **Chinese remainder theorem** for a Dedekind domain: if the ideal `I` factors as
+`∏ i, P i ^ e i`, then `R ⧸ I` factors as `Π i, R ⧸ (P i ^ e i)`. -/
+noncomputable def is_dedekind_domain.quotient_equiv_pi_of_prod_eq {ι : Type*} [fintype ι]
+  (I : ideal R) (P : ι → ideal R) (e : ι → ℕ)
+  (prime : ∀ i, prime (P i)) (coprime : ∀ i j, i ≠ j → P i ≠ P j) (prod_eq : (∏ i, P i ^ e i) = I) :
+  R ⧸ I ≃+* Π i, R ⧸ (P i ^ e i) :=
+(ideal.quot_equiv_of_eq (by { simp only [← prod_eq, finset.inf_eq_infi, finset.mem_univ, cinfi_pos,
+  ← is_dedekind_domain.inf_prime_pow_eq_prod _ _ _ (λ i _, prime i) (λ i _ j _, coprime i j)] }))
+    .trans $
+ideal.quotient_inf_ring_equiv_pi_quotient _ (λ i j hij, ideal.coprime_of_no_prime_ge (begin
+  intros P hPi hPj hPp,
+  haveI := hPp,
+  haveI := ideal.is_prime_of_prime (prime i), haveI := ideal.is_prime_of_prime (prime j),
+  exact coprime i j hij
+    (((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq (prime i).ne_zero).mp
+      (ideal.le_of_pow_le_prime hPi)).trans
+    ((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq (prime j).ne_zero).mp
+     (ideal.le_of_pow_le_prime hPj)).symm)
+end))
+
+open_locale classical
+
+/-- **Chinese remainder theorem** for a Dedekind domain: `R ⧸ I` factors as `Π i, R ⧸ (P i ^ e i)`,
+where `P i` ranges over the prime factors of `I` and `e i` over the multiplicities. -/
+noncomputable def is_dedekind_domain.quotient_equiv_pi_factors {I : ideal R} (hI : I ≠ ⊥) :
+  R ⧸ I ≃+* Π (P : (factors I).to_finset), R ⧸ ((P : ideal R) ^ (factors I).count P) :=
+is_dedekind_domain.quotient_equiv_pi_of_prod_eq _ _ _
+  (λ (P : (factors I).to_finset), prime_of_factor _ (multiset.mem_to_finset.mp P.prop))
+  (λ i j hij, subtype.coe_injective.ne hij)
+  (calc ∏ (P : (factors I).to_finset), (P : ideal R) ^ (factors I).count (P : ideal R)
+      = ∏ P in (factors I).to_finset, P ^ (factors I).count P
+    : (factors I).to_finset.prod_coe_sort (λ P, P ^ (factors I).count P)
+  ... = ((factors I).map (λ P, P)).prod : (finset.prod_multiset_map_count (factors I) id).symm
+  ... = (factors I).prod : by rw multiset.map_id'
+  ... = I : (@associated_iff_eq (ideal R) _ ideal.unique_units _ _).mp (factors_prod hI))
+
+@[simp] lemma is_dedekind_domain.quotient_equiv_pi_factors_mk {I : ideal R} (hI : I ≠ ⊥)
+  (x : R) : is_dedekind_domain.quotient_equiv_pi_factors hI (ideal.quotient.mk I x) =
+    λ P, ideal.quotient.mk _ x :=
+rfl
+
+end dedekind_domain
+
+end chinese_remainder

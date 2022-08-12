@@ -44,8 +44,8 @@ variables (R S A B)
 If an element `r : R` is invertible in `S`, then it is invertible in `A`. -/
 def invertible.algebra_tower (r : R) [invertible (algebra_map R S r)] :
   invertible (algebra_map R A r) :=
-invertible.copy (invertible.map (algebra_map S A : S →* A) (algebra_map R S r)) (algebra_map R A r)
-  (by rw [ring_hom.coe_monoid_hom, is_scalar_tower.algebra_map_apply R S A])
+invertible.copy (invertible.map (algebra_map S A) (algebra_map R S r)) (algebra_map R A r)
+  (is_scalar_tower.algebra_map_apply R S A r)
 
 /-- A natural number that is invertible when coerced to `R` is also invertible
 when coerced to any `R`-algebra. -/
@@ -65,18 +65,10 @@ end is_scalar_tower
 
 namespace algebra
 
-theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
-  [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
-  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
-le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
-  (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
-
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] [algebra R A]
   [is_scalar_tower R S A] (s : set S) :
-  adjoin R (algebra_map S A '' s) =
-    subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
+  adjoin R (algebra_map S A '' s) = (adjoin R s).map (is_scalar_tower.to_alg_hom R S A) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
@@ -318,8 +310,7 @@ def alg_hom_equiv_sigma :
   right_inv :=
   begin
     rintros ⟨⟨f, _, _, _, _, _⟩, g, _, _, _, _, hg⟩,
-    have : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
-    subst this,
+    obtain rfl : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
     refl,
   end }
 

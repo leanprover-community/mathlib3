@@ -47,7 +47,7 @@ variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
 are prime and do not contain the irrelevant ideal.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def projective_spectrum :=
 {I : homogeneous_ideal 𝒜 // I.to_ideal.is_prime ∧ ¬(homogeneous_ideal.irrelevant 𝒜 ≤ I)}
 
@@ -130,19 +130,19 @@ lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum �
 variable (𝒜)
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_ideal : @galois_connection
-  (ideal A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (ideal A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t).to_ideal) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_set : @galois_connection
-  (set A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (set A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ s, zero_locus 𝒜 s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi A _).gc,
 by simpa [zero_locus_span, function.comp] using galois_connection.compose ideal_gc (gc_ideal 𝒜)
 
 lemma gc_homogeneous_ideal : @galois_connection
-  (homogeneous_ideal 𝒜) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (homogeneous_ideal 𝒜) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t)) :=
 λ I t, by simpa [show I.to_ideal ≤ (vanishing_ideal t).to_ideal ↔ I ≤ (vanishing_ideal t),
   from iff.rfl] using subset_zero_locus_iff_le_vanishing_ideal t I.to_ideal
@@ -392,8 +392,8 @@ topological_space.opens.ext $ set.ext $ λ z, begin
   split; intros hz,
   { rcases show ∃ i, graded_algebra.proj 𝒜 i f ∉ z.as_homogeneous_ideal, begin
       contrapose! hz with H,
-      haveI : Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0) := λ _, classical.dec_pred _,
-      rw ←graded_algebra.sum_support_decompose 𝒜 f,
+      classical,
+      rw ←direct_sum.sum_support_decompose 𝒜 f,
       apply ideal.sum_mem _ (λ i hi, H i)
     end with ⟨i, hi⟩,
     exact ⟨basic_open 𝒜 (graded_algebra.proj 𝒜 i f), ⟨i, rfl⟩, by rwa mem_basic_open⟩ },

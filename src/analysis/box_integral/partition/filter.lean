@@ -193,7 +193,7 @@ variables {l l₁ l₂ : integration_params}
 namespace integration_params
 
 /-- Auxiliary equivalence with a product type used to lift an order. -/
-def equiv_prod : integration_params ≃ bool × order_dual bool × order_dual bool :=
+def equiv_prod : integration_params ≃ bool × boolᵒᵈ × boolᵒᵈ :=
 { to_fun := λ l, ⟨l.1, order_dual.to_dual l.2, order_dual.to_dual l.3⟩,
   inv_fun := λ l, ⟨l.1, order_dual.of_dual l.2.1, order_dual.of_dual l.2.2⟩,
   left_inv := λ ⟨a, b, c⟩, rfl,
@@ -203,7 +203,7 @@ instance : partial_order integration_params :=
 partial_order.lift equiv_prod equiv_prod.injective
 
 /-- Auxiliary `order_iso` with a product type used to lift a `bounded_order` structure. -/
-def iso_prod : integration_params ≃o bool × order_dual bool × order_dual bool :=
+def iso_prod : integration_params ≃o bool × boolᵒᵈ × boolᵒᵈ :=
 ⟨equiv_prod, λ ⟨x, y, z⟩, iff.rfl⟩
 
 instance : bounded_order integration_params :=

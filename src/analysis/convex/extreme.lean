@@ -45,18 +45,18 @@ open set
 
 variables (𝕜 : Type*) {E : Type*}
 
-section has_scalar
-variables [ordered_semiring 𝕜] [add_comm_monoid E] [has_scalar 𝕜 E]
+section has_smul
+variables [ordered_semiring 𝕜] [add_comm_monoid E] [has_smul 𝕜 E]
 
 /-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
 segments whose ends are in `B`. -/
 def is_extreme (A B : set E) : Prop :=
-B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment 𝕜 x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
+B ⊆ A ∧ ∀ ⦃x₁⦄, x₁ ∈ A → ∀ ⦃x₂⦄, x₂ ∈ A → ∀ ⦃x⦄, x ∈ B → x ∈ open_segment 𝕜 x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
 /-- A point `x` is an extreme point of a set `A` if `x` belongs to no open segment with ends in
 `A`, except for the obvious `open_segment x x`. -/
 def set.extreme_points (A : set E) : set E :=
-{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment 𝕜 x₁ x₂ → x₁ = x ∧ x₂ = x}
+{x ∈ A | ∀ ⦃x₁⦄, x₁ ∈ A → ∀ ⦃x₂⦄, x₂ ∈ A → x ∈ open_segment 𝕜 x₁ x₂ → x₁ = x ∧ x₂ = x}
 
 @[refl] protected lemma is_extreme.refl (A : set E) :
   is_extreme 𝕜 A A :=
@@ -72,8 +72,8 @@ is_extreme.refl 𝕜 A
   is_extreme 𝕜 A C :=
 begin
   refine ⟨subset.trans hBC.1 hAB.1, λ x₁ hx₁A x₂ hx₂A x hxC hx, _⟩,
-  obtain ⟨hx₁B, hx₂B⟩ := hAB.2 x₁ hx₁A x₂ hx₂A x (hBC.1 hxC) hx,
-  exact hBC.2 x₁ hx₁B x₂ hx₂B x hxC hx,
+  obtain ⟨hx₁B, hx₂B⟩ := hAB.2 hx₁A hx₂A (hBC.1 hxC) hx,
+  exact hBC.2 hx₁B hx₂B hxC hx,
 end
 
 protected lemma is_extreme.antisymm :
@@ -89,25 +89,24 @@ lemma is_extreme.inter (hAB : is_extreme 𝕜 A B) (hAC : is_extreme 𝕜 A C) :
   is_extreme 𝕜 A (B ∩ C) :=
 begin
   use subset.trans (inter_subset_left _ _) hAB.1,
-  rintro x₁ x₂ hx₁A hx₂A x ⟨hxB, hxC⟩ hx,
-  obtain ⟨hx₁B, hx₂B⟩ := hAB.2 x₁ x₂ hx₁A hx₂A x hxB hx,
-  obtain ⟨hx₁C, hx₂C⟩ := hAC.2 x₁ x₂ hx₁A hx₂A x hxC hx,
+  rintro x₁ hx₁A x₂ hx₂A x ⟨hxB, hxC⟩ hx,
+  obtain ⟨hx₁B, hx₂B⟩ := hAB.2 hx₁A hx₂A hxB hx,
+  obtain ⟨hx₁C, hx₂C⟩ := hAC.2 hx₁A hx₂A hxC hx,
   exact ⟨⟨hx₁B, hx₁C⟩, hx₂B, hx₂C⟩,
 end
 
 protected lemma is_extreme.mono (hAC : is_extreme 𝕜 A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
   is_extreme 𝕜 B C :=
-⟨hCB, λ x₁ hx₁B x₂ hx₂B x hxC hx, hAC.2 x₁ (hBA hx₁B) x₂ (hBA hx₂B) x hxC hx⟩
+⟨hCB, λ x₁ hx₁B x₂ hx₂B x hxC hx, hAC.2 (hBA hx₁B) (hBA hx₂B) hxC hx⟩
 
 lemma is_extreme_Inter {ι : Type*} [nonempty ι] {F : ι → set E}
   (hAF : ∀ i : ι, is_extreme 𝕜 A (F i)) :
   is_extreme 𝕜 A (⋂ i : ι, F i) :=
 begin
   obtain i := classical.arbitrary ι,
-  use Inter_subset_of_subset i (hAF i).1,
-  rintro x₁ x₂ hx₁A hx₂A x hxF hx,
+  refine ⟨Inter_subset_of_subset i (hAF i).1, λ x₁ hx₁A x₂ hx₂A x hxF hx, _⟩,
   simp_rw mem_Inter at ⊢ hxF,
-  have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx,
+  have h := λ i, (hAF i).2 hx₁A hx₂A (hxF i) hx,
   exact ⟨λ i, (h i).1, λ i, (h i).2⟩,
 end
 
@@ -116,9 +115,9 @@ lemma is_extreme_bInter {F : set (set E)} (hF : F.nonempty)
   is_extreme 𝕜 A (⋂ B ∈ F, B) :=
 begin
   obtain ⟨B, hB⟩ := hF,
-  refine ⟨(bInter_subset_of_mem hB).trans (hAF B hB).1, λ x₁ x₂ hx₁A hx₂A x hxF hx, _⟩,
+  refine ⟨(bInter_subset_of_mem hB).trans (hAF B hB).1, λ x₁ hx₁A x₂ hx₂A x hxF hx, _⟩,
   simp_rw mem_Inter₂ at ⊢ hxF,
-  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
+  have h := λ B hB, (hAF B hB).2 hx₁A hx₂A (hxF B hB) hx,
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end
 
@@ -127,9 +126,9 @@ lemma is_extreme_sInter {F : set (set E)} (hF : F.nonempty)
   is_extreme 𝕜 A (⋂₀ F) :=
 begin
   obtain ⟨B, hB⟩ := hF,
-  refine ⟨(sInter_subset_of_mem hB).trans (hAF B hB).1, λ x₁ x₂ hx₁A hx₂A x hxF hx, _⟩,
+  refine ⟨(sInter_subset_of_mem hB).trans (hAF B hB).1, λ x₁ hx₁A x₂ hx₂A x hxF hx, _⟩,
   simp_rw mem_sInter at ⊢ hxF,
-  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
+  have h := λ B hB, (hAF B hB).2 hx₁A hx₂A (hxF B hB) hx,
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end
 
@@ -141,11 +140,11 @@ iff.rfl
 lemma mem_extreme_points_iff_extreme_singleton :
   x ∈ A.extreme_points 𝕜 ↔ is_extreme 𝕜 A {x} :=
 begin
-  refine ⟨_, λ hx, ⟨singleton_subset_iff.1 hx.1, λ x₁ x₂ hx₁ hx₂, hx.2 x₁ x₂ hx₁ hx₂ x rfl⟩⟩,
+  refine ⟨_, λ hx, ⟨singleton_subset_iff.1 hx.1, λ x₁ hx₁ x₂ hx₂, hx.2 hx₁ hx₂ rfl⟩⟩,
   rintro ⟨hxA, hAx⟩,
   use singleton_subset_iff.2 hxA,
-  rintro x₁ x₂ hx₁A hx₂A y (rfl : y = x),
-  exact hAx x₁ x₂ hx₁A hx₂A,
+  rintro x₁ hx₁A x₂ hx₂A y (rfl : y = x),
+  exact hAx hx₁A hx₂A,
 end
 
 lemma extreme_points_subset : A.extreme_points 𝕜 ⊆ A := λ x hx, hx.1
@@ -161,7 +160,7 @@ extreme_points_subset.antisymm $ singleton_subset_iff.2
 
 lemma inter_extreme_points_subset_extreme_points_of_subset (hBA : B ⊆ A) :
   B ∩ A.extreme_points 𝕜 ⊆ B.extreme_points 𝕜 :=
-λ x ⟨hxB, hxA⟩, ⟨hxB, λ x₁ hx₁ x₂ hx₂ hx, hxA.2 x₁ (hBA hx₁) x₂ (hBA hx₂) hx⟩
+λ x ⟨hxB, hxA⟩, ⟨hxB, λ x₁ hx₁ x₂ hx₂ hx, hxA.2 (hBA hx₁) (hBA hx₂) hx⟩
 
 lemma is_extreme.extreme_points_subset_extreme_points (hAB : is_extreme 𝕜 A B) :
   B.extreme_points 𝕜 ⊆ A.extreme_points 𝕜 :=
@@ -173,7 +172,7 @@ lemma is_extreme.extreme_points_eq (hAB : is_extreme 𝕜 A B) :
 subset.antisymm (λ x hx, ⟨hx.1, hAB.extreme_points_subset_extreme_points hx⟩)
   (inter_extreme_points_subset_extreme_points_of_subset hAB.1)
 
-end has_scalar
+end has_smul
 
 section ordered_semiring
 variables {𝕜} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E} {x : E}
@@ -181,7 +180,7 @@ variables {𝕜} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {A B
 lemma is_extreme.convex_diff (hA : convex 𝕜 A) (hAB : is_extreme 𝕜 A B) :
   convex 𝕜 (A \ B) :=
 convex_iff_open_segment_subset.2 (λ x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
-    ⟨hA.open_segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB.2 x₁ hx₁A x₂ hx₂A x hxB hx).1⟩)
+    ⟨hA.open_segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB.2 hx₁A hx₂A hxB hx).1⟩)
 
 end ordered_semiring
 
@@ -194,18 +193,14 @@ that contain it are those with `x` as one of their endpoints. -/
 lemma mem_extreme_points_iff_forall_segment :
   x ∈ A.extreme_points 𝕜 ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment 𝕜 x₁ x₂ → x₁ = x ∨ x₂ = x :=
 begin
+  refine and_congr_right (λ hxA, forall₄_congr $ λ x₁ h₁ x₂ h₂, _),
   split,
-  { rintro ⟨hxA, hAx⟩,
-    use hxA,
-    rintro x₁ hx₁ x₂ hx₂ hx,
-    by_contra' h,
-    exact h.1 (hAx _ hx₁ _ hx₂ (mem_open_segment_of_ne_left_right 𝕜 h.1 h.2 hx)).1 },
-  rintro ⟨hxA, hAx⟩,
-  use hxA,
-  rintro x₁ x₂ hx₁ hx₂ hx,
-  obtain rfl | rfl := hAx x₁ x₂ hx₁ hx₂ (open_segment_subset_segment 𝕜 _ _ hx),
-  { exact ⟨rfl, (left_mem_open_segment_iff.1 hx).symm⟩ },
-  exact ⟨right_mem_open_segment_iff.1 hx, rfl⟩,
+  { rw ← insert_endpoints_open_segment,
+    rintro H (rfl|rfl|hx),
+    exacts [or.inl rfl, or.inr rfl, or.inl $ (H hx).1] },
+  { intros H hx,
+    rcases H (open_segment_subset_segment _ _ _ hx) with rfl | rfl,
+    exacts [⟨rfl, (left_mem_open_segment_iff.1 hx).symm⟩, ⟨right_mem_open_segment_iff.1 hx, rfl⟩] }
 end
 
 lemma convex.mem_extreme_points_iff_convex_diff (hA : convex 𝕜 A) :

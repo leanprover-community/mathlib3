@@ -76,7 +76,7 @@ lemma zero_locus_vanishing_ideal_le (V : set (σ → k)) :
 λ V hV p hp, hp V hV
 
 theorem zero_locus_vanishing_ideal_galois_connection :
-  @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
+  @galois_connection (ideal (mv_polynomial σ k)) (set (σ → k))ᵒᵈ _ _
     zero_locus vanishing_ideal :=
 λ I V, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
   λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le V)⟩
@@ -148,8 +148,7 @@ begin
   intros p hp,
   rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
   rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,
-  convert (trans (congr_arg ϕ hp) ϕ.map_zero),
-  simp only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, hx],
+  simpa only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, ϕ.map_zero, hx] using congr_arg ϕ hp,
 end
 
 /-- Main statement of the Nullstellensatz -/

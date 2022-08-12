@@ -242,7 +242,7 @@ begin
   intros k hk,
   rw [finset.mem_range, nat.lt_succ_iff] at hk,
   simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
-    ← int.nat_cast_eq_coe_nat, ← nat.cast_pow],
+    ← nat.cast_pow],
   rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),
   { rw [← pow_add, ←add_assoc], congr' 2, rw [add_comm, ←tsub_eq_iff_eq_add_of_le hk] },
   rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
@@ -252,7 +252,7 @@ begin
   rw [pow_mul],
   -- the machine!
   apply dvd_sub_pow_of_dvd_sub,
-  rw [← C_eq_coe_nat, int.nat_cast_eq_coe_nat, C_dvd_iff_zmod, ring_hom.map_sub,
+  rw [← C_eq_coe_nat, C_dvd_iff_zmod, ring_hom.map_sub,
       sub_eq_zero, map_expand, ring_hom.map_pow, mv_polynomial.expand_zmod],
 end
 
@@ -345,12 +345,12 @@ lemma constant_coeff_witt_structure_rat_zero (Φ : mv_polynomial idx ℚ) :
   constant_coeff (witt_structure_rat p Φ 0) = constant_coeff Φ :=
 by simp only [witt_structure_rat, bind₁, map_aeval, X_in_terms_of_W_zero, constant_coeff_rename,
   constant_coeff_witt_polynomial, aeval_X, constant_coeff_comp_algebra_map,
-  eval₂_hom_zero', ring_hom.id_apply]
+  eval₂_hom_zero'_apply, ring_hom.id_apply]
 
 lemma constant_coeff_witt_structure_rat (Φ : mv_polynomial idx ℚ)
   (h : constant_coeff Φ = 0) (n : ℕ) :
   constant_coeff (witt_structure_rat p Φ n) = 0 :=
-by simp only [witt_structure_rat, eval₂_hom_zero', h, bind₁, map_aeval, constant_coeff_rename,
+by simp only [witt_structure_rat, eval₂_hom_zero'_apply, h, bind₁, map_aeval, constant_coeff_rename,
   constant_coeff_witt_polynomial, constant_coeff_comp_algebra_map, ring_hom.id_apply,
   constant_coeff_X_in_terms_of_W]
 

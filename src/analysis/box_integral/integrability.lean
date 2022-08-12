@@ -22,7 +22,7 @@ open_locale classical nnreal ennreal topological_space big_operators
 
 universes u v
 
-variables {ι : Type u} {E : Type v} [fintype ι] [normed_group E] [normed_space ℝ E]
+variables {ι : Type u} {E : Type v} [fintype ι] [normed_add_comm_group E] [normed_space ℝ E]
 
 open measure_theory metric set finset filter box_integral
 
@@ -273,7 +273,9 @@ begin
       from λ J hJ, (π.mem_filter.1 hJ).2,
     have hrn : ∀ J ∈ π.filter (λ J, Nx (π.tag J) = n),
       r c (π.tag J) = (hfi' n).convergence_r (δ n) c (π.tag J),
-    { intros J hJ, have := hNxn J hJ, clear hJ, subst n },
+    { intros J hJ,
+      obtain rfl := hNxn J hJ,
+      refl },
     have : l.mem_base_set I c ((hfi' n).convergence_r (δ n) c) (π.filter (λ J, Nx (π.tag J) = n)),
       from (hπ.filter _).mono' _ le_rfl le_rfl (λ J hJ, (hrn J hJ).le),
     convert (hfi' n).dist_integral_sum_sum_integral_le_of_mem_base_set (δ0 _) this using 2,

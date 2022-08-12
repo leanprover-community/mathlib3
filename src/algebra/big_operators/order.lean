@@ -161,7 +161,7 @@ end
 
 @[to_additive sum_eq_zero_iff_of_nonneg]
 lemma prod_eq_one_iff_of_le_one' : (∀ i ∈ s, f i ≤ 1) → (∏ i in s, f i = 1 ↔ ∀ i ∈ s, f i = 1) :=
-@prod_eq_one_iff_of_one_le' _ (order_dual N) _ _ _
+@prod_eq_one_iff_of_one_le' _ Nᵒᵈ _ _ _
 
 @[to_additive single_le_sum]
 lemma single_le_prod' (hf : ∀ i ∈ s, 1 ≤ f i) {a} (h : a ∈ s) : f a ≤ (∏ x in s, f x) :=
@@ -181,7 +181,7 @@ end
 @[to_additive card_nsmul_le_sum]
 lemma pow_card_le_prod (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
-@finset.prod_le_pow_card _ (order_dual N) _ _ _ _ h
+@finset.prod_le_pow_card _ Nᵒᵈ _ _ _ _ h
 
 lemma card_bUnion_le_card_mul [decidable_eq β] (s : finset ι) (f : ι → finset β) (n : ℕ)
   (h : ∀ a ∈ s, (f a).card ≤ n) :
@@ -204,7 +204,7 @@ calc (∏ y in t, ∏ x in s.filter (λ x, g x = y), f x) ≤
 lemma prod_le_prod_fiberwise_of_prod_fiber_le_one' {t : finset ι'}
   {g : ι → ι'} {f : ι → N} (h : ∀ y ∉ t, (∏ x in s.filter (λ x, g x = y), f x) ≤ 1) :
   (∏ x in s, f x) ≤ ∏ y in t, ∏ x in s.filter (λ x, g x = y), f x :=
-@prod_fiberwise_le_prod_of_one_le_prod_fiber' _ (order_dual N) _ _ _ _ _ _ _ h
+@prod_fiberwise_le_prod_of_one_le_prod_fiber' _ Nᵒᵈ _ _ _ _ _ _ _ h
 
 end ordered_comm_monoid
 

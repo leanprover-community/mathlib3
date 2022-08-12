@@ -53,6 +53,12 @@ lemma mk_mem_prod (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := ⟨ha, 
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
+@[simp] lemma prod_self_subset_prod_self : s₁ ×ˢ s₁ ⊆ s₂ ×ˢ s₂ ↔ s₁ ⊆ s₂ :=
+⟨λ h x hx, (h (mk_mem_prod hx hx)).1, λ h x hx, ⟨h hx.1, h hx.2⟩⟩
+
+@[simp] lemma prod_self_ssubset_prod_self : s₁ ×ˢ s₁ ⊂ s₂ ×ˢ s₂ ↔ s₁ ⊂ s₂ :=
+and_congr prod_self_subset_prod_self $ not_congr prod_self_subset_prod_self
+
 lemma prod_subset_iff {P : set (α × β)} : s ×ˢ t ⊆ P ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
 ⟨λ h _ hx _ hy, h (mk_mem_prod hx hy), λ h ⟨_, _⟩ hp, h _ hp.1 _ hp.2⟩
 
@@ -193,20 +199,20 @@ by { rintro _ ⟨a, ha, rfl⟩, exact ⟨ha, hb⟩ }
 lemma image_prod_mk_subset_prod_right (ha : a ∈ s) : prod.mk a '' t ⊆ s ×ˢ t :=
 by { rintro _ ⟨b, hb, rfl⟩, exact ⟨ha, hb⟩ }
 
-lemma fst_image_prod_subset (s : set α) (t : set β) : prod.fst '' s ×ˢ t ⊆ s :=
-λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
-
 lemma prod_subset_preimage_fst (s : set α) (t : set β) : s ×ˢ t ⊆ prod.fst ⁻¹' s :=
-image_subset_iff.1 (fst_image_prod_subset s t)
+inter_subset_left _ _
+
+lemma fst_image_prod_subset (s : set α) (t : set β) : prod.fst '' s ×ˢ t ⊆ s :=
+image_subset_iff.2 $ prod_subset_preimage_fst s t
 
 lemma fst_image_prod (s : set β) {t : set α} (ht : t.nonempty) : prod.fst '' s ×ˢ t = s :=
 (fst_image_prod_subset _ _).antisymm $ λ y hy, let ⟨x, hx⟩ := ht in ⟨(y, x), ⟨hy, hx⟩, rfl⟩
 
-lemma snd_image_prod_subset (s : set α) (t : set β) : prod.snd '' s ×ˢ t ⊆ t :=
-λ _ h, let ⟨_, ⟨_, h₂⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
-
 lemma prod_subset_preimage_snd (s : set α) (t : set β) : s ×ˢ t ⊆ prod.snd ⁻¹' t :=
-image_subset_iff.1 (snd_image_prod_subset s t)
+inter_subset_right _ _
+
+lemma snd_image_prod_subset (s : set α) (t : set β) : prod.snd '' s ×ˢ t ⊆ t :=
+image_subset_iff.2 $ prod_subset_preimage_snd s t
 
 lemma snd_image_prod {s : set α} (hs : s.nonempty) (t : set β) : prod.snd '' s ×ˢ t = t :=
 (snd_image_prod_subset _ _).antisymm $ λ y y_in, let ⟨x, x_in⟩ := hs in ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
@@ -231,15 +237,37 @@ begin
     exact prod_mono H.1 H.2 }
 end
 
+lemma prod_eq_prod_iff_of_nonempty (h : (s ×ˢ t : set _).nonempty) :
+  s ×ˢ t = s₁ ×ˢ t₁ ↔ s = s₁ ∧ t = t₁ :=
+begin
+  split,
+  { intro heq,
+    have h₁ : (s₁ ×ˢ t₁ : set _).nonempty, { rwa [← heq] },
+    rw [prod_nonempty_iff] at h h₁,
+    rw [← fst_image_prod s h.2, ← fst_image_prod s₁ h₁.2, heq, eq_self_iff_true, true_and,
+        ← snd_image_prod h.1 t, ← snd_image_prod h₁.1 t₁, heq] },
+  { rintro ⟨rfl, rfl⟩, refl }
+end
+
+lemma prod_eq_prod_iff : s ×ˢ t = s₁ ×ˢ t₁ ↔ s = s₁ ∧ t = t₁ ∨ (s = ∅ ∨ t = ∅) ∧
+  (s₁ = ∅ ∨ t₁ = ∅) :=
+begin
+  symmetry,
+  cases eq_empty_or_nonempty (s ×ˢ t) with h h,
+  { simp_rw [h, @eq_comm _ ∅, prod_eq_empty_iff, prod_eq_empty_iff.mp h, true_and,
+      or_iff_right_iff_imp],
+    rintro ⟨rfl, rfl⟩, exact prod_eq_empty_iff.mp h },
+  rw [prod_eq_prod_iff_of_nonempty h],
+  rw [← ne_empty_iff_nonempty, ne.def, prod_eq_empty_iff] at h,
+  simp_rw [h, false_and, or_false],
+end
+
 @[simp] lemma prod_eq_iff_eq (ht : t.nonempty) : s ×ˢ t = s₁ ×ˢ t ↔ s = s₁ :=
 begin
-  obtain ⟨b, hb⟩ := ht,
-  split,
-  { simp only [set.ext_iff],
-    intros h a,
-    simpa [hb, set.mem_prod] using h (a, b) },
-  { rintros rfl,
-    refl },
+  simp_rw [prod_eq_prod_iff, ht.ne_empty, eq_self_iff_true, and_true, or_iff_left_iff_imp,
+    or_false],
+  rintro ⟨rfl, rfl⟩,
+  refl,
 end
 
 @[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' s ×ˢ t = image2 f s t :=
@@ -247,23 +275,59 @@ set.ext $ λ a,
 ⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },
   by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
 
+@[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
+
+section mono
+
+variables [preorder α] {f : α → set β} {g : α → set γ}
+
+theorem _root_.monotone.set_prod (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ×ˢ g x) :=
+λ a b h, prod_mono (hf h) (hg h)
+
+theorem _root_.antitone.set_prod (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ×ˢ g x) :=
+λ a b h, prod_mono (hf h) (hg h)
+
+theorem _root_.monotone_on.set_prod (hf : monotone_on f s) (hg : monotone_on g s) :
+  monotone_on (λ x, f x ×ˢ g x) s :=
+λ a ha b hb h, prod_mono (hf ha hb h) (hg ha hb h)
+
+theorem _root_.antitone_on.set_prod (hf : antitone_on f s) (hg : antitone_on g s) :
+  antitone_on (λ x, f x ×ˢ g x) s :=
+λ a ha b hb h, prod_mono (hf ha hb h) (hg ha hb h)
+
+end mono
+
 end prod
 
-/-! ### Diagonal -/
+/-! ### Diagonal
+
+In this section we prove some lemmas about the diagonal set `{p | p.1 = p.2}` and the diagonal map
+`λ x, (x, x)`.
+-/
 
 section diagonal
-variables {α : Type*}
+variables {α : Type*} {s t : set α}
 
 /-- `diagonal α` is the set of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 
-@[simp] lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
+lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
+
+@[simp] lemma mem_diagonal_iff {x : α × α} : x ∈ diagonal α ↔ x.1 = x.2 := iff.rfl
 
 lemma preimage_coe_coe_diagonal (s : set α) : (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
 by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
 
-lemma diagonal_eq_range : diagonal α = range (λ x, (x, x)) :=
+@[simp] lemma range_diag : range (λ x, (x, x)) = diagonal α :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
+
+@[simp] lemma prod_subset_compl_diagonal_iff_disjoint : s ×ˢ t ⊆ (diagonal α)ᶜ ↔ disjoint s t :=
+subset_compl_comm.trans $ by simp_rw [← range_diag, range_subset_iff,
+  disjoint_left, mem_compl_iff, prod_mk_mem_set_prod_eq, not_and]
+
+@[simp] lemma diag_preimage_prod (s t : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ t) = s ∩ t := rfl
+
+lemma diag_preimage_prod_self (s : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ s) = s := inter_self s
 
 end diagonal
 
@@ -344,6 +408,9 @@ by { ext, simp [pi] }
 
 lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t i} := singleton_pi i t
 
+lemma univ_pi_singleton (f : Π i, α i) : pi univ (λ i, {f i}) = ({f} : set (Π i, α i)) :=
+ext $ λ g, by simp [funext_iff]
+
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=
 begin
@@ -382,17 +449,19 @@ lemma univ_pi_update_univ [decidable_eq ι] (i : ι) (s : set (α i)) :
   pi univ (update (λ j : ι, (univ : set (α j))) i s) = eval i ⁻¹' s :=
 by rw [univ_pi_update i (λ j, (univ : set (α j))) s (λ j t, t), pi_univ, inter_univ, preimage]
 
+lemma eval_image_pi_subset (hs : i ∈ s) : eval i '' s.pi t ⊆ t i :=
+image_subset_iff.2 $ λ f hf, hf i hs
+
+lemma eval_image_univ_pi_subset : eval i '' pi univ t ⊆ t i :=
+eval_image_pi_subset (mem_univ i)
+
 lemma eval_image_pi (hs : i ∈ s) (ht : (s.pi t).nonempty) : eval i '' s.pi t = t i :=
 begin
+  refine (eval_image_pi_subset hs).antisymm _,
   classical,
-  ext x,
   obtain ⟨f, hf⟩ := ht,
-  refine ⟨_, λ hg, ⟨update f i x, λ j hj, _, by simp⟩⟩,
-  { rintro ⟨g, hg, rfl⟩,
-    exact hg i hs },
-  { obtain rfl | hji := eq_or_ne j i,
-    { simp [hg] },
-    { rw [mem_pi] at hf, simp [hji, hf _ hj] } }
+  refine λ y hy, ⟨update f i y, λ j hj, _, update_same _ _ _⟩,
+  obtain rfl | hji := eq_or_ne j i; simp [*, hf _ hj]
 end
 
 @[simp] lemma eval_image_univ_pi (ht : (pi univ t).nonempty) :

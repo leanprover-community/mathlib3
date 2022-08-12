@@ -59,19 +59,45 @@ structure language :=
 (functions : ℕ → Type u) (relations : ℕ → Type v)
 
 /-- Used to define `first_order.language₂`. -/
-def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
+@[simp] def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
 | 0 := a₀
 | 1 := a₁
 | 2 := a₂
 | _ := pempty
 
-instance {a₀ a₁ a₂ : Type u} [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+namespace sequence₂
+
+variables (a₀ a₁ a₂ : Type u)
+
+instance inhabited₀ [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+
+instance inhabited₁ [h : inhabited a₁] : inhabited (sequence₂ a₀ a₁ a₂ 1) := h
+
+instance inhabited₂ [h : inhabited a₂] : inhabited (sequence₂ a₀ a₁ a₂ 2) := h
+
+instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
+
+@[simp] lemma lift_mk {i : ℕ} :
+  cardinal.lift (# (sequence₂ a₀ a₁ a₂ i)) = # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) :=
+begin
+  rcases i with (_ | _ | _ | i);
+  simp only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
+end
+
+@[simp] lemma sum_card :
+  cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
+begin
+  rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
+  simp [add_assoc],
+end
+
+end sequence₂
 
 namespace language
 
 /-- A constructor for languages with only constants, unary and binary functions, and
 unary and binary relations. -/
-protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
+@[simps] protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
 ⟨sequence₂ c f₁ f₂, sequence₂ pempty r₁ r₂⟩
 
 /-- The empty language has no symbols. -/
@@ -86,18 +112,22 @@ protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language :=
 variable (L : language.{u v})
 
 /-- The type of constants in a given language. -/
-@[nolint has_inhabited_instance] protected def «constants» := L.functions 0
+@[nolint has_nonempty_instance] protected def «constants» := L.functions 0
+
+@[simp] lemma constants_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).constants = c :=
+rfl
 
 /-- The type of symbols in a given language. -/
-@[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
+@[nolint has_nonempty_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
 
 /-- The cardinality of a language is the cardinality of its type of symbols. -/
 def card : cardinal := # L.symbols
 
 /-- A language is countable when it has countably many symbols. -/
-class countable : Prop := (card_le_omega' : L.card ≤ ω)
+class countable : Prop := (card_le_aleph_0' : L.card ≤ ℵ₀)
 
-lemma card_le_omega [L.countable] : L.card ≤ ω := countable.card_le_omega'
+lemma card_le_aleph_0 [L.countable] : L.card ≤ ℵ₀ := countable.card_le_aleph_0'
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -108,18 +138,17 @@ class is_algebraic : Prop :=
 (empty_relations : ∀ n, is_empty (L.relations n))
 
 /-- A language is countable when it has countably many symbols. -/
-class countable_functions : Prop := (card_functions_le_omega' : # (Σl, L.functions l) ≤ ω)
+class countable_functions : Prop := (card_functions_le_aleph_0' : # (Σ l, L.functions l) ≤ ℵ₀)
 
-lemma card_functions_le_omega [L.countable_functions] :
-  # (Σl, L.functions l) ≤ ω :=
-countable_functions.card_functions_le_omega'
+lemma card_functions_le_aleph_0 [L.countable_functions] : #(Σ l, L.functions l) ≤ ℵ₀ :=
+countable_functions.card_functions_le_aleph_0'
 
 variables {L} {L' : language.{u' v'}}
 
 lemma card_eq_card_functions_add_card_relations :
-  L.card = cardinal.lift.{v} (# (Σl, L.functions l)) +
-    cardinal.lift.{u} (# (Σl, L.relations l)) :=
-by rw [card, symbols, mk_sum]
+  L.card = cardinal.sum (λ l, (cardinal.lift.{v} (#(L.functions l)))) +
+    cardinal.sum (λ l, cardinal.lift.{u} (#(L.relations l))) :=
+by simp [card, symbols]
 
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
@@ -165,32 +194,51 @@ instance subsingleton_mk₂_relations {c f₁ f₂ : Type u} {r₁ r₂ : Type v
 nat.cases_on n ⟨λ x, pempty.elim x⟩
   (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
 
-lemma encodable.countable [h : encodable L.symbols] :
-  L.countable :=
+lemma encodable.countable [h : encodable L.symbols] : L.countable :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
 
+@[simp] lemma empty_card : language.empty.card = 0 :=
+by simp [card_eq_card_functions_add_card_relations]
+
 instance countable_empty : language.empty.countable :=
-⟨begin
-  rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
-    ← cardinal.encodable_iff, ← cardinal.encodable_iff],
-  exact ⟨⟨sigma.encodable⟩, ⟨sigma.encodable⟩⟩,
-end⟩
+⟨by simp⟩
 
-@[priority 100] instance countable.countable_functions [L.countable] :
-  L.countable_functions :=
+@[priority 100] instance countable.countable_functions [L.countable] : L.countable_functions :=
 ⟨begin
-  refine lift_le_omega.1 (trans _ L.card_le_omega),
+  refine lift_le_aleph_0.1 (trans _ L.card_le_aleph_0),
   rw [card, symbols, mk_sum],
-  exact le_self_add,
+  exact le_self_add
 end⟩
 
-lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
-  L.countable_functions :=
+lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] : L.countable_functions :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
 
 @[priority 100] instance is_relational.countable_functions [L.is_relational] :
   L.countable_functions :=
 encodable.countable_functions
+
+@[simp] lemma card_functions_sum (i : ℕ) :
+  #((L.sum L').functions i) = (#(L.functions i)).lift + cardinal.lift.{u} (#(L'.functions i)) :=
+by simp [language.sum]
+
+@[simp] lemma card_relations_sum (i : ℕ) :
+  #((L.sum L').relations i) = (#(L.relations i)).lift + cardinal.lift.{v} (#(L'.relations i)) :=
+by simp [language.sum]
+
+@[simp] lemma card_sum :
+  (L.sum L').card = cardinal.lift.{max u' v'} L.card + cardinal.lift.{max u v} L'.card :=
+begin
+  simp only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
+    sum_add_distrib', lift_add, lift_sum, lift_lift],
+  rw [add_assoc, ←add_assoc (cardinal.sum (λ i, (# (L'.functions i)).lift)),
+    add_comm (cardinal.sum (λ i, (# (L'.functions i)).lift)), add_assoc, add_assoc]
+end
+
+@[simp] lemma card_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).card =
+    cardinal.lift.{v} (# c) + cardinal.lift.{v} (# f₁) + cardinal.lift.{v} (# f₂)
+    + cardinal.lift.{u} (# r₁) + cardinal.lift.{u} (# r₂) :=
+by simp [card_eq_card_functions_add_card_relations, add_assoc]
 
 variables (L) (M : Type w)
 

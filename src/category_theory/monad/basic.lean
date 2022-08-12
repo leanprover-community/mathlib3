@@ -7,6 +7,18 @@ import category_theory.functor.category
 import category_theory.functor.fully_faithful
 import category_theory.functor.reflects_isomorphisms
 
+/-!
+# Monads
+
+We construct the categories of monads and comonads, and their forgetful functors to endofunctors.
+
+(Note that these are the category theorist's monads, not the programmers monads.
+For the translation, see the file `category_theory.monad.types`.)
+
+For the fact that monads are "just" monoids in the category of endofunctors, see the file
+`category_theory.monad.equiv_mon`.
+-/
+
 namespace category_theory
 open category
 

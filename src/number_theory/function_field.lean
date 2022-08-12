@@ -40,7 +40,7 @@ function field, ring of integers
 -/
 
 noncomputable theory
-open_locale non_zero_divisors polynomial
+open_locale non_zero_divisors polynomial discrete_valuation
 
 variables (Fq F : Type) [field Fq] [field F]
 
@@ -122,7 +122,7 @@ begin
 end
 
 lemma not_is_field : ¬ is_field (ring_of_integers Fq F) :=
-by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
+by simpa [← ((is_integral_closure.is_integral_algebra Fq[X] F).is_field_iff_is_field
   (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
 
 variables [function_field Fq F]
@@ -148,7 +148,7 @@ variable [decidable_eq (ratfunc Fq)]
 /-- The valuation at infinity is the nonarchimedean valuation on `Fq(t)` with uniformizer `1/t`.
 Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuation at infinity is
 `multiplicative.of_add(degree(f) - degree(g))`. -/
-def infty_valuation_def (r : ratfunc Fq) : with_zero (multiplicative ℤ) :=
+def infty_valuation_def (r : ratfunc Fq) : ℤₘ₀ :=
 if r = 0 then 0 else (multiplicative.of_add r.int_degree)
 
 lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 := if_pos rfl
@@ -197,7 +197,7 @@ end
 by rw [infty_valuation_def, if_neg hx]
 
 /-- The valuation at infinity on `Fq(t)`. -/
-def infty_valuation  : valuation (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
+def infty_valuation  : valuation (ratfunc Fq) ℤₘ₀ :=
 { to_fun          := infty_valuation_def Fq,
   map_zero'       := infty_valuation.map_zero' Fq,
   map_one'        := infty_valuation.map_one' Fq,
@@ -228,71 +228,26 @@ begin
 end
 
 /-- The valued field `Fq(t)` with the valuation at infinity. -/
-def infty_valued_Fqt : valued (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
-⟨infty_valuation Fq⟩
+def infty_valued_Fqt : valued (ratfunc Fq) ℤₘ₀ :=
+valued.mk' $ infty_valuation Fq
 
 lemma infty_valued_Fqt.def {x : ratfunc Fq} :
-  @valued.v (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) (x) = infty_valuation_def Fq x := rfl
-
-namespace infty_valued_Fqt
-
-/-- The topology structure on `Fq(t)` induced by the valuation at infinity. -/
-def topological_space : topological_space (ratfunc Fq) :=
-@valued.topological_space (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
-
-lemma topological_division_ring :
-  @topological_division_ring (ratfunc Fq) _ (topological_space Fq) :=
-@valued.topological_division_ring (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
-
-/-- The uniform structure on `k(t)` induced by the valuation at infinity. -/
-def uniform_space : uniform_space (ratfunc Fq) :=
-@topological_add_group.to_uniform_space (ratfunc Fq) _ (topological_space Fq) _
-
-lemma uniform_add_group : @uniform_add_group (ratfunc Fq) (uniform_space Fq) _ :=
-@topological_add_group_is_uniform (ratfunc Fq) _ (topological_space Fq) _
-
-lemma completable_top_field : @completable_top_field (ratfunc Fq) _ (uniform_space Fq) :=
-@valued.completable (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
-
-lemma separated_space : @separated_space (ratfunc Fq) (uniform_space Fq) :=
-@valued_ring.separated (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
-
-end infty_valued_Fqt
-
-open infty_valued_Fqt
+  @valued.v (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) x = infty_valuation_def Fq x := rfl
 
 /-- The completion `Fq((t⁻¹))`  of `Fq(t)` with respect to the valuation at infinity. -/
-def Fqt_infty := @uniform_space.completion (ratfunc Fq) (uniform_space Fq)
+def Fqt_infty := @uniform_space.completion (ratfunc Fq) $ (infty_valued_Fqt Fq).to_uniform_space
 
 instance : field (Fqt_infty Fq) :=
-@field_completion (ratfunc Fq) _ (uniform_space Fq) (topological_division_ring Fq) _
-  (uniform_add_group Fq)
+by { letI := infty_valued_Fqt Fq, exact uniform_space.completion.field }
 
 instance : inhabited (Fqt_infty Fq) := ⟨(0 : Fqt_infty Fq)⟩
 
 /-- The valuation at infinity on `k(t)` extends to a valuation on `Fqt_infty`. -/
-instance valued_Fqt_infty : valued (Fqt_infty Fq) (with_zero (multiplicative ℤ)) :=
-⟨@valued.extension_valuation (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)⟩
+instance valued_Fqt_infty : valued (Fqt_infty Fq) ℤₘ₀ :=
+@valued.valued_completion _ _ _ _ (infty_valued_Fqt Fq)
 
 lemma valued_Fqt_infty.def {x : Fqt_infty Fq} :
-  valued.v (x) = @valued.extension (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) x := rfl
-
-instance Fqt_infty.topological_space : topological_space (Fqt_infty Fq) :=
-valued.topological_space (with_zero (multiplicative ℤ))
-
-instance Fqt_infty.topological_division_ring : topological_division_ring (Fqt_infty Fq) :=
-valued.topological_division_ring
-
-instance : topological_ring (Fqt_infty Fq) :=
-(Fqt_infty.topological_division_ring Fq).to_topological_ring
-
-instance : topological_add_group (Fqt_infty Fq) := topological_ring.to_topological_add_group
-
-instance Fqt_infty.uniform_space : uniform_space (Fqt_infty Fq) :=
-topological_add_group.to_uniform_space (Fqt_infty Fq)
-
-instance Fqt_infty.uniform_add_group : uniform_add_group (Fqt_infty Fq) :=
-topological_add_group_is_uniform
+  valued.v x = @valued.extension (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) x := rfl
 
 end infty_valuation
 

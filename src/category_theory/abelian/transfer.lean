@@ -17,7 +17,7 @@ we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
 and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
 then `C` is also abelian.
 
-See https://stacks.math.columbia.edu/tag/03A3
+See <https://stacks.math.columbia.edu/tag/03A3>
 
 ## Notes
 The hypotheses, following the statement from the Stacks project,
@@ -137,10 +137,20 @@ end
 local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
 
 -- The account of this proof in the Stacks project omits this calculation.
--- Happily it's little effort: our `[ext]` and `[simp]` lemmas only need a little guidance.
 lemma coimage_iso_image_hom {X Y : C} (f : X ⟶ Y) :
   (coimage_iso_image F G i adj f).hom = abelian.coimage_image_comparison f :=
-by { ext, simpa [-functor.map_comp, ←G.map_comp_assoc] using nat_iso.naturality_1 i f, }
+begin
+  ext, 
+  simpa only [←G.map_comp_assoc, coimage_iso_image, nat_iso.inv_inv_app, cokernel_iso,
+    coimage_iso_image_aux, iso.trans_symm, iso.symm_symm_eq, iso.refl_trans, iso.trans_refl,
+    iso.trans_hom, iso.symm_hom, cokernel_comp_is_iso_inv, cokernel_epi_comp_inv, as_iso_hom,
+    functor.map_iso_hom, cokernel_epi_comp_hom, preserves_kernel.iso_hom, kernel_comp_mono_hom,
+    kernel_is_iso_comp_hom, cokernel_iso_of_eq_hom_comp_desc_assoc, cokernel.π_desc_assoc,
+    category.assoc, π_comp_cokernel_iso_of_eq_inv_assoc, π_comp_cokernel_comparison_assoc,
+    kernel.lift_ι, kernel.lift_ι_assoc, kernel_iso_of_eq_hom_comp_ι_assoc,
+    kernel_comparison_comp_ι_assoc,
+    abelian.coimage_image_factorisation] using nat_iso.naturality_1 i f
+end
 
 end abelian_of_adjunction
 
@@ -153,7 +163,7 @@ we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
 and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
 then `C` is also abelian.
 
-See https://stacks.math.columbia.edu/tag/03A3
+See <https://stacks.math.columbia.edu/tag/03A3>
 -/
 def abelian_of_adjunction
   {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]
@@ -167,5 +177,16 @@ begin
   { intros X Y f, rw ←coimage_iso_image_hom F G i adj f, apply_instance, },
   apply abelian.of_coimage_image_comparison_is_iso,
 end
+
+/--
+If `C` is an additive category equivalent to an abelian category `D`
+via a functor that preserves zero morphisms,
+then `C` is also abelian.
+-/
+def abelian_of_equivalence
+  {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]
+  {D : Type u₂} [category.{v} D] [abelian D]
+  (F : C ⥤ D) [functor.preserves_zero_morphisms F] [is_equivalence F] : abelian C :=
+abelian_of_adjunction F F.inv F.as_equivalence.unit_iso.symm F.as_equivalence.symm.to_adjunction
 
 end category_theory

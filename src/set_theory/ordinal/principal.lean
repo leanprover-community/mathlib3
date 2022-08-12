@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.ordinal.arithmetic
+import set_theory.ordinal.fixed_point
 
 /-!
 ### Principal ordinals
@@ -28,6 +28,8 @@ We define principal or indecomposable ordinals, and we prove the standard proper
 universe u
 
 noncomputable theory
+
+open order
 
 namespace ordinal
 local infixr ^ := @pow ordinal ordinal ordinal.has_pow
@@ -109,7 +111,7 @@ end
 
 theorem unbounded_principal (op : ordinal → ordinal → ordinal) :
   set.unbounded (<) {o | principal op o} :=
-λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o).not_lt⟩
+λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp _ o).not_lt⟩
 
 /-! #### Additive principal ordinals -/
 
@@ -133,7 +135,7 @@ begin
     { rw [ha, succ_zero],
       exact ho₁ },
     { refine lt_of_le_of_lt _ (ho hao hao),
-      rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero] } }
+      rwa [←add_one_eq_succ, add_le_add_iff_left, one_le_iff_ne_zero] } }
 end
 
 theorem principal_add_iff_add_left_eq_self {o : ordinal} :
@@ -185,7 +187,7 @@ theorem add_omega_opow {a b : ordinal} (h : a < omega ^ b) : a + omega ^ b = ome
 begin
   refine le_antisymm _ (le_add_left _ _),
   revert h, refine limit_rec_on b (λ h, _) (λ b _ h, _) (λ b l IH h, _),
-  { rw [opow_zero, ← succ_zero, lt_succ, ordinal.le_zero] at h,
+  { rw [opow_zero, ← succ_zero, lt_succ_iff, ordinal.le_zero] at h,
     rw [h, zero_add] },
   { rw opow_succ at h,
     rcases (lt_mul_of_limit omega_is_limit).1 h with ⟨x, xo, ax⟩,
@@ -209,10 +211,10 @@ begin
   { simp only [principal_zero, or.inl] },
   { rw [principal_add_iff_add_left_eq_self],
     simp only [ho, false_or],
-    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le _ (ordinal.pos_iff_ne_zero.2 ho)))
+    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le_self _ ho))
         .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
     have := H _ h,
-    have := lt_opow_succ_log one_lt_omega o,
+    have := lt_opow_succ_log_self one_lt_omega o,
     rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
     rcases this with ⟨a, ao, h'⟩,
     rcases lt_omega.1 ao with ⟨n, rfl⟩, clear ao,
@@ -245,14 +247,14 @@ begin
   { rcases eq_zero_or_pos b with rfl | hb₁',
     { rw mul_zero,
       exact principal_zero },
-    { rw [← succ_le,succ_zero] at hb₁',
+    { rw [← succ_le_iff, succ_zero] at hb₁',
       intros c d hc hd,
       rw lt_mul_of_limit (principal_add_is_limit (lt_of_le_of_ne hb₁' hb₁.symm) hb) at *,
       { rcases hc with ⟨x, hx, hx'⟩,
         rcases hd with ⟨y, hy, hy'⟩,
         use [x + y, hb hx hy],
         rw mul_add,
-        exact add_lt_add hx' hy' },
+        exact left.add_lt_add hx' hy' },
       assumption' } }
 end
 
@@ -263,8 +265,8 @@ by { rw principal_one_iff, exact zero_mul _ }
 
 theorem principal_mul_two : principal (*) 2 :=
 λ a b ha hb, begin
-  have h₂ : (1 : ordinal).succ = 2 := rfl,
-  rw [←h₂, ordinal.lt_succ] at *,
+  have h₂ : succ (1 : ordinal) = 2 := rfl,
+  rw [←h₂, lt_succ_iff] at *,
   convert mul_le_mul' ha hb,
   exact (mul_one 1).symm
 end
@@ -272,8 +274,8 @@ end
 theorem principal_mul_of_le_two {o : ordinal} (ho : o ≤ 2) : principal (*) o :=
 begin
   rcases lt_or_eq_of_le ho with ho | rfl,
-  { have h₂ : (1 : ordinal).succ = 2 := rfl,
-    rw [←h₂, ordinal.lt_succ] at ho,
+  { have h₂ : succ (1 : ordinal) = 2 := rfl,
+    rw [←h₂, lt_succ_iff] at ho,
     rcases lt_or_eq_of_le ho with ho | rfl,
     { rw lt_one_iff_zero.1 ho,
       exact principal_zero },
@@ -286,7 +288,7 @@ theorem principal_add_of_principal_mul {o : ordinal} (ho : principal (*) o) (ho�
 begin
   cases lt_or_gt_of_ne ho₂ with ho₁ ho₂,
   { change o < succ 1 at ho₁,
-    rw lt_succ at ho₁,
+    rw lt_succ_iff at ho₁,
     exact principal_add_of_le_one ho₁ },
   { refine λ a b hao hbo, lt_of_le_of_lt _ (ho (max_lt hao hbo) ho₂),
     rw mul_two,
@@ -296,7 +298,7 @@ end
 theorem principal_mul_is_limit {o : ordinal.{u}} (ho₂ : 2 < o) (ho : principal (*) o) :
   o.is_limit :=
 principal_add_is_limit
-  ((ordinal.lt_succ_self 1).trans ho₂)
+  ((lt_succ 1).trans ho₂)
   (principal_add_of_principal_mul ho (ne_of_gt ho₂))
 
 theorem principal_mul_iff_mul_left_eq {o : ordinal} :
@@ -307,8 +309,8 @@ begin
     { convert one_mul o,
       apply le_antisymm,
       { have : a < succ 1 := hao.trans_le ho,
-        rwa lt_succ at this },
-      { rwa [←succ_le, succ_zero] at ha₀ } },
+        rwa lt_succ_iff at this },
+      { rwa [←succ_le_iff, succ_zero] at ha₀ } },
     { exact op_eq_self_of_principal hao (mul_is_normal ha₀) h (principal_mul_is_limit ho h) } },
   { rcases eq_or_ne a 0 with rfl | ha, { rwa zero_mul },
     rw ←ordinal.pos_iff_ne_zero at ha,
@@ -376,7 +378,7 @@ begin
     rcases principal_add_iff_zero_or_omega_opow.1
       (principal_add_of_principal_mul_opow one_lt_omega ho) with rfl | ⟨b, rfl⟩,
     { rw opow_zero at ho₂,
-      exact ((lt_succ_self 1).not_le ho₂.le).elim },
+      exact ((lt_succ 1).not_le ho₂.le).elim },
     exact or.inr ⟨b, rfl⟩ },
   { rintro (ho₂ | ⟨a, rfl⟩),
     { exact principal_mul_of_le_two ho₂ },
@@ -387,22 +389,22 @@ theorem mul_omega_dvd {a : ordinal}
   (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
 | _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
 
-theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : 0 < a) (hb : principal (*) b) (hb₂ : 2 < b) :
-  a * b = b ^ (log b a).succ :=
+theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : a ≠ 0) (hb : principal (*) b) (hb₂ : 2 < b) :
+  a * b = b ^ succ (log b a) :=
 begin
   apply le_antisymm,
   { have hbl := principal_mul_is_limit hb₂ hb,
-    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, bsup_le_iff],
+    rw [←is_normal.bsup_eq.{u u} (mul_is_normal (ordinal.pos_iff_ne_zero.2 ha)) hbl, bsup_le_iff],
     intros c hcb,
-    have hb₁ : 1 < b := (lt_succ_self 1).trans hb₂,
+    have hb₁ : 1 < b := (lt_succ 1).trans hb₂,
     have hbo₀ : b ^ b.log a ≠ 0 := ordinal.pos_iff_ne_zero.1 (opow_pos _ (zero_lt_one.trans hb₁)),
     apply le_trans (mul_le_mul_right' (le_of_lt (lt_mul_succ_div a hbo₀)) c),
     rw [mul_assoc, opow_succ],
     refine mul_le_mul_left' (le_of_lt (hb (hbl.2 _ _) hcb)) _,
     rw [div_lt hbo₀, ←opow_succ],
-    exact lt_opow_succ_log hb₁ _ },
+    exact lt_opow_succ_log_self hb₁ _ },
   { rw opow_succ,
-    exact mul_le_mul_right' (opow_log_le b ha) b }
+    exact mul_le_mul_right' (opow_log_le_self b ha) b }
 end
 
 /-! #### Exponential principal ordinals -/

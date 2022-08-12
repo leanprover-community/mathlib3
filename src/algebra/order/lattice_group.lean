@@ -29,7 +29,7 @@ number of equations and inequalities.
 
 - `a⁺ = a ⊔ 0`: The *positive component* of an element `a` of a lattice ordered commutative group
 - `a⁻ = (-a) ⊔ 0`: The *negative component* of an element `a` of a lattice ordered commutative group
-* `|a| = a⊔(-a)`: The *absolute value* of an element `a` of a lattice ordered commutative group
+- `|a| = a⊔(-a)`: The *absolute value* of an element `a` of a lattice ordered commutative group
 
 ## Implementation notes
 
@@ -148,12 +148,12 @@ lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := rfl
 lemma pos_one : (1 : α)⁺ = 1 := sup_idem
 
 @[simp, to_additive]
-lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, one_inv, sup_idem]
+lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, inv_one, sup_idem]
 
 -- a⁻ = -(a ⊓ 0)
 @[to_additive]
 lemma neg_eq_inv_inf_one [covariant_class α α (*) (≤)] (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
-by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv]
+by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, inv_one]
 
 @[to_additive le_abs]
 lemma le_mabs (a : α) : a ≤ |a| := le_sup_left
@@ -253,7 +253,7 @@ calc a ⊓ b = (a * 1) ⊓ (a * (b / a)) : by { rw [mul_one a, div_eq_mul_inv, m
 ... = a * ((b / a) ⊓ 1)     : by rw inf_comm
 ... = a * ((a / b)⁻¹ ⊓ 1)   : by { rw div_eq_mul_inv, nth_rewrite 0 ← inv_inv b,
   rw [← mul_inv, mul_comm b⁻¹, ← div_eq_mul_inv], }
-... = a * ((a / b)⁻¹ ⊓ 1⁻¹) : by rw one_inv
+... = a * ((a / b)⁻¹ ⊓ 1⁻¹) : by rw inv_one
 ... = a / ((a / b) ⊔ 1)     : by rw [← inv_sup_eq_inv_inf_inv, ← div_eq_mul_inv]
 
 -- Bourbaki A.VI.12 Prop 9 c)
@@ -395,6 +395,15 @@ end
 lemma pos_of_one_le (a : α) (h : 1 ≤ a) : a⁺ = a :=
 by { rw m_pos_part_def, exact sup_of_le_left h, }
 
+@[to_additive] -- pos_eq_self_of_pos_pos
+lemma pos_eq_self_of_one_lt_pos {α} [linear_order α] [comm_group α]
+  {x : α} (hx : 1 < x⁺) : x⁺ = x :=
+begin
+  rw [m_pos_part_def, right_lt_sup, not_le] at hx,
+  rw [m_pos_part_def, sup_eq_left],
+  exact hx.le
+end
+
 -- 0 ≤ a implies a⁺ = a
 @[to_additive] -- pos_of_nonpos
 lemma pos_of_le_one (a : α) (h : a ≤ 1) : a⁺ = 1 :=
@@ -476,7 +485,7 @@ end
 lemma abs_inv_comm (a b : α) : |a/b| = |b/a| :=
 begin
   unfold has_abs.abs,
-  rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],
+  rw [inv_div a b, ← inv_inv (a / b), inv_div, sup_comm],
 end
 
 -- | |a| - |b| | ≤ |a - b|

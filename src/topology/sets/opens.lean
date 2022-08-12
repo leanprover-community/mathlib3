@@ -7,6 +7,7 @@ import order.hom.complete_lattice
 import topology.bases
 import topology.homeomorph
 import topology.continuous_function.basic
+import order.compactly_generated
 
 /-!
 # Open sets
@@ -23,7 +24,7 @@ We define the subtype of open sets in a topological space.
 
 open filter function order set
 
-variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
+variables {ι α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
 
 namespace topological_space
 variable (α)
@@ -49,6 +50,9 @@ instance : has_mem α (opens α) :=
 @[simp] lemma subset_coe {U V : opens α} : ((U : set α) ⊆ (V : set α)) = (U ⊆ V) := rfl
 
 @[simp] lemma mem_coe {x : α} {U : opens α} : (x ∈ (U : set α)) = (x ∈ U) := rfl
+
+@[simp] lemma mem_mk {x : α} {U : set α} {h : is_open U} :
+  @has_mem.mem _ _ opens.has_mem x ⟨U, h⟩ ↔ x ∈ U := iff.rfl
 
 @[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext h
 @[ext] lemma ext_iff {U V : opens α} : (U : set α) = V ↔ U = V := subtype.ext_iff.symm
@@ -78,17 +82,26 @@ complete_lattice.copy (galois_coinsertion.lift_complete_lattice gi)
 /- sup -/ (λ U V, ⟨↑U ∪ ↑V, U.2.union V.2⟩) rfl
 /- inf -/ (λ U V, ⟨↑U ∩ ↑V, U.2.inter V.2⟩)
   (funext $ λ U, funext $ λ V, ext (U.2.inter V.2).interior_eq.symm)
-/- Sup -/ _ rfl
+/- Sup -/ (λ S, ⟨⋃ s ∈ S, ↑s, is_open_bUnion $ λ s _, s.2⟩) (funext $ λ S, ext Sup_image.symm)
 /- Inf -/ _ rfl
 
 lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) := iff.rfl
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
-@[simp, norm_cast] lemma coe_inf {U V : opens α} : ((U ⊓ V : opens α) : set α) = U ∩ V := rfl
-@[simp] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
-@[simp] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
-@[simp] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := (@gc α _).l_Sup
+@[simp, norm_cast] lemma coe_inf (s t : opens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_sup (s t : opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
+@[simp, norm_cast] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := rfl
+
+@[simp, norm_cast] lemma coe_finset_sup (f : ι → opens α) (s : finset ι) :
+  (↑(s.sup f) : set α) = s.sup (coe ∘ f) :=
+map_finset_sup (⟨⟨coe, coe_sup⟩, coe_bot⟩ : sup_bot_hom (opens α) (set α)) _ _
+
+@[simp, norm_cast] lemma coe_finset_inf (f : ι → opens α) (s : finset ι) :
+  (↑(s.inf f) : set α) = s.inf (coe ∘ f) :=
+map_finset_inf (⟨⟨coe, coe_inf⟩, coe_top⟩ : inf_top_hom (opens α) (set α)) _ _
 
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
@@ -106,7 +119,8 @@ by { ext, simp only [supr, coe_Sup, bUnion_range], refl }
   (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⋃ i, s i, is_open_Union h⟩ :=
 by { rw supr_def, simp }
 
-@[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
+@[simp, norm_cast] lemma coe_supr {ι} (s : ι → opens α) :
+  ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]
 
 @[simp] theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
@@ -118,7 +132,7 @@ by simp_rw [Sup_eq_supr, mem_supr]
 instance : frame (opens α) :=
 { Sup := Sup,
   inf_Sup_le_supr_inf := λ a s,
-    (ext $ by simp only [coe_inf, supr_s, coe_Sup, set.inter_Union₂]).le,
+    (ext $ by simp only [coe_inf, coe_supr, coe_Sup, set.inter_Union₂]).le,
   ..opens.complete_lattice }
 
 lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
@@ -150,7 +164,7 @@ begin
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
   { refine is_topological_basis_of_open_of_nhds _ _,
-    { rintros sU ⟨U, ⟨H₁, H₂⟩⟩, subst H₂, exact U.property },
+    { rintros sU ⟨U, ⟨H₁, rfl⟩⟩, exact U.property },
     { intros x sU hx hsU,
       rcases @h (⟨sU, hsU⟩ : opens α) x hx with ⟨V, hV, H⟩,
       exact ⟨V, ⟨V, hV, rfl⟩, H⟩ } }
@@ -172,6 +186,36 @@ begin
     rcases h U with ⟨Us, hUs, rfl⟩,
     rcases mem_Sup.1 hx with ⟨U, Us, xU⟩,
     exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
+end
+
+/-- If `α` has a basis consisting of compact opens, then an open set in `α` is compact open iff
+  it is a finite union of some elements in the basis -/
+lemma is_compact_open_iff_eq_finite_Union_of_is_basis
+  {ι : Type*} (b : ι → opens α) (hb : opens.is_basis (set.range b))
+  (hb' : ∀ i, is_compact (b i : set α)) (U : set α) :
+  is_compact U ∧ is_open U ↔ ∃ (s : set ι), s.finite ∧ U = ⋃ i ∈ s, b i :=
+begin
+  apply is_compact_open_iff_eq_finite_Union_of_is_topological_basis
+    (λ i : ι, (b i).1),
+  { convert hb, ext, simp },
+  { exact hb' }
+end
+
+@[simp] lemma is_compact_element_iff (s : opens α) :
+  complete_lattice.is_compact_element s ↔ is_compact (s : set α) :=
+begin
+  rw [is_compact_iff_finite_subcover, complete_lattice.is_compact_element_iff],
+  refine ⟨_, λ H ι U hU, _⟩,
+  { introv H hU hU',
+    obtain ⟨t, ht⟩ := H ι (λ i, ⟨U i, hU i⟩) (by simpa),
+    refine ⟨t, set.subset.trans ht _⟩,
+    rw [coe_finset_sup, finset.sup_eq_supr],
+    refl },
+  { obtain ⟨t, ht⟩ := H (λ i, U i) (λ i, (U i).prop)
+      (by simpa using (show (s : set α) ⊆ ↑(supr U), from hU)),
+    refine ⟨t, set.subset.trans ht _⟩,
+    simp only [set.Union_subset_iff],
+    show ∀ i ∈ t, U i ≤ t.sup U, from λ i, finset.le_sup }
 end
 
 /-- The preimage of an open set, as an open set. -/
@@ -199,12 +243,9 @@ protected lemma comap_comap (g : C(β, γ)) (f : C(α, β)) (U : opens γ) :
   comap f (comap g U) = comap (g.comp f) U := rfl
 
 lemma comap_injective [t0_space β] : injective (comap : C(α, β) → frame_hom (opens β) (opens α)) :=
-λ f g h, continuous_map.ext $ λ a, indistinguishable.eq $ λ s hs, begin
-  simp_rw ←mem_preimage,
-  congr' 2,
-  have := fun_like.congr_fun h ⟨_, hs⟩,
-  exact congr_arg (coe : opens α → set α) this,
-end
+λ f g h, continuous_map.ext $ λ a, inseparable.eq $ inseparable_iff_forall_open.2 $ λ s hs,
+have comap f ⟨s, hs⟩ = comap g ⟨s, hs⟩, from fun_like.congr_fun h ⟨_, hs⟩,
+show a ∈ f ⁻¹' s ↔ a ∈ g ⁻¹' s, from set.ext_iff.1 (ext_iff.2 this) a
 
 /-- A homeomorphism induces an equivalence on open sets, by taking comaps. -/
 @[simp] protected def equiv (f : α ≃ₜ β) : opens α ≃ opens β :=

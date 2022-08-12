@@ -135,7 +135,10 @@ lemma inf_assoc (a b c : α) : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) := by { dsimp onl
 lemma sup_inf_self (a b : α) : a ⊔ a ⊓ b = a :=
 by { dsimp only [(⊔), (⊓)], assoc_rw [mul_self, add_self, add_zero] }
 lemma inf_sup_self (a b : α) : a ⊓ (a ⊔ b) = a :=
-by { dsimp only [(⊔), (⊓)], assoc_rw [mul_add, mul_add, mul_self, mul_self, add_self, add_zero] }
+begin
+  dsimp only [(⊔), (⊓)],
+  rw [mul_add, mul_add, mul_self, ←mul_assoc, mul_self, add_assoc, add_self, add_zero]
+end
 
 lemma le_sup_inf_aux (a b c : α) : (a + b + a * b) * (a + c + a * c) = a + b * c + a * (b * c) :=
 calc (a + b + a * b) * (a + c + a * c) =
@@ -161,7 +164,6 @@ The data is defined so that:
 * `a \ b` unfolds to `a * (1 + b)`
 -/
 def to_boolean_algebra : boolean_algebra α :=
-boolean_algebra.of_core
 { le_sup_inf := le_sup_inf,
   top := 1,
   le_top := λ a, show a + 1 + a * 1 = 1, by assoc_rw [mul_one, add_comm, add_self, add_zero],
@@ -270,8 +272,8 @@ iff.rfl
 
 instance [inhabited α] : inhabited (as_boolring α) := ‹inhabited α›
 
-/-- Every generalized Boolean algebra has the structure of a non unital ring with the following
-data:
+/-- Every generalized Boolean algebra has the structure of a non unital commutative ring with the
+following data:
 
 * `a + b` unfolds to `a ∆ b` (symmetric difference)
 * `a * b` unfolds to `a ⊓ b`
@@ -279,8 +281,8 @@ data:
 * `0` unfolds to `⊥`
 -/
 @[reducible] -- See note [reducible non-instances]
-def generalized_boolean_algebra.to_non_unital_ring [generalized_boolean_algebra α] :
-  non_unital_ring α :=
+def generalized_boolean_algebra.to_non_unital_comm_ring [generalized_boolean_algebra α] :
+  non_unital_comm_ring α :=
 { add := (∆),
   add_assoc := symm_diff_assoc,
   zero := ⊥,
@@ -293,11 +295,12 @@ def generalized_boolean_algebra.to_non_unital_ring [generalized_boolean_algebra 
   add_comm := symm_diff_comm,
   mul := (⊓),
   mul_assoc := λ _ _ _, inf_assoc,
+  mul_comm := λ _ _, inf_comm,
   left_distrib := inf_symm_diff_distrib_left,
   right_distrib := inf_symm_diff_distrib_right }
 
-instance [generalized_boolean_algebra α] : non_unital_ring (as_boolring α) :=
-@generalized_boolean_algebra.to_non_unital_ring α _
+instance [generalized_boolean_algebra α] : non_unital_comm_ring (as_boolring α) :=
+@generalized_boolean_algebra.to_non_unital_comm_ring α _
 
 variables [boolean_algebra α] [boolean_algebra β] [boolean_algebra γ]
 
@@ -315,9 +318,9 @@ def boolean_algebra.to_boolean_ring : boolean_ring α :=
   one_mul := λ _, top_inf_eq,
   mul_one := λ _, inf_top_eq,
   mul_self := λ b, inf_idem,
-  ..generalized_boolean_algebra.to_non_unital_ring }
+  ..generalized_boolean_algebra.to_non_unital_comm_ring }
 
-localized "attribute [instance, priority 100] generalized_boolean_algebra.to_non_unital_ring
+localized "attribute [instance, priority 100] generalized_boolean_algebra.to_non_unital_comm_ring
   boolean_algebra.to_boolean_ring" in boolean_ring_of_boolean_algebra
 
 instance : boolean_ring (as_boolring α) := @boolean_algebra.to_boolean_ring α _
@@ -384,3 +387,25 @@ end algebra_to_ring
 { map_mul' := λ a b, rfl,
   map_add' := of_boolalg_symm_diff,
   ..of_boolring.trans of_boolalg }
+
+open bool
+
+instance : boolean_ring bool :=
+{ add := bxor,
+  add_assoc := bxor_assoc,
+  zero := ff,
+  zero_add := ff_bxor,
+  add_zero := bxor_ff,
+  neg := id,
+  sub := bxor,
+  sub_eq_add_neg := λ _ _, rfl,
+  add_left_neg := bxor_self,
+  add_comm := bxor_comm,
+  one := tt,
+  mul := band,
+  mul_assoc := band_assoc,
+  one_mul := tt_band,
+  mul_one := band_tt,
+  left_distrib := band_bxor_distrib_left,
+  right_distrib := band_bxor_distrib_right,
+  mul_self := band_self }

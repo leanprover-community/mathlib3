@@ -22,12 +22,9 @@ namespace stream
 variables {α : Type u} {β : Type v} {δ : Type w}
 
 /-- Prepend an element to a stream. -/
-def cons (a : α) (s : stream α) : stream α :=
-λ i,
-  match i with
-  | 0      := a
-  | succ n := s n
-  end
+def cons (a : α) (s : stream α) : stream α
+| 0       := a
+| (n + 1) := s n
 
 notation h :: t := cons h t
 
@@ -96,7 +93,7 @@ corec_on (s₁, s₂)
   (λ ⟨s₁, s₂⟩, head s₁)
   (λ ⟨s₁, s₂⟩, (s₂, tail s₁))
 
-infix `⋈`:65 := interleave
+infix ` ⋈ `:65 := interleave
 
 /-- Elements of a stream with even indices. -/
 def even (s : stream α) : stream α :=
@@ -114,7 +111,7 @@ def append_stream : list α → stream α → stream α
 | []              s := s
 | (list.cons a l) s := a :: append_stream l s
 
-infix `++ₛ`:65 := append_stream
+infix ` ++ₛ `:65 := append_stream
 
 /-- `take n s` returns a list of the `n` first elements of stream `s` -/
 def take : ℕ → stream α → list α
@@ -157,7 +154,7 @@ const a
 def apply (f : stream (α → β)) (s : stream α) : stream β :=
 λ n, (nth f n) (nth s n)
 
-infix `⊛`:75 := apply  -- input as \o*
+infix ` ⊛ `:75 := apply  -- input as \o*
 
 /-- The stream of natural numbers: `stream.nth n stream.nats = n`. -/
 def nats : stream nat :=

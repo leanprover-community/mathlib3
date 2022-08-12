@@ -1,16 +1,13 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Michael Stoll
 -/
-
-import field_theory.finite.basic
-import data.zmod.basic
-import data.nat.parity
 import number_theory.legendre_symbol.gauss_eisenstein_lemmas
+import number_theory.legendre_symbol.quadratic_char
 
 /-!
-# Quadratic reciprocity.
+# Legendre symbol and quadratic reciprocity.
 
 This file contains results about quadratic residues modulo a prime number.
 
@@ -24,16 +21,15 @@ interpretations in terms of existence of square roots depending on the congruenc
 `exists_sq_eq_prime_iff_of_mod_four_eq_three`.
 
 Also proven are conditions for `-1` and `2` to be a square modulo a prime,
-`exists_sq_eq_neg_one_iff_mod_four_ne_three` and
-`exists_sq_eq_two_iff`
+`legende_sym_neg_one` and `exists_sq_eq_neg_one_iff` for `-1`, and
+`exists_sq_eq_two_iff` for `2`
 
 ## Implementation notes
 
 The proof of quadratic reciprocity implemented uses Gauss' lemma and Eisenstein's lemma
 -/
 
-open function finset nat finite_field zmod
-open_locale big_operators nat
+open finset nat char
 
 namespace zmod
 
@@ -43,116 +39,153 @@ variables (p q : ℕ) [fact p.prime] [fact q.prime]
 lemma euler_criterion_units (x : (zmod p)ˣ) :
   (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
-  cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
-  { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
-  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (zmod p)ˣ,
-  obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
-  split,
-  { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
-  { subst x, assume h,
-    have key : 2 * (p / 2) ∣ n * (p / 2),
-    { rw [← pow_mul] at h,
-      rw [two_mul_odd_div_two hp_odd, ← card_units, ← order_of_eq_card_of_forall_mem_zpowers hg],
-      apply order_of_dvd_of_pow_eq_one h },
-    have : 0 < p / 2 := nat.div_pos (fact.out (1 < p)) dec_trivial,
-    obtain ⟨m, rfl⟩ := dvd_of_mul_dvd_mul_right this key,
-    refine ⟨g ^ m, _⟩,
-    rw [mul_comm, pow_mul], },
+  by_cases hc : p = 2,
+  { substI hc,
+    simp only [eq_iff_true_of_subsingleton, exists_const], },
+  { have h₀ := finite_field.unit_is_square_iff (by rwa ring_char_zmod_n) x,
+    have hs : (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ is_square(x) :=
+    by { rw is_square_iff_exists_sq x,
+         simp_rw eq_comm, },
+    rw hs,
+    rwa card p at h₀, },
 end
 
 /-- Euler's Criterion: a nonzero `a : zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
 lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
-  (∃ y : zmod p, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
+  is_square (a : zmod p) ↔ a ^ (p / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
   simp only [units.ext_iff, sq, units.coe_mk0, units.coe_mul],
-  split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
+  split, { rintro ⟨y, hy⟩, exact ⟨y, hy.symm⟩ },
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
-lemma exists_sq_eq_neg_one_iff_mod_four_ne_three :
-  (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
+lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
 begin
-  cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
-  { substI p, exact dec_trivial },
-  haveI := fact.mk hp_odd,
-  have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
-  rw [euler_criterion p neg_one_ne_zero, neg_one_pow_eq_pow_mod_two],
-  cases mod_two_eq_zero_or_one (p / 2) with p_half_even p_half_odd,
-  { rw [p_half_even, pow_zero, eq_self_iff_true, true_iff],
-    contrapose! p_half_even with hp,
-    rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp],
-    exact dec_trivial },
-  { rw [p_half_odd, pow_one,
-        iff_false_intro (ne_neg_self p one_ne_zero).symm, false_iff, not_not],
-    rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl] at p_half_odd,
-    rw [← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp_odd,
-    have hp : p % 4 < 4, from nat.mod_lt _ dec_trivial,
-    revert hp hp_odd p_half_odd,
-    generalize : p % 4 = k, dec_trivial! }
+  have h := @finite_field.is_square_neg_one_iff (zmod p) _ _,
+  rw card p at h,
+  exact h,
+end
+
+lemma mod_four_ne_three_of_sq_eq_neg_one {y : zmod p} (hy : y ^ 2 = -1) : p % 4 ≠ 3 :=
+begin
+  rw pow_two at hy,
+  exact (exists_sq_eq_neg_one_iff p).1 ⟨y, hy.symm⟩
+end
+
+lemma mod_four_ne_three_of_sq_eq_neg_sq' {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
+  p % 4 ≠ 3 :=
+@mod_four_ne_three_of_sq_eq_neg_one p _ (x / y) begin
+  apply_fun (λ z, z / y ^ 2) at hxy,
+  rwa [neg_div, ←div_pow, ←div_pow, div_self hy, one_pow] at hxy
+end
+
+lemma mod_four_ne_three_of_sq_eq_neg_sq {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
+  p % 4 ≠ 3 :=
+begin
+  apply_fun (λ x, -x) at hxy,
+  rw neg_neg at hxy,
+  exact mod_four_ne_three_of_sq_eq_neg_sq' p hx hxy.symm
 end
 
 lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
   a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
-  { substI p, revert a ha, exact dec_trivial },
+  { substI p, revert a ha, dec_trivial },
   rw [← mul_self_eq_one_iff, ← pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
   exact pow_card_sub_one_eq_one ha
 end
 
-/-- The Legendre symbol of `a` and `p`, `legendre_sym p a`, is an integer defined as
+/-- The Legendre symbol of `a : ℤ` and a prime `p`, `legendre_sym p a`,
+is an integer defined as
 
 * `0` if `a` is `0` modulo `p`;
-* `1` if `a ^ (p / 2)` is `1` modulo `p`
-   (by `euler_criterion` this is equivalent to “`a` is a square modulo `p`”);
+* `1` if `a` is a square modulo `p`
 * `-1` otherwise.
 
 Note the order of the arguments! The advantage of the order chosen here is
 that `legendre_sym p` is a multiplicative function `ℤ → ℤ`.
 -/
-def legendre_sym (p : ℕ) (a : ℤ) : ℤ :=
-if      (a : zmod p) = 0           then  0
-else if (a : zmod p) ^ (p / 2) = 1 then  1
-                                   else -1
+def legendre_sym (p : ℕ) [fact p.prime] (a : ℤ) : ℤ := quadratic_char (zmod p) a
 
+/-- We have the congruence `legendre_sym p a ≡ a ^ (p / 2) mod p`. -/
 lemma legendre_sym_eq_pow (p : ℕ) (a : ℤ) [hp : fact p.prime] :
   (legendre_sym p a : zmod p) = (a ^ (p / 2)) :=
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
-  { simp only [int.cast_coe_nat, if_pos, ha,
-      zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), int.cast_zero] },
-  cases hp.1.eq_two_or_odd with hp2 hp_odd,
+  { simp only [ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), mul_char.map_zero,
+               int.cast_zero], },
+  by_cases hp₁ : p = 2,
   { substI p,
     generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
-  { haveI := fact.mk hp_odd,
-    rw [if_neg ha],
-    have : (-1 : zmod p) ≠ 1, from (ne_neg_self p one_ne_zero).symm,
+  { have h₁ := quadratic_char_eq_pow_of_char_ne_two (by rwa ring_char_zmod_n p) ha,
+    rw card p at h₁,
+    rw h₁,
+    have h₂ := ring.neg_one_ne_one_of_char_ne_two (by rwa ring_char_zmod_n p),
     cases pow_div_two_eq_neg_one_or_one p ha with h h,
     { rw [if_pos h, h, int.cast_one], },
-    { rw [h, if_neg this, int.cast_neg, int.cast_one], } }
+    { rw [h, if_neg h₂, int.cast_neg, int.cast_one], } }
 end
 
-lemma legendre_sym_eq_one_or_neg_one (p : ℕ) (a : ℤ) (ha : (a : zmod p) ≠ 0) :
-  legendre_sym p a = -1 ∨ legendre_sym p a = 1 :=
-begin
-  unfold legendre_sym,
-  split_ifs;
-  simp only [*, eq_self_iff_true, or_true, true_or] at *,
-end
+/-- If `p ∤ a`, then `legendre_sym p a` is `1` or `-1`. -/
+lemma legendre_sym_eq_one_or_neg_one (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p) ≠ 0) :
+  legendre_sym p a = 1 ∨ legendre_sym p a = -1 :=
+quadratic_char_dichotomy ha
 
-lemma legendre_sym_eq_zero_iff (p : ℕ) (a : ℤ) :
+lemma legendre_sym_eq_neg_one_iff_not_one {a : ℤ} (ha : (a : zmod p) ≠ 0) :
+  legendre_sym p a = -1 ↔ ¬ legendre_sym p a = 1 :=
+quadratic_char_eq_neg_one_iff_not_one ha
+
+/-- The Legendre symbol of `p` and `a` is zero iff `p ∣ a`. -/
+lemma legendre_sym_eq_zero_iff (p : ℕ) [fact p.prime] (a : ℤ) :
   legendre_sym p a = 0 ↔ (a : zmod p) = 0 :=
+quadratic_char_eq_zero_iff
+
+@[simp] lemma legendre_sym_zero (p : ℕ) [fact p.prime] : legendre_sym p 0 = 0 :=
+by rw [legendre_sym, int.cast_zero, mul_char.map_zero]
+
+@[simp] lemma legendre_sym_one (p : ℕ) [fact p.prime] : legendre_sym p 1 = 1 :=
+by rw [legendre_sym, int.cast_one, mul_char.map_one]
+
+/-- The Legendre symbol is multiplicative in `a` for `p` fixed. -/
+lemma legendre_sym_mul (p : ℕ) [fact p.prime] (a b : ℤ) :
+  legendre_sym p (a * b) = legendre_sym p a * legendre_sym p b :=
 begin
-  split,
-  { classical, contrapose,
-    assume ha, cases legendre_sym_eq_one_or_neg_one p a ha with h h,
-    all_goals { rw h, norm_num } },
-  { assume ha, rw [legendre_sym, if_pos ha] }
+  rw [legendre_sym, legendre_sym, legendre_sym],
+  push_cast,
+  exact quadratic_char_mul (a : zmod p) b,
 end
+
+/-- The Legendre symbol is a homomorphism of monoids with zero. -/
+@[simps] def legendre_sym_hom (p : ℕ) [fact p.prime] : ℤ →*₀ ℤ :=
+{ to_fun := legendre_sym p,
+  map_zero' := legendre_sym_zero p,
+  map_one' := legendre_sym_one p,
+  map_mul' := legendre_sym_mul p }
+
+/-- The square of the symbol is 1 if `p ∤ a`. -/
+theorem legendre_sym_sq_one (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p) ≠ 0) :
+  (legendre_sym p a)^2 = 1 :=
+quadratic_char_sq_one ha
+
+/-- The Legendre symbol of `a^2` at `p` is 1 if `p ∤ a`. -/
+theorem legendre_sym_sq_one'  (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p) ≠ 0) :
+  legendre_sym p (a ^ 2) = 1 :=
+begin
+  rw [legendre_sym],
+  push_cast,
+  exact quadratic_char_sq_one' ha,
+end
+
+/-- The Legendre symbol depends only on `a` mod `p`. -/
+theorem legendre_sym_mod (p : ℕ) [fact p.prime] (a : ℤ) :
+  legendre_sym p a = legendre_sym p (a % p) :=
+by simp only [legendre_sym, int_cast_mod]
+
 
 /-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
   than `p/2` such that `(a * x) % p > p / 2` -/
@@ -170,14 +203,34 @@ begin
   simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
 end
 
+/-- When `p ∤ a`, then `legendre_sym p a = 1` iff `a` is a square mod `p`. -/
 lemma legendre_sym_eq_one_iff {a : ℤ} (ha0 : (a : zmod p) ≠ 0) :
-  legendre_sym p a = 1 ↔ (∃ b : zmod p, b ^ 2 = a) :=
+  legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
+quadratic_char_one_iff_is_square ha0
+
+/-- `legendre_sym p a = -1` iff`a` is a nonsquare mod `p`. -/
+lemma legendre_sym_eq_neg_one_iff {a : ℤ} :
+  legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
+quadratic_char_neg_one_iff_not_is_square
+
+/-- The number of square roots of `a` modulo `p` is determined by the Legendre symbol. -/
+lemma legendre_sym_card_sqrts (hp : p ≠ 2) (a : ℤ) :
+  ↑{x : zmod p | x^2 = a}.to_finset.card = legendre_sym p a + 1 :=
 begin
-  rw [euler_criterion p ha0, legendre_sym, if_neg ha0],
-  split_ifs,
-  { simp only [h, eq_self_iff_true] },
-  { simp only [h, iff_false], tauto }
+  have h : ring_char (zmod p) ≠ 2 := by { rw ring_char_zmod_n, exact hp, },
+  exact quadratic_char_card_sqrts h a,
 end
+
+/-- `legendre_sym p (-1)` is given by `χ₄ p`. -/
+lemma legendre_sym_neg_one (hp : p ≠ 2) : legendre_sym p (-1) = χ₄ p :=
+begin
+  have h : ring_char (zmod p) ≠ 2 := by { rw ring_char_zmod_n, exact hp, },
+  have h₁ := quadratic_char_neg_one h,
+  rw card p at h₁,
+  exact_mod_cast h₁,
+end
+
+open_locale big_operators
 
 lemma eisenstein_lemma (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
@@ -213,7 +266,7 @@ begin
   have hdisj : disjoint
       ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val))
       ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)),
-    from disjoint_filter.2 (λ x hx, by simp [hx2 _ hx, mul_comm]),
+    from disjoint_filter.2 (λ x hx, by { rw [nat.cast_two, hx2 x hx, mul_comm], simp }),
   have hunion :
       ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val)) ∪
       ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)) =
@@ -221,7 +274,8 @@ begin
     begin
       rw [filter_union_right],
       conv_rhs {rw [← @filter_true _ (Ico 1 (p / 2).succ)]},
-      exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le, mul_comm])
+      exact filter_congr (λ x hx,
+        by rw [nat.cast_two, hx2 x hx, mul_comm, iff_true_intro (lt_or_le _ _)])
     end,
   have hp2' := prime_ne_zero p 2 hp2,
   rw (by norm_cast : ((2 : ℕ) : zmod p) = (2 : ℤ)) at *,
@@ -234,12 +288,11 @@ begin
 end
 
 lemma exists_sq_eq_two_iff (hp1 : p ≠ 2) :
-  (∃ a : zmod p, a ^ 2 = 2) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
-have hp2 : ((2 : ℤ) : zmod p) ≠ 0,
-  from prime_ne_zero p 2 (λ h, by simpa [h] using hp1),
-have hpm4 : p % 4 = p % 8 % 4, from (nat.mod_mul_left_mod p 2 4).symm,
-have hpm2 : p % 2 = p % 8 % 2, from (nat.mod_mul_left_mod p 4 2).symm,
+  is_square (2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 begin
+  have hp2 : ((2 : ℤ) : zmod p) ≠ 0, by exact_mod_cast prime_ne_zero p 2 hp1,
+  have hpm4 : p % 4 = p % 8 % 4, from (nat.mod_mul_left_mod p 2 4).symm,
+  have hpm2 : p % 2 = p % 8 % 2, from (nat.mod_mul_left_mod p 4 2).symm,
   rw [show (2 : zmod p) = (2 : ℤ), by simp, ← legendre_sym_eq_one_iff p hp2],
   erw [legendre_sym_two p hp1, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
     even_add, even_div, even_div],
@@ -252,25 +305,29 @@ begin
 end
 
 lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q ≠ 2) :
-  (∃ a : zmod p, a ^ 2 = q) ↔ ∃ b : zmod q, b ^ 2 = p :=
+  is_square (q : zmod p) ↔ is_square (p : zmod q) :=
 if hpq : p = q then by substI hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
-  from (dvd_iff_mod_eq_zero _ _).1
-    (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $
+  from dvd_iff_mod_eq_zero.1
+    (dvd_mul_of_dvd_left (dvd_iff_mod_eq_zero.2 $
     by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _),
 begin
   have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp1, norm_num at hp1, },
-  have hpq0 : (p : zmod q) ≠ 0 := prime_ne_zero q p (ne.symm hpq),
-  have hqp0 : (q : zmod p) ≠ 0 := prime_ne_zero p q hpq,
+  have hpq0 : ((p : ℤ) : zmod q) ≠ 0 := by exact_mod_cast prime_ne_zero q p (ne.symm hpq),
+  have hqp0 : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q hpq,
   have := quadratic_reciprocity p q hp_odd hq1 hpq,
-  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym, int.cast_coe_nat,
-    int.cast_coe_nat, if_neg hqp0, if_neg hpq0] at this,
-  rw [euler_criterion q hpq0, euler_criterion p hqp0],
-  split_ifs at this; simp *; contradiction,
+  rw [neg_one_pow_eq_pow_mod_two, h1, pow_zero] at this,
+  rw [(by norm_cast : (p : zmod q) = (p : ℤ)), (by norm_cast : (q : zmod p) = (q : ℤ)),
+       ← legendre_sym_eq_one_iff _ hpq0, ← legendre_sym_eq_one_iff _ hqp0],
+  cases (legendre_sym_eq_one_or_neg_one p q hqp0) with h h,
+  { simp only [h, eq_self_iff_true, true_iff, mul_one] at this ⊢,
+    exact this, },
+  { simp only [h, mul_neg, mul_one] at this ⊢,
+    rw eq_neg_of_eq_neg this.symm, },
 end
 
 lemma exists_sq_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
-  (hq3 : q % 4 = 3) (hpq : p ≠ q) : (∃ a : zmod p, a ^ 2 = q) ↔ ¬∃ b : zmod q, b ^ 2 = p :=
+  (hq3 : q % 4 = 3) (hpq : p ≠ q) : is_square (q : zmod p) ↔ ¬ is_square (p : zmod q) :=
 have h1 : ((p / 2) * (q / 2)) % 2 = 1,
   from nat.odd_mul_odd
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)
@@ -278,13 +335,19 @@ have h1 : ((p / 2) * (q / 2)) % 2 = 1,
 begin
   have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp3, norm_num at hp3, },
   have hq_odd : q ≠ 2 := by { by_contra, simp [h] at hq3, norm_num at hq3, },
-  have hpq0 : (p : zmod q) ≠ 0 := prime_ne_zero q p (ne.symm hpq),
-  have hqp0 : (q : zmod p) ≠ 0 := prime_ne_zero p q hpq,
+  have hpq0 : ((p : ℤ) : zmod q) ≠ 0 := by exact_mod_cast prime_ne_zero q p (ne.symm hpq),
+  have hqp0 : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q hpq,
   have := quadratic_reciprocity p q hp_odd hq_odd hpq,
-  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym, int.cast_coe_nat,
-    int.cast_coe_nat, if_neg hpq0, if_neg hqp0] at this,
-  rw [euler_criterion q hpq0, euler_criterion p hqp0],
-  split_ifs at this; simp *; contradiction
+  rw [neg_one_pow_eq_pow_mod_two, h1, pow_one] at this,
+  rw [(by norm_cast : (p : zmod q) = (p : ℤ)), (by norm_cast : (q : zmod p) = (q : ℤ)),
+       ← legendre_sym_eq_one_iff _ hpq0, ← legendre_sym_eq_one_iff _ hqp0],
+  cases (legendre_sym_eq_one_or_neg_one q p hpq0) with h h,
+  { simp only [h, eq_self_iff_true, not_true, iff_false, one_mul] at this ⊢,
+    simp only [this],
+    norm_num, },
+  { simp only [h, neg_mul, one_mul, neg_inj] at this ⊢,
+    simp only [this, eq_self_iff_true, true_iff],
+    norm_num, },
 end
 
 end zmod

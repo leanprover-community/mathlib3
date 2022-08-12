@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.int.basic
-import order.succ_pred.basic
+import data.nat.succ_pred
 
 /-!
 # Successors and predecessors of integers
@@ -12,7 +12,7 @@ import order.succ_pred.basic
 In this file, we show that `ℤ` is both an archimedean `succ_order` and an archimedean `pred_order`.
 -/
 
-open function
+open function order
 
 namespace int
 
@@ -49,4 +49,13 @@ instance : is_succ_archimedean ℤ :=
 instance : is_pred_archimedean ℤ :=
 ⟨λ a b h, ⟨(b - a).to_nat, by rw [pred_eq_pred, pred_iterate, to_nat_sub_of_le h, sub_sub_cancel]⟩⟩
 
+/-! ### Covering relation -/
+
+protected lemma covby_iff_succ_eq {m n : ℤ} : m ⋖ n ↔ m + 1 = n := succ_eq_iff_covby.symm
+
 end int
+
+@[simp, norm_cast] lemma nat.cast_int_covby_iff {a b : ℕ} : (a : ℤ) ⋖ b ↔ a ⋖ b :=
+by { rw [nat.covby_iff_succ_eq, int.covby_iff_succ_eq], exact int.coe_nat_inj' }
+
+alias nat.cast_int_covby_iff ↔ _ covby.cast_int

@@ -32,8 +32,8 @@ When possible, instead of parametrizing results over `(f : α →ᵇ β)`,
 you should parametrize over `(F : Type*) [bounded_continuous_map_class F α β] (f : F)`.
 
 When you extend this structure, make sure to extend `bounded_continuous_map_class`. -/
-structure bounded_continuous_function
-  (α : Type u) (β : Type v) [topological_space α] [metric_space β] extends continuous_map α β :
+structure bounded_continuous_function (α : Type u) (β : Type v)
+  [topological_space α] [pseudo_metric_space β] extends continuous_map α β :
   Type (max u v) :=
 (map_bounded' : ∃ C, ∀ x y, dist (to_fun x) (to_fun y) ≤ C)
 
@@ -42,7 +42,7 @@ localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_conti
 /-- `bounded_continuous_map_class F α β` states that `F` is a type of bounded continuous maps.
 
 You should also extend this typeclass when you extend `bounded_continuous_function`. -/
-class bounded_continuous_map_class (F α β : Type*) [topological_space α] [metric_space β]
+class bounded_continuous_map_class (F α β : Type*) [topological_space α] [pseudo_metric_space β]
   extends continuous_map_class F α β :=
 (map_bounded (f : F) : ∃ C, ∀ x y, dist (f x) (f y) ≤ C)
 
@@ -50,7 +50,7 @@ export bounded_continuous_map_class (map_bounded)
 
 namespace bounded_continuous_function
 section basics
-variables [topological_space α] [metric_space β] [metric_space γ]
+variables [topological_space α] [pseudo_metric_space β] [pseudo_metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : bounded_continuous_map_class (α →ᵇ β) α β :=
@@ -170,15 +170,18 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
 ⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_nonempty_compact⟩
 
-/-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
-instance : metric_space (α →ᵇ β) :=
+/-- The type of bounded continuous functions, with the uniform distance, is a pseudometric space. -/
+instance : pseudo_metric_space (α →ᵇ β) :=
 { dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
-  eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
-    eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
   dist_comm := λ f g, by simp [dist_eq, dist_comm],
   dist_triangle := λ f g h,
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
+
+/-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
+instance {α β} [topological_space α] [metric_space β] : metric_space (α →ᵇ β) :=
+{ eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
+    eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg) }
 
 lemma nndist_eq : nndist f g = Inf {C | ∀ x : α, nndist (f x) (g x) ≤ C} :=
 subtype.ext $ dist_eq.trans $ begin
@@ -194,7 +197,7 @@ dist_coe_le_dist x
 
 /-- On an empty space, bounded continuous functions are at distance 0 -/
 lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
-dist_eq_zero.2 (eq_of_empty f g)
+by rw [(ext is_empty_elim : f = g), dist_self]
 
 lemma dist_eq_supr : dist f g = ⨆ x : α, dist (f x) (g x) :=
 begin
@@ -389,14 +392,14 @@ end
 
 lemma isometry_extend (f : α ↪ δ) (h : δ →ᵇ β) :
   isometry (λ g : α →ᵇ β, extend f g h) :=
-isometry_emetric_iff_metric.2 $ λ g₁ g₂, by simp [dist_nonneg]
+isometry.of_dist_eq $ λ g₁ g₂, by simp [dist_nonneg]
 
 end extend
 
 end basics
 
 section arzela_ascoli
-variables [topological_space α] [compact_space α] [metric_space β]
+variables [topological_space α] [compact_space α] [pseudo_metric_space β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 /- Arzela-Ascoli theorem asserts that, on a compact space, a set of functions sharing
@@ -494,7 +497,7 @@ end
 
 /-- Third (main) version, with pointwise equicontinuity and range in a compact subset, but
 without closedness. The closure is then compact -/
-theorem arzela_ascoli
+theorem arzela_ascoli [t2_space β]
   (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
@@ -524,7 +527,7 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
 instance is when the source space is a metric space, and there is a fixed modulus of continuity
 for all the functions in the set A -/
 
-lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
+lemma equicontinuous_of_continuity_modulus {α : Type u} [pseudo_metric_space α]
   (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (A : set (α →ᵇ β))
   (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
@@ -548,7 +551,7 @@ end arzela_ascoli
 
 section has_one
 
-variables [topological_space α] [metric_space β] [has_one β]
+variables [topological_space α] [pseudo_metric_space β] [has_one β]
 
 @[to_additive] instance : has_one (α →ᵇ β) := ⟨const α 1⟩
 
@@ -577,7 +580,7 @@ names (for example, `coe_mul`) to conflict with later lemma names for normed rin
 trivial inconvenience, but in any case there are no obvious applications of the multiplicative
 version. -/
 
-variables [topological_space α] [metric_space β] [add_monoid β]
+variables [topological_space α] [pseudo_metric_space β] [add_monoid β]
 variables [has_lipschitz_add β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
@@ -609,7 +612,7 @@ lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
 | 0 := by rw [nsmul_rec, zero_smul, coe_zero]
 | (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
 
-instance has_nat_scalar : has_scalar ℕ (α →ᵇ β) :=
+instance has_nat_scalar : has_smul ℕ (α →ᵇ β) :=
 { smul := λ n f,
   { to_continuous_map := n • f.to_continuous_map,
     map_bounded' := by simpa [coe_nsmul_rec] using (nsmul_rec n f).map_bounded' } }
@@ -632,7 +635,8 @@ instance : has_lipschitz_add (α →ᵇ β) :=
     apply max_le_max; exact dist_coe_le_dist x,
   end⟩ }
 
-/-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+/-- Coercion of a `normed_add_group_hom` is an `add_monoid_hom`. Similar to
+`add_monoid_hom.coe_fn`. -/
 @[simps] def coe_fn_add_hom : (α →ᵇ β) →+ (α → β) :=
 { to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
 
@@ -649,7 +653,7 @@ end has_lipschitz_add
 
 section comm_has_lipschitz_add
 
-variables [topological_space α] [metric_space β] [add_comm_monoid β] [has_lipschitz_add β]
+variables [topological_space α] [pseudo_metric_space β] [add_comm_monoid β] [has_lipschitz_add β]
 
 @[to_additive] instance : add_comm_monoid (α →ᵇ β) :=
 { add_comm      := assume f g, by ext; simp [add_comm],
@@ -667,12 +671,12 @@ by simp
 
 end comm_has_lipschitz_add
 
-section normed_group
+section normed_add_comm_group
 /- In this section, if β is a normed group, then we show that the space of bounded
 continuous functions from α to β inherits a normed group structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α] [normed_group β]
+variables [topological_space α] [seminormed_add_comm_group β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
@@ -753,33 +757,33 @@ le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 
 /-- Constructing a bounded continuous function from a uniformly bounded continuous
 function taking values in a normed group. -/
-def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
-  (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
+def of_normed_add_comm_group {α : Type u} {β : Type v} [topological_space α]
+  [seminormed_add_comm_group β] (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
+  α →ᵇ β :=
 ⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
 
-@[simp] lemma coe_of_normed_group
-  {α : Type u} {β : Type v} [topological_space α] [normed_group β]
+@[simp] lemma coe_of_normed_add_comm_group
+  {α : Type u} {β : Type v} [topological_space α] [seminormed_add_comm_group β]
   (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
-  (of_normed_group f Hf C H : α → β) = f := rfl
+  (of_normed_add_comm_group f Hf C H : α → β) = f := rfl
 
-lemma norm_of_normed_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC : 0 ≤ C)
-  (hfC : ∀ x, ∥f x∥ ≤ C) : ∥of_normed_group f hfc C hfC∥ ≤ C :=
+lemma norm_of_normed_add_comm_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC : 0 ≤ C)
+  (hfC : ∀ x, ∥f x∥ ≤ C) : ∥of_normed_add_comm_group f hfc C hfC∥ ≤ C :=
 (norm_le hC).2 hfC
 
 /-- Constructing a bounded continuous function from a uniformly bounded
 function on a discrete space, taking values in a normed group -/
-def of_normed_group_discrete {α : Type u} {β : Type v}
-  [topological_space α] [discrete_topology α] [normed_group β]
+def of_normed_add_comm_group_discrete {α : Type u} {β : Type v}
+  [topological_space α] [discrete_topology α] [seminormed_add_comm_group β]
   (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
-of_normed_group f continuous_of_discrete_topology C H
+of_normed_add_comm_group f continuous_of_discrete_topology C H
 
-@[simp] lemma coe_of_normed_group_discrete
-  {α : Type u} {β : Type v} [topological_space α] [discrete_topology α] [normed_group β]
-  (f : α → β) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
-  (of_normed_group_discrete f C H : α → β) = f := rfl
+@[simp] lemma coe_of_normed_add_comm_group_discrete {α : Type u} {β : Type v} [topological_space α]
+  [discrete_topology α] [seminormed_add_comm_group β] (f : α → β) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
+  (of_normed_add_comm_group_discrete f C H : α → β) = f := rfl
 
-/-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
-yields a bounded continuous function with values in ℝ. -/
+/-- Taking the pointwise norm of a bounded continuous function with values in a
+`seminormed_add_comm_group` yields a bounded continuous function with values in ℝ. -/
 def norm_comp : α →ᵇ ℝ :=
 f.comp norm lipschitz_with_one_norm
 
@@ -796,12 +800,12 @@ by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, of_normed_group (-f) f.continuous.neg ∥f∥ $ λ x,
+⟨λf, of_normed_add_comm_group (-f) f.continuous.neg ∥f∥ $ λ x,
   trans_rel_right _ (norm_neg _) (f.norm_coe_le_norm x)⟩
 
 /-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
 instance : has_sub (α →ᵇ β) :=
-⟨λf g, of_normed_group (f - g) (f.continuous.sub g.continuous) (∥f∥ + ∥g∥) $ λ x,
+⟨λf g, of_normed_add_comm_group (f - g) (f.continuous.sub g.continuous) (∥f∥ + ∥g∥) $ λ x,
   by { simp only [sub_eq_add_neg],
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
@@ -822,7 +826,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 | (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
 | -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
 
-instance has_int_scalar : has_scalar ℤ (α →ᵇ β) :=
+instance has_int_scalar : has_smul ℤ (α →ᵇ β) :=
 { smul := λ n f,
   { to_continuous_map := n • f.to_continuous_map,
     map_bounded' := by simpa using (zsmul_rec n f).map_bounded' } }
@@ -834,8 +838,11 @@ instance : add_comm_group (α →ᵇ β) :=
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
   (λ _ _, coe_zsmul _ _)
 
-instance : normed_group (α →ᵇ β) :=
+instance : seminormed_add_comm_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
+
+instance {α β} [topological_space α] [normed_add_comm_group β] : normed_add_comm_group (α →ᵇ β) :=
+{ ..bounded_continuous_function.seminormed_add_comm_group }
 
 lemma nnnorm_def : ∥f∥₊ = nndist f 0 := rfl
 
@@ -867,7 +874,7 @@ lemma norm_comp_continuous_le [topological_space γ] (f : α →ᵇ β) (g : C(�
 ((lipschitz_comp_continuous g).dist_le_mul f 0).trans $
   by rw [nnreal.coe_one, one_mul, dist_zero_right]
 
-end normed_group
+end normed_add_comm_group
 
 section has_bounded_smul
 /-!
@@ -879,12 +886,12 @@ functions from `α` to `β` inherits a so-called `has_bounded_smul` structure (i
 `has_continuous_mul` structure, which is the mathlib formulation of being a topological module), by
 using pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [pseudo_metric_space 𝕜] [topological_space α] [metric_space β]
+variables {𝕜 : Type*} [pseudo_metric_space 𝕜] [topological_space α] [pseudo_metric_space β]
 
-section has_scalar
-variables [has_zero 𝕜] [has_zero β] [has_scalar 𝕜 β] [has_bounded_smul 𝕜 β]
+section has_smul
+variables [has_zero 𝕜] [has_zero β] [has_smul 𝕜 β] [has_bounded_smul 𝕜 β]
 
-instance : has_scalar 𝕜 (α →ᵇ β) :=
+instance : has_smul 𝕜 (α →ᵇ β) :=
 { smul := λ c f,
   { to_continuous_map := c • f.to_continuous_map,
     map_bounded' := let ⟨b, hb⟩ := f.bounded in ⟨dist c 0 * b, λ x y, begin
@@ -896,7 +903,7 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
-instance [has_scalar 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β] : is_central_scalar 𝕜 (α →ᵇ β) :=
+instance [has_smul 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β] : is_central_scalar 𝕜 (α →ᵇ β) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
 instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
@@ -914,7 +921,7 @@ instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
     simp
   end }
 
-end has_scalar
+end has_smul
 
 section mul_action
 variables [monoid_with_zero 𝕜] [has_zero β] [mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
@@ -973,16 +980,16 @@ continuous functions from `α` to `β` inherits a normed space structure, by usi
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
 variables {𝕜 : Type*}
-variables [topological_space α] [normed_group β]
+variables [topological_space α] [seminormed_add_comm_group β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance [normed_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, begin
-  refine norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  refine norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
   exact (λ x, trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))) end⟩
 
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
-variables [normed_group γ] [normed_space 𝕜 γ]
+variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 β]
+variables [seminormed_add_comm_group γ] [normed_space 𝕜 γ]
 
 variables (α)
 -- TODO does this work in the `has_bounded_smul` setting, too?
@@ -994,7 +1001,7 @@ Upgraded version of `continuous_linear_map.comp_left_continuous`, similar to
 protected def _root_.continuous_linear_map.comp_left_continuous_bounded (g : β →L[𝕜] γ) :
   (α →ᵇ β) →L[𝕜] (α →ᵇ γ) :=
 linear_map.mk_continuous
-  { to_fun := λ f, of_normed_group
+  { to_fun := λ f, of_normed_add_comm_group
       (g ∘ f)
       (g.continuous.comp f.continuous)
       (∥g∥ * ∥f∥)
@@ -1002,7 +1009,7 @@ linear_map.mk_continuous
     map_add' := λ f g, by ext; simp,
     map_smul' := λ c f, by ext; simp }
   ∥g∥
-  (λ f, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg g) (norm_nonneg f)) _)
+  (λ f, norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg g) (norm_nonneg f)) _)
 
 @[simp] lemma _root_.continuous_linear_map.comp_left_continuous_bounded_apply (g : β →L[𝕜] γ)
   (f : α →ᵇ β) (x : α) :
@@ -1023,11 +1030,12 @@ variables [topological_space α] {R : Type*}
 
 section non_unital
 
-variables [non_unital_normed_ring R]
+section semi_normed
+variables [non_unital_semi_normed_ring R]
 
 instance : has_mul (α →ᵇ R) :=
-{ mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
-    le_trans (non_unital_normed_ring.norm_mul (f x) (g x)) $
+{ mul := λ f g, of_normed_add_comm_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
+    le_trans (norm_mul_le (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _) }
 
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
@@ -1037,13 +1045,22 @@ instance : non_unital_ring (α →ᵇ R) :=
 fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
   (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
-instance : non_unital_normed_ring (α →ᵇ R) :=
-{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
-  .. bounded_continuous_function.normed_group }
+instance : non_unital_semi_normed_ring (α →ᵇ R) :=
+{ norm_mul := λ f g, norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _))
+    _,
+  .. bounded_continuous_function.seminormed_add_comm_group }
+
+end semi_normed
+
+instance [non_unital_normed_ring R] : non_unital_normed_ring (α →ᵇ R) :=
+{ .. bounded_continuous_function.non_unital_semi_normed_ring,
+  .. bounded_continuous_function.normed_add_comm_group }
 
 end non_unital
 
-variables [normed_ring R]
+section semi_normed
+
+variables [semi_normed_ring R]
 
 @[simp] lemma coe_npow_rec (f : α →ᵇ R) : ∀ n, ⇑(npow_rec n f) = f ^ n
 | 0 := by rw [npow_rec, pow_zero, coe_one]
@@ -1057,13 +1074,30 @@ instance has_nat_pow : has_pow (α →ᵇ R) ℕ :=
 @[simp] lemma coe_pow (n : ℕ) (f : α →ᵇ R) : ⇑(f ^ n) = f ^ n := rfl
 @[simp] lemma pow_apply (n : ℕ) (f : α →ᵇ R) (v : α) : (f ^ n) v = f v ^ n := rfl
 
+instance : has_nat_cast (α →ᵇ R) :=
+⟨λ n, bounded_continuous_function.const _ n⟩
+
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : α →ᵇ R) : α → R) = n := rfl
+
+instance : has_int_cast (α →ᵇ R) :=
+⟨λ n, bounded_continuous_function.const _ n⟩
+
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : α →ᵇ R) : α → R) = n := rfl
+
 instance : ring (α →ᵇ R) :=
 fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
   (λ _ _, coe_nsmul _ _)
   (λ _ _, coe_zsmul _ _)
   (λ _ _, coe_pow _ _)
+  coe_nat_cast
+  coe_int_cast
 
-instance : normed_ring (α →ᵇ R) :=
+instance : semi_normed_ring (α →ᵇ R) :=
+{ ..bounded_continuous_function.non_unital_semi_normed_ring }
+
+end semi_normed
+
+instance [normed_ring R] : normed_ring (α →ᵇ R) :=
 { ..bounded_continuous_function.non_unital_normed_ring }
 
 end normed_ring
@@ -1076,14 +1110,17 @@ In this section, if `R` is a normed commutative ring, then we show that the spac
 continuous functions from `α` to `R` inherits a normed commutative ring structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α] {R : Type*} [normed_comm_ring R]
+variables [topological_space α] {R : Type*}
 
-instance : comm_ring (α →ᵇ R) :=
+instance [semi_normed_comm_ring R] : comm_ring (α →ᵇ R) :=
 { mul_comm := λ f₁ f₂, ext $ λ x, mul_comm _ _,
   .. bounded_continuous_function.ring }
 
-instance : normed_comm_ring (α →ᵇ R) :=
-{ .. bounded_continuous_function.comm_ring, .. bounded_continuous_function.normed_group }
+instance [semi_normed_comm_ring R] : semi_normed_comm_ring (α →ᵇ R) :=
+{ ..bounded_continuous_function.comm_ring, ..bounded_continuous_function.seminormed_add_comm_group }
+
+instance [normed_comm_ring R] : normed_comm_ring (α →ᵇ R) :=
+{ .. bounded_continuous_function.comm_ring, .. bounded_continuous_function.normed_add_comm_group }
 
 end normed_comm_ring
 
@@ -1096,7 +1133,7 @@ continuous functions from `α` to `γ` inherits a normed algebra structure, by u
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
 variables {𝕜 : Type*} [normed_field 𝕜]
-variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
+variables [topological_space α] [seminormed_add_comm_group β] [normed_space 𝕜 β]
 variables [normed_ring γ] [normed_algebra 𝕜 γ]
 variables {f g : α →ᵇ γ} {x : α} {c : 𝕜}
 
@@ -1119,13 +1156,8 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
   algebra_map 𝕜 (α →ᵇ γ) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
 
-instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
-{ norm_algebra_map_eq := λ c, begin
-    calc ∥ (algebra_map 𝕜 (α →ᵇ γ)).to_fun c∥ = ∥(algebra_map 𝕜 γ) c∥ : _
-    ... = ∥c∥ : norm_algebra_map_eq _ _,
-    apply norm_const_eq ((algebra_map 𝕜 γ) c), assumption,
-  end,
-  ..bounded_continuous_function.algebra }
+instance : normed_algebra 𝕜 (α →ᵇ γ) :=
+{ ..bounded_continuous_function.normed_space }
 
 /-!
 ### Structure as normed module over scalar functions
@@ -1134,8 +1166,8 @@ If `β` is a normed `𝕜`-space, then we show that the space of bounded continu
 functions from `α` to `β` is naturally a module over the algebra of bounded continuous
 functions from `α` to `𝕜`. -/
 
-instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
-⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
+instance has_smul' : has_smul (α →ᵇ 𝕜) (α →ᵇ β) :=
+⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_add_comm_group (λ x, (f x) • (g x))
 (f.continuous.smul g.continuous) (∥f∥ * ∥g∥) (λ x, calc
   ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
   ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
@@ -1150,7 +1182,7 @@ module.of_core $
   one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
 lemma norm_smul_le (f : α →ᵇ 𝕜) (g : α →ᵇ β) : ∥f • g∥ ≤ ∥f∥ * ∥g∥ :=
-norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
+norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 
 /- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts
 show that the space of bounded continuous functions from `α` to `β` is naturally a normed
@@ -1184,14 +1216,14 @@ In summary, if `β` is a C⋆-algebra over `𝕜`, then so is  `α →ᵇ β`; n
 completeness is guaranteed when `β` is complete (see
 `bounded_continuous_function.complete`). -/
 
-section normed_group
+section normed_add_comm_group
 
-variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
-variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
+variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜] [topological_space α]
+  [seminormed_add_comm_group β] [star_add_monoid β] [normed_star_group β]
 variables [normed_space 𝕜 β] [star_module 𝕜 β]
 
 instance : star_add_monoid (α →ᵇ β) :=
-{ star            := λ f, f.comp star star_normed_group_hom.lipschitz,
+{ star            := λ f, f.comp star star_normed_add_group_hom.lipschitz,
   star_involutive := λ f, ext $ λ x, star_star (f x),
   star_add        := λ f g, ext $ λ x, star_add (f x) (g x) }
 
@@ -1207,7 +1239,7 @@ instance : normed_star_group (α →ᵇ β) :=
 instance : star_module 𝕜 (α →ᵇ β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }
 
-end normed_group
+end normed_add_comm_group
 
 section cstar_ring
 
@@ -1257,7 +1289,7 @@ instance : semilattice_inf (α →ᵇ β) :=
       obtain ⟨C₁, hf⟩ := f.bounded,
       obtain ⟨C₂, hg⟩ := g.bounded,
       refine ⟨C₁ + C₂, λ x y, _⟩,
-      simp_rw normed_group.dist_eq at hf hg ⊢,
+      simp_rw normed_add_comm_group.dist_eq at hf hg ⊢,
       exact (norm_inf_sub_inf_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
     end },
   inf_le_left := λ f g, continuous_map.le_def.mpr (λ _, inf_le_left),
@@ -1274,7 +1306,7 @@ instance : semilattice_sup (α →ᵇ β) :=
       obtain ⟨C₁, hf⟩ := f.bounded,
       obtain ⟨C₂, hg⟩ := g.bounded,
       refine ⟨C₁ + C₂, λ x y, _⟩,
-      simp_rw normed_group.dist_eq at hf hg ⊢,
+      simp_rw normed_add_comm_group.dist_eq at hf hg ⊢,
       exact (norm_sup_sub_sup_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
     end },
   le_sup_left := λ f g, continuous_map.le_def.mpr (λ _, le_sup_left),
@@ -1307,5 +1339,38 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
   ..bounded_continuous_function.lattice, }
 
 end normed_lattice_ordered_group
+
+section nonnegative_part
+
+variables [topological_space α]
+
+/-- The nonnegative part of a bounded continuous `ℝ`-valued function as a bounded
+continuous `ℝ≥0`-valued function. -/
+def nnreal_part (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+bounded_continuous_function.comp _
+  (show lipschitz_with 1 real.to_nnreal, from lipschitz_with_pos) f
+
+@[simp] lemma nnreal_part_coe_fun_eq (f : α →ᵇ ℝ) : ⇑(f.nnreal_part) = real.to_nnreal ∘ ⇑f := rfl
+
+/-- The absolute value of a bounded continuous `ℝ`-valued function as a bounded
+continuous `ℝ≥0`-valued function. -/
+def nnnorm (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+bounded_continuous_function.comp _
+  (show lipschitz_with 1 (λ (x : ℝ), ∥x∥₊), from lipschitz_with_one_norm) f
+
+@[simp] lemma nnnorm_coe_fun_eq (f : α →ᵇ ℝ) : ⇑(f.nnnorm) = has_nnnorm.nnnorm ∘ ⇑f := rfl
+
+/-- Decompose a bounded continuous function to its positive and negative parts. -/
+lemma self_eq_nnreal_part_sub_nnreal_part_neg (f : α →ᵇ ℝ) :
+  ⇑f = coe ∘ f.nnreal_part - coe ∘ (-f).nnreal_part :=
+by { funext x, dsimp, simp only [max_zero_sub_max_neg_zero_eq_self], }
+
+/-- Express the absolute value of a bounded continuous function in terms of its
+positive and negative parts. -/
+lemma abs_self_eq_nnreal_part_add_nnreal_part_neg (f : α →ᵇ ℝ) :
+  abs ∘ ⇑f = coe ∘ f.nnreal_part + coe ∘ (-f).nnreal_part :=
+by { funext x, dsimp, simp only [max_zero_add_max_neg_zero_eq_abs_self], }
+
+end nonnegative_part
 
 end bounded_continuous_function

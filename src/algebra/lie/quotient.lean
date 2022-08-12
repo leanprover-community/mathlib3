@@ -45,12 +45,12 @@ namespace quotient
 variables {N I}
 
 instance add_comm_group : add_comm_group (M ⧸ N) := submodule.quotient.add_comm_group _
-instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
   module S (M ⧸ N) := submodule.quotient.module' _
 instance module : module R (M ⧸ N) := submodule.quotient.module _
 instance is_central_scalar {S : Type*} [semiring S]
-  [has_scalar S R] [module S M] [is_scalar_tower S R M]
-  [has_scalar Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [has_smul S R] [module S M] [is_scalar_tower S R M]
+  [has_smul Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S (M ⧸ N) :=
 submodule.quotient.is_central_scalar _
 instance inhabited : inhabited (M ⧸ N) := ⟨0⟩
@@ -59,42 +59,33 @@ instance inhabited : inhabited (M ⧸ N) := ⟨0⟩
 lie_submodule of the lie_module `N`. -/
 abbreviation mk : M → M ⧸ N := submodule.quotient.mk
 
-lemma is_quotient_mk (m : M) :
-  quotient.mk' m = (mk m : M ⧸ N) := rfl
+lemma is_quotient_mk (m : M) : quotient.mk' m = (mk m : M ⧸ N) := rfl
 
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
 def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
-  linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) N.lie_mem
+linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) N.lie_mem
 
 variables (N)
 
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural Lie algebra morphism from `L` to the linear endomorphism of the quotient `M/N`. -/
 def action_as_endo_map : L →ₗ⁅R⁆ module.End R (M ⧸ N) :=
-{ map_lie' := λ x y, by { ext m,
-                          change mk ⁅⁅x, y⁆, m⁆ = mk (⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆),
-                          congr, apply lie_lie, },
+{ map_lie' := λ x y, submodule.linear_map_qext _ $ linear_map.ext $ λ m,
+    congr_arg mk $ lie_lie _ _ _,
   ..linear_map.comp (submodule.mapq_linear (N : submodule R M) ↑N) lie_submodule_invariant }
 
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there is
 a natural bracket action of `L` on the quotient `M/N`. -/
-def action_as_endo_map_bracket : has_bracket L (M ⧸ N) := ⟨λ x n, action_as_endo_map N x n⟩
+instance action_as_endo_map_bracket : has_bracket L (M ⧸ N) := ⟨λ x n, action_as_endo_map N x n⟩
 
 instance lie_quotient_lie_ring_module : lie_ring_module L (M ⧸ N) :=
-{ bracket     := λ x n, (action_as_endo_map N : L →ₗ[R] module.End R (M ⧸ N)) x n,
-  add_lie     := λ x y n, by { simp only [linear_map.map_add, linear_map.add_apply], },
-  lie_add     := λ x m n, by { simp only [linear_map.map_add, linear_map.add_apply], },
-  leibniz_lie := λ x y m, show action_as_endo_map _ _ _ = _,
-  { simp only [lie_hom.map_lie, lie_ring.of_associative_ring_bracket, sub_add_cancel,
-      lie_hom.coe_to_linear_map, linear_map.mul_apply, linear_map.sub_apply], } }
+{ bracket := has_bracket.bracket,
+  ..lie_ring_module.comp_lie_hom _ (action_as_endo_map N) }
 
 /-- The quotient of a Lie module by a Lie submodule, is a Lie module. -/
 instance lie_quotient_lie_module : lie_module R L (M ⧸ N) :=
-{ smul_lie := λ t x m, show (_ : L →ₗ[R] module.End R (M ⧸ N)) _ _ = _,
-  { simp only [linear_map.map_smul], refl, },
-  lie_smul := λ x t m, show (_ : L →ₗ[R] module.End R (M ⧸ N)) _ _ = _,
-  { simp only [linear_map.map_smul], refl, }, }
+lie_module.comp_lie_hom _ (action_as_endo_map N)
 
 instance lie_quotient_has_bracket : has_bracket (L ⧸ I) (L ⧸ I) :=
 ⟨begin
@@ -102,6 +93,7 @@ instance lie_quotient_has_bracket : has_bracket (L ⧸ I) (L ⧸ I) :=
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
   apply (submodule.quotient.eq I.to_submodule).2,
+  rw submodule.quotient_rel_r_def at h₁ h₂,
   have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆,
     by simp [-lie_skew, sub_eq_add_neg, add_assoc],
   rw h,

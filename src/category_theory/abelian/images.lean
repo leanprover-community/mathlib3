@@ -85,7 +85,7 @@ In any abelian category this is an isomorphism.
 Conversely, any additive category with kernels and cokernels and
 in which this is always an isomorphism, is abelian.
 
-See https://stacks.math.columbia.edu/tag/0107
+See <https://stacks.math.columbia.edu/tag/0107>
 -/
 def coimage_image_comparison : abelian.coimage f ⟶ abelian.image f :=
 cokernel.desc (kernel.ι f) (kernel.lift (cokernel.π f) f (by simp)) $ (by { ext, simp, })

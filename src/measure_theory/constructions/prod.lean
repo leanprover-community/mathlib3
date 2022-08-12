@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.measure.giry_monad
 import dynamics.ergodic.measure_preserving
 import measure_theory.integral.set_integral
+import measure_theory.measure.open_pos
 
 /-!
 # The product measure
@@ -89,7 +90,7 @@ end
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]
 variables {μ : measure α} {ν : measure β} {τ : measure γ}
-variables [normed_group E]
+variables [normed_add_comm_group E]
 
 /-! ### Measurability
 
@@ -207,7 +208,7 @@ begin
     suffices : measurable (λ x, c * ν (prod.mk x ⁻¹' s)),
     { simpa [lintegral_indicator _ (m hs)] },
     exact (measurable_measure_prod_mk_left hs).const_mul _ },
-  { rintro f g - hf hg h2f h2g, simp_rw [pi.add_apply, lintegral_add (hf.comp m) (hg.comp m)],
+  { rintro f g - hf hg h2f h2g, simp_rw [pi.add_apply, lintegral_add_left (hf.comp m)],
     exact h2f.add h2g },
   { intros f hf h2f h3f,
     have := measurable_supr h3f,
@@ -364,6 +365,53 @@ begin
     ... ≤ ∫⁻ x, f x ∂μ          : lintegral_mono' restrict_le_self le_rfl
     ... = μ.prod ν ST           : (prod_apply hSTm).symm
     ... = μ.prod ν (s ×ˢ t)     : measure_to_measurable _ }
+end
+
+instance {X Y : Type*} [topological_space X] [topological_space Y]
+  {m : measurable_space X} {μ : measure X} [is_open_pos_measure μ]
+  {m' : measurable_space Y} {ν : measure Y} [is_open_pos_measure ν] [sigma_finite ν] :
+  is_open_pos_measure (μ.prod ν) :=
+begin
+  constructor,
+  rintros U U_open ⟨⟨x, y⟩, hxy⟩,
+  rcases is_open_prod_iff.1 U_open x y hxy with ⟨u, v, u_open, v_open, xu, yv, huv⟩,
+  refine ne_of_gt (lt_of_lt_of_le _ (measure_mono huv)),
+  simp only [prod_prod, canonically_ordered_comm_semiring.mul_pos],
+  split,
+  { exact u_open.measure_pos μ ⟨x, xu⟩ },
+  { exact v_open.measure_pos ν ⟨y, yv⟩ }
+end
+
+instance {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  (μ : measure α) (ν : measure β) [is_finite_measure μ] [is_finite_measure ν] :
+  is_finite_measure (μ.prod ν) :=
+begin
+  constructor,
+  rw [← univ_prod_univ, prod_prod],
+  exact mul_lt_top (measure_lt_top _ _).ne (measure_lt_top _ _).ne,
+end
+
+instance {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  (μ : measure α) (ν : measure β) [is_probability_measure μ] [is_probability_measure ν] :
+  is_probability_measure (μ.prod ν) :=
+⟨by rw [← univ_prod_univ, prod_prod, measure_univ, measure_univ, mul_one]⟩
+
+instance {α β : Type*} [topological_space α] [topological_space β]
+  {mα : measurable_space α} {mβ : measurable_space β} (μ : measure α) (ν : measure β)
+  [is_finite_measure_on_compacts μ] [is_finite_measure_on_compacts ν] [sigma_finite ν] :
+  is_finite_measure_on_compacts (μ.prod ν) :=
+begin
+  refine ⟨λ K hK, _⟩,
+  set L := (prod.fst '' K) ×ˢ (prod.snd '' K) with hL,
+  have : K ⊆ L,
+  { rintros ⟨x, y⟩ hxy,
+    simp only [prod_mk_mem_set_prod_eq, mem_image, prod.exists, exists_and_distrib_right,
+      exists_eq_right],
+    exact ⟨⟨y, hxy⟩, ⟨x, hxy⟩⟩ },
+  apply lt_of_le_of_lt (measure_mono this),
+  rw [hL, prod_prod],
+  exact mul_lt_top ((is_compact.measure_lt_top ((hK.image continuous_fst))).ne)
+                   ((is_compact.measure_lt_top ((hK.image continuous_snd))).ne)
 end
 
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
@@ -557,9 +605,9 @@ end
 
 end measure
 
-namespace measure_preserving
-
 open measure
+
+namespace measure_preserving
 
 variables {δ : Type*} [measurable_space δ] {μa : measure α} {μb : measure β}
   {μc : measure γ} {μd : measure δ}
@@ -603,6 +651,34 @@ hf.skew_product this $ filter.eventually_of_forall $ λ _, hg.map_eq
 
 end measure_preserving
 
+namespace quasi_measure_preserving
+
+lemma prod_of_right {f : α × β → γ} {μ : measure α} {ν : measure β} {τ : measure γ}
+  (hf : measurable f) [sigma_finite ν]
+  (h2f : ∀ᵐ x ∂μ, quasi_measure_preserving (λ y, f (x, y)) ν τ) :
+  quasi_measure_preserving f (μ.prod ν) τ :=
+begin
+  refine ⟨hf, _⟩,
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [map_apply hf hs, prod_apply (hf hs), preimage_preimage,
+    lintegral_congr_ae (h2f.mono (λ x hx, hx.preimage_null h2s)), lintegral_zero],
+end
+
+lemma prod_of_left {α β γ} [measurable_space α] [measurable_space β]
+  [measurable_space γ] {f : α × β → γ} {μ : measure α} {ν : measure β} {τ : measure γ}
+  (hf : measurable f) [sigma_finite μ] [sigma_finite ν]
+  (h2f : ∀ᵐ y ∂ν, quasi_measure_preserving (λ x, f (x, y)) μ τ) :
+  quasi_measure_preserving f (μ.prod ν) τ :=
+begin
+  rw [← prod_swap],
+  convert (quasi_measure_preserving.prod_of_right (hf.comp measurable_swap) h2f).comp
+    ((measurable_swap.measure_preserving (ν.prod μ)).symm measurable_equiv.prod_comm)
+    .quasi_measure_preserving,
+  ext ⟨x, y⟩, refl,
+end
+
+end quasi_measure_preserving
+
 end measure_theory
 
 open measure_theory.measure
@@ -625,6 +701,16 @@ hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
 
 lemma ae_measurable.snd [sigma_finite ν] {f : β → γ}
   (hf : ae_measurable f ν) : ae_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
+hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
+
+lemma measure_theory.ae_strongly_measurable.fst {γ} [topological_space γ] [sigma_finite ν]
+  {f : α → γ} (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
+hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
+
+lemma measure_theory.ae_strongly_measurable.snd {γ} [topological_space γ] [sigma_finite ν]
+  {f : β → γ} (hf : ae_strongly_measurable f ν) :
+  ae_strongly_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
 hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 
 /-- The Bochner integral is a.e.-measurable.
@@ -667,8 +753,7 @@ begin
     simp [lintegral_indicator, m hs, hs, lintegral_const_mul, measurable_measure_prod_mk_left hs,
       prod_apply] },
   { rintro f g - hf hg h2f h2g,
-    simp [lintegral_add, measurable.lintegral_prod_right', hf.comp m, hg.comp m,
-      hf, hg, h2f, h2g] },
+    simp [lintegral_add_left, measurable.lintegral_prod_right', hf.comp m, hf, h2f, h2g] },
   { intros f hf h2f h3f,
     have kf : ∀ x n, measurable (λ y, f n (x, y)) := λ x n, (hf n).comp m,
     have k2f : ∀ x, monotone (λ n y, f n (x, y)) := λ x i j hij y, h2f hij (x, y),
@@ -808,6 +893,17 @@ lemma integrable.integral_norm_prod_right [sigma_finite μ] ⦃f : α × β → 
   (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, ∥f (x, y)∥ ∂μ) ν :=
 hf.swap.integral_norm_prod_left
 
+lemma integrable_prod_mul {f : α → ℝ} {g : β → ℝ} (hf : integrable f μ) (hg : integrable g ν) :
+  integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν) :=
+begin
+  refine (integrable_prod_iff _).2 ⟨_, _⟩,
+  { apply ae_strongly_measurable.mul,
+    { exact (hf.1.mono' prod_fst_absolutely_continuous).comp_measurable measurable_fst },
+    { exact (hg.1.mono' prod_snd_absolutely_continuous).comp_measurable measurable_snd } },
+  { exact eventually_of_forall (λ x, hg.const_mul (f x)) },
+  { simpa only [norm_mul, integral_mul_left] using hf.norm.mul_const _ }
+end
+
 end
 
 variables [normed_space ℝ E] [complete_space E]
@@ -834,7 +930,7 @@ begin
   rw [← integral_map measurable_swap.ae_measurable hf, prod_swap]
 end
 
-variables {E' : Type*} [normed_group E'] [complete_space E'] [normed_space ℝ E']
+variables {E' : Type*} [normed_add_comm_group E'] [complete_space E'] [normed_space ℝ E']
 
 /-! Some rules about the sum/difference of double integrals. They follow from `integral_add`, but
   we separate them out as separate lemmas, because they involve quite some steps. -/
@@ -906,14 +1002,14 @@ begin
   rw [continuous_iff_continuous_at], intro g,
   refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
     (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
-  simp_rw [← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
+  simp_rw [← lintegral_fn_integral_sub (λ x, (∥x∥₊ : ℝ≥0∞)) (L1.integrable_coe_fn _)
     (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
-  { exact λ i, ∫⁻ x, ∫⁻ y, nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ },
+  { exact λ i, ∫⁻ x, ∫⁻ y, ∥i (x, y) - g (x, y)∥₊ ∂ν ∂μ },
   swap, { exact λ i, lintegral_mono (λ x, ennnorm_integral_le_lintegral_ennnorm _) },
   show tendsto (λ (i : α × β →₁[μ.prod ν] E),
-    ∫⁻ x, ∫⁻ (y : β), nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ) (𝓝 g) (𝓝 0),
-  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (nnnorm (i z - g z) : ℝ≥0∞)) :=
+    ∫⁻ x, ∫⁻ (y : β), ∥i (x, y) - g (x, y)∥₊ ∂ν ∂μ) (𝓝 g) (𝓝 0),
+  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (∥i z - g z∥₊ : ℝ≥0∞)) :=
   λ i, ((Lp.strongly_measurable i).sub (Lp.strongly_measurable g)).ennnorm,
   simp_rw [← lintegral_prod_of_measurable _ (this _), ← L1.of_real_norm_sub_eq_lintegral,
     ← of_real_zero],
@@ -977,5 +1073,22 @@ begin
   simp only [← measure.prod_restrict s t, integrable_on] at hf ⊢,
   exact integral_prod f hf
 end
+
+lemma integral_prod_mul (f : α → ℝ) (g : β → ℝ) :
+  ∫ z, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x, f x ∂μ) * (∫ y, g y ∂ν) :=
+begin
+  by_cases h : integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν),
+  { rw integral_prod _ h,
+    simp_rw [integral_mul_left, integral_mul_right] },
+  have H : ¬(integrable f μ) ∨ ¬(integrable g ν),
+  { contrapose! h,
+    exact integrable_prod_mul h.1 h.2 },
+  cases H;
+  simp [integral_undef h, integral_undef H],
+end
+
+lemma set_integral_prod_mul (f : α → ℝ) (g : β → ℝ) (s : set α) (t : set β) :
+  ∫ z in s ×ˢ t, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x in s, f x ∂μ) * (∫ y in t, g y ∂ν) :=
+by simp only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
 
 end measure_theory

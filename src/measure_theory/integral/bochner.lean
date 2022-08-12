@@ -142,7 +142,7 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators nnreal ennreal measure_theory
+open_locale topological_space big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
 
 namespace measure_theory
@@ -153,7 +153,7 @@ section weighted_smul
 
 open continuous_linear_map
 
-variables [normed_group F] [normed_space ℝ F] {m : measurable_space α} {μ : measure α}
+variables [normed_add_comm_group F] [normed_space ℝ F] {m : measurable_space α} {μ : measure α}
 
 /-- Given a set `s`, return the continuous linear map `λ x, (μ s).to_real • x`. The extension of
 that set function through `set_to_L1` gives the Bochner integral of L1 functions. -/
@@ -278,8 +278,8 @@ and prove basic property of this integral.
 -/
 open finset
 
-variables [normed_group E] [normed_group F] [normed_space ℝ F] {p : ℝ≥0∞}
-  {G F' : Type*} [normed_group G] [normed_group F'] [normed_space ℝ F']
+variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space ℝ F] {p : ℝ≥0∞}
+  {G F' : Type*} [normed_add_comm_group G] [normed_add_comm_group F'] [normed_space ℝ F']
   {m : measurable_space α} {μ : measure α}
 
 /-- Bochner integral of simple functions whose codomain is a real `normed_space`.
@@ -294,12 +294,13 @@ lemma integral_eq {m : measurable_space α} (μ : measure α) (f : α →ₛ F) 
   f.integral μ = ∑ x in f.range, (μ (f ⁻¹' {x})).to_real • x :=
 by simp [integral, set_to_simple_func, weighted_smul_apply]
 
-lemma integral_eq_sum_filter {m : measurable_space α} (f : α →ₛ F) (μ : measure α) :
+lemma integral_eq_sum_filter [decidable_pred (λ x : F, x ≠ 0)] {m : measurable_space α} (f : α →ₛ F)
+  (μ : measure α) :
   f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (μ (f ⁻¹' {x})).to_real • x :=
-by { rw [integral_def, set_to_simple_func_eq_sum_filter], simp_rw weighted_smul_apply, }
+by { rw [integral_def, set_to_simple_func_eq_sum_filter], simp_rw weighted_smul_apply, congr }
 
 /-- The Bochner integral is equal to a sum over any set that includes `f.range` (except `0`). -/
-lemma integral_eq_sum_of_subset {f : α →ₛ F} {s : finset F}
+lemma integral_eq_sum_of_subset [decidable_pred (λ x : F, x ≠ 0)] {f : α →ₛ F} {s : finset F}
   (hs : f.range.filter (λ x, x ≠ 0) ⊆ s) : f.integral μ = ∑ x in s, (μ (f ⁻¹' {x})).to_real • x :=
 begin
   rw [simple_func.integral_eq_sum_filter, finset.sum_subset hs],
@@ -310,7 +311,7 @@ end
 
 @[simp] lemma integral_const {m : measurable_space α} (μ : measure α) (y : F) :
   (const α y).integral μ = (μ univ).to_real • y :=
-calc (const α y).integral μ = ∑ z in {y}, (μ ((const α y) ⁻¹' {z})).to_real • z :
+by classical; calc (const α y).integral μ = ∑ z in {y}, (μ ((const α y) ⁻¹' {z})).to_real • z :
   integral_eq_sum_of_subset $ (filter_subset _ _).trans (range_const_subset _ _)
 ... = (μ univ).to_real • y : by simp
 
@@ -318,6 +319,7 @@ calc (const α y).integral μ = ∑ z in {y}, (μ ((const α y) ⁻¹' {z})).to_
   {s : set α} (hs : measurable_set s) :
   (piecewise s hs f 0).integral μ = f.integral (μ.restrict s) :=
 begin
+  classical,
   refine (integral_eq_sum_of_subset _).trans
     ((sum_congr rfl $ λ y hy, _).trans (integral_eq_sum_filter _ _).symm),
   { intros y hy,
@@ -326,7 +328,8 @@ begin
     rcases hy with ⟨⟨rfl, -⟩|⟨x, hxs, rfl⟩, h₀⟩,
     exacts [(h₀ rfl).elim, ⟨set.mem_range_self _, h₀⟩] },
   { dsimp,
-    rw [indicator_preimage_of_not_mem, measure.restrict_apply (f.measurable_set_preimage _)],
+    rw [set.piecewise_eq_indicator, indicator_preimage_of_not_mem,
+      measure.restrict_apply (f.measurable_set_preimage _)],
     exact λ h₀, (mem_filter.1 hy).2 (eq.symm h₀) }
 end
 
@@ -421,7 +424,8 @@ namespace L1
 
 open ae_eq_fun Lp.simple_func Lp
 
-variables [normed_group E] [normed_group F] {m : measurable_space α} {μ : measure α}
+variables [normed_add_comm_group E] [normed_add_comm_group F] {m : measurable_space α}
+  {μ : measure α}
 
 variables {α E μ}
 
@@ -463,7 +467,7 @@ Define the Bochner integral on `α →₁ₛ[μ] E` by extension from the simple
 and prove basic properties of this integral. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
-  {F' : Type*} [normed_group F'] [normed_space ℝ F']
+  {F' : Type*} [normed_add_comm_group F'] [normed_space ℝ F']
 
 local attribute [instance] simple_func.normed_space
 
@@ -495,7 +499,7 @@ begin
   exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
-variables {E' : Type*} [normed_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
+variables {E' : Type*} [normed_add_comm_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
 
 
 variables (α E μ 𝕜)
@@ -570,8 +574,8 @@ begin
     have := (to_simple_func f).pos_part_sub_neg_part,
     conv_lhs {rw ← this},
     refl, },
-  { exact (simple_func.integrable f).max_zero.congr ae_eq₁ },
-  { exact (simple_func.integrable f).neg.max_zero.congr ae_eq₂ }
+  { exact (simple_func.integrable f).pos_part.congr ae_eq₁ },
+  { exact (simple_func.integrable f).neg_part.congr ae_eq₂ }
 end
 
 end pos_part
@@ -584,7 +588,7 @@ open simple_func
 local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 
-variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_space ℝ E] [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [normed_space ℝ F] [complete_space E]
 
 section integration_in_L1
@@ -633,7 +637,7 @@ lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - int
 map_sub integral_clm f g
 
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
-map_smul (integral_clm' 𝕜) c f
+show (integral_clm' 𝕜) (c • f) = c • (integral_clm' 𝕜) f, from map_smul (integral_clm' 𝕜) c f
 
 local notation `Integral` := @integral_clm α E _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ μ _
@@ -683,13 +687,18 @@ functions, and 0 otherwise; prove its basic properties.
 
 -/
 
-variables [normed_group E] [normed_space ℝ E] [complete_space E]
-          [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
-          [normed_group F] [normed_space ℝ F] [complete_space F]
+variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+          [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+          [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
+
+section
+open_locale classical
 
 /-- The Bochner integral -/
 def integral {m : measurable_space α} (μ : measure α) (f : α → E) : E :=
 if hf : integrable f μ then L1.integral (hf.to_L1 f) else 0
+
+end
 
 /-! In the notation for integrals, an expression like `∫ x, g ∥x∥ ∂μ` will not be parsed correctly,
   and needs parentheses. We do not set the binding power of `r` to `0`, because then
@@ -707,7 +716,7 @@ variables {f g : α → E} {m : measurable_space α} {μ : measure α}
 
 lemma integral_eq (f : α → E) (hf : integrable f μ) :
   ∫ a, f a ∂μ = L1.integral (hf.to_L1 f) :=
-dif_pos hf
+@dif_pos _ (id _) hf _ _ _
 
 lemma integral_eq_set_to_fun (f : α → E) :
   ∫ a, f a ∂μ = set_to_fun μ (weighted_smul μ) (dominated_fin_meas_additive_weighted_smul μ) f :=
@@ -717,7 +726,7 @@ lemma L1.integral_eq_integral (f : α →₁[μ] E) : L1.integral f = ∫ a, f a
 (L1.set_to_fun_eq_set_to_L1 (dominated_fin_meas_additive_weighted_smul μ) f).symm
 
 lemma integral_undef (h : ¬ integrable f μ) : ∫ a, f a ∂μ = 0 :=
-dif_neg h
+@dif_neg _ (id _) h _ _ _
 
 lemma integral_non_ae_strongly_measurable (h : ¬ ae_strongly_measurable f μ) : ∫ a, f a ∂μ = 0 :=
 integral_undef $ not_and_of_not_left _ h
@@ -825,16 +834,7 @@ lemma tendsto_integral_of_L1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
   (hF : tendsto (λ i, ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0)) :
   tendsto (λ i, ∫ x, F i x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
-begin
-  rw [tendsto_iff_norm_tendsto_zero],
-  replace hF : tendsto (λ i, ennreal.to_real $ ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0) :=
-    (ennreal.tendsto_to_real zero_ne_top).comp hF,
-  refine squeeze_zero_norm' (hFi.mp $ hFi.mono $ λ i hFi hFm, _) hF,
-  simp only [norm_norm, ← integral_sub hFi hfi],
-  convert norm_integral_le_lintegral_norm (λ x, F i x - f x),
-  ext1 x,
-  exact coe_nnreal_eq _
-end
+tendsto_set_to_fun_of_L1 (dominated_fin_meas_additive_weighted_smul μ) f hfi hFi hF
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
   everywhere convergence of a sequence of functions implies the convergence of their integrals.
@@ -970,7 +970,7 @@ begin
     rw [this, hfi], refl }
 end
 
-lemma integral_norm_eq_lintegral_nnnorm {G} [normed_group G]
+lemma integral_norm_eq_lintegral_nnnorm {G} [normed_add_comm_group G]
   {f : α → G} (hf : ae_strongly_measurable f μ) :
   ∫ x, ∥f x∥ ∂μ = ennreal.to_real ∫⁻ x, ∥f x∥₊ ∂μ :=
 begin
@@ -979,7 +979,7 @@ begin
   { refine ae_of_all _ _, simp_rw [pi.zero_apply, norm_nonneg, imp_true_iff] },
 end
 
-lemma of_real_integral_norm_eq_lintegral_nnnorm {G} [normed_group G] {f : α → G}
+lemma of_real_integral_norm_eq_lintegral_nnnorm {G} [normed_add_comm_group G] {f : α → G}
   (hf : integrable f μ) :
   ennreal.of_real ∫ x, ∥f x∥ ∂μ = ∫⁻ x, ∥f x∥₊ ∂μ :=
 by rw [integral_norm_eq_lintegral_nnnorm hf.ae_strongly_measurable,
@@ -1003,6 +1003,18 @@ begin
   simp_rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, (f x).coe_nonneg))
     hfi.ae_strongly_measurable, ← ennreal.coe_nnreal_eq], rw [ennreal.of_real_to_real],
   rw [← lt_top_iff_ne_top], convert hfi.has_finite_integral, ext1 x, rw [nnreal.nnnorm_eq]
+end
+
+lemma of_real_integral_eq_lintegral_of_real {f : α → ℝ} (hfi : integrable f μ) (f_nn : 0 ≤ᵐ[μ] f) :
+  ennreal.of_real (∫ x, f x ∂μ) = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+begin
+  simp_rw [integral_congr_ae (show f =ᵐ[μ] λ x, ∥f x∥,
+             by { filter_upwards [f_nn] with x hx,
+                  rw [real.norm_eq_abs, abs_eq_self.mpr hx], }),
+           of_real_integral_norm_eq_lintegral_nnnorm hfi, ←of_real_norm_eq_coe_nnnorm],
+  apply lintegral_congr_ae,
+  filter_upwards [f_nn] with x hx,
+  exact congr_arg ennreal.of_real (by rw [real.norm_eq_abs, abs_eq_self.mpr hx]),
 end
 
 lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ∞) :
@@ -1063,8 +1075,8 @@ lemma integral_pos_iff_support_of_nonneg {f : α → ℝ} (hf : 0 ≤ f) (hfi : 
   (0 < ∫ x, f x ∂μ) ↔ 0 < μ (function.support f) :=
 integral_pos_iff_support_of_nonneg_ae (eventually_of_forall hf) hfi
 
-section normed_group
-variables {H : Type*} [normed_group H]
+section normed_add_comm_group
+variables {H : Type*} [normed_add_comm_group H]
 
 lemma L1.norm_eq_integral_norm (f : α →₁[μ] H) : ∥f∥ = ∫ a, ∥f a∥ ∂μ :=
 begin
@@ -1085,7 +1097,22 @@ begin
   simp [ha]
 end
 
-end normed_group
+lemma mem_ℒp.snorm_eq_integral_rpow_norm {f : α → H} {p : ℝ≥0∞} (hp1 : p ≠ 0) (hp2 : p ≠ ∞)
+  (hf : mem_ℒp f p μ) :
+  snorm f p μ = ennreal.of_real ((∫ a, ∥f a∥ ^ p.to_real ∂μ) ^ (p.to_real ⁻¹)) :=
+begin
+  have A : ∫⁻ (a : α), ennreal.of_real (∥f a∥ ^ p.to_real) ∂μ = ∫⁻ (a : α), ∥f a∥₊ ^ p.to_real ∂μ,
+  { apply lintegral_congr (λ x, _),
+    rw [← of_real_rpow_of_nonneg (norm_nonneg _) to_real_nonneg, of_real_norm_eq_coe_nnnorm] },
+  simp only [snorm_eq_lintegral_rpow_nnnorm hp1 hp2, one_div],
+  rw integral_eq_lintegral_of_nonneg_ae, rotate,
+  { exact eventually_of_forall (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
+  { exact (hf.ae_strongly_measurable.norm.ae_measurable.pow_const _).ae_strongly_measurable },
+  rw [A, ← of_real_rpow_of_nonneg to_real_nonneg (inv_nonneg.2 to_real_nonneg), of_real_to_real],
+  exact (lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp1 hp2 hf.2).ne
+end
+
+end normed_add_comm_group
 
 lemma integral_mono_ae {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ᵐ[μ] g) :
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
@@ -1102,7 +1129,7 @@ begin
   by_cases hfm : ae_strongly_measurable f μ,
   { refine integral_mono_ae ⟨hfm, _⟩ hgi h,
     refine (hgi.has_finite_integral.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
-    simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
+    simpa [abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
   { rw [integral_non_ae_strongly_measurable hfm],
     exact integral_nonneg_of_ae (hf.trans h) }
 end
@@ -1177,8 +1204,8 @@ lemma tendsto_integral_approx_on_of_measurable
 begin
   have hfi' := simple_func.integrable_approx_on hfm hfi h₀ h₀i,
   simp only [simple_func.integral_eq_integral _ (hfi' _)],
-  exact tendsto_integral_of_L1 _ hfi (eventually_of_forall hfi')
-    (simple_func.tendsto_approx_on_L1_nnnorm hfm _ hs (hfi.sub h₀i).2)
+  exact tendsto_set_to_fun_approx_on_of_measurable (dominated_fin_meas_additive_weighted_smul μ)
+    hfi hfm hs h₀ h₀i,
 end
 
 lemma tendsto_integral_approx_on_of_measurable_of_range_subset
@@ -1189,10 +1216,7 @@ lemma tendsto_integral_approx_on_of_measurable_of_range_subset
     (𝓝 $ ∫ x, f x ∂μ) :=
 begin
   apply tendsto_integral_approx_on_of_measurable hf fmeas _ _ (integrable_zero _ _ _),
-  apply eventually_of_forall (λ x, _),
-  apply subset_closure,
-  apply hs,
-  simp,
+  exact eventually_of_forall (λ x, subset_closure (hs (set.mem_union_left _ (mem_range_self _)))),
 end
 
 variable {ν : measure α}
@@ -1367,6 +1391,36 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
+lemma mul_meas_ge_le_integral_of_nonneg [is_finite_measure μ] {f : α → ℝ} (hf_nonneg : 0 ≤ f)
+  (hf_int : integrable f μ) (ε : ℝ) :
+  ε * (μ {x | ε ≤ f x}).to_real ≤ ∫ x, f x ∂μ :=
+begin
+  cases lt_or_le ε 0 with hε hε,
+  { exact (mul_nonpos_of_nonpos_of_nonneg hε.le ennreal.to_real_nonneg).trans
+      (integral_nonneg hf_nonneg), },
+  rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, hf_nonneg x))
+    hf_int.ae_strongly_measurable, ← ennreal.to_real_of_real hε, ← ennreal.to_real_mul],
+  have : {x : α | (ennreal.of_real ε).to_real ≤ f x}
+    = {x : α | ennreal.of_real ε ≤ (λ x, ennreal.of_real (f x)) x},
+  { ext1 x,
+    rw [set.mem_set_of_eq, set.mem_set_of_eq, ← ennreal.to_real_of_real (hf_nonneg x)],
+    exact ennreal.to_real_le_to_real ennreal.of_real_ne_top ennreal.of_real_ne_top, },
+  rw this,
+  have h_meas : ae_measurable (λ x, ennreal.of_real (f x)) μ,
+    from measurable_id'.ennreal_of_real.comp_ae_measurable hf_int.ae_measurable,
+  have h_mul_meas_le := @mul_meas_ge_le_lintegral₀ _ _ μ _ h_meas (ennreal.of_real ε),
+  rw ennreal.to_real_le_to_real _ _,
+  { exact h_mul_meas_le, },
+  { simp only [ne.def, with_top.mul_eq_top_iff, ennreal.of_real_eq_zero, not_le,
+      ennreal.of_real_ne_top, false_and, or_false, not_and],
+    exact λ _, measure_ne_top _ _, },
+  { have h_lt_top : ∫⁻ a, ∥f a∥₊ ∂μ < ∞ := hf_int.has_finite_integral,
+    simp_rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs] at h_lt_top,
+    convert h_lt_top.ne,
+    ext1 x,
+    rw abs_of_nonneg (hf_nonneg x), },
+end
+
 end properties
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
@@ -1378,7 +1432,7 @@ attribute [irreducible] integral L1.integral
 
 section integral_trim
 
-variables {H β γ : Type*} [normed_group H]
+variables {H β γ : Type*} [normed_add_comm_group H]
   {m m0 : measurable_space β} {μ : measure β}
 
 /-- Simple function seen as simple function of a larger `measurable_space`. -/
@@ -1456,13 +1510,29 @@ lemma ae_eq_trim_of_strongly_measurable
   f =ᵐ[μ.trim hm] g :=
 begin
   rwa [eventually_eq, ae_iff, trim_measurable_set_eq hm _],
-  exact measurable_set.compl (hf.measurable_set_eq_fun hg)
+  exact (hf.measurable_set_eq_fun hg).compl
 end
 
 lemma ae_eq_trim_iff [topological_space γ] [metrizable_space γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g) :
   f =ᵐ[μ.trim hm] g ↔ f =ᵐ[μ] g :=
 ⟨ae_eq_of_ae_eq_trim, ae_eq_trim_of_strongly_measurable hm hf hg⟩
+
+lemma ae_le_trim_of_strongly_measurable
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [pseudo_metrizable_space γ]
+  (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g)
+  (hfg : f ≤ᵐ[μ] g) :
+  f ≤ᵐ[μ.trim hm] g :=
+begin
+  rwa [eventually_le, ae_iff, trim_measurable_set_eq hm _],
+  exact (hf.measurable_set_le hg).compl,
+end
+
+lemma ae_le_trim_iff
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [pseudo_metrizable_space γ]
+  (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g) :
+  f ≤ᵐ[μ.trim hm] g ↔ f ≤ᵐ[μ] g :=
+⟨ae_le_of_ae_le_trim, ae_le_trim_of_strongly_measurable hm hf hg⟩
 
 end integral_trim
 

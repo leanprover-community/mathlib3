@@ -27,13 +27,16 @@ zero object provides zero morphisms, as the unique morphisms factoring through t
 noncomputable theory
 
 universes v u
+universes v' u'
 
 open category_theory
 open category_theory.category
+open_locale classical
 
 namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
+variables (D : Type u') [category.{v'} D]
 
 /-- A category "has zero morphisms" if there is a designated "zero morphism" in each morphism space,
 and compositions of zero morphisms with anything give the zero morphism. -/
@@ -120,8 +123,6 @@ lemma nonzero_image_of_nonzero {X Y : C} {f : X ⟶ Y} [has_image f] (w : f ≠ 
 end
 
 section
-universes v' u'
-variables (D : Type u') [category.{v'} D]
 
 variables [has_zero_morphisms D]
 
@@ -131,6 +132,63 @@ instance : has_zero_morphisms (C ⥤ D) :=
 @[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
 
 end
+
+namespace is_zero
+variables [has_zero_morphisms C]
+
+lemma eq_zero_of_src {X Y : C} (o : is_zero X) (f : X ⟶ Y) : f = 0 :=
+o.eq_of_src _ _
+
+lemma eq_zero_of_tgt {X Y : C} (o : is_zero Y) (f : X ⟶ Y) : f = 0 :=
+o.eq_of_tgt _ _
+
+lemma iff_id_eq_zero (X : C) : is_zero X ↔ (𝟙 X = 0) :=
+⟨λ h, h.eq_of_src _ _,
+ λ h, ⟨
+  λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←id_comp f, ←id_comp default, h, zero_comp, zero_comp], }⟩⟩,
+  λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←comp_id f, ←comp_id default, h, comp_zero, comp_zero], }⟩⟩⟩⟩
+
+lemma of_mono_zero (X Y : C) [mono (0 : X ⟶ Y)] : is_zero X :=
+(iff_id_eq_zero X).mpr ((cancel_mono (0 : X ⟶ Y)).1 (by simp))
+
+lemma of_epi_zero (X Y : C) [epi (0 : X ⟶ Y)] : is_zero Y :=
+(iff_id_eq_zero Y).mpr ((cancel_epi (0 : X ⟶ Y)).1 (by simp))
+
+lemma of_mono_eq_zero {X Y : C} (f : X ⟶ Y) [mono f] (h : f = 0) : is_zero X :=
+by { unfreezingI { subst h, }, apply of_mono_zero X Y, }
+
+lemma of_epi_eq_zero {X Y : C} (f : X ⟶ Y) [epi f] (h : f = 0) : is_zero Y :=
+by { unfreezingI { subst h, }, apply of_epi_zero X Y, }
+
+lemma iff_split_mono_eq_zero {X Y : C} (f : X ⟶ Y) [split_mono f] : is_zero X ↔ f = 0 :=
+begin
+  rw iff_id_eq_zero,
+  split,
+  { intro h, rw [←category.id_comp f, h, zero_comp], },
+  { intro h, rw [←split_mono.id f], simp [h], },
+end
+
+lemma iff_split_epi_eq_zero {X Y : C} (f : X ⟶ Y) [split_epi f] : is_zero Y ↔ f = 0 :=
+begin
+  rw iff_id_eq_zero,
+  split,
+  { intro h, rw [←category.comp_id f, h, comp_zero], },
+  { intro h, rw [←split_epi.id f], simp [h], },
+end
+
+lemma of_mono {X Y : C} (f : X ⟶ Y) [mono f] (i : is_zero Y) : is_zero X :=
+begin
+  unfreezingI { have hf := i.eq_zero_of_tgt f, subst hf, },
+  exact is_zero.of_mono_zero X Y,
+end
+
+lemma of_epi {X Y : C} (f : X ⟶ Y) [epi f] (i : is_zero X) : is_zero Y :=
+begin
+  unfreezingI { have hf := i.eq_zero_of_src f, subst hf, },
+  exact is_zero.of_epi_zero X Y,
+end
+
+end is_zero
 
 /-- A category with a zero object has zero morphisms.
 
@@ -200,17 +258,26 @@ end has_zero_morphisms
 
 open_locale zero_object
 
-instance {B : Type*} [category B] [has_zero_morphisms C] : has_zero_object (B ⥤ C) :=
-{ zero := { obj := λ X, 0, map := λ X Y f, 0, },
-  unique_to := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩,
-  unique_from := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩ }
-
-@[simp] lemma functor.zero_obj {B : Type*} [category B] [has_zero_morphisms C] (X : B) :
-  (0 : B ⥤ C).obj X = 0 := rfl
-@[simp] lemma functor.zero_map {B : Type*} [category B] [has_zero_morphisms C]
-  {X Y : B} (f : X ⟶ Y) : (0 : B ⥤ C).map f = 0 := rfl
+instance {B : Type*} [category B] : has_zero_object (B ⥤ C) :=
+(((category_theory.functor.const B).obj (0 : C)).is_zero $ λ X, is_zero_zero _).has_zero_object
 
 end has_zero_object
+
+open_locale zero_object
+
+variables {D}
+
+@[simp] lemma is_zero.map [has_zero_object D] [has_zero_morphisms D] {F : C ⥤ D} (hF : is_zero F)
+  {X Y : C} (f : X ⟶ Y) : F.map f = 0 :=
+(hF.obj _).eq_of_src _ _
+
+@[simp] lemma _root_.category_theory.functor.zero_obj [has_zero_object D]
+  (X : C) : is_zero ((0 : C ⥤ D).obj X) :=
+(is_zero_zero _).obj _
+
+@[simp] lemma _root_.category_theory.zero_map [has_zero_object D] [has_zero_morphisms D]
+  {X Y : C} (f : X ⟶ Y) : (0 : C ⥤ D).map f = 0 :=
+(is_zero_zero _).map _
 
 section
 variables [has_zero_object C] [has_zero_morphisms C]
@@ -284,6 +351,14 @@ def iso_zero_of_epi_zero {X Y : C} (h : epi (0 : X ⟶ Y)) : Y ≅ 0 :=
 { hom := 0,
   inv := 0,
   hom_inv_id' := (cancel_epi (0 : X ⟶ Y)).mp (by simp) }
+
+/-- If a monomorphism out of `X` is zero, then `X ≅ 0`. -/
+def iso_zero_of_mono_eq_zero {X Y : C} {f : X ⟶ Y} [mono f] (h : f = 0) : X ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_mono_zero ‹_›, }
+
+/-- If an epimorphism in to `Y` is zero, then `Y ≅ 0`. -/
+def iso_zero_of_epi_eq_zero {X Y : C} {f : X ⟶ Y} [epi f] (h : f = 0) : Y ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_epi_zero ‹_›, }
 
 /-- If an object `X` is isomorphic to 0, there's no need to use choice to construct
 an explicit isomorphism: the zero morphism suffices. -/
@@ -362,28 +437,26 @@ def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0)
 end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
-def has_zero_object_of_has_initial_object
+lemma has_zero_object_of_has_initial_object
   [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
-{ zero := ⊥_ C,
-  unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
-  unique_from := λ X, ⟨⟨0⟩, λ f,
+begin
+  refine ⟨⟨⊥_ C, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩⟩,
   calc
     f = f ≫ 𝟙 _ : (category.comp_id _).symm
     ... = f ≫ 0 : by congr
     ... = 0     : has_zero_morphisms.comp_zero _ _
-  ⟩ }
+end
 
 /-- If there are zero morphisms, any terminal object is a zero object. -/
-def has_zero_object_of_has_terminal_object
+lemma has_zero_object_of_has_terminal_object
   [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
-{ zero := ⊤_ C,
-  unique_from := λ X, ⟨⟨0⟩, by tidy⟩,
-  unique_to := λ X, ⟨⟨0⟩, λ f,
+begin
+  refine ⟨⟨⊤_ C, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩⟩⟩,
   calc
     f = 𝟙 _ ≫ f : (category.id_comp _).symm
     ... = 0 ≫ f : by congr
     ... = 0     : zero_comp
-  ⟩ }
+end
 
 
 section image
@@ -446,38 +519,30 @@ by { rw image.eq_fac h, simp }
 end image
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
-instance split_mono_sigma_ι
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
-  (f : β → C) [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
-{ retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
+instance split_mono_sigma_ι {β : Type u'} [has_zero_morphisms C] (f : β → C)
+  [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
+{ retraction := sigma.desc $ pi.single b (𝟙 _) }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
-instance split_epi_pi_π
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
-  (f : β → C) [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
-{ section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
+instance split_epi_pi_π {β : Type u'} [has_zero_morphisms C] (f : β → C)
+  [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
+{ section_ := pi.lift $ pi.single b (𝟙 _) }
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
-instance split_mono_coprod_inl
-  [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
+instance split_mono_coprod_inl [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
   split_mono (coprod.inl : X ⟶ X ⨿ Y) :=
 { retraction := coprod.desc (𝟙 X) 0, }
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
-instance split_mono_coprod_inr
-  [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
+instance split_mono_coprod_inr [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
   split_mono (coprod.inr : Y ⟶ X ⨿ Y) :=
 { retraction := coprod.desc 0 (𝟙 Y), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
-instance split_epi_prod_fst
-  [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
+instance split_epi_prod_fst [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
   split_epi (prod.fst : X ⨯ Y ⟶ X) :=
 { section_ := prod.lift (𝟙 X) 0, }
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
-instance split_epi_prod_snd
-  [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
+instance split_epi_prod_snd [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
   split_epi (prod.snd : X ⨯ Y ⟶ Y) :=
 { section_ := prod.lift 0 (𝟙 Y), }
 

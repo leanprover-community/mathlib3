@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import linear_algebra.direct_sum.finsupp
 import logic.small
 import linear_algebra.std_basis
+import linear_algebra.finsupp_vector_space
 
 /-!
 
@@ -25,7 +26,7 @@ Use `finsupp.total_id_surjective` to prove that any module is the quotient of a 
 
 universes u v w z
 
-variables (R : Type u) (M : Type v) (N : Type z)
+variables {ι : Type*} (R : Type u) (M : Type v) (N : Type z)
 
 open_locale tensor_product direct_sum big_operators
 
@@ -65,11 +66,11 @@ section semiring
 variables (R M) [semiring R] [add_comm_monoid M] [module R M] [module.free R M]
 variables [add_comm_monoid N] [module R N]
 
-/-- If `[finite_free R M]` then `choose_basis_index R M` is the `ι` which indexes the basis
+/-- If `module.free R M` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
-@[nolint has_inhabited_instance] def choose_basis_index := (exists_basis R M).some.1
+@[nolint has_nonempty_instance] def choose_basis_index := (exists_basis R M).some.1
 
-/-- If `[finite_free R M]` then `choose_basis : ι → M` is the basis.
+/-- If `module.free R M` then `choose_basis : ι → M` is the basis.
 Here `ι = choose_basis_index R M`. -/
 noncomputable def choose_basis : basis (choose_basis_index R M) R M := (exists_basis R M).some.2
 
@@ -91,15 +92,6 @@ noncomputable def constr {S : Type z} [semiring S] [module S N] [smul_comm_class
 instance no_zero_smul_divisors [no_zero_divisors R] : no_zero_smul_divisors R M :=
 let ⟨⟨_, b⟩⟩ := exists_basis R M in b.no_zero_smul_divisors
 
-/-- The product of finitely many free modules is free. -/
-instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_group (M i)]
-  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
-of_basis $ pi.basis $ λ i, choose_basis R (M i)
-
-/-- The module of finite matrices is free. -/
-instance matrix {m n : Type*} [fintype m] [fintype n] : module.free R (matrix m n R) :=
-of_basis $ matrix.std_basis R m n
-
 variables {R M N}
 
 lemma of_equiv (e : M ≃ₗ[R] N) : module.free R N :=
@@ -113,20 +105,39 @@ of_equiv e
 
 variables (R M N)
 
-instance {ι : Type v} : module.free R (ι →₀ R) :=
-of_basis (basis.of_repr (linear_equiv.refl _ _))
-
-instance {ι : Type v} [fintype ι] : module.free R (ι → R) :=
-of_equiv (basis.of_repr $ linear_equiv.refl _ _).equiv_fun
+/-- The module structure provided by `semiring.to_module` is free. -/
+instance self : module.free R R := of_basis (basis.singleton unit R)
 
 instance prod [module.free R N] : module.free R (M × N) :=
 of_basis $ (choose_basis R M).prod (choose_basis R N)
 
-instance self : module.free R R := of_basis $ basis.singleton unit R
+/-- The product of finitely many free modules is free. -/
+instance pi (M : ι → Type*) [finite ι] [Π (i : ι), add_comm_monoid (M i)]
+  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
+let ⟨_⟩ := nonempty_fintype ι in by exactI (of_basis $ pi.basis $ λ i, choose_basis R (M i))
+
+/-- The module of finite matrices is free. -/
+instance matrix {m n : Type*} [finite m] [finite n] : module.free R (matrix m n M) :=
+module.free.pi R _
+
+variables (ι)
+
+/-- The product of finitely many free modules is free (non-dependent version to help with typeclass
+search). -/
+instance function [finite ι] : module.free R (ι → M) := free.pi _ _
+
+instance finsupp : module.free R (ι →₀ M) :=
+of_basis (finsupp.basis $ λ i, choose_basis R M)
+
+variables {ι}
 
 @[priority 100]
 instance of_subsingleton [subsingleton N] : module.free R N :=
 of_basis (basis.empty N : basis pempty R N)
+
+@[priority 100]
+instance of_subsingleton' [subsingleton R] : module.free R N :=
+by letI := module.subsingleton R N; exact module.free.of_subsingleton R N
 
 instance dfinsupp {ι : Type*} (M : ι → Type*) [Π (i : ι), add_comm_monoid (M i)]
   [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π₀ i, M i) :=
@@ -144,7 +155,7 @@ variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
 variables [add_comm_group N] [module R N] [module.free R N]
 
 instance tensor : module.free R (M ⊗[R] N) :=
-of_equiv' (of_equiv' (finsupp.free R) (finsupp_tensor_finsupp' R _ _).symm)
+of_equiv' (of_equiv' (free.finsupp _ R _) (finsupp_tensor_finsupp' R _ _).symm)
   (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
 
 end comm_ring

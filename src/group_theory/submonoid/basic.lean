@@ -69,25 +69,14 @@ class zero_mem_class (S : Type*) (M : out_param $ Type*) [has_zero M] [set_like 
 
 export zero_mem_class (zero_mem)
 
-/-- `mul_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(*)` -/
-class mul_mem_class (S : Type*) (M : out_param $ Type*) [has_mul M] [set_like S M] :=
-(mul_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a * b ∈ s)
-
-export mul_mem_class (mul_mem)
-
-/-- `add_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(+)` -/
-class add_mem_class (S : Type*) (M : out_param $ Type*) [has_add M] [set_like S M] :=
-(add_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a + b ∈ s)
-
-export add_mem_class (add_mem)
-
-attribute [to_additive] one_mem_class mul_mem_class
+attribute [to_additive] one_mem_class
 
 section
 
 set_option old_structure_cmd true
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
+@[ancestor subsemigroup]
 structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
 
@@ -108,6 +97,7 @@ set_option old_structure_cmd true
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
+@[ancestor add_subsemigroup]
 structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
 

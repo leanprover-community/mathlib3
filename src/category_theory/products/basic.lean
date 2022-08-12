@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.eq_to_hom
+import category_theory.functor.const
 
 /-!
 # Cartesian products of categories
@@ -33,7 +34,7 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 /--
 `prod C D` gives the cartesian product of two categories.
 
-See https://stacks.math.columbia.edu/tag/001K.
+See <https://stacks.math.columbia.edu/tag/001K>.
 -/
 @[simps {not_recursive := []}] -- the generates simp lemmas like `id_fst` and `comp_snd`
 instance prod : category.{max v₁ v₂} (C × D) :=
@@ -167,6 +168,13 @@ as a functor `C × (C ⥤ D) ⥤ D`.
     rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app,
         category.assoc, nat_trans.naturality],
   end }
+
+variables {C}
+
+/-- The constant functor followed by the evalutation functor is just the identity. -/
+@[simps] def functor.const_comp_evaluation_obj (X : C) :
+  functor.const C ⋙ (evaluation C D).obj X ≅ 𝟭 D :=
+nat_iso.of_components (λ Y, iso.refl _) (λ Y Z f, by simp)
 
 end
 

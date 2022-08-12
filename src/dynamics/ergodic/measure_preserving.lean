@@ -56,7 +56,7 @@ protected lemma ae_measurable {f : α → β} (hf : measure_preserving f μa μb
   ae_measurable f μa :=
 hf.1.ae_measurable
 
-lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
+lemma symm (e : α ≃ᵐ β) {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
   measure_preserving e.symm μb μa :=
 ⟨e.symm.measurable,
   by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩

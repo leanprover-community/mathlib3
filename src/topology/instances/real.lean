@@ -5,7 +5,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.metric_space.basic
 import topology.algebra.uniform_group
+import topology.algebra.uniform_mul_action
 import topology.algebra.ring
+import topology.algebra.star
 import ring_theory.subring.basic
 import group_theory.archimedean
 import algebra.periodic
@@ -34,6 +36,8 @@ let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 theorem real.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℝ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
   by rw dist_comm at h; simpa [real.dist_eq] using h⟩
+
+instance : has_continuous_star ℝ := ⟨continuous_id⟩
 
 instance : uniform_add_group ℝ :=
 uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg
@@ -98,14 +102,8 @@ lemma real.continuous.inv [topological_space α] {f : α → ℝ} (h : ∀a, f a
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
   from real.continuous_inv.comp (continuous_subtype_mk _ hf)
 
-lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0, begin
-  cases exists_gt (|x|) with y xy,
-  have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
-  refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
-  rw [real.dist_eq, ← mul_sub, abs_mul, ← mul_div_cancel' ε (ne_of_gt y0)],
-  exact mul_lt_mul' (le_of_lt xy) h (abs_nonneg _) y0
-end
+lemma real.uniform_continuous_const_mul {x : ℝ} : uniform_continuous ((*) x) :=
+uniform_continuous_const_smul x
 
 lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
   {r₁ r₂ : ℝ} (H : ∀ x ∈ s, |(x : ℝ × ℝ).1| < r₁ ∧ |x.2| < r₂) :

@@ -35,7 +35,7 @@ A differential object in a category with zero morphisms and a shift is
 an object `X` equipped with
 a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure differential_object :=
 (X : C)
 (d : X ⟶ X⟦1⟧)
@@ -51,7 +51,7 @@ namespace differential_object
 /--
 A morphism of differential objects is a morphism commuting with the differentials.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure hom (X Y : differential_object C) :=
 (f : X.X ⟶ Y.X)
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
@@ -184,11 +184,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_shift C ℤ]
 open_locale zero_object
 
 instance has_zero_object : has_zero_object (differential_object C) :=
-{ zero :=
-  { X := (0 : C),
-    d := 0, },
-  unique_to := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩,
-  unique_from := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩, }
+by { refine ⟨⟨⟨0, 0⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩⟩⟩; ext, }
 
 end differential_object
 
@@ -229,6 +225,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
+local attribute [simp] eq_to_hom_map
 local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
@@ -237,10 +234,12 @@ local attribute [reducible] discrete.add_monoidal shift_comm
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
+    -- This is just `simp, simp [eq_to_hom_map]`.
     simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
       category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
       μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
-    simp [opaque_eq_to_iso] },
+    simp only [eq_to_hom_map, eq_to_hom_app, eq_to_iso.hom, eq_to_hom_trans_assoc,
+      eq_to_iso.inv], },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
 
@@ -259,6 +258,8 @@ begin
 end
 
 end
+
+local attribute [simp] eq_to_hom_map
 
 instance : has_shift (differential_object C) ℤ :=
 has_shift_mk _ _

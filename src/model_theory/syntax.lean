@@ -3,6 +3,8 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
+import data.list.prod_sigma
+import data.set.prod
 import logic.equiv.fin
 import model_theory.language_map
 
@@ -20,9 +22,13 @@ This file defines first-order terms, formulas, sentences, and theories in a styl
 * A `first_order.language.Theory` is a set of sentences.
 * The variables of terms and formulas can be relabelled with `first_order.language.term.relabel`,
 `first_order.language.bounded_formula.relabel`, and `first_order.language.formula.relabel`.
+* Given an operation on terms and an operation on relations,
+  `first_order.language.bounded_formula.map_term_rel` gives an operation on formulas.
 * `first_order.language.bounded_formula.cast_le` adds more `fin`-indexed variables.
 * `first_order.language.bounded_formula.lift_at` raises the indexes of the `fin`-indexed variables
 above a particular index.
+* `first_order.language.term.subst` and `first_order.language.bounded_formula.subst` substitute
+variables with given terms.
 * Language maps can act on syntactic objects with functions such as
 `first_order.language.Lhom.on_formula`.
 
@@ -49,7 +55,7 @@ namespace language
 
 variables (L : language.{u v}) {L' : language}
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
-variables {α : Type u'} {β : Type v'}
+variables {α : Type u'} {β : Type v'} {γ : Type*}
 open_locale first_order
 open Structure fin
 
@@ -64,15 +70,61 @@ variable {L}
 
 namespace term
 
-open list
+open finset
+
+/-- The `finset` of variables used in a given term. -/
+@[simp] def var_finset [decidable_eq α] : L.term α → finset α
+| (var i) := {i}
+| (func f ts) := univ.bUnion (λ i, (ts i).var_finset)
+
+/-- The `finset` of variables from the left side of a sum used in a given term. -/
+@[simp] def var_finset_left [decidable_eq α] : L.term (α ⊕ β) → finset α
+| (var (sum.inl i)) := {i}
+| (var (sum.inr i)) := ∅
+| (func f ts) := univ.bUnion (λ i, (ts i).var_finset_left)
 
 /-- Relabels a term's variables along a particular function. -/
 @[simp] def relabel (g : α → β) : L.term α → L.term β
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
 
-instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
-⟨var default⟩
+lemma relabel_id (t : L.term α) :
+  t.relabel id = t :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl, },
+  { simp [ih] },
+end
+
+@[simp] lemma relabel_id_eq_id :
+  (term.relabel id : L.term α → L.term α) = id :=
+funext relabel_id
+
+@[simp] lemma relabel_relabel (f : α → β) (g : β → γ) (t : L.term α) :
+  (t.relabel f).relabel g = t.relabel (g ∘ f) :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl, },
+  { simp [ih] },
+end
+
+@[simp] lemma relabel_comp_relabel (f : α → β) (g : β → γ) :
+  (term.relabel g ∘ term.relabel f : L.term α → L.term γ) = term.relabel (g ∘ f) :=
+funext (relabel_relabel f g)
+
+/-- Restricts a term to use only a set of the given variables. -/
+def restrict_var [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
+| (var a) f := var (f ⟨a, mem_singleton_self a⟩)
+| (func F ts) f := func F (λ i, (ts i).restrict_var
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
+
+/-- Restricts a term to use only a set of the given variables on the left side of a sum. -/
+def restrict_var_left [decidable_eq α] {γ : Type*} :
+  Π (t : L.term (α ⊕ γ)) (f : t.var_finset_left → β), L.term (β ⊕ γ)
+| (var (sum.inl a)) f := var (sum.inl (f ⟨a, mem_singleton_self a⟩))
+| (var (sum.inr a)) f := var (sum.inr a)
+| (func F ts) f := func F (λ i, (ts i).restrict_var_left
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
 
 end term
 
@@ -88,12 +140,20 @@ def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α :
 
 namespace term
 
+instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
+⟨var default⟩
+
 instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
 ⟨(default : L.constants).term⟩
 
 /-- Raises all of the `fin`-indexed variables of a term greater than or equal to `m` by `n'`. -/
 def lift_at {n : ℕ} (n' m : ℕ) : L.term (α ⊕ fin n) → L.term (α ⊕ fin (n + n')) :=
 relabel (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))
+
+/-- Substitutes the variables in a given term with terms. -/
+@[simp] def subst : L.term α → (α → L.term β) → L.term β
+| (var a) tf := tf a
+| (func f ts) tf := (func f (λ i, (ts i).subst tf))
 
 end term
 
@@ -217,19 +277,140 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
+open finset
+
+/-- The `finset` of variables used in a given formula. -/
+@[simp] def free_var_finset [decidable_eq α] :
+  ∀ {n}, L.bounded_formula α n → finset α
+| n falsum := ∅
+| n (equal t₁ t₂) := t₁.var_finset_left ∪ t₂.var_finset_left
+| n (rel R ts) := univ.bUnion (λ i, (ts i).var_finset_left)
+| n (imp f₁ f₂) := f₁.free_var_finset ∪ f₂.free_var_finset
+| n (all f) := f.free_var_finset
+
 /-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m ≤ n`. -/
-def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
+@[simp] def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
 | m n h falsum := falsum
-| m n h (equal t₁ t₂) := (t₁.relabel (sum.map id (fin.cast_le h))).bd_equal
+| m n h (equal t₁ t₂) := equal (t₁.relabel (sum.map id (fin.cast_le h)))
     (t₂.relabel (sum.map id (fin.cast_le h)))
-| m n h (rel R ts) := R.bounded_formula (term.relabel (sum.map id (fin.cast_le h)) ∘ ts)
+| m n h (rel R ts) := rel R (term.relabel (sum.map id (fin.cast_le h)) ∘ ts)
 | m n h (imp f₁ f₂) := (f₁.cast_le h).imp (f₂.cast_le h)
 | m n h (all f) := (f.cast_le (add_le_add_right h 1)).all
 
+@[simp] lemma cast_le_rfl {n} (h : n ≤ n) (φ : L.bounded_formula α n) :
+  φ.cast_le h = φ :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [fin.cast_le_of_eq], },
+  { simp [fin.cast_le_of_eq], },
+  { simp [fin.cast_le_of_eq, ih1, ih2], },
+  { simp [fin.cast_le_of_eq, ih3], },
+end
+
+@[simp] lemma cast_le_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) (φ : L.bounded_formula α k) :
+  (φ.cast_le km).cast_le mn = φ.cast_le (km.trans mn) :=
+begin
+  revert m n,
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3;
+  intros m n km mn,
+  { refl },
+  { simp },
+  { simp only [cast_le, eq_self_iff_true, heq_iff_eq, true_and],
+    rw [← function.comp.assoc, relabel_comp_relabel],
+    simp },
+  { simp [ih1, ih2] },
+  { simp only [cast_le, ih3] }
+end
+
+@[simp] lemma cast_le_comp_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) :
+  (bounded_formula.cast_le mn ∘ bounded_formula.cast_le km :
+    L.bounded_formula α k → L.bounded_formula α n) =
+    bounded_formula.cast_le (km.trans mn) :=
+funext (cast_le_cast_le km mn)
+
+/-- Restricts a bounded formula to only use a particular set of free variables. -/
+def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
+  (f : φ.free_var_finset → β), L.bounded_formula β n
+| n falsum f := falsum
+| n (equal t₁ t₂) f := equal
+  (t₁.restrict_var_left (f ∘ set.inclusion (subset_union_left _ _)))
+  (t₂.restrict_var_left (f ∘ set.inclusion (subset_union_right _ _)))
+| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
+| n (imp φ₁ φ₂) f :=
+  (φ₁.restrict_free_var (f ∘ set.inclusion (subset_union_left _ _))).imp
+  (φ₂.restrict_free_var (f ∘ set.inclusion (subset_union_right _ _)))
+| n (all φ) f := (φ.restrict_free_var f).all
+
+/-- Places universal quantifiers on all extra variables of a bounded formula. -/
+def alls : ∀ {n}, L.bounded_formula α n → L.formula α
+| 0 φ := φ
+| (n + 1) φ := φ.all.alls
+
+/-- Places existential quantifiers on all extra variables of a bounded formula. -/
+def exs : ∀ {n}, L.bounded_formula α n → L.formula α
+| 0 φ := φ
+| (n + 1) φ := φ.ex.exs
+
+/-- Maps bounded formulas along a map of terms and a map of relations. -/
+def map_term_rel {g : ℕ → ℕ}
+  (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin (g n)))
+  (fr : ∀ n, L.relations n → L'.relations n)
+  (h : ∀ n, L'.bounded_formula β (g (n + 1)) → L'.bounded_formula β (g n + 1)) :
+  ∀ {n}, L.bounded_formula α n → L'.bounded_formula β (g n)
+| n falsum := falsum
+| n (equal t₁ t₂) := equal (ft _ t₁) (ft _ t₂)
+| n (rel R ts) := rel (fr _ R) (λ i, ft _ (ts i))
+| n (imp φ₁ φ₂) := φ₁.map_term_rel.imp φ₂.map_term_rel
+| n (all φ) := (h n φ.map_term_rel).all
+
+/-- Raises all of the `fin`-indexed variables of a formula greater than or equal to `m` by `n'`. -/
+def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_formula α (n + n') :=
+λ n n' m φ, φ.map_term_rel (λ k t, t.lift_at n' m) (λ _, id)
+  (λ _, cast_le (by rw [add_assoc, add_comm 1, add_assoc]))
+
+@[simp] lemma map_term_rel_map_term_rel {L'' : language}
+  (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n → L'.relations n)
+  (ft' : ∀ n, L'.term (β ⊕ fin n) → L''.term (γ ⊕ fin n))
+  (fr' : ∀ n, L'.relations n → L''.relations n)
+  {n} (φ : L.bounded_formula α n) :
+  (φ.map_term_rel ft fr (λ _, id)).map_term_rel ft' fr' (λ _, id) =
+    φ.map_term_rel (λ _, (ft' _) ∘ (ft _)) (λ _, (fr' _) ∘ (fr _)) (λ _, id) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [map_term_rel] },
+  { simp [map_term_rel] },
+  { simp [map_term_rel, ih1, ih2] },
+  { simp [map_term_rel, ih3], }
+end
+
+@[simp] lemma map_term_rel_id_id_id {n} (φ : L.bounded_formula α n) :
+  φ.map_term_rel (λ _, id) (λ _, id) (λ _, id) = φ :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [map_term_rel] },
+  { simp [map_term_rel] },
+  { simp [map_term_rel, ih1, ih2] },
+  { simp [map_term_rel, ih3], }
+end
+
+/-- An equivalence of bounded formulas given by an equivalence of terms and an equivalence of
+relations. -/
+@[simps] def map_term_rel_equiv (ft : ∀ n, L.term (α ⊕ fin n) ≃ L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n ≃ L'.relations n) {n} :
+  L.bounded_formula α n ≃ L'.bounded_formula β n :=
+⟨map_term_rel (λ n, ft n) (λ n, fr n) (λ _, id),
+  map_term_rel (λ n, (ft n).symm) (λ n, (fr n).symm) (λ _, id),
+  λ φ, by simp, λ φ, by simp⟩
+
 /-- A function to help relabel the variables in bounded formulas. -/
-def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
+def relabel_aux (g : α → β ⊕ fin n) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=
-(sum.map id fin_sum_fin_equiv) ∘ (equiv.sum_assoc _ _ _) ∘ (sum.map g id)
+sum.map id fin_sum_fin_equiv ∘ equiv.sum_assoc _ _ _ ∘ sum.map g id
 
 @[simp] lemma sum_elim_comp_relabel_aux {m : ℕ} {g : α → (β ⊕ fin n)}
   {v : β → M} {xs : fin (n + m) → M} :
@@ -244,32 +425,74 @@ begin
   { simp [bounded_formula.relabel_aux] }
 end
 
+@[simp] lemma relabel_aux_sum_inl (k : ℕ) :
+  relabel_aux (sum.inl : α → α ⊕ fin n) k =
+  sum.map id (nat_add n) :=
+begin
+  ext x,
+  cases x;
+  { simp [relabel_aux] },
+end
+
 /-- Relabels a bounded formula's variables along a particular function. -/
-def relabel (g : α → (β ⊕ fin n)) :
-  ∀ {k : ℕ}, L.bounded_formula α k → L.bounded_formula β (n + k)
-| k falsum := falsum
-| k (equal t₁ t₂) := (t₁.relabel (relabel_aux g k)).bd_equal (t₂.relabel (relabel_aux g k))
-| k (rel R ts) := R.bounded_formula (term.relabel (relabel_aux g k) ∘ ts)
-| k (imp f₁ f₂) := f₁.relabel.imp f₂.relabel
-| k (all f) := f.relabel.all
+def relabel (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α k) :
+  L.bounded_formula β (n + k) :=
+φ.map_term_rel (λ _ t, t.relabel (relabel_aux g _)) (λ _, id)
+  (λ _, cast_le (ge_of_eq (add_assoc _ _ _)))
 
-/-- Places universal quantifiers on all extra variables of a bounded formula. -/
-def alls : ∀ {n}, L.bounded_formula α n → L.formula α
-| 0 φ := φ
-| (n + 1) φ := φ.all.alls
+@[simp] lemma relabel_falsum (g : α → (β ⊕ fin n)) {k} :
+  (falsum : L.bounded_formula α k).relabel g = falsum :=
+rfl
 
-/-- Places existential quantifiers on all extra variables of a bounded formula. -/
-def exs : ∀ {n}, L.bounded_formula α n → L.formula α
-| 0 φ := φ
-| (n + 1) φ := φ.ex.exs
+@[simp] lemma relabel_bot (g : α → (β ⊕ fin n)) {k} :
+  (⊥ : L.bounded_formula α k).relabel g = ⊥ :=
+rfl
 
-/-- Raises all of the `fin`-indexed variables of a formula greater than or equal to `m` by `n'`. -/
-def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_formula α (n + n')
-| n n' m falsum := falsum
-| n n' m (equal t₁ t₂) := (t₁.lift_at n' m).bd_equal (t₂.lift_at n' m)
-| n n' m (rel R ts) := R.bounded_formula (term.lift_at n' m ∘ ts)
-| n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
-| n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
+@[simp] lemma relabel_imp (g : α → (β ⊕ fin n)) {k} (φ ψ : L.bounded_formula α k) :
+  (φ.imp ψ).relabel g = (φ.relabel g).imp (ψ.relabel g) :=
+rfl
+
+@[simp] lemma relabel_not (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α k) :
+  φ.not.relabel g = (φ.relabel g).not :=
+by simp [bounded_formula.not]
+
+@[simp] lemma relabel_all (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α (k + 1)) :
+  φ.all.relabel g = (φ.relabel g).all :=
+begin
+  rw [relabel, map_term_rel, relabel],
+  simp,
+end
+
+@[simp] lemma relabel_ex (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α (k + 1)) :
+  φ.ex.relabel g = (φ.relabel g).ex :=
+by simp [bounded_formula.ex]
+
+@[simp] lemma relabel_sum_inl (φ : L.bounded_formula α n) :
+  (φ.relabel sum.inl : L.bounded_formula α (0 + n)) =
+  φ.cast_le (ge_of_eq (zero_add n)) :=
+begin
+  simp only [relabel, relabel_aux_sum_inl],
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [fin.nat_add_zero, cast_le_of_eq, map_term_rel] },
+  { simp [fin.nat_add_zero, cast_le_of_eq, map_term_rel] },
+  { simp [map_term_rel, ih1, ih2], },
+  { simp [map_term_rel, ih3, cast_le], },
+end
+
+/-- Substitutes the variables in a given formula with terms. -/
+@[simp] def subst {n : ℕ} (φ : L.bounded_formula α n) (f : α → L.term β) : L.bounded_formula β n :=
+φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr)))
+  (λ _, id) (λ _, id)
+
+/-- Turns the extra variables of a bounded formula into free variables. -/
+@[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)
+| n falsum := falsum
+| n (equal t₁ t₂) := t₁.equal t₂
+| n (rel R ts) := R.formula ts
+| n (imp φ₁ φ₂) := φ₁.to_formula.imp φ₂.to_formula
+| n (all φ) := (φ.to_formula.relabel
+  (sum.elim (sum.inl ∘ sum.inl) (sum.map sum.inr id ∘ fin_sum_fin_equiv.symm))).all
 
 variables {l : ℕ} {φ ψ : L.bounded_formula α l} {θ : L.bounded_formula α l.succ}
 variables {v : α → M} {xs : fin l → M}
@@ -370,7 +593,10 @@ is_prenex.rec_on h (λ _ _, hq) (λ _ _ _, ha) (λ _ _ _ ih, hn (ha (hn ih)))
 lemma is_prenex.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_prenex)
   (f : α → β ⊕ (fin n)) :
   (φ.relabel f).is_prenex :=
-is_prenex.rec_on h (λ _ _ h, (h.relabel f).is_prenex) (λ _ _ _ h, h.all) (λ _ _ _ h, h.ex)
+is_prenex.rec_on h
+  (λ _ _ h, (h.relabel f).is_prenex)
+  (λ _ _ _ h, by simp [h.all])
+  (λ _ _ _ h, by simp [h.ex])
 
 lemma is_prenex.cast_le (hφ : is_prenex φ) :
   ∀ {n} {h : l ≤ n}, (φ.cast_le h).is_prenex :=
@@ -621,17 +847,57 @@ protected def total : L.sentence :=
 
 end relations
 
-section nonempty
+section cardinality
 
 variable (L)
 
-/-- A sentence that indicates a structure is nonempty. -/
-protected def sentence.nonempty : L.sentence := ∃' (&0 =' &0)
+/-- A sentence indicating that a structure has `n` distinct elements. -/
+protected def sentence.card_ge (n) : L.sentence :=
+(((((list.fin_range n).product (list.fin_range n)).filter (λ ij : _ × _, ij.1 ≠ ij.2)).map
+  (λ (ij : _ × _), ∼ ((& ij.1).bd_equal (& ij.2)))).foldr (⊓) ⊤).exs
+
+/-- A theory indicating that a structure is infinite. -/
+def infinite_theory : L.Theory := set.range (sentence.card_ge L)
 
 /-- A theory that indicates a structure is nonempty. -/
-protected def Theory.nonempty : L.Theory := {sentence.nonempty L}
+def nonempty_theory : L.Theory := {sentence.card_ge L 1}
 
-end nonempty
+/-- A theory indicating that each of a set of constants is distinct. -/
+def distinct_constants_theory (s : set α) : L[[α]].Theory :=
+(λ ab : α × α, (((L.con ab.1).term.equal (L.con ab.2).term).not)) '' ((s ×ˢ s) ∩ (set.diagonal α)ᶜ)
+
+variables {L} {α}
+
+open set
+
+lemma monotone_distinct_constants_theory :
+  monotone (L.distinct_constants_theory : set α → L[[α]].Theory) :=
+λ s t st, (image_subset _ (inter_subset_inter_left _ (prod_mono st st)))
+
+lemma directed_distinct_constants_theory :
+  directed (⊆) (L.distinct_constants_theory : set α → L[[α]].Theory) :=
+monotone.directed_le monotone_distinct_constants_theory
+
+lemma distinct_constants_theory_eq_Union (s : set α) :
+  L.distinct_constants_theory s = ⋃ (t : finset s), L.distinct_constants_theory
+    (t.map (function.embedding.subtype (λ x, x ∈ s))) :=
+begin
+  classical,
+  simp only [distinct_constants_theory],
+  rw [← image_Union, ← Union_inter],
+  refine congr rfl (congr (congr rfl _) rfl),
+  ext ⟨i, j⟩,
+  simp only [prod_mk_mem_set_prod_eq, finset.coe_map, function.embedding.coe_subtype, mem_Union,
+    mem_image, finset.mem_coe, subtype.exists, subtype.coe_mk, exists_and_distrib_right,
+    exists_eq_right],
+  refine ⟨λ h, ⟨{⟨i, h.1⟩, ⟨j, h.2⟩}, ⟨h.1, _⟩, ⟨h.2, _⟩⟩, _⟩,
+  { simp },
+  { simp },
+  { rintros ⟨t, ⟨is, _⟩, ⟨js, _⟩⟩,
+    exact ⟨is, js⟩ }
+end
+
+end cardinality
 
 end language
 end first_order

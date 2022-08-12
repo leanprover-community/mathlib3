@@ -159,7 +159,7 @@ variables [add_monoid β] [has_continuous_add β] (f g : C₀(α, β))
 | 0 := by rw [nsmul_rec, zero_smul, coe_zero]
 | (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
 
-instance has_nat_scalar : has_scalar ℕ C₀(α, β) :=
+instance has_nat_scalar : has_smul ℕ C₀(α, β) :=
 ⟨λ n f, ⟨n • f, by simpa [coe_nsmul_rec] using zero_at_infty (nsmul_rec n f)⟩⟩
 
 instance : add_monoid C₀(α, β) :=
@@ -190,7 +190,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 | (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
 | -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
 
-instance has_int_scalar : has_scalar ℤ C₀(α, β) :=
+instance has_int_scalar : has_smul ℤ C₀(α, β) :=
 ⟨λ n f, ⟨n • f, by simpa using zero_at_infty (zsmul_rec n f)⟩⟩
 
 instance : add_group C₀(α, β) :=
@@ -202,7 +202,7 @@ instance [add_comm_group β] [topological_add_group β] : add_comm_group C₀(α
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
-  [has_continuous_const_smul R β] : has_scalar R C₀(α, β) :=
+  [has_continuous_const_smul R β] : has_smul R C₀(α, β) :=
 ⟨λ r f, ⟨r • f, by simpa [smul_zero] using (zero_at_infty f).const_smul r⟩⟩
 
 @[simp] lemma coe_smul [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
@@ -210,6 +210,10 @@ instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
 
 lemma smul_apply [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
   [has_continuous_const_smul R β] (r : R) (f : C₀(α, β)) (x : α) : (r • f) x = r • f x := rfl
+
+instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β] [smul_with_zero Rᵐᵒᵖ β]
+  [has_continuous_const_smul R β] [is_central_scalar R β] : is_central_scalar R C₀(α, β) :=
+⟨λ r f, ext $ λ x, op_smul_eq_smul _ _⟩
 
 instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
   [has_continuous_const_smul R β] : smul_with_zero R C₀(α, β) :=
@@ -231,6 +235,10 @@ instance [non_unital_semiring β] [topological_semiring β] :
   non_unital_semiring C₀(α, β) :=
 fun_like.coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
+instance [non_unital_comm_semiring β] [topological_semiring β] :
+  non_unital_comm_semiring C₀(α, β) :=
+fun_like.coe_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
+
 instance [non_unital_non_assoc_ring β] [topological_ring β] :
   non_unital_non_assoc_ring C₀(α, β) :=
 fun_like.coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
@@ -239,6 +247,11 @@ fun_like.coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_
 instance [non_unital_ring β] [topological_ring β] :
   non_unital_ring C₀(α, β) :=
 fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl)
+  (λ _ _, rfl)
+
+instance [non_unital_comm_ring β] [topological_ring β] :
+  non_unital_comm_ring C₀(α, β) :=
+fun_like.coe_injective.non_unital_comm_ring _ coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl)
   (λ _ _, rfl)
 
 instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topological_semiring β]
@@ -369,7 +382,7 @@ field `𝕜` whenever `β` is as well.
 
 section normed_space
 
-variables [normed_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_add_comm_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 /-- The natural inclusion `to_bcf : C₀(α, β) → (α →ᵇ β)` realized as an additive monoid
 homomorphism. -/
@@ -381,8 +394,8 @@ def to_bcf_add_monoid_hom : C₀(α, β) →+ (α →ᵇ β) :=
 @[simp]
 lemma coe_to_bcf_add_monoid_hom (f : C₀(α, β)) : (f.to_bcf_add_monoid_hom : α → β) = f := rfl
 
-noncomputable instance : normed_group C₀(α, β) :=
-normed_group.induced to_bcf_add_monoid_hom (to_bcf_injective α β)
+noncomputable instance : normed_add_comm_group C₀(α, β) :=
+normed_add_comm_group.induced to_bcf_add_monoid_hom (to_bcf_injective α β)
 
 @[simp]
 lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ∥f.to_bcf∥ = ∥f∥ := rfl
@@ -399,7 +412,7 @@ variables [non_unital_normed_ring β]
 noncomputable instance : non_unital_normed_ring C₀(α, β) :=
 { norm_mul := λ f g, norm_mul_le f.to_bcf g.to_bcf,
   ..zero_at_infty_continuous_map.non_unital_ring,
-  ..zero_at_infty_continuous_map.normed_group }
+  ..zero_at_infty_continuous_map.normed_add_comm_group }
 
 end normed_ring
 
@@ -410,15 +423,14 @@ section star
 /-! ### Star structure
 
 It is possible to equip `C₀(α, β)` with a pointwise `star` operation whenever there is a continuous
-`star : β → β` for which `star (0 : β) = 0`. However, we have no such minimal type classes (e.g.,
-`has_continuous_star` or `star_zero_class`) and so the type class assumptions on `β` sufficient to
-guarantee these conditions are `[normed_group β]`, `[star_add_monoid β]` and
-`[normed_star_group β]`, which allow for the corresponding classes on `C₀(α, β)` essentially
-inherited from their counterparts on `α →ᵇ β`. Ultimately, when `β` is a C⋆-ring, then so is
-`C₀(α, β)`.
+`star : β → β` for which `star (0 : β) = 0`. We don't have quite this weak a typeclass, but
+`star_add_monoid` is close enough.
+
+The `star_add_monoid` and `normed_star_group` classes on `C₀(α, β)` are inherited from their
+counterparts on `α →ᵇ β`. Ultimately, when `β` is a C⋆-ring, then so is `C₀(α, β)`.
 -/
 
-variables [normed_group β] [star_add_monoid β] [normed_star_group β]
+variables [topological_space β] [add_monoid β] [star_add_monoid β] [has_continuous_star β]
 
 instance : has_star C₀(α, β) :=
 { star := λ f,
@@ -433,20 +445,26 @@ lemma coe_star (f : C₀(α, β)) : ⇑(star f) = star f := rfl
 lemma star_apply (f : C₀(α, β)) (x : α) :
   (star f) x = star (f x) := rfl
 
-instance : star_add_monoid C₀(α, β) :=
+instance [has_continuous_add β] : star_add_monoid C₀(α, β) :=
 { star_involutive := λ f, ext $ λ x, star_star (f x),
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
+
+end star
+
+section normed_star
+
+variables [normed_add_comm_group β] [star_add_monoid β] [normed_star_group β]
 
 instance : normed_star_group C₀(α, β) :=
 { norm_star := λ f, (norm_star f.to_bcf : _) }
 
-end star
+end normed_star
 
 section star_module
 
-variables {𝕜 : Type*} [semiring 𝕜] [has_star 𝕜]
-  [normed_group β] [star_add_monoid β] [normed_star_group β]
-  [module 𝕜 β] [has_continuous_const_smul 𝕜 β] [star_module 𝕜 β]
+variables {𝕜 : Type*} [has_zero 𝕜] [has_star 𝕜]
+  [add_monoid β] [star_add_monoid β] [topological_space β] [has_continuous_star β]
+  [smul_with_zero 𝕜 β] [has_continuous_const_smul 𝕜 β] [star_module 𝕜 β]
 
 instance : star_module 𝕜 C₀(α, β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }
@@ -455,16 +473,21 @@ end star_module
 
 section star_ring
 
-variables [non_unital_normed_ring β] [star_ring β]
+variables [non_unital_semiring β] [star_ring β] [topological_space β] [has_continuous_star β]
+  [topological_semiring β]
 
-instance [normed_star_group β] : star_ring C₀(α, β) :=
+instance : star_ring C₀(α, β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   ..zero_at_infty_continuous_map.star_add_monoid }
 
-instance [cstar_ring β] : cstar_ring C₀(α, β) :=
+end star_ring
+
+section cstar_ring
+
+instance [non_unital_normed_ring β] [star_ring β] [cstar_ring β] : cstar_ring C₀(α, β) :=
 { norm_star_mul_self := λ f, @cstar_ring.norm_star_mul_self _ _ _ _ f.to_bcf }
 
-end star_ring
+end cstar_ring
 
 /-! ### C₀ as a functor
 

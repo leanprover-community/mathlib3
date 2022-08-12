@@ -85,6 +85,8 @@ by { letI := fintype.of_finite α, letI := λ a, fintype.of_finite (β a), apply
 instance {ι : Sort*} {π : ι → Sort*} [finite ι] [Π i, finite (π i)] : finite (Σ' i, π i) :=
 of_equiv _ (equiv.psigma_equiv_sigma_plift π).symm
 
+instance [finite α] : finite (set α) := by { casesI nonempty_fintype α, apply_instance }
+
 end finite
 
 /-- This instance also provides `[finite s]` for `s : set α`. -/

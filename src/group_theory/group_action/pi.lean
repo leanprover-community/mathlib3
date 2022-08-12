@@ -154,7 +154,7 @@ namespace function
 
 /-- Non-dependent version of `pi.has_smul`. Lean gets confused by the dependent instance if this
 is not present. -/
-@[to_additive "Non-dependent version of `pi.has_smul`. Lean gets confused by the dependent instance
+@[to_additive "Non-dependent version of `pi.has_vadd`. Lean gets confused by the dependent instance
 if this is not present."]
 instance has_smul {ι R M : Type*} [has_smul R M] :
   has_smul R (ι → M) :=
@@ -162,7 +162,7 @@ pi.has_smul
 
 /-- Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent instance if
 this is not present. -/
-@[to_additive "Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent
+@[to_additive "Non-dependent version of `pi.vadd_comm_class`. Lean gets confused by the dependent
 instance if this is not present."]
 instance smul_comm_class {ι α β M : Type*}
   [has_smul α M] [has_smul β M] [smul_comm_class α β M] :

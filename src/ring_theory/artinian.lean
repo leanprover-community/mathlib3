@@ -111,8 +111,7 @@ is_artinian_of_range_eq_ker
 
 @[priority 100]
 instance is_artinian_of_finite [finite M] : is_artinian R M :=
-let ⟨_⟩ := nonempty_fintype M in by exactI
-⟨fintype.well_founded_of_trans_of_irrefl _⟩
+⟨finite.well_founded_of_trans_of_irrefl _⟩
 
 local attribute [elab_as_eliminator] finite.induction_empty_option
 

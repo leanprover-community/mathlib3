@@ -1884,9 +1884,13 @@ lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 ⟨(right_inverse_bij_inv _).injective, (left_inverse_bij_inv _).surjective⟩
 
 end bijection_inverse
+end fintype
 
-lemma well_founded_of_trans_of_irrefl [finite α] (r : α → α → Prop)
-  [is_trans α r] [is_irrefl α r] : well_founded r :=
+namespace finite
+variables [finite α]
+
+lemma well_founded_of_trans_of_irrefl (r : α → α → Prop) [is_trans α r] [is_irrefl α r] :
+  well_founded r :=
 by classical; casesI nonempty_fintype α; exact
 have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
   from λ x y hxy, finset.card_lt_card $
@@ -1895,21 +1899,19 @@ have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r
     exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
 subrelation.wf this (measure_wf _)
 
-lemma preorder.well_founded_lt [finite α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+lemma preorder.well_founded_lt [preorder α] : well_founded ((<) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
-lemma preorder.well_founded_gt [finite α] [preorder α] : well_founded ((>) : α → α → Prop) :=
+lemma preorder.well_founded_gt [preorder α] : well_founded ((>) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
-@[instance, priority 10] lemma linear_order.is_well_order_lt [finite α] [linear_order α] :
-  is_well_order α (<) :=
+@[priority 10] instance linear_order.is_well_order_lt [linear_order α] : is_well_order α (<) :=
 { wf := preorder.well_founded_lt }
 
-@[instance, priority 10] lemma linear_order.is_well_order_gt [finite α] [linear_order α] :
-  is_well_order α (>) :=
+@[priority 10] instance linear_order.is_well_order_gt [linear_order α] : is_well_order α (>) :=
 { wf := preorder.well_founded_gt }
 
-end fintype
+end finite
 
 /-- A type is said to be infinite if it has no fintype instance.
   Note that `infinite α` is equivalent to `is_empty (fintype α)`. -/
@@ -1957,7 +1959,7 @@ lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.no
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin
   obtain ⟨c, hcs : c ∈ s⟩ := h,
-  have : well_founded (@has_lt.lt {x // x ∈ s} _) := fintype.well_founded_of_trans_of_irrefl _,
+  have : well_founded (@has_lt.lt {x // x ∈ s} _) := finite.well_founded_of_trans_of_irrefl _,
   obtain ⟨⟨m, hms : m ∈ s⟩, -, H⟩ := this.has_min set.univ ⟨⟨c, hcs⟩, trivial⟩,
   exact ⟨m, hms, λ x hx hxm, H ⟨x, hx⟩ trivial hxm⟩,
 end

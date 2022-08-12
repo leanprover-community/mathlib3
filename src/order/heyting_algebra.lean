@@ -32,10 +32,12 @@ variables {ι α β : Type*}
 
 /-! ### Notation -/
 
-/-- Syntax typeclass for Heyting implication. -/
+/-- Syntax typeclass for Heyting implication `⇨`. -/
 @[notation_class] class has_himp (α : Type*) := (himp : α → α → α)
 
-/-- Syntax typeclass for Heyting negation. -/
+/-- Syntax typeclass for Heyting negation `￢`.
+
+ The difference between `has_hnot` and `has_compl` is ... -/
 @[notation_class] class has_hnot (α : Type*) := (hnot : α → α)
 
 export has_himp (himp) has_sdiff (sdiff) has_hnot (hnot)
@@ -73,13 +75,17 @@ rfl
 end pi
 
 /-- A generalized Heyting algebra is a lattice with an additional binary operation `⇨` called
-Heyting implication such that `a ⇨` is right adjoint to `a ⊓`. -/
+Heyting implication such that `a ⇨` is right adjoint to `a ⊓`.
+
+ This generalizes `heyting_algebra` by not requiring a bottom element. -/
 class generalized_heyting_algebra (α : Type*) extends lattice α, has_top α, has_himp α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 (le_himp_iff (a b c : α) : a ≤ b ⇨ c ↔ a ⊓ b ≤ c)
 
 /-- A generalized co-Heyting algebra is a lattice with an additional binary difference operation `\`
-such that `\ a` is right adjoint to `⊔ a`. -/
+such that `\ a` is right adjoint to `⊔ a`.
+
+This generalizes `coheyting_algebra` by not requiring a top element. -/
 class generalized_coheyting_algebra (α : Type*) extends lattice α, has_bot α, has_sdiff α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 (sdiff_le_iff (a b c : α) : a \ b ≤ c ↔ a ≤ b ⊔ c)
@@ -123,7 +129,7 @@ instance coheyting_algebra.to_bounded_order [coheyting_algebra α] : bounded_ord
 instance biheyting_algebra.to_coheyting_algebra [biheyting_algebra α] : coheyting_algebra α :=
 { ..‹biheyting_algebra α› }
 
-/-- Construct a Heyting algebra from the Heyting implication alone. -/
+/-- Construct a Heyting algebra from the lattice structure and Heyting implication alone. -/
 @[reducible] -- See note [reducible non instances]
 def heyting_algebra.of_himp [distrib_lattice α] [bounded_order α] (himp : α → α → α)
   (le_himp_iff : ∀ a b c, a ≤ himp b c ↔ a ⊓ b ≤ c) : heyting_algebra α :=
@@ -133,7 +139,7 @@ def heyting_algebra.of_himp [distrib_lattice α] [bounded_order α] (himp : α �
   himp_bot := λ a, rfl,
   ..‹distrib_lattice α›, ..‹bounded_order α› }
 
-/-- Construct a Heyting algebra from the Heyting implication alone. -/
+/-- Construct a Heyting algebra from the lattice structure and complement operator alone. -/
 @[reducible] -- See note [reducible non instances]
 def heyting_algebra.of_compl [distrib_lattice α] [bounded_order α] (compl : α → α)
   (le_himp_iff : ∀ a b c, a ≤ compl b ⊔ c ↔ a ⊓ b ≤ c) : heyting_algebra α :=
@@ -143,7 +149,7 @@ def heyting_algebra.of_compl [distrib_lattice α] [bounded_order α] (compl : α
   himp_bot := λ a, sup_bot_eq,
   ..‹distrib_lattice α›, ..‹bounded_order α› }
 
-/-- Construct a co-Heyting algebra from the difference alone. -/
+/-- Construct a co-Heyting algebra from the lattice structure and the difference alone. -/
 @[reducible] -- See note [reducible non instances]
 def coheyting_algebra.of_sdiff [distrib_lattice α] [bounded_order α] (sdiff : α → α → α)
   (sdiff_le_iff : ∀ a b c, sdiff a b ≤ c ↔ a ≤ b ⊔ c) : coheyting_algebra α :=
@@ -153,7 +159,7 @@ def coheyting_algebra.of_sdiff [distrib_lattice α] [bounded_order α] (sdiff : 
   top_sdiff := λ a, rfl,
   ..‹distrib_lattice α›, ..‹bounded_order α› }
 
-/-- Construct a co-Heyting algebra from the Heyting negation alone. -/
+/-- Construct a co-Heyting algebra from the difference and Heyting negation alone. -/
 @[reducible] -- See note [reducible non instances]
 def coheyting_algebra.of_hnot [distrib_lattice α] [bounded_order α] (hnot : α → α)
   (sdiff_le_iff : ∀ a b c, a ⊓ hnot b ≤ c ↔ a ≤ b ⊔ c) : coheyting_algebra α :=
@@ -165,6 +171,11 @@ def coheyting_algebra.of_hnot [distrib_lattice α] [bounded_order α] (hnot : α
 
 section generalized_heyting_algebra
 variables [generalized_heyting_algebra α] {a b c d : α}
+
+/- In this section, we'll give interpretations of these results in the Heyting algebra model of
+intuitionistic logic,- where `≤` can be interpreted as "validates", `⇨` as "implies", `⊓` as "and",
+`⊔` as "or", `⊥` as "false" and `⊤` as "true".
+See also `Prop.heyting_algebra`. -/
 
 -- `p → q → r ↔ p ∧ q → r`
 @[simp] lemma le_himp_iff : a ≤ b ⇨ c ↔ a ⊓ b ≤ c := generalized_heyting_algebra.le_himp_iff _ _ _

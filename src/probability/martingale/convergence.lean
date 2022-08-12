@@ -222,7 +222,7 @@ begin
   exact ⟨g, hgm, measure_eq_zero_of_trim_eq_zero hle hg⟩,
 end
 
-/-- The limiting process of an Lᵖ-bounded submartingale is integrable. -/
+/-- The limiting process of an Lᵖ-bounded submartingale is Lᵖ. -/
 lemma submartingale.mem_ℒp_limit_process {p : ℝ≥0∞}
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
   mem_ℒp (ℱ.limit_process f μ) p μ :=

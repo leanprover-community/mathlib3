@@ -1037,7 +1037,7 @@ lemma finite.exists_min [finite α] [nonempty α] [linear_order β] (f : α → 
   ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
 by { casesI nonempty_fintype α, simpa using exists_min_image univ f univ_nonempty }
 
-lemma exists_univ_list (α) [finite α] : ∃ l : list α, l.nodup ∧ ∀ x : α, x ∈ l :=
+lemma finite.exists_univ_list (α) [finite α] : ∃ l : list α, l.nodup ∧ ∀ x : α, x ∈ l :=
 by { casesI nonempty_fintype α, obtain ⟨l, e⟩ := quotient.exists_rep (@univ α _).1,
   have := and.intro univ.2 mem_univ_val, exact ⟨_, by rwa ←e at this⟩ }
 

@@ -636,7 +636,7 @@ sign_bij (λ (ab : α × β) _, ab.snd)
 lemma sign_prod_congr_right (σ : α → perm β) :
   sign (prod_congr_right σ) = ∏ k, (σ k).sign :=
 begin
-  obtain ⟨l, hl, mem_l⟩ := fintype.exists_univ_list α,
+  obtain ⟨l, hl, mem_l⟩ := finite.exists_univ_list α,
   have l_to_finset : l.to_finset = finset.univ,
   { apply eq_top_iff.mpr,
     intros b _,

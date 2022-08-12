@@ -25,7 +25,7 @@ lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [
   [locally_compact_space β] [topological_space γ] :
   continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
 begin
-sorry,
+sorry,--the proof is in `PR #15721`
   -- apply continuous_generated_from,
   -- rintros M ⟨K, hK, U, hU, hM⟩,
   -- apply is_open_iff_forall_mem_open.mpr,
@@ -70,12 +70,11 @@ begin
   simpa only [set.mem_set_of_eq] using le_one _,
 end
 
-
-lemma closure_I_mem {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
+lemma mem_closure_iff {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ} ↔ (t : ℝ) ≤ θ :=
   by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
     apply_instance}
 
-lemma interior_I_not_mem {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
+lemma not_mem_interior {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
 begin
   -- For `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
   -- topology) is `I` again, and `t ∉ I` is always false whereas `1 ≤ t` is true for `t = 1`.
@@ -107,9 +106,9 @@ begin
     simpa only [set.mem_set_of_eq] using (le_of_lt $ lt_of_le_of_lt s.2.2 H1) },
 end
 
-lemma frontier_I_mem {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
-  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (interior_I_not_mem
-    h_right) (not_lt_of_le $ closure_I_mem.mp h_left)]}
+lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ)
+  = θ := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (not_mem_interior
+    h_right) (not_lt_of_le $ mem_closure_iff.mp h_left)]}
 
 end unit_interval
 
@@ -233,7 +232,7 @@ begin
     erw h_eq at h,
     simp only [frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,
       set.union_empty, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h,
-    simp only [frontier_I_mem h, set.right_mem_Icc, zero_le_one, coe_one, one_div,
+    simp only [mem_frontier h, set.right_mem_Icc, zero_le_one, coe_one, one_div,
       mul_inv_cancel_of_invertible, path.extend_extends, mk_one, path.target, set.left_mem_Icc,
       sub_self, mk_zero, path.source] },
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
@@ -248,7 +247,7 @@ def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   begin
     apply continuous.piecewise,
     { intros t ht,
-      rw frontier_I_mem ht,
+      rw mem_frontier ht,
       field_simp, },
     exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul
       continuous_induced_dom).sub continuous_const).div_const ],
@@ -307,7 +306,7 @@ def delayed_refl_right {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   begin
     apply continuous.piecewise,
     { intros t ht,
-      rw [frontier_I_mem ht, mul_div_cancel', div_self],
+      rw [mem_frontier ht, mul_div_cancel', div_self],
       simp only [γ.target, set.right_mem_Icc, zero_le_one, extend_extends, mk_one],
       exacts [ne_of_gt $ add_pos_of_pos_of_nonneg (@one_pos ℝ _ _) θ.2.1, two_ne_zero] },
     exacts [(continuous_extend γ).comp (continuous_const.mul continuous_induced_dom).div_const,

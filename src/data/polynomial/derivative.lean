@@ -524,7 +524,7 @@ end
 lemma derivative_X_sub_pow (c:R) (m:ℕ) : ((X - C c) ^ m).derivative = m * (X - C c) ^ (m - 1) :=
 by rw [derivative_pow, derivative_sub, derivative_X, derivative_C, sub_zero, mul_one]
 
-lemma iterate_derivative_X_sub_pow (n k : ℕ) (c : R) (hk : k ≤ n) :
+lemma iterate_derivative_X_sub_pow (n k : ℕ) (c : R) :
   (derivative^[k] ((X - C c) ^ n)) =
   (↑(∏ i in finset.range k, (n - i))) * (X - C c) ^ (n - k) :=
 by simp_rw [sub_eq_add_neg, ←C_neg, iterate_derivative_X_add_pow]

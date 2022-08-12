@@ -287,6 +287,12 @@ begin
     stabilizer_image_coe_quotient, subgroup.coe_bot, set.singleton_one],
 end
 
+/-- A version of Lagrange's theorem. -/
+@[to_additive "A version of Lagrange's theorem."]
+lemma card_mul_card_image_coe (s t : finset α) :
+  s.card * (t.image coe : finset (α ⧸ stabilizer α s)).card = (s * t).card :=
+sorry
+
 end classical
 
 /-! ### Kneser's theorem -/
@@ -308,9 +314,21 @@ begin
   { simp },
   classical,
   obtain hstab | hstab := ne_or_eq (s * t).mul_stab 1,
-  { have : ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))).mul_stab = 1,
+  { have image_coe_mul :
+      ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))) = s.image coe * t.image coe :=
+    sorry, -- image_mul quotient_group.mk',
+    have : ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))).mul_stab = 1,
     { exact mul_stab_image_coe_quotient (hs.mul ht) },
-    sorry },
+    have := ih _ _ (s.image coe : finset (α ⧸ stabilizer α (s * t))) (t.image coe) rfl,
+    rw ←image_coe_mul at this,
+    sorry,
+    { rw [←image_coe_mul, hn],
+      refine add_lt_add_of_lt_of_le _ card_image_le,
+      sorry } },
+  have hs' : s.card = 1 ∨ 1 < s.card := sorry,
+  rw [card_eq_one, one_lt_card] at hs',
+  obtain ⟨a, rfl⟩ | ⟨a, ha, b, hb, hab⟩ := hs',
+  { simp_rw [hstab, card_singleton_mul, mul_one, add_comm t.card] },
   sorry,
 end
 

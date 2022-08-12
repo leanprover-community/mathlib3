@@ -70,18 +70,63 @@ begin
   simpa only [set.mem_set_of_eq] using le_one _,
 end
 
+
+lemma closure_I_mem {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
+  by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
+    apply_instance}
+
+lemma interior_I_not_mem {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
+begin
+  -- For `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
+  -- topology) is `I` again, and `t ∉ I` is always false whereas `1 ≤ t` is true for `t = 1`.
+  -- So we split the proof in the cases `θ = 1` and `θ ≠ 1`, that is purely interval-theoretical.
+  by_cases θ_eq_one : θ = 1,
+  { rw [θ_eq_one, univ_eq_le_one, interior_univ],
+    tauto, },
+  intro h,
+  by_cases H : θ ∈ I, -- this must be changed to `θ < 1` (the proof is basically the same) and
+  -- then 1 ≤ θ, which becomes `1 < θ` by virtue of `θ_eq_one`, in which case everything is OK
+  -- **Actually**, I suspect that the proof for `θ = 1` generalizes to `1 ≤ θ` and therefore we
+  -- can reduce the number of splittings.
+  { let θI : I := ⟨θ, H⟩,
+    have : {s : ↥I | (s : ℝ) ≤ θ} = set.Iic θI := rfl,
+    have H_ne : (set.Ioi θI).nonempty := ⟨1, _⟩,
+    simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
+      ← subtype.coe_le_coe] using h,
+    simp only [set.mem_Ioi, ← subtype.coe_lt_coe],
+    apply lt_of_le_of_ne H.2 θ_eq_one},
+  by_cases H1 : θ < 0,
+  { exact (le_of_lt $ lt_of_lt_of_le H1 t.2.1) },
+  { replace H1 : 1 < θ,
+    simpa only [set.mem_Icc, not_le, not_lt.mp H1, true_and] using H,
+    contrapose! h,
+    suffices : {s : ↥I | (s : ℝ) ≤ θ} = set.univ,
+    simp only [this, interior_univ],
+    rw set.eq_univ_iff_forall,
+    intro s,
+    simpa only [set.mem_set_of_eq] using (le_of_lt $ lt_of_le_of_lt s.2.2 H1) },
+end
+
+lemma frontier_I_mem {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
+  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (interior_I_not_mem
+    h_right) (not_lt_of_le $ closure_I_mem.mp h_left)]}
+
 end unit_interval
 
 namespace path
 
 open continuous_map path
 
-variables (X : Type u) [topological_space X]
+variables {X : Type u} [topological_space X]
 
-instance (x y : X) : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
+instance {x y : X} : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
-instance (x y : X) : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
+instance {x y : X} : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
   continuous_map.compact_open
+
+lemma continuous_eval {x y : X} : continuous (λ p : I × (path x y), p.2 p.1) :=
+  (continuous_eval'.comp (continuous.prod_map (continuous_induced_dom) (@continuous_id I _))).comp
+    continuous_swap
 
 end path
 
@@ -133,8 +178,6 @@ variables {X : Type u} [topological_space X]
 
 notation ` Ω(` x `)` := path x x
 
-lemma continuous_coe (x : X) : continuous (coe : Ω(x) → C(↥I, X)) := continuous_induced_dom
-
 variable {x : X}
 
 @[simp, continuity]
@@ -162,7 +205,8 @@ begin
   exact (H.comp $ continuous.prod_map continuous_swap continuous_id),
 end
 
-lemma continuous_prod_second_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.2.extend (2 * x.2 - 1)) :=
+lemma continuous_prod_second_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.2.extend
+  (2 * x.2 - 1)) :=
 begin
   let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2 - 1)),
   have H : continuous η,
@@ -177,49 +221,7 @@ begin
     (H.comp continuous_snd),
 end
 
-
-lemma closure_I_mem {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
-  by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq], apply_instance}
-
-lemma interior_I_not_mem {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
-begin
-  -- For `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
-  -- topology) is `I` again, and `t ∉ I` is always false whereas `1 ≤ t` is true for `t = 1`.
-  -- So we split the proof in the cases `θ = 1` and `θ ≠ 1`, that is purely interval-theoretical.
-  by_cases θ_eq_one : θ = 1,
-  { rw [θ_eq_one, univ_eq_le_one, interior_univ],
-    tauto, },
-  intro h,
-  by_cases H : θ ∈ I, -- this must be changed to `θ < 1` (the proof is basically the same) and
-  -- then 1 ≤ θ, which becomes `1 < θ` by virtue of `θ_eq_one`, in which case everything is OK
-  -- **Actually**, I suspect that the proof for `θ = 1` generalizes to `1 ≤ θ` and therefore we
-  -- can reduce the number of splittings.
-  { let θI : I := ⟨θ, H⟩,
-    have : {s : ↥I | (s : ℝ) ≤ θ} = set.Iic θI := rfl,
-    have H_ne : (set.Ioi θI).nonempty := ⟨1, _⟩,
-    simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
-      ← subtype.coe_le_coe] using h,
-    simp only [set.mem_Ioi, ← subtype.coe_lt_coe],
-    apply lt_of_le_of_ne H.2 θ_eq_one},
-  by_cases H1 : θ < 0,
-  { exact (le_of_lt $ lt_of_lt_of_le H1 t.2.1) },
-  { replace H1 : 1 < θ,
-    simpa only [set.mem_Icc, not_le, not_lt.mp H1, true_and] using H,
-    contrapose! h,
-    suffices : {s : ↥I | (s : ℝ) ≤ θ} = set.univ,
-    simp only [this, interior_univ],
-    rw set.eq_univ_iff_forall,
-    intro s,
-    simp [set.mem_set_of_eq],-- using le_one _,
-    exact (le_of_lt $ lt_of_le_of_lt s.2.2 H1), },
-
-end
-
-lemma frontier_I_mem {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
-  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (interior_I_not_mem
-    h_right) (not_lt_of_le $ closure_I_mem.mp h_left)]}
-
-lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
+theorem Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin
   apply continuous.piecewise,
   { rintros ⟨_, t⟩ h,
@@ -231,8 +233,9 @@ begin
     erw h_eq at h,
     simp only [frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,
       set.union_empty, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h,
-    simp only [frontier_I_mem h, set.right_mem_Icc, zero_le_one, coe_one, one_div, mul_inv_cancel_of_invertible,
-  path.extend_extends, mk_one, path.target, set.left_mem_Icc, sub_self, mk_zero, path.source] },
+    simp only [frontier_I_mem h, set.right_mem_Icc, zero_le_one, coe_one, one_div,
+      mul_inv_cancel_of_invertible, path.extend_extends, mk_one, path.target, set.left_mem_Icc,
+      sub_self, mk_zero, path.source] },
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
 
@@ -247,8 +250,8 @@ def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
     { intros t ht,
       rw frontier_I_mem ht,
       field_simp, },
-    exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul continuous_induced_dom).sub
-      continuous_const).div_const ],
+    exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul
+      continuous_induced_dom).sub continuous_const).div_const ],
   end,
   source' :=
   begin
@@ -353,6 +356,8 @@ begin
   refl,
 end
 
+
+-- `[FAE]` The two lemmas below might be unified, probably
 lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧
   ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 := ⟨div_nonneg (le_of_lt $ sub_pos.mpr $ (div_lt_iff' two_pos).mp h)
     (sub_nonneg.mpr $ (θ.2.2).trans one_le_two),
@@ -360,11 +365,9 @@ lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)
     $ mul_nonneg_le_one_le (@zero_le_two ℝ _ _ _ _ _) (le_of_eq rfl) t.2.1 t.2.2)⟩
 
 lemma aux_mem_I' {t θ : I} (h : (t : ℝ) ≤ (1 + θ) / 2) : 0 ≤ ((2 : ℝ) * t)/(1 + θ) ∧
-  ((2 : ℝ) * t)/(1 + θ) ≤ 1 := sorry
-  -- ⟨div_nonneg (le_of_lt $ sub_pos.mpr $ (div_lt_iff' two_pos).mp h)
-  --   (sub_nonneg.mpr $ (θ.2.2).trans one_le_two),
-  --   (div_le_one (sub_pos.mpr $ lt_of_le_of_lt θ.2.2 one_lt_two)).mpr ((sub_le_sub_iff_right ↑θ).mpr
-  --   $ mul_nonneg_le_one_le (@zero_le_two ℝ _ _ _ _ _) (le_of_eq rfl) t.2.1 t.2.2)⟩
+  ((2 : ℝ) * t)/(1 + θ) ≤ 1 := ⟨ div_nonneg (by {simpa only [zero_le_mul_left, zero_lt_bit0,
+    zero_lt_one] using t.2.1 }) (add_nonneg zero_le_one θ.2.1), ((div_le_one $
+    add_pos_of_pos_of_nonneg (@one_pos ℝ _ _) θ.2.1).mpr $ (le_div_iff' two_pos).mp h)⟩
 
 /- This is the function `Q` defined on p. 475 of Serre's `Homologie singulière des espaces fibrés`
 that helps proving continuity of `delayed_refl_left`.-/
@@ -409,12 +412,10 @@ lemma continuous_delayed_refl_left {x : X} :
   continuous (λ p : I × Ω(x), delayed_refl_left p.1 p.2) :=
 begin
   apply continuous_to_Ω_if_continuous_uncurry,
-  have hF₀ : continuous (λ p : I × Ω(x), p.2 p.1),--`[FAE]` This needs become a `lemma`
-  exact (continuous_eval'.comp (continuous.prod_map (continuous_coe x) (@continuous_id I _))).comp
-    continuous_swap,
   have hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
-    ((continuous.comp continuous_Q_left continuous_fst).prod_mk continuous_snd)).comp continuous_swap,
-  convert hF₀.comp hQ,--`[FAE]` Perhaps this needs become a `lemma` as well
+    ((continuous.comp continuous_Q_left continuous_fst).prod_mk continuous_snd)).comp
+      continuous_swap,
+  convert continuous_eval.comp hQ,--this is slow
   ext,
   dsimp [delayed_refl_left, prod.swap, homeomorph.prod_assoc, Q_left],
   split_ifs,
@@ -464,13 +465,10 @@ lemma continuous_delayed_refl_right {x : X} :
   continuous (λ p : I × Ω(x), delayed_refl_right p.1 p.2) :=
 begin
   apply continuous_to_Ω_if_continuous_uncurry,
-  have hF₀ : continuous (λ p : I × Ω(x), p.2 p.1),--`[FAE]` This needs become a `lemma`
-  exact (continuous_eval'.comp (continuous.prod_map (continuous_coe x) (@continuous_id I _))).comp
-    continuous_swap,
   have hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
     ((continuous.comp continuous_Q_right continuous_fst).prod_mk continuous_snd)).comp
       continuous_swap,
-  convert hF₀.comp hQ,--`[FAE]` Perhaps this needs become a `lemma` as well
+  convert continuous_eval.comp hQ,----this is slow
   ext,
   dsimp [delayed_refl_right, prod.swap, homeomorph.prod_assoc, Q_right],
   split_ifs,

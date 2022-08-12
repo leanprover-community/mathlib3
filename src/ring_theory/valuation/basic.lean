@@ -225,9 +225,6 @@ v.to_monoid_with_zero_hom.map_inv x
   v (x^n) = (v x)^n :=
 v.to_monoid_with_zero_hom.map_zpow x n
 
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 
@@ -704,9 +701,6 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
 @[simp] lemma map_inv (v : add_valuation K Γ₀) {x : K} :
   v x⁻¹ = - (v x) :=
 v.map_inv
-
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
-v.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.map_neg x

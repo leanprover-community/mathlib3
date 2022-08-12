@@ -358,22 +358,10 @@ end
 end is_field
 
 namespace ring_hom
-section semiring
-variables [semiring α] [division_semiring β]
-
-@[simp] lemma map_units_inv (f : α →+* β) (u : αˣ) : f ↑u⁻¹ = (f ↑u)⁻¹ :=
-(f : α →* β).map_units_inv u
-
-variables [nontrivial α] (f : β →+* α) {a : β}
-
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := f.to_monoid_with_zero_hom.map_eq_zero
-lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
-
-end semiring
 
 protected lemma injective [division_ring α] [semiring β] [nontrivial β] (f : α →+* β) :
   injective f :=
-(injective_iff_map_eq_zero f).2 $ λ x, f.map_eq_zero.1
+(injective_iff_map_eq_zero f).2 $ λ x, (map_eq_zero f).1
 
 end ring_hom
 

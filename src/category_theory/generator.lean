@@ -278,7 +278,7 @@ begin
     haveI : mono t := (is_coseparating_iff_mono 𝒢).1 h𝒢 A,
     exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
   { generalize : default = g,
-    suffices : split_epi (equalizer.ι f g),
+    suffices : is_split_epi (equalizer.ι f g),
     { exactI eq_of_epi_equalizer },
     exact ⟨subobject.of_le_mk _ (equalizer.ι f g ≫ subobject.arrow _) bot_le, by { ext, simp }⟩ }
 end

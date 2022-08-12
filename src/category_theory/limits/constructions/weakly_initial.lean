@@ -56,7 +56,7 @@ begin
     { rw [category.assoc, category.assoc],
       apply wide_equalizer.condition (id : endos → endos) (h ≫ e ≫ i) },
     rw [category.comp_id, cancel_mono_id i] at this,
-    haveI : split_epi e := ⟨i ≫ h, this⟩,
+    haveI : is_split_epi e := ⟨i ≫ h, this⟩,
     rw ←cancel_epi e,
     apply equalizer.condition },
   exactI has_initial_of_unique (wide_equalizer (id : endos → endos)),

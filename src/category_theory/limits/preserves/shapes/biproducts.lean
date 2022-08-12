@@ -216,13 +216,13 @@ variables [preserves_zero_morphisms F]
   biproduct_comparison' F f ≫ biproduct_comparison F f = 𝟙 (⨁ (F.obj ∘ f)) :=
 by { classical, ext, simp [biproduct.ι_π, ← functor.map_comp, eq_to_hom_map] }
 
-instance : split_epi (biproduct_comparison F f) :=
+instance : is_split_epi (biproduct_comparison F f) :=
 ⟨biproduct_comparison' F f⟩
 
 @[simp] lemma section_biproduct_comparison :
   section_ (biproduct_comparison F f) = biproduct_comparison' F f := rfl
 
-instance : split_mono (biproduct_comparison' F f) :=
+instance : is_split_mono (biproduct_comparison' F f) :=
 ⟨biproduct_comparison F f⟩
 
 @[simp] lemma retraction_biproduct_comparison' :
@@ -290,13 +290,13 @@ variables [preserves_zero_morphisms F]
   biprod_comparison' F X Y ≫ biprod_comparison F X Y = 𝟙 (F.obj X ⊞ F.obj Y) :=
 by { ext; simp [← functor.map_comp] }
 
-instance : split_epi (biprod_comparison F X Y) :=
+instance : is_split_epi (biprod_comparison F X Y) :=
 ⟨biprod_comparison' F X Y⟩
 
 @[simp] lemma section_biprod_comparison :
   section_ (biprod_comparison F X Y) = biprod_comparison' F X Y := rfl
 
-instance : split_mono (biprod_comparison' F X Y) :=
+instance : is_split_mono (biprod_comparison' F X Y) :=
 ⟨biprod_comparison F X Y⟩
 
 @[simp] lemma retraction_biprod_comparison' :

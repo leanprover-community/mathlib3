@@ -183,6 +183,9 @@ by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 @[is_R_or_C_simps] lemma smul_im : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
 λ r z, by { rw algebra.smul_def, apply of_real_mul_im }
 
+@[simp, is_R_or_C_simps] lemma norm_real (r : ℝ) : ∥(r : K)∥ = ∥r∥ :=
+by rw [is_R_or_C.of_real_alg, norm_smul, norm_one, mul_one]
+
 /-! ### The imaginary unit, `I` -/
 
 /-- The imaginary unit. -/
@@ -263,9 +266,6 @@ def norm_sq : K →*₀ ℝ :=
 
 lemma norm_sq_eq_def {z : K} : ∥z∥^2 = (re z) * (re z) + (im z) * (im z) := norm_sq_eq_def_ax z
 lemma norm_sq_eq_def' (z : K) : norm_sq z = ∥z∥^2 := by { rw norm_sq_eq_def, refl }
-
-@[simp, is_R_or_C_simps] lemma norm_sq_of_real (r : ℝ) : ∥(r : K)∥^2 = r * r :=
-by simp only [norm_sq_eq_def, add_zero, mul_zero] with is_R_or_C_simps
 
 @[is_R_or_C_simps] lemma norm_sq_zero : norm_sq (0 : K) = 0 := norm_sq.map_zero
 @[is_R_or_C_simps] lemma norm_sq_one : norm_sq (1 : K) = 1 := norm_sq.map_one

@@ -311,6 +311,9 @@ begin
          ←angle_eq_iff_two_pi_dvd_sub, eq_comm] using h,
 end
 
+@[simp] lemma to_real_inj {θ ψ : angle} : θ.to_real = ψ.to_real ↔ θ = ψ :=
+to_real_injective.eq_iff
+
 @[simp] lemma coe_to_real (θ : angle): (θ.to_real : angle) = θ :=
 begin
   induction θ using real.angle.induction_on,
@@ -356,7 +359,7 @@ end
 @[simp] lemma to_real_eq_zero_iff {θ : angle} : θ.to_real = 0 ↔ θ = 0 :=
 begin
   nth_rewrite 0 ←to_real_zero,
-  exact to_real_injective.eq_iff
+  exact to_real_inj
 end
 
 @[simp] lemma to_real_pi : (π : angle).to_real = π :=
@@ -368,7 +371,7 @@ end
 @[simp] lemma to_real_eq_pi_iff {θ : angle} : θ.to_real = π ↔ θ = π :=
 begin
   nth_rewrite 0 ←to_real_pi,
-  exact to_real_injective.eq_iff
+  exact to_real_inj
 end
 
 lemma abs_to_real_coe_eq_self_iff {θ : ℝ} : |(θ : angle).to_real| = θ ↔ 0 ≤ θ ∧ θ ≤ π :=

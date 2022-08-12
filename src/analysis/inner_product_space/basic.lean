@@ -2133,6 +2133,7 @@ lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λ t, ⟪f t, g t⟫) s :=
 λ x hx, (hf x hx).inner (hg x hx)
 
+@[continuity]
 lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
 

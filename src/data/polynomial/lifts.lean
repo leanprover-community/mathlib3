@@ -209,6 +209,16 @@ begin
   { rw [degree_add_eq_right_of_degree_lt hdeg, degree_X_pow, degree_eq_nat_degree hp.ne_zero] }
 end
 
+lemma lifts_and_nat_degree_eq_and_monic {p : S[X]} (hlifts : p ∈ lifts f)
+  (hp : p.monic) : ∃ (q : R[X]), map f q = p ∧ q.nat_degree = p.nat_degree ∧ q.monic :=
+begin
+  casesI subsingleton_or_nontrivial S with hR hR,
+  { obtain (rfl : p = 1) := subsingleton.elim _ _,
+    refine ⟨1, subsingleton.elim _ _, by simp, by simp⟩ },
+  obtain ⟨p', h₁, h₂, h₃⟩ := lifts_and_degree_eq_and_monic hlifts hp,
+  exact ⟨p', h₁, nat_degree_eq_of_degree_eq h₂, h₃⟩
+end
+
 end monic
 
 end semiring

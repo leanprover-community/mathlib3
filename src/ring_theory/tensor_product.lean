@@ -445,6 +445,12 @@ def include_right : B →ₐ[R] A ⊗[R] B :=
 @[simp]
 lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
 
+lemma include_left_comp_algebra_map {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+    (include_left.to_ring_hom.comp (algebra_map R S) : R →+* S ⊗[R] T) =
+      include_right.to_ring_hom.comp (algebra_map R T) :=
+by { ext, simp }
+
 end semiring
 
 section ring

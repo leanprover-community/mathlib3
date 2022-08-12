@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebra.category.Module.basic
-import algebra.category.Algebra.basic
 import ring_theory.tensor_product
 
 /-!

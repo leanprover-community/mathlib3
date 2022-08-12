@@ -136,7 +136,7 @@ lemma coe_J (g : ℤ[X]) (p : ℕ) :
     ∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
       (∑ k in finset.range g.nat_degree.succ,
         (g.coeff k : ℝ) * (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) (k:ℝ))) =
-    ℤembℝ (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
+    int.cast_ring_hom ℝ (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
             (∑ k in finset.range g.nat_degree.succ,
               (g.coeff k) * (polynomial.eval (k:ℤ) (deriv_n (f_p p g.nat_degree) j)))) :=
 begin
@@ -147,7 +147,7 @@ end
 
 theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0)
               (p : ℕ) (hp : nat.prime p) :
-  (J g p) =  - ℤembℝ (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
+  (J g p) =  - int.cast_ring_hom ℝ (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
             (∑ k in finset.range g.nat_degree.succ,
               (g.coeff k) * (polynomial.eval (k:ℤ) (deriv_n (f_p p g.nat_degree) j)))) :=
 begin
@@ -444,7 +444,7 @@ lemma finset.union_singleton {α : Type*} [decidable_eq α] {s : finset α} {a :
 finset.union_comm _ _
 
 theorem J_eq_final (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p) :
-  ∃ M : ℤ, (J g p) = ℤembℝ ((-(g.coeff 0 * (↑((p - 1).factorial) * (-1) ^ (g.nat_degree * p) * ↑(g.nat_degree.factorial) ^ p))) + (p.factorial:ℤ) * M) :=
+  ∃ M : ℤ, (J g p) = int.cast_ring_hom ℝ ((-(g.coeff 0 * (↑((p - 1).factorial) * (-1) ^ (g.nat_degree * p) * ↑(g.nat_degree.factorial) ^ p))) + (p.factorial:ℤ) * M) :=
 begin
   have : p ≤ (f_p p g.nat_degree).nat_degree.succ,
   { rw deg_f_p _ hp,
@@ -459,7 +459,7 @@ begin
     neg_mul_eq_mul_neg ↑(p.factorial)],
 end
 
-private lemma coe_abs_ineq (z1 z2 : ℤ) : z1 ≤ abs z2 -> (z1:ℝ) ≤ abs(ℤembℝ z2) :=
+private lemma coe_abs_ineq (z1 z2 : ℤ) : z1 ≤ abs z2 -> (z1:ℝ) ≤ abs(int.cast_ring_hom ℝ z2) :=
 begin
   simp only [ring_hom.eq_int_cast], norm_cast, exact id,
 end

@@ -133,10 +133,19 @@ theorem II_0 (t : ℝ) (ht : 0 ≤ t) : II 0 t = 0 :=
 begin
     -- We are integrating $\exp(t-x)\times 0$
     rw II, unfold f_eval_on_ℝ,
-    simp only [mul_zero, polynomial.eval_zero, polynomial.map_zero],
+    simp only [mul_zero, polynomial.aeval_zero, polynomial.map_zero],
     rw interval_integral.integral_of_le ht,
     apply measure_theory.integral_zero,
 end
+
+lemma differentiable_aeval (f : ℤ[X]) :
+    differentiable ℝ (λ (x : ℝ), (polynomial.aeval x) (f)) :=
+begin
+      simp only [f_eval_on_ℝ, polynomial.aeval_def, polynomial.eval₂_eq_eval_map],
+      apply polynomial.differentiable,
+
+end
+
 
 /-Theorem
 By integration by part we have:
@@ -164,14 +173,13 @@ begin
         rw interval_integral.integral_of_le ht,
         rw interval_integral.integral_of_le ht,
         apply congr_arg, ext,
-        rw [mul_comm, f_eval_on_ℝ, ←polynomial.derivative_map, ←polynomial.deriv],
-        refl,
+        rw [mul_comm, f_eval_on_ℝ_deriv],
     }, rw eq, ring,
 
-    {apply polynomial.differentiable},
-    {apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
-    rw f_eval_on_ℝ_deriv,
-    apply polynomial.differentiable},
+    { apply differentiable_aeval f },
+    { apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+      rw f_eval_on_ℝ_deriv,
+      apply differentiable_aeval },
 
     apply differentiable.neg,
     change differentiable ℝ (real.exp ∘ (λ (y : ℝ), (t - y))),
@@ -351,6 +359,25 @@ begin
     rw polynomial.coeff_eq_zero_of_nat_degree_lt h, exact rfl,
 end
 
+lemma polynomial.aeval_eq_sum_support {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+    (x : A) (f : R[X]) :
+    polynomial.aeval x f = ∑ i in f.support, (f.coeff i) • x ^ i:=
+begin
+  rw [polynomial.aeval_eq_sum_range],
+  rw eq_comm,
+  apply finset.sum_subset_zero_on_sdiff,
+  { intros y hy,
+    contrapose! hy,
+    simp only [polynomial.mem_support_iff, not_not, ne.def],
+    simp only [not_lt, nat.succ_le_iff, finset.mem_range] at hy,
+    apply polynomial.coeff_eq_zero_of_nat_degree_lt hy },
+  { intros y hy,
+    simp only [polynomial.mem_support_iff, not_not, finset.mem_sdiff, ne.def, finset.mem_range] at hy,
+    rw hy.2,
+    simp only [int.cast_zero, zero_smul, eq_self_iff_true] },
+  { exact λ y hy, rfl },
+end
+
 /-Theorem
 For any $x\in(0,t)$
 $|f(x)|\le \bar{f}(t)$
@@ -360,10 +387,7 @@ begin
     intros x hx,
     -- If we write $f(X)=a_0+a_1X+\cdots+a_nX^n$. Then $f(x)=a_0+a_1x+\cdots+a_nx^n$
     have lhs : f_eval_on_ℝ f x = ∑ i in f.support, (f.coeff i : ℝ) * x ^ i,
-    {
-        rw [f_eval_on_ℝ, polynomial.eval_map, polynomial.eval₂, polynomial.sum],
-        apply congr_arg, ext, norm_cast,
-    },
+    { rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support x f], simp only [zsmul_eq_mul] },
     rw lhs,
     -- So $|f(x)|=|a_0+a_1x+\cdots+a_nx^n|\le |a_0|+|a_1|x+\cdots+|a_n|x^n$. (We assumed $x\ge0$).
     have ineq1 : abs (∑ (i : ℕ) in f.support, (f.coeff i:ℝ) * x ^ i) ≤ ∑ i in f.support, (abs (f.coeff i:ℝ) * (x ^ i)),
@@ -382,7 +406,8 @@ begin
     -- $\bar{f}(t)=|a_0|+|a_1|t+\cdots+|a_n|t^n$
     have rhs : f_eval_on_ℝ (f_bar f) t = ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
     {
-        rw [f_eval_on_ℝ, polynomial.eval_map, polynomial.eval₂, polynomial.sum],
+        rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support],
+        simp only [e_transcendental_lemmas.bar_coeff, finset.sum_congr, zsmul_eq_mul],
         apply congr_arg, ext, norm_cast,
     },
     rw rhs,
@@ -426,7 +451,8 @@ begin
         exact continuous.comp cont20 cont201,
         -- evaluating a polynomial is continuous
         have cont4 : continuous (λ x , f_eval_on_ℝ f x),
-          unfold f_eval_on_ℝ, exact polynomial.continuous (polynomial.map ℤembℝ f),
+        { unfold f_eval_on_ℝ,
+            apply (differentiable_aeval _).continuous },
         -- hence the product is continuous
         exact continuous.mul cont21 cont4,
       },

@@ -33,7 +33,7 @@ existence of a nice sequence of derivatives, expressed with a predicate
 We prove basic properties of these notions.
 
 ## Main definitions and results
-Let `f : E → F` be a map between normed vector spaces over a nondiscrete normed field `𝕜`.
+Let `f : E → F` be a map between normed vector spaces over a nontrivially normed field `𝕜`.
 
 * `has_ftaylor_series_up_to n f p`: expresses that the formal multilinear series `p` is a sequence
   of iterated derivatives of `f`, up to the `n`-th term (where `n` is a natural number or `∞`).
@@ -165,16 +165,16 @@ local notation `∞` := (⊤ : with_top ℕ)
 universes u v w
 
 local attribute [instance, priority 1001]
-normed_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
+normed_add_comm_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
 
 open set fin filter
 open_locale topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_group G] [normed_space 𝕜 G]
-{X : Type*} [normed_group X] [normed_space 𝕜 X]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+{X : Type*} [normed_add_comm_group X] [normed_space 𝕜 X]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G} {m n : with_top ℕ}
 
@@ -1519,6 +1519,16 @@ by simp [cont_diff_on_univ.symm, continuous_iff_continuous_on_univ,
     differentiable_on_univ.symm, iterated_fderiv_within_univ,
     cont_diff_on_iff_continuous_on_differentiable_on unique_diff_on_univ]
 
+/-- If `f` is `C^n` then its `m`-times iterated derivative is continuous for `m ≤ n`. -/
+lemma cont_diff.continuous_iterated_fderiv {m : ℕ} (hm : (m : with_top ℕ) ≤ n)
+  (hf : cont_diff 𝕜 n f) : continuous (λ x, iterated_fderiv 𝕜 m f x) :=
+(cont_diff_iff_continuous_differentiable.mp hf).1 m hm
+
+/-- If `f` is `C^n` then its `m`-times iterated derivative is differentiable for `m < n`. -/
+lemma cont_diff.differentiable_iterated_fderiv {m : ℕ} (hm : (m : with_top ℕ) < n)
+  (hf : cont_diff 𝕜 n f) : differentiable 𝕜 (λ x, iterated_fderiv 𝕜 m f x) :=
+(cont_diff_iff_continuous_differentiable.mp hf).2 m hm
+
 lemma cont_diff_of_differentiable_iterated_fderiv
   (h : ∀(m : ℕ), (m : with_top ℕ) ≤ n → differentiable 𝕜 (iterated_fderiv 𝕜 m f)) :
   cont_diff 𝕜 n f :=
@@ -1568,7 +1578,7 @@ end
 
 /-! ### Constants -/
 
-lemma iterated_fderiv_within_zero_fun {n : ℕ} :
+@[simp] lemma iterated_fderiv_zero_fun {n : ℕ} :
   iterated_fderiv 𝕜 n (λ x : E, (0 : F)) = 0 :=
 begin
   induction n with n IH,
@@ -1584,7 +1594,7 @@ lemma cont_diff_zero_fun :
   cont_diff 𝕜 n (λ x : E, (0 : F)) :=
 begin
   apply cont_diff_of_differentiable_iterated_fderiv (λm hm, _),
-  rw iterated_fderiv_within_zero_fun,
+  rw iterated_fderiv_zero_fun,
   apply differentiable_const (0 : (E [×m]→L[𝕜] F))
 end
 
@@ -1936,9 +1946,9 @@ which we have already proved previously.
 spaces live in the same universe. Use instead `cont_diff_on.comp` which removes the universe
 assumption (but is deduced from this one). -/
 private lemma cont_diff_on.comp_same_univ
-  {Eu : Type u} [normed_group Eu] [normed_space 𝕜 Eu]
-  {Fu : Type u} [normed_group Fu] [normed_space 𝕜 Fu]
-  {Gu : Type u} [normed_group Gu] [normed_space 𝕜 Gu]
+  {Eu : Type u} [normed_add_comm_group Eu] [normed_space 𝕜 Eu]
+  {Fu : Type u} [normed_add_comm_group Fu] [normed_space 𝕜 Fu]
+  {Gu : Type u} [normed_add_comm_group Gu] [normed_space 𝕜 Gu]
   {s : set Eu} {t : set Fu} {g : Fu → Gu} {f : Eu → Fu}
   (hg : cont_diff_on 𝕜 n g t) (hf : cont_diff_on 𝕜 n f s) (st : s ⊆ f ⁻¹' t) :
   cont_diff_on 𝕜 n (g ∘ f) s :=
@@ -1994,13 +2004,13 @@ begin
   continuous linear equiv to `continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) H`, and
   continuous linear equivs respect smoothness classes. -/
   let Eu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) E,
-  letI : normed_group Eu := by apply_instance,
+  letI : normed_add_comm_group Eu := by apply_instance,
   letI : normed_space 𝕜 Eu := by apply_instance,
   let Fu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) F,
-  letI : normed_group Fu := by apply_instance,
+  letI : normed_add_comm_group Fu := by apply_instance,
   letI : normed_space 𝕜 Fu := by apply_instance,
   let Gu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) G,
-  letI : normed_group Gu := by apply_instance,
+  letI : normed_add_comm_group Gu := by apply_instance,
   letI : normed_space 𝕜 Gu := by apply_instance,
   -- declare the isomorphisms
   let isoE : Eu ≃L[𝕜] E := continuous_multilinear_curry_fin0 𝕜 (E × F × G) E,
@@ -2204,8 +2214,9 @@ cont_diff_snd.cont_diff_within_at
 section n_ary
 
 variables {E₁ E₂ E₃ E₄ : Type*}
-variables [normed_group E₁] [normed_group E₂] [normed_group E₃] [normed_group E₄]
-variables [normed_space 𝕜 E₁] [normed_space 𝕜 E₂] [normed_space 𝕜 E₃] [normed_space 𝕜 E₄]
+variables [normed_add_comm_group E₁] [normed_add_comm_group E₂] [normed_add_comm_group E₃]
+  [normed_add_comm_group E₄] [normed_space 𝕜 E₁] [normed_space 𝕜 E₂] [normed_space 𝕜 E₃]
+  [normed_space 𝕜 E₄]
 
 lemma cont_diff.comp₂ {g : E₁ × E₂ → G} {f₁ : F → E₁} {f₂ : F → E₂}
   (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff 𝕜 n f₁) (hf₂ : cont_diff 𝕜 n f₂) :
@@ -2287,8 +2298,8 @@ end
 
 section pi
 
-variables {ι ι' : Type*} [fintype ι] [fintype ι'] {F' : ι → Type*} [Π i, normed_group (F' i)]
-  [Π i, normed_space 𝕜 (F' i)] {φ : Π i, E → F' i}
+variables {ι ι' : Type*} [fintype ι] [fintype ι'] {F' : ι → Type*}
+  [Π i, normed_add_comm_group (F' i)] [Π i, normed_space 𝕜 (F' i)] {φ : Π i, E → F' i}
   {p' : Π i, E → formal_multilinear_series 𝕜 E (F' i)}
   {Φ : E → Π i, F' i} {P' : E → formal_multilinear_series 𝕜 E (Π i, F' i)}
 
@@ -2603,11 +2614,46 @@ lemma cont_diff_on.smul {s : set E} {f : E → 𝕜} {g : E → F}
   cont_diff_on 𝕜 n (λ x, f x • g x) s :=
 λ x hx, (hf x hx).smul (hg x hx)
 
+/-! ### Constant scalar multiplication -/
+
+section const_smul
+
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+variables [has_continuous_const_smul R F]
+
+/- The scalar multiplication with a constant is smooth. -/
+lemma cont_diff_const_smul (c : R) : cont_diff 𝕜 n (λ p : F, c • p) :=
+(c • continuous_linear_map.id 𝕜 F).cont_diff
+
+/-- The scalar multiplication of a constant and a `C^n` function within a set at a point is `C^n`
+within this set at this point. -/
+lemma cont_diff_within_at.const_smul {s : set E} {f : E → F} {x : E} (c : R)
+  (hf : cont_diff_within_at 𝕜 n f s x) : cont_diff_within_at 𝕜 n (λ y, c • f y) s x :=
+(cont_diff_const_smul c).cont_diff_at.comp_cont_diff_within_at x hf
+
+/-- The scalar multiplication of a constant and a `C^n` function at a point is `C^n` at this
+point. -/
+lemma cont_diff_at.const_smul {f : E → F} {x : E} (c : R)
+  (hf : cont_diff_at 𝕜 n f x) : cont_diff_at 𝕜 n (λ y, c • f y) x :=
+by rw [←cont_diff_within_at_univ] at *; exact hf.const_smul c
+
+/-- The scalar multiplication of a constant and a `C^n` function is `C^n`. -/
+lemma cont_diff.const_smul {f : E → F} (c : R)
+  (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ y, c • f y) :=
+(cont_diff_const_smul c).comp hf
+
+/-- The scalar multiplication of a constant and a `C^n` on a domain is `C^n`. -/
+lemma cont_diff_on.const_smul {s : set E} {f : E → F} (c : R)
+  (hf : cont_diff_on 𝕜 n f s) : cont_diff_on 𝕜 n (λ y, c • f y) s :=
+λ x hx, (hf x hx).const_smul c
+
+end const_smul
+
 /-! ### Cartesian product of two functions -/
 
 section prod_map
-variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-variables {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+variables {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
 
 /-- The product map of two `C^n` functions within a set at a point is `C^n`
 within the product set at the product point. -/
@@ -2625,8 +2671,8 @@ lemma cont_diff_within_at.prod_map
 cont_diff_within_at.prod_map' hf hg
 
 /-- The product map of two `C^n` functions on a set is `C^n` on the product set. -/
-lemma cont_diff_on.prod_map {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-  {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+lemma cont_diff_on.prod_map {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
   {s : set E} {t : set E'} {f : E → F} {g : E' → F'}
   (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g t) :
   cont_diff_on 𝕜 n (prod.map f g) (s ×ˢ t) :=
@@ -2877,7 +2923,7 @@ theorem homeomorph.cont_diff_symm [complete_space E] (f : E ≃ₜ F) {f₀' : E
 cont_diff_iff_cont_diff_at.2 $ λ x,
   f.to_local_homeomorph.cont_diff_at_symm (mem_univ x) (hf₀' _) hf.cont_diff_at
 
-/-- Let `f` be a local homeomorphism of a nondiscrete normed field, let `a` be a point in its
+/-- Let `f` be a local homeomorphism of a nontrivially normed field, let `a` be a point in its
 target. if `f` is `n` times continuously differentiable at `f.symm a`, and if the derivative at
 `f.symm a` is nonzero, then `f.symm` is `n` times continuously differentiable at the point `a`.
 
@@ -2889,9 +2935,9 @@ theorem local_homeomorph.cont_diff_at_symm_deriv [complete_space 𝕜]
   cont_diff_at 𝕜 n f.symm a :=
 f.cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
 
-/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nondiscrete normed field.
-Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times continuously
-differentiable.
+/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nontrivially normed
+field.  Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times
+continuously differentiable.
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
@@ -2965,8 +3011,8 @@ section real
 
 variables
 {𝕂 : Type*} [is_R_or_C 𝕂]
-{E' : Type*} [normed_group E'] [normed_space 𝕂 E']
-{F' : Type*} [normed_group F'] [normed_space 𝕂 F']
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕂 E']
+{F' : Type*} [normed_add_comm_group F'] [normed_space 𝕂 F']
 
 /-- If a function has a Taylor series at order at least 1, then at points in the interior of the
     domain of definition, the term of order 1 of this series is a strict derivative of `f`. -/
@@ -3027,8 +3073,8 @@ hf.cont_diff_at.has_strict_deriv_at hn
 /-- If `f` has a formal Taylor series `p` up to order `1` on `{x} ∪ s`, where `s` is a convex set,
 and `∥p x 1∥₊ < K`, then `f` is `K`-Lipschitz in a neighborhood of `x` within `s`. -/
 lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with_of_nnnorm_lt {E F : Type*}
-  [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
-  {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
+  [normed_add_comm_group E] [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F]
+  {f : E → F} {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) (K : ℝ≥0)
   (hK : ∥p x 1∥₊ < K) :
   ∃ t ∈ 𝓝[s] x, lipschitz_on_with K f t :=
@@ -3046,8 +3092,8 @@ end
 
 /-- If `f` has a formal Taylor series `p` up to order `1` on `{x} ∪ s`, where `s` is a convex set,
 then `f` is Lipschitz in a neighborhood of `x` within `s`. -/
-lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
-  [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
+lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [normed_add_comm_group E]
+  [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) :
   ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
@@ -3055,8 +3101,8 @@ lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
 
 /-- If `f` is `C^1` within a conves set `s` at `x`, then it is Lipschitz on a neighborhood of `x`
 within `s`. -/
-lemma cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [normed_group E]
-  [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F} {s : set E}
+lemma cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [normed_add_comm_group E]
+  [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F] {f : E → F} {s : set E}
   {x : E} (hf : cont_diff_within_at ℝ 1 f s x) (hs : convex ℝ s) :
   ∃ (K : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
 begin
@@ -3233,7 +3279,7 @@ situation where `ℂ` and `ℝ` are replaced respectively by `𝕜'` and `𝕜` 
 over `𝕜`.
 -/
 
-variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {p' : E → formal_multilinear_series 𝕜' E F}

@@ -58,7 +58,7 @@ M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
 
 -/
 
-variables (X : Type*) [normed_group X]
+variables (X : Type*) [normed_add_comm_group X]
 variables {M : Type} [ring M] [module M X]
 /--
 A projection on a normed space `X` is said to be an L-projection if, for all `x` in `X`,

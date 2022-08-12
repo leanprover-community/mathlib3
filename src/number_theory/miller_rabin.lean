@@ -341,6 +341,24 @@ begin
   simp only [odd_part, mul_ord_compl n m 2],
 end
 
+/-! ## Lemmas about Fermat witnesses and Fermat candidate-primes -/
+
+/-- Fermat's Little Theorem (`zmod.pow_card_sub_one_eq_one`) says that for prime `p` and for all
+nonzero `a : zmod p` we have `a^(p-1) = 1`.  Thus for (odd) `n : ℕ` if we have nonzero `a : zmod n`
+such that `a^(n-1) ≠ 1` then this demonstrates that `n` is not prime.  Such an `a` is called a
+**Fermat witness** for `n`. -/
+def nat.fermat_witness (n : ℕ) (a : zmod n) : Prop := a ^ (n - 1) ≠ 1
+
+/-- `n` is a **Fermat candidate-prime** relative to base `a : zmod n` iff `a` is not a
+Fermat witness for `n`. Note that Conrad calls these "Fermat pseudoprimes", but the word
+"pseudoprime" is standarly reserved for *composite* numbers that pass some primality test. -/
+def fermat_cprime (n : nat) (a : zmod n) : Prop := a ^ (n - 1) = 1
+
+lemma fermat_cprime_iff_nonwitness (n : nat) (a : (zmod n)) :
+  fermat_cprime n a ↔ ¬ n.fermat_witness a :=
+by simp [fermat_cprime, nat.fermat_witness]
+
+
 /-! ## Lemmas about Miller–Rabin witnesses and strong probable primes -/
 
 /-- Letting `k := odd_part (n-1)`, if there is an `0 < a < n` such that `(a^k - 1) ≠ 0 (mod n)` and
@@ -368,6 +386,33 @@ lemma strong_probable_prime_iff_nonwitness (n : nat) (a : (zmod n)) :
 by simp [nat.miller_rabin_witness, strong_probable_prime, not_and_distrib]
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
+
+/-- If `a : zmod n` is a Fermat witness for `n` then it is also a Miller-Rabin witness for `n`. -/
+lemma nat.miller_rabin_witness_of_fermat_witness (n : ℕ) (a : zmod n) (h : n.fermat_witness a) :
+  n.miller_rabin_witness a :=
+begin
+  simp only [nat.miller_rabin_witness, nat.fermat_witness] at *,
+  refine ⟨_, _⟩,
+  { contrapose! h, rw [←even_part_mul_odd_part (n-1), mul_comm, pow_mul, h, one_pow] },
+  { rintros i hi,
+    rw mem_range at hi,
+    rcases exists_pos_add_of_lt hi with ⟨j, hj0, hj⟩,
+    contrapose! h,
+    rw [←even_part_mul_odd_part (n-1)],
+    rw [mul_comm, pow_mul] at *,
+    rw [even_part, ←hj, pow_add, pow_mul, h],
+    exact even.neg_one_pow ((nat.even_two_pow_iff j).2 hj0) },
+end
+
+/-- If there is a base `a : zmod n` relative to which `n` is a strong probable prime
+then `n` is a Fermat candidate-prime relative to base `a`. -/
+lemma fermat_cprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
+  (h : strong_probable_prime n a) : fermat_cprime n a :=
+begin
+  have := mt (nat.miller_rabin_witness_of_fermat_witness n a),
+  rw [←fermat_cprime_iff_nonwitness, ←strong_probable_prime_iff_nonwitness] at this,
+  exact this h,
+end
 
 
 -- A proof of `strong_probable_prime_of_prime` using the factorisation of the
@@ -515,49 +560,6 @@ begin
   apply repeated_halving_of_exponent (zmod.pow_card_sub_one_eq_one ha),
 end
 
-/-! ## Lemmas about Fermat witnesses and Fermat candidate-primes -/
-
-/-- Fermat's Little Theorem (`zmod.pow_card_sub_one_eq_one`) says that for prime `p` and for all
-nonzero `a : zmod p` we have `a^(p-1) = 1`.  Thus for (odd) `n : ℕ` if we have nonzero `a : zmod n`
-such that `a^(n-1) ≠ 1` then this demonstrates that `n` is not prime.  Such an `a` is called a
-**Fermat witness** for `n`. -/
-def nat.fermat_witness (n : ℕ) (a : zmod n) : Prop := a ^ (n - 1) ≠ 1
-
-/-- `n` is a **Fermat candidate-prime** relative to base `a : zmod n` iff `a` is not a
-Fermat witness for `n`. Note that Conrad calls these "Fermat pseudoprimes", but the word
-"pseudoprime" is standarly reserved for *composite* numbers that pass some primality test. -/
-def fermat_cprime (n : nat) (a : zmod n) : Prop := a ^ (n - 1) = 1
-
-lemma fermat_cprime_iff_nonwitness (n : nat) (a : (zmod n)) :
-  fermat_cprime n a ↔ ¬ n.fermat_witness a :=
-by simp [fermat_cprime, nat.fermat_witness]
-
-/-- If `a : zmod n` is a Fermat witness for `n` then it is also a Miller-Rabin witness for `n`. -/
-lemma nat.miller_rabin_witness_of_fermat_witness (n : ℕ) (a : zmod n) (h : n.fermat_witness a) :
-  n.miller_rabin_witness a :=
-begin
-  simp only [nat.miller_rabin_witness, nat.fermat_witness] at *,
-  refine ⟨_, _⟩,
-  { contrapose! h, rw [←even_part_mul_odd_part (n-1), mul_comm, pow_mul, h, one_pow] },
-  { rintros i hi,
-    rw mem_range at hi,
-    rcases exists_pos_add_of_lt hi with ⟨j, hj0, hj⟩,
-    contrapose! h,
-    rw [←even_part_mul_odd_part (n-1)],
-    rw [mul_comm, pow_mul] at *,
-    rw [even_part, ←hj, pow_add, pow_mul, h],
-    exact even.neg_one_pow ((nat.even_two_pow_iff j).2 hj0) },
-end
-
-/-- If there is a base `a : zmod n` relative to which `n` is a strong probable prime
-then `n` is a Fermat candidate-prime relative to base `a`. -/
-lemma fermat_cprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
-  (h : strong_probable_prime n a) : fermat_cprime n a :=
-begin
-  have := mt (nat.miller_rabin_witness_of_fermat_witness n a),
-  rw [←fermat_cprime_iff_nonwitness, ←strong_probable_prime_iff_nonwitness] at this,
-  exact this h,
-end
 
 
 --------------------------------------------------------------------------------------------------

@@ -16,12 +16,6 @@ of a martingale provided it satisfies some boundedness conditions. This file con
 almost everywhere martingale convergence theorem which provides an almost everywhere limit to
 an L¹ bounded submartingale.
 
-## Main definitions
-
-* `measure_theory.limit_process`: given a process `f` and a filtration `ℱ`, the limit process of
-  `f` is the almost everywhere limit of `f` if it exists and is measurable with respect to
-  `⨆ n, ℱ n`, and is 0 otherwise.
-
 ## Main results
 
 * `measure_theory.submartingale.ae_tendsto_limit_process`: the almost everywhere martingale

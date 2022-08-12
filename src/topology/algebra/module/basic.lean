@@ -607,6 +607,13 @@ by rw [← coe_id, coe_inj]
 
 @[simp] lemma one_apply (x : M₁) : (1 : M₁ →L[R₁] M₁) x = x := rfl
 
+instance [nontrivial M₁] : nontrivial (M₁ →L[R₁] M₁) :=
+begin
+  obtain ⟨x, y, h⟩ := exists_pair_ne M₁,
+  exact nontrivial_iff.mpr
+    ⟨1, 0, λ heq, h (by rw [←one_apply x, ←one_apply y, heq, zero_apply, zero_apply])⟩
+end
+
 section add
 variables [has_continuous_add M₂]
 

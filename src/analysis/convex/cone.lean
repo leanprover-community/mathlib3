@@ -762,7 +762,8 @@ begin
   rw f₀ at mem₀,
 
   -- as 0 ∈ closure f (0, ∞) and closure f (0, ∞) ⊆ K, 0 ∈ K.
-  exact K.coe_mem.1 (set.mem_of_subset_of_mem clf mem₀),
+  rw [convex_cone.pointed, ← set_like.mem_coe],
+  exact set.mem_of_subset_of_mem clf mem₀,
 end
 
 section complete_space
@@ -813,7 +814,7 @@ theorem inner_dual_cone_of_inner_dual_cone_eq_self
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
   ((K : set H).inner_dual_cone : set H).inner_dual_cone = K := convex_cone.ext $ λ x, iff.intro
 begin
-  rw [mem_inner_dual_cone, ← set_like.coe_mem],
+  rw [mem_inner_dual_cone, ← set_like.mem_coe],
   contrapose!,
   rintro hx,
   exact hyperplane_separation_point_nonempty_closed_convex_cone ne hc hx,

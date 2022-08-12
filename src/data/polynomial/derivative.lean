@@ -257,6 +257,10 @@ begin
   { simp only [ih, function.iterate_succ, polynomial.derivative_map, function.comp_app], },
 end
 
+lemma derivative_nat_cast_mul {n : ℕ} {f : R[X]} :
+  (↑n * f).derivative = n * f.derivative :=
+by simp
+
 @[simp] lemma iterate_derivative_nat_cast_mul {n k : ℕ} {f : R[X]} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
 by induction k with k ih generalizing f; simp*
@@ -386,6 +390,49 @@ theorem derivative_pow (p : R[X]) (n : ℕ) :
 nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_mul]) $ λ n,
 by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
 
+theorem dvd_iterate_derivative_pow (f : R[X]) (n m : ℕ) (c : R) (hm : 0 < m) :
+  (n:R) ∣ eval c (derivative^[m] (f^n)) :=
+begin
+  obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm.ne',
+  rw [function.iterate_succ_apply, derivative_pow, mul_assoc, iterate_derivative_nat_cast_mul,
+    eval_mul, eval_nat_cast],
+  exact dvd_mul_right _ _,
+end
+
+lemma iterate_derivative_X_pow_eq_nat_cast_mul (n k : ℕ) :
+  (derivative^[k] (X^n : R[X])) = ↑(∏ i in finset.range k, (n - i)) * X ^ (n - k) :=
+begin
+  induction k with k ih,
+  { rw [function.iterate_zero_apply, finset.range_zero, finset.prod_empty, nat.cast_one, one_mul,
+      nat.sub_zero] },
+  { rw [function.iterate_succ_apply', ih, derivative_nat_cast_mul, derivative_X_pow,
+      nat.succ_eq_add_one, finset.prod_range_succ, nat.sub_sub, nat.cast_mul, mul_assoc] },
+end
+
+lemma iterate_derivative_X_pow_eq_C_mul (n k : ℕ) :
+  (derivative^[k] (X^n : R[X])) = C ↑(∏ i in finset.range k, (n - i)) * X ^ (n - k) :=
+by rw [iterate_derivative_X_pow_eq_nat_cast_mul n k, C_eq_nat_cast]
+
+lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) :
+  (derivative^[k] (X^n : R[X])) = (↑∏ i in finset.range k, (n - i) : R) • X ^ (n - k) :=
+by rw [iterate_derivative_X_pow_eq_C_mul n k, smul_eq_C_mul]
+
+lemma derivative_X_add_pow (c:R) (m:ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=
+by rw [derivative_pow, derivative_add, derivative_X, derivative_C, add_zero, mul_one]
+
+lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) :
+  (derivative^[k] ((X + C c) ^ n)) =
+  ↑(∏ i in finset.range k, (n - i)) * (X + C c) ^ (n - k) :=
+begin
+  induction k with k IH,
+  { rw [function.iterate_zero_apply, finset.range_zero, finset.prod_empty, nat.cast_one, one_mul,
+      tsub_zero] },
+  { simp only [function.iterate_succ_apply', IH, derivative_mul, zero_mul,
+      derivative_nat_cast, zero_add, finset.prod_range_succ, C_eq_nat_cast, nat.sub_sub, ←mul_assoc,
+      derivative_X_add_pow, nat.succ_eq_add_one,
+      nat.cast_mul] },
+end
+
 lemma derivative_comp (p q : R[X]) :
   (p.comp q).derivative = q.derivative * p.derivative.comp q :=
 begin
@@ -473,6 +520,14 @@ begin
   nth_rewrite 0 [← multiset.cons_erase hr],
   simpa using (eval_ring_hom r).map_multiset_prod (multiset.map (λ a, X - C a) (S.erase r)),
 end
+
+lemma derivative_X_sub_pow (c:R) (m:ℕ) : ((X - C c) ^ m).derivative = m * (X - C c) ^ (m - 1) :=
+by rw [derivative_pow, derivative_sub, derivative_X, derivative_C, sub_zero, mul_one]
+
+lemma iterate_derivative_X_sub_pow (n k : ℕ) (c : R) (hk : k ≤ n) :
+  (derivative^[k] ((X - C c) ^ n)) =
+  (↑(∏ i in finset.range k, (n - i))) * (X - C c) ^ (n - k) :=
+by simp_rw [sub_eq_add_neg, ←C_neg, iterate_derivative_X_add_pow]
 
 end comm_ring
 

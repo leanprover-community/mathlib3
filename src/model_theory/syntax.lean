@@ -864,7 +864,7 @@ def nonempty_theory : L.Theory := {sentence.card_ge L 1}
 
 /-- A theory indicating that each of a set of constants is distinct. -/
 def distinct_constants_theory (s : set α) : L[[α]].Theory :=
-(λ ab : α × α, (((L.con ab.1).term.equal (L.con ab.2).term).not)) '' ((s ×ˢ s) ∩ (set.diagonal α)ᶜ)
+(λ ab : α × α, (((L.con ab.1).term.equal (L.con ab.2).term).not)) '' (s ×ˢ s ∩ (set.diagonal α)ᶜ)
 
 variables {L} {α}
 

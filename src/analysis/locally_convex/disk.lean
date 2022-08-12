@@ -151,7 +151,7 @@ end
 variables (𝕜 E)
 
 variables [topological_space E] [locally_convex_space ℝ E] [has_continuous_smul 𝕜 E]
-variables [has_continuous_smul ℝ E]
+variables [has_continuous_smul ℝ E] [topological_add_group E]
 
 lemma nhds_basis_abs_convex : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ balanced 𝕜 s ∧ convex ℝ s) id :=
@@ -164,27 +164,47 @@ begin
   exact convex_convex_hull ℝ (balanced_core 𝕜 s),
 end
 
-def abs_convex_nhds_sets :=
-{ s // s ∈ 𝓝 (0 : E) ∧ balanced 𝕜 s ∧ convex ℝ s }
+lemma nhds_basis_abs_convex_open : (𝓝 (0 : E)).has_basis
+  (λ (s : set E), (0 : E) ∈ s ∧ is_open s ∧ balanced 𝕜 s ∧ convex ℝ s) id :=
+begin
+  refine (nhds_basis_abs_convex 𝕜 E).to_has_basis _ _,
+  {
+    rintros s ⟨hs_nhds, hs_balanced, hs_convex⟩,
+    use interior s,
+    refine ⟨_, interior_subset⟩,
+    refine ⟨mem_interior_iff_mem_nhds.mpr hs_nhds, is_open_interior, _, hs_convex.interior⟩,
+    {
+      sorry,
+    },
+  },
+  rintros s ⟨hs_zero, hs_open, hs_balanced, hs_convex⟩,
+  exact ⟨s, ⟨hs_open.mem_nhds hs_zero, hs_balanced, hs_convex⟩, rfl.subset⟩,
+end
 
-instance : has_coe (abs_convex_nhds_sets 𝕜 E) (set E) := ⟨subtype.val⟩
+def abs_convex_open_sets :=
+{ s : set E // (0 : E) ∈ s ∧ is_open s ∧ balanced 𝕜 s ∧ convex ℝ s }
 
-namespace abs_convex_nhds_sets
+instance abs_convex_open_sets.has_coe : has_coe (abs_convex_open_sets 𝕜 E) (set E) := ⟨subtype.val⟩
+
+namespace abs_convex_open_sets
 
 variables {𝕜 E}
 
-lemma coe_nhds (s : abs_convex_nhds_sets 𝕜 E) : ↑s ∈ 𝓝 (0 : E) := s.2.1
-lemma coe_balanced (s : abs_convex_nhds_sets 𝕜 E) : balanced 𝕜 (s : set E) := s.2.2.1
-lemma coe_convex (s : abs_convex_nhds_sets 𝕜 E) : convex ℝ (s : set E) := s.2.2.2
+lemma coe_zero_mem (s : abs_convex_open_sets 𝕜 E) : (0 : E) ∈ (s : set E) := s.2.1
+lemma coe_is_open (s : abs_convex_open_sets 𝕜 E) : is_open (s : set E) := s.2.2.1
+lemma coe_nhds (s : abs_convex_open_sets 𝕜 E) : (s : set E) ∈ 𝓝 (0 : E) :=
+s.coe_is_open.mem_nhds s.coe_zero_mem
+lemma coe_balanced (s : abs_convex_open_sets 𝕜 E) : balanced 𝕜 (s : set E) := s.2.2.2.1
+lemma coe_convex (s : abs_convex_open_sets 𝕜 E) : convex ℝ (s : set E) := s.2.2.2.2
 
-end abs_convex_nhds_sets
+end abs_convex_open_sets
 
-instance : nonempty (abs_convex_nhds_sets 𝕜 E) :=
+instance : nonempty (abs_convex_open_sets 𝕜 E) :=
 begin
   rw ←exists_true_iff_nonempty,
-  dunfold abs_convex_nhds_sets,
+  dunfold abs_convex_open_sets,
   rw subtype.exists,
-  exact ⟨set.univ, ⟨filter.univ_mem, balanced_univ, convex_univ⟩, trivial⟩,
+  exact ⟨set.univ, ⟨mem_univ 0, is_open_univ, balanced_univ, convex_univ⟩, trivial⟩,
 end
 
 end nontrivially_normed_field
@@ -194,72 +214,55 @@ variables [add_comm_group E] [topological_space E] [topological_add_group E]
 variables [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [has_continuous_smul 𝕜 E]
 variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E] [has_continuous_smul ℝ E]
 
+namespace abs_convex_open_sets
+
+lemma Ioi_smul_nonempty (s : abs_convex_open_sets 𝕜 E) (x : E) :
+  {r ∈ Ioi (0 : ℝ) | x ∈ r • (s : set E)}.nonempty :=
+begin
+  have : absorbent 𝕜 (s : set E) := absorbent_nhds_zero s.coe_nhds,
+  rcases this x with ⟨r, hr, h⟩,
+  have hr' : r ≤ ∥(r : 𝕜)∥ :=
+  begin
+    rw is_R_or_C.norm_of_real,
+    rw [real.norm_eq_abs],
+    exact le_abs_self _,
+  end,
+  use r,
+  simp only [mem_sep_eq, mem_Ioi],
+  refine ⟨hr, _⟩,
+  convert h r hr',
+  rw is_R_or_C.of_real_alg,
+  simp only [smul_one_smul],
+end
+
+end abs_convex_open_sets
+
 variables (𝕜 E)
 
 noncomputable
-def maximal_seminorm_family : seminorm_family 𝕜 E (abs_convex_nhds_sets 𝕜 E) :=
-λ s, gauge_seminorm s.2.2.1 s.2.2.2 (absorbent_nhds_zero s.2.1)
+def maximal_seminorm_family : seminorm_family 𝕜 E (abs_convex_open_sets 𝕜 E) :=
+λ s, gauge_seminorm s.coe_balanced s.coe_convex (absorbent_nhds_zero s.coe_nhds)
 
 variables {𝕜 E}
 
-lemma maximal_seminorm_family_to_fun (s : abs_convex_nhds_sets 𝕜 E) (x : E) :
-  maximal_seminorm_family 𝕜 E s x = gauge s.1 x :=
-begin
-  dunfold maximal_seminorm_family,
-  rw gauge_seminorm_to_fun,
-end
-
-#check abs_convex_nhds_sets.coe_nhds
-
-lemma maximal_seminorm_family_ball (s : abs_convex_nhds_sets 𝕜 E) :
-  (maximal_seminorm_family 𝕜 E s).ball 0 1 = interior (s : set E) :=
+lemma maximal_seminorm_family_ball (s : abs_convex_open_sets 𝕜 E) :
+  (maximal_seminorm_family 𝕜 E s).ball 0 1 = (s : set E) :=
 begin
   dunfold maximal_seminorm_family,
   rw seminorm.ball_zero_eq,
   simp_rw gauge_seminorm_to_fun,
-  ext,
-  simp,
-  simp_rw gauge_def,
-  split; intro h,
-  {
-    rw mem_interior_iff_mem_nhds,
-    have := exists_lt_of_cInf_lt _ h,
-    /-{
-      rcases this with ⟨a, ha⟩,
-      rcases ha with ⟨ha, h⟩,
-      use a • s,
-      simp only [mem_sep_eq, mem_Ioi] at ha,
-      refine ⟨_, _, ha.2⟩,
-      {
-        sorry,
-      },
-      sorry,
-    },-/
-    {
-      rcases this with ⟨a, ha⟩,
-      rcases ha with ⟨ha, h⟩,
-      simp only [mem_sep_eq, mem_Ioi] at ha,
-
-      sorry, },
-    {
-      have : absorbent 𝕜 (s : set E) := absorbent_nhds_zero s.coe_nhds,
-      rcases this x with ⟨r, hr, h⟩,
-      have hr' : r ≤ ∥(r : 𝕜)∥ := sorry,
-      use r,
-      simp only [mem_sep_eq, mem_Ioi],
-      refine ⟨hr, _⟩,
-      convert h r hr',
-      sorry,
-    },
-  },
-  sorry,
+  exact gauge_lt_one_eq_self_of_open s.coe_convex s.coe_zero_mem s.coe_is_open,
 end
+
+@[simp] lemma coe_norm {𝕜 : Type*} (r : ℝ) [is_R_or_C 𝕜] : ∥(r : 𝕜)∥ = ∥r∥ :=
+by rw [is_R_or_C.of_real_alg, norm_smul, cstar_ring.norm_one, mul_one]
+
 
 lemma with_maximal_seminorm_family : with_seminorms (maximal_seminorm_family 𝕜 E) :=
 begin
   refine seminorm_family.with_seminorms_of_has_basis _ _,
-  refine filter.has_basis.to_has_basis (nhds_basis_abs_convex 𝕜 E) (λ s hs, _) (λ s hs, _),
-  { refine ⟨interior s, ⟨_, interior_subset⟩⟩,
+  refine filter.has_basis.to_has_basis (nhds_basis_abs_convex_open 𝕜 E) (λ s hs, _) (λ s hs, _),
+  { refine ⟨s, ⟨_, rfl.subset⟩⟩,
     rw seminorm_family.basis_sets_iff,
     refine ⟨{⟨s, hs⟩}, 1, one_pos, _⟩,
     simp only [finset.sup_singleton],
@@ -270,23 +273,17 @@ begin
   rcases hs with ⟨t, r, hr, hs⟩,
   rw seminorm.ball_finset_sup_eq_Inter _ _ _ hr at hs,
   rw hs,
-  -- We have to show that the intersection is a zero neighborhood, balanced, and convex
-  refine ⟨_, balanced_Inter₂ (λ _ _, seminorm.balanced_ball_zero _ _),
+  -- We have to show that the intersection contains zero, is open, balanced, and convex
+  refine ⟨mem_Inter₂.mpr (λ _ _, by simp [seminorm.mem_ball_zero, hr]),
+    is_open_bInter (to_finite _) (λ _ _, _),
+    balanced_Inter₂ (λ _ _, seminorm.balanced_ball_zero _ _),
     convex_Inter₂ (λ _ _, seminorm.convex_ball _ _ _)⟩,
-  -- Only the zero neighborhood is nontrivial
-  rw [filter.bInter_finset_mem],
-  intros i hi,
-  have h' : ∥r∥ = ∥(r : 𝕜)∥ :=
-  by rw [ is_R_or_C.of_real_alg, norm_smul, norm_one, mul_one],
-  have hr' : 0 < ∥(r : 𝕜)∥ :=
-  by { rw [←h', norm_pos_iff], exact ne_of_gt hr },
-  rw [←mul_one r, ←real.norm_of_nonneg (le_of_lt hr), h', ←seminorm.smul_ball_zero hr'],
-  nth_rewrite 1 ←smul_zero (r : 𝕜),
-  refine set_smul_mem_nhds_smul _ (norm_pos_iff.mp hr'),
-  simp only [maximal_seminorm_family_ball, subtype.val_eq_coe, interior_mem_nhds],
-  exact i.coe_nhds,
+  -- The only nontrivial part is to show that the ball is open
+  have hr' : r = ∥(r : 𝕜)∥ * 1 := by simp [abs_of_pos hr],
+  have hr'' : (r : 𝕜) ≠ 0 := by simp [ne_of_gt hr],
+  rw hr',
+  rw ←seminorm.smul_ball_zero (norm_pos_iff.mpr hr''),
+  refine is_open.smul₀ _ hr'',
+  rw maximal_seminorm_family_ball,
+  exact abs_convex_open_sets.coe_is_open _,
 end
-
-
--- Need to show that
--- scaling is preserved

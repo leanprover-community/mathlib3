@@ -81,9 +81,11 @@ meta def mk_reflected_definition (decl_name : name) {type} [reflected _ type]
   (body : type) [reflected _ body] : declaration :=
 mk_definition decl_name (reflect type).collect_univ_params (reflect type) (reflect body)
 
-/-- If `note_name` and `note` are `pexpr`s representing strings,
-`add_library_note note_name note` adds a declaration of type `string × string` and tags it with
-the `library_note` attribute. -/
+/--
+If `note_name` and `note` are strings, `add_library_note note_name note` adds a declaration named
+`library_note.<note_name>` with `note` as the docstring and tags it with the `library_note`
+attribute.
+-/
 meta def tactic.add_library_note (note_name note : string) : tactic unit :=
 do let decl_name := `library_note <.> note_name,
    add_decl $ mk_reflected_definition decl_name (),

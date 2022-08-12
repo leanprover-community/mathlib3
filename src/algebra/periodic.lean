@@ -456,7 +456,8 @@ lemma antiperiodic.add_const [add_comm_semigroup α] [has_neg β] (h : antiperio
   antiperiodic (λ x, f (x + a)) c :=
 λ x, by simpa [add_assoc x c a, add_comm c, ←add_assoc x a c] using h (x + a)
 
-lemma antiperiodic.const_sub [add_comm_group α] [add_group β] (h : antiperiodic f c) (a : α) :
+lemma antiperiodic.const_sub [add_comm_group α] [has_involutive_neg β] (h : antiperiodic f c)
+  (a : α) :
   antiperiodic (λ x, f (a - x)) c :=
 begin
   rw [←neg_neg c],

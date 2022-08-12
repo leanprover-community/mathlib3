@@ -1546,13 +1546,7 @@ end prod_eq_zero
 lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
   (s : finset α) (f : α → β) (h : s.nonempty) :
   (∏ x in s, f x) = f default :=
-begin
-  obtain ⟨a, ha⟩ := h,
-  have : s = {a},
-  { ext b,
-    simpa [subsingleton.elim a b] using ha },
-  rw [this, finset.prod_singleton, subsingleton.elim a default]
-end
+by rw [h.eq_singleton_default, finset.prod_singleton]
 
 end finset
 
@@ -1603,8 +1597,8 @@ by rw [univ_unique, prod_singleton]
   (∏ x : α, f x) = 1 :=
 by rw [eq_empty_of_is_empty (univ : finset α), finset.prod_empty]
 
-@[to_additive]
-lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] (f : α → β) (a : α) :
+@[to_additive] lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] [fintype α]
+  (f : α → β) (a : α) :
   (∏ x : α, f x) = f a :=
 begin
   haveI : unique α := unique_of_subsingleton a,
@@ -1707,6 +1701,14 @@ begin
     simp_rw [←disjoint_finset_sum_left, ←disjoint_finset_sum_right, disjoint_comm, ←and_assoc,
       and_self],
     exact add_eq_union_left_of_le (finset.sup_le (λ x hx, le_sum_of_mem (mem_map_of_mem f hx))), },
+end
+
+lemma sup_powerset_len {α : Type*} [decidable_eq α] (x : multiset α) :
+  finset.sup (finset.range (x.card + 1)) (λ k, x.powerset_len k) = x.powerset :=
+begin
+  convert bind_powerset_len x,
+  rw [multiset.bind, multiset.join, ←finset.range_coe, ←finset.sum_eq_multiset_sum],
+  exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ h, disjoint_powerset_len x h)),
 end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :

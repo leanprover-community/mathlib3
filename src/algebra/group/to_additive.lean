@@ -219,8 +219,6 @@ meta def tr : bool → list string → list string
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
 | is_comm ("is" :: "square" :: s)     := add_comm_prefix is_comm "even"      :: tr ff s
-| is_comm ("is" :: "scalar" :: "tower" :: s) :=
-   add_comm_prefix is_comm "vadd_assoc_class"   :: tr ff s
 | is_comm ("is" :: "regular" :: s)    := add_comm_prefix is_comm "is_add_regular"   :: tr ff s
 | is_comm ("is" :: "left" :: "regular" :: s)  :=
   add_comm_prefix is_comm "is_add_left_regular"  :: tr ff s

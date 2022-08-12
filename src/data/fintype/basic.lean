@@ -2053,9 +2053,26 @@ end
 noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 ⟨_, nat_embedding_aux_injective α⟩
 
+/-- See `infinite.exists_superset_card_eq` for a version that, for a `s : finset α`,
+provides a superset `t : finset α`, `s ⊆ t` such that `t.card` is fixed. -/
 lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
   ∃ s : finset α, s.card = n :=
 ⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
+
+/-- See `infinite.exists_subset_card_eq` for a version that provides an arbitrary
+`s : finset α` for any cardinality. -/
+lemma exists_superset_card_eq [infinite α] (s : finset α) (n : ℕ) (hn : s.card ≤ n) :
+  ∃ t : finset α, s ⊆ t ∧ t.card = n :=
+begin
+  induction n with n IH generalizing s,
+  { exact ⟨s, subset_refl _, nat.eq_zero_of_le_zero hn⟩ },
+  { cases hn.eq_or_lt with hn' hn',
+    { exact ⟨s, subset_refl _, hn'⟩ },
+    obtain ⟨t, hs, ht⟩ := IH _ (nat.le_of_lt_succ hn'),
+    obtain ⟨x, hx⟩ := exists_not_mem_finset t,
+    refine ⟨finset.cons x t hx, hs.trans (finset.subset_cons _), _⟩,
+    simp [hx, ht] }
+end
 
 end infinite
 

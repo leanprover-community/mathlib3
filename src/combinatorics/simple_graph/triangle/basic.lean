@@ -15,17 +15,17 @@ This module defines and proves properties about triangles in simple graphs.
 
 ## Main declarations
 
-* `simple_graph.triangle_free_far`: Predicate for a graph to have enough triangles that, to remove
-  all of them, one must one must remove a lot of edges. This is the crux of the Triangle Removal
-  lemma.
+* `simple_graph.far_from_triangle_free`: Predicate for a graph to have enough triangles that, to
+  remove all of them, one must one must remove a lot of edges. This is the crux of the Triangle
+  Removal lemma.
 
 ## TODO
 
-* Generalise `triangle_free_far` to other graphs, to state and prove the Graph Removal Lemma.
-* Find a better name for `triangle_free_far`. (Added 4/26/2022. Remove this TODO if it gets old.)
+* Generalise `far_from_triangle_free` to other graphs, to state and prove the Graph Removal Lemma.
+* Find a better name for `far_from_triangle_free`. Added 4/26/2022. Remove this TODO if it gets old.
 -/
 
-open finset fintype
+open finset fintype nat
 open_locale classical
 
 namespace simple_graph
@@ -34,51 +34,45 @@ variables {α 𝕜 : Type*} [fintype α] [linear_ordered_field 𝕜] {G H : simp
 
 /-- A simple graph is *`ε`-triangle-free far* if one must remove at least `ε * (card α)^2` edges to
 make it triangle-free. -/
-def triangle_free_far (G : simple_graph α) (ε : 𝕜) : Prop :=
-∀ ⦃H⦄, H ≤ G → H.clique_free 3 → ε * (card α^2 : ℕ) ≤ G.edge_finset.card - H.edge_finset.card
+def far_from_triangle_free (G : simple_graph α) (ε : 𝕜) : Prop :=
+G.delete_far (λ H, H.clique_free 3) $ ε * (card α^2 : ℕ)
 
-lemma triangle_free_far_iff (G : simple_graph α) (ε : 𝕜) :
-  G.triangle_free_far ε ↔
-  ∀ (S ⊆ G.edge_finset), (G.delete_edges S).clique_free 3 → ε * (card α ^ 2 : ℕ) ≤ S.card :=
-begin
-  split,
-  { intros h S hS htf,
-    simpa [finset.card_sdiff, hS, edge_finset_delete_edges, finset.card_le_of_subset]
-      using h (G.delete_edges_le S) htf },
-  { intros h H hH htf,
-    have hs : ↑(G.edge_finset \ H.edge_finset) = G.edge_set \ H.edge_set,
-    { ext e, simp },
-    simpa [hs, delete_edges_sdiff_eq_of_le, hH, htf, edge_finset_mono hH, finset.card_sdiff,
-      finset.card_le_of_subset, nat.cast_pow]
-      using h (G.edge_finset \ H.edge_finset) (finset.sdiff_subset _ _), }
-end
+lemma far_from_triangle_free_iff :
+  G.far_from_triangle_free ε ↔
+    ∀ ⦃H⦄, H ≤ G → H.clique_free 3 → ε * (card α^2 : ℕ) ≤ G.edge_finset.card - H.edge_finset.card :=
+delete_far_iff
 
-lemma triangle_free_far.mono (hε : G.triangle_free_far ε) (h : δ ≤ ε) : G.triangle_free_far δ :=
-λ I hIG hI, (mul_le_mul_of_nonneg_right h $ nat.cast_nonneg _).trans $ hε hIG hI
+alias far_from_triangle_free_iff ↔ far_from_triangle_free.le_card_sub_card _
 
-lemma triangle_free_far.clique_finset_nonempty' (hH : H ≤ G) (hG : G.triangle_free_far ε)
+lemma far_from_triangle_free.mono (hε : G.far_from_triangle_free ε) (h : δ ≤ ε) :
+  G.far_from_triangle_free δ :=
+hε.mono $ mul_le_mul_of_nonneg_right h $ cast_nonneg _
+
+lemma far_from_triangle_free.clique_finset_nonempty' (hH : H ≤ G) (hG : G.far_from_triangle_free ε)
   (hcard : (G.edge_finset.card - H.edge_finset.card : 𝕜) < ε * (card α ^ 2 : ℕ)) :
   (H.clique_finset 3).nonempty :=
-nonempty_of_ne_empty $ H.clique_finset_eq_empty_iff.not.2 $ λ hH', (hG hH hH').not_lt hcard
+nonempty_of_ne_empty $ H.clique_finset_eq_empty_iff.not.2 $ λ hH',
+  (hG.le_card_sub_card hH hH').not_lt hcard
 
 variables [nonempty α]
 
-lemma triangle_free_far.nonpos (h₀ : G.triangle_free_far ε) (h₁ : G.clique_free 3) : ε ≤ 0 :=
+lemma far_from_triangle_free.nonpos (h₀ : G.far_from_triangle_free ε) (h₁ : G.clique_free 3) :
+  ε ≤ 0 :=
 begin
-  have := h₀ le_rfl h₁,
-  rw sub_self at this,
-  exact nonpos_of_mul_nonpos_right this (nat.cast_pos.2 $ sq_pos_of_pos fintype.card_pos),
+  have := h₀ (empty_subset _),
+  rw [coe_empty, finset.card_empty, cast_zero, delete_edges_empty_eq] at this,
+  exact nonpos_of_mul_nonpos_left (this h₁) (cast_pos.2 $ sq_pos_of_pos fintype.card_pos),
 end
 
-lemma clique_free.not_triangle_free_far (hG : G.clique_free 3) (hε : 0 < ε) :
-  ¬ G.triangle_free_far ε :=
+lemma clique_free.not_far_from_triangle_free (hG : G.clique_free 3) (hε : 0 < ε) :
+  ¬ G.far_from_triangle_free ε :=
 λ h, (h.nonpos hG).not_lt hε
 
-lemma triangle_free_far.not_clique_free (hG : G.triangle_free_far ε) (hε : 0 < ε) :
+lemma far_from_triangle_free.not_clique_free (hG : G.far_from_triangle_free ε) (hε : 0 < ε) :
   ¬ G.clique_free 3 :=
 λ h, (hG.nonpos h).not_lt hε
 
-lemma triangle_free_far.clique_finset_nonempty (hG : G.triangle_free_far ε) (hε : 0 < ε) :
+lemma far_from_triangle_free.clique_finset_nonempty (hG : G.far_from_triangle_free ε) (hε : 0 < ε) :
   (G.clique_finset 3).nonempty :=
 nonempty_of_ne_empty $ G.clique_finset_eq_empty_iff.not.2 $ hG.not_clique_free hε
 

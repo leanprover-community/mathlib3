@@ -133,9 +133,8 @@ def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
   end }
 
 namespace simple_graph
-
-variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
-  {a b c u v w : V} {e : sym2 V}
+variables {𝕜 : Type*} {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V)
+  (G' : simple_graph W) {a b c u v w : V} {e : sym2 V}
 
 @[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
@@ -466,9 +465,13 @@ set.to_finset G.edge_set
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 set.mem_to_finset
 
-lemma edge_finset_mono {G' : simple_graph V} [decidable_rel G'.adj] (h : G ≤ G') :
-  G.edge_finset ⊆ G'.edge_finset :=
-λ e, by { simp_rw mem_edge_finset, exact edge_set_mono h }
+@[simp, norm_cast] lemma coe_edge_finset [fintype G.edge_set] :
+  (G.edge_finset : set (sym2 V)) = G.edge_set :=
+set.coe_to_finset _
+
+lemma edge_finset_mono {G G' : simple_graph V} [fintype G.edge_set] [fintype G'.edge_set] :
+  G ≤ G' → G.edge_finset ⊆ G'.edge_finset :=
+by { simp_rw [←coe_subset, coe_edge_finset], exact edge_set_mono }
 
 lemma edge_finset_card [fintype G.edge_set] : G.edge_finset.card = fintype.card G.edge_set :=
 set.to_finset_card _
@@ -657,6 +660,38 @@ lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj
   (s : finset (sym2 V)) [decidable_rel (G.delete_edges s).adj] :
   (G.delete_edges s).edge_finset = G.edge_finset \ s :=
 by { ext e, simp [edge_set_delete_edges] }
+
+section delete_far
+variables (G) [linear_ordered_field 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  {p : simple_graph V → Prop} {ε δ : 𝕜}
+
+/-- A graph is `ε`-*delete-far* from a property `p` if we must delete at least `ε` edges from it to
+get a graph with the property `p`. -/
+def delete_far (p : simple_graph V → Prop) (ε : 𝕜) : Prop :=
+∀ ⦃s⦄, s ⊆ G.edge_finset → p (G.delete_edges s) → ε ≤ s.card
+
+open_locale classical
+
+variables {G}
+
+lemma delete_far_iff :
+  G.delete_far p ε ↔ ∀ ⦃H⦄, H ≤ G → p H → ε ≤ G.edge_finset.card - H.edge_finset.card :=
+begin
+  refine ⟨λ h H hHG hH, _, λ h s hs hG, _⟩,
+  { have := h (sdiff_subset G.edge_finset H.edge_finset),
+    simp only [delete_edges_sdiff_eq_of_le _ hHG, edge_finset_mono hHG, card_sdiff,
+      card_le_of_subset, coe_sdiff, coe_edge_finset, nat.cast_sub] at this,
+    exact this hH },
+  { simpa [card_sdiff hs, edge_finset_delete_edges, -set.to_finset_card, nat.cast_sub,
+      card_le_of_subset hs] using h (G.delete_edges_le s) hG }
+end
+
+alias delete_far_iff ↔ delete_far.le_card_sub_card _
+
+lemma delete_far.mono (hε : G.delete_far p ε) (h : δ ≤ ε) : G.delete_far p δ :=
+λ s hs hG, h.trans $ hε hs hG
+
+end delete_far
 
 /-! ## Map and comap -/
 

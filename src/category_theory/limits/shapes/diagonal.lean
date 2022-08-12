@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.kernel_pair
+import category_theory.limits.shapes.comm_sq
 
 /-!
 # The diagonal object of a morphism.
@@ -105,6 +106,7 @@ V₁ ×[X ×[Y] U] V₂ ⟶ V₁ ×[U] V₂
         X         ⟶  X ×[Y] X
 
 is a pullback square.
+Also see `pullback_fst_map_snd_is_pullback`.
 -/
 def pullback_diagonal_map_iso :
   pullback (diagonal f) (map (i₁ ≫ snd) (i₂ ≫ snd) f f (i₁ ≫ fst) (i₂ ≫ fst) i
@@ -149,6 +151,17 @@ lemma pullback_diagonal_map_iso_inv_snd_snd :
   (pullback_diagonal_map_iso f i i₁ i₂).inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
 by { delta pullback_diagonal_map_iso, simp }
 
+lemma pullback_fst_map_snd_is_pullback :
+  is_pullback
+    (fst ≫ i₁ ≫ fst)
+    (map i₁ i₂ (i₁ ≫ snd) (i₂ ≫ snd) _ _ _ (category.id_comp _).symm (category.id_comp _).symm)
+    (diagonal f)
+    (map (i₁ ≫ snd) (i₂ ≫ snd) f f (i₁ ≫ fst) (i₂ ≫ fst) i
+      (by simp [condition]) (by simp [condition])) :=
+is_pullback.of_iso_pullback ⟨by ext; simp [condition_assoc]⟩
+  (pullback_diagonal_map_iso f i i₁ i₂).symm (pullback_diagonal_map_iso_inv_fst f i i₁ i₂)
+  (by ext1; simp)
+
 end
 
 section
@@ -169,6 +182,7 @@ X ×ₜ Y ⟶ X ×ₛ Y
    T   ⟶ T ×ₛ T
 
 is a pullback square.
+Also see `pullback_map_diagonal_is_pullback`.
 -/
 def pullback_diagonal_map_id_iso :
   pullback (diagonal i) (pullback.map (f ≫ i) (g ≫ i) i i f g (𝟙 _)
@@ -219,6 +233,17 @@ lemma pullback.diagonal_comp (f : X ⟶ Y) (g : Y ⟶ Z) [has_pullback f f] [has
   [has_pullback (f ≫ g) (f ≫ g)] :
   diagonal (f ≫ g) = diagonal f ≫ (pullback_diagonal_map_id_iso f f g).inv ≫ pullback.snd :=
 by ext; simp
+
+lemma pullback_map_diagonal_is_pullback : is_pullback (pullback.fst ≫ f)
+  (pullback.map f g (f ≫ i) (g ≫ i) _ _ i (category.id_comp _).symm (category.id_comp _).symm)
+  (diagonal i)
+  (pullback.map (f ≫ i) (g ≫ i) i i f g (𝟙 _) (category.comp_id _) (category.comp_id _)) :=
+begin
+  apply is_pullback.of_iso_pullback _ (pullback_diagonal_map_id_iso f g i).symm,
+  { simp },
+  { ext; simp },
+  { constructor, ext; simp [condition] },
+end
 
 /-- The diagonal object of `X ×[Z] Y ⟶ X` is isomorphic to `Δ_{Y/Z} ×[Z] X`. -/
 def diagonal_obj_pullback_fst_iso {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -287,14 +312,14 @@ Given the following diagram with `S ⟶ S'` a monomorphism,
 
 This iso witnesses the fact that
 
-      X ×[S] Y ⟶ (X' ×[S'] Y') ×[X'] X
+      X ×[S] Y ⟶ (X' ×[S'] Y') ×[Y'] Y
           |                  |
           |                  |
           ↓                  ↓
 (X' ×[S'] Y') ×[X'] X ⟶ X' ×[S'] Y'
 
 is a pullback square. The diagonal map of this square is `pullback.map`.
-
+Also see `pullback_lift_map_is_pullback`.
 -/
 @[simps]
 def pullback_fst_fst_iso {X Y S X' Y' S' : C} (f : X ⟶ S) (g : Y ⟶ S) (f' : X' ⟶ S')
@@ -329,5 +354,16 @@ begin
   ext; simp only [category.assoc, category.id_comp, lift_fst, lift_snd, lift_fst_assoc,
     lift_snd_assoc, pullback_fst_fst_iso_inv, ← pullback.condition, ← pullback.condition_assoc],
 end
+
+lemma pullback_lift_map_is_pullback {X Y S X' Y' S' : C} (f : X ⟶ S) (g : Y ⟶ S) (f' : X' ⟶ S')
+  (g' : Y' ⟶ S') (i₁ : X ⟶ X') (i₂ : Y ⟶ Y') (i₃ : S ⟶ S') (e₁ : f ≫ i₃ = i₁ ≫ f')
+  (e₂ : g ≫ i₃ = i₂ ≫ g') [mono i₃] :
+  is_pullback
+    (pullback.lift (pullback.map f g f' g' i₁ i₂ i₃ e₁ e₂) fst (lift_fst _ _ _))
+    (pullback.lift (pullback.map f g f' g' i₁ i₂ i₃ e₁ e₂) snd (lift_snd _ _ _))
+    pullback.fst pullback.fst :=
+is_pullback.of_iso_pullback ⟨by rw [lift_fst, lift_fst]⟩
+  (pullback_fst_fst_iso f g f' g' i₁ i₂ i₃ e₁ e₂).symm (by simp) (by simp)
+
 
 end category_theory.limits

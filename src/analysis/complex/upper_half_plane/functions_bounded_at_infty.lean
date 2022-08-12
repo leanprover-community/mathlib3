@@ -36,9 +36,10 @@ begin
   simp only [at_I_infty, filter.mem_comap', filter.mem_at_top_sets, ge_iff_le, set.mem_set_of_eq,
     upper_half_plane.coe_im],
   split,
-  { intro h, cases h with a h, refine ⟨a, (λ z hz, by {apply h (im z) hz , refl})⟩ },
-  { refine (λ h, by {cases h with A h,
-    refine ⟨A, (λ b hb x hx, by {apply (h x), rw hx, exact hb})⟩}) }
+  { intro h, cases h with a h, exact ⟨a, (λ z hz, h (im z) hz rfl)⟩ },
+  { rintro ⟨A, h⟩,
+    refine ⟨A, λ b hb x hx, h x _⟩,
+    rwa hx, }
 end
 
 /--A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M, A` such that
@@ -52,9 +53,7 @@ number `A` such that for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) �
 def is_zero_at_infty (f : ℍ → ℂ) : Prop := filter.tendsto f at_I_infty (𝓝 0)
 
 lemma zero_form_is_bounded_at_infty : is_bound_at_infty 0 :=
-begin
-  apply zero_is_bounded_at_filter,
-end
+zero_is_bounded_at_filter _
 
 /--Module of functions that are zero at infinity.-/
 def zero_at_infty_submodule : submodule ℂ (ℍ → ℂ) := zero_at_filter_submodule at_I_infty
@@ -66,9 +65,10 @@ def bounded_at_infty_submodule : submodule ℂ (ℍ → ℂ) := bounded_filter_s
 def bounded_at_infty_subalgebra : subalgebra ℂ (ℍ → ℂ) := bounded_filter_subalgebra at_I_infty
 
 lemma prod_of_bound_is_bound {f g : ℍ → ℂ} (hf : is_bound_at_infty f) (hg : is_bound_at_infty g) :
-  is_bound_at_infty (f * g) := by simpa using hf.mul hg
+  is_bound_at_infty (f * g) :=
+by simpa only [pi.one_apply, mul_one, norm_eq_abs, complex.abs_mul] using hf.mul hg
 
-@[simp]lemma bound_mem (f : ℍ → ℂ) :
+@[simp] lemma bound_mem (f : ℍ → ℂ) :
   is_bound_at_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=
 begin
   simp [is_bound_at_infty, asymptotics.is_O_iff, filter.eventually, at_I_infty_mem],

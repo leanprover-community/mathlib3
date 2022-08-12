@@ -42,7 +42,7 @@ def zero_at_filter_submodule {α : Type*} {β : Type*} [topological_space β] [s
 def zero_at_filter_add_submonoid {α : Type*} {β : Type*} [topological_space β]
 [add_zero_class β] [has_continuous_add β] (l : filter α) : add_submonoid (α → β) :=
 { carrier := zero_at_filter l,
-  add_mem' := by { intros a b ha hb,simpa using ha.add hb },
+  add_mem' := by { intros a b ha hb, simpa using ha.add hb },
   zero_mem' := zero_is_zero_at_filter l, }
 
 /--A function `f: α → β` is `bounded_at_filter` if `f =O[l] 1`. -/
@@ -71,10 +71,9 @@ def bounded_filter_submodule {α : Type*} {β : Type*} [normed_field β] (l : fi
 def bounded_filter_subalgebra {α : Type*} {β : Type*} [normed_field β] (l : filter α) :
   subalgebra β (α → β) :=
 begin
-  apply submodule.to_subalgebra,
-  work_on_goal 3 {use bounded_filter_submodule l},
-  work_on_goal 2 { by {intros f g hf hg, by simpa using hf.mul hg,},},
-  simpa using (asymptotics.is_O_const_mul_self (1 :β) (1 : α → β) l),
+  refine submodule.to_subalgebra (bounded_filter_submodule l) _ (λ f g hf hg, _),
+  { simpa using asymptotics.is_O_const_mul_self (1 : β) (1 : α → β) l },
+  { simpa only [pi.one_apply, mul_one, norm_mul] using hf.mul hg, },
 end
 
 end filter

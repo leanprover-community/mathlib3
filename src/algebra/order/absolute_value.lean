@@ -37,6 +37,11 @@ section ordered_semiring
 
 variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
 
+instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  map_mul := λ f, f.map_mul' }
+
 instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
@@ -94,20 +99,18 @@ variables [nontrivial R]
 (mul_right_inj' $ abv.ne_zero one_ne_zero).1 $
 by rw [← abv.map_mul, mul_one, mul_one]
 
+instance : monoid_with_zero_hom_class (absolute_value R S) R S :=
+{ map_zero := λ f, f.map_zero,
+  map_one := λ f, f.map_one,
+  ..absolute_value.mul_hom_class }
+
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*`, `0` and `1`. -/
-def to_monoid_with_zero_hom : R →*₀ S :=
-{ to_fun := abv,
-  map_zero' := abv.map_zero,
-  map_one' := abv.map_one,
-  .. abv }
+def to_monoid_with_zero_hom : R →*₀ S := abv
 
 @[simp] lemma coe_to_monoid_with_zero_hom : ⇑abv.to_monoid_with_zero_hom = abv := rfl
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*` and `1`. -/
-def to_monoid_hom : monoid_hom R S :=
-{ to_fun := abv,
-  map_one' := abv.map_one,
-  .. abv }
+def to_monoid_hom : monoid_hom R S := abv
 
 @[simp] lemma coe_to_monoid_hom : ⇑abv.to_monoid_hom = abv := rfl
 
@@ -140,22 +143,6 @@ abs_sub_le_iff.2 ⟨abv.le_sub _ _, by rw abv.map_sub; apply abv.le_sub⟩
 end ring
 
 end linear_ordered_comm_ring
-
-section linear_ordered_field
-
-section field
-
-variables {R S : Type*} [division_ring R] [linear_ordered_field S] (abv : absolute_value R S)
-
-@[simp] protected theorem map_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-abv.to_monoid_with_zero_hom.map_inv a
-
-@[simp] protected theorem map_div (a b : R) : abv (a / b) = abv a / abv b :=
-abv.to_monoid_with_zero_hom.map_div a b
-
-end field
-
-end linear_ordered_field
 
 end absolute_value
 
@@ -269,11 +256,8 @@ end ring
 section field
 variables {R : Type*} [division_ring R] (abv : R → S) [is_absolute_value abv]
 
-theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-(abv_hom abv).map_inv a
-
-theorem abv_div (a b : R) : abv (a / b) = abv a / abv b :=
-(abv_hom abv).map_div a b
+lemma abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ := map_inv₀ (abv_hom abv) a
+lemma abv_div (a b : R) : abv (a / b) = abv a / abv b := map_div₀ (abv_hom abv) a b
 
 end field
 

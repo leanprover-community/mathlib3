@@ -70,6 +70,8 @@ begin
   simpa only [set.mem_set_of_eq] using le_one _,
 end
 
+end unit_interval
+
 namespace path
 
 open continuous_map path
@@ -144,11 +146,6 @@ lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
   {g : Y → Ω(x)} : continuous (λ p : Y × I, g p.1 p.2) → continuous g :=
   λ h, continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
 
--- lemma continuous_uncurry_Ω_if_continuous {Y : Type u} [topological_space Y]
---   {g : Y → Ω(x)} : continuous g → continuous (λ p : Y × I, g p.1 p.2) :=
--- λ h, continuous_uncurry_of_continuous ⟨coe ∘ g, (continuous_coe).comp h⟩
-
-
 lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
   x.1.1.extend (2 * x.2)) :=
 begin
@@ -180,51 +177,18 @@ begin
     (H.comp continuous_snd),
 end
 
-lemma closure_I_mem (θ t : I) : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
-  by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
-    apply_instance}
 
-lemma closure_I_mem' {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
+lemma closure_I_mem {θ : ℝ} {t : I} : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
   by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq], apply_instance}
 
-lemma interior_I_not_mem (θ t : I) : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (θ / 2 : ℝ) ≤ t :=
-begin
-  let half_θ : I := ⟨θ / 2, ⟨div_nonneg θ.2.1 zero_le_two, (half_le_self θ.2.1).trans θ.2.2⟩ ⟩,
-  have : {s : ↥I | (s : ℝ) ≤ θ / 2} = set.Iic half_θ := rfl,
-  have H_ne : (set.Ioi half_θ).nonempty := ⟨1, by {simpa only [set.mem_Ioi, ← subtype.coe_lt_coe,
-    subtype.coe_mk, coe_one, @div_lt_one ℝ _ θ _ zero_lt_two]
-      using lt_of_le_of_lt θ.2.2 one_lt_two,}⟩,
-  simp only [this, interior_Iic' H_ne, not_lt, subtype.coe_mk, set.mem_set_of_eq,
-    ← subtype.coe_lt_coe, ← set.Iio_def],
-end
-
-lemma interior_I_not_mem' {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ θ / 2 ≤ t := sorry
-
---The assumption `θ ≠ 1` in the lemma below is crucial: for `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}`
--- is the whole `I`, whose interior (in the induced topology) is `I` again, and `t ∉ I` is always
--- false whereas `1 ≤ t` is true for `t = 1`.
-lemma interior_I_not_mem'' {θ : ℝ} {t : I} (h : θ ≠ 2) : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2}
-  ↔ θ / 2 ≤ t :=
-begin
-  sorry,
-  -- by_cases H : θ ∈ I,
-  -- { let θI : I := ⟨θ, H⟩,
-  --   have : {s : ↥I | (s : ℝ) ≤ θ} = set.Iic θI := rfl,
-  --   have H_ne : (set.Ioi θI).nonempty := ⟨1, by {simp only [set.mem_Ioi],
-  --     exact (lt_of_le_of_ne H.2 ((coe_ne_one).mp h))}⟩,
-  --   simp only [this, interior_Iic' H_ne, not_lt, subtype.coe_mk, set.mem_set_of_eq,
-  --      ← subtype.coe_lt_coe, ← set.Iio_def] },
-  -- sorry,
-end
-
-lemma interior_I_not_mem₀ {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
+lemma interior_I_not_mem {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ } → θ  ≤ t :=
 begin
   -- For `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
   -- topology) is `I` again, and `t ∉ I` is always false whereas `1 ≤ t` is true for `t = 1`.
   -- So we split the proof in the cases `θ = 1` and `θ ≠ 1`, that is purely interval-theoretical.
   by_cases θ_eq_one : θ = 1,
   { rw [θ_eq_one, univ_eq_le_one, interior_univ],
-    tauto },
+    tauto, },
   intro h,
   by_cases H : θ ∈ I, -- this must be changed to `θ < 1` (the proof is basically the same) and
   -- then 1 ≤ θ, which becomes `1 < θ` by virtue of `θ_eq_one`, in which case everything is OK
@@ -236,21 +200,24 @@ begin
     simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
       ← subtype.coe_le_coe] using h,
     simp only [set.mem_Ioi, ← subtype.coe_lt_coe],
-    apply lt_of_le_of_ne H.2 H1},
+    apply lt_of_le_of_ne H.2 θ_eq_one},
+  by_cases H1 : θ < 0,
+  { exact (le_of_lt $ lt_of_lt_of_le H1 t.2.1) },
+  { replace H1 : 1 < θ,
+    simpa only [set.mem_Icc, not_le, not_lt.mp H1, true_and] using H,
+    contrapose! h,
+    suffices : {s : ↥I | (s : ℝ) ≤ θ} = set.univ,
+    simp only [this, interior_univ],
+    rw set.eq_univ_iff_forall,
+    intro s,
+    simp [set.mem_set_of_eq],-- using le_one _,
+    exact (le_of_lt $ lt_of_le_of_lt s.2.2 H1), },
 
 end
 
-lemma frontier_I_mem (θ t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ) = θ /2 :=
-λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
-  (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
-
-lemma frontier_I_mem' {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
-  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (interior_I_not_mem₀
-    h_right) (not_lt_of_le $ (closure_I_mem').mp h_left)]}
-
-lemma frontier_I_mem'' {θ : ℝ} {t : I} (h : θ ≠ 2) : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ / 2 ) → (t : ℝ)
-  = θ / 2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem'' h).mp
-    h_right) (not_lt_of_le $ (closure_I_mem').mp h_left)]}
+lemma frontier_I_mem {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ)
+  = θ /2 := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (interior_I_not_mem
+    h_right) (not_lt_of_le $ closure_I_mem.mp h_left)]}
 
 lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin
@@ -264,8 +231,8 @@ begin
     erw h_eq at h,
     simp only [frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,
       set.union_empty, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h,
-    simp only [frontier_I_mem 1 t h, coe_one, extend, mul_inv_cancel_of_invertible, set.Icc_extend_right, mk_one,
-      path.target, sub_self, set.Icc_extend_left, mk_zero, path.source, one_div] },
+    simp only [frontier_I_mem h, set.right_mem_Icc, zero_le_one, coe_one, one_div, mul_inv_cancel_of_invertible,
+  path.extend_extends, mk_one, path.target, set.left_mem_Icc, sub_self, mk_zero, path.source] },
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
 
@@ -278,8 +245,8 @@ def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   begin
     apply continuous.piecewise,
     { intros t ht,
-      rw frontier_I_mem θ t ht,
-      field_simp },
+      rw frontier_I_mem ht,
+      field_simp, },
     exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul continuous_induced_dom).sub
       continuous_const).div_const ],
   end,
@@ -337,7 +304,7 @@ def delayed_refl_right {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   begin
     apply continuous.piecewise,
     { intros t ht,
-      rw [frontier_I_mem' ht, mul_div_cancel', div_self],
+      rw [frontier_I_mem ht, mul_div_cancel', div_self],
       simp only [γ.target, set.right_mem_Icc, zero_le_one, extend_extends, mk_one],
       exacts [ne_of_gt $ add_pos_of_pos_of_nonneg (@one_pos ℝ _ _) θ.2.1, two_ne_zero] },
     exacts [(continuous_extend γ).comp (continuous_const.mul continuous_induced_dom).div_const,

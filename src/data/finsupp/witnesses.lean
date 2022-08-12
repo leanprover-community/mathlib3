@@ -32,15 +32,7 @@ lemma diff_comm : f.diff g = g.diff f :=
 by simp_rw [diff, finset.union_comm, ne_comm]
 
 @[simp] lemma diff_eq_empty : f.diff g = ∅ ↔ f = g :=
-begin
-  unfold diff,
-  refine ⟨λ h, _, λ h, h ▸ by simp only [ne.def, eq_self_iff_true, not_true, finset.filter_false]⟩,
-  ext a,
-  contrapose h,
-  refine finset.ne_empty_of_mem (_ : a ∈ _),
-  simpa only [h, ne.def, finset.mem_filter, finset.mem_union, mem_support_iff, not_false_iff,
-    and_true] using ne_or_ne_of_ne _ h,
-end
+filter_ne_eq_empty_iff
 
 @[simp] lemma nonempty_diff_iff : (f.diff g).nonempty ↔ f ≠ g :=
 finset.nonempty_iff_ne_empty.trans diff_eq_empty.not

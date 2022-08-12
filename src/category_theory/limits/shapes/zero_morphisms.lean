@@ -165,7 +165,7 @@ begin
   rw iff_id_eq_zero,
   split,
   { intro h, rw [←category.id_comp f, h, zero_comp], },
-  { intro h, rw [←split_mono.id f], simp [h], },
+  { intro h, rw [←is_split_mono.id f], simp [h], },
 end
 
 lemma iff_is_split_epi_eq_zero {X Y : C} (f : X ⟶ Y) [is_split_epi f] : is_zero Y ↔ f = 0 :=
@@ -520,30 +520,30 @@ end image
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance is_split_mono_sigma_ι {β : Type u'} [has_zero_morphisms C] (f : β → C)
-  [has_colimit (discrete.functor f)] (b : β) : is_split_mono (sigma.ι f b) :=
+  [has_colimit (discrete.functor f)] (b : β) : is_split_mono (sigma.ι f b) := is_split_mono.mk'
 { retraction := sigma.desc $ pi.single b (𝟙 _) }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance is_split_epi_pi_π {β : Type u'} [has_zero_morphisms C] (f : β → C)
-  [has_limit (discrete.functor f)] (b : β) : is_split_epi (pi.π f b) :=
+  [has_limit (discrete.functor f)] (b : β) : is_split_epi (pi.π f b) := is_split_epi.mk'
 { section_ := pi.lift $ pi.single b (𝟙 _) }
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance is_split_mono_coprod_inl [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
-  is_split_mono (coprod.inl : X ⟶ X ⨿ Y) :=
+  is_split_mono (coprod.inl : X ⟶ X ⨿ Y) := is_split_mono.mk'
 { retraction := coprod.desc (𝟙 X) 0, }
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance is_split_mono_coprod_inr [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
-  is_split_mono (coprod.inr : Y ⟶ X ⨿ Y) :=
+  is_split_mono (coprod.inr : Y ⟶ X ⨿ Y) := is_split_mono.mk'
 { retraction := coprod.desc 0 (𝟙 Y), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance is_split_epi_prod_fst [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
-  is_split_epi (prod.fst : X ⨯ Y ⟶ X) :=
+  is_split_epi (prod.fst : X ⨯ Y ⟶ X) := is_split_epi.mk'
 { section_ := prod.lift (𝟙 X) 0, }
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance is_split_epi_prod_snd [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
-  is_split_epi (prod.snd : X ⨯ Y ⟶ Y) :=
+  is_split_epi (prod.snd : X ⨯ Y ⟶ Y) := is_split_epi.mk'
 { section_ := prod.lift 0 (𝟙 Y), }
 
 end category_theory.limits

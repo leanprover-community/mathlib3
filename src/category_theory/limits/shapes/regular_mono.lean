@@ -273,7 +273,7 @@ regular_epi_category.regular_epi_of_epi _
 @[priority 100]
 instance regular_epi_category_of_split_epi_category [split_epi_category C] :
   regular_epi_category C :=
-{ regular_epi_of_epi := λ _ _ f _, by { haveI := by exactI split_epi_of_epi f, apply_instance } }
+{ regular_epi_of_epi := λ _ _ f _, by { haveI := by exactI is_split_epi_of_epi f, apply_instance } }
 
 @[priority 100]
 instance strong_epi_category_of_regular_epi_category [regular_epi_category C] :

@@ -337,11 +337,7 @@ lemma abs_to_real_le_pi (θ : angle) : |θ.to_real| ≤ π :=
 abs_le.2 ⟨(neg_pi_lt_to_real _).le, to_real_le_pi _⟩
 
 lemma to_real_mem_Ioc (θ : angle) : θ.to_real ∈ set.Ioc (-π) π :=
-begin
-  induction θ using real.angle.induction_on,
-  convert to_Ioc_mod_mem_Ioc _ two_pi_pos _,
-  ring
-end
+⟨neg_pi_lt_to_real _, to_real_le_pi _⟩
 
 @[simp] lemma to_Ioc_mod_to_real (θ : angle): to_Ioc_mod (-π) two_pi_pos θ.to_real = θ.to_real :=
 begin

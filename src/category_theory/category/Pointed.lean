@@ -110,22 +110,22 @@ rfl
 
 @[simp] lemma left_unitor_hom_apply {x : X} {p : punit} :
   ((λ_ X).hom : (𝟙_ (Pointed.{u})) ⊗ X → X) (p, x) = x := rfl
-@[simp] lemma left_unitor_inv_apply {X : Pointed.{u}} {x : X} :
+@[simp] lemma left_unitor_inv_apply {x : X} :
   ((λ_ X).inv : X ⟶ (𝟙_ (Pointed.{u})) ⊗ X) x = (punit.star, x) := rfl
 
-@[simp] lemma right_unitor_hom_apply {X : Pointed.{u}} {x : X} {p : punit} :
+@[simp] lemma right_unitor_hom_apply {x : X} {p : punit} :
   ((ρ_ X).hom : X ⊗ (𝟙_ (Pointed.{u})) → X) (x, p) = x := rfl
-@[simp] lemma right_unitor_inv_apply {X : Pointed.{u}} {x : X} :
+@[simp] lemma right_unitor_inv_apply {x : X} :
   ((ρ_ X).inv : X ⟶ X ⊗ (𝟙_ (Pointed.{u}))) x = (x, punit.star) := rfl
 
-@[simp] lemma associator_hom_apply {X Y Z : Pointed.{u}} {x : X} {y : Y} {z : Z} :
+@[simp] lemma associator_hom_apply {x : X} {y : Y} {z : Z} :
   ((α_ X Y Z).hom : (X ⊗ Y) ⊗ Z → X ⊗ (Y ⊗ Z)) ((x, y), z) = (x, (y, z)) := rfl
-@[simp] lemma associator_inv_apply {X Y Z : Pointed.{u}} {x : X} {y : Y} {z : Z} :
+@[simp] lemma associator_inv_apply {x : X} {y : Y} {z : Z} :
   ((α_ X Y Z).inv : X ⊗ (Y ⊗ Z) → (X ⊗ Y) ⊗ Z) (x, (y, z)) = ((x, y), z) := rfl
 
-@[simp] lemma braiding_hom_apply {X Y : Pointed.{u}} {x : X} {y : Y} :
+@[simp] lemma braiding_hom_apply {x : X} {y : Y} :
   ((β_ X Y).hom : X ⊗ Y → Y ⊗ X) (x, y) = (y, x) := rfl
-@[simp] lemma braiding_inv_apply {X Y : Pointed.{u}} {x : X} {y : Y} :
+@[simp] lemma braiding_inv_apply {x : X} {y : Y} :
   ((β_ X Y).inv : Y ⊗ X → X ⊗ Y) (y, x) = (x, y) := rfl
 
 end monoidal_category

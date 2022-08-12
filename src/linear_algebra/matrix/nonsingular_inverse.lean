@@ -569,7 +569,7 @@ by rw [sub_eq_add_neg, ←matrix.neg_mul, det_one_add_mul_comm, matrix.mul_neg, 
 /-- A special case of the **Matrix determinant lemma** for when `A = I`.
 
 TODO: show this more generally. -/
-lemma det_one_add_col_mul_row (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
+lemma det_one_add_col_mul_row (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ u :=
 by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_apply_eq,
        matrix.row_mul_col_apply]
 

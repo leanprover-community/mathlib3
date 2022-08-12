@@ -213,7 +213,7 @@ lemma mul_val_succ [fintype n']
   (A ⬝ B) i.succ j = (of (vec_tail (of.symm A)) ⬝ B) i j := rfl
 
 @[simp] lemma cons_mul [fintype n'] (v : n' → α) (A : fin m → n' → α) (B : matrix n' o' α) :
-  of (vec_cons v A) ⬝ B = of (vec_cons (vec_mul v B) (of.symm (of A ⬝ B))) :=
+  of (vec_cons v A) ⬝ B = of (vec_cons (v ⬝ B) (of.symm (of A ⬝ B))) :=
 by { ext i j, refine fin.cases _ _ i, { refl },  simp [mul_val_succ], }
 
 end mul
@@ -223,23 +223,23 @@ section vec_mul
 variables [semiring α]
 
 @[simp] lemma empty_vec_mul (v : fin 0 → α) (B : matrix (fin 0) o' α) :
-  vec_mul v B = 0 :=
+  v ⬝ B = 0 :=
 rfl
 
 @[simp] lemma vec_mul_empty [fintype n'] (v : n' → α) (B : matrix n' (fin 0) α) :
-  vec_mul v B = ![] :=
+  v ⬝ B = ![] :=
 empty_eq _
 
 @[simp] lemma cons_vec_mul (x : α) (v : fin n → α) (B : fin n.succ → o' → α) :
-  vec_mul (vec_cons x v) (of B) = x • (vec_head B) + vec_mul v (of $ vec_tail B) :=
+  vec_cons x v ⬝ of B = x • (vec_head B) + v ⬝ (of $ vec_tail B) :=
 by { ext i, simp [vec_mul] }
 
 @[simp] lemma vec_mul_cons (v : fin n.succ → α) (w : o' → α) (B : fin n → o' → α) :
-  vec_mul v (of $ vec_cons w B) = vec_head v • w + vec_mul (vec_tail v) (of B) :=
+  v ⬝ (of $ vec_cons w B) = vec_head v • w + vec_tail v ⬝ of B :=
 by { ext i, simp [vec_mul] }
 
 @[simp] lemma cons_vec_mul_cons (x : α) (v : fin n → α) (w : o' → α) (B : fin n → o' → α) :
-  vec_mul (vec_cons x v) (of $ vec_cons w B) = x • w + vec_mul v (of B) :=
+  vec_cons x v ⬝ (of $ vec_cons w B) = x • w + v ⬝ of B :=
 by simp
 
 end vec_mul
@@ -249,20 +249,20 @@ section mul_vec
 variables [semiring α]
 
 @[simp] lemma empty_mul_vec [fintype n'] (A : matrix (fin 0) n' α) (v : n' → α) :
-  mul_vec A v = ![] :=
+  A ⬝ v = ![] :=
 empty_eq _
 
 @[simp] lemma mul_vec_empty (A : matrix m' (fin 0) α) (v : fin 0 → α) :
-  mul_vec A v = 0 :=
+  A ⬝ v = 0 :=
 rfl
 
 @[simp] lemma cons_mul_vec [fintype n'] (v : n' → α) (A : fin m → n' → α) (w : n' → α) :
-  mul_vec (of $ vec_cons v A) w = vec_cons (dot_product v w) (mul_vec (of A) w) :=
+  (of $ vec_cons v A) ⬝ w = vec_cons (dot_product v w) (of A ⬝ w) :=
 by { ext i, refine fin.cases _ _ i; simp [mul_vec] }
 
 @[simp] lemma mul_vec_cons {α} [comm_semiring α] (A : m' → (fin n.succ) → α) (x : α)
   (v : fin n → α) :
-  mul_vec (of A) (vec_cons x v) = (x • vec_head ∘ A) + mul_vec (of (vec_tail ∘ A)) v :=
+  of A ⬝ vec_cons x v = (x • vec_head ∘ A) + (of (vec_tail ∘ A)) ⬝ v :=
 by { ext i, simp [mul_vec, mul_comm] }
 
 end mul_vec
@@ -337,10 +337,10 @@ lemma eta_fin_three (A : matrix (fin 3) (fin 3) α) :
 by { ext i j, fin_cases i; fin_cases j; refl }
 
 lemma mul_fin_two [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
-  !![a₁₁, a₁₂;
-     a₂₁, a₂₂] ⬝ !![b₁₁, b₁₂;
-                    b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
-                                   a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
+  (!![a₁₁, a₁₂;
+      a₂₁, a₂₂] ⬝ !![b₁₁, b₁₂;
+                     b₂₁, b₂₂] : matrix _ _ _) = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
+                                                    a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
 begin
   ext i j,
   fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]
@@ -348,11 +348,11 @@ end
 
 lemma mul_fin_three [add_comm_monoid α] [has_mul α]
   (a₁₁ a₁₂ a₁₃ a₂₁ a₂₂ a₂₃ a₃₁ a₃₂ a₃₃ b₁₁ b₁₂ b₁₃ b₂₁ b₂₂ b₂₃ b₃₁ b₃₂ b₃₃ : α) :
-  !![a₁₁, a₁₂, a₁₃;
-     a₂₁, a₂₂, a₂₃;
-     a₃₁, a₃₂, a₃₃] ⬝ !![b₁₁, b₁₂, b₁₃;
-                         b₂₁, b₂₂, b₂₃;
-                         b₃₁, b₃₂, b₃₃] =
+  (!![a₁₁, a₁₂, a₁₃;
+      a₂₁, a₂₂, a₂₃;
+      a₃₁, a₃₂, a₃₃] ⬝ !![b₁₁, b₁₂, b₁₃;
+                          b₂₁, b₂₂, b₂₃;
+                          b₃₁, b₃₂, b₃₃] : matrix _ _ _) =
   !![a₁₁*b₁₁ + a₁₂*b₂₁ + a₁₃*b₃₁, a₁₁*b₁₂ + a₁₂*b₂₂ + a₁₃*b₃₂, a₁₁*b₁₃ + a₁₂*b₂₃ + a₁₃*b₃₃;
      a₂₁*b₁₁ + a₂₂*b₂₁ + a₂₃*b₃₁, a₂₁*b₁₂ + a₂₂*b₂₂ + a₂₃*b₃₂, a₂₁*b₁₃ + a₂₂*b₂₃ + a₂₃*b₃₃;
      a₃₁*b₁₁ + a₃₂*b₂₁ + a₃₃*b₃₁, a₃₁*b₁₂ + a₃₂*b₂₂ + a₃₃*b₃₂, a₃₁*b₁₃ + a₃₂*b₂₃ + a₃₃*b₃₃] :=
@@ -388,20 +388,20 @@ by rw [smul_cons, smul_cons, smul_cons, smul_empty]
 variables [add_comm_monoid α] [has_mul α]
 
 lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
-  ![a₀, a₁] ⬝ᵥ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
+  ![a₀, a₁] ⬝ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
 
 @[simp] lemma vec2_dot_product (v w : fin 2 → α) :
-  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 :=
+  v ⬝ w = v 0 * w 0 + v 1 * w 1 :=
 vec2_dot_product'
 
 lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
-  ![a₀, a₁, a₂] ⬝ᵥ ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
+  ![a₀, a₁, a₂] ⬝ ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
        dot_product_empty, add_zero, add_assoc]
 
 @[simp] lemma vec3_dot_product (v w : fin 3 → α) :
-  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
+  v ⬝ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
 vec3_dot_product'
 
 end vec2_and_vec3

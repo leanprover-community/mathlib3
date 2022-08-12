@@ -429,7 +429,7 @@ begin
   have : pi_comparison F f = (F.map_iso (biproduct.iso_product f)).inv ≫
     biproduct_comparison F f ≫ (biproduct.iso_product _).hom,
   { ext, convert pi_comparison_comp_π F f j.as; simp [← functor.map_comp] },
-  haveI : is_iso (biproduct_comparison F f) := is_iso_of_mono_of_split_epi _,
+  haveI : is_iso (biproduct_comparison F f) := is_iso_of_mono_of_is_split_epi _,
   haveI : is_iso (pi_comparison F f) := by { rw this, apply_instance },
   haveI := preserves_product.of_iso_comparison F f,
   apply preserves_biproduct_of_preserves_product
@@ -528,7 +528,7 @@ def preserves_binary_biproduct_of_mono_biprod_comparison {X Y : C} [has_binary_b
 begin
   have : prod_comparison F X Y = (F.map_iso (biprod.iso_prod X Y)).inv ≫
     biprod_comparison F X Y ≫ (biprod.iso_prod _ _).hom := by { ext; simp [← functor.map_comp] },
-  haveI : is_iso (biprod_comparison F X Y) := is_iso_of_mono_of_split_epi _,
+  haveI : is_iso (biprod_comparison F X Y) := is_iso_of_mono_of_is_split_epi _,
   haveI : is_iso (prod_comparison F X Y) := by { rw this, apply_instance },
   haveI := preserves_limit_pair.of_iso_prod_comparison F X Y,
   apply preserves_binary_biproduct_of_preserves_binary_product

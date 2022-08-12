@@ -445,6 +445,12 @@ def include_right : B →ₐ[R] A ⊗[R] B :=
 @[simp]
 lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
 
+lemma include_left_comp_algebra_map {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+    (include_left.to_ring_hom.comp (algebra_map R S) : R →+* S ⊗[R] T) =
+      include_right.to_ring_hom.comp (algebra_map R T) :=
+by { ext, simp }
+
 end semiring
 
 section ring
@@ -793,7 +799,6 @@ by rw [product_map, alg_hom.range_comp, map_range, map_sup, ←alg_hom.range_com
     lmul'_comp_include_right, alg_hom.id_comp, alg_hom.id_comp]
 
 end
-
 section
 
 variables {R A A' B S : Type*}
@@ -808,7 +813,50 @@ and `g : B →ₐ[R] S` is an `A`-algebra homomorphism. -/
   ..(product_map (f.restrict_scalars R) g).to_ring_hom }
 
 end
+section basis
 
+variables {k : Type*} [comm_ring k] (R : Type*) [ring R] [algebra k R] {M : Type*}
+  [add_comm_monoid M] [module k M] {ι : Type*} (b : basis ι k M)
+
+/-- Given a `k`-algebra `R` and a `k`-basis of `M,` this is a `k`-linear isomorphism
+`R ⊗[k] M ≃ (ι →₀ R)` (which is in fact `R`-linear). -/
+noncomputable def basis_aux : R ⊗[k] M ≃ₗ[k] (ι →₀ R) :=
+(_root_.tensor_product.congr (finsupp.linear_equiv.finsupp_unique k R punit).symm b.repr) ≪≫ₗ
+  (finsupp_tensor_finsupp k R k punit ι).trans (finsupp.lcongr (equiv.unique_prod ι punit)
+  (_root_.tensor_product.rid k R))
+
+variables {R}
+
+lemma basis_aux_tmul (r : R) (m : M) :
+  basis_aux R b (r ⊗ₜ m) = r • (finsupp.map_range (algebra_map k R)
+    (map_zero _) (b.repr m)) :=
+begin
+  ext,
+  simp [basis_aux, ←algebra.commutes, algebra.smul_def],
+end
+
+lemma basis_aux_map_smul (r : R) (x : R ⊗[k] M) :
+  basis_aux R b (r • x) = r • basis_aux R b x :=
+tensor_product.induction_on x (by simp) (λ x y, by simp only [tensor_product.smul_tmul',
+  basis_aux_tmul, smul_assoc]) (λ x y hx hy, by simp [hx, hy])
+
+variables (R)
+
+/-- Given a `k`-algebra `R`, this is the `R`-basis of `R ⊗[k] M` induced by a `k`-basis of `M`. -/
+noncomputable def basis : basis ι R (R ⊗[k] M) :=
+{ repr := { map_smul' := basis_aux_map_smul b, .. basis_aux R b } }
+
+variables {R}
+
+@[simp] lemma basis_repr_tmul (r : R) (m : M) :
+  (basis R b).repr (r ⊗ₜ m) = r • (finsupp.map_range (algebra_map k R) (map_zero _) (b.repr m)) :=
+basis_aux_tmul _ _ _
+
+@[simp] lemma basis_repr_symm_apply (r : R) (i : ι) :
+  (basis R b).repr.symm (finsupp.single i r) = r ⊗ₜ b.repr.symm (finsupp.single i 1) :=
+by simp [basis, equiv.unique_prod_symm_apply, basis_aux]
+
+end basis
 end tensor_product
 end algebra
 

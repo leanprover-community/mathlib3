@@ -283,7 +283,7 @@ begin
   simp only [infi_inf_eq]
 end
 
-lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [fintype ι] [Π i, topological_space (α i)]
+lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [finite ι] [Π i, topological_space (α i)]
   (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi univ s] x = ⨅ i, comap (λ x, x i) 𝓝[s i] (x i) :=
 by simpa [nhds_within] using nhds_within_pi_eq finite_univ s x

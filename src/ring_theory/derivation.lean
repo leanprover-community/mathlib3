@@ -201,7 +201,7 @@ section push_forward
 
 variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A M]
   [is_scalar_tower R A N]
-variables (f : M →ₗ[A] N)
+variables (f : M →ₗ[A] N) (e : M ≃ₗ[A] N)
 
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a
 linear map is a derivation. Furthermore, this operation is linear on the spaces of derivations. -/
@@ -223,10 +223,19 @@ rfl
 rfl
 
 /-- The composition of a derivation with a linear map as a bilinear map -/
+@[simps]
 def llcomp : (M →ₗ[A] N) →ₗ[A] derivation R A M →ₗ[R] derivation R A N :=
 { to_fun := λ f, f.comp_der,
   map_add' := λ f₁ f₂, by { ext, refl },
   map_smul' := λ r D, by { ext, refl } }
+
+/-- Pushing a derivation foward through a linear equivalence is an equivalence. -/
+def _root_.linear_equiv.comp_der : derivation R A M ≃ₗ[R] derivation R A N :=
+{ inv_fun := e.symm.to_linear_map.comp_der,
+  left_inv := λ D, by { ext a, exact e.symm_apply_apply (D a) },
+  right_inv := λ D, by { ext a, exact e.apply_symm_apply (D a) },
+  ..e.to_linear_map.comp_der }
+
 
 end push_forward
 
@@ -541,37 +550,48 @@ begin
     exact submodule.subset_span }
 end
 
-@[derive [add_comm_group, module R, module S, module (S ⊗[R] S), is_scalar_tower S (S ⊗[R] S)]]
+/--
+The module of Kähler differentials.
+This is implemented as `I / I ^ 2` with `I` the kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`.
+To view elements as a linear combination of the form `s • D s'`, use
+`derivation_module.tensor_product_to_surjective` and `derivation.tensor_product_to_tmul`.
+-/
+@[derive [add_comm_group, module R, module S, module (S ⊗[R] S)]]
 def derivation_module : Type* := (derivation_module.ideal R S).cotangent
 
-instance derivation_module.is_scalar_tower' : is_scalar_tower R S (derivation_module R S) :=
+notation `Ω[ `:100 S ` / `:0 R ` ]`:0 := derivation_module R S
+
+instance : is_scalar_tower S (S ⊗[R] S) Ω[S/R] :=
+ideal.cotangent.is_scalar_tower _
+
+instance derivation_module.is_scalar_tower' : is_scalar_tower R S Ω[S/R] :=
 begin
   haveI : is_scalar_tower R S (derivation_module.ideal R S),
   { constructor, intros x y z, ext1, exact smul_assoc x y z.1 },
   exact submodule.quotient.is_scalar_tower _ _
 end
 
-variable (S)
-
-def derivation_module.derivation_linear_map : S →ₗ[R] derivation_module R S :=
+/-- (Implementation) The underlying linear map of the derivation into `Ω[S/R]`. -/
+def derivation_module.D_linear_map : S →ₗ[R] Ω[S/R] :=
 ((derivation_module.ideal R S).to_cotangent.restrict_scalars R).comp
   ((tensor_product.include_right.to_linear_map - tensor_product.include_left.to_linear_map :
-    S →ₗ[R] S ⊗[R] S).cod_restrict_of_tower _
+    S →ₗ[R] S ⊗[R] S).cod_restrict ((derivation_module.ideal R S).restrict_scalars R)
       (derivation_module.one_smul_sub_smul_one_mem_ideal R) : _ →ₗ[R] _)
 
-lemma derivation_module.derivation_linear_map_apply (s : S) :
-  derivation_module.derivation_linear_map R S s = (derivation_module.ideal R S).to_cotangent
+lemma derivation_module.D_linear_map_apply (s : S) :
+  derivation_module.D_linear_map R S s = (derivation_module.ideal R S).to_cotangent
     ⟨1 ⊗ₜ s - s ⊗ₜ 1, derivation_module.one_smul_sub_smul_one_mem_ideal R s⟩ :=
 rfl
-.
-def derivation_module.derivation : derivation R S (derivation_module R S) :=
+
+/-- The universal derivation into `Ω[S/R]`. -/
+def derivation_module.D : derivation R S Ω[S/R] :=
 { map_one_eq_zero' := begin
-    dsimp [derivation_module.derivation_linear_map_apply],
+    dsimp [derivation_module.D_linear_map_apply],
     rw [ideal.to_cotangent_eq_zero, subtype.coe_mk, sub_self],
     exact zero_mem _
   end,
   leibniz' := λ a b, begin
-    dsimp [derivation_module.derivation_linear_map_apply],
+    dsimp [derivation_module.D_linear_map_apply],
     rw [← linear_map.map_smul_of_tower, ← linear_map.map_smul_of_tower, ← map_add,
       ideal.to_cotangent_eq, pow_two],
     convert submodule.mul_mem_mul (derivation_module.one_smul_sub_smul_one_mem_ideal R a : _)
@@ -581,27 +601,45 @@ def derivation_module.derivation : derivation R S (derivation_module R S) :=
       submodule.coe_smul_of_tower, smul_sub, tensor_product.smul_tmul', smul_eq_mul, mul_one],
     ring_nf,
   end,
-  ..(derivation_module.derivation_linear_map R S) }
+  ..(derivation_module.D_linear_map R S) }
 
-lemma derivation_module.derivation_apply (s : S) :
-  derivation_module.derivation R S s = (derivation_module.ideal R S).to_cotangent
+lemma derivation_module.D_apply (s : S) :
+  derivation_module.D R S s = (derivation_module.ideal R S).to_cotangent
     ⟨1 ⊗ₜ s - s ⊗ₜ 1, derivation_module.one_smul_sub_smul_one_mem_ideal R s⟩ :=
 rfl
-.
-variables {M : Type*} [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
+
+lemma derivation_module.span_range_derivation :
+  submodule.span S (set.range $ derivation_module.D R S) = ⊤ :=
+begin
+  rw _root_.eq_top_iff,
+  rintros x -,
+  obtain ⟨⟨x, hx⟩, rfl⟩ := ideal.to_cotangent_surjective _ x,
+  have : x ∈ (derivation_module.ideal R S).restrict_scalars S := hx,
+  rw ← derivation_module.submodule_span_range_eq_ideal at this,
+  suffices : ∃ hx, (derivation_module.ideal R S).to_cotangent ⟨x, hx⟩ ∈
+    submodule.span S (set.range $ derivation_module.D R S),
+  { exact this.some_spec },
+  apply submodule.span_induction this,
+  { rintros _ ⟨x, rfl⟩,
+    refine ⟨derivation_module.one_smul_sub_smul_one_mem_ideal R x, _⟩,
+    apply submodule.subset_span,
+    exact ⟨x, derivation_module.D_linear_map_apply R S x⟩ },
+  { exact ⟨zero_mem _, zero_mem _⟩ },
+  { rintros x y ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, exact ⟨add_mem hx₁ hy₁, add_mem hx₂ hy₂⟩ },
+  { rintros r x ⟨hx₁, hx₂⟩, exact ⟨((derivation_module.ideal R S).restrict_scalars S).smul_mem
+      r hx₁, submodule.smul_mem _ r hx₂⟩ }
+end
+
 variables {R S}
 
-def submodule.liftq_of_tower {R S M N : Type*} [comm_semiring R] [ring S] [add_comm_group M]
-  [add_comm_group N] [module R M] [module S M] [algebra R S] [is_scalar_tower R S M] [module R N]
-  (p : submodule S M) (f : M →ₗ[R] N) (h : ∀ x ∈ p, f x = 0) : M ⧸ p →ₗ[R] N :=
-{ map_smul' := by rintro a ⟨x⟩; exact f.map_smul a x,
-  ..quotient_add_group.lift p.to_add_subgroup f.to_add_monoid_hom h }
-
-def derivation.lift_derivation_module (d : derivation R S M) : derivation_module R S →ₗ[S] M :=
+/-- The linear map from the derivation module, associated with a derivation. -/
+def derivation.lift_derivation_module (D : derivation R S M) : Ω[S/R] →ₗ[S] M :=
 begin
-  refine submodule.liftq_of_tower _ _ _,
-  { exact d.tensor_product_to.comp ((derivation_module.ideal R S).subtype.restrict_scalars S) },
+  refine ((derivation_module.ideal R S • ⊤ : submodule (S ⊗[R] S) (derivation_module.ideal R S))
+    .restrict_scalars S).liftq _ _,
+  { exact D.tensor_product_to.comp ((derivation_module.ideal R S).subtype.restrict_scalars S) },
   { intros x hx,
+    change _ = _,
     apply submodule.smul_induction_on hx; clear hx x,
     { rintros x (hx : _ = _) ⟨y, hy : _ = _⟩ -,
       dsimp,
@@ -609,21 +647,93 @@ begin
     { intros x y ex ey, rw [map_add, ex, ey, zero_add] } }
 end
 
-lemma derivation.lift_derivation_module_apply (d : derivation R S M) (x) :
-  d.lift_derivation_module ((derivation_module.ideal R S).to_cotangent x) = d.tensor_product_to x :=
+lemma derivation.lift_derivation_module_apply (D : derivation R S M) (x) :
+  D.lift_derivation_module ((derivation_module.ideal R S).to_cotangent x) = D.tensor_product_to x :=
 rfl
 
-.
-lemma derivation.lift_derivation_module_comp (d : derivation R S M) :
-  d.lift_derivation_module.comp_der (derivation_module.derivation R S) = d :=
+lemma derivation.lift_derivation_module_comp (D : derivation R S M) :
+  D.lift_derivation_module.comp_der (derivation_module.D R S) = D :=
 begin
   ext a,
-  dsimp [derivation_module.derivation_apply],
-  refine (d.lift_derivation_module_apply _).trans _,
+  dsimp [derivation_module.D_apply],
+  refine (D.lift_derivation_module_apply _).trans _,
   rw [subtype.coe_mk, map_sub, derivation.tensor_product_to_tmul,
-    derivation.tensor_product_to_tmul, one_smul, d.map_one_eq_zero, smul_zero, sub_zero],
+    derivation.tensor_product_to_tmul, one_smul, D.map_one_eq_zero, smul_zero, sub_zero],
+end
+
+@[ext]
+lemma derivation.lift_derivation_module_unique
+  (f f' : Ω[S/R] →ₗ[S] M)
+  (hf : f.comp_der (derivation_module.D R S) =
+    f'.comp_der (derivation_module.D R S)) :
+  f = f' :=
+begin
+  apply linear_map.ext,
+  intro x,
+  have : x ∈ submodule.span S (set.range $ derivation_module.D R S),
+  { rw derivation_module.span_range_derivation, trivial },
+  apply submodule.span_induction this,
+  { rintros _ ⟨x, rfl⟩, exact congr_arg (λ D : derivation R S M, D x) hf },
+  { rw [map_zero, map_zero] },
+  { intros x y hx hy, rw [map_add, map_add, hx, hy] },
+  { intros a x e, rw [map_smul, map_smul, e] }
+end
+
+variables (R S)
+
+lemma derivation.lift_derivation_module_D :
+  (derivation_module.D R S).lift_derivation_module = linear_map.id :=
+derivation.lift_derivation_module_unique _ _ (derivation_module.D R S).lift_derivation_module_comp
+
+variables {R S}
+
+lemma derivation_module.D_tensor_product_to (x : derivation_module.ideal R S) :
+  (derivation_module.D R S).tensor_product_to x = (derivation_module.ideal R S).to_cotangent x :=
+begin
+  rw [← derivation.lift_derivation_module_apply, derivation.lift_derivation_module_D],
+  refl,
+end
+
+variables (R S)
+
+lemma derivation_module.tensor_product_to_surjective :
+  function.surjective (derivation_module.D R S).tensor_product_to :=
+begin
+  intro x, obtain ⟨x, rfl⟩ := (derivation_module.ideal R S).to_cotangent_surjective x,
+  exact ⟨x, derivation_module.D_tensor_product_to x⟩
+end
+
+/-- The `S`-linear maps from `Ω[S/R]` to `M` are (`S`-linearly) equivalent to `R`-derivations
+from `S` to `M`.  -/
+def derivation_module.D_equiv : (Ω[S/R] →ₗ[S] M) ≃ₗ[S] derivation R S M :=
+{ inv_fun := derivation.lift_derivation_module,
+  left_inv := λ f, derivation.lift_derivation_module_unique _ _
+    (derivation.lift_derivation_module_comp _),
+  right_inv := derivation.lift_derivation_module_comp,
+  ..(derivation.llcomp.flip $ derivation_module.D R S) }
+
+/--
+The endomorphisms of `Ω[S/R]` corresponds to sections of the multipication map `S ⊗[R] S →ₐ[R] S`.
+-/
+def derivation_module.End_equiv : module.End S Ω[S/R] ≃
+  { f : S →ₐ[R] S ⊗[R] S // (tensor_product.lmul' R).comp f = alg_hom.id R S } :=
+begin
+  refine (derivation_module.D_equiv R S).to_equiv.trans _,
+  -- have := ((derivation_module.ideal R S).cotangent_equiv_ideal.restrict_scalars S),
+  -- haveI : is_scalar_tower S (S ⊗[R] S) (derivation_module.ideal R S).cotangent := infer_instance,
+  haveI : is_scalar_tower S (S ⊗[R] S) (derivation_module.ideal R S).cotangent_ideal :=
+    submodule.is_scalar_tower (derivation_module.ideal R S).cotangent_ideal,
+  -- haveI : linear_map.compatible_smul (derivation_module.ideal R S).cotangent
+  --   ((derivation_module.ideal R S).cotangent_ideal)
+  --   S
+  --   (S ⊗[R] S),
+  -- { apply_with linear_map.is_scalar_tower.compatible_smul { instances := ff },
+  --   any_goals { apply_instance },
+  --   any_goals { apply_instance }, }
+  -- have := this.restrict_scalars S,
 end
 
 variables (R S)
 
 end derivation_module
+#lint

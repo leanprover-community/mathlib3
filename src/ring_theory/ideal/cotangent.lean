@@ -23,7 +23,8 @@ Additional support is also given to the cotangent space `m ⧸ m ^ 2` of a local
 
 namespace ideal
 
-variables {R S : Type*} [comm_ring R] [comm_semiring S] [algebra S R] (I : ideal R)
+variables {R S S' : Type*} [comm_ring R] [comm_semiring S] [algebra S R]
+variables [comm_semiring S'] [algebra S' R] [algebra S S'] [is_scalar_tower S S' R] (I : ideal R)
 
 /-- `I ⧸ I ^ 2` as a quotient of `I`. -/
 @[derive [add_comm_group, module (R ⧸ I)]]
@@ -34,7 +35,15 @@ instance : inhabited I.cotangent := ⟨0⟩
 instance cotangent.module_of_tower : module S I.cotangent :=
 submodule.quotient.module' _
 
-instance : is_scalar_tower S R I.cotangent := by { delta cotangent, apply_instance }
+instance : is_scalar_tower S S' I.cotangent :=
+begin
+  delta cotangent,
+  constructor,
+  intros s s' x,
+  rw [← @is_scalar_tower.algebra_map_smul S' R, ← @is_scalar_tower.algebra_map_smul S' R,
+    ← smul_assoc, ← is_scalar_tower.to_alg_hom_apply S S' R, map_smul],
+  refl
+end
 
 instance [is_noetherian R I] : is_noetherian R I.cotangent := by { delta cotangent, apply_instance }
 
@@ -96,6 +105,16 @@ def cotangent_ideal (I : ideal R) : ideal (R ⧸ I ^ 2) :=
 begin
   haveI : @ring_hom_surjective R (R ⧸ I ^ 2) _ _ _ := ⟨ideal.quotient.mk_surjective⟩,
   exact submodule.map (ring_hom.to_semilinear_map (I ^ 2)^.quotient.mk) I,
+end
+
+lemma cotangent_ideal_square (I : ideal R) : I.cotangent_ideal ^ 2 = ⊥ :=
+begin
+  rw [eq_bot_iff, pow_two I.cotangent_ideal, ← smul_eq_mul],
+  intros x hx,
+  apply submodule.smul_induction_on hx,
+  { rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩, apply (submodule.quotient.eq _).mpr _,
+    rw [sub_zero, pow_two], exact ideal.mul_mem_mul hx hy },
+  { intros x y hx hy, exact add_mem hx hy }
 end
 
 lemma to_quotient_square_range :

@@ -114,7 +114,9 @@ by { rw [←one_smul R x, ←smul_assoc], exact p.smul_mem _ h }
 instance has_smul' : has_smul S p :=
 { smul := λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩ }
 
-instance : is_scalar_tower S R p :=
+instance {S' : Type*} [has_smul S' R] [has_smul S' S] [has_smul S' M]
+  [is_scalar_tower S' R M] [is_scalar_tower S' S M] :
+  is_scalar_tower S' S p :=
 { smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }
 
 @[simp, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl

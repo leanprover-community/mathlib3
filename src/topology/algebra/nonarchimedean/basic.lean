@@ -58,7 +58,8 @@ variables {H : Type*} [group H] [topological_space H] [topological_group H]
 variables {K : Type*} [group K] [topological_space K] [nonarchimedean_group K]
 
 /-- If a topological group embeds into a nonarchimedean group, then it is nonarchimedean. -/
-@[to_additive nonarchimedean_add_group.nonarchimedean_of_emb "If a topological group embeds into a nonarchimedean group, then it is nonarchimedean."]
+@[to_additive nonarchimedean_add_group.nonarchimedean_of_emb "If a topological group embeds into a
+nonarchimedean group, then it is nonarchimedean."]
 lemma nonarchimedean_of_emb (f : G →* H) (emb : open_embedding f) : nonarchimedean_group H :=
 { is_nonarchimedean := λ U hU, have h₁ : (f ⁻¹' U) ∈ nhds (1 : G), from
     by {apply emb.continuous.tendsto, rwa f.map_one},

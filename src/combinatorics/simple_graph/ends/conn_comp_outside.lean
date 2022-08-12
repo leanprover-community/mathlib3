@@ -37,6 +37,10 @@ def conn_comp_outside : Type u :=
 def conn_comp_outside.to_vertex_set {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) :=
   {v // connected_component_mk _ v = C}
 
+/- Alternative defintion. At this point, it is hard to tell which would be better -/
+def conn_comp_outside.to_set (K : finset V) (C : conn_comp_outside G K) : set V :=
+  { v : V | ∃ (p:v ∉ K), ((⊤ : G.subgraph).delete_verts K).coe.connected_component_mk (⟨v,by {simp,exact p}⟩) = C }
+
 -- TODO: Define and prove theorems about infinite connected components
 def inf_conn_comp_outside :=
  {C : G.conn_comp_outside K // infinite C.to_vertex_set}
@@ -79,7 +83,6 @@ begin
     have : (univ : set V) \ ∅ = univ := sdiff_bot,
     rw [this, ← simple_graph.induce_eq_coe_induce_top],
     refine ⟨{_}, _⟩,
-    dsimp [connected_component],
     sorry, -- need to use `Gpc` here
     sorry
    }
@@ -94,15 +97,13 @@ begin
   sorry, -- needs the fact that the set of vertices is the union of `K` and all the connected components
 end
 
-def conn_comp_outside.to_set (K : finset V) (C : conn_comp_outside G K) : set V :=
-  { v : V | ∃ (p:v ∉ K), ((⊤ : G.subgraph).delete_verts K).coe.connected_component_mk (⟨v,by {simp,exact p}⟩) = C }
 
-def conn_comp_outside.of (K : finset V) (v : V) (h : v ∉ K) : G.conn_comp_outside K := sorry
+
 
 lemma conn_comp_outside_back_unique {K L : finset V} (h : K ⊆ L) :
 ∀ C : conn_comp_outside G L,
   ∃! D : conn_comp_outside G K,
-    (conn_comp_outside.to_set G L C) ⊆ (conn_comp_outside.to_set G K D) := sorry
+    (to_set G L C) ⊆ (conn_comp_outside.to_set G K D) := sorry
 
 -- this is the `bwd_map`
 def conn_comp_outside_back {K L : finset V} (h : K ⊆ L) (C : conn_comp_outside G L) : conn_comp_outside G K :=

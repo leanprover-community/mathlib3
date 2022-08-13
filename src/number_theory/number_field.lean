@@ -137,8 +137,6 @@ namespace rat
 
 open number_field
 
-local attribute [instance] subsingleton_rat_module
-
 instance number_field : number_field ℚ :=
 { to_char_zero := infer_instance,
   to_finite_dimensional :=

@@ -766,19 +766,6 @@ begin
   exact set.mem_of_subset_of_mem clf mem₀,
 end
 
--- TODO: generalize this to other fields
-/-- The closure of a convex cone inside a complete space is a convex cone.-/
-def convex_cone.closure (K : convex_cone ℝ H) : convex_cone ℝ H :=
-{ carrier := closure (K : set H),
-  smul_mem' := by {
-    rw ← sequential_space.seq_closure_eq_closure,
-    exact λ c hc x ⟨seq, mem, tends⟩,
-    ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), filter.tendsto.const_smul tends c⟩ ⟩ },
-  add_mem' := by {
-    rw ← sequential_space.seq_closure_eq_closure,
-    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
-    ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), filter.tendsto.add xtends ytends⟩ ⟩}}
-
 section complete_space
 variables [complete_space H]
 

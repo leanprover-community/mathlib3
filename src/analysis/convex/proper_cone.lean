@@ -12,9 +12,28 @@ import analysis.inner_product_space.adjoint
 
 -/
 
+open continuous_linear_map filter
+
+namespace convex_cone
+
+/-- The closure of a convex cone inside a real inner product space is a convex cone. This
+construction is mainly used for defining maps between proper cones. -/
+def closure {E : Type*} [inner_product_space ℝ E] (K : convex_cone ℝ E) : convex_cone ℝ E :=
+{ carrier := closure (K : set E),
+  smul_mem' := by {
+    rw ← sequential_space.seq_closure_eq_closure,
+    exact λ c hc x ⟨seq, mem, tends⟩,
+      ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c⟩ ⟩ },
+  add_mem' := by {
+    rw ← sequential_space.seq_closure_eq_closure,
+    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
+      ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends⟩ ⟩ } }
+
+end convex_cone
+
 section definitions
 
-/-- A proper cone is a convex cone `K` which is nonempty and closed. -/
+/-- A proper cone is a convex cone `K` that is nonempty and closed. -/
 structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E] :=
 (carrier    : convex_cone ℝ E)
 (nonempty'  : (carrier : set E).nonempty)
@@ -57,11 +76,13 @@ instance : has_involutive_star (proper_cone E) :=
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
 noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
 { carrier := convex_cone.closure ((K : convex_cone ℝ E).map f),
-  nonempty' := ⟨0, begin
+  nonempty' :=
+  begin
+    use 0,
     apply subset_closure,
     rw [set_like.mem_coe, convex_cone.mem_map],
     use ⟨0, K.pointed, map_zero _⟩
-  end⟩,
+  end,
   is_closed' := is_closed_closure }
 
 /-- The preimage of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
@@ -72,7 +93,7 @@ noncomputable def comap (f : E →L[ℝ] F) (K' : proper_cone F) : proper_cone E
     rw convex_cone.coe_comap,
     use 0,
     rw [set.mem_preimage, map_zero, set_like.mem_coe],
-    exact K'.pointed
+    exact K'.pointed,
   end,
   is_closed' :=
   begin
@@ -83,7 +104,7 @@ noncomputable def comap (f : E →L[ℝ] F) (K' : proper_cone F) : proper_cone E
 end proper_cone
 
 theorem farkas_lemma (K : proper_cone E) (f : E →L[ℝ] F) (b : F) :
-b ∈ K.map f ↔ ∀ y : F, (continuous_linear_map.adjoint f b) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
+b ∈ K.map f ↔ ∀ y : F, (adjoint f b) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin
   sorry,
 end

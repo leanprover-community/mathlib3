@@ -32,11 +32,6 @@ open_locale classical
 noncomputable theory
 universes u
 
-lemma uniform_continuous_const_mul (α : Type*) [ring α] [uniform_space α] [uniform_add_group α]
-  [topological_ring α] (r : α) : uniform_continuous ((*) r) :=
-uniform_continuous_of_continuous_at_zero (smul_add_hom α α r)
-  (continuous.continuous_at (continuous_mul_left r))
-
 namespace uniform_space.completion
 open dense_inducing uniform_space function
 variables (α : Type*) [ring α] [uniform_space α]
@@ -157,22 +152,6 @@ instance : comm_ring (completion R) :=
       (assume a b, by rw [← coe_mul, ← coe_mul, mul_comm]),
  ..completion.ring }
 
-@[simp] lemma map_mul_eq_mul_coe (r : R) :
-  completion.map ((*) r) = (*) (r : completion R) :=
-begin
-  ext x,
-  refine completion.induction_on x _ (λ s, _),
-  { exact is_closed_eq (completion.continuous_map) (continuous_mul_left (r : completion R)) },
-  { rw [map_coe (uniform_continuous_const_mul R r), coe_mul] },
-end
-
-instance : algebra R (completion R) :=
-{ commutes' := λ r x, by simp only [ring_hom.to_fun_eq_coe, mul_comm],
-  smul_def' := λ r x, congr_fun (map_mul_eq_mul_coe R r) x,
-  .. (uniform_space.completion.coe_ring_hom : R →+* completion R) }
-
-lemma algebra_map_eq_coe (r : R) : algebra_map R (completion R) r = coe r := rfl
-
 section algebra
 variables (S : Type*) [comm_semiring S] [algebra S R] [has_uniform_continuous_const_smul S R]
 
@@ -187,7 +166,7 @@ begin
     apply_instance, },
 end
 
-instance algebra' : algebra S (completion R) :=
+instance : algebra S (completion R) :=
 { commutes' := λ s x, by simp only [ring_hom.to_fun_eq_coe, mul_comm],
   smul_def' := λ s x, congr_fun (map_smul_eq_mul_coe R S s) x,
   ..((uniform_space.completion.coe_ring_hom : R →+* completion R).comp (algebra_map S R)) }

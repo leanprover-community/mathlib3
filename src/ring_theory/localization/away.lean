@@ -165,7 +165,7 @@ alg_equiv.of_alg_hom
     (adjoin_root.lift (algebra_map R (away r)) (is_localization.away.inv_self r) (by simp))
     (lift_comp_of _))
   (subsingleton.elim _ _)
-  (let ⟨h⟩ := alg_hom_subsingleton (submonoid.powers r) in h _ _)
+  (subsingleton.elim _ _)
 
 instance adjoin_is_localization (r : R) : is_localization.away r (adjoin_root (C r * X - 1)) :=
 is_localization.is_localization_of_alg_equiv _ (away_equiv_adjoin r)

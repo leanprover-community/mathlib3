@@ -435,7 +435,7 @@ lemma ring_hom_ext ⦃j k : S →+* P⦄
   (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
 ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
 
-lemma alg_hom_subsingleton [algebra R P] : subsingleton (S →ₐ[R] P) :=
+instance alg_hom_subsingleton [algebra R P] : subsingleton (S →ₐ[R] P) :=
 ⟨λ f g, alg_hom.coe_ring_hom_injective $ is_localization.ring_hom_ext M $
   by rw [f.comp_algebra_map, g.comp_algebra_map]⟩
 

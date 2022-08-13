@@ -253,7 +253,7 @@ end ae_convergence
 
 section L1_convergence
 
-variables [is_finite_measure μ]
+variables [is_finite_measure μ] {g : Ω → ℝ}
 
 /-!
 
@@ -352,7 +352,7 @@ let ⟨R, hR⟩ := hunif.2.2 in hf.ae_tendsto_limit_process hR
 /-- If a martingale `f` adapted to `ℱ` converges in L¹ to `g`, then for all `n`, `f n` is almost
 everywhere equal to `𝔼[g | ℱ n]`. -/
 lemma martingale.eq_condexp_lim_of_tendsto_snorm
-  (hf : martingale f ℱ μ) {g : Ω → ℝ} (hgℒ1 : mem_ℒp g 1 μ)
+  (hf : martingale f ℱ μ) (hgℒ1 : mem_ℒp g 1 μ)
   (hgtends : tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0)) (n : ℕ) :
   f n =ᵐ[μ] μ[g | ℱ n] :=
 begin
@@ -387,7 +387,7 @@ is measurable with respect to `⨆ n, ℱ n` where `ℱ` is a filtration, the ma
 This martingale also converges to `g` in L¹ and this result is provided by
 `measure_theory.mem_ℒp.tendsto_snorm_condexp` -/
 lemma mem_ℒp.tendsto_ae_condexp
-  {g : Ω → ℝ} (hg : mem_ℒp g 1 μ) (hgmeas : strongly_measurable[⨆ n, ℱ n] g) :
+  (hg : mem_ℒp g 1 μ) (hgmeas : strongly_measurable[⨆ n, ℱ n] g) :
   ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (g x)) :=
 begin
   have hle : (⨆ n, ℱ n) ≤ m0 := Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _),
@@ -448,7 +448,7 @@ is measurable with respect to `⨆ n, ℱ n` where `ℱ` is a filtration, the ma
 This martingale also converges to `g` almost everywhere and this result is provided by
 `measure_theory.mem_ℒp.tendsto_ae_condexp` -/
 lemma mem_ℒp.tendsto_snorm_condexp
-  {g : Ω → ℝ} (hg : mem_ℒp g 1 μ) (hgmeas : strongly_measurable[⨆ n, ℱ n] g) :
+  (hg : mem_ℒp g 1 μ) (hgmeas : strongly_measurable[⨆ n, ℱ n] g) :
   tendsto (λ n, snorm (μ[g | ℱ n] - g) 1 μ) at_top (𝓝 0) :=
 tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
   (λ n, (strongly_measurable_condexp.mono (ℱ.le n)).ae_strongly_measurable) hg
@@ -459,7 +459,7 @@ tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
 
 /-- **Lévy's upward theorem**, almost everywhere version: given a function `g` and a filtration
 `ℱ`, the sequence defined by `𝔼[g | ℱ n]` converges almost everywhere to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma mem_ℒp.tendsto_ae_condexp' {g : Ω → ℝ} :
+lemma mem_ℒp.tendsto_ae_condexp' (g : Ω → ℝ) :
   ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
 begin
   have ht : ∀ᵐ x ∂μ, tendsto (λ n, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
@@ -474,7 +474,7 @@ end
 
 /-- **Lévy's upward theorem**, L¹ version: given a function `g` and a filtration `ℱ`, the
 sequence defined by `𝔼[g | ℱ n]` converges in L¹ to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma mem_ℒp.tendsto_snorm_condexp' {g : Ω → ℝ} :
+lemma mem_ℒp.tendsto_snorm_condexp' (g : Ω → ℝ) :
   tendsto (λ n, snorm (μ[g | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=
 begin
   have ht : tendsto (λ n, snorm (μ[μ[g | ⨆ n, ℱ n] | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=

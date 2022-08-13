@@ -11,7 +11,7 @@ import linear_algebra.clifford_algebra.even
 /-!
 # The Pin group and the Spin group
 
-In this file we define `lipschitz` consisting all the elements in `(clifford_algebra)ˣ` closed
+In this file we define `lipschitz` consisting of all the elements in `(clifford_algebra)ˣ` closed
 under conjugation and construct `pin_group` based on `lipschitz` and `unitary`, and we construct
 `spin_group` based on `pin_group` and `clifford_algebra.even`. Also, we show `pin_group` and
 `spin_group` form a group where the inverse is `star`.
@@ -33,7 +33,7 @@ open clifford_algebra mul_action
 open_locale pointwise
 
 /--
-`lipschitz Q` is the subgroup of `(clifford_algebra Q)ˣ` consisting all the elements closed under
+`lipschitz Q` is the subgroup of `(clifford_algebra Q)ˣ` consisting of all the elements closed under
 conjugation. See `mem_lipschitz_iff`.
 -/
 def lipschitz (Q : quadratic_form R M): subgroup (clifford_algebra Q)ˣ :=

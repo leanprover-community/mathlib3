@@ -1217,13 +1217,9 @@ end
 lemma has_fpower_series_at_iff' : has_fpower_series_at f p z₀ ↔
   ∀ᶠ z in 𝓝 z₀, has_sum (λ n, (z - z₀) ^ n • p.coef n) (f z) :=
 begin
-  rw has_fpower_series_at_iff,
-  split; intro h,
-  { have : tendsto (λ z, z - z₀) (𝓝 z₀) (𝓝 0) := sub_self z₀ ▸ filter.tendsto_id.sub_const z₀,
-    simpa using this.eventually h },
-  { have : tendsto (λ z, z + z₀) (𝓝 0) (𝓝 (0 + z₀)) := filter.tendsto_id.add_const z₀,
-    rw [zero_add] at this,
-    simpa [add_comm] using this.eventually h }
+  rw [← map_add_left_nhds_zero, eventually_map, has_fpower_series_at_iff],
+  congrm ∀ᶠ z in (𝓝 0 : filter 𝕜), has_sum (λ n, _) (f (z₀ + z)),
+  rw add_sub_cancel'
 end
 
 end

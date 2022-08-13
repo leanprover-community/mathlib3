@@ -183,9 +183,6 @@ begin
   exact gauge_lt_one_eq_self_of_open s.coe_convex s.coe_zero_mem s.coe_is_open,
 end
 
-@[simp] lemma coe_norm {𝕜 : Type*} (r : ℝ) [is_R_or_C 𝕜] : ∥(r : 𝕜)∥ = ∥r∥ :=
-by rw [is_R_or_C.of_real_alg, norm_smul, cstar_ring.norm_one, mul_one]
-
 variables [topological_add_group E] [has_continuous_smul 𝕜 E]
 variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E]
 

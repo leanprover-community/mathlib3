@@ -330,16 +330,12 @@ instance order_ring_hom.subsingleton [linear_ordered_field α] [linear_ordered_f
     (order_hom_class.mono f).reflect_lt hf).elim,
 end⟩
 
-local attribute [instance] order_ring_hom.subsingleton
-
 /-- There is at most one ordered ring isomorphism between a linear ordered field and an archimedean
 linear ordered field. -/
 instance order_ring_iso.subsingleton_right [linear_ordered_field α] [linear_ordered_field β]
   [archimedean β] :
   subsingleton (α ≃+*o β) :=
 order_ring_iso.to_order_ring_hom_injective.subsingleton
-
-local attribute [instance] order_ring_iso.subsingleton_right
 
 /-- There is at most one ordered ring isomorphism between an archimedean linear ordered field and a
 linear ordered field. -/

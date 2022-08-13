@@ -75,8 +75,7 @@ begin
   rcases hx with ⟨⟨y, hy₁, hy₂⟩, hx₂, hx₃⟩,
   simp only [subgroup.coe_to_submonoid, set_like.mem_coe] at hy₁,
   simp only [units.coe_hom_apply] at hy₂,
-  simp only [submonoid.mem_map, subgroup.mem_to_submonoid,
-    units.coe_hom_apply, exists_prop],
+  simp only [submonoid.mem_map, subgroup.mem_to_submonoid, units.coe_hom_apply, exists_prop],
   refine ⟨star y, _, by simp only [hy₂, units.coe_star]⟩,
   rw ← hy₂ at hx₃,
   have hy₃ : y * star y = 1,
@@ -119,8 +118,7 @@ instance : group (pin_group Q) :=
   mul_left_inv := star_mul_self,
   ..submonoid.to_monoid _ }
 
-instance : has_involutive_star (pin_group Q) :=
-⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
+instance : has_involutive_star (pin_group Q) := ⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
 
 instance : star_semigroup (pin_group Q) :=
 ⟨λ _ _, by { ext, simp only [coe_star, submonoid.coe_mul, star_mul] }⟩
@@ -165,10 +163,10 @@ lemma mem_pin {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :
 lemma mem_clifford_even {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :
   x ∈ clifford_algebra.even Q := hx.2
 
-@[simp] lemma star_mul_self_of_mem {x : clifford_algebra Q}
-  (hx : x ∈ spin_group Q) : star x * x = 1 := ((hx.1).2).1
-@[simp] lemma mul_star_self_of_mem {x : clifford_algebra Q}
-  (hx : x ∈ spin_group Q) : x * star x = 1 := ((hx.1).2).2
+@[simp] lemma star_mul_self_of_mem {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :
+  star x * x = 1 := ((hx.1).2).1
+@[simp] lemma mul_star_self_of_mem {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :
+  x * star x = 1 := ((hx.1).2).2
 
 /-- See `star_mem_iff` for both directions. -/
 lemma star_mem {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :

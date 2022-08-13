@@ -217,6 +217,11 @@ begin
   simp [nat.factorization_mul _ hn1, prime_two.factorization],
 end
 
+-- TODO: Re-write the definition of MR_witness to remove the need for this
+lemma pow_mul_eq_pow_pow_comm {n : ℕ} (a b : ℕ) (x : zmod n) : x ^ (a * b) = (x ^ b) ^ a :=
+begin
+  rw [←pow_mul, mul_comm],
+end
 ---------------------------------------------------------------------------------------------------
 -- PR'ed in #15793
 ---------------------------------------------------------------------------------------------------

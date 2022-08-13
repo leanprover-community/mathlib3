@@ -43,6 +43,7 @@ While `convex 𝕜` is a predicate on sets, `convex_cone 𝕜 E` is a bundled co
 ## References
 
 * https://en.wikipedia.org/wiki/Convex_cone
+* https://ti.inf.ethz.ch/ew/lehre/ApproxSDP09/notes/conelp.pdf
 -/
 
 
@@ -827,3 +828,43 @@ end
 
 end complete_space
 end dual
+
+section definitions
+
+structure proper_cone (H : Type*) [inner_product_space ℝ H] [complete_space H] :=
+(carrier    : convex_cone ℝ H)
+(nonempty'  : (carrier : set H).nonempty)
+(is_closed' : is_closed (carrier : set H))
+
+end definitions
+
+namespace proper_cone
+variables {H : Type*} [inner_product_space ℝ H] [complete_space H]
+variables {H' : Type*} [inner_product_space ℝ H'] [complete_space H']
+
+instance : has_coe (proper_cone H) (convex_cone ℝ H) := ⟨proper_cone.carrier⟩
+
+lemma nonempty (K : proper_cone H) : (K : set H).nonempty := K.nonempty'
+lemma is_closed (K : proper_cone H) : is_closed (K : set H) := K.is_closed'
+
+@[ext] lemma ext {S T : proper_cone H} (h : (S : convex_cone ℝ H) = T) : S = T :=
+by cases S; cases T; congr'
+
+instance : has_star (proper_cone H) := ⟨ λ K,
+{ carrier    := (K : set H).inner_dual_cone,
+  nonempty'  := ⟨0, pointed_inner_dual_cone _⟩,
+  is_closed' := is_closed_inner_dual_cone _ } ⟩
+
+instance : has_involutive_star (proper_cone H) :=
+{ star := has_star.star,
+  star_involutive := λ K, proper_cone.ext $
+    inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed }
+
+/-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
+def map (f : H →L[ℝ] H') (K : proper_cone H) : proper_cone H' := sorry
+
+/-- The preimage of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
+def comap (f : H' →L[ℝ] H) (K' : proper_cone H') : proper_cone H := sorry
+
+
+end proper_cone

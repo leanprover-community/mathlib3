@@ -614,13 +614,6 @@ apply_nolint monoid.fg_of_fintype fintype_finite
 -- group_theory/group_action/basic.lean
 apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
 
--- group_theory/group_action/defs.lean
-apply_nolint comp_smul_left to_additive_doc
-apply_nolint has_mul.to_has_smul to_additive_doc
-apply_nolint mul_action.regular.is_pretransitive to_additive_doc
-apply_nolint mul_smul_comm to_additive_doc
-apply_nolint one_smul_eq_id to_additive_doc
-
 -- group_theory/group_action/group.lean
 apply_nolint mul_action.to_perm_injective to_additive_doc
 

@@ -219,6 +219,7 @@ full_subcategory.map (λ F h, let hF := classical.choice h in
 def AdditiveFunctor.of_exact : (C ⥤ₑ D) ⥤ (C ⥤+ D) :=
 full_subcategory.map (λ F h, let hF := classical.choice h.1 in
   by exactI functor.additive_of_preserves_binary_biproducts F)
+
 end
 
 variables {C D}

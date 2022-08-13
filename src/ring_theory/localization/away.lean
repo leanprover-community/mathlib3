@@ -22,9 +22,11 @@ See `src/ring_theory/localization/basic.lean` for a design overview.
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
 -/
+
+section comm_semiring
+
 variables {R : Type*} [comm_semiring R] (M : submonoid R) {S : Type*} [comm_semiring S]
 variables [algebra R S] {P : Type*} [comm_semiring P]
-
 
 namespace is_localization
 
@@ -164,22 +166,26 @@ abbreviation away_map (f : R →+* P) (r : R) :
   localization.away r →+* localization.away (f r) :=
 is_localization.away.map _ _ f r
 
-open polynomial adjoin_root
+end localization
+
+end comm_semiring
+
+open polynomial adjoin_root localization
+
+variables {R : Type*} [comm_ring R] (M : submonoid R)
 
 /-- The `R`-`alg_equiv` between the localization of `R` away from `r` and
     `R` with an inverse of `r` adjoined. -/
-noncomputable def away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=
+noncomputable def localization.away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=
 alg_equiv.of_alg_hom
   (alg_hom.of_comp_eq
     (away_lift (of $ C r * X - 1) r $ is_unit_of_mul_eq_one _ (root _) $ root_is_inv r)
-    (away.away_map.lift_comp _ _))
+    (is_localization.away.away_map.lift_comp _ _))
   (alg_hom.of_comp_eq
     (adjoin_root.lift (algebra_map R $ away r) (is_localization.away.inv_self r) $ by simp)
     (lift_comp_of _))
   (subsingleton.elim _ _)
   (subsingleton.elim _ _)
 
-instance adjoin_is_localization (r : R) : is_localization.away r (adjoin_root $ C r * X - 1) :=
-is_localization.is_localization_of_alg_equiv _ (away_equiv_adjoin r)
-
-end localization
+lemma is_localization.adjoin_root (r : R) : is_localization.away r (adjoin_root $ C r * X - 1) :=
+is_localization.is_localization_of_alg_equiv _ (localization.away_equiv_adjoin r)

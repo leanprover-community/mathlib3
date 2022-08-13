@@ -845,7 +845,11 @@ variables {H' : Type*} [inner_product_space ℝ H'] [complete_space H']
 instance : has_coe (proper_cone H) (convex_cone ℝ H) := ⟨proper_cone.carrier⟩
 
 lemma nonempty (K : proper_cone H) : (K : set H).nonempty := K.nonempty'
+
 lemma is_closed (K : proper_cone H) : is_closed (K : set H) := K.is_closed'
+
+lemma pointed (K : proper_cone H) : (K : convex_cone ℝ H).pointed :=
+pointed_of_nonempty_closed K.nonempty K.is_closed
 
 @[ext] lemma ext {S T : proper_cone H} (h : (S : convex_cone ℝ H) = T) : S = T :=
 by cases S; cases T; congr'
@@ -864,7 +868,19 @@ instance : has_involutive_star (proper_cone H) :=
 def map (f : H →L[ℝ] H') (K : proper_cone H) : proper_cone H' := sorry
 
 /-- The preimage of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
-def comap (f : H' →L[ℝ] H) (K' : proper_cone H') : proper_cone H := sorry
-
+noncomputable def comap (f : H →L[ℝ] H') (K' : proper_cone H') : proper_cone H :=
+{ carrier := (K' : convex_cone ℝ H').comap f,
+  nonempty' :=
+  begin
+    rw convex_cone.coe_comap,
+    use 0,
+    rw [mem_preimage, map_zero, set_like.mem_coe],
+    exact K'.pointed
+  end,
+  is_closed' :=
+  begin
+    rw [convex_cone.coe_comap, continuous_linear_map.coe_coe],
+    exact is_closed.preimage f.continuous K'.is_closed,
+  end }
 
 end proper_cone

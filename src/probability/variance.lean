@@ -33,7 +33,7 @@ namespace probability_theory
 /-- The variance of a random variable is `𝔼[X^2] - 𝔼[X]^2` or, equivalently, `𝔼[(X - 𝔼[X])^2]`. We
 use the latter as the definition, to ensure better behavior even in garbage situations. -/
 def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ :=
-μ[(f - (λ x, μ[f])) ^ 2]
+μ[(f - (λ ω, μ[f])) ^ 2]
 
 @[simp] lemma variance_zero {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
   variance 0 μ = 0 :=
@@ -41,12 +41,12 @@ by simp [variance]
 
 lemma variance_nonneg {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :
   0 ≤ variance f μ :=
-integral_nonneg (λ x, sq_nonneg _)
+integral_nonneg (λ ω, sq_nonneg _)
 
 lemma variance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
-  variance (λ x, c * f x) μ = c^2 * variance f μ :=
+  variance (λ ω, c * f ω) μ = c^2 * variance f μ :=
 calc
-variance (λ x, c * f x) μ
+variance (λ ω, c * f ω) μ
     = ∫ x, (c * f x - ∫ y, c * f y ∂μ) ^ 2 ∂μ : rfl
 ... = ∫ x, (c * (f x - ∫ y, f y ∂μ)) ^ 2 ∂μ :
   by { congr' 1 with x, simp_rw [integral_mul_left, mul_sub] }
@@ -82,7 +82,7 @@ begin
   { apply hX.integrable_sq.add,
     convert integrable_const (𝔼[X] ^ 2),
     apply_instance },
-  { exact ((hX.integrable ennreal.one_le_two).const_mul 2).mul_const' _ },
+  { exact ((hX.integrable one_le_two).const_mul 2).mul_const' _ },
   simp only [integral_mul_right, pi.pow_apply, pi.mul_apply, pi.bit0_apply, pi.one_apply,
     integral_const (integral ℙ X ^ 2), integral_mul_left (2 : ℝ), one_mul,
     variance, pi.pow_apply, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul],
@@ -100,9 +100,9 @@ begin
   { rw [variance, integral_undef],
     { exact integral_nonneg (λ a, sq_nonneg _) },
     { assume h,
-      have A : mem_ℒp (X - λ (x : Ω), 𝔼[X]) 2 ℙ := (mem_ℒp_two_iff_integrable_sq
+      have A : mem_ℒp (X - λ (ω : Ω), 𝔼[X]) 2 ℙ := (mem_ℒp_two_iff_integrable_sq
         (h_int.ae_strongly_measurable.sub ae_strongly_measurable_const)).2 h,
-      have B : mem_ℒp (λ (x : Ω), 𝔼[X]) 2 ℙ := mem_ℒp_const _,
+      have B : mem_ℒp (λ (ω : Ω), 𝔼[X]) 2 ℙ := mem_ℒp_const _,
       apply hX,
       convert A.add B,
       simp } }
@@ -149,19 +149,19 @@ Var[X + Y] = 𝔼[λ a, (X a)^2 + (Y a)^2 + 2 * X a * Y a] - 𝔼[X+Y]^2 :
 begin
   simp only [pi.add_apply, pi.pow_apply, pi.mul_apply, mul_assoc],
   rw [integral_add, integral_add, integral_add, integral_mul_left],
-  { exact hX.integrable ennreal.one_le_two },
-  { exact hY.integrable ennreal.one_le_two },
+  { exact hX.integrable one_le_two },
+  { exact hY.integrable one_le_two },
   { exact hX.integrable_sq },
   { exact hY.integrable_sq },
   { exact hX.integrable_sq.add hY.integrable_sq },
   { apply integrable.const_mul,
-    exact h.integrable_mul (hX.integrable ennreal.one_le_two) (hY.integrable ennreal.one_le_two) }
+    exact h.integrable_mul (hX.integrable one_le_two) (hY.integrable one_le_two) }
 end
 ... = (𝔼[X^2] + 𝔼[Y^2] + 2 * (𝔼[X] * 𝔼[Y])) - (𝔼[X] + 𝔼[Y])^2 :
 begin
   congr,
   exact h.integral_mul_of_integrable
-    (hX.integrable ennreal.one_le_two) (hY.integrable ennreal.one_le_two),
+    (hX.integrable one_le_two) (hY.integrable one_le_two),
 end
 ... = Var[X] + Var[Y] :
   by { simp only [variance_def', hX, hY, pi.pow_apply], ring }
@@ -182,9 +182,9 @@ begin
     - (𝔼[X k] + 𝔼[∑ i in s, X i]) ^ 2 :
   begin
     rw [integral_add', integral_add', integral_add'],
-    { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)) },
+    { exact mem_ℒp.integrable one_le_two (hs _ (mem_insert_self _ _)) },
     { apply integrable_finset_sum' _ (λ i hi, _),
-      exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)) },
+      exact mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi)) },
     { exact mem_ℒp.integrable_sq (hs _ (mem_insert_self _ _)) },
     { apply mem_ℒp.integrable_sq,
       exact mem_ℒp_finset_sum' _ (λ i hi, (hs _ (mem_insert_of_mem hi))) },
@@ -197,8 +197,8 @@ begin
       simp only [mul_sum, sum_apply, pi.mul_apply],
       apply integrable_finset_sum _ (λ i hi, _),
       apply indep_fun.integrable_mul _
-        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)))
-        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi))),
+        (mem_ℒp.integrable one_le_two (hs _ (mem_insert_self _ _)))
+        (mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi))),
       apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
       exact (λ hki, ks (hki.symm ▸ hi)) }
   end
@@ -216,19 +216,19 @@ begin
     rw integral_finset_sum s (λ i hi, _), swap,
     { apply integrable.const_mul _ 2,
       apply indep_fun.integrable_mul _
-        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)))
-        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi))),
+        (mem_ℒp.integrable one_le_two (hs _ (mem_insert_self _ _)))
+        (mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi))),
       apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
       exact (λ hki, ks (hki.symm ▸ hi)) },
     rw [integral_finset_sum s
-      (λ i hi, (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)))),
+      (λ i hi, (mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi)))),
       mul_sum, mul_sum, ← sum_sub_distrib],
     apply finset.sum_eq_zero (λ i hi, _),
     rw [integral_mul_left, indep_fun.integral_mul_of_integrable', sub_self],
     { apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
       exact (λ hki, ks (hki.symm ▸ hi)) },
-    { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)) },
-    { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)) }
+    { exact mem_ℒp.integrable one_le_two (hs _ (mem_insert_self _ _)) },
+    { exact mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi)) }
   end
   ... = Var[X k] + ∑ i in s, Var[X i] :
     by rw IH (λ i hi, hs i (mem_insert_of_mem hi))

@@ -172,9 +172,11 @@ begin
   rwa one_div_div at h_rpow_add_rpow_le_add,
 end
 
-lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp : 0 ≤ p) (hp1 : p ≤ 1) :
   (a + b) ^ p ≤ a ^ p + b ^ p :=
 begin
+  rcases hp.eq_or_lt with rfl|hp_pos,
+  { simp },
   have h := rpow_add_rpow_le a b hp_pos hp1,
   rw one_div_one at h,
   repeat { rw nnreal.rpow_one at h },
@@ -286,9 +288,14 @@ begin
   rwa one_div_div at h_rpow_add_rpow_le_add,
 end
 
-lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp : 0 ≤ p) (hp1 : p ≤ 1) :
   (a + b) ^ p ≤ a ^ p + b ^ p :=
 begin
+  rcases hp.eq_or_lt with rfl|hp_pos,
+  { suffices : (1 : ℝ≥0∞) ≤ 1 + 1,
+    { simpa using this },
+    norm_cast,
+    norm_num },
   have h := rpow_add_rpow_le a b hp_pos hp1,
   rw one_div_one at h,
   repeat { rw ennreal.rpow_one at h },

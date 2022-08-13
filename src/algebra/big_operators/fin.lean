@@ -181,6 +181,29 @@ by simp [partial_prod, list.take_succ, list.of_fn_nth_val, dif_pos j.is_lt, ←o
   partial_prod f j.succ = f 0 * partial_prod (fin.tail f) j :=
 by simpa [partial_prod]
 
+@[to_additive] lemma partial_prod_left_inv {G : Type*} [group G] (f : fin (n + 1) → G) :
+  f 0 • partial_prod (λ i : fin n, (f i)⁻¹ * f i.succ) = f :=
+funext $ λ x, fin.induction_on x (by simp) (λ x hx,
+begin
+  simp only [coe_eq_cast_succ, pi.smul_apply, smul_eq_mul] at hx ⊢,
+  rw [partial_prod_succ, ←mul_assoc, hx, mul_inv_cancel_left],
+end)
+
+@[to_additive] lemma partial_prod_right_inv {G : Type*} [group G]
+  (g : G) (f : fin n → G) (i : fin n) :
+  ((g • partial_prod f) i)⁻¹ * (g • partial_prod f) i.succ = f i :=
+begin
+  cases i with i hn,
+  induction i with i hi generalizing hn,
+  { simp [←fin.succ_mk, partial_prod_succ] },
+  { specialize hi (lt_trans (nat.lt_succ_self i) hn),
+    simp only [mul_inv_rev, fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk,
+      smul_eq_mul, pi.smul_apply] at hi ⊢,
+    rw [←fin.succ_mk _ _ (lt_trans (nat.lt_succ_self _) hn), ←fin.succ_mk],
+    simp only [partial_prod_succ, mul_inv_rev, fin.cast_succ_mk],
+    assoc_rw [hi, inv_mul_cancel_left] }
+end
+
 end partial_prod
 
 end fin

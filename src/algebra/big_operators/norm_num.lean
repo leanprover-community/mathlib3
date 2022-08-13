@@ -213,7 +213,7 @@ elements of the finset are equal, for example to parse `{2, 1, 2}` into `[2, 1]`
 -/
 meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
   expr → tactic (list expr × expr × expr)
-| e@`(finset.mk %%val %%nd) := do
+| e@`(finset.mk %%val %%n
   (val', eq) ← eval_multiset val,
   eq' ← i_to_expr ``(finset.mk_congr %%eq _ _),
   pure (val', eq', nd)

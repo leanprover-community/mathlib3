@@ -81,4 +81,14 @@ noncomputable def comap (f : E →L[ℝ] F) (K' : proper_cone F) : proper_cone E
   end }
 
 end proper_cone
+
+theorem farkas_lemma (K : proper_cone E) (f : E →L[ℝ] F) (b : F) :
+b ∈ K.map f ↔ ∀ y : F, (continuous_linear_map.adjoint f b) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
+begin
+  sorry,
+end
+begin
+  sorry,
+end
+
 end complete_space

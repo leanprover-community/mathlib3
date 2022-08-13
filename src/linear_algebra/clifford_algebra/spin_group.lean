@@ -102,7 +102,8 @@ end
 
 instance : has_star (pin_group Q) := ⟨λ x, ⟨star x, star_mem x.prop⟩⟩
 
-@[simp, norm_cast] lemma coe_star {x : pin_group Q} : ↑(star x) = (star x : clifford_algebra Q) := rfl
+@[simp, norm_cast] lemma coe_star {x : pin_group Q} :
+  ↑(star x) = (star x : clifford_algebra Q) := rfl
 
 lemma coe_star_mul_self (x : pin_group Q) :
   (star x : clifford_algebra Q) * x = 1 := star_mul_self_of_mem x.prop

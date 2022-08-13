@@ -714,7 +714,7 @@ begin
     simpa only [nontrivial_iff_exists_ne_one] }
 end
 
-/-- A subgroup is either the trivial subgroup or contains a nonzero element. -/
+/-- A subgroup is either the trivial subgroup or contains a non-identity element. -/
 @[to_additive "A subgroup is either the trivial subgroup or contains a nonzero element."]
 lemma bot_or_exists_ne_one (H : subgroup G) : H = ⊥ ∨ ∃ x ∈ H, x ≠ (1:G) :=
 begin

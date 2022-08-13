@@ -135,7 +135,7 @@ finite.induction_empty_option
 /-- A version of `is_artinian_pi` for non-dependent functions. We need this instance because
 sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
 prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
-instance is_artinian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+instance is_artinian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [finite ι]
   [is_artinian R M] : is_artinian R (ι → M) :=
 is_artinian_pi
 

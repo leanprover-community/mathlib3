@@ -428,9 +428,6 @@ lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
 
 end comm_monoid
 
-section fintype
-variables
-
 section finite_monoid
 variables [monoid G]
 open_locale big_operators
@@ -684,10 +681,10 @@ by rw [zpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_o
     rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
       h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key } }
 
-@[simp, to_additive] lemma pow_coprime_one (h : (fintype.card G).coprime n) :
+@[simp, to_additive] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) :
   pow_coprime h 1 = 1 := one_pow n
 
-@[simp, to_additive] lemma pow_coprime_inv (h : (fintype.card G).coprime n) {g : G} :
+@[simp, to_additive] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} :
   pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
 
 @[to_additive add_inf_eq_bot_of_coprime]
@@ -716,8 +713,6 @@ lemma pow_gcd_card_eq_one_iff : x ^ n = 1 ↔ x ^ (gcd n (fintype.card G)) = 1 :
     by rw [hm, pow_mul, h, one_pow]⟩
 
 end finite_group
-
-end fintype
 
 section pow_is_subgroup
 

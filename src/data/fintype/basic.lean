@@ -1608,6 +1608,9 @@ instance set.fintype [fintype α] : fintype (set α) :=
   apply (coe_filter _ _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩
 
+instance set.finite [finite α] : finite (set α) :=
+by { casesI nonempty_fintype α, apply_instance }
+
 @[simp] lemma fintype.card_set [fintype α] : fintype.card (set α) = 2 ^ fintype.card α :=
 (finset.card_map _).trans (finset.card_powerset _)
 

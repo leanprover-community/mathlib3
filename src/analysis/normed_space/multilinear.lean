@@ -792,6 +792,22 @@ to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 (multilinear_map.mk_continuous_norm_le _ (norm_nonneg z) _).antisymm $
   by simpa using (continuous_multilinear_map.mk_pi_field 𝕜 ι z).le_op_norm (λ _, 1)
 
+lemma mk_pi_field_eq_iff [fintype ι] {z₁ z₂ : G} :
+  continuous_multilinear_map.mk_pi_field 𝕜 ι z₁ = continuous_multilinear_map.mk_pi_field 𝕜 ι z₂ ↔
+  z₁ = z₂ :=
+begin
+  rw [← to_multilinear_map_inj.eq_iff],
+  exact multilinear_map.mk_pi_ring_eq_iff
+end
+
+lemma mk_pi_field_zero [fintype ι] :
+  continuous_multilinear_map.mk_pi_field 𝕜 ι (0 : G) = 0 :=
+by ext; rw [mk_pi_field_apply, smul_zero, continuous_multilinear_map.zero_apply]
+
+lemma mk_pi_field_eq_zero_iff [fintype ι] (z : G) :
+  continuous_multilinear_map.mk_pi_field 𝕜 ι z = 0 ↔ z = 0 :=
+by rw [← mk_pi_field_zero, mk_pi_field_eq_iff]
+
 variables (𝕜 ι G)
 
 /-- Continuous multilinear maps on `𝕜^n` with values in `G` are in bijection with `G`, as such a

@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Frédéric Dupuis
 -/
 import analysis.convex.hull
 import analysis.inner_product_space.projection
+import analysis.inner_product_space.adjoint
 
 /-!
 # Convex cones
@@ -767,6 +768,19 @@ begin
   exact set.mem_of_subset_of_mem clf mem₀,
 end
 
+-- TODO: generalize this to other fields
+/-- The closure of a convex cone inside a complete space is a convex cone.-/
+def convex_cone.closure (K : convex_cone ℝ H) : convex_cone ℝ H :=
+{ carrier := closure (K : set H),
+  smul_mem' := by {
+    rw ← sequential_space.seq_closure_eq_closure,
+    exact λ c hc x ⟨seq, mem, tends⟩,
+    ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), filter.tendsto.const_smul tends c⟩ ⟩ },
+  add_mem' := by {
+    rw ← sequential_space.seq_closure_eq_closure,
+    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
+    ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), filter.tendsto.add xtends ytends⟩ ⟩}}
+
 section complete_space
 variables [complete_space H]
 
@@ -826,24 +840,12 @@ begin
   rwa real_inner_comm,
 end
 
--- TODO: generalize this to other fields
-/-- The closure of a convex cone inside a complete space is a convex cone.-/
-def convex_cone.closure (K : convex_cone ℝ H) : convex_cone ℝ H :=
-{ carrier := closure (K : set H),
-  smul_mem' := by {
-    rw ← sequential_space.seq_closure_eq_closure,
-    exact λ c hc x ⟨seq, mem, tends⟩,
-    ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), filter.tendsto.const_smul tends c⟩ ⟩ },
-  add_mem' := by {
-    rw ← sequential_space.seq_closure_eq_closure,
-    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
-    ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), filter.tendsto.add xtends ytends⟩ ⟩}}
-
 end complete_space
 end dual
 
 section definitions
 
+/-- A proper cone is a convex cone `K` which is nonempty and closed. -/
 structure proper_cone (H : Type*) [inner_product_space ℝ H] [complete_space H] :=
 (carrier    : convex_cone ℝ H)
 (nonempty'  : (carrier : set H).nonempty)
@@ -851,9 +853,11 @@ structure proper_cone (H : Type*) [inner_product_space ℝ H] [complete_space H]
 
 end definitions
 
-namespace proper_cone
+section complete_space
 variables {H : Type*} [inner_product_space ℝ H] [complete_space H]
 variables {H' : Type*} [inner_product_space ℝ H'] [complete_space H']
+
+namespace proper_cone
 
 instance : has_coe (proper_cone H) (convex_cone ℝ H) := ⟨proper_cone.carrier⟩
 
@@ -904,3 +908,6 @@ noncomputable def comap (f : H →L[ℝ] H') (K' : proper_cone H') : proper_cone
   end }
 
 end proper_cone
+
+
+end complete_space

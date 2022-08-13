@@ -66,21 +66,21 @@ lemma locally_zero (hp : has_fpower_series_at f (0 : formal_multilinear_series �
   ∀ᶠ z in 𝓝 z₀, f z = 0 :=
 begin
   filter_upwards [has_fpower_series_at_iff'.mp hp] with z hz,
-  simp only [coef, pi.zero_apply, continuous_multilinear_map.zero_apply, smul_zero] at hz,
+  simp only [coeff, pi.zero_apply, continuous_multilinear_map.zero_apply, smul_zero] at hz,
   exact hz.unique has_sum_zero
 end
 
 lemma has_fpower_series_dslope_fslope (hp : has_fpower_series_at f p z₀) :
   has_fpower_series_at (dslope f z₀) p.fslope z₀ :=
 begin
-  have hpd : deriv f z₀ = p.coef 1 := hp.deriv,
-  have hp0 : p.coef 0 = f z₀ := hp.coeff_zero 1,
-  simp only [has_fpower_series_at_iff, apply_eq_pow_smul_coef, coef_fslope] at hp ⊢,
+  have hpd : deriv f z₀ = p.coeff 1 := hp.deriv,
+  have hp0 : p.coeff 0 = f z₀ := hp.coeff_zero 1,
+  simp only [has_fpower_series_at_iff, apply_eq_pow_smul_coeff, coeff_fslope] at hp ⊢,
   refine hp.mono (λ x hx, _),
   by_cases x = 0,
   { convert has_sum_single 0 _; intros; simp [*] },
   { have hxx : ∀ (n : ℕ), x⁻¹ * x ^ (n + 1) = x ^ n := λ n, by field_simp [h, pow_succ'],
-    suffices : has_sum (λ n, x⁻¹ • x ^ (n + 1) • p.coef (n + 1)) (x⁻¹ • (f (z₀ + x) - f z₀)),
+    suffices : has_sum (λ n, x⁻¹ • x ^ (n + 1) • p.coeff (n + 1)) (x⁻¹ • (f (z₀ + x) - f z₀)),
     { simpa [dslope, slope, h, smul_smul, hxx] using this },
     { simpa [hp0] using ((has_sum_nat_add_iff' 1).mpr hx).const_smul } }
 end
@@ -97,7 +97,7 @@ lemma iterate_dslope_fslope_ne_zero (hp : has_fpower_series_at f p z₀) (h : p 
   (swap dslope z₀)^[p.order] f z₀ ≠ 0 :=
 begin
   rw [← coeff_zero (has_fpower_series_iterate_dslope_fslope p.order hp) 1],
-  simpa [coef_eq_zero] using apply_order_ne_zero h
+  simpa [coeff_eq_zero] using apply_order_ne_zero h
 end
 
 lemma eq_pow_order_mul_iterate_dslope (hp : has_fpower_series_at f p z₀) :
@@ -105,8 +105,8 @@ lemma eq_pow_order_mul_iterate_dslope (hp : has_fpower_series_at f p z₀) :
 begin
   have hq := has_fpower_series_at_iff'.mp (has_fpower_series_iterate_dslope_fslope p.order hp),
   filter_upwards [hq, has_fpower_series_at_iff'.mp hp] with x hx1 hx2,
-  have : ∀ k < p.order, p.coef k = 0,
-    from λ k hk, by simpa [coef_eq_zero] using apply_eq_zero_of_lt_order hk,
+  have : ∀ k < p.order, p.coeff k = 0,
+    from λ k hk, by simpa [coeff_eq_zero] using apply_eq_zero_of_lt_order hk,
   obtain ⟨s, hs1, hs2⟩ := has_sum.factor hx2 this,
   convert hs1.symm,
   simp only [coef_iterate_fslope] at hx1,

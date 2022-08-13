@@ -242,26 +242,26 @@ variables [nontrivially_normed_field 𝕜]
 open_locale big_operators
 
 /-- The `n`th coefficient of `p` when seen as a power series. -/
-def coef (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) : E := p n 1
+def coeff (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) : E := p n 1
 
-lemma mk_pi_field_coef_eq (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) :
-  continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (p.coef n) = p n :=
+lemma mk_pi_field_coeff_eq (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) :
+  continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (p.coeff n) = p n :=
 (p n).mk_pi_field_apply_one_eq_self
 
-@[simp] lemma apply_eq_prod_smul_coef : p n y = (∏ i, y i) • p.coef n :=
+@[simp] lemma apply_eq_prod_smul_coeff : p n y = (∏ i, y i) • p.coeff n :=
 begin
   convert (p n).to_multilinear_map.map_smul_univ y 1,
   funext; simp only [pi.one_apply, algebra.id.smul_eq_mul, mul_one],
 end
 
-lemma coef_eq_zero : p.coef n = 0 ↔ p n = 0 :=
-by rw [← mk_pi_field_coef_eq p, continuous_multilinear_map.mk_pi_field_eq_zero_iff]
+lemma coeff_eq_zero : p.coeff n = 0 ↔ p n = 0 :=
+by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.mk_pi_field_eq_zero_iff]
 
-@[simp] lemma apply_eq_pow_smul_coef : p n (λ _, z) = z ^ n • p.coef n :=
+@[simp] lemma apply_eq_pow_smul_coeff : p n (λ _, z) = z ^ n • p.coeff n :=
 by simp
 
-@[simp] lemma norm_apply_eq_norm_coef : ∥p n∥ = ∥coef p n∥ :=
-by rw [← mk_pi_field_coef_eq p, continuous_multilinear_map.norm_mk_pi_field]
+@[simp] lemma norm_apply_eq_norm_coef : ∥p n∥ = ∥coeff p n∥ :=
+by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.norm_mk_pi_field]
 
 end coef
 
@@ -276,14 +276,14 @@ has `p` as a power series, then `dslope f` has `fslope p` as a power series. -/
 noncomputable def fslope (p : formal_multilinear_series 𝕜 𝕜 E) : formal_multilinear_series 𝕜 𝕜 E :=
   λ n, (p (n + 1)).curry_left 1
 
-@[simp] lemma coef_fslope : p.fslope.coef n = p.coef (n + 1) :=
+@[simp] lemma coeff_fslope : p.fslope.coeff n = p.coeff (n + 1) :=
 begin
   have : @fin.cons n (λ _, 𝕜) 1 (1 : fin n → 𝕜) = 1 := fin.cons_self_tail 1,
-  simp only [fslope, coef, continuous_multilinear_map.curry_left_apply, this],
+  simp only [fslope, coeff, continuous_multilinear_map.curry_left_apply, this],
 end
 
 @[simp] lemma coef_iterate_fslope (k n : ℕ) :
-  (fslope^[k] p).coef n = p.coef (n + k) :=
+  (fslope^[k] p).coeff n = p.coeff (n + k) :=
 by induction k with k ih generalizing p; refl <|> simpa [ih]
 
 end fslope

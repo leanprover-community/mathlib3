@@ -1191,7 +1191,7 @@ variables {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {z₀ : �
 `p` in a neighborhood of `z₀`. This makes some proofs easier by hiding the fact that
 `has_fpower_series_at` depends on `p.radius`. -/
 lemma has_fpower_series_at_iff : has_fpower_series_at f p z₀ ↔
-  ∀ᶠ z in 𝓝 0, has_sum (λ n, z ^ n • p.coef n) (f (z₀ + z)) :=
+  ∀ᶠ z in 𝓝 0, has_sum (λ n, z ^ n • p.coeff n) (f (z₀ + z)) :=
 begin
   refine ⟨λ ⟨r, r_le, r_pos, h⟩, eventually_of_mem (emetric.ball_mem_nhds 0 r_pos)
     (λ _, by simpa using h), _⟩,
@@ -1208,14 +1208,14 @@ begin
     refine lt_of_lt_of_le _ this,
     simp only [ennreal.coe_pos],
     exact zero_lt_iff.mpr (nnnorm_ne_zero_iff.mpr (norm_pos_iff.mp z_pos)) },
-  { simp only [emetric.mem_ball, lt_inf_iff, edist_lt_coe, apply_eq_pow_smul_coef, and_imp,
+  { simp only [emetric.mem_ball, lt_inf_iff, edist_lt_coe, apply_eq_pow_smul_coeff, and_imp,
       dist_zero_right] at h ⊢,
     refine λ y hyp hyr, h _,
     simpa [nndist_eq_nnnorm, real.lt_to_nnreal_iff_coe_lt] using hyr }
 end
 
 lemma has_fpower_series_at_iff' : has_fpower_series_at f p z₀ ↔
-  ∀ᶠ z in 𝓝 z₀, has_sum (λ n, (z - z₀) ^ n • p.coef n) (f z) :=
+  ∀ᶠ z in 𝓝 z₀, has_sum (λ n, (z - z₀) ^ n • p.coeff n) (f z) :=
 begin
   rw [← map_add_left_nhds_zero, eventually_map, has_fpower_series_at_iff],
   congrm ∀ᶠ z in (𝓝 0 : filter 𝕜), has_sum (λ n, _) (f (z₀ + z)),

@@ -66,6 +66,9 @@ instance : has_zero (ring_seminorm R) :=
 ⟨{ mul_le' :=  λ _ _, eq.ge (zero_mul _),
   ..add_group_seminorm.has_zero.zero }⟩
 
+/-- A seminorm is nontrivial if it is not the zero seminorm. -/
+def nontrivial (p : ring_seminorm R) := ∃ x : R, p x ≠ 0
+
 instance : inhabited (ring_seminorm R) := ⟨0⟩
 
 variables (p : ring_seminorm R)
@@ -88,8 +91,8 @@ lemma pow_le : ∀ {n : ℕ}, 0 < n → p (x ^ n) ≤ (p x) ^ n
 by simpa only [pow_succ _ (n + 1)] using le_trans (p.mul_le x _)
   (mul_le_mul_of_nonneg_left (pow_le n.succ_pos) (p.nonneg _))
 
-lemma seminorm_one_eq_one_iff_nonzero (hp : p 1 ≤ 1) :
-  p 1 = 1 ↔ ∃ x : R, p x ≠ 0 :=
+lemma seminorm_one_eq_one_iff_nontrivial (hp : p 1 ≤ 1) :
+  p 1 = 1 ↔ nontrivial p :=
 begin
   refine ⟨λ h, ⟨1, by {rw h, exact one_ne_zero}⟩, λ h, _⟩,
   obtain ⟨x, hx⟩ := h,
@@ -121,8 +124,9 @@ def norm_ring_seminorm (R : Type*) [non_unital_semi_normed_ring R] :
   neg'      := norm_neg,
   mul_le'   := norm_mul_le }
 
-/-- A function `f : R → ℝ` is a norm if it is a seminorm and `f x = 0` implies `x = 0`. -/
-structure ring_norm (R : Type*) [non_unital_ring R] extends (ring_seminorm R) :=
+/-- A function `f : R → ℝ` is a norm on a (nonunital) ring if it is a seminorm and `f x = 0`
+  implies `x = 0`. -/
+structure ring_norm (R : Type*) [non_unital_ring R] extends ring_seminorm R :=
 (ne_zero : ∀ x, x ≠ 0 → 0 < to_fun x)
 
 attribute [nolint doc_blame] ring_norm.to_ring_seminorm
@@ -131,15 +135,15 @@ namespace ring_norm
 
 variable [non_unital_ring R]
 
-/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
-instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
-
-@[simp] lemma to_fun_eq_coe (p : ring_norm R) : p.to_fun = p := rfl
-
 instance zero_hom_class : zero_hom_class (ring_norm R) R ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero' }
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
+instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe (p : ring_norm R) : p.to_fun = p := rfl
 
 @[ext] lemma ext {p q : ring_norm R} (h : ∀ x, p x = q x) : p = q :=
 fun_like.ext p q h
@@ -149,17 +153,19 @@ variable (R)
 /-- The trivial norm on a ring `R` is the `ring_norm` taking value `0` at `0` and `1` at every
   other element. -/
 def trivial_norm [decidable_eq R] : ring_norm R :=
-{ mul_le'   := λ x y,
-  begin by_cases h : x * y = 0,
+{ mul_le' := λ x y, begin
+    by_cases h : x * y = 0,
     { simp only [add_group_seminorm.trivial_norm, if_pos h], apply mul_nonneg;
       { split_ifs, exacts [le_refl _, zero_le_one] }},
     { simp only [add_group_seminorm.to_fun_eq_coe, add_group_seminorm.trivial_norm_of_ne_zero h,
         add_group_seminorm.trivial_norm_of_ne_zero (left_ne_zero_of_mul h),
         add_group_seminorm.trivial_norm_of_ne_zero (right_ne_zero_of_mul h), mul_one] }
   end,
-  ne_zero   := λ x hx,
-  by { simp only [add_group_seminorm.trivial_norm, if_neg hx], exact zero_lt_one },
-  ..add_group_seminorm.trivial_norm R }
+  ne_zero := λ x hx, begin
+    simp only [add_group_seminorm.trivial_norm, if_neg hx],
+    exact zero_lt_one
+  end,
+  .. add_group_seminorm.trivial_norm R }
 
 lemma trivial_norm_of_ne_zero [decidable_eq R] {z : R} (h : z ≠ 0) : trivial_norm R z = 1 :=
 if_neg h
@@ -168,7 +174,7 @@ instance [decidable_eq R] : inhabited (ring_norm R) := ⟨trivial_norm R⟩
 
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
 def of_ring_seminorm {K : Type*} [field K] (f : ring_seminorm K)
-  (hnt : ∃ r : K, 0 ≠ f r) : ring_norm K :=
+  (hnt : ring_seminorm.nontrivial f) : ring_norm K :=
 { ne_zero := λ x hx, begin
     obtain ⟨c, hc⟩ := hnt,
     have hfx : 0 ≠ f x,
@@ -177,7 +183,7 @@ def of_ring_seminorm {K : Type*} [field K] (f : ring_seminorm K)
       { rw [← mul_one c, ← mul_inv_cancel hx, ← mul_assoc, mul_comm c, mul_assoc],
         refine le_trans (f.mul_le x _) _,
         rw [← h0, zero_mul] },
-      exact hc (ge_antisymm hc' (f.nonneg _)), },
+      exact hc (le_antisymm hc' (f.nonneg _)), },
     exact lt_of_le_of_ne (f.nonneg _) hfx,
   end,
   ..f }

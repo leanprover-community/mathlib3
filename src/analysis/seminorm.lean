@@ -47,7 +47,9 @@ open_locale big_operators nnreal pointwise topological_space
 variables {R R' 𝕜 E F G ι : Type*}
 
 /-- A seminorm on an additive group `G` is a function `f : G → ℝ` that preserves zero, takes
-nonnegative values, is subadditive and such that `f (-x) = f x` for all `x ∈ G`. -/
+nonnegative values, is subadditive and such that `f (-x) = f x` for all `x ∈ G`.
+
+TODO: define `add_group_seminorm_class`, so that `ring_seminorm` can provide an instance of it. -/
 structure add_group_seminorm (G : Type*) [add_group G]
   extends zero_hom G ℝ :=
 (nonneg' : ∀ r, 0 ≤ to_fun r)
@@ -115,8 +117,15 @@ variables (p q) (f : F →* E)
   mul_le'   := λ _ _, (zero_add _).ge,
   inv'      := λ x, rfl}⟩
 
+<<<<<<< HEAD
 @[simp, to_additive] lemma coe_zero : ⇑(0 : group_seminorm E) = 0 := rfl
 @[simp, to_additive] lemma zero_apply (x : E) : (0 : group_seminorm E) x = 0 := rfl
+=======
+/-- A seminorm is nontrivial if it is not the zero seminorm. -/
+def nontrivial (p : add_group_seminorm E) := ∃ x : E, p x ≠ 0
+
+@[simp] lemma coe_zero : ⇑(0 : add_group_seminorm E) = 0 := rfl
+>>>>>>> suggested changes
 
 @[to_additive] instance : inhabited (group_seminorm E) := ⟨0⟩
 

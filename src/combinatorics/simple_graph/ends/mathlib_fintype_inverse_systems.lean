@@ -68,6 +68,19 @@ namespace inverse_system
 variables {J : Type u} [preorder J] [is_directed J ge] (F : J ⥤ Type v)
 
 
+
+theorem nonempty_sections_of_fintype_inverse_system' (F : J ⥤ Type v)
+  [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
+begin
+  haveI : preorder Jᵒᵖ, by sorry,
+  haveI : is_directed Jᵒᵖ has_le.le, by sorry,
+  let F' : (Jᵒᵖ)ᵒᵖ ⥤ Type v := (category_theory.op_op J).comp F,
+  sorry,--have F'sec := @nonempty_sections_of_fintype_inverse_system Jᵒᵖ _ _ F' _ _s,
+end
+
+
+
+
 def is_surjective : Prop := ∀ (i j : J) (h : i ≤ j) (x : F.obj j), x ∈ set.range (F.map (hom_of_le h))
 
 def is_surjective_on (j : J) : Prop :=
@@ -466,40 +479,16 @@ begin
   apply subtype.fintype,
 end
 
-
-
-end inverse_system
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- The functor mapping i to (F.map (hom_of_le _)) ⁻¹ {x}
-
-
+lemma above_point.sections_nonempty (j : J) (Fsurj : is_surjective_on F j)
+  [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)]
+  (x : F.obj j) : nonempty (above_point F j x).sections :=
+begin
+  apply set.nonempty_coe_sort.mpr,
+  exact @nonempty_sections_of_fintype_inverse_system' _ _ _ (above_point F j x) (above_point.fintype F j x)  (above_point.nonempty F j Fsurj x),
+end
 
 -- This should maybe be split into more basic components…
-def sections_at_point
- (j : J) (x : F.obj j) :
+def sections_at_point (j : J) (x : F.obj j) :
   {s : F.sections | s.val j = x} ≃ (above_point F j x).sections :=
 begin
 
@@ -508,29 +497,22 @@ begin
     simp only [set.mem_set_of_eq] at sjx,
     rcases sjx with rfl,
     split, rotate,
-    { rintro ii, dsimp only [above_point],
-      refine ⟨s ( ii.val),_⟩,
-      unfold set.preimage,
-      unfold category_theory.functor.sections at sec,
-      let lol1 := (ii.prop : j ≤ ii.val), simp only [set.mem_set_of_eq] at lol1, rw ←subtype.val_eq_coe at lol1,
-      let lol2 := (opposite_op ii.val),
-      rw ←lol2 at lol1,
-      exact sec (hom_of_le $ lol1),
-     },
-    { rintro ii kk ik, simp only [id.def], dsimp only [above_point], rw ←subtype.coe_inj, simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk], apply sec,},},
+    { rintro ⟨i,ij⟩,
+      exact ⟨s i,sec $ hom_of_le ij⟩, },
+    { rintro ⟨i,ij⟩ ⟨k,kj⟩ ik,
+      simp only [←subtype.coe_inj],
+      simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk],
+      apply sec, },},
 
 
   let bwd_aux :  Π (s : (above_point F j x).sections) (i : J),
-                 {y : F.obj i | ∃ (k : J) (ik : i ≤ k) (jk : j ≤ k),
+                 {y : F.obj i | ∃ (k : J) (ik : k ≤ i) (jk : k ≤ j),
                                 y =  F.map (hom_of_le ik) (s.val $  ⟨k,jk⟩).val}, by
   { rintro ⟨s,sec⟩ i,
-    let m' := (directed_of (≥) i j).some,
-    obtain ⟨mi',mj'⟩ := (directed_of (≥) i j).some_spec,
-    let m :=  m',
-    have mi : opposite i ≤ opposite m, by {simp only [opposite_op],exact mi'},
-    have mj : opposite j ≤ opposite m, by {simp only [opposite_op],exact mj'},
-    use F.map (hom_of_le mi) (s $  ⟨m,mj⟩).val,
-    exact ⟨m,mi,mj,rfl⟩,},
+    let m := (directed_of (≥) i j).some,
+    obtain ⟨mi,mj⟩ := (directed_of (≥) i j).some_spec,
+    use F.map (hom_of_le mi) (s ⟨m,mj⟩).val,
+    exact ⟨m,mi,mj,rfl⟩, },
 
   let bwd : (above_point F j x).sections → {s : F.sections | s.val j = x}, by
   { rintro ss,
@@ -541,22 +523,14 @@ begin
       { rintro i k ik',
         obtain ⟨m,mi,mj,meq⟩ := (bwd_aux ss i).prop,
         obtain ⟨n,nk,nj,neq⟩ := (bwd_aux ss k).prop,
-        let l' := (directed_of (≥) m n).some,
-        obtain ⟨lm',ln'⟩ := (directed_of (≥) m n).some_spec,
-        let l :=  l',
-        have lm : opposite m ≤ opposite l, by {simp only [opposite_op],exact lm'},
-        have ln : opposite n ≤ opposite l, by {simp only [opposite_op],exact ln'},
-        simp only [subtype.val_eq_coe],
-        rw [meq,neq],
+        let l := (directed_of (≥) m n).some,
+        obtain ⟨lm,ln⟩ := (directed_of (≥) m n).some_spec,
         obtain ⟨s,sec⟩ := ss,
-        simp only [subtype.val_eq_coe],
-        unfold functor.sections at sec, simp at sec, dsimp [above_point] at sec,
-        rw ←(@sec ( ⟨l, mj.trans lm⟩) ( ⟨m, mj⟩) (hom_of_le $ lm)),
-        rw ←(@sec ( ⟨l, nj.trans ln⟩) ( ⟨n, nj⟩) (hom_of_le $ ln)),
+        simp only [subtype.val_eq_coe,meq,neq],
+        rw ←(@sec  ⟨l, lm.le.trans mj⟩ ⟨m, mj⟩ (hom_of_le $ lm)),
+        rw ←(@sec  ⟨l, ln.le.trans nj⟩ ⟨n, nj⟩ (hom_of_le $ ln)),
         dsimp [above_point],
-        rw ←functor_to_types.map_comp_apply,
-        rw ←functor_to_types.map_comp_apply,
-        rw ←functor_to_types.map_comp_apply,
+        simp only [←functor_to_types.map_comp_apply],
         reflexivity, },},
     { simp only [subtype.val_eq_coe, set.mem_set_of_eq, subtype.coe_mk],
       obtain ⟨y,k,jk,jk',rfl⟩ := bwd_aux ss j,
@@ -564,17 +538,14 @@ begin
       dsimp [above_point,functor.sections] at ss,
       obtain ⟨s,sec⟩ := ss,
       simp only [subtype.coe_mk],
-      obtain ⟨y,yh⟩ := s ( ⟨k,jk⟩),
-      dsimp only [set.preimage] at yh,
-      simp only [subtype.coe_mk],
+      obtain ⟨y,yh⟩ := s ⟨k,jk⟩,
       exact yh,}
   },
 
   split, rotate 2,
   exact fwd,
   exact bwd,
-  -- refine ⟨fwd,bwd,_,_⟩, -- I get timeouts trying to work from here :(
-  { dsimp [function.left_inverse],
+  { /-dsimp [function.left_inverse],
     rintro ⟨⟨s, sec⟩,sjx⟩,
     dsimp only [fwd],
     dsimp only [bwd],
@@ -594,7 +565,7 @@ begin
       whnf,
       congr,
       congr,
-    end,
+    end,-/
     sorry
    },
   { dsimp [function.right_inverse,function.left_inverse],
@@ -605,19 +576,8 @@ begin
     sorry, },
 end
 
-lemma above_point.sections_nonempty
 
-  (j : J)
-  (Fsurj : is_surjective_onto F j)
-  [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)]
-  (x : F.obj j) : nonempty (above_point F j x).sections :=
-begin
-  apply set.nonempty_coe_sort.mpr,
-  exact @nonempty_sections_of_fintype_inverse_system _ _ _ (above_point F j x) (above_point.fintype F j x)  (above_point.nonempty F j Fsurj x),
-end
-
-lemma decomposition'
- [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)] (j : J) :
+lemma decomposition' [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)] (j : J) :
   F.sections ≃ Σ (x : F.obj j), (above_point F j x).sections :=
 begin
   apply equiv.trans,
@@ -628,18 +588,15 @@ begin
 end
 
 
-lemma sections_surjective
- [Π (j : J), fintype (F.obj j)]
-   (j : J) (Fsurj : is_surjective_onto F j) : function.surjective (λ (s : F.sections), s.val j) :=
+lemma sections_surjective [Π (j : J), fintype (F.obj j)]
+  (j : J) (Fsurj : is_surjective_on F j) :
+  function.surjective (λ (s : F.sections), s.val j) :=
 begin
     rintro x,
     haveI : Π (j : J), nonempty (F.obj j), by
     { rintro i,
-      let l' := (directed_of (≥) i j).some,
-      obtain ⟨li',lj'⟩ := (directed_of (≥) i j).some_spec,
-      let l :=  l',
-      have li : opposite i ≤ opposite l, by {simp only [opposite_op],exact li'},
-      have lj : opposite j ≤ opposite l, by {simp only [opposite_op],exact lj'},
+      let l := (directed_of (≥) i j).some,
+      obtain ⟨li,lj⟩ := (directed_of (≥) i j).some_spec,
       obtain ⟨y,rfl⟩ :=  Fsurj l lj x,
       use F.map (hom_of_le li) y,},
 
@@ -648,4 +605,4 @@ begin
     exact ⟨s,sgood⟩,
 end
 
-#check subtype.rec
+end inverse_system

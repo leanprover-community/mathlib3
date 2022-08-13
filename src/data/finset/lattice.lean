@@ -116,7 +116,7 @@ end
 
 /-- See also `finset.product_bUnion`. -/
 lemma sup_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
 begin
   refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ i' hi', le_sup $ mem_product.2 ⟨hi, hi'⟩)),
   refine sup_le _,
@@ -127,7 +127,7 @@ begin
 end
 
 lemma sup_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
 by rw [sup_product_left, sup_comm]
 
 @[simp] lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
@@ -322,11 +322,11 @@ lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
 @sup_comm αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
 @sup_product_left αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
 @sup_product_right αᵒᵈ _ _ _ _ _ _ _
 
 @[simp] lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=

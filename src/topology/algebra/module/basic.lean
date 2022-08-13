@@ -173,13 +173,12 @@ variables {R : Type u} {M : Type v}
 [module R M] [has_continuous_smul R M]
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  ⊆ closure (s : set M) :=
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
 calc
-(λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-    = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R) ×ˢ (s : set M))) :
+(λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s)
+    = (λ p : R × M, p.1 • p.2) '' closure (set.univ ×ˢ s) :
   by simp [closure_prod_eq]
-... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ (s : set M))) :
+... ⊆ closure ((λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ s)) :
   image_closure_subset_closure_image continuous_smul
 ... = closure s : begin
   congr,
@@ -190,10 +189,8 @@ calc
 end
 
 lemma submodule.closure_smul_self_eq (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  = closure (s : set M) :=
-set.subset.antisymm s.closure_smul_self_subset
-  (λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩)
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) = closure s :=
+s.closure_smul_self_subset.antisymm $ λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩
 
 variables [has_continuous_add M]
 
@@ -235,6 +232,11 @@ le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_cl
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
   dense (s : set M) ↔ s.topological_closure = ⊤ :=
 by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
+
+instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
+  [has_continuous_add M'] [has_continuous_smul R M'] [complete_space M'] (U : submodule R M') :
+  complete_space U.topological_closure :=
+is_closed_closure.complete_space_coe
 
 end closure
 
@@ -1035,13 +1037,13 @@ end pi
 section ring
 
 variables
-{R : Type*} [ring R] {R₂ : Type*} [ring R₂]
+{R : Type*} [ring R] {R₂ : Type*} [ring R₂] {R₃ : Type*} [ring R₃]
 {M : Type*} [topological_space M] [add_comm_group M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
-[module R M] [module R₂ M₂]
-{σ₁₂ : R →+* R₂}
+[module R M] [module R₂ M₂] [module R₃ M₃]
+{σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
 
 section
 
@@ -1100,6 +1102,26 @@ lemma sub_apply (f g : M →SL[σ₁₂] M₂) (x : M) : (f - g) x = f x - g x :
 @[simp, norm_cast] lemma coe_sub' (f g : M →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
 
 end
+
+@[simp] lemma comp_neg [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₂]
+  [topological_add_group M₃] (g : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
+  g.comp (-f) = -g.comp f :=
+by { ext, simp }
+
+@[simp] lemma neg_comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₃]
+  (g : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
+  (-g).comp f = -g.comp f :=
+by { ext, simp }
+
+@[simp] lemma comp_sub [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₂]
+  [topological_add_group M₃] (g : M₂ →SL[σ₂₃] M₃) (f₁ f₂ : M →SL[σ₁₂] M₂) :
+  g.comp (f₁ - f₂) = g.comp f₁ - g.comp f₂ :=
+by { ext, simp }
+
+@[simp] lemma sub_comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [topological_add_group M₃]
+  (g₁ g₂ : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
+  (g₁ - g₂).comp f = g₁.comp f - g₂.comp f :=
+by { ext, simp }
 
 instance [topological_add_group M] : ring (M →L[R] M) :=
 { mul := (*),

@@ -434,7 +434,7 @@ lemma has_fpower_series_on_ball.eventually_eq_zero
   ∀ᶠ z in 𝓝 x, f z = 0 :=
 by filter_upwards [hf.eventually_has_sum_sub] with z hz using hz.unique has_sum_zero
 
-lemma has_fpower_zeries_at.eventually_eq_zero
+lemma has_fpower_series_at.eventually_eq_zero
   (hf : has_fpower_series_at f (0 : formal_multilinear_series 𝕜 E F) x) :
   ∀ᶠ z in 𝓝 x, f z = 0 :=
 let ⟨r, hr⟩ := hf in hr.eventually_eq_zero

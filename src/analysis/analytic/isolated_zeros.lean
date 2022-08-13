@@ -133,7 +133,7 @@ lemma locally_zero' (hp : has_fpower_series_at f p z₀) (hf : ∀ᶠ z in 𝓝 
 
 lemma locally_zero_iff (hp : has_fpower_series_at f p z₀) :
   (∀ᶠ z in 𝓝 z₀, f z = 0) ↔ p = 0 :=
-⟨λ hf, locally_zero' hp hf, λ h, locally_zero (h ▸ hp)⟩
+⟨λ hf, locally_zero' hp hf, λ h, eventually_eq_zero (by rwa h at hp)⟩
 
 end has_fpower_series_at
 
@@ -147,7 +147,7 @@ theorem eventually_eq_zero_or_eventually_ne_zero (hf : analytic_at 𝕜 f z₀) 
 begin
   rcases hf with ⟨p, hp⟩,
   by_cases h : p = 0,
-  { exact or.inl (has_fpower_series_at.locally_zero (h ▸ hp)) },
+  { exact or.inl (has_fpower_series_at.eventually_eq_zero (by rwa h at hp)) },
   { exact or.inr (hp.locally_ne_zero_aux h) }
 end
 

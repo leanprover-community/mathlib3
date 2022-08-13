@@ -555,19 +555,22 @@ begin
     apply subtype.mk_eq_mk.mpr,
     apply funext,
     rintro i,
-    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (fwd ⟨⟨s,sorry⟩,rfl⟩) i, -- sorry should be sec…
+    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (fwd ⟨⟨s,sorry⟩,rfl⟩) i, -- sorry should be sec (the types are exactly the same but lean is unhappy for some reason)…
     simp only,
     rw e,
     dsimp only [fwd],
     rw ←sec (hom_of_le ki),
    },
   { dsimp only [function.right_inverse,function.left_inverse],
-    rintro ⟨s,sec⟩,
+    rintro ss,
     dsimp only [fwd,bwd],
+    rcases ss with ⟨s,sec⟩,
     apply subtype.coe_eq_of_eq_mk,
     apply funext,
     rintro ⟨i,ij⟩,
-    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux ⟨s,by {sorry /-should be exact sec-/}⟩ i,
+    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (⟨s,sorry⟩ : (above_point F j x).sections) i, -- sorry should be sec
+    rcases e with rfl,
+    dsimp only [id],
     sorry, },
 end
 

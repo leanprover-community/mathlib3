@@ -407,6 +407,16 @@ lemma has_fpower_series_on_ball.mono
   has_fpower_series_on_ball f p x r' :=
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
+lemma has_fpower_series_at.congr (hf : has_fpower_series_at f p x) (hg : f =ᶠ[𝓝 x] g) :
+  has_fpower_series_at g p x :=
+begin
+  replace hg := emetric.mem_nhds_iff.mp hg,
+  rcases hf with ⟨r₁, h₁⟩,
+  rcases hg with ⟨r₂, h₂pos, h₂⟩,
+  exact ⟨min r₁ r₂, (h₁.mono (lt_min h₁.r_pos h₂pos) inf_le_left).congr
+    (λ y hy, h₂ (emetric.ball_subset_ball inf_le_right hy))⟩
+end
+
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
   ∀ᶠ r : ℝ≥0∞ in 𝓝[>] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
@@ -865,6 +875,17 @@ theorem has_fpower_series_at.eq_formal_multilinear_series
   (h₁ : has_fpower_series_at f p₁ x) (h₂ : has_fpower_series_at f p₂ x) :
   p₁ = p₂ :=
 sub_eq_zero.mp (has_fpower_series_at.eq_zero (by simpa only [sub_self] using h₁.sub h₂))
+
+lemma has_fpower_series_at.eq_formal_multilinear_series_of_eventually
+  {p q : formal_multilinear_series 𝕜 𝕜 E} {f g : 𝕜 → E} {x : 𝕜} (hp : has_fpower_series_at f p x)
+  (hq : has_fpower_series_at g q x) (heq : ∀ᶠ z in 𝓝 x, f z = g z) :
+  p = q :=
+(hp.congr heq).eq_formal_multilinear_series hq
+
+/-- A one-dimensional formal multilinear series representing a locally zero function is zero. -/
+lemma has_fpower_series_at.eq_zero_of_eventually {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {x : 𝕜}
+  (hp : has_fpower_series_at f p x) (hf : f =ᶠ[𝓝 x] 0) : p = 0 :=
+(hp.congr hf).eq_zero
 
 /-- If a function `f : 𝕜 → E` has two power series representations at `x`, then the given radii in
 which convergence is guaranteed may be interchanged. This can be useful when the formal multilinear

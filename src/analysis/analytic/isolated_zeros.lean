@@ -105,7 +105,7 @@ begin
   exact hx1.unique hs2
 end
 
-lemma locally_ne_zero_aux (hp : has_fpower_series_at f p z₀) (h : p ≠ 0) :
+lemma locally_ne_zero (hp : has_fpower_series_at f p z₀) (h : p ≠ 0) :
   ∀ᶠ z in 𝓝[≠] z₀, f z ≠ 0 :=
 begin
   rw [eventually_nhds_within_iff],
@@ -115,25 +115,9 @@ begin
   simpa [e1, e2, e3] using pow_ne_zero p.order (sub_ne_zero.mpr e3),
 end
 
-lemma congr (hp : has_fpower_series_at f p z₀) (hfg : ∀ᶠ z in 𝓝 z₀, f z = g z) :
-  has_fpower_series_at g p z₀ :=
-begin
-  rw [has_fpower_series_at_iff'] at hp ⊢,
-  filter_upwards [hp, hfg] with z h1 h2,
-  rwa ← h2
-end
-
-lemma unique (hp : has_fpower_series_at f p z₀) (hq : has_fpower_series_at g q z₀)
-  (heq : ∀ᶠ z in 𝓝 z₀, f z = g z) :
-  p = q :=
-(hp.congr heq).eq_formal_multilinear_series hq
-
-lemma locally_zero' (hp : has_fpower_series_at f p z₀) (hf : ∀ᶠ z in 𝓝 z₀, f z = 0) : p = 0 :=
-(hp.congr hf).eq_zero
-
 lemma locally_zero_iff (hp : has_fpower_series_at f p z₀) :
   (∀ᶠ z in 𝓝 z₀, f z = 0) ↔ p = 0 :=
-⟨λ hf, locally_zero' hp hf, λ h, eventually_eq_zero (by rwa h at hp)⟩
+⟨λ hf, hp.eq_zero_of_eventually hf, λ h, eventually_eq_zero (by rwa h at hp)⟩
 
 end has_fpower_series_at
 
@@ -148,7 +132,7 @@ begin
   rcases hf with ⟨p, hp⟩,
   by_cases h : p = 0,
   { exact or.inl (has_fpower_series_at.eventually_eq_zero (by rwa h at hp)) },
-  { exact or.inr (hp.locally_ne_zero_aux h) }
+  { exact or.inr (hp.locally_ne_zero h) }
 end
 
 end analytic_at

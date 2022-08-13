@@ -67,6 +67,12 @@ end module
 
 namespace formal_multilinear_series
 
+protected lemma ext_iff {p q : formal_multilinear_series 𝕜 E F} : p = q ↔ ∀ n, p n = q n :=
+function.funext_iff
+
+protected lemma ne_iff {p q : formal_multilinear_series 𝕜 E F} : p ≠ q ↔ ∃ n, p n ≠ q n :=
+function.ne_iff
+
 /-- Killing the zeroth coefficient in a formal multilinear series -/
 def remove_zero (p : formal_multilinear_series 𝕜 E F) : formal_multilinear_series 𝕜 E F
 | 0       := 0
@@ -176,12 +182,6 @@ variables [comm_ring 𝕜] {n : ℕ}
   [has_continuous_const_smul 𝕜 F]
   {p : formal_multilinear_series 𝕜 E F}
 
-lemma eq_zero_iff : p = 0 ↔ ∀ n, p n = 0 :=
-by simp only [function.funext_iff, pi.zero_apply]
-
-lemma exists_ne_zero_of_ne_zero (hp : p ≠ 0) : ∃ n, p n ≠ 0 :=
-by simpa using eq_zero_iff.not.mp hp
-
 /-- The index of the first non-zero coefficient in `p` (or `0` if all coefficients are zero). This
   is the order of the isolated zero of an analytic function `f` at a point if `p` is the Taylor
   series of `f` at that point. -/
@@ -198,13 +198,13 @@ lemma order_eq_find [decidable_pred (λ n, p n ≠ 0)] (hp : ∃ n, p n ≠ 0) :
 by simp [order, Inf, hp]
 
 lemma order_eq_find' [decidable_pred (λ n, p n ≠ 0)] (hp : p ≠ 0) :
-  p.order = nat.find (exists_ne_zero_of_ne_zero hp) :=
+  p.order = nat.find (formal_multilinear_series.ne_iff.mp hp) :=
 order_eq_find _
 
 lemma order_eq_zero_iff (hp : p ≠ 0) : p.order = 0 ↔ p 0 ≠ 0 :=
 begin
   classical,
-  have : ∃ n, p n ≠ 0 := exists_ne_zero_of_ne_zero hp,
+  have : ∃ n, p n ≠ 0 := formal_multilinear_series.ne_iff.mp hp,
   simp [order_eq_find this, hp]
 end
 
@@ -214,7 +214,7 @@ by { by_cases h : p = 0; simp [h, order_eq_zero_iff] }
 lemma apply_order_ne_zero (hp : p ≠ 0) : p p.order ≠ 0 :=
 begin
   classical,
-  let h := exists_ne_zero_of_ne_zero hp,
+  let h := formal_multilinear_series.ne_iff.mp hp,
   exact (order_eq_find h).symm ▸ nat.find_spec h
 end
 

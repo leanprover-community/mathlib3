@@ -1146,8 +1146,8 @@ instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G 
 @[to_additive]
 lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
 begin
-  rcases quotient_group.mk_surjective x with ⟨g₀, rfl⟩,
-  exact continuous_quotient_mk.comp (continuous_mul_right g₀)
+  induction x using quotient_group.induction_on,
+  exact continuous_quotient_mk.comp (continuous_mul_right x)
 end
 
 @[to_additive]

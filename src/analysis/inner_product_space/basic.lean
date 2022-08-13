@@ -1817,7 +1817,7 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
   norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
   add_left          := λ _ _ _ , inner_add_left,
   smul_left         := λ _ _ _, inner_smul_left,
-  ..submodule.normed_add_comm_group, ..submodule.normed_space W }
+  ..submodule.normed_add_comm_group _, ..submodule.normed_space W }
 
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl

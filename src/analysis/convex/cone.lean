@@ -826,6 +826,19 @@ begin
   rwa real_inner_comm,
 end
 
+-- TODO: generalize this to other fields
+/-- The closure of a convex cone inside a complete space is a convex cone.-/
+def convex_cone.closure (K : convex_cone ℝ H) : convex_cone ℝ H :=
+{ carrier := closure (K : set H),
+  smul_mem' := by {
+    rw ← sequential_space.seq_closure_eq_closure,
+    exact λ c hc x ⟨seq, mem, tends⟩,
+    ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), filter.tendsto.const_smul tends c⟩ ⟩ },
+  add_mem' := by {
+    rw ← sequential_space.seq_closure_eq_closure,
+    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
+    ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), filter.tendsto.add xtends ytends⟩ ⟩}}
+
 end complete_space
 end dual
 
@@ -865,7 +878,14 @@ instance : has_involutive_star (proper_cone H) :=
     inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed }
 
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
-def map (f : H →L[ℝ] H') (K : proper_cone H) : proper_cone H' := sorry
+noncomputable def map (f : H →L[ℝ] H') (K : proper_cone H) : proper_cone H' :=
+{ carrier := convex_cone.closure ((K : convex_cone ℝ H).map f),
+  nonempty' := ⟨0, begin
+    apply subset_closure,
+    rw [set_like.mem_coe, convex_cone.mem_map],
+    use ⟨0, K.pointed, map_zero _⟩
+  end⟩,
+  is_closed' := is_closed_closure }
 
 /-- The preimage of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
 noncomputable def comap (f : H →L[ℝ] H') (K' : proper_cone H') : proper_cone H :=

@@ -1608,7 +1608,8 @@ instance set.fintype [fintype α] : fintype (set α) :=
   apply (coe_filter _ _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩
 
-instance set.finite [finite α] : finite (set α) :=
+-- Not to be confused with `set.finite`, the predicate
+instance set.finite' [finite α] : finite (set α) :=
 by { casesI nonempty_fintype α, apply_instance }
 
 @[simp] lemma fintype.card_set [fintype α] : fintype.card (set α) = 2 ^ fintype.card α :=

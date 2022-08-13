@@ -591,10 +591,15 @@ have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
 have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id'.2 $ pure_le_nhds a),
 fact₂ fact₁ (eq.refl $ f a)
 
+lemma filter.tendsto.eventually_ne [topological_space β] [t1_space β] {g : α → β} {l : filter α}
+  {b₁ b₂ : β} (hg : tendsto g l (𝓝 b₁)) (hb : b₁ ≠ b₂) :
+  ∀ᶠ z in l, g z ≠ b₂ :=
+hg.eventually (is_open_compl_singleton.eventually_mem hb)
+
 lemma continuous_at.eventually_ne [topological_space β] [t1_space β] {g : α → β}
   {a : α} {b : β} (hg1 : continuous_at g a) (hg2 : g a ≠ b) :
   ∀ᶠ z in 𝓝 a, g z ≠ b :=
-hg1.eventually (is_open_compl_singleton.eventually_mem hg2)
+hg1.tendsto.eventually_ne hg2
 
 /-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
 `f` admits *some* limit at `a`. -/

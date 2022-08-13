@@ -410,9 +410,8 @@ lemma has_fpower_series_on_ball.mono
 lemma has_fpower_series_at.congr (hf : has_fpower_series_at f p x) (hg : f =ᶠ[𝓝 x] g) :
   has_fpower_series_at g p x :=
 begin
-  replace hg := emetric.mem_nhds_iff.mp hg,
   rcases hf with ⟨r₁, h₁⟩,
-  rcases hg with ⟨r₂, h₂pos, h₂⟩,
+  rcases emetric.mem_nhds_iff.mp hg with ⟨r₂, h₂pos, h₂⟩,
   exact ⟨min r₁ r₂, (h₁.mono (lt_min h₁.r_pos h₂pos) inf_le_left).congr
     (λ y hy, h₂ (emetric.ball_subset_ball inf_le_right hy))⟩
 end

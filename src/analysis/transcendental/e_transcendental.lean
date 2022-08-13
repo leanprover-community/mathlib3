@@ -1146,50 +1146,35 @@ begin
   ... ≤ M g ^ p.val : abs_J_upper_bound g p.val p.property,
 end
 
+lemma polynomial.exists_coeff_ne_zero {R : Type*} [semiring R] {p : R[X]} (hp : p ≠ 0) :
+  ∃ n, p.coeff n ≠ 0 :=
+begin
+  contrapose! hp,
+  simpa [polynomial.ext_iff],
+end
+
+section
+open polynomial
+@[simp]
+lemma expand_aeval {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+  (p : ℕ) (P : R[X]) (r : A) :
+  aeval r (expand R p P) = aeval (r ^ p) P :=
+begin
+  refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
+  rw [alg_hom.map_add, aeval_add, aeval_add, hf, hg]
+end
+end
+
 theorem pow_transcendental (n : ℕ) (r : ℝ) (ht : transcendental ℤ r) (hn : 1 ≤ n) :
   transcendental ℤ (r ^ n) :=
 begin
   rw transcendental at ht ⊢,
   contrapose! ht,
+
   obtain ⟨p, p_nonzero, hp⟩ := ht,
-  use ∑ i in finset.range (p.nat_degree + 1), polynomial.C (p.coeff i) * (polynomial.X ^ (i * n)),
-  split,
-
-  intro rid, rw polynomial.ext_iff at rid,
-  replace p_nonzero := (not_iff_not.2 (@polynomial.ext_iff ℤ _ p 0)).1 p_nonzero,
-  simp only [not_forall, polynomial.coeff_zero] at p_nonzero,
-  choose k hk using p_nonzero,
-  replace rid := rid (k * n),
-  simp only [polynomial.mul_coeff_zero, polynomial.finset_sum_coeff, polynomial.coeff_zero] at rid,
-  simp_rw [polynomial.coeff_C_mul_X_pow] at rid,
-  rw finset.sum_eq_single k at rid,
-  simp only [mul_one, if_true, true_or, eq_self_iff_true, nat.zero_eq_mul] at rid,
-  exact hk rid,
-
-  intros j hj1 hj2, split_ifs,
-  replace h := (nat.mul_left_inj _).1 h,
-  exfalso,
-  exact hj2 (eq.symm h), exact hn, refl,
-
-  intros hk, simp only [not_lt, finset.mem_range] at hk,
-  simp only [if_true, eq_self_iff_true],
-  apply polynomial.coeff_eq_zero_of_nat_degree_lt,
-  linarith,
-
-
-  have H := polynomial.as_sum_range p,
-  rw H at hp, rw map_sum at hp ⊢, rw <-hp,
-  apply finset.sum_congr rfl,
-  intros i hi,
-  simp only [polynomial.aeval_X, polynomial.aeval_C, alg_hom.map_pow, alg_hom.map_mul],
-  simp only [algebra_map_int_eq,
-int.cast_eq_zero,
-pow_mul',
-ring_hom.eq_int_cast,
-mul_eq_mul_left_iff,
-true_or,
-eq_self_iff_true,
-polynomial.aeval_monomial],
+  refine ⟨polynomial.expand _ n p, _, _⟩,
+  { rwa [ne.def, polynomial.expand_eq_zero hn] },
+  { rwa expand_aeval n p r },
 end
 
 theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=

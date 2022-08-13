@@ -171,15 +171,15 @@ open polynomial adjoin_root
 noncomputable def away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=
 alg_equiv.of_alg_hom
   (alg_hom.of_comp_eq
-    (away_lift (of (C r * X - 1)) r (is_unit_of_mul_eq_one _ (root _) (root_is_inv r)))
+    (away_lift (of $ C r * X - 1) r $ is_unit_of_mul_eq_one _ (root _) $ root_is_inv r)
     (away.away_map.lift_comp _ _))
   (alg_hom.of_comp_eq
-    (adjoin_root.lift (algebra_map R (away r)) (is_localization.away.inv_self r) (by simp))
+    (adjoin_root.lift (algebra_map R $ away r) (is_localization.away.inv_self r) $ by simp)
     (lift_comp_of _))
   (subsingleton.elim _ _)
   (subsingleton.elim _ _)
 
-instance adjoin_is_localization (r : R) : is_localization.away r (adjoin_root (C r * X - 1)) :=
+instance adjoin_is_localization (r : R) : is_localization.away r (adjoin_root $ C r * X - 1) :=
 is_localization.is_localization_of_alg_equiv _ (away_equiv_adjoin r)
 
 end localization

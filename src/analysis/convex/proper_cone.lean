@@ -68,6 +68,9 @@ instance : has_star (proper_cone E) := ⟨ λ K,
   nonempty'  := ⟨0, pointed_inner_dual_cone _⟩,
   is_closed' := is_closed_inner_dual_cone _ } ⟩
 
+@[simp] lemma mem_star {K : proper_cone E} {y : E} : y ∈ star K ↔ ∀ x ∈ (K : set E), 0 ≤ ⟪ x, y ⟫_ℝ := sorry
+
+
 instance : has_involutive_star (proper_cone E) :=
 { star := has_star.star,
   star_involutive := λ K, proper_cone.ext $
@@ -84,6 +87,9 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
     use ⟨0, K.pointed, map_zero _⟩
   end,
   is_closed' := is_closed_closure }
+
+@[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
+  y ∈ K.map f ↔ ∃ x ∈ K, f x = y := sorry
 
 /-- The preimage of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
 noncomputable def comap (f : E →L[ℝ] F) (K' : proper_cone F) : proper_cone E :=
@@ -104,12 +110,22 @@ noncomputable def comap (f : E →L[ℝ] F) (K' : proper_cone F) : proper_cone E
 end proper_cone
 
 theorem farkas_lemma (K : proper_cone E) (f : E →L[ℝ] F) (b : F) :
-b ∈ K.map f ↔ ∀ y : F, (adjoint f b) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
+b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin
   sorry,
 end
 begin
-  sorry,
+  intro h,
+  contrapose! h,
+  obtain ⟨y, hxy, hyb⟩ := hyperplane_separation_point_nonempty_closed_convex_cone (K.map f).nonempty (K.map f).is_closed h,
+  use y,
+  split,
+  { simp_rw [proper_cone.mem_star, adjoint_inner_right],
+  rintros x hxK,
+  specialize hxy (f x),
+  apply hxy,
+  sorry,},
+  exact hyb,
 end
 
 end complete_space

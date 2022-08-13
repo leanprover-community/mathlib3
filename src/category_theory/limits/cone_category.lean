@@ -50,7 +50,7 @@ def cone.from_costructured_arrow (F : J ⥤ C) : costructured_arrow (const J) F 
 @[simps]
 def cone.equiv_costructured_arrow (F : J ⥤ C) : cone F ≌ costructured_arrow (const J) F :=
 equivalence.mk (cone.to_costructured_arrow F) (cone.from_costructured_arrow F)
-  (nat_iso.of_components cones.iso_mk (by tidy))
+  (nat_iso.of_components cones.eta (by tidy))
   (nat_iso.of_components (λ c, (costructured_arrow.eta _).symm) (by tidy))
 
 /-- A cone is a limit cone iff it is terminal. -/
@@ -105,7 +105,7 @@ def cocone.from_structured_arrow (F : J ⥤ C) : structured_arrow F (const J) �
 @[simps]
 def cocone.equiv_structured_arrow (F : J ⥤ C) : cocone F ≌ structured_arrow F (const J) :=
 equivalence.mk (cocone.to_structured_arrow F) (cocone.from_structured_arrow F)
-  (nat_iso.of_components cocones.iso_mk (by tidy))
+  (nat_iso.of_components cocones.eta (by tidy))
   (nat_iso.of_components (λ c, (structured_arrow.eta _).symm) (by tidy))
 
 /-- A cocone is a colimit cocone iff it is initial. -/

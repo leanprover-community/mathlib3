@@ -244,6 +244,10 @@ open_locale big_operators
 /-- The `n`th coefficient of `p` when seen as a power series. -/
 def coef (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) : E := p n 1
 
+lemma mk_pi_field_coef_eq (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) :
+  continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (p.coef n) = p n :=
+(p n).mk_pi_field_apply_one_eq_self
+
 @[simp] lemma apply_eq_prod_smul_coef : p n y = (∏ i, y i) • p.coef n :=
 begin
   convert (p n).to_multilinear_map.map_smul_univ y 1,
@@ -251,21 +255,13 @@ begin
 end
 
 lemma coef_eq_zero : p.coef n = 0 ↔ p n = 0 :=
-begin
-  split; intro h,
-  { ext; simp [h] },
-  { simp [coef, h] }
-end
+by rw [← mk_pi_field_coef_eq p, continuous_multilinear_map.mk_pi_field_eq_zero_iff]
 
 @[simp] lemma apply_eq_pow_smul_coef : p n (λ _, z) = z ^ n • p.coef n :=
 by simp
 
 @[simp] lemma norm_apply_eq_norm_coef : ∥p n∥ = ∥coef p n∥ :=
-begin
-  apply le_antisymm,
-  { refine (p n).op_norm_le_bound (norm_nonneg (coef p n)) (λ y, _); simp [norm_smul, mul_comm] },
-  { apply le_of_le_of_eq ((p n).le_op_norm 1); simp }
-end
+by rw [← mk_pi_field_coef_eq p, continuous_multilinear_map.norm_mk_pi_field]
 
 end coef
 

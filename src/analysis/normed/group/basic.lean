@@ -1572,9 +1572,8 @@ This is a reversed version of the `simp` lemma `submodule.coe_norm` for use by `
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm. -/
 -- See note [implicit instance arguments].
-instance submodule.normed_add_comm_group {_ : ring 𝕜} [normed_add_comm_group E] {_ : module 𝕜 E}
-  (s : submodule 𝕜 E) : normed_add_comm_group s :=
+instance {_ : ring 𝕜} [normed_add_comm_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) :
+  normed_add_comm_group s :=
 { ..submodule.seminormed_add_comm_group s }
-
 
 end submodule

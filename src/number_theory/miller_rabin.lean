@@ -460,6 +460,10 @@ Read in reverse, it is the sequence obtained by repeatedly taking the square roo
 def nat.miller_rabin_sequence (n : ℕ) (a : zmod n) : list (zmod n) :=
   list.map (λ i, a^(2^i * odd_part (n-1))) (list.range ((n-1).factorization 2))
 
+-- #eval list.drop 2 (list.map (λ a, ((↑a : zmod 59)^(59-1))) (list.range 59))
+-- #eval list.drop 2 (list.map (λ a, (a,(↑a : zmod 55)^(55-1))) (list.range 55))
+-- #eval (to_bool (nat.miller_rabin_witness 35 ↑6), (6 : zmod 35)^34)
+-- #eval nat.miller_rabin_sequence 1025 (41 : zmod 1025)
 -- #eval nat.miller_rabin_sequence 57 (2 : zmod 57)    -- = [2^7, 2^14, 2^28] = [14, 25, 55]
 -- #eval to_bool (1 ∈ nat.miller_rabin_sequence 57 (2 : zmod 57))
 -- #eval to_bool (-1 ∈ nat.miller_rabin_sequence 57 (2 : zmod 57))

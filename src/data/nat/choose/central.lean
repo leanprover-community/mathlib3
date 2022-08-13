@@ -86,7 +86,7 @@ end
 
 /--
 An exponential lower bound on the central binomial coefficient.
-This bound is weaker than `four_pow_n_lt_n_mul_central_binom`, but it is of historical interest
+This bound is weaker than `nat.four_pow_lt_mul_central_binom`, but it is of historical interest
 because it appears in Erdős's proof of Bertrand's postulate.
 -/
 lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n),

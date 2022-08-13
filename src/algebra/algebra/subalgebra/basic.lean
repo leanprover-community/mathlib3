@@ -305,7 +305,7 @@ def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
 /-- Transport a subalgebra via an algebra homomorphism. -/
-def map (S : subalgebra R A) (f : A →ₐ[R] B) : subalgebra R B :=
+def map (f : A →ₐ[R] B) (S : subalgebra R A) : subalgebra R B :=
 { algebra_map_mem' := λ r, f.commutes r ▸ set.mem_image_of_mem _ (S.algebra_map_mem r),
   .. S.to_subsemiring.map (f : A →+* B) }
 
@@ -313,9 +313,9 @@ lemma map_mono {S₁ S₂ : subalgebra R A} {f : A →ₐ[R] B} :
   S₁ ≤ S₂ → S₁.map f ≤ S₂.map f :=
 set.image_subset f
 
-lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
-  (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
-ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp ih
+lemma map_injective {f : A →ₐ[R] B} (hf : function.injective f) :
+  function.injective (map f) :=
+λ S₁ S₂ ih, ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp ih
 
 @[simp] lemma map_id (S : subalgebra R A) : S.map (alg_hom.id R A) = S :=
 set_like.coe_injective $ set.image_id _
@@ -325,7 +325,7 @@ lemma map_map (S : subalgebra R A) (g : B →ₐ[R] C) (f : A →ₐ[R] B) :
 set_like.coe_injective $ set.image_image _ _ _
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
-  y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
+  y ∈ map f S ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
 lemma map_to_submodule {S : subalgebra R A} {f : A →ₐ[R] B} :
@@ -341,16 +341,16 @@ set_like.coe_injective rfl
 rfl
 
 /-- Preimage of a subalgebra under an algebra homomorphism. -/
-def comap (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
+def comap (f : A →ₐ[R] B) (S : subalgebra R B) : subalgebra R A :=
 { algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
     from (f.commutes r).symm ▸ S.algebra_map_mem r,
   .. S.to_subsemiring.comap (f : A →+* B) }
 
 theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
-  map S f ≤ U ↔ S ≤ comap U f :=
+  map f S ≤ U ↔ S ≤ comap f U :=
 set.image_subset_iff
 
-lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (λ S, map S f) (λ S, comap S f) :=
+lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (map f) (comap f) :=
 λ S U, map_le
 
 @[simp] lemma mem_comap (S : subalgebra R B) (f : A →ₐ[R] B) (x : A) :
@@ -648,14 +648,14 @@ algebra.eq_top_iff
 @[simp] theorem range_id : (alg_hom.id R A).range = ⊤ :=
 set_like.coe_injective set.range_id
 
-@[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
+@[simp] theorem map_top (f : A →ₐ[R] B) : (⊤ : subalgebra R A).map f = f.range :=
 set_like.coe_injective set.image_univ
 
-@[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
+@[simp] theorem map_bot (f : A →ₐ[R] B) : (⊥ : subalgebra R A).map f = ⊥ :=
 set_like.coe_injective $
   by simp only [← set.range_comp, (∘), algebra.coe_bot, subalgebra.coe_map, f.commutes]
 
-@[simp] theorem comap_top (f : A →ₐ[R] B) : subalgebra.comap (⊤ : subalgebra R B) f = ⊤ :=
+@[simp] theorem comap_top (f : A →ₐ[R] B) : (⊤ : subalgebra R B).comap f = ⊤ :=
 eq_top_iff.2 $ λ x, mem_top
 
 /-- `alg_hom` to `⊤ : subalgebra R A`. -/
@@ -810,12 +810,11 @@ variables (S₁ : subalgebra R B)
 
 /-- The product of two subalgebras is a subalgebra. -/
 def prod : subalgebra R (A × B) :=
-{ carrier := (S : set A) ×ˢ (S₁ : set B),
+{ carrier := S ×ˢ S₁,
   algebra_map_mem' := λ r, ⟨algebra_map_mem _ _, algebra_map_mem _ _⟩,
   .. S.to_subsemiring.prod S₁.to_subsemiring }
 
-@[simp] lemma coe_prod :
-  (prod S S₁ : set (A × B)) = (S : set A) ×ˢ (S₁ : set B):= rfl
+@[simp] lemma coe_prod : (prod S S₁ : set (A × B)) = S ×ˢ S₁ := rfl
 
 lemma prod_to_submodule :
   (S.prod S₁).to_submodule = S.to_submodule.prod S₁.to_submodule := rfl

@@ -44,7 +44,7 @@ by convert has_sum_single 0 (λ b h, _); simp [nat.pos_of_ne_zero h] <|> simp
 lemma factor (hs : has_sum (λ m, z ^ m • a m) s) (ha : ∀ k < n, a k = 0) :
   ∃ t : E, z ^ n • t = s ∧ has_sum (λ m, z ^ m • a (m + n)) t :=
 begin
-  refine dite (n = 0) (λ hn, by { subst n; simpa }) (λ hn, _),
+  refine classical.by_cases (λ hn : n = 0, by { subst n; simpa }) (λ hn, _),
   replace hn := nat.pos_of_ne_zero hn,
   by_cases (z = 0),
   { have : s = 0 := hs.unique (by simpa [ha 0 hn, h] using has_sum_at_zero a),

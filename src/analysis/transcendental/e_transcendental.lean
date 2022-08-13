@@ -1156,7 +1156,7 @@ end
 section
 open polynomial
 @[simp]
-lemma expand_aeval {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+lemma expand_aeval {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (p : ℕ) (P : R[X]) (r : A) :
   aeval r (expand R p P) = aeval (r ^ p) P :=
 begin
@@ -1165,20 +1165,25 @@ begin
 end
 end
 
-theorem pow_transcendental (n : ℕ) (r : ℝ) (ht : transcendental ℤ r) (hn : 1 ≤ n) :
-  transcendental ℤ (r ^ n) :=
+theorem is_algebraic_of_pow
+  {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+  {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r ^ n)) :
+  is_algebraic R r :=
 begin
-  rw transcendental at ht ⊢,
-  contrapose! ht,
-
   obtain ⟨p, p_nonzero, hp⟩ := ht,
   refine ⟨polynomial.expand _ n p, _, _⟩,
   { rwa [ne.def, polynomial.expand_eq_zero hn] },
   { rwa expand_aeval n p r },
 end
 
+theorem transcendental.pow
+  {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+  {r : A} (ht : transcendental R r) {n : ℕ} (hn : 0 < n) :
+  transcendental R (r ^ n) :=
+λ ht', ht $ is_algebraic_of_pow hn ht'
+
 theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=
-pow_transcendental _ _ e_transcendental hn
+e_transcendental.pow hn
 
 theorem transcendental_irrational {x : ℝ} (trans_x : transcendental ℤ x) : irrational x :=
 transcendental.irrational $ (transcendental_iff_transcendental_over_ℚ x).mp trans_x

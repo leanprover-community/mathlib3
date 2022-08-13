@@ -927,6 +927,7 @@ fintype.of_equiv _ equiv.plift.symm
 fintype.of_equiv_card _
 
 instance (α : Type*) [fintype α] : fintype αᵒᵈ := ‹fintype α›
+instance (α : Type*) [finite α] : finite αᵒᵈ := ‹finite α›
 
 @[simp] lemma fintype.card_order_dual (α : Type*) [fintype α] : fintype.card αᵒᵈ = fintype.card α :=
 rfl

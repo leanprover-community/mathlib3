@@ -394,6 +394,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G} [fini
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
+/-- The fixed points of the action of `H` on its cosets correspond to `normalizer H / H`. -/
 def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [finite (H : set G)] :
   mul_action.fixed_points H (G ⧸ H) ≃
   normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
@@ -694,4 +695,3 @@ begin
 end
 
 end sylow
-#lint

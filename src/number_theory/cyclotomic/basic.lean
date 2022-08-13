@@ -139,10 +139,9 @@ begin
     rw [mem_singleton_iff, ←pnat.coe_eq_one_iff],
     exact_mod_cast hζ.unique (is_primitive_root.of_subsingleton ζ) },
   { rintro (rfl|rfl),
-    { refine ⟨λ _ h, h.elim, λ x, by { rw subsingleton.elim x, exact subalgebra.zero_mem _ }⟩ },
+    { refine ⟨λ _ h, h.elim, λ x, by convert (mem_top : x ∈ ⊤)⟩ },
     { rw iff_singleton,
-      refine ⟨⟨0, is_primitive_root.of_subsingleton 0⟩, λ x, _⟩,
-      rw subsingleton.elim x, exact subalgebra.zero_mem _ } }
+      refine ⟨⟨0, is_primitive_root.of_subsingleton 0⟩, λ x, by convert (mem_top : x ∈ ⊤)⟩ } }
 end
 
 /-- If `B` is a cyclotomic extension of `A` given by roots of unity of order in `S ∪ T`, then `B`

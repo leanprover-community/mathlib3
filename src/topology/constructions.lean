@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.maps
+import topology.locally_finite
 import order.filter.pi
 import data.fin.tuple
 
@@ -65,6 +66,76 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
+
+/-!
+### `additive`, `multiplicative`
+
+The topology on those type synonyms is inherited without change.
+-/
+
+section
+variables [topological_space α]
+
+open additive multiplicative
+
+instance : topological_space (additive α) := ‹topological_space α›
+instance : topological_space (multiplicative α) := ‹topological_space α›
+instance [discrete_topology α] : discrete_topology (additive α) := ‹discrete_topology α›
+instance [discrete_topology α] : discrete_topology (multiplicative α) := ‹discrete_topology α›
+
+lemma continuous_of_mul : continuous (of_mul : α → additive α) := continuous_id
+lemma continuous_to_mul : continuous (to_mul : additive α → α) := continuous_id
+lemma continuous_of_add : continuous (of_add : α → multiplicative α) := continuous_id
+lemma continuous_to_add : continuous (to_add : multiplicative α → α) := continuous_id
+
+lemma is_open_map_of_mul : is_open_map (of_mul : α → additive α) := is_open_map.id
+lemma is_open_map_to_mul : is_open_map (to_mul : additive α → α) := is_open_map.id
+lemma is_open_map_of_add : is_open_map (of_add : α → multiplicative α) := is_open_map.id
+lemma is_open_map_to_add : is_open_map (to_add : multiplicative α → α) := is_open_map.id
+
+lemma is_closed_map_of_mul : is_closed_map (of_mul : α → additive α) := is_closed_map.id
+lemma is_closed_map_to_mul : is_closed_map (to_mul : additive α → α) := is_closed_map.id
+lemma is_closed_map_of_add : is_closed_map (of_add : α → multiplicative α) := is_closed_map.id
+lemma is_closed_map_to_add : is_closed_map (to_add : multiplicative α → α) := is_closed_map.id
+
+local attribute [semireducible] nhds
+
+lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := rfl
+lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := rfl
+lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := rfl
+lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := rfl
+
+end
+
+/-!
+### Order dual
+
+The topology on this type synonym is inherited without change.
+-/
+
+section
+variables [topological_space α]
+
+open order_dual
+
+instance : topological_space αᵒᵈ := ‹topological_space α›
+instance [discrete_topology α] : discrete_topology (αᵒᵈ) := ‹discrete_topology α›
+
+lemma continuous_to_dual : continuous (to_dual : α → αᵒᵈ) := continuous_id
+lemma continuous_of_dual : continuous (of_dual : αᵒᵈ → α) := continuous_id
+
+lemma is_open_map_to_dual : is_open_map (to_dual : α → αᵒᵈ) := is_open_map.id
+lemma is_open_map_of_dual : is_open_map (of_dual : αᵒᵈ → α) := is_open_map.id
+
+lemma is_closed_map_to_dual : is_closed_map (to_dual : α → αᵒᵈ) := is_closed_map.id
+lemma is_closed_map_of_dual : is_closed_map (of_dual : αᵒᵈ → α) := is_closed_map.id
+
+local attribute [semireducible] nhds
+
+lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := rfl
+lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := rfl
+
+end
 
 lemma quotient.preimage_mem_nhds [topological_space α] [s : setoid α]
   {V : set $ quotient s} {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
@@ -230,7 +301,11 @@ hf.comp continuous_at_snd
 
 @[continuity] lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
-continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
+continuous_inf_rng.2 ⟨continuous_induced_rng.2 hf, continuous_induced_rng.2 hg⟩
+
+@[simp] lemma continuous_prod_mk {f : α → β} {g : α → γ} :
+  continuous (λ x, (f x, g x)) ↔ continuous f ∧ continuous g :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.prod_mk h.2⟩
 
 @[continuity] lemma continuous.prod.mk (a : α) : continuous (λ b : β, (a, b)) :=
 continuous_const.prod_mk continuous_id'
@@ -523,7 +598,7 @@ empty -/
 lemma is_open_prod_iff' {s : set α} {t : set β} :
   is_open (s ×ˢ t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
-  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.1 h] },
   { have st : s.nonempty ∧ t.nonempty, from prod_nonempty_iff.1 h,
     split,
@@ -556,11 +631,11 @@ lemma frontier_prod_eq (s : set α) (t : set β) :
 by simp only [frontier, closure_prod_eq, interior_prod_eq, prod_diff_prod]
 
 @[simp] lemma frontier_prod_univ_eq (s : set α) :
-  frontier (s ×ˢ (univ : set β)) = frontier s ×ˢ (univ : set β) :=
+  frontier (s ×ˢ (univ : set β)) = frontier s ×ˢ univ :=
 by simp [frontier_prod_eq]
 
 @[simp] lemma frontier_univ_prod_eq (s : set β) :
-  frontier ((univ : set α) ×ˢ s) = (univ : set α) ×ˢ (frontier s) :=
+  frontier ((univ : set α) ×ˢ s) = univ ×ˢ frontier s :=
 by simp [frontier_prod_eq]
 
 lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
@@ -626,11 +701,8 @@ continuous_sup_rng_right continuous_coinduced_rng
 
 @[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
   (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=
-begin
-  apply continuous_sup_dom;
-  rw continuous_def at hf hg ⊢;
-  assumption
-end
+by simp only [continuous_sup_dom, continuous_coinduced_dom, sum.elim_comp_inl, sum.elim_comp_inr,
+  true_and, *]
 
 @[continuity] lemma continuous.sum_map {f : α → β} {g : γ → δ}
   (hf : continuous f) (hg : continuous g) : continuous (sum.map f g) :=
@@ -760,7 +832,7 @@ lemma is_closed.closed_embedding_subtype_coe {s : set α} (hs : is_closed s) :
 
 @[continuity] lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
-continuous_induced_rng h
+continuous_induced_rng.2 h
 
 lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) :=
 continuous_subtype_mk _ continuous_subtype_coe
@@ -825,6 +897,20 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
+lemma continuous_at_cod_restrict_iff {f : α → β} {t : set β} (h1 : ∀ x, f x ∈ t) {x : α} :
+  continuous_at (cod_restrict f t h1) x ↔ continuous_at f x :=
+by simp_rw [inducing_coe.continuous_at_iff, function.comp, coe_cod_restrict_apply]
+
+alias continuous_at_cod_restrict_iff ↔ _ continuous_at.cod_restrict
+
+lemma continuous_at.restrict {f : α → β} {s : set α} {t : set β} (h1 : maps_to f s t) {x : s}
+  (h2 : continuous_at f x) : continuous_at (h1.restrict f s t) x :=
+(h2.comp continuous_at_subtype_coe).cod_restrict _
+
+lemma continuous_at.restrict_preimage {f : α → β} {s : set β} {x : f ⁻¹' s}
+  (h : continuous_at f x) : continuous_at (s.restrict_preimage f) x :=
+h.restrict _
+
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
   (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
 
@@ -850,7 +936,7 @@ continuous_coinduced_rng
 
 @[continuity] lemma continuous_quot_lift {f : α → β} (hr : ∀ a b, r a b → f a = f b)
   (h : continuous f) : continuous (quot.lift f hr : quot r → β) :=
-continuous_coinduced_dom h
+continuous_coinduced_dom.2 h
 
 lemma quotient_map_quotient_mk : quotient_map (@quotient.mk α s) :=
 quotient_map_quot_mk
@@ -860,11 +946,11 @@ continuous_coinduced_rng
 
 lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
   (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
-continuous_coinduced_dom h
+continuous_coinduced_dom.2 h
 
 lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
   (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
-continuous_coinduced_dom h
+continuous_coinduced_dom.2 h
 
 end quotient
 
@@ -874,7 +960,7 @@ variables {ι : Type*} {π : ι → Type*}
 @[continuity]
 lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f : α → Πi:ι, π i}
   (h : ∀i, continuous (λa, f a i)) : continuous f :=
-continuous_infi_rng $ assume i, continuous_induced_rng $ h i
+continuous_infi_rng.2 $ assume i, continuous_induced_rng.2 $ h i
 
 @[continuity]
 lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
@@ -1053,7 +1139,7 @@ begin
   erw induced_compose,
 end
 
-variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
+variables [finite ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
 
 /-- A finite product of discrete spaces is discrete. -/
 instance Pi.discrete_topology : discrete_topology (Π i, π i) :=
@@ -1135,7 +1221,7 @@ end
 @[continuity]
 lemma continuous_sigma [topological_space β] {f : sigma σ → β}
   (h : ∀ i, continuous (λ a, f ⟨i, a⟩)) : continuous f :=
-continuous_supr_dom (λ i, continuous_coinduced_dom (h i))
+continuous_supr_dom.2 (λ i, continuous_coinduced_dom.2 (h i))
 
 @[continuity]
 lemma continuous_sigma_map {κ : Type*} {τ : κ → Type*} [Π k, topological_space (τ k)]
@@ -1201,7 +1287,7 @@ continuous_induced_dom
 
 @[continuity] lemma continuous_ulift_up [topological_space α] :
   continuous (ulift.up : α → ulift.{v u} α) :=
-continuous_induced_rng continuous_id
+continuous_induced_rng.2 continuous_id
 
 end ulift
 

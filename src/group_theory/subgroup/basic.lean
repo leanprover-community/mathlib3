@@ -1312,8 +1312,7 @@ def prod (H : subgroup G) (K : subgroup N) : subgroup (G × N) :=
   .. submonoid.prod H.to_submonoid K.to_submonoid}
 
 @[to_additive coe_prod]
-lemma coe_prod (H : subgroup G) (K : subgroup N) :
-  (H.prod K : set (G × N)) = (H : set G) ×ˢ (K : set N) := rfl
+lemma coe_prod (H : subgroup G) (K : subgroup N) : (H.prod K : set (G × N)) = H ×ˢ K := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {H : subgroup G} {K : subgroup N} {p : G × N} :
@@ -2023,6 +2022,10 @@ set_like.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_s
 lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
+
+@[simp, to_additive]
+lemma range_one : (1 : G →* N).range = ⊥ :=
+set_like.ext $ λ x, by simpa using @comm _ (=) _ 1 x
 
 @[simp, to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
 by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], ext, simp }

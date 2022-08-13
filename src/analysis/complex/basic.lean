@@ -30,7 +30,6 @@ We also register the fact that `ℂ` is an `is_R_or_C` field.
 -/
 noncomputable theory
 
-
 namespace complex
 
 open_locale complex_conjugate topological_space
@@ -39,8 +38,8 @@ instance : has_norm ℂ := ⟨abs⟩
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
-instance : normed_group ℂ :=
-normed_group.of_core ℂ
+instance : normed_add_comm_group ℂ :=
+normed_add_comm_group.of_core ℂ
 { norm_eq_zero_iff := λ z, abs_eq_zero,
   triangle := abs_add,
   norm_neg := abs_neg }
@@ -49,10 +48,12 @@ instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
   norm_mul' := abs_mul,
-  .. complex.field, .. complex.normed_group }
+  .. complex.field, .. complex.normed_add_comm_group }
 
-instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp; norm_num⟩ }
+instance : densely_normed_field ℂ :=
+{ lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨x, h⟩ := normed_field.exists_lt_norm_lt ℝ h₀ hr in
+    have this : ∥(∥x∥ : ℂ)∥ = ∥(∥x∥)∥, by simp only [norm_eq_abs, abs_of_real, real.norm_eq_abs],
+    ⟨∥x∥, by rwa [this, norm_norm]⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_smul_le := λ r x, begin
@@ -62,10 +63,11 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
   end,
   to_algebra := complex.algebra }
 
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
+
 /-- The module structure from `module.complex_to_real` is a normed space. -/
 @[priority 900] -- see Note [lower instance priority]
-instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
-  normed_space ℝ E :=
+instance _root_.normed_space.complex_to_real : normed_space ℝ E :=
 normed_space.restrict_scalars ℝ ℂ E
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
@@ -192,7 +194,7 @@ calc 1 = ∥im_clm I∥ : by simp
 
 @[simp] lemma im_clm_nnnorm : ∥im_clm∥₊ = 1 := subtype.ext im_clm_norm
 
-lemma restrict_scalars_one_smul_right' {E : Type*} [normed_group E] [normed_space ℂ E] (x : E) :
+lemma restrict_scalars_one_smul_right' (x : E) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
     re_clm.smul_right x + I • im_clm.smul_right x :=
 by { ext ⟨a, b⟩, simp [mk_eq_add_mul_I, add_smul, mul_smul, smul_comm I] }

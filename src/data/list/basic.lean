@@ -4086,6 +4086,9 @@ lemma inth_eq_iget_nth (n : ℕ) :
   l.inth n = (l.nth n).iget :=
 by rw [←nthd_default_eq_inth, nthd_eq_get_or_else_nth, option.get_or_else_default_eq_iget]
 
+lemma inth_zero_eq_head : l.inth 0 = l.head :=
+by { cases l; refl, }
+
 end inth
 
 end list

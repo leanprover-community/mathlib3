@@ -366,6 +366,15 @@ by classical; exact decidable.lt_mul_of_one_lt_left
 lemma lt_two_mul_self [nontrivial α] (ha : 0 < a) : a < 2 * a :=
 lt_mul_of_one_lt_left ha one_lt_two
 
+lemma lt_mul_left (hn : 0 < a) (hm : 1 < b) : a < b * a :=
+by { convert mul_lt_mul_of_pos_right hm hn, rw one_mul }
+
+lemma lt_mul_right (hn : 0 < a) (hm : 1 < b) : a < a * b :=
+by { convert mul_lt_mul_of_pos_left hm hn, rw mul_one }
+
+lemma lt_mul_self (hn : 1 < a) : a < a * a :=
+lt_mul_left (hn.trans_le' zero_le_one) hn
+
 -- See Note [decidable namespace]
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=

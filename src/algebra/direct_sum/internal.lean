@@ -152,8 +152,7 @@ lemma direct_sum.coe_mul_apply [add_monoid ι] [semiring R] [set_like σ R]
   [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A]
   [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
   ((r * r') i : R) =
-    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
-      r ij.1 * r' ij.2 :=
+    ∑ ij in (r.support ×ˢ r'.support).filter (λ ij : ι × ι, ij.1 + ij.2 = i), r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
     add_submonoid_class.coe_finset_sum],

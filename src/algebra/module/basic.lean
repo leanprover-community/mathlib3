@@ -71,7 +71,7 @@ instance add_comm_monoid.nat_module : module ℕ M :=
   zero_smul := zero_nsmul,
   add_smul := λ r s x, add_nsmul x r s }
 
-lemma add_monoid.End.nat_cast_def [add_comm_monoid M] (n : ℕ) :
+lemma add_monoid.End.nat_cast_def (n : ℕ) :
   (↑n : add_monoid.End M) = distrib_mul_action.to_add_monoid_End ℕ M n := rfl
 
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
@@ -200,7 +200,7 @@ instance add_comm_group.int_module : module ℤ M :=
   zero_smul := zero_zsmul,
   add_smul := λ r s x, add_zsmul x r s }
 
-lemma add_monoid.End.int_cast_def [add_comm_group M] (z : ℤ) :
+lemma add_monoid.End.int_cast_def (z : ℤ) :
   (↑z : add_monoid.End M) = distrib_mul_action.to_add_monoid_End ℤ M z := rfl
 
 /-- A structure containing most informations as in a module, except the fields `zero_smul`

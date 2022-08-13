@@ -25,9 +25,9 @@ The duals of all the above are also given.
 namespace category_theory
 open category limits
 
-universes v u₁ u₂ u₃
+universes w' w v u₁ u₂ u₃
 
-variables {J : Type v} [small_category J]
+variables {J : Type w} [category.{w'} J]
 variables {A : Type u₁} [category.{v} A]
 variables {B : Type u₂} [category.{v} B]
 variables {T : Type u₃} [category.{v} T]
@@ -207,12 +207,12 @@ noncomputable instance creates_limits_of_shape [preserves_limits_of_shape J G] :
 noncomputable instance creates_limits [preserves_limits G] :
   creates_limits (proj X G : _) := ⟨⟩
 
-instance mono_right_of_mono [has_limits A] [preserves_limits G] {Y Z : structured_arrow X G}
-  (f : Y ⟶ Z) [mono f] : mono f.right :=
+instance mono_right_of_mono [has_pullbacks A] [preserves_limits_of_shape walking_cospan G]
+  {Y Z : structured_arrow X G} (f : Y ⟶ Z) [mono f] : mono f.right :=
 show mono ((proj X G).map f), from infer_instance
 
-lemma mono_iff_mono_right [has_limits A] [preserves_limits G] {Y Z : structured_arrow X G}
-  (f : Y ⟶ Z) : mono f ↔ mono f.right :=
+lemma mono_iff_mono_right [has_pullbacks A] [preserves_limits_of_shape walking_cospan G]
+  {Y Z : structured_arrow X G} (f : Y ⟶ Z) : mono f ↔ mono f.right :=
 ⟨λ h, by exactI infer_instance, λ h, by exactI mono_of_mono_right f⟩
 
 end structured_arrow
@@ -244,12 +244,12 @@ noncomputable instance creates_colimits_of_shape [preserves_colimits_of_shape J 
 noncomputable instance creates_colimits [preserves_colimits G] :
   creates_colimits (proj G X : _) := ⟨⟩
 
-instance epi_left_of_epi [has_colimits A] [preserves_colimits G] {Y Z : costructured_arrow G X}
-  (f : Y ⟶ Z) [epi f] : epi f.left :=
+instance epi_left_of_epi [has_pushouts A] [preserves_colimits_of_shape walking_span G]
+  {Y Z : costructured_arrow G X} (f : Y ⟶ Z) [epi f] : epi f.left :=
 show epi ((proj G X).map f), from infer_instance
 
-lemma epi_iff_epi_left [has_colimits A] [preserves_colimits G] {Y Z : costructured_arrow G X}
-  (f : Y ⟶ Z) : epi f ↔ epi f.left :=
+lemma epi_iff_epi_left [has_pushouts A] [preserves_colimits_of_shape walking_span G]
+  {Y Z : costructured_arrow G X} (f : Y ⟶ Z) : epi f ↔ epi f.left :=
 ⟨λ h, by exactI infer_instance, λ h, by exactI epi_of_epi_left f⟩
 
 end costructured_arrow

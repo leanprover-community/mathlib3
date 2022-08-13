@@ -133,10 +133,7 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
       end } rfl) $ λ X Y f, Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a f.map_point.symm $
     λ a, begin
       unfold_projs,
-      dsimp,
-      change option.elim _ _ _ = _,
-      dsimp,
-      rw part.elim_to_option,
+      refine (part.elim_to_option _ _ _).trans _,
       split_ifs,
       { refl },
       { exact eq.symm (of_not_not h) }

@@ -3,10 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import category_theory.concrete_category.basic
-import category_theory.monoidal.category
-import category_theory.monoidal.of_chosen_finite_products
-import category_theory.limits.shapes.types
+import category_theory.monoidal.types
 
 /-!
 # The category of pointed types
@@ -123,12 +120,20 @@ rfl
 @[simp] lemma associator_inv_apply {x : X} {y : Y} {z : Z} :
   ((α_ X Y Z).inv : X ⊗ (Y ⊗ Z) → (X ⊗ Y) ⊗ Z) (x, (y, z)) = ((x, y), z) := rfl
 
-@[simp] lemma braiding_hom_apply {x : X} {y : Y} :
-  ((β_ X Y).hom : X ⊗ Y → Y ⊗ X) (x, y) = (y, x) := rfl
-@[simp] lemma braiding_inv_apply {x : X} {y : Y} :
-  ((β_ X Y).inv : Y ⊗ X → X ⊗ Y) (y, x) = (x, y) := rfl
+@[simp] lemma braiding_hom_apply {x : X × Y} : ((β_ X Y).hom : X ⊗ Y → Y ⊗ X) x = x.swap := rfl
+@[simp] lemma braiding_inv_apply {x : Y × X} : ((β_ X Y).inv : Y ⊗ X → X ⊗ Y) x = x.swap := rfl
 
 end monoidal_category
+
+/-- The forgetful functor from `Pointed` to `Type u` as a monoidal functor. -/
+@[simps] def braided_forget : braided_functor Pointed.{u} (Type u) :=
+{ to_functor := forget Pointed,
+  ε := id,
+  μ := λ X Y, id,
+  ε_is_iso := ⟨⟨id, by { unfold_projs, simp }⟩⟩,
+  μ_is_iso := λ X Y, ⟨⟨id, by { unfold_projs, simp }⟩⟩,
+  braided' := λ X Y, by ext; rw @is_iso.inv_eq_of_hom_inv_id (Type u) _ _ _ _ _ id; refl }
+
 end Pointed
 
 /-- `option` as a functor from types to pointed types. This is the free functor. -/

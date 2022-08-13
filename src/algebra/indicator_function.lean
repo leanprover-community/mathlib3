@@ -135,6 +135,30 @@ mul_indicator_eq_one.2 $ disjoint_empty _
 @[to_additive] lemma mul_indicator_empty' (f : α → M) : mul_indicator (∅ : set α) f = 1 :=
 mul_indicator_empty f
 
+lemma indicator_const_inverse_image {M} [has_zero M] (U : set α) (s : set M) (a : M) :
+  (U.indicator (λ x, a) ⁻¹' s) = set.univ ∨ (U.indicator (λ x, a) ⁻¹' s) = U ∨
+  (U.indicator (λ x, a) ⁻¹' s) = Uᶜ ∨ (U.indicator (λ x, a) ⁻¹' s) = ∅ :=
+begin
+  by_cases sa : a ∈ s;
+  by_cases s0 : (0 : M) ∈ s,
+  work_on_goal 1 { refine or.inl _},
+  work_on_goal 2 { refine or.inr (or.inl _) },
+  work_on_goal 3 { refine or.inr (or.inr (or.inl _)) },
+  work_on_goal 4 { refine or.inr (or.inr (or.inr _)) },
+  all_goals
+  { ext x,
+    by_cases xU : x ∈ U,
+    { simp only [xU, sa, set.mem_preimage, set.indicator_of_mem, pi.one_apply, set.mem_compl_eq,
+        not_true, set.mem_univ, set.mem_empty_eq] },
+    { simp only [xU, s0, set.mem_preimage, set.indicator_of_not_mem, not_false_iff,
+      set.mem_compl_eq, set.mem_univ, set.mem_empty_eq] } }
+end
+
+lemma indicator_one_inverse_image {M} [has_zero M] [has_one M] (U : set α) (s : set M) :
+  (U.indicator 1 ⁻¹' s) = set.univ ∨ (U.indicator 1 ⁻¹' s) = U ∨
+  (U.indicator 1 ⁻¹' s) = Uᶜ ∨ (U.indicator 1 ⁻¹' s) = ∅ :=
+indicator_const_inverse_image _ _ 1
+
 variable (M)
 
 @[simp, to_additive] lemma mul_indicator_one (s : set α) :

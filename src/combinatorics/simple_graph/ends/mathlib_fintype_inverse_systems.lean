@@ -551,6 +551,16 @@ begin
     dsimp only [id],
     apply subtype.mk_eq_mk.mpr,
     apply subtype.mk_eq_mk.mpr,
+    apply funext,
+    rintro i,
+    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (fwd ⟨⟨s,sorry⟩,sjx⟩) i, -- sorry should be sec…
+    simp only,
+    rw e,
+    dsimp only [fwd],
+    simp only [subtype.val_eq_coe],
+    rw ←sec (hom_of_le ki),
+    apply congr_arg (F.map (hom_of_le ki)),
+    dsimp,
     sorry
    },
   { dsimp only [function.right_inverse,function.left_inverse],

@@ -883,8 +883,8 @@ lemma has_fpower_series_at.eq_formal_multilinear_series_of_eventually
 (hp.congr heq).eq_formal_multilinear_series hq
 
 /-- A one-dimensional formal multilinear series representing a locally zero function is zero. -/
-lemma has_fpower_series_at.eq_zero_of_eventually {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {x : 𝕜}
-  (hp : has_fpower_series_at f p x) (hf : f =ᶠ[𝓝 x] 0) : p = 0 :=
+lemma has_fpower_series_at.eq_zero_of_eventually {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E}
+  {x : 𝕜} (hp : has_fpower_series_at f p x) (hf : f =ᶠ[𝓝 x] 0) : p = 0 :=
 (hp.congr hf).eq_zero
 
 /-- If a function `f : 𝕜 → E` has two power series representations at `x`, then the given radii in

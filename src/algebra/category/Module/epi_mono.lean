@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import linear_algebra.quotient
-import category_theory.epi_mono
+import algebra.category.Group.epi_mono
 import algebra.category.Module.basic
 
 /-!
@@ -54,5 +54,21 @@ instance mono_as_hom'_subtype (U : submodule R X) : mono ↾U.subtype :=
 
 instance epi_as_hom''_mkq (U : submodule R X) : epi ↿U.mkq :=
 (epi_iff_range_eq_top _).mpr $ submodule.range_mkq _
+
+instance forget_preserves_epimorphisms : (forget (Module.{v} R)).preserves_epimorphisms :=
+{ preserves := λ X Y f hf, by rwa [forget_map_eq_coe, category_theory.epi_iff_surjective,
+    ← epi_iff_surjective] }
+
+instance forget_preserves_monomorphisms : (forget (Module.{v} R)).preserves_monomorphisms :=
+{ preserves := λ X Y f hf, by rwa [forget_map_eq_coe, category_theory.mono_iff_injective,
+    ← mono_iff_injective] }
+
+instance forget₂_preserves_epimorphisms :
+  (forget₂ (Module.{v} R) AddCommGroup.{v}).preserves_epimorphisms :=
+{ preserves := λ X Y f, (AddCommGroup.epi_iff_surjective _).2 ∘ (epi_iff_surjective _).1 }
+
+instance forget₂_preserves_monomorphisms :
+  (forget₂ (Module.{v} R) AddCommGroup.{v}).preserves_monomorphisms :=
+{ preserves := λ X Y f, (AddCommGroup.mono_iff_injective _).2 ∘ (mono_iff_injective _).1 }
 
 end Module

@@ -321,6 +321,19 @@ iff.trans (epi_iff_surjective _) (add_subgroup.eq_top_iff' f.range).symm
 
 end AddGroup
 
+namespace Group
+variables {A B : Group.{u}} (f : A ⟶ B)
+
+@[to_additive]
+instance forget_Group_preserves_mono : (forget Group).preserves_monomorphisms :=
+{ preserves := λ X Y f e, by rwa [mono_iff_injective, ←category_theory.mono_iff_injective] at e }
+
+@[to_additive]
+instance forget_Group_preserves_epi : (forget Group).preserves_epimorphisms :=
+{ preserves := λ X Y f e, by rwa [epi_iff_surjective, ←category_theory.epi_iff_surjective] at e }
+
+end Group
+
 namespace CommGroup
 variables {A B : CommGroup.{u}} (f : A ⟶ B)
 
@@ -353,8 +366,20 @@ lemma epi_iff_surjective : epi f ↔ function.surjective f :=
 by rw [epi_iff_range_eq_top, monoid_hom.range_top_iff_surjective]
 
 @[to_additive]
-instance : functor.preserves_epimorphisms (forget₂ CommGroup Group) :=
+instance forget₂_CommGroup_preserves_epi : (forget₂ CommGroup Group).preserves_epimorphisms :=
 { preserves := λ X Y f e, by rwa [epi_iff_surjective, ←@Group.epi_iff_surjective ⟨X⟩ ⟨Y⟩ f] at e }
+
+@[to_additive]
+instance forget₂_CommGroup_preserves_mono : (forget₂ CommGroup Group).preserves_monomorphisms :=
+{ preserves := λ X Y f e, by rwa [mono_iff_injective, ←@Group.mono_iff_injective ⟨X⟩ ⟨Y⟩ f] at e }
+
+@[to_additive]
+instance forget_CommGroup_preserves_mono : (forget CommGroup).preserves_monomorphisms :=
+{ preserves := λ X Y f e, by rwa [mono_iff_injective, ←category_theory.mono_iff_injective] at e }
+
+@[to_additive]
+instance forget_CommGroup_preserves_epi : (forget CommGroup).preserves_epimorphisms :=
+{ preserves := λ X Y f e, by rwa [epi_iff_surjective, ←category_theory.epi_iff_surjective] at e }
 
 end CommGroup
 

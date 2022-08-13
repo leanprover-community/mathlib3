@@ -149,8 +149,8 @@ variables (p q) (f : F →* E)
 fun_like.coe_injective.semilattice_sup _ coe_sup
 
 /-- Composition of a group seminorm with a monoid homomorphism as a group seminorm. -/
-@[to_additive "Composition of a group seminorm with an additive monoid homomorphism as a group
-seminorm."]
+@[to_additive "Composition of an additive group seminorm with an additive monoid homomorphism as an
+additive group seminorm."]
 def comp (p : group_seminorm E) (f : F →* E) : group_seminorm F :=
 { to_fun   := λ x, p (f x),
   nonneg'  := λ x, p.nonneg _,

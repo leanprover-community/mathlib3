@@ -15,11 +15,12 @@ are (co)limit (co)cones. We also show that such (co)cones exist, and that `discr
 (co)limits.
 -/
 
-universe v
+universes v u
 
 open category_theory
 namespace category_theory.limits
 
+section punit_has_limits
 variables {J : Type v} [small_category J] {F : J ⥤ discrete punit}
 
 /-- A trivial cone for a functor into `punit`. `punit_cone_is_limit` shows it is a limit. -/
@@ -47,5 +48,50 @@ by tidy
 
 instance : has_colimits (discrete punit) :=
 by tidy
+
+end punit_has_limits
+
+section shape_punit
+variables {C : Type u} [category.{v} C] (F : discrete punit ⥤ C)
+
+@[simps]
+def punit_cone' : cone F :=
+{ X := F.obj ⟨punit.star⟩,
+  π :=
+  { app := λ u, F.map ⟨⟨dec_trivial⟩⟩,
+    naturality' := λ X Y f,
+    begin
+      dsimp,
+      simp,
+      rw [←F.map_comp],
+      congr,
+    end } }
+
+def punit_cone'_is_limit : is_limit (punit_cone' F) :=
+{ lift := λ s, s.π.app ⟨punit.star⟩,
+  fac' := λ s j, by simp only [punit_cone'_π_app, cone.w],
+  uniq' := λ s m h, by { convert h ⟨punit.star⟩, tidy } }
+
+@[simps]
+def punit_cocone' : cocone F :=
+{ X := F.obj ⟨punit.star⟩,
+  ι :=
+  { app := λ u, F.map ⟨⟨dec_trivial⟩⟩,
+    naturality' := λ X Y f,
+    begin
+      dsimp,
+      simp,
+      rw [←F.map_comp],
+      congr,
+    end } }
+
+def punit_cocone'_is_colimit : is_colimit (punit_cocone' F) :=
+{ desc := λ s, s.ι.app ⟨punit.star⟩,
+  fac' := λ s j, by simp only [punit_cocone'_ι_app, cocone.w],
+  uniq' := λ s m h, by { convert h ⟨punit.star⟩, tidy } }
+
+
+end shape_punit
+
 
 end category_theory.limits

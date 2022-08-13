@@ -703,7 +703,7 @@ lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
 /-- The real part of a complex Cauchy sequence, as a real Cauchy sequence. -/
 noncomputable def cau_seq_re (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_re f⟩
-h
+
 /-- The imaginary part of a complex Cauchy sequence, as a real Cauchy sequence. -/
 noncomputable def cau_seq_im (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_im f⟩

@@ -89,6 +89,9 @@ by cases α; refl
 @[simp] lemma symm_eq_iff {X Y : C} {α β : X ≅ Y} : α.symm = β.symm ↔ α = β :=
 ⟨λ h, symm_symm_eq α ▸ symm_symm_eq β ▸ congr_arg symm h, congr_arg symm⟩
 
+lemma nonempty_iso_symm (X Y : C) : nonempty (X ≅ Y) ↔ nonempty (Y ≅ X) :=
+⟨λ h, ⟨h.some.symm⟩, λ h, ⟨h.some.symm⟩⟩
+
 /-- Identity isomorphism. -/
 @[refl, simps] def refl (X : C) : X ≅ X :=
 { hom := 𝟙 X,

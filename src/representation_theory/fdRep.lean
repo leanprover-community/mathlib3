@@ -78,8 +78,27 @@ def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V]
 instance : has_forget₂ (fdRep k G) (Rep k G) :=
 { forget₂ := (forget₂ (FinVect k) (Module k)).map_Action (Mon.of G), }
 
+lemma forget₂_ρ (V : fdRep k G) : ((forget₂ (fdRep k G) (Rep k G)).obj V).ρ = V.ρ :=
+by { ext g v, refl }
+
 -- Verify that the monoidal structure is available.
 example : monoidal_category (fdRep k G) := by apply_instance
+
+-- These instances are provided in #13789
+instance : preadditive (fdRep k G) := sorry
+instance : linear k (fdRep k G) := sorry
+
+/-- The forgetful functor to `Rep k G` preserves hom-sets and their vector space structure -/
+def forget₂_hom_linear_equiv (X Y : fdRep k G) :
+  (((forget₂ (fdRep k G) (Rep k G)).obj X) ⟶ ((forget₂ (fdRep k G) (Rep k G)).obj Y)) ≃ₗ[k]
+  (X ⟶ Y) :=
+{ to_fun := λ f, ⟨f.hom, f.comm⟩,
+  --These two should probably be `rfl` when the two instances above are unsorryied
+  map_add' := λ _ _, sorry,
+  map_smul' := λ _ _, sorry,
+  inv_fun := λ f, ⟨(forget₂ (FinVect k) (Module k)).map f.hom, f.comm⟩,
+  left_inv := λ _, by { ext, refl },
+  right_inv := λ _, by { ext, refl } }
 
 end fdRep
 
@@ -96,26 +115,26 @@ namespace fdRep
 
 open representation
 
-variables {k G V W : Type u} [field k] [group G]
-variables [add_comm_group V] [module k V] [add_comm_group W] [module k W]
-variables [finite_dimensional k V] [finite_dimensional k W]
-variables (ρV : representation k G V) (ρW : representation k G W)
+variables {k G V : Type u} [field k] [group G]
+variables [add_comm_group V] [module k V]
+variables [finite_dimensional k V]
+variables (ρV : representation k G V) (W : fdRep k G)
 
 /-- Auxiliary definition for `fdRep.dual_tensor_iso_lin_hom`. -/
 noncomputable def dual_tensor_iso_lin_hom_aux :
-  ((fdRep.of ρV.dual) ⊗ (fdRep.of ρW)).V ≅ (fdRep.of (lin_hom ρV ρW)).V :=
+  ((fdRep.of ρV.dual) ⊗ W).V ≅ (fdRep.of (lin_hom ρV W.ρ)).V :=
 (dual_tensor_hom_equiv k V W).to_FinVect_iso
 
 /-- When `V` and `W` are finite dimensional representations of a group `G`, the isomorphism
 `dual_tensor_hom_equiv k V W` of vector spaces induces an isomorphism of representations. -/
 noncomputable def dual_tensor_iso_lin_hom :
-  (fdRep.of ρV.dual) ⊗ (fdRep.of ρW) ≅ fdRep.of (lin_hom ρV ρW) :=
+  (fdRep.of ρV.dual) ⊗ W ≅ fdRep.of (lin_hom ρV W.ρ) :=
 begin
-  apply Action.mk_iso (dual_tensor_iso_lin_hom_aux ρV ρW),
-  convert (dual_tensor_hom_comm ρV ρW),
+  apply Action.mk_iso (dual_tensor_iso_lin_hom_aux ρV W),
+  convert (dual_tensor_hom_comm ρV W.ρ),
 end
 
 @[simp] lemma dual_tensor_iso_lin_hom_hom_hom :
-  (dual_tensor_iso_lin_hom ρV ρW).hom.hom = dual_tensor_hom k V W := rfl
+  (dual_tensor_iso_lin_hom ρV W).hom.hom = dual_tensor_hom k V W := rfl
 
 end fdRep

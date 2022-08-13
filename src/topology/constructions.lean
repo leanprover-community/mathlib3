@@ -934,7 +934,7 @@ lemma continuous.quotient_lift {f : α → β} (h : continuous f) (hs : ∀ a b,
   continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom.2 h
 
-lemma continuous.quotient_lift_on' {f : α → β} (h : continuous f) (hs : ∀ a b, a ≈ b → f a = f b) :
+lemma continuous.quotient_lift_on' {f : α → β} (h : continuous f) (hs : ∀ a b, s.r a b → f a = f b) :
   continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
 h.quotient_lift hs
 

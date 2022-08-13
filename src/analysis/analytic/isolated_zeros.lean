@@ -62,14 +62,6 @@ end has_sum
 
 namespace has_fpower_series_at
 
-lemma locally_zero (hp : has_fpower_series_at f (0 : formal_multilinear_series 𝕜 𝕜 E) z₀) :
-  ∀ᶠ z in 𝓝 z₀, f z = 0 :=
-begin
-  filter_upwards [has_fpower_series_at_iff'.mp hp] with z hz,
-  simp only [coeff, pi.zero_apply, continuous_multilinear_map.zero_apply, smul_zero] at hz,
-  exact hz.unique has_sum_zero
-end
-
 lemma has_fpower_series_dslope_fslope (hp : has_fpower_series_at f p z₀) :
   has_fpower_series_at (dslope f z₀) p.fslope z₀ :=
 begin

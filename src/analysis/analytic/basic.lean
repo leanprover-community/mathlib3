@@ -413,6 +413,27 @@ let ⟨r, hr⟩ := hf in
 mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
 
+lemma has_fpower_series_on_ball.eventually_has_sum (hf : has_fpower_series_on_ball f p x r) :
+  ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=
+by filter_upwards [emetric.ball_mem_nhds (0 : E) hf.r_pos] using hf.has_sum
+
+lemma has_fpower_series_at.eventually_has_sum (hf : has_fpower_series_at f p x) :
+  ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=
+let ⟨r, hr⟩ := hf in hr.eventually_has_sum
+
+lemma has_fpower_series_on_ball.eventually_has_sum_sub (hf : has_fpower_series_on_ball f p x r) :
+  ∀ᶠ y in 𝓝 x, has_sum (λn:ℕ, p n (λ(i : fin n), y - x)) (f y) :=
+by filter_upwards [emetric.ball_mem_nhds x hf.r_pos] with y using hf.has_sum_sub
+
+lemma has_fpower_series_at.eventually_has_sum_sub (hf : has_fpower_series_at f p x) :
+  ∀ᶠ y in 𝓝 x, has_sum (λn:ℕ, p n (λ(i : fin n), y - x)) (f y) :=
+let ⟨r, hr⟩ := hf in hr.eventually_has_sum_sub
+
+lemma has_fpower_zeries_on_ball.eventually_eq_zero
+  (hp : has_fpower_series_on_ball f (0 : formal_multilinear_series 𝕜 E F) x r) :
+  ∀ᶠ z in 𝓝 x, f z = 0 :=
+by filter_upwards [hp.eventually_has_sum_sub] with z hz using hz.unique has_sum_zero
+
 lemma has_fpower_series_on_ball.add
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
   has_fpower_series_on_ball (f + g) (pf + pg) x r :=

@@ -402,7 +402,7 @@ lemma conj_inv (x : ℂ) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 map_div₀ of_real r s
 
 @[simp, norm_cast] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-of_real.map_zpow r n
+map_zpow₀ of_real r n
 
 @[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
 (div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
@@ -411,7 +411,7 @@ of_real.map_zpow r n
 by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-norm_sq.map_inv z
+map_inv₀ norm_sq z
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=
 map_div₀ norm_sq z w
@@ -530,7 +530,7 @@ map_prod abs_hom _ _
 map_pow abs_hom z n
 
 @[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
-abs_hom.map_zpow z n
+map_zpow₀ abs_hom z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
@@ -703,7 +703,7 @@ lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
 /-- The real part of a complex Cauchy sequence, as a real Cauchy sequence. -/
 noncomputable def cau_seq_re (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_re f⟩
-
+h
 /-- The imaginary part of a complex Cauchy sequence, as a real Cauchy sequence. -/
 noncomputable def cau_seq_im (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_im f⟩

@@ -197,13 +197,13 @@ end
 
 /-- In a category in which every monomorphism is split, every monomorphism splits. This is not an
     instance because it would create an instance loop. -/
-def is_split_mono_of_mono [split_mono_category C] {X Y : C} (f : X ⟶ Y) [mono f] :
+lemma is_split_mono_of_mono [split_mono_category C] {X Y : C} (f : X ⟶ Y) [mono f] :
   is_split_mono f :=
 split_mono_category.is_split_mono_of_mono _
 
 /-- In a category in which every epimorphism is split, every epimorphism splits. This is not an
     instance because it would create an instance loop. -/
-def is_split_epi_of_epi [split_epi_category C] {X Y : C} (f : X ⟶ Y) [epi f] :
+lemma is_split_epi_of_epi [split_epi_category C] {X Y : C} (f : X ⟶ Y) [epi f] :
   is_split_epi f := split_epi_category.is_split_epi_of_epi _
 
 section

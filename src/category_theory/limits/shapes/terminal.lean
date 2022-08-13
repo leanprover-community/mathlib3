@@ -116,11 +116,11 @@ t.hom_ext _ _
 t.hom_ext _ _
 
 /-- Any morphism from a terminal object is split mono. -/
-def is_terminal.is_split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) :
+lemma is_terminal.is_split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) :
   is_split_mono f := is_split_mono.mk' ⟨t.from _, t.hom_ext _ _⟩
 
 /-- Any morphism to an initial object is split epi. -/
-def is_initial.is_split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) :
+lemma is_initial.is_split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) :
   is_split_epi f := is_split_epi.mk' ⟨t.to _, t.hom_ext _ _⟩
 
 /-- Any morphism from a terminal object is mono. -/

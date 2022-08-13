@@ -9,31 +9,27 @@ import analysis.convex.combination
 import analysis.convex.gauge
 
 /-!
-# Disk
+# Absolutely convex sets
+
+A set is called absolutely convex or disked if it is convex and balanced.
 
 ## Main definitions
 
-* `foo_bar`
+* `maximal_seminorm_family`: the seminorm family induced by all open absolutely convex neighborhoods
+of zero.
 
 ## Main statements
 
-* `foo_bar_unique`
+* `with_maximal_seminorm_family`: the topology of a locally convex space is induced by the family
+`maximal_seminorm_family`.
 
-## Notation
+## Todo
 
-
-
-## Implementation details
-
-
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
+* Define the disked hull
 
 ## Tags
 
-Foobars, barfoos
+disks, convex, balanced
 -/
 
 
@@ -138,31 +134,6 @@ end absolutely_convex_sets
 variables [is_R_or_C 𝕜]
 variables [add_comm_group E] [topological_space E]
 variables [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
-
-namespace abs_convex_open_sets
-
-variables [has_continuous_smul 𝕜 E]
-
-lemma Ioi_smul_nonempty (s : abs_convex_open_sets 𝕜 E) (x : E) :
-  {r ∈ Ioi (0 : ℝ) | x ∈ r • (s : set E)}.nonempty :=
-begin
-  have : absorbent 𝕜 (s : set E) := absorbent_nhds_zero s.coe_nhds,
-  rcases this x with ⟨r, hr, h⟩,
-  have hr' : r ≤ ∥(r : 𝕜)∥ :=
-  begin
-    rw [is_R_or_C.norm_of_real, real.norm_eq_abs],
-    exact le_abs_self _,
-  end,
-  use r,
-  simp only [mem_sep_eq, mem_Ioi],
-  refine ⟨hr, _⟩,
-  convert h r hr',
-  rw is_R_or_C.of_real_alg,
-  simp only [smul_one_smul],
-end
-
-end abs_convex_open_sets
-
 variables [has_continuous_smul ℝ E]
 
 variables (𝕜 E)

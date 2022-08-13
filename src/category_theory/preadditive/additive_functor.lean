@@ -130,24 +130,6 @@ lemma additive_of_preserves_binary_biproducts [has_binary_biproducts C] [preserv
     ← biprod.map_biprod_hom_desc, category.assoc, iso.inv_hom_id_assoc, F.map_id,
     biprod.add_eq_lift_id_desc] }
 
-section
-local attribute [instance] preserves_binary_biproducts_of_preserves_binary_products
-
-lemma additive_of_preserves_finite_limits [has_zero_object C] [has_zero_object D]
-  [has_binary_biproducts C] [preserves_finite_limits F] : additive F :=
-additive_of_preserves_binary_biproducts F
-
-end
-
-section
-local attribute [instance] preserves_binary_biproducts_of_preserves_binary_coproducts
-
-lemma additive_of_preserves_finite_colimits [has_zero_object C] [has_zero_object D]
-  [has_binary_biproducts C] [preserves_finite_colimits F] : additive F :=
-additive_of_preserves_binary_biproducts F
-
-end
-
 end
 
 end functor
@@ -216,23 +198,28 @@ open category_theory.limits
 variables (C : Type u₁) (D : Type u₂) [category.{v₁} C] [category.{v₂} D] [preadditive C]
 variables [preadditive D] [has_zero_object C] [has_zero_object D] [has_binary_biproducts C]
 
+section
+local attribute [instance] preserves_binary_biproducts_of_preserves_binary_products
+local attribute [instance] preserves_binary_biproducts_of_preserves_binary_coproducts
+
 /-- Turn a left exact functor into an additive functor. -/
 @[derive full, derive faithful]
 def AdditiveFunctor.of_left_exact : (C ⥤ₗ D) ⥤ (C ⥤+ D) :=
-full_subcategory.map
-  (λ F h, let hF := classical.choice h in by exactI functor.additive_of_preserves_finite_limits F)
+full_subcategory.map (λ F h, let hF := classical.choice h in
+    by exactI functor.additive_of_preserves_binary_biproducts F)
 
 /-- Turn a right exact functor into an additive functor. -/
 @[derive full, derive faithful]
 def AdditiveFunctor.of_right_exact : (C ⥤ᵣ D) ⥤ (C ⥤+ D) :=
-full_subcategory.map
-  (λ F h, let hF := classical.choice h in by exactI functor.additive_of_preserves_finite_colimits F)
+full_subcategory.map (λ F h, let hF := classical.choice h in
+  by exactI functor.additive_of_preserves_binary_biproducts F)
 
 /-- Turn an exact functor into an additive functor. -/
 @[derive full, derive faithful]
 def AdditiveFunctor.of_exact : (C ⥤ₑ D) ⥤ (C ⥤+ D) :=
-full_subcategory.map (λ F h,
-  let hF := classical.choice h.1 in by exactI functor.additive_of_preserves_finite_limits F)
+full_subcategory.map (λ F h, let hF := classical.choice h.1 in
+  by exactI functor.additive_of_preserves_binary_biproducts F)
+end
 
 variables {C D}
 

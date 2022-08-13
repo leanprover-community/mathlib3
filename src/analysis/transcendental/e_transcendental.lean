@@ -6,9 +6,9 @@ import data.real.irrational
 
 noncomputable theory
 open small_lemmas e_transcendental_lemmas
-open_locale classical
 open_locale big_operators
-notation α`[X]` := polynomial α
+open_locale classical
+open_locale polynomial
 
 /--
 e is defined to be `exp 1`
@@ -1146,54 +1146,54 @@ begin
   ... ≤ M g ^ p.val : abs_J_upper_bound g p.val p.property,
 end
 
-theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=
+theorem pow_transcendental (n : ℕ) (r : ℝ) (ht : transcendental ℤ r) (hn : 1 ≤ n) :
+  transcendental ℤ (r ^ n) :=
 begin
-  intro alg,
-  rcases alg with ⟨p, p_nonzero, hp⟩,
-  have alg_e : is_algebraic ℤ e,
-  {
-    use ∑ i in finset.range (p.nat_degree + 1), polynomial.C (p.coeff i) * (polynomial.X ^ (i * n)),
-    split,
+  rw transcendental at ht ⊢,
+  contrapose! ht,
+  obtain ⟨p, p_nonzero, hp⟩ := ht,
+  use ∑ i in finset.range (p.nat_degree + 1), polynomial.C (p.coeff i) * (polynomial.X ^ (i * n)),
+  split,
 
-    intro rid, rw polynomial.ext_iff at rid,
-    replace p_nonzero := (not_iff_not.2 (@polynomial.ext_iff ℤ _ p 0)).1 p_nonzero,
-    simp only [not_forall, polynomial.coeff_zero] at p_nonzero,
-    choose k hk using p_nonzero,
-    replace rid := rid (k * n),
-    simp only [polynomial.mul_coeff_zero, polynomial.finset_sum_coeff, polynomial.coeff_zero] at rid,
-    simp_rw [polynomial.coeff_C_mul_X_pow] at rid,
-    rw finset.sum_eq_single k at rid,
-    simp only [mul_one, if_true, true_or, eq_self_iff_true, nat.zero_eq_mul] at rid,
-    exact hk rid,
+  intro rid, rw polynomial.ext_iff at rid,
+  replace p_nonzero := (not_iff_not.2 (@polynomial.ext_iff ℤ _ p 0)).1 p_nonzero,
+  simp only [not_forall, polynomial.coeff_zero] at p_nonzero,
+  choose k hk using p_nonzero,
+  replace rid := rid (k * n),
+  simp only [polynomial.mul_coeff_zero, polynomial.finset_sum_coeff, polynomial.coeff_zero] at rid,
+  simp_rw [polynomial.coeff_C_mul_X_pow] at rid,
+  rw finset.sum_eq_single k at rid,
+  simp only [mul_one, if_true, true_or, eq_self_iff_true, nat.zero_eq_mul] at rid,
+  exact hk rid,
 
-    intros j hj1 hj2, split_ifs,
-    replace h := (nat.mul_left_inj _).1 h,
-    exfalso,
-    exact hj2 (eq.symm h), exact hn, refl,
+  intros j hj1 hj2, split_ifs,
+  replace h := (nat.mul_left_inj _).1 h,
+  exfalso,
+  exact hj2 (eq.symm h), exact hn, refl,
 
-    intros hk, simp only [not_lt, finset.mem_range] at hk,
-    simp only [if_true, eq_self_iff_true],
-    apply polynomial.coeff_eq_zero_of_nat_degree_lt,
-    linarith,
+  intros hk, simp only [not_lt, finset.mem_range] at hk,
+  simp only [if_true, eq_self_iff_true],
+  apply polynomial.coeff_eq_zero_of_nat_degree_lt,
+  linarith,
 
 
-    have H := polynomial.as_sum_range p,
-    rw H at hp, rw map_sum at hp ⊢, rw <-hp,
-    apply finset.sum_congr rfl,
-    intros i hi,
-    simp only [polynomial.aeval_X, polynomial.aeval_C, alg_hom.map_pow, alg_hom.map_mul],
-    simp only [algebra_map_int_eq,
- int.cast_eq_zero,
- pow_mul',
- ring_hom.eq_int_cast,
- mul_eq_mul_left_iff,
- true_or,
- eq_self_iff_true,
- polynomial.aeval_monomial],
-  },
-
-  exact e_transcendental alg_e,
+  have H := polynomial.as_sum_range p,
+  rw H at hp, rw map_sum at hp ⊢, rw <-hp,
+  apply finset.sum_congr rfl,
+  intros i hi,
+  simp only [polynomial.aeval_X, polynomial.aeval_C, alg_hom.map_pow, alg_hom.map_mul],
+  simp only [algebra_map_int_eq,
+int.cast_eq_zero,
+pow_mul',
+ring_hom.eq_int_cast,
+mul_eq_mul_left_iff,
+true_or,
+eq_self_iff_true,
+polynomial.aeval_monomial],
 end
+
+theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=
+pow_transcendental _ _ e_transcendental hn
 
 theorem transcendental_irrational {x : ℝ} (trans_x : transcendental ℤ x) : irrational x :=
 transcendental.irrational $ (transcendental_iff_transcendental_over_ℚ x).mp trans_x

@@ -96,7 +96,7 @@ instance monoidal_category : monoidal_category Pointed.{u} :=
 
 instance : symmetric_category Pointed.{u} := { braiding := λ X Y, iso.mk (equiv.prod_comm _ _) rfl }
 
-@[simp] lemma coe_tensor (X Y : Pointed) : ↥(X ⊗ Y) = (↥X × ↥Y) := rfl
+@[simp] lemma coe_tensor (X Y : Pointed.{u}) : ↥(X ⊗ Y) = (X × Y : Type u) := rfl
 @[simp] lemma point_tensor (X Y : Pointed) : (X ⊗ Y).point = (X.point, Y.point) := rfl
 
 @[simp] lemma coe_unit : ↥(𝟙_ Pointed) = punit := rfl

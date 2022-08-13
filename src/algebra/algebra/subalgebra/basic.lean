@@ -712,19 +712,11 @@ instance _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingle
 
 instance _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] :
   subsingleton (A ≃ₐ[R] B) :=
-begin
-  haveI : subsingleton (A →ₐ[R] B) := alg_hom.subsingleton,
-  exact ⟨λ f g, alg_equiv.ext
-    (λ x, alg_hom.ext_iff.mp (subsingleton.elim f.to_alg_hom g.to_alg_hom) x)⟩,
-end
+⟨λ f g, alg_equiv.ext (λ x, alg_hom.ext_iff.mp (subsingleton.elim f.to_alg_hom g.to_alg_hom) x)⟩
 
 instance _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] :
   subsingleton (A ≃ₐ[R] B) :=
-begin
-  haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
-  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm
-    (by rw [subsingleton.elim f.symm g.symm, alg_equiv.symm_symm])⟩
-end
+⟨λ f g, by rw [← f.symm_symm, subsingleton.elim f.symm g.symm, g.symm_symm]⟩
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val

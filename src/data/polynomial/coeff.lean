@@ -34,11 +34,11 @@ coeff_monomial
 
 @[simp]
 lemma coeff_add (p q : R[X]) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
-by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
+by { rcases p, rcases q, simp_rw [←of_finsupp_add, coeff], exact finsupp.add_apply _ _ _ }
 
 @[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : R[X]) (n : ℕ) :
   coeff (r • p) n = r • coeff p n :=
-by { rcases p, simp [coeff, smul_to_finsupp] }
+by { rcases p, simp_rw [←of_finsupp_smul, coeff], exact finsupp.smul_apply _ _ _ }
 
 lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : R[X]) :
   support (r • p) ⊆ support p :=
@@ -87,7 +87,7 @@ lemma coeff_mul (p q : R[X]) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 begin
   rcases p, rcases q,
-  simp only [coeff, mul_to_finsupp],
+  simp_rw [←of_finsupp_mul, coeff],
   exact add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
 end
 
@@ -108,16 +108,22 @@ lemma coeff_C_mul_X (x : R) (n : ℕ) : coeff (C x * X : R[X]) n = if n = 1 then
 by rw [← pow_one X, coeff_C_mul_X_pow]
 
 @[simp] lemma coeff_C_mul (p : R[X]) : coeff (C a * p) n = a * coeff p n :=
-by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
-  coeff, add_monoid_algebra.single_zero_mul_apply p a n] }
+begin
+  rcases p,
+  simp_rw [←monomial_zero_left, ←of_finsupp_single, ←of_finsupp_mul, coeff],
+  exact add_monoid_algebra.single_zero_mul_apply p a n
+end
 
 lemma C_mul' (a : R) (f : R[X]) : C a * f = a • f :=
 by { ext, rw [coeff_C_mul, coeff_smul, smul_eq_mul] }
 
 @[simp] lemma coeff_mul_C (p : R[X]) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
-by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
-  coeff, add_monoid_algebra.mul_single_zero_apply p a n] }
+begin
+  rcases p,
+  simp_rw [←monomial_zero_left, ←of_finsupp_single, ←of_finsupp_mul, coeff],
+  exact add_monoid_algebra.mul_single_zero_apply p a n
+end
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : R[X]) n = if n = k then 1 else 0 :=
@@ -127,6 +133,41 @@ by simp only [one_mul, ring_hom.map_one, ← coeff_C_mul_X_pow]
 lemma coeff_X_pow_self (n : ℕ) :
   coeff (X^n : R[X]) n = 1 :=
 by simp [coeff_X_pow]
+
+section fewnomials
+
+open finset
+
+lemma support_binomial {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (C x * X ^ k + C y * X ^ m).support = {k, m} :=
+begin
+  apply subset_antisymm (support_binomial' k m x y),
+  simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
+    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm, if_neg hkm.symm,
+    mul_zero, zero_add, add_zero, ne.def, hx, hy, and_self, not_false_iff],
+end
+
+lemma support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
+  (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support = {k, m, n} :=
+begin
+  apply subset_antisymm (support_trinomial' k m n x y z),
+  simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
+    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm.ne, if_neg hkm.ne', if_neg hmn.ne,
+    if_neg hmn.ne', if_neg (hkm.trans hmn).ne, if_neg (hkm.trans hmn).ne',
+    mul_zero, add_zero, zero_add, ne.def, hx, hy, hz, and_self, not_false_iff],
+end
+
+lemma card_support_binomial {k m : ℕ} (h : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (C x * X ^ k + C y * X ^ m).support.card = 2 :=
+by rw [support_binomial h hx hy, card_insert_of_not_mem (mt mem_singleton.mp h), card_singleton]
+
+lemma card_support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
+  (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support.card = 3 :=
+by rw [support_trinomial hkm hmn hx hy hz, card_insert_of_not_mem
+  (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
+  card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton]
+
+end fewnomials
 
 @[simp]
 theorem coeff_mul_X_pow (p : R[X]) (n d : ℕ) :
@@ -150,8 +191,7 @@ begin
   { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
   { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
     rw [coeff_X_pow, if_neg, mul_zero],
-    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
-      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
+    exact ((le_of_add_le_right (finset.nat.mem_antidiagonal.mp hx).le).trans_lt $ not_le.mp h).ne }
 end
 
 lemma coeff_X_pow_mul' (p : R[X]) (n d : ℕ) :
@@ -165,18 +205,41 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 @[simp] theorem coeff_X_mul (p : R[X]) (n : ℕ) :
   coeff (X * p) (n + 1) = coeff p n := by rw [(commute_X p).eq, coeff_mul_X]
 
+theorem coeff_mul_monomial (p : R[X]) (n d : ℕ) (r : R) :
+  coeff (p * monomial n r) (d + n) = coeff p d * r :=
+by rw [monomial_eq_C_mul_X, ←X_pow_mul, ←mul_assoc, coeff_mul_C, coeff_mul_X_pow]
+
+theorem coeff_monomial_mul (p : R[X]) (n d : ℕ) (r : R) :
+  coeff (monomial n r * p) (d + n) = r * coeff p d :=
+by rw [monomial_eq_C_mul_X, mul_assoc, coeff_C_mul, X_pow_mul, coeff_mul_X_pow]
+
+-- This can already be proved by `simp`.
+theorem coeff_mul_monomial_zero (p : R[X]) (d : ℕ) (r : R) :
+  coeff (p * monomial 0 r) d = coeff p d * r :=
+coeff_mul_monomial p 0 d r
+
+-- This can already be proved by `simp`.
+theorem coeff_monomial_zero_mul (p : R[X]) (d : ℕ) (r : R) :
+  coeff (monomial 0 r * p) d = r * coeff p d :=
+coeff_monomial_mul p 0 d r
+
 theorem mul_X_pow_eq_zero {p : R[X]} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
+lemma mul_X_pow_injective (n : ℕ) : function.injective (λ P : R[X], X ^ n * P) :=
+begin
+  intros P Q hPQ,
+  simp only at hPQ,
+  ext i,
+  rw [← coeff_X_pow_mul P n i, hPQ, coeff_X_pow_mul Q n i]
+end
+
+lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
+pow_one (X : R[X]) ▸ mul_X_pow_injective 1
+
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
-by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }
-
-lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
-by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
-
-lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
-by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
+monomial_eq_C_mul_X.symm
 
 lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
   ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=
@@ -273,5 +336,8 @@ begin
 end
 
 end cast
+
+instance [char_zero R] : char_zero R[X] :=
+{ cast_injective := λ x y, nat_cast_inj.mp }
 
 end polynomial

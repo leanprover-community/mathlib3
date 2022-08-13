@@ -444,7 +444,7 @@ This version is also useful to establish that being a sheaf is preserved under i
 presheaves.
 
 See the discussion before Equation (3) of [MM92], Chapter III, Section 4. See also C2.1.4 of
-[Elephant]. This is also a direct reformulation of https://stacks.math.columbia.edu/tag/00Z8.
+[Elephant]. This is also a direct reformulation of <https://stacks.math.columbia.edu/tag/00Z8>.
 -/
 def yoneda_sheaf_condition (P : Cᵒᵖ ⥤ Type v₁) (S : sieve X) : Prop :=
 ∀ (f : S.functor ⟶ P), ∃! g, S.functor_inclusion ≫ g = f
@@ -456,7 +456,7 @@ def yoneda_sheaf_condition (P : Cᵒᵖ ⥤ Type v₁) (S : sieve X) : Prop :=
 (Implementation). This is a (primarily internal) equivalence between natural transformations
 and compatible families.
 
-Cf the discussion after Lemma 7.47.10 in https://stacks.math.columbia.edu/tag/00YW. See also
+Cf the discussion after Lemma 7.47.10 in <https://stacks.math.columbia.edu/tag/00YW>. See also
 the proof of C2.1.4 of [Elephant], and the discussion in [MM92], Chapter III, Section 4.
 -/
 def nat_trans_equiv_compatible_family {P : Cᵒᵖ ⥤ Type v₁} :
@@ -799,7 +799,7 @@ noncomputable theory
 
 /--
 The middle object of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
-of https://stacks.math.columbia.edu/tag/00VM.
+of <https://stacks.math.columbia.edu/tag/00VM>.
 -/
 def first_obj : Type (max v₁ u₁) :=
 ∏ (λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (op f.1))
@@ -817,7 +817,7 @@ def first_obj_eq_family : first_obj P R ≅ R.family_of_elements P :=
   inv_hom_id' :=
   begin
     ext x Y f hf,
-    apply limits.types.limit.lift_π_apply,
+    apply limits.types.limit.lift_π_apply',
   end }
 
 instance : inhabited (first_obj P (⊥ : presieve X)) :=
@@ -825,7 +825,7 @@ instance : inhabited (first_obj P (⊥ : presieve X)) :=
 
 /--
 The left morphism of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
-of https://stacks.math.columbia.edu/tag/00VM.
+of <https://stacks.math.columbia.edu/tag/00VM>.
 -/
 def fork_map : P.obj (op X) ⟶ first_obj P R :=
 pi.lift (λ f, P.map f.2.1.op)
@@ -873,8 +873,8 @@ begin
     ext ⟨Y, Z, g, f, hf⟩,
     simpa [first_map, second_map] using t _ g hf },
   { intros t Y Z f g hf,
-    rw types.limit_ext_iff at t,
-    simpa [first_map, second_map] using t ⟨Y, Z, g, f, hf⟩ }
+    rw types.limit_ext_iff' at t,
+    simpa [first_map, second_map] using t ⟨⟨Y, Z, g, f, hf⟩⟩ }
 end
 
 /-- `P` is a sheaf for `S`, iff the fork given by `w` is an equalizer. -/
@@ -918,13 +918,13 @@ def second_obj : Type (max v₁ u₁) :=
 ∏ (λ (fg : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g})),
   P.obj (op (pullback fg.1.2.1 fg.2.2.1)))
 
-/-- The map `pr₀*` of https://stacks.math.columbia.edu/tag/00VL. -/
+/-- The map `pr₀*` of <https://stacks.math.columbia.edu/tag/00VL>. -/
 def first_map : first_obj P R ⟶ second_obj P R :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.fst.op)
 
 instance : inhabited (second_obj P (⊥ : presieve X)) := ⟨first_map _ _ default⟩
 
-/-- The map `pr₁*` of https://stacks.math.columbia.edu/tag/00VL. -/
+/-- The map `pr₁*` of <https://stacks.math.columbia.edu/tag/00VL>. -/
 def second_map : first_obj P R ⟶ second_obj P R :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.snd.op)
 
@@ -952,13 +952,13 @@ begin
     ext ⟨⟨Y, f, hf⟩, Z, g, hg⟩,
     simpa [first_map, second_map] using t hf hg },
   { intros t Y Z f g hf hg,
-    rw types.limit_ext_iff at t,
-    simpa [first_map, second_map] using t ⟨⟨Y, f, hf⟩, Z, g, hg⟩ }
+    rw types.limit_ext_iff' at t,
+    simpa [first_map, second_map] using t ⟨⟨⟨Y, f, hf⟩, Z, g, hg⟩⟩ }
 end
 
 /--
 `P` is a sheaf for `R`, iff the fork given by `w` is an equalizer.
-See https://stacks.math.columbia.edu/tag/00VM.
+See <https://stacks.math.columbia.edu/tag/00VM>.
 -/
 lemma sheaf_condition :
   R.is_sheaf_for P ↔ nonempty (is_limit (fork.of_ι _ (w P R))) :=

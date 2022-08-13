@@ -5,6 +5,7 @@ Authors: Heather Macbeth, Frédéric Dupuis
 -/
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.dual
+import analysis.inner_product_space.adjoint
 import analysis.calculus.lagrange_multipliers
 import linear_algebra.eigenspace
 
@@ -93,7 +94,7 @@ variables {F : Type*} [inner_product_space ℝ F]
 
 lemma has_strict_fderiv_at_re_apply_inner_self
   {T : F →L[ℝ] F} (hT : is_self_adjoint (T : F →ₗ[ℝ] F)) (x₀ : F) :
-  has_strict_fderiv_at T.re_apply_inner_self (bit0 (innerSL (T x₀))) x₀ :=
+  has_strict_fderiv_at T.re_apply_inner_self (bit0 (innerSL (T x₀) : F →L[ℝ] ℝ)) x₀ :=
 begin
   convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
   ext y,
@@ -139,7 +140,7 @@ begin
   have hc : T x₀ = c • x₀,
   { have : b * (b⁻¹ * a) = a := by field_simp [mul_comm],
     apply smul_right_injective F hb,
-    simp [c, ← neg_eq_of_add_eq_zero h₂, ← mul_smul, this] },
+    simp [c, eq_neg_of_add_eq_zero_left h₂, ← mul_smul, this] },
   convert hc,
   have : ∥x₀∥ ≠ 0 := by simp [hx₀],
   field_simp,

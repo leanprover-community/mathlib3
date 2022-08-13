@@ -3,7 +3,7 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import linear_algebra.quadratic_form.basic
+import linear_algebra.quadratic_form.isometry
 
 /-! # Quadratic form on product and pi types
 
@@ -31,10 +31,10 @@ forms specifically.
 
 universes u v w
 variables {ι : Type*} {R : Type*} {M₁ M₂ N₁ N₂ : Type*} {Mᵢ Nᵢ : ι → Type*}
-variables [ring R]
-variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group N₁] [add_comm_group N₂]
+variables [semiring R]
+variables [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid N₁] [add_comm_monoid N₂]
 variables [module R M₁] [module R M₂] [module R N₁] [module R N₂]
-variables [Π i, add_comm_group (Mᵢ i)] [Π i, add_comm_group (Nᵢ i)]
+variables [Π i, add_comm_monoid (Mᵢ i)] [Π i, add_comm_monoid (Nᵢ i)]
 variables [Π i, module R (Mᵢ i)] [Π i, module R (Nᵢ i)]
 
 namespace quadratic_form
@@ -64,7 +64,7 @@ lemma anisotropic_of_prod {R} [ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} (h : (Q₁.prod Q₂).anisotropic) :
   Q₁.anisotropic ∧ Q₂.anisotropic :=
 begin
-  simp_rw [anisotropic, prod_to_fun, prod.forall, prod.mk_eq_zero] at h,
+  simp_rw [anisotropic, prod_apply, prod.forall, prod.mk_eq_zero] at h,
   split,
   { intros x hx,
     refine (h x 0 _).1,
@@ -78,7 +78,7 @@ lemma nonneg_prod_iff {R} [ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} :
   (∀ x, 0 ≤ (Q₁.prod Q₂) x) ↔ (∀ x, 0 ≤ Q₁ x) ∧ (∀ x, 0 ≤ Q₂ x) :=
 begin
-  simp_rw [prod.forall, prod_to_fun],
+  simp_rw [prod.forall, prod_apply],
   split,
   { intro h,
     split,

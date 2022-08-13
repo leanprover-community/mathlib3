@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
+import algebra.hom.iterate
+import algebra.hom.non_unital_alg
 import linear_algebra.tensor_product
-import algebra.iterate_hom
 
 /-!
 # Facts about algebras involving bilinear maps and tensor products
@@ -15,143 +16,168 @@ in order to avoid importing `linear_algebra.bilinear_map` and
 `linear_algebra.tensor_product` unnecessarily.
 -/
 
-universes u v w
-
-namespace algebra
-
 open_locale tensor_product
 open module
 
-section
+namespace linear_map
+
+section non_unital_non_assoc
+
+variables (R A : Type*) [comm_semiring R] [non_unital_non_assoc_semiring A]
+  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+
+/-- The multiplication in a non-unital non-associative algebra is a bilinear map.
+
+A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
+def mul : A →ₗ[R] A →ₗ[R] A := linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm
+
+/-- The multiplication map on a non-unital algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
+def mul' : A ⊗[R] A →ₗ[R] A :=
+tensor_product.lift (mul R A)
+
+variables {A}
+
+/-- The multiplication on the left in a non-unital algebra is a linear map. -/
+def mul_left (a : A) : A →ₗ[R] A := mul R A a
+
+/-- The multiplication on the right in an algebra is a linear map. -/
+def mul_right (a : A) : A →ₗ[R] A := (mul R A).flip a
+
+/-- Simultaneous multiplication on the left and right is a linear map. -/
+def mul_left_right (ab : A × A) : A →ₗ[R] A := (mul_right R ab.snd).comp (mul_left R ab.fst)
+
+@[simp] lemma mul_left_to_add_monoid_hom (a : A) :
+  (mul_left R a : A →+ A) = add_monoid_hom.mul_left a := rfl
+
+@[simp] lemma mul_right_to_add_monoid_hom (a : A) :
+  (mul_right R a : A →+ A) = add_monoid_hom.mul_right a := rfl
+
+variables {R}
+
+@[simp] lemma mul_apply' (a b : A) : mul R A a b = a * b := rfl
+@[simp] lemma mul_left_apply (a b : A) : mul_left R a b = a * b := rfl
+@[simp] lemma mul_right_apply (a b : A) : mul_right R a b = b * a := rfl
+@[simp] lemma mul_left_right_apply (a b x : A) : mul_left_right R (a, b) x = a * x * b := rfl
+
+@[simp] lemma mul'_apply {a b : A} : mul' R A (a ⊗ₜ b) = a * b :=
+by simp only [linear_map.mul', tensor_product.lift.tmul, mul_apply']
+
+@[simp] lemma mul_left_zero_eq_zero :
+  mul_left R (0 : A) = 0 :=
+(mul R A).map_zero
+
+@[simp] lemma mul_right_zero_eq_zero :
+  mul_right R (0 : A) = 0 :=
+(mul R A).flip.map_zero
+
+end non_unital_non_assoc
+
+section non_unital
+
+variables (R A : Type*) [comm_semiring R] [non_unital_semiring A]
+  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+
+/-- The multiplication in a non-unital algebra is a bilinear map.
+
+A weaker version of this for non-unital non-associative algebras exists as `linear_map.mul`. -/
+def _root_.non_unital_alg_hom.lmul : A →ₙₐ[R] (End R A) :=
+{ map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
+  map_zero' := by { ext a, exact zero_mul a },
+  .. (mul R A) }
+
+variables {R A}
+
+@[simp]
+lemma _root_.non_unital_alg_hom.coe_lmul_eq_mul : ⇑(non_unital_alg_hom.lmul R A) = mul R A := rfl
+
+lemma commute_mul_left_right (a b : A) :
+  commute (mul_left R a) (mul_right R b) :=
+by { ext c, exact (mul_assoc a c b).symm, }
+
+@[simp] lemma mul_left_mul (a b : A) :
+  mul_left R (a * b) = (mul_left R a).comp (mul_left R b) :=
+by { ext, simp only [mul_left_apply, comp_apply, mul_assoc] }
+
+@[simp] lemma mul_right_mul (a b : A) :
+  mul_right R (a * b) = (mul_right R b).comp (mul_right R a) :=
+by { ext, simp only [mul_right_apply, comp_apply, mul_assoc] }
+
+end non_unital
+
+section semiring
 
 variables (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
 
-/-- The multiplication in an algebra is a bilinear map.
+/-- The multiplication in an algebra is an algebra homomorphism into the endomorphisms on
+the algebra.
 
-A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
-def lmul : A →ₐ[R] (End R A) :=
+A weaker version of this for non-unital algebras exists as `non_unital_alg_hom.mul`. -/
+def _root_.algebra.lmul : A →ₐ[R] (End R A) :=
 { map_one' := by { ext a, exact one_mul a },
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
   map_zero' := by { ext a, exact zero_mul a },
-  commutes' := by { intro r, ext a, dsimp, rw [smul_def] },
-  .. (show A →ₗ[R] A →ₗ[R] A, from linear_map.mk₂ R (*)
-  (λ x y z, add_mul x y z)
-  (λ c x y, by rw [smul_def, smul_def, mul_assoc _ x y])
-  (λ x y z, mul_add x y z)
-  (λ c x y, by rw [smul_def, smul_def, left_comm])) }
+  commutes' := by { intro r, ext a, exact (algebra.smul_def r a).symm, },
+  .. (linear_map.mul R A) }
 
 variables {R A}
 
-@[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
+@[simp] lemma _root_.algebra.coe_lmul_eq_mul : ⇑(algebra.lmul R A) = mul R A := rfl
 
-
-variables (R)
-
-/-- The multiplication on the left in an algebra is a linear map. -/
-def lmul_left (r : A) : A →ₗ[R] A :=
-lmul R A r
-
-@[simp] lemma lmul_left_to_add_monoid_hom (r : A) :
-  (lmul_left R r : A →+ A) = add_monoid_hom.mul_left r :=
-fun_like.coe_injective rfl
-
-/-- The multiplication on the right in an algebra is a linear map. -/
-def lmul_right (r : A) : A →ₗ[R] A :=
-(lmul R A).to_linear_map.flip r
-
-@[simp] lemma lmul_right_to_add_monoid_hom (r : A) :
-  (lmul_right R r : A →+ A) = add_monoid_hom.mul_right r :=
-fun_like.coe_injective rfl
-
-/-- Simultaneous multiplication on the left and right is a linear map. -/
-def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
-(lmul_right R vw.2).comp (lmul_left R vw.1)
-
-lemma commute_lmul_left_right (a b : A) :
-  commute (lmul_left R a) (lmul_right R b) :=
-by { ext c, exact (mul_assoc a c b).symm, }
-
-/-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
-def lmul' : A ⊗[R] A →ₗ[R] A :=
-tensor_product.lift (lmul R A).to_linear_map
-
-variables {R A}
-
-@[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
-by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
-
-@[simp] lemma lmul_left_apply (p q : A) : lmul_left R p q = p * q := rfl
-@[simp] lemma lmul_right_apply (p q : A) : lmul_right R p q = q * p := rfl
-@[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
-  lmul_left_right R vw p = vw.1 * p * vw.2 := rfl
-
-@[simp] lemma lmul_left_one : lmul_left R (1:A) = linear_map.id :=
-by { ext, simp only [linear_map.id_coe, one_mul, id.def, lmul_left_apply] }
-
-@[simp] lemma lmul_left_mul (a b : A) :
-  lmul_left R (a * b) = (lmul_left R a).comp (lmul_left R b) :=
-by { ext, simp only [lmul_left_apply, linear_map.comp_apply, mul_assoc] }
-
-@[simp] lemma lmul_right_one : lmul_right R (1:A) = linear_map.id :=
-by { ext, simp only [linear_map.id_coe, mul_one, id.def, lmul_right_apply] }
-
-@[simp] lemma lmul_right_mul (a b : A) :
-  lmul_right R (a * b) = (lmul_right R b).comp (lmul_right R a) :=
-by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
-
-@[simp] lemma lmul_left_zero_eq_zero :
-  lmul_left R (0 : A) = 0 :=
-(lmul R A).map_zero
-
-@[simp] lemma lmul_right_zero_eq_zero :
-  lmul_right R (0 : A) = 0 :=
-(lmul R A).to_linear_map.flip.map_zero
-
-@[simp] lemma lmul_left_eq_zero_iff (a : A) :
-  lmul_left R a = 0 ↔ a = 0 :=
+@[simp] lemma mul_left_eq_zero_iff (a : A) :
+  mul_left R a = 0 ↔ a = 0 :=
 begin
   split; intros h,
-  { rw [← mul_one a, ← lmul_left_apply a 1, h, linear_map.zero_apply], },
-  { rw h, exact lmul_left_zero_eq_zero, },
+  { rw [← mul_one a, ← mul_left_apply a 1, h, linear_map.zero_apply], },
+  { rw h, exact mul_left_zero_eq_zero, },
 end
 
-@[simp] lemma lmul_right_eq_zero_iff (a : A) :
-  lmul_right R a = 0 ↔ a = 0 :=
+@[simp] lemma mul_right_eq_zero_iff (a : A) :
+  mul_right R a = 0 ↔ a = 0 :=
 begin
   split; intros h,
-  { rw [← one_mul a, ← lmul_right_apply a 1, h, linear_map.zero_apply], },
-  { rw h, exact lmul_right_zero_eq_zero, },
+  { rw [← one_mul a, ← mul_right_apply a 1, h, linear_map.zero_apply], },
+  { rw h, exact mul_right_zero_eq_zero, },
 end
 
-@[simp] lemma pow_lmul_left (a : A) (n : ℕ) :
-  (lmul_left R a) ^ n = lmul_left R (a ^ n) :=
-((lmul R A).map_pow a n).symm
+@[simp] lemma mul_left_one : mul_left R (1:A) = linear_map.id :=
+by { ext, simp only [linear_map.id_coe, one_mul, id.def, mul_left_apply] }
 
-@[simp] lemma pow_lmul_right (a : A) (n : ℕ) :
-  (lmul_right R a) ^ n = lmul_right R (a ^ n) :=
-linear_map.coe_injective $ ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n)
+@[simp] lemma mul_right_one : mul_right R (1:A) = linear_map.id :=
+by { ext, simp only [linear_map.id_coe, mul_one, id.def, mul_right_apply] }
 
+@[simp] lemma pow_mul_left (a : A) (n : ℕ) :
+  (mul_left R a) ^ n = mul_left R (a ^ n) :=
+by simpa only [mul_left, ←algebra.coe_lmul_eq_mul] using ((algebra.lmul R A).map_pow a n).symm
+
+@[simp] lemma pow_mul_right (a : A) (n : ℕ) :
+  (mul_right R a) ^ n = mul_right R (a ^ n) :=
+begin
+  simp only [mul_right, ←algebra.coe_lmul_eq_mul],
+  exact linear_map.coe_injective
+    (((mul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n)),
 end
 
-section
+end semiring
+
+section ring
 
 variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
 
-lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
-  function.injective (lmul_left R x) :=
+lemma mul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (mul_left R x) :=
 by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
      exact mul_right_injective₀ hx }
 
-lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
-  function.injective (lmul_right R x) :=
+lemma mul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (mul_right R x) :=
 by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
      exact mul_left_injective₀ hx }
 
-lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
-  function.injective (lmul R A x) :=
+lemma mul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (mul R A x) :=
 by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
      exact mul_right_injective₀ hx }
 
-end
+end ring
 
-end algebra
+end linear_map

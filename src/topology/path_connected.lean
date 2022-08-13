@@ -67,7 +67,7 @@ variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} 
 /-! ### Paths -/
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)
@@ -237,7 +237,7 @@ begin
     { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
     norm_num [ht] },
   { refine congr_arg _ (subtype.ext _),
-    norm_num [sub_sub_assoc_swap, mul_sub] },
+    norm_num [sub_sub_eq_add_sub, mul_sub] },
   { refine congr_arg _ (subtype.ext _),
     have h : 2 - 2 * (t : ℝ) - 1 = 1 - 2 * t, by linarith,
     norm_num [mul_sub, h] },
@@ -555,9 +555,9 @@ begin
   have : range f = univ,
   { rw range_iff_surjective,
     intro t,
-    have h₁ : continuous (Icc_extend (@zero_le_one ℝ _) f),
+    have h₁ : continuous (Icc_extend (zero_le_one' ℝ) f),
     { continuity },
-    have := intermediate_value_Icc (@zero_le_one ℝ _) h₁.continuous_on,
+    have := intermediate_value_Icc (zero_le_one' ℝ) h₁.continuous_on,
     { rw [Icc_extend_left, Icc_extend_right] at this,
       change Icc (f 0) (f 1) ⊆ _ at this,
       rw [hf₀, hf₁] at this,
@@ -827,11 +827,10 @@ begin
   simp only [γ.cast_coe],
   refine and.intro hγ.2 _,
   rintros ⟨i, hi⟩,
-  convert hγ.1 i (nat.le_of_lt_succ hi), rw ← hpp' i hi,
-  congr,
-  ext,
-  rw fin.coe_coe_of_lt hi,
-  norm_cast
+  suffices : p ⟨i, hi⟩ = p' i, by convert hγ.1 i (nat.le_of_lt_succ hi),
+  rw ← hpp' i hi,
+  suffices : i = i % n.succ, { congr, assumption },
+  rw nat.mod_eq_of_lt hi,
 end
 
 lemma is_path_connected.exists_path_through_family'
@@ -854,8 +853,6 @@ joined by a continuous path. -/
 class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (nonempty : nonempty X)
 (joined : ∀ x y : X, joined x y)
-
-attribute [instance, priority 50] path_connected_space.nonempty
 
 lemma path_connected_space_iff_zeroth_homotopy :
   path_connected_space X ↔ nonempty (zeroth_homotopy X) ∧ subsingleton (zeroth_homotopy X) :=
@@ -900,6 +897,7 @@ lemma path_connected_space_iff_univ : path_connected_space X ↔ is_path_connect
 begin
   split,
   { introI h,
+    haveI := @path_connected_space.nonempty X _ _,
     inhabit X,
     refine ⟨default, mem_univ _, _⟩,
     simpa using path_connected_space.joined default },

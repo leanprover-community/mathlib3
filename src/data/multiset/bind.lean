@@ -131,6 +131,14 @@ multiset.induction_on m (by simp) ( by simp)
 lemma count_bind [decidable_eq α] {m : multiset β} {f : β → multiset α} {a : α} :
   count a (bind m f) = sum (m.map $ λ b, count a $ f b) := count_sum
 
+lemma le_bind {α β : Type*} {f : α → multiset β} (S : multiset α) {x : α} (hx : x ∈ S) :
+  f x ≤ S.bind f :=
+begin
+  classical,
+  rw le_iff_count, intro a,
+  rw count_bind, apply le_sum_of_mem,
+  rw mem_map, exact ⟨x, hx, rfl⟩
+end
 end bind
 
 /-! ### Product of two multisets -/
@@ -138,9 +146,12 @@ end bind
 section product
 variables (a : α) (b : β) (s : multiset α) (t : multiset β)
 
-/-- The multiplicity of `(a, b)` in `s.product t` is
+/-- The multiplicity of `(a, b)` in `s ×ˢ t` is
   the product of the multiplicity of `a` in `s` and `b` in `t`. -/
 def product (s : multiset α) (t : multiset β) : multiset (α × β) := s.bind $ λ a, t.map $ prod.mk a
+
+/- This notation binds more strongly than (pre)images, unions and intersections. -/
+infixr ` ×ˢ `:82 := multiset.product
 
 @[simp] lemma coe_product (l₁ : list α) (l₂ : list β) : @product α β l₁ l₂ = l₁.product l₂ :=
 by { rw [product, list.product, ←coe_bind], simp }
@@ -148,25 +159,23 @@ by { rw [product, list.product, ←coe_bind], simp }
 @[simp] lemma zero_product : @product α β 0 t = 0 := rfl
 --TODO: Add `product_zero`
 
-@[simp] lemma cons_product : (a ::ₘ s).product t = map (prod.mk a) t + s.product t :=
+@[simp] lemma cons_product : (a ::ₘ s) ×ˢ t = map (prod.mk a) t + s ×ˢ t :=
 by simp [product]
 
-@[simp] lemma product_singleton : ({a} : multiset α).product ({b} : multiset β) = {(a, b)} :=
+@[simp] lemma product_singleton : ({a} : multiset α) ×ˢ ({b} : multiset β) = {(a, b)} :=
 by simp only [product, bind_singleton, map_singleton]
 
-@[simp] lemma add_product (s t : multiset α) (u : multiset β) :
-  (s + t).product u = s.product u + product t u :=
+@[simp] lemma add_product (s t : multiset α) (u : multiset β) : (s + t) ×ˢ u = s ×ˢ u + t ×ˢ u :=
 by simp [product]
 
-@[simp] lemma product_add (s : multiset α) : ∀ t u : multiset β,
-  s.product (t + u) = s.product t + s.product u :=
+@[simp] lemma product_add (s : multiset α) : ∀ t u : multiset β, s ×ˢ (t + u) = s ×ˢ t + s ×ˢ u :=
 multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
   by rw [cons_product, IH]; simp; cc
 
 @[simp] lemma mem_product {s t} : ∀ {p : α × β}, p ∈ @product α β s t ↔ p.1 ∈ s ∧ p.2 ∈ t
 | (a, b) := by simp [product, and.left_comm]
 
-@[simp] lemma card_product : (s.product t).card = s.card * t.card :=
+@[simp] lemma card_product : (s ×ˢ t).card = s.card * t.card :=
 by simp [product, repeat, (∘), mul_comm]
 
 end product

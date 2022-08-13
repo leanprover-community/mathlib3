@@ -7,10 +7,9 @@ import analysis.special_functions.trigonometric.arctan
 import analysis.special_functions.trigonometric.complex_deriv
 
 /-!
-# The `arctan` function.
+# Derivatives of the `tan` and `arctan` functions.
 
-Inequalities, derivatives,
-and `real.tan` as a `local_homeomorph` between `(-(π / 2), π / 2)` and the whole line.
+Continuity and derivatives of the tangent and arctangent functions.
 -/
 
 noncomputable theory
@@ -132,8 +131,8 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ} {x : E}
-  {s : set E} {n : with_top ℕ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+  {x : E} {s : set E} {n : with_top ℕ}
 
 lemma has_strict_fderiv_at.arctan (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) • f') x :=

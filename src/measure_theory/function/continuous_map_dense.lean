@@ -5,8 +5,9 @@ Authors: Heather Macbeth
 -/
 
 import measure_theory.measure.regular
-import measure_theory.function.simple_func_dense
+import measure_theory.function.simple_func_dense_lp
 import topology.urysohns_lemma
+import measure_theory.function.l1_space
 
 /-!
 # Approximation in Lᵖ by continuous functions
@@ -45,8 +46,8 @@ open_locale ennreal nnreal topological_space bounded_continuous_function
 open measure_theory topological_space continuous_map
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
-variables (E : Type*) [measurable_space E] [normed_group E] [borel_space E]
-  [second_countable_topology E]
+variables (E : Type*) [normed_add_comm_group E]
+  [second_countable_topology_either α E]
 variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
 
 include _i hp
@@ -100,9 +101,7 @@ begin
     simpa using ennreal.add_lt_add_left hsμ.ne hη_pos' },
   obtain ⟨F, Fs, F_closed, μF⟩ : ∃ F ⊆ s, is_closed F ∧ μ s < μ F + ↑η :=
     hs.exists_is_closed_lt_add hsμ.ne hη_pos'.ne',
-  have : disjoint uᶜ F,
-  { rw [set.disjoint_iff_inter_eq_empty, set.inter_comm, ← set.subset_compl_iff_disjoint],
-    simpa using Fs.trans su },
+  have : disjoint uᶜ F := (Fs.trans su).disjoint_compl_left,
   have h_μ_sdiff : μ (u \ F) ≤ 2 * η,
   { have hFμ : μ F < ⊤ := (measure_mono Fs).trans_lt hsμ,
     refine ennreal.le_of_add_le_add_left hFμ.ne _,
@@ -145,7 +144,8 @@ begin
   have gc_cont : continuous (λ x, g x • c) := g.continuous.smul continuous_const,
   have gc_mem_ℒp : mem_ℒp (λ x, g x • c) p μ,
   { have : mem_ℒp ((λ x, g x • c) - s.indicator (λ x, c)) p μ :=
-    ⟨(gc_cont.ae_measurable μ).sub (measurable_const.indicator hs).ae_measurable,
+    ⟨gc_cont.ae_strongly_measurable.sub (strongly_measurable_const.indicator hs)
+        .ae_strongly_measurable,
       gc_snorm.trans_lt ennreal.coe_lt_top⟩,
     simpa using this.add (mem_ℒp_indicator_const p hs c (or.inr hsμ.ne)) },
   refine ⟨gc_mem_ℒp.to_Lp _, _, _⟩,
@@ -154,7 +154,7 @@ begin
     rw [simple_func.coe_indicator_const, indicator_const_Lp, ← mem_ℒp.to_Lp_sub, Lp.norm_to_Lp],
     exact ennreal.to_real_le_coe_of_le_coe gc_snorm },
   { rw [set_like.mem_coe, mem_bounded_continuous_function_iff],
-    refine ⟨bounded_continuous_function.of_normed_group _ gc_cont (∥c∥) _, rfl⟩,
+    refine ⟨bounded_continuous_function.of_normed_add_comm_group _ gc_cont (∥c∥) _, rfl⟩,
     intros x,
     have h₀ : g x * ∥c∥ ≤ ∥c∥,
     { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
@@ -163,8 +163,7 @@ end
 
 end measure_theory.Lp
 
-variables (𝕜 : Type*) [measurable_space 𝕜] [normed_field 𝕜] [opens_measurable_space 𝕜]
-  [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [normed_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
 
 namespace bounded_continuous_function
 

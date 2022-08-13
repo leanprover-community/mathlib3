@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.lp_space
-import topology.compacts
+import topology.sets.compacts
 
 /-!
 # The Kuratowski embedding
@@ -54,7 +54,7 @@ end
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/
 lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λa b, _),
+  refine isometry.of_dist_eq (λa b, _),
   refine (embedding_of_subset_dist_le x a b).antisymm (le_of_forall_pos_le_add (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
   rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
@@ -89,9 +89,9 @@ begin
   { /- We construct a map x : ℕ → α with dense image -/
     rcases h with ⟨basepoint⟩,
     haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ dense s := exists_countable_dense α,
+    have : ∃s:set α, s.countable ∧ dense s := exists_countable_dense α,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
-    rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
+    rcases set.countable_iff_exists_subset_range.1 S_countable with ⟨x, x_range⟩,
     /- Use embedding_of_subset to construct the desired isometry -/
     exact ⟨embedding_of_subset x, embedding_of_subset_isometry x (S_dense.mono x_range)⟩ }
 end

@@ -3,11 +3,11 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer, Andrew Yang
 -/
-import algebra.category.CommRing.filtered_colimits
+import algebra.category.Ring.filtered_colimits
 import algebraic_geometry.sheafed_space
 import topology.sheaves.stalks
-import algebra.category.CommRing.colimits
-import algebra.category.CommRing.limits
+import algebra.category.Ring.colimits
+import algebra.category.Ring.limits
 
 /-!
 # Ringed spaces
@@ -15,7 +15,7 @@ import algebra.category.CommRing.limits
 We introduce the category of ringed spaces, as an alias for `SheafedSpace CommRing`.
 
 The facts collected in this file are typically stated for locally ringed spaces, but never actually
-make use of the locality of stalks. See for instance https://stacks.math.columbia.edu/tag/01HZ.
+make use of the locality of stalks. See for instance <https://stacks.math.columbia.edu/tag/01HZ>.
 
 -/
 
@@ -148,13 +148,12 @@ begin
   induction V using opposite.rec,
   let g := i.unop, have : i = g.op := rfl, clear_value g, subst this,
   ext, split,
-  { rintro ⟨x, (hx : is_unit _), rfl⟩, rw germ_res_apply at hx,
+  { rintro ⟨x, (hx : is_unit _), rfl⟩,
+    rw germ_res_apply at hx,
     exact ⟨x.2, g x, hx, rfl⟩ },
   { rintros ⟨hxV, x, hx, rfl⟩,
-    use ⟨x, hxV⟩,
-    split,
-    { change is_unit _, rw germ_res_apply, exact hx },
-    { refl } }
+    refine ⟨⟨x, hxV⟩, (_ : is_unit _), rfl⟩,
+    rwa germ_res_apply }
 end
 
 -- This should fire before `basic_open_res`.

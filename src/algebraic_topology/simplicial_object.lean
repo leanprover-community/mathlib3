@@ -23,7 +23,7 @@ open opposite
 open category_theory
 open category_theory.limits
 
-universes v u
+universes v u v' u'
 
 namespace category_theory
 
@@ -31,8 +31,8 @@ variables (C : Type u) [category.{v} C]
 
 /-- The category of simplicial objects valued in a category `C`.
 This is the category of contravariant functors from `simplex_category` to `C`. -/
-@[derive category, nolint has_inhabited_instance]
-def simplicial_object := simplex_category.{v}ᵒᵖ ⥤ C
+@[derive category, nolint has_nonempty_instance]
+def simplicial_object := simplex_categoryᵒᵖ ⥤ C
 
 namespace simplicial_object
 
@@ -114,13 +114,13 @@ variable (C)
 
 /-- Functor composition induces a functor on simplicial objects. -/
 @[simps]
-def whiskering (D : Type*) [category.{v} D] :
+def whiskering (D : Type*) [category D] :
   (C ⥤ D) ⥤ simplicial_object C ⥤ simplicial_object D :=
 whiskering_right _ _ _
 
 /-- Truncated simplicial objects. -/
-@[derive category, nolint has_inhabited_instance]
-def truncated (n : ℕ) := (simplex_category.truncated.{v} n)ᵒᵖ ⥤ C
+@[derive category, nolint has_nonempty_instance]
+def truncated (n : ℕ) := (simplex_category.truncated n)ᵒᵖ ⥤ C
 
 variable {C}
 
@@ -141,7 +141,7 @@ variable (C)
 
 /-- Functor composition induces a functor on truncated simplicial objects. -/
 @[simps]
-def whiskering {n} (D : Type*) [category.{v} D] :
+def whiskering {n} (D : Type*) [category D] :
   (C ⥤ D) ⥤ truncated C n ⥤ truncated D n :=
 whiskering_right _ _ _
 
@@ -163,7 +163,7 @@ variable (C)
 abbreviation const : C ⥤ simplicial_object C := category_theory.functor.const _
 
 /-- The category of augmented simplicial objects, defined as a comma category. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def augmented := comma (𝟭 (simplicial_object C)) (const C)
 
 variable {C}
@@ -199,7 +199,7 @@ variable (C)
 
 /-- Functor composition induces a functor on augmented simplicial objects. -/
 @[simp]
-def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
+def whiskering_obj (D : Type*) [category D] (F : C ⥤ D) :
   augmented C ⥤ augmented D :=
 { obj := λ X,
   { left := ((whiskering _ _).obj F).obj (drop.obj X),
@@ -211,20 +211,25 @@ def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
     w' := begin
       ext,
       dsimp,
-      erw [category.comp_id, category.comp_id, ← F.map_comp,
-        ← F.map_comp, ← nat_trans.comp_app, η.w],
+      rw [category.comp_id, category.comp_id, ← F.map_comp, ← F.map_comp, ← nat_trans.comp_app],
+      erw η.w,
       refl,
     end } }
 
 /-- Functor composition induces a functor on augmented simplicial objects. -/
 @[simps]
-def whiskering (D : Type*) [category.{v} D] :
+def whiskering (D : Type u') [category.{v'} D] :
   (C ⥤ D) ⥤ augmented C ⥤ augmented D :=
 { obj := whiskering_obj _ _,
   map := λ X Y η,
   { app := λ A,
     { left := whisker_left _ η,
-      right := η.app _ } } }
+      right := η.app _,
+      w' := begin
+        ext n,
+        dsimp,
+        rw [category.comp_id, category.comp_id, η.naturality],
+      end }, }, }
 
 variable {C}
 
@@ -251,13 +256,13 @@ def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
 @[simp]
 lemma augment_hom_zero (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀) (w) :
   (X.augment X₀ f w).hom.app (op [0]) = f :=
-by { dsimp, erw [simplex_category.hom_zero_zero ([0].const 0), X.map_id, category.id_comp] }
+by { dsimp, rw [simplex_category.hom_zero_zero ([0].const 0), op_id, X.map_id, category.id_comp] }
 
 end simplicial_object
 
 /-- Cosimplicial objects. -/
-@[derive category, nolint has_inhabited_instance]
-def cosimplicial_object := simplex_category.{v} ⥤ C
+@[derive category, nolint has_nonempty_instance]
+def cosimplicial_object := simplex_category ⥤ C
 
 namespace cosimplicial_object
 
@@ -339,13 +344,13 @@ variable (C)
 
 /-- Functor composition induces a functor on cosimplicial objects. -/
 @[simps]
-def whiskering (D : Type*) [category.{v} D] :
+def whiskering (D : Type*) [category D] :
   (C ⥤ D) ⥤ cosimplicial_object C ⥤ cosimplicial_object D :=
 whiskering_right _ _ _
 
 /-- Truncated cosimplicial objects. -/
-@[derive category, nolint has_inhabited_instance]
-def truncated (n : ℕ) := simplex_category.truncated.{v} n ⥤ C
+@[derive category, nolint has_nonempty_instance]
+def truncated (n : ℕ) := simplex_category.truncated n ⥤ C
 
 variable {C}
 
@@ -367,7 +372,7 @@ variable (C)
 
 /-- Functor composition induces a functor on truncated cosimplicial objects. -/
 @[simps]
-def whiskering {n} (D : Type*) [category.{v} D] :
+def whiskering {n} (D : Type*) [category D] :
   (C ⥤ D) ⥤ truncated C n ⥤ truncated D n :=
 whiskering_right _ _ _
 
@@ -389,7 +394,7 @@ variable (C)
 abbreviation const : C ⥤ cosimplicial_object C := category_theory.functor.const _
 
 /-- Augmented cosimplicial objects. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def augmented := comma (const C) (𝟭 (cosimplicial_object C))
 
 variable {C}
@@ -425,7 +430,7 @@ variable (C)
 
 /-- Functor composition induces a functor on augmented cosimplicial objects. -/
 @[simp]
-def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
+def whiskering_obj (D : Type*) [category D] (F : C ⥤ D) :
   augmented C ⥤ augmented D :=
 { obj := λ X,
   { left := F.obj (point.obj X),
@@ -437,20 +442,25 @@ def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
     w' := begin
       ext,
       dsimp,
-      erw [category.id_comp, category.id_comp, ← F.map_comp,
-        ← F.map_comp, ← nat_trans.comp_app, ← η.w],
+      rw [category.id_comp, category.id_comp, ← F.map_comp, ← F.map_comp, ← nat_trans.comp_app],
+      erw ← η.w,
       refl,
     end } }
 
 /-- Functor composition induces a functor on augmented cosimplicial objects. -/
 @[simps]
-def whiskering (D : Type*) [category.{v} D] :
+def whiskering (D : Type u') [category.{v'} D] :
   (C ⥤ D) ⥤ augmented C ⥤ augmented D :=
 { obj := whiskering_obj _ _,
   map := λ X Y η,
   { app := λ A,
     { left := η.app _,
-      right := whisker_left _ η } } }
+      right := whisker_left _ η,
+      w' := begin
+        ext n,
+        dsimp,
+        rw [category.id_comp, category.id_comp, η.naturality],
+      end }, }, }
 
 variable {C}
 
@@ -484,6 +494,11 @@ end cosimplicial_object
 @[simps]
 def simplicial_cosimplicial_equiv : (simplicial_object C)ᵒᵖ ≌ (cosimplicial_object Cᵒᵖ) :=
 functor.left_op_right_op_equiv _ _
+
+/-- The anti-equivalence between cosimplicial objects and simplicial objects. -/
+@[simps]
+def cosimplicial_simplicial_equiv : (cosimplicial_object C)ᵒᵖ ≌ (simplicial_object Cᵒᵖ) :=
+functor.op_unop_equiv _ _
 
 variable {C}
 

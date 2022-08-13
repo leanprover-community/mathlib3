@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
 import linear_algebra.basic
-import data.equiv.fin
+import logic.equiv.fin
 
 /-!
 # Pi types of modules
@@ -426,21 +426,6 @@ lemma linear_map.vec_cons_apply {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin
   f.vec_cons g m = matrix.vec_cons (f m) (g m) := rfl
 
 end semiring
-
-/-- Non-dependent version of `pi.has_scalar`. Lean gets confused by the dependent instance if this
-is not present. -/
-@[to_additive function.has_vadd]
-instance function.has_scalar {ι R M : Type*} [has_scalar R M] :
-  has_scalar R (ι → M) :=
-pi.has_scalar
-
-/-- Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent instance if
-this is not present. -/
-@[to_additive]
-instance function.smul_comm_class {ι α β M : Type*}
-  [has_scalar α M] [has_scalar β M] [smul_comm_class α β M]:
-  smul_comm_class α β (ι → M) :=
-pi.smul_comm_class
 
 section comm_semiring
 

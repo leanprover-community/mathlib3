@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
+import algebra.hom.iterate
 import data.int.modeq
-import algebra.iterate_hom
-import data.nat.choose.sum
-import group_theory.order_of_element
 import data.nat.choose.dvd
+import data.nat.choose.sum
+import data.zmod.defs
+import group_theory.order_of_element
 import ring_theory.nilpotent
+
 /-!
 # Characteristic of semirings
 -/
@@ -18,19 +20,29 @@ universes u v
 
 variables (R : Type u)
 
-/-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R -/
-class char_p [add_monoid R] [has_one R] (p : ℕ) : Prop :=
+/-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R.
+
+*Warning*: for a semiring `R`, `char_p R 0` and `char_zero R` need not coincide.
+* `char_p R 0` asks that only `0 : ℕ` maps to `0 : R` under the map `ℕ → R`;
+* `char_zero R` requires an injection `ℕ ↪ R`.
+
+For instance, endowing `{0, 1}` with addition given by `max` (i.e. `1` is absorbing), shows that
+`char_zero {0, 1}` does not hold and yet `char_p {0, 1} 0` does.
+This example is formalized in `counterexamples/char_p_zero_ne_char_zero`.
+ -/
+@[mk_iff]
+class char_p [add_monoid_with_one R] (p : ℕ) : Prop :=
 (cast_eq_zero_iff [] : ∀ x:ℕ, (x:R) = 0 ↔ p ∣ x)
 
-theorem char_p.cast_eq_zero [add_monoid R] [has_one R] (p : ℕ) [char_p R p] :
+theorem char_p.cast_eq_zero [add_monoid_with_one R] (p : ℕ) [char_p R p] :
   (p:R) = 0 :=
 (char_p.cast_eq_zero_iff R p p).2 (dvd_refl p)
 
-@[simp] lemma char_p.cast_card_eq_zero [add_group R] [has_one R] [fintype R] :
+@[simp] lemma char_p.cast_card_eq_zero [add_group_with_one R] [fintype R] :
   (fintype.card R : R) = 0 :=
 by rw [← nsmul_one, card_nsmul_eq_zero]
 
-lemma char_p.int_cast_eq_zero_iff [add_group R] [has_one R] (p : ℕ) [char_p R p]
+lemma char_p.int_cast_eq_zero_iff [add_group_with_one R] (p : ℕ) [char_p R p]
   (a : ℤ) :
   (a : R) = 0 ↔ (p:ℤ) ∣ a :=
 begin
@@ -43,25 +55,25 @@ begin
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
 end
 
-lemma char_p.int_coe_eq_int_coe_iff [add_group R] [has_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
+lemma char_p.int_coe_eq_int_coe_iff [add_group_with_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
        char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
-theorem char_p.eq [add_monoid R] [has_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
+theorem char_p.eq [add_monoid_with_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
 nat.dvd_antisymm
   ((char_p.cast_eq_zero_iff R p q).1 (char_p.cast_eq_zero _ _))
   ((char_p.cast_eq_zero_iff R q p).1 (char_p.cast_eq_zero _ _))
 
-instance char_p.of_char_zero [add_monoid R] [has_one R] [char_zero R] : char_p R 0 :=
+instance char_p.of_char_zero [add_monoid_with_one R] [char_zero R] : char_p R 0 :=
 ⟨λ x, by rw [zero_dvd_iff, ← nat.cast_zero, nat.cast_inj]⟩
 
 theorem char_p.exists [non_assoc_semiring R] : ∃ p, char_p R p :=
 by letI := classical.dec_eq R; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:R) = 0 → p = 0, ⟨0,
-    ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; refl⟩⟩⟩)
+    ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; simp⟩⟩⟩)
   (λ H, ⟨nat.find (not_forall.1 H), ⟨λ x,
     ⟨λ H1, nat.dvd_of_mod_eq_zero (by_contradiction $ λ H2,
       nat.find_min (not_forall.1 H)
@@ -77,7 +89,7 @@ classical.by_cases
 theorem char_p.exists_unique [non_assoc_semiring R] : ∃! p, char_p R p :=
 let ⟨c, H⟩ := char_p.exists R in ⟨c, H, λ y H2, char_p.eq R H2 H⟩
 
-theorem char_p.congr {R : Type u} [add_monoid R] [has_one R] {p : ℕ} (q : ℕ) [hq : char_p R q]
+theorem char_p.congr {R : Type u} [add_monoid_with_one R] {p : ℕ} (q : ℕ) [hq : char_p R q]
   (h : q = p) :
   char_p R p :=
 h ▸ hq
@@ -112,6 +124,10 @@ theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 
 @[simp]
 lemma eq_zero [char_zero R] : ring_char R = 0 := eq R 0
+
+@[simp]
+lemma nat.cast_ring_char : (ring_char R : R) = 0 :=
+by rw ring_char.spec
 
 end ring_char
 
@@ -214,11 +230,7 @@ end
 lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [nontrivial L]
   (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
-begin
-  split;
-  { introI _c, constructor, intro n,
-    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, map_nat_cast f, f.map_zero] }
-end
+by simp only [char_p_iff, ← f.injective.eq_iff, map_nat_cast f, f.map_zero]
 
 section frobenius
 
@@ -315,25 +327,59 @@ theorem frobenius_inj [comm_ring R] [is_reduced R]
   function.injective (frobenius R p) :=
 λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact is_reduced.eq_zero _ ⟨_,H⟩ }
 
+/-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
+then every `a : R` is a square. -/
+lemma is_square_of_char_two' {R : Type*} [fintype R] [comm_ring R] [is_reduced R] [char_p R 2]
+ (a : R) : is_square a :=
+exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
+  ((fintype.bijective_iff_injective_and_card _).mpr ⟨frobenius_inj R 2, rfl⟩).surjective a
+
 namespace char_p
 
 section
-variables [ring R]
+variables [non_assoc_ring R]
 
-lemma char_p_to_char_zero [char_p R 0] : char_zero R :=
+lemma char_p_to_char_zero (R : Type*) [add_group_with_one R] [char_p R 0] :
+  char_zero R :=
 char_zero_of_inj_zero $
   λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff R 0 n).mp h0)
 
 lemma cast_eq_mod (p : ℕ) [char_p R p] (k : ℕ) : (k : R) = (k % p : ℕ) :=
 calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
-         ... = ↑(k % p)               : by simp[cast_eq_zero]
+         ... = ↑(k % p)               : by simp [cast_eq_zero]
 
-theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
-assume h : p = 0,
-have char_zero R := @char_p_to_char_zero R _ (h ▸ hc),
-absurd (@nat.cast_injective R _ _ this) (not_injective_infinite_fintype coe)
+/-- The characteristic of a finite ring cannot be zero. -/
+theorem char_ne_zero_of_finite (p : ℕ) [char_p R p] [finite R] : p ≠ 0 :=
+begin
+  unfreezingI { rintro rfl },
+  haveI : char_zero R := char_p_to_char_zero R,
+  casesI nonempty_fintype R,
+  exact absurd nat.cast_injective (not_injective_infinite_fintype (coe : ℕ → R))
+end
+
+lemma ring_char_ne_zero_of_finite [finite R] : ring_char R ≠ 0 :=
+char_ne_zero_of_finite R (ring_char R)
 
 end
+
+section comm_ring
+
+variables [comm_ring R] [is_reduced R] {R}
+
+@[simp]
+lemma pow_prime_pow_mul_eq_one_iff (p k m : ℕ) [fact p.prime]
+  [char_p R p] (x : R) :
+  x ^ (p ^ k * m) = 1 ↔ x ^ m = 1 :=
+begin
+  induction k with k hk,
+  { rw [pow_zero, one_mul] },
+  { refine ⟨λ h, _, λ h, _⟩,
+    { rw [pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at h,
+      exact hk.1 (frobenius_inj R p h) },
+    { rw [pow_mul', h, one_pow] } }
+end
+
+end comm_ring
 
 section semiring
 open nat
@@ -389,11 +435,11 @@ end semiring
 
 section ring
 
-variables (R) [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
+variables (R) [ring R] [no_zero_divisors R] [nontrivial R] [finite R]
 
 theorem char_is_prime (p : ℕ) [char_p R p] :
   p.prime :=
-or.resolve_right (char_is_prime_or_zero R p) (char_ne_zero_of_fintype R p)
+or.resolve_right (char_is_prime_or_zero R p) (char_ne_zero_of_finite R p)
 
 end ring
 
@@ -432,7 +478,38 @@ end char_p
 
 section
 
-variables (R) [comm_ring R] [fintype R] (n : ℕ)
+/-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
+-- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
+-- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
+@[protected]
+lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :
+  (2 : R) ≠ 0 :=
+begin
+  rw [ne.def, (by norm_cast : (2 : R) = (2 : ℕ)), ring_char.spec, nat.dvd_prime nat.prime_two],
+  exact mt (or_iff_left hR).mp char_p.ring_char_ne_one,
+end
+
+/-- Characteristic `≠ 2` and nontrivial implies that `-1 ≠ 1`. -/
+-- We have `char_p.neg_one_ne_one`, which assumes `[ring R] (p : ℕ) [char_p R p] [fact (2 < p)]`.
+-- This is a version using `ring_char` instead.
+lemma ring.neg_one_ne_one_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+ (hR : ring_char R ≠ 2) :
+  (-1 : R) ≠ 1 :=
+λ h, ring.two_ne_zero hR (neg_eq_iff_add_eq_zero.mp h)
+
+/-- Characteristic `≠ 2` in a domain implies that `-a = a` iff `a = 0`. -/
+lemma ring.eq_self_iff_eq_zero_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+ [no_zero_divisors R] (hR : ring_char R ≠ 2) {a : R} :
+  -a = a ↔ a = 0 :=
+⟨λ h, (mul_eq_zero.mp $ (two_mul a).trans $ neg_eq_iff_add_eq_zero.mp h).resolve_left
+         (ring.two_ne_zero hR),
+ λ h, ((congr_arg (λ x, - x) h).trans neg_zero).trans h.symm⟩
+
+end
+
+section
+
+variables (R) [non_assoc_ring R] [fintype R] (n : ℕ)
 
 lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :
   char_p R n :=
@@ -450,7 +527,7 @@ lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 �
     { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul] }
   end }
 
-lemma char_p_of_prime_pow_injective (p : ℕ) [hp : fact p.prime] (n : ℕ)
+lemma char_p_of_prime_pow_injective (R) [ring R] [fintype R] (p : ℕ) [hp : fact p.prime] (n : ℕ)
   (hn : fintype.card R = p ^ n) (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
   char_p R (p ^ n) :=
 begin
@@ -482,3 +559,32 @@ instance prod.char_p [char_p S p] : char_p (R × S) p :=
 by convert nat.lcm.char_p R S p p; simp
 
 end prod
+
+section
+
+/-- If two integers from `{0, 1, -1}` result in equal elements in a ring `R`
+that is nontrivial and of characteristic not `2`, then they are equal. -/
+lemma int.cast_inj_on_of_ring_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+  (hR : ring_char R ≠ 2) :
+  ({0, 1, -1} : set ℤ).inj_on (coe : ℤ → R) :=
+begin
+  intros a ha b hb h,
+  apply eq_of_sub_eq_zero,
+  by_contra hf,
+  change a = 0 ∨ a = 1 ∨ a = -1 at ha,
+  change b = 0 ∨ b = 1 ∨ b = -1 at hb,
+  have hh : a - b = 1 ∨ b - a = 1 ∨ a - b = 2 ∨ b - a = 2 := by
+  { rcases ha with ha | ha | ha; rcases hb with hb | hb | hb,
+    swap 5, swap 9, -- move goals with `a = b` to the front
+    iterate 3 { rw [ha, hb, sub_self] at hf, tauto, }, -- 6 goals remain
+    all_goals { rw [ha, hb], norm_num, }, },
+  have h' : ((a - b : ℤ) : R) = 0 := by exact_mod_cast sub_eq_zero_of_eq h,
+  have h'' : ((b - a : ℤ) : R) = 0 := by exact_mod_cast sub_eq_zero_of_eq h.symm,
+  rcases hh with hh | hh | hh | hh,
+  { rw [hh, (by norm_cast : ((1 : ℤ) : R) = 1)] at h', exact one_ne_zero h', },
+  { rw [hh, (by norm_cast : ((1 : ℤ) : R) = 1)] at h'', exact one_ne_zero h'', },
+  { rw [hh, (by norm_cast : ((2 : ℤ) : R) = 2)] at h', exact ring.two_ne_zero hR h', },
+  { rw [hh, (by norm_cast : ((2 : ℤ) : R) = 2)] at h'', exact ring.two_ne_zero hR h'', },
+end
+
+end

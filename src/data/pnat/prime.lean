@@ -28,7 +28,7 @@ end
 end nat.primes
 
 namespace pnat
-open nat
+open _root_.nat
 
 /-- The greatest common divisor (gcd) of two positive natural numbers,
   viewed as positive natural number. -/

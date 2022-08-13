@@ -88,11 +88,11 @@ noncomputable def reflect (N : ℕ) : R[X] → R[X]
 | ⟨f⟩ := ⟨finsupp.emb_domain (rev_at N) f⟩
 
 lemma reflect_support (N : ℕ) (f : R[X]) :
-  (reflect N f).support = image (rev_at N) f.support :=
+  (reflect N f).support = finset.image (rev_at N) f.support :=
 begin
   rcases f,
   ext1,
-  rw [reflect, mem_image, support, support, support_emb_domain, mem_map],
+  simp only [reflect, support_of_finsupp, support_emb_domain, finset.mem_map, finset.mem_image],
 end
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : R[X]) (i : ℕ) :
@@ -109,7 +109,7 @@ end
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : R[X]} :
   reflect N (f : R[X]) = 0 ↔ f = 0 :=
-by { rcases f, simp [reflect, ← zero_to_finsupp] }
+by { rcases f, simp [reflect] }
 
 @[simp] lemma reflect_add (f g : R[X]) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
@@ -150,8 +150,9 @@ begin
     -- second induction (right): base case
     { intros N O f g Cf Cg Nf Og,
       rw [← C_mul_X_pow_eq_self Cf, ← C_mul_X_pow_eq_self Cg],
-      simp only [mul_assoc, X_pow_mul, ← pow_add X, reflect_C_mul, reflect_monomial,
-                 add_comm, rev_at_add Nf Og] },
+      simp_rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add (X : R[X]), reflect_C_mul,
+        reflect_monomial, add_comm, rev_at_add Nf Og, mul_assoc, X_pow_mul, mul_assoc,
+        ← pow_add (X : R[X]), add_comm], },
     -- second induction (right): induction step
     { intros N O f g Cf Cg Nf Og,
       by_cases g0 : g = 0,
@@ -162,7 +163,7 @@ begin
       { exact le_add_left card_support_C_mul_X_pow_le_one },
       { exact (le_trans (nat_degree_C_mul_X_pow_le g.leading_coeff g.nat_degree) Og) },
       { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cg (erase_lead_support_card_lt g0)) },
-      { exact le_trans erase_lead_nat_degree_le Og } } },
+      { exact le_trans erase_lead_nat_degree_le_aux Og } } },
   --first induction (left): induction step
   { intros N O f g Cf Cg Nf Og,
     by_cases f0 : f = 0,
@@ -173,7 +174,7 @@ begin
     { exact le_add_left card_support_C_mul_X_pow_le_one },
     { exact (le_trans (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree) Nf) },
     { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cf (erase_lead_support_card_lt f0)) },
-    { exact (le_trans erase_lead_nat_degree_le Nf) } },
+    { exact (le_trans erase_lead_nat_degree_le_aux Nf) } }
 end
 
 @[simp] theorem reflect_mul
@@ -280,7 +281,7 @@ begin
   rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
 end
 
-@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [is_domain R] (f g : R[X]) :
+@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [no_zero_divisors R] (f g : R[X]) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
@@ -290,7 +291,7 @@ begin
   simp [reverse_mul, *],
 end
 
-lemma trailing_coeff_mul {R : Type*} [ring R] [is_domain R] (p q : R[X]) :
+lemma trailing_coeff_mul {R : Type*} [ring R] [no_zero_divisors R] (p q : R[X]) :
   (p * q).trailing_coeff = p.trailing_coeff * q.trailing_coeff :=
 by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
   reverse_leading_coeff, reverse_leading_coeff]

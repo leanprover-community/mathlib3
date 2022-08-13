@@ -75,8 +75,8 @@ def multifork_evaluation_cone (F : K ⥤ Sheaf J D)
       rw [presheaf.is_sheaf.amalgamate_map, category.assoc, ← (F.map f).val.naturality,
         ← category.assoc, presheaf.is_sheaf.amalgamate_map],
       dsimp [multifork.of_ι],
-      rw [category.assoc, ← E.w f],
-      simp,
+      erw [category.assoc, ← E.w f],
+      tidy,
     end } }
 
 

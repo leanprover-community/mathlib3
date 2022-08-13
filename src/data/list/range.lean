@@ -66,7 +66,7 @@ theorem chain_lt_range' (s n : ℕ) : chain (<) s (range' (s+1) n) :=
 
 theorem pairwise_lt_range' : ∀ s n : ℕ, pairwise (<) (range' s n)
 | s 0     := pairwise.nil
-| s (n+1) := (chain_iff_pairwise (by exact λ a b c, lt_trans)).1 (chain_lt_range' s n)
+| s (n+1) := chain_iff_pairwise.1 (chain_lt_range' s n)
 
 theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
 (pairwise_lt_range' s n).imp (λ a b, ne_of_lt)
@@ -148,6 +148,24 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
+theorem chain'_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
+  chain' r (range n.succ) ↔ ∀ m < n, r m m.succ :=
+begin
+  rw range_succ,
+  induction n with n hn,
+  { simp },
+  { rw range_succ,
+    simp only [append_assoc, singleton_append, chain'_append_cons_cons, chain'_singleton, and_true],
+    rw [hn, forall_lt_succ] }
+end
+
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n a : ℕ) :
+  chain r a (range n.succ) ↔ r a 0 ∧ ∀ m < n, r m m.succ :=
+begin
+  rw [range_succ_eq_map, chain_cons, and.congr_right_iff, ←chain'_range_succ, range_succ_eq_map],
+  exact λ _, iff.rfl
+end
+
 lemma range_add (a : ℕ) :
   ∀ b, range (a + b) = range a ++ (range b).map (λ x, a + x)
 | 0 := by rw [add_zero, range_zero, map_nil, append_nil]
@@ -191,7 +209,7 @@ def fin_range (n : ℕ) : list (fin n) :=
 mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
 
 lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
-nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
+(nodup_range _).pmap $ λ _ _ _ _, fin.veq_of_eq
 
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
@@ -277,7 +295,6 @@ by rw [← of_fn_id, map_of_fn, function.right_id]
 
 theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=
-by rw of_fn_eq_pmap; from nodup_pmap
-  (λ _ _ _ _ H, fin.veq_of_eq $ hf H) (nodup_range n)
+by { rw of_fn_eq_pmap, exact (nodup_range n).pmap (λ _ _ _ _ H, fin.veq_of_eq $ hf H) }
 
 end list

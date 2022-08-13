@@ -3,7 +3,7 @@ Copyright (c) 2019 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.setoid.basic
 import dynamics.fixed_points.topology
 

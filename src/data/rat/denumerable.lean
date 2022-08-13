@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 # Denumerability of ℚ
@@ -28,17 +28,13 @@ instance : denumerable ℚ :=
 begin
   let T := { x : ℤ × ℕ // 0 < x.2 ∧ x.1.nat_abs.coprime x.2 },
   letI : infinite T := infinite.of_injective _ denumerable_aux.injective,
-  letI : encodable T := encodable.subtype,
+  letI : encodable T := subtype.encodable,
   letI : denumerable T := of_encodable_of_infinite T,
   exact denumerable.of_equiv T denumerable_aux
 end
 
 end rat
 
-namespace cardinal
-
 open_locale cardinal
 
-lemma mk_rat : #ℚ = ω := mk_denumerable ℚ
-
-end cardinal
+lemma cardinal.mk_rat : #ℚ = ℵ₀ := by simp

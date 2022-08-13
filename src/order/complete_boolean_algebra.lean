@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yaël Dillies
 -/
 import order.complete_lattice
+import order.directed
 
 /-!
 # Frames, completely distributive lattices and Boolean algebras
@@ -26,7 +27,7 @@ distributive lattice.
 
 ## TODO
 
-Add instances for `prod`, `filter`
+Add instances for `prod`
 
 ## References
 
@@ -64,7 +65,7 @@ instance complete_distrib_lattice.to_coframe [complete_distrib_lattice α] : cof
 section frame
 variables [frame α] {s t : set α} {a b : α}
 
-instance order_dual.coframe : coframe (order_dual α) :=
+instance order_dual.coframe : coframe αᵒᵈ :=
 { infi_sup_le_sup_Inf := frame.inf_Sup_le_supr_inf, ..order_dual.complete_lattice α }
 
 lemma inf_Sup_eq : a ⊓ Sup s = ⨆ b ∈ s, a ⊓ b :=
@@ -93,7 +94,7 @@ lemma bsupr_inf_bsupr {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set
   (⨆ i ∈ s, f i) ⊓ (⨆ j ∈ t, g j) = ⨆ p ∈ s ×ˢ t, f (p : ι × ι').1 ⊓ g p.2 :=
 begin
   simp only [supr_subtype', supr_inf_supr],
-  exact supr_congr (equiv.set.prod s t).symm (equiv.surjective _) (λ x, rfl)
+  exact (equiv.surjective _).supr_congr (equiv.set.prod s t).symm (λ x, rfl)
 end
 
 lemma Sup_inf_Sup : Sup s ⊓ Sup t = ⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2 :=
@@ -103,7 +104,37 @@ lemma supr_disjoint_iff {f : ι → α} : disjoint (⨆ i, f i) a ↔ ∀ i, dis
 by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]
 
 lemma disjoint_supr_iff {f : ι → α} : disjoint a (⨆ i, f i) ↔ ∀ i, disjoint a (f i) :=
-by simpa only [disjoint.comm] using @supr_disjoint_iff _ _ _ a f
+by simpa only [disjoint.comm] using supr_disjoint_iff
+
+lemma supr₂_disjoint_iff {f : Π i, κ i → α} :
+  disjoint (⨆ i j, f i j) a ↔ ∀ i j, disjoint (f i j) a :=
+by simp_rw supr_disjoint_iff
+
+lemma disjoint_supr₂_iff {f : Π i, κ i → α} :
+  disjoint a (⨆ i j, f i j) ↔ ∀ i j, disjoint a (f i j) :=
+by simp_rw disjoint_supr_iff
+
+lemma Sup_disjoint_iff {s : set α} : disjoint (Sup s) a ↔ ∀ b ∈ s, disjoint b a :=
+by simp only [disjoint_iff, Sup_inf_eq, supr_eq_bot]
+
+lemma disjoint_Sup_iff {s : set α} : disjoint a (Sup s) ↔ ∀ b ∈ s, disjoint a b :=
+by simpa only [disjoint.comm] using Sup_disjoint_iff
+
+lemma supr_inf_of_monotone {ι : Type*} [preorder ι] [is_directed ι (≤)] {f g : ι → α}
+  (hf : monotone f) (hg : monotone g) :
+  (⨆ i, f i ⊓ g i) = (⨆ i, f i) ⊓ (⨆ i, g i) :=
+begin
+  refine (le_supr_inf_supr f g).antisymm _,
+  rw [supr_inf_supr],
+  refine supr_mono' (λ i, _),
+  rcases directed_of (≤) i.1 i.2 with ⟨j, h₁, h₂⟩,
+  exact ⟨j, inf_le_inf (hf h₁) (hg h₂)⟩
+end
+
+lemma supr_inf_of_antitone {ι : Type*} [preorder ι] [is_directed ι (swap (≤))] {f g : ι → α}
+  (hf : antitone f) (hg : antitone g) :
+  (⨆ i, f i ⊓ g i) = (⨆ i, f i) ⊓ (⨆ i, g i) :=
+@supr_inf_of_monotone α _ ιᵒᵈ _ _ f g hf.dual_left hg.dual_left
 
 instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame (Π i, π i) :=
 { inf_Sup_le_supr_inf := λ a s i,
@@ -111,42 +142,51 @@ instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame 
       ← supr_subtype''],
   ..pi.complete_lattice }
 
+@[priority 100] -- see Note [lower instance priority]
+instance frame.to_distrib_lattice : distrib_lattice α :=
+distrib_lattice.of_inf_sup_le $ λ a b c,
+  by rw [←Sup_pair, ←Sup_pair, inf_Sup_eq, ←Sup_image, image_pair]
+
 end frame
 
 section coframe
 variables [coframe α] {s t : set α} {a b : α}
 
-instance order_dual.frame : frame (order_dual α) :=
+instance order_dual.frame : frame αᵒᵈ :=
 { inf_Sup_le_supr_inf := coframe.infi_sup_le_sup_Inf, ..order_dual.complete_lattice α }
 
-theorem sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
-@inf_Sup_eq (order_dual α) _ _ _
+lemma sup_Inf_eq : a ⊔ Inf s = ⨅ b ∈ s, a ⊔ b := @inf_Sup_eq αᵒᵈ _ _ _
+lemma Inf_sup_eq : Inf s ⊔ b = ⨅ a ∈ s, a ⊔ b := @Sup_inf_eq αᵒᵈ _ _ _
 
-theorem Inf_sup_eq : Inf s ⊔ b = (⨅ a ∈ s, a ⊔ b) :=
-@Sup_inf_eq (order_dual α) _ _ _
-
-theorem infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i ⊔ a :=
-@supr_inf_eq (order_dual α) _ _ _ _
-
-theorem sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i :=
-@inf_supr_eq (order_dual α) _ _ _ _
+lemma infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i ⊔ a := @supr_inf_eq αᵒᵈ _ _ _ _
+lemma sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i := @inf_supr_eq αᵒᵈ _ _ _ _
 
 lemma binfi_sup_eq {f : Π i, κ i → α} (a : α) : (⨅ i j, f i j) ⊔ a = ⨅ i j, f i j ⊔ a :=
-@bsupr_inf_eq (order_dual α) _ _ _ _ _
+@bsupr_inf_eq αᵒᵈ _ _ _ _ _
 
 lemma sup_binfi_eq {f : Π i, κ i → α} (a : α) : a ⊔ (⨅ i j, f i j) = ⨅ i j, a ⊔ f i j :=
-@inf_bsupr_eq (order_dual α) _ _ _ _ _
+@inf_bsupr_eq αᵒᵈ _ _ _ _ _
 
 lemma infi_sup_infi {ι ι' : Type*} {f : ι → α} {g : ι' → α} :
   (⨅ i, f i) ⊔ (⨅ i, g i) = ⨅ i : ι × ι', f i.1 ⊔ g i.2 :=
-@supr_inf_supr (order_dual α) _ _ _ _ _
+@supr_inf_supr αᵒᵈ _ _ _ _ _
 
 lemma binfi_sup_binfi {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set ι} {t : set ι'} :
   (⨅ i ∈ s, f i) ⊔ (⨅ j ∈ t, g j) = ⨅ p ∈ s ×ˢ t, f (p : ι × ι').1 ⊔ g p.2 :=
-@bsupr_inf_bsupr (order_dual α) _ _ _ _ _ _ _
+@bsupr_inf_bsupr αᵒᵈ _ _ _ _ _ _ _
 
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) :=
-@Sup_inf_Sup (order_dual α) _ _ _
+@Sup_inf_Sup αᵒᵈ _ _ _
+
+lemma infi_sup_of_monotone {ι : Type*} [preorder ι] [is_directed ι (swap (≤))] {f g : ι → α}
+  (hf : monotone f) (hg : monotone g) :
+  (⨅ i, f i ⊔ g i) = (⨅ i, f i) ⊔ (⨅ i, g i) :=
+supr_inf_of_antitone hf.dual_right hg.dual_right
+
+lemma infi_sup_of_antitone {ι : Type*} [preorder ι] [is_directed ι (≤)] {f g : ι → α}
+  (hf : antitone f) (hg : antitone g) :
+  (⨅ i, f i ⊔ g i) = (⨅ i, f i) ⊔ (⨅ i, g i) :=
+supr_inf_of_monotone hf.dual_right hg.dual_right
 
 instance pi.coframe {ι : Type*} {π : ι → Type*} [Π i, coframe (π i)] : coframe (Π i, π i) :=
 { Inf := Inf,
@@ -154,24 +194,23 @@ instance pi.coframe {ι : Type*} {π : ι → Type*} [Π i, coframe (π i)] : co
     by simp only [←sup_infi_eq, Inf_apply, ←infi_subtype'', infi_apply, pi.sup_apply],
   ..pi.complete_lattice }
 
+@[priority 100] -- see Note [lower instance priority]
+instance coframe.to_distrib_lattice : distrib_lattice α :=
+{ le_sup_inf := λ a b c, by rw [←Inf_pair, ←Inf_pair, sup_Inf_eq, ←Inf_image, image_pair],
+  ..‹coframe α› }
+
 end coframe
 
 section complete_distrib_lattice
 variables [complete_distrib_lattice α] {a b : α} {s t : set α}
 
-instance : complete_distrib_lattice (order_dual α) := { ..order_dual.frame, ..order_dual.coframe }
+instance : complete_distrib_lattice αᵒᵈ := { ..order_dual.frame, ..order_dual.coframe }
 
 instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
   [Π i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=
 { ..pi.frame, ..pi.coframe }
 
 end complete_distrib_lattice
-
-@[priority 100] -- see Note [lower instance priority]
-instance complete_distrib_lattice.to_distrib_lattice [d : complete_distrib_lattice α] :
-  distrib_lattice α :=
-{ le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
-  ..d }
 
 /-- A complete Boolean algebra is a completely distributive Boolean algebra. -/
 class complete_boolean_algebra α extends boolean_algebra α, complete_distrib_lattice α
@@ -198,11 +237,10 @@ le_antisymm
 theorem compl_supr : (supr f)ᶜ = (⨅ i, (f i)ᶜ) :=
 compl_injective (by simp [compl_infi])
 
-theorem compl_Inf : (Inf s)ᶜ = (⨆ i ∈ s, iᶜ) :=
-by simp only [Inf_eq_infi, compl_infi]
-
-theorem compl_Sup : (Sup s)ᶜ = (⨅ i ∈ s, iᶜ) :=
-by simp only [Sup_eq_supr, compl_supr]
+lemma compl_Inf : (Inf s)ᶜ = (⨆ i ∈ s, iᶜ) := by simp only [Inf_eq_infi, compl_infi]
+lemma compl_Sup : (Sup s)ᶜ = (⨅ i ∈ s, iᶜ) := by simp only [Sup_eq_supr, compl_supr]
+lemma compl_Inf' : (Inf s)ᶜ = Sup (compl '' s) := compl_Inf.trans Sup_image.symm
+lemma compl_Sup' : (Sup s)ᶜ = Inf (compl '' s) := compl_Sup.trans Inf_image.symm
 
 end complete_boolean_algebra
 
@@ -212,20 +250,14 @@ section lift
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.frame [has_sup α] [has_inf α] [has_Sup α] [has_Inf α] [has_top α]
   [has_bot α] [frame β] (f : α → β) (hf : injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   frame α :=
 { inf_Sup_le_supr_inf := λ a s, begin
-    change f (a ⊓ Sup s) ≤ f (Sup $ range $ λ b, Sup _),
-    rw [map_inf, map_Sup, map_Sup, Sup_image, inf_bsupr_eq, ←range_comp],
-    refine le_of_eq _,
-    congr',
-    ext b,
-    refine eq.trans _ (map_Sup _).symm,
-    rw [←range_comp, supr],
-    congr',
-    ext h,
-    exact (map_inf _ _).symm,
+    change f (a ⊓ Sup s) ≤ f _,
+    rw [←Sup_image, map_inf, map_Sup s, inf_bsupr_eq],
+    simp_rw ←map_inf,
+    exact ((map_Sup _).trans supr_image).ge,
   end,
   ..hf.complete_lattice f map_sup map_inf map_Sup map_Inf map_top map_bot }
 
@@ -233,20 +265,14 @@ protected def function.injective.frame [has_sup α] [has_inf α] [has_Sup α] [h
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.coframe [has_sup α] [has_inf α] [has_Sup α] [has_Inf α] [has_top α]
   [has_bot α] [coframe β] (f : α → β) (hf : injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   coframe α :=
 { infi_sup_le_sup_Inf := λ a s, begin
-    change f (Inf $ range $ λ b, Inf _) ≤ f (a ⊔ Inf s),
-    rw [map_sup, map_Inf s, Inf_image, map_Inf, ←range_comp],
-    refine ((sup_binfi_eq _).trans _ ).ge,
-    congr',
-    ext b,
-    refine eq.trans _ (map_Inf _).symm,
-    rw [←range_comp, infi],
-    congr',
-    ext h,
-    exact (map_sup _ _).symm,
+    change f _ ≤ f (a ⊔ Inf s),
+    rw [←Inf_image, map_sup, map_Inf s, sup_binfi_eq],
+    simp_rw ←map_sup,
+    exact ((map_Inf _).trans infi_image).le,
   end,
   ..hf.complete_lattice f map_sup map_inf map_Sup map_Inf map_top map_bot }
 
@@ -255,8 +281,8 @@ protected def function.injective.coframe [has_sup α] [has_inf α] [has_Sup α] 
 protected def function.injective.complete_distrib_lattice [has_sup α] [has_inf α] [has_Sup α]
   [has_Inf α] [has_top α] [has_bot α] [complete_distrib_lattice β]
   (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   complete_distrib_lattice α :=
 { ..hf.frame f map_sup map_inf map_Sup map_Inf map_top map_bot,
   ..hf.coframe f map_sup map_inf map_Sup map_Inf map_top map_bot }
@@ -266,11 +292,26 @@ protected def function.injective.complete_distrib_lattice [has_sup α] [has_inf 
 protected def function.injective.complete_boolean_algebra [has_sup α] [has_inf α] [has_Sup α]
   [has_Inf α] [has_top α] [has_bot α] [has_compl α] [has_sdiff α] [complete_boolean_algebra β]
   (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥)
   (map_compl : ∀ a, f aᶜ = (f a)ᶜ) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
   complete_boolean_algebra α :=
 { ..hf.complete_distrib_lattice f map_sup map_inf map_Sup map_Inf map_top map_bot,
   ..hf.boolean_algebra f map_sup map_inf map_top map_bot map_compl map_sdiff }
 
 end lift
+
+namespace punit
+variables (s : set punit.{u+1}) (x y : punit.{u+1})
+
+instance : complete_boolean_algebra punit :=
+by refine_struct
+{ Sup := λ _, star,
+  Inf := λ _, star,
+  ..punit.boolean_algebra };
+    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false]
+
+@[simp] lemma Sup_eq : Sup s = star := rfl
+@[simp] lemma Inf_eq : Inf s = star := rfl
+
+end punit

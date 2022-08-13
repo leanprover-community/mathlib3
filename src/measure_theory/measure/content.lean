@@ -5,8 +5,7 @@ Authors: Floris van Doorn
 -/
 import measure_theory.measure.measure_space
 import measure_theory.measure.regular
-import topology.opens
-import topology.compacts
+import topology.sets.compacts
 
 /-!
 # Contents
@@ -52,7 +51,7 @@ universes u v w
 noncomputable theory
 
 open set topological_space
-open_locale nnreal ennreal
+open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -114,25 +113,25 @@ le_supr_of_le K $ le_supr _ h2
 
 lemma inner_content_le (U : opens G) (K : compacts G) (h2 : (U : set G) ⊆ K) :
   μ.inner_content U ≤ μ K :=
-bsupr_le $ λ K' hK', μ.mono _ _ (subset.trans hK' h2)
+supr₂_le $ λ K' hK', μ.mono _ _ (subset.trans hK' h2)
 
 lemma inner_content_of_is_compact {K : set G} (h1K : is_compact K) (h2K : is_open K) :
   μ.inner_content ⟨K, h2K⟩ = μ ⟨K, h1K⟩ :=
-le_antisymm (bsupr_le $ λ K' hK', μ.mono _ ⟨K, h1K⟩ hK')
+le_antisymm (supr₂_le $ λ K' hK', μ.mono _ ⟨K, h1K⟩ hK')
             (μ.le_inner_content _ _ subset.rfl)
 
 lemma inner_content_empty :
   μ.inner_content ∅ = 0 :=
 begin
   refine le_antisymm _ (zero_le _), rw ←μ.empty,
-  refine bsupr_le (λ K hK, _),
+  refine supr₂_le (λ K hK, _),
   have : K = ⊥, { ext1, rw [subset_empty_iff.mp hK, compacts.coe_bot] }, rw this, refl'
 end
 
 /-- This is "unbundled", because that it required for the API of `induced_outer_measure`. -/
 lemma inner_content_mono ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V)
   (h2 : U ⊆ V) : μ.inner_content ⟨U, hU⟩ ≤ μ.inner_content ⟨V, hV⟩ :=
-supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
+bsupr_mono $ λ K hK, hK.trans h2
 
 lemma inner_content_exists_compact {U : opens G}
   (hU : μ.inner_content U ≠ ∞) {ε : ℝ≥0} (hε : ε ≠ 0) :
@@ -157,7 +156,7 @@ begin
     { simp only [μ.empty, nonpos_iff_eq_zero, finset.sum_empty, finset.sup_empty], },
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
-  refine bsupr_le (λ K hK, _),
+  refine supr₂_le (λ K hK, _),
   obtain ⟨t, ht⟩ := K.compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
   rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
@@ -181,8 +180,7 @@ lemma inner_content_comap (f : G ≃ₜ G)
   (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K) (U : opens G) :
   μ.inner_content (opens.comap f.to_continuous_map U) = μ.inner_content U :=
 begin
-  refine supr_congr _ ((compacts.equiv f).surjective) _,
-  intro K, refine supr_congr_Prop image_subset_iff _,
+  refine (compacts.equiv f).surjective.supr_congr _ (λ K, supr_congr_Prop image_subset_iff _),
   intro hK, simp only [equiv.coe_fn_mk, subtype.mk_eq_mk, ennreal.coe_eq_coe, compacts.equiv],
   apply h,
 end
@@ -212,10 +210,9 @@ begin
   simp only [μ.is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
 
-lemma inner_content_mono' ⦃U V : set G⦄
-  (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
+lemma inner_content_mono' ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
   μ.inner_content ⟨U, hU⟩ ≤ μ.inner_content ⟨V, hV⟩ :=
-supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
+bsupr_mono $ λ K hK, hK.trans h2
 
 /-- Extending a content on compact sets to an outer measure on all sets. -/
 protected def outer_measure : outer_measure G :=
@@ -291,7 +288,7 @@ lemma is_mul_left_invariant_outer_measure [group G] [topological_group G]
 by convert μ.outer_measure_preimage (homeomorph.mul_left g) (λ K, h g) A
 
 lemma outer_measure_caratheodory (A : set G) :
-  μ.outer_measure.caratheodory.measurable_set' A ↔ ∀ (U : opens G),
+  measurable_set[μ.outer_measure.caratheodory] A ↔ ∀ (U : opens G),
   μ.outer_measure (U ∩ A) + μ.outer_measure (U \ A) ≤ μ.outer_measure U :=
 begin
   dsimp [opens], rw subtype.forall,

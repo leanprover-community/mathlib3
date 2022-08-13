@@ -94,6 +94,38 @@ begin
   exact (nhds a).sets_of_superset ((nhds a).inter_sets Hw h1) hw,
 end
 
+lemma mem_nhds_within_iff_eventually {s t : set α} {x : α} :
+  t ∈ 𝓝[s] x ↔ ∀ᶠ y in 𝓝 x, y ∈ s → y ∈ t :=
+begin
+  rw [mem_nhds_within_iff_exists_mem_nhds_inter],
+  split,
+  { rintro ⟨u, hu, hut⟩, exact eventually_of_mem hu (λ x hxu hxs, hut ⟨hxu, hxs⟩) },
+  { refine λ h, ⟨_, h, λ y hy, hy.1 hy.2⟩ }
+end
+
+lemma mem_nhds_within_iff_eventually_eq {s t : set α} {x : α} :
+  t ∈ 𝓝[s] x ↔ s =ᶠ[𝓝 x] (s ∩ t : set α) :=
+by simp_rw [mem_nhds_within_iff_eventually, eventually_eq_set, mem_inter_iff, iff_self_and]
+
+lemma nhds_within_eq_iff_eventually_eq {s t : set α} {x : α} : 𝓝[s] x = 𝓝[t] x ↔ s =ᶠ[𝓝 x] t :=
+begin
+  simp_rw [filter.ext_iff, mem_nhds_within_iff_eventually, eventually_eq_set],
+  split,
+  { intro h,
+    filter_upwards [(h t).mpr (eventually_of_forall $ λ x, id),
+      (h s).mp (eventually_of_forall $ λ x, id)],
+    exact λ x, iff.intro, },
+  { refine λ h u, eventually_congr (h.mono $ λ x h, _), rw [h] }
+end
+
+lemma nhds_within_le_iff {s t : set α} {x : α} : 𝓝[s] x ≤ 𝓝[t] x ↔ t ∈ 𝓝[s] x :=
+begin
+  simp_rw [filter.le_def, mem_nhds_within_iff_eventually],
+  split,
+  { exact λ h, (h t $ eventually_of_forall (λ x, id)).mono (λ x, id) },
+  { exact λ h u hu, (h.and hu).mono (λ x hx h, hx.2 $ hx.1 h) }
+end
+
 lemma preimage_nhds_within_coinduced' {π : α → β} {s : set β} {t : set α} {a : α}
   (h : a ∈ t) (ht : is_open t)
   (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
@@ -116,6 +148,9 @@ mem_inf_of_left h
 
 theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ 𝓝[s] a :=
 mem_inf_of_right (mem_principal_self s)
+
+theorem eventually_mem_nhds_within {a : α} {s : set α} : ∀ᶠ x in 𝓝[s] a, x ∈ s :=
+self_mem_nhds_within
 
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ 𝓝[s] a :=
@@ -155,12 +190,7 @@ nhds_within_restrict' s (is_open.mem_nhds h₁ h₀)
 
 theorem nhds_within_le_of_mem {a : α} {s t : set α} (h : s ∈ 𝓝[t] a) :
   𝓝[t] a ≤ 𝓝[s] a :=
-begin
-  rcases mem_nhds_within.1 h with ⟨u, u_open, au, uts⟩,
-  have : 𝓝[t] a = 𝓝[t ∩ u] a := nhds_within_restrict _ au u_open,
-  rw [this, inter_comm],
-  exact nhds_within_mono _ uts
-end
+nhds_within_le_iff.mpr h
 
 theorem nhds_within_le_nhds {a : α} {s : set α} : 𝓝[s] a ≤ 𝓝 a :=
 by { rw ← nhds_within_univ, apply nhds_within_le_of_mem, exact univ_mem }
@@ -237,13 +267,13 @@ lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topolog
 by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
 lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = ⨅ i, comap (λ x, x i) (𝓝 (x i) ⊓ ⨅ (hi : i ∈ I), 𝓟 (s i)) :=
 by simp only [nhds_within, nhds_pi, filter.pi, comap_inf, comap_infi, pi_def, comap_principal,
   ← infi_principal_finite hI, ← infi_inf_eq]
 
 lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = (⨅ i ∈ I, comap (λ x, x i) (𝓝[s i] (x i))) ⊓
     ⨅ (i ∉ I), comap (λ x, x i) (𝓝 (x i)) :=
 begin
@@ -253,7 +283,7 @@ begin
   simp only [infi_inf_eq]
 end
 
-lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [fintype ι] [Π i, topological_space (α i)]
+lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [finite ι] [Π i, topological_space (α i)]
   (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi univ s] x = ⨅ i, comap (λ x, x i) 𝓝[s i] (x i) :=
 by simpa [nhds_within] using nhds_within_pi_eq finite_univ s x
@@ -552,7 +582,11 @@ hs.induction_on (continuous_on_empty f) (continuous_on_singleton f)
 
 theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   𝓝[s] x ≤ comap f (𝓝[f '' s] (f x)) :=
-map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
+ctsf.tendsto_nhds_within_image.le_comap
+
+@[simp] lemma comap_nhds_within_range {α} (f : α → β) (y : β) :
+  comap f (𝓝[range f] y) = comap f (𝓝 y) :=
+comap_inf_principal_range
 
 theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
   continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=
@@ -597,13 +631,20 @@ lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A 
   (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : maps_to f s A) : f x ∈ closure A :=
 closure_mono (image_subset_iff.2 hA) (h.mem_closure_image hx)
 
+lemma set.maps_to.closure_of_continuous_within_at {f : α → β} {s : set α} {t : set β}
+  (h : maps_to f s t) (hc : ∀ x ∈ closure s, continuous_within_at f s x) :
+  maps_to f (closure s) (closure t) :=
+λ x hx, (hc x hx).mem_closure hx h
+
+lemma set.maps_to.closure_of_continuous_on {f : α → β} {s : set α} {t : set β}
+  (h : maps_to f s t) (hc : continuous_on f (closure s)) :
+  maps_to f (closure s) (closure t) :=
+h.closure_of_continuous_within_at $ λ x hx, (hc x hx).mono subset_closure
+
 lemma continuous_within_at.image_closure {f : α → β} {s : set α}
   (hf : ∀ x ∈ closure s, continuous_within_at f s x) :
   f '' (closure s) ⊆ closure (f '' s) :=
-begin
-  rintros _ ⟨x, hx, rfl⟩,
-  exact (hf x hx).mem_closure_image hx
-end
+maps_to'.1 $ (maps_to_image f s).closure_of_continuous_within_at hf
 
 lemma continuous_on.image_closure {f : α → β} {s : set α} (hf : continuous_on f (closure s)) :
   f '' (closure s) ⊆ closure (f '' s) :=
@@ -1019,6 +1060,16 @@ lemma continuous.if {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   continuous (λ a, if p a then f a else g a) :=
 continuous_if hp hf.continuous_on hg.continuous_on
 
+lemma continuous_if_const (p : Prop) {f g : α → β} [decidable p]
+  (hf : p → continuous f) (hg : ¬ p → continuous g) :
+  continuous (λ a, if p then f a else g a) :=
+by { split_ifs, exact hf h, exact hg h }
+
+lemma continuous.if_const (p : Prop) {f g : α → β} [decidable p]
+  (hf : continuous f) (hg : continuous g) :
+  continuous (λ a, if p then f a else g a) :=
+continuous_if_const p (λ _, hf) (λ _, hg)
+
 lemma continuous_piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
   (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous_on f (closure s))
   (hg : continuous_on g (closure sᶜ)) :
@@ -1073,6 +1124,12 @@ lemma continuous_on_piecewise_ite {s s' t : set α} {f f' : α → β} [∀ x, d
   continuous_on (t.piecewise f f') (t.ite s s') :=
 continuous_on_piecewise_ite' (h.mono (inter_subset_left _ _)) (h'.mono (inter_subset_left _ _))
   H Heq
+
+lemma frontier_inter_open_inter {s t : set α} (ht : is_open t) :
+  frontier (s ∩ t) ∩ t = frontier s ∩ t :=
+by simp only [← subtype.preimage_coe_eq_preimage_coe_iff,
+  ht.is_open_map_subtype_coe.preimage_frontier_eq_frontier_preimage continuous_subtype_coe,
+  subtype.preimage_coe_inter_self]
 
 lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
 continuous_fst.continuous_on

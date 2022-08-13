@@ -47,7 +47,7 @@ by { cases h, dsimp, simp }
   X.d x y ≫ eq_to_hom (congr_arg X.X h) = X.d x z :=
 by { cases h, simp }
 
-@[simp, reassoc] lemma eq_to_hom_f {X Y : differential_object (graded_object_with_shift b V)}
+@[simp, reassoc] lemma eq_to_hom_f' {X Y : differential_object (graded_object_with_shift b V)}
   (f : X ⟶ Y) {x y : β} (h : x = y) :
   X.X_eq_to_hom h ≫ f.f y = f.f x ≫ Y.X_eq_to_hom h :=
 by { cases h, simp }
@@ -81,7 +81,7 @@ def dgo_to_homological_complex :
       subst h,
       have : f.f i ≫ Y.d i = X.d i ≫ f.f (i + 1 • b) := (congr_fun f.comm i).symm,
       reassoc! this,
-      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl, this, category.assoc, eq_to_hom_f]
+      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl, this, category.assoc, eq_to_hom_f']
     end, } }
 
 /--

@@ -272,9 +272,7 @@ begin
       { simp only [list.head, exists_false, or_false, part.mem_some_iff,
           list.tail_cons, false_and] at this,
         subst this, exact ⟨_, ⟨h, hm⟩, rfl⟩ },
-      { simp only [list.head, exists_eq_left, part.mem_some_iff,
-          list.tail_cons, false_or] at this,
-        refine IH _ this (by simp * at *) _ rfl (λ m h', _),
+      { refine IH (n.succ :: v.val) (by simp * at *) _ rfl (λ m h', _),
         obtain h|rfl := nat.lt_succ_iff_lt_or_eq.1 h', exacts [hm _ h, h] } },
     { rintro ⟨n, ⟨hn, hm⟩, rfl⟩, refine ⟨n.succ :: v.1, _, rfl⟩,
       have : (n.succ :: v.1 : list ℕ) ∈ pfun.fix
@@ -535,32 +533,29 @@ begin
         have e₁ := step_normal_then f cont.halt (cont.fix f k) v'.tail,
         rw [e₀, cont.then, cfg.then] at e₁,
         obtain ⟨v₁, hv₁, v₂, hv₂, h₃⟩ :=
-          IH (step_ret (k₀.then (cont.fix f k)) v₀) _ _ v'.tail _ step_ret_then _,
+          IH (step_ret (k₀.then (cont.fix f k)) v₀) _ v'.tail _ step_ret_then _,
         { refine ⟨_, pfun.mem_fix_iff.2 _, h₃⟩,
           simp only [part.eq_some_iff.2 hv₁, part.map_some, part.mem_some_iff],
           split_ifs at hv₂ ⊢; [exact or.inl (part.mem_some_iff.1 hv₂),
             exact or.inr ⟨_, rfl, hv₂⟩] },
-        { rwa [← @reaches_eval _ _ (cfg.ret (k₀.then (cont.fix f k)) v₀), ← e₁],
-          exact refl_trans_gen.single rfl },
         { rw [step_ret, if_neg he, e₁], refl },
         { apply refl_trans_gen.single, rw e₀, exact rfl } } },
-    { rw reaches_eval at h, swap, exact refl_trans_gen.single rfl,
-      exact IH _ h rfl _ _ step_ret_then (refl_trans_gen.tail hr rfl) } },
+    { exact IH _ rfl _ _ step_ret_then (refl_trans_gen.tail hr rfl) } },
   { rintro ⟨v', he, hr⟩,
     rw reaches_eval at hr, swap, exact refl_trans_gen.single rfl,
     refine pfun.fix_induction he (λ v (he : v' ∈ f.fix.eval v) IH, _),
     rw [fok, part.bind_eq_bind, part.mem_bind_iff],
-    obtain he | ⟨v'', he₁', he₂'⟩ := pfun.mem_fix_iff.1 he,
+    obtain he | ⟨v'', he₁', _⟩ := pfun.mem_fix_iff.1 he,
     { obtain ⟨v', he₁, he₂⟩ := (part.mem_map_iff _).1 he, split_ifs at he₂; cases he₂,
       refine ⟨_, he₁, _⟩,
       rw reaches_eval, swap, exact refl_trans_gen.single rfl,
       rwa [step_ret, if_pos h] },
     { obtain ⟨v₁, he₁, he₂⟩ := (part.mem_map_iff _).1 he₁', split_ifs at he₂; cases he₂,
-      clear he₂ he₁', change _ ∈ f.fix.eval _ at he₂',
+      clear he₂ he₁',
       refine ⟨_, he₁, _⟩,
       rw reaches_eval, swap, exact refl_trans_gen.single rfl,
       rwa [step_ret, if_neg h],
-      exact IH v₁.tail he₂' ((part.mem_map_iff _).2 ⟨_, he₁, if_neg h⟩) } }
+      exact IH v₁.tail ((part.mem_map_iff _).2 ⟨_, he₁, if_neg h⟩) } }
 end
 
 theorem code_is_ok (c) : code.ok c :=
@@ -787,6 +782,7 @@ open TM2.stmt
 
 /-- A predicate that detects the end of a natural number, either `Γ'.cons` or `Γ'.Cons` (or
 implicitly the end of the list), for use in predicate-taking functions like `move` and `clear`. -/
+@[simp]
 def nat_end : Γ' → bool
 | Γ'.Cons := tt
 | Γ'.cons := tt
@@ -928,7 +924,8 @@ binary natural numbers. (We could also use `nat.binary_rec_on`, but `num` and `p
 easy inductions.) -/
 def tr_nat (n : ℕ) : list Γ' := tr_num n
 
-@[simp] theorem tr_nat_zero : tr_nat 0 = [] := rfl
+@[simp] theorem tr_nat_zero : tr_nat 0 = [] := by rw [tr_nat, nat.cast_zero]; refl
+@[simp] theorem tr_nat_default : tr_nat default = [] := tr_nat_zero
 
 /-- Lists are translated with a `cons` after each encoded number.
 For example:
@@ -1010,7 +1007,7 @@ def split_at_pred {α} (p : α → bool) : list α → list α × option α × l
 
 theorem split_at_pred_eq {α} (p : α → bool) : ∀ L l₁ o l₂,
   (∀ x ∈ l₁, p x = ff) →
-  option.elim o (L = l₁ ∧ l₂ = []) (λ a, p a = tt ∧ L = l₁ ++ a :: l₂) →
+  option.elim (L = l₁ ∧ l₂ = []) (λ a, p a = tt ∧ L = l₁ ++ a :: l₂) o →
   split_at_pred p L = (l₁, o, l₂)
 | [] _ none _ _ ⟨rfl, rfl⟩ := rfl
 | [] l₁ (some o) l₂ h₁ ⟨h₂, h₃⟩ := by simp at h₃; contradiction
@@ -1142,7 +1139,7 @@ begin
   refine (move_ok dec_trivial
     (split_at_pred_eq _ _ (tr_nat L.head) o (tr_list L.tail) (tr_nat_nat_end _) _)).trans
     (trans_gen.head rfl (trans_gen.head rfl _)),
-  { cases L; exact ⟨rfl, rfl⟩ },
+  { cases L; simp },
   simp,
   rw if_neg (show o ≠ some Γ'.Cons, by cases L; rintro ⟨⟩),
   refine (clear_ok (split_at_pred_eq _ _ _ none [] _ ⟨rfl, rfl⟩)).trans _,
@@ -1207,7 +1204,7 @@ theorem pred_ok (q₁ q₂ s v) (c d : list Γ') :
 begin
   rcases v with _|⟨_|n, v⟩,
   { refine ⟨none, trans_gen.single _⟩, simp, refl },
-  { refine ⟨some Γ'.cons, trans_gen.single _⟩, simp, refl },
+  { refine ⟨some Γ'.cons, trans_gen.single _⟩, simp },
   refine ⟨none, _⟩, simp [tr_nat, num.add_one, num.succ, tr_num],
   cases (n:num) with a,
   { simp [tr_pos_num, tr_num, show num.zero.succ' = pos_num.one, from rfl],
@@ -1222,7 +1219,7 @@ begin
     refine h.trans _, convert unrev_ok using 2, simp [e, list.reverse_core_eq] },
   induction a with m IH m IH generalizing s; intro l₁,
   { refine ⟨Γ'.bit1 :: l₁, [], some Γ'.cons, rfl, trans_gen.head rfl (trans_gen.single _)⟩,
-    simp [tr_pos_num, show pos_num.one.succ = pos_num.one.bit0, from rfl], refl },
+    simp [tr_pos_num, show pos_num.one.succ = pos_num.one.bit0, from rfl] },
   { obtain ⟨l₁', l₂', s', e, h⟩ := IH (some Γ'.bit0) (Γ'.bit1 :: l₁),
     refine ⟨l₁', l₂', s', e, trans_gen.head _ h⟩, simp, refl },
   { obtain ⟨a, l, e, h⟩ : ∃ a l, tr_pos_num m = a :: l ∧ nat_end a = ff,
@@ -1243,7 +1240,7 @@ begin
   { let o : option Γ' := list.cases_on v none (λ _ _, some Γ'.cons),
     refine ⟨_, ⟨o, rfl⟩, _⟩, convert clear_ok _, simp, swap,
     refine split_at_pred_eq _ _ (tr_nat v.head) _ _ (tr_nat_nat_end _) _,
-    cases v; exact ⟨rfl, rfl⟩ },
+    cases v; simp },
   case cons : f fs IHf IHfs
   { obtain ⟨c, h₁, h₂⟩ := IHf (cont.cons₁ fs v k) v none,
     refine ⟨c, h₁, trans_gen.head rfl $ (move_ok dec_trivial (split_at_pred_ff _)).trans _⟩,
@@ -1288,7 +1285,7 @@ begin
       then nat_end (tr_list v).head'.iget = tt ∧ (tr_list v).tail = tr_list v.tail
       else nat_end (tr_list v).head'.iget = ff ∧
         (tr_list v).tail = (tr_nat v.head).tail ++ Γ'.cons :: tr_list v.tail,
-    { cases v with n, {exact ⟨rfl, rfl⟩}, cases n, {exact ⟨rfl, rfl⟩},
+    { cases v with n, {exact ⟨rfl, rfl⟩}, cases n, {simp},
       rw [tr_list, list.head, tr_nat, nat.cast_succ, num.add_one, num.succ, list.tail],
       cases (n:num).succ'; exact ⟨rfl, rfl⟩ },
     by_cases v.head = 0; simp [h] at this ⊢,

@@ -8,6 +8,7 @@ import field_theory.normal
 import field_theory.primitive_element
 import field_theory.fixed
 import ring_theory.power_basis
+import group_theory.group_action.fixing_subgroup
 
 /-!
 # Galois Extensions
@@ -23,11 +24,12 @@ In this file we define Galois extensions as extensions which are both separable 
 
 ## Main results
 
-- `fixing_subgroup_of_fixed_field` : If `E/F` is finite dimensional (but not necessarily Galois)
-  then `fixing_subgroup (fixed_field H) = H`
-- `fixed_field_of_fixing_subgroup`: If `E/F` is finite dimensional and Galois
+- `intermediate_field.fixing_subgroup_fixed_field` : If `E/F` is finite dimensional (but not
+  necessarily Galois) then `fixing_subgroup (fixed_field H) = H`
+- `intermediate_field.fixed_field_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`
-Together, these two result prove the Galois correspondence
+
+Together, these two results prove the Galois correspondence.
 
 - `is_galois.tfae` : Equivalent characterizations of a Galois extension of finite degree
 -/
@@ -64,7 +66,7 @@ instance self : is_galois F F :=
 
 variables (F) {E}
 
-lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral' x
+lemma integral [is_galois F E] (x : E) : is_integral F x := to_normal.is_integral x
 
 lemma separable [is_galois F E] (x : E) : (minpoly F x).separable := is_separable.separable F x
 
@@ -150,7 +152,7 @@ lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galo
 ⟨λ h, by exactI is_galois.of_alg_equiv f, λ h, by exactI is_galois.of_alg_equiv f.symm⟩
 
 lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) ↔ is_galois F E :=
-(intermediate_field.top_equiv).transfer_galois
+(intermediate_field.top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E).transfer_galois
 
 instance is_galois_bot : is_galois F (⊥ : intermediate_field F E) :=
 (intermediate_field.bot_equiv F E).transfer_galois.mpr (is_galois.self F)
@@ -169,19 +171,6 @@ def fixed_points.intermediate_field (M : Type*) [monoid M] [mul_semiring_action 
 { carrier := mul_action.fixed_points M E,
   algebra_map_mem' := λ a g, by rw [algebra.algebra_map_eq_smul_one, smul_comm, smul_one],
   ..fixed_points.subfield M E }
-
-/-- The submonoid fixing a set under a `mul_action`. -/
-@[to_additive /-" The additive submonoid fixing a set under an `add_action`. "-/]
-def fixing_submonoid (M : Type*) {α} [monoid M] [mul_action M α] (s : set α) : submonoid M :=
-{ carrier := { ϕ : M | ∀ x : s, ϕ • (x : α) = x },
-  one_mem' := λ _, one_smul _ _,
-  mul_mem' := λ x y hx hy z, by rw [mul_smul, hy z, hx z], }
-
-/-- The subgroup fixing a set under a `mul_action`. -/
-@[to_additive /-" The additive subgroup fixing a set under an `add_action`. "-/]
-def fixing_subgroup (M : Type*) {α} [group M] [mul_action M α] (s : set α) : subgroup M :=
-{ inv_mem' := λ _ hx z, by rw [inv_smul_eq_iff, hx z],
-  ..fixing_submonoid M s, }
 
 namespace intermediate_field
 
@@ -219,7 +208,7 @@ begin
         (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
   apply fintype.card_congr,
   refine (fixed_points.to_alg_hom_equiv H E).trans _,
-  refine (alg_equiv_equiv_alg_hom (fixed_field H) E).symm.trans _,
+  refine (alg_equiv_equiv_alg_hom (fixed_field H) E).to_equiv.symm.trans _,
   exact (fixing_subgroup_equiv (fixed_field H)).to_equiv.symm
 end
 
@@ -262,13 +251,13 @@ by conv { to_rhs, rw [←fixed_field_fixing_subgroup K,
 
 /-- The Galois correspondence from intermediate fields to subgroups -/
 def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
-  intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
+  intermediate_field F E ≃o (subgroup (E ≃ₐ[F] E))ᵒᵈ :=
 { to_fun := intermediate_field.fixing_subgroup,
   inv_fun := intermediate_field.fixed_field,
   left_inv := λ K, fixed_field_fixing_subgroup K,
   right_inv := λ H, intermediate_field.fixing_subgroup_fixed_field H,
   map_rel_iff' := λ K L, by { rw [←fixed_field_fixing_subgroup L, intermediate_field.le_iff_le,
-                                  fixed_field_fixing_subgroup L, ←order_dual.dual_le], refl } }
+                                  fixed_field_fixing_subgroup L], refl } }
 
 /-- The Galois correspondence as a galois_insertion -/
 def galois_insertion_intermediate_field_subgroup [finite_dimensional F E] :
@@ -308,7 +297,7 @@ begin
   cases field.exists_primitive_element F E with α h1,
   use [minpoly F α, separable F α, is_galois.splits F α],
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
-  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α (integral F α),
+  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral (integral F α),
   apply algebra.adjoin_mono,
   rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
   { dsimp only [polynomial.is_root],
@@ -340,10 +329,14 @@ end
 
 variables {F} {E} {p : F[X]}
 
-lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
-  [sp : p.is_splitting_field F E] (hp : p.separable) (K : intermediate_field F E) {x : E}
-  (hx : x ∈ (p.map (algebra_map F E)).roots) :
-  fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
+lemma of_separable_splitting_field_aux
+  [hFE : finite_dimensional F E]
+  [sp : p.is_splitting_field F E] (hp : p.separable)
+  (K : Type*) [field K] [algebra F K] [algebra K E] [is_scalar_tower F K E]
+  {x : E} (hx : x ∈ (p.map (algebra_map F E)).roots)
+  -- these are both implied by `hFE`, but as they carry data this makes the lemma more general
+  [fintype (K →ₐ[F] E)] [fintype (K⟮x⟯.restrict_scalars F →ₐ[F] E)] :
+  fintype.card (K⟮x⟯.restrict_scalars F →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
   have h : is_integral K x := is_integral_of_is_scalar_tower x
@@ -351,12 +344,13 @@ begin
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
   { apply minpoly.dvd,
-    rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map],
+    rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map,
+      ←is_scalar_tower.algebra_map_eq],
     exact (polynomial.mem_roots (polynomial.map_ne_zero h1)).mp hx },
-  let key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
-    @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) :=
-  equiv.trans (alg_equiv.arrow_congr (intermediate_field.lift2_alg_equiv K⟮x⟯) (alg_equiv.refl))
-    alg_hom_equiv_sigma,
+  let key_equiv : (K⟮x⟯.restrict_scalars F →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
+    @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f),
+  { change (K⟮x⟯ →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E), _,
+    exact alg_hom_equiv_sigma },
   haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := λ f, by
   { apply fintype.of_injective (sigma.mk f) (λ _ _ H, eq_of_heq ((sigma.mk.inj H).2)),
     exact fintype.of_equiv _ key_equiv },
@@ -386,8 +380,8 @@ begin
   { rw adjoin_root at this,
     apply of_card_aut_eq_finrank,
     rw ← eq.trans this (linear_equiv.finrank_eq intermediate_field.top_equiv.to_linear_equiv),
-    exact fintype.card_congr (equiv.trans (alg_equiv_equiv_alg_hom F E)
-      (alg_equiv.arrow_congr intermediate_field.top_equiv.symm alg_equiv.refl)) },
+    exact fintype.card_congr ((alg_equiv_equiv_alg_hom F E).to_equiv.trans
+      (intermediate_field.top_equiv.symm.arrow_congr alg_equiv.refl)) },
   apply intermediate_field.induction_on_adjoin_finset s P,
   { have key := intermediate_field.card_alg_hom_adjoin_integral F
       (show is_integral F (0 : E), by exact is_integral_zero),
@@ -401,7 +395,9 @@ begin
   simp only [P] at *,
   rw [of_separable_splitting_field_aux hp K (multiset.mem_to_finset.mp hx),
     hK, finrank_mul_finrank],
-  exact (linear_equiv.finrank_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
+  symmetry,
+  refine linear_equiv.finrank_eq _,
+  refl,
 end
 
 /--Equivalent characterizations of a Galois extension of finite degree-/

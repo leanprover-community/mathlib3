@@ -49,9 +49,17 @@ instance : has_zero (lie_subalgebra R L) :=
 
 instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance : has_coe (lie_subalgebra R L) (submodule R L) := ⟨lie_subalgebra.to_submodule⟩
-instance : has_mem L (lie_subalgebra R L) := ⟨λ x L', x ∈ (L' : set L)⟩
 
 namespace lie_subalgebra
+
+instance : set_like (lie_subalgebra R L) L :=
+{ coe := λ L', L',
+  coe_injective' := λ L' L'' h, by { rcases L' with ⟨⟨⟩⟩, rcases L'' with ⟨⟨⟩⟩, congr' } }
+
+instance : add_subgroup_class (lie_subalgebra R L) L :=
+{ add_mem := λ L', L'.add_mem',
+  zero_mem := λ L', L'.zero_mem',
+  neg_mem := λ L' x hx, show -x ∈ (L' : submodule R L), from neg_mem hx }
 
 /-- A Lie subalgebra forms a new Lie ring. -/
 instance (L' : lie_subalgebra R L) : lie_ring L' :=
@@ -66,18 +74,21 @@ section
 variables {R₁ : Type*} [semiring R₁]
 
 /-- A Lie subalgebra inherits module structures from `L`. -/
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : module R₁ L' :=
 L'.to_submodule.module'
 
-instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+instance [has_smul R₁ R] [has_smul R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
   [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
   (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
 L'.to_submodule.is_central_scalar
 
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
 L'.to_submodule.is_scalar_tower
+
+instance (L' : lie_subalgebra R L) [is_noetherian R L] : is_noetherian R L' :=
+is_noetherian_submodule' ↑L'
 
 end
 
@@ -87,17 +98,11 @@ instance (L' : lie_subalgebra R L) : lie_algebra R L' :=
 
 variables {R L} (L' : lie_subalgebra R L)
 
-@[simp] lemma zero_mem : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
+@[simp] protected lemma zero_mem : (0 : L) ∈ L' := zero_mem L'
+protected lemma add_mem {x y : L} : x ∈ L' → y ∈ L' → (x + y : L) ∈ L' := add_mem
+protected lemma sub_mem {x y : L} : x ∈ L' → y ∈ L' → (x - y : L) ∈ L' := sub_mem
 
 lemma smul_mem (t : R) {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodule R L).smul_mem t h
-
-lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
-(L' : submodule R L).add_mem hx hy
-
-lemma sub_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x - y : L) ∈ L' :=
-(L' : submodule R L).sub_mem hx hy
-
-@[simp] lemma neg_mem_iff {x : L} : -x ∈ L' ↔ x ∈ L' := L'.to_submodule.neg_mem_iff
 
 lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
 
@@ -119,10 +124,10 @@ lemma coe_zero_iff_zero (x : L') : (x : L) = 0 ↔ x = 0 := (ext_iff L' x 0).sym
 
 @[ext] lemma ext (L₁' L₂' : lie_subalgebra R L) (h : ∀ x, x ∈ L₁' ↔ x ∈ L₂') :
   L₁' = L₂' :=
-by { cases L₁', cases L₂', simp only [], ext x, exact h x, }
+set_like.ext h
 
 lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x ∈ L₁' ↔ x ∈ L₂' :=
-⟨λ h x, by rw h, ext L₁' L₂'⟩
+set_like.ext_iff
 
 @[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
   ((⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
@@ -132,12 +137,10 @@ lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x �
 by { cases p, refl, }
 
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
-by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h, congr' }
-
-instance : set_like (lie_subalgebra R L) L := ⟨coe, coe_injective⟩
+set_like.coe_injective
 
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
-  (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
+  (L₁' : set L) = L₂' ↔ L₁' = L₂' := set_like.coe_set_eq
 
 lemma to_submodule_injective :
   function.injective (coe : lie_subalgebra R L → submodule R L) :=
@@ -378,6 +381,13 @@ instance : add_comm_monoid (lie_subalgebra R L) :=
   add_zero  := λ _, sup_bot_eq,
   add_comm  := λ _ _, sup_comm, }
 
+instance : canonically_ordered_add_monoid (lie_subalgebra R L) :=
+{ add_le_add_left := λ a b, sup_le_sup_left,
+  exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
+  le_self_add := λ a b, le_sup_left,
+  ..lie_subalgebra.add_comm_monoid,
+  ..lie_subalgebra.complete_lattice }
+
 @[simp] lemma add_eq_sup : K + K' = K ⊔ K' := rfl
 
 @[norm_cast, simp] lemma inf_coe_to_submodule :
@@ -394,7 +404,7 @@ by { rw eq_bot_iff, exact iff.rfl, }
 lemma subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
-  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_subalgebra.mem_bot at hx, subst hx,
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, mem_bot],
 end
 
@@ -542,8 +552,8 @@ variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [li
 /-- An injective Lie algebra morphism is an equivalence onto its range. -/
 noncomputable def of_injective (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) :
   L₁ ≃ₗ⁅R⁆ f.range :=
-{ map_lie' := λ x y, by { apply set_coe.ext, simpa, },
-..(linear_equiv.of_injective ↑f $ by rwa [lie_hom.coe_to_linear_map])}
+{ map_lie' := λ x y, by { apply set_coe.ext, simpa },
+  .. linear_equiv.of_injective (f : L₁ →ₗ[R] L₂) $ by rwa [lie_hom.coe_to_linear_map] }
 
 @[simp] lemma of_injective_apply (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) (x : L₁) :
   ↑(of_injective f h x) = f x := rfl

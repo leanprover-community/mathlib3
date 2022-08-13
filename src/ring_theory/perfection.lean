@@ -201,7 +201,7 @@ end perfection
 
 /-- A perfection map to a ring of characteristic `p` is a map that is isomorphic
 to its perfection. -/
-@[nolint has_inhabited_instance] structure perfection_map (p : ℕ) [fact p.prime]
+@[nolint has_nonempty_instance] structure perfection_map (p : ℕ) [fact p.prime]
   {R : Type u₁} [comm_semiring R] [char_p R p]
   {P : Type u₂} [comm_semiring P] [char_p P p] [perfect_ring P p] (π : P →+* R) : Prop :=
 (injective : ∀ ⦃x y : P⦄, (∀ n, π (pth_root P p ^[n] x) = π (pth_root P p ^[n] y)) → x = y)
@@ -321,7 +321,7 @@ variables (p : ℕ)
 include hv
 
 /-- `O/(p)` for `O`, ring of integers of `K`. -/
-@[nolint unused_arguments has_inhabited_instance] def mod_p :=
+@[nolint unused_arguments has_nonempty_instance] def mod_p :=
 O ⧸ (ideal.span {p} : ideal O)
 
 variables [hp : fact p.prime] [hvp : fact (v p ≠ 1)]
@@ -353,7 +353,7 @@ lemma pre_val_mk {x : O} (hx : (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0)
 begin
   obtain ⟨r, hr⟩ := ideal.mem_span_singleton'.1 (ideal.quotient.eq.1 $ quotient.sound' $
     @quotient.mk_out' O (ideal.span {p} : ideal O).quotient_rel x),
-  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_ge' _),
+  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_le _),
   erw [← ring_hom.map_sub, ← hr, hv.le_iff_dvd],
   exact λ hprx, hx (ideal.quotient.eq_zero_iff_mem.2 $ ideal.mem_span_singleton.2 $
     dvd_of_mul_left_dvd hprx),
@@ -388,7 +388,7 @@ end
 lemma v_p_lt_pre_val {x : mod_p K v O hv p} : v p < pre_val K v O hv p x ↔ x ≠ 0 :=
 begin
   refine ⟨λ h hx, by { rw [hx, pre_val_zero] at h, exact not_lt_zero' h },
-    λ h, lt_of_not_ge' $ λ hp, h _⟩,
+    λ h, lt_of_not_le $ λ hp, h _⟩,
   obtain ⟨r, rfl⟩ := ideal.quotient.mk_surjective x,
   rw [pre_val_mk h, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd] at hp,
   rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton], exact hp
@@ -402,7 +402,7 @@ lemma pre_val_eq_zero {x : mod_p K v O hv p} : pre_val K v O hv p x = 0 ↔ x = 
 variables (hv hvp)
 lemma v_p_lt_val {x : O} :
   v p < v (algebra_map O K x) ↔ (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0 :=
-by rw [lt_iff_not_ge', not_iff_not, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd,
+by rw [lt_iff_not_le, not_iff_not, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd,
       ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton]
 
 open nnreal
@@ -431,7 +431,7 @@ end classical
 end mod_p
 
 /-- Perfection of `O/(p)` where `O` is the ring of integers of `K`. -/
-@[nolint has_inhabited_instance] def pre_tilt :=
+@[nolint has_nonempty_instance] def pre_tilt :=
 ring.perfection (mod_p K v O hv p) p
 
 include hp hvp
@@ -559,7 +559,7 @@ end pre_tilt
 /-- The tilt of a field, as defined in Perfectoid Spaces by Peter Scholze, as in
 [scholze2011perfectoid]. Given a field `K` with valuation `K → ℝ≥0` and ring of integers `O`,
 this is implemented as the fraction field of the perfection of `O/(p)`. -/
-@[nolint has_inhabited_instance] def tilt :=
+@[nolint has_nonempty_instance] def tilt :=
 fraction_ring (pre_tilt K v O hv p)
 
 namespace tilt

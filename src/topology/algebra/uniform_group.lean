@@ -12,6 +12,16 @@ import tactic.abel
 /-!
 # Uniform structure on topological groups
 
+This file defines uniform groups and its additive counterpart. These typeclasses should be
+preferred over using `[topological_space α] [topological_group α]` since every topological
+group naturally induces a uniform structure.
+
+## Main declarations
+* `uniform_group` and `uniform_add_group`: Multiplicative and additive uniform groups, that
+  i.e., groups with uniformly continuous `(*)` and `(⁻¹)` / `(+)` and `(-)`.
+
+## Main results
+
 * `topological_add_group.to_uniform_space` and `topological_add_group_is_uniform` can be used to
   construct a canonical uniformity for a topological add group.
 
@@ -19,7 +29,7 @@ import tactic.abel
 -/
 
 noncomputable theory
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topological_space filter pointwise
 
 section uniform_group
 open filter set
@@ -69,6 +79,26 @@ by simp * at *
 @[to_additive] lemma uniform_continuous_mul : uniform_continuous (λp:α×α, p.1 * p.2) :=
 uniform_continuous_fst.mul uniform_continuous_snd
 
+@[to_additive uniform_continuous.const_nsmul]
+lemma uniform_continuous.pow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℕ, uniform_continuous (λ x, f x ^ n)
+| 0 := by { simp_rw pow_zero, exact uniform_continuous_const }
+| (n + 1) := by { simp_rw pow_succ, exact hf.mul (uniform_continuous.pow_const n) }
+
+@[to_additive uniform_continuous_const_nsmul] lemma uniform_continuous_pow_const (n : ℕ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.pow_const n
+
+@[to_additive uniform_continuous.const_zsmul]
+lemma uniform_continuous.zpow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℤ, uniform_continuous (λ x, f x ^ n)
+| (n : ℕ) := by { simp_rw zpow_coe_nat, exact hf.pow_const _, }
+| -[1+ n] := by { simp_rw zpow_neg_succ_of_nat, exact (hf.pow_const _).inv }
+
+@[to_additive uniform_continuous_const_zsmul] lemma uniform_continuous_zpow_const (n : ℤ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.zpow_const n
+
 @[priority 10, to_additive]
 instance uniform_group.to_topological_group : topological_group α :=
 { continuous_mul := uniform_continuous_mul.continuous,
@@ -98,8 +128,61 @@ le_antisymm
   end,
   inj := mul_left_injective a }
 
+
+namespace mul_opposite
+
+@[to_additive] instance : uniform_group αᵐᵒᵖ :=
+⟨uniform_continuous_op.comp ((uniform_continuous_unop.comp uniform_continuous_snd).inv.mul $
+  uniform_continuous_unop.comp uniform_continuous_fst)⟩
+
+end mul_opposite
+
+namespace subgroup
+
+@[to_additive] instance (S : subgroup α) : uniform_group S :=
+⟨uniform_continuous_comap' (uniform_continuous_div.comp $
+  uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val)⟩
+
+end subgroup
+
+section lattice_ops
+
+variables [group β]
+
+@[to_additive] lemma uniform_group_Inf {us : set (uniform_space β)}
+  (h : ∀ u ∈ us, @uniform_group β u _) :
+  @uniform_group β (Inf us) _ :=
+{ uniform_continuous_div := uniform_continuous_Inf_rng (λ u hu, uniform_continuous_Inf_dom₂ hu hu
+  (@uniform_group.uniform_continuous_div β u _ (h u hu))) }
+
+@[to_additive] lemma uniform_group_infi {ι : Sort*} {us' : ι → uniform_space β}
+  (h' : ∀ i, @uniform_group β (us' i) _) :
+  @uniform_group β (⨅ i, us' i) _ :=
+by {rw ← Inf_range, exact uniform_group_Inf (set.forall_range_iff.mpr h')}
+
+@[to_additive] lemma uniform_group_inf {u₁ u₂ : uniform_space β}
+  (h₁ : @uniform_group β u₁ _) (h₂ : @uniform_group β u₂ _) :
+  @uniform_group β (u₁ ⊓ u₂) _ :=
+by {rw inf_eq_infi, refine uniform_group_infi (λ b, _), cases b; assumption}
+
+@[to_additive] lemma uniform_group_comap {γ : Type*} [group γ] {u : uniform_space γ}
+  [uniform_group γ] {F : Type*} [monoid_hom_class F β γ] (f : F) :
+  @uniform_group β (u.comap f) _ :=
+{ uniform_continuous_div :=
+    begin
+      letI : uniform_space β := u.comap f,
+      refine uniform_continuous_comap' _,
+      simp_rw [function.comp, map_div],
+      change uniform_continuous ((λ p : γ × γ, p.1 / p.2) ∘ (prod.map f f)),
+      exact uniform_continuous_div.comp
+        (uniform_continuous_comap.prod_map uniform_continuous_comap),
+    end }
+
+end lattice_ops
+
 section
 variables (α)
+
 @[to_additive] lemma uniformity_eq_comap_nhds_one : 𝓤 α = comap (λx:α×α, x.2 / x.1) (𝓝 (1:α)) :=
 begin
   rw [nhds_eq_comap_uniformity, filter.comap_comap],
@@ -116,7 +199,46 @@ begin
     refine ⟨_, ht, _⟩,
     rintros ⟨a, b⟩, simpa [subset_def] using hts 1 (b / a) a }
 end
+
+@[to_additive] lemma uniformity_eq_comap_nhds_one_swapped :
+  𝓤 α = comap (λx:α×α, x.1 / x.2) (𝓝 (1:α)) :=
+by { rw [← comap_swap_uniformity, uniformity_eq_comap_nhds_one, comap_comap, (∘)], refl }
+
+open mul_opposite
+
+@[to_additive]
+lemma uniformity_eq_comap_inv_mul_nhds_one : 𝓤 α = comap (λx:α×α, x.1⁻¹ * x.2) (𝓝 (1:α)) :=
+begin
+  rw [← comap_uniformity_mul_opposite, uniformity_eq_comap_nhds_one, ← op_one, ← comap_unop_nhds,
+    comap_comap, comap_comap],
+  simp [(∘)]
 end
+
+@[to_additive] lemma uniformity_eq_comap_inv_mul_nhds_one_swapped :
+  𝓤 α = comap (λx:α×α, x.2⁻¹ * x.1) (𝓝 (1:α)) :=
+by { rw [← comap_swap_uniformity, uniformity_eq_comap_inv_mul_nhds_one, comap_comap, (∘)], refl }
+
+end
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one {ι} {p : ι → Prop} {U : ι → set α}
+  (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.2 / x.1 ∈ U i}) :=
+by { rw uniformity_eq_comap_nhds_one, exact h.comap _ }
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one_inv_mul
+  {ι} {p : ι → Prop} {U : ι → set α} (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.1⁻¹ * x.2 ∈ U i}) :=
+by { rw uniformity_eq_comap_inv_mul_nhds_one, exact h.comap _ }
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one_swapped
+  {ι} {p : ι → Prop} {U : ι → set α} (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.1 / x.2 ∈ U i}) :=
+by { rw uniformity_eq_comap_nhds_one_swapped, exact h.comap _ }
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one_inv_mul_swapped
+  {ι} {p : ι → Prop} {U : ι → set α} (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.2⁻¹ * x.1 ∈ U i}) :=
+by { rw uniformity_eq_comap_inv_mul_nhds_one_swapped, exact h.comap _ }
 
 @[to_additive] lemma group_separation_rel (x y : α) :
   (x, y) ∈ separation_rel α ↔ x / y ∈ closure ({1} : set α) :=
@@ -127,41 +249,55 @@ begin
   simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg, add_assoc]
 end
 
-@[to_additive] lemma uniform_continuous_of_tendsto_one
-  [uniform_space β] [group β] [uniform_group β] {f : α →* β} (h : tendsto f (𝓝 1) (𝓝 1)) :
+@[to_additive] lemma uniform_continuous_of_tendsto_one {hom : Type*} [uniform_space β] [group β]
+  [uniform_group β] [monoid_hom_class hom α β] {f : hom} (h : tendsto f (𝓝 1) (𝓝 1)) :
   uniform_continuous f :=
 begin
   have : ((λx:β×β, x.2 / x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 / x.1)),
-  { simp only [f.map_div] },
+  { simp only [map_div] },
   rw [uniform_continuous, uniformity_eq_comap_nhds_one α, uniformity_eq_comap_nhds_one β,
     tendsto_comap_iff, this],
   exact tendsto.comp h tendsto_comap
 end
 
+/-- A group homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) between
+two uniform groups is uniformly continuous provided that it is continuous at one. See also
+`continuous_of_continuous_at_one`. -/
+@[to_additive "An additive group homomorphism (a bundled morphism of a type that implements
+`add_monoid_hom_class`) between two uniform additive groups is uniformly continuous provided that it
+is continuous at zero. See also `continuous_of_continuous_at_zero`."]
+lemma uniform_continuous_of_continuous_at_one {hom : Type*}
+  [uniform_space β] [group β] [uniform_group β] [monoid_hom_class hom α β]
+  (f : hom) (hf : continuous_at f 1) :
+  uniform_continuous f :=
+uniform_continuous_of_tendsto_one (by simpa using hf.tendsto)
+
 @[to_additive] lemma monoid_hom.uniform_continuous_of_continuous_at_one
   [uniform_space β] [group β] [uniform_group β]
   (f : α →* β) (hf : continuous_at f 1) :
   uniform_continuous f :=
-uniform_continuous_of_tendsto_one (by simpa using hf.tendsto)
+uniform_continuous_of_continuous_at_one f hf
 
 /-- A homomorphism from a uniform group to a discrete uniform group is continuous if and only if
 its kernel is open. -/
 @[to_additive "A homomorphism from a uniform additive group to a discrete uniform additive group is
 continuous if and only if its kernel is open."]
-lemma uniform_group.uniform_continuous_iff_open_ker [uniform_space β] [discrete_topology β]
-  [group β] [uniform_group β] {f : α →* β} : uniform_continuous f ↔ is_open (f.ker : set α) :=
+lemma uniform_group.uniform_continuous_iff_open_ker {hom : Type*} [uniform_space β]
+  [discrete_topology β] [group β] [uniform_group β] [monoid_hom_class hom α β] {f : hom} :
+  uniform_continuous f ↔ is_open ((f : α →* β).ker : set α) :=
 begin
   refine ⟨λ hf, _, λ hf, _⟩,
   { apply (is_open_discrete ({1} : set β)).preimage (uniform_continuous.continuous hf) },
-  { apply monoid_hom.uniform_continuous_of_continuous_at_one,
+  { apply uniform_continuous_of_continuous_at_one,
     rw [continuous_at, nhds_discrete β, map_one, tendsto_pure],
     exact hf.mem_nhds (map_one f) }
 end
 
-@[to_additive] lemma uniform_continuous_monoid_hom_of_continuous [uniform_space β]
-  [group β] [uniform_group β] {f : α →* β} (h : continuous f) : uniform_continuous f :=
+@[to_additive] lemma uniform_continuous_monoid_hom_of_continuous {hom : Type*} [uniform_space β]
+  [group β] [uniform_group β] [monoid_hom_class hom α β] {f : hom} (h : continuous f) :
+  uniform_continuous f :=
 uniform_continuous_of_tendsto_one $
-  suffices tendsto f (𝓝 1) (𝓝 (f 1)), by rwa f.map_one at this,
+  suffices tendsto f (𝓝 1) (𝓝 (f 1)), by rwa map_one at this,
   h.tendsto 1
 
 @[to_additive] lemma cauchy_seq.mul {ι : Type*} [semilattice_sup ι] {u v : ι → α}
@@ -180,14 +316,39 @@ uniform_continuous_mul.comp_cauchy_seq (hu.prod hv)
   {u : ι → α} (h : cauchy_seq u) : cauchy_seq (u⁻¹) :=
 uniform_continuous_inv.comp_cauchy_seq h
 
+@[to_additive] lemma totally_bounded_iff_subset_finite_Union_nhds_one {s : set α} :
+  totally_bounded s ↔ ∀ U ∈ 𝓝 (1 : α), ∃ (t : set α), t.finite ∧ s ⊆ ⋃ y ∈ t, y • U :=
+(𝓝 (1 : α)).basis_sets.uniformity_of_nhds_one_inv_mul_swapped.totally_bounded_iff.trans $
+  by simp [← preimage_smul_inv, preimage]
+
+section uniform_convergence
+variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+
+@[to_additive] lemma tendsto_uniformly_on.mul (hf : tendsto_uniformly_on f g l s)
+  (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma tendsto_uniformly_on.div (hf : tendsto_uniformly_on f g l s)
+  (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma uniform_cauchy_seq_on.mul (hf : uniform_cauchy_seq_on f l s)
+  (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f * f') l s :=
+λ u hu, by simpa using ((uniform_continuous_mul.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
+
+@[to_additive] lemma uniform_cauchy_seq_on.div (hf : uniform_cauchy_seq_on f l s)
+  (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f / f') l s :=
+λ u hu, by simpa using ((uniform_continuous_div.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
+
+end uniform_convergence
 end uniform_group
 
-section topological_comm_group
+section topological_group
 open filter
-variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
+variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
 /-- The right uniformity on a topological group. -/
-@[to_additive "The right uniformity on a topological group"]
+@[to_additive "The right uniformity on a topological additive group"]
 def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
@@ -214,7 +375,7 @@ def topological_group.to_uniform_space : uniform_space G :=
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
-        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ Hz1 _ Hz2
+        simpa using V_sum _ Hz2 _ Hz1,
       end,
       exact set.subset.trans comp_rel_sub U_sub },
     { exact monotone_comp_rel monotone_id monotone_id }
@@ -233,6 +394,11 @@ def topological_group.to_uniform_space : uniform_space G :=
     { rintros h ⟨x, y⟩ hx rfl, exact h hx },
     { rintros h x hx, exact @h (a, x) hx rfl }
   end }
+
+local attribute [instance] topological_group.to_uniform_space
+
+@[to_additive] lemma uniformity_eq_comap_nhds_one' :
+  𝓤 G = comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)) := rfl
 
 variables {G}
 
@@ -264,7 +430,7 @@ variables {G}
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
   exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
-end topological_comm_group
+end topological_group
 
 section topological_comm_group
 universes u v w x
@@ -274,9 +440,6 @@ variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
 
 section
 local attribute [instance] topological_group.to_uniform_space
-
-@[to_additive] lemma uniformity_eq_comap_nhds_one' :
-  𝓤 G = comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)) := rfl
 
 variable {G}
 @[to_additive] lemma topological_group_is_uniform : uniform_group G :=
@@ -292,19 +455,18 @@ begin
   simpa [(∘), div_eq_mul_inv, mul_comm, mul_left_comm] using this
 end
 
-local attribute [instance] topological_group_is_uniform
-
 open set
 
-@[to_additive] lemma topological_group.separated_iff_one_closed :
-  separated_space G ↔ is_closed ({1} : set G) :=
+@[to_additive] lemma topological_group.t2_space_iff_one_closed :
+  t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  rw [separated_space_iff, ← closure_eq_iff_is_closed],
+  haveI : uniform_group G := topological_group_is_uniform,
+  rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,
     { intros x x_in,
       have := group_separation_rel x 1,
-      rw div_one' at this,
+      rw div_one at this,
       rw [← this, h] at x_in,
       change x = 1 at x_in,
       simp [x_in] },
@@ -315,10 +477,10 @@ begin
     refl }
 end
 
-@[to_additive] lemma topological_group.separated_of_one_sep
-  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : separated_space G:=
+@[to_additive] lemma topological_group.t2_space_of_one_sep
+  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : t2_space G :=
 begin
-  rw [topological_group.separated_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
+  rw [topological_group.t2_space_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
   intros x x_not,
   have : x ≠ 1, from mem_compl_singleton_iff.mp x_not,
   rcases H x this with ⟨U, U_in, xU⟩,
@@ -334,7 +496,7 @@ end
 end
 
 @[to_additive] lemma uniform_group.to_uniform_space_eq {G : Type*} [u : uniform_space G]
-  [comm_group G] [uniform_group G] : topological_group.to_uniform_space G = u :=
+  [group G] [uniform_group G] : topological_group.to_uniform_space G = u :=
 begin
   ext : 1,
   show @uniformity G (topological_group.to_uniform_space G) = 𝓤 G,
@@ -343,15 +505,15 @@ end
 
 end topological_comm_group
 
-open comm_group filter set function
+open filter set function
 
 section
-variables {α : Type*} {β : Type*}
-variables [topological_space α] [comm_group α] [topological_group α]
+variables {α : Type*} {β : Type*} {hom : Type*}
+variables [topological_space α] [group α] [topological_group α]
 
 -- β is a dense subgroup of α, inclusion is denoted by e
-variables [topological_space β] [comm_group β]
-variables {e : β →* α} (de : dense_inducing e)
+variables [topological_space β] [group β]
+variables [monoid_hom_class hom β α] {e : hom} (de : dense_inducing e)
 include de
 
 @[to_additive] lemma tendsto_div_comap_self (x₀ : α) :
@@ -360,7 +522,7 @@ begin
   have comm : (λx:α×α, x.2/x.1) ∘ (λt:β×β, (e t.1, e t.2)) = e ∘ (λt:β×β, t.2 / t.1),
   { ext t,
     change e t.2 / e t.1 = e (t.2 / t.1),
-    rwa ← e.map_div t.2 t.1 },
+    rwa ← map_div e t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2/x.1) (𝓝 (x₀, x₀)) (𝓝 (e 1)),
   { simpa using (continuous_div'.comp (@continuous_swap α α _ _)).tendsto (x₀, x₀) },
   simpa using de.tendsto_comap_nhds_nhds lim comm

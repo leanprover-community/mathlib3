@@ -50,8 +50,8 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 
 instance : decidable_eq empty := λa, a.elim
 
-instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
+instance sort.inhabited : inhabited Sort* := ⟨punit⟩
+instance sort.inhabited' : inhabited default := ⟨punit.star⟩
 
 instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
 instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩
@@ -98,6 +98,10 @@ theorem coe_fn_coe_trans'
 theorem coe_fn_coe_base'
   {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+-- This instance should have low priority, to ensure we follow the chain
+-- `set_like → has_coe_to_sort`
+attribute [instance, priority 10] coe_sort_trans
 
 theorem coe_sort_coe_trans
   {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
@@ -146,17 +150,24 @@ instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 @[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
 assume ⟨h⟩, h.elim
 
-@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
-⟨λ h, trivial, λ h x, by cases x⟩
-
-@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
-⟨λ h, by { cases h with w, cases w }, false.elim⟩
+lemma congr_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} {x : α} {y : β} (h₁ : f == g)
+  (h₂ : x == y) : f x = g y :=
+by { cases h₂, cases h₁, refl }
 
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
-lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
+lemma ulift.down_injective {α : Sort*} : function.injective (@ulift.down α)
 | ⟨a⟩ ⟨b⟩ rfl := rfl
+
+@[simp] lemma ulift.down_inj {α : Sort*} {a b : ulift α} : a.down = b.down ↔ a = b :=
+⟨λ h, ulift.down_injective h, λ h, by rw h⟩
+
+lemma plift.down_injective {α : Sort*} : function.injective (@plift.down α)
+| ⟨a⟩ ⟨b⟩ rfl := rfl
+
+@[simp] lemma plift.down_inj {α : Sort*} {a b : plift α} : a.down = b.down ↔ a = b :=
+⟨λ h, plift.down_injective h, λ h, by rw h⟩
 
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
@@ -200,7 +211,25 @@ library_note "fact non-instances"
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
+/-- Swaps two pairs of arguments to a function. -/
+@[reducible] def function.swap₂ {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {φ : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Sort*} (f : Π i₁ j₁ i₂ j₂, φ i₁ j₁ i₂ j₂) :
+  Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
+λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
+
+/-- If `x : α . tac_name` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def auto_param.out {α : Sort*} {n : name} (x : auto_param α n) : α := x
+
+/-- If `x : α := d` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def opt_param.out {α : Sort*} {d : α} (x : α := d) : α := x
+
 end miscellany
+
+open function
 
 /-!
 ### Declarations about propositional connectives
@@ -276,8 +305,6 @@ the arguments flipped, but it is in the `not` namespace so that projection notat
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
-
-lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
@@ -382,6 +409,10 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
+lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
+lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
+
 /-! ### Declarations about `xor` -/
 
 @[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
@@ -422,6 +453,12 @@ by simp only [and.left_comm, and.comm]
 
 lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
 by rw [←and_assoc, @and.right_comm a, and_assoc]
+
+lemma and_and_distrib_left (a b c : Prop) : a ∧ (b ∧ c) ↔ (a ∧ b) ∧ (a ∧ c) :=
+by rw [and_and_and_comm, and_self]
+
+lemma and_and_distrib_right (a b c : Prop) : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ (b ∧ c) :=
+by rw [and_and_and_comm, and_self]
 
 lemma and_rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a := by simp only [and.left_comm, and.comm]
 lemma and.rotate : a ∧ b ∧ c → b ∧ c ∧ a := and_rotate.1
@@ -474,6 +511,12 @@ theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, 
 lemma or_or_or_comm (a b c d : Prop) : (a ∨ b) ∨ c ∨ d ↔ (a ∨ c) ∨ b ∨ d :=
 by rw [←or_assoc, @or.right_comm a, or_assoc]
 
+lemma or_or_distrib_left (a b c : Prop) : a ∨ (b ∨ c) ↔ (a ∨ b) ∨ (a ∨ c) :=
+by rw [or_or_or_comm, or_self]
+
+lemma or_or_distrib_right (a b c : Prop) : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ (b ∨ c) :=
+by rw [or_or_or_comm, or_self]
+
 lemma or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or.left_comm, or.comm]
 lemma or.rotate : a ∨ b ∨ c → b ∨ c ∨ a := or_rotate.1
 
@@ -507,6 +550,30 @@ protected theorem decidable.or_iff_not_imp_right [decidable b] : a ∨ b ↔ (¬
 or.comm.trans decidable.or_iff_not_imp_left
 
 theorem or_iff_not_imp_right : a ∨ b ↔ (¬ b → a) := decidable.or_iff_not_imp_right
+
+-- See Note [decidable namespace]
+protected lemma decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
+dite _ (or.inr ∘ h) or.inl
+
+lemma not_or_of_imp : (a → b) → ¬ a ∨ b := decidable.not_or_of_imp
+
+-- See Note [decidable namespace]
+protected lemma decidable.or_not_of_imp [decidable a] (h : a → b) : b ∨ ¬ a :=
+dite _ (or.inl ∘ h) or.inr
+
+lemma or_not_of_imp : (a → b) → b ∨ ¬ a := decidable.or_not_of_imp
+
+-- See Note [decidable namespace]
+protected lemma decidable.imp_iff_not_or [decidable a] : a → b ↔ ¬ a ∨ b :=
+⟨decidable.not_or_of_imp, or.neg_resolve_left⟩
+
+lemma imp_iff_not_or : a → b ↔ ¬ a ∨ b := decidable.imp_iff_not_or
+
+-- See Note [decidable namespace]
+protected lemma decidable.imp_iff_or_not [decidable b] : b → a ↔ a ∨ ¬ b :=
+decidable.imp_iff_not_or.trans or.comm
+
+lemma imp_iff_or_not : b → a ↔ a ∨ ¬ b  := decidable.imp_iff_or_not
 
 -- See Note [decidable namespace]
 protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b → a) :=
@@ -587,18 +654,6 @@ iff.comm.trans (iff_false_left ha)
 
 @[simp]
 lemma iff_mpr_iff_true_intro {P : Prop} (h : P) : iff.mpr (iff_true_intro h) true.intro = h := rfl
-
--- See Note [decidable namespace]
-protected theorem decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
-if ha : a then or.inr (h ha) else or.inl ha
-
-theorem not_or_of_imp : (a → b) → ¬ a ∨ b := decidable.not_or_of_imp
-
--- See Note [decidable namespace]
-protected theorem decidable.imp_iff_not_or [decidable a] : (a → b) ↔ (¬ a ∨ b) :=
-⟨decidable.not_or_of_imp, or.neg_resolve_left⟩
-
-theorem imp_iff_not_or : (a → b) ↔ (¬ a ∨ b) := decidable.imp_iff_not_or
 
 -- See Note [decidable namespace]
 protected theorem decidable.imp_or_distrib [decidable a] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=
@@ -850,6 +905,21 @@ lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : �
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 
+variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+
+lemma congr_fun₂ {f g : Π a b, γ a b} (h : f = g) (a : α) (b : β a) : f a b = g a b :=
+congr_fun (congr_fun h _) _
+
+lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+  f a b c = g a b c :=
+congr_fun₂ (congr_fun h _) _ _
+
+lemma funext₂ {f g : Π a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
+funext $ λ _, funext $ h _
+
+lemma funext₃ {f g : Π a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+funext $ λ _, funext₂ $ h _
+
 end equality
 
 /-! ### Declarations about quantifiers -/
@@ -857,9 +927,12 @@ end equality
 section quantifiers
 variables {α : Sort*}
 
-section congr
+section dependent
 variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
   {ε : Π a b c, δ a b c → Sort*}
+
+lemma pi_congr {β' : α → Sort*} (h : ∀ a, β a = β' a) : (Π a, β a) = Π a, β' a :=
+(funext h : β = β') ▸ rfl
 
 lemma forall₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∀ a b, p a b) ↔ ∀ a b, q a b :=
@@ -878,7 +951,7 @@ lemma forall₅_congr {p q : Π a b c d, ε a b c d → Prop}
   (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
 forall_congr $ λ a, forall₄_congr $ h a
 
-lemma exists₂_congr {p q : Π a, β a → Prop}  (h : ∀ a b, p a b ↔ q a b) :
+lemma exists₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∃ a b, p a b) ↔ ∃ a b, q a b :=
 exists_congr $ λ a, exists_congr $ h a
 
@@ -895,22 +968,30 @@ lemma exists₅_congr {p q : Π a b c d, ε a b c d → Prop}
   (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
 exists_congr $ λ a, exists₄_congr $ h a
 
-end congr
+lemma forall_imp {p q : α → Prop} (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a := λ h' a, h a (h' a)
 
-variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
-
-lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
-λ h' a, h a (h' a)
-
-lemma forall₂_imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
-  (∀ i j, p i j) → ∀ i j, q i j :=
+lemma forall₂_imp {p q : Π a, β a → Prop} (h : ∀ a b, p a b → q a b) :
+  (∀ a b, p a b) → ∀ a b, q a b :=
 forall_imp $ λ i, forall_imp $ h i
 
-lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
+lemma forall₃_imp {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c → q a b c) :
+  (∀ a b c, p a b c) → ∀ a b c, q a b c :=
+forall_imp $ λ a, forall₂_imp $ h a
 
-lemma Exists₂.imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
-  (∃ i j, p i j) → ∃ i j, q i j :=
-Exists.imp $ λ i, Exists.imp $ h i
+lemma Exists.imp {p q : α → Prop}  (h : ∀ a, (p a → q a)) : (∃ a, p a) → ∃ a, q a :=
+exists_imp_exists h
+
+lemma Exists₂.imp {p q : Π a, β a → Prop} (h : ∀ a b, p a b → q a b) :
+  (∃ a b, p a b) → ∃ a b, q a b :=
+Exists.imp $ λ a, Exists.imp $ h a
+
+lemma Exists₃.imp {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c → q a b c) :
+  (∃ a b c, p a b c) → ∃ a b c, q a b c :=
+Exists.imp $ λ a, Exists₂.imp $ h a
+
+end dependent
+
+variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=
@@ -918,6 +999,11 @@ exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
+
+lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+⟨swap₂, swap₂⟩
 
 /-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
 than `forall_swap`. -/
@@ -1009,6 +1095,11 @@ exists.elim h (λ x hx, ⟨x, and.left hx⟩)
 @[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
 
+/-- For some reason simp doesn't use `forall_const` to simplify in this case. -/
+@[simp] lemma forall_forall_const {α β : Type*} (p : β → Prop) [nonempty α] :
+  (∀ x, α → p x) ↔ ∀ x, p x :=
+forall_congr $ λ x, forall_const α
+
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
 
@@ -1062,11 +1153,11 @@ by simp only [exists_unique, and_self, forall_eq', exists_eq']
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
 @[simp] theorem exists_eq_right_right {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a = a') ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_eq_right_right' {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a' = a) ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_apply_eq_apply (f : α → β) (a' : α) : ∃ a, f a = f a' := ⟨a', rfl⟩
@@ -1121,6 +1212,11 @@ by simp [@eq_comm _ a']
 
 theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
 ⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
+
+lemma exists₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∃ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∃ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+by simp only [@exists_comm (κ₁ _), @exists_comm ι₁]
 
 theorem and.exists {p q : Prop} {f : p ∧ q → Prop} : (∃ h, f h) ↔ ∃ hp hq, f ⟨hp, hq⟩ :=
 ⟨λ ⟨h, H⟩, ⟨h.1, h.2, H⟩, λ ⟨hp, hq, H⟩, ⟨⟨hp, hq⟩, H⟩⟩
@@ -1188,11 +1284,9 @@ mt Exists.fst
   (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : Exists q = ∃ h : p', q' (hp.2 h) :=
 propext (exists_prop_congr hq _)
 
+/-- See `is_empty.exists_iff` for the `false` version. -/
 @[simp] lemma exists_true_left (p : true → Prop) : (∃ x, p x) ↔ p true.intro :=
 exists_prop_of_true _
-
-@[simp] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
-exists_prop_of_false not_false
 
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
   {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
@@ -1206,11 +1300,9 @@ unique_of_exists_unique h py₁ py₂
   (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : (∀ h, q h) = ∀ h : p', q' (hp.2 h) :=
 propext (forall_prop_congr hq _)
 
+/-- See `is_empty.forall_iff` for the `false` version. -/
 @[simp] lemma forall_true_left (p : true → Prop) : (∀ x, p x) ↔ p true.intro :=
 forall_prop_of_true _
-
-@[simp] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
-forall_prop_of_false not_false
 
 lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
   {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)
@@ -1401,12 +1493,18 @@ section ite
 variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [decidable P] [decidable Q]
   {a b c : α} {A : P → α} {B : ¬ P → α}
 
-lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c := by by_cases P; simp *
+lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c :=
+by by_cases P; simp [*, exists_prop_of_false not_false]
+
 lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c :=
 dite_eq_iff.trans $ by rw [exists_prop, exists_prop]
 
-@[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a := by by_cases P; simp *
-@[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b := by by_cases P; simp *
+@[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a :=
+by by_cases P; simp [*, forall_prop_of_false not_false]
+
+@[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b :=
+by by_cases P; simp [*, forall_prop_of_false not_false]
+
 @[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := dite_eq_left_iff
 @[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := dite_eq_right_iff
 

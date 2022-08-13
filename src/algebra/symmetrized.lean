@@ -92,7 +92,7 @@ instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul 
 @[to_additive] instance [has_inv α] : has_inv αˢʸᵐ :=
 { inv := λ a, sym $ (unsym a)⁻¹ }
 
-instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
+instance (R : Type*) [has_smul R α] : has_smul R αˢʸᵐ :=
 { smul := λ r a, sym (r • unsym a) }
 
 @[simp, to_additive] lemma sym_one [has_one α] : sym (1 : α) = 1 := rfl
@@ -120,8 +120,8 @@ rfl
 @[simp, to_additive] lemma sym_inv [has_inv α] (a : α) : sym (a⁻¹) = (sym a)⁻¹ := rfl
 @[simp, to_additive] lemma unsym_inv [has_inv α] (a : αˢʸᵐ) : unsym (a⁻¹) = (unsym a)⁻¹ := rfl
 
-@[simp] lemma sym_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
-@[simp] lemma unsym_smul {R : Type*} [has_scalar R α] (c : R) (a : αˢʸᵐ) :
+@[simp] lemma sym_smul {R : Type*} [has_smul R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
+@[simp] lemma unsym_smul {R : Type*} [has_smul R α] (c : R) (a : αˢʸᵐ) :
   unsym (c • a) = c • unsym a := rfl
 
 @[simp, to_additive] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
@@ -140,10 +140,10 @@ instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ unsym_add
 
 instance [add_monoid α] : add_monoid (αˢʸᵐ) :=
-unsym_injective.add_monoid_smul _ unsym_zero unsym_add (λ _ _, rfl)
+unsym_injective.add_monoid _ unsym_zero unsym_add (λ _ _, rfl)
 
 instance [add_group α] : add_group (αˢʸᵐ) :=
-unsym_injective.add_group_smul _ unsym_zero
+unsym_injective.add_group _ unsym_zero
   unsym_add unsym_neg unsym_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_monoid α] : add_comm_monoid (αˢʸᵐ) :=
@@ -192,10 +192,8 @@ instance [semiring α] [invertible (2 : α)] : non_assoc_semiring (αˢʸᵐ) :=
   end,
   ..sym_alg.add_comm_monoid, }
 
-/-- The symmetrization of a real (unital, associative) algebra is a non-associative ring.
-
-Note there is currently no typeclass for a `non_assoc_ring`, so we discard the `unit` here. -/
-instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
+/-- The symmetrization of a real (unital, associative) algebra is a non-associative ring. -/
+instance [ring α] [invertible (2 : α)] : non_assoc_ring (αˢʸᵐ) :=
 { ..sym_alg.non_assoc_semiring,
   ..sym_alg.add_comm_group, }
 

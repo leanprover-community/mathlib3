@@ -61,7 +61,7 @@ variables {A : Type*} [comm_ring A]
 variables {m n : Type*} [fintype m] [fintype n]
 
 /-- If `R^m` and `R^n` are linearly equivalent, then `m` and `n` are also equivalent. -/
-def equiv_of_pi_lequiv_pi {R : Type*} [comm_ring R] [is_domain R]
+def equiv_of_pi_lequiv_pi {R : Type*} [comm_ring R] [nontrivial R]
   (e : (m → R) ≃ₗ[R] (n → R)) : m ≃ n :=
 basis.index_equiv (basis.of_equiv_fun e.symm) (pi.basis_fun _ _)
 
@@ -69,7 +69,7 @@ namespace matrix
 
 /-- If `M` and `M'` are each other's inverse matrices, they are square matrices up to
 equivalence of types. -/
-def index_equiv_of_inv [is_domain A] [decidable_eq m] [decidable_eq n]
+def index_equiv_of_inv [nontrivial A] [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   m ≃ n :=
@@ -80,18 +80,23 @@ by rw [det_mul, det_mul, mul_comm]
 
 /-- If there exists a two-sided inverse `M'` for `M` (indexed differently),
 then `det (N ⬝ M) = det (M ⬝ N)`. -/
-lemma det_comm' [is_domain A] [decidable_eq m] [decidable_eq n]
+lemma det_comm' [decidable_eq m] [decidable_eq n]
   {M : matrix n m A} {N : matrix m n A} {M' : matrix m n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N) = det (N ⬝ M) :=
--- Although `m` and `n` are different a priori, we will show they have the same cardinality.
--- This turns the problem into one for square matrices, which is easy.
-let e := index_equiv_of_inv hMM' hM'M in
-by rw [← det_minor_equiv_self e, ← minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
-  minor_mul_equiv, equiv.coe_refl, minor_id_id]
+begin
+  nontriviality A,
+  -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
+  -- This turns the problem into one for square matrices, which is easy.
+  let e := index_equiv_of_inv hMM' hM'M,
+  rw [← det_minor_equiv_self e, ← minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+    minor_mul_equiv, equiv.coe_refl, minor_id_id]
+end
 
-/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
-lemma det_conj [is_domain A] [decidable_eq m] [decidable_eq n]
+/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`.
+
+See `matrix.det_conj` and `matrix.det_conj'` for the case when `M' = M⁻¹` or vice versa. -/
+lemma det_conj_of_mul_eq_one [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N ⬝ M') = det N :=
@@ -105,7 +110,7 @@ namespace linear_map
 
 /-! ### Determinant of a linear map -/
 
-variables {A : Type*} [comm_ring A] [is_domain A] [module A M]
+variables {A : Type*} [comm_ring A] [module A M]
 variables {κ : Type*} [fintype κ]
 
 /-- The determinant of `linear_map.to_matrix` does not depend on the choice of basis. -/
@@ -114,7 +119,7 @@ lemma det_to_matrix_eq_det_to_matrix [decidable_eq κ]
   det (linear_map.to_matrix b b f) = det (linear_map.to_matrix c c f) :=
 by rw [← linear_map_to_matrix_mul_basis_to_matrix c b c,
        ← basis_to_matrix_mul_linear_map_to_matrix b c b,
-       matrix.det_conj]; rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
+       matrix.det_conj_of_mul_eq_one]; rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
 /-- The determinant of an endomorphism given a basis.
 
@@ -201,6 +206,10 @@ by { haveI := classical.dec_eq M,
   det f.to_matrix' = f.det :=
 by simp [← to_matrix_eq_to_matrix']
 
+@[simp] lemma det_to_lin (b : basis ι R M) (f : matrix ι ι R) :
+  linear_map.det (matrix.to_lin b b f) = f.det :=
+by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
+
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
 @[elab_as_eliminator]
 lemma det_cases [decidable_eq M] {P : A → Prop} (f : M →ₗ[A] M)
@@ -259,7 +268,7 @@ begin
   by_cases H : ∃ (s : finset M), nonempty (basis s A M),
   { rcases H with ⟨s, ⟨b⟩⟩,
     rw [← det_to_matrix b f, ← det_to_matrix (b.map e), to_matrix_comp (b.map e) b (b.map e),
-        to_matrix_comp (b.map e) b b, ← matrix.mul_assoc, matrix.det_conj],
+        to_matrix_comp (b.map e) b b, ← matrix.mul_assoc, matrix.det_conj_of_mul_eq_one],
     { rw [← to_matrix_comp, linear_equiv.comp_coe, e.symm_trans_self,
           linear_equiv.refl_to_linear_map, to_matrix_id] },
     { rw [← to_matrix_comp, linear_equiv.comp_coe, e.self_trans_symm,
@@ -272,7 +281,7 @@ begin
 end
 
 /-- If a linear map is invertible, so is its determinant. -/
-lemma is_unit_det {A : Type*} [comm_ring A] [is_domain A] [module A M]
+lemma is_unit_det {A : Type*} [comm_ring A] [module A M]
   (f : M →ₗ[A] M) (hf : is_unit f) : is_unit f.det :=
 begin
   obtain ⟨g, hg⟩ : ∃ g, f.comp g = 1 := hf.exists_right_inv,
@@ -316,8 +325,6 @@ end linear_map
 
 namespace linear_equiv
 
-variables [is_domain R]
-
 /-- On a `linear_equiv`, the domain of `linear_map.det` can be promoted to `Rˣ`. -/
 protected def det : (M ≃ₗ[R] M) →* Rˣ :=
 (units.map (linear_map.det : (M →ₗ[R] M) →* R)).comp
@@ -340,12 +347,12 @@ by rw [←units.eq_iff, coe_det, coe_det, ←comp_coe, ←comp_coe, linear_map.d
 end linear_equiv
 
 /-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
-@[simp] lemma linear_equiv.det_mul_det_symm {A : Type*} [comm_ring A] [is_domain A] [module A M]
+@[simp] lemma linear_equiv.det_mul_det_symm {A : Type*} [comm_ring A] [module A M]
   (f : M ≃ₗ[A] M) : (f : M →ₗ[A] M).det * (f.symm : M →ₗ[A] M).det = 1 :=
 by simp [←linear_map.det_comp]
 
 /-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
-@[simp] lemma linear_equiv.det_symm_mul_det {A : Type*} [comm_ring A] [is_domain A] [module A M]
+@[simp] lemma linear_equiv.det_symm_mul_det {A : Type*} [comm_ring A] [module A M]
   (f : M ≃ₗ[A] M) : (f.symm : M →ₗ[A] M).det * (f : M →ₗ[A] M).det = 1 :=
 by simp [←linear_map.det_comp]
 
@@ -358,7 +365,7 @@ begin
 end
 
 /-- Specialization of `linear_equiv.is_unit_det` -/
-lemma linear_equiv.is_unit_det' {A : Type*} [comm_ring A] [is_domain A] [module A M]
+lemma linear_equiv.is_unit_det' {A : Type*} [comm_ring A] [module A M]
   (f : M ≃ₗ[A] M) : is_unit (linear_map.det (f : M →ₗ[A] M)) :=
 is_unit_of_mul_eq_one _ _ f.det_mul_det_symm
 
@@ -402,6 +409,25 @@ have is_unit (linear_map.to_matrix (finite_dimensional.fin_basis 𝕜 M)
     by simp only [linear_map.det_to_matrix, is_unit_iff_ne_zero.2 hf],
 linear_equiv.of_is_unit_det this
 
+lemma linear_map.associated_det_of_eq_comp (e : M ≃ₗ[R] M) (f f' : M →ₗ[R] M)
+  (h : ∀ x, f x = f' (e x)) : associated f.det f'.det :=
+begin
+  suffices : associated (f' ∘ₗ ↑e).det f'.det,
+  { convert this using 2, ext x, exact h x },
+  rw [← mul_one f'.det, linear_map.det_comp],
+  exact associated.mul_left _ (associated_one_iff_is_unit.mpr e.is_unit_det')
+end
+
+lemma linear_map.associated_det_comp_equiv {N : Type*} [add_comm_group N] [module R N]
+  (f : N →ₗ[R] M) (e e' : M ≃ₗ[R] N) :
+  associated (f ∘ₗ ↑e).det (f ∘ₗ ↑e').det :=
+begin
+  refine linear_map.associated_det_of_eq_comp (e.trans e'.symm) _ _ _,
+  intro x,
+  simp only [linear_map.comp_apply, linear_equiv.coe_coe, linear_equiv.trans_apply,
+             linear_equiv.apply_symm_apply],
+end
+
 /-- The determinant of a family of vectors with respect to some basis, as an alternating
 multilinear map. -/
 def basis.det : alternating_map R M R ι :=
@@ -438,7 +464,7 @@ lemma is_basis_iff_det {v : ι → M} :
 begin
   split,
   { rintro ⟨hli, hspan⟩,
-    set v' := basis.mk hli hspan with v'_eq,
+    set v' := basis.mk hli hspan.ge with v'_eq,
     rw e.det_apply,
     convert linear_equiv.is_unit_det (linear_equiv.refl _ _) v' e using 2,
     ext i j,
@@ -473,7 +499,7 @@ lemma alternating_map.map_basis_ne_zero_iff (f : alternating_map R M R ι) :
   f e ≠ 0 ↔ f ≠ 0 :=
 not_congr $ f.map_basis_eq_zero_iff e
 
-variables {A : Type*} [comm_ring A] [is_domain A] [module A M]
+variables {A : Type*} [comm_ring A] [module A M]
 
 @[simp] lemma basis.det_comp (e : basis ι A M) (f : M →ₗ[A] M) (v : ι → M) :
   e.det (f ∘ v) = f.det * e.det v :=
@@ -509,7 +535,7 @@ end
 /-- If we fix a background basis `e`, then for any other basis `v`, we can characterise the
 coordinates provided by `v` in terms of determinants relative to `e`. -/
 lemma basis.det_smul_mk_coord_eq_det_update {v : ι → M}
-  (hli : linear_independent R v) (hsp : span R (range v) = ⊤) (i : ι) :
+  (hli : linear_independent R v) (hsp : ⊤ ≤ span R (range v)) (i : ι) :
   (e.det v) • (basis.mk hli hsp).coord i = e.det.to_multilinear_map.to_linear_map v i :=
 begin
   apply (basis.mk hli hsp).ext,

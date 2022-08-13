@@ -696,7 +696,7 @@ begin
     { refine ⟨k.succ, _, λ m mk km, ⟨a₂, _⟩⟩,
       { simp [F], exact or.inr ⟨_, hk, h₂⟩ },
       { rwa le_antisymm (nat.le_of_lt_succ mk) km } },
-    { rcases IH _ fa₃ am₃ k.succ _ with ⟨n, hn₁, hn₂⟩,
+    { rcases IH _ am₃ k.succ _ with ⟨n, hn₁, hn₂⟩,
       { refine ⟨n, hn₁, λ m mn km, _⟩,
         cases km.lt_or_eq_dec with km km,
         { exact hn₂ _ mn km },

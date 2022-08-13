@@ -109,7 +109,8 @@ begin
     all_goals { rw ← integrable_on_univ,
       refine integrable_on.restrict _ measurable_set.univ,
       refine ⟨_, has_finite_integral_to_real_of_lintegral_ne_top _⟩,
-      { measurability },
+      { apply measurable.ae_strongly_measurable,
+        measurability },
       { rw set_lintegral_univ,
         exact (lintegral_rn_deriv_lt_top _ _).ne } } },
   { exact equiv_measure.right_inv μ }

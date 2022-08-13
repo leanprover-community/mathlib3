@@ -34,7 +34,7 @@ form of D. This is used to set up several algebraic categories like
 
 namespace category_theory
 
-universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 section induced
 
@@ -47,7 +47,7 @@ include F
 which provides a category structure so that the morphisms `X ⟶ Y` are the morphisms
 in `D` from `F X` to `F Y`.
 -/
-@[nolint has_inhabited_instance unused_arguments]
+@[nolint has_nonempty_instance unused_arguments]
 def induced_category : Type u₁ := C
 
 variables {D}
@@ -77,33 +77,99 @@ end induced
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/
 
-variables {C : Type u₂} [category.{v} C]
+variables {C : Type u₁} [category.{v} C]
 variables (Z : C → Prop)
 
 /--
-The category structure on a subtype; morphisms just ignore the property.
+A subtype-like structure for full subcategories. Morphisms just ignore the property. We don't use
+actual subtypes since the simp-normal form `↑X` of `X.val` does not work well for full
+subcategories.
 
-See https://stacks.math.columbia.edu/tag/001D. We do not define 'strictly full' subcategories.
+See <https://stacks.math.columbia.edu/tag/001D>. We do not define 'strictly full' subcategories.
 -/
-instance full_subcategory : category.{v} {X : C // Z X} :=
-induced_category.category subtype.val
+@[ext, nolint has_nonempty_instance] structure full_subcategory :=
+(obj : C)
+(property : Z obj)
+
+instance full_subcategory.category : category.{v} (full_subcategory Z) :=
+induced_category.category full_subcategory.obj
 
 /--
 The forgetful functor from a full subcategory into the original category
 ("forgetting" the condition).
 -/
-def full_subcategory_inclusion : {X : C // Z X} ⥤ C :=
-induced_functor subtype.val
+def full_subcategory_inclusion : full_subcategory Z ⥤ C :=
+induced_functor full_subcategory.obj
 
 @[simp] lemma full_subcategory_inclusion.obj {X} :
-  (full_subcategory_inclusion Z).obj X = X.val := rfl
+  (full_subcategory_inclusion Z).obj X = X.obj := rfl
 @[simp] lemma full_subcategory_inclusion.map {X Y} {f : X ⟶ Y} :
   (full_subcategory_inclusion Z).map f = f := rfl
 
 instance full_subcategory.full : full (full_subcategory_inclusion Z) :=
-induced_category.full subtype.val
+induced_category.full _
 instance full_subcategory.faithful : faithful (full_subcategory_inclusion Z) :=
-induced_category.faithful subtype.val
+induced_category.faithful _
+
+variables {Z} {Z' : C → Prop}
+
+/-- An implication of predicates `Z → Z'` induces a functor between full subcategories. -/
+@[simps]
+def full_subcategory.map (h : ∀ ⦃X⦄, Z X → Z' X) : full_subcategory Z ⥤ full_subcategory Z' :=
+{ obj := λ X, ⟨X.1, h X.2⟩,
+  map := λ X Y f, f }
+
+instance (h : ∀ ⦃X⦄, Z X → Z' X) : full (full_subcategory.map h) :=
+{ preimage := λ X Y f, f }
+
+instance (h : ∀ ⦃X⦄, Z X → Z' X) : faithful (full_subcategory.map h) := {}
+
+@[simp] lemma full_subcategory.map_inclusion (h : ∀ ⦃X⦄, Z X → Z' X) :
+  full_subcategory.map h ⋙ full_subcategory_inclusion Z' = full_subcategory_inclusion Z :=
+rfl
+
+section lift
+variables {D : Type u₂} [category.{v₂} D] (P Q : D → Prop)
+
+/-- A functor which maps objects to objects satisfying a certain property induces a lift through
+    the full subcategory of objects satisfying that property. -/
+@[simps]
+def full_subcategory.lift (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) : C ⥤ full_subcategory P :=
+{ obj := λ X, ⟨F.obj X, hF X⟩,
+  map := λ X Y f, F.map f }
+
+/-- Composing the lift of a functor through a full subcategory with the inclusion yields the
+    original functor. Unfortunately, this is not true by definition, so we only get a natural
+    isomorphism, but it is pointwise definitionally true, see
+    `full_subcategory.inclusion_obj_lift_obj` and `full_subcategory.inclusion_map_lift_map`. -/
+def full_subcategory.lift_comp_inclusion (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) :
+  full_subcategory.lift P F hF ⋙ full_subcategory_inclusion P ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by simp)
+
+@[simp]
+lemma full_subcategory.inclusion_obj_lift_obj (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) {X : C} :
+  (full_subcategory_inclusion P).obj ((full_subcategory.lift P F hF).obj X) = F.obj X :=
+rfl
+
+lemma full_subcategory.inclusion_map_lift_map (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) {X Y : C}
+  (f : X ⟶ Y) :
+  (full_subcategory_inclusion P).map ((full_subcategory.lift P F hF).map f) = F.map f :=
+rfl
+
+instance (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) [faithful F] :
+  faithful (full_subcategory.lift P F hF) :=
+faithful.of_comp_iso (full_subcategory.lift_comp_inclusion P F hF)
+
+instance (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) [full F] : full (full_subcategory.lift P F hF) :=
+full.of_comp_faithful_iso (full_subcategory.lift_comp_inclusion P F hF)
+
+@[simp]
+lemma full_subcategory.lift_comp_map (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) (h : ∀ ⦃X⦄, P X → Q X) :
+  full_subcategory.lift P F hF ⋙ full_subcategory.map h =
+    full_subcategory.lift Q F (λ X, h (hF X)) :=
+rfl
+
+end lift
 
 end full_subcategory
 

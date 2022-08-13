@@ -38,7 +38,7 @@ open prime_spectrum
 namespace algebraic_geometry
 open opposite
 open category_theory
-open structure_sheaf
+open structure_sheaf Spec (structure_sheaf)
 open topological_space
 open algebraic_geometry.LocallyRingedSpace
 open Top.presheaf
@@ -191,7 +191,7 @@ def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
     intro x,
     let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
     constructor, /- show stalk map is local hom ↓ -/
-    let S := (structure_sheaf _).val.stalk p,
+    let S := (structure_sheaf _).presheaf.stalk p,
     rintros (t : S) ht,
     obtain ⟨⟨r, s⟩, he⟩ := is_localization.surj p.as_ideal.prime_compl t,
     dsimp at he,
@@ -203,7 +203,7 @@ def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
     erw ← he,
     rw ring_hom.map_mul,
     exact ht.mul ((is_localization.map_units S s : _).map
-      (PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x).to_monoid_hom)
+      (PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x))
   end }
 
 lemma comp_ring_hom_ext {X : LocallyRingedSpace} {R : CommRing}
@@ -272,7 +272,7 @@ begin
   apply LocallyRingedSpace.comp_ring_hom_ext,
   { ext (p : prime_spectrum R) x,
     erw ← is_localization.at_prime.to_map_mem_maximal_iff
-      ((structure_sheaf R).val.stalk p) p.as_ideal x,
+      ((structure_sheaf R).presheaf.stalk p) p.as_ideal x,
     refl },
   { intro r, apply to_open_res },
 end

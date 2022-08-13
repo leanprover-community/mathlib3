@@ -5,7 +5,7 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.closed.cartesian
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
 import category_theory.punit
 import category_theory.conj
 

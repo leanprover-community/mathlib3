@@ -23,6 +23,8 @@ This file is almost identical to `group_theory/submonoid/pointwise.lean`. Where 
 keep them in sync.
 -/
 
+open set
+
 variables {α : Type*} {G : Type*} {A : Type*} [group G] [add_group A]
 
 namespace subgroup
@@ -61,6 +63,23 @@ instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_cen
   is_central_scalar α (subgroup G) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
+lemma conj_smul_le_of_le {P H : subgroup G} (hP : P ≤ H) (h : H) :
+  mul_aut.conj (h : G) • P ≤ H :=
+begin
+  rintro - ⟨g, hg, rfl⟩,
+  exact H.mul_mem (H.mul_mem h.2 (hP hg)) (H.inv_mem h.2),
+end
+
+lemma conj_smul_subgroup_of {P H : subgroup G} (hP : P ≤ H) (h : H) :
+  mul_aut.conj h • P.subgroup_of H = (mul_aut.conj (h : G) • P).subgroup_of H :=
+begin
+  refine le_antisymm _ _,
+  { rintro - ⟨g, hg, rfl⟩,
+    exact ⟨g, hg, rfl⟩ },
+  { rintro p ⟨g, hg, hp⟩,
+    exact ⟨⟨g, hP hg⟩, hg, subtype.ext hp⟩ },
+end
+
 end monoid
 
 section group
@@ -92,6 +111,24 @@ subset_set_smul_iff
 /-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
 @[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
 (mul_distrib_mul_action.to_mul_equiv G a).subgroup_map H
+
+lemma subgroup_mul_singleton {H : subgroup G} {h : G} (hh : h ∈ H) :
+  (H : set G) * {h} = H :=
+begin
+  refine le_antisymm _ (λ h' hh',
+    ⟨h' * h⁻¹, h, H.mul_mem hh' (H.inv_mem hh), rfl, inv_mul_cancel_right h' h⟩),
+  rintros _ ⟨h', h, hh', rfl : _ = _, rfl⟩,
+  exact H.mul_mem hh' hh,
+end
+
+lemma singleton_mul_subgroup {H : subgroup G} {h : G} (hh : h ∈ H) :
+  {h} * (H : set G) = H :=
+begin
+  refine le_antisymm _ (λ h' hh', ⟨h, h⁻¹ * h', rfl, H.mul_mem (H.inv_mem hh) hh',
+    mul_inv_cancel_left h h'⟩),
+  rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
+  exact H.mul_mem hh hh',
+end
 
 end group
 

@@ -329,13 +329,12 @@ begin
         f b - f a = f (b - a)   : (ring_hom.map_sub _ _ _).symm
           ...     = f (e^2)     : by rw (real.sq_sqrt (le_of_lt $ sub_pos.mpr hab))
           ...     = (f e)^2     : ring_hom.map_pow _ _ _
-          ...     > 0           : (sq_pos_iff (f e)).mpr fenz,
-    },
+          ...     > 0           : (sq_pos_iff (f e)).mpr fenz, },
     linarith, },
-    let φ : ℝ →+*o ℝ := { to_ring_hom := f, monotone' := strict_mono.monotone f_smon, },
-    let ι : ℝ →+*o ℝ := { to_ring_hom := ring_hom.id ℝ, monotone' := monotone_id, },
-    haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
-    exact congr_arg (λ f : ℝ →+*o ℝ, f.to_ring_hom) (subsingleton.elim φ ι),
+  let φ : ℝ →+*o ℝ := { to_ring_hom := f, monotone' := strict_mono.monotone f_smon, },
+  let ι : ℝ →+*o ℝ := { to_ring_hom := ring_hom.id ℝ, monotone' := monotone_id, },
+  haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
+  exact congr_arg (λ f : ℝ →+*o ℝ, f.to_ring_hom) (subsingleton.elim φ ι),
 end
 
 end real

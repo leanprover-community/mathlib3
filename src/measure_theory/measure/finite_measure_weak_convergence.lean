@@ -1044,8 +1044,7 @@ variables {α : Type*} [measurable_space α]
 lemma le_measure_compl_liminf_of_limsup_measure_le
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
-  {E : set α} (E_mble : measurable_set E)
-  (h : L.limsup (λ i, μs i E) ≤ μ E) :
+  {E : set α} (E_mble : measurable_set E) (h : L.limsup (λ i, μs i E) ≤ μ E) :
   μ Eᶜ ≤ L.liminf (λ i, μs i Eᶜ) :=
 begin
   by_cases L_bot : L = ⊥,
@@ -1069,17 +1068,15 @@ end
 lemma le_measure_liminf_of_limsup_measure_compl_le
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
-  {E : set α} (E_mble : measurable_set E)
-  (h : L.limsup (λ i, (μs i : measure α) Eᶜ) ≤ (μ : measure α) Eᶜ) :
-  (μ : measure α) E ≤ L.liminf (λ i, (μs i : measure α) E) :=
+  {E : set α} (E_mble : measurable_set E) (h : L.limsup (λ i, μs i Eᶜ) ≤ μ Eᶜ) :
+  μ E ≤ L.liminf (λ i, μs i E) :=
 compl_compl E ▸ (le_measure_compl_liminf_of_limsup_measure_le (measurable_set.compl E_mble) h)
 
 lemma limsup_measure_compl_le_of_le_liminf_measure
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
-  {E : set α} (E_mble : measurable_set E)
-  (h : (μ : measure α) E ≤ L.liminf (λ i, (μs i : measure α) E)) :
-  L.limsup (λ i, (μs i : measure α) Eᶜ) ≤ (μ : measure α) Eᶜ :=
+  {E : set α} (E_mble : measurable_set E) (h : μ E ≤ L.liminf (λ i, μs i E)) :
+  L.limsup (λ i, μs i Eᶜ) ≤ μ Eᶜ :=
 begin
   by_cases L_bot : L = ⊥,
   { simp only [L_bot, bot_le,
@@ -1102,9 +1099,8 @@ end
 lemma limsup_measure_le_of_le_liminf_measure_compl
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
-  {E : set α} (E_mble : measurable_set E)
-  (h : (μ : measure α) Eᶜ ≤ L.liminf (λ i, (μs i : measure α) Eᶜ)) :
-  L.limsup (λ i, (μs i : measure α) E) ≤ (μ : measure α) E :=
+  {E : set α} (E_mble : measurable_set E) (h : μ Eᶜ ≤ L.liminf (λ i, μs i Eᶜ)) :
+  L.limsup (λ i, μs i E) ≤ μ E :=
 compl_compl E ▸ (limsup_measure_compl_le_of_le_liminf_measure (measurable_set.compl E_mble) h)
 
 variables [topological_space α] [opens_measurable_space α]

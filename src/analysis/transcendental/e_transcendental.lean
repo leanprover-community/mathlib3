@@ -30,41 +30,14 @@ The degree of $f_{p,n}$ is $(n+1)p-1$
 -/
 lemma deg_f_p (p : ℕ) (hp : nat.prime p) (n : ℕ) : (f_p p n).nat_degree = (n+1)*p - 1 :=
 begin
-  rw f_p,
-  -- So we have degree of `f_p` is degree of $X^{p-1}$ plus degree of $(X-1)^p\cdots(X-n)^p$
-  have eq1 := @polynomial.nat_degree_mul ℤ _ _ (polynomial.X ^ (p - 1)) (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p) _ _,
-  { rw eq1,
-    simp only [int.cast_coe_nat, mul_one, polynomial.nat_degree_X, int.cast_add, ring_hom.eq_int_cast, int.cast_one, polynomial.nat_degree_pow],
-    -- degree of $(X-1)^p\cdots(X-n)^p$ is $p\times$(degree of $(X-1)$+degree of $(X-2)$+...+ degree of $(X-n)$)
-    have triv' : (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree
-                = ∑ i in finset.range n, ((polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree,
-    {
-      refine polynomial.nat_degree_prod (finset.range n) _ _,
-      intros i hi, intro rid,
-      replace rid := @pow_eq_zero (ℤ[X]) _ _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
-      rw sub_eq_zero at rid,
-      have rid' : (polynomial.C (i+1:ℤ)).nat_degree = 1,
-      {rw <-rid, exact polynomial.nat_degree_X},
-      have rid'' := polynomial.nat_degree_C (i+1:ℤ),
-      linarith,
-    },
-    simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one, polynomial.nat_degree_pow] at triv',
-    rw triv',
-    -- each of $(X-i)^p$ has degree p. So The sum of degree is n*p.
-    have triv'' : (∑ (i : ℕ) in finset.range n, p * (polynomial.X - (polynomial.C (i + 1:ℤ))).nat_degree) = ∑ x in finset.range n, p,
-    {
-      apply congr_arg, ext i,
-      rw polynomial.nat_degree_X_sub_C, rw mul_one,
-    },
-    simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, nat.cast_id, finset.sum_const, nsmul_eq_mul, int.cast_one, finset.card_range] at triv'' ⊢,
-    rw triv'',
-    rw [add_comm, ←nat.add_sub_assoc hp.one_lt.le (n * p), add_mul, one_mul] },
-
-  {intro rid, replace rid := pow_eq_zero rid, exact polynomial.X_ne_zero rid},
-
-  { intro rid, rw finset.prod_eq_zero_iff at rid,
-    choose i hi using rid, have hi2 := hi.2, replace hi2 := pow_eq_zero hi2,
-    exact not_not.mpr hi2 (polynomial.X_sub_C_ne_zero (↑i + 1))},
+  rw [f_p, polynomial.nat_degree_mul, polynomial.nat_degree_X_pow, polynomial.nat_degree_prod],
+  simp only [polynomial.nat_degree_pow, polynomial.nat_degree_X_sub_C, finset.sum_const,
+    finset.card_range, smul_eq_mul, mul_one],
+  rw [add_comm, ←nat.add_sub_assoc hp.one_lt.le, add_one_mul],
+  { exact λ i hi, pow_ne_zero _ (polynomial.X_sub_C_ne_zero _), },
+  { exact pow_ne_zero _ polynomial.X_ne_zero },
+  { rw finset.prod_ne_zero_iff,
+    exact λ i hi, pow_ne_zero _ (polynomial.X_sub_C_ne_zero _), },
 end
 
 /--

@@ -332,9 +332,7 @@ instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
             ...     ≥ 0                         : sq_nonneg _, },
       linarith, },
     haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
-    exact congr_arg order_ring_hom.to_ring_hom
-      (subsingleton.elim ⟨f, f_mon⟩ ⟨ring_hom.id ℝ, monotone_id⟩),
-  end,
-}
+    exact congr_arg order_ring_hom.to_ring_hom (subsingleton.elim ⟨f, f_mon⟩ ⟨_, monotone_id⟩),
+  end }
 
 end real

@@ -45,7 +45,7 @@ variables  {V : Type u}
 -/
 lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
-  (K : finset V) [fintype (inf_ro_components G K)]
+  (K : finset V) --[fintype (inf_ro_components' G K)]
   (inf_comp_H_large : fin 3 ↪ (inf_ro_components' G K)) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map_inf G Gpc ‹K' ⊆ L›) :=
 begin
@@ -89,44 +89,35 @@ begin
     sorry, -- Need a lemma saying that the connected components for K=∅ are just {V} when G is connected
     -- or even better a general statement holding when G is disconnected.
     -- in any case, here we know that we have at least 3 components, which is a contradiction.
+    -- Probably the proof here shouldn't be done by cases, but Knempty argued from the assumptions.
   }
 
 end
 
 
-lemma Freudenthal_Hopf [locally_finite G] (Gpc: G.preconnected) [nonempty V]
-  [fintype (Ends G Gpc)]
-  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) : is_empty (fin 3 ↪ Ends G Gpc) :=
+lemma Freudenthal_Hopf [locally_finite G] (Gpc: G.preconnected)
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
+  (fin 3 ↪ Endsinfty G Gpc) → (Endsinfty G Gpc).infinite :=
 begin
 
-  by_contradiction h,
+  intro many_ends,
+  intro finite_ends,
 
-  haveI : ∀ (j : finset V), nonempty ((ComplComp G Gpc).obj j) := sorry,
+  have Vinf : (@set.univ V).infinite := sorry, -- from the assumption that at least three ends
+  haveI : fintype (ComplInfComp G Gpc).sections := finite.fintype finite_ends,
+  haveI : Π (j : finset V), fintype ((ComplInfComp G Gpc).obj j) := ComplInfComp_fintype G Gpc,
+  --haveI : Π (j : finset V), nonempty ((ComplInfComp G Gpc).obj j) := ComplInfComp_nonempty G Gpc Vinf,
+  have surj : inverse_system.is_surjective (ComplInfComp G Gpc) := ComplInfComp.surjective G Gpc,
 
-  obtain ⟨many_ends⟩ := not_is_empty_iff.mp h,
-  have many_ends' := many_ends.trans (Ends_equiv_Endsinfty G Gpc).to_embedding,
-  dsimp [Endsinfty] at many_ends,
+  obtain ⟨K,top⟩ := inverse_system.sections_fintype_to_injective (ComplInfComp G Gpc) surj,
+  let inj' := inverse_system.sections_injective (ComplInfComp G Gpc) K top,
 
-  obtain ⟨K,Kinj⟩ := @inverse_system.sections_fintype_to_injective _ _ _
-    (inverse_system.to_surjective $ ComplComp G Gpc)
-    _  _ (inverse_system.to_surjective.is_surjective $ ComplComp G Gpc),
-
-
-  haveI : fintype ↥(inf_ro_components' G K) := sorry
-
-  have : 2 < fintype.card ↥(inf_ro_components G K), by {
-    have := fintype.card_le_of_injective (eval G Gpc K) (eval_injective G Gpc K Kinj),
-    exact lt_of_lt_of_le many_ends this,
-  },
-
-  rcases (good_autom_bwd_map_not_inj G Gpc auts K this) with ⟨K',L,hK',hL,bwd_K_not_inj⟩,
-
-  have : injective (bwd_map G Gpc hL) := by {
-    let llo := Kinj  L (hK'.trans hL),
-    rw ((bwd_map_comp G Gpc hK' hL).symm) at llo,
-    exact injective.of_comp llo,
-  },
-  exact bwd_K_not_inj this,
+  rcases (good_autom_bwd_map_not_inj G Gpc auts K (many_ends.trans ⟨_,inj'⟩)) with ⟨K',L,KK',K'L,bwd_K_not_inj⟩,
+  apply bwd_K_not_inj,
+  rintro x y eq,
+  apply top ⟨L,by {exact KK'.trans K'L,}⟩,
+  have eq' := congr_arg (bwd_map_inf G Gpc KK') eq,
+  simp only [bwd_map_inf.comp'] at eq', exact eq',
 end
 
 end ends

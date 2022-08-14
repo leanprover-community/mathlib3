@@ -623,10 +623,21 @@ begin
     exact ⟨s,sgood⟩,
 end
 
-lemma sections_fintype_to_injective
-  [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)]
-  (Fsur : is_surjective F) : ∃ j : J, ∀ ii : {i | i ≤ j}, function.injective (F.map $ hom_of_le ii.prop) :=
+lemma sections_surjective' [Π (j : J), fintype (F.obj j)]
+  (j : J) (Fsurj : is_surjective F) :
+  function.surjective (λ (s : F.sections), s.val j) :=
 begin
+  apply sections_surjective F j,
+  rintro i ij, exact Fsurj i j ij,
+end
+
+lemma sections_fintype_to_injective  [Π (j : J), fintype (F.obj j)] [fintype F.sections]
+  (Fsur : is_surjective F) :
+  ∃ j : J, ∀ ii : {i | i ≤ j}, function.injective (F.map $ hom_of_le ii.prop) :=
+begin
+  have : Π (j : J), fintype.card (F.obj j) ≤ fintype.card F.sections, from λ j, fintype.card_le_of_surjective _ (sections_surjective' F j Fsur),
+
+
   -- Take j maximizing the cardinality of F.obj j
   -- By Fsur, we have surjective functions with codomain of ≥ card than the domain: hence all are equal and
   -- we have injections

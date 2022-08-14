@@ -27,7 +27,7 @@ fundamental theorem of calculus and integration by part is assumed. I am waiting
 theorem integrate_by_part (f g : ℝ -> ℝ)
   {hf : differentiable ℝ f} {hf4 : continuous (deriv f)}
   {hg : differentiable ℝ g} {hg4 : continuous (deriv g)}
-  (a b : ℝ) (h : a ≤ b) :
+  (a b : ℝ) :
   (∫ x in a..b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in a..b, (deriv f x) * (g x)) :=
 
 begin
@@ -35,8 +35,8 @@ begin
   { convert this, ext, rw mul_comm },
   { intros x hx, simp only [has_deriv_at_deriv_iff], exact hf.differentiable_at },
   { intros x hx, simp only [has_deriv_at_deriv_iff], exact hg.differentiable_at },
-  { exact continuous_on.interval_integrable_of_Icc h hf4.continuous_on },
-  { exact continuous_on.interval_integrable_of_Icc h hg4.continuous_on },
+  { exact continuous_on.interval_integrable hf4.continuous_on },
+  { exact continuous_on.interval_integrable hg4.continuous_on },
 end
 
 /-Theorem
@@ -141,7 +141,7 @@ end
 lemma differentiable_aeval (f : ℤ[X]) :
     differentiable ℝ (λ (x : ℝ), (polynomial.aeval x) (f)) :=
 begin
-      simp only [f_eval_on_ℝ, polynomial.aeval_def, polynomial.eval₂_eq_eval_map],
+      simp only [polynomial.aeval_def, polynomial.eval₂_eq_eval_map],
       apply polynomial.differentiable,
 
 end
@@ -151,11 +151,11 @@ end
 By integration by part we have:
 \[I(f, t) = e^tf(0)-f(t)+I(f',t)\]
 -/
-lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) :
+lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) :
     (II f t) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t) :=
 begin
   rw II,
-  convert integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t ht using 1,
+  convert integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t using 1,
   { simp only [deriv_exp_t_x', mul_comm] },
   { simp only [sub_eq_add_neg],
     apply congr_arg2,
@@ -176,17 +176,17 @@ Combine the theorem above with induction we get for all $m\in\mathbb N$
 I(f,t)=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
 \]
 -/
-lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) (m : ℕ) :
+lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (m : ℕ) :
   II f t = t.exp * (∑ i in finset.range (m+1), (f_eval_on_ℝ (polynomial.derivative^[i] f) 0)) -
   (∑ i in finset.range (m+1), f_eval_on_ℝ (polynomial.derivative^[i] f) t) +
   (II (polynomial.derivative^[m + 1] f) t) :=
 begin
     induction m with m ih,
-    {   rw [II_integrate_by_part _ _ ht],
+    {   rw [II_integrate_by_part],
         simp only [function.iterate_one, finset.sum_singleton, finset.range_one,
             function.iterate_zero_apply] },
 
-    rw [ih, II_integrate_by_part _ _ ht, finset.sum_range_succ _ (m + 1),
+    rw [ih, II_integrate_by_part, finset.sum_range_succ _ (m + 1),
         finset.sum_range_succ _ (m + 1), ←function.iterate_succ_apply' polynomial.derivative],
     ring,
 end
@@ -194,49 +194,11 @@ end
 /-Theorem
 So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two definition of $I(f,t)$ agrees.
 -/
-theorem II_eq_I (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : II f t = I f t :=
+theorem II_eq_I (f : ℤ[X]) (t : ℝ) : II f t = I f t :=
 begin
-  have II_integrate_by_part_m := II_integrate_by_part_m f t ht f.nat_degree,
+  have II_integrate_by_part_m := II_integrate_by_part_m f t f.nat_degree,
   rwa [polynomial.iterate_derivative_eq_zero (nat.lt_succ_self _), II_0, add_zero] at
     II_integrate_by_part_m,
-end
-
-/-Theorem
-\[\left|I(f,t)\right|\le \int_0^t \left|e^{t-x}f(x)\right|\mathrm{d}x\]
--/
-lemma abs_II_le1 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : abs (II f t) ≤ ∫ x in 0..t, abs ((t-x).exp * (f_eval_on_ℝ f x)) :=
-begin
-    have triv : (∫ x in 0..t, abs ((t-x).exp * (f_eval_on_ℝ f x))) = ∫ x in 0..t, ∥(t-x).exp * (f_eval_on_ℝ f x)∥,
-    {
-        apply congr_arg, refl,
-    }, rw triv,
-
-    replace triv : abs (II f t) = ∥ (∫ (x : ℝ) in 0..t, (t - x).exp * f_eval_on_ℝ f x) ∥,
-    {
-        rw real.norm_eq_abs,
-        apply congr_arg,
-        unfold II,
-    }, rw triv,
-    have ineq := @interval_integral.norm_integral_le_abs_integral_norm ℝ _ _ _ 0 t (λ x:ℝ, (t-x).exp * f_eval_on_ℝ f x) _,
-    rw abs_of_nonneg at ineq,
-    refine ineq,
-    {
-        rw interval_integral.integral_of_le ht,
-        apply measure_theory.integral_nonneg_of_ae,
-        apply (@measure_theory.ae_restrict_iff ℝ _ _ (set.Ioc 0 t) _ _).2,
-        apply measure_theory.ae_of_all,
-        intros x hx,
-        simp only [norm_mul, pi.zero_apply],
-        apply mul_nonneg,
-        exact norm_nonneg (real.exp (t - x)),
-        exact norm_nonneg (f_eval_on_ℝ f x),
-        simp only [norm_mul, pi.zero_apply],
-        apply measurable_set.congr (measurable_set.univ),
-        ext, split,
-        intros hx, simp only [set.mem_univ, set.mem_set_of_eq] at hx ⊢,
-        apply mul_nonneg, exact norm_nonneg _, exact norm_nonneg _,
-        simp only [set.mem_univ, forall_true_iff],
-    },
 end
 
 /-- # $\bar{f}$
@@ -462,10 +424,7 @@ $$|I(f,t)|\le te^t\bar{f}(t)$$
 -/
 theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : abs (II f t) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
-    -- combine `abs_II_le1` and previous lemma.
-    have ineq1 := (abs_II_le1 f t ht),
-    have ineq2 := (II_le2' f t ht),
-    exact le_trans (abs_II_le1 f t ht) (II_le2' f t ht),
+  exact le_trans (interval_integral.abs_integral_le_integral_abs ht) (II_le2' f t ht),
 end
 
 end e_transcendental_lemmas

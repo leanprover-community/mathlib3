@@ -82,7 +82,7 @@ $$J_{p}(g) = \sum_{i=0}^d g_i\left(e^i\sum_{j=0}^{(n+1)p-1} f_{p,d}^{(j)}(0)-\su
 private lemma J_eq1 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
   (J g p) = ∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p g.nat_degree) i) :=
 begin
-  rw J, apply congr_arg, ext, rw II_eq_I, norm_cast, exact zero_le x,
+  rw J, apply congr_arg, ext, rw II_eq_I,
 end
 
 
@@ -91,7 +91,7 @@ private lemma J_eq2 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
    (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) 0)))
   -(∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) (k:ℝ))))) :=
 begin
-  rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw <-mul_sub, rw <-I,
+  rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw <-mul_sub, rw I, simp [deriv_n],
 end
 
 private lemma J_eq3 (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p):

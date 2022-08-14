@@ -3,7 +3,7 @@ Copyright (c) 2021 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import data.zmod.basic
+import algebra.algebra.basic
 
 /-!
 # `ne_zero` typeclass
@@ -75,19 +75,12 @@ lemma pos (r : R) [canonically_ordered_add_monoid R] [ne_zero r] : 0 < r :=
 
 variables (R M)
 
-lemma of_not_dvd [add_monoid_with_one M] [char_p M p] (h : ¬ p ∣ n) : ne_zero (n : M) :=
-⟨(not_iff_not.mpr $ char_p.cast_eq_zero_iff M p n).mpr h⟩
-
 lemma of_no_zero_smul_divisors (n : ℕ) [comm_ring R] [ne_zero (n : R)] [ring M] [nontrivial M]
   [algebra R M] [no_zero_smul_divisors R M] : ne_zero (n : M) :=
 nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R M
 
 lemma of_ne_zero_coe [add_monoid_with_one R] [h : ne_zero (n : R)] : ne_zero n :=
 ⟨by {casesI h, rintro rfl, by simpa using h}⟩
-
-lemma not_char_dvd [add_monoid_with_one R] (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] :
-  ¬ p ∣ k :=
-by rwa [←not_iff_not.mpr $ char_p.cast_eq_zero_iff R p k, ←ne.def, ←ne_zero_iff]
 
 lemma pos_of_ne_zero_coe [add_monoid_with_one R] [ne_zero (n : R)] : 0 < n :=
 (ne_zero.of_ne_zero_coe R).out.bot_lt
@@ -96,10 +89,3 @@ end ne_zero
 
 lemma eq_zero_or_ne_zero {α} [has_zero α] (a : α) : a = 0 ∨ ne_zero a :=
 (eq_or_ne a 0).imp_right ne_zero.mk
-
-namespace zmod
-
-instance fintype' (n : ℕ) [ne_zero n] : fintype (zmod n) :=
-@zmod.fintype n ⟨ne_zero.pos n⟩
-
-end zmod

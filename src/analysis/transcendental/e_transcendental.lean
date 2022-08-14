@@ -1005,10 +1005,17 @@ begin
     replace triv : N + 1 < p , exact triv, exact nat.lt_pred_iff.mpr triv,
 end
 
+lemma polynomial.exists_coeff_ne_zero {R : Type*} [semiring R] {p : R[X]} (hp : p ≠ 0) :
+  ∃ n, p.coeff n ≠ 0 :=
+begin
+  contrapose! hp,
+  simpa [polynomial.ext_iff],
+end
+
 theorem non_empty_supp (f : ℤ[X]) (hf : f ≠ 0) : f.support.nonempty :=
 begin
   simp_rw [finset.nonempty, polynomial.mem_support_iff],
-  contrapose! hf, ext, simp only [polynomial.coeff_zero], apply hf,
+  exact polynomial.exists_coeff_ne_zero hf,
 end
 
 /--
@@ -1144,13 +1151,6 @@ begin
   calc M g ^ p.val < ((p.val - 1).factorial : ℝ) : Hp.2
   ... ≤ |J g p.val| : abs_J_lower_bound g e_root_g coeff_zero_nonzero p.val p.property Hp.1
   ... ≤ M g ^ p.val : abs_J_upper_bound g p.val p.property,
-end
-
-lemma polynomial.exists_coeff_ne_zero {R : Type*} [semiring R] {p : R[X]} (hp : p ≠ 0) :
-  ∃ n, p.coeff n ≠ 0 :=
-begin
-  contrapose! hp,
-  simpa [polynomial.ext_iff],
 end
 
 theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=

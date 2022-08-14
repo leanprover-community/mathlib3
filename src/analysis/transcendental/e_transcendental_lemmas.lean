@@ -118,7 +118,8 @@ We use integration by parts to prove
 The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are using this on transcendence of $e$.
 -/
 def I (f : ℤ[X]) (t : ℝ) : ℝ :=
-    t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) t))
+    t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[i] f) 0)) -
+    (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[i] f) t))
 
 /--
 I equivalent definition
@@ -129,13 +130,12 @@ def II (f : ℤ[X]) (t : ℝ) : ℝ := ∫ x in 0..t, real.exp(t - x) * (f_eval_
 /-Theorem
 $I(0,t)$ is 0.
 -/
-theorem II_0 (t : ℝ) (ht : 0 ≤ t) : II 0 t = 0 :=
+theorem II_0 (t : ℝ) : II 0 t = 0 :=
 begin
     -- We are integrating $\exp(t-x)\times 0$
     rw II, unfold f_eval_on_ℝ,
-    simp only [mul_zero, polynomial.aeval_zero, polynomial.map_zero],
-    rw interval_integral.integral_of_le ht,
-    apply measure_theory.integral_zero,
+    simp only [mul_zero, polynomial.aeval_zero, polynomial.map_zero,
+        interval_integral.integral_const, smul_zero],
 end
 
 lemma differentiable_aeval (f : ℤ[X]) :
@@ -205,37 +205,18 @@ I(f,t)=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
 \]
 -/
 lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) (m : ℕ) :
-    II f t = t.exp * (∑ i in finset.range (m+1), (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range (m+1), f_eval_on_ℝ (deriv_n f i) t) + (II (deriv_n f (m+1)) t) :=
+  II f t = t.exp * (∑ i in finset.range (m+1), (f_eval_on_ℝ (polynomial.derivative^[i] f) 0)) -
+  (∑ i in finset.range (m+1), f_eval_on_ℝ (polynomial.derivative^[i] f) t) +
+  (II (polynomial.derivative^[m + 1] f) t) :=
 begin
     induction m with m ih,
-    {   rw [deriv_n,II_integrate_by_part _ _ ht],
-        simp only [function.iterate_one, finset.sum_singleton, finset.range_one],
-        rw deriv_n,
-        simp only [function.iterate_zero],
-        rw id.def, },
+    {   rw [II_integrate_by_part _ _ ht],
+        simp only [function.iterate_one, finset.sum_singleton, finset.range_one,
+            function.iterate_zero_apply] },
 
-    rw [ih, II_integrate_by_part _ _ ht],
-    have triv : m.succ + 1 = (m+1).succ := by ring, rw triv, generalize hM : m + 1 = M,
-    replace triv : t.exp * ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) 0 -
-        ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) t +
-      (t.exp * f_eval_on_ℝ (deriv_n f M) 0 - f_eval_on_ℝ (deriv_n f M) t + II (deriv_n f M).derivative t)
-      = t.exp * ((∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) 0) + (f_eval_on_ℝ (deriv_n f M) 0))
-      - ((∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) t) + f_eval_on_ℝ (deriv_n f M) t) + II (deriv_n f M).derivative t := by ring,
-    rw triv,
-    replace triv : ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) 0 + f_eval_on_ℝ (deriv_n f M) 0 = ∑ (i : ℕ) in finset.range M.succ, f_eval_on_ℝ (deriv_n f i) 0,
-        {rw finset.sum_range_succ},
-    rw triv,
-    replace triv :
-        (∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) t + f_eval_on_ℝ (deriv_n f M) t)
-        = (∑ (i : ℕ) in finset.range M.succ, f_eval_on_ℝ (deriv_n f i) t),
-        {rw finset.sum_range_succ},
-    rw triv,
-    replace triv : (deriv_n f M).derivative= (deriv_n f M.succ),
-    {
-        conv_rhs {rw deriv_n}, rw function.iterate_succ',
-        replace triv : (polynomial.derivative ∘ (polynomial.derivative^[M])) f = (polynomial.derivative (polynomial.derivative^[M] f)) := rfl,
-        rw triv, rw <-deriv_n,
-    }, rwa triv,
+    rw [ih, II_integrate_by_part _ _ ht, finset.sum_range_succ _ (m + 1),
+        finset.sum_range_succ _ (m + 1), ←function.iterate_succ_apply' polynomial.derivative],
+    ring,
 end
 
 /-Theorem
@@ -244,7 +225,7 @@ So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two def
 theorem II_eq_I (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : II f t = I f t :=
 begin
   have II_integrate_by_part_m := II_integrate_by_part_m f t ht f.nat_degree,
-  rwa [deriv_n, polynomial.iterate_derivative_eq_zero (nat.lt_succ_self _), II_0 _ ht, add_zero] at
+  rwa [polynomial.iterate_derivative_eq_zero (nat.lt_succ_self _), II_0, add_zero] at
     II_integrate_by_part_m,
 end
 

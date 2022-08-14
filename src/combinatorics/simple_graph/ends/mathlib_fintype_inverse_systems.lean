@@ -11,6 +11,7 @@ import topology.metric_space.basic
 import data.setoid.partition
 import set_theory.cardinal.basic
 import data.fintype.basic
+import data.opposite
 
 import .mathlib
 
@@ -65,17 +66,35 @@ end
 
 namespace inverse_system
 
-variables {J : Type u} [preorder J] [is_directed J ge] (F : J ⥤ Type v)
+variables {J : Type u} [preorder J] [Jdir : is_directed J ge] (F : J ⥤ Type v)
 
+instance : preorder Jᵒᵖ := {
+  le := λ jop jop', jop'.unop ≤ jop.unop,
+  lt := λ jop jop', jop'.unop < jop.unop,
+  le_refl := λ jop, preorder.le_refl jop.unop,
+  le_trans := λ j₁ j₂ j₃, λ h₁₂ h₂₃, preorder.le_trans _ _ _ h₂₃ h₁₂,
+  lt_iff_le_not_le := λ j₁ j₂, preorder.lt_iff_le_not_le j₂.unop j₁.unop
+  }
 
+instance Jopdir  : is_directed Jᵒᵖ has_le.le :=
+  {directed := λ jop jop',
+    let ⟨c, hj, hj'⟩ := @is_directed.directed _ _ Jdir jop.unop jop'.unop in
+      ⟨opposite.op c, hj, hj'⟩}
 
-theorem nonempty_sections_of_fintype_inverse_system' (F : J ⥤ Type v)
-  [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
+#check inverse_system.Jopdir
+
+theorem nonempty_sections_of_fintype_inverse_system'
+(F : J ⥤ Type v) [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
 begin
-  haveI : preorder Jᵒᵖ, by sorry,
-  haveI : is_directed Jᵒᵖ has_le.le, by sorry,
   let F' : (Jᵒᵖ)ᵒᵖ ⥤ Type v := (category_theory.op_op J).comp F,
-  sorry,--have F'sec := @nonempty_sections_of_fintype_inverse_system Jᵒᵖ _ _ F' _ _s,
+  haveI : Π j : Jᵒᵖᵒᵖ, fintype (F'.obj j) := λ jopop, sorry,
+  haveI : ∀ j : Jᵒᵖᵒᵖ, nonempty (F'.obj j) := by {
+    intro jopop,
+    dsimp [F'],
+    sorry,
+  },
+  -- have F'sections_nempty := @nonempty_sections_of_fintype_inverse_system Jᵒᵖ _ _ F' _ _,
+  admit,
 end
 
 
@@ -555,7 +574,7 @@ begin
     apply subtype.mk_eq_mk.mpr,
     apply funext,
     rintro i,
-    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (fwd ⟨⟨s,sorry⟩,rfl⟩) i, -- sorry should be sec (the types are exactly the same but lean is unhappy for some reason)…
+    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (fwd ⟨⟨s, λ _ _, sec⟩,rfl⟩) i,
     simp only,
     rw e,
     dsimp only [fwd],
@@ -568,10 +587,12 @@ begin
     apply subtype.coe_eq_of_eq_mk,
     apply funext,
     rintro ⟨i,ij⟩,
-    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (⟨s,sorry⟩ : (above_point F j x).sections) i, -- sorry should be sec
+    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (⟨s, λ _ _, sec⟩ : (above_point F j x).sections) i,
     rcases e with rfl,
     dsimp only [id],
-    sorry, },
+    dsimp only [bwd_aux],
+    sorry,
+     },
 end
 
 

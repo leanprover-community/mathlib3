@@ -93,7 +93,7 @@ variables {F : Type*} [inner_product_space ℝ F]
 
 lemma _root_.linear_map.is_symmetric.has_strict_fderiv_at_re_apply_inner_self
   {T : F →L[ℝ] F} (hT : (T : F →ₗ[ℝ] F).is_symmetric) (x₀ : F) :
-  has_strict_fderiv_at T.re_apply_inner_self (_root_.bit0 (innerSL (T x₀))) x₀ :=
+  has_strict_fderiv_at T.re_apply_inner_self (_root_.bit0 (innerSL (T x₀) : F →L[ℝ] ℝ)) x₀ :=
 begin
   convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
   ext y,

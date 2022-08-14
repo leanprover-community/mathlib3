@@ -76,8 +76,6 @@ namespace subspace
 
 variables [complete_space E] (p q : subspace 𝕜 E)
 
-open continuous_linear_map (subtype_val)
-
 /-- If `q` is a closed complement of a closed subspace `p`, then `p × q` is continuously
 isomorphic to `E`. -/
 def prod_equiv_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
@@ -85,7 +83,7 @@ def prod_equiv_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
 begin
   haveI := hp.complete_space_coe, haveI := hq.complete_space_coe,
   refine (p.prod_equiv_of_is_compl q h).to_continuous_linear_equiv_of_continuous _,
-  exact ((subtype_val p).coprod (subtype_val q)).continuous
+  exact (p.subtypeL.coprod q.subtypeL).continuous
 end
 
 /-- Projection to a closed submodule along a closed complement. -/

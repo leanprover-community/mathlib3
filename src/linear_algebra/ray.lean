@@ -3,7 +3,7 @@ Copyright (c) 2021 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.basic
+import linear_algebra.linear_independent
 
 /-!
 # Rays in modules
@@ -466,6 +466,53 @@ end
   u • v = -v ↔ ↑u < (0 : R) :=
 by rw [← neg_inj, neg_neg, ← module.ray.neg_units_smul, units_smul_eq_self_iff, units.coe_neg,
   neg_pos]
+
+/-- Two vectors are in the same ray, or the first is in the same ray as the negation of the
+second, if and only if they are not linearly independent. -/
+lemma same_ray_or_same_ray_neg_iff_not_linear_independent {x y : M} :
+  (same_ray R x y ∨ same_ray R x (-y)) ↔ ¬ linear_independent R ![x, y] :=
+begin
+  by_cases hx : x = 0, { simp [hx, λ h : _root_.linear_independent R ![0, y], h.ne_zero 0 rfl] },
+  by_cases hy : y = 0, { simp [hy, λ h : _root_.linear_independent R ![x, 0], h.ne_zero 1 rfl] },
+  simp_rw [fintype.not_linear_independent_iff, fin.sum_univ_two, fin.exists_fin_two],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with (hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩)|(hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩),
+    { exact false.elim (hx hx0) },
+    { exact false.elim (hy hy0) },
+    { refine ⟨![r₁, -r₂], _⟩, simp [h, hr₁.ne.symm] },
+    { exact false.elim (hx hx0) },
+    { exact false.elim (hy (neg_eq_zero.1 hy0)) },
+    { refine ⟨![r₁, r₂], _⟩, simp [h, hr₁.ne.symm] } },
+  { rcases h with ⟨m, hm, hmne⟩,
+    change m 0 • x + m 1 • y = 0 at hm,
+    rw add_eq_zero_iff_eq_neg at hm,
+    rcases lt_trichotomy (m 0) 0 with hm0|hm0|hm0; rcases lt_trichotomy (m 1) 0 with hm1|hm1|hm1,
+    { refine or.inr (or.inr (or.inr ⟨-(m 0), -(m 1), left.neg_pos_iff.2 hm0,
+                                     left.neg_pos_iff.2 hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm1, hx, hm0.ne] using hm },
+    { refine or.inl (or.inr (or.inr ⟨-(m 0), m 1, left.neg_pos_iff.2 hm0, hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm0, hy, hm1.ne] using hm },
+    { refine false.elim (not_and_distrib.2 hmne ⟨hm0, hm1⟩) },
+    { exfalso, simpa [hm0, hy, hm1.ne.symm] using hm },
+    { refine or.inl (or.inr (or.inr ⟨m 0, -(m 1), hm0, left.neg_pos_iff.2 hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm1, hx, hm0.ne.symm] using hm },
+    { refine or.inr (or.inr (or.inr ⟨m 0, m 1, hm0, hm1, _⟩)),
+      simp [hm] } }
+end
+
+/-- Two vectors are in the same ray, or they are nonzero and the first is in the same ray as the
+negation of the second, if and only if they are not linearly independent. -/
+lemma same_ray_or_ne_zero_and_same_ray_neg_iff_not_linear_independent {x y : M} :
+  (same_ray R x y ∨ x ≠ 0 ∧ y ≠ 0 ∧ same_ray R x (-y)) ↔ ¬ linear_independent R ![x, y] :=
+begin
+  rw ←same_ray_or_same_ray_neg_iff_not_linear_independent,
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0;
+    simp [hx, hy]
+end
 
 end
 

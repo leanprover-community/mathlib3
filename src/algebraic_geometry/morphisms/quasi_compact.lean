@@ -97,7 +97,7 @@ begin
 end
 
 @[simp] lemma quasi_compact_affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
-  quasi_compact.affine_property.to_property f ↔
+  quasi_compact.affine_property^.to_property f ↔
     is_affine Y ∧ compact_space X.carrier :=
 by { delta affine_target_morphism_property.to_property quasi_compact.affine_property, simp }
 
@@ -145,7 +145,7 @@ begin
 end
 
 lemma quasi_compact_affine_property_is_local :
-  affine_target_morphism_property.is_local quasi_compact.affine_property :=
+  quasi_compact.affine_property^.is_local :=
 begin
   split,
   { apply affine_target_morphism_property.respects_iso_mk; rintros X Y Z _ _ _ H,

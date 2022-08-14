@@ -429,7 +429,8 @@ begin
   simp only [with_top.coe_le_coe, hτ i],
 end
 
-lemma of_is_stopping_time_coe {τ : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) (i : ι):
+lemma is_stopping_time.of_is_stopping_time_coe {τ : Ω → ι}
+  (hτ : is_stopping_time f (λ ω, τ ω)) (i : ι):
   measurable_set[f i] {ω | τ ω ≤ i} :=
 begin
   specialize hτ i,
@@ -1116,12 +1117,11 @@ begin
   simpa using this,
 end)
 
-#exit
 protected lemma measurable_of_le [topological_space ι] [measurable_space ι]
-  [borel_space ι] [order_topology ι] [second_countable_topology ι]
-  (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ ω, τ ω ≤ i) :
+  [borel_space ι] [order_topology ι] [second_countable_topology ι] {τ : Ω → ι}
+  (hτ : is_stopping_time f (λ ω, τ ω)) {i : ι} (hτ_le : ∀ ω, τ ω ≤ i) :
   measurable[f i] τ :=
-hτ.measurable.mono (measurable_space_le_of_le_const _ hτ_le) le_rfl
+hτ.measurable.mono (measurable_space_le_of_le_const _ (λ ω, with_top.coe_le_coe.2 $ hτ_le ω)) le_rfl
 
 lemma measurable_space_min (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   (hτ.min hπ).measurable_space = hτ.measurable_space ⊓ hπ.measurable_space :=
@@ -1155,8 +1155,8 @@ lemma measurable_set_min_const_iff (hτ : is_stopping_time f τ) (s : set Ω)
 by rw [measurable_space_min_const, measurable_space.measurable_set_inf]
 
 lemma measurable_set_inter_le [topological_space ι] [second_countable_topology ι] [order_topology ι]
-  [measurable_space ι] [borel_space ι]
-  (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) (s : set Ω)
+  [measurable_space ι] [borel_space ι] {τ π : Ω → ι}
+  (hτ : is_stopping_time f (λ ω, τ ω)) (hπ : is_stopping_time f (λ ω, π ω)) (s : set Ω)
   (hs : measurable_set[hτ.measurable_space] s) :
   measurable_set[(hτ.min hπ).measurable_space] (s ∩ {ω | τ ω ≤ π ω}) :=
 begin
@@ -1179,8 +1179,10 @@ begin
     refine λ hx hτ_le_π, lt_of_lt_of_le _ hτ_le_π,
     rw ← not_le,
     exact hτi, },
-  rw this,
-  refine ((hs i).inter ((hτ.min hπ) i)).inter _,
+  simp_rw [min_le_iff, with_top.coe_le_coe, ← min_le_iff, this],
+  have hmeas := (hs i).inter ((hτ.min hπ) i),
+  simp_rw [min_le_iff, with_top.coe_le_coe, ← min_le_iff] at hmeas,
+  refine hmeas.inter _,
   apply measurable_set_le,
   { exact (hτ.min_const i).measurable_of_le (λ _, min_le_right _ _), },
   { exact ((hτ.min hπ).min_const i).measurable_of_le (λ _, min_le_right _ _),  },
@@ -1188,7 +1190,7 @@ end
 
 lemma measurable_set_inter_le_iff [topological_space ι]
   [second_countable_topology ι] [order_topology ι] [measurable_space ι] [borel_space ι]
-  (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π)
+  {τ π : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) (hπ : is_stopping_time f (λ ω, π ω))
   (s : set Ω) :
   measurable_set[hτ.measurable_space] (s ∩ {ω | τ ω ≤ π ω})
     ↔ measurable_set[(hτ.min hπ).measurable_space] (s ∩ {ω | τ ω ≤ π ω}) :=
@@ -1204,7 +1206,7 @@ end
 
 lemma measurable_set_le_stopping_time [topological_space ι]
   [second_countable_topology ι] [order_topology ι] [measurable_space ι] [borel_space ι]
-  (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
+  {τ π : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) (hπ : is_stopping_time f (λ ω, π ω)) :
   measurable_set[hτ.measurable_space] {ω | τ ω ≤ π ω} :=
 begin
   rw hτ.measurable_set,
@@ -1218,8 +1220,8 @@ begin
     by_cases hj : j ≤ π ω,
     { simp only [hj, h.trans hj, or_self], },
     { simp only [hj, or_false], }, },
-  rw this,
-  refine measurable_set.inter _ (hτ.measurable_set_le j),
+  simp_rw [with_top.coe_le_coe, this],
+  refine measurable_set.inter _ (hτ.of_is_stopping_time_coe j),
   apply measurable_set_le,
   { exact (hτ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
   { exact (hπ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
@@ -1227,7 +1229,7 @@ end
 
 lemma measurable_set_stopping_time_le [topological_space ι]
   [second_countable_topology ι] [order_topology ι] [measurable_space ι] [borel_space ι]
-  (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
+  {τ π : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) (hπ : is_stopping_time f (λ ω, π ω)) :
   measurable_set[hπ.measurable_space] {ω | τ ω ≤ π ω} :=
 begin
   suffices : measurable_set[(hτ.min hπ).measurable_space] {ω : Ω | τ ω ≤ π ω},
@@ -1239,7 +1241,7 @@ end
 lemma measurable_set_eq_stopping_time [add_group ι]
   [topological_space ι] [measurable_space ι] [borel_space ι] [order_topology ι]
   [measurable_singleton_class ι] [second_countable_topology ι] [has_measurable_sub₂ ι]
-  (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
+  {τ π : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) (hπ : is_stopping_time f (λ ω, π ω)) :
   measurable_set[hτ.measurable_space] {ω | τ ω = π ω} :=
 begin
   rw hτ.measurable_set,
@@ -1254,9 +1256,9 @@ begin
     { cases h with h' hσ_le,
       cases h' with h_eq hτ_le,
       rwa [min_eq_left hτ_le, min_eq_left hσ_le] at h_eq, }, },
-  rw this,
-  refine measurable_set.inter (measurable_set.inter _ (hτ.measurable_set_le j))
-    (hπ.measurable_set_le j),
+  simp_rw [with_top.coe_le_coe, this],
+  refine measurable_set.inter (measurable_set.inter _ (hτ.of_is_stopping_time_coe j))
+    (hπ.of_is_stopping_time_coe j),
   apply measurable_set_eq_fun,
   { exact (hτ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
   { exact (hπ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
@@ -1265,7 +1267,7 @@ end
 lemma measurable_set_eq_stopping_time_of_encodable [encodable ι]
   [topological_space ι] [measurable_space ι] [borel_space ι] [order_topology ι]
   [measurable_singleton_class ι] [second_countable_topology ι]
-  (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
+  {τ π : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω)) (hπ : is_stopping_time f (λ ω, π ω)) :
   measurable_set[hτ.measurable_space] {ω | τ ω = π ω} :=
 begin
   rw hτ.measurable_set,
@@ -1280,13 +1282,14 @@ begin
     { cases h with h' hπ_le,
       cases h' with h_eq hτ_le,
       rwa [min_eq_left hτ_le, min_eq_left hπ_le] at h_eq, }, },
-  rw this,
-  refine measurable_set.inter (measurable_set.inter _ (hτ.measurable_set_le j))
-    (hπ.measurable_set_le j),
+  simp_rw [with_top.coe_le_coe, this],
+  refine measurable_set.inter (measurable_set.inter _ (hτ.of_is_stopping_time_coe j))
+    (hπ.of_is_stopping_time_coe j),
   apply measurable_set_eq_fun_of_encodable,
   { exact (hτ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
   { exact (hπ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
 end
+#exit
 
 end linear_order
 

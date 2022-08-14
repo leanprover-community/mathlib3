@@ -128,8 +128,7 @@ instance [ring_hom_surjective σ] [ring_hom_isometric σ] [topological_space F]
   has_continuous_smul 𝕜₂ (E →SL[σ] F) :=
 strong_topology.has_continuous_smul σ E F {S | bornology.is_vonN_bounded 𝕜₁ S}
   ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
--- TODO: extract the following
-  (λ s₁ h₁ s₂ h₂, ⟨s₁ ∪ s₂, h₁.union h₂, s₁.subset_union_left s₂, s₁.subset_union_right s₂⟩)
+  (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
   (λ s hs, hs)
 
 instance [uniform_space F] [uniform_add_group F] : uniform_space (E →SL[σ] F) :=
@@ -145,7 +144,7 @@ protected lemma continuous_linear_map.has_basis_nhds_zero [topological_space F]
     (λ SV : set E × set F, bornology.is_vonN_bounded 𝕜₁ SV.1 ∧ SV.2 ∈ (𝓝 0 : filter F))
     (λ SV, {f : E →SL[σ] F | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
 strong_topology.has_basis_nhds_zero σ E F ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
-  (λ s₁ h₁ s₂ h₂, ⟨s₁ ∪ s₂, h₁.union h₂, s₁.subset_union_left s₂, s₁.subset_union_right s₂⟩)
+  (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
 
 end bounded_sets
 

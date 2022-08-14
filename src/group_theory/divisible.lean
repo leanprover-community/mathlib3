@@ -160,8 +160,8 @@ If for all `n ≠ 0 ∈ ℤ`, `n • A = A`, then `A` is divisible.
 noncomputable def divisible_by_int_of_smul_top_eq_top
   (H : ∀ {n : ℤ} (hn : n ≠ 0), n • (⊤ : add_subgroup A) = ⊤) :
   divisible_by A ℤ :=
-{ div := λ a n, dite (n = 0) (λ _, 0)
-    (λ hn, (show a ∈ n • (⊤ : add_subgroup A), by rw [H hn]; trivial).some),
+{ div := λ a n, if hn : n = 0 then 0 else
+    (show a ∈ n • (⊤ : add_subgroup A), by rw [H hn]; trivial).some,
   div_zero := λ a, dif_pos rfl,
   div_cancel := λ n a hn, begin
     rw [dif_neg hn],
@@ -192,8 +192,8 @@ A group is `ℤ`-rootable if it is `ℕ`-rootable.
 def rootable_by_int_of_rootable_by_nat [rootable_by A ℕ] :
   rootable_by A ℤ :=
 { root := λ a z, match z with
-  | int.of_nat n := rootable_by.root a n
-  | int.neg_succ_of_nat n := (rootable_by.root a (n + 1))⁻¹
+  | (n : ℕ) := rootable_by.root a n
+  | -[1+n] := (rootable_by.root a (n + 1))⁻¹
   end,
   root_zero := λ a, rootable_by.root_zero a,
   root_cancel := λ n a hn, begin

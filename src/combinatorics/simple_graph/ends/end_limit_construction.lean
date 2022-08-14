@@ -41,18 +41,18 @@ instance finset_directed : is_directed (finset V) (≥) := {
 def ComplComp : finset V ⥤ Type u := {
   obj := λ A, ro_components G A,
   map := λ A B f, bwd_map G Gpc (le_of_hom f),
-  map_id' := by {intro, funext, simp, apply bwd_map_refl',},
-  map_comp' := by {intros, funext, simp, apply eq.symm, apply bwd_map_comp',},
+  map_id' := by {intro, funext, simp, apply bwd_map.refl',},
+  map_comp' := by {intros, funext, simp, apply eq.symm, apply bwd_map.comp',},
 }
 
 def Ends := (ComplComp G Gpc).sections
 
 /-The functor assigning a finite set in `V` to the set of **infinite** connected components in its complement-/
 def ComplInfComp : finset V ⥤ Type u := {
-  obj := λ A, subtype {C : ro_components G A | C.val.infinite},
-  map := λ A B f, set.maps_to.restrict (bwd_map G Gpc (le_of_hom f)) _ _ (bwd_map_inf_to_inf G Gpc (le_of_hom f)),
-  map_id' := by {intro, funext, simp [set.maps_to.restrict, subtype.map], cases x, apply subtype.eq, dsimp, apply bwd_map_refl', },
-  map_comp' := by {intros, funext, simp [set.maps_to.restrict, subtype.map], cases x, dsimp, apply eq.symm, apply bwd_map_comp', },
+  obj := λ A, inf_ro_components' G A,
+  map := λ A B f, bwd_map_inf G Gpc (le_of_hom f),
+  map_id' := by {intro, funext, simp, apply bwd_map_inf.refl', },
+  map_comp' := by {intros, funext, simp, symmetry, apply bwd_map_inf.comp', },
 }
 
 def Endsinfty := (ComplInfComp G Gpc).sections
@@ -66,10 +66,12 @@ begin
     rintro K,
     have : {C : ↥(G.ro_components K) | (C.val : set V).infinite} = (⋂ (L ≤ K), set.range (bwd_map G Gpc H)), by
     { apply set.ext, rintro C, split,
-      { rintro Cinf, simp at Cinf, rw set.mem_Inter₂, rintro L KL, apply bwd_map_surjective_on_of_inf, exact Cinf,},
-      { rintro Crange, simp at Crange, apply bwd_map_inf_of_surjective_on G Gpc, rintro L KL, simp, exact Crange L KL,},
+      { rintro Cinf, simp at Cinf, rw set.mem_Inter₂, rintro L KL,
+        obtain ⟨D,DtoC⟩ := bwd_map_inf.surjective G Gpc KL ⟨C,Cinf⟩, use D, dsimp [bwd_map_inf] at DtoC, sorry },
+      { sorry, /-rintro Crange, simp at Crange, apply bwd_map_inf_of_surjective_on G Gpc, rintro L KL, simp, exact Crange L KL,-/},
     },
-    rw this, simp, refl,},
+    sorry,
+    /-rw this, simp, refl,-/},
 
   -- TODO: this should be very clean, but isn't!!! please help me
   apply category_theory.functor.hext,

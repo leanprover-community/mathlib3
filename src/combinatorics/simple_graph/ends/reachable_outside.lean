@@ -96,9 +96,11 @@ def ro_components (K : finset V) : set (set V) := {C : set V | ∃ x ∈ C, C = 
 def inf_ro_components (K : finset V) := {C : set V | C ∈ ro_components G K ∧ C.infinite}
 def fin_ro_components (K : finset V) := {C : set V | C ∈ ro_components G K ∧ C.finite}
 
-lemma inf_ro_components_equiv (K : finset V) : inf_ro_components G K ≃ {C : ro_components G K | C.val.infinite } :=
+def inf_ro_components' (K : finset V) := {C : ro_components G K | C.val.infinite}
+
+
+lemma inf_ro_components_equiv (K : finset V) : inf_ro_components G K ≃ inf_ro_components' G K :=
 begin
-  simp,
   sorry, -- There is probably a lemma on subtypes for this
 end
 
@@ -828,7 +830,7 @@ end
 
 lemma cofinite_inf_ro_component_equiv' [locally_finite G]
   (Gpc : G.preconnected) (K : finset V) (C : { C : ro_components G K | C.val.infinite})
-  (cof : (C.val.val ᶜ).finite ) : {C : ro_components G K | C.val.infinite } ≃ unit :=
+  (cof : (C.val.val ᶜ).finite ) : (inf_ro_components' G K) ≃ unit :=
 begin
   exact (inf_ro_components_equiv G K).symm.trans (cofinite_inf_ro_component_equiv G Gpc K ⟨C.val.val,⟨C.val.prop,C.prop⟩⟩ cof),
 end
@@ -836,7 +838,7 @@ end
 lemma cofinite_inf_ro_component_equiv'' [locally_finite G]
   (Gpc : G.preconnected) (K : finset V)
   (D : set V) (Ddis : disjoint D K) (Dconn : subconnected G D) (Dinf : D.infinite) (Dcof : (D ᶜ).finite ) :
-  {C : ro_components G K | C.val.infinite } ≃ unit :=
+  (inf_ro_components' G K) ≃ unit :=
 begin
   let C := (ro_component.of_subconnected_disjoint G K D (set.infinite.nonempty Dinf) Ddis Dconn).some,
   obtain ⟨Ccomp,DC⟩ := (ro_component.of_subconnected_disjoint G K D (set.infinite.nonempty Dinf) Ddis Dconn).some_spec,
@@ -844,6 +846,49 @@ begin
   have Ccof : (C ᶜ).finite := by sorry,
 
   exact cofinite_inf_ro_component_equiv' G Gpc K ⟨⟨C,Ccomp⟩,Cinf⟩ Ccof,
+end
+
+
+
+-- Needed in Freundenthal-Hopf
+lemma nicely_arranged [locally_finite G] (Gpc : G.preconnected) (H K : finset V)
+  (Hnempty : H.nonempty) (Knempty : K.nonempty)
+  (E E' : inf_ro_components' G H) (En : E ≠ E')
+  (F : inf_ro_components' G K)
+  (H_F : (H : set V) ⊆ F.val.val)
+  (K_E : (K : set V) ⊆ E.val.val) : E'.val.val ⊆ F.val.val :=
+begin
+  rcases E with ⟨⟨EE,Ecomp⟩,Einf⟩,
+  rcases E' with ⟨⟨EE',Ecomp'⟩,Einf'⟩,
+  rcases F with ⟨⟨FF,Fcomp⟩,Finf⟩,
+  by_cases h : (EE' ∩ K).nonempty,
+  { rcases h with ⟨v,v_in⟩,
+    have vE' : v ∈ EE', from ((set.mem_inter_iff v EE' K).mp v_in).left,
+    have vE : v ∈ EE, from  K_E ((set.mem_inter_iff v EE' K).mp v_in).right,
+    exfalso,
+    apply En,
+    simp only [subtype.mk_eq_mk],
+    exact ro_component.eq_of_common_mem G H EE EE' Ecomp Ecomp' v vE vE'},
+  {
+    have : ∃ F' : inf_ro_components' G K, EE' ⊆ F'.val.val, by {
+      rcases ro_component.of_subconnected_disjoint G K EE'
+             (set.infinite.nonempty Einf')
+             (by {unfold disjoint, rw [le_bot_iff], rw [set.not_nonempty_iff_eq_empty] at h, assumption,}) -- empty intersection means disjoint
+             (ro_component.to_subconnected G H EE' Ecomp') with ⟨F',F'comp,sub⟩,
+      have F'inf : F'.infinite, from set.infinite.mono sub Einf',
+      use ⟨⟨F',F'comp⟩,F'inf⟩,
+      exact sub,
+    },
+    rcases this with ⟨⟨⟨FF',Fcomp'⟩,Finf'⟩,E'_sub_F'⟩,
+    by_cases Fe : FF' = FF,
+    { exact Fe ▸ E'_sub_F',},
+    { rcases ro_component.adjacent_to G Gpc H Hnempty EE' Ecomp' with ⟨v,vh,vhH,vF',adj⟩,
+      have : vh ∈ FF, from H_F vhH,
+      have : FF = FF',
+        from ro_component.eq_of_adj_mem G K FF Fcomp FF' Fcomp' vh v this (E'_sub_F' vF') adj,
+      exfalso,
+      exact Fe (this.symm),},
+  },
 end
 
 

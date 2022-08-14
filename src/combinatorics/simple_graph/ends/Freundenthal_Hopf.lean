@@ -6,7 +6,8 @@ import topology.metric_space.basic
 import data.setoid.partition
 import .mathlib
 import .reachable_outside
-import .ends
+import .bwd_map
+import .end_limit_construction
 
 
 open function
@@ -29,6 +30,7 @@ namespace simple_graph
 namespace ends
 
 open ro_component
+open bwd_map
 
 variables  {V : Type u}
            (G : simple_graph V)

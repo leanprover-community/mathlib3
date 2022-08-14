@@ -559,22 +559,22 @@ To view elements as a linear combination of the form `s • D s'`, use
 @[derive [add_comm_group, module R, module S, module (S ⊗[R] S)]]
 def derivation_module : Type* := (derivation_module.ideal R S).cotangent
 
-notation `Ω[ `:100 S ` / `:0 R ` ]`:0 := derivation_module R S
+notation `Ω[`:100 S ` ⁄ `:0 R `]`:0 := derivation_module R S
 
-instance : nonempty Ω[S/R] := ⟨0⟩
+instance : nonempty Ω[S⁄R] := ⟨0⟩
 
-instance : is_scalar_tower S (S ⊗[R] S) Ω[S/R] :=
+instance : is_scalar_tower S (S ⊗[R] S) Ω[S⁄R] :=
 ideal.cotangent.is_scalar_tower _
 
-instance derivation_module.is_scalar_tower' : is_scalar_tower R S Ω[S/R] :=
+instance derivation_module.is_scalar_tower' : is_scalar_tower R S Ω[S⁄R] :=
 begin
   haveI : is_scalar_tower R S (derivation_module.ideal R S),
   { constructor, intros x y z, ext1, exact smul_assoc x y z.1 },
   exact submodule.quotient.is_scalar_tower _ _
 end
 
-/-- (Implementation) The underlying linear map of the derivation into `Ω[S/R]`. -/
-def derivation_module.D_linear_map : S →ₗ[R] Ω[S/R] :=
+/-- (Implementation) The underlying linear map of the derivation into `Ω[S⁄R]`. -/
+def derivation_module.D_linear_map : S →ₗ[R] Ω[S⁄R] :=
 ((derivation_module.ideal R S).to_cotangent.restrict_scalars R).comp
   ((tensor_product.include_right.to_linear_map - tensor_product.include_left.to_linear_map :
     S →ₗ[R] S ⊗[R] S).cod_restrict ((derivation_module.ideal R S).restrict_scalars R)
@@ -585,8 +585,8 @@ lemma derivation_module.D_linear_map_apply (s : S) :
     ⟨1 ⊗ₜ s - s ⊗ₜ 1, derivation_module.one_smul_sub_smul_one_mem_ideal R s⟩ :=
 rfl
 
-/-- The universal derivation into `Ω[S/R]`. -/
-def derivation_module.D : derivation R S Ω[S/R] :=
+/-- The universal derivation into `Ω[S⁄R]`. -/
+def derivation_module.D : derivation R S Ω[S⁄R] :=
 { map_one_eq_zero' := begin
     dsimp [derivation_module.D_linear_map_apply],
     rw [ideal.to_cotangent_eq_zero, subtype.coe_mk, sub_self],
@@ -635,7 +635,7 @@ end
 variables {R S}
 
 /-- The linear map from the derivation module, associated with a derivation. -/
-def derivation.lift_derivation_module (D : derivation R S M) : Ω[S/R] →ₗ[S] M :=
+def derivation.lift_derivation_module (D : derivation R S M) : Ω[S⁄R] →ₗ[S] M :=
 begin
   refine ((derivation_module.ideal R S • ⊤ : submodule (S ⊗[R] S) (derivation_module.ideal R S))
     .restrict_scalars S).liftq _ _,
@@ -665,7 +665,7 @@ end
 
 @[ext]
 lemma derivation.lift_derivation_module_unique
-  (f f' : Ω[S/R] →ₗ[S] M)
+  (f f' : Ω[S⁄R] →ₗ[S] M)
   (hf : f.comp_der (derivation_module.D R S) =
     f'.comp_der (derivation_module.D R S)) :
   f = f' :=
@@ -705,16 +705,16 @@ begin
   exact ⟨x, derivation_module.D_tensor_product_to x⟩
 end
 
-/-- The `S`-linear maps from `Ω[S/R]` to `M` are (`S`-linearly) equivalent to `R`-derivations
+/-- The `S`-linear maps from `Ω[S⁄R]` to `M` are (`S`-linearly) equivalent to `R`-derivations
 from `S` to `M`.  -/
-def derivation_module.linear_map_equiv_derivation : (Ω[S/R] →ₗ[S] M) ≃ₗ[S] derivation R S M :=
+def derivation_module.linear_map_equiv_derivation : (Ω[S⁄R] →ₗ[S] M) ≃ₗ[S] derivation R S M :=
 { inv_fun := derivation.lift_derivation_module,
   left_inv := λ f, derivation.lift_derivation_module_unique _ _
     (derivation.lift_derivation_module_comp _),
   right_inv := derivation.lift_derivation_module_comp,
   ..(derivation.llcomp.flip $ derivation_module.D R S) }
 
-/-- The quotient ring of `S ⊗ S ⧸ J` by `Ω[S/R]` is isomorphic to `S`. -/
+/-- The quotient ring of `S ⊗ S ⧸ J` by `Ω[S⁄R]` is isomorphic to `S`. -/
 def derivation_module.quotient_cotangent_ideal :
   (S ⊗ S ⧸ derivation_module.ideal R S ^ 2) ⧸ (derivation_module.ideal R S).cotangent_ideal ≃+* S :=
 begin
@@ -749,14 +749,14 @@ begin
     exact e₁.symm.trans (e.trans e₂) }
 end
 
-/-- Derivations into `Ω[S/R]` is equivalent to derivations
+/-- Derivations into `Ω[S⁄R]` is equivalent to derivations
 into `(derivation_module.ideal R S).cotangent_ideal` -/
 -- This has type
 -- `derivation R S Ω[ S / R ] ≃ₗ[R] derivation R S (derivation_module.ideal R S).cotangent_ideal`
 -- But lean times-out if this is given explicitly.
 noncomputable
 def derivation_module.End_equiv_derivation' :=
-@linear_equiv.comp_der R _ _ _ _ Ω[S/R] _ _ _ _ _ _ _ _ _
+@linear_equiv.comp_der R _ _ _ _ Ω[S⁄R] _ _ _ _ _ _ _ _ _
   ((derivation_module.ideal R S).cotangent_equiv_ideal.restrict_scalars S)
 
 /-- (Implementation) An `equiv` version of `derivation_module.End_equiv_aux`.
@@ -768,12 +768,12 @@ def derivation_module.End_equiv_aux_equiv :
 (equiv.refl _).subtype_equiv (derivation_module.End_equiv_aux R S)
 
 /--
-The endomorphisms of `Ω[S/R]` corresponds to sections of the surjection `S ⊗[R] S ⧸ J ^ 2 →ₐ[R] S`,
+The endomorphisms of `Ω[S⁄R]` corresponds to sections of the surjection `S ⊗[R] S ⧸ J ^ 2 →ₐ[R] S`,
 with `J` being the kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`.
 -/
 noncomputable
 def derivation_module.End_equiv :
-  module.End S Ω[S/R] ≃
+  module.End S Ω[S⁄R] ≃
     { f // (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S).ker_square_lift.comp f = alg_hom.id R S } :=
 (derivation_module.linear_map_equiv_derivation R S).to_equiv.trans $
   (derivation_module.End_equiv_derivation' R S).to_equiv.trans $

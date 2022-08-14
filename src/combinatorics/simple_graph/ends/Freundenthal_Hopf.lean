@@ -45,8 +45,8 @@ variables  {V : Type u}
 lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V) (Knempty : K.nonempty) [fintype (inf_ro_components G K)]
-  (inf_comp_K_large : 2 < fintype.card (inf_ro_components G K)) :
-  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G Gpc ‹K' ⊆ L›) :=
+  (inf_comp_H_large : fin 3 ↪ (inf_ro_components' G K)) :
+  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map_inf G Gpc ‹K' ⊆ L›) :=
 begin
   rcases extend_to_subconnected G Gpc K (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
   rcases extend_subconnected_to_fin_ro_components G Gpc Kp (finset.nonempty.mono KKp Knempty) Kpconn  with ⟨K',KK',K'conn,finn⟩,
@@ -74,32 +74,28 @@ begin
     rcases sur Fcomp with ⟨F₀,F₀comp,rfl⟩,
     let F₀inf := finn ⟨F₀,F₀comp⟩,
     rcases ro_component.bij_inf_ro_components_of_isom G G K' φ with ⟨infmapsto,_,_⟩,
-    exact (infmapsto ⟨F₀comp,F₀inf⟩).2,
-},
+    exact (infmapsto ⟨F₀comp,F₀inf⟩).2,},
 
-  apply nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
+  apply nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'nempty) (K'nempty) ⟨⟨F,Fcomp⟩,Finf⟩ _ ⟨⟨E,Ecomp⟩,Einf⟩ Esub Fsub,
+  have := (inf_ro_components_equiv_of_isom' G G K' φ),
+  apply inf_comp_H_large.trans,
+  refine function.embedding.trans _ (inf_ro_components_equiv_of_isom' G G K' φ).to_embedding,
+  apply function.embedding.of_surjective,
+  exact bwd_map_inf.surjective G Gpc (KKp.trans KK'),
 
-  have := (bij_inf_ro_components_of_isom G G K' φ).bijective,
-  haveI : fintype ↥(inf_ro_components G K'), from ro_component.inf_components_finite G Gpc K',
-  --haveI := fintype.of_bijective _ this,
-  haveI : fintype ↥(inf_ro_components G φK'), from ro_component.inf_components_finite G Gpc φK',
-  have lol2 := fintype.card_of_bijective this,
-  have lol3 := fintype.card_le_of_surjective _ (bwd_map_surjective G Gpc (KKp.trans KK')),
-  refine lt_of_lt_of_le inf_comp_K_large (lol3.trans (le_of_eq _)),
-  -- exact lol2, -- confusion still
-  sorry,
 end
 
 
 lemma Freudenthal_Hopf [locally_finite G] (Gpc: G.preconnected) [nonempty V]
-  [fintype (ends G Gpc)]
-  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
-  (fintype.card (ends G Gpc)) ≤ 2 :=
+  [fintype (Ends G Gpc)]
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) : is_empty (fin 3 ↪ Ends G Gpc) :=
 begin
 
   by_contradiction h,
 
-  have many_ends : 2 < (fintype.card (ends G Gpc)) := (not_le.mp h),
+
+  obtain ⟨many_ends⟩ := not_is_empty_iff.mp h,
+
   rcases finite_ends_to_inj G Gpc with ⟨K,Knempty,Kinj⟩,
 
   haveI : fintype ↥(inf_ro_components G K), from ro_component.inf_components_finite G Gpc K,

@@ -230,20 +230,22 @@ end
 
 lemma nicely_arranged_bwd_map_not_inj[locally_finite G] (Gpc : G.preconnected) (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E : inf_ro_components' G H) (inf_comp_H_large : 2 < @fintype.card _ (ro_component.inf_components_finite G Gpc H))
+  (E : inf_ro_components' G H) (inf_comp_H_large : fin 3 ↪ (inf_ro_components' G H))
   (F : inf_ro_components' G K)
   (H_F : (H : set V) ⊆ F.val)
-  (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map G Gpc (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
+  (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map_inf G Gpc (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
 begin
- have : ∃ E₁ E₂ : inf_ro_components' G H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂ :=
-  begin
-    rcases ((@fintype.two_lt_card_iff _ (ro_component.inf_components_finite G Gpc H)).mp (inf_comp_H_large)) with ⟨E₀, E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
-    by_cases hyp : E ≠ E₁ ∧ E ≠ E₂,
-    { cases hyp, refine ⟨E₁, E₂, _, _, _⟩, all_goals {assumption}, },
-    { have hyp' : E = E₁ ∨ E = E₂ := by {simp [auto.classical.implies_iff_not_or] at hyp, assumption,}, cases hyp',
-      { subst hyp', refine ⟨E₀, E₂, ne.symm _, _, _⟩, all_goals {assumption}, },
-      { subst hyp', refine ⟨E₀, E₁, ne.symm _, ne.symm _, _⟩, all_goals {assumption}, } }
-  end,
+ have : ∃ E₁ E₂ : inf_ro_components' G H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
+  { let E₀ := inf_comp_H_large 0,
+    let E₁ := inf_comp_H_large 1,
+    let E₂ := inf_comp_H_large 2,
+    by_cases h : E = E₀,
+    { use [E₁,E₂], rw h, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
+    { by_cases k : E = E₁,
+      { use [E₀,E₂], rw k, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
+      { use [E₀,E₁], simp, exact ⟨h,k⟩,},
+    },
+  },
   rcases this with ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
   apply bwd_map_non_inj G Gpc K H F E₁ E₂ h₁₂ _ _,
   {apply nicely_arranged G Gpc H K Hnempty Knempty E E₁ h₀₁ F H_F K_E,},

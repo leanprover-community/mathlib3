@@ -498,6 +498,13 @@ end
 -- Should use bij_ro_components_of_isom plus the obvious fact that φ being a bijection, it preserves infinite-ness.
 -- Some additional lemmas may be needed to make the above argument go through as is
 
+
+lemma inf_ro_components_equiv_of_isom' {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) :
+  (G.inf_ro_components' K) ≃ (H.inf_ro_components' (finset.image φ K)) :=
+begin
+  sorry,
+end
+
 @[instance] lemma infinite_graph_to_inf_components_nonempty [locally_finite G] (Gpc : G.preconnected) (K : finset V)  (Vinfinite : (@set.univ V).infinite) :
  nonempty (inf_ro_components G K) :=
 begin

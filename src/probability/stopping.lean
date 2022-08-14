@@ -494,6 +494,13 @@ begin
     exact ⟨i, hpi, rfl⟩ }
 end
 
+instance [preorder ι] [topological_space ι] [order_topology ι] :
+  measurable_space (with_top ι) :=
+borel (with_top ι)
+
+instance [preorder ι] [topological_space ι] [order_topology ι] :
+  borel_space (with_top ι) := ⟨rfl⟩
+
 end move
 
 lemma is_stopping_time.measurable_set_lt_of_pred [pred_order ι]
@@ -1289,7 +1296,6 @@ begin
   { exact (hτ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
   { exact (hπ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
 end
-#exit
 
 end linear_order
 
@@ -1363,25 +1369,21 @@ lemma stopped_process_coe_eq_of_ge (h : π ω ≤ i) :
   stopped_process u (λ i, π i) i ω = u (π ω) ω :=
 by simp [stopped_process_coe_apply, min_eq_right h]
 
--- temp
-instance : has_coe (Ω → ι) (Ω → with_top ι) := ⟨λ τ, λ ω, τ ω⟩
-#exit
 section prog_measurable
 
 variables [measurable_space ι] [topological_space ι] [order_topology ι]
-  [second_countable_topology ι] [borel_space ι]
-  [topological_space β]
-  {u : ι → Ω → β} {τ : Ω → ι} {f : filtration ι m}
+  [second_countable_topology ι] [borel_space ι] [topological_space β] {f : filtration ι m}
 
-lemma prog_measurable_min_stopping_time [metrizable_space ι] (hτ : is_stopping_time f τ) :
-  prog_measurable f (λ i ω, min i (τ ω)) :=
+lemma prog_measurable_min_stopping_time [metrizable_space ι] (hπ : is_stopping_time f (λ ω, π ω)) :
+  prog_measurable f (λ i ω, min i (π ω)) :=
 begin
   intro i,
   let m_prod : measurable_space (set.Iic i × Ω) := measurable_space.prod _ (f i),
   let m_set : ∀ t : set (set.Iic i × Ω), measurable_space t :=
     λ _, @subtype.measurable_space (set.Iic i × Ω) _ m_prod,
-  let s := {p : set.Iic i × Ω | τ p.2 ≤ i},
-  have hs : measurable_set[m_prod] s, from @measurable_snd (set.Iic i) Ω _ (f i) _ (hτ i),
+  let s := {p : set.Iic i × Ω | π p.2 ≤ i},
+  have hs : measurable_set[m_prod] s, from @measurable_snd (set.Iic i) Ω _ (f i) _
+    (hπ.of_is_stopping_time_coe i),
   have h_meas_fst : ∀ t : set (set.Iic i × Ω),
       measurable[m_set t] (λ x : t, ((x : set.Iic i × Ω).fst : ι)),
     from λ t, (@measurable_subtype_coe (set.Iic i × Ω) m_prod _).fst.subtype_coe,
@@ -1389,16 +1391,16 @@ begin
   refine measurable_of_restrict_of_restrict_compl hs _ _,
   { refine @measurable.min _ _ _ _ _ (m_set s) _ _ _ _ _ (h_meas_fst s) _,
     refine @measurable_of_Iic ι s _ _ _ (m_set s) _ _ _ _ (λ j, _),
-    have h_set_eq : (λ x : s, τ (x : set.Iic i × Ω).snd) ⁻¹' set.Iic j
-      = (λ x : s, (x : set.Iic i × Ω).snd) ⁻¹' {ω | τ ω ≤ min i j},
+    have h_set_eq : (λ x : s, π (x : set.Iic i × Ω).snd) ⁻¹' set.Iic j
+      = (λ x : s, (x : set.Iic i × Ω).snd) ⁻¹' {ω | π ω ≤ min i j},
     { ext1 ω,
       simp only [set.mem_preimage, set.mem_Iic, iff_and_self, le_min_iff, set.mem_set_of_eq],
       exact λ _, ω.prop, },
     rw h_set_eq,
     suffices h_meas : @measurable _ _ (m_set s) (f i) (λ x : s, (x : set.Iic i × Ω).snd),
-      from h_meas (f.mono (min_le_left _ _) _ (hτ.measurable_set_le (min i j))),
+      from h_meas (f.mono (min_le_left _ _) _ (hπ.of_is_stopping_time_coe (min i j))),
     exact measurable_snd.comp (@measurable_subtype_coe _ m_prod _), },
-  { suffices h_min_eq_left : (λ x : sᶜ, min ↑((x : set.Iic i × Ω).fst) (τ (x : set.Iic i × Ω).snd))
+  { suffices h_min_eq_left : (λ x : sᶜ, min ↑((x : set.Iic i × Ω).fst) (π (x : set.Iic i × Ω).snd))
       = λ x : sᶜ, ↑((x : set.Iic i × Ω).fst),
     { rw [set.restrict, h_min_eq_left],
       exact h_meas_fst _, },
@@ -1411,42 +1413,43 @@ begin
 end
 
 lemma prog_measurable.stopped_process [metrizable_space ι]
-  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
-  prog_measurable f (stopped_process u τ) :=
-h.comp (prog_measurable_min_stopping_time hτ) (λ i x, min_le_left _ _)
+  (h : prog_measurable f u) (hπ : is_stopping_time f (λ ω, π ω)) :
+  prog_measurable f (stopped_process u (λ ω, π ω)) :=
+h.comp (prog_measurable_min_stopping_time hπ) (λ i x, min_le_left _ _)
 
 lemma prog_measurable.adapted_stopped_process [metrizable_space ι]
-  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
-  adapted f (stopped_process u τ) :=
-(h.stopped_process hτ).adapted
+  (h : prog_measurable f u) (hπ : is_stopping_time f (λ ω, π ω)) :
+  adapted f (stopped_process u (λ ω, π ω)) :=
+(h.stopped_process hπ).adapted
 
 lemma prog_measurable.strongly_measurable_stopped_process [metrizable_space ι]
-  (hu : prog_measurable f u) (hτ : is_stopping_time f τ) (i : ι) :
-  strongly_measurable (stopped_process u τ i) :=
-(hu.adapted_stopped_process hτ i).mono (f.le _)
+  (hu : prog_measurable f u) (hπ : is_stopping_time f (λ ω, π ω)) (i : ι) :
+  strongly_measurable (stopped_process u (λ ω, π ω) i) :=
+(hu.adapted_stopped_process hπ i).mono (f.le _)
 
 lemma strongly_measurable_stopped_value_of_le
-  (h : prog_measurable f u) (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) :
-  strongly_measurable[f n] (stopped_value u τ) :=
+  (h : prog_measurable f u) (hπ : is_stopping_time f (λ ω, π ω)) {n : ι} (hπ_le : ∀ ω, π ω ≤ n) :
+  strongly_measurable[f n] (stopped_value u π) :=
 begin
-  have : stopped_value u τ = (λ (p : set.Iic n × Ω), u ↑(p.fst) p.snd) ∘ (λ ω, (⟨τ ω, hτ_le ω⟩, ω)),
+  have : stopped_value u π = (λ (p : set.Iic n × Ω), u ↑(p.fst) p.snd) ∘ (λ ω, (⟨π ω, hπ_le ω⟩, ω)),
   { ext1 ω, simp only [stopped_value, function.comp_app, subtype.coe_mk], },
   rw this,
   refine strongly_measurable.comp_measurable (h n) _,
-  exact (hτ.measurable_of_le hτ_le).subtype_mk.prod_mk measurable_id,
+  exact (hπ.measurable_of_le hπ_le).subtype_mk.prod_mk measurable_id,
 end
 
 lemma measurable_stopped_value [metrizable_space β] [measurable_space β] [borel_space β]
-  (hf_prog : prog_measurable f u) (hτ : is_stopping_time f τ) :
-  measurable[hτ.measurable_space] (stopped_value u τ) :=
+  (hf_prog : prog_measurable f u) (hπ : is_stopping_time f (λ ω, π ω)) :
+  measurable[hπ.measurable_space] (stopped_value u π) :=
 begin
-  have h_str_meas : ∀ i, strongly_measurable[f i] (stopped_value u (λ ω, min (τ ω) i)),
-    from λ i, strongly_measurable_stopped_value_of_le hf_prog (hτ.min_const i)
+  have h_str_meas : ∀ i, strongly_measurable[f i] (stopped_value u (λ ω, min (π ω) i)),
+    from λ i, strongly_measurable_stopped_value_of_le hf_prog (hπ.min_const i)
       (λ _, min_le_right _ _),
   intros t ht i,
-  suffices : stopped_value u τ ⁻¹' t ∩ {ω : Ω | τ ω ≤ i}
-      = stopped_value u (λ ω, min (τ ω) i) ⁻¹' t ∩ {ω : Ω | τ ω ≤ i},
-    by { rw this, exact ((h_str_meas i).measurable ht).inter (hτ.measurable_set_le i), },
+  suffices : stopped_value u π ⁻¹' t ∩ {ω : Ω | π ω ≤ i}
+      = stopped_value u (λ ω, min (π ω) i) ⁻¹' t ∩ {ω : Ω | π ω ≤ i},
+  { simp_rw [with_top.coe_le_coe, this],
+    exact ((h_str_meas i).measurable ht).inter (hπ.of_is_stopping_time_coe i), },
   ext1 ω,
   simp only [stopped_value, set.mem_inter_eq, set.mem_preimage, set.mem_set_of_eq,
     and.congr_left_iff],
@@ -1454,6 +1457,7 @@ begin
   rw min_eq_left h,
 end
 
+#exit
 end prog_measurable
 
 end linear_order

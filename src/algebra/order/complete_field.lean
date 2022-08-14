@@ -315,23 +315,20 @@ end linear_ordered_field
 
 section real
 
-/-- Any ring homomorphism `ℝ → ℝ` is an ordered ring isomorphism and thus there are no
+/-- Any ring homomorphism `ℝ → ℝ` is an ordered ring isomorphism, and thus there are no
 nontrivial ring homorphism `ℝ → ℝ`. -/
 lemma real.ring_hom_eq_id (f : ℝ →+* ℝ) : f = ring_hom.id ℝ :=
 begin
-  have f_smon : strict_mono f,
+  have f_mon : monotone f,
   { intros a b hab,
-    let e := real.sqrt (b - a),
-    have fenz : f e ≠ 0 :=
-      by rwa [map_ne_zero_iff _ (ring_hom.injective f), real.sqrt_ne_zero', sub_pos],
-    have : f b - f a > 0,
+    have : f b - f a ≥ 0,
     { calc
-        f b - f a = f (b - a)   : (ring_hom.map_sub _ _ _).symm
-          ...     = f (e^2)     : by rw (real.sq_sqrt (le_of_lt $ sub_pos.mpr hab))
-          ...     = (f e)^2     : ring_hom.map_pow _ _ _
-          ...     > 0           : (sq_pos_iff (f e)).mpr fenz, },
+        f b - f a = f (b - a)                 : (ring_hom.map_sub _ _ _).symm
+          ...     = f (real.sqrt (b - a)^2)   : by rw sq_sqrt (sub_nonneg.mpr hab)
+          ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
+          ...     ≥ 0                         : sq_nonneg _, },
     linarith, },
-  let φ : ℝ →+*o ℝ := { to_ring_hom := f, monotone' := strict_mono.monotone f_smon, },
+  let φ : ℝ →+*o ℝ := { to_ring_hom := f, monotone' := f_mon },
   let ι : ℝ →+*o ℝ := { to_ring_hom := ring_hom.id ℝ, monotone' := monotone_id, },
   haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
   exact congr_arg (λ f : ℝ →+*o ℝ, f.to_ring_hom) (subsingleton.elim φ ι),

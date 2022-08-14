@@ -546,26 +546,29 @@ The module of Kähler differentials (Kahler differentials, Kaehler differentials
 This is implemented as `I / I ^ 2` with `I` the kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`.
 To view elements as a linear combination of the form `s • D s'`, use
 `derivation_module.tensor_product_to_surjective` and `derivation.tensor_product_to_tmul`.
+
+We also provide the notation `Ω[S⁄R]` for `derivation_module R S`.
+Note that the slash is `\textfractionsolidus`.
 -/
 @[derive [add_comm_group, module R, module S, module (S ⊗[R] S)]]
 def derivation_module : Type* := (derivation_module.ideal R S).cotangent
 
-notation `Ω[ `:100 S ` / `:0 R ` ]`:0 := derivation_module R S
+notation `Ω[ `:100 S ` ⁄ `:0 R ` ]`:0 := derivation_module R S
 
-instance : nonempty Ω[S/R] := ⟨0⟩
+instance : nonempty Ω[S⁄R] := ⟨0⟩
 
-instance : is_scalar_tower S (S ⊗[R] S) Ω[S/R] :=
+instance : is_scalar_tower S (S ⊗[R] S) Ω[S⁄R] :=
 ideal.cotangent.is_scalar_tower _
 
-instance derivation_module.is_scalar_tower' : is_scalar_tower R S Ω[S/R] :=
+instance derivation_module.is_scalar_tower' : is_scalar_tower R S Ω[S⁄R] :=
 begin
   haveI : is_scalar_tower R S (derivation_module.ideal R S),
   { constructor, intros x y z, ext1, exact smul_assoc x y z.1 },
   exact submodule.quotient.is_scalar_tower _ _
 end
 
-/-- (Implementation) The underlying linear map of the derivation into `Ω[S/R]`. -/
-def derivation_module.D_linear_map : S →ₗ[R] Ω[S/R] :=
+/-- (Implementation) The underlying linear map of the derivation into `Ω[S⁄R]`. -/
+def derivation_module.D_linear_map : S →ₗ[R] Ω[S⁄R] :=
 ((derivation_module.ideal R S).to_cotangent.restrict_scalars R).comp
   ((tensor_product.include_right.to_linear_map - tensor_product.include_left.to_linear_map :
     S →ₗ[R] S ⊗[R] S).cod_restrict ((derivation_module.ideal R S).restrict_scalars R)
@@ -576,8 +579,8 @@ lemma derivation_module.D_linear_map_apply (s : S) :
     ⟨1 ⊗ₜ s - s ⊗ₜ 1, derivation_module.one_smul_sub_smul_one_mem_ideal R s⟩ :=
 rfl
 
-/-- The universal derivation into `Ω[S/R]`. -/
-def derivation_module.D : derivation R S Ω[S/R] :=
+/-- The universal derivation into `Ω[S⁄R]`. -/
+def derivation_module.D : derivation R S Ω[S⁄R] :=
 { map_one_eq_zero' := begin
     dsimp [derivation_module.D_linear_map_apply],
     rw [ideal.to_cotangent_eq_zero, subtype.coe_mk, sub_self],
@@ -626,7 +629,7 @@ end
 variables {R S}
 
 /-- The linear map from the derivation module, associated with a derivation. -/
-def derivation.lift_derivation_module (D : derivation R S M) : Ω[S/R] →ₗ[S] M :=
+def derivation.lift_derivation_module (D : derivation R S M) : Ω[S⁄R] →ₗ[S] M :=
 begin
   refine ((derivation_module.ideal R S • ⊤ : submodule (S ⊗[R] S) (derivation_module.ideal R S))
     .restrict_scalars S).liftq _ _,
@@ -656,7 +659,7 @@ end
 
 @[ext]
 lemma derivation.lift_derivation_module_unique
-  (f f' : Ω[S/R] →ₗ[S] M)
+  (f f' : Ω[S⁄R] →ₗ[S] M)
   (hf : f.comp_der (derivation_module.D R S) =
     f'.comp_der (derivation_module.D R S)) :
   f = f' :=
@@ -696,9 +699,9 @@ begin
   exact ⟨x, derivation_module.D_tensor_product_to x⟩
 end
 
-/-- The `S`-linear maps from `Ω[S/R]` to `M` are (`S`-linearly) equivalent to `R`-derivations
+/-- The `S`-linear maps from `Ω[S⁄R]` to `M` are (`S`-linearly) equivalent to `R`-derivations
 from `S` to `M`.  -/
-def derivation_module.linear_map_equiv_derivation : (Ω[S/R] →ₗ[S] M) ≃ₗ[S] derivation R S M :=
+def derivation_module.linear_map_equiv_derivation : (Ω[S⁄R] →ₗ[S] M) ≃ₗ[S] derivation R S M :=
 { inv_fun := derivation.lift_derivation_module,
   left_inv := λ f, derivation.lift_derivation_module_unique _ _
     (derivation.lift_derivation_module_comp _),

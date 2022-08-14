@@ -63,16 +63,18 @@ TODO:
   * `measure_theory.limsup_measure_closed_le_iff_liminf_measure_open_ge` proves the equivalence of
     the limsup condition for closed sets and the liminf condition for open sets for probability
     measures.
-  * `tendsto_measure_of_null_frontier` proves that the liminf condition for open sets (which is
-    equivalent to the limsup condition for closed sets) implies the convergence of probabilities of
-    sets whose boundary carries no probability mass under the limit measure.
-  * `probability_measure.tendsto_measure_of_null_frontier_of_tendsto` is a combination of earlier
-    implications, which shows that weak convergence of probability measures implies the convergence
-    of probabilities of sets whose boundary carries no probability mass under the limit measure.
+  * `measure_theory.tendsto_measure_of_null_frontier` proves that the liminf condition for open
+    sets (which is equivalent to the limsup condition for closed sets) implies the convergence of
+    probabilities of sets whose boundary carries no probability mass under the limit measure.
+  * `measure_theory.probability_measure.tendsto_measure_of_null_frontier_of_tendsto` is a
+    combination of earlier implications, which shows that weak convergence of probability measures
+    implies the convergence of probabilities of sets whose boundary carries no probability mass
+    under the limit measure.
   * Prove the rest of the implications.
-    (Where formulations are only provided for probability measures, one can obtain the finite
-    measure formulations using the characterization of convergence of finite measures by their
-    their total masses and their probability-normalized versions.)
+    (Where formulations are currently only provided for probability measures, one can obtain the
+    finite measure formulations using the characterization of convergence of finite measures by
+    their total masses and their probability-normalized versions, i.e., by
+    `measure_theory.finite_measure.tendsto_normalize_iff_tendsto`.)
 
 ## Notations
 
@@ -1143,7 +1145,20 @@ end
 
 end limsup_closed_le_and_le_liminf_open -- section
 
-section le_limsup_open_implies_tendsto_borel
+section tendsto_of_null_frontier
+/-! ### Portmanteau: limit of measures of Borel sets whose boundary carries no mass in the limit
+
+In this section we prove that for a sequence of Borel probability measures on a topological space
+and its candidate limit measure, either of the following equivalent conditions:
+  (C) For any closed set `F` in `α` the limsup of the measures of `F` is at most the limit
+      measure of `F`
+  (O) For any open set `G` in `α` the liminf of the measures of `G` is at least the limit
+      measure of `G`
+implies that
+  (B) For any Borel set `E` in `α` whose boundary `∂E` carries no mass under the candidate limit
+      measure, we have that the limit of measures of `E` is the measure of `E` under the
+      candidate limit measure.
+-/
 
 variables {α : Type*} [measurable_space α]
 
@@ -1197,7 +1212,7 @@ begin
         (h_opens _ is_open_interior) (h_closeds _ is_closed_closure),
 end
 
-end le_limsup_open_implies_tendsto_borel --section
+end tendsto_of_null_frontier --section
 
 section convergence_implies_limsup_closed_le
 /-! ### Portmanteau implication: weak convergence implies a limsup condition for closed sets
@@ -1207,6 +1222,10 @@ pseudo-emetrizable, that the weak convergence of measures on `measure_theory.fin
 implies that for any closed set `F` in `α` the limsup of the measures of `F` is at most the
 limit measure of `F`. This is one implication of the portmanteau theorem characterizing weak
 convergence of measures.
+
+Combining with an earlier implication we also get that weak convergence implies that for any Borel
+set `E` in `α` whose boundary `∂E` carries no mass under the limit measure, the limit of measures
+of `E` is the measure of `E` under the limit measure.
 -/
 
 variables {α : Type*} [measurable_space α]

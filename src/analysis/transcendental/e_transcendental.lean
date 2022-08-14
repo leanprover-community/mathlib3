@@ -1153,35 +1153,6 @@ begin
   simpa [polynomial.ext_iff],
 end
 
-section
-open polynomial
-@[simp]
-lemma expand_aeval {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  (p : ℕ) (P : R[X]) (r : A) :
-  aeval r (expand R p P) = aeval (r ^ p) P :=
-begin
-  refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
-  rw [alg_hom.map_add, aeval_add, aeval_add, hf, hg]
-end
-end
-
-theorem is_algebraic_of_pow
-  {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r ^ n)) :
-  is_algebraic R r :=
-begin
-  obtain ⟨p, p_nonzero, hp⟩ := ht,
-  refine ⟨polynomial.expand _ n p, _, _⟩,
-  { rwa [ne.def, polynomial.expand_eq_zero hn] },
-  { rwa expand_aeval n p r },
-end
-
-theorem transcendental.pow
-  {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  {r : A} (ht : transcendental R r) {n : ℕ} (hn : 0 < n) :
-  transcendental R (r ^ n) :=
-λ ht', ht $ is_algebraic_of_pow hn ht'
-
 theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=
 e_transcendental.pow hn
 

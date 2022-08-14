@@ -322,11 +322,8 @@ begin
   have f_smon : strict_mono f,
   { intros a b hab,
     let e := real.sqrt (b - a),
-    have fenz : f e ≠ 0,
-    { have f_inj : function.injective f := ring_hom.injective f,
-      rw map_ne_zero_iff _ f_inj,
-      rw real.sqrt_ne_zero',
-      linarith, },
+    have fenz : f e ≠ 0 :=
+      by rwa [map_ne_zero_iff _ (ring_hom.injective f), real.sqrt_ne_zero', sub_pos],
     have : f b - f a > 0,
     { calc
         f b - f a = f (b - a)   : (ring_hom.map_sub _ _ _).symm
@@ -342,5 +339,3 @@ begin
 end
 
 end real
-
-#lint

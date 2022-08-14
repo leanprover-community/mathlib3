@@ -181,11 +181,14 @@ variables (K L M)
 include hL
 open subalgebra alg_hom function
 
+section
+local attribute [-instance] is_localization.alg_hom_subsingleton
 /-- This structure is used to prove the existence of a homomorphism from any algebraic extension
 into an algebraic closure -/
 structure subfield_with_hom :=
 (carrier : subalgebra K L)
 (emb : carrier →ₐ[K] M)
+end
 
 variables {K L M hL}
 

@@ -746,11 +746,7 @@ instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
       { exact (surjective_quot_mk _).prod_map (surjective_quot_mk _) } },
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
-  continuous_inv := begin
-    have : continuous ((coe : G → G ⧸ N) ∘ (λ (a : G), a⁻¹)) :=
-      continuous_quot_mk.comp continuous_inv,
-    convert continuous_quotient_lift _ this,
-  end }
+  continuous_inv := by convert (@continuous_inv G _ _ _).quotient_map' _ }
 
 end quotient_topological_group
 
@@ -1144,19 +1140,14 @@ variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G
 
 @[to_additive]
 instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=
-{ continuous_const_smul := λ g₀, begin
-    apply continuous_coinduced_dom.2,
-    change continuous (λ g : G, quotient_group.mk (g₀ * g)),
-    exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
-  end }
+{ continuous_const_smul := λ g,
+    by convert ((@continuous_const _ _ _ _ g).mul continuous_id).quotient_map' _ }
 
 @[to_additive]
 lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
 begin
-  obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
-  { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
-  change continuous (λ g, quotient_group.mk (g * g₀)),
-  exact continuous_coinduced_rng.comp (continuous_mul_right g₀)
+  induction x using quotient_group.induction_on,
+  exact continuous_quotient_mk.comp (continuous_mul_right x)
 end
 
 @[to_additive]

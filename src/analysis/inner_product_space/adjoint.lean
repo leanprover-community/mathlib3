@@ -378,7 +378,7 @@ end
 
 lemma _root_.continuous_linear_map.is_self_adjoint_iff_is_symmetric {A : E →L[𝕜] E} :
   is_self_adjoint A ↔ (A : E →ₗ[𝕜] E).is_symmetric :=
-⟨λ hA, hA.is_symmetric, λ hA, ext $ λ x, inner_product_space.ext_inner_right 𝕜 $
+⟨λ hA, hA.is_symmetric, λ hA, ext $ λ x, ext_inner_right 𝕜 $
   λ y, (A.adjoint_inner_left y x).symm ▸ (hA x y).symm⟩
 
 lemma _root_.linear_map.is_symmetric.is_self_adjoint {A : E →L[𝕜] E}

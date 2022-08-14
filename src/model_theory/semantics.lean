@@ -441,7 +441,7 @@ lemma realize_constants_vars_equiv [L[[α]].Structure M]
   (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize v xs :=
 begin
   refine realize_map_term_rel_id (λ n t xs, realize_constants_vars_equiv_left) (λ n R xs, _),
-  rw ← (Lhom_with_constants L α).map_on_relation M (equiv.sum_empty (L.relations n)
+  rw ← (Lhom_with_constants L α).map_on_relation (equiv.sum_empty (L.relations n)
     ((constants_on α).relations n) R) xs,
   rcongr,
   cases R,

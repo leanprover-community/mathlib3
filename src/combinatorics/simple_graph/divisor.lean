@@ -5,6 +5,8 @@ Authors: Yaël Dillies
 -/
 import combinatorics.simple_graph.connectivity
 import combinatorics.simple_graph.degree_sum
+import combinatorics.simple_graph.matrix.laplacian
+import linear_algebra.matrix.to_linear_equiv
 
 /-!
 # Divisors of simple graphs
@@ -60,73 +62,83 @@ def injective.map [preorder α] (f : α → β) (hf : surjective f) : preorder �
 
 end function
 
+namespace add_con
+variables {G : Type*}
+
+instance [add_monoid_with_one G] (c : add_con G) : has_one c.quotient := ⟨(1 : G)⟩
+instance [add_monoid_with_one G] (c : add_con G) : has_nat_cast c.quotient :=
+⟨λ n, ((n : G) : c.quotient)⟩
+instance [add_group_with_one G] (c : add_con G) : has_int_cast c.quotient :=
+⟨λ n, ((n : G) : c.quotient)⟩
+
+instance add_monoid_with_one [add_monoid_with_one G] (c : add_con G) :
+  add_monoid_with_one c.quotient :=
+function.surjective.add_monoid_with_one _ quotient.surjective_quotient_mk' rfl rfl (λ _ _, rfl)
+  (λ _ _, rfl)  (λ _, rfl)
+
+instance add_comm_monoid_with_one [add_comm_monoid_with_one G] (c : add_con G) :
+  add_comm_monoid_with_one c.quotient :=
+function.surjective.add_comm_monoid_with_one _ quotient.surjective_quotient_mk' rfl rfl (λ _ _, rfl)
+  (λ _ _, rfl)  (λ _, rfl)
+
+instance add_group_with_one [add_group_with_one G] (c : add_con G) :
+  add_group_with_one c.quotient :=
+function.surjective.add_group_with_one _ quotient.surjective_quotient_mk' rfl rfl (λ _ _, rfl)
+  (λ _, rfl)  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+
+instance add_comm_group_with_one [add_comm_group_with_one G] (c : add_con G) :
+  add_comm_group_with_one c.quotient :=
+function.surjective.add_comm_group_with_one _ quotient.surjective_quotient_mk' rfl rfl (λ _ _, rfl)
+  (λ _, rfl)  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+
+end add_con
+
+namespace quotient_add_group
+variables {G : Type*}
+
+instance add_group_with_one [add_group_with_one G] (N : add_subgroup G) [add_subgroup.normal N] :
+  add_group_with_one (G ⧸ N) :=
+(quotient_add_group.con N).add_group_with_one
+
+instance add_comm_group_with_one [add_comm_group_with_one G] (N : add_subgroup G)
+  [add_subgroup.normal N] :
+  add_comm_group_with_one (G ⧸ N) :=
+(quotient_add_group.con N).add_comm_group_with_one
+
+end quotient_add_group
+
+namespace submodule.quotient
+variables {R M : Type*} [ring R]
+
+instance add_comm_group_with_one [add_comm_group_with_one M] [module R M] (p : submodule R M) :
+  add_comm_group_with_one (M ⧸ p) :=
+quotient_add_group.add_comm_group_with_one p.to_add_subgroup
+
+end submodule.quotient
+
 open finset function fintype (card)
 open_locale big_operators
+
+noncomputable theory
 
 namespace simple_graph
 variables {α : Type*} [decidable_eq α] [fintype α] (G : simple_graph α) [decidable_rel G.adj]
 
-/-- Linear equivalence of divisors. -/
-inductive divisor_rel : (α → ℤ) → (α → ℤ) → Prop
-| intro (a : α) (x : α → ℤ) :  divisor_rel x $ λ b,
-  if a = b
-    then x b - G.degree a
-  else if G.adj a b
-    then x b + 1
-    else x b
-
 /-- A *divisor* of the graph `G` is an equivalence class of formal sums of vertices of `G` under
 linear equivalence. This is also known as the Picard group. -/
-def divisor : Type* := quot $ divisor_rel G
+@[derive add_comm_group_with_one]
+def divisor : Type* :=
+(α → ℤ) ⧸ (matrix.to_lin (pi.basis_fun ℤ _) (pi.basis_fun ℤ _) $ G.laplacian ℤ).ker
 
 variables {G}
-
-namespace divisor_rel
-variables {x y z : α → ℤ}
-
-lemma add_left : ∀ ⦃x y z : α → ℤ⦄, G.divisor_rel y z → G.divisor_rel (x + y) (x + z)
-| x _ _ (intro a y) :=
-  by { convert intro a (x + y), swap, apply_instance, ext b, dsimp, split_ifs; abel }
-
-lemma add_right : ∀ ⦃x y z : α → ℤ⦄, G.divisor_rel x y → G.divisor_rel (x + z) (y + z)
-| _ _ y (intro a x) :=
-  by { convert intro a (x + y), swap, apply_instance, ext b, dsimp, split_ifs; abel }
-
-lemma neg : ∀ ⦃x y : α → ℤ⦄, G.divisor_rel x y → G.divisor_rel (-x) (-y)
-| _ y (intro a x) := sorry -- currently false
-
-lemma sub_left : ∀ ⦃x y z : α → ℤ⦄, G.divisor_rel y z → G.divisor_rel (x - y) (x - z)
-| x _ _ (intro a y) := sorry -- currently false
-
-lemma sub_right : ∀ ⦃x y z : α → ℤ⦄, G.divisor_rel x y → G.divisor_rel (x - z) (y - z)
-| _ _ y (intro a x) :=
-  by { convert intro a (x - y), swap, apply_instance, ext b, dsimp, split_ifs; abel }
-
-lemma nsmul (n : ℕ) : ∀ ⦃x y : α → ℤ⦄, G.divisor_rel x y → G.divisor_rel (n • x) (n • y)
-| x _ (intro a y) := sorry -- currently false
-
-lemma zsmul (n : ℤ) : ∀ ⦃x y : α → ℤ⦄, G.divisor_rel x y → G.divisor_rel (n • x) (n • y)
-| _ y (intro a x) := sorry -- currently false
-
-end divisor_rel
 
 namespace divisor
 variables {f g : α → ℤ} {d e : G.divisor}
 
 /-- The divisor corresponding to a formal sum. -/
-def mk : (α → ℤ) → G.divisor := quot.mk _
+def mk : (α → ℤ) →+ G.divisor := quotient_add_group.mk' _
 
 lemma mk_surjective : surjective (mk : (α → ℤ) → G.divisor) := surjective_quot_mk _
-
-instance : has_zero G.divisor := ⟨mk 0⟩
-instance : has_one G.divisor := ⟨mk 1⟩
-instance : has_neg G.divisor := ⟨quot.map _ divisor_rel.neg⟩
-instance : has_add G.divisor := ⟨quot.map₂ _ divisor_rel.add_left divisor_rel.add_right⟩
-instance : has_sub G.divisor := ⟨quot.map₂ _ divisor_rel.sub_left divisor_rel.sub_right⟩
-instance has_nsmul : has_smul ℕ G.divisor := ⟨λ n, quot.map _ $ divisor_rel.nsmul n⟩
-instance has_zsmul : has_smul ℤ G.divisor := ⟨λ n, quot.map _ $ divisor_rel.zsmul n⟩
-instance : has_nat_cast G.divisor := ⟨λ n, mk n⟩
-instance : has_int_cast G.divisor := ⟨λ n, mk n⟩
 
 @[simp] lemma mk_zero : (mk 0 : G.divisor) = 0 := rfl
 @[simp] lemma mk_one : (mk 1 : G.divisor) = 1 := rfl
@@ -138,24 +150,17 @@ instance : has_int_cast G.divisor := ⟨λ n, mk n⟩
 @[simp] lemma mk_nat_cast (n : ℕ) : (mk n : G.divisor) = n := rfl
 @[simp] lemma mk_int_cast (n : ℤ) : (mk n : G.divisor) = n := rfl
 
-instance : add_comm_group_with_one G.divisor :=
-mk_surjective.add_comm_group_with_one _ mk_zero mk_one mk_add_mk neg_mk mk_sub_mk mk_nsmul mk_zsmul
-  mk_nat_cast mk_int_cast
-
 /-- The degree of a divisor is the sum of its coefficients. -/
-def degree : G.divisor → ℤ := quot.lift (λ f : α → ℤ, ∑ a, f a) $ begin
-  rintro f g ⟨a, x⟩,
-  clear a, -- Why is this hypothesis still around, with a non-autogenerated name?
-  refine (eq_of_sub_eq_zero _).symm,
-  rw ←sum_sub_distrib,
-  transitivity ∑ b, if a = b then -(G.degree a : ℤ) else if G.adj a b then 1 else 0,
-  { congr' with b,
-    split_ifs; abel },
-  simp_rw [sum_ite, filter_eq, if_pos (mem_univ a), sum_singleton, sum_const_zero, sum_const,
-    nat.smul_one_eq_coe, add_zero, filter_filter, degree, neg_add_eq_sub, sub_eq_zero],
-  congr',
-  ext b,
-  simpa using adj.ne,
+def degree : G.divisor →+ ℤ := quotient_add_group.lift _
+{ to_fun := λ f : α → ℤ, ∑ a, f a,
+  map_zero' := sum_eq_zero $ λ _ _, rfl,
+  map_add' := λ f g, sum_add_distrib } $ begin
+  rintro f hf,
+  simp only [submodule.mem_to_add_subgroup, linear_map.mem_ker, matrix.to_lin, linear_map.to_matrix] at hf,
+  simp only [linear_equiv.trans_symm, linear_map.to_matrix'_symm, linear_equiv.trans_apply,
+    linear_equiv.arrow_congr_symm_apply, basis.equiv_fun_apply, matrix.to_lin'_apply,
+    basis.equiv_fun_symm_apply, pi.basis_fun_apply, zsmul_eq_mul] at hf,
+  sorry
 end
 
 @[simp] lemma degree_mk (f : α → ℤ) : (mk f : G.divisor).degree = ∑ a, f a := rfl
@@ -191,27 +196,14 @@ instance : preorder G.divisor :=
 lemma degree_mono : monotone (degree : G.divisor → ℤ) := λ _ _, degree_le_degree
 lemma degree_strict_mono : strict_mono (degree : G.divisor → ℤ) := λ _ _, degree_lt_degree
 
-@[simp] lemma degree_zero : (0 : G.divisor).degree = 0 := sum_eq_zero $ λ _ _, rfl
 @[simp] lemma degree_one : (1 : G.divisor).degree = card α :=
 (sum_const 1).trans $ nat.smul_one_eq_coe _
-
-@[simp] lemma degree_add : ∀ d e : G.divisor, (d + e).degree = d.degree + e.degree :=
-mk_surjective.forall₂.2 $ λ f g, sum_add_distrib
-
-@[simp] lemma degree_sub : ∀ d e : G.divisor, (d - e).degree = d.degree - e.degree :=
-mk_surjective.forall₂.2 $ λ f g, sum_sub_distrib
 
 @[simp] lemma degree_nat_cast (n : ℕ) : (n : G.divisor).degree = card α * n :=
 (sum_const (n : ℤ)).trans $ nsmul_eq_mul _ _
 
 @[simp] lemma degree_int_cast (n : ℤ) : (n : G.divisor).degree = card α * n :=
 (sum_const n).trans $ nsmul_eq_mul _ _
-
-@[simp] lemma degree_nsmul (n : ℕ) : ∀ f : G.divisor, (n • f).degree = n • f.degree :=
-mk_surjective.forall.2 $ λ f, sum_nsmul _ _ _
-
-@[simp] lemma degree_zsmul (n : ℤ) : ∀ f : G.divisor, (n • f).degree = n • f.degree :=
-mk_surjective.forall.2 $ λ f, sum_zsmul _ _ _
 
 /-- The rank of a divisor `d` is the greatest `n` such that all divisors of degree `n` are less than
 `d`. -/

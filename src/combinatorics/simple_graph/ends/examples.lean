@@ -106,20 +106,35 @@ lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
 
 lemma ends_nat : (Ends gℕ gℕpc) ≃ unit :=
 begin
-  haveI all_fin : ∀ K : finset ℕ, fintype (inf_ro_components gℕ K),
-    from λ K, inf_components_finite' gℕ gℕpc K,
 
-  /-
-  This is copied from the `prod` lemma below, which is proof that I'm not having the best
-  approach towards single-endedness.
-  Ideally we'd state: if there exists some N such that all inf_ro_components have card N, then
-  so does `ends`, but this requires first saying that `ends` is infinite, and it gets a bit ugly.
-  Please help me
-  -/
-  suffices : ∀ K : finset ℕ, fintype.card (inf_ro_components gℕ K) = 1,
-  { have that := inverse_system.sections_bijective (ComplInfComp gℕ gℕpc) ∅ (λ L _, (this ∅).trans (this L).symm),
-    refine (equiv.of_bijective _ that).trans (equiv_true_of (inf_ro_components gℕ ∅) _),
-    exact (fintype.card_eq_one_iff.mp (this ∅)),},
+
+  suffices H : ∀ K : finset ℕ, ∃ D : set ℕ, disjoint D K ∧ subconnected gℕ D ∧ D.infinite ∧ (D ᶜ).finite,
+  {
+    obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
+    have : (ComplInfComp gℕ gℕpc).obj ∅ ≃ unit, from
+    cofinite_inf_ro_component_equiv'' gℕ gℕpc ∅ _ dis conn inf cof,
+    transitivity, exact (Ends_equiv_Endsinfty gℕ gℕpc),
+    transitivity, rotate, exact this,
+
+
+    -- Shitty unneeded instance that we should remove in the assumptions of
+    -- `Endsinfty_eventually constant`
+    haveI : ∀ (L : finset ℕ), nonempty ((ComplComp gℕ gℕpc).obj L), by {
+      rintro L,
+      obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
+      let C := (ro_component.of_subconnected_disjoint gℕ L (H L).some (set.infinite.nonempty inf) dis conn).some,
+      obtain ⟨Ccomp,DC⟩ := (ro_component.of_subconnected_disjoint gℕ L (H L).some (set.infinite.nonempty inf) dis conn).some_spec,
+      apply nonempty.intro,
+      exact ⟨C,Ccomp⟩,
+    },
+
+    apply @Endsinfty_eventually_constant _ _ gℕ gℕpc _ _ ∅,
+    rintro L LL,
+    transitivity, rotate, exact this.symm,
+    obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
+    exact cofinite_inf_ro_component_equiv'' gℕ gℕpc L _ dis conn inf cof,
+  },
+
 
   intro K,
   have : ∃ m : ℕ, ∀ k ∈ K, m ≥ k, by
@@ -136,17 +151,9 @@ begin
   let L := {n : ℕ | n > m },
   have Ldis : disjoint L K, by sorry,
   have Linf : L.infinite, by sorry,
+  have Lcof : (L ᶜ).finite, by sorry,
   have Lconn := gt_subconnected m,
-  let C := (ro_component.of_subconnected_disjoint gℕ K L (set.infinite.nonempty Linf) Ldis Lconn).some,
-  obtain ⟨Ccomp,LC⟩ := (ro_component.of_subconnected_disjoint gℕ K L (set.infinite.nonempty Linf) Ldis Lconn).some_spec,
-  have Cinf := set.infinite.mono LC Linf,
-  have Ccof : (C ᶜ).finite := by { sorry },
-
-  have lol := ro_component.cofinite_inf_ro_component_is_univ gℕ gℕpc K ⟨C,Ccomp,Cinf⟩ Ccof,
-  have lol2 := (equiv.set.univ ↥(inf_ro_components gℕ K)),
-  rw lol at lol2,
-  sorry,
-  -- It's too painful!
+  use [L,Ldis,Lconn,Linf,Lcof],
 end
 
 end nat

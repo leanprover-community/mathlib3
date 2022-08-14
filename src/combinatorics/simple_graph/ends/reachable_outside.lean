@@ -96,6 +96,12 @@ def ro_components (K : finset V) : set (set V) := {C : set V | ∃ x ∈ C, C = 
 def inf_ro_components (K : finset V) := {C : set V | C ∈ ro_components G K ∧ C.infinite}
 def fin_ro_components (K : finset V) := {C : set V | C ∈ ro_components G K ∧ C.finite}
 
+lemma inf_ro_components_equiv (K : finset V) : inf_ro_components G K ≃ {C : ro_components G K | C.val.infinite } :=
+begin
+  simp,
+  sorry, -- There is probably a lemma on subtypes for this
+end
+
 
 namespace ro_component
 
@@ -625,7 +631,7 @@ begin
       rintro C' ⟨C'comp,C'fin⟩,
       have : C' ≠ C, by { rintros rfl, exact Cinf C'fin, },
       exact Cdisall C' C'comp this,
-    
+
     },
     obtain ⟨D,Dcomp,CsubD⟩ := of_subconnected_disjoint G L C (Cinf.nonempty) CdisL Cconn,
     suffices : D ⊆ C,
@@ -813,14 +819,31 @@ end
 
 lemma cofinite_inf_ro_component_equiv [locally_finite G]
   (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K)
-  (cof : (C.val ᶜ).finite ) : subtype (inf_ro_components G K) ≃ true :=
+  (cof : (C.val ᶜ).finite ) : ↥(inf_ro_components G K) ≃ unit :=
 begin
-  have lol := cofinite_inf_ro_component_is_univ G Gpc K C cof,
-  have lol2 := equiv.set.univ ↥(inf_ro_components G K),
-  rw lol at lol2,
-  have lol3 := equiv_true_of_singleton C,
-  simp at *,
-  sorry,
+  apply (equiv.set.univ (subtype (inf_ro_components G K))).symm.trans,
+  rw cofinite_inf_ro_component_is_univ G Gpc K C cof,
+  exact equiv.equiv_punit ↥{C},
+end
+
+lemma cofinite_inf_ro_component_equiv' [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (C : { C : ro_components G K | C.val.infinite})
+  (cof : (C.val.val ᶜ).finite ) : {C : ro_components G K | C.val.infinite } ≃ unit :=
+begin
+  exact (inf_ro_components_equiv G K).symm.trans (cofinite_inf_ro_component_equiv G Gpc K ⟨C.val.val,⟨C.val.prop,C.prop⟩⟩ cof),
+end
+
+lemma cofinite_inf_ro_component_equiv'' [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V)
+  (D : set V) (Ddis : disjoint D K) (Dconn : subconnected G D) (Dinf : D.infinite) (Dcof : (D ᶜ).finite ) :
+  {C : ro_components G K | C.val.infinite } ≃ unit :=
+begin
+  let C := (ro_component.of_subconnected_disjoint G K D (set.infinite.nonempty Dinf) Ddis Dconn).some,
+  obtain ⟨Ccomp,DC⟩ := (ro_component.of_subconnected_disjoint G K D (set.infinite.nonempty Dinf) Ddis Dconn).some_spec,
+  have Cinf := set.infinite.mono DC Dinf,
+  have Ccof : (C ᶜ).finite := by sorry,
+
+  exact cofinite_inf_ro_component_equiv' G Gpc K ⟨⟨C,Ccomp⟩,Cinf⟩ Ccof,
 end
 
 

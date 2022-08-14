@@ -21,6 +21,8 @@ Usual examples of the second construction include :
   Von Neuman bounded subsets of `E`
 - the weak-* topology on the dual of a TVS `E`, when `𝔖` is the set of singletons of `E`.
 
+This file contains a lot of technical facts, so it is heavily commented, proofs included!
+
 ## Main definitions
 
 * `uniform_convergence.gen`: basis sets for the uniformity of uniform convergence. These are sets
@@ -43,24 +45,72 @@ Usual examples of the second construction include :
   `β` is T2.
 * `uniform_convergence.tendsto_iff_tendsto_uniformly`: `𝒰(α, β, uβ)` is
   indeed the uniform structure of uniform convergence
-* `uniform_convergence_on.uniform_continuous_eval_of_mem` : evaluation at a point contained in a
+* `uniform_convergence_on.uniform_continuous_eval_of_mem`: evaluation at a point contained in a
   set of `𝔖` is uniformly continuous for `𝒱(α, β, 𝔖 uβ)`
 * `uniform_convergence.t2_space`: the topology of `𝔖`-convergence on `α → β` is T2 if
   `β` is T2 and `𝔖` covers `α`
 * `uniform_convergence_on.tendsto_iff_tendsto_uniformly_on`:
   `𝒱(α, β, 𝔖 uβ)` is indeed the uniform structure of `𝔖`-convergence
 
-### Functoriality and compatibility with infimas of `uniform_space`
+### Functoriality and compatibility with product of uniform spaces
 
-TODO
+In order to avoid the need for filter bases as much as possible when using these definitions,
+we develop an extensive API for manipulating these structures abstractly. As usual in the topology
+section of mathlib, we first state results about the complete lattices of `uniform_space`s on
+fixed types, and then we use these to deduce categorical-like results about maps between two
+uniform spaces.
 
-The following statements are useful to avoid having to go back to filter bases when proving results
-about the topology of uniform convergence and its special cases. We use a nice trick to get
-these results without having to
+We only describe these in the harder case of `𝔖`-convergence, as the names of the corresponding
+results for uniform convergence can easily be guessed.
 
-For example, when defining the
-strong topology on continuous linear maps, we will get for free that the (topological) transpose
-of a continuous linear map is continuous.
+#### Order statements
+
+* `uniform_convergence_on.mono`: let `u₁`, `u₂` be two uniform structures on `γ` and
+  `𝔖₁ 𝔖₂ : set (set α)`. If `u₁ ≤ u₂` and `𝔖₂ ⊆ 𝔖₁` then `𝒱(α, γ, 𝔖₁, u₁) ≤ 𝒱(α, γ, 𝔖₂, u₂)`.
+* `uniform_convergence_on.infi_eq`: if `u` is a family of uniform structures on `γ`, then
+  `𝒱(α, γ, 𝔖, (⨅ i, u i)) = ⨅ i, 𝒱(α, γ, 𝔖, u i)`.
+* `uniform_convergence_on.comap_eq`: if `u` is a uniform structures on `β` and `f : γ → β`, then
+  `𝒱(α, γ, 𝔖, comap f u) = comap (λ g, f ∘ g) 𝒱(α, γ, 𝔖, u₁)`.
+
+An interesting note about these statements is that they are proved without ever unfolding the basis
+definition of the uniform structure of uniform convergence! Instead, we build a
+(not very interesting) Galois connection `uniform_convergence.gc` and then rely on the Galois
+connection API to do most of the work.
+
+#### Morphism statements (unbundled)
+
+* `uniform_convergence_on.postcomp_uniform_continuous`: if `f : (γ, uγ) → (β, uβ)` is uniformly
+  continuous, then `(λ g, f ∘ g) : (α → γ, 𝒱(α, γ, 𝔖, uγ)) → (α → β, 𝒱(α, β, 𝔖, uβ))` is
+  uniformly continuous.
+* `uniform_convergence_on.postcomp_uniform_inducing`: if `f : (γ, uγ) → (β, uβ)` is a uniform
+  inducing, then `(λ g, f ∘ g) : (α → γ, 𝒱(α, γ, 𝔖, uγ)) → (α → β, 𝒱(α, β, 𝔖, uβ))` is a
+  uniform inducing.
+* `uniform_convergence_on.precomp_uniform_continuous`: let `f : γ → α`, `𝔖 : set (set α)`,
+  `𝔗 : set (set γ)`, and assume that `∀ T ∈ 𝔗, f '' T ∈ 𝔖`. Then, the function
+  `(λ g, g ∘ f) : (α → β, 𝒱(α, β, 𝔖, uβ)) → (γ → β, 𝒱(γ, β, 𝔗 uβ))` is uniformly continuous.
+
+#### Isomorphism statements (bundled)
+
+* `uniform_convergence_on.congr_right`: turn a uniform isomorphism `(γ, uγ) ≃ᵤ (β, uβ)` into a
+  uniform isomorphism `(α → γ, 𝒱(α, γ, 𝔖, uγ)) ≃ᵤ (α → β, 𝒱(α, β, 𝔖, uβ))` by post-composing.
+* `uniform_convergence_on.congr_left`: turn a bijection `e : γ ≃ α` such that we have both
+  `∀ T ∈ 𝔗, e '' T ∈ 𝔖` and `∀ S ∈ 𝔖, e ⁻¹' S ∈ 𝔗` into a uniform isomorphism
+  `(γ → β, 𝒰(γ, β, uβ)) ≃ᵤ (α → β, 𝒰(α, β, uβ))` by pre-composing.
+* `uniform_convergence_on.uniform_equiv_Pi_comm`: the natural bijection between `α → Π i, δ i`
+  and `Π i, α → δ i`, upgraded to a uniform isomorphism between
+  `(α → (Π i, δ i), 𝒱(α, (Π i, δ i), 𝔖, (Π i, uδ i)))` and
+  `((Π i, α → δ i), (Π i, 𝒱(α, δ i, 𝔖, uδ i)))`.
+
+#### Important use cases
+
+* If `(G, uG)` is a uniform group, then `(α → G, 𝒱(α, G, 𝔖, uG))` is a uniform group: since
+  `(/) : G × G → G` is uniformly continuous, `uniform_convergence_on.postcomp_uniform_continuous`
+  tells us that `((/) ∘ —) : (α → G × G) → (α → G)` is uniformly. By precomposing with
+  `uniform_convergence_on.uniform_equiv_prod_arrow`, this gives that
+  `(/) : (α → G) × (α → G) → (α → G)` is also uniformly continuous
+* The transpose of a continuous linear map is continuous for the strong topologies: since
+  continuous linear maps are uniformly continuous and map bounded sets to bounded sets,
+  this is just a special case of `uniform_convergence_on.precomp_uniform_continuous`.
 
 ## Implementation details
 
@@ -276,6 +326,24 @@ calc 𝒰(α, γ, _)
       uniform_convergence.mono (uniform_continuous_iff.mp hf)
 ... = (𝒰(α, β, _)).comap ((∘) f) :
       uniform_convergence.comap_eq
+
+/-- Post-composition by a uniform inducing is a uniform inducing for the
+uniform structures of uniform convergence.
+
+More precisely, if `f : (γ, uγ) → (β, uβ)` is a uniform inducing, then
+`(λ g, f ∘ g) : (α → γ, 𝒰(α, γ, uγ)) → (α → β, 𝒰(α, β, uβ))` is a uniform inducing. -/
+protected lemma postcomp_uniform_inducing [uniform_space γ] {f : γ → β}
+  (hf : uniform_inducing f):
+  uniform_inducing ((∘) f : (α → γ) → α → β) :=
+-- This is a direct consequence of `uniform_convergence.comap_eq`
+begin
+  split,
+  replace hf : (𝓤 β).comap (prod.map f f) = _ := hf.comap_uniformity,
+  change comap (prod.map ((∘) f) ((∘) f)) _ = _,
+  rw [← uniformity_comap rfl] at ⊢ hf,
+  congr,
+  rw [← uniform_space_eq hf, uniform_convergence.comap_eq]
+end
 
 /-- Turn a uniform isomorphism `(γ, uγ) ≃ᵤ (β, uβ)` into a uniform isomorphism
 `(α → γ, 𝒰(α, γ, uγ)) ≃ᵤ (α → β, 𝒰(α, β, uβ))` by post-composing. -/
@@ -522,6 +590,24 @@ begin
         uniform_convergence_on.comap_eq
 end
 
+/-- Post-composition by a uniform inducing is a uniform inducing for the
+uniform structures of `𝔖`-convergence.
+
+More precisely, if `f : (γ, uγ) → (β, uβ)` is a uniform inducing, then
+`(λ g, f ∘ g) : (α → γ, 𝒱(α, γ, 𝔖, uγ)) → (α → β, 𝒱(α, β, 𝔖, uβ))` is a uniform inducing. -/
+protected lemma postcomp_uniform_inducing [uniform_space γ] {f : γ → β}
+  (hf : uniform_inducing f):
+  @uniform_inducing (α → γ) (α → β) 𝒱(α, γ, 𝔖, _) 𝒱(α, β, 𝔖, _) ((∘) f) :=
+-- This is a direct consequence of `uniform_convergence.comap_eq`
+begin
+  split,
+  replace hf : (𝓤 β).comap (prod.map f f) = _ := hf.comap_uniformity,
+  change comap (prod.map ((∘) f) ((∘) f)) _ = _,
+  rw [← uniformity_comap rfl] at ⊢ hf,
+  congr,
+  rw [← uniform_space_eq hf, uniform_convergence_on.comap_eq]
+end
+
 /-- Turn a uniform isomorphism `(γ, uγ) ≃ᵤ (β, uβ)` into a uniform isomorphism
 `(α → γ, 𝒱(α, γ, 𝔖, uγ)) ≃ᵤ (α → β, 𝒱(α, β, 𝔖, uβ))` by post-composing. -/
 protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
@@ -567,6 +653,25 @@ begin
   rw ← uniform_continuous_iff,
   exact uniform_convergence.precomp_uniform_continuous
 end
+
+/-- Turn a bijection `e : γ ≃ α` such that we have both `∀ T ∈ 𝔗, e '' T ∈ 𝔖` and
+`∀ S ∈ 𝔖, e ⁻¹' S ∈ 𝔗` into a uniform isomorphism `(γ → β, 𝒰(γ, β, uβ)) ≃ᵤ (α → β, 𝒰(α, β, uβ))`
+by pre-composing. -/
+protected def congr_left {𝔗 : set (set γ)} (e : γ ≃ α)
+  (he : 𝔗 ⊆ (image e) ⁻¹' 𝔖) (he' : 𝔖 ⊆ (preimage e) ⁻¹' 𝔗) :
+  @uniform_equiv (γ → β) (α → β)
+  𝒱(γ, β, 𝔗, _) 𝒱(α, β, 𝔖, _) :=
+{ uniform_continuous_to_fun :=
+    uniform_convergence_on.precomp_uniform_continuous
+    begin
+      intros s hs,
+      change e.symm '' s ∈ 𝔗,
+      rw ← preimage_equiv_eq_image_symm,
+      exact he' hs
+    end,
+  uniform_continuous_inv_fun :=
+    uniform_convergence_on.precomp_uniform_continuous he,
+  .. equiv.arrow_congr e (equiv.refl _) }
 
 /-- If `𝔖` covers `α`, then the topology of `𝔖`-convergence is T2. -/
 lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :

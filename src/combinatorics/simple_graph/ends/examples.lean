@@ -7,7 +7,7 @@ import data.setoid.partition
 import combinatorics.simple_graph.prod
 import .mathlib
 import .reachable_outside
-import .ends
+import .end_limit_construction
 
 open function
 open finset
@@ -28,15 +28,43 @@ namespace simple_graph
 
 variables  {V : Type u}
            (G : simple_graph V)
+           (Gpc: G.preconnected)
+          [locally_finite G]
            {V' : Type v}
            (G' : simple_graph V')
            {V'' : Type w}
            (G'' : simple_graph V'')
 
+
 namespace ends
 
 open ro_component
 open simple_graph
+
+
+section finite
+
+-- Locally_finite follows from finiteness
+lemma no_end_of_finite_graph  (Gpc: G.preconnected) [locally_finite G] (Vfinite : (@set.univ V).finite) : (Ends G Gpc) ≃ empty :=
+begin
+  transitivity,
+  exact Ends_equiv_Endsinfty G Gpc,
+  apply @equiv.equiv_empty _ _,
+  apply is_empty.mk,
+  rintros ⟨f,f_comm⟩,
+  obtain ⟨⟨C,Ccomp⟩,Cinf⟩ := f (set.finite.to_finset Vfinite),
+  exact Cinf (set.finite.subset Vfinite (set.subset_univ C)),
+end
+
+end finite
+
+
+section infinite
+
+lemma end_of_infinite_graph (Vinf : set.infinite  (@set.univ V)) : (Ends G Gpc).nonempty :=
+  @inverse_system.nonempty_sections_of_fintype_inverse_system' _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc Vinf)
+
+end infinite
 
 
 section nat
@@ -76,7 +104,7 @@ lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
 }
 
 
-lemma ends_nat : (ends gℕ gℕpc) ≃ true :=
+lemma ends_nat : (Ends gℕ gℕpc) ≃ unit :=
 begin
   haveI all_fin : ∀ K : finset ℕ, fintype (inf_ro_components gℕ K),
     from λ K, inf_components_finite' gℕ gℕpc K,
@@ -89,7 +117,7 @@ begin
   Please help me
   -/
   suffices : ∀ K : finset ℕ, fintype.card (inf_ro_components gℕ K) = 1,
-  { have that := eval_bijective' gℕ gℕpc ∅ (λ L _, (this ∅).trans (this L).symm),
+  { have that := inverse_system.sections_bijective (ComplInfComp gℕ gℕpc) ∅ (λ L _, (this ∅).trans (this L).symm),
     refine (equiv.of_bijective _ that).trans (equiv_true_of (inf_ro_components gℕ ∅) _),
     exact (fintype.card_eq_one_iff.mp (this ∅)),},
 

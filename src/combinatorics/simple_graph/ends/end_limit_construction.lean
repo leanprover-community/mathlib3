@@ -102,27 +102,22 @@ instance ComplComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (fin
   use [C,Ccomp],
 }
 
-instance ComplComp_fintype : Π (j : (finset V)), fintype ((ComplComp G Gpc).obj j) := by {
-  intro K,
-  exact (ro_component.finite G Gpc K).fintype,
-}
+instance ComplComp_fintype : Π (j : (finset V)), fintype ((ComplComp G Gpc).obj j) := by
+{ intro K,
+  exact (ro_component.finite G Gpc K).fintype,}
 
-instance ComplInfComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)), nonempty ((ComplInfComp G Gpc).obj j) := by {
-  intro K,
+instance ComplInfComp_nonempty (Vinf : set.infinite (@set.univ V)) :
+  Π (j : (finset V)), nonempty ((ComplInfComp G Gpc).obj j) := by
+{ intro K,
   obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K Vinf,
-  use [C,Ccomp],
-}
+  use [C,Ccomp],}
 
-instance ComplInfComp_fintype : Π (j : (finset V)), fintype ((ComplInfComp G Gpc).obj j) := by {
-  intro K,
+instance ComplInfComp_fintype : Π (j : (finset V)), fintype ((ComplInfComp G Gpc).obj j) := by
+{ intro K,
   haveI := (ro_component.finite G Gpc K).fintype,
   dsimp [ComplInfComp],
-  apply subtype.fintype,
-}
+  apply subtype.fintype,}
 
-
-theorem exists_end_inf_graph (Vinf : set.infinite  (@set.univ V)) : (Ends G Gpc).nonempty :=
-  @inverse_system.nonempty_sections_of_fintype_inverse_system' _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc Vinf)
 
 
 lemma all_empty (Vfin : set.finite (@set.univ V)) : ∀ (K : finset V), is_empty ((ComplInfComp G Gpc).obj K) :=
@@ -151,4 +146,22 @@ begin
   rw inverse_system.is_surjective_iff at this,
   apply inverse_system.sections_surjective,
   rintro i h, exact this i j h,
+end
+
+lemma Endsinfty_eventually_constant
+  [allnempty : Π (j : (finset V)), nonempty ((ComplComp G Gpc).obj j)] -- Could do without this assumption
+  (K : finset V)
+  (top : Π (L : finset V) (KL : L ≤ K), (ComplInfComp G Gpc).obj L ≃ (ComplInfComp G Gpc).obj K) :
+  Endsinfty G Gpc ≃ (ComplInfComp G Gpc).obj K :=
+begin
+  apply equiv.of_bijective _ (inverse_system.sections_bijective (ComplInfComp G Gpc) K _),
+  rintros ⟨L,KL⟩,
+  have sur : function.surjective ((ComplInfComp G Gpc).map (hom_of_le KL)), by {
+    rw (ComplInfComp_eq_ComplComp_to_surjective G Gpc),
+    rintros a,
+    exact (inverse_system.to_surjective.is_surjective (ComplComp G Gpc) L K KL a),
+  },
+  split, rotate,
+  { exact sur },
+  { exact (fintype.injective_iff_surjective_of_equiv (top L KL)).mpr sur },
 end

@@ -138,6 +138,11 @@ end aux_to_matrix
 
 section to_matrix'
 
+/-! ### `to_matrix'` section
+
+This section deals with the conversion between matrices and sesquilinear forms on `n → R₂`.
+-/
+
 section comm_ring
 
 variables [comm_ring R] [comm_ring R₁] [comm_ring R₂]
@@ -147,12 +152,75 @@ variables [decidable_eq n] [decidable_eq m]
 
 variables {σ₁ : R₁ →+* R} {σ₂ : R₂ →+* R}
 
-/-- The linear equivalence between bilinear forms on `n → R` and `n × n` matrices -/
-def linear_map.to_matrix₂' : ((n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) ≃ₗ[R] matrix n m R :=
+/-- The linear equivalence between sesquilinear forms on `n → R` and `n × n` matrices -/
+def linear_map.to_matrixₛₗ₂' : ((n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) ≃ₗ[R] matrix n m R :=
 { inv_fun := matrix.to_linear_map₂'_aux σ₁ σ₂,
   left_inv := linear_map.to_linear_map₂'_aux_to_matrix₂_aux,
   right_inv := matrix.to_matrix₂_aux_to_linear_map₂'_aux,
   ..linear_map.to_matrix₂_aux (λ i, std_basis R₁ (λ _, R₁) i 1) (λ j, std_basis R₂ (λ _, R₂) j 1) }
+
+variables (σ₁ σ₂)
+
+/-- The linear equivalence between `n × n` matrices and sesquilinear forms on `n → R` -/
+def matrix.to_linear_mapₛₗ₂' : matrix n m R ≃ₗ[R] ((n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) :=
+linear_map.to_matrixₛₗ₂'.symm
+
+/-- The linear equivalence between `n × n` matrices and bilinear forms on `n → R` -/
+def matrix.to_linear_map₂' : matrix n m R ≃ₗ[R] ((n → R) →ₗ[R] (m → R) →ₗ[R] R) :=
+linear_map.to_matrixₛₗ₂'.symm
+
+lemma matrix.to_linear_mapₛₗ₂'_aux_eq (M : matrix n m R) :
+  matrix.to_linear_map₂'_aux σ₁ σ₂ M = matrix.to_linear_mapₛₗ₂' σ₁ σ₂ M := rfl
+
+lemma matrix.to_linear_mapₛₗ₂'_apply (M : matrix n m R) (x : n → R₁) (y : m → R₂) :
+  matrix.to_linear_mapₛₗ₂' σ₁ σ₂ M x y = ∑ i j, σ₁ (x i) * M i j * σ₂ (y j) := rfl
+
+lemma matrix.to_linear_map₂'_apply (M : matrix n m R) (x : n → R) (y : m → R) :
+  matrix.to_linear_map₂' M x y = ∑ i j, x i * M i j * y j := rfl
+
+lemma matrix.to_linear_map₂'_apply' (M : matrix n m R) (v : n → R) (w : m → R) :
+  matrix.to_linear_map₂' M v w = matrix.dot_product v (M.mul_vec w) :=
+begin
+  simp_rw [matrix.to_linear_map₂'_apply, matrix.dot_product,
+           matrix.mul_vec, matrix.dot_product],
+  refine finset.sum_congr rfl (λ _ _, _),
+  rw finset.mul_sum,
+  refine finset.sum_congr rfl (λ _ _, _),
+  rw ← mul_assoc,
+end
+
+@[simp] lemma matrix.to_linear_mapₛₗ₂'_std_basis (M : matrix n m R) (i : n) (j : m) :
+  matrix.to_linear_mapₛₗ₂' σ₁ σ₂ M (std_basis R₁ (λ _, R₁) i 1) (std_basis R₂ (λ _, R₂) j 1) =
+    M i j :=
+matrix.to_linear_map₂'_aux_std_basis σ₁ σ₂ M i j
+
+@[simp] lemma matrix.to_linear_map₂'_std_basis (M : matrix n m R) (i : n) (j : m) :
+  matrix.to_linear_map₂' M (std_basis R (λ _, R) i 1) (std_basis R (λ _, R) j 1) =
+    M i j :=
+matrix.to_linear_map₂'_aux_std_basis _ _ M i j
+
+@[simp] lemma linear_map.to_matrixₛₗ₂'_symm :
+  (linear_map.to_matrixₛₗ₂'.symm : matrix n m R ≃ₗ[R] _) = matrix.to_linear_mapₛₗ₂' σ₁ σ₂ :=
+rfl
+
+@[simp] lemma matrix.to_linear_mapₛₗ₂'_symm :
+  ((matrix.to_linear_mapₛₗ₂' σ₁ σ₂).symm : _ ≃ₗ[R] matrix n m R) = linear_map.to_matrixₛₗ₂' :=
+linear_map.to_matrixₛₗ₂'.symm_symm
+
+@[simp] lemma matrix.to_linear_mapₛₗ₂'_to_matrix' (B : (n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) :
+  matrix.to_linear_mapₛₗ₂' σ₁ σ₂ (linear_map.to_matrixₛₗ₂' B) = B :=
+(matrix.to_linear_mapₛₗ₂' σ₁ σ₂).apply_symm_apply B
+
+@[simp] lemma linear_map.to_matrix'_to_bilin' (M : matrix n m R) :
+  linear_map.to_matrixₛₗ₂' (matrix.to_linear_mapₛₗ₂' σ₁ σ₂ M) = M :=
+linear_map.to_matrixₛₗ₂'.apply_symm_apply M
+
+@[simp] lemma bilin_form.to_matrix'_apply (B : (n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) (i : n) (j : m):
+  linear_map.to_matrixₛₗ₂' B i j =
+    B (std_basis R₁ (λ _, R₁) i 1) (std_basis R₂ (λ _, R₂) j 1) :=
+rfl
+
+-- continue at l.178
 
 end comm_ring
 

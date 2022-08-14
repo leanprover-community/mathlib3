@@ -32,7 +32,7 @@ sesquilinear_form, matrix, basis
 
 -/
 
-variables {R R₁ R₂ M₁ M₂ n m o ι : Type*}
+variables {R R₁ R₂ M₁ M₂ n m n' m' : Type*}
 
 open_locale big_operators
 open finset linear_map matrix
@@ -143,8 +143,6 @@ section to_matrix'
 This section deals with the conversion between matrices and sesquilinear forms on `n → R₂`.
 -/
 
-section comm_ring
-
 variables [comm_ring R] [comm_ring R₁] [comm_ring R₂]
 variables [add_comm_monoid M₁] [module R₁ M₁] [add_comm_monoid M₂] [module R₂ M₂]
 variables [fintype n] [fintype m]
@@ -158,6 +156,9 @@ def linear_map.to_matrixₛₗ₂' : ((n → R₁) →ₛₗ[σ₁] (m → R₂)
   left_inv := linear_map.to_linear_map₂'_aux_to_matrix₂_aux,
   right_inv := matrix.to_matrix₂_aux_to_linear_map₂'_aux,
   ..linear_map.to_matrix₂_aux (λ i, std_basis R₁ (λ _, R₁) i 1) (λ j, std_basis R₂ (λ _, R₂) j 1) }
+
+def linear_map.to_matrix₂' : ((n → R) →ₗ[R] (m → R) →ₗ[R] R) ≃ₗ[R] matrix n m R :=
+linear_map.to_matrixₛₗ₂'
 
 variables (σ₁ σ₂)
 
@@ -211,17 +212,69 @@ linear_map.to_matrixₛₗ₂'.symm_symm
   matrix.to_linear_mapₛₗ₂' σ₁ σ₂ (linear_map.to_matrixₛₗ₂' B) = B :=
 (matrix.to_linear_mapₛₗ₂' σ₁ σ₂).apply_symm_apply B
 
-@[simp] lemma linear_map.to_matrix'_to_bilin' (M : matrix n m R) :
+@[simp] lemma linear_map.to_matrix'_to_linear_mapₛₗ₂' (M : matrix n m R) :
   linear_map.to_matrixₛₗ₂' (matrix.to_linear_mapₛₗ₂' σ₁ σ₂ M) = M :=
 linear_map.to_matrixₛₗ₂'.apply_symm_apply M
 
-@[simp] lemma bilin_form.to_matrix'_apply (B : (n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) (i : n) (j : m):
-  linear_map.to_matrixₛₗ₂' B i j =
+@[simp] lemma linear_map.to_matrixₛₗ₂'_apply (B : (n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) (i : n)
+  (j : m): linear_map.to_matrixₛₗ₂' B i j =
     B (std_basis R₁ (λ _, R₁) i 1) (std_basis R₂ (λ _, R₂) j 1) :=
 rfl
 
--- continue at l.178
+@[simp] lemma linear_map.to_matrix₂'_apply (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R) (i : n) (j : m):
+  linear_map.to_matrix₂' B i j =
+    B (std_basis R (λ _, R) i 1) (std_basis R (λ _, R) j 1) :=
+rfl
 
-end comm_ring
+variables [fintype n'] [fintype m']
+variables [decidable_eq n'] [decidable_eq m']
+/-
+@[simp] lemma linear_map.to_matrix₂'_comp (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R)
+  (l : (n' → R) →ₗ[R] (n → R)) (r : (m' → R) →ₗ[R] (m → R)) :
+  (B.compl₁₂ l r).to_matrix₂' = l.to_matrix'ᵀ ⬝ B.to_matrix₂' ⬝ r.to_matrix' :=
+begin
+  ext i j,
+  simp only [linear_map.to_matrix₂'_apply, linear_map.compl₁₂_apply, transpose_apply,
+    matrix.mul_apply, linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
+  rw sum_comm,
+  conv_lhs { rw ← linear_map.sum_repr_mul_repr_mul (pi.basis_fun R n) (l _) (r _) },
+  rw finsupp.sum_fintype,
+  { apply sum_congr rfl,
+    rintros i' -,
+    rw finsupp.sum_fintype,
+    { apply sum_congr rfl,
+      rintros j' -,
+      simp only [smul_eq_mul, pi.basis_fun_repr, mul_assoc, mul_comm, mul_left_comm,
+                 pi.basis_fun_apply, of_apply] },
+    { intros, simp only [zero_smul, smul_zero] } },
+  { intros, simp only [zero_smul, finsupp.sum_zero] }
+end
 
+lemma linear_map.to_matrix'_comp_left (B : bilin_form R₂ (n → R₂))
+  (f : (n → R₂) →ₗ[R₂] (n → R₂)) : (B.comp_left f).to_matrix' = f.to_matrix'ᵀ ⬝ B.to_matrix' :=
+by simp only [bilin_form.comp_left, bilin_form.to_matrix'_comp, to_matrix'_id, matrix.mul_one]
+
+lemma linear_map.to_matrix'_comp_right (B : bilin_form R₂ (n → R₂))
+  (f : (n → R₂) →ₗ[R₂] (n → R₂)) : (B.comp_right f).to_matrix' = B.to_matrix' ⬝ f.to_matrix' :=
+by simp only [bilin_form.comp_right, bilin_form.to_matrix'_comp, to_matrix'_id,
+              transpose_one, matrix.one_mul]
+
+lemma linear_map.mul_to_matrix'_mul (B : bilin_form R₂ (n → R₂))
+  (M : matrix o n R₂) (N : matrix n o R₂) :
+  M ⬝ B.to_matrix' ⬝ N = (B.comp Mᵀ.to_lin' N.to_lin').to_matrix' :=
+by simp only [B.to_matrix'_comp, transpose_transpose, to_matrix'_to_lin']
+
+lemma linear_map.mul_to_matrix' (B : bilin_form R₂ (n → R₂)) (M : matrix n n R₂) :
+  M ⬝ B.to_matrix' = (B.comp_left Mᵀ.to_lin').to_matrix' :=
+by simp only [B.to_matrix'_comp_left, transpose_transpose, to_matrix'_to_lin']
+
+lemma linear_map.to_matrix'_mul (B : bilin_form R₂ (n → R₂)) (M : matrix n n R₂) :
+  B.to_matrix' ⬝ M = (B.comp_right M.to_lin').to_matrix' :=
+by simp only [B.to_matrix'_comp_right, to_matrix'_to_lin']
+
+lemma matrix.to_bilin'_comp (M : matrix n n R₂) (P Q : matrix n o R₂) :
+  M.to_bilin'.comp P.to_lin' Q.to_lin' = (Pᵀ ⬝ M ⬝ Q).to_bilin' :=
+linear_map.to_matrix'.injective
+  (by simp only [bilin_form.to_matrix'_comp, bilin_form.to_matrix'_to_bilin', to_matrix'_to_lin'])
+-/
 end to_matrix'

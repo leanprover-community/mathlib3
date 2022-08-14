@@ -422,23 +422,21 @@ private theorem tmp_topology_eq :
 begin
   refine continuous_linear_map.tmp_topological_add_group.ext infer_instance
     ((@metric.nhds_basis_closed_ball _ continuous_linear_map.tmp_pseudo_metric_space 0).ext
-      continuous_linear_map.has_basis_nhds_zero _ _),
+      (continuous_linear_map.has_basis_nhds_zero_of_basis metric.nhds_basis_closed_ball) _ _),
   { rcases normed_field.exists_norm_lt_one 𝕜 with ⟨c, hc₀, hc₁⟩,
-    refine λ ε hε, ⟨⟨closed_ball 0 (1 / ∥c∥), closed_ball 0 ε⟩,
-      ⟨normed_space.is_vonN_bounded_closed_ball _ _ _, closed_ball_mem_nhds _ hε⟩, λ f hf, _⟩,
+    refine λ ε hε, ⟨⟨closed_ball 0 (1 / ∥c∥), ε⟩,
+      ⟨normed_space.is_vonN_bounded_closed_ball _ _ _, hε⟩, λ f hf, _⟩,
     change ∀ x, _ at hf,
     simp_rw mem_closed_ball_zero_iff at hf,
     rw @mem_closed_ball_zero_iff _ continuous_linear_map.tmp_seminormed_add_comm_group,
     refine op_norm_le_of_shell' (div_pos one_pos hc₀) hε.le hc₁ (λ x hx₁ hxc, _),
     rw div_mul_cancel 1 hc₀.ne.symm at hx₁,
     exact (hf x hxc.le).trans (le_mul_of_one_le_right hε.le hx₁) },
-  { rintros ⟨S, V⟩ ⟨hS, hV⟩,
+  { rintros ⟨S, ε⟩ ⟨hS, hε⟩,
     rw [normed_space.is_vonN_bounded_iff, ← bounded_iff_is_bounded] at hS,
-    rcases hS.subset_ball_lt 0 0 with ⟨ε, hε, hSε⟩,
-    rw metric.nhds_basis_closed_ball.mem_iff at hV,
-    rcases hV with ⟨δ, hδ, hVδ⟩,
-    exact ⟨δ/ε, div_pos hδ hε, (continuous_linear_map.tmp_closed_ball_div_subset hδ hε).trans $
-      λ f hf x hx, hVδ $ hf x $ hSε hx⟩ }
+    rcases hS.subset_ball_lt 0 0 with ⟨δ, hδ, hSδ⟩,
+    exact ⟨ε/δ, div_pos hε hδ, (continuous_linear_map.tmp_closed_ball_div_subset hε hδ).trans $
+      λ f hf x hx, hf x $ hSδ hx⟩ }
 end
 
 private theorem tmp_uniform_space_eq :

@@ -856,7 +856,7 @@ begin
 end
 
 
-
+-- where is the error coming from?
 -- Needed in Freundenthal-Hopf
 lemma nicely_arranged [locally_finite G] (Gpc : G.preconnected) (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)

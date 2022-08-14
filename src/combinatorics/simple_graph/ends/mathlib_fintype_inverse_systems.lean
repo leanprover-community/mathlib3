@@ -623,4 +623,14 @@ begin
     exact ⟨s,sgood⟩,
 end
 
+lemma sections_fintype_to_injective
+  [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)]
+  (Fsur : is_surjective F) : ∃ j : J, ∀ ii : {i | i ≤ j}, function.injective (F.map $ hom_of_le ii.prop) :=
+begin
+  -- Take j maximizing the cardinality of F.obj j
+  -- By Fsur, we have surjective functions with codomain of ≥ card than the domain: hence all are equal and
+  -- we have injections
+  sorry
+end
+
 end inverse_system

@@ -69,12 +69,6 @@ def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
 @[simp] lemma restrict_scalars.map_apply {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
   {M M' : Module.{v} S} (g : M ⟶ M') (x) : (restrict_scalars f).map g x = g x := rfl
 
-@[simp] lemma restrict_scalars.smul_def {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
-  {M : Module.{v} S} (r : R) (m : (restrict_scalars f).obj M) : r • m = (f r • m : M) := rfl
-
-@[simp] lemma restrict_scalars.smul_def' {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
-  {M : Module.{v} S} (r : R) (m : M) : (r • m : (restrict_scalars f).obj M) = (f r • m : M) := rfl
-
 @[simp] lemma restrict_scalars.smul_def_mk {R : Type u₁} {S : Type u₂} [ring R] [ring S]
   (f : R →+* S) {M : Type v} [add_comm_group M] [module S M] (r : R) (m : M) :
   (r • m : (restrict_scalars f).obj $ Module.mk M) = (f r • m : M) := rfl

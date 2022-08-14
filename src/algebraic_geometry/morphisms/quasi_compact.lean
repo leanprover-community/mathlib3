@@ -97,7 +97,7 @@ begin
 end
 
 @[simp] lemma quasi_compact_affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
-  affine_target_morphism_property.to_property quasi_compact.affine_property f ↔
+  quasi_compact.affine_property.to_property f ↔
     is_affine Y ∧ compact_space X.carrier :=
 by { delta affine_target_morphism_property.to_property quasi_compact.affine_property, simp }
 

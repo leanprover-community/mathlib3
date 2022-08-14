@@ -1229,58 +1229,6 @@ by rwa [uniform_continuous, infi_uniformity', tendsto_infi]
 
 end uniform_continuous_infi
 
-section uniform_continuous_infi
-
-lemma uniform_continuous_inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ u₃ : uniform_space β}
-  (h₁ : @@uniform_continuous u₁ u₂ f) (h₂ : @@uniform_continuous u₁ u₃ f) :
-  @@uniform_continuous u₁ (u₂ ⊓ u₃) f :=
-begin
-  rw [uniform_continuous, inf_uniformity'],
-  exact tendsto_inf.mpr ⟨h₁, h₂⟩
-end
-
-lemma uniform_continuous_inf_dom_left {f : α → β} {u₁ u₂ : uniform_space α} {u₃ : uniform_space β}
-  (hf : @@uniform_continuous u₁ u₃ f) : @@uniform_continuous (u₁ ⊓ u₂) u₃ f :=
-begin
-  rw [uniform_continuous, inf_uniformity'],
-  exact tendsto_inf_left hf
-end
-
-lemma uniform_continuous_inf_dom_right {f : α → β} {u₁ u₂ : uniform_space α} {u₃ : uniform_space β}
-  (hf : @@uniform_continuous u₂ u₃ f) : @@uniform_continuous (u₁ ⊓ u₂) u₃ f :=
-begin
-  rw [uniform_continuous, inf_uniformity'],
-  exact tendsto_inf_right hf
-end
-
-lemma uniform_continuous_Inf_dom {f : α → β} {u₁ : set (uniform_space α)} {u₂ : uniform_space β}
-  {u : uniform_space α} (h₁ : u ∈ u₁) (hf : @@uniform_continuous u u₂ f) :
-  @@uniform_continuous (Inf u₁) u₂ f :=
-begin
-  rw [uniform_continuous, Inf_eq_infi', infi_uniformity'],
-  exact tendsto_infi' ⟨u, h₁⟩ hf
-end
-
-lemma uniform_continuous_Inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ : set (uniform_space β)}
-  (h : ∀u∈u₂, @@uniform_continuous u₁ u f) : @@uniform_continuous u₁ (Inf u₂) f :=
-begin
-  rw [uniform_continuous, Inf_eq_infi', infi_uniformity'],
-  exact tendsto_infi.mpr (λ ⟨u, hu⟩, h u hu)
-end
-
-lemma uniform_continuous_infi_dom {f : α → β} {u₁ : ι → uniform_space α} {u₂ : uniform_space β}
-  {i : ι} (hf : @@uniform_continuous (u₁ i) u₂ f) : @@uniform_continuous (infi u₁) u₂ f :=
-begin
-  rw [uniform_continuous, infi_uniformity'],
-  exact tendsto_infi' i hf
-end
-
-lemma uniform_continuous_infi_rng {f : α → β} {u₁ : uniform_space α} {u₂ : ι → uniform_space β}
-  (h : ∀i, @@uniform_continuous u₁ (u₂ i) f) : @@uniform_continuous u₁ (infi u₂) f :=
-by rwa [uniform_continuous, infi_uniformity', tendsto_infi]
-
-end uniform_continuous_infi
-
 /-- A uniform space with the discrete uniformity has the discrete topology. -/
 lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
   (h : uniformity α = 𝓟 id_rel) :

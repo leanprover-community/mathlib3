@@ -317,20 +317,24 @@ section real
 
 /-- Any ring homomorphism `ℝ → ℝ` is an ordered ring isomorphism, and thus there are no
 nontrivial ring homorphism `ℝ → ℝ`. -/
-lemma real.ring_hom_eq_id (f : ℝ →+* ℝ) : f = ring_hom.id ℝ :=
-begin
-  have f_mon : monotone f,
-  { intros a b hab,
-    have : f b - f a ≥ 0,
-    { calc
-        f b - f a = f (b - a)                 : (ring_hom.map_sub _ _ _).symm
-          ...     = f (real.sqrt (b - a)^2)   : by rw sq_sqrt (sub_nonneg.mpr hab)
-          ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
-          ...     ≥ 0                         : sq_nonneg _, },
-    linarith, },
-  haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
-  exact congr_arg order_ring_hom.to_ring_hom
-    (subsingleton.elim ⟨f, f_mon⟩ ⟨ring_hom.id ℝ, monotone_id⟩),
-end
+instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
+{ default := ring_hom.id ℝ,
+  uniq :=
+  begin
+    intro f,
+    have f_mon : monotone f,
+    { intros a b hab,
+      have : f b - f a ≥ 0,
+      { calc
+          f b - f a = f (b - a)                 : (ring_hom.map_sub _ _ _).symm
+            ...     = f (real.sqrt (b - a)^2)   : by rw sq_sqrt (sub_nonneg.mpr hab)
+            ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
+            ...     ≥ 0                         : sq_nonneg _, },
+      linarith, },
+    haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
+    exact congr_arg order_ring_hom.to_ring_hom
+      (subsingleton.elim ⟨f, f_mon⟩ ⟨ring_hom.id ℝ, monotone_id⟩),
+  end,
+}
 
 end real

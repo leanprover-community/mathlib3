@@ -174,22 +174,22 @@ protected structure injective : Prop :=
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/
 class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
-(map_on_function' : ∀ {n} (f : L.functions n) (x : fin n → M),
+(map_on_function : ∀ {n} (f : L.functions n) (x : fin n → M),
   fun_map (ϕ.on_function f) x = fun_map f x)
-(map_on_relation' : ∀ {n} (R : L.relations n) (x : fin n → M),
+(map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
   rel_map (ϕ.on_relation R) x = rel_map R x)
 
-@[simp] lemma map_on_function (M : Type*)
+@[simp] lemma map_on_function {M : Type*}
   [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
   {n} (f : L.functions n) (x : fin n → M) :
   fun_map (ϕ.on_function f) x = fun_map f x :=
-is_expansion_on.map_on_function' f x
+is_expansion_on.map_on_function f x
 
-@[simp] lemma map_on_relation (M : Type*)
+@[simp] lemma map_on_relation {M : Type*}
   [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
   {n} (R : L.relations n) (x : fin n → M) :
   rel_map (ϕ.on_relation R) x = rel_map R x :=
-is_expansion_on.map_on_relation' R x
+is_expansion_on.map_on_relation R x
 
 instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
@@ -225,13 +225,13 @@ instance sum_inr_is_expansion_on (M : Type*)
   [(Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M]
   {n} {f : L.functions n} {x : fin n → M} :
   @fun_map (L.sum L') M _ n (sum.inl f) x = fun_map f x :=
-(Lhom.sum_inl : L →ᴸ L.sum L').map_on_function M f x
+(Lhom.sum_inl : L →ᴸ L.sum L').map_on_function f x
 
 @[simp] lemma fun_map_sum_inr [(L'.sum L).Structure M]
   [(Lhom.sum_inr : L →ᴸ L'.sum L).is_expansion_on M]
   {n} {f : L.functions n} {x : fin n → M} :
   @fun_map (L'.sum L) M _ n (sum.inr f) x = fun_map f x :=
-(Lhom.sum_inr : L →ᴸ L'.sum L).map_on_function M f x
+(Lhom.sum_inr : L →ᴸ L'.sum L).map_on_function f x
 
 @[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
   @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
@@ -372,13 +372,13 @@ variables {α} {β : Type*}
   [(Lhom_with_constants L α).is_expansion_on M]
   {n} {f : L.functions n} {x : fin n → M} :
   @fun_map (L[[α]]) M _ n (sum.inl f) x = fun_map f x :=
-(Lhom_with_constants L α).map_on_function M f x
+(Lhom_with_constants L α).map_on_function f x
 
 @[simp] lemma with_constants_rel_map_sum_inl [L[[α]].Structure M]
   [(Lhom_with_constants L α).is_expansion_on M]
   {n} {R : L.relations n} {x : fin n → M} :
   @rel_map (L[[α]]) M _ n (sum.inl R) x = rel_map R x :=
-(Lhom_with_constants L α).map_on_relation M R x
+(Lhom_with_constants L α).map_on_relation R x
 
 /-- The language map extending the constant set.  -/
 def Lhom_with_constants_map (f : α → β) : L[[α]] →ᴸ L[[β]] :=
@@ -426,7 +426,7 @@ Lhom.sum_map_is_expansion_on _ _ M
   @fun_map (L[[α]]) M _ 0 (sum.inr a : L[[α]].functions 0) x = L.con a :=
 begin
   rw unique.eq_default x,
-  exact (Lhom.sum_inr : (constants_on α) →ᴸ L.sum _).map_on_function M _ _,
+  exact (Lhom.sum_inr : (constants_on α) →ᴸ L.sum _).map_on_function _ _,
 end
 
 variables {α} (A : set M)

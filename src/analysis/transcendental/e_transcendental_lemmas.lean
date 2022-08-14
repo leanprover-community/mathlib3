@@ -154,48 +154,20 @@ By integration by part we have:
 lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) :
     (II f t) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t) :=
 begin
-    rw II,
-    -- We have $$\int_0^t \exp(t-x)f(x)\mathrm{d}x=\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$
-    have eq : (∫ x in 0..t, (t - x).exp * f_eval_on_ℝ f x) = (∫ x in 0..t, f_eval_on_ℝ f x * (deriv (λ x, - (real.exp (t-x))) x)),
-    { simp only [deriv_exp_t_x', mul_comm] },
-    rw eq,
-    -- Apply integration by part to $$\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$.
-    replace eq := integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t ht,
-    rw eq,
-    simp only [mul_one, neg_sub_neg, real.exp_zero, sub_zero, mul_neg, sub_self],
-    replace eq : (∫ x in 0..t, -(deriv (f_eval_on_ℝ f) x * (t - x).exp)) = ∫ x in 0..t, -((λ x, (deriv (f_eval_on_ℝ f) x * (t - x).exp)) x),
-    {
-        rw interval_integral.integral_of_le ht,
-    },
-    rw eq, rw interval_integral.integral_neg, simp only [sub_neg_eq_add], rw II,
-    replace eq : (∫ (x : ℝ) in 0..t, (t - x).exp * f_eval_on_ℝ f.derivative x) = ∫ (x : ℝ) in 0..t, deriv (f_eval_on_ℝ f) x * (t - x).exp,
-    {
-        rw interval_integral.integral_of_le ht,
-        rw interval_integral.integral_of_le ht,
-        apply congr_arg, ext,
-        rw [mul_comm, f_eval_on_ℝ_deriv],
-    }, rw eq, ring,
-
-    { apply differentiable_aeval f },
-    { apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
-      rw f_eval_on_ℝ_deriv,
-      apply differentiable_aeval },
-
-    apply differentiable.neg,
-    change differentiable ℝ (real.exp ∘ (λ (y : ℝ), (t - y))),
-    apply differentiable.comp,
-    exact real.differentiable_exp,
-    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
-    ext y, rw neg_sub, rw this, apply differentiable.neg,
-    apply differentiable.sub_const, exact differentiable_id',
-
-    rw deriv_exp_t_x',
-    change continuous (real.exp ∘ (λ (y : ℝ), (t - y))),
-    apply continuous.comp (real.continuous_exp) _,
-    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
-    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
-    ext y, rw neg_sub, rw this, apply differentiable.neg,
-    apply differentiable.sub_const, exact differentiable_id',
+  rw II,
+  convert integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t ht using 1,
+  { simp only [deriv_exp_t_x', mul_comm] },
+  { simp only [sub_eq_add_neg],
+    apply congr_arg2,
+    { simp only [add_zero, neg_zero', mul_one, real.exp_zero, add_right_neg, neg_neg], ring },
+    { simp_rw [II, f_eval_on_ℝ_deriv, ←interval_integral.integral_neg, neg_mul_eq_mul_neg, neg_neg,
+        ←sub_eq_add_neg, mul_comm] } },
+  { apply differentiable_aeval f },
+  { rw f_eval_on_ℝ_deriv,
+    exact (differentiable_aeval f.derivative).continuous },
+  { exact (real.differentiable_exp.comp (differentiable_id'.const_sub t)).neg, },
+  { rw deriv_exp_t_x',
+    exact (real.differentiable_exp.comp (differentiable_id'.const_sub t)).continuous },
 end
 
 /-Theorem

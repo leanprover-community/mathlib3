@@ -1185,6 +1185,12 @@ lemma mem_map_iff_of_surjective {I : ideal R} {y} :
 lemma le_map_of_comap_le_of_surjective : comap f K ≤ I → K ≤ map f I :=
 λ h, (map_comap_of_surjective f hf K) ▸ map_mono h
 
+omit hf
+
+lemma map_eq_submodule_map (f : R →+* S) [h : ring_hom_surjective f] (I : ideal R) :
+  I.map f = submodule.map f.to_semilinear_map I :=
+submodule.ext (λ x, mem_map_iff_of_surjective f h.1)
+
 end surjective
 
 section injective

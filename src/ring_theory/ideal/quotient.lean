@@ -121,6 +121,8 @@ instance : unique (R ⧸ (⊤ : ideal R)) :=
 lemma mk_surjective : function.surjective (mk I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 
+instance : ring_hom_surjective (mk I) := ⟨mk_surjective⟩
+
 /-- If `I` is an ideal of a commutative ring `R`, if `q : R → R/I` is the quotient map, and if
 `s ⊆ R` is a subset, then `q⁻¹(q(s)) = ⋃ᵢ(i + s)`, the union running over all `i ∈ I`. -/
 lemma quotient_ring_saturate (I : ideal R) (s : set R) :

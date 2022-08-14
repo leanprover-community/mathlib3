@@ -159,6 +159,33 @@ begin
   refl
 end
 
+variables {A B : Type*} [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
+
+/-- The lift of `f : A →ₐ[R] B` to `A ⧸ J ^ 2 →ₐ[R] B` with `J` being the kernel of `f`. -/
+def _root_.alg_hom.ker_square_lift (f : A →ₐ[R] B) : A ⧸ f.to_ring_hom.ker ^ 2 →ₐ[R] B :=
+begin
+  refine { commutes' := _, ..(ideal.quotient.lift (f.to_ring_hom.ker ^ 2) f.to_ring_hom _) },
+  { intros a ha, exact ideal.pow_le_self two_ne_zero ha },
+  { intro r, rw [is_scalar_tower.algebra_map_apply R A, ring_hom.to_fun_eq_coe,
+      ideal.quotient.algebra_map_eq, ideal.quotient.lift_mk], exact f.map_algebra_map r },
+end
+
+lemma _root_.alg_hom.ker_ker_sqare_lift (f : A →ₐ[R] B) :
+  f.ker_square_lift.to_ring_hom.ker = f.to_ring_hom.ker.cotangent_ideal :=
+begin
+  apply le_antisymm,
+  { intros x hx, obtain ⟨x, rfl⟩ := ideal.quotient.mk_surjective x, exact ⟨x, hx, rfl⟩ },
+  { rintros _ ⟨x, hx, rfl⟩, exact hx }
+end
+
+/-- The quotient ring of `I ⧸ I ^ 2` is `R ⧸ I`. -/
+def quot_cotangent : ((R ⧸ I ^ 2) ⧸ I.cotangent_ideal) ≃+* R ⧸ I :=
+begin
+  refine (ideal.quot_equiv_of_eq (ideal.map_eq_submodule_map _ _).symm).trans _,
+  refine (double_quot.quot_quot_equiv_quot_sup _ _).trans _,
+  exact (ideal.quot_equiv_of_eq (sup_eq_right.mpr $ ideal.pow_le_self two_ne_zero)),
+end
+
 end ideal
 
 namespace local_ring

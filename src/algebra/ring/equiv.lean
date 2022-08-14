@@ -210,6 +210,10 @@ symm_bijective.injective $ ext $ λ x, rfl
 @[simp] lemma trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : R) :
   e₁.trans e₂ a = e₂ (e₁ a) := rfl
 
+@[simp]
+lemma symm_trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : S') :
+  (e₁.trans e₂).symm a = e₁.symm (e₂.symm a) := rfl
+
 protected lemma bijective (e : R ≃+* S) : function.bijective e := equiv_like.bijective e
 protected lemma injective (e : R ≃+* S) : function.injective e := equiv_like.injective e
 protected lemma surjective (e : R ≃+* S) : function.surjective e := equiv_like.surjective e

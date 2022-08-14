@@ -1160,10 +1160,10 @@ hf.fderiv_within' (by { rw [insert_eq_of_mem hxs], exact eventually_of_mem self_
 continuous. -/
 lemma cont_diff_on.continuous_on_fderiv_within_apply
   (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
-  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ (univ : set E)) :=
+  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
 begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ (univ : set E)),
+  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
   { apply continuous_on.prod _ continuous_snd.continuous_on,
     exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
       (prod_subset_preimage_fst _ _) },
@@ -2263,8 +2263,7 @@ lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
-  cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2)
-  (s ×ˢ (univ : set E)) :=
+  cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2) (s ×ˢ univ) :=
 begin
   have A : cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
   { apply is_bounded_bilinear_map.cont_diff,

@@ -784,7 +784,7 @@ suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
   from summable_of_sum_le (λ x, mul_nonneg (hf' _) (hg' _)) this,
 assume u,
 calc  ∑ x in u, f x.1 * g x.2
-    ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
+    ≤ ∑ x in u.image prod.fst ×ˢ u.image prod.snd, f x.1 * g x.2 :
       sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) subset_product
 ... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product
 ... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :

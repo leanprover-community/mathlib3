@@ -18,8 +18,6 @@ Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `
 along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
 the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
 
-This file also defines locally finite families of subsets of `α`.
-
 For topological spaces `α` and `β`, a function `f : α → β` and a point `a : α`,
 `continuous_at f a` means `f` is continuous at `a`, and global continuity is
 `continuous f`. There is also a version of continuity `pcontinuous` for

@@ -1045,8 +1045,8 @@ lemma is_probability_measure.le_measure_compl_liminf_of_limsup_measure_le
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
   {E : set α} (E_mble : measurable_set E)
-  (h : L.limsup (λ i, (μs i : measure α) E) ≤ (μ : measure α) E) :
-  (μ : measure α) Eᶜ ≤ L.liminf (λ i, (μs i : measure α) Eᶜ) :=
+  (h : L.limsup (λ i, μs i E) ≤ μ E) :
+  μ Eᶜ ≤ L.liminf (λ i, μs i Eᶜ) :=
 begin
   by_cases L_bot : L = ⊥,
   { simp only [L_bot, le_top,
@@ -1174,7 +1174,7 @@ variables [topological_space α] [opens_measurable_space α]
 /-- One implication of the portmanteau theorem:
 For a sequence of Borel probability measures, if the liminf of the measures of any open set is at
 least the measure of the open set under a candidate limit measure, then for any set whose
-boundary carries no probability mass under the candidate limit measure, the its measures under the
+boundary carries no probability mass under the candidate limit measure, then its measures under the
 sequence converge to its measure under the candidate limit measure.
 -/
 lemma is_probability_measure.tendsto_measure_of_null_frontier

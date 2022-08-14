@@ -1313,7 +1313,7 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
 instance to_normed_add_comm_group [ring_hom_isometric σ₁₂] : normed_add_comm_group (E →SL[σ₁₂] F) :=
-normed_add_comm_group.of_core _ ⟨λ f, op_norm_zero_iff f, op_norm_add_le, op_norm_neg⟩
+normed_add_comm_group.of_separation (λ f, (op_norm_zero_iff f).mp)
 
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=

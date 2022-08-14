@@ -282,11 +282,8 @@ variables {R S : Type u} [comm_ring R] [comm_semiring S]
 variables {P A : Type u} [comm_ring A] [algebra R A] [comm_ring P] [algebra R P]
 variables (I : ideal P) (f : P →ₐ[R] A) (hf : function.surjective f)
 
-local notation `P⧸J^2→A` :=
-(ideal.quotient.liftₐ (f.to_ring_hom.ker ^ 2) f (λ a ha, ideal.pow_le_self two_ne_zero ha))
-
 lemma formally_smooth.of_split [formally_smooth R P] (g : A →ₐ[R] P ⧸ f.to_ring_hom.ker ^ 2)
-  (hg : P⧸J^2→A .comp g = alg_hom.id R A) :
+  (hg : f.ker_square_lift.comp g = alg_hom.id R A) :
   formally_smooth R A :=
 begin
   constructor,
@@ -300,92 +297,41 @@ begin
     intros x hx,
     have := (ideal.pow_mono this 2).trans (ideal.le_comap_pow _ 2) hx,
     rwa hI at this },
-  have : i.comp P⧸J^2→A = (ideal.quotient.mkₐ R _).comp l,
+  have : i.comp f.ker_square_lift = (ideal.quotient.mkₐ R _).comp l,
   { apply alg_hom.coe_ring_hom_injective,
     apply ideal.quotient.ring_hom_ext,
-    ext,
-    simp only [alg_hom.comp_apply, ring_hom.comp_apply, alg_hom.coe_to_ring_hom,
-      ideal.quotient.liftₐ_apply, ring_hom.to_fun_eq_coe, ideal.quotient.lift_mk,
-      formally_smooth.mk_lift, ideal.quotient.mkₐ_eq_mk] },
+    ext x,
+    exact (formally_smooth.mk_lift I ⟨2, hI⟩ (i.comp f) x).symm },
   exact ⟨l.comp g, by rw [← alg_hom.comp_assoc, ← this, alg_hom.comp_assoc, hg, alg_hom.comp_id]⟩
 end
 
 include hf
 
-/-- Given a surjective `f : P →ₐ[R] A` to a formally smooth `R`-algebra, this is the section
-of the surjection `P ⧸ (ker f)² →ₐ[R] A`. -/
-noncomputable
-def formally_smooth.section_of_surjective (h : f.to_ring_hom.ker ^ 2 = ⊥) [formally_smooth R A] :
-  A →ₐ[R] P :=
-begin
-  refine formally_smooth.lift _ ⟨2, h⟩
-    (ideal.quotient_ker_alg_equiv_of_surjective hf).symm.to_alg_hom,
-  { intros a ha, exact (submodule.quotient.mk_eq_zero _).mpr (ideal.pow_le_self two_ne_zero ha) },
-  { refine @function.surjective.of_comp _ _ _ _ (ideal.quotient.mkₐ R _) _,
-    exact ideal.quotient.mk_surjective },
-  { use 2,
-    rw [ideal.zero_eq_bot, eq_bot_iff],
-    rintros x hx,
-    let I := _, change x ∈ I ^ 2 at hx,
-    replace hx : x ∈ I * I := by rwa ← pow_two I,
-    apply submodule.smul_induction_on hx; clear hx x,
-    { intros r₁ hr₁ r₂ hr₂,
-      obtain ⟨r₁, rfl⟩ := ideal.quotient.mk_surjective r₁,
-      obtain ⟨r₂, rfl⟩ := ideal.quotient.mk_surjective r₂,
-      rw [smul_eq_mul, ← map_mul, pow_two],
-      apply (submodule.quotient.mk_eq_zero _).mpr,
-      exact ideal.mul_mem_mul ((submodule.quotient.mk_eq_zero _).mp hr₁)
-        ((submodule.quotient.mk_eq_zero _).mp hr₂) },
-    { intros x y hx hy, exact add_mem hx hy } }
-end
-
-lemma formally_smooth.section_of_surjective_comp_liftₐ [formally_smooth R A] :
-  P⧸J^2→A .comp (formally_smooth.section_of_surjective f hf) = alg_hom.id R A :=
-begin
-  ext x,
-  apply (ideal.quotient_ker_alg_equiv_of_surjective hf).symm.injective,
-  change (ideal.quotient_ker_alg_equiv_of_surjective hf).symm.to_alg_hom _ =
-    (ideal.quotient_ker_alg_equiv_of_surjective hf).symm.to_alg_hom x,
-  rw [← alg_hom.comp_apply, ← alg_hom.comp_assoc],
-  congr' 1,
-  rw ← formally_smooth.comp_lift_of_surjective
-    (ideal.quotient_ker_alg_equiv_of_surjective hf).symm.to_alg_hom _ _ _,
-  congr' 1,
-  rw formally_smooth.comp_lift_of_surjective,
-  ext y,
-  obtain ⟨y, rfl⟩ := ideal.quotient.mk_surjective y,
-  apply (ideal.quotient_ker_alg_equiv_of_surjective hf).injective,
-  rw [alg_hom.comp_apply, alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom,
-    alg_equiv.apply_symm_apply, ideal.quotient_ker_alg_equiv_of_surjective,
-    ideal.quotient_ker_alg_equiv_of_right_inverse.apply, ideal.quotient.liftₐ_apply,
-    ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk, ideal.quotient.lift_mk],
-  exact (ideal.ker_lift_alg_mk _ _).symm
-end
-
-/-- Let `P →ₐ[R] A` be a surjection with `P` a formally smooth `R`-algebra and kernel `J`,
+/-- Let `P →ₐ[R] A` be a surjection with kernel `J`, and `P` is a formally smooth `R`-algebra,
 then `A` is formally smooth over `R` iff the surjection `P ⧸ J ^ 2 →ₐ[R] A` has a section. -/
 lemma formally_smooth.iff_split_surjection [formally_smooth R P] :
-  formally_smooth R A ↔ ∃ g, P⧸J^2→A .comp g = alg_hom.id R A :=
+  formally_smooth R A ↔ ∃ g, f.ker_square_lift.comp g = alg_hom.id R A :=
 begin
   split,
   { introI,
-    have : function.surjective P⧸J^2→A :=
+    have surj : function.surjective f.ker_square_lift :=
       λ x, ⟨submodule.quotient.mk (hf x).some, (hf x).some_spec⟩,
-    refine ⟨formally_smooth.lift _ ⟨2, _⟩
-      (ideal.quotient_ker_alg_equiv_of_surjective this).symm.to_alg_hom, _⟩,
-    { refine (pow_two _).trans _,
-      rw [ideal.zero_eq_bot, ← smul_eq_mul, eq_bot_iff],
-      rintros x hx,
-      apply submodule.smul_induction_on hx,
-      { intros a ha b hb,
-        obtain ⟨a, rfl⟩ := submodule.mkq_surjective _ a,
-        obtain ⟨b, rfl⟩ := submodule.mkq_surjective _ b,
-        sorry
-
-      }  },
-  -- { intros a ha, exact (submodule.quotient.mk_eq_zero _).mpr (ideal.pow_le_self two_ne_zero ha),
-  --   exact ⟨_, formally_smooth.section_of_surjective_comp_liftₐ f hf⟩ },
-  },
+    have sqz : ring_hom.ker f.ker_square_lift.to_ring_hom ^ 2 = 0,
+    { rw [alg_hom.ker_ker_sqare_lift, ideal.cotangent_ideal_square, ideal.zero_eq_bot] },
+    refine ⟨formally_smooth.lift _ ⟨2, sqz⟩
+      (ideal.quotient_ker_alg_equiv_of_surjective surj).symm.to_alg_hom, _⟩,
+    ext x,
+    have := (ideal.quotient_ker_alg_equiv_of_surjective surj).to_alg_hom.congr_arg
+      (formally_smooth.mk_lift _ ⟨2, sqz⟩
+        (ideal.quotient_ker_alg_equiv_of_surjective surj).symm.to_alg_hom x),
+    dsimp at this,
+    rw [alg_equiv.apply_symm_apply] at this,
+    conv_rhs { rw [← this, alg_hom.id_apply] },
+    obtain ⟨y, e⟩ := ideal.quotient.mk_surjective (formally_smooth.lift _ ⟨2, sqz⟩
+      (ideal.quotient_ker_alg_equiv_of_surjective surj).symm.to_alg_hom x),
+    dsimp at e ⊢,
+    rw ← e,
+    refl },
   { rintro ⟨g, hg⟩, exact formally_smooth.of_split f g hg }
 end
 

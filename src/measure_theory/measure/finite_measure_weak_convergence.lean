@@ -60,7 +60,19 @@ TODO:
     for example metrizability or pseudo-emetrizability would be sufficient assumptions. The
     typeclass assumptions should be later adjusted in a way that takes into account use cases, but
     the proof will presumably remain essentially the same.
+  * `measure_theory.limsup_measure_closed_le_iff_liminf_measure_open_ge` proves the equivalence of
+    the limsup condition for closed sets and the liminf condition for open sets for probability
+    measures.
+  * `tendsto_measure_of_null_frontier` proves that the liminf condition for open sets (which is
+    equivalent to the limsup condition for closed sets) implies the convergence of probabilities of
+    sets whose boundary carries no probability mass under the limit measure.
+  * `probability_measure.tendsto_measure_of_null_frontier_of_tendsto` is a combination of earlier
+    implications, which shows that weak convergence of probability measures implies the convergence
+    of probabilities of sets whose boundary carries no probability mass under the limit measure.
   * Prove the rest of the implications.
+    (Where formulations are only provided for probability measures, one can obtain the finite
+    measure formulations using the characterization of convergence of finite measures by their
+    their total masses and their probability-normalized versions.)
 
 ## Notations
 
@@ -1114,7 +1126,7 @@ under a candidate limit measure.
 (O) The liminf of the measures of any open set is at least the measure of the open set
 under a candidate limit measure.
 -/
-lemma is_probability_measure.limsup_measure_closed_le_iff_liminf_measure_open_ge
+lemma limsup_measure_closed_le_iff_liminf_measure_open_ge
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)] :
   (∀ F, is_closed F → L.limsup (λ i, μs i F) ≤ μ F)
@@ -1171,7 +1183,7 @@ least the measure of the open set under a candidate limit measure, then for any 
 boundary carries no probability mass under the candidate limit measure, then its measures under the
 sequence converge to its measure under the candidate limit measure.
 -/
-lemma is_probability_measure.tendsto_measure_of_null_frontier
+lemma tendsto_measure_of_null_frontier
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
   (h_opens : ∀ G, is_open G → (μ : measure α) G ≤ L.liminf (λ i, (μs i : measure α) G))
@@ -1179,7 +1191,7 @@ lemma is_probability_measure.tendsto_measure_of_null_frontier
   L.tendsto (λ i, (μs i : measure α) E) (𝓝 (μ E)) :=
 begin
   have h_closeds : ∀ F, is_closed F → L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F,
-    from is_probability_measure.limsup_measure_closed_le_iff_liminf_measure_open_ge.mpr h_opens,
+    from limsup_measure_closed_le_iff_liminf_measure_open_ge.mpr h_opens,
   exact tendsto_measure_of_le_liminf_measure_of_limsup_measure_le
         interior_subset subset_closure E_nullbdry
         (h_opens _ is_open_interior) (h_closeds _ is_closed_closure),
@@ -1334,6 +1346,39 @@ begin
     from λ F F_closed, probability_measure.limsup_measure_closed_le_of_tendsto μs_lim F_closed,
   exact le_measure_liminf_of_limsup_measure_compl_le
         G_open.measurable_set (h_closeds _ (is_closed_compl_iff.mpr G_open)),
+end
+
+lemma probability_measure.tendsto_measure_of_null_frontier_of_tendsto'
+  {α ι : Type*} {L : filter ι}
+  [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
+  {μ : probability_measure α} {μs : ι → probability_measure α}
+  (μs_lim : tendsto μs L (𝓝 μ)) {E : set α} (E_nullbdry : (μ : measure α) (frontier E) = 0) :
+  tendsto (λ i, (μs i : measure α) E) L (𝓝 ((μ : measure α) E)) :=
+begin
+  have h_opens : ∀ G, is_open G → (μ : measure α) G ≤ L.liminf (λ i, (μs i : measure α) G),
+    from λ G G_open, probability_measure.le_liminf_measure_open_of_tendsto μs_lim G_open,
+  exact tendsto_measure_of_null_frontier h_opens E_nullbdry,
+end
+
+/-- One implication of the portmanteau theorem:
+Weak convergence of probability measures implies that if the boundary of a Borel set
+carries no probability mass under the limit measure, then the limit of the measures of the set
+equals the measure of the set under the limit probability measure.
+
+A version with coercions to ordinary `ℝ≥0∞`-valued measures is
+`measure_theory.probability_measure.tendsto_measure_of_null_frontier_of_tendsto'`.
+-/
+lemma probability_measure.tendsto_measure_of_null_frontier_of_tendsto
+  {α ι : Type*} {L : filter ι}
+  [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
+  {μ : probability_measure α} {μs : ι → probability_measure α}
+  (μs_lim : tendsto μs L (𝓝 μ)) {E : set α} (E_nullbdry : μ (frontier E) = 0) :
+  tendsto (λ i, μs i E) L (𝓝 (μ E)) :=
+begin
+  have E_nullbdry' : (μ : measure α) (frontier E) = 0,
+    by rw [← probability_measure.ennreal_coe_fn_eq_coe_fn_to_measure, E_nullbdry, ennreal.coe_zero],
+  have key := probability_measure.tendsto_measure_of_null_frontier_of_tendsto' μs_lim E_nullbdry',
+  exact (ennreal.tendsto_to_nnreal (measure_ne_top ↑μ E)).comp key,
 end
 
 end convergence_implies_limsup_closed_le --section

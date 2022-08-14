@@ -7,6 +7,7 @@ import algebra.algebra.tower
 import analysis.asymptotics.asymptotics
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
+import topology.algebra.module.strong_topology
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -385,13 +386,62 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
 def tmp_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
 seminormed_add_comm_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
 
-def tmp_pseudo_metric_space : pseudo_metric_sp
+def tmp_pseudo_metric_space : pseudo_metric_space (E →SL[σ₁₂] F) :=
+  tmp_seminormed_add_comm_group.to_pseudo_metric_space
+
+def tmp_uniform_space : uniform_space (E →SL[σ₁₂] F) :=
+  tmp_pseudo_metric_space.to_uniform_space
+
+def tmp_topological_space : topological_space (E →SL[σ₁₂] F) :=
+  tmp_uniform_space.to_topological_space
 
 section tmp
 
+local attribute [-instance] continuous_linear_map.topological_space
+local attribute [-instance] continuous_linear_map.uniform_space
 local attribute [instance] tmp_seminormed_add_comm_group
 
+private lemma tmp_topological_add_group : topological_add_group (E →SL[σ₁₂] F) :=
+infer_instance
+
+private lemma closed_ball_div_subset {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+  closed_ball (0 : E →SL[σ₁₂] F) (a / b) ⊆
+  {f | ∀ x ∈ closed_ball (0 : E) b, f x ∈ closed_ball (0 : F) a} :=
+begin
+  intros f hf x hx,
+  rw mem_closed_ball_zero_iff at ⊢ hf hx,
+  calc ∥f x∥
+      ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+  ... ≤ (a/b) * b : mul_le_mul hf hx (norm_nonneg _) (div_pos ha hb).le
+  ... = a : div_mul_cancel a hb.ne.symm
+end
+
 end tmp
+
+private theorem topology_eq :
+  (tmp_pseudo_metric_space.to_uniform_space.to_topological_space :
+    topological_space (E →SL[σ₁₂] F)) = infer_instance :=
+begin
+  refine tmp_topological_add_group.ext infer_instance
+    ((@metric.nhds_basis_closed_ball _ tmp_pseudo_metric_space 0).ext
+      continuous_linear_map.has_basis_nhds_zero _ _),
+  { rcases normed_field.exists_norm_lt_one 𝕜 with ⟨c, hc₀, hc₁⟩,
+    refine λ ε hε, ⟨⟨closed_ball 0 (1 / ∥c∥), closed_ball 0 ε⟩,
+      ⟨normed_space.is_vonN_bounded_closed_ball _ _ _, closed_ball_mem_nhds _ hε⟩, λ f hf, _⟩,
+    change ∀ x, _ at hf,
+    simp_rw mem_closed_ball_zero_iff at hf,
+    rw @mem_closed_ball_zero_iff _ tmp_seminormed_add_comm_group,
+    refine op_norm_le_of_shell' (div_pos one_pos hc₀) hε.le hc₁ (λ x hx₁ hxc, _),
+    rw div_mul_cancel 1 hc₀.ne.symm at hx₁,
+    exact (hf x hxc.le).trans (le_mul_of_one_le_right hε.le hx₁) },
+  { rintros ⟨S, V⟩ ⟨hS, hV⟩,
+    rw [normed_space.is_vonN_bounded_iff, ← bounded_iff_is_bounded] at hS,
+    rcases hS.subset_ball_lt 0 0 with ⟨ε, hε, hSε⟩,
+    rw metric.nhds_basis_closed_ball.mem_iff at hV,
+    rcases hV with ⟨δ, hδ, hVδ⟩,
+    exact ⟨δ/ε, div_pos hδ hε, (closed_ball_div_subset hδ hε).trans $
+      λ f hf x hx, hVδ $ hf x $ hSε hx⟩ }
+end
 
 lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊} :=
 begin

@@ -45,7 +45,7 @@ variables  {V : Type u}
 -/
 lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
-  (K : finset V) --[fintype (inf_ro_components' G K)]
+  (K : finset V)
   (inf_comp_H_large : fin 3 ↪ (inf_ro_components' G K)) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map_inf G Gpc ‹K' ⊆ L›) :=
 begin
@@ -114,6 +114,7 @@ begin
 
   rcases (good_autom_bwd_map_not_inj G Gpc auts K (many_ends.trans ⟨_,inj'⟩)) with ⟨K',L,KK',K'L,bwd_K_not_inj⟩,
   apply bwd_K_not_inj,
+  -- The following is just that if f ∘ g is injective, then so is g
   rintro x y eq,
   apply top ⟨L,by {exact KK'.trans K'L,}⟩,
   have eq' := congr_arg (bwd_map_inf G Gpc KK') eq,

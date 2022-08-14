@@ -149,10 +149,12 @@ begin
 
   rcases this with ⟨m,mtop⟩,
   let L := {n : ℕ | n > m },
-  have Ldis : disjoint L K, by sorry,
-  have Linf : L.infinite, by sorry,
-  have Lcof : (L ᶜ).finite, by sorry,
+  have Ldis : disjoint L K, by { rw set.disjoint_iff, rintro x ⟨xL,xK⟩, simp at xL, simp, specialize mtop x xK, simp at mtop, exact (not_le_of_lt xL) mtop, },
+  have Lcof : (L ᶜ).finite, by {dsimp [compl,boolean_algebra.compl],simp, apply set.finite_le_nat},
+  -- There is no set.infinite_gt_nat ??
+  have Linf : L.infinite, by {apply set.infinite_of_finite_compl,exact Lcof, },
   have Lconn := gt_subconnected m,
+
   use [L,Ldis,Lconn,Linf,Lcof],
 end
 

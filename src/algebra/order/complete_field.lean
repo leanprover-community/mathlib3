@@ -328,10 +328,9 @@ begin
           ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
           ...     ≥ 0                         : sq_nonneg _, },
     linarith, },
-  let φ : ℝ →+*o ℝ := { to_ring_hom := f, monotone' := f_mon },
-  let ι : ℝ →+*o ℝ := { to_ring_hom := ring_hom.id ℝ, monotone' := monotone_id, },
   haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
-  exact congr_arg (λ f : ℝ →+*o ℝ, f.to_ring_hom) (subsingleton.elim φ ι),
+  exact congr_arg order_ring_hom.to_ring_hom
+    (subsingleton.elim ⟨f, f_mon⟩ ⟨ring_hom.id ℝ, monotone_id⟩),
 end
 
 end real

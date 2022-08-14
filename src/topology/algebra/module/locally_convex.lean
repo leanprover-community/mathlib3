@@ -3,8 +3,7 @@ Copyright (c) 2022 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.convex.basic
-import topology.algebra.module.basic
+import analysis.convex.topology
 /-!
 # Locally convex topological modules
 

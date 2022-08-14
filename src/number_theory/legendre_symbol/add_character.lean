@@ -100,15 +100,14 @@ lemma inv_apply (ψ : add_char R R') (x : R) : ψ⁻¹ x = ψ (-x) := rfl
 @[simp]
 lemma map_zero_one (ψ : add_char R R') : ψ 0 = 1 :=
 begin
-  rw [coe_to_fun_apply, show of_add (0 : R) = 1, from rfl, ψ.map_one'],
+  rw [coe_to_fun_apply, of_add_zero, ψ.map_one'],
 end
 
 /-- An additive character maps sums to products. -/
 @[simp]
 lemma map_add_mul (ψ : add_char R R') (x y : R) : ψ (x + y) = ψ x * ψ y :=
 begin
-  rw [coe_to_fun_apply, coe_to_fun_apply, coe_to_fun_apply,
-      show of_add (x + y) = of_add x * of_add y, from rfl, ψ.map_mul'],
+  rw [coe_to_fun_apply, coe_to_fun_apply, coe_to_fun_apply, of_add_add, ψ.map_mul'],
 end
 
 /-- An additive character maps multiples by natural numbers to powers. -/
@@ -126,8 +125,7 @@ lemma map_zsmul_zpow {R' : Type v} [comm_group R'] (ψ : add_char R R') (n : ℤ
   ψ (n • x) = (ψ x) ^ n :=
 begin
   cases n,
-  { have : int.of_nat n • x = n • x := of_nat_zsmul x n,
-    rw [of_nat_zsmul, zpow_of_nat],
+  { rw [of_nat_zsmul, zpow_of_nat],
     exact map_nsmul_pow ψ n x, },
   { have h_inv : ψ⁻¹ x = (ψ x)⁻¹,
     { rw [eq_inv_iff_mul_eq_one, inv_apply, ← map_add_mul, neg_add_eq_sub, sub_self,

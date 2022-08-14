@@ -66,7 +66,7 @@ end
 
 namespace inverse_system
 
-variables {J : Type u} [preorder J] [Jdir : is_directed J ge] (F : J ⥤ Type v)
+variables {J : Type u} [preorder J] [is_directed J ge] (F : J ⥤ Type v)
 
 instance : preorder Jᵒᵖ := {
   le := λ jop jop', jop'.unop ≤ jop.unop,
@@ -78,7 +78,7 @@ instance : preorder Jᵒᵖ := {
 
 instance Jopdir  : is_directed Jᵒᵖ has_le.le :=
   {directed := λ jop jop',
-    let ⟨c, hj, hj'⟩ := @is_directed.directed _ _ Jdir jop.unop jop'.unop in
+    let ⟨c, hj, hj'⟩ := @is_directed.directed _ _ (by {assumption}) jop.unop jop'.unop in
       ⟨opposite.op c, hj, hj'⟩}
 
 #check inverse_system.Jopdir
@@ -587,10 +587,10 @@ begin
     apply subtype.coe_eq_of_eq_mk,
     apply funext,
     rintro ⟨i,ij⟩,
-    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (⟨s, λ _ _, sec⟩ : (above_point F j x).sections) i,
+    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (⟨s, @sec⟩ : (above_point F j x).sections) i,
     rcases e with rfl,
-    dsimp only [id],
-    dsimp only [bwd_aux],
+    --dsimp only [id],
+    --dsimp only [bwd_aux],
     sorry,
      },
 end

@@ -7,6 +7,7 @@ Authors: Nicolò Cavalleri, Andrew Yang
 import ring_theory.adjoin.basic
 import algebra.lie.of_associative
 import ring_theory.tensor_product
+import ring_theory.ideal.cotangent
 
 /-!
 # Derivations

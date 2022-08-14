@@ -256,6 +256,9 @@ include σ₄₃
   f.compl₂ g m q = f m (g q) := rfl
 omit σ₄₃
 
+@[simp] theorem compl₂_id : f.compl₂ linear_map.id = f :=
+by { ext, rw [compl₂_apply, id_coe, id.def] }
+
 /-- Composing linear maps `Q → M` and `Q' → N` with a bilinear map `M → N → P` to
 form a bilinear map `Q → Q' → P`. -/
 def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ) :

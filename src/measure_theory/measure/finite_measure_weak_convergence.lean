@@ -1041,7 +1041,7 @@ of measures.
 
 variables {α : Type*} [measurable_space α]
 
-lemma is_probability_measure.le_measure_compl_liminf_of_limsup_measure_le
+lemma le_measure_compl_liminf_of_limsup_measure_le
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
   {E : set α} (E_mble : measurable_set E)
@@ -1066,16 +1066,15 @@ begin
   exact ennreal.antitone_const_sub h,
 end
 
-lemma is_probability_measure.le_measure_liminf_of_limsup_measure_compl_le
+lemma le_measure_liminf_of_limsup_measure_compl_le
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
   {E : set α} (E_mble : measurable_set E)
   (h : L.limsup (λ i, (μs i : measure α) Eᶜ) ≤ (μ : measure α) Eᶜ) :
   (μ : measure α) E ≤ L.liminf (λ i, (μs i : measure α) E) :=
-compl_compl E ▸ (is_probability_measure.le_measure_compl_liminf_of_limsup_measure_le
-                (measurable_set.compl E_mble) h)
+compl_compl E ▸ (le_measure_compl_liminf_of_limsup_measure_le (measurable_set.compl E_mble) h)
 
-lemma is_probability_measure.limsup_measure_compl_le_of_le_liminf_measure
+lemma limsup_measure_compl_le_of_le_liminf_measure
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
   {E : set α} (E_mble : measurable_set E)
@@ -1100,14 +1099,13 @@ begin
   exact ennreal.antitone_const_sub h,
 end
 
-lemma is_probability_measure.limsup_measure_le_of_le_liminf_measure_compl
+lemma limsup_measure_le_of_le_liminf_measure_compl
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
   {E : set α} (E_mble : measurable_set E)
   (h : (μ : measure α) Eᶜ ≤ L.liminf (λ i, (μs i : measure α) Eᶜ)) :
   L.limsup (λ i, (μs i : measure α) E) ≤ (μ : measure α) E :=
-compl_compl E ▸ (is_probability_measure.limsup_measure_compl_le_of_le_liminf_measure
-                (measurable_set.compl E_mble) h)
+compl_compl E ▸ (limsup_measure_compl_le_of_le_liminf_measure (measurable_set.compl E_mble) h)
 
 variables [topological_space α] [opens_measurable_space α]
 
@@ -1128,10 +1126,10 @@ lemma is_probability_measure.limsup_measure_closed_le_iff_liminf_measure_open_ge
 begin
   split,
   { intros h G G_open,
-    exact is_probability_measure.le_measure_liminf_of_limsup_measure_compl_le
+    exact le_measure_liminf_of_limsup_measure_compl_le
           G_open.measurable_set (h Gᶜ (is_closed_compl_iff.mpr G_open)), },
   { intros h F F_closed,
-    exact is_probability_measure.limsup_measure_le_of_le_liminf_measure_compl
+    exact limsup_measure_le_of_le_liminf_measure_compl
           F_closed.measurable_set (h Fᶜ (is_open_compl_iff.mpr F_closed)), },
 end
 
@@ -1338,7 +1336,7 @@ lemma probability_measure.le_liminf_measure_open_of_tendsto
 begin
   have h_closeds : ∀ F, is_closed F → L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F,
     from λ F F_closed, probability_measure.limsup_measure_closed_le_of_tendsto μs_lim F_closed,
-  exact is_probability_measure.le_measure_liminf_of_limsup_measure_compl_le
+  exact le_measure_liminf_of_limsup_measure_compl_le
         G_open.measurable_set (h_closeds _ (is_closed_compl_iff.mpr G_open)),
 end
 

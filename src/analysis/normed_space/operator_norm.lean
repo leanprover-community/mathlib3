@@ -382,8 +382,16 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
 
 /-- Continuous linear maps themselves form a seminormed space with respect to
     the operator norm. -/
-instance to_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
+def tmp_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
 seminormed_add_comm_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
+
+def tmp_pseudo_metric_space : pseudo_metric_sp
+
+section tmp
+
+local attribute [instance] tmp_seminormed_add_comm_group
+
+end tmp
 
 lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊} :=
 begin

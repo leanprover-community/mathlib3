@@ -259,24 +259,27 @@ structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v
 
 variables {C : Type v} [comm_ring C]
 
+-- For `n : ℕ+`, automatically generate instance `fact (0 < (n : ℕ))`.
+-- This is needed for the API for `zmod n`.
+local attribute [instance] pnat.fact_pos
+
 section zmod_char_def
 
 open multiplicative -- so we can write simply `to_add`, which we need here again
 
 /-- We can define an additive character on `zmod n` when we have an `n`th root of unity `ζ : C`. -/
-def zmod_char (n : ℕ) [fact (0 < n)] {ζ : C} (hζ : ζ ^ n = 1) : add_char (zmod n) C :=
+def zmod_char (n : ℕ+) {ζ : C} (hζ : ζ ^ ↑n = 1) : add_char (zmod n) C :=
 { to_fun := λ (a : multiplicative (zmod n)), ζ ^ a.to_add.val,
   map_one' := by simp only [to_add_one, zmod.val_zero, pow_zero],
   map_mul' := λ x y, by rw [to_add_mul, ← pow_add, zmod.val_add (to_add x) (to_add y),
                             ← pow_eq_pow_mod _ hζ] }
 
 /-- The additive character on `zmod n` defined using `ζ` sends `a` to `ζ^a`. -/
-lemma zmod_char_apply {n : ℕ} [fact (0 < n)] {ζ : C} (hζ : ζ ^ n = 1) (a : zmod n) :
+lemma zmod_char_apply {n : ℕ+} {ζ : C} (hζ : ζ ^ ↑n = 1) (a : zmod n) :
   zmod_char n hζ a = ζ ^ a.val :=
 by simp only [coe_to_fun_apply, zmod_char, to_add_of_add]
 
-lemma zmod_char_apply' {n : ℕ} [fact (0 < n)] {ζ : C} (hζ : ζ ^ n = 1) (a : ℕ) :
-  zmod_char n hζ a = ζ ^ a :=
+lemma zmod_char_apply' {n : ℕ+} {ζ : C} (hζ : ζ ^ ↑n = 1) (a : ℕ) : zmod_char n hζ a = ζ ^ a :=
 begin
   nth_rewrite 1 ← nat.div_add_mod a n,
   rw [zmod_char_apply, zmod.val_nat_cast a, pow_add, pow_mul, hζ, one_pow, one_mul],
@@ -285,8 +288,7 @@ end
 end zmod_char_def
 
 /-- An additive character on `zmod n` is nontrivial iff it takes a value `≠ 1` on `1`. -/
-lemma zmod_char_is_nontrivial_iff (n : ℕ) [fact (0 < n)] (ψ : add_char (zmod n) C) :
-  is_nontrivial ψ ↔ ψ 1 ≠ 1 :=
+lemma zmod_char_is_nontrivial_iff (n : ℕ+) (ψ : add_char (zmod n) C) : is_nontrivial ψ ↔ ψ 1 ≠ 1 :=
 begin
   refine ⟨_, λ h, ⟨1, h⟩⟩,
   contrapose!,
@@ -298,8 +300,8 @@ begin
 end
 
 /-- A primitive additive character on `zmod n` takes the value `1` only at `0`. -/
-lemma is_primitive.zmod_char_eq_one_iff (n : ℕ) [fact (0 < n)]
-  {ψ : add_char (zmod n) C} (hψ : is_primitive ψ) (a : zmod n) :
+lemma is_primitive.zmod_char_eq_one_iff (n : ℕ+) {ψ : add_char (zmod n) C} (hψ : is_primitive ψ)
+  (a : zmod n) :
   ψ a = 1 ↔ a = 0 :=
 begin
   refine ⟨λ h, not_imp_comm.mp (hψ a) _, λ ha, (by rw [ha, map_zero_one])⟩,
@@ -308,8 +310,8 @@ end
 
 /-- The converse: if the additive character takes the value `1` only at `0`,
 then it is primitive. -/
-lemma zmod_char_primitive_of_eq_one_only_at_zero (n : ℕ)
-  (ψ : add_char (zmod n) C) (hψ : ∀ a, ψ a = 1 → a = 0) :
+lemma zmod_char_primitive_of_eq_one_only_at_zero (n : ℕ) (ψ : add_char (zmod n) C)
+  (hψ : ∀ a, ψ a = 1 → a = 0) :
   is_primitive ψ :=
 begin
   refine λ a ha, (is_nontrivial_iff_ne_trivial _).mpr (λ hf, _),
@@ -321,29 +323,27 @@ end
 
 /-- The additive character on `zmod n` associated to a primitive `n`th root of unity
 is primitive -/
-lemma zmod_char_primitive_of_primitive_root (n : ℕ) [hn : fact (0 < n)]
-  {ζ : C} (h : is_primitive_root ζ n) :
+lemma zmod_char_primitive_of_primitive_root (n : ℕ+) {ζ : C} (h : is_primitive_root ζ n) :
   is_primitive (zmod_char n ((is_primitive_root.iff_def ζ n).mp h).left) :=
 begin
   apply zmod_char_primitive_of_eq_one_only_at_zero,
   intros a ha,
   rw [zmod_char_apply, ← pow_zero ζ] at ha,
-  exact (zmod.val_eq_zero a).mp (is_primitive_root.pow_inj h (zmod.val_lt a) hn.1 ha),
+  exact (zmod.val_eq_zero a).mp (is_primitive_root.pow_inj h (zmod.val_lt a) n.pos ha),
 end
 
 /-- There is a primitive additive character on `zmod n` if the characteristic of the target
 does not divide `n` -/
 noncomputable
-def primitive_zmod_char (n : ℕ) [hn : fact (0 < n)] (F' : Type v) [field F'] (h : (n : F') ≠ 0) :
+def primitive_zmod_char (n : ℕ+) (F' : Type v) [field F'] (h : (n : F') ≠ 0) :
   primitive_add_char (zmod n) F' :=
 begin
-  let nn := n.to_pnat hn.1,
-  haveI : ne_zero ((nn : ℕ) : F') := ⟨h⟩,
-  haveI : ne_zero ((nn : ℕ) : cyclotomic_field nn F') := ne_zero.of_no_zero_smul_divisors F' _ n,
+  haveI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
+  haveI : ne_zero ((n : ℕ) : cyclotomic_field n F') := ne_zero.of_no_zero_smul_divisors F' _ n,
   exact
-{ n := nn,
-  char := zmod_char n (is_cyclotomic_extension.zeta_pow nn F' _),
-  prim := zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec nn F' _) }
+{ n := n,
+  char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
+  prim := zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _) }
 end
 
 /-!
@@ -361,7 +361,7 @@ def primitive_char_finite_field (F F': Type*) [field F] [fintype F] [field F']
 begin
   let p := ring_char F,
   haveI hp : fact p.prime := ⟨char_p.char_is_prime F _⟩,
-  haveI hp₁ : fact (0 < p) := ⟨hp.1.pos⟩,
+  let pp := p.to_pnat hp.1.pos,
   have hp₂ : ¬ ring_char F' ∣ p :=
   begin
     cases char_p.char_is_prime_or_zero F' (ring_char F') with hq hq,
@@ -369,13 +369,13 @@ begin
     { rw [hq],
       exact λ hf, nat.prime.ne_zero hp.1 (zero_dvd_iff.mp hf), },
   end,
-  let ψ := primitive_zmod_char p F' (ne_zero_iff.mp (ne_zero.of_not_dvd F' hp₂)),
+  let ψ := primitive_zmod_char pp F' (ne_zero_iff.mp (ne_zero.of_not_dvd F' hp₂)),
   let ψ' := ψ.char.comp (algebra.trace (zmod p) F).to_add_monoid_hom.to_multiplicative,
   have hψ' : is_nontrivial ψ' :=
   begin
     obtain ⟨a, ha⟩ := finite_field.trace_to_zmod_nondegenerate F one_ne_zero,
     rw one_mul at ha,
-    exact ⟨a, λ hf, ha $ (ψ.prim.zmod_char_eq_one_iff p $ algebra.trace (zmod p) F a).mp hf⟩,
+    exact ⟨a, λ hf, ha $ (ψ.prim.zmod_char_eq_one_iff pp $ algebra.trace (zmod p) F a).mp hf⟩,
   end,
   exact
 { n := ψ.n,

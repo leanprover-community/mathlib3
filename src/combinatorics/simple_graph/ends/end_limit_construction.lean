@@ -3,7 +3,7 @@ import topology.category.Top.limits
 import data.finset.basic
 
 import .bwd_map
-import .mathlib_limits
+import .mathlib_fintype_inverse_systems
 
 open category_theory
 open opposite
@@ -21,24 +21,26 @@ universes u v w
 variables {V : Type u} [decidable_eq V] (h : V ≃ ℕ)
 variables (G : simple_graph V) (Gpc : G.preconnected) [locally_finite G]
 
+
+-- Defined backwards for simpler use of `mathlib_fintype_inverse_systems.lean`
 instance finset_preorder : preorder (finset V) := {
-  le := λ A B, A ⊆ B,
-  lt := λ A B, A ⊂ B,
+  le := λ A B, A ⊇ B,
+  lt := λ A B, A ⊃ B,
   le_refl := by {obviously},
   le_trans := by {obviously},
-  lt_iff_le_not_le := by {obviously}
+  lt_iff_le_not_le := by {dsimp only [superset,ssuperset],obviously,}
   }
 
 /- The category of finite subsets of `V` with the morphisms being inclusions -/
 instance FinIncl : category (finset V) := infer_instance
 
-instance finset_directed : is_directed (finset V) (≤) := {
+instance finset_directed : is_directed (finset V) (≥) := {
   directed := λ A B, ⟨A ∪ B, ⟨finset.subset_union_left A B, finset.subset_union_right A B⟩⟩ }
 
 /-The functor assigning a finite set in `V` to the set of connected components in its complement-/
-def ComplComp : (finset V)ᵒᵖ ⥤ Type u := {
-  obj := λ A, ro_components G (unop A),
-  map := λ A B f, bwd_map G Gpc (le_of_hom f.unop),
+def ComplComp : finset V ⥤ Type u := {
+  obj := λ A, ro_components G A,
+  map := λ A B f, bwd_map G Gpc (le_of_hom f),
   map_id' := by {intro, funext, simp, apply bwd_map_refl',},
   map_comp' := by {intros, funext, simp, apply eq.symm, apply bwd_map_comp',},
 }
@@ -46,9 +48,9 @@ def ComplComp : (finset V)ᵒᵖ ⥤ Type u := {
 def Ends := (ComplComp G Gpc).sections
 
 /-The functor assigning a finite set in `V` to the set of **infinite** connected components in its complement-/
-def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
-  obj := λ A, subtype {C : ro_components G (unop A) | C.val.infinite},
-  map := λ A B f, set.maps_to.restrict (bwd_map G Gpc (le_of_hom f.unop)) _ _ (bwd_map_inf_to_inf G Gpc (le_of_hom f.unop)),
+def ComplInfComp : finset V ⥤ Type u := {
+  obj := λ A, subtype {C : ro_components G A | C.val.infinite},
+  map := λ A B f, set.maps_to.restrict (bwd_map G Gpc (le_of_hom f)) _ _ (bwd_map_inf_to_inf G Gpc (le_of_hom f)),
   map_id' := by {intro, funext, simp [set.maps_to.restrict, subtype.map], cases x, apply subtype.eq, dsimp, apply bwd_map_refl', },
   map_comp' := by {intros, funext, simp [set.maps_to.restrict, subtype.map], cases x, dsimp, apply eq.symm, apply bwd_map_comp', },
 }
@@ -56,16 +58,16 @@ def ComplInfComp : (finset V)ᵒᵖ ⥤ Type u := {
 def Endsinfty := (ComplInfComp G Gpc).sections
 
 
-lemma ComplInfComp_eq_ComplComp_to_surjective : ComplInfComp G Gpc = fis.to_surjective (ComplComp G Gpc) :=
+lemma ComplInfComp_eq_ComplComp_to_surjective : ComplInfComp G Gpc = inverse_system.to_surjective (ComplComp G Gpc) :=
 begin
 
-  have objeq : ∀ (X : (finset V)ᵒᵖ), (ComplInfComp G Gpc).obj X = (fis.to_surjective (ComplComp G Gpc)).obj X, by
-  { simp [ComplInfComp,fis.to_surjective,ComplComp],
-    rintro Kop,
-    have : {C : ↥(G.ro_components (unop Kop)) | (C.val : set V).infinite} = (⋂ (L ∈ bigger Kop), set.range (bwd_map G Gpc H)), by
+  have objeq : ∀ (X : (finset V)), (ComplInfComp G Gpc).obj X = (inverse_system.to_surjective (ComplComp G Gpc)).obj X, by
+  { simp [ComplInfComp,inverse_system.to_surjective,ComplComp],
+    rintro K,
+    have : {C : ↥(G.ro_components K) | (C.val : set V).infinite} = (⋂ (L ≤ K), set.range (bwd_map G Gpc H)), by
     { apply set.ext, rintro C, split,
       { rintro Cinf, simp at Cinf, rw set.mem_Inter₂, rintro L KL, apply bwd_map_surjective_on_of_inf, exact Cinf,},
-      { rintro Crange, simp at Crange, apply bwd_map_inf_of_surjective_on G Gpc, rintro L KL, simp, exact Crange (opposite.op L) KL,},
+      { rintro Crange, simp at Crange, apply bwd_map_inf_of_surjective_on G Gpc, rintro L KL, simp, exact Crange L KL,},
     },
     rw this, simp, refl,},
 
@@ -73,12 +75,14 @@ begin
   apply category_theory.functor.hext,
   { exact objeq, },
   { rintro Kop Lop KL,
-    dsimp [ComplInfComp, ComplComp, fis.to_surjective, set.maps_to.restrict],
+    dsimp [ComplInfComp, ComplComp, inverse_system.to_surjective, set.maps_to.restrict],
     apply heq.symm, apply heq_of_cast_eq,
     { dsimp [subtype.map],
       ext,
+      split,
+      { sorry },
+      { sorry },
       -- dsimp [cast],
-      sorry,
      },
     { sorry, }
   },
@@ -88,64 +92,63 @@ lemma Ends_equiv_Endsinfty : (Ends G Gpc) ≃ (Endsinfty G Gpc) :=
 begin
   dsimp [Ends,Endsinfty],
   rw ComplInfComp_eq_ComplComp_to_surjective,
-  apply fis.sections_surjective_equiv_sections,
+  apply inverse_system.to_surjective.sections_equiv,
 end
 
 
-instance ComplComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplComp G Gpc).obj j) := by {
+instance ComplComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)), nonempty ((ComplComp G Gpc).obj j) := by {
   intro K,
-  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K.unop Vinf,
+  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K Vinf,
   use [C,Ccomp],
 }
 
-instance ComplComp_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplComp G Gpc).obj j) := by {
+instance ComplComp_fintype : Π (j : (finset V)), fintype ((ComplComp G Gpc).obj j) := by {
   intro K,
-  exact (ro_component.finite G Gpc K.unop).fintype,
+  exact (ro_component.finite G Gpc K).fintype,
 }
 
-instance ComplInfComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)ᵒᵖ), nonempty ((ComplInfComp G Gpc).obj j) := by {
+instance ComplInfComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)), nonempty ((ComplInfComp G Gpc).obj j) := by {
   intro K,
-  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K.unop Vinf,
+  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K Vinf,
   use [C,Ccomp],
 }
 
-instance ComplInfComp_fintype : Π (j : (finset V)ᵒᵖ), fintype ((ComplInfComp G Gpc).obj j) := by {
+instance ComplInfComp_fintype : Π (j : (finset V)), fintype ((ComplInfComp G Gpc).obj j) := by {
   intro K,
-  haveI := (ro_component.finite G Gpc K.unop).fintype,
+  haveI := (ro_component.finite G Gpc K).fintype,
   dsimp [ComplInfComp],
   apply subtype.fintype,
 }
 
 
 theorem exists_end_inf_graph (Vinf : set.infinite  (@set.univ V)) : (Ends G Gpc).nonempty :=
-  @nonempty_sections_of_fintype_inverse_system _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc Vinf)
+  @inverse_system.nonempty_sections_of_fintype_inverse_system' _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc Vinf)
 
 
-lemma all_empty (Vfin : set.finite (@set.univ V)) : ∀ (K : finset V), is_empty ((ComplInfComp G Gpc).obj $ opposite.op K) :=
+lemma all_empty (Vfin : set.finite (@set.univ V)) : ∀ (K : finset V), is_empty ((ComplInfComp G Gpc).obj K) :=
 begin
   sorry,
 end
 
-lemma ComplInfComp.surjective : fis.is_surjective (ComplInfComp G Gpc) :=
+lemma ComplInfComp.surjective : inverse_system.is_surjective (ComplInfComp G Gpc) :=
 begin
   dsimp [Endsinfty],
   rw ComplInfComp_eq_ComplComp_to_surjective,
   by_cases hfin : (set.finite (@set.univ V)),
   { rintro i j h x,
-    let jempty := all_empty G Gpc hfin j.unop,
+    let jempty := all_empty G Gpc hfin j,
     rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
     exfalso,
     exact is_empty_iff.mp jempty x, },
-  { exact @fis.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc hfin), },
+  { exact @inverse_system.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc hfin), },
 end
 
-lemma Endsinfty_surjective : Π (j : (finset V)ᵒᵖ), function.surjective (λ e : Endsinfty G Gpc, e.val j) :=
+lemma Endsinfty_surjective : Π (j : (finset V)), function.surjective (λ e : Endsinfty G Gpc, e.val j) :=
 begin
   rintro j,
   dsimp [Endsinfty],
   have := ComplInfComp.surjective G Gpc,
-  rw fis.is_surjective_iff at this,
-  apply fis.sections_surjective,
+  rw inverse_system.is_surjective_iff at this,
+  apply inverse_system.sections_surjective,
   rintro i h, exact this i j h,
 end
-

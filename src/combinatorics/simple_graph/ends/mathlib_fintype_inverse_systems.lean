@@ -591,8 +591,7 @@ begin
     rcases e with rfl,
     --dsimp only [id],
     --dsimp only [bwd_aux],
-    sorry,
-     },
+    sorry, },
 end
 
 

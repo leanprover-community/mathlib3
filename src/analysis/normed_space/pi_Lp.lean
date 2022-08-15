@@ -261,6 +261,16 @@ def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
 
+/-- An auxiliary lemma used twice in the proof of `pi_Lp.pseudo_metric_aux` below. Not intended for
+use outside this file. -/
+lemma supr_edist_ne_top_aux (f g : pi_Lp ∞ α) : (⨆ i, edist (f i) (g i)) ≠ ⊤ :=
+begin
+  obtain ⟨M, hM⟩ := fintype.exists_le (λ i, (⟨dist (f i) (g i), dist_nonneg⟩ : ℝ≥0)),
+  refine ne_of_lt ((supr_le $ λ i, _).trans_lt (@ennreal.coe_lt_top M)),
+  simp only [edist, pseudo_metric_space.edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg],
+  exact_mod_cast hM i,
+end
+
 /-- Endowing the space `pi_Lp p α` with the `L^p` pseudometric structure. This definition is not
 satisfactory, as it does not register the fact that the topology, the uniform structure, and the
 bornology coincide with the product ones. Therefore, we do not register it as an instance. Using
@@ -271,18 +281,11 @@ structure and the bornology by the product ones using this pseudometric space,
 
 See note [reducible non-instances] -/
 @[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
-have supr_ne_top : ∀ (f g : pi_Lp ∞ α), (⨆ i, edist (f i) (g i)) ≠ ⊤ := λ f g,
-begin
-  obtain ⟨M, hM⟩ := fintype.exists_le (λ i, (⟨dist (f i) (g i), dist_nonneg⟩ : ℝ≥0)),
-  refine ne_of_lt ((supr_le $ λ i, _).trans_lt (@ennreal.coe_lt_top M)),
-  simp only [edist, pseudo_metric_space.edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg],
-  exact_mod_cast hM i,
-end,
 pseudo_emetric_space.to_pseudo_metric_space_of_dist dist
   (λ f g,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | h) },
-    { exact supr_ne_top f g },
+    { exact supr_edist_ne_top_aux _ f g },
     { rw edist_eq_sum (zero_lt_one.trans_le h),
       exact ennreal.rpow_ne_top_of_nonneg (one_div_nonneg.2 (zero_le_one.trans h)) (ne_of_lt $
         (ennreal.sum_lt_top $ λ i hi, ennreal.rpow_ne_top_of_nonneg (zero_le_one.trans h)
@@ -295,7 +298,7 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist dist
       { casesI is_empty_or_nonempty ι,
         { simp only [real.csupr_empty, csupr_of_empty, ennreal.bot_eq_zero, ennreal.zero_to_real] },
         { refine le_antisymm (csupr_le $ λ i, _) _,
-          { rw [←ennreal.of_real_le_iff_le_to_real (supr_ne_top f g),
+          { rw [←ennreal.of_real_le_iff_le_to_real (supr_edist_ne_top_aux _ f g),
               ←pseudo_metric_space.edist_dist],
             exact le_supr _ i, },
           { refine ennreal.to_real_le_of_le_of_real (real.Sup_nonneg _ _) (supr_le $ λ i, _),

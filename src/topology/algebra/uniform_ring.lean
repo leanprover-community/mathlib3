@@ -145,6 +145,33 @@ instance top_ring_compl : topological_ring (completion α) :=
 def map_ring_hom (hf : continuous f) : completion α →+* completion β :=
 extension_hom (coe_ring_hom.comp f) (continuous_coe_ring_hom.comp  hf)
 
+section algebra
+variables (R : Type*) [ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
+  (S : Type*) [comm_semiring S] [algebra S R] [has_uniform_continuous_const_smul S R]
+
+@[simp] lemma map_smul_eq_mul_coe (s : S) :
+  completion.map ((•) s) = (*) (algebra_map S R s : completion R) :=
+begin
+  ext x,
+  refine completion.induction_on x _ (λ r, _),
+  { exact is_closed_eq (completion.continuous_map) (continuous_mul_left _) },
+  { rw [map_coe (uniform_continuous_const_smul s) r, algebra.smul_def, coe_mul] },
+end
+
+instance : algebra S (completion R) :=
+{ commutes' := λ s x, completion.induction_on x
+    (is_closed_eq (continuous_mul_left _) (continuous_mul_right _)) $ λ r,
+      by simpa only [coe_mul] using congr_arg (coe : R → completion R) (algebra.commutes s r),
+  smul_def' := λ s x, congr_fun (map_smul_eq_mul_coe R S s) x,
+  ..((uniform_space.completion.coe_ring_hom : R →+* completion R).comp (algebra_map S R)) }
+
+lemma algebra_map_def (s : S) :
+  algebra_map S (completion R) s = (algebra_map S R s : completion R) :=
+rfl
+
+end algebra
+
+section comm_ring
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 
 instance : comm_ring (completion R) :=
@@ -154,34 +181,11 @@ instance : comm_ring (completion R) :=
       (assume a b, by rw [← coe_mul, ← coe_mul, mul_comm]),
  ..completion.ring }
 
-section algebra
-variables (S : Type*) [comm_semiring S] [algebra S R] [has_uniform_continuous_const_smul S R]
-
-@[simp] lemma map_smul_eq_mul_coe (s : S) :
-  completion.map ((•) s) = (*) (algebra_map S R s : completion R) :=
-begin
-  ext x,
-  refine completion.induction_on x _ (λ r, _),
-  { exact is_closed_eq (completion.continuous_map) (continuous_mul_left _) },
-  { rw [map_coe (has_uniform_continuous_const_smul.uniform_continuous_const_smul s),
-      algebra.smul_def, coe_mul];
-    apply_instance, },
-end
-
-instance : algebra S (completion R) :=
-{ commutes' := λ s x, by simp only [ring_hom.to_fun_eq_coe, mul_comm],
-  smul_def' := λ s x, congr_fun (map_smul_eq_mul_coe R S s) x,
-  ..((uniform_space.completion.coe_ring_hom : R →+* completion R).comp (algebra_map S R)) }
-
-lemma algebra_map_def (s : S) :
-  algebra_map S (completion R) s = (algebra_map S R s : completion R) :=
-rfl
-
-/-- A shortcut instance for the common case -/
+ /-- A shortcut instance for the common case -/
 instance algebra' : algebra R (completion R) :=
 by apply_instance
 
-end algebra
+end comm_ring
 
 end uniform_space.completion
 

@@ -227,8 +227,6 @@ begin
   obtain ⟨⟨_, N, rfl⟩, hN⟩ := is_localization.exist_integer_multiples_of_finset (submonoid.powers f)
     (c.support.image c),
   choose acd hacd using hN,
-  have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
-  { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
 
   refine ⟨c, N, acd, _⟩,
   rw [← eq1, smul_sum, map_sum, ← sum_attach],

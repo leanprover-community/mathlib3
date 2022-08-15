@@ -548,8 +548,7 @@ variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 /-- The canonical map `pi_Lp.equiv` between `pi_Lp ∞ β` and `Π i, β i` as a linear isometric
 equivalence. -/
-def equivₗᵢ :
-  pi_Lp ∞ β ≃ₗᵢ[𝕜] Π i, β i :=
+def equivₗᵢ : pi_Lp ∞ β ≃ₗᵢ[𝕜] Π i, β i :=
 { map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
   norm_map' := λ f,
@@ -561,7 +560,7 @@ def equivₗᵢ :
     { simp only [csupr_of_empty, finset.univ_eq_empty, finset.sup_empty], },
     { exact csupr_le (λ i, finset.le_sup (finset.mem_univ i)) },
   end,
-  .. (pi_Lp.equiv ∞ β) }
+  .. pi_Lp.equiv ∞ β }
 
 variables {ι' : Type*}
 variables [fintype ι']
@@ -642,7 +641,7 @@ end
 
 /-- When `is_empty ι`, this lemma does not hold without the additional assumption `p ≠ ∞` because
 the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
-`pi_Lp.nnnorm_equiv_symm_const'` for a version which exchanges the hypothesis `nonempty ι`.
+`pi_Lp.nnnorm_equiv_symm_const` for a version which exchanges the hypothesis `nonempty ι`.
 for `p ≠ ∞`. -/
 lemma nnnorm_equiv_symm_const' {β} [seminormed_add_comm_group β] [nonempty ι] (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊=

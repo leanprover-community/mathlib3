@@ -24,7 +24,6 @@ open quotient_group
 variables {A : Type u} {B : Type v}
 
 section
-
 variables [group A] [group B]
 
 @[to_additive add_monoid_hom.ker_eq_bot_of_cancel]
@@ -35,7 +34,6 @@ by simpa using _root_.congr_arg range (h f.ker.subtype 1 (by tidy))
 end
 
 section
-
 variables [comm_group A] [comm_group B]
 
 @[to_additive add_monoid_hom.range_eq_top_of_cancel]
@@ -307,11 +305,9 @@ iff.trans (epi_iff_surjective _) (subgroup.eq_top_iff' f.range).symm
 end Group
 
 namespace AddGroup
-
 variables {A B : AddGroup.{u}} (f : A ⟶ B)
 
-lemma epi_iff_surjective :
-  epi f ↔ function.surjective f :=
+lemma epi_iff_surjective : epi f ↔ function.surjective f :=
 begin
   have i1 : epi f ↔ epi (Group_AddGroup_equivalence.inverse.map f),
   { refine ⟨_, Group_AddGroup_equivalence.inverse.epi_of_epi_map⟩,
@@ -326,7 +322,6 @@ iff.trans (epi_iff_surjective _) (add_subgroup.eq_top_iff' f.range).symm
 end AddGroup
 
 namespace CommGroup
-
 variables {A B : CommGroup.{u}} (f : A ⟶ B)
 
 @[to_additive AddCommGroup.ker_eq_bot_of_mono]
@@ -344,10 +339,6 @@ lemma mono_iff_injective : mono f ↔ function.injective f :=
 iff.trans (mono_iff_ker_eq_bot f) $ monoid_hom.ker_eq_bot_iff f
 
 @[to_additive]
-instance : functor.reflects_epimorphisms (forget₂ CommGroup Group) :=
-functor.reflects_epimorphisms_of_faithful _
-
-@[to_additive]
 lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
 monoid_hom.range_eq_top_of_cancel $ λ u v h,
   (@cancel_epi _ _ _ _ _ f _ (show B ⟶ ⟨B ⧸ monoid_hom.range f⟩, from u) v).1 h
@@ -363,10 +354,7 @@ by rw [epi_iff_range_eq_top, monoid_hom.range_top_iff_surjective]
 
 @[to_additive]
 instance : functor.preserves_epimorphisms (forget₂ CommGroup Group) :=
-{ preserves := λ X Y f e, begin
-    rw [epi_iff_surjective, ←@Group.epi_iff_surjective ⟨X⟩ ⟨Y⟩ f] at e,
-    exact e,
-  end }
+{ preserves := λ X Y f e, by rwa [epi_iff_surjective, ←@Group.epi_iff_surjective ⟨X⟩ ⟨Y⟩ f] at e }
 
 end CommGroup
 

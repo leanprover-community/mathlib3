@@ -50,9 +50,6 @@ def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟨⟩⟩, Y, f⟩
 @[simp, reassoc] lemma w {A B : structured_arrow S T} (f : A ⟶ B) : A.hom ≫ T.map f.right = B.hom :=
 by { have := f.w; tidy }
 
-lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
-by { cases f, congr, ext, }
-
 /--
 To construct a morphism of structured arrows,
 we need a morphism of the objects underlying the target,
@@ -82,6 +79,16 @@ and to check that the triangle commutes.
 def iso_mk {f f' : structured_arrow S T} (g : f.right ≅ f'.right)
   (w : f.hom ≫ T.map g.hom = f'.hom) : f ≅ f' :=
 comma.iso_mk (eq_to_iso (by ext)) g (by simpa [eq_to_hom_map] using w.symm)
+
+/-- Eta rule for structured arrows. Prefer `structured_arrow.eta`, since equality of objects tends
+    to cause problems. -/
+lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
+by { cases f, congr, ext, }
+
+/-- Eta rule for structured arrows. -/
+@[simps]
+def eta (f : structured_arrow S T) : f ≅ mk f.hom :=
+iso_mk (iso.refl _) (by tidy)
 
 /--
 A morphism between source objects `S ⟶ S'`
@@ -167,9 +174,6 @@ def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟨⟩⟩, f⟩
   S.map f.left ≫ B.hom = A.hom :=
 by tidy
 
-lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=
-by { cases f, congr, ext, }
-
 /--
 To construct a morphism of costructured arrows,
 we need a morphism of the objects underlying the source,
@@ -191,6 +195,16 @@ and to check that the triangle commutes.
 def iso_mk {f f' : costructured_arrow S T} (g : f.left ≅ f'.left)
   (w : S.map g.hom ≫ f'.hom = f.hom) : f ≅ f' :=
 comma.iso_mk g (eq_to_iso (by ext)) (by simpa [eq_to_hom_map] using w)
+
+/-- Eta rule for costructured arrows. Prefer `costructured_arrow.eta`, as equality of objects tends
+    to cause problems. -/
+lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=
+by { cases f, congr, ext, }
+
+/-- Eta rule for costructured arrows. -/
+@[simps]
+def eta (f : costructured_arrow S T) : f ≅ mk f.hom :=
+iso_mk (iso.refl _) (by tidy)
 
 /--
 A morphism between target objects `T ⟶ T'`

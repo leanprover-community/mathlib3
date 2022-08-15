@@ -8,7 +8,7 @@ import algebra.category.Group.basic
 /-!
 # Equivalence between `Group` and `AddGroup`
 
-This file contains two equivalence:
+This file contains two equivalences:
 * `Group_AddGroup_equivalence` : the equivalence between `Group` and `AddGroup` by sending
   `X : Group` to `additive X` and `Y : AddGroup` to `multiplicative Y`.
 * `CommGroup_AddCommGroup_equivlance` : the equivalence between `CommGroup` and `AddCommGroup` by

@@ -173,13 +173,12 @@ variables {R : Type u} {M : Type v}
 [module R M] [has_continuous_smul R M]
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  ⊆ closure (s : set M) :=
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
 calc
-(λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-    = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R) ×ˢ (s : set M))) :
+(λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s)
+    = (λ p : R × M, p.1 • p.2) '' closure (set.univ ×ˢ s) :
   by simp [closure_prod_eq]
-... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ (s : set M))) :
+... ⊆ closure ((λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ s)) :
   image_closure_subset_closure_image continuous_smul
 ... = closure s : begin
   congr,
@@ -190,10 +189,8 @@ calc
 end
 
 lemma submodule.closure_smul_self_eq (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  = closure (s : set M) :=
-set.subset.antisymm s.closure_smul_self_subset
-  (λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩)
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) = closure s :=
+s.closure_smul_self_subset.antisymm $ λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩
 
 variables [has_continuous_add M]
 
@@ -235,6 +232,11 @@ le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_cl
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
   dense (s : set M) ↔ s.topological_closure = ⊤ :=
 by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
+
+instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
+  [has_continuous_add M'] [has_continuous_smul R M'] [complete_space M'] (U : submodule R M') :
+  complete_space U.topological_closure :=
+is_closed_closure.complete_space_coe
 
 end closure
 

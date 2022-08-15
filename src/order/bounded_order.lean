@@ -1261,6 +1261,10 @@ lemma disjoint.comm : disjoint a b ↔ disjoint b a := by rw [disjoint, disjoint
 lemma symmetric_disjoint : symmetric (disjoint : α → α → Prop) := disjoint.symm
 lemma disjoint_assoc : disjoint (a ⊓ b) c ↔ disjoint a (b ⊓ c) :=
 by rw [disjoint, disjoint, inf_assoc]
+lemma disjoint_left_comm : disjoint a (b ⊓ c) ↔ disjoint b (a ⊓ c) :=
+by simp_rw [disjoint, inf_left_comm]
+lemma disjoint_right_comm : disjoint (a ⊓ b) c ↔ disjoint (a ⊓ c) b :=
+by simp_rw [disjoint, inf_right_comm]
 
 @[simp] lemma disjoint_bot_left : disjoint ⊥ a := inf_le_left
 @[simp] lemma disjoint_bot_right : disjoint a ⊥ := inf_le_right
@@ -1348,6 +1352,10 @@ lemma codisjoint.comm : codisjoint a b ↔ codisjoint b a := by rw [codisjoint, 
 lemma symmetric_codisjoint : symmetric (codisjoint : α → α → Prop) := codisjoint.symm
 lemma codisjoint_assoc : codisjoint (a ⊔ b) c ↔ codisjoint a (b ⊔ c) :=
 by rw [codisjoint, codisjoint, sup_assoc]
+lemma codisjoint_left_comm : codisjoint a (b ⊔ c) ↔ codisjoint b (a ⊔ c) :=
+by simp_rw [codisjoint, sup_left_comm]
+lemma codisjoint_right_comm : codisjoint (a ⊔ b) c ↔ codisjoint (a ⊔ c) b :=
+by simp_rw [codisjoint, sup_right_comm]
 
 @[simp] lemma codisjoint_top_left : codisjoint ⊤ a := le_sup_left
 @[simp] lemma codisjoint_top_right : codisjoint a ⊤ := le_sup_right
@@ -1437,6 +1445,17 @@ lemma codisjoint.dual [semilattice_sup α] [order_top α] {a b : α} :
   codisjoint (to_dual a) (to_dual b) ↔ disjoint a b := iff.rfl
 @[simp] lemma codisjoint_of_dual_iff [semilattice_sup α] [order_top α] {a b : αᵒᵈ} :
   codisjoint (of_dual a) (of_dual b) ↔ disjoint a b := iff.rfl
+
+section distrib_lattice
+variables [distrib_lattice α] [bounded_order α] {a b c : α}
+
+lemma disjoint.le_of_codisjoint (hab : disjoint a b) (hbc : codisjoint b c) : a ≤ c :=
+begin
+  rw [←@inf_top_eq _ _ _ a, ←@bot_sup_eq _ _ _ c, ←hab.eq_bot, ←hbc.eq_top, sup_inf_right],
+  exact inf_le_inf_right _ le_sup_left,
+end
+
+end distrib_lattice
 
 section is_compl
 

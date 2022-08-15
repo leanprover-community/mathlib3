@@ -116,6 +116,82 @@ theorem forall₂_length_eq {R : α → β → Prop} :
 | _ _ forall₂.nil          := rfl
 | _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
 
+theorem forall₂_nth_le {x : list α} {y : list β} {i : ℕ} (h : list.forall₂ r x y) (h₁) (h₂):
+  r (x.nth_le i h₁) (y.nth_le i h₂) :=
+begin
+  sorry,
+end
+
+lemma forall₂_nth_le_aux : ∀ x : list α, ∀ y : list β,
+  (∀ i h₁, ∃ h₂, r (x.nth_le i h₁) (y.nth_le i h₂)) → list.forall₂ r x y
+| []       []       := λ _, forall₂.nil
+| (d₁::l₁) []       := by { intro ass, exfalso, specialize ass 0 (by { rw length, apply nat.succ_pos, }), cases ass with impos trash, exact nat.lt_asymm impos impos, }
+| []       (d₂::l₂) := by { intro ass, exfalso, sorry, } -- bug in the formulation !!!
+| (d₁::l₁) (d₂::l₂) := by
+begin
+  intro ass,
+  fconstructor,
+  {
+    specialize ass 0 dec_trivial,
+    cases ass with h₂' hyp,
+    exact hyp,
+  },
+  {
+    apply forall₂_nth_le_aux,
+    intros i h₁,
+    have h₁' : i.succ < (d₁ :: l₁).length,
+    {
+      unfold length,
+      exact succ_lt_succ h₁,
+    },
+    specialize ass i.succ h₁',
+    cases ass with h₂' hyp,
+    have h₂ : i < l₂.length,
+    {
+      unfold length at h₂',
+      rw succ_lt_succ_iff at h₂',
+      exact h₂',
+    },
+    exact ⟨h₂, hyp⟩,
+  },
+end
+
+theorem forall₂_iff_nth_le {x : list α} {y : list β} :
+  list.forall₂ r x y ↔ ∀ i h₁, ∃ h₂, r (x.nth_le i h₁) (y.nth_le i h₂) :=
+-- cannot be proved because `←` does not hold (see counterexample below)
+begin
+  split,
+  {
+    intros ass i h₁,
+    have h₂ : i < y.length,
+    {
+      rw forall₂_length_eq ass at h₁,
+      exact h₁,
+    },
+    exact ⟨h₂, forall₂_nth_le ass h₁ h₂⟩,
+  },
+  {
+    apply forall₂_nth_le_aux,
+  },
+end
+
+example (b : β) : ¬ (∀ x : list α, ∀ y : list β,
+  (∀ i h₁, ∃ h₂, r (x.nth_le i h₁) (y.nth_le i h₂)) → list.forall₂ r x y) :=
+begin
+  push_neg,
+  use [[], [b]],
+  split,
+  {
+    intros i imposs,
+    exfalso,
+    rw list.length at imposs,
+    exact nat.not_lt_zero i imposs,
+  },
+  {
+    finish,
+  },
+end
+
 theorem forall₂_zip {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b
 | _ _ (forall₂.cons h₁ h₂) x y (or.inl rfl) := h₁

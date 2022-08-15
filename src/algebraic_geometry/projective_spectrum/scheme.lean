@@ -398,7 +398,7 @@ b <|> `[by repeat { all_goals { apply graded_monoid.mul_mem } }; b]
 prime ideal in `A⁰_f` to the homogeneous prime relevant ideal containing only and all the element
 `a : A` such that the `m`-th power of `i`-th projection of `a` is in `q`.
 
-The set `{a | aᵢᵐ ∈ q}`
+The set `{a | aᵢᵐ/fⁱ ∈ q}`
 * is an ideal is proved in  `carrier.as_ideal`;
 * is homogeneous is proved in `carrier.as_homogeneous_ideal`;
 * is prime is proved in `carrier.as_ideal.prime`;

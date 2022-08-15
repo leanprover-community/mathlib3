@@ -422,7 +422,7 @@ lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A} (ha : a ∈ carrier q
 let α : A⁰_ f_deg := ⟨mk ((proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ in
 suffices α_sq_mem : α * α ∈ q.1, by { cases q.2.mem_or_mem α_sq_mem; assumption },
 have α_sq_eq' : (α * α : away f) = ∑ (j : ℕ) in range (2 * m + 1),
-  mk ((proj 𝒜 i) a ^ j * (proj 𝒜 i) b ^ (2 * m - j) * ↑((2 * m).choose j)) ⟨f ^ (2 * i), ⟨_, rfl⟩⟩, -- mk ((proj 𝒜 i (a + b))^(2*m)) ⟨f^(2*i), ⟨_, rfl⟩⟩,
+  mk ((proj 𝒜 i) a ^ j * (proj 𝒜 i) b ^ (2 * m - j) * ↑((2 * m).choose j)) ⟨f ^ (2 * i), ⟨_, rfl⟩⟩,
 begin
   rw [←localization.mk_sum, ←add_pow, ←map_add],
   simpa only [degree_zero_part.coe_mul, subtype.coe_mk, mk_mul, two_mul, pow_add],

@@ -954,78 +954,16 @@ begin
   exact f.support.min'_mem (non_empty_supp f hf),
 end
 
-theorem supp_after_change (f : ℤ[X]) (hf : f ≠ 0) :
-  (make_const_term_nonzero f hf).support = finset.image (λ i : ℕ, i-(min_degree_term f hf)) f.support :=
-by simp [make_const_term_nonzero]
-
-theorem coeff_sum (f : ℕ -> (ℤ[X])) (s : finset ℕ) (n : ℕ) : (∑ i in s, f i).coeff n = (∑ i in s, (f i).coeff n) :=
-begin
-    apply finset.induction_on s, simp only [finset.sum_empty, polynomial.coeff_zero],
-    intros a s ha H, rw finset.sum_insert, rw finset.sum_insert, rw polynomial.coeff_add, rw H, assumption, assumption,
-end
-
-theorem as_sum' (f : ℤ[X]) : f = ∑ i in f.support, (polynomial.C (f.coeff i)) * (polynomial.X^i) :=
-begin
-    ext, rw coeff_sum,
-    have triv : ∑ (i : ℕ) in f.support, (polynomial.C (f.coeff i) * polynomial.X ^ i).coeff n =
-        ∑ (i : ℕ) in f.support, (f.coeff i) * ((polynomial.X ^ i).coeff n),
-    {apply congr_arg, ext, simp only [polynomial.coeff_C_mul]},
-    rw triv,
-    replace triv : ∑ (i : ℕ) in f.support, f.coeff i * (polynomial.X ^ i).coeff n =
-        ∑ (i : ℕ) in f.support, (ite (n = i) (f.coeff i) 0),
-    {apply congr_arg, simp only [mul_boole, polynomial.coeff_X_pow]},
-    rw triv, rw finset.sum_ite, simp only [add_zero, finset.sum_const_zero], rw finset.filter_eq,
-    split_ifs,
-    {simp only [finset.sum_singleton]},
-    {simp only [finset.sum_empty, ←polynomial.not_mem_support_iff], exact h},
-end
-
 theorem transform_eq (f : ℤ[X]) (hf : f ≠ 0) : f = (make_const_term_nonzero f hf) * (polynomial.X) ^ (min_degree_term f hf) :=
 begin
-  set i : Π (a : ℕ), a ∈ f.support → ℕ := λ a _, a - (min_degree_term f hf) with i_eq,
-  have hi : ∀ (a : ℕ) (ha : a ∈ f.support), i a ha ∈ (make_const_term_nonzero f hf).support,
-  {
-    intros a ha, rw i_eq,
-    have triv : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a ha = a - min_degree_term f hf := rfl,
-    rw triv, rw supp_after_change, rw finset.mem_image, use a, split, exact ha, refl,
-  },
-  have assump1 : (∀ (a : ℕ) (ha : a ∈ f.support),
-     (λ (i : ℕ), (polynomial.C (f.coeff i)) * (polynomial.X) ^ i) a =
-       (λ (i : ℕ), (polynomial.C ((make_const_term_nonzero f hf).coeff i)) * (polynomial.X) ^ (i + min_degree_term f hf)) (i a ha)),
-  {
-    intros a ha,
-    have triv1 : (λ (i : ℕ), (polynomial.C (f.coeff i)) * (polynomial.X) ^ i) a = (polynomial.C (f.coeff a)) * (polynomial.X) ^ a := rfl,
-    rw triv1,
-    have triv2 : (λ (i : ℕ), (polynomial.C ((make_const_term_nonzero f hf).coeff i)) * (polynomial.X) ^ (i + min_degree_term f hf)) (i a ha)
-        = (polynomial.C ((make_const_term_nonzero f hf).coeff (i a ha))) * (polynomial.X) ^ (i a ha + min_degree_term f hf) := rfl,
-    rw triv2, rw i_eq,
-    have triv3 : ((λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a ha) = a - min_degree_term f hf := rfl,
-    rw triv3, rw coeff_after_change, rw nat.sub_add_cancel, rw min_degree_term, exact f.support.min'_le a ha,
-  },
-  have assump2 : (∀ (a₁ a₂ : ℕ) (ha₁ : a₁ ∈ f.support) (ha₂ : a₂ ∈ f.support),
-     i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂),
-  {
-    intros a1 a2 ha1 ha2 H, rw i_eq at H,
-    have triv1 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a1 ha1 = a1 - min_degree_term f hf, exact rfl, rw triv1 at H,
-    have triv2 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a2 ha2 = a2 - min_degree_term f hf, exact rfl, rw triv2 at H,
-    have triv3 := (@add_left_inj ℕ _ (min_degree_term f hf) (a1 - min_degree_term f hf) (a2 - min_degree_term f hf)).2 H,
-    rw nat.sub_add_cancel at triv3, rw nat.sub_add_cancel at triv3, exact triv3, rw min_degree_term, exact f.support.min'_le a2 ha2, exact f.support.min'_le a1 ha1,
-  },
-  have assump3 : ∀ (b : ℕ),
-     b ∈ (make_const_term_nonzero f hf).support → (∃ (a : ℕ) (ha : a ∈ f.support), b = i a ha),
-    intros b hb, rw supp_after_change at hb, rw finset.mem_image at hb, rw i_eq, choose a Ha using hb, use a, use Ha.1,
-    have triv1 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a _ = a - min_degree_term f hf, exact rfl, exact Ha.1, rw triv1, exact eq.symm Ha.2,
-  have H := finset.sum_bij i hi assump1 assump2 assump3,
-  have eq1 := as_sum' f,
-  have eq2 := as_sum' (make_const_term_nonzero f hf), rw eq2,
-  simp only [] at H ⊢, rw finset.sum_mul,
-
-  have eq3 : ∑ (x : ℕ) in (make_const_term_nonzero f hf).support,
-      polynomial.C ((make_const_term_nonzero f hf).coeff x) * polynomial.X ^ (x + min_degree_term f hf) =
-    ∑ (x : ℕ) in (make_const_term_nonzero f hf).support,
-      polynomial.C ((make_const_term_nonzero f hf).coeff x) * polynomial.X ^ x * polynomial.X ^ min_degree_term f hf,
-    apply finset.sum_congr, exact rfl, intros, rw pow_add, ring,
-  rw [<-eq3, <-H], exact eq1,
+  ext,
+  rw [polynomial.coeff_mul_X_pow', coeff_after_change],
+  split_ifs,
+  { rw nat.sub_add_cancel h },
+  { rw ←polynomial.not_mem_support_iff,
+    contrapose! h,
+    rw min_degree_term,
+    exact f.support.min'_le _ h },
 end
 
 theorem non_zero_root_same (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : @polynomial.aeval ℤ ℝ _ _ _ r f = 0) :

@@ -24,8 +24,11 @@ Taking or removing element from the tail end of a list
 
 ## Implementation detail
 
-These four methods operate by performing the regular "from-left" operation on `list.reverse`,
-followed by another `list.reverse`, so they are not the most performant.
+The two predicate-based methods operate by performing the regular "from-left" operation on
+`list.reverse`, followed by another `list.reverse`, so they are not the most performant.
+The other two rely on `list.length l` so they still traverse the list twice. One could construct
+another function that takes a `L : ℕ` and use `L - n`. Under a proof condition that
+`L = l.length`, the function would do the right thing.
 
 -/
 
@@ -33,20 +36,43 @@ variables {α : Type*} (p : α → Prop) [decidable_pred p] (l : list α) (n : �
 
 namespace list
 
-/-- Drop `n` elements from the tail end of a list. Implemented naively via `list.reverse` -/
-def rdrop : list α := reverse (l.reverse.drop n)
+/-- Drop `n` elements from the tail end of a list. -/
+def rdrop : list α := l.take (l.length - n)
 
 @[simp] lemma rdrop_nil : rdrop ([] : list α) n = [] := by simp [rdrop]
 @[simp] lemma rdrop_zero : rdrop l 0 = l := by simp [rdrop]
-@[simp] lemma rdrop_concat_succ (x : α) : rdrop (l ++ [x]) (n + 1) = rdrop l n := by simp [rdrop]
 
-/-- Take `n` elements from the tail end of a list. Implemented naively via `list.reverse` -/
-def rtake : list α := reverse (l.reverse.take n)
+lemma rdrop_eq_reverse_drop_reverse : l.rdrop n = reverse (l.reverse.drop n) :=
+begin
+  rw rdrop,
+  induction l using list.reverse_rec_on with xs x IH generalizing n,
+  { simp },
+  { cases n,
+    { simp [take_append] },
+    { simp [take_append_eq_append_take, IH] } }
+end
+
+@[simp] lemma rdrop_concat_succ (x : α) : rdrop (l ++ [x]) (n + 1) = rdrop l n :=
+by simp [rdrop_eq_reverse_drop_reverse]
+
+/-- Take `n` elements from the tail end of a list. -/
+def rtake : list α := l.drop (l.length - n)
 
 @[simp] lemma rtake_nil : rtake ([] : list α) n = [] := by simp [rtake]
 @[simp] lemma rtake_zero : rtake l 0 = [] := by simp [rtake]
+
+lemma rtake_eq_reverse_take_reverse : l.rtake n = reverse (l.reverse.take n) :=
+begin
+  rw rtake,
+  induction l using list.reverse_rec_on with xs x IH generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simp [drop_append_eq_append_drop, IH] } }
+end
+
 @[simp] lemma rtake_concat_succ (x : α) : rtake (l ++ [x]) (n + 1) = rtake l n ++ [x] :=
-by simp [rtake]
+by simp [rtake_eq_reverse_take_reverse]
 
 /-- Drop elements from the tail end of a list that satisfy `p : α → Prop`.
 Implemented naively via `list.reverse` -/

@@ -117,18 +117,7 @@ begin
     transitivity, rotate, exact this,
 
 
-    -- Shitty unneeded instance that we should remove in the assumptions of
-    -- `Endsinfty_eventually constant`
-    haveI : ∀ (L : finset ℕ), nonempty ((ComplComp gℕ gℕpc).obj L), by {
-      rintro L,
-      obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
-      let C := (ro_component.of_subconnected_disjoint gℕ L (H L).some (set.infinite.nonempty inf) dis conn).some,
-      obtain ⟨Ccomp,DC⟩ := (ro_component.of_subconnected_disjoint gℕ L (H L).some (set.infinite.nonempty inf) dis conn).some_spec,
-      apply nonempty.intro,
-      exact ⟨C,Ccomp⟩,
-    },
-
-    apply @Endsinfty_eventually_constant _ _ gℕ gℕpc _ _ ∅,
+    apply @Endsinfty_eventually_constant _ _ gℕ gℕpc _ ∅,
     rintro L LL,
     transitivity, rotate, exact this.symm,
     obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,

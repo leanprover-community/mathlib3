@@ -151,19 +151,33 @@ begin
 end
 
 lemma Endsinfty_eventually_constant
-  [allnempty : Π (j : (finset V)), nonempty ((ComplComp G Gpc).obj j)] -- Could do without this assumption
+  --[allnempty : Π (j : (finset V)), nonempty ((ComplComp G Gpc).obj j)] -- Could do without this assumption
   (K : finset V)
   (top : Π (L : finset V) (KL : L ≤ K), (ComplInfComp G Gpc).obj L ≃ (ComplInfComp G Gpc).obj K) :
   Endsinfty G Gpc ≃ (ComplInfComp G Gpc).obj K :=
 begin
-  apply equiv.of_bijective _ (inverse_system.sections_bijective (ComplInfComp G Gpc) K _),
-  rintros ⟨L,KL⟩,
-  have sur : function.surjective ((ComplInfComp G Gpc).map (hom_of_le KL)), by {
-    rw (ComplInfComp_eq_ComplComp_to_surjective G Gpc),
-    rintros a,
-    exact (inverse_system.to_surjective.is_surjective (ComplComp G Gpc) L K KL a),
-  },
-  split, rotate,
-  { exact sur },
-  { exact (fintype.injective_iff_surjective_of_equiv (top L KL)).mpr sur },
+
+  by_cases Vinf : set.infinite (@set.univ V),
+  {
+    haveI :  Π (j : (finset V)), nonempty ((ComplComp G Gpc).obj j), from ComplComp_nonempty G Gpc Vinf,
+    apply equiv.of_bijective _ (inverse_system.sections_bijective (ComplInfComp G Gpc) K _),
+    rintros ⟨L,KL⟩,
+    have sur : function.surjective ((ComplInfComp G Gpc).map (hom_of_le KL)), by {
+      rw (ComplInfComp_eq_ComplComp_to_surjective G Gpc),
+      rintros a,
+      exact (inverse_system.to_surjective.is_surjective (ComplComp G Gpc) L K KL a),
+    },
+    split, rotate,
+    { exact sur },
+    { exact (fintype.injective_iff_surjective_of_equiv (top L KL)).mpr sur },},
+  { -- degenerate case: If V is finite, then everything is empty,
+    have :  Π (j : (finset V)), is_empty ((ComplInfComp G Gpc).obj j),
+    from all_empty G Gpc (set.not_infinite.mp Vinf),
+    apply equiv.of_bijective,
+    apply inverse_system.sections_bijective (ComplInfComp G Gpc),
+    rintro ⟨L,KL⟩,
+    -- Have to show that a map A → B with both A and B empty is necessarily a bijection.
+    unfold function.bijective, split,
+    { rintro x, exact (this L).elim x,},
+    { rintro y, exact (this K).elim y,},}
 end

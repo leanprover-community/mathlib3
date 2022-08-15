@@ -104,9 +104,34 @@ lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [ch
   [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
+lemma is_algebraic_of_mem_root_set {R : Type u} {A : Type v} [field R] [field A] [algebra R A]
+  {p : R[X]} {x : A} (hx : x ∈ p.root_set A) : is_algebraic R x :=
+⟨p, ne_zero_of_mem_root_set hx, aeval_eq_zero_of_mem_root_set hx⟩
+
+open is_scalar_tower
+
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
-λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]⟩
+λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [←algebra_map_aeval, hf₂, map_zero]⟩
+
+/-- This is slightly more general than `is_algebraic_algebra_map_of_is_algebraic` in that it
+  allows noncommutative intermediate rings `A`. -/
+lemma is_algebraic_alg_hom_of_is_algebraic {B} [ring B] [algebra R B]
+  (f : A →ₐ[R] B) {a : A} (h : is_algebraic R a) : is_algebraic R (f a) :=
+let ⟨p, hp, ha⟩ := h in ⟨p, hp, by rw [aeval_alg_hom, f.comp_apply, ha, map_zero]⟩
+
+/-- Transfer `algebra.is_algebraic` across an `alg_equiv`. -/
+lemma _root_.alg_equiv.is_algebraic {B} [ring B] [algebra R B] (e : A ≃ₐ[R] B)
+  (h : algebra.is_algebraic R A) : algebra.is_algebraic R B :=
+λ b, by convert ← is_algebraic_alg_hom_of_is_algebraic e.to_alg_hom (h _); apply e.apply_symm_apply
+
+lemma _root_.alg_equiv.is_algebraic_iff {B} [ring B] [algebra R B] (e : A ≃ₐ[R] B) :
+  algebra.is_algebraic R A ↔ algebra.is_algebraic R B := ⟨e.is_algebraic, e.symm.is_algebraic⟩
+
+lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map S A)) :
+  is_algebraic R (algebra_map S A a) ↔ is_algebraic R a :=
+⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, algebra_map_aeval])⟩,
+  is_algebraic_algebra_map_of_is_algebraic⟩
 
 end zero_ne_one
 
@@ -171,7 +196,7 @@ _root_.is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_al
 lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
 is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
-variables {R S} (K L)
+variables (K L)
 
 /-- A field extension is integral if it is finite. -/
 lemma is_integral_of_finite [finite_dimensional K L] : algebra.is_integral K L :=
@@ -181,6 +206,40 @@ lemma is_integral_of_finite [finite_dimensional K L] : algebra.is_integral K L :
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 algebra.is_algebraic_iff_is_integral.mpr (is_integral_of_finite K L)
+
+variables {K L}
+
+theorem is_algebraic.alg_hom_bijective
+  (ha : algebra.is_algebraic K L) (f : L →ₐ[K] L) : function.bijective f :=
+begin
+  refine ⟨f.to_ring_hom.injective, λ b, _⟩,
+  obtain ⟨p, hp, he⟩ := ha b,
+  let f' : p.root_set L → p.root_set L :=
+    set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
+  have : function.surjective f' := fintype.injective_iff_surjective.1
+    (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
+  obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
+  exact ⟨a, subtype.ext_iff.1 ha⟩,
+end
+
+theorem _root_.alg_hom.bijective [finite_dimensional K L] (ϕ : L →ₐ[K] L) : function.bijective ϕ :=
+(algebra.is_algebraic_of_finite K L).alg_hom_bijective ϕ
+
+variables (K L)
+
+/-- Bijection between algebra equivalences and algebra homomorphisms -/
+@[simps] noncomputable
+def is_algebraic.alg_equiv_equiv_alg_hom
+  (ha : algebra.is_algebraic K L) : (L ≃ₐ[K] L) ≃* (L →ₐ[K] L) :=
+{ to_fun := λ ϕ, ϕ.to_alg_hom,
+  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (ha.alg_hom_bijective ϕ),
+  left_inv := λ _, by {ext, refl},
+  right_inv := λ _, by {ext, refl},
+  map_mul' := λ _ _, rfl }
+
+/-- Bijection between algebra equivalences and algebra homomorphisms -/
+@[reducible] noncomputable def _root_.alg_equiv_equiv_alg_hom [finite_dimensional K L] :
+  (L ≃ₐ[K] L) ≃* (L →ₐ[K] L) := (algebra.is_algebraic_of_finite K L).alg_equiv_equiv_alg_hom K L
 
 end algebra
 
@@ -292,36 +351,36 @@ section pi
 
 variables (R' : Type u) (S' : Type v) (T' : Type w)
 
-/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+/-- This is not an instance as it forms a diamond with `pi.has_smul`.
 
 See the `instance_diamonds` test for details. -/
-def polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
-  has_scalar (R'[X]) (R' → S') :=
+def polynomial.has_smul_pi [semiring R'] [has_smul R' S'] :
+  has_smul (R'[X]) (R' → S') :=
 ⟨λ p f x, eval x p • f x⟩
 
-/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+/-- This is not an instance as it forms a diamond with `pi.has_smul`.
 
 See the `instance_diamonds` test for details. -/
-noncomputable def polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
-  [has_scalar S' T'] :
-  has_scalar (R'[X]) (S' → T') :=
+noncomputable def polynomial.has_smul_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_smul S' T'] :
+  has_smul (R'[X]) (S' → T') :=
 ⟨λ p f x, aeval x p • f x⟩
 
 variables {R} {S}
 
-local attribute [instance] polynomial.has_scalar_pi polynomial.has_scalar_pi'
+local attribute [instance] polynomial.has_smul_pi polynomial.has_smul_pi'
 
-@[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
+@[simp] lemma polynomial_smul_apply [semiring R'] [has_smul R' S']
   (p : R'[X]) (f : R' → S') (x : R') :
   (p • f) x = eval x p • f x := rfl
 
 @[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
-  [has_scalar S' T'] (p : R'[X]) (f : S' → T') (x : S') :
+  [has_smul S' T'] (p : R'[X]) (f : S' → T') (x : S') :
   (p • f) x = aeval x p • f x := rfl
 
 variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 
-/-- This is not an instance for the same reasons as `polynomial.has_scalar_pi'`. -/
+/-- This is not an instance for the same reasons as `polynomial.has_smul_pi'`. -/
 noncomputable def polynomial.algebra_pi :
   algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
@@ -333,7 +392,7 @@ noncomputable def polynomial.algebra_pi :
   smul_def' := λ p f, funext $ λ z, by
     simp only [algebra.algebra_map_eq_smul_one, polynomial_smul_apply', one_mul,
       pi.mul_apply, algebra.smul_mul_assoc],
-  ..polynomial.has_scalar_pi' R' S' T' }
+  ..polynomial.has_smul_pi' R' S' T' }
 
 local attribute [instance] polynomial.algebra_pi
 

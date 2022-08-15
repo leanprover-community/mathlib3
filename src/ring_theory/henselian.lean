@@ -250,7 +250,7 @@ instance is_adic_complete.henselian_ring
       specialize ha 1,
       rw [hc, pow_one, ← ideal.one_eq_top, ideal.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,
       rw [← smodeq.sub_mem, ← add_zero a₀],
-      refine ha.symm.trans (smodeq.refl.add _),
+      refine ha.symm.trans (smodeq.rfl.add _),
       rw [smodeq.zero, ideal.neg_mem_iff],
       exact ideal.mul_mem_right _ _ h₁, }
   end }

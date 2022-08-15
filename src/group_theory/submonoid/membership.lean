@@ -376,9 +376,9 @@ lemma log_mul [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ 
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
 (pow_log_equiv (int.pow_right_injective h)).symm_apply_apply _
 
-@[simp] lemma map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
-  (powers m).map f = powers (f m) :=
-by simp only [powers_eq_closure, f.map_mclosure, set.image_singleton]
+@[simp] lemma map_powers {N : Type*} {F : Type*} [monoid N] [monoid_hom_class F M N]
+  (f : F) (m : M) : (powers m).map f = powers (f m) :=
+by simp only [powers_eq_closure, map_mclosure f, set.image_singleton]
 
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 @[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive

@@ -8,9 +8,9 @@ import analysis.normed.group.hom
 /-!
 # Quotients of seminormed groups
 
-For any `semi_normed_group M` and any `S : add_subgroup M`, we provide a `semi_normed_group`
-the group quotient `M ⧸ S`.
-If `S` is closed, we provide `normed_group (M ⧸ S)` (regardless of whether `M` itself is
+For any `seminormed_add_comm_group M` and any `S : add_subgroup M`, we provide a
+`seminormed_add_comm_group`, the group quotient `M ⧸ S`.
+If `S` is closed, we provide `normed_add_comm_group (M ⧸ S)` (regardless of whether `M` itself is
 separated). The two main properties of these structures are the underlying topology is the quotient
 topology and the projection is a normed group homomorphism which is norm non-increasing
 (better, it has operator norm exactly one unless `S` is dense in `M`). The corresponding
@@ -28,19 +28,19 @@ We use `M` and `N` to denote seminormed groups and `S : add_subgroup M`.
 All the following definitions are in the `add_subgroup` namespace. Hence we can access
 `add_subgroup.normed_mk S` as `S.normed_mk`.
 
-* `semi_normed_group_quotient` : The seminormed group structure on the quotient by
+* `seminormed_add_comm_group_quotient` : The seminormed group structure on the quotient by
     an additive subgroup. This is an instance so there is no need to explictly use it.
 
-* `normed_group_quotient` : The normed group structure on the quotient by
+* `normed_add_comm_group_quotient` : The normed group structure on the quotient by
     a closed additive subgroup. This is an instance so there is no need to explictly use it.
 
 * `normed_mk S` : the normed group hom from `M` to `M ⧸ S`.
 
 * `lift S f hf`: implements the universal property of `M ⧸ S`. Here
-    `(f : normed_group_hom M N)`, `(hf : ∀ s ∈ S, f s = 0)` and
-    `lift S f hf : normed_group_hom (M ⧸ S) N`.
+    `(f : normed_add_group_hom M N)`, `(hf : ∀ s ∈ S, f s = 0)` and
+    `lift S f hf : normed_add_group_hom (M ⧸ S) N`.
 
-* `is_quotient`: given `f : normed_group_hom M N`, `is_quotient f` means `N` is isomorphic
+* `is_quotient`: given `f : normed_add_group_hom M N`, `is_quotient f` means `N` is isomorphic
     to a quotient of `M` by a subgroup, with projection `f`. Technically it asserts `f` is
     surjective and the norm of `f x` is the infimum of the norms of `x + m` for `m` in `f.ker`.
 
@@ -54,12 +54,12 @@ All the following definitions are in the `add_subgroup` namespace. Hence we can 
 
 ## Implementation details
 
-For any `semi_normed_group M` and any `S : add_subgroup M` we define a norm on `M ⧸ S` by
+For any `seminormed_add_comm_group M` and any `S : add_subgroup M` we define a norm on `M ⧸ S` by
 `∥x∥ = Inf (norm '' {m | mk' S m = x})`. This formula is really an implementation detail, it
 shouldn't be needed outside of this file setting up the theory.
 
 Since `M ⧸ S` is automatically a topological space (as any quotient of a topological space),
-one needs to be careful while defining the `semi_normed_group` instance to avoid having two
+one needs to be careful while defining the `seminormed_add_comm_group` instance to avoid having two
 different topologies on this quotient. This is not purely a technological issue.
 Mathematically there is something to prove. The main point is proved in the auxiliary lemma
 `quotient_nhd_basis` that has no use beyond this verification and states that zero in the quotient
@@ -70,7 +70,7 @@ is not good enough for the type class system. As usual we ensure *definitional* 
 using forgetful inheritance, see Note [forgetful inheritance]. A (semi)-normed group structure
 includes a uniform space structure which includes a topological space structure, together
 with propositional fields asserting compatibility conditions.
-The usual way to define a `semi_normed_group` is to let Lean build a uniform space structure
+The usual way to define a `seminormed_add_comm_group` is to let Lean build a uniform space structure
 using the provided norm, and then trivially build a proof that the norm and uniform structure are
 compatible. Here the uniform structure is provided using `topological_add_group.to_uniform_space`
 which uses the topological structure and the group structure to build the uniform structure. This
@@ -86,7 +86,7 @@ noncomputable theory
 open quotient_add_group metric set
 open_locale topological_space nnreal
 
-variables {M N : Type*} [semi_normed_group M] [semi_normed_group N]
+variables {M N : Type*} [seminormed_add_comm_group M] [seminormed_add_comm_group N]
 
 /-- The definition of the norm on the quotient by an additive subgroup. -/
 noncomputable
@@ -281,8 +281,8 @@ end⟩
 
 /-- The seminormed group structure on the quotient by an additive subgroup. -/
 noncomputable
-instance add_subgroup.semi_normed_group_quotient (S : add_subgroup M) :
-  semi_normed_group (M ⧸ S) :=
+instance add_subgroup.seminormed_add_comm_group_quotient (S : add_subgroup M) :
+  seminormed_add_comm_group (M ⧸ S) :=
 { dist               := λ x y, ∥x - y∥,
   dist_self          := λ x, by simp only [norm_mk_zero, sub_self],
   dist_comm          := quotient_norm_sub_rev,
@@ -318,35 +318,35 @@ instance add_subgroup.semi_normed_group_quotient (S : add_subgroup M) :
 -- This is a sanity check left here on purpose to ensure that potential refactors won't destroy
 -- this important property.
 example (S : add_subgroup M) : (quotient.topological_space : topological_space $ M ⧸ S) =
-S.semi_normed_group_quotient.to_uniform_space.to_topological_space :=
+S.seminormed_add_comm_group_quotient.to_uniform_space.to_topological_space :=
 rfl
 
 /-- The quotient in the category of normed groups. -/
 noncomputable
-instance add_subgroup.normed_group_quotient (S : add_subgroup M) [hS : is_closed (S : set M)] :
-  normed_group (M ⧸ S) :=
+instance add_subgroup.normed_add_comm_group_quotient (S : add_subgroup M) [is_closed (S : set M)] :
+  normed_add_comm_group (M ⧸ S) :=
 { eq_of_dist_eq_zero :=
   begin
     rintros ⟨m⟩ ⟨m'⟩ (h : ∥mk' S m - mk' S m'∥ = 0),
-    erw [← (mk' S).map_sub, quotient_norm_eq_zero_iff, hS.closure_eq,
+    erw [← (mk' S).map_sub, quotient_norm_eq_zero_iff, ‹is_closed _›.closure_eq,
          ← quotient_add_group.eq_iff_sub_mem] at h,
     exact h
   end,
-  .. add_subgroup.semi_normed_group_quotient S }
+  .. add_subgroup.seminormed_add_comm_group_quotient S }
 
 -- This is a sanity check left here on purpose to ensure that potential refactors won't destroy
 -- this important property.
 example (S : add_subgroup M) [is_closed (S : set M)] :
-  S.semi_normed_group_quotient = normed_group.to_semi_normed_group := rfl
+  S.seminormed_add_comm_group_quotient = normed_add_comm_group.to_seminormed_add_comm_group := rfl
 
 
 namespace add_subgroup
 
-open normed_group_hom
+open normed_add_group_hom
 
 /-- The morphism from a seminormed group to the quotient by a subgroup. -/
 noncomputable
-def normed_mk (S : add_subgroup M) : normed_group_hom M (M ⧸ S) :=
+def normed_mk (S : add_subgroup M) : normed_add_group_hom M (M ⧸ S) :=
 { bound' := ⟨1, λ m, by simpa [one_mul] using quotient_norm_mk_le  _ m⟩,
   .. quotient_add_group.mk' S }
 
@@ -365,7 +365,7 @@ quotient_add_group.ker_mk  _
 
 /-- The operator norm of the projection is at most `1`. -/
 lemma norm_normed_mk_le (S : add_subgroup M) : ∥S.normed_mk∥ ≤ 1 :=
-normed_group_hom.op_norm_le_bound _ zero_le_one (λ m, by simp [quotient_norm_mk_le'])
+normed_add_group_hom.op_norm_le_bound _ zero_le_one (λ m, by simp [quotient_norm_mk_le'])
 
 /-- The operator norm of the projection is `1` if the subspace is not dense. -/
 lemma norm_normed_mk (S : add_subgroup M) (h : (S.topological_closure : set M) ≠ univ) :
@@ -420,20 +420,20 @@ end
 
 end add_subgroup
 
-namespace normed_group_hom
+namespace normed_add_group_hom
 
 /-- `is_quotient f`, for `f : M ⟶ N` means that `N` is isomorphic to the quotient of `M`
 by the kernel of `f`. -/
-structure is_quotient (f : normed_group_hom M N) : Prop :=
+structure is_quotient (f : normed_add_group_hom M N) : Prop :=
 (surjective : function.surjective f)
 (norm : ∀ x, ∥f x∥ = Inf ((λ m, ∥x + m∥) '' f.ker))
 
-/-- Given  `f : normed_group_hom M N` such that `f s = 0` for all `s ∈ S`, where,
-`S : add_subgroup M` is closed, the induced morphism `normed_group_hom (M ⧸ S) N`. -/
+/-- Given  `f : normed_add_group_hom M N` such that `f s = 0` for all `s ∈ S`, where,
+`S : add_subgroup M` is closed, the induced morphism `normed_add_group_hom (M ⧸ S) N`. -/
 noncomputable
-def lift {N : Type*} [semi_normed_group N] (S : add_subgroup M)
-  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0) :
-  normed_group_hom (M ⧸ S) N :=
+def lift {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+  (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0) :
+  normed_add_group_hom (M ⧸ S) N :=
 { bound' :=
   begin
     obtain ⟨c : ℝ, hcpos : (0 : ℝ) < c, hc : ∀ x, ∥f x∥ ≤ c * ∥x∥⟩ := f.bound,
@@ -446,13 +446,13 @@ def lift {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   end,
   .. quotient_add_group.lift S f.to_add_monoid_hom hf }
 
-lemma lift_mk {N : Type*} [semi_normed_group N] (S : add_subgroup M)
-  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0) (m : M) :
+lemma lift_mk {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+  (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0) (m : M) :
   lift S f hf (S.normed_mk m) = f m := rfl
 
-lemma lift_unique {N : Type*} [semi_normed_group N] (S : add_subgroup M)
-  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
-  (g : normed_group_hom (M ⧸ S) N) :
+lemma lift_unique {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+  (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
+  (g : normed_add_group_hom (M ⧸ S) N) :
   g.comp (S.normed_mk) = f → g = lift S f hf :=
 begin
   intro h,
@@ -466,8 +466,8 @@ end
 lemma is_quotient_quotient (S : add_subgroup M) : is_quotient (S.normed_mk) :=
 ⟨S.surjective_normed_mk, λ m, by simpa [S.ker_normed_mk] using quotient_norm_mk_eq _ m⟩
 
-lemma is_quotient.norm_lift {f : normed_group_hom M N} (hquot : is_quotient f) {ε : ℝ} (hε : 0 < ε)
-  (n : N) : ∃ (m : M), f m = n ∧ ∥m∥ < ∥n∥ + ε :=
+lemma is_quotient.norm_lift {f : normed_add_group_hom M N} (hquot : is_quotient f) {ε : ℝ}
+  (hε : 0 < ε) (n : N) : ∃ (m : M), f m = n ∧ ∥m∥ < ∥n∥ + ε :=
 begin
   obtain ⟨m, rfl⟩ := hquot.surjective n,
   have nonemp : ((λ m', ∥m + m'∥) '' f.ker).nonempty,
@@ -475,11 +475,11 @@ begin
     exact ⟨0, f.ker.zero_mem⟩ },
   rcases real.lt_Inf_add_pos nonemp hε with
     ⟨_, ⟨⟨x, hx, rfl⟩, H : ∥m + x∥ < Inf ((λ (m' : M), ∥m + m'∥) '' f.ker) + ε⟩⟩,
-  exact ⟨m+x, by rw [f.map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
+  exact ⟨m+x, by rw [map_add,(normed_add_group_hom.mem_ker f x).mp hx, add_zero],
                by rwa hquot.norm⟩,
 end
 
-lemma is_quotient.norm_le {f : normed_group_hom M N} (hquot : is_quotient f) (m : M) :
+lemma is_quotient.norm_le {f : normed_add_group_hom M N} (hquot : is_quotient f) (m : M) :
   ∥f m∥ ≤ ∥m∥ :=
 begin
   rw hquot.norm,
@@ -490,8 +490,8 @@ begin
   { exact ⟨0, f.ker.zero_mem, by simp⟩ }
 end
 
-lemma lift_norm_le {N : Type*} [semi_normed_group N] (S : add_subgroup M)
-  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
+lemma lift_norm_le {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+  (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   {c : ℝ≥0} (fb : ∥f∥ ≤ c) :
   ∥lift S f hf∥ ≤ c :=
 begin
@@ -517,8 +517,8 @@ begin
     { rw [mul_add, mul_div_cancel'], exact_mod_cast hc.ne' } },
 end
 
-lemma lift_norm_noninc {N : Type*} [semi_normed_group N] (S : add_subgroup M)
-  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
+lemma lift_norm_noninc {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+  (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   (fb : f.norm_noninc) :
   (lift S f hf).norm_noninc :=
 λ x,
@@ -527,4 +527,4 @@ begin
   simpa using le_of_op_norm_le _ (f.lift_norm_le _ _ fb') _,
 end
 
-end normed_group_hom
+end normed_add_group_hom

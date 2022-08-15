@@ -156,34 +156,101 @@ begin
   rw lift_lift,
 end
 
+end Theory
+
+variables (L)
+
+/-- A version of The Downward Löwenheim–Skolem theorem where the structure `N` elementarily embeds
+into `M`, but is not by type a substructure of `M`, and thus can be chosen to belong to the universe
+of the cardinal `κ`.
+ -/
+lemma exists_elementary_embedding_card_eq_of_le (M : Type w') [L.Structure M] [nonempty M]
+  (κ : cardinal.{w})
+  (h1 : ℵ₀ ≤ κ)
+  (h2 : lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (h3 : lift.{w'} κ ≤ cardinal.lift.{w} (# M)) :
+  ∃ (N : bundled L.Structure), nonempty (N ↪ₑ[L] M) ∧ # N = κ :=
+begin
+  obtain ⟨S, _, hS⟩ := exists_elementary_substructure_card_eq L ∅ κ h1 (by simp) h2 h3,
+  haveI : small.{w} S,
+  { rw [← lift_inj.{_ (w + 1)}, lift_lift, lift_lift] at hS,
+    exact small_iff_lift_mk_lt_univ.2 (lt_of_eq_of_lt hS κ.lift_lt_univ') },
+  refine ⟨(equiv_shrink S).bundled_induced L,
+    ⟨S.subtype.comp (equiv.bundled_induced_equiv L _).symm.to_elementary_embedding⟩,
+    lift_inj.1 (trans _ hS)⟩,
+  simp only [equiv.bundled_induced_α, lift_mk_shrink'],
+end
+
 /-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
 and an infinite `L`-structure `M`, then `M` has an elementary extension of cardinality `κ`. -/
-theorem exists_elementary_embedding_card_eq (M : Type w') [L.Structure M] [iM : infinite M]
+theorem exists_elementary_embedding_card_eq_of_ge (M : Type w') [L.Structure M] [iM : infinite M]
   (κ : cardinal.{w})
   (h1 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
   (h2 : cardinal.lift.{w} (# M) ≤ cardinal.lift.{w'} κ) :
-  ∃ (N : bundled.{max u v w w'} L.Structure),
-    nonempty (M ↪ₑ[L] N) ∧ # N = cardinal.lift.{max u v w'} κ :=
+  ∃ (N : bundled L.Structure), nonempty (M ↪ₑ[L] N) ∧ # N = κ :=
 begin
-  obtain ⟨N0, hN0⟩ := exists_large_model_of_infinite_model (L.elementary_diagram M) κ M,
+  obtain ⟨N0, hN0⟩ := (L.elementary_diagram M).exists_large_model_of_infinite_model κ M,
   let f0 := elementary_embedding.of_models_elementary_diagram L M N0,
   rw [← lift_le.{(max w w') (max u v)}, lift_lift, lift_lift] at h2,
-  obtain ⟨N, hN1, hN2⟩ := exists_elementary_substructure_card_eq (L[[M]]) (set.range f0)
-    (cardinal.lift.{max u v w'} κ)
-    (trans _ h2) (trans _ (lift_le.2 h2)) _ _,
+  obtain ⟨N, ⟨NN0⟩, hN⟩ := exists_elementary_embedding_card_eq_of_le (L[[M]]) N0 κ
+    (aleph_0_le_lift.1 ((aleph_0_le_lift.2 (aleph_0_le_mk M)).trans h2)) _ (hN0.trans _),
   { letI := (Lhom_with_constants L M).reduct N,
-    refine ⟨bundled.of N, ⟨_⟩, lift_inj.1 hN2⟩,
-    apply elementary_embedding.of_models_elementary_diagram L M N },
-  { exact aleph_0_le_lift.2 (aleph_0_le_mk M) },
-  { rw [lift_id'.{(max w u v w') (max (max u w') v w)}, ← lift_le, lift_lift, lift_lift],
-    exact mk_range_le_lift },
+    haveI h : N ⊨ L.elementary_diagram M :=
+      (NN0.Theory_model_iff (L.elementary_diagram M)).2 infer_instance,
+    refine ⟨bundled.of N, ⟨_⟩, hN⟩,
+    apply elementary_embedding.of_models_elementary_diagram L M N, },
   { simp only [card_with_constants, lift_add, lift_lift],
     rw [add_comm, add_eq_max (aleph_0_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
     rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
-    refine ⟨trans _ h2, trans _ h1⟩;
-    { rw [← lift_le.{_ max (max w u v) w'}, lift_lift, lift_lift] } },
-  { refine trans _ (lift_le.2 hN0),
-    rw [← lift_le.{_ (max (max u w') v w)}, lift_lift, lift_lift, lift_lift, lift_lift] }
+    exact ⟨h2, h1⟩, },
+  { rw [← lift_umax', lift_id] },
+end
+
+/-- The Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
+and an infinite `L`-structure `M`, then there is an elementary embedding in the appropriate
+direction between then `M` and a structure of cardinality `κ`. -/
+theorem exists_elementary_embedding_card_eq (M : Type w') [L.Structure M] [iM : infinite M]
+  (κ : cardinal.{w})
+  (h1 : ℵ₀ ≤ κ)
+  (h2 : lift.{w} L.card ≤ cardinal.lift.{max u v} κ) :
+  ∃ (N : bundled L.Structure), (nonempty (N ↪ₑ[L] M) ∨ nonempty (M ↪ₑ[L] N)) ∧ # N = κ :=
+begin
+  cases le_or_gt (lift.{w'} κ) (cardinal.lift.{w} (# M)),
+  { obtain ⟨N, hN1, hN2⟩ := exists_elementary_embedding_card_eq_of_le L M κ h1 h2 h,
+    exact ⟨N, or.inl hN1, hN2⟩ },
+  { obtain ⟨N, hN1, hN2⟩ := exists_elementary_embedding_card_eq_of_ge L M κ h2 (le_of_lt h),
+    exact ⟨N, or.inr hN1, hN2⟩ }
+end
+
+/-- A consequence of the Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the
+cardinalities of `L` and an infinite `L`-structure `M`, then there is a structure of cardinality `κ`
+elementarily equivalent to `M`. -/
+lemma exists_elementarily_equivalent_card_eq (M : Type w') [L.Structure M] [infinite M]
+  (κ : cardinal.{w})
+  (h1 : ℵ₀ ≤ κ)
+  (h2 : lift.{w} L.card ≤ cardinal.lift.{max u v} κ) :
+  ∃ (N : category_theory.bundled L.Structure), M ≅[L] N ∧ # N = κ :=
+begin
+  obtain ⟨N, (NM | MN), hNκ⟩ := exists_elementary_embedding_card_eq L M κ h1 h2,
+  { exact ⟨N, NM.some.elementarily_equivalent.symm, hNκ⟩ },
+  { exact ⟨N, MN.some.elementarily_equivalent, hNκ⟩ }
+end
+
+variable {L}
+
+namespace Theory
+
+theorem exists_model_card_eq
+  (h : ∃ (M : Model.{u v (max u v)} T), infinite M)
+  (κ : cardinal.{w})
+  (h1 : ℵ₀ ≤ κ)
+  (h2 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ) :
+  ∃ (N : Model.{u v w} T), # N = κ :=
+begin
+  casesI h with M MI,
+  obtain ⟨N, hN, rfl⟩ := exists_elementarily_equivalent_card_eq L M κ h1 h2,
+  haveI : nonempty N := hN.nonempty,
+  exact ⟨hN.Theory_model.bundled, rfl⟩,
 end
 
 variable (T)
@@ -439,8 +506,38 @@ variables {L : language.{u v}} (κ : cardinal.{w}) (T : L.Theory)
 def categorical : Prop :=
 ∀ (M N : T.Model), # M = κ → # N = κ → nonempty (M ≃[L] N)
 
+/-- The Łoś–Vaught Test : a criterion for categorical theories to be complete. -/
+lemma categorical.is_complete (h : κ.categorical T)
+  (h1 : ℵ₀ ≤ κ)
+  (h2 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (hS : T.is_satisfiable)
+  (hT : ∀ (M : Theory.Model.{u v max u v} T), infinite M) :
+  T.is_complete :=
+⟨hS, λ φ, begin
+  obtain ⟨N, hN⟩ := Theory.exists_model_card_eq ⟨hS.some, hT hS.some⟩ κ h1 h2,
+  rw [Theory.models_sentence_iff, Theory.models_sentence_iff],
+  by_contra con,
+  push_neg at con,
+  obtain ⟨⟨MF, hMF⟩, MT, hMT⟩ := con,
+  rw [sentence.realize_not, not_not] at hMT,
+  refine hMF _,
+  haveI := hT MT,
+  haveI := hT MF,
+  obtain ⟨NT, MNT, hNT⟩ := exists_elementarily_equivalent_card_eq L MT κ h1 h2,
+  obtain ⟨NF, MNF, hNF⟩ := exists_elementarily_equivalent_card_eq L MF κ h1 h2,
+  obtain ⟨TF⟩ := h (MNT.to_Model T) (MNF.to_Model T) hNT hNF,
+  exact ((MNT.realize_sentence φ).trans
+    ((TF.realize_sentence φ).trans (MNF.realize_sentence φ).symm)).1 hMT,
+end⟩
+
 theorem empty_Theory_categorical (T : language.empty.Theory) :
   κ.categorical T :=
 λ M N hM hN, by rw [empty.nonempty_equiv_iff, hM, hN]
+
+theorem empty_infinite_Theory_is_complete :
+  language.empty.infinite_theory.is_complete :=
+(empty_Theory_categorical ℵ₀ _).is_complete ℵ₀ _ le_rfl (by simp)
+  ⟨Theory.model.bundled ((model_infinite_theory_iff language.empty).2 nat.infinite)⟩
+  (λ M, (model_infinite_theory_iff language.empty).1 M.is_model)
 
 end cardinal

@@ -320,7 +320,7 @@ fun_like.congr_fun h x
 
 /-- The `mul_equiv` between two monoids with a unique element. -/
 @[to_additive "The `add_equiv` between two add_monoids with a unique element."]
-def mul_equiv_of_unique_of_unique {M N}
+def mul_equiv_of_unique {M N}
   [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
 { map_mul' := λ _ _, subsingleton.elim _ _,
   ..equiv.equiv_of_unique M N }
@@ -330,7 +330,7 @@ def mul_equiv_of_unique_of_unique {M N}
   "There is a unique additive monoid homomorphism between two additive monoids with
 a unique element."]
 instance {M N} [unique M] [unique N] [has_mul M] [has_mul N] : unique (M ≃* N) :=
-{ default := mul_equiv_of_unique_of_unique ,
+{ default := mul_equiv_of_unique ,
   uniq := λ _, ext $ λ x, subsingleton.elim _ _}
 
 /-!
@@ -354,11 +354,16 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x
 mul_equiv_class.map_ne_one_iff h
 
 /-- A bijective `semigroup` homomorphism is an isomorphism -/
-@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism"]
+@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism", simps apply]
 noncomputable def of_bijective {M N F} [has_mul M] [has_mul N] [mul_hom_class F M N] (f : F)
   (hf : function.bijective f) : M ≃* N :=
 { map_mul' := map_mul f,
   ..equiv.of_bijective f hf }
+
+@[simp]
+lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
+  (hf : function.bijective f) : f ((equiv.of_bijective f hf).symm n) = n :=
+(mul_equiv.of_bijective f hf).apply_symm_apply n
 
 /--
 Extract the forward direction of a multiplicative equivalence
@@ -724,3 +729,16 @@ def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
 add_equiv.to_multiplicative''.symm
 
 end type_tags
+
+section
+variables (G) (H)
+
+/-- `additive (multiplicative G)` is just `G`. -/
+def add_equiv.additive_multiplicative [add_zero_class G] : additive (multiplicative G) ≃+ G :=
+mul_equiv.to_additive'' (mul_equiv.refl (multiplicative G))
+
+/-- `multiplicative (additive H)` is just `H`. -/
+def mul_equiv.multiplicative_additive [mul_one_class H] : multiplicative (additive H) ≃* H :=
+add_equiv.to_multiplicative'' (add_equiv.refl (additive H))
+
+end

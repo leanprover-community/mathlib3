@@ -9,7 +9,14 @@ import group_theory.group_action.defs
 /-!
 # Pi instances for multiplicative actions
 
-This file defines instances for mul_action and related structures on Pi Types
+This file defines instances for mul_action and related structures on Pi types.
+
+## See also
+
+* `group_theory.group_action.option`
+* `group_theory.group_action.prod`
+* `group_theory.group_action.sigma`
+* `group_theory.group_action.sum`
 -/
 
 universes u v w
@@ -19,59 +26,49 @@ variables (x y : Π i, f i) (i : I)
 
 namespace pi
 
-@[to_additive pi.has_vadd]
-instance has_scalar {α : Type*} [Π i, has_scalar α $ f i] :
-  has_scalar α (Π i : I, f i) :=
-⟨λ s x, λ i, s • (x i)⟩
-
-@[to_additive]
-lemma smul_def {α : Type*} [Π i, has_scalar α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[simp, to_additive]
-lemma smul_apply {α : Type*} [Π i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
-
 @[to_additive pi.has_vadd']
-instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
-  has_scalar (Π i, f i) (Π i : I, g i) :=
+instance has_smul' {g : I → Type*} [Π i, has_smul (f i) (g i)] :
+  has_smul (Π i, f i) (Π i : I, g i) :=
 ⟨λ s x, λ i, (s i) • (x i)⟩
 
 @[simp, to_additive]
-lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
+lemma smul_apply' {g : I → Type*} [∀ i, has_smul (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
 instance is_scalar_tower {α β : Type*}
-  [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]
+  [has_smul α β] [Π i, has_smul β $ f i] [Π i, has_smul α $ f i]
   [Π i, is_scalar_tower α β (f i)] : is_scalar_tower α β (Π i : I, f i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc x y (z i)⟩
 
 instance is_scalar_tower' {g : I → Type*} {α : Type*}
-  [Π i, has_scalar α $ f i] [Π i, has_scalar (f i) (g i)] [Π i, has_scalar α $ g i]
+  [Π i, has_smul α $ f i] [Π i, has_smul (f i) (g i)] [Π i, has_smul α $ g i]
   [Π i, is_scalar_tower α (f i) (g i)] : is_scalar_tower α (Π i : I, f i) (Π i : I, g i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc x (y i) (z i)⟩
 
 instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
-  [Π i, has_scalar (f i) (g i)] [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
+  [Π i, has_smul (f i) (g i)] [Π i, has_smul (g i) (h i)] [Π i, has_smul (f i) (h i)]
   [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc (x i) (y i) (z i)⟩
 
 @[to_additive]
 instance smul_comm_class {α β : Type*}
-  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [∀ i, smul_comm_class α β (f i)] :
+  [Π i, has_smul α $ f i] [Π i, has_smul β $ f i] [∀ i, smul_comm_class α β (f i)] :
   smul_comm_class α β (Π i : I, f i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x y (z i)⟩
 
 @[to_additive]
 instance smul_comm_class' {g : I → Type*} {α : Type*}
-  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
+  [Π i, has_smul α $ g i] [Π i, has_smul (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
   smul_comm_class α (Π i : I, f i) (Π i : I, g i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x (y i) (z i)⟩
 
 @[to_additive]
 instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
-  [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
+  [Π i, has_smul (g i) (h i)] [Π i, has_smul (f i) (h i)]
   [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
 
-instance {α : Type*} [Π i, has_scalar α $ f i] [Π i, has_scalar αᵐᵒᵖ $ f i]
+instance {α : Type*} [Π i, has_smul α $ f i] [Π i, has_smul αᵐᵒᵖ $ f i]
   [∀ i, is_central_scalar α (f i)] : is_central_scalar α (Π i, f i) :=
 ⟨λ r m, funext $ λ i, op_smul_eq_smul _ _⟩
 
@@ -79,7 +76,7 @@ instance {α : Type*} [Π i, has_scalar α $ f i] [Π i, has_scalar αᵐᵒᵖ 
 not an instance as `i` cannot be inferred. -/
 @[to_additive pi.has_faithful_vadd_at]
 lemma has_faithful_smul_at {α : Type*}
-  [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_smul α (f i)] :
+  [Π i, has_smul α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_smul α (f i)] :
   has_faithful_smul α (Π i, f i) :=
 ⟨λ x y h, eq_of_smul_eq_smul $ λ a : f i, begin
   classical,
@@ -89,7 +86,7 @@ end⟩
 
 @[to_additive pi.has_faithful_vadd]
 instance has_faithful_smul {α : Type*}
-  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_smul α (f i)] :
+  [nonempty I] [Π i, has_smul α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_smul α (f i)] :
   has_faithful_smul α (Π i, f i) :=
 let ⟨i⟩ := ‹nonempty I› in has_faithful_smul_at i
 
@@ -154,23 +151,23 @@ end pi
 
 namespace function
 
-/-- Non-dependent version of `pi.has_scalar`. Lean gets confused by the dependent instance if this
+/-- Non-dependent version of `pi.has_smul`. Lean gets confused by the dependent instance if this
 is not present. -/
-@[to_additive has_vadd]
-instance has_scalar {ι R M : Type*} [has_scalar R M] :
-  has_scalar R (ι → M) :=
-pi.has_scalar
+@[to_additive]
+instance has_smul {ι R M : Type*} [has_smul R M] :
+  has_smul R (ι → M) :=
+pi.has_smul
 
 /-- Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent instance if
 this is not present. -/
 @[to_additive]
 instance smul_comm_class {ι α β M : Type*}
-  [has_scalar α M] [has_scalar β M] [smul_comm_class α β M] :
+  [has_smul α M] [has_smul β M] [smul_comm_class α β M] :
   smul_comm_class α β (ι → M) :=
 pi.smul_comm_class
 
 @[to_additive]
-lemma update_smul {α : Type*} [Π i, has_scalar α (f i)] [decidable_eq I]
+lemma update_smul {α : Type*} [Π i, has_smul α (f i)] [decidable_eq I]
   (c : α) (f₁ : Π i, f i) (i : I) (x₁ : f i) :
   update (c • f₁) i (c • x₁) = c • update f₁ i x₁ :=
 funext $ λ j, (apply_update (λ i, (•) c) f₁ i x₁ j).symm
@@ -180,7 +177,7 @@ end function
 namespace set
 
 @[to_additive]
-lemma piecewise_smul {α : Type*} [Π i, has_scalar α (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+lemma piecewise_smul {α : Type*} [Π i, has_smul α (f i)] (s : set I) [Π i, decidable (i ∈ s)]
   (c : α) (f₁ g₁ : Π i, f i) :
   s.piecewise (c • f₁) (c • g₁) = c • s.piecewise f₁ g₁ :=
 s.piecewise_op _ _ (λ _, (•) c)
@@ -189,7 +186,7 @@ end set
 
 section extend
 
-@[to_additive] lemma function.extend_smul {R α β γ : Type*} [has_scalar R γ]
+@[to_additive] lemma function.extend_smul {R α β γ : Type*} [has_smul R γ]
   (r : R) (f : α → β) (g : α → γ) (e : β → γ) :
   function.extend f (r • g) (r • e) = r • function.extend f g e :=
 funext $ λ _, by convert (apply_dite ((•) r) _ _ _).symm

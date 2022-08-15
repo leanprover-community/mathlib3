@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.ring_division
-import tactic.zify
-import field_theory.separable
-import data.zmod.basic
-import ring_theory.integral_domain
-import number_theory.divisors
-import field_theory.finite.basic
-import group_theory.specific_groups.cyclic
 import algebra.char_p.two
+import algebra.ne_zero
+import data.polynomial.ring_division
+import field_theory.finite.basic
+import field_theory.separable
+import group_theory.specific_groups.cyclic
+import number_theory.divisors
+import ring_theory.integral_domain
+import tactic.zify
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -67,8 +67,8 @@ noncomputable theory
 open polynomial
 open finset
 
-variables {M N G G₀ R S F : Type*}
-variables [comm_monoid M] [comm_monoid N] [comm_group G] [comm_group_with_zero G₀]
+variables {M N G R S F : Type*}
+variables [comm_monoid M] [comm_monoid N] [division_comm_monoid G]
 
 section roots_of_unity
 
@@ -301,7 +301,7 @@ end
 
 section comm_monoid
 
-variables {ζ : M} (h : is_primitive_root ζ k)
+variables {ζ : M} {f : F} (h : is_primitive_root ζ k)
 
 @[nontriviality] lemma of_subsingleton [subsingleton M] (x : M) : is_primitive_root x 1 :=
 ⟨subsingleton.elim _ _, λ _ _, one_dvd _⟩
@@ -439,6 +439,37 @@ begin
   exact h.dvd_of_pow_eq_one _ hl
 end
 
+section maps
+
+open function
+
+lemma map_of_injective [monoid_hom_class F M N] (h : is_primitive_root ζ k) (hf : injective f) :
+  is_primitive_root (f ζ) k :=
+{ pow_eq_one := by rw [←map_pow, h.pow_eq_one, _root_.map_one],
+  dvd_of_pow_eq_one := begin
+    rw h.eq_order_of,
+    intros l hl,
+    rw [←map_pow, ←map_one f] at hl,
+    exact order_of_dvd_of_pow_eq_one (hf hl)
+  end }
+
+lemma of_map_of_injective [monoid_hom_class F M N] (h : is_primitive_root (f ζ) k)
+  (hf : injective f) : is_primitive_root ζ k :=
+{ pow_eq_one := by { apply_fun f, rw [map_pow, _root_.map_one, h.pow_eq_one] },
+  dvd_of_pow_eq_one := begin
+    rw h.eq_order_of,
+    intros l hl,
+    apply_fun f at hl,
+    rw [map_pow, _root_.map_one] at hl,
+    exact order_of_dvd_of_pow_eq_one hl
+  end }
+
+lemma map_iff_of_injective [monoid_hom_class F M N] (hf : injective f) :
+  is_primitive_root (f ζ) k ↔ is_primitive_root ζ k :=
+⟨λ h, h.of_map_of_injective hf, λ h, h.map_of_injective hf⟩
+
+end maps
+
 end comm_monoid
 
 section comm_monoid_with_zero
@@ -453,7 +484,7 @@ mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)
 
 end comm_monoid_with_zero
 
-section comm_group
+section division_comm_monoid
 
 variables {ζ : G}
 
@@ -499,88 +530,7 @@ begin
   exact hi
 end
 
-end comm_group
-
-section comm_group_with_zero
-
-variables {ζ : G₀}
-
-lemma zpow_eq_one₀ (h : is_primitive_root ζ k) : ζ ^ (k : ℤ) = 1 :=
-by { rw zpow_coe_nat, exact h.pow_eq_one }
-
-lemma zpow_eq_one_iff_dvd₀ (h : is_primitive_root ζ k) (l : ℤ) :
-  ζ ^ l = 1 ↔ (k : ℤ) ∣ l :=
-begin
-  by_cases h0 : 0 ≤ l,
-  { lift l to ℕ using h0, rw [zpow_coe_nat], norm_cast, exact h.pow_eq_one_iff_dvd l },
-  { have : 0 ≤ -l, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
-    lift -l to ℕ using this with l' hl',
-    rw [← dvd_neg, ← hl'],
-    norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg, ← hl', zpow_coe_nat, inv_one] }
-end
-
-lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
-  dvd_of_pow_eq_one :=
-  begin
-    intros l hl,
-    apply h.dvd_of_pow_eq_one l,
-    rw [← inv_inj, ← inv_pow, hl, inv_one]
-  end }
-
-@[simp] lemma inv_iff' : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
-by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv ζ], exact inv' h }
-
-lemma zpow_of_gcd_eq_one₀ (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 1) :
-  is_primitive_root (ζ ^ i) k :=
-begin
-  by_cases h0 : 0 ≤ i,
-  { lift i to ℕ using h0,
-    rw zpow_coe_nat,
-    exact h.pow_of_coprime i hi },
-  have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
-  lift -i to ℕ using this with i' hi',
-  rw [← inv_iff', ← zpow_neg, ← hi', zpow_coe_nat],
-  apply h.pow_of_coprime,
-  rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
-  exact hi
-end
-
-end comm_group_with_zero
-
-section comm_semiring
-
-variables [comm_semiring R] [comm_semiring S] {f : F} {ζ : R}
-
-open function
-
-lemma map_of_injective [monoid_hom_class F R S] (h : is_primitive_root ζ k) (hf : injective f) :
-  is_primitive_root (f ζ) k :=
-{ pow_eq_one := by rw [←map_pow, h.pow_eq_one, _root_.map_one],
-  dvd_of_pow_eq_one := begin
-    rw h.eq_order_of,
-    intros l hl,
-    rw [←map_pow, ←map_one f] at hl,
-    exact order_of_dvd_of_pow_eq_one (hf hl)
-  end }
-
-lemma of_map_of_injective [monoid_hom_class F R S] (h : is_primitive_root (f ζ) k)
-  (hf : injective f) : is_primitive_root ζ k :=
-{ pow_eq_one := by { apply_fun f, rw [map_pow, _root_.map_one, h.pow_eq_one] },
-  dvd_of_pow_eq_one := begin
-    rw h.eq_order_of,
-    intros l hl,
-    apply_fun f at hl,
-    rw [map_pow, _root_.map_one] at hl,
-    exact order_of_dvd_of_pow_eq_one hl
-  end }
-
-lemma map_iff_of_injective [monoid_hom_class F R S] (hf : injective f) :
-  is_primitive_root (f ζ) k ↔ is_primitive_root ζ k :=
-⟨λ h, h.of_map_of_injective hf, λ h, h.map_of_injective hf⟩
-
-end comm_semiring
+end division_comm_monoid
 
 section is_domain
 
@@ -944,21 +894,19 @@ begin
   { simp only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
       sub_self] }
 end
-end comm_ring
 
-variables {n : ℕ} {K : Type*} [field K] {μ : K} (h : is_primitive_root μ n) (hpos : 0 < n)
+section is_domain
 
-include n μ h hpos
-
-variables [char_zero K]
+variables [is_domain K] [char_zero K]
 
 omit hpos
+
 /--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
 lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
-  by_cases hpos : n = 0, { simp [hpos], },
-  apply minpoly.gcd_domain_dvd ℚ (is_integral h (nat.pos_of_ne_zero hpos))
-    (polynomial.monic.is_primitive (monic_X_pow_sub_C 1 (ne_of_lt (nat.pos_of_ne_zero hpos)).symm)),
+  rcases n.eq_zero_or_pos with rfl | hpos,
+  { simp },
+  apply minpoly.gcd_domain_dvd (is_integral h hpos) (monic_X_pow_sub_C 1 hpos.ne').ne_zero,
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -985,13 +933,12 @@ lemma squarefree_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
 lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
-  minpoly ℤ μ ∣
-  expand ℤ p (minpoly ℤ (μ ^ p)) :=
+  minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
-  by_cases hn : n = 0, { simp * at *, },
-  have hpos := nat.pos_of_ne_zero hn,
-  apply minpoly.gcd_domain_dvd ℚ (h.is_integral hpos),
-  { apply monic.is_primitive,
+  rcases n.eq_zero_or_pos with rfl | hpos,
+  { simp * at *, },
+  refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
+  { apply monic.ne_zero,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
     exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
@@ -1061,7 +1008,7 @@ begin
   rw [hR, ← mul_assoc, ← polynomial.map_mul, ← sq, polynomial.map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
-  replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
+  replace habs := lt_of_lt_of_le (part_enat.coe_lt_coe.2 one_lt_two)
     (multiplicity.le_multiplicity_of_pow_dvd (dvd_trans habs prod)),
   have hfree : squarefree (X ^ n - 1 : (zmod p)[X]),
   { exact (separable_X_pow_sub_C 1
@@ -1132,6 +1079,10 @@ n.totient = (primitive_roots n K).card : h.card_primitive_roots.symm
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
 ... ≤ P_K.nat_degree : card_roots' _
 ... ≤ P.nat_degree : nat_degree_map_le _ _
+
+end is_domain
+
+end comm_ring
 
 end minpoly
 

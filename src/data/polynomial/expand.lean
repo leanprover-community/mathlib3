@@ -9,6 +9,13 @@ import tactic.ring_exp
 
 /-!
 # Expand a polynomial by a factor of p, so `∑ aₙ xⁿ` becomes `∑ aₙ xⁿᵖ`.
+
+## Main definitions
+
+* `polynomial.expand R p f`: expand the polynomial `f` with coefficients in a
+  commutative semiring `R` by a factor of p, so `expand R p (∑ aₙ xⁿ)` is `∑ aₙ xⁿᵖ`.
+* `polynomial.contract p f`: the opposite of `expand`, so it sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`.
+
 -/
 
 universes u v w
@@ -240,7 +247,7 @@ variable {R}
 
 theorem of_irreducible_expand {p : ℕ} (hp : p ≠ 0) {f : R[X]}
   (hf : irreducible (expand R p f)) : irreducible f :=
-@@of_irreducible_map _ _ _ (is_local_ring_hom_expand R hp.bot_lt) hf
+let _ := is_local_ring_hom_expand R hp.bot_lt in by exactI of_irreducible_map ↑(expand R p) hf
 
 theorem of_irreducible_expand_pow {p : ℕ} (hp : p ≠ 0) {f : R[X]} {n : ℕ} :
   irreducible (expand R (p ^ n) f) → irreducible f :=

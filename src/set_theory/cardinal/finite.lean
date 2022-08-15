@@ -12,9 +12,8 @@ import set_theory.cardinal.basic
 
 * `nat.card α` is the cardinality of `α` as a natural number.
   If `α` is infinite, `nat.card α = 0`.
-* `enat.card α` is the cardinality of `α` as an extended natural number.
-  If `α` is infinite, `enat.card α = ⊤`.
-
+* `part_enat.card α` is the cardinality of `α` as an extended natural number
+  (`part ℕ` implementation). If `α` is infinite, `part_enat.card α = ⊤`.
 -/
 
 open cardinal
@@ -56,8 +55,8 @@ end
 
 lemma card_of_subsingleton (a : α) [subsingleton α] : nat.card α = 1 :=
 begin
-  rw [card_eq_fintype_card],
-  convert fintype.card_of_subsingleton a,
+  letI := fintype.of_subsingleton a,
+  rw [card_eq_fintype_card, fintype.card_of_subsingleton a]
 end
 
 @[simp] lemma card_unique [unique α] : nat.card α = 1 :=
@@ -79,16 +78,16 @@ card_congr equiv.plift
 
 end nat
 
-namespace enat
+namespace part_enat
 
-/-- `enat.card α` is the cardinality of `α` as an extended natural number.
-  If `α` is infinite, `enat.card α = ⊤`. -/
-def card (α : Type*) : enat := (mk α).to_enat
-
-@[simp]
-lemma card_eq_coe_fintype_card [fintype α] : card α = fintype.card α := mk_to_enat_eq_coe_card
+/-- `part_enat.card α` is the cardinality of `α` as an extended natural number.
+  If `α` is infinite, `part_enat.card α = ⊤`. -/
+def card (α : Type*) : part_enat := (mk α).to_part_enat
 
 @[simp]
-lemma card_eq_top_of_infinite [infinite α] : card α = ⊤ := mk_to_enat_of_infinite
+lemma card_eq_coe_fintype_card [fintype α] : card α = fintype.card α := mk_to_part_enat_eq_coe_card
 
-end enat
+@[simp]
+lemma card_eq_top_of_infinite [infinite α] : card α = ⊤ := mk_to_part_enat_of_infinite
+
+end part_enat

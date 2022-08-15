@@ -29,7 +29,7 @@ The category of `T`-structured arrows with domain `S : D` (here `T : C ⥤ D`),
 has as its objects `D`-morphisms of the form `S ⟶ T Y`, for some `Y : C`,
 and morphisms `C`-morphisms `Y ⟶ Y'` making the obvious triangle commute.
 -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def structured_arrow (S : D) (T : C ⥤ D) := comma (functor.from_punit S) T
 
 namespace structured_arrow
@@ -49,9 +49,6 @@ def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟨⟩⟩, Y, f⟩
 
 @[simp, reassoc] lemma w {A B : structured_arrow S T} (f : A ⟶ B) : A.hom ≫ T.map f.right = B.hom :=
 by { have := f.w; tidy }
-
-lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
-by { cases f, congr, ext, }
 
 /--
 To construct a morphism of structured arrows,
@@ -82,6 +79,16 @@ and to check that the triangle commutes.
 def iso_mk {f f' : structured_arrow S T} (g : f.right ≅ f'.right)
   (w : f.hom ≫ T.map g.hom = f'.hom) : f ≅ f' :=
 comma.iso_mk (eq_to_iso (by ext)) g (by simpa [eq_to_hom_map] using w.symm)
+
+/-- Eta rule for structured arrows. Prefer `structured_arrow.eta`, since equality of objects tends
+    to cause problems. -/
+lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
+by { cases f, congr, ext, }
+
+/-- Eta rule for structured arrows. -/
+@[simps]
+def eta (f : structured_arrow S T) : f ≅ mk f.hom :=
+iso_mk (iso.refl _) (by tidy)
 
 /--
 A morphism between source objects `S ⟶ S'`
@@ -145,7 +152,7 @@ The category of `S`-costructured arrows with target `T : D` (here `S : C ⥤ D`)
 has as its objects `D`-morphisms of the form `S Y ⟶ T`, for some `Y : C`,
 and morphisms `C`-morphisms `Y ⟶ Y'` making the obvious triangle commute.
 -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def costructured_arrow (S : C ⥤ D) (T : D) := comma S (functor.from_punit T)
 
 namespace costructured_arrow
@@ -166,9 +173,6 @@ def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟨⟩⟩, f⟩
 @[simp, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) :
   S.map f.left ≫ B.hom = A.hom :=
 by tidy
-
-lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=
-by { cases f, congr, ext, }
 
 /--
 To construct a morphism of costructured arrows,
@@ -191,6 +195,16 @@ and to check that the triangle commutes.
 def iso_mk {f f' : costructured_arrow S T} (g : f.left ≅ f'.left)
   (w : S.map g.hom ≫ f'.hom = f.hom) : f ≅ f' :=
 comma.iso_mk g (eq_to_iso (by ext)) (by simpa [eq_to_hom_map] using w)
+
+/-- Eta rule for costructured arrows. Prefer `costructured_arrow.eta`, as equality of objects tends
+    to cause problems. -/
+lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=
+by { cases f, congr, ext, }
+
+/-- Eta rule for costructured arrows. -/
+@[simps]
+def eta (f : costructured_arrow S T) : f ≅ mk f.hom :=
+iso_mk (iso.refl _) (by tidy)
 
 /--
 A morphism between target objects `T ⟶ T'`
@@ -266,7 +280,7 @@ def to_costructured_arrow (F : C ⥤ D) (d : D) :
   map := λ X Y f, costructured_arrow.hom_mk (f.unop.right.op)
   begin
     dsimp,
-    rw [← op_comp, ← f.unop.w, functor.const.obj_map],
+    rw [← op_comp, ← f.unop.w, functor.const_obj_map],
     erw category.id_comp,
   end }
 
@@ -283,7 +297,7 @@ def to_costructured_arrow' (F : C ⥤ D) (d : D) :
   begin
     dsimp,
     rw [← quiver.hom.unop_op (F.map (quiver.hom.unop f.unop.right)), ← unop_comp, ← F.op_map,
-      ← f.unop.w, functor.const.obj_map],
+      ← f.unop.w, functor.const_obj_map],
     erw category.id_comp,
   end }
 
@@ -303,7 +317,7 @@ def to_structured_arrow (F : C ⥤ D) (d : D) :
   map := λ X Y f, structured_arrow.hom_mk f.unop.left.op
   begin
     dsimp,
-    rw [← op_comp, f.unop.w, functor.const.obj_map],
+    rw [← op_comp, f.unop.w, functor.const_obj_map],
     erw category.comp_id,
   end }
 
@@ -320,7 +334,7 @@ def to_structured_arrow' (F : C ⥤ D) (d : D) :
   begin
     dsimp,
     rw [← quiver.hom.unop_op (F.map f.unop.left.unop), ← unop_comp, ← F.op_map,
-      f.unop.w, functor.const.obj_map],
+      f.unop.w, functor.const_obj_map],
     erw category.comp_id,
   end }
 

@@ -647,17 +647,25 @@ begin
     rotate 2,
     exact {n : ℕ | n ≤ fintype.card F.sections},
     exact {n : ℕ | n ≤ fintype.card ↥(functor.sections F)}.to_finite,
-    rintro mK ⟨K,rfl⟩,simp, exact this K,},
+    rintro jm ⟨j,rfl⟩,simp, exact this j,},
   let cards' := cardsfin.to_finset,
   have cards'nem : cards'.nonempty, by {finish,},
   let m := cards'.max' cards'nem,
   obtain mmem := cards'.max'_mem cards'nem, simp at mmem,
-  obtain ⟨K,Km⟩ := mmem,
+  obtain ⟨j,jm⟩ := mmem,
 
-  -- Take j maximizing the cardinality of F.obj j
-  -- By Fsur, we have surjective functions with codomain of ≥ card than the domain: hence all are equal and
-  -- we have injections
-  sorry
+  use j,
+  rintro ⟨i,ij⟩,
+  apply function.bijective.injective,
+  rw fintype.bijective_iff_surjective_and_card,
+  split,
+  { apply (is_surjective_iff F).mp Fsur,},
+  { apply has_le.le.antisymm,
+    { rw jm,
+      apply cards'.le_max' (fintype.card $ F.obj i),
+      simp only [set.finite.mem_to_finset, set.mem_range, exists_apply_eq_apply], },
+    { apply fintype.card_le_of_surjective _ ((is_surjective_iff F).mp Fsur i j ij), },
+  },
 end
 
 end inverse_system

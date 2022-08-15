@@ -34,7 +34,7 @@ variables {α β : Type*} [topological_space α] [topological_space β] {f : α 
 /-- A subset `s` of a topological space is quasi-separated if the intersections of any pairs of
 compact open subsets of `s` are still compact.
 
-Note that this is equiavlent to `s` being a `quasi_separated_space` only when `s` is open. -/
+Note that this is equivalent to `s` being a `quasi_separated_space` only when `s` is open. -/
 def is_quasi_separated (s : set α) : Prop :=
 ∀ (U V : set α), U ⊆ s → is_open U → is_compact U → V ⊆ s →
   is_open V → is_compact V → is_compact (U ∩ V)

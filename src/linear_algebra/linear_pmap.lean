@@ -331,7 +331,63 @@ instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
 instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
 
+instance : mul_action M (linear_pmap R E F) :=
+{ smul := (•),
+  one_smul := λ f,
+  begin
+    ext, { refl },
+    intros x y h,
+    simp only [coe_smul, one_smul],
+    exact congr_arg f (subtype.ext h),
+  end,
+  mul_smul := λ a₁ a₂ f,
+  begin
+    ext, { refl },
+    intros x y h,
+    simp only [coe_smul, pi.smul_apply],
+    rw mul_smul,
+    congr,
+    exact subtype.ext h,
+  end }
+
 end smul
+
+section vadd
+
+instance : has_vadd (E →ₗ[R] F) (linear_pmap R E F) :=
+⟨λ f g,
+  { domain := g.domain,
+    to_fun := f.comp g.domain.subtype + g.to_fun }⟩
+
+lemma vadd_apply (f : E →ₗ[R] F) (g : linear_pmap R E F) (x : (f +ᵥ g).domain) :
+  (f +ᵥ g) x = f x + g x := rfl
+
+@[simp] lemma coe_vadd (f : E →ₗ[R] F) (g : linear_pmap R E F) :
+  ⇑(f +ᵥ g) = f.comp g.domain.subtype + g := rfl
+
+instance : add_action (E →ₗ[R] F) (linear_pmap R E F) :=
+{ vadd := (+ᵥ),
+  zero_vadd := λ f,
+  begin
+    ext, { refl },
+    intros x y h,
+    simp only [coe_vadd, linear_map.zero_comp, pi.add_apply, linear_map.zero_apply, zero_add],
+    exact congr_arg f (subtype.ext h),
+  end,
+  add_vadd := λ f₁ f₂ g,
+  begin
+    ext, { refl },
+    intros x y h,
+    simp only [coe_vadd, linear_map.coe_comp, submodule.coe_subtype, pi.add_apply,
+      function.comp_app, linear_map.add_apply],
+    rw [add_assoc, h],
+    congr,
+    exact subtype.ext h,
+  end }
+
+end vadd
+
+#exit
 
 section
 

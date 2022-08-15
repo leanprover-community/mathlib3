@@ -154,7 +154,7 @@ begin
 end
 
 lemma indicator_one_inverse_image {M} [has_zero M] [has_one M] (U : set α) (s : set M) :
-  (U.indicator 1 ⁻¹' s) ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
+  U.indicator 1 ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
 indicator_const_inverse_image _ _ 1
 
 variable (M)

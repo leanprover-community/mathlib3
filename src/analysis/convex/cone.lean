@@ -208,6 +208,8 @@ def comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : convex_cone 𝕜 E :
   smul_mem' := λ c hc x hx, by { rw [mem_preimage, f.map_smul c], exact S.smul_mem hc hx },
   add_mem' := λ x hx y hy, by { rw [mem_preimage, f.map_add], exact S.add_mem hx hy } }
 
+@[simp] lemma coe_comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : (S.comap f : set E) = f ⁻¹' S := rfl
+
 @[simp] lemma comap_id (S : convex_cone 𝕜 E) : S.comap linear_map.id = S :=
 set_like.coe_injective preimage_id
 
@@ -640,8 +642,8 @@ def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
     exact add_nonneg (hu x hx) (hv x hx)
   end }
 
-lemma mem_inner_dual_cone (y : H) (s : set H) :
-  y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := by refl
+@[simp] lemma mem_inner_dual_cone (y : H) (s : set H) :
+  y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := iff.rfl
 
 @[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
 eq_top_iff.mpr $ λ x hy y, false.elim
@@ -687,5 +689,22 @@ by simp_rw [Inf_image, sUnion_eq_bUnion, inner_dual_cone_Union]
 lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 by rw [←convex_cone.coe_infi, ←inner_dual_cone_Union, Union_of_singleton_coe]
+
+lemma is_closed_inner_dual_cone : is_closed (s.inner_dual_cone : set H) :=
+begin
+  -- reduce the problem to showing that dual cone of a singleton `{x}` is closed
+  rw inner_dual_cone_eq_Inter_inner_dual_cone_singleton,
+  apply is_closed_Inter,
+  intros x,
+
+  -- the dual cone of a singleton `{x}` is the preimage of `[0, ∞)` under `inner x`
+  have h : ↑({x} : set H).inner_dual_cone = (inner x : H → ℝ) ⁻¹' set.Ici 0,
+  { rw [inner_dual_cone_singleton, convex_cone.coe_comap, convex_cone.coe_positive,
+      innerₛₗ_apply_coe] },
+
+  -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
+  rw h,
+  exact is_closed_Ici.preimage (by continuity),
+end
 
 end dual

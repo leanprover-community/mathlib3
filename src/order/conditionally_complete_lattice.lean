@@ -60,8 +60,64 @@ theorem with_top.cInf_empty {α : Type*} [has_Inf α] : Inf (∅ : set (with_top
 if_pos $ set.empty_subset _
 
 @[simp]
+theorem with_top.cinfi_empty {α : Type*} [is_empty ι] [has_Inf α] (f : ι → with_top α) :
+  (⨅ i, f i) = ⊤ :=
+by rw [infi, range_eq_empty, with_top.cInf_empty]
+
+lemma with_top.coe_Inf' [has_Inf α] {s : set α} (hs : s.nonempty) :
+  ↑(Inf s) = (Inf (coe '' s) : with_top α) :=
+begin
+  obtain ⟨x, hx⟩ := hs,
+  change _ = ite _ _ _,
+  split_ifs,
+  { cases h (mem_image_of_mem _ hx) },
+  { rw preimage_image_eq,
+    exact option.some_injective _ },
+end
+
+@[norm_cast] lemma with_top.coe_infi [nonempty ι] [has_Inf α] (f : ι → α) :
+  ↑(⨅ i, f i) = (⨅ i, f i : with_top α) :=
+by rw [infi, infi, with_top.coe_Inf' (range_nonempty f), range_comp]
+
+theorem with_top.coe_Sup' [preorder α] [has_Sup α] {s : set α} (hs : bdd_above s) :
+  ↑(Sup s) = (Sup (coe '' s) : with_top α) :=
+begin
+  change _ = ite _ _ _,
+  rw [if_neg, preimage_image_eq, if_pos hs],
+  { exact option.some_injective _ },
+  { rintro ⟨x, h, ⟨⟩⟩ },
+end
+
+@[norm_cast] lemma with_top.coe_supr [preorder α] [has_Sup α] (f : ι → α)
+  (h : bdd_above (set.range f)) :
+  ↑(⨆ i, f i) = (⨆ i, f i : with_top α) :=
+by rw [supr, supr, with_top.coe_Sup' h, range_comp]
+
+@[simp]
 theorem with_bot.cSup_empty {α : Type*} [has_Sup α] : Sup (∅ : set (with_bot α)) = ⊥ :=
 if_pos $ set.empty_subset _
+
+@[simp]
+theorem with_bot.csupr_empty {α : Type*} [is_empty ι] [has_Sup α] (f : ι → with_bot α) :
+  (⨆ i, f i) = ⊥ :=
+@with_top.cinfi_empty _ αᵒᵈ _ _ _
+
+@[norm_cast] lemma with_bot.coe_Sup' [has_Sup α] {s : set α} (hs : s.nonempty) :
+  ↑(Sup s) = (Sup (coe '' s) : with_bot α) :=
+@with_top.coe_Inf' αᵒᵈ _ _ hs
+
+@[norm_cast] lemma with_bot.coe_supr [nonempty ι] [has_Sup α] (f : ι → α) :
+  ↑(⨆ i, f i) = (⨆ i, f i : with_bot α) :=
+@with_top.coe_infi αᵒᵈ _ _ _ _
+
+@[norm_cast] theorem with_bot.coe_Inf' [preorder α] [has_Inf α] {s : set α} (hs : bdd_below s) :
+  ↑(Inf s) = (Inf (coe '' s) : with_bot α) :=
+@with_top.coe_Sup' αᵒᵈ _ _ _ hs
+
+@[norm_cast] lemma with_bot.coe_infi [preorder α] [has_Inf α] (f : ι → α)
+  (h : bdd_below (set.range f)) :
+  ↑(⨅ i, f i) = (⨅ i, f i : with_bot α) :=
+@with_top.coe_supr αᵒᵈ _ _ _ _ h
 
 end -- section
 
@@ -827,28 +883,15 @@ noncomputable instance : complete_linear_order (with_top α) :=
   Inf := Inf, le_Inf := λ s, (is_glb_Inf s).2, Inf_le := λ s, (is_glb_Inf s).1,
   .. with_top.linear_order, ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
 
-lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = ⨆ a ∈ s, ↑a :=
-begin
-  cases s.eq_empty_or_nonempty with hs hs,
-  { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },
-  apply le_antisymm,
-  { refine (coe_le_iff.2 $ λ b hb, cSup_le hs $ λ a has, coe_le_coe.1 $ hb ▸ _),
-    exact le_supr₂_of_le a has le_rfl },
-  { exact supr₂_le (λ a ha, coe_le_coe.2 $ le_cSup hb ha) }
-end
+/-- A version of `with_top.coe_Sup'` with a more convenient but less general statement. -/
+@[norm_cast] lemma coe_Sup {s : set α} (hb : bdd_above s) :
+  ↑(Sup s) = (⨆ a ∈ s, ↑a : with_top α) :=
+by rw [coe_Sup' hb, Sup_image]
 
-lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = ⨅ a ∈ s, ↑a :=
-begin
-  obtain ⟨x, hx⟩ := hs,
-  have : (⨅ a ∈ s, ↑a : with_top α) ≤ x := infi₂_le_of_le x hx le_rfl,
-  rcases le_coe_iff.1 this with ⟨r, r_eq, hr⟩,
-  refine le_antisymm
-    (le_infi₂ $ λ a ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha) _,
-  { rw r_eq,
-    apply coe_le_coe.2 (le_cInf ⟨x, hx⟩ (λ a has, coe_le_coe.1 _)),
-    rw ←r_eq,
-    exact infi₂_le_of_le a has le_rfl }
-end
+/-- A version of `with_top.coe_Inf'` with a more convenient but less general statement. -/
+@[norm_cast] lemma coe_Inf {s : set α} (hs : s.nonempty) :
+  ↑(Inf s) = (⨅ a ∈ s, ↑a : with_top α) :=
+by rw [coe_Inf' hs, Inf_image]
 
 end with_top
 

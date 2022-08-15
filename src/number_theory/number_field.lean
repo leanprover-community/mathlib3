@@ -70,6 +70,15 @@ localized "notation `𝓞` := number_field.ring_of_integers" in number_field
 
 lemma mem_ring_of_integers (x : K) : x ∈ 𝓞 K ↔ is_integral ℤ x := iff.rfl
 
+lemma is_integral_of_mem_ring_of_integers {K : Type*} [field K] {x : K} (hx : x ∈ 𝓞 K) :
+  is_integral ℤ (⟨x, hx⟩ : 𝓞 K) :=
+begin
+  obtain ⟨P, hPm, hP⟩ := hx,
+  refine ⟨P, hPm, _⟩,
+  rw [← polynomial.aeval_def, ← subalgebra.coe_eq_zero, polynomial.aeval_subalgebra_coe,
+    polynomial.aeval_def,  subtype.coe_mk, hP]
+end
+
 /-- Given an algebra between two fields, create an algebra between their two rings of integers.
 
 For now, this is not an instance by default as it creates an equal-but-not-defeq diamond with

@@ -265,6 +265,12 @@ begin
   rw add_comm,
   rw tsub_add_cancel_of_le (one_le_iff_ne_zero.mpr hk0),
 end
+
+-- TODO: Convenience lemma; Re-write the definition of MR_witness to remove the need for this
+lemma nat.pow_mul_eq_pow_pow_comm (a b x : ℕ) : x ^ (a * b) = (x ^ b) ^ a :=
+begin
+  rw [←pow_mul, mul_comm],
+end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 /-- If `x = 1 (mod m)` then `x = 1 (mod d)` for any `d ∣ m`. -/

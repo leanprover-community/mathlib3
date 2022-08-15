@@ -696,7 +696,8 @@ derivation.lift_kaehler_differential_unique _ _
 variables {R S}
 
 lemma kaehler_differential.D_tensor_product_to (x : kaehler_differential.ideal R S) :
-  (kaehler_differential.D R S).tensor_product_to x = (kaehler_differential.ideal R S).to_cotangent x :=
+  (kaehler_differential.D R S).tensor_product_to x =
+    (kaehler_differential.ideal R S).to_cotangent x :=
 begin
   rw [← derivation.lift_kaehler_differential_apply, derivation.lift_kaehler_differential_D],
   refl,

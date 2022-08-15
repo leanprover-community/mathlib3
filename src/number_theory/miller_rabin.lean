@@ -265,7 +265,34 @@ begin
   rw add_comm,
   rw tsub_add_cancel_of_le (one_le_iff_ne_zero.mpr hk0),
 end
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+/-- If `x = 1 (mod m)` then `x = 1 (mod d)` for any `d ∣ m`. -/
+lemma zmod.eq_one_of_eq_one_modulus_dvd {d m : ℕ} (hpm : d ∣ m) [fact (1 < d)] [fact (1 < m)]
+  {x : ℕ} (h : (x : zmod m) = 1) :
+  (x : zmod d) = 1 :=
+begin
+  simp only [zmod.nat_coe_zmod_eq_iff, zmod.val_one] at h ⊢,
+  cases h with k hk,
+  cases hpm with d hd,
+  rw [hk, hd, mul_assoc],
+  use (d*k),
+end
 
+/-- If `x = -1 (mod m)` then `x = -1 (mod d)` for any `d ∣ m`. -/
+lemma zmod.eq_neg_one_of_eq_neg_one_modulus_dvd {d m : ℕ} (hpm : d ∣ m)
+  [fact (1 < d)] [fact (1 < m)]
+  {x : ℕ} (h : (x : zmod m) = -1) :
+  (x : zmod d) = -1 :=
+begin
+  have h' : (x : zmod m) + 1 = 0, { rw h, simp },
+  suffices : (x : zmod d) + 1 = 0, {
+    have : (x : zmod d) + 1 - 1 = -1, { rw this, simp },
+    simpa using this },
+  norm_cast at *,
+  rw zmod.nat_coe_zmod_eq_zero_iff_dvd at *,
+  exact dvd_trans hpm h',
+end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 

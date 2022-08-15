@@ -33,10 +33,6 @@ section ends
 
 @[reducible, simp] def compl (S : set V) : subgraph G := (⊤ : subgraph G).delete_verts S
 
-/-
-instance verts_compl_coe {K L : set V} (h : K ⊆ L) : has_coe (compl G L).verts (compl G K).verts := { coe := by {rintros ⟨v, htop, hnL⟩, refine ⟨v, htop, _⟩, intro, refine hnL (h _), assumption} }
--/
-
 instance compl_coe {K L : set V} {G : simple_graph V} (h : K ⊆ L) : has_coe (set ↥((G.compl K).verts)) (set ↥((G.compl L).verts)) := {
   coe := λ S, λ vL,
     match vL with
@@ -44,7 +40,6 @@ instance compl_coe {K L : set V} {G : simple_graph V} (h : K ⊆ L) : has_coe (s
     end }
 
 -- `def` rather than `instance` because of typeclass problems
--- TODO: Fix this
 def finset_verts_compl_coe {K L : finset V} {G : simple_graph V} (h : K ⊆ L) :
   (set ↥((G.compl ↑K).verts)) → (set ↥((G.compl ↑L).verts)) := λ S, λ vL,
       match vL with
@@ -56,13 +51,8 @@ def conn_comp_outside : Type u :=
 
 /- The vertices in the compl of `K` that lie in the component `C` -/
 def conn_comp_outside.verts {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) :=
-  {v : (compl G K).verts | connected_component_mk _ v = C}
+  {v : (G.compl K).verts | connected_component_mk _ v = C}
 
-/- Alternative defintion. At this point, it is hard to tell which would be better -/
-def conn_comp_outside.verts' (K : finset V) (C : conn_comp_outside G K) : set V :=
-  { v : V | ∃ (p:v ∉ K), ((⊤ : G.subgraph).delete_verts K).coe.connected_component_mk (⟨v, by simp [p]⟩) = C }
-
--- TODO: Define and prove theorems about infinite connected components
 def inf_conn_comp_outside :=
  {C : G.conn_comp_outside K // infinite C.verts}
 
@@ -71,21 +61,12 @@ def fin_conn_comp_outside :=
 
 namespace conn_comp_outside
 
-
-def component_of' (v : V) (hv : v ∉ K) :
-  conn_comp_outside G K := connected_component_mk _ ⟨v, by simp [hv]⟩
-
 @[reducible] def component_of (v : (G.compl K).verts) : conn_comp_outside G K := connected_component_mk _ v
 
 def component_of_set (S : set V) (hnonempty : S.nonempty) (hdisjoint : disjoint S K) (hconn : subgraph.connected (subgraph.induce (G.compl K) S)) : conn_comp_outside G K := sorry -- Strategy: pick a random point in `S` and form the connected component containing it. The choice does not matter since `S` is connected
--- TODO: Make an analog of the above function for any connected set.
--- TODO: Show that the corresponding component contains the set.
 
-
--- TODO: Define the boundary and related lemmas
-def bdry' := {v : V | v ∉ K ∧ ∃ k ∈ K, G.adj v k}
-
-def bdry := {v : (G.compl K).verts | ∃ k ∈ K, G.adj v k}
+/- The boundary of a set, consisting of all adjacent vertices not in the set -/
+def bdry (S : set V) := {v : (G.compl S).verts | ∃ x ∈ S, G.adj v x}
 
 
 /- This is the portion of the connected component that is a part of the boundary -/

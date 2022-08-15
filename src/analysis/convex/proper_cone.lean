@@ -99,17 +99,40 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
 
 @[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
   y ∈ K.map f ↔
-  ∃ (x : ℕ → F), (∀ (n : ℕ), ∃ (x_1 : E) (h : x_1 ∈ K), f x_1 = x n) ∧ tendsto x at_top (nhds y)
+  ∃ (y' : ℕ → F), (∀ (n : ℕ), ∃ (x : E) (h : x ∈ K), f x = y' n) ∧ tendsto y' at_top (nhds y)
 :=
 by simp_rw [mem_coe, coe_map, convex_cone.mem_closure_iff_seq_limit, convex_cone.mem_map,
   continuous_linear_map.coe_coe]
 
 end proper_cone
 
-theorem farkas_lemma {K : proper_cone E} {f : E →L[ℝ] F} {b : F} :
+theorem farkas_lemma_proper_cone {K : proper_cone E} {f : E →L[ℝ] F} {b : F} :
 b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin
-  sorry,
+  simp_rw [proper_cone.mem_map, proper_cone.mem_star, adjoint_inner_right, proper_cone.mem_coe,
+    exists_prop],
+
+  rintro ⟨seq, hmem, htends⟩ y hinner,
+
+  have := continuous.seq_continuous (continuous.inner (@continuous_const _ _ _ _ y) continuous_id)
+    (λ n, seq n) htends,  clear htends,
+
+  -- `this: tendsto (inner y ∘ x) at_top (nhds (inner y b))`
+  simp_rw [id.def] at this,
+  suffices : ∀ n, 0 ≤ ⟪y, seq n⟫_ℝ,
+  /-
+x : ℕ → ℝ
+y : ℝ
+tendsto : tendsto x at_top (nhds y)
+nonneg : ∀ (n : ℕ), 0 ≤ x n
+⊢ 0 ≤ y
+  -/
+
+  begin sorry end,
+  intro n,
+  rcases hmem n with ⟨x, hxK, hxseq⟩, clear hmem,
+  specialize hinner x hxK,
+  rwa [hxseq, real_inner_comm] at hinner,
 end
 begin
   -- proof by contradiction
@@ -128,7 +151,7 @@ begin
   simp_rw [proper_cone.mem_star, adjoint_inner_right],
   intros x hxK,
   apply hxy (f x), clear hxy,
-  suffices : f x ∈ ↑(proper_cone.map f K), from this,
+  change f x ∈ ↑(proper_cone.map f K),
   rw proper_cone.coe_map,
   apply subset_closure,
   rw [set_like.mem_coe, convex_cone.mem_map],

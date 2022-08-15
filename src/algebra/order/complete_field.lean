@@ -324,13 +324,12 @@ instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
     intro f,
     have fmon : monotone f,
     { intros a b hab,
-      have : f b - f a ≥ 0,
-      { calc
-          f b - f a = f (b - a)                 : (ring_hom.map_sub _ _ _).symm
-            ...     = f (real.sqrt (b - a)^2)   : by rw sq_sqrt (sub_nonneg.mpr hab)
-            ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
-            ...     ≥ 0                         : sq_nonneg _, },
-      linarith, },
+      apply le_of_sub_nonneg,
+      calc
+        f b - f a = f (b - a)                 : (ring_hom.map_sub _ _ _).symm
+          ...     = f (real.sqrt (b - a)^2)   : by rw sq_sqrt (sub_nonneg.mpr hab)
+          ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
+          ...     ≥ 0                         : sq_nonneg _, },
     exact congr_arg order_ring_hom.to_ring_hom (subsingleton.elim ⟨f, fmon⟩ default),
   end }
 

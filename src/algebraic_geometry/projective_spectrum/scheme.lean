@@ -39,7 +39,7 @@ open sets in `Proj`, more specifically:
     prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
     is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
   - backward direction `from_Spec`:
-    for any `q : Spec A⁰_f`, we sent it to `{a | forall i, aᵢ^m/f^i ∈ q}`; we need this to be a
+    for any `q : Spec A⁰_f`, we sent it to `{a | ∀ i, aᵢᵐ/fⁱ ∈ q}`; we need this to be a
     homogeneous prime ideal that is relevant.
     * This is in fact an ideal, the proof can be found in
       `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal`;
@@ -556,7 +556,7 @@ begin
 end
 
 /--
-For a prime ideal `q` in `A⁰_f`, the set `{a | aᵐᵢ ∈ q }` as an ideal.
+For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as an ideal.
 -/
 def carrier.as_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg) ) :
   ideal A :=
@@ -566,7 +566,7 @@ def carrier.as_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg) ) :
   smul_mem' := carrier.smul_mem hm q }
 
 lemma carrier.as_ideal.homogeneous  (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
-  (carrier.as_ideal hm q).is_homogeneous 𝒜  :=
+  (carrier.as_ideal hm q).is_homogeneous 𝒜 :=
 begin
   intros i a ha,
   rw ←graded_algebra.proj_apply,
@@ -601,7 +601,7 @@ begin
 end
 
 /--
-For a prime ideal `q` in `A⁰_f`, the set `{a | aᵐᵢ ∈ q }` as a homogeneous ideal.
+For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as a homogeneous ideal.
 -/
 def carrier.as_homogeneous_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) : homogeneous_ideal 𝒜 :=
 ⟨carrier.as_ideal hm q, carrier.as_ideal.homogeneous hm q⟩
@@ -696,7 +696,7 @@ end
 
 variable (f_deg)
 /--
-The function `Spec A⁰_f → Proj|D(f)` by sending `q` to `{a | aᵐᵢ ∈ q}`.
+The function `Spec A⁰_f → Proj|D(f)` by sending `q` to `{a | aᵢᵐ/fⁱ ∈ q}`.
 -/
 def to_fun (hm : 0 < m) : (Spec.T (A⁰_ f_deg)) → (Proj.T| (pbo f)) :=
 λ q, ⟨⟨carrier.as_homogeneous_ideal hm q, carrier.as_ideal.prime hm q, carrier.relevant hm q⟩,

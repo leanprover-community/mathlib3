@@ -331,7 +331,6 @@ instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
             ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
             ...     ≥ 0                         : sq_nonneg _, },
       linarith, },
-    haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
     exact congr_arg order_ring_hom.to_ring_hom (subsingleton.elim ⟨f, fmon⟩ default),
   end }
 

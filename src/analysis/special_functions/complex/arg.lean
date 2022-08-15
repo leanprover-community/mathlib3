@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import algebra.order.to_interval_mod
 import analysis.special_functions.trigonometric.angle
 import analysis.special_functions.trigonometric.inverse
 
@@ -391,34 +392,26 @@ begin
         real.angle.sub_coe_pi_eq_add_coe_pi] }
 end
 
-lemma arg_mul_cos_add_sin_mul_I_eq_mul_fract {r : ℝ} (hr : 0 < r) (θ : ℝ) :
-  arg (r * (cos θ + sin θ * I)) = π - 2 * π * int.fract ((π - θ) / (2 * π)) :=
+lemma arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod {r : ℝ} (hr : 0 < r) (θ : ℝ) :
+  arg (r * (cos θ + sin θ * I)) = to_Ioc_mod (-π) real.two_pi_pos θ :=
 begin
-  have hi : π - 2 * π * int.fract ((π - θ) / (2 * π)) ∈ Ioc (-π) π,
-  { rw [←mem_preimage, preimage_const_sub_Ioc, ←mem_preimage,
-        preimage_const_mul_Ico _ _ real.two_pi_pos, sub_self, zero_div, sub_neg_eq_add,
-        ←two_mul, div_self real.two_pi_pos.ne.symm],
-    refine set.mem_of_mem_of_subset (set.mem_range_self _) _,
-    rw [←image_univ, int.image_fract],
-    simp },
-  have hs : π - 2 * π * int.fract ((π - θ) / (2 * π)) = 2 * π * ⌊(π - θ) / (2 * π)⌋ + θ,
-  { rw [int.fract, mul_sub, mul_div_cancel' _ real.two_pi_pos.ne.symm],
-    abel },
+  have hi : to_Ioc_mod (-π) real.two_pi_pos θ ∈ Ioc (-π) π,
+  { convert to_Ioc_mod_mem_Ioc _ real.two_pi_pos _,
+    ring },
   convert arg_mul_cos_add_sin_mul_I hr hi using 3,
-  simp_rw [hs, mul_comm (2 * π), add_comm _ θ, ←of_real_cos, ←of_real_sin,
-           real.cos_add_int_mul_two_pi, real.sin_add_int_mul_two_pi]
+  simp [to_Ioc_mod, cos_add_int_mul_two_pi, sin_add_int_mul_two_pi]
 end
 
-lemma arg_cos_add_sin_mul_I_eq_mul_fract (θ : ℝ) :
-  arg (cos θ + sin θ * I) = π - 2 * π * int.fract ((π - θ) / (2 * π)) :=
-by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_eq_mul_fract zero_lt_one]
+lemma arg_cos_add_sin_mul_I_eq_to_Ioc_mod (θ : ℝ) :
+  arg (cos θ + sin θ * I) = to_Ioc_mod (-π) real.two_pi_pos θ :=
+by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod zero_lt_one]
 
 lemma arg_mul_cos_add_sin_mul_I_sub {r : ℝ} (hr : 0 < r) (θ : ℝ) :
   arg (r * (cos θ + sin θ * I)) - θ = 2 * π * ⌊(π - θ) / (2 * π)⌋ :=
 begin
-  rw [arg_mul_cos_add_sin_mul_I_eq_mul_fract hr, int.fract, mul_sub,
-      mul_div_cancel' _ real.two_pi_pos.ne.symm],
-  abel
+  rw [arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod hr, to_Ioc_mod_sub_self, to_Ioc_div_eq_floor,
+      zsmul_eq_mul],
+  ring_nf
 end
 
 lemma arg_cos_add_sin_mul_I_sub (θ : ℝ) :

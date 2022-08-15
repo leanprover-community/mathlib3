@@ -598,7 +598,7 @@ empty -/
 lemma is_open_prod_iff' {s : set α} {t : set β} :
   is_open (s ×ˢ t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
-  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.1 h] },
   { have st : s.nonempty ∧ t.nonempty, from prod_nonempty_iff.1 h,
     split,
@@ -631,11 +631,11 @@ lemma frontier_prod_eq (s : set α) (t : set β) :
 by simp only [frontier, closure_prod_eq, interior_prod_eq, prod_diff_prod]
 
 @[simp] lemma frontier_prod_univ_eq (s : set α) :
-  frontier (s ×ˢ (univ : set β)) = frontier s ×ˢ (univ : set β) :=
+  frontier (s ×ˢ (univ : set β)) = frontier s ×ˢ univ :=
 by simp [frontier_prod_eq]
 
 @[simp] lemma frontier_univ_prod_eq (s : set β) :
-  frontier ((univ : set α) ×ˢ s) = (univ : set α) ×ˢ (frontier s) :=
+  frontier ((univ : set α) ×ˢ s) = univ ×ˢ frontier s :=
 by simp [frontier_prod_eq]
 
 lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
@@ -897,6 +897,20 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
+lemma continuous_at_cod_restrict_iff {f : α → β} {t : set β} (h1 : ∀ x, f x ∈ t) {x : α} :
+  continuous_at (cod_restrict f t h1) x ↔ continuous_at f x :=
+by simp_rw [inducing_coe.continuous_at_iff, function.comp, coe_cod_restrict_apply]
+
+alias continuous_at_cod_restrict_iff ↔ _ continuous_at.cod_restrict
+
+lemma continuous_at.restrict {f : α → β} {s : set α} {t : set β} (h1 : maps_to f s t) {x : s}
+  (h2 : continuous_at f x) : continuous_at (h1.restrict f s t) x :=
+(h2.comp continuous_at_subtype_coe).cod_restrict _
+
+lemma continuous_at.restrict_preimage {f : α → β} {s : set β} {x : f ⁻¹' s}
+  (h : continuous_at f x) : continuous_at (s.restrict_preimage f) x :=
+h.restrict _
+
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
   (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
 
@@ -930,13 +944,18 @@ quotient_map_quot_mk
 lemma continuous_quotient_mk : continuous (@quotient.mk α s) :=
 continuous_coinduced_rng
 
-lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
+lemma continuous.quotient_lift {f : α → β} (h : continuous f) (hs : ∀ a b, a ≈ b → f a = f b) :
+  continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom.2 h
 
-lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
-continuous_coinduced_dom.2 h
+lemma continuous.quotient_lift_on' {f : α → β} (h : continuous f)
+  (hs : ∀ a b, @setoid.r _ s a b → f a = f b) :
+  continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
+h.quotient_lift hs
+
+lemma continuous.quotient_map' {t : setoid β} {f : α → β} (hf : continuous f)
+  (H : (s.r ⇒ t.r) f f) : continuous (quotient.map' f H) :=
+(continuous_quotient_mk.comp hf).quotient_lift _
 
 end quotient
 
@@ -1125,7 +1144,7 @@ begin
   erw induced_compose,
 end
 
-variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
+variables [finite ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
 
 /-- A finite product of discrete spaces is discrete. -/
 instance Pi.discrete_topology : discrete_topology (Π i, π i) :=

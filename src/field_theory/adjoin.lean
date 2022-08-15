@@ -365,31 +365,26 @@ adjoin_adjoin_left _ _ _
 lemma adjoin_simple_comm (β : E) : F⟮α⟯⟮β⟯.restrict_scalars F = F⟮β⟯⟮α⟯.restrict_scalars F :=
 adjoin_adjoin_comm _ _ _
 
--- TODO: develop the API for `subalgebra.is_field_of_algebraic` so it can be used here
+variables {F} {α}
+
+lemma adjoin_algebraic_to_subalgebra
+  {S : set E} (hS : ∀ x ∈ S, is_algebraic F x) :
+  (intermediate_field.adjoin F S).to_subalgebra = algebra.adjoin F S :=
+begin
+  simp only [is_algebraic_iff_is_integral] at hS,
+  have : algebra.is_integral F (algebra.adjoin F S) :=
+  by rwa [←le_integral_closure_iff_is_integral, algebra.adjoin_le_iff],
+  have := is_field_of_is_integral_of_is_field' this (field.to_is_field F),
+  rw ← ((algebra.adjoin F S).to_intermediate_field' this).eq_adjoin_of_eq_algebra_adjoin F S; refl,
+end
+
 lemma adjoin_simple_to_subalgebra_of_integral (hα : is_integral F α) :
   (F⟮α⟯).to_subalgebra = algebra.adjoin F {α} :=
 begin
-  apply adjoin_eq_algebra_adjoin,
-  intros x hx,
-  by_cases x = 0,
-  { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
-
-  let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly F α,
-  haveI := fact.mk (minpoly.irreducible hα),
-  suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
-  { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
-    refine inv_eq_of_mul_eq_one_right _,
-    apply_fun ϕ.symm at this,
-    rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
-    rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
-
-  rw mul_inv_cancel (mt (λ key, _) h),
-  rw ← ϕ.map_zero at key,
-  change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
-  rw [ϕ.injective key, subalgebra.coe_zero]
+  apply adjoin_algebraic_to_subalgebra,
+  rintro x (rfl : x = α),
+  rwa is_algebraic_iff_is_integral,
 end
-
-variables {F} {α}
 
 open set complete_lattice
 
@@ -956,9 +951,9 @@ lemma is_algebraic_supr {ι : Type*} {f : ι → intermediate_field K L}
 begin
   rintros ⟨x, hx⟩,
   obtain ⟨s, hx⟩ := exists_finset_of_mem_supr' hx,
-  rw [algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←algebraic_iff],
+  rw [is_algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←is_algebraic_iff],
   haveI : ∀ i : (Σ i, f i), finite_dimensional K K⟮(i.2 : L)⟯ :=
-  λ ⟨i, x⟩, adjoin.finite_dimensional (is_algebraic_iff_is_integral.mp (algebraic_iff.mp (h i x))),
+  λ ⟨i, x⟩, adjoin.finite_dimensional (is_integral_iff.1 (is_algebraic_iff_is_integral.1 (h i x))),
   apply algebra.is_algebraic_of_finite,
 end
 

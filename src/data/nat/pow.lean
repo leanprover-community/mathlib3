@@ -114,8 +114,8 @@ by { rw [sq, sq], exact nat.mul_self_sub_mul_self_eq a b }
 alias sq_sub_sq ← pow_two_sub_pow_two
 
 theorem cauchy_induction (k : ℕ) {P : ℕ → Prop} (hk : 1 < k)
-(h1 : ∀ n : ℕ, P (n + 1) → P n) (h2 : ∀ n : ℕ, P n → P (k * n))
-{m : ℕ} (hm : 0 < m) (hp : P m) (n : ℕ) : P n :=
+  (h1 : ∀ n : ℕ, P (n + 1) → P n) (h2 : ∀ n : ℕ, P n → P (k * n))
+  {m : ℕ} (hm : 0 < m) (hp : P m) (n : ℕ) : P n :=
 begin
   have le_m_pow_two : n * 1 <= k ^ n * m :=
     nat.mul_le_mul (le_of_lt (nat.lt_pow_self hk n)) (nat.succ_le_of_lt hm),

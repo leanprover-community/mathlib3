@@ -136,8 +136,7 @@ mul_indicator_eq_one.2 $ disjoint_empty _
 mul_indicator_empty f
 
 lemma indicator_const_inverse_image {M} [has_zero M] (U : set α) (s : set M) (a : M) :
-  (U.indicator (λ x, a) ⁻¹' s) = set.univ ∨ (U.indicator (λ x, a) ⁻¹' s) = U ∨
-  (U.indicator (λ x, a) ⁻¹' s) = Uᶜ ∨ (U.indicator (λ x, a) ⁻¹' s) = ∅ :=
+  U.indicator (λ x, a) ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
 begin
   by_cases sa : a ∈ s;
   by_cases s0 : (0 : M) ∈ s,
@@ -155,8 +154,7 @@ begin
 end
 
 lemma indicator_one_inverse_image {M} [has_zero M] [has_one M] (U : set α) (s : set M) :
-  (U.indicator 1 ⁻¹' s) = set.univ ∨ (U.indicator 1 ⁻¹' s) = U ∨
-  (U.indicator 1 ⁻¹' s) = Uᶜ ∨ (U.indicator 1 ⁻¹' s) = ∅ :=
+  (U.indicator 1 ⁻¹' s) ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
 indicator_const_inverse_image _ _ 1
 
 variable (M)

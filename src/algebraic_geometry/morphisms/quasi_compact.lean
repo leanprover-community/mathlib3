@@ -96,8 +96,8 @@ begin
   exact hS.compact_bUnion (λ i _, H i i.prop)
 end
 
-@[simp] lemma quasi_compact_affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
-  quasi_compact.affine_property^.to_property f ↔
+@[simp] lemma quasi_compact.affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
+  (quasi_compact.affine_property : _).to_property f ↔
     is_affine Y ∧ compact_space X.carrier :=
 by { delta affine_target_morphism_property.to_property quasi_compact.affine_property, simp }
 
@@ -144,8 +144,8 @@ begin
     exact set.subset.rfl }
 end
 
-lemma quasi_compact_affine_property_is_local :
-  quasi_compact.affine_property^.is_local :=
+lemma quasi_compact.affine_property_is_local :
+  (quasi_compact.affine_property : _).is_local :=
 begin
   split,
   { apply affine_target_morphism_property.respects_iso_mk; rintros X Y Z _ _ _ H,
@@ -180,7 +180,7 @@ lemma quasi_compact.affine_open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
     ∃ {ι : Type u} (U : ι → opens Y.carrier) (hU : supr U = ⊤) (hU' : ∀ i, is_affine_open (U i)),
       ∀ i, compact_space (f.1.base ⁻¹' (U i).1)] :=
 quasi_compact_eq_affine_property.symm ▸
-  quasi_compact_affine_property_is_local.affine_open_cover_tfae f
+  quasi_compact.affine_property_is_local.affine_open_cover_tfae f
 
 lemma quasi_compact.open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
   tfae [quasi_compact f,
@@ -193,27 +193,27 @@ lemma quasi_compact.open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
       quasi_compact (pullback.snd : pullback f g ⟶ _),
     ∃ {ι : Type u} (U : ι → opens Y.carrier) (hU : supr U = ⊤), ∀ i, quasi_compact (f ∣_ (U i))] :=
 quasi_compact_eq_affine_property.symm ▸
-  quasi_compact_affine_property_is_local.target_affine_locally_is_local.open_cover_tfae f
+  quasi_compact.affine_property_is_local.target_affine_locally_is_local.open_cover_tfae f
 
 lemma quasi_compact_over_affine_iff {X Y : Scheme} (f : X ⟶ Y) [is_affine Y] :
   quasi_compact f ↔ compact_space X.carrier :=
 quasi_compact_eq_affine_property.symm ▸
-  quasi_compact_affine_property_is_local.affine_target_iff f
+  quasi_compact.affine_property_is_local.affine_target_iff f
 
 lemma quasi_compact.affine_open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y)
   [∀ i, is_affine (𝒰.obj i)] (f : X ⟶ Y) :
   quasi_compact f ↔ ∀ i, compact_space (pullback f (𝒰.map i)).carrier :=
 quasi_compact_eq_affine_property.symm ▸
-  quasi_compact_affine_property_is_local.affine_open_cover_iff f 𝒰
+  quasi_compact.affine_property_is_local.affine_open_cover_iff f 𝒰
 
 lemma quasi_compact.open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y) (f : X ⟶ Y) :
   quasi_compact f ↔ ∀ i, quasi_compact (pullback.snd : pullback f (𝒰.map i) ⟶ _) :=
 quasi_compact_eq_affine_property.symm ▸
-  quasi_compact_affine_property_is_local.target_affine_locally_is_local.open_cover_iff f 𝒰
+  quasi_compact.affine_property_is_local.target_affine_locally_is_local.open_cover_iff f 𝒰
 
 lemma quasi_compact_respects_iso : morphism_property.respects_iso @quasi_compact :=
 quasi_compact_eq_affine_property.symm ▸
-  target_affine_locally_respects_iso quasi_compact_affine_property_is_local.1
+  target_affine_locally_respects_iso quasi_compact.affine_property_is_local.1
 
 lemma quasi_compact_stable_under_composition :
   morphism_property.stable_under_composition @quasi_compact :=

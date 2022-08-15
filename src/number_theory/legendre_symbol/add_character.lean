@@ -41,13 +41,13 @@ is nontrivial (and the target is a domain); see `add_char.sum_eq_zero_of_is_nont
 additive character
 -/
 
+universes u v
+
 /-!
 ### Definitions related to and results on additive characters
 -/
 
 section add_char_def
-
-universes u v
 
 -- The domain of our additive characters
 variables (R : Type u) [add_monoid R]
@@ -63,24 +63,31 @@ The trivial additive character (sending everything to `1`) is `(1 : add_char R R
 @[derive [comm_monoid, inhabited]]
 def add_char : Type (max u v) := (multiplicative R) →* R'
 
+end add_char_def
+
+section coe_to_fun
+
+variables {R : Type u} [add_monoid R] {R' : Type v} [comm_monoid R']
+
+/-- Interpret an additive character as a monoid homomorphism. -/
+def add_char.to_monoid_hom : (add_char R R') → (multiplicative R →* R') := id
+
 open multiplicative
 
 /-- Define coercion to a function so that it includes the move from `R` to `multiplicative R`.
 After we have proved the API lemmas below, we don't need to worry about writing `of_add a`
 when we want to apply an additive character. -/
 instance add_char.has_coe_to_fun : has_coe_to_fun (add_char R R') (λ x, R → R') :=
-{ coe := λ ψ x, ψ.to_fun (of_add x) }
+{ coe := λ ψ x, ψ.to_monoid_hom (of_add x) }
 
-lemma coe_to_fun_apply (ψ : add_char R R') (a : R) : ψ a = ψ.to_fun (of_add a) := rfl
+lemma coe_to_fun_apply (ψ : add_char R R') (a : R) : ψ a = ψ.to_monoid_hom (of_add a) := rfl
 
 instance add_char.monoid_hom_class : monoid_hom_class (add_char R R') (multiplicative R) R' :=
 monoid_hom.monoid_hom_class
 
-end add_char_def
+end coe_to_fun
 
 section group_structure
-
-universes u v
 
 namespace add_char
 
@@ -99,39 +106,23 @@ lemma inv_apply (ψ : add_char R R') (x : R) : ψ⁻¹ x = ψ (-x) := rfl
 /-- An additive character maps `0` to `1`. -/
 @[simp]
 lemma map_zero_one (ψ : add_char R R') : ψ 0 = 1 :=
-begin
-  rw [coe_to_fun_apply, of_add_zero, ψ.map_one'],
-end
+by rw [coe_to_fun_apply, of_add_zero, map_one]
 
 /-- An additive character maps sums to products. -/
 @[simp]
 lemma map_add_mul (ψ : add_char R R') (x y : R) : ψ (x + y) = ψ x * ψ y :=
-begin
-  rw [coe_to_fun_apply, coe_to_fun_apply, coe_to_fun_apply, of_add_add, ψ.map_mul'],
-end
+by rw [coe_to_fun_apply, coe_to_fun_apply _ x, coe_to_fun_apply _ y, of_add_add, map_mul]
 
 /-- An additive character maps multiples by natural numbers to powers. -/
 @[simp]
 lemma map_nsmul_pow (ψ : add_char R R') (n : ℕ) (x : R) : ψ (n • x) = (ψ x) ^ n :=
-begin
-  induction n with n hn,
-  { rw [zero_nsmul, map_zero_one, pow_zero], },
-  { rw [succ_nsmul, map_add_mul, hn, pow_succ], }
-end
+by rw [coe_to_fun_apply, coe_to_fun_apply _ x, of_add_nsmul, map_pow]
 
 /-- An additive character maps multiples by integers to powers. -/
 @[simp]
 lemma map_zsmul_zpow {R' : Type v} [comm_group R'] (ψ : add_char R R') (n : ℤ) (x : R) :
   ψ (n • x) = (ψ x) ^ n :=
-begin
-  cases n,
-  { rw [of_nat_zsmul, zpow_of_nat],
-    exact map_nsmul_pow ψ n x, },
-  { have h_inv : ψ⁻¹ x = (ψ x)⁻¹,
-    { rw [eq_inv_iff_mul_eq_one, inv_apply, ← map_add_mul, neg_add_eq_sub, sub_self,
-          map_zero_one], },
-    rw [zsmul_neg_succ_of_nat, zpow_neg_succ_of_nat, ← inv_apply, map_nsmul_pow, h_inv, inv_pow], }
-end
+by rw [coe_to_fun_apply, coe_to_fun_apply _ x, of_add_zsmul, map_zpow]
 
 /-- The additive characters on a commutative additive group form a commutative group. -/
 instance comm_group : comm_group (add_char R R') :=
@@ -149,12 +140,8 @@ section additive
 
 namespace add_char
 
-universes u v
-
--- The domain of our additive characters
-variables {R : Type u} [comm_ring R]
--- The target
-variables {R' : Type v} [comm_ring R']
+-- The domain and target of our additive characters. Now we restrict to rings on both sides.
+variables {R : Type u} [comm_ring R] {R' : Type v} [comm_ring R']
 
 /-- An additive character is *nontrivial* if it takes a value `≠ 1`. -/
 def is_nontrivial (ψ : add_char R R') : Prop := ∃ (a : R), ψ a ≠ 1
@@ -172,8 +159,8 @@ This satisfies `mul_shift ψ a x = ψ (a * x)`. -/
 def mul_shift (ψ : add_char R R') (a : R) : add_char R R' :=
 ψ.comp (add_monoid_hom.mul_left a).to_multiplicative
 
-@[simp] lemma mul_shift_apply {ψ : add_char R R'} {a : R} {x : R} :
-  mul_shift ψ a x = ψ (a * x) := rfl
+@[simp] lemma mul_shift_apply {ψ : add_char R R'} {a : R} {x : R} : mul_shift ψ a x = ψ (a * x) :=
+rfl
 
 /-- `ψ⁻¹ = mul_shift ψ (-1))`. -/
 lemma inv_mul_shift (ψ : add_char R R') : ψ⁻¹ = mul_shift ψ (-1) :=
@@ -183,8 +170,7 @@ begin
 end
 
 /-- If `n` is a natural number, then `mul_shift ψ n x = (ψ x) ^ n`. -/
-lemma mul_shift_spec' (ψ : add_char R R') (n : ℕ) (x : R) :
-  mul_shift ψ n x = (ψ x) ^ n :=
+lemma mul_shift_spec' (ψ : add_char R R') (n : ℕ) (x : R) : mul_shift ψ n x = (ψ x) ^ n :=
 by rw [mul_shift_apply, ← nsmul_eq_mul, map_nsmul_pow]
 
 /-- If `n` is a natural number, then `ψ ^ n = mul_shift ψ n`. -/
@@ -234,8 +220,8 @@ end
 -- We leave this for a later occasion.
 
 /-- When `R` is a field `F`, then a nontrivial additive character is primitive -/
-lemma is_nontrivial.is_primitive {F : Type u} [field F]
-  (ψ : add_char F R') (hψ : is_nontrivial ψ) :
+lemma is_nontrivial.is_primitive {F : Type u} [field F] {ψ : add_char F R'}
+  (hψ : is_nontrivial ψ) :
   is_primitive ψ :=
 begin
   intros a ha,
@@ -249,7 +235,7 @@ of a field `R'`. It records which cyclotomic extension it is, the character, and
 fact that the character is primitive. -/
 @[nolint has_nonempty_instance] -- can't prove that they always exist
 structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
-(n : pnat)
+(n : ℕ+)
 (char : add_char R (cyclotomic_field n R'))
 (prim : is_primitive char)
 
@@ -260,7 +246,7 @@ structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v
 variables {C : Type v} [comm_ring C]
 
 -- For `n : ℕ+`, automatically generate instance `fact (0 < (n : ℕ))`.
--- This is needed for the API for `zmod n`.
+-- This is needed for the API for `zmod n` (until that gets refactored to use `ne_zero`).
 local attribute [instance] pnat.fact_pos
 
 section zmod_char_def
@@ -276,8 +262,7 @@ def zmod_char (n : ℕ+) {ζ : C} (hζ : ζ ^ ↑n = 1) : add_char (zmod n) C :=
 
 /-- The additive character on `zmod n` defined using `ζ` sends `a` to `ζ^a`. -/
 lemma zmod_char_apply {n : ℕ+} {ζ : C} (hζ : ζ ^ ↑n = 1) (a : zmod n) :
-  zmod_char n hζ a = ζ ^ a.val :=
-by simp only [coe_to_fun_apply, zmod_char, to_add_of_add]
+  zmod_char n hζ a = ζ ^ a.val := rfl
 
 lemma zmod_char_apply' {n : ℕ+} {ζ : C} (hζ : ζ ^ ↑n = 1) (a : ℕ) : zmod_char n hζ a = ζ ^ a :=
 begin
@@ -380,7 +365,7 @@ begin
   exact
 { n := ψ.n,
   char := ψ',
-  prim := hψ'.is_primitive ψ' },
+  prim := hψ'.is_primitive },
 end
 
 /-!

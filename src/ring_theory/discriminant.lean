@@ -128,7 +128,7 @@ begin
   { have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
       (finrank_eq_card_basis b).symm,
     rw [discr_def, trace_matrix_def],
-    simp_rw [← basis.mk_apply b.linear_independent this],
+    simp_rw [← basis.mk_apply b.linear_independent this.ge],
     rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
     exact trace_form_nondegenerate _ _ },
 end
@@ -152,7 +152,7 @@ by rw [discr_def, ring_hom.map_det, ring_hom.map_matrix_apply,
 /-- The discriminant of a power basis. -/
 lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) [is_separable K L] :
   algebra_map K E (discr K pb.basis) =
-  ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j), (e j pb.gen- (e i pb.gen)) ^ 2 :=
+  ∏ i : fin pb.dim, ∏ j in Ioi i, (e j pb.gen- (e i pb.gen)) ^ 2 :=
 begin
   rw [discr_eq_det_embeddings_matrix_reindex_pow_two K E pb.basis e,
     embeddings_matrix_reindex_eq_vandermonde, det_transpose, det_vandermonde, ← prod_pow],
@@ -163,8 +163,7 @@ end
 /-- A variation of `of_power_basis_eq_prod`. -/
 lemma discr_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
-  ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
-  -((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
+  ∏ i : fin pb.dim, ∏ j in Ioi i, -((e j pb.gen - e i pb.gen) * (e i pb.gen - e j pb.gen)) :=
 begin
   rw [discr_power_basis_eq_prod _ _ _ e],
   congr, ext i, congr, ext j,
@@ -176,8 +175,8 @@ local notation `n` := finrank K L
 /-- A variation of `of_power_basis_eq_prod`. -/
 lemma discr_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
-  (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
-  ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
+  (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in Ioi i,
+    (e j pb.gen - e i pb.gen) * (e i pb.gen - e j pb.gen) :=
 begin
   rw [discr_power_basis_eq_prod' _ _ _ e],
   simp_rw [λ i j, neg_eq_neg_one_mul ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))),
@@ -185,11 +184,9 @@ begin
   congr,
   simp only [prod_pow_eq_pow_sum, prod_const],
   congr,
-  simp_rw [fin.card_filter_lt],
-  apply (@nat.cast_inj ℚ _ _ _ _ _).1,
-  rw [nat.cast_sum],
+  rw [← @nat.cast_inj ℚ, nat.cast_sum],
   have : ∀ (x : fin pb.dim), (↑x + 1) ≤ pb.dim := by simp [nat.succ_le_iff, fin.is_lt],
-  simp_rw [nat.sub_sub],
+  simp_rw [fin.card_Ioi, nat.sub_sub, add_comm 1],
   simp only [nat.cast_sub, this, finset.card_fin, nsmul_eq_mul, sum_const, sum_sub_distrib,
     nat.cast_add, nat.cast_one, sum_add_distrib, mul_one],
   rw [← nat.cast_sum, ← @finset.sum_range ℕ _ pb.dim (λ i, i), sum_range_id ],
@@ -228,7 +225,7 @@ begin
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
     discr_power_basis_eq_prod'' _ _ _ e],
   congr,
-  rw [norm_eq_prod_embeddings, fin.prod_filter_lt_mul_neg_eq_prod_off_diag],
+  rw [norm_eq_prod_embeddings, prod_prod_Ioi_mul_eq_prod_prod_off_diag],
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),
@@ -239,16 +236,15 @@ begin
   { simp only [true_and, finset.mem_mk, mem_univ, mem_sigma],
     rw [multiset.mem_erase_of_ne (λ h, _)],
     { exact hroots _ },
-    { simp only [true_and, mem_filter, mem_univ, ne.def, mem_sigma] at hi,
-      refine hi (equiv.injective e (equiv.injective (power_basis.lift_equiv pb) _)),
+    { simp only [true_and, mem_univ, ne.def, mem_sigma, mem_compl, mem_singleton] at hi,
       rw [← power_basis.lift_equiv_apply_coe, ← power_basis.lift_equiv_apply_coe] at h,
-      exact subtype.eq h } },
+      exact hi (e.injective $ pb.lift_equiv.injective $ subtype.eq h.symm) } },
   { simp only [equiv.apply_eq_iff_eq, heq_iff_eq] at hij,
     have h := hij.2,
     rw [← power_basis.lift_equiv_apply_coe, ← power_basis.lift_equiv_apply_coe] at h,
     refine sigma.eq (equiv.injective e (equiv.injective _ (subtype.eq h))) (by simp [hij.1]) },
-  { simp only [true_and, finset.mem_mk, mem_univ, mem_sigma] at hσ,
-    simp only [sigma.exists, true_and, exists_prop, mem_filter, mem_univ, ne.def, mem_sigma],
+  { simp only [true_and, finset.mem_mk, mem_univ, mem_sigma] at ⊢ hσ,
+    simp only [sigma.exists, exists_prop, mem_compl, mem_singleton, ne.def],
     refine ⟨e.symm (power_basis.lift pb σ.2 _), e.symm σ.1, ⟨λ h, _, sigma.eq _ _⟩⟩,
     { rw [aeval_def, eval₂_eq_eval_map, ← is_root.def, ← mem_roots],
       { exact multiset.erase_subset _ _ hσ },

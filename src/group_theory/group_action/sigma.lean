@@ -21,22 +21,22 @@ variables {ι : Type*} {M N : Type*} {α : ι → Type*}
 
 namespace sigma
 
-section has_scalar
-variables [Π i, has_scalar M (α i)] [Π i, has_scalar N (α i)] (a : M) (i : ι) (b : α i)
+section has_smul
+variables [Π i, has_smul M (α i)] [Π i, has_smul N (α i)] (a : M) (i : ι) (b : α i)
   (x : Σ i, α i)
 
-@[to_additive sigma.has_vadd] instance : has_scalar M (Σ i, α i) := ⟨λ a, sigma.map id $ λ i, (•) a⟩
+@[to_additive sigma.has_vadd] instance : has_smul M (Σ i, α i) := ⟨λ a, sigma.map id $ λ i, (•) a⟩
 
 @[to_additive] lemma smul_def : a • x = x.map id (λ i, (•) a) := rfl
 @[simp, to_additive] lemma smul_mk : a • mk i b = ⟨i, a • b⟩ := rfl
 
-instance [has_scalar M N] [Π i, is_scalar_tower M N (α i)] : is_scalar_tower M N (Σ i, α i) :=
+instance [has_smul M N] [Π i, is_scalar_tower M N (α i)] : is_scalar_tower M N (Σ i, α i) :=
 ⟨λ a b x, by { cases x, rw [smul_mk, smul_mk, smul_mk, smul_assoc] }⟩
 
 @[to_additive] instance [Π i, smul_comm_class M N (α i)] : smul_comm_class M N (Σ i, α i) :=
 ⟨λ a b x, by { cases x, rw [smul_mk, smul_mk, smul_mk, smul_mk, smul_comm] }⟩
 
-instance [Π i, has_scalar Mᵐᵒᵖ (α i)] [Π i, is_central_scalar M (α i)] :
+instance [Π i, has_smul Mᵐᵒᵖ (α i)] [Π i, is_central_scalar M (α i)] :
   is_central_scalar M (Σ i, α i) :=
 ⟨λ a x, by { cases x, rw [smul_mk, smul_mk, op_smul_eq_smul] }⟩
 
@@ -49,7 +49,7 @@ protected lemma has_faithful_smul' [has_faithful_smul M (α i)] : has_faithful_s
   has_faithful_smul M (Σ i, α i) :=
 nonempty.elim ‹_› $ λ i, sigma.has_faithful_smul' i
 
-end has_scalar
+end has_smul
 
 @[to_additive] instance {m : monoid M} [Π i, mul_action M (α i)] : mul_action M (Σ i, α i) :=
 { mul_smul := λ a b x, by { cases x, rw [smul_mk, smul_mk, smul_mk, mul_smul] },

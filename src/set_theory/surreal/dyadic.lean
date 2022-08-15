@@ -175,7 +175,7 @@ begin
   cases h₂,
   { rw [h₂, add_comm, zsmul_pow_two_pow_half m₂ c y₁] },
   { have := nat.one_le_pow y₁ 2 nat.succ_pos',
-    linarith }
+    norm_cast at h₂, linarith },
 end
 
 /-- The additive monoid morphism `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
@@ -196,7 +196,7 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
       rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
       apply dyadic_aux,
       rwa [ha₁, ha₂] },
-    { have := nat.one_le_pow y₃ 2 nat.succ_pos',
+    { have : (1 : ℤ) ≤ 2 ^ y₃ := by exact_mod_cast nat.one_le_pow y₃ 2 nat.succ_pos',
       linarith }
     end,
   map_zero' := localization.lift_on_zero _ _,

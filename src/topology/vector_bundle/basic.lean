@@ -56,7 +56,7 @@ variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 /-- A pretrivialization for a (yet to be defined) topological vector bundle `total_space E` is a
 local equiv between sets of the form `proj ⁻¹' base_set` and `base_set × F` which respects the
 first coordinate, and is linear in each fiber. -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pretrivialization :
   topological_fiber_bundle.pretrivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -234,7 +234,7 @@ A structure extending local homeomorphisms, defining a local trivialization of t
 and `B × F` defined between two sets of the form `proj ⁻¹' base_set` and `base_set × F`,
 acting trivially on the first coordinate and linear in the fibers.
 -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
   topological_fiber_bundle.trivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -260,6 +260,11 @@ protected lemma linear (hb : b ∈ e.base_set) :
 e.linear' b hb
 
 protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
+
+lemma to_pretrivialization_injective :
+  function.injective (λ e : trivialization R F E, e.to_pretrivialization) :=
+by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
+  ← topological_fiber_bundle.trivialization.to_pretrivialization_injective.eq_iff], exact id }
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = x.proj := e.proj_to_fun x ex
@@ -346,8 +351,7 @@ lemma apply_mk_symm (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (
 e.to_pretrivialization.apply_mk_symm hb y
 
 lemma continuous_on_symm (e : trivialization R F E) :
-  continuous_on (λ z : B × F, total_space_mk z.1 (e.symm z.1 z.2))
-    (e.base_set ×ˢ (univ : set F)) :=
+  continuous_on (λ z : B × F, total_space_mk z.1 (e.symm z.1 z.2)) (e.base_set ×ˢ univ) :=
 begin
   have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
     total_space_mk z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
@@ -475,8 +479,8 @@ section
 open topological_vector_bundle
 
 variables (B)
-variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_group F] [normed_space R F] [topological_space B]
+variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
 /-- The valid transition functions for a topological vector bundle over `B` modelled on
@@ -485,7 +489,7 @@ target both `s ×ˢ univ`, which on this set is of the form `λ (b, v), (b, ε b
 map `ε` from `s` to `F ≃L[R] F`. Here continuity is with respect to the operator norm on
 `F →L[R] F`. -/
 def continuous_transitions (e : local_equiv (B × F) (B × F)) : Prop :=
-∃ s : set B, e.source = s ×ˢ (univ : set F) ∧ e.target = s ×ˢ (univ : set F)
+∃ s : set B, e.source = s ×ˢ univ ∧ e.target = s ×ˢ univ
     ∧ ∃ ε : B → (F ≃L[R] F), continuous_on (λ b, (ε b : F →L[R] F)) s
       ∧ ∀ b ∈ s, ∀ v : F, e (b, v) = (b, ε b v)
 
@@ -518,7 +522,8 @@ namespace trivialization
 @[simps apply {fully_applied := ff}]
 def continuous_linear_map_at (e : trivialization R F E) (b : B) :
   E b →L[R] F :=
-{ cont := begin
+{ to_fun := e.linear_map_at b, -- given explicitly to help `simps`
+  cont := begin
     dsimp,
     rw [e.coe_linear_map_at b],
     refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
@@ -530,7 +535,8 @@ def continuous_linear_map_at (e : trivialization R F E) (b : B) :
 /-- Backwards map of `continuous_linear_equiv_at`, defined everywhere. -/
 @[simps apply {fully_applied := ff}]
 def symmL (e : trivialization R F E) (b : B) : F →L[R] E b :=
-{ cont := begin
+{ to_fun := e.symm b, -- given explicitly to help `simps`
+  cont := begin
     by_cases hb : b ∈ e.base_set,
     { rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
       exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
@@ -554,8 +560,8 @@ is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply {fully_applied := ff}]
 def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e (total_space_mk b y)).2,
-  inv_fun := e.symm b,
+{ to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
+  inv_fun := e.symm b, -- given explicitly to help `simps`
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := (e.symmL b).continuous,
@@ -758,7 +764,7 @@ lemma coord_change_linear_comp (i j k : ι): ∀ x ∈ (Z.base_set i) ∩ (Z.bas
 λ x hx, by { ext v, exact Z.coord_change_comp i j k x hx v }
 
 /-- The index set of a topological vector bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def index := ι
 
 /-- The base space of a topological vector bundle core, as a convenience function for dot notation-/
@@ -767,7 +773,7 @@ def base := B
 
 /-- The fiber of a topological vector bundle core, as a convenience function for dot notation and
 typeclass inference -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def fiber (x : B) := F
 
 instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
@@ -911,8 +917,8 @@ end
 /-! ### Topological vector prebundle -/
 
 section
-variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_group F] [normed_space R F] [topological_space B]
+variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B]
 
 open topological_space
 
@@ -927,7 +933,7 @@ The field `exists_coord_change` is stated as an existential statement (instead o
 fields), since it depends on propositional information (namely `e e' ∈ pretrivialization_atlas`).
 This makes it inconvenient to explicitly define a `coord_change` function when constructing a
 `topological_vector_prebundle`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure topological_vector_prebundle :=
 (pretrivialization_atlas : set (pretrivialization R F E))
 (pretrivialization_at : B → pretrivialization R F E)
@@ -985,8 +991,7 @@ def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
       ((a.continuous_on_coord_change he' he).prod_map continuous_on_id),
     have H : e'.to_fiber_bundle_pretrivialization.to_local_equiv.target ∩
       e'.to_fiber_bundle_pretrivialization.to_local_equiv.symm ⁻¹'
-      e.to_fiber_bundle_pretrivialization.to_local_equiv.source =
-      (e'.base_set ∩ e.base_set) ×ˢ (univ : set F),
+      e.to_fiber_bundle_pretrivialization.to_local_equiv.source =(e'.base_set ∩ e.base_set) ×ˢ univ,
     { rw [e'.target_eq, e.source_eq],
       ext ⟨b, f⟩,
       simp only [-total_space.proj, and.congr_right_iff, e'.proj_symm_apply', iff_self,

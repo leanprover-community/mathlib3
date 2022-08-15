@@ -174,11 +174,16 @@ instance : non_assoc_semiring (monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
+  nat_cast  := λ n, single 1 n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := λ _, by simp [nat.cast]; refl,
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   ..monoid_algebra.non_unital_non_assoc_semiring }
+
+lemma nat_cast_def (n : ℕ) : (n : monoid_algebra k G) = single 1 n := rfl
 
 end mul_one_class
 
@@ -241,11 +246,16 @@ instance [ring k] [semigroup G] : non_unital_ring (monoid_algebra k G) :=
   .. monoid_algebra.non_unital_semiring }
 
 instance [ring k] [mul_one_class G] : non_assoc_ring (monoid_algebra k G) :=
-{ .. monoid_algebra.add_comm_group,
+{ int_cast                    := λ z, single 1 (z : k),
+  int_cast_of_nat             := λ n, by simpa,
+  int_cast_neg_succ_of_nat    := λ n, by simpa,
+  .. monoid_algebra.add_comm_group,
   .. monoid_algebra.non_assoc_semiring }
 
+lemma int_cast_def [ring k] [mul_one_class G] (z : ℤ) : (z : monoid_algebra k G) = single 1 z := rfl
+
 instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
-{ .. monoid_algebra.non_unital_non_assoc_ring,
+{ .. monoid_algebra.non_assoc_ring,
   .. monoid_algebra.semiring }
 
 instance [comm_ring k] [comm_semigroup G] : non_unital_comm_ring (monoid_algebra k G) :=
@@ -259,8 +269,8 @@ instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 variables {S : Type*}
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_scalar R (monoid_algebra k G) :=
-finsupp.has_scalar
+  has_smul R (monoid_algebra k G) :=
+finsupp.has_smul
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (monoid_algebra k G) :=
@@ -275,7 +285,7 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k
 finsupp.has_faithful_smul
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_scalar R S] [is_scalar_tower R S k] :
+  [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
@@ -315,8 +325,8 @@ lemma mul_apply_antidiagonal [has_mul G] (f g : monoid_algebra k G) (x : G) (s :
 let F : G × G → k := λ p, by classical; exact if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
 calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
   mul_apply f g x
-... = ∑ p in f.support.product g.support, F p : finset.sum_product.symm
-... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
+... = ∑ p in f.support ×ˢ g.support, F p : finset.sum_product.symm
+... = ∑ p in (f.support ×ˢ g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
   (finset.sum_filter _ _).symm
 ... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
   sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
@@ -1017,11 +1027,16 @@ instance : non_assoc_semiring (add_monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
+  nat_cast  := λ n, single 0 n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := λ _, by simp [nat.cast]; refl,
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   .. add_monoid_algebra.non_unital_non_assoc_semiring }
+
+lemma nat_cast_def (n : ℕ) : (n : add_monoid_algebra k G) = single 0 n := rfl
 
 end mul_one_class
 
@@ -1029,8 +1044,8 @@ end mul_one_class
 section semiring
 
 instance {R : Type*} [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_scalar R (add_monoid_algebra k G) :=
-finsupp.has_scalar
+  has_smul R (add_monoid_algebra k G) :=
+finsupp.has_smul
 
 variables [semiring k] [add_monoid G]
 
@@ -1085,11 +1100,17 @@ instance [ring k] [add_semigroup G] : non_unital_ring (add_monoid_algebra k G) :
   .. add_monoid_algebra.non_unital_semiring }
 
 instance [ring k] [add_zero_class G] : non_assoc_ring (add_monoid_algebra k G) :=
-{ .. add_monoid_algebra.add_comm_group,
+{ int_cast                    := λ z, single 0 (z : k),
+  int_cast_of_nat             := λ n, by simpa,
+  int_cast_neg_succ_of_nat    := λ n, by simpa,
+  .. add_monoid_algebra.add_comm_group,
   .. add_monoid_algebra.non_assoc_semiring }
 
+lemma int_cast_def [ring k] [add_zero_class G] (z : ℤ) :
+  (z : add_monoid_algebra k G) = single 0 z := rfl
+
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
-{ .. add_monoid_algebra.non_unital_non_assoc_ring,
+{ .. add_monoid_algebra.non_assoc_ring,
   .. add_monoid_algebra.semiring }
 
 instance [comm_ring k] [add_comm_semigroup G] : non_unital_comm_ring (add_monoid_algebra k G) :=
@@ -1114,7 +1135,7 @@ instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k
 finsupp.module G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_scalar R S] [is_scalar_tower R S k] :
+  [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (add_monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 

@@ -190,7 +190,10 @@ section
 open linear_equiv
 
 /-- `pi.basis (s : ∀ j, basis (ιs j) R (Ms j))` is the `Σ j, ιs j`-indexed basis on `Π j, Ms j`
-given by `s j` on each component. -/
+given by `s j` on each component.
+
+For the standard basis over `R` on the finite-dimensional space `η → R` see `pi.basis_fun`.
+-/
 protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
   basis (Σ j, ιs j) R (Π j, Ms j) :=
 -- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.

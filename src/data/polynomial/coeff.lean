@@ -191,8 +191,7 @@ begin
   { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
   { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
     rw [coeff_X_pow, if_neg, mul_zero],
-    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
-      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
+    exact ((le_of_add_le_right (finset.nat.mem_antidiagonal.mp hx).le).trans_lt $ not_le.mp h).ne }
 end
 
 lemma coeff_X_pow_mul' (p : R[X]) (n d : ℕ) :
@@ -205,6 +204,24 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 
 @[simp] theorem coeff_X_mul (p : R[X]) (n : ℕ) :
   coeff (X * p) (n + 1) = coeff p n := by rw [(commute_X p).eq, coeff_mul_X]
+
+theorem coeff_mul_monomial (p : R[X]) (n d : ℕ) (r : R) :
+  coeff (p * monomial n r) (d + n) = coeff p d * r :=
+by rw [monomial_eq_C_mul_X, ←X_pow_mul, ←mul_assoc, coeff_mul_C, coeff_mul_X_pow]
+
+theorem coeff_monomial_mul (p : R[X]) (n d : ℕ) (r : R) :
+  coeff (monomial n r * p) (d + n) = r * coeff p d :=
+by rw [monomial_eq_C_mul_X, mul_assoc, coeff_C_mul, X_pow_mul, coeff_mul_X_pow]
+
+-- This can already be proved by `simp`.
+theorem coeff_mul_monomial_zero (p : R[X]) (d : ℕ) (r : R) :
+  coeff (p * monomial 0 r) d = coeff p d * r :=
+coeff_mul_monomial p 0 d r
+
+-- This can already be proved by `simp`.
+theorem coeff_monomial_zero_mul (p : R[X]) (d : ℕ) (r : R) :
+  coeff (monomial 0 r * p) d = r * coeff p d :=
+coeff_monomial_mul p 0 d r
 
 theorem mul_X_pow_eq_zero {p : R[X]} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=

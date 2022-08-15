@@ -366,12 +366,12 @@ and the two star structures are compatible in the sense
 
 Note that it is up to the user of this typeclass to enforce
 `[semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A] [module R A]`, and that
-the statement only requires `[has_star R] [has_star A] [has_scalar R A]`.
+the statement only requires `[has_star R] [has_star A] [has_smul R A]`.
 
 If used as `[comm_ring R] [star_ring R] [semiring A] [star_ring A] [algebra R A]`, this represents a
 star algebra.
 -/
-class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] : Prop :=
+class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_smul R A] : Prop :=
 (star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
 
 export star_module (star_smul)
@@ -409,7 +409,7 @@ instance : star_semigroup Rˣ :=
 @[simp] lemma coe_star (u : Rˣ) : ↑(star u) = (star ↑u : R) := rfl
 @[simp] lemma coe_star_inv (u : Rˣ) : ↑(star u)⁻¹ = (star ↑u⁻¹ : R) := rfl
 
-instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_module Rˣ A :=
+instance {A : Type*} [has_star A] [has_smul R A] [star_module R A] : star_module Rˣ A :=
 ⟨λ u a, (star_smul ↑u a : _)⟩
 
 end units

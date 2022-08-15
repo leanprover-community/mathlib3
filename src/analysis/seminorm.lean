@@ -318,7 +318,7 @@ def seminorm.of [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
 { to_fun    := f,
   map_zero' := map_zero.of_smul smul,
   nonneg'   := λ x,
-    have h: 0 ≤ 2 * f x, from
+    have h : 0 ≤ 2 * f x, from
     calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero.of_smul smul]
     ...    ≤ f x + f (-x)  : add_le _ _
     ...    = 2 * f x : by rw [neg.of_smul smul, two_mul],

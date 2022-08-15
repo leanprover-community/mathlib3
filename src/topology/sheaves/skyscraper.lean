@@ -59,8 +59,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
   begin
     split_ifs,
     { simp, },
-    { rw eq_comp_eq_to_hom,
-      exact terminal_is_terminal.hom_ext _ _, },
+    { simpa only [eq_comp_eq_to_hom] using terminal_is_terminal.hom_ext _ _, },
   end,
   map_comp' := λ U V W iVU iWV,
   begin
@@ -70,8 +69,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
       split_ifs,
       simp },
     { split_ifs;
-      rw eq_comp_eq_to_hom;
-      exact terminal_is_terminal.hom_ext _ _, }
+      simpa only [eq_comp_eq_to_hom] using terminal_is_terminal.hom_ext _ _, }
   end }
 
 section
@@ -79,12 +77,10 @@ section
 variables {p₀}
 
 lemma skyscraper_presheaf_obj_of_mem {U : opens X} (h : p₀ ∈ U) :
-  (skyscraper_presheaf p₀ S).obj (op U) = S :=
-if_pos h
+  (skyscraper_presheaf p₀ S).obj (op U) = S := if_pos h
 
 lemma skyscraper_presheaf_obj_of_not_mem {U : opens X} (h : p₀ ∉ U) :
-  (skyscraper_presheaf p₀ S).obj (op U) = (terminal C) :=
-if_neg h
+  (skyscraper_presheaf p₀ S).obj (op U) = terminal C := if_neg h
 
 end
 
@@ -143,8 +139,8 @@ end
 
 section
 
--- In this section, we calculate the stalks for skyscraper presheaves. We need to restrict universe
--- level.
+-- In this section, we calculate the stalks for skyscraper presheaves.
+-- We need to restrict universe level.
 
 open topological_space
 open category_theory category_theory.limits
@@ -172,12 +168,7 @@ The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S` when `y �
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S) :=
 { X := S,
   ι :=
-  { app := λ U, eq_to_hom
-      begin
-        dsimp,
-        rw if_pos,
-        exact h.mem_open U.unop.1.2 U.unop.2,
-      end ≫ 𝟙 S,
+  { app := λ U, eq_to_hom $ if_pos (h.mem_open U.unop.1.2 U.unop.2),
     naturality' := λ U V inc,
     begin
       simp only [functor.op_obj, unop_op, functor.comp_map, functor.op_map, skyscraper_presheaf_map,
@@ -185,11 +176,10 @@ The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S` when `y �
       by_cases hV : p₀ ∈ (open_nhds.inclusion y).obj V.unop,
       { have hU : p₀ ∈ unop ((open_nhds.inclusion y).op.obj U) := le_of_hom inc.unop hV,
         split_ifs,
-        erw [category.comp_id, category.comp_id, category.comp_id, eq_to_hom_trans],
+        erw [eq_to_hom_trans, category.comp_id],
         refl },
       { split_ifs with hU;
-        erw [category.comp_id, category.comp_id, category.comp_id, eq_comp_eq_to_hom,
-          eq_comp_eq_to_hom];
+        erw [category.comp_id, category.assoc, eq_to_hom_trans, eq_comp_eq_to_hom, eq_to_hom_trans];
         exact terminal_is_terminal.hom_ext _ _, },
     end } }
 
@@ -231,7 +221,6 @@ noncomputable def skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit [has_c
     erw [←h],
     simp only [skyscraper_presheaf_cocone_of_mem_closure₀_ι_app, category.assoc,
       eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp],
-    exact (category.id_comp _).symm,
   end }
 
 /--

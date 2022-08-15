@@ -432,12 +432,7 @@ have α_sq_eq : α * α = ∑ j in (range (2 * m + 1)).attach,
     ⟨f ^ (2 * i), ⟨_, rfl⟩⟩,
     ⟨2 * i, ⟨⟨_, begin
       rw show m * (2 * i) = ((j.1*i) + (2*m-j.1)*i + 0),
-      { zify,
-        rw [show (↑(2 * m - j.1) : ℤ) = 2 * m - j.1, from _, sub_mul, add_zero],
-        { ring },
-        { rw [eq_sub_iff_add_eq, ←int.coe_nat_add, nat.sub_add_cancel
-            (nat.lt_succ_iff.mp (mem_range.mp j.2))],
-          refl, }, },
+      { zify [show j.1 ≤ 2 * m, by linarith [finset.mem_range.mp j.2]], linarith, },
       mem_tac,
     end⟩, rfl⟩⟩⟩,
 begin
@@ -506,11 +501,8 @@ begin
           ⟨_, ⟨(proj 𝒜 (i-n) x)^m, by mem_tac⟩, rfl⟩⟩ ∈ q.1,
       { convert this,
         rw [mk_mul],
-        congr' 1,
-        ext,
-        simp only [subtype.coe_mk, submonoid.coe_mul, ←pow_add],
-        congr' 1,
-        linarith, },
+        congr,
+        rw [←pow_add, ←nat.add_sub_assoc ineq1, nat.add_sub_cancel_left], },
         exact ideal.mul_mem_left _ _ (hx _), },
     { convert submodule.zero_mem _,
       rw [subtype.coe_mk, show proj 𝒜 i (a • x) = 0, from _, zero_pow hm, mk_zero],
@@ -546,11 +538,8 @@ lemma carrier.as_ideal.homogeneous  (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
   (carrier.as_ideal hm q).is_homogeneous 𝒜 :=
 λ i a ha j, (em (i = j)).elim
   (λ h, h ▸ by simpa only [proj_apply, decompose_coe, of_eq_same] using ha _)
-  (λ h, begin
-    convert submodule.zero_mem _,
-    rw [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem (decompose 𝒜 a i)) h,
-      zero_pow hm, mk_zero],
-  end)
+  (λ h, by simpa only [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem (decompose 𝒜 a i)) h,
+      zero_pow hm, mk_zero] using submodule.zero_mem _)
 
 /--
 For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as a homogeneous ideal.
@@ -578,7 +567,6 @@ begin
   contrapose! hxy,
   obtain ⟨⟨ix, hix⟩, ⟨iy, hiy⟩⟩ := hxy,
   intro rid,
-  specialize rid (nx + ny),
   refine q.2.mul_mem_iff_mem_or_mem.not.mpr (not_or_distrib.mpr ⟨hix, hiy⟩) _,
   have eqx : nx = ix,
   { contrapose! hix,
@@ -588,24 +576,12 @@ begin
   { contrapose! hiy,
     convert submodule.zero_mem _,
     rw [proj_apply, decompose_of_mem_ne 𝒜 hny hiy, zero_pow hm, mk_zero], },
-  induction eqx, induction eqy,
-
-  have eqx2 : (⟨mk ((proj 𝒜 nx) x ^ m) ⟨_, ⟨_, rfl⟩⟩, ⟨nx, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) =
-  ⟨mk (x^m) ⟨f^nx, ⟨_, rfl⟩⟩, ⟨nx, ⟨_, by exact pow_mem_graded m hnx⟩, rfl⟩⟩,
-  { rwa [subtype.ext_iff, subtype.coe_mk, subtype.coe_mk, proj_apply, decompose_of_mem_same], },
-  have eqy2 : (⟨mk ((proj 𝒜 ny) y ^ m) ⟨_, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) =
-    ⟨mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, by exact pow_mem_graded _ hny⟩, rfl⟩⟩,
-  { rwa [subtype.ext_iff, subtype.coe_mk, subtype.coe_mk, proj_apply, decompose_of_mem_same], },
-
-  rw [eqx2, eqy2],
+  induction eqx,
+  induction eqy,
+  simp only [proj_apply, decompose_of_mem_same 𝒜 hnx, decompose_of_mem_same 𝒜 hny],
   change (⟨mk _ _ * mk _ _, _⟩ : A⁰_ f_deg) ∈ q.1,
   simp only [mk_mul, ←mul_pow],
-  rw show (⟨mk ((proj 𝒜 (nx+ny)) (x*y)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨_, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) =
-    ⟨mk ((x*y)^m) ⟨f^(nx+ny), ⟨_, rfl⟩⟩, ⟨_, ⟨_, pow_mem_graded _ (mul_mem hnx hny)⟩, rfl⟩⟩,
-  { rw [subtype.ext_iff, subtype.coe_mk, subtype.coe_mk, proj_apply,
-      coe_decompose_mul_add_of_left_mem 𝒜, decompose_of_mem_same];
-    assumption } at rid,
-  simpa only [pow_add] using rid,
+  simpa only [proj_apply, decompose_of_mem_same 𝒜 (mul_mem hnx hny), pow_add] using rid (nx + ny),
 end
 
 variable (f_deg)

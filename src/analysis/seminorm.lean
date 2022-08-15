@@ -297,7 +297,7 @@ variables [group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
     end,
     inv' := λ x, by rw p.inv }⟩
 
-@[to_additive]
+@[to_additive add_group_seminorm.is_scalar_tower]
 instance [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ] [has_smul R R']
   [is_scalar_tower R R' ℝ] : is_scalar_tower R R' (group_seminorm E) :=
 ⟨λ r a p, ext $ λ x, smul_assoc r a $ p x⟩

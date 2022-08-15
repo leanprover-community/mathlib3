@@ -322,7 +322,7 @@ instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
   uniq :=
   begin
     intro f,
-    have f_mon : monotone f,
+    have fmon : monotone f,
     { intros a b hab,
       have : f b - f a ≥ 0,
       { calc
@@ -332,7 +332,7 @@ instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
             ...     ≥ 0                         : sq_nonneg _, },
       linarith, },
     haveI : subsingleton (ℝ →+*o ℝ):= order_ring_hom.subsingleton,
-    exact congr_arg order_ring_hom.to_ring_hom (subsingleton.elim ⟨f, f_mon⟩ ⟨_, monotone_id⟩),
+    exact congr_arg order_ring_hom.to_ring_hom (subsingleton.elim ⟨f, fmon⟩ ⟨default, monotone_id⟩),
   end }
 
 end real

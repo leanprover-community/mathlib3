@@ -261,10 +261,7 @@ lemma zmod_char_apply {n : ℕ+} {ζ : C} (hζ : ζ ^ ↑n = 1) (a : zmod n) :
   zmod_char n hζ a = ζ ^ a.val := rfl
 
 lemma zmod_char_apply' {n : ℕ+} {ζ : C} (hζ : ζ ^ ↑n = 1) (a : ℕ) : zmod_char n hζ a = ζ ^ a :=
-begin
-  nth_rewrite 1 ← nat.div_add_mod a n,
-  rw [zmod_char_apply, zmod.val_nat_cast a, pow_add, pow_mul, hζ, one_pow, one_mul],
-end
+by rw [pow_eq_pow_mod a hζ, zmod_char_apply, zmod.val_nat_cast a]
 
 end zmod_char_def
 

@@ -318,7 +318,7 @@ by simp only [walk.support_append, list.subset_append_left]
 lemma subset_support_append_right {V : Type u} {G : simple_graph V} {u v w : V}
   (p : G.walk u v) (q : G.walk v w) :
   q.support ⊆ (p.append q).support :=
-by { intro h, simp only [mem_support_append_iff, or_true, implies_true_iff] {contextual := tt}}
+by { intro h, simp only [mem_support_append_iff, or_true, implies_true_iff] { contextual := tt }}
 
 lemma coe_support {u v : V} (p : G.walk u v) :
   (p.support : multiset V) = {u} + p.support.tail :=

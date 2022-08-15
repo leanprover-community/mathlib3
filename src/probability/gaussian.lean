@@ -687,9 +687,10 @@ begin
     simp,
     simp_rw [simplify_right_for_change_of_vr hs],
    },
-  rw h_integ_eq_form2,
 
+  rw h_integ_eq_form2,
   sorry
+
 --(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)
 end
 

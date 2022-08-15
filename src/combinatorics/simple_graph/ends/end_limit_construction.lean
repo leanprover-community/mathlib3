@@ -136,8 +136,7 @@ begin
     rintro i j h x,
     let jempty := all_empty  G Gpc j,
     rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
-    exfalso,
-    exact is_empty_iff.mp jempty x, },
+    exact jempty.elim x, },
   { haveI : infinite V := infinite.of_not_finite hfin,
     exact @inverse_system.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc), },
 end

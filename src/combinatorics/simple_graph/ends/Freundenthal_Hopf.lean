@@ -104,7 +104,7 @@ begin
   intros many_ends finite_ends,
 
   -- Boring boilerplate
-  have Vinf : (@set.univ V).infinite := sorry, -- from the assumption that at least three ends
+  --have Vinf : (@set.univ V).infinite := sorry, -- from the assumption that at least three ends
   haveI : fintype (ComplInfComp G Gpc).sections := finite.fintype finite_ends,
   haveI : Π (j : finset V), fintype ((ComplInfComp G Gpc).obj j) := ComplInfComp_fintype G Gpc,
   have surj : inverse_system.is_surjective (ComplInfComp G Gpc) := ComplInfComp.surjective G Gpc,

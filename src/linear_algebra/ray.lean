@@ -472,8 +472,8 @@ second, if and only if they are not linearly independent. -/
 lemma same_ray_or_same_ray_neg_iff_not_linear_independent {x y : M} :
   (same_ray R x y ∨ same_ray R x (-y)) ↔ ¬ linear_independent R ![x, y] :=
 begin
-  by_cases hx : x = 0, { simp [hx, λ h : _root_.linear_independent R ![0, y], h.ne_zero 0 rfl] },
-  by_cases hy : y = 0, { simp [hy, λ h : _root_.linear_independent R ![x, 0], h.ne_zero 1 rfl] },
+  by_cases hx : x = 0, { simp [hx, λ h : linear_independent R ![0, y], h.ne_zero 0 rfl] },
+  by_cases hy : y = 0, { simp [hy, λ h : linear_independent R ![x, 0], h.ne_zero 1 rfl] },
   simp_rw [fintype.not_linear_independent_iff, fin.sum_univ_two, fin.exists_fin_two],
   refine ⟨λ h, _, λ h, _⟩,
   { rcases h with (hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩)|(hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩),

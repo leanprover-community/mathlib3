@@ -927,7 +927,7 @@ end seminorm
 /-! ### The norm as a seminorm -/
 
 section norm_seminorm
-variables (𝕜) (E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
+variables (𝕜) (E) [normed_field 𝕜] [seminormed_add_comm_group E] [normed_space 𝕜 E] {r : ℝ}
 
 /-- The norm of a seminormed group as an add_monoid seminorm. -/
 def norm_add_group_seminorm : add_group_seminorm E :=

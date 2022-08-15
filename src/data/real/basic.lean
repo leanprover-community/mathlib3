@@ -309,7 +309,13 @@ noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
-open rat
+/-- Show an underlying cauchy sequence for real numbers.
+
+The representative chosen is the one passed in the VM to `quot.mk`, so two cauchy sequences
+converging to the same number may be printed differently.
+-/
+meta instance : has_repr ℝ :=
+{ repr := λ r, "real.of_cauchy " ++ repr r.cauchy }
 
 theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=

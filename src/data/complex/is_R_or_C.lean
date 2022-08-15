@@ -47,7 +47,7 @@ open_locale complex_conjugate
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
 class is_R_or_C (K : Type*)
-  extends nondiscrete_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
+  extends densely_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (I : K)                 -- Meant to be set to 0 for K=ℝ
@@ -70,7 +70,7 @@ end
 
 mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
 
-variables {K : Type*} [is_R_or_C K]
+variables {K E : Type*} [is_R_or_C K]
 
 namespace is_R_or_C
 
@@ -82,6 +82,13 @@ See Note [coercion into rings], or `data/nat/cast.lean` for more details. -/
 
 lemma of_real_alg (x : ℝ) : (x : K) = x • (1 : K) :=
 algebra.algebra_map_eq_smul_one x
+
+lemma real_smul_eq_coe_mul (r : ℝ) (z : K) : r • z = (r : K) * z :=
+by rw [is_R_or_C.of_real_alg, ←smul_eq_mul, smul_assoc, smul_eq_mul, one_mul]
+
+lemma real_smul_eq_coe_smul [add_comm_group E] [module K E] [module ℝ E] [is_scalar_tower ℝ K E]
+  (r : ℝ) (x : E) : r • x = (r : K) • x :=
+by rw [is_R_or_C.of_real_alg, smul_one_smul]
 
 lemma algebra_map_eq_of_real : ⇑(algebra_map ℝ K) = coe := rfl
 
@@ -699,9 +706,9 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-variables (K) (E : Type*) [normed_group E] [normed_space K E]
+variables (K E) [normed_add_comm_group E] [normed_space K E]
 
-/-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
+/-- A finite dimensional vector space over an `is_R_or_C` is a proper metric space.
 
 This is not an instance because it would cause a search for `finite_dimensional ?x E` before
 `is_R_or_C ?x`. -/
@@ -745,7 +752,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero],
-  .. real.nondiscrete_normed_field, .. real.metric_space }
+  .. real.densely_normed_field, .. real.metric_space }
 
 end instances
 

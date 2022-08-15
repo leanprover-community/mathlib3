@@ -269,7 +269,7 @@ open_locale big_operators
 lemma mul_eq_sum_support_ghas_mul
   [Π (i : ι) (x : A i), decidable (x ≠ 0)] (a a' : ⨁ i, A i) :
   a * a' =
-    ∑ (ij : ι × ι) in (dfinsupp.support a).product (dfinsupp.support a'),
+    ∑ ij in dfinsupp.support a ×ˢ dfinsupp.support a',
       direct_sum.of _ _ (graded_monoid.ghas_mul.mul (a ij.fst) (a' ij.snd)) :=
 begin
   change direct_sum.mul_hom _ a a' = _,

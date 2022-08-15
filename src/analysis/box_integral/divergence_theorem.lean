@@ -43,7 +43,7 @@ open continuous_linear_map (lsmul) filter set finset metric
 noncomputable theory
 
 universes u
-variables {E : Type u} [normed_group E] [normed_space ℝ E] {n : ℕ}
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] {n : ℕ}
 
 namespace box_integral
 

@@ -1622,36 +1622,35 @@ end nat
 
 section piecewise_const
 
-#exit
-variables [preorder ι] {𝒢 : filtration ι m} {τ η : Ω → with_top ι} {i j : ι} {s : set Ω}
+variables [preorder ι] {ℱ : filtration ι m} {τ π : Ω → with_top ι} {i j : ι} {s : set Ω}
   [decidable_pred (∈ s)]
 
 /-- Given stopping times `τ` and `η` which are bounded below, `set.piecewise s τ η` is also
 a stopping time with respect to the same filtration. -/
-lemma is_stopping_time.piecewise_of_le (hτ_st : is_stopping_time 𝒢 τ)
-  (hη_st : is_stopping_time 𝒢 η) (hτ : ∀ ω, ↑i ≤ τ ω) (hη : ∀ x, ↑i ≤ η x)
-  (hs : measurable_set[𝒢 i] s) :
-  is_stopping_time 𝒢 (s.piecewise τ η) :=
+lemma is_stopping_time.piecewise_of_le (hτ_st : is_stopping_time ℱ τ)
+  (hπ_st : is_stopping_time ℱ π) (hτ : ∀ ω, ↑i ≤ τ ω) (hπ : ∀ x, ↑i ≤ π x)
+  (hs : measurable_set[ℱ i] s) :
+  is_stopping_time ℱ (s.piecewise τ π) :=
 begin
   intro n,
-  have : {x | s.piecewise τ η x ≤ n}
-    = (s ∩ {ω | τ ω ≤ n}) ∪ (sᶜ ∩ {x | η x ≤ n}),
+  have : {x | s.piecewise τ π x ≤ n}
+    = (s ∩ {ω | τ ω ≤ n}) ∪ (sᶜ ∩ {x | π x ≤ n}),
   { ext1 ω,
     simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
     by_cases hx : ω ∈ s; simp [hx], },
   rw this,
   by_cases hin : i ≤ n,
-  { have hs_n : measurable_set[𝒢 n] s, from 𝒢.mono hin _ hs,
-    exact (hs_n.inter (hτ_st n)).union (hs_n.compl.inter (hη_st n)), },
-  { have hτn : ∀ ω, ¬ τ ω ≤ n := λ ω hτn, hin ((hτ ω).trans hτn),
-    have hηn : ∀ ω, ¬ η ω ≤ n := λ ω hηn, hin ((hη ω).trans hηn),
-    simp [hτn, hηn], },
+  { have hs_n : measurable_set[ℱ n] s, from ℱ.mono hin _ hs,
+    exact (hs_n.inter (hτ_st n)).union (hs_n.compl.inter (hπ_st n)), },
+  { have hτn : ∀ ω, ¬ τ ω ≤ n := λ ω hτn, hin (with_top.coe_le_coe.1 $ (hτ ω).trans hτn),
+    have hπn : ∀ ω, ¬ π ω ≤ n := λ ω hπn, hin (with_top.coe_le_coe.1 $ (hπ ω).trans hπn),
+    simp [hτn, hπn], },
 end
 
-lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
-  is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
-(is_stopping_time_const 𝒢 i).piecewise_of_le (is_stopping_time_const 𝒢 j)
-  (λ x, le_rfl) (λ _, hij) hs
+lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[ℱ i] s) :
+  is_stopping_time ℱ (s.piecewise (λ _, i) (λ _, j)) :=
+(is_stopping_time_const ℱ i).piecewise_of_le (is_stopping_time_const ℱ j)
+  (λ x, le_rfl) (λ _, with_top.coe_le_coe.2 hij) hs
 
 lemma stopped_value_piecewise_const {ι' : Type*} {i j : ι'} {f : ι' → Ω → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.piecewise (f i) (f j) :=

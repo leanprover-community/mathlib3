@@ -65,43 +65,27 @@ def add_char : Type (max u v) := (multiplicative R) →* R'
 
 end add_char_def
 
+namespace add_char
+
 section coe_to_fun
 
 variables {R : Type u} [add_monoid R] {R' : Type v} [comm_monoid R']
 
 /-- Interpret an additive character as a monoid homomorphism. -/
-def add_char.to_monoid_hom : (add_char R R') → (multiplicative R →* R') := id
+def to_monoid_hom : (add_char R R') → (multiplicative R →* R') := id
 
 open multiplicative
 
 /-- Define coercion to a function so that it includes the move from `R` to `multiplicative R`.
 After we have proved the API lemmas below, we don't need to worry about writing `of_add a`
 when we want to apply an additive character. -/
-instance add_char.has_coe_to_fun : has_coe_to_fun (add_char R R') (λ x, R → R') :=
+instance has_coe_to_fun : has_coe_to_fun (add_char R R') (λ x, R → R') :=
 { coe := λ ψ x, ψ.to_monoid_hom (of_add x) }
 
 lemma coe_to_fun_apply (ψ : add_char R R') (a : R) : ψ a = ψ.to_monoid_hom (of_add a) := rfl
 
-instance add_char.monoid_hom_class : monoid_hom_class (add_char R R') (multiplicative R) R' :=
+instance monoid_hom_class : monoid_hom_class (add_char R R') (multiplicative R) R' :=
 monoid_hom.monoid_hom_class
-
-end coe_to_fun
-
-section group_structure
-
-namespace add_char
-
-open multiplicative
-
-variables {R : Type u} [add_comm_group R] {R' : Type v} [comm_monoid R']
-
-/-- An additive character on a commutative additive group has an inverse.
-
-Note that this is a different inverse to the one provided by `monoid_hom.has_inv`,
-as it acts on the domain instead of the codomain. -/
-instance has_inv : has_inv (add_char R R') := ⟨λ ψ, ψ.comp inv_monoid_hom⟩
-
-lemma inv_apply (ψ : add_char R R') (x : R) : ψ⁻¹ x = ψ (-x) := rfl
 
 /-- An additive character maps `0` to `1`. -/
 @[simp]
@@ -118,6 +102,22 @@ by rw [coe_to_fun_apply, coe_to_fun_apply _ x, coe_to_fun_apply _ y, of_add_add,
 lemma map_nsmul_pow (ψ : add_char R R') (n : ℕ) (x : R) : ψ (n • x) = (ψ x) ^ n :=
 by rw [coe_to_fun_apply, coe_to_fun_apply _ x, of_add_nsmul, map_pow]
 
+end coe_to_fun
+
+section group_structure
+
+open multiplicative
+
+variables {R : Type u} [add_comm_group R] {R' : Type v} [comm_monoid R']
+
+/-- An additive character on a commutative additive group has an inverse.
+
+Note that this is a different inverse to the one provided by `monoid_hom.has_inv`,
+as it acts on the domain instead of the codomain. -/
+instance has_inv : has_inv (add_char R R') := ⟨λ ψ, ψ.comp inv_monoid_hom⟩
+
+lemma inv_apply (ψ : add_char R R') (x : R) : ψ⁻¹ x = ψ (-x) := rfl
+
 /-- An additive character maps multiples by integers to powers. -/
 @[simp]
 lemma map_zsmul_zpow {R' : Type v} [comm_group R'] (ψ : add_char R R') (n : ℤ) (x : R) :
@@ -132,13 +132,9 @@ instance comm_group : comm_group (add_char R R') :=
                      add_left_neg, map_zero_one], },
   ..monoid_hom.comm_monoid }
 
-end add_char
-
 end group_structure
 
 section additive
-
-namespace add_char
 
 -- The domain and target of our additive characters. Now we restrict to rings on both sides.
 variables {R : Type u} [comm_ring R] {R' : Type v} [comm_ring R']
@@ -415,6 +411,6 @@ begin
     exact sum_eq_zero_of_is_nontrivial (hψ b h), },
 end
 
-end add_char
-
 end additive
+
+end add_char

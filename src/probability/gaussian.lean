@@ -35,6 +35,7 @@ import analysis.special_functions.integrals
 #check measurable_set.univ
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
 #check real.coe_to_nnreal
+#check set.inter_comm
 
 
 ---#check probability_theory.moment,
@@ -1147,6 +1148,7 @@ begin
   rw sqrt_cal_for_last_part hs,
 end
 
+
 lemma union_comm (S : set ℝ) : {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} ∩ S
  = S ∩ {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} :=
 begin
@@ -1175,6 +1177,7 @@ begin
   simp [funcpos_anywhere hs],
 end
 
+
 lemma t_eq_setuniv (hs : s≠0) : (set.univ : set ℝ) =
 {x : ℝ | 0 < ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))}:=
 begin
@@ -1188,6 +1191,8 @@ end
 lemma absolutely_continuous_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ ≪ volume :=
 begin
+
+
   unfold measure.absolutely_continuous,
   unfold real_gaussian at hμ,
   intros S hPs,
@@ -1206,6 +1211,7 @@ begin
         simp,
       },
     simp [hPs, h_inter_smaller_measure],
+
   },
   {measurability},
 end

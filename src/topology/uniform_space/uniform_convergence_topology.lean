@@ -428,8 +428,7 @@ begin
     (equiv.arrow_prod_equiv_prod_arrow _ _ _)) _ = _,
   rw ← uniformity_comap rfl,
   congr,
-  rw [prod.uniform_space, uniform_space.of_core_eq_to_core, prod.uniform_space,
-      uniform_space.of_core_eq_to_core, uniform_space.comap_inf, uniform_convergence.inf_eq],
+  rw [prod.uniform_space, prod.uniform_space, uniform_space.comap_inf, uniform_convergence.inf_eq],
   congr;
   rw [← uniform_space.comap_comap, uniform_convergence.comap_eq];
   refl -- the relevant diagram commutes by definition
@@ -737,8 +736,8 @@ begin
     (equiv.arrow_prod_equiv_prod_arrow _ _ _)) _ = _,
   rw ← uniformity_comap rfl,
   congr,
-  rw [prod.uniform_space, uniform_space.of_core_eq_to_core, prod.uniform_space,
-      uniform_space.of_core_eq_to_core, uniform_space.comap_inf, uniform_convergence_on.inf_eq],
+  rw [prod.uniform_space, prod.uniform_space, uniform_space.comap_inf,
+      uniform_convergence_on.inf_eq],
   congr;
   rw [← uniform_space.comap_comap, uniform_convergence_on.comap_eq];
   refl -- the relevant diagram commutes by definition

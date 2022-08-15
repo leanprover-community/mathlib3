@@ -98,9 +98,9 @@ begin
 end
 
 
-instance ComplComp_nonempty (Vinf : set.infinite (@set.univ V)) :  ∀ (j : (finset V)), nonempty ((ComplComp G Gpc).obj j) := by {
+instance ComplComp_nonempty [infinite V] :  ∀ (j : (finset V)), nonempty ((ComplComp G Gpc).obj j) := by {
   intro K,
-  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K Vinf,
+  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K,
   use [C,Ccomp],
 }
 
@@ -108,10 +108,10 @@ instance ComplComp_fintype : Π (j : (finset V)), fintype ((ComplComp G Gpc).obj
 { intro K,
   exact (ro_component.finite G Gpc K).fintype,}
 
-instance ComplInfComp_nonempty (Vinf : set.infinite (@set.univ V)) :
+instance ComplInfComp_nonempty [infinite V] :
   Π (j : (finset V)), nonempty ((ComplInfComp G Gpc).obj j) := by
 { intro K,
-  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K Vinf,
+  obtain ⟨C,Ccomp,Cinf⟩ := ro_component.infinite_graph_to_inf_components_nonempty G Gpc K,
   use [C,Ccomp],}
 
 instance ComplInfComp_fintype : Π (j : (finset V)), fintype ((ComplInfComp G Gpc).obj j) := by
@@ -122,7 +122,7 @@ instance ComplInfComp_fintype : Π (j : (finset V)), fintype ((ComplInfComp G Gp
 
 
 
-lemma all_empty (Vfin : set.finite (@set.univ V)) : ∀ (K : finset V), is_empty ((ComplInfComp G Gpc).obj K) :=
+lemma all_empty [finite V] : ∀ (K : finset V), is_empty ((ComplInfComp G Gpc).obj K) :=
 begin
   sorry,
 end
@@ -131,13 +131,15 @@ lemma ComplInfComp.surjective : inverse_system.is_surjective (ComplInfComp G Gpc
 begin
   dsimp [Endsinfty],
   rw ComplInfComp_eq_ComplComp_to_surjective,
-  by_cases hfin : (set.finite (@set.univ V)),
-  { rintro i j h x,
-    let jempty := all_empty G Gpc hfin j,
+  by_cases hfin : finite V,
+  { haveI := hfin,
+    rintro i j h x,
+    let jempty := all_empty  G Gpc j,
     rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
     exfalso,
     exact is_empty_iff.mp jempty x, },
-  { exact @inverse_system.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc hfin), },
+  { haveI : infinite V := infinite.of_not_finite hfin,
+    exact @inverse_system.to_surjective.is_surjective _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc), },
 end
 
 lemma Endsinfty_surjective : Π (j : (finset V)), function.surjective (λ e : Endsinfty G Gpc, e.val j) :=
@@ -151,15 +153,14 @@ begin
 end
 
 lemma Endsinfty_eventually_constant
-  --[allnempty : Π (j : (finset V)), nonempty ((ComplComp G Gpc).obj j)] -- Could do without this assumption
   (K : finset V)
   (top : Π (L : finset V) (KL : L ≤ K), (ComplInfComp G Gpc).obj L ≃ (ComplInfComp G Gpc).obj K) :
   Endsinfty G Gpc ≃ (ComplInfComp G Gpc).obj K :=
 begin
 
-  by_cases Vinf : set.infinite (@set.univ V),
-  {
-    haveI :  Π (j : (finset V)), nonempty ((ComplComp G Gpc).obj j), from ComplComp_nonempty G Gpc Vinf,
+  by_cases hfin : finite V, rotate,
+  { haveI : infinite V := infinite.of_not_finite hfin,
+    haveI :  Π (j : (finset V)), nonempty ((ComplComp G Gpc).obj j), from ComplComp_nonempty G Gpc,
     apply equiv.of_bijective _ (inverse_system.sections_bijective (ComplInfComp G Gpc) K _),
     rintros ⟨L,KL⟩,
     have sur : function.surjective ((ComplInfComp G Gpc).map (hom_of_le KL)), by {
@@ -171,8 +172,8 @@ begin
     { exact sur },
     { exact (fintype.injective_iff_surjective_of_equiv (top L KL)).mpr sur },},
   { -- degenerate case: If V is finite, then everything is empty,
-    have :  Π (j : (finset V)), is_empty ((ComplInfComp G Gpc).obj j),
-    from all_empty G Gpc (set.not_infinite.mp Vinf),
+    haveI := hfin,
+    have :  Π (j : (finset V)), is_empty ((ComplInfComp G Gpc).obj j), from all_empty G Gpc,
     apply equiv.of_bijective,
     apply inverse_system.sections_bijective (ComplInfComp G Gpc),
     rintro ⟨L,KL⟩,

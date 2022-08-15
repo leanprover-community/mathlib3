@@ -29,11 +29,9 @@ namespace simple_graph
 variables  {V : Type u}
            (G : simple_graph V)
            (Gpc: G.preconnected)
-           [locally_finite G]
            {V' : Type v}
            (G' : simple_graph V')
-           [locally_finite G']
-
+           (Gpc': G'.preconnected)
            {V'' : Type w}
            (G'' : simple_graph V'')
 
@@ -63,8 +61,8 @@ end finite
 
 section infinite
 
-lemma end_of_infinite_graph (Vinf : set.infinite  (@set.univ V)) : (Ends G Gpc).nonempty :=
-  @inverse_system.nonempty_sections_of_fintype_inverse_system' _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc Vinf)
+lemma end_of_infinite_graph [infinite V] [locally_finite G] : (Ends G Gpc).nonempty :=
+  @inverse_system.nonempty_sections_of_fintype_inverse_system' _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc)
 
 end infinite
 
@@ -157,7 +155,6 @@ section product
 
 private lemma finprod_compl_subconnected
   [locally_finite G] [locally_finite G']
-  (Gpc :G.preconnected) (Gpc' : G'.preconnected)
   [infinite V] [infinite V']
   (K : finset V) (K' : finset V') :
   subconnected (G □ G') ((finset.product K K' : set (V × V') )ᶜ) :=
@@ -241,7 +238,6 @@ instance [locally_finite G] [locally_finite G'] : locally_finite (G □ G') := b
 
 lemma ends_product
   [locally_finite G] [locally_finite G']
-  (Gpc :G.preconnected) (Gpc' : G'.preconnected)
   [infinite V] [infinite V'] :
   Ends  (G □ G') (simple_graph.preconnected.box_prod Gpc Gpc') ≃ unit :=
 begin
@@ -276,7 +272,7 @@ begin
   have Ddis : disjoint D K, from disjoint_compl_left_iff.mpr (‹K⊆L›),
   have Dinf : D.infinite, by {apply set.infinite_of_finite_compl,exact Dcof, },
   have Dconn : subconnected GG D,
-    from finprod_compl_subconnected G G' Gpc Gpc' _ _,
+    from finprod_compl_subconnected G G' _ _,
 
   use [D,Ddis,Dconn,Dinf,Dcof],
 end

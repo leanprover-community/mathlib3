@@ -505,12 +505,12 @@ begin
   sorry,
 end
 
-@[instance] lemma infinite_graph_to_inf_components_nonempty [locally_finite G] (Gpc : G.preconnected) (K : finset V)  (Vinfinite : (@set.univ V).infinite) :
+@[instance] lemma infinite_graph_to_inf_components_nonempty [Vinf : infinite V] [locally_finite G] (Gpc : G.preconnected) (K : finset V)   :
  nonempty (inf_ro_components G K) :=
 begin
   by_contradiction,
   rw [not_nonempty_iff, inf_ro_components] at h,
-  apply Vinfinite,
+  apply set.infinite_univ_iff.mpr Vinf,
   rw [← graph_eq_part_union_ro_comp G K],
   apply set.finite.union,
   { exact (↑K : set V).to_finite,}, -- from library_search
@@ -524,8 +524,7 @@ begin
       split, split, all_goals {assumption},
     }
   }
-  -- K is finite, hence its boundary too, and there can only be a finite number of ro_components
-  -- if all are finite, then their union is finite, so that V is finite too
+
 end
 
 instance inf_components_finite [locally_finite G] (Gpc : G.preconnected) (K : finset V) : fintype (inf_ro_components G K) :=

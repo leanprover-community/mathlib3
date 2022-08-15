@@ -37,10 +37,7 @@ def hamming_dist (x y : Π i, β i) : ℕ := (univ.filter (λ i, x i ≠ y i)).c
 
 /-- Corresponds to `dist_self`. -/
 @[simp] lemma hamming_dist_self (x : Π i, β i) : hamming_dist x x = 0 :=
-begin
-  rw [hamming_dist, card_eq_zero, filter_eq_empty_iff],
-  exact λ _ _ H, H rfl
-end
+by { rw [hamming_dist, card_eq_zero, filter_eq_empty_iff], exact λ _ _ H, H rfl }
 
 /-- Corresponds to `dist_nonneg`. -/
 lemma hamming_dist_nonneg {x y : Π i, β i} : 0 ≤ hamming_dist x y := zero_le _

@@ -542,7 +542,7 @@ begin
   refine λ e, is_open.mem_nhds _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
   have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_right,
-  convert units.is_open.preimage h_O using 1,
+  convert show is_open (O ⁻¹' {x | is_unit x}), from units.is_open.preimage h_O using 1,
   ext f',
   split,
   { rintros ⟨e', rfl⟩,

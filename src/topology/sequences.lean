@@ -57,8 +57,8 @@ filters and the topology.
 sequentially closed, sequentially compact, sequential space
 -/
 
-open set function filter bornology topological_space
-open_locale topological_space filter
+open set function filter topological_space
+open_locale topological_space
 
 variables {X Y : Type*}
 

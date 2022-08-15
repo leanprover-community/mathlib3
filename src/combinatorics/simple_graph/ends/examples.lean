@@ -237,7 +237,7 @@ begin
   exact set.union_subset (set.union_subset uD vD') wD',
 end
 
-instance [locally_finite G] [locally_finite G'] : locally_finite (G □ G') := by sorry,
+instance [locally_finite G] [locally_finite G'] : locally_finite (G □ G') := by sorry
 
 lemma ends_product
   [locally_finite G] [locally_finite G']

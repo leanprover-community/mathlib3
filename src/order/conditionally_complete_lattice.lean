@@ -557,7 +557,7 @@ by haveI := unique_prop hp; exact supr_unique
 @csupr_pos αᵒᵈ _ _ _ hp
 
 lemma csupr_set {s : set β} {f : β → α} : (⨆ x : s, f x) = Sup (f '' s) :=
-by rw [supr, (image_eq_range f s)]
+Sup_image'.symm
 
 lemma cinfi_set {s : set β} {f : β → α} : (⨅ x : s, f x) = Inf (f '' s) := @csupr_set αᵒᵈ _ _ _ _
 

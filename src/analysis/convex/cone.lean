@@ -737,7 +737,7 @@ begin
   exact is_closed_Ici.preimage (by continuity),
 end
 
-lemma pointed_of_nonempty_closed
+lemma pointed_of_nonempty_closed_convex_cone
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
 begin
   obtain ⟨x, hx⟩ := ne,

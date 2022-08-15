@@ -34,8 +34,8 @@ end convex_cone
 section definitions
 
 /-- A proper cone is a convex cone `K` that is nonempty and closed. -/
-structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E] :=
-(carrier    : convex_cone ℝ E)
+structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E]
+extends convex_cone ℝ E :=
 (nonempty'  : (carrier : set E).nonempty)
 (is_closed' : is_closed (carrier : set E))
 
@@ -47,8 +47,7 @@ variables {F : Type*} [inner_product_space ℝ F] [complete_space F]
 
 namespace proper_cone
 
-instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨proper_cone.carrier⟩
-
+instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
 instance : has_mem E (proper_cone E) := ⟨λ e K, e ∈ (K : convex_cone ℝ E)⟩
 
 @[simp] lemma coe_mem {x : E} {K : proper_cone E} : x ∈ K ↔ x ∈ (K : convex_cone ℝ E) := iff.rfl
@@ -58,38 +57,42 @@ lemma nonempty (K : proper_cone E) : (K : set E).nonempty := K.nonempty'
 lemma is_closed (K : proper_cone E) : is_closed (K : set E) := K.is_closed'
 
 lemma pointed (K : proper_cone E) : (K : convex_cone ℝ E).pointed :=
-pointed_of_nonempty_closed K.nonempty K.is_closed
+pointed_of_nonempty_closed_convex_cone K.nonempty K.is_closed
 
 @[ext] lemma ext {S T : proper_cone E} (h : (S : convex_cone ℝ E) = T) : S = T :=
 by cases S; cases T; congr'
 
 instance : has_star (proper_cone E) := ⟨ λ K,
-{ carrier    := (K : set E).inner_dual_cone,
-  nonempty'  := ⟨0, pointed_inner_dual_cone _⟩,
-  is_closed' := is_closed_inner_dual_cone _ } ⟩
-
-@[simp] lemma mem_star {K : proper_cone E} {y : E} : y ∈ star K ↔ ∀ x ∈ (K : set E), 0 ≤ ⟪ x, y ⟫_ℝ := sorry
-
+⟨ (K : set E).inner_dual_cone, ⟨0, pointed_inner_dual_cone _⟩, is_closed_inner_dual_cone _ ⟩ ⟩
 
 instance : has_involutive_star (proper_cone E) :=
 { star := has_star.star,
   star_involutive := λ K, proper_cone.ext $
     inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed }
 
+@[simp] lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone := rfl
+
+@[simp] lemma mem_star {K : proper_cone E} {y : E} : y ∈ star K ↔ ∀ x ∈ (K : set E), 0 ≤ ⟪x, y⟫_ℝ
+:= by { rw [coe_mem, coe_star], exact mem_inner_dual_cone _ _ }
+
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
 noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
-{ carrier := convex_cone.closure ((K : convex_cone ℝ E).map f),
-  nonempty' :=
+⟨ convex_cone.closure (convex_cone.map (f : E →ₗ[ℝ] F) ↑K),
   begin
     use 0,
     apply subset_closure,
     rw [set_like.mem_coe, convex_cone.mem_map],
     use ⟨0, K.pointed, map_zero _⟩
   end,
-  is_closed' := is_closed_closure }
+  is_closed_closure ⟩
 
-@[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
-  y ∈ K.map f ↔ ∃ x ∈ K, f x = y := sorry
+@[simp] lemma coe_map (f : E →L[ℝ] F) (K : proper_cone E) :
+  ↑(K.map f) = convex_cone.closure (convex_cone.map (f : E →ₗ[ℝ] F) ↑K) := rfl
+
+-- @[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
+  -- y ∈ K.map f ↔ ∃ x : ℕ → F, (∀ n : ℕ, f (x n) ∈ K) ∧ tendsto x at_top (nhds y)  :=
+sorry
+-- by { rw [coe_mem, coe_map], }
 
 /-- The preimage of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
 noncomputable def comap (f : E →L[ℝ] F) (K' : proper_cone F) : proper_cone E :=
@@ -109,7 +112,7 @@ noncomputable def comap (f : E →L[ℝ] F) (K' : proper_cone F) : proper_cone E
 
 end proper_cone
 
-theorem farkas_lemma (K : proper_cone E) (f : E →L[ℝ] F) (b : F) :
+theorem farkas_lemma {K : proper_cone E} {f : E →L[ℝ] F} {b : F} :
 b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin
   sorry,

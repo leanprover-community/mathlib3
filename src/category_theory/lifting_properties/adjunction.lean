@@ -11,7 +11,7 @@ import category_theory.adjunction.basic
 
 # Lifting properties and adjunction
 
-In this file, we obtain `has_lifting_property.iff_of_adjunction`, which states
+In this file, we obtain `adjunction.has_lifting_property_iff`, which states
 that when we have an adjunction `adj : G ⊣ F` between two functors `G : C ⥤ D`
 and `F : D ⥤ C`, then a morphism of the form `G.map i` has the left lifting
 property in `D` with respect to a morphism `p` if and only the morphism `i`
@@ -131,9 +131,9 @@ end
 
 end comm_sq
 
-namespace has_lifting_property
+namespace adjunction
 
-lemma iff_of_adjunction (adj : G ⊣ F) {A B : C} {X Y : D} (i : A ⟶ B) (p : X ⟶ Y) :
+lemma has_lifting_property_iff (adj : G ⊣ F) {A B : C} {X Y : D} (i : A ⟶ B) (p : X ⟶ Y) :
   has_lifting_property (G.map i) p ↔ has_lifting_property i (F.map p) :=
 begin
   split; introI; constructor; intros f g sq,
@@ -143,6 +143,6 @@ begin
     apply_instance, },
 end
 
-end has_lifting_property
+end adjunction
 
 end category_theory

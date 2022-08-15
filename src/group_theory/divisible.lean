@@ -64,7 +64,7 @@ TODO: Show that divisibility implies injectivity in the category of `AddCommGrou
 
 open_locale pointwise
 
-namespace add_monoid
+section add_monoid
 
 variables (A α : Type*) [add_monoid A] [has_smul α A] [has_zero α]
 
@@ -81,7 +81,7 @@ class divisible_by :=
 
 end add_monoid
 
-namespace monoid
+section monoid
 
 variables (A α : Type*) [monoid A] [has_pow A α] [has_zero α]
 
@@ -91,7 +91,7 @@ Here we adopt a constructive approach where we ask an explicit `root : A → α 
 * `root a 0 = 1` for all `a ∈ A`
 * `(root a n)ⁿ = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
 -/
-@[to_additive add_monoid.divisible_by]
+@[to_additive]
 class rootable_by :=
 (root : A → α → A)
 (root_zero : ∀ a, root a 0 = 1)
@@ -106,7 +106,7 @@ lemma pow_left_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
 A `monoid A` is `α`-rootable iff the `pow _ n` function is surjective, i.e. the constructive version
 implies the textbook approach.
 -/
-@[to_additive add_monoid.divisible_by_of_div_surj
+@[to_additive divisible_by_of_div_surj
 "An `add_monoid A` is `α`-divisible iff `n • _` is a surjective function, i.e. the constructive
 version implies the textbook approach."]
 noncomputable def rootable_by_of_pow_surj
@@ -121,7 +121,7 @@ section pi
 variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_pow (B i) β]
 variables [has_zero β] [Π (i : ι), monoid (B i)] [Π i, rootable_by (B i) β]
 
-@[to_additive add_monoid.divisible_by_pi]
+@[to_additive]
 instance rootable_by_pi : rootable_by (Π i, B i) β :=
 { root := λ x n i, rootable_by.root (x i) n,
   root_zero := λ x, funext $ λ i, rootable_by.root_zero _,
@@ -134,7 +134,7 @@ section prod
 variables {β B B' : Type*} [has_pow B β] [has_pow B' β]
 variables [has_zero β] [monoid B] [monoid B'] [rootable_by B β] [rootable_by B' β]
 
-@[to_additive add_monoid.divisible_by_prod]
+@[to_additive divisible_by_prod]
 instance rootable_by_prod : rootable_by (B × B') β :=
 { root := λ p n, (rootable_by.root p.1 n, rootable_by.root p.2 n),
   root_zero := λ p, prod.ext (rootable_by.root_zero _) (rootable_by.root_zero _),
@@ -145,8 +145,6 @@ end prod
 end monoid
 
 namespace add_comm_group
-
-open add_monoid
 
 variables (A : Type*) [add_comm_group A]
 
@@ -261,6 +259,5 @@ noncomputable def rootable_by_quotient [rootable_by A ℕ] : rootable_by (A ⧸ 
 rootable_by_of_surj _ quotient_group.mk_surjective $ λ _ _, rfl
 
 end quotient
-
 
 end comm_group

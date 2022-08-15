@@ -94,6 +94,10 @@ begin
   simp only [mem_univ, forall_true_left]
 end
 
+lemma eventually_prod_principal_iff {p : α × β → Prop} {s : set β} :
+  (∀ᶠ (x : α × β) in (f ×ᶠ (𝓟 s)), p x) ↔ ∀ᶠ (x : α) in f, ∀ (y : β), y ∈ s → p (x, y) :=
+by { rw [eventually_iff, eventually_iff, mem_prod_principal], simp only [mem_set_of_eq], }
+
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
 by erw [comap_inf, filter.comap_comap, filter.comap_comap]
@@ -166,6 +170,26 @@ begin
   apply (ht.and hs).mono (λ x hx, hst hx.1 hx.2),
 end
 
+lemma eventually.diag_of_prod_left {f : filter α} {g : filter γ}
+  {p : (α × α) × γ → Prop} :
+  (∀ᶠ x in (f ×ᶠ f ×ᶠ g), p x) →
+  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p ((x.1, x.1), x.2)) :=
+begin
+  intros h,
+  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
+  refine (ht.diag_of_prod.prod_mk hs).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
+end
+
+lemma eventually.diag_of_prod_right {f : filter α} {g : filter γ}
+  {p : α × γ × γ → Prop} :
+  (∀ᶠ x in (f ×ᶠ (g ×ᶠ g)), p x) →
+  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p (x.1, x.2, x.2)) :=
+begin
+  intros h,
+  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
+  refine (ht.prod_mk hs.diag_of_prod).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
+end
+
 lemma tendsto_diag : tendsto (λ i, (i, i)) f (f ×ᶠ f) :=
 tendsto_iff_eventually.mpr (λ _ hpr, hpr.diag_of_prod)
 
@@ -180,6 +204,14 @@ by { rw [filter.prod, comap_infi, inf_infi], simp only [filter.prod, eq_self_iff
 @[mono] lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   f₁ ×ᶠ g₁ ≤ f₂ ×ᶠ g₂ :=
 inf_le_inf (comap_mono hf) (comap_mono hg)
+
+lemma prod_mono_left (g : filter β) {f₁ f₂ : filter α} (hf : f₁ ≤ f₂) :
+  f₁ ×ᶠ g ≤ f₂ ×ᶠ g :=
+filter.prod_mono hf rfl.le
+
+lemma prod_mono_right (f : filter α) {g₁ g₂ : filter β} (hf : g₁ ≤ g₂) :
+  f ×ᶠ g₁ ≤ f ×ᶠ g₂ :=
+filter.prod_mono rfl.le hf
 
 lemma {u v w x} prod_comap_comap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :

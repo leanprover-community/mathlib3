@@ -59,12 +59,20 @@ begin
 end
 
 
+private lemma J_eq2' (g : ℤ[X]) (p : ℕ) (k : ℕ) :
+  (g.coeff k:ℝ) * (I (f_p p g.nat_degree) k) =
+   (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) 0)))
+  - (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) (k:ℝ))) :=
+begin
+  rw <-mul_sub, rw I, simp [deriv_n],
+end
+
 private lemma J_eq2 (g : ℤ[X]) (p : ℕ) :
   (∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p g.nat_degree) i)) =
    (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) 0)))
   -(∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) (k:ℝ))))) :=
 begin
-  rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw <-mul_sub, rw I, simp [deriv_n],
+  rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw J_eq2',
 end
 
 private lemma J_eq3 (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
@@ -100,9 +108,8 @@ theorem J_eq' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0)
                 (∑ k in finset.range g.nat_degree.succ,
                   (g.coeff k : ℝ) * (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) (k:ℝ))) :=
 begin
-  rw [J_eq1, J_eq2, J_eq3, finset.sum_comm], simp only [zero_sub, neg_inj],
+  rw [J_eq1, J_eq2, J_eq3 _ e_root_g, finset.sum_comm], simp only [zero_sub, neg_inj],
   apply congr_arg, ext, rw finset.mul_sum,
-  exact e_root_g,
 end
 
 lemma coe_J (g : ℤ[X]) (p : ℕ) :
@@ -124,7 +131,7 @@ theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0)
             (∑ k in finset.range g.nat_degree.succ,
               (g.coeff k) * (polynomial.eval (k:ℤ) (deriv_n (f_p p g.nat_degree) j)))) :=
 begin
-  rw J_eq', rw neg_eq_iff_neg_eq, rw neg_neg, rw <-coe_J, exact e_root_g,
+  rw J_eq' _ e_root_g, rw neg_eq_iff_neg_eq, rw neg_neg, rw <-coe_J,
 end
 
 lemma deriv_f_p_k_eq_zero_k_eq_0_when_j_lt_p_sub_one (p : ℕ) (n j : ℕ) (hj : j < p - 1):
@@ -882,23 +889,21 @@ begin
 end
 
 
-theorem coup_de_grace (M : ℝ) (hM : 0 ≤ M) (z : ℤ) : ∃ p : nat.primes, z < (p.val:ℤ) ∧ M^p.val < ((p.val-1).factorial:ℝ) :=
+theorem coup_de_grace (M : ℝ) (hM : 0 ≤ M) (z : ℤ) :
+  ∃ p : ℕ, nat.prime p ∧ z < (p:ℤ) ∧ M^p < ((p - 1).factorial:ℝ) :=
 begin
-  have grow_rate := fact_grows_fast M hM,
-  choose N hN using grow_rate,
-  have p_exists := nat.exists_infinite_primes (max (N+2) (z.nat_abs+1)),
-  choose p Hp using p_exists, use (⟨p, Hp.right⟩ : nat.primes), simp only [max_le_iff, gt_iff_lt] at Hp ⊢,
-  split,
-    have triv : z ≤ (z.nat_abs:ℤ), rw <-int.abs_eq_nat_abs, exact le_max_left z (-z),
-    have hp := Hp.left.right,
-    replace hp : (z.nat_abs + 1:ℤ) ≤ p, norm_cast, assumption,
-    have triv2 : (z.nat_abs : ℤ) < (z.nat_abs:ℤ) + 1, exact lt_add_one ↑(int.nat_abs z), exact gt_of_gt_of_ge hp triv,
-
-    have triv := hN (p-1) _,
-    have eq1 : (p - 1 + 1) = p, {apply nat.sub_add_cancel, exact le_of_lt Hp.right.one_lt,},
-    rw eq1 at triv, assumption,
-    have triv := Hp.left.left,
-    replace triv : N + 1 < p , exact triv, exact nat.lt_pred_iff.mpr triv,
+  obtain ⟨N, hN⟩ := fact_grows_fast M hM,
+  obtain ⟨p, Hp, pp⟩ := nat.exists_infinite_primes (max (N+2) (z.nat_abs+1)),
+  refine ⟨p, pp, _, _⟩,
+  { calc z ≤ z.nat_abs : int.le_nat_abs
+    ... < z.nat_abs + 1 : int.lt_succ _
+    ... ≤ ↑(max (N + 2) (z.nat_abs + 1)) : by exact_mod_cast le_max_right _ _
+    ... ≤ p : int.coe_nat_le.mpr Hp },
+  { convert hN (p - 1) _,
+    { exact (nat.sub_add_cancel pp.one_lt.le).symm },
+    { apply lt_tsub_of_add_lt_right ,
+      rw ←nat.succ_le_iff,
+      exact le_trans (le_max_left _ _) Hp } }
 end
 
 lemma polynomial.exists_coeff_ne_zero {R : Type*} [semiring R] {p : R[X]} (hp : p ≠ 0) :
@@ -1037,16 +1042,16 @@ begin
   obtain ⟨g', g'_nonzero, e_root_g'⟩ := e_algebraic,
   generalize g_def : make_const_term_nonzero g' g'_nonzero = g,
   have coeff_zero_nonzero : (g.coeff 0) ≠ 0,
-    rw <-g_def, apply coeff_zero_after_change,
+  { rw <-g_def, apply coeff_zero_after_change },
   have e_root_g : (@polynomial.aeval ℤ ℝ _ _ _ e) g = 0,
-    rw <-g_def,
-    apply non_zero_root_same, rw e, exact (1:ℝ).exp_ne_zero, exact e_root_g',
-  obtain ⟨p, Hp⟩ := coup_de_grace (M g) (M_nonneg g) (max g.nat_degree (abs (g.coeff 0))),
-  apply lt_irrefl (M g ^ p.val),
-  simp only [gt_iff_lt, max_lt_iff, int.coe_nat_lt, int.abs_eq_nat_abs] at Hp,
-  calc M g ^ p.val < ((p.val - 1).factorial : ℝ) : Hp.2
-  ... ≤ |J g p.val| : abs_J_lower_bound g e_root_g coeff_zero_nonzero p.val p.property Hp.1
-  ... ≤ M g ^ p.val : abs_J_upper_bound g p.val p.property,
+  { rw <-g_def,
+    exact non_zero_root_same _ _ _  (1:ℝ).exp_ne_zero e_root_g' },
+  obtain ⟨p, pp, Hp1, Hp2⟩ := coup_de_grace (M g) (M_nonneg g) (max g.nat_degree (abs (g.coeff 0))),
+  apply lt_irrefl (M g ^ p),
+  simp only [gt_iff_lt, max_lt_iff, int.coe_nat_lt, int.abs_eq_nat_abs] at Hp1,
+  calc M g ^ p < ((p - 1).factorial : ℝ) : Hp2
+  ... ≤ |J g p| : abs_J_lower_bound g e_root_g coeff_zero_nonzero p pp Hp1
+  ... ≤ M g ^ p : abs_J_upper_bound g p pp,
 end
 
 theorem e_pow_transcendental (n : ℕ) (hn : 1 ≤ n) : transcendental ℤ (e^n) :=

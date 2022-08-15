@@ -1535,6 +1535,18 @@ have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
 by simp_rw [← this hd, ← this hd.symm,
   add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
 
+lemma prod_dvd_prod_of_subset_of_dvd [add_comm_monoid M] [comm_monoid N]
+  {f1 f2 : α →₀ M} {g1 g2 : α → M → N} (h1 : f1.support ⊆ f2.support)
+  (h2 : ∀ (a : α), a ∈ f1.support → g1 a (f1 a) ∣ g2 a (f2 a)) :
+  f1.prod g1 ∣ f2.prod g2 :=
+begin
+  simp only [finsupp.prod, finsupp.prod_mul],
+  rw [←sdiff_union_of_subset h1, prod_union sdiff_disjoint],
+  apply dvd_mul_of_dvd_right,
+  apply prod_dvd_prod_of_dvd,
+  exact h2,
+end
+
 section map_range
 
 section equiv
@@ -2752,14 +2764,10 @@ section
 variables [has_zero R]
 
 /-- The `finsupp` version of `pi.unique`. -/
-instance unique_of_right [subsingleton R] : unique (α →₀ R) :=
-{ uniq := λ l, ext $ λ i, subsingleton.elim _ _,
-  .. finsupp.inhabited }
+instance unique_of_right [subsingleton R] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 /-- The `finsupp` version of `pi.unique_of_is_empty`. -/
-instance unique_of_left [is_empty α] : unique (α →₀ R) :=
-{ uniq := λ l, ext is_empty_elim,
-  .. finsupp.inhabited }
+instance unique_of_left [is_empty α] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 end
 

@@ -461,19 +461,10 @@ begin-/
 
 
 
-lemma simple_thing (x:ℝ) (hx : x≥0): x = ((ennreal.of_real x).to_nnreal):=
+lemma simple_thing (x:ℝ) (hx : 0 ≤ x): x = ((ennreal.of_real x).to_nnreal):=
 begin
   unfold ennreal.of_real,
-  simp,
-  by_cases (x=0),
-  rw h,
-  simp,
-  have hx2 : x>0,
-    exact (ne.symm h).lt_of_le hx,
-  have h : max x 0 = x,
-    {simp,
-    exact hx},
-  exact eq.symm h,
+  simp [hx],
 end
 
 lemma not_that_simple_thing (hs : s ≠ 0): ∀ (x:ℝ),
@@ -1266,3 +1257,5 @@ def gaussian (ν : measure E') : Prop :=
 end tvs
 
 end measure_theory
+
+#lint

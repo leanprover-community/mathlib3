@@ -1756,7 +1756,7 @@ lemma on_mul_equiv [fintype n] [fintype o] [add_comm_monoid α] [has_mul α] {p 
   (M.on e₁ e₂) ⬝ (N.on e₂ e₃) = (M ⬝ N).on e₁ e₃ :=
 (on_mul M N e₁ e₂ e₃ e₂.bijective).symm
 
-lemma on_mul_one [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
+lemma mul_on_one [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
   (e₂ : l → o) (M : matrix m n α) :
   M ⬝ (1 : matrix o o α).on e₁ e₂ = M.on id (e₁.symm ∘ e₂) :=
 begin

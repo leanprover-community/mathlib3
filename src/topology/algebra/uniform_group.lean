@@ -350,14 +350,14 @@ variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
 /-- The right uniformity on a topological group (as opposed to the left uniformity).
 
-Warning: in general the right and left uniformities do not coincide and so one does not obtain
+Warning: in general the right and left uniformities do not coincide and so one does not obtain a
 `uniform_group` structure. Two important special cases where they _do_ coincide are for
 commutative groups (see `topological_comm_group_is_uniform`) and for compact Hausdorff groups (see
 `topological_group_is_uniform_of_compact_space`). -/
 @[to_additive "The right uniformity on a topological additive group (as opposed to the left
 uniformity).
 
-Warning: in general the right and left uniformities do not coincide and so one does not obtain
+Warning: in general the right and left uniformities do not coincide and so one does not obtain a
 `uniform_add_group` structure. Two important special cases where they _do_ coincide are for
 commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact Hausdorff
 additive groups (see `topological_add_comm_group_is_uniform_of_compact_space`)."]

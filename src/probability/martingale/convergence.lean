@@ -21,8 +21,8 @@ an L¹ bounded submartingale.
 * `measure_theory.submartingale.ae_tendsto_limit_process`: the almost everywhere martingale
   convergence theorem: an L¹-bounded submartingale adapted to the filtration `ℱ` converges almost
   everywhere to its limit process.
-* `measure_theory.submartingale.mem_ℒ1_limit_process`: the limit process of an L¹-bounded
-  submartingale is integrable.
+* `measure_theory.submartingale.mem_ℒp_limit_process`: the limit process of an Lᵖ-bounded
+  submartingale is Lᵖ.
 
 -/
 
@@ -55,7 +55,7 @@ we have $(f_n(\omega))$ is convergent.
 
 Hence, assuming $(f_n)$ is L¹-bounded, using Fatou's lemma, we have
 $$
-  \mathbb{E] \limsup_{n \to \infty} |f_n| \le \limsup_{n \to \infty} \mathbb{E}|f_n| < \infty
+  \mathbb{E} \limsup_{n \to \infty} |f_n| \le \limsup_{n \to \infty} \mathbb{E}|f_n| < \infty
 $$
 implying $\limsup_{n \to \infty} |f_n| < \infty$ a.e. Furthermore, by the upcrossing estimate,
 the number of upcrossings is finite almost everywhere implying $f$ converges pointwise almost

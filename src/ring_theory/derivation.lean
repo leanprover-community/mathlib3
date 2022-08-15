@@ -638,7 +638,7 @@ end
 
 variables {R S}
 
-/-- The linear map from the derivation module, associated with a derivation. -/
+/-- The linear map from `Ω[S⁄R]`, associated with a derivation. -/
 def derivation.lift_kaehler_differential (D : derivation R S M) : Ω[S⁄R] →ₗ[S] M :=
 begin
   refine ((kaehler_differential.ideal R S • ⊤ :

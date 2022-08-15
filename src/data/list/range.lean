@@ -282,6 +282,11 @@ option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
   (fin_range n).nth_le i h = ⟨i, length_fin_range n ▸ h⟩ :=
 by simp only [fin_range, nth_le_range, nth_le_pmap, fin.mk_eq_subtype_mk]
 
+@[simp] lemma map_nth_le (l : list α) :
+  (fin_range l.length).map (λ n, l.nth_le n n.2) = l :=
+ext_le (by rw [length_map, length_fin_range]) $ λ n _ h,
+by { rw ← nth_le_map_rev, congr, { rw nth_le_fin_range, refl }, { rw length_fin_range, exact h } }
+
 theorem of_fn_eq_pmap {α n} {f : fin n → α} :
   of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=
 by rw [pmap_eq_map_attach]; from ext_le (by simp)

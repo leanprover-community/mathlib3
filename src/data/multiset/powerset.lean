@@ -219,6 +219,9 @@ theorem powerset_len_zero_right (n : ℕ) :
   powerset_len (n + 1) s + map (cons a) (powerset_len n s) :=
 quotient.induction_on s $ λ l, by simp [powerset_len_coe']; refl
 
+@[simp] lemma powerset_len_one_singleton (a : α) : powerset_len 1 ({a} : multiset α) = {{a}} :=
+@powerset_len_cons α 0 a 0
+
 @[simp] theorem mem_powerset_len {n : ℕ} {s t : multiset α} :
   s ∈ powerset_len n t ↔ s ≤ t ∧ card s = n :=
 quotient.induction_on t $ λ l, by simp [powerset_len_coe']

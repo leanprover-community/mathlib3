@@ -162,7 +162,7 @@ Ring Theory:
     polynomial algebra in one or several indeterminates over a commutative ring: 'mv_polynomial'
     roots of a polynomial: 'polynomial.roots'
     multiplicity: 'polynomial.root_multiplicity'
-    relationship between the coefficients and the roots of a split polynomial: 'https://en.wikipedia.org/wiki/Vieta%27s_formulas'
+    relationship between the coefficients and the roots of a split polynomial: 'polynomial.vieta'
     Newton's identities: 'https://en.wikipedia.org/wiki/Newton%27s_identities'
     polynomial derivative: 'polynomial.derivative'
     decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'

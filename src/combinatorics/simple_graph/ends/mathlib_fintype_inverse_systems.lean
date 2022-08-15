@@ -633,12 +633,26 @@ begin
   rintro i ij, exact Fsurj i j ij,
 end
 
-lemma sections_fintype_to_injective  [Π (j : J), fintype (F.obj j)] [fintype F.sections]
+lemma sections_fintype_to_injective
+  [nonempty J] [Π (j : J), fintype (F.obj j)] [fintype F.sections]
   (Fsur : is_surjective F) :
   ∃ j : J, ∀ ii : {i | i ≤ j}, function.injective (F.map $ hom_of_le ii.prop) :=
 begin
-  have : Π (j : J), fintype.card (F.obj j) ≤ fintype.card F.sections, from λ j, fintype.card_le_of_surjective _ (sections_surjective' F j Fsur),
-
+  have : Π (j : J), fintype.card (F.obj j) ≤ fintype.card F.sections,
+  from λ j, fintype.card_le_of_surjective _ (sections_surjective' F j Fsur),
+  let cards := set.range (λ j, fintype.card $ F.obj j),
+  haveI cardsnem : cards.nonempty := set.range_nonempty (λ (j : J), fintype.card (F.obj j)),
+  haveI cardsfin : cards.finite := by
+  { apply set.finite.subset,
+    rotate 2,
+    exact {n : ℕ | n ≤ fintype.card F.sections},
+    exact {n : ℕ | n ≤ fintype.card ↥(functor.sections F)}.to_finite,
+    rintro mK ⟨K,rfl⟩,simp, exact this K,},
+  let cards' := cardsfin.to_finset,
+  have cards'nem : cards'.nonempty, by {finish,},
+  let m := cards'.max' cards'nem,
+  obtain mmem := cards'.max'_mem cards'nem, simp at mmem,
+  obtain ⟨K,Km⟩ := mmem,
 
   -- Take j maximizing the cardinality of F.obj j
   -- By Fsur, we have surjective functions with codomain of ≥ card than the domain: hence all are equal and

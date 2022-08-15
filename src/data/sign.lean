@@ -277,6 +277,9 @@ def sign_hom : α →*₀ sign_type :=
                neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero',
                mul_neg_of_pos_of_neg, mul_pos] }
 
+lemma sign_mul (a b : α) : sign (a * b) = sign a * sign b :=
+sign_hom.map_mul a b
+
 end linear_ordered_ring
 
 section add_group

@@ -15,6 +15,8 @@ necessary instances and define `uniform_space.completion.to_complₗᵢ` - coerc
 `E → uniform_space.completion E` as a bundled linear isometry.
 
 We also show that if `A` is a normed algebra over `𝕜`, then so is `uniform_space.completion A`.
+
+TODO: Generalise the results here from the concrete `completion` to any `abstract_completion`.
 -/
 
 noncomputable theory

@@ -26,6 +26,8 @@ the main constructions deal with continuous ring morphisms.
   to a complete separated group `S` to `completion R`.
 * `uniform_space.completion.map_ring_hom` : promotes a continuous ring morphism
   from `R` to `S` into a continuous ring morphism from `completion R` to `completion S`.
+
+TODO: Generalise the results here from the concrete `completion` to any `abstract_completion`.
 -/
 open classical set filter topological_space add_comm_group
 open_locale classical
@@ -174,6 +176,10 @@ instance : algebra S (completion R) :=
 lemma algebra_map_def (s : S) :
   algebra_map S (completion R) s = (algebra_map S R s : completion R) :=
 rfl
+
+/-- A shortcut instance for the common case -/
+instance algebra' : algebra R (completion R) :=
+by apply_instance
 
 end algebra
 

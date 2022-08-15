@@ -18,6 +18,8 @@ In later files once the additive group structure is set up, we provide
 * `uniform_space.completion.distrib_mul_action`
 * `uniform_space.completion.mul_action_with_zero`
 * `uniform_space.completion.module`
+
+TODO: Generalise the results here from the concrete `completion` to any `abstract_completion`.
 -/
 
 universes u v w x y z

@@ -453,12 +453,6 @@ begin
   measurability,
 end
 
----lemma eqform_gauden_to_real (hs : s ≠ 0): :=
-/-
-lemma ennreal_no_act_on_posfunc (f : ℝ → ℝ) : f ≥ 0 →
-∀ (x:ℝ), f x = (λ x, ennreal.of_real (f x) x:=
-begin-/
-
 
 
 lemma simple_thing (x:ℝ) (hx : 0 ≤ x): x = ((ennreal.of_real x).to_nnreal):=

@@ -1075,6 +1075,26 @@ begin
   { simp, },
 end
 
+lemma open_embedding.to_local_homeomorph_left_inv
+  [nonempty α] {x : α} :
+  (open_embedding.to_local_homeomorph f h).symm (f x) = x :=
+begin
+  rw ←congr_fun (open_embedding.to_local_homeomorph_apply f h),
+  rw local_homeomorph.left_inv,
+  rw open_embedding.to_local_homeomorph_source,
+  apply set.mem_univ
+end
+
+lemma open_embedding.to_local_homeomorph_right_inv
+  [nonempty α] {x : β} (hx : x ∈ set.range f) :
+  f ((open_embedding.to_local_homeomorph f h).symm x) = x :=
+begin
+  rw ←congr_fun (open_embedding.to_local_homeomorph_apply f h),
+  rw local_homeomorph.right_inv,
+  rw open_embedding.to_local_homeomorph_target,
+  exact hx
+end
+
 end open_embedding
 
 namespace topological_space.opens

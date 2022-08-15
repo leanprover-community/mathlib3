@@ -1969,3 +1969,68 @@ hf.smul hg
 lemma smooth.smul {f : M → 𝕜} {g : M → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
   smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
 hf.smul hg
+
+/-! ### Smoothness of an open embedding and its inverse -/
+
+lemma cont_mdiff_open_embedding
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {M : Type*} [topological_space M] [nonempty M]
+  {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
+  @cont_mdiff _ _ _ _ _ _ _ I _ _ h.singleton_charted_space _ _ _ _ _ I _ _ _ n e :=
+begin
+  haveI := h.singleton_smooth_manifold_with_corners I,
+  rw cont_mdiff_iff,
+  split,
+  { apply h.continuous },
+  intros, -- show the function is actually the identity on the range of I ∘ e
+  apply cont_diff_on.congr cont_diff_on_id,
+  intros z hz, -- factorise into the chart (=e) and the model (=id)
+  rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],
+  repeat {rw function.comp_app},
+  rw [local_homeomorph.refl_apply, id.def, local_homeomorph.singleton_charted_space_chart_at_eq,
+    open_embedding.to_local_homeomorph_right_inv e],
+  { rw model_with_corners.right_inv,
+    { refl },
+    apply set.mem_of_subset_of_mem _ hz.1,
+    apply ext_chart_at_target_subset_range },
+  rw model_with_corners.symm, -- show hz implies z is in range of I ∘ e
+  have := hz.1,
+  rw [ext_chart_at, local_equiv.trans_target] at this,
+  have := this.2,
+  rw [set.mem_preimage, local_homeomorph.singleton_charted_space_chart_at_eq,
+    open_embedding.to_local_homeomorph_target] at this,
+  exact this
+end
+
+lemma cont_mdiff_on_open_embedding_symm
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
+  {M : Type*} [topological_space M] [nonempty M]
+  {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
+  @cont_mdiff_on _ _ _ _ _ _ _ I _ _ _ _ _ _ _ _ I _ _ h.singleton_charted_space
+    n (open_embedding.to_local_homeomorph e h).symm (set.range e) :=
+begin
+  haveI := h.singleton_smooth_manifold_with_corners I,
+  rw cont_mdiff_on_iff,
+  split,
+  { rw ←open_embedding.to_local_homeomorph_target,
+    apply local_homeomorph.continuous_on_symm (open_embedding.to_local_homeomorph e h) },
+  intros, -- show the function is actually the identity on the range of I ∘ e
+  apply cont_diff_on.congr cont_diff_on_id,
+  intros z hz, -- factorise into the chart (=e) and the model (=id)
+  rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],
+  repeat {rw function.comp_app},
+  rw [local_homeomorph.refl_symm, local_homeomorph.refl_apply, id.def,
+    local_homeomorph.singleton_charted_space_chart_at_eq, local_homeomorph.right_inv],
+  { rw model_with_corners.right_inv,
+    { refl },
+    apply set.mem_of_subset_of_mem _ hz.1,
+    apply ext_chart_at_target_subset_range }, -- show hz implies z is in range of I ∘ e
+  rw [open_embedding.to_local_homeomorph_target, model_with_corners.symm, ←set.mem_preimage],
+  have := hz.2,
+  rw [set.preimage_inter] at this,
+  exact this.1
+end

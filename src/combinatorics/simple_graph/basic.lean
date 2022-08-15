@@ -320,7 +320,7 @@ instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
 /-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices.
 This terminology comes from combinatorial maps, and they are also known as "half-edges"
 or "bonds." -/
-@[ext, derive decidable_eq, nolint has_nonempty_instance]
+@[ext, derive decidable_eq]
 structure dart extends V × V :=
 (is_adj : G.adj fst snd)
 
@@ -399,6 +399,9 @@ to the darts `d` with `d.fst = v`. --/
 
 lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
 λ e₁ e₂ h, subtype.ext $ by { injection h with h', convert congr_arg prod.snd h' }
+
+instance nonempty_dart_top [nontrivial V] : nonempty (⊤ : simple_graph V).dart :=
+by { obtain ⟨v, w, h⟩ := exists_pair_ne V, exact ⟨⟨(v, w), h⟩⟩ }
 
 end darts
 

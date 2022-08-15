@@ -144,7 +144,7 @@ strong_uniformity σ E F {S | bornology.is_vonN_bounded 𝕜₁ S}
 instance [uniform_space F] [uniform_add_group F] : uniform_add_group (E →SL[σ] F) :=
 strong_uniformity.uniform_add_group σ E F _
 
-protected lemma continuous_linear_map.has_basis_nhds_zero_of_basis [topological_space F]
+protected lemma has_basis_nhds_zero_of_basis [topological_space F]
   [topological_add_group F] {ι : Type*} {p : ι → Prop} {b : ι → set F}
   (h : (𝓝 0 : filter F).has_basis p b) :
   (𝓝 (0 : E →SL[σ] F)).has_basis
@@ -154,7 +154,7 @@ strong_topology.has_basis_nhds_zero_of_basis σ E F
   {S | bornology.is_vonN_bounded 𝕜₁ S} ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
   (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union) h
 
-protected lemma continuous_linear_map.has_basis_nhds_zero [topological_space F]
+protected lemma has_basis_nhds_zero [topological_space F]
   [topological_add_group F] :
   (𝓝 (0 : E →SL[σ] F)).has_basis
     (λ SV : set E × set F, bornology.is_vonN_bounded 𝕜₁ SV.1 ∧ SV.2 ∈ (𝓝 0 : filter F))

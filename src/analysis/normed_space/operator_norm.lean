@@ -381,28 +381,32 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
     exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
   end))
 
-protected def tmp_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
+/-- Continuous linear maps themselves form a seminormed space with respect to
+the operator norm. This is only a temporary definition because we want to replace the topology
+with `continuous_linear_map.topological_space` to avoid diamond issues.
+See Note [forgetful inheritance] -/
+private def tmp_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
 seminormed_add_comm_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
 
-protected def tmp_pseudo_metric_space : pseudo_metric_space (E →SL[σ₁₂] F) :=
-continuous_linear_map.tmp_seminormed_add_comm_group.to_pseudo_metric_space
+private def tmp_pseudo_metric_space : pseudo_metric_space (E →SL[σ₁₂] F) :=
+tmp_seminormed_add_comm_group.to_pseudo_metric_space
 
-protected def tmp_uniform_space : uniform_space (E →SL[σ₁₂] F) :=
-continuous_linear_map.tmp_pseudo_metric_space.to_uniform_space
+private def tmp_uniform_space : uniform_space (E →SL[σ₁₂] F) :=
+tmp_pseudo_metric_space.to_uniform_space
 
-protected def tmp_topological_space : topological_space (E →SL[σ₁₂] F) :=
-continuous_linear_map.tmp_uniform_space.to_topological_space
+private def tmp_topological_space : topological_space (E →SL[σ₁₂] F) :=
+tmp_uniform_space.to_topological_space
 
 section tmp
 
 local attribute [-instance] continuous_linear_map.topological_space
 local attribute [-instance] continuous_linear_map.uniform_space
-local attribute [instance] continuous_linear_map.tmp_seminormed_add_comm_group
+local attribute [instance] tmp_seminormed_add_comm_group
 
-protected lemma tmp_topological_add_group : topological_add_group (E →SL[σ₁₂] F) :=
+private lemma tmp_topological_add_group : topological_add_group (E →SL[σ₁₂] F) :=
 infer_instance
 
-protected lemma tmp_closed_ball_div_subset {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+private lemma tmp_closed_ball_div_subset {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
   closed_ball (0 : E →SL[σ₁₂] F) (a / b) ⊆
   {f | ∀ x ∈ closed_ball (0 : E) b, f x ∈ closed_ball (0 : F) a} :=
 begin
@@ -417,45 +421,45 @@ end
 end tmp
 
 private theorem tmp_topology_eq :
-  (continuous_linear_map.tmp_topological_space : topological_space (E →SL[σ₁₂] F)) =
+  (tmp_topological_space : topological_space (E →SL[σ₁₂] F)) =
   infer_instance :=
 begin
-  refine continuous_linear_map.tmp_topological_add_group.ext infer_instance
-    ((@metric.nhds_basis_closed_ball _ continuous_linear_map.tmp_pseudo_metric_space 0).ext
+  refine tmp_topological_add_group.ext infer_instance
+    ((@metric.nhds_basis_closed_ball _ tmp_pseudo_metric_space 0).ext
       (continuous_linear_map.has_basis_nhds_zero_of_basis metric.nhds_basis_closed_ball) _ _),
   { rcases normed_field.exists_norm_lt_one 𝕜 with ⟨c, hc₀, hc₁⟩,
     refine λ ε hε, ⟨⟨closed_ball 0 (1 / ∥c∥), ε⟩,
       ⟨normed_space.is_vonN_bounded_closed_ball _ _ _, hε⟩, λ f hf, _⟩,
     change ∀ x, _ at hf,
     simp_rw mem_closed_ball_zero_iff at hf,
-    rw @mem_closed_ball_zero_iff _ continuous_linear_map.tmp_seminormed_add_comm_group,
+    rw @mem_closed_ball_zero_iff _ tmp_seminormed_add_comm_group,
     refine op_norm_le_of_shell' (div_pos one_pos hc₀) hε.le hc₁ (λ x hx₁ hxc, _),
     rw div_mul_cancel 1 hc₀.ne.symm at hx₁,
     exact (hf x hxc.le).trans (le_mul_of_one_le_right hε.le hx₁) },
   { rintros ⟨S, ε⟩ ⟨hS, hε⟩,
     rw [normed_space.is_vonN_bounded_iff, ← bounded_iff_is_bounded] at hS,
     rcases hS.subset_ball_lt 0 0 with ⟨δ, hδ, hSδ⟩,
-    exact ⟨ε/δ, div_pos hε hδ, (continuous_linear_map.tmp_closed_ball_div_subset hε hδ).trans $
+    exact ⟨ε/δ, div_pos hε hδ, (tmp_closed_ball_div_subset hε hδ).trans $
       λ f hf x hx, hf x $ hSδ hx⟩ }
 end
 
 private theorem tmp_uniform_space_eq :
-  (continuous_linear_map.tmp_uniform_space : uniform_space (E →SL[σ₁₂] F)) = infer_instance :=
+  (tmp_uniform_space : uniform_space (E →SL[σ₁₂] F)) = infer_instance :=
 begin
-  rw [← @uniform_add_group.to_uniform_space_eq _ continuous_linear_map.tmp_uniform_space,
+  rw [← @uniform_add_group.to_uniform_space_eq _ tmp_uniform_space,
       ← @uniform_add_group.to_uniform_space_eq _ infer_instance],
   congr' 1,
   exact tmp_topology_eq
 end
 
 instance to_pseudo_metric_space : pseudo_metric_space (E →SL[σ₁₂] F) :=
-continuous_linear_map.tmp_pseudo_metric_space.replace_uniformity
+tmp_pseudo_metric_space.replace_uniformity
   (congr_arg _ tmp_uniform_space_eq.symm)
 
 /-- Continuous linear maps themselves form a seminormed space with respect to
     the operator norm. -/
 instance to_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
-{ dist_eq := continuous_linear_map.tmp_seminormed_add_comm_group.dist_eq }
+{ dist_eq := tmp_seminormed_add_comm_group.dist_eq }
 
 lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊} :=
 begin
@@ -1901,3 +1905,5 @@ def is_coercive
   [normed_add_comm_group E] [normed_space ℝ E]
   (B : E →L[ℝ] E →L[ℝ] ℝ) : Prop :=
 ∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u
+
+#lint

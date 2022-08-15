@@ -69,14 +69,17 @@ def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
 @[simp] lemma restrict_scalars.map_apply {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
   {M M' : Module.{v} S} (g : M ⟶ M') (x) : (restrict_scalars f).map g x = g x := rfl
 
-@[simp] lemma restrict_scalars.smul_def_mk {R : Type u₁} {S : Type u₂} [ring R] [ring S]
-  (f : R →+* S) {M : Type v} [add_comm_group M] [module S M] (r : R) (m : M) :
-  (r • m : (restrict_scalars f).obj $ Module.mk M) = (f r • m : M) := rfl
+@[simp] lemma restrict_scalars.smul_def {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+  {M : Module.{v} S} (r : R) (m : (restrict_scalars f).obj M) : r • m = (f r • m : M) := rfl
 
+@[simp] lemma restrict_scalars.smul_def' {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+  {M : Module.{v} S} (r : R) (m : M) : (r • m : (restrict_scalars f).obj M) = (f r • m : M) := rfl
+
+@[priority 100]
 instance smul_comm_class_mk {R : Type u₁} {S : Type u₂} [ring R] [comm_ring S] (f : R →+* S)
   (M : Type v) [add_comm_group M] [module S M] :
   @smul_comm_class R S M ((restrict_scalars.obj' f (Module.mk M)).is_module.to_has_smul) _ :=
-{ smul_comm := λ r s m, by simp [←mul_smul, mul_comm] }
+{ smul_comm := λ r s m, (by simp [←mul_smul, mul_comm] : f r • s • m = s • f r • m) }
 
 namespace extend_scalars
 

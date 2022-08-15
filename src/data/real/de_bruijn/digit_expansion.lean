@@ -492,37 +492,246 @@ section s04
 
 variables [is_succ_archimedean Z]
 
-protected lemma formal_series.sub_sub_comm (f g h : Σ) : f - (g - h) = h - (f - g) :=
+-- set_option pp.coercions false
+
+-- The paper mistakenly says `f - (g - h) = h - (f - g)`.
+protected lemma formal_series.sub_sub_comm (f g h : Σ) : f - (g - h) = h - (g - f) :=
 begin
   set p := difcar g h with hp,
   set s := g - h with hs,
   set t := f - s with ht,
   set q := difcar f s with hq,
-  set r := p - q with hr,
   set p' := difcar g f with hp',
   set s' := g - f with hs',
   set t' := h - s' with ht',
   set q' := difcar h s' with hq',
-  set r' := p' - q' with hr',
+  have hsz : ∀ z, (s z : ℤ) = g z - h z - p z + (b + 1) * p (pred z),
+  { intro z, rw [hs, hp, coe_sub g h z] },
+  have htz : ∀ z, (t z : ℤ) = f z + h z - g z + (p z - q z) - (b + 1) * (p (pred z) - (q (pred z))),
+  { intro z, rw [ht, hq, coe_sub f s z, hsz], ring },
+  have hsz' : ∀ z, (s' z : ℤ) = g z - f z - p' z + (b + 1) * p' (pred z),
+  { intro z, rw [hs', hp', coe_sub g f z] },
+  have htz' : ∀ z, (t' z : ℤ) = h z + f z - g z + (p' z - q' z) -
+    (b + 1) * (p' (pred z) - (q' (pred z))),
+  { intro z, rw [ht', hq', coe_sub h s' z, hsz'], ring },
+  have H : ∀ z, (t z : ℤ) - t' z = (p z - q z) - (p' z - q' z) -
+    (b + 1) * ((p (pred z) - q (pred z)) - (p' (pred z) - q' (pred z))),
+  { intro z, rw [htz, htz'], ring },
+  clear hsz hsz' htz htz',
+  have htd : ∀ z, | (t z : ℤ) - t' z | < b + 1,
+  { intro z,
+    rw [abs_lt, coe_coe, coe_coe, ←nat.cast_succ],
+    refine ⟨int.neg_lt_sub_left_of_lt_add ((int.le_add_of_nonneg_right _).trans_lt' _),
+      int.sub_right_lt_of_lt_add ((int.le_add_of_nonneg_right _).trans_lt' _)⟩,
+    { simp },
+    { exact int.coe_nat_lt_coe_nat_of_lt ((t' z).is_lt) },
+    { simp },
+    { exact int.coe_nat_lt_coe_nat_of_lt ((t z).is_lt) } },
+  have hpq1 : ∀ z , | (p z : ℤ) - q z | ≤ 1,
+  { intro z,
+    rw [hp, hq],
+    casesI b,
+    { exact absurd hb.out (lt_irrefl _) },
+    cases difcar_eq_zero_or_one g h z with hp0 hp0;
+    cases difcar_eq_zero_or_one f s z with hq0 hq0;
+    norm_num [hp0, hq0] },
+  have hpq1' : ∀ z , | (p' z : ℤ) - q' z | ≤ 1,
+  { intro z,
+    rw [hp', hq'],
+    casesI b,
+    { exact absurd hb.out (lt_irrefl _) },
+    cases difcar_eq_zero_or_one g f z with hp0 hp0;
+    cases difcar_eq_zero_or_one h s' z with hq0 hq0;
+    norm_num [hp0, hq0] },
+  have hr2 : ∀ z, | ((p z : ℤ) - q z) - (p' z - q' z) | ≤ 2,
+  { intro z,
+    refine (abs_sub _ _).trans ((add_le_add (hpq1 _) (hpq1' _)).trans _),
+    norm_num },
+  replace hr2 : ∀ z, | (p (pred z) : ℤ) - q (pred z) - (p' (pred z) - q' (pred z)) | ≤ 1,
+  { intro z,
+    specialize htd z,
+    rw H at htd,
+    have hr2' := hr2 (pred z),
+    rw abs_le at hr2' ⊢,
+    rw [le_iff_lt_or_eq, le_iff_lt_or_eq, int.lt_iff_add_one_le, int.lt_iff_add_one_le] at hr2',
+    rcases hr2' with ⟨hl|hl, hr|hr⟩,
+    { rw ←le_sub_iff_add_le at hr,
+      norm_num1 at hl hr,
+      exact ⟨hl, hr⟩ },
+    any_goals { rw [hr, abs_lt, mul_two, ←sub_sub, sub_lt_iff_lt_add, lt_sub, sub_neg_eq_add,
+          sub_add_cancel] at htd,
+      suffices : (b : ℤ) + 1 < 2,
+      { norm_num [←lt_sub_iff_add_lt, ne_of_gt hb.out] at this },
+      exact htd.left.trans_le (le_of_abs_le (hr2 _)) },
+    { rw [←hl, abs_lt, mul_neg, sub_neg_eq_add, mul_two, ←add_assoc, add_lt_iff_neg_right] at htd,
+      suffices : (b : ℤ) + 1 < 2,
+      { norm_num [←lt_sub_iff_add_lt, ne_of_gt hb.out] at this },
+      rw [←sub_neg_eq_add _ ((b : ℤ) + 1), ←sub_neg_eq_add _ ((b : ℤ) + 1), sub_lt_iff_lt_add,
+          zero_add, lt_neg] at htd,
+      exact htd.right.trans_le ((neg_le_abs_self _).trans (hr2 _)) } },
+  replace hpq1 : ∀ z, (p (pred z) : ℤ) - q (pred z) - (p' (pred z) - q' (pred z)) = 1 →
+    (p z : ℤ) - q z - (p' z - q' z) = 1,
+  { intros z hz,
+    specialize H z,
+    rw [hz, mul_one] at H,
+    have hr2' := hr2 (succ z),
+    rw [pred_succ, int.abs_le_one_iff] at hr2',
+    rcases hr2' with hr2'|hr2'|hr2',
+    { rw [hr2', zero_sub] at H,
+      exact absurd H (neg_lt_of_abs_lt (htd _)).ne' },
+    { exact hr2' },
+    { rw [hr2'] at H,
+      refine absurd H (ne_of_gt ((neg_lt_of_abs_lt (htd _)).trans' _)),
+      rw [←zero_sub ((b : ℤ) + 1), sub_lt_sub_iff_right, neg_lt_zero],
+      exact zero_lt_one } },
+  replace hpq1' : ∀ z, (p' (pred z) : ℤ) - q' (pred z) - (p (pred z) - q (pred z)) = 1 →
+    (p' z : ℤ) - q' z - (p z - q z) = 1,
+  { intros z hz,
+    specialize H z,
+    rw [←neg_inj, neg_sub] at hz,
+    rw [hz, mul_neg, mul_one, sub_neg_eq_add] at H,
+    have hr2' := hr2 (succ z),
+    rw [pred_succ, int.abs_le_one_iff] at hr2',
+    rcases hr2' with hr2'|hr2'|hr2',
+    { rw [hr2', zero_add] at H,
+      exact absurd H (lt_of_abs_lt (htd _)).ne },
+    { rw [hr2'] at H,
+      refine absurd H (ne_of_lt ((lt_of_abs_lt (htd _)).trans _)),
+      simp },
+    { rw [←neg_inj, neg_sub, hr2'] } },
+  clear htd,
+  replace hpq1 : ∀ z, (p (pred z) : ℤ) - q (pred z) - (p' (pred z) - q' (pred z)) = 1 →
+    ∀ y ≥ z, (p y : ℤ) - q y - (p' y - q' y) = 1,
+  { intros z hz y hy,
+    refine succ.rec (hpq1 _ hz) (λ x hx hpx, hpq1 _ _) hy,
+    rw pred_succ,
+    exact hpx },
+  replace hpq1' : ∀ z, (p (pred z) : ℤ) - q (pred z) - (p' (pred z) - q' (pred z)) = -1 →
+    ∀ y ≥ z, (p y : ℤ) - q y - (p' y - q' y) = -1,
+  { intros z hz y hy,
+    rw [eq_comm, neg_eq_iff_neg_eq, neg_sub] at hz ⊢,
+    refine succ.rec (hpq1' _ hz) (λ x hx hpx, hpq1' _ _) hy,
+    rw pred_succ,
+    exact hpx },
+  replace hpq1 : ¬ ∃ z, (p (pred z) : ℤ) - q (pred z) - (p' (pred z) - q' (pred z)) = 1,
+  { rintro ⟨z, hz⟩,
+    suffices : ∀ y > z, (t' y : ℤ) = b,
+    { obtain ⟨x, hx, hb⟩ := t'.exists_bounded z,
+      specialize this x hx,
+      simp only [coe_coe, nat.cast_inj] at this,
+      rw [fin.lt_iff_coe_lt_coe, fin.coe_of_nat_eq_mod,
+          nat.mod_eq_of_lt (nat.lt_succ_self _)] at hb,
+      exact hb.ne this },
+    intros y hy,
+    specialize H y,
+    rw [hpq1 z hz _ (le_pred_of_lt hy), hpq1 z hz _ (le_of_lt hy), mul_one] at H,
+    cases (fin.le_last (t' y)).eq_or_lt with hbz hbz,
+    { simp [hbz], },
+    { have htz0 : (0 : ℤ) = t y,
+      { refine le_antisymm _ _,
+        { rw [coe_coe, ←nat.cast_zero, nat.cast_le],
+          exact (t y).zero_le },
+        rw [sub_eq_iff_eq_add] at H,
+        rw [H, sub_add, sub_le, sub_zero, add_comm, ←add_sub, le_add_iff_nonneg_right,
+            sub_nonneg, coe_coe, nat.cast_le],
+        exact (t' y).is_le },
+      rw [←htz0, zero_sub, neg_eq_iff_neg_eq] at H,
+      simp [←H] } },
+  replace hpq1' : ¬ ∃ z, (p (pred z) : ℤ) - q (pred z) - (p' (pred z) - q' (pred z)) = -1,
+  { rintro ⟨z, hz⟩,
+    suffices : ∀ y > z, (t y : ℤ) = b,
+    { obtain ⟨x, hx, hb⟩ := t.exists_bounded z,
+      specialize this x hx,
+      simp only [coe_coe, nat.cast_inj] at this,
+      rw [fin.lt_iff_coe_lt_coe, fin.coe_of_nat_eq_mod,
+          nat.mod_eq_of_lt (nat.lt_succ_self _)] at hb,
+      exact hb.ne this },
+    intros y hy,
+    specialize H y,
+    rw [hpq1' z hz _ (le_pred_of_lt hy), hpq1' z hz _ (le_of_lt hy), mul_neg, mul_one] at H,
+    cases (fin.le_last (t y)).eq_or_lt with hbz hbz,
+    { simp [hbz], },
+    { have htz0 : (0 : ℤ) = t' y,
+      { refine le_antisymm _ _,
+        { rw [coe_coe, ←nat.cast_zero, nat.cast_le],
+          exact (t' y).zero_le },
+        rw [←neg_add', eq_comm, neg_eq_iff_neg_eq, neg_sub, sub_eq_iff_eq_add,
+            ←sub_eq_add_neg, ←sub_sub, sub_sub_cancel_left] at H,
+        rw [H, add_comm, ←sub_eq_add_neg, sub_le, sub_zero, coe_coe, nat.cast_le],
+        exact (t y).is_le },
+      rw [←htz0, sub_zero] at H,
+      simp [H] } },
+  replace hr2 : ∀ z, (p z : ℤ) - q z - (p' z - q' z) = 0,
+  { push_neg at hpq1 hpq1',
+    intros z,
+    specialize hr2 (succ z),
+    rw [int.abs_le_one_iff] at hr2,
+    rcases hr2 with hr2'|hr2'|hr2',
+    { rw ←pred_succ z,
+      exact hr2' },
+    { exact absurd hr2' (hpq1 _) },
+    { exact absurd hr2' (hpq1' _) } },
   ext z,
-  have hsz : s z = g z - h z - p z := rfl,
-  have htz : t z = f z - s z - q z := rfl,
-  replace htz : t z =  f z + h z - g z + r z,
-  { simp [htz, hsz, hr, pi.sub_def],
-    ring_nf },
-  have hsz' : s' z = g z - f z - p' z := rfl,
-  have htz' : t' z = h z - s' z - q' z := rfl,
-  replace htz' : t' z =  h z + f z - g z + r' z,
-  { simp [htz', hsz', hr', pi.sub_def],
-    ring_nf },
-  have key : t z - t' z = r z - r' z,
-  { rw [htz, htz'],
-    ring },
-  by_cases hrr' : r (pred z) - r' (pred z) = 1,
-  {
-
-  },
-
+  rw [←@nat.cast_inj ℤ, ←sub_eq_zero, ←coe_coe, ←coe_coe, H, hr2, hr2, mul_zero, sub_zero]
 end
 
 end s04
+
+section s05
+
+variables [is_succ_archimedean Z]
+
+instance : has_add Σ := ⟨λ f g, f - (0 - g)⟩
+
+-- 5.1
+protected lemma formal_series.add_def : f + g = f - (0 - g) := rfl
+-- (i)
+protected lemma formal_series.add_zero : f + 0 = f :=
+calc f + 0 = f - (0 - 0) : rfl
+...        = f - 0       : by rw [formal_series.sub_zero]
+...        = f           : formal_series.sub_zero _
+-- (ii)
+protected lemma formal_series.add_comm : f + g = g + f :=
+calc f + g = f - (0 - g) : rfl
+...        = g - (0 - f) : formal_series.sub_sub_comm _ _ _
+...        = g + f       : rfl
+-- (iii)
+protected lemma formal_series.add_assoc (f g h : Σ) : f + (g + h) = f + g + h :=
+calc f + (g + h) = f + (h + g) : by rw [g.add_comm]
+...  = f - (0 - (h - (0 - g))) : by simp_rw [formal_series.add_def]
+...  = f - ((0 - g) - (h - 0)) : by rw [formal_series.sub_sub_comm 0, formal_series.sub_zero]
+...  = f - ((0 - g) - h)       : by rw [formal_series.sub_zero]
+...  = h - ((0 - g) - f)       : formal_series.sub_sub_comm _ _ _
+...  = h - ((0 - g) - (f - 0)) : by rw [formal_series.sub_zero]
+...  = h - (0 - (f - (0 - g))) : by rw [formal_series.sub_sub_comm 0, formal_series.sub_zero]
+...  = h + (f + g)             : by simp_rw [formal_series.add_def]
+...  = f + g + h               : formal_series.add_comm _ _
+-- (iv)
+protected lemma formal_series.add_sub_cancel : g + (f - g) = f :=
+calc g + (f - g) = g - (0 - (f - g)) : formal_series.add_def _ _
+...  = g - (g - (f - 0))             : by rw formal_series.sub_sub_comm g f 0
+...  = g - (g - f)                   : by rw formal_series.sub_zero
+...  = f - (g - g)                   : formal_series.sub_sub_comm _ _ _
+...  = f - 0                         : by rw formal_series.sub_self
+...  = f                             : formal_series.sub_zero _
+
+instance : has_neg Σ := ⟨λ f, 0 - f⟩
+protected lemma formal_series.neg_def : -f = 0 - f := rfl
+
+instance : add_comm_group Σ :=
+{ add := (+),
+  add_assoc := λ _ _ _, (formal_series.add_assoc _ _ _).symm,
+  zero := 0,
+  zero_add := λ _, by simp [formal_series.add_def, formal_series.sub_sub_comm,
+    formal_series.sub_zero],
+  add_zero := λ _, by simp [formal_series.add_def, formal_series.sub_sub_comm,
+    formal_series.sub_zero],
+  neg := λ f, -f,
+  sub := λ f g, f - g,
+  sub_eq_add_neg := λ f g, by simp [g.neg_def, f.add_def, formal_series.sub_sub_comm 0,
+    formal_series.sub_zero],
+  add_left_neg := λ f, by simp [f.neg_def, formal_series.add_def, formal_series.sub_sub_comm,
+    formal_series.sub_sub_comm 0 0 f, formal_series.sub_zero, formal_series.sub_self],
+  add_comm := λ _ _, formal_series.add_comm _ _ }
+
+end s05

@@ -83,18 +83,18 @@ instance Jopdir  : is_directed Jᵒᵖ has_le.le :=
 
 #check inverse_system.Jopdir
 
+
 theorem nonempty_sections_of_fintype_inverse_system'
-(F : J ⥤ Type v) [Π (j : J), fintype (F.obj j)] [∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
+(F : J ⥤ Type v) [fin : Π (j : J), fintype (F.obj j)] [nempty : ∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
 begin
   let F' : (Jᵒᵖ)ᵒᵖ ⥤ Type v := (category_theory.op_op J).comp F,
-  haveI : Π j : Jᵒᵖᵒᵖ, fintype (F'.obj j) := λ jopop, sorry,
-  haveI : ∀ j : Jᵒᵖᵒᵖ, nonempty (F'.obj j) := by {
-    intro jopop,
-    dsimp [F'],
-    sorry,
-  },
-  -- have F'sections_nempty := @nonempty_sections_of_fintype_inverse_system Jᵒᵖ _ _ F' _ _,
-  admit,
+  haveI : Π j : Jᵒᵖᵒᵖ, fintype (F'.obj j) := λ jopop, by {apply fin,},
+  haveI : ∀ j : Jᵒᵖᵒᵖ, nonempty (F'.obj j) := λ jopop, by {apply nempty,},
+  have F'sections_nempty : F'.sections.nonempty := sorry,--@nonempty_sections_of_fintype_inverse_system Jᵒᵖ _ _ F' _ _,
+  obtain ⟨s,sec⟩ := F'sections_nempty,
+  fapply Exists.intro,
+  exact λ j, s (opposite.op $ opposite.op j),
+  exact λ j j' f, @sec (opposite.op $ opposite.op j)(opposite.op $ opposite.op j') (f.op.op),
 end
 
 

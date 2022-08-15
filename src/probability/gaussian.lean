@@ -257,7 +257,7 @@ end
 
 -- to remove the certain bracket of (2 • π) • s ^ 2
 --change it into 2 • π • s ^ 2
-lemma smul_no_bracket (s : ℝ) (hs : s ≠ 0): (2 • π) • s ^ 2 = 2 • π • s ^ 2 :=
+lemma smul_no_bracket (s : ℝ): (2 • π) • s ^ 2 = 2 • π • s ^ 2 :=
 begin
 simp,
 exact mul_assoc 2 π (s^2),

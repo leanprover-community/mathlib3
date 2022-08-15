@@ -31,32 +31,32 @@ variables  {V : Type u}
 
 section ends
 
-@[reducible, simp] def complement (S : set V) : subgraph G := (⊤ : subgraph G).delete_verts S
+@[reducible, simp] def compl (S : set V) : subgraph G := (⊤ : subgraph G).delete_verts S
 
 /-
-instance verts_compl_coe {K L : set V} (h : K ⊆ L) : has_coe (complement G L).verts (complement G K).verts := { coe := by {rintros ⟨v, htop, hnL⟩, refine ⟨v, htop, _⟩, intro, refine hnL (h _), assumption} }
+instance verts_compl_coe {K L : set V} (h : K ⊆ L) : has_coe (compl G L).verts (compl G K).verts := { coe := by {rintros ⟨v, htop, hnL⟩, refine ⟨v, htop, _⟩, intro, refine hnL (h _), assumption} }
 -/
 
+instance compl_coe {K L : set V} {G : simple_graph V} (h : K ⊆ L) : has_coe (set ↥((G.compl K).verts)) (set ↥((G.compl L).verts)) := {
+  coe := λ S, λ vL,
+    match vL with
+      | ⟨v, htop, hnL⟩ := S ⟨v, htop, λ hK, hnL (h hK)⟩
+    end }
+
 -- `def` rather than `instance` because of typeclass problems
-def set_verts_compl_coe {K L : set V} {G : simple_graph V} (h : K ⊆ L) : (set ↥((G.complement K).verts)) → (set ↥((G.complement L).verts)) := by {
-  intro P,
-  rintro ⟨v, htop, hnL⟩,
-  apply P,
-  refine ⟨v, htop, _⟩,
-  intro,
-  refine hnL (h _),
-  assumption,
-}
-
-
-instance finset_verts_compl_coe {K L : finset V} (h : K ⊆ L) : has_coe (complement G L).verts (complement G K).verts := sorry
+-- TODO: Fix this
+def finset_verts_compl_coe {K L : finset V} {G : simple_graph V} (h : K ⊆ L) :
+  (set ↥((G.compl ↑K).verts)) → (set ↥((G.compl ↑L).verts)) := λ S, λ vL,
+      match vL with
+        | ⟨v, htop, hnL⟩ := S ⟨v, htop, λ hK, hnL (h hK)⟩
+      end
 
 def conn_comp_outside : Type u :=
-  (complement G K).coe.connected_component
+  (G.compl K).coe.connected_component
 
-/- The vertices in the complement of `K` that lie in the component `C` -/
+/- The vertices in the compl of `K` that lie in the component `C` -/
 def conn_comp_outside.verts {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) :=
-  {v : (complement G K).verts | connected_component_mk _ v = C}
+  {v : (compl G K).verts | connected_component_mk _ v = C}
 
 /- Alternative defintion. At this point, it is hard to tell which would be better -/
 def conn_comp_outside.verts' (K : finset V) (C : conn_comp_outside G K) : set V :=
@@ -75,10 +75,9 @@ namespace conn_comp_outside
 def component_of' (v : V) (hv : v ∉ K) :
   conn_comp_outside G K := connected_component_mk _ ⟨v, by simp [hv]⟩
 
-def component_of (v : ((⊤ : subgraph G).delete_verts K).verts) : conn_comp_outside G K := connected_component_mk _ v
+@[reducible] def component_of (v : (G.compl K).verts) : conn_comp_outside G K := connected_component_mk _ v
 
-def component_of_set (S : set V) (hnonempty : S.nonempty) (hdisjoint : disjoint S K) : conn_comp_outside G K := sorry
-
+def component_of_set (S : set V) (hnonempty : S.nonempty) (hdisjoint : disjoint S K) (hconn : subgraph.connected (subgraph.induce (G.compl K) S)) : conn_comp_outside G K := sorry -- Strategy: pick a random point in `S` and form the connected component containing it. The choice does not matter since `S` is connected
 -- TODO: Make an analog of the above function for any connected set.
 -- TODO: Show that the corresponding component contains the set.
 
@@ -86,21 +85,56 @@ def component_of_set (S : set V) (hnonempty : S.nonempty) (hdisjoint : disjoint 
 -- TODO: Define the boundary and related lemmas
 def bdry' := {v : V | v ∉ K ∧ ∃ k ∈ K, G.adj v k}
 
-def bdry := {v : (complement G K).verts | ∃ k ∈ K, G.adj v k}
+def bdry := {v : (G.compl K).verts | ∃ k ∈ K, G.adj v k}
 
 
 /- This is the portion of the connected component that is a part of the boundary -/
-def border {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) : set (complement G K).verts :=
+def border {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) : set (compl G K).verts :=
   C.verts ∩ (bdry G K)
 
-lemma components_cover : set.Union (λ C : conn_comp_outside G K, C.verts) = ⊤ := sorry
+lemma components_cover : set.Union (λ C : conn_comp_outside G K, C.verts) = ⊤ :=
+begin
+  ext, simp [verts], use component_of G K x,
+end
 
 -- TODO: Show that the boundary is precisely the union of all the borders.
-lemma bdry_eq_border_union : (bdry G K) = set.Union (λ C : conn_comp_outside G K, C.border) := sorry -- should trivially follow from the `components_cover` lemma
+lemma bdry_eq_border_union : (bdry G K) = set.Union (λ C : conn_comp_outside G K, C.border) :=
+  calc bdry G K = ⊤ ∩ (bdry G K) : by simp
+  ... = (set.Union (λ C : conn_comp_outside G K, C.verts)) ∩ (bdry G K) : by rw [components_cover]
+  ... = set.Union (λ C : conn_comp_outside G K, C.verts ∩ (bdry G K)) : (bdry G K).Union_inter (λ (i : conn_comp_outside G K), i.verts)
+  ... = set.Union (λ C : conn_comp_outside G K, C.border) : by refl
 
-lemma border_finite [locally_finite G] (C : conn_comp_outside G K) : finite (border C) := sorry
+-- for mathlib:
+lemma symm_iff {X : Type u} (P : X → X → Prop) : (∀ {a b}, P a b → P b a) → (∀ {a b}, P a b ↔ P b a) := by tidy
 
-lemma bdry_finite [locally_finite G] : finite (bdry G K) := sorry
+
+lemma bdry.iff : bdry G K = set.Union (λ k : K, {v : (G.compl K).verts | v.val ∈ G.neighbor_set k}) :=
+begin
+  ext,
+  unfold bdry,
+  simp,
+  conv in (G.adj ↑_ _)
+  begin
+    rw [symm_iff G.adj (λ _ _, G.adj_symm)],
+  end,
+end
+
+lemma bdry_finite [Glocfin : locally_finite G] : (bdry G K).finite :=
+begin
+  rw [bdry.iff],
+  refine finite_Union _,
+  rintro k,
+  apply set.finite.preimage,
+  { apply injective.inj_on, tidy, },
+  { exact (neighbor_set G k).to_finite, }
+end
+
+lemma border_finite [locally_finite G] (C : conn_comp_outside G K) :  (border C).finite :=
+begin
+  unfold border,
+  refine finite.inter_of_right _ C.verts,
+  apply bdry_finite,
+end
 
 lemma finite_components [Glf : locally_finite G] [Gpc : preconnected G] :
   fintype (conn_comp_outside G K) :=
@@ -137,14 +171,14 @@ end
 lemma conn_comp_outside_back_unique {K L : finset V} (h : K ⊆ L) :
 ∀ C : conn_comp_outside G L,
   ∃! D : conn_comp_outside G K,
-    C.verts ⊆ (set_verts_compl_coe h D.verts) := sorry
+    C.verts ⊆ (finset_verts_compl_coe h D.verts) := sorry
 
 -- this is the `bwd_map`
 def conn_comp_outside_back {K L : finset V} (h : K ⊆ L) (C : conn_comp_outside G L) : conn_comp_outside G K :=
   classical.some (exists_of_exists_unique (conn_comp_outside_back_unique G h C))
 
 def conn_comp_outside_back.iff {K L : finset V} (h : K ⊆ L) (C : conn_comp_outside G L) (D : conn_comp_outside G K):
-  conn_comp_outside_back G h C = D ↔ C.verts ⊆ (set_verts_compl_coe h D.verts) :=
+  conn_comp_outside_back G h C = D ↔ C.verts ⊆ (finset_verts_compl_coe h D.verts) :=
 begin
   split,
   { rintro equ, induction equ, exact (exists_of_exists_unique (conn_comp_outside_back_unique G h C)).some_spec},
@@ -182,7 +216,7 @@ lemma inf_graph_fin_inf_conn_comp [locally_finite G] : finite (inf_conn_comp_out
 -- TODO: Mapping of connected sets under homomorphisms
 -- TODO: Show that components are preserved under isomorphisms
 
--- Returns K ∪ (all finite connected components in the complement)
+-- Returns K ∪ (all finite connected components in the compl)
 def conn_comp_outside.extend_fin [Glf : locally_finite G] (K : finset V) : finset V := sorry
 
 -- TODO: Build all the associated lemmas. Mainly prove that the resulting set of connected components are precisely the infinite connected components of the original graph.

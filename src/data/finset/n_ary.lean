@@ -33,7 +33,7 @@ variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
 /-- The image of a binary function `f : α → β → γ` as a function `finset α → finset β → finset γ`.
 Mathematically this should be thought of as the image of the corresponding function `α × β → γ`. -/
 def image₂ (f : α → β → γ) (s : finset α) (t : finset β) : finset γ :=
-(s.product t).image $ uncurry f
+(s ×ˢ t).image $ uncurry f
 
 @[simp] lemma mem_image₂ : c ∈ image₂ f s t ↔ ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c :=
 by simp [image₂, and_assoc]
@@ -47,8 +47,7 @@ lemma card_image₂_le (f : α → β → γ) (s : finset α) (t : finset β) :
 card_image_le.trans_eq $ card_product _ _
 
 lemma card_image₂_iff :
-  (image₂ f s t).card = s.card * t.card ↔
-    ((s : set α) ×ˢ (t : set β) : set (α × β)).inj_on (λ x, f x.1 x.2) :=
+  (image₂ f s t).card = s.card * t.card ↔ (s ×ˢ t : set (α × β)).inj_on (λ x, f x.1 x.2) :=
 by { rw [←card_product, ←coe_product], exact card_image_iff }
 
 lemma card_image₂ (hf : injective2 f) (s : finset α) (t : finset β) :

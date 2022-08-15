@@ -182,7 +182,7 @@ instance : partial_order ordinal :=
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
-      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
+      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl⟩,
       λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
       (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
   le_antisymm := λ a b,
@@ -251,7 +251,7 @@ by { simp_rw ←type_lt o, apply typein_lt_type }
   typein s f.top = type r :=
 eq.symm $ quot.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _ f f.lt_top)
-  (λ ⟨a, h⟩, by rcases f.down'.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
+  (λ ⟨a, h⟩, by rcases f.down.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
@@ -965,7 +965,7 @@ by simpa only [lift_lift, lift_univ, univ_umax] using
 @[simp] theorem ord_univ : ord univ.{u v} = ordinal.univ.{u v} :=
 le_antisymm (ord_card_le _) $ le_of_forall_lt $ λ o h,
 lt_ord.2 begin
-  rcases lift.principal_seg.{u v}.down'.1
+  rcases lift.principal_seg.{u v}.down.1
     (by simpa only [lift.principal_seg_coe] using h) with ⟨o', rfl⟩,
   simp only [lift.principal_seg_coe], rw [← lift_card],
   apply lift_lt_univ'
@@ -975,7 +975,7 @@ theorem lt_univ {c} : c < univ.{u (u+1)} ↔ ∃ c', c = lift.{(u+1) u} c' :=
 ⟨λ h, begin
   have := ord_lt_ord.2 h,
   rw ord_univ at this,
-  cases lift.principal_seg.{u (u+1)}.down'.1
+  cases lift.principal_seg.{u (u+1)}.down.1
     (by simpa only [lift.principal_seg_top]) with o e,
   have := card_ord c,
   rw [← e, lift.principal_seg_coe, ← lift_card] at this,

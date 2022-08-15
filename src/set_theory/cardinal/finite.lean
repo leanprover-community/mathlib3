@@ -55,8 +55,8 @@ end
 
 lemma card_of_subsingleton (a : α) [subsingleton α] : nat.card α = 1 :=
 begin
-  rw [card_eq_fintype_card],
-  convert fintype.card_of_subsingleton a,
+  letI := fintype.of_subsingleton a,
+  rw [card_eq_fintype_card, fintype.card_of_subsingleton a]
 end
 
 @[simp] lemma card_unique [unique α] : nat.card α = 1 :=

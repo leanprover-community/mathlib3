@@ -67,7 +67,7 @@ variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} 
 /-! ### Paths -/
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)

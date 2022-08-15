@@ -41,14 +41,14 @@ This file contains a lot of technical facts, so it is heavily commented, proofs 
 ### Basic properties
 
 * `uniform_convergence.uniform_continuous_eval`: evaluation is uniformly continuous for `𝒰(α, uβ)`.
-* `uniform_convergence.t2_space`: the topology of uniform convergence on `α → β` is T2 if
+* `uniform_convergence.t2_space`: the topology of uniform convergence on `α → β` is T₂ if
   `β` is T2.
 * `uniform_convergence.tendsto_iff_tendsto_uniformly`: `𝒰(α, β, uβ)` is
   indeed the uniform structure of uniform convergence
 * `uniform_convergence_on.uniform_continuous_eval_of_mem`: evaluation at a point contained in a
   set of `𝔖` is uniformly continuous for `𝒱(α, β, 𝔖 uβ)`
-* `uniform_convergence.t2_space`: the topology of `𝔖`-convergence on `α → β` is T2 if
-  `β` is T2 and `𝔖` covers `α`
+* `uniform_convergence.t2_space`: the topology of `𝔖`-convergence on `α → β` is T₂ if
+  `β` is T₂ and `𝔖` covers `α`
 * `uniform_convergence_on.tendsto_iff_tendsto_uniformly_on`:
   `𝒱(α, β, 𝔖 uβ)` is indeed the uniform structure of `𝔖`-convergence
 
@@ -105,7 +105,7 @@ connection API to do most of the work.
 
 * If `(G, uG)` is a uniform group, then `(α → G, 𝒱(α, G, 𝔖, uG))` is a uniform group: since
   `(/) : G × G → G` is uniformly continuous, `uniform_convergence_on.postcomp_uniform_continuous`
-  tells us that `((/) ∘ —) : (α → G × G) → (α → G)` is uniformly. By precomposing with
+  tells us that `((/) ∘ —) : (α → G × G) → (α → G)` is uniformly continuous. By precomposing with
   `uniform_convergence_on.uniform_equiv_prod_arrow`, this gives that
   `(/) : (α → G) × (α → G) → (α → G)` is also uniformly continuous
 * The transpose of a continuous linear map is continuous for the strong topologies: since
@@ -381,7 +381,7 @@ protected def congr_left (e : γ ≃ α) :
     uniform_convergence.precomp_uniform_continuous,
   .. equiv.arrow_congr e (equiv.refl _) }
 
-/-- The topology of uniform convergence is T2. -/
+/-- The topology of uniform convergence is T₂. -/
 lemma t2_space [t2_space β] : t2_space (α → β) :=
 { t2 :=
   begin
@@ -641,7 +641,7 @@ begin
   refine le_infi₂ (λ t ht, infi_le_of_le (f '' t) $ infi_le_of_le (hf ht) _),
   -- Let `f'` be the map from `t` to `f '' t` induced by `f`.
   let f' : t → f '' t := (maps_to_image f t).restrict f t (f '' t),
-  -- A (defeq) diagram chase tells us that `t.restrict ∘ (— ∘ f) = (— ∘ f') ∘ (f '' t).restrict`.
+  -- By definition `t.restrict ∘ (— ∘ f) = (— ∘ f') ∘ (f '' t).restrict`.
   have : t.restrict ∘ (λ g : α → β, g ∘ f) = (λ g : (f '' t) → β, g ∘ f') ∘ (f '' t).restrict :=
     rfl,
   -- Thus, we have to show `comap (f '' t).restrict 𝒰(↥(f '' t), β, uβ) ≤`
@@ -673,7 +673,7 @@ protected def congr_left {𝔗 : set (set γ)} (e : γ ≃ α)
     uniform_convergence_on.precomp_uniform_continuous he,
   .. equiv.arrow_congr e (equiv.refl _) }
 
-/-- If `𝔖` covers `α`, then the topology of `𝔖`-convergence is T2. -/
+/-- If `𝔖` covers `α`, then the topology of `𝔖`-convergence is T₂. -/
 lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :
   @t2_space _ (uniform_convergence_on.topological_space α β 𝔖) :=
 { t2 :=

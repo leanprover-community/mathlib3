@@ -29,9 +29,11 @@ namespace simple_graph
 variables  {V : Type u}
            (G : simple_graph V)
            (Gpc: G.preconnected)
-          [locally_finite G]
+           [locally_finite G]
            {V' : Type v}
            (G' : simple_graph V')
+           [locally_finite G']
+
            {V'' : Type w}
            (G'' : simple_graph V'')
 
@@ -107,7 +109,6 @@ lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
 lemma ends_nat : (Ends gℕ gℕpc) ≃ unit :=
 begin
 
-
   suffices H : ∀ K : finset ℕ, ∃ D : set ℕ, disjoint D K ∧ subconnected gℕ D ∧ D.infinite ∧ (D ᶜ).finite,
   {
     obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
@@ -150,14 +151,14 @@ end
 end nat
 
 -- Commented because it makes lean lag, but will need to be included and corrected again
-/-
+
 section product
 
 
-private lemma finprod_compl_subconnected [Vnempty : nonempty V] [Vnempty' : nonempty V']
+private lemma finprod_compl_subconnected
   [locally_finite G] [locally_finite G']
   (Gpc :G.preconnected) (Gpc' : G'.preconnected)
-  (Vinf : set.infinite (@set.univ V)) (V'inf : set.infinite (@set.univ V'))
+  [infinite V] [infinite V']
   (K : finset V) (K' : finset V') :
   subconnected (G □ G') ((finset.product K K' : set (V × V') )ᶜ) :=
 begin
@@ -236,71 +237,52 @@ begin
   exact set.union_subset (set.union_subset uD vD') wD',
 end
 
-lemma ends_product [Vnempty : nonempty V] [Vnempty' : nonempty V']
+instance [locally_finite G] [locally_finite G'] : locally_finite (G □ G') := by sorry,
+
+lemma ends_product
   [locally_finite G] [locally_finite G']
   (Gpc :G.preconnected) (Gpc' : G'.preconnected)
-  (Vinf : set.infinite (@set.univ V)) (Vinf' : set.infinite (@set.univ V'))
-: ends  (box_prod G  G') (simple_graph.preconnected.box_prod Gpc Gpc') ≃ true :=
+  [infinite V] [infinite V'] :
+  Ends  (G □ G') (simple_graph.preconnected.box_prod Gpc Gpc') ≃ unit :=
 begin
 
   let VV := V × V',
   let GG := G □ G',
   let GGpc := simple_graph.preconnected.box_prod Gpc Gpc',
-  haveI : locally_finite GG, by sorry,
-  haveI all_fin : ∀ K : finset VV, fintype (inf_ro_components GG K),
-    from λ K, inf_components_finite' GG GGpc K,
-  suffices : ∀ K : finset VV, fintype.card (inf_ro_components GG K) = 1,
+
+  suffices H : ∀ K : finset VV, ∃ D : set VV, disjoint D K ∧ subconnected GG D ∧ D.infinite ∧ (D ᶜ).finite,
   {
-    have all_inj : ∀ (K L : finset VV) (KL : K ⊆ L), injective (bwd_map GG GGpc KL), by {
-      rintros K L KL,
-      refine ((fintype.bijective_iff_surjective_and_card (bwd_map GG GGpc KL)).mpr ⟨_,_⟩).1,
-      exact bwd_map_surjective GG GGpc KL,
-      exact (this L).trans (this K).symm,
-    },
-    have that := eval_bijective GG GGpc ∅ (λ L KL, all_inj ∅ L KL),
-    refine (equiv.of_bijective _ that).trans (equiv_true_of (inf_ro_components GG ∅) _),
-    --
-    let lol2 := (fintype.card_eq_one_iff.mp (this ∅)),
-    exact lol2,
+    obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
+    have : (ComplInfComp GG GGpc).obj ∅ ≃ unit, from
+    cofinite_inf_ro_component_equiv'' GG GGpc ∅ _ dis conn inf cof,
+    transitivity, exact (Ends_equiv_Endsinfty GG GGpc),
+    transitivity, rotate, exact this,
+
+
+    apply @Endsinfty_eventually_constant _ _ GG GGpc _ ∅,
+    rintro L LL,
+    transitivity, rotate, exact this.symm,
+    obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
+    exact cofinite_inf_ro_component_equiv'' GG GGpc L _ dis conn inf cof,
   },
 
   rintros K,
   let L := finset.product (finset.image prod.fst K) (finset.image prod.snd K),
   have : K ⊆ L, from subset_product,
   let D := (L : set VV) ᶜ,
-
+  have Dcof : (D ᶜ).finite, by
+  { have : D ᶜ = L, by {simp},
+    rw this, exact L.finite_to_set,},
   have Ddis : disjoint D K, from disjoint_compl_left_iff.mpr (‹K⊆L›),
-  have Dinf : D.infinite, by sorry, -- VV is infinite, L is finite, V\L is infinite.
+  have Dinf : D.infinite, by {apply set.infinite_of_finite_compl,exact Dcof, },
   have Dconn : subconnected GG D,
-    from finprod_compl_subconnected G G' Gpc Gpc' Vinf Vinf' _ _,
-  -- If I do a `rcases … with ⟨C,Ccomp⟩` here I get elimination out of prop issues, why does this ↓ work?
-  let C := (ro_component.of_subconnected_disjoint GG K D (set.infinite.nonempty Dinf) Ddis Dconn).some,
-  obtain ⟨Ccomp,DC⟩ := (ro_component.of_subconnected_disjoint GG K D (set.infinite.nonempty Dinf) Ddis Dconn).some_spec,
-  have Cinf := set.infinite.mono DC Dinf,
-  suffices : ∀ C' ∈ inf_ro_components GG K, C' = C, {
-    apply fintype.card_eq_one_iff.mpr,
-    use ⟨C,Ccomp,Cinf⟩,
-    rintro ⟨D,Dcomp,Dinf⟩,
-    simp,
-    exact this D ⟨Dcomp,Dinf⟩,
-  },
-  rintros C' ⟨Ccomp',Cinf'⟩,
-  suffices : (C ∩ C').nonempty, {
-    rcases this with ⟨x,xC,xC'⟩,
-    apply eq_of_common_mem GG K C' C Ccomp' Ccomp x xC' xC},
-  by_contradiction,
-  have : C' ⊆ L, by {
-    rw set.not_nonempty_iff_eq_empty at h,
-    rw ←set.disjoint_iff_inter_eq_empty at h,
-    have := @disjoint.mono_left _ _ _ D C C' DC h,
-    rw ←set.disjoint_compl_right_iff_subset,
-    exact this.symm,
-  },
-  exact Cinf' (set.finite.subset L.finite_to_set this),
+    from finprod_compl_subconnected G G' Gpc Gpc' _ _,
+
+  use [D,Ddis,Dconn,Dinf,Dcof],
 end
 
 end product
--/
+
 
 end ends
 

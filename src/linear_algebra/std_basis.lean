@@ -38,7 +38,7 @@ open_locale big_operators
 
 namespace linear_map
 
-variables (R : Type*) {ι : Type*} [semiring R] (φ : ι → Type*)
+variables (R : Type*) {ι M n : Type*} [semiring R] (φ : ι → Type*)
   [Π i, add_comm_monoid (φ i)] [Π i, module R (φ i)] [decidable_eq ι]
 
 /-- The standard basis of the product of `φ`. -/
@@ -142,6 +142,22 @@ end
 lemma std_basis_eq_single {a : R} :
   (λ (i : ι), (std_basis R (λ _ : ι, R) i) a) = λ (i : ι), (finsupp.single i a) :=
 funext $ λ i, (finsupp.single_eq_pi_single i a).symm
+
+variables [decidable_eq n] [fintype n]
+variables [add_comm_monoid M] [module R M]
+variables {b : basis n R M}
+
+@[simp] lemma basis.equiv_fun_symm_std_basis (i : n) :
+  b.equiv_fun.symm (std_basis R (λ _, R) i 1) = b i :=
+begin
+  rw [b.equiv_fun_symm_apply, finset.sum_eq_single i],
+  { rw [std_basis_same, one_smul] },
+  { rintros j - hj,
+    rw [std_basis_ne _ _ _ _ hj, zero_smul] },
+  { intro,
+    have := finset.mem_univ i,
+    contradiction  }
+end
 
 end linear_map
 

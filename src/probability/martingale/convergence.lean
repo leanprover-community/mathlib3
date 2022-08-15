@@ -23,8 +23,8 @@ theorems.
 * `measure_theory.submartingale.ae_tendsto_limit_process`: the almost everywhere martingale
   convergence theorem: an L¹-bounded submartingale adapted to the filtration `ℱ` converges almost
   everywhere to its limit process.
-* `measure_theory.submartingale.mem_ℒ1_limit_process`: the limit process of an L¹-bounded
-  submartingale is integrable.
+* `measure_theory.submartingale.mem_ℒp_limit_process`: the limit process of an Lᵖ-bounded
+  submartingale is Lᵖ.
 * `measure_theory.submartingale.tendsto_snorm_one_limit_process`: part a of the L¹ martingale
   convergence theorem: a uniformly integrable submartingale adapted to the filtration `ℱ` converges
   almost everywhere and in L¹ to an integrable function which is measurable with respect to

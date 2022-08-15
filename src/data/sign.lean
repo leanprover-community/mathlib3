@@ -287,7 +287,7 @@ is required; consider ℂ with the order `z ≤ w` iff they have the same imagin
 def sign_hom : α →*₀ sign_type :=
 { to_fun := sign,
   map_zero' := sign_zero,
-  map_one' := sign_pos zero_lt_one,
+  map_one' := sign_one,
   map_mul' := sign_mul }
 
 lemma sign_pow (x : α) (n : ℕ) : sign (x ^ n) = (sign x) ^ n :=

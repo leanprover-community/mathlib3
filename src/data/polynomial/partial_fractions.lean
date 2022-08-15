@@ -7,6 +7,7 @@ import ring_theory.localization.fraction_ring -- field of fractions
 import data.polynomial.div -- theory of division and remainder for monic polynomials
 import tactic.field_simp
 import tactic
+import data.zmod.basic
 /-
 
 # Partial fractions
@@ -252,15 +253,45 @@ section n_denominators
 -- need notation for finite products
 open_locale big_operators
 
+lemma finite_product_of_monics_is_monic {ι : Type*} {g : ι → R[X]}
+  (hg : ∀ i, (g i).monic) (s : finset ι) : (∏ i in s, g i).monic :=
+begin
+  have h0 := monic_prod_of_monic s g _,
+  { exact h0 },
+  { intros i hi,
+    exact hg i, },
+end
+
+/-
+lemma coprimality_of_products_of_coprimes {ι : Type*} {g : ι → R[X]}
+  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
+  (s : finset ι) [nonempty s] :
+  (∀ t : s, is_coprime (g t) (∏ i in ({a : ι // a ∈ s ∧ a ≠ t} : finset ι), g i)) :=
+begin
+  sorry
+end
+-/
+
+
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (s : finset ι) :
-∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
+  (s : finset ι) [nonempty s] :
+  ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
   (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
 begin
-  -- this might not be the best thing to do directly. Want to do induction on s?
-  -- Haven't thought about it too hard
-  sorry
+  classical,
+  apply s.induction_on,
+  { sorry, },
+  { intros a b hab H,
+    rcases H with ⟨q, r, Hdeg, Hind⟩,
+    have h1 : (∏ (i : ι) in insert a b, ↑(g i)) = ↑(g a) * (∏ (j : ι) in b, ↑(g j)),
+    { sorry, },
+    rw h1,
+    sorry,
+    exact distrib.to_has_mul K,
+    exact coe_to_lift,
+    exact comm_ring.to_comm_monoid K,
+    exact coe_to_lift, },
 end
 
 -- uniqueness

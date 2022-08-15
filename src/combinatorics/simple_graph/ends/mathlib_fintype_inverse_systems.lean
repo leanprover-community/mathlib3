@@ -68,7 +68,8 @@ namespace inverse_system
 
 variables {J : Type u} [preorder J] [is_directed J ge] (F : J ⥤ Type v)
 
-instance : preorder Jᵒᵖ := {
+@[instance]
+lemma Jpreo : preorder Jᵒᵖ := {
   le := λ jop jop', jop'.unop ≤ jop.unop,
   lt := λ jop jop', jop'.unop < jop.unop,
   le_refl := λ jop, preorder.le_refl jop.unop,
@@ -76,9 +77,10 @@ instance : preorder Jᵒᵖ := {
   lt_iff_le_not_le := λ j₁ j₂, preorder.lt_iff_le_not_le j₂.unop j₁.unop
   }
 
-instance Jopdir  : is_directed Jᵒᵖ has_le.le :=
+@[instance]
+lemma Jopdir  : is_directed Jᵒᵖ has_le.le :=
   {directed := λ jop jop',
-    let ⟨c, hj, hj'⟩ := @is_directed.directed _ _ (by {assumption}) jop.unop jop'.unop in
+    let ⟨c, hj, hj'⟩ := @is_directed.directed _ _ _ jop.unop jop'.unop in
       ⟨opposite.op c, hj, hj'⟩}
 
 #check inverse_system.Jopdir
@@ -88,9 +90,9 @@ theorem nonempty_sections_of_fintype_inverse_system'
 (F : J ⥤ Type v) [fin : Π (j : J), fintype (F.obj j)] [nempty : ∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
 begin
   let F' : (Jᵒᵖ)ᵒᵖ ⥤ Type v := (category_theory.op_op J).comp F,
-  haveI : Π j : Jᵒᵖᵒᵖ, fintype (F'.obj j) := λ jopop, by {apply fin,},
-  haveI : ∀ j : Jᵒᵖᵒᵖ, nonempty (F'.obj j) := λ jopop, by {apply nempty,},
-  have F'sections_nempty : F'.sections.nonempty := sorry,--@nonempty_sections_of_fintype_inverse_system Jᵒᵖ _ _ F' _ _,
+  haveI fin' : Π j : (Jᵒᵖ)ᵒᵖ, fintype (F'.obj j) := λ jopop, by {apply fin,},
+  haveI nempty' : ∀ j : (Jᵒᵖ)ᵒᵖ, nonempty (F'.obj j) := λ jopop, by {apply nempty,},
+  have F'sections_nempty : F'.sections.nonempty := @nonempty_sections_of_fintype_inverse_system (Jᵒᵖ) Jpreo Jopdir F' fin' nempty',
   obtain ⟨s,sec⟩ := F'sections_nempty,
   fapply Exists.intro,
   exact λ j, s (opposite.op $ opposite.op j),

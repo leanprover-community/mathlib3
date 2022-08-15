@@ -306,21 +306,16 @@ section comm_ring
 variables {R R₂ S S₂ M N P : Type*}
 variables {Mₗ Nₗ Pₗ : Type*}
 variables [comm_ring R] [comm_ring S] [comm_ring R₂] [comm_ring S₂]
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P]
-variables [add_comm_group Mₗ] [add_comm_group Nₗ] [add_comm_group Pₗ]
+
+section add_comm_monoid
+
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+variables [add_comm_monoid Mₗ] [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
 variables [module R M] [module S N] [module R₂ P] [module S₂ P]
 variables [module R Mₗ] [module R Nₗ] [module R Pₗ]
 variables [smul_comm_class S₂ R₂ P]
 variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
 variables (b₁ : basis ι₁ R M) (b₂ : basis ι₂ S N) (b₁' : basis ι₁ R Mₗ) (b₂' : basis ι₂ R Nₗ)
-
-lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
-  function.injective (lsmul R M x) :=
-smul_right_injective _ hx
-
-lemma ker_lsmul [no_zero_smul_divisors R M] {a : R} (ha : a ≠ 0) :
-  (linear_map.lsmul R M a).ker = ⊥ :=
-linear_map.ker_eq_bot_of_injective (linear_map.lsmul_injective ha)
 
 
 /-- Two bilinear maps are equal when they are equal on all basis vectors. -/
@@ -351,6 +346,23 @@ begin
   simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum,
     linear_map.map_smul₂, linear_map.map_smul],
 end
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P]
+variables [module R M] [module S N] [module R₂ P] [module S₂ P]
+
+lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
+  function.injective (lsmul R M x) :=
+smul_right_injective _ hx
+
+lemma ker_lsmul [no_zero_smul_divisors R M] {a : R} (ha : a ≠ 0) :
+  (linear_map.lsmul R M a).ker = ⊥ :=
+linear_map.ker_eq_bot_of_injective (linear_map.lsmul_injective ha)
+
+end add_comm_group
 
 end comm_ring
 

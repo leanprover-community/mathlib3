@@ -42,7 +42,7 @@ This file contains a lot of technical facts, so it is heavily commented, proofs 
 
 * `uniform_convergence.uniform_continuous_eval`: evaluation is uniformly continuous for `𝒰(α, uβ)`.
 * `uniform_convergence.t2_space`: the topology of uniform convergence on `α → β` is T₂ if
-  `β` is T2.
+  `β` is T₂.
 * `uniform_convergence.tendsto_iff_tendsto_uniformly`: `𝒰(α, β, uβ)` is
   indeed the uniform structure of uniform convergence
 * `uniform_convergence_on.uniform_continuous_eval_of_mem`: evaluation at a point contained in a

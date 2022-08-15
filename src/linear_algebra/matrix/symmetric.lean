@@ -94,9 +94,9 @@ h.transpose.map _
   (k • A).is_symm :=
 (transpose_smul _ _).trans (congr_arg _ h)
 
-@[simp] lemma is_symm.minor {A : matrix n n α} (h : A.is_symm) (f : m → n) :
-  (A.minor f f).is_symm :=
-(transpose_minor _ _ _).trans (h.symm ▸ rfl)
+@[simp] lemma is_symm.on {A : matrix n n α} (h : A.is_symm) (f : m → n) :
+  (A.on f f).is_symm :=
+(transpose_on _ _ _).trans (h.symm ▸ rfl)
 
 /-- The diagonal matrix `diagonal v` is symmetric. -/
 @[simp] lemma is_symm_diagonal [decidable_eq n] [has_zero α] (v : n → α) :

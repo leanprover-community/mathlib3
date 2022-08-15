@@ -125,19 +125,19 @@ begin
   simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
 
-@[simp] lemma from_blocks_minor_sum_swap_left
+@[simp] lemma from_blocks_on_sum_swap_left
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → l ⊕ m) :
-  (from_blocks A B C D).minor sum.swap f = (from_blocks C D A B).minor id f :=
+  (from_blocks A B C D).on sum.swap f = (from_blocks C D A B).on id f :=
 by { ext i j, cases i; dsimp; cases f j; refl }
 
-@[simp] lemma from_blocks_minor_sum_swap_right
+@[simp] lemma from_blocks_on_sum_swap_right
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → n ⊕ o) :
-  (from_blocks A B C D).minor f sum.swap = (from_blocks B A D C).minor f id :=
+  (from_blocks A B C D).on f sum.swap = (from_blocks B A D C).on f id :=
 by { ext i j, cases j; dsimp; cases f i; refl }
 
-lemma from_blocks_minor_sum_swap_sum_swap {l m n o α : Type*}
+lemma from_blocks_on_sum_swap_sum_swap {l m n o α : Type*}
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  (from_blocks A B C D).minor sum.swap sum.swap = from_blocks D C B A :=
+  (from_blocks A B C D).on sum.swap sum.swap = from_blocks D C B A :=
 by simp
 
 /-- A 2x2 block matrix is block diagonal if the blocks outside of the diagonal vanish -/
@@ -147,7 +147,7 @@ to_blocks₁₂ A = 0 ∧ to_blocks₂₁ A = 0
 /-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
   `to_block M p q` is the corresponding block matrix. -/
 def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :
-  matrix {a // p a} {a // q a} α := M.minor coe coe
+  matrix {a // p a} {a // q a} α := M.on coe coe
 
 @[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) (q : n → Prop)
   (i : {a // p a}) (j : {a // q a}) : to_block M p q i j = M ↑i ↑j := rfl
@@ -155,7 +155,7 @@ def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :
 /-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
   `to_square_block M b k` is the block `k` matrix. -/
 def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
-  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+  matrix {a // b a = k} {a // b a = k} α := M.on coe coe
 
 @[simp] lemma to_square_block_def (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
   to_square_block M b k = λ i j, M ↑i ↑j := rfl
@@ -163,7 +163,7 @@ def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) 
 /-- Alternate version with `b : m → nat`. Let `b` map rows and columns of a square matrix `M` to
   blocks. Then `to_square_block' M b k` is the block `k` matrix. -/
 def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
-  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+  matrix {a // b a = k} {a // b a = k} α := M.on coe coe
 
 @[simp] lemma to_square_block_def' (M : matrix m m α) (b : m → nat) (k : nat) :
   to_square_block' M b k = λ i j, M ↑i ↑j := rfl
@@ -171,7 +171,7 @@ def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
 /-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
   `to_square_block_prop M p` is the corresponding block matrix. -/
 def to_square_block_prop (M : matrix m m α) (p : m → Prop) :
-  matrix {a // p a} {a // p a} α := M.minor coe coe
+  matrix {a // p a} {a // p a} α := M.on coe coe
 
 @[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
   to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
@@ -460,8 +460,8 @@ lemma block_diagonal'_eq_block_diagonal (M : o → matrix m n α) {k k'} (i j) :
   block_diagonal M (i, k) (j, k') = block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ :=
 rfl
 
-lemma block_diagonal'_minor_eq_block_diagonal (M : o → matrix m n α) :
-  (block_diagonal' M).minor (prod.to_sigma ∘ prod.swap) (prod.to_sigma ∘ prod.swap) =
+lemma block_diagonal'_on_eq_block_diagonal (M : o → matrix m n α) :
+  (block_diagonal' M).on (prod.to_sigma ∘ prod.swap) (prod.to_sigma ∘ prod.swap) =
     block_diagonal M :=
 matrix.ext $ λ ⟨k, i⟩ ⟨k', j⟩, rfl
 

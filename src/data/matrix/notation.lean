@@ -301,17 +301,17 @@ by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
 
-section minor
+section on
 
-@[simp] lemma minor_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
-  minor A row col = ![] :=
+@[simp] lemma on_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
+  A.on row col = ![] :=
 empty_eq _
 
-@[simp] lemma minor_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
-  minor A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (minor A row col) :=
-by { ext i j, refine fin.cases _ _ i; simp [minor] }
+@[simp] lemma on_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
+  A.on (vec_cons i row) col = vec_cons (λ j, A i (col j)) (A.on row col) :=
+by { ext i j, refine fin.cases _ _ i; simp [matrix.on] }
 
-end minor
+end on
 
 section vec2_and_vec3
 

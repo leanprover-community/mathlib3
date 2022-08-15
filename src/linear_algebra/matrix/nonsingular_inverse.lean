@@ -536,10 +536,10 @@ of the Schur complement. -/
 lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
 begin
-  have : from_blocks A B C D = (from_blocks D C B A).minor (sum_comm _ _) (sum_comm _ _),
+  have : from_blocks A B C D = (from_blocks D C B A).on (sum_comm _ _) (sum_comm _ _),
   { ext i j,
     cases i; cases j; refl },
-  rw [this, det_minor_equiv_self, det_from_blocks₁₁],
+  rw [this, det_on_equiv_self, det_from_blocks₁₁],
 end
 
 @[simp] lemma det_from_blocks_one₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) :

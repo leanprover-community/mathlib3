@@ -269,7 +269,7 @@ begin
   cases t,
   ext a b,
   simp only [reindex_equiv, transvection, mul_boole, algebra.id.smul_eq_mul, to_matrix_mk,
-    minor_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
+    on_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
   by_cases ha : e t_i = a; by_cases hb : e t_j = b; by_cases hab : a = b;
   simp [ha, hb, hab, ← e.apply_eq_iff_eq_symm_apply, std_basis_matrix]
 end
@@ -585,12 +585,12 @@ begin
   rcases H with ⟨L₀, L₀', D₀, h₀⟩,
   refine ⟨L₀.map (reindex_equiv e.symm), L₀'.map (reindex_equiv e.symm), D₀ ∘ e, _⟩,
   have : M = reindex_alg_equiv 𝕜 e.symm (reindex_alg_equiv 𝕜 e M),
-    by simp only [equiv.symm_symm, minor_minor, reindex_apply, minor_id_id, equiv.symm_comp_self,
+    by simp only [equiv.symm_symm, on_on, reindex_apply, on_id_id, equiv.symm_comp_self,
       reindex_alg_equiv_apply],
   rw this,
   simp only [to_matrix_reindex_equiv_prod, list.map_map, reindex_alg_equiv_apply],
   simp only [← reindex_alg_equiv_apply, ← reindex_alg_equiv_mul, h₀],
-  simp only [equiv.symm_symm, reindex_apply, minor_diagonal_equiv, reindex_alg_equiv_apply],
+  simp only [equiv.symm_symm, reindex_apply, diagonal_on_equiv, reindex_alg_equiv_apply],
 end
 
 /-- Any matrix can be reduced to diagonal form by elementary operations. Formulated here on `Type 0`

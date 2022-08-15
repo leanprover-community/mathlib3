@@ -150,15 +150,15 @@ lemma continuous.matrix_vec_mul [non_unital_non_assoc_semiring R] [has_continuou
 continuous_pi $ λ i, hA.matrix_dot_product $ continuous_pi $ λ j, hB.matrix_elem _ _
 
 @[continuity]
-lemma continuous.matrix_minor {A : X → matrix l n R} (hA : continuous A) (e₁ : m → l) (e₂ : p → n) :
-  continuous (λ x, (A x).minor e₁ e₂) :=
+lemma continuous.matrix_on {A : X → matrix l n R} (hA : continuous A) (e₁ : m → l) (e₂ : p → n) :
+  continuous (λ x, (A x).on e₁ e₂) :=
 continuous_matrix $ λ i j, hA.matrix_elem _ _
 
 @[continuity]
 lemma continuous.matrix_reindex {A : X → matrix l n R}
   (hA : continuous A) (e₁ : l ≃ m) (e₂ : n ≃ p) :
   continuous (λ x, reindex e₁ e₂ (A x)) :=
-hA.matrix_minor _ _
+hA.matrix_on _ _
 
 @[continuity]
 lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :

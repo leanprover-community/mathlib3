@@ -21,10 +21,10 @@ which sends a matrix `A` and vector `b` to the vector consisting of the
 determinant of replacing the `i`th column of `A` with `b` at index `i`
 (written as `(A.update_column i b).det`).
 Using Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`.
-The entries of the adjugate are the determinants of each minor of `A`.
-Instead of defining a minor to be `A` with row `i` and column `j` deleted, we
-replace the `i`th row of `A` with the `j`th basis vector; this has the same
-determinant as the minor but more importantly equals Cramer's rule applied
+The entries of the adjugate are the minors of `A`.
+Instead of defining a minor by deleting row `i` and column `j` of `A`, we
+replace the `i`th row of `A` with the `j`th basis vector; the resulting matrix
+has the same determinant but more importantly equals Cramer's rule applied
 to `A` and the `j`th basis vector, simplifying the subsequent proofs.
 We prove the adjugate behaves like `det A • A⁻¹`.
 

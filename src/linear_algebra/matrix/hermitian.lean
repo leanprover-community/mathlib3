@@ -84,9 +84,9 @@ h.transpose.map _ $ λ _, rfl
   (A + B).is_hermitian :=
 (conj_transpose_add _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
-@[simp] lemma is_hermitian.minor {A : matrix n n α} (h : A.is_hermitian) (f : m → n) :
-  (A.minor f f).is_hermitian :=
-(conj_transpose_minor _ _ _).trans (h.symm ▸ rfl)
+@[simp] lemma is_hermitian.on {A : matrix n n α} (h : A.is_hermitian) (f : m → n) :
+  (A.on f f).is_hermitian :=
+(conj_transpose_on _ _ _).trans (h.symm ▸ rfl)
 
 /-- The real diagonal matrix `diagonal v` is hermitian. -/
 @[simp] lemma is_hermitian_diagonal [decidable_eq n] (v : n → ℝ) :

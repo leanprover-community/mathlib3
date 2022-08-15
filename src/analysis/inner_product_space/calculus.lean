@@ -344,7 +344,7 @@ lemma cont_diff_homeomorph_unit_ball :
   cont_diff ℝ n $ λ (x : E), (homeomorph_unit_ball x : E) :=
 begin
   suffices : cont_diff ℝ n (λ x, (1 + ∥x∥^2).sqrt⁻¹), { exact this.smul cont_diff_id, },
-  have h : ∀ (x : E), 0 < 1 + ∥x∥ ^ 2 := λ x, by linarith [sq_nonneg (∥x∥)],
+  have h : ∀ (x : E), 0 < 1 + ∥x∥ ^ 2 := λ x, by positivity,
   refine cont_diff.inv _ (λ x, real.sqrt_ne_zero'.mpr (h x)),
   exact (cont_diff_const.add cont_diff_norm_sq).sqrt (λ x, (h x).ne.symm),
 end

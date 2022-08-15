@@ -170,7 +170,7 @@ smoothness properties that hold when `E` is an inner-product space. -/
 def homeomorph_unit_ball [normed_space ℝ E] :
   E ≃ₜ ball (0 : E) 1 :=
 { to_fun := λ x, ⟨(1 + ∥x∥^2).sqrt⁻¹ • x, begin
-    have : 0 < 1 + ∥x∥ ^ 2 := by linarith [sq_nonneg (∥x∥)],
+    have : 0 < 1 + ∥x∥ ^ 2, by positivity,
     rw [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
       div_lt_one (abs_pos.mpr $ real.sqrt_ne_zero'.mpr this), ← abs_norm_eq_norm x, ← sq_lt_sq,
       abs_norm_eq_norm, real.sq_sqrt this.le],
@@ -179,7 +179,7 @@ def homeomorph_unit_ball [normed_space ℝ E] :
   inv_fun := λ y, (1 - ∥(y : E)∥^2).sqrt⁻¹ • (y : E),
   left_inv := λ x,
   begin
-    have : 0 < 1 + ∥x∥ ^ 2 := by linarith [sq_nonneg (∥x∥)],
+    have : 0 < 1 + ∥x∥ ^ 2, by positivity,
     field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
   end,
   right_inv := λ y,
@@ -191,8 +191,7 @@ def homeomorph_unit_ball [normed_space ℝ E] :
   continuous_to_fun := continuous_subtype_mk _ $
   begin
     suffices : continuous (λ x, (1 + ∥x∥^2).sqrt⁻¹), { exact this.smul continuous_id, },
-    have h : ∀ (x : E), 0 < 1 + ∥x∥ ^ 2 := λ x, by linarith [sq_nonneg (∥x∥)],
-    refine continuous.inv₀ _ (λ x, real.sqrt_ne_zero'.mpr (h x)),
+    refine continuous.inv₀ _ (λ x, real.sqrt_ne_zero'.mpr (by positivity)),
     continuity,
   end,
   continuous_inv_fun :=

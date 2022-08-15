@@ -850,7 +850,7 @@ begin
   let C := (ro_component.of_subconnected_disjoint G K D (set.infinite.nonempty Dinf) Ddis Dconn).some,
   obtain ⟨Ccomp,DC⟩ := (ro_component.of_subconnected_disjoint G K D (set.infinite.nonempty Dinf) Ddis Dconn).some_spec,
   have Cinf := set.infinite.mono DC Dinf,
-  have Ccof : (C ᶜ).finite := by sorry,
+  have Ccof : (C ᶜ).finite, by { apply set.finite.subset Dcof, simp, exact DC, },
 
   exact cofinite_inf_ro_component_equiv' G Gpc K ⟨⟨C,Ccomp⟩,Cinf⟩ Ccof,
 end

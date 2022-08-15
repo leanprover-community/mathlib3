@@ -385,7 +385,7 @@ def affine_target_morphism_property.stable_under_base_change
 ∀ ⦃X Y S : Scheme⦄ [is_affine S] [is_affine X] (f : X ⟶ S) (g : Y ⟶ S),
   by exactI P g → P (pullback.fst : pullback f g ⟶ X)
 
-lemma affine_target_morphism_property.is_local.affine_pullback_snd_of_left
+lemma affine_target_morphism_property.is_local.target_affine_locally_pullback_fst_of_right
   {P : affine_target_morphism_property} (hP : P.is_local) (hP' : P.stable_under_base_change)
   {X Y S : Scheme} (f : X ⟶ S) (g : Y ⟶ S) [is_affine S] (H : P g) :
   target_affine_locally P (pullback.fst : pullback f g ⟶ X) :=
@@ -416,7 +416,7 @@ begin
       (by simpa using pullback.condition) (by simp)) },
   have : e.hom ≫ pullback.fst = pullback.snd := by simp,
   rw [← this, (target_affine_locally_respects_iso hP.1).cancel_left_is_iso],
-  apply hP.affine_pullback_snd_of_left hP',
+  apply hP.target_affine_locally_pullback_fst_of_right hP',
   rw [← pullback_symmetry_hom_comp_snd, affine_cancel_left_is_iso hP.1],
   apply H
 end

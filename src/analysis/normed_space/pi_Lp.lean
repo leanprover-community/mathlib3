@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Jireh Loreaux
 -/
 import analysis.mean_inequalities
 import data.fintype.order
@@ -112,27 +112,20 @@ Registering this separately allows for a future emetric-like structure on `pi_Lp
 satisfying a relaxed triangle inequality. The terminology for this varies throughout the
 literature, but it is sometimes called a *quasi-metric* or *semi-metric*. -/
 instance : has_edist (pi_Lp p β) :=
-{ edist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
+{ edist := λ f g, if hp : p = 0 then {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, edist (f i) (g i)
     else (∑ i, (edist (f i) (g i) ^ p.to_real)) ^ (1/p.to_real)) }
 
 variable {β}
 lemma edist_eq_card (f g : pi_Lp 0 β) : edist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
-dif_pos rfl
+if_pos rfl
 
 lemma edist_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p β) :
   edist f g = (∑ i, edist (f i) (g i) ^ p.to_real) ^ (1/p.to_real) :=
-begin
-  dsimp [edist],
-  rw ennreal.to_real_pos_iff at hp,
-  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
-end
+let hp' := ennreal.to_real_pos_iff.mp hp in (if_neg hp'.1.ne').trans (if_neg hp'.2.ne)
 
 lemma edist_eq_supr (f g : pi_Lp ∞ β) : edist f g = ⨆ i, edist (f i) (g i) :=
-begin
-  dsimp [edist],
-  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
-end
+by { dsimp [edist], exact if_neg ennreal.top_ne_zero }
 
 end edist
 
@@ -173,27 +166,20 @@ Registering this separately allows for a future metric-like structure on `pi_Lp 
 satisfying a relaxed triangle inequality. The terminology for this varies throughout the
 literature, but it is sometimes called a *quasi-metric* or *semi-metric*. -/
 instance : has_dist (pi_Lp p α) :=
-{ dist := λ f g, if hp : p = 0 then by subst hp; exact {i | f i ≠ g i}.to_finite.to_finset.card
+{ dist := λ f g, if hp : p = 0 then {i | f i ≠ g i}.to_finite.to_finset.card
     else (if p = ∞ then ⨆ i, dist (f i) (g i)
     else (∑ i, (dist (f i) (g i) ^ p.to_real)) ^ (1/p.to_real)) }
 
 variable {α}
 lemma dist_eq_card (f g : pi_Lp 0 α) : dist f g = {i | f i ≠ g i}.to_finite.to_finset.card :=
-dif_pos rfl
+if_pos rfl
 
 lemma dist_eq_sum {p : ℝ≥0∞} (hp : 0 < p.to_real) (f g : pi_Lp p α) :
   dist f g = (∑ i, dist (f i) (g i) ^ p.to_real) ^ (1/p.to_real) :=
-begin
-  dsimp [dist],
-  rw ennreal.to_real_pos_iff at hp,
-  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
-end
+let hp' := ennreal.to_real_pos_iff.mp hp in (if_neg hp'.1.ne').trans (if_neg hp'.2.ne)
 
 lemma dist_eq_csupr (f g : pi_Lp ∞ α) : dist f g = ⨆ i, dist (f i) (g i) :=
-begin
-  dsimp [dist],
-  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
-end
+by { dsimp [dist], exact if_neg ennreal.top_ne_zero }
 
 end dist
 
@@ -208,26 +194,19 @@ separate from `pi_Lp.seminormed_add_comm_group` since the latter requires the ty
 Registering this separately allows for a future norm-like structure on `pi_Lp p β` for `p < 1`
 satisfying a relaxed triangle inequality. These are called *quasi-norms*. -/
 instance has_norm : has_norm (pi_Lp p β) :=
-{ norm := λ f, if hp : p = 0 then by subst hp; exact {i | f i ≠ 0}.to_finite.to_finset.card
+{ norm := λ f, if hp : p = 0 then {i | f i ≠ 0}.to_finite.to_finset.card
    else (if p = ∞ then ⨆ i, ∥f i∥ else (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real)) }
 
 variables {p β}
 lemma norm_eq_card (f : pi_Lp 0 β) : ∥f∥ = {i | f i ≠ 0}.to_finite.to_finset.card :=
-dif_pos rfl
+if_pos rfl
 
 lemma norm_eq_csupr (f : pi_Lp ∞ β) : ∥f∥ = ⨆ i, ∥f i∥ :=
-begin
-  dsimp [norm],
-  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
-end
+by { dsimp [norm], exact if_neg ennreal.top_ne_zero }
 
 lemma norm_eq_sum (hp : 0 < p.to_real) (f : pi_Lp p β) :
   ∥f∥ = (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real) :=
-begin
-  dsimp [norm],
-  rw ennreal.to_real_pos_iff at hp,
-  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
-end
+let hp' := ennreal.to_real_pos_iff.mp hp in (if_neg hp'.1.ne').trans (if_neg hp'.2.ne)
 
 end norm
 

@@ -387,8 +387,6 @@ instance : add_action (E →ₗ[R] F) (linear_pmap R E F) :=
 
 end vadd
 
-#exit
-
 section
 
 variables {K : Type*} [division_ring K] [module K E] [module K F]

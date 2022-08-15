@@ -70,7 +70,7 @@ we have $(f_n(\omega))$ is convergent.
 
 Hence, assuming $(f_n)$ is L¹-bounded, using Fatou's lemma, we have
 $$
-  \mathbb{E] \limsup_{n \to \infty} |f_n| \le \limsup_{n \to \infty} \mathbb{E}|f_n| < \infty
+  \mathbb{E} \limsup_{n \to \infty} |f_n| \le \limsup_{n \to \infty} \mathbb{E}|f_n| < \infty
 $$
 implying $\limsup_{n \to \infty} |f_n| < \infty$ a.e. Furthermore, by the upcrossing estimate,
 the number of upcrossings is finite almost everywhere implying $f$ converges pointwise almost

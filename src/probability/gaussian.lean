@@ -21,7 +21,8 @@ import measure_theory.measure.haar_lebesgue
 import analysis.normed_space.pointwise
 import measure_theory.covering.differentiation
 import measure_theory.constructions.polish
-
+import measure_theory.integral.integral_eq_improper
+import analysis.special_functions.integrals
 import measure_theory.group.integration
 
 #check real.exp_pos
@@ -57,6 +58,44 @@ easier to work with the second definition as we have the density readily. We wil
 second definition.
 -/
 
+
+open measure_theory filter real
+
+lemma real.neg_volume_eq : (volume : measure ℝ).map (has_neg.neg) = volume :=
+begin
+  ext1 s hs,
+  rw [measure.map_apply measurable_neg hs, set.neg_preimage, measure.add_haar_preimage_neg],
+end
+
+lemma integral_eq_zero_of_eq_neg {f : ℝ → ℝ} (hf : ∀ x, f x = -f (-x)) :
+  ∫ x, f x = 0 :=
+begin
+  by_cases hfint : integrable f,
+  swap, { exact integral_undef hfint },
+  rw [← integral_univ, ← @set.Iio_union_Ici _ _ (0 : ℝ),
+    integral_union _ measurable_set_Ici hfint.integrable_on hfint.integrable_on,
+    add_comm, add_eq_zero_iff_eq_neg, ← integral_neg],
+  have : ∫ x in set.Iio 0, -f x = ∫ x in set.Ici 0, -f (-x),
+  { change _ = ∫ x in set.Ici 0, (-f) (-x),
+    rw [(by simp : set.Ici (0 : ℝ) = has_neg.neg ⁻¹' (set.Iic 0)),
+      ← set_integral_map measurable_set_Iic];
+    try { rw real.neg_volume_eq },
+    { exact set_integral_congr_set_ae Iio_ae_eq_Iic },
+    { exact hfint.1.neg },
+    { exact ae_measurable_id'.neg },
+    all_goals { apply_instance } },
+  { rw this,
+    congr,
+    exact funext hf },
+  { rintro r ⟨hlt, hge⟩,
+    exact (lt_of_lt_of_le hlt hge).ne rfl }
+end
+
+example : ∫ (x : ℝ), x * exp (-x ^ 2) = 0 :=
+begin
+  refine integral_eq_zero_of_eq_neg (λ x, _),
+  simp only [neg_sq, neg_mul, neg_neg],
+end
 open_locale nnreal ennreal probability_theory measure_theory real
 
 namespace measure_theory
@@ -485,6 +524,28 @@ begin
   exact hs,
 end
 
+--sqrt (2 * s ^ 2 * π) ≠ 0
+lemma two_pi_neq_zero (hs : s ≠ 0) : sqrt (2 * s ^ 2 * π) ≠ 0 :=
+begin
+  have h_conpos : ∀ (x:ℝ), x ≥ 0 → x ≠ 0 → sqrt x ≠ 0 ,
+    intros x hx h,
+    exact mt (pos_sqrt_zero_eq_zero x hx) h,
+
+  apply h_conpos,
+  simp,
+  --s_sq_pos_2_pi
+  rw mul_assoc,
+  rw mul_comm (s^2) π,
+  rw ← mul_assoc,
+  apply has_lt.lt.le,
+  exact s_sq_pos_2_pi s hs,
+  simp,
+  apply not_or,
+  exact hs,
+  exact  real.pi_ne_zero,
+end
+
+
 lemma simplify_sqrt_and_square_in_exp (hs : s≠0) : ∀ (x:ℝ),
 exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) =
 exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2):=
@@ -534,7 +595,7 @@ end
 
 
 
-lemma simplify_complicated1 (hs : s≠0): ∀ (x:ℝ), /-(sqrt (2 * s ^ 2))⁻¹ *--/ (exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x)
+lemma simplify_left_for_change_of_vr (hs : s≠0): ∀ (x:ℝ), /-(sqrt (2 * s ^ 2))⁻¹ *--/ (exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x)
 = (exp (-((sqrt (2 * s ^ 2))⁻¹ * (x - m)) ^ 2) * (sqrt (2 * s ^ 2) * ((sqrt (2 * s ^ 2))⁻¹ * (x - m)) + m)) :=
 begin
   intro x,
@@ -543,10 +604,54 @@ begin
   simp_rw [simplify_sqrt_and_square_out_exp hs],
 
 end
+
+lemma simplify_right_for_change_of_vr (hs : s≠0): ∀ (x:ℝ),
+(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2) =
+exp (-x ^ 2) * (sqrt 2 * sqrt (s ^ 2) * x + m) :=
+begin
+  intro x,
+  simp [mul_comm, hs],
+end
+
+lemma equiv_change (func1 func2 : ℝ → ℝ) (c : ℝ) (hc : c≠0):
+  ∫ (x : ℝ) in set.univ, c⁻¹ * func1 x  = ∫ (x : ℝ) in set.univ, func2 x
+  →  ∫ (x : ℝ) in set.univ, func1 x  = ∫ (x : ℝ) in set.univ, (func2 x) • c :=
+begin
+  have h_no_univ1 : ∫ (x : ℝ) in set.univ, c⁻¹ * func1 x = ∫ (x : ℝ), c⁻¹ * func1 x,
+  {simp},
+  have h_no_univ2 : ∫ (x : ℝ) in set.univ, func2 x = ∫ (x : ℝ), func2 x,
+  {simp},
+  have h_no_univ3 : ∫ (x : ℝ) in set.univ, func1 x = ∫ (x : ℝ), func1 x,
+  {simp},
+  have h_no_univ4 : ∫ (x : ℝ) in set.univ, func2 x • c = ∫ (x : ℝ), func2 x • c,
+  {simp},
+  rw [h_no_univ1, h_no_univ2, h_no_univ3, h_no_univ4],
+
+
+  {intro h1,
+  rw ← comm_in_integ func1 c⁻¹ at h1,
+  simp_rw [← smul_eq_mul] at h1,
+  rw integral_smul_const func1  c⁻¹ at h1,
+  have h_mulc2sides : ((∫ (x : ℝ), func1 x) • c⁻¹) • c = (∫ (x : ℝ), func2 x) • c,
+    {simp [h1],},
+
+  have h_cancel_cinvc : ((∫ (x : ℝ), func1 x) • c⁻¹) • c = ∫ (x : ℝ), func1 x,
+    {
+      simp [mul_assoc (∫ (x : ℝ), func1 x) c⁻¹ c],
+      finish,
+    },
+  rw h_cancel_cinvc at h_mulc2sides,
+  rw integral_smul_const func2 c,
+  assumption,
+  },
+
+
+end
+
 ---lemma set_eq (hs : s≠0): set.univ = λ (x:ℝ), ((sqrt (2 * s ^ 2))⁻¹) * (x-m):=
 lemma change_of_vr_momentone_gaussian (hs: s≠0):
-∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x * (sqrt (2*s^2))⁻¹
- = ∫ (x : ℝ), ((sqrt (2 * s ^ 2))* x + m) * exp (- x ^ 2) :=
+∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x
+ = ∫ (x : ℝ), ((sqrt (2 * s ^ 2))* x + m) * exp (- x ^ 2) * (sqrt (2*s^2)):=
 begin
   let g : ℝ → ℝ := λ (x:ℝ), exp (- x ^ 2) * ((sqrt (2 * s ^ 2))*x + m),
   let f : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * s ^ 2))⁻¹ * (x-m),
@@ -567,28 +672,111 @@ begin
     {intro h2,
     simp}},
   simp,
-  have h_integ_eq_form1 : ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x * ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹)
-   = ∫ (x : ℝ) in set.univ, g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)) * ((sqrt (s ^ 2))⁻¹ * (sqrt 2)⁻¹),
+  have h_integ_eq_form1 : ∫ (x : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) * x
+   = ∫ (x : ℝ) in set.univ, g ( (sqrt (2 * s ^ 2))⁻¹ * (x-m)) ,
     {
       simp_rw [g],
-      simp_rw [← simplify_complicated1 hs],
+      simp_rw [← simplify_left_for_change_of_vr hs],
       simp,
     },
   rw h_integ_eq_form1,
-  have h_integ_eq_form2 : ∫ (x : ℝ), (sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)
-   = ∫ (x : ℝ), g x,
+  have h_integ_eq_form2 : ∫ (x : ℝ), (sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2) * (sqrt 2 * sqrt (s ^ 2))
+   = ∫ (x : ℝ) in set.univ, (g x) * (sqrt 2 * sqrt (s ^ 2)),
    {
     simp_rw [g],
     simp,
-    sorry
+    simp_rw [simplify_right_for_change_of_vr hs],
    },
+  rw h_integ_eq_form2,
+
   sorry
 --(sqrt 2 * sqrt (s ^ 2) * x + m) * exp (-x ^ 2)
 end
 
+lemma ez_cal: (λ(x : ℝ),(sqrt (2 * s ^ 2) * x + m) * exp (-x ^ 2)) =  (λ(x : ℝ),(sqrt (2 * s ^ 2) * x * exp(-x^2)) +  (m * exp(-x^2))) :=
+begin
+  ext x,
+  rw right_distrib,
+end
+
+
 lemma h_depart: (∫ (x : ℝ), (sqrt (2 * s ^ 2) * x + m) * exp (-x ^ 2)) = (∫ (x : ℝ), sqrt (2 * s ^ 2) * x * exp(-x^2) ) + (∫ (x : ℝ), m * exp(-x^2)) :=
 begin
-sorry
+  rw ez_cal,
+  let f : ℝ → ℝ := λ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2),
+
+  have h_changeform1 :∫ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2) + m * exp (-x ^ 2) = ∫ (x : ℝ), f x + m * exp (-x ^ 2),
+  {
+    simp_rw[f],
+  },
+  rw h_changeform1,
+
+  have h_changeform2 :(∫ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2)) = (∫ (x : ℝ), f x),
+  {
+    simp_rw[f],
+  },
+  rw h_changeform2,
+  let  g: ℝ → ℝ := λ (x : ℝ), m * exp (-x ^ 2),
+
+  have h_changeform3 :∫ (x : ℝ), f x + m * exp (-x ^ 2) = ∫ (x : ℝ), f x + g x,
+  {
+     simp_rw[g],
+    },
+  rw h_changeform3,
+
+  have h_changeform4 :∫ (x : ℝ), m * exp (-x ^ 2) = ∫ (x : ℝ), g x,
+  {
+     simp_rw[g],
+    },
+  rw h_changeform4,
+  have hf : measure_theory.integrable f ℙ,
+  {
+      rw integrable, fconstructor,
+      {measurability,},
+      {
+        refine (has_finite_integral_norm_iff f).mp _,
+        simp_rw[f],
+        apply integrable.has_finite_integral _,
+        refine integrable.abs _,
+        have h₁: (λ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2)) = (λ (x : ℝ), sqrt (2 * s ^ 2) * (x * exp (-x ^ 2))),
+          {
+            ext x,
+            rw mul_assoc,
+          },
+        rw h₁,
+        refine integrable.const_mul _ (sqrt(2 * s ^ 2)),
+        have hb: (0 : ℝ )<1,
+          {simp,},
+        have hs: (-1 : ℝ) < 1,
+          {simp,},
+        have h₂: (λ (x : ℝ), x * exp (-x ^ 2)) = (λ (x : ℝ), x^1 * exp ((-1) *x ^ 2)),
+          {simp,},
+        rw h₂,
+        let k := @integrable_rpow_mul_exp_neg_mul_sq 1 hb 1 hs,
+        norm_num,
+        norm_num at k,
+        exact k,
+      },
+    },
+  have hg : measure_theory.integrable g ℙ,
+    {
+      rw integrable, fconstructor,
+      {measurability},
+      {
+        simp_rw[g],
+        have hb: (0 : ℝ )<1,
+          {simp,},
+        refine (has_finite_integral_norm_iff g).mp _,
+        apply integrable.has_finite_integral _,
+        refine integrable.abs _,
+        refine integrable.const_mul _ m,
+        have h₁ : (λ (a : ℝ), exp (-a ^ 2)) = (λ (a : ℝ), exp ((-1)*a ^ 2)),
+          {simp,},
+        rw h₁,
+        exact integrable_exp_neg_mul_sq hb,
+      },
+    },
+  rw measure_theory.integral_add hf hg,
 end
 
 lemma change_onemul_to_smul_k (f:ℝ → ℝ): ∫ (x : ℝ), f x * sqrt (2 * s ^ 2)
@@ -597,14 +785,59 @@ begin
 simp_rw[← smul_eq_mul],
 end
 
+lemma this_is_useless_but_to_make_changes_to_push : 1+1=2:=
+begin
+  exact rfl,
+end
+
 lemma change_onemul_to_smul_t (f:ℝ → ℝ): ∫ (x : ℝ), f x * m
  = ∫ (x : ℝ), f x • m:=
 begin
 simp_rw[← smul_eq_mul],
 end
 
+lemma change_onemul_to_smul_f2 (f:ℝ → ℝ): ∫ (x : ℝ), f x * sqrt (2 * s ^ 2)
+ = ∫ (x : ℝ), f x • sqrt (2 * s ^ 2):=
+begin
+simp_rw[← smul_eq_mul],
+end--lemma eqform_of_gauden_to_nnreal_mea : measurable
 
---lemma eqform_of_gauden_to_nnreal_mea : measurable
+lemma sqrt_cal_for_last_part(hs : s ≠ 0): sqrt π * m * (sqrt 2 * sqrt (s ^ 2)) * (sqrt (2 * π * s ^ 2))⁻¹ = m :=
+begin
+  rw mul_comm (sqrt π) m,
+  have h₁: sqrt π * (sqrt 2 * sqrt (s ^ 2)) = sqrt (2 * π * s ^ 2),
+    {
+      rw[←real.sqrt_mul],
+      {
+        rw[←real.sqrt_mul],
+        have h₂: π * (2 * s ^ 2) = 2 * π * s ^ 2,
+          {
+            rw mul_comm,
+            ring,
+          },
+        rw h₂,
+        apply has_lt.lt.le,
+        exact pi_pos,
+      },
+      {
+        simp,
+      },
+    },
+  --rw ← h₁,
+  rw [mul_assoc m, h₁],
+  ring_nf,
+  have h2 : ∀ (x:ℝ), x≠0 →  x⁻¹ * x = 1,
+    {intros x hx,
+    finish},
+  have h3 : (sqrt (2 * s ^ 2 * π))⁻¹ * sqrt (2 * s ^ 2 * π) = 1,
+    {
+      rw h2,
+      exact two_pi_neq_zero hs,
+    },
+  rw h3,
+  simp,
+end
+
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
 begin
@@ -621,8 +854,6 @@ begin
   rw h_lambdaform,
   rw integral_with_density_eq_integral_smul eqform_of_gauden_mea id,
   unfold gaussian_density_to_nnreal,
-
-
   ---simp [gaussian_density_ennreal, hs],
   have h_eliminate_ennreal_nnreal :
   ∫ (a : ℝ), (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (a - m) ^ 2))).to_nnreal • a
@@ -632,7 +863,6 @@ begin
 
   },
   simp_rw [id],
-
   rw h_eliminate_ennreal_nnreal,
   --dsimp at *,
 
@@ -652,13 +882,89 @@ begin
       },
   rw h_integral_smul_const_special,
   simp_rw[f],
+  --rw smul_eq_mul,
+  /-have h_rw_to_use_change_of_vr : ∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x
+   = ∫ (x : ℝ), exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) • x * (sqrt (2*s^2))⁻¹,
+    {
+      sorry
+    },-/
+  rw change_of_vr_momentone_gaussian hs,
+  let f2 : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * s ^ 2) * x + m) * exp (-x ^ 2),
+  have h_changeform_3halves : ∫ (x : ℝ), (f2 x) * sqrt (2 * s ^ 2)
+  = ∫ (x : ℝ), (sqrt (2 * s ^ 2) * x + m) * exp (-x ^ 2) * sqrt (2 * s ^ 2),
+    {
+      simp_rw [f2],
+    },
+  rw ← h_changeform_3halves,
+  rw change_onemul_to_smul_f2 f2,
 
+  have h_integral_smul_const_moveout : ∫ (x : ℝ), f2 x • sqrt (2 * s ^ 2) ∂ℙ
+    = (∫ (x : ℝ), f2 x ∂ℙ) • sqrt (2 * s ^ 2),
+      {
+        exact integral_smul_const f2 (sqrt (2 * s ^ 2)),
+      },
+  rw h_integral_smul_const_moveout,
 
+  rw h_depart,
+  -- move the constant of the first integral out
+  let k : ℝ → ℝ := λ (x : ℝ), x * exp (-x ^ 2),
+  have h_changeform2 : (∫ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2)) = (∫ (x : ℝ), sqrt (2 * s ^ 2) * k x),
+    {
+      simp_rw[k],
+      have  remove_bracket : (λ (x : ℝ), sqrt (2 * s ^ 2) * x * exp (-x ^ 2)) = (λ (x : ℝ), sqrt (2 * s ^ 2) * (x * exp (-x ^ 2))),
+        {
+          ext x,
+          rw mul_assoc,
+        },
+      rw remove_bracket,
+    },
+  rw h_changeform2,
+  rw ← comm_in_integ k (sqrt (2 * s ^ 2)),
+  rw change_onemul_to_smul_k k,
+  have h_integral_smul_const_move_out : ∫ (x : ℝ), k x • sqrt (2 * s ^ 2) ∂ℙ
+    = (∫ (x : ℝ), k x ∂ℙ) • sqrt (2 * s ^ 2),
+      {
+        exact integral_smul_const k (sqrt (2 * s ^ 2)),
+      },
+  rw h_integral_smul_const_move_out,
 
-sorry
-
-
+  -- move the constant of the second integral out
+  let t : ℝ → ℝ := λ (x : ℝ), exp (-x ^ 2),
+  have h_changeform3 : (∫ (x : ℝ), m * exp (-x ^ 2)) = (∫ (x : ℝ), m * t x),
+    {
+      simp_rw[t],
+    },
+  rw h_changeform3,
+  rw ← comm_in_integ t m,
+  rw change_onemul_to_smul_t t,
+  have h_integral_smul_const_move_out2 : ∫ (x : ℝ), t x • m ∂ℙ
+    = (∫ (x : ℝ), t x ∂ℙ) • m,
+      {
+        exact integral_smul_const t m,
+      },
+  rw h_integral_smul_const_move_out2,
+  simp_rw[t],
+  have ez_change_form : (λ (x : ℝ), exp (-x ^ 2)) = (λ (x : ℝ), exp ((-1)*x ^ 2)),
+    {
+      ext x,
+      simp,
+    },
+  rw ez_change_form,
+  rw integral_gaussian 1,
+  simp,
+  simp_rw[k],
+  have from_JasonKY : ∫ (x : ℝ), x * exp (-x ^ 2) = 0,
+    {
+      refine integral_eq_zero_of_eq_neg (λ x, _),
+      simp only [neg_sq, neg_mul, neg_neg],
+    },
+  simp_rw [from_JasonKY],
+  rw zero_mul,
+  rw zero_add,
+  rw sqrt_cal_for_last_part hs,
 end
+
+
 
 -- easy direction
 lemma absolutely_continuous_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :

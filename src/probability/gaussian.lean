@@ -35,6 +35,7 @@ import analysis.special_functions.integrals
 #check measurable_set.univ
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
 #check real.coe_to_nnreal
+#check set.inter_comm
 
 
 ---#check probability_theory.moment,
@@ -1189,10 +1190,48 @@ end
 --   measurability,
 -- end
 
+lemma union_comm (S : set ℝ) : {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} ∩ S
+ = S ∩ {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} :=
+begin
+  exact set.inter_comm {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} S,
+end
+
+lemma inv_sqrt_2pis2_pos (hs : s≠0) : 0 < (sqrt (2 * π * s ^ 2))⁻¹ :=
+begin
+  simp,
+  exact s_sq_pos_2_pi s hs,
+end
+
+lemma funcpos_anywhere (hs : s≠0) : ∀ (x:ℝ), 0 < ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)):=
+begin
+  intro x,
+  simp [inv_sqrt_2pis2_pos hs],
+  exact (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)).exp_pos,
+end
+
+
+lemma t_eq_set_of_posval (hs : s≠0) :
+{x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0}
+ = {x : ℝ | 0 < ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))}:=
+begin
+  ext x,
+  simp [funcpos_anywhere hs],
+end
+
+lemma t_eq_setuniv (hs : s≠0) : (set.univ : set ℝ) =
+{x : ℝ | 0 < ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))}:=
+begin
+  ext x,
+  simp [funcpos_anywhere hs x],
+  simp [inv_sqrt_2pis2_pos hs],
+  exact (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)).exp_pos,
+end
+
 -- easy direction
 lemma absolutely_continuous_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ ≪ volume :=
 begin
+
 /-
   unfold real_gaussian at hμ,
   simp [hs] at hμ,
@@ -1211,8 +1250,34 @@ begin
   -- unfold_coes,
 -/
 
+  unfold measure.absolutely_continuous,
+  unfold real_gaussian at hμ,
+  intros S hPs,
+  split_ifs at hμ,
+  unfold gaussian_density at hμ,
+  rw hμ,
+  rw measure_theory.with_density_apply_eq_zero,
+  {
+    rw union_comm S,
+    rw t_eq_set_of_posval hs,
+    rw ← t_eq_setuniv hs,
+    ---have h_univ_measurable : measurable_set (set.univ : set ℝ) := measurable_set.univ,
+    have h_inter_smaller_measure : ℙ (S ∩ set.univ) ≤ ℙ (S),
+      {
+        rw ← measure_inter_add_diff S measurable_set.univ,
+        simp,
+      },
+    simp [hPs, h_inter_smaller_measure],
 
-  sorry
+
+
+  },
+  {measurability},
+
+
+
+
+
 end
 
 -- harder

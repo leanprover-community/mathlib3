@@ -130,6 +130,13 @@ end
 lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=
 ⟨λ h, zero_lt_iff.2 (even_pow.1 h).2, λ h, (even_pow' h.ne').2 even_two⟩
 
+lemma even_not_dvd_odd {e o : ℕ} (he : even e) (ho : odd o) : ¬ e ∣ o :=
+begin
+  rintro ⟨d, hd⟩,
+  rw [hd, odd_iff_not_even] at ho,
+  cases ho (even.mul_right he d),
+end
+
 lemma sub_one_dvd_pow_sub_one (p a : ℕ) (hp_pos : 0 < p) : (p - 1) ∣ (p ^ a - 1) :=
 begin
   induction a with a IH, { simp },

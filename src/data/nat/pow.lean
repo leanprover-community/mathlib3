@@ -130,8 +130,8 @@ begin
 end
 
 theorem cauchy_induction_two {P : ℕ → Prop}
-(h1 : Π (n : ℕ), P (n + 1) → P n) (h2 : Π (n : ℕ), P n → P (2 * n))
-{m : ℕ} (hm : 0 < m) (hp : P m) (n : ℕ) : P n :=
+  (h1 : Π (n : ℕ), P (n + 1) → P n) (h2 : Π (n : ℕ), P n → P (2 * n))
+  {m : ℕ} (hm : 0 < m) (hp : P m) (n : ℕ) : P n :=
 cauchy_induction 2 one_lt_two h1 h2 hm hp n
 
 /-! ### `pow` and `mod` / `dvd` -/

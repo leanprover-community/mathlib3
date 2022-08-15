@@ -453,22 +453,14 @@ begin
   have rid2 : (p:ℤ) ∣ g.coeff 0 * ((-1) ^ (g.nat_degree * p) * -↑(g.nat_degree.factorial ^ p)) + ↑p * c,
   rw rid, exact dvd_zero ↑p,
 
-  replace rid2 : (p:ℤ) ∣ g.coeff 0 * ((-1) ^ (g.nat_degree * p) * -↑(g.nat_degree.factorial ^ p)),
-    refine (dvd_add_iff_left _).2 rid2, exact dvd.intro c rfl,
-  replace rid2 : (p : ℤ) ∣ g.coeff 0 * g.nat_degree.factorial ^ p,
-  { obtain h|h := neg_one_pow_eq_or ℤ (g.nat_degree * p);
-    { rw h at rid2,
-      simpa only [one_mul, dvd_neg, int.mul_neg_eq_neg_mul_symm,
-        int.neg_mul_eq_neg_mul_symm, int.coe_nat_pow, neg_neg] using rid2 } },
-  replace rid2 := int.dvd_nat_abs_of_of_nat_dvd rid2,
-  rw int.nat_abs_mul at rid2,
-  rw hp.dvd_mul at rid2,
+  rw [←dvd_add_iff_left (dvd_mul_right (p : ℤ) c), int.coe_nat_dvd_left, int.nat_abs_mul,
+    int.nat_abs_mul, int.nat_abs_pow, int.nat_abs_neg, int.nat_abs_one, one_pow, one_mul,
+    int.nat_abs_neg, hp.dvd_mul, int.nat_abs_of_nat] at rid2,
   cases rid2,
   { have ineq1 : (g.coeff 0).nat_abs > 0 := int.nat_abs_pos_of_ne_zero coeff_nonzero,
     exact hp2.2.not_le (nat.le_of_dvd ineq1 rid2) },
-  { rw int.nat_abs_pow at rid2,
-    have H := nat.prime.dvd_of_dvd_pow hp rid2,
-    rw [int.nat_abs_of_nat, hp.dvd_factorial] at H,
+  { have H := nat.prime.dvd_of_dvd_pow hp rid2,
+    rw [hp.dvd_factorial] at H,
     exact hp2.1.not_le H },
 end
 

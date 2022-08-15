@@ -66,8 +66,9 @@ variables {X Y : Type*}
 section topological_space
 variables [topological_space X] [topological_space Y]
 
-/-- The sequential closure of a set `s : set X` in a topological space `X` is
-the set of all `a : X` which arise as limit of sequences in `s`. -/
+/-- The sequential closure of a set `s : set X` in a topological space `X` is the set of all `a : X`
+which arise as limit of sequences in `s`. Note that the sequential closure of a set is not
+guaranteed to be sequentially closed. -/
 def seq_closure (s : set X) : set X :=
 {a | ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ tendsto x at_top (𝓝 a)}
 
@@ -79,8 +80,9 @@ The converse is not true. -/
 lemma seq_closure_subset_closure {s : set X} : seq_closure s ⊆ closure s :=
 λ p ⟨x, xM, xp⟩, mem_closure_of_tendsto xp (univ_mem' xM)
 
-/-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`,
-the limit belongs to `s` as well. -/
+/-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`, the
+limit belongs to `s` as well. Note that the sequential closure of a set is not guaranteed to be
+sequentially closed. -/
 def is_seq_closed (s : set X) : Prop :=
 ∀ ⦃x : ℕ → X⦄ ⦃p : X⦄, (∀ n, x n ∈ s) → tendsto x at_top (𝓝 p) → p ∈ s
 
@@ -88,6 +90,16 @@ def is_seq_closed (s : set X) : Prop :=
 lemma is_seq_closed.seq_closure_eq {s : set X} (hs : is_seq_closed s) :
   seq_closure s = s :=
 subset.antisymm (λ p ⟨x, hx, hp⟩, hs hx hp) subset_seq_closure
+
+/-- If a set is equal to its sequential closure, then it is sequentially closed. -/
+lemma is_seq_closed_of_seq_closure_eq {s : set X} (hs : seq_closure s = s) :
+  is_seq_closed s :=
+λ x p hxs hxp, hs ▸ ⟨x, hxs, hxp⟩
+
+/-- A set is sequentially closed iff it is equal to its sequential closure. -/
+lemma is_seq_closed_iff {s : set X} :
+  is_seq_closed s ↔ seq_closure s = s :=
+⟨is_seq_closed.seq_closure_eq, is_seq_closed_of_seq_closure_eq⟩
 
 /-- A set is sequentially closed if it is closed. -/
 protected lemma is_closed.is_seq_closed {s : set X} (hc : is_closed s) : is_seq_closed s :=

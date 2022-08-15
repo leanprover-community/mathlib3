@@ -261,14 +261,6 @@ def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
 
-example (f g : pi_Lp ∞ α) : (⨆ i, edist (f i) (g i)) ≠ ⊤ :=
-begin
-  obtain ⟨M, hM⟩ := fintype.exists_le (λ i, (⟨dist (f i) (g i), dist_nonneg⟩ : ℝ≥0)),
-  refine ne_of_lt ((supr_le $ λ i, _).trans_lt (@ennreal.coe_lt_top M)),
-  simp only [edist, pseudo_metric_space.edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg],
-  exact_mod_cast hM i,
-end
-
 /-- Endowing the space `pi_Lp p α` with the `L^p` pseudometric structure. This definition is not
 satisfactory, as it does not register the fact that the topology, the uniform structure, and the
 bornology coincide with the product ones. Therefore, we do not register it as an instance. Using

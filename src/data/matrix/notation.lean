@@ -301,7 +301,7 @@ by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
 
-section on
+section matrix_on
 
 @[simp] lemma on_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
   A.on row col = ![] :=
@@ -311,7 +311,7 @@ empty_eq _
   A.on (vec_cons i row) col = vec_cons (λ j, A i (col j)) (A.on row col) :=
 by { ext i j, refine fin.cases _ _ i; simp [matrix.on] }
 
-end on
+end matrix_on
 
 section vec2_and_vec3
 

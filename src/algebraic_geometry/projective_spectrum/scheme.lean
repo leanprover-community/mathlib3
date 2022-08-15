@@ -610,7 +610,7 @@ begin
 end
 
 /--
-For a prime ideal `q` in `A⁰_f`, the set `{a | aᵐᵢ ∈ q }` as an ideal.
+For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as an ideal.
 -/
 def carrier.as_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg) ) :
   ideal A :=

@@ -1146,14 +1146,71 @@ begin
   rw sqrt_cal_for_last_part hs,
 end
 
+-- Try this: refine eq.absolutely_continuous _
+-- Try this: refine has_le.le.absolutely_continuous _
+-- Try this: refine has_le.le.absolutely_continuous_of_ae _
+-- Try this: refine absolutely_continuous.mk _
+-- Try this: refine absolutely_continuous_of_eq _
+-- Try this: refine absolutely_continuous_of_le _
+-- Try this: refine ae_le_iff_absolutely_continuous.mp _
+-- Try this: refine absolutely_continuous_of_le_smul _
+-- Try this: refine absolutely_continuous.trans _ _
 
+-- Try this: refine le_iff.mp _
+-- Try this: refine le_iff.mpr _
+-- Try this: refine le_iff'.mpr _
+-- Try this: refine outer_measure.le_trim_iff.mp _
+-- Try this: refine to_outer_measure_le.mp _
+-- Try this: refine outer_measure.trim_le_trim_iff.mp _
+-- Try this: refine le_induced_outer_measure.mp _
+
+
+
+
+-- lemma def_of_m_in_integ (S : set ℝ) : μ S = ∫⁻ x in S, 1 ∂μ :=
+-- begin
+--   finish,
+-- end
+
+-- lemma take_μ_front (S : set ℝ) (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
+--   μ S = ∫⁻ (a : ℝ) in S, ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2))):=
+-- begin
+--   unfold real_gaussian at hμ,
+--   simp [hs] at hμ,
+--   unfold gaussian_density at hμ,
+--   rw hμ,
+--   simp only [mul_inv_rev, neg_mul, with_density_apply],
+
+--   sorry
+-- end
+
+-- lemma withdensity_measurable : measurable (λ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))) :=
+-- begin
+--   measurability,
+-- end
 
 -- easy direction
 lemma absolutely_continuous_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ ≪ volume :=
 begin
+/-
   unfold real_gaussian at hμ,
   simp [hs] at hμ,
+  ---refine absolutely_continuous_of_le _,
+  intros S hS,
+
+  ---unfold gaussian_density at hμ,
+  -- rw hμ,
+  -- simp,
+  rw def_of_m_in_integ S,
+
+  ---simp only [mul_inv_rev, neg_mul, with_density_apply, hPS],
+  ---simp only [mul_inv_rev, neg_mul, with_density_apply, measurable_set.univ, restrict_univ],
+
+  -- intros S hS h_lebesgue_mea,
+  -- unfold_coes,
+-/
+
 
   sorry
 end

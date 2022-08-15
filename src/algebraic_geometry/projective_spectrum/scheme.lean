@@ -418,8 +418,7 @@ lemma carrier.zero_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
   (0 : A) ∈ carrier q := λ i,
 by simpa only [linear_map.map_zero, zero_pow hm, mk_zero] using submodule.zero_mem _
 
-lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A}
-  (ha : a ∈ carrier q) (hb : b ∈ carrier q) :
+lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A} (ha : a ∈ carrier q) (hb : b ∈ carrier q) :
   a + b ∈ carrier q :=
 begin
   rw carrier at ha hb ⊢,
@@ -547,20 +546,10 @@ lemma carrier.smul_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) (c x : A) (hx : x
   c • x ∈ carrier q :=
 begin
   classical,
-  let 𝒜' : ℕ → add_submonoid A := λ i, (𝒜 i).to_add_submonoid,
-  letI : graded_ring 𝒜' :=
-    { decompose' := (direct_sum.decompose 𝒜 : A → ⨁ i, 𝒜 i),
-      left_inv := direct_sum.decomposition.left_inv,
-      right_inv := direct_sum.decomposition.right_inv,
-      ..(by apply_instance : graded_monoid 𝒜), },
-  have mem_supr : ∀ x, x ∈ supr 𝒜',
-  { intro x,
-    rw direct_sum.is_internal.add_submonoid_supr_eq_top 𝒜'
-      (direct_sum.decomposition.is_internal 𝒜'),
-    exact add_submonoid.mem_top x },
-
-  refine add_submonoid.supr_induction 𝒜' (mem_supr c) (λ n a ha, _) _ _,
-  { intros i,
+  revert c,
+  refine direct_sum.decomposition.induction_on 𝒜 _ _ _,
+  { rw zero_smul, exact carrier.zero_mem hm _, },
+  { rintros n ⟨a, ha⟩ i,
     by_cases ineq1 : n ≤ i,
     { have eq1 : (graded_algebra.proj 𝒜 i) (a * x) =
           ite (i - n ∈ (direct_sum.decompose_alg_equiv 𝒜 x).support)
@@ -604,7 +593,8 @@ begin
                 exact ineq1,
               end,
         exact ideal.mul_mem_left _ _ (hx _), },
-      { simp only [smul_eq_mul, eq1, zero_pow hm, localization.mk_zero], exact zero_mem _ } },
+      { simp only [smul_eq_mul, subtype.coe_mk, eq1, zero_pow hm, localization.mk_zero],
+        exact zero_mem _ } },
     { -- in this case, the left hand side is zero
       rw not_le at ineq1,
       convert submodule.zero_mem _,
@@ -614,7 +604,6 @@ begin
       rw [← sum_support_decompose 𝒜 x, smul_eq_mul, finset.mul_sum, linear_map.map_sum],
       convert finset.sum_eq_zero (λ j hj, _),
       exact decompose_of_mem_ne 𝒜 (mul_mem ha (submodule.coe_mem _)) (by linarith) } },
-  { rw zero_smul, exact carrier.zero_mem hm _, },
   { intros a b ha hb,
     rw add_smul,
     apply carrier.add_mem q ha hb, },
@@ -752,11 +741,8 @@ begin
     rw show (⟨mk ((x*y)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨_, ⟨_, pow_mem_graded _ (mul_mem hnx hny)⟩, rfl⟩⟩: A⁰_ _)
       = (⟨mk (x^m) ⟨f^nx, ⟨_, rfl⟩⟩, ⟨nx, ⟨_, pow_mem_graded _ hnx⟩, rfl⟩⟩ : A⁰_ f_deg) *
         (⟨mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, pow_mem_graded _ hny⟩, rfl⟩⟩ : A⁰_ f_deg),
-    { rw [subtype.ext_iff, degree_zero_part.coe_mul],
-      change localization.mk _ _ = mk _ _ * mk _ _,
-      rw [localization.mk_mul],
-      congr';
-      ring_exp, } at rid,
+    { simpa only [subtype.ext_iff, degree_zero_part.coe_mul, subtype.coe_mk, localization.mk_mul,
+        mul_pow, pow_add], } at rid,
 
     cases ideal.is_prime.mem_or_mem (q.is_prime) rid;
     tauto, },

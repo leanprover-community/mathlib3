@@ -167,7 +167,7 @@ linear_map.to_matrixₛₗ₂'.symm
 
 /-- The linear equivalence between `n × n` matrices and bilinear forms on `n → R` -/
 def matrix.to_linear_map₂' : matrix n m R ≃ₗ[R] ((n → R) →ₗ[R] (m → R) →ₗ[R] R) :=
-linear_map.to_matrixₛₗ₂'.symm
+linear_map.to_matrix₂'.symm
 
 lemma matrix.to_linear_mapₛₗ₂'_aux_eq (M : matrix n m R) :
   matrix.to_linear_map₂'_aux σ₁ σ₂ M = matrix.to_linear_mapₛₗ₂' σ₁ σ₂ M := rfl
@@ -303,34 +303,29 @@ noncomputable def linear_map.to_matrix₂ : (M₁ →ₗ[R] M₂ →ₗ[R] R) �
 
 /-- `bilin_form.to_matrix b` is the equivalence between `R`-bilinear forms on `M` and
 `n`-by-`n` matrices with entries in `R`, if `b` is an `R`-basis for `M`. -/
-noncomputable def matrix.to_bilin : matrix n m R ≃ₗ[R] (M₁ →ₗ[R] M₂ →ₗ[R] R) :=
+noncomputable def matrix.to_linear_map₂ : matrix n m R ≃ₗ[R] (M₁ →ₗ[R] M₂ →ₗ[R] R) :=
 (linear_map.to_matrix₂ b₁ b₂).symm
 
-/-@[simp] lemma basis.equiv_fun_symm_std_basis (i : n) :
-  b.equiv_fun.symm (std_basis R₂ (λ _, R₂) i 1) = b i :=
-begin
-  rw [b.equiv_fun_symm_apply, finset.sum_eq_single i],
-  { rw [std_basis_same, one_smul] },
-  { rintros j - hj,
-    rw [std_basis_ne _ _ _ _ hj, zero_smul] },
-  { intro,
-    have := mem_univ i,
-    contradiction }
-end-/
+@[simp] lemma linear_equiv_one_apply (x : M₁): (1 : M₁ ≃ₗ[R] M₁) x = x := rfl
 
-@[simp] lemma bilin_form.to_matrix_apply (B : bilin_form R₂ M₂) (i j : n) :
-  bilin_form.to_matrix b B i j = B (b i) (b j) :=
-by rw [bilin_form.to_matrix, linear_equiv.trans_apply, bilin_form.to_matrix'_apply, congr_apply,
-       b.equiv_fun_symm_std_basis, b.equiv_fun_symm_std_basis]
-/-
-@[simp] lemma matrix.to_bilin_apply (M : matrix n n R₂) (x y : M₂) :
-  matrix.to_bilin b M x y = ∑ i j, b.repr x i * M i j * b.repr y j :=
+@[simp] lemma linear_equiv_one_symm : (1 : M₁ ≃ₗ[R] M₁).symm = (1 : M₁ ≃ₗ[R] M₁) := rfl
+
+-- We make this and not `linear_map.to_matrix₂` a `simp` lemma to avoid timeouts
+@[simp] lemma linear_map.to_matrix₂_apply (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (i : n) (j : m) :
+  linear_map.to_matrix₂ b₁ b₂ B i j = B (b₁ i) (b₂ j) :=
+by simp only [linear_map.to_matrix₂, linear_equiv.trans_apply, linear_map.to_matrix₂'_apply,
+  linear_equiv.trans_apply, linear_map.to_matrix₂'_apply, linear_equiv.arrow_congr_apply,
+  basis.equiv_fun_symm_std_basis, linear_equiv_one_apply]
+
+@[simp] lemma matrix.to_linear_map₂_apply (M : matrix n m R) (x : M₁) (y : M₂) :
+  matrix.to_linear_map₂ b₁ b₂ M x y = ∑ i j, b₁.repr x i * M i j * b₂.repr y j :=
 begin
-  rw [matrix.to_bilin, bilin_form.to_matrix, linear_equiv.symm_trans_apply, ← matrix.to_bilin'],
-  simp only [congr_symm, congr_apply, linear_equiv.symm_symm, matrix.to_bilin'_apply,
-    basis.equiv_fun_apply]
+  rw [matrix.to_linear_map₂, linear_map.to_matrix₂, linear_equiv.symm_trans_apply,
+    ←matrix.to_linear_map₂'],
+  simp [matrix.to_linear_map₂'_apply],
 end
 
+/-
 -- Not a `simp` lemma since `bilin_form.to_matrix` needs an extra argument
 lemma bilinear_form.to_matrix_aux_eq (B : bilin_form R₂ M₂) :
   bilin_form.to_matrix_aux b B = bilin_form.to_matrix b B :=
@@ -423,6 +418,5 @@ lemma matrix.to_bilin_comp (M : matrix n n R₂) (P Q : matrix n o R₂) :
   (matrix.to_bilin b M).comp (to_lin c b P) (to_lin c b Q) = matrix.to_bilin c (Pᵀ ⬝ M ⬝ Q) :=
 (bilin_form.to_matrix c).injective
   (by simp only [bilin_form.to_matrix_comp b c, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
-
-end to_matrix
 -/
+end to_matrix

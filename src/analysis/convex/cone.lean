@@ -794,7 +794,7 @@ begin
   end,
   begin
     -- as `K` is closed and non-empty, it is pointed
-    have hinner₀ := hinner 0 (pointed_of_nonempty_closed ne hc),
+    have hinner₀ := hinner 0 (pointed_of_nonempty_closed_convex_cone ne hc),
 
     -- the rest of the proof is a straightforward calculation
     rw [zero_sub, inner_neg_right, right.neg_nonpos_iff] at hinner₀,

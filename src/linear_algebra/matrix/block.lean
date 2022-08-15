@@ -67,7 +67,49 @@ protected lemma block_triangular.transpose :
 @[simp] protected lemma block_triangular_transpose_iff {b : m → αᵒᵈ} :
   Mᵀ.block_triangular b ↔ M.block_triangular (of_dual ∘ b) := forall_swap
 
+lemma block_triangular_zero : block_triangular (0 : matrix m m R) b := λ i j h, rfl
+
+protected lemma block_triangular.neg (hM : block_triangular M b) :
+  block_triangular (- M) b :=
+λ i j h, show - M i j = 0, by rw [hM h, neg_zero]
+
+lemma block_triangular_add {M N : matrix m m R}
+    (hM : block_triangular M b) (hN : block_triangular N b) :
+  block_triangular (M + N) b :=
+λ i j h, show M i j + N i j = 0, by rw [hM h, hN h, zero_add]
+
+lemma block_triangular_sub {M N : matrix m m R}
+    (hM : block_triangular M b) (hN : block_triangular N b) :
+  block_triangular (M - N) b :=
+λ i j h, show M i j - N i j = 0, by rw [hM h, hN h, zero_sub_zero]
+
 end has_lt
+
+section preorder
+variables [preorder α]
+
+lemma block_triangular_diagonal [decidable_eq m] (d : m → R) :
+  block_triangular (diagonal d) b :=
+λ i j h, diagonal_apply_ne' d (λ h', ne_of_lt h (congr_arg _ h'))
+
+end preorder
+
+section linear_order
+variables [linear_order α]
+
+lemma lower_triangular_mul [fintype m]
+  {M N : matrix m m R} (hM : block_triangular M b) (hN : block_triangular N b):
+  block_triangular (M * N) b :=
+begin
+  intros i j hij,
+  apply finset.sum_eq_zero,
+  intros k hk,
+  by_cases hki : b k < b i,
+  { simp_rw [hM hki, zero_mul], },
+  { simp_rw [hN (lt_of_lt_of_le hij (le_of_not_lt hki)), mul_zero] },
+end
+
+end linear_order
 
 lemma upper_two_block_triangular' (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   block_triangular (from_blocks A B 0 D) (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) :=

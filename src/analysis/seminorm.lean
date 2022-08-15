@@ -336,7 +336,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 /-- Alternative constructor for a `seminorm` over a normed field `𝕜` that only assumes an
   inequality for the scalar multiplication. -/
 def seminorm.of_smul_le (f : E → ℝ) (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
-  (neg : ∀ x, f (-x) = f x) (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
+  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
 seminorm.of f add_le
   (λ r x, begin
     refine le_antisymm (smul_le r x) _,

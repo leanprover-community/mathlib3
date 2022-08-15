@@ -512,18 +512,14 @@ by simp [pi_Lp.edist_eq_sum]
 
 variables [normed_field 𝕜]
 
--- this was necessary to get Lean to accept `∥c • f∥₊` in the `normed_space` instance below
--- can we just do this with `letI`?
-instance module [Π i, seminormed_add_comm_group (β i)] [Π i, module 𝕜 (β i)] :
-  module 𝕜 (pi_Lp p β) := pi.module ι β 𝕜
-
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [Π i, seminormed_add_comm_group (β i)]
   [Π i, normed_space 𝕜 (β i)] : normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le := λ c f,
   begin
     unfreezingI { rcases p.dichotomy with (rfl | hp) },
-    { suffices : ∥c • f∥₊ = ∥c∥₊ * ∥f∥₊, { exact_mod_cast nnreal.coe_mono this.le },
+    { letI : module 𝕜 (pi_Lp ∞ β) := pi.module ι β 𝕜,
+      suffices : ∥c • f∥₊ = ∥c∥₊ * ∥f∥₊, { exact_mod_cast nnreal.coe_mono this.le },
       simpa only [nnnorm_eq_csupr, nnreal.mul_supr, ←nnnorm_smul] },
     { have : p.to_real * (1 / p.to_real) = 1 := mul_div_cancel' 1 (zero_lt_one.trans_le hp).ne',
       simp only [norm_eq_sum (zero_lt_one.trans_le hp), norm_smul, mul_rpow, norm_nonneg,
@@ -531,7 +527,8 @@ instance normed_space [Π i, seminormed_add_comm_group (β i)]
       rw [mul_rpow (rpow_nonneg_of_nonneg (norm_nonneg _) _), ← rpow_mul (norm_nonneg _),
         this, rpow_one],
       exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _) },
-  end, }
+  end,
+  .. (pi.module ι β 𝕜) }
 
 instance finite_dimensional [Π i, seminormed_add_comm_group (β i)]
   [Π i, normed_space 𝕜 (β i)] [I : ∀ i, finite_dimensional 𝕜 (β i)] :
@@ -540,7 +537,7 @@ finite_dimensional.finite_dimensional_pi' _ _
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, module 𝕜 (β i)] (c : 𝕜)
+variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
 variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 @[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl

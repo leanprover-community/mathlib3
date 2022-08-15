@@ -1679,27 +1679,27 @@ ext $ λ _ _, rfl
   (A.on r_reindex c_reindex)ᴴ = Aᴴ.on c_reindex r_reindex :=
 ext $ λ _ _, rfl
 
-lemma add_on [has_add α] (A B : matrix m n α) :
+lemma on_add [has_add α] (A B : matrix m n α) :
   ((A + B).on : (l → m) → (o → n) → matrix l o α) = A.on + B.on := rfl
 
-lemma neg_on [has_neg α] (A : matrix m n α) :
+lemma on_neg [has_neg α] (A : matrix m n α) :
   ((-A).on : (l → m) → (o → n) → matrix l o α) = -A.on := rfl
 
-lemma sub_on [has_sub α] (A B : matrix m n α) :
+lemma on_sub [has_sub α] (A B : matrix m n α) :
   ((A - B).on : (l → m) → (o → n) → matrix l o α) = A.on - B.on := rfl
 
-@[simp] lemma zero_on [has_zero α] :
+@[simp] lemma on_zero [has_zero α] :
   ((0 : matrix m n α).on : (l → m) → (o → n) → matrix l o α) = 0 := rfl
 
-lemma smul_on {R : Type*} [has_smul R α] (r : R) (A : matrix m n α) :
+lemma on_smul {R : Type*} [has_smul R α] (r : R) (A : matrix m n α) :
   ((r • A : matrix m n α).on : (l → m) → (o → n) → matrix l o α) = r • A.on := rfl
 
-lemma map_on (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
+lemma on_map (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
   (A.map f).on e₁ e₂ = (A.on e₁ e₂).map f := rfl
 
 /-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing map `e` is
   injective, then the resulting matrix is again diagonal. -/
-lemma diagonal_on [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)
+lemma on_diagonal [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)
   (he : function.injective e) :
   (diagonal d).on e e = diagonal (d ∘ e) :=
 ext $ λ i j, begin
@@ -1709,12 +1709,12 @@ ext $ λ i j, begin
   { rw [diagonal_apply_ne _ h, diagonal_apply_ne _ (he.ne h)], },
 end
 
-lemma one_on [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l → m)
+lemma on_one [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l → m)
   (he : function.injective e) :
   (1 : matrix m m α).on e e = 1 :=
-diagonal_on _ e he
+on_diagonal _ e he
 
-lemma mul_on [fintype n] [fintype o] [has_mul α] [add_comm_monoid α] {p q : Type*}
+lemma on_mul [fintype n] [fintype o] [has_mul α] [add_comm_monoid α] {p q : Type*}
   (M : matrix m n α) (N : matrix n p α)
   (e₁ : l → m) (e₂ : o → n) (e₃ : q → p) (he₂ : function.bijective e₂) :
   (M ⬝ N).on e₁ e₃ = (M.on e₁ e₂) ⬝ (N.on e₂ e₃) :=
@@ -1726,41 +1726,41 @@ lemma diag_on (A : matrix m m α) (e : l → m) : diag (A.on e e) = A.diag ∘ e
 when the mappings are bundled. -/
 
 @[simp]
-lemma diagonal_on_embedding [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
+lemma on_diagonal_embedding [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
   (e : l ↪ m) :
   (diagonal d).on e e = diagonal (d ∘ e) :=
-diagonal_on d e e.injective
+on_diagonal d e e.injective
 
 @[simp]
-lemma diagonal_on_equiv [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
+lemma on_diagonal_equiv [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
   (e : l ≃ m) :
   (diagonal d).on e e = diagonal (d ∘ e) :=
-diagonal_on d e e.injective
+on_diagonal d e e.injective
 
 @[simp]
-lemma one_on_embedding [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ↪ m) :
+lemma on_one_embedding [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ↪ m) :
   (1 : matrix m m α).on e e = 1 :=
-one_on e e.injective
+on_one e e.injective
 
 @[simp]
-lemma one_on_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ≃ m) :
+lemma on_one_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ≃ m) :
   (1 : matrix m m α).on e e = 1 :=
-one_on e e.injective
+on_one e e.injective
 
 @[simp]
-lemma mul_on_equiv [fintype n] [fintype o] [add_comm_monoid α] [has_mul α] {p q : Type*}
+lemma on_mul_equiv [fintype n] [fintype o] [add_comm_monoid α] [has_mul α] {p q : Type*}
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
   (M.on e₁ e₂) ⬝ (N.on e₂ e₃) = (M ⬝ N).on e₁ e₃ :=
-(mul_on M N e₁ e₂ e₃ e₂.bijective).symm
+(on_mul M N e₁ e₂ e₃ e₂.bijective).symm
 
-lemma mul_one_on [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
+lemma on_mul_one [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
   (e₂ : l → o) (M : matrix m n α) :
   M ⬝ (1 : matrix o o α).on e₁ e₂ = M.on id (e₁.symm ∘ e₂) :=
 begin
   let A := M.on id e₁.symm,
   have : M = A.on id e₁,
   { simp only [on_on, function.comp.right_id, on_id_id, equiv.symm_comp_self], },
-  rw [this, mul_on_equiv],
+  rw [this, on_mul_equiv],
   simp only [matrix.mul_one, on_on, function.comp.right_id, on_id_id,
     equiv.symm_comp_self],
 end
@@ -1772,7 +1772,7 @@ begin
   let A := M.on e₂.symm id,
   have : M = A.on e₂ id,
   { simp only [on_on, function.comp.right_id, on_id_id, equiv.symm_comp_self], },
-  rw [this, mul_on_equiv],
+  rw [this, on_mul_equiv],
   simp only [matrix.one_mul, on_on, function.comp.right_id, on_id_id,
     equiv.symm_comp_self],
 end
@@ -1814,7 +1814,7 @@ rfl
 lemma on_mul_transpose_on [fintype m] [fintype n] [add_comm_monoid α] [has_mul α]
   (e : m ≃ n) (M : matrix m n α) :
   (M.on id e) ⬝ (Mᵀ).on e id = M ⬝ Mᵀ :=
-by rw [mul_on_equiv, on_id_id]
+by rw [on_mul_equiv, on_id_id]
 
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]

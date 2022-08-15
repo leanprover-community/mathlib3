@@ -590,7 +590,7 @@ begin
   rw this,
   simp only [to_matrix_reindex_equiv_prod, list.map_map, reindex_alg_equiv_apply],
   simp only [← reindex_alg_equiv_apply, ← reindex_alg_equiv_mul, h₀],
-  simp only [equiv.symm_symm, reindex_apply, diagonal_on_equiv, reindex_alg_equiv_apply],
+  simp only [equiv.symm_symm, reindex_apply, on_diagonal_equiv, reindex_alg_equiv_apply],
 end
 
 /-- Any matrix can be reduced to diagonal form by elementary operations. Formulated here on `Type 0`

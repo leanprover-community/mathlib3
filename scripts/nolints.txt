@@ -384,7 +384,7 @@ apply_nolint list.traverse doc_blame
 apply_nolint list.perm.prod_eq' to_additive_doc
 
 -- data/matrix/basic.lean
-apply_nolint matrix.mul_one_on fintype_finite
+apply_nolint matrix.mul_on_one fintype_finite
 apply_nolint matrix.one_on_mul fintype_finite
 
 -- data/matrix/basis.lean

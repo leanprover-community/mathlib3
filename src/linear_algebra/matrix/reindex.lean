@@ -77,7 +77,7 @@ on_on _ _ _ _ _
 
 lemma reindex_linear_equiv_one [decidable_eq m] [decidable_eq m'] [has_one A]
   (e : m ≃ m') : (reindex_linear_equiv R A e e (1 : matrix m m A)) = 1 :=
-one_on_equiv e.symm
+on_one_equiv e.symm
 
 end add_comm_monoid
 
@@ -88,12 +88,12 @@ lemma reindex_linear_equiv_mul [fintype n] [fintype n']
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₒ : o ≃ o') (M : matrix m n A) (N : matrix n o A) :
   reindex_linear_equiv R A eₘ eₙ M ⬝ reindex_linear_equiv R A eₙ eₒ N =
     reindex_linear_equiv R A eₘ eₒ (M ⬝ N) :=
-mul_on_equiv M N _ _ _
+on_mul_equiv M N _ _ _
 
 lemma mul_reindex_linear_equiv_one [fintype n] [fintype o] [decidable_eq o] (e₁ : o ≃ n)
   (e₂ : o ≃ n') (M : matrix m n A) : M.mul (reindex_linear_equiv R A e₁ e₂ 1) =
     reindex_linear_equiv R A (equiv.refl m) (e₁.symm.trans e₂) M :=
-mul_one_on _ _ _
+mul_on_one _ _ _
 
 end semiring
 
@@ -108,7 +108,7 @@ a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equiv
 def reindex_alg_equiv (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
   map_mul'  := λ a b, (reindex_linear_equiv_mul R R e e e a b).symm,
-  commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, smul_on],
+  commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, on_smul],
   ..(reindex_linear_equiv R R e e) }
 
 @[simp] lemma reindex_alg_equiv_apply (e : m ≃ n) (M : matrix m m R) :

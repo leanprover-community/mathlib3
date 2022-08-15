@@ -42,14 +42,14 @@ pullback.lift_fst _ _ _
 @[simp, reassoc] lemma diagonal_snd : diagonal f ≫ pullback.snd = 𝟙 _ :=
 pullback.lift_snd _ _ _
 
-instance : split_mono (diagonal f) :=
-⟨pullback.fst, diagonal_fst f⟩
+instance : is_split_mono (diagonal f) :=
+⟨⟨⟨pullback.fst, diagonal_fst f⟩⟩⟩
 
-instance : split_epi (pullback.fst : pullback f f ⟶ X) :=
-⟨diagonal f, diagonal_fst f⟩
+instance : is_split_epi (pullback.fst : pullback f f ⟶ X) :=
+⟨⟨⟨diagonal f, diagonal_fst f⟩⟩⟩
 
-instance : split_epi (pullback.snd : pullback f f ⟶ X) :=
-⟨diagonal f, diagonal_snd f⟩
+instance : is_split_epi (pullback.snd : pullback f f ⟶ X) :=
+⟨⟨⟨diagonal f, diagonal_snd f⟩⟩⟩
 
 instance [mono f] : is_iso (diagonal f) :=
 begin

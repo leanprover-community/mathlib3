@@ -855,26 +855,21 @@ end
 
 lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, N < n -> M ^ (n+1) < (n.factorial) :=
 begin
-by_cases h:  (M = 0),
-{ use 1, intros n hn, rw [h, zero_pow n.succ_pos], exact nat.factorial_pos n },
+obtain rfl|h := M.eq_zero_or_pos,
+{ use 1, intros n hn, rw [zero_pow n.succ_pos], exact nat.factorial_pos n },
 { have H := complex.is_cau_exp (M:ℂ),
   have triv : (1/M:ℝ) > 0,
-  {apply one_div_pos.2, norm_cast, exact bot_lt_iff_ne_bot.mpr h},
-  have H2 := is_cau_seq.cauchy₂ H triv,
-  choose i hi using H2, use i, intros n hn,
+  {apply one_div_pos.2, norm_cast, exact h},
+  obtain ⟨i, hi⟩ := is_cau_seq.cauchy₂ H triv,
+  use i, intros n hn,
   have H3 := hi n.succ (nat.le_succ_of_le hn.le) n hn.le,
-  rw finset.sum_range_succ at H3,
-  simp only [one_div, complex.abs_cast_nat, complex.abs_div, add_sub_cancel] at H3,
-  norm_num at H3, rw div_lt_iff at H3,
-  replace triv2 : (M:ℝ) > 0,
-  {norm_num, exact bot_lt_iff_ne_bot.mpr h},
-  have H4 := (mul_lt_mul_right triv2).2 H3,
-  replace triv2 : (M:ℝ)^n * (M:ℝ) = (M:ℝ)^(n+1), rw pow_add, simp only [pow_one], rw triv2 at H4,
-  replace triv2 : (↑M)⁻¹ * ↑(n.factorial) * ↑M = (n.factorial:ℝ),
-  { rw mul_comm, rw <-mul_assoc,
-    have triv3 : (M:ℝ) * (↑M)⁻¹ = 1, {rw mul_comm, apply inv_mul_cancel, norm_num, assumption},
-    rw triv3, simp only [one_mul] },
-  rw triv2 at H4, norm_cast at H4, assumption, norm_cast, exact nat.factorial_pos n, }
+  dsimp only at H3,
+  rwa [nat.succ_eq_add_one, finset.sum_range_add_sub_sum_range, finset.sum_range_one, add_zero,
+    complex.abs_div, div_lt_div_iff, ←nat.cast_pow, complex.abs_cast_nat, complex.abs_cast_nat,
+    one_mul, ←nat.cast_mul, ←pow_succ', nat.cast_lt] at H3,
+  { rw [complex.abs_pos, nat.cast_ne_zero],
+    exact nat.factorial_ne_zero _ },
+  { rwa nat.cast_pos } },
 end
 
 lemma fact_grows_fast (M : ℝ) (hM : 0 ≤ M) : ∃ N : ℕ, ∀ n : ℕ, N < n -> M^(n+1) < (n.factorial : ℝ) :=

@@ -477,13 +477,13 @@ begin
           { zify [hk, hk', ineq'], linarith, },
           mem_tac,
         end⟩ : A⁰_ f_deg),
-    suffices : α * β ∈ q.1,
-    { convert this,
-      simp only [mk_mul, two_mul, pow_add],
-      congr' 1,
-      rw [show ∀ (a b c d : A), a * (b * c * d) = b * (a * c) * d, by {intros, ring}, ←pow_add,
-        ←nat.add_sub_assoc ineq', ←two_mul], },
-    exact ideal.mul_mem_right _ _ (hb _), },
+      suffices : α * β ∈ q.1,
+      { convert this,
+        simp only [mk_mul, two_mul, pow_add],
+        congr' 1,
+        rw [show ∀ (a b c d : A), a * (b * c * d) = b * (a * c) * d, by {intros, ring}, ←pow_add,
+          ←nat.add_sub_assoc ineq', ←two_mul], },
+      exact ideal.mul_mem_right _ _ (hb _), },
 end
 
 lemma carrier.smul_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) (c x : A) (hx : x ∈ carrier q) :

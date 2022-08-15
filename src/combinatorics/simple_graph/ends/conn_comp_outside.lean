@@ -5,33 +5,24 @@ import combinatorics.simple_graph.connectivity
 import topology.metric_space.basic
 import data.setoid.partition
 import category_theory.functor.basic
+import .mathlib
 
-open function
-open finset
-open set
-open classical
-open simple_graph.walk
-open relation
+open function finset set classical simple_graph.walk relation
 
 universes u v w
 
-
-
 noncomputable theory
-
---local attribute [instance] prop_decidable
 
 namespace simple_graph
 
 
-variables  {V : Type u}
-           (G : simple_graph V)
-           [Gpc : preconnected G]
-           (K : finset V)
+variables  {V : Type u} (G : simple_graph V)
+            [Gpc : preconnected G] (K : finset V)
 
-section ends
 
 @[reducible, simp] def compl (S : set V) : subgraph G := (⊤ : subgraph G).delete_verts S
+
+lemma outside_to_compl {S : set V} {v : V} (h : v ∉ S) : v ∈ (G.compl S).verts := by simp [h]
 
 instance compl_coe {K L : set V} {G : simple_graph V} (h : K ⊆ L) : has_coe (set ↥((G.compl K).verts)) (set ↥((G.compl L).verts)) := {
   coe := λ S, λ vL,
@@ -40,8 +31,7 @@ instance compl_coe {K L : set V} {G : simple_graph V} (h : K ⊆ L) : has_coe (s
     end }
 
 -- `def` rather than `instance` because of typeclass problems
-def finset_verts_compl_coe {K L : finset V} {G : simple_graph V} (h : K ⊆ L) :
-  (set ↥((G.compl ↑K).verts)) → (set ↥((G.compl ↑L).verts)) := λ S, λ vL,
+def finset_verts_compl_coe {K L : finset V} {G : simple_graph V} (h : K ⊆ L) : (set ↥((G.compl ↑K).verts)) → (set ↥((G.compl ↑L).verts)) := λ S, λ vL,
       match vL with
         | ⟨v, htop, hnL⟩ := S ⟨v, htop, λ hK, hnL (h hK)⟩
       end
@@ -50,7 +40,7 @@ def conn_comp_outside : Type u :=
   (G.compl K).coe.connected_component
 
 /- The vertices in the compl of `K` that lie in the component `C` -/
-def conn_comp_outside.verts {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) :=
+@[reducible, simp] def conn_comp_outside.verts {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) :=
   {v : (G.compl K).verts | connected_component_mk _ v = C}
 
 def inf_conn_comp_outside :=
@@ -58,6 +48,7 @@ def inf_conn_comp_outside :=
 
 def fin_conn_comp_outside :=
   {C : G.conn_comp_outside K // finite C.verts}
+
 
 namespace conn_comp_outside
 
@@ -68,14 +59,19 @@ def component_of_set (S : set V) (hnonempty : S.nonempty) (hdisjoint : disjoint 
 /- The boundary of a set, consisting of all adjacent vertices not in the set -/
 def bdry (S : set V) := {v : (G.compl S).verts | ∃ x ∈ S, G.adj v x}
 
-
 /- This is the portion of the connected component that is a part of the boundary -/
-def border {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) : set (compl G K).verts :=
-  C.verts ∩ (bdry G K)
+def border {G : simple_graph V} {K : finset V} (C : conn_comp_outside G K) : set (compl G K).verts := C.verts ∩ (bdry G K)
 
 lemma components_cover : set.Union (λ C : conn_comp_outside G K, C.verts) = ⊤ :=
 begin
   ext, simp [verts], use component_of G K x,
+end
+
+lemma components_nonempty : ∀ (C : conn_comp_outside G K), nonempty (C.verts) :=
+begin
+  apply connected_component.ind,
+  rintro v, apply nonempty.intro,
+  use v, dsimp [verts], refl,
 end
 
 -- TODO: Show that the boundary is precisely the union of all the borders.
@@ -88,23 +84,16 @@ lemma bdry_eq_border_union : (bdry G K) = set.Union (λ C : conn_comp_outside G 
 -- for mathlib:
 lemma symm_iff {X : Type u} (P : X → X → Prop) : (∀ {a b}, P a b → P b a) → (∀ {a b}, P a b ↔ P b a) := by tidy
 
-
 lemma bdry.iff : bdry G K = set.Union (λ k : K, {v : (G.compl K).verts | v.val ∈ G.neighbor_set k}) :=
 begin
-  ext,
-  unfold bdry,
-  simp,
+  ext, unfold bdry, simp,
   conv in (G.adj ↑_ _)
-  begin
-    rw [symm_iff G.adj (λ _ _, G.adj_symm)],
-  end,
+    {rw [symm_iff G.adj (λ _ _, G.adj_symm)],},
 end
 
 lemma bdry_finite [Glocfin : locally_finite G] : (bdry G K).finite :=
 begin
-  rw [bdry.iff],
-  refine finite_Union _,
-  rintro k,
+  rw [bdry.iff], refine finite_Union _, rintro k,
   apply set.finite.preimage,
   { apply injective.inj_on, tidy, },
   { exact (neighbor_set G k).to_finite, }
@@ -112,9 +101,25 @@ end
 
 lemma border_finite [locally_finite G] (C : conn_comp_outside G K) :  (border C).finite :=
 begin
-  unfold border,
-  refine finite.inter_of_right _ C.verts,
-  apply bdry_finite,
+  refine finite.inter_of_right _ C.verts, apply bdry_finite,
+end
+
+lemma border_nonempty [Gpc : preconnected G] (Knempty : K.nonempty) : ∀ (C : conn_comp_outside G K), nonempty (border C) :=
+begin
+  rcases Knempty with ⟨k,kK⟩,
+  apply connected_component.ind,
+  rintro ⟨x, xKc⟩, -- is it possible without this pattern matching?
+  let w := (Gpc x k).some,
+  have : k ∉ (↑K)ᶜ := set.not_mem_compl_iff.mpr kK,
+  have : x ∉ K := by {simp at xKc, assumption,},
+  rcases walk.pred_adj_non_pred x k w Kᶜ ‹x ∉ K› ‹k ∉ (↑K)ᶜ› with ⟨u, v, adj_uv, uKc, vKcc⟩,
+  apply nonempty.intro, dsimp only [border, bdry],
+  use u,
+  {apply outside_to_compl, assumption,},
+  {simp, split,
+    -- we need a walk entirely outside `K`
+    { dsimp only [reachable], apply nonempty.intro, sorry,},
+    {use v, exact ⟨set.not_mem_compl_iff.mp vKcc, adj_uv⟩,} } -- from tidy (but with a tidier output)
 end
 
 lemma finite_components [Glf : locally_finite G] [Gpc : preconnected G] :
@@ -137,16 +142,13 @@ begin
    }
 end
 
-lemma nonempty_components (Ginf : (@set.univ V).infinite) (K : finset V) :
-  nonempty (conn_comp_outside G K) :=
+lemma nonempty_components (Vinf : (univ : set V).infinite) : nonempty (conn_comp_outside G K) :=
 begin
-  by_contradiction,
-  rw [not_nonempty_iff, conn_comp_outside] at h,
-  apply Ginf, clear Ginf,
-  sorry, -- needs the fact that the set of vertices is the union of `K` and all the connected components
+  suffices inh : nonempty (G.compl K).verts, from nonempty.intro (component_of G K (nonempty.some inh)),
+  suffices inf : ((univ : set V) \ ↑K).infinite, from by { rcases set.nonempty_def.mp (set.infinite.nonempty inf) with ⟨v, h⟩, exact nonempty.intro ⟨v, h⟩,},
+  apply set.infinite.diff,
+  exact Vinf, exact K.finite_to_set,
 end
-
-
 
 
 lemma conn_comp_outside_back_unique {K L : finset V} (h : K ⊆ L) :
@@ -205,7 +207,5 @@ def conn_comp_outside.extend_fin [Glf : locally_finite G] (K : finset V) : finse
 -- TODO: Prove lemmas about cofinite infinite components
 
 end conn_comp_outside
-
-end ends
 
 end simple_graph

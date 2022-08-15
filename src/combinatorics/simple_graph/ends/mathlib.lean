@@ -66,8 +66,8 @@ lemma walk.support_append_subset_right {V : Type u} {G : simple_graph V} {u v w 
 
 
 lemma walk.pred_adj_non_pred {V : Type u} {G : simple_graph V} :
-∀ (u v : V) (p : G.walk u v) (pred : V → Prop) (upred : pred u) (vnpred : ¬ pred v),
-  ∃ (x y : V), G.adj x y ∧ pred x ∧ ¬ pred y
+∀ (u v : V) (p : G.walk u v) (S : set V) (upred : u ∈ S) (vnpred : v ∉ S),
+  ∃ (x y : V), G.adj x y ∧ x ∈ S ∧ y ∉ S
 | _ _ nil p up vnp := (vnp up).elim
 | _ _ (cons' x y z a q) p up vnp := if h : p y then walk.pred_adj_non_pred y z q p h vnp else ⟨x,y,a,up,h⟩
 

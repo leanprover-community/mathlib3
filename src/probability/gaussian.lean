@@ -1152,10 +1152,22 @@ end
 lemma absolutely_continuous_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ ≪ volume :=
 begin
+  unfold measure.absolutely_continuous,
   unfold real_gaussian at hμ,
-  simp [hs] at hμ,
+  intros S hPs,
+  split_ifs at hμ,
+  unfold gaussian_density at hμ,
+  rw hμ,
+  rw measure_theory.with_density_apply_eq_zero,
+  {
 
-  sorry
+    sorry
+  },
+  {measurability},
+
+
+
+
 end
 
 -- harder

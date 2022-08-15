@@ -22,13 +22,12 @@ adjacent.
 ## TODO
 
 * Clique numbers
-* Do we need `clique_set`, a version of `clique_finset` for infinite graphs?
 -/
 
 open finset fintype
 
 namespace simple_graph
-variables {α : Type*} (G H : simple_graph α)
+variables {α β : Type*} (G H : simple_graph α)
 
 /-! ### Cliques -/
 
@@ -60,11 +59,16 @@ decidable_of_iff' _ G.is_clique_iff
 
 variables {G H}
 
-lemma is_clique.mono (h : G ≤ H) : G.is_clique s → H.is_clique s :=
-by { simp_rw is_clique_iff, exact set.pairwise.mono' h }
+@[simp] lemma is_clique_empty : G.is_clique ∅ := set.pairwise_empty _
+@[simp] lemma is_clique_singleton (a : α) : G.is_clique {a} := set.pairwise_singleton _ _
 
-lemma is_clique.subset (h : t ⊆ s) : G.is_clique s → G.is_clique t :=
-by { simp_rw is_clique_iff, exact set.pairwise.mono h }
+lemma is_clique.mono (h : G ≤ H) : G.is_clique s → H.is_clique s := set.pairwise.mono' h
+lemma is_clique.subset (h : t ⊆ s) : G.is_clique s → G.is_clique t := set.pairwise.mono h
+
+protected lemma is_clique.map {G : simple_graph α} {s : set α} (h : G.is_clique s) {f : α ↪ β} :
+  (G.map f).is_clique (f '' s) :=
+by { rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ hab,
+  exact ⟨a, b, h ha hb $ ne_of_apply_ne _ hab, rfl, rfl⟩ }
 
 @[simp] lemma is_clique_bot_iff : (⊥ : simple_graph α).is_clique s ↔ (s : set α).subsingleton :=
 set.pairwise_bot_iff
@@ -95,6 +99,10 @@ variables {G H}
 lemma is_n_clique.mono (h : G ≤ H) : G.is_n_clique n s → H.is_n_clique n s :=
 by { simp_rw is_n_clique_iff, exact and.imp_left (is_clique.mono h) }
 
+protected lemma is_n_clique.map (h : G.is_n_clique n s) {f : α ↪ β} :
+  (G.map f).is_n_clique n (s.map f) :=
+⟨by { rw coe_map, exact h.1.map}, (card_map _).trans h.2⟩
+
 @[simp] lemma is_n_clique_bot_iff : (⊥ : simple_graph α).is_n_clique n s ↔ n ≤ 1 ∧ s.card = n :=
 begin
   rw [is_n_clique_iff, is_clique_bot_iff],
@@ -102,6 +110,12 @@ begin
   rintro rfl,
   exact card_le_one.symm,
 end
+
+@[simp] lemma is_n_clique_zero : G.is_n_clique 0 s ↔ s = ∅ :=
+by { simp only [is_n_clique_iff, finset.card_eq_zero, and_iff_right_iff_imp], rintro rfl, simp }
+
+@[simp] lemma is_n_clique_one : G.is_n_clique 1 s ↔ ∃ a, s = {a} :=
+by { simp only [is_n_clique_iff, card_eq_one, and_iff_right_iff_imp], rintro ⟨a, rfl⟩, simp }
 
 variables [decidable_eq α] {a b c : α}
 
@@ -188,7 +202,7 @@ begin
   use (iso.complete_graph (fintype.equiv_fin α)).symm.to_embedding.trans f,
 end
 
-lemma clique_free_bot (h : 2 ≤ n) : (⊥ : simple_graph α).clique_free n :=
+@[simp] lemma clique_free_bot (h : 2 ≤ n) : (⊥ : simple_graph α).clique_free n :=
 begin
   rintro t ht,
   rw is_n_clique_bot_iff at ht,
@@ -224,21 +238,29 @@ variables (G) {n : ℕ} {a b c : α} {s : finset α}
 /-- The `n`-cliques in a graph as a set. -/
 def clique_set (n : ℕ) : set (finset α) := {s | G.is_n_clique n s}
 
-lemma mem_clique_set_iff : s ∈ G.clique_set n ↔ G.is_n_clique n s := iff.rfl
+@[simp] lemma mem_clique_set_iff : s ∈ G.clique_set n ↔ G.is_n_clique n s := iff.rfl
 
 @[simp] lemma clique_set_eq_empty_iff : G.clique_set n = ∅ ↔ G.clique_free n :=
 by simp_rw [clique_free, set.eq_empty_iff_forall_not_mem, mem_clique_set_iff]
 
-alias clique_set_eq_empty_iff ↔ _ clique_free.clique_set
-
-attribute [protected] clique_free.clique_set
-
 variables {G H}
+
+protected lemma clique_free.clique_set : G.clique_free n → G.clique_set n = ∅ :=
+G.clique_set_eq_empty_iff.2
 
 @[mono] lemma clique_set_mono (h : G ≤ H) : G.clique_set n ⊆ H.clique_set n :=
 λ _, is_n_clique.mono h
 
 lemma clique_set_mono' (h : G ≤ H) : G.clique_set ≤ H.clique_set := λ _, clique_set_mono h
+
+@[simp] lemma clique_set_zero (G : simple_graph α) : G.clique_set 0 = {∅} :=
+set.ext $ λ s, by simp
+
+@[simp] lemma clique_set_one (G : simple_graph α) : G.clique_set 1 = set.range singleton :=
+set.ext $ λ s, by simp [eq_comm]
+
+@[simp] lemma clique_set_bot (hn : 1 < n) : (⊥ : simple_graph α).clique_set n = ∅ :=
+(clique_free_bot hn).clique_set
 
 end clique_set
 

@@ -377,7 +377,10 @@ begin
 end
 
 /-- This actually does not need the localization instance, and is stated here again for
-consistency. See `algebra.formally_unramified.of_comp` instead. -/
+consistency. See `algebra.formally_unramified.of_comp` instead.
+
+ The intended use is for copying proofs between `formally_{unramified, smooth, etale}`
+ without the need to change anything (including removing redundant arguments). -/
 @[nolint unused_arguments]
 lemma formally_unramified.localization_base [formally_unramified R Sₘ] :
   formally_unramified Rₘ Sₘ :=

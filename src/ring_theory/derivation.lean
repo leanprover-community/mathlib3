@@ -20,7 +20,7 @@ This file defines derivation. A derivation `D` from the `R`-algebra `A` to the `
 - `derivation`: The type of `R`-derivations from `A` to `M`. This has an `A`-module structure.
 - `derivation.llcomp`: We may compose linear maps and derivations to obtain a derivation,
   and the composition is bilinear.
-- `derivation.lie_algebra`: The `R`-derivations from `A` to `A` forms an lie algebra over `R`.
+- `derivation.lie_algebra`: The `R`-derivations from `A` to `A` form an lie algebra over `R`.
 - `derivation_to_square_zero_equiv_lift`: The `R`-derivations from `A` into a square-zero ideal `I`
   of `B` corresponds to the lifts `A →ₐ[R] B` of the map `A →ₐ[R] B ⧸ I`.
 - `kaehler_differential`: The module of kaehler differentials. For an `R`-algebra `S`, we provide

@@ -235,6 +235,7 @@ class gdistrib_mul_action [add_monoid ι] [gmonoid A] [Π i, add_monoid $ M i]
 (smul_add {i j} (a : A i) (b c : M j) : smul a (b + c) = smul a b + smul a c)
 (smul_zero {i j} (a : A i) : smul a (0 : M j) = 0)
 
+/-- A graded version of `gmodule`. -/
 class gmodule [add_monoid ι] [Π i, add_monoid $ A i] [Π i, add_monoid $ M i]
   [graded_monoid.gmonoid A] extends gdistrib_mul_action A M :=
 (add_smul {i j} (a a' : A i) (b : M j) : smul (a + a') b = smul a b + smul a' b)

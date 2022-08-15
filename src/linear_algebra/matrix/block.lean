@@ -257,15 +257,4 @@ begin
   exactI det_is_empty,
 end
 
-lemma det_of_upper_triangular [linear_order m] (h : M.block_triangular id) :
-  M.det = ∏ i : m, M i i :=
-begin
-  haveI : decidable_eq R := classical.dec_eq _,
-  simp_rw [h.det, image_id, det_to_square_block_id],
-end
-
-lemma det_of_lower_triangular [linear_order m] (M : matrix m m R) (h : M.block_triangular to_dual) :
-  M.det = ∏ i : m, M i i :=
-by { rw ←det_transpose, exact det_of_upper_triangular h.transpose }
-
 end matrix

@@ -1905,5 +1905,3 @@ def is_coercive
   [normed_add_comm_group E] [normed_space ℝ E]
   (B : E →L[ℝ] E →L[ℝ] ℝ) : Prop :=
 ∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u
-
-#lint

@@ -802,7 +802,7 @@ lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
   (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
   (x₀ : G) (x : E'') : (f ⋆[L.precompR E'', μ] g) x₀ x = (f ⋆[L, μ] (λ a, g a x)) x₀  :=
 begin
-  have := hcg.convolution_exists_right (L.precompR E'') hf hg x₀,
+  have := has_compact_support.convolution_exists_right (L.precompR E'' : _) hcg hf hg x₀,
   simp_rw [convolution_def, continuous_linear_map.integral_apply this],
   refl,
 end

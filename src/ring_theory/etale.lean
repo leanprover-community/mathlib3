@@ -148,7 +148,7 @@ alg_hom.congr_fun (formally_smooth.comp_lift I hI g : _) x
 
 variables {C : Type u} [comm_ring C] [algebra R C]
 
-/-- For a formally smooth `R`-algebra `A` and a map `f : A →ₐ[R] B ⧸ I` with `I` square-zero,
+/-- For a formally smooth `R`-algebra `A` and a map `f : A →ₐ[R] B ⧸ I` with `I` nilpotent,
 this is an arbitrary lift `A →ₐ[R] B`. -/
 noncomputable
 def formally_smooth.lift_of_surjective [formally_smooth R A] (f : A →ₐ[R] C) (g : B →ₐ[R] C)
@@ -307,7 +307,7 @@ end
 
 include hf
 
-/-- Let `P →ₐ[R] A` be a surjection with kernel `J`, and `P` is a formally smooth `R`-algebra,
+/-- Let `P →ₐ[R] A` be a surjection with kernel `J`, and `P` a formally smooth `R`-algebra,
 then `A` is formally smooth over `R` iff the surjection `P ⧸ J ^ 2 →ₐ[R] A` has a section. -/
 lemma formally_smooth.iff_split_surjection [formally_smooth R P] :
   formally_smooth R A ↔ ∃ g, f.ker_square_lift.comp g = alg_hom.id R A :=

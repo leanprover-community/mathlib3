@@ -218,7 +218,27 @@ end
 
 end mem
 
+/-! ### Singleton -/
+
+instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
+
+instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
+
+theorem singleton_eq_cons (a : α) : singleton a = a ::ₘ 0 := rfl
+
+@[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
+by simp only [singleton_eq_cons, mem_cons, iff_self, or_false, not_mem_zero]
+
+theorem mem_singleton_self (a : α) : a ∈ ({a} : multiset α) :=
+by { rw singleton_eq_cons, exact mem_cons_self _ _ }
+
+theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
+by { simp_rw [singleton_eq_cons], exact cons_inj_left _ }
+
+theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
+
 /-! ### `multiset.subset` -/
+
 section subset
 
 /-- `s ⊆ t` is the lift of the list subset relation. It means that any
@@ -267,6 +287,8 @@ lemma induction_on' {p : multiset α → Prop} (S : multiset α)
   let ⟨hS, sS⟩ := cons_subset.1 hs in h₂ hS sS (hps sS)) (subset.refl S)
 
 end subset
+
+/-! ### `multiset.to_list` -/
 
 section to_list
 
@@ -323,7 +345,12 @@ quotient.induction_on₂ s t (λ l₁ l₂ ⟨l, p, s⟩,
 theorem zero_le (s : multiset α) : 0 ≤ s :=
 quot.induction_on s $ λ l, (nil_sublist l).subperm
 
-lemma le_zero : s ≤ 0 ↔ s = 0 := ⟨λ h, le_antisymm h (zero_le _), le_of_eq⟩
+instance : order_bot (multiset α) := ⟨0, zero_le⟩
+
+/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
+@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
+
+lemma le_zero : s ≤ 0 ↔ s = 0 := le_bot_iff
 
 theorem lt_cons_self (s : multiset α) (a : α) : s < a ::ₘ s :=
 quot.induction_on s $ λ l,
@@ -352,24 +379,6 @@ begin
     ((sublist_or_mem_of_sublist s).resolve_right m₁).subperm)
 end
 
-end
-
-/-! ### Singleton -/
-instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
-
-instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
-
-theorem singleton_eq_cons (a : α) : singleton a = a ::ₘ 0 := rfl
-
-@[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
-by simp only [singleton_eq_cons, mem_cons, iff_self, or_false, not_mem_zero]
-
-theorem mem_singleton_self (a : α) : a ∈ ({a} : multiset α) :=
-by { rw singleton_eq_cons, exact mem_cons_self _ _ }
-
-theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
-by { simp_rw [singleton_eq_cons], exact cons_inj_left _ }
-
 @[simp] theorem singleton_ne_zero (a : α) : ({a} : multiset α) ≠ 0 :=
 ne_of_gt (lt_cons_self _ _)
 
@@ -377,7 +386,7 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
-theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
+end
 
 /-! ### Additive monoid -/
 
@@ -426,19 +435,12 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
   let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
  λ ⟨u, e⟩, e.symm ▸ le_add_right _ _⟩
 
-instance : order_bot (multiset α) :=
-{ bot                   := 0,
-  bot_le                := multiset.zero_le }
-
 instance : canonically_ordered_add_monoid (multiset α) :=
 { le_self_add := le_add_right,
   exists_add_of_le := λ a b h, le_induction_on h $ λ l₁ l₂ s,
     let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
   ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
-
-/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
-@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]
@@ -1158,6 +1160,10 @@ multiset.induction_on t (by simp [multiset.sub_zero])
 
 instance : has_ordered_sub (multiset α) :=
 ⟨λ n m k, multiset.sub_le_iff_le_add⟩
+
+lemma cons_sub_of_le (a : α) {s t : multiset α} (h : t ≤ s) :
+  a ::ₘ s - t = a ::ₘ (s - t) :=
+by rw [←singleton_add, ←singleton_add, add_tsub_assoc_of_le h]
 
 theorem sub_eq_fold_erase (s t : multiset α) : s - t = foldl erase erase_comm s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂,

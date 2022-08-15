@@ -30,7 +30,8 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
   a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_add_comm_group` structure.
   Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
-  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`, `lp.infty_normed_algebra`.
+  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`,
+  `lp.infty_normed_algebra`, `lp.infty_star_ring` and `lp.infty_cstar_ring`.
 
 ## Main results
 
@@ -228,7 +229,7 @@ begin
   { refine (real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp.le).trans _,
     dsimp [C],
     split_ifs with h h,
-    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
+    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp.le h.le) },
     { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
       have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
       simp only [not_lt] at h,
@@ -629,6 +630,53 @@ end
 
 end normed_space
 
+section normed_star_group
+
+variables [Π i, star_add_monoid (E i)] [Π i, normed_star_group (E i)]
+
+lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
+  (hf : mem_ℓp f p) : mem_ℓp (star f) p :=
+begin
+  rcases p.trichotomy with rfl | rfl | hp,
+  { apply mem_ℓp_zero,
+    simp [hf.finite_dsupport] },
+  { apply mem_ℓp_infty,
+    simpa using hf.bdd_above },
+  { apply mem_ℓp_gen,
+    simpa using hf.summable hp },
+end
+
+@[simp] lemma _root_.mem_ℓp.star_iff {f : Π i, E i} : mem_ℓp (star f) p ↔ mem_ℓp f p :=
+⟨λ h, star_star f ▸ mem_ℓp.star_mem h ,mem_ℓp.star_mem⟩
+
+instance : has_star (lp E p) :=
+{ star := λ f, ⟨(star f : Π i, E i), f.property.star_mem⟩}
+
+@[simp] lemma coe_fn_star (f : lp E p) : ⇑(star f) = star f := rfl
+@[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
+
+instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simp} }
+
+instance : star_add_monoid (lp E p) := { star_add := λ f g, ext $ star_add _ _ }
+
+instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
+{ norm_star := λ f,
+  begin
+    unfreezingI { rcases p.trichotomy with rfl | rfl | h },
+    { exfalso,
+      have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
+      norm_num at this,},
+    { simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
+    { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
+  end }
+
+variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
+variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+
+instance : star_module 𝕜 (lp E p) := { star_smul := λ r f, ext $ star_smul _ _ }
+
+end normed_star_group
+
 section non_unital_normed_ring
 
 variables {I : Type*} {B : I → Type*} [Π i, non_unital_normed_ring (B i)]
@@ -674,6 +722,32 @@ instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space �
   [Π i, smul_comm_class 𝕜 (B i) (B i)] :
   smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
+
+section star_ring
+
+variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
+
+instance infty_star_ring : star_ring (lp B ∞) :=
+{ star_mul := λ f g, ext $ star_mul (_ : Π i, B i) _,
+  .. (show star_add_monoid (lp B ∞),
+      by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
+
+instance infty_cstar_ring [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
+{ norm_star_mul_self := λ f,
+  begin
+    apply le_antisymm,
+    { rw ←sq,
+      refine lp.norm_le_of_forall_le (sq_nonneg ∥ f ∥) (λ i, _),
+      simp only [lp.star_apply, cstar_ring.norm_star_mul_self, ←sq, infty_coe_fn_mul, pi.mul_apply],
+      refine sq_le_sq' _ (lp.norm_apply_le_norm ennreal.top_ne_zero _ _),
+      linarith [norm_nonneg (f i), norm_nonneg f] },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _)],
+      refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) (λ i, _),
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact lp.norm_apply_le_norm ennreal.top_ne_zero (star f * f) i, }
+  end }
+
+end star_ring
 
 end non_unital_normed_ring
 

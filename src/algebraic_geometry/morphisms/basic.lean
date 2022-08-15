@@ -408,10 +408,8 @@ begin
   use S.affine_cover.pullback_cover f,
   intro i,
   rw (hP.affine_open_cover_tfae g).out 0 3 at H,
-  let e : pullback (pullback.fst : pullback f g ⟶ _) ((S.affine_cover.pullback_cover f).map i) ≅
-    _,
-  { refine pullback_symmetry _ _ ≪≫ pullback_right_pullback_fst_iso f g _ ≪≫
-      _ ≪≫
+  let e : pullback (pullback.fst : pullback f g ⟶ _) ((S.affine_cover.pullback_cover f).map i) ≅ _,
+  { refine pullback_symmetry _ _ ≪≫ pullback_right_pullback_fst_iso f g _ ≪≫ _ ≪≫
       (pullback_right_pullback_fst_iso (S.affine_cover.map i) g
         (pullback.snd : pullback f (S.affine_cover.map i) ⟶ _)).symm,
     exact as_iso (pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _)

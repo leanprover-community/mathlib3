@@ -1073,6 +1073,10 @@ end seminormed_add_comm_group
 
 section normed_add_comm_group
 
+/-- Construct a `normed_add_comm_group` from a `seminormed_add_comm_group` satisfying
+`∀ x, ∥x∥ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level
+when declaring a `normed_add_comm_group` instance as a special case of a more general
+`seminormed_add_comm_group` instance. -/
 def normed_add_comm_group.of_separation [h₁ : seminormed_add_comm_group E]
   (h₂ : ∀ x : E, ∥x∥ = 0 → x = 0) : normed_add_comm_group E :=
 { to_metric_space :=

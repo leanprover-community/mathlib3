@@ -143,7 +143,7 @@ theorem forall₂_zip {R : α → β → Prop} :
 
 theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l₁ l₂ ↔
   length l₁ = length l₂ ∧ ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b :=
-⟨λ h, ⟨forall₂.length_eq h, @forall₂_zip _ _ _ _ _ h⟩,
+⟨λ h, ⟨h.length_eq, @forall₂_zip _ _ _ _ _ h⟩,
  λ h, begin
   cases h with h₁ h₂,
   induction l₁ with a l₁ IH generalizing l₂,

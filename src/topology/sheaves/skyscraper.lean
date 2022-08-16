@@ -8,7 +8,6 @@ import topology.sheaves.sheaf_condition.unique_gluing
 import topology.sheaves.stalks
 import category_theory.sites.sheafification
 import category_theory.preadditive.injective
-import algebra.category.Group.abelian
 
 /-!
 # Skyscraper (pre)sheaves

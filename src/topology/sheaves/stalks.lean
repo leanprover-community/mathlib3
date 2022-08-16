@@ -12,11 +12,6 @@ import category_theory.limits.final
 import category_theory.adjunction.evaluation
 import topology.sober
 import tactic.elementwise
-import algebra.category.Ring
-import algebra.category.Group.colimits
-import algebra.category.Group.limits
-import algebra.category.Group.filtered_colimits
-import algebra.category.Group.epi_mono
 import category_theory.sites.sheafification
 
 /-!

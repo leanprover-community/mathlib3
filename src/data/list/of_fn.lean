@@ -109,6 +109,20 @@ begin
     simp_rw [fin.cast_succ_fin_succ], }
 end
 
+@[simp] lemma of_fn_eq_nil_iff {n : ℕ} {f : fin n → α} :
+  of_fn f = [] ↔ n = 0 :=
+by cases n; simp only [of_fn_zero, of_fn_succ, eq_self_iff_true, nat.succ_ne_zero]
+
+lemma last_of_fn {n : ℕ} (f : fin n → α) (h : of_fn f ≠ [])
+  (hn : n - 1 < n := nat.pred_lt $ of_fn_eq_nil_iff.not.mp h) :
+  last (of_fn f) h = f ⟨n - 1, hn⟩ :=
+by simp [last_eq_nth_le]
+
+lemma last_of_fn_succ {n : ℕ} (f : fin n.succ → α)
+  (h : of_fn f ≠ [] := mt of_fn_eq_nil_iff.mp (nat.succ_ne_zero _)) :
+  last (of_fn f) h = f (fin.last _) :=
+last_of_fn f h
+
 /-- Note this matches the convention of `list.of_fn_succ'`, putting the `fin m` elements first. -/
 theorem of_fn_add {m n} (f : fin (m + n) → α) :
   list.of_fn f = list.of_fn (λ i, f (fin.cast_add n i)) ++ list.of_fn (λ j, f (fin.nat_add m j)) :=
@@ -187,5 +201,18 @@ equiv_sigma_tuple.symm.surjective.exists.trans sigma.exists
 lemma forall_iff_forall_tuple {P : list α → Prop} :
   (∀ l : list α, P l) ↔ ∀ n (f : fin n → α), P (list.of_fn f) :=
 equiv_sigma_tuple.symm.surjective.forall.trans sigma.forall
+
+/-- `fin.sigma_eq_iff_eq_comp_cast` may be useful to work with the RHS of this expression. -/
+lemma of_fn_inj' {m n : ℕ} {f : fin m → α} {g : fin n → α} :
+  of_fn f = of_fn g ↔ (⟨m, f⟩ : Σ n, fin n → α) = ⟨n, g⟩ :=
+iff.symm $ equiv_sigma_tuple.symm.injective.eq_iff.symm
+
+/-- Note we can only state this when the two functions are indexed by defeq `n`. -/
+lemma of_fn_injective {n : ℕ} : function.injective (of_fn : (fin n → α) → list α) :=
+λ f g h, eq_of_heq $ by injection of_fn_inj'.mp h
+
+/-- A special case of `list.of_fn_inj'` for when the two functions are indexed by defeq `n`. -/
+@[simp] lemma of_fn_inj {n : ℕ} {f g : fin n → α} : of_fn f = of_fn g ↔ f = g :=
+of_fn_injective.eq_iff
 
 end list

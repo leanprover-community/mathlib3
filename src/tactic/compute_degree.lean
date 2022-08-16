@@ -83,7 +83,7 @@ If `d` is less than `guess_degree f`, this tactic will create unsolvable goals.
 meta def resolve_sum_step : expr → tactic unit
 | `(nat_degree %%tl ≤ %%tr) := match tl with
   | `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _ _ _).mpr _)
+  | `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _).mpr _)
   | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
     refine ``(nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
   | `(- %%f)         := refine ``((nat_degree_neg _).le.trans _)
@@ -139,7 +139,28 @@ open compute_degree polynomial
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
 
 If the given degree `d` is smaller than the one that the tactic computes,
-then the tactic suggests the degree that it computed. -/
+then the tactic suggests the degree that it computed.
+
+Examples:
+
+```lean
+open polynomial
+open_locale polynomial
+
+variables {R : Type*} [semiring R] {a b c d e : R}
+
+example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
+  nat_degree (X ^ n + C a * X ^ 10 : F[X]) ≤ 10 :=
+by compute_degree_le
+
+example : nat_degree (7 * X : R[X]) ≤ 1 :=
+by compute_degree_le
+
+example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+ (p ^ n).nat_degree ≤ 0 :=
+by compute_degree_le
+```
+-/
 meta def compute_degree_le : tactic unit :=
 do t ← target,
   try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
@@ -159,7 +180,7 @@ add_tactic_doc
 { name := "compute_degree_le",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.compute_degree_le],
-  tags := ["arithmetic, finishing"] }
+  tags := ["arithmetic", "finishing"] }
 
 end interactive
 

@@ -116,10 +116,25 @@ theorem forall₂_length_eq {R : α → β → Prop} :
 | _ _ forall₂.nil          := rfl
 | _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
 
-theorem forall₂_nth_le {x : list α} {y : list β} {i : ℕ} (h : list.forall₂ r x y) (h₁) (h₂):
-  r (x.nth_le i h₁) (y.nth_le i h₂) :=
+theorem forall₂_nth_le :
+  ∀ {x : list α}, ∀ {y : list β}, list.forall₂ r x y →
+    ∀ {i : ℕ}, ∀ i_lt_len_x : i < x.length, ∀ i_lt_len_y : i < y.length,
+      r (x.nth_le i i_lt_len_x) (y.nth_le i i_lt_len_y)
+| []       []       := by { intros hyp i hx, exfalso, apply nat.not_lt_zero, exact hx, }
+| []       (a₂::l₂) := by { intro hyp, exfalso, cases hyp, }
+| (a₁::l₁) []       := by { intro hyp, exfalso, cases hyp, }
+| (a₁::l₁) (a₂::l₂) :=
 begin
-  sorry,
+  intros ass i i_lt_len_x i_lt_len_y,
+  rw list.forall₂_cons at ass,
+  cases i,
+  {
+    unfold list.nth_le,
+    exact ass.1,
+  },
+  unfold list.nth_le,
+  apply forall₂_nth_le,
+  exact ass.2,
 end
 
 lemma forall₂_nth_le_aux : ∀ x : list α, ∀ y : list β,
@@ -172,23 +187,6 @@ begin
   },
   {
     apply forall₂_nth_le_aux,
-  },
-end
-
-example (b : β) : ¬ (∀ x : list α, ∀ y : list β,
-  (∀ i h₁, ∃ h₂, r (x.nth_le i h₁) (y.nth_le i h₂)) → list.forall₂ r x y) :=
-begin
-  push_neg,
-  use [[], [b]],
-  split,
-  {
-    intros i imposs,
-    exfalso,
-    rw list.length at imposs,
-    exact nat.not_lt_zero i imposs,
-  },
-  {
-    finish,
   },
 end
 

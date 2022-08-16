@@ -269,7 +269,7 @@ by simp [factorization_eq_zero_of_non_prime n hp]
 lemma ord_proj_dvd (n p : ℕ) : ord_proj[p] n ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [hp] },
-  rw [←factors_count_eq],
+  rw ←factors_count_eq,
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,
@@ -302,16 +302,16 @@ nat.div_le_self _ _
 lemma ord_proj_mul_ord_compl_eq_self (n p : ℕ) : ord_proj[p] n * ord_compl[p] n = n :=
 nat.mul_div_cancel' (ord_proj_dvd n p)
 
-lemma mul_ord_proj {a b : ℕ} (p : ℕ) (ha : a ≠ 0) (hb : b ≠ 0):
-  ord_proj[p] (a*b) = ord_proj[p] a * ord_proj[p] b :=
+lemma ord_proj_mul {a b : ℕ} (p : ℕ) (ha : a ≠ 0) (hb : b ≠ 0):
+  ord_proj[p] (a * b) = ord_proj[p] a * ord_proj[p] b :=
 by simp [factorization_mul ha hb, pow_add]
 
-lemma mul_ord_compl (a b p : ℕ) :
-  ord_compl[p] (a*b) = ord_compl[p] a * ord_compl[p] b :=
+lemma ord_compl_mul (a b p : ℕ) :
+  ord_compl[p] (a * b) = ord_compl[p] a * ord_compl[p] b :=
 begin
   rcases eq_or_ne a 0 with rfl | ha, { simp },
   rcases eq_or_ne b 0 with rfl | hb, { simp },
-  simp only [mul_ord_proj p ha hb],
+  simp only [ord_proj_mul p ha hb],
   rw (mul_div_mul_comm_of_dvd_dvd (ord_proj_dvd a p) (ord_proj_dvd b p)),
 end
 
@@ -418,7 +418,7 @@ begin
   simp [hp.factorization],
 end
 
-lemma coprime_of_ord_compl {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+lemma coprime_ord_compl {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   coprime p (ord_compl[p] n) :=
 (or_iff_left (not_dvd_ord_compl hp hn)).mp $ coprime_or_dvd_of_prime hp _
 

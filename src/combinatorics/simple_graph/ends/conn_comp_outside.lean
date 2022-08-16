@@ -9,6 +9,8 @@ import .mathlib
 
 open function finset set classical simple_graph.walk relation
 
+local attribute [instance] prop_decidable
+
 universes u v w
 
 noncomputable theory
@@ -103,6 +105,25 @@ lemma border_finite [locally_finite G] (C : conn_comp_outside G K) :  (border C)
 begin
   refine finite.inter_of_right _ C.verts, apply bdry_finite,
 end
+
+-- for mathlib
+lemma reachable_of_adj {u v : V} : G.adj u v → G.reachable u v := sorry
+
+lemma walk.to_boundary {G : simple_graph V} (S : set V) (src : (G.compl S).verts) (tgt : S) (w : G.walk ↑src tgt) : ∃ b ∈ bdry G S, (G.compl S).coe.reachable src b :=
+  match src, tgt, w with
+    | ⟨_, hSc⟩, ⟨_, _⟩, nil := by {simp at hSc, contradiction,}
+    | src, tgt, cons' _ b _ adj_src w' :=
+      if h : b ∈ S then
+       ⟨src, ⟨b, h, adj_src⟩, reachable.rfl⟩
+      else by {
+        rcases (_match ⟨b, G.outside_to_compl h⟩ tgt w') with ⟨b', hbdry, hreach⟩,
+        use b', use hbdry,
+        refine reachable.trans _ hreach,
+        apply reachable_of_adj,
+        dsimp [adj],
+        tidy?,
+      }
+  end
 
 lemma border_nonempty [Gpc : preconnected G] (Knempty : K.nonempty) : ∀ (C : conn_comp_outside G K), nonempty (border C) :=
 begin

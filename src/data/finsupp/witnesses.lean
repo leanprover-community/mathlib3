@@ -11,7 +11,7 @@ import data.finsupp.lex
 
 variables {α N : Type*}
 
-lemma ne_or_ne_of_ne {a b : α} (c : α) (h : a ≠ b) :
+lemma ne.ne_or_ne {a b : α} (c : α) (h : a ≠ b) :
   a ≠ c ∨ b ≠ c :=
 not_and_distrib.1 $ mt (and_imp.2 eq.substr) h.symm
 
@@ -49,7 +49,7 @@ diff_comm.trans diff_zero_right
 @[simp]
 lemma mem_diff {a : α} : a ∈ f.diff g ↔ f a ≠ g a :=
 by simpa only [diff, finset.mem_filter, finset.mem_union, mem_support_iff, and_iff_right_iff_imp]
-    using ne_or_ne_of_ne _
+    using ne.ne_or_ne _
 
 end N_has_zero
 
@@ -59,7 +59,7 @@ begin
   ext,
   simp only [diff, ne.def, add_right_inj, finset.mem_filter, finset.mem_union, mem_support_iff,
     coe_add, pi.add_apply, and.congr_left_iff],
-  exact λ bc, ⟨λ h, ne_or_ne_of_ne 0 bc, λ h, ne_or_ne_of_ne _ ((add_right_inj _).not.mpr bc)⟩,
+  exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_right_inj _).not.mpr bc)⟩,
 end
 
 --  can this proof by replaced by the previous one interlaced with `Nᵃᵒᵖ`?
@@ -69,7 +69,7 @@ begin
   ext,
   simp only [diff, ne.def, add_left_inj, finset.mem_filter, finset.mem_union, mem_support_iff,
     coe_add, pi.add_apply, and.congr_left_iff],
-  exact λ bc, ⟨λ h, ne_or_ne_of_ne 0 bc, λ h, ne_or_ne_of_ne _ ((add_left_inj _).not.mpr bc)⟩,
+  exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_left_inj _).not.mpr bc)⟩,
 end
 end diff
 
@@ -136,7 +136,7 @@ begin
   convert abx,
   repeat { refine le_antisymm (finset.min'_le _ _ _) _,
     { simp only [diff, ne.def, finset.mem_filter, finset.mem_union, mem_support_iff],
-      exact ⟨ne_or_ne_of_ne 0 abx.ne, abx.ne⟩ },
+      exact ⟨abx.ne.ne_or_ne 0, abx.ne⟩ },
     { refine finset.le_min' _ _ _ (λ y hy, _),
       contrapose! hy,
       simpa only [mem_diff, ne.def, not_not] using ltx _ hy } }

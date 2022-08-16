@@ -270,21 +270,10 @@ The L¹ martingale convergence theorem states that:
   uniformly integrable martingale which converges to `h` almost everywhere and in L¹.
 
 The proof is quite simple. (a) follows directly from the a.e. martingale convergence theorem
-and the Vitali convergence theorem. Mathematically, one first have to observe that uniform
-integrability implies uniform boundedness in L¹. Indeed, if
-$$
-  \lim_{\lambda \to \infty} \sup_{n \ge 0} \mathbb{E}(|f_n|\mathbf{1}_{\{|f_n| > \lambda\}}) = 0,
-$$
-then there exists some $\lambda$ such that
-$\sup_{n \ge 0} \mathbb{E}(|f_n|\mathbf{1}_{\{|f_n| > \lambda\}}) \le 1$. So,
-$$
-  \sup_{n \ge 0} \mathbb{E}|f_n| \le
-    \sup_{n \ge 0} \mathbb{E}|f_n|\mathbf{1}_{\{|f_n| \le \lambda\}} +
-    \sup_{n \ge 0} \mathbb{E}|f_n|\mathbf{1}_{\{|f_n| > \lambda\}} \le
-    \lambda \mu(\Omega) + 1 < \infty.
-$$
-However, by the very definition we used for uniform integrability in the probability sense,
-uniform integrability in Lean directly requires L¹ boundedness and so the above is unnecessary.
+and the Vitali convergence theorem as our definition of uniform integrability (in the probability
+sense) directly implies L¹-uniform boundedness. We note that our definition of uniform
+integrability is slightly non-standard but is equivalent to the usual literary definition. This
+equivalence is provided by `measure_theory.uniform_integrable_iff`.
 
 (b) follows since given $n$, we have for all $m \ge n$,
 $$

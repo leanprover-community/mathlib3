@@ -60,13 +60,61 @@ Torsion, submodule, module, quotient
 
 namespace ideal
 
-section
+section torsion_of
+
 variables (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
+
 /--The torsion ideal of `x`, containing all `a` such that `a • x = 0`.-/
 @[simps] def torsion_of (x : M) : ideal R := (linear_map.to_span_singleton R M x).ker
+
+@[simp] lemma torsion_of_zero : torsion_of R M (0 : M) = ⊤ := by simp [torsion_of]
+
 variables {R M}
+
 @[simp] lemma mem_torsion_of_iff (x : M) (a : R) : a ∈ torsion_of R M x ↔ a • x = 0 := iff.rfl
+
+variables (R)
+
+@[simp] lemma torsion_of_eq_top_iff (m : M) : torsion_of R M m = ⊤ ↔ m = 0 :=
+begin
+  refine ⟨λ h, _, λ h, by simp [h]⟩,
+  rw [← one_smul R m, ← mem_torsion_of_iff m (1 : R), h],
+  exact submodule.mem_top,
 end
+
+@[simp] lemma torsion_of_eq_bot_iff_of_no_zero_smul_divisors
+  [nontrivial R] [no_zero_smul_divisors R M] (m : M) :
+  torsion_of R M m = ⊥ ↔ m ≠ 0 :=
+begin
+  refine ⟨λ h contra, _, λ h, (submodule.eq_bot_iff _).mpr $ λ r hr, _⟩,
+  { rw [contra, torsion_of_zero] at h,
+    exact bot_ne_top.symm h, },
+  { rw [mem_torsion_of_iff, smul_eq_zero] at hr,
+    tauto, },
+end
+
+/-- See also `complete_lattice.independent.linear_independent` which provides the same conclusion
+but requires the stronger hypothesis `no_zero_smul_divisors R M`. -/
+lemma complete_lattice.independent.linear_independent' {ι R M : Type*} {v : ι → M}
+  [ring R] [add_comm_group M] [module R M]
+  (hv : complete_lattice.independent $ λ i, (R ∙ v i))
+  (h_ne_zero : ∀ i, ideal.torsion_of R M (v i) = ⊥) :
+  linear_independent R v :=
+begin
+  refine linear_independent_iff_not_smul_mem_span.mpr (λ i r hi, _),
+  replace hv := complete_lattice.independent_def.mp hv i,
+  simp only [supr_subtype', ← submodule.span_range_eq_supr, disjoint_iff] at hv,
+  have : r • v i ∈ ⊥,
+  { rw [← hv, submodule.mem_inf],
+    refine ⟨submodule.mem_span_singleton.mpr ⟨r, rfl⟩, _⟩,
+    convert hi,
+    ext,
+    simp, },
+  rw [← submodule.mem_bot R, ← h_ne_zero i],
+  simpa using this,
+end
+
+end torsion_of
 
 section
 variables (R M : Type*) [ring R] [add_comm_group M] [module R M]
@@ -125,7 +173,7 @@ namespace module
 @[reducible] def is_torsion_by_set (s : set R) := ∀ ⦃x : M⦄ ⦃a : s⦄, (a : R) • x = 0
 
 /-- A `S`-torsion module is a module where every element is `a`-torsion for some `a` in `S`. -/
-@[reducible] def is_torsion' (S : Type*) [has_scalar S M] := ∀ ⦃x : M⦄, ∃ a : S, a • x = 0
+@[reducible] def is_torsion' (S : Type*) [has_smul S M] := ∀ ⦃x : M⦄, ∃ a : S, a • x = 0
 
 /-- A torsion module is a module where every element is `a`-torsion for some non-zero-divisor `a`.
 -/
@@ -348,7 +396,7 @@ variables {I : ideal R} (hM : is_torsion_by_set R M I)
 include hM
 
 /-- can't be an instance because hM can't be inferred -/
-def is_torsion_by_set.has_scalar : has_scalar (R ⧸ I) M :=
+def is_torsion_by_set.has_smul : has_smul (R ⧸ I) M :=
 { smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ h, begin
     show b₁ • x = b₂ • x,
     have : (-b₁ + b₂) • x = 0 := @hM x ⟨_, quotient_add_group.left_rel_apply.mp h⟩,
@@ -357,12 +405,26 @@ def is_torsion_by_set.has_scalar : has_scalar (R ⧸ I) M :=
   end }
 
 @[simp] lemma is_torsion_by_set.mk_smul (b : R) (x : M) :
-  by haveI := hM.has_scalar; exact ideal.quotient.mk I b • x = b • x := rfl
+  by haveI := hM.has_smul; exact ideal.quotient.mk I b • x = b • x := rfl
 
 /-- A `(R ⧸ I)`-module is a `R`-module which `is_torsion_by_set R M I`. -/
 def is_torsion_by_set.module : module (R ⧸ I) M :=
-@function.surjective.module_left _ _ _ _ _ _ _ hM.has_scalar
+@function.surjective.module_left _ _ _ _ _ _ _ hM.has_smul
   _ ideal.quotient.mk_surjective (is_torsion_by_set.mk_smul hM)
+
+instance is_torsion_by_set.is_scalar_tower {S : Type*} [has_smul S R] [has_smul S M]
+  [is_scalar_tower S R M] [is_scalar_tower S R R] :
+  @@is_scalar_tower S (R ⧸ I) M _ (is_torsion_by_set.module hM).to_has_smul _ :=
+{ smul_assoc := λ b d x, quotient.induction_on' d $ λ c, (smul_assoc b c x : _) }
+
+omit hM
+
+instance : module (R ⧸ I) (M ⧸ I • (⊤ : submodule R M)) :=
+is_torsion_by_set.module (λ x r, begin
+  induction x using quotient.induction_on,
+  refine (submodule.quotient.mk_eq_zero _).mpr (submodule.smul_mem_smul r.prop _),
+  trivial,
+end)
 
 end module
 
@@ -374,10 +436,10 @@ module.is_torsion_by_set.module $ torsion_by_set_is_torsion_by_set I
 @[simp] lemma torsion_by_set.mk_smul (I : ideal R) (b : R) (x : torsion_by_set R M I) :
   ideal.quotient.mk I b • x = b • x := rfl
 
-instance (I : ideal R) {S : Type*} [has_scalar S R] [has_scalar S M]
+instance (I : ideal R) {S : Type*} [has_smul S R] [has_smul S M]
   [is_scalar_tower S R M] [is_scalar_tower S R R] :
   is_scalar_tower S (R ⧸ I) (torsion_by_set R M I) :=
-{ smul_assoc := λ b d x, quotient.induction_on' d $ λ c, (smul_assoc b c x : _) }
+infer_instance
 
 /-- The `a`-torsion submodule as a `(R ⧸ R∙a)`-module. -/
 instance (a : R) : module (R ⧸ R ∙ a) (torsion_by R M a) :=
@@ -387,10 +449,10 @@ module.is_torsion_by_set.module $
 @[simp] lemma torsion_by.mk_smul (a b : R) (x : torsion_by R M a) :
   ideal.quotient.mk (R ∙ a) b • x = b • x := rfl
 
-instance (a : R) {S : Type*} [has_scalar S R] [has_scalar S M]
+instance (a : R) {S : Type*} [has_smul S R] [has_smul S M]
   [is_scalar_tower S R M] [is_scalar_tower S R R] :
   is_scalar_tower S (R ⧸ R ∙ a) (torsion_by R M a) :=
-{ smul_assoc := λ b d x, quotient.induction_on' d $ λ c, (smul_assoc b c x : _) }
+infer_instance
 
 end submodule
 end needs_group
@@ -405,7 +467,7 @@ variables (S : Type*) [comm_monoid S] [distrib_mul_action S M] [smul_comm_class 
 @[simp] lemma mem_torsion'_iff (x : M) : x ∈ torsion' R M S ↔ ∃ a : S, a • x = 0 := iff.rfl
 @[simp] lemma mem_torsion_iff (x : M) : x ∈ torsion R M ↔ ∃ a : R⁰, a • x = 0 := iff.rfl
 
-@[simps] instance : has_scalar S (torsion' R M S) :=
+@[simps] instance : has_smul S (torsion' R M S) :=
 ⟨λ s x, ⟨s • x, by { obtain ⟨x, a, h⟩ := x, use a, dsimp, rw [smul_comm, h, smul_zero] }⟩⟩
 instance : distrib_mul_action S (torsion' R M S) := subtype.coe_injective.distrib_mul_action
   ((torsion' R M S).subtype).to_add_monoid_hom (λ (c : S) x, rfl)

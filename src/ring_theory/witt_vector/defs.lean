@@ -175,10 +175,10 @@ instance : has_add (𝕎 R) :=
 instance : has_sub (𝕎 R) :=
 ⟨λ x y, eval (witt_sub p) ![x, y]⟩
 
-instance has_nat_scalar : has_scalar ℕ (𝕎 R) :=
+instance has_nat_scalar : has_smul ℕ (𝕎 R) :=
 ⟨λ n x, eval (witt_nsmul p n) ![x]⟩
 
-instance has_int_scalar : has_scalar ℤ (𝕎 R) :=
+instance has_int_scalar : has_smul ℤ (𝕎 R) :=
 ⟨λ n x, eval (witt_zsmul p n) ![x]⟩
 
 instance : has_mul (𝕎 R) :=
@@ -351,11 +351,11 @@ by simp [has_neg.neg, eval, matrix.cons_fin_one]
 
 lemma nsmul_coeff (m : ℕ) (x : 𝕎 R) (n : ℕ) :
   (m • x).coeff n = peval (witt_nsmul p m n) ![x.coeff] :=
-by simp [has_scalar.smul, eval, matrix.cons_fin_one]
+by simp [has_smul.smul, eval, matrix.cons_fin_one]
 
 lemma zsmul_coeff (m : ℤ) (x : 𝕎 R) (n : ℕ) :
   (m • x).coeff n = peval (witt_zsmul p m n) ![x.coeff] :=
-by simp [has_scalar.smul, eval, matrix.cons_fin_one]
+by simp [has_smul.smul, eval, matrix.cons_fin_one]
 
 lemma pow_coeff (m : ℕ) (x : 𝕎 R) (n : ℕ) :
   (x ^ m).coeff n = peval (witt_pow p m n) ![x.coeff] :=
@@ -369,32 +369,28 @@ by simp [mul_coeff, peval]
 
 end coeff
 
-lemma witt_add_vars (n : ℕ) :
-  (witt_add p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_add_vars (n : ℕ) : (witt_add p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
-lemma witt_sub_vars (n : ℕ) :
-  (witt_sub p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_sub_vars (n : ℕ) : (witt_sub p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
-lemma witt_mul_vars (n : ℕ) :
-  (witt_mul p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_mul_vars (n : ℕ) : (witt_mul p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
-lemma witt_neg_vars (n : ℕ) :
-  (witt_neg p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_neg_vars (n : ℕ) : (witt_neg p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 lemma witt_nsmul_vars (m : ℕ) (n : ℕ) :
-  (witt_nsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_nsmul p m n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 lemma witt_zsmul_vars (m : ℤ) (n : ℕ) :
-  (witt_zsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_zsmul p m n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 lemma witt_pow_vars (m : ℕ) (n : ℕ) :
-  (witt_pow p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_pow p m n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 end witt_vector

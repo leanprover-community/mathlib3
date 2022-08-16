@@ -124,7 +124,7 @@ begin
   ext,
 
   -- Now it's just a calculation using `W` and `w`.
-  simp only [functor.comp_map, limit.map_π_apply, curry.obj_map_app, swap_map],
+  simp only [functor.comp_map, limit.map_π_apply, curry_obj_map_app, swap_map],
   rw ←W _ _ (fH j),
   rw ←W _ _ (gH j),
   simp [w],
@@ -293,7 +293,7 @@ begin
 
     -- and as each component is an equation in a colimit, we can verify it by
     -- pointing out the morphism which carries one representative to the other:
-    simp only [←e, colimit_eq_iff.{v v}, curry.obj_obj_map, limit.π_mk',
+    simp only [←e, colimit_eq_iff.{v v}, curry_obj_obj_map, limit.π_mk',
       bifunctor.map_id_comp, id.def, types_comp_apply,
       limits.ι_colimit_limit_to_limit_colimit_π_apply],
     refine ⟨k'', 𝟙 k'', g j ≫ gf (𝟙 j) ≫ i (𝟙 j), _⟩,
@@ -313,16 +313,18 @@ begin
   apply cones.cone_iso_of_hom_iso,
 end
 
-noncomputable
-instance filtered_colim_preserves_finite_limits_of_types :
-  preserves_finite_limits (colim : (K ⥤ Type v) ⥤ _) := ⟨λ J _ _, by exactI ⟨λ F, ⟨λ c hc,
+noncomputable instance filtered_colim_preserves_finite_limits_of_types :
+  preserves_finite_limits (colim : (K ⥤ Type v) ⥤ _) :=
 begin
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{v},
+  intros J _ _, resetI, constructor,
+  intro F, constructor,
+  intros c hc,
   apply is_limit.of_iso_limit (limit.is_limit _),
-  symmetry,
-  transitivity (colim.map_cone (limit.cone F)),
+  symmetry, transitivity (colim.map_cone (limit.cone F)),
   exact functor.map_iso _ (hc.unique_up_to_iso (limit.is_limit F)),
-  exact as_iso (colimit_limit_to_limit_colimit_cone F),
-end ⟩⟩⟩
+  exact as_iso (colimit_limit_to_limit_colimit_cone.{v (v + 1)} F),
+end
 
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
 section
@@ -346,7 +348,10 @@ noncomputable
 instance [preserves_finite_limits (forget C)] [preserves_filtered_colimits (forget C)]
   [has_finite_limits C] [has_colimits_of_shape K C] [reflects_isomorphisms (forget C)] :
     preserves_finite_limits (colim : (K ⥤ C) ⥤ _) :=
-⟨λ _ _ _, by exactI category_theory.limits.filtered_colim_preserves_finite_limits⟩
+begin
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{v},
+  intros J _ _, resetI, apply_instance
+end
 
 section
 
@@ -373,7 +378,7 @@ begin
   congr' 1,
   simp only [← category.assoc, iso.comp_inv_eq,
     limits.colimit_obj_iso_colimit_comp_evaluation_ι_app_hom,
-    limits.has_colimit.iso_of_nat_iso_ι_hom, nat_iso.of_components.hom_app],
+    limits.has_colimit.iso_of_nat_iso_ι_hom, nat_iso.of_components_hom_app],
   dsimp,
   simp,
 end

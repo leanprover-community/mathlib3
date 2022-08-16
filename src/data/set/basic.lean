@@ -40,6 +40,8 @@ Definitions in the file:
 
 * `subsingleton s : Prop` : the predicate saying that `s` has at most one element.
 
+* `nontrivial s : Prop` : the predicate saying that `s` has at least two distinct elements.
+
 * `range f : set β` : the image of `univ` under `f`.
   Also works for `{p : Prop} (f : p → α)` (unlike `image`)
 
@@ -162,7 +164,7 @@ by { rintro rfl x hx, exact hx }
 
 namespace set
 
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a b : α} {s t : set α}
+variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a b : α} {s t u : set α}
 
 instance : inhabited (set α) := ⟨∅⟩
 
@@ -247,14 +249,6 @@ mt $ mem_of_subset_of_mem h
 
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subset_def, not_forall]
 
-theorem nontrivial_mono {α : Type*} {s t : set α} (h₁ : s ⊆ t) (h₂ : nontrivial s) :
-  nontrivial t :=
-begin
-  rw nontrivial_iff at h₂ ⊢,
-  obtain ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h₂,
-  exact ⟨⟨x, h₁ hx⟩, ⟨y, h₁ hy⟩, by simpa using hxy⟩,
-end
-
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
 protected theorem eq_or_ssubset_of_subset (h : s ⊆ t) : s = t ∨ s ⊂ t :=
@@ -333,11 +327,13 @@ lemma nonempty.left (h : (s ∩ t).nonempty) : s.nonempty := h.imp $ λ _, and.l
 
 lemma nonempty.right (h : (s ∩ t).nonempty) : t.nonempty := h.imp $ λ _, and.right
 
-lemma nonempty_inter_iff_exists_right : (s ∩ t).nonempty ↔ ∃ x : t, ↑x ∈ s :=
-⟨λ ⟨x, xs, xt⟩, ⟨⟨x, xt⟩, xs⟩, λ ⟨⟨x, xt⟩, xs⟩, ⟨x, xs, xt⟩⟩
+lemma inter_nonempty : (s ∩ t).nonempty ↔ ∃ x, x ∈ s ∧ x ∈ t := iff.rfl
 
-lemma nonempty_inter_iff_exists_left : (s ∩ t).nonempty ↔ ∃ x : s, ↑x ∈ t :=
-⟨λ ⟨x, xs, xt⟩, ⟨⟨x, xs⟩, xt⟩, λ ⟨⟨x, xt⟩, xs⟩, ⟨x, xt, xs⟩⟩
+lemma inter_nonempty_iff_exists_left : (s ∩ t).nonempty ↔ ∃ x ∈ s, x ∈ t :=
+by simp_rw [inter_nonempty, exists_prop]
+
+lemma inter_nonempty_iff_exists_right : (s ∩ t).nonempty ↔ ∃ x ∈ t, x ∈ s :=
+by simp_rw [inter_nonempty, exists_prop, and_comm]
 
 lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 ⟨λ ⟨x⟩, ⟨x, trivial⟩, λ ⟨x, _⟩, ⟨x⟩⟩
@@ -451,6 +447,8 @@ by simp [subset_def]
 lemma univ_unique [unique α] : @set.univ α = {default} :=
 set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
 
+instance nontrivial_of_nonempty [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
+
 /-! ### Lemmas about union -/
 
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
@@ -526,6 +524,12 @@ subset.trans h (subset_union_left t u)
 lemma subset_union_of_subset_right {s u : set α} (h : s ⊆ u) (t : set α) : s ⊆ t ∪ u :=
 subset.trans h (subset_union_right t u)
 
+lemma union_congr_left (ht : t ⊆ s ∪ u) (hu : u ⊆ s ∪ t) : s ∪ t = s ⊔ u := sup_congr_left ht hu
+lemma union_congr_right (hs : s ⊆ t ∪ u) (ht : t ⊆ s ∪ u) : s ∪ u = t ∪ u := sup_congr_right hs ht
+
+lemma union_eq_union_iff_left : s ∪ t = s ∪ u ↔ t ⊆ s ∪ u ∧ u ⊆ s ∪ t := sup_eq_sup_iff_left
+lemma union_eq_union_iff_right : s ∪ u = t ∪ u ↔ s ⊆ t ∪ u ∧ t ⊆ s ∪ u := sup_eq_sup_iff_right
+
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 by simp only [← subset_empty_iff]; exact union_subset_iff
 
@@ -587,6 +591,12 @@ inter_eq_left_iff_subset.mpr
 
 theorem inter_eq_self_of_subset_right {s t : set α} : t ⊆ s → s ∩ t = t :=
 inter_eq_right_iff_subset.mpr
+
+lemma inter_congr_left (ht : s ∩ u ⊆ t) (hu : s ∩ t ⊆ u) : s ∩ t = s ∩ u := inf_congr_left ht hu
+lemma inter_congr_right (hs : t ∩ u ⊆ s) (ht : s ∩ u ⊆ t) : s ∩ u = t ∩ u := inf_congr_right hs ht
+
+lemma inter_eq_inter_iff_left : s ∩ t = s ∩ u ↔ s ∩ u ⊆ t ∧ s ∩ t ⊆ u := inf_eq_inf_iff_left
+lemma inter_eq_inter_iff_right : s ∩ u = t ∩ u ↔ t ∩ u ⊆ s ∧ s ∩ u ⊆ t := inf_eq_inf_iff_right
 
 @[simp] theorem inter_univ (a : set α) : a ∩ univ = a := inf_top_eq
 
@@ -673,6 +683,10 @@ ext $ λ x, or_iff_right_of_imp $ λ e, e.symm ▸ h
 
 lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} : a ∉ s → s ≠ insert a t :=
 mt $ λ e, e.symm ▸ mem_insert _ _
+
+@[simp] lemma insert_eq_self : insert a s = s ↔ a ∈ s := ⟨λ h, h ▸ mem_insert _ _, insert_eq_of_mem⟩
+
+lemma insert_ne_self : insert a s ≠ s ↔ a ∉ s := insert_eq_self.not
 
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp only [subset_def, or_imp_distrib, forall_and_distrib, forall_eq, mem_insert_iff]
@@ -1408,6 +1422,15 @@ lemma image_comm {β'} {f : β → γ} {g : α → β} {f' : α → β'} {g' : �
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, h_comm]
 
+lemma _root_.function.semiconj.set_image {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) :
+  function.semiconj (image f) (image ga) (image gb) :=
+λ s, image_comm h
+
+lemma _root_.function.commute.set_image {f g : α → α} (h : function.commute f g) :
+  function.commute (image f) (image g) :=
+h.set_image
+
 /-- Image is monotone with respect to `⊆`. See `set.monotone_image` for the statement in
 terms of `≤`. -/
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
@@ -1660,18 +1683,14 @@ end image
 
 /-! ### Subsingleton -/
 
-/-- A set `s` is a `subsingleton`, if it has at most one element. -/
+/-- A set `s` is a `subsingleton` if it has at most one element. -/
 protected def subsingleton (s : set α) : Prop :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x = y
 
-lemma subsingleton.mono (ht : t.subsingleton) (hst : s ⊆ t) : s.subsingleton :=
+lemma subsingleton.anti (ht : t.subsingleton) (hst : s ⊆ t) : s.subsingleton :=
 λ x hx y hy, ht (hst hx) (hst hy)
 
-lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
-λ _ ⟨x, hx, Hx⟩ _ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)
-
-lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ s) :
-  s = {x} :=
+lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ s) : s = {x} :=
 ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleton hy).symm ▸ hx⟩
 
 @[simp] lemma subsingleton_empty : (∅ : set α).subsingleton := λ x, false.elim
@@ -1680,7 +1699,7 @@ ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleto
 λ x hx y hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
 
 lemma subsingleton_of_subset_singleton (h : s ⊆ {a}) : s.subsingleton :=
-subsingleton_singleton.mono h
+subsingleton_singleton.anti h
 
 lemma subsingleton_of_forall_eq (a : α) (h : ∀ b ∈ s, b = a) : s.subsingleton :=
 λ b hb c hc, (h _ hb).trans (h _ hc).symm
@@ -1706,7 +1725,7 @@ lemma subsingleton_of_univ_subsingleton (h : (univ : set α).subsingleton) : sub
 ⟨subsingleton_of_univ_subsingleton, λ h, @subsingleton_univ _ h⟩
 
 lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
-subsingleton.mono subsingleton_univ (subset_univ s)
+subsingleton_univ.anti (subset_univ s)
 
 lemma subsingleton_is_top (α : Type*) [partial_order α] : set.subsingleton {x : α | is_top x} :=
 λ x hx y hy, hx.is_max.eq_of_le (hy x)
@@ -1723,8 +1742,7 @@ begin
   { exact h.2.eq_empty_or_singleton.resolve_left h.1.ne_empty },
 end
 
-/-- `s`, coerced to a type, is a subsingleton type if and only if `s`
-is a subsingleton set. -/
+/-- `s`, coerced to a type, is a subsingleton type if and only if `s` is a subsingleton set. -/
 @[simp, norm_cast] lemma subsingleton_coe (s : set α) : subsingleton s ↔ s.subsingleton :=
 begin
   split,
@@ -1738,19 +1756,200 @@ For the corresponding result for `subtype`, see `subtype.subsingleton`. -/
 instance subsingleton_coe_of_subsingleton [subsingleton α] {s : set α} : subsingleton s :=
 by { rw [s.subsingleton_coe], exact subsingleton_of_subsingleton }
 
+/-- The image of a subsingleton is a subsingleton. -/
+lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
+λ _ ⟨x, hx, Hx⟩ _ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)
+
 /-- The preimage of a subsingleton under an injective map is a subsingleton. -/
 theorem subsingleton.preimage {s : set β} (hs : s.subsingleton) {f : α → β}
-  (hf : function.injective f) :
-  (f ⁻¹' s).subsingleton :=
-λ a ha b hb, hf $ hs ha hb
+  (hf : function.injective f) : (f ⁻¹' s).subsingleton := λ a ha b hb, hf $ hs ha hb
 
-/-- `s` is a subsingleton, if its image of an injective function is. -/
+/-- If the image of a set under an injective map is a subsingleton, the set is a subsingleton. -/
 theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
   (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
-(hs.preimage hf).mono $ subset_preimage_image _ _
+(hs.preimage hf).anti $ subset_preimage_image _ _
+
+/-- If the preimage of a set under an surjective map is a subsingleton,
+the set is a subsingleton. -/
+theorem subsingleton_of_preimage {α β : Type*} {f : α → β} (hf : function.surjective f)
+  (s : set β) (hs : (f ⁻¹' s).subsingleton) : s.subsingleton :=
+λ fx hx fy hy, by { rcases ⟨hf fx, hf fy⟩ with ⟨⟨x, rfl⟩, ⟨y, rfl⟩⟩, exact congr_arg f (hs hx hy) }
+
+/-! ### Nontrivial -/
+
+/-- A set `s` is `nontrivial` if it has at least two distinct elements. -/
+protected def nontrivial (s : set α) : Prop := ∃ x y ∈ s, x ≠ y
+
+lemma nontrivial_of_mem_mem_ne {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.nontrivial :=
+⟨x, hx, y, hy, hxy⟩
+
+/-- Extract witnesses from s.nontrivial. This function might be used instead of case analysis on the
+argument. Note that it makes a proof depend on the classical.choice axiom. -/
+protected noncomputable def nontrivial.some (hs : s.nontrivial) : α × α :=
+(hs.some, hs.some_spec.some_spec.some)
+
+protected lemma nontrivial.some_fst_mem (hs : s.nontrivial) : hs.some.fst ∈ s := hs.some_spec.some
+
+protected lemma nontrivial.some_snd_mem (hs : s.nontrivial) : hs.some.snd ∈ s :=
+hs.some_spec.some_spec.some_spec.some
+
+protected lemma nontrivial.some_fst_ne_some_snd (hs : s.nontrivial) : hs.some.fst ≠ hs.some.snd :=
+hs.some_spec.some_spec.some_spec.some_spec
+
+lemma nontrivial.mono (hs : s.nontrivial) (hst : s ⊆ t) : t.nontrivial :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨x, hst hx, y, hst hy, hxy⟩
+
+lemma nontrivial_pair {x y} (hxy : x ≠ y) : ({x, y} : set α).nontrivial :=
+⟨x, mem_insert _ _, y, mem_insert_of_mem _ (mem_singleton _), hxy⟩
+
+lemma nontrivial_of_pair_subset {x y} (hxy : x ≠ y) (h : {x, y} ⊆ s) : s.nontrivial :=
+(nontrivial_pair hxy).mono h
+
+lemma nontrivial.pair_subset (hs : s.nontrivial) : ∃ x y (hab : x ≠ y), {x, y} ⊆ s :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨x, y, hxy, insert_subset.2 ⟨hx, (singleton_subset_iff.2 hy)⟩⟩
+
+lemma nontrivial_iff_pair_subset : s.nontrivial ↔ ∃ x y (hxy : x ≠ y), {x, y} ⊆ s :=
+⟨nontrivial.pair_subset, λ H, let ⟨x, y, hxy, h⟩ := H in nontrivial_of_pair_subset hxy h⟩
+
+lemma nontrivial_of_exists_ne {x} (hx : x ∈ s) (h : ∃ y ∈ s, y ≠ x) : s.nontrivial :=
+let ⟨y, hy, hyx⟩ := h in ⟨y, hy, x, hx, hyx⟩
+
+lemma nontrivial.exists_ne {z} (hs : s.nontrivial) : ∃ x ∈ s, x ≠ z :=
+begin
+  by_contra H, push_neg at H,
+  rcases hs with ⟨x, hx, y, hy, hxy⟩,
+  rw [H x hx, H y hy] at hxy,
+  exact hxy rfl
+end
+
+lemma nontrivial_iff_exists_ne {x} (hx : x ∈ s) : s.nontrivial ↔ ∃ y ∈ s, y ≠ x :=
+⟨λ H, H.exists_ne, nontrivial_of_exists_ne hx⟩
+
+lemma nontrivial_of_lt [preorder α] {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x < y) : s.nontrivial :=
+⟨x, hx, y, hy, ne_of_lt hxy⟩
+
+lemma nontrivial_of_exists_lt [preorder α] (H : ∃ x y ∈ s, x < y) : s.nontrivial :=
+let ⟨x, hx, y, hy, hxy⟩ := H in nontrivial_of_lt hx hy hxy
+
+lemma nontrivial.exists_lt [linear_order α] (hs : s.nontrivial) : ∃ x y ∈ s, x < y :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in
+or.elim (lt_or_gt_of_ne hxy) (λ H, ⟨x, hx, y, hy, H⟩) (λ H, ⟨y, hy, x, hx, H⟩)
+
+lemma nontrivial.iff_exists_lt [linear_order α] : s.nontrivial ↔ ∃ x y ∈ s, x < y :=
+⟨nontrivial.exists_lt, nontrivial_of_exists_lt⟩
+
+lemma nontrivial.nonempty (hs : s.nontrivial) : s.nonempty := let ⟨x, hx, _⟩ := hs in ⟨x, hx⟩
+
+lemma nontrivial.ne_empty (hs : s.nontrivial) : s ≠ ∅ := hs.nonempty.ne_empty
+
+lemma nontrivial.not_subset_empty (hs : s.nontrivial) : ¬ s ⊆ ∅ := hs.nonempty.not_subset_empty
+
+@[simp] lemma not_nontrivial_empty : ¬ (∅ : set α).nontrivial := λ h, h.ne_empty rfl
+
+@[simp] lemma not_nontrivial_singleton {x} : ¬ ({x} : set α).nontrivial :=
+λ H, begin
+  rw nontrivial_iff_exists_ne (mem_singleton x) at H,
+  exact let ⟨y, hy, hya⟩ := H in hya (mem_singleton_iff.1 hy)
+end
+
+lemma nontrivial.ne_singleton {x} (hs : s.nontrivial) : s ≠ {x} :=
+λ H, by { rw H at hs, exact not_nontrivial_singleton hs }
+
+lemma nontrivial.not_subset_singleton {x} (hs : s.nontrivial) : ¬ s ⊆ {x} :=
+(not_congr subset_singleton_iff_eq).2 (not_or hs.ne_empty hs.ne_singleton)
+
+lemma nontrivial_univ [nontrivial α] : (univ : set α).nontrivial :=
+let ⟨x, y, hxy⟩ := exists_pair_ne α in ⟨x, mem_univ _, y, mem_univ _, hxy⟩
+
+lemma nontrivial_of_univ_nontrivial (h : (univ : set α).nontrivial) : nontrivial α :=
+let ⟨x, _, y, _, hxy⟩ := h in ⟨⟨x, y, hxy⟩⟩
+
+@[simp] lemma nontrivial_univ_iff : (univ : set α).nontrivial ↔ nontrivial α :=
+⟨nontrivial_of_univ_nontrivial, λ h, @nontrivial_univ _ h⟩
+
+lemma nontrivial_of_nontrivial (hs : s.nontrivial) : nontrivial α :=
+let ⟨x, _, y, _, hxy⟩ := hs in ⟨⟨x, y, hxy⟩⟩
+
+/-- `s`, coerced to a type, is a nontrivial type if and only if `s` is a nontrivial set. -/
+@[simp, norm_cast] lemma nontrivial_coe (s : set α) : nontrivial s ↔ s.nontrivial :=
+by simp_rw [← nontrivial_univ_iff, set.nontrivial, mem_univ,
+            exists_true_left, set_coe.exists, subtype.mk_eq_mk]
+
+/-- A type with a set `s` whose `coe_sort` is a nontrivial type is nontrivial.
+For the corresponding result for `subtype`, see `subtype.nontrivial_iff_exists_ne`. -/
+lemma nontrivial_of_nontrivial_coe (hs : nontrivial s) : nontrivial α :=
+by { rw [s.nontrivial_coe] at hs, exact nontrivial_of_nontrivial hs }
+
+theorem nontrivial_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : nontrivial s) :
+  nontrivial t := (nontrivial_coe _).2 $ (s.nontrivial_coe.1 hs).mono hst
+
+/-- The preimage of a nontrivial set under a surjective map is nontrivial. -/
+theorem nontrivial.preimage {s : set β} (hs : s.nontrivial) {f : α → β}
+  (hf : function.surjective f) : (f ⁻¹' s).nontrivial :=
+begin
+  rcases hs with ⟨fx, hx, fy, hy, hxy⟩,
+  rcases ⟨hf fx, hf fy⟩ with ⟨⟨x, rfl⟩, ⟨y, rfl⟩⟩,
+  exact ⟨x, hx, y, hy, mt (congr_arg f) hxy⟩
+end
+
+/-- The image of a nontrivial set under an injective map is nontrivial. -/
+theorem nontrivial.image (hs : s.nontrivial)
+  {f : α → β} (hf : function.injective f) : (f '' s).nontrivial :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨f x, mem_image_of_mem f hx, f y, mem_image_of_mem f hy, hf.ne hxy⟩
+
+/-- If the image of a set is nontrivial, the set is nontrivial. -/
+lemma nontrivial_of_image (f : α → β) (s : set α) (hs : (f '' s).nontrivial) : s.nontrivial :=
+let ⟨_, ⟨x, hx, rfl⟩, _, ⟨y, hy, rfl⟩, hxy⟩ := hs in ⟨x, hx, y, hy, mt (congr_arg f) hxy⟩
+
+/-- If the preimage of a set under an injective map is nontrivial, the set is nontrivial. -/
+lemma nontrivial_of_preimage {f : α → β} (hf : function.injective f) (s : set β)
+  (hs : (f ⁻¹' s).nontrivial) : s.nontrivial :=
+(hs.image hf).mono $ image_preimage_subset _ _
+
+@[simp] lemma not_subsingleton_iff : ¬ s.subsingleton ↔ s.nontrivial :=
+by simp_rw [set.subsingleton, set.nontrivial, not_forall]
+
+@[simp] lemma not_nontrivial_iff : ¬ s.nontrivial ↔ s.subsingleton :=
+iff.not_left not_subsingleton_iff.symm
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
+
+section preorder
+
+variables [preorder α] [preorder β] (f : α → β)
+
+/-! ### Monotonicity on singletons -/
+
+protected lemma subsingleton.monotone_on (h : s.subsingleton) :
+  monotone_on f s :=
+λ a ha b hb _, (congr_arg _ (h ha hb)).le
+
+protected lemma subsingleton.antitone_on (h : s.subsingleton) :
+  antitone_on f s :=
+λ a ha b hb _, (congr_arg _ (h hb ha)).le
+
+protected lemma subsingleton.strict_mono_on (h : s.subsingleton) :
+  strict_mono_on f s :=
+λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
+
+protected lemma subsingleton.strict_anti_on (h : s.subsingleton) :
+  strict_anti_on f s :=
+λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
+
+@[simp] lemma monotone_on_singleton : monotone_on f {a} :=
+subsingleton_singleton.monotone_on f
+
+@[simp] lemma antitone_on_singleton : antitone_on f {a} :=
+subsingleton_singleton.antitone_on f
+
+@[simp] lemma strict_mono_on_singleton : strict_mono_on f {a} :=
+subsingleton_singleton.strict_mono_on f
+
+@[simp] lemma strict_anti_on_singleton : strict_anti_on f {a} :=
+subsingleton_singleton.strict_anti_on f
+
+end preorder
 
 /-! ### Lemmas about range of a function. -/
 section range
@@ -1952,8 +2151,8 @@ instance can_lift [can_lift α β] : can_lift (set α) (set β) :=
   cond := λ s, ∀ x ∈ s, can_lift.cond β x,
   prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
 
-@[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
-range_iff_surjective.2 quot.exists_rep
+@[simp] theorem range_quotient_mk [setoid α] : range (λx : α, ⟦x⟧) = univ :=
+range_quot_mk _
 
 lemma range_const_subset {c : α} : range (λ x : ι, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, rfl
@@ -1961,6 +2160,14 @@ range_subset_iff.2 $ λ x, rfl
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
+
+lemma range_subtype_map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀ x, p x → q (f x)) :
+  range (subtype.map f h) = coe ⁻¹' (f '' {x | p x}) :=
+begin
+  ext ⟨x, hx⟩,
+  simp_rw [mem_preimage, mem_range, mem_image, subtype.exists, subtype.map, subtype.coe_mk,
+    mem_set_of, exists_prop]
+end
 
 lemma image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
@@ -1978,15 +2185,6 @@ by simp [range_subset_iff, funext_iff, mem_singleton]
 
 lemma image_compl_preimage {f : α → β} {s : set β} : f '' ((f ⁻¹' s)ᶜ) = range f \ s :=
 by rw [compl_eq_univ_diff, image_diff_preimage, image_univ]
-
-@[simp] theorem range_sigma_mk {β : α → Type*} (a : α) :
-  range (sigma.mk a : β a → Σ a, β a) = sigma.fst ⁻¹' {a} :=
-begin
-  apply subset.antisymm,
-  { rintros _ ⟨b, rfl⟩, simp },
-  { rintros ⟨x, y⟩ (rfl|_),
-    exact mem_range_self y }
-end
 
 /-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=

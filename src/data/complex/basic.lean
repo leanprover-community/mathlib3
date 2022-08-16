@@ -31,7 +31,8 @@ open_locale complex_conjugate
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
-@[simps] def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
+@[simps apply]
+def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
 { to_fun := λ z, ⟨z.re, z.im⟩,
   inv_fun := λ p, ⟨p.1, p.2⟩,
   left_inv := λ ⟨x, y⟩, rfl,
@@ -159,6 +160,10 @@ lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
 lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
 lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
 lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
+
+@[simp] lemma equiv_real_prod_symm_apply (p : ℝ × ℝ) :
+  equiv_real_prod.symm p = p.1 + p.2 * I :=
+by { ext; simp [equiv_real_prod] }
 
 /-! ### Commutative ring instance and lemmas -/
 
@@ -394,10 +399,10 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 lemma conj_inv (x : ℂ) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-of_real.map_div r s
+map_div₀ of_real r s
 
 @[simp, norm_cast] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-of_real.map_zpow r n
+map_zpow₀ of_real r n
 
 @[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
 (div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
@@ -406,10 +411,10 @@ of_real.map_zpow r n
 by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-norm_sq.map_inv z
+map_inv₀ norm_sq z
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-norm_sq.map_div z w
+map_div₀ norm_sq z w
 
 /-! ### Cast lemmas -/
 
@@ -525,7 +530,7 @@ map_prod abs_hom _ _
 map_pow abs_hom z n
 
 @[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
-abs_hom.map_zpow z n
+map_zpow₀ abs_hom z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),

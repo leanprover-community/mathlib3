@@ -354,7 +354,7 @@ variables {R M ι : Type*}
 variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure dual_pair (e : ι → M) (ε : ι → (dual R M)) :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)

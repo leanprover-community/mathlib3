@@ -204,7 +204,7 @@ end
 
 lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
   measurable f :=
-λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
+λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
 end typeclass_measurable_space
 
@@ -552,7 +552,7 @@ lemma measurable_set.prod {s : set α} {t : set β} (hs : measurable_set s) (ht 
   measurable_set (s ×ˢ t) :=
 measurable_set.inter (measurable_fst hs) (measurable_snd ht)
 
-lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t : set _).nonempty) :
+lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t).nonempty) :
   measurable_set (s ×ˢ t) ↔ measurable_set s ∧ measurable_set t :=
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
@@ -565,7 +565,7 @@ end
 lemma measurable_set_prod {s : set α} {t : set β} :
   measurable_set (s ×ˢ t) ↔ (measurable_set s ∧ measurable_set t) ∨ s = ∅ ∨ t = ∅ :=
 begin
-  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.mp h] },
   { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, measurable_set_prod_of_nonempty h] }
 end
@@ -679,7 +679,7 @@ by { rw [pi_def], exact measurable_set.bInter hs (λ i hi, measurable_pi_apply _
 
 lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi (countable_encodable _) (λ i _, ht i)
+measurable_set.pi (to_countable _) (λ i _, ht i)
 
 lemma measurable_set_pi_of_nonempty
   {s : set δ} {t : Π i, set (π i)} (hs : s.countable)
@@ -735,7 +735,7 @@ local attribute [instance] fintype.to_encodable
 
 lemma measurable_set.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
   (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
-measurable_set.pi (countable_encodable _) ht
+measurable_set.pi (to_countable _) ht
 
 lemma measurable_set.univ_pi_fintype [fintype δ] {t : Π i, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
@@ -1463,8 +1463,6 @@ instance : bounded_order (subtype (measurable_set : set α → Prop)) :=
 
 instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
 { sdiff := (\),
-  sup_inf_sdiff := λ a b, subtype.eq $ sup_inf_sdiff a b,
-  inf_inf_sdiff := λ a b, subtype.eq $ inf_inf_sdiff a b,
   compl := has_compl.compl,
   inf_compl_le_bot := λ a, boolean_algebra.inf_compl_le_bot (a : set α),
   top_le_sup_compl := λ a, boolean_algebra.top_le_sup_compl (a : set α),

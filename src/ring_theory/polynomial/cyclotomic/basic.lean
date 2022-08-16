@@ -278,7 +278,7 @@ lemma int_cyclotomic_rw {n : ℕ} (h : n ≠ 0) :
 begin
   simp only [cyclotomic, h, dif_neg, not_false_iff],
   ext i,
-  simp only [coeff_map, int.cast_id, ring_hom.eq_int_cast]
+  simp only [coeff_map, int.cast_id, eq_int_cast]
 end
 
 /-- `cyclotomic n R` comes from `cyclotomic n ℤ`. -/
@@ -313,7 +313,7 @@ end
 begin
   rw [←map_cyclotomic_int n R, ←map_cyclotomic_int n S],
   ext i,
-  simp only [coeff_map, ring_hom.eq_int_cast, map_int_cast]
+  simp only [coeff_map, eq_int_cast, map_int_cast]
 end
 
 lemma cyclotomic.eval_apply {R S : Type*} (q : R) (n : ℕ) [ring R] [ring S] (f : R →+* S) :
@@ -370,7 +370,7 @@ begin
     { simp only [cyclotomic, degree_one, dif_pos, nat.totient_zero, with_top.coe_zero]},
       rw [←degree_cyclotomic' (complex.is_primitive_root_exp k.succ (nat.succ_ne_zero k))],
       exact (int_cyclotomic_spec k.succ).2.1 },
-  simp only [(int_cyclotomic_spec n).right.right, ring_hom.eq_int_cast, monic.leading_coeff,
+  simp only [(int_cyclotomic_spec n).right.right, eq_int_cast, monic.leading_coeff,
   int.cast_one, ne.def, not_false_iff, one_ne_zero]
 end
 

@@ -621,7 +621,7 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
     then begin
       rcases h.eq_of_mul_eq_zero hmn0 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩;
       simp [inv_fun, to_fun, function.left_inverse, function.right_inverse,
-        ring_hom.eq_int_cast, prod.ext_iff]
+        eq_int_cast, prod.ext_iff]
     end
     else
       begin

@@ -204,7 +204,7 @@ begin
                 (abv b ^ fintype.card ι),
   { have := norm_bound_pos abv bS,
     have := abv.nonneg b,
-    rw [ε_eq, algebra.smul_def, ring_hom.eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
+    rw [ε_eq, algebra.smul_def, eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
         div_mul_cancel, rpow_neg_one, mul_left_comm, mul_inv_cancel, mul_one, rpow_nat_cast];
       try { norm_cast, linarith },
     { apply rpow_nonneg_of_nonneg,

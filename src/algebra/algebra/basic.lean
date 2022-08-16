@@ -1370,7 +1370,7 @@ variables (R : Type*) [ring R]
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
 
-/-- A special case of `ring_hom.eq_int_cast'` that happens to be true definitionally -/
+/-- A special case of `eq_int_cast'` that happens to be true definitionally -/
 @[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
 
 variables {R}

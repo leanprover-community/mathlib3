@@ -123,7 +123,7 @@ begin
   rw [norm_lt_one_iff_dvd, ← (is_unit_denom r h).dvd_mul_right],
   suffices : ↑p ∣ r.num - n * r.denom,
   { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
-    simp only [sub_mul, int.cast_coe_nat, ring_hom.eq_int_cast, int.cast_mul,
+    simp only [sub_mul, int.cast_coe_nat, eq_int_cast, int.cast_mul,
       sub_left_inj, int.cast_sub],
     apply subtype.coe_injective,
     simp only [coe_mul, subtype.coe_mk, coe_nat_cast],
@@ -629,7 +629,7 @@ begin
   rw sub_eq_sub_add_sub (lim_nth_hom f_compat r) _ ↑(nth_hom f r (max n k)),
   apply ideal.add_mem _ _ this,
   rw [ideal.mem_span_singleton],
-  simpa only [ring_hom.eq_int_cast, ring_hom.map_pow, int.cast_sub] using
+  simpa only [eq_int_cast, ring_hom.map_pow, int.cast_sub] using
     (int.cast_ring_hom ℤ_[p]).map_dvd
       (pow_dvd_nth_hom_sub f_compat r n (max n k) (le_max_left _ _)),
 end

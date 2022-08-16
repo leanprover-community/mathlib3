@@ -293,6 +293,30 @@ by { ext x, exact alg_hom.congr_fun (map_id Q₁) x }
 
 end map
 
+variables (Q)
+
+/-- If the quadratic form of a vector is invertible, then so is that vector. -/
+def invertible_ι_of_invertible (m : M) [invertible (Q m)] : invertible (ι Q m) :=
+{ inv_of := ι Q (⅟(Q m) • m),
+  inv_of_mul_self := by rw [map_smul, smul_mul_assoc, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one],
+  mul_inv_of_self := by rw [map_smul, mul_smul_comm, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one] }
+
+/-- For a vector with invertible quadratic form, $v^{-1} = \frac{v}{Q(v)}$ -/
+lemma inv_of_ι (m : M) [invertible (Q m)] [invertible (ι Q m)] : ⅟(ι Q m) = ι Q (⅟(Q m) • m) :=
+begin
+  letI := invertible_ι_of_invertible Q m,
+  convert (rfl : ⅟(ι Q m) = _),
+end
+
+lemma is_unit_ι_of_is_unit (m : M) (h : is_unit (Q m)) : is_unit (ι Q m) :=
+begin
+  casesI h.nonempty_invertible,
+  letI := invertible_ι_of_invertible Q m,
+  exactI is_unit_of_invertible (ι Q m),
+end
+
 end clifford_algebra
 
 namespace tensor_algebra

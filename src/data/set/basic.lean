@@ -40,6 +40,8 @@ Definitions in the file:
 
 * `subsingleton s : Prop` : the predicate saying that `s` has at most one element.
 
+* `nontrivial s : Prop` : the predicate saying that `s` has at least two distinct elements.
+
 * `range f : set β` : the image of `univ` under `f`.
   Also works for `{p : Prop} (f : p → α)` (unlike `image`)
 
@@ -247,14 +249,6 @@ mt $ mem_of_subset_of_mem h
 
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subset_def, not_forall]
 
-theorem nontrivial_mono {α : Type*} {s t : set α} (h₁ : s ⊆ t) (h₂ : nontrivial s) :
-  nontrivial t :=
-begin
-  rw nontrivial_iff at h₂ ⊢,
-  obtain ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h₂,
-  exact ⟨⟨x, h₁ hx⟩, ⟨y, h₁ hy⟩, by simpa using hxy⟩,
-end
-
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
 protected theorem eq_or_ssubset_of_subset (h : s ⊆ t) : s = t ∨ s ⊂ t :=
@@ -453,7 +447,7 @@ by simp [subset_def]
 lemma univ_unique [unique α] : @set.univ α = {default} :=
 set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
 
-instance [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
+instance nontrivial_of_nonempty [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
 
 /-! ### Lemmas about union -/
 
@@ -1777,6 +1771,143 @@ theorem subsingleton.preimage {s : set β} (hs : s.subsingleton) {f : α → β}
 theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
   (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
 (hs.preimage hf).mono $ subset_preimage_image _ _
+
+/-! ### Nontrivial -/
+
+/-- A set `s` is `nontrivial` if it has at least two distinct elements. -/
+protected def nontrivial (s : set α) : Prop := ∃ x y ∈ s, x ≠ y
+
+lemma nontrivial_of_mem_mem_ne {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.nontrivial :=
+⟨x, hx, y, hy, hxy⟩
+
+/-- Extract witnesses from s.nontrivial. This function might be used instead of case analysis on the
+argument. Note that it makes a proof depend on the classical.choice axiom. -/
+protected noncomputable def nontrivial.some (hs : s.nontrivial) : α × α :=
+(hs.some, hs.some_spec.some_spec.some)
+
+protected lemma nontrivial.some_fst_mem (hs : s.nontrivial) : hs.some.fst ∈ s := hs.some_spec.some
+
+protected lemma nontrivial.some_snd_mem (hs : s.nontrivial) : hs.some.snd ∈ s :=
+hs.some_spec.some_spec.some_spec.some
+
+protected lemma nontrivial.some_fst_ne_some_snd (hs : s.nontrivial) : hs.some.fst ≠ hs.some.snd :=
+hs.some_spec.some_spec.some_spec.some_spec
+
+lemma nontrivial.mono (hs : s.nontrivial) (hst : s ⊆ t) : t.nontrivial :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨x, hst hx, y, hst hy, hxy⟩
+
+lemma nontrivial_pair {x y} (hxy : x ≠ y) : ({x, y} : set α).nontrivial :=
+⟨x, mem_insert _ _, y, mem_insert_of_mem _ (mem_singleton _), hxy⟩
+
+lemma nontrivial_of_pair_subset {x y} (hxy : x ≠ y) (h : {x, y} ⊆ s) : s.nontrivial :=
+(nontrivial_pair hxy).mono h
+
+lemma nontrivial.pair_subset (hs : s.nontrivial) : ∃ x y (hab : x ≠ y), {x, y} ⊆ s :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨x, y, hxy, insert_subset.2 ⟨hx, (singleton_subset_iff.2 hy)⟩⟩
+
+lemma nontrivial_iff_pair_subset : s.nontrivial ↔ ∃ x y (hxy : x ≠ y), {x, y} ⊆ s :=
+⟨nontrivial.pair_subset, λ H, let ⟨x, y, hxy, h⟩ := H in nontrivial_of_pair_subset hxy h⟩
+
+lemma nontrivial_of_exists_ne {x} (hx : x ∈ s) (h : ∃ y ∈ s, y ≠ x) : s.nontrivial :=
+let ⟨y, hy, hyx⟩ := h in ⟨y, hy, x, hx, hyx⟩
+
+lemma nontrivial.exists_ne {z} (hs : s.nontrivial) : ∃ x ∈ s, x ≠ z :=
+begin
+  by_contra H, push_neg at H,
+  rcases hs with ⟨x, hx, y, hy, hxy⟩,
+  rw [H x hx, H y hy] at hxy,
+  exact hxy rfl
+end
+
+lemma nontrivial_iff_exists_ne {x} (hx : x ∈ s) : s.nontrivial ↔ ∃ y ∈ s, y ≠ x :=
+⟨λ H, H.exists_ne, nontrivial_of_exists_ne hx⟩
+
+lemma nontrivial_of_lt [preorder α] {x y} (hx : x ∈ s) (hy : y ∈ s) (hxy : x < y) : s.nontrivial :=
+⟨x, hx, y, hy, ne_of_lt hxy⟩
+
+lemma nontrivial_of_exists_lt [preorder α] (H : ∃ x y ∈ s, x < y) : s.nontrivial :=
+let ⟨x, hx, y, hy, hxy⟩ := H in nontrivial_of_lt hx hy hxy
+
+lemma nontrivial.exists_lt [linear_order α] (hs : s.nontrivial) : ∃ x y ∈ s, x < y :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in
+or.elim (lt_or_gt_of_ne hxy) (λ H, ⟨x, hx, y, hy, H⟩) (λ H, ⟨y, hy, x, hx, H⟩)
+
+lemma nontrivial.iff_exists_lt [linear_order α] : s.nontrivial ↔ ∃ x y ∈ s, x < y :=
+⟨nontrivial.exists_lt, nontrivial_of_exists_lt⟩
+
+lemma nontrivial.nonempty (hs : s.nontrivial) : s.nonempty := let ⟨x, hx, _⟩ := hs in ⟨x, hx⟩
+
+lemma nontrivial.ne_empty (hs : s.nontrivial) : s ≠ ∅ := hs.nonempty.ne_empty
+
+lemma nontrivial.not_subset_empty (hs : s.nontrivial) : ¬ s ⊆ ∅ := hs.nonempty.not_subset_empty
+
+@[simp] lemma not_nontrivial_empty : ¬ (∅ : set α).nontrivial := λ h, h.ne_empty rfl
+
+@[simp] lemma not_nontrivial_singleton {x} : ¬ ({x} : set α).nontrivial :=
+λ H, begin
+  rw nontrivial_iff_exists_ne (mem_singleton x) at H,
+  exact let ⟨y, hy, hya⟩ := H in hya (mem_singleton_iff.1 hy)
+end
+
+lemma nontrivial.ne_singleton {x} (hs : s.nontrivial) : s ≠ {x} :=
+λ H, by { rw H at hs, exact not_nontrivial_singleton hs }
+
+lemma nontrivial.not_subset_singleton {x} (hs : s.nontrivial) : ¬ s ⊆ {x} :=
+(not_congr subset_singleton_iff_eq).2 (not_or hs.ne_empty hs.ne_singleton)
+
+lemma nontrivial_univ [nontrivial α] : (univ : set α).nontrivial :=
+let ⟨x, y, hxy⟩ := exists_pair_ne α in ⟨x, mem_univ _, y, mem_univ _, hxy⟩
+
+lemma nontrivial_of_univ_nontrivial (h : (univ : set α).nontrivial) : nontrivial α :=
+let ⟨x, _, y, _, hxy⟩ := h in ⟨⟨x, y, hxy⟩⟩
+
+@[simp] lemma nontrivial_univ_iff : (univ : set α).nontrivial ↔ nontrivial α :=
+⟨nontrivial_of_univ_nontrivial, λ h, @nontrivial_univ _ h⟩
+
+lemma nontrivial_of_nontrivial (hs : s.nontrivial) : nontrivial α :=
+let ⟨x, _, y, _, hxy⟩ := hs in ⟨⟨x, y, hxy⟩⟩
+
+/-- `s`, coerced to a type, is a nontrivial type if and only if `s` is a nontrivial set. -/
+@[simp, norm_cast] lemma nontrivial_coe (s : set α) : nontrivial s ↔ s.nontrivial :=
+by simp_rw [← nontrivial_univ_iff, set.nontrivial, mem_univ,
+            exists_true_left, set_coe.exists, subtype.mk_eq_mk]
+
+/-- A type with a set `s` whose `coe_sort` is a nontrivial type is nontrivial.
+For the corresponding result for `subtype`, see `subtype.nontrivial_iff_exists_ne`. -/
+lemma nontrivial_of_nontrivial_coe (hs : nontrivial s) : nontrivial α :=
+by { rw [s.nontrivial_coe] at hs, exact nontrivial_of_nontrivial hs }
+
+theorem nontrivial_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : nontrivial s) :
+  nontrivial t := (nontrivial_coe _).2 $ (s.nontrivial_coe.1 hs).mono hst
+
+/-- The preimage of a nontrivial set under a surjective map is nontrivial. -/
+theorem nontrivial.preimage {s : set β} (hs : s.nontrivial) {f : α → β}
+  (hf : function.surjective f) : (f ⁻¹' s).nontrivial :=
+begin
+  rcases hs with ⟨fx, hx, fy, hy, hxy⟩,
+  rcases ⟨hf fx, hf fy⟩ with ⟨⟨x, rfl⟩, ⟨y, rfl⟩⟩,
+  exact ⟨x, hx, y, hy, mt (congr_arg f) hxy⟩
+end
+
+/-- The image of a nontrivial set under an injective map is nontrivial. -/
+theorem nontrivial.image (hs : s.nontrivial)
+  {f : α → β} (hf : function.injective f) : (f '' s).nontrivial :=
+let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨f x, mem_image_of_mem f hx, f y, mem_image_of_mem f hy, hf.ne hxy⟩
+
+/-- If the image of a set is nontrivial, the set is nontrivial. -/
+lemma nontrivial_of_image (f : α → β) (s : set α) (hs : (f '' s).nontrivial) : s.nontrivial :=
+let ⟨_, ⟨x, hx, rfl⟩, _, ⟨y, hy, rfl⟩, hxy⟩ := hs in ⟨x, hx, y, hy, mt (congr_arg f) hxy⟩
+
+/-- If the preimage of a set under an injective map is nontrivial, the set is nontrivial. -/
+lemma nontrivial_of_preimage {f : α → β} (hf : function.injective f) (s : set β)
+  (hs : (f ⁻¹' s).nontrivial) : s.nontrivial :=
+(hs.image hf).mono $ image_preimage_subset _ _
+
+@[simp] lemma not_subsingleton_iff : ¬ s.subsingleton ↔ s.nontrivial :=
+by simp_rw [set.subsingleton, set.nontrivial, not_forall]
+
+@[simp] lemma not_nontrivial_iff : ¬ s.nontrivial ↔ s.subsingleton :=
+iff.not_left not_subsingleton_iff.symm
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)

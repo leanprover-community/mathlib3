@@ -18,7 +18,7 @@ An interface for multiplication and division of sub-R-modules of an R-algebra A 
 
 ## Main definitions
 
-Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
+Let `R` be a commutative ring (or semiring) and let `A` be an `R`-algebra.
 
 * `1 : submodule R A`       : the R-submodule R of the R-algebra A
 * `has_mul (submodule R A)` : multiplication of two sub-R-modules M and N of A is defined to be
@@ -27,6 +27,9 @@ Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
                               that `a • J ⊆ I`
 
 It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
+
+Additionally, in the `pointwise` locale we promote `submodule.pointwise_distrib_mul_action` to a
+`mul_semiring_action` as `submodule.pointwise_mul_semiring_action`.
 
 ## Tags
 
@@ -453,6 +456,23 @@ def span.ring_hom : set_semiring A →+* submodule R A :=
   map_one' := one_eq_span.symm,
   map_add' := span_union,
   map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
+
+section
+variables {α : Type*} [monoid α] [mul_semiring_action α A] [smul_comm_class α R A]
+
+/-- The action on a submodule corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale.
+
+This is a stronger version of `submodule.pointwise_distrib_mul_action`. -/
+protected def pointwise_mul_semiring_action : mul_semiring_action α (submodule R A) :=
+{ smul_mul := λ r x y, submodule.map_mul x y $ mul_semiring_action.to_alg_hom R A r,
+  smul_one := λ r, submodule.map_one $ mul_semiring_action.to_alg_hom R A r,
+  ..submodule.pointwise_distrib_mul_action }
+
+localized "attribute [instance] submodule.pointwise_mul_semiring_action" in pointwise
+
+end
 
 end ring
 

@@ -186,7 +186,10 @@
 53:
   title  : Pi is Transcendental
 54:
-  title  : Konigsberg Bridges Problem
+  title  : Königsberg Bridges Problem
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/54_konigsberg.lean
+  author : Kyle Miller
 55:
   title  : Product of Segments of Chords
   decl   : euclidean_geometry.mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi

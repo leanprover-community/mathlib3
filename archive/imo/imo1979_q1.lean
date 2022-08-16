@@ -64,6 +64,8 @@ namespace imo1979q1
 -/
 def double : ℕ ↪ ℕ := ⟨λ n, 2 * n, mul_right_injective dec_trivial⟩
 
+lemma double_apply (x : ℕ) : double x = x + x := two_mul x
+
 lemma lemma1 : ∑ n in Icc (1 : ℕ) 1319, (1 : ℚ) / n - ∑ n in Icc (1 : ℕ) 1319, (-1) ^ (n + 1) / n =
   ∑ n in Icc (1 : ℕ) 659, 1 / n :=
 begin
@@ -75,8 +77,8 @@ begin
       rintro x -,
       rw [pow_succ, neg_one_mul, neg_div, sub_neg_eq_add, div_add_div_same],
       split_ifs,
-      { rw [neg_one_pow_of_even h], norm_num },
-      { rw [neg_one_pow_of_odd (odd_iff_not_even.2 h)],
+      { rw [h.neg_one_pow], norm_num },
+      { rw [(odd_iff_not_even.2 h).neg_one_pow],
           simp only [zero_div, add_right_neg] } }
     ... = ∑ (x : ℕ) in filter even (Icc (1 : ℕ) 1319), 2 / x : by rw sum_filter
     ... = ∑ (x : ℕ) in map double (Icc (1 : ℕ) 659), 2 / x : by {
@@ -85,15 +87,15 @@ begin
       rw [mem_filter, mem_map],
       split,
       { rintro ⟨ha, a, rfl⟩,
+        simp_rw double_apply,
         refine ⟨a, _, rfl⟩,
         rw mem_Icc at ha ⊢,
         split;
         linarith },
       { rintro ⟨a, ha, rfl⟩,
+        simp_rw double_apply,
         refine ⟨_, a, rfl⟩,
         rw mem_Icc at ha ⊢,
-        unfold double,
-        norm_num,
         split;
         linarith }}
     ... = ∑ n in Icc (1 : ℕ) 659, 1 / n : by {
@@ -155,9 +157,17 @@ begin
   { norm_num }
 end
 
-lemma easy1 {n : ℕ} (hn : n < 330) : padic_val_rat 1979 (n + 660) = 0 :=
+lemma foo (p : ℕ) (hp : nat.prime p) (z : ℕ) : padic_norm p z = 1 ↔ ¬ p ∣ z :=
 begin
-  rw (show (n : ℚ) + 660 = (n + 660 : ℕ), by norm_num),
+  library_search,
+end
+
+
+lemma easy1 {n : ℕ} (hn : n < 330) : padic_norm 1979 (n + 660) = 1 :=
+begin
+  norm_cast,
+
+--  rw (show (n : ℚ) + 660 = (n + 660 : ℕ), by norm_num),
   rw ← padic_val_rat_of_nat,
   norm_cast,
   apply padic_val_nat_of_not_dvd,

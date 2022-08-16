@@ -453,8 +453,8 @@ begin
   { rintros n ⟨a, ha⟩ i,
     by_cases ineq1 : n ≤ i,
     { have eq1' : proj 𝒜 i (a * x) = a * (proj 𝒜 (i - n) x),
-      { have := @direct_sum.coe_decompose_mul_add_of_left_mem _ _ _ _ _ _ _ _ 𝒜 _ a x _ (i - n) ha,
-        rwa [show n + (i - n) = i, by linarith] at this, },
+      { conv_lhs { rw [show i = n + (i - n), by linarith, proj_apply,
+          coe_decompose_mul_add_of_left_mem _ ha, ←proj_apply] }, },
       simp only [subtype.coe_mk, smul_eq_mul, eq1', mul_pow],
       generalize_proofs h1 h2,
       suffices :

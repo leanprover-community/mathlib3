@@ -131,7 +131,7 @@ has_limit.mk ⟨_, has_equalizers.is_equalizer f g⟩
 
 instance : has_equalizers ωCPO.{v} := has_equalizers_of_has_limit_parallel_pair _
 
-instance : has_limits ωCPO.{v} := limits_from_equalizers_and_products
+instance : has_limits ωCPO.{v} := has_limits_of_has_equalizers_and_products
 
 end
 

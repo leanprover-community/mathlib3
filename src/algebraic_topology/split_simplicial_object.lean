@@ -105,8 +105,6 @@ end index_set
 variables (N : ℕ → C) (Δ : simplex_categoryᵒᵖ)
   (X : simplicial_object C) (φ : Π n, N n ⟶ X _[n])
 
-open simplex_category
-
 /-- Given a sequences of objects `N : ℕ → C` in a category `C`, this is
 a family of objects indexed by the elements `A : splitting.index_set Δ`.
 The `Δ`-simplices of a split simplicial objects shall identify to the

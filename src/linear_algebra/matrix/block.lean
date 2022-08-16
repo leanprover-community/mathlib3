@@ -373,14 +373,13 @@ begin
     { dsimp only [A],
       rw [h_ne_iff_lt],
       apply invertible_to_block_of_block_triangular hM },
-    have hA : A.block_triangular b', sorry,
+    have hA : A.block_triangular b',
+    { intros i j, apply hM },
     have hb' : image b' univ = (image b univ).erase k,
     { convert xxx _, apply classical.dec_eq, },
-    have : A⁻¹.block_triangular b' :=
-      ih ((univ.image b).erase k) (erase_ssubset (max'_mem _ _)) hA hb',
-
-    }
-
+    have : A⁻¹.block_triangular b',
+      from ih ((univ.image b).erase k) (erase_ssubset (max'_mem _ _)) hA hb',
+    sorry }
 end
 
 noncomputable lemma invertible_square_block_of_block_triangular [nontrivial R] [no_zero_divisors R]

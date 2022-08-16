@@ -157,7 +157,7 @@ instance biheyting_algebra.to_coheyting_algebra [biheyting_algebra α] : coheyti
 { ..‹biheyting_algebra α› }
 
 /-- Construct a Heyting algebra from the lattice structure and Heyting implication alone. -/
-@[reducible] -- See note [reducible non instances]
+@[reducible] -- See note [reducible non-instances]
 def heyting_algebra.of_himp [distrib_lattice α] [bounded_order α] (himp : α → α → α)
   (le_himp_iff : ∀ a b c, a ≤ himp b c ↔ a ⊓ b ≤ c) : heyting_algebra α :=
 { himp := himp,
@@ -167,7 +167,7 @@ def heyting_algebra.of_himp [distrib_lattice α] [bounded_order α] (himp : α �
   ..‹distrib_lattice α›, ..‹bounded_order α› }
 
 /-- Construct a Heyting algebra from the lattice structure and complement operator alone. -/
-@[reducible] -- See note [reducible non instances]
+@[reducible] -- See note [reducible non-instances]
 def heyting_algebra.of_compl [distrib_lattice α] [bounded_order α] (compl : α → α)
   (le_himp_iff : ∀ a b c, a ≤ compl b ⊔ c ↔ a ⊓ b ≤ c) : heyting_algebra α :=
 { himp := λ a, (⊔) (compl a),
@@ -177,7 +177,7 @@ def heyting_algebra.of_compl [distrib_lattice α] [bounded_order α] (compl : α
   ..‹distrib_lattice α›, ..‹bounded_order α› }
 
 /-- Construct a co-Heyting algebra from the lattice structure and the difference alone. -/
-@[reducible] -- See note [reducible non instances]
+@[reducible] -- See note [reducible non-instances]
 def coheyting_algebra.of_sdiff [distrib_lattice α] [bounded_order α] (sdiff : α → α → α)
   (sdiff_le_iff : ∀ a b c, sdiff a b ≤ c ↔ a ≤ b ⊔ c) : coheyting_algebra α :=
 { sdiff := sdiff,
@@ -187,7 +187,7 @@ def coheyting_algebra.of_sdiff [distrib_lattice α] [bounded_order α] (sdiff : 
   ..‹distrib_lattice α›, ..‹bounded_order α› }
 
 /-- Construct a co-Heyting algebra from the difference and Heyting negation alone. -/
-@[reducible] -- See note [reducible non instances]
+@[reducible] -- See note [reducible non-instances]
 def coheyting_algebra.of_hnot [distrib_lattice α] [bounded_order α] (hnot : α → α)
   (sdiff_le_iff : ∀ a b c, a ⊓ hnot b ≤ c ↔ a ≤ b ⊔ c) : coheyting_algebra α :=
 { sdiff := λ a b, (a ⊓ hnot b),
@@ -201,7 +201,9 @@ variables [generalized_heyting_algebra α] {a b c d : α}
 
 /- In this section, we'll give interpretations of these results in the Heyting algebra model of
 intuitionistic logic,- where `≤` can be interpreted as "validates", `⇨` as "implies", `⊓` as "and",
-`⊔` as "or", `⊥` as "false" and `⊤` as "true".
+`⊔` as "or", `⊥` as "false" and `⊤` as "true". Note that we confuse `→` and `⊢` because those are
+the same in this logic.
+
 See also `Prop.heyting_algebra`. -/
 
 -- `p → q → r ↔ p ∧ q → r`
@@ -232,6 +234,8 @@ le_antisymm (le_inf inf_le_left $ by rw [inf_comm, ←le_himp_iff]) $ inf_le_inf
 -- `(p → q) ∧ p ↔ q ∧ p`
 @[simp] lemma himp_inf_self (a b : α) : (a ⇨ b) ⊓ a = b ⊓ a := by rw [inf_comm, inf_himp, inf_comm]
 
+/-- The **deduction theorem** in the Heyting algebra model of intuitionistic logic:
+an implication holds iff the conclusion follows from the hypothesis. -/
 @[simp] lemma himp_eq_top_iff : a ⇨ b = ⊤ ↔ a ≤ b := by rw [←top_le_iff, le_himp_iff, top_inf_eq]
 
 -- `p → true`, `true → p ↔ p`
@@ -608,7 +612,7 @@ instance Prop.heyting_algebra : heyting_algebra Prop :=
 /-- A bounded linear order is a bi-Heyting algebra by setting
 * `a ⇨ b = ⊤` if `a ≤ b` and `a ⇨ b = b` otherwise.
 * `a \ b = ⊥` if `a ≤ b` and `a \ b = a` otherwise. -/
-@[reducible] -- See note [reducible non instances]
+@[reducible] -- See note [reducible non-instances]
 def linear_order.to_biheyting_algebra [linear_order α] [bounded_order α] : biheyting_algebra α :=
 { himp := λ a b, if a ≤ b then ⊤ else b,
   compl := λ a, if a = ⊥ then ⊤ else ⊥,

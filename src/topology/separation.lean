@@ -628,7 +628,7 @@ begin
   rwa [← mem_interior_iff_mem_nhds, interior_singleton] at D
 end
 
-lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
+lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [finite X] :
   discrete_topology X :=
 begin
   apply singletons_open_iff_discrete.mp,

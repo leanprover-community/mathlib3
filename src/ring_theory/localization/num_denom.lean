@@ -88,7 +88,7 @@ begin
     is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors (denom A x).2,
   use ↑d⁻¹ * num A x,
   refine trans _ (mk'_num_denom A x),
-  rw [ring_hom.map_mul, map_units_inv, hd],
+  rw [map_mul, map_units_inv, hd],
   apply mul_left_cancel₀ d_ne_zero,
   rw [←mul_assoc, mul_inv_cancel d_ne_zero, one_mul, mk'_spec']
 end

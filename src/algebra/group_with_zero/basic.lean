@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {F M₀ G₀ M₀' G₀' : Type*}
+variables {M₀ G₀ M₀' G₀' F : Type*}
 
 section
 
@@ -978,11 +978,12 @@ include M₀
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ map_zero f, λ ha, ((is_unit.mk0 a ha).map f).ne_zero⟩
 
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 $ map_ne_zero _
+@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-end monoid_with_zero
+end monoid_with_zero_hom
 
 section group_with_zero
+
 variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero_hom_class F G₀ G₀']
   (f : F) (a b : G₀)
 include G₀'
@@ -992,16 +993,12 @@ include G₀'
 begin
   by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_eq_one_left,
-  rw [←map_mul, inv_mul_cancel h, map_one],
+  rw [← map_mul, inv_mul_cancel h, map_one]
 end
 
-@[simp] lemma map_div₀ : f (a / b) = f a / f b := by simp_rw [div_eq_mul_inv, map_mul, map_inv₀]
+@[simp] lemma map_div₀ : f (a / b) = f a / f b := map_div' f (map_inv₀ f) a b
 
 end group_with_zero
-
-@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀] [monoid_hom_class F M G₀]
-  (f : F) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
-eq_inv_of_mul_eq_one_left $ by rw [←map_mul, units.inv_mul, map_one]
 
 /-- We define the inverse as a `monoid_with_zero_hom` by extending the inverse map by zero
 on non-units. -/

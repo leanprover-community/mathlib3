@@ -307,7 +307,7 @@ set.fintype_lt_nat n
 
 instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] :
   fintype (s ×ˢ t : set (α × β)) :=
-fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
+fintype.of_finset (s.to_finset ×ˢ t.to_finset) $ by simp
 
 /-- `image2 f s t` is `fintype` if `s` and `t` are. -/
 instance fintype_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β)

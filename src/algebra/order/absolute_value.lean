@@ -256,8 +256,8 @@ end ring
 section field
 variables {R : Type*} [division_ring R] (abv : R → S) [is_absolute_value abv]
 
-lemma abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ := map_inv₀ (abv_hom abv) a
-lemma abv_div (a b : R) : abv (a / b) = abv a / abv b := map_div₀ (abv_hom abv) a b
+theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ := map_inv₀ (abv_hom abv) a
+theorem abv_div (a b : R) : abv (a / b) = abv a / abv b := map_div₀ (abv_hom abv) a b
 
 end field
 

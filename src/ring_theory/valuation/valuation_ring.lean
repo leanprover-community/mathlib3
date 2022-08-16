@@ -88,7 +88,8 @@ begin
   apply quotient.sound',
   use b⁻¹,
   dsimp,
-  rw [units.smul_def, units.smul_def, algebra.smul_def, algebra.smul_def, mul_inv, map_units_inv],
+  rw [units.smul_def, units.smul_def, algebra.smul_def, algebra.smul_def,
+    mul_inv, map_units_inv],
 end
 
 variables [is_domain A] [valuation_ring A] [is_fraction_ring A K]

@@ -225,6 +225,10 @@ by simp only [filter.prod, comap_comap, (∘), inf_comm, prod.fst_swap,
 lemma prod_comm : f ×ᶠ g = map (λ p : β×α, (p.2, p.1)) (g ×ᶠ f) :=
 by { rw [prod_comm', ← map_swap_eq_comap_swap], refl }
 
+lemma eventually_swap_iff {p : (α × β) → Prop} : (∀ᶠ (x : α × β) in (f ×ᶠ g), p x) ↔
+  ∀ᶠ (y : β × α) in (g ×ᶠ f), p y.swap :=
+by { rw [prod_comm, eventually_map], simpa, }
+
 lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
   map (equiv.prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
 by simp_rw [← comap_equiv_symm, filter.prod, comap_inf, comap_comap, inf_assoc, function.comp,

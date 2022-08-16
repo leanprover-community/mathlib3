@@ -835,6 +835,4 @@ begin
   refl,
 end
 
--- TODO (Thomas): If `p` splits in `L/K`, then `p.is_splitting_field K (adjoin K (p.root_set L))`
-
 end intermediate_field

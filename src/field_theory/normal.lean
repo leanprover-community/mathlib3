@@ -207,7 +207,7 @@ begin
   let E : intermediate_field F K := ⨆ i ∈ s, adjoin F ((minpoly F (i.2 : _)).root_set K),
   have hF : normal F E,
   { apply normal.of_is_splitting_field (∏ i in s, minpoly F i.2),
-    refine splitting_field_supr _ (λ i hi, adjoin_root_set_is_splitting_field _),
+    refine is_splitting_field_supr _ (λ i hi, adjoin_root_set_is_splitting_field _),
     { exact finset.prod_ne_zero_iff.mpr (λ i hi, minpoly.ne_zero ((h i.1).is_integral i.2)) },
     { exact polynomial.splits_comp_of_splits _ (algebra_map (t i.1) K) ((h i.1).splits i.2) } },
   have hE : E ≤ ⨆ i, t i,

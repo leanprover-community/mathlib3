@@ -631,9 +631,7 @@ lemma inf_eq_bot_iff {f g : filter α} :
 by simpa only [disjoint_iff] using filter.disjoint_iff
 
 /-- There is exactly one filter on an empty type. --/
--- TODO[gh-6025]: make this globally an instance once safe to do so
-local attribute [instance]
-protected def unique [is_empty α] : unique (filter α) :=
+instance unique [is_empty α] : unique (filter α) :=
 { default := ⊥, uniq := filter_eq_bot_of_is_empty }
 
 /-- There are only two filters on a `subsingleton`: `⊥` and `⊤`. If the type is empty, then they are

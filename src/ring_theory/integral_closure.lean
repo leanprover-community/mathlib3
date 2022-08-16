@@ -219,7 +219,7 @@ begin
   have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ S.to_submodule,
     by { rw ← hy, exact subset_span hp },
   -- Now `S` is a subalgebra so the product of two elements of `y` is also in `S`.
-  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ S.to_submodule :=
+  have : ∀ (jk : (↑(y ×ˢ y) : set (A × A))), jk.1.1 * jk.1.2 ∈ S.to_submodule :=
     λ jk, S.mul_mem (hyS (finset.mem_product.1 jk.2).1) (hyS (finset.mem_product.1 jk.2).2),
   rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_image_iff_total] at this,
   -- Say `yᵢyⱼ = ∑rᵢⱼₖ yₖ`

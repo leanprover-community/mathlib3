@@ -278,8 +278,8 @@ iff.intro
   (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
   (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
 
-noncomputable instance : split_epi_category (Type u) :=
-{ split_epi_of_epi := λ X Y f hf,
+instance : split_epi_category (Type u) :=
+{ is_split_epi_of_epi := λ X Y f hf, is_split_epi.mk'
   { section_ := function.surj_inv $ (epi_iff_surjective f).1 hf,
     id' := funext $ function.right_inverse_surj_inv $ (epi_iff_surjective f).1 hf } }
 

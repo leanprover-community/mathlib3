@@ -68,6 +68,7 @@ theorem equiv_direct_sum_zmod_of_fintype [finite G] :
   ∃ (ι : Type) [fintype ι] (p : ι → ℕ) [∀ i, nat.prime $ p i] (e : ι → ℕ),
   nonempty $ G ≃+ ⨁ (i : ι), zmod (p i ^ e i) :=
 begin
+  casesI nonempty_fintype G,
   obtain ⟨n, ι, fι, p, hp, e, ⟨f⟩⟩ := equiv_free_prod_direct_sum_zmod G,
   cases n,
   { exact ⟨ι, fι, p, hp, e, ⟨f.trans add_equiv.unique_prod⟩⟩ },

@@ -83,7 +83,7 @@ partial_order_of_SO (<)
 /-- `Πₗ i, α i` is a linear order if the original order is well-founded. -/
 noncomputable instance [linear_order ι] [is_well_order ι (<)] [∀ a, linear_order (β a)] :
   linear_order (lex (Π i, β i)) :=
-@linear_order_of_STO' (Πₗ i, β i) (<)
+@linear_order_of_STO (Πₗ i, β i) (<)
   { to_is_trichotomous := is_trichotomous_lex _ _ is_well_order.wf } (classical.dec_rel _)
 
 lemma lex.le_of_forall_le [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]

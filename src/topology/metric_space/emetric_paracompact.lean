@@ -46,7 +46,7 @@ begin
   refine ⟨λ ι s ho hcov, _⟩,
   simp only [Union_eq_univ_iff] at hcov,
   -- choose a well founded order on `S`
-  letI : linear_order ι := linear_order_of_STO' well_ordering_rel,
+  letI : linear_order ι := linear_order_of_STO well_ordering_rel,
   have wf : well_founded ((<) : ι → ι → Prop) := @is_well_order.wf ι well_ordering_rel _,
   -- Let `ind x` be the minimal index `s : S` such that `x ∈ s`.
   set ind : α → ι := λ x, wf.min {i : ι | x ∈ s i} (hcov x),

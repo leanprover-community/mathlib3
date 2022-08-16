@@ -19,7 +19,8 @@ section diff
 section N_has_zero
 variables [has_zero N] {f g : α →₀ N}
 
-/--  `f.diff g` is the `finset` where `f` and `g` differ. -/
+/--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.diff f g` is the `finset`
+where `f` and `g` differ. -/
 def diff (f g : α →₀ N) : finset α :=
 (f.support ∪ g.support).filter (λ x, f x ≠ g x)
 
@@ -110,8 +111,9 @@ variables [nonempty α] [linear_order α]
 section N_has_zero
 variables [has_zero N] {f g : α →₀N}
 
-/--  `wit f g` is an element of `α`.  It is `default` if and only if `f = g`.  Otherwise, it is
-`a` if `a : α` is the smallest value for which `f a ≠ g a`. -/
+/--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.wit f g` is an element of `α`.
+It is a "generic" element of `α` (namely, `nonempty.some _ : α`) if and only if `f = g`.
+Otherwise, it is `a` if `a : α` is the smallest value for which `f a ≠ g a`. -/
 noncomputable def wit (f g : α →₀ N) : α :=
 dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, nonempty.some ‹_›)
 

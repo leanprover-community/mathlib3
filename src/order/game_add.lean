@@ -52,11 +52,7 @@ game_add_iff
 
 @[simp] lemma game_add_swap_swap : ∀ a b : α × β,
   game_add rβ rα a.swap b.swap ↔ game_add rα rβ a b :=
-λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, begin
-  split;
-  { rintro (⟨_, _, _, rb⟩ | ⟨_, _, _, ra⟩),
-    exacts [game_add.snd rb, game_add.fst ra] }
-end
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, by rw [prod.swap, game_add_mk_iff, game_add_mk_iff, or_comm]
 
 /-- `prod.game_add` is a `subrelation` of `prod.lex`. -/
 lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=

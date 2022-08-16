@@ -23,7 +23,7 @@ noncomputable theory
 variables (K : Type*) [field K]
 
 /-- A valuation subring of a field `K` is a subring `A` such that for every `x : K`,
-either `x ∈ A` or `x⁻¹ ∈ K`. -/
+either `x ∈ A` or `x⁻¹ ∈ A`. -/
 structure valuation_subring extends subring K :=
 (mem_or_inv_mem' : ∀ x : K, x ∈ carrier ∨ x⁻¹ ∈ carrier)
 
@@ -131,7 +131,7 @@ lemma valuation_eq_one_iff (a : A) : is_unit a ↔ A.valuation a = 1 :=
     have ha : (a : K) ≠ 0,
     { intro c, rw [c, A.valuation.map_zero] at h, exact zero_ne_one h },
     have ha' : (a : K)⁻¹ ∈ A,
-    { rw [← valuation_le_one_iff, A.valuation.map_inv, h, inv_one] },
+    { rw [← valuation_le_one_iff, map_inv₀, h, inv_one] },
     apply is_unit_of_mul_eq_one a ⟨a⁻¹, ha'⟩, ext, field_simp,
   end ⟩
 
@@ -244,7 +244,7 @@ lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 begin
   ext x, split,
   { rintro ⟨a, r, hr, rfl⟩, apply mul_mem, { exact h a.2 },
-    { rw [← valuation_le_one_iff, valuation.map_inv, ← inv_one, inv_le_inv₀],
+    { rw [← valuation_le_one_iff, map_inv₀, ← inv_one, inv_le_inv₀],
       { exact not_lt.1 ((not_iff_not.2 $ valuation_lt_one_iff S _).1 hr) },
       { intro hh, erw [valuation.zero_iff, subring.coe_eq_zero_iff] at hh,
         apply hr, rw hh, apply ideal.zero_mem (R.ideal_of_le S h) },
@@ -321,7 +321,7 @@ def valuation_subring : valuation_subring K :=
     cases le_or_lt (v x) 1,
     { left, exact h },
     { right, change v x⁻¹ ≤ 1,
-      rw [v.map_inv, ← inv_one, inv_le_inv₀],
+      rw [map_inv₀ v, ← inv_one, inv_le_inv₀],
       { exact le_of_lt h },
       { intro c, simpa [c] using h },
       { exact one_ne_zero } }

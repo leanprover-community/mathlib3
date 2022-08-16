@@ -1160,10 +1160,10 @@ hf.fderiv_within' (by { rw [insert_eq_of_mem hxs], exact eventually_of_mem self_
 continuous. -/
 lemma cont_diff_on.continuous_on_fderiv_within_apply
   (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
-  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ (univ : set E)) :=
+  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
 begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ (univ : set E)),
+  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
   { apply continuous_on.prod _ continuous_snd.continuous_on,
     exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
       (prod_subset_preimage_fst _ _) },
@@ -2263,8 +2263,7 @@ lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
-  cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2)
-  (s ×ˢ (univ : set E)) :=
+  cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2) (s ×ˢ univ) :=
 begin
   have A : cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
   { apply is_bounded_bilinear_map.cont_diff,
@@ -2369,6 +2368,8 @@ end pi
 
 /-! ### Sum of two functions -/
 
+section add
+
 /- The sum is smooth. -/
 lemma cont_diff_add : cont_diff 𝕜 n (λp : F × F, p.1 + p.2) :=
 (is_bounded_linear_map.fst.add is_bounded_linear_map.snd).cont_diff
@@ -2396,7 +2397,53 @@ lemma cont_diff_on.add {s : set E} {f g : E → F}
   cont_diff_on 𝕜 n (λx, f x + g x) s :=
 λ x hx, (hf x hx).add (hg x hx)
 
+variables {i : ℕ}
+
+lemma iterated_fderiv_within_add_apply {f g : E → F}
+  (hf : cont_diff_on 𝕜 i f s) (hg : cont_diff_on 𝕜 i g s) (hu : unique_diff_on 𝕜 s)
+  (hx : x ∈ s) :
+iterated_fderiv_within 𝕜 i (f + g) s x =
+  iterated_fderiv_within 𝕜 i f s x + iterated_fderiv_within 𝕜 i g s x :=
+begin
+  induction i with i hi generalizing x,
+  { ext h, simp },
+  { ext h,
+    have hi' : (i : with_top ℕ) < i+1 :=
+      with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
+    have hdf : differentiable_on 𝕜 (iterated_fderiv_within 𝕜 i f s) s :=
+      hf.differentiable_on_iterated_fderiv_within hi' hu,
+    have hdg : differentiable_on 𝕜 (iterated_fderiv_within 𝕜 i g s) s :=
+      hg.differentiable_on_iterated_fderiv_within hi' hu,
+    have hcdf : cont_diff_on 𝕜 i f s := hf.of_le hi'.le,
+    have hcdg : cont_diff_on 𝕜 i g s := hg.of_le hi'.le,
+    calc iterated_fderiv_within 𝕜 (i+1) (f + g) s x h
+        = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f + g) s) s x (h 0) (fin.tail h) : rfl
+    ... = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s + iterated_fderiv_within 𝕜 i g s) s x
+              (h 0) (fin.tail h) :
+            begin
+              congr' 2,
+              exact fderiv_within_congr (hu x hx) (λ _, hi hcdf hcdg) (hi hcdf hcdg hx),
+            end
+    ... = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s +
+            fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i g s) s)
+              x (h 0) (fin.tail h) :
+            by rw [pi.add_def, fderiv_within_add (hu x hx) (hdf x hx) (hdg x hx)]; refl
+    ... = (iterated_fderiv_within 𝕜 (i+1) f s + iterated_fderiv_within 𝕜 (i+1) g s) x h : rfl }
+end
+
+lemma iterated_fderiv_add_apply {i : ℕ} {f g : E → F} (hf : cont_diff 𝕜 i f)
+  (hg : cont_diff 𝕜 i g) :
+  iterated_fderiv 𝕜 i (f + g) x = iterated_fderiv 𝕜 i f x + iterated_fderiv 𝕜 i g x :=
+begin
+  simp_rw [←cont_diff_on_univ, ←iterated_fderiv_within_univ] at hf hg ⊢,
+  exact iterated_fderiv_within_add_apply hf hg unique_diff_on_univ (set.mem_univ _),
+end
+
+end add
+
 /-! ### Negative -/
+
+section neg
 
 /- The negative is smooth. -/
 lemma cont_diff_neg : cont_diff 𝕜 n (λp : F, -p) :=
@@ -2421,6 +2468,38 @@ cont_diff_neg.comp hf
 lemma cont_diff_on.neg {s : set E} {f : E → F}
   (hf : cont_diff_on 𝕜 n f s) : cont_diff_on 𝕜 n (λx, -f x) s :=
 λ x hx, (hf x hx).neg
+
+variables {i : ℕ}
+
+lemma iterated_fderiv_within_neg_apply {f : E → F} (hu : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  iterated_fderiv_within 𝕜 i (-f) s x = -iterated_fderiv_within 𝕜 i f s x :=
+begin
+  induction i with i hi generalizing x,
+  { ext h, simp },
+  { ext h,
+    have hi' : (i : with_top ℕ) < i+1 :=
+      with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
+    calc iterated_fderiv_within 𝕜 (i+1) (-f) s x h
+        = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (-f) s) s x (h 0) (fin.tail h) : rfl
+    ... = fderiv_within 𝕜 (-iterated_fderiv_within 𝕜 i f s) s x
+              (h 0) (fin.tail h) :
+            begin
+              congr' 2,
+              exact fderiv_within_congr (hu x hx) (λ _, hi) (hi hx),
+            end
+    ... = -(fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s) x (h 0) (fin.tail h) :
+            by rw [pi.neg_def, fderiv_within_neg (hu x hx)]; refl
+    ... = - (iterated_fderiv_within 𝕜 (i+1) f s) x h : rfl }
+end
+
+lemma iterated_fderiv_neg_apply {i : ℕ} {f : E → F} :
+  iterated_fderiv 𝕜 i (-f) x = -iterated_fderiv 𝕜 i f x :=
+begin
+  simp_rw [←iterated_fderiv_within_univ],
+  exact iterated_fderiv_within_neg_apply unique_diff_on_univ (set.mem_univ _),
+end
+
+end neg
 
 /-! ### Subtraction -/
 
@@ -2586,6 +2665,8 @@ end mul_prod
 
 /-! ### Scalar multiplication -/
 
+section smul
+
 /- The scalar multiplication is smooth. -/
 lemma cont_diff_smul : cont_diff 𝕜 n (λ p : 𝕜 × F, p.1 • p.2) :=
 is_bounded_bilinear_map_smul.cont_diff
@@ -2613,6 +2694,8 @@ lemma cont_diff_on.smul {s : set E} {f : E → 𝕜} {g : E → F}
   (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
   cont_diff_on 𝕜 n (λ x, f x • g x) s :=
 λ x hx, (hf x hx).smul (hg x hx)
+
+end smul
 
 /-! ### Constant scalar multiplication -/
 
@@ -2646,6 +2729,39 @@ lemma cont_diff.const_smul {f : E → F} (c : R)
 lemma cont_diff_on.const_smul {s : set E} {f : E → F} (c : R)
   (hf : cont_diff_on 𝕜 n f s) : cont_diff_on 𝕜 n (λ y, c • f y) s :=
 λ x hx, (hf x hx).const_smul c
+
+variables {i : ℕ} {a : R}
+
+lemma iterated_fderiv_within_const_smul_apply (hf : cont_diff_on 𝕜 i f s)
+  (hu : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+iterated_fderiv_within 𝕜 i (a • f) s x = a • (iterated_fderiv_within 𝕜 i f s x) :=
+begin
+  induction i with i hi generalizing x,
+  { ext, simp },
+  { ext h,
+    have hi' : (i : with_top ℕ) < i+1 :=
+      with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
+    have hdf : differentiable_on 𝕜 (iterated_fderiv_within 𝕜 i f s) s :=
+      hf.differentiable_on_iterated_fderiv_within hi' hu,
+    have hcdf : cont_diff_on 𝕜 i f s := hf.of_le hi'.le,
+    calc iterated_fderiv_within 𝕜 (i+1) (a • f) s x h
+        = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (a • f) s) s x (h 0) (fin.tail h) : rfl
+    ... = fderiv_within 𝕜 (a • iterated_fderiv_within 𝕜 i f s) s x (h 0) (fin.tail h) :
+            begin
+              congr' 2,
+              exact fderiv_within_congr (hu x hx) (λ _, hi hcdf) (hi hcdf hx),
+            end
+    ... = (a • fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s)) s x (h 0) (fin.tail h) :
+            by rw [pi.smul_def, fderiv_within_const_smul (hu x hx) (hdf x hx)]; refl
+    ... = a • iterated_fderiv_within 𝕜 (i+1) f s x h : rfl }
+end
+
+lemma iterated_fderiv_const_smul_apply {x : E} (hf : cont_diff 𝕜 i f) :
+  iterated_fderiv 𝕜 i (a • f) x = a • iterated_fderiv 𝕜 i f x :=
+begin
+  simp_rw [←cont_diff_on_univ, ←iterated_fderiv_within_univ] at *,
+  refine iterated_fderiv_within_const_smul_apply hf unique_diff_on_univ (set.mem_univ _),
+end
 
 end const_smul
 

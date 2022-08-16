@@ -308,6 +308,18 @@ begin
   simp [*],
 end
 
+@[simp]
+lemma subset_support_append_left {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
+  p.support ⊆ (p.append q).support :=
+by simp only [walk.support_append, list.subset_append_left]
+
+@[simp]
+lemma subset_support_append_right {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
+  q.support ⊆ (p.append q).support :=
+by { intro h, simp only [mem_support_append_iff, or_true, implies_true_iff] { contextual := tt }}
+
 lemma coe_support {u v : V} (p : G.walk u v) :
   (p.support : multiset V) = {u} + p.support.tail :=
 by cases p; refl
@@ -585,6 +597,17 @@ begin
     { simp! },
     { simp! only,
       split_ifs with h'; subst_vars; simp [*], } },
+end
+
+lemma mem_support_iff_exists_append {V : Type u} {G : simple_graph V} {u v w : V}
+  {p : G.walk u v} :
+  w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
+begin
+  classical,
+  split,
+  { exact λ h, ⟨_, _, (p.take_spec h).symm⟩ },
+  { rintro ⟨q, r, rfl⟩,
+    simp only [mem_support_append_iff, end_mem_support, start_mem_support, or_self], },
 end
 
 @[simp]

@@ -765,9 +765,10 @@ begin
 end
 
 instance (n : ℕ) : fintype (fin n) :=
-⟨finset.fin_range n, finset.mem_fin_range⟩
+⟨⟨list.fin_range n, list.nodup_fin_range n⟩, list.mem_fin_range⟩
 
-lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = finset.fin_range n := rfl
+lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = ⟨list.fin_range n, list.nodup_fin_range n⟩ :=
+rfl
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
@@ -907,10 +908,10 @@ instance {α : Type*} (β : α → Type*)
   (univ : finset α).sigma (λ a, (univ : finset (β a))) = univ := rfl
 
 instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
-⟨univ.product univ, λ ⟨a, b⟩, by simp⟩
+⟨univ ×ˢ univ, λ ⟨a, b⟩, by simp⟩
 
 @[simp] lemma finset.univ_product_univ {α β : Type*} [fintype α] [fintype β] :
-  (univ : finset α).product (univ : finset β) = univ :=
+  (univ : finset α) ×ˢ (univ : finset β) = univ :=
 rfl
 
 @[simp] theorem fintype.card_prod (α β : Type*) [fintype α] [fintype β] :

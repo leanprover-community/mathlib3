@@ -138,7 +138,7 @@ lemma is_algebraic_of_pow {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r
 begin
   obtain ⟨p, p_nonzero, hp⟩ := ht,
   refine ⟨polynomial.expand _ n p, _, _⟩,
-  { rwa [polynomial.expand_ne_zero hn] },
+  { rwa polynomial.expand_ne_zero hn },
   { rwa polynomial.expand_aeval n p r },
 end
 
@@ -321,14 +321,11 @@ end
 lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : K[X]}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
-  have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
-  { rw [aeval_eq, subalgebra.coe_zero, zero_sub, div_neg],
-    convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
-    { rw subalgebra.aeval_coe },
-    { simpa using aeval_eq } },
-  rw [this, div_eq_mul_inv, aeval_eq, subalgebra.coe_zero, zero_sub, ← ring_hom.map_neg,
-      ← ring_hom.map_inv],
-  exact A.mul_mem (aeval x p.div_X).2 (A.algebra_map_mem _),
+  suffices : (x⁻¹ : L) = (-p.coeff 0)⁻¹ • aeval x (div_X p),
+  { rw [this], exact A.smul_mem (aeval x _).2 _ },
+  have : aeval (x : L) p = 0, by rw [subalgebra.aeval_coe, aeval_eq, subalgebra.coe_zero],
+  rw [inv_eq_of_root_of_coeff_zero_ne_zero this coeff_zero_ne, div_eq_inv_mul,
+    algebra.smul_def, map_inv₀, map_neg, inv_neg, neg_mul, subalgebra.aeval_coe]
 end
 
 lemma subalgebra.inv_mem_of_algebraic {x : A} (hx : is_algebraic K (x : L)) : (x⁻¹ : L) ∈ A :=

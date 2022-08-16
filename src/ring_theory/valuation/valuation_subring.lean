@@ -656,6 +656,7 @@ variables {G : Type*} [group G] [mul_semiring_action G K]
 This is available as an instance in the `pointwise` locale. -/
 def pointwise_has_smul : has_smul G (valuation_subring K) :=
 { smul := λ g S,
+  -- TODO: if we add `valuation_subring.map` at a later date, we should use it here
   { mem_or_inv_mem' := λ x, (mem_or_inv_mem S (g⁻¹ • x)).imp
       (subring.mem_pointwise_smul_iff_inv_smul_mem.mpr)
       (λ h, subring.mem_pointwise_smul_iff_inv_smul_mem.mpr $ by rwa smul_inv''),

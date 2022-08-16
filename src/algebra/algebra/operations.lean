@@ -51,6 +51,9 @@ lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : sub_mul_action R A) :
 lemma mem_one' {x : A} : x ∈ (1 : sub_mul_action R A) ↔ ∃ y, algebra_map R A y = x :=
 exists_congr $ λ r, by rw algebra_map_eq_smul_one
 
+lemma coe_one' : ↑(1 : sub_mul_action R A) = range (algebra_map R A) :=
+set.ext $ λ _, mem_one'
+
 end sub_mul_action
 
 namespace submodule
@@ -344,39 +347,62 @@ begin
   { exact (pow_to_add_submonoid M hn).ge }
 end
 
+lemma le_pow_to_sub_mul_action {n : ℕ} :
+  M.to_sub_mul_action ^ n ≤ (M ^ n).to_sub_mul_action :=
+begin
+  obtain rfl | hn := decidable.eq_or_ne n 0,
+  { rw [pow_zero, pow_zero], exact to_sub_mul_action_one.ge },
+  { rintros x hx,
+    rw [←set_like.mem_coe, sub_mul_action.coe_pow _ hn] at hx,
+    exact pow_subset_pow M hx },
+end
+
+/-- The power of a submonoid is the additive closure of the powers of its elements -/
+lemma pow_to_add_submonoid' {n : ℕ} :
+  (M ^ n).to_add_submonoid = add_submonoid.closure ↑(M.to_sub_mul_action ^ n) :=
+begin
+  induction n with n ih,
+  { simp_rw [pow_zero, sub_mul_action.coe_one', ←ring_hom.coe_srange,
+      ←subsemiring.coe_to_add_submonoid, add_submonoid.closure_eq],
+      refl },
+  { rw [pow_succ, pow_succ, mul_to_add_submonoid, ih, sub_mul_action.coe_mul,
+      coe_to_sub_mul_action, ←add_submonoid.closure_mul_closure, ←coe_to_add_submonoid,
+      add_submonoid.closure_eq] },
+end
+
+
 open add_submonoid
 
-/-- Dependent version of `submodule.pos_pow_induction_on`. -/
-@[elab_as_eliminator] protected theorem pos_pow_induction_on' (n : ℕ) (hn : n ≠ 0)
+/-- Dependent version of `submodule.pow_induction_on`. -/
+@[elab_as_eliminator] protected theorem pow_induction_on' (n : ℕ)
   {C : Π x : A, x ∈ M ^ n → Prop}
   (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem ‹_› ‹_›))
-  (hpow : ∀ (x ∈ (↑M : set A) ^ n), C x (pow_subset_pow _ ‹_›))
+  (hpow : ∀ (x ∈ M.to_sub_mul_action ^ n), C x (le_pow_to_sub_mul_action _ ‹_›))
   {x : A} (hx : x ∈ M ^ n) : C x hx :=
 begin
-  have : ∀ x, x ∈ M ^ n ↔ x ∈ add_submonoid.closure (M ^ n : set A),
-  { intro x,
-    rw [←coe_to_add_submonoid, ←add_submonoid.pow_eq_closure_pow_set,
-        ←pow_to_add_submonoid _ hn, mem_to_add_submonoid]},
+  have : ∀ x, x ∈ M ^ n ↔ x ∈ add_submonoid.closure (↑(M.to_sub_mul_action ^ n) : set A),
+  { exact set_like.ext_iff.mp (pow_to_add_submonoid' M) },
   revert hx,
   simp_rw [this],
   intro hx,
   refine add_submonoid.closure_induction' _ hpow (hpow _ _) (λ x y hx hy, hadd _ _ _ _) hx,
+  obtain rfl | hn := eq_or_ne n 0,
+  { rw pow_zero,
+    exact ⟨0, zero_smul _ _⟩, },
+  apply sub_mul_action.subset_coe_pow,
   rw ←zero_pow' _ hn,
   exact set.pow_mem_pow M.zero_mem n,
 end
 
-/-- To show a property is true for elements of a positive power `n` of a submodule, it suffices to
+/-- To show a property is true for elements of a power `n` of a submodule, it suffices to
 show that it is closed under addition and holds for monomials formed of `n` elements of that
-submodule.
-
-Note that we require `n ≠ 0` since `(↑M : set A) ^ 0` does not contain the scalars. We could resolve
-this by using `M.to_sub_mul_action` instead, but that type currently has no pointwise operations. -/
-@[elab_as_eliminator] protected theorem pos_pow_induction_on (n : ℕ) (hn : n ≠ 0)
+submodule. -/
+@[elab_as_eliminator] protected theorem pow_induction_on (n : ℕ)
   {C : A → Prop}
   (hadd : ∀ x y, C x → C y → C (x + y))
-  (hpow : ∀ (x ∈ (↑M : set A) ^ n), C x)
+  (hpow : ∀ (x ∈ M.to_sub_mul_action ^ n), C x)
   {x : A} (hx : x ∈ M ^ n) : C x :=
-submodule.pos_pow_induction_on' _ _ hn (λ x y hx hy, hadd _ _) hpow hx
+submodule.pow_induction_on' _ _ (λ x y hx hy, hadd _ _) hpow hx
 
 /-- Dependent version of `submodule.pow_induction_on_left`. -/
 @[elab_as_eliminator] protected theorem pow_induction_on_left'

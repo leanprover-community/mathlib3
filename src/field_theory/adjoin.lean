@@ -402,9 +402,9 @@ is_splitting_field_iff.mpr ⟨splits_of_splits hp (λ x hx, subset_adjoin F (p.r
 
 open_locale big_operators
 
-lemma splitting_field_supr {ι : Type*} {t : ι → intermediate_field F E}
-  {p : ι → F[X]} {s : finset ι} (h0 : ∏ i in s, p i ≠ 0)
-  (h : ∀ i ∈ s, (p i).is_splitting_field F (t i)) :
+/-- A compositum of splitting fields is a splitting field -/
+lemma is_splitting_field_supr {ι : Type*} {t : ι → intermediate_field F E} {p : ι → F[X]}
+  {s : finset ι} (h0 : ∏ i in s, p i ≠ 0) (h : ∀ i ∈ s, (p i).is_splitting_field F (t i)) :
   (∏ i in s, p i).is_splitting_field F (⨆ i ∈ s, t i : intermediate_field F E) :=
 begin
   let K : intermediate_field F E := ⨆ i ∈ s, t i,

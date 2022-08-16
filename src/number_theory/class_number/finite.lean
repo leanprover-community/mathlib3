@@ -66,7 +66,7 @@ begin
       (algebra.left_mul_matrix_injective bS),
     ext j k,
     simp [h, dmatrix.zero_apply] },
-  simp only [norm_bound, algebra.smul_def, eq_nat_cast, int.nat_cast_eq_coe_nat],
+  simp only [norm_bound, algebra.smul_def, eq_nat_cast],
   refine mul_pos (int.coe_nat_pos.mpr (nat.factorial_pos _)) _,
   refine pow_pos (mul_pos (int.coe_nat_pos.mpr (fintype.card_pos_iff.mpr ⟨i⟩)) _) _,
   refine lt_of_lt_of_le (abv.pos hijk) (finset.le_max' _ _ _),
@@ -165,9 +165,7 @@ variables [decidable_eq R]
 /-- `finset_approx` is a finite set such that each fractional ideal in the integral closure
 contains an element close to `finset_approx`. -/
 noncomputable def finset_approx : finset R :=
-((finset.univ.product finset.univ)
-  .image (λ (xy : _ × _), distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2))
-  .erase 0
+(finset.univ.image $ λ xy : _ × _, distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2).erase 0
 
 lemma finset_approx.zero_not_mem : (0 : R) ∉ finset_approx bS adm :=
 finset.not_mem_erase _ _
@@ -183,7 +181,7 @@ begin
     rintro rfl,
     simpa using hx },
   { rintros ⟨i, j, hij, rfl⟩,
-    refine ⟨_, ⟨i, j⟩, finset.mem_product.mpr ⟨finset.mem_univ _, finset.mem_univ _⟩, rfl⟩,
+    refine ⟨_, ⟨i, j⟩, finset.mem_univ _, rfl⟩,
     rw [ne.def, sub_eq_zero],
     exact λ h, hij ((distinct_elems bS adm).injective h) }
 end

@@ -36,10 +36,9 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 
 lemma eq_one : (p ⊔ (q1 ⊓ q2)) (1, 1) = 1 :=
 begin
-  dsimp [-seminorm.inf_apply],
-  rw [sup_idem, norm_one, sup_eq_left],
-  apply cinfi_le_of_le (bdd_below_range_add _ _ _) ((0, 1) : ℝ×ℝ), dsimp,
-  simp only [norm_zero, smul_zero, sub_self, add_zero, zero_le_one]
+  suffices : (⨅ x : ℝ × ℝ, q1 x + q2 (1 - x)) ≤ 1, by simpa,
+  apply cinfi_le_of_le (bdd_below_range_add _ _ _) ((0, 1) : ℝ×ℝ), dsimp [q1, q2],
+  simp only [abs_zero, smul_zero, sub_self, add_zero, zero_le_one],
 end
 
 /-- This is a counterexample to the distributivity of the lattice `seminorm ℝ (ℝ × ℝ)`. -/

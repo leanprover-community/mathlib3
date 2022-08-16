@@ -258,61 +258,65 @@ by simp
 section pointwise
 open_locale pointwise
 
-@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
-  f '' (c • s) = (σ c) • f '' s :=
+variables (M M₃ σ) {F : Type*} (h : F)
+
+@[simp] lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
+  h '' (c • s) = (σ c) • h '' s :=
 begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
-    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smulₛₗ _ _).symm ⟩ },
+    exact ⟨h z, set.mem_image_of_mem _ zs, (map_smulₛₗ _ _ _).symm ⟩ },
   { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
-    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smulₛₗ _ _⟩ }
+    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, map_smulₛₗ _ _ _⟩ }
 end
 
-lemma image_smul_set (c : R) (s : set M) :
-  fₗ '' (c • s) = c • fₗ '' s :=
-by simp
-
-lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
-  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
+lemma _root_.preimage_smul_setₛₗ [semilinear_map_class F σ M M₃] {c : R} (hc : is_unit c)
+  (s : set M₃) : h ⁻¹' (σ c • s) = c • h ⁻¹' s :=
 begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ys, hy⟩,
     refine ⟨(hc.unit.inv : R) • x, _, _⟩,
-    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ f, ← map_mul,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ h, ← map_mul,
         is_unit.coe_inv_mul, one_smul, map_one, ys] },
     { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
   { rintros x ⟨y, hy, rfl⟩,
-    refine ⟨f y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ f]⟩ }
+    refine ⟨h y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
 end
 
-lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
-  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
-fₗ.preimage_smul_setₛₗ hc s
+variables (R M₂)
+
+lemma _root_.image_smul_set [linear_map_class F R M M₂] (c : R) (s : set M) :
+  h '' (c • s) = c • h '' s :=
+image_smul_setₛₗ _ _ _ h c s
+
+lemma _root_.preimage_smul_set [linear_map_class F R M M₂] {c : R} (hc : is_unit c) (s : set M₂) :
+  h ⁻¹' (c • s) = c • h ⁻¹' s :=
+preimage_smul_setₛₗ _ _ _ h hc s
 
 end pointwise
 
 variables (M M₂)
 /--
-A typeclass for `has_scalar` structures which can be moved through a `linear_map`.
+A typeclass for `has_smul` structures which can be moved through a `linear_map`.
 This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
 -/
-class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
-  [module S M] [has_scalar R M₂] [module S M₂] :=
+class compatible_smul (R S : Type*) [semiring S] [has_smul R M]
+  [module S M] [has_smul R M₂] [module S M₂] :=
 (map_smul : ∀ (fₗ : M →ₗ[S] M₂) (c : R) (x : M), fₗ (c • x) = c • fₗ x)
 variables {M M₂}
 
 @[priority 100]
 instance is_scalar_tower.compatible_smul
-  {R S : Type*} [semiring S] [has_scalar R S]
-  [has_scalar R M] [module S M] [is_scalar_tower R S M]
-  [has_scalar R M₂] [module S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
+  {R S : Type*} [semiring S] [has_smul R S]
+  [has_smul R M] [module S M] [is_scalar_tower R S M]
+  [has_smul R M₂] [module S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
 ⟨λ fₗ c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (fₗ x), map_smul]⟩
 
 @[simp, priority 900]
-lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
-  [module S M] [has_scalar R M₂] [module S M₂]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_smul R M]
+  [module S M] [has_smul R M₂] [module S M₂]
   [compatible_smul M M₂ R S] (fₗ : M →ₗ[S] M₂) (c : R) (x : M) :
   fₗ (c • x) = c • fₗ x :=
 compatible_smul.map_smul fₗ c x
@@ -610,7 +614,7 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 
 namespace linear_map
 
-section has_scalar
+section has_smul
 
 variables [semiring R] [semiring R₂] [semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
@@ -620,7 +624,7 @@ variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
 variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
 variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
 
-instance : has_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+instance : has_smul S (M →ₛₗ[σ₁₂] M₂) :=
 ⟨λ a f, { to_fun := a • f,
           map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
           map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
@@ -634,14 +638,14 @@ instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂]
 
 -- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
 -- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
-instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
+instance [has_smul S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
 { smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
 
 instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
   is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
 { op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
 
-end has_scalar
+end has_smul
 
 /-! ### Arithmetic on the codomain -/
 section arithmetic
@@ -732,7 +736,7 @@ variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
 variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
-section has_scalar
+section has_smul
 variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
 variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
 variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
@@ -754,7 +758,7 @@ theorem comp_smul [module R M₂] [module R M₃] [smul_comm_class R S M₂] [di
   (g : M₃ →ₗ[R] M₂) (a : S) (f : M →ₗ[R] M₃) : g.comp (a • f) = a • (g.comp f) :=
 ext $ λ x, g.map_smul_of_tower _ _
 
-end has_scalar
+end has_smul
 
 section module
 variables [semiring S] [module S M₂] [smul_comm_class R₂ S M₂]
@@ -803,16 +807,30 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   one := (1 : M →ₗ[R] M),
   zero := 0,
   add := (+),
-  npow := @npow_rec _ ⟨(1 : M →ₗ[R] M)⟩ ⟨(*)⟩,
   mul_zero := comp_zero,
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,
   right_distrib := λ f g h, add_comp _ _ _,
+  nat_cast := λ n, n • 1,
+  nat_cast_zero := add_monoid.nsmul_zero' _,
+  nat_cast_succ := λ n, (add_monoid.nsmul_succ' n 1).trans (add_comm _ _),
+  .. add_monoid_with_one.unary,
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 
+/-- See also `module.End.nat_cast_def`. -/
+@[simp] lemma _root_.module.End.nat_cast_apply (n : ℕ) (m : M) :
+  (↑n : module.End R M) m = n • m := rfl
+
 instance _root_.module.End.ring : ring (module.End R N₁) :=
-{ ..module.End.semiring, ..linear_map.add_comm_group }
+{ int_cast := λ z, z • 1,
+  int_cast_of_nat := of_nat_zsmul _,
+  int_cast_neg_succ_of_nat := zsmul_neg_succ_of_nat _,
+  ..module.End.semiring, ..linear_map.add_comm_group }
+
+/-- See also `module.End.int_cast_def`. -/
+@[simp] lemma _root_.module.End.int_cast_apply (z : ℤ) (m : N₁) :
+  (↑z : module.End R N₁) m = z • m := rfl
 
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
@@ -820,11 +838,11 @@ variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
 instance _root_.module.End.is_scalar_tower :
   is_scalar_tower S (module.End R M) (module.End R M) := ⟨smul_comp⟩
 
-instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R M] :
+instance _root_.module.End.smul_comm_class [has_smul S R] [is_scalar_tower S R M] :
   smul_comm_class S (module.End R M) (module.End R M) :=
 ⟨λ s _ _, (comp_smul _ s _).symm⟩
 
-instance _root_.module.End.smul_comm_class' [has_scalar S R] [is_scalar_tower S R M] :
+instance _root_.module.End.smul_comm_class' [has_smul S R] [is_scalar_tower S R M] :
   smul_comm_class (module.End R M) S (module.End R M) :=
 smul_comm_class.symm _ _ _
 
@@ -876,7 +894,7 @@ variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
 This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
 @[simps]
 def to_linear_map (s : S) : M →ₗ[R] M :=
-{ to_fun := has_scalar.smul s,
+{ to_fun := has_smul.smul s,
   map_add' := smul_add s,
   map_smul' := λ a b, smul_comm _ _ _ }
 
@@ -896,7 +914,7 @@ namespace module
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables [semiring S] [module S M] [smul_comm_class S R M]
 
-/-- Each element of the monoid defines a module endomorphism.
+/-- Each element of the semiring defines a module endomorphism.
 
 This is a stronger version of `distrib_mul_action.to_module_End`. -/
 @[simps]
@@ -925,5 +943,11 @@ def module_End_self_op : R ≃+* module.End Rᵐᵒᵖ R :=
   left_inv := mul_one,
   right_inv := λ f, linear_map.ext_ring_op $ mul_one _,
   ..module.to_module_End _ _ }
+
+lemma End.nat_cast_def (n : ℕ) [add_comm_monoid N₁] [module R N₁] :
+  (↑n : module.End R N₁) = module.to_module_End R N₁ n := rfl
+
+lemma End.int_cast_def (z : ℤ) [add_comm_group N₁] [module R N₁] :
+  (↑z : module.End R N₁) = module.to_module_End R N₁ z := rfl
 
 end module

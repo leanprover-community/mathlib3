@@ -366,6 +366,10 @@ have (⨅ b : bool, cond b f g).lift' s = ⨅ b : bool, (cond b f g).lift' s :=
   lift'_infi @hs,
 by simpa only [infi_bool_eq]
 
+lemma lift'_inf_le (f g : filter α) (s : set α → set β) :
+  (f ⊓ g).lift' s ≤ f.lift' s ⊓ g.lift' s :=
+le_inf (lift'_mono inf_le_left le_rfl) (lift'_mono inf_le_right le_rfl)
+
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
@@ -386,14 +390,13 @@ begin
 end
 
 lemma prod_same_eq : f ×ᶠ f = f.lift' (λ t : set α, t ×ˢ t) :=
-by rw [prod_def];
-from lift_lift'_same_eq_lift'
-  (assume s, set.monotone_prod monotone_const monotone_id)
-  (assume t, set.monotone_prod monotone_id monotone_const)
+prod_def.trans $ lift_lift'_same_eq_lift'
+  (λ s, monotone_const.set_prod monotone_id)
+  (λ t, monotone_id.set_prod monotone_const)
 
 lemma mem_prod_same_iff {s : set (α×α)} :
   s ∈ f ×ᶠ f ↔ (∃t∈f, t ×ˢ t ⊆ s) :=
-by rw [prod_same_eq, mem_lift'_sets]; exact set.monotone_prod monotone_id monotone_id
+by { rw [prod_same_eq, mem_lift'_sets], exact monotone_id.set_prod monotone_id }
 
 lemma tendsto_prod_self_iff {f : α × α → β} {x : filter α} {y : filter β} :
   filter.tendsto f (x ×ᶠ x) y ↔
@@ -407,30 +410,21 @@ lemma prod_lift_lift
   (hg₁ : monotone g₁) (hg₂ : monotone g₂) :
   (f₁.lift g₁) ×ᶠ (f₂.lift g₂) = f₁.lift (λs, f₂.lift (λt, g₁ s ×ᶠ g₂ t)) :=
 begin
-  simp only [prod_def],
-  rw [lift_assoc],
+  simp only [prod_def, lift_assoc hg₁],
   apply congr_arg, funext x,
   rw [lift_comm],
   apply congr_arg, funext y,
-  rw [lift'_lift_assoc],
-  exact hg₂,
-  exact hg₁
+  apply lift'_lift_assoc hg₂
 end
 
 lemma prod_lift'_lift'
   {f₁ : filter α₁} {f₂ : filter α₂} {g₁ : set α₁ → set β₁} {g₂ : set α₂ → set β₂}
   (hg₁ : monotone g₁) (hg₂ : monotone g₂) :
-  f₁.lift' g₁ ×ᶠ f₂.lift' g₂ = f₁.lift (λs, f₂.lift' (λt, g₁ s ×ˢ g₂ t)) :=
-begin
-  rw [prod_def, lift_lift'_assoc],
-  apply congr_arg, funext x,
-  rw [lift'_lift'_assoc],
-  exact hg₂,
-  exact set.monotone_prod monotone_const monotone_id,
-  exact hg₁,
-  exact (monotone_lift' monotone_const $ monotone_lam $
-    assume x, set.monotone_prod monotone_id monotone_const)
-end
+  f₁.lift' g₁ ×ᶠ f₂.lift' g₂ = f₁.lift (λ s, f₂.lift' (λ t, g₁ s ×ˢ g₂ t)) :=
+calc f₁.lift' g₁ ×ᶠ f₂.lift' g₂ = f₁.lift (λ s, f₂.lift (λ t, 𝓟 (g₁ s) ×ᶠ 𝓟 (g₂ t))) :
+  prod_lift_lift (monotone_principal.comp hg₁) (monotone_principal.comp hg₂)
+... = f₁.lift (λ s, f₂.lift (λ t, 𝓟 (g₁ s ×ˢ g₂ t))) :
+  by simp only [prod_principal_principal]
 
 end prod
 

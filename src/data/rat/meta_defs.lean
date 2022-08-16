@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import data.rat.basic
+import data.rat.defs
 import tactic.core
 
 /-!
@@ -42,15 +42,17 @@ meta def rat.mk_numeral (type has_zero has_one has_add has_neg has_div : expr) :
     let dene := denom.mk_numeral type has_zero has_one has_add in
     `(@has_div.div.{0} %%type %%has_div %%nume %%dene)
 
-/-- `rat.reflect q` represents the rational number `q` as a numeral expression of type `ℚ`. -/
-protected meta def rat.reflect : ℚ → expr :=
-rat.mk_numeral `(ℚ) `((by apply_instance : has_zero ℚ))
-         `((by apply_instance : has_one ℚ))`((by apply_instance : has_add ℚ))
-         `((by apply_instance : has_neg ℚ)) `(by apply_instance : has_div ℚ)
 
 section
+-- Note that here we are disabling the "safety" of reflected, to allow us to reuse `rat.mk_numeral`.
+-- The usual way to provide the required `reflected` instance would be via rewriting to prove that
+-- the expression we use here is equivalent.
 local attribute [semireducible] reflected
-meta instance : has_reflect ℚ := rat.reflect
+/-- `rat.reflect q` represents the rational number `q` as a numeral expression of type `ℚ`. -/
+meta instance rat.reflect : has_reflect ℚ :=
+rat.mk_numeral `(ℚ) `(by apply_instance : has_zero ℚ)
+  `(by apply_instance : has_one ℚ) `(by apply_instance : has_add ℚ)
+  `(by apply_instance : has_neg ℚ) `(by apply_instance : has_div ℚ)
 end
 
 /--

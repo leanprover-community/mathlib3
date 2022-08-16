@@ -44,9 +44,9 @@ begin
     (λ i j, to_matrix_is_integral H₁ _ _ _ _)
     (λ i j, to_matrix_is_integral H₂ _ _ _ _),
   { exact hζ.is_integral n.pos },
-  { refine minpoly.gcd_domain_eq_field_fractions _ (hζ.is_integral n.pos) },
+  { refine minpoly.gcd_domain_eq_field_fractions' _ (hζ.is_integral n.pos) },
   { exact is_integral_sub (hζ.is_integral n.pos) is_integral_one },
-  { refine minpoly.gcd_domain_eq_field_fractions _ _,
+  { refine minpoly.gcd_domain_eq_field_fractions' _ _,
     exact is_integral_sub (hζ.is_integral n.pos) is_integral_one }
 end
 

@@ -562,9 +562,8 @@ variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 /-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
 protected def prod :
   (M × M₃) ≃ₗ[R] (M₂ × M₄) :=
-{ map_add'  := λ x y, prod.ext (e₁.map_add _ _) (e₂.map_add _ _),
-  map_smul' := λ c x, prod.ext (e₁.map_smulₛₗ c _) (e₂.map_smulₛₗ c _),
-  .. equiv.prod_congr e₁.to_equiv e₂.to_equiv }
+{ map_smul' := λ c x, prod.ext (e₁.map_smulₛₗ c _) (e₂.map_smulₛₗ c _),
+  .. e₁.to_add_equiv.prod_congr e₂.to_add_equiv }
 
 lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 
@@ -687,7 +686,7 @@ Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of 
 all isomorphic to `M`.
 -/
 def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →o (submodule R M)ᵒᵈ :=
-⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
+⟨λ n, order_dual.to_dual (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],
     apply submodule.map_subtype_le,
@@ -706,7 +705,7 @@ def tailing_linear_equiv (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) : 
   (tunnel_aux_injective f i (tunnel' f i n))).symm.trans (submodule.snd_equiv R M N)
 
 lemma tailing_le_tunnel (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  tailing f i n ≤ tunnel f i n :=
+  tailing f i n ≤ (tunnel f i n).of_dual :=
 begin
   dsimp [tailing, tunnel_aux],
   rw [submodule.map_comp, submodule.map_comp],
@@ -714,7 +713,7 @@ begin
 end
 
 lemma tailing_disjoint_tunnel_succ (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  disjoint (tailing f i n) (tunnel f i (n+1)) :=
+  disjoint (tailing f i n) (tunnel f i (n+1)).of_dual :=
 begin
   rw disjoint_iff,
   dsimp [tailing, tunnel, tunnel'],
@@ -724,7 +723,7 @@ begin
 end
 
 lemma tailing_sup_tunnel_succ_le_tunnel (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  tailing f i n ⊔ tunnel f i (n+1) ≤ tunnel f i n :=
+  tailing f i n ⊔ (tunnel f i (n+1)).of_dual ≤ (tunnel f i n).of_dual :=
 begin
   dsimp [tailing, tunnel, tunnel', tunnel_aux],
   rw [←submodule.map_sup, sup_comm, submodule.fst_sup_snd, submodule.map_comp, submodule.map_comp],
@@ -744,7 +743,7 @@ by simp [tailings]
 by simp [tailings]
 
 lemma tailings_disjoint_tunnel (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  disjoint (tailings f i n) (tunnel f i (n+1)) :=
+  disjoint (tailings f i n) (tunnel f i (n+1)).of_dual :=
 begin
   induction n with n ih,
   { simp only [tailings_zero],

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.hom.group_action
 import algebra.indicator_function
 import data.finset.preimage
+import data.list.alist
 
 /-!
 # Type of functions with finite support
@@ -45,7 +46,7 @@ non-pointwise multiplication.
 * `finsupp.update`: Changes one value of a `finsupp`.
 * `finsupp.erase`: Replaces one value of a `finsupp` by `0`.
 * `finsupp.on_finset`: The restriction of a function to a `finset` as a `finsupp`.
-* `finsupp.map_range`: Composition of a `zero_hom` with a`finsupp`.
+* `finsupp.map_range`: Composition of a `zero_hom` with a `finsupp`.
 * `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
 * `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing.
 * `finsupp.comap_domain`: Postcomposition of a `finsupp` with a function injective on the preimage
@@ -722,6 +723,123 @@ by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
 end erase
 
+/-! ### Declarations about `graph` -/
+
+section graph
+
+variable [has_zero M]
+
+/-- The graph of a finitely supported function over its support, i.e. the finset of input and output
+pairs with non-zero outputs. -/
+def graph (f : α →₀ M) : finset (α × M) :=
+f.support.map ⟨λ a, prod.mk a (f a), λ x y h, (prod.mk.inj h).1⟩
+
+lemma mk_mem_graph_iff {a : α} {m : M} {f : α →₀ M} : (a, m) ∈ f.graph ↔ f a = m ∧ m ≠ 0 :=
+begin
+  simp_rw [graph, mem_map, mem_support_iff],
+  split,
+  { rintro ⟨b, ha, rfl, -⟩,
+    exact ⟨rfl, ha⟩ },
+  { rintro ⟨rfl, ha⟩,
+    exact ⟨a, ha, rfl⟩ }
+end
+
+@[simp] lemma mem_graph_iff {c : α × M} {f : α →₀ M} : c ∈ f.graph ↔ f c.1 = c.2 ∧ c.2 ≠ 0 :=
+by { cases c, exact mk_mem_graph_iff }
+
+lemma mk_mem_graph (f : α →₀ M) {a : α} (ha : a ∈ f.support) : (a, f a) ∈ f.graph :=
+mk_mem_graph_iff.2 ⟨rfl, mem_support_iff.1 ha⟩
+
+lemma apply_eq_of_mem_graph {a : α} {m : M} {f : α →₀ M} (h : (a, m) ∈ f.graph) : f a = m :=
+(mem_graph_iff.1 h).1
+
+@[simp] lemma not_mem_graph_snd_zero (a : α) (f : α →₀ M) : (a, (0 : M)) ∉ f.graph :=
+λ h, (mem_graph_iff.1 h).2.irrefl
+
+@[simp] lemma image_fst_graph (f : α →₀ M) : f.graph.image prod.fst = f.support :=
+by simp only [graph, map_eq_image, image_image, embedding.coe_fn_mk, (∘), image_id']
+
+lemma graph_injective (α M) [has_zero M] : injective (@graph α M _) :=
+begin
+  intros f g h,
+  have hsup : f.support = g.support, by rw [← image_fst_graph, h, image_fst_graph],
+  refine ext_iff'.2 ⟨hsup, λ x hx, apply_eq_of_mem_graph $ h.symm ▸ _⟩,
+  exact mk_mem_graph _ (hsup ▸ hx)
+end
+
+@[simp] lemma graph_inj {f g : α →₀ M} : f.graph = g.graph ↔ f = g :=
+(graph_injective α M).eq_iff
+
+@[simp] lemma graph_zero : graph (0 : α →₀ M) = ∅ := by simp [graph]
+
+@[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
+(graph_injective α M).eq_iff' graph_zero
+
+/-- Produce an association list for the finsupp over its support using choice. -/
+@[simps] def to_alist (f : α →₀ M) : alist (λ x : α, M) :=
+⟨f.graph.to_list.map prod.to_sigma, begin
+  rw [list.nodupkeys, list.keys, list.map_map, prod.fst_comp_to_sigma, list.nodup_map_iff_inj_on],
+  { rintros ⟨b, m⟩ hb ⟨c, n⟩ hc (rfl : b = c),
+    rw [mem_to_list, finsupp.mem_graph_iff] at hb hc,
+    dsimp at hb hc,
+    rw [←hc.1, hb.1] },
+  { apply nodup_to_list }
+end⟩
+
+@[simp] lemma to_alist_keys_to_finset (f : α →₀ M) : f.to_alist.keys.to_finset = f.support :=
+by { ext, simp [to_alist, alist.mem_keys, alist.keys, list.keys] }
+
+@[simp] lemma mem_to_alist {f : α →₀ M} {x : α} : x ∈ f.to_alist ↔ f x ≠ 0 :=
+by rw [alist.mem_keys, ←list.mem_to_finset, to_alist_keys_to_finset, mem_support_iff]
+
+end graph
+
+end finsupp
+
+/-! ### Declarations about `alist.lookup_finsupp` -/
+
+section lookup_finsupp
+
+variable [has_zero M]
+
+namespace alist
+open list
+
+/-- Converts an association list into a finitely supported function via `alist.lookup`, sending
+absent keys to zero. -/
+@[simps] def lookup_finsupp (l : alist (λ x : α, M)) : α →₀ M :=
+{ support := (l.1.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset,
+  to_fun := λ a, (l.lookup a).get_or_else 0,
+  mem_support_to_fun := λ a, begin
+    simp_rw [mem_to_finset, list.mem_keys, list.mem_filter, ←mem_lookup_iff],
+    cases lookup a l;
+    simp
+  end }
+
+alias lookup_finsupp_to_fun ← lookup_finsupp_apply
+
+@[simp] lemma to_alist_lookup_finsupp (f : α →₀ M) : f.to_alist.lookup_finsupp = f :=
+begin
+  ext,
+  by_cases h : f a = 0,
+  { suffices : f.to_alist.lookup a = none,
+    { simp [h, this] },
+    { simp [lookup_eq_none, h] } },
+  { suffices : f.to_alist.lookup a = some (f a),
+    { simp [h, this] },
+    { apply mem_lookup_iff.2,
+      simpa using h } }
+end
+
+lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
+λ f, ⟨_, to_alist_lookup_finsupp f⟩
+
+end alist
+
+end lookup_finsupp
+
+namespace finsupp
+
 /-!
 ### Declarations about `sum` and `prod`
 
@@ -1045,9 +1163,9 @@ section add_monoid
 
 variables [add_monoid M]
 
-/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_nat_scalar : has_scalar ℕ (α →₀ M) :=
+instance has_nat_scalar : has_smul ℕ (α →₀ M) :=
 ⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
 
 instance : add_monoid (α →₀ M) :=
@@ -1112,9 +1230,9 @@ instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_z
 @[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
-/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_int_scalar [add_group G] : has_scalar ℤ (α →₀ G) :=
+instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
 ⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
 
 instance [add_group G] : add_group (α →₀ G) :=
@@ -1405,6 +1523,8 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 
 /-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
+@[to_additive "For disjoint `f1` and `f2`, and function `g`, the sum of the sums of `g`
+over `f1` and `f2` equals the sum of `g` over `f1 + f2`"]
 lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
   (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
   (f1 + f2).prod g = f1.prod g * f2.prod g :=
@@ -1414,6 +1534,18 @@ have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
     by simp only [not_mem_support_iff.mp (disjoint_left.mp hd hx), add_zero]),
 by simp_rw [← this hd, ← this hd.symm,
   add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
+
+lemma prod_dvd_prod_of_subset_of_dvd [add_comm_monoid M] [comm_monoid N]
+  {f1 f2 : α →₀ M} {g1 g2 : α → M → N} (h1 : f1.support ⊆ f2.support)
+  (h2 : ∀ (a : α), a ∈ f1.support → g1 a (f1 a) ∣ g2 a (f2 a)) :
+  f1.prod g1 ∣ f2.prod g2 :=
+begin
+  simp only [finsupp.prod, finsupp.prod_mul],
+  rw [←sdiff_union_of_subset h1, prod_union sdiff_disjoint],
+  apply dvd_mul_of_dvd_right,
+  apply prod_dvd_prod_of_dvd,
+  exact h2,
+end
 
 section map_range
 
@@ -2420,10 +2552,10 @@ variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
 This is not an instance as it would conflict with the action on the range.
 See the `instance_diamonds` test for examples of such conflicts. -/
-def comap_has_scalar : has_scalar G (α →₀ M) :=
+def comap_has_smul : has_smul G (α →₀ M) :=
 { smul := λ g, map_domain ((•) g) }
 
-local attribute [instance] comap_has_scalar
+local attribute [instance] comap_has_smul
 
 lemma comap_smul_def (g : G) (f : α →₀ M) : g • f = map_domain ((•) g) f := rfl
 
@@ -2431,7 +2563,7 @@ lemma comap_smul_def (g : G) (f : α →₀ M) : g • f = map_domain ((•) g) 
   g • single a b = single (g • a) b :=
 map_domain_single
 
-/-- `finsupp.comap_has_scalar` is multiplicative -/
+/-- `finsupp.comap_has_smul` is multiplicative -/
 def comap_mul_action : mul_action G (α →₀ M) :=
 { one_smul := λ f, by  rw [comap_smul_def, one_smul_eq_id, map_domain_id],
   mul_smul := λ g g' f, by rw [comap_smul_def, comap_smul_def, comap_smul_def, ←comp_smul_left,
@@ -2439,7 +2571,7 @@ def comap_mul_action : mul_action G (α →₀ M) :=
 
 local attribute [instance] comap_mul_action
 
-/-- `finsupp.comap_has_scalar` is distributive -/
+/-- `finsupp.comap_has_smul` is distributive -/
 def comap_distrib_mul_action :
   distrib_mul_action G (α →₀ M) :=
 { smul_zero := λ g, by { ext, dsimp [(•)], simp, },
@@ -2450,9 +2582,9 @@ end
 section
 variables [group G] [mul_action G α] [add_comm_monoid M]
 
-local attribute [instance] comap_has_scalar comap_mul_action comap_distrib_mul_action
+local attribute [instance] comap_has_smul comap_mul_action comap_distrib_mul_action
 
-/-- When `G` is a group, `finsupp.comap_has_scalar` acts by precomposition with the action of `g⁻¹`.
+/-- When `G` is a group, `finsupp.comap_has_smul` acts by precomposition with the action of `g⁻¹`.
 -/
 @[simp] lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
   (g • f) a = f (g⁻¹ • a) :=
@@ -2464,7 +2596,7 @@ end
 end
 
 section
-instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_scalar R (α →₀ M) :=
+instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_smul R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
 /-!
@@ -2496,7 +2628,7 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
 instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action S M]
-  [has_scalar R S] [is_scalar_tower R S M] :
+  [has_smul R S] [is_scalar_tower R S M] :
   is_scalar_tower R S (α →₀ M) :=
 { smul_assoc := λ r s a, ext $ λ _, smul_assoc _ _ _ }
 
@@ -2632,14 +2764,10 @@ section
 variables [has_zero R]
 
 /-- The `finsupp` version of `pi.unique`. -/
-instance unique_of_right [subsingleton R] : unique (α →₀ R) :=
-{ uniq := λ l, ext $ λ i, subsingleton.elim _ _,
-  .. finsupp.inhabited }
+instance unique_of_right [subsingleton R] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 /-- The `finsupp` version of `pi.unique_of_is_empty`. -/
-instance unique_of_left [is_empty α] : unique (α →₀ R) :=
-{ uniq := λ l, ext is_empty_elim,
-  .. finsupp.inhabited }
+instance unique_of_left [is_empty α] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 end
 
@@ -2827,4 +2955,16 @@ int.cast_prod _ _
 int.cast_sum _ _
 
 end int
+
+namespace rat
+
+@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
+cast_sum _ _
+
+@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
+cast_prod _ _
+
+end rat
 end cast_finsupp

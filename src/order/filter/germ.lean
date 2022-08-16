@@ -141,7 +141,7 @@ rfl
 
 @[simp, norm_cast] lemma coe_eq : (f : germ l β) = g ↔ (f =ᶠ[l] g) := quotient.eq'
 
-alias coe_eq ↔ _ filter.eventually_eq.germ_eq
+alias coe_eq ↔ _ _root_.filter.eventually_eq.germ_eq
 
 /-- Lift a function `β → γ` to a function `germ l β → germ l γ`. -/
 def map (op : β → γ) : germ l β → germ l γ :=
@@ -173,7 +173,7 @@ lift_on f (λ f, tendsto f l lb) $ λ f g H, propext (tendsto_congr' H)
   (f : germ l β).tendsto lb ↔ tendsto f l lb :=
 iff.rfl
 
-alias coe_tendsto ↔ _ filter.tendsto.germ_tendsto
+alias coe_tendsto ↔ _ _root_.filter.tendsto.germ_tendsto
 
 /-- Given two germs `f : germ l β`, and `g : germ lc α`, where `l : filter α`, if `g` tends to `l`,
 then the composition `f ∘ g` is well-defined as a germ at `lc`. -/
@@ -303,10 +303,10 @@ instance has_int_pow [div_inv_monoid G] : has_pow (germ l G) ℤ := ⟨λ f z, m
 @[simp] lemma coe_zpow [div_inv_monoid G] (f : α → G) (z : ℤ) : ↑(f ^ z) = (f ^ z : germ l G) :=
 rfl
 
-instance [has_scalar M β] : has_scalar M (germ l β) :=
+instance [has_smul M β] : has_smul M (germ l β) :=
 ⟨λ c, map ((•) c)⟩
 
-@[simp, norm_cast] lemma coe_smul [has_scalar M β] (c : M) (f : α → β) :
+@[simp, norm_cast] lemma coe_smul [has_smul M β] (c : M) (f : α → β) :
   ↑(c • f) = (c • f : germ l β) :=
 rfl
 
@@ -332,6 +332,12 @@ instance [comm_monoid M] : comm_monoid (germ l M) :=
 { mul := (*),
   one := 1,
   .. germ.comm_semigroup, .. germ.monoid }
+
+instance [add_monoid_with_one M] : add_monoid_with_one (germ l M) :=
+{ nat_cast := λ n, ↑(n : M),
+  nat_cast_zero := congr_arg coe nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg coe (nat.cast_succ _),
+  .. germ.has_one, .. germ.add_monoid }
 
 @[to_additive]
 instance [has_inv G] : has_inv (germ l G) := ⟨map has_inv.inv⟩
@@ -390,7 +396,8 @@ instance [distrib R] : distrib (germ l R) :=
   right_distrib := λ f g h, induction_on₃ f g h $ λ f g h, by { norm_cast, rw [right_distrib] } }
 
 instance [semiring R] : semiring (germ l R) :=
-{ .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }
+{ .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class,
+  .. germ.add_monoid_with_one }
 
 /-- Coercion `(α → R) → germ l R` as a `ring_hom`. -/
 def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=
@@ -399,7 +406,7 @@ def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=
 @[simp] lemma coe_coe_ring_hom [semiring R] : (coe_ring_hom l : (α → R) → germ l R) = coe := rfl
 
 instance [ring R] : ring (germ l R) :=
-{ .. germ.add_comm_group, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }
+{ .. germ.add_comm_group, .. germ.semiring }
 
 instance [comm_semiring R] : comm_semiring (germ l R) :=
 { .. germ.semiring, .. germ.comm_monoid }
@@ -413,10 +420,10 @@ section module
 
 variables {M N R : Type*}
 
-instance has_scalar' [has_scalar M β] : has_scalar (germ l M) (germ l β) :=
+instance has_smul' [has_smul M β] : has_smul (germ l M) (germ l β) :=
 ⟨map₂ (•)⟩
 
-@[simp, norm_cast] lemma coe_smul' [has_scalar M β] (c : α → M) (f : α → β) :
+@[simp, norm_cast] lemma coe_smul' [has_smul M β] (c : α → M) (f : α → β) :
   ↑(c • f) = (c : germ l M) • (f : germ l β) :=
 rfl
 

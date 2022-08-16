@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.locally_convex.basic
+import analysis.seminorm
 import topology.bornology.basic
 import topology.algebra.uniform_group
 import analysis.locally_convex.balanced_core_hull
@@ -30,7 +31,7 @@ von Neumann-bounded sets.
 
 -/
 
-variables {𝕜 E ι : Type*}
+variables {𝕜 E F ι : Type*}
 
 open filter
 open_locale topological_space pointwise
@@ -96,7 +97,7 @@ end multiple_topologies
 
 section image
 
-variables {𝕜₁ 𝕜₂ F : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
+variables {𝕜₁ 𝕜₂ : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
   [add_comm_group E] [module 𝕜₁ E] [add_comm_group F] [module 𝕜₂ F]
   [topological_space E] [topological_space F]
 
@@ -162,9 +163,8 @@ end bornology
 
 section uniform_add_group
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables (𝕜) [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
-variables [t3_space E]
 
 lemma totally_bounded.is_vonN_bounded {s : set E} (hs : totally_bounded s) :
   bornology.is_vonN_bounded 𝕜 s :=
@@ -174,7 +174,7 @@ begin
   have h : filter.tendsto (λ (x : E × E), x.fst + x.snd) (𝓝 (0,0)) (𝓝 ((0 : E) + (0 : E))) :=
     tendsto_add,
   rw add_zero at h,
-  have h' := (nhds_basis_closed_balanced 𝕜 E).prod (nhds_basis_closed_balanced 𝕜 E),
+  have h' := (nhds_basis_balanced 𝕜 E).prod (nhds_basis_balanced 𝕜 E),
   simp_rw [←nhds_prod_eq, id.def] at h',
   rcases h.basis_left h' U hU with ⟨x, hx, h''⟩,
   rcases hs x.snd hx.2.1 with ⟨t, ht, hs⟩,
@@ -187,7 +187,127 @@ begin
     simpa only [hz] using h'' hz' },
   refine λ y hy, absorbs.mono_left _ hx_fstsnd,
   rw [←set.singleton_vadd, vadd_eq_add],
-  exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.2.absorbs_self,
+  exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.absorbs_self,
 end
 
 end uniform_add_group
+
+section continuous_linear_map
+
+variables [nontrivially_normed_field 𝕜]
+variables [add_comm_group E] [module 𝕜 E]
+variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
+variables [add_comm_group F] [module 𝕜 F]
+variables [uniform_space F] [uniform_add_group F]
+
+/-- Construct a continuous linear map from a linear map `f : E →ₗ[𝕜] F` and the existence of a
+neighborhood of zero that gets mapped into a bounded set in `F`. -/
+def linear_map.clm_of_exists_bounded_image (f : E →ₗ[𝕜] F)
+  (h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)) : E →L[𝕜] F :=
+⟨f, begin
+  -- It suffices to show that `f` is continuous at `0`.
+  refine continuous_of_continuous_at_zero f _,
+  rw [continuous_at_def, f.map_zero],
+  intros U hU,
+  -- Continuity means that `U ∈ 𝓝 0` implies that `f ⁻¹' U ∈ 𝓝 0`.
+  rcases h with ⟨V, hV, h⟩,
+  rcases h hU with ⟨r, hr, h⟩,
+  rcases normed_field.exists_lt_norm 𝕜 r with ⟨x, hx⟩,
+  specialize h x hx.le,
+  -- After unfolding all the definitions, we know that `f '' V ⊆ x • U`. We use this to show the
+  -- inclusion `x⁻¹ • V ⊆ f⁻¹' U`.
+  have x_ne := norm_pos_iff.mp (hr.trans hx),
+  have : x⁻¹ • V ⊆ f⁻¹' U :=
+  calc x⁻¹ • V ⊆  x⁻¹ • (f⁻¹' (f '' V)) : set.smul_set_mono (set.subset_preimage_image ⇑f V)
+  ... ⊆ x⁻¹ • (f⁻¹' (x • U)) : set.smul_set_mono (set.preimage_mono h)
+  ... = f⁻¹' (x⁻¹ • (x • U)) :
+      by ext; simp only [set.mem_inv_smul_set_iff₀ x_ne, set.mem_preimage, linear_map.map_smul]
+  ... ⊆ f⁻¹' U : by rw inv_smul_smul₀ x_ne _,
+  -- Using this inclusion, it suffices to show that `x⁻¹ • V` is in `𝓝 0`, which is trivial.
+  refine mem_of_superset _ this,
+  convert set_smul_mem_nhds_smul hV (inv_ne_zero x_ne),
+  exact (smul_zero _).symm,
+end⟩
+
+lemma linear_map.clm_of_exists_bounded_image_coe {f : E →ₗ[𝕜] F}
+  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} :
+  (f.clm_of_exists_bounded_image h : E →ₗ[𝕜] F) = f := rfl
+
+@[simp] lemma linear_map.clm_of_exists_bounded_image_apply {f : E →ₗ[𝕜] F}
+  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} {x : E} :
+  f.clm_of_exists_bounded_image h x = f x := rfl
+
+end continuous_linear_map
+
+section vonN_bornology_eq_metric
+
+variables (𝕜 E) [nontrivially_normed_field 𝕜] [seminormed_add_comm_group E] [normed_space 𝕜 E]
+
+namespace normed_space
+
+lemma is_vonN_bounded_ball (r : ℝ) :
+  bornology.is_vonN_bounded 𝕜 (metric.ball (0 : E) r) :=
+begin
+  rw [metric.nhds_basis_ball.is_vonN_bounded_basis_iff, ← ball_norm_seminorm 𝕜 E],
+  exact λ ε hε, (norm_seminorm 𝕜 E).ball_zero_absorbs_ball_zero hε
+end
+
+lemma is_vonN_bounded_closed_ball (r : ℝ) :
+  bornology.is_vonN_bounded 𝕜 (metric.closed_ball (0 : E) r) :=
+(is_vonN_bounded_ball 𝕜 E (r+1)).subset (metric.closed_ball_subset_ball $ by linarith)
+
+lemma is_vonN_bounded_iff (s : set E) :
+  bornology.is_vonN_bounded 𝕜 s ↔ bornology.is_bounded s :=
+begin
+  rw [← metric.bounded_iff_is_bounded, metric.bounded_iff_subset_ball (0 : E)],
+  split,
+  { intros h,
+    rcases h (metric.ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,
+    rcases normed_field.exists_lt_norm 𝕜 ρ with ⟨a, ha⟩,
+    specialize hρball a ha.le,
+    rw [← ball_norm_seminorm 𝕜 E, seminorm.smul_ball_zero (hρ.trans ha),
+        ball_norm_seminorm, mul_one] at hρball,
+    exact ⟨∥a∥, hρball.trans metric.ball_subset_closed_ball⟩ },
+  { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
+end
+
+/-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the
+metric bornology. -/
+lemma vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = pseudo_metric_space.to_bornology :=
+begin
+  rw bornology.ext_iff_is_bounded,
+  intro s,
+  rw bornology.is_bounded_iff_is_vonN_bounded,
+  exact is_vonN_bounded_iff 𝕜 E s
+end
+
+variable (𝕜)
+
+lemma is_bounded_iff_subset_smul_ball {s : set E} :
+  bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.ball 0 1 :=
+begin
+  rw ← is_vonN_bounded_iff 𝕜,
+  split,
+  { intros h,
+    rcases h (metric.ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,
+    rcases normed_field.exists_lt_norm 𝕜 ρ with ⟨a, ha⟩,
+    exact ⟨a, hρball a ha.le⟩ },
+  { rintros ⟨a, ha⟩,
+    exact ((is_vonN_bounded_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
+end
+
+lemma is_bounded_iff_subset_smul_closed_ball {s : set E} :
+  bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.closed_ball 0 1 :=
+begin
+  split,
+  { rw is_bounded_iff_subset_smul_ball 𝕜,
+    exact exists_imp_exists
+      (λ a ha, ha.trans $ set.smul_set_mono $ metric.ball_subset_closed_ball) },
+  { rw ← is_vonN_bounded_iff 𝕜,
+    rintros ⟨a, ha⟩,
+    exact ((is_vonN_bounded_closed_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
+end
+
+end normed_space
+
+end vonN_bornology_eq_metric

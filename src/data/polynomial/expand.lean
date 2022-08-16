@@ -9,6 +9,13 @@ import tactic.ring_exp
 
 /-!
 # Expand a polynomial by a factor of p, so `∑ aₙ xⁿ` becomes `∑ aₙ xⁿᵖ`.
+
+## Main definitions
+
+* `polynomial.expand R p f`: expand the polynomial `f` with coefficients in a
+  commutative semiring `R` by a factor of p, so `expand R p (∑ aₙ xⁿ)` is `∑ aₙ xⁿᵖ`.
+* `polynomial.contract p f`: the opposite of `expand`, so it sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`.
+
 -/
 
 universes u v w
@@ -92,6 +99,9 @@ theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : R[X]} :
 theorem expand_eq_zero {p : ℕ} (hp : 0 < p) {f : R[X]} : expand R p f = 0 ↔ f = 0 :=
 by rw [← (expand R p).map_zero, expand_inj hp, alg_hom.map_zero]
 
+theorem expand_ne_zero {p : ℕ} (hp : 0 < p) {f : R[X]} : expand R p f ≠ 0 ↔ f ≠ 0 :=
+(expand_eq_zero hp).not
+
 theorem expand_eq_C {p : ℕ} (hp : 0 < p) {f : R[X]} {r : R} :
   expand R p f = C r ↔ f = C r :=
 by rw [← expand_C, expand_inj hp, expand_C]
@@ -152,6 +162,14 @@ lemma expand_eval (p : ℕ) (P : R[X]) (r : R) : eval r (expand R p P) = eval (r
 begin
   refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
   rw [alg_hom.map_add, eval_add, eval_add, hf, hg]
+end
+
+@[simp]
+lemma expand_aeval {A : Type*} [semiring A] [algebra R A] (p : ℕ) (P : R[X]) (r : A) :
+  aeval r (expand R p P) = aeval (r ^ p) P :=
+begin
+  refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
+  rw [alg_hom.map_add, aeval_add, aeval_add, hf, hg]
 end
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
@@ -240,7 +258,7 @@ variable {R}
 
 theorem of_irreducible_expand {p : ℕ} (hp : p ≠ 0) {f : R[X]}
   (hf : irreducible (expand R p f)) : irreducible f :=
-@@of_irreducible_map _ _ _ (is_local_ring_hom_expand R hp.bot_lt) hf
+let _ := is_local_ring_hom_expand R hp.bot_lt in by exactI of_irreducible_map ↑(expand R p) hf
 
 theorem of_irreducible_expand_pow {p : ℕ} (hp : p ≠ 0) {f : R[X]} {n : ℕ} :
   irreducible (expand R (p ^ n) f) → irreducible f :=

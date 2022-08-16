@@ -15,12 +15,12 @@ are (co)limit (co)cones. We also show that such (co)cones exist, and that `discr
 (co)limits.
 -/
 
-universe v
+universes v' v
 
 open category_theory
 namespace category_theory.limits
 
-variables {J : Type v} [small_category J] {F : J ⥤ discrete punit}
+variables {J : Type v} [category.{v'} J] {F : J ⥤ discrete punit}
 
 /-- A trivial cone for a functor into `punit`. `punit_cone_is_limit` shows it is a limit. -/
 def punit_cone : cone F :=
@@ -42,10 +42,10 @@ Any cocone over a functor into `punit` is a colimit cocone.
 def punit_cocone_is_colimit {c : cocone F} : is_colimit c :=
 by tidy
 
-instance : has_limits (discrete punit) :=
+instance : has_limits_of_size.{v' v} (discrete punit) :=
 by tidy
 
-instance : has_colimits (discrete punit) :=
+instance : has_colimits_of_size.{v' v} (discrete punit) :=
 by tidy
 
 end category_theory.limits

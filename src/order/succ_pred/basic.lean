@@ -191,6 +191,14 @@ lemma lt_succ_iff_of_not_is_max (ha : ¬ is_max a) : b < succ a ↔ b ≤ a :=
 lemma succ_le_iff_of_not_is_max (ha : ¬ is_max a) : succ a ≤ b ↔ a < b :=
 ⟨(lt_succ_of_not_is_max ha).trans_le, succ_le_of_lt⟩
 
+lemma succ_lt_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
+  succ a < succ b ↔ a < b :=
+by rw [lt_succ_iff_of_not_is_max hb, succ_le_iff_of_not_is_max ha]
+
+lemma succ_le_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
+  succ a ≤ succ b ↔ a ≤ b :=
+by rw [succ_le_iff_of_not_is_max ha, lt_succ_iff_of_not_is_max hb]
+
 @[simp, mono] lemma succ_le_succ (h : a ≤ b) : succ a ≤ succ b :=
 begin
   by_cases hb : is_max b,
@@ -201,6 +209,12 @@ begin
 end
 
 lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
+
+lemma le_succ_iterate (k : ℕ) (x : α) : x ≤ (succ^[k] x) :=
+begin
+  conv_lhs { rw (by simp only [function.iterate_id, id.def] : x = (id^[k] x)) },
+  exact monotone.le_iterate_of_le succ_mono le_succ k x,
+end
 
 lemma Iio_succ_of_not_is_max (ha : ¬ is_max a) : Iio (succ a) = Iic a :=
 set.ext $ λ x, lt_succ_iff_of_not_is_max ha
@@ -263,6 +277,11 @@ variables [partial_order α] [succ_order α] {a b : α}
 
 alias succ_eq_iff_is_max ↔ _ _root_.is_max.succ_eq
 
+lemma succ_eq_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
+  succ a = succ b ↔ a = b :=
+by rw [eq_iff_le_not_lt, eq_iff_le_not_lt,
+  succ_le_succ_iff_of_not_is_max ha hb, succ_lt_succ_iff_of_not_is_max ha hb]
+
 lemma le_le_succ_iff : a ≤ b ∧ b ≤ succ a ↔ b = a ∨ b = succ a :=
 begin
   refine ⟨λ h, or_iff_not_imp_left.2 $ λ hba : b ≠ a,
@@ -308,7 +327,7 @@ section no_max_order
 variables [no_max_order α]
 
 @[simp] lemma succ_eq_succ_iff : succ a = succ b ↔ a = b :=
-by simp_rw [eq_iff_le_not_lt, succ_le_succ_iff, succ_lt_succ_iff]
+succ_eq_succ_iff_of_not_is_max (not_is_max a) (not_is_max b)
 
 lemma succ_injective : injective (succ : α → α) := λ a b, succ_eq_succ_iff.1
 lemma succ_ne_succ_iff : succ a ≠ succ b ↔ a ≠ b := succ_injective.ne_iff
@@ -343,7 +362,15 @@ lt_succ_iff_not_is_max.trans not_is_max_iff_ne_top
 end order_top
 
 section order_bot
-variables [order_bot α] [nontrivial α]
+variable [order_bot α]
+
+@[simp] lemma lt_succ_bot_iff [no_max_order α] : a < succ ⊥ ↔ a = ⊥ :=
+by rw [lt_succ_iff, le_bot_iff]
+
+lemma le_succ_bot_iff : a ≤ succ ⊥ ↔ a = ⊥ ∨ a = succ ⊥ :=
+by rw [le_succ_iff_eq_or_le, le_bot_iff, or_comm]
+
+variable [nontrivial α]
 
 lemma bot_lt_succ (a : α) : ⊥ < succ a :=
 (lt_succ_of_not_is_max not_is_max_bot).trans_le $ succ_mono bot_le
@@ -413,6 +440,12 @@ lemma le_pred_iff_of_not_is_min (ha : ¬ is_min a) : b ≤ pred a ↔ b < a :=
 @[simp, mono] lemma pred_le_pred {a b : α} (h : a ≤ b) : pred a ≤ pred b := succ_le_succ h.dual
 
 lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
+
+lemma pred_iterate_le (k : ℕ) (x : α) : (pred^[k] x) ≤ x :=
+begin
+  conv_rhs { rw (by simp only [function.iterate_id, id.def] : x = (id^[k] x)) },
+  exact monotone.iterate_le_of_le pred_mono pred_le k x,
+end
 
 lemma Ioi_pred_of_not_is_min (ha : ¬ is_min a) : Ioi (pred a) = Ici a :=
 set.ext $ λ x, pred_lt_iff_of_not_is_min ha
@@ -550,7 +583,15 @@ variables [order_bot α]
 end order_bot
 
 section order_top
-variables [order_top α] [nontrivial α]
+
+variable [order_top α]
+
+@[simp] lemma pred_top_lt_iff [no_min_order α] : pred ⊤ < a ↔ a = ⊤ :=
+@lt_succ_bot_iff αᵒᵈ _ _ _ _ _
+
+lemma pred_top_le_iff : pred ⊤ ≤ a ↔ a = ⊤ ∨ a = pred ⊤ := @le_succ_bot_iff αᵒᵈ _ _ _ _
+
+variable [nontrivial α]
 
 lemma pred_lt_top (a : α) : pred a < ⊤ :=
 (pred_mono le_top).trans_lt $ pred_lt_of_not_is_min not_is_min_top

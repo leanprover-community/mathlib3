@@ -117,6 +117,22 @@ end
   (linear_equiv_fun_on_fintype R M α).symm f = f :=
 by { ext, simp [linear_equiv_fun_on_fintype], }
 
+/-- If `α` has a unique term, then the type of finitely supported functions `α →₀ M` is
+`R`-linearly equivalent to `M`. -/
+noncomputable def linear_equiv.finsupp_unique (α : Type*) [unique α] : (α →₀ M) ≃ₗ[R] M :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ r x, rfl,
+  ..finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique α M) }
+
+variables {R M α}
+
+@[simp] lemma linear_equiv.finsupp_unique_apply (α : Type*) [unique α] (f : α →₀ M) :
+  linear_equiv.finsupp_unique R M α f = f default := rfl
+
+@[simp] lemma linear_equiv.finsupp_unique_symm_apply {α : Type*} [unique α] (m : M) :
+  (linear_equiv.finsupp_unique R M α).symm m = finsupp.single default m :=
+by ext; simp [linear_equiv.finsupp_unique]
+
 end finsupp
 
 /-- decomposing `x : ι → R` as a sum along the canonical basis -/
@@ -1525,8 +1541,8 @@ def of_eq (h : p = q) : p ≃ₗ[R] q :=
 variables {p q}
 
 @[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
-
 @[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
+@[simp] lemma of_eq_rfl : of_eq p p rfl = linear_equiv.refl R p := by ext; refl
 
 include σ₂₁
 /-- A linear equivalence which maps a submodule of one module onto another, restricts to a linear

@@ -121,10 +121,10 @@ instance subspace_inhabited : inhabited (subspace K V) :=
 { default := ⊤ }
 
 /-- The span of the empty set is the bottom of the lattice of subspaces. -/
-lemma span_empty : span (∅ : set (ℙ K V)) = ⊥ := gi.gc.l_bot
+@[simp] lemma span_empty : span (∅ : set (ℙ K V)) = ⊥ := gi.gc.l_bot
 
 /-- The span of the entire projective space is the top of the lattice of subspaces. -/
-lemma span_univ : span (set.univ : set (ℙ K V)) = ⊤ :=
+@[simp] lemma span_univ : span (set.univ : set (ℙ K V)) = ⊤ :=
 by { rw [eq_top_iff, set_like.le_def], intros x hx, exact subset_span _ (set.mem_univ x) }
 
 /-- The span of a set of points is contained in a subspace if and only if the set of points is
@@ -165,7 +165,9 @@ by { simp_rw ← span_le_subspace_iff, exact ⟨λ hu W hW, hW hu, λ W, W (span
 subspaces which contain the set. -/
 lemma span_eq_Inf {S : set (ℙ K V)} : span S = Inf {W | S ⊆ W} :=
 begin
-  ext, simp_rw [mem_carrier_iff, mem_span x], refine ⟨λ hx, _, λ hx W hW, _⟩,
+  ext,
+  simp_rw [mem_carrier_iff, mem_span x],
+  refine ⟨λ hx, _, λ hx W hW, _⟩,
   { rintros W ⟨T, ⟨hT, rfl⟩⟩, exact (hx T hT) },
   { exact (@Inf_le _ _ {W : subspace K V | S ⊆ ↑W} W hW) x hx },
 end
@@ -174,12 +176,14 @@ end
 contained in the span of the set of points, then the span of the set of points is equal to
 the subspace. -/
 lemma span_eq_of_le {S : set (ℙ K V)} {W : subspace K V} (hS : S ⊆ W) (hW : W ≤ span S) :
-  span S = W := by { refine le_antisymm _ hW, rwa span_le_subspace_iff }
+  span S = W :=
+le_antisymm (span_le_subspace_iff.mpr hS) hW
 
-/-- If two sets of points in a projective space are such that each set is contained in the span of
-the other set, then the two sets have equal spans. -/
-lemma span_eq_span {S T : set (ℙ K V)} (hS : S ⊆ span T) (hT : T ⊆ span S) : span S = span T :=
-by { rw ← span_le_subspace_iff at hS hT, exact le_antisymm hS hT }
+/-- The spans of two sets of points in a projective space are equal if and only if each set of
+points is contained in the span of the other set. -/
+lemma span_eq_span_iff {S T : set (ℙ K V)} : span S = span T ↔ S ⊆ span T ∧ T ⊆ span S :=
+⟨λ h, ⟨h ▸ subset_span S, h.symm ▸ subset_span T⟩,
+  λ h, le_antisymm (span_le_subspace_iff.2 h.1) (span_le_subspace_iff.2 h.2)⟩
 
 end subspace
 

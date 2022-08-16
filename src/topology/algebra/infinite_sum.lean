@@ -1322,7 +1322,7 @@ lemma summable.vanishing (hf : summable f) ⦃e : set G⦄ (he : e ∈ 𝓝 (0 :
   ∃ s : finset α, ∀ t, disjoint t s → ∑ k in t, f k ∈ e :=
 begin
   letI : uniform_space G := topological_add_group.to_uniform_space G,
-  letI : uniform_add_group G := topological_add_group_is_uniform,
+  letI : uniform_add_group G := topological_add_comm_group_is_uniform,
   rcases hf with ⟨y, hy⟩,
   exact cauchy_seq_finset_iff_vanishing.1 hy.cauchy_seq e he
 end

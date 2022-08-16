@@ -17,6 +17,7 @@ import algebra.category.Group.colimits
 import algebra.category.Group.limits
 import algebra.category.Group.filtered_colimits
 import algebra.category.Group.epi_mono
+import category_theory.sites.sheafification
 
 /-!
 # Stalks
@@ -430,19 +431,20 @@ lemma app_injective_iff_stalk_functor_map_injective {F : sheaf C X}
 This works for any concrete category where monomorphism = injective functions.
 -/
 instance (x : X) :
-  functor.preserves_monomorphisms (sheaf.forget Ab.{v} X ⋙ stalk_functor Ab.{v} x) :=
+  functor.preserves_monomorphisms (sheaf.forget C X ⋙ stalk_functor C x) :=
 begin
   refine ⟨λ 𝓐 𝓑 f im, _⟩,
   apply concrete_category.mono_of_injective,
   dsimp,
-  haveI : preserves_limits (forget Ab.{v}) := AddCommGroup.forget_preserves_limits.{v v},
-  haveI : mono f.1  := @@presheaf_mono_of_mono _ _ _ _ _ _ _ _ im,
-  have := (nat_trans.mono_iff_app_mono _ f.1).mp _,
-  simp_rw [AddCommGroup.mono_iff_injective] at this,
+  haveI : preserves_limits_of_shape walking_cospan (forget C) := infer_instance,
+  haveI im2 : mono f.1 := @@category_theory.presheaf_mono_of_mono _ _ _ _ _ _ _ _ _ _ _ im,
+  have im3 := (nat_trans.mono_iff_app_mono _ f.1).mp im2,
+  have : ∀ (c : (opens X)ᵒᵖ), function.injective (f.1.app c) :=
+    λ c, (@@concrete_category.mono_iff_injective_of_preserves_pullback _ _ (f.1.app c) (im3 c) _).mp
+      (im3 c),
   refine (app_injective_iff_stalk_functor_map_injective f.1).mpr _ x,
   rintros U,
   apply this,
-  apply_instance,
 end
 
 /-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.

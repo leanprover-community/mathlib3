@@ -263,8 +263,8 @@ def graded_ring.proj_zero_ring_hom : A →+* A :=
             { simp only [decompose_of_mem_ne 𝒜 hc' h', mul_zero] } } }, },
       { intros _ _ hd he,
         simp only [mul_add, decompose_add, add_apply, add_mem_class.coe_add, hd, he] }, },
-    { rintros _ _ ha hb,
-      simp only [add_mul, decompose_add, add_apply, add_mem_class.coe_add, ha, hb] },
+    { rintros _ _ ha hb _,
+      simp only [add_mul, decompose_add, add_apply, add_mem_class.coe_add, ha, hb], },
   end }
 
 end canonical_order

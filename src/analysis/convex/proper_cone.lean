@@ -43,7 +43,7 @@ section definitions
 
 /-- A proper cone is a convex cone `K` that is nonempty and closed. -/
 structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E]
-extends convex_cone ℝ E :=
+  extends convex_cone ℝ E :=
 (nonempty'  : (carrier : set E).nonempty)
 (is_closed' : is_closed (carrier : set E))
 
@@ -56,11 +56,14 @@ variables {F : Type*} [inner_product_space ℝ F] [complete_space F]
 namespace proper_cone
 
 instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
-instance : has_mem E (proper_cone E) := ⟨λ e K, e ∈ (K : convex_cone ℝ E)⟩
+instance : has_mem E (proper_cone E) := ⟨λ e K, e ∈ (K : convex_cone ℝ E) ⟩
+noncomputable instance : has_zero (proper_cone E) := ⟨ ⟨0, ⟨0, rfl⟩, is_closed_singleton⟩ ⟩
+noncomputable instance : inhabited (proper_cone E) := ⟨0⟩
 
 @[simp] lemma mem_coe {x : E} {K : proper_cone E} : x ∈ K ↔ x ∈ (K : convex_cone ℝ E) := iff.rfl
 
 lemma nonempty (K : proper_cone E) : (K : set E).nonempty := K.nonempty'
+
 
 lemma is_closed (K : proper_cone E) : is_closed (K : set E) := K.is_closed'
 
@@ -109,17 +112,21 @@ end proper_cone
 theorem farkas_lemma_proper_cone {K : proper_cone E} {f : E →L[ℝ] F} {b : F} :
 b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin
+  -- suppose `b ∈ K.map f`
   simp_rw [proper_cone.mem_map, proper_cone.mem_star, adjoint_inner_right, proper_cone.mem_coe,
     exists_prop],
 
+  -- there is a sequence `seq` in `K` such that `f ∘ seq` converges to `b`
   rintro ⟨seq, hmem, htends⟩ y hinner,
-
   have := continuous.seq_continuous (continuous.inner (@continuous_const _ _ _ _ y) continuous_id)
     (λ n, seq n) htends, clear htends,
-
-  -- `this: tendsto (inner y ∘ x) at_top (nhds (inner y b))`
   simp_rw [id.def] at this,
+  -- the inner products `λ n, ⟪y, f (seq n)⟫_ℝ` converge to `⟪y, b⟫_ℝ` as `f x` converges to `b`
+
+  -- to show that the limit is non-negative it suffices to show that each term is nonnegative
   suffices h : ∀ n, 0 ≤ ⟪y, seq n⟫_ℝ, from ge_of_tendsto' this h,
+
+  -- the rest of the proof is a straightforward simplification
   intro n,
   rcases hmem n with ⟨x, hxK, hxseq⟩, clear hmem,
   specialize hinner x hxK,
@@ -129,7 +136,7 @@ begin
   -- proof by contradiction
   intro h,
 
-  -- `h : b ∉ K.map f`
+  -- suppose `h : b ∉ K.map f`
   contrapose! h,
 
   -- as `b ∉ K.map f`, there is a hyperplane `y` separating `b` from `K.map f`

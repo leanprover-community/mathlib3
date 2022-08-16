@@ -6,7 +6,20 @@ Authors: Damiano Testa
 import data.finsupp.basic
 
 /-!
-#  Witnesses in finsupps
+#  Witnesses for finitely supported functions
+
+Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
+functions
+
+##  Main definitions
+
+*  `finset.diff f g : finset α`, the finite subset of `α` where `f` and `g` differ,
+*  `finset.wit f g : α`, [assuming that `a` is non-empty and `N` is linearly ordered]
+   the minimum of `finset.diff f g` (or a random element of `α` if
+   `finset.diff f g` is empty, i.e. if `f = g`).
+
+In the case in which `N` is an additive group, `finset.diff f g` coincides with
+`finset.support (f - g)`.
 -/
 
 variables {α N : Type*}
@@ -117,12 +130,12 @@ Otherwise, it is `a` if `a : α` is the smallest value for which `f a ≠ g a`. 
 noncomputable def wit (f g : α →₀ N) : α :=
 dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, nonempty.some ‹_›)
 
-lemma wit_eq_of_diff_eq {f' g' : α →₀ N} (h : f.diff g = f'.diff g') :
+lemma wit_congr {f' g' : α →₀ N} (h : f.diff g = f'.diff g') :
   f.wit g = f'.wit g' :=
 by rw [wit, h, wit]
 
 lemma wit_comm (f g : α →₀ N) : f.wit g = g.wit f :=
-wit_eq_of_diff_eq diff_comm
+wit_congr diff_comm
 
 lemma min'_eq_wit_of_ne (fg : f ≠ g) :
   (f.diff g).min' (nonempty_diff_iff.mpr fg) = f.wit g :=
@@ -154,15 +167,15 @@ end N_has_zero
 
 lemma wit_add_left [add_left_cancel_monoid N] {f g h : α →₀ N} :
   (f + g).wit (f + h) = g.wit h :=
-wit_eq_of_diff_eq (add_diff_add_eq_left _)
+wit_congr (add_diff_add_eq_left _)
 
 lemma wit_add_right [add_right_cancel_monoid N] {f g h : α →₀ N} :
   (f + h).wit (g + h) = f.wit g :=
-wit_eq_of_diff_eq (add_diff_add_eq_right _)
+wit_congr (add_diff_add_eq_right _)
 
 lemma wit_neg [add_group N] {f g : α →₀ N} :
   (- f).wit g = f.wit (- g) :=
-wit_eq_of_diff_eq diff_neg_left
+wit_congr diff_neg_left
 
 end wit
 

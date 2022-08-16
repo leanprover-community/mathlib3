@@ -452,26 +452,18 @@ begin
   { rw zero_smul, exact carrier.zero_mem hm _, },
   { rintros n ⟨a, ha⟩ i,
     by_cases ineq1 : n ≤ i,
-    { have eq1' : proj 𝒜 i (a * x) = a * (proj 𝒜 (i - n) x),
-      { conv_lhs { rw [show i = n + (i - n), by linarith, proj_apply,
-          coe_decompose_mul_add_of_left_mem _ ha, ←proj_apply] }, },
-      simp only [subtype.coe_mk, smul_eq_mul, eq1', mul_pow],
-      generalize_proofs h1 h2,
-      suffices :
-        (⟨mk (a^m) ⟨f^n, ⟨_, rfl⟩⟩, ⟨n, ⟨a^m, pow_mem_graded m ha⟩, rfl⟩⟩ : A⁰_ f_deg) *
+    { rw show i = n + (i - n), by linarith,
+      simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_add_of_left_mem _ ha,
+        mul_pow, pow_add],
+      convert_to (⟨mk (a^m) ⟨f^n, ⟨_, rfl⟩⟩, ⟨n, ⟨a^m, pow_mem_graded m ha⟩, rfl⟩⟩ : A⁰_ f_deg) *
         ⟨mk ((proj 𝒜 (i-n) x)^m) ⟨f^(i-n), ⟨_, rfl⟩⟩,
-          ⟨_, ⟨(proj 𝒜 (i-n) x)^m, by mem_tac⟩, rfl⟩⟩ ∈ q.1,
-      { convert this,
-        rw [mk_mul],
-        congr,
-        rw [←pow_add, ←nat.add_sub_assoc ineq1, nat.add_sub_cancel_left], },
-        exact ideal.mul_mem_left _ _ (hx _), },
+          ⟨_, ⟨(proj 𝒜 (i-n) x)^m, by mem_tac⟩, rfl⟩⟩  ∈ q.1,
+      { simpa only [subtype.ext_iff, degree_zero_part.coe_mul, subtype.coe_mk, mk_mul], },
+      { exact ideal.mul_mem_left _ _ (hx _), }, },
     { convert submodule.zero_mem _,
-      rw [subtype.coe_mk, show proj 𝒜 i (a • x) = 0, from _, zero_pow hm, mk_zero],
-      rw [←sum_support_decompose 𝒜 x, smul_eq_mul, finset.mul_sum, linear_map.map_sum],
-      convert finset.sum_eq_zero (λ j hj, _),
-      exact decompose_of_mem_ne 𝒜 (mul_mem ha (submodule.coe_mem _)) (by linarith) } },
-  { intros a b ha hb, rw add_smul, apply carrier.add_mem q ha hb, },
+      rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem_of_not_le _ ha,
+        zero_pow hm, mk_zero],
+      linarith, } }
 end
 
 /--
@@ -527,8 +519,8 @@ lemma carrier.as_ideal.prime (hm : 0 < m)
 begin
   contrapose! hxy,
   obtain ⟨⟨ix, hix⟩, ⟨iy, hiy⟩⟩ := hxy,
-  intro rid,
-  refine q.2.mul_mem_iff_mem_or_mem.not.mpr (not_or_distrib.mpr ⟨hix, hiy⟩) _,
+  refine λ rid, q.2.mul_mem_iff_mem_or_mem.not.mpr (not_or_distrib.mpr ⟨hix, hiy⟩) _,
+  change (⟨mk _ _ * mk _ _, _⟩ : A⁰_ f_deg) ∈ q.1,
   have eqx : nx = ix,
   { contrapose! hix,
     convert submodule.zero_mem _,
@@ -537,12 +529,9 @@ begin
   { contrapose! hiy,
     convert submodule.zero_mem _,
     rw [proj_apply, decompose_of_mem_ne 𝒜 hny hiy, zero_pow hm, mk_zero], },
-  induction eqx,
-  induction eqy,
-  simp only [proj_apply, decompose_of_mem_same 𝒜 hnx, decompose_of_mem_same 𝒜 hny],
-  change (⟨mk _ _ * mk _ _, _⟩ : A⁰_ f_deg) ∈ q.1,
-  simp only [mk_mul, ←mul_pow],
-  simpa only [proj_apply, decompose_of_mem_same 𝒜 (mul_mem hnx hny), pow_add] using rid (nx + ny),
+  induction eqx, induction eqy,
+  simpa only [decompose_of_mem_same 𝒜 hnx, decompose_of_mem_same 𝒜 hny, mk_mul, ←mul_pow,
+    proj_apply, decompose_of_mem_same 𝒜 (mul_mem hnx hny), pow_add] using rid (nx + ny),
 end
 
 variable (f_deg)

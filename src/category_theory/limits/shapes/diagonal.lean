@@ -57,7 +57,7 @@ begin
   apply_instance
 end
 
-/-- The two projections `Δ_{X/Y} ⟶ X` forms a kernel pair for `f : X ⟶ Y`. -/
+/-- The two projections `Δ_{X/Y} ⟶ X` form a kernel pair for `f : X ⟶ Y`. -/
 def diagonal_is_kernel_pair :
   is_kernel_pair f (pullback.fst : diagonal_obj f ⟶ _) pullback.snd :=
 ⟨pullback.condition, pullback_is_pullback _ _⟩

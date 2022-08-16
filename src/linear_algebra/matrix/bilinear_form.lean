@@ -245,18 +245,6 @@ noncomputable def bilin_form.to_matrix : bilin_form R₂ M₂ ≃ₗ[R₂] matri
 noncomputable def matrix.to_bilin : matrix n n R₂ ≃ₗ[R₂] bilin_form R₂ M₂ :=
 (bilin_form.to_matrix b).symm
 
-@[simp] lemma basis.equiv_fun_symm_std_basis (i : n) :
-  b.equiv_fun.symm (std_basis R₂ (λ _, R₂) i 1) = b i :=
-begin
-  rw [b.equiv_fun_symm_apply, finset.sum_eq_single i],
-  { rw [std_basis_same, one_smul] },
-  { rintros j - hj,
-    rw [std_basis_ne _ _ _ _ hj, zero_smul] },
-  { intro,
-    have := mem_univ i,
-    contradiction }
-end
-
 @[simp] lemma bilin_form.to_matrix_apply (B : bilin_form R₂ M₂) (i j : n) :
   bilin_form.to_matrix b B i j = B (b i) (b j) :=
 by rw [bilin_form.to_matrix, linear_equiv.trans_apply, bilin_form.to_matrix'_apply, congr_apply,

@@ -138,7 +138,7 @@ end aux_to_matrix
 
 section to_matrix'
 
-/-! ### `to_matrix'` section
+/-! ### Bilinear forms over `n → R`
 
 This section deals with the conversion between matrices and sesquilinear forms on `n → R₂`.
 -/
@@ -283,7 +283,7 @@ end to_matrix'
 
 section to_matrix
 
-/-! ### `to_matrix` section
+/-! ### Bilinear forms over arbitrary vector spaces
 
 This section deals with the conversion between matrices and bilinear forms on
 a module with a fixed basis.
@@ -394,11 +394,12 @@ begin
 end
 
 lemma linear_map.to_matrix₂_compl₂ (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (f : M₂' →ₗ[R] M₂) :
-  linear_map.to_matrix₂ b₁ b₂' (B.compl₂ f) = linear_map.to_matrix₂ b₁ b₂ B ⬝ (to_matrix b₂' b₂ f) :=
+  linear_map.to_matrix₂ b₁ b₂' (B.compl₂ f) =
+  linear_map.to_matrix₂ b₁ b₂ B ⬝ (to_matrix b₂' b₂ f) :=
 by { rw [←linear_map.comp_id B, ←linear_map.compl₁₂, linear_map.to_matrix₂_compl₁₂ b₁ b₂], simp }
 
 @[simp]
-lemma bilin_form.to_matrix_mul_basis_to_matrix (c₁ : basis n' R M₁) (c₂ : basis m' R M₂)
+lemma linear_map.to_matrix₂_mul_basis_to_matrix (c₁ : basis n' R M₁) (c₂ : basis m' R M₂)
   (B : M₁ →ₗ[R] M₂ →ₗ[R] R) : (b₁.to_matrix c₁)ᵀ ⬝ linear_map.to_matrix₂ b₁ b₂ B ⬝ b₂.to_matrix c₂ =
   linear_map.to_matrix₂ c₁ c₂ B :=
 begin
@@ -406,23 +407,23 @@ begin
   rw [←linear_map.to_matrix₂_compl₁₂, linear_map.compl₁₂_id_id],
 end
 
-lemma bilin_form.mul_to_matrix_mul (B : M₁ →ₗ[R] M₂ →ₗ[R] R)
+lemma linear_map.mul_to_matrix₂_mul (B : M₁ →ₗ[R] M₂ →ₗ[R] R)
   (M : matrix n' n R) (N : matrix m m' R) :
   M ⬝ linear_map.to_matrix₂ b₁ b₂ B ⬝ N =
     linear_map.to_matrix₂ b₁' b₂' (B.compl₁₂ (to_lin b₁' b₁ Mᵀ) (to_lin b₂' b₂ N)) :=
 by simp_rw [linear_map.to_matrix₂_compl₁₂ b₁ b₂, to_matrix_to_lin, transpose_transpose]
 
-lemma bilin_form.mul_to_matrix (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (M : matrix n' n R) :
+lemma linear_map.mul_to_matrix₂ (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (M : matrix n' n R) :
   M ⬝ linear_map.to_matrix₂ b₁ b₂ B =
     linear_map.to_matrix₂ b₁' b₂ (B.comp (to_lin b₁' b₁ Mᵀ)) :=
 by rw [linear_map.to_matrix₂_comp b₁, to_matrix_to_lin, transpose_transpose]
 
-lemma bilin_form.to_matrix_mul (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (M : matrix m m' R) :
+lemma linear_map.to_matrix₂_mul (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (M : matrix m m' R) :
   linear_map.to_matrix₂ b₁ b₂ B ⬝ M =
     linear_map.to_matrix₂ b₁ b₂' (B.compl₂ (to_lin b₂' b₂ M)) :=
 by rw [linear_map.to_matrix₂_compl₂ b₁, to_matrix_to_lin]
 
-lemma matrix.to_bilin_comp (M : matrix n m R) (P : matrix n n' R) (Q : matrix m m' R) :
+lemma matrix.to_linear_map₂_compl₁₂ (M : matrix n m R) (P : matrix n n' R) (Q : matrix m m' R) :
   (matrix.to_linear_map₂ b₁ b₂ M).compl₁₂ (to_lin b₁' b₁ P) (to_lin b₂' b₂ Q) =
   matrix.to_linear_map₂ b₁' b₂' (Pᵀ ⬝ M ⬝ Q) :=
 (linear_map.to_matrix₂ b₁' b₂').injective

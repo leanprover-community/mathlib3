@@ -345,7 +345,7 @@ begin
   swap, exact ⟨x, h⟩,
   have : U.open_embedding.is_open_map.functor.obj ((X.restrict U.open_embedding).basic_open r)
     = X.basic_open (X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r),
-  { refine (Scheme.image_basic_open r (X.of_restrict U.open_embedding)).trans _,
+  { refine (Scheme.image_basic_open (X.of_restrict U.open_embedding) r).trans _,
     erw ← Scheme.basic_open_res_eq _ _ (eq_to_hom U.open_embedding_obj_top).op,
     rw [← comp_apply, ← category_theory.functor.map_comp, ← op_comp, eq_to_hom_trans,
       eq_to_hom_refl, op_id, category_theory.functor.map_id],

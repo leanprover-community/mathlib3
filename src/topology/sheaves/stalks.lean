@@ -12,6 +12,7 @@ import category_theory.limits.final
 import category_theory.adjunction.evaluation
 import topology.sober
 import tactic.elementwise
+import algebra.category.Ring
 import category_theory.sites.sheafification
 
 /-!

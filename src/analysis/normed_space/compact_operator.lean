@@ -345,7 +345,7 @@ begin
     rwa [mem_map, preimage_smul_setₛₗ _ _ _ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
     apply_instance },
   -- Since `σ₁₂ c⁻¹` = `(σ₁₂ c)⁻¹`, we have to prove that `K ⊆ σ₁₂ c • U`.
-  rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
+  rw [map_inv₀, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
   -- But `σ₁₂` is isometric, so `∥σ₁₂ c∥ = ∥c∥ > r`, which concludes the argument since
   -- `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
   refine hrU (σ₁₂ c) _,

@@ -426,7 +426,7 @@ begin
   suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
   { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
         ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,
-        div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
+        div_eq_mul_inv, ← mul_assoc, mul_comm, ← map_inv₀, ← algebra.smul_def,
         ← _root_.map_mul],
     exact (submodule.span K _).smul_mem _ hy },
   refine submodule.span_subset_span R K _ _,

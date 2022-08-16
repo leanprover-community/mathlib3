@@ -292,12 +292,12 @@ lemma map_div [field k] (f : R →+* k) :
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [f.map_inv, coeff_map f]
+  simp [coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
+else by rw [mod_def, mod_def, leading_coeff_map f, ← map_inv₀ f, ← map_C f,
   ← polynomial.map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
 section
@@ -439,7 +439,7 @@ if H : x = 0 then by rw [H, polynomial.map_zero, zero_dvd_iff, zero_dvd_iff, map
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff R[X],
     normalize_apply, normalize_apply,
     coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
-    leading_coeff_map, ← f.map_inv, ← map_C, ← polynomial.map_mul,
+    leading_coeff_map, ← map_inv₀ f, ← map_C, ← polynomial.map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
 lemma degree_normalize : degree (normalize p) = degree p := by simp

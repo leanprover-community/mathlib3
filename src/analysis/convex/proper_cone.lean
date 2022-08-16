@@ -115,20 +115,11 @@ begin
   rintro ⟨seq, hmem, htends⟩ y hinner,
 
   have := continuous.seq_continuous (continuous.inner (@continuous_const _ _ _ _ y) continuous_id)
-    (λ n, seq n) htends,  clear htends,
+    (λ n, seq n) htends, clear htends,
 
   -- `this: tendsto (inner y ∘ x) at_top (nhds (inner y b))`
   simp_rw [id.def] at this,
-  suffices : ∀ n, 0 ≤ ⟪y, seq n⟫_ℝ,
-  /-
-x : ℕ → ℝ
-y : ℝ
-tendsto : tendsto x at_top (nhds y)
-nonneg : ∀ (n : ℕ), 0 ≤ x n
-⊢ 0 ≤ y
-  -/
-
-  begin sorry end,
+  suffices h : ∀ n, 0 ≤ ⟪y, seq n⟫_ℝ, from ge_of_tendsto' this h,
   intro n,
   rcases hmem n with ⟨x, hxK, hxseq⟩, clear hmem,
   specialize hinner x hxK,

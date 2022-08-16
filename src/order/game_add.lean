@@ -95,18 +95,18 @@ end
 lemma well_founded.prod_game_add (hα : well_founded rα) (hβ : well_founded rβ) :
   well_founded (prod.game_add rα rβ) := ⟨λ ⟨a, b⟩, (hα.apply a).prod_game_add (hβ.apply b)⟩
 
-namespace prod.game_add
+namespace prod
 
 /-- Recursion on the well-founded `prod.game_add` relation.
 
 Note that it's strictly more general to recurse on the lexicographic order instead. -/
-def fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
+def game_add.fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
   C a b :=
 @well_founded.fix (α × β) (λ x, C x.1 x.2) _ (hα.prod_game_add hβ)
   (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) ⟨a, b⟩
 
-lemma fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
+lemma game_add.fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
   game_add.fix hα hβ IH a b = IH a b (λ a' b' h, game_add.fix hα hβ IH a' b') :=
 by { rw [game_add.fix, well_founded.fix_eq], refl }
@@ -114,7 +114,7 @@ by { rw [game_add.fix, well_founded.fix_eq], refl }
 /-- Induction on the well-founded `prod.game_add` relation.
 
 Note that it's strictly more general to induct on the lexicographic order instead. -/
-lemma induction {C : α → β → Prop} : well_founded rα → well_founded rβ →
+lemma game_add.induction {C : α → β → Prop} : well_founded rα → well_founded rβ →
   (∀ a₁ b₁, (∀ a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
 game_add.fix
 
@@ -168,23 +168,23 @@ lemma _root_.acc.sym2_game_add {a b} (ha : acc rα a) (hb : acc rα b) :
 lemma _root_.well_founded.sym2_game_add (h : well_founded rα) : well_founded (sym2.game_add rα) :=
 ⟨λ i, sym2.induction_on i $ λ x y, (h.apply x).sym2_game_add (h.apply y)⟩
 
-namespace sym2.game_add
+namespace sym2
 
 /-- Recursion on the well-founded `sym2.game_add` relation. -/
-def fix {C : α → α → Sort*} (hr : well_founded rα)
+def game_add.fix {C : α → α → Sort*} (hr : well_founded rα)
   (IH : Π a₁ b₁, (Π a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) (a b : α) :
   C a b :=
 @well_founded.fix (α × α) (λ x, C x.1 x.2) _ hr.sym2_game_add.of_quotient_lift₂
   (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) (a, b)
 
-lemma fix_eq {C : α → α → Sort*} (hr : well_founded rα)
+lemma game_add.fix_eq {C : α → α → Sort*} (hr : well_founded rα)
   (IH : Π a₁ b₁, (Π a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) (a b : α) :
   game_add_swap.fix hr IH a b = IH a b (λ a' b' h, game_add_swap.fix hr IH a' b') :=
 by { rw [game_add_swap.fix, well_founded.fix_eq], refl }
 
 /-- Induction on the well-founded `sym2.game_add` relation. -/
-lemma induction {C : α → α → Prop} : well_founded rα →
+lemma game_add.induction {C : α → α → Prop} : well_founded rα →
   (∀ a₁ b₁, (∀ a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
 game_add_swap.fix
 
-end sym2.game_add
+end sym2

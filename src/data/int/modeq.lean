@@ -36,6 +36,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [ZMOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [ZMOD n] → b ≡ a [ZMOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [ZMOD n] → b ≡ c [ZMOD n] → a ≡ c [ZMOD n] := eq.trans
@@ -114,7 +116,7 @@ h.sub modeq.rfl
 protected theorem mul_left (c : ℤ) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD n] :=
 or.cases_on (le_total 0 c)
 (λ hc, (h.mul_left' hc).modeq_of_dvd (dvd_mul_left _ _) )
-(λ hc, by rw [← neg_neg c, ← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul _ b];
+(λ hc, by rw [← neg_neg c, neg_mul, neg_mul _ b];
     exact ((h.mul_left' $ neg_nonneg.2 hc).modeq_of_dvd (dvd_mul_left _ _)).neg)
 
 protected theorem mul_right (c : ℤ) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD n] :=

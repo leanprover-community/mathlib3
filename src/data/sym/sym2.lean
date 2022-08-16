@@ -44,7 +44,8 @@ symmetric square, unordered pairs, symmetric powers
 open finset fintype function sym
 
 universe u
-variables {α : Type u}
+variables {α β γ : Type*}
+
 namespace sym2
 
 /--
@@ -59,12 +60,20 @@ attribute [refl] rel.refl
 @[symm] lemma rel.symm {x y : α × α} : rel α x y → rel α y x :=
 by rintro ⟨_, _⟩; constructor
 
-@[trans] lemma rel.trans {x y z : α × α} : rel α x y → rel α y z → rel α x z :=
-by { intros a b, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
+@[trans] lemma rel.trans {x y z : α × α} (a : rel α x y) (b : rel α y z) : rel α x z :=
+by { cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
 
 lemma rel.is_equivalence : equivalence (rel α) := by tidy; apply rel.trans; assumption
 
 instance rel.setoid (α : Type u) : setoid (α × α) := ⟨rel α, rel.is_equivalence⟩
+
+@[simp] lemma rel_iff {x y z w : α} :
+  (x, y) ≈ (z, w) ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
+begin
+  split; intro h,
+  { cases h; simp },
+  { cases h; rw [h.1, h.2], constructor }
+end
 
 end sym2
 
@@ -80,8 +89,32 @@ def sym2 (α : Type u) := quotient (sym2.rel.setoid α)
 
 namespace sym2
 
+@[elab_as_eliminator]
+protected lemma ind {f : sym2 α → Prop} (h : ∀ x y, f ⟦(x, y)⟧) : ∀ i, f i :=
+quotient.ind $ prod.rec $ by exact h
+
+@[elab_as_eliminator]
+protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x, y)⟧) : f i :=
+i.ind hf
+
+@[elab_as_eliminator]
+protected lemma induction_on₂ {f : sym2 α → sym2 β → Prop} (i : sym2 α) (j : sym2 β)
+  (hf : ∀ a₁ a₂ b₁ b₂, f ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧) : f i j :=
+quotient.induction_on₂ i j $ by { rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, exact hf _ _ _ _ }
+
+protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} :
+  (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
+(surjective_quotient_mk _).exists.trans prod.exists
+
+protected lemma «forall» {α : Sort*} {f : sym2 α → Prop} :
+  (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
+(surjective_quotient_mk _).forall.trans prod.forall
+
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
+
+@[simp] lemma mk_prod_swap_eq {p : α × α} : ⟦p.swap⟧ = ⟦p⟧ :=
+by { cases p, exact eq_swap }
 
 lemma congr_right {a b c : α} : ⟦(a, b)⟧ = ⟦(a, c)⟧ ↔ b = c :=
 by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
@@ -91,49 +124,69 @@ by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
-begin
-  split; intro h,
-  { rw quotient.eq at h, cases h; tidy },
-  { cases h; rw [h.1, h.2], rw eq_swap }
-end
+by simp
+
+lemma mk_eq_mk_iff {p q : α × α} :
+  ⟦p⟧ = ⟦q⟧ ↔ p = q ∨ p = q.swap :=
+by { cases p, cases q, simp only [eq_iff, prod.mk.inj_iff, prod.swap_prod_mk] }
 
 /-- The universal property of `sym2`; symmetric functions of two arguments are equivalent to
 functions from `sym2`. Note that when `β` is `Prop`, it can sometimes be more convenient to use
 `sym2.from_rel` instead. -/
-def lift {β : Type*} : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁} ≃ (sym2 α → β) :=
+def lift : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁} ≃ (sym2 α → β) :=
 { to_fun := λ f, quotient.lift (uncurry ↑f) $ by { rintro _ _ ⟨⟩, exacts [rfl, f.prop _ _] },
   inv_fun := λ F, ⟨curry (F ∘ quotient.mk), λ a₁ a₂, congr_arg F eq_swap⟩,
   left_inv := λ f, subtype.ext rfl,
-  right_inv := λ F, funext $ quotient.ind $ prod.rec $ by exact λ _ _, rfl }
+  right_inv := λ F, funext $ sym2.ind $ by exact λ x y, rfl }
 
 @[simp]
-lemma lift_mk {β : Type*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁}) (a₁ a₂ : α) :
+lemma lift_mk (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁}) (a₁ a₂ : α) :
   lift f ⟦(a₁, a₂)⟧ = (f : α → α → β) a₁ a₂ := rfl
 
 @[simp]
-lemma coe_lift_symm_apply {β : Type*} (F : sym2 α → β) (a₁ a₂ : α) :
+lemma coe_lift_symm_apply (F : sym2 α → β) (a₁ a₂ : α) :
   (lift.symm F : α → α → β) a₁ a₂ = F ⟦(a₁, a₂)⟧ := rfl
+
+/-- A two-argument version of `sym2.lift`. -/
+def lift₂ : {f : α → α → β → β → γ // ∀ a₁ a₂ b₁ b₂,
+  f a₁ a₂ b₁ b₂ = f a₂ a₁ b₁ b₂ ∧ f a₁ a₂ b₁ b₂ = f a₁ a₂ b₂ b₁} ≃ (sym2 α → sym2 β → γ) :=
+{ to_fun := λ f, quotient.lift₂ (λ (a : α × α) (b : β × β), f.1 a.1 a.2 b.1 b.2) begin
+    rintro _ _ _ _ ⟨⟩ ⟨⟩,
+    exacts [rfl, (f.2 _ _ _ _).2, (f.2 _ _ _ _).1, (f.2 _ _ _ _).1.trans (f.2 _ _ _ _).2]
+  end,
+  inv_fun := λ F, ⟨λ a₁ a₂ b₁ b₂, F ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧, λ a₁ a₂ b₁ b₂,
+    by { split, exacts [congr_arg2 F eq_swap rfl, congr_arg2 F rfl eq_swap] }⟩,
+  left_inv := λ f, subtype.ext rfl,
+  right_inv := λ F, funext₂ $ λ a b, sym2.induction_on₂ a b $ λ _ _ _ _, rfl }
+
+@[simp]
+lemma lift₂_mk (f : {f : α → α → β → β → γ // ∀ a₁ a₂ b₁ b₂,
+  f a₁ a₂ b₁ b₂ = f a₂ a₁ b₁ b₂ ∧ f a₁ a₂ b₁ b₂ = f a₁ a₂ b₂ b₁}) (a₁ a₂ : α) (b₁ b₂ : β) :
+  lift₂ f ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧ = (f : α → α → β → β → γ) a₁ a₂ b₁ b₂ := rfl
+
+@[simp]
+lemma coe_lift₂_symm_apply (F : sym2 α → sym2 β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
+  (lift₂.symm F : α → α → β → β → γ) a₁ a₂ b₁ b₂ = F ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧ := rfl
 
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.
 -/
-def map {α β : Type*} (f : α → β) : sym2 α → sym2 β :=
+def map (f : α → β) : sym2 α → sym2 β :=
 quotient.map (prod.map f f)
   (by { rintros _ _ h, cases h, { refl }, apply rel.swap })
 
-@[simp]
-lemma map_id : sym2.map (@id α) = id := by tidy
+@[simp] lemma map_id : map (@id α) = id := by { ext ⟨⟨x,y⟩⟩, refl }
 
-lemma map_comp {α β γ : Type*} {g : β → γ} {f : α → β} :
-  sym2.map (g ∘ f) = sym2.map g ∘ sym2.map f := by tidy
+lemma map_comp {g : β → γ} {f : α → β} : sym2.map (g ∘ f) = sym2.map g ∘ sym2.map f :=
+by { ext ⟨⟨x, y⟩⟩, refl }
 
-lemma map_map {α β γ : Type*} {g : β → γ} {f : α → β} (x : sym2 α) :
+lemma map_map {g : β → γ} {f : α → β} (x : sym2 α) :
   map g (map f x) = map (g ∘ f) x := by tidy
 
 @[simp]
-lemma map_pair_eq {α β : Type*} (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ := rfl
+lemma map_pair_eq (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ := rfl
 
-lemma map.injective {α β : Type*} {f : α → β} (hinj : injective f) : injective (map f) :=
+lemma map.injective {f : α → β} (hinj : injective f) : injective (map f) :=
 begin
   intros z z',
   refine quotient.ind₂ (λ z z', _) z z',
@@ -157,9 +210,23 @@ def mem (x : α) (z : sym2 α) : Prop :=
 
 instance : has_mem α (sym2 α) := ⟨mem⟩
 
-lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
+lemma mem_mk_left (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
+lemma mem_mk_right (x y : α) : y ∈ ⟦(x, y)⟧ := eq_swap.subst $ mem_mk_left y x
 
-lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mk_has_mem }
+@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
+{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
+  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
+
+lemma out_fst_mem (e : sym2 α) : e.out.1 ∈ e := ⟨e.out.2, by rw [prod.mk.eta, e.out_eq]⟩
+lemma out_snd_mem (e : sym2 α) : e.out.2 ∈ e := ⟨e.out.1, by rw [eq_swap, prod.mk.eta, e.out_eq]⟩
+
+lemma ball {p : α → Prop} {a b : α} : (∀ c ∈ ⟦(a, b)⟧, p c) ↔ p a ∧ p b :=
+begin
+  refine ⟨λ h, ⟨h _ $ mem_mk_left _ _, h _ $ mem_mk_right _ _⟩, λ h c hc, _⟩,
+  obtain rfl | rfl := sym2.mem_iff.1 hc,
+  { exact h.1 },
+  { exact h.2 }
+end
 
 /--
 Given an element of the unordered pair, give the other element using `classical.some`.
@@ -169,49 +236,67 @@ noncomputable def mem.other {a : α} {z : sym2 α} (h : a ∈ z) : α :=
 classical.some h
 
 @[simp]
-lemma mem_other_spec {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other)⟧ = z :=
+lemma other_spec {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other)⟧ = z :=
 by erw ← classical.some_spec h
 
-@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
-{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, apply mk_has_mem_right } }
+lemma other_mem {a : α} {z : sym2 α} (h : a ∈ z) : h.other ∈ z :=
+by { convert mem_mk_right a h.other, rw other_spec h }
 
-lemma mem_other_mem {a : α} {z : sym2 α} (h : a ∈ z) :
-  h.other ∈ z :=
-by { convert mk_has_mem_right a h.other, rw mem_other_spec h }
-
-lemma elems_iff_eq {x y : α} {z : sym2 α} (hne : x ≠ y) :
-  x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
+lemma mem_and_mem_iff {x y : α} {z : sym2 α} (hne : x ≠ y) : x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
 begin
   split,
-  { refine quotient.rec_on_subsingleton z _,
-    rintros ⟨z₁, z₂⟩ ⟨hx, hy⟩,
-    rw eq_iff,
-    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; subst x; subst y;
-    try { exact (hne rfl).elim };
-    simp only [true_or, eq_self_iff_true, and_self, or_true] },
+  { induction z using sym2.ind with x' y',
+    rw [mem_iff, mem_iff],
+    rintro ⟨rfl | rfl, rfl | rfl⟩;
+    try { trivial };
+    simp only [sym2.eq_swap] },
   { rintro rfl, simp },
 end
 
+lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
+  (h1 : x ∈ z) (h2 : y ∈ z) (h3 : x ∈ z') (h4 : y ∈ z') : z = z' :=
+((mem_and_mem_iff h).mp ⟨h1, h2⟩).trans ((mem_and_mem_iff h).mp ⟨h3, h4⟩).symm
+
 @[ext]
-lemma sym2_ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
+protected lemma ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
 begin
-  refine quotient.rec_on_subsingleton z (λ w, _) h,
-  refine quotient.rec_on_subsingleton z' (λ w', _),
-  intro h,
-  cases w with x y, cases w' with x' y',
-  simp only [mem_iff] at h,
-  apply eq_iff.mpr,
+  induction z using sym2.ind with x y,
+  induction z' using sym2.ind with x' y',
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
-  simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
-  cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' };
-  simp only [eq_self_iff_true, and_self, or_self, true_or, or_true],
+  simp only [mem_iff, eq_self_iff_true, or_true, iff_true, true_or, true_iff] at hx hy hx' hy',
+  cases hx; cases hy; cases hx'; cases hy'; subst_vars,
+  simp only [sym2.eq_swap],
 end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
 quotient.rec_on_subsingleton z (λ ⟨y₁, y₂⟩, decidable_of_iff' _ mem_iff)
 
 end membership
+
+@[simp] lemma mem_map {f : α → β} {b : β} {z : sym2 α} :
+  b ∈ sym2.map f z ↔ ∃ a, a ∈ z ∧ f a = b :=
+begin
+  induction z using sym2.ind with x y,
+  simp only [map, quotient.map_mk, prod.map_mk, mem_iff],
+  split,
+  { rintro (rfl | rfl),
+    { exact ⟨x, by simp⟩, },
+    { exact ⟨y, by simp⟩, } },
+  { rintro ⟨w, rfl | rfl, rfl⟩; simp, },
+end
+
+@[congr] lemma map_congr {f g : α → β} {s : sym2 α} (h : ∀ x ∈ s, f x = g x) :
+  map f s = map g s :=
+begin
+  ext y,
+  simp only [mem_map],
+  split; { rintro ⟨w, hw, rfl⟩, exact ⟨w, hw, by simp [hw, h]⟩ },
+end
+
+/-- Note: `sym2.map_id` will not simplify `sym2.map id z` due to `sym2.map_congr`. -/
+@[simp] lemma map_id' : map (λ (x : α), x) = id := map_id
+
+/-! ### Diagonal -/
 
 /--
 A type `α` is naturally included in the diagonal of `α × α`, and this function gives the image
@@ -228,23 +313,20 @@ A predicate for testing whether an element of `sym2 α` is on the diagonal.
 def is_diag : sym2 α → Prop :=
 lift ⟨eq, λ _ _, propext eq_comm⟩
 
-lemma is_diag_iff_eq {x y : α} : is_diag ⟦(x, y)⟧ ↔ x = y :=
-iff.rfl
+lemma mk_is_diag_iff {x y : α} : is_diag ⟦(x, y)⟧ ↔ x = y := iff.rfl
 
 @[simp]
 lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
-prod.rec_on z $ λ _ _, is_diag_iff_eq
+prod.rec_on z $ λ _ _, mk_is_diag_iff
 
 @[simp]
-lemma diag_is_diag (a : α) : is_diag (diag a) :=
-eq.refl a
+lemma diag_is_diag (a : α) : is_diag (diag a) := eq.refl a
 
 lemma is_diag.mem_range_diag {z : sym2 α} : is_diag z → z ∈ set.range (@diag α) :=
 begin
-  induction z using quotient.induction_on,
-  cases z,
-  rintro (rfl : z_fst = z_snd),
-  exact ⟨z_fst, rfl⟩,
+  induction z using sym2.ind with x y,
+  rintro (rfl : x = y),
+  exact ⟨_, rfl⟩,
 end
 
 lemma is_diag_iff_mem_range_diag (z : sym2 α) : is_diag z ↔ z ∈ set.range (@diag α) :=
@@ -253,11 +335,11 @@ lemma is_diag_iff_mem_range_diag (z : sym2 α) : is_diag z ↔ z ∈ set.range (
 instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
 by { refine λ z, quotient.rec_on_subsingleton z (λ a, _), erw is_diag_iff_proj_eq, apply_instance }
 
-lemma mem_other_ne {a : α} {z : sym2 α} (hd : ¬is_diag z) (h : a ∈ z) : h.other ≠ a :=
+lemma other_ne {a : α} {z : sym2 α} (hd : ¬is_diag z) (h : a ∈ z) : h.other ≠ a :=
 begin
-  intro hn, apply hd,
-  have h' := sym2.mem_other_spec h,
-  rw hn at h',
+  contrapose! hd,
+  have h' := sym2.other_spec h,
+  rw hd at h',
   rw ←h',
   simp,
 end
@@ -276,25 +358,36 @@ def from_rel (sym : symmetric r) : set (sym2 α) :=
 set_of (lift ⟨r, λ x y, propext ⟨λ h, sym h, λ h, sym h⟩⟩)
 
 @[simp]
-lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} :
-  ⟦z⟧ ∈ from_rel sym ↔ r z.1 z.2 := iff.rfl
+lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} : ⟦z⟧ ∈ from_rel sym ↔ r z.1 z.2 := iff.rfl
 
 @[simp]
-lemma from_rel_prop {sym : symmetric r} {a b : α} :
-  ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
+lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
 
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
-{ mp  := λ h, quotient.ind $ prod.rec $ by { rintros a b hr (rfl : a = b), exact h _ hr },
+{ mp  := λ h, sym2.ind $ by { rintros a b hr (rfl : a = b), exact h _ hr },
   mpr := λ h x hr, h (from_rel_prop.mpr hr) rfl }
 
 lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
   {a : α} {z : sym2 α} (hz : z ∈ from_rel sym) (h : a ∈ z) : h.other ≠ a :=
-mem_other_ne (from_rel_irreflexive.mp irrefl hz) h
+other_ne (from_rel_irreflexive.mp irrefl hz) h
 
 instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
   decidable_pred (∈ sym2.from_rel sym) :=
 λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
+
+/-- The inverse to `sym2.from_rel`. Given a set on `sym2 α`, give a symmetric relation on `α`
+(see `sym2.to_rel_symmetric`). -/
+def to_rel (s : set (sym2 α)) (x y : α) : Prop := ⟦(x, y)⟧ ∈ s
+
+@[simp] lemma to_rel_prop (s : set (sym2 α)) (x y : α) : to_rel s x y ↔ ⟦(x, y)⟧ ∈ s := iff.rfl
+
+lemma to_rel_symmetric (s : set (sym2 α)) : symmetric (to_rel s) := λ x y, by simp [eq_swap]
+
+lemma to_rel_from_rel (sym : symmetric r) : to_rel (from_rel sym) = r := rfl
+
+lemma from_rel_to_rel (s : set (sym2 α)) : from_rel (to_rel_symmetric s) = s :=
+set.ext (λ z, sym2.ind (λ x y, iff.rfl) z)
 
 end relations
 
@@ -304,18 +397,18 @@ section sym_equiv
 
 local attribute [instance] vector.perm.is_setoid
 
-private def from_vector {α : Type*} : vector α 2 → α × α
+private def from_vector : vector α 2 → α × α
 | ⟨[a, b], h⟩ := (a, b)
 
-private lemma perm_card_two_iff {α : Type*} {a₁ b₁ a₂ b₂ : α} :
-  [a₁, b₁].perm [a₂, b₂] ↔ (a₁ = a₂ ∧ b₁ = b₂) ∨ (a₁ = b₂ ∧ b₁ = a₂) :=
+private lemma perm_card_two_iff {a₁ b₁ a₂ b₂ : α} :
+  [a₁, b₁].perm [a₂, b₂] ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ a₁ = b₂ ∧ b₁ = a₂ :=
 { mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
   mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl } }
 
 /--
 The symmetric square is equivalent to length-2 vectors up to permutations.
 -/
-def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
+def sym2_equiv_sym' : equiv (sym2 α) (sym' α 2) :=
 { to_fun := quotient.map
     (λ (x : α × α), ⟨[x.1, x.2], rfl⟩)
     (by { rintros _ _ ⟨_⟩, { refl }, apply list.perm.swap', refl }),
@@ -365,8 +458,7 @@ def rel_bool [decidable_eq α] (x y : α × α) : bool :=
 if x.1 = y.1 then x.2 = y.2 else
   if x.1 = y.2 then x.2 = y.1 else ff
 
-lemma rel_bool_spec [decidable_eq α] (x y : α × α) :
-  ↥(rel_bool x y) ↔ rel α x y :=
+lemma rel_bool_spec [decidable_eq α] (x y : α × α) : ↥(rel_bool x y) ↔ rel α x y :=
 begin
   cases x with x₁ x₂, cases y with y₁ y₂,
   dsimp [rel_bool], split_ifs;
@@ -382,6 +474,8 @@ Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fint
 -/
 instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
 λ x y, decidable_of_bool (rel_bool x y) (rel_bool_spec x y)
+
+/-! ### The other element of an element of the symmetric square -/
 
 /--
 A function that gives the other element of a pair given one of the elements.  Used in `mem.other'`.
@@ -413,8 +507,7 @@ quot.rec (λ x h', pair_other a x) (begin
 end) z h
 
 @[simp]
-lemma mem_other_spec' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) :
-  ⟦(a, h.other')⟧ = z :=
+lemma other_spec' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other')⟧ = z :=
 begin
   induction z, cases z with x y,
   have h' := mem_iff.mp h,
@@ -427,13 +520,12 @@ end
 
 @[simp]
 lemma other_eq_other' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) : h.other = h.other' :=
-by rw [←congr_right, mem_other_spec' h, mem_other_spec]
+by rw [←congr_right, other_spec' h, other_spec]
 
-lemma mem_other_mem' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) :
-  h.other' ∈ z :=
-by { rw ←other_eq_other', exact mem_other_mem h }
+lemma other_mem' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) : h.other' ∈ z :=
+by { rw ←other_eq_other', exact other_mem h }
 
-lemma other_invol' [decidable_eq α] {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other' ∈ z):
+lemma other_invol' [decidable_eq α] {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other' ∈ z) :
   hb.other' = a :=
 begin
   induction z, cases z with x y,
@@ -446,8 +538,7 @@ begin
   refl,
 end
 
-lemma other_invol {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other ∈ z):
-  hb.other = a :=
+lemma other_invol {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other ∈ z) : hb.other = a :=
 begin
   classical,
   rw other_eq_other' at hb ⊢,
@@ -456,8 +547,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter is_diag =
-    s.diag.image quotient.mk :=
+  ((s ×ˢ s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
 begin
   ext z,
   induction z using quotient.induction_on,
@@ -465,7 +555,7 @@ begin
   simp only [mem_image, mem_diag, exists_prop, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
-    rw [←h, sym2.is_diag_iff_eq] at hab,
+    rw [←h, sym2.mk_is_diag_iff] at hab,
     exact ⟨a, b, ⟨ha, hab⟩, h⟩ },
   { rintro ⟨a, b, ⟨ha, rfl⟩, h⟩,
     rw ←h,
@@ -473,7 +563,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+  ((s ×ˢ s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
     s.off_diag.image quotient.mk :=
 begin
   ext z,
@@ -482,13 +572,22 @@ begin
   simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
-    rw [←h, sym2.is_diag_iff_eq] at hab,
+    rw [←h, sym2.mk_is_diag_iff] at hab,
     exact ⟨a, b, ⟨ha, hb, hab⟩, h⟩ },
   { rintro ⟨a, b, ⟨ha, hb, hab⟩, h⟩,
-    rw [ne.def, ←sym2.is_diag_iff_eq, h] at hab,
+    rw [ne.def, ←sym2.mk_is_diag_iff, h] at hab,
     exact ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩ }
 end
 
 end decidable
+
+instance [subsingleton α] : subsingleton (sym2 α) :=
+(equiv_sym α).injective.subsingleton
+
+instance [unique α] : unique (sym2 α) := unique.mk' _
+
+instance [is_empty α] : is_empty (sym2 α) := (equiv_sym α).is_empty
+
+instance [nontrivial α] : nontrivial (sym2 α) := diag_injective.nontrivial
 
 end sym2

@@ -13,7 +13,7 @@ This file contains lemmas dealing with different flavours of induction on polyno
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 
 open finset
 
@@ -22,11 +22,11 @@ universes u v w z
 variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ}
 
 section semiring
-variables [semiring R] {p q : polynomial R}
+variables [semiring R] {p q : R[X]}
 
 /-- `div_X p` returns a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
-def div_X (p : polynomial R) : polynomial R :=
+def div_X (p : R[X]) : R[X] :=
 ∑ n in Ico 0 p.nat_degree, monomial n (p.coeff (n + 1))
 
 @[simp] lemma coeff_div_X : (div_X p).coeff n = p.coeff (n+1) :=
@@ -37,11 +37,11 @@ begin
   rw coeff_eq_zero_of_nat_degree_lt (nat.lt_succ_of_le h)
 end
 
-lemma div_X_mul_X_add (p : polynomial R) : div_X p * X + C (p.coeff 0) = p :=
+lemma div_X_mul_X_add (p : R[X]) : div_X p * X + C (p.coeff 0) = p :=
 ext $ by rintro ⟨_|_⟩; simp [coeff_C, nat.succ_ne_zero, coeff_mul_X]
 
 @[simp] lemma div_X_C (a : R) : div_X (C a) = 0 :=
-ext $ λ n, by cases n; simp [div_X, coeff_C]; simp [coeff]
+ext $ λ n, by simp [div_X, coeff_C]; simp [coeff]
 
 lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
 ⟨λ h, by simpa [eq_comm, h] using div_X_mul_X_add p,
@@ -67,20 +67,20 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
     have degree (C (p.coeff 0)) < degree (div_X p * X),
       from calc degree (C (p.coeff 0)) ≤ 0 : degree_C_le
          ... < 1 : dec_trivial
-         ... = degree (X : polynomial R) : degree_X.symm
+         ... = degree (X : R[X]) : degree_X.symm
          ... ≤ degree (div_X p * X) :
           by rw [← zero_add (degree X), degree_mul' this];
             exact add_le_add
               (by rw [zero_le_degree_iff, ne.def, div_X_eq_zero_iff];
                 exact λ h0, h (h0.symm ▸ degree_C_le))
-              (le_refl _),
+              le_rfl,
     by rw [degree_add_eq_left_of_degree_lt this];
       exact degree_lt_degree_mul_X hXp0
 ... = p.degree : congr_arg _ (div_X_mul_X_add _)
 
 /-- An induction principle for polynomials, valued in Sort* instead of Prop. -/
 @[elab_as_eliminator] noncomputable def rec_on_horner
-  {M : polynomial R → Sort*} : Π (p : polynomial R),
+  {M : R[X] → Sort*} : Π (p : R[X]),
   M 0 →
   (Π p a, coeff p 0 = 0 → a ≠ 0 → M p → M (p + C a)) →
   (Π p, p ≠ 0 → M p → M (p * X)) →
@@ -111,7 +111,7 @@ with appropriate restrictions on each term.
 See `nat_degree_ne_zero_induction_on` for a similar statement involving no explicit multiplication.
  -/
 @[elab_as_eliminator] lemma degree_pos_induction_on
-  {P : polynomial R → Prop} (p : polynomial R) (h0 : 0 < degree p)
+  {P : R[X] → Prop} (p : R[X]) (h0 : 0 < degree p)
   (hC : ∀ {a}, a ≠ 0 → P (C a * X))
   (hX : ∀ {p}, 0 < degree p → P p → P (p * X))
   (hadd : ∀ {p} {a}, 0 < degree p → P p → P (p + C a)) : P p :=
@@ -129,6 +129,43 @@ rec_on_horner p
       exact hC (λ h : coeff p 0 = 0,
         by simpa [h, nat.not_lt_zero] using h0'))
   h0
+
+/--  A property holds for all polynomials of non-zero `nat_degree` with coefficients in a
+semiring `R` if it holds for
+* `p + a`, with `a ∈ R`, `p ∈ R[X]`,
+* `p + q`, with `p, q ∈ R[X]`,
+* monomials with nonzero coefficient and non-zero exponent,
+with appropriate restrictions on each term.
+Note that multiplication is "hidden" in the assumption on monomials, so there is no explicit
+multiplication in the statement.
+See `degree_pos_induction_on` for a similar statement involving more explicit multiplications.
+ -/
+@[elab_as_eliminator] lemma nat_degree_ne_zero_induction_on {M : R[X] → Prop}
+  {f : R[X]} (f0 : f.nat_degree ≠ 0) (h_C_add : ∀ {a p}, M p → M (C a + p))
+  (h_add : ∀ {p q}, M p → M q → M (p + q))
+  (h_monomial : ∀ {n : ℕ} {a : R}, a ≠ 0 → n ≠ 0 → M (monomial n a)) :
+  M f :=
+suffices f.nat_degree = 0 ∨ M f, from or.dcases_on this (λ h, (f0 h).elim) id,
+begin
+  apply f.induction_on,
+  { exact λ a, or.inl (nat_degree_C _) },
+  { rintros p q (hp | hp) (hq | hq),
+    { refine or.inl _,
+      rw [eq_C_of_nat_degree_eq_zero hp, eq_C_of_nat_degree_eq_zero hq, ← C_add, nat_degree_C] },
+    { refine or.inr _,
+      rw [eq_C_of_nat_degree_eq_zero hp],
+      exact h_C_add hq },
+    { refine or.inr _,
+      rw [eq_C_of_nat_degree_eq_zero hq, add_comm],
+      exact h_C_add hp },
+    { exact or.inr (h_add hp hq) } },
+  { intros n a hi,
+    by_cases a0 : a = 0,
+    { exact or.inl (by rw [a0, C_0, zero_mul, nat_degree_zero]) },
+    { refine or.inr _,
+      rw C_mul_X_pow_eq_monomial,
+      exact h_monomial a0 n.succ_ne_zero } }
+end
 
 end semiring
 

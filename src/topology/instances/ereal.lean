@@ -3,9 +3,9 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.instances.ennreal
-import topology.algebra.ordered.monotone_continuity
 import data.real.ereal
+import topology.algebra.order.monotone_continuity
+import topology.instances.ennreal
 
 /-!
 # Topological structure on `ereal`
@@ -122,12 +122,12 @@ begin
   exact tendsto_id
 end
 
-lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤} : set ereal).compl :=
+lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤}ᶜ : set ereal) :=
 λ a ha, continuous_at.continuous_within_at (tendsto_to_real
   (by { simp [not_or_distrib] at ha, exact ha.2 }) (by { simp [not_or_distrib] at ha, exact ha.1 }))
 
 /-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
-def ne_bot_top_homeomorph_real : ({⊥, ⊤} : set ereal).compl ≃ₜ ℝ :=
+def ne_bot_top_homeomorph_real : ({⊥, ⊤}ᶜ : set ereal) ≃ₜ ℝ :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_real,
   continuous_inv_fun := continuous_subtype_mk _ continuous_coe_real_ereal,
   .. ne_top_bot_equiv_real }
@@ -196,7 +196,7 @@ lemma nhds_top' : 𝓝 (⊤ : ereal) = ⨅ a : ℝ, 𝓟 (Ioi a) :=
 begin
   rw [nhds_top],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
     { exact (infi_le _ 0).trans (by simp) },
@@ -223,7 +223,7 @@ lemma nhds_bot' : 𝓝 (⊥ : ereal) = ⨅ a : ℝ, 𝓟 (Iio a) :=
 begin
   rw [nhds_bot],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
     { simpa using hr },
@@ -297,10 +297,8 @@ begin
   refine ⟨λ z, z < ((r - (a + 1): ℝ) : ereal), Iio_mem_nhds (bot_lt_coe _),
           λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds (by simp [-coe_add, zero_lt_one]),
           λ x hx y hy, _⟩,
-  dsimp,
   convert add_lt_add hx hy,
-  dsimp,
-  ring,
+  rw sub_add_cancel,
 end
 
 lemma continuous_at_add_coe_bot (a : ℝ) :

@@ -40,7 +40,7 @@ structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V
 (to_fun : V → ℝ≥0∞)
 (eq_zero' : ∀ x, to_fun x = 0 → x = 0)
 (map_add_le' : ∀ x y : V, to_fun (x + y) ≤ to_fun x + to_fun y)
-(map_smul_le' : ∀ (c : 𝕜) (x : V), to_fun (c • x) ≤ nnnorm c * to_fun x)
+(map_smul_le' : ∀ (c : 𝕜) (x : V), to_fun (c • x) ≤ ∥c∥₊ * to_fun x)
 
 namespace enorm
 
@@ -61,15 +61,15 @@ lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ 
 @[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
-@[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = nnnorm c * e x :=
+@[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = ∥c∥₊ * e x :=
 le_antisymm (e.map_smul_le' c x) $
 begin
   by_cases hc : c = 0, { simp [hc] },
-  calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
-  ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
+  calc (∥c∥₊ : ℝ≥0∞) * e x = ∥c∥₊ * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
+  ... ≤ ∥c∥₊ * (∥c⁻¹∥₊ * e (c • x)) : _
   ... = e (c • x) : _,
-  { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },
-  { rw [← mul_assoc, normed_field.nnnorm_inv, ennreal.coe_inv,
+  { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
+  { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
      ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
 end
 
@@ -80,8 +80,8 @@ by { rw [← zero_smul 𝕜 (0:V), e.map_smul], norm_num }
 ⟨e.eq_zero' x, λ h, h.symm ▸ e.map_zero⟩
 
 @[simp] lemma map_neg (x : V) : e (-x) = e x :=
-calc e (-x) = nnnorm (-1:𝕜) * e x : by rw [← map_smul, neg_one_smul]
-        ... = e x                 : by simp
+calc e (-x) = ∥(-1 : 𝕜)∥₊ * e x : by rw [← map_smul, neg_one_smul]
+        ... = e x               : by simp
 
 lemma map_sub_rev (x y : V) : e (x - y) = e (y - x) :=
 by rw [← neg_sub, e.map_neg]
@@ -95,7 +95,7 @@ calc e (x - y) = e (x + -y)   : by rw sub_eq_add_neg
 
 instance : partial_order (enorm 𝕜 V) :=
 { le := λ e₁ e₂, ∀ x, e₁ x ≤ e₂ x,
-  le_refl := λ e x, le_refl _,
+  le_refl := λ e x, le_rfl,
   le_trans := λ e₁ e₂ e₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
   le_antisymm := λ e₁ e₂ h₁₂ h₂₁, ext $ λ x, le_antisymm (h₁₂ x) (h₂₁ x) }
 
@@ -122,11 +122,13 @@ noncomputable instance : inhabited (enorm 𝕜 V) := ⟨⊤⟩
 
 lemma top_map {x : V} (hx : x ≠ 0) : (⊤ : enorm 𝕜 V) x = ⊤ := if_neg hx
 
-noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
+noncomputable instance : order_top (enorm 𝕜 V) :=
+{ top := ⊤,
+  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h] }
+
+noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
 { le := (≤),
   lt := (<),
-  top := ⊤,
-  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h],
   sup := λ e₁ e₂,
   { to_fun := λ x, max (e₁ x) (e₂ x),
     eq_zero' := λ x h, e₁.eq_zero_iff.1 (ennreal.max_eq_zero_iff.1 h).1,
@@ -145,7 +147,7 @@ noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
 lemma max_map (e₁ e₂ : enorm 𝕜 V) (x : V) : (e₁ ⊔ e₂) x = max (e₁ x) (e₂ x) := rfl
 
 /-- Structure of an `emetric_space` defined by an extended norm. -/
-def emetric_space : emetric_space V :=
+@[reducible] def emetric_space : emetric_space V :=
 { edist := λ x y, e (x - y),
   edist_self := λ x, by simp,
   eq_of_edist_eq_zero := λ x y, by simp [sub_eq_zero],
@@ -160,15 +162,15 @@ def finite_subspace : subspace 𝕜 V :=
   zero_mem' := by simp,
   add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
   smul_mem' := λ c x (hx : _ < _),
-    calc e (c • x) = nnnorm c * e x : e.map_smul c x
+    calc e (c • x) = ∥c∥₊ * e x : e.map_smul c x
                ... < ⊤              : ennreal.mul_lt_top ennreal.coe_ne_top hx.ne }
 
-/-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space_of_dist`
+/-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space`
 to ensure that this definition agrees with `e.emetric_space`. -/
 instance : metric_space e.finite_subspace :=
 begin
   letI := e.emetric_space,
-  refine emetric_space.to_metric_space_of_dist _ (λ x y, _) (λ x y, rfl),
+  refine emetric_space.to_metric_space (λ x y, _),
   change e (x - y) ≠ ⊤,
   exact ne_top_of_le_ne_top (ennreal.add_lt_top.2 ⟨x.2, y.2⟩).ne (e.map_sub_le x y)
 end
@@ -178,9 +180,10 @@ lemma finite_dist_eq (x y : e.finite_subspace) : dist x y = (e (x - y)).to_real 
 lemma finite_edist_eq (x y : e.finite_subspace) : edist x y = e (x - y) := rfl
 
 /-- Normed group instance on `e.finite_subspace`. -/
-instance : normed_group e.finite_subspace :=
+instance : normed_add_comm_group e.finite_subspace :=
 { norm := λ x, (e x).to_real,
-  dist_eq := λ x y, rfl }
+  dist_eq := λ x y, rfl,
+  .. finite_subspace.metric_space e, .. submodule.add_comm_group _ }
 
 lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
 

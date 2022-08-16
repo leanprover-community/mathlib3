@@ -3,7 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import topology.metric_space.emetric_space
+import topology.uniform_space.basic
+import topology.separation
 
 /-!
 # `Gδ` sets
@@ -43,7 +44,7 @@ variable [topological_space α]
 
 /-- A Gδ set is a countable intersection of open sets. -/
 def is_Gδ (s : set α) : Prop :=
-  ∃T : set (set α), (∀t ∈ T, is_open t) ∧ countable T ∧ s = (⋂₀ T)
+  ∃T : set (set α), (∀t ∈ T, is_open t) ∧ T.countable ∧ s = (⋂₀ T)
 
 /-- An open set is a Gδ set. -/
 lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
@@ -53,7 +54,7 @@ lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
 
 @[simp] lemma is_Gδ_univ : is_Gδ (univ : set α) := is_open_univ.is_Gδ
 
-lemma is_Gδ_bInter_of_open {I : set ι} (hI : countable I) {f : ι → set α}
+lemma is_Gδ_bInter_of_open {I : set ι} (hI : I.countable) {f : ι → set α}
   (hf : ∀i ∈ I, is_open (f i)) : is_Gδ (⋂i∈I, f i) :=
 ⟨f '' I, by rwa ball_image_iff, hI.image _, by rw sInter_image⟩
 
@@ -70,7 +71,7 @@ begin
   simpa [@forall_swap ι] using hTo
 end
 
-lemma is_Gδ_bInter {s : set ι} (hs : countable s) {t : Π i ∈ s, set α}
+lemma is_Gδ_bInter {s : set ι} (hs : s.countable) {t : Π i ∈ s, set α}
   (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) : is_Gδ (⋂ i ∈ s, t i ‹_›) :=
 begin
   rw [bInter_eq_Inter],
@@ -79,7 +80,7 @@ begin
 end
 
 /-- A countable intersection of Gδ sets is a Gδ set. -/
-lemma is_Gδ_sInter {S : set (set α)} (h : ∀s∈S, is_Gδ s) (hS : countable S) : is_Gδ (⋂₀ S) :=
+lemma is_Gδ_sInter {S : set (set α)} (h : ∀s∈S, is_Gδ s) (hS : S.countable) : is_Gδ (⋂₀ S) :=
 by simpa only [sInter_eq_bInter] using is_Gδ_bInter hS h
 
 lemma is_Gδ.inter {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∩ t) :=
@@ -108,9 +109,9 @@ end
 lemma is_closed.is_Gδ {α} [uniform_space α] [is_countably_generated (𝓤 α)]
   {s : set α} (hs : is_closed s) : is_Gδ s :=
 begin
-  rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -, -⟩,
+  rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -⟩,
   rw [← hs.closure_eq, ← hU.bInter_bUnion_ball],
-  refine is_Gδ_bInter (countable_encodable _) (λ n hn, is_open.is_Gδ _),
+  refine is_Gδ_bInter (to_countable _) (λ n hn, is_open.is_Gδ _),
   exact is_open_bUnion (λ x hx, uniform_space.is_open_ball _ (hUo _).2)
 end
 
@@ -121,13 +122,13 @@ variable [t1_space α]
 lemma is_Gδ_compl_singleton (a : α) : is_Gδ ({a}ᶜ : set α) :=
 is_open_compl_singleton.is_Gδ
 
-lemma set.countable.is_Gδ_compl {s : set α} (hs : countable s) : is_Gδ sᶜ :=
+lemma set.countable.is_Gδ_compl {s : set α} (hs : s.countable) : is_Gδ sᶜ :=
 begin
-  rw [← bUnion_of_singleton s, compl_bUnion],
+  rw [← bUnion_of_singleton s, compl_Union₂],
   exact is_Gδ_bInter hs (λ x _, is_Gδ_compl_singleton x)
 end
 
-lemma set.finite.is_Gδ_compl {s : set α} (hs : finite s) : is_Gδ sᶜ :=
+lemma set.finite.is_Gδ_compl {s : set α} (hs : s.finite) : is_Gδ sᶜ :=
 hs.countable.is_Gδ_compl
 
 lemma set.subsingleton.is_Gδ_compl {s : set α} (hs : s.subsingleton) : is_Gδ sᶜ :=
@@ -144,10 +145,10 @@ lemma is_Gδ_singleton (a : α) : is_Gδ ({a} : set α) :=
 begin
   rcases (nhds_basis_opens a).exists_antitone_subbasis with ⟨U, hU, h_basis⟩,
   rw [← bInter_basis_nhds h_basis.to_has_basis],
-  exact is_Gδ_bInter (countable_encodable _) (λ n hn, (hU n).2.is_Gδ),
+  exact is_Gδ_bInter (to_countable _) (λ n hn, (hU n).2.is_Gδ),
 end
 
-lemma set.finite.is_Gδ {s : set α} (hs : finite s) : is_Gδ s :=
+lemma set.finite.is_Gδ {s : set α} (hs : s.finite) : is_Gδ s :=
 finite.induction_on hs is_Gδ_empty $ λ a s _ _ hs, (is_Gδ_singleton a).union hs
 
 end t1_space
@@ -171,9 +172,7 @@ begin
     set_of_forall, id],
   refine is_Gδ_Inter (λ k, is_open.is_Gδ $ is_open_iff_mem_nhds.2 $ λ x, _),
   rintros ⟨s, ⟨hsx, hso⟩, hsU⟩,
-  filter_upwards [is_open.mem_nhds hso hsx],
-  intros y hy,
-  exact ⟨s, ⟨hy, hso⟩, hsU⟩
+  filter_upwards [is_open.mem_nhds hso hsx] with _ hy using ⟨s, ⟨hy, hso⟩, hsU⟩,
 end
 
 end continuous_at

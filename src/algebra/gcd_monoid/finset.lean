@@ -31,7 +31,7 @@ variables {α β γ : Type*}
 namespace finset
 open multiset
 
-variables [comm_cancel_monoid_with_zero α] [normalized_gcd_monoid α]
+variables [cancel_comm_monoid_with_zero α] [normalized_gcd_monoid α]
 
 /-! ### lcm -/
 section lcm
@@ -86,6 +86,10 @@ lcm_dvd (λ b hb, (h b hb).trans (dvd_lcm hb))
 
 lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
 lcm_dvd $ assume b hb, dvd_lcm (h hb)
+
+theorem lcm_eq_zero_iff [nontrivial α] : s.lcm f = 0 ↔ 0 ∈ f '' s :=
+by simp only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe,
+  ← finset.mem_def]
 
 end lcm
 
@@ -143,6 +147,11 @@ dvd_gcd (λ b hb, (gcd_dvd hb).trans (h b hb))
 lemma gcd_mono (h : s₁ ⊆ s₂) : s₂.gcd f ∣ s₁.gcd f :=
 dvd_gcd $ assume b hb, gcd_dvd (h hb)
 
+theorem gcd_image {g : γ → β} (s: finset γ) [decidable_eq β] [is_idempotent α gcd_monoid.gcd] :
+  (s.image g).gcd f = s.gcd (f ∘ g) := by simp [gcd, fold_image_idem]
+
+theorem gcd_eq_gcd_image [decidable_eq α] [is_idempotent α gcd_monoid.gcd] :
+  s.gcd f = (s.image f).gcd id := (@gcd_image _ _ _ _ _ id _ _ _ _).symm
 
 theorem gcd_eq_zero_iff : s.gcd f = 0 ↔ ∀ (x : β), x ∈ s → f x = 0 :=
 begin

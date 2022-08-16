@@ -63,8 +63,15 @@ begin
     simp [unpair, ae, nat.not_lt_zero, add_assoc] }
 end
 
+/-- An equivalence between `ℕ × ℕ` and `ℕ`. -/
+@[simps { fully_applied := ff }] def mkpair_equiv : ℕ × ℕ ≃ ℕ :=
+⟨uncurry mkpair, unpair, λ ⟨a, b⟩, unpair_mkpair a b, mkpair_unpair⟩
+
 lemma surjective_unpair : surjective unpair :=
-λ ⟨m, n⟩, ⟨mkpair m n, unpair_mkpair m n⟩
+mkpair_equiv.symm.surjective
+
+@[simp] lemma mkpair_eq_mkpair {a b c d : ℕ} : mkpair a b = mkpair c d ↔ a = c ∧ b = d :=
+mkpair_equiv.injective.eq_iff.trans (@prod.ext_iff ℕ ℕ (a, b) (c, d))
 
 theorem unpair_lt {n : ℕ} (n1 : 1 ≤ n) : (unpair n).1 < n :=
 let s := sqrt n in begin
@@ -122,6 +129,32 @@ begin
     exact le_trans h₁ (nat.le_add_left _ _) }
 end
 
+theorem mkpair_lt_max_add_one_sq (m n : ℕ) : mkpair m n < (max m n + 1) ^ 2 :=
+begin
+  rw [mkpair, add_sq, mul_one, two_mul, sq, add_assoc, add_assoc],
+  cases lt_or_le m n,
+  { rw [if_pos h, max_eq_right h.le, add_lt_add_iff_left, add_assoc],
+    exact h.trans_le (self_le_add_right n _) },
+  { rw [if_neg h.not_lt, max_eq_left h, add_lt_add_iff_left, add_assoc, add_lt_add_iff_left],
+    exact lt_succ_of_le h }
+end
+
+theorem max_sq_add_min_le_mkpair (m n : ℕ) : max m n ^ 2 + min m n ≤ mkpair m n :=
+begin
+  rw mkpair,
+  cases lt_or_le m n,
+  { rw [if_pos h, max_eq_right h.le, min_eq_left h.le, sq], },
+  { rw [if_neg h.not_lt, max_eq_left h, min_eq_right h, sq, add_assoc, add_le_add_iff_left],
+    exact le_add_self }
+end
+
+theorem add_le_mkpair (m n : ℕ) : m + n ≤ mkpair m n :=
+(max_sq_add_min_le_mkpair _ _).trans' $
+  by { rw [sq, ←min_add_max, add_comm, add_le_add_iff_right], exact le_mul_self _ }
+
+theorem unpair_add_le (n : ℕ) : (unpair n).1 + (unpair n).2 ≤ n :=
+(add_le_mkpair _ _).trans_eq (mkpair_unpair _)
+
 end nat
 open nat
 
@@ -133,14 +166,14 @@ by rw [← (supr_prod : (⨆ i : ℕ × ℕ, f i.1 i.2) = _), ← nat.surjective
 
 lemma infi_unpair {α} [complete_lattice α] (f : ℕ → ℕ → α) :
   (⨅ n : ℕ, f n.unpair.1 n.unpair.2) = ⨅ i j : ℕ, f i j :=
-supr_unpair (show ℕ → ℕ → order_dual α, from f)
+supr_unpair (show ℕ → ℕ → αᵒᵈ, from f)
 
 end complete_lattice
 
 namespace set
 
 lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
-  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+  (⋃ n : ℕ, s n.unpair.fst ×ˢ t n.unpair.snd) = (⋃ n, s n) ×ˢ (⋃ n, t n) :=
 by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
 lemma Union_unpair {α} (f : ℕ → ℕ → set α) :

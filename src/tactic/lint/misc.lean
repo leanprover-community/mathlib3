@@ -1,8 +1,10 @@
 /-
 Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn, Robert Y. Lewis
+Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino
 -/
+import data.bool.basic
+import meta.rb_map
 import tactic.lint.basic
 
 /-!
@@ -130,7 +132,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace.",
   errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
-
+attribute [nolint dup_namespace] iff.iff
 
 /-!
 ## Linter for unused arguments
@@ -163,7 +165,7 @@ See also `check_unused_arguments`.
 This tactic additionally filters out all unused arguments of type `parse _`.
 We skip all declarations that contain `sorry` in their value. -/
 private meta def unused_arguments (d : declaration) : tactic (option string) := do
-  ff ← return d.value.contains_sorry | return none,
+  ff ← d.to_name.contains_sorry | return none,
   let ns := check_unused_arguments d,
   tt ← return ns.is_some | return none,
   let ns := ns.iget,
@@ -250,8 +252,6 @@ has been used. -/
   auto_decls := ff,
   no_errors_found := "All declarations correctly marked as def/lemma.",
   errors_found := "INCORRECT DEF/LEMMA:" }
-
-attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
 /-!
 ## Linter that checks whether declarations are well-typed
@@ -448,3 +448,87 @@ meta def linter.unused_haves_suffices : linter :=
 "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
 "proofs appear as if they are used. ",
   is_fast := ff }
+
+
+/-!
+## Linter for unprintable interactive tactics
+-/
+
+/--
+Ensures that every interactive tactic has arguments for which `interactive.param_desc` succeeds.
+This is used to generate the parser documentation that appears in hovers on interactive tactics.
+-/
+meta def unprintable_interactive (d : declaration) : tactic (option string) :=
+match d.to_name with
+| name.mk_string _ (name.mk_string "interactive" (name.mk_string _ name.anonymous)) := do
+  (ds, _) ← mk_local_pis d.type,
+  ds ← ds.mfilter $ λ d, bnot <$> succeeds (interactive.param_desc d.local_type),
+  ff ← return ds.empty | return none,
+  ds ← ds.mmap (pp ∘ to_binder),
+  return $ some $ ds.to_string_aux tt
+| _ := return none
+end
+
+/-- A linter for checking that interactive tactics have parser documentation. -/
+@[linter]
+meta def linter.unprintable_interactive : linter :=
+{ test := unprintable_interactive,
+  auto_decls := tt,
+  no_errors_found := "No tactics are unprintable.",
+  errors_found := "THE FOLLOWING TACTICS ARE UNPRINTABLE. " ++
+"This means that an interactive tactic is using `parse p` where `p` does not have " ++
+"an associated description. You can fix this by wrapping `p` as `with_desc \"p\" p`, " ++
+"and provide the description there, or you can stick to \"approved\" tactic combinators " ++
+"like `?` `*>` `<*` `<*>` `<|>` and `<$>` (but not `>>=` or `do` blocks) " ++
+"that automatically generate a description.",
+  is_fast := tt }
+
+
+/-!
+## Linter for iff's
+-/
+
+open binder_info
+
+/--
+Recursively consumes a Pi expression while accumulating names and the complement of de-Bruijn
+indexes of explicit variables, ultimately obtaining the remaining non-Pi expression as well.
+-/
+meta def unravel_explicits_of_pi :
+  expr → ℕ → list name → list ℕ → (list name) × (list ℕ) × expr
+| (pi n default _ e) i ln li := unravel_explicits_of_pi e (i + 1) (n :: ln) (i :: li)
+| (pi n _ _ e)       i ln li := unravel_explicits_of_pi e (i + 1) ln        li
+| e                  _ ln li := (ln, li, e)
+
+/--
+This function works as follows:
+1. Call `unravel_explicits_of_pi` to obtain the names, complements of de-Bruijn indexes and the
+remaining non-Pi expression;
+2. Check if the remaining non-Pi expression is an iff, already obtaining the respective left and
+right expressions if this is the case. Returns `none` otherwise;
+3. Filter the explicit variables that appear on the left *and* right side of the iff;
+4. If no variable satisfies the condition above, return `none`;
+5. Return a message mentioning the variables that do, otherwise.
+-/
+meta def explicit_vars_of_iff (d : declaration) :
+    tactic (option string) := do
+  let (ln, li, e) := unravel_explicits_of_pi d.type 0 [] [],
+  match e.is_iff with
+  | none          := return none
+  | some (el, er) := do
+    let li := li.map (λ i, d.type.pi_arity - i - 1), -- fixing for the actual de-Bruijn indexes
+    let l := (ln.zip li).filter (λ t, (el.has_var_idx t.2) && (er.has_var_idx t.2)),
+    if l = [] then return none
+    else return $ "The following variables are used on both sides of an iff and ".append $
+      "should be made implicit: ".append $ ", ".intercalate (l.map (λ t, to_string t.1))
+  end
+
+/--
+A linter for checking if variables appearing on both sides of an iff are explicit. Ideally, such
+variables should be implicit instead.
+-/
+meta def linter.explicit_vars_of_iff : linter :=
+{ test := explicit_vars_of_iff,
+  auto_decls := ff,
+  no_errors_found := "No explicit variables on both sides of iff",
+  errors_found := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF" }

@@ -18,7 +18,7 @@ of continuity is equivalent to continuity in ωCPOs.
 
 -/
 
-open omega_complete_partial_order
+open set omega_complete_partial_order
 open_locale classical
 
 universes u
@@ -29,7 +29,7 @@ def is_ωSup {α : Type u} [preorder α] (c : chain α) (x : α) : Prop :=
 (∀ i, c i ≤ x) ∧ (∀ y, (∀ i, c i ≤ y) → x ≤ y)
 
 lemma is_ωSup_iff_is_lub {α : Type u} [preorder α] {c : chain α} {x : α} :
-  is_ωSup c x ↔ is_lub (set.range c) x :=
+  is_ωSup c x ↔ is_lub (range c) x :=
 by simp [is_ωSup, is_lub, is_least, upper_bounds, lower_bounds]
 
 variables (α : Type u) [omega_complete_partial_order α]
@@ -40,42 +40,23 @@ the limits of chains. -/
 def is_open (s : set α) : Prop :=
 continuous' (λ x, x ∈ s)
 
-theorem is_open_univ : is_open α set.univ :=
-⟨λ x y h, by simp only [set.mem_univ]; refl',
-  by convert @complete_lattice.top_continuous α Prop _ _; ext; simp ⟩
+theorem is_open_univ : is_open α univ :=
+⟨λ x y h hx, mem_univ _,
+  by { convert @complete_lattice.top_continuous α Prop _ _, exact rfl }⟩
 
 theorem is_open.inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
-begin
-  simp only [is_open, exists_imp_distrib, continuous'],
-  intros h₀ h₁ h₂ h₃,
-  rw ← set.inf_eq_inter,
-  let s' : α →ₘ Prop := ⟨λ x, x ∈ s, h₀⟩,
-  let t' : α →ₘ Prop := ⟨λ x, x ∈ t, h₂⟩,
-  split,
-  { change omega_complete_partial_order.continuous (s' ⊓ t'),
-    haveI : is_total Prop (≤) := ⟨ @le_total Prop _ ⟩,
-    apply complete_lattice.inf_continuous; assumption },
-  { intros x y h, apply and_implies;
-    solve_by_elim [h₀ h, h₂ h], }
-end
+complete_lattice.inf_continuous'
 
-theorem is_open_sUnion : ∀s, (∀t∈s, is_open α t) → is_open α (⋃₀ s) :=
+theorem is_open_sUnion (s : set (set α)) (hs : ∀t∈s, is_open α t) : is_open α (⋃₀ s) :=
 begin
-  introv h₀,
-  suffices : is_open α ({ x | Sup (flip (∈) '' s) x }),
-  { convert this, ext,
-    simp only [set.sUnion, Sup, set.mem_image, set.mem_set_of_eq, supr,
-               conditionally_complete_lattice.Sup, exists_exists_and_eq_and,
-               complete_lattice.Sup, exists_prop, set.mem_range,
-               set_coe.exists, eq_iff_iff, subtype.coe_mk],
-    tauto, },
-  dsimp [is_open] at *,
-  apply complete_lattice.Sup_continuous' _,
-  introv ht, specialize h₀ { x | f x } _,
-  { simp only [flip, set.mem_image] at *,
-    rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
-    simpa, },
-  { simpa using h₀ }
+  simp only [is_open] at hs ⊢,
+  convert complete_lattice.Sup_continuous' (set_of ⁻¹' s) _,
+  { ext1 x,
+    simp only [Sup_apply, set_of_bijective.surjective.exists, exists_prop, mem_preimage,
+      set_coe.exists, supr_Prop_eq, mem_set_of_eq, subtype.coe_mk, mem_sUnion] },
+  { intros p hp,
+    convert hs (set_of p) (mem_preimage.1 hp),
+    simp only [mem_set_of_eq] },
 end
 
 end Scott
@@ -109,7 +90,7 @@ begin
   existsi h, rintros c,
   apply eq_of_forall_ge_iff, intro z,
   rw ωSup_le_iff,
-  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, preorder_hom.coe_fun_mk,
+  simp only [ωSup_le_iff, not_below, mem_set_of_eq, le_Prop_eq, order_hom.coe_fun_mk,
              chain.map_coe, function.comp_app, exists_imp_distrib, not_forall],
 end
 
@@ -136,16 +117,16 @@ begin
   have h : monotone f,
   { intros x y h,
     cases (hf {x | ¬ x ≤ f y} (not_below_is_open _)) with hf hf', clear hf',
-    specialize hf h, simp only [set.preimage, set_of, (∈), set.mem, le_Prop_eq] at hf,
-    by_contradiction H, apply hf H (le_refl (f y)) },
+    specialize hf h, simp only [preimage, mem_set_of_eq, le_Prop_eq] at hf,
+    by_contradiction H, apply hf H le_rfl },
   existsi h, intro c,
   apply eq_of_forall_ge_iff, intro z,
   specialize (hf _ (not_below_is_open z)),
   cases hf, specialize hf_h c,
-  simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
+  simp only [not_below, order_hom.coe_fun_mk, eq_iff_iff, mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
   simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, complete_semilattice_Sup.Sup,
-    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_coe, function.comp_app,
+    exists_prop, mem_range, order_hom.coe_fun_mk, chain.map_coe, function.comp_app,
     eq_iff_iff, not_forall],
   tauto,
 end

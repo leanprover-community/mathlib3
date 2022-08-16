@@ -3,8 +3,9 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-import topology.continuous_function.algebra
 import linear_algebra.affine_space.affine_map
+import topology.algebra.group
+import topology.algebra.mul_action
 
 /-!
 # Topological properties of affine spaces and maps
@@ -54,7 +55,7 @@ end ring
 
 section comm_ring
 
-variables [comm_ring R] [module R F] [topological_space R] [has_continuous_smul R F]
+variables [comm_ring R] [module R F] [has_continuous_const_smul R F]
 
 @[continuity]
 lemma homothety_continuous (x : F) (t : R) : continuous $ homothety x t :=
@@ -68,7 +69,7 @@ end comm_ring
 
 section field
 
-variables [field R] [module R F] [topological_space R] [has_continuous_smul R F]
+variables [field R] [module R F] [has_continuous_const_smul R F]
 
 lemma homothety_is_open_map (x : F) (t : R) (ht : t ≠ 0) : is_open_map $ homothety x t :=
 begin

@@ -5,7 +5,6 @@ Authors: Heather Macbeth
 -/
 import analysis.normed_space.add_torsor
 import analysis.normed_space.linear_isometry
-import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Affine isometries
@@ -18,7 +17,7 @@ We also prove basic lemmas and provide convenience constructors.  The choice of 
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
 Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
-`semi_normed_add_torsor` and specialize to `normed_add_torsor` only when needed.
+`seminormed_add_comm_group` and specialize to `normed_add_comm_group` only when needed.
 
 ## Notation
 
@@ -32,15 +31,15 @@ algebra-homomorphisms.)
 open function set
 
 variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ : Type*) {P₃ P₄ : Type*}
-    [normed_field 𝕜]
-  [semi_normed_group V] [normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
-    [semi_normed_group V₄]
-  [semi_normed_space 𝕜 V] [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂] [semi_normed_space 𝕜 V₃]
-    [semi_normed_space 𝕜 V₄]
+  [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
+  [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
+    [seminormed_add_comm_group V₄]
+  [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃]
+    [normed_space 𝕜 V₄]
   [pseudo_metric_space P] [metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]
     [pseudo_metric_space P₄]
-  [semi_normed_add_torsor V P] [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
-    [semi_normed_add_torsor V₃ P₃] [semi_normed_add_torsor V₄ P₄]
+  [normed_add_torsor V P] [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
+    [normed_add_torsor V₃ P₃] [normed_add_torsor V₄ P₄]
 
 include V V₂
 
@@ -356,8 +355,8 @@ omit V V₂ V₃
 
 @[simp] lemma trans_refl : e.trans (refl 𝕜 P₂) = e := ext $ λ x, rfl
 @[simp] lemma refl_trans : (refl 𝕜 P).trans e = e := ext $ λ x, rfl
-@[simp] lemma trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
-@[simp] lemma symm_trans : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
+@[simp] lemma self_trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
+@[simp] lemma symm_trans_self : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
 
 include V V₂ V₃
 @[simp] lemma coe_symm_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
@@ -378,7 +377,7 @@ instance : group (P ≃ᵃⁱ[𝕜] P) :=
   one_mul := trans_refl,
   mul_one := refl_trans,
   mul_assoc := λ _ _ _, trans_assoc _ _ _,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 @[simp] lemma coe_one : ⇑(1 : P ≃ᵃⁱ[𝕜] P) = id := rfl
 @[simp] lemma coe_mul (e e' : P ≃ᵃⁱ[𝕜] P) : ⇑(e * e') = e ∘ e' := rfl
@@ -520,7 +519,7 @@ lemma point_reflection_fixed_iff [invertible (2:𝕜)] {x y : P} :
   point_reflection 𝕜 x y = y ↔ y = x :=
 affine_equiv.point_reflection_fixed_iff_of_module 𝕜
 
-variables [semi_normed_space ℝ V]
+variables [normed_space ℝ V]
 
 lemma dist_point_reflection_self_real (x y : P) :
   dist (point_reflection ℝ x y) y = 2 * dist x y :=
@@ -546,8 +545,8 @@ lemma affine_map.continuous_linear_iff {f : P →ᵃ[𝕜] P₂} :
 begin
   inhabit P,
   have : (f.linear : V → V₂) =
-    (affine_isometry_equiv.vadd_const 𝕜 $ f $ default P).to_homeomorph.symm ∘ f ∘
-      (affine_isometry_equiv.vadd_const 𝕜 $ default P).to_homeomorph,
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
   { ext v, simp },
   rw this,
   simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
@@ -559,8 +558,8 @@ lemma affine_map.is_open_map_linear_iff {f : P →ᵃ[𝕜] P₂} :
 begin
   inhabit P,
   have : (f.linear : V → V₂) =
-    (affine_isometry_equiv.vadd_const 𝕜 $ f $ default P).to_homeomorph.symm ∘ f ∘
-      (affine_isometry_equiv.vadd_const 𝕜 $ default P).to_homeomorph,
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
   { ext v, simp },
   rw this,
   simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],

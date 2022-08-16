@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import algebra.lie.nilpotent
 import algebra.lie.tensor_product
 import algebra.lie.character
+import algebra.lie.engel
 import algebra.lie.cartan_subalgebra
 import linear_algebra.eigenspace
 import ring_theory.tensor_product
@@ -34,6 +35,7 @@ Basic definitions and properties of the above ideas are provided in this file.
   * `lie_algebra.is_root`
   * `lie_algebra.root_space_weight_space_product`
   * `lie_algebra.root_space_product`
+  * `lie_algebra.zero_root_subalgebra_eq_iff_is_cartan`
 
 ## References
 
@@ -71,7 +73,17 @@ lemma mem_pre_weight_space (χ : L → R) (m : M) :
   m ∈ pre_weight_space M χ ↔ ∀ x, ∃ (k : ℕ), ((to_endomorphism R L M x - (χ x) • 1)^k) m = 0 :=
 by simp [pre_weight_space, -linear_map.pow_apply]
 
-variables (L)
+variables (R)
+
+lemma exists_pre_weight_space_zero_le_ker_of_is_noetherian [is_noetherian R M] (x : L) :
+  ∃ (k : ℕ), pre_weight_space M (0 : L → R) ≤ ((to_endomorphism R L M x)^k).ker :=
+begin
+  use (to_endomorphism R L M x).maximal_generalized_eigenspace_index 0,
+  simp only [← module.End.generalized_eigenspace_zero, pre_weight_space, pi.zero_apply, infi_le,
+    ← (to_endomorphism R L M x).maximal_generalized_eigenspace_eq],
+end
+
+variables {R} (L)
 
 /-- See also `bourbaki1975b` Chapter VII §1.1, Proposition 2 (ii). -/
 protected lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w₂) (M₃ : Type w₃)
@@ -230,6 +242,27 @@ lemma is_weight_zero_of_nilpotent
    is_weight (⊤ : lie_subalgebra R L) M 0 :=
 by { rw [is_weight, lie_hom.coe_zero, zero_weight_space_eq_top_of_nilpotent], exact top_ne_bot, }
 
+/-- A (nilpotent) Lie algebra acts nilpotently on the zero weight space of a Noetherian Lie
+module. -/
+lemma is_nilpotent_to_endomorphism_weight_space_zero
+  [lie_algebra.is_nilpotent R L] [is_noetherian R M] (x : L) :
+  _root_.is_nilpotent $ to_endomorphism R L (weight_space M (0 : L → R)) x :=
+begin
+  obtain ⟨k, hk⟩ := exists_pre_weight_space_zero_le_ker_of_is_noetherian R M x,
+  use k,
+  ext ⟨m, hm⟩,
+  rw [linear_map.zero_apply, lie_submodule.coe_zero, submodule.coe_eq_zero,
+    ← lie_submodule.to_endomorphism_restrict_eq_to_endomorphism, linear_map.pow_restrict,
+    ← set_like.coe_eq_coe, linear_map.restrict_apply, submodule.coe_mk, submodule.coe_zero],
+  exact hk hm,
+end
+
+/-- By Engel's theorem, when the Lie algebra is Noetherian, the zero weight space of a Noetherian
+Lie module is nilpotent. -/
+instance [lie_algebra.is_nilpotent R L] [is_noetherian R L] [is_noetherian R M] :
+  is_nilpotent R L (weight_space M (0 : L → R)) :=
+is_nilpotent_iff_forall.mpr $ is_nilpotent_to_endomorphism_weight_space_zero M
+
 end lie_module
 
 namespace lie_algebra
@@ -263,7 +296,7 @@ begin
     simp only [mem_weight_space, mem_pre_weight_space,
       lie_subalgebra.coe_incl', lie_submodule.mem_comap, this], },
   have hfg : ∀ (y : H), (f y).comp (H.incl : H →ₗ[R] L) = (H.incl : H →ₗ[R] L).comp (g y),
-  { rintros ⟨y, hz⟩, ext ⟨z, hz⟩,
+  { rintros ⟨y, hy⟩, ext ⟨z, hz⟩,
     simp only [submodule.coe_sub, to_endomorphism_apply_apply, lie_hom.coe_to_linear_map,
       linear_map.one_apply, lie_subalgebra.coe_incl, lie_subalgebra.coe_bracket_of_module,
       lie_subalgebra.coe_bracket, linear_map.smul_apply, function.comp_app,
@@ -412,13 +445,29 @@ begin
     lie_subalgebra.coe_bracket_of_module, submodule.coe_mk, hk],
 end
 
-/-- In finite dimensions over a field (and possibly more generally) Engel's theorem shows that
-the converse of this is also true, i.e.,
-`zero_root_subalgebra R L H = H ↔ lie_subalgebra.is_cartan_subalgebra H`. -/
-lemma zero_root_subalgebra_is_cartan_of_eq (h : zero_root_subalgebra R L H = H) :
-  lie_subalgebra.is_cartan_subalgebra H :=
+/-- If the zero root subalgebra of a nilpotent Lie subalgebra `H` is just `H` then `H` is a Cartan
+subalgebra.
+
+When `L` is Noetherian, it follows from Engel's theorem that the converse holds. See
+`lie_algebra.zero_root_subalgebra_eq_iff_is_cartan` -/
+lemma is_cartan_of_zero_root_subalgebra_eq (h : zero_root_subalgebra R L H = H) :
+  H.is_cartan_subalgebra :=
 { nilpotent        := infer_instance,
   self_normalizing := by { rw ← h, exact zero_root_subalgebra_normalizer_eq_self R L H, } }
+
+@[simp] lemma zero_root_subalgebra_eq_of_is_cartan (H : lie_subalgebra R L)
+  [H.is_cartan_subalgebra] [is_noetherian R L] :
+  zero_root_subalgebra R L H = H :=
+begin
+  refine le_antisymm _ (le_zero_root_subalgebra R L H),
+  suffices : root_space H 0 ≤ H.to_lie_submodule, { exact λ x hx, this hx, },
+  obtain ⟨k, hk⟩ := (root_space H 0).is_nilpotent_iff_exists_self_le_ucs.mp (by apply_instance),
+  exact hk.trans (lie_submodule.ucs_le_of_centralizer_eq_self (by simp) k),
+end
+
+lemma zero_root_subalgebra_eq_iff_is_cartan [is_noetherian R L] :
+  zero_root_subalgebra R L H = H ↔ H.is_cartan_subalgebra :=
+⟨is_cartan_of_zero_root_subalgebra_eq R L H, by { introsI, simp, }⟩
 
 end lie_algebra
 

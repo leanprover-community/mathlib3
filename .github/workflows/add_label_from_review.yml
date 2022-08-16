@@ -18,7 +18,7 @@ jobs:
           repository: ${{ github.repository }}
           pull_number: ${{ github.event.pull_request.number }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRIAGE_TOKEN }}
 
       # Parse steps.get_pr_head.outputs.data, since it is a string
       - id: parse_pr_head
@@ -39,7 +39,7 @@ jobs:
           repository: ${{ github.repository }}
           username: ${{ github.event.review.user.login }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRIAGE_TOKEN }}
 
       # Parse steps.get_user.outputs.data, since it is a string
       - if: steps.parse_pr_head.outputs.head_user == 'leanprover-community'
@@ -60,7 +60,7 @@ jobs:
           issue_number: ${{ github.event.pull_request.number }}
           labels: '["ready-to-merge"]'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRIAGE_TOKEN }}
 
       - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
         id: remove_labels
@@ -70,11 +70,11 @@ jobs:
         run: |
           curl --request DELETE \
             --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/awaiting-review \
-            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'
+            --header 'authorization: Bearer ${{ secrets.TRIAGE_TOKEN }}'
           curl --request DELETE \
             --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/awaiting-author \
-            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'
-            
+            --header 'authorization: Bearer ${{ secrets.TRIAGE_TOKEN }}'
+
   add_delegated_label:
     name: Add delegated label
     if: (startsWith(github.event.review.body, 'bors d') || contains(toJSON(github.event.review.body), '\r\nbors d'))
@@ -88,7 +88,7 @@ jobs:
           repository: ${{ github.repository }}
           pull_number: ${{ github.event.pull_request.number }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRIAGE_TOKEN }}
 
       # Parse steps.get_pr_head.outputs.data, since it is a string
       - id: parse_pr_head
@@ -109,7 +109,7 @@ jobs:
           repository: ${{ github.repository }}
           username: ${{ github.event.review.user.login }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRIAGE_TOKEN }}
 
       # Parse steps.get_user.outputs.data, since it is a string
       - if: steps.parse_pr_head.outputs.head_user == 'leanprover-community'
@@ -130,7 +130,7 @@ jobs:
           issue_number: ${{ github.event.pull_request.number }}
           labels: '["delegated"]'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRIAGE_TOKEN }}
 
       - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
         id: remove_labels
@@ -140,4 +140,4 @@ jobs:
         run: |
           curl --request DELETE \
             --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/awaiting-review \
-            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'
+            --header 'authorization: Bearer ${{ secrets.TRIAGE_TOKEN }}'

@@ -3,9 +3,9 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.preserves.shapes.binary_products
-import category_theory.limits.preserves.shapes.terminal
 import category_theory.adjunction.fully_faithful
+import category_theory.functor.reflects_isomorphisms
+import category_theory.epi_mono
 
 /-!
 # Reflective functors
@@ -22,7 +22,7 @@ noncomputable theory
 
 namespace category_theory
 
-open category adjunction limits
+open category adjunction
 
 variables {C : Type u₁} {D : Type u₂} {E : Type u₃}
 variables [category.{v₁} C] [category.{v₂} D] [category.{v₃} E]
@@ -89,8 +89,8 @@ lemma mem_ess_image_of_unit_is_iso [is_right_adjoint i] (A : C)
 ⟨(left_adjoint i).obj A, ⟨(as_iso ((of_right_adjoint i).unit.app A)).symm⟩⟩
 
 /-- If `η_A` is a split monomorphism, then `A` is in the reflective subcategory. -/
-lemma mem_ess_image_of_unit_split_mono [reflective i] {A : C}
-  [split_mono ((of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
+lemma mem_ess_image_of_unit_is_split_mono [reflective i] {A : C}
+  [is_split_mono ((of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 begin
   let η : 𝟭 C ⟶ left_adjoint i ⋙ i := (of_right_adjoint i).unit,
   haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (i.obj_mem_ess_image _).unit_is_iso,
@@ -99,7 +99,7 @@ begin
     rw (show retraction _ ≫ η.app A = _, from η.naturality (retraction (η.app A))),
     apply epi_comp (η.app (i.obj ((left_adjoint i).obj A))) },
   resetI,
-  haveI := is_iso_of_epi_of_split_mono (η.app A),
+  haveI := is_iso_of_epi_of_is_split_mono (η.app A),
   exact mem_ess_image_of_unit_is_iso A,
 end
 
@@ -152,5 +152,23 @@ lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h :
   (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : A ⟶ B) :
   (unit_comp_partial_bijective A hB') (f ≫ h) = unit_comp_partial_bijective A hB f ≫ h :=
 by rw [←equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h, equiv.symm_apply_apply]
+
+/-- If `i : D ⥤ C` is reflective, the inverse functor of `i ≌ F.ess_image` can be explicitly
+defined by the reflector. -/
+@[simps]
+def equiv_ess_image_of_reflective [reflective i] : D ≌ i.ess_image_subcategory :=
+{ functor := i.to_ess_image,
+  inverse := i.ess_image_inclusion ⋙ (left_adjoint i : _),
+  unit_iso := nat_iso.of_components (λ X, (as_iso $ (of_right_adjoint i).counit.app X).symm)
+    (by { intros X Y f, dsimp, simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
+      exact ((of_right_adjoint i).counit.naturality _).symm }),
+  counit_iso :=
+  nat_iso.of_components
+    (λ X, by { refine (iso.symm $ as_iso _), exact (of_right_adjoint i).unit.app X.obj,
+      apply_with (is_iso_of_reflects_iso _ i.ess_image_inclusion) { instances := ff },
+      exact functor.ess_image.unit_is_iso X.property })
+    (by { intros X Y f, dsimp, rw [is_iso.comp_inv_eq, assoc],
+      have h := ((of_right_adjoint i).unit.naturality f).symm,
+      rw [functor.id_map] at h, erw [← h, is_iso.inv_hom_id_assoc, functor.comp_map] }) }
 
 end category_theory

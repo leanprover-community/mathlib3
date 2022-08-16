@@ -5,6 +5,32 @@ Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.equivalence
 
+/-!
+# Adjunctions between functors
+
+`F ⊣ G` represents the data of an adjunction between two functors
+`F : C ⥤ D` and `G : D ⥤ C`. `F` is the left adjoint and `G` is the right adjoint.
+
+We provide various useful constructors:
+* `mk_of_hom_equiv`
+* `mk_of_unit_counit`
+* `left_adjoint_of_equiv` / `right_adjoint_of equiv`
+  construct a left/right adjoint of a given functor given the action on objects and
+  the relevant equivalence of morphism spaces.
+* `adjunction_of_equiv_left` / `adjunction_of_equiv_right` witness that these constructions
+  give adjunctions.
+
+There are also typeclasses `is_left_adjoint` / `is_right_adjoint`, carrying data witnessing
+that a given functor is a left or right adjoint.
+Given `[is_left_adjoint F]`, a right adjoint of `F` can be constructed as `right_adjoint F`.
+
+`adjunction.comp` composes adjunctions.
+
+`to_equivalence` upgrades an adjunction to an equivalence,
+given witnesses that the unit and counit are pointwise isomorphisms.
+Conversely `equivalence.to_adjunction` recovers the underlying adjunction from an equivalence.
+-/
+
 namespace category_theory
 open category
 
@@ -26,7 +52,7 @@ well as their duals) which can be simpler in practice.
 
 Uniqueness of adjoints is shown in `category_theory.adjunction.opposites`.
 
-See https://stacks.math.columbia.edu/tag/0037.
+See <https://stacks.math.columbia.edu/tag/0037>.
 -/
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
@@ -72,6 +98,10 @@ attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
 section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
+
+lemma hom_equiv_id (X : C) : adj.hom_equiv X _ (𝟙 _) = adj.unit.app X := by simp
+
+lemma hom_equiv_symm_id (X : D) : (adj.hom_equiv _ X).symm (𝟙 _) = adj.counit.app X := by simp
 
 @[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
@@ -140,7 +170,7 @@ This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_hom_equiv`.
 This structure won't typically be used anywhere else.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (hom_equiv_naturality_left_symm' : Π {X' X Y} (f : X' ⟶ X) (g : X ⟶ G.obj Y),
@@ -171,7 +201,7 @@ This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_unit_counit`.
 This structure won't typically be used anywhere else.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : 𝟭 C ⟶ F.comp G)
 (counit : G.comp F ⟶ 𝟭 D)
@@ -296,12 +326,12 @@ def left_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_left_adjoint F
   adj := of_nat_iso_left r.adj h }
 
 section
-variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
+variables {E : Type u₃} [ℰ : category.{v₃} E] {H : D ⥤ E} {I : E ⥤ D}
 
 /--
 Composition of adjunctions.
 
-See https://stacks.math.columbia.edu/tag/0DV0.
+See <https://stacks.math.columbia.edu/tag/0DV0>.
 -/
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
@@ -314,13 +344,13 @@ def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 instance left_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] (F : C ⥤ D) (G : D ⥤ E)
   [Fl : is_left_adjoint F] [Gl : is_left_adjoint G] : is_left_adjoint (F ⋙ G) :=
 { right := Gl.right ⋙ Fl.right,
-  adj := comp _ _ Fl.adj Gl.adj }
+  adj := Fl.adj.comp Gl.adj }
 
 /-- If `F` and `G` are right adjoints then `F ⋙ G` is a right adjoint too. -/
 instance right_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] {F : C ⥤ D} {G : D ⥤ E}
   [Fr : is_right_adjoint F] [Gr : is_right_adjoint G] : is_right_adjoint (F ⋙ G) :=
 { left := Gr.left ⋙ Fr.left,
-  adj := comp _ _ Gr.adj Fr.adj }
+  adj := Gr.adj.comp Fr.adj }
 
 end
 
@@ -443,6 +473,14 @@ def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
 mk_of_unit_counit ⟨e.unit, e.counit,
   by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },
   by { ext, dsimp, simp only [id_comp], exact e.unit_inverse_comp _, }⟩
+
+@[simp] lemma as_equivalence_to_adjunction_unit {e : C ≌ D} :
+  e.functor.as_equivalence.to_adjunction.unit = e.unit :=
+rfl
+
+@[simp] lemma as_equivalence_to_adjunction_counit {e : C ≌ D} :
+  e.functor.as_equivalence.to_adjunction.counit = e.counit :=
+rfl
 
 end equivalence
 

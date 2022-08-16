@@ -5,8 +5,10 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
+import field_theory.fixed
 import field_theory.is_alg_closed.basic
 import field_theory.separable
+import ring_theory.integral_domain
 
 /-!
 # Primitive Element Theorem
@@ -33,7 +35,7 @@ exists_adjoin_simple_eq_top
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finite_dimensional polynomial intermediate_field
 
@@ -56,7 +58,7 @@ begin
     exact F⟮α.val⟯.zero_mem },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
     rw (show x = α^n, by { norm_cast, rw [hn, units.coe_mk0] }),
-    exact pow_mem F⟮↑α⟯ (mem_adjoin_simple_self F ↑α) n, },
+    exact zpow_mem (mem_adjoin_simple_self F ↑α) n, },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
@@ -75,7 +77,7 @@ section primitive_element_inf
 
 variables {F : Type*} [field F] [infinite F] {E : Type*} [field E] (ϕ : F →+* E) (α β : E)
 
-lemma primitive_element_inf_aux_exists_c (f g : polynomial F) :
+lemma primitive_element_inf_aux_exists_c (f g : F[X]) :
   ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), -(α' - α)/(β' - β) ≠ ϕ c :=
 begin
   let sf := (f.map ϕ).roots,
@@ -109,14 +111,12 @@ begin
     { rw adjoin_le_iff,
       have α_in_Fγ : α ∈ F⟮γ⟯,
       { rw ← add_sub_cancel α (c • β),
-        exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c)},
+        exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
-      { rw adjoin_le_iff,
-        change {γ} ⊆ _,
-        rw set.singleton_subset_iff,
-        have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
-        have β_in_Fαβ : β ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert_of_mem α rfl),
-        exact F⟮α,β⟯.add_mem α_in_Fαβ (F⟮α, β⟯.smul_mem β_in_Fαβ) } },
+    { rw [adjoin_simple_le_iff],
+      have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
+      have β_in_Fαβ : β ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert_of_mem α rfl),
+      exact F⟮α,β⟯.add_mem α_in_Fαβ (F⟮α, β⟯.smul_mem β_in_Fαβ) } },
   let p := euclidean_domain.gcd ((f.map (algebra_map F F⟮γ⟯)).comp
     (C (adjoin_simple.gen F γ) - (C ↑c * X))) (g.map (algebra_map F F⟮γ⟯)),
   let h := euclidean_domain.gcd ((f.map ιFE).comp (C γ - (C (ιFE c) * X))) (g.map ιFE),
@@ -125,7 +125,7 @@ begin
     (not_and.mpr (λ _, map_g_ne_zero)),
   suffices p_linear : p.map (algebra_map F⟮γ⟯ E) = (C h.leading_coeff) * (X - C β),
   { have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1),
-    { rw [ring_hom.map_div, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
+    { rw [map_div₀, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
       simp [mul_sub, coeff_C, mul_div_cancel_left β (mt leading_coeff_eq_zero.mp h_ne_zero)] },
     rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },
@@ -154,17 +154,21 @@ begin
     apply (div_eq_iff (sub_ne_zero.mpr a)).mpr,
     simp only [algebra.smul_def, ring_hom.map_add, ring_hom.map_mul, ring_hom.comp_apply],
     ring },
-  rw ← eq_X_sub_C_of_separable_of_root_eq h_ne_zero h_sep h_root h_splits h_roots,
-  transitivity euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
+  rw ← eq_X_sub_C_of_separable_of_root_eq h_sep h_root h_splits h_roots,
+  transitivity euclidean_domain.gcd (_ : E[X]) (_ : E[X]),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },
-  { simpa [map_comp, map_map, ←is_scalar_tower.algebra_map_eq, h] },
+  { simpa [map_comp, polynomial.map_map, ←is_scalar_tower.algebra_map_eq, h] },
 end
 
 end primitive_element_inf
 
 variables (F E : Type*) [field F] [field E]
-variables [algebra F E] [finite_dimensional F E] [is_separable F E]
+variables [algebra F E] [finite_dimensional F E]
+
+section separable_assumption
+
+variable [is_separable F E]
 
 /-- Primitive element theorem: a finite separable field extension `E` of `F` has a
   primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
@@ -173,7 +177,7 @@ begin
   rcases is_empty_or_nonempty (fintype F) with F_inf|⟨⟨F_finite⟩⟩,
   { let P : intermediate_field F E → Prop := λ K, ∃ α : E, F⟮α⟯ = K,
     have base : P ⊥ := ⟨0, adjoin_zero⟩,
-    have ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯,
+    have ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F),
     { intros K β hK,
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
@@ -194,17 +198,16 @@ let α := (exists_primitive_element F E).some,
 have e : F⟮α⟯ = ⊤ := (exists_primitive_element F E).some_spec,
 pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 
-/-- If `E / F` is a finite separable extension, then there are finitely many
-embeddings from `E` into `K` that fix `F`, corresponding to the number of
-conjugate roots of the primitive element generating `F`. -/
-instance {K : Type*} [field K] [algebra F K] : fintype (E →ₐ[F] K) :=
-power_basis.alg_hom.fintype (power_basis_of_finite_of_separable F E)
+end separable_assumption
 
 end field
 
 @[simp] lemma alg_hom.card (F E K : Type*) [field F] [field E] [field K] [is_alg_closed K]
   [algebra F E] [finite_dimensional F E] [is_separable F E] [algebra F K] :
   fintype.card (E →ₐ[F] K) = finrank F E :=
-(alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
+begin
+  convert (alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
     (is_separable.separable _ _) (is_alg_closed.splits_codomain _)).trans
-  (power_basis.finrank _).symm
+    (power_basis.finrank _).symm,
+  apply_instance,
+end

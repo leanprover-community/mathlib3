@@ -21,7 +21,7 @@ universes v u
 open_locale classical
 noncomputable theory
 
-open category_theory category_theory.limits homological_complex
+open category_theory category_theory.category category_theory.limits homological_complex
 
 variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [preadditive V]
@@ -33,22 +33,25 @@ namespace homological_complex
 
 instance : has_zero (C ⟶ D) := ⟨{ f := λ i, 0 }⟩
 instance : has_add (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i + g.f i, }⟩
-instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i), }⟩
+instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i) }⟩
 instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
+instance has_nat_scalar : has_smul ℕ (C ⟶ D) := ⟨λ n f,
+  { f := λ i, n • f.f i,
+    comm' := λ i j h, by simp [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
+instance has_int_scalar : has_smul ℤ (C ⟶ D) := ⟨λ n f,
+  { f := λ i, n • f.f i,
+    comm' := λ i j h, by simp [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
 
 @[simp] lemma zero_f_apply (i : ι) : (0 : C ⟶ D).f i = 0 := rfl
 @[simp] lemma add_f_apply (f g : C ⟶ D) (i : ι) : (f + g).f i = f.f i + g.f i := rfl
 @[simp] lemma neg_f_apply (f : C ⟶ D) (i : ι) : (-f).f i = -(f.f i) := rfl
 @[simp] lemma sub_f_apply (f g : C ⟶ D) (i : ι) : (f - g).f i = f.f i - g.f i := rfl
-
-/- TODO(jmc/Scott): the instance below doesn't have the correct defeq for `nsmul` and `zsmul`.
-We should generalize `function.injective.add_comm_group` and friends.
-For the `R`-linear version, it will be very convenient to have
-a good definition of `nsmul` and `zsmul` that matches `smul`. -/
+@[simp] lemma nsmul_f_apply (n : ℕ) (f : C ⟶ D) (i : ι) : (n • f).f i = n • f.f i := rfl
+@[simp] lemma zsmul_f_apply (n : ℤ) (f : C ⟶ D) (i : ι) : (n • f).f i = n • f.f i := rfl
 
 instance : add_comm_group (C ⟶ D) :=
 function.injective.add_comm_group hom.f
-  homological_complex.hom_f_injective (by tidy) (by tidy) (by tidy) (by tidy)
+  homological_complex.hom_f_injective (by tidy) (by tidy) (by tidy) (by tidy) (by tidy) (by tidy)
 
 instance : preadditive (homological_complex V c) := {}
 
@@ -64,8 +67,6 @@ namespace homological_complex
 
 instance eval_additive (i : ι) : (eval V c i).additive := {}
 
-variables [has_zero_object V]
-
 instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
 variables [has_images V] [has_image_maps V]
@@ -75,15 +76,7 @@ instance boundaries_additive : (boundaries_functor V c i).additive := {}
 variables [has_equalizers V] [has_cokernels V]
 
 instance homology_additive : (homology_functor V c i).additive :=
-{ map_zero' := λ C D, begin
-    dsimp [homology_functor],
-    ext,
-    simp only [limits.cokernel.π_desc, limits.comp_zero, homology.π_map],
-    convert zero_comp,
-    ext,
-    simp,
-  end,
-  map_add' := λ C D f g, begin
+{ map_add' := λ C D f g, begin
     dsimp [homology_functor],
     ext,
     simp only [homology.π_map, preadditive.comp_add, ←preadditive.add_comp],
@@ -145,9 +138,30 @@ by tidy
 
 end category_theory
 
+namespace chain_complex
+
+variables {W : Type*} [category W] [preadditive W]
+variables {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+lemma map_chain_complex_of (F : V ⥤ W) [F.additive] (X : α → V) (d : Π n, X (n+1) ⟶ X n)
+  (sq : ∀ n, d (n+1) ≫ d n = 0) :
+  (F.map_homological_complex _).obj (chain_complex.of X d sq) =
+  chain_complex.of (λ n, F.obj (X n))
+    (λ n, F.map (d n)) (λ n, by rw [ ← F.map_comp, sq n, functor.map_zero]) :=
+begin
+  refine homological_complex.ext rfl _,
+  rintro i j (rfl : j + 1 = i),
+  simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
+    eq_to_hom_refl, comp_id, id_comp],
+end
+
+end chain_complex
+
 variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero_object W]
 
 namespace homological_complex
+
+local attribute [simp] eq_to_hom_map
 
 /--
 Turning an object into a complex supported at `j` then applying a functor is
@@ -207,8 +221,6 @@ end homological_complex
 
 namespace chain_complex
 
--- TODO: dualize to cochain complexes
-
 /--
 Turning an object into a chain complex supported at zero then applying a functor is
 the same as applying the functor then forming the complex.
@@ -247,3 +259,44 @@ nat_iso.of_components (λ X,
   ((single₀_map_homological_complex F).inv.app X).f (n+1) = 0 := rfl
 
 end chain_complex
+
+namespace cochain_complex
+
+/--
+Turning an object into a cochain complex supported at zero then applying a functor is
+the same as applying the functor then forming the cochain complex.
+-/
+def single₀_map_homological_complex (F : V ⥤ W) [F.additive] :
+  single₀ V ⋙ F.map_homological_complex _ ≅ F ⋙ single₀ W :=
+nat_iso.of_components (λ X,
+{ hom := { f := λ i, match i with
+    | 0 := 𝟙 _
+    | (i+1) := F.map_zero_object.hom
+    end, },
+  inv := { f := λ i, match i with
+    | 0 := 𝟙 _
+    | (i+1) := F.map_zero_object.inv
+    end, },
+  hom_inv_id' := begin
+    ext (_|i),
+    { unfold_aux, simp, },
+    { unfold_aux,
+      dsimp,
+      simp only [comp_f, id_f, zero_comp],
+      exact (zero_of_source_iso_zero _ F.map_zero_object).symm, }
+  end,
+  inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simp, }, }, })
+  (λ X Y f, by { ext (_|i); { unfold_aux, dsimp, simp, }, }).
+
+@[simp] lemma single₀_map_homological_complex_hom_app_zero (F : V ⥤ W) [F.additive] (X : V) :
+  ((single₀_map_homological_complex F).hom.app X).f 0 = 𝟙 _ := rfl
+@[simp] lemma single₀_map_homological_complex_hom_app_succ
+  (F : V ⥤ W) [F.additive] (X : V) (n : ℕ) :
+  ((single₀_map_homological_complex F).hom.app X).f (n+1) = 0 := rfl
+@[simp] lemma single₀_map_homological_complex_inv_app_zero (F : V ⥤ W) [F.additive] (X : V) :
+  ((single₀_map_homological_complex F).inv.app X).f 0 = 𝟙 _ := rfl
+@[simp] lemma single₀_map_homological_complex_inv_app_succ
+  (F : V ⥤ W) [F.additive] (X : V) (n : ℕ) :
+  ((single₀_map_homological_complex F).inv.app X).f (n+1) = 0 := rfl
+
+end cochain_complex

@@ -217,7 +217,7 @@ lemma eq_pell_lem : ∀n (b:ℤ√d), 1 ≤ b → is_pell b → b ≤ pell_zd n 
 
 theorem eq_pell_zd (b : ℤ√d) (b1 : 1 ≤ b) (hp : is_pell b) : ∃n, b = pell_zd n :=
 let ⟨n, h⟩ := @zsqrtd.le_arch d b in
-eq_pell_lem n b b1 hp $ zsqrtd.le_trans h $ by rw zsqrtd.coe_nat_val; exact
+eq_pell_lem n b b1 hp $ h.trans $ by rw zsqrtd.coe_nat_val; exact
 zsqrtd.le_of_le_le
   (int.coe_nat_le_coe_nat_of_le $ le_of_lt $ n_lt_xn _ _) (int.coe_zero_le _)
 
@@ -252,11 +252,11 @@ by rw [add_tsub_cancel_of_le h] at t;
     rw [t, mul_comm (pell_zd _ n) _, mul_assoc, (is_pell_norm _).1 (is_pell_pell_zd _ _), mul_one]
 
 theorem xz_sub {m n} (h : n ≤ m) : xz (m - n) = xz m * xz n - d * yz m * yz n :=
-by injection (pell_zd_sub _ h) with h _; repeat {rw ← neg_mul_eq_mul_neg at h}; exact h
+by { rw [sub_eq_add_neg, ←mul_neg], exact congr_arg zsqrtd.re (pell_zd_sub a1 h) }
 
 theorem yz_sub {m n} (h : n ≤ m) : yz (m - n) = xz n * yz m - xz m * yz n :=
-by injection (pell_zd_sub a1 h) with _ h; repeat {rw ← neg_mul_eq_mul_neg at h};
-  rw [add_comm, mul_comm] at h; exact h
+by { rw [sub_eq_add_neg, ←mul_neg, mul_comm, add_comm],
+  exact congr_arg zsqrtd.im (pell_zd_sub a1 h) }
 
 theorem xy_coprime (n) : (xn n).coprime (yn n) :=
 nat.coprime_of_dvd' $ λk kp kx ky,
@@ -350,7 +350,7 @@ by simpa [mul_add, mul_comm, mul_left_comm, add_comm] using congr_arg (* pell_zd
 theorem xy_succ_succ (n) : xn (n + 2) + xn n = (2 * a) * xn (n + 1) ∧
                             yn (n + 2) + yn n = (2 * a) * yn (n + 1) := begin
   have := pell_zd_succ_succ a1 n, unfold pell_zd at this,
-  rw [← int.cast_coe_nat, zsqrtd.smul_val] at this,
+  erw [zsqrtd.smul_val (2 * a : ℕ)] at this,
   injection this with h₁ h₂,
   split; apply int.coe_nat_inj; [simpa using h₁, simpa using h₂]
 end
@@ -480,8 +480,8 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
       {rw tsub_add_cancel_of_le, rw two_mul; exact (add_lt_add_left kn n), exact k2n } in
     have xle : xn (2 * n - k) ≤ xn n, from le_of_lt $ strict_mono_x k2nl,
     suffices xn k % xn n = xn n - xn (2 * n - k), by rw [this, int.coe_nat_sub xle],
-    by {
-      rw ← nat.mod_eq_of_lt (nat.sub_lt (x_pos a1 n) (x_pos a1 (2 * n - k))),
+    by
+    { rw ← nat.mod_eq_of_lt (nat.sub_lt (x_pos a1 n) (x_pos a1 (2 * n - k))),
       apply modeq.add_right_cancel' (xn a1 (2 * n - k)),
       rw [tsub_add_cancel_of_le xle],
       have t := xn_modeq_x2n_sub_lem a1 k2nl.le,
@@ -489,8 +489,8 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
       exact t.trans dvd_rfl.zero_modeq_nat },
   (lt_trichotomy j n).elim
   (λ (jn : j < n), eq_of_xn_modeq_lem1 ij (lt_of_le_of_ne jn jnn)) $ λ o, o.elim
-  (λ (jn : j = n), by {
-    cases jn,
+  (λ (jn : j = n), by
+  { cases jn,
     apply int.lt_of_coe_nat_lt_coe_nat,
     rw [lem2 (n+1) (nat.lt_succ_self _) j2n,
         show 2 * n - (n + 1) = n - 1, by rw[two_mul, tsub_add_eq_tsub_tsub, add_tsub_cancel_right]],
@@ -522,47 +522,48 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
       (λh, lt_trans (eq_of_xn_modeq_lem3 h (le_of_lt j2n) jn $ λ⟨a1, n1, i0, j2⟩,
         by rw [n1, j2] at j2n; exact absurd j2n dec_trivial) s)
       (λh, by rw h; exact s),
-    lem1 (ne_of_gt jn) $ int.lt_of_coe_nat_lt_coe_nat $ by {
-      rw [lem2 j jn (le_of_lt j2n), lem2 (j+1) (nat.le_succ_of_le jn) j2n],
+    lem1 (ne_of_gt jn) $ int.lt_of_coe_nat_lt_coe_nat $ by
+    { rw [lem2 j jn (le_of_lt j2n), lem2 (j+1) (nat.le_succ_of_le jn) j2n],
       refine sub_lt_sub_left (int.coe_nat_lt_coe_nat_of_lt $ strict_mono_x _ _) _,
       rw [nat.sub_succ],
       exact nat.pred_lt (ne_of_gt $ tsub_pos_of_lt j2n) })
 
-theorem eq_of_xn_modeq_le {i j n} (npos : 0 < n) (ij : i ≤ j) (j2n : j ≤ 2 * n)
+theorem eq_of_xn_modeq_le {i j n} (ij : i ≤ j) (j2n : j ≤ 2 * n)
   (h : xn i ≡ xn j [MOD xn n]) (ntriv : ¬(a = 2 ∧ n = 1 ∧ i = 0 ∧ j = 2)) : i = j :=
+if npos : n = 0 then by simp [*] at * else
 (lt_or_eq_of_le ij).resolve_left $ λij',
-if jn : j = n then by {
-  refine ne_of_gt _ h,
+if jn : j = n then by
+{ refine ne_of_gt _ h,
   rw [jn, nat.mod_self],
-  have x0 : 0 < xn a1 0 % xn a1 n := by rw [nat.mod_eq_of_lt (strict_mono_x a1 npos)];
-    exact dec_trivial,
+  have x0 : 0 < xn a1 0 % xn a1 n :=
+    by rw [nat.mod_eq_of_lt (strict_mono_x a1 (nat.pos_of_ne_zero npos))]; exact dec_trivial,
   cases i with i, exact x0,
   rw jn at ij',
-  exact x0.trans (eq_of_xn_modeq_lem3 _ npos (nat.succ_pos _) (le_trans ij j2n) (ne_of_lt ij') $
+  exact x0.trans (eq_of_xn_modeq_lem3 _ (nat.pos_of_ne_zero npos) (nat.succ_pos _)
+    (le_trans ij j2n) (ne_of_lt ij') $
     λ⟨a1, n1, _, i2⟩, by rw [n1, i2] at ij'; exact absurd ij' dec_trivial) }
-else ne_of_lt (eq_of_xn_modeq_lem3 npos ij' j2n jn ntriv) h
+else ne_of_lt (eq_of_xn_modeq_lem3 (nat.pos_of_ne_zero npos) ij' j2n jn ntriv) h
 
-theorem eq_of_xn_modeq {i j n} (npos : 0 < n) (i2n : i ≤ 2 * n) (j2n : j ≤ 2 * n)
+theorem eq_of_xn_modeq {i j n} (i2n : i ≤ 2 * n) (j2n : j ≤ 2 * n)
   (h : xn i ≡ xn j [MOD xn n]) (ntriv : a = 2 → n = 1 → (i = 0 → j ≠ 2) ∧ (i = 2 → j ≠ 0)) :
   i = j :=
 (le_total i j).elim
-  (λij, eq_of_xn_modeq_le npos ij j2n h $ λ⟨a2, n1, i0, j2⟩, (ntriv a2 n1).left i0 j2)
-  (λij, (eq_of_xn_modeq_le npos ij i2n h.symm $ λ⟨a2, n1, j0, i2⟩,
+  (λij, eq_of_xn_modeq_le ij j2n h $ λ⟨a2, n1, i0, j2⟩, (ntriv a2 n1).left i0 j2)
+  (λij, (eq_of_xn_modeq_le ij i2n h.symm $ λ⟨a2, n1, j0, i2⟩,
     (ntriv a2 n1).right i2 j0).symm)
 
 theorem eq_of_xn_modeq' {i j n} (ipos : 0 < i) (hin : i ≤ n) (j4n : j ≤ 4 * n)
   (h : xn j ≡ xn i [MOD xn n]) : j = i ∨ j + i = 4 * n :=
 have i2n : i ≤ 2*n, by apply le_trans hin; rw two_mul; apply nat.le_add_left,
-have npos : 0 < n, from lt_of_lt_of_le ipos hin,
 (le_or_gt j (2 * n)).imp
-  (λj2n : j ≤ 2 * n, eq_of_xn_modeq npos j2n i2n h $
+  (λj2n : j ≤ 2 * n, eq_of_xn_modeq j2n i2n h $
     λa2 n1, ⟨λj0 i2, by rw [n1, i2] at hin; exact absurd hin dec_trivial,
               λj2 i0, ne_of_gt ipos i0⟩)
   (λj2n : 2 * n < j, suffices i = 4*n - j, by rw [this, add_tsub_cancel_of_le j4n],
     have j42n : 4*n - j ≤ 2*n, from @nat.le_of_add_le_add_right j _ _ $
     by rw [tsub_add_cancel_of_le j4n, show 4*n = 2*n + 2*n, from right_distrib 2 2 n];
       exact nat.add_le_add_left (le_of_lt j2n) _,
-    eq_of_xn_modeq npos i2n j42n
+    eq_of_xn_modeq i2n j42n
       (h.symm.trans $ let t := xn_modeq_x4n_sub j42n in by rwa [tsub_tsub_cancel_of_le j4n] at t)
       (λa2 n1, ⟨λi0, absurd i0 (ne_of_gt ipos), λi2, by { rw [n1, i2] at hin,
         exact absurd hin dec_trivial }⟩))

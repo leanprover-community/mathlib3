@@ -3,12 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
-import algebra.group.prod
-import algebra.group.type_tags
-import algebra.group.pi
-import algebra.pointwise
-import data.equiv.basic
-import data.set.finite
+import data.set.pointwise
 
 /-!
 # Torsors of additive group actions
@@ -41,12 +36,6 @@ multiplicative group actions).
 * https://en.wikipedia.org/wiki/Affine_space
 
 -/
-
-/-- Type class for the `-ᵥ` notation. -/
-class has_vsub (G : out_param Type*) (P : Type*) :=
-(vsub : P → P → G)
-
-infix ` -ᵥ `:65 := has_vsub.vsub
 
 /-- An `add_torsor G P` gives a structure to the nonempty type `P`,
 acted on by an `add_group G` with a transitive and free action given
@@ -125,6 +114,9 @@ equal. -/
 @[simp] lemma vsub_eq_zero_iff_eq {p1 p2 : P} : p1 -ᵥ p2 = (0 : G) ↔ p1 = p2 :=
 iff.intro eq_of_vsub_eq_zero (λ h, h ▸ vsub_self _)
 
+lemma vsub_ne_zero {p q : P} : p -ᵥ q ≠ (0 : G) ↔ p ≠ q :=
+not_congr vsub_eq_zero_iff_eq
+
 /-- Cancellation adding the results of two subtractions. -/
 @[simp] lemma vsub_add_vsub_cancel (p1 p2 p3 : P) : p1 -ᵥ p2 + (p2 -ᵥ p3) = (p1 -ᵥ p3) :=
 begin
@@ -136,9 +128,12 @@ end
 of subtracting them. -/
 @[simp] lemma neg_vsub_eq_vsub_rev (p1 p2 : P) : -(p1 -ᵥ p2) = (p2 -ᵥ p1) :=
 begin
-  refine neg_eq_of_add_eq_zero (vadd_right_cancel p1 _),
+  refine neg_eq_of_add_eq_zero_right (vadd_right_cancel p1 _),
   rw [vsub_add_vsub_cancel, vsub_self],
 end
+
+lemma vadd_vsub_eq_sub_vsub (g : G) (p q : P) : g +ᵥ p -ᵥ q = g - (q -ᵥ p) :=
+by rw [vadd_vsub_assoc, sub_eq_add_neg, neg_vsub_eq_vsub_rev]
 
 /-- Subtracting the result of adding a group element produces the same result
 as subtracting the points and subtracting that group element. -/
@@ -162,68 +157,10 @@ lemma vadd_eq_vadd_iff_neg_add_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
 by rw [eq_vadd_iff_vsub_eq, vadd_vsub_assoc, ← add_right_inj (-v₁), neg_add_cancel_left, eq_comm]
 
 namespace set
-
-instance has_vsub : has_vsub (set G) (set P) := ⟨set.image2 (-ᵥ)⟩
-
-section vsub
-
-variables (s t : set P)
-
-@[simp] lemma vsub_empty : s -ᵥ ∅ = ∅ := set.image2_empty_right
-
-@[simp] lemma empty_vsub : ∅ -ᵥ s = ∅ := set.image2_empty_left
-
-@[simp] lemma singleton_vsub (p : P) : {p} -ᵥ s = ((-ᵥ) p) '' s :=
-image2_singleton_left
-
-@[simp] lemma vsub_singleton (p : P) : s -ᵥ {p} = (-ᵥ p) '' s :=
-image2_singleton_right
-
-@[simp] lemma singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
-by simp
-
-variables {s t}
-
-/-- `vsub` of a finite set is finite. -/
-lemma finite.vsub (hs : finite s) (ht : finite t) : finite (s -ᵥ t) :=
-hs.image2 _ ht
-
-/-- Each pairwise difference is in the `vsub` set. -/
-lemma vsub_mem_vsub {ps pt : P} (hs : ps ∈ s) (ht : pt ∈ t) :
-  (ps -ᵥ pt) ∈ s -ᵥ t :=
-mem_image2_of_mem hs ht
-
-@[simp] lemma mem_vsub {s t : set P} (g : G) :
-  g ∈ s -ᵥ t ↔ ∃ (x y : P), x ∈ s ∧ y ∈ t ∧ x -ᵥ y = g :=
-mem_image2
-
-/-- `s -ᵥ t` is monotone in both arguments. -/
-@[mono] lemma vsub_subset_vsub {s' t' : set P} (hs : s ⊆ s') (ht : t ⊆ t') :
-  s -ᵥ t ⊆ s' -ᵥ t' :=
-image2_subset hs ht
-
-lemma vsub_self_mono (h : s ⊆ t) : s -ᵥ s ⊆ t -ᵥ t := vsub_subset_vsub h h
-
-lemma vsub_subset_iff {u : set G} : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u :=
-image2_subset_iff
-
-end vsub
-
 open_locale pointwise
 
-instance add_action : add_action (set G) (set P) :=
-{ zero_vadd := λ s, by simp [has_vadd.vadd, ←singleton_zero, image2_singleton_left],
-  add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd },
-  ..(show has_vadd (set G) (set P), by apply_instance) }
-
-variables {s s' : set G} {t t' : set P}
-
-@[mono] lemma vadd_subset_vadd (hs : s ⊆ s') (ht : t ⊆ t') : s +ᵥ t ⊆ s' +ᵥ t' :=
-image2_subset hs ht
-
-@[simp] lemma vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s := image2_singleton_right
-
-lemma finite.vadd (hs : finite s) (ht : finite t) : finite (s +ᵥ t) := hs.image2 _ ht
+@[simp] lemma singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
+by rw [set.singleton_vsub_singleton, vsub_self]
 
 end set
 
@@ -436,5 +373,5 @@ lemma add_torsor.subsingleton_iff (G P : Type*) [add_group G] [add_torsor G P] :
   subsingleton G ↔ subsingleton P :=
 begin
   inhabit P,
-  exact (equiv.vadd_const (default P)).subsingleton_congr,
+  exact (equiv.vadd_const default).subsingleton_congr,
 end

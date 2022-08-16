@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
-import algebra.group_power
+import algebra.group_power.lemmas
+import logic.function.iterate
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -26,7 +27,7 @@ instance perm_group : group (perm α) :=
   mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
@@ -51,9 +52,13 @@ lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
 
-lemma zpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+lemma zpow_apply_comm {α : Type*} (σ : perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
 by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
+
+@[simp] lemma iterate_eq_pow (f : perm α) : ∀ n, f^[n] = ⇑(f ^ n)
+| 0       := rfl
+| (n + 1) := by { rw [function.iterate_succ, pow_add, iterate_eq_pow], refl }
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -74,13 +79,13 @@ equiv.refl_trans e
 
 @[simp] lemma refl_mul (e : perm α) : equiv.refl α * e = e := equiv.refl_trans e
 
-@[simp] lemma inv_trans (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans e
+@[simp] lemma inv_trans_self (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans_self e
 
-@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans e
+@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans_self e
 
-@[simp] lemma trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.trans_symm e
+@[simp] lemma self_trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.self_trans_symm e
 
-@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.trans_symm e
+@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.self_trans_symm e
 
 /-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
 
@@ -203,12 +208,12 @@ extend_domain_trans _ _ _
   map_mul' := λ e e', (extend_domain_mul f e e').symm }
 
 lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
-((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
+(injective_iff_map_eq_one (extend_domain_hom f)).mpr (λ e he, ext (λ x, f.injective (subtype.ext
   ((extend_domain_apply_image e f x).symm.trans (ext_iff.mp he (f x))))))
 
 @[simp] lemma extend_domain_eq_one_iff {e : perm α} {f : α ≃ subtype p} :
   e.extend_domain f = 1 ↔ e = 1 :=
-(extend_domain_hom f).injective_iff'.mp (extend_domain_hom_injective f) e
+(injective_iff_map_eq_one' (extend_domain_hom f)).mp (extend_domain_hom_injective f) e
 
 end extend_domain
 
@@ -285,7 +290,7 @@ else by simp [h, of_subtype_apply_of_not_mem f h]
 equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
   simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
 
-@[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
+@[simp] lemma default_perm {n : Type*} : (default : perm n) = 1 := rfl
 
 /-- Permutations on a subtype are equivalent to permutations on the original type that fix pointwise
 the rest. -/

@@ -3,7 +3,7 @@ Copyright (c) 2019 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.setoid.basic
 import dynamics.fixed_points.topology
 
@@ -59,7 +59,7 @@ suffices edist x y ≤ edist x (f x) + edist y (f y) + K * edist x y,
     mul_comm, ennreal.sub_mul (λ _ _, h), one_mul, tsub_le_iff_right],
 calc edist x y ≤ edist x (f x) + edist (f x) (f y) + edist (f y) y : edist_triangle4 _ _ _ _
   ... = edist x (f x) + edist y (f y) + edist (f x) (f y) : by rw [edist_comm y, add_right_comm]
-  ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add (le_refl _) (hf.2 _ _)
+  ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add le_rfl (hf.2 _ _)
 
 lemma edist_le_of_fixed_point (hf : contracting_with K f) {x y}
   (h : edist x y ≠ ∞) (hy : is_fixed_pt f y) :
@@ -324,7 +324,7 @@ begin
   rw [← iterate_succ_apply, iterate_succ_apply', hx] at this,
   contrapose! this,
   have := dist_pos.2 (ne.symm this),
-  simpa only [nnreal.coe_one, one_mul] using (mul_lt_mul_right this).2 hf.1
+  simpa only [nnreal.coe_one, one_mul, nnreal.val_eq_coe] using (mul_lt_mul_right this).mpr hf.left
 end
 
 end contracting_with

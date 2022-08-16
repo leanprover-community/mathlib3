@@ -3,8 +3,8 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
+import algebra.hom.equiv
 import data.zmod.basic
-import data.equiv.mul_add
 import tactic.group
 
 /-!
@@ -76,7 +76,7 @@ Use `open_locale quandles` to use these.
 
 rack, quandle
 -/
-open opposite
+open mul_opposite
 
 universes u v
 
@@ -169,20 +169,15 @@ end
 /--
 The opposite rack, swapping the roles of `◃` and `◃⁻¹`.
 -/
-instance opposite_rack : rack Rᵒᵖ :=
+instance opposite_rack : rack Rᵐᵒᵖ :=
 { act := λ x y, op (inv_act (unop x) (unop y)),
-  self_distrib := λ (x y z : Rᵒᵖ), begin
-    induction x using opposite.rec, induction y using opposite.rec, induction z using opposite.rec,
-    simp only [unop_op, op_inj_iff],
+  self_distrib := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, mul_opposite.rec $ λ z, begin
+    simp only [unop_op, op_inj],
     exact self_distrib_inv,
   end,
   inv_act := λ x y, op (shelf.act (unop x) (unop y)),
-  left_inv := λ x y, begin
-    induction x using opposite.rec, induction y using opposite.rec, simp,
-  end,
-  right_inv := λ x y, begin
-    induction x using opposite.rec, induction y using opposite.rec, simp,
-  end }
+  left_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simp,
+  right_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simp }
 
 @[simp] lemma op_act_op_eq {x y : R} : (op x) ◃ (op y) = op (x ◃⁻¹ y) := rfl
 @[simp] lemma op_inv_act_op_eq {x y : R} : (op x) ◃⁻¹ (op y) = op (x ◃ y) := rfl
@@ -296,14 +291,14 @@ attribute [simp] fix
 lemma fix_inv {x : Q} : x ◃⁻¹ x = x :=
 by { rw ←left_cancel x, simp }
 
-instance opposite_quandle : quandle Qᵒᵖ :=
-{ fix := λ x, by { induction x using opposite.rec, simp } }
+instance opposite_quandle : quandle Qᵐᵒᵖ :=
+{ fix := λ x, by { induction x using mul_opposite.rec, simp } }
 
 /--
 The conjugation quandle of a group.  Each element of the group acts by
 the corresponding inner automorphism.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def conj (G : Type*) := G
 
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
@@ -324,7 +319,7 @@ lemma conj_act_eq_conj {G : Type*} [group G] (x y : conj G) :
 lemma conj_swap {G : Type*} [group G] (x y : conj G) :
   x ◃ y = y ↔ y ◃ x = x :=
 begin
-  dsimp, split,
+  dsimp [conj] at *, split,
   repeat { intro h, conv_rhs { rw eq_mul_inv_of_mul_eq (eq_mul_inv_of_mul_eq h) }, simp, },
 end
 
@@ -343,7 +338,7 @@ The dihedral quandle. This is the conjugation quandle of the dihedral group rest
 
 Used for Fox n-colorings of knots.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def dihedral (n : ℕ) := zmod n
 
 /--
@@ -359,13 +354,13 @@ by { intro b, dsimp [dihedral_act], ring }
 instance (n : ℕ) : quandle (dihedral n) :=
 { act := dihedral_act n,
   self_distrib := λ x y z, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end,
   inv_act := dihedral_act n,
   left_inv := λ x, (dihedral_act.inv n x).left_inverse,
   right_inv := λ x, (dihedral_act.inv n x).right_inverse,
   fix := λ x, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end }
 
 end quandle
@@ -600,7 +595,7 @@ def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G] :
   { to_fun := λ x, quotient.lift_on x (to_envel_group.map_aux f)
                     (λ a b ⟨hab⟩, to_envel_group.map_aux.well_def f hab),
     map_one' := begin
-      change quotient.lift_on ⟦unit⟧ (to_envel_group.map_aux f) _ = 1,
+      change quotient.lift_on ⟦rack.pre_envel_group.unit⟧ (to_envel_group.map_aux f) _ = 1,
       simp [to_envel_group.map_aux],
     end,
     map_mul' := λ x y, quotient.induction_on₂ x y (λ x y, begin

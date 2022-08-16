@@ -92,6 +92,6 @@ lemma induction_on_pi_min [Π i, linear_order (α i)] {p : (Π i, finset (α i))
   (step : ∀ (g : Π i, finset (α i)) (i : ι) (x : α i),
     (∀ y ∈ g i, x < y) → p g → p (update g i (insert x (g i)))) :
   p f :=
-@induction_on_pi_max ι (λ i, order_dual (α i)) _ _ _ _ _ _ h0 step
+@induction_on_pi_max ι (λ i, (α i)ᵒᵈ) _ _ _ _ _ _ h0 step
 
 end finset

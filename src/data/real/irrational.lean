@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov
 -/
 import data.real.sqrt
-import data.rat.sqrt
-import ring_theory.int.basic
-import data.polynomial.eval
-import data.polynomial.degree
 import tactic.interval_cases
 import ring_theory.algebraic
+import data.rat.sqrt
+import data.polynomial.eval
+import ring_theory.int.basic
 /-!
 # Irrational real numbers
 
@@ -54,8 +53,7 @@ begin
   have hdivn : ↑D ^ n ∣ N ^ n := dvd.intro_left m hxr,
   rw [← int.dvd_nat_abs, ← int.coe_nat_pow, int.coe_nat_dvd, int.nat_abs_pow,
     nat.pow_dvd_pow_iff hnpos] at hdivn,
-  have hD : D = 1 := by rw [← nat.gcd_eq_right hdivn, C.gcd_eq_one],
-  subst D,
+  obtain rfl : D = 1 := by rw [← nat.gcd_eq_right hdivn, C.gcd_eq_one],
   refine hv ⟨N, _⟩,
   rw [num_denom', int.coe_nat_one, mk_eq_div, int.cast_one, div_one, cast_coe_int]
 end
@@ -136,7 +134,7 @@ by { rw ← rat.cast_coe_int, exact h.ne_rat _ }
 
 theorem ne_nat (h : irrational x) (m : ℕ) : x ≠ m := h.ne_int m
 
-theorem ne_zero (h : irrational x) : x ≠ 0 := h.ne_nat 0
+theorem ne_zero (h : irrational x) : x ≠ 0 := by exact_mod_cast h.ne_nat 0
 
 theorem ne_one (h : irrational x) : x ≠ 1 := by simpa only [nat.cast_one] using h.ne_nat 1
 
@@ -298,7 +296,7 @@ theorem of_inv (h : irrational x⁻¹) : irrational x :=
 λ ⟨q, hq⟩, h $ hq ▸ ⟨q⁻¹, q.cast_inv⟩
 
 protected theorem inv (h : irrational x) : irrational x⁻¹ :=
-of_inv $ by rwa inv_inv₀
+of_inv $ by rwa inv_inv
 
 /-!
 #### Division

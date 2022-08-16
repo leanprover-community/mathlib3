@@ -49,7 +49,7 @@ begin
   simp only [sublists'_cons, mem_append, IH, mem_map],
   split; intro h, rcases h with h | ⟨s, h, rfl⟩,
   { exact sublist_cons_of_sublist _ h },
-  { exact cons_sublist_cons _ h },
+  { exact h.cons_cons _ },
   { cases h with _ _ _ h s _ _ h,
     { exact or.inl h },
     { exact or.inr ⟨s, h, rfl⟩ } }
@@ -281,5 +281,14 @@ end
     ((sublists_len_sublist_sublists' _ _).subset h),
   length_of_sublists_len h⟩,
 λ ⟨h₁, h₂⟩, h₂ ▸ mem_sublists_len_self h₁⟩
+
+lemma sublists_len_of_length_lt {n} {l : list α} (h : l.length < n) : sublists_len n l = [] :=
+eq_nil_iff_forall_not_mem.mpr $ λ x, mem_sublists_len.not.mpr $ λ ⟨hs, hl⟩,
+  (h.trans_eq hl.symm).not_le (length_le_of_sublist hs)
+
+@[simp] lemma sublists_len_length : ∀ (l : list α), sublists_len l.length l = [l]
+| [] := rfl
+| (a::l) := by rw [length, sublists_len_succ_cons, sublists_len_length, map_singleton,
+                   sublists_len_of_length_lt (lt_succ_self _), nil_append]
 
 end list

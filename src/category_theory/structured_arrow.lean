@@ -3,15 +3,15 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
-import category_theory.comma
 import category_theory.punit
+import category_theory.comma
 import category_theory.limits.shapes.terminal
 
 /-!
 # The category of "structured arrows"
 
 For `T : C ⥤ D`, a `T`-structured arrow with source `S : D`
-is just a morphism `S ⟶ T.obj Y`, for some `Y : D`.
+is just a morphism `S ⟶ T.obj Y`, for some `Y : C`.
 
 These form a category with morphisms `g : Y ⟶ Y'` making the obvious diagram commute.
 
@@ -29,7 +29,7 @@ The category of `T`-structured arrows with domain `S : D` (here `T : C ⥤ D`),
 has as its objects `D`-morphisms of the form `S ⟶ T Y`, for some `Y : C`,
 and morphisms `C`-morphisms `Y ⟶ Y'` making the obvious triangle commute.
 -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def structured_arrow (S : D) (T : C ⥤ D) := comma (functor.from_punit S) T
 
 namespace structured_arrow
@@ -41,17 +41,14 @@ def proj (S : D) (T : C ⥤ D) : structured_arrow S T ⥤ C := comma.snd _ _
 variables {S S' S'' : D} {Y Y' : C} {T : C ⥤ D}
 
 /-- Construct a structured arrow from a morphism. -/
-def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟩, Y, f⟩
+def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟨⟩⟩, Y, f⟩
 
-@[simp] lemma mk_left (f : S ⟶ T.obj Y) : (mk f).left = punit.star := rfl
+@[simp] lemma mk_left (f : S ⟶ T.obj Y) : (mk f).left = ⟨⟨⟩⟩ := rfl
 @[simp] lemma mk_right (f : S ⟶ T.obj Y) : (mk f).right = Y := rfl
 @[simp] lemma mk_hom_eq_self (f : S ⟶ T.obj Y) : (mk f).hom = f := rfl
 
 @[simp, reassoc] lemma w {A B : structured_arrow S T} (f : A ⟶ B) : A.hom ≫ T.map f.right = B.hom :=
 by { have := f.w; tidy }
-
-lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
-by { cases f, congr, ext, }
 
 /--
 To construct a morphism of structured arrows,
@@ -81,7 +78,41 @@ and to check that the triangle commutes.
 @[simps]
 def iso_mk {f f' : structured_arrow S T} (g : f.right ≅ f'.right)
   (w : f.hom ≫ T.map g.hom = f'.hom) : f ≅ f' :=
-comma.iso_mk (eq_to_iso (by ext)) g (by simpa using w.symm)
+comma.iso_mk (eq_to_iso (by ext)) g (by simpa [eq_to_hom_map] using w.symm)
+
+lemma ext {A B : structured_arrow S T} (f g : A ⟶ B) : f.right = g.right → f = g :=
+comma_morphism.ext _ _ (subsingleton.elim _ _)
+
+lemma ext_iff {A B : structured_arrow S T} (f g : A ⟶ B) : f = g ↔ f.right = g.right :=
+⟨λ h, h ▸ rfl, ext f g⟩
+
+instance proj_faithful : faithful (proj S T) :=
+{ map_injective' := λ X Y, ext }
+
+/-- The converse of this is true with additional assumptions, see `mono_iff_mono_right`. -/
+lemma mono_of_mono_right {A B : structured_arrow S T} (f : A ⟶ B) [h : mono f.right] : mono f :=
+(proj S T).mono_of_mono_map h
+
+lemma epi_of_epi_right {A B : structured_arrow S T} (f : A ⟶ B) [h : epi f.right] : epi f :=
+(proj S T).epi_of_epi_map h
+
+instance mono_hom_mk {A B : structured_arrow S T} (f : A.right ⟶ B.right) (w) [h : mono f] :
+  mono (hom_mk f w) :=
+(proj S T).mono_of_mono_map h
+
+instance epi_hom_mk {A B : structured_arrow S T} (f : A.right ⟶ B.right) (w) [h : epi f] :
+  epi (hom_mk f w) :=
+(proj S T).epi_of_epi_map h
+
+/-- Eta rule for structured arrows. Prefer `structured_arrow.eta`, since equality of objects tends
+    to cause problems. -/
+lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
+by { cases f, congr, ext, }
+
+/-- Eta rule for structured arrows. -/
+@[simps]
+def eta (f : structured_arrow S T) : f ≅ mk f.hom :=
+iso_mk (iso.refl _) (by tidy)
 
 /--
 A morphism between source objects `S ⟶ S'`
@@ -111,6 +142,8 @@ instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
   ⟨⟨structured_arrow.hom_mk (inv ((proj S T).map f)) (by simp), by tidy⟩⟩ }
 
 open category_theory.limits
+
+local attribute [tidy] tactic.discrete_cases
 
 /-- The identity structured arrow is initial. -/
 def mk_id_initial [full T] [faithful T] : is_initial (mk (𝟙 (T.obj Y))) :=
@@ -143,7 +176,7 @@ The category of `S`-costructured arrows with target `T : D` (here `S : C ⥤ D`)
 has as its objects `D`-morphisms of the form `S Y ⟶ T`, for some `Y : C`,
 and morphisms `C`-morphisms `Y ⟶ Y'` making the obvious triangle commute.
 -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def costructured_arrow (S : C ⥤ D) (T : D) := comma S (functor.from_punit T)
 
 namespace costructured_arrow
@@ -155,18 +188,15 @@ def proj (S : C ⥤ D) (T : D) : costructured_arrow S T ⥤ C := comma.fst _ _
 variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}
 
 /-- Construct a costructured arrow from a morphism. -/
-def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟩, f⟩
+def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟨⟩⟩, f⟩
 
 @[simp] lemma mk_left (f : S.obj Y ⟶ T) : (mk f).left = Y := rfl
-@[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = punit.star := rfl
+@[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = ⟨⟨⟩⟩ := rfl
 @[simp] lemma mk_hom_eq_self (f : S.obj Y ⟶ T) : (mk f).hom = f := rfl
 
 @[simp, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) :
   S.map f.left ≫ B.hom = A.hom :=
 by tidy
-
-lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=
-by { cases f, congr, ext, }
 
 /--
 To construct a morphism of costructured arrows,
@@ -178,7 +208,7 @@ def hom_mk {f f' : costructured_arrow S T} (g : f.left ⟶ f'.left) (w : S.map g
   f ⟶ f' :=
 { left := g,
   right := eq_to_hom (by ext),
-  w' := by simpa using w, }
+  w' := by simpa [eq_to_hom_map] using w, }
 
 /--
 To construct an isomorphism of costructured arrows,
@@ -188,7 +218,41 @@ and to check that the triangle commutes.
 @[simps]
 def iso_mk {f f' : costructured_arrow S T} (g : f.left ≅ f'.left)
   (w : S.map g.hom ≫ f'.hom = f.hom) : f ≅ f' :=
-comma.iso_mk g (eq_to_iso (by ext)) (by simpa using w)
+comma.iso_mk g (eq_to_iso (by ext)) (by simpa [eq_to_hom_map] using w)
+
+lemma ext {A B : costructured_arrow S T} (f g : A ⟶ B) (h : f.left = g.left) : f = g :=
+comma_morphism.ext _ _ h (subsingleton.elim _ _)
+
+lemma ext_iff {A B : costructured_arrow S T} (f g : A ⟶ B) : f = g ↔ f.left = g.left :=
+⟨λ h, h ▸ rfl, ext f g⟩
+
+instance proj_faithful : faithful (proj S T) :=
+{ map_injective' := λ X Y, ext }
+
+lemma mono_of_mono_left {A B : costructured_arrow S T} (f : A ⟶ B) [h : mono f.left] : mono f :=
+(proj S T).mono_of_mono_map h
+
+/-- The converse of this is true with additional assumptions, see `epi_iff_epi_left`. -/
+lemma epi_of_epi_left {A B : costructured_arrow S T} (f : A ⟶ B) [h : epi f.left] : epi f :=
+(proj S T).epi_of_epi_map h
+
+instance mono_hom_mk {A B : costructured_arrow S T} (f : A.left ⟶ B.left) (w) [h : mono f] :
+  mono (hom_mk f w) :=
+(proj S T).mono_of_mono_map h
+
+instance epi_hom_mk {A B : costructured_arrow S T} (f : A.left ⟶ B.left) (w) [h : epi f] :
+  epi (hom_mk f w) :=
+(proj S T).epi_of_epi_map h
+
+/-- Eta rule for costructured arrows. Prefer `costructured_arrow.eta`, as equality of objects tends
+    to cause problems. -/
+lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=
+by { cases f, congr, ext, }
+
+/-- Eta rule for costructured arrows. -/
+@[simps]
+def eta (f : costructured_arrow S T) : f ≅ mk f.hom :=
+iso_mk (iso.refl _) (by tidy)
 
 /--
 A morphism between target objects `T ⟶ T'`
@@ -218,6 +282,8 @@ instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
   ⟨⟨costructured_arrow.hom_mk (inv ((proj S T).map f)) (by simp), by tidy⟩⟩ }
 
 open category_theory.limits
+
+local attribute [tidy] tactic.discrete_cases
 
 /-- The identity costructured arrow is terminal. -/
 def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
@@ -262,7 +328,7 @@ def to_costructured_arrow (F : C ⥤ D) (d : D) :
   map := λ X Y f, costructured_arrow.hom_mk (f.unop.right.op)
   begin
     dsimp,
-    rw [← op_comp, ← f.unop.w, functor.const.obj_map],
+    rw [← op_comp, ← f.unop.w, functor.const_obj_map],
     erw category.id_comp,
   end }
 
@@ -279,7 +345,7 @@ def to_costructured_arrow' (F : C ⥤ D) (d : D) :
   begin
     dsimp,
     rw [← quiver.hom.unop_op (F.map (quiver.hom.unop f.unop.right)), ← unop_comp, ← F.op_map,
-      ← f.unop.w, functor.const.obj_map],
+      ← f.unop.w, functor.const_obj_map],
     erw category.id_comp,
   end }
 
@@ -299,7 +365,7 @@ def to_structured_arrow (F : C ⥤ D) (d : D) :
   map := λ X Y f, structured_arrow.hom_mk f.unop.left.op
   begin
     dsimp,
-    rw [← op_comp, f.unop.w, functor.const.obj_map],
+    rw [← op_comp, f.unop.w, functor.const_obj_map],
     erw category.comp_id,
   end }
 
@@ -316,7 +382,7 @@ def to_structured_arrow' (F : C ⥤ D) (d : D) :
   begin
     dsimp,
     rw [← quiver.hom.unop_op (F.map f.unop.left.unop), ← unop_comp, ← F.op_map,
-      f.unop.w, functor.const.obj_map],
+      f.unop.w, functor.const_obj_map],
     erw category.comp_id,
   end }
 

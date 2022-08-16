@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Justus Springer
+Authors: Justus Springer, Andrew Yang
 -/
+import algebra.category.Ring.filtered_colimits
 import algebraic_geometry.sheafed_space
-import algebraic_geometry.stalks
-import algebra.category.CommRing.limits
-import algebra.category.CommRing.colimits
-import algebra.category.CommRing.filtered_colimits
+import topology.sheaves.stalks
+import algebra.category.Ring.colimits
+import algebra.category.Ring.limits
 
 /-!
 # Ringed spaces
@@ -15,7 +15,7 @@ import algebra.category.CommRing.filtered_colimits
 We introduce the category of ringed spaces, as an alias for `SheafedSpace CommRing`.
 
 The facts collected in this file are typically stated for locally ringed spaces, but never actually
-make use of the locality of stalks. See for instance https://stacks.math.columbia.edu/tag/01HZ.
+make use of the locality of stalks. See for instance <https://stacks.math.columbia.edu/tag/01HZ>.
 
 -/
 
@@ -93,36 +93,102 @@ begin
 end
 
 /--
-The basic open of a global section `f` is the set of all points `x`, such that the germ of `f` at
+The basic open of a section `f` is the set of all points `x`, such that the germ of `f` at
 `x` is a unit.
 -/
-def basic_open (f : Γ.obj (op X)) : opens X :=
-{ val := { x : X | is_unit (X.presheaf.germ (⟨x, trivial⟩ : (⊤ : opens X)) f) },
+def basic_open {U : opens X} (f : X.presheaf.obj (op U)) : opens X :=
+{ val := coe '' { x : U | is_unit (X.presheaf.germ x f) },
   property := begin
     rw is_open_iff_forall_mem_open,
-    intros x hx,
-    obtain ⟨U, i, hxU, hf⟩ := X.is_unit_res_of_is_unit_germ ⊤ f ⟨x, trivial⟩ hx,
-    use U.1,
-    refine ⟨_, U.2, hxU⟩,
+    rintros _ ⟨x, hx, rfl⟩,
+    obtain ⟨V, i, hxV, hf⟩ := X.is_unit_res_of_is_unit_germ U f x hx,
+    use V.1,
+    refine ⟨_, V.2, hxV⟩,
     intros y hy,
+    use (⟨y, i.le hy⟩ : U),
     rw set.mem_set_of_eq,
-    convert ring_hom.is_unit_map (X.presheaf.germ ⟨y, hy⟩) hf,
-    exact (X.presheaf.germ_res_apply i ⟨y, hy⟩ f).symm,
+    split,
+    { convert ring_hom.is_unit_map (X.presheaf.germ ⟨y, hy⟩) hf,
+      exact (X.presheaf.germ_res_apply i ⟨y, hy⟩ f).symm },
+    { refl }
   end }
 
 @[simp]
-lemma mem_basic_open (f : Γ.obj (op X)) (x : X) :
-  x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ (⟨x, trivial⟩ : (⊤ : opens X)) f) := iff.rfl
+lemma mem_basic_open {U : opens X} (f : X.presheaf.obj (op U)) (x : U) :
+  ↑x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ x f) :=
+begin
+  split,
+  { rintro ⟨x, hx, a⟩, cases subtype.eq a, exact hx },
+  { intro h, exact ⟨x, h, rfl⟩ },
+end
 
-/-- The restriction of a global section `f` to the basic open of `f` is a unit. -/
-lemma is_unit_res_basic_open (f : Γ.obj (op X)) :
-  is_unit (X.presheaf.map (opens.le_top (X.basic_open f)).op f) :=
+@[simp]
+lemma mem_top_basic_open (f : X.presheaf.obj (op ⊤)) (x : X) :
+  x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ ⟨x, show x ∈ (⊤ : opens X), by trivial⟩ f) :=
+mem_basic_open X f ⟨x, _⟩
+
+lemma basic_open_subset {U : opens X} (f : X.presheaf.obj (op U)) : X.basic_open f ⊆ U :=
+by { rintros _ ⟨x, hx, rfl⟩, exact x.2 }
+
+/-- The restriction of a section `f` to the basic open of `f` is a unit. -/
+lemma is_unit_res_basic_open {U : opens X} (f : X.presheaf.obj (op U)) :
+  is_unit (X.presheaf.map (@hom_of_le (opens X) _ _ _ (X.basic_open_subset f)).op f) :=
 begin
   apply is_unit_of_is_unit_germ,
-  rintro ⟨x, hx⟩,
+  rintro ⟨_, ⟨x, hx, rfl⟩⟩,
   convert hx,
   rw germ_res_apply,
   refl,
+end
+
+@[simp] lemma basic_open_res {U V : (opens X)ᵒᵖ} (i : U ⟶ V) (f : X.presheaf.obj U) :
+  @basic_open X (unop V) (X.presheaf.map i f) = (unop V) ∩ @basic_open X (unop U) f :=
+begin
+  induction U using opposite.rec,
+  induction V using opposite.rec,
+  let g := i.unop, have : i = g.op := rfl, clear_value g, subst this,
+  ext, split,
+  { rintro ⟨x, (hx : is_unit _), rfl⟩,
+    rw germ_res_apply at hx,
+    exact ⟨x.2, g x, hx, rfl⟩ },
+  { rintros ⟨hxV, x, hx, rfl⟩,
+    refine ⟨⟨x, hxV⟩, (_ : is_unit _), rfl⟩,
+    rwa germ_res_apply }
+end
+
+-- This should fire before `basic_open_res`.
+@[simp, priority 1100] lemma basic_open_res_eq {U V : (opens X)ᵒᵖ} (i : U ⟶ V) [is_iso i]
+  (f : X.presheaf.obj U) :
+  @basic_open X (unop V) (X.presheaf.map i f) = @RingedSpace.basic_open X (unop U) f :=
+begin
+  apply le_antisymm,
+  { rw X.basic_open_res i f, exact inf_le_right },
+  { have := X.basic_open_res (inv i) (X.presheaf.map i f),
+    rw [← comp_apply, ← X.presheaf.map_comp, is_iso.hom_inv_id, X.presheaf.map_id] at this,
+    erw this,
+    exact inf_le_right }
+end
+
+@[simp] lemma basic_open_mul {U : opens X} (f g : X.presheaf.obj (op U)) :
+  X.basic_open (f * g) = X.basic_open f ⊓ X.basic_open g :=
+begin
+  ext1,
+  dsimp [RingedSpace.basic_open],
+  rw set.image_inter subtype.coe_injective,
+  congr,
+  ext,
+  simp_rw map_mul,
+  exact is_unit.mul_iff,
+end
+
+lemma basic_open_of_is_unit {U : opens X} {f : X.presheaf.obj (op U)} (hf : is_unit f) :
+  X.basic_open f = U :=
+begin
+  apply le_antisymm,
+  { exact X.basic_open_subset f },
+  intros x hx,
+  erw X.mem_basic_open f (⟨x, hx⟩ : U),
+  exact ring_hom.is_unit_map _ hf
 end
 
 end RingedSpace

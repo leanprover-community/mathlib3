@@ -3,13 +3,14 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction
+import category_theory.adjunction.limits
+import category_theory.adjunction.opposites
 import category_theory.elements
 import category_theory.limits.functor_category
+import category_theory.limits.kan_extension
 import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
-import category_theory.limits.kan_extension
 
 /-!
 # Colimit of representables
@@ -85,7 +86,7 @@ It is shown in `restrict_yoneda_hom_equiv_natural` that this is a natural biject
 def restrict_yoneda_hom_equiv (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ)
   {c : cocone ((category_of_elements.π P).left_op ⋙ A)} (t : is_colimit c) :
   (c.X ⟶ E) ≃ (P ⟶ (restricted_yoneda A).obj E) :=
-(t.hom_iso' E).to_equiv.trans
+((ulift_trivial _).symm ≪≫ t.hom_iso' E).to_equiv.trans
 { to_fun := λ k,
   { app := λ c p, k.1 (opposite.op ⟨_, p⟩),
     naturality' := λ c c' f, funext $ λ p,
@@ -147,7 +148,7 @@ begin
   ext J,
   erw colimit.ι_pre ((category_of_elements.π Y).left_op ⋙ A) (category_of_elements.map f).op,
   dsimp only [extend_along_yoneda, restrict_yoneda_hom_equiv,
-    is_colimit.hom_iso', is_colimit.hom_iso],
+    is_colimit.hom_iso', is_colimit.hom_iso, ulift_trivial],
   simpa
 end
 
@@ -177,7 +178,8 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
     simp_rw ← m.2,
     dsimp [elements.initial],
     simp,
-  end }
+  end,
+  fac' := by rintros s ⟨⟨⟩⟩, }
 
 /--
 `extend_along_yoneda A` is an extension of `A` to the presheaf category along the yoneda embedding.
@@ -185,7 +187,7 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
 property (up to isomorphism).
 
 The first part of [MM92], Chapter I, Section 5, Corollary 4.
-See Property 1 of https://ncatlab.org/nlab/show/Yoneda+extension#properties.
+See Property 1 of <https://ncatlab.org/nlab/show/Yoneda+extension#properties>.
 -/
 def is_extension_along_yoneda : (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ⋙ extend_along_yoneda A ≅ A :=
 nat_iso.of_components
@@ -250,10 +252,23 @@ begin
   apply category_of_elements.costructured_arrow_yoneda_equivalence_naturality,
 end
 
+/-- extending `F ⋙ yoneda` along the yoneda embedding is isomorphic to `Lan F.op`. -/
+@[simps] def extend_of_comp_yoneda_iso_Lan {D : Type u₁} [small_category D] (F : C ⥤ D) :
+  extend_along_yoneda (F ⋙ yoneda) ≅ Lan F.op :=
+adjunction.nat_iso_of_right_adjoint_nat_iso
+  (yoneda_adjunction (F ⋙ yoneda))
+  (Lan.adjunction (Type u₁) F.op)
+  (iso_whisker_right curried_yoneda_lemma' ((whiskering_left Cᵒᵖ Dᵒᵖ (Type u₁)).obj F.op : _))
 
 end colimit_adj
 
 open colimit_adj
+
+/-- `F ⋙ yoneda` is naturally isomorphic to `yoneda ⋙ Lan F.op`. -/
+@[simps] def comp_yoneda_iso_yoneda_comp_Lan {D : Type u₁} [small_category D] (F : C ⥤ D) :
+  F ⋙ yoneda ≅ yoneda ⋙ Lan F.op :=
+(is_extension_along_yoneda (F ⋙ yoneda)).symm ≪≫
+  iso_whisker_left yoneda (extend_of_comp_yoneda_iso_Lan F)
 
 /--
 Since `extend_along_yoneda A` is adjoint to `restricted_yoneda A`, if we use `A = yoneda`

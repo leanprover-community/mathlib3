@@ -3,7 +3,7 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yourong Zang
 -/
-import analysis.calculus.times_cont_diff
+import analysis.calculus.cont_diff
 import analysis.complex.conformal
 import analysis.calculus.conformal.normed_space
 
@@ -64,22 +64,22 @@ begin
   simpa using (C.comp z (B.comp z A)).has_deriv_at
 end
 
-theorem times_cont_diff_at.real_of_complex {n : with_top ℕ} (h : times_cont_diff_at ℂ n e z) :
-  times_cont_diff_at ℝ n (λ x : ℝ, (e x).re) z :=
+theorem cont_diff_at.real_of_complex {n : with_top ℕ} (h : cont_diff_at ℂ n e z) :
+  cont_diff_at ℝ n (λ x : ℝ, (e x).re) z :=
 begin
-  have A : times_cont_diff_at ℝ n (coe : ℝ → ℂ) z,
-    from of_real_clm.times_cont_diff.times_cont_diff_at,
-  have B : times_cont_diff_at ℝ n e z := h.restrict_scalars ℝ,
-  have C : times_cont_diff_at ℝ n re (e z), from re_clm.times_cont_diff.times_cont_diff_at,
+  have A : cont_diff_at ℝ n (coe : ℝ → ℂ) z,
+    from of_real_clm.cont_diff.cont_diff_at,
+  have B : cont_diff_at ℝ n e z := h.restrict_scalars ℝ,
+  have C : cont_diff_at ℝ n re (e z), from re_clm.cont_diff.cont_diff_at,
   exact C.comp z (B.comp z A)
 end
 
-theorem times_cont_diff.real_of_complex {n : with_top ℕ} (h : times_cont_diff ℂ n e) :
-  times_cont_diff ℝ n (λ x : ℝ, (e x).re) :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x,
-  h.times_cont_diff_at.real_of_complex
+theorem cont_diff.real_of_complex {n : with_top ℕ} (h : cont_diff ℂ n e) :
+  cont_diff ℝ n (λ x : ℝ, (e x).re) :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
+  h.cont_diff_at.real_of_complex
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 
 lemma has_strict_deriv_at.complex_to_real_fderiv' {f : ℂ → E} {x : ℂ} {f' : E}
   (h : has_strict_deriv_at f f' x) :
@@ -122,22 +122,17 @@ section conformality
 open complex continuous_linear_map
 open_locale complex_conjugate
 
-variables
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {z : ℂ} {f : ℂ → E}
 
 /-- A real differentiable function of the complex plane into some complex normed space `E` is
     conformal at a point `z` if it is holomorphic at that point with a nonvanishing differential.
     This is a version of the Cauchy-Riemann equations. -/
-lemma differentiable_at.conformal_at {E : Type*}
-  [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
-  [is_scalar_tower ℝ ℂ E] {z : ℂ} {f : ℂ → E}
-  (hf' : fderiv ℝ f z ≠ 0) (h : differentiable_at ℂ f z) :
+lemma differentiable_at.conformal_at (h : differentiable_at ℂ f z) (hf' : deriv f z ≠ 0) :
   conformal_at f z :=
 begin
-  rw conformal_at_iff_is_conformal_map_fderiv,
-  rw (h.has_fderiv_at.restrict_scalars ℝ).fderiv at ⊢ hf',
+  rw [conformal_at_iff_is_conformal_map_fderiv, (h.has_fderiv_at.restrict_scalars ℝ).fderiv],
   apply is_conformal_map_complex_linear,
-  contrapose! hf' with w,
-  simp [w]
+  simpa only [ne.def, ext_ring_iff]
 end
 
 /-- A complex function is conformal if and only if the function is holomorphic or antiholomorphic

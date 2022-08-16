@@ -39,6 +39,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [MOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
@@ -95,7 +97,7 @@ end
 
 protected theorem add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 begin
-  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_comm],
+  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_add_comm],
   exact dvd_add h₁.dvd h₂.dvd,
 end
 
@@ -109,7 +111,7 @@ protected theorem add_left_cancel (h₁ : a ≡ b [MOD n]) (h₂ : a + c ≡ b +
   c ≡ d [MOD n] :=
 begin
   simp only [modeq_iff_dvd, int.coe_nat_add] at *,
-  rw add_sub_comm at h₂,
+  rw add_sub_add_comm at h₂,
   convert _root_.dvd_sub h₂ h₁ using 1,
   rw add_sub_cancel',
 end
@@ -123,6 +125,22 @@ by { rw [add_comm a, add_comm b] at h₂, exact h₁.add_left_cancel h₂ }
 
 protected theorem add_right_cancel' (c : ℕ) (h : a + c ≡ b + c [MOD n]) : a ≡ b [MOD n] :=
 modeq.rfl.add_right_cancel h
+
+protected theorem mul_left_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
+  c * a ≡ c * b [MOD c * m] → a ≡ b [MOD m] :=
+by simp [modeq_iff_dvd, ←mul_sub, mul_dvd_mul_iff_left (by simp [hc] : (c : ℤ) ≠ 0)]
+
+protected theorem mul_left_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
+  c * a ≡ c * b [MOD c * m] ↔ a ≡ b [MOD m] :=
+⟨modeq.mul_left_cancel' hc, modeq.mul_left' _⟩
+
+protected theorem mul_right_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
+  a * c ≡ b * c [MOD m * c] → a ≡ b [MOD m] :=
+by simp [modeq_iff_dvd, ←sub_mul, mul_dvd_mul_iff_right (by simp [hc] : (c : ℤ) ≠ 0)]
+
+protected theorem mul_right_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
+  a * c ≡ b * c [MOD m * c] ↔ a ≡ b [MOD m] :=
+⟨modeq.mul_right_cancel' hc, modeq.mul_right' _⟩
 
 theorem of_modeq_mul_left (m : ℕ) (h : a ≡ b [MOD m * n]) : a ≡ b [MOD n] :=
 by { rw [modeq_iff_dvd] at *, exact (dvd_mul_left (n : ℤ) (m : ℤ)).trans h }
@@ -153,6 +171,79 @@ lemma le_of_lt_add (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
 
 lemma add_le_of_lt (h1 : a ≡ b [MOD m]) (h2 : a < b) : a + m ≤ b :=
 le_of_lt_add (add_modeq_right.trans h1) (add_lt_add_right h2 m)
+
+lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+  d ∣ a ↔ d ∣ b :=
+begin
+  simp only [←modeq_zero_iff_dvd],
+  replace h := h.modeq_of_dvd hdm,
+  exact ⟨h.symm.trans, h.trans⟩,
+end
+
+lemma gcd_eq_of_modeq {a b m : ℕ} (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
+begin
+  have h1 := gcd_dvd_right a m,
+  have h2 := gcd_dvd_right b m,
+  exact dvd_antisymm
+    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h1).mp (gcd_dvd_left a m)) h1)
+    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h2).mpr (gcd_dvd_left b m)) h2),
+end
+
+lemma eq_of_modeq_of_abs_lt {a b m : ℕ} (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
+begin
+  apply int.coe_nat_inj,
+  rw [eq_comm, ←sub_eq_zero],
+  exact int.eq_zero_of_abs_lt_dvd (modeq_iff_dvd.mp h) h2,
+end
+
+/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
+lemma modeq_cancel_left_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+begin
+  let d := gcd m c,
+  have hmd := gcd_dvd_left m c,
+  have hcd := gcd_dvd_right m c,
+  rw modeq_iff_dvd,
+  refine int.dvd_of_dvd_mul_right_of_gcd_one _ _,
+  show (m/d : ℤ) ∣ (c/d) * (b - a),
+  { rw [mul_comm, ←int.mul_div_assoc (b - a) (int.coe_nat_dvd.mpr hcd), mul_comm],
+    apply int.div_dvd_div (int.coe_nat_dvd.mpr hmd),
+    rw mul_sub,
+    exact modeq_iff_dvd.mp h },
+  show int.gcd (m/d) (c/d) = 1,
+  { simp only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
+        nat.div_self (gcd_pos_of_pos_left c hm)] },
+end
+
+lemma modeq_cancel_right_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : a * c ≡ b * c [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+by { apply modeq_cancel_left_div_gcd hm, simpa [mul_comm] using h }
+
+lemma modeq_cancel_left_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
+  (h : c * a ≡ d * b [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+modeq_cancel_left_div_gcd hm (h.trans (modeq.mul_right b hcd).symm)
+
+lemma modeq_cancel_right_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
+  (h : a * c ≡ b * d [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+by { apply modeq_cancel_left_div_gcd' hm hcd, simpa [mul_comm] using h }
+
+/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
+lemma modeq_cancel_left_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
+  a ≡ b [MOD m] :=
+begin
+  rcases m.eq_zero_or_pos with rfl | hm,
+  { simp only [gcd_zero_left] at hmc,
+    simp only [gcd_zero_left, hmc, one_mul, modeq_zero_iff] at h,
+    subst h },
+  simpa [hmc] using modeq_cancel_left_div_gcd hm h
+end
+
+/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
+lemma modeq_cancel_right_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : a * c ≡ b * c [MOD m]) :
+  a ≡ b [MOD m] :=
+by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
 
 end modeq
 
@@ -316,7 +407,7 @@ lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
 have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_right_inj (show 0 < 2, from dec_trivial)).1 $
+(nat.mul_right_inj zero_lt_two).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
   ← add_tsub_assoc_of_le (succ_le_of_lt hm0),
@@ -328,6 +419,12 @@ by simpa [modeq, show 2 * 2 = 4, by norm_num] using @modeq.of_modeq_mul_left 2 n
 lemma odd_of_mod_four_eq_three {n : ℕ} : n % 4 = 3 → n % 2 = 1 :=
 by simpa [modeq, show 2 * 2 = 4, by norm_num, show 3 % 4 = 3, by norm_num]
   using @modeq.of_modeq_mul_left 2 n 3 2
+
+/-- A natural number is odd iff it has residue `1` or `3` mod `4`-/
+lemma odd_mod_four_iff {n : ℕ} : n % 2 = 1 ↔ n % 4 = 1 ∨ n % 4 = 3 :=
+have help : ∀ (m : ℕ), m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
+⟨λ hn, help (n % 4) (mod_lt n (by norm_num)) $ (mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn,
+ λ h, or.dcases_on h odd_of_mod_four_eq_one odd_of_mod_four_eq_three⟩
 
 end nat
 

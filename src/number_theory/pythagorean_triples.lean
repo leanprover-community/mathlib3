@@ -3,7 +3,7 @@ Copyright (c) 2020 Paul van Wamelen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul van Wamelen
 -/
-import algebra.field
+import algebra.field.basic
 import ring_theory.int.basic
 import algebra.group_with_zero.power
 import tactic.ring
@@ -70,14 +70,10 @@ by rwa [pythagorean_triple_comm]
 /-- A triple is still a triple if you multiply `x`, `y` and `z`
 by a constant `k`. -/
 lemma mul (k : ℤ) : pythagorean_triple (k * x) (k * y) (k * z) :=
-begin
-  by_cases hk : k = 0,
-  { simp only [pythagorean_triple, hk, zero_mul, zero_add], },
-  { calc (k * x) * (k * x) + (k * y) * (k * y)
-        = k ^ 2 * (x * x + y * y) : by ring
-    ... = k ^ 2 * (z * z)         : by rw h.eq
-    ... = (k * z) * (k * z)       : by ring }
-end
+calc (k * x) * (k * x) + (k * y) * (k * y)
+      = k ^ 2 * (x * x + y * y) : by ring
+  ... = k ^ 2 * (z * z)         : by rw h.eq
+  ... = (k * z) * (k * z)       : by ring
 
 omit h
 
@@ -157,7 +153,7 @@ begin
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
     int.exists_gcd_one' (nat.pos_of_ne_zero h0),
   rw [int.gcd_mul_right, h2, int.nat_abs_of_nat, one_mul],
-  rw [← int.pow_dvd_pow_iff (dec_trivial : 0 < 2), sq z, ← h.eq],
+  rw [← int.pow_dvd_pow_iff zero_lt_two, sq z, ← h.eq],
   rw (by ring : x0 * k * (x0 * k) + y0 * k * (y0 * k) = k ^ 2 * (x0 * x0 + y0 * y0)),
   exact dvd_mul_right _ _
 end
@@ -185,8 +181,9 @@ lemma is_classified_of_is_primitive_classified (hp : h.is_primitive_classified) 
 begin
   obtain ⟨m, n, H⟩ := hp,
   use [1, m, n],
-  rcases H with ⟨⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, co, pp⟩;
-  { apply and.intro _ co, rw one_mul, rw one_mul, tauto }
+  rcases H with ⟨t, co, pp⟩,
+  rw [one_mul, one_mul],
+  exact ⟨t, co⟩,
 end
 
 lemma is_classified_of_normalize_is_primitive_classified
@@ -251,7 +248,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
 { to_fun := λ x, ⟨⟨2 * x / (1 + x^2), (1 - x^2) / (1 + x^2)⟩,
     by { field_simp [hk x, div_pow], ring },
     begin
-      simp only [ne.def, div_eq_iff (hk x), ←neg_mul_eq_neg_mul, one_mul, neg_add,
+      simp only [ne.def, div_eq_iff (hk x), neg_mul, one_mul, neg_add,
         sub_eq_add_neg, add_left_inj],
       simpa only [eq_neg_iff_add_eq_zero, one_pow] using hk 1,
     end⟩,
@@ -265,7 +262,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
   right_inv := λ ⟨⟨x, y⟩, hxy, hy⟩,
   begin
     change x ^ 2 + y ^ 2 = 1 at hxy,
-    have h2 : y + 1 ≠ 0, { apply mt eq_neg_of_add_eq_zero, exact hy },
+    have h2 : y + 1 ≠ 0 := mt eq_neg_of_add_eq_zero_left hy,
     have h3 : (y + 1) ^ 2 + x ^ 2 = 2 * (y + 1),
     { rw [(add_neg_eq_iff_eq_add.mpr hxy.symm).symm], ring },
     have h4 : (2 : K) ≠ 0, { convert hk 1, rw one_pow 2, refl },
@@ -410,7 +407,7 @@ lemma is_primitive_classified_aux (hc : x.gcd y = 1) (hzpos : 0 < z)
 begin
   have hz : z ≠ 0, apply ne_of_gt hzpos,
   have h2 : y = m ^ 2 - n ^ 2 ∧ z = m ^ 2 + n ^ 2,
-    { apply rat.div_int_inj hzpos hm2n2 (h.coprime_of_coprime hc) H, rw [hw2], norm_cast },
+  { apply rat.div_int_inj hzpos hm2n2 (h.coprime_of_coprime hc) H, rw [hw2], norm_cast },
   use [m, n], apply and.intro _ (and.intro co pp), right,
   refine ⟨_, h2.left⟩,
   rw [← rat.coe_int_inj _ _, ← div_left_inj' ((mt (rat.coe_int_inj z 0).mp) hz), hv2, h2.right],

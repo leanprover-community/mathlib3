@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import data.polynomial.coeff
 import data.nat.choose.basic
-import ring_theory.polynomial.basic
 
 /-!
 

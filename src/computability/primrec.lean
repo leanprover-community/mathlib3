@@ -3,7 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.list
+import data.list.join
+import logic.equiv.list
 import logic.function.iterate
 
 /-!
@@ -524,7 +525,7 @@ theorem option_map₁ {f : α → σ} (hf : primrec f) : primrec (option.map f) 
 option_map primrec.id (hf.comp snd).to₂
 
 theorem option_iget [inhabited α] : primrec (@option.iget α _) :=
-(option_cases primrec.id (const $ default α) primrec₂.right).of_eq $
+(option_cases primrec.id (const $ @default α _) primrec₂.right).of_eq $
 λ o, by cases o; refl
 
 theorem option_is_some : primrec (@option.is_some α) :=
@@ -940,8 +941,17 @@ this.to₂.of_eq $ λ l n, begin
   { apply IH }
 end
 
+theorem list_nthd (d : α) : primrec₂ (list.nthd d) :=
+begin
+  suffices : list.nthd d = λ l n, (list.nth l n).get_or_else d,
+  { rw this,
+    exact option_get_or_else.comp₂ list_nth (const _) },
+  funext,
+  exact list.nthd_eq_get_or_else_nth _ _ _
+end
+
 theorem list_inth [inhabited α] : primrec₂ (@list.inth α _) :=
-option_iget.comp₂ list_nth
+list_nthd _
 
 theorem list_append : primrec₂ ((++) : list α → list α → list α) :=
 (list_foldr fst snd $ to₂ $ comp (@list_cons α _) snd).to₂.of_eq $
@@ -1025,7 +1035,7 @@ def subtype {p : α → Prop} [decidable_pred p]
 instance fin {n} : primcodable (fin n) :=
 @of_equiv _ _
   (subtype $ nat_lt.comp primrec.id (const n))
-  (equiv.fin_equiv_subtype _)
+  (equiv.refl _)
 
 instance vector {n} : primcodable (vector α n) :=
 subtype ((@primrec.eq _ _ nat.decidable_eq).comp list_length (const _))
@@ -1198,12 +1208,12 @@ begin
   induction pf,
   case nat.primrec'.zero { exact const 0 },
   case nat.primrec'.succ { exact primrec.succ.comp vector_head },
-  case nat.primrec'.nth : n i {
-    exact vector_nth.comp primrec.id (const i) },
-  case nat.primrec'.comp : m n f g _ _ hf hg {
-    exact hf.comp (vector_of_fn (λ i, hg i)) },
-  case nat.primrec'.prec : n f g _ _ hf hg {
-    exact nat_elim' vector_head (hf.comp vector_tail) (hg.comp $
+  case nat.primrec'.nth : n i
+  { exact vector_nth.comp primrec.id (const i) },
+  case nat.primrec'.comp : m n f g _ _ hf hg
+  { exact hf.comp (vector_of_fn (λ i, hg i)) },
+  case nat.primrec'.prec : n f g _ _ hf hg
+  { exact nat_elim' vector_head (hf.comp vector_tail) (hg.comp $
       vector_cons.comp (fst.comp snd) $
       vector_cons.comp (snd.comp snd) $
       (@vector_tail _ _ (n+1)).comp fst).to₂ },
@@ -1348,12 +1358,12 @@ suffices ∀ f, nat.primrec f → @primrec' 1 (λ v, f v.head), from
   case nat.primrec.succ { exact succ },
   case nat.primrec.left { exact unpair₁ head },
   case nat.primrec.right { exact unpair₂ head },
-  case nat.primrec.pair : f g _ _ hf hg {
-    exact mkpair.comp₂ _ hf hg },
-  case nat.primrec.comp : f g _ _ hf hg {
-    exact hf.comp₁ _ hg },
-  case nat.primrec.prec : f g _ _ hf hg {
-    simpa using prec' (unpair₂ head)
+  case nat.primrec.pair : f g _ _ hf hg
+  { exact mkpair.comp₂ _ hf hg },
+  case nat.primrec.comp : f g _ _ hf hg
+  { exact hf.comp₁ _ hg },
+  case nat.primrec.prec : f g _ _ hf hg
+  { simpa using prec' (unpair₂ head)
       (hf.comp₁ _ (unpair₁ head))
       (hg.comp₁ _ $ mkpair.comp₂ _ (unpair₁ $ tail $ tail head)
         (mkpair.comp₂ _ head (tail head))) },

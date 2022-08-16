@@ -30,7 +30,7 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 ### Definitions
 
-* `add_val R : add_valuation R enat` : the additive valuation on a DVR.
+* `add_val R : add_valuation R part_enat` : the additive valuation on a DVR.
 
 ## Implementation notes
 
@@ -75,20 +75,16 @@ begin
     from h.symm ▸ submodule.mem_span_singleton_self ϖ,
   refine ⟨h2, _⟩,
   intros a b hab,
-  by_contra h,
-  push_neg at h,
+  by_contra' h,
   obtain ⟨ha : a ∈ maximal_ideal R, hb : b ∈ maximal_ideal R⟩ := h,
-  rw h at ha hb,
-  rw mem_span_singleton' at ha hb,
+  rw [h, mem_span_singleton'] at ha hb,
   rcases ha with ⟨a, rfl⟩,
   rcases hb with ⟨b, rfl⟩,
   rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
   have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
   { apply not_a_field R,
     simp [h, h3] },
-  { intro hh, apply h2,
-    refine is_unit_of_dvd_one ϖ _,
-    use a * b, exact hh.symm }
+  { exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩) }
 end⟩
 
 lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
@@ -130,7 +126,7 @@ begin
       rw irreducible_iff_uniformizer at hQ2,
       exact hQ2.symm } },
   { rintro ⟨RPID, Punique⟩,
-    haveI : local_ring R := local_of_unique_nonzero_prime R Punique,
+    haveI : local_ring R := local_ring.of_unique_nonzero_prime Punique,
     refine {not_a_field' := _},
     rcases Punique with ⟨P, ⟨hP1, hP2⟩, hP3⟩,
     have hPM : P ≤ maximal_ideal R := le_maximal_ideal (hP2.1),
@@ -200,8 +196,6 @@ begin
     intros a b h,
     by_cases ha : a = 0,
     { rw ha, simp only [true_or, dvd_zero], },
-    by_cases hb : b = 0,
-    { rw hb, simp only [or_true, dvd_zero], },
     obtain ⟨m, u, rfl⟩ := spec.2 ha,
     rw [mul_assoc, mul_left_comm, is_unit.dvd_mul_left _ _ _ (units.is_unit _)] at h,
     rw is_unit.dvd_mul_right (units.is_unit _),
@@ -343,7 +337,7 @@ begin
 end
 
 lemma eq_unit_mul_pow_irreducible {x : R} (hx : x ≠ 0) {ϖ : R} (hirr : irreducible ϖ) :
-  ∃ (n : ℕ) (u : units R), x = u * ϖ ^ n :=
+  ∃ (n : ℕ) (u : Rˣ), x = u * ϖ ^ n :=
 begin
   obtain ⟨n, hn⟩ := associated_pow_irreducible hx hirr,
   obtain ⟨u, rfl⟩ := hn.symm,
@@ -366,7 +360,7 @@ begin
 end
 
 lemma unit_mul_pow_congr_pow {p q : R} (hp : irreducible p) (hq : irreducible q)
-  (u v : units R) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
+  (u v : Rˣ) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
   m = n :=
 begin
   have key : associated (multiset.repeat p m).prod (multiset.repeat q n).prod,
@@ -377,11 +371,11 @@ begin
   have := multiset.card_eq_card_of_rel (unique_factorization_monoid.factors_unique _ _ key),
   { simpa only [multiset.card_repeat] },
   all_goals
-  { intros x hx, replace hx := multiset.eq_of_mem_repeat hx,
-    unfreezingI { subst hx, assumption } },
+  { intros x hx,
+    unfreezingI { obtain rfl := multiset.eq_of_mem_repeat hx, assumption } },
 end
 
-lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : units R) (m n : ℕ)
+lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : Rˣ) (m n : ℕ)
   (h : ↑u * ϖ ^ m = v * ϖ ^ n) :
   u = v :=
 begin
@@ -399,13 +393,13 @@ end
 
 open multiplicity
 
-/-- The `enat`-valued additive valuation on a DVR -/
+/-- The `part_enat`-valued additive valuation on a DVR -/
 noncomputable def add_val
   (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
-  add_valuation R enat :=
+  add_valuation R part_enat :=
 add_valuation (classical.some_spec (exists_prime R))
 
-lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
+lemma add_val_def (r : R) (u : Rˣ) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
   add_val R r = n :=
 by rw [add_val, add_valuation_apply, hr,
     eq_of_associated_left (associated_of_irreducible R hϖ
@@ -413,7 +407,7 @@ by rw [add_val, add_valuation_apply, hr,
     eq_of_associated_right (associated.symm ⟨u, mul_comm _ _⟩),
     multiplicity_pow_self_of_prime (principal_ideal_ring.irreducible_iff_prime.1 hϖ)]
 
-lemma add_val_def' (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
+lemma add_val_def' (u : Rˣ) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
   add_val R ((u : R) * ϖ ^ n) = n :=
 add_val_def _ u hϖ n rfl
 
@@ -447,7 +441,7 @@ begin
     obtain ⟨n, ha⟩ := associated_pow_irreducible h hi,
     obtain ⟨u, rfl⟩ := ha.symm,
     rw [mul_comm, add_val_def' u hi n],
-    exact enat.coe_ne_top _ },
+    exact part_enat.coe_ne_top _ },
   { rintro rfl,
     exact add_val_zero }
 end
@@ -482,7 +476,7 @@ instance (R : Type*) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
     simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero,
       hϖ.maximal_ideal_eq, ideal.span_singleton_pow, ideal.mem_span_singleton,
       ← add_val_le_iff_dvd, hϖ.add_val_pow] at hx,
-    rwa [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
+    rwa [← add_val_eq_top_iff, part_enat.eq_top_iff_forall_le],
   end }
 
 end discrete_valuation_ring

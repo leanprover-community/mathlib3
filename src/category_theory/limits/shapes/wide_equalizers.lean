@@ -50,12 +50,12 @@ namespace category_theory.limits
 
 open category_theory
 
-universes v u u₂
+universes w v u u₂
 
-variables {J : Type v}
+variables {J : Type w}
 
 /-- The type of objects for the diagram indexing a wide (co)equalizer. -/
-inductive walking_parallel_family (J : Type v) : Type v
+inductive walking_parallel_family (J : Type w) : Type w
 | zero : walking_parallel_family
 | one : walking_parallel_family
 
@@ -70,9 +70,9 @@ instance : decidable_eq (walking_parallel_family J)
 instance : inhabited (walking_parallel_family J) := ⟨zero⟩
 
 /-- The type family of morphisms for the diagram indexing a wide (co)equalizer. -/
-@[derive decidable_eq] inductive walking_parallel_family.hom (J : Type v) :
-  walking_parallel_family J → walking_parallel_family J → Type v
-| id : Π X : walking_parallel_family.{v} J, walking_parallel_family.hom X X
+@[derive decidable_eq] inductive walking_parallel_family.hom (J : Type w) :
+  walking_parallel_family J → walking_parallel_family J → Type w
+| id : Π X : walking_parallel_family.{w} J, walking_parallel_family.hom X X
 | line : Π (j : J), walking_parallel_family.hom zero one
 
 /-- Satisfying the inhabited linter -/
@@ -136,7 +136,7 @@ nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
 `walking_parallel_family`.  -/
 @[simps]
 def walking_parallel_family_equiv_walking_parallel_pair :
-  walking_parallel_family.{v} (ulift bool) ≌ walking_parallel_pair.{v} :=
+  walking_parallel_family.{w} (ulift bool) ≌ walking_parallel_pair :=
 { functor := parallel_family
       (λ p, cond p.down walking_parallel_pair_hom.left walking_parallel_pair_hom.right),
   inverse := parallel_pair (line (ulift.up tt)) (line (ulift.up ff)),
@@ -624,27 +624,30 @@ end
 variables (C)
 
 /-- `has_wide_equalizers` represents a choice of wide equalizer for every family of morphisms -/
-abbreviation has_wide_equalizers := Π J, has_limits_of_shape (walking_parallel_family J) C
+abbreviation has_wide_equalizers := Π J, has_limits_of_shape (walking_parallel_family.{w} J) C
 
 /-- `has_wide_coequalizers` represents a choice of wide coequalizer for every family of morphisms -/
-abbreviation has_wide_coequalizers := Π J, has_colimits_of_shape (walking_parallel_family J) C
+abbreviation has_wide_coequalizers := Π J, has_colimits_of_shape (walking_parallel_family.{w} J) C
 
 /-- If `C` has all limits of diagrams `parallel_family f`, then it has all wide equalizers -/
 lemma has_wide_equalizers_of_has_limit_parallel_family
-  [Π {J} {X Y : C} {f : J → (X ⟶ Y)}, has_limit (parallel_family f)] : has_wide_equalizers C :=
+  [Π {J : Type w} {X Y : C} {f : J → (X ⟶ Y)}, has_limit (parallel_family f)] :
+  has_wide_equalizers.{w} C :=
 λ J, { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_family F).symm }
 
 /-- If `C` has all colimits of diagrams `parallel_family f`, then it has all wide coequalizers -/
 lemma has_wide_coequalizers_of_has_colimit_parallel_family
-  [Π {J} {X Y : C} {f : J → (X ⟶ Y)}, has_colimit (parallel_family f)] : has_wide_coequalizers C :=
+  [Π {J : Type w} {X Y : C} {f : J → (X ⟶ Y)}, has_colimit (parallel_family f)] :
+  has_wide_coequalizers.{w} C :=
 λ J, { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_family F) }
 
 @[priority 10]
-instance has_equalizers_of_has_wide_equalizers [has_wide_equalizers C] : has_equalizers C :=
-has_limits_of_shape_of_equivalence walking_parallel_family_equiv_walking_parallel_pair
+instance has_equalizers_of_has_wide_equalizers [has_wide_equalizers.{w} C] : has_equalizers C :=
+has_limits_of_shape_of_equivalence.{w} walking_parallel_family_equiv_walking_parallel_pair
 
 @[priority 10]
-instance has_coequalizers_of_has_wide_coequalizers [has_wide_coequalizers C] : has_coequalizers C :=
-has_colimits_of_shape_of_equivalence walking_parallel_family_equiv_walking_parallel_pair
+instance has_coequalizers_of_has_wide_coequalizers [has_wide_coequalizers.{w} C] :
+  has_coequalizers C :=
+has_colimits_of_shape_of_equivalence.{w} walking_parallel_family_equiv_walking_parallel_pair
 
 end category_theory.limits

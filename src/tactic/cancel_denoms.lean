@@ -32,12 +32,11 @@ namespace cancel_factors
 
 lemma mul_subst {α} [comm_ring α] {n1 n2 k e1 e2 t1 t2 : α} (h1 : n1 * e1 = t1) (h2 : n2 * e2 = t2)
      (h3 : n1*n2 = k) : k * (e1 * e2) = t1 * t2 :=
-have h3 : n1 * n2 = k, from h3,
 by rw [←h3, mul_comm n1, mul_assoc n2, ←mul_assoc n1, h1, ←mul_assoc n2, mul_comm n2, mul_assoc, h2]
 
 lemma div_subst {α} [field α] {n1 n2 k e1 e2 t1 : α} (h1 : n1 * e1 = t1) (h2 : n2 / e2 = 1)
    (h3 : n1*n2 = k) : k * (e1 / e2) = t1 :=
-by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
+by rw [←h3, mul_assoc, mul_div_left_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
 lemma cancel_factors_eq_div {α} [field α] {n e e' : α} (h : n*e = e') (h2 : n ≠ 0) :
   e = e' / n :=
@@ -161,7 +160,6 @@ do (n, p) ← derive e,
    tp ← infer_type e,
    n' ← tp.of_nat n, tgt ← to_expr ``(%%n' ≠ 0),
    (_, pn) ← solve_aux tgt `[norm_num, done],
-   infer_type p >>= trace, infer_type pn >>= trace,
    prod.mk n <$> mk_mapp ``cancel_factors_eq_div [none, none, n', none, none, p, pn]
 
 /--
@@ -199,7 +197,7 @@ do some (lhs, rhs, lem) ← return $ find_comp_lemma h | fail "cannot kill facto
    (_, gcd_pos) ← solve_aux gcd_pos `[norm_num, done],
    pf ← mk_app lem [lhs_p, rhs_p, al_pos, ar_pos, gcd_pos],
    pf_tp ← infer_type pf,
-   return ((find_comp_lemma pf_tp).elim (default _) (prod.fst ∘ prod.snd), pf)
+   return ((find_comp_lemma pf_tp).elim default (prod.fst ∘ prod.snd), pf)
 
 end cancel_factors
 

@@ -5,8 +5,13 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.mv_polynomial.rename
-import data.equiv.fin
 import data.polynomial.algebra_map
+import data.polynomial.lifts
+import data.mv_polynomial.variables
+import data.finsupp.fin
+import logic.equiv.fin
+import algebra.big_operators.fin
+
 
 /-!
 # Equivalences between polynomial rings
@@ -39,7 +44,7 @@ equivalence, isomorphism, morphism, ring hom, hom
 
 noncomputable theory
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 
 open set function finsupp add_monoid_algebra
 
@@ -47,7 +52,7 @@ universes u v w x
 variables {R : Type u} {S₁ : Type v} {S₂ : Type w} {S₃ : Type x}
 
 namespace mv_polynomial
-variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {s : σ →₀ ℕ}
 
 section equiv
 
@@ -58,14 +63,14 @@ The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
 -/
 @[simps]
-def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
+def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] R[X] :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
   left_inv  :=
     begin
-      let f : polynomial R →+* mv_polynomial punit R :=
+      let f : R[X] →+* mv_polynomial punit R :=
         (polynomial.eval₂_ring_hom mv_polynomial.C (X punit.star)),
-      let g : mv_polynomial punit R →+* polynomial R :=
+      let g : mv_polynomial punit R →+* R[X] :=
         (eval₂_hom polynomial.C (λu:punit, polynomial.X)),
       show ∀ p, f.comp g p = p,
       apply is_id,
@@ -91,12 +96,8 @@ def map_equiv [comm_semiring S₁] [comm_semiring S₂] (e : S₁ ≃+* S₂) :
   mv_polynomial σ S₁ ≃+* mv_polynomial σ S₂ :=
 { to_fun    := map (e : S₁ →+* S₂),
   inv_fun   := map (e.symm : S₂ →+* S₁),
-  left_inv  := λ p,
-    have (e.symm : S₂ →+* S₁).comp ↑e = ring_hom.id _ := ring_hom.ext e.symm_apply_apply,
-    by rw [map_map, this, map_id],
-  right_inv := assume p,
-    have (e : S₁ →+* S₂).comp ↑e.symm = ring_hom.id _ := ring_hom.ext e.apply_symm_apply,
-    by rw [map_map, this, map_id],
+  left_inv  := map_left_inverse e.left_inv,
+  right_inv := map_right_inverse e.right_inv,
   ..map (e : S₁ →+* S₂) }
 
 @[simp] lemma map_equiv_refl :
@@ -115,19 +116,12 @@ variables {A₁ A₂ A₃ : Type*} [comm_semiring A₁] [comm_semiring A₂] [co
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 
 /-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebras, then so is `map e`. -/
+@[simps apply]
 def map_alg_equiv (e : A₁ ≃ₐ[R] A₂) :
   mv_polynomial σ A₁ ≃ₐ[R] mv_polynomial σ A₂ :=
-{ commutes' := λ r, begin
-    dsimp,
-    have h₁ : algebra_map R (mv_polynomial σ A₁) r = C (algebra_map R A₁ r) := rfl,
-    have h₂ : algebra_map R (mv_polynomial σ A₂) r = C (algebra_map R A₂ r) := rfl,
-    rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply,
-      ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.commutes],
-  end,
-  ..(map_equiv σ ↑e) }
-
-@[simp] lemma map_alg_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : mv_polynomial σ A₁) :
-  map_alg_equiv σ e x = map ↑e x := rfl
+{ to_fun := map (e : A₁ →+* A₂),
+  ..map_alg_hom (e : A₁ →ₐ[R] A₂),
+  ..map_equiv σ (e : A₁ ≃+* A₂) }
 
 @[simp] lemma map_alg_equiv_refl :
   map_alg_equiv σ (alg_equiv.refl : A₁ ≃ₐ[R] A₁) = alg_equiv.refl :=
@@ -281,38 +275,49 @@ end
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 multivariable polynomials with coefficients in polynomials.
 -/
-def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ (polynomial R) :=
+def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ R[X] :=
 alg_equiv.of_alg_hom
   (mv_polynomial.aeval (λ o, o.elim (C polynomial.X) X))
   (mv_polynomial.aeval_tower (polynomial.aeval (X none)) (λ i, X (option.some i)))
-  (by ext : 2; simp [mv_polynomial.algebra_map_eq])
-  (by ext i : 2; cases i; simp)
+  begin
+    ext : 2;
+    simp only [mv_polynomial.algebra_map_eq, option.elim, alg_hom.coe_comp, alg_hom.id_comp,
+      is_scalar_tower.coe_to_alg_hom', comp_app, aeval_tower_C, polynomial.aeval_X, aeval_X,
+      option.elim, aeval_tower_X, alg_hom.coe_id, id.def, eq_self_iff_true, implies_true_iff],
+  end
+  begin
+    ext ⟨i⟩ : 2;
+    simp only [option.elim, alg_hom.coe_comp, comp_app, aeval_X, aeval_tower_C,
+      polynomial.aeval_X, alg_hom.coe_id, id.def, aeval_tower_X],
+  end
+
+variables (n : ℕ)
 
 /--
 The algebra isomorphism between multivariable polynomials in `fin (n + 1)` and
 polynomials over multivariable polynomials in `fin n`.
 -/
-def fin_succ_equiv (n : ℕ) :
+def fin_succ_equiv :
   mv_polynomial (fin (n + 1)) R ≃ₐ[R] polynomial (mv_polynomial (fin n) R) :=
 (rename_equiv R (fin_succ_equiv n)).trans
   (option_equiv_left R (fin n))
 
-lemma fin_succ_equiv_eq (n : ℕ) :
+lemma fin_succ_equiv_eq :
   (fin_succ_equiv R n : mv_polynomial (fin (n + 1)) R →+* polynomial (mv_polynomial (fin n) R)) =
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) :=
 begin
   ext : 2,
   { simp only [fin_succ_equiv, option_equiv_left_apply, aeval_C, alg_equiv.coe_trans,
-      alg_equiv.coe_alg_hom, coe_eval₂_hom, alg_hom.coe_to_ring_hom, comp_app, rename_equiv_apply,
-      eval₂_C, ring_hom.coe_comp, coe_coe, rename_C],
+      ring_hom.coe_coe, coe_eval₂_hom, comp_app, rename_equiv_apply, eval₂_C, ring_hom.coe_comp,
+      rename_C],
     refl },
   { intro i,
     refine fin.cases _ _ i;
     simp [fin_succ_equiv] }
 end
 
-@[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) R) :
+@[simp] lemma fin_succ_equiv_apply (p : mv_polynomial (fin (n + 1)) R) :
   fin_succ_equiv R n p =
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
@@ -328,6 +333,153 @@ begin
   refine (mv_polynomial.fin_succ_equiv R n).injective
     (trans ((mv_polynomial.fin_succ_equiv R n).apply_symm_apply _) _),
   simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
+end
+
+variables {n} {R}
+
+lemma fin_succ_equiv_X_zero :
+  fin_succ_equiv R n (X 0) = polynomial.X := by simp
+
+lemma fin_succ_equiv_X_succ {j : fin n} :
+  fin_succ_equiv R n (X j.succ) = polynomial.C (X j) := by simp
+
+/-- The coefficient of `m` in the `i`-th coefficient of `fin_succ_equiv R n f` equals the
+    coefficient of `finsupp.cons i m` in `f`. -/
+lemma fin_succ_equiv_coeff_coeff (m : fin n →₀ ℕ)
+  (f : mv_polynomial (fin (n + 1)) R) (i : ℕ) :
+  coeff m (polynomial.coeff (fin_succ_equiv R n f) i) = coeff (m.cons i) f :=
+begin
+  induction f using mv_polynomial.induction_on' with j r p q hp hq generalizing i m,
+  swap,
+  { simp only [(fin_succ_equiv R n).map_add, polynomial.coeff_add, coeff_add, hp, hq] },
+  simp only [fin_succ_equiv_apply, coe_eval₂_hom, eval₂_monomial, ring_hom.coe_comp, prod_pow,
+    polynomial.coeff_C_mul, coeff_C_mul, coeff_monomial,
+    fin.prod_univ_succ, fin.cases_zero, fin.cases_succ, ← ring_hom.map_prod, ← ring_hom.map_pow],
+  rw [← mul_boole, mul_comm (polynomial.X ^ j 0), polynomial.coeff_C_mul_X_pow], congr' 1,
+  obtain rfl | hjmi := eq_or_ne j (m.cons i),
+  { simpa only [cons_zero, cons_succ, if_pos rfl, monomial_eq, C_1, one_mul, prod_pow]
+      using coeff_monomial m m (1:R), },
+  { simp only [hjmi, if_false],
+    obtain hij | rfl := ne_or_eq i (j 0),
+    { simp only [hij, if_false, coeff_zero] },
+    simp only [eq_self_iff_true, if_true],
+    have hmj : m ≠ j.tail, { rintro rfl, rw [cons_tail] at hjmi, contradiction },
+    simpa only [monomial_eq, C_1, one_mul, prod_pow, finsupp.tail_apply, if_neg hmj.symm]
+      using coeff_monomial m j.tail (1:R), }
+end
+
+lemma eval_eq_eval_mv_eval' (s : fin n → R) (y : R) (f : mv_polynomial (fin (n + 1)) R) :
+  eval (fin.cons y s : fin (n + 1) → R) f =
+    polynomial.eval y (polynomial.map (eval s) (fin_succ_equiv R n f)) :=
+begin
+  -- turn this into a def `polynomial.map_alg_hom`
+  let φ : (mv_polynomial (fin n) R)[X] →ₐ[R] R[X] :=
+  { commutes' := λ r, by { convert polynomial.map_C _, exact (eval_C _).symm },
+    .. polynomial.map_ring_hom (eval s) },
+  show aeval (fin.cons y s : fin (n + 1) → R) f =
+    (polynomial.aeval y).comp (φ.comp (fin_succ_equiv R n).to_alg_hom) f,
+  congr' 2,
+  apply mv_polynomial.alg_hom_ext,
+  rw fin.forall_fin_succ,
+  simp only [aeval_X, fin.cons_zero, alg_equiv.to_alg_hom_eq_coe, alg_hom.coe_comp,
+    polynomial.coe_aeval_eq_eval, polynomial.map_C, alg_hom.coe_mk, ring_hom.to_fun_eq_coe,
+    polynomial.coe_map_ring_hom, alg_equiv.coe_alg_hom, comp_app, fin_succ_equiv_apply,
+    eval₂_hom_X', fin.cases_zero, polynomial.map_X, polynomial.eval_X, eq_self_iff_true,
+  fin.cons_succ, fin.cases_succ, eval_X, polynomial.eval_C, implies_true_iff, and_self],
+end
+
+lemma coeff_eval_eq_eval_coeff (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R))
+  (i : ℕ) : polynomial.coeff (polynomial.map (eval s') f) i = eval s' (polynomial.coeff f i) :=
+by simp only [polynomial.coeff_map]
+
+lemma support_coeff_fin_succ_equiv {f : mv_polynomial (fin (n + 1)) R} {i : ℕ}
+  {m : fin n →₀ ℕ } : m ∈ (polynomial.coeff ((fin_succ_equiv R n) f) i).support
+   ↔ (finsupp.cons i m) ∈ f.support :=
+begin
+  apply iff.intro,
+  { intro h,
+    simpa [←fin_succ_equiv_coeff_coeff] using h },
+  { intro h,
+    simpa [mem_support_iff, ←fin_succ_equiv_coeff_coeff m f i] using h },
+end
+
+lemma fin_succ_equiv_support (f : mv_polynomial (fin (n + 1)) R) :
+  (fin_succ_equiv R n f).support = finset.image (λ m : fin (n + 1)→₀ ℕ, m 0) f.support :=
+begin
+  ext i,
+  rw [polynomial.mem_support_iff, finset.mem_image, nonzero_iff_exists],
+  split,
+  { rintro ⟨m, hm⟩,
+    refine ⟨cons i m, _, cons_zero _ _⟩,
+    rw ← support_coeff_fin_succ_equiv,
+    simpa using hm, },
+  { rintro ⟨m, h, rfl⟩,
+    refine ⟨tail m, _⟩,
+    rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, cons_tail] },
+end
+
+lemma fin_succ_equiv_support' {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
+  finset.image (finsupp.cons i) (polynomial.coeff ((fin_succ_equiv R n) f) i).support
+   = f.support.filter(λ m, m 0 = i) :=
+begin
+  ext m,
+  rw [finset.mem_filter, finset.mem_image, mem_support_iff],
+  conv_lhs
+  { congr,
+    funext,
+    rw [mem_support_iff, fin_succ_equiv_coeff_coeff, ne.def] },
+  split,
+  { rintros ⟨m',⟨h, hm'⟩⟩,
+    simp only [←hm'],
+    exact ⟨h, by rw cons_zero⟩ },
+  { intro h,
+    use tail m,
+    rw [← h.2, cons_tail],
+    simp [h.1] }
+end
+
+lemma support_fin_succ_equiv_nonempty {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
+  (fin_succ_equiv R n f).support.nonempty :=
+begin
+  by_contradiction c,
+  simp only [finset.not_nonempty_iff_eq_empty, polynomial.support_eq_empty] at c,
+  have t'' : (fin_succ_equiv R n f) ≠ 0,
+  { let ii := (fin_succ_equiv R n).symm,
+    have h' : f = 0 :=
+      calc f = ii (fin_succ_equiv R n f) : by simpa only [ii, ←alg_equiv.inv_fun_eq_symm]
+                                             using ((fin_succ_equiv R n).left_inv f).symm
+      ...    = ii 0 : by rw c
+      ...    = 0 : by simp,
+    simpa [h'] using h },
+  simpa [c] using h,
+end
+
+lemma degree_fin_succ_equiv {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
+  (fin_succ_equiv R n f).degree = degree_of 0 f :=
+begin
+  have h' : (fin_succ_equiv R n f).support.sup (λ x , x)  = degree_of 0 f,
+  { rw [degree_of_eq_sup, fin_succ_equiv_support f, finset.sup_image] },
+  rw [polynomial.degree, ← h', finset.coe_sup_of_nonempty (support_fin_succ_equiv_nonempty h),
+    finset.max_eq_sup_coe],
+end
+
+lemma nat_degree_fin_succ_equiv (f : mv_polynomial (fin (n + 1)) R) :
+  (fin_succ_equiv R n f).nat_degree = degree_of 0 f :=
+begin
+  by_cases c : f = 0,
+  { rw [c, (fin_succ_equiv R n).map_zero, polynomial.nat_degree_zero, degree_of_zero] },
+  { rw [polynomial.nat_degree, degree_fin_succ_equiv (by simpa only [ne.def]) ],
+    simp },
+end
+
+lemma degree_of_coeff_fin_succ_equiv (p : mv_polynomial (fin (n + 1)) R) (j : fin n)
+  (i : ℕ) : degree_of j (polynomial.coeff (fin_succ_equiv R n p) i) ≤ degree_of j.succ p :=
+begin
+  rw [degree_of_eq_sup, degree_of_eq_sup, finset.sup_le_iff],
+  intros m hm,
+  rw ← finsupp.cons_succ j i m,
+  convert finset.le_sup (support_coeff_fin_succ_equiv.1 hm),
+  refl,
 end
 
 end

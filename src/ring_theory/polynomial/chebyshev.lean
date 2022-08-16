@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Julian Kuelshammer, Heather Macbeth
 -/
 import data.polynomial.derivative
-import tactic.ring
+import tactic.linear_combination
 
 /-!
 # Chebyshev polynomials
@@ -53,70 +53,49 @@ noncomputable theory
 namespace polynomial.chebyshev
 
 open polynomial
+open_locale polynomial
 
 variables (R S : Type*) [comm_ring R] [comm_ring S]
 
 /-- `T n` is the `n`-th Chebyshev polynomial of the first kind -/
-noncomputable def T : ℕ → polynomial R
+noncomputable def T : ℕ → R[X]
 | 0       := 1
 | 1       := X
 | (n + 2) := 2 * X * T (n + 1) - T n
 
 @[simp] lemma T_zero : T R 0 = 1 := rfl
 @[simp] lemma T_one : T R 1 = X := rfl
-lemma T_two : T R 2 = 2 * X ^ 2 - 1 :=
-by simp only [T, sub_left_inj, sq, mul_assoc]
-@[simp] lemma T_add_two (n : ℕ) :
-  T R (n + 2) = 2 * X * T R (n + 1) - T R n :=
-by rw T
+@[simp] lemma T_add_two (n : ℕ) : T R (n + 2) = 2 * X * T R (n + 1) - T R n := by rw T
 
-lemma T_of_two_le (n : ℕ) (h : 2 ≤ n) :
-  T R n = 2 * X * T R (n - 1) - T R (n - 2) :=
+lemma T_two : T R 2 = 2 * X ^ 2 - 1 := by simp only [T, sub_left_inj, sq, mul_assoc]
+
+lemma T_of_two_le (n : ℕ) (h : 2 ≤ n) : T R n = 2 * X * T R (n - 1) - T R (n - 2) :=
 begin
   obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
   rw add_comm,
   exact T_add_two R n
 end
 
-variables {R S}
-
-lemma map_T (f : R →+* S) :
-  ∀ (n : ℕ), map f (T R n) = T S n
-| 0       := by simp only [T_zero, map_one]
-| 1       := by simp only [T_one, map_X]
-| (n + 2) :=
-begin
-  simp only [T_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
-  rw [map_T (n + 1), map_T n],
-end
-
-variables (R S)
-
 /-- `U n` is the `n`-th Chebyshev polynomial of the second kind -/
-noncomputable def U : ℕ → polynomial R
+noncomputable def U : ℕ → R[X]
 | 0       := 1
 | 1       := 2 * X
 | (n + 2) := 2 * X * U (n + 1) - U n
 
 @[simp] lemma U_zero : U R 0 = 1 := rfl
 @[simp] lemma U_one : U R 1 = 2 * X := rfl
-lemma U_two : U R 2 = 4 * X ^ 2 - 1 :=
-by { simp only [U], ring, }
+@[simp] lemma U_add_two (n : ℕ) : U R (n + 2) = 2 * X * U R (n + 1) - U R n := by rw U
 
-@[simp] lemma U_add_two (n : ℕ) :
-  U R (n + 2) = 2 * X * U R (n + 1) - U R n :=
-by rw U
+lemma U_two : U R 2 = 4 * X ^ 2 - 1 := by { simp only [U], ring, }
 
-lemma U_of_two_le (n : ℕ) (h : 2 ≤ n) :
-  U R n = 2 * X * U R (n - 1) - U R (n - 2) :=
+lemma U_of_two_le (n : ℕ) (h : 2 ≤ n) : U R n = 2 * X * U R (n - 1) - U R (n - 2) :=
 begin
   obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
   rw add_comm,
   exact U_add_two R n
 end
 
-lemma U_eq_X_mul_U_add_T :
-  ∀ (n : ℕ), U R (n+1) = X * U R n + T R (n+1)
+lemma U_eq_X_mul_U_add_T : ∀ n : ℕ, U R (n + 1) = X * U R n + T R (n + 1)
 | 0        := by { simp only [U_zero, U_one, T_one], ring }
 | 1        := by { simp only [U_one, T_two, U_two], ring }
 | (n + 2)  :=
@@ -125,13 +104,10 @@ lemma U_eq_X_mul_U_add_T :
   ... = X * (2 * X * U R (n + 1) - U R n) + (2 * X * T R (n + 2) - T R (n + 1)) : by ring
   ... = X * U R (n + 2) + T R (n + 2 + 1) : by simp only [U_add_two, T_add_two]
 
-lemma T_eq_U_sub_X_mul_U (n : ℕ) :
-  T R (n+1) = U R (n+1) - X * U R n :=
+lemma T_eq_U_sub_X_mul_U (n : ℕ) : T R (n + 1) = U R (n + 1) - X * U R n :=
 by rw [U_eq_X_mul_U_add_T, add_comm (X * U R n), add_sub_cancel]
 
-
-lemma T_eq_X_mul_T_sub_pol_U :
-  ∀ (n : ℕ), T R (n+2) = X * T R (n+1) - (1 - X ^ 2) * U R n
+lemma T_eq_X_mul_T_sub_pol_U : ∀ n : ℕ, T R (n + 2) = X * T R (n + 1) - (1 - X ^ 2) * U R n
 | 0        := by { simp only [T_one, T_two, U_zero], ring }
 | 1        := by { simp only [T_add_two, T_zero, T_add_two,
                               U_one, T_one], ring }
@@ -150,23 +126,32 @@ by rw [T_eq_X_mul_T_sub_pol_U, ←sub_add, sub_self, zero_add]
 
 variables {R S}
 
-@[simp] lemma map_U (f : R →+* S) :
-  ∀ (n : ℕ), map f (U R n) = U S n
-| 0       := by simp only [U_zero, map_one]
+@[simp] lemma map_T (f : R →+* S) : ∀ n : ℕ, map f (T R n) = T S n
+| 0       := by simp only [T_zero, polynomial.map_one]
+| 1       := by simp only [T_one, map_X]
+| (n + 2) :=
+begin
+  simp only [T_add_two, polynomial.map_mul, polynomial.map_sub, map_X, bit0,
+             polynomial.map_add, polynomial.map_one],
+  rw [map_T (n + 1), map_T n],
+end
+
+@[simp] lemma map_U (f : R →+* S) : ∀ n : ℕ, map f (U R n) = U S n
+| 0       := by simp only [U_zero, polynomial.map_one]
 | 1       :=
 begin
-  simp only [U_one, map_X, map_mul, map_add, map_one],
-  change map f (1+1) * X = 2 * X,
-  simpa only [map_add, map_one]
+  simp only [U_one, map_X, polynomial.map_mul, polynomial.map_add, polynomial.map_one],
+  change map f (1 + 1) * X = 2 * X,
+  simpa only [polynomial.map_add, polynomial.map_one]
 end
 | (n + 2) :=
 begin
-  simp only [U_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
+  simp only [U_add_two, polynomial.map_mul, polynomial.map_sub, map_X, bit0, polynomial.map_add,
+             polynomial.map_one],
   rw [map_U (n + 1), map_U n],
 end
 
-lemma T_derivative_eq_U :
-  ∀ (n : ℕ), derivative (T R (n + 1)) = (n + 1) * U R n
+lemma T_derivative_eq_U : ∀ n : ℕ, derivative (T R (n + 1)) = (n + 1) * U R n
 | 0        := by simp only [T_one, U_zero, derivative_X, nat.cast_zero, zero_add, mul_one]
 | 1        := by { simp only [T_two, U_one, derivative_sub, derivative_one, derivative_mul,
                               derivative_X_pow, nat.cast_one, nat.cast_two],
@@ -185,19 +170,17 @@ lemma T_derivative_eq_U :
   ... = (↑(n + 2) + 1) * U R (n + 2) : by norm_cast
 
 lemma one_sub_X_sq_mul_derivative_T_eq_poly_in_T (n : ℕ) :
-  (1 - X ^ 2)  * (derivative (T R (n+1))) =
-    (n + 1) * (T R n - X * T R (n+1)) :=
+  (1 - X ^ 2) * (derivative (T R (n + 1))) = (n + 1) * (T R n - X * T R (n+1)) :=
   calc
-  (1 - X ^ 2)  * (derivative (T R (n+1))) = (1 - X ^ 2 ) * ((n + 1) * U R n) :
+  (1 - X ^ 2) * (derivative (T R (n + 1))) = (1 - X ^ 2) * ((n + 1) * U R n) :
             by rw T_derivative_eq_U
   ... = (n + 1) * ((1 - X ^ 2) * U R n) : by ring
   ... = (n + 1) * (X * T R (n + 1) - (2 * X * T R (n + 1) - T R n)) :
             by rw [one_sub_X_sq_mul_U_eq_pol_in_T, T_add_two]
-  ... = (n + 1) * (T R n - X * T R (n+1)) : by ring
+  ... = (n + 1) * (T R n - X * T R (n + 1)) : by ring
 
 lemma add_one_mul_T_eq_poly_in_U (n : ℕ) :
-  ((n : polynomial R) + 1) * T R (n+1) =
-    X * U R n - (1 - X ^ 2) * derivative ( U R n) :=
+  ((n : R[X]) + 1) * T R (n + 1) = X * U R n - (1 - X ^ 2) * derivative (U R n) :=
 begin
   have h : derivative (T R (n + 2)) = (U R (n + 1) - X * U R n) + X * derivative (T R (n + 1))
                                       + 2 * X * U R n - (1 - X ^ 2) * derivative (U R n),
@@ -206,8 +189,8 @@ begin
   one_mul, T_derivative_eq_U],
   rw [T_eq_U_sub_X_mul_U, nat.cast_bit0, nat.cast_one],
   ring },
-  calc ((n : polynomial R) + 1) * T R (n + 1)
-      = ((n : polynomial R) + 1 + 1) * (X * U R n + T R (n + 1))
+  calc ((n : R[X]) + 1) * T R (n + 1)
+      = ((n : R[X]) + 1 + 1) * (X * U R n + T R (n + 1))
         - X * ((n + 1) * U R n) - (X * U R n + T R (n + 1)) : by ring
   ... = derivative (T R (n + 2)) - X * derivative (T R (n + 1)) - U R (n + 1) :
             by rw [←U_eq_X_mul_U_add_T, ←T_derivative_eq_U, ←nat.cast_one, ←nat.cast_add,
@@ -221,9 +204,7 @@ end
 variables (R)
 
 /-- The product of two Chebyshev polynomials is the sum of two other Chebyshev polynomials. -/
-lemma mul_T :
-  ∀ m : ℕ, ∀ k,
-  2 * T R m * T R (m + k) = T R (2 * m + k) + T R k
+lemma mul_T : ∀ m k, 2 * T R m * T R (m + k) = T R (2 * m + k) + T R k
 | 0 := by simp [two_mul, add_mul]
 | 1 := by simp [add_comm]
 | (m + 2) := begin
@@ -249,21 +230,11 @@ lemma mul_T :
   have h₂ := T_add_two R (2 * m + k + 2),
   have h₃ := T_add_two R k,
   -- the desired identity is an appropriate linear combination of H₁, H₂, h₁, h₂, h₃
-  -- it would be really nice here to have a linear algebra tactic!!
-  apply_fun (λ p, 2 * X * p) at H₁,
-  apply_fun (λ p, 2 * T R (m + k + 2) * p) at h₁,
-  have e₁ := congr (congr_arg has_add.add H₁) h₁,
-  have e₂ := congr (congr_arg has_sub.sub e₁) H₂,
-  have e₃ := congr (congr_arg has_sub.sub e₂) h₂,
-  have e₄ := congr (congr_arg has_sub.sub e₃) h₃,
-  rw ← sub_eq_zero at e₄ ⊢,
-  rw ← e₄,
-  ring,
+  linear_combination 2 * T R (m + k + 2) * h₁ + 2 * X * H₁ - H₂ - h₂ - h₃,
 end
 
 /-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/
-lemma T_mul :
-  ∀ m : ℕ, ∀ n : ℕ, T R (m * n) = (T R m).comp (T R n)
+lemma T_mul : ∀ m n, T R (m * n) = (T R m).comp (T R n)
 | 0 := by simp
 | 1 := by simp
 | (m + 2) := begin

@@ -141,10 +141,10 @@ lemma is_max_on.is_extr (h : is_max_on f s a) : is_extr_on f s a := h.is_extr
 /-! ### Constant function -/
 
 lemma is_min_filter_const {b : β} : is_min_filter (λ _, b) l a :=
-univ_mem' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_max_filter_const {b : β} : is_max_filter (λ _, b) l a :=
-univ_mem' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_extr_filter_const {b : β} : is_extr_filter (λ _, b) l a := is_min_filter_const.is_extr
 
@@ -324,6 +324,21 @@ hf.comp_tendsto (tendsto_principal_principal.mpr $ subset.refl _)
 lemma is_extr_on.on_preimage (g : δ → α) {b : δ} (hf : is_extr_on f s (g b)) :
   is_extr_on (f ∘ g) (g ⁻¹' s) b :=
 hf.elim (λ hf, (hf.on_preimage g).is_extr) (λ hf, (hf.on_preimage g).is_extr)
+
+lemma is_min_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_min_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_min_on (f ∘ g) t b :=
+λ y hy, by simpa only [mem_set_of_eq, ha, (∘)] using hf (hg hy)
+
+lemma is_max_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_max_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_max_on (f ∘ g) t b :=
+hf.dual.comp_maps_to hg ha
+
+lemma is_extr_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_extr_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_extr_on (f ∘ g) t b :=
+hf.elim (λ h, or.inl $ h.comp_maps_to hg ha) (λ h, or.inr $ h.comp_maps_to hg ha)
 
 end preorder
 
@@ -514,7 +529,7 @@ lemma filter.eventually_eq.is_max_filter_iff {α β : Type*} [preorder β] {f g 
 lemma filter.eventually_le.is_min_filter {α β : Type*} [preorder β] {f g : α → β} {a : α}
   {l : filter α} (hle : f ≤ᶠ[l] g) (hfga : f a = g a) (h : is_min_filter f l a) :
   is_min_filter g l a :=
-@filter.eventually_le.is_max_filter _ (order_dual β) _ _ _ _ _ hle hfga h
+@filter.eventually_le.is_max_filter _ βᵒᵈ _ _ _ _ _ hle hfga h
 
 lemma is_min_filter.congr {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α}
   (h : is_min_filter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) :
@@ -540,3 +555,20 @@ lemma filter.eventually_eq.is_extr_filter_iff {α β : Type*} [preorder β] {f g
 ⟨λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm⟩
 
 end eventually
+
+/-! ### `is_max_on`/`is_min_on` imply `csupr`/`cinfi` -/
+
+section conditionally_complete_linear_order
+variables [conditionally_complete_linear_order α] {f : β → α} {s : set β} {x₀ : β}
+
+lemma is_max_on.supr_eq (hx₀ : x₀ ∈ s) (h : is_max_on f s x₀) :
+  (⨆ x : s, f x) = f x₀ :=
+begin
+  haveI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
+  exact csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ x, h x.prop) (λ w hw, ⟨⟨x₀, hx₀⟩, hw⟩),
+end
+
+lemma is_min_on.infi_eq (hx₀ : x₀ ∈ s) (h : is_min_on f s x₀) : (⨅ x : s, f x) = f x₀ :=
+@is_max_on.supr_eq αᵒᵈ β _ _ _ _ hx₀ h
+
+end conditionally_complete_linear_order

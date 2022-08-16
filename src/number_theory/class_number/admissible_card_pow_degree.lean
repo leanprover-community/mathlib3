@@ -3,9 +3,10 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.polynomial.degree.card_pow_degree
-import field_theory.finite.basic
 import number_theory.class_number.admissible_absolute_value
+import analysis.special_functions.pow
+import ring_theory.ideal.local_ring
+import data.polynomial.degree.card_pow_degree
 
 /-!
 # Admissible absolute values on polynomials
@@ -20,15 +21,15 @@ of the ring of integers of a function field is finite.
 -/
 
 namespace polynomial
-
+open_locale polynomial
 open absolute_value real
 
-variables {Fq : Type*} [field Fq] [fintype Fq]
+variables {Fq : Type*} [fintype Fq]
 
-/-- If `A` is a family of enough low-degree polynomials over a finite field, there is a
+/-- If `A` is a family of enough low-degree polynomials over a finite semiring, there is a
 pair of equal elements in `A`. -/
-lemma exists_eq_polynomial {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m) (b : polynomial Fq)
-  (hb : nat_degree b ≤ d) (A : fin m.succ → polynomial Fq) (hA : ∀ i, degree (A i) < degree b) :
+lemma exists_eq_polynomial [semiring Fq] {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m) (b : Fq[X])
+  (hb : nat_degree b ≤ d) (A : fin m.succ → Fq[X]) (hA : ∀ i, degree (A i) < degree b) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ A i₁ = A i₀ :=
 begin
   -- Since there are > q^d elements of A, and only q^d choices for the highest `d` coefficients,
@@ -52,11 +53,11 @@ begin
   exact lt_of_lt_of_le (coe_lt_degree.mp hbj) hb
 end
 
-/-- If `A` is a family of enough low-degree polynomials over a finite field,
+/-- If `A` is a family of enough low-degree polynomials over a finite ring,
 there is a pair of elements in `A` (with different indices but not necessarily
 distinct), such that their difference has small degree. -/
-lemma exists_approx_polynomial_aux {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m)
-  (b : polynomial Fq) (A : fin m.succ → polynomial Fq) (hA : ∀ i, degree (A i) < degree b) :
+lemma exists_approx_polynomial_aux [ring Fq] {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m)
+  (b : Fq[X]) (A : fin m.succ → Fq[X]) (hA : ∀ i, degree (A i) < degree b) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ degree (A i₁ - A i₀) < ↑(nat_degree b - d) :=
 begin
   have hb : b ≠ 0,
@@ -93,12 +94,14 @@ begin
   convert congr_fun i_eq.symm ⟨nat_degree b - j.succ, hj⟩
 end
 
+variables [field Fq]
+
 /-- If `A` is a family of enough low-degree polynomials over a finite field,
 there is a pair of elements in `A` (with different indices but not necessarily
 distinct), such that the difference of their remainders is close together. -/
-lemma exists_approx_polynomial {b : polynomial Fq} (hb : b ≠ 0)
+lemma exists_approx_polynomial {b : Fq[X]} (hb : b ≠ 0)
   {ε : ℝ} (hε : 0 < ε)
-  (A : fin (fintype.card Fq ^ ⌈- log ε / log (fintype.card Fq)⌉₊).succ → polynomial Fq) :
+  (A : fin (fintype.card Fq ^ ⌈- log ε / log (fintype.card Fq)⌉₊).succ → Fq[X]) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ (card_pow_degree (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree b • ε :=
 begin
   have hbε : 0 < card_pow_degree b • ε,
@@ -147,7 +150,7 @@ begin
 end
 
 /-- If `x` is close to `y` and `y` is close to `z`, then `x` and `z` are at least as close. -/
-lemma card_pow_degree_anti_archimedean {x y z : polynomial Fq} {a : ℤ}
+lemma card_pow_degree_anti_archimedean {x y z : Fq[X]} {a : ℤ}
   (hxy : card_pow_degree (x - y) < a) (hyz : card_pow_degree (y - z) < a) :
   card_pow_degree (x - z) < a :=
 begin
@@ -175,7 +178,7 @@ end
 for all `ε > 0`, we can partition the remainders of any family of polynomials `A`
 into equivalence classes, where the equivalence(!) relation is "closer than `ε`". -/
 lemma exists_partition_polynomial_aux (n : ℕ) {ε : ℝ} (hε : 0 < ε)
-  {b : polynomial Fq} (hb : b ≠ 0) (A : fin n → polynomial Fq) :
+  {b : Fq[X]} (hb : b ≠ 0) (A : fin n → Fq[X]) :
   ∃ (t : fin n → fin (fintype.card Fq ^ ⌈- log ε / log (fintype.card Fq)⌉₊)),
   ∀ (i₀ i₁ : fin n),
   t i₀ = t i₁ ↔ (card_pow_degree (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree b • ε :=
@@ -248,7 +251,7 @@ end
 /-- For all `ε > 0`, we can partition the remainders of any family of polynomials `A`
 into classes, where all remainders in a class are close together. -/
 lemma exists_partition_polynomial (n : ℕ) {ε : ℝ} (hε : 0 < ε)
-  {b : polynomial Fq} (hb : b ≠ 0) (A : fin n → polynomial Fq) :
+  {b : Fq[X]} (hb : b ≠ 0) (A : fin n → Fq[X]) :
   ∃ (t : fin n → fin (fintype.card Fq ^ ⌈- log ε / log (fintype.card Fq)⌉₊)),
     ∀ (i₀ i₁ : fin n), t i₀ = t i₁ →
       (card_pow_degree (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree b • ε :=
@@ -260,7 +263,7 @@ end
 /-- `λ p, fintype.card Fq ^ degree p` is an admissible absolute value.
 We set `q ^ degree 0 = 0`. -/
 noncomputable def card_pow_degree_is_admissible :
-  is_admissible (card_pow_degree : absolute_value (polynomial Fq) ℤ) :=
+  is_admissible (card_pow_degree : absolute_value Fq[X] ℤ) :=
 { card := λ ε, fintype.card Fq ^ ⌈- log ε / log (fintype.card Fq)⌉₊,
   exists_partition' := λ n ε hε b hb, exists_partition_polynomial n hε hb,
   .. @card_pow_degree_is_euclidean Fq _ _ }

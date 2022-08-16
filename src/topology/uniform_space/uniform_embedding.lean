@@ -21,12 +21,18 @@ variables {α : Type*} {β : Type*} {γ : Type*}
           [uniform_space α] [uniform_space β] [uniform_space γ]
 universe u
 
+/-- A map `f : α → β` between uniform spaces is called *uniform inducing* if the uniformity filter
+on `α` is the pullback of the uniformity filter on `β` under `prod.map f f`. If `α` is a separated
+space, then this implies that `f` is injective, hence it is a `uniform_embedding`. -/
 structure uniform_inducing (f : α → β) : Prop :=
 (comap_uniformity : comap (λx:α×α, (f x.1, f x.2)) (𝓤 β) = 𝓤 α)
 
 lemma uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
 ⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
+
+lemma uniform_inducing_id : uniform_inducing (@id α) :=
+⟨by rw [← prod.map_def, prod.map_id, comap_id]⟩
 
 lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
   {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=
@@ -39,6 +45,17 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
 
+lemma uniform_inducing_of_compose {f : α → β} {g : β → γ} (hf : uniform_continuous f)
+  (hg : uniform_continuous g) (hgf : uniform_inducing (g ∘ f)) : uniform_inducing f :=
+begin
+  refine ⟨le_antisymm _ hf.le_comap⟩,
+  rw [← hgf.1, ← prod.map_def, ← prod.map_def, ← prod.map_comp_map f f g g,
+      ← @comap_comap _ _ _ _ (prod.map f f)],
+  exact comap_mono hg.le_comap
+end
+
+/-- A map `f : α → β` between uniform spaces is a *uniform embedding* if it is uniform inducing and
+injective. If `α` is a separated space, then the latter assumption follows from the former. -/
 structure uniform_embedding (f : α → β) extends uniform_inducing f : Prop :=
 (inj : function.injective f)
 
@@ -85,9 +102,52 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
    λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
 
+lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space β] (f : α ≃ β)
+  (h₁ : uniform_continuous f) (h₂ : uniform_continuous f.symm) : uniform_embedding f :=
+{ comap_uniformity :=
+  begin
+    refine le_antisymm _ _,
+    { change comap (f.prod_congr f) _ ≤ _,
+      rw ← map_equiv_symm (f.prod_congr f),
+      exact h₂ },
+    { rw ← map_le_iff_le_comap,
+      exact h₁ }
+  end,
+  inj := f.injective }
+
+theorem uniform_embedding_inl : uniform_embedding (sum.inl : α → α ⊕ β) :=
+begin
+  apply uniform_embedding_def.2 ⟨sum.inl_injective, λ s, ⟨_, _⟩⟩,
+  { assume hs,
+    refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' s ∪
+      (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' univ, _, _⟩,
+    { exact union_mem_uniformity_sum hs univ_mem },
+    { simp } },
+  { rintros ⟨t, ht, h't⟩,
+    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    apply filter.mem_of_superset ht.1,
+    rintros ⟨x, y⟩ hx,
+    exact h't _ _ hx }
+end
+
+theorem uniform_embedding_inr : uniform_embedding (sum.inr : β → α ⊕ β) :=
+begin
+  apply uniform_embedding_def.2 ⟨sum.inr_injective, λ s, ⟨_, _⟩⟩,
+  { assume hs,
+    refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' univ ∪
+      (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' s, _, _⟩,
+    { exact union_mem_uniformity_sum univ_mem hs },
+    { simp } },
+  { rintros ⟨t, ht, h't⟩,
+    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    apply filter.mem_of_superset ht.2,
+    rintros ⟨x, y⟩ hx,
+    exact h't _ _ hx }
+end
+
 /-- If the domain of a `uniform_inducing` map `f` is a `separated_space`, then `f` is injective,
 hence it is a `uniform_embedding`. -/
-theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
+protected theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
   (hf : uniform_inducing f) :
   uniform_embedding f :=
 ⟨hf, λ x y h, eq_of_uniformity_basis (hf.basis_uniformity (𝓤 β).basis_sets) $
@@ -131,8 +191,8 @@ lemma uniform_inducing.inducing {f : α → β} (h : uniform_inducing f) : induc
 begin
   refine ⟨eq_of_nhds_eq_nhds $ assume a, _ ⟩,
   rw [nhds_induced, nhds_eq_uniformity, nhds_eq_uniformity, ← h.comap_uniformity,
-    comap_lift'_eq, comap_lift'_eq2];
-    { refl <|> exact monotone_preimage }
+    comap_lift'_eq, comap_lift'_eq2],
+  exacts [rfl, monotone_preimage]
 end
 
 lemma uniform_inducing.prod {α' : Type*} {β' : Type*} [uniform_space α'] [uniform_space β']
@@ -195,7 +255,7 @@ begin
   intros b' hb',
   rw [nhds_eq_uniformity, lift'_inf_principal_eq, lift'_ne_bot_iff],
   exact assume s, this b' s hb',
-  exact monotone_inter monotone_preimage monotone_const
+  exact monotone_preimage.inter monotone_const
 end,
 have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
   from assume b' hb', by rw [closure_eq_cluster_pts]; exact this b' hb',
@@ -310,17 +370,17 @@ have cauchy g, from
   let
     ⟨s₁, hs₁, (comp_s₁ : comp_rel s₁ s₁ ⊆ s)⟩ := comp_mem_uniformity_sets hs,
     ⟨s₂, hs₂, (comp_s₂ : comp_rel s₂ s₂ ⊆ s₁)⟩ := comp_mem_uniformity_sets hs₁,
-    ⟨t, ht, (prod_t : set.prod t t ⊆ s₂)⟩ := mem_prod_same_iff.mp (hf.right hs₂)
+    ⟨t, ht, (prod_t : t ×ˢ t ⊆ s₂)⟩ := mem_prod_same_iff.mp (hf.right hs₂)
   in
   have hg₁ : p (preimage prod.swap s₁) t ∈ g,
     from mem_lift (symm_le_uniformity hs₁) $ @mem_lift' α α f _ t ht,
   have hg₂ : p s₂ t ∈ g,
     from mem_lift hs₂ $ @mem_lift' α α f _ t ht,
-  have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ g ×ᶠ g,
+  have hg : p (prod.swap ⁻¹' s₁) t ×ˢ p s₂ t ∈ g ×ᶠ g,
     from @prod_mem_prod α α _ _ g g hg₁ hg₂,
   (g ×ᶠ g).sets_of_superset hg
     (assume ⟨a, b⟩ ⟨⟨c₁, c₁t, hc₁⟩, ⟨c₂, c₂t, hc₂⟩⟩,
-      have (c₁, c₂) ∈ set.prod t t, from ⟨c₁t, c₂t⟩,
+      have (c₁, c₂) ∈ t ×ˢ t, from ⟨c₁t, c₂t⟩,
       comp_s₁ $ prod_mk_mem_comp_rel hc₁ $
       comp_s₂ $ prod_mk_mem_comp_rel (prod_t this) hc₂)⟩,
 
@@ -350,12 +410,39 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   exact ⟨y, zc, ts (by exact zt)⟩
 end
 
+instance complete_space.sum [complete_space α] [complete_space β] :
+  complete_space (α ⊕ β) :=
+begin
+  rw complete_space_iff_is_complete_univ,
+  have A : is_complete (range (sum.inl : α → α ⊕ β)) :=
+    uniform_embedding_inl.to_uniform_inducing.is_complete_range,
+  have B : is_complete (range (sum.inr : β → α ⊕ β)) :=
+    uniform_embedding_inr.to_uniform_inducing.is_complete_range,
+  convert A.union B,
+  apply (eq_univ_of_forall (λ x, _)).symm,
+  cases x,
+  { left, exact mem_range_self _ },
+  { right, exact mem_range_self _ }
+end
+
 end
 
 lemma uniform_embedding_comap {α : Type*} {β : Type*} {f : α → β} [u : uniform_space β]
   (hf : function.injective f) : @uniform_embedding α β (uniform_space.comap f u) u f :=
 @uniform_embedding.mk _ _ (uniform_space.comap f u) _ _
   (@uniform_inducing.mk _ _ (uniform_space.comap f u) _ _ rfl) hf
+
+/-- Pull back a uniform space structure by an embedding, adjusting the new uniform structure to
+make sure that its topology is defeq to the original one. -/
+def embedding.comap_uniform_space {α β} [topological_space α] [u : uniform_space β] (f : α → β)
+  (h : embedding f) : uniform_space α :=
+(u.comap f).replace_topology h.induced
+
+lemma embedding.to_uniform_embedding {α β} [topological_space α] [u : uniform_space β] (f : α → β)
+  (h : embedding f) :
+  @uniform_embedding α β (h.comap_uniform_space f) u f :=
+{ comap_uniformity := rfl,
+  inj := h.inj }
 
 section uniform_extension
 
@@ -411,29 +498,11 @@ begin
     end⟩
 end
 
-variables [separated_space γ]
-
-lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
-dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
-
-lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
-  (hc : continuous g) :
-  ψ = g :=
-dense_inducing.extend_unique _ hg hc
-
 include h_f
 
 lemma uniformly_extend_spec [complete_space γ] (a : α) :
   tendsto f (comap e (𝓝 a)) (𝓝 (ψ a)) :=
-let de := (h_e.dense_inducing h_dense) in
-begin
-  by_cases ha : a ∈ range e,
-  { rcases ha with ⟨b, rfl⟩,
-    rw [uniformly_extend_of_ind _ _ h_f, ← de.nhds_eq_comap],
-    exact h_f.continuous.tendsto _ },
-  { simp only [dense_inducing.extend, dif_neg ha],
-    exact tendsto_nhds_lim (uniformly_extend_exists h_e h_dense h_f _) }
-end
+by simpa only [dense_inducing.extend] using tendsto_nhds_lim (uniformly_extend_exists h_e ‹_› h_f _)
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,
@@ -461,19 +530,32 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,
   have interior t ∈ 𝓝 x₁ ×ᶠ 𝓝 x₂,
     by rwa [nhds_prod_eq, le_principal_iff] at this,
-  let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
+  let ⟨m₁, hm₁, m₂, hm₂, (hm : m₁ ×ˢ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
   let ⟨a, ha₁, _, ha₂⟩ := h_pnt hm₁ in
   let ⟨b, hb₁, hb₂, _⟩ := h_pnt hm₂ in
-  have set.prod (preimage e m₁) (preimage e m₂) ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s,
+  have (e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂) ⊆ (λ p : β × β, (f p.1, f p.2)) ⁻¹' s,
     from calc _ ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) : preimage_mono hm
     ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have set.prod (f '' preimage e m₁) (f '' preimage e m₂) ⊆ s,
-    from calc set.prod (f '' preimage e m₁) (f '' preimage e m₂) =
-      (λp:(β×β), (f p.1, f p.2)) '' (set.prod (preimage e m₁) (preimage e m₂)) : prod_image_image_eq
-    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' preimage (λp:(β×β), (f p.1, f p.2)) s : monotone_image this
-    ... ⊆ s : image_subset_iff.mpr $ subset.refl _,
+  have (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) ⊆ s,
+    from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
+      (λp:(β×β), (f p.1, f p.2)) '' ((e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂)) : prod_image_image_eq
+    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this
+    ... ⊆ s : image_preimage_subset _ _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),
     from ⟨a, ha₂, ⟨b, this, hb₂⟩⟩
+
+omit h_f
+
+variables [separated_space γ]
+
+lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
+dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
+
+lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
+  (hc : continuous g) :
+  ψ = g :=
+dense_inducing.extend_unique _ hg hc
+
 end uniform_extension

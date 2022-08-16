@@ -47,7 +47,7 @@ begin
   contrapose! hpi,
   replace hin := lt_of_le_of_ne hin hpi, clear hpi,
   have : (↑p ^ i : truncated_witt_vector p n R) = witt_vector.truncate n (↑p ^ i),
-  { rw [ring_hom.map_pow, ring_hom.map_nat_cast] },
+  { rw [ring_hom.map_pow, map_nat_cast] },
   rw [this, ext_iff, not_forall], clear this,
   use ⟨i, hin⟩,
   rw [witt_vector.coeff_truncate, coeff_zero, fin.coe_mk, witt_vector.coeff_p_pow],

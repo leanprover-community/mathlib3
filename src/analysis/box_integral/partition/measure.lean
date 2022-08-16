@@ -35,22 +35,33 @@ open measure_theory
 
 namespace box
 
-variables (I : box ι)
+lemma measure_Icc_lt_top (I : box ι) (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] :
+  μ I.Icc < ∞ :=
+show μ (Icc I.lower I.upper) < ∞, from I.is_compact_Icc.measure_lt_top
 
-lemma measurable_set_coe [fintype ι] (I : box ι) : measurable_set (I : set (ι → ℝ)) :=
+lemma measure_coe_lt_top (I : box ι) (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] :
+  μ I < ∞ :=
+(measure_mono $ coe_subset_Icc).trans_lt (I.measure_Icc_lt_top μ)
+
+variables [fintype ι] (I : box ι)
+
+lemma measurable_set_coe : measurable_set (I : set (ι → ℝ)) :=
 begin
   rw [coe_eq_pi],
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   exact measurable_set.univ_pi (λ i, measurable_set_Ioc)
 end
 
-lemma measurable_set_Icc [fintype ι] (I : box ι) : measurable_set I.Icc := measurable_set_Icc
+lemma measurable_set_Icc : measurable_set I.Icc := measurable_set_Icc
 
-lemma measure_Icc_lt_top (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] : μ I.Icc < ∞ :=
-show μ (Icc I.lower I.upper) < ∞, from I.is_compact_Icc.measure_lt_top
+lemma measurable_set_Ioo : measurable_set I.Ioo :=
+(measurable_set_pi (set.to_finite _).countable).2 $ or.inl $ λ i hi, measurable_set_Ioo
 
-lemma measure_coe_lt_top (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] : μ I < ∞ :=
-(measure_mono $ coe_subset_Icc).trans_lt (I.measure_Icc_lt_top μ)
+lemma coe_ae_eq_Icc : (I : set (ι → ℝ)) =ᵐ[volume] I.Icc :=
+by { rw coe_eq_pi, exact measure.univ_pi_Ioc_ae_eq_Icc }
+
+lemma Ioo_ae_eq_Icc : I.Ioo =ᵐ[volume] I.Icc :=
+measure.univ_pi_Ioo_ae_eq_Icc
 
 end box
 
@@ -104,11 +115,11 @@ namespace box_additive_map
 
 /-- Box-additive map sending each box `I` to the continuous linear endomorphism
 `x ↦ (volume I).to_real • x`. -/
-protected def volume {E : Type*} [normed_group E] [normed_space ℝ E] :
+protected def volume {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] :
   ι →ᵇᵃ (E →L[ℝ] E) :=
 (volume : measure (ι → ℝ)).to_box_additive.to_smul
 
-lemma volume_apply {E : Type*} [normed_group E] [normed_space ℝ E] (I : box ι) (x : E) :
+lemma volume_apply {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] (I : box ι) (x : E) :
   box_additive_map.volume I x = (∏ j, (I.upper j - I.lower j)) • x :=
 congr_arg2 (•) I.volume_apply rfl
 

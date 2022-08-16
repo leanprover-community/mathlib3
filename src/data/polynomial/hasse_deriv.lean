@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
+import data.polynomial.degree.lemmas
 import data.polynomial.derivative
 
 /-!
@@ -41,14 +43,14 @@ noncomputable theory
 
 namespace polynomial
 
-open_locale nat big_operators
+open_locale nat big_operators polynomial
 open function nat (hiding nsmul_eq_mul)
 
-variables {R : Type*} [semiring R] (k : ℕ) (f : polynomial R)
+variables {R : Type*} [semiring R] (k : ℕ) (f : R[X])
 
 /-- The `k`th Hasse derivative of a polynomial `∑ a_i X^i` is `∑ (i.choose k) a_i X^(i-k)`.
 It satisfies `k! * (hasse_deriv k f) = derivative^[k] f`. -/
-def hasse_deriv (k : ℕ) : polynomial R →ₗ[R] polynomial R :=
+def hasse_deriv (k : ℕ) : R[X] →ₗ[R] R[X] :=
 lsum (λ i, (monomial (i-k)) ∘ₗ distrib_mul_action.to_linear_map R R (i.choose k))
 
 lemma hasse_deriv_apply :
@@ -76,6 +78,14 @@ by simp only [hasse_deriv_apply, tsub_zero, nat.choose_zero_right,
 @[simp] lemma hasse_deriv_zero : @hasse_deriv R _ 0 = linear_map.id :=
 linear_map.ext $ hasse_deriv_zero'
 
+lemma hasse_deriv_eq_zero_of_lt_nat_degree (p : R[X]) (n : ℕ)
+  (h : p.nat_degree < n) : hasse_deriv n p = 0 :=
+begin
+  rw [hasse_deriv_apply, sum_def],
+  refine finset.sum_eq_zero (λ x hx, _),
+  simp [nat.choose_eq_zero_of_lt ((le_nat_degree_of_mem_supp _ hx).trans_lt h)]
+end
+
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
 by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
     (nat.cast_commute _ _).eq]
@@ -100,10 +110,10 @@ lemma hasse_deriv_C (r : R) (hk : 0 < k) : hasse_deriv k (C r) = 0 :=
 by rw [← monomial_zero_left, hasse_deriv_monomial, nat.choose_eq_zero_of_lt hk,
     nat.cast_zero, zero_mul, monomial_zero_right]
 
-lemma hasse_deriv_apply_one (hk : 0 < k) : hasse_deriv k (1 : polynomial R) = 0 :=
+lemma hasse_deriv_apply_one (hk : 0 < k) : hasse_deriv k (1 : R[X]) = 0 :=
 by rw [← C_1, hasse_deriv_C k _ hk]
 
-lemma hasse_deriv_X (hk : 1 < k) : hasse_deriv k (X : polynomial R) = 0 :=
+lemma hasse_deriv_X (hk : 1 < k) : hasse_deriv k (X : R[X]) = 0 :=
 by rw [← monomial_one_one_eq_X, hasse_deriv_monomial, nat.choose_eq_zero_of_lt hk,
     nat.cast_zero, zero_mul, monomial_zero_right]
 
@@ -149,7 +159,7 @@ begin
     { push_neg at hil, rw [← tsub_lt_iff_right hil] at hikl,
       rw [choose_eq_zero_of_lt hikl , zero_mul], }, },
   push_neg at hikl, apply @cast_injective ℚ,
-  have h1 : l ≤ i     := nat.le_of_add_le_right hikl,
+  have h1 : l ≤ i     := le_of_add_le_right hikl,
   have h2 : k ≤ i - l := le_tsub_of_add_le_right hikl,
   have h3 : k ≤ k + l := le_self_add,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
@@ -162,14 +172,48 @@ begin
   all_goals { apply_rules [mul_ne_zero, H] }
 end
 
+lemma nat_degree_hasse_deriv_le (p : R[X]) (n : ℕ) :
+  nat_degree (hasse_deriv n p) ≤ nat_degree p - n :=
+begin
+  classical,
+  rw [hasse_deriv_apply, sum_def],
+  refine (nat_degree_sum_le _ _).trans _,
+  simp_rw [function.comp, nat_degree_monomial],
+  rw [finset.fold_ite, finset.fold_const],
+  { simp only [if_t_t, max_eq_right, zero_le', finset.fold_max_le, true_and, and_imp,
+               tsub_le_iff_right, mem_support_iff, ne.def, finset.mem_filter],
+    intros x hx hx',
+    have hxp : x ≤ p.nat_degree := le_nat_degree_of_ne_zero hx,
+    have hxn : n ≤ x,
+    { contrapose! hx',
+      simp [nat.choose_eq_zero_of_lt hx'] },
+    rwa [tsub_add_cancel_of_le (hxn.trans hxp)] },
+  { simp }
+end
+
+lemma nat_degree_hasse_deriv [no_zero_smul_divisors ℕ R] (p : R[X]) (n : ℕ) :
+  nat_degree (hasse_deriv n p) = nat_degree p - n :=
+begin
+  cases lt_or_le p.nat_degree n with hn hn,
+  { simpa [hasse_deriv_eq_zero_of_lt_nat_degree, hn] using (tsub_eq_zero_of_le hn.le).symm },
+  { refine map_nat_degree_eq_sub _ _,
+    { exact λ h, hasse_deriv_eq_zero_of_lt_nat_degree _ _ },
+    { classical,
+      simp only [ite_eq_right_iff, ne.def, nat_degree_monomial, hasse_deriv_monomial],
+      intros k c c0 hh,
+      -- this is where we use the `smul_eq_zero` from `no_zero_smul_divisors`
+      rw [←nsmul_eq_mul, smul_eq_zero, nat.choose_eq_zero_iff] at hh,
+      exact (tsub_eq_zero_of_le (or.resolve_right hh c0).le).symm } }
+end
+
 section
 open add_monoid_hom finset.nat
 
-lemma hasse_deriv_mul (f g : polynomial R) :
+lemma hasse_deriv_mul (f g : R[X]) :
   hasse_deriv k (f * g) = ∑ ij in antidiagonal k, hasse_deriv ij.1 f * hasse_deriv ij.2 g :=
 begin
   let D := λ k, (@hasse_deriv R _ k).to_add_monoid_hom,
-  let Φ := @add_monoid_hom.mul (polynomial R) _,
+  let Φ := @add_monoid_hom.mul R[X] _,
   show (comp_hom (D k)).comp Φ f g =
     ∑ (ij : ℕ × ℕ) in antidiagonal k, ((comp_hom.comp ((comp_hom Φ) (D ij.1))).flip (D ij.2) f) g,
   simp only [← finset_sum_apply],

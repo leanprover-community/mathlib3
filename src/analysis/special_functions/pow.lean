@@ -2,11 +2,9 @@
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
-  Rémy Degenne
+  Rémy Degenne, David Loeffler
 -/
 import analysis.special_functions.complex.log
-import analysis.calculus.extend_deriv
-import analysis.special_functions.log_deriv
 
 /-!
 # Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
@@ -22,8 +20,8 @@ We also prove basic properties of these functions.
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter
-open filter
+open_locale classical real topological_space nnreal ennreal filter big_operators
+open filter finset set
 
 namespace complex
 
@@ -82,7 +80,7 @@ else by rw [cpow_def, if_neg (one_ne_zero : (1 : ℂ) ≠ 0), if_neg hx, mul_one
 by rw cpow_def; split_ifs; simp [one_ne_zero, *] at *
 
 lemma cpow_add {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
-by simp [cpow_def]; split_ifs; simp [*, exp_add, mul_add] at *
+by simp [cpow_def]; simp [*, exp_add, mul_add] at *
 
 lemma cpow_mul {x y : ℂ} (z : ℂ) (h₁ : -π < (log x * y).im) (h₂ : (log x * y).im ≤ π) :
   x ^ (y * z) = (x ^ y) ^ z :=
@@ -101,24 +99,28 @@ by rw [sub_eq_add_neg, cpow_add _ _ hx, cpow_neg, div_eq_mul_inv]
 lemma cpow_neg_one (x : ℂ) : x ^ (-1 : ℂ) = x⁻¹ :=
 by simpa using cpow_neg x 1
 
-@[simp] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
+@[simp, norm_cast] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
 | 0       := by simp
 | (n + 1) := if hx : x = 0 then by simp only [hx, pow_succ,
     complex.zero_cpow (nat.cast_ne_zero.2 (nat.succ_ne_zero _)), zero_mul]
   else by simp [cpow_add, hx, pow_add, cpow_nat_cast n]
 
-@[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
+@[simp] lemma cpow_two (x : ℂ) : x ^ (2 : ℂ) = x ^ 2 :=
+by { rw ← cpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
+@[simp, norm_cast] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
 | -[1+ n] := by rw zpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
-lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : 0 < n) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
+lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : n ≠ 0) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
 begin
-  suffices : im (log x * n⁻¹) ∈ set.Ioc (-π) π,
+  suffices : im (log x * n⁻¹) ∈ Ioc (-π) π,
   { rw [← cpow_nat_cast, ← cpow_mul _ this.1 this.2, inv_mul_cancel, cpow_one],
-    exact_mod_cast hn.ne' },
+    exact_mod_cast hn },
   rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, of_real_mul_im, ← div_eq_inv_mul],
+  rw [← pos_iff_ne_zero] at hn,
   have hn' : 0 < (n : ℝ), by assumption_mod_cast,
   have hn1 : 1 ≤ (n : ℝ), by exact_mod_cast (nat.succ_le_iff.2 hn),
   split,
@@ -132,45 +134,6 @@ begin
     ... ≤ π * n : mul_le_mul_of_nonneg_left hn1 real.pi_pos.le }
 end
 
-lemma has_strict_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :
-  has_strict_fderiv_at (λ x : ℂ × ℂ, x.1 ^ x.2)
-    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℂ ℂ ℂ +
-      (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℂ ℂ ℂ) p :=
-begin
-  have A : p.1 ≠ 0, by { intro h, simpa [h, lt_irrefl] using hp },
-  have : (λ x : ℂ × ℂ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2)),
-    from ((is_open_ne.preimage continuous_fst).eventually_mem A).mono
-      (λ p hp, cpow_def_of_ne_zero hp _),
-  rw [cpow_sub _ _ A, cpow_one, mul_div_comm, mul_smul, mul_smul, ← smul_add],
-  refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
-  simpa only [cpow_def_of_ne_zero A, div_eq_mul_inv, mul_smul, add_comm]
-    using ((has_strict_fderiv_at_fst.clog hp).mul has_strict_fderiv_at_snd).cexp
-end
-
-lemma has_strict_fderiv_at_cpow' {x y : ℂ} (hp : 0 < x.re ∨ x.im ≠ 0) :
-  has_strict_fderiv_at (λ x : ℂ × ℂ, x.1 ^ x.2)
-    ((y * x ^ (y - 1)) • continuous_linear_map.fst ℂ ℂ ℂ +
-      (x ^ y * log x) • continuous_linear_map.snd ℂ ℂ ℂ) (x, y) :=
-@has_strict_fderiv_at_cpow (x, y) hp
-
-lemma has_strict_deriv_at_const_cpow {x y : ℂ} (h : x ≠ 0 ∨ y ≠ 0) :
-  has_strict_deriv_at (λ y, x ^ y) (x ^ y * log x) y :=
-begin
-  rcases em (x = 0) with rfl|hx,
-  { replace h := h.neg_resolve_left rfl,
-    rw [log_zero, mul_zero],
-    refine (has_strict_deriv_at_const _ 0).congr_of_eventually_eq _,
-    exact (is_open_ne.eventually_mem h).mono (λ y hy, (zero_cpow hy).symm) },
-  { simpa only [cpow_def_of_ne_zero hx, mul_one]
-      using ((has_strict_deriv_at_id y).const_mul (log x)).cexp }
-end
-
-lemma has_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :
-  has_fderiv_at (λ x : ℂ × ℂ, x.1 ^ x.2)
-    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℂ ℂ ℂ +
-      (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℂ ℂ ℂ) p :=
-(has_strict_fderiv_at_cpow hp).has_fderiv_at
-
 end complex
 
 section lim
@@ -179,15 +142,80 @@ open complex
 
 variables {α : Type*}
 
+lemma zero_cpow_eq_nhds {b : ℂ} (hb : b ≠ 0) :
+  (0 : ℂ).cpow =ᶠ[𝓝 b] 0 :=
+begin
+  suffices : ∀ᶠ (x : ℂ) in (𝓝 b), x ≠ 0,
+  from this.mono (λ x hx, by rw [cpow_eq_pow, zero_cpow hx, pi.zero_apply]),
+  exact is_open.eventually_mem is_open_ne hb,
+end
+
+lemma cpow_eq_nhds {a b : ℂ} (ha : a ≠ 0) :
+  (λ x, x.cpow b) =ᶠ[𝓝 a] λ x, exp (log x * b) :=
+begin
+  suffices : ∀ᶠ (x : ℂ) in (𝓝 a), x ≠ 0,
+    from this.mono (λ x hx, by { dsimp only, rw [cpow_eq_pow, cpow_def_of_ne_zero hx], }),
+  exact is_open.eventually_mem is_open_ne ha,
+end
+
+lemma cpow_eq_nhds' {p : ℂ × ℂ} (hp_fst : p.fst ≠ 0) :
+  (λ x, x.1 ^ x.2) =ᶠ[𝓝 p] λ x, exp (log x.1 * x.2) :=
+begin
+  suffices : ∀ᶠ (x : ℂ × ℂ) in (𝓝 p), x.1 ≠ 0,
+    from this.mono (λ x hx, by { dsimp only, rw cpow_def_of_ne_zero hx, }),
+  refine is_open.eventually_mem _ hp_fst,
+  change is_open {x : ℂ × ℂ | x.1 = 0}ᶜ,
+  rw is_open_compl_iff,
+  exact is_closed_eq continuous_fst continuous_const,
+end
+
+lemma continuous_at_const_cpow {a b : ℂ} (ha : a ≠ 0) : continuous_at (cpow a) b :=
+begin
+  have cpow_eq : cpow a = λ b, exp (log a * b),
+    by { ext1 b, rw [cpow_eq_pow, cpow_def_of_ne_zero ha], },
+  rw cpow_eq,
+  exact continuous_exp.continuous_at.comp (continuous_at.mul continuous_at_const continuous_at_id),
+end
+
+lemma continuous_at_const_cpow' {a b : ℂ} (h : b ≠ 0) : continuous_at (cpow a) b :=
+begin
+  by_cases ha : a = 0,
+  { rw [ha, continuous_at_congr (zero_cpow_eq_nhds h)], exact continuous_at_const, },
+  { exact continuous_at_const_cpow ha, },
+end
+
+/-- The function `z ^ w` is continuous in `(z, w)` provided that `z` does not belong to the interval
+`(-∞, 0]` on the real line. See also `complex.continuous_at_cpow_zero_of_re_pos` for a version that
+works for `z = 0` but assumes `0 < re w`. -/
+lemma continuous_at_cpow {p : ℂ × ℂ} (hp_fst : 0 < p.fst.re ∨ p.fst.im ≠ 0) :
+  continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
+begin
+  have hp_fst_ne_zero : p.fst ≠ 0,
+    by { intro h, cases hp_fst; { rw h at hp_fst, simpa using hp_fst, }, },
+  rw continuous_at_congr (cpow_eq_nhds' hp_fst_ne_zero),
+  refine continuous_exp.continuous_at.comp _,
+  refine continuous_at.mul (continuous_at.comp _ continuous_fst.continuous_at)
+    continuous_snd.continuous_at,
+  exact continuous_at_clog hp_fst,
+end
+
+lemma continuous_at_cpow_const {a b : ℂ} (ha : 0 < a.re ∨ a.im ≠ 0) :
+  continuous_at (λ x, cpow x b) a :=
+tendsto.comp (@continuous_at_cpow (a, b) ha) (continuous_at_id.prod continuous_at_const)
+
 lemma filter.tendsto.cpow {l : filter α} {f g : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 a))
   (hg : tendsto g l (𝓝 b)) (ha : 0 < a.re ∨ a.im ≠ 0) :
   tendsto (λ x, f x ^ g x) l (𝓝 (a ^ b)) :=
-(@has_fderiv_at_cpow (a, b) ha).continuous_at.tendsto.comp (hf.prod_mk_nhds hg)
+(@continuous_at_cpow (a,b) ha).tendsto.comp (hf.prod_mk_nhds hg)
 
 lemma filter.tendsto.const_cpow {l : filter α} {f : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 b))
   (h : a ≠ 0 ∨ b ≠ 0) :
   tendsto (λ x, a ^ f x) l (𝓝 (a ^ b)) :=
-(has_strict_deriv_at_const_cpow h).continuous_at.tendsto.comp hf
+begin
+  cases h,
+  { exact (continuous_at_const_cpow h).tendsto.comp hf, },
+  { exact (continuous_at_const_cpow' h).tendsto.comp hf, },
+end
 
 variables [topological_space α] {f g : α → ℂ} {s : set α} {a : α}
 
@@ -228,132 +256,12 @@ lemma continuous.const_cpow {b : ℂ} (hf : continuous f) (h : b ≠ 0 ∨ ∀ a
   continuous (λ x, b ^ f x) :=
 continuous_iff_continuous_at.2 $ λ a, (hf.continuous_at.const_cpow $ h.imp id $ λ h, h a)
 
+lemma continuous_on.cpow_const {b : ℂ} (hf : continuous_on f s)
+  (h : ∀ (a : α), a ∈ s → 0 < (f a).re ∨ (f a).im ≠ 0) :
+  continuous_on (λ x, (f x) ^ b) s :=
+hf.cpow continuous_on_const h
+
 end lim
-
-section fderiv
-
-open complex
-
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {f g : E → ℂ} {f' g' : E →L[ℂ] ℂ}
-  {x : E} {s : set E} {c : ℂ}
-
-lemma has_strict_fderiv_at.cpow (hf : has_strict_fderiv_at f f' x)
-  (hg : has_strict_fderiv_at g g' x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_strict_fderiv_at (λ x, f x ^ g x)
-    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') x :=
-by convert (@has_strict_fderiv_at_cpow ((λ x, (f x, g x)) x) h0).comp x (hf.prod hg)
-
-lemma has_strict_fderiv_at.const_cpow (hf : has_strict_fderiv_at f f' x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
-  has_strict_fderiv_at (λ x, c ^ f x) ((c ^ f x * log c) • f') x :=
-(has_strict_deriv_at_const_cpow h0).comp_has_strict_fderiv_at x hf
-
-lemma has_fderiv_at.cpow (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x)
-  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_fderiv_at (λ x, f x ^ g x)
-    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') x :=
-by convert (@complex.has_fderiv_at_cpow ((λ x, (f x, g x)) x) h0).comp x (hf.prod hg)
-
-lemma has_fderiv_at.const_cpow (hf : has_fderiv_at f f' x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
-  has_fderiv_at (λ x, c ^ f x) ((c ^ f x * log c) • f') x :=
-(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp_has_fderiv_at x hf
-
-lemma has_fderiv_within_at.cpow (hf : has_fderiv_within_at f f' s x)
-  (hg : has_fderiv_within_at g g' s x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_fderiv_within_at (λ x, f x ^ g x)
-    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') s x :=
-by convert (@complex.has_fderiv_at_cpow ((λ x, (f x, g x)) x) h0).comp_has_fderiv_within_at x
-  (hf.prod hg)
-
-lemma has_fderiv_within_at.const_cpow (hf : has_fderiv_within_at f f' s x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
-  has_fderiv_within_at (λ x, c ^ f x) ((c ^ f x * log c) • f') s x :=
-(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp_has_fderiv_within_at x hf
-
-lemma differentiable_at.cpow (hf : differentiable_at ℂ f x) (hg : differentiable_at ℂ g x)
-  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  differentiable_at ℂ (λ x, f x ^ g x) x :=
-(hf.has_fderiv_at.cpow hg.has_fderiv_at h0).differentiable_at
-
-lemma differentiable_at.const_cpow (hf : differentiable_at ℂ f x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
-  differentiable_at ℂ (λ x, c ^ f x) x :=
-(hf.has_fderiv_at.const_cpow h0).differentiable_at
-
-lemma differentiable_within_at.cpow (hf : differentiable_within_at ℂ f s x)
-  (hg : differentiable_within_at ℂ g s x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  differentiable_within_at ℂ (λ x, f x ^ g x) s x :=
-(hf.has_fderiv_within_at.cpow hg.has_fderiv_within_at h0).differentiable_within_at
-
-lemma differentiable_within_at.const_cpow (hf : differentiable_within_at ℂ f s x)
-  (h0 : c ≠ 0 ∨ f x ≠ 0) :
-  differentiable_within_at ℂ (λ x, c ^ f x) s x :=
-(hf.has_fderiv_within_at.const_cpow h0).differentiable_within_at
-
-end fderiv
-
-section deriv
-
-open complex
-
-variables {f g : ℂ → ℂ} {s : set ℂ} {f' g' x c : ℂ}
-
-/-- A private lemma that rewrites the output of lemmas like `has_fderiv_at.cpow` to the form
-expected by lemmas like `has_deriv_at.cpow`. -/
-private lemma aux :
-  ((g x * f x ^ (g x - 1)) • (1 : ℂ →L[ℂ] ℂ).smul_right f' +
-    (f x ^ g x * log (f x)) • (1 : ℂ →L[ℂ] ℂ).smul_right g') 1 =
-    g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g' :=
-by simp only [algebra.id.smul_eq_mul, one_mul, continuous_linear_map.one_apply,
-  continuous_linear_map.smul_right_apply, continuous_linear_map.add_apply, pi.smul_apply,
-  continuous_linear_map.coe_smul']
-
-lemma has_strict_deriv_at.cpow (hf : has_strict_deriv_at f f' x) (hg : has_strict_deriv_at g g' x)
-  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_strict_deriv_at (λ x, f x ^ g x)
-    (g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g') x :=
-by simpa only [aux] using (hf.cpow hg h0).has_strict_deriv_at
-
-lemma has_strict_deriv_at.const_cpow (hf : has_strict_deriv_at f f' x) (h : c ≠ 0 ∨ f x ≠ 0) :
-  has_strict_deriv_at (λ x, c ^ f x) (c ^ f x * log c * f') x :=
-(has_strict_deriv_at_const_cpow h).comp x hf
-
-lemma complex.has_strict_deriv_at_cpow_const (h : 0 < x.re ∨ x.im ≠ 0) :
-  has_strict_deriv_at (λ z : ℂ, z ^ c) (c * x ^ (c - 1)) x :=
-by simpa only [mul_zero, add_zero, mul_one]
-  using (has_strict_deriv_at_id x).cpow (has_strict_deriv_at_const x c) h
-
-lemma has_strict_deriv_at.cpow_const (hf : has_strict_deriv_at f f' x)
-  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_strict_deriv_at (λ x, f x ^ c) (c * f x ^ (c - 1) * f') x :=
-(complex.has_strict_deriv_at_cpow_const h0).comp x hf
-
-lemma has_deriv_at.cpow (hf : has_deriv_at f f' x) (hg : has_deriv_at g g' x)
-  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_at (λ x, f x ^ g x) (g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g') x :=
-by simpa only [aux] using (hf.has_fderiv_at.cpow hg h0).has_deriv_at
-
-lemma has_deriv_at.const_cpow (hf : has_deriv_at f f' x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
-  has_deriv_at (λ x, c ^ f x) (c ^ f x * log c * f') x :=
-(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp x hf
-
-lemma has_deriv_at.cpow_const (hf : has_deriv_at f f' x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_at (λ x, f x ^ c) (c * f x ^ (c - 1) * f') x :=
-(complex.has_strict_deriv_at_cpow_const h0).has_deriv_at.comp x hf
-
-lemma has_deriv_within_at.cpow (hf : has_deriv_within_at f f' s x)
-  (hg : has_deriv_within_at g g' s x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_within_at (λ x, f x ^ g x)
-    (g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g') s x :=
-by simpa only [aux] using (hf.has_fderiv_within_at.cpow hg h0).has_deriv_within_at
-
-lemma has_deriv_within_at.const_cpow (hf : has_deriv_within_at f f' s x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
-  has_deriv_within_at (λ x, c ^ f x) (c ^ f x * log c * f') s x :=
-(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp_has_deriv_within_at x hf
-
-lemma has_deriv_within_at.cpow_const (hf : has_deriv_within_at f f' s x)
-  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_within_at (λ x, f x ^ c) (c * f x ^ (c - 1) * f') s x :=
-(complex.has_strict_deriv_at_cpow_const h0).has_deriv_at.comp_has_deriv_within_at x hf
-
-end deriv
 
 namespace real
 
@@ -385,6 +293,8 @@ by rw [rpow_def_of_nonneg (le_of_lt hx), if_neg (ne_of_gt hx)]
 
 lemma exp_mul (x y : ℝ) : exp (x * y) = (exp x) ^ y :=
 by rw [rpow_def_of_pos (exp_pos _), log_exp]
+
+@[simp] lemma exp_one_rpow (x : ℝ) : exp 1 ^ x = exp x := by rw [←exp_mul, one_mul]
 
 lemma rpow_eq_zero_iff_of_nonneg {x y : ℝ} (hx : 0 ≤ x) : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
 by { simp only [rpow_def_of_nonneg hx], split_ifs; simp [*, exp_ne_zero] }
@@ -454,11 +364,16 @@ lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
 by rw [rpow_def_of_nonneg hx];
   split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
 
+lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
+begin
+  have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
+  rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
+end
+
 lemma abs_rpow_le_abs_rpow (x y : ℝ) : |x ^ y| ≤ |x| ^ y :=
 begin
-  rcases lt_trichotomy 0 x with (hx|rfl|hx),
-  { rw [abs_of_pos hx, abs_of_pos (rpow_pos_of_pos hx _)] },
-  { rw [abs_zero, abs_of_nonneg (rpow_nonneg_of_nonneg le_rfl _)] },
+  cases le_or_lt 0 x with hx hx,
+  { rw [abs_rpow_of_nonneg hx] },
   { rw [abs_of_neg hx, rpow_def_of_neg hx, rpow_def_of_pos (neg_pos.2 hx), log_neg_eq_log,
       abs_mul, abs_of_pos (exp_pos _)],
     exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
@@ -472,12 +387,6 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
-begin
-  have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
-  rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
-end
-
 lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
 by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
 
@@ -488,17 +397,49 @@ namespace complex
 lemma of_real_cpow {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : ((x ^ y : ℝ) : ℂ) = (x : ℂ) ^ (y : ℂ) :=
 by simp [real.rpow_def_of_nonneg hx, complex.cpow_def]; split_ifs; simp [complex.of_real_log hx]
 
-@[simp] lemma abs_cpow_real (x : ℂ) (y : ℝ) : abs (x ^ (y : ℂ)) = x.abs ^ y :=
+lemma of_real_cpow_of_nonpos {x : ℝ} (hx : x ≤ 0) (y : ℂ) :
+  (x : ℂ) ^ y = ((-x) : ℂ) ^ y * exp (π * I * y) :=
 begin
-  rw [real.rpow_def_of_nonneg (abs_nonneg _), complex.cpow_def],
-  split_ifs;
-  simp [*, abs_of_nonneg (le_of_lt (real.exp_pos _)), complex.log, complex.exp_add,
-    add_mul, mul_right_comm _ I, exp_mul_I, abs_cos_add_sin_mul_I,
-    (complex.of_real_mul _ _).symm, -complex.of_real_mul, -is_R_or_C.of_real_mul] at *
+  rcases hx.eq_or_lt with rfl|hlt,
+  { rcases eq_or_ne y 0 with rfl|hy; simp * },
+  have hne : (x : ℂ) ≠ 0, from of_real_ne_zero.mpr hlt.ne,
+  rw [cpow_def_of_ne_zero hne, cpow_def_of_ne_zero (neg_ne_zero.2 hne), ← exp_add, ← add_mul,
+    log, log, abs_neg, arg_of_real_of_neg hlt, ← of_real_neg,
+    arg_of_real_of_nonneg (neg_nonneg.2 hx), of_real_zero, zero_mul, add_zero]
 end
+
+lemma abs_cpow_of_ne_zero {z : ℂ} (hz : z ≠ 0) (w : ℂ) :
+  abs (z ^ w) = abs z ^ w.re / real.exp (arg z * im w) :=
+by rw [cpow_def_of_ne_zero hz, abs_exp, mul_re, log_re, log_im, real.exp_sub,
+  real.rpow_def_of_pos (abs_pos.2 hz)]
+
+lemma abs_cpow_le (z w : ℂ) : abs (z ^ w) ≤ abs z ^ w.re / real.exp (arg z * im w) :=
+begin
+  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w).le, rw abs_zero],
+  rcases eq_or_ne w 0 with rfl|hw, { simp },
+  rw [zero_cpow hw, abs_zero],
+  exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le
+end
+
+@[simp] lemma abs_cpow_real (x : ℂ) (y : ℝ) : abs (x ^ (y : ℂ)) = x.abs ^ y :=
+by rcases eq_or_ne x 0 with rfl|hx; [rcases eq_or_ne y 0 with rfl|hy, skip];
+  simp [*, abs_cpow_of_ne_zero]
 
 @[simp] lemma abs_cpow_inv_nat (x : ℂ) (n : ℕ) : abs (x ^ (n⁻¹ : ℂ)) = x.abs ^ (n⁻¹ : ℝ) :=
 by rw ← abs_cpow_real; simp [-abs_cpow_real]
+
+lemma abs_cpow_eq_rpow_re_of_pos {x : ℝ} (hx : 0 < x) (y : ℂ) : abs (x ^ y) = x ^ y.re :=
+by rw [abs_cpow_of_ne_zero (of_real_ne_zero.mpr hx.ne'), arg_of_real_of_nonneg hx.le, zero_mul,
+  real.exp_zero, div_one, abs_of_nonneg hx.le]
+
+lemma abs_cpow_eq_rpow_re_of_nonneg {x : ℝ} (hx : 0 ≤ x) {y : ℂ} (hy : re y ≠ 0) :
+  abs (x ^ y) = x ^ re y :=
+begin
+  rcases hx.eq_or_lt with rfl|hlt,
+  { rw [of_real_zero, zero_cpow, abs_zero, real.zero_rpow hy],
+    exact ne_of_apply_ne re hy },
+  { exact abs_cpow_eq_rpow_re_of_pos hlt y }
+end
 
 end complex
 
@@ -506,16 +447,24 @@ namespace real
 
 variables {x y z : ℝ}
 
-lemma rpow_add {x : ℝ} (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
+lemma rpow_add (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
 by simp only [rpow_def_of_pos hx, mul_add, exp_add]
 
-lemma rpow_add' {x : ℝ} (hx : 0 ≤ x) {y z : ℝ} (h : y + z ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
+lemma rpow_add' (hx : 0 ≤ x) (h : y + z ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
 begin
   rcases hx.eq_or_lt with rfl|pos,
   { rw [zero_rpow h, zero_eq_mul],
     have : y ≠ 0 ∨ z ≠ 0, from not_and_distrib.1 (λ ⟨hy, hz⟩, h $ hy.symm ▸ hz.symm ▸ zero_add 0),
     exact this.imp zero_rpow zero_rpow },
   { exact rpow_add pos _ _ }
+end
+
+lemma rpow_add_of_nonneg (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z) :
+  x ^ (y + z) = x ^ y * x ^ z :=
+begin
+  rcases hy.eq_or_lt with rfl|hy,
+  { rw [zero_add, rpow_zero, one_mul] },
+  exact rpow_add' hx (ne_of_gt $ add_pos_of_pos_of_nonneg hy hz)
 end
 
 /-- For `0 ≤ x`, the only problematic case in the equality `x ^ y * x ^ z = x ^ (y + z)` is for
@@ -531,6 +480,20 @@ begin
       ... = 1 : by simp },
     { simp [rpow_add', ← H, h] } },
   { simp [rpow_add pos] }
+end
+
+lemma rpow_sum_of_pos {ι : Type*} {a : ℝ} (ha : 0 < a) (f : ι → ℝ) (s : finset ι) :
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
+@add_monoid_hom.map_sum ℝ ι (additive ℝ) _ _ ⟨λ x : ℝ, (a ^ x : ℝ), rpow_zero a, rpow_add ha⟩ f s
+
+lemma rpow_sum_of_nonneg {ι : Type*} {a : ℝ} (ha : 0 ≤ a) {s : finset ι} {f : ι → ℝ}
+  (h : ∀ x ∈ s, 0 ≤ f x) :
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
+begin
+  induction s using finset.cons_induction with i s hi ihs,
+  { rw [sum_empty, finset.prod_empty, rpow_zero] },
+  { rw forall_mem_cons at h,
+    rw [sum_cons, prod_cons, ← ihs h.2, rpow_add_of_nonneg ha h.1 (sum_nonneg h.2)] }
 end
 
 lemma rpow_mul {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z :=
@@ -569,17 +532,20 @@ by simpa using rpow_add_nat hx y 1
 lemma rpow_sub_one {x : ℝ} (hx : x ≠ 0) (y : ℝ) : x ^ (y - 1) = x ^ y / x :=
 by simpa using rpow_sub_nat hx y 1
 
-@[simp] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
+@[simp, norm_cast] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
 by simp only [rpow_def, ← complex.of_real_zpow, complex.cpow_int_cast,
   complex.of_real_int_cast, complex.of_real_re]
 
-@[simp] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
+@[simp, norm_cast] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 rpow_int_cast x n
+
+@[simp] lemma rpow_two (x : ℝ) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
-  suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, zpow_one, zpow_neg₀],
+  suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by rwa [int.cast_neg, int.cast_one] at H,
+  simp only [rpow_int_cast, zpow_one, zpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
@@ -642,6 +608,16 @@ begin
   rw exp_le_exp, exact mul_le_mul_of_nonneg_left hyz (log_nonneg hx),
 end
 
+@[simp] lemma rpow_le_rpow_left_iff (hx : 1 < x) : x ^ y ≤ x ^ z ↔ y ≤ z :=
+begin
+  have x_pos : 0 < x := lt_trans zero_lt_one hx,
+  rw [←log_le_log (rpow_pos_of_pos x_pos y) (rpow_pos_of_pos x_pos z),
+      log_rpow x_pos, log_rpow x_pos, mul_le_mul_right (log_pos hx)],
+end
+
+@[simp] lemma rpow_lt_rpow_left_iff (hx : 1 < x) : x ^ y < x ^ z ↔ y < z :=
+by rw [lt_iff_not_le, rpow_le_rpow_left_iff hx, lt_iff_not_le]
+
 lemma rpow_lt_rpow_of_exponent_gt (hx0 : 0 < x) (hx1 : x < 1) (hyz : z < y) :
   x^y < x^z :=
 begin
@@ -655,6 +631,17 @@ begin
   repeat {rw [rpow_def_of_pos hx0]},
   rw exp_le_exp, exact mul_le_mul_of_nonpos_left hyz (log_nonpos (le_of_lt hx0) hx1),
 end
+
+@[simp] lemma rpow_le_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
+  x ^ y ≤ x ^ z ↔ z ≤ y :=
+begin
+  rw [←log_le_log (rpow_pos_of_pos hx0 y) (rpow_pos_of_pos hx0 z),
+      log_rpow hx0, log_rpow hx0, mul_le_mul_right_of_neg (log_neg hx0 hx1)],
+end
+
+@[simp] lemma rpow_lt_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
+  x ^ y < x ^ z ↔ z < y :=
+by rw [lt_iff_not_le, rpow_le_rpow_left_iff_of_base_lt_one hx0 hx1, lt_iff_not_le]
 
 lemma rpow_lt_one {x z : ℝ} (hx1 : 0 ≤ x) (hx2 : x < 1) (hz : 0 < z) : x^z < 1 :=
 by { rw ← one_rpow z, exact rpow_lt_rpow hx1 hx2 hz }
@@ -702,6 +689,23 @@ begin
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
+lemma rpow_le_rpow_of_exponent_ge' (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (hz : 0 ≤ z) (hyz : z ≤ y) :
+  x^y ≤ x^z :=
+begin
+  rcases eq_or_lt_of_le hx0 with rfl | hx0',
+  { rcases eq_or_lt_of_le hz with rfl | hz',
+    { exact (rpow_zero 0).symm ▸ (rpow_le_one hx0 hx1 hyz), },
+    rw [zero_rpow, zero_rpow]; linarith, },
+  { exact rpow_le_rpow_of_exponent_ge hx0' hx1 hyz, },
+end
+
+lemma rpow_left_inj_on {x : ℝ} (hx : x ≠ 0) :
+  inj_on (λ y : ℝ, y^x) {y : ℝ | 0 ≤ y} :=
+begin
+  rintros y hy z hz (hyz : y ^ x = z ^ x),
+  rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul hy, rpow_mul hz, hyz]
+end
+
 lemma le_rpow_iff_log_le (hx : 0 < x) (hy : 0 < y) :
   x ≤ y^z ↔ real.log x ≤ z * real.log y :=
 by rw [←real.log_le_log hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
@@ -729,98 +733,77 @@ end
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
 
-lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
+/-- Bound for `|log x * x ^ t|` in the interval `(0, 1]`, for positive real `t`. -/
+lemma abs_log_mul_self_rpow_lt (x t : ℝ) (h1 : 0 < x) (h2 : x ≤ 1) (ht : 0 < t) :
+  |log x * x ^ t| < 1 / t :=
+begin
+  rw lt_div_iff ht,
+  have := abs_log_mul_self_lt (x ^ t) (rpow_pos_of_pos h1 t) (rpow_le_one h1.le h2 ht.le),
+  rwa [log_rpow h1, mul_assoc, abs_mul, abs_of_pos ht, mul_comm] at this
+end
+
+lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : n ≠ 0) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
-have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
+have hn0 : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, mul_inv_cancel hn0, rpow_one]
 
-lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
+lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : n ≠ 0) :
   (x ^ (n⁻¹ : ℝ)) ^ n = x :=
-have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
+have hn0 : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, inv_mul_cancel hn0, rpow_one]
 
-/-- `(x, y) ↦ x ^ y` is strictly differentiable at `p : ℝ × ℝ` such that `0 < p.fst`. -/
-lemma has_strict_fderiv_at_rpow_of_pos (p : ℝ × ℝ) (hp : 0 < p.1) :
-  has_strict_fderiv_at (λ x : ℝ × ℝ, x.1 ^ x.2)
-    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℝ ℝ ℝ +
-      (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℝ ℝ ℝ) p :=
+lemma continuous_at_const_rpow {a b : ℝ} (h : a ≠ 0) : continuous_at (rpow a) b :=
 begin
-  have : (λ x : ℝ × ℝ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2)),
-    from (continuous_at_fst.eventually (lt_mem_nhds hp)).mono (λ p hp, rpow_def_of_pos hp _),
-  refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
-  convert ((has_strict_fderiv_at_fst.log hp.ne').mul has_strict_fderiv_at_snd).exp,
-  rw [rpow_sub_one hp.ne', ← rpow_def_of_pos hp, smul_add, smul_smul, mul_div_comm,
-    div_eq_mul_inv, smul_smul, smul_smul, mul_assoc, add_comm]
+  have : rpow a = λ x : ℝ, ((a : ℂ) ^ (x : ℂ)).re, by { ext1 x, rw [rpow_eq_pow, rpow_def], },
+  rw this,
+  refine complex.continuous_re.continuous_at.comp _,
+  refine (continuous_at_const_cpow _).comp complex.continuous_of_real.continuous_at,
+  norm_cast,
+  exact h,
 end
 
-/-- `(x, y) ↦ x ^ y` is strictly differentiable at `p : ℝ × ℝ` such that `p.fst < 0`. -/
-lemma has_strict_fderiv_at_rpow_of_neg (p : ℝ × ℝ) (hp : p.1 < 0) :
-  has_strict_fderiv_at (λ x : ℝ × ℝ, x.1 ^ x.2)
-    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℝ ℝ ℝ +
-      (p.1 ^ p.2 * log p.1 - exp (log p.1 * p.2) * sin (p.2 * π) * π) •
-        continuous_linear_map.snd ℝ ℝ ℝ) p :=
+lemma continuous_at_const_rpow' {a b : ℝ} (h : b ≠ 0) : continuous_at (rpow a) b :=
 begin
-  have : (λ x : ℝ × ℝ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2) * cos (x.2 * π)),
-    from (continuous_at_fst.eventually (gt_mem_nhds hp)).mono (λ p hp, rpow_def_of_neg hp _),
-  refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
-  convert ((has_strict_fderiv_at_fst.log hp.ne).mul has_strict_fderiv_at_snd).exp.mul
-    (has_strict_fderiv_at_snd.mul_const _).cos using 1,
-  simp_rw [rpow_sub_one hp.ne, smul_add, ← add_assoc, smul_smul, ← add_smul, ← mul_assoc,
-    mul_comm (cos _), ← rpow_def_of_neg hp],
-  rw [div_eq_mul_inv, add_comm], congr' 2; ring
+  have : rpow a = λ x : ℝ, ((a : ℂ) ^ (x : ℂ)).re, by { ext1 x, rw [rpow_eq_pow, rpow_def], },
+  rw this,
+  refine complex.continuous_re.continuous_at.comp _,
+  refine (continuous_at_const_cpow' _).comp complex.continuous_of_real.continuous_at,
+  norm_cast,
+  exact h,
 end
 
-/-- The function `λ (x, y), x ^ y` is infinitely smooth at `(x, y)` unless `x = 0`. -/
-lemma times_cont_diff_at_rpow_of_ne (p : ℝ × ℝ) (hp : p.1 ≠ 0) {n : with_top ℕ} :
-  times_cont_diff_at ℝ n (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
+lemma rpow_eq_nhds_of_neg {p : ℝ × ℝ} (hp_fst : p.fst < 0) :
+  (λ x : ℝ × ℝ, x.1 ^ x.2) =ᶠ[𝓝 p] λ x, exp (log x.1 * x.2) * cos (x.2 * π) :=
 begin
-  cases hp.lt_or_lt with hneg hpos,
-  exacts [(((times_cont_diff_at_fst.log hneg.ne).mul times_cont_diff_at_snd).exp.mul
-    (times_cont_diff_at_snd.mul times_cont_diff_at_const).cos).congr_of_eventually_eq
-      ((continuous_at_fst.eventually (gt_mem_nhds hneg)).mono (λ p hp, rpow_def_of_neg hp _)),
-    ((times_cont_diff_at_fst.log hpos.ne').mul times_cont_diff_at_snd).exp.congr_of_eventually_eq
-      ((continuous_at_fst.eventually (lt_mem_nhds hpos)).mono (λ p hp, rpow_def_of_pos hp _))]
+  suffices : ∀ᶠ (x : ℝ × ℝ) in (𝓝 p), x.1 < 0,
+    from this.mono (λ x hx, by { dsimp only, rw rpow_def_of_neg hx, }),
+  exact is_open.eventually_mem (is_open_lt continuous_fst continuous_const) hp_fst,
 end
 
-lemma differentiable_at_rpow_of_ne (p : ℝ × ℝ) (hp : p.1 ≠ 0) :
-  differentiable_at ℝ (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
-(times_cont_diff_at_rpow_of_ne p hp).differentiable_at le_rfl
+lemma rpow_eq_nhds_of_pos {p : ℝ × ℝ} (hp_fst : 0 < p.fst) :
+  (λ x : ℝ × ℝ, x.1 ^ x.2) =ᶠ[𝓝 p] λ x, exp (log x.1 * x.2) :=
+begin
+  suffices : ∀ᶠ (x : ℝ × ℝ) in (𝓝 p), 0 < x.1,
+    from this.mono (λ x hx, by { dsimp only, rw rpow_def_of_pos hx, }),
+  exact is_open.eventually_mem (is_open_lt continuous_const continuous_fst) hp_fst,
+end
 
 lemma continuous_at_rpow_of_ne (p : ℝ × ℝ) (hp : p.1 ≠ 0) :
   continuous_at (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
-(@times_cont_diff_at_rpow_of_ne p hp 0).continuous_at
-
-lemma _root_.has_strict_deriv_at.rpow {f g : ℝ → ℝ} {f' g' : ℝ} (hf : has_strict_deriv_at f f' x)
-  (hg : has_strict_deriv_at g g' x) (h : 0 < f x) :
-  has_strict_deriv_at (λ x, f x ^ g x)
-    (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) x :=
 begin
-  convert (has_strict_fderiv_at_rpow_of_pos ((λ x, (f x, g x)) x) h).comp_has_strict_deriv_at _
-    (hf.prod hg) using 1,
-  simp [mul_assoc, mul_comm, mul_left_comm]
+  rw ne_iff_lt_or_gt at hp,
+  cases hp,
+  { rw continuous_at_congr (rpow_eq_nhds_of_neg hp),
+    refine continuous_at.mul _ (continuous_cos.continuous_at.comp _),
+    { refine continuous_exp.continuous_at.comp (continuous_at.mul _ continuous_snd.continuous_at),
+      refine (continuous_at_log _).comp continuous_fst.continuous_at,
+      exact hp.ne, },
+    { exact continuous_snd.continuous_at.mul continuous_at_const, }, },
+  { rw continuous_at_congr (rpow_eq_nhds_of_pos hp),
+    refine continuous_exp.continuous_at.comp (continuous_at.mul _ continuous_snd.continuous_at),
+    refine (continuous_at_log _).comp continuous_fst.continuous_at,
+    exact hp.lt.ne.symm, },
 end
-
-lemma has_strict_deriv_at_rpow_const_of_ne {x : ℝ} (hx : x ≠ 0) (p : ℝ) :
-  has_strict_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
-begin
-  cases hx.lt_or_lt with hx hx,
-  { have := (has_strict_fderiv_at_rpow_of_neg (x, p) hx).comp_has_strict_deriv_at x
-      ((has_strict_deriv_at_id x).prod (has_strict_deriv_at_const _ _)),
-    convert this, simp },
-  { simpa using (has_strict_deriv_at_id x).rpow (has_strict_deriv_at_const x p) hx }
-end
-
-lemma has_strict_deriv_at_const_rpow {a : ℝ} (ha : 0 < a) (x : ℝ) :
-  has_strict_deriv_at (λ x, a ^ x) (a ^ x * log a) x :=
-by simpa using (has_strict_deriv_at_const _ _).rpow (has_strict_deriv_at_id x) ha
-
-/-- This lemma says that `λ x, a ^ x` is strictly differentiable for `a < 0`. Note that these
-values of `a` are outside of the "official" domain of `a ^ x`, and we may redefine `a ^ x`
-for negative `a` if some other definition will be more convenient. -/
-lemma has_strict_deriv_at_const_rpow_of_neg {a x : ℝ} (ha : a < 0) :
-  has_strict_deriv_at (λ x, a ^ x) (a ^ x * log a - exp (log a * x) * sin (x * π) * π) x :=
-by simpa using (has_strict_fderiv_at_rpow_of_neg (a, x) ha).comp_has_strict_deriv_at x
-  ((has_strict_deriv_at_const _ _).prod (has_strict_deriv_at_id _))
 
 lemma continuous_at_rpow_of_pos (p : ℝ × ℝ) (hp : 0 < p.2) :
   continuous_at (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
@@ -828,21 +811,30 @@ begin
   cases p with x y,
   obtain hx|rfl := ne_or_eq x 0,
   { exact continuous_at_rpow_of_ne (x, y) hx },
-  have A : tendsto (λ p : ℝ × ℝ, exp (log p.1 * p.2)) (𝓝[{0}ᶜ] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
+  have A : tendsto (λ p : ℝ × ℝ, exp (log p.1 * p.2)) (𝓝[≠] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
     tendsto_exp_at_bot.comp
       ((tendsto_log_nhds_within_zero.comp tendsto_fst).at_bot_mul hp tendsto_snd),
-  have B : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}ᶜ] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
+  have B : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[≠] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
     squeeze_zero_norm (λ p, abs_rpow_le_exp_log_mul p.1 p.2) A,
   have C : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}] 0 ×ᶠ 𝓝 y) (pure 0),
   { rw [nhds_within_singleton, tendsto_pure, pure_prod, eventually_map],
     exact (lt_mem_nhds hp).mono (λ y hy, zero_rpow hy.ne') },
-  simpa only [← sup_prod, ← nhds_within_union, set.compl_union_self, nhds_within_univ, nhds_prod_eq,
+  simpa only [← sup_prod, ← nhds_within_union, compl_union_self, nhds_within_univ, nhds_prod_eq,
     continuous_at, zero_rpow hp.ne'] using B.sup (C.mono_right (pure_le_nhds _))
 end
 
 lemma continuous_at_rpow (p : ℝ × ℝ) (h : p.1 ≠ 0 ∨ 0 < p.2) :
   continuous_at (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
 h.elim (λ h, continuous_at_rpow_of_ne p h) (λ h, continuous_at_rpow_of_pos p h)
+
+lemma continuous_at_rpow_const (x : ℝ) (q : ℝ) (h : x ≠ 0 ∨ 0 < q) :
+  continuous_at (λ (x : ℝ), x ^ q) x :=
+begin
+  change continuous_at ((λ p : ℝ × ℝ, p.1 ^ p.2) ∘ (λ y : ℝ, (y, q))) x,
+  apply continuous_at.comp,
+  { exact continuous_at_rpow (x, q) h },
+  { exact (continuous_id'.prod_mk continuous_const).continuous_at }
+end
 
 end real
 
@@ -903,60 +895,6 @@ namespace real
 
 variables {z x y : ℝ}
 
-lemma has_deriv_at_rpow_const {x p : ℝ} (h : x ≠ 0 ∨ 1 ≤ p) :
-  has_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
-begin
-  rcases ne_or_eq x 0 with hx | rfl,
-  { exact (has_strict_deriv_at_rpow_const_of_ne hx _).has_deriv_at },
-  replace h : 1 ≤ p := h.neg_resolve_left rfl,
-  apply has_deriv_at_of_has_deriv_at_of_ne
-    (λ x hx, (has_strict_deriv_at_rpow_const_of_ne hx p).has_deriv_at),
-  exacts [continuous_at_id.rpow_const (or.inr (zero_le_one.trans h)),
-    continuous_at_const.mul (continuous_at_id.rpow_const (or.inr (sub_nonneg.2 h)))]
-end
-
-lemma differentiable_rpow_const {p : ℝ} (hp : 1 ≤ p) :
-  differentiable ℝ (λ x : ℝ, x ^ p) :=
-λ x, (has_deriv_at_rpow_const (or.inr hp)).differentiable_at
-
-lemma deriv_rpow_const {x p : ℝ} (h : x ≠ 0 ∨ 1 ≤ p) :
-  deriv (λ x : ℝ, x ^ p) x = p * x ^ (p - 1) :=
-(has_deriv_at_rpow_const h).deriv
-
-lemma deriv_rpow_const' {p : ℝ} (h : 1 ≤ p) :
-  deriv (λ x : ℝ, x ^ p) = λ x, p * x ^ (p - 1) :=
-funext $ λ x, deriv_rpow_const (or.inr h)
-
-lemma times_cont_diff_at_rpow_const_of_ne {x p : ℝ} {n : with_top ℕ} (h : x ≠ 0) :
-  times_cont_diff_at ℝ n (λ x, x ^ p) x :=
-(times_cont_diff_at_rpow_of_ne (x, p) h).comp x
-  (times_cont_diff_at_id.prod times_cont_diff_at_const)
-
-lemma times_cont_diff_rpow_const_of_le {p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
-  times_cont_diff ℝ n (λ x : ℝ, x ^ p) :=
-begin
-  induction n with n ihn generalizing p,
-  { exact times_cont_diff_zero.2 (continuous_id.rpow_const (λ x, or.inr h)) },
-  { have h1 : 1 ≤ p, from le_trans (by simp) h,
-    rw [nat.cast_succ, ← le_sub_iff_add_le] at h,
-    simpa [times_cont_diff_succ_iff_deriv, differentiable_rpow_const, h1, deriv_rpow_const']
-      using times_cont_diff_const.mul (ihn h) }
-end
-
-lemma times_cont_diff_at_rpow_const_of_le {x p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
-  times_cont_diff_at ℝ n (λ x : ℝ, x ^ p) x :=
-(times_cont_diff_rpow_const_of_le h).times_cont_diff_at
-
-lemma times_cont_diff_at_rpow_const {x p : ℝ} {n : ℕ} (h : x ≠ 0 ∨ ↑n ≤ p) :
-  times_cont_diff_at ℝ n (λ x : ℝ, x ^ p) x :=
-h.elim times_cont_diff_at_rpow_const_of_ne times_cont_diff_at_rpow_const_of_le
-
-lemma has_strict_deriv_at_rpow_const {x p : ℝ} (hx : x ≠ 0 ∨ 1 ≤ p) :
-  has_strict_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
-times_cont_diff_at.has_strict_deriv_at'
-  (times_cont_diff_at_rpow_const (by rwa nat.cast_one))
-  (has_deriv_at_rpow_const hx) le_rfl
-
 section sqrt
 
 lemma sqrt_eq_rpow (x : ℝ) : sqrt x = x ^ (1/(2:ℝ)) :=
@@ -972,197 +910,6 @@ end
 end sqrt
 
 end real
-
-section differentiability
-open real
-
-section fderiv
-
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
-  {x : E} {s : set E} {c p : ℝ} {n : with_top ℕ}
-
-lemma has_fderiv_within_at.rpow (hf : has_fderiv_within_at f f' s x)
-  (hg : has_fderiv_within_at g g' s x) (h : 0 < f x) :
-  has_fderiv_within_at (λ x, f x ^ g x)
-    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') s x :=
-(has_strict_fderiv_at_rpow_of_pos (f x, g x) h).has_fderiv_at.comp_has_fderiv_within_at x
-  (hf.prod hg)
-
-lemma has_fderiv_at.rpow (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) (h : 0 < f x) :
-  has_fderiv_at (λ x, f x ^ g x) ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') x :=
-(has_strict_fderiv_at_rpow_of_pos (f x, g x) h).has_fderiv_at.comp x (hf.prod hg)
-
-lemma has_strict_fderiv_at.rpow (hf : has_strict_fderiv_at f f' x)
-  (hg : has_strict_fderiv_at g g' x) (h : 0 < f x) :
-  has_strict_fderiv_at (λ x, f x ^ g x)
-    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') x :=
-(has_strict_fderiv_at_rpow_of_pos (f x, g x) h).comp x (hf.prod hg)
-
-lemma differentiable_within_at.rpow (hf : differentiable_within_at ℝ f s x)
-  (hg : differentiable_within_at ℝ g s x) (h : f x ≠ 0) :
-  differentiable_within_at ℝ (λ x, f x ^ g x) s x :=
-(differentiable_at_rpow_of_ne (f x, g x) h).comp_differentiable_within_at x (hf.prod hg)
-
-lemma differentiable_at.rpow (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x)
-  (h : f x ≠ 0) :
-  differentiable_at ℝ (λ x, f x ^ g x) x :=
-(differentiable_at_rpow_of_ne (f x, g x) h).comp x (hf.prod hg)
-
-lemma differentiable_on.rpow (hf : differentiable_on ℝ f s) (hg : differentiable_on ℝ g s)
-  (h : ∀ x ∈ s, f x ≠ 0) :
-  differentiable_on ℝ (λ x, f x ^ g x) s :=
-λ x hx, (hf x hx).rpow (hg x hx) (h x hx)
-
-lemma differentiable.rpow (hf : differentiable ℝ f) (hg : differentiable ℝ g) (h : ∀ x, f x ≠ 0) :
-  differentiable ℝ (λ x, f x ^ g x) :=
-λ x, (hf x).rpow (hg x) (h x)
-
-lemma has_fderiv_within_at.rpow_const (hf : has_fderiv_within_at f f' s x) (h : f x ≠ 0 ∨ 1 ≤ p) :
-  has_fderiv_within_at (λ x, f x ^ p) ((p * f x ^ (p - 1)) • f') s x :=
-(has_deriv_at_rpow_const h).comp_has_fderiv_within_at x hf
-
-lemma has_fderiv_at.rpow_const (hf : has_fderiv_at f f' x) (h : f x ≠ 0 ∨ 1 ≤ p) :
-  has_fderiv_at (λ x, f x ^ p) ((p * f x ^ (p - 1)) • f') x :=
-(has_deriv_at_rpow_const h).comp_has_fderiv_at x hf
-
-lemma has_strict_fderiv_at.rpow_const (hf : has_strict_fderiv_at f f' x) (h : f x ≠ 0 ∨ 1 ≤ p) :
-  has_strict_fderiv_at (λ x, f x ^ p) ((p * f x ^ (p - 1)) • f') x :=
-(has_strict_deriv_at_rpow_const h).comp_has_strict_fderiv_at x hf
-
-lemma differentiable_within_at.rpow_const (hf : differentiable_within_at ℝ f s x)
-  (h : f x ≠ 0 ∨ 1 ≤ p) :
-  differentiable_within_at ℝ (λ x, f x ^ p) s x :=
-(hf.has_fderiv_within_at.rpow_const h).differentiable_within_at
-
-@[simp] lemma differentiable_at.rpow_const (hf : differentiable_at ℝ f x) (h : f x ≠ 0 ∨ 1 ≤ p) :
-  differentiable_at ℝ (λ x, f x ^ p) x :=
-(hf.has_fderiv_at.rpow_const h).differentiable_at
-
-lemma differentiable_on.rpow_const (hf : differentiable_on ℝ f s) (h : ∀ x ∈ s, f x ≠ 0 ∨ 1 ≤ p) :
-  differentiable_on ℝ (λ x, f x ^ p) s :=
-λ x hx, (hf x hx).rpow_const (h x hx)
-
-lemma differentiable.rpow_const (hf : differentiable ℝ f) (h : ∀ x, f x ≠ 0 ∨ 1 ≤ p) :
-  differentiable ℝ (λ x, f x ^ p) :=
-λ x, (hf x).rpow_const (h x)
-
-lemma has_fderiv_within_at.const_rpow (hf : has_fderiv_within_at f f' s x) (hc : 0 < c) :
-  has_fderiv_within_at (λ x, c ^ f x) ((c ^ f x * log c) • f') s x :=
-(has_strict_deriv_at_const_rpow hc (f x)).has_deriv_at.comp_has_fderiv_within_at x hf
-
-lemma has_fderiv_at.const_rpow (hf : has_fderiv_at f f' x) (hc : 0 < c) :
-  has_fderiv_at (λ x, c ^ f x) ((c ^ f x * log c) • f') x :=
-(has_strict_deriv_at_const_rpow hc (f x)).has_deriv_at.comp_has_fderiv_at x hf
-
-lemma has_strict_fderiv_at.const_rpow (hf : has_strict_fderiv_at f f' x) (hc : 0 < c) :
-  has_strict_fderiv_at (λ x, c ^ f x) ((c ^ f x * log c) • f') x :=
-(has_strict_deriv_at_const_rpow hc (f x)).comp_has_strict_fderiv_at x hf
-
-lemma times_cont_diff_within_at.rpow (hf : times_cont_diff_within_at ℝ n f s x)
-  (hg : times_cont_diff_within_at ℝ n g s x) (h : f x ≠ 0) :
-  times_cont_diff_within_at ℝ n (λ x, f x ^ g x) s x :=
-(times_cont_diff_at_rpow_of_ne (f x, g x) h).comp_times_cont_diff_within_at x (hf.prod hg)
-
-lemma times_cont_diff_at.rpow (hf : times_cont_diff_at ℝ n f x) (hg : times_cont_diff_at ℝ n g x)
-  (h : f x ≠ 0) :
-  times_cont_diff_at ℝ n (λ x, f x ^ g x) x :=
-(times_cont_diff_at_rpow_of_ne (f x, g x) h).comp x (hf.prod hg)
-
-lemma times_cont_diff_on.rpow (hf : times_cont_diff_on ℝ n f s) (hg : times_cont_diff_on ℝ n g s)
-  (h : ∀ x ∈ s, f x ≠ 0) :
-  times_cont_diff_on ℝ n (λ x, f x ^ g x) s :=
-λ x hx, (hf x hx).rpow (hg x hx) (h x hx)
-
-lemma times_cont_diff.rpow (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g)
-  (h : ∀ x, f x ≠ 0) :
-  times_cont_diff ℝ n (λ x, f x ^ g x) :=
-times_cont_diff_iff_times_cont_diff_at.mpr $
-  λ x, hf.times_cont_diff_at.rpow hg.times_cont_diff_at (h x)
-
-lemma times_cont_diff_within_at.rpow_const_of_ne (hf : times_cont_diff_within_at ℝ n f s x)
-  (h : f x ≠ 0) :
-  times_cont_diff_within_at ℝ n (λ x, f x ^ p) s x :=
-hf.rpow times_cont_diff_within_at_const h
-
-lemma times_cont_diff_at.rpow_const_of_ne (hf : times_cont_diff_at ℝ n f x) (h : f x ≠ 0) :
-  times_cont_diff_at ℝ n (λ x, f x ^ p) x :=
-hf.rpow times_cont_diff_at_const h
-
-lemma times_cont_diff_on.rpow_const_of_ne (hf : times_cont_diff_on ℝ n f s) (h : ∀ x ∈ s, f x ≠ 0) :
-  times_cont_diff_on ℝ n (λ x, f x ^ p) s :=
-λ x hx, (hf x hx).rpow_const_of_ne (h x hx)
-
-lemma times_cont_diff.rpow_const_of_ne (hf : times_cont_diff ℝ n f) (h : ∀ x, f x ≠ 0) :
-  times_cont_diff ℝ n (λ x, f x ^ p) :=
-hf.rpow times_cont_diff_const h
-
-variable {m : ℕ}
-
-lemma times_cont_diff_within_at.rpow_const_of_le (hf : times_cont_diff_within_at ℝ m f s x)
-  (h : ↑m ≤ p) :
-  times_cont_diff_within_at ℝ m (λ x, f x ^ p) s x :=
-(times_cont_diff_at_rpow_const_of_le h).comp_times_cont_diff_within_at x hf
-
-lemma times_cont_diff_at.rpow_const_of_le (hf : times_cont_diff_at ℝ m f x) (h : ↑m ≤ p) :
-  times_cont_diff_at ℝ m (λ x, f x ^ p) x :=
-by { rw ← times_cont_diff_within_at_univ at *, exact hf.rpow_const_of_le h }
-
-lemma times_cont_diff_on.rpow_const_of_le (hf : times_cont_diff_on ℝ m f s) (h : ↑m ≤ p) :
-  times_cont_diff_on ℝ m (λ x, f x ^ p) s :=
-λ x hx, (hf x hx).rpow_const_of_le h
-
-lemma times_cont_diff.rpow_const_of_le (hf : times_cont_diff ℝ m f) (h : ↑m ≤ p) :
-  times_cont_diff ℝ m (λ x, f x ^ p) :=
-times_cont_diff_iff_times_cont_diff_at.mpr $ λ x, hf.times_cont_diff_at.rpow_const_of_le h
-
-end fderiv
-
-section deriv
-
-variables {f g : ℝ → ℝ} {f' g' x y p : ℝ} {s : set ℝ}
-
-lemma has_deriv_within_at.rpow (hf : has_deriv_within_at f f' s x)
-  (hg : has_deriv_within_at g g' s x) (h : 0 < f x) :
-  has_deriv_within_at (λ x, f x ^ g x)
-    (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) s x :=
-begin
-  convert (hf.has_fderiv_within_at.rpow hg.has_fderiv_within_at h).has_deriv_within_at using 1,
-  dsimp, ring
-end
-
-lemma has_deriv_at.rpow (hf : has_deriv_at f f' x) (hg : has_deriv_at g g' x) (h : 0 < f x) :
-  has_deriv_at (λ x, f x ^ g x) (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) x :=
-begin
-  rw ← has_deriv_within_at_univ at *,
-  exact hf.rpow hg h
-end
-
-lemma has_deriv_within_at.rpow_const (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0 ∨ 1 ≤ p) :
-  has_deriv_within_at (λ y, (f y)^p) (f' * p * (f x) ^ (p - 1)) s x :=
-begin
-  convert (has_deriv_at_rpow_const hx).comp_has_deriv_within_at x hf using 1,
-  ring
-end
-
-lemma has_deriv_at.rpow_const (hf : has_deriv_at f f' x) (hx : f x ≠ 0 ∨ 1 ≤ p) :
-  has_deriv_at (λ y, (f y)^p) (f' * p * (f x)^(p-1)) x :=
-begin
-  rw ← has_deriv_within_at_univ at *,
-  exact hf.rpow_const hx
-end
-
-lemma deriv_within_rpow_const (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0 ∨ 1 ≤ p)
-  (hxs : unique_diff_within_at ℝ s x) :
-  deriv_within (λx, (f x) ^ p) s x = (deriv_within f s x) * p * (f x) ^ (p - 1) :=
-(hf.has_deriv_within_at.rpow_const hx).deriv_within hxs
-
-@[simp] lemma deriv_rpow_const (hf : differentiable_at ℝ f x) (hx : f x ≠ 0 ∨ 1 ≤ p) :
-  deriv (λx, (f x)^p) x = (deriv f x) * p * (f x)^(p-1) :=
-(hf.has_deriv_at.rpow_const hx).deriv
-
-end deriv
-
-end differentiability
 
 section limits
 open real filter
@@ -1191,7 +938,7 @@ lemma tendsto_rpow_div_mul_add (a b c : ℝ) (hb : 0 ≠ b) :
 begin
   refine tendsto.congr' _ ((tendsto_exp_nhds_0_nhds_1.comp
     (by simpa only [mul_zero, pow_one] using ((@tendsto_const_nhds _ _ _ a _).mul
-      (tendsto_div_pow_mul_exp_add_at_top b c 1 hb (by norm_num))))).comp (tendsto_log_at_top)),
+      (tendsto_div_pow_mul_exp_add_at_top b c 1 hb)))).comp tendsto_log_at_top),
   apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
   intros x hx,
   simp only [set.mem_Ioi, function.comp_app] at hx ⊢,
@@ -1201,31 +948,191 @@ end
 
 /-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring_nf }
+by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, funext, congr' 2, ring }
 
 /-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
+by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, funext, congr' 2, ring }
 
-/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞`. -/
-lemma tendsto_one_plus_div_rpow_exp (t : ℝ) :
-  tendsto (λ (x : ℝ), (1 + t / x) ^ x) at_top (𝓝 (exp t)) :=
+/-- The function `exp(x) / x ^ s` tends to `+∞` at `+∞`, for any real number `s`. -/
+lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s) at_top at_top :=
 begin
-  apply ((real.continuous_exp.tendsto _).comp (tendsto_mul_log_one_plus_div_at_top t)).congr' _,
-  have h₁ : (1:ℝ)/2 < 1 := by linarith,
-  have h₂ : tendsto (λ x : ℝ, 1 + t / x) at_top (𝓝 1) :=
-    by simpa using (tendsto_inv_at_top_zero.const_mul t).const_add 1,
-  refine (eventually_ge_of_tendsto_gt h₁ h₂).mono (λ x hx, _),
-  have hx' : 0 < 1 + t / x := by linarith,
-  simp [mul_comm x, exp_mul, exp_log hx'],
+  cases archimedean_iff_nat_lt.1 (real.archimedean) s with n hn,
+  refine tendsto_at_top_mono' _ _ (tendsto_exp_div_pow_at_top n),
+  filter_upwards [eventually_gt_at_top (0 : ℝ), eventually_ge_at_top (1 : ℝ)] with x hx₀ hx₁,
+  rw [div_le_div_left (exp_pos _) (pow_pos hx₀ _) (rpow_pos_of_pos hx₀ _), ←rpow_nat_cast],
+  exact rpow_le_rpow_of_exponent_le hx₁ hn.le,
 end
 
-/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞` for naturals `x`. -/
-lemma tendsto_one_plus_div_pow_exp (t : ℝ) :
-  tendsto (λ (x : ℕ), (1 + t / (x:ℝ)) ^ x) at_top (𝓝 (real.exp t)) :=
-((tendsto_one_plus_div_rpow_exp t).comp tendsto_coe_nat_at_top_at_top).congr (by simp)
+/-- The function `exp (b * x) / x ^ s` tends to `+∞` at `+∞`, for any real `s` and `b > 0`. -/
+lemma tendsto_exp_mul_div_rpow_at_top (s : ℝ) (b : ℝ) (hb : 0 < b) :
+  tendsto (λ x : ℝ, exp (b * x) / x ^ s) at_top at_top :=
+begin
+  refine ((tendsto_rpow_at_top hb).comp (tendsto_exp_div_rpow_at_top (s / b))).congr' _,
+  filter_upwards [eventually_ge_at_top (0 : ℝ)] with x hx₀,
+  simp [div_rpow, (exp_pos x).le, rpow_nonneg_of_nonneg, ←rpow_mul, ←exp_mul, mul_comm x, hb.ne', *]
+end
+
+/-- The function `x ^ s * exp (-b * x)` tends to `0` at `+∞`, for any real `s` and `b > 0`. -/
+lemma tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 (s : ℝ) (b : ℝ) (hb : 0 < b):
+  tendsto (λ x : ℝ, x ^ s * exp (-b * x)) at_top (𝓝 0) :=
+begin
+  refine (tendsto_exp_mul_div_rpow_at_top s b hb).inv_tendsto_at_top.congr' _,
+  filter_upwards with x using by simp [exp_neg, inv_div, div_eq_mul_inv _ (exp _)]
+end
+
+namespace asymptotics
+
+variables {α : Type*} {r c : ℝ} {l : filter α} {f g : α → ℝ}
+
+lemma is_O_with.rpow (h : is_O_with c l f g) (hc : 0 ≤ c) (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) :
+  is_O_with (c ^ r) l (λ x, f x ^ r) (λ x, g x ^ r) :=
+begin
+  apply is_O_with.of_bound,
+  filter_upwards [hg, h.bound] with x hgx hx,
+  calc |f x ^ r| ≤ |f x| ^ r         : abs_rpow_le_abs_rpow _ _
+             ... ≤ (c * |g x|) ^ r   : rpow_le_rpow (abs_nonneg _) hx hr
+             ... = c ^ r * |g x ^ r| : by rw [mul_rpow hc (abs_nonneg _), abs_rpow_of_nonneg hgx]
+end
+
+lemma is_O.rpow (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) (h : f =O[l] g) :
+  (λ x, f x ^ r) =O[l] (λ x, g x ^ r) :=
+let ⟨c, hc, h'⟩ := h.exists_nonneg in (h'.rpow hc hr hg).is_O
+
+lemma is_o.rpow (hr : 0 < r) (hg : 0 ≤ᶠ[l] g) (h : f =o[l] g) :
+  (λ x, f x ^ r) =o[l] (λ x, g x ^ r) :=
+is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).rpow
+  (rpow_nonneg_of_nonneg hc.le _) hr.le hg).congr_const
+    (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
+
+end asymptotics
+
+open asymptotics
+
+/-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
+lemma is_o_rpow_exp_pos_mul_at_top (s : ℝ) {b : ℝ} (hb : 0 < b) :
+  (λ x : ℝ, x ^ s) =o[at_top] (λ x, exp (b * x)) :=
+iff.mpr (is_o_iff_tendsto $ λ x h, absurd h (exp_pos _).ne') $
+  by simpa only [div_eq_mul_inv, exp_neg, neg_mul]
+    using tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 s b hb
+
+/-- `x ^ k = o(exp(b * x))` as `x → ∞` for any integer `k` and positive `b`. -/
+lemma is_o_zpow_exp_pos_mul_at_top (k : ℤ) {b : ℝ} (hb : 0 < b) :
+  (λ x : ℝ, x ^ k) =o[at_top] (λ x, exp (b * x)) :=
+by simpa only [rpow_int_cast] using is_o_rpow_exp_pos_mul_at_top k hb
+
+/-- `x ^ k = o(exp(b * x))` as `x → ∞` for any natural `k` and positive `b`. -/
+lemma is_o_pow_exp_pos_mul_at_top (k : ℕ) {b : ℝ} (hb : 0 < b) :
+  (λ x : ℝ, x ^ k) =o[at_top] (λ x, exp (b * x)) :=
+is_o_zpow_exp_pos_mul_at_top k hb
+
+/-- `x ^ s = o(exp x)` as `x → ∞` for any real `s`. -/
+lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
+by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
+
+lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : log =o[at_top] (λ x, x ^ r) :=
+calc log =O[at_top] (λ x, r * log x)   : is_O_self_const_mul _ hr.ne' _ _
+     ... =ᶠ[at_top] (λ x, log (x ^ r)) :
+  (eventually_gt_at_top 0).mono $ λ x hx, (log_rpow hx _).symm
+     ... =o[at_top] (λ x, x ^ r)       : is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)
+
+lemma is_o_log_rpow_rpow_at_top {s : ℝ} (r : ℝ) (hs : 0 < s) :
+  (λ x, log x ^ r) =o[at_top] (λ x, x ^ s) :=
+let r' := max r 1 in
+have hr : 0 < r', from lt_max_iff.2 $ or.inr one_pos,
+have H : 0 < s / r', from div_pos hs hr,
+calc (λ x, log x ^ r) =O[at_top] (λ x, log x ^ r') :
+  is_O.of_bound 1 $ (tendsto_log_at_top.eventually_ge_at_top 1).mono $ λ x hx,
+    have hx₀ : 0 ≤ log x, from zero_le_one.trans hx,
+    by simp [norm_eq_abs, abs_rpow_of_nonneg, abs_rpow_of_nonneg hx₀,
+      rpow_le_rpow_of_exponent_le (hx.trans (le_abs_self _))]
+                  ... =o[at_top] (λ x, (x ^ (s / r')) ^ r') :
+  (is_o_log_rpow_at_top H).rpow hr $ (tendsto_rpow_at_top H).eventually $ eventually_ge_at_top 0
+                  ... =ᶠ[at_top] (λ x, x ^ s) :
+  (eventually_ge_at_top 0).mono $ λ x hx, by simp only [← rpow_mul hx, div_mul_cancel _ hr.ne']
+
+lemma is_o_abs_log_rpow_rpow_nhds_zero {s : ℝ} (r : ℝ) (hs : s < 0) :
+  (λ x, |log x| ^ r) =o[𝓝[>] 0] (λ x, x ^ s) :=
+((is_o_log_rpow_rpow_at_top r (neg_pos.2 hs)).comp_tendsto tendsto_inv_zero_at_top).congr'
+  (mem_of_superset (Icc_mem_nhds_within_Ioi $ set.left_mem_Ico.2 one_pos) $
+    λ x hx, by simp [abs_of_nonpos, log_nonpos hx.1 hx.2])
+  (eventually_mem_nhds_within.mono $ λ x hx,
+    by rw [function.comp_app, inv_rpow hx.out.le, rpow_neg hx.out.le, inv_inv])
+
+lemma is_o_log_rpow_nhds_zero {r : ℝ} (hr : r < 0) : log =o[𝓝[>] 0] (λ x, x ^ r) :=
+(is_o_abs_log_rpow_rpow_nhds_zero 1 hr).neg_left.congr'
+  (mem_of_superset (Icc_mem_nhds_within_Ioi $ set.left_mem_Ico.2 one_pos) $
+    λ x hx, by simp [abs_of_nonpos (log_nonpos hx.1 hx.2)])
+  eventually_eq.rfl
+
+lemma tendsto_log_div_rpow_nhds_zero {r : ℝ} (hr : r < 0) :
+  tendsto (λ x, log x / x ^ r) (𝓝[>] 0) (𝓝 0) :=
+(is_o_log_rpow_nhds_zero hr).tendsto_div_nhds_zero
+
+lemma tensdto_log_mul_rpow_nhds_zero {r : ℝ} (hr : 0 < r) :
+  tendsto (λ x, log x * x ^ r) (𝓝[>] 0) (𝓝 0) :=
+(tendsto_log_div_rpow_nhds_zero $ neg_lt_zero.2 hr).congr' $
+  eventually_mem_nhds_within.mono $ λ x hx, by rw [rpow_neg hx.out.le, div_inv_eq_mul]
 
 end limits
+
+namespace complex
+
+/-- See also `complex.continuous_at_cpow` and `complex.continuous_at_cpow_of_re_pos`. -/
+lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
+  continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
+begin
+  have hz₀ : z ≠ 0, from ne_of_apply_ne re hz.ne',
+  rw [continuous_at, zero_cpow hz₀, tendsto_zero_iff_norm_tendsto_zero],
+  refine squeeze_zero (λ _, norm_nonneg _) (λ _, abs_cpow_le _ _) _,
+  simp only [div_eq_mul_inv, ← real.exp_neg],
+  refine tendsto.zero_mul_is_bounded_under_le _ _,
+  { convert (continuous_fst.norm.tendsto _).rpow ((continuous_re.comp continuous_snd).tendsto _) _;
+      simp [hz, real.zero_rpow hz.ne'] },
+  { simp only [(∘), real.norm_eq_abs, abs_of_pos (real.exp_pos _)],
+    rcases exists_gt (|im z|) with ⟨C, hC⟩,
+    refine ⟨real.exp (π * C), eventually_map.2 _⟩,
+    refine (((continuous_im.comp continuous_snd).abs.tendsto (_, z)).eventually
+      (gt_mem_nhds hC)).mono (λ z hz, real.exp_le_exp.2 $ (neg_le_abs_self _).trans _),
+    rw _root_.abs_mul,
+    exact mul_le_mul (abs_le.2 ⟨(neg_pi_lt_arg _).le, arg_le_pi _⟩) hz.le
+      (_root_.abs_nonneg _) real.pi_pos.le }
+end
+
+/-- See also `complex.continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no
+assumptions about `p.2`. -/
+lemma continuous_at_cpow_of_re_pos {p : ℂ × ℂ} (h₁ : 0 ≤ p.1.re ∨ p.1.im ≠ 0) (h₂ : 0 < p.2.re) :
+  continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
+begin
+  cases p with z w,
+  rw [← not_lt_zero_iff, lt_iff_le_and_ne, not_and_distrib, ne.def, not_not, not_le_zero_iff] at h₁,
+  rcases h₁ with h₁|(rfl : z = 0),
+  exacts [continuous_at_cpow h₁, continuous_at_cpow_zero_of_re_pos h₂]
+end
+
+/-- See also `complex.continuous_at_cpow_const` for a version that assumes `z ≠ 0` but makes no
+assumptions about `w`. -/
+lemma continuous_at_cpow_const_of_re_pos {z w : ℂ} (hz : 0 ≤ re z ∨ im z ≠ 0) (hw : 0 < re w) :
+  continuous_at (λ x, x ^ w) z :=
+tendsto.comp (@continuous_at_cpow_of_re_pos (z, w) hz hw)
+  (continuous_at_id.prod continuous_at_const)
+
+lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
+begin
+  rw continuous_iff_continuous_at, intro x,
+  cases le_or_lt 0 x with hx hx,
+  { refine (continuous_at_cpow_const_of_re_pos _ hs).comp continuous_of_real.continuous_at,
+    exact or.inl hx },
+  { suffices : continuous_on (λ x, x ^ y : ℝ → ℂ) (set.Iio 0),
+      from continuous_on.continuous_at this (Iio_mem_nhds hx),
+    have : eq_on (λ x, x ^ y : ℝ → ℂ) (λ x, ((-x) : ℂ) ^ y * exp (π * I * y)) (set.Iio 0),
+      from λ y hy, of_real_cpow_of_nonpos (le_of_lt hy) _,
+    refine (continuous_on.mul (λ y hy, _) continuous_on_const).congr this,
+    refine continuous_of_real.continuous_within_at.neg.cpow continuous_within_at_const _,
+    left, simpa using hy }
+end
+
+end complex
 
 namespace nnreal
 
@@ -1281,6 +1188,12 @@ lemma rpow_sub' (x : ℝ≥0) {y z : ℝ} (h : y - z ≠ 0) :
   x ^ (y - z) = x ^ y / x ^ z :=
 nnreal.eq $ real.rpow_sub' x.2 h
 
+lemma rpow_inv_rpow_self {y : ℝ} (hy : y ≠ 0) (x : ℝ≥0) : (x ^ y) ^ (1 / y) = x :=
+by field_simp [← rpow_mul]
+
+lemma rpow_self_rpow_inv {y : ℝ} (hy : y ≠ 0) (x : ℝ≥0) : (x ^ (1 / y)) ^ y = x :=
+by field_simp [← rpow_mul]
+
 lemma inv_rpow (x : ℝ≥0) (y : ℝ) : (x⁻¹) ^ y = (x ^ y)⁻¹ :=
 nnreal.eq $ real.inv_rpow x.2 y
 
@@ -1297,6 +1210,9 @@ end
 @[simp, norm_cast] lemma rpow_nat_cast (x : ℝ≥0) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 nnreal.eq $ by simpa only [coe_rpow, coe_pow] using real.rpow_nat_cast x n
 
+@[simp] lemma rpow_two (x : ℝ≥0) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
 lemma mul_rpow {x y : ℝ≥0} {z : ℝ}  : (x*y)^z = x^z * y^z :=
 nnreal.eq $ real.mul_rpow x.2 y.2
 
@@ -1312,6 +1228,12 @@ real.rpow_lt_rpow_iff x.2 y.2 hz
 lemma rpow_le_rpow_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
 real.rpow_le_rpow_iff x.2 y.2 hz
 
+lemma le_rpow_one_div_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
+by rw [← rpow_le_rpow_iff hz, rpow_self_rpow_inv hz.ne']
+
+lemma rpow_one_div_le_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
+by rw [← rpow_le_rpow_iff hz, rpow_self_rpow_inv hz.ne']
+
 lemma rpow_lt_rpow_of_exponent_lt {x : ℝ≥0} {y z : ℝ} (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 real.rpow_lt_rpow_of_exponent_lt hx hyz
 
@@ -1326,8 +1248,21 @@ lemma rpow_le_rpow_of_exponent_ge {x : ℝ≥0} {y z : ℝ} (hx0 : 0 < x) (hx1 :
   x^y ≤ x^z :=
 real.rpow_le_rpow_of_exponent_ge hx0 hx1 hyz
 
-lemma rpow_lt_one {x : ℝ≥0} {z : ℝ} (hx : 0 ≤ x) (hx1 : x < 1) (hz : 0 < z) : x^z < 1 :=
-real.rpow_lt_one hx hx1 hz
+lemma rpow_pos {p : ℝ} {x : ℝ≥0} (hx_pos : 0 < x) : 0 < x^p :=
+begin
+  have rpow_pos_of_nonneg : ∀ {p : ℝ}, 0 < p → 0 < x^p,
+  { intros p hp_pos,
+    rw ←zero_rpow hp_pos.ne',
+    exact rpow_lt_rpow hx_pos hp_pos },
+  rcases lt_trichotomy 0 p with hp_pos|rfl|hp_neg,
+  { exact rpow_pos_of_nonneg hp_pos },
+  { simp only [zero_lt_one, rpow_zero] },
+  { rw [←neg_neg p, rpow_neg, inv_pos],
+    exact rpow_pos_of_nonneg (neg_pos.mpr hp_neg) },
+end
+
+lemma rpow_lt_one {x : ℝ≥0} {z : ℝ} (hx1 : x < 1) (hz : 0 < z) : x^z < 1 :=
+real.rpow_lt_one (coe_nonneg x) hx1 hz
 
 lemma rpow_le_one {x : ℝ≥0} {z : ℝ} (hx2 : x ≤ 1) (hz : 0 ≤ z) : x^z ≤ 1 :=
 real.rpow_le_one x.2 hx2 hz
@@ -1352,11 +1287,38 @@ lemma one_le_rpow_of_pos_of_le_one_of_nonpos {x : ℝ≥0} {z : ℝ} (hx1 : 0 < 
   (hz : z ≤ 0) : 1 ≤ x^z :=
 real.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 hz
 
-lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
+lemma rpow_le_self_of_le_one {x : ℝ≥0} {z : ℝ} (hx : x ≤ 1) (h_one_le : 1 ≤ z) : x ^ z ≤ x :=
+begin
+  rcases eq_bot_or_bot_lt x with rfl | (h : 0 < x),
+  { have : z ≠ 0 := by linarith,
+    simp [this] },
+  nth_rewrite 1 ←nnreal.rpow_one x,
+  exact nnreal.rpow_le_rpow_of_exponent_ge h hx h_one_le,
+end
+
+lemma rpow_left_injective {x : ℝ} (hx : x ≠ 0) : function.injective (λ y : ℝ≥0, y^x) :=
+λ y z hyz, by simpa only [rpow_inv_rpow_self hx] using congr_arg (λ y, y ^ (1 / x)) hyz
+
+lemma rpow_eq_rpow_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) : x ^ z = y ^ z ↔ x = y :=
+(rpow_left_injective hz).eq_iff
+
+lemma rpow_left_surjective {x : ℝ} (hx : x ≠ 0) : function.surjective (λ y : ℝ≥0, y^x) :=
+λ y, ⟨y ^ x⁻¹, by simp_rw [←rpow_mul, _root_.inv_mul_cancel hx, rpow_one]⟩
+
+lemma rpow_left_bijective {x : ℝ} (hx : x ≠ 0) : function.bijective (λ y : ℝ≥0, y^x) :=
+⟨rpow_left_injective hx, rpow_left_surjective hx⟩
+
+lemma eq_rpow_one_div_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) :  x = y ^ (1 / z) ↔ x ^ z = y :=
+by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
+
+lemma rpow_one_div_eq_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) :  x ^ (1 / z) = y ↔ x = y ^ z :=
+by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
+
+lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : n ≠ 0) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
 by { rw [← nnreal.coe_eq, coe_rpow, nnreal.coe_pow], exact real.pow_nat_rpow_nat_inv x.2 hn }
 
-lemma rpow_nat_inv_pow_nat (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
+lemma rpow_nat_inv_pow_nat (x : ℝ≥0) {n : ℕ} (hn : n ≠ 0) :
   (x ^ (n⁻¹ : ℝ)) ^ n = x :=
 by { rw [← nnreal.coe_eq, nnreal.coe_pow, coe_rpow], exact real.rpow_nat_inv_pow_nat x.2 hn }
 
@@ -1368,7 +1330,7 @@ begin
     rw [coe_rpow, real.coe_to_nnreal _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
     refl },
   rw this,
-  refine nnreal.continuous_of_real.continuous_at.comp (continuous_at.comp _ _),
+  refine continuous_real_to_nnreal.continuous_at.comp (continuous_at.comp _ _),
   { apply real.continuous_at_rpow,
     simp at h,
     rw ← (nnreal.coe_eq_zero x) at h,
@@ -1384,6 +1346,43 @@ begin
 end
 
 end nnreal
+
+namespace real
+variables {n : ℕ}
+
+lemma exists_rat_pow_btwn_rat_aux (hn : n ≠ 0) (x y : ℝ) (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ ↑q^n < y :=
+begin
+  have hn' : 0 < (n : ℝ) := by exact_mod_cast hn.bot_lt,
+  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn (rpow_lt_rpow (le_max_left 0 x) (max_lt hy h) $
+    inv_pos.mpr hn'),
+  have := rpow_nonneg_of_nonneg (le_max_left 0 x) n⁻¹,
+  have hq := this.trans_lt hxq,
+  replace hxq := rpow_lt_rpow this hxq hn',
+  replace hqy := rpow_lt_rpow hq.le hqy hn',
+  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn] at hxq hqy,
+  exact ⟨q, by exact_mod_cast hq, (le_max_right _ _).trans_lt hxq, hqy⟩,
+  { exact le_max_left _ _ },
+  { exact hy.le }
+end
+
+lemma exists_rat_pow_btwn_rat (hn : n ≠ 0) {x y : ℚ} (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ q^n < y :=
+by apply_mod_cast exists_rat_pow_btwn_rat_aux hn x y; assumption
+
+/-- There is a rational power between any two positive elements of an archimedean ordered field. -/
+lemma exists_rat_pow_btwn {α : Type*} [linear_ordered_field α] [archimedean α] (hn : n ≠ 0)
+  {x y : α} (h : x < y) (hy : 0 < y) : ∃ q : ℚ, 0 < q ∧ x < q^n ∧ (q^n : α) < y :=
+begin
+  obtain ⟨q₂, hx₂, hy₂⟩ := exists_rat_btwn (max_lt h hy),
+  obtain ⟨q₁, hx₁, hq₁₂⟩ := exists_rat_btwn hx₂,
+  have : (0 : α) < q₂ := (le_max_right _ _).trans_lt hx₂,
+  norm_cast at hq₁₂ this,
+  obtain ⟨q, hq, hq₁, hq₂⟩ := exists_rat_pow_btwn_rat hn hq₁₂ this,
+  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, hy₂.trans' _⟩; assumption_mod_cast,
+end
+
+end real
 
 open filter
 
@@ -1491,7 +1490,13 @@ lemma coe_rpow_def (x : ℝ≥0) (y : ℝ) :
   (x : ℝ≥0∞) ^ y = if x = 0 ∧ y < 0 then ⊤ else (x ^ y : ℝ≥0) := rfl
 
 @[simp] lemma rpow_one (x : ℝ≥0∞) : x ^ (1 : ℝ) = x :=
-by cases x; dsimp only [(^), rpow]; simp [zero_lt_one, not_lt_of_le zero_le_one]
+begin
+  cases x,
+  { exact dif_pos zero_lt_one },
+  { change ite _ _ _ = _,
+    simp,
+    exact λ _, zero_le_one.not_lt }
+end
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ≥0∞) ^ x = 1 :=
 by { rw [← coe_one, coe_rpow_of_ne_zero one_ne_zero], simp }
@@ -1587,6 +1592,9 @@ begin
   { simp [coe_rpow_of_nonneg _ (nat.cast_nonneg n)] }
 end
 
+@[simp] lemma rpow_two (x : ℝ≥0∞) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
 lemma mul_rpow_eq_ite (x y : ℝ≥0∞) (z : ℝ) :
   (x * y) ^ z = if (x = 0 ∧ y = ⊤ ∨ x = ⊤ ∧ y = 0) ∧ z < 0 then ⊤ else x ^ z * y ^ z :=
 begin
@@ -1626,7 +1634,7 @@ begin
   replace hy := hy.lt_or_lt,
   rcases eq_or_ne x 0 with rfl|h0, { cases hy; simp * },
   rcases eq_or_ne x ⊤ with rfl|h_top, { cases hy; simp * },
-  apply eq_inv_of_mul_eq_one,
+  apply eq_inv_of_mul_eq_one_left,
   rw [← mul_rpow_of_ne_zero (inv_ne_zero.2 h_top) h0, inv_mul_cancel h0 h_top, one_rpow]
 end
 
@@ -1647,6 +1655,16 @@ end
 lemma monotone_rpow_of_nonneg {z : ℝ} (h : 0 ≤ z) : monotone (λ x : ℝ≥0∞, x ^ z) :=
 h.eq_or_lt.elim (λ h0, h0 ▸ by simp only [rpow_zero, monotone_const])
   (λ h0, (strict_mono_rpow_of_pos h0).monotone)
+
+/-- Bundles `λ x : ℝ≥0∞, x ^ y` into an order isomorphism when `y : ℝ` is positive,
+where the inverse is `λ x : ℝ≥0∞, x ^ (1 / y)`. -/
+@[simps apply] def order_iso_rpow (y : ℝ) (hy : 0 < y) : ℝ≥0∞ ≃o ℝ≥0∞ :=
+(strict_mono_rpow_of_pos hy).order_iso_of_right_inverse (λ x, x ^ y) (λ x, x ^ (1 / y))
+  (λ x, by { dsimp, rw [←rpow_mul, one_div_mul_cancel hy.ne.symm, rpow_one] })
+
+lemma order_iso_rpow_symm_apply (y : ℝ) (hy : 0 < y) :
+  (order_iso_rpow y hy).symm = order_iso_rpow (1 / y) (one_div_pos.2 hy) :=
+by { simp only [order_iso_rpow, one_div_one_div], refl }
 
 lemma rpow_le_rpow {x y : ℝ≥0∞} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 monotone_rpow_of_nonneg h₂ h₁
@@ -1672,6 +1690,13 @@ begin
   nth_rewrite 0 ←rpow_one x,
   nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
   rw [rpow_mul, ←one_div, @rpow_lt_rpow_iff _ _ (1/z) (by simp [hz])],
+end
+
+lemma rpow_one_div_le_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) : x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
+begin
+  nth_rewrite 0 ← ennreal.rpow_one y,
+  nth_rewrite 1 ← @_root_.mul_inv_cancel _ _ z hz.ne.symm,
+  rw [ennreal.rpow_mul, ← one_div, ennreal.rpow_le_rpow_iff (one_div_pos.2 hz)],
 end
 
 lemma rpow_lt_rpow_of_exponent_lt {x : ℝ≥0∞} {y z : ℝ} (hx : 1 < x) (hx' : x ≠ ⊤) (hyz : y < z) :
@@ -1750,7 +1775,7 @@ lemma rpow_lt_one {x : ℝ≥0∞} {z : ℝ} (hx : x < 1) (hz : 0 < z) : x^z < 1
 begin
   lift x to ℝ≥0 using ne_of_lt (lt_of_lt_of_le hx le_top),
   simp only [coe_lt_one_iff] at hx,
-  simp [coe_rpow_of_nonneg _ (le_of_lt hz), nnreal.rpow_lt_one (zero_le x) hx hz],
+  simp [coe_rpow_of_nonneg _ (le_of_lt hz), nnreal.rpow_lt_one hx hz],
 end
 
 lemma rpow_le_one {x : ℝ≥0∞} {z : ℝ} (hx : x ≤ 1) (hz : 0 ≤ z) : x^z ≤ 1 :=
@@ -1863,12 +1888,6 @@ lemma rpow_left_bijective {x : ℝ} (hx : x ≠ 0) :
   function.bijective (λ y : ℝ≥0∞, y^x) :=
 ⟨rpow_left_injective hx, rpow_left_surjective hx⟩
 
-lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : ℝ≥0∞, y^x) :=
-λ y z hyz, rpow_le_rpow hyz hx
-
-lemma rpow_left_strict_mono_of_pos {x : ℝ} (hx : 0 < x) : strict_mono (λ y : ℝ≥0∞, y^x) :=
-λ y z hyz, rpow_lt_rpow hyz hx
-
 theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
   tendsto (λ (x : ℝ≥0∞), x ^ y) (𝓝 ⊤) (𝓝 ⊤) :=
 begin
@@ -1888,7 +1907,7 @@ begin
 end
 
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
-  continuous_at (λ a : ennreal, a ^ y) x :=
+  continuous_at (λ a : ℝ≥0∞, a ^ y) x :=
 begin
   by_cases hx : x = ⊤,
   { rw [hx, continuous_at],
@@ -1903,7 +1922,7 @@ begin
 end
 
 @[continuity]
-lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ℝ≥0∞, a ^ y) :=
 begin
   apply continuous_iff_continuous_at.2 (λ x, _),
   rcases lt_trichotomy 0 y with hy|rfl|hy,
@@ -1912,7 +1931,7 @@ begin
   { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
     have z_pos : 0 < z, by simpa [hz] using hy,
     simp_rw [hz, rpow_neg],
-    exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
+    exact continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
 
 lemma tendsto_const_mul_rpow_nhds_zero_of_pos {c : ℝ≥0∞} (hc : c ≠ ∞) {y : ℝ} (hy : 0 < y) :
@@ -1924,3 +1943,111 @@ begin
 end
 
 end ennreal
+
+lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
+(ennreal.continuous_rpow_const.tendsto a).comp hm
+
+namespace norm_num
+open tactic
+
+theorem rpow_pos (a b : ℝ) (b' : ℕ) (c : ℝ) (hb : (b':ℝ) = b) (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, ← hb, real.rpow_nat_cast]
+theorem rpow_neg (a b : ℝ) (b' : ℕ) (c c' : ℝ)
+  (a0 : 0 ≤ a) (hb : (b':ℝ) = b) (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, ← hb, real.rpow_neg a0, real.rpow_nat_cast]
+
+/-- Evaluate `real.rpow a b` where `a` is a rational numeral and `b` is an integer.
+(This cannot go via the generalized version `prove_rpow'` because `rpow_pos` has a side condition;
+we do not attempt to evaluate `a ^ b` where `a` and `b` are both negative because it comes
+out to some garbage.) -/
+meta def prove_rpow (a b : expr) : tactic (expr × expr) := do
+  na ← a.to_rat,
+  ic ← mk_instance_cache `(ℝ),
+  match match_sign b with
+  | sum.inl b := do
+    (ic, a0) ← guard (na ≥ 0) >> prove_nonneg ic a,
+    nc ← mk_instance_cache `(ℕ),
+    (ic, nc, b', hb) ← prove_nat_uncast ic nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    cr ← c.to_rat,
+    (ic, c', hc) ← prove_inv ic c cr,
+    pure (c', (expr.const ``rpow_neg []).mk_app [a, b, b', c, c', a0, hb, h, hc])
+  | sum.inr ff := pure (`(1:ℝ), expr.const ``real.rpow_zero [] a)
+  | sum.inr tt := do
+    nc ← mk_instance_cache `(ℕ),
+    (ic, nc, b', hb) ← prove_nat_uncast ic nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    pure (c, (expr.const ``rpow_pos []).mk_app [a, b, b', c, hb, h])
+  end
+
+/-- Generalized version of `prove_cpow`, `prove_nnrpow`, `prove_ennrpow`. -/
+meta def prove_rpow' (pos neg zero : name) (α β one a b : expr) : tactic (expr × expr) := do
+  na ← a.to_rat,
+  icα ← mk_instance_cache α,
+  icβ ← mk_instance_cache β,
+  match match_sign b with
+  | sum.inl b := do
+    nc ← mk_instance_cache `(ℕ),
+    (icβ, nc, b', hb) ← prove_nat_uncast icβ nc b,
+    (icα, c, h) ← prove_pow a na icα b',
+    cr ← c.to_rat,
+    (icα, c', hc) ← prove_inv icα c cr,
+    pure (c', (expr.const neg []).mk_app [a, b, b', c, c', hb, h, hc])
+  | sum.inr ff := pure (one, expr.const zero [] a)
+  | sum.inr tt := do
+    nc ← mk_instance_cache `(ℕ),
+    (icβ, nc, b', hb) ← prove_nat_uncast icβ nc b,
+    (icα, c, h) ← prove_pow a na icα b',
+    pure (c, (expr.const pos []).mk_app [a, b, b', c, hb, h])
+  end
+
+open_locale nnreal ennreal
+
+theorem cpow_pos (a b : ℂ) (b' : ℕ) (c : ℂ) (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, complex.cpow_nat_cast]
+theorem cpow_neg (a b : ℂ) (b' : ℕ) (c c' : ℂ)
+  (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, complex.cpow_neg, complex.cpow_nat_cast]
+
+theorem nnrpow_pos (a : ℝ≥0) (b : ℝ) (b' : ℕ) (c : ℝ≥0)
+  (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, nnreal.rpow_nat_cast]
+theorem nnrpow_neg (a : ℝ≥0) (b : ℝ) (b' : ℕ) (c c' : ℝ≥0)
+  (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, nnreal.rpow_neg, nnreal.rpow_nat_cast]
+
+theorem ennrpow_pos (a : ℝ≥0∞) (b : ℝ) (b' : ℕ) (c : ℝ≥0∞)
+  (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, ennreal.rpow_nat_cast]
+theorem ennrpow_neg (a : ℝ≥0∞) (b : ℝ) (b' : ℕ) (c c' : ℝ≥0∞)
+  (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, ennreal.rpow_neg, ennreal.rpow_nat_cast]
+
+/-- Evaluate `complex.cpow a b` where `a` is a rational numeral and `b` is an integer. -/
+meta def prove_cpow : expr → expr → tactic (expr × expr) :=
+prove_rpow' ``cpow_pos ``cpow_neg ``complex.cpow_zero `(ℂ) `(ℂ) `(1:ℂ)
+
+/-- Evaluate `nnreal.rpow a b` where `a` is a rational numeral and `b` is an integer. -/
+meta def prove_nnrpow : expr → expr → tactic (expr × expr) :=
+prove_rpow' ``nnrpow_pos ``nnrpow_neg ``nnreal.rpow_zero `(ℝ≥0) `(ℝ) `(1:ℝ≥0)
+
+/-- Evaluate `ennreal.rpow a b` where `a` is a rational numeral and `b` is an integer. -/
+meta def prove_ennrpow : expr → expr → tactic (expr × expr) :=
+prove_rpow' ``ennrpow_pos ``ennrpow_neg ``ennreal.rpow_zero `(ℝ≥0∞) `(ℝ) `(1:ℝ≥0∞)
+
+/-- Evaluates expressions of the form `rpow a b`, `cpow a b` and `a ^ b` in the special case where
+`b` is an integer and `a` is a positive rational (so it's really just a rational power). -/
+@[norm_num] meta def eval_rpow_cpow : expr → tactic (expr × expr)
+| `(@has_pow.pow _ _ real.has_pow %%a %%b) := b.to_int >> prove_rpow a b
+| `(real.rpow %%a %%b) := b.to_int >> prove_rpow a b
+| `(@has_pow.pow _ _ complex.has_pow %%a %%b) := b.to_int >> prove_cpow a b
+| `(complex.cpow %%a %%b) := b.to_int >> prove_cpow a b
+| `(@has_pow.pow _ _ nnreal.real.has_pow %%a %%b) := b.to_int >> prove_nnrpow a b
+| `(nnreal.rpow %%a %%b) := b.to_int >> prove_nnrpow a b
+| `(@has_pow.pow _ _ ennreal.real.has_pow %%a %%b) := b.to_int >> prove_ennrpow a b
+| `(ennreal.rpow %%a %%b) := b.to_int >> prove_ennrpow a b
+| _ := tactic.failed
+
+end norm_num

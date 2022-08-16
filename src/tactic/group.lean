@@ -24,15 +24,19 @@ group_theory
 -- The next four lemmas are not general purpose lemmas, they are intended for use only by
 -- the `group` tactic.
 
+@[to_additive]
 lemma tactic.group.zpow_trick {G : Type*} [group G] (a b : G) (n m : ℤ) : a*b^n*b^m = a*b^(n+m) :=
 by rw [mul_assoc, ← zpow_add]
 
+@[to_additive]
 lemma tactic.group.zpow_trick_one {G : Type*} [group G] (a b : G) (m : ℤ) : a*b*b^m = a*b^(m+1) :=
 by rw [mul_assoc, mul_self_zpow]
 
+@[to_additive]
 lemma tactic.group.zpow_trick_one' {G : Type*} [group G] (a b : G) (n : ℤ) : a*b^n*b = a*b^(n+1) :=
 by rw [mul_assoc, mul_zpow_self]
 
+@[to_additive]
 lemma tactic.group.zpow_trick_sub {G : Type*} [group G] (a b : G) (n m : ℤ) :
   a*b^n*b^(-m) = a*b^(n-m) :=
 by rw [mul_assoc, ← zpow_add] ; refl
@@ -45,7 +49,8 @@ open tactic.simp_arg_type interactive tactic.group
 
 /-- Auxiliary tactic for the `group` tactic. Calls the simplifier only. -/
 meta def aux_group₁ (locat : loc) : tactic unit :=
-  simp_core {} skip tt [
+simp_core { fail_if_unchanged := ff } skip tt [
+  expr ``(commutator_element_def),
   expr ``(mul_one),
   expr ``(one_mul),
   expr ``(one_pow),
@@ -108,7 +113,7 @@ end
 -/
 meta def group (locat : parse location) : tactic unit :=
 do when locat.include_goal `[rw ← mul_inv_eq_one],
-   try (aux_group₁ locat),
+   aux_group₁ locat,
    repeat (aux_group₂ locat ; aux_group₁ locat)
 
 end tactic.interactive

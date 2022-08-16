@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.types
-import category_theory.currying
+import category_theory.functor.currying
 import category_theory.limits.functor_category
 
 /-!
@@ -22,7 +22,7 @@ is that when `C = Type`, filtered colimits commute with finite limits.
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes v₂ v u
+universes v u
 
 open category_theory
 
@@ -65,7 +65,7 @@ limit.lift ((curry.obj F) ⋙ colim)
         begin
           dsimp,
           intros k k' f,
-          simp only [functor.comp_map, curry.obj_map_app, limits.lim_map_π_assoc, swap_map,
+          simp only [functor.comp_map, curry_obj_map_app, limits.lim_map_π_assoc, swap_map,
             category.comp_id, map_id_left_eq_curry_map, colimit.w],
         end }, },
     naturality' :=
@@ -73,7 +73,7 @@ limit.lift ((curry.obj F) ⋙ colim)
       dsimp,
       intros j j' f,
       ext k,
-      simp only [limits.colimit.ι_map, curry.obj_map_app, limits.colimit.ι_desc_assoc,
+      simp only [limits.colimit.ι_map, curry_obj_map_app, limits.colimit.ι_desc_assoc,
         limits.colimit.ι_desc, category.id_comp, category.assoc, map_id_right_eq_curry_swap_map,
         limit.w_assoc],
     end } }
@@ -108,7 +108,9 @@ by { dsimp [colimit_limit_to_limit_colimit], simp, }
       eq_to_hom_refl, eq_to_hom_app, colimit.ι_map_assoc, limit.cone_π,
       lim_map_π_assoc, lim_map_π, category.assoc, currying_unit_iso_inv_app_app_app,
       limit_iso_swap_comp_lim_hom_app, lim_map_eq_lim_map],
-    erw category.id_comp,
+    dsimp,
+    simp only [category.id_comp],
+    erw limit_obj_iso_limit_comp_evaluation_hom_π_assoc,
   end }
 
 end category_theory.limits

@@ -19,14 +19,14 @@ open category_theory.limits
 
 noncomputable theory
 
-universes v u
+universes w v u
 
 namespace Module
 variables {R : Type u} [ring R] {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- In the category of modules, every monomorphism is normal. -/
 def normal_mono (hf : mono f) : normal_mono f :=
-{ Z := of R f.range.quotient,
+{ Z := of R (N ⧸ f.range),
   g := f.range.mkq,
   w := linear_map.range_mkq_comp _,
   is_limit :=
@@ -69,11 +69,31 @@ def normal_epi (hf : epi f) : normal_epi f :=
 
 /-- The category of R-modules is abelian. -/
 instance : abelian (Module R) :=
-{ has_finite_products := ⟨by apply_instance⟩,
-  has_kernels := by apply_instance,
+{ has_finite_products := ⟨λ J _, limits.has_limits_of_shape_of_has_limits⟩,
+  has_kernels := limits.has_kernels_of_has_equalizers (Module R),
   has_cokernels := has_cokernels_Module,
-  normal_mono := λ X Y, normal_mono,
-  normal_epi := λ X Y, normal_epi }
+  normal_mono_of_mono := λ X Y, normal_mono,
+  normal_epi_of_epi := λ X Y, normal_epi }
+
+section reflects_limits
+/- We need to put this in this weird spot because we need to know that the category of modules
+    is balanced. -/
+    
+instance forget_reflects_limits_of_size :
+  reflects_limits_of_size.{v v} (forget (Module.{max v w} R)) :=
+reflects_limits_of_reflects_isomorphisms
+
+instance forget₂_reflects_limits_of_size :
+  reflects_limits_of_size.{v v} (forget₂ (Module.{max v w} R) AddCommGroup.{max v w}) :=
+reflects_limits_of_reflects_isomorphisms
+
+instance forget_reflects_limits : reflects_limits (forget (Module.{v} R)) :=
+Module.forget_reflects_limits_of_size.{v v}
+
+instance forget₂_reflects_limits : reflects_limits (forget₂ (Module.{v} R) AddCommGroup.{v}) :=
+Module.forget₂_reflects_limits_of_size.{v v}
+
+end reflects_limits
 
 variables {O : Module.{v} R} (g : N ⟶ O)
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add_aut
+import algebra.hom.aut
 import logic.function.basic
 import group_theory.subgroup.basic
 
@@ -12,7 +12,7 @@ import group_theory.subgroup.basic
 
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
-`φ` from `G` to the automorphism group of `N` is the product of sets with the group
+`G` to the automorphism group of `N` is the product of sets with the group
 `⟨n₁, g₁⟩ * ⟨n₂, g₂⟩ = ⟨n₁ * φ g₁ n₂, g₁ * g₂⟩`
 
 ## Key definitions

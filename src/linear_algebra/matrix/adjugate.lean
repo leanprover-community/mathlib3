@@ -5,8 +5,9 @@ Authors: Anne Baanen
 -/
 import algebra.associated
 import algebra.regular.basic
-import data.matrix.notation
+import linear_algebra.matrix.mv_polynomial
 import linear_algebra.matrix.polynomial
+import ring_theory.polynomial.basic
 import tactic.linarith
 import tactic.ring_exp
 
@@ -44,7 +45,7 @@ cramer, cramer's rule, adjugate
 namespace matrix
 universes u v
 variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
-open_locale matrix big_operators
+open_locale matrix big_operators polynomial
 open equiv equiv.perm finset
 
 section cramer
@@ -88,6 +89,9 @@ def cramer (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
 lemma cramer_apply (i : n) : cramer A b i = (A.update_column i b).det := rfl
+
+lemma cramer_transpose_apply (i : n) : cramer Aᵀ b i = (A.update_row i b).det :=
+by rw [cramer_apply, update_column_transpose, det_transpose]
 
 lemma cramer_transpose_row_self (i : n) :
   Aᵀ.cramer (A i) = pi.single i A.det :=
@@ -216,7 +220,7 @@ begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
   have : b = ∑ i, (b i) • (pi.single i 1),
-  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm], congr, },
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm] },
   nth_rewrite 0 this, ext k,
   simp [mul_vec, dot_product, mul_comm],
 end
@@ -253,20 +257,6 @@ divides `b`. -/
   A.mul_vec (cramer A b) = A.det • b :=
 by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, one_mul_vec]
 
-/-- `det_adjugate_of_cancel` is an auxiliary lemma for computing `(adjugate A).det`,
-  used in `det_adjugate_eq_one` and `det_adjugate_of_is_unit`.
-
-  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
-  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
-  This lemma `det_adjugate_of_cancel` covers the case that `det A` cancels
-  on the left of the equation `A.det * b = A.det ^ n`.
--/
-lemma det_adjugate_of_cancel {A : matrix n n α}
-  (h : ∀ b, A.det * b = A.det ^ fintype.card n → b = A.det ^ (fintype.card n - 1)) :
-  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
-h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (det_mul _ _).symm
-                                              ... = A.det ^ fintype.card n : by simp [mul_adjugate])
-
 lemma adjugate_subsingleton [subsingleton n] (A : matrix n n α) : adjugate A = 1 :=
 begin
   ext i j,
@@ -291,62 +281,20 @@ end
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
 by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
-lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
-calc (adjugate A).det
-    = A.det ^ (fintype.card n - 1) : det_adjugate_of_cancel (λ b hb, by simpa [h] using hb)
-... = 1                            : by rw [h, one_pow]
-
-/-- `det_adjugate_of_is_unit` gives the formula for `(adjugate A).det` if `A.det` has an inverse.
-
-  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
-  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
-  This lemma `det_adjugate_of_is_unit` covers the case that `det A` has an inverse.
--/
-lemma det_adjugate_of_is_unit {A : matrix n n α} (h : is_unit A.det) :
-  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+@[simp] lemma adjugate_diagonal (v : n → α) :
+  adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
 begin
-  rcases is_unit_iff_exists_inv'.mp h with ⟨a, ha⟩,
-  by_cases card_lt_zero : fintype.card n ≤ 0,
-  { have h : fintype.card n = 0 := by linarith,
-    simp [det_eq_one_of_card_eq_zero h] },
-  have zero_lt_card : 0 < fintype.card n := by linarith,
-  have n_nonempty : nonempty n := fintype.card_pos_iff.mp zero_lt_card,
-
-  by_cases card_lt_one : fintype.card n ≤ 1,
-  { have h : fintype.card n = 1 := by linarith,
-    simp [h, adjugate_eq_one_of_card_eq_one h] },
-  have one_lt_card : 1 < fintype.card n := by linarith,
-  have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
-    (tsub_lt_tsub_iff_right (refl 1)).mpr one_lt_card,
-
-  apply det_adjugate_of_cancel,
-  intros b hb,
-  calc b = a * (det A ^ (fintype.card n - 1 + 1)) :
-       by rw [←one_mul b, ←ha, mul_assoc, hb, tsub_add_cancel_of_le zero_lt_card.nat_succ_le]
-     ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
-     ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
+  ext,
+  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  obtain rfl | hij := eq_or_ne i j,
+  { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
+      prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
+  { rw diagonal_apply_ne _ hij,
+    refine det_eq_zero_of_row_eq_zero j (λ k, _),
+    obtain rfl | hjk := eq_or_ne k j,
+    { rw [update_column_self, pi.single_eq_of_ne' hij] },
+    { rw [update_column_ne hjk, diagonal_apply_ne' _ hjk]} },
 end
-
-@[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
-@subsingleton.elim _ matrix.subsingleton_of_empty_left _ _
-
-@[simp] lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
-adjugate_subsingleton A
-
-lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
-  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
-begin
-  ext i j,
-  rw [adjugate_apply, det_fin_two],
-  fin_cases i with [0, 1]; fin_cases j with [0, 1];
-  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
-    fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
-end
-
-@[simp] lemma adjugate_fin_two' (a b c d : α) :
-  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
-adjugate_fin_two _
 
 lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
@@ -359,11 +307,59 @@ begin
       this, ←map_update_row, ←ring_hom.map_matrix_apply, ←ring_hom.map_det, ←adjugate_apply]
 end
 
+lemma _root_.alg_hom.map_adjugate {R A B : Type*} [comm_semiring R] [comm_ring A] [comm_ring B]
+  [algebra R A] [algebra R B] (f : A →ₐ[R] B)
+  (M : matrix n n A) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
+f.to_ring_hom.map_adjugate _
+
+
+lemma det_adjugate (A : matrix n n α) : (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+begin
+  -- get rid of the `- 1`
+  cases (fintype.card n).eq_zero_or_pos with h_card h_card,
+  { haveI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
+    rw [h_card, nat.zero_sub, pow_zero, adjugate_subsingleton, det_one] },
+  replace h_card := tsub_add_cancel_of_le h_card.nat_succ_le,
+
+  -- express `A` as an evaluation of a polynomial in n^2 variables, and solve in the polynomial ring
+  -- where `A'.det` is non-zero.
+  let A' := mv_polynomial_X n n ℤ,
+  suffices : A'.adjugate.det = A'.det ^ (fintype.card n - 1),
+  { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_det,
+      ←alg_hom.map_det, ←alg_hom.map_pow, this] },
+
+  apply mul_left_cancel₀ (show A'.det ≠ 0, from det_mv_polynomial_X_ne_zero n ℤ),
+  calc  A'.det * A'.adjugate.det
+      = (A' ⬝ adjugate A').det                 : (det_mul _ _).symm
+  ... = A'.det ^ fintype.card n                : by rw [mul_adjugate, det_smul, det_one, mul_one]
+  ... = A'.det * A'.det ^ (fintype.card n - 1) : by rw [←pow_succ, h_card],
+end
+
+@[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
+@subsingleton.elim _ matrix.subsingleton_of_empty_left _ _
+
+@[simp] lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
+adjugate_subsingleton A
+
+lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
+  adjugate A = !![A 1 1, -A 0 1; -A 1 0, A 0 0] :=
+begin
+  ext i j,
+  rw [adjugate_apply, det_fin_two],
+  fin_cases i with [0, 1]; fin_cases j with [0, 1];
+  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
+    fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
+    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
+end
+
+@[simp] lemma adjugate_fin_two_of (a b c d : α) :
+  adjugate !![a, b; c, d] = !![d, -b; -c, a] :=
+adjugate_fin_two _
+
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=
 begin
   dsimp only [conj_transpose],
-  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) :=
-    ((star_ring_aut : α ≃+* α).to_ring_hom.map_adjugate Aᵀ),
+  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) := ((star_ring_end α).map_adjugate Aᵀ),
   rw [A.adjugate_transpose, this],
 end
 
@@ -400,11 +396,9 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  casesI subsingleton_or_nontrivial α,
-  { simp },
-  let g : matrix n n α → matrix n n (polynomial α) :=
-    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
-  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  let g : matrix n n α → matrix n n α[X] :=
+    λ M, M.map polynomial.C + (polynomial.X : α[X]) • 1,
+  let f' : matrix n n α[X] →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
   have f'_inv : ∀ M, f' (g M) = M,
   { intro,
     ext,
@@ -431,6 +425,48 @@ begin
   { simp },
   { rw [pow_succ', mul_eq_mul, adjugate_mul_distrib, IH, ←mul_eq_mul, pow_succ] }
 end
+
+lemma det_smul_adjugate_adjugate (A : matrix n n α) :
+  det A • adjugate (adjugate A) = det A ^ (fintype.card n - 1) • A :=
+begin
+  have : A ⬝ (A.adjugate ⬝ A.adjugate.adjugate) = A ⬝ (A.det ^ (fintype.card n - 1) • 1),
+  { rw [←adjugate_mul_distrib, adjugate_mul, adjugate_smul, adjugate_one], },
+  rwa [←matrix.mul_assoc, mul_adjugate, matrix.mul_smul, matrix.mul_one, matrix.smul_mul,
+    matrix.one_mul] at this,
+end
+
+/-- Note that this is not true for `fintype.card n = 1` since `1 - 2 = 0` and not `-1`. -/
+lemma adjugate_adjugate (A : matrix n n α) (h : fintype.card n ≠ 1) :
+  adjugate (adjugate A) = det A ^ (fintype.card n - 2) • A :=
+begin
+  -- get rid of the `- 2`
+  cases h_card : (fintype.card n) with n',
+  { haveI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
+    exact @subsingleton.elim _ (matrix.subsingleton_of_empty_left) _ _, },
+  cases n',
+  { exact (h h_card).elim },
+  rw ←h_card,
+
+  -- express `A` as an evaluation of a polynomial in n^2 variables, and solve in the polynomial ring
+  -- where `A'.det` is non-zero.
+  let A' := mv_polynomial_X n n ℤ,
+  suffices : adjugate (adjugate A') = det A' ^ (fintype.card n - 2) • A',
+  { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
+      ←alg_hom.map_det, ← alg_hom.map_pow, alg_hom.map_matrix_apply, alg_hom.map_matrix_apply,
+      matrix.map_smul' _ _ _ (_root_.map_mul _)] },
+  have h_card' : fintype.card n - 2 + 1 = fintype.card n - 1,
+  { simp [h_card] },
+
+  have is_reg : is_smul_regular (mv_polynomial (n × n) ℤ) (det A') :=
+    λ x y, mul_left_cancel₀ (det_mv_polynomial_X_ne_zero n ℤ),
+  apply is_reg.matrix,
+  rw [smul_smul, ←pow_succ, h_card', det_smul_adjugate_adjugate],
+end
+
+/-- A weaker version of `matrix.adjugate_adjugate` that uses `nontrivial`. -/
+lemma adjugate_adjugate' (A : matrix n n α) [nontrivial n] :
+  adjugate (adjugate A) = det A ^ (fintype.card n - 2) • A :=
+adjugate_adjugate _ $ fintype.one_lt_card.ne'
 
 end adjugate
 

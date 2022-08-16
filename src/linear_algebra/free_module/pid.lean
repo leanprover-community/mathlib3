@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.finsupp_vector_space
+import linear_algebra.dimension
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
 
@@ -321,8 +321,7 @@ lemma submodule.basis_of_pid_bot {ι : Type*} [fintype ι] (b : basis ι R M) :
 begin
   obtain ⟨n, b'⟩ := submodule.basis_of_pid b ⊥,
   let e : fin n ≃ fin 0 := b'.index_equiv (basis.empty _ : basis (fin 0) R (⊥ : submodule R M)),
-  have : n = 0 := by simpa using fintype.card_eq.mpr ⟨e⟩,
-  subst this,
+  obtain rfl : n = 0 := by simpa using fintype.card_eq.mpr ⟨e⟩,
   exact sigma.eq rfl (basis.eq_of_apply_eq $ fin_zero_elim)
 end
 
@@ -406,7 +405,7 @@ section smith_normal
 /-- A Smith normal form basis for a submodule `N` of a module `M` consists of
 bases for `M` and `N` such that the inclusion map `N → M` can be written as a
 (rectangular) matrix with `a` along the diagonal: in Smith normal form. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure basis.smith_normal_form (N : submodule R M) (ι : Type*) (n : ℕ) :=
 (bM : basis ι R M)
 (bN : basis (fin n) R N)

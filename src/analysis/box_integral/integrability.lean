@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
+import measure_theory.measure.regular
 
 /-!
 # McShane integrability vs Bochner integrability
@@ -21,7 +22,7 @@ open_locale classical nnreal ennreal topological_space big_operators
 
 universes u v
 
-variables {ι : Type u} {E : Type v} [fintype ι] [normed_group E] [normed_space ℝ E]
+variables {ι : Type u} {E : Type v} [fintype ι] [normed_add_comm_group E] [normed_space ℝ E]
 
 open measure_theory metric set finset filter box_integral
 
@@ -61,9 +62,9 @@ begin
   /- Then the union of boxes `J ∈ π` such that `π.tag ∈ s` includes `F` and is included by `U`,
   hence its measure is `ε`-close to the measure of `s`. -/
   dsimp [integral_sum],
-  simp only [mem_closed_ball, dist_eq_norm, ← indicator_smul_apply, sum_indicator_eq_sum_filter,
-    ← sum_smul, ← sub_smul, norm_smul, real.norm_eq_abs, ← prepartition.filter_boxes,
-    ← prepartition.measure_Union_to_real],
+  simp only [mem_closed_ball, dist_eq_norm, ← indicator_const_smul_apply,
+    sum_indicator_eq_sum_filter, ← sum_smul, ← sub_smul, norm_smul, real.norm_eq_abs,
+    ← prepartition.filter_boxes, ← prepartition.measure_Union_to_real],
   refine mul_le_mul_of_nonneg_right _ (norm_nonneg y),
   set t := (π.to_prepartition.filter (λ J, π.tag J ∈ s)).Union,
   change abs ((μ t).to_real - (μ (s ∩ I)).to_real) ≤ ε,
@@ -172,7 +173,7 @@ begin
   induction f using measure_theory.simple_func.induction with y s hs f g hd hfi hgi,
   { simpa [function.const, measure.restrict_apply hs]
       using box_integral.has_integral_indicator_const l hl hs I y μ },
-  { letI := borel E, haveI : borel_space E := ⟨rfl⟩, haveI := fact.mk (I.measure_coe_lt_top μ),
+  { borelize E, haveI := fact.mk (I.measure_coe_lt_top μ),
     rw integral_add,
     exacts [hfi.add hgi, integrable_iff.2 $ λ _ _, measure_lt_top _ _,
       integrable_iff.2 $ λ _ _, measure_lt_top _ _] }
@@ -191,29 +192,33 @@ open topological_space
 
 /-- If `f : ℝⁿ → E` is Bochner integrable w.r.t. a locally finite measure `μ` on a rectangular box
 `I`, then it is McShane integrable on `I` with the same integral.  -/
-lemma integrable_on.has_box_integral [second_countable_topology E] [measurable_space E]
-  [borel_space E] [complete_space E] {f : (ι → ℝ) → E} {μ : measure (ι → ℝ)}
+lemma integrable_on.has_box_integral [complete_space E] {f : (ι → ℝ) → E} {μ : measure (ι → ℝ)}
   [is_locally_finite_measure μ] {I : box ι} (hf : integrable_on f I μ) (l : integration_params)
   (hl : l.bRiemann = ff) :
   has_integral.{u v v} I l f μ.to_box_additive.to_smul (∫ x in I, f x ∂ μ) :=
 begin
-  /- First we replace an `ae_measurable` function by a measurable one. -/
-  rcases hf.ae_measurable with ⟨g, hg, hfg⟩,
+  borelize E,
+  /- First we replace an `ae_strongly_measurable` function by a measurable one. -/
+  rcases hf.ae_strongly_measurable with ⟨g, hg, hfg⟩,
+  haveI : separable_space (range g ∪ {0} : set E) := hg.separable_space_range_union_singleton,
   rw integral_congr_ae hfg, have hgi : integrable_on g I μ := (integrable_congr hfg).1 hf,
   refine box_integral.has_integral.congr_ae _ hfg.symm hl,
   clear_dependent f,
-  /- Now consider the sequence of simple functions `simple_func.approx_on g hg univ 0 trivial`
+  /- Now consider the sequence of simple functions
+  `simple_func.approx_on g hg.measurable (range g ∪ {0}) 0 (by simp)`
   approximating `g`. Recall some properties of this sequence. -/
-  set f : ℕ → simple_func (ι → ℝ) E := simple_func.approx_on g hg univ 0 trivial,
-  have hfi : ∀ n, integrable_on (f n) I μ, from simple_func.integrable_approx_on_univ hg hgi,
+  set f : ℕ → simple_func (ι → ℝ) E :=
+    simple_func.approx_on g hg.measurable (range g ∪ {0}) 0 (by simp),
+  have hfi : ∀ n, integrable_on (f n) I μ,
+    from simple_func.integrable_approx_on_range hg.measurable hgi,
   have hfi' := λ n, ((f n).has_box_integral μ I l hl).integrable,
   have hfgi : tendsto (λ n, (f n).integral (μ.restrict I)) at_top (𝓝 $ ∫ x in I, g x ∂μ),
-    from tendsto_integral_approx_on_univ_of_measurable hg hgi,
+    from tendsto_integral_approx_on_of_measurable_of_range_subset hg.measurable hgi _ subset.rfl,
   have hfg_mono : ∀ x {m n}, m ≤ n → ∥f n x - g x∥ ≤ ∥f m x - g x∥,
   { intros x m n hmn,
     rw [← dist_eq_norm, ← dist_eq_norm, dist_nndist, dist_nndist, nnreal.coe_le_coe,
       ← ennreal.coe_le_coe, ← edist_nndist, ← edist_nndist],
-    exact simple_func.edist_approx_on_mono hg _ x hmn },
+    exact simple_func.edist_approx_on_mono hg.measurable _ x hmn },
   /- Now consider `ε > 0`. We need to find `r` such that for any tagged partition subordinate
   to `r`, the integral sum is `(μ I + 1 + 1) * ε`-close to the Bochner integral. -/
   refine has_integral_of_mul ((μ I).to_real + 1 + 1) (λ ε ε0, _),
@@ -221,14 +226,14 @@ begin
   /- Choose `N` such that the integral of `∥f N x - g x∥` is less than or equal to `ε`. -/
   obtain ⟨N₀, hN₀⟩ : ∃ N : ℕ, ∫ x in I, ∥f N x - g x∥ ∂μ ≤ ε,
   { have : tendsto (λ n, ∫⁻ x in I, ∥f n x - g x∥₊ ∂μ) at_top (𝓝 0),
-      from simple_func.tendsto_approx_on_univ_L1_nnnorm hg hgi,
+      from simple_func.tendsto_approx_on_range_L1_nnnorm hg.measurable hgi,
     refine (this.eventually (ge_mem_nhds ε0')).exists.imp (λ N hN, _),
     exact integral_coe_le_of_lintegral_coe_le hN },
   /- For each `x`, we choose `Nx x ≥ N₀` such that `dist (f Nx x) (g x) ≤ ε`. -/
   have : ∀ x, ∃ N₁, N₀ ≤ N₁ ∧ dist (f N₁ x) (g x) ≤ ε,
   { intro x,
     have : tendsto (λ n, f n x) at_top (𝓝 $ g x),
-      from simple_func.tendsto_approx_on hg _ (subset_closure trivial),
+      from simple_func.tendsto_approx_on hg.measurable _ (subset_closure (by simp)),
     exact ((eventually_ge_at_top N₀).and $ this $ closed_ball_mem_nhds _ ε0).exists },
   choose Nx hNx hNxε,
   /- We also choose a convergent series with `∑' i : ℕ, δ i < ε`. -/
@@ -268,7 +273,9 @@ begin
       from λ J hJ, (π.mem_filter.1 hJ).2,
     have hrn : ∀ J ∈ π.filter (λ J, Nx (π.tag J) = n),
       r c (π.tag J) = (hfi' n).convergence_r (δ n) c (π.tag J),
-    { intros J hJ, have := hNxn J hJ, clear hJ, subst n },
+    { intros J hJ,
+      obtain rfl := hNxn J hJ,
+      refl },
     have : l.mem_base_set I c ((hfi' n).convergence_r (δ n) c) (π.filter (λ J, Nx (π.tag J) = n)),
       from (hπ.filter _).mono' _ le_rfl le_rfl (λ J hJ, (hrn J hJ).le),
     convert (hfi' n).dist_integral_sum_sum_integral_le_of_mem_base_set (δ0 _) this using 2,

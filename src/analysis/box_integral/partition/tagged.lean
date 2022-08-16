@@ -58,11 +58,11 @@ lemma Union_def : π.Union = ⋃ J ∈ π, ↑J := rfl
 
 @[simp] lemma Union_to_prepartition : π.to_prepartition.Union = π.Union := rfl
 
-@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_bUnion_iff
+@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_Union₂
 
 lemma subset_Union (h : J ∈ π) : ↑J ⊆ π.Union := subset_bUnion_of_mem h
 
-lemma Union_subset : π.Union ⊆ I := bUnion_subset π.le_of_mem'
+lemma Union_subset : π.Union ⊆ I := Union₂_subset π.le_of_mem'
 
 /-- A tagged prepartition is a partition if it covers the whole box. -/
 def is_partition := π.to_prepartition.is_partition
@@ -278,7 +278,7 @@ def disj_union (π₁ π₂ : tagged_prepartition I) (h : disjoint π₁.Union �
   tag_mem_Icc := λ J, by { dunfold finset.piecewise, split_ifs,
     exacts [π₁.tag_mem_Icc J, π₂.tag_mem_Icc J]  } }
 
-@[simp] lemma disj_union_boxes (h : disjoint π₁.Union π₂.Union) : 
+@[simp] lemma disj_union_boxes (h : disjoint π₁.Union π₂.Union) :
   (π₁.disj_union π₂ h).boxes = π₁.boxes ∪ π₂.boxes := rfl
 
 @[simp] lemma mem_disj_union (h : disjoint π₁.Union π₂.Union) :
@@ -336,7 +336,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 @[simp] lemma _root_.box_integral.prepartition.distortion_bUnion_tagged (π : prepartition I)
   (πi : Π J, tagged_prepartition J) :

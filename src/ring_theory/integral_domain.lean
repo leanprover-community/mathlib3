@@ -16,9 +16,12 @@ Assorted theorems about integral domains.
 
 ## Main theorems
 
-* `is_cyclic_of_subgroup_is_domain` : A finite subgroup of the units of an integral domain
-                                            is cyclic.
-* `field_of_is_domain`              : A finite integral domain is a field.
+* `is_cyclic_of_subgroup_is_domain`: A finite subgroup of the units of an integral domain is cyclic.
+* `fintype.field_of_domain`: A finite integral domain is a field.
+
+## TODO
+
+Prove Wedderburn's little theorem, which shows that all finite division rings are actually fields.
 
 ## Tags
 
@@ -30,30 +33,54 @@ section
 open finset polynomial function
 open_locale big_operators nat
 
+section cancel_monoid_with_zero
+-- There doesn't seem to be a better home for these right now
+variables {M : Type*} [cancel_monoid_with_zero M] [fintype M]
+
+lemma mul_right_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b, a * b) :=
+fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
+
+lemma mul_left_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b, b * a) :=
+fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
+
+/-- Every finite nontrivial cancel_monoid_with_zero is a group_with_zero. -/
+def fintype.group_with_zero_of_cancel (M : Type*) [cancel_monoid_with_zero M] [decidable_eq M]
+  [fintype M] [nontrivial M] : group_with_zero M :=
+{ inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective_of_fintype₀ h) 1,
+  mul_inv_cancel := λ a ha,
+    by { simp [has_inv.inv, dif_neg ha], exact fintype.right_inverse_bij_inv _ _ },
+  inv_zero := by { simp [has_inv.inv, dif_pos rfl] },
+  ..‹nontrivial M›,
+  ..‹cancel_monoid_with_zero M› }
+
+end cancel_monoid_with_zero
+
 variables {R : Type*} {G : Type*}
 
 section ring
 
 variables [ring R] [is_domain R] [fintype R]
 
-lemma mul_right_bijective₀ (a : R) (ha : a ≠ 0) : bijective (λ b, a * b) :=
-fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
-
-lemma mul_left_bijective₀ (a : R) (ha : a ≠ 0) : bijective (λ b, b * a) :=
-fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
-
 /-- Every finite domain is a division ring.
 
 TODO: Prove Wedderburn's little theorem,
 which shows a finite domain is in fact commutative, hence a field. -/
-def division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R] [fintype R] :
-  division_ring R :=
-{ inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective₀ a h) 1,
-  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _,
-    by { rw dif_neg ha, exact fintype.right_inverse_bij_inv _ _ },
-  inv_zero := dif_pos rfl,
-  ..show nontrivial R, by apply_instance,
+def fintype.division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R]
+  [fintype R] : division_ring R :=
+{ ..show group_with_zero R, from fintype.group_with_zero_of_cancel R,
   ..‹ring R› }
+
+/-- Every finite commutative domain is a field.
+
+TODO: Prove Wedderburn's little theorem, which shows a finite domain is automatically commutative,
+dropping one assumption from this theorem. -/
+def fintype.field_of_domain (R) [comm_ring R] [is_domain R] [decidable_eq R] [fintype R] :
+  field R :=
+{ .. fintype.group_with_zero_of_cancel R,
+  .. ‹comm_ring R› }
+
+lemma fintype.is_field_of_domain (R) [comm_ring R] [is_domain R] [fintype R] :
+  is_field R := @field.to_is_field R $ @@fintype.field_of_domain R _ _ (classical.dec_eq R) _
 
 end ring
 
@@ -82,18 +109,14 @@ end
 
 /-- The unit group of a finite integral domain is cyclic.
 
-To support `units ℤ` and other infinite monoids with finite groups of units, this requires only
-`fintype (units R)` rather than deducing it from `fintype R`. -/
-instance [fintype (units R)] : is_cyclic (units R) :=
+To support `ℤˣ` and other infinite monoids with finite groups of units, this requires only
+`fintype Rˣ` rather than deducing it from `fintype R`. -/
+instance [fintype Rˣ] : is_cyclic Rˣ :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
-
-/-- Every finite integral domain is a field. -/
-def field_of_is_domain [decidable_eq R] [fintype R] : field R :=
-{ ..division_ring_of_is_domain R, ..‹comm_ring R› }
 
 section
 
-variables (S : subgroup (units R)) [fintype S]
+variables (S : subgroup Rˣ) [fintype S]
 
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
@@ -143,9 +166,9 @@ begin
   let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,
   calc ∑ g : G, f g
       = ∑ g : G, f.to_hom_units g : rfl
-  ... = ∑ u : units R in univ.image f.to_hom_units,
-    (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : units R → R) f.to_hom_units
-  ... = ∑ u : units R in univ.image f.to_hom_units, c • u :
+  ... = ∑ u : Rˣ in univ.image f.to_hom_units,
+    (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : Rˣ → R) f.to_hom_units
+  ... = ∑ u : Rˣ in univ.image f.to_hom_units, c • u :
     sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
   ... = ∑ b : monoid_hom.range f.to_hom_units, c • ↑b : finset.sum_subtype _
       (by simp ) _
@@ -170,7 +193,7 @@ begin
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,
-  rw [← mul_left_inj' hx1, zero_mul, ← geom_sum, geom_sum_mul, coe_coe],
+  rw [← mul_left_inj' hx1, zero_mul, geom_sum_mul, coe_coe],
   norm_cast,
   simp [pow_order_of_eq_one],
 end

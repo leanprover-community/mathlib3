@@ -18,20 +18,25 @@ variables {α : Type*} {β : Type*}
 
 attribute [inline] option.is_some option.is_none
 
-/-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
-@[simp] protected def elim : option α → β → (α → β) → β
-| (some x) y f := f x
-| none     y f := y
+/-- An elimination principle for `option`. It is a nondependent version of `option.rec`. -/
+@[simp] protected def elim (b : β) (f : α → β) : option α → β
+| (some a) := f a
+| none     := b
 
 instance has_mem : has_mem α (option α) := ⟨λ a b, b = some a⟩
 
 @[simp] theorem mem_def {a : α} {b : option α} : a ∈ b ↔ b = some a :=
 iff.rfl
 
+lemma mem_iff {a : α} {b : option α} : a ∈ b ↔ b = a := iff.rfl
+
 theorem is_none_iff_eq_none {o : option α} : o.is_none = tt ↔ o = none :=
 ⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
+
+lemma mem_some_iff {α : Type*} {a b : α} : a ∈ some b ↔ b = a :=
+by simp
 
 /--
 `o = none` is decidable even if the wrapped type does not have decidable equality.
@@ -60,7 +65,7 @@ instance decidable_exists_mem {p : α → Prop} [decidable_pred p] :
 /-- Inhabited `get` function. Returns `a` if the input is `some a`, otherwise returns `default`. -/
 @[reducible] def iget [inhabited α] : option α → α
 | (some x) := x
-| none     := default α
+| none     := default
 
 @[simp] theorem iget_some [inhabited α] {a : α} : (some a).iget = a := rfl
 
@@ -156,12 +161,12 @@ def {u v w} mmap {m : Type u → Type v} [monad m] {α : Type w} {β : Type u} (
   (o : option α) : m (option β) := (o.map f).maybe
 
 /-- A monadic analogue of `option.elim`. -/
-def melim {α β : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m β) (z : α → m β) :
+def melim {α β : Type*} {m : Type* → Type*} [monad m] (y : m β) (z : α → m β) (x : m (option α)) :
   m β :=
-x >>= λ o, option.elim o y z
+x >>= option.elim y z
 
 /-- A monadic analogue of `option.get_or_else`. -/
 def mget_or_else {α : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m α) : m α :=
-melim x y pure
+melim y pure x
 
 end option

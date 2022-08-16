@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import logic.function.basic
 import tactic.ext
 import tactic.lint
 import tactic.simps
@@ -87,32 +88,42 @@ ext_iff
 theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
 ext_iff
 
+lemma coe_eq_of_eq_mk {a : {a // p a}} {b : α} (h : ↑a = b) :
+  a = ⟨b, h ▸ a.2⟩ := subtype.ext h
+
 theorem coe_eq_iff {a : {a // p a}} {b : α} : ↑a = b ↔ ∃ h, a = ⟨b, h⟩ :=
 ⟨λ h, h ▸ ⟨a.2, (coe_eta _ _).symm⟩, λ ⟨hb, ha⟩, ha.symm ▸ rfl⟩
 
-theorem coe_injective : injective (coe : subtype p → α) :=
-λ a b, subtype.ext
+lemma coe_injective : injective (coe : subtype p → α) := λ a b, subtype.ext
+lemma val_injective : injective (@val _ p) := coe_injective
+lemma coe_inj {a b : subtype p} : (a : α) = b ↔ a = b := coe_injective.eq_iff
+lemma val_inj {a b : subtype p} : a.val = b.val ↔ a = b := coe_inj
 
-theorem val_injective : injective (@val _ p) :=
-coe_injective
+@[simp] lemma _root_.exists_eq_subtype_mk_iff {a : subtype p} {b : α} :
+  (∃ h : p b, a = subtype.mk b h) ↔ ↑a = b :=
+coe_eq_iff.symm
+
+@[simp] lemma _root_.exists_subtype_mk_eq_iff {a : subtype p} {b : α} :
+  (∃ h : p b, subtype.mk b h = a) ↔ b = a :=
+by simp only [@eq_comm _ b, exists_eq_subtype_mk_iff, @eq_comm _ _ a]
 
 /-- Restrict a (dependent) function to a subtype -/
-def restrict {α} {β : α → Type*} (f : Π x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
+def restrict {α} {β : α → Type*} (p : α → Prop) (f : Π x, β x) (x : subtype p) : β x.1 :=
 f x
 
 lemma restrict_apply {α} {β : α → Type*} (f : Π x, β x) (p : α → Prop) (x : subtype p) :
-  restrict f p x = f x.1 :=
+  restrict p f x = f x.1 :=
 by refl
 
-lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict f p = f ∘ coe :=
+lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict p f = f ∘ coe :=
 by refl
 
 lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injective f) :
-  injective (restrict f p) :=
+  injective (restrict p f) :=
 h.comp coe_injective
 
 lemma surjective_restrict {α} {β : α → Type*} [ne : Π a, nonempty (β a)] (p : α → Prop) :
-  surjective (λ f : Π x, β x, restrict f p) :=
+  surjective (λ f : Π x, β x, restrict p f) :=
 begin
   letI := classical.dec_pred p,
   refine λ f, ⟨λ x, if h : p x then f ⟨x, h⟩ else nonempty.some (ne x), funext $ _⟩,

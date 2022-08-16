@@ -3,7 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
-import linear_algebra.quadratic_form.basic
+import linear_algebra.quadratic_form.isometry
 import analysis.special_functions.pow
 
 /-!
@@ -56,7 +56,7 @@ begin
   change v j * v j = ↑(w j) * ((v j * ↑(w j) ^ -(1 / 2 : ℂ)) * (v j * ↑(w j) ^ -(1 / 2 : ℂ))),
   suffices : v j * v j = w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
   { rw [this], ring },
-  rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
+  rw [← complex.cpow_add _ _ (w j).ne_zero, show -(1 / 2 : ℂ) + -(1 / 2) = -1, by simp [← two_mul],
       complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero, one_mul],
 end
 
@@ -79,5 +79,11 @@ theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   equivalent Q (weighted_sum_squares ℂ (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
 let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_units_of_nondegenerate' hQ in
   ⟨hw₁.trans (isometry_sum_squares_units w)⟩
+
+/-- All nondegenerate quadratic forms on the complex numbers are equivalent. -/
+theorem complex_equivalent {M : Type*} [add_comm_group M] [module ℂ M]
+  [finite_dimensional ℂ M] (Q₁ Q₂ : quadratic_form ℂ M) (hQ₁ : (associated Q₁).nondegenerate)
+  (hQ₂ : (associated Q₂).nondegenerate) : equivalent Q₁ Q₂ :=
+(Q₁.equivalent_sum_squares hQ₁).trans (Q₂.equivalent_sum_squares hQ₂).symm
 
 end quadratic_form

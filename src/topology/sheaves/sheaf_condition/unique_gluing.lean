@@ -3,10 +3,9 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
-import algebra.category.CommRing.limits
 import topology.sheaves.forget
-import topology.sheaves.sheaf
 import category_theory.limits.shapes.types
+import topology.sheaves.sheaf
 import category_theory.types
 
 /-!
@@ -110,8 +109,8 @@ lemma compatible_iff_left_res_eq_right_res (sf : pi_opens F U) :
 begin
   split ; intros h,
   { ext ⟨i, j⟩,
-    rw [left_res, types.limit.lift_π_apply, fan.mk_π_app,
-        right_res, types.limit.lift_π_apply, fan.mk_π_app],
+    rw [left_res, types.limit.lift_π_apply', fan.mk_π_app,
+        right_res, types.limit.lift_π_apply', fan.mk_π_app],
     exact h i j, },
   { intros i j,
     convert congr_arg (limits.pi.π (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2))) (i,j)) h,
@@ -129,8 +128,8 @@ lemma is_gluing_iff_eq_res (sf : pi_opens F U) (s : F.obj (op (supr U))):
   is_gluing F U ((pi_opens_iso_sections_family F U).hom sf) s ↔ res F U s = sf :=
 begin
   split ; intros h,
-  { ext i,
-    rw [res, types.limit.lift_π_apply, fan.mk_π_app],
+  { ext ⟨i⟩,
+    rw [res, types.limit.lift_π_apply', fan.mk_π_app],
     exact h i, },
   { intro i,
     convert congr_arg (limits.pi.π (λ i : ι, F.obj (op (U i))) i) h,
@@ -145,6 +144,7 @@ in terms of unique gluings.
 lemma is_sheaf_of_is_sheaf_unique_gluing_types (Fsh : F.is_sheaf_unique_gluing) :
   F.is_sheaf :=
 begin
+  rw is_sheaf_iff_is_sheaf_equalizer_products,
   intros ι U,
   refine ⟨fork.is_limit.mk' _ _⟩,
   intro s,
@@ -156,7 +156,7 @@ begin
   choose m m_spec m_uniq using
     λ x : s.X, Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) (h_compatible x),
   refine ⟨m, _, _⟩,
-  { ext i x,
+  { ext ⟨i⟩ x,
     simp [res],
     exact m_spec x i, },
   { intros l hl,
@@ -173,6 +173,7 @@ The sheaf condition in terms of unique gluings can be obtained from the usual
 lemma is_sheaf_unique_gluing_of_is_sheaf_types (Fsh : F.is_sheaf) :
   F.is_sheaf_unique_gluing :=
 begin
+  rw is_sheaf_iff_is_sheaf_equalizer_products at Fsh,
   intros ι U sf hsf,
   let sf' := (pi_opens_iso_sections_family F U).inv sf,
   have hsf' : left_res F U sf' = right_res F U sf',
@@ -242,7 +243,7 @@ A more convenient way of obtaining a unique gluing of sections for a sheaf.
 lemma exists_unique_gluing (sf : Π i : ι, F.1.obj (op (U i)))
   (h : is_compatible F.1 U sf ) :
   ∃! s : F.1.obj (op (supr U)), is_gluing F.1 U sf s :=
-(is_sheaf_iff_is_sheaf_unique_gluing F.1).mp F.property U sf h
+(is_sheaf_iff_is_sheaf_unique_gluing F.1).mp F.cond U sf h
 
 /--
 In this version of the lemma, the inclusion homs `iUV` can be specified directly by the user,

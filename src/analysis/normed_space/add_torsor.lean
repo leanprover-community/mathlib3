@@ -4,255 +4,40 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed_space.basic
+import analysis.normed.group.add_torsor
 import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.affine_subspace
 import topology.instances.real_vector_space
 
 /-!
-# Torsors of additive normed group actions.
+# Torsors of normed space actions.
 
-This file defines torsors of additive normed group actions, with a
-metric space structure.  The motivating case is Euclidean affine
-spaces.
-
+This file contains lemmas about normed additive torsors over normed spaces.
 -/
 
 noncomputable theory
 open_locale nnreal topological_space
 open filter
 
-/-- A `semi_normed_add_torsor V P` is a torsor of an additive seminormed group
-action by a `semi_normed_group V` on points `P`. We bundle the pseudometric space
-structure and require the distance to be the same as results from the
-norm (which in fact implies the distance yields a pseudometric space, but
-bundling just the distance and using an instance for the pseudometric space
-results in type class problems). -/
-class semi_normed_add_torsor (V : out_param $ Type*) (P : Type*)
-  [out_param $ semi_normed_group V] [pseudo_metric_space P]
-  extends add_torsor V P :=
-(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
-
-/-- A `normed_add_torsor V P` is a torsor of an additive normed group
-action by a `normed_group V` on points `P`. We bundle the metric space
-structure and require the distance to be the same as results from the
-norm (which in fact implies the distance yields a metric space, but
-bundling just the distance and using an instance for the metric space
-results in type class problems). -/
-class normed_add_torsor (V : out_param $ Type*) (P : Type*)
-  [out_param $ normed_group V] [metric_space P]
-  extends add_torsor V P :=
-(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
-
-/-- A `normed_add_torsor` is a `semi_normed_add_torsor`. -/
-@[priority 100]
-instance normed_add_torsor.to_semi_normed_add_torsor {V P : Type*} [normed_group V] [metric_space P]
-  [β : normed_add_torsor V P] : semi_normed_add_torsor V P := { ..β }
-
-variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [semi_normed_add_torsor V P]
-variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
-
-/-- A `semi_normed_group` is a `semi_normed_add_torsor` over itself. -/
-@[priority 100]
-instance semi_normed_group.normed_add_torsor : semi_normed_add_torsor V V :=
-{ dist_eq_norm' := dist_eq_norm }
-
-/-- A `normed_group` is a `normed_add_torsor` over itself. -/
-@[priority 100]
-instance normed_group.normed_add_torsor : normed_add_torsor W W :=
-{ dist_eq_norm' := dist_eq_norm }
-
-include V
-
-section
-
-variables (V W)
-
-/-- The distance equals the norm of subtracting two points. In this
-lemma, it is necessary to have `V` as an explicit argument; otherwise
-`rw dist_eq_norm_vsub` sometimes doesn't work. -/
-lemma dist_eq_norm_vsub (x y : P) :
-  dist x y = ∥(x -ᵥ y)∥ :=
-semi_normed_add_torsor.dist_eq_norm' x y
-
-end
-
-@[simp] lemma dist_vadd_cancel_left (v : V) (x y : P) :
-  dist (v +ᵥ x) (v +ᵥ y) = dist x y :=
-by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
-
-@[simp] lemma dist_vadd_cancel_right (v₁ v₂ : V) (x : P) :
-  dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
-by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
-
-@[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ∥v∥ :=
-by simp [dist_eq_norm_vsub V _ x]
-
-@[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
-by rw [dist_comm, dist_vadd_left]
-
-@[simp] lemma dist_vsub_cancel_left (x y z : P) : dist (x -ᵥ y) (x -ᵥ z) = dist y z :=
-by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
-
-@[simp] lemma dist_vsub_cancel_right (x y z : P) : dist (x -ᵥ z) (y -ᵥ z) = dist x y :=
-by rw [dist_eq_norm, vsub_sub_vsub_cancel_right, dist_eq_norm_vsub V]
-
-lemma dist_vadd_vadd_le (v v' : V) (p p' : P) :
-  dist (v +ᵥ p) (v' +ᵥ p') ≤ dist v v' + dist p p' :=
-by simpa using dist_triangle (v +ᵥ p) (v' +ᵥ p) (v' +ᵥ p')
-
-lemma dist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
-  dist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ dist p₁ p₃ + dist p₂ p₄ :=
-by { rw [dist_eq_norm, vsub_sub_vsub_comm, dist_eq_norm_vsub V, dist_eq_norm_vsub V],
- exact norm_sub_le _ _ }
-
-lemma nndist_vadd_vadd_le (v v' : V) (p p' : P) :
-  nndist (v +ᵥ p) (v' +ᵥ p') ≤ nndist v v' + nndist p p' :=
-by simp only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vadd_vadd_le]
-
-lemma nndist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
-  nndist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ nndist p₁ p₃ + nndist p₂ p₄ :=
-by simp only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vsub_vsub_le]
-
-lemma edist_vadd_vadd_le (v v' : V) (p p' : P) :
-  edist (v +ᵥ p) (v' +ᵥ p') ≤ edist v v' + edist p p' :=
-by { simp only [edist_nndist], apply_mod_cast nndist_vadd_vadd_le }
-
-lemma edist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
-  edist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ edist p₁ p₃ + edist p₂ p₄ :=
-by { simp only [edist_nndist], apply_mod_cast nndist_vsub_vsub_le }
-
-omit V
-
-/-- The pseudodistance defines a pseudometric space structure on the torsor. This
-is not an instance because it depends on `V` to define a `metric_space
-P`. -/
-def pseudo_metric_space_of_normed_group_of_add_torsor (V P : Type*) [semi_normed_group V]
-  [add_torsor V P] : pseudo_metric_space P :=
-{ dist := λ x y, ∥(x -ᵥ y : V)∥,
-  dist_self := λ x, by simp,
-  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
-  dist_triangle := begin
-    intros x y z,
-    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
-    rw ←vsub_add_vsub_cancel,
-    apply norm_add_le
-  end }
-
-/-- The distance defines a metric space structure on the torsor. This
-is not an instance because it depends on `V` to define a `metric_space
-P`. -/
-def metric_space_of_normed_group_of_add_torsor (V P : Type*) [normed_group V] [add_torsor V P] :
-  metric_space P :=
-{ dist := λ x y, ∥(x -ᵥ y : V)∥,
-  dist_self := λ x, by simp,
-  eq_of_dist_eq_zero := λ x y h, by simpa using h,
-  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
-  dist_triangle := begin
-    intros x y z,
-    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
-    rw ←vsub_add_vsub_cancel,
-    apply norm_add_le
-  end }
-
-include V
-
-lemma lipschitz_with.vadd [pseudo_emetric_space α] {f : α → V} {g : α → P} {Kf Kg : ℝ≥0}
-  (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
-  lipschitz_with (Kf + Kg) (f +ᵥ g) :=
-λ x y,
-calc edist (f x +ᵥ g x) (f y +ᵥ g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
-  edist_vadd_vadd_le _ _ _ _
-... ≤ Kf * edist x y + Kg * edist x y :
-  add_le_add (hf x y) (hg x y)
-... = (Kf + Kg) * edist x y :
-  (add_mul _ _ _).symm
-
-lemma lipschitz_with.vsub [pseudo_emetric_space α] {f g : α → P} {Kf Kg : ℝ≥0}
-  (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
-  lipschitz_with (Kf + Kg) (f -ᵥ g) :=
-λ x y,
-calc edist (f x -ᵥ g x) (f y -ᵥ g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
-  edist_vsub_vsub_le _ _ _ _
-... ≤ Kf * edist x y + Kg * edist x y :
-  add_le_add (hf x y) (hg x y)
-... = (Kf + Kg) * edist x y :
-  (add_mul _ _ _).symm
-
-lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2) :=
-(lipschitz_with.prod_fst.vadd lipschitz_with.prod_snd).uniform_continuous
-
-lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
-(lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
-
-lemma continuous_vadd : continuous (λ x : V × P, x.1 +ᵥ x.2) :=
-uniform_continuous_vadd.continuous
-
-lemma continuous_vsub : continuous (λ x : P × P, x.1 -ᵥ x.2) :=
-uniform_continuous_vsub.continuous
-
-lemma filter.tendsto.vadd {l : filter α} {f : α → V} {g : α → P} {v : V} {p : P}
-  (hf : tendsto f l (𝓝 v)) (hg : tendsto g l (𝓝 p)) :
-  tendsto (f +ᵥ g) l (𝓝 (v +ᵥ p)) :=
-(continuous_vadd.tendsto (v, p)).comp (hf.prod_mk_nhds hg)
-
-lemma filter.tendsto.vsub {l : filter α} {f g : α → P} {x y : P}
-  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
-  tendsto (f -ᵥ g) l (𝓝 (x -ᵥ y)) :=
-(continuous_vsub.tendsto (x, y)).comp (hf.prod_mk_nhds hg)
-
-section
-
-variables [topological_space α]
-
-lemma continuous.vadd {f : α → V} {g : α → P} (hf : continuous f) (hg : continuous g) :
-  continuous (f +ᵥ g) :=
-continuous_vadd.comp (hf.prod_mk hg)
-
-lemma continuous.vsub {f g : α → P} (hf : continuous f) (hg : continuous g) :
-  continuous (f -ᵥ g) :=
-continuous_vsub.comp (hf.prod_mk hg : _)
-
-lemma continuous_at.vadd {f : α → V} {g : α → P} {x : α} (hf : continuous_at f x)
-  (hg : continuous_at g x) :
-  continuous_at (f +ᵥ g) x :=
-hf.vadd hg
-
-lemma continuous_at.vsub {f g : α → P}  {x : α} (hf : continuous_at f x) (hg : continuous_at g x) :
-  continuous_at (f -ᵥ g) x :=
-hf.vsub hg
-
-lemma continuous_within_at.vadd {f : α → V} {g : α → P} {x : α} {s : set α}
-  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
-  continuous_within_at (f +ᵥ g) s x :=
-hf.vadd hg
-
-lemma continuous_within_at.vsub {f g : α → P} {x : α} {s : set α}
-  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
-  continuous_within_at (f -ᵥ g) s x :=
-hf.vsub hg
-
-end
-
-section
-
-variables {R : Type*} [ring R] [topological_space R] [module R V] [has_continuous_smul R V]
-
-lemma filter.tendsto.line_map {l : filter α} {f₁ f₂ : α → P} {g : α → R} {p₁ p₂ : P} {c : R}
-  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) (hg : tendsto g l (𝓝 c)) :
-  tendsto (λ x, affine_map.line_map (f₁ x) (f₂ x) (g x)) l (𝓝 $ affine_map.line_map p₁ p₂ c) :=
-(hg.smul (h₂.vsub h₁)).vadd h₁
-
-lemma filter.tendsto.midpoint [invertible (2:R)] {l : filter α} {f₁ f₂ : α → P} {p₁ p₂ : P}
-  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) :
-  tendsto (λ x, midpoint R (f₁ x) (f₂ x)) l (𝓝 $ midpoint R p₁ p₂) :=
-h₁.line_map h₂ tendsto_const_nhds
-
-end
+variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]
+  [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 V]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W]
 
 open affine_map
+
+lemma affine_subspace.is_closed_direction_iff (s : affine_subspace 𝕜 Q) :
+  is_closed (s.direction : set W) ↔ is_closed (s : set Q) :=
+begin
+  rcases s.eq_bot_or_nonempty with rfl|⟨x, hx⟩, { simp [is_closed_singleton] },
+  rw [← (isometric.vadd_const x).to_homeomorph.symm.is_closed_image,
+    affine_subspace.coe_direction_eq_vsub_set_right hx],
+  refl
+end
+
+include V
 
 @[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
@@ -262,21 +47,50 @@ by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]
   dist (homothety p₁ c p₂) p₁ = ∥c∥ * dist p₁ p₂ :=
 by rw [dist_comm, dist_center_homothety]
 
+@[simp] lemma dist_line_map_line_map (p₁ p₂ : P) (c₁ c₂ : 𝕜) :
+  dist (line_map p₁ p₂ c₁) (line_map p₁ p₂ c₂) = dist c₁ c₂ * dist p₁ p₂ :=
+begin
+  rw dist_comm p₁ p₂,
+  simp only [line_map_apply, dist_eq_norm_vsub, vadd_vsub_vadd_cancel_right, ← sub_smul, norm_smul,
+    vsub_eq_sub],
+end
+
+lemma lipschitz_with_line_map (p₁ p₂ : P) :
+  lipschitz_with (nndist p₁ p₂) (line_map p₁ p₂ : 𝕜 → P) :=
+lipschitz_with.of_dist_le_mul $ λ c₁ c₂,
+  ((dist_line_map_line_map p₁ p₂ c₁ c₂).trans (mul_comm _ _)).le
+
+@[simp] lemma dist_line_map_left (p₁ p₂ : P) (c : 𝕜) :
+  dist (line_map p₁ p₂ c) p₁ = ∥c∥ * dist p₁ p₂ :=
+by simpa only [line_map_apply_zero, dist_zero_right] using dist_line_map_line_map p₁ p₂ c 0
+
+@[simp] lemma dist_left_line_map (p₁ p₂ : P) (c : 𝕜) :
+  dist p₁ (line_map p₁ p₂ c) = ∥c∥ * dist p₁ p₂ :=
+(dist_comm _ _).trans (dist_line_map_left _ _ _)
+
+@[simp] lemma dist_line_map_right (p₁ p₂ : P) (c : 𝕜) :
+  dist (line_map p₁ p₂ c) p₂ = ∥1 - c∥ * dist p₁ p₂ :=
+by simpa only [line_map_apply_one, dist_eq_norm'] using dist_line_map_line_map p₁ p₂ c 1
+
+@[simp] lemma dist_right_line_map (p₁ p₂ : P) (c : 𝕜) :
+  dist p₂ (line_map p₁ p₂ c) = ∥1 - c∥ * dist p₁ p₂ :=
+(dist_comm _ _).trans (dist_line_map_right _ _ _)
+
 @[simp] lemma dist_homothety_self (p₁ p₂ : P) (c : 𝕜) :
   dist (homothety p₁ c p₂) p₂ = ∥1 - c∥ * dist p₁ p₂ :=
-by rw [homothety_eq_line_map, ← line_map_apply_one_sub, ← homothety_eq_line_map,
-  dist_homothety_center, dist_comm]
+by rw [homothety_eq_line_map, dist_line_map_right]
 
 @[simp] lemma dist_self_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₂ (homothety p₁ c p₂) = ∥1 - c∥ * dist p₁ p₂ :=
 by rw [dist_comm, dist_homothety_self]
 
+section invertible_two
+
 variables [invertible (2:𝕜)]
 
 @[simp] lemma dist_left_midpoint (p₁ p₂ : P) :
   dist p₁ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
-by rw [midpoint, ← homothety_eq_line_map, dist_center_homothety, inv_of_eq_inv,
-  ← normed_field.norm_inv]
+by rw [midpoint, dist_comm, dist_line_map_left, inv_of_eq_inv, ← norm_inv]
 
 @[simp] lemma dist_midpoint_left (p₁ p₂ : P) :
   dist (midpoint 𝕜 p₁ p₂) p₁ = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
@@ -295,19 +109,55 @@ lemma dist_midpoint_midpoint_le' (p₁ p₂ p₃ p₄ : P) :
 begin
   rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, midpoint_vsub_midpoint];
     try { apply_instance },
-  rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, normed_field.norm_inv, ← div_eq_inv_mul],
+  rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, norm_inv, ← div_eq_inv_mul],
   exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
+end
+
+end invertible_two
+
+omit V
+include W
+
+lemma antilipschitz_with_line_map {p₁ p₂ : Q} (h : p₁ ≠ p₂) :
+  antilipschitz_with (nndist p₁ p₂)⁻¹ (line_map p₁ p₂ : 𝕜 → Q) :=
+antilipschitz_with.of_le_mul_dist $ λ c₁ c₂, by rw [dist_line_map_line_map, nnreal.coe_inv,
+  ← dist_nndist, mul_left_comm, inv_mul_cancel (dist_ne_zero.2 h), mul_one]
+
+variables (𝕜)
+
+lemma eventually_homothety_mem_of_mem_interior (x : Q) {s : set Q} {y : Q} (hy : y ∈ interior s) :
+  ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ y ∈ s :=
+begin
+  rw (normed_add_comm_group.nhds_basis_norm_lt (1 : 𝕜)).eventually_iff,
+  cases eq_or_ne y x with h h, { use 1, simp [h.symm, interior_subset hy], },
+  have hxy : 0 < ∥y -ᵥ x∥, { rwa [norm_pos_iff, vsub_ne_zero], },
+  obtain ⟨u, hu₁, hu₂, hu₃⟩ := mem_interior.mp hy,
+  obtain ⟨ε, hε, hyε⟩ := metric.is_open_iff.mp hu₂ y hu₃,
+  refine ⟨ε / ∥y -ᵥ x∥, div_pos hε hxy, λ δ (hδ : ∥δ - 1∥ < ε / ∥y -ᵥ x∥), hu₁ (hyε _)⟩,
+  rw [lt_div_iff hxy, ← norm_smul, sub_smul, one_smul] at hδ,
+  rwa [homothety_apply, metric.mem_ball, dist_eq_norm_vsub W, vadd_vsub_eq_sub_vsub],
+end
+
+lemma eventually_homothety_image_subset_of_finite_subset_interior
+  (x : Q) {s : set Q} {t : set Q} (ht : t.finite) (h : t ⊆ interior s) :
+  ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ '' t ⊆ s :=
+begin
+  suffices : ∀ y ∈ t, ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ y ∈ s,
+  { simp_rw set.image_subset_iff,
+    exact (filter.eventually_all_finite ht).mpr this, },
+  intros y hy,
+  exact eventually_homothety_mem_of_mem_interior 𝕜 x (h hy),
 end
 
 end normed_space
 
-variables [semi_normed_space ℝ V] [normed_space ℝ W]
+variables [normed_space ℝ V] [normed_space ℝ W]
 
 lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
   dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=
 by simpa using dist_midpoint_midpoint_le' p₁ p₂ p₃ p₄
 
-include W
+include V W
 
 /-- A continuous map between two normed affine spaces is an affine map provided that
 it sends midpoints to midpoints. -/

@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Yury Kudryashov
+Authors: Johannes Hölzl, Sébastien Gouëzel, Yury Kudryashov
 -/
-import measure_theory.constructions.pi
-import measure_theory.measure.stieltjes
-import linear_algebra.matrix.transvection
 import dynamics.ergodic.measure_preserving
 import linear_algebra.determinant
+import linear_algebra.matrix.diagonal
+import linear_algebra.matrix.transvection
+import measure_theory.constructions.pi
+import measure_theory.measure.stieltjes
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -24,7 +25,7 @@ are proved more generally for any additive Haar measure on a finite-dimensional 
 -/
 
 noncomputable theory
-open classical set filter measure_theory
+open classical set filter measure_theory measure_theory.measure
 open ennreal (of_real)
 open_locale big_operators ennreal nnreal topological_space
 
@@ -66,11 +67,11 @@ ennreal.eq_top_of_forall_nnreal_le $ λ r,
 
 @[simp] lemma volume_ball (a r : ℝ) :
   volume (metric.ball a r) = of_real (2 * r) :=
-by rw [ball_eq, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
+by rw [ball_eq_Ioo, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_closed_ball (a r : ℝ) :
   volume (metric.closed_ball a r) = of_real (2 * r) :=
-by rw [closed_ball_eq, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
+by rw [closed_ball_eq_Icc, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_emetric_ball (a : ℝ) (r : ℝ≥0∞) :
   volume (emetric.ball a r) = 2 * r :=
@@ -138,8 +139,7 @@ instance is_finite_measure_restrict_Ioo (x y : ℝ) : is_finite_measure (volume.
 lemma volume_Icc_pi {a b : ι → ℝ} : volume (Icc a b) = ∏ i, ennreal.of_real (b i - a i) :=
 begin
   rw [← pi_univ_Icc, volume_pi_pi],
-  { simp only [real.volume_Icc] },
-  { exact λ i, measurable_set_Icc }
+  simp only [real.volume_Icc]
 end
 
 @[simp] lemma volume_Icc_pi_to_real {a b : ι → ℝ} (h : a ≤ b) :
@@ -197,7 +197,7 @@ lemma volume_pi_le_prod_diam (s : set (ι → ℝ)) :
 calc volume s ≤ volume (pi univ (λ i, closure (function.eval i '' s))) :
   volume.mono $ subset.trans (subset_pi_eval_image univ s) $ pi_mono $ λ i hi, subset_closure
           ... = ∏ i, volume (closure $ function.eval i '' s) :
-  volume_pi_pi _ $ λ i, measurable_set_closure
+  volume_pi_pi _
           ... ≤ ∏ i : ι, emetric.diam (function.eval i '' s) :
   finset.prod_le_prod' $ λ i hi, (volume_le_diam _).trans_eq (emetric.diam_closure _)
 
@@ -213,22 +213,10 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
 ### Images of the Lebesgue measure under translation/multiplication in ℝ
 -/
 
-lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
-eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]
-
-@[simp] lemma volume_preimage_add_left (a : ℝ) (s : set ℝ) : volume (((+) a) ⁻¹' s) = volume s :=
-calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
-  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_add_left
-
-lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
-by simpa only [add_comm] using real.map_volume_add_left a
-
-@[simp] lemma volume_preimage_add_right (a : ℝ) (s : set ℝ) : volume ((+ a) ⁻¹' s) = volume s :=
-calc volume ((+ a) ⁻¹' s) = measure.map (+ a) volume s :
-  ((homeomorph.add_right a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_add_right
+instance is_add_left_invariant_real_volume :
+  is_add_left_invariant (volume : measure ℝ) :=
+⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
+  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]⟩
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
@@ -237,11 +225,11 @@ begin
   cases lt_or_gt_of_ne h with h h,
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
-      ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
+      neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub, smul_eq_mul,
       mul_div_cancel' _ (ne_of_lt h)] },
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
-      abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
+      abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h), smul_eq_mul] }
 end
 
 lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
@@ -270,31 +258,13 @@ calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
   ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
-@[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
-eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
-    from measure.map_apply measurable_neg measurable_set_Ioo]
+instance : is_neg_invariant (volume : measure ℝ) :=
+⟨eq.symm $ real.measure_ext_Ioo_rat $ λ p q, by simp [show volume.neg (Ioo (p : ℝ) q) = _,
+  from measure.map_apply measurable_neg measurable_set_Ioo]⟩
 
 /-!
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
 -/
-
-lemma map_volume_pi_add_left (a : ι → ℝ) : measure.map ((+) a) volume = volume :=
-begin
-  refine (measure.pi_eq (λ s hs, _)).symm,
-  have A : has_add.add a ⁻¹' (set.pi univ (λ (i : ι), s i))
-    = set.pi univ (λ (i : ι), ((+) (a i)) ⁻¹' (s i)), by { ext, simp },
-  rw [measure.map_apply (measurable_const_add a) (measurable_set.univ_pi_fintype hs), A,
-      volume_pi_pi],
-  { simp only [volume_preimage_add_left] },
-  { exact λ i, measurable_const_add (a i) (hs i) }
-end
-
-@[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :
-  volume (((+) a) ⁻¹' s) = volume s :=
-calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
-  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_pi_add_left
 
 open matrix
 
@@ -322,33 +292,31 @@ begin
       mul_inv_cancel A, abs_one, ennreal.of_real_one, one_mul] },
   rw [this, volume_pi_pi, finset.abs_prod,
     ennreal.of_real_prod_of_nonneg (λ i hi, abs_nonneg (D i)), ← finset.prod_mul_distrib],
-  { simp only [B] },
-  { exact λ i, measurable_const_mul _ (hs i) },
+  simp only [B]
 end
 
 /-- A transvection preserves Lebesgue measure. -/
-lemma map_transvection_volume_pi [decidable_eq ι] (t : transvection_struct ι ℝ) :
-  measure.map (t.to_matrix.to_lin') volume = volume :=
+lemma volume_preserving_transvection_struct [decidable_eq ι] (t : transvection_struct ι ℝ) :
+  measure_preserving (t.to_matrix.to_lin') :=
 begin
   /- We separate the coordinate along which there is a shearing from the other ones, and apply
   Fubini. Along this coordinate (and when all the other coordinates are fixed), it acts like a
   translation, and therefore preserves Lebesgue. -/
-  suffices H : measure_preserving t.to_matrix.to_lin' volume volume, by exact H.2,
   let p : ι → Prop := λ i, i ≠ t.i,
   let α : Type* := {x // p x},
   let β : Type* := {x // ¬ (p x)},
   let g : (α → ℝ) → (β → ℝ) → (β → ℝ) := λ a b, (λ x, t.c * a ⟨t.j, t.hij.symm⟩) + b,
   let F : (α → ℝ) × (β → ℝ) → (α → ℝ) × (β → ℝ) :=
     λ p, (id p.1, g p.1 p.2),
-  let e := equiv.pi_equiv_pi_subtype_prod p (λ (i : ι), ℝ),
+  let e : (ι → ℝ) ≃ᵐ (α → ℝ) × (β → ℝ) := measurable_equiv.pi_equiv_pi_subtype_prod (λ i : ι, ℝ) p,
   have : (t.to_matrix.to_lin' : (ι → ℝ) → (ι → ℝ)) = e.symm ∘ F ∘ e,
   { cases t,
     ext f k,
     simp only [linear_equiv.map_smul, dite_eq_ite, linear_map.id_coe, p, ite_not,
       algebra.id.smul_eq_mul, one_mul, dot_product, std_basis_matrix,
-      equiv.pi_equiv_pi_subtype_prod_symm_apply, id.def, transvection,
+      measurable_equiv.pi_equiv_pi_subtype_prod_symm_apply, id.def, transvection,
       pi.add_apply, zero_mul, linear_map.smul_apply, function.comp_app,
-      equiv.pi_equiv_pi_subtype_prod_apply, matrix.transvection_struct.to_matrix_mk,
+      measurable_equiv.pi_equiv_pi_subtype_prod_apply, matrix.transvection_struct.to_matrix_mk,
       matrix.mul_vec, linear_equiv.map_add, ite_mul, e, matrix.to_lin'_apply,
       pi.smul_apply, subtype.coe_mk, g, linear_map.add_apply, finset.sum_congr, matrix.to_lin'_one],
     by_cases h : t_i = k,
@@ -356,27 +324,23 @@ begin
         one_apply, boole_mul, add_comm], },
     { simp only [h, ne.symm h, add_zero, if_false, finset.sum_const_zero, false_and, mul_zero] } },
   rw this,
-  have A : measure_preserving e volume volume :=
-  ⟨ measurable_pi_equiv_pi_subtype_prod (λ i, ℝ) _,
-    (measure.map_pi_equiv_pi_subtype_prod (λ i, (volume : measure ℝ)) p : _) ⟩,
-  have B : measure_preserving F volume volume,
+  have A : measure_preserving e,
+  { convert volume_preserving_pi_equiv_pi_subtype_prod (λ i : ι, ℝ) p },
+  have B : measure_preserving F,
   { have g_meas : measurable (function.uncurry g),
     { have : measurable (λ (c : (α → ℝ)), c ⟨t.j, t.hij.symm⟩) :=
         measurable_pi_apply ⟨t.j, t.hij.symm⟩,
-      refine measurable.add (measurable_pi_lambda _ (λ i, measurable.const_mul _ _)) measurable_snd,
+      refine (measurable_pi_lambda _ (λ i, measurable.const_mul _ _)).add measurable_snd,
       exact this.comp measurable_fst },
-    exact measure_preserving.skew_product (measure_preserving.id _) g_meas
-      (eventually_of_forall (λ a, map_volume_pi_add_left _)) },
-  have C : measure_preserving e.symm volume volume :=
-  ⟨ (measurable_pi_equiv_pi_subtype_prod_symm (λ (i : ι), ℝ) p : _),
-    (measure.map_pi_equiv_pi_subtype_prod_symm (λ (i : ι), volume) p : _) ⟩,
-  exact (C.comp B).comp A,
+    exact (measure_preserving.id _).skew_product g_meas
+      (eventually_of_forall (λ a, map_add_left_eq_self _ _)) },
+  exact ((A.symm e).comp B).comp A,
 end
 
 /-- Any invertible matrix rescales Lebesgue measure through the absolute value of its
 determinant. -/
 lemma map_matrix_volume_pi_eq_smul_volume_pi [decidable_eq ι] {M : matrix ι ι ℝ} (hM : det M ≠ 0) :
-  measure.map (M.to_lin') volume = ennreal.of_real (abs (det M)⁻¹) • volume :=
+  measure.map M.to_lin' volume = ennreal.of_real (abs (det M)⁻¹) • volume :=
 begin
   -- This follows from the cases we have already proved, of diagonal matrices and transvections,
   -- as these matrices generate all invertible matrices.
@@ -385,10 +349,10 @@ begin
   { conv_rhs { rw [← smul_map_diagonal_volume_pi hD] },
     rw [smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel hD, abs_one,
       ennreal.of_real_one, one_smul] },
-  { simp only [matrix.transvection_struct.det, ennreal.of_real_one, map_transvection_volume_pi,
-      one_smul, _root_.inv_one, abs_one] },
-  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, linear_map.map_smul,
-      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
+  { simp only [matrix.transvection_struct.det, ennreal.of_real_one,
+      (volume_preserving_transvection_struct _).map_eq, one_smul, _root_.inv_one, abs_one] },
+  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul,
+      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
     { apply continuous.measurable,
@@ -432,7 +396,7 @@ variable {α : Type*}
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
 
-lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s.prod univ :=
+lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s ×ˢ univ :=
 by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
 
 variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}
@@ -445,9 +409,49 @@ begin
   dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
   refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
     (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
-  convert hs.prod measurable_set.univ,
-  simp only [and_true, mem_univ],
+  exact measurable_fst hs
 end
+
+/-- The region between two measurable functions on a measurable set is measurable;
+a version for the region together with the graph of the upper function. -/
+lemma measurable_set_region_between_oc
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Ioc (f p.fst) (g p.fst)} :=
+begin
+  dsimp only [region_between, Ioc, mem_set_of_eq, set_of_and],
+  refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_le measurable_snd (hg.comp measurable_fst))),
+  exact measurable_fst hs,
+end
+
+/-- The region between two measurable functions on a measurable set is measurable;
+a version for the region together with the graph of the lower function. -/
+lemma measurable_set_region_between_co
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Ico (f p.fst) (g p.fst)} :=
+begin
+  dsimp only [region_between, Ico, mem_set_of_eq, set_of_and],
+  refine measurable_set.inter _ ((measurable_set_le (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
+  exact measurable_fst hs,
+end
+
+/-- The region between two measurable functions on a measurable set is measurable;
+a version for the region together with the graphs of both functions. -/
+lemma measurable_set_region_between_cc
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Icc (f p.fst) (g p.fst)} :=
+begin
+  dsimp only [region_between, Icc, mem_set_of_eq, set_of_and],
+  refine measurable_set.inter _ ((measurable_set_le (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_le measurable_snd (hg.comp measurable_fst))),
+  exact measurable_fst hs,
+end
+
+/-- The graph of a measurable function is a measurable set. -/
+lemma measurable_set_graph (hf : measurable f) :
+  measurable_set {p : α × ℝ | p.snd = f p.fst} :=
+by simpa using measurable_set_region_between_cc hf hf measurable_set.univ
 
 theorem volume_region_between_eq_lintegral'
   (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
@@ -485,21 +489,19 @@ begin
   { apply measure_congr,
     apply eventually_eq.rfl.inter,
     exact
-      ((ae_eq_comp' measurable_fst hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _
-        eventually_eq.rfl).inter
-      (eventually_eq.rfl.comp₂ _
-        (ae_eq_comp' measurable_fst hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+      ((ae_eq_comp' measurable_fst.ae_measurable
+        hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _ eventually_eq.rfl).inter
+      (eventually_eq.rfl.comp₂ _ (ae_eq_comp' measurable_fst.ae_measurable
+        hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [ (measure.restrict_eq_self' (hs.prod measurable_set.univ)
-      (region_between_subset f g s)).symm, hs], },
+    exact (measure.restrict_eq_self _ (region_between_subset f g s)).symm, },
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [(measure.restrict_eq_self' (hs.prod measurable_set.univ)
-      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm, hs] },
+    exact (measure.restrict_eq_self _
+      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm },
 end
-
 
 theorem volume_region_between_eq_integral' [sigma_finite μ]
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
@@ -525,28 +527,3 @@ volume_region_between_eq_integral' f_int g_int hs
   ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
 
 end region_between
-
-/-
-section vitali
-
-def vitali_aux_h (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
-  ∃ y ∈ Icc (0:ℝ) 1, ∃ q:ℚ, ↑q = x - y :=
-⟨x, h, 0, by simp⟩
-
-def vitali_aux (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : ℝ :=
-classical.some (vitali_aux_h x h)
-
-theorem vitali_aux_mem (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : vitali_aux x h ∈ Icc (0:ℝ) 1 :=
-Exists.fst (classical.some_spec (vitali_aux_h x h):_)
-
-theorem vitali_aux_rel (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
- ∃ q:ℚ, ↑q = x - vitali_aux x h :=
-Exists.snd (classical.some_spec (vitali_aux_h x h):_)
-
-def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
-
-theorem vitali_nonmeasurable : ¬ null_measurable_set measure_space.μ vitali :=
-sorry
-
-end vitali
--/

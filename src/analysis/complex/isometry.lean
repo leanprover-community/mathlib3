@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François Sunatori
 -/
 import analysis.complex.circle
+import linear_algebra.determinant
+import linear_algebra.general_linear_group
 
 /-!
 # Isometries of the Complex Plane
@@ -30,37 +32,29 @@ open_locale complex_conjugate
 local notation `|` x `|` := complex.abs x
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
-rotation. This is an auxiliary construction; use `rotation`, which has more structure, by
-preference. -/
-def rotation_aux (a : circle) : ℂ ≃ₗᵢ[ℝ] ℂ :=
-{ to_fun := λ z, a * z,
-  map_add' := mul_add ↑a,
-  map_smul' := λ t z, by { simp only [real_smul, ring_hom.id_apply], ring },
-  inv_fun := λ z, a⁻¹ * z,
-  left_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
-  right_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
-  norm_map' := by simp }
-
-/-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. -/
 def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
-{ to_fun := rotation_aux,
-  map_one' := by { ext1, simp [rotation_aux] },
-  map_mul' := λ a b, by { ext1, simp [rotation_aux] } }
+{ to_fun := λ a,
+  { norm_map' := λ x, show |a * x| = |x|, by rw [complex.abs_mul, abs_coe_circle, one_mul],
+    ..distrib_mul_action.to_linear_equiv ℝ ℂ a },
+  map_one' := linear_isometry_equiv.ext $ one_smul _,
+  map_mul' := λ _ _, linear_isometry_equiv.ext $ mul_smul _ _ }
 
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 
-lemma linear_isometry_equiv.congr_fun {R E F}
-  [semiring R] [semi_normed_group E] [semi_normed_group F] [module R E] [module R F]
-  {f g : E ≃ₗᵢ[R] F} (h : f = g) (x : E) : f x = g x :=
-congr_arg _ h
+@[simp] lemma rotation_symm (a : circle) : (rotation a).symm = rotation a⁻¹ :=
+linear_isometry_equiv.ext $ λ x, rfl
+
+@[simp] lemma rotation_trans (a b : circle) :
+  (rotation a).trans (rotation b) = rotation (b * a) :=
+by { ext1, simp }
 
 lemma rotation_ne_conj_lie (a : circle) : rotation a ≠ conj_lie :=
 begin
   intro h,
   have h1 : rotation a 1 = conj 1 := linear_isometry_equiv.congr_fun h 1,
   have hI : rotation a I = conj I := linear_isometry_equiv.congr_fun h I,
-  rw [rotation_apply, ring_equiv.map_one, mul_one] at h1,
+  rw [rotation_apply, ring_hom.map_one, mul_one] at h1,
   rw [rotation_apply, conj_I, ← neg_one_mul, mul_left_inj' I_ne_zero, h1, eq_neg_self_iff] at hI,
   exact one_ne_zero hI,
 end
@@ -100,11 +94,11 @@ begin
   apply_fun λ x, x ^ 2 at this,
   simp only [norm_eq_abs, ←norm_sq_eq_abs] at this,
   rw [←of_real_inj, ←mul_conj, ←mul_conj] at this,
-  rw [ring_equiv.map_sub, ring_equiv.map_sub] at this,
+  rw [ring_hom.map_sub, ring_hom.map_sub] at this,
   simp only [sub_mul, mul_sub, one_mul, mul_one] at this,
   rw [mul_conj, norm_sq_eq_abs, ←norm_eq_abs, linear_isometry.norm_map] at this,
   rw [mul_conj, norm_sq_eq_abs, ←norm_eq_abs] at this,
-  simp only [sub_sub, sub_right_inj, mul_one, of_real_pow, ring_equiv.map_one, norm_eq_abs] at this,
+  simp only [sub_sub, sub_right_inj, mul_one, of_real_pow, ring_hom.map_one, norm_eq_abs] at this,
   simp only [add_sub, sub_left_inj] at this,
   rw [add_comm, ←this, add_comm],
 end
@@ -145,3 +139,25 @@ begin
   { simpa using eq_mul_of_inv_mul_eq h₁ },
   { exact eq_mul_of_inv_mul_eq h₂ }
 end
+
+/-- The matrix representation of `rotation a` is equal to the conformal matrix
+`!![re a, -im a; im a, re a]`. -/
+lemma to_matrix_rotation (a : circle) :
+  linear_map.to_matrix basis_one_I basis_one_I (rotation a).to_linear_equiv =
+    matrix.plane_conformal_matrix (re a) (im a) (by simp [pow_two, ←norm_sq_apply]) :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply],
+  fin_cases i; fin_cases j; simp
+end
+
+/-- The determinant of `rotation` (as a linear map) is equal to `1`. -/
+@[simp] lemma det_rotation (a : circle) : ((rotation a).to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = 1 :=
+begin
+  rw [←linear_map.det_to_matrix basis_one_I, to_matrix_rotation, matrix.det_fin_two],
+  simp [←norm_sq_apply]
+end
+
+/-- The determinant of `rotation` (as a linear equiv) is equal to `1`. -/
+@[simp] lemma linear_equiv_det_rotation (a : circle) : (rotation a).to_linear_equiv.det = 1 :=
+by rw [←units.eq_iff, linear_equiv.coe_det, det_rotation, units.coe_one]

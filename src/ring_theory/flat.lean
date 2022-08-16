@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import linear_algebra.dimension
 import ring_theory.noetherian
-import ring_theory.algebra_tower
 
 /-!
 # Flat modules

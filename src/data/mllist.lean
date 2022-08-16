@@ -41,8 +41,8 @@ accumulating the elements of the resulting `list β` as a single monadic lazy li
 (This variant allows starting with a specified `list β` of elements, as well. )-/
 meta def fixl_with [alternative m] (f : α → m (α × list β)) : α → list β → mllist m β
 | s (b :: rest) := cons $ pure (some b, fixl_with s rest)
-| s [] := cons $ do {
-            (s', l) ← f s,
+| s [] := cons $ do
+          { (s', l) ← f s,
             match l with
             | (b :: rest) := pure (some b, fixl_with s' rest)
             | [] := pure (none, fixl_with s' [])

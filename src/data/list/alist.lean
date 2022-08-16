@@ -21,7 +21,7 @@ Association lists are represented by the `alist` structure. This file defines th
 provides ways to access, modify, and combine `alist`s.
 
 * `alist.keys` returns a list of keys of the alist.
-* `alist.mem` returns membership in the set of keys.
+* `alist.has_mem` returns membership in the set of keys.
 * `alist.erase` removes a certain key.
 * `alist.insert` adds a key-value mapping to the list.
 * `alist.union` combines two association lists.
@@ -47,7 +47,7 @@ structure alist (β : α → Type v) : Type (max u v) :=
 entries with duplicate keys. -/
 def list.to_alist [decidable_eq α] {β : α → Type v} (l : list (sigma β)) : alist β :=
 { entries := _,
-  nodupkeys := nodupkeys_erase_dupkeys l }
+  nodupkeys := nodupkeys_dedupkeys l }
 
 namespace alist
 
@@ -122,6 +122,10 @@ theorem lookup_eq_none {a : α} {s : alist β} :
   lookup a s = none ↔ a ∉ s :=
 lookup_eq_none
 
+theorem mem_lookup_iff {a : α} {b : β a} {s : alist β} :
+  b ∈ lookup a s ↔ sigma.mk a b ∈ s.entries :=
+mem_lookup_iff s.nodupkeys
+
 theorem perm_lookup {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   s₁.lookup a = s₂.lookup a :=
 perm_lookup _ s₁.nodupkeys s₂.nodupkeys p
@@ -161,15 +165,12 @@ section
 variables [decidable_eq α]
 
 /-- Erase a key from the map. If the key is not present, do nothing. -/
-def erase (a : α) (s : alist β) : alist β :=
-⟨kerase a s.entries, kerase_nodupkeys _ s.nodupkeys⟩
+def erase (a : α) (s : alist β) : alist β := ⟨s.entries.kerase a, s.nodupkeys.kerase a⟩
 
-@[simp] theorem keys_erase (a : α) (s : alist β) :
-  (erase a s).keys = s.keys.erase a :=
-by simp only [erase, keys, keys_kerase]
+@[simp] lemma keys_erase (a : α) (s : alist β) : (erase a s).keys = s.keys.erase a := keys_kerase
 
 @[simp] theorem mem_erase {a a' : α} {s : alist β} : a' ∈ erase a s ↔ a' ≠ a ∧ a' ∈ s :=
-by rw [mem_keys, keys_erase, mem_erase_iff_of_nodup s.keys_nodup, ←mem_keys]
+by rw [mem_keys, keys_erase, s.keys_nodup.mem_erase_iff, ←mem_keys]
 
 theorem perm_erase {a : α} {s₁ s₂ : alist β} :
   s₁.entries ~ s₂.entries → (erase a s₁).entries ~ (erase a s₂).entries :=
@@ -221,7 +222,7 @@ by simp only [lookup, insert, lookup_kinsert]
 lookup_kinsert_ne h
 
 @[simp] theorem lookup_to_alist {a} (s : list (sigma β)) : lookup a s.to_alist = s.lookup a :=
-by rw [list.to_alist,lookup,lookup_erase_dupkeys]
+by rw [list.to_alist,lookup,lookup_dedupkeys]
 
 @[simp] theorem insert_insert {a} {b b' : β a} (s : alist β) :
   (s.insert a b).insert a b' = s.insert a b' :=
@@ -239,7 +240,7 @@ ext $ by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.s
   heq_iff_eq, eq_self_iff_true]
 
 @[simp] theorem entries_to_alist (xs : list (sigma β)) :
-  (list.to_alist xs).entries = erase_dupkeys xs := rfl
+  (list.to_alist xs).entries = dedupkeys xs := rfl
 
 theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) :
   list.to_alist (⟨a,b⟩ :: xs) = insert a b xs.to_alist := rfl
@@ -249,7 +250,7 @@ theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) :
 /-- Erase a key from the map, and return the corresponding value, if found. -/
 def extract (a : α) (s : alist β) : option (β a) × alist β :=
 have (kextract a s.entries).2.nodupkeys,
-by rw [kextract_eq_lookup_kerase]; exact kerase_nodupkeys _ s.nodupkeys,
+by rw [kextract_eq_lookup_kerase]; exact s.nodupkeys.kerase _,
 match kextract a s.entries, this with
 | (b, l), h := (b, ⟨l, h⟩)
 end
@@ -264,7 +265,7 @@ by simp [extract]; split; refl
 left-biased: if there exists an `a ∈ s₁`, `lookup a (s₁ ∪ s₂) = lookup a s₁`.
 -/
 def union (s₁ s₂ : alist β) : alist β :=
-⟨kunion s₁.entries s₂.entries, kunion_nodupkeys s₁.nodupkeys s₂.nodupkeys⟩
+⟨s₁.entries.kunion s₂.entries, s₁.nodupkeys.kunion s₂.nodupkeys⟩
 
 instance : has_union (alist β) := ⟨union⟩
 

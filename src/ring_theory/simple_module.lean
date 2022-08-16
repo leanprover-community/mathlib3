@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import linear_algebra.basic
+import linear_algebra.span
 import order.atoms
 
 /-!
@@ -30,7 +30,7 @@ import order.atoms
 variables (R : Type*) [ring R] (M : Type*) [add_comm_group M] [module R M]
 
 /-- A module is simple when it has only two submodules, `⊥` and `⊤`. -/
-abbreviation is_simple_module := (is_simple_lattice (submodule R M))
+abbreviation is_simple_module := (is_simple_order (submodule R M))
 
 /-- A module is semisimple when every submodule has a complement, or equivalently, the module
   is a direct sum of simple modules. -/
@@ -50,8 +50,8 @@ variables {R} {M} {m : submodule R M} {N : Type*} [add_comm_group N] [module R N
 theorem is_simple_module_iff_is_atom :
   is_simple_module R m ↔ is_atom m :=
 begin
-  rw ← set.is_simple_lattice_Iic_iff_is_atom,
-  apply order_iso.is_simple_lattice_iff,
+  rw ← set.is_simple_order_Iic_iff_is_atom,
+  apply order_iso.is_simple_order_iff,
   exact submodule.map_subtype.rel_iso m,
 end
 

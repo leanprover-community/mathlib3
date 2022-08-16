@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group_power.basic
-import algebra.opposites
+import algebra.ring.opposite
+import group_theory.group_action.opposite
+import group_theory.group_action.prod
 
 /-!
 # Introduce `smul_with_zero`
@@ -26,6 +28,10 @@ Thus, the action is required to be compatible with
 We also add an `instance`:
 
 * any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself.
+
+## Main declarations
+
+* `smul_monoid_with_zero_hom`: Scalar multiplication bundled as a morphism of monoids with zero.
 -/
 
 variables {R R' M M' : Type*}
@@ -36,7 +42,7 @@ variables (R M)
 /--  `smul_with_zero` is a class consisting of a Type `R` with `0 ∈ R` and a scalar multiplication
 of `R` on a Type `M` with `0`, such that the equality `r • m = 0` holds if at least one among `r`
 or `m` equals `0`. -/
-class smul_with_zero [has_zero R] [has_zero M] extends has_scalar R M :=
+class smul_with_zero [has_zero R] [has_zero M] extends has_smul R M :=
 (smul_zero : ∀ r : R, r • (0 : M) = 0)
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
 
@@ -46,14 +52,10 @@ instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R 
   zero_smul := zero_mul }
 
 /-- Like `mul_zero_class.to_smul_with_zero`, but multiplies on the right. -/
-instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵒᵖ R :=
+instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵐᵒᵖ R :=
 { smul := (•),
   smul_zero := λ r, zero_mul _,
   zero_smul := mul_zero }
-
-instance add_monoid.to_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
-{ smul_zero := nsmul_zero,
-  zero_smul := zero_nsmul }
 
 variables (R) {M} [has_zero R] [has_zero M] [smul_with_zero R M]
 
@@ -63,7 +65,7 @@ variables {R} (M)
 /-- Note that this lemma has different typeclass assumptions to `smul_zero`. -/
 @[simp] lemma smul_zero' (r : R) : r • (0 : M) = 0 := smul_with_zero.smul_zero r
 
-variables {R M} [has_zero R'] [has_zero M'] [has_scalar R M']
+variables {R M} [has_zero R'] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism.
 See note [reducible non-instances]. -/
@@ -95,6 +97,14 @@ def smul_with_zero.comp_hom (f : zero_hom R' R) : smul_with_zero R' M :=
 
 end has_zero
 
+instance add_monoid.nat_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
+{ smul_zero := nsmul_zero,
+  zero_smul := zero_nsmul }
+
+instance add_group.int_smul_with_zero [add_group M] : smul_with_zero ℤ M :=
+{ smul_zero := zsmul_zero,
+  zero_smul := zero_zsmul }
+
 section monoid_with_zero
 
 variables [monoid_with_zero R] [monoid_with_zero R'] [has_zero M]
@@ -120,11 +130,11 @@ instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
 
 /-- Like `monoid_with_zero.to_mul_action_with_zero`, but multiplies on the right. See also
 `semiring.to_opposite_module` -/
-instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵒᵖ R :=
+instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵐᵒᵖ R :=
 { ..mul_zero_class.to_opposite_smul_with_zero R,
   ..monoid.to_opposite_mul_action R }
 
-variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
+variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism.
 See note [reducible non-instances]. -/
@@ -145,11 +155,34 @@ protected def function.surjective.mul_action_with_zero
 variables (M)
 
 /-- Compose a `mul_action_with_zero` with a `monoid_with_zero_hom`, with action `f r' • m` -/
-def mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
-  mul_action_with_zero R' M :=
+def mul_action_with_zero.comp_hom (f : R' →*₀ R) : mul_action_with_zero R' M :=
 { smul := (•) ∘ f,
   mul_smul := λ r s m, by simp [mul_smul],
   one_smul := λ m, by simp,
   .. smul_with_zero.comp_hom M f.to_zero_hom}
 
 end monoid_with_zero
+
+section group_with_zero
+variables {α β : Type*} [group_with_zero α] [group_with_zero β] [mul_action_with_zero α β]
+
+lemma smul_inv₀ [smul_comm_class α β β] [is_scalar_tower α β β] (c : α) (x : β) :
+  (c • x)⁻¹ = c⁻¹ • x⁻¹ :=
+begin
+  obtain rfl | hc := eq_or_ne c 0,
+  { simp only [inv_zero, zero_smul] },
+  obtain rfl | hx := eq_or_ne x 0,
+  { simp only [inv_zero, smul_zero'] },
+  { refine inv_eq_of_mul_eq_one_left _,
+    rw [smul_mul_smul, inv_mul_cancel hc, inv_mul_cancel hx, one_smul] }
+end
+
+end group_with_zero
+
+/-- Scalar multiplication as a monoid homomorphism with zero. -/
+@[simps]
+def smul_monoid_with_zero_hom {α β : Type*} [monoid_with_zero α] [mul_zero_one_class β]
+  [mul_action_with_zero α β] [is_scalar_tower α β β] [smul_comm_class α β β] :
+  α × β →*₀ β :=
+{ map_zero' := smul_zero' _ _,
+  .. smul_monoid_hom }

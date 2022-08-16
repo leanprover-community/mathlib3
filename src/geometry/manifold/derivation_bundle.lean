@@ -20,8 +20,8 @@ of the Lie algebra for a Lie group.
 
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] (n : with_top ℕ)
 
@@ -31,7 +31,7 @@ open_locale manifold
 instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
 instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
-/-- Type synonym, introduced to put a different `has_scalar` action on `C^n⟮I, M; 𝕜⟯`
+/-- Type synonym, introduced to put a different `has_smul` action on `C^n⟮I, M; 𝕜⟯`
 which is defined as `f • r = f(x) * r`. -/
 @[nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
 
@@ -43,7 +43,7 @@ variables {𝕜 M}
 namespace pointed_smooth_map
 
 instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯⟨x⟩ (λ _, M → 𝕜) :=
-times_cont_mdiff_map.has_coe_to_fun
+cont_mdiff_map.has_coe_to_fun
 instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.comm_ring
 instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.algebra
 instance {x : M} : inhabited C^∞⟮I, M; 𝕜⟯⟨x⟩ := ⟨0⟩
@@ -95,7 +95,7 @@ lemma eval_at_apply (x : M) : eval_at x X f = (X f) x := rfl
 
 end derivation
 
-variables {I} {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+variables {I} {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
 
@@ -104,13 +104,13 @@ differential takes `h : f x = y`. It is particularly handy to deal with situatio
 on where it has to be evaluated are equal but not definitionally equal. -/
 def hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y) :
   point_derivation I x →ₗ[𝕜] point_derivation I' y :=
-{ to_fun := λ v, { to_linear_map :=
+{ to_fun := λ v, derivation.mk'
     { to_fun := λ g, v (g.comp f),
       map_add' := λ g g', by rw [smooth_map.add_comp, derivation.map_add],
       map_smul' := λ k g,
-        by simp only [smooth_map.smul_comp, derivation.map_smul, ring_hom.id_apply], },
-    leibniz' := λ g g', by simp only [derivation.leibniz, smooth_map.mul_comp,
-      pointed_smooth_map.smul_def, times_cont_mdiff_map.comp_apply, h] },
+        by simp only [smooth_map.smul_comp, derivation.map_smul, ring_hom.id_apply], }
+    (λ g g', by simp only [derivation.leibniz, smooth_map.mul_comp, linear_map.coe_mk,
+      pointed_smooth_map.smul_def, cont_mdiff_map.comp_apply, h]),
   map_smul' := λ k v, rfl,
   map_add' := λ v w, rfl }
 
@@ -131,7 +131,7 @@ localized "notation `𝒅ₕ` := hfdifferential" in manifold
 @[simp] lemma apply_hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y)
   (v : point_derivation I x) (g : C^∞⟮I', M'; 𝕜⟯) : 𝒅ₕh v g = 𝒅f x v g := rfl
 
-variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+variables {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 

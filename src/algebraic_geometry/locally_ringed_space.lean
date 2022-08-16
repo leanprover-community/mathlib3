@@ -5,7 +5,8 @@ Authors: Johan Commelin
 -/
 
 import algebraic_geometry.ringed_space
-import data.equiv.transfer_instance
+import algebraic_geometry.stalks
+import logic.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -13,9 +14,6 @@ import data.equiv.transfer_instance
 We define (bundled) locally ringed spaces (as `SheafedSpace CommRing` along with the fact that the
 stalks are local rings), and morphisms between these (morphisms in `SheafedSpace` with
 `is_local_ring_hom` on the stalk maps).
-
-## Future work
-* Define the restriction along an open embedding
 -/
 
 universes v u
@@ -33,7 +31,7 @@ such that all the stalks are local rings.
 
 A morphism of locally ringed spaces is a morphism of ringed spaces
 such that the morphisms induced on stalks are local ring homomorphisms. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure LocallyRingedSpace extends SheafedSpace CommRing :=
 (local_ring : ∀ x, local_ring (presheaf.stalk x))
 
@@ -54,6 +52,8 @@ def to_Top : Top := X.1.carrier
 
 instance : has_coe_to_sort LocallyRingedSpace (Type u) :=
 ⟨λ X : LocallyRingedSpace, (X.to_Top : Type u)⟩
+
+instance (x : X) : _root_.local_ring (X.to_PresheafedSpace.stalk x) := X.local_ring x
 
 -- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
@@ -92,6 +92,9 @@ PresheafedSpace.stalk_map f.1 x
 instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   is_local_ring_hom (stalk_map f x) := f.2 x
 
+instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
+   is_local_ring_hom (PresheafedSpace.stalk_map f.1 x) := f.2 x
+
 /-- The identity morphism on a locally ringed space. -/
 @[simps]
 def id (X : LocallyRingedSpace) : hom X X :=
@@ -118,11 +121,26 @@ instance : category LocallyRingedSpace :=
   assoc' := by { intros, ext1, simp, }, }.
 
 /-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
-def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
+@[simps] def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 { obj := λ X, X.to_SheafedSpace,
   map := λ X Y f, f.1, }
 
 instance : faithful forget_to_SheafedSpace := {}
+
+/-- The forgetful functor from `LocallyRingedSpace` to `Top`. -/
+@[simps]
+def forget_to_Top : LocallyRingedSpace ⥤ Top :=
+forget_to_SheafedSpace ⋙ SheafedSpace.forget _
+
+@[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[simp] lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward _ g.val.base).map f.val.c := rfl
+
+lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U : (opens Z)ᵒᵖ) :
+  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop) :=
+rfl
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
@@ -162,6 +180,10 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
     ⟨hom_of_SheafedSpace_hom_of_is_iso (category_theory.inv (forget_to_SheafedSpace.map f)),
       hom_ext _ _ (is_iso.hom_inv_id _), hom_ext _ _ (is_iso.inv_hom_id _)⟩ } }
 
+instance is_SheafedSpace_iso {X Y : LocallyRingedSpace} (f : X ⟶ Y) [is_iso f] :
+  is_iso f.1 :=
+LocallyRingedSpace.forget_to_SheafedSpace.map_is_iso f
+
 /--
 The restriction of a locally ringed space along an open embedding.
 -/
@@ -176,7 +198,12 @@ def restrict {U : Top} (X : LocallyRingedSpace) {f : U ⟶ X.to_Top}
     apply @ring_equiv.local_ring _ _ _ (X.local_ring (f x)),
     exact (X.to_PresheafedSpace.restrict_stalk_iso h x).symm.CommRing_iso_to_ring_equiv,
   end,
-  .. X.to_SheafedSpace.restrict h }
+  to_SheafedSpace := X.to_SheafedSpace.restrict h }
+
+/-- The canonical map from the restriction to the supspace. -/
+def of_restrict {U : Top} (X : LocallyRingedSpace) {f : U ⟶ X.to_Top}
+  (h : open_embedding f) : X.restrict h ⟶ X :=
+⟨X.to_PresheafedSpace.of_restrict h, λ x, infer_instance⟩
 
 /--
 The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
@@ -203,6 +230,39 @@ lemma Γ_obj_op (X : LocallyRingedSpace) : Γ.obj (op X) = X.presheaf.obj (op �
 
 lemma Γ_map_op {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
   Γ.map f.op = f.1.c.app (op ⊤) := rfl
+
+lemma preimage_basic_open {X Y : LocallyRingedSpace} (f : X ⟶ Y) {U : opens Y}
+  (s : Y.presheaf.obj (op U)) :
+  (opens.map f.1.base).obj (Y.to_RingedSpace.basic_open s) =
+    @RingedSpace.basic_open X.to_RingedSpace ((opens.map f.1.base).obj U) (f.1.c.app _ s) :=
+begin
+  ext,
+  split,
+  { rintros ⟨⟨y, hyU⟩, (hy : is_unit _), (rfl : y = _)⟩,
+    erw RingedSpace.mem_basic_open _ _ ⟨x, show x ∈ (opens.map f.1.base).obj U, from hyU⟩,
+    rw ← PresheafedSpace.stalk_map_germ_apply,
+    exact (PresheafedSpace.stalk_map f.1 _).is_unit_map hy },
+  { rintros ⟨y, (hy : is_unit _), rfl⟩,
+    erw RingedSpace.mem_basic_open _ _ ⟨f.1.base y.1, y.2⟩,
+    rw ← PresheafedSpace.stalk_map_germ_apply at hy,
+    exact (is_unit_map_iff (PresheafedSpace.stalk_map f.1 _) _).mp hy }
+end
+
+-- This actually holds for all ringed spaces with nontrivial stalks.
+@[simp] lemma basic_open_zero (X : LocallyRingedSpace) (U : opens X.carrier) :
+  X.to_RingedSpace.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+begin
+  ext,
+  simp only [set.mem_empty_eq, topological_space.opens.empty_eq, topological_space.opens.mem_coe,
+    opens.coe_bot, iff_false, RingedSpace.basic_open, is_unit_zero_iff, set.mem_set_of_eq,
+    map_zero],
+  rintro ⟨⟨y, _⟩, h, e⟩,
+  exact @zero_ne_one (X.presheaf.stalk y) _ _ h,
+end
+
+instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)
+  [hU : nonempty U] : nontrivial (X.presheaf.obj $ op U) :=
+(X.to_PresheafedSpace.presheaf.germ hU.some).domain_nontrivial
 
 end LocallyRingedSpace
 

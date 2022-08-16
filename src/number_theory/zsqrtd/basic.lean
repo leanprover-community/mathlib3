@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.associated
+import ring_theory.int.basic
 import tactic.ring
 
 /-! # ℤ[√d]
@@ -44,16 +45,14 @@ theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
 theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
 
 /-- The zero of the ring -/
-def zero : ℤ√d := of_int 0
-instance : has_zero ℤ√d := ⟨zsqrtd.zero⟩
+instance : has_zero ℤ√d := ⟨of_int 0⟩
 @[simp] theorem zero_re : (0 : ℤ√d).re = 0 := rfl
 @[simp] theorem zero_im : (0 : ℤ√d).im = 0 := rfl
 
 instance : inhabited ℤ√d := ⟨0⟩
 
 /-- The one of the ring -/
-def one : ℤ√d := of_int 1
-instance : has_one ℤ√d := ⟨zsqrtd.one⟩
+instance : has_one ℤ√d := ⟨of_int 1⟩
 @[simp] theorem one_re : (1 : ℤ√d).re = 1 := rfl
 @[simp] theorem one_im : (1 : ℤ√d).im = 0 := rfl
 
@@ -63,54 +62,53 @@ def sqrtd : ℤ√d := ⟨0, 1⟩
 @[simp] theorem sqrtd_im : (sqrtd : ℤ√d).im = 1 := rfl
 
 /-- Addition of elements of `ℤ√d` -/
-def add : ℤ√d → ℤ√d → ℤ√d
-| ⟨x, y⟩ ⟨x', y'⟩ := ⟨x + x', y + y'⟩
-instance : has_add ℤ√d := ⟨zsqrtd.add⟩
-@[simp] theorem add_def (x y x' y' : ℤ) :
-  (⟨x, y⟩ + ⟨x', y'⟩ : ℤ√d) = ⟨x + x', y + y'⟩ := rfl
-@[simp] theorem add_re : ∀ z w : ℤ√d, (z + w).re = z.re + w.re
-| ⟨x, y⟩ ⟨x', y'⟩ := rfl
-@[simp] theorem add_im : ∀ z w : ℤ√d, (z + w).im = z.im + w.im
-| ⟨x, y⟩ ⟨x', y'⟩ := rfl
+instance : has_add ℤ√d := ⟨λ z w, ⟨z.1 + w.1, z.2 + w.2⟩⟩
+@[simp] lemma add_def (x y x' y' : ℤ) : (⟨x, y⟩ + ⟨x', y'⟩ : ℤ√d) = ⟨x + x', y + y'⟩ := rfl
+@[simp] lemma add_re (z w : ℤ√d) : (z + w).re = z.re + w.re := rfl
+@[simp] lemma add_im (z w : ℤ√d) : (z + w).im = z.im + w.im := rfl
 
-@[simp] theorem bit0_re (z) : (bit0 z : ℤ√d).re = bit0 z.re := add_re _ _
-@[simp] theorem bit0_im (z) : (bit0 z : ℤ√d).im = bit0 z.im := add_im _ _
+@[simp] lemma bit0_re (z) : (bit0 z : ℤ√d).re = bit0 z.re := rfl
+@[simp] lemma bit0_im (z) : (bit0 z : ℤ√d).im = bit0 z.im := rfl
 
-@[simp] theorem bit1_re (z) : (bit1 z : ℤ√d).re = bit1 z.re := by simp [bit1]
+@[simp] theorem bit1_re (z) : (bit1 z : ℤ√d).re = bit1 z.re := rfl
 @[simp] theorem bit1_im (z) : (bit1 z : ℤ√d).im = bit0 z.im := by simp [bit1]
 
 /-- Negation in `ℤ√d` -/
-def neg : ℤ√d → ℤ√d
-| ⟨x, y⟩ := ⟨-x, -y⟩
-instance : has_neg ℤ√d := ⟨zsqrtd.neg⟩
-@[simp] theorem neg_re : ∀ z : ℤ√d, (-z).re = -z.re
-| ⟨x, y⟩ := rfl
-@[simp] theorem neg_im : ∀ z : ℤ√d, (-z).im = -z.im
-| ⟨x, y⟩ := rfl
+instance : has_neg ℤ√d := ⟨λ z, ⟨-z.1, -z.2⟩⟩
+@[simp] lemma neg_re (z : ℤ√d) : (-z).re = -z.re := rfl
+@[simp] lemma neg_im (z : ℤ√d) : (-z).im = -z.im := rfl
 
 /-- Multiplication in `ℤ√d` -/
-def mul : ℤ√d → ℤ√d → ℤ√d
-| ⟨x, y⟩ ⟨x', y'⟩ := ⟨x * x' + d * y * y', x * y' + y * x'⟩
-instance : has_mul ℤ√d := ⟨zsqrtd.mul⟩
-@[simp] theorem mul_re : ∀ z w : ℤ√d, (z * w).re = z.re * w.re + d * z.im * w.im
-| ⟨x, y⟩ ⟨x', y'⟩ := rfl
-@[simp] theorem mul_im : ∀ z w : ℤ√d, (z * w).im = z.re * w.im + z.im * w.re
-| ⟨x, y⟩ ⟨x', y'⟩ := rfl
+instance : has_mul ℤ√d := ⟨λ z w, ⟨z.1 * w.1 + d * z.2 * w.2, z.1 * w.2 + z.2 * w.1⟩⟩
+@[simp] lemma mul_re (z w : ℤ√d) : (z * w).re = z.re * w.re + d * z.im * w.im := rfl
+@[simp] lemma mul_im (z w : ℤ√d) : (z * w).im = z.re * w.im + z.im * w.re := rfl
+
+instance : add_comm_group ℤ√d :=
+by refine_struct
+{ add            := (+),
+  zero           := (0 : ℤ√d),
+  sub            := λ a b, a + -b,
+  neg            := has_neg.neg,
+  zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+  nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ };
+intros; try { refl }; simp [ext, add_comm, add_left_comm]
+
+instance : add_group_with_one ℤ√d :=
+{ nat_cast := λ n, of_int n,
+  int_cast := of_int,
+  one := 1,
+  .. zsqrtd.add_comm_group }
 
 instance : comm_ring ℤ√d :=
 by refine_struct
 { add            := (+),
   zero           := (0 : ℤ√d),
-  neg            := has_neg.neg,
   mul            := (*),
-  sub            := λ a b, a + -b,
   one            := 1,
   npow           := @npow_rec (ℤ√d) ⟨1⟩ ⟨(*)⟩,
-  nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩,
-  zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩ };
+  .. zsqrtd.add_group_with_one };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
-instance : add_comm_monoid ℤ√d    := by apply_instance
 instance : add_monoid ℤ√d         := by apply_instance
 instance : monoid ℤ√d             := by apply_instance
 instance : comm_monoid ℤ√d        := by apply_instance
@@ -124,12 +122,9 @@ instance : ring ℤ√d               := by apply_instance
 instance : distrib ℤ√d            := by apply_instance
 
 /-- Conjugation in `ℤ√d`. The conjugate of `a + b √d` is `a - b √d`. -/
-def conj : ℤ√d → ℤ√d
-| ⟨x, y⟩ := ⟨x, -y⟩
-@[simp] theorem conj_re : ∀ z : ℤ√d, (conj z).re = z.re
-| ⟨x, y⟩ := rfl
-@[simp] theorem conj_im : ∀ z : ℤ√d, (conj z).im = -z.im
-| ⟨x, y⟩ := rfl
+def conj (z : ℤ√d) : ℤ√d := ⟨z.1, -z.2⟩
+@[simp] lemma conj_re (z : ℤ√d) : (conj z).re = z.re := rfl
+@[simp] lemma conj_im (z : ℤ√d) : (conj z).im = -z.im := rfl
 
 /-- `conj` as an `add_monoid_hom`. -/
 def conj_hom : ℤ√d →+ ℤ√d :=
@@ -144,8 +139,7 @@ conj_hom.map_zero
 by simp only [zsqrtd.ext, zsqrtd.conj_re, zsqrtd.conj_im, zsqrtd.one_im, neg_zero, eq_self_iff_true,
   and_self]
 
-@[simp] lemma conj_neg (x : ℤ√d) : (-x).conj = -x.conj :=
-conj_hom.map_neg x
+@[simp] lemma conj_neg (x : ℤ√d) : (-x).conj = -x.conj := rfl
 
 @[simp] lemma conj_add (x y : ℤ√d) : (x + y).conj = x.conj + y.conj :=
 conj_hom.map_add x y
@@ -159,17 +153,14 @@ by simp only [ext, true_and, conj_re, eq_self_iff_true, neg_neg, conj_im]
 instance : nontrivial ℤ√d :=
 ⟨⟨0, 1, dec_trivial⟩⟩
 
-@[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n :=
-by induction n; simp *
-@[simp] theorem coe_nat_im (n : ℕ) : (n : ℤ√d).im = 0 :=
-by induction n; simp *
-theorem coe_nat_val (n : ℕ) : (n : ℤ√d) = ⟨n, 0⟩ :=
-by simp [ext]
+@[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n := rfl
+@[simp] theorem coe_nat_im (n : ℕ) : (n : ℤ√d).im = 0 := rfl
+theorem coe_nat_val (n : ℕ) : (n : ℤ√d) = ⟨n, 0⟩ := rfl
 
 @[simp] theorem coe_int_re (n : ℤ) : (n : ℤ√d).re = n :=
-by cases n; simp [*, int.of_nat_eq_coe, int.neg_succ_of_nat_eq]
+by cases n; refl
 @[simp] theorem coe_int_im (n : ℤ) : (n : ℤ√d).im = 0 :=
-by cases n; simp *
+by cases n; refl
 theorem coe_int_val (n : ℤ) : (n : ℤ√d) = ⟨n, 0⟩ :=
 by simp [ext]
 
@@ -181,6 +172,9 @@ by simp [ext, of_int_re, of_int_im]
 
 @[simp] theorem smul_val (n x y : ℤ) : (n : ℤ√d) * ⟨x, y⟩ = ⟨n * x, n * y⟩ :=
 by simp [ext]
+
+theorem smul_re (a : ℤ) (b : ℤ√d) : (↑a * b).re = a * b.re := by simp
+theorem smul_im (a : ℤ) (b : ℤ√d) : (↑a * b).im = a * b.im := by simp
 
 @[simp] theorem muld_val (x y : ℤ) : sqrtd * ⟨x, y⟩ = ⟨d * y, x⟩ :=
 by simp [ext]
@@ -209,7 +203,7 @@ protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n :
 protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
 by simpa using congr_arg re h
 
-lemma coe_int_dvd_iff {d : ℤ} (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
+lemma coe_int_dvd_iff (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
 begin
   split,
   { rintro ⟨x, rfl⟩,
@@ -220,6 +214,65 @@ begin
     rw [smul_val, ext],
     exact ⟨hr, hi⟩ },
 end
+
+@[simp, norm_cast]
+lemma coe_int_dvd_coe_int (a b : ℤ) : (a : ℤ√d) ∣ b ↔ a ∣ b :=
+begin
+  rw coe_int_dvd_iff,
+  split,
+  { rintro ⟨hre, -⟩,
+    rwa [coe_int_re] at hre },
+  { rw [coe_int_re, coe_int_im],
+    exact λ hc, ⟨hc, dvd_zero a⟩ },
+end
+
+protected lemma eq_of_smul_eq_smul_left {a : ℤ} {b c : ℤ√d}
+  (ha : a ≠ 0) (h : ↑a * b = a * c) : b = c :=
+begin
+  rw ext at h ⊢,
+  apply and.imp _ _ h;
+  { simp only [smul_re, smul_im],
+    exact int.eq_of_mul_eq_mul_left ha },
+end
+
+section gcd
+
+lemma gcd_eq_zero_iff (a : ℤ√d) : int.gcd a.re a.im = 0 ↔ a = 0 :=
+by simp only [int.gcd_eq_zero_iff, ext, eq_self_iff_true, zero_im, zero_re]
+
+lemma gcd_pos_iff (a : ℤ√d) : 0 < int.gcd a.re a.im ↔ a ≠ 0 :=
+pos_iff_ne_zero.trans $ not_congr a.gcd_eq_zero_iff
+
+lemma coprime_of_dvd_coprime {a b : ℤ√d} (hcoprime : is_coprime a.re a.im) (hdvd : b ∣ a) :
+  is_coprime b.re b.im :=
+begin
+  apply is_coprime_of_dvd,
+  { rintro ⟨hre, him⟩,
+    obtain rfl : b = 0,
+    { simp only [ext, hre, eq_self_iff_true, zero_im, him, and_self, zero_re] },
+    rw zero_dvd_iff at hdvd,
+    simpa only [hdvd, zero_im, zero_re, not_coprime_zero_zero] using hcoprime },
+  { intros z hz hznezero hzdvdu hzdvdv,
+    apply hz,
+    obtain ⟨ha, hb⟩ : z ∣ a.re ∧ z ∣ a.im,
+    { rw ←coe_int_dvd_iff,
+      apply dvd_trans _ hdvd,
+      rw coe_int_dvd_iff,
+      exact ⟨hzdvdu, hzdvdv⟩ },
+    exact hcoprime.is_unit_of_dvd' ha hb },
+end
+
+lemma exists_coprime_of_gcd_pos {a : ℤ√d} (hgcd : 0 < int.gcd a.re a.im) :
+  ∃ b : ℤ√d, a = ((int.gcd a.re a.im : ℤ) : ℤ√d) * b ∧ is_coprime b.re b.im :=
+begin
+  obtain ⟨re, im, H1, Hre, Him⟩ := int.exists_gcd_one hgcd,
+  rw [mul_comm] at Hre Him,
+  refine ⟨⟨re, im⟩, _, _⟩,
+  { rw [smul_val, ext, ←Hre, ←Him], split; refl },
+  { rw [←int.gcd_eq_one_iff_coprime, H1] }
+end
+
+end gcd
 
 /-- Read `sq_le a c b d` as `a √c ≤ b √d` -/
 def sq_le (a c b d : ℕ) : Prop := c*a*a ≤ d*b*b
@@ -265,8 +318,8 @@ theorem sq_le_mul {d x y z w : ℕ} :
   (sq_le x 1 y d → sq_le w d z 1 → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le z 1 w d → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le w d z 1 → sq_le (x * w + y * z) d (x * z + d * y * w) 1) :=
-by refine ⟨_, _, _, _⟩; {
-  intros xy zw,
+by refine ⟨_, _, _, _⟩;
+{ intros xy zw,
   have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
                          (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
   refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
@@ -303,6 +356,7 @@ cast nonnegg_comm (nonnegg_cases_right h)
 
 section norm
 
+/-- The norm of an element of `ℤ[√d]`. -/
 def norm (n : ℤ√d) : ℤ := n.re * n.re - d * n.im * n.im
 lemma norm_def (n : ℤ√d) : n.norm = n.re * n.re - d * n.im * n.im := rfl
 
@@ -327,8 +381,8 @@ lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * n.conj :=
 by cases n; simp [norm, conj, zsqrtd.ext, mul_comm, sub_eq_add_neg]
 
 @[simp] lemma norm_neg (x : ℤ√d) : (-x).norm = x.norm :=
-coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
-  mul_neg_eq_neg_mul_symm, neg_neg]
+coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul,
+  mul_neg, neg_neg]
 
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
@@ -395,13 +449,8 @@ parameter {d : ℕ}
 /-- Nonnegativity of an element of `ℤ√d`. -/
 def nonneg : ℤ√d → Prop | ⟨a, b⟩ := nonnegg d 1 a b
 
-protected def le (a b : ℤ√d) : Prop := nonneg (b - a)
-
-instance : has_le ℤ√d := ⟨zsqrtd.le⟩
-
-protected def lt (a b : ℤ√d) : Prop := ¬(b ≤ a)
-
-instance : has_lt ℤ√d := ⟨zsqrtd.lt⟩
+instance : has_le ℤ√d := ⟨λ a b, nonneg (b - a)⟩
+instance : has_lt ℤ√d := ⟨λ a b, ¬ b ≤ a⟩
 
 instance decidable_nonnegg (c d a b) : decidable (nonnegg c d a b) :=
 by cases a; cases b; repeat {rw int.of_nat_eq_coe}; unfold nonnegg sq_le; apply_instance
@@ -409,7 +458,7 @@ by cases a; cases b; repeat {rw int.of_nat_eq_coe}; unfold nonnegg sq_le; apply_
 instance decidable_nonneg : Π (a : ℤ√d), decidable (nonneg a)
 | ⟨a, b⟩ := zsqrtd.decidable_nonnegg _ _ _ _
 
-instance decidable_le (a b : ℤ√d) : decidable (a ≤ b) := decidable_nonneg _
+instance decidable_le : @decidable_rel (ℤ√d) (≤) := λ _ _, decidable_nonneg _
 
 theorem nonneg_cases : Π {a : ℤ√d}, nonneg a → ∃ x y : ℕ, a = ⟨x, y⟩ ∨ a = ⟨x, -y⟩ ∨ a = ⟨-x, y⟩
 | ⟨(x : ℕ), (y : ℕ)⟩ h := ⟨x, y, or.inl rfl⟩
@@ -428,17 +477,17 @@ have nonneg ⟨int.sub_nat_nat x z, int.sub_nat_nat w y⟩, from int.sub_nat_nat
   (λj k, int.sub_nat_nat_elim w y
     (λm n i, sq_le n d k 1 → sq_le (k + j + 1) 1 m d → nonneg ⟨-[1+ j], i⟩)
     (λm n xy zw, sq_le_cancel xy zw)
-    (λm n xy zw, let t := nat.le_trans zw (sq_le_of_le (nat.le_add_right n (m+1)) (le_refl _) xy) in
+    (λm n xy zw, let t := nat.le_trans zw (sq_le_of_le (nat.le_add_right n (m+1)) le_rfl xy) in
       have k + j + 1 ≤ k, from nat.mul_self_le_mul_self_iff.2 (by repeat{rw one_mul at t}; exact t),
       absurd this (not_le_of_gt $ nat.succ_le_succ $ nat.le_add_right _ _))) (nonnegg_pos_neg.1 xy)
         (nonnegg_neg_pos.1 zw),
 show nonneg ⟨_, _⟩, by rw [neg_add_eq_sub];
   rwa [int.sub_nat_nat_eq_coe,int.sub_nat_nat_eq_coe] at this
 
-theorem nonneg_add {a b : ℤ√d} (ha : nonneg a) (hb : nonneg b) : nonneg (a + b) :=
+lemma nonneg.add {a b : ℤ√d} (ha : nonneg a) (hb : nonneg b) : nonneg (a + b) :=
 begin
   rcases nonneg_cases ha with ⟨x, y, rfl|rfl|rfl⟩;
-  rcases nonneg_cases hb with ⟨z, w, rfl|rfl|rfl⟩; dsimp [add, nonneg] at ha hb ⊢,
+  rcases nonneg_cases hb with ⟨z, w, rfl|rfl|rfl⟩,
   { trivial },
   { refine nonnegg_cases_right (λi h, sq_le_of_le _ _ (nonnegg_pos_neg.1 hb)),
     { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ y (by simp [add_comm, *]))) },
@@ -455,16 +504,10 @@ begin
   { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 ha)),
     { exact int.coe_nat_le.1 (le_of_neg_le_neg (int.le.intro h)) },
     { apply nat.le_add_right } },
-  { rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
+  { dsimp, rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
   { simpa [add_comm] using
       nonnegg_neg_pos.2 (sq_le_add (nonnegg_neg_pos.1 ha) (nonnegg_neg_pos.1 hb)) },
 end
-
-theorem le_refl (a : ℤ√d) : a ≤ a := show nonneg (a - a), by simp
-
-protected theorem le_trans {a b c : ℤ√d} (ab : a ≤ b) (bc : b ≤ c) : a ≤ c :=
-have nonneg (b - a + (c - b)), from nonneg_add ab bc,
-by simpa [sub_add_sub_cancel']
 
 theorem nonneg_iff_zero_le {a : ℤ√d} : nonneg a ↔ 0 ≤ a := show _ ↔ nonneg _, by simp
 
@@ -472,25 +515,6 @@ theorem le_of_le_le {x y z w : ℤ} (xz : x ≤ z) (yw : y ≤ w) : (⟨x, y⟩ 
 show nonneg ⟨z - x, w - y⟩, from
 match z - x, w - y, int.le.dest_sub xz, int.le.dest_sub yw with ._, ._, ⟨a, rfl⟩, ⟨b, rfl⟩ :=
   trivial end
-
-theorem le_arch (a : ℤ√d) : ∃n : ℕ, a ≤ n :=
-let ⟨x, y, (h : a ≤ ⟨x, y⟩)⟩ := show ∃x y : ℕ, nonneg (⟨x, y⟩ + -a), from match -a with
-| ⟨int.of_nat x, int.of_nat y⟩ := ⟨0, 0, trivial⟩
-| ⟨int.of_nat x, -[1+ y]⟩      := ⟨0, y+1, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
-| ⟨-[1+ x],      int.of_nat y⟩ := ⟨x+1, 0, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
-| ⟨-[1+ x],      -[1+ y]⟩      := ⟨x+1, y+1, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
-end in begin
-  refine ⟨x + d*y, zsqrtd.le_trans h _⟩,
-  rw [← int.cast_coe_nat, ← of_int_eq_coe],
-  change nonneg ⟨(↑x + d*y) - ↑x, 0-↑y⟩,
-  cases y with y,
-  { simp },
-  have h : ∀y, sq_le y d (d * y) 1 := λ y,
-    by simpa [sq_le, mul_comm, mul_left_comm] using
-       nat.mul_le_mul_right (y * y) (nat.le_mul_self d),
-  rw [show (x:ℤ) + d * nat.succ y - x = d * nat.succ y, by simp],
-  exact h (y+1)
-end
 
 protected theorem nonneg_total : Π (a : ℤ√d), nonneg a ∨ nonneg (-a)
 | ⟨(x : ℕ), (y : ℕ)⟩ := or.inl trivial
@@ -501,15 +525,36 @@ protected theorem nonneg_total : Π (a : ℤ√d), nonneg a ∨ nonneg (-a)
 | ⟨-[1+ x], (y+1:ℕ)⟩ := nat.le_total
 
 protected theorem le_total (a b : ℤ√d) : a ≤ b ∨ b ≤ a :=
-let t := nonneg_total (b - a) in by rw [show -(b-a) = a-b, from neg_sub b a] at t; exact t
+begin
+  have t := (b - a).nonneg_total,
+  rwa neg_sub at t,
+end
 
 instance : preorder ℤ√d :=
-{ le               := zsqrtd.le,
-  le_refl          := zsqrtd.le_refl,
-  le_trans         := @zsqrtd.le_trans,
-  lt               := zsqrtd.lt,
+{ le               := (≤),
+  le_refl          := λ a, show nonneg (a - a), by simp only [sub_self],
+  le_trans         := λ a b c hab hbc, by simpa [sub_add_sub_cancel'] using hab.add hbc,
+  lt               := (<),
   lt_iff_le_not_le := λ a b,
     (and_iff_right_of_imp (zsqrtd.le_total _ _).resolve_left).symm }
+
+theorem le_arch (a : ℤ√d) : ∃n : ℕ, a ≤ n :=
+let ⟨x, y, (h : a ≤ ⟨x, y⟩)⟩ := show ∃x y : ℕ, nonneg (⟨x, y⟩ + -a), from match -a with
+| ⟨int.of_nat x, int.of_nat y⟩ := ⟨0, 0, trivial⟩
+| ⟨int.of_nat x, -[1+ y]⟩      := ⟨0, y+1, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
+| ⟨-[1+ x],      int.of_nat y⟩ := ⟨x+1, 0, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
+| ⟨-[1+ x],      -[1+ y]⟩      := ⟨x+1, y+1, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
+end in begin
+  refine ⟨x + d*y, h.trans _⟩,
+  change nonneg ⟨(↑x + d*y) - ↑x, 0-↑y⟩,
+  cases y with y,
+  { simp },
+  have h : ∀y, sq_le y d (d * y) 1 := λ y,
+    by simpa [sq_le, mul_comm, mul_left_comm] using
+       nat.mul_le_mul_right (y * y) (nat.le_mul_self d),
+  rw [show (x:ℤ) + d * nat.succ y - x = d * nat.succ y, by simp],
+  exact h (y+1)
+end
 
 protected theorem add_le_add_left (a b : ℤ√d) (ab : a ≤ b) (c : ℤ√d) : c + a ≤ c + b :=
 show nonneg _, by rw add_sub_add_left_eq_sub; exact ab
@@ -521,7 +566,8 @@ protected theorem add_lt_add_left (a b : ℤ√d) (h : a < b) (c) : c + a < c + 
 λ h', h (zsqrtd.le_of_add_le_add_left _ _ _ h')
 
 theorem nonneg_smul {a : ℤ√d} {n : ℕ} (ha : nonneg a) : nonneg (n * a) :=
-by rw ← int.cast_coe_nat; exact match a, nonneg_cases ha, ha with
+by simp only [← int.cast_coe_nat] {single_pass := tt}; exact
+match a, nonneg_cases ha, ha with
 | ._, ⟨x, y, or.inl rfl⟩,          ha := by rw smul_val; trivial
 | ._, ⟨x, y, or.inr $ or.inl rfl⟩, ha := by rw smul_val; simpa using
   nonnegg_pos_neg.2 (sq_le_smul n $ nonnegg_pos_neg.1 ha)
@@ -543,7 +589,7 @@ end
 theorem nonneg_mul_lem {x y : ℕ} {a : ℤ√d} (ha : nonneg a) : nonneg (⟨x, y⟩ * a) :=
 have (⟨x, y⟩ * a : ℤ√d) = x * a + sqrtd * (y * a), by rw [decompose, right_distrib, mul_assoc];
   refl,
-by rw this; exact nonneg_add (nonneg_smul ha) (nonneg_muld $ nonneg_smul ha)
+by rw this; exact (nonneg_smul ha).add (nonneg_muld $ nonneg_smul ha)
 
 theorem nonneg_mul {a b : ℤ√d} (ha : nonneg a) (hb : nonneg b) : nonneg (a * b) :=
 match a, b, nonneg_cases ha, nonneg_cases hb, ha, hb with
@@ -635,8 +681,8 @@ instance : linear_order ℤ√d :=
 
 protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b = 0 → a = 0 ∨ b = 0
 | ⟨x, y⟩ ⟨z, w⟩ h := by injection h with h1 h2; exact
-  have h1 : x*z = -(d*y*w), from eq_neg_of_add_eq_zero h1,
-  have h2 : x*w = -(y*z), from eq_neg_of_add_eq_zero h2,
+  have h1 : x*z = -(d*y*w), from eq_neg_of_add_eq_zero_left h1,
+  have h2 : x*w = -(y*z), from eq_neg_of_add_eq_zero_left h2,
   have fin : x*x = d*y*y → (⟨x, y⟩:ℤ√d) = 0, from
   λe, match x, y, divides_sq_eq_zero_z e with ._, ._, ⟨rfl, rfl⟩ := rfl end,
   if z0 : z = 0 then if w0 : w = 0 then
@@ -691,13 +737,15 @@ begin
     exact mul_nonpos_of_nonpos_of_nonneg h.le (mul_self_nonneg _) }
 end
 
-variables {R : Type} [comm_ring R]
+variables {R : Type}
 
-@[ext] lemma hom_ext {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
+@[ext] lemma hom_ext [ring R] {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
 begin
   ext ⟨x_re, x_im⟩,
   simp [decompose, h],
 end
+
+variables [comm_ring R]
 
 /-- The unique `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided
 root. Conversely, this associates to every mapping `ℤ√d →+* R` a value of `√d` in `R`. -/
@@ -708,8 +756,8 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
     map_zero' := by simp,
     map_add' := λ a b, by { simp, ring, },
     map_one' := by simp,
-    map_mul' := λ a b, by {
-      have : (a.re + a.im * r : R) * (b.re + b.im * r) =
+    map_mul' := λ a b, by
+    { have : (a.re + a.im * r : R) * (b.re + b.im * r) =
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },
@@ -721,7 +769,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
 `ℤ` into `R` is injective). -/
 lemma lift_injective [char_zero R] {d : ℤ} (r : {r : R // r * r = ↑d}) (hd : ∀ n : ℤ, d ≠ n*n) :
   function.injective (lift r) :=
-(lift r).injective_iff.mpr $ λ a ha,
+(injective_iff_map_eq_zero (lift r)).mpr $ λ a ha,
 begin
   have h_inj : function.injective (coe : ℤ → R) := int.cast_injective,
   suffices : lift r a.norm = 0,

@@ -4,7 +4,25 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.category.Top.opens
-import category_theory.filtered
+
+/-!
+# The category of open neighborhoods of a point
+
+Given an object `X` of the category `Top` of topological spaces and a point `x : X`, this file
+builds the type `open_nhds x` of open neighborhoods of `x` in `X` and endows it with the partial
+order given by inclusion and the corresponding category structure (as a full subcategory of the
+poset category `set X`). This is used in `topology.sheaves.stalks` to build the stalk of a sheaf
+at `x` as a limit over `open_nhds x`.
+
+## Main declarations
+
+Besides `open_nhds`, the main constructions here are:
+
+* `inclusion (x : X)`: the obvious functor `open_nhds x ⥤ opens X`
+* `functor_nhds`: An open map `f : X ⟶ Y` induces a functor `open_nhds x ⥤ open_nhds (f x)`
+* `adjunction_nhds`: An open map `f : X ⟶ Y` induces an adjunction between `open_nhds x` and
+                     `open_nhds (f x)`.
+-/
 
 open category_theory
 open topological_space
@@ -17,15 +35,15 @@ variables {X Y : Top.{u}} (f : X ⟶ Y)
 namespace topological_space
 
 /-- The type of open neighbourhoods of a point `x` in a (bundled) topological space. -/
-def open_nhds (x : X) := { U : opens X // x ∈ U }
+def open_nhds (x : X) := full_subcategory (λ (U : opens X), x ∈ U)
 
 namespace open_nhds
 
 instance (x : X) : partial_order (open_nhds x) :=
 { le := λ U V, U.1 ≤ V.1,
-  le_refl := λ _, le_refl _,
+  le_refl := λ _, le_rfl,
   le_trans := λ _ _ _, le_trans,
-  le_antisymm := λ _ _ i j, subtype.eq $ le_antisymm i j }
+  le_antisymm := λ _ _ i j, full_subcategory.ext _ _ $ le_antisymm i j }
 
 instance (x : X) : lattice (open_nhds x) :=
 { inf := λ U V, ⟨U.1 ⊓ V.1, ⟨U.2, V.2⟩⟩,
@@ -40,8 +58,9 @@ instance (x : X) : lattice (open_nhds x) :=
 
 instance (x : X) : order_top (open_nhds x) :=
 { top := ⟨⊤, trivial⟩,
-  le_top := λ U, @le_top _ _ U.1.1,
-  ..open_nhds.partial_order x }
+  le_top := λ _, le_top }
+
+instance (x : X) : inhabited (open_nhds x) := ⟨⊤⟩
 
 instance open_nhds_category (x : X) : category.{u} (open_nhds x) :=
 by {unfold open_nhds, apply_instance}
@@ -72,8 +91,9 @@ full_subcategory_inclusion _
 lemma open_embedding {x : X} (U : open_nhds x) : open_embedding (U.1.inclusion) :=
 U.1.open_embedding
 
+/-- The preimage functor from neighborhoods of `f x` to neighborhoods of `x`. -/
 def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
-{ obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,
+{ obj := λ U, ⟨(opens.map f).obj U.1, U.2⟩,
   map := λ U V i, (opens.map f).map i }
 
 @[simp] lemma map_obj (x : X) (U) (q) : (map f x).obj ⟨U, q⟩ = ⟨(opens.map f).obj U, by tidy⟩ :=

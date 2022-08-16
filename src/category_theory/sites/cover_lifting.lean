@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import category_theory.sites.sheaf
 import category_theory.limits.kan_extension
+import category_theory.sites.cover_preserving
 
 /-!
 # Cover-lifting functors between sites.
@@ -21,12 +22,16 @@ but they are actually equivalent via `category_theory.grothendieck_topology.supe
 
 ## Main definitions
 
-* `category_theory.sites.cover_lifting`: a functor between sites is cover_lifting if it
-pulls back covering sieves to covering sieves
+* `category_theory.sites.cover_lifting`: a functor between sites is cover-lifting if it
+  pulls back covering sieves to covering sieves
+* `category_theory.sites.copullback`: A cover-lifting functor `G : (C, J) ⥤ (D, K)` induces a
+  morphism of sites in the same direction as the functor.
 
 ## Main results
-- `category_theory.sites.Ran_is_sheaf_of_cover_lifting`: If `G : C ⥤ D` is cover_lifting, then
-`Ran G.op` (`ₚu`) as a functor `(Cᵒᵖ ⥤ A) ⥤ (Dᵒᵖ ⥤ A)` of presheaves maps sheaves to sheaves.
+* `category_theory.sites.Ran_is_sheaf_of_cover_lifting`: If `G : C ⥤ D` is cover_lifting, then
+  `Ran G.op` (`ₚu`) as a functor `(Cᵒᵖ ⥤ A) ⥤ (Dᵒᵖ ⥤ A)` of presheaves maps sheaves to sheaves.
+* `category_theory.pullback_copullback_adjunction`: If `G : (C, J) ⥤ (D, K)` is cover-lifting,
+  cover-preserving, and compatible-preserving, then `pullback G` and `copullback G` are adjoint.
 
 ## References
 
@@ -36,7 +41,7 @@ pulls back covering sieves to covering sieves
 
 -/
 
-universes v u
+universes w v v₁ v₂ v₃ u u₁ u₂ u₃
 noncomputable theory
 
 open category_theory
@@ -48,29 +53,32 @@ open category_theory.limits
 namespace category_theory
 section cover_lifting
 variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
-variables {J : grothendieck_topology C} {K : grothendieck_topology D}
+variables (J : grothendieck_topology C) (K : grothendieck_topology D)
 variables {L : grothendieck_topology E}
 
 /--
 A functor `G : (C, J) ⥤ (D, K)` between sites is called to have the cover-lifting property
 if for all covering sieves `R` in `D`, `R.pullback G` is a covering sieve in `C`.
 -/
-@[nolint has_inhabited_instance]
-structure cover_lifting (J : grothendieck_topology C) (K : grothendieck_topology D) (G : C ⥤ D) :=
+@[nolint has_nonempty_instance]
+structure cover_lifting (G : C ⥤ D) : Prop :=
 (cover_lift : ∀ {U : C} {S : sieve (G.obj U)} (hS : S ∈ K (G.obj U)), S.functor_pullback G ∈ J U)
 
 /-- The identity functor on a site is cover-lifting. -/
-def id_cover_lifting : cover_lifting J J (𝟭 _) := ⟨λ _ _ h, by simpa using h⟩
+lemma id_cover_lifting : cover_lifting J J (𝟭 _) := ⟨λ _ _ h, by simpa using h⟩
+
+variables {J K}
 
 /-- The composition of two cover-lifting functors are cover-lifting -/
-def comp_cover_lifting {G} (hu : cover_lifting J K G) {v} (hv : cover_lifting K L v) :
-  cover_lifting J L (G ⋙ v) := ⟨λ _ S h, hu.cover_lift (hv.cover_lift h)⟩
+lemma comp_cover_lifting {F : C ⥤ D} (hu : cover_lifting J K F) {G : D ⥤ E}
+  (hv : cover_lifting K L G) : cover_lifting J L (F ⋙ G) :=
+⟨λ _ S h, hu.cover_lift (hv.cover_lift h)⟩
 
 end cover_lifting
 
 /-!
 We will now prove that `Ran G.op` (`ₚu`) maps sheaves to sheaves if `G` is cover-lifting. This can
-be found in https://stacks.math.columbia.edu/tag/00XK. However, the proof given here uses the
+be found in <https://stacks.math.columbia.edu/tag/00XK>. However, the proof given here uses the
 amalgamation definition of sheaves, and thus does not require that `C` or `D` has categorical
 pullbacks.
 
@@ -88,13 +96,20 @@ glued into a morphism `X ⟶ ℱ(Y)`. This is done in `get_sections`.
 In `glued_limit_cone`, we verify these obtained sections are indeed compatible, and thus we obtain
 A `X ⟶ 𝒢(U)`. The remaining work is to verify that this is indeed the amalgamation and is unique.
 -/
-variables {C D : Type u} [category.{u} C] [category.{u} D]
-variables {A : Type v} [category.{u} A] [has_limits A]
+variables {C D : Type u} [category.{v} C] [category.{v} D]
+variables {A : Type w} [category.{max u v} A] [has_limits A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
 namespace Ran_is_sheaf_of_cover_lifting
 variables {G : C ⥤ D} (hu : cover_lifting J K G) (ℱ : Sheaf J A)
 variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
+
+instance (X : Dᵒᵖ) : has_limits_of_shape (structured_arrow X G.op) A :=
+begin
+  haveI := limits.has_limits_of_size_shrink.{v (max u v) (max u v) (max u v)} A,
+  exact has_limits_of_size.has_limits_of_shape _
+end
+
 variables (x : S.arrows.family_of_elements ((Ran G.op).obj ℱ.val ⋙ coyoneda.obj (op X)))
 variables (hx : x.compatible)
 
@@ -227,15 +242,45 @@ If `G` is cover_lifting, then `Ran G.op` pushes sheaves to sheaves.
 This result is basically https://stacks.math.columbia.edu/tag/00XK,
 but without the condition that `C` or `D` has pullbacks.
 -/
-theorem Ran_is_sheaf_of_cover_lifting {G : C ⥤ D} (hu : cover_lifting J K G) (ℱ : Sheaf J A) :
+theorem Ran_is_sheaf_of_cover_lifting {G : C ⥤ D} (hG : cover_lifting J K G) (ℱ : Sheaf J A) :
   presheaf.is_sheaf K ((Ran G.op).obj ℱ.val) :=
 begin
   intros X U S hS x hx,
   split, swap,
-  { apply Ran_is_sheaf_of_cover_lifting.glued_section hu ℱ hS hx },
+  { apply Ran_is_sheaf_of_cover_lifting.glued_section hG ℱ hS hx },
   split,
   { apply Ran_is_sheaf_of_cover_lifting.glued_section_is_amalgamation },
   { apply Ran_is_sheaf_of_cover_lifting.glued_section_is_unique }
 end
+
+variable (A)
+
+/-- A cover-lifting functor induces a morphism of sites in the same direction as the functor. -/
+def sites.copullback {G : C ⥤ D} (hG : cover_lifting J K G) :
+  Sheaf J A ⥤ Sheaf K A :=
+{ obj := λ ℱ, ⟨(Ran G.op).obj ℱ.val, Ran_is_sheaf_of_cover_lifting hG ℱ⟩,
+  map := λ _ _ f, ⟨(Ran G.op).map f.val⟩,
+  map_id' := λ ℱ, Sheaf.hom.ext _ _ $ (Ran G.op).map_id ℱ.val,
+  map_comp' := λ _ _ _ f g, Sheaf.hom.ext _ _ $ (Ran G.op).map_comp f.val g.val }
+
+/--
+Given a functor between sites that is cover-preserving, cover-lifting, and compatible-preserving,
+the pullback and copullback along `G` are adjoint to each other
+-/
+@[simps unit_app_val counit_app_val] noncomputable
+def sites.pullback_copullback_adjunction {G : C ⥤ D} (Hp : cover_preserving J K G)
+  (Hl : cover_lifting J K G) (Hc : compatible_preserving K G) :
+  sites.pullback A Hc Hp ⊣ sites.copullback A Hl :=
+{ hom_equiv := λ X Y,
+  { to_fun := λ f, ⟨(Ran.adjunction A G.op).hom_equiv X.val Y.val f.val⟩,
+    inv_fun := λ f, ⟨((Ran.adjunction A G.op).hom_equiv X.val Y.val).symm f.val⟩,
+    left_inv := λ f, by { ext1, dsimp, rw [equiv.symm_apply_apply] },
+    right_inv := λ f, by { ext1, dsimp, rw [equiv.apply_symm_apply] } },
+  unit := { app := λ X, ⟨(Ran.adjunction A G.op).unit.app X.val⟩,
+    naturality' := λ _ _ f, Sheaf.hom.ext _ _ $ (Ran.adjunction A G.op).unit.naturality f.val },
+  counit := { app := λ X, ⟨(Ran.adjunction A G.op).counit.app X.val⟩,
+    naturality' := λ _ _ f, Sheaf.hom.ext _ _ $ (Ran.adjunction A G.op).counit.naturality f.val },
+  hom_equiv_unit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_unit },
+  hom_equiv_counit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_counit } }
 
 end category_theory

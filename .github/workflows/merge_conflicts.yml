@@ -1,13 +1,8 @@
+name: Merge conflicts
+
 on:
-  # So that PRs touching the same files as the push are updated
-  push:
-    branches:
-      - master
-  # So that the `dirtyLabel` is removed if conflicts are resolve
-  # We recommend `pull_request_target` so that github secrets are available.
-  # In `pull_request` we wouldn't be able to change labels of fork PRs
-  pull_request_target:
-    types: [synchronize]
+  schedule:
+    - cron: '*/15 * * * *' # run every 15 minutes
 
 jobs:
   main:
@@ -17,4 +12,4 @@ jobs:
         uses: eps1lon/actions-label-merge-conflict@releases/2.x
         with:
           dirtyLabel: "merge-conflict"
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          repoToken: "${{ secrets.MERGE_CONFLICTS_TOKEN }}"

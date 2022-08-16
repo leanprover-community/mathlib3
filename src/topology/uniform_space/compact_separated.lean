@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.uniform_space.separation
+import topology.uniform_space.uniform_convergence
 /-!
 # Compact separated uniform spaces
 
@@ -51,8 +52,7 @@ begin
     cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=
     hx.of_inf_left,
-  have hxy : x = y := eq_of_uniformity_inf_nhds this,
-  subst hxy,
+  obtain rfl : x = y := eq_of_uniformity_inf_nhds this,
   have : cluster_pt (x, x) (𝓟 Vᶜ) :=
    hx.of_inf_right,
   have : (x, x) ∉ interior V,
@@ -121,21 +121,19 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
       apply this,
       apply diag_subset,
       simp [h] },
-    -- Since γ is compact and Hausdorff, it is normal, hence regular.
+    -- Since γ is compact and Hausdorff, it is normal, hence T₃.
     haveI : normal_space γ := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
     -- U₁ and U₂.
     obtain
-      ⟨U₁, V₁, U₁_in, V₁_in, U₂, V₂, U₂_in₂, V₂_in, V₁_cl, V₂_cl, U₁_op, U₂_op, VU₁, VU₂, hU₁₂⟩ :
-        ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y),
-          is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧ V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
+      ⟨U₁, U₁_in, V₁, V₁_in, U₂, U₂_in₂, V₂, V₂_in, V₁_cl, V₂_cl, U₁_op, U₂_op, VU₁, VU₂, hU₁₂⟩ :=
        disjoint_nested_nhds x_ne_y,
-    -- We set U₃ := (V₁ ∪ V₂)ᶜ so that W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃) is an open
+    -- We set U₃ := (V₁ ∪ V₂)ᶜ so that W := U₁ ×ˢ U₁ ∪ U₂ ×ˢ U₂ ∪ U₃ ×ˢ U₃ is an open
     -- neighborhood of Δ.
     let U₃ := (V₁ ∪ V₂)ᶜ,
     have U₃_op : is_open U₃ :=
       is_open_compl_iff.mpr (is_closed.union V₁_cl V₂_cl),
-    let W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃),
+    let W := U₁ ×ˢ U₁ ∪ U₂ ×ˢ U₂ ∪ U₃ ×ˢ U₃,
     have W_in : W ∈ 𝓝Δ,
     { rw mem_supr,
       intros x,
@@ -149,31 +147,22 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
       all_goals { simp only [is_open.prod, *] } },
     -- So W ○ W ∈ F by definition of F
     have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
-    -- And V₁.prod V₂ ∈ 𝓝 (x, y)
-    have hV₁₂ : V₁.prod V₂ ∈ 𝓝 (x, y) := prod_is_open.mem_nhds V₁_in V₂_in,
-    -- But (x, y) is also a cluster point of F so (V₁.prod V₂) ∩ (W ○ W) ≠ ∅
-    have clF : cluster_pt (x, y) F := hxy.of_inf_left,
-    obtain ⟨p, p_in⟩ : ∃ p, p ∈ (V₁.prod V₂) ∩ (W ○ W) :=
-      cluster_pt_iff.mp clF hV₁₂ this,
-    -- However the construction of W implies (V₁.prod V₂) ∩ (W ○ W) = ∅.
+    -- And V₁ ×ˢ V₂ ∈ 𝓝 (x, y)
+    have hV₁₂ : V₁ ×ˢ V₂ ∈ 𝓝 (x, y) := prod_mem_nhds V₁_in V₂_in,
+    -- But (x, y) is also a cluster point of F so (V₁ ×ˢ V₂) ∩ (W ○ W) ≠ ∅
+    -- However the construction of W implies (V₁ ×ˢ V₂) ∩ (W ○ W) = ∅.
     -- Indeed assume for contradiction there is some (u, v) in the intersection.
+    obtain ⟨⟨u, v⟩, ⟨u_in, v_in⟩, w, huw, hwv⟩ := cluster_pt_iff.mp (hxy.of_inf_left) hV₁₂ this,
     -- So u ∈ V₁, v ∈ V₂, and there exists some w such that (u, w) ∈ W and (w ,v) ∈ W.
-    -- Because u is in V₁ which is disjoint from U₂ and U₃, (u, w) ∈ W forces (u, w) ∈ U₁.prod U₁.
-    -- Similarly, because v ∈ V₂, (w ,v) ∈ W forces (w, v) ∈ U₂.prod U₂.
+    -- Because u is in V₁ which is disjoint from U₂ and U₃, (u, w) ∈ W forces (u, w) ∈ U₁ ×ˢ U₁.
+    have uw_in : (u, w) ∈ U₁ ×ˢ U₁ := (huw.resolve_right $ λ h, (h.1 $ or.inl u_in)).resolve_right
+      (λ h, hU₁₂ ⟨VU₁ u_in, h.1⟩),
+    -- Similarly, because v ∈ V₂, (w ,v) ∈ W forces (w, v) ∈ U₂ ×ˢ U₂.
+    have wv_in : (w, v) ∈ U₂ ×ˢ U₂ := (hwv.resolve_right $ λ h, (h.2 $ or.inr v_in)).resolve_left
+      (λ h, hU₁₂ ⟨h.2, VU₂ v_in⟩),
     -- Hence w ∈ U₁ ∩ U₂ which is empty.
-    have inter_empty : (V₁.prod V₂) ∩ (W ○ W) = ∅,
-    { rw eq_empty_iff_forall_not_mem,
-      rintros ⟨u, v⟩ ⟨⟨u_in, v_in⟩, w, huw, hwv⟩,
-      have uw_in : (u, w) ∈ U₁.prod U₁ :=
-        set.mem_prod.2 ((huw.resolve_right (λ h, (h.1 $ or.inl u_in))).resolve_right
-        (λ h, have u ∈ U₁ ∩ U₂, from ⟨VU₁ u_in, h.1⟩, by rwa hU₁₂ at this)),
-      have wv_in : (w, v) ∈ U₂.prod U₂ :=
-        set.mem_prod.2 ((hwv.resolve_right (λ h, (h.2 $ or.inr v_in))).resolve_left
-        (λ h, have v ∈ U₁ ∩ U₂, from ⟨h.2, VU₂ v_in⟩, by rwa hU₁₂ at this)),
-      have : w ∈ U₁ ∩ U₂ := ⟨uw_in.2, wv_in.1⟩,
-      rwa hU₁₂ at this },
     -- So we have a contradiction
-    rwa inter_empty at p_in,
+    exact hU₁₂ ⟨uw_in.2, wv_in.1⟩,
   end,
   is_open_uniformity := begin
     -- Here we need to prove the topology induced by the constructed uniformity is the
@@ -204,7 +193,7 @@ lemma compact_space.uniform_continuous_of_continuous [compact_space α] [separat
 calc
 map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
                      ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
-                     ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_le_supr (λ x, (h.prod_map h).continuous_at)
+                     ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_mono (λ x, (h.prod_map h).continuous_at)
                      ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
                      ... ≤ 𝓤 β                   : supr_nhds_le_uniformity
 
@@ -226,3 +215,26 @@ is uniformly continuous. -/
 lemma is_compact.uniform_continuous_on_of_continuous [separated_space α] {s : set α} {f : α → β}
   (hs : is_compact s) (hf : continuous_on f s) : uniform_continuous_on f s :=
 hs.uniform_continuous_on_of_continuous' (is_separated_of_separated_space s) hf
+
+/-- A family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is locally compact,
+`β` is compact and separated and `f` is continuous on `U × (univ : set β)` for some separated
+neighborhood `U` of `x`. -/
+lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space β]
+  [separated_space β] [uniform_space γ] {f : α → β → γ} {x : α} {U : set α}
+  (hxU : U ∈ 𝓝 x) (hU : is_separated U) (h : continuous_on ↿f (U ×ˢ univ)) :
+  tendsto_uniformly f (f x) (𝓝 x) :=
+begin
+  rcases locally_compact_space.local_compact_nhds _ _ hxU with ⟨K, hxK, hKU, hK⟩,
+  have : uniform_continuous_on ↿f (K ×ˢ univ),
+  { refine is_compact.uniform_continuous_on_of_continuous' (hK.prod compact_univ) _
+      (h.mono $ prod_mono hKU subset.rfl),
+    exact (hU.mono hKU).prod (is_separated_of_separated_space _) },
+  exact this.tendsto_uniformly hxK
+end
+
+/-- A continuous family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is
+locally compact and `β` is compact and separated. -/
+lemma continuous.tendsto_uniformly [separated_space α] [locally_compact_space α]
+  [compact_space β] [separated_space β] [uniform_space γ]
+  (f : α → β → γ) (h : continuous ↿f) (x : α) : tendsto_uniformly f (f x) (𝓝 x) :=
+h.continuous_on.tendsto_uniformly univ_mem $ is_separated_of_separated_space _

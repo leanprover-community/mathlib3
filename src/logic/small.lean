@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.set
+import data.vector.basic
 
 /-!
 # Small types
@@ -34,7 +34,7 @@ lemma small.mk' {α : Type v} {S : Type w} (e : α ≃ S) : small.{w} α :=
 /--
 An arbitrarily chosen model in `Type w` for a `w`-small type.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def shrink (α : Type v) [small.{w} α] : Type w :=
 classical.some (@small.equiv_small α _)
 
@@ -47,14 +47,20 @@ nonempty.some (classical.some_spec (@small.equiv_small α _))
 
 @[priority 100]
 instance small_self (α : Type v) : small.{v} α :=
-small.mk' (equiv.refl _)
+small.mk' $ equiv.refl α
+
+theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
+let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
+
+theorem small_lift (α : Type u) [hα : small.{v} α] : small.{max v w} α :=
+let ⟨⟨γ, ⟨f⟩⟩⟩ := hα in small.mk' $ f.trans equiv.ulift.symm
 
 @[priority 100]
 instance small_max (α : Type v) : small.{max w v} α :=
-small.mk' equiv.ulift.{w}.symm
+small_lift.{v w} α
 
-instance small_ulift (α : Type v) : small.{v} (ulift.{w} α) :=
-small.mk' equiv.ulift
+instance small_ulift (α : Type u) [small.{v} α] : small.{v} (ulift.{w} α) :=
+small_map equiv.ulift
 
 theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
 
@@ -62,38 +68,33 @@ section
 open_locale classical
 
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
-begin
-  fsplit,
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.symm.trans f), },
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.trans f), },
-end
+⟨λ h, @small_map _ _ h e.symm, λ h, @small_map _ _ h e⟩
 
 instance small_subtype (α : Type v) [small.{w} α] (P : α → Prop) : small.{w} { x // P x } :=
-begin
-  rw small_congr (equiv_shrink α).subtype_equiv_of_subtype',
-  apply_instance,
-end
+small_map (equiv_shrink α).subtype_equiv_of_subtype'
 
-theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
-  (f : α → β) (hf : function.injective f) : small.{w} α :=
-begin
-  rw small_congr (equiv.of_injective f hf),
-  apply_instance,
-end
+theorem small_of_injective {α : Type v} {β : Type w} [small.{u} β] {f : α → β}
+  (hf : function.injective f) : small.{u} α :=
+small_map (equiv.of_injective f hf)
+
+theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] {f : α → β}
+  (hf : function.surjective f) : small.{u} β :=
+small_of_injective (function.injective_surj_inv hf)
+
+theorem small_subset {α : Type v} {s t : set α} (hts : t ⊆ s) [small.{u} s] : small.{u} t :=
+let f : t → s := λ x, ⟨x, hts x.prop⟩ in
+  @small_of_injective _ _ _ f (λ x y hxy, subtype.ext (subtype.mk.inj hxy))
 
 @[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
 begin
   rcases is_empty_or_nonempty α; resetI,
-  { rw small_congr (equiv.equiv_pempty α), apply small_self, },
-  { rw small_congr equiv.punit_of_nonempty_of_subsingleton,
-    apply small_self, assumption, assumption, },
+  { apply small_map (equiv.equiv_pempty α) },
+  { apply small_map equiv.punit_of_nonempty_of_subsingleton, assumption' },
 end
 
 /-!
-We don't define `small_of_fintype` or `small_of_encodable` in this file,
+We don't define `small_of_fintype` or `small_of_countable` in this file,
 to keep imports to `logic` to a minimum.
 -/
 
@@ -118,9 +119,28 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
 
+instance small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
+  small.{u} (set.range f) :=
+small_of_surjective set.surjective_onto_range
+
+instance small_image {α : Type v} {β : Type w} (f : α → β) (S : set α) [small.{u} S] :
+  small.{u} (f '' S) :=
+small_of_surjective set.surjective_onto_image
+
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)
   (λ a, ⟨_, cast (e.3 _).symm a⟩)
   (λ a b e, (cast_inj _).1 $ eq_of_heq (sigma.mk.inj e).2)
+
+instance small_vector {α : Type v} {n : ℕ} [small.{u} α] :
+  small.{u} (vector α n) :=
+small_of_injective (equiv.vector_equiv_fin α n).injective
+
+instance small_list {α : Type v} [small.{u} α] :
+  small.{u} (list α) :=
+begin
+  let e : (Σ n, vector α n) ≃ list α := equiv.sigma_fiber_equiv list.length,
+  exact small_of_surjective e.surjective,
+end
 
 end

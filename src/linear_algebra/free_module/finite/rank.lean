@@ -35,16 +35,16 @@ variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
 variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 
 /-- The rank of a finite and free module is finite. -/
-lemma rank_lt_omega : module.rank R M < ω :=
+lemma rank_lt_aleph_0 : module.rank R M < ℵ₀ :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  rw [← (choose_basis R M).mk_eq_dim'', lt_omega_iff_fintype],
+  rw [← (choose_basis R M).mk_eq_dim'', lt_aleph_0_iff_fintype],
   exact nonempty.intro infer_instance
 end
 
 /-- If `M` is finite and free, `finrank M = rank M`. -/
 @[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
-by { rw [finrank, cast_to_nat_of_lt_omega (rank_lt_omega R M)] }
+by { rw [finrank, cast_to_nat_of_lt_aleph_0 (rank_lt_aleph_0 R M)] }
 
 /-- The finrank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
 lemma finrank_eq_card_choose_basis_index : finrank R M = @card (choose_basis_index R M)
@@ -60,7 +60,7 @@ by { rw [finrank, rank_finsupp, ← mk_to_nat_eq_card, to_nat_lift] }
 
 /-- The finrank of `(ι → R)` is `fintype.card ι`. -/
 lemma finrank_pi {ι : Type v} [fintype ι] : finrank R (ι → R) = card ι :=
-by { simp [finrank, sum_const_eq_lift_mul] }
+by simp [finrank]
 
 /-- The finrank of the direct sum is the sum of the finranks. -/
 @[simp] lemma finrank_direct_sum  {ι : Type v} [fintype ι] (M : ι → Type w)
@@ -68,12 +68,13 @@ by { simp [finrank, sum_const_eq_lift_mul] }
   [Π (i : ι), module.finite R (M i)] : finrank R (⨁ i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp [finrank, λ i, rank_eq_card_choose_basis_index R (M i)],
+  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_direct_sum,
+    ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 
 /-- The finrank of `M × N` is `(finrank R M) + (finrank R N)`. -/
 @[simp] lemma finrank_prod : finrank R (M × N) = (finrank R M) + (finrank R N) :=
-by { simp [finrank, rank_lt_omega R M, rank_lt_omega R N] }
+by { simp [finrank, rank_lt_aleph_0 R M, rank_lt_aleph_0 R N] }
 
 /-- The finrank of a finite product is the sum of the finranks. -/
 --TODO: this should follow from `linear_equiv.finrank_eq`, that is over a field.
@@ -82,13 +83,14 @@ lemma finrank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
   [Π (i : ι), module.finite R (M i)] : finrank R (Π i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp [finrank, λ i, rank_eq_card_choose_basis_index R (M i)]
+  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi_fintype,
+    ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 
-/-- If `n` and `m` are `fintype`, the finrank of `n × m` matrices is
-  `(fintype.card n) * (fintype.card m)`. -/
-lemma finrank_matrix (n : Type v) [fintype n] (m : Type w) [fintype m] :
-  finrank R (matrix n m R) = (card n) * (card m) :=
+/-- If `m` and `n` are `fintype`, the finrank of `m × n` matrices is
+  `(fintype.card m) * (fintype.card n)`. -/
+lemma finrank_matrix (m n : Type v) [fintype m] [fintype n] :
+  finrank R (matrix m n R) = (card m) * (card n) :=
 by { simp [finrank] }
 
 end ring
@@ -107,7 +109,7 @@ begin
   letI := nontrivial_of_invariant_basis_number R,
   have h := (linear_map.to_matrix (choose_basis R M) (choose_basis R N)),
   let b := (matrix.std_basis _ _ _).map h.symm,
-  rw [finrank, dim_eq_card_basis b, ← fintype_card, mk_to_nat_eq_card, finrank, finrank,
+  rw [finrank, dim_eq_card_basis b, ← mk_fintype, mk_to_nat_eq_card, finrank, finrank,
     rank_eq_card_choose_basis_index, rank_eq_card_choose_basis_index, mk_to_nat_eq_card,
     mk_to_nat_eq_card, card_prod, mul_comm]
 end

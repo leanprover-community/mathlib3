@@ -3,9 +3,8 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import algebra.group.to_additive
 import tactic.protected
-import data.sum
+import algebra.group.to_additive
 
 /-!
 # simps attribute
@@ -274,10 +273,10 @@ This is likely because a custom composition of projections was given the same na
 "projection).",
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
-    raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _, _⟩, do {
-      (raw_expr, nrs) ← get_composite_of_projections str orig_nm.last,
-      custom_proj ← do {
-        decl ← e.get (str ++ `simps ++ new_nm.last),
+    raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _, _⟩, do
+    { (raw_expr, nrs) ← get_composite_of_projections str orig_nm.last,
+      custom_proj ← do
+      { decl ← e.get (str ++ `simps ++ new_nm.last),
         let custom_proj := decl.value.instantiate_univ_params $ decl.univ_params.zip raw_levels,
         when trc trace!
           "[simps] > found custom projection for {new_nm}:\n        > {custom_proj}",
@@ -285,8 +284,8 @@ This is likely because a custom composition of projections was given the same na
       is_def_eq custom_proj raw_expr <|>
         -- if the type of the expression is different, we show a different error message, because
         -- that is more likely going to be helpful.
-        do {
-          custom_proj_type ← infer_type custom_proj,
+        do
+        { custom_proj_type ← infer_type custom_proj,
           raw_expr_type ← infer_type raw_expr,
           b ← succeeds (is_def_eq custom_proj_type raw_expr_type),
           if b then fail!"Invalid custom projection:\n  {custom_proj}
@@ -300,8 +299,8 @@ Expected type:\n  {raw_expr_type}" },
     (args, _) ← open_pis d_str.type,
     let e_str := (expr.const str raw_levels).mk_app args,
     automatic_projs ← attribute.get_instances `notation_class,
-    raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, do {
-      (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
+    raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, do
+    { (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
       proj_nm ← proj_nm <|> (e.structure_fields_full class_nm).map list.head,
       /- For this class, find the projection. `raw_expr` is the projection found applied to `args`,
         and `lambda_raw_expr` has the arguments `args` abstracted. -/
@@ -417,7 +416,7 @@ Some common uses:
 * If you define a new homomorphism-like structure (like `mul_hom`) you can just run
   `initialize_simps_projections` after defining the `has_coe_to_fun` instance
   ```
-    instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) := ...
+    instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (M →ₙ* N) := ...
     initialize_simps_projections mul_hom (to_fun → apply)
   ```
   This will generate `foo_apply` lemmas for each declaration `foo`.
@@ -641,8 +640,8 @@ meta def simps_add_projections : Π (e : environment) (nm : name)
           simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
           simps_add_projection nm type lhs rhs args univs cfg,
       /- If we are in the middle of a composite projection. -/
-      when (to_apply ≠ []) $ do {
-        ⟨new_rhs, proj, proj_expr, proj_nrs, is_default, is_prefix⟩ ←
+      when (to_apply ≠ []) $ do
+      { ⟨new_rhs, proj, proj_expr, proj_nrs, is_default, is_prefix⟩ ←
           return $ proj_info.inth to_apply.head,
         new_type ← infer_type new_rhs,
         when_tracing `simps.debug
@@ -722,11 +721,11 @@ meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name d.univ_levels,
-  let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
+  let todo := todo.dedup.map $ λ proj, "_" ++ proj,
   let cfg := { trace := cfg.trace || is_trace_enabled_for `simps.verbose || trc, ..cfg },
   b ← has_attribute' `to_additive nm,
-  cfg ← if b then do {
-    dict ← to_additive.aux_attr.get_cache,
+  cfg ← if b then do
+  { dict ← to_additive.aux_attr.get_cache,
     when cfg.trace
       trace!"[simps] > @[to_additive] will be added to all generated lemmas.",
     return { add_additive := dict.find nm, ..cfg } } else

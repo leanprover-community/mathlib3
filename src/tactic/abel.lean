@@ -181,7 +181,7 @@ by simp [h₂.symm, h₁.symm, termg]; ac_refl
 
 meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
-  p ← c.mk_app ``neg_zero ``add_group [],
+  p ← c.mk_app ``neg_zero ``subtraction_monoid [],
   return (zero' c, p)
 | (nterm e n x a) := do
   (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.eval_field,
@@ -196,7 +196,7 @@ theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
 by simp [smul, nsmul_zero]
 
 theorem zero_smulg {α} [add_comm_group α] (c) : smulg c (0 : α) = 0 :=
-by simp [smulg]
+by simp [smulg, zsmul_zero]
 
 theorem term_smul {α} [add_comm_monoid α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smul c a = a') :
@@ -227,8 +227,7 @@ meta def eval_atom (c : context) (e : expr) : tactic (normal_expr × expr) :=
 do n1 ← c.int_to_expr 1,
    return (term' c (n1, 1) e (zero' c), c.iapp ``term_atom [e])
 
-lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c :=
+lemma unfold_sub {α} [subtraction_monoid α] (a b c : α) (h : a + -b = c) : a - b = c :=
 by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
@@ -238,7 +237,7 @@ theorem unfold_smulg {α} [add_comm_group α] (n : ℕ) (x y : α)
   (h : smulg (int.of_nat n) x = y) : (n : ℤ) • x = y := h
 
 theorem unfold_zsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
-  (h : smulg n x = y) : zsmul n x = y := h
+  (h : smulg n x = y) : n • x = y := h
 
 lemma subst_into_smul {α} [add_comm_monoid α]
   (l r tl tr t) (prl : l = tl) (prr : r = tr)
@@ -250,14 +249,39 @@ lemma subst_into_smulg {α} [add_comm_group α]
   (prt : @smulg α _ tl tr = t) : smulg l r = t :=
 by simp [prl, prr, prt]
 
-/-- Deal with a `smul` term of the form `e₁ • e₂`, handling both natural and integer `e₁`. -/
+lemma subst_into_smul_upcast {α} [add_comm_group α]
+  (l r tl zl tr t) (prl₁ : l = tl) (prl₂ : ↑tl = zl) (prr : r = tr)
+  (prt : @smulg α _ zl tr = t) : smul l r = t :=
+by simp [← prt, prl₁, ← prl₂, prr, smul, smulg]
+
+/-- Normalize a term `orig` of the form `smul e₁ e₂` or `smulg e₁ e₂`.
+  Normalized terms use `smul` for monoids and `smulg` for groups,
+  so there are actually four cases to handle:
+  * Using `smul` in a monoid just simplifies the pieces using `subst_into_smul`
+  * Using `smulg` in a group just simplifies the pieces using `subst_into_smulg`
+  * Using `smul a b` in a group requires converting `a` from a nat to an int and
+    then simplifying `smulg ↑a b` using `subst_into_smul_upcast`
+  * Using `smulg` in a monoid is impossible (or at least out of scope),
+    because you need a group argument to write a `smulg` term -/
 meta def eval_smul' (c : context) (eval : expr → tactic (normal_expr × expr))
-  (e₁ e₂ : expr) : tactic (normal_expr × expr) :=
+  (is_smulg : bool) (orig e₁ e₂ : expr) : tactic (normal_expr × expr) :=
 do (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁,
-  n ← if c.is_group then e₁'.to_int else coe <$> e₁'.to_nat,
-  (e₂', p₂) ← eval e₂,
-  (e', p) ← eval_smul c (e₁', n) e₂',
-  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
+  match if is_smulg then e₁'.to_int else coe <$> e₁'.to_nat with
+  | some n := do
+    (e₂', p₂) ← eval e₂,
+    if c.is_group = is_smulg then do
+      (e', p) ← eval_smul c (e₁', n) e₂',
+      return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
+    else do
+      guardb c.is_group,
+      ic ← mk_instance_cache `(ℤ),
+      nc ← mk_instance_cache `(ℕ),
+      (ic, zl) ← ic.of_int n,
+      (_, _, _, p₁') ← norm_num.prove_nat_uncast ic nc zl,
+      (e', p) ← eval_smul c (zl, n) e₂',
+      return (e', c.app ``subst_into_smul_upcast c.inst [e₁, e₂, e₁', zl, e₂', e', p₁, p₁', p₂, p])
+  | none := eval_atom c orig
+  end
 
 meta def eval (c : context) : expr → tactic (normal_expr × expr)
 | `(%%e₁ + %%e₂) := do
@@ -270,25 +294,30 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   e₂' ← mk_app ``has_neg.neg [e₂],
   e ← mk_app ``has_add.add [e₁, e₂'],
   (e', p) ← eval e,
-  p' ← c.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+  p' ← c.mk_app ``unfold_sub ``subtraction_monoid [e₁, e₂, e', p],
   return (e', p')
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg c e₁,
   p ← c.mk_app ``norm_num.subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
   return (e₂, p)
-| `(nsmul %%e₁ %%e₂) := do
+| `(add_monoid.nsmul %%e₁ %%e₂) := do
   n ← if c.is_group then mk_app ``int.of_nat [e₁] else return e₁,
   (e', p) ← eval $ c.iapp ``smul [n, e₂],
   return (e', c.iapp ``unfold_smul [e₁, e₂, e', p])
-| `(zsmul %%e₁ %%e₂) := do
+| `(sub_neg_monoid.zsmul %%e₁ %%e₂) := do
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
   return (e', c.app ``unfold_zsmul c.inst [e₁, e₂, e', p])
-| `(@has_scalar.smul nat _ add_monoid.has_scalar_nat %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
-| `(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
-| `(smul %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
-| `(smulg %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| e@`(@has_smul.smul nat _ add_monoid.has_smul_nat %%e₁ %%e₂) :=
+  eval_smul' c eval ff e e₁ e₂
+| e@`(@has_smul.smul int _ sub_neg_monoid.has_smul_int %%e₁ %%e₂) :=
+  eval_smul' c eval tt e e₁ e₂
+| e@`(smul %%e₁ %%e₂) := eval_smul' c eval ff e e₁ e₂
+| e@`(smulg %%e₁ %%e₂) := eval_smul' c eval tt e e₁ e₂
+| e@`(@has_zero.zero _ _) := mcond (succeeds (is_def_eq e c.α0))
+  (mk_eq_refl c.α0 >>= λ p, pure (zero' c, p))
+  (eval_atom c e)
 | e := eval_atom c e
 
 meta def eval' (c : context) (e : expr) : tactic (expr × expr) :=

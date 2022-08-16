@@ -19,6 +19,8 @@ This file proves properties of the central binomial coefficients (that is, `nat.
   coefficients.
 * `nat.four_pow_lt_mul_central_binom`: an exponential lower bound on the central binomial
   coefficient.
+* `succ_dvd_central_binom`: The result that `n+1 ∣ n.central_binom`, ensuring that the explicit
+  definition of the Catalan numbers is integer-valued.
 -/
 
 namespace nat
@@ -67,7 +69,7 @@ calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 
 /--
 An exponential lower bound on the central binomial coefficient.
 This bound is of interest because it appears in
-[Tochiori's refinement of Erdős's proof of Bertrand's postulate](https://en.wikipedia.org/w/index.php?title=Proof_of_Bertrand%27s_postulate&oldid=859165151#Proof_by_Shigenori_Tochiori).
+[Tochiori's refinement of Erdős's proof of Bertrand's postulate](tochiori_bertrand).
 -/
 lemma four_pow_lt_mul_central_binom (n : ℕ) (n_big : 4 ≤ n) : 4 ^ n < n * central_binom n :=
 begin
@@ -84,7 +86,7 @@ end
 
 /--
 An exponential lower bound on the central binomial coefficient.
-This bound is weaker than `four_pow_n_lt_n_mul_central_binom`, but it is of historical interest
+This bound is weaker than `nat.four_pow_lt_mul_central_binom`, but it is of historical interest
 because it appears in Erdős's proof of Bertrand's postulate.
 -/
 lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n),
@@ -96,5 +98,31 @@ lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n)
 | n@(m + 4) _ :=
 calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_self).le
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
+
+lemma two_dvd_central_binom_succ (n : ℕ) : 2 ∣ central_binom (n + 1) :=
+begin
+  use (n+1+n).choose n,
+  rw [central_binom_eq_two_mul_choose, two_mul, ← add_assoc, choose_succ_succ, choose_symm_add,
+      ← two_mul],
+end
+
+lemma two_dvd_central_binom_of_one_le {n : ℕ} (h : 0 < n) : 2 ∣ central_binom n :=
+begin
+  rw ← nat.succ_pred_eq_of_pos h,
+  exact two_dvd_central_binom_succ n.pred,
+end
+
+/-- A crucial lemma to ensure that Catalan numbers can be defined via their explicit formula
+  `catalan n = n.central_binom / (n + 1)`. -/
+lemma succ_dvd_central_binom (n : ℕ) : (n + 1) ∣ n.central_binom :=
+begin
+  have h_s : (n+1).coprime (2*n+1),
+  { rw [two_mul,add_assoc, coprime_add_self_right, coprime_self_add_left],
+    exact coprime_one_left n },
+  apply h_s.dvd_of_dvd_mul_left,
+  apply dvd_of_mul_dvd_mul_left zero_lt_two,
+  rw [← mul_assoc, ← succ_mul_central_binom_succ, mul_comm],
+  exact mul_dvd_mul_left _ (two_dvd_central_binom_succ n),
+end
 
 end nat

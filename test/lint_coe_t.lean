@@ -27,7 +27,7 @@ skip
 -- bad, because it introduces a metavariable
 section
 local attribute [instance]
-def int_to_a {α} [inhabited α] : has_coe ℤ α := ⟨λ _, default _⟩
+def int_to_a {α} [inhabited α] : has_coe ℤ α := ⟨default⟩
 
 run_cmd do
 decl ← get_decl ``int_to_a,

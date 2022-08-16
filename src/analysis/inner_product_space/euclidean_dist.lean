@@ -20,7 +20,7 @@ distance. This way we hide the usage of `to_euclidean` behind an API.
 open_locale topological_space
 open set
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 
 noncomputable theory
 
@@ -65,13 +65,13 @@ by rw [to_euclidean.image_symm_eq_preimage, closed_ball_eq_preimage]
 lemma is_compact_closed_ball {x : E} {r : ℝ} : is_compact (closed_ball x r) :=
 begin
   rw closed_ball_eq_image,
-  exact (proper_space.is_compact_closed_ball _ _).image to_euclidean.symm.continuous
+  exact (is_compact_closed_ball _ _).image to_euclidean.symm.continuous
 end
 
 lemma is_closed_closed_ball {x : E} {r : ℝ} : is_closed (closed_ball x r) :=
 is_compact_closed_ball.is_closed
 
-lemma closure_ball (x : E) {r : ℝ} (h : 0 < r) : closure (ball x r) = closed_ball x r :=
+lemma closure_ball (x : E) {r : ℝ} (h : r ≠ 0) : closure (ball x r) = closed_ball x r :=
 by rw [ball_eq_preimage, ← to_euclidean.preimage_closure, closure_ball (to_euclidean x) h,
   closed_ball_eq_preimage]
 
@@ -106,14 +106,14 @@ nhds_basis_ball.mem_of_mem hr
 
 end euclidean
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F] {f g : F → E} {n : with_top ℕ}
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] {f g : F → E} {n : with_top ℕ}
 
-lemma times_cont_diff.euclidean_dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g)
+lemma cont_diff.euclidean_dist (hf : cont_diff ℝ n f) (hg : cont_diff ℝ n g)
   (h : ∀ x, f x ≠ g x) :
-  times_cont_diff ℝ n (λ x, euclidean.dist (f x) (g x)) :=
+  cont_diff ℝ n (λ x, euclidean.dist (f x) (g x)) :=
 begin
   simp only [euclidean.dist],
-  apply @times_cont_diff.dist ℝ,
-  exacts [(@to_euclidean E _ _ _).times_cont_diff.comp hf,
-    (@to_euclidean E _ _ _).times_cont_diff.comp hg, λ x, to_euclidean.injective.ne (h x)]
+  apply @cont_diff.dist ℝ,
+  exacts [(@to_euclidean E _ _ _).cont_diff.comp hf,
+    (@to_euclidean E _ _ _).cont_diff.comp hg, λ x, to_euclidean.injective.ne (h x)]
 end

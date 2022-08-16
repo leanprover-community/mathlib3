@@ -3,7 +3,9 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import ring_theory.adjoin.polynomial
+import ring_theory.polynomial.basic
+import ring_theory.principal_ideal_domain
+import data.mv_polynomial.basic
 
 /-!
 # Adjoining elements to form subalgebras
@@ -29,7 +31,7 @@ open_locale pointwise
 namespace algebra
 
 variables {R : Type u} {A : Type v} {B : Type w}
-  [comm_ring R] [comm_ring A] [algebra R A] {s t : set A}
+  [comm_semiring R] [comm_semiring A] [algebra R A] {s t : set A}
 
 theorem fg_trans (h1 : (adjoin R s).to_submodule.fg)
   (h2 : (adjoin (adjoin R s) t).to_submodule.fg) :
@@ -47,16 +49,16 @@ begin
       exact adjoin_mono (set.subset_union_left _ _) this },
     have : y ∈ (adjoin (adjoin R s) t).to_submodule,
     { rw ← hq', exact subset_span hy },
-    change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_under },
+    change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_adjoin_adjoin },
   { intros r hr,
     change r ∈ adjoin R (s ∪ t) at hr,
-    rw adjoin_union_eq_under at hr,
+    rw adjoin_union_eq_adjoin_adjoin at hr,
     change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
     rw [← hq', ← set.image_id q, finsupp.mem_span_image_iff_total (adjoin R s)] at hr,
     rcases hr with ⟨l, hlq, rfl⟩,
     have := @finsupp.total_apply A A (adjoin R s),
     rw [this, finsupp.sum],
-    refine sum_mem _ _,
+    refine sum_mem _,
     intros z hz, change (l z).1 * _ ∈ _,
     have : (l z).1 ∈ (adjoin R s).to_submodule := (l z).2,
     rw [← hp', ← set.image_id p, finsupp.mem_span_image_iff_total R] at this,
@@ -64,7 +66,7 @@ begin
     have := @finsupp.total_apply A A R,
     rw this at hl,
     rw [←hl, finsupp.sum_mul],
-    refine sum_mem _ _,
+    refine sum_mem _,
     intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,
     exact subset_span ⟨t, z, hlp ht, hlq hz, rfl⟩ }
 end
@@ -85,8 +87,7 @@ lemma fg_adjoin_finset (s : finset A) : (algebra.adjoin R (↑s : set A)).fg :=
 ⟨s, rfl⟩
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
-⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
-λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+iff.symm set.exists_finite_iff_finset
 
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
@@ -106,7 +107,7 @@ lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A)
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
 by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
 
-lemma fg_prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=
+lemma fg.prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=
 begin
   obtain ⟨s, hs⟩ := fg_def.1 hS,
   obtain ⟨t, ht⟩ := fg_def.1 hT,
@@ -119,18 +120,18 @@ end
 
 section
 open_locale classical
-lemma fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
+lemma fg.map {S : subalgebra R A} (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
 let ⟨s, hs⟩ := hs in ⟨s.image f, by rw [finset.coe_image, algebra.adjoin_image, hs]⟩
 end
 
 lemma fg_of_fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hf : function.injective f)
   (hs : (S.map f).fg) : S.fg :=
-let ⟨s, hs⟩ := hs in ⟨s.preimage f $ λ _ _ _ _ h, hf h, map_injective f hf $
+let ⟨s, hs⟩ := hs in ⟨s.preimage f $ λ _ _ _ _ h, hf h, map_injective hf $
 by { rw [← algebra.adjoin_image, finset.coe_preimage, set.image_preimage_eq_of_subset, hs],
   rw [← alg_hom.coe_range, ← algebra.adjoin_le_iff, hs, ← algebra.map_top], exact map_mono le_top }⟩
 
 lemma fg_top (S : subalgebra R A) : (⊤ : subalgebra R S).fg ↔ S.fg :=
-⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg_map _ _ h },
+⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg.map _ h },
 λ h, fg_of_fg_map _ S.val subtype.val_injective $ by { rw [algebra.map_top, range_val], exact h }⟩
 
 lemma induction_on_adjoin [is_noetherian R A] (P : subalgebra R A → Prop)
@@ -148,13 +149,22 @@ end
 
 end subalgebra
 
+section semiring
+
 variables {R : Type u} {A : Type v} {B : Type w}
-variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
+variables [comm_semiring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
 /-- The image of a Noetherian R-algebra under an R-algebra map is a Noetherian ring. -/
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom
+
+end semiring
+
+section ring
+
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
 theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=
@@ -167,3 +177,5 @@ theorem is_noetherian_subring_closure (s : set R) (hs : s.finite) :
   is_noetherian_ring (subring.closure s) :=
 show is_noetherian_ring (subalgebra_of_subring (subring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)
+
+end ring

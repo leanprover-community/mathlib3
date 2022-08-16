@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.star.basic
-import algebra.order.algebra
 import analysis.special_functions.pow
 
 /-!
@@ -74,14 +73,14 @@ There is a CHSH tuple in 4-by-4 matrices such that
 universes u
 
 /--
-A CHSH tuple in a `star_monoid R` consists of 4 self-adjoint involutions `A₀ A₁ B₀ B₁` such that
+A CHSH tuple in a *-monoid consists of 4 self-adjoint involutions `A₀ A₁ B₀ B₁` such that
 the `Aᵢ` commute with the `Bⱼ`.
 
 The physical interpretation is that `A₀` and `A₁` are a pair of boolean observables which
 are spacelike separated from another pair `B₀` and `B₁` of boolean observables.
 -/
-@[nolint has_inhabited_instance]
-structure is_CHSH_tuple {R} [monoid R] [star_monoid R] (A₀ A₁ B₀ B₁ : R) :=
+@[nolint has_nonempty_instance]
+structure is_CHSH_tuple {R} [monoid R] [star_semigroup R] (A₀ A₁ B₀ B₁ : R) :=
 (A₀_inv : A₀^2 = 1) (A₁_inv : A₁^2 = 1) (B₀_inv : B₀^2 = 1) (B₁_inv : B₁^2 = 1)
 (A₀_sa : star A₀ = A₀) (A₁_sa : star A₁ = A₁) (B₀_sa : star B₀ = B₀) (B₁_sa : star B₁ = B₁)
 (A₀B₀_commutes : A₀ * B₀ = B₀ * A₀)
@@ -90,6 +89,22 @@ structure is_CHSH_tuple {R} [monoid R] [star_monoid R] (A₀ A₁ B₀ B₁ : R)
 (A₁B₁_commutes : A₁ * B₁ = B₁ * A₁)
 
 variables {R : Type u}
+
+lemma CHSH_id [comm_ring R] {A₀ A₁ B₀ B₁ : R}
+  (A₀_inv : A₀^2 = 1) (A₁_inv : A₁^2 = 1) (B₀_inv : B₀^2 = 1) (B₁_inv : B₁^2 = 1) :
+   (2 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁) *
+      (2 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁) =
+      4 * (2 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁) :=
+    -- If we had a Gröbner basis algorithm, this would be trivial.
+      -- Without one, it is somewhat tedious!
+begin
+  rw ← sub_eq_zero,
+  repeat
+  { ring_nf,
+    simp only [A₁_inv, B₁_inv, sub_eq_add_neg, add_mul, mul_add, sub_mul, mul_sub, add_assoc,
+      neg_add, neg_sub, sub_add, sub_sub, neg_mul, ←sq, A₀_inv, B₀_inv, ←sq, ←mul_assoc, one_mul,
+      mul_one, add_right_neg, add_zero, sub_eq_add_neg, A₀_inv, mul_one, add_right_neg, zero_mul] }
+end
 
 /--
 Given a CHSH tuple (A₀, A₁, B₀, B₁) in a *commutative* ordered `*`-algebra over ℝ,
@@ -104,38 +119,7 @@ lemma CHSH_inequality_of_comm
 begin
   let P := (2 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁),
   have i₁ : 0 ≤ P,
-  { have idem : P * P = 4 * P,
-    { -- If we had a Gröbner basis algorithm, this would be trivial.
-      -- Without one, it is somewhat tedious!
-      dsimp [P],
-      simp only [add_mul, mul_add, sub_mul, mul_sub, mul_comm, mul_assoc, add_assoc],
-      repeat { conv in (B₀ * (A₀ * B₀))
-      { rw [T.A₀B₀_commutes, ←mul_assoc B₀ B₀ A₀, ←sq, T.B₀_inv, one_mul], } },
-      repeat { conv in (B₀ * (A₁ * B₀))
-      { rw [T.A₁B₀_commutes, ←mul_assoc B₀ B₀ A₁, ←sq, T.B₀_inv, one_mul], } },
-      repeat { conv in (B₁ * (A₀ * B₁))
-      { rw [T.A₀B₁_commutes, ←mul_assoc B₁ B₁ A₀, ←sq, T.B₁_inv, one_mul], } },
-      repeat { conv in (B₁ * (A₁ * B₁))
-      { rw [T.A₁B₁_commutes, ←mul_assoc B₁ B₁ A₁, ←sq, T.B₁_inv, one_mul], } },
-      conv in (A₀ * (B₀ * (A₀ * B₁)))
-      { rw [←mul_assoc, T.A₀B₀_commutes, mul_assoc, ←mul_assoc A₀, ←sq, T.A₀_inv, one_mul], },
-      conv in (A₀ * (B₁ * (A₀ * B₀)))
-      { rw [←mul_assoc, T.A₀B₁_commutes, mul_assoc, ←mul_assoc A₀, ←sq, T.A₀_inv, one_mul], },
-      conv in (A₁ * (B₀ * (A₁ * B₁)))
-      { rw [←mul_assoc, T.A₁B₀_commutes, mul_assoc, ←mul_assoc A₁, ←sq, T.A₁_inv, one_mul], },
-      conv in (A₁ * (B₁ * (A₁ * B₀)))
-      { rw [←mul_assoc, T.A₁B₁_commutes, mul_assoc, ←mul_assoc A₁, ←sq, T.A₁_inv, one_mul], },
-      simp only [←sq, T.A₀_inv, T.A₁_inv],
-      simp only [mul_comm A₁ A₀, mul_comm B₁ B₀, mul_left_comm A₁ A₀, mul_left_comm B₁ B₀,
-        mul_left_comm B₀ A₀, mul_left_comm B₀ A₁, mul_left_comm B₁ A₀, mul_left_comm B₁ A₁],
-      norm_num,
-      simp only [mul_comm _ (2 : R), mul_comm _ (4 : R),
-        mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
-      abel,
-      simp only [neg_mul_eq_neg_mul_symm, mul_one, int.cast_bit0, one_mul, int.cast_one,
-        zsmul_eq_mul, int.cast_neg],
-      simp only [←mul_assoc, ←add_assoc],
-      norm_num, },
+  { have idem : P * P = 4 * P := CHSH_id T.A₀_inv T.A₁_inv T.B₀_inv T.B₁_inv,
     have idem' : P = (1 / 4 : ℝ) • (P * P),
     { have h : 4 * P = (4 : ℝ) • P := by simp [algebra.smul_def],
       rw [idem, h, ←mul_smul],
@@ -149,7 +133,7 @@ begin
     convert smul_le_smul_of_nonneg (star_mul_self_nonneg : 0 ≤ star P * P) _,
     { simp, },
     { apply_instance, },
-    { norm_num, }, },
+    { norm_num, } },
   apply le_of_sub_nonneg,
   simpa only [sub_add_eq_sub_sub, ←sub_add] using i₁,
 end
@@ -172,17 +156,12 @@ we prepare some easy lemmas about √2.
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
 lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
-  ring_nf,
-  rw [mul_assoc, inv_mul_cancel, real.sqrt_eq_rpow, ←real.rpow_nat_cast, ←real.rpow_mul],
-  { norm_num,
-    rw show (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ (2 : ℕ), by { rw ←real.rpow_nat_cast, norm_num },
-    norm_num },
-  { norm_num, },
-  { norm_num, },
+  ring_nf, field_simp [(@real.sqrt_pos 2).2 (by norm_num)],
+  convert congr_arg (^2) (@real.sq_sqrt 2 (by norm_num)) using 1;
+    simp only [← pow_mul]; norm_num,
 end
 
-lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
-by { rw [←mul_inv₀], norm_num, }
+lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) := by { rw ←mul_inv, norm_num }
 
 end tsirelson_inequality
 open tsirelson_inequality
@@ -222,13 +201,13 @@ begin
     abel,
     -- all terms coincide, but the last one. Simplify all other terms
     simp only [M],
-    simp only [neg_mul_eq_neg_mul_symm, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
+    simp only [neg_mul, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
     exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
-  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
-    have P_sa : star P = P,
+  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2),
+  { have P_sa : star P = P,
     { dsimp [P],
       simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },

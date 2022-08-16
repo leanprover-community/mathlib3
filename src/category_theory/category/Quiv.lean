@@ -3,8 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.path_category
+import category_theory.adjunction.basic
 import category_theory.category.Cat
+import category_theory.path_category
 
 /-!
 # The category of quivers
@@ -70,7 +71,7 @@ namespace Quiv
 
 /-- Any prefunctor into a category lifts to a functor from the path category. -/
 @[simps]
-def lift {V : Type u} [quiver.{v+1} V] {C : Type u} [category.{v} C]
+def lift {V : Type u} [quiver.{v+1} V] {C : Type*} [category C]
   (F : prefunctor V C) : paths V ⥤ C :=
 { obj := λ X, F.obj X,
   map := λ X Y f, compose_path (F.map_path f), }

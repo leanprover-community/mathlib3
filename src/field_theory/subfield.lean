@@ -63,6 +63,64 @@ universes u v w
 
 variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [field M]
 
+/-- `subfield_class S K` states `S` is a type of subsets `s ⊆ K` closed under field operations. -/
+class subfield_class (S : Type*) (K : out_param $ Type*) [field K] [set_like S K]
+  extends subring_class S K, inv_mem_class S K.
+
+namespace subfield_class
+
+variables (S : Type*) [set_like S K] [h : subfield_class S K]
+include h
+
+/-- A subfield contains `1`, products and inverses.
+
+Be assured that we're not actually proving that subfields are subgroups:
+`subgroup_class` is really an abbreviation of `subgroup_with_or_without_zero_class`.
+ -/
+@[priority 100] -- See note [lower instance priority]
+instance subfield_class.to_subgroup_class : subgroup_class S K := { .. h }
+
+variables {S}
+
+lemma coe_rat_mem (s : S) (x : ℚ) : (x : K) ∈ s :=
+by simpa only [rat.cast_def] using div_mem (coe_int_mem s x.num) (coe_nat_mem s x.denom)
+
+instance (s : S) : has_rat_cast s :=
+⟨λ x, ⟨↑x, coe_rat_mem s x⟩⟩
+
+@[simp] lemma coe_rat_cast (s : S) (x : ℚ) : ((x : s) : K) = x := rfl
+
+lemma rat_smul_mem (s : S) (a : ℚ) (x : s) : (a • x : K) ∈ s :=
+by simpa only [rat.smul_def] using mul_mem (coe_rat_mem s a) x.prop
+
+instance (s : S) : has_smul ℚ s :=
+⟨λ a x, ⟨a • x, rat_smul_mem s a x⟩⟩
+
+@[simp] lemma coe_rat_smul (s : S) (a : ℚ) (x : s) : (↑(a • x) : K) = a • x := rfl
+
+variables (S)
+
+/-- A subfield inherits a field structure -/
+@[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
+instance to_field (s : S) : field s :=
+subtype.coe_injective.field (coe : s → K)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl)
+
+omit h
+
+/-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
+@[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
+instance to_linear_ordered_field {K} [linear_ordered_field K] [set_like S K]
+  [subfield_class S K] (s : S) :
+  linear_ordered_field s :=
+subtype.coe_injective.linear_ordered_field coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
+
+end subfield_class
+
 set_option old_structure_cmd true
 
 /-- `subfield R` is the type of subfields of `R`. A subfield of `R` is a subset `s` that is a
@@ -84,9 +142,16 @@ def to_add_subgroup (s : subfield K) : add_subgroup K :=
 def to_submonoid (s : subfield K) : submonoid K :=
 { ..s.to_subring.to_submonoid }
 
-
 instance : set_like (subfield K) K :=
 ⟨subfield.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+instance : subfield_class (subfield K) K :=
+{ add_mem := add_mem',
+  zero_mem := zero_mem',
+  neg_mem := neg_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  inv_mem := inv_mem' }
 
 @[simp]
 lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -137,81 +202,71 @@ namespace subfield
 
 variables (s t : subfield K)
 
-/-- A subfield contains the ring's 1. -/
-theorem one_mem : (1 : K) ∈ s := s.one_mem'
+section derived_from_subfield_class
 
-/-- A subfield contains the ring's 0. -/
-theorem zero_mem : (0 : K) ∈ s := s.zero_mem'
-
+/-- A subfield contains the field's 1. -/
+protected theorem one_mem : (1 : K) ∈ s := one_mem s
+/-- A subfield contains the field's 0. -/
+protected theorem zero_mem : (0 : K) ∈ s := zero_mem s
 /-- A subfield is closed under multiplication. -/
-theorem mul_mem : ∀ {x y : K}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_mem'
-
+protected theorem mul_mem {x y : K} : x ∈ s → y ∈ s → x * y ∈ s := mul_mem
 /-- A subfield is closed under addition. -/
-theorem add_mem : ∀ {x y : K}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
-
+protected theorem add_mem {x y : K} : x ∈ s → y ∈ s → x + y ∈ s := add_mem
 /-- A subfield is closed under negation. -/
-theorem neg_mem : ∀ {x : K}, x ∈ s → -x ∈ s := s.neg_mem'
-
+protected theorem neg_mem {x : K} : x ∈ s → -x ∈ s := neg_mem
 /-- A subfield is closed under subtraction. -/
-theorem sub_mem {x y : K} : x ∈ s → y ∈ s → x - y ∈ s := s.to_subring.sub_mem
-
+protected theorem sub_mem {x y : K} : x ∈ s → y ∈ s → x - y ∈ s := sub_mem
 /-- A subfield is closed under inverses. -/
-theorem inv_mem : ∀ {x : K}, x ∈ s → x⁻¹ ∈ s := s.inv_mem'
-
+protected theorem inv_mem {x : K} : x ∈ s → x⁻¹ ∈ s := inv_mem
 /-- A subfield is closed under division. -/
-theorem div_mem {x y : K} (hx : x ∈ s) (hy : y ∈ s) : x / y ∈ s :=
-by { rw div_eq_mul_inv, exact s.mul_mem hx (s.inv_mem hy) }
-
+protected theorem div_mem {x y : K} : x ∈ s → y ∈ s → x / y ∈ s := div_mem
 /-- Product of a list of elements in a subfield is in the subfield. -/
-lemma list_prod_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.prod ∈ s :=
-s.to_submonoid.list_prod_mem
-
+protected lemma list_prod_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.prod ∈ s := list_prod_mem
 /-- Sum of a list of elements in a subfield is in the subfield. -/
-lemma list_sum_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.sum ∈ s :=
-s.to_add_subgroup.list_sum_mem
-
+protected lemma list_sum_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.sum ∈ s := list_sum_mem
 /-- Product of a multiset of elements in a subfield is in the subfield. -/
-lemma multiset_prod_mem (m : multiset K) :
-  (∀ a ∈ m, a ∈ s) → m.prod ∈ s :=
-s.to_submonoid.multiset_prod_mem m
-
+protected lemma multiset_prod_mem (m : multiset K) : (∀ a ∈ m, a ∈ s) → m.prod ∈ s :=
+multiset_prod_mem m
 /-- Sum of a multiset of elements in a `subfield` is in the `subfield`. -/
-lemma multiset_sum_mem (m : multiset K) :
-  (∀ a ∈ m, a ∈ s) → m.sum ∈ s :=
-s.to_add_subgroup.multiset_sum_mem m
-
+protected lemma multiset_sum_mem (m : multiset K) : (∀ a ∈ m, a ∈ s) → m.sum ∈ s :=
+multiset_sum_mem m
 /-- Product of elements of a subfield indexed by a `finset` is in the subfield. -/
-lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
+protected lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
-s.to_submonoid.prod_mem h
-
+prod_mem h
 /-- Sum of elements in a `subfield` indexed by a `finset` is in the `subfield`. -/
-lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
+protected lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
-s.to_add_subgroup.sum_mem h
+sum_mem h
+protected lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
+protected lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
+protected lemma coe_int_mem (n : ℤ) : (n : K) ∈ s := coe_int_mem s n
 
-lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
-
-lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
-
-lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
-by simp only [← zsmul_one, zsmul_mem, one_mem]
+lemma zpow_mem {x : K} (hx : x ∈ s) (n : ℤ) : x^n ∈ s :=
+begin
+  cases n,
+  { simpa using s.pow_mem hx n },
+  { simpa [pow_succ] using s.inv_mem (s.mul_mem hx (s.pow_mem hx n)) },
+end
 
 instance : ring s := s.to_subring.to_ring
 instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
 instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
+instance : has_pow s ℤ := ⟨λ x z, ⟨x ^ z, s.zpow_mem x.2 z⟩⟩
 
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
-subtype.coe_injective.field coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.field (coe : s → K)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
 instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
@@ -221,6 +276,8 @@ subtype.coe_injective.linear_ordered_field coe
 @[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
+
+end derived_from_subfield_class
 
 /-- The embedding from a subfield of the field `K` to `K`. -/
 def subtype (s : subfield K) : s →+* K :=
@@ -262,7 +319,7 @@ variables (f : K →+* L)
 
 /-- The preimage of a subfield along a ring homomorphism is a subfield. -/
 def comap (s : subfield L) : subfield K :=
-{ inv_mem' := λ x hx, show f (x⁻¹) ∈ s, by { rw f.map_inv, exact s.inv_mem hx },
+{ inv_mem' := λ x hx, show f (x⁻¹) ∈ s, by { rw map_inv₀ f, exact s.inv_mem hx },
   .. s.to_subring.comap f }
 
 @[simp] lemma coe_comap (s : subfield L) : (s.comap f : set K) = f ⁻¹' s := rfl
@@ -278,7 +335,7 @@ rfl
 
 /-- The image of a subfield along a ring homomorphism is a subfield. -/
 def map (s : subfield K) : subfield L :=
-{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, s.inv_mem hx, f.map_inv x⟩ },
+{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, s.inv_mem hx, map_inv₀ f x⟩ },
   .. s.to_subring.map f }
 
 @[simp] lemma coe_map : (s.map f : set L) = f '' s := rfl
@@ -406,7 +463,7 @@ def closure (s : set K) : subfield K :=
   zero_mem' := ⟨0, subring.zero_mem _, 1, subring.one_mem _, div_one _⟩,
   one_mem' := ⟨1, subring.one_mem _, 1, subring.one_mem _, div_one _⟩,
   neg_mem' := λ x ⟨y, hy, z, hz, x_eq⟩, ⟨-y, subring.neg_mem _ hy, z, hz, x_eq ▸ neg_div _ _⟩,
-  inv_mem' := λ x ⟨y, hy, z, hz, x_eq⟩, ⟨z, hz, y, hy, x_eq ▸ inv_div.symm⟩,
+  inv_mem' := λ x ⟨y, hy, z, hz, x_eq⟩, ⟨z, hz, y, hy, x_eq ▸ (inv_div _ _).symm⟩,
   add_mem' := λ x y x_mem y_mem, begin
     obtain ⟨nx, hnx, dx, hdx, rfl⟩ := id x_mem,
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
@@ -422,7 +479,7 @@ def closure (s : set K) : subfield K :=
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
     exact ⟨nx * ny, subring.mul_mem _ hnx hny,
            dx * dy, subring.mul_mem _ hdx hdy,
-           (div_mul_div _ _ _ _).symm⟩
+           (div_mul_div_comm _ _ _ _).symm⟩
   end }
 
 lemma mem_closure_iff {s : set K} {x} :
@@ -469,8 +526,8 @@ lemma closure_induction {s : set K} {p : K → Prop} {x} (h : x ∈ closure s)
   (Hneg : ∀ x, p x → p (-x))
   (Hinv : ∀ x, p x → p (x⁻¹))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul,
-  @add_neg_self K _ 1 ▸ Hadd _ _ H1 (Hneg _ H1), Hadd, Hneg, Hinv⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1,
+  Hadd, @add_neg_self K _ 1 ▸ Hadd _ _ H1 (Hneg _ H1), Hneg, Hinv⟩).2 Hs h
 
 variable (K)
 /-- `closure` forms a Galois insertion with the coercion to set. -/
@@ -565,20 +622,6 @@ variables {s : subfield K}
 
 open subfield
 
-/-- Restrict the codomain of a ring homomorphism to a subfield that includes the range. -/
-def cod_restrict_field (f : K →+* L)
-  (s : subfield L) (h : ∀ x, f x ∈ s) : K →+* s :=
-{ to_fun := λ x, ⟨f x, h x⟩,
-  map_add' := λ x y, subtype.eq $ f.map_add x y,
-  map_zero' := subtype.eq f.map_zero,
-  map_mul' := λ x y, subtype.eq $ f.map_mul x y,
-  map_one' := subtype.eq f.map_one }
-
-/-- Restriction of a ring homomorphism to a subfield of the domain. -/
-def restrict_field (f : K →+* L) (s : subfield K) : s →+* L := f.comp s.subtype
-
-@[simp] lemma restrict_field_apply (f : K →+* L) (x : s) : f.restrict_field s x = f x := rfl
-
 /-- Restriction of a ring homomorphism to its range interpreted as a subfield. -/
 def range_restrict_field (f : K →+* L) : K →+* f.field_range :=
 f.srange_restrict
@@ -589,7 +632,7 @@ f.srange_restrict
 /-- The subfield of elements `x : R` such that `f x = g x`, i.e.,
 the equalizer of f and g as a subfield of R -/
 def eq_locus_field (f g : K →+* L) : subfield K :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [map_inv₀ f, map_inv₀ g, hx],
   carrier := {x | f x = g x}, .. (f : K →+* L).eq_locus g }
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subfield closure. -/
@@ -626,7 +669,7 @@ open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subfields. -/
 def inclusion {S T : subfield K} (h : S ≤ T) : S →+* T :=
-S.subtype.cod_restrict_field _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp] lemma field_range_subtype (s : subfield K) : s.subtype.field_range = s :=
 set_like.ext' $ (coe_srange _).trans subtype.range_coe

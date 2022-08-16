@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import data.list.sigma
+import data.int.range
+import data.finsupp.basic
+import data.finsupp.to_dfinsupp
+import tactic.pretty_cases
 import testing.slim_check.sampleable
 import testing.slim_check.testable
-import tactic.pretty_cases
 
 /-!
 ## `slim_check`: generators for functions
@@ -63,7 +66,7 @@ inductive total_function (α : Type u) (β : Type v) : Type (max u v)
 | with_default : list (Σ _ : α, β) → β → total_function
 
 instance total_function.inhabited [inhabited β] : inhabited (total_function α β) :=
-⟨ total_function.with_default ∅ (default _) ⟩
+⟨ total_function.with_default ∅ default ⟩
 
 namespace total_function
 
@@ -111,22 +114,85 @@ variables [decidable_eq α]
 
 /-- Shrink a total function by shrinking the lists that represent it. -/
 protected def shrink : shrink_fn (total_function α β)
-| ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.erase_dupkeys m', x'⟩,
+| ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.dedupkeys m', x'⟩,
             lt_of_le_of_lt
-              (by unfold_wf; refine @list.sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
+              (by unfold_wf; refine @list.sizeof_dedupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
 
 variables [has_repr α] [has_repr β]
 
 instance pi.sampleable_ext : sampleable_ext (α → β) :=
 { proxy_repr := total_function α β,
   interp := total_function.apply,
-  sample := do {
-    xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
+  sample := do
+  { xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
     pure $ total_function.with_default (list.to_finmap' xs) x },
   shrink := total_function.shrink }
 
 end
+
+section finsupp
+
+variables [has_zero β]
+/-- Map a total_function to one whose default value is zero so that it represents a finsupp. -/
+@[simp]
+def zero_default : total_function α β → total_function α β
+| (with_default A y) := with_default A 0
+
+variables [decidable_eq α] [decidable_eq β]
+/-- The support of a zero default `total_function`. -/
+@[simp]
+def zero_default_supp : total_function α β → finset α
+| (with_default A y) :=
+  list.to_finset $ (A.dedupkeys.filter (λ ab, sigma.snd ab ≠ 0)).map sigma.fst
+
+/-- Create a finitely supported function from a total function by taking the default value to
+zero. -/
+def apply_finsupp (tf : total_function α β) : α →₀ β :=
+{ support := zero_default_supp tf,
+  to_fun := tf.zero_default.apply,
+  mem_support_to_fun := begin
+    intro a,
+    rcases tf with ⟨A, y⟩,
+    simp only [apply, zero_default_supp, list.mem_map, list.mem_filter, exists_and_distrib_right,
+      list.mem_to_finset, exists_eq_right, sigma.exists, ne.def, zero_default],
+    split,
+    { rintro ⟨od, hval, hod⟩,
+      have := list.mem_lookup (list.nodupkeys_dedupkeys A) hval,
+      rw (_ : list.lookup a A = od),
+      { simpa, },
+      { simpa [list.lookup_dedupkeys, with_top.some_eq_coe], }, },
+    { intro h,
+      use (A.lookup a).get_or_else (0 : β),
+      rw ← list.lookup_dedupkeys at h ⊢,
+      simp only [h, ←list.mem_lookup_iff A.nodupkeys_dedupkeys,
+        and_true, not_false_iff, option.mem_def],
+      cases list.lookup a A.dedupkeys,
+      { simpa using h, },
+      { simp, }, }
+  end }
+
+variables [sampleable α] [sampleable β]
+instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α →₀ β) :=
+{ proxy_repr := total_function α β,
+  interp := total_function.apply_finsupp,
+  sample := (do
+    xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
+    ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
+    pure $ total_function.with_default (list.to_finmap' xs) x),
+  shrink := total_function.shrink }
+
+-- TODO: support a non-constant codomain type
+instance dfinsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (Π₀ a : α, β) :=
+{ proxy_repr := total_function α β,
+  interp := finsupp.to_dfinsupp ∘ total_function.apply_finsupp,
+  sample := (do
+    xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
+    ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
+    pure $ total_function.with_default (list.to_finmap' xs) x),
+  shrink := total_function.shrink }
+
+end finsupp
 
 section sampleable_ext
 open sampleable_ext
@@ -141,7 +207,7 @@ instance pi_pred.sampleable_ext [sampleable_ext (α → bool)] :
 
 @[priority 2000]
 instance pi_uncurry.sampleable_ext
-  [sampleable_ext (α × β → γ)] : sampleable_ext.{(imax (u+1) (v+1) w)} (α → β → γ) :=
+  [sampleable_ext (α × β → γ)] : sampleable_ext.{imax (u+1) (v+1) w} (α → β → γ) :=
 { proxy_repr := proxy_repr (α × β → γ),
   interp := λ m x y, interp (α × β → γ) m (x, y),
   sample := sample (α × β → γ),
@@ -315,7 +381,7 @@ def perm.slice [decidable_eq α] (n m : ℕ) :
   let xs' := list.slice n m xs in
   have h₀ : xs' ~ ys.inter xs',
     from perm.slice_inter _ _ h h',
-  ⟨xs', ys.inter xs', h₀, nodup_inter_of_nodup _ h'⟩
+  ⟨xs', ys.inter xs', h₀, h'.inter _⟩
 
 /--
 A lazy list, in decreasing order, of sizes that should be
@@ -402,13 +468,13 @@ end
 instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // function.injective f } :=
 { proxy_repr := injective_function ℤ,
   interp := λ f, ⟨ apply f, f.injective ⟩,
-  sample := gen.sized $ λ sz, do {
-    let xs' := int.range (-(2*sz+2)) (2*sz + 2),
+  sample := gen.sized $ λ sz, do
+  { let xs' := int.range (-(2*sz+2)) (2*sz + 2),
     ys ← gen.permutation_of xs',
     have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r),
       from λ x y h, int.coe_nat_inj (add_right_injective _ h),
     let r : injective_function ℤ :=
-      injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ nodup_map Hinj (nodup_range _)) in
+      injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ (nodup_range _).map Hinj) in
     pure r },
   shrink := @injective_function.shrink ℤ _ _ }
 

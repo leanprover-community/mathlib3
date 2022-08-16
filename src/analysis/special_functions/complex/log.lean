@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.complex.arg
-import analysis.special_functions.log
+import analysis.special_functions.log.basic
 
 /-!
 # The complex `log` function
 
-Basic properties, relationship with `exp`, and differentiability.
+Basic properties, relationship with `exp`.
 -/
 
 noncomputable theory
@@ -40,20 +40,13 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
 @[simp] lemma range_exp : range exp = {0}ᶜ :=
 set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
 
+lemma log_exp {x : ℂ} (hx₁ : -π < x.im) (hx₂: x.im ≤ π) : log (exp x) = x :=
+by rw [log, abs_exp, real.log_exp, exp_eq_exp_re_mul_sin_add_cos, ← of_real_exp,
+  arg_mul_cos_add_sin_mul_I (real.exp_pos _) ⟨hx₁, hx₂⟩, re_add_im]
+
 lemma exp_inj_of_neg_pi_lt_of_le_pi {x y : ℂ} (hx₁ : -π < x.im) (hx₂ : x.im ≤ π)
   (hy₁ : - π < y.im) (hy₂ : y.im ≤ π) (hxy : exp x = exp y) : x = y :=
-by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y] at hxy;
-  exact complex.ext
-    (real.exp_injective $
-      by simpa [abs_mul, abs_cos_add_sin_mul_I] using congr_arg complex.abs hxy)
-    (by simpa [(of_real_exp _).symm, - of_real_exp, arg_real_mul _ (real.exp_pos _),
-      arg_cos_add_sin_mul_I hx₁ hx₂, arg_cos_add_sin_mul_I hy₁ hy₂] using congr_arg arg hxy)
-
-lemma log_exp {x : ℂ} (hx₁ : -π < x.im) (hx₂: x.im ≤ π) : log (exp x) = x :=
-exp_inj_of_neg_pi_lt_of_le_pi
-  (by rw log_im; exact neg_pi_lt_arg _)
-  (by rw log_im; exact arg_le_pi _)
-  hx₁ hx₂ (by rw [exp_log (exp_ne_zero _)])
+by rw [← log_exp hx₁ hx₂, ← log_exp hy₁ hy₂, hxy]
 
 lemma of_real_log {x : ℝ} (hx : 0 ≤ x) : (x.log : ℂ) = log x :=
 complex.ext
@@ -76,27 +69,16 @@ lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
 
 lemma exp_eq_one_iff {x : ℂ} : exp x = 1 ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :=
-have real.exp (x.re) * real.cos (x.im) = 1 → real.cos x.im ≠ -1,
-  from λ h₁ h₂, begin
-    rw [h₂, mul_neg_eq_neg_mul_symm, mul_one, neg_eq_iff_neg_eq] at h₁,
-    have := real.exp_pos x.re,
-    rw ← h₁ at this,
-    exact absurd this (by norm_num)
-  end,
-calc exp x = 1 ↔ (exp x).re = 1 ∧ (exp x).im = 0 : by simp [complex.ext_iff]
-  ... ↔ real.cos x.im = 1 ∧ real.sin x.im = 0 ∧ x.re = 0 :
-    begin
-      rw exp_eq_exp_re_mul_sin_add_cos,
-      simp [complex.ext_iff, cos_of_real_re, sin_of_real_re, exp_of_real_re,
-        real.exp_ne_zero],
-      split; finish [real.sin_eq_zero_iff_cos_eq]
-    end
-  ... ↔ (∃ n : ℤ, ↑n * (2 * π) = x.im) ∧ (∃ n : ℤ, ↑n * π = x.im) ∧ x.re = 0 :
-    by rw [real.sin_eq_zero_iff, real.cos_eq_one_iff]
-  ... ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :
-    ⟨λ ⟨⟨n, hn⟩, ⟨m, hm⟩, h⟩, ⟨n, by simp [complex.ext_iff, hn.symm, h]⟩,
-      λ ⟨n, hn⟩, ⟨⟨n, by simp [hn]⟩, ⟨2 * n, by simp [hn, mul_comm, mul_assoc, mul_left_comm]⟩,
-        by simp [hn]⟩⟩
+begin
+  split,
+  { intro h,
+    rcases exists_unique_add_zsmul_mem_Ioc real.two_pi_pos x.im (-π) with ⟨n, hn, -⟩,
+    use -n,
+    rw [int.cast_neg, neg_mul, eq_neg_iff_add_eq_zero],
+    have : (x + n * (2 * π * I)).im ∈ Ioc (-π) π, by simpa [two_mul, mul_add] using hn,
+    rw [← log_exp this.1 this.2, exp_periodic.int_mul n, h, log_one] },
+  { rintro ⟨n, rfl⟩, exact (exp_periodic.int_mul n).eq.trans exp_zero }
+end
 
 lemma exp_eq_exp_iff_exp_sub_eq_one {x y : ℂ} : exp x = exp y ↔ exp (x - y) = 1 :=
 by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
@@ -104,7 +86,7 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
-@[simp] lemma countable_preimage_exp {s : set ℂ} : countable (exp ⁻¹' s) ↔ countable s :=
+@[simp] lemma countable_preimage_exp {s : set ℂ} : (exp ⁻¹' s).countable ↔ s.countable :=
 begin
   refine ⟨λ hs, _, λ hs, _⟩,
   { refine ((hs.image exp).insert 0).mono _,
@@ -118,49 +100,7 @@ begin
     { push_neg at hne, simp [preimage, hne] } }
 end
 
-alias countable_preimage_exp ↔ _ set.countable.preimage_cexp
-
-/-- `complex.exp` as a `local_homeomorph` with `source = {z | -π < im z < π}` and
-`target = {z | 0 < re z} ∪ {z | im z ≠ 0}`. This definition is used to prove that `complex.log`
-is complex differentiable at all points but the negative real semi-axis. -/
-def exp_local_homeomorph : local_homeomorph ℂ ℂ :=
-local_homeomorph.of_continuous_open
-{ to_fun := exp,
-  inv_fun := log,
-  source := {z : ℂ | z.im ∈ Ioo (- π) π},
-  target := {z : ℂ | 0 < z.re} ∪ {z : ℂ | z.im ≠ 0},
-  map_source' :=
-    begin
-      rintro ⟨x, y⟩ ⟨h₁ : -π < y, h₂ : y < π⟩,
-      refine (not_or_of_imp $ λ hz, _).symm,
-      obtain rfl : y = 0,
-      { rw exp_im at hz,
-        simpa [(real.exp_pos _).ne', real.sin_eq_zero_iff_of_lt_of_lt h₁ h₂] using hz },
-      rw [mem_set_of_eq, ← of_real_def, exp_of_real_re],
-      exact real.exp_pos x
-    end,
-  map_target' := λ z h,
-    suffices 0 ≤ z.re ∨ z.im ≠ 0,
-      by simpa [log_im, neg_pi_lt_arg, (arg_le_pi _).lt_iff_ne, arg_eq_pi_iff, not_and_distrib],
-    h.imp (λ h, le_of_lt h) id,
-  left_inv' := λ x hx, log_exp hx.1 (le_of_lt hx.2),
-  right_inv' := λ x hx, exp_log $ by { rintro rfl, simpa [lt_irrefl] using hx } }
-continuous_exp.continuous_on is_open_map_exp (is_open_Ioo.preimage continuous_im)
-
-lemma has_strict_deriv_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
-  has_strict_deriv_at log x⁻¹ x :=
-have h0 :  x ≠ 0, by { rintro rfl, simpa [lt_irrefl] using h },
-exp_local_homeomorph.has_strict_deriv_at_symm h h0 $
-  by simpa [exp_log h0] using has_strict_deriv_at_exp (log x)
-
-lemma has_strict_fderiv_at_log_real {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
-  has_strict_fderiv_at log (x⁻¹ • (1 : ℂ →L[ℝ] ℂ)) x :=
-(has_strict_deriv_at_log h).complex_to_real_fderiv
-
-lemma times_cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_top ℕ} :
-  times_cont_diff_at ℂ n log x :=
-exp_local_homeomorph.times_cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
-  (has_deriv_at_exp _) times_cont_diff_exp.times_cont_diff_at
+alias countable_preimage_exp ↔ _ _root_.set.countable.preimage_cexp
 
 lemma tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero
   {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
@@ -193,6 +133,15 @@ lemma tendsto_log_nhds_within_im_nonneg_of_re_neg_of_im_zero
 by simpa only [log, arg_eq_pi_iff.2 ⟨hre, him⟩]
   using (continuous_within_at_log_of_re_neg_of_im_zero hre him).tendsto
 
+@[simp] lemma map_exp_comap_re_at_bot : map exp (comap re at_bot) = 𝓝[≠] 0 :=
+by rw [← comap_exp_nhds_zero, map_comap, range_exp, nhds_within]
+
+@[simp] lemma map_exp_comap_re_at_top : map exp (comap re at_top) = comap abs at_top :=
+begin
+  rw [← comap_exp_comap_abs_at_top, map_comap, range_exp, inf_eq_left, le_principal_iff],
+  exact eventually_ne_of_tendsto_norm_at_top tendsto_comap 0
+end
+
 end complex
 
 section log_deriv
@@ -202,10 +151,24 @@ open_locale topological_space
 
 variables {α : Type*}
 
+lemma continuous_at_clog {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
+  continuous_at log x :=
+begin
+  refine continuous_at.add _ _,
+  { refine continuous_of_real.continuous_at.comp _,
+    refine (real.continuous_at_log _).comp complex.continuous_abs.continuous_at,
+    rw abs_ne_zero,
+    rintro rfl,
+    simpa using h },
+  { have h_cont_mul : continuous (λ x : ℂ, x * I), from continuous_id'.mul continuous_const,
+    refine h_cont_mul.continuous_at.comp (continuous_of_real.continuous_at.comp _),
+    exact continuous_at_arg h, },
+end
+
 lemma filter.tendsto.clog {l : filter α} {f : α → ℂ} {x : ℂ} (h : tendsto f l (𝓝 x))
   (hx : 0 < x.re ∨ x.im ≠ 0) :
   tendsto (λ t, log (f t)) l (𝓝 $ log x) :=
-(has_strict_deriv_at_log hx).continuous_at.tendsto.comp h
+(continuous_at_clog hx).tendsto.comp h
 
 variables [topological_space α]
 
@@ -227,76 +190,5 @@ lemma continuous_on.clog {f : α → ℂ} {s : set α} (h₁ : continuous_on f s
 lemma continuous.clog {f : α → ℂ} (h₁ : continuous f) (h₂ : ∀ x, 0 < (f x).re ∨ (f x).im ≠ 0) :
   continuous (λ t, log (f t)) :=
 continuous_iff_continuous_at.2 $ λ x, h₁.continuous_at.clog (h₂ x)
-
-variables {E : Type*} [normed_group E] [normed_space ℂ E]
-
-lemma has_strict_fderiv_at.clog {f : E → ℂ} {f' : E →L[ℂ] ℂ} {x : E}
-  (h₁ : has_strict_fderiv_at f f' x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_strict_fderiv_at (λ t, log (f t)) ((f x)⁻¹ • f') x :=
-(has_strict_deriv_at_log h₂).comp_has_strict_fderiv_at x h₁
-
-lemma has_strict_deriv_at.clog {f : ℂ → ℂ} {f' x : ℂ} (h₁ : has_strict_deriv_at f f' x)
-  (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_strict_deriv_at (λ t, log (f t)) (f' / f x) x :=
-by { rw div_eq_inv_mul, exact (has_strict_deriv_at_log h₂).comp x h₁ }
-
-lemma has_strict_deriv_at.clog_real {f : ℝ → ℂ} {x : ℝ} {f' : ℂ} (h₁ : has_strict_deriv_at f f' x)
-  (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_strict_deriv_at (λ t, log (f t)) (f' / f x) x :=
-by simpa only [div_eq_inv_mul]
-  using (has_strict_fderiv_at_log_real h₂).comp_has_strict_deriv_at x h₁
-
-lemma has_fderiv_at.clog {f : E → ℂ} {f' : E →L[ℂ] ℂ} {x : E}
-  (h₁ : has_fderiv_at f f' x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_fderiv_at (λ t, log (f t)) ((f x)⁻¹ • f') x :=
-(has_strict_deriv_at_log h₂).has_deriv_at.comp_has_fderiv_at x h₁
-
-lemma has_deriv_at.clog {f : ℂ → ℂ} {f' x : ℂ} (h₁ : has_deriv_at f f' x)
-  (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_at (λ t, log (f t)) (f' / f x) x :=
-by { rw div_eq_inv_mul, exact (has_strict_deriv_at_log h₂).has_deriv_at.comp x h₁ }
-
-lemma has_deriv_at.clog_real {f : ℝ → ℂ} {x : ℝ} {f' : ℂ} (h₁ : has_deriv_at f f' x)
-  (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_at (λ t, log (f t)) (f' / f x) x :=
-by simpa only [div_eq_inv_mul]
-  using (has_strict_fderiv_at_log_real h₂).has_fderiv_at.comp_has_deriv_at x h₁
-
-lemma differentiable_at.clog {f : E → ℂ} {x : E} (h₁ : differentiable_at ℂ f x)
-  (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  differentiable_at ℂ (λ t, log (f t)) x :=
-(h₁.has_fderiv_at.clog h₂).differentiable_at
-
-lemma has_fderiv_within_at.clog {f : E → ℂ} {f' : E →L[ℂ] ℂ} {s : set E} {x : E}
-  (h₁ : has_fderiv_within_at f f' s x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_fderiv_within_at (λ t, log (f t)) ((f x)⁻¹ • f') s x :=
-(has_strict_deriv_at_log h₂).has_deriv_at.comp_has_fderiv_within_at x h₁
-
-lemma has_deriv_within_at.clog {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
-  (h₁ : has_deriv_within_at f f' s x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_within_at (λ t, log (f t)) (f' / f x) s x :=
-by { rw div_eq_inv_mul,
-     exact (has_strict_deriv_at_log h₂).has_deriv_at.comp_has_deriv_within_at x h₁ }
-
-lemma has_deriv_within_at.clog_real {f : ℝ → ℂ} {s : set ℝ} {x : ℝ} {f' : ℂ}
-  (h₁ : has_deriv_within_at f f' s x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  has_deriv_within_at (λ t, log (f t)) (f' / f x) s x :=
-by simpa only [div_eq_inv_mul]
-  using (has_strict_fderiv_at_log_real h₂).has_fderiv_at.comp_has_deriv_within_at x h₁
-
-lemma differentiable_within_at.clog {f : E → ℂ} {s : set E} {x : E}
-  (h₁ : differentiable_within_at ℂ f s x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
-  differentiable_within_at ℂ (λ t, log (f t)) s x :=
-(h₁.has_fderiv_within_at.clog h₂).differentiable_within_at
-
-lemma differentiable_on.clog {f : E → ℂ} {s : set E}
-  (h₁ : differentiable_on ℂ f s) (h₂ : ∀ x ∈ s, 0 < (f x).re ∨ (f x).im ≠ 0) :
-  differentiable_on ℂ (λ t, log (f t)) s :=
-λ x hx, (h₁ x hx).clog (h₂ x hx)
-
-lemma differentiable.clog {f : E → ℂ} (h₁ : differentiable ℂ f)
-  (h₂ : ∀ x, 0 < (f x).re ∨ (f x).im ≠ 0) :
-  differentiable ℂ (λ t, log (f t)) :=
-λ x, (h₁ x).clog (h₂ x)
 
 end log_deriv

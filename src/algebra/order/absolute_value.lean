@@ -22,7 +22,7 @@ This file defines a bundled type of absolute values `absolute_value R S`.
 /-- `absolute_value R S` is the type of absolute values on `R` mapping to `S`:
 the maps that preserve `*`, are nonnegative, positive definite and satisfy the triangle equality. -/
 structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S]
-  extends mul_hom R S :=
+  extends R →ₙ* S :=
 (nonneg' : ∀ x, 0 ≤ to_fun x)
 (eq_zero' : ∀ x, to_fun x = 0 ↔ x = 0)
 (add_le' : ∀ x y, to_fun (x + y) ≤ to_fun x + to_fun y)
@@ -95,7 +95,7 @@ variables [nontrivial R]
 by rw [← abv.map_mul, mul_one, mul_one]
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*`, `0` and `1`. -/
-def to_monoid_with_zero_hom : monoid_with_zero_hom R S :=
+def to_monoid_with_zero_hom : R →*₀ S :=
 { to_fun := abv,
   map_zero' := abv.map_zero,
   map_one' := abv.map_one,
@@ -140,22 +140,6 @@ abs_sub_le_iff.2 ⟨abv.le_sub _ _, by rw abv.map_sub; apply abv.le_sub⟩
 end ring
 
 end linear_ordered_comm_ring
-
-section linear_ordered_field
-
-section field
-
-variables {R S : Type*} [field R] [linear_ordered_field S] (abv : absolute_value R S)
-
-@[simp] protected theorem map_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-abv.to_monoid_with_zero_hom.map_inv a
-
-@[simp] protected theorem map_div (a b : R) : abv (a / b) = abv a / abv b :=
-abv.to_monoid_with_zero_hom.map_div a b
-
-end field
-
-end linear_ordered_field
 
 end absolute_value
 
@@ -202,6 +186,7 @@ theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 theorem abv_pos {a : R} : 0 < abv a ↔ a ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
 
+
 end ordered_semiring
 
 section linear_ordered_ring
@@ -218,9 +203,9 @@ instance abs_is_absolute_value {S} [linear_ordered_ring S] :
 
 end linear_ordered_ring
 
-section linear_ordered_field
+section linear_ordered_comm_ring
 
-variables {S : Type*} [linear_ordered_field S]
+variables {S : Type*} [linear_ordered_comm_ring S]
 
 section semiring
 variables {R : Type*} [semiring R] (abv : R → S) [is_absolute_value abv]
@@ -230,14 +215,18 @@ theorem abv_one [nontrivial R] : abv 1 = 1 :=
 by rw [← abv_mul abv, mul_one, mul_one]
 
 /-- `abv` as a `monoid_with_zero_hom`. -/
-def abv_hom [nontrivial R] : monoid_with_zero_hom R S :=
-⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
+def abv_hom [nontrivial R] : R →*₀ S := ⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
 
 lemma abv_pow [nontrivial R] (abv : R → S) [is_absolute_value abv]
   (a : R) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
 (abv_hom abv).to_monoid_hom.map_pow a n
 
 end semiring
+
+end linear_ordered_comm_ring
+
+section linear_ordered_field
+variables {S : Type*} [linear_ordered_field S]
 
 section ring
 variables {R : Type*} [ring R] (abv : R → S) [is_absolute_value abv]
@@ -262,13 +251,10 @@ abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
 end ring
 
 section field
-variables {R : Type*} [field R] (abv : R → S) [is_absolute_value abv]
+variables {R : Type*} [division_ring R] (abv : R → S) [is_absolute_value abv]
 
-theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-(abv_hom abv).map_inv a
-
-theorem abv_div (a b : R) : abv (a / b) = abv a / abv b :=
-(abv_hom abv).map_div a b
+theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ := map_inv₀ (abv_hom abv) a
+theorem abv_div (a b : R) : abv (a / b) = abv a / abv b := map_div₀ (abv_hom abv) a b
 
 end field
 

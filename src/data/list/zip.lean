@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
-import data.list.basic
+import data.list.big_operators
 
 /-!
 # zip & unzip
@@ -61,6 +61,13 @@ zip_with_nil_right _ l
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
    length (zip l₁ l₂) = min (length l₁) (length l₂) :=
 length_zip_with _
+
+theorem all₂_zip_with {f : α → β → γ} {p : γ → Prop} :
+  ∀ {l₁ : list α} {l₂ : list β} (h : length l₁ = length l₂),
+  all₂ p (zip_with f l₁ l₂) ↔ forall₂ (λ x y, p (f x y)) l₁ l₂
+| [] [] _ := by simp
+| (a :: l₁) (b :: l₂) h :=
+  by { simp only [length_cons, add_left_inj] at h, simp [all₂_zip_with h] }
 
 lemma lt_length_left_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
   (h : i < (zip_with f l l').length) :

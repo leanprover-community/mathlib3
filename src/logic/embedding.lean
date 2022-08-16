@@ -3,9 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.equiv.basic
+import data.fun_like.embedding
+import data.prod.pprod
 import data.set.basic
 import data.sigma.basic
+import logic.equiv.basic
 
 /-!
 # Injective functions
@@ -16,7 +18,7 @@ universes u v w x
 namespace function
 
 /-- `α ↪ β` is a bundled injective function. -/
-@[nolint has_inhabited_instance] -- depending on cardinalities, an injective function may not exist
+@[nolint has_nonempty_instance] -- depending on cardinalities, an injective function may not exist
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
 (inj'   : injective to_fun)
@@ -26,6 +28,16 @@ infixr ` ↪ `:25 := embedding
 instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) (λ _, α → β) := ⟨embedding.to_fun⟩
 
 initialize_simps_projections embedding (to_fun → apply)
+
+instance {α : Sort u} {β : Sort v} : embedding_like (α ↪ β) α β :=
+{ coe := embedding.to_fun,
+  injective' := embedding.inj',
+  coe_injective' := λ f g h, by { cases f, cases g, congr' } }
+
+instance {α β : Sort*} : can_lift (α → β) (α ↪ β) :=
+{ coe := coe_fn,
+  cond := injective,
+  prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
 
 end function
 
@@ -71,14 +83,11 @@ end equiv
 namespace function
 namespace embedding
 
-lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn
-| ⟨x, _⟩ ⟨y, _⟩ rfl := rfl
+lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn := fun_like.coe_injective
 
-@[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
-coe_injective (funext h)
+@[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
-lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
-⟨ext, λ h _, by rw h⟩
+lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g := fun_like.ext_iff.symm
 
 @[simp] theorem to_fun_eq_coe {α β} (f : α ↪ β) : to_fun f = f := rfl
 
@@ -88,15 +97,17 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) (inj) : (⟨f, inj⟩ : α ↪ β) = f :=
 by { ext, simp }
 
-protected theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
+protected theorem injective {α β} (f : α ↪ β) : injective f := embedding_like.injective f
 
-@[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
-f.injective.eq_iff
+lemma apply_eq_iff_eq {α β} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+embedding_like.apply_eq_iff_eq f
 
+/-- The identity map as a `function.embedding`. -/
 @[refl, simps {simp_rhs := tt}]
 protected def refl (α : Sort*) : α ↪ α :=
 ⟨id, injective_id⟩
 
+/-- Composition of `f : α ↪ β` and `g : β ↪ γ`. -/
 @[trans, simps {simp_rhs := tt}]
 protected def trans {α β γ} (f : α ↪ β) (g : β ↪ γ) : α ↪ γ :=
 ⟨g ∘ f, g.injective.comp f.injective⟩
@@ -111,6 +122,7 @@ lemma equiv_symm_to_embedding_trans_to_embedding {α β : Sort*} (e : α ≃ β)
   e.symm.to_embedding.trans e.to_embedding = embedding.refl _ :=
 by { ext, simp, }
 
+/-- Transfer an embedding along a pair of equivalences. -/
 @[simps { fully_applied := ff }]
 protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
@@ -145,15 +157,36 @@ theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidabl
   [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
 by simp [set_value]
 
-/-- Embedding into `option` -/
+/-- Embedding into `option α` using `some`. -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
+
+/-- Embedding into `option α` using `coe`. Usually the correct synctatical form for `simp`. -/
+@[simps { fully_applied := ff }]
+def coe_option {α} : α ↪ option α := ⟨coe, option.some_injective α⟩
+
+/-- Embedding into `with_top α`. -/
+@[simps]
+def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
 
 /-- Given an embedding `f : α ↪ β` and a point outside of `set.range f`, construct an embedding
 `option α ↪ β`. -/
 @[simps] def option_elim {α β} (f : α ↪ β) (x : β) (h : x ∉ set.range f) :
   option α ↪ β :=
-⟨λ o, o.elim x f, option.injective_iff.2 ⟨f.2, h⟩⟩
+⟨option.elim x f, option.injective_iff.2 ⟨f.2, h⟩⟩
+
+/-- Equivalence between embeddings of `option α` and a sigma type over the embeddings of `α`. -/
+@[simps]
+def option_embedding_equiv (α β) : (option α ↪ β) ≃ Σ f : α ↪ β, ↥(set.range f)ᶜ :=
+{ to_fun := λ f, ⟨coe_option.trans f, f none, λ ⟨x, hx⟩, option.some_ne_none x $ f.injective hx⟩,
+  inv_fun := λ f, f.1.option_elim f.2 f.2.2,
+  left_inv := λ f, ext $ by { rintro (_|_); simp [option.coe_def] },
+  right_inv := λ ⟨f, y, hy⟩, by { ext; simp [option.coe_def] } }
+
+/-- A version of `option.map` for `function.embedding`s. -/
+@[simps { fully_applied := ff }]
+def option_map {α β} (f : α ↪ β) : option α ↪ option β :=
+⟨option.map f, option.map_injective f.injective⟩
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
@@ -161,16 +194,22 @@ def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 
 @[simp] lemma coe_subtype {α} (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
+/-- `quotient.out` as an embedding. -/
+noncomputable def quotient_out (α) [s : setoid α] : quotient s ↪ α :=
+⟨_, quotient.out_injective⟩
+
+@[simp] theorem coe_quotient_out (α) [s : setoid α] : ⇑(quotient_out α) = quotient.out := rfl
+
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=
 ⟨λ _, b, by { rintros ⟨⟩ ⟨⟩ _, refl, }⟩
 
 /-- Fixing an element `b : β` gives an embedding `α ↪ α × β`. -/
-def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
+@[simps] def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
 ⟨λ a, (a, b), λ a a' h, congr_arg prod.fst h⟩
 
 /-- Fixing an element `a : α` gives an embedding `β ↪ α × β`. -/
-def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
+@[simps] def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
 ⟨λ b, (a, b), λ b b' h, congr_arg prod.snd h⟩
 
 /-- Restrict the codomain of an embedding. -/
@@ -187,6 +226,10 @@ def prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ×
 @[simp] lemma coe_prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
   ⇑(e₁.prod_map e₂) = prod.map e₁ e₂ :=
 rfl
+
+/-- If `e₁` and `e₂` are embeddings, then so is `λ ⟨a, b⟩, ⟨e₁ a, e₂ b⟩ : pprod α γ → pprod β δ`. -/
+def pprod_map {α β γ δ : Sort*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : pprod α γ ↪ pprod β δ :=
+⟨λ x, ⟨e₁ x.1, e₂ x.2⟩, e₁.injective.pprod_map e₂.injective⟩
 
 section sum
 open sum
@@ -229,23 +272,30 @@ of embeddings, then `sigma.map f g` is an embedding. -/
 
 end sigma
 
-def Pi_congr_right {α : Sort*} {β γ : α → Sort*} (e : ∀ a, β a ↪ γ a) : (Π a, β a) ↪ (Π a, γ a) :=
+/-- Define an embedding `(Π a : α, β a) ↪ (Π a : α, γ a)` from a family of embeddings
+`e : Π a, (β a ↪ γ a)`. This embedding sends `f` to `λ a, e a (f a)`. -/
+@[simps] def Pi_congr_right {α : Sort*} {β γ : α → Sort*} (e : ∀ a, β a ↪ γ a) :
+  (Π a, β a) ↪ (Π a, γ a) :=
 ⟨λf a, e a (f a), λ f₁ f₂ h, funext $ λ a, (e a).injective (congr_fun h a)⟩
 
-def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w}
+/-- An embedding `e : α ↪ β` defines an embedding `(γ → α) ↪ (γ → β)` that sends each `f`
+to `e ∘ f`. -/
+def arrow_congr_right {α : Sort u} {β : Sort v} {γ : Sort w}
   (e : α ↪ β) : (γ → α) ↪ (γ → β) :=
 Pi_congr_right (λ _, e)
 
-noncomputable def arrow_congr_right {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
-  (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
-by haveI := classical.prop_decidable; exact
-let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (classical.some h) else default γ in
-⟨f', assume f₁ f₂ h, funext $ assume c,
-  have ∃c', e c' = e c, from ⟨c, rfl⟩,
-  have eq' : f' f₁ (e c) = f' f₂ (e c), from congr_fun h _,
-  have eq_b : classical.some this = c, from e.injective $ classical.some_spec this,
-  by simp [f', this, if_pos, eq_b] at eq'; assumption⟩
+@[simp] lemma arrow_congr_right_apply {α : Sort u} {β : Sort v} {γ : Sort w}
+  (e : α ↪ β) (f : γ ↪ α) : arrow_congr_right e f = e ∘ f := rfl
 
+/-- An embedding `e : α ↪ β` defines an embedding `(α → γ) ↪ (β → γ)` for any inhabited type `γ`.
+This embedding sends each `f : α → γ` to a function `g : β → γ` such that `g ∘ e = f` and
+`g y = default` whenever `y ∉ range e`. -/
+noncomputable def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
+  (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
+⟨λ f, extend e f default, λ f₁ f₂ h, funext $ λ x,
+  by simpa only [extend_apply e.injective] using congr_fun h (e x)⟩
+
+/-- Restrict both domain and codomain of an embedding. -/
 protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α ↪ β)
   (h : ∀{{x}}, p x → q (f x)) : {x : α // p x} ↪ {y : β // q y} :=
 ⟨subtype.map f h, subtype.map_injective h f.2⟩

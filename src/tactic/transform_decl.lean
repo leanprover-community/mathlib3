@@ -26,8 +26,8 @@ tactic unit := do
       then do
         user_attr_const ← (get_user_attribute_name attr_name >>= mk_const),
         tac ← eval_pexpr (tactic unit)
-        ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
-          λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
+        ``(user_attribute.get_param_untyped %%user_attr_const %%`(src) >>=
+          λ x, user_attribute.set_untyped %%user_attr_const %%`(tgt) x %%`(p) %%`(prio)),
         tac
       else fail msg
 
@@ -104,8 +104,8 @@ The declaration {pre} depends on the declaration {src} which is in the namespace
 For help, see the docstring of `to_additive.attr`, section `Troubleshooting`.
 Failed to add declaration\n{pp_decl}
 
-Nested error message:\n").to_string $ do {
-    if env.is_protected src then add_protected_decl decl else add_decl decl,
+Nested error message:\n").to_string $ do
+  { if env.is_protected src then add_protected_decl decl else add_decl decl,
     -- we test that the declaration value type-checks, so that we get the decorated error message
     -- without this line, the type-checking might fail outside the `decorate_error`.
     decorate_error "proof doesn't type-check. " $ type_check decl.value }

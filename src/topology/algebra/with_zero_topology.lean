@@ -3,9 +3,8 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
-import topology.algebra.ordered.basic
 import algebra.order.with_zero
+import topology.algebra.order.basic
 
 /-!
 # The topology on linearly ordered commutative groups with zero
@@ -19,7 +18,7 @@ In particular the topology is the following:
 `γ₀ ∈ Γ₀ such that {γ | γ < γ₀} ⊆ U`", but this fact is not proven here since the neighborhoods
 description is what is actually useful.
 
-We prove this topology is ordered and regular (in addition to be compatible with the monoid
+We prove this topology is ordered and T₃ (in addition to be compatible with the monoid
 structure).
 
 All this is useful to extend a valuation to a completion. This is an abstract version of how the
@@ -30,7 +29,7 @@ absolute value (resp. `p`-adic absolute value) on `ℚ` is extended to `ℝ` (re
 This topology is not defined as an instance since it may not be the desired topology on
 a linearly ordered commutative group with zero. You can locally activate this topology using
 `local attribute [instance] linear_ordered_comm_group_with_zero.topological_space`
-All other instances will (`ordered_topology`, `regular_space`, `has_continuous_mul`) then follow.
+All other instances will (`ordered_topology`, `t3_space`, `has_continuous_mul`) then follow.
 
 -/
 
@@ -46,7 +45,7 @@ These neighbourhoods are defined as follows:
 A set s is a neighbourhood of 0 if there is an invertible γ₀ ∈ Γ₀ such that {γ | γ < γ₀} ⊆ s.
 If γ ≠ 0, then every set that contains γ is a neighbourhood of γ. -/
 def nhds_fun (x : Γ₀) : filter Γ₀ :=
-if x = 0 then ⨅ (γ₀ : units Γ₀), principal {γ | γ < γ₀} else pure x
+if x = 0 then ⨅ (γ₀ : Γ₀ˣ), principal {γ | γ < γ₀} else pure x
 
 /-- The topology on a linearly ordered commutative group with a zero element adjoined.
 A subset U is open if 0 ∉ U or if there is an invertible element γ₀ such that {γ | γ < γ₀} ⊆ U. -/
@@ -55,9 +54,9 @@ topological_space.mk_of_nhds (nhds_fun Γ₀)
 
 local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
 
-/-- The neighbourhoods {γ | γ < γ₀} of 0 form a directed set indexed by the invertible 
+/-- The neighbourhoods {γ | γ < γ₀} of 0 form a directed set indexed by the invertible
 elements γ₀. -/
-lemma directed_lt : directed (≥) (λ γ₀ : units Γ₀, principal {γ : Γ₀ | γ < γ₀}) :=
+lemma directed_lt : directed (≥) (λ γ₀ : Γ₀ˣ, principal {γ : Γ₀ | γ < γ₀}) :=
 begin
   intros γ₁ γ₂,
   use linear_order.min γ₁ γ₂ ; dsimp only,
@@ -102,14 +101,14 @@ end
 
 variables  {Γ₀}
 
-/-- The neighbourhood filter of an invertible element consists of all sets containing that 
+/-- The neighbourhood filter of an invertible element consists of all sets containing that
 element. -/
-lemma nhds_coe_units (γ : units Γ₀) : 𝓝 (γ : Γ₀) = pure (γ : Γ₀) :=
+lemma nhds_coe_units (γ : Γ₀ˣ) : 𝓝 (γ : Γ₀) = pure (γ : Γ₀) :=
 calc 𝓝 (γ : Γ₀) = nhds_fun Γ₀ γ : nhds_mk_of_nhds (nhds_fun Γ₀) γ (pure_le_nhds_fun Γ₀)
                                                    (nhds_fun_ok Γ₀)
               ... = pure (γ : Γ₀) : if_neg γ.ne_zero
 
-/-- The neighbourhood filter of a nonzero element consists of all sets containing that 
+/-- The neighbourhood filter of a nonzero element consists of all sets containing that
 element. -/
 @[simp] lemma nhds_of_ne_zero (γ : Γ₀) (h : γ ≠ 0) :
   𝓝 γ = pure γ :=
@@ -117,7 +116,7 @@ nhds_coe_units (units.mk0 _ h)
 
 /-- If γ is an invertible element of a linearly ordered group with zero element adjoined,
 then {γ} is a neighbourhood of γ. -/
-lemma singleton_nhds_of_units (γ : units Γ₀) : ({γ} : set Γ₀) ∈ 𝓝 (γ : Γ₀) :=
+lemma singleton_nhds_of_units (γ : Γ₀ˣ) : ({γ} : set Γ₀) ∈ 𝓝 (γ : Γ₀) :=
 by simp
 
 /-- If γ is a nonzero element of a linearly ordered group with zero element adjoined,
@@ -128,7 +127,7 @@ by simp [h]
 /-- If U is a neighbourhood of 0 in a linearly ordered group with zero element adjoined,
 then there exists an invertible element γ₀ such that {γ | γ < γ₀} ⊆ U. -/
 lemma has_basis_nhds_zero :
-  has_basis (𝓝 (0 : Γ₀)) (λ _, true) (λ γ₀ : units Γ₀, {γ : Γ₀ | γ < γ₀}) :=
+  has_basis (𝓝 (0 : Γ₀)) (λ _, true) (λ γ₀ : Γ₀ˣ, {γ : Γ₀ | γ < γ₀}) :=
 ⟨begin
   intro U,
   rw nhds_mk_of_nhds (nhds_fun Γ₀) 0 (pure_le_nhds_fun Γ₀) (nhds_fun_ok Γ₀),
@@ -138,11 +137,11 @@ end⟩
 
 /-- If γ is an invertible element of a linearly ordered group with zero element adjoined,
 then {x | x < γ} is a neighbourhood of 0. -/
-lemma nhds_zero_of_units (γ : units Γ₀) : {x : Γ₀ | x < γ} ∈ 𝓝 (0 : Γ₀) :=
+lemma nhds_zero_of_units (γ : Γ₀ˣ) : {x : Γ₀ | x < γ} ∈ 𝓝 (0 : Γ₀) :=
 by { rw has_basis_nhds_zero.mem_iff, use γ, simp }
 
 lemma tendsto_zero {α : Type*} {F : filter α} {f : α → Γ₀} :
-  tendsto f F (𝓝 (0 : Γ₀)) ↔ ∀ γ₀ : units Γ₀, { x : α | f x < γ₀ } ∈ F :=
+  tendsto f F (𝓝 (0 : Γ₀)) ↔ ∀ γ₀ : Γ₀ˣ, { x : α | f x < γ₀ } ∈ F :=
 by simpa using has_basis_nhds_zero.tendsto_right_iff
 
 /-- If γ is a nonzero element of a linearly ordered group with zero element adjoined,
@@ -150,7 +149,7 @@ then {x | x < γ} is a neighbourhood of 0. -/
 lemma nhds_zero_of_ne_zero (γ : Γ₀) (h : γ ≠ 0) : {x : Γ₀ | x < γ} ∈ 𝓝 (0 : Γ₀) :=
 nhds_zero_of_units (units.mk0 _ h)
 
-lemma has_basis_nhds_units (γ : units Γ₀) :
+lemma has_basis_nhds_units (γ : Γ₀ˣ) :
   has_basis (𝓝 (γ : Γ₀)) (λ i : unit, true) (λ i, {γ}) :=
 begin
   rw nhds_of_ne_zero _ γ.ne_zero,
@@ -161,7 +160,13 @@ lemma has_basis_nhds_of_ne_zero {x : Γ₀} (h : x ≠ 0) :
   has_basis (𝓝 x) (λ i : unit, true) (λ i, {x}) :=
 has_basis_nhds_units (units.mk0 x h)
 
-lemma tendsto_units {α : Type*} {F : filter α} {f : α → Γ₀} {γ₀ : units Γ₀} :
+lemma singleton_mem_nhds_of_ne_zero {x : Γ₀} (h : x ≠ 0) : {x} ∈ 𝓝 x :=
+begin
+  apply (has_basis_nhds_of_ne_zero h).mem_of_mem true.intro,
+  exact unit.star,
+end
+
+lemma tendsto_units {α : Type*} {F : filter α} {f : α → Γ₀} {γ₀ : Γ₀ˣ} :
   tendsto f F (𝓝 (γ₀ : Γ₀)) ↔ { x : α | f x = γ₀ } ∈ F :=
 begin
   rw (has_basis_nhds_units γ₀).tendsto_right_iff,
@@ -204,9 +209,9 @@ instance ordered_topology : order_closed_topology Γ₀ :=
       rwa [h1, h2] }
   end }
 
-/-- The topology on a linearly ordered group with zero element adjoined is T₃ (aka regular). -/
+/-- The topology on a linearly ordered group with zero element adjoined is T₃. -/
 @[priority 100]
-instance regular_space : regular_space Γ₀ :=
+instance t3_space : t3_space Γ₀ :=
 begin
   haveI : t1_space Γ₀ := t2_space.t1_space,
   split,
@@ -237,7 +242,7 @@ instance : has_continuous_mul Γ₀ :=
     set γ := units.mk0 y hy,
     suffices : tendsto (λ (p : Γ₀ × Γ₀), p.fst * p.snd) ((𝓝 0).prod (𝓝 γ)) (𝓝 0),
     by simpa [continuous_at, nhds_prod_eq],
-    suffices : ∀ (γ' : units Γ₀), ∃ (γ''  : units Γ₀), ∀ (a b : Γ₀), a < γ'' → b = y → a * b < γ',
+    suffices : ∀ (γ' : Γ₀ˣ), ∃ (γ''  : Γ₀ˣ), ∀ (a b : Γ₀), a < γ'' → b = y → a * b < γ',
     { rw (has_basis_nhds_zero.prod $ has_basis_nhds_units γ).tendsto_iff has_basis_nhds_zero,
       simpa },
     intros γ',
@@ -251,7 +256,7 @@ instance : has_continuous_mul Γ₀ :=
   by_cases hx : x = 0; by_cases hy : y = 0,
   { suffices : tendsto (λ (p : Γ₀ × Γ₀), p.fst * p.snd) (𝓝 (0, 0)) (𝓝 0),
     by simpa [hx, hy, continuous_at],
-    suffices : ∀ (γ : units Γ₀), ∃ (γ' : units Γ₀), ∀ (a b : Γ₀), a < γ' → b < γ' → a * b < γ,
+    suffices : ∀ (γ : Γ₀ˣ), ∃ (γ' : Γ₀ˣ), ∀ (a b : Γ₀), a < γ' → b < γ' → a * b < γ,
     by simpa [nhds_prod_eq, has_basis_nhds_zero.prod_self.tendsto_iff has_basis_nhds_zero],
     intros γ,
     rcases exists_square_le γ with ⟨γ', h⟩,

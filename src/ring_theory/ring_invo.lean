@@ -3,18 +3,18 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow, Kenny Lau
 -/
-import data.equiv.ring
-import algebra.opposites
+import algebra.ring.equiv
+import algebra.ring.opposite
 
 /-!
 # Ring involutions
 
-This file defines a ring involution as a structure extending `R ≃+* Rᵒᵖ`,
+This file defines a ring involution as a structure extending `R ≃+* Rᵐᵒᵖ`,
 with the additional fact `f.involution : (f (f x).unop).unop = x`.
 
 ## Notations
 
-We provide a coercion to a function `R → Rᵒᵖ`.
+We provide a coercion to a function `R → Rᵐᵒᵖ`.
 
 ## References
 
@@ -28,22 +28,22 @@ Ring involution
 variables (R : Type*)
 
 /-- A ring involution -/
-structure ring_invo [semiring R] extends R ≃+* Rᵒᵖ :=
+structure ring_invo [semiring R] extends R ≃+* Rᵐᵒᵖ :=
 (involution' : ∀ x, (to_fun (to_fun x).unop).unop = x)
 
 namespace ring_invo
 variables {R} [semiring R]
 
 /-- Construct a ring involution from a ring homomorphism. -/
-def mk' (f : R →+* Rᵒᵖ) (involution : ∀ r, (f (f r).unop).unop = r) :
+def mk' (f : R →+* Rᵐᵒᵖ) (involution : ∀ r, (f (f r).unop).unop = r) :
   ring_invo R :=
 { inv_fun := λ r, (f r.unop).unop,
   left_inv := λ r, involution r,
-  right_inv := λ r, congr_arg opposite.op (involution (r.unop)),
+  right_inv := λ r, mul_opposite.unop_injective $ involution _,
   involution' := involution,
-  ..f }
+  .. f }
 
-instance : has_coe_to_fun (ring_invo R) (λ _, R → Rᵒᵖ) := ⟨λ f, f.to_ring_equiv.to_fun⟩
+instance : has_coe_to_fun (ring_invo R) (λ _, R → Rᵐᵒᵖ) := ⟨λ f, f.to_ring_equiv.to_fun⟩
 
 @[simp]
 lemma to_fun_eq_coe (f : ring_invo R) : f.to_fun = f := rfl
@@ -52,11 +52,11 @@ lemma to_fun_eq_coe (f : ring_invo R) : f.to_fun = f := rfl
 lemma involution (f : ring_invo R) (x : R) : (f (f x).unop).unop = x :=
 f.involution' x
 
-instance has_coe_to_ring_equiv : has_coe (ring_invo R) (R ≃+* Rᵒᵖ) :=
+instance has_coe_to_ring_equiv : has_coe (ring_invo R) (R ≃+* Rᵐᵒᵖ) :=
 ⟨ring_invo.to_ring_equiv⟩
 
 @[norm_cast] lemma coe_ring_equiv (f : ring_invo R) (a : R) :
-  (f : R ≃+* Rᵒᵖ) a = f a := rfl
+  (f : R ≃+* Rᵐᵒᵖ) a = f a := rfl
 
 @[simp] lemma map_eq_zero_iff (f : ring_invo R) {x : R} : f x = 0 ↔ x = 0 :=
 f.to_ring_equiv.map_eq_zero_iff

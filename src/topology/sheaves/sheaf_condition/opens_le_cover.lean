@@ -47,12 +47,11 @@ namespace sheaf_condition
 /--
 The category of open sets contained in some element of the cover.
 -/
-def opens_le_cover : Type v := { V : opens X // ∃ i, V ≤ U i }
+@[derive category]
+def opens_le_cover : Type v := full_subcategory (λ (V : opens X), ∃ i, V ≤ U i)
 
 instance [inhabited ι] : inhabited (opens_le_cover U) :=
-⟨⟨⊥, default ι, bot_le⟩⟩
-
-instance : category (opens_le_cover U) := category_theory.full_subcategory _
+⟨⟨⊥, default, bot_le⟩⟩
 
 namespace opens_le_cover
 
@@ -66,7 +65,7 @@ def index (V : opens_le_cover U) : ι := V.property.some
 /--
 The morphism from `V` to `U i` for some `i`.
 -/
-def hom_to_index (V : opens_le_cover U) : V.val ⟶ U (index V) :=
+def hom_to_index (V : opens_le_cover U) : V.obj ⟶ U (index V) :=
 (V.property.some_spec).hom
 
 end opens_le_cover
@@ -106,7 +105,7 @@ the object level of `pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover
 -/
 @[simp]
 def pairwise_to_opens_le_cover_obj : pairwise ι → opens_le_cover U
-| (single i) := ⟨U i, ⟨i, le_refl _⟩⟩
+| (single i) := ⟨U i, ⟨i, le_rfl⟩⟩
 | (pair i j) := ⟨U i ⊓ U j, ⟨i, inf_le_left⟩⟩
 
 open category_theory.pairwise.hom
@@ -144,39 +143,39 @@ of all opens contained in some `U i`.
 -- we have to explicitly construct a zigzag.
 instance : functor.final (pairwise_to_opens_le_cover U) :=
 ⟨λ V, is_connected_of_zigzag $ λ A B, begin
-  rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
-  rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
+  rcases A with ⟨⟨⟨⟩⟩, ⟨i⟩|⟨i,j⟩, a⟩;
+  rcases B with ⟨⟨⟨⟩⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
   dsimp at *,
   { refine ⟨[
-    { left := punit.star, right := pair i i',
+    { left := ⟨⟨⟩⟩, right := pair i i',
       hom := (le_inf a.le b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil) },
   { refine ⟨[
-    { left := punit.star, right := pair i' i,
+    { left := ⟨⟨⟩⟩, right := pair i' i,
       hom := (le_inf (b.le.trans inf_le_left) a.le).hom, },
-    { left := punit.star, right := single i',
+    { left := ⟨⟨⟩⟩, right := single i',
       hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := right i' i, }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i' i, }⟩)
           (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil)) },
   { refine ⟨[
-    { left := punit.star, right := single i,
+    { left := ⟨⟨⟩⟩, right := single i,
       hom := (a.le.trans inf_le_left).hom, },
-    { left := punit.star, right := pair i i', hom :=
+    { left := ⟨⟨⟩⟩, right := pair i i', hom :=
       (le_inf (a.le.trans inf_le_left) b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
         (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
           (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil)) },
   { refine ⟨[
-    { left := punit.star, right := single i,
+    { left := ⟨⟨⟩⟩, right := single i,
       hom := (a.le.trans inf_le_left).hom, },
-    { left := punit.star, right := pair i i',
+    { left := ⟨⟨⟩⟩, right := pair i i',
       hom := (le_inf (a.le.trans inf_le_left) (b.le.trans inf_le_left)).hom, },
-    { left := punit.star, right := single i',
+    { left := ⟨⟨⟩⟩, right := single i',
       hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
@@ -218,7 +217,7 @@ in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 lemma is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
   F.is_sheaf_opens_le_cover ↔ F.is_sheaf_pairwise_intersections :=
-forall_congr (λ ι, forall_congr (λ U, equiv.nonempty_congr $
+forall₂_congr $ λ ι U, equiv.nonempty_congr $
   calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
     ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
         : (functor.initial.is_limit_whisker_equiv (pairwise_to_opens_le_cover U).op _).symm
@@ -232,19 +231,91 @@ forall_congr (λ ι, forall_congr (λ U, equiv.nonempty_congr $
         : is_limit.equiv_iso_limit (functor.map_cone_postcompose_equivalence_functor _).symm
 ... ≃ is_limit (F.map_cone (pairwise.cocone U).op)
         : is_limit.equiv_iso_limit
-            ((cones.functoriality _ _).map_iso (pairwise_cocone_iso U : _).symm)))
+            ((cones.functoriality _ _).map_iso (pairwise_cocone_iso U : _).symm)
 
-variables [has_products C]
+section
 
-/--
-The sheaf condition in terms of an equalizer diagram is equivalent
-to the reformulation in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`.
--/
-lemma is_sheaf_iff_is_sheaf_opens_le_cover (F : presheaf C X) :
+variables {Y : opens X} (hY : Y = supr U)
+
+/-- Given a family of opens `U` and an open `Y` equal to the union of opens in `U`, we may
+    take the presieve on `Y` associated to `U` and the sieve generated by it, and form the
+    full subcategory (subposet) of opens contained in `Y` (`over Y`) consisting of arrows
+    in the sieve. This full subcategory is equivalent to `opens_le_cover U`, the (poset)
+    category of opens contained in some `U i`. -/
+@[simps] def generate_equivalence_opens_le :
+  full_subcategory (λ (f : over Y), (sieve.generate (presieve_of_covering_aux U Y)).arrows f.hom) ≌
+  opens_le_cover U :=
+{ functor :=
+  { obj := λ f, ⟨f.1.left, let ⟨_,h,_,⟨i,hY⟩,_⟩ := f.2 in ⟨i, hY ▸ h.le⟩⟩,
+    map := λ _ _ g, g.left },
+  inverse :=
+  { obj := λ V, ⟨over.mk (hY.substr (let ⟨i,h⟩ := V.2 in h.trans (le_supr U i))).hom,
+      let ⟨i,h⟩ := V.2 in ⟨U i, h.hom, (hY.substr (le_supr U i)).hom, ⟨i, rfl⟩, rfl⟩⟩,
+    map := λ _ _ g, over.hom_mk g },
+  unit_iso := eq_to_iso $ category_theory.functor.ext
+    (by {rintro ⟨⟨_,_⟩,_⟩, dsimp, congr; ext}) (by {intros, ext}),
+  counit_iso := eq_to_iso $ category_theory.functor.hext
+    (by {intro, ext, refl}) (by {intros, refl}) }
+
+/-- Given a family of opens `opens_le_cover_cocone U` is essentially the natural cocone
+    associated to the sieve generated by the presieve associated to `U` with indexing
+    category changed using the above equivalence. -/
+@[simps] def whisker_iso_map_generate_cocone :
+  cone.whisker (generate_equivalence_opens_le U hY).op.functor
+    (F.map_cone (opens_le_cover_cocone U).op) ≅
+  F.map_cone (sieve.generate (presieve_of_covering_aux U Y)).arrows.cocone.op :=
+{ hom :=
+  { hom := F.map (eq_to_hom (congr_arg op hY.symm)),
+    w' := λ j, by { erw ← F.map_comp, congr } },
+  inv :=
+  { hom := F.map (eq_to_hom (congr_arg op hY)),
+    w' := λ j, by { erw ← F.map_comp, congr } },
+  hom_inv_id' := by { ext, simp [eq_to_hom_map], },
+  inv_hom_id' := by { ext, simp [eq_to_hom_map], } }
+
+/-- Given a presheaf `F` on the topological space `X` and a family of opens `U` of `X`,
+    the natural cone associated to `F` and `U` used in the definition of
+    `F.is_sheaf_opens_le_cover` is a limit cone iff the natural cone associated to `F`
+    and the sieve generated by the presieve associated to `U` is a limit cone. -/
+def is_limit_opens_le_equiv_generate₁ :
+  is_limit (F.map_cone (opens_le_cover_cocone U).op) ≃
+  is_limit (F.map_cone (sieve.generate (presieve_of_covering_aux U Y)).arrows.cocone.op) :=
+(is_limit.whisker_equivalence_equiv (generate_equivalence_opens_le U hY).op).trans
+  (is_limit.equiv_iso_limit (whisker_iso_map_generate_cocone F U hY))
+
+/-- Given a presheaf `F` on the topological space `X` and a presieve `R` whose generated sieve
+    is covering for the associated Grothendieck topology (equivalently, the presieve is covering
+    for the associated pretopology), the natural cone associated to `F` and the family of opens
+    associated to `R` is a limit cone iff the natural cone associated to `F` and the generated
+    sieve is a limit cone.
+    Since only the existence of a 1-1 correspondence will be used, the exact definition does
+    not matter, so tactics are used liberally. -/
+def is_limit_opens_le_equiv_generate₂ (R : presieve Y)
+  (hR : sieve.generate R ∈ opens.grothendieck_topology X Y) :
+  is_limit (F.map_cone (opens_le_cover_cocone (covering_of_presieve Y R)).op) ≃
+  is_limit (F.map_cone (sieve.generate R).arrows.cocone.op) :=
+begin
+  convert is_limit_opens_le_equiv_generate₁ F (covering_of_presieve Y R)
+    (covering_of_presieve.supr_eq_of_mem_grothendieck Y R hR).symm using 2;
+  rw covering_presieve_eq_self R,
+end
+
+/-- A presheaf `(opens X)ᵒᵖ ⥤ C` on a topological space `X` is a sheaf on the site `opens X` iff
+    it satisfies the `is_sheaf_opens_le_cover` sheaf condition. The latter is not the
+    official definition of sheaves on spaces, but has the advantage that it does not
+    require `has_products C`. -/
+lemma is_sheaf_iff_is_sheaf_opens_le_cover :
   F.is_sheaf ↔ F.is_sheaf_opens_le_cover :=
-iff.trans
-  (is_sheaf_iff_is_sheaf_pairwise_intersections F)
-  (is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections F).symm
+begin
+  refine (presheaf.is_sheaf_iff_is_limit _ _).trans _,
+  split,
+  { intros h ι U, rw (is_limit_opens_le_equiv_generate₁ F U rfl).nonempty_congr,
+    apply h, apply presieve_of_covering.mem_grothendieck_topology },
+  { intros h Y S, rw ← sieve.generate_sieve S, intro hS,
+    rw ← (is_limit_opens_le_equiv_generate₂ F S hS).nonempty_congr, apply h },
+end
+
+end
 
 end presheaf
 

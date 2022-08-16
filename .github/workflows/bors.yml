@@ -30,12 +30,12 @@ jobs:
   style_lint:
     if: github.repository == 'leanprover-community/mathlib'
     name: Lint style
-    runs-on: self-hosted
+    runs-on: bors
     steps:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ${{ 'self-hosted' == 'ubuntu-latest' }}
+        if: ${{ 'bors' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
@@ -47,7 +47,7 @@ jobs:
   build:
     if: github.repository == 'leanprover-community/mathlib'
     name: Build mathlib
-    runs-on: self-hosted
+    runs-on: bors
     env:
       # number of commits to check for olean cache
       GIT_HISTORY_DEPTH: 20
@@ -78,10 +78,11 @@ jobs:
       - name: leanpkg build
         id: build
         run: |
+          set -o pipefail
           leanpkg configure
           echo "::set-output name=started::true"
-          lean --json -T100000 --make src | python3 scripts/detect_errors.py
-          lean --json -T100000 --make src | python3 scripts/detect_errors.py
+          lean --json -T150000 --make src | python3 scripts/detect_errors.py
+          lean --json -T150000 --make src | python3 scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
@@ -109,9 +110,18 @@ jobs:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: workspace.tar
 
+      - name: cleanup after upload step
+        # cf. https://github.com/actions/upload-artifact/issues/256
+        if: always() && steps.build.outputs.started == 'true' && ${{ 1 }}
+        run: rm /tmp/tmp-* || true
+
+      - name: clean up working directory and elan
+        if: always() && ${{ 1 }}
+        run: rm -rf * $HOME/.elan
+
   lint:
     name: Lint mathlib
-    runs-on: self-hosted
+    runs-on: bors
     needs: build
 
     # skip on master branch
@@ -133,18 +143,22 @@ jobs:
       - name: install elan
         run: |
           set -o pipefail
-          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: lint
         run: |
           ./scripts/mk_all.sh
-          lean --run scripts/lint_mathlib.lean
+          lean --run scripts/lint_mathlib.lean --github
+
+      - name: clean up working directory and elan
+        if: always() && ${{ 1 }}
+        run: rm -rf * $HOME/.elan
 
   tests:
     name: Run tests
-    runs-on: self-hosted
+    runs-on: bors
     needs: build
 
     # skip on master branch
@@ -166,7 +180,7 @@ jobs:
       - name: install elan
         run: |
           set -o pipefail
-          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
@@ -178,12 +192,12 @@ jobs:
 
       - name: install Python dependencies
         if: ${{ ! 1 }}
-        run: python3 -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml requests
 
       - name: tests
         run: |
           set -o pipefail
-          lean --json -T100000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
+          lean --json -T150000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
         if: ${{ ! 1 }}
@@ -193,7 +207,7 @@ jobs:
 
       - name: install trepplein
         run: |
-          trepplein_version=1.0
+          trepplein_version=1.1
           wget https://github.com/gebner/trepplein/releases/download/v$trepplein_version/trepplein-$trepplein_version.zip
           unzip trepplein-$trepplein_version.zip
           echo $PWD/trepplein-$trepplein_version/bin >>$GITHUB_PATH
@@ -209,6 +223,10 @@ jobs:
           python3 scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
+
+      - name: clean up working directory and elan
+        if: always() && ${{ 1 }}
+        run: rm -rf * $HOME/.elan
 
   final:
     name: Post-CI job

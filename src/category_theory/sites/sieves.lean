@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, E. W. Ayers
 -/
 
-import category_theory.over
-import category_theory.limits.shapes.finite_limits
-import category_theory.yoneda
 import order.complete_lattice
+import category_theory.over
+import category_theory.yoneda
+import category_theory.limits.shapes.pullbacks
 import data.set.lattice
 
 /-!
@@ -40,6 +40,17 @@ def presieve (X : C) := Π ⦃Y⦄, set (Y ⟶ X)
 namespace presieve
 
 instance : inhabited (presieve X) := ⟨⊤⟩
+
+/-- Given a sieve `S` on `X : C`, its associated diagram `S.diagram` is defined to be
+    the natural functor from the full subcategory of the over category `C/X` consisting
+    of arrows in `S` to `C`. -/
+abbreviation diagram (S : presieve X) : full_subcategory (λ (f : over X), S f.hom) ⥤ C :=
+full_subcategory_inclusion _ ⋙ over.forget X
+
+/-- Given a sieve `S` on `X : C`, its associated cocone `S.cocone` is defined to be
+    the natural cocone over the diagram defined above with cocone point `X`. -/
+abbreviation cocone (S : presieve X) : cocone S.diagram :=
+(over.forget_cocone X).whisker (full_subcategory_inclusion _)
 
 /--
 Given a set of arrows `S` all with codomain `X`, and a set of arrows with codomain `Y` for each
@@ -159,7 +170,7 @@ def functor_pushforward (S : presieve X) : presieve (F.obj X) :=
 /--
 An auxillary definition in order to fix the choice of the preimages between various definitions.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure functor_pushforward_structure (S : presieve X) {Y} (f : Y ⟶ F.obj X) :=
 (preobj : C) (premap : preobj ⟶ X) (lift : Y ⟶ F.obj preobj)
 (cover : S premap) (fac : f = lift ≫ F.map premap)
@@ -320,7 +331,7 @@ open order lattice
 
 lemma sets_iff_generate (R : presieve X) (S : sieve X) :
   generate R ≤ S ↔ R ≤ S :=
-⟨λ H Y g hg, H _ ⟨_, 𝟙 _, _, hg, category.id_comp _⟩,
+⟨λ H Y g hg, H _ ⟨_, 𝟙 _, _, hg, id_comp _⟩,
  λ ss Y f,
   begin
     rintro ⟨Z, f, g, hg, rfl⟩,
@@ -332,7 +343,7 @@ def gi_generate : galois_insertion (generate : presieve X → sieve X) arrows :=
 { gc := sets_iff_generate,
   choice := λ 𝒢 _, generate 𝒢,
   choice_eq := λ _ _, rfl,
-  le_l_u := λ S Y f hf, ⟨_, 𝟙 _, _, hf, category.id_comp _⟩ }
+  le_l_u := λ S Y f hf, ⟨_, 𝟙 _, _, hf, id_comp _⟩ }
 
 lemma le_generate (R : presieve X) : R ≤ generate R :=
 gi_generate.gc.le_u_l R
@@ -346,7 +357,7 @@ lemma id_mem_iff_eq_top : S (𝟙 X) ↔ S = ⊤ :=
  λ h, h.symm ▸ trivial⟩
 
 /-- If an arrow set contains a split epi, it generates the maximal sieve. -/
-lemma generate_of_contains_split_epi {R : presieve X} (f : Y ⟶ X) [split_epi f]
+lemma generate_of_contains_is_split_epi {R : presieve X} (f : Y ⟶ X) [is_split_epi f]
   (hf : R f) : generate R = ⊤ :=
 begin
   rw ← id_mem_iff_eq_top,
@@ -354,13 +365,13 @@ begin
 end
 
 @[simp]
-lemma generate_of_singleton_split_epi (f : Y ⟶ X) [split_epi f] :
+lemma generate_of_singleton_is_split_epi (f : Y ⟶ X) [is_split_epi f] :
   generate (presieve.singleton f) = ⊤ :=
-generate_of_contains_split_epi f (presieve.singleton_self _)
+generate_of_contains_is_split_epi f (presieve.singleton_self _)
 
 @[simp]
 lemma generate_top : generate (⊤ : presieve X) = ⊤ :=
-generate_of_contains_split_epi (𝟙 _) ⟨⟩
+generate_of_contains_is_split_epi (𝟙 _) ⟨⟩
 
 /-- Given a morphism `h : Y ⟶ X`, send a sieve S on X to a sieve on Y
     as the inverse image of S with `_ ≫ h`.
@@ -388,7 +399,7 @@ lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) :
 by simp [sieve.ext_iff]
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S f ↔ S.pullback f = ⊤ :=
-by rw [← id_mem_iff_eq_top, pullback_apply, category.id_comp]
+by rw [← id_mem_iff_eq_top, pullback_apply, id_comp]
 
 lemma pullback_eq_top_of_mem (S : sieve X) {f : Y ⟶ X} : S f → S.pullback f = ⊤ :=
 (pullback_eq_top_iff_mem f).1
@@ -459,7 +470,7 @@ begin
 end
 
 /-- If `f` is a split epi, the pushforward-pullback adjunction on sieves is reflective. -/
-def galois_insertion_of_split_epi (f : Y ⟶ X) [split_epi f] :
+def galois_insertion_of_is_split_epi (f : Y ⟶ X) [is_split_epi f] :
   galois_insertion (sieve.pushforward f) (sieve.pullback f) :=
 begin
   apply (galois_connection f).to_galois_insertion,
@@ -549,7 +560,7 @@ begin
   { intros hle X f hf,
     apply hle,
     refine ⟨X, f, 𝟙 _, hf, _⟩,
-    rw category.id_comp, },
+    rw id_comp, },
   { rintros hle Y f ⟨X, g, h, hg, rfl⟩,
     apply sieve.downward_closed S,
     exact hle g hg, }
@@ -581,8 +592,16 @@ lemma functor_pullback_union (S R : sieve (F.obj X)) :
 lemma functor_pullback_inter (S R : sieve (F.obj X)) :
   (S ⊓ R).functor_pullback F = S.functor_pullback F ⊓ R.functor_pullback F := rfl
 
-lemma functor_pushforward_bot (F : C ⥤ D) (X : C) :
+@[simp] lemma functor_pushforward_bot (F : C ⥤ D) (X : C) :
   (⊥ : sieve X).functor_pushforward F = ⊥ := (functor_galois_connection F X).l_bot
+
+@[simp] lemma functor_pushforward_top (F : C ⥤ D) (X : C) :
+  (⊤ : sieve X).functor_pushforward F = ⊤ :=
+  begin
+    refine (generate_sieve _).symm.trans _,
+    apply generate_of_contains_is_split_epi (𝟙 (F.obj X)),
+    refine ⟨X, 𝟙 _, 𝟙 _, trivial, by simp⟩
+  end
 
 @[simp] lemma functor_pullback_bot (F : C ⥤ D) (X : C) :
   (⊥ : sieve (F.obj X)).functor_pullback F = ⊥ := rfl

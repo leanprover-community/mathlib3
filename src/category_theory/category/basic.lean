@@ -3,7 +3,7 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-import combinatorics.quiver
+import combinatorics.quiver.basic
 import tactic.basic
 
 /-!
@@ -87,7 +87,7 @@ The typeclass `category C` describes morphisms associated to objects of type `C`
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 
-See https://stacks.math.columbia.edu/tag/0014.
+See <https://stacks.math.columbia.edu/tag/0014>.
 -/
 class category (obj : Type u)
 extends category_struct.{v} obj : Type (max u (v+1)) :=
@@ -149,6 +149,16 @@ by { convert w (𝟙 X), tidy }
 lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
 by { convert w (𝟙 X), tidy }
 
+lemma comp_ite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g g' : (Y ⟶ Z)) :
+  (f ≫ if P then g else g') = (if P then f ≫ g else f ≫ g') :=
+by { split_ifs; refl }
+
+lemma ite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f f' : (X ⟶ Y))  (g : Y ⟶ Z) :
+  (if P then f else f') ≫ g = (if P then f ≫ g else f' ≫ g) :=
+by { split_ifs; refl }
+
 lemma comp_dite {P : Prop} [decidable P]
   {X Y Z : C} (f : X ⟶ Y) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
   (f ≫ if h : P then g h else g' h) = (if h : P then f ≫ g h else f ≫ g' h) :=
@@ -163,7 +173,7 @@ by { split_ifs; refl }
 A morphism `f` is an epimorphism if it can be "cancelled" when precomposed:
 `f ≫ g = f ≫ h` implies `g = h`.
 
-See https://stacks.math.columbia.edu/tag/003B.
+See <https://stacks.math.columbia.edu/tag/003B>.
 -/
 class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
@@ -172,7 +182,7 @@ class epi (f : X ⟶ Y) : Prop :=
 A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
 `g ≫ f = h ≫ f` implies `g = h`.
 
-See https://stacks.math.columbia.edu/tag/003B.
+See <https://stacks.math.columbia.edu/tag/003B>.
 -/
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
@@ -182,10 +192,10 @@ instance (X : C) : epi (𝟙 X) :=
 instance (X : C) : mono (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
 
-lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
-⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
+lemma cancel_epi (f : X ⟶ Y) [epi f] {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
+⟨λ p, epi.left_cancellation g h p, congr_arg _⟩
 lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
-⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
+⟨λ p, mono.right_cancellation g h p, congr_arg _⟩
 
 lemma cancel_epi_id (f : X ⟶ Y) [epi f] {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
 by { convert cancel_epi f, simp, }

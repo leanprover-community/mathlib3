@@ -3,7 +3,9 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.instances.real
+import data.set.intervals.monotone
+import topology.algebra.order.monotone_convergence
+import topology.metric_space.basic
 
 /-!
 # Rectangular boxes in `ℝⁿ`
@@ -32,7 +34,7 @@ We define the following operations on boxes:
 * coercion to `set (ι → ℝ)` and `has_mem (ι → ℝ) (box_integral.box ι)` as described above;
 * `partial_order` and `semilattice_sup` instances such that `I ≤ J` is equivalent to
   `(I : set (ι → ℝ)) ⊆ J`;
-* `lattice` and `semilattice_inf_bot` instances on `with_bot (box_integral.box ι)`;
+* `lattice` instances on `with_bot (box_integral.box ι)`;
 * `box_integral.box.Icc`: the closed box `set.Icc I.lower I.upper`; defined as a bundled monotone
   map from `box ι` to `set (ι → ℝ)`;
 * `box_integral.box.face I i : box (fin n)`: a hyperface of `I : box_integral.box (fin (n + 1))`;
@@ -47,10 +49,10 @@ that returns the box `⟨l, u, _⟩` if it is nonempty and `⊥` otherwise.
 rectangular box
 -/
 
-open set function metric
+open set function metric filter
 
 noncomputable theory
-open_locale nnreal classical
+open_locale nnreal classical topological_space
 
 namespace box_integral
 
@@ -75,6 +77,7 @@ variables (I J : box ι) {x y : ι → ℝ}
 instance : inhabited (box ι) := ⟨⟨0, 1, λ i, zero_lt_one⟩⟩
 
 lemma lower_le_upper : I.lower ≤ I.upper := λ i, (I.lower_lt_upper i).le
+lemma lower_ne_upper (i) : I.lower i ≠ I.upper i := (I.lower_lt_upper i).ne
 
 instance : has_mem (ι → ℝ) (box ι) := ⟨λ x I, ∀ i, x i ∈ Ioc (I.lower i) (I.upper i)⟩
 instance : has_coe_t (box ι) (set $ ι → ℝ) := ⟨λ I, {x | x ∈ I}⟩
@@ -108,7 +111,9 @@ lemma le_tfae :
     J.lower ≤ I.lower ∧ I.upper ≤ J.upper] :=
 begin
   tfae_have : 1 ↔ 2, from iff.rfl,
-  tfae_have : 2 → 3, from λ h, by simpa [coe_eq_pi, closure_pi_set] using closure_mono h,
+  tfae_have : 2 → 3,
+  { intro h,
+    simpa [coe_eq_pi, closure_pi_set, lower_ne_upper] using closure_mono h },
   tfae_have : 3 ↔ 4, from Icc_subset_Icc_iff I.lower_le_upper,
   tfae_have : 4 → 2, from λ h x hx i, Ioc_subset_Ioc (h.1 i) (h.2 i) (hx i),
   tfae_finish
@@ -269,9 +274,6 @@ instance : lattice (with_bot (box ι)) :=
     end,
   .. with_bot.semilattice_sup, .. box.with_bot.has_inf }
 
-instance : semilattice_inf_bot (with_bot (box ι)) :=
-{ .. box.with_bot.lattice, .. with_bot.semilattice_sup }
-
 @[simp, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
   disjoint (I : set (ι → ℝ)) J ↔ disjoint I J :=
 by { simp only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
@@ -289,7 +291,7 @@ by rw [disjoint_coe, set.not_disjoint_iff_nonempty_inter]
 
 /-- Face of a box in `ℝⁿ⁺¹ = fin (n + 1) → ℝ`: the box in `ℝⁿ = fin n → ℝ` with corners at
 `I.lower ∘ fin.succ_above i` and `I.upper ∘ fin.succ_above i`. -/
-@[simps] def face {n} (I : box (fin (n + 1))) (i : fin (n + 1)) : box (fin n) :=
+@[simps { simp_rhs := tt }] def face {n} (I : box (fin (n + 1))) (i : fin (n + 1)) : box (fin n) :=
 ⟨I.lower ∘ fin.succ_above i, I.upper ∘ fin.succ_above i, λ j, I.lower_lt_upper _⟩
 
 @[simp] lemma face_mk {n} (l u : fin (n + 1) → ℝ) (h : ∀ i, l i < u i) (i : fin (n + 1)) :
@@ -299,6 +301,8 @@ rfl
 @[mono] lemma face_mono {n} {I J : box (fin (n + 1))} (h : I ≤ J) (i : fin (n + 1)) :
   face I i ≤ face J i :=
 λ x hx i, Ioc_subset_Ioc ((le_iff_bounds.1 h).1 _) ((le_iff_bounds.1 h).2 _) (hx _)
+
+lemma monotone_face {n} (i : fin (n + 1)) : monotone (λ I, face I i) := λ I J h, face_mono h i
 
 lemma maps_to_insert_nth_face_Icc {n} (I : box (fin (n + 1))) {i : fin (n + 1)} {x : ℝ}
   (hx : x ∈ Icc (I.lower i) (I.upper i)) :
@@ -317,6 +321,45 @@ lemma continuous_on_face_Icc {X} [topological_space X] {n} {f : (fin (n + 1) →
   continuous_on (f ∘ i.insert_nth x) (I.face i).Icc :=
 h.comp (continuous_on_const.fin_insert_nth i continuous_on_id) (I.maps_to_insert_nth_face_Icc hx)
 
+/-!
+### Covering of the interior of a box by a monotone sequence of smaller boxes
+-/
+
+/-- The interior of a box. -/
+protected def Ioo : box ι →o set (ι → ℝ) :=
+{ to_fun := λ I, pi univ (λ i, Ioo (I.lower i) (I.upper i)),
+  monotone' := λ I J h, pi_mono $ λ i hi, Ioo_subset_Ioo ((le_iff_bounds.1 h).1 i)
+    ((le_iff_bounds.1 h).2 i) }
+
+lemma Ioo_subset_coe (I : box ι) : I.Ioo ⊆ I := λ x hx i, Ioo_subset_Ioc_self (hx i trivial)
+
+protected lemma Ioo_subset_Icc (I : box ι) : I.Ioo ⊆ I.Icc := I.Ioo_subset_coe.trans coe_subset_Icc
+
+lemma Union_Ioo_of_tendsto [fintype ι] {I : box ι} {J : ℕ → box ι} (hJ : monotone J)
+  (hl : tendsto (lower ∘ J) at_top (𝓝 I.lower)) (hu : tendsto (upper ∘ J) at_top (𝓝 I.upper)) :
+  (⋃ n, (J n).Ioo) = I.Ioo :=
+have hl' : ∀ i, antitone (λ n, (J n).lower i),
+  from λ i, (monotone_eval i).comp_antitone (antitone_lower.comp_monotone hJ),
+have hu' : ∀ i, monotone (λ n, (J n).upper i),
+  from λ i, (monotone_eval i).comp (monotone_upper.comp hJ),
+calc (⋃ n, (J n).Ioo) = pi univ (λ i, ⋃ n, Ioo ((J n).lower i) ((J n).upper i)) :
+  Union_univ_pi_of_monotone (λ i, (hl' i).Ioo (hu' i))
+... = I.Ioo :
+  pi_congr rfl (λ i hi, Union_Ioo_of_mono_of_is_glb_of_is_lub (hl' i) (hu' i)
+    (is_glb_of_tendsto_at_top (hl' i) (tendsto_pi_nhds.1 hl _))
+    (is_lub_of_tendsto_at_top (hu' i) (tendsto_pi_nhds.1 hu _)))
+
+lemma exists_seq_mono_tendsto (I : box ι) : ∃ J : ℕ →o box ι, (∀ n, (J n).Icc ⊆ I.Ioo) ∧
+  tendsto (lower ∘ J) at_top (𝓝 I.lower) ∧ tendsto (upper ∘ J) at_top (𝓝 I.upper) :=
+begin
+  choose a b ha_anti hb_mono ha_mem hb_mem hab ha_tendsto hb_tendsto
+    using λ i, exists_seq_strict_anti_strict_mono_tendsto (I.lower_lt_upper i),
+  exact ⟨⟨λ k, ⟨flip a k, flip b k, λ i, hab _ _ _⟩,
+    λ k l hkl, le_iff_bounds.2 ⟨λ i, (ha_anti i).antitone hkl, λ i, (hb_mono i).monotone hkl⟩⟩,
+    λ n x hx i hi, ⟨(ha_mem _ _).1.trans_le (hx.1 _), (hx.2 _).trans_lt (hb_mem _ _).2⟩,
+    tendsto_pi_nhds.2 ha_tendsto, tendsto_pi_nhds.2 hb_tendsto⟩
+end
+
 section distortion
 
 variable [fintype ι]
@@ -331,7 +374,7 @@ lemma distortion_eq_of_sub_eq_div {I J : box ι} {r : ℝ}
   (h : ∀ i, I.upper i - I.lower i = (J.upper i - J.lower i) / r) :
   distortion I = distortion J :=
 begin
-  simp only [distortion, nndist_pi_def, real.nndist_eq', h, real.nnabs.map_div],
+  simp only [distortion, nndist_pi_def, real.nndist_eq', h, map_div₀],
   congr' 1 with i,
   have : 0 < r,
   { by_contra hr,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang, Yury Kudryashov
 -/
 import topology.separation
-import topology.opens
+import topology.sets.opens
 
 /-!
 # The Alexandroff Compactification
@@ -42,12 +42,16 @@ In this section we define `alexandroff X` to be the disjoint union of `X` and `�
 `option X`. Then we restate some lemmas about `option X` for `alexandroff X`.
 -/
 
+variables {X : Type*}
+
 /-- The Alexandroff extension of an arbitrary topological space `X` -/
 def alexandroff (X : Type*) := option X
 
-namespace alexandroff
+/-- The repr uses the notation from the `alexandroff` locale. -/
+instance [has_repr X] : has_repr (alexandroff X) :=
+⟨λ o, match o with | none := "∞" | (some a) := "↑" ++ repr a end⟩
 
-variables {X : Type*}
+namespace alexandroff
 
 /-- The point at infinity -/
 def infty : alexandroff X := none
@@ -56,6 +60,10 @@ localized "notation `∞` := alexandroff.infty" in alexandroff
 instance : has_coe_t X (alexandroff X) := ⟨option.some⟩
 
 instance : inhabited (alexandroff X) := ⟨∞⟩
+
+instance [fintype X] : fintype (alexandroff X) := option.fintype
+
+instance infinite [infinite X] : infinite (alexandroff X) := option.infinite
 
 lemma coe_injective : function.injective (coe : X → alexandroff X) :=
 option.some_injective X
@@ -231,11 +239,11 @@ lemma comap_coe_nhds (x : X) : comap (coe : X → alexandroff X) (𝓝 x) = 𝓝
 
 /-- If `x` is not an isolated point of `X`, then `x : alexandroff X` is not an isolated point
 of `alexandroff X`. -/
-instance nhds_within_compl_coe_ne_bot (x : X) [h : ne_bot (𝓝[{x}ᶜ] x)] :
-  ne_bot (𝓝[{x}ᶜ] (x : alexandroff X)) :=
+instance nhds_within_compl_coe_ne_bot (x : X) [h : ne_bot (𝓝[≠] x)] :
+  ne_bot (𝓝[≠] (x : alexandroff X)) :=
 by simpa [nhds_within_coe, preimage, coe_eq_coe] using h.map coe
 
-lemma nhds_within_compl_infty_eq : 𝓝[{∞}ᶜ] (∞ : alexandroff X) = map coe (coclosed_compact X) :=
+lemma nhds_within_compl_infty_eq : 𝓝[≠] (∞ : alexandroff X) = map coe (coclosed_compact X) :=
 begin
   refine (nhds_within_basis_open ∞ _).ext (has_basis_coclosed_compact.map _) _ _,
   { rintro s ⟨hs, hso⟩,
@@ -248,12 +256,12 @@ end
 
 /-- If `X` is a non-compact space, then `∞` is not an isolated point of `alexandroff X`. -/
 instance nhds_within_compl_infty_ne_bot [noncompact_space X] :
-  ne_bot (𝓝[{∞}ᶜ] (∞ : alexandroff X)) :=
+  ne_bot (𝓝[≠] (∞ : alexandroff X)) :=
 by { rw nhds_within_compl_infty_eq, apply_instance }
 
 @[priority 900]
-instance nhds_within_compl_ne_bot [∀ x : X, ne_bot (𝓝[{x}ᶜ] x)] [noncompact_space X]
-  (x : alexandroff X) : ne_bot (𝓝[{x}ᶜ] x) :=
+instance nhds_within_compl_ne_bot [∀ x : X, ne_bot (𝓝[≠] x)] [noncompact_space X]
+  (x : alexandroff X) : ne_bot (𝓝[≠] x) :=
 alexandroff.rec _ alexandroff.nhds_within_compl_infty_ne_bot
   (λ y, alexandroff.nhds_within_compl_coe_ne_bot y) x
 
@@ -317,12 +325,32 @@ lemma dense_embedding_coe [noncompact_space X] :
   dense_embedding (coe : X → alexandroff X) :=
 { dense := dense_range_coe, .. open_embedding_coe }
 
+@[simp] lemma specializes_coe {x y : X} : (x : alexandroff X) ⤳ y ↔ x ⤳ y :=
+open_embedding_coe.to_inducing.specializes_iff
+
+@[simp] lemma inseparable_coe {x y : X} : inseparable (x : alexandroff X) y ↔ inseparable x y :=
+open_embedding_coe.to_inducing.inseparable_iff
+
+lemma not_specializes_infty_coe {x : X} : ¬specializes ∞ (x : alexandroff X) :=
+is_closed_infty.not_specializes rfl (coe_ne_infty x)
+
+lemma not_inseparable_infty_coe {x : X} : ¬inseparable ∞ (x : alexandroff X) :=
+λ h, not_specializes_infty_coe h.specializes
+
+lemma not_inseparable_coe_infty {x : X} : ¬inseparable (x : alexandroff X) ∞ :=
+λ h, not_specializes_infty_coe h.specializes'
+
+lemma inseparable_iff {x y : alexandroff X} :
+  inseparable x y ↔ x = ∞ ∧ y = ∞ ∨ ∃ x' : X, x = x' ∧ ∃ y' : X, y = y' ∧ inseparable x' y' :=
+by induction x using alexandroff.rec; induction y using alexandroff.rec;
+  simp [not_inseparable_infty_coe, not_inseparable_coe_infty, coe_eq_coe]
+
 /-!
 ### Compactness and separation properties
 
 In this section we prove that `alexandroff X` is a compact space; it is a T₀ (resp., T₁) space if
 the original space satisfies the same separation axiom. If the original space is a locally compact
-Hausdorff space, then `alexandroff X` is a normal (hence, regular and Hausdorff) space.
+Hausdorff space, then `alexandroff X` is a normal (hence, T₃ and Hausdorff) space.
 
 Finally, if the original space `X` is *not* compact and is a preconnected space, then
 `alexandroff X` is a connected space.
@@ -332,30 +360,19 @@ Finally, if the original space `X` is *not* compact and is a preconnected space,
 instance : compact_space (alexandroff X) :=
 { compact_univ :=
   begin
-    refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _), clear hf,
-    by_cases hf : (f : filter (alexandroff X)) ≤ 𝓝 ∞,
-    { exact ⟨∞, mem_univ _, hf⟩ },
-    { simp only [ultrafilter_le_nhds_infty, not_forall, not_not] at hf,
-      rcases hf with ⟨s, h₁, h₂, hsf⟩,
-      have hf : range (coe : X → alexandroff X) ∈ f,
-        from mem_of_superset hsf (image_subset_range _ _),
-      have hsf' : s ∈ f.comap coe_injective hf, from (f.mem_comap _ _).2 hsf,
-      rcases h₂.ultrafilter_le_nhds _ (le_principal_iff.2 hsf') with ⟨a, has, hle⟩,
-      rw [ultrafilter.coe_comap, ← comap_coe_nhds, comap_le_comap_iff hf] at hle,
-      exact ⟨a, mem_univ _, hle⟩ }
+    have : tendsto (coe : X → alexandroff X) (cocompact X) (𝓝 ∞),
+    { rw [nhds_infty_eq],
+      exact (tendsto_map.mono_left cocompact_le_coclosed_compact).mono_right le_sup_left },
+    convert ← this.is_compact_insert_range_of_cocompact continuous_coe,
+    exact insert_none_range_some X
   end }
 
 /-- The one point compactification of a `t0_space` space is a `t0_space`. -/
 instance [t0_space X] : t0_space (alexandroff X) :=
 begin
   refine ⟨λ x y hxy, _⟩,
-  induction x using alexandroff.rec; induction y using alexandroff.rec,
-  { exact (hxy rfl).elim },
-  { use {∞}ᶜ, simp [is_closed_infty] },
-  { use {∞}ᶜ, simp [is_closed_infty] },
-  { rcases t0_space.t0 x y (mt coe_eq_coe.mpr hxy) with ⟨U, hUo, hU⟩,
-    refine ⟨coe '' U, is_open_image_coe.2 hUo, _⟩,
-    simpa [coe_eq_coe] }
+  rcases inseparable_iff.1 hxy with ⟨rfl, rfl⟩|⟨x, rfl, y, rfl, h⟩,
+  exacts [rfl, congr_arg coe h.eq]
 end
 
 /-- The one point compactification of a `t1_space` space is a `t1_space`. -/
@@ -364,7 +381,7 @@ instance [t1_space X] : t1_space (alexandroff X) :=
   begin
     induction z using alexandroff.rec,
     { exact is_closed_infty },
-    { simp only [← image_singleton, is_closed_image_coe],
+    { rw [← image_singleton, is_closed_image_coe],
       exact ⟨is_closed_singleton, is_compact_singleton⟩ }
   end }
 
@@ -373,19 +390,17 @@ Hausdorff and regular) topological space. -/
 instance [locally_compact_space X] [t2_space X] : normal_space (alexandroff X) :=
 begin
   have key : ∀ z : X,
-    ∃ u v : set (alexandroff X), is_open u ∧ is_open v ∧ ↑z ∈ u ∧ ∞ ∈ v ∧ u ∩ v = ∅,
+    ∃ u v : set (alexandroff X), is_open u ∧ is_open v ∧ ↑z ∈ u ∧ ∞ ∈ v ∧ disjoint u v,
   { intro z,
     rcases exists_open_with_compact_closure z with ⟨u, hu, huy', Hu⟩,
-    refine ⟨coe '' u, (coe '' closure u)ᶜ, is_open_image_coe.2 hu,
+    exact ⟨coe '' u, (coe '' closure u)ᶜ, is_open_image_coe.2 hu,
       is_open_compl_image_coe.2 ⟨is_closed_closure, Hu⟩, mem_image_of_mem _ huy',
-      mem_compl infty_not_mem_image_coe, _⟩,
-    rw [← subset_compl_iff_disjoint, compl_compl],
-    exact image_subset _ subset_closure },
+      mem_compl infty_not_mem_image_coe, (image_subset _ subset_closure).disjoint_compl_right⟩ },
   refine @normal_of_compact_t2 _ _ _ ⟨λ x y hxy, _⟩,
   induction x using alexandroff.rec; induction y using alexandroff.rec,
   { exact (hxy rfl).elim },
   { rcases key y with ⟨u, v, hu, hv, hxu, hyv, huv⟩,
-    exact ⟨v, u, hv, hu, hyv, hxu, (inter_comm u v) ▸ huv⟩ },
+    exact ⟨v, u, hv, hu, hyv, hxu, huv.symm⟩ },
   { exact key x },
   { exact separated_by_open_embedding open_embedding_coe (mt coe_eq_coe.mpr hxy) }
 end
@@ -395,4 +410,31 @@ instance [preconnected_space X] [noncompact_space X] : connected_space (alexandr
 { to_preconnected_space := dense_embedding_coe.to_dense_inducing.preconnected_space,
   to_nonempty := infer_instance }
 
+/-- If `X` is an infinite type with discrete topology (e.g., `ℕ`), then the identity map from
+`cofinite_topology (alexandroff X)` to `alexandroff X` is not continuous. -/
+lemma not_continuous_cofinite_topology_of_symm [infinite X] [discrete_topology X] :
+  ¬(continuous (@cofinite_topology.of (alexandroff X)).symm) :=
+begin
+  inhabit X,
+  simp only [continuous_iff_continuous_at, continuous_at, not_forall],
+  use [cofinite_topology.of ↑(default : X)],
+  simpa [nhds_coe_eq, nhds_discrete, cofinite_topology.nhds_eq]
+    using (finite_singleton ((default : X) : alexandroff X)).infinite_compl
+end
+
 end alexandroff
+
+/--
+A concrete counterexample shows that  `continuous.homeo_of_equiv_compact_to_t2`
+cannot be generalized from `t2_space` to `t1_space`.
+
+Let `α = alexandroff ℕ` be the one-point compactification of `ℕ`, and let `β` be the same space
+`alexandroff ℕ` with the cofinite topology.  Then `α` is compact, `β` is T1, and the identity map
+`id : α → β` is a continuous equivalence that is not a homeomorphism.
+-/
+lemma continuous.homeo_of_equiv_compact_to_t2.t1_counterexample :
+  ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
+  compact_space α ∧ t1_space β ∧ ∃ f : α ≃ β, continuous f ∧ ¬ continuous f.symm :=
+⟨alexandroff ℕ, cofinite_topology (alexandroff ℕ), infer_instance, infer_instance,
+  infer_instance, infer_instance, cofinite_topology.of, cofinite_topology.continuous_of,
+  alexandroff.not_continuous_cofinite_topology_of_symm⟩

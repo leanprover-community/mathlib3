@@ -3,6 +3,7 @@ Copyright (c) 2019 Lucas Allen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
+import data.bool.basic
 import data.mllist
 import tactic.solve_by_elim
 
@@ -60,6 +61,11 @@ meta def allowed_head_symbols : expr → list name
 | `(@ge ℕ _ _ (nat.succ _)) := [`has_le.le, `has_lt.lt]
 | `(@has_le.le ℕ _ 1 _) := [`has_le.le, `has_lt.lt]
 | `(@ge ℕ _ _ 1) := [`has_le.le, `has_lt.lt]
+
+-- These allow `library_search` to search for lemmas of type `¬ a = b` when proving `a ≠ b`
+--   and vice-versa.
+| `(_ ≠ _) := [`false, `ne]
+| `(¬ _ = _) := [`ne, `false]
 
 -- And then the generic cases:
 | (expr.pi _ _ _ t) := allowed_head_symbols t

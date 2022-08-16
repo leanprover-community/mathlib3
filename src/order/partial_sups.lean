@@ -5,12 +5,12 @@ Authors: Scott Morrison
 -/
 import data.finset.lattice
 import data.set.pairwise
-import order.preorder_hom
+import order.hom.basic
 
 /-!
 # The monotone sequence of partial supremums of a sequence
 
-We define `partial_sups : (ℕ → α) → ℕ →ₘ α` inductively. For `f : ℕ → α`, `partial_sups f` is
+We define `partial_sups : (ℕ → α) → ℕ →o α` inductively. For `f : ℕ → α`, `partial_sups f` is
 the sequence `f 0 `, `f 0 ⊔ f 1`, `f 0 ⊔ f 1 ⊔ f 2`, ... The point of this definition is that
 * it doesn't need a `⨆`, as opposed to `⨆ (i ≤ n), f i`.
 * it doesn't need a `⊥`, as opposed to `(finset.range (n + 1)).sup f`.
@@ -38,7 +38,7 @@ section semilattice_sup
 variables [semilattice_sup α]
 
 /-- The monotone sequence whose value at `n` is the supremum of the `f m` where `m ≤ n`. -/
-def partial_sups (f : ℕ → α) : ℕ →ₘ α :=
+def partial_sups (f : ℕ → α) : ℕ →o α :=
 ⟨@nat.rec (λ _, α) (f 0) (λ (n : ℕ) (a : α), a ⊔ f (n + 1)),
   monotone_nat_of_le_succ (λ n, le_sup_left)⟩
 
@@ -50,7 +50,7 @@ lemma le_partial_sups_of_le (f : ℕ → α) {m n : ℕ} (h : m ≤ n) :
   f m ≤ partial_sups f n :=
 begin
   induction n with n ih,
-  { cases h, apply le_refl, },
+  { cases h, exact le_rfl, },
   { cases h with h h,
     { exact le_sup_right, },
     { exact (ih h).trans le_sup_left, } },
@@ -77,7 +77,7 @@ begin
   { rw [partial_sups_succ, ih, sup_eq_right.2 (hf (nat.le_succ _))] }
 end
 
-lemma partial_sups_mono : monotone (partial_sups : (ℕ → α) → ℕ →ₘ α) :=
+lemma partial_sups_mono : monotone (partial_sups : (ℕ → α) → ℕ →o α) :=
 begin
   rintro f g h n,
   induction n with n ih,
@@ -87,7 +87,7 @@ end
 
 /-- `partial_sups` forms a Galois insertion with the coercion from monotone functions to functions.
 -/
-def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →ₘ α) coe_fn :=
+def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →o α) coe_fn :=
 { choice := λ f h, ⟨f, begin
     convert (partial_sups f).monotone,
     exact (le_partial_sups f).antisymm h,
@@ -95,10 +95,10 @@ def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →�
   gc := λ f g, begin
     refine ⟨(le_partial_sups f).trans, λ h, _⟩,
     convert partial_sups_mono h,
-    exact preorder_hom.ext _ _ g.monotone.partial_sups_eq.symm,
+    exact order_hom.ext _ _ g.monotone.partial_sups_eq.symm,
   end,
   le_l_u := λ f, le_partial_sups f,
-  choice_eq := λ f h, preorder_hom.ext _ _ ((le_partial_sups f).antisymm h) }
+  choice_eq := λ f h, order_hom.ext _ _ ((le_partial_sups f).antisymm h) }
 
 lemma partial_sups_eq_sup'_range (f : ℕ → α) (n : ℕ) :
   partial_sups f n = (finset.range (n + 1)).sup' ⟨n, finset.self_mem_range_succ n⟩ f :=
@@ -112,7 +112,7 @@ end
 
 end semilattice_sup
 
-lemma partial_sups_eq_sup_range [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
+lemma partial_sups_eq_sup_range [semilattice_sup α] [order_bot α] (f : ℕ → α) (n : ℕ) :
   partial_sups f n = (finset.range (n + 1)).sup f :=
 begin
   induction n with n ih,
@@ -123,7 +123,7 @@ end
 
 /- Note this lemma requires a distributive lattice, so is not useful (or true) in situations such as
 submodules. -/
-lemma partial_sups_disjoint_of_disjoint [distrib_lattice_bot α]
+lemma partial_sups_disjoint_of_disjoint [distrib_lattice α] [order_bot α]
   (f : ℕ → α) (h : pairwise (disjoint on f)) {m n : ℕ} (hmn : m < n) :
   disjoint (partial_sups f m) (f n) :=
 begin
@@ -148,9 +148,9 @@ end
 @[simp] lemma supr_partial_sups_eq (f : ℕ → α) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
 begin
-  refine (supr_le $ λ n, _).antisymm (supr_le_supr $ le_partial_sups f),
+  refine (supr_le $ λ n, _).antisymm (supr_mono $ le_partial_sups f),
   rw partial_sups_eq_bsupr,
-  exact bsupr_le_supr _ _,
+  exact supr₂_le_supr _ _,
 end
 
 lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
@@ -158,7 +158,7 @@ lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
   (⨆ n, f n) ≤ ⨆ n, g n :=
 begin
   rw [←supr_partial_sups_eq f, ←supr_partial_sups_eq g],
-  exact supr_le_supr h,
+  exact supr_mono h,
 end
 
 lemma supr_eq_supr_of_partial_sups_eq_partial_sups {f g : ℕ → α}

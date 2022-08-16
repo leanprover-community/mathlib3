@@ -4,18 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
 
-import category_theory.sites.sheaf
 import category_theory.sites.spaces
 import topology.sheaves.sheaf
+import category_theory.sites.dense_subsite
 
 /-!
 
 # The sheaf condition in terms of sites.
 
-The theory of sheaves on sites is developed independently from sheaves on spaces in
+The theory of sheaves on sites was developed independently from sheaves on spaces in
 `category_theory/sites`. In this file, we connect the two theories: We show that for a topological
 space `X`, a presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the site `opens X` if and only if it is
-a sheaf on `X` in the usual sense.
+a sheaf on `X` in terms of `is_sheaf_equalizer_products`.
 
 Recall that a presheaf `F : (opens X)ᵒᵖ ⥤ C` is called a *sheaf* on the space `X`, if for every
 family of opens `U : ι → opens X`, the object `F.obj (op (supr U))` is the limit of some fork
@@ -26,23 +26,21 @@ and `presieve_of_covering`, which translate between the two concepts. We then pr
 naturality lemmas relating the two fork diagrams to each other.
 
 ## Main statements
-* `is_sheaf_sites_iff_is_sheaf_spaces`. A presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the site
-  `opens X` if and only if it is a sheaf on the space `X`.
-* `Sheaf_sites_eq_sheaf_spaces`. The type of sheaves on the site `opens X` is *equal* to the type
-  of sheaves on the space `X`.
+* `is_sheaf_iff_is_sheaf_equalizer_products`. A presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the
+  site `opens X` if and only if it is a sheaf on the space `X`.
 
 -/
 
 noncomputable theory
 
-universes u v
+universes u v w
 
 namespace Top.presheaf
 
 open category_theory topological_space Top category_theory.limits opposite
 open Top.presheaf.sheaf_condition_equalizer_products
 
-variables {C : Type u} [category.{v} C] [has_products C]
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
 variables {X : Top.{v}} (F : presheaf C X)
 
 /--
@@ -138,9 +136,8 @@ lemma fork_map_comp_first_obj_iso_pi_opens_eq
   presheaf.fork_map R F ≫ (first_obj_iso_pi_opens F U R).hom =
   F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op ≫ res F (covering_of_presieve U R) :=
 begin
-  ext f,
-  rw [category.assoc, category.assoc],
-  rw first_obj_iso_pi_opens_π,
+  ext ⟨f⟩,
+  rw [category.assoc, category.assoc, first_obj_iso_pi_opens_π],
   dunfold presheaf.fork_map res,
   rw [limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app, ← F.map_comp],
   congr,
@@ -214,7 +211,10 @@ fork.mk_hom (F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op)
 instance is_iso_postcompose_diagram_fork_hom_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
   is_iso (postcompose_diagram_fork_hom F U R hR).hom :=
-begin rw postcompose_diagram_fork_hom_hom, apply eq_to_hom.is_iso, end
+begin
+  rw [postcompose_diagram_fork_hom_hom, eq_to_hom_map],
+  apply eq_to_hom.is_iso,
+end
 
 instance is_iso_postcompose_diagram_fork_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
@@ -229,26 +229,39 @@ as_iso (postcompose_diagram_fork_hom F U R hR)
 
 end covering_of_presieve
 
-lemma is_sheaf_sites_of_is_sheaf_spaces (Fsh : F.is_sheaf) :
-  presheaf.is_sheaf (opens.grothendieck_topology X) F :=
+lemma is_sheaf_of_is_sheaf_equalizer_products (Fsh : F.is_sheaf_equalizer_products) :
+  F.is_sheaf :=
 begin
+  delta is_sheaf,
   rw presheaf.is_sheaf_iff_is_sheaf',
   intros U R hR,
   refine ⟨_⟩,
   apply (is_limit.of_cone_equiv (cones.postcompose_equivalence
-    (covering_of_presieve.diagram_nat_iso F U R))).to_fun,
+    (covering_of_presieve.diagram_nat_iso F U R : _))).to_fun,
   apply (is_limit.equiv_iso_limit
     (covering_of_presieve.postcompose_diagram_fork_iso F U R hR)).inv_fun,
   exact (Fsh (covering_of_presieve U R)).some,
 end
 
 /--
-Given a family of opens `U : ι → opens X`, we obtain a presieve on `supr U` by declaring that a
-morphism `f : V ⟶ supr U` is a member of the presieve if and only if there exists an index `i : ι`
-such that `V = U i`.
+Given a family of opens `U : ι → opens X` and any open `Y : opens X`, we obtain a presieve
+on `Y` by declaring that a morphism `f : V ⟶ Y` is a member of the presieve if and only if
+there exists an index `i : ι` such that `V = U i`.
 -/
-def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+def presieve_of_covering_aux {ι : Type v} (U : ι → opens X) (Y : opens X) : presieve Y :=
 λ V f, ∃ i, V = U i
+
+/-- Take `Y` to be `supr U` and obtain a presieve over `supr U`. -/
+def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+presieve_of_covering_aux U (supr U)
+
+/-- Given a presieve `R` on `Y`, if we take its associated family of opens via
+    `covering_of_presieve` (which may not cover `Y` if `R` is not covering), and take
+    the presieve on `Y` associated to the family of opens via `presieve_of_covering_aux`,
+    then we get back the original presieve `R`. -/
+@[simp] lemma covering_presieve_eq_self {Y : opens X} (R : presieve Y) :
+  presieve_of_covering_aux (covering_of_presieve Y R) Y = R :=
+by { ext Z f, exact ⟨λ ⟨⟨_,_,h⟩,rfl⟩, by convert h, λ h, ⟨⟨Z,f,h⟩,rfl⟩⟩ }
 
 namespace presieve_of_covering
 
@@ -317,14 +330,14 @@ pi.lift (λ f, pi.π _ (index_of_hom U f) ≫ F.map (eq_to_hom (index_of_hom_spe
 Even though `first_obj_to_pi_opens` and `pi_opens_to_first_obj` are not inverse to each other,
 applying them both after a fork map `s.ι` does nothing. The intuition here is that a compatible
 family `s : Π i : ι, F.obj (op (U i))` does not care about duplicate open sets:
-If `U i = U j` the the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
+If `U i = U j` the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
 hence `s i = s j` (module an `eq_to_hom` arrow).
 -/
 lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq
   (s : limits.fork (left_res F U) (right_res F U)) :
   s.ι ≫ pi_opens_to_first_obj F U ≫ first_obj_to_pi_opens F U = s.ι :=
 begin
-  ext j,
+  ext ⟨j⟩,
   dunfold first_obj_to_pi_opens pi_opens_to_first_obj,
   rw [category.assoc, category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app],
   -- The issue here is that `index_of_hom U (hom_of_index U j)` need not be equal to `j`.
@@ -410,11 +423,12 @@ end presieve_of_covering
 
 open presieve_of_covering
 
-lemma is_sheaf_spaces_of_is_sheaf_sites
-  (Fsh : presheaf.is_sheaf (opens.grothendieck_topology X) F) :
-  F.is_sheaf :=
+lemma is_sheaf_equalizer_products_of_is_sheaf
+  (Fsh : F.is_sheaf) :
+  F.is_sheaf_equalizer_products :=
 begin
   intros ι U,
+  delta is_sheaf at Fsh,
   rw presheaf.is_sheaf_iff_is_sheaf' at Fsh,
   -- We know that the sites diagram for `presieve_of_covering U` is a limit fork
   obtain ⟨h_limit⟩ := Fsh (supr U) (presieve_of_covering U)
@@ -440,36 +454,66 @@ begin
     erw [← category.assoc, hm], },
 end
 
-lemma is_sheaf_sites_iff_is_sheaf_spaces :
-  presheaf.is_sheaf (opens.grothendieck_topology X) F ↔ F.is_sheaf :=
-iff.intro (is_sheaf_spaces_of_is_sheaf_sites F) (is_sheaf_sites_of_is_sheaf_spaces F)
-
-variables (C X)
-
-/-- Turn a sheaf on the site `opens X` into a sheaf on the space `X`. -/
-@[simps]
-def Sheaf_sites_to_sheaf_spaces : Sheaf (opens.grothendieck_topology X) C ⥤ sheaf C X :=
-{ obj := λ F, ⟨F.1, is_sheaf_spaces_of_is_sheaf_sites F.1 F.2⟩,
-  map := λ F G f, f }
-
-/-- Turn a sheaf on the space `X` into a sheaf on the site `opens X`. -/
-@[simps]
-def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topology X) C :=
-{ obj := λ F, ⟨F.1, is_sheaf_sites_of_is_sheaf_spaces F.1 F.2⟩,
-  map := λ F G f, f }
-
-/--
-The equivalence of categories between sheaves on the site `opens X` and sheaves on the space `X`.
--/
-@[simps]
-def Sheaf_spaces_equivelence_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
-begin
-  refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
-  all_goals {
-    refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
-    ext U, dsimp,
-    erw [nat_trans.comp_app, nat_trans.comp_app, eq_to_hom_refl G.1 rfl, eq_to_hom_refl F.1 rfl,
-      nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },
-end
+lemma is_sheaf_iff_is_sheaf_equalizer_products :
+  F.is_sheaf ↔ F.is_sheaf_equalizer_products :=
+iff.intro (is_sheaf_equalizer_products_of_is_sheaf F) (is_sheaf_of_is_sheaf_equalizer_products F)
 
 end Top.presheaf
+
+namespace Top.opens
+
+open category_theory topological_space
+
+variables {X : Top} {ι : Type*}
+
+lemma cover_dense_iff_is_basis [category ι] (B : ι ⥤ opens X) :
+  cover_dense (opens.grothendieck_topology X) B ↔ opens.is_basis (set.range B.obj) :=
+begin
+  rw opens.is_basis_iff_nbhd,
+  split, intros hd U x hx, rcases hd.1 U x hx with ⟨V,f,⟨i,f₁,f₂,hc⟩,hV⟩,
+  exact ⟨B.obj i, ⟨i,rfl⟩, f₁.le hV, f₂.le⟩,
+  intro hb, split, intros U x hx, rcases hb hx with ⟨_,⟨i,rfl⟩,hx,hi⟩,
+  exact ⟨B.obj i, ⟨⟨hi⟩⟩, ⟨⟨i, 𝟙 _, ⟨⟨hi⟩⟩, rfl⟩⟩, hx⟩,
+end
+
+lemma cover_dense_induced_functor {B : ι → opens X} (h : opens.is_basis (set.range B)) :
+  cover_dense (opens.grothendieck_topology X) (induced_functor B) :=
+(cover_dense_iff_is_basis _).2 h
+
+end Top.opens
+
+namespace Top.sheaf
+
+open category_theory topological_space Top opposite
+
+variables {C : Type u} [category.{v} C]
+variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
+variables (F : X.presheaf C) (F' : sheaf C X) (h : opens.is_basis (set.range B))
+
+/-- The empty component of a sheaf is terminal -/
+def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
+F.is_terminal_of_bot_cover ∅ (by tidy)
+
+/-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
+def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
+  limits.is_terminal (F.val.obj (op U)) :=
+by convert F.is_terminal_of_empty
+
+/-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
+    is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`
+    is equivalent to a homomorphism between their restrictions to the indexing type
+    `ι` of `B`, with the induced category structure on `ι`. -/
+def restrict_hom_equiv_hom :
+  ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1) ≃ (F ⟶ F'.1) :=
+@cover_dense.restrict_hom_equiv_hom _ _ _ _ _ _ _ _ (opens.cover_dense_induced_functor h)
+  _ F F'
+
+@[simp] lemma extend_hom_app (α : ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1))
+  (i : ι) : (restrict_hom_equiv_hom F F' h α).app (op (B i)) = α.app (op i) :=
+by { nth_rewrite 1 ← (restrict_hom_equiv_hom F F' h).left_inv α, refl }
+
+include h
+lemma hom_ext {α β : F ⟶ F'.1} (he : ∀ i, α.app (op (B i)) = β.app (op (B i))) : α = β :=
+by { apply (restrict_hom_equiv_hom F F' h).symm.injective, ext i, exact he i.unop }
+
+end Top.sheaf

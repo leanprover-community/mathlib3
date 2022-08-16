@@ -3,11 +3,17 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Justus Springer
 -/
-import category_theory.category.preorder
-import category_theory.limits.shapes.finite_limits
 import order.complete_lattice
+import category_theory.limits.shapes.pullbacks
+import category_theory.category.preorder
+import category_theory.limits.shapes.products
+import category_theory.limits.shapes.finite_limits
 
-universes u
+/-!
+# Limits in lattice categories are given by infimums and supremums.
+-/
+
+universes w u
 
 open category_theory
 open category_theory.limits
@@ -18,95 +24,127 @@ section semilattice
 
 variables {α : Type u}
 
-variables {J : Type u} [small_category J] [fin_category J]
+variables {J : Type w} [small_category J] [fin_category J]
 
 /--
-The limit cone over any functor from a finite diagram into a `semilattice_inf_top`.
+The limit cone over any functor from a finite diagram into a `semilattice_inf` with `order_top`.
 -/
-def finite_limit_cone [semilattice_inf_top α] (F : J ⥤ α) : limit_cone F :=
+def finite_limit_cone [semilattice_inf α] [order_top α] (F : J ⥤ α) : limit_cone F :=
 { cone :=
   { X := finset.univ.inf F.obj,
     π := { app := λ j, hom_of_le (finset.inf_le (fintype.complete _)) } },
   is_limit := { lift := λ s, hom_of_le (finset.le_inf (λ j _, (s.π.app j).down.down)) } }
 
 /--
-The colimit cocone over any functor from a finite diagram into a `semilattice_sup_bot`.
+The colimit cocone over any functor from a finite diagram into a `semilattice_sup` with `order_bot`.
 -/
-def finite_colimit_cocone [semilattice_sup_bot α] (F : J ⥤ α) : colimit_cocone F :=
+def finite_colimit_cocone [semilattice_sup α] [order_bot α] (F : J ⥤ α) : colimit_cocone F :=
 { cocone :=
   { X := finset.univ.sup F.obj,
     ι := { app := λ i, hom_of_le (finset.le_sup (fintype.complete _)) } },
   is_colimit := { desc := λ s, hom_of_le (finset.sup_le (λ j _, (s.ι.app j).down.down)) } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
+instance has_finite_limits_of_semilattice_inf_order_top [semilattice_inf α] [order_top α] :
   has_finite_limits α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_limit := λ F, has_limit.mk (finite_limit_cone F) }⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
+instance has_finite_colimits_of_semilattice_sup_order_bot [semilattice_sup α] [order_bot α] :
   has_finite_colimits α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_colimit := λ F, has_colimit.mk (finite_colimit_cocone F) }⟩
 
 /--
-The limit of a functor from a finite diagram into a `semilattice_inf_top` is the infimum of the
-objects in the image.
+The limit of a functor from a finite diagram into a `semilattice_inf` with `order_top` is the
+infimum of the objects in the image.
 -/
-lemma finite_limit_eq_finset_univ_inf [semilattice_inf_top α] (F : J ⥤ α) :
+lemma finite_limit_eq_finset_univ_inf [semilattice_inf α] [order_top α] (F : J ⥤ α) :
   limit F = finset.univ.inf F.obj :=
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit F)
   (finite_limit_cone F).is_limit).to_eq
 
 /--
-The colimit of a functor from a finite diagram into a `semilattice_sup_bot` is the supremum of the
-objects in the image.
+The colimit of a functor from a finite diagram into a `semilattice_sup` with `order_bot`
+is the supremum of the objects in the image.
 -/
-lemma finite_colimit_eq_finset_univ_sup [semilattice_sup_bot α] (F : J ⥤ α) :
+lemma finite_colimit_eq_finset_univ_sup [semilattice_sup α] [order_bot α] (F : J ⥤ α) :
   colimit F = finset.univ.sup F.obj :=
 (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit F)
   (finite_colimit_cocone F).is_colimit).to_eq
 
 /--
-A finite product in the category of a `semilattice_inf_top` is the same as the infimum.
+A finite product in the category of a `semilattice_inf` with `order_top` is the same as the infimum.
 -/
-lemma finite_product_eq_finset_inf [semilattice_inf_top α] {ι : Type u} [decidable_eq ι]
+lemma finite_product_eq_finset_inf [semilattice_inf α] [order_top α] {ι : Type u}
   [fintype ι] (f : ι → α) : (∏ f) = (fintype.elems ι).inf f :=
-(is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
-  (finite_limit_cone (discrete.functor f)).is_limit).to_eq
+begin
+  transitivity,
+  exact (is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
+    (finite_limit_cone (discrete.functor f)).is_limit).to_eq,
+  change finset.univ.inf (f ∘ discrete_equiv.to_embedding) = (fintype.elems ι).inf f,
+  simp only [←finset.inf_map, finset.univ_map_equiv_to_embedding],
+  refl,
+end
 
 /--
-A finite coproduct in the category of a `semilattice_sup_bot` is the same as the supremum.
+A finite coproduct in the category of a `semilattice_sup` with `order_bot` is the same as the
+supremum.
 -/
-lemma finite_coproduct_eq_finset_sup [semilattice_sup_bot α] {ι : Type u} [decidable_eq ι]
+lemma finite_coproduct_eq_finset_sup [semilattice_sup α] [order_bot α] {ι : Type u}
   [fintype ι] (f : ι → α) : (∐ f) = (fintype.elems ι).sup f :=
-(is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
-  (finite_colimit_cocone (discrete.functor f)).is_colimit).to_eq
+begin
+  transitivity,
+  exact (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+    (finite_colimit_cocone (discrete.functor f)).is_colimit).to_eq,
+  change finset.univ.sup (f ∘ discrete_equiv.to_embedding) = (fintype.elems ι).sup f,
+  simp only [←finset.sup_map, finset.univ_map_equiv_to_embedding],
+  refl,
+end
+
+@[priority 100] -- see Note [lower instance priority]
+instance [semilattice_inf α] [order_top α] : has_binary_products α :=
+begin
+  haveI : ∀ (x y : α), has_limit (pair x y),
+  { letI := has_finite_limits_of_has_finite_limits_of_size.{u} α, apply_instance },
+  apply has_binary_products_of_has_limit_pair
+end
 
 /--
-The binary product in the category of a `semilattice_inf_top` is the same as the infimum.
+The binary product in the category of a `semilattice_inf` with `order_top` is the same as the
+infimum.
 -/
 @[simp]
-lemma prod_eq_inf [semilattice_inf_top α] (x y : α) : limits.prod x y = x ⊓ y :=
+lemma prod_eq_inf [semilattice_inf α] [order_top α] (x y : α) : limits.prod x y = x ⊓ y :=
 calc limits.prod x y = limit (pair x y) : rfl
-... = finset.univ.inf (pair x y).obj : by rw finite_limit_eq_finset_univ_inf (pair x y)
+... = finset.univ.inf (pair x y).obj : by rw finite_limit_eq_finset_univ_inf (pair.{u} x y)
 ... = x ⊓ (y ⊓ ⊤) : rfl -- Note: finset.inf is realized as a fold, hence the definitional equality
 ... = x ⊓ y : by rw inf_top_eq
 
+@[priority 100] -- see Note [lower instance priority]
+instance [semilattice_sup α] [order_bot α] : has_binary_coproducts α :=
+begin
+  haveI : ∀ (x y : α), has_colimit (pair x y),
+  { letI := has_finite_colimits_of_has_finite_colimits_of_size.{u} α, apply_instance },
+  apply has_binary_coproducts_of_has_colimit_pair
+end
+
 /--
-The binary coproduct in the category of a `semilattice_sup_bot` is the same as the supremum.
+The binary coproduct in the category of a `semilattice_sup` with `order_bot` is the same as the
+supremum.
 -/
 @[simp]
-lemma coprod_eq_sup [semilattice_sup_bot α] (x y : α) : limits.coprod x y = x ⊔ y :=
+lemma coprod_eq_sup [semilattice_sup α] [order_bot α] (x y : α) : limits.coprod x y = x ⊔ y :=
 calc limits.coprod x y = colimit (pair x y) : rfl
 ... = finset.univ.sup (pair x y).obj : by rw finite_colimit_eq_finset_univ_sup (pair x y)
 ... = x ⊔ (y ⊔ ⊥) : rfl -- Note: finset.sup is realized as a fold, hence the definitional equality
 ... = x ⊔ y : by rw sup_bot_eq
 
 /--
-The pullback in the category of a `semilattice_inf_top` is the same as the infimum over the objects.
+The pullback in the category of a `semilattice_inf` with `order_top` is the same as the infimum
+over the objects.
 -/
 @[simp]
-lemma pullback_eq_inf [semilattice_inf_top α] {x y z : α} (f : x ⟶ z) (g : y ⟶ z) :
+lemma pullback_eq_inf [semilattice_inf α] [order_top α] {x y z : α} (f : x ⟶ z) (g : y ⟶ z) :
   pullback f g = x ⊓ y :=
 calc pullback f g = limit (cospan f g) : rfl
 ... = finset.univ.inf (cospan f g).obj : by rw finite_limit_eq_finset_univ_inf
@@ -115,10 +153,11 @@ calc pullback f g = limit (cospan f g) : rfl
 ... = x ⊓ y : inf_eq_right.mpr (inf_le_of_left_le f.le)
 
 /--
-The pushout in the category of a `semilattice_sup_bot` is the same as the supremum over the objects.
+The pushout in the category of a `semilattice_sup` with `order_bot` is the same as the supremum
+over the objects.
 -/
 @[simp]
-lemma pushout_eq_sup [semilattice_sup_bot α] (x y z : α) (f : z ⟶ x) (g : z ⟶ y) :
+lemma pushout_eq_sup [semilattice_sup α] [order_bot α] (x y z : α) (f : z ⟶ x) (g : z ⟶ y) :
   pushout f g = x ⊔ y :=
 calc pushout f g = colimit (span f g) : rfl
 ... = finset.univ.sup (span f g).obj : by rw finite_colimit_eq_finset_univ_sup

@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.pointwise
-import data.equiv.ring
+import algebra.ring.equiv
 import group_theory.group_action.group
-import group_theory.submonoid.pointwise
-import group_theory.subgroup.pointwise
-import ring_theory.subring
+import ring_theory.subring.basic
 
 /-!
 # Group action on rings
@@ -58,7 +55,7 @@ def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* 
 { .. mul_distrib_mul_action.to_monoid_hom R x,
   .. distrib_mul_action.to_add_monoid_hom R x }
 
-theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R] :
+theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_smul M R] :
   function.injective (mul_semiring_action.to_ring_hom M R) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, ring_hom.ext_iff.1 h r
 
@@ -97,65 +94,6 @@ H.to_subsemiring.mul_semiring_action
 
 end
 
-section pointwise
-
-namespace subsemiring
-variables [mul_semiring_action M R]
-
-/-- The action on a subsemiring corresponding to applying the action to every element.
-
-This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_mul_action : mul_action M (subsemiring R) :=
-{ smul := λ a S, S.map (mul_semiring_action.to_ring_hom _ _ a),
-  one_smul := λ S,
-    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact one_smul M)).trans S.map_id,
-  mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact mul_smul _ _)).trans (S.map_map _ _).symm }
-
-localized "attribute [instance] subsemiring.pointwise_mul_action" in pointwise
-open_locale pointwise
-
-@[simp] lemma coe_pointwise_smul (m : M) (S : subsemiring R) : ↑(m • S) = m • (S : set R) := rfl
-
-@[simp] lemma pointwise_smul_to_add_submonoid (m : M) (S : subsemiring R) :
-  (m • S).to_add_submonoid = m • S.to_add_submonoid := rfl
-
-lemma smul_mem_pointwise_smul (m : M) (r : R) (S : subsemiring R) : r ∈ S → m • r ∈ m • S :=
-(set.smul_mem_smul_set : _ → _ ∈ m • (S : set R))
-
-end subsemiring
-
-namespace subring
-variables {R' : Type*} [ring R'] [mul_semiring_action M R']
-
-/-- The action on a subring corresponding to applying the action to every element.
-
-This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_mul_action : mul_action M (subring R') :=
-{ smul := λ a S, S.map (mul_semiring_action.to_ring_hom _ _ a),
-  one_smul := λ S,
-    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact one_smul M)).trans S.map_id,
-  mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact mul_smul _ _)).trans (S.map_map _ _).symm }
-
-localized "attribute [instance] subring.pointwise_mul_action" in pointwise
-open_locale pointwise
-
-@[simp] lemma coe_pointwise_smul (m : M) (S : subring R') : ↑(m • S) = m • (S : set R') := rfl
-
-@[simp] lemma pointwise_smul_to_add_subgroup (m : M) (S : subring R') :
-  (m • S).to_add_subgroup = m • S.to_add_subgroup := rfl
-
-@[simp] lemma pointwise_smul_to_subsemiring (m : M) (S : subring R') :
-  (m • S).to_subsemiring = m • S.to_subsemiring := rfl
-
-lemma smul_mem_pointwise_smul (m : M) (r : R') (S : subring R') : r ∈ S → m • r ∈ m • S :=
-(set.smul_mem_smul_set : _ → _ ∈ m • (S : set R'))
-
-end subring
-
-end pointwise
-
 section simp_lemmas
 
 variables {M G A R F}
@@ -165,7 +103,7 @@ attribute [simp] smul_one smul_mul' smul_zero smul_add
 /-- Note that `smul_inv'` refers to the group case, and `smul_inv` has an additional inverse
 on `x`. -/
 @[simp] lemma smul_inv'' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
-(mul_semiring_action.to_ring_hom M F x).map_inv _
+map_inv₀ (mul_semiring_action.to_ring_hom M F x) _
 
 end simp_lemmas
 

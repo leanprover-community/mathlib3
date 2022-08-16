@@ -5,6 +5,8 @@ Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.mono_over
 import category_theory.skeletal
+import tactic.elementwise
+import tactic.apply_fun
 
 /-!
 # Subobjects
@@ -96,6 +98,43 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+section
+local attribute [ext] category_theory.comma
+
+protected lemma ind {X : C} (p : subobject X → Prop)
+  (h : ∀ ⦃A : C⦄ (f : A ⟶ X) [mono f], by exactI p (subobject.mk f)) (P : subobject X) : p P :=
+begin
+  apply quotient.induction_on',
+  intro a,
+  convert h a.arrow,
+  ext; refl
+end
+
+protected lemma ind₂ {X : C} (p : subobject X → subobject X → Prop)
+  (h : ∀ ⦃A B : C⦄ (f : A ⟶ X) (g : B ⟶ X) [mono f] [mono g],
+    by exactI p (subobject.mk f) (subobject.mk g)) (P Q : subobject X) : p P Q :=
+begin
+  apply quotient.induction_on₂',
+  intros a b,
+  convert h a.arrow b.arrow;
+  ext; refl
+end
+
+end
+
+/-- Declare a function on subobjects of `X` by specifying a function on monomorphisms with
+    codomain `X`. -/
+protected def lift {α : Sort*} {X : C} (F : Π ⦃A : C⦄ (f : A ⟶ X) [mono f], α)
+  (h : ∀ ⦃A B : C⦄ (f : A ⟶ X) (g : B ⟶ X) [mono f] [mono g] (i : A ≅ B),
+    i.hom ≫ g = f → by exactI F f = F g) : subobject X → α :=
+λ P, quotient.lift_on' P (λ m, by exactI F m.arrow) $ λ m n ⟨i⟩,
+  h m.arrow n.arrow ((mono_over.forget X ⋙ over.forget X).map_iso i) (over.w i.hom)
+
+@[simp]
+protected lemma lift_mk {α : Sort*} {X : C} (F : Π ⦃A : C⦄ (f : A ⟶ X) [mono f], α) {h A}
+  (f : A ⟶ X) [mono f] : subobject.lift F h (subobject.mk f) = F f :=
+rfl
+
 /-- The category of subobjects is equivalent to the `mono_over` category. It is more convenient to
 use the former due to the partial order instance, but oftentimes it is easier to define structures
 on the latter. -/
@@ -147,7 +186,7 @@ The morphism in `C` from the arbitrarily chosen underlying object to the ambient
 -/
 noncomputable
 def arrow {X : C} (Y : subobject X) : (Y : C) ⟶ X :=
-(representative.obj Y).val.hom
+(representative.obj Y).obj.hom
 
 instance arrow_mono {X : C} (Y : subobject X) : mono (Y.arrow) :=
 (representative.obj Y).property
@@ -172,7 +211,7 @@ lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
@@ -329,11 +368,11 @@ by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
 @[simp] lemma of_le_refl {B : C} (X : subobject B) :
-  of_le X X (le_refl _) = 𝟙 _ :=
+  of_le X X le_rfl = 𝟙 _ :=
 by { apply (cancel_mono X.arrow).mp, simp }
 
 @[simp] lemma of_mk_le_mk_refl {B A₁ : C} (f : A₁ ⟶ B) [mono f] :
-  of_mk_le_mk f f (le_refl _) = 𝟙 _ :=
+  of_mk_le_mk f f le_rfl = 𝟙 _ :=
 by { apply (cancel_mono f).mp, simp }
 
 /-- An equality of subobjects gives an isomorphism of the corresponding objects.

@@ -3,9 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Sean Leather
 -/
-import data.list.perm
 import data.list.range
-import data.sigma
+import data.list.perm
 
 /-!
 # Utilities for lists of sigmas
@@ -30,7 +29,7 @@ If `α : Type*` and `β : α → Type*`, then we regard `s : sigma β` as having
 universes u v
 
 namespace list
-variables {α : Type u} {β : α → Type v}
+variables {α : Type u} {β : α → Type v} {l l₁ l₂ : list (sigma β)}
 
 /-! ### `keys` -/
 
@@ -81,9 +80,9 @@ by simp [keys, nodupkeys]
 theorem nodupkeys.eq_of_fst_eq {l : list (sigma β)}
   (nd : nodupkeys l) {s s' : sigma β} (h : s ∈ l) (h' : s' ∈ l) :
   s.1 = s'.1 → s = s' :=
-@forall_of_forall_of_pairwise _
-  (λ s s' : sigma β, s.1 = s'.1 → s = s')
-  (λ s s' H h, (H h.symm).symm) _ (λ x h _, rfl)
+@pairwise.forall_of_forall _
+  (λ s s' : sigma β, s.1 = s'.1 → s = s') _
+  (λ s s' H h, (H h.symm).symm) (λ x h _, rfl)
   ((nodupkeys_iff_pairwise.1 nd).imp (λ s s' h h', (h h').elim)) _ h _ h'
 
 theorem nodupkeys.eq_of_mk_mem {a : α} {b b' : β a} {l : list (sigma β)}
@@ -92,12 +91,11 @@ by cases nd.eq_of_fst_eq h h' rfl; refl
 
 theorem nodupkeys_singleton (s : sigma β) : nodupkeys [s] := nodup_singleton _
 
-theorem nodupkeys_of_sublist {l₁ l₂ : list (sigma β)} (h : l₁ <+ l₂) :
+theorem nodupkeys.sublist {l₁ l₂ : list (sigma β)} (h : l₁ <+ l₂) :
   nodupkeys l₂ → nodupkeys l₁ :=
-nodup_of_sublist (h.map _)
+nodup.sublist $ h.map _
 
-theorem nodup_of_nodupkeys {l : list (sigma β)} : nodupkeys l → nodup l :=
-nodup_of_nodup_map _
+protected lemma nodupkeys.nodup {l : list (sigma β)} : nodupkeys l → nodup l := nodup.of_map _
 
 theorem perm_nodupkeys {l₁ l₂ : list (sigma β)} (h : l₁ ~ l₂) : nodupkeys l₁ ↔ nodupkeys l₂ :=
 (h.map _).nodup_iff
@@ -124,22 +122,22 @@ begin
   { specialize h x <|> specialize h y, simp at h,
     cases h },
   simp at nd₀ nd₁, classical,
-  cases nd₀, cases nd₁,
-  by_cases h' : x = y,
-  { subst y, constructor, apply l₀_ih ‹ _ › ‹ nodup ys ›,
-    intro a, specialize h a, simp at h,
-    by_cases h' : a = x,
-    { subst a, rw ← not_iff_not, split; intro; assumption },
-    { simp [h'] at h, exact h } },
+  obtain rfl | h' := eq_or_ne x y,
+  { constructor,
+    refine l₀_ih nd₀.2 nd₁.2 (λ a, _),
+    specialize h a, simp at h,
+    obtain rfl | h' := eq_or_ne a x,
+    { exact iff_of_false nd₀.1 nd₁.1 },
+    { simpa [h'] using h } },
   { transitivity x :: y :: ys.erase x,
-    { constructor, apply l₀_ih ‹ _ ›,
-      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase ‹_› },
-        apply nodup_erase_of_nodup; assumption },
-      { intro a, specialize h a, simp at h,
-        by_cases h' : a = x,
-        { subst a, rw ← not_iff_not, split; intro, simp [mem_erase_of_nodup,*], assumption },
-        { simp [h'] at h, simp [h], apply or_congr, refl,
-          simp [mem_erase_of_ne,*] } } },
+    { constructor,
+      refine l₀_ih nd₀.2 ((nd₁.2.erase _).cons $ λ h, nd₁.1 $ mem_of_mem_erase h) (λ a, _),
+      { specialize h a, simp at h,
+        obtain rfl | h' := eq_or_ne a x,
+        { exact iff_of_false nd₀.1 (λ h, h.elim h' nd₁.2.not_mem_erase) },
+        { rw or_iff_right h' at h,
+          rw [h, mem_cons_iff],
+          exact or_congr_right' (mem_erase_of_ne h').symm } } },
     transitivity y :: x :: ys.erase x,
     { constructor },
     { constructor, symmetry, apply perm_cons_erase,
@@ -214,8 +212,7 @@ by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact p.mem_iff
 lemma lookup_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodupkeys) (nd₁ : l₁.nodupkeys)
   (h : ∀ x y, y ∈ l₀.lookup x ↔ y ∈ l₁.lookup x) : l₀ ~ l₁ :=
-mem_ext (nodup_of_nodupkeys nd₀) (nodup_of_nodupkeys nd₁)
-  (λ ⟨a,b⟩, by rw [← mem_lookup_iff, ← mem_lookup_iff, h]; assumption)
+mem_ext nd₀.nodup nd₁.nodup (λ ⟨a,b⟩, by rw [← mem_lookup_iff, ← mem_lookup_iff, h]; assumption)
 
 /-! ### `lookup_all` -/
 
@@ -264,7 +261,7 @@ theorem lookup_all_sublist (a : α) :
 
 theorem lookup_all_length_le_one (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   length (lookup_all a l) ≤ 1 :=
-by have := nodup_of_sublist ((lookup_all_sublist a l).map _) h;
+by have := nodup.sublist ((lookup_all_sublist a l).map _) h;
    rw map_map at this; rwa [← nodup_repeat, ← map_const _ a]
 
 theorem lookup_all_eq_lookup (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
@@ -306,7 +303,7 @@ begin
     { subst a', exact ⟨rfl, heq_of_eq $ nd.eq_of_mk_mem h h'⟩ },
     { refl } },
   { rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, dsimp [option.guard], split_ifs,
-    { subst a₁, rintro ⟨⟩, simp }, { rintro ⟨⟩ } },
+    { exact id }, { rintro ⟨⟩ } },
 end
 
 theorem keys_kreplace (a : α) (b : β a) : ∀ l : list (sigma β),
@@ -372,15 +369,15 @@ theorem exists_of_kerase {a : α} {l : list (sigma β)} (h : a ∈ l.keys) :
 begin
   induction l,
   case list.nil { cases h },
-  case list.cons : hd tl ih {
-    by_cases e : a = hd.1,
+  case list.cons : hd tl ih
+  { by_cases e : a = hd.1,
     { subst e,
       exact ⟨hd.2, [], tl, by simp, by cases hd; refl, by simp⟩ },
     { simp at h,
       cases h,
       case or.inl : h { exact absurd h e },
-      case or.inr : h {
-        rcases ih h with ⟨b, tl₁, tl₂, h₁, h₂, h₃⟩,
+      case or.inr : h
+      { rcases ih h with ⟨b, tl₁, tl₂, h₁, h₂, h₃⟩,
         exact ⟨b, hd :: tl₁, tl₂, not_mem_cons_of_ne_of_not_mem e h₁,
                by rw h₂; refl, by simp [e, h₃]⟩ } } }
 end
@@ -412,8 +409,8 @@ begin
     { simp [kerase_cons_ne,*] } }
 end
 
-theorem kerase_nodupkeys (a : α) {l : list (sigma β)} : nodupkeys l → (kerase a l).nodupkeys :=
-nodupkeys_of_sublist $ kerase_sublist _ _
+lemma nodupkeys.kerase (a : α) : nodupkeys l → (kerase a l).nodupkeys :=
+nodupkeys.sublist $ kerase_sublist _ _
 
 theorem perm.kerase {a : α} {l₁ l₂ : list (sigma β)}
   (nd : l₁.nodupkeys) : l₁ ~ l₂ → kerase a l₁ ~ kerase a l₂ :=
@@ -425,8 +422,8 @@ by rintro x y h rfl; exact h
 begin
   induction l,
   case list.nil { simp },
-  case list.cons : hd tl ih {
-    simp at nd,
+  case list.cons : hd tl ih
+  { simp at nd,
     by_cases h : a = hd.1,
     { subst h, simp [nd.1] },
     { simp [h, ih nd.2] } }
@@ -441,8 +438,8 @@ lookup_eq_none.mpr (not_mem_keys_kerase a nd)
 begin
   induction l,
   case list.nil { refl },
-  case list.cons : hd tl ih {
-    cases hd with ah bh,
+  case list.cons : hd tl ih
+  { cases hd with ah bh,
     by_cases h₁ : a = ah; by_cases h₂ : a' = ah,
     { substs h₁ h₂, cases ne.irrefl h },
     { subst h₁, simp [h₂] },
@@ -512,7 +509,7 @@ by by_cases h : a = a'; simp [h]
 
 theorem kinsert_nodupkeys (a) (b : β a) {l : list (sigma β)} (nd : l.nodupkeys) :
   (kinsert a b l).nodupkeys :=
-nodupkeys_cons.mpr ⟨not_mem_keys_kerase a nd, kerase_nodupkeys a nd⟩
+nodupkeys_cons.mpr ⟨not_mem_keys_kerase a nd, nd.kerase a⟩
 
 theorem perm.kinsert {a} {b : β a} {l₁ l₂ : list (sigma β)} (nd₁ : l₁.nodupkeys)
   (p : l₁ ~ l₂) : kinsert a b l₁ ~ kinsert a b l₂ :=
@@ -544,44 +541,44 @@ def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
     { simp [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
   end
 
-/-! ### `erase_dupkeys` -/
+/-! ### `dedupkeys` -/
 
 /-- Remove entries with duplicate keys from `l : list (sigma β)`. -/
-def erase_dupkeys : list (sigma β) → list (sigma β) :=
+def dedupkeys : list (sigma β) → list (sigma β) :=
 list.foldr (λ x, kinsert x.1 x.2) []
 
-lemma erase_dupkeys_cons {x : sigma β} (l : list (sigma β)) :
-  erase_dupkeys (x :: l) = kinsert x.1 x.2 (erase_dupkeys l) := rfl
+lemma dedupkeys_cons {x : sigma β} (l : list (sigma β)) :
+  dedupkeys (x :: l) = kinsert x.1 x.2 (dedupkeys l) := rfl
 
-lemma nodupkeys_erase_dupkeys (l : list (sigma β)) : nodupkeys (erase_dupkeys l) :=
+lemma nodupkeys_dedupkeys (l : list (sigma β)) : nodupkeys (dedupkeys l) :=
 begin
-  dsimp [erase_dupkeys], generalize hl : nil = l',
+  dsimp [dedupkeys], generalize hl : nil = l',
   have : nodupkeys l', { rw ← hl, apply nodup_nil },
   clear hl,
   induction l with x xs,
   { apply this },
-  { cases x, simp [erase_dupkeys], split,
-    { simp [keys_kerase], apply mem_erase_of_nodup l_ih },
-    apply kerase_nodupkeys _ l_ih, }
+  { cases x, simp [dedupkeys], split,
+    { simp [keys_kerase], apply l_ih.not_mem_erase },
+    { exact l_ih.kerase _ } }
 end
 
-lemma lookup_erase_dupkeys (a : α) (l : list (sigma β)) : lookup a (erase_dupkeys l) = lookup a l :=
+lemma lookup_dedupkeys (a : α) (l : list (sigma β)) : lookup a (dedupkeys l) = lookup a l :=
 begin
   induction l, refl,
   cases l_hd with a' b,
   by_cases a = a',
-  { subst a', rw [erase_dupkeys_cons,lookup_kinsert,lookup_cons_eq] },
-  { rw [erase_dupkeys_cons,lookup_kinsert_ne h,l_ih,lookup_cons_ne], exact h },
+  { subst a', rw [dedupkeys_cons,lookup_kinsert,lookup_cons_eq] },
+  { rw [dedupkeys_cons,lookup_kinsert_ne h,l_ih,lookup_cons_ne], exact h },
 end
 
-lemma sizeof_erase_dupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)]
+lemma sizeof_dedupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)]
   (xs : list (sigma β)) :
-  sizeof (list.erase_dupkeys xs) ≤ sizeof xs :=
+  sizeof (list.dedupkeys xs) ≤ sizeof xs :=
 begin
   unfold_wf,
   induction xs with x xs,
-  { simp [list.erase_dupkeys] },
-  { simp only [erase_dupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
+  { simp [list.dedupkeys] },
+  { simp only [dedupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
     transitivity, apply sizeof_kerase,
     assumption }
 end
@@ -619,14 +616,14 @@ end
 | (s :: _) l := by by_cases h : a = s.1;
                    simp [h, kerase_comm a s.1 l, kunion_kerase]
 
-theorem kunion_nodupkeys {l₁ l₂ : list (sigma β)}
+lemma nodupkeys.kunion
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) : (kunion l₁ l₂).nodupkeys :=
 begin
   induction l₁ generalizing l₂,
   case list.nil { simp only [nil_kunion, nd₂] },
-  case list.cons : s l₁ ih {
-    simp at nd₁,
-    simp [not_or_distrib, nd₁.1, nd₂, ih nd₁.2 (kerase_nodupkeys s.1 nd₂)] }
+  case list.cons : s l₁ ih
+  { simp at nd₁,
+    simp [not_or_distrib, nd₁.1, nd₂, ih nd₁.2 (nd₂.kerase s.1)] }
 end
 
 theorem perm.kunion_right {l₁ l₂ : list (sigma β)} (p : l₁ ~ l₂) (l) :
@@ -634,19 +631,19 @@ theorem perm.kunion_right {l₁ l₂ : list (sigma β)} (p : l₁ ~ l₂) (l) :
 begin
   induction p generalizing l,
   case list.perm.nil { refl },
-  case list.perm.cons : hd tl₁ tl₂ p ih {
-    simp [ih (kerase hd.1 l), perm.cons] },
-  case list.perm.swap : s₁ s₂ l {
-    simp [kerase_comm, perm.swap] },
-  case list.perm.trans : l₁ l₂ l₃ p₁₂ p₂₃ ih₁₂ ih₂₃ {
-    exact perm.trans (ih₁₂ l) (ih₂₃ l) }
+  case list.perm.cons : hd tl₁ tl₂ p ih
+  { simp [ih (kerase hd.1 l), perm.cons] },
+  case list.perm.swap : s₁ s₂ l
+  { simp [kerase_comm, perm.swap] },
+  case list.perm.trans : l₁ l₂ l₃ p₁₂ p₂₃ ih₁₂ ih₂₃
+  { exact perm.trans (ih₁₂ l) (ih₂₃ l) }
 end
 
 theorem perm.kunion_left : ∀ l {l₁ l₂ : list (sigma β)},
   l₁.nodupkeys → l₁ ~ l₂ → kunion l l₁ ~ kunion l l₂
 | []       _  _  _   p := p
 | (s :: l) l₁ l₂ nd₁ p :=
-  by simp [((p.kerase nd₁).kunion_left l (kerase_nodupkeys s.1 nd₁)).cons s]
+  by simp [((p.kerase nd₁).kunion_left l $ nd₁.kerase s.1).cons s]
 
 theorem perm.kunion {l₁ l₂ l₃ l₄ : list (sigma β)} (nd₃ : l₃.nodupkeys)
   (p₁₂ : l₁ ~ l₂) (p₃₄ : l₃ ~ l₄) : kunion l₁ l₃ ~ kunion l₂ l₄ :=
@@ -676,8 +673,8 @@ end
 begin
   induction l₁ generalizing l₂,
   case list.nil { simp },
-  case list.cons : s _ ih {
-    cases s with a',
+  case list.cons : s _ ih
+  { cases s with a',
     by_cases h₁ : a = a',
     { subst h₁, simp },
     { let h₂ := @ih (kerase a' l₂), simp [h₁] at h₂, simp [h₁, h₂] } }

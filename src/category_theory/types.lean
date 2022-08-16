@@ -3,8 +3,9 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
-import category_theory.fully_faithful
-import data.equiv.basic
+import category_theory.epi_mono
+import category_theory.functor.fully_faithful
+import logic.equiv.basic
 
 /-!
 # The category `Type`.
@@ -62,7 +63,8 @@ congr_fun f.inv_hom_id y
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-localized "notation  `↾` f : 200 := as_hom f" in category_theory.Type -- type as \upr in VScode
+localized "notation  `↾` f : 200 := category_theory.as_hom f"
+  in category_theory.Type -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)
@@ -161,7 +163,7 @@ lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
 /--
 A morphism in `Type` is a monomorphism if and only if it is injective.
 
-See https://stacks.math.columbia.edu/tag/003C.
+See <https://stacks.math.columbia.edu/tag/003C>.
 -/
 lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
 begin
@@ -170,43 +172,31 @@ begin
     resetI,
     rw ←hom_of_element_eq_iff at ⊢ h,
     exact (cancel_mono f).mp h },
-  { refine λ H, ⟨λ Z g h H₂, _⟩,
-    ext z,
-    replace H₂ := congr_fun H₂ z,
-    exact H H₂ }
+  { exact λ H, ⟨λ Z, H.comp_left⟩ }
 end
+
+lemma injective_of_mono {X Y : Type u} (f : X ⟶ Y) [hf : mono f] : function.injective f :=
+(mono_iff_injective f).1 hf
 
 /--
 A morphism in `Type` is an epimorphism if and only if it is surjective.
 
-See https://stacks.math.columbia.edu/tag/003C.
+See <https://stacks.math.columbia.edu/tag/003C>.
 -/
 lemma epi_iff_surjective {X Y : Type u} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
   split,
-  { intros H,
-    let g : Y ⟶ ulift Prop := λ y, ⟨true⟩,
-    let h : Y ⟶ ulift Prop := λ y, ⟨∃ x, f x = y⟩,
-    suffices : f ≫ g = f ≫ h,
-    { resetI,
-      rw cancel_epi at this,
-      intro y,
-      replace this := congr_fun this y,
-      replace this : true = ∃ x, f x = y := congr_arg ulift.down this,
-      rw ←this,
-      trivial },
-    ext x,
-    change true ↔ ∃ x', f x' = f x,
-    rw true_iff,
-    exact ⟨x, rfl⟩ },
-  { intro H,
-    constructor,
-    intros Z g h H₂,
-    apply funext,
-    rw ←forall_iff_forall_surj H,
-    intro x,
-    exact (congr_fun H₂ x : _) }
+  { rintros ⟨H⟩,
+    refine function.surjective_of_right_cancellable_Prop (λ g₁ g₂ hg, _),
+    rw [← equiv.ulift.symm.injective.comp_left.eq_iff],
+    apply H,
+    change ulift.up ∘ (g₁ ∘ f) = ulift.up ∘ (g₂ ∘ f),
+    rw hg },
+  { exact λ H, ⟨λ Z, H.injective_comp_right⟩ }
 end
+
+lemma surjective_of_epi {X Y : Type u} (f : X ⟶ Y) [hf : epi f] : function.surjective f :=
+(epi_iff_surjective f).1 hf
 
 section
 
@@ -287,6 +277,11 @@ lemma is_iso_iff_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ↔ function.
 iff.intro
   (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
   (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
+
+instance : split_epi_category (Type u) :=
+{ is_split_epi_of_epi := λ X Y f hf, is_split_epi.mk'
+  { section_ := function.surj_inv $ (epi_iff_surjective f).1 hf,
+    id' := funext $ function.right_inverse_surj_inv $ (epi_iff_surjective f).1 hf } }
 
 end category_theory
 

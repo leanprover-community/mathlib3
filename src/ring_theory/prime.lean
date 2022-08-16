@@ -10,9 +10,9 @@ import algebra.big_operators.basic
 This file contains lemmas about prime elements of commutative rings.
 -/
 
-section comm_cancel_monoid_with_zero
+section cancel_comm_monoid_with_zero
 
-variables {R : Type*} [comm_cancel_monoid_with_zero R]
+variables {R : Type*} [cancel_comm_monoid_with_zero R]
 open finset
 
 open_locale big_operators
@@ -65,7 +65,7 @@ begin
   exact ⟨t.card, u.card, b, c, by rw [← card_disjoint_union htu, htus, card_range], by simp⟩,
 end
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section comm_ring
 

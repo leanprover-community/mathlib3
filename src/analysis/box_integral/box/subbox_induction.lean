@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.box.basic
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Induction on subboxes
@@ -127,7 +127,7 @@ begin
     from λ m, nat.rec_on m hpI (λ m, by simpa only [J_succ] using hs (J m) (hJle m)),
   have hJsub : ∀ m i, (J m).upper i - (J m).lower i = (I.upper i - I.lower i) / 2 ^ m,
   { intros m i, induction m with m ihm, { simp [J] },
-    simp only [pow_succ', J_succ, upper_sub_lower_split_center_box, ihm, div_div_eq_div_mul] },
+    simp only [pow_succ', J_succ, upper_sub_lower_split_center_box, ihm, div_div] },
   have h0 : J 0 = I, from rfl,
   -- Now we clear unneeded assumptions
   clear_value J, clear hpI hs J_succ s,
@@ -144,7 +144,7 @@ begin
       ⟨I.upper, λ x ⟨m, hm⟩, hm ▸ (hJl_mem m).2⟩,
   have hJuz : tendsto (λ m, (J m).upper) at_top (𝓝 z),
   { suffices : tendsto (λ m, (J m).upper - (J m).lower) at_top (𝓝 0), by simpa using hJlz.add this,
-    refine tendsto_pi.2 (λ i, _),
+    refine tendsto_pi_nhds.2 (λ i, _),
     simpa [hJsub] using tendsto_const_nhds.div_at_top
       (tendsto_pow_at_top_at_top_of_one_lt (@one_lt_two ℝ _ _)) },
   replace hJlz : tendsto (λ m, (J m).lower) at_top (𝓝[Icc I.lower I.upper] z),

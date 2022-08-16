@@ -39,7 +39,8 @@ its valid paths to values of `α`
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universes u v
@@ -113,7 +114,7 @@ def Wp : mvpfunctor n :=
 { A := P.last.W, B := P.W_path }
 
 /-- W-type of `P` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def W (α : typevec n) : Type* := P.Wp.obj α
 
 instance mvfunctor_W : mvfunctor P.W := by delta mvpfunctor.W; apply_instance

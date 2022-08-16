@@ -140,22 +140,18 @@ end
 open_locale pointwise
 
 lemma pow_induction {P : clifford_algebra Q → Prop}
-  (hι : ∀ (n : ℕ) (x ∈ ((ι Q).range : set $ clifford_algebra Q) ^ n), P x)
-  (hr : ∀ (r : R), P (algebra_map R _ r))
+  (hι : ∀ (n : ℕ) (x ∈ (ι Q).range.to_sub_mul_action ^ n), P x)
   (hadd : ∀ x y, P x → P y → P (x + y)) : ∀ x, P x :=
 begin
   intro x,
   have : x ∈ ⊤ := submodule.mem_top,
   rw ←supr_ι_range_eq_top at this,
   refine submodule.supr_induction _ this (λ i x hx, _) _ hadd,
-  { refine submodule.pow_induction_on_left _ hr hadd _ hx,
-    rintros _ ⟨m, rfl⟩,
-    sorry },
-  { simpa only [map_zero] using hr 0}
-
+  { exact submodule.pow_induction_on _ i hadd (hι _) hx },
+  { refine hι 1 0 _,
+    rw pow_one,
+    exact submodule.zero_mem _ }
 end
-
-#exit
 
 /-- To show a property is true on the even or odd part, it suffices to show it is true on the
 scalars or vectors (respectively), closed under addition, and under left-multiplication by a pair

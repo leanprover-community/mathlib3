@@ -100,7 +100,7 @@ instance : mono (inclusion_of_Moore_complex_map X) :=
 ⟨λ Y f₁ f₂ hf, by { ext n, exact homological_complex.congr_hom hf n, }⟩
 
 /-- `inclusion_of_Moore_complex_map X` is a split mono. -/
-def split_mono_inclusion_of_Moore_complex (X : simplicial_object A) :
+def split_mono_inclusion_of_Moore_complex_map (X : simplicial_object A) :
   split_mono (inclusion_of_Moore_complex_map X) :=
 { retraction := P_infty_into_Moore_subcomplex X,
   id' := by simp only [← cancel_mono (inclusion_of_Moore_complex_map X), assoc, id_comp,

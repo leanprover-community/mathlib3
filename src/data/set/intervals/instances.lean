@@ -111,8 +111,8 @@ by { rw mem_Icc at *, exact ⟨sub_nonneg.2 ht.2, (sub_le_self_iff _).2 ht.1⟩ 
 lemma mem_iff_one_sub_mem {t : β} : t ∈ Icc (0:β) 1 ↔ 1 - t ∈ Icc (0:β) 1 :=
 ⟨one_sub_mem, λ h, (sub_sub_cancel 1 t) ▸ one_sub_mem h⟩
 
-lemma one_minus_nonneg (x : Icc (0:β) 1) : 0 ≤ 1 - (x : β) := by simpa using x.2.2
-lemma one_minus_le_one (x : Icc (0:β) 1) : 1 - (x : β) ≤ 1 := by simpa using x.2.1
+lemma one_sub_nonneg (x : Icc (0:β) 1) : 0 ≤ 1 - (x : β) := by simpa using x.2.2
+lemma one_sub_le_one (x : Icc (0:β) 1) : 1 - (x : β) ≤ 1 := by simpa using x.2.1
 
 end set.Icc
 

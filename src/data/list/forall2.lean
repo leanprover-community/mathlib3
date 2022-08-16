@@ -116,8 +116,8 @@ theorem forall₂_length_eq :
 | _ _ forall₂.nil          := rfl
 | _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
 
-theorem forall₂_nth_le :
-  ∀ {x : list α}, ∀ {y : list β}, list.forall₂ R x y →
+theorem nth_le_of_forall₂ : ∀ {x : list α}, ∀ {y : list β},
+  list.forall₂ R x y →
     ∀ {i : ℕ}, ∀ i_lt_len_x : i < x.length, ∀ i_lt_len_y : i < y.length,
       R (x.nth_le i i_lt_len_x) (y.nth_le i i_lt_len_y)
 | []       []       := by { intros hyp i hx, exfalso, apply nat.not_lt_zero, exact hx, }
@@ -128,54 +128,46 @@ begin
   intros ass i i_lt_len_x i_lt_len_y,
   rw list.forall₂_cons at ass,
   cases i,
-  {
-    unfold list.nth_le,
-    exact ass.1,
-  },
+  { exact ass.1, },
   unfold list.nth_le,
-  apply forall₂_nth_le,
+  apply nth_le_of_forall₂,
   exact ass.2,
 end
 
-lemma forall₂_nth_le_aux : ∀ x : list α, ∀ y : list β,
-  (∀ i h₁, ∃ h₂, R (x.nth_le i h₁) (y.nth_le i h₂)) → list.forall₂ R x y
-| []       []       := λ _, forall₂.nil
-| (d₁::l₁) []       := by { intro ass, exfalso, specialize ass 0 (by { rw length, apply nat.succ_pos, }), cases ass with impos trash, exact nat.lt_asymm impos impos, }
-| []       (d₂::l₂) := by { intro ass, exfalso, sorry, } -- bug in the formulation !!!
+private lemma forall₂_of_nth_le : ∀ x : list α, ∀ y : list β,
+   x.length = y.length → (∀ i h₁ h₂, R (x.nth_le i h₁) (y.nth_le i h₂)) → list.forall₂ R x y
+| []       []       := λ _ _, forall₂.nil
+| (d₁::l₁) []       := by tauto
+| []       (d₂::l₂) := by tauto
 | (d₁::l₁) (d₂::l₂) := by
 begin
-  intro ass,
+  intros hll ass,
   fconstructor,
+  { exact ass 0 dec_trivial dec_trivial, },
   {
-    specialize ass 0 dec_trivial,
-    cases ass with h₂' hyp,
-    exact hyp,
-  },
-  {
-    apply forall₂_nth_le_aux,
-    intros i h₁,
-    have h₁' : i.succ < (d₁ :: l₁).length,
-    {
-      unfold length,
-      exact succ_lt_succ h₁,
-    },
-    specialize ass i.succ h₁',
-    cases ass with h₂' hyp,
-    have h₂ : i < l₂.length,
-    {
-      unfold length at h₂',
-      rw succ_lt_succ_iff at h₂',
-      exact h₂',
-    },
-    exact ⟨h₂, hyp⟩,
+    apply forall₂_of_nth_le,
+    { exact succ.inj hll, },
+    intros i h₁ h₂,
+    exact ass i.succ (succ_lt_succ h₁) (succ_lt_succ h₂),
   },
 end
 
-theorem list.forall₂_iff' {l₁ : list α} {l₂ : list β} :
+theorem list.forall₂_iff {l₁ : list α} {l₂ : list β} :
   list.forall₂ R l₁ l₂ ↔ l₁.length = l₂.length ∧
   ∀ i h₁ h₂, R (l₁.nth_le i h₁) (l₂.nth_le i h₂) :=
 begin
-  sorry
+  split,
+  {
+    intro ass,
+    split,
+    { exact forall₂_length_eq ass, },
+    apply nth_le_of_forall₂,
+    exact ass,
+  },
+  rintro ⟨hll, ass⟩,
+  apply forall₂_of_nth_le,
+  { exact hll },
+  { exact ass },
 end
 
 theorem forall₂_zip :

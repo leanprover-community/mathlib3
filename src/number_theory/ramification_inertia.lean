@@ -21,7 +21,7 @@ the **ramification index** `ideal.ramification_idx f p P` is the multiplicity of
 and the **inertia degree** `ideal.inertia_deg f p P` is the degree of the field extension
 `(S / P) : (R / p)`.
 
-## TODO (#12287)
+## Main results
 
 The main theorem `ideal.sum_ramification_inertia` states that for all coprime `P` lying over `p`,
 `Σ P, ramification_idx f p P * inertia_deg f p P` equals the degree of the field extension
@@ -825,7 +825,7 @@ begin
   { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv p _).symm,
     rwa [ne.def, ideal.map_eq_bot_iff_le_ker, (ring_hom.injective_iff_ker_eq_bot _).mp inj_RS,
          le_bot_iff] },
-  { exact finrank_quotient_map _ _ _ inj_RL },
+  { exact finrank_quotient_map p K L },
 end
 
 end factors_map

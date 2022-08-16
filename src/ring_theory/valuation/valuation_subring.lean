@@ -700,7 +700,8 @@ lemma mem_pointwise_smul_iff_inv_smul_mem {g : G} {S : valuation_subring K} {x :
   x ∈ g • S ↔ g⁻¹ • x ∈ S :=
 set.mem_smul_set_iff_inv_smul_mem
 
-lemma mem_inv_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} : x ∈ g⁻¹ • S ↔ g • x ∈ S :=
+lemma mem_inv_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} :
+  x ∈ g⁻¹ • S ↔ g • x ∈ S :=
 set.mem_inv_smul_set_iff
 
 @[simp] lemma pointwise_smul_le_pointwise_smul_iff {g : G} {S T : valuation_subring K} :

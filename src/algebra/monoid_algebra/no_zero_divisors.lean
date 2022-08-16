@@ -8,6 +8,13 @@ import data.mv_polynomial.equiv
 
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
+
+This file proves that the `add_monoid_algebra R A` has no zero-divisors under the assumption that
+the semiring `R` itself has no zero-divisors and assuming that the addition on `A` satisfies some
+monotonicity assumptions.
+
+The eventual goal is to weaken some of these assumptions, by showing that they can be realized by
+choosing an appropriate linear extension of a partial order on `A`.
 -/
 
 namespace add_monoid_algebra

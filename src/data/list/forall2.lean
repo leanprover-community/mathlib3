@@ -117,8 +117,7 @@ theorem forall₂.length_eq {R : α → β → Prop} :
 | _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂.length_eq h₂)
 
 theorem forall₂.nth_le :
-  ∀ {x : list α} {y : list β} (h : forall₂ r x y)
-    ⦃i : ℕ⦄ (hx : i < x.length) (hy : i < y.length),
+  ∀ {x : list α} {y : list β} (h : forall₂ r x y) ⦃i : ℕ⦄ (hx : i < x.length) (hy : i < y.length),
       r (x.nth_le i hx) (y.nth_le i hy)
 | (a₁ :: l₁) (a₂ :: l₂) (forall₂.cons ha hl) 0        hx hy := ha
 | (a₁ :: l₁) (a₂ :: l₂) (forall₂.cons ha hl) (succ i) hx hy := hl.nth_le _ _
@@ -132,8 +131,7 @@ lemma forall₂_of_length_eq_of_nth_le : ∀ {x : list α} {y : list β},
       λ i h₁ h₂, h i.succ (succ_lt_succ h₁) (succ_lt_succ h₂)))
 
 theorem forall₂_iff_nth_le {l₁ : list α} {l₂ : list β} :
-  list.forall₂ r l₁ l₂ ↔
-    l₁.length = l₂.length ∧ ∀ i h₁ h₂, r (l₁.nth_le i h₁) (l₂.nth_le i h₂) :=
+  forall₂ r l₁ l₂ ↔ l₁.length = l₂.length ∧ ∀ i h₁ h₂, r (l₁.nth_le i h₁) (l₂.nth_le i h₂) :=
 ⟨λ h, ⟨h.length_eq, h.nth_le⟩, and.rec forall₂_of_length_eq_of_nth_le⟩
 
 theorem forall₂_zip {R : α → β → Prop} :

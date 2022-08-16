@@ -46,7 +46,6 @@ if q = 0 then 0 else (↑p : ℚ) ^ (-(padic_val_rat p q))
 
 namespace padic_norm
 
-section padic_norm
 open padic_val_rat
 variables (p : ℕ)
 
@@ -286,5 +285,31 @@ begin
     { exact_mod_cast hp.1.one_lt } }
 end
 
-end padic_norm
+/-- The `p`-adic norm of an integer `m` is one iff `p` doesn't divide `m`. -/
+lemma int_eq_one_iff (m : ℤ) : padic_norm p m = 1 ↔ ¬ (p : ℤ) ∣ m :=
+begin
+  nth_rewrite 1 ← pow_one p,
+  simp only [dvd_iff_norm_le, int.cast_coe_nat, nat.cast_one, zpow_neg, zpow_one, not_le],
+  split,
+  { intro h,
+    rw [h, inv_lt_one_iff_of_pos];
+    norm_cast,
+    { exact nat.prime.one_lt (fact.out _), },
+    { exact nat.prime.pos (fact.out _), }, },
+  { simp only [padic_norm],
+    split_ifs,
+    { rw [inv_lt_zero, ← nat.cast_zero, nat.cast_lt],
+      intro h, exact (nat.not_lt_zero p h).elim, },
+    { have : 1 < (p : ℚ) := by norm_cast; exact (nat.prime.one_lt (fact.out _ : nat.prime p)),
+      rw [← zpow_neg_one, zpow_lt_iff_lt this],
+      have : 0 ≤ padic_val_rat p m, simp only [of_int, nat.cast_nonneg],
+      intro h,
+      rw [← zpow_zero (p : ℚ), zpow_inj];
+      linarith, } },
+end
+
+/-- The `p`-adic norm of a natural `m` is one iff `p` doesn't divide `m`. -/
+lemma nat_eq_one_iff (m : ℕ) : padic_norm p m = 1 ↔ ¬ p ∣ m :=
+by simp [← int.coe_nat_dvd, ← int_eq_one_iff]
+
 end padic_norm

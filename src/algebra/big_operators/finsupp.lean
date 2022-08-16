@@ -205,8 +205,6 @@ lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
   f.prod g x = f.prod (λ i fi, g i fi x) :=
 monoid_hom.finset_prod_apply _ _ _
 
-
-
 namespace finsupp
 
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
@@ -236,8 +234,6 @@ prod_map_range_index h0
 end finsupp
 
 namespace finsupp
-
-
 
 lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) (a : α) :
   (∑ i in S, f i) a = ∑ i in S, f i a :=

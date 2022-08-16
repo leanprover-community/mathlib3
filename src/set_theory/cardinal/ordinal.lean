@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
+import data.finsupp.basic
 import order.bounded
 import set_theory.ordinal.principal
 import tactic.linarith
-import data.finsupp.basic
 
 /-!
 # Cardinals and ordinals

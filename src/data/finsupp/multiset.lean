@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.finsupp.order
 import data.finsupp.basic
+import data.finsupp.order
 
 /-!
 # Equivalence between `multiset` and `ℕ`-valued finitely supported functions

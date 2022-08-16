@@ -969,11 +969,11 @@ instance : add_monoid_with_one ordinal.{u} :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 
 theorem add_def {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
-  [is_well_order α r] [is_well_order β s] : type (sum.lex r s) = type r + type s := rfl
+  [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
 
 theorem add_def_lt {α β : Type u} [has_lt α] [has_lt β]
   [is_well_order α (<)] [is_well_order β (<)] :
-  @type (α ⊕ₗ β) (<) _ = @type α (<) _ + @type β (<) _ :=
+  @type α (<) _ + @type β (<) _ = @type (α ⊕ₗ β) (<) _ :=
 rfl
 
 @[simp] theorem type_sum_lex {α : Type u} {β : Type v} (r : α → α → Prop) (s : β → β → Prop)

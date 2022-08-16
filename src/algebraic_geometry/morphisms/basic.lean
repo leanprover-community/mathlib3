@@ -96,6 +96,16 @@ lemma affine_cancel_right_is_iso
     (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g] [is_affine Z] [is_affine Y] : P (f ≫ g) ↔ P f :=
 by rw [← P.to_property_apply, ← P.to_property_apply, hP.cancel_right_is_iso]
 
+lemma affine_target_morphism_property.respects_iso_mk {P : affine_target_morphism_property}
+  (h₁ : ∀ {X Y Z} (e : X ≅ Y) (f : Y ⟶ Z) [is_affine Z], by exactI P f → P (e.hom ≫ f))
+  (h₂ : ∀ {X Y Z} (e : Y ≅ Z) (f : X ⟶ Y) [h : is_affine Y],
+     by exactI P f → @@P (f ≫ e.hom) (is_affine_of_iso e.inv)) : P.to_property.respects_iso :=
+begin
+  split,
+  { rintros X Y Z e f ⟨a, h⟩, exactI ⟨a, h₁ e f h⟩ },
+  { rintros X Y Z e f ⟨a, h⟩, exactI ⟨is_affine_of_iso e.inv, h₂ e f h⟩ },
+end
+
 /-- For a `P : affine_target_morphism_property`, `target_affine_locally P` holds for
 `f : X ⟶ Y` whenever `P` holds for the restriction of `f` on every affine open subset of `Y`. -/
 def target_affine_locally (P : affine_target_morphism_property) : morphism_property Scheme :=
@@ -371,7 +381,7 @@ begin
   tfae_finish
 end
 
-lemma affine_target_morphism_property.is_local.open_cover_iff
+lemma property_is_local_at_target.open_cover_iff
   {P : morphism_property Scheme} (hP : property_is_local_at_target P)
   {X Y : Scheme.{u}} (f : X ⟶ Y) (𝒰 : Scheme.open_cover.{u} Y) :
   P f ↔ ∀ i, P (pullback.snd : pullback f (𝒰.map i) ⟶ _) :=

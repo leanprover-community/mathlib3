@@ -978,7 +978,7 @@ begin
   { intro x_mem,
     obtain ⟨n, d, rfl⟩ := is_localization.mk'_surjective K⁰ x,
     refine ⟨n / d, _⟩,
-    rw [ring_hom.map_div, is_fraction_ring.mk'_eq_div] },
+    rw [map_div₀, is_fraction_ring.mk'_eq_div] },
   { rintro ⟨x, rfl⟩,
     obtain ⟨y, y_ne, y_mem⟩ := fractional_ideal.exists_ne_zero_mem_is_integer hI,
     rw [← div_mul_cancel x y_ne, ring_hom.map_mul, ← algebra.smul_def],

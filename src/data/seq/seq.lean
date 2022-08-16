@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.list.basic
 import data.lazy_list
 import data.nat.basic
 import data.stream.init
@@ -55,8 +56,8 @@ def nth : seq α → ℕ → option α := subtype.val
 @[simp] theorem nth_cons_zero (a : α) (s : seq α) : (cons a s).nth 0 = some a := rfl
 @[simp] theorem nth_cons_succ (a : α) (s : seq α) (n : ℕ) : (cons a s).nth (n + 1) = s.nth n := rfl
 
-@[ext] protected lemma ext : ∀ s t : seq α, (∀ n : ℕ, s.nth n = t.nth n) → s = t
-| ⟨f, hf⟩ ⟨g, hg⟩ h := let H : f = g := funext h in by simp_rw [subtype.mk_eq_mk, H]
+@[ext] protected lemma ext {s t : seq α} (h : ∀ n : ℕ, s.nth n = t.nth n) : s = t :=
+subtype.eq $ funext h
 
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
@@ -167,8 +168,7 @@ by rw [head_eq_destruct, destruct_cons]; refl
 @[simp] theorem tail_cons (a : α) (s) : tail (cons a s) = s :=
 by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons]
 
-@[simp] theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
-| ⟨f, al⟩ n := rfl
+@[simp] theorem nth_tail (s : seq α) (n) : nth (tail s) n = nth s (n + 1) := rfl
 
 def cases_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
@@ -292,10 +292,8 @@ end
 /-- Embed a list as a sequence -/
 def of_list (l : list α) : seq α :=
 ⟨list.nth l, λ n h, begin
-  induction l with a l IH generalizing n, refl,
-  dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
-  { contradiction },
-  { apply IH _ h }
+  rw list.nth_eq_none_iff at h ⊢,
+  exact h.trans (nat.le_succ n)
 end⟩
 
 instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
@@ -303,7 +301,7 @@ instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
 @[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
 @[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
 @[simp] theorem of_list_cons (a : α) (l : list α) : of_list (a :: l) = cons a (of_list l) :=
-by ext (_|n); simp [option.coe_def]
+by ext1 (_|n); refl
 
 /-- Embed an infinite stream as a sequence -/
 def of_stream (s : stream α) : seq α :=

@@ -278,3 +278,75 @@ def graded_ring.proj_zero_ring_hom : A →+* A :=
   end }
 
 end canonical_order
+
+section nat
+
+open direct_sum finset function
+
+lemma direct_sum.coe_decompose_mul_of_left_mem_of_le {σ A} [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ℕ → σ) [graded_ring 𝒜]
+  {a b : A} {n i : ℕ} (a_mem : a ∈ 𝒜 i) (ineq1 : i ≤ n) :
+  (decompose 𝒜 (a * b) n : A) = a * decompose 𝒜 b (n - i) :=
+by conv_lhs { rw [show n = i + (n - i), by linarith, coe_decompose_mul_add_of_left_mem _ a_mem] }
+
+lemma direct_sum.coe_decompose_mul_of_right_mem_of_le {σ A} [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ℕ → σ) [graded_ring 𝒜]
+  {a b : A} {n i : ℕ} (b_mem : b ∈ 𝒜 i) (ineq1 : i ≤ n) :
+  (decompose 𝒜 (a * b) n : A) = decompose 𝒜 a (n - i) * b :=
+by conv_lhs { rw [show n = (n - i) + i, by linarith, coe_decompose_mul_add_of_right_mem _ b_mem] }
+
+lemma direct_sum.coe_decompose_mul_of_left_mem_of_not_le {σ A} [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ℕ → σ) [graded_ring 𝒜]
+  {a b : A} {n i : ℕ} (a_mem : a ∈ 𝒜 i) (ineq1 : n < i) :
+  (decompose 𝒜 (a * b) n : A) = 0 :=
+begin
+  classical,
+  obtain rfl | ha := eq_or_ne a 0,
+  { simp },
+  have h' : n ≤ i := by linarith,
+  lift a to (𝒜 i) using a_mem,
+  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a (λ r,by subst r; exact ha rfl),
+    singleton_product, map_filter, sum_map],
+  have : ∀ (x : ℕ), i + x = n ↔ false,
+  { intros x, split; intros H, linarith, exact false.elim H },
+  simp_rw [comp, embedding.coe_fn_mk, this, filter_false, finset.sum_empty],
+end
+
+lemma direct_sum.coe_decompose_mul_of_right_mem_of_not_le {σ A} [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ℕ → σ) [graded_ring 𝒜]
+  {a b : A} {n i : ℕ} (b_mem : b ∈ 𝒜 i) (ineq1 : n < i) :
+  (decompose 𝒜 (a * b) n : A) = 0 :=
+begin
+  classical,
+  obtain rfl | hb := eq_or_ne b 0,
+  { simp },
+  have h' : n ≤ i := by linarith,
+  lift b to (𝒜 i) using b_mem,
+  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i b (λ r,by subst r; exact hb rfl),
+    product_singleton, map_filter, sum_map],
+  have : ∀ (x : ℕ), x + i = n ↔ false,
+  { intros x, split; intros H, linarith, exact false.elim H },
+  simp_rw [comp, embedding.coe_fn_mk, this, filter_false, finset.sum_empty],
+end
+
+lemma direct_sum.coe_decompose_mul_of_left_mem {σ A} [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ℕ → σ) [graded_ring 𝒜]
+  {a b : A} {n i : ℕ} (a_mem : a ∈ 𝒜 i) :
+  (decompose 𝒜 (a * b) n : A) = if i ≤ n then a * decompose 𝒜 b (n - i) else 0 :=
+begin
+  split_ifs,
+  { exact direct_sum.coe_decompose_mul_of_left_mem_of_le _ a_mem h, },
+  { exact direct_sum.coe_decompose_mul_of_left_mem_of_not_le _ a_mem (by linarith), },
+end
+
+lemma direct_sum.coe_decompose_mul_of_right_mem {σ A} [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ℕ → σ) [graded_ring 𝒜]
+  {a b : A} {n i : ℕ} (b_mem : b ∈ 𝒜 i) :
+  (decompose 𝒜 (a * b) n : A) = if i ≤ n then (decompose 𝒜 a (n - i)) * b else 0 :=
+begin
+  split_ifs,
+  { exact direct_sum.coe_decompose_mul_of_right_mem_of_le _ b_mem h, },
+  { exact direct_sum.coe_decompose_mul_of_right_mem_of_not_le _ b_mem (by linarith), },
+end
+
+end nat

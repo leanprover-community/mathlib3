@@ -89,27 +89,27 @@ end
 lemma well_founded.prod_game_add (hα : well_founded rα) (hβ : well_founded rβ) :
   well_founded (prod.game_add rα rβ) := ⟨λ ⟨a, b⟩, (hα.apply a).prod_game_add (hβ.apply b)⟩
 
-namespace prod
+namespace prod.game_add
 
-/-- Recursion on the well-founded `game_add` relation.
+/-- Recursion on the well-founded `prod.game_add` relation.
 
 Note that it's strictly more general to recurse on the lexicographic order instead. -/
-def game_add.fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
+def fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
   C a b :=
 @well_founded.fix (α × β) (λ x, C x.1 x.2) _ (hα.prod_game_add hβ)
   (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) ⟨a, b⟩
 
-lemma game_add.fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
+lemma fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
   game_add.fix hα hβ IH a b = IH a b (λ a' b' h, game_add.fix hα hβ IH a' b') :=
 by { rw [game_add.fix, well_founded.fix_eq], refl }
 
-/-- Induction on the well-founded `game_add` relation.
+/-- Induction on the well-founded `prod.game_add` relation.
 
 Note that it's strictly more general to induct on the lexicographic order instead. -/
-lemma game_add.induction {C : α → β → Prop} : well_founded rα → well_founded rβ →
+lemma induction {C : α → β → Prop} : well_founded rα → well_founded rβ →
   (∀ a₁ b₁, (∀ a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
 game_add.fix
 
-end prod
+end prod.game_add

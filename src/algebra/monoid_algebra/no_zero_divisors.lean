@@ -19,7 +19,7 @@ variables [add_monoid A] [covariant_class A A ((+)) (<)] {a b : A} {f g : A →�
 
 /--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
 somewhat weaker typeclass assumptions, but also proves a weaker result. -/
-lemma single_mul_single_add_apply1 {r : R} (s : R) (fb : f.support.max < b) :
+lemma single_mul_single_add_apply' {r : R} (s : R) (fb : f.support.max < b) :
   (finsupp.single a r * (finsupp.single b s + f) : add_monoid_algebra R A) (a + b) = r * s :=
 begin
   rw [mul_add, single_mul_single, finsupp.add_apply, finsupp.single_eq_same],
@@ -80,7 +80,7 @@ begin
       exact finset.max_erase_ne_self } },
 end
 
-lemma nzd
+protected lemma no_zero_divisors
   [no_zero_divisors R] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (<)] :
   no_zero_divisors (add_monoid_algebra R A) :=
 begin

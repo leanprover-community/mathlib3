@@ -310,7 +310,7 @@ begin
   convert (rfl : ⅟(ι Q m) = _),
 end
 
-lemma is_unit_ι_of_is_unit (m : M) (h : is_unit (Q m)) : is_unit (ι Q m) :=
+lemma is_unit_ι_of_is_unit {m : M} (h : is_unit (Q m)) : is_unit (ι Q m) :=
 begin
   casesI h.nonempty_invertible,
   letI := invertible_ι_of_invertible Q m,

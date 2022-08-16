@@ -975,7 +975,7 @@ def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
 
 lemma module_polynomial_of_endo_smul_def (n : R[X]) (a : M) :
-  @@has_scalar.smul (module_polynomial_of_endo f).to_has_scalar n a = polynomial.aeval f n a := rfl
+  @@has_smul.smul (module_polynomial_of_endo f).to_has_smul n a = polynomial.aeval f n a := rfl
 
 local attribute [simp] module_polynomial_of_endo_smul_def
 

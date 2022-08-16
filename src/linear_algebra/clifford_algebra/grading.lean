@@ -166,7 +166,7 @@ lemma even_odd_induction (n : zmod 2) {P : Π x, x ∈ even_odd Q n → Prop}
     P v (submodule.mem_supr_of_mem ⟨n.val, n.nat_cast_zmod_val⟩ h))
   (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
   (hιι_mul : ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
-    (zero_add n ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
+    (zero_add n ▸ set_like.mul_mem_graded (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
   (x : clifford_algebra Q) (hx : x ∈ even_odd Q n) : P x hx :=
 begin
   apply submodule.supr_induction' _ _ (hr 0 (submodule.zero_mem _)) @hadd,
@@ -202,10 +202,10 @@ end
 scalars, closed under addition, and under left-multiplication by a pair of vectors. -/
 @[elab_as_eliminator]
 lemma even_induction  {P : Π x, x ∈ even_odd Q 0 → Prop}
-  (hr : ∀ r : R, P (algebra_map _ _ r) (set_like.has_graded_one.algebra_map_mem _ _))
+  (hr : ∀ r : R, P (algebra_map _ _ r) (set_like.algebra_map_mem_graded _ _))
   (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
   (hιι_mul : ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
-    (zero_add 0 ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
+    (zero_add 0 ▸ set_like.mul_mem_graded (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
   (x : clifford_algebra Q) (hx : x ∈ even_odd Q 0) : P x hx :=
 begin
   refine even_odd_induction Q 0 (λ rx, _) @hadd hιι_mul x hx,
@@ -221,7 +221,7 @@ lemma odd_induction {P : Π x, x ∈ even_odd Q 1 → Prop}
   (hι : ∀ v, P (ι Q v) (ι_mem_even_odd_one _ _))
   (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
   (hιι_mul : ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
-    (zero_add (1 : zmod 2) ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
+    (zero_add (1 : zmod 2) ▸ set_like.mul_mem_graded (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
   (x : clifford_algebra Q) (hx : x ∈ even_odd Q 1) : P x hx :=
 begin
   refine even_odd_induction Q 1 (λ ιv, _) @hadd hιι_mul x hx,

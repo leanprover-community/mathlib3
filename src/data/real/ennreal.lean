@@ -94,6 +94,12 @@ canonically_ordered_comm_semiring.to_covariant_mul_le
 instance covariant_class_add_le : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
 ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
+noncomputable instance : linear_ordered_comm_monoid_with_zero ℝ≥0∞ :=
+{ mul_le_mul_left := λ a b, mul_le_mul_left',
+  zero_le_one := zero_le 1,
+  .. ennreal.linear_ordered_add_comm_monoid_with_top,
+  .. (show comm_semiring ℝ≥0∞, from infer_instance) }
+
 instance : inhabited ℝ≥0∞ := ⟨0⟩
 
 instance : has_coe ℝ≥0 ℝ≥0∞ := ⟨ option.some ⟩
@@ -107,9 +113,7 @@ instance : can_lift ℝ≥0∞ ℝ≥0 :=
 @[simp] lemma some_eq_coe (a : ℝ≥0) : (some a : ℝ≥0∞) = (↑a : ℝ≥0∞) := rfl
 
 /-- `to_nnreal x` returns `x` if it is real, otherwise 0. -/
-protected def to_nnreal : ℝ≥0∞ → ℝ≥0
-| (some r) := r
-| none := 0
+protected def to_nnreal : ℝ≥0∞ → ℝ≥0 := with_top.untop' 0
 
 /-- `to_real x` returns `x` if it is real, `0` otherwise. -/
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
@@ -223,7 +227,6 @@ protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
-lemma one_le_two : (1 : ℝ≥0∞) ≤ 2 := one_lt_two.le
 @[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
@@ -232,8 +235,7 @@ lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
 
 /-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces. -/
-instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
-⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
+instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨one_le_two⟩
 
 /-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces. -/
 instance _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
@@ -562,7 +564,6 @@ lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r := ennreal.co
 lemma coe_lt_coe_nat {n : ℕ} : (r : ℝ≥0∞) < n ↔ r < n := ennreal.coe_nat n ▸ coe_lt_coe
 @[simp, norm_cast] lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ℝ≥0∞) < n ↔ m < n :=
 ennreal.coe_nat n ▸ coe_nat_lt_coe.trans nat.cast_lt
-lemma coe_nat_ne_top {n : ℕ} : (n : ℝ≥0∞) ≠ ∞ := ennreal.coe_nat n ▸ coe_ne_top
 lemma coe_nat_mono : strict_mono (coe : ℕ → ℝ≥0∞) := λ _ _, coe_nat_lt_coe_nat.2
 @[simp, norm_cast] lemma coe_nat_le_coe_nat {m n : ℕ} : (m : ℝ≥0∞) ≤ n ↔ m ≤ n :=
 coe_nat_mono.le_iff_le
@@ -584,7 +585,7 @@ begin
 end
 
 @[simp] lemma Union_Iic_coe_nat : (⋃ n : ℕ, Iic (n : ℝ≥0∞)) = {∞}ᶜ :=
-subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top coe_nat_ne_top hx) $
+subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top (nat_ne_top n) hx) $
   Union_Iio_coe_nat ▸ Union_mono (λ n, Iio_subset_Iic_self)
 
 @[simp] lemma Union_Ioc_coe_nat : (⋃ n : ℕ, Ioc a n) = Ioi a \ {∞} :=
@@ -1349,8 +1350,8 @@ begin
   rcases exists_nat_pos_mul_gt hb ha with ⟨n, npos, hn⟩,
   have : (n : ℝ≥0∞) ≠ 0 := nat.cast_ne_zero.2 npos.lt.ne',
   use [n, npos],
-  rwa [← one_mul b, ← inv_mul_cancel this coe_nat_ne_top,
-    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 coe_nat_ne_top) (inv_ne_top.2 this)]
+  rwa [← one_mul b, ← inv_mul_cancel this (nat_ne_top n),
+    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 $ nat_ne_top _) (inv_ne_top.2 this)]
 end
 
 lemma exists_nnreal_pos_mul_lt (ha : a ≠ ∞) (hb : b ≠ 0) :
@@ -1653,24 +1654,11 @@ lemma of_real_div_of_pos {x y : ℝ} (hy : 0 < y) :
   ennreal.of_real (x / y) = ennreal.of_real x / ennreal.of_real y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, of_real_mul' (inv_nonneg.2 hy.le), of_real_inv_of_pos hy]
 
-lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 :=
-begin
-  by_cases h : a = 0,
-  { rw [h, zero_mul, zero_to_nnreal] },
-  { rw [mul_top, if_neg h, top_to_nnreal] }
-end
-
-lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 :=
-by rw [mul_comm, to_nnreal_mul_top]
-
 @[simp] lemma to_nnreal_mul {a b : ℝ≥0∞} : (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=
-begin
-  induction a using with_top.rec_top_coe,
-  { rw [to_nnreal_top_mul, top_to_nnreal, zero_mul] },
-  induction b using with_top.rec_top_coe,
-  { rw [to_nnreal_mul_top, top_to_nnreal, mul_zero] },
-  simp only [to_nnreal_coe, ← coe_mul]
-end
+with_top.untop'_zero_mul a b
+
+lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 := by simp
+lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 := by simp
 
 @[simp] lemma smul_to_nnreal (a : ℝ≥0) (b : ℝ≥0∞) :
   (a • b).to_nnreal = a * b.to_nnreal :=
@@ -1751,6 +1739,10 @@ begin
   { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
   exact this.imp_right (λ h, h.2)
 end
+
+lemma to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.to_real ↔ p ≠ ∞ :=
+⟨λ h hp, let this : (0 : ℝ) ≠ 0 := top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,
+ λ h, zero_lt_one.trans_le (p.dichotomy.resolve_left h)⟩
 
 lemma to_nnreal_inv (a : ℝ≥0∞) : (a⁻¹).to_nnreal = (a.to_nnreal)⁻¹ :=
 begin
@@ -1903,3 +1895,27 @@ lemma supr_coe_nat : (⨆n:ℕ, (n : ℝ≥0∞)) = ∞ :=
 end supr
 
 end ennreal
+
+namespace set
+namespace ord_connected
+
+variables {s : set ℝ} {t : set ℝ≥0} {u : set ℝ≥0∞}
+
+lemma preimage_coe_nnreal_ennreal (h : u.ord_connected) : (coe ⁻¹' u : set ℝ≥0).ord_connected :=
+h.preimage_mono ennreal.coe_mono
+
+lemma image_coe_nnreal_ennreal (h : t.ord_connected) : (coe '' t : set ℝ≥0∞).ord_connected :=
+begin
+  refine ⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz, _⟩,
+  rcases ennreal.le_coe_iff.1 hz.2 with ⟨z, rfl, hzy⟩,
+  exact mem_image_of_mem _ (h.out hx hy ⟨ennreal.coe_le_coe.1 hz.1, ennreal.coe_le_coe.1 hz.2⟩)
+end
+
+lemma preimage_ennreal_of_real (h : u.ord_connected) : (ennreal.of_real ⁻¹' u).ord_connected :=
+h.preimage_coe_nnreal_ennreal.preimage_real_to_nnreal
+
+lemma image_ennreal_of_real (h : s.ord_connected) : (ennreal.of_real '' s).ord_connected :=
+by simpa only [image_image] using h.image_real_to_nnreal.image_coe_nnreal_ennreal
+
+end ord_connected
+end set

@@ -13,6 +13,7 @@ This file defines instances for mul_action and related structures on Pi types.
 
 ## See also
 
+* `group_theory.group_action.option`
 * `group_theory.group_action.prod`
 * `group_theory.group_action.sigma`
 * `group_theory.group_action.sum`
@@ -24,16 +25,6 @@ variable {f : I → Type v} -- The family of types already equipped with instanc
 variables (x y : Π i, f i) (i : I)
 
 namespace pi
-
-@[to_additive pi.has_vadd]
-instance has_smul {α : Type*} [Π i, has_smul α $ f i] :
-  has_smul α (Π i : I, f i) :=
-⟨λ s x, λ i, s • (x i)⟩
-
-@[to_additive]
-lemma smul_def {α : Type*} [Π i, has_smul α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[simp, to_additive]
-lemma smul_apply {α : Type*} [Π i, has_smul α $ f i] (s : α) : (s • x) i = s • x i := rfl
 
 @[to_additive pi.has_vadd']
 instance has_smul' {g : I → Type*} [Π i, has_smul (f i) (g i)] :

@@ -308,6 +308,18 @@ begin
   simp [*],
 end
 
+@[simp]
+lemma subset_support_append_left {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
+  p.support ⊆ (p.append q).support :=
+by simp only [walk.support_append, list.subset_append_left]
+
+@[simp]
+lemma subset_support_append_right {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
+  q.support ⊆ (p.append q).support :=
+by { intro h, simp only [mem_support_append_iff, or_true, implies_true_iff] { contextual := tt }}
+
 lemma coe_support {u v : V} (p : G.walk u v) :
   (p.support : multiset V) = {u} + p.support.tail :=
 by cases p; refl
@@ -587,6 +599,17 @@ begin
       split_ifs with h'; subst_vars; simp [*], } },
 end
 
+lemma mem_support_iff_exists_append {V : Type u} {G : simple_graph V} {u v w : V}
+  {p : G.walk u v} :
+  w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
+begin
+  classical,
+  split,
+  { exact λ h, ⟨_, _, (p.take_spec h).symm⟩ },
+  { rintro ⟨q, r, rfl⟩,
+    simp only [mem_support_append_iff, end_mem_support, start_mem_support, or_self], },
+end
+
 @[simp]
 lemma count_support_take_until_eq_one {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).support.count u = 1 :=
@@ -742,10 +765,64 @@ end walk_decomp
 
 end walk
 
-/-! ### Walks to paths -/
+/-! ### Type of paths -/
 
 /-- The type for paths between two vertices. -/
 abbreviation path (u v : V) := {p : G.walk u v // p.is_path}
+
+namespace path
+variables {G G'}
+
+@[simp] protected lemma is_path {u v : V} (p : G.path u v) : (p : G.walk u v).is_path :=
+p.property
+
+@[simp] protected lemma is_trail {u v : V} (p : G.path u v) : (p : G.walk u v).is_trail :=
+p.property.to_trail
+
+/-- The length-0 path at a vertex. -/
+@[refl, simps] protected def nil {u : V} : G.path u u := ⟨walk.nil, walk.is_path.nil⟩
+
+/-- The length-1 path between a pair of adjacent vertices. -/
+@[simps] def singleton {u v : V} (h : G.adj u v) : G.path u v :=
+⟨walk.cons h walk.nil, by simp [h.ne]⟩
+
+lemma mk_mem_edges_singleton {u v : V} (h : G.adj u v) :
+  ⟦(u, v)⟧ ∈ (singleton h : G.walk u v).edges := by simp [singleton]
+
+/-- The reverse of a path is another path.  See also `simple_graph.walk.reverse`. -/
+@[symm, simps] def reverse {u v : V} (p : G.path u v) : G.path v u :=
+⟨walk.reverse p, p.property.reverse⟩
+
+lemma count_support_eq_one [decidable_eq V] {u v w : V} {p : G.path u v}
+  (hw : w ∈ (p : G.walk u v).support) : (p : G.walk u v).support.count w = 1 :=
+list.count_eq_one_of_mem p.property.support_nodup hw
+
+lemma count_edges_eq_one [decidable_eq V] {u v : V} {p : G.path u v} (e : sym2 V)
+  (hw : e ∈ (p : G.walk u v).edges) : (p : G.walk u v).edges.count e = 1 :=
+list.count_eq_one_of_mem p.property.to_trail.edges_nodup hw
+
+@[simp] lemma nodup_support {u v : V} (p : G.path u v) : (p : G.walk u v).support.nodup :=
+(walk.is_path_def _).mp p.property
+
+lemma loop_eq {v : V} (p : G.path v v) : p = path.nil :=
+begin
+  obtain (p|p) := p,
+  { refl },
+  { simpa using p_property },
+end
+
+lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
+  ¬ e ∈ (p : G.walk v v).edges :=
+by simp [p.loop_eq]
+
+
+lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
+  (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
+by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
+
+end path
+
+/-! ### Walks to paths -/
 
 namespace walk
 variables {G} [decidable_eq V]
@@ -832,7 +909,7 @@ edges_bypass_subset _
 
 end walk
 
-/-! ## Mapping paths -/
+/-! ### Mapping paths -/
 
 namespace walk
 variables {G G'}

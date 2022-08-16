@@ -1,11 +1,12 @@
 /-
 Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Nicolò Cavalleri
+Authors: Nicolò Cavalleri, Andrew Yang
 -/
 
 import ring_theory.adjoin.basic
 import algebra.lie.of_associative
+import ring_theory.tensor_product
 
 /-!
 # Derivations
@@ -220,6 +221,12 @@ rfl
   (f.comp_der D : A → N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
 rfl
 
+/-- The composition of a derivation with a linear map as a bilinear map -/
+def llcomp : (M →ₗ[A] N) →ₗ[A] derivation R A M →ₗ[R] derivation R A N :=
+{ to_fun := λ f, f.comp_der,
+  map_add' := λ f₁ f₂, by { ext, refl },
+  map_smul' := λ r D, by { ext, refl } }
+
 end push_forward
 
 end
@@ -333,3 +340,204 @@ end lie_structures
 end
 
 end derivation
+
+section to_square_zero
+
+universes u v w
+
+variables {R : Type u} {A : Type u} {B : Type w} [comm_semiring R] [comm_semiring A] [comm_ring B]
+variables [algebra R A] [algebra R B] (I : ideal B) (hI : I ^ 2 = ⊥)
+
+/-- If `f₁ f₂ : A →ₐ[R] B` are two lifts of the same `A →ₐ[R] B ⧸ I`,
+  we may define a map `f₁ - f₂ : A →ₗ[R] I`. -/
+def diff_to_ideal_of_quotient_comp_eq (f₁ f₂ : A →ₐ[R] B)
+  (e : (ideal.quotient.mkₐ R I).comp f₁ = (ideal.quotient.mkₐ R I).comp f₂) :
+  A →ₗ[R] I :=
+linear_map.cod_restrict (I.restrict_scalars _) (f₁.to_linear_map - f₂.to_linear_map)
+begin
+  intro x,
+  change f₁ x - f₂ x ∈ I,
+  rw [← ideal.quotient.eq, ← ideal.quotient.mkₐ_eq_mk R, ← alg_hom.comp_apply, e],
+  refl,
+end
+
+@[simp]
+lemma diff_to_ideal_of_quotient_comp_eq_apply (f₁ f₂ : A →ₐ[R] B)
+  (e : (ideal.quotient.mkₐ R I).comp f₁ = (ideal.quotient.mkₐ R I).comp f₂) (x : A) :
+  ((diff_to_ideal_of_quotient_comp_eq I f₁ f₂ e) x : B) = f₁ x - f₂ x :=
+rfl
+
+variables [algebra A B] [is_scalar_tower R A B]
+
+include hI
+
+/-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`, each lift `A →ₐ[R] B`
+of the canonical map `A →ₐ[R] B ⧸ I` corresponds to a `R`-derivation from `A` to `I`. -/
+def derivation_to_square_zero_of_lift
+  (f : A →ₐ[R] B) (e : (ideal.quotient.mkₐ R I).comp f = is_scalar_tower.to_alg_hom R A (B ⧸ I)) :
+  derivation R A I :=
+begin
+  refine
+  { map_one_eq_zero' := _,
+    leibniz' := _,
+    ..(diff_to_ideal_of_quotient_comp_eq I f (is_scalar_tower.to_alg_hom R A B) _) },
+  { rw e, ext, refl },
+  { ext, change f 1 - algebra_map A B 1 = 0, rw [map_one, map_one, sub_self] },
+  { intros x y,
+    let F := diff_to_ideal_of_quotient_comp_eq I f (is_scalar_tower.to_alg_hom R A B)
+      (by { rw e, ext, refl }),
+    have : (f x - algebra_map A B x) * (f y - algebra_map A B y) = 0,
+    { rw [← ideal.mem_bot, ← hI, pow_two],
+      convert (ideal.mul_mem_mul (F x).2 (F y).2) using 1 },
+    ext,
+    dsimp only [submodule.coe_add, submodule.coe_mk, linear_map.coe_mk,
+      diff_to_ideal_of_quotient_comp_eq_apply, submodule.coe_smul_of_tower,
+      is_scalar_tower.coe_to_alg_hom', linear_map.to_fun_eq_coe],
+    simp only [map_mul, sub_mul, mul_sub, algebra.smul_def] at ⊢ this,
+    rw [sub_eq_iff_eq_add, sub_eq_iff_eq_add] at this,
+    rw this,
+    ring }
+end
+
+lemma derivation_to_square_zero_of_lift_apply (f : A →ₐ[R] B)
+  (e : (ideal.quotient.mkₐ R I).comp f = is_scalar_tower.to_alg_hom R A (B ⧸ I))
+  (x : A) : (derivation_to_square_zero_of_lift I hI f e x : B) = f x - algebra_map A B x := rfl
+
+/-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`, each `R`-derivation
+from `A` to `I` corresponds to a lift `A →ₐ[R] B` of the canonical map `A →ₐ[R] B ⧸ I`. -/
+def lift_of_derivation_to_square_zero (f : derivation R A I) :
+  A →ₐ[R] B :=
+{ map_one' := show (f 1 : B) + algebra_map A B 1 = 1,
+   by rw [map_one, f.map_one_eq_zero, submodule.coe_zero, zero_add],
+  map_mul' := λ x y, begin
+    have : (f x : B) * (f y) = 0,
+    { rw [← ideal.mem_bot, ← hI, pow_two], convert (ideal.mul_mem_mul (f x).2 (f y).2) using 1 },
+    dsimp,
+    simp only [map_mul, f.leibniz, add_mul, mul_add, submodule.coe_add,
+      submodule.coe_smul_of_tower, algebra.smul_def, this],
+    ring
+  end,
+  commutes' := λ r, by { dsimp, simp [← is_scalar_tower.algebra_map_apply R A B r] },
+  map_zero' := ((I.restrict_scalars R).subtype.comp f.to_linear_map +
+    (is_scalar_tower.to_alg_hom R A B).to_linear_map).map_zero,
+  ..((I.restrict_scalars R).subtype.comp f.to_linear_map +
+    (is_scalar_tower.to_alg_hom R A B).to_linear_map) }
+
+lemma lift_of_derivation_to_square_zero_apply (f : derivation R A I) (x : A) :
+  lift_of_derivation_to_square_zero I hI f x = f x + algebra_map A B x := rfl
+
+@[simp] lemma lift_of_derivation_to_square_zero_mk_apply (d : derivation R A I) (x : A) :
+    ideal.quotient.mk I (lift_of_derivation_to_square_zero I hI d x) = algebra_map A (B ⧸ I) x :=
+by { rw [lift_of_derivation_to_square_zero_apply, map_add,
+  ideal.quotient.eq_zero_iff_mem.mpr (d x).prop, zero_add], refl }
+
+/-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`,
+there is a 1-1 correspondance between `R`-derivations from `A` to `I` and
+lifts `A →ₐ[R] B` of the canonical map `A →ₐ[R] B ⧸ I`. -/
+@[simps]
+def derivation_to_square_zero_equiv_lift :
+  derivation R A I ≃
+    { f : A →ₐ[R] B // (ideal.quotient.mkₐ R I).comp f = is_scalar_tower.to_alg_hom R A (B ⧸ I) } :=
+begin
+  refine ⟨λ d, ⟨lift_of_derivation_to_square_zero I hI d, _⟩, λ f,
+    (derivation_to_square_zero_of_lift I hI f.1 f.2 : _), _, _⟩,
+  { ext x, exact lift_of_derivation_to_square_zero_mk_apply I hI d x },
+  { intro d, ext x, exact add_sub_cancel (d x : B) (algebra_map A B x) },
+  { rintro ⟨f, hf⟩, ext x,  exact sub_add_cancel (f x) (algebra_map A B x) }
+end
+
+end to_square_zero
+
+section derivation_module
+
+open_locale tensor_product
+
+variables (R S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
+
+/-- The kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`. -/
+abbreviation derivation_module.ideal : ideal (S ⊗[R] S) :=
+ring_hom.ker (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S)
+
+variable {S}
+
+lemma derivation_module.one_smul_sub_smul_one_mem_ideal (a : S) :
+  (1 : S) ⊗ₜ[R] a - a ⊗ₜ[R] (1 : S) ∈ derivation_module.ideal R S :=
+by simp [ring_hom.mem_ker]
+
+variables {R}
+
+variables {M : Type*} [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
+
+/-- For a `R`-derivation `S → M`, this is the map `S ⊗[R] S →ₗ[S] M` sending `s ⊗ₜ t ↦ s • D t`. -/
+def derivation.tensor_product_to (D : derivation R S M) : S ⊗[R] S →ₗ[S] M :=
+tensor_product.algebra_tensor_module.lift ((linear_map.lsmul S (S →ₗ[R] M)).flip D.to_linear_map)
+
+lemma derivation.tensor_product_to_tmul (D : derivation R S M) (s t : S) :
+  D.tensor_product_to (s ⊗ₜ t) = s • D t :=
+tensor_product.lift.tmul s t
+
+lemma derivation.tensor_product_to_mul (D : derivation R S M) (x y : S ⊗[R] S) :
+  D.tensor_product_to (x * y) = tensor_product.lmul' R x • D.tensor_product_to y +
+    tensor_product.lmul' R y • D.tensor_product_to x :=
+begin
+  apply tensor_product.induction_on x,
+  { rw [zero_mul, map_zero, map_zero, zero_smul, smul_zero, add_zero] },
+  swap, { rintros, simp only [add_mul, map_add, add_smul, *, smul_add], rw add_add_add_comm },
+  intros x₁ x₂,
+  apply tensor_product.induction_on y,
+  { rw [mul_zero, map_zero, map_zero, zero_smul, smul_zero, add_zero] },
+  swap, { rintros, simp only [mul_add, map_add, add_smul, *, smul_add], rw add_add_add_comm },
+  intros x y,
+  simp only [tensor_product.tmul_mul_tmul, derivation.tensor_product_to,
+    tensor_product.algebra_tensor_module.lift_apply, tensor_product.lift.tmul',
+    tensor_product.lmul'_apply_tmul],
+  dsimp,
+  rw D.leibniz,
+  simp only [smul_smul, smul_add, mul_comm (x * y) x₁, mul_right_comm x₁ x₂, ← mul_assoc],
+end
+
+variables (R S)
+
+/-- The kernel of `S ⊗[R] S →ₐ[R] S` is generated by `1 ⊗ s - s ⊗ 1` as a `S`-module. -/
+lemma derivation_module.submodule_span_range_eq_ideal :
+  submodule.span S (set.range $ λ s : S, (1 : S) ⊗ₜ[R] s - s ⊗ₜ[R] (1 : S)) =
+    (derivation_module.ideal R S).restrict_scalars S :=
+begin
+  apply le_antisymm,
+  { rw submodule.span_le,
+    rintros _ ⟨s, rfl⟩,
+    exact derivation_module.one_smul_sub_smul_one_mem_ideal _ _ },
+  { rintros x (hx : _ = _),
+    have : x - (tensor_product.lmul' R x) ⊗ₜ[R] (1 : S)   = x,
+    { rw [hx, tensor_product.zero_tmul, sub_zero] },
+    rw ← this,
+    clear this hx,
+    apply tensor_product.induction_on x; clear x,
+    { rw [map_zero, tensor_product.zero_tmul, sub_zero], exact zero_mem _ },
+    { intros x y,
+      convert_to x • (1 ⊗ₜ y - y ⊗ₜ 1) ∈ _,
+      { rw [tensor_product.lmul'_apply_tmul, smul_sub, tensor_product.smul_tmul',
+          tensor_product.smul_tmul', smul_eq_mul, smul_eq_mul, mul_one] },
+      { refine submodule.smul_mem _ x _,
+        apply submodule.subset_span,
+        exact set.mem_range_self y } },
+    { intros x y hx hy,
+      rw [map_add, tensor_product.add_tmul, ← sub_add_sub_comm],
+      exact add_mem hx hy } }
+end
+
+lemma derivation_module.span_range_eq_ideal :
+  ideal.span (set.range $ λ s : S, (1 : S) ⊗ₜ[R] s - s ⊗ₜ[R] (1 : S)) =
+    derivation_module.ideal R S :=
+begin
+  apply le_antisymm,
+  { rw ideal.span_le,
+    rintros _ ⟨s, rfl⟩,
+    exact derivation_module.one_smul_sub_smul_one_mem_ideal _ _ },
+  { change (derivation_module.ideal R S).restrict_scalars S ≤ (ideal.span _).restrict_scalars S,
+    rw [← derivation_module.submodule_span_range_eq_ideal, ideal.span],
+    conv_rhs { rw ← submodule.span_span_of_tower S },
+    exact submodule.subset_span }
+end
+
+end derivation_module

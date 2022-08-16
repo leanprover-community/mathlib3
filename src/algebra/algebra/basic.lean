@@ -112,7 +112,7 @@ An associative unital `R`-algebra is a semiring `A` equipped with a map into its
 
 See the implementation notes in this file for discussion of the details of this definition.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   extends has_smul R A, R →+* A :=
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
@@ -260,6 +260,11 @@ search (and was here first). -/
 @[simp] protected lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
 smul_mul_assoc r x y
+
+@[simp]
+lemma _root_.smul_algebra_map {α : Type*} [monoid α] [mul_distrib_mul_action α A]
+  [smul_comm_class α R A] (a : α) (r : R) : a • algebra_map R A r = algebra_map R A r :=
+by rw [algebra_map_eq_smul_one, smul_comm a r (1 : A), smul_one]
 
 section
 variables {r : R} {a : A}
@@ -474,7 +479,7 @@ end module
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] extends ring_hom A B :=
 (commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
@@ -695,6 +700,17 @@ lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=
 φ.to_ring_hom.map_list_prod s
 
+@[simps mul one {attrs := []}] instance End : monoid (A →ₐ[R] A) :=
+{ mul := comp,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := alg_hom.id R A,
+  one_mul := λ ϕ, ext $ λ x, rfl,
+  mul_one := λ ϕ, ext $ λ x, rfl }
+
+@[simp] lemma one_apply (x : A) : (1 : A →ₐ[R] A) x = x := rfl
+
+@[simp] lemma mul_apply (φ ψ : A →ₐ[R] A) (x : A) : (φ * ψ) x = φ (ψ x) := rfl
+
 section prod
 
 /-- First projection as `alg_hom`. -/
@@ -742,23 +758,10 @@ protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
 end ring
 
-section division_ring
-
-variables [comm_semiring R] [division_ring A] [division_ring B]
-variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
-
-@[simp] lemma map_inv (x) : φ (x⁻¹) = (φ x)⁻¹ :=
-φ.to_ring_hom.map_inv x
-
-@[simp] lemma map_div (x y) : φ (x / y) = φ x / φ y :=
-φ.to_ring_hom.map_div x y
-
-end division_ring
-
 end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
-  m • (1 : A) = ↑m :=
+  @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
 by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
 
 set_option old_structure_cmd true
@@ -796,6 +799,13 @@ instance to_alg_hom_class (F R A B : Type*)
   map_zero := map_zero,
   map_one := map_one,
   .. h }
+
+@[priority 100]
+instance to_linear_equiv_class (F R A B : Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [h : alg_equiv_class F R A B] : linear_equiv_class F R A B :=
+{ map_smulₛₗ := λ f, map_smulₛₗ f,
+  ..h }
 
 end alg_equiv_class
 
@@ -1197,19 +1207,6 @@ protected lemma map_sub (x y) : e (x - y) = e x - e y := map_sub e x y
 
 end ring
 
-section division_ring
-
-variables [comm_ring R] [division_ring A₁] [division_ring A₂]
-variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
-
-@[simp] lemma map_inv (x) : e (x⁻¹) = (e x)⁻¹ :=
-e.to_alg_hom.map_inv x
-
-@[simp] lemma map_div (x y) : e (x / y) = e x / e y :=
-e.to_alg_hom.map_div x y
-
-end division_ring
-
 end alg_equiv
 
 namespace mul_semiring_action
@@ -1225,7 +1222,9 @@ This is a stronger version of `mul_semiring_action.to_ring_hom` and
 `distrib_mul_action.to_linear_map`. -/
 @[simps]
 def to_alg_hom (m : M) : A →ₐ[R] A :=
-alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
+{ to_fun := λ a, m • a,
+  commutes' := smul_algebra_map _,
+  ..mul_semiring_action.to_ring_hom _ _ m }
 
 theorem to_alg_hom_injective [has_faithful_smul M A] :
   function.injective (mul_semiring_action.to_alg_hom R A : M → A →ₐ[R] A) :=
@@ -1327,13 +1326,18 @@ end
 section rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
+{ smul := (•),
+  smul_def' := division_ring.qsmul_eq_mul',
+  to_ring_hom := rat.cast_hom α,
+  commutes' := rat.cast_commute }
+
+/-- The two `algebra ℚ ℚ` instances should coincide. -/
+example : algebra_rat = algebra.id ℚ := rfl
 
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma algebra_rat_subsingleton {α} [semiring α] :
+instance algebra_rat_subsingleton {α} [semiring α] :
   subsingleton (algebra ℚ α) :=
 ⟨λ x y, algebra.algebra_ext x y $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
 

@@ -337,10 +337,8 @@ maps `Π i, α →o π i`. -/
 def subtype.val (p : α → Prop) : subtype p →o α :=
 ⟨subtype.val, λ x y h, h⟩
 
--- TODO[gh-6025]: make this a global instance once safe to do so
 /-- There is a unique monotone map from a subsingleton to itself. -/
-local attribute [instance]
-def unique [subsingleton α] : unique (α →o α) :=
+instance unique [subsingleton α] : unique (α →o α) :=
 { default := order_hom.id, uniq := λ a, ext _ _ (subsingleton.elim _ _) }
 
 lemma order_hom_eq_id [subsingleton α] (g : α →o α) : g = order_hom.id :=

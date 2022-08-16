@@ -187,7 +187,7 @@ class is_solvable : Prop :=
 (solvable : ∃ k, derived_series R L k = ⊥)
 
 instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
-⟨⟨0, @subsingleton.elim _ lie_ideal.subsingleton_of_bot _ ⊥⟩⟩
+⟨⟨0, subsingleton.elim _ ⊥⟩⟩
 
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import linear_algebra.matrix.determinant
+import linear_algebra.matrix.nonsingular_inverse
 import tactic.fin_cases
 
 /-!
@@ -35,7 +36,7 @@ open_locale big_operators matrix
 
 universes v
 
-variables {α m n : Type*}
+variables {α m n o : Type*} {m' n' : α → Type*}
 variables {R : Type v} [comm_ring R] {M : matrix m m R} {b : m → α}
 
 namespace matrix
@@ -91,6 +92,21 @@ variables [preorder α]
 lemma block_triangular_diagonal [decidable_eq m] (d : m → R) :
   block_triangular (diagonal d) b :=
 λ i j h, diagonal_apply_ne' d (λ h', ne_of_lt h (congr_arg _ h'))
+
+lemma block_triangular_block_diagonal' [decidable_eq α] (d : Π (i : α), matrix (m' i) (m' i) R) :
+  block_triangular (block_diagonal' d) sigma.fst :=
+begin
+  rintros ⟨i, i'⟩ ⟨j, j'⟩ h,
+  apply block_diagonal'_apply_ne d i' j' (λ h', ne_of_lt h h'.symm),
+end
+
+lemma block_triangular_block_diagonal [decidable_eq α] (d : α → matrix m m R) :
+  block_triangular (block_diagonal d) prod.snd :=
+begin
+  rintros ⟨i, i'⟩ ⟨j, j'⟩ h,
+  rw [block_diagonal'_eq_block_diagonal, block_triangular_block_diagonal'],
+  exact h
+end
 
 end preorder
 
@@ -201,6 +217,21 @@ begin
   simpa only [not_not] using h,
 end
 
+-- TODO: move
+lemma xxx [decidable_eq α] (k : α):
+  image (λ i : {a // b a ≠ k}, b ↑i) univ = (image b univ).erase k :=
+begin
+  apply subset_antisymm,
+  { rw image_subset_iff,
+    intros i _,
+    apply mem_erase_of_ne_of_mem i.2 (mem_image_of_mem _ (mem_univ _)) },
+  { intros i hi,
+    rw mem_image,
+    rcases mem_image.1 (erase_subset _ _ hi) with ⟨a, _, ha⟩,
+    subst ha,
+    exact ⟨⟨a, ne_of_mem_erase hi⟩, mem_univ _, rfl⟩ }
+end
+
 protected lemma block_triangular.det [decidable_eq α] [linear_order α] (hM : block_triangular M b) :
   M.det = ∏ a in univ.image b, (M.to_square_block b a).det :=
 begin
@@ -219,16 +250,7 @@ begin
       let b' := λ i : {a // b a ≠ k}, b ↑i,
       have h' :  block_triangular (M.to_square_block_prop (λ (i : m), b i ≠ k)) b',
       { intros i j, apply hM },
-      have hb' : image b' univ = (image b univ).erase k,
-      { apply subset_antisymm,
-        { rw image_subset_iff,
-          intros i _,
-          apply mem_erase_of_ne_of_mem i.2 (mem_image_of_mem _ (mem_univ _)) },
-        { intros i hi,
-          rw mem_image,
-          rcases mem_image.1 (erase_subset _ _ hi) with ⟨a, _, ha⟩,
-          subst ha,
-          exact ⟨⟨a, ne_of_mem_erase hi⟩, mem_univ _, rfl⟩ } },
+      have hb' : image b' univ = (image b univ).erase k := by apply xxx,
       rw ih ((univ.image b).erase k) (erase_ssubset (max'_mem _ _)) h' hb',
       apply finset.prod_congr rfl,
       intros l hl,
@@ -255,6 +277,118 @@ begin
   refine h.det.trans (prod_subset (subset_univ _) $ λ a _ ha, _),
   have : is_empty {i // b i = a} := ⟨λ i, ha $ mem_image.2 ⟨i, mem_univ _, i.2⟩⟩,
   exactI det_is_empty,
+end
+
+-- TODO: localize
+instance xx {m : Type*} [fintype m] (p : m → Prop) : fintype {a // p a} := sorry
+
+/-! ### Invertible -/
+
+lemma to_block_mul {m n k : Type*} [fintype n] (p : m → Prop) (q : k → Prop)
+    (A : matrix m n R) (B : matrix n k R) :
+  (A ⬝ B).to_block p q = A.to_block p (λ _, true) ⬝ B.to_block (λ _, true) q :=
+begin
+  ext i k,
+  simp only [to_block_apply, mul_apply],
+  rw sum_subtype,
+  simp,
+end
+
+lemma to_block_mul' {m n k : Type*} [fintype n] (p : m → Prop) (q : n → Prop) (r : k → Prop)
+    (A : matrix m n R) (B : matrix n k R) :
+  (A ⬝ B).to_block p r =
+    A.to_block p q ⬝ B.to_block q r + A.to_block p (λ i, ¬ q i) ⬝ B.to_block (λ i, ¬ q i) r :=
+begin
+  classical,
+  ext i k,
+  simp only [to_block_apply, mul_apply, pi.add_apply],
+  convert (fintype.sum_subtype_add_sum_subtype q (λ x, A ↑i x * B x ↑k)).symm
+end
+
+
+lemma xxxxxx {m : Type*} [fintype m] (p q : m → Prop) (A B : matrix m m R) :
+  (A ⬝ B).to_block p p =
+    A.to_block p p ⬝ B.to_block p p + A.to_block p (λ i, ¬ p i) ⬝ B.to_block (λ i, ¬ p i) p :=
+begin
+  classical,
+  ext i j,
+  simp only [to_block_apply, mul_apply, pi.add_apply],
+  convert (fintype.sum_subtype_add_sum_subtype p (λ x, A ↑i x * B x ↑j)).symm,
+end
+
+lemma to_block_diagonal_eq (d : m → R) (p : m → Prop) :
+  matrix.to_block (diagonal d) p p = diagonal (λ i : subtype p, d ↑i) :=
+begin
+  ext i j,
+  by_cases i = j,
+  { simp [h] },
+  { simp [has_one.one, h, λ h', h $ subtype.ext h'], }
+end
+
+lemma to_block_one_eq (p : m → Prop) : matrix.to_block (1 : matrix m m R) p p = 1 :=
+to_block_diagonal_eq _ p
+
+lemma to_block_inverse_of_block_triangular
+  [invertible M] (p : m → Prop) (hM : block_triangular M p) :
+  (M.to_block p p) ⬝ M⁻¹.to_block p p = 1 :=
+begin
+  have : (M ⬝ M⁻¹).to_block p p = 1,
+  { rw mul_inv_of_invertible M, exact to_block_one_eq p },
+  have h_sum : M.to_block p p ⬝ M⁻¹.to_block p p +
+      M.to_block p (λ i, ¬ p i) ⬝ M⁻¹.to_block (λ i, ¬ p i) p = 1,
+    by rw [←to_block_mul', this],
+  have h_zero : M.to_block p (λ i, ¬ p i) = 0,
+  { ext i j,
+    have : p ↑j < p ↑i,
+    { change (p j.1 → p i.1) ∧ ¬(p i.1 → p j.1), have : ¬ p ↑j := j.2, have : p ↑i := i.2, tauto },
+    simp [hM this] },
+  simpa [h_zero] using h_sum
+end
+
+noncomputable def invertible_to_block_of_block_triangular
+  [invertible M] (p : m → Prop) (hM : block_triangular M p) :
+  invertible (M.to_block p p) :=
+invertible_of_right_inverse _ _ (to_block_inverse_of_block_triangular _ hM)
+
+lemma invertible_square_block_of_block_triangular
+    [invertible M] [linear_order α] (hM : block_triangular M b) :
+  block_triangular M⁻¹ b :=
+begin
+  unfreezingI { induction hs : univ.image b using finset.strong_induction
+    with s ih generalizing m },
+  subst hs,
+  by_cases h : univ.image b = ∅,
+  { intros i j,
+    rw [image_eq_empty, univ_eq_empty_iff] at h,
+    exact false.elim (@is_empty.false _ h i) },
+  { let k := (univ.image b).max' (nonempty_of_ne_empty h),
+    let b' := λ i : {a // b a ≠ k}, b ↑i,
+    let A := M.to_block (λ i, b i ≠ k) (λ j, b j ≠ k),
+    let B := M.to_block (λ i, b i ≠ k) (λ j, b j = k),
+    let C := M.to_block (λ i, b i = k) (λ j, b j ≠ k),
+    let D := M.to_block (λ i, b i = k) (λ j, b j = k),
+    have hA : A.block_triangular b', sorry,
+    haveI : invertible A, sorry,
+    have hb' : image b' univ = (image b univ).erase k,
+    { convert xxx _, apply classical.dec_eq, },
+    have : A⁻¹.block_triangular b' :=
+      ih ((univ.image b).erase k) (erase_ssubset (max'_mem _ _)) hA hb',
+
+    }
+
+end
+
+noncomputable lemma invertible_square_block_of_block_triangular [nontrivial R] [no_zero_divisors R]
+    [invertible M] [decidable_eq α] [linear_order α] (hM : block_triangular M b) (k : α) :
+  invertible (M.to_square_block b k) :=
+begin
+  have : ∏ (a : α) in image b univ, (M.to_square_block b a).det ≠ 0,
+  { rw [← block_triangular.det hM], exact (matrix.is_unit_det_of_invertible M).ne_zero },
+  by_cases h : k ∈ image b univ,
+  { have := prod_ne_zero_iff.1 this k h,
+    have := is_unit_of_invertible,
+    apply invertible_of_det_invertible,},
+  { sorry }
 end
 
 end matrix

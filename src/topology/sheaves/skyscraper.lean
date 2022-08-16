@@ -370,8 +370,7 @@ open_locale classical
 
 universes u v w
 
-variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (S : C)
-variables {star : C} (ts : is_terminal star)
+variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (S : C) [has_terminal C]
 
 /--The topological space with on a point `{p₀}`. Hence the only open sets are ∅ and ⊤.-/
 def single_point_space : Top := ⟨({p₀} : set X), infer_instance⟩
@@ -384,17 +383,17 @@ The presheaf on a single point space `{p₀}` defined by `∅ ↦ *` and `{p₀}
 -/
 @[simps]
 noncomputable def single_point_presheaf : presheaf C (single_point_space p₀) :=
-{ obj := λ U, if U.unop ≠ ⊥ then S else star,
+{ obj := λ U, if U.unop ≠ ⊥ then S else terminal C,
   map := λ U V inc, if h : V.unop ≠ ⊥
     then eq_to_hom (if_pos $ λ r, h $ le_bot_iff.mp $ r ▸ le_of_hom inc.unop) ≫
       𝟙 S ≫ eq_to_hom (if_pos h).symm
-    else ts.from _ ≫ 𝟙 star ≫ eq_to_hom (if_neg h).symm,
+    else terminal.from _ ≫ eq_to_hom (if_neg h).symm,
   map_id' := λ U,
   begin
     split_ifs,
     { rw [category.id_comp, eq_to_hom_trans, eq_to_hom_refl] },
-    { rw [category.id_comp, eq_comp_eq_to_hom, category.id_comp],
-      exact ts.hom_ext _ _, },
+    { rw [eq_comp_eq_to_hom, category.id_comp],
+      exact terminal_is_terminal.hom_ext _ _, },
   end,
   map_comp' := λ U V W inc1 inc2,
   begin
@@ -409,9 +408,9 @@ noncomputable def single_point_presheaf : presheaf C (single_point_space p₀) :
       split_ifs,
       simp only [category.id_comp, eq_to_hom_trans], },
     { split_ifs;
-      rw [category.id_comp, eq_comp_eq_to_hom, category.assoc, category.assoc, eq_to_hom_trans,
+      rw [eq_comp_eq_to_hom, category.assoc, category.assoc, eq_to_hom_trans,
         eq_to_hom_refl, category.comp_id];
-      exact ts.hom_ext _ _, },
+      exact terminal_is_terminal.hom_ext _ _, },
   end }
 
 /--
@@ -425,9 +424,9 @@ The trivial inclusion `{p₀} ↪ X`.
 The morphism from skyscraper presheaf to pushforward sheaf
 -/
 @[simps] noncomputable def skyscraper_presheaf_to_pushforward :
-  skyscraper_presheaf p₀ S ts ⟶ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) :=
+  skyscraper_presheaf p₀ S ⟶ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S) :=
 { app := λ U, if h : p₀ ∈ U.unop
-    then eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h) ≫ 𝟙 S ≫ eq_to_hom
+    then eq_to_hom (skyscraper_presheaf_obj_of_mem _ h) ≫ eq_to_hom
     begin
       dsimp,
       rw if_pos,
@@ -438,7 +437,7 @@ The morphism from skyscraper presheaf to pushforward sheaf
       erw set.mem_preimage,
       exact h,
     end
-    else ts.from _ ≫ eq_to_hom
+    else terminal.from _ ≫ eq_to_hom
     begin
       dsimp,
       rw if_neg,
@@ -468,15 +467,15 @@ The morphism from skyscraper presheaf to pushforward sheaf
         simp only [eq_to_hom_trans, category.id_comp], }, },
     { split_ifs;
       rw [←category.assoc, eq_comp_eq_to_hom];
-      exact ts.hom_ext _ _ },
+      exact terminal_is_terminal.hom_ext _ _ },
   end }
 
 /--
 The morphism from pushforward sheaf to skyscraper presheaf
 -/
 @[simps] noncomputable def pushforward_to_skyscraper_presheaf :
-  (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) ⟶
-  skyscraper_presheaf p₀ S ts :=
+  (single_point_inclusion p₀) _* (single_point_presheaf p₀ S) ⟶
+  skyscraper_presheaf p₀ S :=
 { app := λ U, if h : p₀ ∈ unop U
     then eq_to_hom
     begin
@@ -488,8 +487,8 @@ The morphism from pushforward sheaf to skyscraper presheaf
       refine ⟨⟨p₀, rfl⟩, _⟩,
       erw set.mem_preimage,
       exact h,
-    end ≫ 𝟙 S ≫ eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h).symm
-    else ts.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ _ h).symm,
+    end ≫ eq_to_hom (skyscraper_presheaf_obj_of_mem _ h).symm
+    else terminal.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ h).symm,
   naturality' := λ U V inc,
   begin
     rw [comp_dite, dite_comp],
@@ -505,26 +504,26 @@ The morphism from pushforward sheaf to skyscraper presheaf
       { exfalso, exact hV' h, },
       { dsimp,
         split_ifs;
-        rw [category.id_comp, eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
+        rw [eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
           category.id_comp, eq_to_hom_trans, eq_to_hom_trans, eq_to_hom_trans], }, },
     { split_ifs;
       rw [←category.assoc, eq_comp_eq_to_hom];
-      exact ts.hom_ext _ _ },
+      exact terminal_is_terminal.hom_ext _ _ },
   end }
 
 /--
 Skyscraper presheaf is isomorphic to pushforward of sheaf on single point.
 -/
 noncomputable def skyscraper_presheaf_as_pushforward :
-  skyscraper_presheaf p₀ S ts ≅ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) :=
-{ hom := skyscraper_presheaf_to_pushforward p₀ S ts,
-  inv := pushforward_to_skyscraper_presheaf p₀ S ts,
+  skyscraper_presheaf p₀ S ≅ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S) :=
+{ hom := skyscraper_presheaf_to_pushforward p₀ S,
+  inv := pushforward_to_skyscraper_presheaf p₀ S,
   hom_inv_id' :=
   begin
     ext U,
     dsimp,
     split_ifs,
-    { rw [category.id_comp, eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
+    { rw [eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
         eq_to_hom_refl], },
     { rw [←category.assoc, eq_comp_eq_to_hom],
       exact ts.hom_ext _ _, },

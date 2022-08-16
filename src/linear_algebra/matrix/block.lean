@@ -325,8 +325,19 @@ begin
   { simp [has_one.one, h, λ h', h $ subtype.ext h'], }
 end
 
+lemma to_block_diagonal_ne (d : m → R) (p : m → Prop) :
+  matrix.to_block (diagonal d) (λ i, ¬ p i) p = 0 :=
+begin
+  ext ⟨i, hi⟩ ⟨j, hj⟩,
+  have : i ≠ j, from λ h, hi (h.symm ▸ hj),
+  simp [diagonal_apply_ne d this]
+end
+
 lemma to_block_one_eq (p : m → Prop) : matrix.to_block (1 : matrix m m R) p p = 1 :=
 to_block_diagonal_eq _ p
+
+lemma to_block_one_ne (p : m → Prop) : matrix.to_block (1 : matrix m m R) (λ i, ¬ p i) p = 0 :=
+to_block_diagonal_ne _ p
 
 lemma to_block_inverse_of_block_triangular [linear_order α]
   [invertible M] (hM : block_triangular M b) (k : α) :
@@ -342,10 +353,47 @@ begin
   simpa [h_zero] using h_sum
 end
 
+lemma to_block_inverse_of_block_triangular' [linear_order α]
+  [invertible M] (hM : block_triangular M b) (k : α) :
+  M.to_block (λ i, k ≤ b i) (λ i, k ≤ b i) ⬝ M⁻¹.to_block (λ i, k ≤ b i) (λ i, k ≤ b i) = 1:=
+begin
+  let p := (λ i, k ≤ b i),
+  have h_sum : M.to_block p p ⬝ M⁻¹.to_block p p +
+      M.to_block p (λ i, ¬ p i) ⬝ M⁻¹.to_block (λ i, ¬ p i) p = 1,
+    by rw [←to_block_mul', mul_inv_of_invertible M, to_block_one_eq],
+  have h_zero : M.to_block p (λ i, ¬ p i) = 0,
+  { ext i j,
+    simpa using hM (lt_of_lt_of_le (lt_of_not_le j.2) i.2) },
+  simpa [h_zero] using h_sum
+end
+
 noncomputable def invertible_to_block_of_block_triangular
   [linear_order α] [invertible M] (hM : block_triangular M b) (k : α) :
   invertible (M.to_block (λ i, b i < k) (λ i, b i < k)) :=
 invertible_of_left_inverse _ _ (to_block_inverse_of_block_triangular hM k)
+
+lemma to_block_inverse_eq_zero [linear_order α]
+  [invertible M] (hM : block_triangular M b) (k : α) :
+  M⁻¹.to_block (λ i, k ≤ b i) (λ i, b i < k) = 0 :=
+begin
+  have := mul_inv_of_invertible M,
+  have h_iff : (λ i, k ≤ b i) = (λ i, ¬ b i < k),
+  { ext i, simp },
+  let p := (λ i, b i < k),
+  let q := (λ i, ¬ b i < k),
+  have h_sum : M⁻¹.to_block q p ⬝ M.to_block p p +
+      M⁻¹.to_block q q ⬝ M.to_block q p = 0,
+    by rw [←to_block_mul', inv_mul_of_invertible M, to_block_one_ne],
+  have h_zero : M.to_block q p = 0,
+  { ext i j,
+    simpa using hM (lt_of_lt_of_le j.2 (le_of_not_lt i.2)) },
+  have h_mul_eq_zero : M⁻¹.to_block q p ⬝ M.to_block p p = 0,
+    by simpa [h_zero] using h_sum,
+  haveI : invertible (M.to_block p p) := invertible_to_block_of_block_triangular hM k,
+  rw [h_iff, ← matrix.zero_mul (M.to_block p p)⁻¹, ← h_mul_eq_zero,
+    mul_inv_cancel_right_of_invertible],
+end
+
 
 lemma invertible_square_block_of_block_triangular
     [invertible M] [linear_order α] (hM : block_triangular M b) :

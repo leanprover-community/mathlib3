@@ -656,12 +656,10 @@ variables {G : Type*} [group G] [mul_semiring_action G K]
 This is available as an instance in the `pointwise` locale. -/
 def pointwise_has_smul : has_smul G (valuation_subring K) :=
 { smul := λ g S,
-  { mem_or_inv_mem' := λ x, begin
-      dsimp,
-      refine (mem_or_inv_mem S (g⁻¹ • x)).imp (λ h, _) (λ h, _);
-      { simpa using subring.smul_mem_pointwise_smul g _ _ h }
-    end,
-    .. g • S.to_subring} }
+  { mem_or_inv_mem' := λ x, (mem_or_inv_mem S (g⁻¹ • x)).imp
+      (subring.mem_pointwise_smul_iff_inv_smul_mem.mpr)
+      (λ h, subring.mem_pointwise_smul_iff_inv_smul_mem.mpr $ by rwa smul_inv''),
+    .. g • S.to_subring } }
 
 localized "attribute [instance] valuation_subring.pointwise_has_smul" in pointwise
 open_locale pointwise

@@ -124,7 +124,7 @@ theorem forall₂.nth_le :
 | (a₁ :: l₁) (a₂ :: l₂) (forall₂.cons ha hl) (succ i) hx hy := hl.nth_le _ _
 
 lemma forall₂_of_length_eq_of_nth_le : ∀ {x : list α} {y : list β},
-  x.length = y.length → (∀ i h₁ h₂, r (x.nth_le i h₁) (y.nth_le i h₂)) → list.forall₂ r x y
+  x.length = y.length → (∀ i h₁ h₂, r (x.nth_le i h₁) (y.nth_le i h₂)) → forall₂ r x y
 | []       []       hl h := forall₂.nil
 | (d₁::l₁) (d₂::l₂) hl h := forall₂.cons
     (h 0 (nat.zero_lt_succ _) (nat.zero_lt_succ _))

@@ -33,7 +33,7 @@ section N_has_zero
 variables [has_zero N] {f g : α →₀ N}
 
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.diff f g` is the `finset`
-where `f` and `g` differ. -/
+where `f` and `g` differ. This generalizes `(f - g).support` to situations without subtraction. -/
 def diff (f g : α →₀ N) : finset α :=
 (f.support ∪ g.support).filter (λ x, f x ≠ g x)
 

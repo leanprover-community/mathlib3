@@ -2764,14 +2764,10 @@ section
 variables [has_zero R]
 
 /-- The `finsupp` version of `pi.unique`. -/
-instance unique_of_right [subsingleton R] : unique (α →₀ R) :=
-{ uniq := λ l, ext $ λ i, subsingleton.elim _ _,
-  .. finsupp.inhabited }
+instance unique_of_right [subsingleton R] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 /-- The `finsupp` version of `pi.unique_of_is_empty`. -/
-instance unique_of_left [is_empty α] : unique (α →₀ R) :=
-{ uniq := λ l, ext is_empty_elim,
-  .. finsupp.inhabited }
+instance unique_of_left [is_empty α] : unique (α →₀ R) := fun_like.coe_injective.unique
 
 end
 

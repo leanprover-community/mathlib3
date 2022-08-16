@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.basic
 import data.finset.pairwise
+import data.finset.preimage
 
 /-!
 # Graph cliques
@@ -24,7 +25,23 @@ adjacent.
 * Clique numbers
 -/
 
-open finset fintype
+namespace finset
+variables {α β : Type*} {s : finset α}
+
+@[simp] lemma preimage_map (f : α ↪ β) (s : finset α) :
+  (s.map f).preimage f (f.injective.inj_on _) = s :=
+coe_injective $ by simp only [coe_preimage, coe_map, set.preimage_image_eq _ f.injective]
+
+lemma exists_mem_ne (hs : 1 < s.card) (a : α) : ∃ b ∈ s, b ≠ a :=
+begin
+  by_contra',
+  haveI : nonempty α := ⟨a⟩,
+  exact hs.not_le (card_le_one_iff_subset_singleton.2 ⟨a, subset_singleton_iff'.2 this⟩),
+end
+
+end finset
+
+open finset fintype function
 
 namespace simple_graph
 variables {α β : Type*} (G H : simple_graph α)
@@ -262,6 +279,34 @@ set.ext $ λ s, by simp [eq_comm]
 @[simp] lemma clique_set_bot (hn : 1 < n) : (⊥ : simple_graph α).clique_set n = ∅ :=
 (clique_free_bot hn).clique_set
 
+@[simp] lemma clique_set_map (hn : 1 < n) (G : simple_graph α) (f : α ↪ β) :
+  (G.map f).clique_set n = map f '' G.clique_set n :=
+begin
+  ext s,
+  split,
+  { rintro ⟨hs, rfl⟩,
+    have hs' : (s.preimage f $ f.injective.inj_on _).map f = s,
+    { classical,
+      rw [map_eq_image, image_preimage, filter_true_of_mem],
+      rintro a ha,
+      obtain ⟨b, hb, hba⟩ := exists_mem_ne hn a,
+      obtain ⟨c, _, _, hc, _⟩ := hs ha hb hba.symm,
+      exact ⟨c, hc⟩ },
+    refine ⟨s.preimage f $ f.injective.inj_on _, ⟨_, by rw [←card_map f, hs']⟩, hs'⟩,
+    rw coe_preimage,
+    exact λ a ha b hb hab, map_adj_apply.1 (hs ha hb $ f.injective.ne hab) },
+  { rintro ⟨s, hs, rfl⟩,
+    exact is_n_clique.map hs }
+end
+
+@[simp] lemma clique_set_map' (G : simple_graph α) (e : α ≃ β) :
+  ∀ n, (G.map (e : α ↪ β)).clique_set n = map (e : α ↪ β) '' G.clique_set n
+| 0 := by simp_rw [clique_set_zero, set.image_singleton, map_empty]
+| 1 := by { ext, simp only [e.exists_congr_left, equiv.coe_eq_to_embedding, clique_set_one,
+    set.mem_range, set.mem_image, exists_exists_eq_and, map_singleton, equiv.to_embedding_apply,
+    equiv.apply_symm_apply] }
+| (n + 2) := clique_set_map (by norm_num) _ _
+
 end clique_set
 
 /-! ### Finset of cliques -/
@@ -289,6 +334,18 @@ variables {G} [decidable_rel H.adj]
 
 @[mono] lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
 monotone_filter_right _ $ λ _, is_n_clique.mono h
+
+@[simp] lemma clique_finset_map [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+  (G : simple_graph α) [decidable_rel G.adj] (f : α ↪ β) (hn : 1 < n) :
+  (G.map f).clique_finset n = (G.clique_finset n).map ⟨map f, finset.map_injective _⟩ :=
+coe_injective $
+  by simp_rw [coe_clique_finset, clique_set_map hn, coe_map, coe_clique_finset, embedding.coe_fn_mk]
+
+@[simp] lemma clique_finset_map' [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+  (G : simple_graph α) [decidable_rel G.adj] (e : α ≃ β) (n : ℕ) :
+  (G.map (e : α ↪ β)).clique_finset n = (G.clique_finset n).map ⟨map e, finset.map_injective _⟩ :=
+coe_injective $
+  by simp_rw [coe_clique_finset, clique_set_map', coe_map, coe_clique_finset, embedding.coe_fn_mk]
 
 end clique_finset
 end simple_graph

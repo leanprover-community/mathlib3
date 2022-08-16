@@ -33,22 +33,9 @@ variables {α β : Type*}
 end equiv
 
 namespace finset
-variables {α β : Type*} {s : finset α}
-
-@[simp] lemma preimage_map (f : α ↪ β) (s : finset α) :
-  (s.map f).preimage f (f.injective.inj_on _) = s :=
-coe_injective $ by simp only [coe_preimage, coe_map, set.preimage_image_eq _ f.injective]
-
-lemma exists_mem_ne (hs : 1 < s.card) (a : α) : ∃ b ∈ s, b ≠ a :=
-begin
-  by_contra',
-  haveI : nonempty α := ⟨a⟩,
-  exact hs.not_le (card_le_one_iff_subset_singleton.2 ⟨a, subset_singleton_iff'.2 this⟩),
-end
+variables {m n : ℕ}
 
 open_locale pointwise
-
-variables {m n : ℕ}
 
 lemma range_add_range_subset : range m + range n ⊆ range (m + n - 1) :=
 begin
@@ -59,117 +46,6 @@ begin
 end
 
 end finset
-
-namespace relation
-variables {α β γ δ ε κ : Type*} {r : α → β → Prop} {f : α → γ} {g : β → δ}
-
-@[simp] lemma map_apply {c : γ} {d : δ} :
-  relation.map r f g c d ↔ ∃ a b, r a b ∧ f a = c ∧ g b = d := iff.rfl
-
-@[simp] lemma map_id_id (r : α → β → Prop) : relation.map r id id = r := by simp [relation.map]
-
-@[simp] lemma map_map (r : α → β → Prop) (f₁ : α → γ) (g₁ : β → δ) (f₂ : γ → ε) (g₂ : δ → κ) :
-  relation.map (relation.map r f₁ g₁) f₂ g₂ = relation.map r (f₂ ∘ f₁) (g₂ ∘ g₁) :=
-begin
-  ext a b,
-  simp only [map_apply, function.comp_app, ←exists_and_distrib_right, @exists₂_comm γ],
-  refine exists₂_congr (λ a b, _),
-  simp [and_assoc],
-end
-
-instance (r : α → β → Prop) (f : α → γ) (g : β → δ) [fintype α] [fintype β]
-  [Π a, decidable_pred (r a)] [decidable_eq γ] [decidable_eq δ] :
-  Π c, decidable_pred (relation.map r f g c) :=
-λ c d, fintype.decidable_exists_fintype
-
-end relation
-
-namespace simple_graph
-variables {α β V W X : Type*} {n : ℕ}
-
-open finset function
-
-instance [fintype V] [decidable_eq W] (f : V ↪ W) (G : simple_graph V) [decidable_rel G.adj] :
-  decidable_rel (simple_graph.map f G).adj :=
-relation.map.decidable_pred _ _ _
-
-@[simp] lemma map_id {G : simple_graph V} : G.map (function.embedding.refl _) = G :=
-ext _ _ $ relation.map_id_id _
-
-@[simp] lemma map_map {G : simple_graph V} (f : V ↪ W) (g : W ↪ X) :
-  (G.map f).map g = G.map (f.trans g) :=
-ext _ _ $ relation.map_map _ _ _ _ _
-
-@[simp] lemma comap_id {G : simple_graph V} : G.comap id = G := ext _ _ rfl
-
-@[simp] lemma comap_comap {G : simple_graph X} (f : V → W) (g : W → X) :
-  (G.comap g).comap f = G.comap (g ∘ f) := rfl
-
-lemma comap_symm (G : simple_graph V) (e : V ≃ W) : G.comap e.symm = G.map e :=
-by { ext, simp only [equiv.apply_eq_iff_eq_symm_apply, comap_adj, equiv.coe_eq_to_embedding,
-  map_adj, equiv.to_embedding_apply, exists_eq_right_right, exists_eq_right] }
-
-lemma map_symm (G : simple_graph W) (e : V ≃ W) : G.map (e.symm : W ↪ V) = G.comap e :=
-by rw [←comap_symm, e.symm_symm]
-
-lemma map_adj_apply {G : simple_graph V} {f : V ↪ W} {a b : V} :
-  (G.map f).adj (f a) (f b) ↔ G.adj a b := by simp
-
-@[simp] lemma clique_set_map (hn : 1 < n) (G : simple_graph V) (f : V ↪ W) :
-  (G.map f).clique_set n = map f '' G.clique_set n :=
-begin
-  ext s,
-  split,
-  { rintro ⟨hs, rfl⟩,
-    have hs' : (s.preimage f $ f.injective.inj_on _).map f = s,
-    { classical,
-      rw [map_eq_image, image_preimage, filter_true_of_mem],
-      rintro a ha,
-      obtain ⟨b, hb, hba⟩ := exists_mem_ne hn a,
-      obtain ⟨c, _, _, hc, _⟩ := hs ha hb hba.symm,
-      exact ⟨c, hc⟩ },
-    refine ⟨s.preimage f $ f.injective.inj_on _, ⟨_, by rw [←card_map f, hs']⟩, hs'⟩,
-    rw coe_preimage,
-    exact λ a ha b hb hab, map_adj_apply.1 (hs ha hb $ f.injective.ne hab) },
-  { rintro ⟨s, hs, rfl⟩,
-    exact is_n_clique.map hs }
-end
-
-@[simp] lemma clique_finset_map [fintype V] [fintype W] [decidable_eq V] [decidable_eq W]
-  (G : simple_graph V) [decidable_rel G.adj] (f : V ↪ W) (hn : 1 < n) :
-  (G.map f).clique_finset n = (G.clique_finset n).map ⟨map f, finset.map_injective _⟩ :=
-coe_injective $
-  by simp_rw [coe_clique_finset, clique_set_map hn, coe_map, coe_clique_finset, embedding.coe_fn_mk]
-
-@[simp] lemma clique_set_map' (G : simple_graph V) (e : V ≃ W) :
-  ∀ n, (G.map (e : V ↪ W)).clique_set n = map (e : V ↪ W) '' G.clique_set n
-| 0 := by simp_rw [clique_set_zero, set.image_singleton, map_empty]
-| 1 := by { ext, simp only [e.exists_congr_left, equiv.coe_eq_to_embedding, clique_set_one,
-    set.mem_range, set.mem_image, exists_exists_eq_and, map_singleton, equiv.to_embedding_apply,
-    equiv.apply_symm_apply] }
-| (n + 2) := clique_set_map (by norm_num) _ _
-
-@[simp] lemma clique_finset_map' [fintype V] [fintype W] [decidable_eq V] [decidable_eq W]
-  (G : simple_graph V) [decidable_rel G.adj] (e : V ≃ W) (n : ℕ) :
-  (G.map (e : V ↪ W)).clique_finset n = (G.clique_finset n).map ⟨map e, finset.map_injective _⟩ :=
-coe_injective $
-  by simp_rw [coe_clique_finset, clique_set_map', coe_map, coe_clique_finset, embedding.coe_fn_mk]
-
-end simple_graph
-
-section
-variables {α β : Type*}
-
-/-- Equivalent types have equivalent simple graphs. -/
-@[simps] protected def equiv.simple_graph (e : α ≃ β) : simple_graph α ≃ simple_graph β :=
-{ to_fun := simple_graph.comap e.symm,
-  inv_fun := simple_graph.comap e,
-  left_inv := λ _, by simp,
-  right_inv := λ _, by simp }
-
-@[simp] lemma equiv.symm_simple_graph (e : α ≃ β) : e.simple_graph.symm = e.symm.simple_graph := rfl
-
-end
 
 open finset fintype (card) nat simple_graph sum3
 open_locale pointwise

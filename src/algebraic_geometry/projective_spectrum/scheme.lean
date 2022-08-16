@@ -175,11 +175,7 @@ lemma degree_zero_part.coe_one {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) :
 lemma degree_zero_part.coe_sum {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) {ι : Type*}
   (s : finset ι) (g : ι → A⁰_ f_deg) :
   (↑(∑ i in s, g i) : away f) = ∑ i in s, (g i : away f) :=
-begin
-  classical,
-  induction s using finset.induction_on with i s hi ih;
-  simp,
-end
+by { classical, induction s using finset.induction_on with i s hi ih; simp }
 
 end
 
@@ -394,15 +390,16 @@ let b : tactic unit :=
   `[exact pow_mem_graded _ (submodule.coe_mem _) <|> exact nat_cast_mem_graded _ _] in
 b <|> `[by repeat { all_goals { apply graded_monoid.mul_mem } }; b]
 
-/--The function from `Spec A⁰_f` to `Proj|D(f)` is defined by `q ↦ {a | aᵢᵐ ∈ q}`, i.e. send `q` a
-prime ideal in `A⁰_f` to the homogeneous prime relevant ideal containing only and all the element
-`a : A` such that the `m`-th power of `i`-th projection of `a` is in `q`.
+/--The function from `Spec A⁰_f` to `Proj|D(f)` is defined by `q ↦ {a | aᵢᵐ/fⁱ ∈ q}`, i.e. sending `q` a
+prime ideal in `A⁰_f` to the homogeneous prime relevant ideal containing only and all the elements
+`a : A` such that for every `i`, the degree 0 element formed by dividing the `m`-th power of the
+`i`-th projection of `a` by the `i`-th power of the degree-`m` homogeneous element `f`, lies in `q`.
 
 The set `{a | aᵢᵐ/fⁱ ∈ q}`
-* is an ideal is proved in  `carrier.as_ideal`;
-* is homogeneous is proved in `carrier.as_homogeneous_ideal`;
-* is prime is proved in `carrier.as_ideal.prime`;
-* is relevant is proved in `carrier.as_ideal.relevant`
+* is an ideal, as proved in `carrier.as_ideal`;
+* is homogeneous, as proved in `carrier.as_homogeneous_ideal`;
+* is prime, as proved in `carrier.as_ideal.prime`;
+* is relevant, as proved in `carrier.relevant`.
 -/
 def carrier (q : Spec.T (A⁰_ f_deg)) : set A :=
 {a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
@@ -515,7 +512,7 @@ end
 /--
 For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as an ideal.
 -/
-def carrier.as_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg) ) :
+def carrier.as_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
   ideal A :=
 { carrier := carrier q,
   zero_mem' := carrier.zero_mem hm q,
@@ -527,9 +524,8 @@ lemma carrier.as_ideal.ne_top (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
 λ rid, q.2.ne_top $ (ideal.eq_top_iff_one _).mpr
 begin
   convert (ideal.eq_top_iff_one _).mp rid 0,
-  erw [subtype.ext_iff, degree_zero_part.coe_one, subtype.coe_mk,
-    show proj 𝒜 0 1 = 1, from _, one_pow, show (⟨f^0, ⟨_, rfl⟩⟩ : submonoid.powers f)= 1, by tidy,
-    mk_self 1],
+  erw [subtype.ext_iff, degree_zero_part.coe_one, subtype.coe_mk, (_ : proj 𝒜 0 1 = 1),
+    one_pow, (by tidy : (⟨f^0, 0, rfl⟩ : submonoid.powers f) = 1), mk_self 1],
   rw [proj_apply, decompose_of_mem_same],
   exact one_mem,
 end

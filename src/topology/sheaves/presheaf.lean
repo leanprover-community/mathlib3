@@ -44,6 +44,41 @@ variables {C}
 
 namespace presheaf
 
+local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
+
+/-- The restriction of a section along an inclusion of open sets.
+For `x : F.obj (op V)`, we provide the notation `x ∣_ₕ i` (`h` stands for `hom`) for `i : U ⟶ V`,
+and the notation `x ∣_ₗ U ⟪i⟫` (`l` stands for `le`) for `i : U ≤ V`.
+-/
+def restrict {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F : X.presheaf C} {V : opens X} (x : F.obj (op V)) {U : opens X} (h : U ⟶ V) : F.obj (op U) :=
+F.map h.op x
+
+infixl ` ∣_ₕ `: 80 := restrict
+
+notation x ` ∣_ₗ `: 80 U ` ⟪` e `⟫ ` := @restrict _ _ _ _ _ _ x U
+  (@hom_of_le (opens _) _ U _ e)
+
+@[simp]
+lemma restrict_restrict {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F : X.presheaf C} {U V W : opens X} (e₁ : U ⟶ V) (e₂ : V ⟶ W) (x : F.obj (op W)) :
+    x ∣_ₕ e₂ ∣_ₕ e₁ = x ∣_ₕ (e₁ ≫ e₂) :=
+by { rw [restrict, restrict, ← comp_apply, ← functor.map_comp], refl }
+
+lemma restrict_restrict' {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F : X.presheaf C} {U V W : opens X} (e₁ : U ≤ V) (e₂ : V ≤ W) (x : F.obj (op W)) :
+    x ∣_ₗ V ⟪e₂⟫ ∣_ₗ U ⟪e₁⟫ = x ∣_ₗ U ⟪e₁.trans e₂⟫ :=
+by { simpa }
+
+@[simp]
+lemma map_restrict {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F G : X.presheaf C} (e : F ⟶ G) {U V : opens X} (i : U ⟶ V) (x : F.obj (op V)) :
+    e.app _ (x ∣_ₕ i) = (e.app _ x) ∣_ₕ i :=
+by rw [restrict, restrict, ← comp_apply, nat_trans.naturality, comp_apply]
+
+instance {C : Type*} [preorder C] {X Y : C} (e : X = Y) : is_iso (hom_of_le e.le) :=
+by convert (show is_iso (eq_to_hom e), by apply_instance)
+
 /-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
 on `Y`. -/
 def pushforward_obj {X Y : Top.{w}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=

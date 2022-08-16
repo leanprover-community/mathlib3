@@ -40,12 +40,10 @@ lemma game_add_iff {rα rβ} {x y : α × β} :
 begin
   split,
   { rintro (⟨a₁, a₂, b, h⟩ | ⟨a, b₁, b₂, h⟩),
-    { exact or.inl ⟨h, rfl⟩ },
-    { exact or.inr ⟨h, rfl⟩ } },
+    exacts [or.inl ⟨h, rfl⟩, or.inr ⟨h, rfl⟩] },
   { revert x y,
     rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨h, rfl : b₁ = b₂⟩ | ⟨h, rfl : a₁ = a₂⟩),
-    { exact game_add.fst h },
-    { exact game_add.snd h } }
+    exacts [game_add.fst h, game_add.snd h] }
 end
 
 lemma game_add_mk_iff {rα rβ} {a₁ a₂ : α} {b₁ b₂ : β} :

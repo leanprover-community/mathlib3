@@ -60,9 +60,6 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_add_comm_group.to_add_comm_group normed_space.to_module'
 
--- hack to speed up simp when dealing with complicated types
-local attribute [-instance] unique.subsingleton pi.subsingleton
-
 /-!
 ### Type variables
 
@@ -1236,7 +1233,6 @@ isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the con
 derivatives, we register this isomorphism. -/
 
 section
-local attribute [instance] unique.subsingleton
 
 variables {𝕜 G G'}
 

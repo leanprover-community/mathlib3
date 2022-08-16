@@ -47,7 +47,7 @@ open_locale complex_conjugate
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
 class is_R_or_C (K : Type*)
-  extends nontrivially_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
+  extends densely_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (I : K)                 -- Meant to be set to 0 for K=ℝ
@@ -383,7 +383,7 @@ lemma conj_inv (x : K) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_div (r s : ℝ) :
   ((r / s : ℝ) : K) = r / s :=
-(@is_R_or_C.coe_hom K _).map_div r s
+map_div₀ (@is_R_or_C.coe_hom K _) r s
 
 lemma div_re_of_real {z : K} {r : ℝ} : re (z / r) = re z / r :=
 begin
@@ -396,7 +396,7 @@ end
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_zpow (r : ℝ) (n : ℤ) :
   ((r ^ n : ℝ) : K) = r ^ n :=
-(@is_R_or_C.coe_hom K _).map_zpow r n
+map_zpow₀ (@is_R_or_C.coe_hom K _) r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
 by { have := I_mul_I_ax, tauto }
@@ -412,10 +412,10 @@ end
 by field_simp
 
 @[simp, is_R_or_C_simps] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-(@norm_sq K _).map_inv z
+map_inv₀ (@norm_sq K _) z
 
 @[simp, is_R_or_C_simps] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-(@norm_sq K _).map_div z w
+map_div₀ (@norm_sq K _) z w
 
 @[is_R_or_C_simps] lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
@@ -427,9 +427,7 @@ by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) :
   ((n : ℝ) : K) = n :=
-show (algebra_map ℝ K) n = n, from map_nat_cast of_real_hom n
---of_real_hom.map_nat_cast n
---@[simp, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=
+map_nat_cast (@of_real_hom K _) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma nat_cast_re (n : ℕ) : re (n : K) = n :=
 by rw [← of_real_nat_cast, of_real_re]
@@ -752,7 +750,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero],
-  .. real.nontrivially_normed_field, .. real.metric_space }
+  .. real.densely_normed_field, .. real.metric_space }
 
 end instances
 

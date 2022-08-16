@@ -2719,8 +2719,6 @@ metric_space.induced coe subtype.coe_injective ‹_›
 @[to_additive] instance {α : Type*} [metric_space α] : metric_space (αᵐᵒᵖ) :=
 metric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
 
-local attribute [instance] filter.unique
-
 instance : metric_space empty :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,

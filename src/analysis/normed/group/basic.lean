@@ -130,6 +130,31 @@ instance seminormed_comm_group.to_seminormed_group [seminormed_comm_group E] : s
 instance normed_comm_group.to_normed_group [normed_comm_group E] : normed_group E :=
 { ..‹normed_comm_group E› }
 
+/-- Construct a `normed_group` from a `seminormed_group` satisfying `∀ x, ∥x∥ = 0 → x = 1`. This
+avoids having to go back to the `(pseudo_)metric_space` level when declaring a `normed_group`
+instance as a special case of a more general `seminormed_group` instance. -/
+@[to_additive "Construct a `normed_add_group` from a `seminormed_add_group` satisfying
+`∀ x, ∥x∥ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level when
+declaring a `normed_add_group` instance as a special case of a more general `seminormed_add_group`
+instance.", reducible] -- See note [reducible non-instances]
+def normed_group.of_separation [seminormed_group E] (h : ∀ x : E, ∥x∥ = 0 → x = 1) :
+  normed_group E :=
+{ to_metric_space :=
+  { eq_of_dist_eq_zero := λ x y hxy, div_eq_one.1 $ h _ $ by rwa ←‹seminormed_group E›.dist_eq },
+  ..‹seminormed_group E› }
+
+/-- Construct a `normed_comm_group` from a `seminormed_comm_group` satisfying
+`∀ x, ∥x∥ = 0 → x = 1`. This avoids having to go back to the `(pseudo_)metric_space` level when
+declaring a `normed_comm_group` instance as a special case of a more general `seminormed_comm_group`
+instance. -/
+@[to_additive "Construct a `normed_add_comm_group` from a `seminormed_add_comm_group` satisfying
+`∀ x, ∥x∥ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level when
+declaring a `normed_add_comm_group` instance as a special case of a more general
+`seminormed_add_comm_group` instance.", reducible] -- See note [reducible non-instances]
+def normed_comm_group.of_separation [seminormed_comm_group E] (h : ∀ x : E, ∥x∥ = 0 → x = 1) :
+  normed_comm_group E :=
+{ ..‹seminormed_comm_group E›, ..normed_group.of_separation h }
+
 /-- Construct a seminormed group from a multiplication-invariant distance. -/
 @[to_additive "Construct a seminormed group from a translation-invariant distance."]
 def seminormed_group.of_mul_dist [has_norm E] [group E] [pseudo_metric_space E]

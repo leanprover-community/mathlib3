@@ -144,12 +144,10 @@ begin
   intros hll ass,
   fconstructor,
   { exact ass 0 dec_trivial dec_trivial, },
-  {
-    apply forall₂_of_nth_le,
+  { apply forall₂_of_nth_le,
     { exact succ.inj hll, },
     intros i h₁ h₂,
-    exact ass i.succ (succ_lt_succ h₁) (succ_lt_succ h₂),
-  },
+    exact ass i.succ (succ_lt_succ h₁) (succ_lt_succ h₂), },
 end
 
 theorem list.forall₂_iff {l₁ : list α} {l₂ : list β} :
@@ -157,13 +155,11 @@ theorem list.forall₂_iff {l₁ : list α} {l₂ : list β} :
   ∀ i h₁ h₂, R (l₁.nth_le i h₁) (l₂.nth_le i h₂) :=
 begin
   split,
-  {
-    intro ass,
+  { intro ass,
     split,
     { exact forall₂_length_eq ass, },
     apply nth_le_of_forall₂,
-    exact ass,
-  },
+    exact ass, },
   rintro ⟨hll, ass⟩,
   apply forall₂_of_nth_le,
   { exact hll },

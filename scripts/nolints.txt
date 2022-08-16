@@ -19,13 +19,7 @@ apply_nolint ring_hom.functions_ext fintype_finite
 apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
 
 -- algebra/char_p/basic.lean
-apply_nolint char_p.char_is_prime fintype_finite
-apply_nolint char_p.char_ne_zero_of_fintype fintype_finite
-apply_nolint char_p.ring_char_ne_zero_of_fintype fintype_finite
 apply_nolint is_square_of_char_two' fintype_finite
-
--- algebra/char_p/char_and_card.lean
-apply_nolint is_unit_iff_not_dvd_char fintype_finite
 
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
@@ -543,19 +537,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/finite.lean
-apply_nolint infi_supr_of_antitone fintype_finite
-apply_nolint infi_supr_of_monotone fintype_finite
-apply_nolint set.Inter_Union_of_antitone fintype_finite
-apply_nolint set.Inter_Union_of_monotone fintype_finite
-apply_nolint set.Union_Inter_of_antitone fintype_finite
-apply_nolint set.Union_Inter_of_monotone fintype_finite
-apply_nolint set.Union_univ_pi_of_monotone fintype_finite
-apply_nolint set.finite.pi fintype_finite
-apply_nolint set.forall_finite_image_eval_iff fintype_finite
-apply_nolint supr_infi_of_antitone fintype_finite
-apply_nolint supr_infi_of_monotone fintype_finite
-
 -- data/setoid/partition.lean
 apply_nolint setoid.nonempty_fintype_classes_ker fintype_finite
 
@@ -632,13 +613,6 @@ apply_nolint monoid.fg_of_fintype fintype_finite
 
 -- group_theory/group_action/basic.lean
 apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
-
--- group_theory/group_action/defs.lean
-apply_nolint comp_smul_left to_additive_doc
-apply_nolint has_mul.to_has_smul to_additive_doc
-apply_nolint mul_action.regular.is_pretransitive to_additive_doc
-apply_nolint mul_smul_comm to_additive_doc
-apply_nolint one_smul_eq_id to_additive_doc
 
 -- group_theory/group_action/group.lean
 apply_nolint mul_action.to_perm_injective to_additive_doc
@@ -967,15 +941,6 @@ apply_nolint is_cyclotomic_extension.number_field fintype_finite
 apply_nolint fintype.to_is_atomic fintype_finite
 apply_nolint fintype.to_is_coatomic fintype_finite
 
--- order/filter/basic.lean
-apply_nolint filter.Inter_mem fintype_finite
-apply_nolint filter.eventually_all fintype_finite
-apply_nolint filter.infi_principal_fintype fintype_finite
-apply_nolint filter.mem_infi_of_fintype fintype_finite
-
--- order/filter/cofinite.lean
-apply_nolint filter.Coprod_cofinite fintype_finite
-
 -- order/filter/ultrafilter.lean
 apply_nolint ultrafilter.eq_pure_of_fintype fintype_finite
 
@@ -987,7 +952,6 @@ apply_nolint pi.is_pwo fintype_finite
 apply_nolint set.fintype.is_pwo fintype_finite
 
 -- ring_theory/artinian.lean
-apply_nolint is_artinian_of_fintype fintype_finite
 apply_nolint is_artinian_pi fintype_finite
 apply_nolint is_artinian_pi' fintype_finite
 
@@ -1014,14 +978,10 @@ apply_nolint units.is_cyclic fintype_finite
 apply_nolint ideal.mv_polynomial.comp_C_integral_of_surjective_of_jacobson fintype_finite
 apply_nolint ideal.mv_polynomial.mv_polynomial.ideal.is_jacobson fintype_finite
 
--- ring_theory/localization/cardinality.lean
-apply_nolint is_localization.algebra_map_surjective_of_fintype fintype_finite
-
 -- ring_theory/localization/integer.lean
 apply_nolint is_localization.exist_integer_multiples_of_fintype fintype_finite
 
 -- ring_theory/noetherian.lean
-apply_nolint is_noetherian_of_fintype fintype_finite
 apply_nolint is_noetherian_pi fintype_finite
 apply_nolint is_noetherian_pi' fintype_finite
 apply_nolint submodule.fg_pi fintype_finite
@@ -1559,9 +1519,6 @@ apply_nolint group_topology.partial_order to_additive_doc
 apply_nolint separable_locally_compact_group.sigma_compact_space to_additive_doc
 apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc
 
--- topology/algebra/module/finite_dimension.lean
-apply_nolint linear_map.continuous_on_pi fintype_finite
-
 -- topology/algebra/nonarchimedean/basic.lean
 apply_nolint nonarchimedean_group.nonarchimedean_of_emb to_additive_doc
 apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc
@@ -1572,16 +1529,6 @@ apply_nolint nonarchimedean_group.prod_subset to_additive_doc
 apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
 apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
 
--- topology/basic.lean
-apply_nolint closure_Union_of_fintype fintype_finite
-apply_nolint interior_Inter_of_fintype fintype_finite
-apply_nolint is_closed_Union fintype_finite
-apply_nolint is_open_Inter fintype_finite
-
--- topology/bornology/basic.lean
-apply_nolint bornology.is_bounded_Union fintype_finite
-apply_nolint bornology.is_cobounded_Inter fintype_finite
-
 -- topology/category/Profinite/cofiltered_limit.lean
 apply_nolint Profinite.exists_locally_constant_fintype_aux fintype_finite
 apply_nolint Profinite.exists_locally_constant_fintype_nonempty fintype_finite
@@ -1590,26 +1537,10 @@ apply_nolint Profinite.exists_locally_constant_fintype_nonempty fintype_finite
 apply_nolint topological_space.open_nhds.map doc_blame
 
 -- topology/constructions.lean
-apply_nolint Pi.discrete_topology fintype_finite
 apply_nolint pi_generate_from_eq_fintype fintype_finite
-
--- topology/continuous_on.lean
-apply_nolint nhds_within_pi_univ_eq fintype_finite
-
--- topology/metric_space/metrizable.lean
-apply_nolint topological_space.metrizable_space_pi fintype_finite
-apply_nolint topological_space.pseudo_metrizable_space_pi fintype_finite
 
 -- topology/separation.lean
 apply_nolint discrete_of_t1_of_finite fintype_finite
-apply_nolint exists_open_singleton_of_fintype fintype_finite
-
--- topology/subset_properties.lean
-apply_nolint compact_Union fintype_finite
-apply_nolint fintype.compact_space fintype_finite
-apply_nolint is_clopen_Inter fintype_finite
-apply_nolint is_clopen_Union fintype_finite
-apply_nolint sigma.compact_space fintype_finite
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

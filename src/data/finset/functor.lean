@@ -110,7 +110,7 @@ instance : is_comm_applicative finset :=
 { commutative_prod := λ α β s t, begin
     simp_rw [seq_def, fmap_def, sup_image, sup_eq_bUnion],
     change s.bUnion (λ a, t.image $ λ b, (a, b)) = t.bUnion (λ b, s.image $ λ a, (a, b)),
-    transitivity s.product t;
+    transitivity s ×ˢ t;
       [rw product_eq_bUnion, rw product_eq_bUnion_right]; congr; ext; simp_rw mem_image,
   end,
   .. finset.is_lawful_applicative }

@@ -132,7 +132,23 @@ dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, nonempty.some ‹_›)
 
 lemma wit_congr {f' g' : α →₀ N} (h : f.diff g = f'.diff g') :
   f.wit g = f'.wit g' :=
-by rw [wit, h, wit]
+by { unfold wit, rw h }
+
+lemma wit_mem_diff_iff_ne : f.wit g ∈ f.diff g ↔ f ≠ g :=
+begin
+  unfold wit,
+  split_ifs,
+  { simp [finset.min'_mem, nonempty_diff_iff.mp h] },
+  { simp [not_ne_iff.mp (nonempty_diff_iff.not.mp h)] }
+end
+
+lemma wit_le {x : α} (hx : f x ≠ g x) : (f.wit g) ≤ x :=
+begin
+  unfold wit,
+  split_ifs,
+  { exact (f.diff g).min'_le x (mem_diff.mpr hx) },
+  { exact (hx (congr_fun ((not_not.mp (nonempty_diff_iff.not.mp h))) x)).elim }
+end
 
 lemma wit_comm (f g : α →₀ N) : f.wit g = g.wit f :=
 wit_congr diff_comm
@@ -141,26 +157,11 @@ lemma min'_eq_wit_of_ne (fg : f ≠ g) :
   (f.diff g).min' (nonempty_diff_iff.mpr fg) = f.wit g :=
 (dif_pos _).symm
 
-lemma wit_eq_wit_iff :
-  f (f.wit g) = g (f.wit g) ↔ f = g :=
+lemma wit_eq_wit_iff : f (f.wit g) = g (f.wit g) ↔ f = g :=
 begin
   refine ⟨λ h, _, λ h, congr_fun h _⟩,
-  rcases (f.diff g).eq_empty_or_nonempty with hfg | hfg,
-  { exact diff_eq_empty.mp hfg },
-  { refine (not_ne_iff.mpr h _).elim,
-    unfold wit,
-    refine mem_diff.mp _,
-    split_ifs,
-    apply finset.min'_mem }
-end
-
-lemma wit_le {x : α} (hx : f x ≠ g x) :
-  (f.wit g) ≤ x :=
-begin
-  unfold wit,
-  split_ifs,
-  { exact (f.diff g).min'_le x (mem_diff.mpr hx) },
-  { exact (hx (congr_fun ((not_not.mp (nonempty_diff_iff.not.mp h))) x)).elim }
+  refine not_ne_iff.mp (λ fg, not_ne_iff.mpr h _),
+  exact mem_diff.mp (wit_mem_diff_iff_ne.mpr fg),
 end
 
 end N_has_zero

@@ -84,6 +84,13 @@ begin
   { exact finset.sum_congr rfl (λ x hx, set.indicator_of_mem hx _) }
 end
 
+lemma to_outer_measure_apply_singleton (a : α) : p.to_outer_measure {a} = p a :=
+begin
+  refine (p.to_outer_measure_apply {a}).trans ((tsum_eq_single a $ λ b hb, _).trans _),
+  { exact ite_eq_right_iff.2 (λ hb', false.elim $ hb hb') },
+  { exact ite_eq_left_iff.2 (λ ha', false.elim $ ha' rfl) }
+end
+
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
   rw [to_outer_measure_apply', ennreal.coe_eq_zero,
@@ -163,6 +170,16 @@ lemma to_measure_apply (hs : measurable_set s) : p.to_measure s = ∑' x, s.indi
 lemma to_measure_apply' (hs : measurable_set s) : p.to_measure s = ↑(∑' x, s.indicator p x) :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply' s)
 
+lemma to_measure_apply_singleton (a : α) (h : measurable_set ({a} : set α)) :
+  p.to_measure {a} = p a :=
+by simp [to_measure_apply_eq_to_outer_measure_apply p {a} h,
+  to_outer_measure_apply_singleton]
+
+lemma to_measure_apply_eq_zero_iff (hs : measurable_set s) :
+  p.to_measure s = 0 ↔ disjoint p.support s :=
+by rw [to_measure_apply_eq_to_outer_measure_apply p s hs,
+  to_outer_measure_apply_eq_zero_iff]
+
 lemma to_measure_apply_eq_one_iff (hs : measurable_set s) : p.to_measure s = 1 ↔ p.support ⊆ s :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs : p.to_measure s = p.to_outer_measure s).symm
   ▸ (p.to_outer_measure_apply_eq_one_iff s)
@@ -211,5 +228,16 @@ instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure
   to_outer_measure_apply', ennreal.coe_eq_one] using tsum_coe p⟩
 
 end measure
+
+lemma apply_eq_one_iff (p : pmf α) (a : α) :
+  p a = 1 ↔ p.support = {a} :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { have : {a} ⊆ p.support := λ x hx, (p.mem_support_iff x).2 (ne_zero_of_eq_one $ hx.symm ▸ h),
+    refine antisymm ((p.to_outer_measure_apply_eq_one_iff {a}).1 _) this,
+    simpa only [to_outer_measure_apply_singleton, ennreal.coe_eq_one] using h },
+  { simpa only [← ennreal.coe_eq_one, ← to_outer_measure_apply_singleton,
+      to_outer_measure_apply_eq_one_iff] using subset_of_eq h }
+end
 
 end pmf

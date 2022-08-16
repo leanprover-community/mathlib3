@@ -19,13 +19,7 @@ apply_nolint ring_hom.functions_ext fintype_finite
 apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
 
 -- algebra/char_p/basic.lean
-apply_nolint char_p.char_is_prime fintype_finite
-apply_nolint char_p.char_ne_zero_of_fintype fintype_finite
-apply_nolint char_p.ring_char_ne_zero_of_fintype fintype_finite
 apply_nolint is_square_of_char_two' fintype_finite
-
--- algebra/char_p/char_and_card.lean
-apply_nolint is_unit_iff_not_dvd_char fintype_finite
 
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
@@ -619,13 +613,6 @@ apply_nolint monoid.fg_of_fintype fintype_finite
 
 -- group_theory/group_action/basic.lean
 apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
-
--- group_theory/group_action/defs.lean
-apply_nolint comp_smul_left to_additive_doc
-apply_nolint has_mul.to_has_smul to_additive_doc
-apply_nolint mul_action.regular.is_pretransitive to_additive_doc
-apply_nolint mul_smul_comm to_additive_doc
-apply_nolint one_smul_eq_id to_additive_doc
 
 -- group_theory/group_action/group.lean
 apply_nolint mul_action.to_perm_injective to_additive_doc

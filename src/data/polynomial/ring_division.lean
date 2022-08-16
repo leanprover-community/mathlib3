@@ -684,6 +684,15 @@ begin
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
 
+lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S'] (hp : p.map (algebra_map T S') ≠ 0)
+  (f : S →ₐ[T] S') : (p.root_set S).maps_to f (p.root_set S') :=
+λ x hx, begin
+  rw [mem_root_set_iff' hp, ← f.comp_algebra_map, ← map_map, eval_map],
+  erw [eval₂_hom, (mem_root_set_iff' (mt (λ h, _) hp) x).1 hx, _root_.map_zero],
+  rw [← f.comp_algebra_map, ← map_map, h, polynomial.map_zero],
+end
+
 lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {a : S}
   (h : a ∈ p.root_set S) : p ≠ 0 :=
 λ hf, by rwa [hf, root_set_zero] at h

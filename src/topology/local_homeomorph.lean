@@ -1075,7 +1075,7 @@ begin
   { simp, },
 end
 
-lemma open_embedding.to_local_homeomorph_left_inv
+lemma to_local_homeomorph_left_inv
   [nonempty α] {x : α} :
   (open_embedding.to_local_homeomorph f h).symm (f x) = x :=
 begin
@@ -1085,7 +1085,7 @@ begin
   apply set.mem_univ
 end
 
-lemma open_embedding.to_local_homeomorph_right_inv
+lemma to_local_homeomorph_right_inv
   [nonempty α] {x : β} (hx : x ∈ set.range f) :
   f ((open_embedding.to_local_homeomorph f h).symm x) = x :=
 begin

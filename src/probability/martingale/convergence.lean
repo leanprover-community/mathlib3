@@ -380,15 +380,17 @@ lemma mem_ℒp.tendsto_ae_condexp
   ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (g x)) :=
 begin
   have hle : (⨆ n, ℱ n) ≤ m0 := Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _),
-  have hunif := (mem_ℒp_one_iff_integrable.1 hg).uniform_integrable_condexp_filtration,
+  have hunif : uniform_integrable (λ n, μ[g | ℱ n]) 1 μ :=
+    (mem_ℒp_one_iff_integrable.1 hg).uniform_integrable_condexp_filtration,
   obtain ⟨R, hR⟩ := hunif.2.2,
-  have hlimint := (mem_ℒp_one_iff_integrable.1 $ mem_ℒp_limit_process_of_snorm_bdd hunif.1 hR),
+  have hlimint : integrable (ℱ.limit_process (λ n, μ[g | ℱ n]) μ) μ :=
+    (mem_ℒp_one_iff_integrable.1 $ mem_ℒp_limit_process_of_snorm_bdd hunif.1 hR),
   have hintg : integrable g μ := mem_ℒp_one_iff_integrable.1 hg,
   suffices : g =ᵐ[μ] ℱ.limit_process (λ n x, μ[g | ℱ n] x) μ,
   { filter_upwards [this, (martingale_condexp g ℱ μ).submartingale.ae_tendsto_limit_process hR]
       with x heq ht,
     rwa heq },
-  have : ∀ n, ∀ s, measurable_set[ℱ n] s → ∫ x in s, g x ∂μ =
+  have : ∀ n s, measurable_set[ℱ n] s → ∫ x in s, g x ∂μ =
     ∫ x in s, ℱ.limit_process (λ n x, μ[g | ℱ n] x) μ x ∂μ,
   { intros n s hs,
     rw [← set_integral_condexp (ℱ.le n) hintg hs, ← set_integral_condexp (ℱ.le n) hlimint hs],
@@ -448,7 +450,7 @@ tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
 
 /-- **Lévy's upward theorem**, almost everywhere version: given a function `g` and a filtration
 `ℱ`, the sequence defined by `𝔼[g | ℱ n]` converges almost everywhere to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma mem_ℒp.tendsto_ae_condexp' (g : Ω → ℝ) :
+lemma tendsto_ae_condexp' (g : Ω → ℝ) :
   ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
 begin
   have ht : ∀ᵐ x ∂μ, tendsto (λ n, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
@@ -463,7 +465,7 @@ end
 
 /-- **Lévy's upward theorem**, L¹ version: given a function `g` and a filtration `ℱ`, the
 sequence defined by `𝔼[g | ℱ n]` converges in L¹ to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma mem_ℒp.tendsto_snorm_condexp' (g : Ω → ℝ) :
+lemma tendsto_snorm_condexp' (g : Ω → ℝ) :
   tendsto (λ n, snorm (μ[g | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=
 begin
   have ht : tendsto (λ n, snorm (μ[μ[g | ⨆ n, ℱ n] | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=

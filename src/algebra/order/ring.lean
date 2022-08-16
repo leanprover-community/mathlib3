@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.char_zero.defs
 import algebra.order.group
+import algebra.order.monoid_lemmas_zero_lt
 import algebra.order.sub
 import algebra.order.monoid_lemmas_zero_lt
 import algebra.hom.ring

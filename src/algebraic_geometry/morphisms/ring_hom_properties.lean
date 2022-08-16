@@ -15,18 +15,18 @@ of ring homs. For `P` a property of ring homs, we have two ways of defining a pr
 morphisms:
 
 Let `f : X ⟶ Y`,
-- `affine_and P`: the preimage of an affine open `U = Spec A` is affine (`= Spec B`) and `A ⟶ B`
-  satisfies `P`.
-- `target_affine_locally (source_affine_locally P)`: For each pair of affine open
-  `U = Spec A ⊆ X` and `V = Spec B ⊆ f ⁻¹' U`, the ring hom `A ⟶ B` satisfies `P`.
+- `target_affine_locally (affine_and P)`: the preimage of an affine open `U = Spec A` is affine
+  (`= Spec B`) and `A ⟶ B` satisfies `P`. (TODO)
+- `affine_locally P`: For each pair of affine open `U = Spec A ⊆ X` and `V = Spec B ⊆ f ⁻¹' U`,
+  the ring hom `A ⟶ B` satisfies `P`.
 
 For these notions to be well defined, we require `P` be a sufficient local property. For the former,
-`P` should be local on source (`ring_hom.respects_iso P`, `ring_hom.localization_preserves P`,
-`ring_hom.of_localization_span`), and `affine_and P` will be local on target. (TODO)
+`P` should be local on the source (`ring_hom.respects_iso P`, `ring_hom.localization_preserves P`,
+`ring_hom.of_localization_span`), and `target_affine_locally (affine_and P)` will be local on
+the target. (TODO)
 
-For the latter `P` should be local on both the source and the target `ring_hom.property_is_local P`,
-and `target_affine_locally (source_affine_locally P)` will also be local on both the source and the
-target.
+For the latter `P` should be local on the target (`ring_hom.property_is_local P`), and
+`affine_locally P` will be local on both the source and the target.
 
 Further more, these properties are stable under compositions (resp. base change) if `P` is. (TODO)
 
@@ -143,8 +143,8 @@ whenever `P` holds for the restriction of `f` on every affine open subset of `X`
 def source_affine_locally : affine_target_morphism_property :=
 λ X Y f hY, ∀ (U : X.affine_opens), P (Scheme.Γ.map (X.of_restrict U.1.open_embedding ≫ f).op)
 
-/-- For `P` a property of ring homomorphisms, `affine_locally P` holds for `f : X ⟶ Y` whenever
-for each affine open `V ⊆ Y` and `U ⊆ f⁻¹(V)`, `f` restricted onto `U ⟶ V` satisfies `P`.
+/-- For `P` a property of ring homomorphisms, `affine_locally P` holds for `f : X ⟶ Y` if for each
+affine open `U = Spec A ⊆ Y` and `V = Spec B ⊆ f ⁻¹' U`, the ring hom `A ⟶ B` satisfies `P`.
 Also see `affine_locally_iff_affine_opens_le`. -/
 abbreviation affine_locally : morphism_property Scheme :=
 target_affine_locally (source_affine_locally @P)
@@ -271,7 +271,8 @@ begin
   have := (@@localization.alg_equiv _ _ _ _ _ (@@algebraic_geometry.Γ_restrict_is_localization
     _ U.2 s)).to_ring_equiv.to_CommRing_iso,
   refine (h₁.cancel_right_is_iso _ (@@localization.alg_equiv _ _ _ _ _
-    (@@algebraic_geometry.Γ_restrict_is_localization _ U.2 s)).to_ring_equiv.to_CommRing_iso.hom).mp _,
+    (@@algebraic_geometry.Γ_restrict_is_localization _ U.2 s))
+      .to_ring_equiv.to_CommRing_iso.hom).mp _,
   subst hs,
   rw [CommRing.comp_eq_ring_hom_comp, ← ring_hom.comp_assoc],
   erw [is_localization.map_comp, ring_hom.comp_id],
@@ -338,7 +339,8 @@ begin
       refine eq.trans _ (X.presheaf.map_comp _ _),
       change X.presheaf.map _ = _,
       congr },
-    convert hP.holds_for_localization_away _ (X.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op r),
+    convert hP.holds_for_localization_away _
+      (X.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op r),
     { exact (ring_hom.algebra_map_to_algebra _).symm },
     { dsimp [Scheme.Γ],
       have := U.2,
@@ -421,7 +423,7 @@ begin
   tfae_finish
 end
 
-lemma source_affine_locally_of_is_open_immersion_comp
+lemma source_affine_locally_comp_of_is_open_immersion
   {X Y Z : Scheme.{u}} [is_affine Z] (f : X ⟶ Y) (g : Y ⟶ Z) [is_open_immersion f]
   (H : source_affine_locally @P g) : source_affine_locally @P (f ≫ g) :=
 by apply ((hP.open_cover_tfae g).out 0 3).mp H
@@ -457,7 +459,7 @@ begin
   { intros H i U,
     rw morphism_restrict_comp,
     delta morphism_restrict,
-    apply hP.source_affine_locally_of_is_open_immersion_comp,
+    apply hP.source_affine_locally_comp_of_is_open_immersion,
     apply H },
   { intros H U,
     haveI : is_affine _ := U.2,
@@ -479,7 +481,7 @@ begin
   intro U,
   haveI H : is_affine _ := U.2,
   rw ← category.comp_id (f ∣_ U),
-  apply hP.source_affine_locally_of_is_open_immersion_comp,
+  apply hP.source_affine_locally_comp_of_is_open_immersion,
   rw hP.source_affine_open_cover_iff _ (Scheme.open_cover_of_is_iso (𝟙 _)),
   { intro i, erw [category.id_comp, op_id, Scheme.Γ.map_id],
     convert hP.holds_for_localization_away _ (1 : Scheme.Γ.obj _),

@@ -72,51 +72,41 @@ open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 lemma cont_mdiff_coe {m : with_top ℕ} : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) m (coe : Rˣ → R) :=
 cont_mdiff_open_embedding 𝓘(𝕜, R) units.open_embedding_coe
 
-/-- Multiplication of units of a complete normed ring is a smooth map between manifolds.
-
-It suffices to show that `coe ∘ mul : Rˣ × Rˣ → R` is smooth. This function is equal to the usual
-ring multiplication composed with the embedding from `Rˣ × Rˣ` to `R × R`, and we know each of these
-factors is smooth. -/
-lemma smooth_mul :
-  smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
-begin
-  apply cont_mdiff.of_comp_open_embedding,
-  have : (coe : Rˣ → R) ∘ (λ x : Rˣ × Rˣ, x.1 * x.2) =
-    (λ x : R × R, x.1 * x.2) ∘ (λ x : Rˣ × Rˣ, (x.1, x.2)),
-  { ext, simp },
-  rw this,
-  have : cont_mdiff (𝓘(𝕜, R).prod 𝓘(𝕜, R)) (𝓘(𝕜, R × R))
-    ⊤ (λ x : Rˣ × Rˣ, ((x.1 : R), (x.2 : R))) :=
-    cont_mdiff.prod_mk_space
-      (cont_mdiff.comp cont_mdiff_coe cont_mdiff_fst)
-      (cont_mdiff.comp cont_mdiff_coe cont_mdiff_snd),
-  apply cont_mdiff.comp _ this,
-  rw cont_mdiff_iff_cont_diff,
-  apply cont_diff_mul
-end
-
-/-- Inversion of units of a complete normed ring is a smooth map between manifolds.
-
-It suffices to show that `coe ∘ inv : Rˣ → R` is smooth. This function is equal to the composition
-`ring.inverse ∘ coe`, and we know each of these factors is smooth. -/
-lemma smooth_inv :
-  smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
-begin
-  apply cont_mdiff.of_comp_open_embedding,
-  have : (coe : Rˣ → R) ∘ (λ x : Rˣ, x⁻¹) = ring.inverse ∘ coe,
-  { ext, simp },
-  rw [this, cont_mdiff],
-  intro,
-  have : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) ⊤ (coe : Rˣ → R) := cont_mdiff_coe,
-  rw cont_mdiff at this,
-  apply cont_mdiff_at.comp x _ (this x),
-  rw cont_mdiff_at_iff_cont_diff_at,
-  apply cont_diff_at_ring_inverse
-end
-
 /-- The units of a complete normed ring form a Lie group. -/
 instance : lie_group 𝓘(𝕜, R) Rˣ :=
-{ smooth_mul := smooth_mul,
-  smooth_inv := smooth_inv }
+{ smooth_mul :=
+  /- It suffices to show that `coe ∘ mul : Rˣ × Rˣ → R` is smooth. This function is equal to the
+  usual ring multiplication composed with the embedding from `Rˣ × Rˣ` to `R × R`, and we know each
+  of these factors is smooth. -/
+  begin
+    apply cont_mdiff.of_comp_open_embedding,
+    have : (coe : Rˣ → R) ∘ (λ x : Rˣ × Rˣ, x.1 * x.2) =
+      (λ x : R × R, x.1 * x.2) ∘ (λ x : Rˣ × Rˣ, (x.1, x.2)),
+    { ext, simp },
+    rw this,
+    have : cont_mdiff (𝓘(𝕜, R).prod 𝓘(𝕜, R)) (𝓘(𝕜, R × R))
+      ⊤ (λ x : Rˣ × Rˣ, ((x.1 : R), (x.2 : R))) :=
+      cont_mdiff.prod_mk_space
+        (cont_mdiff.comp cont_mdiff_coe cont_mdiff_fst)
+        (cont_mdiff.comp cont_mdiff_coe cont_mdiff_snd),
+    apply cont_mdiff.comp _ this,
+    rw cont_mdiff_iff_cont_diff,
+    apply cont_diff_mul
+  end,
+  /- It suffices to show that `coe ∘ inv : Rˣ → R` is smooth. This function is equal to the
+  composition `ring.inverse ∘ coe`, and we know each of these factors is smooth. -/
+  smooth_inv :=
+  begin
+    apply cont_mdiff.of_comp_open_embedding,
+    have : (coe : Rˣ → R) ∘ (λ x : Rˣ, x⁻¹) = ring.inverse ∘ coe,
+    { ext, simp },
+    rw [this, cont_mdiff],
+    intro,
+    have : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) ⊤ (coe : Rˣ → R) := cont_mdiff_coe,
+    rw cont_mdiff at this,
+    apply cont_mdiff_at.comp x _ (this x),
+    rw cont_mdiff_at_iff_cont_diff_at,
+    apply cont_diff_at_ring_inverse
+  end }
 
 end units

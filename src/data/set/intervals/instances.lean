@@ -48,14 +48,13 @@ instance has_one : has_one (Icc (0:α) 1) := { one := ⟨1, right_mem_Icc.2 zero
 @[simp, norm_cast] lemma coe_one : ↑(1 : Icc (0:α) 1) = (1 : α) := rfl
 
 @[simp] lemma mk_zero (h : (0 : α) ∈ Icc (0 : α) 1) : (⟨0, h⟩ : Icc (0:α) 1) = 0 := rfl
+@[simp] lemma mk_one (h : (1 : α) ∈ Icc (0 : α) 1) : (⟨1, h⟩ : Icc (0:α) 1) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_eq_zero {x : Icc (0:α) 1} : (x : α) = 0 ↔ x = 0 :=
 by { symmetry, exact subtype.ext_iff }
 
 lemma coe_ne_zero {x : Icc (0:α) 1} : (x : α) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
-
-@[simp] lemma mk_one (h : (1 : α) ∈ Icc (0 : α) 1) : (⟨1, h⟩ : Icc (0:α) 1) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_eq_one {x : Icc (0:α) 1} : (x : α) = 1 ↔ x = 1 :=
 by { symmetry, exact subtype.ext_iff }

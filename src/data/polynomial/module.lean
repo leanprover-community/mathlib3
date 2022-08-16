@@ -151,7 +151,7 @@ begin
     rw [coeff_add, add_smul] },
   { rw [finset.nat.sum_antidiagonal_eq_sum_range_succ (λ i j, (monomial f_n f_a).coeff i • g j),
       monomial_smul_apply],
-    dsimp [monomial, monomial_fun],
+    dsimp [monomial],
     simp_rw [finsupp.single_smul, finsupp.single_apply],
     rw finset.sum_ite_eq,
     simp [nat.lt_succ_iff] }

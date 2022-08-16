@@ -395,7 +395,7 @@ variables [decidable_rel ((∣) : M → M → Prop)] [decidable_rel ((∣) : N �
 lemma multiplicity_factor_dvd_iso_eq_multiplicity_of_mem_normalized_factor {m p : M} {n : N}
   (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   {d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}} (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ l') :
-    multiplicity ((d ⟨p, dvd_of_mem_normalized_factors hp⟩) : N) n = multiplicity p m  :=
+    multiplicity ((d ⟨p, dvd_of_mem_normalized_factors hp⟩) : N) n = multiplicity p m :=
 begin
   apply eq.symm,
   suffices : multiplicity (associates.mk p) (associates.mk m) = multiplicity (associates.mk

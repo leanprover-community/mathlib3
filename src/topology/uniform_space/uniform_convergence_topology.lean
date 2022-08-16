@@ -41,14 +41,14 @@ This file contains a lot of technical facts, so it is heavily commented, proofs 
 ### Basic properties
 
 * `uniform_convergence.uniform_continuous_eval`: evaluation is uniformly continuous for `𝒰(α, uβ)`.
-* `uniform_convergence.t2_space`: the topology of uniform convergence on `α → β` is T2 if
-  `β` is T2.
+* `uniform_convergence.t2_space`: the topology of uniform convergence on `α → β` is T₂ if
+  `β` is T₂.
 * `uniform_convergence.tendsto_iff_tendsto_uniformly`: `𝒰(α, β, uβ)` is
   indeed the uniform structure of uniform convergence
 * `uniform_convergence_on.uniform_continuous_eval_of_mem`: evaluation at a point contained in a
   set of `𝔖` is uniformly continuous for `𝒱(α, β, 𝔖 uβ)`
-* `uniform_convergence.t2_space`: the topology of `𝔖`-convergence on `α → β` is T2 if
-  `β` is T2 and `𝔖` covers `α`
+* `uniform_convergence.t2_space`: the topology of `𝔖`-convergence on `α → β` is T₂ if
+  `β` is T₂ and `𝔖` covers `α`
 * `uniform_convergence_on.tendsto_iff_tendsto_uniformly_on`:
   `𝒱(α, β, 𝔖 uβ)` is indeed the uniform structure of `𝔖`-convergence
 
@@ -105,7 +105,7 @@ connection API to do most of the work.
 
 * If `(G, uG)` is a uniform group, then `(α → G, 𝒱(α, G, 𝔖, uG))` is a uniform group: since
   `(/) : G × G → G` is uniformly continuous, `uniform_convergence_on.postcomp_uniform_continuous`
-  tells us that `((/) ∘ —) : (α → G × G) → (α → G)` is uniformly. By precomposing with
+  tells us that `((/) ∘ —) : (α → G × G) → (α → G)` is uniformly continuous. By precomposing with
   `uniform_convergence_on.uniform_equiv_prod_arrow`, this gives that
   `(/) : (α → G) × (α → G) → (α → G)` is also uniformly continuous
 * The transpose of a continuous linear map is continuous for the strong topologies: since
@@ -394,7 +394,7 @@ protected def congr_left (e : γ ≃ α) :
     uniform_convergence.precomp_uniform_continuous,
   .. equiv.arrow_congr e (equiv.refl _) }
 
-/-- The topology of uniform convergence is T2. -/
+/-- The topology of uniform convergence is T₂. -/
 lemma t2_space [t2_space β] : t2_space (α → β) :=
 { t2 :=
   begin
@@ -420,7 +420,7 @@ end
 protected lemma tendsto_iff_tendsto_uniformly : tendsto F p (𝓝 f) ↔ tendsto_uniformly F f p :=
 begin
   letI : uniform_space (α → β) := 𝒰(α, β, _),
-  rw [(uniform_convergence.has_basis_nhds α β f).tendsto_right_iff, tendsto_uniformly],
+  rw [(uniform_convergence.has_basis_nhds α β).tendsto_right_iff, tendsto_uniformly],
   exact iff.rfl,
 end
 
@@ -432,8 +432,8 @@ protected def uniform_equiv_prod_arrow [uniform_space γ] :
 -- Denote `φ` this bijection. We want to show that
 -- `comap φ (𝒰(α, β, uβ) × 𝒰(α, γ, uγ)) = 𝒰(α, β × γ, uβ × uγ)`.
 -- But `uβ × uγ` is defined as `comap fst uβ ⊓ comap snd uγ`, so we just have to apply
--- `uniform_convergence.inf_eq` and `uniform_convergence.comap_eq`, and then chase
--- a diagram.
+-- `uniform_convergence.inf_eq` and `uniform_convergence.comap_eq`, which leaves us to check
+-- that some square commutes.
 (equiv.arrow_prod_equiv_prod_arrow _ _ _).to_uniform_equiv_of_uniform_inducing
 begin
   split,
@@ -444,7 +444,7 @@ begin
   rw [prod.uniform_space, prod.uniform_space, uniform_space.comap_inf, uniform_convergence.inf_eq],
   congr;
   rw [← uniform_space.comap_comap, uniform_convergence.comap_eq];
-  refl -- this is the diagram chase
+  refl -- the relevant diagram commutes by definition
 end
 
 variables (α) (δ : ι → Type*) [Π i, uniform_space (δ i)]
@@ -460,8 +460,8 @@ protected def uniform_equiv_Pi_comm : @uniform_equiv (α → Π i, δ i) (Π i, 
 -- Denote `φ` this bijection. We want to show that
 -- `comap φ (Π i, 𝒰(α, δ i, uδ i)) = 𝒰(α, (Π i, δ i), (Π i, uδ i))`.
 -- But `Π i, uδ i` is defined as `⨅ i, comap (eval i) (uδ i)`, so we just have to apply
--- `uniform_convergence.infi_eq` and `uniform_convergence.comap_eq`, and then chase
--- a diagram.
+-- `uniform_convergence.infi_eq` and `uniform_convergence.comap_eq`, which leaves us to check
+-- that some square commutes.
 @equiv.to_uniform_equiv_of_uniform_inducing _ _
   (𝒰(α, Π i, δ i, Pi.uniform_space δ))
   (@Pi.uniform_space ι (λ i, α → δ i) (λ i, 𝒰(α, δ i, _)))
@@ -475,7 +475,7 @@ begin
       uniform_space.of_core_eq_to_core, uniform_space.comap_infi, uniform_convergence.infi_eq],
   refine infi_congr (λ i, _),
   rw [← uniform_space.comap_comap, uniform_convergence.comap_eq]
-  -- Like in the previous lemma, the diagram chase is actually true by defeq
+  -- Like in the previous lemma, the diagram actually commutes by definition
 end
 
 end uniform_convergence
@@ -660,7 +660,7 @@ begin
   -- on `infi`.
   simp_rw [uniform_convergence_on.uniform_space, uniform_space.comap_infi,
             uniform_convergence.comap_eq, ← uniform_space.comap_comap],
-  refl -- small diagram chase
+  refl -- by definition, `∀ S ∈ 𝔖, (f ∘ —) ∘ S.restrict = S.restrict ∘ (f ∘ —)`.
 end
 
 /-- Post-composition by a uniformly continuous function is uniformly continuous for the
@@ -732,7 +732,7 @@ begin
   refine le_infi₂ (λ t ht, infi_le_of_le (f '' t) $ infi_le_of_le (hf ht) _),
   -- Let `f'` be the map from `t` to `f '' t` induced by `f`.
   let f' : t → f '' t := (maps_to_image f t).restrict f t (f '' t),
-  -- A (defeq) diagram chase tells us that `t.restrict ∘ (— ∘ f) = (— ∘ f') ∘ (f '' t).restrict`.
+  -- By definition `t.restrict ∘ (— ∘ f) = (— ∘ f') ∘ (f '' t).restrict`.
   have : t.restrict ∘ (λ g : α → β, g ∘ f) = (λ g : (f '' t) → β, g ∘ f') ∘ (f '' t).restrict :=
     rfl,
   -- Thus, we have to show `comap (f '' t).restrict 𝒰(↥(f '' t), β, uβ) ≤`
@@ -764,7 +764,7 @@ protected def congr_left {𝔗 : set (set γ)} (e : γ ≃ α)
     uniform_convergence_on.precomp_uniform_continuous he,
   .. equiv.arrow_congr e (equiv.refl _) }
 
-/-- If `𝔖` covers `α`, then the topology of `𝔖`-convergence is T2. -/
+/-- If `𝔖` covers `α`, then the topology of `𝔖`-convergence is T₂. -/
 lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :
   @t2_space _ (uniform_convergence_on.topological_space α β 𝔖) :=
 { t2 :=
@@ -814,8 +814,8 @@ protected def uniform_equiv_prod_arrow [uniform_space γ] :
 -- Denote `φ` this bijection. We want to show that
 -- `comap φ (𝒱(α, β, 𝔖, uβ) × 𝒱(α, γ, 𝔖, uγ)) = 𝒱(α, β × γ, 𝔖, uβ × uγ)`.
 -- But `uβ × uγ` is defined as `comap fst uβ ⊓ comap snd uγ`, so we just have to apply
--- `uniform_convergence_on.inf_eq` and `uniform_convergence_on.comap_eq`, and then chase
--- a diagram.
+-- `uniform_convergence_on.inf_eq` and `uniform_convergence_on.comap_eq`, which leaves us to check
+-- that some square commutes.
 -- We could also deduce this from `uniform_convergence.uniform_equiv_prod_arrow`, but it turns out
 -- to be more annoying.
 @equiv.to_uniform_equiv_of_uniform_inducing _ _
@@ -832,7 +832,7 @@ begin
       uniform_convergence_on.inf_eq],
   congr;
   rw [← uniform_space.comap_comap, uniform_convergence_on.comap_eq];
-  refl -- this is the diagram chase
+  refl -- the relevant diagram commutes by definition
 end
 
 variables (𝔖) (δ : ι → Type*) [Π i, uniform_space (δ i)]
@@ -846,8 +846,8 @@ protected def uniform_equiv_Pi_comm : @uniform_equiv (α → Π i, δ i) (Π i, 
 -- Denote `φ` this bijection. We want to show that
 -- `comap φ (Π i, 𝒱(α, δ i, 𝔖, uδ i)) = 𝒱(α, (Π i, δ i), 𝔖, (Π i, uδ i))`.
 -- But `Π i, uδ i` is defined as `⨅ i, comap (eval i) (uδ i)`, so we just have to apply
--- `uniform_convergence_on.infi_eq` and `uniform_convergence_on.comap_eq`, and then chase
--- a diagram.
+-- `uniform_convergence_on.infi_eq` and `uniform_convergence_on.comap_eq`, which leaves us to check
+-- that some square commutes.
 -- We could also deduce this from `uniform_convergence.uniform_equiv_Pi_comm`, but it turns out
 -- to be more annoying.
 @equiv.to_uniform_equiv_of_uniform_inducing _ _
@@ -863,7 +863,7 @@ begin
       uniform_space.of_core_eq_to_core, uniform_space.comap_infi, uniform_convergence_on.infi_eq],
   refine infi_congr (λ i, _),
   rw [← uniform_space.comap_comap, uniform_convergence_on.comap_eq]
-  -- Like in the previous lemma, the diagram chase is actually true by defeq
+  -- Like in the previous lemma, the diagram actually commutes by definition
 end
 
 end uniform_convergence_on

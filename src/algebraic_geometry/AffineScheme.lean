@@ -55,10 +55,21 @@ def Scheme.iso_Spec (X : Scheme) [is_affine X] :
   X ≅ Scheme.Spec.obj (op $ Scheme.Γ.obj $ op X) :=
 as_iso (Γ_Spec.adjunction.unit.app X)
 
-/-- Construct an affine scheme from a scheme and the information that it is affine. -/
+/-- Construct an affine scheme from a scheme and the information that it is affine.
+Also see `AffineScheme.of` for a typclass version. -/
 @[simps]
 def AffineScheme.mk (X : Scheme) (h : is_affine X) : AffineScheme :=
 ⟨X, @@mem_ess_image_of_unit_is_iso _ _ _ _ h.1⟩
+
+/-- Construct an affine scheme from a scheme. Also see `AffineScheme.mk` for a non-typeclass
+version. -/
+def AffineScheme.of (X : Scheme) [h : is_affine X] : AffineScheme :=
+AffineScheme.mk X h
+
+/-- Type check a morphism of schemes as a morphism in `AffineScheme`. -/
+def AffineScheme.of_hom {X Y : Scheme} [is_affine X] [is_affine Y] (f : X ⟶ Y) :
+  AffineScheme.of X ⟶ AffineScheme.of Y :=
+f
 
 lemma mem_Spec_ess_image (X : Scheme) : X ∈ Scheme.Spec.ess_image ↔ is_affine X :=
 ⟨λ h, ⟨functor.ess_image.unit_is_iso h⟩, λ h, @@mem_ess_image_of_unit_is_iso _ _ _ X h.1⟩
@@ -108,6 +119,20 @@ begin
   haveI := adjunction.has_colimits_of_equivalence Γ.{u},
   haveI : has_limits AffineScheme.{u} ᵒᵖᵒᵖ := limits.has_limits_op_of_has_colimits,
   exactI adjunction.has_limits_of_equivalence (op_op_equivalence AffineScheme.{u}).inverse
+end
+
+noncomputable
+instance : preserves_limits Γ.{u}.right_op :=
+@@adjunction.is_equivalence_preserves_limits _ _ Γ.right_op
+  (is_equivalence.of_equivalence equiv_CommRing)
+
+noncomputable
+instance : preserves_limits forget_to_Scheme :=
+begin
+  apply_with (@@preserves_limits_of_nat_iso _ _
+    (iso_whisker_right equiv_CommRing.unit_iso forget_to_Scheme).symm) { instances := ff },
+  change preserves_limits (equiv_CommRing.functor ⋙ Scheme.Spec),
+  apply_instance,
 end
 
 end AffineScheme
@@ -206,6 +231,19 @@ begin
   rw [set.range_comp, subtype.range_coe],
 end
 
+lemma is_affine_open_iff_of_is_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+  (U : opens X.carrier) :
+  is_affine_open (H.open_functor.obj U) ↔ is_affine_open U :=
+begin
+  refine ⟨λ hU, @@is_affine_of_iso _ _ hU, λ hU, hU.image_is_open_immersion f⟩,
+  refine (is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _) _).hom,
+  { rw [Scheme.comp_val_base, coe_comp, set.range_comp],
+    dsimp [opens.inclusion],
+    rw [subtype.range_coe, subtype.range_coe],
+    refl },
+  { apply_instance }
+end
+
 instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
 ⟨(top_is_affine_open X).is_compact⟩
 
@@ -298,6 +336,19 @@ begin
   congr' 2,
   rw iso.eq_inv_comp,
   erw hU.Spec_Γ_identity_hom_app_from_Spec,
+end
+
+lemma is_affine_open.map_restrict_basic_open {X : Scheme} (r : X.presheaf.obj (op ⊤))
+  {U : opens X.carrier} (hU : is_affine_open U) :
+  is_affine_open ((opens.map (X.of_restrict (X.basic_open r).open_embedding).1.base).obj U) :=
+begin
+  apply (is_affine_open_iff_of_is_open_immersion
+    (X.of_restrict (X.basic_open r).open_embedding) _).mp,
+  delta PresheafedSpace.is_open_immersion.open_functor,
+  dsimp,
+  rw [opens.functor_obj_map_obj, opens.open_embedding_obj_top, inf_comm, ← opens.inter_eq,
+    ← Scheme.basic_open_res _ _ (hom_of_le le_top).op],
+  exact hU.basic_open_is_affine _,
 end
 
 lemma Scheme.map_prime_spectrum_basic_open_of_affine (X : Scheme) [is_affine X]
@@ -414,6 +465,24 @@ begin
   simp only [category.assoc, ← functor.map_comp, ← op_comp],
   apply structure_sheaf.to_open_res,
 end
+
+instance {X : Scheme} [is_affine X] (r : X.presheaf.obj (op ⊤)) :
+  is_localization.away r (X.presheaf.obj (op $ X.basic_open r)) :=
+is_localization_basic_open (top_is_affine_open X) r
+
+lemma is_localization_of_eq_basic_open {X : Scheme} {U V : opens X.carrier} (i : V ⟶ U)
+  (hU : is_affine_open U) (r : X.presheaf.obj (op U)) (e : V = X.basic_open r) :
+  @@is_localization.away _ r (X.presheaf.obj (op V)) _ (X.presheaf.map i.op).to_algebra :=
+by { subst e, convert is_localization_basic_open hU r using 3 }
+
+instance Γ_restrict_algebra
+  {X : Scheme} {Y : Top} {f : Y ⟶ X.carrier} (hf : open_embedding f) :
+  algebra (Scheme.Γ.obj (op X)) (Scheme.Γ.obj (op $ X.restrict hf)) :=
+(Scheme.Γ.map (X.of_restrict hf).op).to_algebra
+
+instance Γ_restrict_is_localization (X : Scheme.{u}) [is_affine X] (r : Scheme.Γ.obj (op X)) :
+   is_localization.away r (Scheme.Γ.obj (op $ X.restrict (X.basic_open r).open_embedding)) :=
+ is_localization_of_eq_basic_open _ (top_is_affine_open X) r (opens.open_embedding_obj_top _)
 
 lemma basic_open_basic_open_is_basic_open {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) (g : X.presheaf.obj (op $ X.basic_open f)) :

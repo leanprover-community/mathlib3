@@ -2917,6 +2917,14 @@ end
 @[simp] theorem filter_map_some (l : list α) : filter_map some l = l :=
 by rw filter_map_eq_map; apply map_id
 
+theorem map_filter_map_some_eq_filter_map_is_some (f : α → option β) (l : list α) :
+  (l.filter_map f).map some = (l.map f).filter (λ b, b.is_some) :=
+begin
+  induction l with x xs ih,
+  { simp },
+  { cases h : f x; rw [list.filter_map_cons, h]; simp [h, ih] },
+end
+
 @[simp] theorem mem_filter_map (f : α → option β) (l : list α) {b : β} :
   b ∈ filter_map f l ↔ ∃ a, a ∈ l ∧ f a = some b :=
 begin
@@ -2944,14 +2952,6 @@ theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
   (H : ∀ x : α, (f x).map g = some x) (l : list α) :
   map g (filter_map f l) = l :=
 by simp only [map_filter_map, H, filter_map_some]
-
-theorem map_filter_map_some_eq_filter_map_is_some (f : α → option β) (l : list α) :
-  (l.filter_map f).map some = (l.map f).filter (λ b, b.is_some) :=
-begin
-  induction l with x xs ih,
-  { simp },
-  { cases h : f x; rw [list.filter_map_cons, h]; simp [h, ih] },
-end
 
 theorem length_filter_le (p : α → Prop) [decidable_pred p] (l : list α) :
   (l.filter p).length ≤ l.length :=

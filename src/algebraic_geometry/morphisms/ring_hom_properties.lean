@@ -259,7 +259,7 @@ variables {P} (hP : ring_hom.property_is_local @P)
 lemma source_affine_locally_of_source_open_cover_aux
   (h₁ : ring_hom.respects_iso @P)
   (h₃ : ring_hom.of_localization_span_target @P)
-  {X Y : Scheme} (f : X ⟶ Y) [is_affine Y] (U : X.affine_opens)
+  {X Y : Scheme} (f : X ⟶ Y) (U : X.affine_opens)
   (s : set (X.presheaf.obj (op U.1))) (hs : ideal.span s = ⊤)
   (hs' : ∀ (r : s), P (Scheme.Γ.map (X.of_restrict (X.basic_open r.1).open_embedding ≫ f).op)) :
     P (Scheme.Γ.map (X.of_restrict U.1.open_embedding ≫ f).op) :=

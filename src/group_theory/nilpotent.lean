@@ -774,9 +774,9 @@ section finite_pi
 
 -- Now for finite products
 
-variables {η : Type*} [finite η] {Gs : η → Type*} [∀ i, group (Gs i)]
+variables {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
 
-lemma lower_central_series_pi_of_fintype (n : ℕ):
+lemma lower_central_series_pi_of_fintype [finite η] (n : ℕ) :
   lower_central_series (Π i, Gs i) n = subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
   let pi := λ (f : Π i, subgroup (Gs i)), subgroup.pi set.univ f,
@@ -791,9 +791,9 @@ begin
 end
 
 /-- n-ary products of nilpotent groups are nilpotent -/
-instance is_nilpotent_pi [∀ i, is_nilpotent (Gs i)] :
-  is_nilpotent (Π i, Gs i) :=
+instance is_nilpotent_pi [finite η] [∀ i, is_nilpotent (Gs i)] : is_nilpotent (Π i, Gs i) :=
 begin
+  casesI nonempty_fintype η,
   rw nilpotent_iff_lower_central_series,
   refine ⟨finset.univ.sup (λ i, group.nilpotency_class (Gs i)), _⟩,
   rw [lower_central_series_pi_of_fintype, pi_eq_bot_iff],
@@ -804,7 +804,7 @@ begin
 end
 
 /-- The nilpotency class of an n-ary product is the sup of the nilpotency classes of the factors -/
-lemma nilpotency_class_pi [∀ i, is_nilpotent (Gs i)] :
+lemma nilpotency_class_pi [fintype η] [∀ i, is_nilpotent (Gs i)] :
   group.nilpotency_class (Π i, Gs i) = finset.univ.sup (λ i, group.nilpotency_class (Gs i)) :=
 begin
   apply eq_of_forall_ge_iff,
@@ -855,7 +855,7 @@ section with_finite_group
 open group fintype
 
 variables {G : Type*} [hG : group G]
-include hG hf
+include hG
 
 /-- A p-group is nilpotent -/
 lemma is_p_group.is_nilpotent [finite G] {p : ℕ} [hp : fact (nat.prime p)] (h : is_p_group p G) :
@@ -865,7 +865,7 @@ begin
   classical,
   unfreezingI
   { revert hG,
-    induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
+    induction val using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
   { apply_instance, },
   { introI _, intro h,
     have hcq : fintype.card (G ⧸ center G) < fintype.card G,

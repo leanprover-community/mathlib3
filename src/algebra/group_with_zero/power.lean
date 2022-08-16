@@ -134,13 +134,9 @@ by rw [zpow_bit1₀, (commute.refl a).mul_zpow]
 lemma zpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, zpow_ne_zero_of_ne_zero hx n h
 
-lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : 0 < n) :
+lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : n ≠ 0) :
   a ^ n = 0 ↔ a = 0 :=
-begin
-  refine ⟨zpow_eq_zero, _⟩,
-  rintros rfl,
-  exact zero_zpow _ hn.ne'
-end
+⟨zpow_eq_zero, λ ha, ha.symm ▸ zero_zpow _ hn⟩
 
 lemma zpow_ne_zero {x : G₀} (n : ℤ) : x ≠ 0 → x ^ n ≠ 0 :=
 mt zpow_eq_zero
@@ -168,11 +164,7 @@ end
 
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
-lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
-  (f : G₀ →*₀ G₀') (x : G₀) :
-  ∀ n : ℤ, f (x ^ n) = f x ^ n
-| (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
-| -[1+n] := begin
-    rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat],
-    exact ((f.map_inv _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
-  end
+@[simp] lemma map_zpow₀ {F G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
+  [monoid_with_zero_hom_class F G₀ G₀'] (f : F) (x : G₀) (n : ℤ) :
+  f (x ^ n) = f x ^ n :=
+map_zpow' f (map_inv₀ f) x n

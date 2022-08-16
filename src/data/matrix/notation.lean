@@ -15,7 +15,7 @@ This file includes `simp` lemmas for applying operations in `data.matrix.basic` 
 of the matrix notation `![a, b] = vec_cons a (vec_cons b vec_empty)` defined in
 `data.fin.vec_notation`.
 
-This also provides the new notation `!![a, b; c, d] = ![![a, b], ![c, d]]`.
+This also provides the new notation `!![a, b; c, d] = matrix.of ![![a, b], ![c, d]]`.
 This notation also works for empty matrices; `!![,,,] : matrix (fin 0) (fin 3)` and
 `!![;;;] : matrix (fin 3) (fin 0)`.
 
@@ -238,6 +238,10 @@ by { ext i, simp [vec_mul] }
   vec_mul v (of $ vec_cons w B) = vec_head v • w + vec_mul (vec_tail v) (of B) :=
 by { ext i, simp [vec_mul] }
 
+@[simp] lemma cons_vec_mul_cons (x : α) (v : fin n → α) (w : o' → α) (B : fin n → o' → α) :
+  vec_mul (vec_cons x v) (of $ vec_cons w B) = x • w + vec_mul v (of B) :=
+by simp
+
 end vec_mul
 
 section mul_vec
@@ -322,6 +326,15 @@ lemma one_fin_three : (1 : matrix (fin 3) (fin 3) α) = !![1, 0, 0; 0, 1, 0; 0, 
 by { ext i j, fin_cases i; fin_cases j; refl }
 
 end one
+
+lemma eta_fin_two (A : matrix (fin 2) (fin 2) α) : A = !![A 0 0, A 0 1; A 1 0, A 1 1] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
+
+lemma eta_fin_three (A : matrix (fin 3) (fin 3) α) :
+  A = !![A 0 0, A 0 1, A 0 2;
+         A 1 0, A 1 1, A 1 2;
+         A 2 0, A 2 1, A 2 2] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
 
 lemma mul_fin_two [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
   !![a₁₁, a₁₂;

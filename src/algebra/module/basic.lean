@@ -5,9 +5,9 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import data.rat.cast
 import group_theory.group_action.big_operators
 import group_theory.group_action.group
-import tactic.norm_num
 
 /-!
 # Modules over a ring
@@ -70,6 +70,9 @@ instance add_comm_monoid.nat_module : module ℕ M :=
   smul_zero := nsmul_zero,
   zero_smul := zero_nsmul,
   add_smul := λ r s x, add_nsmul x r s }
+
+lemma add_monoid.End.nat_cast_def (n : ℕ) :
+  (↑n : add_monoid.End M) = distrib_mul_action.to_add_monoid_End ℕ M n := rfl
 
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
 
@@ -197,11 +200,14 @@ instance add_comm_group.int_module : module ℤ M :=
   zero_smul := zero_zsmul,
   add_smul := λ r s x, add_zsmul x r s }
 
+lemma add_monoid.End.int_cast_def (z : ℤ) :
+  (↑z : add_monoid.End M) = distrib_mul_action.to_add_monoid_End ℤ M z := rfl
+
 /-- A structure containing most informations as in a module, except the fields `zero_smul`
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
 this provides a way to construct a module structure by checking less properties, in
 `module.of_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure module.core extends has_smul R M :=
 (smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
@@ -410,10 +416,8 @@ lemma map_rat_smul [add_comm_group M] [add_comm_group M₂] [module ℚ M] [modu
   f (c • x) = c • f x :=
 rat.cast_id c ▸ map_rat_cast_smul f ℚ ℚ c x
 
-/-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
-an instance because `simp` becomes very slow if we have many `subsingleton` instances,
-see [gh-6025]. -/
-lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
+/-- There can be at most one `module ℚ E` structure on an additive commutative group. -/
+instance subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
 ⟨λ P Q, module.ext' P Q $ λ r x,
   @map_rat_smul _ _ _ _ P Q _ _ (add_monoid_hom.id E) r x⟩
 
@@ -524,7 +528,7 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
 @[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
-by { haveI := nat.no_zero_smul_divisors R M, norm_num [smul_eq_zero] }
+by { haveI := nat.no_zero_smul_divisors R M, simp [smul_eq_zero] }
 
 end nat
 

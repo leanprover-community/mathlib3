@@ -135,6 +135,23 @@ begin
     use t, exact ⟨htS, by rwa ←htsup⟩, },
 end
 
+lemma is_compact_element.exists_finset_of_le_supr {k : α} (hk : is_compact_element k)
+  {ι : Type*} (f : ι → α) (h : k ≤ ⨆ i, f i) : ∃ s : finset ι, k ≤ ⨆ i ∈ s, f i :=
+begin
+  classical,
+  let g : finset ι → α := λ s, ⨆ i ∈ s, f i,
+  have h1 : directed_on (≤) (set.range g),
+  { rintros - ⟨s, rfl⟩ - ⟨t, rfl⟩,
+    exact ⟨g (s ∪ t), ⟨s ∪ t, rfl⟩, supr_le_supr_of_subset (finset.subset_union_left s t),
+      supr_le_supr_of_subset (finset.subset_union_right s t)⟩ },
+  have h2 : k ≤ Sup (set.range g),
+  { exact h.trans (supr_le (λ i, le_Sup_of_le ⟨{i}, rfl⟩ (le_supr_of_le i (le_supr_of_le
+      (finset.mem_singleton_self i) le_rfl)))) },
+  obtain ⟨-, ⟨s, rfl⟩, hs⟩ := (is_compact_element_iff_le_of_directed_Sup_le α k).mp hk
+    (set.range g) (set.range_nonempty g) h1 h2,
+  exact ⟨s, hs⟩,
+end
+
 /-- A compact element `k` has the property that any directed set lying strictly below `k` has
 its Sup strictly below `k`. -/
 lemma is_compact_element.directed_Sup_lt_of_lt {α : Type*} [complete_lattice α] {k : α}

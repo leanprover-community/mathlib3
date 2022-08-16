@@ -391,10 +391,11 @@ let b : tactic unit :=
   `[exact pow_mem_graded _ (submodule.coe_mem _) <|> exact nat_cast_mem_graded _ _] in
 b <|> `[by repeat { all_goals { apply graded_monoid.mul_mem } }; b]
 
-/--The function from `Spec A⁰_f` to `Proj|D(f)` is defined by `q ↦ {a | aᵢᵐ/fⁱ ∈ q}`, i.e. sending `q` a
-prime ideal in `A⁰_f` to the homogeneous prime relevant ideal containing only and all the elements
-`a : A` such that for every `i`, the degree 0 element formed by dividing the `m`-th power of the
-`i`-th projection of `a` by the `i`-th power of the degree-`m` homogeneous element `f`, lies in `q`.
+/--The function from `Spec A⁰_f` to `Proj|D(f)` is defined by `q ↦ {a | aᵢᵐ/fⁱ ∈ q}`, i.e. sending
+`q` a prime ideal in `A⁰_f` to the homogeneous prime relevant ideal containing only and all the
+elements `a : A` such that for every `i`, the degree 0 element formed by dividing the `m`-th power
+of the `i`-th projection of `a` by the `i`-th power of the degree-`m` homogeneous element `f`,
+lies in `q`.
 
 The set `{a | aᵢᵐ/fⁱ ∈ q}`
 * is an ideal, as proved in `carrier.as_ideal`;

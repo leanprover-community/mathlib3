@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Johannes Hölzl
 import data.list.infix
 
 /-!
+
 # Double universal quantification on a list
 This file provides an API for `list.forall₂` (definition in `data.list.defs`).
 `forall₂ R l₁ l₂` means that `l₁` and `l₂` have the same length, and whenever `a` is the nth element
@@ -134,7 +135,6 @@ theorem list.forall₂_iff {l₁ : list α} {l₂ : list β} :
   list.forall₂ r l₁ l₂ ↔ l₁.length = l₂.length ∧
   ∀ i h₁ h₂, r (l₁.nth_le i h₁) (l₂.nth_le i h₂) :=
 ⟨λ h, ⟨forall₂_length_eq h, @forall₂.nth_le _ _ _ _ _ h⟩, and.rec forall₂_of_length_eq_of_nth_le⟩
-
 
 theorem forall₂_zip {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b

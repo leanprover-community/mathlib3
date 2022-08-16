@@ -6,7 +6,6 @@ Authors: Patrick Massot, Scott Morrison
 import topology.instances.real
 import topology.algebra.field
 import data.set.intervals.proj_Icc
-import data.set.intervals.instances
 
 /-!
 # The unit interval, as a topological space

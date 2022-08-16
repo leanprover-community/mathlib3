@@ -65,8 +65,8 @@ begin
   refl
 end
 
-variables (F) [nondiscrete_normed_field 𝕜]
-  [normed_group F] [normed_space 𝕜 F] [topological_space B]
+variables (F) [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
   [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
 
 lemma pullback.continuous_total_space_mk [∀ x, topological_space (E x)]
@@ -88,7 +88,7 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F
   inv_fun := λ y, @total_space_mk _ (f *ᵖ E) y.1 (e.symm (f y.1) y.2),
   source := pullback.lift f ⁻¹' e.source,
   base_set := f ⁻¹' e.base_set,
-  target := (f ⁻¹' e.base_set) ×ˢ (univ : set F),
+  target := (f ⁻¹' e.base_set) ×ˢ univ,
   map_source' := λ x h, by { simp_rw [e.source_eq, mem_preimage, pullback.proj_lift] at h,
     simp_rw [prod_mk_mem_set_prod_eq, mem_univ, and_true, mem_preimage, h] },
   map_target' := λ y h, by { rw [mem_prod, mem_preimage] at h,

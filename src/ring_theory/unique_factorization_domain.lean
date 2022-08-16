@@ -627,6 +627,19 @@ begin
   rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
 end
 
+lemma normalized_factors_prod_of_prime [nontrivial α] [unique αˣ] {m : multiset α}
+  (h : ∀ p ∈ m, prime p) : (normalized_factors m.prod) = m :=
+by simpa only [←multiset.rel_eq, ←associated_eq_eq] using prime_factors_unique
+  (prime_of_normalized_factor) h (normalized_factors_prod (m.prod_ne_zero_of_prime h))
+
+lemma mem_normalized_factors_eq_of_associated {a b c : α} (ha : a ∈ normalized_factors c)
+  (hb : b ∈ normalized_factors c) (h : associated a b) : a = b :=
+begin
+  rw [← normalize_normalized_factor a ha, ← normalize_normalized_factor b hb,
+    normalize_eq_normalize_iff],
+  apply associated.dvd_dvd h,
+end
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid

@@ -2209,4 +2209,14 @@ begin
   apply_instance
 end
 
+variable {C}
+
+/-- Given a morphism `f : X ⟶ Y`, we can take morphisms over `Y` to morphisms over `X` via
+pullbacks. This is right adjoint to `over.map` (TODO) -/
+@[simps obj_left obj_hom map_left {rhs_md := semireducible, simp_rhs := tt}]
+def base_change [has_pullbacks C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
+{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ _),
+  map := λ g₁ g₂ i, over.hom_mk (pullback.map _ _ _ _ i.left (𝟙 _) (𝟙 _) (by simp) (by simp))
+    (by simp) }
+
 end category_theory.limits

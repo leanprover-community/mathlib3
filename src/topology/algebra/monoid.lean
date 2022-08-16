@@ -233,13 +233,15 @@ end pointwise_limits
   @has_continuous_mul M (induced f ‹_›) _ :=
 by { letI := induced f ‹_›, exact inducing.has_continuous_mul f ⟨rfl⟩ }
 
-namespace submonoid
-
-@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] (S : submonoid α) :
+@[to_additive] instance subsemigroup.has_continuous_mul [topological_space M] [semigroup M]
+  [has_continuous_mul M] (S : subsemigroup M) :
   has_continuous_mul S :=
-inducing.has_continuous_mul S.subtype ⟨rfl⟩
+inducing.has_continuous_mul (⟨coe, λ _ _, rfl⟩ : mul_hom S M) ⟨rfl⟩
 
-end submonoid
+@[to_additive] instance submonoid.has_continuous_mul [topological_space M] [monoid M]
+  [has_continuous_mul M] (S : submonoid M) :
+  has_continuous_mul S :=
+S.to_subsemigroup.has_continuous_mul
 
 section has_continuous_mul
 
@@ -247,17 +249,17 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
+  closure (s : set M) * closure s ⊆ closure s :=
 calc
-(closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
+closure (s : set M) * closure s
+    = (λ p : M × M, p.1 * p.2) '' closure (s ×ˢ s) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' s ×ˢ s) :
   image_closure_subset_closure_image continuous_mul
 ... = closure s : by simp [s.coe_mul_self_eq]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) = closure (s : set M) :=
+  closure (s : set M) * closure s = closure s :=
 subset.antisymm
   s.top_closure_mul_self_subset
   (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
@@ -298,7 +300,7 @@ def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
     have h₁ : (s.topological_closure : set M) = closure s := rfl,
     let f₁ := λ (x : M × M), x.1 * x.2,
     let f₂ := λ (x : M × M), x.2 * x.1,
-    let S : set (M × M) := (s : set M) ×ˢ (s : set M),
+    let S : set (M × M) := s ×ˢ s,
     have h₃ : set.eq_on f₁ f₂ (closure S),
     { refine set.eq_on.closure _ continuous_mul (by continuity),
       intros x hx,
@@ -477,6 +479,10 @@ instance : has_continuous_mul αˣ := inducing_embed_product.has_continuous_mul 
 
 end units
 
+@[to_additive] lemma continuous.units_map [monoid M] [monoid N] [topological_space M]
+  [topological_space N] (f : M →* N) (hf : continuous f) : continuous (units.map f) :=
+units.continuous_iff.2 ⟨hf.comp units.continuous_coe, hf.comp units.continuous_coe_inv⟩
+
 section
 
 variables [topological_space M] [comm_monoid M]
@@ -548,12 +554,12 @@ end
 
 end
 
-instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
-  [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
+instance [topological_space M] [has_mul M] [has_continuous_mul M] :
+  has_continuous_add (additive M) :=
 { continuous_add := @continuous_mul M _ _ _ }
 
-instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
-  [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
+instance [topological_space M] [has_add M] [has_continuous_add M] :
+  has_continuous_mul (multiplicative M) :=
 { continuous_mul := @continuous_add M _ _ _ }
 
 section lattice_ops
@@ -563,7 +569,7 @@ variables {ι' : Sort*} [has_mul M]
 @[to_additive] lemma has_continuous_mul_Inf {ts : set (topological_space M)}
   (h : Π t ∈ ts, @has_continuous_mul M t _) :
   @has_continuous_mul M (Inf ts) _ :=
-{ continuous_mul := continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ ht ht
+{ continuous_mul := continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ ht ht
   (@has_continuous_mul.continuous_mul M t _ (h t ht))) }
 
 @[to_additive] lemma has_continuous_mul_infi {ts : ι' → topological_space M}

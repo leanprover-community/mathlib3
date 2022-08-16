@@ -3,7 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import measure_theory.function.conditional_expectation
+import measure_theory.function.conditional_expectation.real
 
 /-! # Notations for probability theory
 
@@ -34,10 +34,10 @@ localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory
 
 localized "notation `𝔼[` X `]` := ∫ a, X a" in probability_theory
 
-localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[measure_theory.measure_space.volume] Y"
+localized "notation X ` =ₐₛ `:50 Y:50 := X =ᵐ[measure_theory.measure_space.volume] Y"
   in probability_theory
 
-localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[measure_theory.measure_space.volume] Y"
+localized "notation X ` ≤ₐₛ `:50 Y:50 := X ≤ᵐ[measure_theory.measure_space.volume] Y"
   in probability_theory
 
 localized "notation `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory

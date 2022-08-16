@@ -125,7 +125,7 @@ begin
     (not_and.mpr (λ _, map_g_ne_zero)),
   suffices p_linear : p.map (algebra_map F⟮γ⟯ E) = (C h.leading_coeff) * (X - C β),
   { have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1),
-    { rw [ring_hom.map_div, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
+    { rw [map_div₀, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
       simp [mul_sub, coeff_C, mul_div_cancel_left β (mt leading_coeff_eq_zero.mp h_ne_zero)] },
     rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },

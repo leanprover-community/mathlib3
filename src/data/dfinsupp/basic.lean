@@ -14,6 +14,33 @@ import data.finset.preimage
 # Dependent functions with finite support
 
 For a non-dependent version see `data/finsupp.lean`.
+
+## Notation
+
+This file introduces the notation `Π₀ a, β a` as notation for `dfinsupp β`, mirroring the `α →₀ β`
+notation used for `finsupp`. This works for nested binders too, with `Π₀ a b, γ a b` as notation
+for `dfinsupp (λ a, dfinsupp (γ a))`.
+
+## Implementation notes
+
+The support is internally represented (in the primed `dfinsupp.support'`) as a `multiset` that
+represents a superset of the true support of the function, quotiented by the always-true relation so
+that this does not impact equality. This approach has computational benefits over storing a
+`finset`; it allows us to add together two finitely-supported functions (`dfinsupp.has_add`) without
+having to evaluate the resulting function to recompute its support (which would required
+decidability of `b = 0` for `b : β i`).
+
+The true support of the function can still be recovered with `dfinsupp.support`; but these
+decidability obligations are now postponed to when the support is actually needed. As a consequence,
+there are two ways to sum a `dfinsupp`: with `dfinsupp.sum` which works over an arbitrary function
+but requires recomputation of the support and therefore a `decidable` argument; and with
+`dfinsupp.sum_add_hom` which requires an additive morphism, using its properties to show that
+summing over a superset of the support is sufficient.
+
+`finsupp` takes an altogether different approach here; it uses `classical.decidable` and declares
+`finsupp.has_add` as noncomputable. This design difference is independent of the fact that
+`dfinsupp` is dependently-typed and `finsupp` is not; in future, we may want to align these two
+definitions, or introduce two more definitions for the other combinations of decisions.
 -/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l
@@ -24,10 +51,11 @@ variables {ι : Type u} {γ : Type w} {β : ι → Type v} {β₁ : ι → Type 
 
 
 variable (β)
-/-- A dependent function `Π i, β i` with finite support.
+/-- A dependent function `Π i, β i` with finite support, with notation `Π₀ i, β i`.
 
-Instead of storing the support directly, which would make `dfinsupp.has_add` require decidability
-of equality on `β i`, we store a multiset that is a superset of the true support. -/
+Note that `dfinsupp.support` is the preferred API for accessing the support of the function,
+`dfinsupp.support'` is a implementation detail that aids computability; see the implementation
+notes in this file for more information. -/
 structure dfinsupp [Π i, has_zero (β i)] : Type (max u v) :=
 mk' ::
 (to_fun : Π i, β i)
@@ -433,8 +461,10 @@ begin
 end
 
 omit dec
-instance [is_empty ι] : unique (Π₀ i, β i) :=
-⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
+instance unique [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
+
+instance unique_of_is_empty [is_empty ι] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/

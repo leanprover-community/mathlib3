@@ -41,6 +41,9 @@ partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_li
 
 variable [linear_order N]
 
+/-  The "decidable fields" of `lex.linear_order` are proved by appealing to `classical` reasoning.
+It may be possible to get a constructive version of this instance, but this seems to require a
+possibly long detour and I (DT) am not sure of the details. -/
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
 noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
 { le_total := to_lex.surjective.forall₂.2 $ λ f g, begin

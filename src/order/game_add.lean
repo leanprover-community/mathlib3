@@ -161,11 +161,11 @@ begin
     (ihb c rc).2, (iha d rd ⟨b, hb⟩).2, (ihb d rd).1, (iha c rc ⟨b, hb⟩).1]
 end
 
-lemma _root_.acc.sym2_game_add {a b} (ha : acc rα a) (hb : acc rα b) :
+lemma acc.sym2_game_add {a b} (ha : acc rα a) (hb : acc rα b) :
   acc (sym2.game_add rα) ⟦(a, b)⟧ := (acc_game_add_aux ha hb).1
 
 /-- The `sym2.game_add` relation is well-founded. -/
-lemma _root_.well_founded.sym2_game_add (h : well_founded rα) : well_founded (sym2.game_add rα) :=
+lemma well_founded.sym2_game_add (h : well_founded rα) : well_founded (sym2.game_add rα) :=
 ⟨λ i, sym2.induction_on i $ λ x y, (h.apply x).sym2_game_add (h.apply y)⟩
 
 namespace sym2

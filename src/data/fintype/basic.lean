@@ -619,17 +619,6 @@ arbitrary `fintype` instances, use `finset.univ_eq_empty`. -/
 arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/
 @[simp] theorem card_of_is_empty [is_empty α] : fintype.card α = 0 := rfl
 
-open_locale classical
-variables (α)
-
-/-- Any subsingleton type is (noncomputably) a fintype (with zero or one term). -/
-@[priority 5] -- see Note [lower instance priority]
-noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
-if h : nonempty α then
-  of_subsingleton (nonempty.some h)
-else
-  @fintype.of_is_empty _ $ not_nonempty_iff.mp h
-
 end fintype
 
 namespace set
@@ -776,9 +765,10 @@ begin
 end
 
 instance (n : ℕ) : fintype (fin n) :=
-⟨finset.fin_range n, finset.mem_fin_range⟩
+⟨⟨list.fin_range n, list.nodup_fin_range n⟩, list.mem_fin_range⟩
 
-lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = finset.fin_range n := rfl
+lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = ⟨list.fin_range n, list.nodup_fin_range n⟩ :=
+rfl
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
@@ -918,10 +908,10 @@ instance {α : Type*} (β : α → Type*)
   (univ : finset α).sigma (λ a, (univ : finset (β a))) = univ := rfl
 
 instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
-⟨univ.product univ, λ ⟨a, b⟩, by simp⟩
+⟨univ ×ˢ univ, λ ⟨a, b⟩, by simp⟩
 
 @[simp] lemma finset.univ_product_univ {α β : Type*} [fintype α] [fintype β] :
-  (univ : finset α).product (univ : finset β) = univ :=
+  (univ : finset α) ×ˢ (univ : finset β) = univ :=
 rfl
 
 @[simp] theorem fintype.card_prod (α β : Type*) [fintype α] [fintype β] :
@@ -1488,11 +1478,8 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
--- irreducible due to this conversation on Zulip:
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
--- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
-@[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
-  [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
+instance function.embedding.fintype {α β} [fintype α] [fintype β] [decidable_eq α]
+  [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
 instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym.sym' α n) :=
@@ -2067,9 +2054,26 @@ end
 noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 ⟨_, nat_embedding_aux_injective α⟩
 
+/-- See `infinite.exists_superset_card_eq` for a version that, for a `s : finset α`,
+provides a superset `t : finset α`, `s ⊆ t` such that `t.card` is fixed. -/
 lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
   ∃ s : finset α, s.card = n :=
 ⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
+
+/-- See `infinite.exists_subset_card_eq` for a version that provides an arbitrary
+`s : finset α` for any cardinality. -/
+lemma exists_superset_card_eq [infinite α] (s : finset α) (n : ℕ) (hn : s.card ≤ n) :
+  ∃ t : finset α, s ⊆ t ∧ t.card = n :=
+begin
+  induction n with n IH generalizing s,
+  { exact ⟨s, subset_refl _, nat.eq_zero_of_le_zero hn⟩ },
+  { cases hn.eq_or_lt with hn' hn',
+    { exact ⟨s, subset_refl _, hn'⟩ },
+    obtain ⟨t, hs, ht⟩ := IH _ (nat.le_of_lt_succ hn'),
+    obtain ⟨x, hx⟩ := exists_not_mem_finset t,
+    refine ⟨finset.cons x t hx, hs.trans (finset.subset_cons _), _⟩,
+    simp [hx, ht] }
+end
 
 end infinite
 
@@ -2104,17 +2108,9 @@ begin
   intros x y, contrapose, apply hf,
 end
 
--- irreducible due to this conversation on Zulip:
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
--- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
-
-@[irreducible]
 instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_empty (α ↪ β) :=
-  ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
 
-@[priority 100]
-noncomputable instance function.embedding.fintype' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
-by casesI fintype_or_infinite α; apply_instance
 /--
 The strong pigeonhole principle for infinitely many pigeons in
 finitely many pigeonholes.  If there are infinitely many pigeons in

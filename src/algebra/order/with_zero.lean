@@ -208,6 +208,10 @@ variables [linear_ordered_comm_group_with_zero α]
 lemma zero_lt_one₀ : (0 : α) < 1 :=
 lt_of_le_of_ne zero_le_one zero_ne_one
 
+lemma mul_le_one₀ (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 := mul_le_one' ha hb
+
+lemma one_le_mul₀ (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b := one_le_mul ha hb
+
 lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=
 by simpa only [mul_inv_cancel_right₀ h] using (mul_le_mul_right' hab c⁻¹)
 
@@ -220,6 +224,10 @@ begin
   { simp [h], },
   { exact le_of_le_mul_right h (by simpa [h] using hab), },
 end
+
+lemma inv_le_one₀ (ha : a ≠ 0) : a⁻¹ ≤ 1 ↔ 1 ≤ a := @inv_le_one' _ _ _ _ $ units.mk0 a ha
+
+lemma one_le_inv₀ (ha : a ≠ 0) : 1 ≤ a⁻¹ ↔ a ≤ 1 := @one_le_inv' _ _ _ _ $ units.mk0 a ha
 
 lemma le_mul_inv_iff₀ (hc : c ≠ 0) : a ≤ b * c⁻¹ ↔ a * c ≤ b :=
 ⟨λ h, inv_inv c ▸ mul_inv_le_of_le_mul h, le_mul_inv_of_mul_le hc⟩
@@ -286,17 +294,33 @@ lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
 lemma mul_le_mul_left₀ (ha : a ≠ 0) : a * b ≤ a * c ↔ b ≤ c :=
 by {simp only [mul_comm a], exact mul_le_mul_right₀ ha }
 
-lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
+lemma div_le_div_right₀ (hc : c ≠ 0) : a / c ≤ b / c ↔ a ≤ b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
 
-lemma div_le_div_left₀ (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) : a/b ≤ a/c ↔ c ≤ b :=
+lemma div_le_div_left₀ (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) : a / b ≤ a / c ↔ c ≤ b :=
 by simp only [div_eq_mul_inv, mul_le_mul_left₀ ha, inv_le_inv₀ hb hc]
 
-lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b/c ↔ a*c ≤ b :=
+lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b / c ↔ a*c ≤ b :=
 by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 
-lemma div_le_iff₀ (hc : c ≠ 0) : a/c ≤ b ↔ a ≤ b*c :=
+lemma div_le_iff₀ (hc : c ≠ 0) : a / c ≤ b ↔ a ≤ b*c :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
+
+lemma eq_one_of_mul_eq_one_left (ha : a ≤ 1) (hb : b ≤ 1) (hab : a * b = 1) : a = 1 :=
+le_antisymm ha $ (inv_le_one₀ $ left_ne_zero_of_mul_eq_one hab).mp $
+  eq_inv_of_mul_eq_one_right hab ▸ hb
+
+lemma eq_one_of_mul_eq_one_right (ha : a ≤ 1) (hb : b ≤ 1) (hab : a * b = 1) : b = 1 :=
+le_antisymm hb $ (inv_le_one₀ $ right_ne_zero_of_mul_eq_one hab).mp $
+  eq_inv_of_mul_eq_one_left hab ▸ ha
+
+lemma eq_one_of_mul_eq_one_left' (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b = 1) : a = 1 :=
+le_antisymm
+  ((one_le_inv₀ $ left_ne_zero_of_mul_eq_one hab).mp $ eq_inv_of_mul_eq_one_right hab ▸ hb) ha
+
+lemma eq_one_of_mul_eq_one_right' (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b = 1) : b = 1 :=
+le_antisymm
+  ((one_le_inv₀ $ right_ne_zero_of_mul_eq_one hab).mp $ eq_inv_of_mul_eq_one_left hab ▸ ha) hb
 
 /-- `equiv.mul_left₀` as an order_iso on a `linear_ordered_comm_group_with_zero.`.
 

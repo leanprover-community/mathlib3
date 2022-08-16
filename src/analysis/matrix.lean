@@ -199,7 +199,7 @@ variables [seminormed_add_comm_group α]
 
 lemma linfty_op_norm_def (A : matrix m n α) :
   ∥A∥ = ((finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) : ℝ≥0) :=
-by simp_rw [pi.norm_def, pi_Lp.nnnorm_eq, div_one, nnreal.rpow_one]
+by simp [pi.norm_def, pi_Lp.nnnorm_eq_sum ennreal.one_ne_top]
 
 lemma linfty_op_nnnorm_def (A : matrix m n α) :
   ∥A∥₊ = (finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) :=
@@ -366,7 +366,7 @@ variables [seminormed_add_comm_group α] [seminormed_add_comm_group β]
 
 lemma frobenius_nnnorm_def (A : matrix m n α) :
   ∥A∥₊ = (∑ i j, ∥A i j∥₊ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
-by simp_rw [pi_Lp.nnnorm_eq, ←nnreal.rpow_mul, div_mul_cancel (1 : ℝ) two_ne_zero, nnreal.rpow_one]
+by simp_rw [pi_Lp.nnnorm_eq_of_L2, nnreal.sq_sqrt, nnreal.sqrt_eq_rpow, nnreal.rpow_two]
 
 lemma frobenius_norm_def (A : matrix m n α) :
   ∥A∥ = (∑ i j, ∥A i j∥ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
@@ -396,24 +396,31 @@ instance frobenius_normed_star_group [star_add_monoid α] [normed_star_group α]
 ⟨frobenius_norm_conj_transpose⟩
 
 @[simp] lemma frobenius_norm_row (v : m → α) : ∥row v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
-by { rw [frobenius_norm_def, fintype.sum_unique], refl }
+begin
+  rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
+  simp only [row_apply, real.rpow_two, pi_Lp.equiv_symm_apply'],
+end
 @[simp] lemma frobenius_nnnorm_row (v : m → α) : ∥row v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 subtype.ext $ frobenius_norm_row v
 
 @[simp] lemma frobenius_norm_col (v : n → α) : ∥col v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
-by { simp_rw [frobenius_norm_def, fintype.sum_unique], refl }
+begin
+  simp_rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
+  simp only [col_apply, real.rpow_two, pi_Lp.equiv_symm_apply']
+end
 @[simp] lemma frobenius_nnnorm_col (v : n → α) : ∥col v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 subtype.ext $ frobenius_norm_col v
 
 @[simp] lemma frobenius_nnnorm_diagonal [decidable_eq n] (v : n → α) :
   ∥diagonal v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 begin
-  simp_rw [frobenius_nnnorm_def, ←finset.sum_product', finset.univ_product_univ, pi_Lp.nnnorm_eq],
+  simp_rw [frobenius_nnnorm_def, ←finset.sum_product', finset.univ_product_univ,
+    pi_Lp.nnnorm_eq_of_L2],
   let s := (finset.univ : finset n).map ⟨λ i : n, (i, i), λ i j h, congr_arg prod.fst h⟩,
   rw ←finset.sum_subset (finset.subset_univ s) (λ i hi his, _),
-  { rw finset.sum_map,
+  { rw [finset.sum_map, nnreal.sqrt_eq_rpow],
     dsimp,
-    simp_rw diagonal_apply_eq },
+    simp_rw [diagonal_apply_eq, nnreal.rpow_two] },
   { suffices : i.1 ≠ i.2,
     { rw [diagonal_apply_ne _ this, nnnorm_zero, nnreal.zero_rpow two_ne_zero], },
     intro h,
@@ -429,7 +436,8 @@ lemma frobenius_nnnorm_one [decidable_eq n] [seminormed_add_comm_group α] [has_
   ∥(1 : matrix n n α)∥₊ = nnreal.sqrt (fintype.card n) * ∥(1 : α)∥₊:=
 begin
   refine (frobenius_nnnorm_diagonal _).trans _,
-  simp_rw [pi_Lp.nnnorm_equiv_symm_const, nnreal.sqrt_eq_rpow],
+  simp_rw [pi_Lp.nnnorm_equiv_symm_const ennreal.two_ne_top, nnreal.sqrt_eq_rpow],
+  simp only [ennreal.to_real_div, ennreal.one_to_real, ennreal.to_real_bit0],
 end
 
 section is_R_or_C
@@ -448,8 +456,8 @@ begin
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ j, star (A i j)))
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ k, B k j)),
   simpa only [pi_Lp.equiv_symm_apply, pi_Lp.inner_apply,
-      is_R_or_C.inner_apply, star_ring_end_apply, pi.nnnorm_def, pi_Lp.nnnorm_eq,
-      star_star, nnnorm_star] using this,
+      is_R_or_C.inner_apply, star_ring_end_apply, pi.nnnorm_def, pi_Lp.nnnorm_eq_of_L2,
+      star_star, nnnorm_star, nnreal.sqrt_eq_rpow, nnreal.rpow_two] using this,
 end
 
 lemma frobenius_norm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=

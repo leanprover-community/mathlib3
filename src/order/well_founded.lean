@@ -57,32 +57,26 @@ If you're working with a nonempty linear order, consider defining a
 `conditionally_complete_linear_order_bot` instance via
 `well_founded.conditionally_complete_linear_order_with_bot` and using `Inf` instead. -/
 noncomputable def min {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : α :=
-classical.some (H.has_min p h)
+  (s : set α) (h : s.nonempty) : α :=
+classical.some (H.has_min s h)
 
 theorem min_mem {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
-let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
+  (s : set α) (h : s.nonempty) : H.min s h ∈ s :=
+let ⟨h, _⟩ := classical.some_spec (H.has_min s h) in h
 
 theorem not_lt_min {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
-let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
+  (s : set α) (h : s.nonempty) {x} (hx : x ∈ s) : ¬ r x (H.min s h) :=
+let ⟨_, h'⟩ := classical.some_spec (H.has_min s h) in h' _ hx
 
 theorem well_founded_iff_has_min {r : α → α → Prop} : (well_founded r) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
+  ∀ (s : set α), s.nonempty → ∃ m ∈ s, ∀ x ∈ s, ¬ r x m :=
 begin
-  classical,
-  split,
-  { exact has_min, },
-  { set counterexamples := { x : α | ¬ acc r x},
-    intro exists_max,
-    fconstructor,
-    intro x,
-    by_contra hx,
-    obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
-    refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
-    by_contra hy,
-    exact hm y hy y_gt_m, },
+  refine ⟨λ h, h.has_min, λ h, ⟨λ x, _⟩⟩,
+  by_contra hx,
+  obtain ⟨m, hm, hm'⟩ := h _ ⟨x, hx⟩,
+  refine hm ⟨_, λ y hy, _⟩,
+  by_contra hy',
+  exact hm' y hy' hy
 end
 
 lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
@@ -174,8 +168,8 @@ theorem eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f)
     (eq_strict_mono_iff_eq_range_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
 end, congr_arg _⟩
 
-theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
-by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+theorem self_le_of_strict_mono {f : β → β} (hf : strict_mono f) : ∀ n, n ≤ f n :=
+by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hf h₂) h₂ }
 
 end linear_order
 

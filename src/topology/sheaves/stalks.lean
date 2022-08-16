@@ -427,10 +427,11 @@ lemma app_injective_iff_stalk_functor_map_injective {F : sheaf C X}
 ⟨λ h U, app_injective_of_stalk_functor_map_injective f U (λ x, h x.1),
   stalk_functor_map_injective_of_app_injective f⟩
 
-/--
-This works for any concrete category where monomorphism = injective functions.
--/
-instance (x : X) :
+section
+
+variable (C)
+
+instance stalk_functor_preserves_mono (x : X) :
   functor.preserves_monomorphisms (sheaf.forget C X ⋙ stalk_functor C x) :=
 begin
   refine ⟨λ 𝓐 𝓑 f im, _⟩,
@@ -445,6 +446,8 @@ begin
   refine (app_injective_iff_stalk_functor_map_injective f.1).mpr _ x,
   rintros U,
   apply this,
+end
+
 end
 
 /-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.

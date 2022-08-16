@@ -6,6 +6,7 @@ Authors: Jujian Zhang
 import algebraic_geometry.sheafed_space
 import topology.sheaves.sheaf_condition.unique_gluing
 import topology.sheaves.stalks
+import category_theory.sites.sheafification
 import category_theory.preadditive.injective
 import algebra.category.Group.abelian
 
@@ -523,10 +524,9 @@ noncomputable def skyscraper_presheaf_as_pushforward :
     ext U,
     dsimp,
     split_ifs,
-    { rw [eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
-        eq_to_hom_refl], },
+    { rw [eq_to_hom_trans, eq_to_hom_trans, eq_to_hom_trans, eq_to_hom_refl], },
     { rw [←category.assoc, eq_comp_eq_to_hom],
-      exact ts.hom_ext _ _, },
+      exact terminal_is_terminal.hom_ext _ _, },
   end,
   inv_hom_id' :=
   begin
@@ -534,11 +534,10 @@ noncomputable def skyscraper_presheaf_as_pushforward :
     dsimp,
     by_cases hU : p₀ ∈ U.unop,
     { split_ifs;
-      rw [category.id_comp, eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
-          eq_to_hom_refl], },
+      rw [eq_to_hom_trans, eq_to_hom_trans, eq_to_hom_trans, eq_to_hom_refl], },
     { split_ifs;
       rw [←category.assoc, eq_comp_eq_to_hom];
-      exact ts.hom_ext _ _, },
+      exact terminal_is_terminal.hom_ext _ _, },
   end }
 
 end
@@ -553,17 +552,17 @@ open opposite
 universes u v
 
 variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{u} C]
-variables {star : C} (ts : is_terminal star)
+variables [has_terminal C] -- {star : C} (ts : is_terminal star)
 variable [Π (U : opens X), decidable (p₀ ∈ U)]
 
 @[simps]
 def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
-{ obj := λ S, skyscraper_presheaf p₀ S ts,
+{ obj := λ S, skyscraper_presheaf p₀ S,
   map := λ x y f,
   { app := λ U, if h : p₀ ∈ U.unop
-    then eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h) ≫ f ≫
-      eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h).symm
-    else ts.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ _ h).symm,
+    then eq_to_hom (skyscraper_presheaf_obj_of_mem _ h) ≫ f ≫
+      eq_to_hom (skyscraper_presheaf_obj_of_mem _ h).symm
+    else terminal.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ h).symm,
     naturality' := λ U V inc,
     begin
       dsimp,
@@ -575,7 +574,7 @@ def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
         refl, },
       { split_ifs;
         rw [←category.assoc, eq_comp_eq_to_hom];
-        exact ts.hom_ext _ _ }
+        exact terminal_is_terminal.hom_ext _ _ }
     end },
   map_id' := λ c,
   begin
@@ -584,7 +583,7 @@ def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
     split_ifs,
     { simp, },
     { rw [eq_comp_eq_to_hom],
-      exact ts.hom_ext _ _ },
+      exact terminal_is_terminal.hom_ext _ _ },
   end,
   map_comp' := λ x y z f g,
   begin
@@ -593,34 +592,32 @@ def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
     split_ifs,
     { simp },
     { rw [eq_comp_eq_to_hom],
-      exact ts.hom_ext _ _ },
+      exact terminal_is_terminal.hom_ext _ _ },
   end }
-
-example : true := trivial
 
 @[simps]
 def skyscraper_sheaf_functor : C ⥤ sheaf C X :=
-{ obj := λ S, skyscraper_sheaf p₀ S ts,
-  map := λ x y f, ⟨(skyscraper_presheaf_functor p₀ ts).map f⟩,
+{ obj := λ S, skyscraper_sheaf p₀ S,
+  map := λ x y f, ⟨(skyscraper_presheaf_functor p₀).map f⟩,
   map_id' := λ c,
   begin
     ext1,
-    exact (skyscraper_presheaf_functor p₀ ts).map_id c,
+    exact (skyscraper_presheaf_functor p₀).map_id c,
   end,
   map_comp' := λ x y z f g,
   begin
     ext1,
-    exact (skyscraper_presheaf_functor p₀ ts).map_comp f g,
+    exact (skyscraper_presheaf_functor p₀).map_comp f g,
   end }
 
 variable [has_colimits C]
 
 @[simps]
 noncomputable def from_stalk_to_to_skyscraper_presheaf {𝓕 : presheaf C X} {c : C}
-  (f : 𝓕.stalk p₀ ⟶ c) : 𝓕 ⟶ skyscraper_presheaf p₀ c ts :=
+  (f : 𝓕.stalk p₀ ⟶ c) : 𝓕 ⟶ skyscraper_presheaf p₀ c :=
 { app := λ U, if h : p₀ ∈ U.unop
-  then 𝓕.germ ⟨p₀, h⟩ ≫ f ≫ eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h).symm
-  else ts.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ _ h).symm,
+  then 𝓕.germ ⟨p₀, h⟩ ≫ f ≫ eq_to_hom (skyscraper_presheaf_obj_of_mem _ h).symm
+  else terminal.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ h).symm,
   naturality' := λ U V inc,
   begin
     dsimp,
@@ -633,12 +630,12 @@ noncomputable def from_stalk_to_to_skyscraper_presheaf {𝓕 : presheaf C X} {c 
     { split_ifs,
       rw [←category.assoc, eq_comp_eq_to_hom, category.assoc, category.assoc, eq_to_hom_trans,
         eq_to_hom_refl, category.comp_id],
-      exact ts.hom_ext _ _ },
+      exact terminal_is_terminal.hom_ext _ _ },
   end }
 
 @[reducible]
 noncomputable def to_skyscraper_presheaf_to_from_stalk {𝓕 : presheaf C X} {c : C}
-  (f : 𝓕 ⟶ skyscraper_presheaf p₀ c ts) : 𝓕.stalk p₀ ⟶ c :=
+  (f : 𝓕 ⟶ skyscraper_presheaf p₀ c) : 𝓕.stalk p₀ ⟶ c :=
 let CC : cocone ((open_nhds.inclusion p₀).op ⋙ 𝓕) :=
 { X := c,
   ι :=
@@ -665,7 +662,7 @@ colimit.desc _ CC
 
 lemma from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk
   {𝓕 : presheaf C X} {c : C} (f : 𝓕.stalk p₀ ⟶ c) :
-to_skyscraper_presheaf_to_from_stalk p₀ ts (from_stalk_to_to_skyscraper_presheaf p₀ ts f) = f :=
+to_skyscraper_presheaf_to_from_stalk p₀ (from_stalk_to_to_skyscraper_presheaf p₀ f) = f :=
 begin
   ext U,
   dsimp,
@@ -683,8 +680,8 @@ begin
 end
 
 lemma to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf
-  {𝓕 : presheaf C X} {c : C} (f : 𝓕 ⟶ skyscraper_presheaf p₀ c ts) :
-from_stalk_to_to_skyscraper_presheaf p₀ ts (to_skyscraper_presheaf_to_from_stalk p₀ ts f) = f :=
+  {𝓕 : presheaf C X} {c : C} (f : 𝓕 ⟶ skyscraper_presheaf p₀ c) :
+from_stalk_to_to_skyscraper_presheaf p₀ (to_skyscraper_presheaf_to_from_stalk p₀ f) = f :=
 begin
   ext U,
   dsimp,
@@ -696,16 +693,16 @@ begin
     dsimp,
     rw [category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id], },
   { rw [eq_comp_eq_to_hom],
-    exact ts.hom_ext _ _ , }
+    exact terminal_is_terminal.hom_ext _ _ , }
 end
 
 @[simps]
 noncomputable def stalk_skyscraper_presheaf_adj_unit :
-  𝟭 (presheaf C X) ⟶ presheaf.stalk_functor C p₀ ⋙ skyscraper_presheaf_functor p₀ ts :=
+  𝟭 (presheaf C X) ⟶ presheaf.stalk_functor C p₀ ⋙ skyscraper_presheaf_functor p₀ :=
 { app := λ 𝓕,
   { app := λ U, if h : p₀ ∈ U.unop
     then 𝓕.germ ⟨p₀, h⟩ ≫ eq_to_hom (if_pos h).symm
-    else ts.from _ ≫ eq_to_hom (if_neg h).symm,
+    else terminal.from _ ≫ eq_to_hom (if_neg h).symm,
     naturality' := λ U V inc,
     begin
       dsimp,
@@ -717,7 +714,7 @@ noncomputable def stalk_skyscraper_presheaf_adj_unit :
         congr, },
       { split_ifs,
         rw [←category.assoc, eq_comp_eq_to_hom],
-        exact ts.hom_ext _ _, },
+        exact terminal_is_terminal.hom_ext _ _, },
     end },
   naturality' := λ 𝓕 𝓖 f,
   begin
@@ -731,20 +728,20 @@ noncomputable def stalk_skyscraper_presheaf_adj_unit :
       erw [colimit.ι_map],
       congr, },
     { rw [←category.assoc, eq_comp_eq_to_hom],
-      exact ts.hom_ext _ _ },
+      exact terminal_is_terminal.hom_ext _ _ },
   end }
 
 @[simps]
 noncomputable def stalk_skyscraper_presheaf_adj_counit :
-  skyscraper_presheaf_functor p₀ ts ⋙ presheaf.stalk_functor C p₀ ⟶ 𝟭 C :=
-{ app := λ c, (skyscraper_presheaf_stalk_of_mem_closure₀ p₀ c ts (specializes_rfl : p₀ ⤳ p₀)).hom,
+  skyscraper_presheaf_functor p₀ ⋙ presheaf.stalk_functor C p₀ ⟶ 𝟭 C :=
+{ app := λ c, (skyscraper_presheaf_stalk_of_mem_closure₀ p₀ c (specializes_rfl : p₀ ⤳ p₀)).hom,
   naturality' := λ x y f,
   begin
     ext U,
     dsimp,
     simp only [colimit.iso_colimit_cocone_ι_hom_assoc,
       skyscraper_presheaf_cocone_of_mem_closure₀_ι_app, category.assoc],
-    erw [category.id_comp, ←category.assoc, colimit.ι_map],
+    erw [←category.assoc, colimit.ι_map],
     dsimp,
     split_ifs,
     { rw [category.assoc, skyscraper_presheaf_stalk_of_mem_closure₀,
@@ -755,13 +752,13 @@ noncomputable def stalk_skyscraper_presheaf_adj_counit :
   end }
 
 noncomputable def stalk_skyscraper_presheaf_adj :
-  presheaf.stalk_functor C p₀ ⊣ skyscraper_presheaf_functor p₀ ts :=
-{ hom_equiv := λ 𝓕 c, ⟨from_stalk_to_to_skyscraper_presheaf p₀ ts,
-    to_skyscraper_presheaf_to_from_stalk p₀ ts,
-    from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk p₀ ts,
-    to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf p₀ ts⟩,
-  unit := stalk_skyscraper_presheaf_adj_unit p₀ ts,
-  counit := stalk_skyscraper_presheaf_adj_counit p₀ ts,
+  presheaf.stalk_functor C p₀ ⊣ skyscraper_presheaf_functor p₀ :=
+{ hom_equiv := λ 𝓕 c, ⟨from_stalk_to_to_skyscraper_presheaf p₀,
+    to_skyscraper_presheaf_to_from_stalk p₀,
+    from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk p₀,
+    to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf p₀⟩,
+  unit := stalk_skyscraper_presheaf_adj_unit p₀,
+  counit := stalk_skyscraper_presheaf_adj_counit p₀,
   hom_equiv_unit' := λ 𝓕 𝓖 f,
   begin
     ext U,
@@ -769,7 +766,7 @@ noncomputable def stalk_skyscraper_presheaf_adj :
     split_ifs,
     { simp, },
     { rw [eq_comp_eq_to_hom],
-      exact ts.hom_ext _ _ },
+      exact terminal_is_terminal.hom_ext _ _ },
   end,
   hom_equiv_counit' := λ 𝓕 c g,
   begin
@@ -778,57 +775,60 @@ noncomputable def stalk_skyscraper_presheaf_adj :
     erw [colimit.ι_desc, ←category.assoc, colimit.ι_map, category.assoc,
       colimit.iso_colimit_cocone_ι_hom],
     dsimp,
-    rw [category.comp_id],
+    rw [eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
+      category.comp_id],
     refl,
   end }
 
-example : true := trivial
-
+variable (C)
 noncomputable def stalk_skyscraper_sheaf_adj :
-  sheaf.forget C X ⋙ presheaf.stalk_functor _ p₀ ⊣ skyscraper_sheaf_functor p₀ ts :=
+  sheaf.forget C X ⋙ presheaf.stalk_functor _ p₀ ⊣ skyscraper_sheaf_functor p₀ :=
 { hom_equiv := λ 𝓕 c,
-  ⟨λ f, ⟨from_stalk_to_to_skyscraper_presheaf p₀ ts f⟩,
-   λ g, to_skyscraper_presheaf_to_from_stalk p₀ ts g.1,
+  ⟨λ f, ⟨from_stalk_to_to_skyscraper_presheaf p₀ f⟩,
+   λ g, to_skyscraper_presheaf_to_from_stalk p₀ g.1,
    λ f, from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk
-     p₀ ts f,
+     p₀ f,
    begin
      intros g,
      ext1,
-     exact to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf p₀ ts g.1,
+     exact to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf p₀ g.1,
    end⟩,
   unit :=
-  { app := λ 𝓕, ⟨(stalk_skyscraper_presheaf_adj_unit p₀ ts).app 𝓕.1⟩,
+  { app := λ 𝓕, ⟨(stalk_skyscraper_presheaf_adj_unit p₀).app 𝓕.1⟩,
     naturality' := λ 𝓐 𝓑 ⟨f⟩,
     begin
       ext1,
       dsimp,
-      exact (stalk_skyscraper_presheaf_adj_unit p₀ ts).naturality f,
+      exact (stalk_skyscraper_presheaf_adj_unit p₀).naturality f,
     end },
-  counit := stalk_skyscraper_presheaf_adj_counit p₀ ts,
+  counit := stalk_skyscraper_presheaf_adj_counit p₀,
   hom_equiv_unit' :=
   begin
     intros 𝓐 c f,
     ext1,
-    exact (stalk_skyscraper_presheaf_adj p₀ ts).hom_equiv_unit,
+    exact (stalk_skyscraper_presheaf_adj p₀).hom_equiv_unit,
   end,
-  hom_equiv_counit' := λ 𝓐 c f, (stalk_skyscraper_presheaf_adj p₀ ts).hom_equiv_counit }
+  hom_equiv_counit' := λ 𝓐 c f, (stalk_skyscraper_presheaf_adj p₀).hom_equiv_counit }
 
 end adjoints
 
 section injective
 
-open_locale zero_object
+-- need to restrict universe level again
+
 open topological_space
 open category_theory category_theory.limits
 open Top
 open opposite
 
-universe u
+universes u
 variables {X : Top.{u}} (p₀ : X) [Π (U : opens X), decidable (p₀ ∈ U)]
+variables {C : Type u} [category.{u} C] [concrete_category.{u} C] [has_colimits C]
+variables [has_limits C] [preserves_limits (forget C)] [reflects_isomorphisms (forget C)]
+variables [preserves_filtered_colimits (forget C)]
 
-lemma skyscraper_presheaf_in_Ab_injective (S : Ab.{u}) [injective S] :
-  injective (skyscraper_sheaf p₀ S (is_zero.is_terminal (is_zero_zero _) : is_terminal (0 : Ab))) :=
-injective.injective_of_adjoint
-    (stalk_skyscraper_sheaf_adj p₀ (is_zero.is_terminal (is_zero_zero _) : is_terminal (0 : Ab)))
+lemma skyscraper_presheaf_in_Ab_injective (S : C) [injective S] :
+  injective (skyscraper_sheaf p₀ S) :=
+injective.injective_of_adjoint (stalk_skyscraper_sheaf_adj p₀ C) S
 
 end injective

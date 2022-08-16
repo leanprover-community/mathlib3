@@ -17,7 +17,6 @@ import algebra.category.Group.colimits
 import algebra.category.Group.limits
 import algebra.category.Group.filtered_colimits
 import algebra.category.Group.epi_mono
-import topology.sheaves.epi_mono
 
 /-!
 # Stalks

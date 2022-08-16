@@ -416,67 +416,30 @@ by simpa only [linear_map.map_zero, zero_pow hm, mk_zero] using submodule.zero_m
 
 lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A} (ha : a ∈ carrier q) (hb : b ∈ carrier q) :
   a + b ∈ carrier q :=
-λ i,
-let α : A⁰_ f_deg := ⟨mk ((proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ in
-suffices α_sq_mem : α * α ∈ q.1, by { cases q.2.mem_or_mem α_sq_mem; assumption },
-have α_sq_eq' : (α * α : away f) = ∑ (j : ℕ) in range (2 * m + 1),
-  mk ((proj 𝒜 i) a ^ j * (proj 𝒜 i) b ^ (2 * m - j) * ↑((2 * m).choose j)) ⟨f ^ (2 * i), ⟨_, rfl⟩⟩,
 begin
-  rw [←localization.mk_sum, ←add_pow, ←map_add],
-  simpa only [degree_zero_part.coe_mul, subtype.coe_mk, mk_mul, two_mul, pow_add],
-end,
-have α_sq_eq : α * α = ∑ j in (range (2 * m + 1)).attach,
-  ⟨mk ((proj 𝒜 i) a ^ j.1 * (proj 𝒜 i) b ^ (2 * m - j.1) * ↑((2 * m).choose j.1))
-    ⟨f ^ (2 * i), ⟨_, rfl⟩⟩,
-    ⟨2 * i, ⟨⟨_, begin
-      rw show m * (2 * i) = ((j.1*i) + (2*m-j.1)*i + 0),
-      { zify [show j.1 ≤ 2 * m, by linarith [finset.mem_range.mp j.2]], linarith, },
-      mem_tac,
-    end⟩, rfl⟩⟩⟩,
-begin
-  rw [subtype.ext_iff, degree_zero_part.coe_sum, degree_zero_part.coe_mul],
-  rwa ←finset.sum_attach at α_sq_eq',
-end,
-α_sq_eq.symm ▸ ideal.sum_mem _
-begin
-  rintros ⟨k, hk⟩ _,
-  rw finset.mem_range at hk,
-  have hk' : k ≤ 2 * m := by linarith,
-
-  by_cases ineq : m ≤ k,
-  { set α := (⟨mk ((proj 𝒜 i) a ^ m) ⟨f^i, ⟨i, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg),
-    set β := (⟨mk ((proj 𝒜 i) a ^ (k - m) *
-        (proj 𝒜 i) b ^ (2 * m - k) * (2*m).choose k) ⟨f^i, ⟨i, rfl⟩⟩, begin
-          refine ⟨i, ⟨_, _⟩, rfl⟩,
-          rw show m * i = ((k - m) * i) + ((2*m-k) * i) + 0,
-          { zify [hk, hk'], linarith, },
-          mem_tac,
-        end⟩ : A⁰_ f_deg),
-    suffices : α * β ∈ q.1,
-    { convert this,
-      simp only [mk_mul, two_mul, pow_add],
-      congr' 1,
-      rw [←mul_assoc, ←mul_assoc, ←pow_add],
-      congr' 3,
-      zify [hk, hk'],
-      linarith, },
-    exact ideal.mul_mem_right _ _ (ha _), },
-    { have ineq' : k ≤ m := by linarith only [ineq],
-      set α := (⟨mk ((proj 𝒜 i) b ^ m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg),
-      set β := (⟨mk ((proj 𝒜 i) a ^ k * (proj 𝒜 i) b ^ (m - k) * ((2 * m).choose k))
-        ⟨f^i, ⟨_, rfl⟩⟩, begin
-          refine ⟨_, ⟨_, _⟩, rfl⟩,
-          rw ← show k * i + (m - k) * i + 0 = m * i,
-          { zify [hk, hk', ineq'], linarith, },
-          mem_tac,
-        end⟩ : A⁰_ f_deg),
-      suffices : α * β ∈ q.1,
-      { convert this,
-        simp only [mk_mul, two_mul, pow_add],
-        congr' 1,
-        rw [show ∀ (a b c d : A), a * (b * c * d) = b * (a * c) * d, by {intros, ring}, ←pow_add,
-          ←nat.add_sub_assoc ineq', ←two_mul], },
-      exact ideal.mul_mem_right _ _ (hb _), },
+  refine λ i, (q.2.mem_or_mem _).elim id id,
+  change subtype.mk (localization.mk _ _ * mk _ _) _ ∈ q.1,
+  simp_rw [mk_mul, ← pow_add, map_add, add_pow, mk_sum, mul_comm, ← nsmul_eq_mul, ← smul_mk],
+  let g : ℕ → A⁰_ f_deg := λ j, (m + m).choose j • if h2 : m + m < j then 0 else if h1 : j ≤ m
+    then ⟨mk (proj 𝒜 i a ^ j * proj 𝒜 i b ^ (m - j)) ⟨_, i, rfl⟩, i, ⟨_, _⟩, rfl⟩ *
+      ⟨mk (proj 𝒜 i b ^ m) ⟨_, i, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩
+    else ⟨mk (proj 𝒜 i a ^ m) ⟨_, i, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩ *
+      ⟨mk (proj 𝒜 i a ^ (j - m) * proj 𝒜 i b ^ (m + m - j)) ⟨_, i, rfl⟩, i, ⟨_, _⟩, rfl⟩,
+  rotate,
+  { rw (_ : m * i = _), mem_tac, rw [← add_smul, nat.add_sub_of_le h1], refl },
+  { rw (_ : m * i = _), mem_tac, rw ← add_smul, congr,
+    zify [le_of_not_lt h2, le_of_not_le h1], abel },
+  convert_to ∑ i in range (m + m + 1), g i ∈ q.1, swap,
+  { refine q.1.sum_mem (λ j hj, nsmul_mem _ _), split_ifs,
+    exacts [q.1.zero_mem, q.1.mul_mem_left _ (hb i), q.1.mul_mem_right _ (ha i)] },
+  apply subtype.ext,
+  rw [degree_zero_part.coe_sum, subtype.coe_mk],
+  apply finset.sum_congr rfl (λ j hj, _),
+  congr' 1, split_ifs with h2 h1,
+  { exact ((finset.mem_range.1 hj).not_le h2).elim },
+  all_goals { simp only [subtype.val_eq_coe, degree_zero_part.coe_mul, subtype.coe_mk, mk_mul] },
+  { rw [mul_assoc, ← pow_add, add_comm (m - j), nat.add_sub_assoc h1] },
+  { rw [← mul_assoc, ← pow_add, nat.add_sub_of_le (le_of_not_le h1)] },
 end
 
 lemma carrier.smul_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) (c x : A) (hx : x ∈ carrier q) :

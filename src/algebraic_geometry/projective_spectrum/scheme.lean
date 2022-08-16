@@ -22,7 +22,7 @@ This file is to prove that `Proj` is a scheme.
 * `Spec`      : `Spec` as a locally ringed space
 * `Spec.T`    : the underlying topological space of `Spec`
 * `sbo g`     : basic open set at `g` in `Spec`
-* `A⁰_x`       : the degree zero part of localized ring `Aₓ`
+* `A⁰_x`      : the degree zero part of localized ring `Aₓ`
 
 ## Implementation
 
@@ -32,10 +32,11 @@ equipped with this structure sheaf is a scheme. We achieve this by using an affi
 open sets in `Proj`, more specifically:
 
 1. We prove that `Proj` can be covered by basic open sets at homogeneous element of positive degree.
-2. We prove that for any `f : A`, `Proj.T | (pbo f)` is homeomorphic to `Spec.T A⁰_f`:
+2. We prove that for any homogeneous element `f : A` of positive degree `m`, `Proj.T | (pbo f)` is
+    homeomorphic to `Spec.T A⁰_f`:
   - forward direction `to_Spec`:
     for any `x : pbo f`, i.e. a relevant homogeneous prime ideal `x`, send it to
-    `x ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
+    `A⁰_f ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
     prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
     is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
   - backward direction `from_Spec`:

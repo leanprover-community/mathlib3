@@ -377,7 +377,7 @@ lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n �
   p ^ k ∣ n ↔ k ≤ n.factorization p :=
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 
-lemma prime.pow_dvd_iff_dvd_pow_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
+lemma prime.pow_dvd_iff_dvd_ord_proj {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
   p ^ k ∣ n ↔ p ^ k ∣ ord_proj[p] n :=
 by rw [pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
 

@@ -60,9 +60,6 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_add_comm_group.to_add_comm_group normed_space.to_module'
 
--- hack to speed up simp when dealing with complicated types
-local attribute [-instance] unique.subsingleton pi.subsingleton
-
 /-!
 ### Type variables
 
@@ -956,6 +953,17 @@ linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
 end continuous_multilinear_map
 
+section smul
+
+variables {R : Type*} [semiring R] [module R G] [smul_comm_class 𝕜 R G]
+  [has_continuous_const_smul R G]
+
+instance : has_continuous_const_smul R (continuous_multilinear_map 𝕜 E G) :=
+⟨λ c, (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ G G
+  (c • continuous_linear_map.id 𝕜 G)).2⟩
+
+end smul
+
 section currying
 /-!
 ### Currying
@@ -1229,7 +1237,6 @@ isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the con
 derivatives, we register this isomorphism. -/
 
 section
-local attribute [instance] unique.subsingleton
 
 variables {𝕜 G G'}
 

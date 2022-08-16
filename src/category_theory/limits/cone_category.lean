@@ -3,29 +3,55 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-
 import category_theory.limits.preserves.shapes.terminal
+import category_theory.structured_arrow
 
 /-!
-
 # Limits and the category of (co)cones
 
 This files contains results that stem from the limit API. For the definition and the category
 instance of `cone`, please refer to `category_theory/limits/cones.lean`.
 
-A cone is limiting iff it is terminal in the category of cones. As a corollary, an equivalence of
-categories of cones preserves limiting properties. We also provide the dual.
+## Main results
+* The category of cones on `F : J ⥤ C` is equivalent to the category
+  `costructured_arrow (const J) F`.
+* A cone is limiting iff it is terminal in the category of cones. As a corollary, an equivalence of
+  categories of cones preserves limiting properties.
 
 -/
 
 namespace category_theory.limits
 
-open category_theory
+open category_theory category_theory.functor
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 variables {J : Type u₁} [category.{v₁} J] {K : Type u₂} [category.{v₂} K]
 variables {C : Type u₃} [category.{v₃} C] {D : Type u₄} [category.{v₄} D]
+
+/-- Construct an object of the category `(Δ ↓ F)` from a cone on `F`. This is part of an
+    equivalence, see `cone.equiv_costructured_arrow`. -/
+@[simps]
+def cone.to_costructured_arrow (F : J ⥤ C) : cone F ⥤ costructured_arrow (const J) F :=
+{ obj := λ c, costructured_arrow.mk c.π,
+  map := λ c d f, costructured_arrow.hom_mk f.hom $ by { ext, simp } }
+
+/-- Construct a cone on `F` from an object of the category `(Δ ↓ F)`. This is part of an
+    equivalence, see `cone.equiv_costructured_arrow`. -/
+@[simps]
+def cone.from_costructured_arrow (F : J ⥤ C) : costructured_arrow (const J) F ⥤ cone F :=
+{ obj := λ c, ⟨c.left, c.hom⟩,
+  map := λ c d f,
+  { hom := f.left,
+    w' := λ j, by { convert (congr_fun (congr_arg nat_trans.app f.w) j), dsimp, simp } } }
+
+/-- The category of cones on `F` is just the comma category `(Δ ↓ F)`, where `Δ` is the constant
+    functor. -/
+@[simps]
+def cone.equiv_costructured_arrow (F : J ⥤ C) : cone F ≌ costructured_arrow (const J) F :=
+equivalence.mk (cone.to_costructured_arrow F) (cone.from_costructured_arrow F)
+  (nat_iso.of_components cones.eta (by tidy))
+  (nat_iso.of_components (λ c, (costructured_arrow.eta _).symm) (by tidy))
 
 /-- A cone is a limit cone iff it is terminal. -/
 def cone.is_limit_equiv_is_terminal {F : J ⥤ C} (c : cone F) : is_limit c ≃ is_terminal c :=
@@ -61,6 +87,30 @@ def is_limit.of_reflects_cone_terminal {F : J ⥤ C} {F' : K ⥤ D} (G : cone F 
   is_limit c :=
 (cone.is_limit_equiv_is_terminal _).symm $
   (cone.is_limit_equiv_is_terminal _ hc).is_terminal_of_obj _ _
+
+/-- Construct an object of the category `(F ↓ Δ)` from a cocone on `F`. This is part of an
+    equivalence, see `cocone.equiv_structured_arrow`. -/
+@[simps]
+def cocone.to_structured_arrow (F : J ⥤ C) : cocone F ⥤ structured_arrow F (const J) :=
+{ obj := λ c, structured_arrow.mk c.ι,
+  map := λ c d f, structured_arrow.hom_mk f.hom $ by { ext, simp } }
+
+/-- Construct a cocone on `F` from an object of the category `(F ↓ Δ)`. This is part of an
+    equivalence, see `cocone.equiv_structured_arrow`. -/
+@[simps]
+def cocone.from_structured_arrow (F : J ⥤ C) : structured_arrow F (const J) ⥤ cocone F :=
+{ obj := λ c, ⟨c.right, c.hom⟩,
+  map := λ c d f,
+  { hom := f.right,
+    w' := λ j, by { convert (congr_fun (congr_arg nat_trans.app f.w) j).symm, dsimp, simp } } }
+
+/-- The category of cocones on `F` is just the comma category `(F ↓ Δ)`, where `Δ` is the constant
+    functor. -/
+@[simps]
+def cocone.equiv_structured_arrow (F : J ⥤ C) : cocone F ≌ structured_arrow F (const J) :=
+equivalence.mk (cocone.to_structured_arrow F) (cocone.from_structured_arrow F)
+  (nat_iso.of_components cocones.eta (by tidy))
+  (nat_iso.of_components (λ c, (structured_arrow.eta _).symm) (by tidy))
 
 /-- A cocone is a colimit cocone iff it is initial. -/
 def cocone.is_colimit_equiv_is_initial {F : J ⥤ C} (c : cocone F) : is_colimit c ≃ is_initial c :=

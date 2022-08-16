@@ -1647,7 +1647,6 @@ lemma star_mul [fintype n] [non_unital_semiring α] [star_ring α] (M N : matrix
   star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
 
 end star
-end matrix
 
 /-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
 a matrix `M : matrix m n α`, the matrix `M.on r_reindex c_reindex : matrix l o α` is defined
@@ -1656,10 +1655,8 @@ by `(M.on r_reindex c_reindex) i j = M (r_reindex i) (c_reindex j)` for `(i,j) :
 We call this function `matrix.on` because it resembles `function.on_fun M f` (written `M on f`
 using notation). Note that the total number of row and columns does not have to be preserved.
 If `r_reindex` and `c_reindex` are injective, then the resulting matrix is a submatrix. -/
-protected def matrix.on (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) : matrix l o α :=
+protected def «on» (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) : matrix l o α :=
 matrix.of $ λ i j, A (r_reindex i) (c_reindex j)
-
-namespace matrix
 
 @[simp] lemma on_apply (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) (i j) :
   A.on r_reindex c_reindex i j = A (r_reindex i) (c_reindex j) := rfl

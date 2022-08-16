@@ -232,7 +232,7 @@ rfl
 variables [fintype n'] [fintype m']
 variables [decidable_eq n'] [decidable_eq m']
 
-@[simp] lemma linear_map.to_matrix₂'_comp (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R)
+@[simp] lemma linear_map.to_matrix₂'_compl₁₂ (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R)
   (l : (n' → R) →ₗ[R] (n → R)) (r : (m' → R) →ₗ[R] (m → R)) :
   (B.compl₁₂ l r).to_matrix₂' = l.to_matrix'ᵀ ⬝ B.to_matrix₂' ⬝ r.to_matrix' :=
 begin
@@ -254,11 +254,11 @@ begin
   { intros, simp only [zero_smul, finsupp.sum_zero] }
 end
 
-lemma linear_map.to_matrix₂'_comp_left (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R)
+lemma linear_map.to_matrix₂'_comp (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R)
   (f : (n' → R) →ₗ[R] (n → R)) : (B.comp f).to_matrix₂' = f.to_matrix'ᵀ ⬝ B.to_matrix₂' :=
 by { rw [←linear_map.compl₂_id (B.comp f), ←linear_map.compl₁₂], simp }
 
-lemma linear_map.to_matrix₂'_comp_right (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R)
+lemma linear_map.to_matrix₂'_compl₂ (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R)
   (f : (m' → R) →ₗ[R] (m → R)) : (B.compl₂ f).to_matrix₂' = B.to_matrix₂' ⬝ f.to_matrix' :=
 by { rw [←linear_map.comp_id B, ←linear_map.compl₁₂], simp }
 
@@ -269,11 +269,11 @@ by simp
 
 lemma linear_map.mul_to_matrix' (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R) (M : matrix n' n R) :
   M ⬝ B.to_matrix₂' = (B.comp Mᵀ.to_lin').to_matrix₂' :=
-by simp only [B.to_matrix₂'_comp_left, transpose_transpose, to_matrix'_to_lin']
+by simp only [B.to_matrix₂'_comp, transpose_transpose, to_matrix'_to_lin']
 
 lemma linear_map.to_matrix₂'_mul (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R) (M : matrix m m' R) :
   B.to_matrix₂' ⬝ M = (B.compl₂ M.to_lin').to_matrix₂' :=
-by simp only [B.to_matrix₂'_comp_right, to_matrix'_to_lin']
+by simp only [B.to_matrix₂'_compl₂, to_matrix'_to_lin']
 
 lemma matrix.to_linear_map₂'_comp (M : matrix n m R) (P : matrix n n' R) (Q : matrix m m' R) :
   M.to_linear_map₂'.compl₁₂ P.to_lin' Q.to_lin' = (Pᵀ ⬝ M ⬝ Q).to_linear_map₂' :=
@@ -364,7 +364,7 @@ variables [fintype n'] [fintype m']
 variables [decidable_eq n'] [decidable_eq m']
 
 -- Cannot be a `simp` lemma because `b₁` and `b₂` must be inferred.
-lemma linear_map.to_matrix₂_comp
+lemma linear_map.to_matrix₂_compl₁₂
   (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (l : M₁' →ₗ[R] M₁) (r : M₂' →ₗ[R] M₂) :
   linear_map.to_matrix₂ b₁' b₂' (B.compl₁₂ l r) =
     (to_matrix b₁' b₁ l)ᵀ ⬝ linear_map.to_matrix₂ b₁ b₂ B ⬝ to_matrix b₂' b₂ r :=
@@ -386,50 +386,47 @@ begin
   { intros, simp only [zero_smul, finsupp.sum_zero] }
 end
 
-lemma linear_map.to_matrix₂_comp_left (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (f : M₁' →ₗ[R] M₁) :
+lemma linear_map.to_matrix₂_comp (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (f : M₁' →ₗ[R] M₁) :
   linear_map.to_matrix₂ b₁' b₂ (B.comp f) = (to_matrix b₁' b₁ f)ᵀ ⬝ linear_map.to_matrix₂ b₁ b₂ B :=
 begin
-  rw [←linear_map.compl₂_id (B.comp f), ←linear_map.compl₁₂, linear_map.to_matrix₂_comp b₁ b₂],
+  rw [←linear_map.compl₂_id (B.comp f), ←linear_map.compl₁₂, linear_map.to_matrix₂_compl₁₂ b₁ b₂],
   simp,
 end
 
-lemma linear_map.to_matrix₂_comp_right (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (f : M₂' →ₗ[R] M₂) :
+lemma linear_map.to_matrix₂_compl₂ (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (f : M₂' →ₗ[R] M₂) :
   linear_map.to_matrix₂ b₁ b₂' (B.compl₂ f) = linear_map.to_matrix₂ b₁ b₂ B ⬝ (to_matrix b₂' b₂ f) :=
-by { rw [←linear_map.comp_id B, ←linear_map.compl₁₂, linear_map.to_matrix₂_comp b₁ b₂], simp }
+by { rw [←linear_map.comp_id B, ←linear_map.compl₁₂, linear_map.to_matrix₂_compl₁₂ b₁ b₂], simp }
 
 @[simp]
 lemma bilin_form.to_matrix_mul_basis_to_matrix (c₁ : basis n' R M₁) (c₂ : basis m' R M₂)
   (B : M₁ →ₗ[R] M₂ →ₗ[R] R) : (b₁.to_matrix c₁)ᵀ ⬝ linear_map.to_matrix₂ b₁ b₂ B ⬝ b₂.to_matrix c₂ =
   linear_map.to_matrix₂ c₁ c₂ B :=
 begin
-  rw ←linear_map.to_matrix_id_eq_basis_to_matrix,
-  rw ←linear_map.to_matrix_id_eq_basis_to_matrix,
-  rw ←linear_map.to_matrix₂_comp,
-  rw linear_map.compl₁₂_id_id,
+  simp_rw ←linear_map.to_matrix_id_eq_basis_to_matrix,
+  rw [←linear_map.to_matrix₂_compl₁₂, linear_map.compl₁₂_id_id],
 end
---by rw [← linear_map.to_matrix_id_eq_basis_to_matrix, ←linear_map.to_matrix₂_comp,
---       bilin_form.comp_id_id]
 
-/-
-lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₂ M₂)
-  (M : matrix o n R₂) (N : matrix n o R₂) :
-  M ⬝ bilin_form.to_matrix b B ⬝ N =
-    bilin_form.to_matrix c (B.comp (to_lin c b Mᵀ) (to_lin c b N)) :=
-by simp only [B.to_matrix_comp b c, to_matrix_to_lin, transpose_transpose]
+lemma bilin_form.mul_to_matrix_mul (B : M₁ →ₗ[R] M₂ →ₗ[R] R)
+  (M : matrix n' n R) (N : matrix m m' R) :
+  M ⬝ linear_map.to_matrix₂ b₁ b₂ B ⬝ N =
+    linear_map.to_matrix₂ b₁' b₂' (B.compl₁₂ (to_lin b₁' b₁ Mᵀ) (to_lin b₂' b₂ N)) :=
+by simp_rw [linear_map.to_matrix₂_compl₁₂ b₁ b₂, to_matrix_to_lin, transpose_transpose]
 
-lemma bilin_form.mul_to_matrix (B : bilin_form R₂ M₂) (M : matrix n n R₂) :
-  M ⬝ bilin_form.to_matrix b B =
-    bilin_form.to_matrix b (B.comp_left (to_lin b b Mᵀ)) :=
-by rw [B.to_matrix_comp_left b, to_matrix_to_lin, transpose_transpose]
+lemma bilin_form.mul_to_matrix (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (M : matrix n' n R) :
+  M ⬝ linear_map.to_matrix₂ b₁ b₂ B =
+    linear_map.to_matrix₂ b₁' b₂ (B.comp (to_lin b₁' b₁ Mᵀ)) :=
+by rw [linear_map.to_matrix₂_comp b₁, to_matrix_to_lin, transpose_transpose]
 
-lemma bilin_form.to_matrix_mul (B : bilin_form R₂ M₂) (M : matrix n n R₂) :
-  bilin_form.to_matrix b B ⬝ M =
-    bilin_form.to_matrix b (B.comp_right (to_lin b b M)) :=
-by rw [B.to_matrix_comp_right b, to_matrix_to_lin]
+lemma bilin_form.to_matrix_mul (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (M : matrix m m' R) :
+  linear_map.to_matrix₂ b₁ b₂ B ⬝ M =
+    linear_map.to_matrix₂ b₁ b₂' (B.compl₂ (to_lin b₂' b₂ M)) :=
+by rw [linear_map.to_matrix₂_compl₂ b₁, to_matrix_to_lin]
 
-lemma matrix.to_bilin_comp (M : matrix n n R₂) (P Q : matrix n o R₂) :
-  (matrix.to_bilin b M).comp (to_lin c b P) (to_lin c b Q) = matrix.to_bilin c (Pᵀ ⬝ M ⬝ Q) :=
-(bilin_form.to_matrix c).injective
-  (by simp only [bilin_form.to_matrix_comp b c, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
--/
+lemma matrix.to_bilin_comp (M : matrix n m R) (P : matrix n n' R) (Q : matrix m m' R) :
+  (matrix.to_linear_map₂ b₁ b₂ M).compl₁₂ (to_lin b₁' b₁ P) (to_lin b₂' b₂ Q) =
+  matrix.to_linear_map₂ b₁' b₂' (Pᵀ ⬝ M ⬝ Q) :=
+(linear_map.to_matrix₂ b₁' b₂').injective
+  (by simp only [linear_map.to_matrix₂_compl₁₂ b₁ b₂, linear_map.to_matrix₂_to_linear_map₂,
+    to_matrix_to_lin])
+
 end to_matrix

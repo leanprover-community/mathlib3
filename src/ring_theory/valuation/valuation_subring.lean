@@ -12,7 +12,7 @@ import algebraic_geometry.prime_spectrum.basic
 
 # Valuation subrings of a field
 
-# Projects
+## Projects
 
 The order structure on `valuation_subring K`.
 
@@ -642,6 +642,9 @@ This transfers the action from `subring.pointwise_mul_action`, noting that it on
 the action is by a group. Notably this provides an instances when `G` is `K ≃+* K`.
 
 These instances are in the `pointwise` locale.
+
+The lemmas in this section are copied from `ring_theory/subring/pointwise.lean`; try to keep these
+in sync.
 -/
 section pointwise_actions
 open_locale pointwise
@@ -652,8 +655,8 @@ variables {G : Type*} [group G] [mul_semiring_action G K]
 
 This is available as an instance in the `pointwise` locale. -/
 def pointwise_has_smul : has_smul G (valuation_subring K) :=
-{ smul := λ g S, {
-    mem_or_inv_mem' := λ x, begin
+{ smul := λ g S,
+  { mem_or_inv_mem' := λ x, begin
       dsimp,
       refine (mem_or_inv_mem S (g⁻¹ • x)).imp (λ h, _) (λ h, _);
       { simpa using subring.smul_mem_pointwise_smul g _ _ h }
@@ -662,7 +665,6 @@ def pointwise_has_smul : has_smul G (valuation_subring K) :=
 
 localized "attribute [instance] valuation_subring.pointwise_has_smul" in pointwise
 open_locale pointwise
-
 
 @[simp] lemma coe_pointwise_smul (g : G) (S : valuation_subring K) : ↑(g • S) = g • (S : set K) :=
 rfl
@@ -681,18 +683,37 @@ to_subring_injective.mul_action to_subring pointwise_smul_to_subring
 localized "attribute [instance] valuation_subring.pointwise_mul_action" in pointwise
 open_locale pointwise
 
-lemma smul_mem_pointwise_smul (g : G) (k : K) (S : valuation_subring K) : k ∈ S → g • k ∈ g • S :=
+lemma smul_mem_pointwise_smul (g : G) (x : K) (S : valuation_subring K) : x ∈ S → g • x ∈ g • S :=
 (set.smul_mem_smul_set : _ → _ ∈ g • (S : set K))
 
-lemma mem_smul_pointwise_iff_exists (g : G) (k : K) (S : valuation_subring K) :
-  k ∈ g • S ↔ ∃ (s : K), s ∈ S ∧ g • s = k :=
-(set.mem_smul_set : k ∈ g • (S : set K) ↔ _)
+lemma mem_smul_pointwise_iff_exists (g : G) (x : K) (S : valuation_subring K) :
+  x ∈ g • S ↔ ∃ (s : K), s ∈ S ∧ g • s = x :=
+(set.mem_smul_set : x ∈ g • (S : set K) ↔ _)
 
 instance pointwise_central_scalar [mul_semiring_action Gᵐᵒᵖ K] [is_central_scalar G K] :
   is_central_scalar G (valuation_subring K) :=
-⟨λ a S, to_subring_injective $ by exact op_smul_eq_smul _⟩
+⟨λ g S, to_subring_injective $ by exact op_smul_eq_smul g S.to_subring⟩
 
--- TODO: copy across the group lemmas from `ring_theory/subring/pointwise.lean`
+@[simp] lemma smul_mem_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} :
+  g • x ∈ g • S ↔ x ∈ S :=
+set.smul_mem_smul_set_iff
+
+lemma mem_pointwise_smul_iff_inv_smul_mem {g : G} {S : valuation_subring K} {x : K} :
+  x ∈ g • S ↔ g⁻¹ • x ∈ S :=
+set.mem_smul_set_iff_inv_smul_mem
+
+lemma mem_inv_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} : x ∈ g⁻¹ • S ↔ g • x ∈ S :=
+set.mem_inv_smul_set_iff
+
+@[simp] lemma pointwise_smul_le_pointwise_smul_iff {g : G} {S T : valuation_subring K} :
+  g • S ≤ g • T ↔ S ≤ T :=
+set.set_smul_subset_set_smul_iff
+
+lemma pointwise_smul_subset_iff {g : G} {S T : valuation_subring K} : g • S ≤ T ↔ S ≤ g⁻¹ • T :=
+set.set_smul_subset_iff
+
+lemma subset_pointwise_smul_iff {g : G} {S T : valuation_subring K} : S ≤ g • T ↔ g⁻¹ • S ≤ T :=
+set.subset_set_smul_iff
 
 end pointwise_actions
 

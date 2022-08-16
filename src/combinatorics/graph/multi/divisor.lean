@@ -3,23 +3,28 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import combinatorics.simple_graph.connectivity
-import combinatorics.simple_graph.degree_sum
-import combinatorics.simple_graph.matrix.laplacian
-import linear_algebra.matrix.to_linear_equiv
+import algebra.big_operators.order
+import combinatorics.graph.multi.connectivity
+import combinatorics.graph.multi.degree
+import data.int.order
+import linear_algebra.quotient
 
 /-!
 # Divisors of simple graphs
 
-A *divisor* of a graph `G` with vertices `α` is a function `α → ℤ` up to chip-firing equivalence.
+A *divisor* of a graph `G` with vertices `α` is a function `G → ℤ`.
 
 ## Tags
 
 divisor, simple graph, chip firing, sandpile
 -/
 
+local attribute [-simp] set.to_finset_card
+
 namespace function
 variables {α β M₁ M₂ : Type*}
+
+attribute [reducible] surjective.add_group_with_one
 
 namespace surjective
 
@@ -119,64 +124,59 @@ end submodule.quotient
 open finset function fintype (card)
 open_locale big_operators
 
-noncomputable theory
+namespace multigraph
+variables (G : multigraph) [locally_finite G]
 
-namespace simple_graph
-variables {α : Type*} [decidable_eq α] [fintype α] (G : simple_graph α) [decidable_rel G.adj]
-
-/-- A *divisor* of the graph `G` is an equivalence class of formal sums of vertices of `G` under
-linear equivalence. This is also known as the Picard group. -/
-@[derive add_comm_group_with_one]
-def divisor : Type* :=
-(α → ℤ) ⧸ (matrix.to_lin (pi.basis_fun ℤ _) (pi.basis_fun ℤ _) $ G.laplacian ℤ).ker
+/-- The Picard group of the graph `G` is the quotient of divisors of `G` by the image of the
+Laplacian. -/
+@[derive add_comm_group_with_one] def picard_group : Type* := (G → ℤ) ⧸ (G.laplacian ℤ ℤ).range
 
 variables {G}
 
-namespace divisor
-variables {f g : α → ℤ} {d e : G.divisor}
+namespace picard_group
+variables {f g : G → ℤ} {d e : G.picard_group}
 
-/-- The divisor corresponding to a formal sum. -/
-def mk : (α → ℤ) →+ G.divisor := quotient_add_group.mk' _
+/-- The picard_group corresponding to a formal sum. -/
+def mk : (G → ℤ) →+ G.picard_group := quotient_add_group.mk' _
 
-lemma mk_surjective : surjective (mk : (α → ℤ) → G.divisor) := surjective_quot_mk _
+lemma mk_surjective : surjective (mk : (G → ℤ) → G.picard_group) := surjective_quot_mk _
 
-@[simp] lemma mk_zero : (mk 0 : G.divisor) = 0 := rfl
-@[simp] lemma mk_one : (mk 1 : G.divisor) = 1 := rfl
-@[simp] lemma neg_mk (f : α → ℤ) : (-mk f : G.divisor) = mk (-f) := rfl
-@[simp] lemma mk_add_mk (f g : α → ℤ) : (mk f + mk g : G.divisor) = mk (f + g) := rfl
-@[simp] lemma mk_sub_mk (f g : α → ℤ) : (mk f - mk g : G.divisor) = mk (f - g) := rfl
-@[simp] lemma mk_nsmul (f : α → ℤ) (n : ℕ) : (mk (n • f) : G.divisor) = n • mk f := rfl
-@[simp] lemma mk_zsmul (f : α → ℤ) (n : ℤ) : (mk (n • f) : G.divisor) = n • mk f := rfl
-@[simp] lemma mk_nat_cast (n : ℕ) : (mk n : G.divisor) = n := rfl
-@[simp] lemma mk_int_cast (n : ℤ) : (mk n : G.divisor) = n := rfl
+@[simp] lemma mk_zero : (mk 0 : G.picard_group) = 0 := rfl
+@[simp] lemma mk_one : (mk 1 : G.picard_group) = 1 := rfl
+@[simp] lemma mk_neg (f : G → ℤ) : (mk (-f) : G.picard_group) = -mk f := rfl
+@[simp] lemma mk_add (f g : G → ℤ) : (mk (f + g) : G.picard_group) = mk f + mk g := rfl
+@[simp] lemma mk_sub (f g : G → ℤ) : (mk (f - g) : G.picard_group) = mk f - mk g := rfl
+@[simp, nolint simp_nf]
+lemma mk_nsmul (f : G → ℤ) (n : ℕ) : (mk (n • f) : G.picard_group) = n • mk f := rfl
+@[simp, nolint simp_nf]
+lemma mk_zsmul (f : G → ℤ) (n : ℤ) : (mk (n • f) : G.picard_group) = n • mk f := rfl
+@[simp, nolint simp_nf] lemma mk_nat_cast (n : ℕ) : (mk n : G.picard_group) = n := rfl
+@[simp, nolint simp_nf] lemma mk_int_cast (n : ℤ) : (mk n : G.picard_group) = n := rfl
+
+instance : inhabited G.picard_group := ⟨0⟩
+
+instance : has_le G.picard_group := ⟨λ a b, ∃ a', a = mk a' ∧ ∃ b', b = mk b' ∧ a' ≤ b'⟩
+instance : has_lt G.picard_group := ⟨λ a b, ∃ a', a = mk a' ∧ ∃ b', b = mk b' ∧ a' < b'⟩
+
+variables [fintype G]
 
 /-- The degree of a divisor is the sum of its coefficients. -/
-def degree : G.divisor →+ ℤ := quotient_add_group.lift _
-{ to_fun := λ f : α → ℤ, ∑ a, f a,
+def degree : G.picard_group →+ ℤ := quotient_add_group.lift _
+{ to_fun := λ f : G → ℤ, ∑ a, f a,
   map_zero' := sum_eq_zero $ λ _ _, rfl,
-  map_add' := λ f g, sum_add_distrib } $ begin
-  rintro f hf,
-  simp only [submodule.mem_to_add_subgroup, linear_map.mem_ker, matrix.to_lin, linear_map.to_matrix] at hf,
-  simp only [linear_equiv.trans_symm, linear_map.to_matrix'_symm, linear_equiv.trans_apply,
-    linear_equiv.arrow_congr_symm_apply, basis.equiv_fun_apply, matrix.to_lin'_apply,
-    basis.equiv_fun_symm_apply, pi.basis_fun_apply, zsmul_eq_mul] at hf,
-  sorry
-end
+  map_add' := λ f g, sum_add_distrib } $ by { rintro _ ⟨f, rfl⟩, exact sum_laplacian _ _ _ _ }
 
-@[simp] lemma degree_mk (f : α → ℤ) : (mk f : G.divisor).degree = ∑ a, f a := rfl
+@[simp] lemma degree_mk (f : G → ℤ) : (mk f : G.picard_group).degree = ∑ a, f a := rfl
 
-@[simp] lemma degree_of_is_empty [is_empty α] : ∀ d : G.divisor, d.degree = 0 :=
+@[simp] lemma degree_of_is_empty [is_empty G] : ∀ d : G.picard_group, d.degree = 0 :=
 mk_surjective.forall.2 $ λ f, by simp
 
 variable (G)
 
-lemma exists_degree_eq [nonempty α] (n : ℤ) : ∃ d : G.divisor, d.degree = n :=
-‹nonempty α›.elim $ λ a, ⟨mk (pi.single a n), by simp⟩
+lemma exists_degree_eq [nonempty G] (n : ℤ) : ∃ d : G.picard_group, d.degree = n :=
+by { classical, exact ‹nonempty G›.elim (λ a, ⟨mk (pi.single a n), by simp⟩) }
 
 variables {G}
-
-instance : has_le G.divisor := ⟨λ a b, ∃ a', a = mk a' ∧ ∃ b', b = mk b' ∧ a' ≤ b'⟩
-instance : has_lt G.divisor := ⟨λ a b, ∃ a', a = mk a' ∧ ∃ b', b = mk b' ∧ a' < b'⟩
 
 lemma degree_le_degree : d ≤ e → d.degree ≤ e.degree :=
 by { rintro ⟨a, rfl, b, rfl, h⟩, exact fintype.sum_mono h }
@@ -184,75 +184,73 @@ by { rintro ⟨a, rfl, b, rfl, h⟩, exact fintype.sum_mono h }
 lemma degree_lt_degree : d < e → d.degree < e.degree :=
 by { rintro ⟨a, rfl, b, rfl, h⟩, exact fintype.sum_strict_mono h }
 
-instance : preorder G.divisor :=
+instance : preorder G.picard_group :=
 { le_refl := λ a, quot.induction_on a $ λ a, ⟨a, rfl, a, rfl, le_rfl⟩,
   le_trans := λ a b c, begin
     rintro ⟨a, rfl, b, rfl, hab⟩ ⟨b', hb', c, rfl, hbc⟩,
     sorry
   end,
   lt_iff_le_not_le := sorry,
-  ..divisor.has_le, ..divisor.has_lt }
+  ..picard_group.has_le, ..picard_group.has_lt }
 
-lemma degree_mono : monotone (degree : G.divisor → ℤ) := λ _ _, degree_le_degree
-lemma degree_strict_mono : strict_mono (degree : G.divisor → ℤ) := λ _ _, degree_lt_degree
+lemma degree_mono : monotone (degree : G.picard_group → ℤ) := λ _ _, degree_le_degree
+lemma degree_strict_mono : strict_mono (degree : G.picard_group → ℤ) := λ _ _, degree_lt_degree
 
-@[simp] lemma degree_one : (1 : G.divisor).degree = card α :=
+@[simp] lemma degree_one : (1 : G.picard_group).degree = card G :=
 (sum_const 1).trans $ nat.smul_one_eq_coe _
 
-@[simp] lemma degree_nat_cast (n : ℕ) : (n : G.divisor).degree = card α * n :=
+@[simp] lemma degree_nat_cast (n : ℕ) : (n : G.picard_group).degree = card G * n :=
 (sum_const (n : ℤ)).trans $ nsmul_eq_mul _ _
 
-@[simp] lemma degree_int_cast (n : ℤ) : (n : G.divisor).degree = card α * n :=
+@[simp] lemma degree_int_cast (n : ℤ) : (n : G.picard_group).degree = card G * n :=
 (sum_const n).trans $ nsmul_eq_mul _ _
 
 /-- The rank of a divisor `d` is the greatest `n` such that all divisors of degree `n` are less than
 `d`. -/
-noncomputable def rank (d : G.divisor) : ℤ := Sup {n : ℤ | ∀ ⦃e : G.divisor⦄, e.degree = n → e ≤ d}
+noncomputable def rank (d : G.picard_group) : ℤ :=
+Sup {n : ℤ | ∀ ⦃e : G.picard_group⦄, e.degree = n → e ≤ d}
 
-lemma rank_set_nonempty (hG : G.preconnected) (d : G.divisor) :
-  {n : ℤ | ∀ ⦃e : G.divisor⦄, e.degree = n → e ≤ d}.nonempty := sorry --quite hard
+lemma rank_set_nonempty (hG : G.preconnected) (d : G.picard_group) :
+  {n : ℤ | ∀ ⦃e : G.picard_group⦄, e.degree = n → e ≤ d}.nonempty := sorry --quite hard
 
-@[simp] lemma rank_of_is_empty [is_empty α] (d : G.divisor) : d.rank = 0 := sorry
+@[simp] lemma rank_of_is_empty [is_empty G] (d : G.picard_group) : d.rank = 0 := sorry
 
-lemma rank_le_degree (hG : G.preconnected) (d : G.divisor) : d.rank ≤ d.degree :=
+lemma rank_le_degree (hG : G.preconnected) (d : G.picard_group) : d.rank ≤ d.degree :=
 begin
-  casesI is_empty_or_nonempty α,
+  casesI is_empty_or_nonempty G,
   { simp },
   refine cSup_le (d.rank_set_nonempty hG) (λ n hn, _),
   obtain ⟨e, rfl⟩ := exists_degree_eq G n,
   exact degree_mono (hn rfl),
 end
 
-@[simp] lemma rank_zero : (0 : G.divisor).rank = 0 := sorry
-@[simp] lemma le_rank_one : 1 ≤ (1 : G.divisor).rank := sorry
-@[simp] lemma le_rank_nat_cast (n : ℕ) : (n : ℤ) ≤ (n : G.divisor).rank := sorry
-@[simp] lemma le_rank_int_cast (n : ℤ) : n ≤ (n : G.divisor).rank := sorry
+@[simp] lemma rank_zero : (0 : G.picard_group).rank = 0 := sorry
+@[simp] lemma le_rank_one : 1 ≤ (1 : G.picard_group).rank := sorry
+@[simp] lemma le_rank_nat_cast (n : ℕ) : (n : ℤ) ≤ (n : G.picard_group).rank := sorry
+@[simp] lemma le_rank_int_cast (n : ℤ) : n ≤ (n : G.picard_group).rank := sorry
 
-end divisor
+end picard_group
 
-open divisor
+open picard_group
 
 variables (G)
 
-lemma gonality_aux : ∃ (n : ℕ) (d : G.divisor), 0 < d.rank ∧ d.degree = n :=
-⟨card α, 1, zero_lt_one.trans_le le_rank_one, degree_one⟩
+/-- The canonical divisor of a graph. -/
+def canonical_divisor : G.picard_group := picard_group.mk $ λ a, G.degree a - 2
+
+variables [fintype G]
+
+lemma gonality_aux : ∃ (n : ℕ) (d : G.picard_group), 0 < d.rank ∧ d.degree = n :=
+⟨card G, 1, zero_lt_one.trans_le le_rank_one, degree_one⟩
 
 open_locale classical
 
-/-- The gonality of a graph is the minimum degree of a divisor of positive rank. -/
+/-- The gonality of a graph is the minimum degree of a picard_group of positive rank. -/
 noncomputable def gonality : ℕ := nat.find G.gonality_aux
 
-/-- The genus of a graph is its first Betti number, namely the number of eges minus the number of
-vertices plus one. -/
-def genus : ℤ := G.edge_finset.card - card α + 1
+@[simp] lemma degree_canonical_divisor [fintype G.E] :
+  G.canonical_divisor.degree = 2 * G.genus - 2 := sorry
+-- by simp [canonical_divisor, genus, ←nat.cast_sum, sum_degrees_eq_twice_card_edges, mul_add,
+--   mul_sub, mul_comm, card_univ]
 
-/-- The canonical divisor of a graph. -/
-def canonical_divisor : G.divisor := divisor.mk $ λ a, G.degree a - 2
-
-local attribute [-simp] set.to_finset_card
-
-@[simp] lemma degree_canonical_divisor : G.canonical_divisor.degree = 2 * G.genus - 2 :=
-by simp [canonical_divisor, genus, ←nat.cast_sum, sum_degrees_eq_twice_card_edges, mul_add, mul_sub,
-  mul_comm, card_univ]
-
-end simple_graph
+end multigraph

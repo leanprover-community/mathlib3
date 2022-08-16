@@ -20,21 +20,22 @@ This file defines stuff.
 * `multigraph.laplacian`: The Laplacian of a multigraph.
 -/
 
+open fintype (card)
 open_locale big_operators
 
 namespace multigraph
 variables (G : multigraph) (R M : Type*) [ring R] [add_comm_group M] [module R M]
 
 /-- The link of a vertex is the edges that leave from it. -/
-@[reducible] def link (v : G.V) := {e : G.E // G.fst e = v}
+@[reducible] def link (v : G) := {e : G.E // G.fst e = v}
 
-@[simp] lemma link_fst (v : G.V) (e : G.link v) : G.fst e = v := e.2
+@[simp] lemma link_fst (v : G) (e : G.link v) : G.fst e = v := e.2
 
 /-- A multigraph is locally finite if each vertex has only finitely many edges leaving from it. -/
 abbreviation locally_finite := Π v, fintype (G.link v)
 
 /-- The degree of a vertex is the number of edges incident to it. -/
-def degree [locally_finite G] (v : G.V) : ℕ := fintype.card (G.link v)
+def degree [locally_finite G] (v : G) : ℕ := fintype.card (G.link v)
 
 /-- The `1`-chains with coefficients in `M`. -/
 def C₁ : submodule R (G.E → M) :=
@@ -66,27 +67,35 @@ instance : has_coe_to_fun (C₁ G R M) (λ _, G.E → M) := ⟨subtype.val⟩
 end C₁
 
 /-- The coboundary of a divisor. -/
-@[simps] def coboundary : (G.V → M) →ₗ[R] C₁ G R M :=
+@[simps] def coboundary : (G → M) →ₗ[R] C₁ G R M :=
 { to_fun := λ f, ⟨λ e, f (G.fst e) - f (G.snd e), λ e, by simp⟩ ,
   map_add' := λ f g, by { ext, simp [add_sub_add_comm] },
   map_smul' := λ r f, by { ext, simp [smul_sub] } }
 
-@[simp] lemma coboundary_apply (f : G.V → M) (e : G.E) :
+@[simp] lemma coboundary_apply (f : G → M) (e : G.E) :
   coboundary G R M f e = f (G.fst e) - f (G.snd e) := rfl
+
+/-- The genus of a graph is its first Betti number, namely the number of eges minus the number of
+vertices plus one. -/
+def genus [fintype G] [fintype G.E] : ℤ := card G.E - card G + 1
 
 variables [locally_finite G]
 
 /-- The boundary of a `1`-chain. -/
-@[simps] def boundary : C₁ G R M →ₗ[R] G.V → M :=
+@[simps] def boundary : C₁ G R M →ₗ[R] G → M :=
 { to_fun := λ f v, ∑ e : G.link v, f e,
   map_add' := λ f g, by { ext, simp [finset.sum_add_distrib] },
   map_smul' := λ r f, by { ext, simp [finset.smul_sum] } }
 
 /-- The Laplacian of a multigraph. -/
-def laplacian : (G.V → M) →ₗ[R] G.V → M := G.boundary R M ∘ₗ G.coboundary R M
+def laplacian : (G → M) →ₗ[R] G → M := G.boundary R M ∘ₗ G.coboundary R M
 
-lemma laplacian_apply (f : G.V → M) (v : G.V) :
+@[simp] lemma laplacian_apply (f : G → M) (v : G) :
   G.laplacian R M f v = G.degree v • f v - ∑ e : G.link v, f (G.snd e) :=
 by simp [laplacian, degree, fintype.card]
+
+variables [fintype G]
+
+@[simp] lemma sum_laplacian (f : G → M) : ∑ v, G.laplacian R M f v = 0 := sorry
 
 end multigraph

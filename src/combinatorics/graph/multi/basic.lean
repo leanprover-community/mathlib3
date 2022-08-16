@@ -20,6 +20,10 @@ with one vertex and one half-loop.
 * `multigraph`: Multigraphs. Also the category of multigraphs.
 * `multigraph.discrete`: For a type `X`, the graph with a single half-loop at `x : X` and no other
   edge.
+
+## References
+
+* [Evan Patterson, *Graphs and C-sets*](https://www.algebraicjulia.org/blog/post/2020/09/cset-graphs-1/)
 -/
 
 open category_theory category_theory.limits

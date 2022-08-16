@@ -3,7 +3,7 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
-import combinatorics.simple_graph.matrix.adjacency
+import combinatorics.simple_graph.adj_matrix
 import linear_algebra.matrix.charpoly.finite_field
 import data.int.modeq
 import data.zmod.basic

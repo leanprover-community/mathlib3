@@ -36,7 +36,7 @@ incidence matrix for each `simple_graph α` has the same type.
 ## TODO
 
 * Define the oriented incidence matrices for oriented graphs.
-* Relate the graph Laplacian of a simple graph to the oriented incidence matrix from an
+* Define the graph Laplacian of a simple graph to the oriented incidence matrix from an
   arbitrary orientation of a simple graph.
 -/
 

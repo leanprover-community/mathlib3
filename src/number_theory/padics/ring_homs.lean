@@ -164,7 +164,7 @@ begin
   simp only [pow_one] at this,
   specialize this hm hn,
   apply_fun zmod.cast_hom (show p ∣ p ^ 1, by rw pow_one) (zmod p) at this,
-  simp only [ring_hom.map_int_cast] at this,
+  simp only [map_int_cast] at this,
   simpa only [int.cast_coe_nat] using this
 end
 

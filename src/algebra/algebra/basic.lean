@@ -753,9 +753,6 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 protected lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
 protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
-@[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
-φ.to_ring_hom.map_int_cast n
-
 end ring
 
 end alg_hom

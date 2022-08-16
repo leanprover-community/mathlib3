@@ -259,8 +259,7 @@ begin
     simp },
   haveI : ne_zero ((n : ℕ) : E) := (ne_zero.of_no_zero_smul_divisors K _ (n : ℕ)),
   rw [this, cyclotomic', ← cyclotomic_eq_prod_X_sub_primitive_roots (is_root_cyclotomic_iff.1 hz),
-      ← map_cyclotomic_int, (algebra_map K E).map_int_cast, ←int.cast_one, eval_int_cast_map,
-      ring_hom.eq_int_cast, int.cast_id]
+    ← map_cyclotomic_int, map_int_cast, ←int.cast_one, eval_int_cast_map, eq_int_cast', int.cast_id]
 end
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for

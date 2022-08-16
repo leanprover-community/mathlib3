@@ -266,8 +266,7 @@ lemma cast_nat_cast (h : m ∣ n) (k : ℕ) : ((k : zmod n) : R) = k :=
 map_nat_cast (cast_hom h R) k
 
 @[simp, norm_cast]
-lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k :=
-(cast_hom h R).map_int_cast k
+lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k := map_int_cast (cast_hom h R) k
 
 end char_dvd
 
@@ -305,7 +304,7 @@ begin
   rw injective_iff_map_eq_zero,
   intro x,
   obtain ⟨k, rfl⟩ := zmod.int_cast_surjective x,
-  rw [ring_hom.map_int_cast, char_p.int_cast_eq_zero_iff R n,
+  rw [map_int_cast, char_p.int_cast_eq_zero_iff R n,
     char_p.int_cast_eq_zero_iff (zmod n) n],
   exact id
 end

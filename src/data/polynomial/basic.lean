@@ -807,10 +807,6 @@ by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_righ
 @[simp] lemma support_neg {p : R[X]} : (-p).support = p.support :=
 by { rcases p, rw [←of_finsupp_neg, support, support, finsupp.support_neg] }
 
-@[simp]
-lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
-(C : R →+* _).map_int_cast n
-
 end ring
 
 instance [comm_ring R] : comm_ring R[X] :=

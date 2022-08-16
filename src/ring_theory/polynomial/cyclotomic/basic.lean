@@ -313,7 +313,7 @@ end
 begin
   rw [←map_cyclotomic_int n R, ←map_cyclotomic_int n S],
   ext i,
-  simp only [coeff_map, ring_hom.eq_int_cast, ring_hom.map_int_cast]
+  simp only [coeff_map, ring_hom.eq_int_cast, map_int_cast]
 end
 
 lemma cyclotomic.eval_apply {R S : Type*} (q : R) (n : ℕ) [ring R] [ring S] (f : R →+* S) :

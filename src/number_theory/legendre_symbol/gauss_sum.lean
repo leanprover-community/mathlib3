@@ -310,7 +310,7 @@ begin
   { rw [(by norm_num : (8 : F) = 2 ^ 2 * 2), mul_pow,
       (finite_field.is_square_iff hF $ hp2 2).mp ⟨2, pow_two 2⟩, one_mul] },
   apply (algebra_map F FF).injective,
-  simp only [map_pow, map_bit0, map_one, ring_hom.map_int_cast],
+  simp only [map_pow, map_bit0, map_one, map_int_cast],
   convert h, norm_num,
 end
 

@@ -2124,6 +2124,8 @@ hf.smul hg
 
 /-! ### Smoothness of an open embedding and its inverse -/
 
+namespace open_embedding
+
 lemma cont_mdiff_open_embedding
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -2186,3 +2188,5 @@ begin
   rw [set.preimage_inter] at this,
   exact this.1
 end
+
+end open_embedding

@@ -94,7 +94,7 @@ begin
   exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_right_inj _).not.mpr bc)⟩,
 end
 
---  can this proof by replaced by the previous one interlaced with `Nᵃᵒᵖ`?
+--  can this proof by replaced by the previous one applied to `Nᵃᵒᵖ` and interlaced with `op unop`?
 lemma add_diff_add_eq_right [add_right_cancel_monoid N] {f g : α →₀ N} (h : α →₀ N):
   (f + h).diff (g + h) = f.diff g  :=
 begin

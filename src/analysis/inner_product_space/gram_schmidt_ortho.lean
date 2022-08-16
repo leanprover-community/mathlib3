@@ -202,7 +202,7 @@ linear_independent_of_ne_zero_of_inner_eq_zero
 noncomputable def gram_schmidt_basis (b : basis ι 𝕜 E) : basis ι 𝕜 E :=
 basis.mk
   (gram_schmidt_linear_independent 𝕜 b b.linear_independent)
-  ((span_gram_schmidt 𝕜 b).trans b.span_eq)
+  ((span_gram_schmidt 𝕜 b).trans b.span_eq).ge
 
 lemma coe_gram_schmidt_basis (b : basis ι 𝕜 E) :
   (gram_schmidt_basis 𝕜 b : ι → E) = gram_schmidt 𝕜 b := basis.coe_mk _ _
@@ -259,4 +259,4 @@ noncomputable def gram_schmidt_orthonormal_basis [fintype ι] (b : basis ι 𝕜
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk
   (gram_schmidt_orthonormal 𝕜 b b.linear_independent)
-  (((span_gram_schmidt_normed_range 𝕜 b).trans (span_gram_schmidt 𝕜 b)).trans b.span_eq)
+  (((span_gram_schmidt_normed_range 𝕜 b).trans (span_gram_schmidt 𝕜 b)).trans b.span_eq).ge

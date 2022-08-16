@@ -206,7 +206,7 @@ lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁
 /-- `matrix.kronecker` as a bilinear map. -/
 def kronecker_bilinear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
-kronecker_map_bilinear (algebra.lmul R α).to_linear_map
+kronecker_map_bilinear (algebra.lmul R α)
 
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
 hypotheses which can be filled by properties of `*`. -/

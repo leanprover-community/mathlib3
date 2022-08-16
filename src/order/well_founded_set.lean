@@ -337,7 +337,7 @@ partially_well_ordered_on_iff_exists_monotone_subseq
 
 lemma is_pwo.prod (hs : s.is_pwo)
   (ht : t.is_pwo) :
-  (s ×ˢ t : set _).is_pwo :=
+  (s ×ˢ t).is_pwo :=
 begin
   classical,
   rw is_pwo_iff_exists_monotone_subseq at *,

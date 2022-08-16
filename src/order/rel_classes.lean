@@ -147,6 +147,7 @@ See note [reducible non-instances]. -/
 
 /-- This is basically the same as `is_strict_total_order`, but that definition has a redundant
 assumption `is_incomp_trans α lt`. -/
+-- TODO: This is now exactly the same as `is_strict_total_order`, remove.
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
 
@@ -200,7 +201,17 @@ instance is_order_connected_of_is_strict_total_order'
 @[priority 100] -- see Note [lower instance priority]
 instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
-{..is_strict_weak_order_of_is_order_connected}
+{ }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_strict_weak_order_of_is_strict_total_order'
+  [is_strict_total_order' α r] : is_strict_weak_order α r :=
+{ ..is_strict_weak_order_of_is_order_connected }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_strict_weak_order_of_is_strict_total_order
+  [is_strict_total_order α r] : is_strict_weak_order α r :=
+by { haveI : is_strict_total_order' α r := {}, apply_instance }
 
 /-! ### Well-order -/
 

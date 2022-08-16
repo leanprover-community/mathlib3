@@ -308,8 +308,63 @@ begin
       linarith, } },
 end
 
+lemma int_lt_one_iff (m : ℤ) : padic_norm p m < 1 ↔ (p : ℤ) ∣ m :=
+begin
+  rw [← not_iff_not, ← int_eq_one_iff, eq_iff_le_not_lt],
+  simp only [padic_norm.of_int, true_and],
+end
+
+lemma of_nat (m : ℕ) : padic_norm p m ≤ 1 :=
+padic_norm.of_int p (m : ℤ)
+
 /-- The `p`-adic norm of a natural `m` is one iff `p` doesn't divide `m`. -/
 lemma nat_eq_one_iff (m : ℕ) : padic_norm p m = 1 ↔ ¬ p ∣ m :=
-by simp [← int.coe_nat_dvd, ← int_eq_one_iff]
+by simp only [←int.coe_nat_dvd, ←int_eq_one_iff, int.cast_coe_nat]
 
+lemma nat_lt_one_iff (m : ℕ) : padic_norm p m < 1 ↔ p ∣ m :=
+by simp only [←int.coe_nat_dvd, ←int_lt_one_iff, int.cast_coe_nat]
+
+open_locale big_operators
+
+lemma sum_lt {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → padic_norm p (F i) < t) (hn : 0 < n) :
+  padic_norm p (∑ i in finset.range n, F i) < t :=
+begin
+  induction n with d hd, {cases hn, },
+  cases d, {simp [hF], },
+  rw finset.sum_range_succ,
+  refine lt_of_le_of_lt (padic_norm.nonarchimedean p) _,
+  refine max_lt (hd (λ i hi, hF _ (hi.trans (nat.lt_succ_self _))) d.zero_lt_succ) _,
+  exact hF _ (nat.lt_succ_self _),
+end
+
+lemma sum_le {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → padic_norm p (F i) ≤ t) (hn : 0 < n) :
+  padic_norm p (∑ i in finset.range n, F i) ≤ t :=
+begin
+  induction n with d hd, {cases hn, },
+  cases d, {simp [hF], },
+  rw finset.sum_range_succ,
+  refine (padic_norm.nonarchimedean p).trans _,
+  refine max_le (hd (λ i hi, hF _ (hi.trans (nat.lt_succ_self _))) d.zero_lt_succ) _,
+  exact hF _ (nat.lt_succ_self _),
+end
+
+lemma sum_lt' {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → padic_norm p (F i) < t) (ht : 0 < t) :
+  padic_norm p (∑ i in finset.range n, F i) < t :=
+begin
+  obtain rfl | hn := @eq_zero_or_pos ℕ _ n,
+  { simp [ht], },
+  { exact sum_lt hF hn, },
+end
+
+lemma sum_le' {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → padic_norm p (F i) ≤ t) (ht : 0 ≤ t) :
+  padic_norm p (∑ i in finset.range n, F i) ≤ t :=
+begin
+  obtain rfl | hn := @eq_zero_or_pos ℕ _ n,
+  { simp [ht], },
+  { exact sum_le hF hn, },
+end
 end padic_norm

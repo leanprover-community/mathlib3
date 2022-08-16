@@ -25,15 +25,10 @@ The proof we formalise is the following. Rewrite the sum as
 `1 + 1/2 + 1/3 + ... + 1/1319 - 2 * (1/2 + 1/4 + 1/6 + ... + 1/1318) = 1/660 + 1/661 + ... + 1/1319`
 and now re-arranging as `(1/660 + 1/1319) + (1/661 + 1/1318) + ...` we see that
 the numerator of each fraction is `1979` and the denominator is coprime to `1979`
-(note that `1979` is prime). Hence the `1979`-adic valuation of each fraction is positive,
-and thus the `1979`-adic valuation of the sum is also positive.
+(note that `1979` is prime). Hence the `1979`-adic norm of each fraction is less than one,
+and thus the `1979`-adic norm of the sum is also less than one, because of the
+nonarchimedean property.
 
-## Remarks on the formalisation
-
-The p-adic valuation function on ℚ is ℤ-valued and hence has v(0)=0 (rather than +∞);
-we thus had to occasionally deal with funny edge cases which aren't there mathematically.
-In retrospect it might have been easier to work with p-adic norms, which are ℚ-valued
-and don't have this problem.
 -/
 
 open finset nat
@@ -44,8 +39,8 @@ instance : fact (nat.prime 1979) := by {rw fact_iff, norm_num}
 namespace imo1979q1
 
 /-
-  The goal is equivalent to showing that the 1979-adic valuation of the sum
-  ∑ n in Icc 1 1319, (-1) ^ (n + 1) / n is positive.
+  The goal is equivalent to showing that the 1979-adic norm of the sum
+  ∑ n in Icc 1 1319, (-1) ^ (n + 1) / n is less than one.
 
   We start with some lemmas:
 
@@ -56,8 +51,8 @@ namespace imo1979q1
   Lemma 4 : ∑ n in Icc 660 1319, 1 / n = ∑ n in range 330, 1 / (n + 660) +
     ∑ n in range 330, 1 / (1319 - n)
 
-  Then we prove the theorem, by showing the 1979-adic valuation of the sum
-  ∑ n in range 330, 1 / (n + 660) + ∑ n in range 330, 1 / (1319 - n) is positive.
+  Then we prove the theorem, by showing the 1979-adic norm of the sum
+  ∑ n in range 330, 1 / (n + 660) + ∑ n in range 330, 1 / (1319 - n) is less than one.
 -/
 
 /-- The injection ℕ ↪ ℕ sending any n ∈ ℕ to 2 * n
@@ -72,34 +67,34 @@ begin
   let a : ℚ := ∑ n in Icc (1 : ℕ) 1319, (-1) ^ (n + 1) / n,
   let b : ℚ := ∑ n in Icc (1 : ℕ) 1319, 1 / n,
   calc b - a = ∑ n in Icc (1 : ℕ) 1319, (1 / n - (-1) ^ (n+1) / n) : by rw sum_sub_distrib
-    ... = ∑ n in Icc (1 : ℕ) 1319, ite (even n) (2 / n) 0 : by {
-      apply sum_congr rfl,
-      rintro x -,
-      rw [pow_succ, neg_one_mul, neg_div, sub_neg_eq_add, div_add_div_same],
-      split_ifs,
-      { rw [h.neg_one_pow], norm_num },
-      { rw [(odd_iff_not_even.2 h).neg_one_pow],
-          simp only [zero_div, add_right_neg] } }
-    ... = ∑ (x : ℕ) in filter even (Icc (1 : ℕ) 1319), 2 / x : by rw sum_filter
-    ... = ∑ (x : ℕ) in map double (Icc (1 : ℕ) 659), 2 / x : by {
-      apply sum_congr _ (λ _ _, rfl),
-      ext x,
-      rw [mem_filter, mem_map],
-      split,
-      { rintro ⟨ha, a, rfl⟩,
-        simp_rw double_apply,
-        refine ⟨a, _, rfl⟩,
-        rw mem_Icc at ha ⊢,
-        split;
-        linarith },
-      { rintro ⟨a, ha, rfl⟩,
-        simp_rw double_apply,
-        refine ⟨_, a, rfl⟩,
-        rw mem_Icc at ha ⊢,
-        split;
-        linarith }}
-    ... = ∑ n in Icc (1 : ℕ) 659, 1 / n : by {
-      rw sum_map (Icc (1 : ℕ) 659) double (λ n, (2 : ℚ) / n),
+  ...        = ∑ n in Icc (1 : ℕ) 1319, ite (even n) (2 / n) 0 : by
+  { apply sum_congr rfl,
+    rintro x -,
+    rw [pow_succ, neg_one_mul, neg_div, sub_neg_eq_add, div_add_div_same],
+    split_ifs,
+    { rw [h.neg_one_pow], norm_num },
+    { rw [(odd_iff_not_even.2 h).neg_one_pow],
+        simp only [zero_div, add_right_neg] } }
+  ...        = ∑ (x : ℕ) in filter even (Icc (1 : ℕ) 1319), 2 / x : by rw sum_filter
+  ...        = ∑ (x : ℕ) in map double (Icc (1 : ℕ) 659), 2 / x : by
+  { apply sum_congr _ (λ _ _, rfl),
+    ext x,
+    rw [mem_filter, mem_map],
+    split,
+    { rintro ⟨ha, a, rfl⟩,
+      simp_rw double_apply,
+      refine ⟨a, _, rfl⟩,
+      rw mem_Icc at ha ⊢,
+      split;
+      linarith },
+    { rintro ⟨a, ha, rfl⟩,
+      simp_rw double_apply,
+      refine ⟨_, a, rfl⟩,
+      rw mem_Icc at ha ⊢,
+      split;
+      linarith } }
+    ...        = ∑ n in Icc (1 : ℕ) 659, 1 / n : by
+    { rw sum_map (Icc (1 : ℕ) 659) double (λ n, (2 : ℚ) / n),
       apply sum_congr rfl,
       rintro x -,
       unfold double,
@@ -157,10 +152,6 @@ begin
   { norm_num }
 end
 
--- lemma foo (p : ℕ) (hp : nat.prime p) (z : ℕ) : padic_norm p z = 1 ↔ ¬ p ∣ z :=
--- begin
---   library_search,
--- end
 -- waiting on #16704
 /-- The `p`-adic norm of an integer `m` is one iff `p` doesn't divide `m`. -/
 lemma nat_eq_one_iff {p : ℕ} [fact (nat.prime p)] (m : ℕ) : padic_norm p m = 1 ↔ ¬ p ∣ m :=
@@ -169,13 +160,13 @@ begin
 end
 
 
--- should add to #16704
+-- waiting on #16704
 lemma nat_lt_one_iff {p : ℕ} [fact (nat.prime p)] (m : ℕ) : padic_norm p m < 1 ↔ p ∣ m :=
 begin
   sorry
 end
 
--- should PR this too
+-- waiting on #16704
 lemma padic_norm.of_nat {p : ℕ} [fact (nat.prime p)] (m : ℕ) : padic_norm p m ≤ 1 :=
 padic_norm.of_int p (m : ℤ)
 
@@ -187,16 +178,13 @@ begin
   apply nat.not_dvd_of_pos_of_lt; linarith,
 end
 
-/-
-theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ}
-  (hF : ∀ i, i < n → 0 < padic_val_rat p (F i)) (hn0 : ∑ i in finset.range n, F i ≠ 0) :
-  0 < padic_val_rat p (∑ i in finset.range n, F i) :=
-  -/
+-- waiting on #16704
 lemma padic_norm.sum_lt {p : ℕ} {t : ℚ} [fact (nat.prime p)] {n : ℕ} {F : ℕ → ℚ}
   (hF : ∀ i, i < n → padic_norm p (F i) < t) (hn : 0 < n) :
   padic_norm p (∑ i in finset.range n, F i) < t :=
 sorry
 
+-- waiting on #16704
 lemma padic_norm.sum_lt' {p : ℕ} {t : ℚ} [fact (nat.prime p)] {n : ℕ} {F : ℕ → ℚ}
   (hF : ∀ i, i < n → padic_norm p (F i) < t) (ht : 0 ≤ t) :
   padic_norm p (∑ i in finset.range n, F i) < t :=
@@ -234,7 +222,7 @@ begin
     generalize : (n : ℚ) = q,
     ring },
   rw h3, clear h3,
-  rw padic_norm.div,-- (show (1979 : ℚ) ≠ 0, by norm_num) (mul_ne_zero h1 h2),
+  rw padic_norm.div,
   have h := padic_norm.padic_norm_p (show 1 < 1979, by norm_num),
   rw (show ((1979 : ℕ) : ℚ) = 1979, by norm_cast) at h,
   rw h,
@@ -256,9 +244,6 @@ begin
   rcases nat.eq_zero_or_pos p with (rfl | hp),
   { exact dvd_zero 1979 },
   rw ← nat_lt_one_iff,
-  have hp' : (p : ℚ) ≠ 0,
-  { norm_cast,
-    linarith },
   have hq' : (q : ℚ) ≠ 0,
   { norm_cast,
     linarith },

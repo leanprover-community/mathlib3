@@ -443,7 +443,7 @@ tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
 
 /-- **Lévy's upward theorem**, almost everywhere version: given a function `g` and a filtration
 `ℱ`, the sequence defined by `𝔼[g | ℱ n]` converges almost everywhere to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma tendsto_ae_condexp' (g : Ω → ℝ) :
+lemma tendsto_ae_condexp (g : Ω → ℝ) :
   ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
 begin
   have ht : ∀ᵐ x ∂μ, tendsto (λ n, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
@@ -457,7 +457,7 @@ end
 
 /-- **Lévy's upward theorem**, L¹ version: given a function `g` and a filtration `ℱ`, the
 sequence defined by `𝔼[g | ℱ n]` converges in L¹ to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma tendsto_snorm_condexp' (g : Ω → ℝ) :
+lemma tendsto_snorm_condexp (g : Ω → ℝ) :
   tendsto (λ n, snorm (μ[g | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=
 begin
   have ht : tendsto (λ n, snorm (μ[μ[g | ⨆ n, ℱ n] | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=

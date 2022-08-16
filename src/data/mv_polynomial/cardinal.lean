@@ -34,14 +34,11 @@ end
 @[simp] lemma cardinal_mk_eq_lift [is_empty σ] : #(mv_polynomial σ R) = cardinal.lift.{u} (#R) :=
 ((is_empty_ring_equiv R σ).to_equiv.trans equiv.ulift.{u}.symm).cardinal_eq
 
-@[simp] lemma cardinal_mk_eq_one [subsingleton R] : #(mv_polynomial σ R) = 1 :=
-@mk_eq_one _ mv_polynomial.unique
-
 lemma cardinal_lift_mk_le_max {σ : Type u} {R : Type v} [comm_semiring R] :
   #(mv_polynomial σ R) ≤ max (max (cardinal.lift.{u} $ #R) $ cardinal.lift.{v} $ #σ) ℵ₀ :=
 begin
   casesI subsingleton_or_nontrivial R,
-  { exact cardinal_mk_eq_one.trans_le (le_max_of_le_right one_le_aleph_0) },
+  { exact mk_eq_one.trans_le (le_max_of_le_right one_le_aleph_0) },
   casesI is_empty_or_nonempty σ,
   { exact cardinal_mk_eq_lift.trans_le (le_max_of_le_left $ le_max_left _ _) },
   { exact cardinal_mk_eq_max_lift.le },

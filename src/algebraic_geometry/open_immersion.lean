@@ -1603,10 +1603,10 @@ LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
 
 end is_open_immersion
 
-namespace Scheme.hom
+namespace Scheme
 
 /-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
-abbreviation opens_functor {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] :
+abbreviation hom.opens_functor {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] :
   opens X.carrier ⥤ opens Y.carrier := H.open_functor
 
 lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
@@ -1628,10 +1628,10 @@ end
 
 /-- The image of an open immersion as an open set. -/
 @[simps]
-def opens_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] : opens Y.carrier :=
+def hom.opens_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] : opens Y.carrier :=
   ⟨_, H.base_open.open_range⟩
 
-end Scheme.hom
+end Scheme
 
 /-- The functor taking open subsets of `X` to open subschemes of `X`. -/
 @[simps obj_left obj_hom map_left]

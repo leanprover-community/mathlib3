@@ -121,7 +121,7 @@ def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
 { U : opens X.carrier | is_affine_open U }
 
 lemma range_is_affine_open_of_open_immersion {X Y : Scheme} [is_affine X] (f : X ⟶ Y)
-  [H : is_open_immersion f] : is_affine_open ⟨set.range f.1.base, H.base_open.open_range⟩ :=
+  [H : is_open_immersion f] : is_affine_open f.opens_range :=
 begin
   refine is_affine_of_iso (is_open_immersion.iso_of_range_eq f (Y.of_restrict _) _).inv,
   exact subtype.range_coe.symm,
@@ -197,7 +197,7 @@ end
 
 lemma is_affine_open.image_is_open_immersion {X Y : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U)
-  (f : X ⟶ Y) [H : is_open_immersion f] : is_affine_open (H.open_functor.obj U) :=
+  (f : X ⟶ Y) [H : is_open_immersion f] : is_affine_open (f.opens_functor.obj U) :=
 begin
   haveI : is_affine _ := hU,
   convert range_is_affine_open_of_open_immersion (X.of_restrict U.open_embedding ≫ f),
@@ -279,7 +279,7 @@ begin
     (X.basic_open f : set X.carrier),
   { rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, hU.from_Spec_range],
     exact Scheme.basic_open_subset _ _ },
-  rw [subtype.coe_mk, Scheme.comp_val_base, ← this, coe_comp, set.range_comp],
+  rw [Scheme.hom.opens_range_coe, Scheme.comp_val_base, ← this, coe_comp, set.range_comp],
   congr' 1,
   refine (congr_arg coe $ Scheme.preimage_basic_open hU.from_Spec f).trans _,
   refine eq.trans _ (prime_spectrum.localization_away_comap_range (localization.away f) f).symm,
@@ -345,7 +345,7 @@ begin
   swap, exact ⟨x, h⟩,
   have : U.open_embedding.is_open_map.functor.obj ((X.restrict U.open_embedding).basic_open r)
     = X.basic_open (X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r),
-  { refine (is_open_immersion.image_basic_open (X.of_restrict U.open_embedding) r).trans _,
+  { refine (Scheme.image_basic_open r (X.of_restrict U.open_embedding)).trans _,
     erw ← Scheme.basic_open_res_eq _ _ (eq_to_hom U.open_embedding_obj_top).op,
     rw [← comp_apply, ← category_theory.functor.map_comp, ← op_comp, eq_to_hom_trans,
       eq_to_hom_refl, op_id, category_theory.functor.map_id],

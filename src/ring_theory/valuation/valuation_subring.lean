@@ -5,6 +5,7 @@ Authors: Adam Topaz, Junyan Xu, Jack McKoen
 -/
 import ring_theory.valuation.valuation_ring
 import ring_theory.localization.as_subring
+import ring_theory.subring.pointwise
 import algebraic_geometry.prime_spectrum.basic
 
 /-!
@@ -48,6 +49,9 @@ lemma mul_mem (x y : K) : x ∈ A → y ∈ A → x * y ∈ A := A.to_subring.mu
 lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
+
+lemma to_subring_injective : function.injective (to_subring : valuation_subring K → subring K) :=
+λ x y h, by { cases x, cases y, congr' }
 
 instance : comm_ring A := show comm_ring A.to_subring, by apply_instance
 instance : is_domain A := show is_domain A.to_subring, by apply_instance
@@ -631,5 +635,65 @@ lemma units_mod_principal_units_equiv_residue_field_units_comp_quotient_group_mk
   (quotient_group.mk x) = A.unit_group_to_residue_field_units x := rfl
 
 end principal_unit_group
+
+/-! ### Pointwise actions
+
+This transfers the action from `subring.pointwise_mul_action`, noting that it only applies when
+the action is by a group. Notably this provides an instances when `G` is `K ≃+* K`.
+
+These instances are in the `pointwise` locale.
+-/
+section pointwise_actions
+open_locale pointwise
+
+variables {G : Type*} [group G] [mul_semiring_action G K]
+
+/-- The action on a valuation subring corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+def pointwise_has_smul : has_smul G (valuation_subring K) :=
+{ smul := λ g S, {
+    mem_or_inv_mem' := λ x, begin
+      dsimp,
+      refine (mem_or_inv_mem S (g⁻¹ • x)).imp (λ h, _) (λ h, _);
+      { simpa using subring.smul_mem_pointwise_smul g _ _ h }
+    end,
+    .. g • S.to_subring} }
+
+localized "attribute [instance] valuation_subring.pointwise_has_smul" in pointwise
+open_locale pointwise
+
+
+@[simp] lemma coe_pointwise_smul (g : G) (S : valuation_subring K) : ↑(g • S) = g • (S : set K) :=
+rfl
+
+@[simp] lemma pointwise_smul_to_subring (g : G) (S : valuation_subring K) :
+  (g • S).to_subring = g • S.to_subring := rfl
+
+/-- The action on a valuation subring corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale.
+
+This is a stronger version of `valuation_subring.pointwise_has_smul`. -/
+def pointwise_mul_action : mul_action G (valuation_subring K) :=
+to_subring_injective.mul_action to_subring pointwise_smul_to_subring
+
+localized "attribute [instance] valuation_subring.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+lemma smul_mem_pointwise_smul (g : G) (k : K) (S : valuation_subring K) : k ∈ S → g • k ∈ g • S :=
+(set.smul_mem_smul_set : _ → _ ∈ g • (S : set K))
+
+lemma mem_smul_pointwise_iff_exists (g : G) (k : K) (S : valuation_subring K) :
+  k ∈ g • S ↔ ∃ (s : K), s ∈ S ∧ g • s = k :=
+(set.mem_smul_set : k ∈ g • (S : set K) ↔ _)
+
+instance pointwise_central_scalar [mul_semiring_action Gᵐᵒᵖ K] [is_central_scalar G K] :
+  is_central_scalar G (valuation_subring K) :=
+⟨λ a S, to_subring_injective $ by exact op_smul_eq_smul _⟩
+
+-- TODO: copy across the group lemmas from `ring_theory/subring/pointwise.lean`
+
+end pointwise_actions
 
 end valuation_subring

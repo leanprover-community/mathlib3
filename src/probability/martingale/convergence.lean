@@ -401,7 +401,7 @@ begin
     (λ s _ _, hintg.integrable_on) (λ s _ _, hlimint.integrable_on) (λ s hs, _)
     hgmeas.ae_strongly_measurable' strongly_measurable_limit_process.ae_strongly_measurable',
   refine @measurable_space.induction_on_inter _ _ _ (⨆ n, ℱ n)
-    (measurable_space.supr_measurable_space_eq ℱ) _ _ _ _ _ _ hs,
+    (measurable_space.measurable_space_supr_eq ℱ) _ _ _ _ _ _ hs,
   { rintro s ⟨n, hs⟩ t ⟨m, ht⟩ -,
     by_cases hnm : n ≤ m,
     { exact ⟨m, (ℱ.mono hnm _ hs).inter ht⟩ },

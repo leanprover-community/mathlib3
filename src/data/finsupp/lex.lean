@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.pi.lex
+import data.finsupp.order
 import data.finsupp.witnesses
 
 /-!

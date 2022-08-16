@@ -37,6 +37,14 @@ where `f` and `g` differ. -/
 def diff (f g : α →₀ N) : finset α :=
 (f.support ∪ g.support).filter (λ x, f x ≠ g x)
 
+@[simp]
+lemma mem_diff {a : α} : a ∈ f.diff g ↔ f a ≠ g a :=
+by simpa only [diff, finset.mem_filter, finset.mem_union, mem_support_iff, and_iff_right_iff_imp]
+    using ne.ne_or_ne _
+
+lemma coe_diff : ↑(f.diff g) = {x | f x ≠ g x} :=
+by { ext, exact mem_diff }
+
 lemma diff_comm : f.diff g = g.diff f :=
 by simp_rw [diff, finset.union_comm, ne_comm]
 
@@ -62,16 +70,8 @@ by simp only [diff, coe_zero, pi.zero_apply, support_zero, finset.union_empty,
 lemma diff_zero_left : (0 : α →₀ N).diff f = f.support :=
 diff_comm.trans diff_zero_right
 
-@[simp]
-lemma mem_diff {a : α} : a ∈ f.diff g ↔ f a ≠ g a :=
-by simpa only [diff, finset.mem_filter, finset.mem_union, mem_support_iff, and_iff_right_iff_imp]
-    using ne.ne_or_ne _
-
-lemma set_ne_eq_diff : {x | f x ≠ g x} = f.diff g :=
-by { ext, simp only [set.mem_set_of_eq, finset.mem_coe, mem_diff] }
-
-lemma subset_map_range_diff {M} [decidable_eq M] [has_zero M] (F : zero_hom N M) :
-  (f.map_range F F.map_zero).diff (g.map_range F F.map_zero) ⊆ f.diff g :=
+lemma subset_map_range_diff {M} [decidable_eq M] [has_zero M] {F : N → M} (F0 : F 0 = 0) :
+  (f.map_range F F0).diff (g.map_range F F0) ⊆ f.diff g :=
 begin
   refine λ x, _,
   simp only [mem_diff, map_range_apply, not_not],
@@ -79,8 +79,8 @@ begin
 end
 
 lemma map_range_diff_eq {M} [decidable_eq M] [has_zero M]
-  (F : zero_hom N M) (hF : function.injective F) :
-  (f.map_range F F.map_zero).diff (g.map_range F F.map_zero) = f.diff g :=
+  {F : N → M} (F0 : F 0 = 0) (hF : function.injective F) :
+  (f.map_range F F0).diff (g.map_range F F0) = f.diff g :=
 by { ext, simpa only [mem_diff] using hF.ne_iff }
 
 end N_has_zero
@@ -108,8 +108,7 @@ end
   (- f).diff g = f.diff (- g) :=
 begin
   nth_rewrite 0 ← neg_neg g,
-  apply map_range_diff_eq ⟨has_neg.neg, _⟩,
-  exacts [neg_injective, neg_zero],
+  exact map_range_diff_eq neg_zero neg_injective,
 end
 
 @[simp] lemma diff_eq_support_sub [add_group N] {f g : α →₀ N} :

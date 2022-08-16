@@ -300,8 +300,6 @@ order_ring_iso.ext induced_map_self
 
 open order_ring_iso
 
-local attribute [instance] order_ring_hom.subsingleton order_ring_iso.subsingleton_left
-
 /-- There is a unique ordered ring homomorphism from an archimedean linear ordered field to a
 conditionally complete linear ordered field. -/
 instance : unique (α →+*o β) := unique_of_subsingleton $ induced_order_ring_hom α β

@@ -6,6 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
+import topology.uniform_space.compact_separated
 import topology.algebra.group
 import tactic.abel
 
@@ -22,8 +23,8 @@ group naturally induces a uniform structure.
 
 ## Main results
 
-* `topological_add_group.to_uniform_space` and `topological_add_group_is_uniform` can be used to
-  construct a canonical uniformity for a topological add group.
+* `topological_add_group.to_uniform_space` and `topological_add_comm_group_is_uniform` can be used
+  to construct a canonical uniformity for a topological add group.
 
 * extension of ℤ-bilinear maps to complete groups (useful for ring completions)
 -/
@@ -79,6 +80,26 @@ by simp * at *
 @[to_additive] lemma uniform_continuous_mul : uniform_continuous (λp:α×α, p.1 * p.2) :=
 uniform_continuous_fst.mul uniform_continuous_snd
 
+@[to_additive uniform_continuous.const_nsmul]
+lemma uniform_continuous.pow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℕ, uniform_continuous (λ x, f x ^ n)
+| 0 := by { simp_rw pow_zero, exact uniform_continuous_const }
+| (n + 1) := by { simp_rw pow_succ, exact hf.mul (uniform_continuous.pow_const n) }
+
+@[to_additive uniform_continuous_const_nsmul] lemma uniform_continuous_pow_const (n : ℕ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.pow_const n
+
+@[to_additive uniform_continuous.const_zsmul]
+lemma uniform_continuous.zpow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℤ, uniform_continuous (λ x, f x ^ n)
+| (n : ℕ) := by { simp_rw zpow_coe_nat, exact hf.pow_const _, }
+| -[1+ n] := by { simp_rw zpow_neg_succ_of_nat, exact (hf.pow_const _).inv }
+
+@[to_additive uniform_continuous_const_zsmul] lemma uniform_continuous_zpow_const (n : ℤ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.zpow_const n
+
 @[priority 10, to_additive]
 instance uniform_group.to_topological_group : topological_group α :=
 { continuous_mul := uniform_continuous_mul.continuous,
@@ -124,6 +145,41 @@ namespace subgroup
   uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val)⟩
 
 end subgroup
+
+section lattice_ops
+
+variables [group β]
+
+@[to_additive] lemma uniform_group_Inf {us : set (uniform_space β)}
+  (h : ∀ u ∈ us, @uniform_group β u _) :
+  @uniform_group β (Inf us) _ :=
+{ uniform_continuous_div := uniform_continuous_Inf_rng (λ u hu, uniform_continuous_Inf_dom₂ hu hu
+  (@uniform_group.uniform_continuous_div β u _ (h u hu))) }
+
+@[to_additive] lemma uniform_group_infi {ι : Sort*} {us' : ι → uniform_space β}
+  (h' : ∀ i, @uniform_group β (us' i) _) :
+  @uniform_group β (⨅ i, us' i) _ :=
+by {rw ← Inf_range, exact uniform_group_Inf (set.forall_range_iff.mpr h')}
+
+@[to_additive] lemma uniform_group_inf {u₁ u₂ : uniform_space β}
+  (h₁ : @uniform_group β u₁ _) (h₂ : @uniform_group β u₂ _) :
+  @uniform_group β (u₁ ⊓ u₂) _ :=
+by {rw inf_eq_infi, refine uniform_group_infi (λ b, _), cases b; assumption}
+
+@[to_additive] lemma uniform_group_comap {γ : Type*} [group γ] {u : uniform_space γ}
+  [uniform_group γ] {F : Type*} [monoid_hom_class F β γ] (f : F) :
+  @uniform_group β (u.comap f) _ :=
+{ uniform_continuous_div :=
+    begin
+      letI : uniform_space β := u.comap f,
+      refine uniform_continuous_comap' _,
+      simp_rw [function.comp, map_div],
+      change uniform_continuous ((λ p : γ × γ, p.1 / p.2) ∘ (prod.map f f)),
+      exact uniform_continuous_div.comp
+        (uniform_continuous_comap.prod_map uniform_continuous_comap),
+    end }
+
+end lattice_ops
 
 section
 variables (α)
@@ -288,12 +344,23 @@ variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → 
 end uniform_convergence
 end uniform_group
 
-section topological_comm_group
+section topological_group
 open filter
-variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
+variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
-/-- The right uniformity on a topological group. -/
-@[to_additive "The right uniformity on a topological group"]
+/-- The right uniformity on a topological group (as opposed to the left uniformity).
+
+Warning: in general the right and left uniformities do not coincide and so one does not obtain a
+`uniform_group` structure. Two important special cases where they _do_ coincide are for
+commutative groups (see `topological_comm_group_is_uniform`) and for compact Hausdorff groups (see
+`topological_group_is_uniform_of_compact_space`). -/
+@[to_additive "The right uniformity on a topological additive group (as opposed to the left
+uniformity).
+
+Warning: in general the right and left uniformities do not coincide and so one does not obtain a
+`uniform_add_group` structure. Two important special cases where they _do_ coincide are for
+commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact Hausdorff
+additive groups (see `topological_add_comm_group_is_uniform_of_compact_space`)."]
 def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
@@ -320,7 +387,7 @@ def topological_group.to_uniform_space : uniform_space G :=
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
-        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ Hz1 _ Hz2
+        simpa using V_sum _ Hz2 _ Hz1,
       end,
       exact set.subset.trans comp_rel_sub U_sub },
     { exact monotone_comp_rel monotone_id monotone_id }
@@ -339,6 +406,19 @@ def topological_group.to_uniform_space : uniform_space G :=
     { rintros h ⟨x, y⟩ hx rfl, exact h hx },
     { rintros h x hx, exact @h (a, x) hx rfl }
   end }
+
+local attribute [instance] topological_group.to_uniform_space
+
+@[to_additive] lemma uniformity_eq_comap_nhds_one' :
+  𝓤 G = comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)) := rfl
+
+@[to_additive] lemma topological_group_is_uniform_of_compact_space
+  [compact_space G] [t2_space G] : uniform_group G :=
+⟨begin
+  haveI : separated_space G := separated_iff_t2.mpr (by apply_instance),
+  apply compact_space.uniform_continuous_of_continuous,
+  exact continuous_div',
+end⟩
 
 variables {G}
 
@@ -370,7 +450,7 @@ variables {G}
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
   exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
-end topological_comm_group
+end topological_group
 
 section topological_comm_group
 universes u v w x
@@ -381,11 +461,8 @@ variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
 section
 local attribute [instance] topological_group.to_uniform_space
 
-@[to_additive] lemma uniformity_eq_comap_nhds_one' :
-  𝓤 G = comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)) := rfl
-
 variable {G}
-@[to_additive] lemma topological_group_is_uniform : uniform_group G :=
+@[to_additive] lemma topological_comm_group_is_uniform : uniform_group G :=
 have tendsto
     ((λp:(G×G), p.1 / p.2) ∘ (λp:(G×G)×(G×G), (p.1.2 / p.1.1, p.2.2 / p.2.1)))
     (comap (λp:(G×G)×(G×G), (p.1.2 / p.1.1, p.2.2 / p.2.1)) ((𝓝 1).prod (𝓝 1)))
@@ -403,7 +480,7 @@ open set
 @[to_additive] lemma topological_group.t2_space_iff_one_closed :
   t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  haveI : uniform_group G := topological_group_is_uniform,
+  haveI : uniform_group G := topological_comm_group_is_uniform,
   rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,
@@ -439,7 +516,7 @@ end
 end
 
 @[to_additive] lemma uniform_group.to_uniform_space_eq {G : Type*} [u : uniform_space G]
-  [comm_group G] [uniform_group G] : topological_group.to_uniform_space G = u :=
+  [group G] [uniform_group G] : topological_group.to_uniform_space G = u :=
 begin
   ext : 1,
   show @uniformity G (topological_group.to_uniform_space G) = 𝓤 G,
@@ -448,14 +525,14 @@ end
 
 end topological_comm_group
 
-open comm_group filter set function
+open filter set function
 
 section
 variables {α : Type*} {β : Type*} {hom : Type*}
-variables [topological_space α] [comm_group α] [topological_group α]
+variables [topological_space α] [group α] [topological_group α]
 
 -- β is a dense subgroup of α, inclusion is denoted by e
-variables [topological_space β] [comm_group β]
+variables [topological_space β] [group β]
 variables [monoid_hom_class hom β α] {e : hom} (de : dense_inducing e)
 include de
 

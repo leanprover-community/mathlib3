@@ -343,24 +343,25 @@ lemma mul_inv_cancel : ∀ {p : ratfunc K} (hp : p ≠ 0), p * p⁻¹ = 1
 by simpa only [← of_fraction_ring_inv, ← of_fraction_ring_mul, ← of_fraction_ring_one]
   using _root_.mul_inv_cancel this
 
-section has_scalar
+section has_smul
 omit hdomain
 
 variables {R : Type*}
 
 /-- Scalar multiplication of rational functions. -/
-@[irreducible] protected def smul [has_scalar R (fraction_ring K[X])] :
+@[irreducible] protected def smul [has_smul R (fraction_ring K[X])] :
   R → ratfunc K → ratfunc K
 | r ⟨p⟩ := ⟨r • p⟩
 
-instance [has_scalar R (fraction_ring K[X])] : has_scalar R (ratfunc K) :=
+@[nolint fails_quickly] -- cannot reproduce
+instance [has_smul R (fraction_ring K[X])] : has_smul R (ratfunc K) :=
 ⟨ratfunc.smul⟩
 
-lemma of_fraction_ring_smul [has_scalar R (fraction_ring K[X])]
+lemma of_fraction_ring_smul [has_smul R (fraction_ring K[X])]
   (c : R) (p : fraction_ring K[X]) :
   of_fraction_ring (c • p) = c • of_fraction_ring p :=
-by unfold has_scalar.smul ratfunc.smul
-lemma to_fraction_ring_smul [has_scalar R (fraction_ring K[X])]
+by unfold has_smul.smul ratfunc.smul
+lemma to_fraction_ring_smul [has_smul R (fraction_ring K[X])]
   (c : R) (p : ratfunc K) :
   to_fraction_ring (c • p) = c • to_fraction_ring p :=
 by { cases p, rw ←of_fraction_ring_smul }
@@ -392,7 +393,7 @@ end
 instance : is_scalar_tower R K[X] (ratfunc K) :=
 ⟨λ c p q, q.induction_on' (λ q r _, by rw [← mk_smul, smul_assoc, mk_smul, mk_smul])⟩
 
-end has_scalar
+end has_smul
 
 variables (K)
 
@@ -437,7 +438,7 @@ meta def smul_tac : tactic unit :=
   simp only [add_comm, mul_comm, zero_smul, succ_nsmul, zsmul_eq_mul, mul_add, mul_one, mul_zero,
     neg_add, mul_neg,
     int.of_nat_eq_coe, int.coe_nat_succ, int.cast_zero, int.cast_add, int.cast_one,
-    int.cast_neg_succ_of_nat, int.cast_coe_nat,
+    int.cast_neg_succ_of_nat, int.cast_coe_nat, nat.cast_succ,
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
     of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_neg]]
 
@@ -1402,7 +1403,7 @@ lift_alg_hom_injective _ (polynomial.algebra_map_hahn_series_injective _)
 
 @[simp, norm_cast] lemma coe_div : ((f / g : ratfunc F) : laurent_series F) =
   (f : laurent_series F) / (g : laurent_series F) :=
-(coe_alg_hom F).map_div _ _
+map_div₀ (coe_alg_hom F) _ _
 
 @[simp, norm_cast] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
 by rw [coe_num_denom, num_C, denom_C, coe_coe, polynomial.coe_C, coe_C, coe_coe, polynomial.coe_one,

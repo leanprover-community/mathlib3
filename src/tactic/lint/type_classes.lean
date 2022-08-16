@@ -14,7 +14,8 @@ This file defines several linters checking the correct usage of type classes
 and the appropriate definition of instances:
 
  * `instance_priority` ensures that blanket instances have low priority.
- * `has_inhabited_instances` checks that every type has an `inhabited` instance.
+ * `has_nonempty_instances` checks that every type has a `nonempty` instance, an `inhabited`
+   instance, or a `unique` instance.
  * `impossible_instance` checks that there are no instances which can never apply.
  * `incorrect_type_class_argument` checks that only type classes are used in
    instance-implicit arguments.
@@ -105,8 +106,10 @@ If you don't know what priority to choose, use priority 100.
 See note [lower instance priority] for instructions to change the priority.",
   auto_decls := tt }
 
-/-- Reports declarations of types that do not have an associated `inhabited` instance. -/
-private meta def has_inhabited_instance (d : declaration) : tactic (option string) := do
+/-- Reports declarations of types that do not have an nonemptiness instance.
+A `nonempty`, `inhabited` or `unique` instance suffices, and we prefer a computable `inhabited`
+or `unique` instance if possible. -/
+private meta def has_nonempty_instance (d : declaration) : tactic (option string) := do
 tt ← pure d.is_trusted | pure none,
 ff ← has_attribute' `reducible d.to_name | pure none,
 ff ← has_attribute' `class d.to_name | pure none,
@@ -116,24 +119,26 @@ if ty = `(Prop) then pure none else do
 `(Sort _) ← whnf ty | pure none,
 insts ← attribute.get_instances `instance,
 insts_tys ← insts.mmap $ λ i, expr.pi_codomain <$> declaration.type <$> get_decl i,
-let inhabited_insts := insts_tys.filter (λ i,
-  i.app_fn.const_name = ``inhabited ∨ i.app_fn.const_name = `unique),
-let inhabited_tys := inhabited_insts.map (λ i, i.app_arg.get_app_fn.const_name),
-if d.to_name ∈ inhabited_tys then
+let nonempty_insts := insts_tys.filter
+  (λ i, i.app_fn.const_name ∈ [``nonempty, ``inhabited, `unique]),
+let nonempty_tys := nonempty_insts.map (λ i, i.app_arg.get_app_fn.const_name),
+if d.to_name ∈ nonempty_tys then
   pure none
 else
-  pure "inhabited instance missing"
+  pure "nonempty/inhabited/unique instance missing"
 
-/-- A linter for missing `inhabited` instances. -/
+/-- A linter for missing `nonempty` instances. -/
 @[linter]
-meta def linter.has_inhabited_instance : linter :=
-{ test := has_inhabited_instance,
+meta def linter.has_nonempty_instance : linter :=
+{ test := has_nonempty_instance,
   auto_decls := ff,
-  no_errors_found := "No types have missing inhabited instances.",
-  errors_found := "TYPES ARE MISSING INHABITED INSTANCES:",
+  no_errors_found := "No types have missing nonempty instances.",
+  errors_found := "TYPES ARE MISSING NONEMPTY INSTANCES.
+The following types should have an associated instance of the class
+`nonempty`, or if computably possible `inhabited` or `unique`:",
   is_fast := ff }
 
-attribute [nolint has_inhabited_instance] pempty
+attribute [nolint has_nonempty_instance] pempty
 
 /-- Checks whether an instance can never be applied. -/
 private meta def impossible_instance (d : declaration) : tactic (option string) := do
@@ -343,7 +348,7 @@ do tt ← is_prop d.type | return none,
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
 /-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _`
-hypothesis that is unused lsewhere in the type.
+hypothesis that is unused elsewhere in the type.
 In this case, that hypothesis can be replaced with `classical` in the proof.
 Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
@@ -369,6 +374,27 @@ do tt ← is_prop d.type | return none,
 and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
 to the list of lemmas which are not checked by the linter `decidable_classical`. -/
 attribute [nolint decidable_classical] dec_em dec_em' not.decidable_imp_symm
+
+/-- Checks whether a declaration is `Prop`-valued and takes a `fintype _`
+hypothesis that is unused elsewhere in the type.
+In this case, that hypothesis can be replaced with `casesI nonempty_fintype _` in the proof. -/
+meta def linter.fintype_finite_fun (d : declaration) : tactic (option string) :=
+do tt ← is_prop d.type | return none,
+   (binders, _) ← get_pi_binders_nondep d.type,
+   let fintype_binders := binders.filter $ λ pr, pr.2.type.is_app_of `fintype,
+   if fintype_binders.length = 0 then return none
+   else (λ s, some $ "The following `fintype` hypotheses should be replaced with
+                      `casesI nonempty_fintype _` in the proof. " ++ s) <$>
+      print_arguments fintype_binders
+
+/-- A linter object for `fintype` vs `finite`. -/
+@[linter] meta def linter.fintype_finite : linter :=
+{ test := linter.fintype_finite_fun,
+  auto_decls := ff,
+  no_errors_found :=
+    "No uses of `fintype` arguments should be replaced with `casesI nonempty_fintype _`.",
+  errors_found :=
+    "USES OF `fintype` SHOULD BE REPLACED WITH `casesI nonempty_fintype _` IN THE PROOF." }
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do

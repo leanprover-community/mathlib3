@@ -3,11 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.gcd_monoid.basic
 import data.polynomial.derivative
 import data.polynomial.ring_division
-import data.set.pairwise
-import ring_theory.coprime.lemmas
 import ring_theory.euclidean_domain
 
 /-!
@@ -26,11 +23,6 @@ variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ
 
 section is_domain
 variables [comm_ring R] [is_domain R]
-
-lemma prod_multiset_root_eq_finset_root {p : R[X]} :
-  (multiset.map (λ (a : R), X - C a) p.roots).prod =
-  ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
-by simp only [count_roots, finset.prod_multiset_map_count]
 
 lemma roots_C_mul (p : R[X]) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
 begin
@@ -300,12 +292,12 @@ lemma map_div [field k] (f : R →+* k) :
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [f.map_inv, coeff_map f]
+  simp [coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
+else by rw [mod_def, mod_def, leading_coeff_map f, ← map_inv₀ f, ← map_C f,
   ← polynomial.map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
 section
@@ -447,7 +439,7 @@ if H : x = 0 then by rw [H, polynomial.map_zero, zero_dvd_iff, zero_dvd_iff, map
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff R[X],
     normalize_apply, normalize_apply,
     coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
-    leading_coeff_map, ← f.map_inv, ← map_C, ← polynomial.map_mul,
+    leading_coeff_map, ← map_inv₀ f, ← map_C, ← polynomial.map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
 lemma degree_normalize : degree (normalize p) = degree p := by simp
@@ -469,14 +461,6 @@ theorem degree_pos_of_irreducible (hp : irreducible p) : 0 < p.degree :=
 lt_of_not_ge $ λ hp0, have _ := eq_C_of_degree_le_zero hp0,
   not_irreducible_C (p.coeff 0) $ this ▸ hp
 
-theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
-  {s : I → α} (H : function.injective s) :
-  pairwise (is_coprime on (λ i : I, polynomial.X - polynomial.C (s i))) :=
-λ i j hij, have h : s j - s i ≠ 0, from sub_ne_zero_of_ne $ function.injective.ne H hij.symm,
-⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
-by rw [neg_mul, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
-    ← polynomial.C_sub, ← polynomial.C_mul, inv_mul_cancel h, polynomial.C_1]⟩
-
 /-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
 then `f / (X - a)` is coprime with `X - a`.
 Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
@@ -496,21 +480,6 @@ begin
   have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
   rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
   rw [← C_inj, this, C_0],
-end
-
-/-- The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides `p`. -/
-lemma prod_multiset_X_sub_C_dvd (p : R[X]) :
-  (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
-begin
-  rw prod_multiset_root_eq_finset_root,
-  have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) :=
-    pairwise_coprime_X_sub function.injective_id,
-  have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
-  { intros a b hdiff, exact (hcoprime a b hdiff).pow },
-  apply finset.prod_dvd_of_coprime (H.set_pairwise (↑(multiset.to_finset p.roots) : set R)),
-  intros a h,
-  rw multiset.mem_to_finset at h,
-  exact pow_root_multiplicity_dvd p a
 end
 
 end field

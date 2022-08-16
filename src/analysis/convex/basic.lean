@@ -8,6 +8,7 @@ import algebra.order.module
 import linear_algebra.affine_space.midpoint
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.ray
+import tactic.positivity
 
 /-!
 # Convex sets and functions in vector spaces
@@ -45,8 +46,8 @@ open_locale big_operators classical pointwise
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E]
+section has_smul
+variables (𝕜) [has_smul 𝕜 E]
 
 /-- Segments in a vector space. -/
 def segment (x y : E) : set E :=
@@ -93,7 +94,7 @@ lemma open_segment_subset_iff {x y : E} {s : set E} :
 ⟨λ H a b ha hb hab, H ⟨a, b, ha, hb, hab, rfl⟩,
   λ H z ⟨a, b, ha, hb, hab, hz⟩, hz ▸ H a b ha hb hab⟩
 
-end has_scalar
+end has_smul
 
 open_locale convex
 
@@ -331,8 +332,8 @@ begin
     use [a, b, ha, hb],
     rw [hab, div_one, div_one] },
   { rintro ⟨a, b, ha, hb, rfl⟩,
-    have hab : 0 < a + b, from add_pos ha hb,
-    refine ⟨a / (a + b), b / (a + b), div_pos ha hab, div_pos hb hab, _, rfl⟩,
+    have hab : 0 < a + b := by positivity,
+    refine ⟨a / (a + b), b / (a + b), by positivity, by positivity, _, rfl⟩,
     rw [← add_div, div_self hab.ne'] }
 end
 
@@ -519,8 +520,8 @@ variables [ordered_semiring 𝕜]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (s : set E)
 
 /-- Convexity of sets. -/
 def convex : Prop :=
@@ -585,7 +586,7 @@ begin
 end
 
 lemma convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
-  [Π i, has_scalar 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
+  [Π i, has_smul 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
   convex 𝕜 (s.pi t) :=
 λ x y hx hy a b ha hb hab i hi, ht i (hx i hi) (hy i hi) ha hb hab
 
@@ -609,7 +610,7 @@ begin
   exact (directed_on_iff_directed.1 hdir).convex_Union (λ A, hc A.2),
 end
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
@@ -640,6 +641,29 @@ convex_iff_pairwise_pos.mpr (h.pairwise _)
 
 lemma convex_singleton (c : E) : convex 𝕜 ({c} : set E) :=
 subsingleton_singleton.convex
+
+lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
+begin
+  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
+  refine ⟨a * ap + b * aq, a * bp + b * bq,
+    add_nonneg (mul_nonneg ha hap) (mul_nonneg hb haq),
+    add_nonneg (mul_nonneg ha hbp) (mul_nonneg hb hbq), _, _⟩,
+  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
+  { simp_rw [add_smul, mul_smul, smul_add],
+    exact add_add_add_comm _ _ _ _ }
+end
+
+lemma convex_open_segment (a b : E) : convex 𝕜 (open_segment 𝕜 a b) :=
+begin
+  rw convex_iff_open_segment_subset,
+  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,
+  refine ⟨a * ap + b * aq, a * bp + b * bq,
+    add_pos (mul_pos ha hap) (mul_pos hb haq),
+    add_pos (mul_pos ha hbp) (mul_pos hb hbq), _, _⟩,
+  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
+  { simp_rw [add_smul, mul_smul, smul_add],
+    exact add_add_add_comm _ _ _ _ }
+end
 
 lemma convex.linear_image (hs : convex 𝕜 s) (f : E →ₗ[𝕜] F) : convex 𝕜 (f '' s) :=
 begin
@@ -849,29 +873,6 @@ calc
   a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
             ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
 
-lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
-begin
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_nonneg (mul_nonneg ha hap) (mul_nonneg hb haq),
-    add_nonneg (mul_nonneg ha hbp) (mul_nonneg hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
-end
-
-lemma convex_open_segment (a b : E) : convex 𝕜 (open_segment 𝕜 a b) :=
-begin
-  rw convex_iff_open_segment_subset,
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_pos (mul_pos ha hap) (mul_pos hb haq),
-    add_pos (mul_pos ha hbp) (mul_pos hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
-end
-
 end add_comm_group
 end ordered_semiring
 
@@ -1005,9 +1006,9 @@ begin
     exact ⟨p • v, q • v, smul_mem_smul_set hv, smul_mem_smul_set hv, (add_smul _ _ _).symm⟩ },
   { rintro ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
     have hpq := add_pos hp' hq',
-    exact mem_smul_set.2 ⟨_, h_conv h₁₂ h₂₂ (div_pos hp' hpq).le (div_pos hq' hpq).le
+    refine mem_smul_set.2 ⟨_, h_conv h₁₂ h₂₂ _ _
       (by rw [←div_self hpq.ne', add_div] : p / (p + q) + q / (p + q) = 1),
-      by simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩ }
+      by simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩; positivity }
 end
 
 end add_comm_group

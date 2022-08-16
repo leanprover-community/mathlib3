@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {M₀ G₀ M₀' G₀' : Type*}
+variables {M₀ G₀ M₀' G₀' F : Type*}
 
 section
 
@@ -612,9 +612,6 @@ by { ext, refl }
 @[simp] lemma mk0_coe (u : G₀ˣ) (h : (u : G₀) ≠ 0) : mk0 (u : G₀) h = u :=
 units.ext rfl
 
-@[simp, norm_cast] lemma coe_inv' (u : G₀ˣ) : ((u⁻¹ : G₀ˣ) : G₀) = u⁻¹ :=
-eq_inv_of_mul_eq_one_left u.inv_mul
-
 @[simp] lemma mul_inv' (u : G₀ˣ) : (u : G₀) * u⁻¹ = 1 := mul_inv_cancel u.ne_zero
 
 @[simp] lemma inv_mul' (u : G₀ˣ) : (u⁻¹ : G₀) * u = 1 := inv_mul_cancel u.ne_zero
@@ -646,7 +643,7 @@ begin
     simpa only [eq_comm] using units.exists_iff_ne_zero.mpr h }
 end
 
-@[simp] lemma smul_mk0 {α : Type*} [has_scalar G₀ α] {g : G₀} (hg : g ≠ 0) (a : α) :
+@[simp] lemma smul_mk0 {α : Type*} [has_smul G₀ α] {g : G₀} (hg : g ≠ 0) (a : α) :
   (mk0 g hg) • a = g • a :=
 rfl
 
@@ -963,8 +960,6 @@ semiconj_by.inv_right_iff₀
 
 theorem inv_right₀ (h : commute a b) : commute a b⁻¹ := inv_right_iff₀.2 h
 
-theorem inv_inv₀ (h : commute a b) : commute a⁻¹ b⁻¹ := h.inv_left₀.inv_right₀
-
 @[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
   commute a (b / c) :=
 hab.div_right hac
@@ -978,37 +973,33 @@ end commute
 namespace monoid_with_zero_hom
 
 variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
-
-section monoid_with_zero
-
-variables (f : G₀ →*₀ M₀) {a : G₀}
+  [monoid_with_zero_hom_class F G₀ M₀] (f : F) {a : G₀}
+include M₀
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
-⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
+⟨λ hfa ha, hfa $ ha.symm ▸ map_zero f, λ ha, ((is_unit.mk0 a ha).map f).ne_zero⟩
 
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 :=
-not_iff_not.1 f.map_ne_zero
+@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-end monoid_with_zero
+end monoid_with_zero_hom
 
 section group_with_zero
 
-variables (f : G₀ →*₀ G₀') (a b : G₀)
+variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero_hom_class F G₀ G₀']
+  (f : F) (a b : G₀)
+include G₀'
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
-@[simp] lemma map_inv : f a⁻¹ = (f a)⁻¹ :=
+@[simp] lemma map_inv₀ : f a⁻¹ = (f a)⁻¹ :=
 begin
   by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_eq_one_left,
-  rw [← f.map_mul, inv_mul_cancel h, f.map_one]
+  rw [← map_mul, inv_mul_cancel h, map_one]
 end
 
-@[simp] lemma map_div : f (a / b) = f a / f b :=
-by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv b)
+@[simp] lemma map_div₀ : f (a / b) = f a / f b := map_div' f (map_inv₀ f) a b
 
 end group_with_zero
-
-end monoid_with_zero_hom
 
 /-- We define the inverse as a `monoid_with_zero_hom` by extending the inverse map by zero
 on non-units. -/
@@ -1030,18 +1021,8 @@ lemma monoid_with_zero.inverse_apply {M : Type*} [comm_monoid_with_zero M] (a : 
 
 /-- Inversion on a commutative group with zero, considered as a monoid with zero homomorphism. -/
 def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : G₀ →*₀ G₀ :=
-{ to_fun := has_inv.inv,
-  map_zero' := inv_zero,
-  map_one' := inv_one,
-  map_mul' := mul_inv }
-
-@[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
-  (f : M →* G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
-by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]
-
-@[simp] lemma monoid_with_zero_hom.map_units_inv {M G₀ : Type*} [monoid_with_zero M]
-  [group_with_zero G₀] (f : M →*₀ G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
-f.to_monoid_hom.map_units_inv u
+{ map_zero' := inv_zero,
+  ..inv_monoid_hom }
 
 section noncomputable_defs
 

@@ -60,6 +60,14 @@ quot.induction_on s $ λ l, nodup_iff_count_le_one
   (d : nodup s) (h : a ∈ s) : count a s = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 
+lemma count_eq_of_nodup [decidable_eq α] {a : α} {s : multiset α}
+  (d : nodup s) : count a s = if a ∈ s then 1 else 0 :=
+begin
+  split_ifs with h,
+  { exact count_eq_one_of_mem d h },
+  { exact count_eq_zero_of_not_mem h },
+end
+
 lemma nodup_iff_pairwise {α} {s : multiset α} : nodup s ↔ pairwise (≠) s :=
 quotient.induction_on s $ λ l, (pairwise_coe_iff_pairwise (by exact λ a b, ne.symm)).symm
 
@@ -161,7 +169,7 @@ nodup_of_le $ inter_le_right _ _
     (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
       (quotient.exact e)⟩
 
-alias nodup_powerset ↔ multiset.nodup.of_powerset multiset.nodup.powerset
+alias nodup_powerset ↔ nodup.of_powerset nodup.powerset
 
 protected lemma nodup.powerset_len {n : ℕ} (h : nodup s) : nodup (powerset_len n s) :=
 nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)

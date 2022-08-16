@@ -133,20 +133,20 @@ cut_expand_singleton (λ a h, by rwa mem_singleton.1 h)
 theorem cut_expand_add_left {t u} (s) : cut_expand r (s + t) (s + u) ↔ cut_expand r t u :=
 exists₂_congr $ λ _ _, and_congr iff.rfl $ by rw [add_assoc, add_assoc, add_left_cancel_iff]
 
-lemma cut_expand_iff [decidable_eq α] (hr : irreflexive r) {s' s : multiset α} :
+lemma cut_expand_iff [decidable_eq α] [is_irrefl α r] {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=
 begin
   simp_rw [cut_expand, add_singleton_eq_iff],
   refine exists₂_congr (λ t a, ⟨_, _⟩),
   { rintro ⟨ht, ha, rfl⟩,
     obtain (h|h) := mem_add.1 ha,
-    exacts [⟨ht, h, t.erase_add_left_pos h⟩, (hr a $ ht a h).elim] },
+    exacts [⟨ht, h, t.erase_add_left_pos h⟩, (@irrefl α r _ a (ht a h)).elim] },
   { rintro ⟨ht, h, rfl⟩,
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },
 end
 
-theorem not_cut_expand_zero (hr : irreflexive r) (s) : ¬ cut_expand r s 0 :=
-by { classical, rw cut_expand_iff hr, rintro ⟨_, _, _, ⟨⟩, _⟩ }
+theorem not_cut_expand_zero [is_irrefl α r] (s) : ¬ cut_expand r s 0 :=
+by { classical, rw cut_expand_iff, rintro ⟨_, _, _, ⟨⟩, _⟩ }
 
 /-- For any relation `r` on `α`, multiset addition `multiset α × multiset α → multiset α` is a
   fibration between the game sum of `cut_expand r` with itself and `cut_expand r` itself. -/
@@ -166,11 +166,11 @@ end
 
 /-- A multiset is accessible under `cut_expand` if all its singleton subsets are,
   assuming `r` is irreflexive. -/
-lemma acc_of_singleton (hi : irreflexive r) {s : multiset α} :
+lemma acc_of_singleton [is_irrefl α r] {s : multiset α} :
   (∀ a ∈ s, acc (cut_expand r) {a}) → acc (cut_expand r) s :=
 begin
   refine multiset.induction _ _ s,
-  { exact λ _, acc.intro 0 $ λ s h, (not_cut_expand_zero hi s h).elim },
+  { exact λ _, acc.intro 0 $ λ s h, (not_cut_expand_zero s h).elim },
   { intros a s ih hacc, rw ← s.singleton_add a,
     exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
       hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },
@@ -178,22 +178,20 @@ end
 
 /-- A singleton `{a}` is accessible under `cut_expand r` if `a` is accessible under `r`,
   assuming `r` is irreflexive. -/
-lemma _root_.acc.cut_expand (hi : irreflexive r)
-  {a : α} (hacc : acc r a) : acc (cut_expand r) {a} :=
+lemma _root_.acc.cut_expand [is_irrefl α r] {a : α} (hacc : acc r a) : acc (cut_expand r) {a} :=
 begin
   induction hacc with a h ih,
   refine acc.intro _ (λ s, _),
-  classical, rw cut_expand_iff hi,
+  classical, rw cut_expand_iff,
   rintro ⟨t, a, hr, rfl|⟨⟨⟩⟩, rfl⟩,
-  refine acc_of_singleton hi (λ a', _),
+  refine acc_of_singleton (λ a', _),
   rw [erase_singleton, zero_add],
   exact ih a' ∘ hr a',
 end
 
 /-- `cut_expand r` is well-founded when `r` is. -/
 theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
-⟨λ s, acc_of_singleton hr.is_irrefl.1 $ λ a _, (hr.apply a).cut_expand hr.is_irrefl.1⟩
-
+⟨by { letI h := hr.is_irrefl, exact λ s, acc_of_singleton $ λ a _, (hr.apply a).cut_expand }⟩
 end hydra
 
 end relation

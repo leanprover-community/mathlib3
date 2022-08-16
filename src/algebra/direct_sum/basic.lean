@@ -49,8 +49,7 @@ variables [Π i, add_comm_group (β i)]
 instance : add_comm_group (direct_sum ι β) := dfinsupp.add_comm_group
 
 variables {β}
-@[simp] lemma sub_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ - g₂) i = g₁ i - g₂ i :=
-dfinsupp.sub_apply _ _ _
+@[simp] lemma sub_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ - g₂) i = g₁ i - g₂ i := rfl
 
 end add_comm_group
 
@@ -59,8 +58,7 @@ variables [Π i, add_comm_monoid (β i)]
 @[simp] lemma zero_apply (i : ι) : (0 : ⨁ i, β i) i = 0 := rfl
 
 variables {β}
-@[simp] lemma add_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ + g₂) i = g₁ i + g₂ i :=
-dfinsupp.add_apply _ _ _
+@[simp] lemma add_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ + g₂) i = g₁ i + g₂ i := rfl
 
 variables (β)
 include dec_ι
@@ -178,8 +176,10 @@ variables {β}
 
 omit dec_ι
 
+instance unique [∀ i, subsingleton (β i)] : unique (⨁ i, β i) := dfinsupp.unique
+
 /-- A direct sum over an empty type is trivial. -/
-instance [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique
+instance unique_of_is_empty [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique_of_is_empty
 
 /-- The natural equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
@@ -223,10 +223,10 @@ variables {α : ι → Type u} {δ : Π i, α i → Type w} [Π i j, add_comm_mo
 noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
 { to_fun := @dfinsupp.sigma_curry _ _ δ _,
   map_zero' := dfinsupp.sigma_curry_zero,
-  map_add' := λ f g, dfinsupp.sigma_curry_add f g }
+  map_add' := λ f g, @dfinsupp.sigma_curry_add _ _ δ _ f g }
 
 @[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
-  sigma_curry f i j = f ⟨i, j⟩ := dfinsupp.sigma_curry_apply f i j
+  sigma_curry f i j = f ⟨i, j⟩ := @dfinsupp.sigma_curry_apply _ _ δ _ f i j
 
 /--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/

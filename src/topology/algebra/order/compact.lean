@@ -232,7 +232,7 @@ begin
   rcases (has_basis_cocompact.inf_principal _).eventually_iff.1 hc with ⟨K, hK, hKf⟩,
   have hsub : insert x₀ (K ∩ s) ⊆ s, from insert_subset.2 ⟨h₀, inter_subset_right _ _⟩,
   obtain ⟨x, hx, hxf⟩ : ∃ x ∈ insert x₀ (K ∩ s), ∀ y ∈ insert x₀ (K ∩ s), f x ≤ f y :=
-    ((hK.inter_right hsc).insert x₀).exists_forall_le (nonempty_insert _ _) (hf.mono hsub),
+    ((hK.inter_right hsc).insert x₀).exists_forall_le (insert_nonempty _ _) (hf.mono hsub),
   refine ⟨x, hsub hx, λ y hy, _⟩,
   by_cases hyK : y ∈ K,
   exacts [hxf _ (or.inr ⟨hyK, hy⟩), (hxf _ (or.inl rfl)).trans (hKf ⟨hyK, hy⟩)]
@@ -291,8 +291,8 @@ lemma is_compact.lt_Inf_iff_of_continuous {α β : Type*}
 @is_compact.Sup_lt_iff_of_continuous αᵒᵈ β _ _ _ _ _ _ hK h0K hf y
 
 /-- A continuous function with compact support has a global minimum. -/
-@[to_additive]
-lemma _root_.continuous.exists_forall_le_of_has_compact_mul_support [nonempty β] [has_one α]
+@[to_additive "A continuous function with compact support has a global minimum."]
+lemma continuous.exists_forall_le_of_has_compact_mul_support [nonempty β] [has_one α]
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   ∃ (x : β), ∀ (y : β), f x ≤ f y :=
 begin
@@ -302,7 +302,7 @@ begin
 end
 
 /-- A continuous function with compact support has a global maximum. -/
-@[to_additive]
+@[to_additive "A continuous function with compact support has a global maximum."]
 lemma continuous.exists_forall_ge_of_has_compact_mul_support [nonempty β] [has_one α]
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   ∃ (x : β), ∀ (y : β), f y ≤ f x :=

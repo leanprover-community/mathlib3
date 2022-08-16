@@ -83,10 +83,10 @@ by cases x; cases y; simp [to_complex_def₂]
 by rw [← to_complex_zero, to_complex_inj]
 
 @[simp] lemma nat_cast_real_norm (x : ℤ[i]) : (x.norm : ℝ) = (x : ℂ).norm_sq :=
-by rw [norm, norm_sq]; simp
+by rw [zsqrtd.norm, norm_sq]; simp
 
 @[simp] lemma nat_cast_complex_norm (x : ℤ[i]) : (x.norm : ℂ) = (x : ℂ).norm_sq :=
-by cases x; rw [norm, norm_sq]; simp
+by cases x; rw [zsqrtd.norm, norm_sq]; simp
 
 lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg (by norm_num) _
 
@@ -96,7 +96,7 @@ by rw [← @int.cast_inj ℝ _ _ _]; simp
 lemma norm_pos {x : ℤ[i]} : 0 < norm x ↔ x ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne.def, eq_comm, norm_eq_zero]; simp [norm_nonneg]
 
-@[simp] lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
+lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
 int.nat_abs_of_nonneg (norm_nonneg _)
 
 @[simp] lemma nat_cast_nat_abs_norm {α : Type*} [ring α]
@@ -105,7 +105,7 @@ by rw [← int.cast_coe_nat, coe_nat_abs_norm]
 
 lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
   x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs :=
-int.coe_nat_inj $ begin simp, simp [norm] end
+int.coe_nat_inj $ begin simp, simp [zsqrtd.norm] end
 
 instance : has_div ℤ[i] :=
 ⟨λ x y, let n := (rat.of_int (norm y))⁻¹, c := y.conj in
@@ -154,12 +154,12 @@ lemma mod_def (x y : ℤ[i]) : x % y = x - y * (x / y) := rfl
 lemma norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) : (x % y).norm < y.norm :=
 have (y : ℂ) ≠ 0, by rwa [ne.def, ← to_complex_zero, to_complex_inj],
 (@int.cast_lt ℝ _ _ _ _).1 $
-  calc ↑(norm (x % y)) = (x - y * (x / y : ℤ[i]) : ℂ).norm_sq : by simp [mod_def]
+  calc ↑(zsqrtd.norm (x % y)) = (x - y * (x / y : ℤ[i]) : ℂ).norm_sq : by simp [mod_def]
   ... = (y : ℂ).norm_sq * (((x / y) - (x / y : ℤ[i])) : ℂ).norm_sq :
     by rw [← norm_sq_mul, mul_sub, mul_div_cancel' _ this]
   ... < (y : ℂ).norm_sq * 1 : mul_lt_mul_of_pos_left (norm_sq_div_sub_div_lt_one _ _)
     (norm_sq_pos.2 this)
-  ... = norm y : by simp
+  ... = zsqrtd.norm y : by simp
 
 lemma nat_abs_norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (x % y).norm.nat_abs < y.norm.nat_abs :=
@@ -167,7 +167,7 @@ int.coe_nat_lt.1 (by simp [-int.coe_nat_lt, norm_mod_lt x hy])
 
 lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
-by rw [norm_mul, int.nat_abs_mul];
+by rw [zsqrtd.norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right (nat.zero_le _)
     (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
 
@@ -224,15 +224,15 @@ hp.1.eq_two_or_odd.elim
         ... < p * p : mul_lt_mul k_lt_p k_lt_p (nat.succ_pos _) (nat.zero_le _),
       have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k, -1⟩ :=
         λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
-          calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, -1⟩).nat_abs : by rw hx
-          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          calc (norm (p * x : ℤ[i])).nat_abs = (zsqrtd.norm ⟨k, -1⟩).nat_abs : by rw hx
+          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, zsqrtd.norm] using hkltp
           ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
             (λ hx0, (show (-1 : ℤ) ≠ 0, from dec_trivial) $
               by simpa [hx0] using congr_arg zsqrtd.im hx),
       have hpk₂ : ¬ (p : ℤ[i]) ∣ ⟨k, 1⟩ :=
         λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
-          calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, 1⟩).nat_abs : by rw hx
-          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          calc (norm (p * x : ℤ[i])).nat_abs = (zsqrtd.norm ⟨k, 1⟩).nat_abs : by rw hx
+          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, zsqrtd.norm] using hkltp
           ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
             (λ hx0, (show (1 : ℤ) ≠ 0, from dec_trivial) $
                 by simpa [hx0] using congr_arg zsqrtd.im hx),

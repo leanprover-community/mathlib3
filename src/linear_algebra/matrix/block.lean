@@ -36,7 +36,7 @@ open_locale big_operators matrix
 
 universes v
 
-variables {α m n o : Type*} {m' n' : α → Type*}
+variables {α β m n o : Type*} {m' n' : α → Type*}
 variables {R : Type v} [comm_ring R] {M : matrix m m R} {b : m → α}
 
 namespace matrix
@@ -328,27 +328,24 @@ end
 lemma to_block_one_eq (p : m → Prop) : matrix.to_block (1 : matrix m m R) p p = 1 :=
 to_block_diagonal_eq _ p
 
-lemma to_block_inverse_of_block_triangular
-  [invertible M] (p : m → Prop) (hM : block_triangular M p) :
-  (M.to_block p p) ⬝ M⁻¹.to_block p p = 1 :=
+lemma to_block_inverse_of_block_triangular [linear_order α]
+  [invertible M] (hM : block_triangular M b) (k : α) :
+  M⁻¹.to_block (λ i, b i < k) (λ i, b i < k) ⬝ M.to_block (λ i, b i < k) (λ i, b i < k) = 1 :=
 begin
-  have : (M ⬝ M⁻¹).to_block p p = 1,
-  { rw mul_inv_of_invertible M, exact to_block_one_eq p },
-  have h_sum : M.to_block p p ⬝ M⁻¹.to_block p p +
-      M.to_block p (λ i, ¬ p i) ⬝ M⁻¹.to_block (λ i, ¬ p i) p = 1,
-    by rw [←to_block_mul', this],
-  have h_zero : M.to_block p (λ i, ¬ p i) = 0,
+  let p := (λ i, b i < k),
+  have h_sum : M⁻¹.to_block p p ⬝ M.to_block p p +
+      M⁻¹.to_block p (λ i, ¬ p i) ⬝ M.to_block (λ i, ¬ p i) p = 1,
+    by rw [←to_block_mul', inv_mul_of_invertible M, to_block_one_eq],
+  have h_zero : M.to_block (λ i, ¬ p i) p = 0,
   { ext i j,
-    have : p ↑j < p ↑i,
-    { change (p j.1 → p i.1) ∧ ¬(p i.1 → p j.1), have : ¬ p ↑j := j.2, have : p ↑i := i.2, tauto },
-    simp [hM this] },
+    simpa using hM (lt_of_lt_of_le j.2 (le_of_not_lt i.2)) },
   simpa [h_zero] using h_sum
 end
 
 noncomputable def invertible_to_block_of_block_triangular
-  [invertible M] (p : m → Prop) (hM : block_triangular M p) :
-  invertible (M.to_block p p) :=
-invertible_of_right_inverse _ _ (to_block_inverse_of_block_triangular _ hM)
+  [linear_order α] [invertible M] (hM : block_triangular M b) (k : α) :
+  invertible (M.to_block (λ i, b i < k) (λ i, b i < k)) :=
+invertible_of_left_inverse _ _ (to_block_inverse_of_block_triangular hM k)
 
 lemma invertible_square_block_of_block_triangular
     [invertible M] [linear_order α] (hM : block_triangular M b) :
@@ -367,8 +364,16 @@ begin
     let B := M.to_block (λ i, b i ≠ k) (λ j, b j = k),
     let C := M.to_block (λ i, b i = k) (λ j, b j ≠ k),
     let D := M.to_block (λ i, b i = k) (λ j, b j = k),
+    have h_ne_iff_lt : (λ i, b i ≠ k) = (λ i, b i < k),
+    { apply funext (λ i, propext (iff.intro (λ h, _) (λ h, _))),
+      { apply lt_of_le_of_ne _ h,
+        exact (is_greatest_max' (univ.image b) _).2 (mem_image_of_mem b (mem_univ _)) },
+      { apply ne_of_lt h } },
+    haveI : invertible A,
+    { dsimp only [A],
+      rw [h_ne_iff_lt],
+      apply invertible_to_block_of_block_triangular hM },
     have hA : A.block_triangular b', sorry,
-    haveI : invertible A, sorry,
     have hb' : image b' univ = (image b univ).erase k,
     { convert xxx _, apply classical.dec_eq, },
     have : A⁻¹.block_triangular b' :=

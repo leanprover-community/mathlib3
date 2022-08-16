@@ -8,6 +8,7 @@ import linear_algebra.matrix.basis
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_linear_equiv
+import linear_algebra.sesquilinear_form
 
 /-!
 # Sesquilinear form
@@ -431,3 +432,132 @@ lemma matrix.to_linear_map₂_compl₁₂ (M : matrix n m R) (P : matrix n n' R)
     to_matrix_to_lin])
 
 end to_matrix
+
+/-! ### Adjoint pairs-/
+
+section matrix_adjoints
+open_locale matrix
+
+variables [comm_ring R]
+variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
+variables [fintype n] [fintype n']
+
+variables (b₁ : basis n R M₁) (b₂ : basis n' R M₂)
+variables (J J₂ : matrix n n R) (J' : matrix n' n' R)
+variables (A : matrix n' n R) (A' : matrix n n' R)
+variables (A₁ : matrix n n R)
+
+/-- The condition for the matrices `A`, `A'` to be an adjoint pair with respect to the square
+matrices `J`, `J₃`. -/
+def matrix.is_adjoint_pair := Aᵀ ⬝ J' = J ⬝ A'
+
+/-- The condition for a square matrix `A` to be self-adjoint with respect to the square matrix
+`J`. -/
+def matrix.is_self_adjoint := matrix.is_adjoint_pair J J A₁ A₁
+
+/-- The condition for a square matrix `A` to be skew-adjoint with respect to the square matrix
+`J`. -/
+def matrix.is_skew_adjoint := matrix.is_adjoint_pair J J A₁ (-A₁)
+
+variables [decidable_eq n] [decidable_eq n']
+
+@[simp] lemma is_adjoint_pair_to_linear_map₂' :
+  is_adjoint_pair (matrix.to_linear_map₂' J) (matrix.to_linear_map₂' J')
+      (matrix.to_lin' A) (matrix.to_lin' A') ↔
+    matrix.is_adjoint_pair J J' A A' :=
+begin
+  rw is_adjoint_pair_iff_comp_eq_compl₂,
+  have h : ∀ (B B' : (n → R) →ₗ[R] (n' → R) →ₗ[R] R), B = B' ↔
+    (linear_map.to_matrix₂' B) = (linear_map.to_matrix₂' B') :=
+  begin
+    intros B B',
+    split; intros h,
+    { rw h },
+    { exact linear_map.to_matrix₂'.injective h },
+  end,
+  simp_rw [h, linear_map.to_matrix₂'_comp, linear_map.to_matrix₂'_compl₂,
+    linear_map.to_matrix'_to_lin', linear_map.to_matrix'_to_linear_map₂'],
+  refl,
+end
+
+@[simp] lemma is_adjoint_pair_to_bilin :
+  is_adjoint_pair (matrix.to_linear_map₂ b₁ b₁ J) (matrix.to_linear_map₂ b₂ b₂ J')
+      (matrix.to_lin b₁ b₂ A) (matrix.to_lin b₂ b₁ A') ↔
+    matrix.is_adjoint_pair J J' A A' :=
+begin
+  rw is_adjoint_pair_iff_comp_eq_compl₂,
+  have h : ∀ (B B' : M₁ →ₗ[R] M₂ →ₗ[R] R), B = B' ↔
+    (linear_map.to_matrix₂ b₁ b₂ B) = (linear_map.to_matrix₂ b₁ b₂ B') :=
+  begin
+    intros B B',
+    split; intros h,
+    { rw h },
+    { exact (linear_map.to_matrix₂ b₁ b₂).injective h },
+  end,
+  simp_rw [h, linear_map.to_matrix₂_comp b₂ b₂, linear_map.to_matrix₂_compl₂ b₁ b₁,
+    linear_map.to_matrix_to_lin, linear_map.to_matrix₂_to_linear_map₂],
+  refl,
+end
+
+lemma matrix.is_adjoint_pair_equiv (P : matrix n n R) (h : is_unit P) :
+  (Pᵀ ⬝ J ⬝ P).is_adjoint_pair (Pᵀ ⬝ J ⬝ P) A₁ A₁ ↔
+    J.is_adjoint_pair J (P ⬝ A₁ ⬝ P⁻¹) (P ⬝ A₁ ⬝ P⁻¹) :=
+have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
+begin
+  let u := P.nonsing_inv_unit h',
+  let v := Pᵀ.nonsing_inv_unit (P.is_unit_det_transpose h'),
+  let x := A₁ᵀ * Pᵀ * J,
+  let y := J * P * A₁,
+  suffices : x * ↑u = ↑v * y ↔ ↑v⁻¹ * x = y * ↑u⁻¹,
+  { dunfold matrix.is_adjoint_pair,
+    repeat { rw matrix.transpose_mul, },
+    simp only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv],
+    conv_lhs { to_rhs, rw [mul_assoc, mul_assoc], congr, skip, rw ←mul_assoc, },
+    conv_rhs { rw [mul_assoc, mul_assoc], conv { to_lhs, congr, skip, rw ←mul_assoc }, },
+    exact this, },
+  rw units.eq_mul_inv_iff_mul_eq, conv_rhs { rw mul_assoc, }, rw v.inv_mul_eq_iff_eq_mul,
+end
+
+/-- The submodule of pair-self-adjoint matrices with respect to bilinear forms corresponding to
+given matrices `J`, `J₂`. -/
+def pair_self_adjoint_matrices_submodule : submodule R (matrix n n R) :=
+(is_pair_self_adjoint_submodule (matrix.to_linear_map₂' J) (matrix.to_linear_map₂' J₂)).map
+  ((linear_map.to_matrix' : ((n → R) →ₗ[R] (n → R)) ≃ₗ[R] matrix n n R) :
+  ((n → R) →ₗ[R] (n → R)) →ₗ[R] matrix n n R)
+
+@[simp] lemma mem_pair_self_adjoint_matrices_submodule :
+  A₁ ∈ (pair_self_adjoint_matrices_submodule J J₂) ↔ matrix.is_adjoint_pair J J₂ A₁ A₁ :=
+begin
+  simp only [pair_self_adjoint_matrices_submodule, linear_equiv.coe_coe,
+    linear_map.to_matrix'_apply, submodule.mem_map, mem_is_pair_self_adjoint_submodule],
+  split,
+  { rintros ⟨f, hf, hA⟩,
+    have hf' : f = A₁.to_lin' := by rw [←hA, matrix.to_lin'_to_matrix'], rw hf' at hf,
+    rw ← is_adjoint_pair_to_linear_map₂',
+    exact hf, },
+  { intros h, refine ⟨A₁.to_lin', _, linear_map.to_matrix'_to_lin' _⟩,
+    exact (is_adjoint_pair_to_linear_map₂' _ _ _ _).mpr h, },
+end
+
+/-- The submodule of self-adjoint matrices with respect to the bilinear form corresponding to
+the matrix `J`. -/
+def self_adjoint_matrices_submodule : submodule R (matrix n n R) :=
+  pair_self_adjoint_matrices_submodule J J
+
+@[simp] lemma mem_self_adjoint_matrices_submodule :
+  A₁ ∈ self_adjoint_matrices_submodule J ↔ J.is_self_adjoint A₁ :=
+by { erw mem_pair_self_adjoint_matrices_submodule, refl, }
+
+/-- The submodule of skew-adjoint matrices with respect to the bilinear form corresponding to
+the matrix `J`. -/
+def skew_adjoint_matrices_submodule : submodule R (matrix n n R) :=
+  pair_self_adjoint_matrices_submodule (-J) J
+
+@[simp] lemma mem_skew_adjoint_matrices_submodule :
+  A₁ ∈ skew_adjoint_matrices_submodule J ↔ J.is_skew_adjoint A₁ :=
+begin
+  erw mem_pair_self_adjoint_matrices_submodule,
+  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair],
+end
+
+end matrix_adjoints

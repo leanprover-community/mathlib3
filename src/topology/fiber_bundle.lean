@@ -361,6 +361,19 @@ lemma map_proj_nhds (ex : x ∈ e.source) : map proj (𝓝 x) = 𝓝 (proj x) :=
 by rw [← e.coe_fst ex, ← map_congr (e.coe_fst_eventually_eq_proj ex), ← map_map, ← e.coe_coe,
   e.to_local_homeomorph.map_nhds_eq ex, map_fst_nhds]
 
+/-- Each fiber of a trivialization is homeomorphic to the specified fiber. -/
+@[simps] def preimage_singleton_homeomorph {b : B} (hb : b ∈ e.base_set) : proj ⁻¹' {b} ≃ₜ F :=
+{ to_fun := λ x, (e x).2,
+  inv_fun := λ x, ⟨e.to_local_homeomorph.symm ⟨b, x⟩, e.proj_symm_apply' hb⟩,
+  left_inv := by
+  { rintros ⟨x, rfl : proj x = b⟩;
+    exact subtype.ext (e.symm_apply_mk_proj (e.mem_source.mpr hb)) },
+  right_inv := λ x, congr_arg prod.snd (e.apply_symm_apply (e.mem_target.mpr (by exact hb))),
+  continuous_to_fun := continuous_on_iff_continuous_restrict.mp (continuous_snd.comp_continuous_on
+    (e.continuous_to_fun.mono (λ x (h : proj x = b), by rwa [e.source_eq, set.mem_preimage, h]))),
+  continuous_inv_fun := continuous_subtype_mk _ (e.continuous_inv_fun.comp_continuous
+    (continuous.prod.mk b) (λ x, e.mem_target.mpr hb)) }
+
 /-- In the domain of a bundle trivialization, the projection is continuous-/
 lemma continuous_at_proj (ex : x ∈ e.source) : continuous_at proj x :=
 (e.map_proj_nhds ex).le

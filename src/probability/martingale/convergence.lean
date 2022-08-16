@@ -340,7 +340,7 @@ let ⟨R, hR⟩ := hunif.2.2 in hf.ae_tendsto_limit_process hR
 
 /-- If a martingale `f` adapted to `ℱ` converges in L¹ to `g`, then for all `n`, `f n` is almost
 everywhere equal to `𝔼[g | ℱ n]`. -/
-lemma martingale.eq_condexp_of_tendsto_snorm
+lemma martingale.eq_condexp_of_tendsto_snorm {μ : measure Ω}
   (hf : martingale f ℱ μ) (hg : integrable g μ)
   (hgtends : tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0)) (n : ℕ) :
   f n =ᵐ[μ] μ[g | ℱ n] :=

@@ -67,7 +67,7 @@ lemma mem_diff {a : α} : a ∈ f.diff g ↔ f a ≠ g a :=
 by simpa only [diff, finset.mem_filter, finset.mem_union, mem_support_iff, and_iff_right_iff_imp]
     using ne.ne_or_ne _
 
-lemma set_ne_eq_diff : {x | f x ≠ g x} = f.diff g :=
+lemma coe_diff : ↑(f.diff g) = {x | f x ≠ g x} :=
 by { ext, simp only [set.mem_set_of_eq, finset.mem_coe, mem_diff] }
 
 lemma subset_map_range_diff {M} [decidable_eq M] [has_zero M] (F : zero_hom N M) :

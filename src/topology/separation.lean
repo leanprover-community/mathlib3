@@ -516,7 +516,7 @@ hs.induction_on (by simp) $ λ x, by simp
 
 @[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
   (closure s).subsingleton ↔ s.subsingleton :=
-⟨λ h, h.mono subset_closure, λ h, h.closure⟩
+⟨λ h, h.anti subset_closure, λ h, h.closure⟩
 
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=
@@ -1486,7 +1486,7 @@ begin
   -- We do this by showing that any disjoint cover by two closed sets implies
   -- that one of these closed sets must contain our whole thing.
   -- To reduce to the case where the cover is disjoint on all of `α` we need that `s` is closed
-  have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
+  have hs : @is_closed α _ (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
     is_closed_Inter (λ Z, Z.2.1.2),
   rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_disj,

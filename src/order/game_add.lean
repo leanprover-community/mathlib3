@@ -78,7 +78,7 @@ variables {rα rβ}
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
   accessible under `prod.game_add rα rβ`. Notice that `prod.lex_accessible` requires the
   stronger condition `∀ b, acc rβ b`. -/
-lemma acc.game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (prod.game_add rα rβ) (a, b) :=
+lemma acc.prod_game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (prod.game_add rα rβ) (a, b) :=
 begin
   induction ha with a ha iha generalizing b,
   induction hb with b hb ihb,
@@ -89,7 +89,7 @@ end
 
 /-- The `prod.game_add` relation is well-founded. -/
 lemma well_founded.prod_game_add (hα : well_founded rα) (hβ : well_founded rβ) :
-  well_founded (prod.game_add rα rβ) := ⟨λ ⟨a, b⟩, (hα.apply a).game_add (hβ.apply b)⟩
+  well_founded (prod.game_add rα rβ) := ⟨λ ⟨a, b⟩, (hα.apply a).prod_game_add (hβ.apply b)⟩
 
 namespace prod
 

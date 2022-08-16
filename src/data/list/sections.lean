@@ -31,7 +31,7 @@ begin
 end
 
 theorem mem_sections_length {L : list (list α)} {f} (h : f ∈ sections L) : length f = length L :=
-forall₂_length_eq (mem_sections.1 h)
+forall₂.length_eq (mem_sections.1 h)
 
 lemma rel_sections {r : α → β → Prop} :
   (forall₂ (forall₂ r) ⇒ forall₂ (forall₂ r)) sections sections

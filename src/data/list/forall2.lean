@@ -111,10 +111,10 @@ lemma _root_.relator.right_unique.forall₂ (hr : right_unique r) : right_unique
 lemma _root_.relator.bi_unique.forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
 ⟨hr.left.forall₂, hr.right.forall₂⟩
 
-theorem forall₂_length_eq {R : α → β → Prop} :
+theorem forall₂.length_eq {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂
 | _ _ forall₂.nil          := rfl
-| _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
+| _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂.length_eq h₂)
 
 theorem forall₂.nth_le :
   ∀ {x : list α} {y : list β} (h : forall₂ r x y)
@@ -134,7 +134,7 @@ lemma forall₂_of_length_eq_of_nth_le : ∀ {x : list α} {y : list β},
 theorem list.forall₂_iff {l₁ : list α} {l₂ : list β} :
   list.forall₂ r l₁ l₂ ↔ l₁.length = l₂.length ∧
   ∀ i h₁ h₂, r (l₁.nth_le i h₁) (l₂.nth_le i h₂) :=
-⟨λ h, ⟨forall₂_length_eq h, @forall₂.nth_le _ _ _ _ _ h⟩, and.rec forall₂_of_length_eq_of_nth_le⟩
+⟨λ h, ⟨forall₂.length_eq h, @forall₂.nth_le _ _ _ _ _ h⟩, and.rec forall₂_of_length_eq_of_nth_le⟩
 
 theorem forall₂_zip {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b
@@ -143,7 +143,7 @@ theorem forall₂_zip {R : α → β → Prop} :
 
 theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l₁ l₂ ↔
   length l₁ = length l₂ ∧ ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b :=
-⟨λ h, ⟨forall₂_length_eq h, @forall₂_zip _ _ _ _ _ h⟩,
+⟨λ h, ⟨forall₂.length_eq h, @forall₂_zip _ _ _ _ _ h⟩,
  λ h, begin
   cases h with h₁ h₂,
   induction l₁ with a l₁ IH generalizing l₂,

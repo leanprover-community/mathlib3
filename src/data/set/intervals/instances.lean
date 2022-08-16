@@ -62,13 +62,13 @@ by { symmetry, exact subtype.ext_iff }
 lemma coe_ne_one {x : Icc (0:α) 1} : (x : α) ≠ 1 ↔ x ≠ 1 :=
 not_iff_not.mpr coe_eq_one
 
-lemma nonneg (x : Icc (0:α) 1) : 0 ≤ (x : α) := x.2.1
-lemma le_one (x : Icc (0:α) 1) : (x : α) ≤ 1 := x.2.2
+lemma coe_nonneg (x : Icc (0:α) 1) : 0 ≤ (x : α) := x.2.1
+lemma coe_le_one (x : Icc (0:α) 1) : (x : α) ≤ 1 := x.2.2
 
-/-- like `nonneg`, but with the inequality in `Icc (0:α) 1`. -/
-lemma nonneg' {t : Icc (0:α) 1} : 0 ≤ t := t.2.1
-/-- like `le_one`, but with the inequality in `Icc (0:α) 1`. -/
-lemma le_one' {t : Icc (0:α) 1} : t ≤ 1 := t.2.2
+/-- like `coe_nonneg`, but with the inequality in `Icc (0:α) 1`. -/
+lemma nonneg {t : Icc (0:α) 1} : 0 ≤ t := t.2.1
+/-- like `coe_le_one`, but with the inequality in `Icc (0:α) 1`. -/
+lemma le_one {t : Icc (0:α) 1} : t ≤ 1 := t.2.2
 
 instance has_mul : has_mul (Icc (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩ }
@@ -134,11 +134,11 @@ by { symmetry, exact subtype.ext_iff }
 lemma coe_ne_zero [nontrivial α] {x : Ico (0:α) 1} : (x : α) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
 
-lemma nonneg (x : Ico (0:α) 1) : 0 ≤ (x : α) := x.2.1
-lemma lt_one (x : Ico (0:α) 1) : (x : α) < 1 := x.2.2
+lemma coe_nonneg (x : Ico (0:α) 1) : 0 ≤ (x : α) := x.2.1
+lemma coe_lt_one (x : Ico (0:α) 1) : (x : α) < 1 := x.2.2
 
-/-- like `nonneg`, but with the inequality in `Ico (0:α) 1`. -/
-lemma nonneg' [nontrivial α] {t : Ico (0:α) 1} : 0 ≤ t := t.2.1
+/-- like `coe_nonneg`, but with the inequality in `Ico (0:α) 1`. -/
+lemma nonneg [nontrivial α] {t : Ico (0:α) 1} : 0 ≤ t := t.2.1
 
 instance has_mul : has_mul (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
@@ -171,11 +171,11 @@ by { symmetry, exact subtype.ext_iff }
 lemma coe_ne_one [nontrivial α] {x : Ioc (0:α) 1} : (x : α) ≠ 1 ↔ x ≠ 1 :=
 not_iff_not.mpr coe_eq_one
 
-lemma pos (x : Ioc (0:α) 1) : 0 < (x : α) := x.2.1
-lemma le_one (x : Ioc (0:α) 1) : (x : α) ≤ 1 := x.2.2
+lemma coe_pos (x : Ioc (0:α) 1) : 0 < (x : α) := x.2.1
+lemma coe_le_one (x : Ioc (0:α) 1) : (x : α) ≤ 1 := x.2.2
 
-/-- like `le_one`, but with the inequality in `Ioc (0:α) 1`. -/
-lemma le_one' [nontrivial α] {t : Ioc (0:α) 1} : t ≤ 1 := t.2.2
+/-- like `coe_le_one`, but with the inequality in `Ioc (0:α) 1`. -/
+lemma le_one [nontrivial α] {t : Ioc (0:α) 1} : t ≤ 1 := t.2.2
 
 instance has_mul : has_mul (Ioc (0:α) 1) :=
 { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩ }

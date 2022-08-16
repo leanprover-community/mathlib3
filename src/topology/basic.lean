@@ -147,6 +147,10 @@ lemma is_open_Inter_prop {p : Prop} {s : p → set α}
   (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=
 by by_cases p; simp *
 
+lemma is_open_bInter_finset {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_open (f i)) :
+  is_open (⋂ i ∈ s, f i) :=
+is_open_bInter (to_finite _) h
+
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
 by_cases
   (assume : p, begin simp only [this]; exact is_open_univ end)

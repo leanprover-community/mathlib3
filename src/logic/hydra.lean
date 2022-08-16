@@ -132,7 +132,7 @@ begin
   refine multiset.induction _ _ s,
   { exact λ _, acc.intro 0 $ λ s h, (not_cut_expand_zero s h).elim },
   { intros a s ih hacc, rw ← s.singleton_add a,
-    exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
+    exact ((hacc a $ s.mem_cons_self a).prod_game_add $ ih $ λ a ha,
       hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },
 end
 

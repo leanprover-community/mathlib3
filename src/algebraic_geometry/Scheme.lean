@@ -211,14 +211,8 @@ RingedSpace.basic_open_res_eq _ i f
 lemma basic_open_subset : X.basic_open f ⊆ U :=
 RingedSpace.basic_open_subset _ _
 
-lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
-  (r : Y.presheaf.obj $ op U) :
-  (opens.map f.1.base).obj (Y.basic_open r) =
-    @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
-LocallyRingedSpace.preimage_basic_open f r
-
 @[simp]
-lemma preimage_basic_open' {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
+lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :
   (opens.map f.1.base).obj (Y.basic_open r) =
     @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
@@ -232,7 +226,6 @@ LocallyRingedSpace.basic_open_zero _ U
 lemma basic_open_mul : X.basic_open (f * g) = X.basic_open f ⊓ X.basic_open g :=
 RingedSpace.basic_open_mul _ _ _
 
-@[simp]
 lemma basic_open_of_is_unit {f : X.presheaf.obj (op U)} (hf : is_unit f) : X.basic_open f = U :=
 RingedSpace.basic_open_of_is_unit _ hf
 

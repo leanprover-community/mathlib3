@@ -1601,6 +1601,14 @@ LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
   hom_inv_id' := by { rw ← cancel_mono f, simp },
   inv_hom_id' := by { rw ← cancel_mono g, simp } }
 
+end is_open_immersion
+
+namespace Scheme.hom
+
+/-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
+abbreviation opens_functor {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] :
+  opens X.carrier ⥤ opens Y.carrier := H.open_functor
+
 lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
   {U : opens X.carrier} (r : X.presheaf.obj (op U)) :
   H.base_open.is_open_map.functor.obj (X.basic_open r) = Y.basic_open (H.inv_app U r) :=
@@ -1620,10 +1628,10 @@ end
 
 /-- The image of an open immersion as an open set. -/
 @[simps]
-def opens_range (f : X ⟶ Y) [H : is_open_immersion f] : opens Y.carrier :=
+def opens_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] : opens Y.carrier :=
   ⟨_, H.base_open.open_range⟩
 
-end is_open_immersion
+end Scheme.hom
 
 /-- The functor taking open subsets of `X` to open subschemes of `X`. -/
 @[simps obj_left obj_hom map_left]
@@ -1850,9 +1858,9 @@ end
 along the immersion. -/
 def morphism_restrict_opens_range
   {X Y U : Scheme} (f : X ⟶ Y) (g : U ⟶ Y) [hg : is_open_immersion g] :
-  arrow.mk (f ∣_ is_open_immersion.opens_range g) ≅ arrow.mk (pullback.snd : pullback f g ⟶ _) :=
+  arrow.mk (f ∣_ g.opens_range) ≅ arrow.mk (pullback.snd : pullback f g ⟶ _) :=
 begin
-  let V : opens Y.carrier := is_open_immersion.opens_range g,
+  let V : opens Y.carrier := g.opens_range,
   let e := is_open_immersion.iso_of_range_eq g (Y.of_restrict V.open_embedding)
     (by exact subtype.range_coe.symm),
   let t : pullback f g ⟶ pullback f (Y.of_restrict V.open_embedding) :=

@@ -844,6 +844,16 @@ begin
   rw [finset.sum_ite_eq', if_pos (finset.mem_univ _)]
 end
 
+variables (α M)
+
+/-- `fintype.total v f` is linear wrt `v` when `R` is commutative. -/
+def fintype.ltotal (R : Type*) [comm_semiring R] [module R M] : (α → M) →ₗ[R] (α → R) →ₗ[R] M :=
+{ to_fun := fintype.total R,
+  map_add' := λ u v, by { ext, simp },
+  map_smul' := λ r v, by { ext, simp } }
+
+variables {α M}
+
 lemma finsupp.total_eq_fintype_total_apply (x : α → R) :
   finsupp.total α M R v
     ((finsupp.linear_equiv_fun_on_fintype R R α).symm x) = fintype.total R v x :=

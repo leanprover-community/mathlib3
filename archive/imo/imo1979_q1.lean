@@ -157,32 +157,59 @@ begin
   { norm_num }
 end
 
-lemma foo (p : ℕ) (hp : nat.prime p) (z : ℕ) : padic_norm p z = 1 ↔ ¬ p ∣ z :=
+-- lemma foo (p : ℕ) (hp : nat.prime p) (z : ℕ) : padic_norm p z = 1 ↔ ¬ p ∣ z :=
+-- begin
+--   library_search,
+-- end
+-- waiting on #16704
+/-- The `p`-adic norm of an integer `m` is one iff `p` doesn't divide `m`. -/
+lemma nat_eq_one_iff {p : ℕ} [fact (nat.prime p)] (m : ℕ) : padic_norm p m = 1 ↔ ¬ p ∣ m :=
 begin
-  library_search,
+  sorry
 end
 
+
+-- should add to #16704
+lemma nat_lt_one_iff {p : ℕ} [fact (nat.prime p)] (m : ℕ) : padic_norm p m < 1 ↔ p ∣ m :=
+begin
+  sorry
+end
+
+-- should PR this too
+lemma padic_norm.of_nat {p : ℕ} [fact (nat.prime p)] (m : ℕ) : padic_norm p m ≤ 1 :=
+padic_norm.of_int p (m : ℤ)
 
 lemma easy1 {n : ℕ} (hn : n < 330) : padic_norm 1979 (n + 660) = 1 :=
 begin
   norm_cast,
-
---  rw (show (n : ℚ) + 660 = (n + 660 : ℕ), by norm_num),
-  rw ← padic_val_rat_of_nat,
-  norm_cast,
-  apply padic_val_nat_of_not_dvd,
+  haveI : fact (nat.prime 1979) := fact.mk (by norm_num),
+  rw nat_eq_one_iff,
   apply nat.not_dvd_of_pos_of_lt; linarith,
 end
 
-lemma easy2 {n : ℕ} (hn : n < 330) : padic_val_rat 1979 (1319 - n) = 0 :=
+/-
+theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → 0 < padic_val_rat p (F i)) (hn0 : ∑ i in finset.range n, F i ≠ 0) :
+  0 < padic_val_rat p (∑ i in finset.range n, F i) :=
+  -/
+lemma padic_norm.sum_lt {p : ℕ} {t : ℚ} [fact (nat.prime p)] {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → padic_norm p (F i) < t) (hn : 0 < n) :
+  padic_norm p (∑ i in finset.range n, F i) < t :=
+sorry
+
+lemma padic_norm.sum_lt' {p : ℕ} {t : ℚ} [fact (nat.prime p)] {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → padic_norm p (F i) < t) (ht : 0 ≤ t) :
+  padic_norm p (∑ i in finset.range n, F i) < t :=
+sorry
+
+lemma easy2 {n : ℕ} (hn : n < 330) : padic_norm 1979 (1319 - n) = 1 :=
 begin
   have h : (1319 : ℚ) - n = (1319 - n : ℕ),
   { rw nat.cast_sub,
     { norm_cast },
     { linarith }},
-  rw [h, ← padic_val_rat_of_nat],
-  norm_cast,
-  apply padic_val_nat_of_not_dvd,
+  rw [h],
+  rw nat_eq_one_iff,
   apply nat.not_dvd_of_pos_of_lt,
   { apply nat.sub_pos_of_lt,
    linarith },
@@ -191,7 +218,7 @@ begin
 end
 
 
-lemma lemma5 : ∀ n ∈ range 330, padic_val_rat 1979 ((1 / (n + 660) + 1 / (1319 - n)) : ℚ) = 1 :=
+lemma lemma5 : ∀ n ∈ range 330, padic_norm 1979 ((1 / (n + 660) + 1 / (1319 - n)) : ℚ) < 1 :=
 begin
   intros n hn,
   rw mem_range at hn,
@@ -202,20 +229,17 @@ begin
   have h2 : (1319 : ℚ) - n ≠ 0,
   { have h3 : (n : ℚ) < 330, {norm_cast, exact hn},
     linarith },
-  have h2' : 0 ≤ (1319 : ℤ) - n,
-  { have h3 : (n : ℤ) < 330, {norm_cast, exact hn},
-    linarith },
   have h3 : (1 : ℚ) / (n + 660) + 1 / (1319 - n) = 1979 / ((n + 660) * (1319 - n)),
   { field_simp [h1, h2],
     generalize : (n : ℚ) = q,
     ring },
   rw h3, clear h3,
-  rw padic_val_rat.div 1979 (show (1979 : ℚ) ≠ 0, by norm_num) (mul_ne_zero h1 h2),
-  have h := padic_val_rat.padic_val_rat_self (show 1 < 1979, by norm_num),
+  rw padic_norm.div,-- (show (1979 : ℚ) ≠ 0, by norm_num) (mul_ne_zero h1 h2),
+  have h := padic_norm.padic_norm_p (show 1 < 1979, by norm_num),
   rw (show ((1979 : ℕ) : ℚ) = 1979, by norm_cast) at h,
   rw h,
-  suffices : 0 = padic_val_rat 1979 ((n + 660) * (1319 - n)), { linarith },
-  rw padic_val_rat.mul 1979 h1 h2,
+  suffices : 1 = padic_norm 1979 ((n + 660) * (1319 - n)), { rw ← this, norm_num, },
+  rw padic_norm.mul 1979,
   rw [easy1 hn, easy2 hn],
   exact self_eq_add_left.mpr rfl,
 end
@@ -231,30 +255,24 @@ begin
   rw ← sum_add_distrib at h,
   rcases nat.eq_zero_or_pos p with (rfl | hp),
   { exact dvd_zero 1979 },
-  suffices : 0 < padic_val_rat 1979 p,
-  { rw ← padic_val_rat_of_nat at this,
-    have h2 : 0 < padic_val_nat 1979 p,
-      assumption_mod_cast,
-    exact dvd_of_one_le_padic_val_nat h2 },
+  rw ← nat_lt_one_iff,
   have hp' : (p : ℚ) ≠ 0,
   { norm_cast,
     linarith },
   have hq' : (q : ℚ) ≠ 0,
   { norm_cast,
     linarith },
-  suffices : 0 < padic_val_rat 1979 (p / q),
-  { rw [padic_val_rat.div 1979 hp' hq', ← padic_val_rat_of_nat _ q] at this,
-    apply lt_of_lt_of_le this,
-    apply sub_le_self,
-    norm_cast,
-    exact zero_le' },
+  suffices : padic_norm 1979 (p / q) < 1,
+  { rw [padic_norm.div 1979] at this,
+    apply lt_of_le_of_lt _ this,
+    apply le_div_self (padic_norm.nonneg 1979 ↑p),
+    { exact (is_absolute_value.abv_pos (padic_norm 1979)).mpr hq', },
+    apply padic_norm.of_nat, },
   rw h,
-  apply padic_val_rat.sum_pos_of_pos,
-  { intros i hi,
-    rw lemma5 i (mem_range.2 hi),
-    exact zero_lt_one },
-  { rw ← h,
-    exact div_ne_zero hp' hq' }
+  refine padic_norm.sum_lt' _ (zero_le_one),
+  intros i hi,
+  apply lemma5,
+  rwa mem_range,
 end
 
 end imo1979q1

@@ -202,7 +202,7 @@ variables [uniform_space F] [uniform_add_group F]
 
 /-- Construct a continuous linear map from a linear map `f : E →ₗ[𝕜] F` and the existence of a
 neighborhood of zero that gets mapped into a bounded set in `F`. -/
-def linear_map.of_exists_bounded_image (f : E →ₗ[𝕜] F)
+def linear_map.clm_of_exists_bounded_image (f : E →ₗ[𝕜] F)
   (h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)) : E →L[𝕜] F :=
 ⟨f, begin
   -- It suffices to show that `f` is continuous at `0`.
@@ -229,13 +229,13 @@ def linear_map.of_exists_bounded_image (f : E →ₗ[𝕜] F)
   exact (smul_zero _).symm,
 end⟩
 
-lemma linear_map.of_exists_bounded_image_coe {f : E →ₗ[𝕜] F}
+lemma linear_map.clm_of_exists_bounded_image_coe {f : E →ₗ[𝕜] F}
   {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} :
-  (f.of_exists_bounded_image h : E →ₗ[𝕜] F) = f := rfl
+  (f.clm_of_exists_bounded_image h : E →ₗ[𝕜] F) = f := rfl
 
-@[simp] lemma linear_map.of_exists_bounded_image_apply {f : E →ₗ[𝕜] F}
+@[simp] lemma linear_map.clm_of_exists_bounded_image_apply {f : E →ₗ[𝕜] F}
   {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} {x : E} :
-  f.of_exists_bounded_image h x = f x := rfl
+  f.clm_of_exists_bounded_image h x = f x := rfl
 
 end continuous_linear_map
 

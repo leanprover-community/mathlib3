@@ -980,7 +980,7 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-end monoid_with_zero_hom
+end monoid_with_zero
 
 section group_with_zero
 

@@ -110,7 +110,7 @@ def to_monoid_with_zero_hom : R →*₀ S := abv
 @[simp] lemma coe_to_monoid_with_zero_hom : ⇑abv.to_monoid_with_zero_hom = abv := rfl
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*` and `1`. -/
-def to_monoid_hom : monoid_hom R S := abv
+def to_monoid_hom : R →* S := abv
 
 @[simp] lemma coe_to_monoid_hom : ⇑abv.to_monoid_hom = abv := rfl
 

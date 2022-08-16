@@ -36,7 +36,7 @@ open sets in `Proj`, more specifically:
     homeomorphic to `Spec.T A⁰_f`:
   - forward direction `to_Spec`:
     for any `x : pbo f`, i.e. a relevant homogeneous prime ideal `x`, send it to
-    `A⁰_f ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
+    `A⁰_f ∩ span {g / 1 | g ∈ x}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
     prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
     is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
   - backward direction `from_Spec`:

@@ -30,7 +30,7 @@ variables {α β : Type*} (rα : α → α → Prop) (rβ : β → β → Prop)
 
 namespace prod
 
-/-- `game_add rα rβ x y` means that `x` can be reached from `y` by decreasing either entry. -/
+/-- `prod.game_add rα rβ x y` means that `x` can be reached from `y` by decreasing either entry. -/
 inductive game_add : α × β → α × β → Prop
 | fst {a₁ a₂ b} : rα a₁ a₂ → game_add (a₁, b) (a₂, b)
 | snd {a b₁ b₂} : rβ b₁ b₂ → game_add (a, b₁) (a, b₂)

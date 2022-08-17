@@ -10,7 +10,7 @@ import ring_theory.local_properties
 
 # Properties of morphisms from properties of ring homs.
 
-We provide the basic framework for talking about properties of morphisms that comes from properties
+We provide the basic framework for talking about properties of morphisms that come from properties
 of ring homs. For `P` a property of ring homs, we have two ways of defining a property of scheme
 morphisms:
 

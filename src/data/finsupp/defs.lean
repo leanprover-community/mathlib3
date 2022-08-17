@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.hom.group_action
 import algebra.indicator_function
-import data.finset.preimage
 
 /-!
 # Type of functions with finite support

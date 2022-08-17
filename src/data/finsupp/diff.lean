@@ -42,9 +42,6 @@ by simpa only [diff, finset.mem_filter, finset.mem_union, mem_support_iff, and_i
 lemma coe_diff : ↑(f.diff g) = {x | f x ≠ g x} :=
 by { ext, exact mem_diff }
 
-lemma diff_comm : f.diff g = g.diff f :=
-by simp_rw [diff, finset.union_comm, ne_comm]
-
 @[simp] lemma diff_eq_empty : f.diff g = ∅ ↔ f = g :=
 begin
   refine ⟨λ h, _, λ h, h ▸ by simp [diff]⟩,
@@ -55,13 +52,18 @@ end
 @[simp] lemma nonempty_diff_iff : (f.diff g).nonempty ↔ f ≠ g :=
 finset.nonempty_iff_ne_empty.trans diff_eq_empty.not
 
+variables (f g)
+
+lemma diff_comm (f g : α →₀ N) : f.diff g = g.diff f :=
+by simp_rw [diff, finset.union_comm, ne_comm]
+
 @[simp]
 lemma diff_zero_right : f.diff 0 = f.support :=
 by { ext, rw [mem_diff, mem_support_iff, coe_zero, pi.zero_apply] }
 
 @[simp]
 lemma diff_zero_left : (0 : α →₀ N).diff f = f.support :=
-diff_comm.trans diff_zero_right
+(diff_comm _ _).trans (diff_zero_right _)
 
 lemma subset_map_range_diff {M} [decidable_eq M] [has_zero M] {F : N → M} (F0 : F 0 = 0) :
   (f.map_range F F0).diff (g.map_range F F0) ⊆ f.diff g :=
@@ -78,7 +80,7 @@ by { ext, simpa only [mem_diff] using hF.ne_iff }
 
 end N_has_zero
 
-lemma add_diff_add_eq_left [add_left_cancel_monoid N] (f : α →₀ N) {g h : α →₀ N} :
+lemma add_diff_add_eq_left [add_left_cancel_monoid N] (f g h : α →₀ N) :
   (f + g).diff (f + h) = g.diff h  :=
 begin
   ext,
@@ -88,7 +90,7 @@ begin
 end
 
 --  can this proof by replaced by the previous one applied to `Nᵃᵒᵖ` and interlaced with `op unop`?
-lemma add_diff_add_eq_right [add_right_cancel_monoid N] {f g : α →₀ N} (h : α →₀ N):
+lemma add_diff_add_eq_right [add_right_cancel_monoid N] (f g h : α →₀ N) :
   (f + h).diff (g + h) = f.diff g  :=
 begin
   ext,
@@ -97,15 +99,15 @@ begin
   exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_left_inj _).not.mpr bc)⟩,
 end
 
-lemma diff_neg [add_group N] {f g : α →₀ N} : (- f).diff g = f.diff (- g) :=
+lemma diff_neg [add_group N] (f g : α →₀ N) : (- f).diff g = f.diff (- g) :=
 begin
   nth_rewrite 0 ← neg_neg g,
-  exact map_range_diff_eq neg_zero neg_injective,
+  exact map_range_diff_eq _ _ neg_zero neg_injective,
 end
 
-@[simp] lemma diff_eq_support_sub [add_group N] {f g : α →₀ N} :
+@[simp] lemma diff_eq_support_sub [add_group N] (f g : α →₀ N) :
   f.diff g = (f - g).support :=
-by rw [← add_diff_add_eq_right (- g), add_right_neg, diff_zero_right, sub_eq_add_neg]
+by rw [← add_diff_add_eq_right _ _ (- g), add_right_neg, diff_zero_right, sub_eq_add_neg]
 
 end diff
 

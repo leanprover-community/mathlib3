@@ -516,6 +516,7 @@ def is_product_of_disjoint (h : U ⊓ V = ⊥) : is_limit
 is_product_of_is_terminal_is_pullback _ _ _ _
   (F.is_terminal_of_eq_empty h) (is_limit_pullback_cone F U V)
 
+/-- `F(U ⊔ V)` is isomorphic to the `eq_locus` of the two maps `F(U) × F(V) ⟶ F(U ⊓ V)`. -/
 def obj_sup_iso_prod_eq_locus {X : Top} (F : X.sheaf CommRing)
   (U V : opens X) :
   F.1.obj (op $ U ⊔ V) ≅ CommRing.of (ring_hom.eq_locus _ _) :=

@@ -435,4 +435,152 @@ end
 
 end affine_target_morphism_property
 
+namespace Scheme
+
+instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) [is_affine X] [is_affine Y] [is_affine Z] :
+  is_affine (pullback f g) :=
+is_affine_of_iso (pullback.map f g (Spec.map (Γ.map f.op).op) (Spec.map (Γ.map g.op).op)
+  (Γ_Spec.adjunction.unit.app X) (Γ_Spec.adjunction.unit.app Y) (Γ_Spec.adjunction.unit.app Z)
+  (Γ_Spec.adjunction.unit.naturality f) (Γ_Spec.adjunction.unit.naturality g) ≫
+    (preserves_pullback.iso Spec _ _).inv)
+
+end Scheme
+
+/-- The canonical map `X ×ₛ Y ⟶ X ×ₜ Y`. -/
+abbreviation pullback.map_desc {C : Type*} [category C] {X Y S T : C} (f : X ⟶ S) (g : Y ⟶ S) (i : S ⟶ T) [has_pullback f g]
+  [has_pullback (f ≫ i) (g ≫ i)] :
+  pullback f g ⟶ pullback (f ≫ i) (g ≫ i) :=
+pullback.map f g (f ≫ i) (g ≫ i) (𝟙 _) (𝟙 _) i (category.id_comp _).symm (category.id_comp _).symm
+
+lemma pullback.map_desc_comp {C : Type*} [category C] {X Y S T S' : C} (f : X ⟶ T) (g : Y ⟶ T) (i : T ⟶ S)
+  (i' : S ⟶ S') [has_pullback f g] [has_pullback (f ≫ i) (g ≫ i)]
+  [has_pullback (f ≫ i ≫ i') (g ≫ i ≫ i')] [has_pullback ((f ≫ i) ≫ i') ((g ≫ i) ≫ i')] :
+  pullback.map_desc f g (i ≫ i') = pullback.map_desc f g i ≫ pullback.map_desc _ _ i' ≫
+    (pullback.congr_hom (category.assoc _ _ _) (category.assoc _ _ _)).hom :=
+by { ext; simp }
+
+/--
+The `affine_target_morphism_property` associated to `(target_affine_locally P).diagonal`.
+See `diagonal_target_affine_locally_eq_target_affine_locally`.
+-/
+def affine_target_morphism_property.diagonal (P : affine_target_morphism_property) :
+  affine_target_morphism_property :=
+λ X Y f hf, ∀ {U₁ U₂ : Scheme} (f₁ : U₁ ⟶ X) (f₂ : U₂ ⟶ X) [is_affine U₁] [is_affine U₂]
+  [is_open_immersion f₁] [is_open_immersion f₂],
+  by exactI P (pullback.map_desc f₁ f₂ f)
+
+lemma affine_target_morphism_property.diagonal_respects_iso (P : affine_target_morphism_property)
+  (hP : P.to_property.respects_iso) :
+  P.diagonal.to_property.respects_iso :=
+begin
+  delta affine_target_morphism_property.diagonal,
+  apply affine_target_morphism_property.respects_iso_mk,
+  { introv H _ _,
+    resetI,
+    rw [pullback.map_desc_comp, affine_cancel_left_is_iso hP, affine_cancel_right_is_iso hP],
+    apply H },
+  { introv H _ _,
+    resetI,
+    rw [pullback.map_desc_comp, affine_cancel_right_is_iso hP],
+    apply H }
+end
+
+lemma diagonal_target_affine_locally_of_open_cover (P : affine_target_morphism_property)
+  (hP : P.is_local)
+  {X Y : Scheme.{u}} (f : X ⟶ Y)
+  (𝒰 : Scheme.open_cover.{u} Y)
+  [∀ i, is_affine (𝒰.obj i)] (𝒰' : Π i, Scheme.open_cover.{u} (pullback f (𝒰.map i)))
+  [∀ i j, is_affine ((𝒰' i).obj j)]
+  (h𝒰' : ∀ i j k, P (pullback.map_desc ((𝒰' i).map j) ((𝒰' i).map k) pullback.snd)) :
+    (target_affine_locally P).diagonal f :=
+begin
+  refine (hP.affine_open_cover_iff _ _).mpr _,
+  { exact ((Scheme.pullback.open_cover_of_base 𝒰 f f).bind (λ i,
+      Scheme.pullback.open_cover_of_left_right.{u u} (𝒰' i) (𝒰' i) pullback.snd pullback.snd)) },
+  { intro i,
+    dsimp at *,
+    apply_instance },
+  { rintro ⟨i, j, k⟩,
+    dsimp,
+    convert (affine_cancel_left_is_iso hP.1
+    (pullback_diagonal_map_iso _ _ ((𝒰' i).map j) ((𝒰' i).map k)).inv pullback.snd).mp _,
+    swap 3,
+    { convert h𝒰' i j k, apply pullback.hom_ext; simp, },
+    all_goals
+    { apply pullback.hom_ext; simp only [category.assoc, pullback.lift_fst, pullback.lift_snd,
+      pullback.lift_fst_assoc, pullback.lift_snd_assoc] } }
+end
+
+lemma affine_target_morphism_property.diagonal_of_target_affine_locally
+  (P : affine_target_morphism_property)
+  (hP : P.is_local) {X Y U : Scheme.{u}} (f : X ⟶ Y) (g : U ⟶ Y)
+  [is_affine U] [is_open_immersion g] (H : (target_affine_locally P).diagonal f) :
+    P.diagonal (pullback.snd : pullback f g ⟶ _) :=
+begin
+  rintros U V f₁ f₂ _ _ _ _,
+  resetI,
+  replace H := ((hP.affine_open_cover_tfae (pullback.diagonal f)).out 0 3).mp H,
+  let g₁ := pullback.map (f₁ ≫ pullback.snd)
+    (f₂ ≫ pullback.snd) f f
+    (f₁ ≫ pullback.fst)
+    (f₂ ≫ pullback.fst) g
+    (by rw [category.assoc, category.assoc, pullback.condition])
+    (by rw [category.assoc, category.assoc, pullback.condition]),
+  let g₂ : pullback f₁ f₂ ⟶ pullback f g := pullback.fst ≫ f₁,
+  specialize H g₁,
+  rw ← affine_cancel_left_is_iso hP.1 (pullback_diagonal_map_iso f _ f₁ f₂).hom,
+  convert H,
+  { apply pullback.hom_ext; simp only [category.assoc, pullback.lift_fst, pullback.lift_snd,
+    pullback.lift_fst_assoc, pullback.lift_snd_assoc, category.comp_id,
+    pullback_diagonal_map_iso_hom_fst, pullback_diagonal_map_iso_hom_snd], }
+end
+
+lemma affine_target_morphism_property.is_local.diagonal_affine_open_cover_tfae
+  {P : affine_target_morphism_property}
+  (hP : P.is_local) {X Y : Scheme.{u}} (f : X ⟶ Y) :
+  tfae [(target_affine_locally P).diagonal f,
+    ∃ (𝒰 : Scheme.open_cover.{u} Y) [∀ i, is_affine (𝒰.obj i)], by exactI
+      ∀ (i : 𝒰.J), P.diagonal (pullback.snd : pullback f (𝒰.map i) ⟶ _),
+    ∀ (𝒰 : Scheme.open_cover.{u} Y) [∀ i, is_affine (𝒰.obj i)] (i : 𝒰.J), by exactI
+      P.diagonal (pullback.snd : pullback f (𝒰.map i) ⟶ _),
+    ∀ {U : Scheme} (g : U ⟶ Y) [is_affine U] [is_open_immersion g], by exactI
+      P.diagonal (pullback.snd : pullback f g ⟶ _),
+    ∃ (𝒰 : Scheme.open_cover.{u} Y) [∀ i, is_affine (𝒰.obj i)]
+      (𝒰' : Π i, Scheme.open_cover.{u} (pullback f (𝒰.map i))) [∀ i j, is_affine ((𝒰' i).obj j)],
+    by exactI ∀ i j k, P (pullback.map_desc ((𝒰' i).map j) ((𝒰' i).map k) pullback.snd)] :=
+begin
+  tfae_have : 1 → 4,
+  { introv H hU hg _ _, resetI, apply P.diagonal_of_target_affine_locally; assumption },
+  tfae_have : 4 → 3,
+  { introv H h𝒰, resetI, apply H },
+  tfae_have : 3 → 2,
+  { exact λ H, ⟨Y.affine_cover, infer_instance, H Y.affine_cover⟩ },
+  tfae_have : 2 → 5,
+  { rintro ⟨𝒰, h𝒰, H⟩,
+    resetI,
+    refine ⟨𝒰, infer_instance, λ _, Scheme.affine_cover _, infer_instance, _⟩,
+    intros i j k,
+    apply H },
+  tfae_have : 5 → 1,
+  { rintro ⟨𝒰, _, 𝒰', _, H⟩,
+    exactI diagonal_target_affine_locally_of_open_cover P hP f 𝒰 𝒰' H, },
+  tfae_finish
+end
+
+lemma affine_target_morphism_property.is_local.diagonal {P : affine_target_morphism_property}
+  (hP : P.is_local) : P.diagonal.is_local :=
+affine_target_morphism_property.is_local_of_open_cover_imply
+  P.diagonal
+  (P.diagonal_respects_iso hP.1)
+  (λ _ _ f, ((hP.diagonal_affine_open_cover_tfae f).out 1 3).mp)
+
+lemma diagonal_target_affine_locally_eq_target_affine_locally (P : affine_target_morphism_property)
+  (hP : P.is_local) :
+    (target_affine_locally P).diagonal = target_affine_locally P.diagonal :=
+begin
+  ext _ _ f,
+  exact ((hP.diagonal_affine_open_cover_tfae f).out 0 1).trans
+    ((hP.diagonal.affine_open_cover_tfae f).out 1 0),
+end
+
 end algebraic_geometry

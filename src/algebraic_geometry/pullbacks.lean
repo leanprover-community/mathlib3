@@ -5,7 +5,8 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.gluing
 import category_theory.limits.opposites
-import algebraic_geometry.Gamma_Spec_adjunction
+import algebraic_geometry.AffineScheme
+import category_theory.limits.shapes.diagonal
 
 /-!
 # Fibred products of schemes
@@ -245,7 +246,8 @@ def gluing : Scheme.glue_data.{u} :=
   t_fac := λ i j k, begin
     apply pullback.hom_ext,
     apply pullback.hom_ext,
-    all_goals { simp }
+    all_goals { simp only [t'_snd_fst_fst, t'_snd_fst_snd, t'_snd_snd,
+      t_fst_fst, t_fst_snd, t_snd, category.assoc] }
   end,
   cocycle := λ i j k, cocycle 𝒰 f g i j k }
 
@@ -560,6 +562,13 @@ has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
 
 instance : has_pullbacks Scheme := has_pullbacks_of_has_limit_cospan _
 
+instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) [is_affine X] [is_affine Y] [is_affine Z] :
+  is_affine (pullback f g) :=
+is_affine_of_iso (pullback.map f g (Spec.map (Γ.map f.op).op) (Spec.map (Γ.map g.op).op)
+  (Γ_Spec.adjunction.unit.app X) (Γ_Spec.adjunction.unit.app Y) (Γ_Spec.adjunction.unit.app Z)
+  (Γ_Spec.adjunction.unit.naturality f) (Γ_Spec.adjunction.unit.naturality g) ≫
+    (preserves_pullback.iso Spec _ _).inv)
+
 /-- Given an open cover `{ Xᵢ }` of `X`, then `X ×[Z] Y` is covered by `Xᵢ ×[Z] Y`. -/
 @[simps J obj map]
 def open_cover_of_left (𝒰 : open_cover X) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
@@ -592,6 +601,23 @@ begin
   intro i,
   dsimp [open_cover.bind],
   apply pullback.hom_ext; simp,
+end
+
+/-- Given an open cover `{ Xᵢ }` of `X` and an open cover `{ Yⱼ }` of `Y`, then
+`X ×[Z] Y` is covered by `Xᵢ ×[Z] Yⱼ`. -/
+@[simps J obj map]
+def open_cover_of_left_right (𝒰X : X.open_cover) (𝒰Y : Y.open_cover)
+  (f : X ⟶ Z) (g : Y ⟶ Z) : (pullback f g).open_cover :=
+begin
+  fapply ((open_cover_of_left 𝒰X f g).bind (λ x, open_cover_of_right 𝒰Y (𝒰X.map x ≫ f) g)).copy
+    (𝒰X.J × 𝒰Y.J)
+    (λ ij, pullback (𝒰X.map ij.1 ≫ f) (𝒰Y.map ij.2 ≫ g))
+    (λ ij, pullback.map _ _ _ _ (𝒰X.map ij.1) (𝒰Y.map ij.2) (𝟙 _)
+      (category.comp_id _) (category.comp_id _))
+    (equiv.sigma_equiv_prod _ _).symm
+    (λ _, iso.refl _),
+  rintro ⟨i, j⟩,
+  apply pullback.hom_ext; simpa,
 end
 
 /-- (Implementation). Use `open_cover_of_base` instead. -/
@@ -641,3 +667,16 @@ end
 end pullback
 
 end algebraic_geometry.Scheme
+
+namespace algebraic_geometry
+
+instance {X Y S X' Y' S' : Scheme} (f : X ⟶ S) (g : Y ⟶ S) (f' : X' ⟶ S')
+  (g' : Y' ⟶ S') (i₁ : X ⟶ X') (i₂ : Y ⟶ Y') (i₃ : S ⟶ S') (e₁ : f ≫ i₃ = i₁ ≫ f')
+  (e₂ : g ≫ i₃ = i₂ ≫ g') [is_open_immersion i₁] [is_open_immersion i₂] [mono i₃] :
+  is_open_immersion (pullback.map f g f' g' i₁ i₂ i₃ e₁ e₂) :=
+begin
+  rw pullback_map_eq_pullback_fst_fst_iso_inv,
+  apply_instance
+end
+
+end algebraic_geometry

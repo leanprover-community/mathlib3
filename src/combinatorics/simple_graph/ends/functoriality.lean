@@ -38,7 +38,6 @@ open relation
 universes u v w
 
 
-
 noncomputable theory
 local attribute [instance] prop_decidable
 
@@ -142,7 +141,6 @@ lemma good_finset.agree (f : V → V') (cof : cofinite f) (K : finset V')
   ∀ D : inf_ro_components' G L', (HL'.2 D).some = (HL.2 (bwd_map.bwd_map_inf G Gpc LL' D)).some :=
 begin
   rintro D,
-  simp,
   sorry,
 end
 
@@ -229,6 +227,7 @@ def coarse.comp (φ : coarse G Gpc G') (φ' : coarse G' Gpc' G'' ) : (coarse G G
   in
     ⟨L',good_finset.comp G Gpc G' G'' φ.to_fun φ.cof φ'.to_fun φ'.cof K L HL L' HL'⟩}
 
+
 def coarse_to_ends [locally_finite G] [locally_finite G'] (φ : coarse G Gpc G') :
   Endsinfty G Gpc → Endsinfty G' Gpc' :=
 begin
@@ -238,45 +237,48 @@ begin
     let L := some (φ.coarse K),
     let HL := some_spec (φ.coarse K),
     exact some (HL.2 (s L)),},
-  { rintro K K' KK',
+  { rintro K K' KK',                          -- Ugly proof, not sure how to have less haves and lets…
+    have KsubK' : K' ⊆ K, from le_of_hom KK',
     --simp only [subtype.val_eq_coe, set.image_subset_iff],
     let L := some (φ.coarse K),
     let HL := some_spec (φ.coarse K),
     let L' := some (φ.coarse K'),
     let HL' := some_spec (φ.coarse K'),
-    let C := some (HL.2 (s L)),
-    let HC := some_spec (HL.2 (s L)),
-    let C' := some (HL'.2 (s L')),
-    let HC' := some_spec (HL'.2 (s L')),
-    simp,
-    dsimp [functor.map,ComplInfComp],
-    -- need to take L∪L' and do some subset gymnastic:
-    /-
-    We have
-    * L containing the preimage of K
-    * L'                        of K'
-    * HL saying that for each inf component D for L there is a (unique) one for K
-      containing the image of D
-    * HL' similarly for L' and K'.
-    * Let L'' = L ∪ L'.
-    * Let D'' = s L'', D' = s L', D = s L
-    * Because s is a section, we have D'' ⊆ D' and D'' ⊆ D
-    * We need to show that bwd HL.2 D' = HL.2 D
-    * This means we need to show that HL.2 D' ⊆ HL.2 D
-    * Call C := HL.2 D, C' := HL.2 D', and
-    * E the unique component for K containing f '' (D'')
-    * E' the unique component for K' containing f '' (D'')
-    * We have C' = E' ⊆ E = C.
-    * Indeed, the inclusion forrows from the fact that an infinite component for K' is either
-      contained or disjoint from an infinite component for K (and disjoint is impossible sinc
-      in our case they both contain the image of D'')
-    * As for the two equalities, they follow from the fact that f '' (D'') ⊆ f ''(D) (respectively D')
-    -/
-    sorry
-  }
+
+    let L'' := L ∪ L',
+    have LL : L ⊆ L'' := subset_union_left L L',
+    have LL' : L' ⊆ L'' := subset_union_right L L',
+
+    let D := s L,
+    let D' := s L',
+    let D'' := s L'',
+    have : D''.val.val ⊆ D.val.val :=
+      (bwd_map.bwd_map_inf.iff G Gpc LL D D'').mp (sec (hom_of_le LL)).symm,
+
+    have : D''.val.val ⊆ D'.val.val :=
+      (bwd_map.bwd_map_inf.iff G Gpc LL' D' D'').mp (sec (hom_of_le LL')).symm,
+
+    let C := some (HL.2 D),
+    let HC := some_spec (HL.2 D),
+    let C' := some (HL'.2 D'),
+    let HC' := some_spec (HL'.2 D'),
+
+    have DC :  φ.to_fun '' D''.val.val ⊆ C.val.val := (image_subset φ.to_fun (by assumption)).trans HC,
+    have DC' :  φ.to_fun '' D''.val.val ⊆ C'.val.val := (image_subset φ.to_fun (by assumption)).trans HC',
+
+    have : C.val.val ⊆ C'.val.val, by {
+      apply ro_component_subset_of_inter _ Gpc' K' K (KsubK') C'.val.val C'.val.prop C.val.val C.val.prop,
+      haveI : nonempty ↥(D''.val.val) := set.nonempty_coe_sort.mpr (set.infinite.nonempty D''.prop),
+      let d := some (set.nonempty_coe_sort.mp $ set.image.nonempty φ.to_fun D''.val.val),
+      let dD := some_spec (set.nonempty_coe_sort.mp $ set.image.nonempty φ.to_fun D''.val.val),
+      use d,split, exact DC' dD, exact DC dD,
+    },
+
+    exact ((bwd_map.bwd_map_inf.iff G' Gpc' KsubK' C' C).mpr this).symm,}
 end
 
 
+/-
 def close (f g : coarse G G') :=
   ∀ (K : finset V') (L : good_finset G G' f.to_fun f.cof K) (M : good_finset G G' f.to_fun f.cof K),
     ∃ N : finset V, ↑L ⊆ N ∧ ↑M ⊆ N
@@ -315,3 +317,6 @@ def coarse.of_qi_embedding (f : V → V') (qie : qi_embedding f) : coarse G G' f
 def coarse.comp {f : V → V'} {f' : V' → V''} (coa : coarse G G' f) (coa' : coarse G' G'' f') : coarse G G'' (f' ∘ f) := sorry
 
 def ends_map {f : V → V'} (coa : coarse G G' f) : @ends V G → @ends V' G' := sorry
+
+
+-/

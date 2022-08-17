@@ -236,9 +236,9 @@ lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] [fintype ι'] :
 by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
 /-- A matrix whose columns form a basis `b'`, expressed w.r.t. a basis `b`, is invertible. -/
-lemma basis.is_unit_to_matrix [decidable_eq ι] [fintype ι] (b b' : basis ι R₂ M₂) :
-  is_unit (b.to_matrix b') :=
-matrix.is_unit_of_left_inverse (basis.to_matrix_mul_to_matrix_flip _ _)
+def basis.invertible_to_matrix [decidable_eq ι] [fintype ι] (b b' : basis ι R₂ M₂) :
+  invertible (b.to_matrix b') :=
+matrix.invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
 
 @[simp]
 lemma basis.to_matrix_reindex

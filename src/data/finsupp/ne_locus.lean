@@ -98,13 +98,13 @@ begin
   exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_left_inj _).not.mpr bc)⟩,
 end
 
-lemma ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus g = f.ne_locus (- g) :=
-begin
-  nth_rewrite 0 ← neg_neg g,
-  exact map_range_ne_locus_eq _ _ neg_zero neg_injective,
-end
+@[simp] lemma neg_ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus (- g) = f.ne_locus g :=
+map_range_ne_locus_eq _ _ neg_zero neg_injective
 
-@[simp] lemma ne_locus_eq_support_sub [add_group N] (f g : α →₀ N) :
+lemma ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus g = f.ne_locus (- g) :=
+by rw [← neg_ne_locus_neg _ _, neg_neg]
+
+lemma ne_locus_eq_support_sub [add_group N] (f g : α →₀ N) :
   f.ne_locus g = (f - g).support :=
 by rw [← add_ne_locus_add_eq_right _ _ (- g), add_right_neg, ne_locus_zero_right, sub_eq_add_neg]
 

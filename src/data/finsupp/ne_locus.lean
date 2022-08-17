@@ -160,7 +160,7 @@ lemma apply_eq_of_lt_wit {f g : α →₀ N} {j : α} (hj : j < f.wit g) :
 not_ne_iff.mp (λ h, not_le.mpr hj (wit_le h))
 
 lemma wit_comm (f g : α →₀ N) : f.wit g = g.wit f :=
-wit_congr ne_locus_comm
+wit_congr (ne_locus_comm _ _)
 
 lemma min'_eq_wit_of_ne (fg : f ≠ g) :
   (f.ne_locus g).min' (nonempty_ne_locus_iff.mpr fg) = f.wit g :=
@@ -177,15 +177,15 @@ end N_has_zero
 
 lemma wit_add_left [add_left_cancel_monoid N] {f g h : α →₀ N} :
   (f + g).wit (f + h) = g.wit h :=
-wit_congr (add_ne_locus_add_eq_left _)
+wit_congr (add_ne_locus_add_eq_left _ _ _)
 
 lemma wit_add_right [add_right_cancel_monoid N] {f g h : α →₀ N} :
   (f + h).wit (g + h) = f.wit g :=
-wit_congr (add_ne_locus_add_eq_right _)
+wit_congr (add_ne_locus_add_eq_right _ _ _)
 
 lemma wit_neg [add_group N] {f g : α →₀ N} :
   (- f).wit g = f.wit (- g) :=
-wit_congr ne_locus_neg
+wit_congr (ne_locus_neg _ _)
 
 end wit
 

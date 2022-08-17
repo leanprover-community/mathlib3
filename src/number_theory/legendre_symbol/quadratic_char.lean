@@ -67,7 +67,7 @@ begin
 end
 
 @[simp]
-lemma quadratic_char_zero : quadratic_char_fun F 0 = 0 :=
+lemma quadratic_char_zero' : quadratic_char_fun F 0 = 0 :=
 by simp only [quadratic_char_fun, eq_self_iff_true, if_true, id.def]
 
 @[simp]
@@ -96,10 +96,10 @@ lemma quadratic_char_mul (a b : F) :
   quadratic_char_fun F (a * b) = quadratic_char_fun F a * quadratic_char_fun F b :=
 begin
   by_cases ha : a = 0,
-  { rw [ha, zero_mul, quadratic_char_zero, zero_mul], },
+  { rw [ha, zero_mul, quadratic_char_zero', zero_mul], },
   -- now `a ≠ 0`
   by_cases hb : b = 0,
-  { rw [hb, mul_zero, quadratic_char_zero, mul_zero], },
+  { rw [hb, mul_zero, quadratic_char_zero', mul_zero], },
   -- now `a ≠ 0` and `b ≠ 0`
   have hab := mul_ne_zero ha hb,
   by_cases hF : ring_char F = 2,
@@ -128,13 +128,17 @@ variables (F)
 { to_fun := quadratic_char_fun F,
   map_one' := quadratic_char_one,
   map_mul' := quadratic_char_mul,
-  map_nonunit' := λ a ha, by { rw of_not_not (mt ne.is_unit ha), exact quadratic_char_zero, } }
+  map_nonunit' := λ a ha, by { rw of_not_not (mt ne.is_unit ha), exact quadratic_char_zero', } }
 
 variables {F}
 
 /-- The value of the quadratic character on `a` is zero iff `a = 0`. -/
 lemma quadratic_char_eq_zero_iff {a : F} : quadratic_char F a = 0 ↔ a = 0 :=
 quadratic_char_eq_zero_iff'
+
+@[simp]
+lemma quadratic_char_zero : quadratic_char F 0 = 0 :=
+by simp only [quadratic_char_apply, quadratic_char_zero']
 
 /-- For nonzero `a : F`, `quadratic_char F a = 1 ↔ is_square a`. -/
 lemma quadratic_char_one_iff_is_square {a : F} (ha : a ≠ 0) :

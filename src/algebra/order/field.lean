@@ -3,12 +3,7 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.field.basic
-import algebra.group_power.lemmas
-import algebra.group_power.order
-import algebra.order.ring
-import order.bounds
-import tactic.monotonicity.basic
+import algebra.order.field_defs
 
 /-!
 # Linear ordered (semi)fields
@@ -28,49 +23,42 @@ set_option old_structure_cmd true
 
 variables {α β : Type*}
 
-/-- A linear ordered semifield is a field with a linear order respecting the operations. -/
-@[protect_proj] class linear_ordered_semifield (α : Type*)
-  extends linear_ordered_semiring α, semifield α
-
-/-- A linear ordered field is a field with a linear order respecting the operations. -/
-@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
-
-@[priority 100] -- See note [lower instance priority]
-instance linear_ordered_field.to_linear_ordered_semifield [linear_ordered_field α] :
-  linear_ordered_semifield α :=
-{ ..linear_ordered_ring.to_linear_ordered_semiring, ..‹linear_ordered_field α› }
-
 namespace function
 
 /-- Pullback a `linear_ordered_semifield` under an injective map. -/
 @[reducible] -- See note [reducible non-instances]
 def injective.linear_ordered_semifield [linear_ordered_semifield α] [has_zero β] [has_one β]
   [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] [has_inv β] [has_div β]
-  [has_pow β ℤ] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  [has_pow β ℤ] [has_sup β] [has_inf β] (f : β → α) (hf : injective f) (zero : f 0 = 0)
+  (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
+  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_semifield β :=
-{ ..hf.linear_ordered_semiring f zero one add mul nsmul npow nat_cast,
+{ ..hf.linear_ordered_semiring f zero one add mul nsmul npow nat_cast hsup hinf,
   ..hf.semifield f zero one add mul inv div nsmul npow zpow nat_cast }
 
 /-- Pullback a `linear_ordered_field` under an injective map. -/
 @[reducible] -- See note [reducible non-instances]
 def injective.linear_ordered_field [linear_ordered_field α] [has_zero β] [has_one β] [has_add β]
-  [has_mul β] [has_neg β] [has_sub β] [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β]
-  [has_nat_cast β] [has_int_cast β][has_inv β] [has_div β] [has_pow β ℤ]
+  [has_mul β] [has_neg β] [has_sub β] [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β] [has_smul ℚ β]
+  [has_nat_cast β] [has_int_cast β] [has_rat_cast β] [has_inv β] [has_div β] [has_pow β ℤ]
+  [has_sup β] [has_inf β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (rat_cast : ∀ n : ℚ, f n = n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_field β :=
-{ .. hf.linear_ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
-  .. hf.field f zero one add mul neg sub inv div nsmul zsmul npow zpow nat_cast int_cast }
+{ .. hf.linear_ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast hsup hinf,
+  .. hf.field f zero one add mul neg sub inv div nsmul zsmul qsmul npow zpow nat_cast int_cast
+      rat_cast }
 
 end function
 
@@ -96,8 +84,12 @@ suffices ∀ a : α, 0 < a → 0 < a⁻¹,
 from ⟨λ h, inv_inv a ▸ this _ h, this a⟩,
 assume a ha, flip lt_of_mul_lt_mul_left ha.le $ by simp [ne_of_gt ha, zero_lt_one]
 
+alias inv_pos ↔ _ inv_pos_of_pos
+
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
 by simp only [le_iff_eq_or_lt, inv_pos, zero_eq_inv]
+
+alias inv_nonneg ↔ _ inv_nonneg_of_nonneg
 
 @[simp] lemma inv_lt_zero : a⁻¹ < 0 ↔ a < 0 :=
 by simp only [← not_le, inv_nonneg]
@@ -830,8 +822,8 @@ eq.symm $ antitone.map_max $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma max_div_div_right_of_nonpos (hc : c ≤ 0) (a b : α) : max (a / c) (b / c) = (min a b) / c :=
 eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 
-lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := (abs_hom : α →*₀ α).map_inv a
-lemma abs_div (a b : α) : |a / b| = |a| / |b| := (abs_hom : α →*₀ α).map_div a b
+lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
+lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
 
 lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=

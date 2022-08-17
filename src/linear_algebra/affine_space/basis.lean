@@ -76,7 +76,7 @@ basis.mk ((affine_independent_iff_linear_independent_vsub k b.points i).mp b.ind
 begin
   suffices : submodule.span k (range (λ (j : {x // x ≠ i}), b.points ↑j -ᵥ b.points i)) =
              vector_span k (range b.points),
-  { rw [this, ← direction_affine_span, b.tot, affine_subspace.direction_top], },
+  { rw [this, ← direction_affine_span, b.tot, affine_subspace.direction_top], exact le_rfl },
   conv_rhs { rw ← image_univ, },
   rw vector_span_image_eq_span_vsub_set_right_ne k b.points (mem_univ i),
   congr,

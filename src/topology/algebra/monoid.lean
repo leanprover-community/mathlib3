@@ -114,14 +114,13 @@ hf.mul hg
 
 @[to_additive]
 instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuous_mul (M × N) :=
-⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
- ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
+⟨(continuous_fst.fst'.mul continuous_fst.snd').prod_mk
+  (continuous_snd.fst'.mul continuous_snd.snd')⟩
 
 @[to_additive]
 instance pi.has_continuous_mul {C : ι → Type*} [∀ i, topological_space (C i)]
   [∀ i, has_mul (C i)] [∀ i, has_continuous_mul (C i)] : has_continuous_mul (Π i, C i) :=
-{ continuous_mul := continuous_pi (λ i, continuous.mul
-    ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
+{ continuous_mul := continuous_pi (λ i, (continuous_apply i).fst'.mul (continuous_apply i).snd') }
 
 /-- A version of `pi.has_continuous_mul` for non-dependent functions. It is needed because sometimes
 Lean fails to use `pi.has_continuous_mul` for non-dependent functions. -/
@@ -222,18 +221,27 @@ is_closed_of_closure_subset $ λ f hf, ⟨monoid_hom_of_mem_closure_range_coe f 
 
 end pointwise_limits
 
-namespace submonoid
+@[to_additive] lemma inducing.has_continuous_mul {M N F : Type*} [has_mul M] [has_mul N]
+  [mul_hom_class F M N] [topological_space M] [topological_space N] [has_continuous_mul N]
+  (f : F) (hf : inducing f) :
+  has_continuous_mul M :=
+⟨hf.continuous_iff.2 $ by simpa only [(∘), map_mul f]
+  using (hf.continuous.fst'.mul hf.continuous.snd')⟩
 
-@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] (S : submonoid α) :
+@[to_additive] lemma has_continuous_mul_induced {M N F : Type*} [has_mul M] [has_mul N]
+  [mul_hom_class F M N] [topological_space N] [has_continuous_mul N] (f : F) :
+  @has_continuous_mul M (induced f ‹_›) _ :=
+by { letI := induced f ‹_›, exact inducing.has_continuous_mul f ⟨rfl⟩ }
+
+@[to_additive] instance subsemigroup.has_continuous_mul [topological_space M] [semigroup M]
+  [has_continuous_mul M] (S : subsemigroup M) :
   has_continuous_mul S :=
-{ continuous_mul :=
-  begin
-    rw embedding_subtype_coe.to_inducing.continuous_iff,
-    exact (continuous_subtype_coe.comp continuous_fst).mul
-      (continuous_subtype_coe.comp continuous_snd)
-  end }
+inducing.has_continuous_mul (⟨coe, λ _ _, rfl⟩ : mul_hom S M) ⟨rfl⟩
 
-end submonoid
+@[to_additive] instance submonoid.has_continuous_mul [topological_space M] [monoid M]
+  [has_continuous_mul M] (S : submonoid M) :
+  has_continuous_mul S :=
+S.to_subsemigroup.has_continuous_mul
 
 section has_continuous_mul
 
@@ -241,17 +249,17 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
+  closure (s : set M) * closure s ⊆ closure s :=
 calc
-(closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
+closure (s : set M) * closure s
+    = (λ p : M × M, p.1 * p.2) '' closure (s ×ˢ s) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' s ×ˢ s) :
   image_closure_subset_closure_image continuous_mul
 ... = closure s : by simp [s.coe_mul_self_eq]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) = closure (s : set M) :=
+  closure (s : set M) * closure s = closure s :=
 subset.antisymm
   s.top_closure_mul_self_subset
   (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
@@ -264,16 +272,6 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
 { carrier := closure (s : set M),
   one_mem' := subset_closure s.one_mem,
   mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
-
-@[to_additive]
-instance submonoid.topological_closure_has_continuous_mul (s : submonoid M) :
-  has_continuous_mul (s.topological_closure) :=
-{ continuous_mul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : s.topological_closure × s.topological_closure, (p.1 : M) * (p.2 : M)),
-    continuity,
-  end }
 
 @[to_additive]
 lemma submonoid.submonoid_topological_closure (s : submonoid M) :
@@ -302,7 +300,7 @@ def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
     have h₁ : (s.topological_closure : set M) = closure s := rfl,
     let f₁ := λ (x : M × M), x.1 * x.2,
     let f₂ := λ (x : M × M), x.2 * x.1,
-    let S : set (M × M) := (s : set M) ×ˢ (s : set M),
+    let S : set (M × M) := s ×ˢ s,
     have h₃ : set.eq_on f₁ f₂ (closure S),
     { refine set.eq_on.closure _ continuous_mul (by continuity),
       intros x hx,
@@ -457,9 +455,7 @@ namespace mul_opposite
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
 @[to_additive "If addition is continuous in `α`, then it also is in `αᵃᵒᵖ`."]
 instance [topological_space α] [has_mul α] [has_continuous_mul α] : has_continuous_mul αᵐᵒᵖ :=
-⟨ let h₁ := @continuous_mul α _ _ _ in
-  let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
-  continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
+⟨continuous_op.comp (continuous_unop.snd'.mul continuous_unop.fst')⟩
 
 end mul_opposite
 
@@ -479,11 +475,13 @@ of the monoid, with respect to the induced topology, is continuous.
 
 Negation is also continuous, but we register this in a later file, `topology.algebra.group`, because
 the predicate `has_continuous_neg` has not yet been defined."]
-instance : has_continuous_mul αˣ :=
-⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
-  continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
+instance : has_continuous_mul αˣ := inducing_embed_product.has_continuous_mul (embed_product α)
 
 end units
+
+@[to_additive] lemma continuous.units_map [monoid M] [monoid N] [topological_space M]
+  [topological_space N] (f : M →* N) (hf : continuous f) : continuous (units.map f) :=
+units.continuous_iff.2 ⟨hf.comp units.continuous_coe, hf.comp units.continuous_coe_inv⟩
 
 section
 
@@ -556,53 +554,32 @@ end
 
 end
 
-instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
-  [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
+instance [topological_space M] [has_mul M] [has_continuous_mul M] :
+  has_continuous_add (additive M) :=
 { continuous_add := @continuous_mul M _ _ _ }
 
-instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
-  [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
+instance [topological_space M] [has_add M] [has_continuous_add M] :
+  has_continuous_mul (multiplicative M) :=
 { continuous_mul := @continuous_add M _ _ _ }
 
 section lattice_ops
 
-variables {ι' : Sort*} [has_mul M] [has_mul N] {ts : set (topological_space M)}
-  (h : Π t ∈ ts, @has_continuous_mul M t _) {ts' : ι' → topological_space M}
-  (h' : Π i, @has_continuous_mul M (ts' i) _) {t₁ t₂ : topological_space M}
-  (h₁ : @has_continuous_mul M t₁ _) (h₂ : @has_continuous_mul M t₂ _)
-  {t : topological_space N} [has_continuous_mul N] {F : Type*}
-  [mul_hom_class F M N] (f : F)
+variables {ι' : Sort*} [has_mul M]
 
-@[to_additive] lemma has_continuous_mul_Inf :
+@[to_additive] lemma has_continuous_mul_Inf {ts : set (topological_space M)}
+  (h : Π t ∈ ts, @has_continuous_mul M t _) :
   @has_continuous_mul M (Inf ts) _ :=
-{ continuous_mul := continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ ht ht
+{ continuous_mul := continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ ht ht
   (@has_continuous_mul.continuous_mul M t _ (h t ht))) }
 
-include h'
+@[to_additive] lemma has_continuous_mul_infi {ts : ι' → topological_space M}
+  (h' : Π i, @has_continuous_mul M (ts i) _) :
+  @has_continuous_mul M (⨅ i, ts i) _ :=
+by { rw ← Inf_range, exact has_continuous_mul_Inf (set.forall_range_iff.mpr h') }
 
-@[to_additive] lemma has_continuous_mul_infi :
-  @has_continuous_mul M (⨅ i, ts' i) _ :=
-by {rw ← Inf_range, exact has_continuous_mul_Inf (set.forall_range_iff.mpr h')}
-
-omit h'
-
-include h₁ h₂
-
-@[to_additive] lemma has_continuous_mul_inf :
+@[to_additive] lemma has_continuous_mul_inf {t₁ t₂ : topological_space M}
+  (h₁ : @has_continuous_mul M t₁ _) (h₂ : @has_continuous_mul M t₂ _) :
   @has_continuous_mul M (t₁ ⊓ t₂) _ :=
-by {rw inf_eq_infi, refine has_continuous_mul_infi (λ b, _), cases b; assumption}
-
-omit h₁ h₂
-
-@[to_additive] lemma has_continuous_mul_induced :
-  @has_continuous_mul M (t.induced f) _ :=
-{ continuous_mul :=
-    begin
-      letI : topological_space M := t.induced f,
-      refine continuous_induced_rng _,
-      simp_rw [function.comp, map_mul],
-      change continuous ((λ p : N × N, p.1 * p.2) ∘ (prod.map f f)),
-      exact continuous_mul.comp (continuous_induced_dom.prod_map continuous_induced_dom),
-    end }
+by { rw inf_eq_infi, refine has_continuous_mul_infi (λ b, _), cases b; assumption }
 
 end lattice_ops

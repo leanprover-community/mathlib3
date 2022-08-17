@@ -121,7 +121,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
       apply this,
       apply diag_subset,
       simp [h] },
-    -- Since γ is compact and Hausdorff, it is normal, hence regular.
+    -- Since γ is compact and Hausdorff, it is normal, hence T₃.
     haveI : normal_space γ := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
     -- U₁ and U₂.
@@ -221,11 +221,11 @@ hs.uniform_continuous_on_of_continuous' (is_separated_of_separated_space s) hf
 neighborhood `U` of `x`. -/
 lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space β]
   [separated_space β] [uniform_space γ] {f : α → β → γ} {x : α} {U : set α}
-  (hxU : U ∈ 𝓝 x) (hU : is_separated U) (h : continuous_on ↿f (U ×ˢ (univ : set β))) :
+  (hxU : U ∈ 𝓝 x) (hU : is_separated U) (h : continuous_on ↿f (U ×ˢ univ)) :
   tendsto_uniformly f (f x) (𝓝 x) :=
 begin
   rcases locally_compact_space.local_compact_nhds _ _ hxU with ⟨K, hxK, hKU, hK⟩,
-  have : uniform_continuous_on ↿f (K ×ˢ (univ : set β)),
+  have : uniform_continuous_on ↿f (K ×ˢ univ),
   { refine is_compact.uniform_continuous_on_of_continuous' (hK.prod compact_univ) _
       (h.mono $ prod_mono hKU subset.rfl),
     exact (hU.mono hKU).prod (is_separated_of_separated_space _) },

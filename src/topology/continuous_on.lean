@@ -118,6 +118,14 @@ begin
   { refine λ h u, eventually_congr (h.mono $ λ x h, _), rw [h] }
 end
 
+lemma nhds_within_le_iff {s t : set α} {x : α} : 𝓝[s] x ≤ 𝓝[t] x ↔ t ∈ 𝓝[s] x :=
+begin
+  simp_rw [filter.le_def, mem_nhds_within_iff_eventually],
+  split,
+  { exact λ h, (h t $ eventually_of_forall (λ x, id)).mono (λ x, id) },
+  { exact λ h u hu, (h.and hu).mono (λ x hx h, hx.2 $ hx.1 h) }
+end
+
 lemma preimage_nhds_within_coinduced' {π : α → β} {s : set β} {t : set α} {a : α}
   (h : a ∈ t) (ht : is_open t)
   (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
@@ -182,12 +190,7 @@ nhds_within_restrict' s (is_open.mem_nhds h₁ h₀)
 
 theorem nhds_within_le_of_mem {a : α} {s t : set α} (h : s ∈ 𝓝[t] a) :
   𝓝[t] a ≤ 𝓝[s] a :=
-begin
-  rcases mem_nhds_within.1 h with ⟨u, u_open, au, uts⟩,
-  have : 𝓝[t] a = 𝓝[t ∩ u] a := nhds_within_restrict _ au u_open,
-  rw [this, inter_comm],
-  exact nhds_within_mono _ uts
-end
+nhds_within_le_iff.mpr h
 
 theorem nhds_within_le_nhds {a : α} {s : set α} : 𝓝[s] a ≤ 𝓝 a :=
 by { rw ← nhds_within_univ, apply nhds_within_le_of_mem, exact univ_mem }
@@ -280,7 +283,7 @@ begin
   simp only [infi_inf_eq]
 end
 
-lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [fintype ι] [Π i, topological_space (α i)]
+lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [finite ι] [Π i, topological_space (α i)]
   (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi univ s] x = ⨅ i, comap (λ x, x i) 𝓝[s i] (x i) :=
 by simpa [nhds_within] using nhds_within_pi_eq finite_univ s x

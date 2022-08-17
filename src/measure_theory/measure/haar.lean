@@ -9,8 +9,8 @@ import measure_theory.group.prod
 /-!
 # Haar measure
 
-In this file we prove the existence of Haar measure for a locally compact Hausdorff topological
-group.
+In this file we prove the existence and uniqueness (up to scalar multiples) of Haar measure
+for a locally compact Hausdorff topological group.
 
 For the construction, we follow the write-up by Jonathan Gleason,
 *Existence and Uniqueness of Haar Measure*.
@@ -46,6 +46,8 @@ where `ᵒ` denotes the interior.
   it is invariant and gives finite mass to compact sets and positive mass to nonempty open sets.
 * `haar` : some choice of a Haar measure, on a locally compact Hausdorff group, constructed as
   `haar_measure K` where `K` is some arbitrary choice of a compact set with nonempty interior.
+* `haar_measure_unique`: Every σ-finite left invariant measure on a locally compact Hausdorff group
+  is a scalar multiple of the Haar measure.
 
 ## References
 * Paul Halmos (1950), Measure Theory, §53
@@ -317,7 +319,7 @@ begin
   refine this.inter_Inter_nonempty (cl_prehaar K₀) (λ s, is_closed_closure) (λ t, _),
   let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).1,
   have h1V₀ : is_open V₀,
-  { apply is_open_bInter, apply finite_mem_finset, rintro ⟨V, hV⟩ h2V, exact hV.1 },
+  { apply is_open_bInter, apply finset.finite_to_set, rintro ⟨V, hV⟩ h2V, exact hV.1 },
   have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
   refine ⟨prehaar K₀ V₀, _⟩,
   split,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
+import data.fin.tuple.basic
 import data.set.finite
 import group_theory.submonoid.basic
 
@@ -471,6 +472,32 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
+@[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → set α} :
+  a ∈ (list.of_fn s).prod ↔ ∃ f : (Π i : fin n, s i), (list.of_fn (λ i, (f i : α))).prod = a :=
+begin
+  induction n with n ih generalizing a,
+  { simp_rw [list.of_fn_zero, list.prod_nil, fin.exists_fin_zero_pi, eq_comm, set.mem_one] },
+  { simp_rw [list.of_fn_succ, list.prod_cons, fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ,
+      mem_mul, @ih, exists_and_distrib_left, exists_exists_eq_and, set_coe.exists, subtype.coe_mk,
+      exists_prop] }
+end
+
+@[to_additive] lemma mem_list_prod {l : list (set α)} {a : α} :
+  a ∈ l.prod ↔ ∃ l' : list (Σ s : set α, ↥s),
+    list.prod (l'.map (λ x, (sigma.snd x : α))) = a ∧ l'.map sigma.fst = l :=
+begin
+  induction l using list.of_fn_rec with n f,
+  simp_rw [list.exists_iff_exists_tuple, list.map_of_fn, list.of_fn_inj', and.left_comm,
+    exists_and_distrib_left, exists_eq_left, heq_iff_eq, function.comp, mem_prod_list_of_fn],
+  split,
+  { rintros ⟨fi, rfl⟩,  exact ⟨λ i, ⟨_, fi i⟩, rfl, rfl⟩, },
+  { rintros ⟨fi, rfl, rfl⟩, exact ⟨λ i, _, rfl⟩, },
+end
+
+@[to_additive] lemma mem_pow {a : α} {n : ℕ} :
+  a ∈ s ^ n ↔ ∃ f : fin n → s, (list.of_fn (λ i, (f i : α))).prod = a :=
+by rw [←mem_prod_list_of_fn, list.of_fn_const, list.prod_repeat]
+
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
@@ -737,24 +764,76 @@ lemma mem_fintype_prod [fintype ι] (f : ι → set α) (a : α) :
   a ∈ ∏ i, f i ↔ ∃ (g : ι → α) (hg : ∀ i, g i ∈ f i), ∏ i, g i = a :=
 by { rw mem_finset_prod, simp }
 
-/-- The n-ary version of `set.mul_mem_mul`. -/
-@[to_additive /-" The n-ary version of `set.add_mem_add`. "-/]
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
+lemma list_prod_mem_list_prod (t : list ι) (f : ι → set α)
+  (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
+  (t.map g).prod ∈ (t.map f).prod :=
+begin
+  induction t with h tl ih,
+  { simp_rw [list.map_nil, list.prod_nil, set.mem_one] },
+  { simp_rw [list.map_cons, list.prod_cons],
+    exact mul_mem_mul
+      (hg h $ list.mem_cons_self _ _) (ih $ λ i hi, hg i $ list.mem_cons_of_mem _ hi) }
+end
+
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
+lemma list_prod_subset_list_prod (t : list ι) (f₁ f₂ : ι → set α) (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
+  (t.map f₁).prod ⊆ (t.map f₂).prod :=
+begin
+  induction t with h tl ih,
+  { refl, },
+  { simp_rw [list.map_cons, list.prod_cons],
+    exact mul_subset_mul
+      (hf h $ list.mem_cons_self _ _) (ih $ λ i hi, hf i $ list.mem_cons_of_mem _ hi) }
+end
+
+@[to_additive]
+lemma list_prod_singleton {M : Type*} [comm_monoid M] (s : list M) :
+  (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
+(map_list_prod (singleton_monoid_hom : M →* set M) _).symm
+
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
+lemma multiset_prod_mem_multiset_prod (t : multiset ι) (f : ι → set α)
+  (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
+  (t.map g).prod ∈ (t.map f).prod :=
+begin
+  induction t using quotient.induction_on,
+  simp_rw [multiset.quot_mk_to_coe, multiset.coe_map, multiset.coe_prod],
+  exact list_prod_mem_list_prod _ _ _ hg,
+end
+
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
+lemma multiset_prod_subset_multiset_prod (t : multiset ι) (f₁ f₂ : ι → set α)
+  (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
+  (t.map f₁).prod ⊆ (t.map f₂).prod :=
+begin
+  induction t using quotient.induction_on,
+  simp_rw [multiset.quot_mk_to_coe, multiset.coe_map, multiset.coe_prod],
+  exact list_prod_subset_list_prod _ _ _ hf,
+end
+
+@[to_additive]
+lemma multiset_prod_singleton {M : Type*} [comm_monoid M] (s : multiset M) :
+  (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
+(map_multiset_prod (singleton_monoid_hom : M →* set M) _).symm
+
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
 lemma finset_prod_mem_finset_prod (t : finset ι) (f : ι → set α)
   (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
   ∏ i in t, g i ∈ ∏ i in t, f i :=
-by { rw mem_finset_prod, exact ⟨g, hg, rfl⟩ }
+multiset_prod_mem_multiset_prod _ _ _ hg
 
-/-- The n-ary version of `set.mul_subset_mul`. -/
-@[to_additive /-" The n-ary version of `set.add_subset_add`. "-/]
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
 lemma finset_prod_subset_finset_prod (t : finset ι) (f₁ f₂ : ι → set α)
-  (hf : ∀ {i}, i ∈ t → f₁ i ⊆ f₂ i) :
+  (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
   ∏ i in t, f₁ i ⊆ ∏ i in t, f₂ i :=
-begin
-  intro a,
-  rw [mem_finset_prod, mem_finset_prod],
-  rintro ⟨g, hg, rfl⟩,
-  exact ⟨g, λ i hi, hf hi $ hg hi, rfl⟩
-end
+multiset_prod_subset_multiset_prod _ _ _ hf
 
 @[to_additive]
 lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : ι → M) :
@@ -964,18 +1043,18 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
   smul_comm_class (set α) (set β) (set γ) :=
 ⟨λ _ _ _, image2_left_comm smul_comm⟩
 
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α β (set γ) :=
 { smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
 
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (set β) (set γ) :=
 ⟨λ _ _ _, image2_image_left_comm $ smul_assoc _⟩
 
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
@@ -1157,7 +1236,7 @@ lemma zero_smul_set_subset (s : set β) : (0 : α) • s ⊆ 0 :=
 image_subset_iff.2 $ λ x _, zero_smul α x
 
 lemma subsingleton_zero_smul_set (s : set β) : ((0 : α) • s).subsingleton :=
-subsingleton_singleton.mono $ zero_smul_set_subset s
+subsingleton_singleton.anti $ zero_smul_set_subset s
 
 lemma zero_mem_smul_set {t : set β} {a : α} (h : (0 : β) ∈ t) : (0 : β) ∈ a • t :=
 ⟨0, h, smul_zero' _ _⟩
@@ -1189,7 +1268,7 @@ section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}
 
 @[to_additive] lemma pairwise_disjoint_smul_iff :
-  s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+  s.pairwise_disjoint (• t) ↔ (s ×ˢ t).inj_on (λ p, p.1 * p.2) :=
 pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
 
 end left_cancel_semigroup
@@ -1316,6 +1395,7 @@ le_antisymm
     (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
+@[to_additive]
 lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
   [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
   ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=

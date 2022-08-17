@@ -112,7 +112,7 @@ begin
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
   refine ⟨_, _, closure_mul_image_eq_top' hR hR1 hS⟩,
   calc _ ≤ (R * S).card : finset.card_image_le
-  ... ≤ (R.product S).card : finset.card_image_le
+  ... ≤ (R ×ˢ S).card : finset.card_image_le
   ... = R.card * S.card : R.card_product S
   ... = H.index * S.card : congr_arg (* S.card) _,
   calc R.card = fintype.card R : (fintype.card_coe R).symm

@@ -561,7 +561,8 @@ section prod
 variables (b' : basis ι' R M')
 
 /-- `basis.prod` maps a `ι`-indexed basis for `M` and a `ι'`-indexed basis for `M'`
-to a `ι ⊕ ι'`-index basis for `M × M'`. -/
+to a `ι ⊕ ι'`-index basis for `M × M'`.
+For the specific case of `R × R`, see also `basis.fin_two_prod`. -/
 protected def prod : basis (ι ⊕ ι') R (M × M') :=
 of_repr ((b.repr.prod b'.repr).trans (finsupp.sum_finsupp_lequiv_prod_finsupp R).symm)
 
@@ -897,7 +898,7 @@ end
 
 section mk
 
-variables (hli : linear_independent R v) (hsp : span R (range v) = ⊤)
+variables (hli : linear_independent R v) (hsp : ⊤ ≤ span R (range v))
 
 /-- A linear independent family of vectors spanning the whole module is a basis. -/
 protected noncomputable def mk : basis ι R M :=
@@ -905,10 +906,10 @@ basis.of_repr
 { inv_fun := finsupp.total _ _ _ v,
   left_inv := λ x, hli.total_repr ⟨x, _⟩,
   right_inv := λ x, hli.repr_eq rfl,
-  .. hli.repr.comp (linear_map.id.cod_restrict _ (λ h, hsp.symm ▸ submodule.mem_top)) }
+  .. hli.repr.comp (linear_map.id.cod_restrict _ (λ h, hsp submodule.mem_top)) }
 
 @[simp] lemma mk_repr :
-  (basis.mk hli hsp).repr x = hli.repr ⟨x, hsp.symm ▸ submodule.mem_top⟩ :=
+  (basis.mk hli hsp).repr x = hli.repr ⟨x, hsp submodule.mem_top⟩ :=
 rfl
 
 lemma mk_apply (i : ι) : basis.mk hli hsp i = v i :=
@@ -953,7 +954,6 @@ variables (hli : linear_independent R v)
 protected noncomputable def span : basis ι R (span R (range v)) :=
 basis.mk (linear_independent_span hli) $
 begin
-  rw eq_top_iff,
   intros x _,
   have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
   { rw ← set.range_comp,
@@ -968,6 +968,9 @@ begin
   { rw [subtype.ext_iff, ← hy₂], simp },
   rwa h_x_eq_y
 end
+
+protected lemma span_apply (i : ι) : (basis.span hli i : M) = v i :=
+congr_arg (coe : span R (range v) → M) $ basis.mk_apply (linear_independent_span hli) _ i
 
 end span
 
@@ -992,13 +995,13 @@ def group_smul {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_actio
   [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq)
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq).ge
 
 lemma group_smul_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
   v.group_smul w i = (w • v : ι → M) i :=
 mk_apply
-  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq) i
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq).ge i
 
 lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
   {w : ι → Rˣ} : submodule.span R (set.range (w • v)) = ⊤ :=
@@ -1009,12 +1012,12 @@ provides the basis corresponding to `w • v`. -/
 def units_smul (v : basis ι R M) (w : ι → Rˣ) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq)
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge
 
 lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
-  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq) i
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge i
 
 /-- A version of `smul_of_units` that uses `is_unit`. -/
 def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):
@@ -1039,8 +1042,7 @@ have span_b : submodule.span R (set.range (N.subtype ∘ b)) = N,
 @basis.mk _ _ _ (fin.cons y (N.subtype ∘ b) : fin (n + 1) → M) _ _ _
   ((b.linear_independent.map' N.subtype (submodule.ker_subtype _)) .fin_cons' _ _ $
     by { rintros c ⟨x, hx⟩ hc, rw span_b at hx, exact hli c x hx hc })
-  (eq_top_iff.mpr (λ x _,
-    by { rw [fin.range_cons, submodule.mem_span_insert', span_b], exact hsp x }))
+  (λ x _, by { rw [fin.range_cons, submodule.mem_span_insert', span_b], exact hsp x })
 
 @[simp] lemma coe_mk_fin_cons {n : ℕ} {N : submodule R M} (y : M) (b : basis (fin n) R N)
   (hli : ∀ (c : R) (x ∈ N), c • y + x = 0 → c = 0)
@@ -1067,6 +1069,20 @@ mk_fin_cons ⟨y, yO⟩ (b.map (submodule.comap_subtype_equiv_of_le hNO).symm)
   (mk_fin_cons_of_le y yO b hNO hli hsp : fin (n + 1) → O) =
     fin.cons ⟨y, yO⟩ (submodule.of_le hNO ∘ b) :=
 coe_mk_fin_cons _ _ _ _
+
+/-- The basis of `R × R` given by the two vectors `(1, 0)` and `(0, 1)`. -/
+protected def fin_two_prod (R : Type*) [semiring R] : basis (fin 2) R (R × R) :=
+basis.of_equiv_fun (linear_equiv.fin_two_arrow R R).symm
+
+@[simp] lemma fin_two_prod_zero (R : Type*) [semiring R] : basis.fin_two_prod R 0 = (1, 0) :=
+by simp [basis.fin_two_prod]
+
+@[simp] lemma fin_two_prod_one (R : Type*) [semiring R] : basis.fin_two_prod R 1 = (0, 1) :=
+by simp [basis.fin_two_prod]
+
+@[simp] lemma coe_fin_two_prod_repr {R : Type*} [semiring R] (x : R × R) :
+  ⇑((basis.fin_two_prod R).repr x) = ![x.fst, x.snd] :=
+rfl
 
 end fin
 
@@ -1133,8 +1149,7 @@ noncomputable def extend (hs : linear_independent K (coe : s → V)) :
   basis _ K V :=
 basis.mk
   (@linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ (hs.linear_independent_extend _))
-  (eq_top_iff.mpr $ set_like.coe_subset_coe.mp $
-    by simpa using hs.subset_span_extend (subset_univ s))
+  (set_like.coe_subset_coe.mp $ by simpa using hs.subset_span_extend (subset_univ s))
 
 lemma extend_apply_self (hs : linear_independent K (coe : s → V))
   (x : hs.extend _) :
@@ -1206,6 +1221,54 @@ variables (K V)
 theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
 ⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
+
+section atoms_of_submodule_lattice
+
+variables {K V}
+
+/-- For a module over a division ring, the span of a nonzero element is an atom of the
+lattice of submodules. -/
+lemma nonzero_span_atom (v : V) (hv : v ≠ 0) : is_atom (span K {v} : submodule K V) :=
+begin
+  split,
+  { rw submodule.ne_bot_iff, exact ⟨v, ⟨mem_span_singleton_self v, hv⟩⟩ },
+  { intros T hT, by_contra, apply hT.2,
+    change (span K {v}) ≤ T,
+    simp_rw [span_singleton_le_iff_mem, ← ne.def, submodule.ne_bot_iff] at *,
+    rcases h with ⟨s, ⟨hs, hz⟩⟩,
+    cases (mem_span_singleton.1 (hT.1 hs)) with a ha,
+    have h : a ≠ 0, by { intro h, rw [h, zero_smul] at ha, exact hz ha.symm },
+    apply_fun (λ x, a⁻¹ • x) at ha,
+    simp_rw [← mul_smul, inv_mul_cancel h, one_smul, ha] at *, exact smul_mem T _ hs},
+end
+
+/-- The atoms of the lattice of submodules of a module over a division ring are the
+submodules equal to the span of a nonzero element of the module. -/
+lemma atom_iff_nonzero_span (W : submodule K V) :
+  is_atom W ↔ ∃ (v : V) (hv : v ≠ 0), W = span K {v} :=
+begin
+  refine ⟨λ h, _, λ h, _ ⟩,
+  { cases h with hbot h,
+    rcases ((submodule.ne_bot_iff W).1 hbot) with ⟨v, ⟨hW, hv⟩⟩,
+    refine ⟨v, ⟨hv, _⟩⟩,
+    by_contra heq,
+    specialize h (span K {v}),
+    rw [span_singleton_eq_bot, lt_iff_le_and_ne] at h,
+    exact hv (h ⟨(span_singleton_le_iff_mem v W).2 hW, ne.symm heq⟩) },
+  { rcases h with ⟨v, ⟨hv, rfl⟩⟩, exact nonzero_span_atom v hv },
+end
+
+/-- The lattice of submodules of a module over a division ring is atomistic. -/
+instance : is_atomistic (submodule K V) :=
+{ eq_Sup_atoms :=
+  begin
+    intro W,
+    use {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
+    refine ⟨submodule_eq_Sup_le_nonzero_spans W, _⟩,
+    rintros _ ⟨w, ⟨_, ⟨hw, rfl⟩⟩⟩, exact nonzero_span_atom w hw
+  end }
+
+end atoms_of_submodule_lattice
 
 end division_ring
 

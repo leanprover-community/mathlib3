@@ -68,7 +68,7 @@ section log_deriv
 open complex filter
 open_locale topological_space
 
-variables {α : Type*} [topological_space α] {E : Type*} [normed_group E] [normed_space ℂ E]
+variables {α : Type*} [topological_space α] {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 
 lemma has_strict_fderiv_at.clog {f : E → ℂ} {f' : E →L[ℂ] ℂ} {x : E}
   (h₁ : has_strict_fderiv_at f f' x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :

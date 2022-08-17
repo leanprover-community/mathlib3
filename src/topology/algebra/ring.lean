@@ -111,11 +111,6 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   (s.topological_closure : set α) = closure (s : set α) :=
 rfl
 
-instance subsemiring.topological_closure_topological_semiring (s : subsemiring α) :
-  topological_semiring (s.topological_closure) :=
-{ ..s.to_add_submonoid.topological_closure_has_continuous_add,
-  ..s.to_submonoid.topological_closure_has_continuous_mul }
-
 lemma subsemiring.subring_topological_closure (s : subsemiring α) :
   s ≤ s.topological_closure :=
 subset_closure
@@ -165,7 +160,7 @@ open mul_opposite
 
 instance [non_unital_non_assoc_semiring α] [topological_space α] [has_continuous_add α] :
   has_continuous_add αᵐᵒᵖ :=
-{ continuous_add := continuous_induced_rng $ (@continuous_add α _ _ _).comp
+{ continuous_add := continuous_induced_rng.2 $ (@continuous_add α _ _ _).comp
   (continuous_unop.prod_map continuous_unop) }
 
 instance [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α] :
@@ -173,7 +168,7 @@ instance [non_unital_non_assoc_semiring α] [topological_space α] [topological_
 
 instance [non_unital_non_assoc_ring α] [topological_space α] [has_continuous_neg α] :
   has_continuous_neg αᵐᵒᵖ :=
-{ continuous_neg := continuous_induced_rng $ (@continuous_neg α _ _ _).comp continuous_unop }
+{ continuous_neg := continuous_induced_rng.2 $ (@continuous_neg α _ _ _).comp continuous_unop }
 
 instance [non_unital_non_assoc_ring α] [topological_space α] [topological_ring α] :
   topological_ring αᵐᵒᵖ := {}
@@ -271,11 +266,6 @@ def subring.topological_closure (S : subring α) : subring α :=
 { carrier := closure (S : set α),
   ..S.to_submonoid.topological_closure,
   ..S.to_add_subgroup.topological_closure }
-
-instance subring.topological_closure_topological_ring (s : subring α) :
-  topological_ring (s.topological_closure) :=
-{ ..s.to_add_subgroup.topological_closure_topological_add_group,
-  ..s.to_submonoid.topological_closure_has_continuous_mul }
 
 lemma subring.subring_topological_closure (s : subring α) :
   s ≤ s.topological_closure := subset_closure
@@ -389,7 +379,7 @@ let Inf_S' := Inf (to_topological_space '' S) in
 { to_topological_space := Inf_S',
   continuous_add       :=
   begin
-    apply continuous_Inf_rng,
+    apply continuous_Inf_rng.2,
     rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
     have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
     have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
@@ -397,7 +387,7 @@ let Inf_S' := Inf (to_topological_space '' S) in
   end,
   continuous_mul       :=
   begin
-    apply continuous_Inf_rng,
+    apply continuous_Inf_rng.2,
     rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
     have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
     have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
@@ -405,7 +395,7 @@ let Inf_S' := Inf (to_topological_space '' S) in
   end,
   continuous_neg       :=
   begin
-    apply continuous_Inf_rng,
+    apply continuous_Inf_rng.2,
     rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
     have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
     exact @continuous.comp _ _ _ (id _) (id _) t _ _ continuous_neg h,

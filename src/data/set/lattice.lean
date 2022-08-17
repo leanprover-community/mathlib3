@@ -756,6 +756,12 @@ by simp only [inter_Union]
 lemma Union₂_inter (s : Π i, κ i → set α) (t : set α) : (⋃ i j, s i j) ∩ t = ⋃ i j, s i j ∩ t :=
 by simp_rw Union_inter
 
+lemma union_Inter₂ (s : set α) (t : Π i, κ i → set α) : s ∪ (⋂ i j, t i j) = ⋂ i j, s ∪ t i j :=
+by simp_rw union_Inter
+
+lemma Inter₂_union (s : Π i, κ i → set α) (t : set α) : (⋂ i j, s i j) ∪ t = ⋂ i j, s i j ∪ t :=
+by simp_rw Inter_union
+
 theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t) (ht : t ∈ S) :
   x ∈ ⋃₀ S :=
 ⟨t, ht, hx⟩
@@ -912,6 +918,9 @@ theorem range_sigma_eq_Union_range {γ : α → Type*} (f : sigma γ → β) :
 set.ext $ by simp
 
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
+by simp [set.ext_iff]
+
+theorem Union_eq_range_psigma (s : ι → set β) : (⋃ i, s i) = range (λ a : Σ' i, s i, a.2) :=
 by simp [set.ext_iff]
 
 theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :
@@ -1080,6 +1089,50 @@ lemma image_Inter₂_subset (s : Π i, κ i → set α) (f : α → β) :
 lemma image_sInter_subset (S : set (set α)) (f : α → β) :
   f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
 by { rw sInter_eq_bInter, apply image_Inter₂_subset }
+
+/-! ### `restrict_preimage` -/
+section
+
+open function
+
+variables (s : set β) {f : α → β} {U : ι → set β} (hU : Union U = univ)
+
+lemma restrict_preimage_injective (hf : injective f) : injective (s.restrict_preimage f) :=
+λ x y e, subtype.mk.inj_arrow e (λ e, subtype.coe_injective (hf e))
+
+lemma restrict_preimage_surjective (hf : surjective f) : surjective (s.restrict_preimage f) :=
+λ x, ⟨⟨_, (show f (hf x).some ∈ s, from (hf x).some_spec.symm ▸ x.2)⟩, subtype.ext (hf x).some_spec⟩
+
+lemma restrict_preimage_bijective (hf : bijective f) : bijective (s.restrict_preimage f) :=
+⟨s.restrict_preimage_injective hf.1, s.restrict_preimage_surjective hf.2⟩
+
+alias set.restrict_preimage_injective  ← _root_.function.injective.restrict_preimage
+alias set.restrict_preimage_surjective ← _root_.function.surjective.restrict_preimage
+alias set.restrict_preimage_bijective  ← _root_.function.bijective.restrict_preimage
+
+include hU
+
+lemma injective_iff_injective_of_Union_eq_univ :
+  injective f ↔ ∀ i, injective ((U i).restrict_preimage f) :=
+begin
+  refine ⟨λ H i, (U i).restrict_preimage_injective H, λ H x y e, _⟩,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp (show f x ∈ set.Union U, by { rw hU, triv }),
+  injection @H i ⟨x, hi⟩ ⟨y, show f y ∈ U i, from e ▸ hi⟩ (subtype.ext e)
+end
+
+lemma surjective_iff_surjective_of_Union_eq_univ :
+  surjective f ↔ ∀ i, surjective ((U i).restrict_preimage f) :=
+begin
+  refine ⟨λ H i, (U i).restrict_preimage_surjective H, λ H x, _⟩,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp (show x ∈ set.Union U, by { rw hU, triv }),
+  exact ⟨_, congr_arg subtype.val (H i ⟨x, hi⟩).some_spec⟩
+end
+
+lemma bijective_iff_bijective_of_Union_eq_univ :
+  bijective f ↔ ∀ i, bijective ((U i).restrict_preimage f) :=
+by simp_rw [bijective, forall_and_distrib, injective_iff_injective_of_Union_eq_univ hU,
+  surjective_iff_surjective_of_Union_eq_univ hU]
+end
 
 /-! ### `inj_on` -/
 
@@ -1518,7 +1571,7 @@ lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
-by simp [set.not_disjoint_iff, set.nonempty_def]
+not_disjoint_iff
 
 alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
 

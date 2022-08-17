@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
 import data.matrix.block
+import data.matrix.notation
 import data.fintype.card
 import group_theory.perm.fin
 import group_theory.perm.sign
@@ -124,7 +125,7 @@ lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin
   obtain ⟨i, j, hpij, hij⟩ : ∃ i j, p i = p j ∧ i ≠ j,
-  { rw [← fintype.injective_iff_bijective, injective] at H,
+  { rw [← finite.injective_iff_bijective, injective] at H,
     push_neg at H,
     exact H },
   exact sum_involution
@@ -261,14 +262,15 @@ by rw [←det_smul_of_tower, units.neg_smul, one_smul]
 /-- Multiplying each row by a fixed `v i` multiplies the determinant by
 the product of the `v`s. -/
 lemma det_mul_row (v : n → R) (A : matrix n n R) :
-  det (λ i j, v j * A i j) = (∏ i, v i) * det A :=
-calc det (λ i j, v j * A i j) = det (A ⬝ diagonal v) : congr_arg det $ by { ext, simp [mul_comm] }
-                          ... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
+  det (of $ λ i j, v j * A i j) = (∏ i, v i) * det A :=
+calc  det (of $ λ i j, v j * A i j)
+    = det (A ⬝ diagonal v) : congr_arg det $ by { ext, simp [mul_comm] }
+... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
 
 /-- Multiplying each column by a fixed `v j` multiplies the determinant by
 the product of the `v`s. -/
 lemma det_mul_column (v : n → R) (A : matrix n n R) :
-  det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
+  det (of $ λ i j, v i * A i j) = (∏ i, v i) * det A :=
 multilinear_map.map_smul_univ _ v A
 
 @[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=
@@ -649,7 +651,7 @@ begin
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
-        mul_smul_comm] },
+        mul_smul_comm, of_apply] },
   -- `univ_perm_fin_succ` gives a different embedding of `perm (fin n)` into
   -- `perm (fin n.succ)` than the determinant of the submatrix we want,
   -- permute `A` so that we get the correct one.
@@ -718,6 +720,8 @@ det_is_empty
 /-- Determinant of 1x1 matrix -/
 lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A
 
+lemma det_fin_one_of (a : R) : det !![a] = a := det_fin_one _
+
 /-- Determinant of 2x2 matrix -/
 lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
   det A = A 0 0 * A 1 1 - A 0 1 * A 1 0 :=
@@ -725,6 +729,10 @@ begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   ring
 end
+
+@[simp] lemma det_fin_two_of (a b c d : R) :
+  matrix.det !![a, b; c, d] = a * d - b * c :=
+det_fin_two _
 
 /-- Determinant of 3x3 matrix -/
 lemma det_fin_three (A : matrix (fin 3) (fin 3) R) :

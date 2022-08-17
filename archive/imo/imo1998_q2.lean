@@ -201,7 +201,7 @@ theorem imo1998_q2 [fintype J] [fintype C]
   (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
   (b - 1) / (2 * b) ≤ k / a :=
 begin
-  rw clear_denominators ha (nat.pos_of_odd hb),
+  rw clear_denominators ha hb.pos,
   obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
   have h := le_trans (A_card_lower_bound r hJ) (A_card_upper_bound r hk),
   rw [hC, hJ] at h,

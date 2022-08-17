@@ -129,14 +129,16 @@ subtype.coe_injective.ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) 
 instance to_linear_ordered_ring {R} [linear_ordered_ring R] [set_like S R] [subring_class S R] :
   linear_ordered_ring s :=
 subtype.coe_injective.linear_ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] [set_like S R]
   [subring_class S R] : linear_ordered_comm_ring s :=
 subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 include hSR
 
@@ -397,13 +399,15 @@ subtype.coe_injective.ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) 
 instance to_linear_ordered_ring {R} [linear_ordered_ring R] (s : subring R) :
   linear_ordered_ring s :=
 subtype.coe_injective.linear_ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
 instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] (s : subring R) :
   linear_ordered_comm_ring s :=
 subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
@@ -812,13 +816,11 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subring S) :
 /-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s ×̂ t`
 as a subring of `R × S`. -/
 def prod (s : subring R) (t : subring S) : subring (R × S) :=
-{ carrier := (s : set R) ×ˢ (t : set S),
+{ carrier := s ×ˢ t,
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
-lemma coe_prod (s : subring R) (t : subring S) :
-  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
-rfl
+lemma coe_prod (s : subring R) (t : subring S) : (s.prod t : set (R × S)) = s ×ˢ t := rfl
 
 lemma mem_prod {s : subring R} {t : subring S} {p : R × S} :
   p ∈ s.prod t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl

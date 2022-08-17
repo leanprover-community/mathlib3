@@ -42,7 +42,7 @@ theorem mem_annihilator {r} : r ∈ N.annihilator ↔ ∀ n ∈ N, r • n = (0:
 ⟨λ hr n hn, congr_arg subtype.val (linear_map.ext_iff.1 (linear_map.mem_ker.1 hr) ⟨n, hn⟩),
 λ h, linear_map.mem_ker.2 $ linear_map.ext $ λ n, subtype.eq $ h n.1 n.2⟩
 
-theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • linear_map.id) ⊥ :=
+theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • (linear_map.id : M →ₗ[R] M)) ⊥ :=
 mem_annihilator.trans ⟨λ H n hn, (mem_bot R).2 $ H n hn, λ H n hn, (mem_bot R).1 $ H hn⟩
 
 lemma mem_annihilator_span (s : set M) (r : R) :
@@ -148,7 +148,8 @@ le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   (λ r hr s hs,
     (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
   (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _))
-(smul_le.2 $ λ r hr sn hsn, suffices J • N ≤ submodule.comap (r • linear_map.id) ((I • J) • N),
+(smul_le.2 $ λ r hr sn hsn,
+  suffices J • N ≤ submodule.comap (r • (linear_map.id : M →ₗ[R] M)) ((I • J) • N),
   from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
   from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
@@ -282,7 +283,7 @@ theorem mem_colon {r} : r ∈ N.colon P ↔ ∀ p ∈ P, r • p ∈ N :=
 mem_annihilator.trans ⟨λ H p hp, (quotient.mk_eq_zero N).1 (H (quotient.mk p) (mem_map_of_mem hp)),
 λ H m ⟨p, hp, hpm⟩, hpm ▸ (N.mkq).map_smul r p ▸ (quotient.mk_eq_zero N).2 $ H p hp⟩
 
-theorem mem_colon' {r} : r ∈ N.colon P ↔ P ≤ comap (r • linear_map.id) N :=
+theorem mem_colon' {r} : r ∈ N.colon P ↔ P ≤ comap (r • (linear_map.id : M →ₗ[R] M)) N :=
 mem_colon
 
 theorem colon_mono (hn : N₁ ≤ N₂) (hp : P₁ ≤ P₂) : N₁.colon P₂ ≤ N₂.colon P₁ :=

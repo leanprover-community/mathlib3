@@ -1668,6 +1668,10 @@ omit σ₂₁ re₁₂ re₂₁
 linear_map.range_eq_top.2 e.to_equiv.surjective
 
 include σ₂₁ re₁₂ re₂₁
+@[simp] protected theorem _root_.linear_equiv_class.range [module R M] [module R₂ M₂] {F : Type*}
+  [semilinear_equiv_class F σ₁₂ M M₂] (e : F) : linear_map.range e = ⊤ :=
+linear_map.range_eq_top.2 (equiv_like.surjective e)
+
 lemma eq_bot_of_equiv [module R₂ M₂] (e : p ≃ₛₗ[σ₁₂] (⊥ : submodule R₂ M₂)) : p = ⊥ :=
 begin
   refine bot_unique (set_like.le_def.2 $ assume b hb, (submodule.mem_bot R).2 _),

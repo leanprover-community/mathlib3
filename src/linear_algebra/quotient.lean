@@ -259,7 +259,7 @@ lemma mapq_comp {R₃ M₃ : Type*} [ring R₃] [add_comm_group M₃] [module R�
   p.mapq p₃ (g.comp f) h = (p₂.mapq p₃ g hg).comp (p.mapq p₂ f hf) :=
 by { ext, simp, }
 
-@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by simp) :
+@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by { rw [comap_id], exact le_refl _ }) :
   p.mapq p linear_map.id h = linear_map.id :=
 by { ext, simp, }
 

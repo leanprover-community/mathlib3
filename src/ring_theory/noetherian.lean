@@ -437,7 +437,7 @@ begin
     submodule.map_comap_eq_self this ▸ (hn _).map _, λ h, ⟨λ s, _⟩⟩,
   have f := (submodule.equiv_map_of_injective N.subtype subtype.val_injective s).symm,
   have h₁ := h (s.map N.subtype) (submodule.map_subtype_le N s),
-  have h₂ : (⊤ : submodule R (s.map N.subtype)).map (↑f : _ →ₗ[R] s) = ⊤ := by simp,
+  have h₂ : (⊤ : submodule R (s.map N.subtype)).map f = ⊤ := by simp,
   have h₃ := ((submodule.fg_top _).2 h₁).map (↑f : _ →ₗ[R] s),
   exact (submodule.fg_top _).1 (h₂ ▸ h₃),
 end

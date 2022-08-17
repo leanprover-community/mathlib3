@@ -23,7 +23,7 @@ theory for `seminormed_add_comm_group` and we specialize to `normed_add_comm_gro
 -/
 open function set
 
-variables {R R₂ R₃ R₄ E E₂ E₃ E₄ F : Type*} [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
+variables {R R₂ R₃ R₄ E E₂ E₃ E₄ F 𝓕 : Type*} [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
   {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R} {σ₁₃ : R →+* R₃} {σ₃₁ : R₃ →+* R} {σ₁₄ : R →+* R₄}
   {σ₄₁ : R₄ →+* R} {σ₂₃ : R₂ →+* R₃} {σ₃₂ : R₃ →+* R₂} {σ₂₄ : R₂ →+* R₄} {σ₄₂ : R₄ →+* R₂}
   {σ₃₄ : R₃ →+* R₄} {σ₄₃ : R₄ →+* R₃}
@@ -77,7 +77,6 @@ semilinear_isometry_class 𝓕 (ring_hom.id R) E E₂
 set_option old_structure_cmd false
 
 namespace semilinear_isometry_class
-variables {𝓕 : Type*}
 
 protected lemma isometry [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) : isometry f :=
 add_monoid_hom_class.isometry_of_norm _ (norm_map _)
@@ -161,10 +160,12 @@ initialize_simps_projections linear_isometry (to_linear_map_to_fun → apply)
 @[ext] lemma ext {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : ∀ x, f x = g x) : f = g :=
 coe_injective $ funext h
 
-protected lemma congr_arg {f : E →ₛₗᵢ[σ₁₂] E₂} : Π {x x' : E}, x = x' → f x = f x'
+protected lemma congr_arg [semilinear_isometry_class 𝓕 σ₁₂ E E₂] {f : 𝓕} :
+  Π {x x' : E}, x = x' → f x = f x'
 | _ _ rfl := rfl
 
-protected lemma congr_fun {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : f = g) (x : E) : f x = g x := h ▸ rfl
+protected lemma congr_fun [semilinear_isometry_class 𝓕 σ₁₂ E E₂] {f g : 𝓕} (h : f = g) (x : E) :
+  f x = g x := h ▸ rfl
 
 @[simp] protected lemma map_zero : f 0 = 0 := f.to_linear_map.map_zero
 
@@ -181,21 +182,32 @@ f.to_linear_map.map_smulₛₗ c x
   f (c • x) = c • f x :=
 f.to_linear_map.map_smul c x
 
-@[simp] lemma norm_map (x : E) : ∥f x∥ = ∥x∥ := f.norm_map' x
+@[simp] lemma norm_map [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) (x : E) :
+  ∥f x∥ = ∥x∥ := semilinear_isometry_class.norm_map f x
 
-@[simp] lemma nnnorm_map (x : E) : ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ f.norm_map x
+@[simp] lemma nnnorm_map [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) (x : E) :
+  ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ norm_map f x
 
-protected lemma isometry : isometry f :=
+protected lemma isometry [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) : isometry f :=
 add_monoid_hom_class.isometry_of_norm _ (norm_map _)
 
-@[simp] lemma is_complete_image_iff {s : set E} : is_complete (f '' s) ↔ is_complete s :=
-is_complete_image_iff f.isometry.uniform_inducing
+@[simp] lemma is_complete_image_iff [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) {s : set E} :
+  is_complete (f '' s) ↔ is_complete s :=
+is_complete_image_iff (linear_isometry.isometry f).uniform_inducing
 
 lemma is_complete_map_iff [ring_hom_surjective σ₁₂] {p : submodule R E} :
   is_complete (p.map f.to_linear_map : set E₂) ↔ is_complete (p : set E) :=
 f.is_complete_image_iff
 
-instance complete_space_map [ring_hom_surjective σ₁₂] (p : submodule R E) [complete_space p] :
+lemma is_complete_map_iff' [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) [ring_hom_surjective σ₁₂]
+  {p : submodule R E} : is_complete (p.map f : set E₂) ↔ is_complete (p : set E) :=
+is_complete_image_iff f
+
+instance complete_space_map [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) [ring_hom_surjective σ₁₂]
+  (p : submodule R E) [complete_space p] : complete_space (p.map f) :=
+((is_complete_map_iff' f).2 $ complete_space_coe_iff_is_complete.1 ‹_›).complete_space_coe
+
+instance complete_space_map' [ring_hom_surjective σ₁₂] (p : submodule R E) [complete_space p] :
   complete_space (p.map f.to_linear_map) :=
 (f.is_complete_map_iff.2 $ complete_space_coe_iff_is_complete.1 ‹_›).complete_space_coe
 

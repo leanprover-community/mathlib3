@@ -163,21 +163,26 @@ variables (Q)
 section involute
 
 lemma submodule_map_involute_eq_comap (p : submodule R (clifford_algebra Q)) :
-  p.map involute.to_linear_map = p.comap involute.to_linear_map :=
+  p.map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map
+    = p.comap (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map :=
 (submodule.map_equiv_eq_comap_symm involute_equiv.to_linear_equiv _)
 
-@[simp] lemma ι_range_map_involute : (ι Q).range.map involute.to_linear_map = (ι Q).range :=
+@[simp] lemma ι_range_map_involute :
+  (ι Q).range.map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map
+    = (ι Q).range :=
 (ι_range_map_lift _ _).trans (linear_map.range_neg _)
 
-@[simp] lemma ι_range_comap_involute : (ι Q).range.comap involute.to_linear_map = (ι Q).range :=
+@[simp] lemma ι_range_comap_involute :
+  (ι Q).range.comap (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map
+    = (ι Q).range :=
 by rw [←submodule_map_involute_eq_comap, ι_range_map_involute]
 
 @[simp] lemma even_odd_map_involute (n : zmod 2) :
-  (even_odd Q n).map involute.to_linear_map = (even_odd Q n) :=
+  (even_odd Q n).map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map = (even_odd Q n) :=
 by simp_rw [even_odd, submodule.map_supr, submodule.map_pow, ι_range_map_involute]
 
 @[simp] lemma even_odd_comap_involute (n : zmod 2) :
-  (even_odd Q n).comap involute.to_linear_map = even_odd Q n :=
+  (even_odd Q n).comap (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map = even_odd Q n :=
 by rw [←submodule_map_involute_eq_comap, even_odd_map_involute]
 
 end involute
@@ -185,42 +190,53 @@ end involute
 section reverse
 
 lemma submodule_map_reverse_eq_comap (p : submodule R (clifford_algebra Q)) :
-  p.map reverse = p.comap reverse :=
+  p.map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q)
+    = p.comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q):=
 (submodule.map_equiv_eq_comap_symm (reverse_equiv : _ ≃ₗ[R] _) _)
 
-@[simp] lemma ι_range_map_reverse : (ι Q).range.map reverse = (ι Q).range :=
+@[simp] lemma ι_range_map_reverse :
+  (ι Q).range.map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) = (ι Q).range :=
 begin
   rw [reverse, submodule.map_comp, ι_range_map_lift, linear_map.range_comp, ←submodule.map_comp],
   exact submodule.map_id _,
 end
 
-@[simp] lemma ι_range_comap_reverse : (ι Q).range.comap reverse = (ι Q).range :=
+@[simp] lemma ι_range_comap_reverse :
+  (ι Q).range.comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) = (ι Q).range :=
 by rw [←submodule_map_reverse_eq_comap, ι_range_map_reverse]
 
 /-- Like `submodule.map_mul`, but with the multiplication reversed. -/
 lemma submodule_map_mul_reverse (p q : submodule R (clifford_algebra Q)) :
-  (p * q).map reverse = q.map reverse * p.map reverse :=
+  (p * q).map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q)
+    = q.map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q)
+      * p.map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) :=
 by simp_rw [reverse, submodule.map_comp, linear_equiv.to_linear_map_eq_coe, submodule.map_mul,
   submodule.map_unop_mul]
 
 lemma submodule_comap_mul_reverse (p q : submodule R (clifford_algebra Q)) :
-  (p * q).comap reverse = q.comap reverse * p.comap reverse :=
+  (p * q).comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q)
+    = q.comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q)
+      * p.comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) :=
 by simp_rw [←submodule_map_reverse_eq_comap, submodule_map_mul_reverse]
 
 /-- Like `submodule.map_pow` -/
 lemma submodule_map_pow_reverse (p : submodule R (clifford_algebra Q)) (n : ℕ) :
-  (p ^ n).map reverse = p.map reverse ^ n :=
+  (p ^ n).map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q)
+    = p.map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) ^ n :=
 by simp_rw [reverse, submodule.map_comp, linear_equiv.to_linear_map_eq_coe, submodule.map_pow,
   submodule.map_unop_pow]
 
 lemma submodule_comap_pow_reverse  (p : submodule R (clifford_algebra Q)) (n : ℕ) :
-  (p ^ n).comap reverse = p.comap reverse ^ n :=
+  (p ^ n).comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q)
+    = p.comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) ^ n :=
 by simp_rw [←submodule_map_reverse_eq_comap, submodule_map_pow_reverse]
 
-@[simp] lemma even_odd_map_reverse (n : zmod 2) : (even_odd Q n).map reverse = even_odd Q n :=
+@[simp] lemma even_odd_map_reverse (n : zmod 2) :
+  (even_odd Q n).map (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) = even_odd Q n :=
 by simp_rw [even_odd, submodule.map_supr, submodule_map_pow_reverse, ι_range_map_reverse]
 
-@[simp] lemma even_odd_comap_reverse (n : zmod 2) : (even_odd Q n).comap reverse = even_odd Q n :=
+@[simp] lemma even_odd_comap_reverse (n : zmod 2) :
+  (even_odd Q n).comap (reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q) = even_odd Q n :=
 by rw [←submodule_map_reverse_eq_comap, even_odd_map_reverse]
 
 end reverse

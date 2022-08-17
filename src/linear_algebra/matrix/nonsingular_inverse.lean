@@ -315,18 +315,18 @@ nonsing_inv_mul_cancel_left A B (is_unit_det_of_invertible A)
 
 lemma inv_mul_eq_iff_eq_mul (A B C : matrix n n α) [invertible A] :
   A⁻¹ ⬝ B = C ↔ B = A ⬝ C :=
-⟨ λ h, calc B = A ⬝ A⁻¹ ⬝ B : by simp only [mul_inv_of_invertible A, matrix.one_mul]
-    ... = A ⬝ C : by rw [matrix.mul_assoc, h],
-  λ h, calc A⁻¹ ⬝ B = A⁻¹ ⬝ A ⬝ C : by rw [matrix.mul_assoc, h]
-    ... = C : by simp only [inv_mul_of_invertible A, matrix.one_mul]⟩
+⟨λ h, calc B = A ⬝ A⁻¹ ⬝ B : by simp only [mul_inv_of_invertible A, matrix.one_mul]
+   ... = A ⬝ C : by rw [matrix.mul_assoc, h],
+ λ h, calc A⁻¹ ⬝ B = A⁻¹ ⬝ A ⬝ C : by rw [matrix.mul_assoc, h]
+   ... = C : by simp only [inv_mul_of_invertible A, matrix.one_mul]⟩
 
 lemma mul_inv_eq_iff_eq_mul (A B C : matrix n n α) [invertible A] :
   B ⬝ A⁻¹ = C ↔ B = C ⬝ A :=
-⟨ λ h, calc B = B ⬝ A⁻¹ ⬝ A :
-      by simp only [matrix.mul_assoc, inv_mul_of_invertible A, matrix.mul_one]
-    ... = C ⬝ A : by rw [h],
-  λ h, calc B ⬝ A⁻¹ = C ⬝ A ⬝ A⁻¹ : by rw [h]
-    ... = C : by simp only [matrix.mul_assoc, mul_inv_of_invertible A, matrix.mul_one]⟩
+⟨λ h, calc B = B ⬝ A⁻¹ ⬝ A :
+     by simp only [matrix.mul_assoc, inv_mul_of_invertible A, matrix.mul_one]
+   ... = C ⬝ A : by rw [h],
+ λ h, calc B ⬝ A⁻¹ = C ⬝ A ⬝ A⁻¹ : by rw [h]
+   ... = C : by simp only [matrix.mul_assoc, mul_inv_of_invertible A, matrix.mul_one]⟩
 
 lemma nonsing_inv_cancel_or_zero :
   (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=

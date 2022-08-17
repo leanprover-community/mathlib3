@@ -8,7 +8,7 @@ import data.finsupp.basic
 /-!
 # Locus of unequal values of finitely supported functions
 
-Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
+Let `α N` be two Types, assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
 functions.
 
 ## Main definition

@@ -113,16 +113,9 @@ lemma direct_sum.coe_decompose_mul_add_of_left_mem {ι σ A}
   {a b : A} {i j : ι} (a_mem : a ∈ 𝒜 i) :
   (decompose 𝒜 (a * b) (i + j) : A) = a * decompose 𝒜 b j :=
 begin
-  obtain rfl | ha := eq_or_ne a 0,
-  { simp },
   classical,
   lift a to (𝒜 i) using a_mem,
-  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a (λ r,by subst r; exact ha rfl),
-    singleton_product, map_filter, sum_map],
-  simp_rw [comp, embedding.coe_fn_mk, add_left_cancel_iff, filter_eq'],
-  refine dite (decompose 𝒜 b j = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),
-  erw [if_pos (mem_support_iff.mpr h), finset.sum_singleton, of_eq_same],
-  refl,
+  erw [decompose_mul, decompose_coe, coe_of_mul_apply],
 end
 
 lemma direct_sum.coe_decompose_mul_add_of_right_mem {ι σ A}
@@ -131,16 +124,9 @@ lemma direct_sum.coe_decompose_mul_add_of_right_mem {ι σ A}
   {a b : A} {i j : ι} (b_mem : b ∈ 𝒜 j) :
   (decompose 𝒜 (a * b) (i + j) : A) = (decompose 𝒜 a i) * b :=
 begin
-  obtain rfl | hb := eq_or_ne b 0,
-  { simp },
   classical,
   lift b to (𝒜 j) using b_mem,
-  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ j b (λ r,by subst r; exact hb rfl),
-    product_singleton, map_filter, sum_map],
-  simp_rw [comp, embedding.coe_fn_mk, add_right_cancel_iff, filter_eq'],
-  refine dite (decompose 𝒜 a i = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),
-  erw [if_pos (mem_support_iff.mpr h), finset.sum_singleton, of_eq_same],
-  refl,
+  erw [decompose_mul, decompose_coe, coe_mul_of_apply],
 end
 
 lemma direct_sum.decompose_mul_add_left {ι σ A}

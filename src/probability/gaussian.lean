@@ -36,7 +36,7 @@ import analysis.special_functions.integrals
 #check measure_theory.integral_image_eq_integral_abs_det_fderiv_smul
 #check real.coe_to_nnreal
 #check set.inter_comm
-
+#check function.const
 
 ---#check probability_theory.moment,
 
@@ -1149,6 +1149,16 @@ begin
 end
 
 
+
+
+---From here to the end of lemma absolutely_continuous_real_gaussian,
+---the content are all about proving absolutely_continuous_real_gaussian.
+---The part before lemma absolutely_continuous_real_gaussian is from proving
+---the set {x : ℝ | gaussian_density m s ≠ 0} is set.univ. We do this
+---because, once this part is done, we can immediately use measurable_set.univ
+---to use the result measure_inter_add_diff.
+
+
 lemma union_comm (S : set ℝ) : {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} ∩ S
  = S ∩ {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} :=
 begin
@@ -1187,6 +1197,7 @@ begin
   exact (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)).exp_pos,
 end
 
+---The third important result
 -- easy direction
 lemma absolutely_continuous_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ ≪ volume :=
@@ -1204,7 +1215,7 @@ begin
     rw union_comm S,
     rw t_eq_set_of_posval hs,
     rw ← t_eq_setuniv hs,
-    ---have h_univ_measurable : measurable_set (set.univ : set ℝ) := measurable_set.univ,
+
     have h_inter_smaller_measure : ℙ (S ∩ set.univ) ≤ ℙ (S),
       {
         rw ← measure_inter_add_diff S measurable_set.univ,
@@ -1214,15 +1225,248 @@ begin
 
   },
   {measurability},
+
+
 end
 
--- harder
+
+
+
+
+---From here, the content below until the end of lemma real_gaussian_absolutely_continuous
+---is all about proof of lemma real_gaussian_absolutely_continuous. From here to the next
+---long comment or begining of lemma funcpos_anywhere2, the conent is for proving
+---ℙ = μ.with_density ((gaussian_density m s)⁻¹), or, in math language,
+---Radon Nikodym derivative of Lebesgue measure ℙ with respect to gaussian measure μ
+---is 1/(gaussian_density m s). We can just call this hℙ as counterpart of hμ.
+
+---The meaning of such work is get the counterpart of hμ in  μ ≪ volume
+---for proving volume ≪ μ. With this assumtion, we can proving volume ≪ μ
+---in a way similar to proof of μ ≪ volume, while replacing hμ by hℙ.
+
+
+lemma gaussian_measurable (hs : s≠0) : measurable (gaussian_density m s):=
+begin
+  unfold gaussian_density,
+  measurability,
+end
+
+lemma inv_gaussian_measurable (hs : s≠0) : measurable (λ (x:ℝ), ((gaussian_density m s) x)⁻¹):=
+begin
+  unfold gaussian_density,
+  measurability,
+end
+
+lemma gaussian_pos (hs : s≠0): ∀ (x:ℝ), 0 < (gaussian_density m s) x:=
+begin
+  unfold gaussian_density,
+  exact funcpos_anywhere hs,
+
+
+end
+
+lemma gaussian_nzero (hs : s≠0) : ∀ (x:ℝ), (gaussian_density m s) x ≠ 0 :=
+begin
+  intro x,
+  exact ne_of_gt (gaussian_pos hs x),
+end
+
+
+lemma gau_eq_gautonnreal : gaussian_density m s = λ (x:ℝ), (gaussian_density_to_nnreal m s) x :=
+begin
+  ext x,
+  unfold gaussian_density,
+  unfold gaussian_density_to_nnreal,
+  simp,
+end
+
+
+lemma lambdaform_with_tonnreal (hs : s ≠ 0) : gaussian_density m s = λ x, (gaussian_density_to_nnreal m s) x:=
+begin
+  ext x,
+  unfold gaussian_density,
+  unfold gaussian_density_to_nnreal,
+  simp,
+end
+
+
+lemma eliminate_ofreal_tonnreal1 (hs : s ≠ 0): ∀ (x:ℝ),
+  (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)
+  = (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal :=
+begin
+  intro x,
+  have h_exprepos1: 0 ≤ (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2),
+    {exact gaussian_density_ennreal hs x},
+  have h_no_smul_eq : (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)
+    = (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal,
+    {exact simple_thing ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) h_exprepos1,},
+  rw ← h_no_smul_eq,
+end
+
+
+lemma eliminate_ofreal_tonnreal2 (hs : s ≠ 0): ∀ (x:ℝ),
+  (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) * ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))⁻¹
+  = ((ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal)
+  * ((ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))).to_nnreal)⁻¹:=
+begin
+  intro x,
+  rw eliminate_ofreal_tonnreal1 hs x,
+  simp,
+end
+
+
+lemma ennreal_prod_eq_prod_ennreal (a b : ℝ) (ha : 0 < a) (hb : 0 < b) : ennreal.of_real (a*b) = (ennreal.of_real a) * (ennreal.of_real b):=
+begin
+  have ha2 : 0 ≤ a := le_of_lt ha,
+  have hb2 : 0 ≤ b := le_of_lt hb,
+
+  simp_rw ennreal.of_real_mul ha2,
+end
+
+
+lemma inv_ennreal_eq_ennreal_inv (a : ℝ) (ha : 0 < a) : ennreal.of_real (a⁻¹) = (ennreal.of_real a)⁻¹ :=
+begin
+  simp_rw [ennreal.of_real_inv_of_pos ha],
+
+end
+
+
+lemma gaussian_without_ennreal_pos (hs : s≠0) : ∀ (x:ℝ),
+ 0 < (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2):=
+begin
+  intro x,
+  simp [inv_sqrt_2pis2_pos hs] at *,
+  exact (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)).exp_pos,
+end
+
+
+lemma gaussian_without_ennreal_nzero (hs : s≠0) : ∀ (x:ℝ),
+(sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) ≠ 0:=
+begin
+  intro x,
+  have h_pos: 0 < (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) := gaussian_without_ennreal_pos hs x,
+  exact ne_of_gt h_pos,
+end
+
+
+lemma in_one_ennreal (hs : s ≠ 0) : ∀ (x:ℝ),
+ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))
+* (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)))⁻¹
+ = ennreal.of_real ( ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))
+ * ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))⁻¹) :=
+begin
+  intro x,
+  rw [ennreal.of_real_inv_of_pos (gaussian_without_ennreal_pos hs x)],
+  have h : 0 ≤ ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) := le_of_lt (gaussian_without_ennreal_pos hs x),
+  rw ennreal.of_real_mul h,
+end
+
+
+lemma in_one_ennreal_under_linteg (hs : s≠0) (S : set ℝ) (hS : measurable_set S):
+∫⁻ (x : ℝ) in S, ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) * (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)))⁻¹
+= ∫⁻ (x : ℝ) in S, ennreal.of_real ( ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) * ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))⁻¹) :=
+begin
+  simp_rw [in_one_ennreal hs],
+end
+
+
+lemma inside_ennreal_eq_one (hs : s ≠ 0) : ∀ (x:ℝ),
+(sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)
+* ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))⁻¹ = 1 :=
+begin
+  intro x,
+  have h : (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2) ≠ 0:=
+    gaussian_without_ennreal_nzero hs x,
+  rw mul_inv_eq_one ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) h,
+end
+
+
+lemma rn_deriv_inv (hs : s ≠ 0) (hμ : μ.real_gaussian m s) : volume = μ.with_density (λ (x:ℝ), ((gaussian_density m s) x)⁻¹) :=
+begin
+  unfold real_gaussian at hμ,
+  simp [hs] at hμ,
+  rw hμ,
+  ext1 S hS,
+  rw with_density_apply (λ (x:ℝ), ((gaussian_density m s) x)⁻¹) hS,
+  simp [with_density_apply (gaussian_density m s) hS],
+  rw set_lintegral_with_density_eq_set_lintegral_mul ℙ (gaussian_measurable hs) (inv_gaussian_measurable hs) hS,
+  simp,
+  let f : ℝ → ℝ≥0∞ := λ (x:ℝ), 1,
+
+  unfold gaussian_density,
+  rw in_one_ennreal_under_linteg hs S hS,
+  simp_rw [inside_ennreal_eq_one hs],
+  have h_const_func : ∀ (x:ℝ), f x = ennreal.of_real 1,
+    {
+      intro x,
+      simp,
+    },
+  have h_rw_linteg_about_func : (∫⁻ (x : ℝ) in S, (f x) ) = ∫⁻ (x : ℝ) in S, ennreal.of_real 1 ,
+    {
+      simp_rw [f],
+      simp,
+    },
+  rw ← h_rw_linteg_about_func,
+  simp,
+
+end
+
+
+---From here to lemma real_gaussian_absolutely_continuous, this part aims
+---aims to show the set {x : ℝ | 0 < (gaussian_density m s x)⁻¹} equal
+---to the set.univ, so that we can use the result measure_inter_add_diff
+---in proof of lemma real_gaussian_absolutely_continuous like what we've
+---done in the third important result.
+lemma funcpos_anywhere2 (hs : s≠0) : ∀ (x:ℝ), 0 < (ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)))⁻¹:=
+begin
+  have h_func_pos :  ∀ (x:ℝ), 0 < ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))
+  := funcpos_anywhere hs,
+  intro x,
+  specialize h_func_pos x,
+  simp [h_func_pos],
+end
+
+
+lemma t_eq_set_of_posval2 (hs : s≠0) :
+{x : ℝ | (gaussian_density m s x)⁻¹ ≠ 0} = {x : ℝ | 0 < (gaussian_density m s x)⁻¹} :=
+begin
+  unfold gaussian_density,
+  ext x,
+  simp [funcpos_anywhere hs],
+end
+
+lemma t_eq_setuniv2 (hs : s≠0) : (set.univ : set ℝ) = {x : ℝ | 0 < (gaussian_density m s x)⁻¹}:=
+begin
+  unfold gaussian_density,
+  ext x,
+  simp [funcpos_anywhere2 hs x],
+end
+----
+
+---The fourth important result
 lemma real_gaussian_absolutely_continuous (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   volume ≪ μ :=
 begin
   -- Hint: first show/find in mathlib that for positive `f`, `∫ x in s, f x ∂μ = 0 ↔ μ s = 0`
   -- Do it on paper first!
-  sorry
+  let f : ℝ → ℝ≥0 := λ (x:ℝ), 1,
+
+  intros S hS,
+  have hℙ : volume = μ.with_density (λ (x:ℝ), ((gaussian_density m s) x)⁻¹) := rn_deriv_inv hs hμ,
+  rw hℙ,
+  rw measure_theory.with_density_apply_eq_zero,
+  {
+  rw set.inter_comm {x : ℝ | (gaussian_density m s x)⁻¹ ≠ 0} S,
+  rw [t_eq_set_of_posval2 hs, ← t_eq_setuniv2 hs],
+  have h_inter_smaller_measure : μ (S ∩ set.univ) ≤ μ (S),
+    {
+    rw ← measure_inter_add_diff S measurable_set.univ,
+    simp,
+    },
+    simp [hS, h_inter_smaller_measure],
+  },
+  {unfold gaussian_density,
+  measurability},
 end
 
 section gaussian_rv

@@ -304,6 +304,7 @@ finish,
 end
 
 ---important result below
+
 lemma is_probability_measure_real_gaussian (hμ : μ.real_gaussian m s) :
   is_probability_measure μ :=
 begin
@@ -1149,12 +1150,14 @@ end
 
 
 
+
 ---From here to the end of lemma absolutely_continuous_real_gaussian,
 ---the content are all about proving absolutely_continuous_real_gaussian.
 ---The part before lemma absolutely_continuous_real_gaussian is from proving
 ---the set {x : ℝ | gaussian_density m s ≠ 0} is set.univ. We do this
 ---because, once this part is done, we can immediately use measurable_set.univ
 ---to use the result measure_inter_add_diff.
+
 
 lemma union_comm (S : set ℝ) : {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} ∩ S
  = S ∩ {x : ℝ | ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2)) ≠ 0} :=
@@ -1183,6 +1186,7 @@ begin
   ext x,
   simp [funcpos_anywhere hs],
 end
+
 
 lemma t_eq_setuniv (hs : s≠0) : (set.univ : set ℝ) =
 {x : ℝ | 0 < ennreal.of_real ((sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2))}:=
@@ -1219,10 +1223,9 @@ begin
       },
     simp [hPs, h_inter_smaller_measure],
 
-
-
   },
   {measurability},
+
 
 end
 
@@ -1258,6 +1261,7 @@ lemma gaussian_pos (hs : s≠0): ∀ (x:ℝ), 0 < (gaussian_density m s) x:=
 begin
   unfold gaussian_density,
   exact funcpos_anywhere hs,
+
 
 end
 

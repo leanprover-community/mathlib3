@@ -96,20 +96,7 @@ begin
   rw [J_eq1, J_eq2, J_eq3 _ e_root_g, zero_sub],
   simp_rw [finset.mul_sum, H],
   rw [finset.sum_comm],
-  simp_rw [int.cast_sum, int.cast_mul, f_eval_on_ℝ_nat, ring_hom.eq_int_cast],
-end
-
-lemma coe_J (g : ℤ[X]) (p : ℕ) :
-    ∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
-      (∑ k in finset.range g.nat_degree.succ,
-        (g.coeff k : ℝ) * (f_eval_on_ℝ (deriv_n (f_p p g.nat_degree) j) (k:ℝ))) =
-    ↑(∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
-            (∑ k in finset.range g.nat_degree.succ,
-              (g.coeff k) * (polynomial.eval (k:ℤ) (deriv_n (f_p p g.nat_degree) j)))) :=
-begin
-  rw int.cast_sum, apply finset.sum_congr rfl,
-  intros i hi, rw int.cast_sum, apply finset.sum_congr rfl,
-  intros j hj, rw [int.cast_mul, f_eval_on_ℝ_nat, ring_hom.eq_int_cast],
+  simp_rw [int.cast_sum, int.cast_mul, f_eval_on_ℝ_nat],
 end
 
 theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :

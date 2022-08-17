@@ -114,4 +114,6 @@ def is_terminal_discrete_punit : is_terminal (discrete punit) :=
 
 instance : has_terminal multigraph := is_terminal_discrete_punit.has_terminal
 
+@[simps] def inv_equiv : G.E ≃ G.E := ⟨G.inv, G.inv, G.inv_inv, G.inv_inv⟩
+
 end multigraph

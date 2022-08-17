@@ -164,7 +164,7 @@ variables [fintype G]
 def degree : G.picard_group →+ ℤ := quotient_add_group.lift _
 { to_fun := λ f : G → ℤ, ∑ a, f a,
   map_zero' := sum_eq_zero $ λ _ _, rfl,
-  map_add' := λ f g, sum_add_distrib } $ by { rintro _ ⟨f, rfl⟩, exact sum_laplacian _ _ _ _ }
+  map_add' := λ f g, sum_add_distrib } $ by { rintro _ ⟨f, rfl⟩, exact sum_laplacian _ _ _ }
 
 @[simp] lemma degree_mk (f : G → ℤ) : (mk f : G.picard_group).degree = ∑ a, f a := rfl
 

@@ -93,6 +93,16 @@ begin
     {rw [symm_iff G.adj (λ _ _, G.adj_symm)],},
 end
 
+lemma bdry.iso : ↥(bdry G K) ≃ Σ C : conn_comp_outside G K, ↥(border C) := {
+  to_fun := λ ⟨v, h⟩, ⟨component_of G K v, v, rfl, h⟩,
+  inv_fun := λ ⟨C, v, h⟩, ⟨v, h.2⟩,
+  left_inv := by {simp [left_inverse],},
+  right_inv := by {simp [function.right_inverse, left_inverse],
+    dsimp [conn_comp_outside, border],
+    intro a, rintro ⟨b, _, _⟩,
+    tidy, -- yay!
+  } }
+
 lemma bdry_finite [Glocfin : locally_finite G] : (bdry G K).finite :=
 begin
   rw [bdry.iff], refine finite_Union _, rintro k,
@@ -101,65 +111,127 @@ begin
   { exact (neighbor_set G k).to_finite, }
 end
 
+-- for mathlib
+lemma fintype.iso {A B : Type u} (hA : fintype A) (hiso : A ≃ B) : fintype B :=
+begin
+  fsplit,
+  { refine finset.map ⟨hiso.to_fun, _⟩ hA.elems,
+    unfold injective, intros _ _ h,
+    have := congr_arg hiso.inv_fun h,
+    simp at this, assumption,
+  },
+  intro b,
+  let a := hiso.inv_fun b,
+  have : hiso.to_fun a = b := by {show hiso.to_fun (hiso.inv_fun b) = id b, simp,},
+  rw ← this,
+  refine mem_map.mpr _,
+  use a, split,
+  apply hA.complete,
+  refl,
+end
+
+instance border_sum_fin [locally_finite G] : fintype (Σ C : conn_comp_outside G K, ↥(border C)) :=
+begin
+  apply fintype.iso, rotate,
+  exact (bdry.iso G K),
+  refine finite.fintype _,
+  apply bdry_finite,
+end
+
 lemma border_finite [locally_finite G] (C : conn_comp_outside G K) :  (border C).finite :=
 begin
   refine finite.inter_of_right _ C.verts, apply bdry_finite,
 end
 
+
+#check @walk.rec
+
 -- for mathlib
 lemma reachable_of_adj {u v : V} : G.adj u v → G.reachable u v := sorry
 
-lemma walk.to_boundary {G : simple_graph V} (S : set V) (src : (G.compl S).verts) (tgt : S) (w : G.walk ↑src tgt) : ∃ b ∈ bdry G S, (G.compl S).coe.reachable src b :=
-  match src, tgt, w with
-    | ⟨_, hSc⟩, ⟨_, _⟩, nil := by {simp at hSc, contradiction,}
-    | src, tgt, cons' _ b _ adj_src w' :=
-      if h : b ∈ S then
-       ⟨src, ⟨b, h, adj_src⟩, reachable.rfl⟩
-      else by {
-        rcases (_match ⟨b, G.outside_to_compl h⟩ tgt w') with ⟨b', hbdry, hreach⟩,
-        use b', use hbdry,
-        refine reachable.trans _ hreach,
-        apply reachable_of_adj,
-        dsimp [adj],
-        tidy?,
-      }
-  end
+lemma good_path {V : Type u} {G : simple_graph V} :
+∀ (u v : V) (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S),
+  ∃ (x y : V) (w : G.walk u x), G.adj x y ∧  (w.support.to_finset : set V) ⊆ S ∧ y ∉ S
+| _ _ nil p up vnp := (vnp up).elim
+| _ _ (cons' u x v a q) p up vnp := by {
+  by_cases h : p x,
+  { obtain ⟨xx,yy,ww,aa,dd,mm⟩ := good_path x v q p h vnp,
+    use [xx,yy,cons a ww,aa],split,rotate, exact mm,
+    simp, rw set.insert_subset,exact ⟨up,dd⟩,
+  },
+  { use [u,x,nil,a],simp,exact ⟨up,h⟩, }
+}
 
-lemma border_nonempty [Gpc : preconnected G] (Knempty : K.nonempty) : ∀ (C : conn_comp_outside G K), nonempty (border C) :=
+lemma walk.compl {G : simple_graph V} (S : set V)
+  (x y : V)  (hx : x ∉ S) (hy : y ∉ S)
+  (w : G.walk x y) (hw : disjoint (w.support.to_finset : set V) S) :
+  (G.compl S).coe.reachable ⟨x,by {simp,exact hx }⟩ ⟨y,by {simp, exact hy}⟩ := sorry
+
+lemma walk.to_boundary {G : simple_graph V} (S : set V) (src : (G.compl S).verts) (tgt : S) (w : G.walk ↑src tgt) :
+  ∃ b ∈ bdry G S, (G.compl S).coe.reachable src b :=
 begin
-  rcases Knempty with ⟨k,kK⟩,
-  apply connected_component.ind,
-  rintro ⟨x, xKc⟩, -- is it possible without this pattern matching?
-  let w := (Gpc x k).some,
-  have : k ∉ (↑K)ᶜ := set.not_mem_compl_iff.mpr kK,
-  have : x ∉ K := by {simp at xKc, assumption,},
-  rcases walk.pred_adj_non_pred x k w Kᶜ ‹x ∉ K› ‹k ∉ (↑K)ᶜ› with ⟨u, v, adj_uv, uKc, vKcc⟩,
-  apply nonempty.intro, dsimp only [border, bdry],
-  use u,
-  {apply outside_to_compl, assumption,},
-  {simp, split,
-    -- we need a walk entirely outside `K`
-    { dsimp only [reachable], apply nonempty.intro, sorry,},
-    {use v, exact ⟨set.not_mem_compl_iff.mp vKcc, adj_uv⟩,} } -- from tidy (but with a tidier output)
+  dsimp [simple_graph.compl],
+  obtain ⟨s,hs⟩ := src, simp at hs,
+  obtain ⟨t,ht⟩ := tgt,
+  obtain ⟨a,b,w,adj,sub,mem⟩ := good_path s t w (Sᶜ) (hs : s ∈ Sᶜ) (by {simp, exact ht} : t ∉ Sᶜ),
+  have : a ∉ S, by {sorry},
+  simp,
+  use [a,this],
+  unfold bdry,simp,
+  split,
+  { use [b], simp at mem, exact ⟨mem,adj⟩, },
+  { unfold simple_graph.reachable,
+    fapply walk.compl S s a hs this w,
+    rw subset_compl_iff_disjoint_right at sub,
+    exact sub,}
 end
 
-lemma finite_components [Glf : locally_finite G] [Gpc : preconnected G] :
+lemma border_nonempty (Gpc : preconnected G) (Knempty : K.nonempty) : ∀ (C : conn_comp_outside G K), nonempty (border C) :=
+begin
+  apply connected_component.ind,
+  intro v, rcases Knempty with ⟨k, kK⟩,
+  let w := (Gpc ↑v k).some,
+  rcases (walk.to_boundary ↑K v ⟨k, kK⟩ w) with ⟨b, hbdry, hreach⟩,
+  apply nonempty.intro,
+  use b, unfold border, simp,
+  exact ⟨reachable.symm hreach, hbdry⟩,
+end
+
+def to_border (Gpc : preconnected G) (Knempty : K.nonempty) : Π (C : conn_comp_outside G K), ↥(border C) := λ C, nonempty.some $ @border_nonempty _ G K Gpc Knempty C
+
+-- for mathlib
+lemma sigma.fintype_of_nonempty_fintype {α : Type u} (β : Π (a : α), Type v) (fin_sigma : fintype Σ a : α, β a) (hnonempty : Π a : α, nonempty (β a)) : fintype α :=
+begin
+  refine fintype_of_not_infinite _,
+  intro hinf,
+  refine infinite.false (_ : infinite Σ a : α, β a),
+
+  let φ : α → Σ a : α, β a := λ a, ⟨a, nonempty.some (hnonempty a)⟩,
+  refine @infinite.of_injective _ _ hinf φ _,
+
+  rintros _ _ hφ,
+  cases hφ, simp [φ] at hφ,
+end
+
+lemma finite_components [Glf : locally_finite G] (Gpc : preconnected G) :
   fintype (conn_comp_outside G K) :=
 begin
   by_cases Knempty : K.nonempty,
   {
-     refine fintype_of_not_infinite _,
-     intro hinf,
-     sorry -- needs some lemmas about boundary
+    have border_map_fin : fintype (Σ C : conn_comp_outside G K, ↥(border C)) := by {apply_instance}, -- needed for some reason
+    refine sigma.fintype_of_nonempty_fintype _ _ _, rotate,
+    apply border_map_fin,
+    apply border_nonempty,
+    assumption, assumption,
   },
   { rw [finset.not_nonempty_iff_eq_empty] at Knempty,
     subst Knempty,
-    dsimp [conn_comp_outside, simple_graph.subgraph.delete_verts],
-    have : (univ : set V) \ ∅ = univ := sdiff_bot,
-    rw [this, ← simple_graph.induce_eq_coe_induce_top],
     refine ⟨{_}, _⟩,
-    sorry, -- need to use `Gpc` here
-    sorry
+    have v : V := sorry, -- how do I get this?
+    exact component_of G ∅ ⟨v, by simp⟩,
+    dsimp [conn_comp_outside], apply connected_component.ind,
+    intro v', dsimp [component_of, compl], simp,
+  sorry, -- all vertices are reachable from each other because `G` is connected
    }
 end
 

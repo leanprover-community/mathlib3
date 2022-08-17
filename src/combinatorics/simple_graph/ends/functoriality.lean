@@ -277,6 +277,13 @@ begin
     exact ((bwd_map.bwd_map_inf.iff G' Gpc' KsubK' C' C).mpr this).symm,}
 end
 
+def coarse_to_ends.id [locally_finite G] : coarse_to_ends G Gpc G Gpc (coarse.id G Gpc) = id := sorry
+def coarse_to_ends.comp [locally_finite G] [locally_finite G'] [locally_finite G'']
+  (φ : coarse G Gpc G')  (φ' : coarse G' Gpc' G'') :
+  (coarse_to_ends G' Gpc' G'' Gpc'' φ') ∘ (coarse_to_ends G Gpc G' Gpc' φ) =
+  coarse_to_ends G Gpc G'' Gpc'' (coarse.comp G Gpc G' Gpc' G'' φ φ') := sorry
+
+
 
 /-
 def close (f g : coarse G G') :=

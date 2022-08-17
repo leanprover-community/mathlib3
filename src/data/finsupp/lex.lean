@@ -55,14 +55,12 @@ lex.rec $ λ f, lex.rec $ λ g,
   | ⊤, h := h_eq (finsupp.diff_eq_empty.mp (finset.min_eq_top.mp h))
   | (wit : α), h :=
     have hne : f wit ≠ g wit := mem_diff.mp (finset.mem_of_min h),
-    if hwit : f wit < g wit then
-      h_lt ⟨wit, λ j hj, mem_diff.not_left.mp (not_mem_of_lt_min hj h), hwit⟩
-    else
-      have hwit' : g wit < f wit := hne.lt_or_lt.resolve_left hwit,
-      h_gt ⟨wit, by exact λ j hj, begin
-        refine mem_diff.not_left.mp (not_mem_of_lt_min hj _),
+    hne.lt_or_lt.by_cases
+      (λ hwit, h_lt ⟨wit, λ j hj, mem_diff.not_left.mp (finset.not_mem_of_lt_min hj h), hwit⟩)
+      (λ hwit, h_gt ⟨wit, by exact λ j hj, begin
+        refine mem_diff.not_left.mp (finset.not_mem_of_lt_min hj _),
         rwa diff_comm,
-      end, hwit'⟩
+      end, hwit⟩)
   end
 
 instance lex.decidable_le : @decidable_rel (lex (α →₀ N)) (≤) :=

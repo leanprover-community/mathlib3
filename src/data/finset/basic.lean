@@ -2452,6 +2452,9 @@ by { rw [to_list, ←multiset.mem_coe, multiset.coe_to_list], exact iff.rfl }
 lemma to_list_nonempty (s : finset α) (hs : s.nonempty) : ¬ s.to_list.empty :=
 let ⟨x, hx⟩ := hs in λ h', list.not_mem_nil x (list.empty_iff_eq_nil.1 h' ▸ s.mem_to_list.2 hx)
 
+lemma empty_to_list_eq_ff (s : finset α) (hs : s.nonempty) : s.to_list.empty = ff :=
+by simp only [← bool.coe_bool_iff, to_list_nonempty s hs, coe_sort_ff]
+
 @[simp, norm_cast]
 lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := by { classical, ext, simp }
 

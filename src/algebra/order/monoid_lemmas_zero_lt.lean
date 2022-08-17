@@ -371,6 +371,8 @@ lemma left.mul_pos [pos_mul_strict_mono α]
 have h : a * 0 < a * b, from mul_lt_mul_left hb ha,
 by rwa [mul_zero] at h
 
+alias left.mul_pos ← mul_pos
+
 lemma mul_neg_of_pos_of_neg [pos_mul_strict_mono α]
   (ha : 0 < a) (hb : b < 0) :
   a * b < 0 :=
@@ -411,6 +413,8 @@ lemma left.mul_nonneg [pos_mul_mono α]
   0 ≤ a * b :=
 have h : a * 0 ≤ a * b, from mul_le_mul_left hb ha,
 by rwa [mul_zero] at h
+
+alias left.mul_nonneg ← mul_nonneg
 
 lemma mul_nonpos_of_nonneg_of_nonpos [pos_mul_mono α]
   (ha : 0 ≤ a) (hb : b ≤ 0) :
@@ -562,6 +566,8 @@ lemma left.neg_of_mul_neg_left [pos_mul_mono α]
   b < 0 :=
 lt_of_not_ge (assume h2 : b ≥ 0, (left.mul_nonneg h1 h2).not_lt h)
 
+alias left.neg_of_mul_neg_left ← neg_of_mul_neg_left
+
 lemma right.neg_of_mul_neg_left [mul_pos_mono α]
   (h : a * b < 0) (h1 : 0 ≤ a) :
   b < 0 :=
@@ -570,6 +576,8 @@ lt_of_not_ge (assume h2 : b ≥ 0, (right.mul_nonneg h1 h2).not_lt h)
 lemma left.neg_of_mul_neg_right [pos_mul_mono α]
   (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
 lt_of_not_ge (assume h2 : a ≥ 0, (left.mul_nonneg h2 h1).not_lt h)
+
+alias left.neg_of_mul_neg_right ← neg_of_mul_neg_right
 
 lemma right.neg_of_mul_neg_right [mul_pos_mono α]
   (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
@@ -676,7 +684,7 @@ calc  b * a < b * 1 : mul_lt_mul_left ha b0
 
 -- proven with `a0 : 0 ≤ a` as `left.mul_le_one_of_le_of_le`
 /-- Assumes left covariance. -/
-lemma preorder.left.mul_le_one_of_le_of_le' [pos_mul_mono α]
+lemma preorder.left.mul_le_one_of_le_of_le [pos_mul_mono α]
   (ha : a ≤ 1) (hb : b ≤ 1) (a0 : 0 < a) : a * b ≤ 1 :=
 preorder.mul_le_of_le_of_le_one ha hb a0
 
@@ -694,6 +702,11 @@ mul_lt_of_lt_of_le_one ha hb a0
 lemma left.mul_lt_one_of_lt_of_lt [pos_mul_strict_mono α]
   (ha : a < 1) (hb : b < 1) (a0 : 0 < a) : a * b < 1 :=
 mul_lt_of_lt_of_lt_one ha hb a0
+
+alias preorder.left.mul_le_one_of_le_of_le ← preorder.mul_le_one_of_le_of_le
+alias left.mul_lt_one_of_le_of_lt          ← mul_lt_one_of_le_of_lt
+alias left.mul_lt_one_of_lt_of_le          ← mul_lt_one_of_lt_of_le
+alias left.mul_lt_one_of_lt_of_lt          ← mul_lt_one_of_lt_of_lt
 
 -- proven with `a0 : 0 ≤ a` and `c0 : 0 ≤ c` as `mul_le_of_le_of_le_one'`
 lemma preorder.mul_le_of_le_of_le_one' [pos_mul_mono α] [mul_pos_mono α]
@@ -769,6 +782,11 @@ lt_mul_of_lt_of_one_le ha hb a0
 lemma left.one_lt_mul_of_lt_of_lt [pos_mul_strict_mono α]
   (ha : 1 < a) (hb : 1 < b) (a0 : 0 < a) : 1 < a * b :=
 lt_mul_of_lt_of_one_lt ha hb a0
+
+alias preorder.left.one_le_mul_of_le_of_le ← preorder.one_le_mul_of_le_of_le
+alias left.one_lt_mul_of_le_of_lt          ← one_lt_mul_of_le_of_lt
+alias left.one_lt_mul_of_lt_of_le          ← one_lt_mul_of_lt_of_le
+alias left.one_lt_mul_of_lt_of_lt          ← one_lt_mul_of_lt_of_lt
 
 -- proven with `a0 : 0 ≤ a` and `b0 : 0 ≤ b` as `le_mul_of_le_of_one_le'`
 lemma preorder.le_mul_of_le_of_one_le' [pos_mul_mono α] [mul_pos_mono α]
@@ -1069,6 +1087,8 @@ lemma left.mul_le_one_of_le_of_le [pos_mul_mono α]
   (ha : a ≤ 1) (hb : b ≤ 1) (a0 : 0 ≤ a) : a * b ≤ 1 :=
 mul_le_of_le_of_le_one ha hb a0
 
+alias left.mul_le_one_of_le_of_le ← mul_le_one_of_le_of_le
+
 lemma mul_le_of_le_of_le_one' [pos_mul_mono α] [mul_pos_mono α]
   (bc : b ≤ c) (ha : a ≤ 1) (a0 : 0 ≤ a) (c0 : 0 ≤ c) : b * a ≤ c :=
 calc  b * a ≤ c * a : mul_le_mul_right bc a0
@@ -1098,6 +1118,8 @@ c0.lt_or_eq.elim (preorder.le_mul_of_le_of_one_le bc ha)
 lemma left.one_le_mul_of_le_of_le [pos_mul_mono α]
   (ha : 1 ≤ a) (hb : 1 ≤ b) (a0 : 0 ≤ a) : 1 ≤ a * b :=
 le_mul_of_le_of_one_le ha hb a0
+
+alias left.one_le_mul_of_le_of_le ← one_le_mul_of_le_of_le
 
 lemma le_mul_of_le_of_one_le' [pos_mul_mono α] [mul_pos_mono α]
   (bc : b ≤ c) (ha : 1 ≤ a) (a0 : 0 ≤ a) (b0 : 0 ≤ b) : b ≤ c * a :=

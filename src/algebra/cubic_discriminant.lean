@@ -233,7 +233,7 @@ section split
 
 theorem splits_iff_card_roots (ha : P.a ≠ 0) : splits φ P.to_poly ↔ (map φ P).roots.card = 3 :=
 begin
-  replace ha : (map φ P).a ≠ 0 := (ring_hom.map_ne_zero φ).mpr ha,
+  replace ha : (map φ P).a ≠ 0 := (map_ne_zero φ).mpr ha,
   nth_rewrite_lhs 0 [← ring_hom.id_comp φ],
   rw [roots, ← splits_map_iff, ← map_to_poly, splits_iff_card_roots,
       ← ((degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree ha : _ = 3)]
@@ -297,9 +297,9 @@ end
 theorem disc_ne_zero_iff_roots_ne (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   P.disc ≠ 0 ↔ x ≠ y ∧ x ≠ z ∧ y ≠ z :=
 begin
-  rw [← ring_hom.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
+  rw [← map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
   simp only [mul_ne_zero_iff, sub_ne_zero],
-  rw [ring_hom.map_ne_zero],
+  rw [map_ne_zero],
   tautology
 end
 

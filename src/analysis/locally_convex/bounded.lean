@@ -117,7 +117,7 @@ begin
   refine ⟨r, hrpos, λ a ha, _⟩,
   rw ← σ'.apply_symm_apply a,
   have hanz : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
-  have : σ'.symm a ≠ 0 := (ring_hom.map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
+  have : σ'.symm a ≠ 0 := (map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
   change _ ⊆ σ _ • _,
   rw [set.image_subset_iff, preimage_smul_setₛₗ _ _ _ f this.is_unit],
   refine hr (σ'.symm a) _,

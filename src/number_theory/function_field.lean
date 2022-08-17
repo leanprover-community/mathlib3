@@ -210,7 +210,7 @@ def infty_valuation  : valuation (ratfunc Fq) ℤₘ₀ :=
 @[simp] lemma infty_valuation.C {k : Fq} (hk : k ≠ 0) :
   infty_valuation_def Fq (ratfunc.C k) = (multiplicative.of_add (0 : ℤ)) :=
 begin
-  have hCk : ratfunc.C k ≠ 0 := (ring_hom.map_ne_zero _).mpr hk,
+  have hCk : ratfunc.C k ≠ 0 := (map_ne_zero _).mpr hk,
   rw [infty_valuation_def, if_neg hCk, ratfunc.int_degree_C],
 end
 

@@ -139,12 +139,11 @@ have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
 by rw [degree_mul, degree_C h₁, add_zero]
 
-@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
-  p.map f = 0 ↔ p = 0 :=
-by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
+@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) : p.map f = 0 ↔ p = 0 :=
+map_eq_zero $ map_ring_hom f
 
 lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
-mt (map_eq_zero f).1 hp
+map_ne_zero $ map_ring_hom f
 
 end division_ring
 

@@ -172,11 +172,11 @@ def to_preorder : preorder R := preorder.lift v
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
 @[simp] lemma zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x = 0 ↔ x = 0 :=
-v.to_monoid_with_zero_hom.map_eq_zero
+map_eq_zero v
 
 lemma ne_zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x ≠ 0 ↔ x ≠ 0 :=
-v.to_monoid_with_zero_hom.map_ne_zero
+map_ne_zero v
 
 theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl

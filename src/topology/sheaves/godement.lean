@@ -80,6 +80,17 @@ pi.lift (λ x, if m : x ∈ U.unop
       exact terminal_is_terminal.hom_ext _ _ },
   end }
 
+lemma godement_presheaf_stalk [decidable_eq X] (x : X) :
+  (godement_presheaf 𝓕).stalk x ≅ 𝓕.stalk x :=
+let ccc : colimit_cocone ((open_nhds.inclusion x).op ⋙ 𝓕) :=
+{ cocone :=
+  { X := (godement_presheaf 𝓕).stalk x,
+    ι :=
+    { app := λ U, _,
+      naturality' := _ } },
+  is_colimit := _ } in
+(colimit.iso_colimit_cocone ccc)
+
 lemma godement_presheaf_is_sheaf (h : 𝓕.is_sheaf) : (godement_presheaf 𝓕).is_sheaf :=
 limit_is_sheaf _ $ λ ⟨x⟩, (skyscraper_sheaf x _).2
 
@@ -98,7 +109,12 @@ variables [Π (U : opens X), preserves_colimits_of_shape
   ((opens.grothendieck_topology X).cover U)ᵒᵖ (forget C)]
 variables [reflects_isomorphisms (forget C)]
 
-instance : mono $ to_godement_sheaf 𝓖 :=
-sorry
+instance [preserves_filtered_colimits (forget C)] : mono $ to_godement_sheaf 𝓖 :=
+begin
+  rw presheaf.mono_iff_stalk_mono,
+  intros x,
+  change mono ((presheaf.stalk_functor C x).map (to_godement_presheaf 𝓖.1)),
+  dsimp [presheaf.stalk_functor],
+end
 
 end presheaf

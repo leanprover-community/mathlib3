@@ -74,18 +74,21 @@ section
 variables {R₁ : Type*} [semiring R₁]
 
 /-- A Lie subalgebra inherits module structures from `L`. -/
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : module R₁ L' :=
 L'.to_submodule.module'
 
-instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+instance [has_smul R₁ R] [has_smul R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
   [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
   (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
 L'.to_submodule.is_central_scalar
 
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
 L'.to_submodule.is_scalar_tower
+
+instance (L' : lie_subalgebra R L) [is_noetherian R L] : is_noetherian R L' :=
+is_noetherian_submodule' ↑L'
 
 end
 
@@ -397,11 +400,10 @@ by rw [← mem_coe_submodule, ← mem_coe_submodule, ← mem_coe_submodule, inf_
 lemma eq_bot_iff : K = ⊥ ↔ ∀ (x : L), x ∈ K → x = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
+instance subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
-  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_subalgebra.mem_bot at hx, subst hx,
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, mem_bot],
 end
 

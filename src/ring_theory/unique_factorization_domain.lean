@@ -627,6 +627,19 @@ begin
   rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
 end
 
+lemma normalized_factors_prod_of_prime [nontrivial α] [unique αˣ] {m : multiset α}
+  (h : ∀ p ∈ m, prime p) : (normalized_factors m.prod) = m :=
+by simpa only [←multiset.rel_eq, ←associated_eq_eq] using prime_factors_unique
+  (prime_of_normalized_factor) h (normalized_factors_prod (m.prod_ne_zero_of_prime h))
+
+lemma mem_normalized_factors_eq_of_associated {a b c : α} (ha : a ∈ normalized_factors c)
+  (hb : b ∈ normalized_factors c) (h : associated a b) : a = b :=
+begin
+  rw [← normalize_normalized_factor a ha, ← normalize_normalized_factor b hb,
+    normalize_eq_normalize_iff],
+  apply associated.dvd_dvd h,
+end
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid
@@ -775,7 +788,7 @@ lemma multiplicity_eq_count_normalized_factors {a b : R} (ha : irreducible a) (h
   multiplicity a b = (normalized_factors b).count (normalize a) :=
 begin
   apply le_antisymm,
-  { apply enat.le_of_lt_add_one,
+  { apply part_enat.le_of_lt_add_one,
     rw [← nat.cast_one, ← nat.cast_add, lt_iff_not_ge, ge_iff_le,
       le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
     simp },
@@ -796,7 +809,7 @@ begin
   letI : decidable_rel ((∣) : R → R → Prop) := λ _ _, classical.prop_decidable _,
   by_cases hx0 : x = 0,
   { simp [hx0] at hlt, contradiction },
-  rw [← enat.coe_inj],
+  rw [← part_enat.coe_inj],
   convert (multiplicity_eq_count_normalized_factors hp hx0).symm,
   { exact hnorm.symm },
   exact (multiplicity.eq_coe_iff.mpr ⟨hle, hlt⟩).symm

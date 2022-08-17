@@ -20,9 +20,6 @@ properties about separable polynomials here.
 ## Main definitions
 
 * `polynomial.separable f`: a polynomial `f` is separable iff it is coprime with its derivative.
-* `polynomial.expand R p f`: expand the polynomial `f` with coefficients in a
-  commutative semiring `R` by a factor of p, so `expand R p (∑ aₙ xⁿ)` is `∑ aₙ xⁿᵖ`.
-* `polynomial.contract p f`: the opposite of `expand`, so it sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`.
 
 -/
 
@@ -134,7 +131,7 @@ begin
   apply is_unit_of_self_mul_dvd_separable hsep,
   rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  simpa only [nat.cast_one, nat.cast_bit0] using enat.add_one_le_of_lt hq
+  simpa only [nat.cast_one, nat.cast_bit0] using part_enat.add_one_le_of_lt hq
 end
 
 lemma separable.squarefree {p : R[X]} (hsep : separable p) : squarefree p :=
@@ -220,7 +217,8 @@ lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : R[X]}
 begin
   by_cases hp : p = 0,
   { simp [hp], },
-  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get, nat.cast_one],
+  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← part_enat.coe_le_coe, part_enat.coe_get,
+    nat.cast_one],
   exact multiplicity_le_one_of_separable (not_is_unit_X_sub_C _) hsep
 end
 

@@ -78,12 +78,12 @@ rfl
 lemma graded_algebra.ι_sq_scalar (m : M) :
   graded_algebra.ι Q m * graded_algebra.ι Q m = algebra_map R _ (Q m) :=
 begin
-  rw [graded_algebra.ι_apply, direct_sum.of_mul_of, direct_sum.algebra_map_apply],
+  rw [graded_algebra.ι_apply Q, direct_sum.of_mul_of, direct_sum.algebra_map_apply],
   refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext rfl $ ι_sq_scalar _ _),
 end
 
-lemma lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
-  lift Q ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
+lemma graded_algebra.lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
+  lift Q ⟨by apply graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
     direct_sum.of (λ i, even_odd Q i) i' x' :=
 begin
   cases x' with x' hx',
@@ -96,7 +96,7 @@ begin
     { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
     { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
     { obtain ⟨_, rfl⟩ := hm,
-      rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
+      rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply Q, direct_sum.of_mul_of],
       refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext _ _);
         dsimp only [graded_monoid.mk, subtype.coe_mk],
       { rw [nat.succ_eq_add_one, add_comm, nat.cast_add, nat.cast_one] },
@@ -110,21 +110,21 @@ end
 /-- The clifford algebra is graded by the even and odd parts. -/
 instance graded_algebra : graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom (even_odd Q)
-  (lift _ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
+  -- while not necessary, the `by apply` makes this elaborate faster
+  (lift Q ⟨by apply graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
   -- handling for the `supr` in `even_odd`.
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
       alg_hom.id_apply],
-    rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
+    rw [lift_ι_apply, graded_algebra.ι_apply Q, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (by exact lift_ι_eq Q)
+  (by apply graded_algebra.lift_ι_eq Q)
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin
-  rw [← (graded_algebra.is_internal $ λ i, even_odd Q i).submodule_supr_eq_top, eq_comm],
-  dunfold even_odd,
+  rw [← (direct_sum.decomposition.is_internal (even_odd Q)).submodule_supr_eq_top, eq_comm],
   calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
         = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
     ... = (⨆ (i : ℕ), (ι Q).range ^ i)
@@ -132,7 +132,7 @@ begin
 end
 
 lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=
-(graded_algebra.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
+(direct_sum.decomposition.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
   have : (finset.univ : finset (zmod 2)) = {0, 1} := rfl,
   simpa using congr_arg (coe : finset (zmod 2) → set (zmod 2)) this,
 end
@@ -146,7 +146,7 @@ lemma even_odd_induction (n : zmod 2) {P : Π x, x ∈ even_odd Q n → Prop}
     P v (submodule.mem_supr_of_mem ⟨n.val, n.nat_cast_zmod_val⟩ h))
   (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
   (hιι_mul : ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
-    (zero_add n ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
+    (zero_add n ▸ set_like.mul_mem_graded (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
   (x : clifford_algebra Q) (hx : x ∈ even_odd Q n) : P x hx :=
 begin
   apply submodule.supr_induction' _ _ (hr 0 (submodule.zero_mem _)) @hadd,
@@ -182,10 +182,10 @@ end
 scalars, closed under addition, and under left-multiplication by a pair of vectors. -/
 @[elab_as_eliminator]
 lemma even_induction  {P : Π x, x ∈ even_odd Q 0 → Prop}
-  (hr : ∀ r : R, P (algebra_map _ _ r) (set_like.has_graded_one.algebra_map_mem _ _))
+  (hr : ∀ r : R, P (algebra_map _ _ r) (set_like.algebra_map_mem_graded _ _))
   (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
   (hιι_mul : ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
-    (zero_add 0 ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
+    (zero_add 0 ▸ set_like.mul_mem_graded (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
   (x : clifford_algebra Q) (hx : x ∈ even_odd Q 0) : P x hx :=
 begin
   refine even_odd_induction Q 0 (λ rx, _) @hadd hιι_mul x hx,
@@ -201,7 +201,7 @@ lemma odd_induction {P : Π x, x ∈ even_odd Q 1 → Prop}
   (hι : ∀ v, P (ι Q v) (ι_mem_even_odd_one _ _))
   (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
   (hιι_mul : ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
-    (zero_add (1 : zmod 2) ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
+    (zero_add (1 : zmod 2) ▸ set_like.mul_mem_graded (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
   (x : clifford_algebra Q) (hx : x ∈ even_odd Q 1) : P x hx :=
 begin
   refine even_odd_induction Q 1 (λ ιv, _) @hadd hιι_mul x hx,

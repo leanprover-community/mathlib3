@@ -71,8 +71,8 @@ lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsi
 lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
 ⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : subsingleton (subtype p) :=
+instance subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) :
+  subsingleton (subtype p) :=
 ⟨λ ⟨x,_⟩ ⟨y,_⟩, have x = y, from subsingleton.elim _ _, by { cases this, refl }⟩
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
@@ -98,6 +98,10 @@ theorem coe_fn_coe_trans'
 theorem coe_fn_coe_base'
   {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+-- This instance should have low priority, to ensure we follow the chain
+-- `set_like → has_coe_to_sort`
+attribute [instance, priority 10] coe_sort_trans
 
 theorem coe_sort_coe_trans
   {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
@@ -145,12 +149,6 @@ instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 
 @[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
 assume ⟨h⟩, h.elim
-
-@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
-⟨λ h, trivial, λ h x, by cases x⟩
-
-@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
-⟨λ h, by { cases h with w, cases w }, false.elim⟩
 
 lemma congr_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} {x : α} {y : β} (h₁ : f == g)
   (h₂ : x == y) : f x = g y :=
@@ -916,10 +914,10 @@ lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c
   f a b c = g a b c :=
 congr_fun₂ (congr_fun h _) _ _
 
-lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
+lemma funext₂ {f g : Π a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
 funext $ λ _, funext $ h _
 
-lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+lemma funext₃ {f g : Π a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
 funext $ λ _, funext₂ $ h _
 
 end equality
@@ -1097,6 +1095,11 @@ exists.elim h (λ x hx, ⟨x, and.left hx⟩)
 @[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
 
+/-- For some reason simp doesn't use `forall_const` to simplify in this case. -/
+@[simp] lemma forall_forall_const {α β : Type*} (p : β → Prop) [nonempty α] :
+  (∀ x, α → p x) ↔ ∀ x, p x :=
+forall_congr $ λ x, forall_const α
+
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
 
@@ -1132,6 +1135,9 @@ by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, 
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=
 by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
+
+lemma ne.ne_or_ne {x y : α} (z : α) (h : x ≠ y) : x ≠ z ∨ y ≠ z :=
+not_and_distrib.1 $ mt (and_imp.2 eq.substr) h.symm
 
 theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
@@ -1281,11 +1287,9 @@ mt Exists.fst
   (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : Exists q = ∃ h : p', q' (hp.2 h) :=
 propext (exists_prop_congr hq _)
 
+/-- See `is_empty.exists_iff` for the `false` version. -/
 @[simp] lemma exists_true_left (p : true → Prop) : (∃ x, p x) ↔ p true.intro :=
 exists_prop_of_true _
-
-@[simp] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
-exists_prop_of_false not_false
 
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
   {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
@@ -1299,11 +1303,9 @@ unique_of_exists_unique h py₁ py₂
   (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : (∀ h, q h) = ∀ h : p', q' (hp.2 h) :=
 propext (forall_prop_congr hq _)
 
+/-- See `is_empty.forall_iff` for the `false` version. -/
 @[simp] lemma forall_true_left (p : true → Prop) : (∀ x, p x) ↔ p true.intro :=
 forall_prop_of_true _
-
-@[simp] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
-forall_prop_of_false not_false
 
 lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
   {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)
@@ -1494,12 +1496,18 @@ section ite
 variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [decidable P] [decidable Q]
   {a b c : α} {A : P → α} {B : ¬ P → α}
 
-lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c := by by_cases P; simp *
+lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c :=
+by by_cases P; simp [*, exists_prop_of_false not_false]
+
 lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c :=
 dite_eq_iff.trans $ by rw [exists_prop, exists_prop]
 
-@[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a := by by_cases P; simp *
-@[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b := by by_cases P; simp *
+@[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a :=
+by by_cases P; simp [*, forall_prop_of_false not_false]
+
+@[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b :=
+by by_cases P; simp [*, forall_prop_of_false not_false]
+
 @[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := dite_eq_left_iff
 @[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := dite_eq_right_iff
 

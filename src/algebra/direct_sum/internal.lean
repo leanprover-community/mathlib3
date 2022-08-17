@@ -47,12 +47,38 @@ instance add_comm_monoid.of_submonoid_on_semiring [semiring R] [set_like σ R]
   [add_submonoid_class σ R] (A : ι → σ) : ∀ i, add_comm_monoid (A i) :=
 λ i, by apply_instance
 
-lemma set_like.has_graded_one.algebra_map_mem [has_zero ι]
+instance add_comm_group.of_subgroup_on_ring [ring R] [set_like σ R]
+  [add_subgroup_class σ R] (A : ι → σ) : ∀ i, add_comm_group (A i) :=
+λ i, by apply_instance
+
+lemma set_like.algebra_map_mem_graded [has_zero ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [set_like.has_graded_one A] (s : S) : algebra_map S R s ∈ A 0 :=
 begin
   rw algebra.algebra_map_eq_smul_one,
-  exact ((A 0).smul_mem s set_like.has_graded_one.one_mem),
+  exact ((A 0).smul_mem s $ set_like.one_mem_graded _),
+end
+
+lemma set_like.nat_cast_mem_graded [has_zero ι] [add_monoid_with_one R]
+  [set_like σ R] [add_submonoid_class σ R] (A : ι → σ) [set_like.has_graded_one A] (n : ℕ) :
+  (n : R) ∈ A 0 :=
+begin
+  induction n,
+  { rw nat.cast_zero,
+    exact zero_mem (A 0), },
+  { rw nat.cast_succ,
+    exact add_mem n_ih (set_like.one_mem_graded _), },
+end
+
+lemma set_like.int_cast_mem_graded [has_zero ι] [add_group_with_one R]
+  [set_like σ R] [add_subgroup_class σ R] (A : ι → σ) [set_like.has_graded_one A] (z : ℤ) :
+  (z : R) ∈ A 0:=
+begin
+  induction z,
+  { rw int.cast_of_nat,
+    exact set_like.nat_cast_mem_graded _ _, },
+  { rw int.cast_neg_succ_of_nat,
+    exact neg_mem (set_like.nat_cast_mem_graded _ _), },
 end
 
 section direct_sum
@@ -81,6 +107,9 @@ instance gsemiring [add_monoid ι] [semiring R] [set_like σ R] [add_submonoid_c
   zero_mul := λ i j _, subtype.ext (zero_mul _),
   mul_add := λ i j _ _ _, subtype.ext (mul_add _ _ _),
   add_mul := λ i j _ _ _, subtype.ext (add_mul _ _ _),
+  nat_cast := λ n, ⟨n, set_like.nat_cast_mem_graded _ _⟩,
+  nat_cast_zero := subtype.ext nat.cast_zero,
+  nat_cast_succ := λ n, subtype.ext (nat.cast_succ n),
   ..set_like.gmonoid A }
 
 /-- Build a `gcomm_semiring` instance for a collection of additive submonoids. -/
@@ -90,6 +119,22 @@ instance gcomm_semiring [add_comm_monoid ι] [comm_semiring R] [set_like σ R]
 { ..set_like.gcomm_monoid A,
   ..set_like.gsemiring A, }
 
+/-- Build a `gring` instance for a collection of additive subgroups. -/
+instance gring [add_monoid ι] [ring R] [set_like σ R] [add_subgroup_class σ R]
+  (A : ι → σ) [set_like.graded_monoid A] :
+  direct_sum.gring (λ i, A i) :=
+{ int_cast := λ z, ⟨z, set_like.int_cast_mem_graded _ _⟩,
+  int_cast_of_nat := λ n, subtype.ext $ int.cast_of_nat _,
+  int_cast_neg_succ_of_nat := λ n, subtype.ext $ int.cast_neg_succ_of_nat n,
+  ..set_like.gsemiring A }
+
+/-- Build a `gcomm_semiring` instance for a collection of additive submonoids. -/
+instance gcomm_ring [add_comm_monoid ι] [comm_ring R] [set_like σ R]
+  [add_subgroup_class σ R] (A : ι → σ) [set_like.graded_monoid A] :
+  direct_sum.gcomm_ring (λ i, A i) :=
+{ ..set_like.gcomm_monoid A,
+  ..set_like.gring A, }
+
 end set_like
 
 /-- The canonical ring isomorphism between `⨁ i, A i` and `R`-/
@@ -98,8 +143,8 @@ def direct_sum.coe_ring_hom [add_monoid ι] [semiring R] [set_like σ R]
 direct_sum.to_semiring (λ i, add_submonoid_class.subtype (A i)) rfl (λ _ _ _ _, rfl)
 
 /-- The canonical ring isomorphism between `⨁ i, A i` and `R`-/
-@[simp] lemma direct_sum.coe_ring_hom_of [add_monoid ι] [semiring R]
-  (A : ι → add_submonoid R) [set_like.graded_monoid A] (i : ι) (x : A i) :
+@[simp] lemma direct_sum.coe_ring_hom_of [add_monoid ι] [semiring R] [set_like σ R]
+  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] (i : ι) (x : A i) :
   direct_sum.coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 
@@ -107,8 +152,7 @@ lemma direct_sum.coe_mul_apply [add_monoid ι] [semiring R] [set_like σ R]
   [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A]
   [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
   ((r * r') i : R) =
-    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
-      r ij.1 * r' ij.2 :=
+    ∑ ij in (r.support ×ˢ r'.support).filter (λ ij : ι × ι, ij.1 + ij.2 = i), r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
     add_submonoid_class.coe_finset_sum],
@@ -125,7 +169,7 @@ instance galgebra [add_monoid ι]
   (A : ι → submodule S R) [set_like.graded_monoid A] :
   direct_sum.galgebra S (λ i, A i) :=
 { to_fun := ((algebra.linear_map S R).cod_restrict (A 0) $
-    set_like.has_graded_one.algebra_map_mem A).to_add_monoid_hom,
+    set_like.algebra_map_mem_graded A).to_add_monoid_hom,
   map_one := subtype.ext $ by exact (algebra_map S R).map_one,
   map_mul := λ x y, sigma.subtype_ext (add_zero 0).symm $ (algebra_map S R).map_mul _ _,
   commutes := λ r ⟨i, xi⟩,

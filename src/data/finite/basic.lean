@@ -8,45 +8,26 @@ import data.fintype.basic
 /-!
 # Finite types
 
-This module defines a finiteness predicate on types called `finite`.
-A type is `finite` if it is equivalent to `fin n` for some `n`, and
-otherwise it is `infinite` (see `finite_or_infinite`). This predicate is
-a `class`, and finiteness proofs are given as instances.
-
-The `finite` predicate has no computational relevance and, being
-`Prop`-valued, gets to enjoy proof irrelevance -- it represents the mere fact
-that the type is finite.
-While the `fintype` class also represents finiteness of a type, a key
-difference is that a `fintype` instance represents finiteness in a
-computable way: it gives a concrete algorithm to produce a `finset` whose
-elements enumerate the terms of the given type. As such, one generally
-relies on congruence lemmas when rewriting expressions involving
-`fintype` instances.
-
-Every `fintype` instance automatically gives a `finite` instance, but not
-vice versa. Every `fintype` instance should be computable since they are meant
-for computation. If it's not possible to write a computable `fintype` instance,
-one should prefer writing a `finite` instance instead.
+In this file we prove some theorems about `finite` and provide some instances. This typeclass is a
+`Prop`-valued counterpart of the typeclass `fintype`. See more details in the file where `finite` is
+defined.
 
 ## Main definitions
 
-* `finite α` denotes that `α` is a finite type.
-* `finite.of_fintype` creates a `finite` instance from a `fintype` instance.
+* `fintype.finite`, `finite.of_fintype` creates a `finite` instance from a `fintype` instance. The
+  former lemma takes `fintype α` as an explicit argument while the latter takes it as an instance
+  argument.
 * `fintype.of_finite` noncomputably creates a `fintype` instance from a `finite` instance.
 * `finite_or_infinite` is that every type is either `finite` or `infinite`.
 
 ## Implementation notes
-
-The definition of `finite α` is not just `nonempty (fintype α)` since `fintype` requires
-that `α : Type*`, and the definition in this module allows for `α : Sort*`. This means
-we can write the instance `finite.prop`.
 
 There is an apparent duplication of many `fintype` instances in this module,
 however they follow a pattern: if a `fintype` instance depends on `decidable`
 instances or other `fintype` instances, then we need to "lower" the instance
 to be a `finite` instance by removing the `decidable` instances and switching
 the `fintype` instances to `finite` instances. These are precisely the ones
-that cannot be inferred using `finite.of_fintype'`. (However, when using
+that cannot be inferred using `finite.of_fintype`. (However, when using
 `open_locale classical` or the `classical` tactic the instances relying only
 on `decidable` instances will give `finite` instances.) In the future we might
 consider writing automation to create these "lowered" instances.
@@ -54,48 +35,12 @@ consider writing automation to create these "lowered" instances.
 ## Tags
 
 finiteness, finite types
-
 -/
 
 noncomputable theory
 open_locale classical
 
 variables {α β γ : Type*}
-
-/-- A type is `finite` if it is in bijective correspondence to some
-`fin n`.
-
-While this could be defined as `nonempty (fintype α)`, it is defined
-in this way to allow there to be `finite` instances for propositions.
--/
-class inductive finite (α : Sort*) : Prop
-| intro {n : ℕ} : α ≃ fin n → finite
-
-lemma finite.exists_equiv_fin (α : Sort*) [h : finite α] : ∃ (n : ℕ), nonempty (α ≃ fin n) :=
-by { casesI h with n f, exact ⟨n, ⟨f⟩⟩ }
-
-lemma finite.of_equiv (α : Sort*) {β : Sort*} [h : finite α] (f : α ≃ β) : finite β :=
-by { casesI h with n e, exact finite.intro (f.symm.trans e) }
-
-lemma equiv.finite_iff {α β : Sort*} (f : α ≃ β) : finite α ↔ finite β :=
-⟨λ _, by exactI finite.of_equiv _ f, λ _, by exactI finite.of_equiv _ f.symm⟩
-
-lemma finite.of_fintype {α : Type*} (h : fintype α) : finite α := ⟨fintype.equiv_fin α⟩
-
-/-- For efficiency reasons, we want `finite` instances to have higher
-priority than ones coming from `fintype` instances. -/
-@[priority 900]
-instance finite.of_fintype' (α : Type*) [fintype α] : finite α := finite.of_fintype ‹_›
-
-/-- Noncomputably get a `fintype` instance from a `finite` instance. This is not an
-instance because we want `fintype` instances to be useful for computations. -/
-def fintype.of_finite (α : Type*) [finite α] : fintype α :=
-nonempty.some $ let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α in ⟨fintype.of_equiv _ e.symm⟩
-
-lemma finite_iff_nonempty_fintype (α : Type*) :
-  finite α ↔ nonempty (fintype α) :=
-⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
-  λ ⟨_⟩, by exactI infer_instance⟩
 
 lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
 by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]
@@ -119,11 +64,6 @@ not_finite_iff_infinite.mp h
 lemma not_infinite_iff_finite {α : Type*} : ¬ infinite α ↔ finite α :=
 not_finite_iff_infinite.not_right.symm
 
-lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
-
-@[nolint instance_priority]
-instance finite.prop (p : Prop) : finite p := of_subsingleton
-
 namespace finite
 
 lemma exists_max [finite α] [nonempty α] [linear_order β] (f : α → β) :
@@ -134,24 +74,12 @@ lemma exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
 by { haveI := fintype.of_finite α, exact fintype.exists_min f }
 
-instance {α : Sort*} [finite α] : finite (plift α) := finite.of_equiv _ equiv.plift.symm
-
-lemma of_bijective {α β : Sort*} [finite α] (f : α → β) (H : function.bijective f) : finite β :=
-finite.of_equiv _ (equiv.of_bijective _ H)
-
-lemma of_injective {α β : Sort*} [finite β] (f : α → β) (H : function.injective f) : finite α :=
-begin
-  haveI := fintype.of_finite (plift β),
-  rw [← equiv.injective_comp equiv.plift f, ← equiv.comp_injective _ equiv.plift.symm] at H,
-  haveI := fintype.of_injective _ H,
-  exact finite.of_equiv _ equiv.plift,
-end
-
-lemma of_surjective {α β : Sort*} [finite α] (f : α → β) (H : function.surjective f) : finite β :=
-of_injective _ $ function.injective_surj_inv H
-
 @[priority 100] -- see Note [lower instance priority]
-instance of_is_empty {α : Sort*} [is_empty α] : finite α := finite.of_equiv _ equiv.plift
+instance of_subsingleton {α : Sort*} [subsingleton α] : finite α :=
+of_injective (function.const α ()) $ function.injective_of_subsingleton _
+
+@[nolint instance_priority] -- Higher priority for `Prop`s
+instance prop (p : Prop) : finite p := finite.of_subsingleton
 
 instance [finite α] [finite β] : finite (α × β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }
@@ -164,9 +92,6 @@ of_surjective (prod.fst : α × β → α) prod.fst_surjective
 
 lemma prod_right (α) [finite (α × β)] [nonempty α] : finite β :=
 of_surjective (prod.snd : α × β → β) prod.snd_surjective
-
-instance [finite α] : finite (ulift α) :=
-by { haveI := fintype.of_finite α, apply_instance }
 
 instance [finite α] [finite β] : finite (α ⊕ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }

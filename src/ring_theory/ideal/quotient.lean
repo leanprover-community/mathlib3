@@ -236,6 +236,11 @@ lemma quot_equiv_of_eq_mk {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) 
   quot_equiv_of_eq h (ideal.quotient.mk I x) = ideal.quotient.mk J x :=
 rfl
 
+@[simp]
+lemma quot_equiv_of_eq_symm {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
+  (ideal.quot_equiv_of_eq h).symm = ideal.quot_equiv_of_eq h.symm :=
+by ext; refl
+
 section pi
 variables (ι : Type v)
 
@@ -283,7 +288,8 @@ instance module_pi : module (R ⧸ I) ((ι → R) ⧸ I.pi ι) :=
 /-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/
 noncomputable def pi_quot_equiv : ((ι → R) ⧸ I.pi ι) ≃ₗ[(R ⧸ I)] (ι → (R ⧸ I)) :=
 { to_fun := λ x, quotient.lift_on' x (λ f i, ideal.quotient.mk I (f i)) $
-    λ a b hab, funext (λ i, (submodule.quotient.eq' _).2 (hab i)),
+    λ a b hab, funext (λ i, (submodule.quotient.eq' _).2
+      (quotient_add_group.left_rel_apply.mp hab i)),
   map_add' := by { rintros ⟨_⟩ ⟨_⟩, refl },
   map_smul' := by { rintros ⟨_⟩ ⟨_⟩, refl },
   inv_fun := λ x, ideal.quotient.mk (I.pi ι) $ λ i, quotient.out' (x i),

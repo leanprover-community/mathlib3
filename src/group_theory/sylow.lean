@@ -72,7 +72,13 @@ instance : subgroup_class (sylow p G) G :=
   one_mem := λ s, s.one_mem',
   inv_mem := λ s, s.inv_mem' }
 
-variables (P : sylow p G) {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
+variables (P : sylow p G)
+
+/-- The action by a Sylow subgroup is the action by the underlying group. -/
+instance mul_action_left {α : Type*} [mul_action G α] : mul_action P α :=
+subgroup.mul_action ↑P
+
+variables {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
 
 /-- The preimage of a Sylow subgroup under a p-group-kernel homomorphism is a Sylow subgroup. -/
 def comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) : sylow p K :=
@@ -370,7 +376,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   (x : G ⧸ H) ∈ fixed_points H (G ⧸ H) ↔ x ∈ normalizer H :=
 ⟨λ hx, have ha : ∀ {y : G ⧸ H}, y ∈ orbit H (x : G ⧸ H) → y = x,
   from λ _, ((mem_fixed_points' _).1 hx _),
-  inv_mem_iff.1 (@mem_normalizer_fintype _ _ _ _inst_2 _ (λ n (hn : n ∈ H),
+  inv_mem_iff.1 (@mem_normalizer_fintype _ _ _ _ _ (λ n (hn : n ∈ H),
     have (n⁻¹ * x)⁻¹ * x ∈ H := quotient_group.eq.1 (ha (mem_orbit _ ⟨n⁻¹, H.inv_mem hn⟩)),
     show _ ∈ H, by {rw [mul_inv_rev, inv_inv] at this, convert this, rw inv_inv}
     )),
@@ -386,8 +392,8 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   mul_action.fixed_points H (G ⧸ H) ≃
   normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
-  (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
-  (by intros; refl)
+  (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ ‹_› _).symm)
+  (by { intros, rw setoid_has_equiv, simp only [left_rel_apply], refl })
 
 /-- If `H` is a `p`-subgroup of `G`, then the index of `H` inside its normalizer is congruent
   mod `p` to the index of `H`.  -/

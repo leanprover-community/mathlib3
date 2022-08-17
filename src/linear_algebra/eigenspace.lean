@@ -326,7 +326,7 @@ lemma eigenvectors_linear_independent (f : End K V) (μs : set K) (xs : μs → 
   (h_eigenvec : ∀ μ : μs, f.has_eigenvector μ (xs μ)) :
   linear_independent K xs :=
 complete_lattice.independent.linear_independent _
-  (f.eigenspaces_independent.comp (coe : μs → K) subtype.coe_injective)
+  (f.eigenspaces_independent.comp subtype.coe_injective)
   (λ μ, (h_eigenvec μ).1) (λ μ, (h_eigenvec μ).2)
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the

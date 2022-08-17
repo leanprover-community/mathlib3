@@ -172,7 +172,7 @@ by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
 /-- The Hales-Jewett theorem. This version has a restriction on universe levels which is necessary
 for the proof. See `exists_mono_in_high_dimension` for a fully universe-polymorphic version. -/
 private theorem exists_mono_in_high_dimension' :
-  ∀ (α : Type u) [fintype α] (κ : Type (max v u)) [fintype κ],
+  ∀ (α : Type u) [fintype α] (κ : Type (max v u)) [finite κ],
   ∃ (ι : Type) (_ : fintype ι), ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 -- The proof proceeds by induction on `α`.
 fintype.induction_empty_option
@@ -188,6 +188,7 @@ begin -- This deals with the degenerate case where `α` is empty.
 end
 begin -- Now we have to show that the theorem holds for `option α` if it holds for `α`.
   introsI α _ ihα κ _,
+  casesI nonempty_fintype κ,
 -- Later we'll need `α` to be nonempty. So we first deal with the trivial case where `α` is empty.
 -- Then `option α` has only one element, so any line is monochromatic.
   by_cases h : nonempty α,
@@ -267,7 +268,7 @@ end
 
 /-- The Hales-Jewett theorem: for any finite types `α` and `κ`, there exists a finite type `ι` such
 that whenever the hypercube `ι → α` is `κ`-colored, there is a monochromatic combinatorial line. -/
-theorem exists_mono_in_high_dimension (α : Type u) [fintype α] (κ : Type v) [fintype κ] :
+theorem exists_mono_in_high_dimension (α : Type u) [fintype α] (κ : Type v) [finite κ] :
   ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 let ⟨ι, ιfin, hι⟩ := exists_mono_in_high_dimension' α (ulift κ)
 in ⟨ι, ιfin, λ C, let ⟨l, c, hc⟩ := hι (ulift.up ∘ C) in ⟨l, c.down, λ x, by rw ←hc⟩ ⟩
@@ -276,8 +277,8 @@ end line
 
 /-- A generalization of Van der Waerden's theorem: if `M` is a finitely colored commutative
 monoid, and `S` is a finite subset, then there exists a monochromatic homothetic copy of `S`. -/
-theorem exists_mono_homothetic_copy
-  {M κ} [add_comm_monoid M] (S : finset M) [fintype κ] (C : M → κ) :
+theorem exists_mono_homothetic_copy {M κ : Type*} [add_comm_monoid M] (S : finset M) [finite κ]
+  (C : M → κ) :
   ∃ (a > 0) (b : M) (c : κ), ∀ s ∈ S, C (a • s + b) = c :=
 begin
   obtain ⟨ι, _inst, hι⟩ := line.exists_mono_in_high_dimension S κ,

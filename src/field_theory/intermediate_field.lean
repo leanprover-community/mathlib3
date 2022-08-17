@@ -320,6 +320,7 @@ namespace alg_hom
 variables (f : L →ₐ[K] L')
 
 /-- The range of an algebra homomorphism, as an intermediate field. -/
+@[simps to_subalgebra]
 def field_range : intermediate_field K L' :=
 { .. f.range,
   .. (f : L →+* L').field_range }

@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import data.pi.lex
 import data.finsupp.order
-import data.finsupp.diff
+import data.finsupp.ne_locus
 
 /-!
 # Lexicographic order on finitely supported functions
@@ -51,15 +51,15 @@ private def lt_trichotomy_rec {P : lex (α →₀ N) → lex (α →₀ N) → S
   (h_gt : Π {f g}, to_lex g < to_lex f → P (to_lex f) (to_lex g)) :
     ∀ f g, P f g  :=
 lex.rec $ λ f, lex.rec $ λ g,
-  match _, rfl : ∀ y, (f.diff g).min = y → _ with
-  | ⊤, h := h_eq (finsupp.diff_eq_empty.mp (finset.min_eq_top.mp h))
+  match _, rfl : ∀ y, (f.ne_locus g).min = y → _ with
+  | ⊤, h := h_eq (finsupp.ne_locus_eq_empty.mp (finset.min_eq_top.mp h))
   | (wit : α), h :=
-    have hne : f wit ≠ g wit := mem_diff.mp (finset.mem_of_min h),
+    have hne : f wit ≠ g wit := mem_ne_locus.mp (finset.mem_of_min h),
     hne.lt_or_lt.by_cases
-      (λ hwit, h_lt ⟨wit, λ j hj, mem_diff.not_left.mp (finset.not_mem_of_lt_min hj h), hwit⟩)
+      (λ hwit, h_lt ⟨wit, λ j hj, mem_ne_locus.not_left.mp (finset.not_mem_of_lt_min hj h), hwit⟩)
       (λ hwit, h_gt ⟨wit, by exact λ j hj, begin
-        refine mem_diff.not_left.mp (finset.not_mem_of_lt_min hj _),
-        rwa diff_comm,
+        refine mem_ne_locus.not_left.mp (finset.not_mem_of_lt_min hj _),
+        rwa ne_locus_comm,
       end, hwit⟩)
   end
 

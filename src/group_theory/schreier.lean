@@ -131,8 +131,8 @@ begin
 end
 
 lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0)
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
-  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)] :
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)]
+  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ closure (S : set H) = ⊤)] :
   @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
 begin
   haveI := fg_of_index_ne_zero hH,
@@ -144,7 +144,7 @@ begin
 end
 
 lemma key_lemma0 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
   nat.card G ∣ n ^ group.rank G :=
 begin
   sorry
@@ -154,7 +154,7 @@ instance map_is_commutative {G G' : Type*} [group G] [group G'] (f : G →* G') 
   [hH : H.is_commutative] : (H.map f).is_commutative :=
 ⟨⟨begin
   rintros ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩,
-  simp_rw [subtype.ext_iff, coe_mul, subtype.coe_mk, ←map_mul],
+  rw [subtype.ext_iff, coe_mul, coe_mul, subtype.coe_mk, subtype.coe_mk, ←map_mul, ←map_mul],
   exact congr_arg f (subtype.ext_iff.mp (mul_comm ⟨a, ha⟩ ⟨b, hb⟩)),
 end⟩⟩
 
@@ -166,37 +166,48 @@ lemma comap_injective_is_commutative {G G' : Type*} [group G] [group G'] {f : G 
   rwa [subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ←map_mul, ←map_mul, hf.eq_iff] at this,
 end⟩⟩
 
-instance tadalem {G : Type*} [group G] {H K : subgroup G} [hH : H.is_commutative] :
+instance subgroup_of_is_commutative
+  {G : Type*} [group G] {H K : subgroup G} [hH : H.is_commutative] :
   (H.subgroup_of K).is_commutative :=
 subgroup.comap_injective_is_commutative subtype.coe_injective
 
-lemma key_lemma [fintype {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
-  nat.card (commutator G) ∣ (center G).index ^
-    ((center G).index * fintype.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
+instance {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
+sorry
+
+lemma rank_closure_le_card {G : Type*} [group G] (s : set G) [finite s]
+  [decidable_pred (λ n, ∃ (S : finset (closure s)), S.card = n ∧ closure (S : set (closure s)) = ⊤)] :
+  group.rank (closure s) ≤ nat.card s :=
 begin
-  by_cases hG : (center G).index = 0,
-  { rw [hG, zero_mul, zero_add, pow_one],
-    apply dvd_zero },
-  let H := (center G).subgroup_of (commutator G),
-  rw ← H.card_mul_index,
-  rw pow_succ',
-  have h0 : H.index ∣ (center G).index := relindex_dvd_index_of_normal (center G) (commutator G),
-  refine mul_dvd_mul _ h0,
+  sorry
+end
 
-  have h2 : H.index ≠ 0 := ne_zero_of_dvd_ne_zero hG h0,
+instance (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+  group.fg (commutator G) :=
+begin
+  sorry
+end
 
-  haveI : group.fg (commutator G) := sorry,
+lemma rank_commutator_le_card (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
+  [decidable_pred (λ n, ∃ (S : finset (commutator G)), S.card = n ∧ closure (S : set (commutator G)) = ⊤)] :
+  group.rank (commutator G) ≤ nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
+begin
+  sorry
+end
 
+lemma key_lemma [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+  nat.card (commutator G) ∣ (center G).index ^
+    ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
+begin
   classical,
-  have h8 := rank_le_index_mul_rank h2,
-  have h9 : H.index ≤ (center G).index := nat.le_of_dvd (nat.pos_of_ne_zero hG) h0,
-  have h10 : group.rank (commutator G) ≤ fintype.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-  { sorry },
-  have h11 := h8.trans (nat.mul_le_mul h9 h10),
-  have h12 := pow_dvd_pow (center G).index h11,
-  refine dvd_trans _ h12,
-  apply key_lemma0,
-  intro g,
+  by_cases hG : (center G).index = 0,
+  { simp only [hG, zero_mul, zero_add, pow_one, dvd_zero] },
+  let H := (center G).subgroup_of (commutator G),
+  rw [←H.card_mul_index, pow_succ'],
+  have h0 := relindex_dvd_index_of_normal (center G) (commutator G),
+  have h2 := ne_zero_of_dvd_ne_zero hG h0,
+  refine mul_dvd_mul (dvd_trans _ (pow_dvd_pow (center G).index ((rank_le_index_mul_rank h2).trans
+    (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h0) (rank_commutator_le_card G))))) h0,
+  apply key_lemma0 (λ g, _),
   have key := subtype.ext_iff.mp (abelianization.commutator_subset_ker
     (monoid_hom.transfer_center_pow' hG) g.1.2),
   exact subtype.ext (subtype.ext key),

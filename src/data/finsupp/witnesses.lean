@@ -174,7 +174,7 @@ wit_congr (add_diff_add_eq_right _)
 
 lemma wit_neg [add_group N] {f g : α →₀ N} :
   (- f).wit g = f.wit (- g) :=
-wit_congr diff_neg_left
+wit_congr diff_neg
 
 end wit
 

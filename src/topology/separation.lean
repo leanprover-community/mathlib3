@@ -725,7 +725,7 @@ lemma inducing.discrete_topology {X Y : Type*} [topological_space X] [topologica
 is the discrete topology on `X`. -/
 lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
   {f : X → Y} (hf : function.injective f) : @discrete_topology X (induced f tY) :=
-⟨by rw [discrete_topology.eq_bot Y, induced_bot]⟩
+let tX := induced f tY in by exactI inducing.discrete_topology ⟨rfl⟩ hf
 
 /-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
 by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/

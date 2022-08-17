@@ -4,13 +4,30 @@ import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import topology.metric_space.basic
 import data.setoid.partition
+import category_theory.filtered
+import topology.category.Top.limits
+import data.finset.basic
+import category_theory.category.basic
+import category_theory.full_subcategory
+import data.set.finite
+import data.sym.sym2
+import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.connectivity
+import topology.metric_space.basic
+import data.setoid.partition
+import set_theory.cardinal.basic
+import data.fintype.basic
+import data.opposite
+
+
 
 import .mathlib
 import .reachable_outside
-import .ends
+
 
 open function
 open finset
+open category_theory
 open set
 open classical
 open simple_graph.walk
@@ -23,8 +40,22 @@ universes u v w
 noncomputable theory
 local attribute [instance] prop_decidable
 
-namespace simple_graph
 
+namespace inverse_system
+
+variables {J : Type u} [preorder J] [is_directed J ge] (F : J ⥤ Type v)
+variables {I : Type u} [preorder I] [is_directed I ge] (G : I ⥤ Type v)
+
+-- Tried finding a suitable "general" notion, but it's probably misguided for now
+def sections_map
+  (φ : I → J)
+  (ψ : Π i, F.obj (φ i) → G.obj i)
+  --(∀ i : I, ∃ j ≤ φ i, )
+  : F.sections → G.sections := sorry
+
+end inverse_system
+
+namespace simple_graph
 
 variables  {V : Type u}
            (G : simple_graph V)
@@ -70,6 +101,9 @@ begin
   apply cofinite.finite_preimage _ cof,
   apply cof',
 end
+
+lemma cofinite.id : cofinite (@id V) := by {intro,simp}
+
 
 def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V :=
 set.finite.to_finset (cofinite.finite_preimage f cof K (finset.finite_to_set K))

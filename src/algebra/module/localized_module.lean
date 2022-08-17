@@ -356,8 +356,8 @@ section is_localized_module
 universes u v
 
 variables {R : Type u} [comm_ring R] (S : submonoid R)
-variables {M M' : Type u} [add_comm_monoid M] [add_comm_monoid M']
-variables [module R M] [module R M'] (f : M →ₗ[R] M')
+variables {M M' M'' : Type u} [add_comm_monoid M] [add_comm_monoid M'] [add_comm_monoid M'']
+variables [module R M] [module R M'] [module R M''] (f : M →ₗ[R] M') (g : M →ₗ[R] M'')
 
 /--
 The characteristic predicate for localized module.
@@ -389,6 +389,10 @@ instance localized_module_is_localized_module :
 
 section
 
+/--
+If `(M', f : M ⟶ M')` satisfies universal property of localized module, there is a canonical map
+`localized_module S M ⟶ M'`.
+-/
 @[simps]
 noncomputable def from_localized_module [is_localized_module S f] :
   localized_module S M →ₗ[R] M' :=
@@ -422,11 +426,11 @@ noncomputable def from_localized_module [is_localized_module S f] :
   map_smul' := λ r x,
   begin
     induction x using localized_module.induction_on with a b,
-    erw [localized_module.lift_on_mk, localized_module.lift_on_mk],
+    erw [localized_module.lift_on_mk, localized_module.lift_on_mk, one_mul],
     generalize_proofs h1,
     dsimp,
     erw [f.map_smul, h1.unit⁻¹.1.map_smul],
-    refl,
+    congr,
   end }
 
 lemma from_localized_module.inj [is_localized_module S f] :
@@ -456,8 +460,11 @@ lemma from_localized_module.bij [is_localized_module S f] :
   function.bijective $ from_localized_module S f :=
 ⟨from_localized_module.inj _ _, from_localized_module.surj _ _⟩
 
-@[simps]
-noncomputable def iso [is_localized_module S f] :
+/--
+If `(M', f : M ⟶ M')` satisfies universal property of localized module, then `M'` is isomorphic to
+`localized_module S M` as an `R`-module.
+-/
+@[simps] noncomputable def iso [is_localized_module S f] :
   localized_module S M ≃ₗ[R] M' :=
 { ..from_localized_module S f,
   ..equiv.of_bijective (from_localized_module S f) $ from_localized_module.bij _ _}
@@ -488,13 +495,23 @@ begin
   refl,
 end
 
+/--
+If `(M', f)` and `(M'', g)` both satisfy universal property of localized module, then `M', M''`
+are isomorphic as `R`-module
+-/
 noncomputable def unique_up_to_iso [is_localized_module S f] [is_localized_module S g] :
   M' ≃ₗ[R] M'' :=
 (iso S f).symm.trans (iso S g)
 
-noncomputable instance has_localization_smul [is_localized_module S f] :
+/--
+If `(M', f)` satisfies universal property of localized module, then `localization S` acts on `M'`
+via the isomorphism `M' ≅ localization S M` as `R`-module.
+-/
+noncomputable def has_localization_smul [is_localized_module S f] :
   has_smul (localization S) M' :=
 { smul := λ x m, iso S f $ x • (iso S f).symm m }
+
+local attribute [instance] has_localization_smul
 
 lemma has_localization_smul.mk_smul [is_localized_module S f] (r : R) (s : S) (x : M'):
   (localization.mk r s : localization S) • x =
@@ -517,7 +534,11 @@ begin
   refl,
 end
 
-noncomputable instance localization_mul_action [is_localized_module S f] : mul_action (localization S) M' :=
+/--
+If `(M', f)` satisfies universal property of localized module, then `localization S` acts on `M'`
+via the isomorphism `M' ≅ localization S M` as `R`-module.
+-/
+noncomputable def localization_mul_action [is_localized_module S f] : mul_action (localization S) M' :=
 { one_smul := λ b,
   begin
     change iso S _ _ = _,
@@ -539,7 +560,13 @@ noncomputable instance localization_mul_action [is_localized_module S f] : mul_a
   end,
   ..has_localization_smul S f }
 
-noncomputable instance localization_distrib_mul_action [is_localized_module S f] :
+local attribute [instance] localization_mul_action
+
+/--
+If `(M', f)` satisfies universal property of localized module, then `localization S` acts on `M'`
+via the isomorphism `M' ≅ localization S M` as `R`-module.
+-/
+noncomputable def localization_distrib_mul_action [is_localized_module S f] :
   distrib_mul_action (localization S) M' :=
 { smul_add := λ r x y,
   begin
@@ -553,7 +580,14 @@ noncomputable instance localization_distrib_mul_action [is_localized_module S f]
   end,
   ..localization_mul_action S f }
 
-noncomputable instance localization_module [is_localized_module S f] :
+local attribute [instance] localization_distrib_mul_action
+
+
+/--
+If `(M', f)` satisfies universal property of localized module, then `M'` is also a `localization S`
+module.
+-/
+noncomputable def localization_module [is_localized_module S f] :
   module (localization S) M' :=
 { add_smul := λ r s x,
   begin
@@ -566,6 +600,8 @@ noncomputable instance localization_module [is_localized_module S f] :
     simp only [zero_smul, map_zero],
   end,
   ..localization_distrib_mul_action S f }
+
+local attribute [instance] localization_module
 
 private lemma iso_localization_smul_aux [is_localized_module S f] (r : R) (s : S)
   (m : M) (t : S) :
@@ -603,15 +639,18 @@ begin
   work_on_goal 2
   { change localized_module.mk _ _ = localized_module.mk _ _,
     refine localized_module.mk_eq.mpr ⟨1, _⟩,
-    simp only [one_smul],
+    simp only [one_smul, one_mul],
     refl },
   dsimp,
   change localized_module.mk _ _ = localized_module.mk _ _,
   refine localized_module.mk_eq.mpr ⟨1, _⟩,
-  simp only [one_smul, mul_smul],
-  refl,
+  simpa only [one_smul, mul_smul, one_mul, algebra_map_smul],
 end
 
+/--
+If `(M', f)` satisfies universal property of localized module, there is a canonical `localization S`
+linear map from `localized_module S M` to `M'`.
+-/
 noncomputable def from_localized_module_as_localization_module [is_localized_module S f] :
   localized_module S M →ₗ[localization S] M' :=
 { to_fun := iso S f,
@@ -623,12 +662,20 @@ noncomputable def from_localized_module_as_localization_module [is_localized_mod
     rw [ring_hom.id_apply, iso_localization_smul],
   end }
 
+/--
+If `(M', f)` satisfies universal property of localized module, then `localized_module S M` and `M'`
+are isomorphic as `localization S`-module.
+-/
 noncomputable def iso_as_localization_module [is_localized_module S f] :
   localized_module S M ≃ₗ[localization S] M' :=
 { ..from_localized_module_as_localization_module S f,
   ..equiv.of_bijective (from_localized_module_as_localization_module S f)
     (from_localized_module.bij S f)}
 
+/--
+If `(M', f)` and `(M'', g)` both satisfy universal property of localized module, then `M''` and `M'`
+are isomorphic as `localization S`-module.
+-/
 noncomputable def unique_up_to_iso_as_localization_module
   [is_localized_module S f] [is_localized_module S g] :
   M' ≃ₗ[localization S] M'' :=
@@ -637,3 +684,4 @@ noncomputable def unique_up_to_iso_as_localization_module
 end
 
 end is_localized_module
+#lint

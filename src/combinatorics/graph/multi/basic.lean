@@ -54,8 +54,12 @@ instance : has_coe_to_sort multigraph Type* := ⟨V⟩
 
 attribute [protected] V E
 
+/-- `multigraph.inv` as a permutation of the edges. -/
+@[simps] def inv_equiv : equiv.perm G.E := ⟨G.inv, G.inv, G.inv_inv, G.inv_inv⟩
+
 /-- A multigraph morphism from `G` to `H` is two maps from the vertices/edges of `G` to the
-vertices/edges of `H` that preserve the endpoints and involution of edges. -/
+vertices/edges of `H` that preserve the endpoints and involution of edges. Use `G ⟶ H` instead of
+`G.hom H`. -/
 @[nolint has_nonempty_instance]
 structure hom (G H : multigraph) :=
 (to_fun : G → H)
@@ -97,6 +101,21 @@ instance : large_category multigraph :=
 @[simp] lemma coe_comp (f : G ⟶ H) (g : H ⟶ I) : ⇑(f ≫ g) = g ∘ f := rfl
 @[simp] lemma map_comp (f : G ⟶ H) (g : H ⟶ I) : (f ≫ g).map = g.map ∘ f.map := rfl
 
+/-- Construct a multigraph isomorphism from isomorphisms of the vertices and edges. -/
+def iso.mk (eV : G ≃ H) (eE : G.E ≃ H.E) (fst_map : ∀ e, H.fst (eE e) = eV (G.fst e))
+  (snd_map : ∀ e, H.snd (eE e) = eV (G.snd e)) (inv_map : ∀ e, H.inv (eE e) = eE (G.inv e)) :
+  G ≅ H :=
+{ hom := { to_fun := eV,
+           map := eE,
+           fst_map' := fst_map,
+           snd_map' := snd_map,
+           inv_map := inv_map },
+  inv := { to_fun := eV.symm,
+           map := eE.symm,
+           fst_map' := λ e, eV.eq_symm_apply.2 $ by rw [←fst_map, eE.apply_symm_apply],
+           snd_map' := λ e, eV.eq_symm_apply.2 $ by rw [←snd_map, eE.apply_symm_apply],
+           inv_map := λ e, eE.eq_symm_apply.2 $ by rw [←inv_map, eE.apply_symm_apply] } }
+
 /-- The multigraph with vertices `X` and a single loop at each vertex. -/
 @[simps] def discrete (X : Type*) : multigraph :=
 { V := X, E := X, fst := id, snd := id, inv := id }
@@ -113,7 +132,5 @@ def is_terminal_discrete_punit : is_terminal (discrete punit) :=
   { default := ({ to_fun := λ _, (), map := λ _, () } : G ⟶ discrete punit), uniq := by tidy }
 
 instance : has_terminal multigraph := is_terminal_discrete_punit.has_terminal
-
-@[simps] def inv_equiv : G.E ≃ G.E := ⟨G.inv, G.inv, G.inv_inv, G.inv_inv⟩
 
 end multigraph

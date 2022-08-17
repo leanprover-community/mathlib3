@@ -119,7 +119,7 @@ begin
       revert ha,
       generalize : (a : (zmod 2)) = b, revert b, dec_trivial } },
   { convert quadratic_char_eq_pow_of_char_ne_two'' hc (a : zmod p),
-    { exact (card p).symm }, },
+    exact (card p).symm },
 end
 
 /-- If `p ∤ a`, then `legendre_sym p a` is `1` or `-1`. -/

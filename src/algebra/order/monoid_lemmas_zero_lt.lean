@@ -497,6 +497,18 @@ lemma mul_lt_mul_of_lt_of_le' [pos_mul_mono α] [mul_pos_strict_mono α]
   (b0 : 0 ≤ b) (c0 : 0 < c) (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
 (mul_lt_mul_right c0 h₁).trans_le (mul_le_mul_left b0 h₂)
 
+/-- Assumes left strict covariance. -/
+lemma left.mul_lt_mul [pos_mul_strict_mono α] [mul_pos_mono α]
+  (a0 : 0 ≤ a) (c0 : 0 ≤ c) (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
+mul_lt_mul_of_le_of_lt' (a0.trans_lt h₁) c0 h₁.le h₂
+
+/-- Assumes right strict covariance. -/
+lemma right.mul_lt_mul [pos_mul_mono α] [mul_pos_strict_mono α]
+  (a0 : 0 ≤ a) (c0 : 0 ≤ c) (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
+mul_lt_mul_of_lt_of_le a0 (c0.trans_lt h₂) h₁ h₂.le
+
+alias left.mul_lt_mul ← mul_lt_mul
+
 lemma mul_le_of_mul_le_left [pos_mul_mono α]
   (a0 : 0 ≤ a) (h : a * b ≤ c) (hle : d ≤ b) :
   a * d ≤ c :=

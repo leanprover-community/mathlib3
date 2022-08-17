@@ -936,7 +936,7 @@ instance pi.borel_space_fintype_encodable {ι : Type*} {π : ι → Type*} [enco
   borel_space (Π i, π i) :=
 ⟨le_antisymm pi_le_borel_pi opens_measurable_space.borel_le⟩
 
-instance pi.borel_space_fintype {ι : Type*} {π : ι → Type*} [fintype ι]
+instance pi.borel_space_finite {ι : Type*} {π : ι → Type*} [finite ι]
   [t' : Π i, topological_space (π i)]
   [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
   [∀ i, borel_space (π i)] :

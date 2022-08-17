@@ -109,7 +109,7 @@ protected lemma congr (hs : null_measurable_set s μ) (h : s =ᵐ[μ] t) :
   null_measurable_set t μ :=
 let ⟨s', hm, hs'⟩ := hs in ⟨s', hm, h.symm.trans hs'⟩
 
-protected lemma Union [encodable ι] {s : ι → set α}
+protected lemma Union [countable ι] {s : ι → set α}
   (h : ∀ i, null_measurable_set (s i) μ) : null_measurable_set (⋃ i, s i) μ :=
 measurable_set.Union h
 
@@ -129,11 +129,7 @@ lemma Union_Prop {p : Prop} {f : p → set α} (hf : ∀ i, null_measurable_set 
   null_measurable_set (⋃ i, f i) μ :=
 measurable_set.Union_Prop hf
 
-lemma Union_fintype [fintype ι] {f : ι → set α} (h : ∀ b, null_measurable_set (f b) μ) :
-  null_measurable_set (⋃ b, f b) μ :=
-measurable_set.Union_fintype h
-
-protected lemma Inter [encodable ι] {f : ι → set α} (h : ∀ i, null_measurable_set (f i) μ) :
+protected lemma Inter [countable ι] {f : ι → set α} (h : ∀ i, null_measurable_set (f i) μ) :
   null_measurable_set (⋂ i, f i) μ :=
 measurable_set.Inter h
 
@@ -148,10 +144,6 @@ measurable_set.sInter hs h
 lemma Inter_Prop {p : Prop} {f : p → set α} (hf : ∀ b, null_measurable_set (f b) μ) :
   null_measurable_set (⋂ b, f b) μ :=
 measurable_set.Inter_Prop hf
-
-lemma Inter_fintype [fintype ι] {f : ι → set α} (h : ∀ b, null_measurable_set (f b) μ) :
-  null_measurable_set (⋂ b, f b) μ :=
-measurable_set.Inter_fintype h
 
 @[simp] protected lemma union (hs : null_measurable_set s μ) (ht : null_measurable_set t μ) :
   null_measurable_set (s ∪ t) μ :=
@@ -215,7 +207,7 @@ end null_measurable_set
 /-- If `sᵢ` is a countable family of (null) measurable pairwise `μ`-a.e. disjoint sets, then there
 exists a subordinate family `tᵢ ⊆ sᵢ` of measurable pairwise disjoint sets such that
 `tᵢ =ᵐ[μ] sᵢ`. -/
-lemma exists_subordinate_pairwise_disjoint [encodable ι] {s : ι → set α}
+lemma exists_subordinate_pairwise_disjoint [countable ι] {s : ι → set α}
   (h : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s)) :
   ∃ t : ι → set α, (∀ i, t i ⊆ s i) ∧ (∀ i, s i =ᵐ[μ] t i) ∧ (∀ i, measurable_set (t i)) ∧
     pairwise (disjoint on t) :=
@@ -228,7 +220,7 @@ begin
       λ i j h, h.mono (diff_subset_diff_left (ht_sub i)) (diff_subset_diff_left (ht_sub j))⟩
 end
 
-lemma measure_Union {m0 : measurable_space α} {μ : measure α} [encodable ι] {f : ι → set α}
+lemma measure_Union {m0 : measurable_space α} {μ : measure α} [countable ι] {f : ι → set α}
   (hn : pairwise (disjoint on f)) (h : ∀ i, measurable_set (f i)) :
   μ (⋃ i, f i) = ∑' i, μ (f i) :=
 begin
@@ -239,8 +231,8 @@ begin
   { exact μ.m_Union }
 end
 
-lemma measure_Union₀ [encodable ι] {f : ι → set α}
-  (hd : pairwise (ae_disjoint μ on f)) (h : ∀ i, null_measurable_set (f i) μ) :
+lemma measure_Union₀ [countable ι] {f : ι → set α} (hd : pairwise (ae_disjoint μ on f))
+  (h : ∀ i, null_measurable_set (f i) μ) :
   μ (⋃ i, f i) = ∑' i, μ (f i) :=
 begin
   rcases exists_subordinate_pairwise_disjoint h hd with ⟨t, ht_sub, ht_eq, htm, htd⟩,

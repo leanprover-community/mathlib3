@@ -132,7 +132,7 @@ map. -/
 
 /-- If `f` is a box additive function on subboxes of `I` and `π₁`, `π₂` are two prepartitions of
 `I` that cover the same part of `I`, then `∑ J in π₁.boxes, f J = ∑ J in π₂.boxes, f J`. -/
-lemma sum_boxes_congr [fintype ι] (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π₁ π₂ : prepartition I}
+lemma sum_boxes_congr [finite ι] (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π₁ π₂ : prepartition I}
   (h : π₁.Union = π₂.Union) :
   ∑ J in π₁.boxes, f J = ∑ J in π₂.boxes, f J :=
 begin

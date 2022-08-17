@@ -43,7 +43,7 @@ lemma measure_coe_lt_top (I : box ι) (μ : measure (ι → ℝ)) [is_locally_fi
   μ I < ∞ :=
 (measure_mono $ coe_subset_Icc).trans_lt (I.measure_Icc_lt_top μ)
 
-variables [fintype ι] (I : box ι)
+variables [finite ι] (I : box ι)
 
 lemma measurable_set_coe : measurable_set (I : set (ι → ℝ)) :=
 begin

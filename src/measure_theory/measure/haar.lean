@@ -134,7 +134,8 @@ variables [topological_group G]
 
 /-- If `K` is compact and `V` has nonempty interior, then the index `(K : V)` is well-defined,
   there is a finite set `t` satisfying the desired properties. -/
-@[to_additive add_index_defined]
+@[to_additive add_index_defined "If `K` is compact and `V` has nonempty interior, then the index
+`(K : V)` is well-defined, there is a finite set `t` satisfying the desired properties."]
 lemma index_defined {K V : set G} (hK : is_compact K) (hV : (interior V).nonempty) :
   ∃ n : ℕ, n ∈ finset.card '' {t : finset G | K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V } :=
 by { rcases compact_covered_by_mul_left_translates hK hV with ⟨t, ht⟩, exact ⟨t.card, t, ht, rfl⟩ }
@@ -478,12 +479,12 @@ lemma haar_content_apply (K₀ : positive_compacts G) (K : compacts G) :
   haar_content K₀ K = show nnreal, from ⟨chaar K₀ K, chaar_nonneg _ _⟩ := rfl
 
 /-- The variant of `chaar_self` for `haar_content` -/
-@[to_additive]
+@[to_additive "The variant of `add_chaar_self` for `add_haar_content`."]
 lemma haar_content_self {K₀ : positive_compacts G} : haar_content K₀ K₀.to_compacts = 1 :=
 by { simp_rw [← ennreal.coe_one, haar_content_apply, ennreal.coe_eq_coe, chaar_self], refl }
 
 /-- The variant of `is_left_invariant_chaar` for `haar_content` -/
-@[to_additive]
+@[to_additive "The variant of `is_left_invariant_add_chaar` for `add_haar_content`"]
 lemma is_left_invariant_haar_content {K₀ : positive_compacts G} (g : G) (K : compacts G) :
   haar_content K₀ (K.map _ $ continuous_mul_left g) = haar_content K₀ K :=
 by simpa only [ennreal.coe_eq_coe, ←nnreal.coe_eq, haar_content_apply]
@@ -545,7 +546,7 @@ begin
 end
 
 /-- The Haar measure is regular. -/
-@[to_additive]
+@[to_additive "The Haar measure is regular."]
 instance regular_haar_measure {K₀ : positive_compacts G} :
   (haar_measure K₀).regular :=
 begin
@@ -556,14 +557,15 @@ begin
 end
 
 /-- The Haar measure is sigma-finite in a second countable group. -/
-@[to_additive]
+@[to_additive "The Haar measure is sigma-finite in a second countable group."]
 instance sigma_finite_haar_measure [second_countable_topology G] {K₀ : positive_compacts G} :
   sigma_finite (haar_measure K₀) :=
 by { haveI : locally_compact_space G := K₀.locally_compact_space_of_group, apply_instance, }
 
 /-- The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to compact
 sets and positive mass to nonempty open sets. -/
-@[to_additive]
+@[to_additive "The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to
+compact sets and positive mass to nonempty open sets."]
 instance is_haar_measure_haar_measure (K₀ : positive_compacts G) :
   is_haar_measure (haar_measure K₀) :=
 begin
@@ -586,7 +588,9 @@ variables [second_countable_topology G]
   is a scalar multiple of the Haar measure.
   This is slightly weaker than assuming that `μ` is a Haar measure (in particular we don't require
   `μ ≠ 0`). -/
-@[to_additive]
+@[to_additive "The Haar measure is unique up to scaling. More precisely: every σ-finite left
+invariant measure is a scalar multiple of the Haar measure. This is slightly weaker than assuming
+that `μ` is a Haar measure (in particular we don't require `μ ≠ 0`)."]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
 (measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
@@ -599,7 +603,8 @@ haar_measure_unique μ K₀
 
 /-- To show that an invariant σ-finite measure is regular it is sufficient to show that it is finite
   on some compact set with non-empty interior. -/
-@[to_additive]
+@[to_additive "To show that an invariant σ-finite measure is regular it is sufficient to show that
+it is finite on some compact set with non-empty interior."]
 theorem regular_of_is_mul_left_invariant {μ : measure G} [sigma_finite μ] [is_mul_left_invariant μ]
   {K : set G} (hK : is_compact K) (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) :
   regular μ :=
@@ -690,7 +695,7 @@ end
 end second_countable
 
 /-- Any Haar measure is invariant under inversion in a commutative group. -/
-@[to_additive]
+@[to_additive "Any Haar measure is invariant under inversion in a commutative group."]
 lemma map_haar_inv
   {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
   [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]

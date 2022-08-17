@@ -216,7 +216,7 @@ begin
     exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
 end
 
-protected lemma linear_independent.eventually {ι} [fintype ι] {f : ι → E}
+protected lemma linear_independent.eventually {ι} [finite ι] {f : ι → E}
   (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
 begin
   simp only [fintype.linear_independent_iff'] at hf ⊢,
@@ -237,7 +237,7 @@ begin
   exact mul_le_mul_of_nonneg_left (norm_le_pi_norm (v - u) i) (norm_nonneg _)
 end
 
-lemma is_open_set_of_linear_independent {ι : Type*} [fintype ι] :
+lemma is_open_set_of_linear_independent {ι : Type*} [finite ι] :
   is_open {f : ι → E | linear_independent 𝕜 f} :=
 is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
 
@@ -331,14 +331,14 @@ lemma basis.op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E �
 by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
 
 /-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
-lemma basis.exists_op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+lemma basis.exists_op_nnnorm_le {ι : Type*} [finite ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
 ⟨ max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
   zero_lt_one.trans_le (le_max_right _ _),
   λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le M)⟩
 
 /-- A weaker version of `basis.op_norm_le` that abstracts away the value of `C`. -/
-lemma basis.exists_op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+lemma basis.exists_op_norm_le {ι : Type*} [finite ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥u (v i)∥ ≤ M) → ∥u∥ ≤ C*M :=
 let ⟨C, hC, h⟩ := v.exists_op_nnnorm_le in ⟨C, hC, λ u, subtype.forall'.mpr h⟩
 

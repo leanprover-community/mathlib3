@@ -89,7 +89,8 @@ variables [has_measurable_inv G]
 
 /-- The function we are mapping along is `S⁻¹` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq`. -/
-@[to_additive map_prod_neg_add_eq]
+@[to_additive map_prod_neg_add_eq "The function we are mapping along is `-S` in [Halmos, §59], where
+`S` is the map in `map_prod_mul_eq`."]
 lemma map_prod_inv_mul_eq [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.1, z.1⁻¹ * z.2)) (μ.prod ν) = μ.prod ν :=
 (measurable_equiv.shear_mul_right G).map_apply_eq_iff_map_symm_apply_eq.mp $ map_prod_mul_eq μ ν
@@ -108,7 +109,8 @@ variables [is_mul_left_invariant μ]
 
 /-- The function we are mapping along is `S⁻¹R` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
-@[to_additive map_prod_neg_add_eq_swap]
+@[to_additive map_prod_neg_add_eq_swap "The function we are mapping along is `-S + R` in
+[Halmos, §59], where `S` is the map in `map_prod_sum_eq` and `R` is `prod.swap`."]
 lemma map_prod_inv_mul_eq_swap : map (λ z : G × G, (z.2, z.2⁻¹ * z.1)) (μ.prod ν) = ν.prod μ :=
 begin
   rw [← prod_swap],
@@ -119,7 +121,8 @@ end
 
 /-- The function we are mapping along is `S⁻¹RSR` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
-@[to_additive map_prod_add_neg_eq]
+@[to_additive map_prod_add_neg_eq "The function we are mapping along is `-S + R + S + R ` in
+[Halmos, §59], where `S` is the map in `map_prod_sum_eq` and `R` is `prod.swap`."]
 lemma map_prod_mul_inv_eq [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod ν) = μ.prod ν :=
 begin
@@ -233,7 +236,7 @@ begin
 end
 
 /-- This is the computation performed in the proof of [Halmos, §60 Th. A]. -/
-@[to_additive]
+@[to_additive "This is the computation performed in the proof of [Halmos, §60 Th. A]."]
 lemma measure_mul_lintegral_eq
   [is_mul_left_invariant ν] (Em : measurable_set E) (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y ∂ν = ∫⁻ x, ν ((λ z, z * x) ⁻¹' E) * f (x⁻¹) ∂μ :=
@@ -304,7 +307,14 @@ end
   `0 < ν(Ex⁻¹) < ∞`. The first inequality follows from §59, Th. D, but the second inequality is
   not justified. We prove this inequality for almost all `x` in
   `measure_theory.ae_measure_preimage_mul_right_lt_top_of_ne_zero`. -/
-@[to_additive]
+@[to_additive "A technical lemma relating two different measures. This is basically
+[Halmos, §60 Th. A]. Note that if `f` is the characteristic function of a measurable set `F` this
+states that `μ F = c * μ E` for a constant `c` that does not depend on `μ`.
+
+Note: There is a gap in the last step of the proof in [Halmos]. In the last line, the equality
+`g(-x) + ν(E - x) = f(x)` holds if we can prove that `0 < ν(E - x) < ∞`. The first inequality
+follows from §59, Th. D, but the second inequality is not justified. We prove this inequality for
+almost all `x` in `measure_theory.ae_measure_preimage_add_right_lt_top_of_ne_zero`."]
 lemma measure_lintegral_div_measure [is_mul_left_invariant ν]
   (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞)
   (f : G → ℝ≥0∞) (hf : measurable f) :

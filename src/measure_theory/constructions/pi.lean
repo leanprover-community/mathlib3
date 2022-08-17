@@ -75,7 +75,7 @@ lemma is_pi_system_pi [Π i, measurable_space (α i)] :
   is_pi_system (pi univ '' pi univ (λ i, {s : set (α i) | measurable_set s})) :=
 is_pi_system.pi (λ i, is_pi_system_measurable_set)
 
-variables [fintype ι] [fintype ι']
+variables [finite ι] [finite ι']
 
 /-- Boxes of countably spanning sets are countably spanning. -/
 lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
@@ -275,12 +275,12 @@ lemma pi_pi_aux [∀ i, sigma_finite (μ i)] (s : Π i, set (α i)) (hs : ∀ i,
   measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   refine le_antisymm _ _,
-  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
+  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_finite (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
   { haveI : encodable ι := fintype.to_encodable ι,
     rw [← pi'_pi μ s],
     simp_rw [← pi'_pi μ s, measure.pi,
-      to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
+      to_measure_apply _ _ (measurable_set.pi_finite (λ i _, hs i)), ← to_outer_measure_apply],
     suffices : (pi' μ).to_outer_measure ≤ outer_measure.pi (λ i, (μ i).to_outer_measure),
     { exact this _ },
     clear hs s,
@@ -513,7 +513,7 @@ begin
   refine ⟨λ x, (measure.pi_eq (λ s hs, _)).symm⟩,
   have h : has_mul.mul x ⁻¹' (pi univ s) = set.pi univ (λ i, (λ y, x i * y) ⁻¹' s i),
   { ext, simp },
-  simp_rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_fintype hs), h,
+  simp_rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_finite hs), h,
     pi_pi, measure_preimage_mul]
 end
 
@@ -523,7 +523,7 @@ begin
   refine ⟨(measure.pi_eq (λ s hs, _)).symm⟩,
   have A : has_inv.inv ⁻¹' (pi univ s) = set.pi univ (λ i, has_inv.inv ⁻¹' s i),
   { ext, simp },
-  simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi_fintype hs), A,
+  simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi_finite hs), A,
     pi_pi, measure_preimage_inv]
 end
 

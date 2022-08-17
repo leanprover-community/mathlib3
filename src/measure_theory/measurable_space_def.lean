@@ -95,9 +95,10 @@ lemma measurable_set.bUnion_decode₂ [encodable β] ⦃f : β → set α⦄ (h 
   (n : ℕ) : measurable_set (⋃ b ∈ decode₂ β n, f b) :=
 encodable.Union_decode₂_cases measurable_set.empty h
 
-lemma measurable_set.Union [encodable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b)) :
+lemma measurable_set.Union [countable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋃ b, f b) :=
 begin
+  casesI nonempty_encodable β,
   rw ← encodable.Union_decode₂,
   exact ‹measurable_space α›.measurable_set_Union _ (measurable_set.bUnion_decode₂ h)
 end
@@ -133,24 +134,10 @@ lemma measurable_set.Union_Prop {p : Prop} {f : p → set α} (hf : ∀ b, measu
   measurable_set (⋃ b, f b) :=
 by { by_cases p; simp [h, hf, measurable_set.empty] }
 
-lemma measurable_set.Inter [encodable β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
+lemma measurable_set.Inter [countable β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋂ b, f b) :=
 measurable_set.compl_iff.1 $
 by { rw compl_Inter, exact measurable_set.Union (λ b, (h b).compl) }
-
-section fintype
-
-local attribute [instance] fintype.to_encodable
-
-lemma measurable_set.Union_fintype [fintype β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
-  measurable_set (⋃ b, f b) :=
-measurable_set.Union h
-
-lemma measurable_set.Inter_fintype [fintype β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
-  measurable_set (⋂ b, f b) :=
-measurable_set.Inter h
-
-end fintype
 
 lemma measurable_set.bInter {f : β → set α} {s : set β} (hs : s.countable)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=

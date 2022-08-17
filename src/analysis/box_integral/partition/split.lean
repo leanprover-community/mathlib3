@@ -258,7 +258,7 @@ end
 
 section fintype
 
-variable [fintype ι]
+variable [finite ι]
 
 /-- Let `s` be a finite set of boxes in `ℝⁿ = ι → ℝ`. Then there exists a finite set `t₀` of
 hyperplanes (namely, the set of all hyperfaces of boxes in `s`) such that for any `t ⊇ t₀`

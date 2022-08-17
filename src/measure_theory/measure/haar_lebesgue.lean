@@ -188,7 +188,7 @@ linear equiv maps Haar measure to Haar measure.
 -/
 
 lemma map_linear_map_add_haar_pi_eq_smul_add_haar
-  {ι : Type*} [fintype ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
+  {ι : Type*} [finite ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
   (μ : measure (ι → ℝ)) [is_add_haar_measure μ] :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
 begin

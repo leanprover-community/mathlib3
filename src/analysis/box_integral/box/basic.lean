@@ -335,7 +335,7 @@ lemma Ioo_subset_coe (I : box ι) : I.Ioo ⊆ I := λ x hx i, Ioo_subset_Ioc_sel
 
 protected lemma Ioo_subset_Icc (I : box ι) : I.Ioo ⊆ I.Icc := I.Ioo_subset_coe.trans coe_subset_Icc
 
-lemma Union_Ioo_of_tendsto [fintype ι] {I : box ι} {J : ℕ → box ι} (hJ : monotone J)
+lemma Union_Ioo_of_tendsto [finite ι] {I : box ι} {J : ℕ → box ι} (hJ : monotone J)
   (hl : tendsto (lower ∘ J) at_top (𝓝 I.lower)) (hu : tendsto (upper ∘ J) at_top (𝓝 I.upper)) :
   (⋃ n, (J n).Ioo) = I.Ioo :=
 have hl' : ∀ i, antitone (λ n, (J n).lower i),

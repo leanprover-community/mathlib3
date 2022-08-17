@@ -133,13 +133,14 @@ Then the derivatives `f' i : E → L[ℝ] ℝ` and `φ' : E →L[ℝ] ℝ` are l
 See also `is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at` for a version that
 that states existence of Lagrange multipliers `Λ` and `Λ₀` instead of using
 `¬linear_independent ℝ _` -/
-lemma is_local_extr_on.linear_dependent_of_has_strict_fderiv_at {ι : Type*} [fintype ι]
+lemma is_local_extr_on.linear_dependent_of_has_strict_fderiv_at {ι : Type*} [finite ι]
   {f : ι → E → ℝ} {f' : ι → E →L[ℝ] ℝ}
   (hextr : is_local_extr_on φ {x | ∀ i, f i x = f i x₀} x₀)
   (hf' : ∀ i, has_strict_fderiv_at (f i) (f' i) x₀)
   (hφ' : has_strict_fderiv_at φ φ' x₀) :
   ¬linear_independent ℝ (option.elim φ' f' : option ι → E →L[ℝ] ℝ) :=
 begin
+  casesI nonempty_fintype ι,
   rw [fintype.linear_independent_iff], push_neg,
   rcases hextr.exists_multipliers_of_has_strict_fderiv_at hf' hφ' with ⟨Λ, Λ₀, hΛ, hΛf⟩,
   refine ⟨option.elim Λ₀ Λ, _, _⟩,

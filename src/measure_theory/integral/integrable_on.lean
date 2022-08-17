@@ -169,9 +169,10 @@ end
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 integrable_on_finite_Union s.finite_to_set
 
-@[simp] lemma integrable_on_fintype_Union [fintype β] {t : β → set α} :
+@[simp] lemma integrable_on_finite_Union [finite β] {t : β → set α} :
   integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=
-by simpa using @integrable_on_finset_Union _ _ _ _ _ f μ finset.univ t
+by { casesI nonempty_fintype β,
+  simpa using @integrable_on_finset_Union _ _ _ _ _ f μ finset.univ t }
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=

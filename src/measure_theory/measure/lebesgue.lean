@@ -276,7 +276,7 @@ lemma smul_map_diagonal_volume_pi [decidable_eq ι] {D : ι → ℝ} (h : det (d
 begin
   refine (measure.pi_eq (λ s hs, _)).symm,
   simp only [det_diagonal, measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply],
-  rw [measure.map_apply _ (measurable_set.univ_pi_fintype hs)],
+  rw [measure.map_apply _ (measurable_set.univ_pi_finite hs)],
   swap, { exact continuous.measurable (linear_map.continuous_on_pi _) },
   have : (matrix.to_lin' (diagonal D)) ⁻¹' (set.pi set.univ (λ (i : ι), s i))
     = set.pi set.univ (λ (i : ι), ((*) (D i)) ⁻¹' (s i)),

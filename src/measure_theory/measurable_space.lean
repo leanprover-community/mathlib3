@@ -202,8 +202,7 @@ begin
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
-lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
-  measurable f :=
+lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
 end typeclass_measurable_space
@@ -459,7 +458,7 @@ lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
 begin
   letI : fintype s := finite.fintype hs,
   exact measurable_of_restrict_of_restrict_compl hs.measurable_set
-    (measurable_of_fintype _) hf
+    (measurable_of_finite _) hf
 end
 
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
@@ -733,13 +732,13 @@ section fintype
 
 local attribute [instance] fintype.to_encodable
 
-lemma measurable_set.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
+lemma measurable_set.pi_finite [finite δ] {s : set δ} {t : Π i, set (π i)}
   (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
 measurable_set.pi (to_countable _) ht
 
-lemma measurable_set.univ_pi_fintype [fintype δ] {t : Π i, set (π i)}
+lemma measurable_set.univ_pi_finite [finite δ] {t : Π i, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi_fintype (λ i _, ht i)
+measurable_set.pi_finite (λ i _, ht i)
 
 end fintype
 end pi

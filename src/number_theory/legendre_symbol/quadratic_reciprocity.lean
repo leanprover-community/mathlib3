@@ -108,20 +108,18 @@ def legendre_sym (p : ℕ) [fact p.prime] (a : ℤ) : ℤ := quadratic_char (zmo
 lemma legendre_sym_eq_pow (p : ℕ) (a : ℤ) [hp : fact p.prime] :
   (legendre_sym p a : zmod p) = (a ^ (p / 2)) :=
 begin
-  rw legendre_sym,
-  by_cases ha : (a : zmod p) = 0,
-  { simp only [ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), mul_char.map_zero,
-               int.cast_zero], },
-  by_cases hp₁ : p = 2,
-  { substI p,
-    generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
-  { have h₁ := quadratic_char_eq_pow_of_char_ne_two (by rwa ring_char_zmod_n p) ha,
-    rw card p at h₁,
-    rw h₁,
-    have h₂ := ring.neg_one_ne_one_of_char_ne_two (by rwa ring_char_zmod_n p),
-    cases pow_div_two_eq_neg_one_or_one p ha with h h,
-    { rw [if_pos h, h, int.cast_one], },
-    { rw [h, if_neg h₂, int.cast_neg, int.cast_one], } }
+  cases eq_or_ne (ring_char (zmod p)) 2 with hc hc,
+  { by_cases ha : (a : zmod p) = 0,
+    { rw [legendre_sym, ha, quadratic_char_zero,
+          zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1))],
+      norm_cast, },
+    { have := (ring_char_zmod_n p).symm.trans hc, -- p = 2
+      substI p,
+      rw [legendre_sym, quadratic_char_eq_one_of_char_two hc ha],
+      revert ha,
+      generalize : (a : (zmod 2)) = b, revert b, dec_trivial } },
+  { convert quadratic_char_eq_pow_of_char_ne_two'' hc (a : zmod p),
+    { exact (card p).symm }, },
 end
 
 /-- If `p ∤ a`, then `legendre_sym p a` is `1` or `-1`. -/

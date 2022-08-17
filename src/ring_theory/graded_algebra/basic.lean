@@ -107,40 +107,26 @@ section add_cancel_monoid
 
 open direct_sum dfinsupp finset function
 
-lemma direct_sum.coe_decompose_mul_add_of_left_mem {ι σ A}
-  [decidable_eq ι] [add_left_cancel_monoid ι] [semiring A]
-  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
-  {a b : A} {i j : ι} (a_mem : a ∈ 𝒜 i) :
+variables [decidable_eq ι] [semiring A] [set_like σ A] {i j : ι}
+
+lemma direct_sum.coe_decompose_mul_add_of_left_mem [add_left_cancel_monoid ι]
+  [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜] {a b : A} (a_mem : a ∈ 𝒜 i) :
   (decompose 𝒜 (a * b) (i + j) : A) = a * decompose 𝒜 b j :=
-begin
-  classical,
-  lift a to (𝒜 i) using a_mem,
-  erw [decompose_mul, decompose_coe, coe_of_mul_apply],
-end
+by { lift a to 𝒜 i using a_mem, rw [decompose_mul, decompose_coe, coe_of_mul_apply] }
 
-lemma direct_sum.coe_decompose_mul_add_of_right_mem {ι σ A}
-  [decidable_eq ι] [add_right_cancel_monoid ι] [semiring A]
-  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
-  {a b : A} {i j : ι} (b_mem : b ∈ 𝒜 j) :
-  (decompose 𝒜 (a * b) (i + j) : A) = (decompose 𝒜 a i) * b :=
-begin
-  classical,
-  lift b to (𝒜 j) using b_mem,
-  erw [decompose_mul, decompose_coe, coe_mul_of_apply],
-end
+lemma direct_sum.coe_decompose_mul_add_of_right_mem [add_right_cancel_monoid ι]
+  [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜] {a b : A} (b_mem : b ∈ 𝒜 j) :
+  (decompose 𝒜 (a * b) (i + j) : A) = decompose 𝒜 a i * b :=
+by { lift b to (𝒜 j) using b_mem, rw [decompose_mul, decompose_coe, coe_mul_of_apply] }
 
-lemma direct_sum.decompose_mul_add_left {ι σ A}
-  [decidable_eq ι] [add_left_cancel_monoid ι] [semiring A]
-  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
-  {i j : ι} (a : 𝒜 i) {b : A} :
+lemma direct_sum.decompose_mul_add_left [add_left_cancel_monoid ι]
+  [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜] (a : 𝒜 i) {b : A} :
   decompose 𝒜 (↑a * b) (i + j) =
     @graded_monoid.ghas_mul.mul ι (λ i, 𝒜 i) _ _ _ _ a (decompose 𝒜 b j) :=
 subtype.ext $ direct_sum.coe_decompose_mul_add_of_left_mem 𝒜 a.2
 
-lemma direct_sum.decompose_mul_add_right {ι σ A}
-  [decidable_eq ι] [add_right_cancel_monoid ι] [semiring A]
-  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
-  {i j : ι} {a : A} (b : 𝒜 j) :
+lemma direct_sum.decompose_mul_add_right [add_right_cancel_monoid ι]
+  [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜] {i j : ι} {a : A} (b : 𝒜 j) :
   decompose 𝒜 (a * ↑b) (i + j) =
     @graded_monoid.ghas_mul.mul ι (λ i, 𝒜 i) _ _ _ _ (decompose 𝒜 a i) b :=
 subtype.ext $ direct_sum.coe_decompose_mul_add_of_right_mem 𝒜 b.2

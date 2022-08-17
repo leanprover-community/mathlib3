@@ -776,7 +776,7 @@ section finite_pi
 
 variables {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
 
-lemma lower_central_series_pi_of_fintype [finite η] (n : ℕ) :
+lemma lower_central_series_pi_of_finite [finite η] (n : ℕ) :
   lower_central_series (Π i, Gs i) n = subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
   let pi := λ (f : Π i, subgroup (Gs i)), subgroup.pi set.univ f,
@@ -796,7 +796,7 @@ begin
   casesI nonempty_fintype η,
   rw nilpotent_iff_lower_central_series,
   refine ⟨finset.univ.sup (λ i, group.nilpotency_class (Gs i)), _⟩,
-  rw [lower_central_series_pi_of_fintype, pi_eq_bot_iff],
+  rw [lower_central_series_pi_of_finite, pi_eq_bot_iff],
   intros i,
   apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr,
   exact @finset.le_sup _ _ _ _ finset.univ (λ i, group.nilpotency_class (Gs i)) _
@@ -810,7 +810,7 @@ begin
   apply eq_of_forall_ge_iff,
   intros k,
   simp only [finset.sup_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
-    lower_central_series_pi_of_fintype, pi_eq_bot_iff, finset.mem_univ, true_implies_iff ],
+    lower_central_series_pi_of_finite, pi_eq_bot_iff, finset.mem_univ, true_implies_iff ],
 end
 
 end finite_pi

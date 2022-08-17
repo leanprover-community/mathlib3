@@ -733,7 +733,8 @@ def kaehler_differential.linear_map_equiv_derivation : (Ω[S⁄R] →ₗ[S] M) �
 
 /-- The quotient ring of `S ⊗ S ⧸ J` by `Ω[S⁄R]` is isomorphic to `S`. -/
 def kaehler_differential.quotient_cotangent_ideal :
-  (S ⊗ S ⧸ kaehler_differential.ideal R S ^ 2) ⧸ (kaehler_differential.ideal R S).cotangent_ideal ≃+* S :=
+  (S ⊗ S ⧸ kaehler_differential.ideal R S ^ 2) ⧸
+    (kaehler_differential.ideal R S).cotangent_ideal ≃+* S :=
 begin
   have : function.right_inverse tensor_product.include_left
     (↑(tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S) : S ⊗[R] S →+* S),
@@ -756,7 +757,8 @@ begin
     kaehler_differential.quotient_cotangent_ideal R S
       (ideal.quotient.mk (kaehler_differential.ideal R S).cotangent_ideal $ f x),
   { generalize : f x = y, obtain ⟨y, rfl⟩ := ideal.quotient.mk_surjective y, refl },
-  have e₂ : x = kaehler_differential.quotient_cotangent_ideal R S (is_scalar_tower.to_alg_hom R S _ x),
+  have e₂ : x = kaehler_differential.quotient_cotangent_ideal
+    R S (is_scalar_tower.to_alg_hom R S _ x),
   { exact ((tensor_product.lmul'_apply_tmul x 1).trans (mul_one x)).symm },
   split,
   { intro e,

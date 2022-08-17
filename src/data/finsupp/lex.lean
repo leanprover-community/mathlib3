@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import data.pi.lex
 import data.finsupp.order
-import data.finsupp.witnesses
+import data.finsupp.diff
 
 /-!
 # Lexicographic order on finitely supported functions
@@ -99,9 +99,11 @@ lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 
 end N_has_zero
 
+section inhabited_and_linear_orders
+variables [inhabited α] [linear_order α] [linear_order N] [has_zero N] {f g : α →₀ N}
+
 /--  This is a technical result.  Likely, you will need one of the consequences of this lemma.  -/
-lemma apply_wit_lt_apply_wit_of_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
-  {f g : α →₀ N} (fg : to_lex f < to_lex g) :
+lemma apply_wit_lt_apply_wit_of_to_lex_lt (fg : to_lex f < to_lex g) :
   f (f.wit g) < g (f.wit g) :=
 begin
   rcases fg with ⟨x, ltx, fgx⟩,
@@ -109,45 +111,29 @@ begin
     exact wit_eq_of_ne_of_forall fgx.ne ltx }
 end
 
-lemma to_lex_le_iff_apply_wit_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
-  {f g : α →₀ N} :
-  to_lex f ≤ to_lex g ↔ f ((f.wit g)) ≤ g ((f.wit g)) :=
+lemma to_lex_le_iff_apply_wit_le : to_lex f ≤ to_lex g ↔ f ((f.wit g)) ≤ g ((f.wit g)) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rcases eq_or_ne f g with rfl | fg,
     { exact le_rfl },
-    { exact (apply_wit_lt_apply_wit_of_le (h.lt_of_ne fg)).le } },
+    { exact (apply_wit_lt_apply_wit_of_to_lex_lt (h.lt_of_ne fg)).le } },
   { contrapose! h,
     rw wit_comm,
-    exact apply_wit_lt_apply_wit_of_le h }
+    exact apply_wit_lt_apply_wit_of_to_lex_lt h }
 end
 
-lemma to_lex_lt_iff_apply_wit_lt [inhabited α] [linear_order α] [linear_order N] [has_zero N]
-  {f g : (α →₀ N)} :
-  to_lex f < to_lex g ↔ f (f.wit g) < g (f.wit g) :=
+lemma to_lex_lt_iff_apply_wit_lt : to_lex f < to_lex g ↔ f (f.wit g) < g (f.wit g) :=
 not_iff_not.mp (by simp only [to_lex_le_iff_apply_wit_le, wit_comm, not_lt])
 
-lemma le_iff_of_lex_apply_wit_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
-  {f g : lex (α →₀ N)} :
+lemma le_iff_of_lex_apply_wit_le {f g : lex (α →₀ N)} :
   f ≤ g ↔ of_lex f (f.wit g) ≤ of_lex g (f.wit g) :=
 by simp [of_lex, to_lex, ← to_lex_le_iff_apply_wit_le]
 
-lemma apply_eq_of_lt_wit [inhabited α] [linear_order α] [linear_order N] [has_zero N]
-  {f g : (α →₀ N)} {x : α} (hx : x < f.wit g) :
-  f x = g x :=
-begin
-  refine le_antisymm _ _;
-  contrapose! hx;
-  refine wit_le _,
-  exacts [hx.ne', hx.ne],
-end
+end inhabited_and_linear_orders
 
 variables [linear_order α] [linear_order N] [add_left_cancel_monoid N] [covariant_class N N (+) (≤)]
 
-instance : covariant_class (to_lex (α →₀ N)) (to_lex (α →₀ N))
-  ((+) : (α →₀ N) → (α →₀ N) → (α →₀ N)) $
-  @has_le.le (to_lex (α →₀ N)) $ by { haveI : linear_order (to_lex (α →₀ N)) := lex.linear_order,
-                                      apply_instance } :=
+instance : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (@has_add.add (α →₀ N) _) (≤) :=
 { elim := λ f g h gh, begin
     by_cases iα : nonempty α,
     { cases iα with x,

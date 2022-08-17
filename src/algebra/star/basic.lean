@@ -389,6 +389,16 @@ instance [comm_semiring R] [star_ring R] :
 
 end ring_hom_inv_pair
 
+section
+set_option old_structure_cmd true
+
+/-- `star_hom_class F R S` states that `F` is a type of `star`-preserving maps from `R` to `S`. -/
+class star_hom_class (F : Type*) (R S : out_param Type*) [has_star R] [has_star S]
+  extends fun_like F R (λ _, S) :=
+(map_star : ∀ (f : F) (r : R), f (star r) = star (f r))
+
+end
+
 /-! ### Instances -/
 
 namespace units

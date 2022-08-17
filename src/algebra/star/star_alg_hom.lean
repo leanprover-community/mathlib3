@@ -325,25 +325,19 @@ variables (R A B C : Type*) [monoid R]
 /-- The first projection of a product is a non-unital ⋆-algebra homomoprhism. -/
 @[simps]
 def fst : A × B →⋆ₙₐ[R] A :=
-{ to_fun := prod.fst, map_zero' := rfl, map_add' := λ x y, rfl, map_smul' := λ x y, rfl,
-  map_mul' := λ x y, rfl, map_star' := λ x, rfl }
+{ map_star' := λ x, rfl, .. non_unital_alg_hom.fst R A B }
 
 /-- The second projection of a product is a non-unital ⋆-algebra homomorphism. -/
 @[simps]
 def snd : A × B →⋆ₙₐ[R] B :=
-{ to_fun := prod.snd, map_zero' := rfl, map_add' := λ x y, rfl, map_smul' := λ x y, rfl,
-  map_mul' := λ x y, rfl, map_star' := λ x, rfl }
+{ map_star' := λ x, rfl, .. non_unital_alg_hom.snd R A B }
 
 variables {R A B C}
 
 /-- The `non_unital_star_alg_hom.prod` of two morphisms is a morphism. -/
 @[simps] def prod (f : A →⋆ₙₐ[R] B) (g : A →⋆ₙₐ[R] C) : (A →⋆ₙₐ[R] B × C) :=
-{ to_fun    := pi.prod f g,
-  map_zero' := by simp only [pi.prod, prod.zero_eq_mk, map_zero],
-  map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
-  map_mul'  := λ x y, by simp only [pi.prod, prod.mk_mul_mk, map_mul],
-  map_smul' := λ c x, by simp only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply],
-  map_star' := λ x, by simp only [pi.prod, prod.star_def, map_star] }
+{ map_star' := λ x, by simp only [pi.prod, prod.star_def, map_star],
+  .. non_unital_alg_hom.prod f g }
 
 lemma coe_prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
 
@@ -401,14 +395,12 @@ variables (R A B C : Type*) [comm_semiring R]
 /-- The first projection of a product is a ⋆-algebra homomoprhism. -/
 @[simps]
 def fst : A × B →⋆ₐ[R] A :=
-{ to_fun := prod.fst, map_zero' := rfl, map_add' := λ x y, rfl, map_one' := rfl,
-  commutes' := λ x, rfl, map_mul' := λ x y, rfl, map_star' := λ x, rfl }
+{ map_star' := λ x, rfl, .. alg_hom.fst R A B }
 
 /-- The second projection of a product is a ⋆-algebra homomorphism. -/
 @[simps]
 def snd : A × B →⋆ₐ[R] B :=
-{ to_fun := prod.snd, map_zero' := rfl, map_add' := λ x y, rfl, map_one' := rfl,
-  commutes' := λ x, rfl, map_mul' := λ x y, rfl, map_star' := λ x, rfl }
+{ map_star' := λ x, rfl, .. alg_hom.snd R A B }
 
 variables {R A B C}
 

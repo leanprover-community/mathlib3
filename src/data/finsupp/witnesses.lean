@@ -9,17 +9,17 @@ import data.finsupp.basic
 #  Witnesses for finitely supported functions
 
 Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
-functions
+functions.
 
 ##  Main definitions
 
-*  `finset.diff f g : finset α`, the finite subset of `α` where `f` and `g` differ,
-*  `finset.wit f g : α`, [assuming that `a` is non-empty and `N` is linearly ordered]
-   the minimum of `finset.diff f g` (or a random element of `α` if
-   `finset.diff f g` is empty, i.e. if `f = g`).
+*  `finsupp.diff f g : finset α`, the finite subset of `α` where `f` and `g` differ,
+*  `finsupp.wit f g : α`, [assuming that `a` is non-empty and `N` is linearly ordered]
+   the minimum of `finsupp.diff f g` (or a random element of `α` if
+   `finsupp.diff f g` is empty, i.e. if `f = g`).
 
-In the case in which `N` is an additive group, `finset.diff f g` coincides with
-`finset.support (f - g)`.
+In the case in which `N` is an additive group, `finsupp.diff f g` coincides with
+`finsupp.support (f - g)`.
 -/
 
 variables {α N : Type*}
@@ -33,7 +33,7 @@ section N_has_zero
 variables [has_zero N] {f g : α →₀ N}
 
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.diff f g` is the `finset`
-where `f` and `g` differ. -/
+where `f` and `g` differ. This generalizes `(f - g).support` to situations without subtraction. -/
 def diff (f g : α →₀ N) : finset α :=
 (f.support ∪ g.support).filter (λ x, f x ≠ g x)
 
@@ -104,8 +104,7 @@ begin
   exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_left_inj _).not.mpr bc)⟩,
 end
 
-@[simp] lemma diff_neg_left [add_group N] {f g : α →₀ N} :
-  (- f).diff g = f.diff (- g) :=
+lemma diff_neg [add_group N] {f g : α →₀ N} : (- f).diff g = f.diff (- g) :=
 begin
   nth_rewrite 0 ← neg_neg g,
   exact map_range_diff_eq neg_zero neg_injective,
@@ -118,16 +117,16 @@ by rw [← add_diff_add_eq_right (- g), add_right_neg, diff_zero_right, sub_eq_a
 end diff
 
 section wit
-variables [nonempty α] [linear_order α]
+variables [inhabited α] [linear_order α]
 
 section N_has_zero
-variables [has_zero N] {f g : α →₀N}
+variables [has_zero N] {f g : α →₀ N}
 
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.wit f g` is an element of `α`.
 It is a "generic" element of `α` (namely, `nonempty.some _ : α`) if and only if `f = g`.
 Otherwise, it is `a` if `a : α` is the smallest value for which `f a ≠ g a`. -/
-noncomputable def wit (f g : α →₀ N) : α :=
-dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, nonempty.some ‹_›)
+def wit (f g : α →₀ N) : α :=
+dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, default)
 
 lemma wit_congr {f' g' : α →₀ N} (h : f.diff g = f'.diff g') :
   f.wit g = f'.wit g' :=
@@ -136,7 +135,7 @@ by { unfold wit, rw h }
 lemma wit_mem_diff_iff_ne : f.wit g ∈ f.diff g ↔ f ≠ g :=
 begin
   unfold wit,
-  split_ifs,
+  split_ifs with h h,
   { simp [finset.min'_mem, nonempty_diff_iff.mp h] },
   { simp [not_ne_iff.mp (nonempty_diff_iff.not.mp h)] }
 end
@@ -146,7 +145,7 @@ begin
   unfold wit,
   split_ifs,
   { exact (f.diff g).min'_le x (mem_diff.mpr hx) },
-  { exact (hx (congr_fun ((not_not.mp (nonempty_diff_iff.not.mp h))) x)).elim }
+  { exact (hx (congr_fun (not_not.mp (nonempty_diff_iff.not.mp h)) x)).elim }
 end
 
 lemma wit_comm (f g : α →₀ N) : f.wit g = g.wit f :=
@@ -175,7 +174,7 @@ wit_congr (add_diff_add_eq_right _)
 
 lemma wit_neg [add_group N] {f g : α →₀ N} :
   (- f).wit g = f.wit (- g) :=
-wit_congr diff_neg_left
+wit_congr diff_neg
 
 end wit
 

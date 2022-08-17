@@ -158,6 +158,10 @@ sylow.fintype_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
 noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
 sylow.fintype_of_injective (show function.injective H.subtype, from subtype.coe_injective)
 
+/-- If `H` is a subgroup of `G`, then `finite (sylow p G)` implies `finite (sylow p H)`. -/
+instance (H : subgroup G) [finite (sylow p G)] : finite (sylow p H) :=
+by { casesI nonempty_fintype (sylow p G), apply_instance }
+
 open_locale pointwise
 
 /-- `subgroup.pointwise_mul_action` preserves Sylow subgroups. -/
@@ -219,9 +223,10 @@ by rw [P.sylow_mem_fixed_points_iff, ←inf_eq_left, hP.inf_normalizer_sylow, in
 
 /-- A generalization of **Sylow's second theorem**.
   If the number of Sylow `p`-subgroups is finite, then all Sylow `p`-subgroups are conjugate. -/
-instance [hp : fact p.prime] [fintype (sylow p G)] : is_pretransitive G (sylow p G) :=
+instance [hp : fact p.prime] [finite (sylow p G)] : is_pretransitive G (sylow p G) :=
 ⟨λ P Q, by
 { classical,
+  casesI nonempty_fintype (sylow p G),
   have H := λ {R : sylow p G} {S : orbit G P},
   calc S ∈ fixed_points R (orbit G P)
       ↔ S.1 ∈ fixed_points R (sylow p G) : forall_congr (λ a, subtype.ext_iff)
@@ -267,14 +272,14 @@ def sylow.equiv_smul (P : sylow p G) (g : G) : P ≃* (g • P : sylow p G) :=
 equiv_smul (mul_aut.conj g) ↑P
 
 /-- Sylow subgroups are isomorphic -/
-noncomputable def sylow.equiv [fact p.prime] [fintype (sylow p G)] (P Q : sylow p G) :
+noncomputable def sylow.equiv [fact p.prime] [finite (sylow p G)] (P Q : sylow p G) :
   P ≃* Q :=
 begin
   rw ← classical.some_spec (exists_smul_eq G P Q),
   exact P.equiv_smul (classical.some (exists_smul_eq G P Q)),
 end
 
-@[simp] lemma sylow.orbit_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+@[simp] lemma sylow.orbit_eq_top [fact p.prime] [finite (sylow p G)] (P : sylow p G) :
   orbit G P = ⊤ :=
 top_le_iff.mp (λ Q hQ, exists_smul_eq G P Q)
 
@@ -325,9 +330,10 @@ begin
   exact hp.ne' (P.3 hQ hp.le),
 end
 
-lemma not_dvd_index_sylow [hp : fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+lemma not_dvd_index_sylow [hp : fact p.prime] [finite (sylow p G)] (P : sylow p G)
   (hP : relindex ↑P (P : subgroup G).normalizer ≠ 0) : ¬ p ∣ (P : subgroup G).index :=
 begin
+  casesI nonempty_fintype (sylow p G),
   rw [←relindex_mul_index le_normalizer, ←card_sylow_eq_index_normalizer],
   haveI : (P.subtype le_normalizer : subgroup (P : subgroup G).normalizer).normal :=
   subgroup.normal_in_normalizer,
@@ -338,7 +344,7 @@ end
 /-- Frattini's Argument: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
   of `N`, then `N_G(P) ⊔ N = G`. -/
 lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]
-  [fintype (sylow p N)] (P : sylow p N) : ((↑P : subgroup N).map N.subtype).normalizer ⊔ N = ⊤ :=
+  [finite (sylow p N)] (P : sylow p N) : ((↑P : subgroup N).map N.subtype).normalizer ⊔ N = ⊤ :=
 begin
   refine top_le_iff.mp (λ g hg, _),
   obtain ⟨n, hn⟩ := exists_smul_eq N ((mul_aut.conj_normal g : mul_aut N) • P) P,
@@ -371,12 +377,12 @@ namespace sylow
 
 open subgroup submonoid mul_action
 
-lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
-  [fintype ((H : set G) : Type u)] {x : G} :
+lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G} [finite ↥(H : set G)]
+  {x : G} :
   (x : G ⧸ H) ∈ fixed_points H (G ⧸ H) ↔ x ∈ normalizer H :=
 ⟨λ hx, have ha : ∀ {y : G ⧸ H}, y ∈ orbit H (x : G ⧸ H) → y = x,
   from λ _, ((mem_fixed_points' _).1 hx _),
-  inv_mem_iff.1 (@mem_normalizer_fintype _ _ _ _ _ (λ n (hn : n ∈ H),
+  inv_mem_iff.1 (mem_normalizer_fintype (λ n (hn : n ∈ H),
     have (n⁻¹ * x)⁻¹ * x ∈ H := quotient_group.eq.1 (ha (mem_orbit _ ⟨n⁻¹, H.inv_mem hn⟩)),
     show _ ∈ H, by {rw [mul_inv_rev, inv_inv] at this, convert this, rw inv_inv}
     )),
@@ -388,7 +394,8 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
-def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : set G)] :
+/-- The fixed points of the action of `H` on its cosets correspond to `normalizer H / H`. -/
+def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [finite (H : set G)] :
   mul_action.fixed_points H (G ⧸ H) ≃
   normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
@@ -523,7 +530,7 @@ let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero
 lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ^ n ∣ card G) : p ^ n ∣ card P :=
 (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P
-  index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
+  index_ne_zero_of_finite)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
 
 lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : p ∣ card P :=
@@ -537,7 +544,7 @@ end
 lemma card_coprime_index [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   (card P).coprime (index (P : subgroup G)) :=
 let ⟨n, hn⟩ := is_p_group.iff_card.mp P.2 in
-hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm
+hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_finite)).symm
 
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : (P : subgroup G) ≠ ⊥ :=
@@ -554,11 +561,11 @@ lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow 
 begin
   obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
   refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.ord_proj_dvd _ p)),
-  rw [heq, ←hp.out.pow_dvd_iff_dvd_pow_factorization (show card G ≠ 0, from card_ne_zero), ←heq],
+  rw [heq, ←hp.out.pow_dvd_iff_dvd_ord_proj (show card G ≠ 0, from card_ne_zero), ←heq],
   exact P.1.card_subgroup_dvd_card,
 end
 
-lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
 begin
   apply subsingleton.intro,
@@ -573,7 +580,7 @@ section pointwise
 
 open_locale pointwise
 
-lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+lemma characteristic_of_normal {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) :
   (P : subgroup G).characteristic :=
 begin
@@ -586,14 +593,13 @@ end
 
 end pointwise
 
-lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
+lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [finite (sylow p G)]
   (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
 by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype le_normalizer), coe_subtype,
   map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
 
-@[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [fintype (sylow p G)]
- (P : sylow p G) :
+@[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
   have := normal_of_normalizer_normal (P.subtype (le_normalizer.trans le_normalizer)),
@@ -603,9 +609,9 @@ begin
   exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
 end
 
-lemma normal_of_all_max_subgroups_normal [fintype G]
+lemma normal_of_all_max_subgroups_normal [finite G]
   (hnc : ∀ (H : subgroup G), is_coatom H → H.normal)
-  {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G) :
   (↑P : subgroup G).normal :=
 normalizer_eq_top.mp begin
   rcases eq_top_or_exists_le_coatom ((↑P : subgroup G).normalizer) with heq | ⟨K, hK, hNK⟩,
@@ -621,7 +627,7 @@ normalizer_eq_top.mp begin
 end
 
 lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
- {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+ {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G) :
  (↑P : subgroup G).normal :=
 normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
   normalizer_normalizer _

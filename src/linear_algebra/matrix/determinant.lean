@@ -125,7 +125,7 @@ lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin
   obtain ⟨i, j, hpij, hij⟩ : ∃ i j, p i = p j ∧ i ≠ j,
-  { rw [← fintype.injective_iff_bijective, injective] at H,
+  { rw [← finite.injective_iff_bijective, injective] at H,
     push_neg at H,
     exact H },
   exact sum_involution

@@ -857,8 +857,8 @@ section has_smul
 variables [has_smul 𝕜 E] [has_smul 𝕜 β] {s : set E}
 
 lemma convex_on_iff_div {f : E → β} :
-  convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
-  → f ((a/(a+b)) • x + (b/(a+b)) • y) ≤ (a/(a+b)) • f x + (b/(a+b)) • f y :=
+  convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b →
+    0 < a + b → f (a/(a+b) • x + b/(a+b) • y) ≤ a/(a+b) • f x + b/(a+b) • f y :=
 and_congr iff.rfl
 ⟨begin
   intros h x hx y hy a b ha hb hab,

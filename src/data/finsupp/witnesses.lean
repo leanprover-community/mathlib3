@@ -6,7 +6,7 @@ Authors: Damiano Testa
 import data.finsupp.basic
 
 /-!
-#  Witnesses for finitely supported functions
+#  `diff` and witnesses for finitely supported functions
 
 Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
 functions.
@@ -157,7 +157,7 @@ begin
   exact nonempty_diff_iff.mpr (ne_of_apply_ne _ abx),
 end
 
-lemma apply_eq_of_le_wit {f g : α →₀ N} {j : α} (hj : j < f.wit g) :
+lemma apply_eq_of_lt_wit {f g : α →₀ N} {j : α} (hj : j < f.wit g) :
   f j = g j :=
 not_ne_iff.mp (λ h, not_le.mpr hj (wit_le h))
 

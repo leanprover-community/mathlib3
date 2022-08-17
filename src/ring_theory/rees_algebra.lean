@@ -113,7 +113,8 @@ begin
   rw [← adjoin_monomial_eq_rees_algebra, ← hs],
   use s.image (monomial 1),
   rw finset.coe_image,
-  change _ = algebra.adjoin R (submodule.map (monomial 1 : R →ₗ[R] R[X]) (submodule.span R ↑s) : set R[X]),
+  change _ = algebra.adjoin R (submodule.map (monomial 1 : R →ₗ[R] R[X])
+    (submodule.span R ↑s) : set R[X]),
   rw [submodule.map_span, algebra.adjoin_span]
 end
 

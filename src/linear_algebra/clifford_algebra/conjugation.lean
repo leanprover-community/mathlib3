@@ -178,11 +178,13 @@ lemma submodule_map_involute_eq_comap (p : submodule R (clifford_algebra Q)) :
 by rw [←submodule_map_involute_eq_comap, ι_range_map_involute]
 
 @[simp] lemma even_odd_map_involute (n : zmod 2) :
-  (even_odd Q n).map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map = (even_odd Q n) :=
+  (even_odd Q n).map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map
+    = (even_odd Q n) :=
 by simp_rw [even_odd, submodule.map_supr, submodule.map_pow, ι_range_map_involute]
 
 @[simp] lemma even_odd_comap_involute (n : zmod 2) :
-  (even_odd Q n).comap (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map = even_odd Q n :=
+  (even_odd Q n).comap (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map
+    = even_odd Q n :=
 by rw [←submodule_map_involute_eq_comap, even_odd_map_involute]
 
 end involute

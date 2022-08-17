@@ -633,7 +633,7 @@ begin
   exact (rel_iso.preimage equiv.ulift _).symm
 end
 
-@[simp] theorem type_sum_lex_lt {α : Type u} {β : Type v} [has_lt α] [has_lt β]
+@[simp] theorem type_lex_sum_lt {α : Type u} {β : Type v} [has_lt α] [has_lt β]
   [is_well_order α (<)] [is_well_order β (<)] :
   @type (α ⊕ₗ β) (<) _ = lift.{v} (@type α (<) _) + lift.{u} (@type β (<) _) :=
 type_sum_lex _ _

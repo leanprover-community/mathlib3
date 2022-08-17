@@ -31,7 +31,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜]
 variables {n : Type*} [linear_order n] [is_well_order n (<)] [locally_finite_order_bot n]
 
 local notation `⟪`x`, `y`⟫` :=
-  @inner 𝕜 (n → 𝕜) (pi_Lp.inner_product_space (λ _, 𝕜)).to_has_inner x y
+@inner 𝕜 (n → 𝕜) (pi_Lp.inner_product_space (λ _, 𝕜)).to_has_inner x y
 
 open matrix
 open_locale matrix

@@ -432,16 +432,34 @@ instance stalk_functor_preserves_mono (x : X) :
 begin
   refine ⟨λ 𝓐 𝓑 f im, _⟩,
   apply concrete_category.mono_of_injective,
-  dsimp,
   haveI : preserves_limits_of_shape walking_cospan (forget C) := infer_instance,
   haveI im2 : mono f.1 := @@category_theory.presheaf_mono_of_mono _ _ _ _ _ _ _ _ _ _ _ im,
   have im3 := (nat_trans.mono_iff_app_mono _ f.1).mp im2,
-  have : ∀ (c : (opens X)ᵒᵖ), function.injective (f.1.app c) :=
-    λ c, (@@concrete_category.mono_iff_injective_of_preserves_pullback _ _ (f.1.app c) (im3 c) _).mp
-      (im3 c),
+  have : ∀ (c : (opens X)ᵒᵖ), function.injective (f.1.app c) := λ c,
+    (@@concrete_category.mono_iff_injective_of_preserves_pullback _ _ (f.1.app c) _).mp (im3 c),
   refine (app_injective_iff_stalk_functor_map_injective f.1).mpr _ x,
   rintros U,
   apply this,
+end
+
+instance stalk_mono_of_mono (x : X) {F G : sheaf C X} (f : F ⟶ G) [mono f] :
+  mono $ (stalk_functor C x).map f.1 :=
+begin
+  have := functor.map_mono (sheaf.forget C X ⋙ stalk_functor C x) f,
+  exact this,
+end
+
+instance mono_of_stalk_mono {F G : sheaf C X} (f : F ⟶ G)
+  [Π (x : X), mono $ (stalk_functor C x).map f.1] :
+  mono f :=
+begin
+  rw [Sheaf.hom.mono_iff_presheaf_mono, nat_trans.mono_iff_app_mono],
+  intros U,
+  rw concrete_category.mono_iff_injective_of_preserves_pullback,
+  refine app_injective_of_stalk_functor_map_injective f.1 U.unop _,
+  rintros ⟨x, hx⟩,
+  rw ←concrete_category.mono_iff_injective_of_preserves_pullback,
+  apply_instance,
 end
 
 end

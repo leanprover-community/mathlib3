@@ -148,6 +148,10 @@ begin
   { exact (hx (congr_fun (not_not.mp (nonempty_diff_iff.not.mp h)) x)).elim }
 end
 
+lemma apply_eq_of_le_wit {f g : α →₀ N} {j : α} (hj : j < f.wit g) :
+  f j = g j :=
+not_ne_iff.mp (λ h, not_le.mpr hj (wit_le h))
+
 lemma wit_comm (f g : α →₀ N) : f.wit g = g.wit f :=
 wit_congr diff_comm
 

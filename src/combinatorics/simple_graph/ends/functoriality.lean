@@ -111,6 +111,7 @@ begin
   apply cof',
 end
 
+
 lemma cofinite.id : cofinite (@id V) := by {intro,simp}
 lemma cofinite.of_inj {f : V → V'} (inj : function.injective f) : cofinite f := by
 { intro,dsimp [set.preimage], sorry } -- can we show it constructively?
@@ -125,6 +126,9 @@ begin
   show ↑(set.finite.to_finset (cofinite.finite_preimage f cof K (finset.finite_to_set K))) = f⁻¹' ↑K,
   simp,
 end
+
+lemma cofinite.image_infinite {f : V → V'} (cof : cofinite f) (S : set V) (Sinf : S.infinite) :
+  (f '' S).infinite := sorry
 
 
 def good_finset (f : V → V') (cof : cofinite f) (K : finset V') :=
@@ -160,6 +164,12 @@ begin
   apply subset.trans _ Csub,
   apply image_subset f _,
   apply bwd_map.bwd_map_inf.sub,
+end
+
+lemma good_finset.comono (f : V → V') (cof : cofinite f) (K : finset V') (K' : finset V') (K'K : K' ⊆ K)
+  (L ∈ good_finset G G' f cof K) : L ∈  good_finset G G' f cof K' :=
+begin
+  sorry
 end
 
 lemma good_finset.comp (f : V → V') (cof : cofinite f) (f' : V' → V'') (cof' : cofinite f')
@@ -229,9 +239,39 @@ begin
     let HL := some_spec (φ.coarse K),
     exact some (HL.2 (s L)),},
   { rintro K K' KK',
+    --simp only [subtype.val_eq_coe, set.image_subset_iff],
+    let L := some (φ.coarse K),
+    let HL := some_spec (φ.coarse K),
+    let L' := some (φ.coarse K'),
+    let HL' := some_spec (φ.coarse K'),
+    let C := some (HL.2 (s L)),
+    let HC := some_spec (HL.2 (s L)),
+    let C' := some (HL'.2 (s L')),
+    let HC' := some_spec (HL'.2 (s L')),
     simp,
-    obtain ⟨L,⟨Lsub,Lgood⟩⟩ := φ.coarse K,
-    obtain ⟨L',⟨Lsub',Lgood'⟩⟩ := φ.coarse K',
+    dsimp [functor.map,ComplInfComp],
+    -- need to take L∪L' and do some subset gymnastic:
+    /-
+    We have
+    * L containing the preimage of K
+    * L'                        of K'
+    * HL saying that for each inf component D for L there is a (unique) one for K
+      containing the image of D
+    * HL' similarly for L' and K'.
+    * Let L'' = L ∪ L'.
+    * Let D'' = s L'', D' = s L', D = s L
+    * Because s is a section, we have D'' ⊆ D' and D'' ⊆ D
+    * We need to show that bwd HL.2 D' = HL.2 D
+    * This means we need to show that HL.2 D' ⊆ HL.2 D
+    * Call C := HL.2 D, C' := HL.2 D', and
+    * E the unique component for K containing f '' (D'')
+    * E' the unique component for K' containing f '' (D'')
+    * We have C' = E' ⊆ E = C.
+    * Indeed, the inclusion forrows from the fact that an infinite component for K' is either
+      contained or disjoint from an infinite component for K (and disjoint is impossible sinc
+      in our case they both contain the image of D'')
+    * As for the two equalities, they follow from the fact that f '' (D'') ⊆ f ''(D) (respectively D')
+    -/
     sorry
   }
 end

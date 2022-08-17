@@ -204,6 +204,9 @@ def bwd_map_inf.comp'   (Gpc : G.preconnected) {K L M : finset V} (K_sub_L : K �
 def bwd_map_inf.sub  (Gpc : G.preconnected) {K L : finset V} (K_sub_L : K ⊆ L)
   (D : inf_ro_components' G L) : D.val.val ⊆ (bwd_map_inf G Gpc K_sub_L D).val.val := sorry
 
+def bwd_map_inf.iff  (Gpc : G.preconnected) {K L : finset V} (K_sub_L : K ⊆ L)
+  (C : inf_ro_components' G K) (D : inf_ro_components' G L) : C = (bwd_map_inf G Gpc K_sub_L D) ↔ D.val.val ⊆ C.val.val := sorry
+
 
 -- Towards Hopf-Freudenthal
 

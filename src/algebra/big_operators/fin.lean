@@ -45,7 +45,7 @@ namespace fin
 @[to_additive]
 theorem prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
   ∏ i, f i = ((list.fin_range n).map f).prod :=
-by simp [univ_def, finset.fin_range]
+by simp [univ_def]
 
 @[to_additive]
 theorem prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :

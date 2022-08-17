@@ -56,4 +56,9 @@ begin
     { simp only [mono_lift_comp] } }
 end
 
+/-- A well-powered abelian category is also well-copowered. -/
+instance well_powered_opposite [abelian C] [well_powered C] : well_powered Cᵒᵖ :=
+{ subobject_small := λ X,
+    (small_congr (subobject_iso_subobject_op (unop X)).to_equiv).1 infer_instance }
+
 end category_theory.abelian

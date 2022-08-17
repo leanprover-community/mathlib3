@@ -11,9 +11,9 @@ import data.finsupp.basic
 Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
 functions.
 
-##  Main definition
+## Main definition
 
-*  `finsupp.diff f g : finset α`, the finite subset of `α` where `f` and `g` differ.
+* `finsupp.diff f g : finset α`, the finite subset of `α` where `f` and `g` differ.
 
 In the case in which `N` is an additive group, `finsupp.diff f g` coincides with
 `finsupp.support (f - g)`.

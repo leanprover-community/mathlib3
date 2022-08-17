@@ -825,38 +825,39 @@ end finsupp
 section fintype
 
 variables {α M : Type*} (R : Type*) [fintype α] [semiring R] [add_comm_monoid M] [module R M]
+variables (S : Type*) [semiring S] [module S M] [smul_comm_class R S M]
 variable (v : α → M)
 
-/-- `fintype.total v f` is the linear combination of vectors in `v` with weights in `f`.
-This variant of `finsupp.total` is defined on fintype indexed vectors. -/
-protected def fintype.total : (α → R) →ₗ[R] M :=
-{ to_fun := λ f, ∑ i, f i • v i,
-  map_add' := λ f g, by { simp_rw [← finset.sum_add_distrib, ← add_smul], refl },
-  map_smul' := λ r f, by { simp_rw [finset.smul_sum, smul_smul], refl } }
+/-- `fintype.total R S v f` is the linear combination of vectors in `v` with weights in `f`.
+This variant of `finsupp.total` is defined on fintype indexed vectors.
 
-lemma fintype.total_apply (f) : fintype.total R v f = ∑ i, f i • v i := rfl
+This map is linear in `v` if `R` is commutative, and always linear in `f`.
+See note [bundled maps over different rings] for why separate `R` and `S` semirings are used.
+-/
+protected def fintype.total : (α → M) →ₗ[S] (α → R) →ₗ[R] M :=
+{ to_fun := λ v, { to_fun := λ f, ∑ i, f i • v i,
+    map_add' := λ f g, by { simp_rw [← finset.sum_add_distrib, ← add_smul], refl },
+    map_smul' := λ r f, by { simp_rw [finset.smul_sum, smul_smul], refl } },
+  map_add' := λ u v, by { ext, simp [finset.sum_add_distrib, pi.add_apply, smul_add] },
+  map_smul' := λ r v, by { ext, simp [finset.smul_sum, smul_comm _ r] } }
+
+variables {S}
+
+lemma fintype.total_apply (f) : fintype.total R S v f = ∑ i, f i • v i := rfl
 
 @[simp]
 lemma fintype.total_apply_single (i : α) (r : R) :
-  fintype.total R v (pi.single i r) = r • v i :=
+  fintype.total R S v (pi.single i r) = r • v i :=
 begin
   simp_rw [fintype.total_apply, pi.single_apply, ite_smul, zero_smul],
   rw [finset.sum_ite_eq', if_pos (finset.mem_univ _)]
 end
 
-variables (α M)
-
-/-- `fintype.total v f` is linear wrt `v` when `R` is commutative. -/
-def fintype.ltotal (R : Type*) [comm_semiring R] [module R M] : (α → M) →ₗ[R] (α → R) →ₗ[R] M :=
-{ to_fun := fintype.total R,
-  map_add' := λ u v, by { ext, simp },
-  map_smul' := λ r v, by { ext, simp } }
-
-variables {α M}
+variables (S)
 
 lemma finsupp.total_eq_fintype_total_apply (x : α → R) :
-  finsupp.total α M R v
-    ((finsupp.linear_equiv_fun_on_fintype R R α).symm x) = fintype.total R v x :=
+  finsupp.total α M R v ((finsupp.linear_equiv_fun_on_fintype R R α).symm x) =
+    fintype.total R S v x :=
 begin
   apply finset.sum_subset,
   { exact finset.subset_univ _ },
@@ -866,14 +867,14 @@ begin
 end
 
 lemma finsupp.total_eq_fintype_total :
-  (finsupp.total α M R v).comp
-    (finsupp.linear_equiv_fun_on_fintype R R α).symm.to_linear_map = fintype.total R v :=
-begin
-  apply linear_map.ext, exact finsupp.total_eq_fintype_total_apply R v
-end
+  (finsupp.total α M R v).comp (finsupp.linear_equiv_fun_on_fintype R R α).symm.to_linear_map =
+    fintype.total R S v :=
+linear_map.ext $ finsupp.total_eq_fintype_total_apply R S v
+
+variables {S}
 
 @[simp]
-lemma fintype.range_total : (fintype.total R v).range = submodule.span R (set.range v) :=
+lemma fintype.range_total : (fintype.total R S v).range = submodule.span R (set.range v) :=
 by rw [← finsupp.total_eq_fintype_total, linear_map.range_comp,
   linear_equiv.to_linear_map_eq_coe, linear_equiv.range, submodule.map_top, finsupp.range_total]
 

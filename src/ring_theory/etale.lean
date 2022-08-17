@@ -308,7 +308,9 @@ end
 include hf
 
 /-- Let `P →ₐ[R] A` be a surjection with kernel `J`, and `P` a formally smooth `R`-algebra,
-then `A` is formally smooth over `R` iff the surjection `P ⧸ J ^ 2 →ₐ[R] A` has a section. -/
+then `A` is formally smooth over `R` iff the surjection `P ⧸ J ^ 2 →ₐ[R] A` has a section.
+
+ Geometric intuition: we require that a nilpotent thickening of `Spec A` inside `Spec P` admits a retraction. -/
 lemma formally_smooth.iff_split_surjection [formally_smooth R P] :
   formally_smooth R A ↔ ∃ g, f.ker_square_lift.comp g = alg_hom.id R A :=
 begin

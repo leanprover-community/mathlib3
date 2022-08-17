@@ -208,21 +208,6 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
 
-lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
-  (p * n).totient = p * n.totient :=
-begin
-  by_cases hzero : n = 0,
-  { simp [hzero] },
-  { have hfin := (multiplicity.finite_nat_iff.2 ⟨hp.ne_one, zero_lt_iff.2 hzero⟩),
-    have h0 : 0 < (multiplicity p n).get hfin := multiplicity.pos_of_dvd hfin h,
-    obtain ⟨m, hm, hndiv⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
-    rw [hm, ← mul_assoc, ← pow_succ, nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd
-      hndiv)), nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd hndiv)), ← mul_assoc],
-    congr,
-    rw [ ← succ_pred_eq_of_pos h0, totient_prime_pow_succ hp, totient_prime_pow_succ hp,
-      succ_pred_eq_of_pos h0, ← mul_assoc p, ← pow_succ, ← succ_pred_eq_of_pos h0, nat.pred_succ] }
-end
-
 lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
 begin
   refine ⟨λ h, _, totient_prime⟩,
@@ -349,6 +334,34 @@ begin
   have hd0 : 0 < d, from nat.gcd_pos_of_pos_left _ ha0,
   rw [←mul_le_mul_right hd0, ←totient_gcd_mul_totient_mul a b, mul_comm],
   apply mul_le_mul_left' (nat.totient_le d),
+end
+
+lemma totient_dvd_of_dvd {a b : ℕ} (h : a ∣ b) : φ a ∣ φ b :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha0, { simp [zero_dvd_iff.1 h] },
+  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  have hab' : a.factorization.support ⊆ b.factorization.support,
+  { intro p,
+    simp only [support_factorization, list.mem_to_finset],
+    apply factors_subset_of_dvd h hb0 },
+  rw [totient_eq_prod_factorization ha0, totient_eq_prod_factorization hb0],
+  refine finsupp.prod_dvd_prod_of_subset_of_dvd hab' (λ p hp, mul_dvd_mul _ dvd_rfl),
+  exact pow_dvd_pow p (tsub_le_tsub_right ((factorization_le_iff_dvd ha0 hb0).2 h p) 1),
+end
+
+lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
+  (p * n).totient = p * n.totient :=
+begin
+  have h1 := totient_gcd_mul_totient_mul p n,
+  rw [(gcd_eq_left h), mul_assoc] at h1,
+  simpa [(totient_pos hp.pos).ne', mul_comm] using h1,
+end
+
+lemma totient_mul_of_prime_of_not_dvd {p n : ℕ} (hp : p.prime) (h : ¬ p ∣ n) :
+  (p * n).totient = (p - 1) * n.totient :=
+begin
+  rw [totient_mul _, totient_prime hp],
+  simpa [h] using coprime_or_dvd_of_prime hp n,
 end
 
 end nat

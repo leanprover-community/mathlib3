@@ -128,7 +128,7 @@ instance defined on it, otherwise this will create a second non-defeq norm insta
 
 /-- A structure requiring that a scalar product is positive definite and symmetric, from which one
 can construct an `inner_product_space` instance in `inner_product_space.of_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure inner_product_space.core
   (𝕜 : Type*) (F : Type*)
   [is_R_or_C 𝕜] [add_comm_group F] [module 𝕜 F] :=
@@ -212,7 +212,7 @@ lemma inner_self_re_to_K {x : F} : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by norm_num [ext_iff, inner_self_nonneg_im]
 
 lemma inner_abs_conj_sym {x y : F} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
-  by rw [←inner_conj_sym, abs_conj]
+by rw [←inner_conj_sym, abs_conj]
 
 lemma inner_neg_left {x y : F} : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
@@ -275,7 +275,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, inner_conj_sym, hT, ring_hom.map_div, h₁, h₃]
+                  : by field_simp [-mul_re, inner_conj_sym, hT, map_div₀, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -596,6 +596,18 @@ begin
   ring,
 end
 
+variable (𝕜)
+include 𝕜
+
+lemma ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y :=
+by rw [←sub_eq_zero, ←inner_self_eq_zero, inner_sub_right, sub_eq_zero, h (x - y)]
+
+lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
+by rw [←sub_eq_zero, ←inner_self_eq_zero, inner_sub_left, sub_eq_zero, h (x - y)]
+
+omit 𝕜
+variable {𝕜}
+
 /-- Parallelogram law -/
 lemma parallelogram_law {x y : E} :
   ⟪x + y, x + y⟫ + ⟪x - y, x - y⟫ = 2 * (⟪x, x⟫ + ⟪y, y⟫) :=
@@ -635,7 +647,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, hT, ring_hom.map_div, h₁, h₃, inner_conj_sym]
+                  : by field_simp [-mul_re, hT, map_div₀, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -1195,13 +1207,17 @@ def linear_equiv.isometry_of_inner (f : E ≃ₗ[𝕜] E') (h : ∀ x y, ⟪f x,
   (f.isometry_of_inner h).to_linear_equiv = f := rfl
 
 /-- A linear isometry preserves the property of being orthonormal. -/
-lemma orthonormal.comp_linear_isometry {v : ι → E} (hv : orthonormal 𝕜 v) (f : E →ₗᵢ[𝕜] E') :
-  orthonormal 𝕜 (f ∘ v) :=
+lemma linear_isometry.orthonormal_comp_iff {v : ι → E} (f : E →ₗᵢ[𝕜] E') :
+  orthonormal 𝕜 (f ∘ v) ↔ orthonormal 𝕜 v :=
 begin
   classical,
-  simp_rw [orthonormal_iff_ite, linear_isometry.inner_map_map, ←orthonormal_iff_ite],
-  exact hv
+  simp_rw [orthonormal_iff_ite, linear_isometry.inner_map_map]
 end
+
+/-- A linear isometry preserves the property of being orthonormal. -/
+lemma orthonormal.comp_linear_isometry {v : ι → E} (hv : orthonormal 𝕜 v) (f : E →ₗᵢ[𝕜] E') :
+  orthonormal 𝕜 (f ∘ v) :=
+by rwa f.orthonormal_comp_iff
 
 /-- A linear isometric equivalence preserves the property of being orthonormal. -/
 lemma orthonormal.comp_linear_isometry_equiv {v : ι → E} (hv : orthonormal 𝕜 v) (f : E ≃ₗᵢ[𝕜] E') :
@@ -1668,7 +1684,8 @@ linear_map.mk_continuous₂ innerₛₗ 1
 `inner_product_space.dual` as `to_dual_map`.  -/
 @[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
 begin
-  refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,
+  refine le_antisymm ((innerSL x : E →L[𝕜] 𝕜).op_norm_le_bound (norm_nonneg _)
+    (λ y, norm_inner_le_norm _ _)) _,
   cases eq_or_lt_of_le (norm_nonneg x) with h h,
   { have : x = 0 := norm_eq_zero.mp (eq.symm h),
     simp [this] },
@@ -1677,7 +1694,7 @@ begin
     ... = re ⟪x, x⟫ : norm_sq_eq_inner _
     ... ≤ abs ⟪x, x⟫ : re_le_abs _
     ... = ∥innerSL x x∥ : by { rw [←is_R_or_C.norm_eq_abs], refl }
-    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
+    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x : E →L[𝕜] 𝕜).le_op_norm _ }
 end
 
 /-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
@@ -1807,6 +1824,17 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
+
+lemma orthonormal.cod_restrict {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v)
+  (s : submodule 𝕜 E) (hvs : ∀ i, v i ∈ s) :
+  @orthonormal 𝕜 s _ _ ι (set.cod_restrict v s hvs) :=
+s.subtypeₗᵢ.orthonormal_comp_iff.mp hv
+
+lemma orthonormal_span {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v) :
+  @orthonormal 𝕜 (submodule.span 𝕜 (set.range v)) _ _ ι
+    (λ i : ι, ⟨v i, submodule.subset_span (set.mem_range_self i)⟩) :=
+hv.cod_restrict (submodule.span 𝕜 (set.range v))
+  (λ i, submodule.subset_span (set.mem_range_self i))
 
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 
@@ -2105,6 +2133,7 @@ lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λ t, ⟪f t, g t⟫) s :=
 λ x hx, (hf x hx).inner (hg x hx)
 
+@[continuity]
 lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
 
@@ -2283,5 +2312,13 @@ begin
   have : K ⊓ Kᗮ = ⊥ := K.orthogonal_disjoint.eq_bot,
   rwa [h, inf_comm, top_inf_eq] at this
 end
+
+lemma submodule.orthogonal_family_self :
+  @orthogonal_family 𝕜 E _ _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
+  (λ b, (cond b K Kᗮ).subtypeₗᵢ)
+| tt tt := absurd rfl
+| tt ff := λ _ x y, submodule.inner_right_of_mem_orthogonal x.prop y.prop
+| ff tt := λ _ x y, submodule.inner_left_of_mem_orthogonal y.prop x.prop
+| ff ff := absurd rfl
 
 end orthogonal

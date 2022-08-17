@@ -32,7 +32,7 @@ open_locale topological_space
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- Homeomorphism between `α` and `β`, also called topological isomorphism -/
-@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
+@[nolint has_nonempty_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
@@ -105,6 +105,12 @@ h.to_equiv.apply_symm_apply x
 
 @[simp] lemma symm_apply_apply (h : α ≃ₜ β) (x : α) : h.symm (h x) = x :=
 h.to_equiv.symm_apply_apply x
+
+@[simp] lemma self_trans_symm (h : α ≃ₜ β) : h.trans h.symm = homeomorph.refl α :=
+by { ext, apply symm_apply_apply }
+
+@[simp] lemma symm_trans_self (h : α ≃ₜ β) : h.symm.trans h = homeomorph.refl β :=
+by { ext, apply apply_symm_apply }
 
 protected lemma bijective (h : α ≃ₜ β) : function.bijective h := h.to_equiv.bijective
 protected lemma injective (h : α ≃ₜ β) : function.injective h := h.to_equiv.injective
@@ -441,6 +447,15 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
 { to_equiv := equiv.set.univ α,
   continuous_to_fun := continuous_subtype_coe,
   continuous_inv_fun := continuous_subtype_mk _ continuous_id }
+
+/-- `s ×ˢ t` is homeomorphic to `s × t`. -/
+@[simps] def set.prod (s : set α) (t : set β) : ↥(s ×ˢ t) ≃ₜ s × t :=
+{ to_equiv := equiv.set.prod s t,
+  continuous_to_fun := continuous.prod_mk
+    (continuous_subtype_mk _ (continuous_fst.comp continuous_induced_dom))
+    (continuous_subtype_mk _ (continuous_snd.comp continuous_induced_dom)),
+  continuous_inv_fun := continuous_subtype_mk _ (continuous.prod_mk
+    (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd)) }
 
 end homeomorph
 

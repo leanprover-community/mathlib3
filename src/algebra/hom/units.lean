@@ -76,8 +76,13 @@ variables [division_monoid α]
 @[simp, norm_cast, to_additive] lemma coe_zpow : ∀ (u : αˣ) (n : ℤ), ((u ^ n : αˣ) : α) = u ^ n :=
 (units.coe_hom α).map_zpow
 
-lemma _root_.divp_eq_div (a : α) (u : αˣ) : a /ₚ u = a / u :=
+@[field_simps] lemma _root_.divp_eq_div (a : α) (u : αˣ) : a /ₚ u = a / u :=
 by rw [div_eq_mul_inv, divp, u.coe_inv]
+
+@[simp, to_additive]
+lemma _root_.map_units_inv {F : Type*} [monoid_hom_class F M α] (f : F) (u : units M) :
+  f ↑u⁻¹ = (f u)⁻¹ :=
+((f : M →* α).comp (units.coe_hom M)).map_inv u
 
 end division_monoid
 

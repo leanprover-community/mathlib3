@@ -187,6 +187,10 @@ begin
   refl,
 end
 
+/-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
+@[simp] lemma prime.factorization_self {p : ℕ} (hp : prime p) : p.factorization p = 1 :=
+by simp [hp]
+
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
 lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
   factorization (p ^ k) = single p k :=
@@ -723,6 +727,31 @@ begin
     simp [finsupp.not_mem_support_iff.mp hp2] },
   { intros p hp,
     simp [factorization_def n (prime_of_mem_factorization hp)] }
+end
+
+/-! ### Lemmas about factorizations of particular functions -/
+
+-- TODO: Port lemmas from `data/nat/multiplicity` to here, re-written in terms of `factorization`
+
+/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
+lemma card_multiples (n p : ℕ) : card ((finset.range n).filter (λ e, p ∣ e + 1)) = n / p :=
+begin
+  induction n with n hn, { simp },
+  simp [nat.succ_div, add_ite, add_zero, finset.range_succ, filter_insert, apply_ite card,
+    card_insert_of_not_mem, hn],
+end
+
+/-- Exactly `n / p` naturals in `(0, n]` are multiples of `p`. -/
+lemma Ioc_filter_dvd_card_eq_div (n p : ℕ) :
+  ((Ioc 0 n).filter (λ x, p ∣ x)).card = n / p :=
+begin
+  induction n with n IH, { simp },
+  -- TODO: Golf away `h1` after Yaël PRs a lemma asserting this
+  have h1 : Ioc 0 n.succ = insert n.succ (Ioc 0 n),
+  { rcases n.eq_zero_or_pos with rfl | hn, { simp },
+    simp_rw [←Ico_succ_succ, Ico_insert_right (succ_le_succ hn.le), Ico_succ_right] },
+  simp [nat.succ_div, add_ite, add_zero, h1, filter_insert, apply_ite card,
+    card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
 end nat

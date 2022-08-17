@@ -182,7 +182,7 @@ instance : partial_order ordinal :=
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
-      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
+      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl⟩,
       λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
       (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
   le_antisymm := λ a b,
@@ -251,7 +251,7 @@ by { simp_rw ←type_lt o, apply typein_lt_type }
   typein s f.top = type r :=
 eq.symm $ quot.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _ f f.lt_top)
-  (λ ⟨a, h⟩, by rcases f.down'.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
+  (λ ⟨a, h⟩, by rcases f.down.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
@@ -408,11 +408,9 @@ induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is
 
 instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
 
-@[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
-by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
+@[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 := le_bot_iff
 
-protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
-by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
+protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 := bot_lt_iff_ne_bot
 
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
 by rw [←@type_eq_zero_iff_is_empty o.out.α (<), type_lt]
@@ -680,7 +678,8 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) := ⟨lt_wf⟩
+instance : well_founded_lt ordinal := ⟨lt_wf⟩
+instance : is_well_order ordinal (<) := { }
 
 instance : conditionally_complete_linear_order_bot ordinal :=
 is_well_order.conditionally_complete_linear_order_bot _
@@ -707,10 +706,8 @@ private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
     (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
     (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
-    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
-    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
-    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
+  haveI := hs,
+  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _ _ _ (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
   { rcases a with a|_; rcases b with b|_,
     { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
@@ -718,7 +715,7 @@ induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, b
     { exact false.elim ∘ sum.lex_inr_inl },
     { exact false.elim ∘ sum.lex_inr_inr.1 } },
   { rcases a with a|_,
-    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
+    { intro h, have := @principal_seg.init _ _ _ _ _ ⟨f, t, hf⟩ _ _ h,
       cases this with w h, exact ⟨sum.inl w, h⟩ },
     { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
 end⟩
@@ -967,7 +964,7 @@ by simpa only [lift_lift, lift_univ, univ_umax] using
 @[simp] theorem ord_univ : ord univ.{u v} = ordinal.univ.{u v} :=
 le_antisymm (ord_card_le _) $ le_of_forall_lt $ λ o h,
 lt_ord.2 begin
-  rcases lift.principal_seg.{u v}.down'.1
+  rcases lift.principal_seg.{u v}.down.1
     (by simpa only [lift.principal_seg_coe] using h) with ⟨o', rfl⟩,
   simp only [lift.principal_seg_coe], rw [← lift_card],
   apply lift_lt_univ'
@@ -977,7 +974,7 @@ theorem lt_univ {c} : c < univ.{u (u+1)} ↔ ∃ c', c = lift.{(u+1) u} c' :=
 ⟨λ h, begin
   have := ord_lt_ord.2 h,
   rw ord_univ at this,
-  cases lift.principal_seg.{u (u+1)}.down'.1
+  cases lift.principal_seg.{u (u+1)}.down.1
     (by simpa only [lift.principal_seg_top]) with o e,
   have := card_ord c,
   rw [← e, lift.principal_seg_coe, ← lift_card] at this,

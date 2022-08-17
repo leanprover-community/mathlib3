@@ -29,6 +29,8 @@ We define morphisms of cones, and the category of cones.
 We define `cone.postcompose α : cone F ⥤ cone G` for `α` a natural transformation `F ⟶ G`.
 
 And, of course, we dualise all this to cocones as well.
+
+For more results about the category of cones, see `cone_category.lean`.
 -/
 
 -- morphism levels before object levels. See note [category_theory universes].
@@ -220,6 +222,10 @@ namespace cones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
+/-- Eta rule for cones. -/
+@[simps] def eta (c : cone F) : c ≅ ⟨c.X, c.π⟩ :=
+cones.ext (iso.refl _) (by tidy)
+
 /--
 Given a cone morphism whose object part is an isomorphism, produce an
 isomorphism of cones.
@@ -378,6 +384,10 @@ namespace cocones
   (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
+
+/-- Eta rule for cocones. -/
+@[simps] def eta (c : cocone F) : c ≅ ⟨c.X, c.ι⟩ :=
+cocones.ext (iso.refl _) (by tidy)
 
 /--
 Given a cocone morphism whose object part is an isomorphism, produce an

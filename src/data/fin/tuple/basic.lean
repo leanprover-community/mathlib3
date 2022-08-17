@@ -701,4 +701,10 @@ begin
   simpa using h,
 end
 
+/-- `fin.sigma_eq_of_eq_comp_cast` as an `iff`. -/
+lemma sigma_eq_iff_eq_comp_cast {α : Type*} {a b : Σ ii, fin ii → α} :
+  a = b ↔ ∃ (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h :=
+⟨λ h, h ▸ ⟨rfl, funext $ subtype.rec $ by exact λ i hi, rfl⟩,
+ λ ⟨h, h'⟩, sigma_eq_of_eq_comp_cast _ h'⟩
+
 end fin

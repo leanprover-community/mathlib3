@@ -19,7 +19,7 @@ In the case in which `N` is an additive group, `finsupp.ne_locus f g` coincides 
 `finsupp.support (f - g)`.
 -/
 
-variables {α N M : Type*}
+variables {α M N : Type*}
 
 namespace finsupp
 variables [decidable_eq α] [decidable_eq N] [decidable_eq M] [has_zero M]

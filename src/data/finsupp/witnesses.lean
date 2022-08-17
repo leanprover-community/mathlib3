@@ -9,7 +9,7 @@ import data.finsupp.basic
 #  Witnesses for finitely supported functions
 
 Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
-functions
+functions.
 
 ##  Main definitions
 
@@ -104,8 +104,7 @@ begin
   exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_left_inj _).not.mpr bc)⟩,
 end
 
-@[simp] lemma diff_neg_left [add_group N] {f g : α →₀ N} :
-  (- f).diff g = f.diff (- g) :=
+lemma diff_neg [add_group N] {f g : α →₀ N} : (- f).diff g = f.diff (- g) :=
 begin
   nth_rewrite 0 ← neg_neg g,
   exact map_range_diff_eq neg_zero neg_injective,
@@ -136,7 +135,7 @@ by { unfold wit, rw h }
 lemma wit_mem_diff_iff_ne : f.wit g ∈ f.diff g ↔ f ≠ g :=
 begin
   unfold wit,
-  split_ifs,
+  split_ifs with h h,
   { simp [finset.min'_mem, nonempty_diff_iff.mp h] },
   { simp [not_ne_iff.mp (nonempty_diff_iff.not.mp h)] }
 end
@@ -146,7 +145,7 @@ begin
   unfold wit,
   split_ifs,
   { exact (f.diff g).min'_le x (mem_diff.mpr hx) },
-  { exact (hx (congr_fun ((not_not.mp (nonempty_diff_iff.not.mp h))) x)).elim }
+  { exact (hx (congr_fun (not_not.mp (nonempty_diff_iff.not.mp h)) x)).elim }
 end
 
 lemma wit_comm (f g : α →₀ N) : f.wit g = g.wit f :=

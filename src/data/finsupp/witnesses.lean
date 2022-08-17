@@ -120,7 +120,7 @@ section wit
 variables [nonempty α] [linear_order α]
 
 section N_has_zero
-variables [has_zero N] {f g : α →₀N}
+variables [has_zero N] {f g : α →₀ N}
 
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.wit f g` is an element of `α`.
 It is a "generic" element of `α` (namely, `nonempty.some _ : α`) if and only if `f = g`.

@@ -8,6 +8,7 @@ import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.preserves.basic
 import category_theory.category.pairwise
 import category_theory.limits.constructions.binary_products
+import algebra.category.Ring.constructions
 
 /-!
 # Equivalent formulations of the sheaf condition
@@ -398,33 +399,33 @@ variables {X : Top.{v}} {C : Type u} [category.{v} C]
 variables (F : X.sheaf C) (U V : opens X)
 open category_theory.limits
 
-/-- For a sheaf `F`, `F(U ∪ V)` is the pullback of `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)`.
+/-- For a sheaf `F`, `F(U ⊔ V)` is the pullback of `F(U) ⟶ F(U ⊓ V)` and `F(V) ⟶ F(U ⊓ V)`.
 This is the pullback cone. -/
 def inter_union_pullback_cone : pullback_cone
-  (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op) :=
+  (F.1.map (hom_of_le inf_le_left : U ⊓ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op) :=
 pullback_cone.mk (F.1.map (hom_of_le le_sup_left).op) (F.1.map (hom_of_le le_sup_right).op)
   (by { rw [← F.1.map_comp, ← F.1.map_comp], congr })
 
 @[simp] lemma inter_union_pullback_cone_X :
-  (inter_union_pullback_cone F U V).X = F.1.obj (op $ U ∪ V) := rfl
+  (inter_union_pullback_cone F U V).X = F.1.obj (op $ U ⊔ V) := rfl
 @[simp] lemma inter_union_pullback_cone_fst :
   (inter_union_pullback_cone F U V).fst = F.1.map (hom_of_le le_sup_left).op := rfl
 @[simp] lemma inter_union_pullback_cone_snd :
   (inter_union_pullback_cone F U V).snd = F.1.map (hom_of_le le_sup_right).op := rfl
 
 variable (s : pullback_cone
-  (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op))
+  (F.1.map (hom_of_le inf_le_left : U ⊓ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op))
 
 variable [has_products.{v} C]
 
 /-- (Implementation).
-Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`.
+Every cone over `F(U) ⟶ F(U ⊓ V)` and `F(V) ⟶ F(U ⊓ V)` factors through `F(U ⊔ V)`.
 TODO: generalize to `C` without products.
 -/
-def inter_union_pullback_cone_lift : s.X ⟶ F.1.obj (op (U ∪ V)) :=
+def inter_union_pullback_cone_lift : s.X ⟶ F.1.obj (op (U ⊔ V)) :=
 begin
   let ι : ulift.{v} walking_pair → opens X := λ j, walking_pair.cases_on j.down U V,
-  have hι : U ∪ V = supr ι,
+  have hι : U ⊔ V = supr ι,
   { ext,
     rw [opens.coe_supr, set.mem_Union],
     split,
@@ -444,7 +445,7 @@ begin
   let g : j ⟶ i := f.unop, have : f = g.op := rfl, clear_value g, subst this,
   rcases i with (⟨⟨(_|_)⟩⟩|⟨⟨(_|_)⟩,⟨_⟩⟩); rcases j with (⟨⟨(_|_)⟩⟩|⟨⟨(_|_)⟩,⟨_⟩⟩); rcases g; dsimp;
     simp only [category.id_comp, s.condition, category_theory.functor.map_id, category.comp_id],
-  { rw [← cancel_mono (F.1.map (eq_to_hom $ inf_comm : U ∩ V ⟶ _).op), category.assoc,
+  { rw [← cancel_mono (F.1.map (eq_to_hom $ inf_comm : U ⊓ V ⟶ _).op), category.assoc,
       category.assoc],
     erw [← F.1.map_comp, ← F.1.map_comp],
     convert s.condition.symm },
@@ -467,11 +468,11 @@ begin
     (op $ pairwise.single (ulift.up walking_pair.right))
 end
 
-/-- For a sheaf `F`, `F(U ∪ V)` is the pullback of `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)`. -/
+/-- For a sheaf `F`, `F(U ⊔ V)` is the pullback of `F(U) ⟶ F(U ⊓ V)` and `F(V) ⟶ F(U ⊓ V)`. -/
 def is_limit_pullback_cone : is_limit (inter_union_pullback_cone F U V) :=
 begin
   let ι : ulift.{v} walking_pair → opens X := λ ⟨j⟩, walking_pair.cases_on j U V,
-  have hι : U ∪ V = supr ι,
+  have hι : U ⊔ V = supr ι,
   { ext,
     rw [opens.coe_supr, set.mem_Union],
     split,
@@ -508,11 +509,41 @@ begin
       apply inter_union_pullback_cone_lift_right } }
 end
 
-/-- If `U, V` are disjoint, then `F(U ∪ V) = F(U) × F(V)`. -/
-def is_product_of_disjoint (h : U ∩ V = ⊥) : is_limit
+/-- If `U, V` are disjoint, then `F(U ⊔ V) = F(U) × F(V)`. -/
+def is_product_of_disjoint (h : U ⊓ V = ⊥) : is_limit
     (binary_fan.mk (F.1.map (hom_of_le le_sup_left : _ ⟶ U ⊔ V).op)
       (F.1.map (hom_of_le le_sup_right : _ ⟶ U ⊔ V).op)) :=
 is_product_of_is_terminal_is_pullback _ _ _ _
   (F.is_terminal_of_eq_empty h) (is_limit_pullback_cone F U V)
+
+def obj_sup_iso_prod_eq_locus {X : Top} (F : X.sheaf CommRing)
+  (U V : opens X) :
+  F.1.obj (op $ U ⊔ V) ≅ CommRing.of (ring_hom.eq_locus _ _) :=
+(F.is_limit_pullback_cone U V).cone_point_unique_up_to_iso (CommRing.pullback_cone_is_limit _ _)
+
+@[simp]
+lemma obj_sup_iso_prod_eq_locus_hom_fst {X : Top} (F : X.sheaf CommRing)
+  (U V : opens X) (x) :
+  ((F.obj_sup_iso_prod_eq_locus U V).hom x).1.fst = F.1.map (hom_of_le le_sup_left).op x :=
+concrete_category.congr_hom ((F.is_limit_pullback_cone U V).cone_point_unique_up_to_iso_hom_comp
+  (CommRing.pullback_cone_is_limit _ _) walking_cospan.left) x
+
+lemma obj_sup_iso_prod_eq_locus_hom_snd {X : Top} (F : X.sheaf CommRing)
+  (U V : opens X) (x) :
+  ((F.obj_sup_iso_prod_eq_locus U V).hom x).1.snd = F.1.map (hom_of_le le_sup_right).op x :=
+concrete_category.congr_hom ((F.is_limit_pullback_cone U V).cone_point_unique_up_to_iso_hom_comp
+  (CommRing.pullback_cone_is_limit _ _) walking_cospan.right) x
+
+lemma obj_sup_iso_prod_eq_locus_inv_fst {X : Top} (F : X.sheaf CommRing)
+  (U V : opens X) (x) :
+  F.1.map (hom_of_le le_sup_left).op ((F.obj_sup_iso_prod_eq_locus U V).inv x) = x.1.1 :=
+concrete_category.congr_hom ((F.is_limit_pullback_cone U V).cone_point_unique_up_to_iso_inv_comp
+  (CommRing.pullback_cone_is_limit _ _) walking_cospan.left) x
+
+lemma obj_sup_iso_prod_eq_locus_inv_snd {X : Top} (F : X.sheaf CommRing)
+  (U V : opens X) (x) :
+  F.1.map (hom_of_le le_sup_right).op ((F.obj_sup_iso_prod_eq_locus U V).inv x) = x.1.2 :=
+concrete_category.congr_hom ((F.is_limit_pullback_cone U V).cone_point_unique_up_to_iso_inv_comp
+  (CommRing.pullback_cone_is_limit _ _) walking_cospan.right) x
 
 end Top.sheaf

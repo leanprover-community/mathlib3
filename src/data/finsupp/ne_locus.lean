@@ -19,10 +19,11 @@ In the case in which `N` is an additive group, `finsupp.ne_locus f g` coincides 
 `finsupp.support (f - g)`.
 -/
 
-variables {α N M : Type*}
+variables {α N M P : Type*}
 
 namespace finsupp
 variables [decidable_eq α] [decidable_eq N] [decidable_eq M] [has_zero M]
+  [decidable_eq P] [has_zero P]
 
 section ne_locus
 
@@ -73,7 +74,12 @@ begin
   exact congr_arg _,
 end
 
-lemma map_range_ne_locus_eq {F : N → M} (F0 : F 0 = 0) (hF : function.injective F) :
+lemma map_range_ne_locus_eq {F : M → N → P} (F0 : F 0 0 = 0)
+  (f₁ f₂ : α →₀ M) (g : α →₀ N) (hF : ∀ g, function.injective (λ f, F f g)) :
+  (zip_with F F0 f₁ g).ne_locus (zip_with F F0 f₂ g) = f₁.ne_locus f₂ :=
+by { ext, simpa only [mem_ne_locus] using (hF _).ne_iff }
+
+lemma map_range_ne_locus_eq' {F : N → M} (F0 : F 0 = 0) (hF : function.injective F) :
   (f.map_range F F0).ne_locus (g.map_range F F0) = f.ne_locus g :=
 by { ext, simpa only [mem_ne_locus] using hF.ne_iff }
 
@@ -91,15 +97,10 @@ end
 --  can this proof by replaced by the previous one applied to `Nᵃᵒᵖ` and interlaced with `op unop`?
 lemma add_ne_locus_add_eq_right [add_right_cancel_monoid N] (f g h : α →₀ N) :
   (f + h).ne_locus (g + h) = f.ne_locus g  :=
-begin
-  ext,
-  simp only [ne_locus, ne.def, add_left_inj, finset.mem_filter, finset.mem_union, mem_support_iff,
-    coe_add, pi.add_apply, and.congr_left_iff],
-  exact λ bc, ⟨λ h, ne.ne_or_ne 0 bc, λ h, ne.ne_or_ne _ ((add_left_inj _).not.mpr bc)⟩,
-end
+map_range_ne_locus_eq _ _ _ _ (λ gn, add_left_injective _)
 
 @[simp] lemma neg_ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus (- g) = f.ne_locus g :=
-map_range_ne_locus_eq _ _ neg_zero neg_injective
+map_range_ne_locus_eq' _ _ neg_zero neg_injective
 
 lemma ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus g = f.ne_locus (- g) :=
 by rw [← neg_ne_locus_neg _ _, neg_neg]

@@ -30,6 +30,7 @@ open category_theory category_theory.limits opposite topological_space
 
 namespace algebraic_geometry
 
+/-- `Spec ℤ` is the terminal object in the category of schemes. -/
 noncomputable
 def Spec_Z_is_terminal : is_terminal (Scheme.Spec.obj (op $ CommRing.of ℤ)) :=
 @@is_terminal.is_terminal_obj _ _ Scheme.Spec _ infer_instance
@@ -55,14 +56,13 @@ def Scheme.empty_to (X : Scheme.{u}) : ∅ ⟶ X :=
 lemma Scheme.empty_ext {X : Scheme.{u}} (f g : ∅ ⟶ X) : f = g :=
 by { ext a, exact pempty.elim a }
 
-@[simp]
 lemma Scheme.eq_empty_to {X : Scheme.{u}} (f : ∅ ⟶ X) : f = Scheme.empty_to X :=
 Scheme.empty_ext f (Scheme.empty_to X)
 
 instance (X : Scheme.{u}) : unique (∅ ⟶ X) :=
 ⟨⟨Scheme.empty_to _⟩, λ _, Scheme.empty_ext _ _⟩
 
-/-- The empty scheme is initial -/
+/-- The empty scheme is the initial object in the category of schemes. -/
 def empty_is_initial : is_initial (∅ : Scheme.{u}) :=
 is_initial.of_unique _
 
@@ -98,6 +98,7 @@ end
 instance : is_iso (empty_is_initial.to (Scheme.Spec.obj (op $ CommRing.of punit))) :=
 is_iso_of_is_empty _
 
+/-- `Spec 0` is the initial object in the category of schemes. -/
 noncomputable
 def Spec_punit_is_initial : is_initial (Scheme.Spec.obj (op $ CommRing.of punit)) :=
 empty_is_initial.of_iso (as_iso $ empty_is_initial.to _)

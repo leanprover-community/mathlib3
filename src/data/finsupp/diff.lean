@@ -52,10 +52,7 @@ by simp_rw [diff, finset.union_comm, ne_comm]
 begin
   refine ⟨λ h, _, λ h, h ▸ by simp [diff]⟩,
   ext a,
-  refine not_ne_iff.mp (λ fg, not_ne_iff.mpr h _),
-  refine finset.ne_empty_of_mem (_ : a ∈ _),
-  simp only [diff, finset.mem_filter, finset.mem_union, finsupp.mem_support_iff],
-  exact ⟨fg.ne_or_ne _, fg⟩,
+  exact not_not.mp (mem_diff.not.mp (finset.eq_empty_iff_forall_not_mem.mp h a)),
 end
 
 @[simp] lemma nonempty_diff_iff : (f.diff g).nonempty ↔ f ≠ g :=
@@ -63,8 +60,7 @@ finset.nonempty_iff_ne_empty.trans diff_eq_empty.not
 
 @[simp]
 lemma diff_zero_right : f.diff 0 = f.support :=
-by simp only [diff, coe_zero, pi.zero_apply, support_zero, finset.union_empty,
-    finset.filter_true_of_mem, mem_support_iff, imp_self, implies_true_iff]
+by { ext, rw [mem_diff, mem_support_iff, coe_zero, pi.zero_apply] }
 
 @[simp]
 lemma diff_zero_left : (0 : α →₀ N).diff f = f.support :=
@@ -74,8 +70,8 @@ lemma subset_map_range_diff {M} [decidable_eq M] [has_zero M] {F : N → M} (F0 
   (f.map_range F F0).diff (g.map_range F F0) ⊆ f.diff g :=
 begin
   refine λ x, _,
-  simp only [mem_diff, map_range_apply, not_not],
-  exact not_imp_not.mpr (λ h, h ▸ rfl),
+  simp only [mem_diff, map_range_apply, not_imp_not],
+  exact congr_arg _,
 end
 
 lemma map_range_diff_eq {M} [decidable_eq M] [has_zero M]
@@ -115,6 +111,7 @@ end
 by rw [← add_diff_add_eq_right (- g), add_right_neg, diff_zero_right, sub_eq_add_neg]
 
 end diff
+
 
 section wit
 variables [inhabited α] [linear_order α]

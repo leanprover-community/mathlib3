@@ -765,9 +765,10 @@ begin
 end
 
 instance (n : ℕ) : fintype (fin n) :=
-⟨finset.fin_range n, finset.mem_fin_range⟩
+⟨⟨list.fin_range n, list.nodup_fin_range n⟩, list.mem_fin_range⟩
 
-lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = finset.fin_range n := rfl
+lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = ⟨list.fin_range n, list.nodup_fin_range n⟩ :=
+rfl
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n

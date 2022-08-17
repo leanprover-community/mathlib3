@@ -1717,8 +1717,8 @@ ext $ λ _ _, (he₂.sum_comp _).symm
 
 lemma diag_submatrix (A : matrix m m α) (e : l → m) : diag (A.submatrix e e) = A.diag ∘ e := rfl
 
-/-! `simp` lemmas for `matrix.submatrix`s interaction with `matrix.diagonal`, `1`, and `matrix.mul` for
-when the mappings are bundled. -/
+/-! `simp` lemmas for `matrix.submatrix`s interaction with `matrix.diagonal`, `1`, and `matrix.mul`
+for when the mappings are bundled. -/
 
 @[simp]
 lemma submatrix_diagonal_embedding [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
@@ -1733,7 +1733,8 @@ lemma submatrix_diagonal_equiv [has_zero α] [decidable_eq m] [decidable_eq l] (
 submatrix_diagonal d e e.injective
 
 @[simp]
-lemma submatrix_one_embedding [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ↪ m) :
+lemma submatrix_one_embedding
+  [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ↪ m) :
   (1 : matrix m m α).submatrix e e = 1 :=
 submatrix_one e e.injective
 
@@ -1754,7 +1755,8 @@ lemma mul_submatrix_one [fintype n] [fintype o] [non_assoc_semiring α] [decidab
 begin
   let A := M.submatrix id e₁.symm,
   have : M = A.submatrix id e₁,
-  { simp only [submatrix_submatrix, function.comp.right_id, submatrix_id_id, equiv.symm_comp_self], },
+  { simp only [submatrix_submatrix, function.comp.right_id, submatrix_id_id,
+      equiv.symm_comp_self], },
   rw [this, submatrix_mul_equiv],
   simp only [matrix.mul_one, submatrix_submatrix, function.comp.right_id, submatrix_id_id,
     equiv.symm_comp_self],
@@ -1766,7 +1768,8 @@ lemma one_submatrix_mul [fintype m] [fintype o] [non_assoc_semiring α] [decidab
 begin
   let A := M.submatrix e₂.symm id,
   have : M = A.submatrix e₂ id,
-  { simp only [submatrix_submatrix, function.comp.right_id, submatrix_id_id, equiv.symm_comp_self], },
+  { simp only [submatrix_submatrix, function.comp.right_id, submatrix_id_id,
+      equiv.symm_comp_self], },
   rw [this, submatrix_mul_equiv],
   simp only [matrix.one_mul, submatrix_submatrix, function.comp.right_id, submatrix_id_id,
     equiv.symm_comp_self],

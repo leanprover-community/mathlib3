@@ -150,7 +150,8 @@ lemma continuous.matrix_vec_mul [non_unital_non_assoc_semiring R] [has_continuou
 continuous_pi $ λ i, hA.matrix_dot_product $ continuous_pi $ λ j, hB.matrix_elem _ _
 
 @[continuity]
-lemma continuous.matrix_submatrix {A : X → matrix l n R} (hA : continuous A) (e₁ : m → l) (e₂ : p → n) :
+lemma continuous.matrix_submatrix
+  {A : X → matrix l n R} (hA : continuous A) (e₁ : m → l) (e₂ : p → n) :
   continuous (λ x, (A x).submatrix e₁ e₂) :=
 continuous_matrix $ λ i j, hA.matrix_elem _ _
 

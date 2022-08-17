@@ -96,9 +96,9 @@ begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-
   Try this: simp only [det_succ_row_zero, fin.sum_univ_succ, neg_mul, mul_one,
-  fin.default_eq_zero, fin.coe_zero, one_mul, cons_val_one, fin.coe_succ, univ_unique, submatrix_apply,
-  pow_one, fin.zero_succ_above, fin.succ_succ_above_zero,  finset.sum_singleton, cons_val_zero,
-  cons_val_succ, det_fin_zero, pow_zero]
+  fin.default_eq_zero, fin.coe_zero, one_mul, cons_val_one, fin.coe_succ, univ_unique,
+  submatrix_apply, pow_one, fin.zero_succ_above, fin.succ_succ_above_zero,  finset.sum_singleton,
+  cons_val_zero, cons_val_succ, det_fin_zero, pow_zero]
   -/
   ring
 end

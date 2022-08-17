@@ -69,7 +69,6 @@ class non_unital_star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_p
   extends non_unital_alg_hom_class F R A B, star_hom_class F A B
 
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
-attribute [nolint dangerous_instance] non_unital_star_alg_hom_class.to_non_unital_alg_hom_class
 attribute [nolint dangerous_instance] non_unital_star_alg_hom_class.to_star_hom_class
 
 namespace non_unital_star_alg_hom

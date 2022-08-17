@@ -322,7 +322,7 @@ variables (f : L →ₐ[K] L')
 /-- The range of an algebra homomorphism, as an intermediate field. -/
 def field_range : intermediate_field K L' :=
 { .. f.range,
-  .. f.to_ring_hom.field_range }
+  .. (f : L →+* L').field_range }
 
 @[simp] lemma coe_field_range : ↑f.field_range = set.range f := rfl
 

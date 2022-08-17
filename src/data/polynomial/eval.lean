@@ -932,7 +932,7 @@ lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 map_int_cast (map_ring_hom f) n
 
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : R[X]).eval x = n :=
-by simp only [←C_eq_int_cast, eval_C]
+by simp only [←map_int_cast C, eval_C]
 
 @[simp] lemma eval₂_neg {S} [ring S] (f : R →+* S) {x : S} :
   (-p).eval₂ f x = -p.eval₂ f x :=

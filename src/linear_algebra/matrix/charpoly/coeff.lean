@@ -59,7 +59,7 @@ begin
   simp only [charmatrix_apply_eq, one_mul, equiv.perm.sign_refl, id.def, int.cast_one,
     units.coe_one, add_sub_cancel, equiv.coe_refl],
   rw ← mem_degree_lt, apply submodule.sum_mem (degree_lt R (fintype.card n - 1)),
-  intros c hc, rw [← C_eq_int_cast, C_mul'],
+  intros c hc, rw [← map_int_cast C, C_mul'],
   apply submodule.smul_mem (degree_lt R (fintype.card n - 1)) ↑↑(equiv.perm.sign c),
   rw mem_degree_lt, apply lt_of_le_of_lt degree_le_nat_degree _, rw with_bot.coe_lt_coe,
   apply lt_of_le_of_lt _ (equiv.perm.fixed_point_card_lt_of_ne_one (ne_of_mem_erase hc)),

@@ -104,8 +104,8 @@ occur within the "copy context." -/
 protected def copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') : G.walk u' v' :=
 eq.rec (eq.rec p hv) hu
 
-@[simp] lemma copy_rfl_rfl {u v} (p : G.walk u v) (hu : u = u) (hv : v = v) :
-  p.copy hu hv = p := rfl
+@[simp] lemma copy_rfl_rfl {u v} (p : G.walk u v) :
+  p.copy rfl rfl = p := rfl
 
 @[simp] lemma copy_copy {u v u' v' u'' v''} (p : G.walk u v)
   (hu : u = u') (hv : v = v') (hu' : u' = u'') (hv' : v' = v'') :

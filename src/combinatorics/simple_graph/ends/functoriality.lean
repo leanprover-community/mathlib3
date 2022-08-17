@@ -23,6 +23,7 @@ import data.opposite
 
 import .mathlib
 import .reachable_outside
+import .bwd_map
 
 
 open function
@@ -59,10 +60,16 @@ namespace simple_graph
 
 variables  {V : Type u}
            (G : simple_graph V)
+           (Gpc : preconnected G)
+
            {V' : Type v}
            (G' : simple_graph V')
+           (Gpc' : preconnected G')
+
            {V'' : Type w}
            (G'' : simple_graph V'')
+           (Gpc'' : preconnected G'')
+
 
 namespace ends
 
@@ -103,6 +110,8 @@ begin
 end
 
 lemma cofinite.id : cofinite (@id V) := by {intro,simp}
+lemma cofinite.of_inj {f : V → V'} (inj : function.injective f) : cofinite f := by
+{ intro,dsimp [set.preimage], sorry } -- can we show it constructively?
 
 
 def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V :=
@@ -114,20 +123,62 @@ begin
   simp,
 end
 
+
 def good_finset (f : V → V') (cof : cofinite f) (K : finset V') :=
   {L : finset V | cofinite.preimage cof K ⊆ L
-                ∧ ∀ D : inf_ro_components G L, ∃! C : inf_ro_components G' K, f '' D ⊆ C}
+                ∧ ∀ D : inf_ro_components' G L, ∃ C : inf_ro_components' G' K, f '' D.val ⊆ C.val}
+--                                              ^ note that this C is necessarily unique
+
+lemma good_finset.id (K : finset V) : K ∈ good_finset G G (@id V) (cofinite.id) K := by
+{ split,
+  {dsimp [cofinite.preimage], rw ←finset.coe_subset, simp,},
+  {dsimp [id], rintro D, use D, simp, } }
+
+include Gpc
+lemma good_finset.mono (f : V → V') (cof : cofinite f) (K : finset V')
+  (L ∈ good_finset G G' f cof K) (L' : finset V) (LL' : L ⊆ L') : L' ∈  good_finset G G' f cof K :=
+begin
+  split,
+  exact H.1.trans LL',
+  rintro D',
+  obtain ⟨C,Csub⟩ := H.2 (bwd_map.bwd_map_inf G Gpc LL' D'),
+  use C,
+  apply subset.trans _ Csub,
+  apply image_subset f _,
+  apply bwd_map.bwd_map_inf.sub,
+end
+
+/- Not so sure it's true, actually
+lemma good_finset.inter( f : V → V') (cof : cofinite f) (K : finset V')
+  (L L' : finset V) (H : L ∈  good_finset G G' f cof K) (H' : L' ∈  good_finset G G' f cof K) :
+  L ∩ L' ∈ good_finset G G' f cof K :=
+begin
+  split, exact finset.subset_inter H.1 H'.1,
+  rintro D,
+  obtain ⟨C,CD⟩ := H.2 D,
+  obtain ⟨C',CD'⟩ := H'.2 D,
+
+
+end
+-/
 
 structure coarse :=
   (to_fun : V → V')
   (cof : cofinite to_fun)
-  (coarse : ∀ (K : finset V'), good_finset G G' to_fun cof K)
+  (coarse : ∀ (K : finset V'), ∃ (L : finset V), L ∈ good_finset G G' to_fun cof K)
+
+def coarse.comp (φ : coarse G G') (φ' : coarse G' G'') : (coarse G G'') :=
+{ to_fun := φ'.to_fun ∘ φ.to_fun
+, cof := cofinite.comp φ.cof φ'.cof
+, coarse := by {sorry}
+}
+
 
 def close (f g : coarse G G') :=
   ∀ (K : finset V') (L : good_finset G G' f.to_fun f.cof K) (M : good_finset G G' f.to_fun f.cof K),
     ∃ N : finset V, ↑L ⊆ N ∧ ↑M ⊆ N
-                  ∧ ∀ D : inf_ro_components G N,
-                    ∃! C : inf_ro_components G' K, f.to_fun '' D ⊆ C ∧ g.to_fun '' D ⊆ C
+                  ∧ ∀ D : inf_ro_components' G N,
+                    ∃! C : inf_ro_components' G' K, f.to_fun '' D.val ⊆ C.val ∧ g.to_fun '' D.val ⊆ C.val
 
 
 /-

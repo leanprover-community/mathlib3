@@ -19,10 +19,10 @@ In the case in which `N` is an additive group, `finsupp.ne_locus f g` coincides 
 `finsupp.support (f - g)`.
 -/
 
-variables {α N : Type*}
+variables {α N M : Type*}
 
 namespace finsupp
-variables [decidable_eq α] [decidable_eq N]
+variables [decidable_eq α] [decidable_eq N] [decidable_eq M] [has_zero M]
 
 section ne_locus
 
@@ -65,7 +65,7 @@ by { ext, rw [mem_ne_locus, mem_support_iff, coe_zero, pi.zero_apply] }
 lemma ne_locus_zero_left : (0 : α →₀ N).ne_locus f = f.support :=
 (ne_locus_comm _ _).trans (ne_locus_zero_right _)
 
-lemma subset_map_range_ne_locus {M} [decidable_eq M] [has_zero M] {F : N → M} (F0 : F 0 = 0) :
+lemma subset_map_range_ne_locus {F : N → M} (F0 : F 0 = 0) :
   (f.map_range F F0).ne_locus (g.map_range F F0) ⊆ f.ne_locus g :=
 begin
   refine λ x, _,
@@ -73,8 +73,7 @@ begin
   exact congr_arg _,
 end
 
-lemma map_range_ne_locus_eq {M} [decidable_eq M] [has_zero M]
-  {F : N → M} (F0 : F 0 = 0) (hF : function.injective F) :
+lemma map_range_ne_locus_eq {F : N → M} (F0 : F 0 = 0) (hF : function.injective F) :
   (f.map_range F F0).ne_locus (g.map_range F F0) = f.ne_locus g :=
 by { ext, simpa only [mem_ne_locus] using hF.ne_iff }
 

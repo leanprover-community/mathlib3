@@ -1,5 +1,44 @@
+/-
+Copyright (c) 2022 Jireh Loreaux. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jireh Loreaux
+-/
+
 import algebra.hom.non_unital_alg
 import algebra.star.prod
+
+/-!
+# Morphisms of star algebras
+
+This file defines morphisms between `R`-algebras (unital or non-unital) `A` and `B` where both
+`A` and `B` are equipped with a `star` operation. These morphisms, namely `star_alg_hom` and
+`non_unital_star_alg_hom` are direct extensions of their non-`star`red counterparts with a field
+`map_star` which guarantees they preserve the star operation. We keep the type classes as generic
+as possible, in keeping with the definition of `non_unital_alg_hom` in the non-unital case. In this
+file, we only assume `has_star` unless we want to talk about the zero map as a
+`non_unital_star_alg_hom`, in which case we need `star_add_monoid`. Note that the scalar ring `R`
+is not required to have a star operation, nor do we need `star_ring` or `star_module` structures on
+`A` and `B`.
+
+As with `non_unital_alg_hom`, in the non-unital case the multiplications are not assumed to be
+associative or unital, or even to be compatible with the scalar actions. In a typical application,
+the operations will satisfy compatibility conditions making them into algebras (albeit possibly
+non-associative and/or non-unital) but such conditions are not required here for the definitions.
+
+The primary impetus for defining these types is that they consitute the morphisms in the categories
+of unital C⋆-algebras (with `star_alg_hom`s) and of C⋆-algebras (with `non_unital_star_alg_hom`s).
+
+TODO: add `star_alg_equiv`.
+
+## Main definitions
+
+  * `non_unital_alg_hom`
+  * `star_alg_hom`
+
+## Tags
+
+non-unital, algebra, morphism, star
+-/
 
 set_option old_structure_cmd true
 

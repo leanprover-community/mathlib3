@@ -54,13 +54,12 @@ begin
   refl
 end
 
-noncomputable instance LDL.invertible_lower_inv : invertible (LDL.lower_inv hS) :=
+noncomputable instance LDL.is_unit_lower_inv : is_unit (LDL.lower_inv hS) :=
 begin
   rw [LDL.lower_inv_gram_schmidt_basis],
-  haveI := basis.invertible_to_matrix (pi.basis_fun 𝕜 n)
+  exact basis.is_unit_to_matrix (pi.basis_fun 𝕜 n)
     (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose)
-      n _ _ _ (pi.basis_fun 𝕜 n)),
-  apply_instance
+      n _ _ _ (pi.basis_fun 𝕜 n))
 end
 
 lemma LDL.lower_inv_orthogonal {i j : n} (h₀ : i ≠ j) :

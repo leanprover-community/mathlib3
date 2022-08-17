@@ -187,6 +187,12 @@ lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
 
 variables {A B}
 
+lemma is_unit_of_left_inverse (h : B ⬝ A = 1) : is_unit A :=
+⟨⟨A, B, mul_eq_one_comm.mp h, h⟩, rfl⟩
+
+def is_unit_of_right_inverse (h : A ⬝ B = 1) : is_unit A :=
+⟨⟨A, B, h, mul_eq_one_comm.mp h⟩, rfl⟩
+
 lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_left_inverse _ _ h)
 

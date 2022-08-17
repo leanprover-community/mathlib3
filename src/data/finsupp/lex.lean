@@ -105,10 +105,7 @@ end inhabited_and_linear_orders
 
 variables [linear_order α] [linear_order N] [add_left_cancel_monoid N] [covariant_class N N (+) (≤)]
 
-instance : covariant_class (to_lex (α →₀ N)) (to_lex (α →₀ N))
-  ((+) : (α →₀ N) → (α →₀ N) → (α →₀ N)) $
-  @has_le.le (to_lex (α →₀ N)) $ by { haveI : linear_order (to_lex (α →₀ N)) := lex.linear_order,
-                                      apply_instance } :=
+instance : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (@has_add.add (α →₀ N) _) (≤) :=
 { elim := λ f g h gh, begin
     by_cases iα : nonempty α,
     { cases iα with x,

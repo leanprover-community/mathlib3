@@ -53,7 +53,7 @@ def Scheme.empty_to (X : Scheme.{u}) : ∅ ⟶ X :=
 
 @[ext]
 lemma Scheme.empty_ext {X : Scheme.{u}} (f g : ∅ ⟶ X) : f = g :=
-by { ext x, exact pempty.elim x }
+by { ext a, exact pempty.elim a }
 
 @[simp]
 lemma Scheme.eq_empty_to {X : Scheme.{u}} (f : ∅ ⟶ X) : f = Scheme.empty_to X :=
@@ -63,7 +63,7 @@ instance (X : Scheme.{u}) : unique (∅ ⟶ X) :=
 ⟨⟨Scheme.empty_to _⟩, λ _, Scheme.empty_ext _ _⟩
 
 /-- The empty scheme is initial -/
-def empty_is_initial : is_initial ∅ :=
+def empty_is_initial : is_initial (∅ : Scheme.{u}) :=
 is_initial.of_unique _
 
 @[simp]

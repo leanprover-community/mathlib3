@@ -339,7 +339,7 @@ theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_iff, gcd_map, is_unit_map]
 
-lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
+lemma mem_roots_map [comm_ring k] [is_domain k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
 begin
   rw mem_roots (show p.map f ≠ 0, by exact map_ne_zero hp),
@@ -347,11 +347,11 @@ begin
   rw polynomial.eval_map,
 end
 
-lemma mem_root_set [field k] [algebra R k] {x : k} (hp : p ≠ 0) :
+lemma mem_root_set [comm_ring k] [is_domain k] [algebra R k] {x : k} (hp : p ≠ 0) :
   x ∈ p.root_set k ↔ aeval x p = 0 :=
 iff.trans multiset.mem_to_finset (mem_roots_map hp)
 
-lemma root_set_C_mul_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
 begin
   ext x,
@@ -361,13 +361,22 @@ begin
   { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
 end
 
-lemma root_set_monomial {R S : Type*} [field R] [field S] [algebra R S]
+lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
 by rw [←C_mul_X_pow_eq_monomial, root_set_C_mul_X_pow hn ha]
 
-lemma root_set_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+lemma root_set_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) : (X ^ n : R[X]).root_set S = {0} :=
 by { rw [←one_mul (X ^ n : R[X]), ←C_1, root_set_C_mul_X_pow hn], exact one_ne_zero }
+
+lemma root_set_prod [comm_ring S] [is_domain S] [algebra R S]
+  {ι : Type*} (f : ι → R[X]) (s : finset ι) (h : s.prod f ≠ 0) :
+  (s.prod f).root_set S = ⋃ (i ∈ s), (f i).root_set S :=
+begin
+  simp only [root_set, ←finset.mem_coe],
+  rw [polynomial.map_prod, roots_prod, finset.bind_to_finset, s.val_to_finset, finset.coe_bUnion],
+  rwa [←polynomial.map_prod, ne, map_eq_zero],
+end
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),

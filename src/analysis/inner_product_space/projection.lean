@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.convex.basic
-import analysis.inner_product_space.basic
+import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 
 /-!
@@ -938,6 +938,12 @@ lemma inner_orthogonal_projection_left_eq_right
   [complete_space K] (u v : E) :
   ⟪↑(orthogonal_projection K u), v⟫ = ⟪u, orthogonal_projection K v⟫ :=
 by rw [← inner_orthogonal_projection_eq_of_mem_left, inner_orthogonal_projection_eq_of_mem_right]
+
+/-- The orthogonal projection is symmetric. -/
+lemma orthogonal_projection_is_symmetric [complete_space E]
+  [complete_space K] :
+  (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
+inner_orthogonal_projection_left_eq_right K
 
 open finite_dimensional
 

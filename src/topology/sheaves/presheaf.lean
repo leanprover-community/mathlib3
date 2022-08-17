@@ -79,6 +79,7 @@ by rw [restrict, restrict, ← comp_apply, nat_trans.naturality, comp_apply]
 instance {C : Type*} [preorder C] {X Y : C} (e : X = Y) : is_iso (hom_of_le e.le) :=
 by convert (show is_iso (eq_to_hom e), by apply_instance)
 
+
 /-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
 on `Y`. -/
 def pushforward_obj {X Y : Top.{w}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=

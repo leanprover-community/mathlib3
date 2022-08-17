@@ -486,7 +486,7 @@ map with respect to that basis, multiplied by the value of that alternating map 
 lemma alternating_map.eq_smul_basis_det (f : alternating_map R M R ι) : f = f e • e.det :=
 begin
   refine basis.ext_alternating e (λ i h, _),
-  let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
+  let σ : equiv.perm ι := equiv.of_bijective i (finite.injective_iff_bijective.1 h),
   change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
   simp [alternating_map.map_perm, basis.det_self]
 end

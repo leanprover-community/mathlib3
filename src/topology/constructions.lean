@@ -1109,10 +1109,11 @@ begin
     exact assume s hs, generate_open.basic _ ⟨function.update (λa, univ) a s, {a}, by simp [hs]⟩ }
 end
 
-lemma pi_generate_from_eq_fintype {g : Πa, set (set (π a))} [fintype ι] (hg : ∀a, ⋃₀ g a = univ) :
+lemma pi_generate_from_eq_finite {g : Πa, set (set (π a))} [finite ι] (hg : ∀a, ⋃₀ g a = univ) :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
   generate_from {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} :=
 begin
+  casesI nonempty_fintype ι,
   rw [pi_generate_from_eq],
   refine le_antisymm (generate_from_mono _) (le_generate_from _),
   exact assume s ⟨t, ht, eq⟩, ⟨t, finset.univ, by simp [ht, eq]⟩,

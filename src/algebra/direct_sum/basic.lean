@@ -176,8 +176,10 @@ variables {β}
 
 omit dec_ι
 
+instance unique [∀ i, subsingleton (β i)] : unique (⨁ i, β i) := dfinsupp.unique
+
 /-- A direct sum over an empty type is trivial. -/
-instance [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique
+instance unique_of_is_empty [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique_of_is_empty
 
 /-- The natural equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :

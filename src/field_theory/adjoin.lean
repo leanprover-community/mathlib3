@@ -386,6 +386,36 @@ begin
   rwa is_algebraic_iff_is_integral,
 end
 
+lemma is_splitting_field_iff {p : F[X]} {K : intermediate_field F E} :
+  p.is_splitting_field F K ↔ p.splits (algebra_map F K) ∧ K = adjoin F (p.root_set E) :=
+begin
+  suffices : _ → ((algebra.adjoin F (p.root_set K) = ⊤ ↔ K = adjoin F (p.root_set E))),
+  { exact ⟨λ h, ⟨h.1, (this h.1).mp h.2⟩, λ h, ⟨h.1, (this h.1).mpr h.2⟩⟩ },
+  simp_rw [set_like.ext_iff, ←mem_to_subalgebra, ←set_like.ext_iff],
+  rw [←K.range_val, adjoin_algebraic_to_subalgebra (λ x, is_algebraic_of_mem_root_set)],
+  exact λ hp, (adjoin_root_set_eq_range hp K.val).symm.trans eq_comm,
+end
+
+lemma adjoin_root_set_is_splitting_field {p : F[X]} (hp : p.splits (algebra_map F E)) :
+  p.is_splitting_field F (adjoin F (p.root_set E)) :=
+is_splitting_field_iff.mpr ⟨splits_of_splits hp (λ x hx, subset_adjoin F (p.root_set E) hx), rfl⟩
+
+open_locale big_operators
+
+/-- A compositum of splitting fields is a splitting field -/
+lemma is_splitting_field_supr {ι : Type*} {t : ι → intermediate_field F E} {p : ι → F[X]}
+  {s : finset ι} (h0 : ∏ i in s, p i ≠ 0) (h : ∀ i ∈ s, (p i).is_splitting_field F (t i)) :
+  (∏ i in s, p i).is_splitting_field F (⨆ i ∈ s, t i : intermediate_field F E) :=
+begin
+  let K : intermediate_field F E := ⨆ i ∈ s, t i,
+  have hK : ∀ i ∈ s, t i ≤ K := λ i hi, le_supr_of_le i (le_supr (λ _, t i) hi),
+  simp only [is_splitting_field_iff] at h ⊢,
+  refine ⟨splits_prod (algebra_map F K) (λ i hi, polynomial.splits_comp_of_splits
+    (algebra_map F (t i)) (inclusion (hK i hi)).to_ring_hom (h i hi).1), _⟩,
+  simp only [root_set_prod p s h0, ←set.supr_eq_Union, (@gc F _ E _ _).l_supr₂],
+  exact supr_congr (λ i, supr_congr (λ hi, (h i hi).2)),
+end
+
 open set complete_lattice
 
 @[simp] lemma adjoin_simple_le_iff {K : intermediate_field F E} : F⟮α⟯ ≤ K ↔ α ∈ K :=
@@ -454,6 +484,16 @@ lemma exists_finset_of_mem_supr' {ι : Type*} {f : ι → intermediate_field F E
   {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset (Σ i, f i), x ∈ ⨆ i ∈ s, F⟮(i.2 : E)⟯ :=
 exists_finset_of_mem_supr (set_like.le_def.mp (supr_le
   (λ i x h, set_like.le_def.mp (le_supr_of_le ⟨i, x, h⟩ le_rfl) (mem_adjoin_simple_self F x))) hx)
+
+lemma exists_finset_of_mem_supr'' {ι : Type*} {f : ι → intermediate_field F E}
+  (h : ∀ i, algebra.is_algebraic F (f i)) {x : E} (hx : x ∈ ⨆ i, f i) :
+  ∃ s : finset (Σ i, f i), x ∈ ⨆ i ∈ s, adjoin F ((minpoly F (i.2 : _)).root_set E) :=
+begin
+  refine exists_finset_of_mem_supr (set_like.le_def.mp (supr_le (λ i x hx, set_like.le_def.mp
+    (le_supr_of_le ⟨i, x, hx⟩ le_rfl) (subset_adjoin F _ _))) hx),
+  rw [intermediate_field.minpoly_eq, subtype.coe_mk, polynomial.mem_root_set, minpoly.aeval],
+  exact minpoly.ne_zero (is_integral_iff.mp (is_algebraic_iff_is_integral.mp (h i ⟨x, hx⟩)))
+end
 
 end adjoin_simple
 end adjoin_def
@@ -945,6 +985,7 @@ begin
   exact this.symm ▸ intermediate_field.finite_dimensional_supr_of_finite,
 end
 
+/-- A compositum of algebraic extensions is algebraic -/
 lemma is_algebraic_supr {ι : Type*} {f : ι → intermediate_field K L}
   (h : ∀ i, algebra.is_algebraic K (f i)) :
   algebra.is_algebraic K (⨆ i, f i : intermediate_field K L) :=

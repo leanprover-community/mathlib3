@@ -327,6 +327,9 @@ def field_range : intermediate_field K L' :=
 
 @[simp] lemma coe_field_range : ↑f.field_range = set.range f := rfl
 
+@[simp] lemma field_range_to_subfield :
+  f.field_range.to_subfield = (f : L →+* L').field_range := rfl
+
 variables {f}
 
 @[simp] lemma mem_field_range {y : L'} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl

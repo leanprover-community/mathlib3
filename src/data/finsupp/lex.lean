@@ -52,12 +52,13 @@ noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
     { exact or.inl (finsupp.diff_eq_empty.mp he).le },
     { cases he with a ha,
       haveI : inhabited α := ⟨a⟩,
-      cases le_or_lt (of_lex f (f.wit g)) (of_lex g (f.wit g)) with mf mg,
+      cases le_or_lt (f (f.wit g)) (g (f.wit g)) with mf mg,
       { refine or.inl (or.inr ⟨f.wit g, λ j hj, apply_eq_of_lt_wit hj, mf.lt_of_ne _⟩),
         exact wit_eq_wit_iff.not.mpr (nonempty_diff_iff.mp ⟨_, ha⟩) },
       { exact or.inr (or.inr ⟨g.wit f, λ j hj, apply_eq_of_lt_wit hj, (by rwa wit_comm at mg)⟩) } }
     end,
   decidable_le := by { classical, apply_instance },
+  decidable_eq := by apply_instance,
   ..lex.partial_order }
 
 lemma lex.le_of_forall_le {a b : lex (α →₀ N)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=

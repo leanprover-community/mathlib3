@@ -776,10 +776,11 @@ finprod_mem_mul_diff' hst (ht.inter_of_left _)
 @[to_additive "Given a family of pairwise disjoint finite sets `t i` indexed by a finite type, the
 sum of `f a` over the union `⋃ i, t i` is equal to the sum over all indexes `i` of the sums of `f a`
 over `a ∈ t i`."]
-lemma finprod_mem_Union [fintype ι] {t : ι → set α} (h : pairwise (disjoint on t))
+lemma finprod_mem_Union [finite ι] {t : ι → set α} (h : pairwise (disjoint on t))
   (ht : ∀ i, (t i).finite) :
   ∏ᶠ a ∈ (⋃ i : ι, t i), f a = ∏ᶠ i, ∏ᶠ a ∈ t i, f a :=
 begin
+  casesI nonempty_fintype ι,
   lift t to ι → finset α using ht,
   classical,
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
@@ -989,3 +990,4 @@ lemma finprod_emb_domain (f : α ↪ β) [decidable_pred (∈ set.range f)] (g :
 finprod_emb_domain' f.injective g
 
 end type
+#lint

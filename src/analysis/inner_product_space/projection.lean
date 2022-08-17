@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.convex.basic
-import analysis.inner_product_space.basic
+import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 
 /-!
@@ -933,6 +933,12 @@ begin
     submodule.inner_left_of_mem_orthogonal (submodule.coe_mem (orthogonal_projection K v))
       (submodule.coe_mem (orthogonal_projection Kᗮ u))],
 end
+
+/-- The orthogonal projection is symmetric. -/
+lemma orthogonal_projection_is_symmetric [complete_space E]
+  [complete_space K] :
+  (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
+inner_orthogonal_projection_left_eq_right K
 
 open finite_dimensional
 

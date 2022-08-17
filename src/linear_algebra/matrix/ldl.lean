@@ -44,7 +44,7 @@ noncomputable def LDL.lower_inv : matrix n n 𝕜 :=
 @gram_schmidt
   𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _ (λ k, pi.basis_fun 𝕜 n k)
 
-lemma LDL.lower_inv_gram_schmidt_basis :
+lemma LDL.lower_inv_eq_gram_schmidt_basis :
   LDL.lower_inv hS = ((pi.basis_fun 𝕜 n).to_matrix
     (@gram_schmidt_basis 𝕜 (n → 𝕜) _
     (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)))ᵀ :=
@@ -56,7 +56,7 @@ end
 
 noncomputable instance LDL.is_unit_lower_inv : is_unit (LDL.lower_inv hS) :=
 begin
-  rw [LDL.lower_inv_gram_schmidt_basis],
+  rw [LDL.lower_inv_eq_gram_schmidt_basis],
   exact basis.is_unit_to_matrix (pi.basis_fun 𝕜 n)
     (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose)
       n _ _ _ (pi.basis_fun 𝕜 n))
@@ -107,5 +107,5 @@ theorem LDL.lower_conj_diag :
 begin
   rw [LDL.lower, conj_transpose_nonsing_inv, matrix.mul_assoc,
     matrix.inv_mul_eq_iff_eq_mul (LDL.lower_inv hS), matrix.mul_inv_eq_iff_eq_mul],
-  exact ldl_decomposition₀ hS,
+  exact LDL.diag_eq_lower_inv_conj hS,
 end

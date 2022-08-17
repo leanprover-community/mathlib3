@@ -317,7 +317,7 @@ section real
 
 variables {R S : Type*} [linear_ordered_field R] [linear_ordered_field S]
 
-lemma ring_hom_monotone (hR : ∀ r : R, r ≥ 0 → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
+lemma ring_hom_monotone (hR : ∀ r : R, 0 ≤ r → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
 begin
   intros a b hab,
   apply le_of_sub_nonneg,

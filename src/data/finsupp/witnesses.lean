@@ -123,7 +123,7 @@ section N_has_zero
 variables [has_zero N] {f g : α →₀ N}
 
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.wit f g` is an element of `α`.
-It is a "generic" element of `α` (namely, `nonempty.some _ : α`) if and only if `f = g`.
+It is a "generic" element of `α` (namely, `default : α`) if and only if `f = g`.
 Otherwise, it is `a` if `a : α` is the smallest value for which `f a ≠ g a`. -/
 def wit (f g : α →₀ N) : α :=
 dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, default)
@@ -143,7 +143,7 @@ end
 lemma wit_le {x : α} (hx : f x ≠ g x) : (f.wit g) ≤ x :=
 begin
   unfold wit,
-  split_ifs,
+  split_ifs with h h,
   { exact (f.diff g).min'_le x (mem_diff.mpr hx) },
   { exact (hx (congr_fun (not_not.mp (nonempty_diff_iff.not.mp h)) x)).elim }
 end

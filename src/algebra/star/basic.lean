@@ -397,6 +397,8 @@ class star_hom_class (F : Type*) (R S : out_param Type*) [has_star R] [has_star 
   extends fun_like F R (λ _, S) :=
 (map_star : ∀ (f : F) (r : R), f (star r) = star (f r))
 
+export star_hom_class (map_star)
+
 end
 
 /-! ### Instances -/

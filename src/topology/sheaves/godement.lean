@@ -98,6 +98,7 @@ variables [Π (U : opens X), preserves_colimits_of_shape
   ((opens.grothendieck_topology X).cover U)ᵒᵖ (forget C)]
 variables [reflects_isomorphisms (forget C)]
 
-instance : mono $ to_godement_sheaf 𝓖 := sorry
+instance : mono $ to_godement_sheaf 𝓖 :=
+sorry
 
 end presheaf

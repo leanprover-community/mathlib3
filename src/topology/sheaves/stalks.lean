@@ -462,6 +462,10 @@ begin
   apply_instance,
 end
 
+lemma mono_iff_stalk_mono {F G : sheaf C X} (f : F ⟶ G) :
+  mono f ↔ ∀ x, mono ((stalk_functor C x).map f.1) :=
+⟨λ m, by { resetI, apply_instance }, λ m, by { resetI, apply_instance }⟩
+
 end
 
 /-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.

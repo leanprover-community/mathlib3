@@ -1804,8 +1804,7 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
     by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
   conj_sym := λ x y, by simp [mul_comm],
   add_left := λ x y z, by simp [inner, add_mul],
-  smul_left := λ x y z, by simp [inner, mul_assoc],
-  ..is_R_or_C.to_nontrivially_normed_field }
+  smul_left := λ x y z, by simp [inner, mul_assoc] }
 
 @[simp] lemma is_R_or_C.inner_apply (x y : 𝕜) : ⟪x, y⟫ = (conj x) * y := rfl
 

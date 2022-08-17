@@ -1162,8 +1162,8 @@ b0.lt_or_eq.elim (λ h, preorder.mul_le_of_le_one_of_le h ha bc)
 
 /-- Assumes right covariance. -/
 lemma right.mul_le_one_of_le_of_le [mul_pos_mono α]
-  (b0 : 0 < b) (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
-preorder.mul_le_of_le_one_of_le b0 ha hb
+  (b0 : 0 ≤ b) (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
+mul_le_of_le_one_of_le b0 ha hb
 
 lemma mul_le_of_le_one_of_le' [pos_mul_mono α] [mul_pos_mono α]
   (a0 : 0 ≤ a) (c0 : 0 ≤ c) (ha : a ≤ 1) (bc : b ≤ c) : a * b ≤ c :=

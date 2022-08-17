@@ -272,6 +272,16 @@ begin
 end
 -/
 
+lemma mul_finite_sum {ι : Type*} {s : finset ι} {g : ι → K} {h : K} :
+  h * (∑ i in s, g i) = ∑ i in s, (h * g i) :=
+begin
+  classical,
+  apply s.induction_on,
+  { simp only [finset.sum_empty, mul_zero], },
+  { intros a s has H,
+    rw [finset.sum_insert has, finset.sum_insert has, ← H, ← mul_add], },
+end
+
 
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
@@ -281,17 +291,32 @@ lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
 begin
   classical,
   apply s.induction_on,
-  { sorry, },
+  { refine ⟨f, (λ (i : ι), (0 : R[X])), _⟩,
+    split,
+    { intro i,
+      rw [degree_zero, bot_lt_iff_ne_bot],
+      intro hdg,
+      specialize hg i,
+      rw degree_eq_bot at hdg, rw hdg at hg,
+      have h0nmonic : ¬ (0:R[X]).monic := not_monic_zero,
+      contradiction, },
+    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
   { intros a b hab H,
     rcases H with ⟨q, r, Hdeg, Hind⟩,
-    have h1 : (∏ (i : ι) in insert a b, ↑(g i)) = ↑(g a) * (∏ (j : ι) in b, ↑(g j)),
-    { sorry, },
-    rw h1,
-    sorry,
-    exact distrib.to_has_mul K,
-    exact coe_to_lift,
-    exact comm_ring.to_comm_monoid K,
-    exact coe_to_lift, },
+    -- have h1 : (∏ (i : ι) in insert a b, ↑(g i)) = ↑(g a) * (∏ (j : ι) in b, ↑(g j)),
+    -- { --exact finset.prod_insert hab, -- should work... right?
+    --   refine unit.ext,
+    --   { exact comm_ring.to_comm_monoid unit },
+    --   { apply has_lift_t.mk, intro rx, exact (), },
+    --   { exact distrib.to_has_mul unit },
+    --   { apply has_lift_t.mk, intro rx, exact (), },
+    --   { exact comm_ring.to_comm_monoid unit, },
+    --   { apply has_lift_t.mk, intro rx, exact (), }, },
+    have hcalc : (f : K) / ((g a) * ((∏ (j : ι) in b, ↑(g j)))) = (1 / (g a)) * ((f : K) / ((∏ (j : ι) in b, ↑(g j)))),
+      { field_simp, },
+    rw [finset.prod_insert hab, hcalc, Hind, mul_add, mul_finite_sum],
+    field_simp,
+    sorry, },
 end
 
 -- uniqueness

@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import order.antichain
 import order.upper_lower
+import order.zorn
 
 /-!
 # Minimal/maximal elements of a set
@@ -117,6 +118,38 @@ begin
   rwa of_not_not (λ hab, ht ha (h hb) hab hr),
 end
 
+lemma exists_mem_maximals (hr₁ : reflexive r) (hr₂ : transitive r) (hr₃ : anti_symmetric r)
+  {s : set α} (ih : ∀ c ⊆ s, is_chain r c → c.nonempty → ∃ ub ∈ s, ∀ z ∈ c, r z ub) (x ∈ s) :
+  ∃ x' ∈ maximals r s, r x x' :=
+begin
+  resetI,
+  suffices : ∃ m : s ∩ { y | r x y }, ∀ z : s ∩ { y | r x y }, r m z → r z m,
+  { obtain ⟨⟨m, hm⟩, hm'⟩ := this,
+    exact ⟨m, ⟨hm.1, λ y hy₁ hy₂,
+      hr₃ hy₂ (hm' ⟨_, ⟨hy₁, hr₂ (show r x m, from hm.2) hy₂⟩⟩ hy₂)⟩, hm.2⟩ },
+  haveI : nonempty (s ∩ { y | r x y } : _) := ⟨⟨x, H, hr₁ _⟩⟩,
+  apply exists_maximal_of_nonempty_chains_bounded,
+  rintro c hc hc',
+  rcases c.eq_empty_or_nonempty with (rfl|⟨z, hz⟩),
+  { exact ⟨⟨x, ⟨H, hr₁ _⟩⟩, λ _ h, h.elim⟩ },
+  { obtain ⟨ub, h₁, h₂⟩ := ih (coe '' c) (λ x ⟨y, h⟩, h.2 ▸ y.prop.1)
+      (hc.image _ _ _ (λ _ _, id)) (hc'.image _),
+    exact ⟨⟨ub, ⟨h₁, hr₂ z.prop.2 (h₂ z ⟨z, hz, rfl⟩)⟩⟩, λ a ha, h₂ a ⟨a, ha, rfl⟩⟩ },
+  { exact λ _ _ _ h₁ h₂, hr₂ h₁ h₂ }
+end
+
+lemma exists_mem_minimals (hr₁ : reflexive r) (hr₂ : transitive r) (hr₃ : anti_symmetric r)
+  {s : set α} (ih : ∀ c ⊆ s, is_chain r c → c.nonempty → ∃ ub ∈ s, ∀ z ∈ c, r ub z) (x ∈ s) :
+  ∃ x' ∈ minimals r s, r x' x :=
+begin
+  apply exists_mem_maximals,
+  { exact hr₁ },
+  { exact λ _ _ _ a b, hr₂ b a },
+  { exactI λ _ _ a b, hr₃ b a },
+  { exact λ c hc hc', ih c hc hc'.symm },
+  { exact H }
+end
+
 variables [partial_order α]
 
 lemma is_least.mem_minimals (h : is_least s a) : a ∈ minimals (≤) s :=
@@ -140,3 +173,13 @@ hs.max_minimals (λ a ⟨⟨b, hb, hba⟩, h⟩, by rwa h (subset_upper_closure 
 lemma is_antichain.maximals_lower_closure (hs : is_antichain (≤) s) :
   maximals (≤) (lower_closure s : set α) = s :=
 hs.to_dual.minimals_upper_closure
+
+lemma exists_mem_maximals_le
+  (ih : ∀ c ⊆ s, is_chain (≤) c → c.nonempty → ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) (x ∈ s) :
+  ∃ x' ∈ maximals (≤) s, x ≤ x' :=
+exists_mem_maximals le_refl (@le_trans α _) (@le_antisymm α _) ih x H
+
+lemma exists_mem_minimals_le
+  (ih : ∀ c ⊆ s, is_chain (≤) c → c.nonempty → ∃ lb ∈ s, ∀ z ∈ c, lb ≤ z) (x ∈ s) :
+  ∃ x' ∈ minimals (≤) s, x' ≤ x :=
+exists_mem_minimals le_refl (@le_trans α _) (@le_antisymm α _) ih x H

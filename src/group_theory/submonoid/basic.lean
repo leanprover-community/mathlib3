@@ -71,24 +71,6 @@ export zero_mem_class (zero_mem)
 
 attribute [to_additive] one_mem_class
 
-namespace one_mem_class
-
-variables {A M} [has_one M] [set_like A M] [hA : one_mem_class A M] (S' : A)
-include hA
-
-/-- Subobjects of a type with one have a one themselves. -/
-@[to_additive "Subobjects of a type with zero have a zero themselves.",
-priority 900] -- lower priority so other instances are found first
-instance has_one : has_one S' := ⟨⟨1 , one_mem S'⟩⟩
-
-@[simp, norm_cast, to_additive, priority 900]
--- lower priority so later simp lemmas are used first; to appease simp_nf
-lemma coe_one : ((1 : S') : M) = 1 := rfl
-
-@[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem S'⟩ := rfl
-
-end one_mem_class
-
 section
 
 set_option old_structure_cmd true

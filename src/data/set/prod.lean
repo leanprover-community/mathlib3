@@ -40,17 +40,13 @@ lemma mem_prod_eq {p : α × β} : p ∈ s ×ˢ t = (p.1 ∈ s ∧ p.2 ∈ t) :=
 
 @[simp] lemma mem_prod {p : α × β} : p ∈ s ×ˢ t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
-@[simp] lemma not_mem_prod {p : α × β} : p ∉ s ×ˢ t ↔ p.1 ∉ s ∨ p.2 ∉ t := not_and_distrib
-
 @[simp] lemma prod_mk_mem_set_prod_eq : (a, b) ∈ s ×ˢ t = (a ∈ s ∧ b ∈ t) := rfl
 
 lemma mk_mem_prod (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := ⟨ha, hb⟩
 
-instance decidable_mem_prod [hs : decidable_pred s] [ht : decidable_pred t] (x : α × β) :
-  decidable (x ∈ s ×ˢ t) :=
-decidable.rec_on (hs x.1) (λ ha, is_false (set.not_mem_prod.2 $ or.inl ha))
-  (λ ha, decidable.rec_on (ht x.2) (λ hb, is_false (set.not_mem_prod.2 $ or.inr hb))
-    (λ hb, is_true $ set.mem_prod.2 ⟨ha, hb⟩))
+instance decidable_mem_prod [hs : decidable_pred (∈ s)] [ht : decidable_pred (∈ t)] :
+  decidable_pred (∈ (s ×ˢ t)) :=
+λ _, and.decidable
 
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
@@ -317,8 +313,8 @@ lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
 
 @[simp] lemma mem_diagonal_iff {x : α × α} : x ∈ diagonal α ↔ x.1 = x.2 := iff.rfl
 
-instance decidable_mem_diagonal [h : decidable_eq α] (x : α × α) : decidable (x ∈ diagonal α) :=
-h x.1 x.2
+instance decidable_mem_diagonal [h : decidable_eq α] : decidable_pred (∈ diagonal α) :=
+λ x, h x.1 x.2
 
 lemma preimage_coe_coe_diagonal (s : set α) : (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
 by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }

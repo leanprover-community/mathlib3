@@ -2449,11 +2449,16 @@ by { rw [to_list, ←multiset.mem_coe, multiset.coe_to_list], exact iff.rfl }
 
 @[simp] lemma to_list_empty : (∅ : finset α).to_list = [] := by simp [to_list]
 
-lemma to_list_nonempty (s : finset α) (hs : s.nonempty) : ¬ s.to_list.empty :=
+lemma to_list_nonempty_of_nonempty {s : finset α} (hs : s.nonempty) : ¬ s.to_list.empty :=
 let ⟨x, hx⟩ := hs in λ h', list.not_mem_nil x (list.empty_iff_eq_nil.1 h' ▸ s.mem_to_list.2 hx)
 
-lemma empty_to_list_eq_ff (s : finset α) (hs : s.nonempty) : s.to_list.empty = ff :=
-by simp only [← bool.coe_bool_iff, to_list_nonempty s hs, coe_sort_ff]
+lemma nonempty_of_to_list_nonempty {s : finset α} (hs : ¬ s.to_list.empty) : s.nonempty :=
+let ⟨x, hx⟩ := list.exists_mem_of_ne_nil s.to_list (mt list.empty_iff_eq_nil.2 $ hs)
+in ⟨x, s.mem_to_list.1 hx⟩
+
+lemma to_list_empty_iff_not_nonempty (s : finset α) : s.to_list.empty ↔ ¬ s.nonempty :=
+⟨function.swap to_list_nonempty_of_nonempty,
+  λ h, by_contradiction (h ∘ nonempty_of_to_list_nonempty)⟩
 
 @[simp, norm_cast]
 lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := by { classical, ext, simp }

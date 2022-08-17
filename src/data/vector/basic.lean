@@ -155,7 +155,7 @@ end
 @[simp] lemma empty_to_list_eq_ff (v : vector α (n + 1)) : v.to_list.empty = ff :=
 match v with | ⟨a :: as, _⟩ := rfl end
 
-@[simp] lemma to_list_nonempty (v : vector α (n + 1)) : ¬ v.to_list.empty :=
+lemma to_list_nonempty (v : vector α (n + 1)) : ¬ v.to_list.empty :=
 by simp only [empty_to_list_eq_ff, coe_sort_ff, not_false_iff]
 
 /-- Mapping under `id` does not change a vector. -/

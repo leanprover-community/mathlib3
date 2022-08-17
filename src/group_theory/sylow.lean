@@ -530,7 +530,7 @@ let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero
 lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ^ n ∣ card G) : p ^ n ∣ card P :=
 (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P
-  index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
+  index_ne_zero_of_finite)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
 
 lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : p ∣ card P :=
@@ -544,7 +544,7 @@ end
 lemma card_coprime_index [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   (card P).coprime (index (P : subgroup G)) :=
 let ⟨n, hn⟩ := is_p_group.iff_card.mp P.2 in
-hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm
+hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_finite)).symm
 
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : (P : subgroup G) ≠ ⊥ :=
@@ -695,3 +695,4 @@ begin
 end
 
 end sylow
+

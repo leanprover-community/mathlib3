@@ -14,7 +14,6 @@ This file defines the lexicographic order on `finsupp`.
 -/
 
 variables {α N : Type*}
-
 namespace finsupp
 
 section N_has_zero
@@ -48,18 +47,14 @@ possibly long detour and I (DT) am not sure of the details. -/
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
 noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
 { le_total := to_lex.surjective.forall₂.2 $ λ f g, begin
-    cases (f.diff g).eq_empty_or_nonempty,
-    { exact or.inl (finsupp.diff_eq_empty.mp h).le },
-    { cases le_or_lt (of_lex f ((f.diff g).min' h)) (of_lex g ((f.diff g).min' h)) with mf mg,
-      work_on_goal 1 { refine or.inl (or.inr _),
-        rcases finset.mem_filter.mp (finset.min'_mem _ h) with ⟨-, h⟩,
-        refine ⟨_, λ j hj, _, mf.lt_of_ne h⟩ },
-      work_on_goal 2 { refine or.inr (or.inr ⟨_, λ j hj, eq.symm _, mg⟩) },
-      all_goals { by_cases js : j ∈ f.support ∪ g.support,
-        { contrapose! hj,
-          exact finset.min'_le _ _ (finset.mem_filter.mpr ⟨js, hj⟩) },
-        { simp only [finset.mem_union, not_or_distrib, finsupp.mem_support_iff, not_not] at js,
-          simp only [js, of_lex_to_lex, pi.to_lex_apply] } } },
+    cases (f.diff g).eq_empty_or_nonempty with he he,
+    { exact or.inl (finsupp.diff_eq_empty.mp he).le },
+    { cases he with a ha,
+      haveI : inhabited α := ⟨a⟩,
+      cases le_or_lt (of_lex f (f.wit g)) (of_lex g (f.wit g)) with mf mg,
+      { refine or.inl (or.inr ⟨f.wit g, λ j hj, apply_eq_of_le_wit hj, mf.lt_of_ne _⟩),
+        exact wit_eq_wit_iff.not.mpr (nonempty_diff_iff.mp ⟨_, ha⟩) },
+      { exact or.inr (or.inr ⟨g.wit f, λ j hj, apply_eq_of_le_wit hj, (by rwa wit_comm at mg)⟩) } }
     end,
   decidable_le := by { classical, apply_instance },
   ..lex.partial_order }
@@ -106,7 +101,7 @@ begin
     simp [h] }
 end
 
-lemma apply_to_lex_lt_iff_apply_wit_lt [nonempty α] [linear_order α] [linear_order N] [has_zero N]
+lemma apply_to_lex_lt_iff_apply_wit_lt [inhabited α] [linear_order α] [linear_order N] [has_zero N]
   {f g : (α →₀ N)} :
   to_lex f < to_lex g ↔ f (f.wit g) < g (f.wit g) :=
 begin
@@ -118,17 +113,17 @@ begin
     repeat { refine coe_fn_inj.not.mp (function.ne_iff.mpr ⟨_, h.ne⟩) } }
 end
 
-lemma to_lex_le_iff_apply_wit_le [nonempty α] [linear_order α] [linear_order N] [has_zero N]
+lemma to_lex_le_iff_apply_wit_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
   {f g : (α →₀ N)} :
   to_lex f ≤ to_lex g ↔ f (f.wit g) ≤ g (f.wit g) :=
 not_iff_not.mp (by simp only [not_le, apply_to_lex_lt_iff_apply_wit_lt, wit_comm])
 
-lemma le_iff_of_lex_apply_wit_le [nonempty α] [linear_order α] [linear_order N] [has_zero N]
+lemma le_iff_of_lex_apply_wit_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
   {f g : lex (α →₀ N)} :
   f ≤ g ↔ of_lex f (f.wit g) ≤ of_lex g (f.wit g) :=
 by simp [of_lex, to_lex, ← to_lex_le_iff_apply_wit_le]
 
-lemma apply_eq_of_lt_wit [nonempty α] [linear_order α] [linear_order N] [has_zero N]
+lemma apply_eq_of_lt_wit [inhabited α] [linear_order α] [linear_order N] [has_zero N]
   {f g : (α →₀ N)} {x : α} (hx : x < f.wit g) :
   f x = g x :=
 begin
@@ -146,7 +141,8 @@ instance : covariant_class (to_lex (α →₀ N)) (to_lex (α →₀ N))
                                       apply_instance } :=
 { elim := λ f g h gh, begin
     by_cases iα : nonempty α,
-    { resetI,
+    { cases iα with x,
+      haveI : inhabited α := {default := x},
       refine le_iff_of_lex_apply_wit_le.mpr _,
       simpa only [wit_add_left, equiv.coe_refl, id.def, coe_add, pi.add_apply] using
         add_le_add_left (le_iff_of_lex_apply_wit_le.mp gh) _ },

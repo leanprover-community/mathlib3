@@ -703,11 +703,6 @@ lemma left.mul_lt_one_of_lt_of_lt [pos_mul_strict_mono α]
   (ha : a < 1) (hb : b < 1) (a0 : 0 < a) : a * b < 1 :=
 mul_lt_of_lt_of_lt_one ha hb a0
 
-alias preorder.left.mul_le_one_of_le_of_le ← preorder.mul_le_one_of_le_of_le
-alias left.mul_lt_one_of_le_of_lt          ← mul_lt_one_of_le_of_lt
-alias left.mul_lt_one_of_lt_of_le          ← mul_lt_one_of_lt_of_le
-alias left.mul_lt_one_of_lt_of_lt          ← mul_lt_one_of_lt_of_lt
-
 -- proven with `a0 : 0 ≤ a` and `c0 : 0 ≤ c` as `mul_le_of_le_of_le_one'`
 lemma preorder.mul_le_of_le_of_le_one' [pos_mul_mono α] [mul_pos_mono α]
   (bc : b ≤ c) (ha : a ≤ 1) (a0 : 0 < a) (c0 : 0 < c) : b * a ≤ c :=
@@ -782,11 +777,6 @@ lt_mul_of_lt_of_one_le ha hb a0
 lemma left.one_lt_mul_of_lt_of_lt [pos_mul_strict_mono α]
   (ha : 1 < a) (hb : 1 < b) (a0 : 0 < a) : 1 < a * b :=
 lt_mul_of_lt_of_one_lt ha hb a0
-
-alias preorder.left.one_le_mul_of_le_of_le ← preorder.one_le_mul_of_le_of_le
-alias left.one_lt_mul_of_le_of_lt          ← one_lt_mul_of_le_of_lt
-alias left.one_lt_mul_of_lt_of_le          ← one_lt_mul_of_lt_of_le
-alias left.one_lt_mul_of_lt_of_lt          ← one_lt_mul_of_lt_of_lt
 
 -- proven with `a0 : 0 ≤ a` and `b0 : 0 ≤ b` as `le_mul_of_le_of_one_le'`
 lemma preorder.le_mul_of_le_of_one_le' [pos_mul_mono α] [mul_pos_mono α]
@@ -1087,8 +1077,6 @@ lemma left.mul_le_one_of_le_of_le [pos_mul_mono α]
   (ha : a ≤ 1) (hb : b ≤ 1) (a0 : 0 ≤ a) : a * b ≤ 1 :=
 mul_le_of_le_of_le_one ha hb a0
 
-alias left.mul_le_one_of_le_of_le ← mul_le_one_of_le_of_le
-
 lemma mul_le_of_le_of_le_one' [pos_mul_mono α] [mul_pos_mono α]
   (bc : b ≤ c) (ha : a ≤ 1) (a0 : 0 ≤ a) (c0 : 0 ≤ c) : b * a ≤ c :=
 calc  b * a ≤ c * a : mul_le_mul_right bc a0
@@ -1118,8 +1106,6 @@ c0.lt_or_eq.elim (preorder.le_mul_of_le_of_one_le bc ha)
 lemma left.one_le_mul_of_le_of_le [pos_mul_mono α]
   (ha : 1 ≤ a) (hb : 1 ≤ b) (a0 : 0 ≤ a) : 1 ≤ a * b :=
 le_mul_of_le_of_one_le ha hb a0
-
-alias left.one_le_mul_of_le_of_le ← one_le_mul_of_le_of_le
 
 lemma le_mul_of_le_of_one_le' [pos_mul_mono α] [mul_pos_mono α]
   (bc : b ≤ c) (ha : 1 ≤ a) (a0 : 0 ≤ a) (b0 : 0 ≤ b) : b ≤ c * a :=

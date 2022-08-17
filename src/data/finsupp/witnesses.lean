@@ -13,13 +13,13 @@ functions.
 
 ##  Main definitions
 
-*  `finset.diff f g : finset α`, the finite subset of `α` where `f` and `g` differ,
-*  `finset.wit f g : α`, [assuming that `a` is non-empty and `N` is linearly ordered]
-   the minimum of `finset.diff f g` (or a random element of `α` if
-   `finset.diff f g` is empty, i.e. if `f = g`).
+*  `finsupp.diff f g : finset α`, the finite subset of `α` where `f` and `g` differ,
+*  `finsupp.wit f g : α`, [assuming that `a` is non-empty and `N` is linearly ordered]
+   the minimum of `finsupp.diff f g` (or a random element of `α` if
+   `finsupp.diff f g` is empty, i.e. if `f = g`).
 
-In the case in which `N` is an additive group, `finset.diff f g` coincides with
-`finset.support (f - g)`.
+In the case in which `N` is an additive group, `finsupp.diff f g` coincides with
+`finsupp.support (f - g)`.
 -/
 
 variables {α N : Type*}

@@ -1853,7 +1853,7 @@ instance [canonically_ordered_comm_semiring α] [nontrivial α] :
     { induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le], },
       induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le, },
       { simp only [← coe_mul, coe_le_coe] at *,
-        exact zero_lt.mul_le_mul_left h (zero_le x), }, },
+        exact zero_lt.mul_le_mul_left (zero_le x) h, }, },
   end ⟩
 
 instance [canonically_ordered_comm_semiring α] [nontrivial α] :

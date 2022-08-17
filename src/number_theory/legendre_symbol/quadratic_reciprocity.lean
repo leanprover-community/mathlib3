@@ -166,11 +166,7 @@ quadratic_char_sq_one ha
 /-- The Legendre symbol of `a^2` at `p` is 1 if `p ∤ a`. -/
 theorem legendre_sym_sq_one'  (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p) ≠ 0) :
   legendre_sym p (a ^ 2) = 1 :=
-begin
-  rw [legendre_sym],
-  push_cast,
-  exact quadratic_char_sq_one' ha,
-end
+by exact_mod_cast quadratic_char_sq_one' ha
 
 /-- The Legendre symbol depends only on `a` mod `p`. -/
 theorem legendre_sym_mod (p : ℕ) [fact p.prime] (a : ℤ) :

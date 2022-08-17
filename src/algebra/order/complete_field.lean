@@ -315,22 +315,24 @@ end linear_ordered_field
 
 section real
 
-/-- Any ring homomorphism `ℝ → ℝ` is an ordered ring isomorphism, and thus there are no
-nontrivial ring homorphism `ℝ → ℝ`. -/
+variables {R S : Type*} [linear_ordered_field R] [linear_ordered_field S]
+
+lemma ring_hom_monotone (hR : ∀ r : R, r ≥ 0 → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
+begin
+  intros a b hab,
+  apply le_of_sub_nonneg,
+  obtain ⟨s, hs⟩ := hR (b - a) (sub_nonneg.mpr hab),
+  calc
+    f b - f a = f (b - a) : (ring_hom.map_sub _ _ _).symm
+          ... = f(s^2)    : by rw ←hs
+          ... = f(s)^2    : ring_hom.map_pow _ _ _
+          ... ≥ 0         : sq_nonneg _
+end
+
+/-- There exists no nontrivial ring homomorphism `ℝ →+* ℝ`. -/
 instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
 { default := ring_hom.id ℝ,
-  uniq :=
-  begin
-    intro f,
-    have fmon : monotone f,
-    { intros a b hab,
-      apply le_of_sub_nonneg,
-      calc
-        f b - f a = f (b - a)                 : (ring_hom.map_sub _ _ _).symm
-          ...     = f (real.sqrt (b - a)^2)   : by rw sq_sqrt (sub_nonneg.mpr hab)
-          ...     = (f (real.sqrt (b - a)))^2 : ring_hom.map_pow _ _ _
-          ...     ≥ 0                         : sq_nonneg _, },
-    exact congr_arg order_ring_hom.to_ring_hom (subsingleton.elim ⟨f, fmon⟩ default),
-  end }
+  uniq := λ f, congr_arg order_ring_hom.to_ring_hom
+    (subsingleton.elim ⟨f, ring_hom_monotone (λ r hr, ⟨real.sqrt r, sq_sqrt hr⟩) f⟩ default), }
 
 end real

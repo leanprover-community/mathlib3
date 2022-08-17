@@ -59,8 +59,8 @@ instance inhabited_multiset : inhabited (multiset α)  := ⟨0⟩
 @[simp] theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
 iff.trans coe_eq_coe perm_nil
 
-lemma coe_ne_zero_of_not_empty (l : list α) (hl : ¬ l.empty) : (l : multiset α) ≠ 0 :=
-mt ((list.empty_iff_eq_nil).2 ∘ (multiset.coe_eq_zero l).1) hl
+lemma coe_eq_zero_iff_empty (l : list α) : (l : multiset α) = 0 ↔ l.empty :=
+iff.trans (coe_eq_zero l) (empty_iff_eq_nil).symm
 
 /-! ### `multiset.cons` -/
 

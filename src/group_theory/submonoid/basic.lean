@@ -53,6 +53,10 @@ submonoid, submonoids
 variables {M : Type*} {N : Type*}
 variables {A : Type*}
 
+section non_assoc
+variables [mul_one_class M] {s : set M}
+variables [add_zero_class A] {t : set A}
+
 /-- `one_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `1 ∈ s` for all `s`. -/
 class one_mem_class (S : Type*) (M : out_param $ Type*) [has_one M] [set_like S M] :=
 (one_mem : ∀ (s : S), (1 : M) ∈ s)
@@ -84,10 +88,6 @@ lemma coe_one : ((1 : S') : M) = 1 := rfl
 @[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem S'⟩ := rfl
 
 end one_mem_class
-
-section non_assoc
-variables [mul_one_class M] {s : set M}
-variables [add_zero_class A] {t : set A}
 
 section
 

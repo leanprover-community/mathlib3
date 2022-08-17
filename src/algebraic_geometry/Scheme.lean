@@ -157,7 +157,7 @@ The spectrum, as a contravariant functor from commutative rings to schemes.
 The empty scheme.
 -/
 @[simps]
-def Scheme.empty : Scheme.{u} :=
+def {u} Scheme.empty : Scheme.{u} :=
 { carrier := Top.of pempty,
   presheaf := (category_theory.functor.const _).obj (CommRing.of punit),
   is_sheaf := is_sheaf_of_is_terminal _ CommRing.punit_is_terminal,

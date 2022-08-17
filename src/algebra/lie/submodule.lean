@@ -373,8 +373,7 @@ by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_submodule R L ↥(⊥ : lie_submodule R L M)) :=
+instance subsingleton_of_bot : subsingleton (lie_submodule R L ↥(⊥ : lie_submodule R L M)) :=
 begin
   apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_submodule.mem_bot at hx, subst hx,
@@ -666,8 +665,7 @@ different (though the latter does naturally inject into the former).
 
 In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
 same as ideals of `L` contained in `I`. -/
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_ideal R (⊥ : lie_ideal R L)) :=
+instance subsingleton_of_bot : subsingleton (lie_ideal R (⊥ : lie_ideal R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_submodule.mem_bot at hx, subst hx,

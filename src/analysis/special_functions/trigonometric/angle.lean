@@ -5,6 +5,7 @@ Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
 import algebra.char_zero.quotient
+import data.sign
 
 /-!
 # The type of angles
@@ -104,10 +105,29 @@ by simp_rw [←coe_nat_zsmul, int.coe_nat_bit0, int.coe_nat_one, two_zsmul_eq_if
 lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by convert two_nsmul_eq_iff; simp
 
+lemma two_nsmul_ne_zero_iff {θ : angle} : (2 : ℕ) • θ ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←two_nsmul_eq_zero_iff]
+
 lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
 
-theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
+lemma two_zsmul_ne_zero_iff {θ : angle} : (2 : ℤ) • θ ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←two_zsmul_eq_zero_iff]
+
+lemma eq_neg_self_iff {θ : angle} : θ = -θ ↔ θ = 0 ∨ θ = π :=
+by rw [←add_eq_zero_iff_eq_neg, ←two_nsmul, two_nsmul_eq_zero_iff]
+
+lemma ne_neg_self_iff {θ : angle} : θ ≠ -θ ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←eq_neg_self_iff.not]
+
+lemma neg_eq_self_iff {θ : angle} : -θ = θ ↔ θ = 0 ∨ θ = π :=
+by rw [eq_comm, eq_neg_self_iff]
+
+lemma neg_ne_self_iff {θ : angle} : -θ ≠ θ ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←neg_eq_self_iff.not]
+
+theorem cos_eq_iff_coe_eq_or_eq_neg {θ ψ : ℝ} :
+  cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,
   { intro Hcos,
@@ -132,12 +152,12 @@ begin
         zero_mul] }
 end
 
-theorem sin_eq_iff_eq_or_add_eq_pi {θ ψ : ℝ} :
+theorem sin_eq_iff_coe_eq_or_add_eq_pi {θ ψ : ℝ} :
   sin θ = sin ψ ↔ (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
 begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
-    cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
+    cases cos_eq_iff_coe_eq_or_eq_neg.mp Hsin with h h,
     { left, rw [coe_sub, coe_sub] at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
@@ -156,8 +176,8 @@ end
 
 theorem cos_sin_inj {θ ψ : ℝ} (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : (θ : angle) = ψ :=
 begin
-  cases cos_eq_iff_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
-  cases sin_eq_iff_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
+  cases cos_eq_iff_coe_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
+  cases sin_eq_iff_coe_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
   rw [eq_neg_iff_add_eq_zero, hs] at hc,
   obtain ⟨n, hn⟩ : ∃ n, n • _ = _ := quotient_add_group.left_rel_apply.mp (quotient.exact' hc),
   rw [← neg_one_mul, add_zero, ← sub_eq_zero, zsmul_eq_mul, ← mul_assoc, ← sub_mul,
@@ -176,7 +196,7 @@ def sin (θ : angle) : ℝ := sin_periodic.lift θ
 rfl
 
 @[continuity] lemma continuous_sin : continuous sin :=
-continuous_quotient_lift_on' _ real.continuous_sin
+real.continuous_sin.quotient_lift_on' _
 
 /-- The cosine of a `real.angle`. -/
 def cos (θ : angle) : ℝ := cos_periodic.lift θ
@@ -185,7 +205,127 @@ def cos (θ : angle) : ℝ := cos_periodic.lift θ
 rfl
 
 @[continuity] lemma continuous_cos : continuous cos :=
-continuous_quotient_lift_on' _ real.continuous_cos
+real.continuous_cos.quotient_lift_on' _
+
+lemma cos_eq_real_cos_iff_eq_or_eq_neg {θ : angle} {ψ : ℝ} : cos θ = real.cos ψ ↔ θ = ψ ∨ θ = -ψ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact cos_eq_iff_coe_eq_or_eq_neg
+end
+
+lemma cos_eq_iff_eq_or_eq_neg {θ ψ : angle} : cos θ = cos ψ ↔ θ = ψ ∨ θ = -ψ :=
+begin
+  induction ψ using real.angle.induction_on,
+  exact cos_eq_real_cos_iff_eq_or_eq_neg
+end
+
+lemma sin_eq_real_sin_iff_eq_or_add_eq_pi {θ : angle} {ψ : ℝ} :
+  sin θ = real.sin ψ ↔ θ = ψ ∨ θ + ψ = π :=
+begin
+  induction θ using real.angle.induction_on,
+  exact sin_eq_iff_coe_eq_or_add_eq_pi
+end
+
+lemma sin_eq_iff_eq_or_add_eq_pi {θ ψ : angle} : sin θ = sin ψ ↔ θ = ψ ∨ θ + ψ = π :=
+begin
+  induction ψ using real.angle.induction_on,
+  exact sin_eq_real_sin_iff_eq_or_add_eq_pi
+end
+
+@[simp] lemma sin_zero : sin (0 : angle) = 0 :=
+by rw [←coe_zero, sin_coe, real.sin_zero]
+
+@[simp] lemma sin_coe_pi : sin (π : angle) = 0 :=
+by rw [sin_coe, real.sin_pi]
+
+lemma sin_eq_zero_iff {θ : angle} : sin θ = 0 ↔ θ = 0 ∨ θ = π :=
+begin
+  nth_rewrite 0 ←sin_zero,
+  rw sin_eq_iff_eq_or_add_eq_pi,
+  simp
+end
+
+lemma sin_ne_zero_iff {θ : angle} : sin θ ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←sin_eq_zero_iff]
+
+@[simp] lemma sin_neg (θ : angle) : sin (-θ) = -sin θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.sin_neg _
+end
+
+lemma sin_antiperiodic : function.antiperiodic sin (π : angle) :=
+begin
+  intro θ,
+  induction θ using real.angle.induction_on,
+  exact real.sin_antiperiodic θ
+end
+
+@[simp] lemma sin_add_pi (θ : angle) : sin (θ + π) = -sin θ :=
+sin_antiperiodic θ
+
+@[simp] lemma sin_sub_pi (θ : angle) : sin (θ - π) = -sin θ :=
+sin_antiperiodic.sub_eq θ
+
+@[simp] lemma cos_zero : cos (0 : angle) = 1 :=
+by rw [←coe_zero, cos_coe, real.cos_zero]
+
+@[simp] lemma cos_coe_pi : cos (π : angle) = -1 :=
+by rw [cos_coe, real.cos_pi]
+
+@[simp] lemma cos_neg (θ : angle) : cos (-θ) = cos θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.cos_neg _
+end
+
+lemma cos_antiperiodic : function.antiperiodic cos (π : angle) :=
+begin
+  intro θ,
+  induction θ using real.angle.induction_on,
+  exact real.cos_antiperiodic θ
+end
+
+@[simp] lemma cos_add_pi (θ : angle) : cos (θ + π) = -cos θ :=
+cos_antiperiodic θ
+
+@[simp] lemma cos_sub_pi (θ : angle) : cos (θ - π) = -cos θ :=
+cos_antiperiodic.sub_eq θ
+
+/-- The sign of a `real.angle` is `0` if the angle is `0` or `π`, `1` if the angle is strictly
+between `0` and `π` and `-1` is the angle is strictly between `-π` and `0`. It is defined as the
+sign of the sine of the angle. -/
+def sign (θ : angle) : sign_type := sign (sin θ)
+
+@[simp] lemma sign_zero : (0 : angle).sign = 0 :=
+by rw [sign, sin_zero, sign_zero]
+
+@[simp] lemma sign_coe_pi : (π : angle).sign = 0 :=
+by rw [sign, sin_coe_pi, _root_.sign_zero]
+
+@[simp] lemma sign_neg (θ : angle) : (-θ).sign = - θ.sign :=
+by simp_rw [sign, sin_neg, left.sign_neg]
+
+lemma sign_antiperiodic : function.antiperiodic sign (π : angle) :=
+λ θ, by rw [sign, sign, sin_add_pi, left.sign_neg]
+
+@[simp] lemma sign_add_pi (θ : angle) : (θ + π).sign = -θ.sign :=
+sign_antiperiodic θ
+
+@[simp] lemma sign_pi_add (θ : angle) : ((π : angle) + θ).sign = -θ.sign :=
+by rw [add_comm, sign_add_pi]
+
+@[simp] lemma sign_sub_pi (θ : angle) : (θ - π).sign = -θ.sign :=
+sign_antiperiodic.sub_eq θ
+
+@[simp] lemma sign_pi_sub (θ : angle) : ((π : angle) - θ).sign = θ.sign :=
+by simp [sign_antiperiodic.sub_eq']
+
+lemma sign_eq_zero_iff {θ : angle} : θ.sign = 0 ↔ θ = 0 ∨ θ = π :=
+by rw [sign, sign_eq_zero_iff, sin_eq_zero_iff]
+
+lemma sign_ne_zero_iff {θ : angle} : θ.sign ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←sign_eq_zero_iff]
 
 end angle
 

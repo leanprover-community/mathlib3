@@ -70,15 +70,8 @@ we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
 { inner := λ x y, ∑ i, inner (x i) (y i),
-  norm_sq_eq_inner :=
-  begin
-    intro x,
-    have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ) :=
-      finset.sum_nonneg (λ j hj, rpow_nonneg_of_nonneg (norm_nonneg (x j)) 2),
-    simp only [norm, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
-    rw [← rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2, ← rpow_mul h₂],
-    norm_num,
-  end,
+  norm_sq_eq_inner := λ x,
+    by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
   conj_sym :=
   begin
     intros x y,
@@ -106,13 +99,13 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
-lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
-pi_Lp.norm_eq_of_L2 x
-
 lemma euclidean_space.nnnorm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x : euclidean_space 𝕜 n) : ∥x∥₊ = nnreal.sqrt (∑ i, ∥x i∥₊ ^ 2) :=
 pi_Lp.nnnorm_eq_of_L2 x
+
+lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
+by simpa only [real.coe_sqrt, nnreal.coe_sum] using congr_arg (coe : ℝ≥0 → ℝ) x.nnnorm_eq
 
 lemma euclidean_space.dist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x y : euclidean_space 𝕜 n) : dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
@@ -386,12 +379,12 @@ calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_ba
 variable {v : ι → E}
 
 /-- A finite orthonormal set that spans is an orthonormal basis -/
-protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
+protected def mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)):
   orthonormal_basis ι 𝕜 E :=
 (basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
 
 @[simp]
-protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
+protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
@@ -405,7 +398,7 @@ let
       convert orthonormal_span (h.comp (coe : s → ι') subtype.coe_injective),
       ext,
       simp [e₀', basis.span_apply],
-    end e₀'.span_eq,
+    end e₀'.span_eq.ge,
   φ : span 𝕜 (s.image v' : set E) ≃ₗᵢ[𝕜] span 𝕜 (range (v' ∘ (coe : s → ι'))) :=
     linear_isometry_equiv.of_eq _ _
     begin
@@ -429,6 +422,7 @@ protected def mk_of_orthogonal_eq_bot (hon : orthonormal 𝕜 v) (hsp : (span �
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk hon
 begin
+  refine eq.ge _,
   haveI : finite_dimensional 𝕜 (span 𝕜 (range v)) :=
     finite_dimensional.span_of_finite 𝕜 (finite_range v),
   haveI : complete_space (span 𝕜 (range v)) := finite_dimensional.complete 𝕜 _,

@@ -193,6 +193,53 @@ begin
       add_submonoid_class.coe_zero, zero_mul], },
 end
 
+section nat
+
+lemma direct_sum.coe_mul_of_apply_of_le [semiring R]
+  [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
+  (h : i ≤ n) : ((r * direct_sum.of _ i r') n : R) = r (n - i) * r' :=
+by conv_lhs { rw [show n = (n - i) + i, by linarith, direct_sum.coe_mul_of_apply] }
+
+lemma direct_sum.coe_mul_of_apply_of_not_le [semiring R]
+  [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
+  (h : n < i) : ((r * direct_sum.of _ i r') n : R) = 0 :=
+begin
+  obtain rfl|hr := eq_or_ne r' 0,
+  { simp only [add_submonoid_class.coe_zero, map_zero, mul_zero, direct_sum.zero_apply], },
+  erw [direct_sum.coe_mul_apply, direct_sum.support_of _ i r' hr, finset.product_singleton,
+    finset.map_filter],
+  dsimp,
+  have : ∀ x : ℕ, x + i = n ↔ false,
+  { intros x, split; intros H, linarith, exact H.elim },
+  simp_rw [function.comp, this, finset.filter_false, finset.map_empty, finset.sum_empty],
+end
+
+lemma direct_sum.coe_of_mul_apply_of_le [semiring R] [set_like σ R]
+  [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
+  (h : i ≤ n) : ((direct_sum.of _ i r * r') n : R) = r * r' (n - i) :=
+by conv_lhs { rw [show n = i + (n - i), by linarith, direct_sum.coe_of_mul_apply] }
+
+lemma direct_sum.coe_of_mul_apply_of_not_le [semiring R] [set_like σ R]
+  [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
+  (h : n < i) : ((direct_sum.of _ i r * r') n : R) = 0 :=
+begin
+  obtain rfl|hr := eq_or_ne r 0,
+  { simp only [add_submonoid_class.coe_zero, map_zero, zero_mul, direct_sum.zero_apply], },
+  erw [direct_sum.coe_mul_apply, direct_sum.support_of _ i r hr, finset.singleton_product,
+    finset.map_filter],
+  dsimp,
+  have : ∀ x : ℕ, i + x = n ↔ false,
+  { intros x, split; intros H, linarith, exact H.elim },
+  simp_rw [function.comp, this, finset.filter_false, finset.map_empty, finset.sum_empty],
+end
+
+
+end nat
+
 /-! #### From `submodule`s -/
 
 namespace submodule

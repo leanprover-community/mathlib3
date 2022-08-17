@@ -287,15 +287,8 @@ lemma direct_sum.coe_decompose_mul_of_left_mem_of_not_le {σ A} [semiring A]
   (decompose 𝒜 (a * b) n : A) = 0 :=
 begin
   classical,
-  obtain rfl | ha := eq_or_ne a 0,
-  { simp },
-  have h' : n ≤ i := by linarith,
   lift a to (𝒜 i) using a_mem,
-  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a (λ r,by subst r; exact ha rfl),
-    singleton_product, map_filter, sum_map],
-  have : ∀ (x : ℕ), i + x = n ↔ false,
-  { intros x, split; intros H, linarith, exact false.elim H },
-  simp_rw [comp, embedding.coe_fn_mk, this, filter_false, finset.sum_empty],
+  rwa [decompose_mul, decompose_coe, coe_of_mul_apply_of_not_le],
 end
 
 lemma direct_sum.coe_decompose_mul_of_right_mem_of_not_le {σ A} [semiring A]
@@ -304,15 +297,8 @@ lemma direct_sum.coe_decompose_mul_of_right_mem_of_not_le {σ A} [semiring A]
   (decompose 𝒜 (a * b) n : A) = 0 :=
 begin
   classical,
-  obtain rfl | hb := eq_or_ne b 0,
-  { simp },
-  have h' : n ≤ i := by linarith,
   lift b to (𝒜 i) using b_mem,
-  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i b (λ r,by subst r; exact hb rfl),
-    product_singleton, map_filter, sum_map],
-  have : ∀ (x : ℕ), x + i = n ↔ false,
-  { intros x, split; intros H, linarith, exact false.elim H },
-  simp_rw [comp, embedding.coe_fn_mk, this, filter_false, finset.sum_empty],
+  rwa [decompose_mul, decompose_coe, coe_mul_of_apply_of_not_le],
 end
 
 lemma direct_sum.coe_decompose_mul_of_left_mem {σ A} [semiring A]

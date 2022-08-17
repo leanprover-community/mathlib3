@@ -648,7 +648,7 @@ theorem list_index_of₁ [decidable_eq α] (l : list α) :
   primrec (λ a, l.index_of a) := list_find_index₁ primrec.eq l
 
 theorem dom_fintype [fintype α] (f : α → σ) : primrec f :=
-let ⟨l, nd, m⟩ := fintype.exists_univ_list α in
+let ⟨l, nd, m⟩ := finite.exists_univ_list α in
 option_some_iff.1 $ begin
   haveI := decidable_eq_of_encodable α,
   refine ((list_nth₁ (l.map f)).comp (list_index_of₁ l)).of_eq (λ a, _),

@@ -242,39 +242,28 @@ homomorphism.
 def graded_ring.proj_zero_ring_hom : A →+* A :=
 { to_fun := λ a, decompose 𝒜 a 0,
   map_one' := decompose_of_mem_same 𝒜 one_mem,
-  map_zero' := by simp,
-  map_add' := λ _ _, by simp,
-  map_mul' := λ x y, begin
-    -- Convert the abstract add_submonoid into a concrete one. This is necessary as there is no
-    -- lattice structure on the abstract ones.
-    let 𝒜' : ι → add_submonoid A :=
-      λ i, (⟨𝒜 i, λ _ _, add_mem_class.add_mem, zero_mem_class.zero_mem _⟩ : add_submonoid A),
-    letI : graded_ring 𝒜' :=
-      { decompose' := (direct_sum.decompose 𝒜 : A → ⨁ i, 𝒜 i),
-        left_inv := direct_sum.decomposition.left_inv,
-        right_inv := direct_sum.decomposition.right_inv,
-        ..(by apply_instance : set_like.graded_monoid 𝒜), },
-    have m : ∀ x, x ∈ supr 𝒜',
-    { intro x,
-      rw direct_sum.is_internal.add_submonoid_supr_eq_top 𝒜'
-        (direct_sum.decomposition.is_internal 𝒜'),
-      exact add_submonoid.mem_top x },
-    refine add_submonoid.supr_induction 𝒜' (m x) (λ i c hc, _) _ _,
-    { refine add_submonoid.supr_induction 𝒜' (m y) (λ j c' hc', _) _ _,
-      { by_cases h : i + j = 0,
-        { rw [decompose_of_mem_same 𝒜 (show c * c' ∈ 𝒜 0, from h ▸ mul_mem hc hc'),
-            decompose_of_mem_same 𝒜 (show c ∈ 𝒜 0, from (add_eq_zero_iff.mp h).1 ▸ hc),
-            decompose_of_mem_same 𝒜 (show c' ∈ 𝒜 0, from (add_eq_zero_iff.mp h).2 ▸ hc')] },
-        { rw [decompose_of_mem_ne 𝒜 (mul_mem hc hc') h],
-          cases (show i ≠ 0 ∨ j ≠ 0, by rwa [add_eq_zero_iff, not_and_distrib] at h) with h' h',
-          { simp only [decompose_of_mem_ne 𝒜 hc h', zero_mul] },
-          { simp only [decompose_of_mem_ne 𝒜 hc' h', mul_zero] } } },
-      { simp only [decompose_zero, zero_apply, add_submonoid_class.coe_zero, mul_zero], },
+  map_zero' := by { rw decompose_zero, refl },
+  map_add' := λ _ _, by { rw decompose_add, refl },
+  map_mul' := begin
+    refine direct_sum.decomposition.induction_on 𝒜 (λ x, _) _ _,
+    { simp only [zero_mul, decompose_zero, zero_apply, add_submonoid_class.coe_zero] },
+    { rintros i ⟨c, hc⟩,
+      refine direct_sum.decomposition.induction_on 𝒜 _ _ _,
+      { simp only [mul_zero, decompose_zero, zero_apply, add_submonoid_class.coe_zero] },
+      { rintros j ⟨c', hc'⟩,
+        { simp only [subtype.coe_mk],
+          by_cases h : i + j = 0,
+          { rw [decompose_of_mem_same 𝒜 (show c * c' ∈ 𝒜 0, from h ▸ mul_mem hc hc'),
+              decompose_of_mem_same 𝒜 (show c ∈ 𝒜 0, from (add_eq_zero_iff.mp h).1 ▸ hc),
+              decompose_of_mem_same 𝒜 (show c' ∈ 𝒜 0, from (add_eq_zero_iff.mp h).2 ▸ hc')] },
+          { rw [decompose_of_mem_ne 𝒜 (mul_mem hc hc') h],
+            cases (show i ≠ 0 ∨ j ≠ 0, by rwa [add_eq_zero_iff, not_and_distrib] at h) with h' h',
+            { simp only [decompose_of_mem_ne 𝒜 hc h', zero_mul] },
+            { simp only [decompose_of_mem_ne 𝒜 hc' h', mul_zero] } } }, },
       { intros _ _ hd he,
-        simp only [mul_add, decompose_add, add_apply, add_mem_class.coe_add, hd, he] } },
-    { simp only [decompose_zero, zero_apply, add_submonoid_class.coe_zero, zero_mul] },
-    { rintros _ _ ha hb,
-      simp only [add_mul, decompose_add, add_apply, add_mem_class.coe_add, ha, hb] },
+        simp only [mul_add, decompose_add, add_apply, add_mem_class.coe_add, hd, he] }, },
+    { rintros _ _ ha hb _,
+      simp only [add_mul, decompose_add, add_apply, add_mem_class.coe_add, ha, hb], },
   end }
 
 end canonical_order

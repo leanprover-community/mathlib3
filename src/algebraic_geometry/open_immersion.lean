@@ -1428,6 +1428,12 @@ instance of_is_iso [is_iso g] :
   is_open_immersion g := @@LocallyRingedSpace.is_open_immersion.of_is_iso _
 (show is_iso ((induced_functor _).map g), by apply_instance)
 
+lemma is_open_immersion.to_iso {X Y : Scheme} (f : X ⟶ Y) [h : is_open_immersion f]
+  [epi f.1.base] : is_iso f :=
+@@is_iso_of_reflects_iso _ _ f (Scheme.forget_to_LocallyRingedSpace ⋙
+  LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace)
+  (@@PresheafedSpace.is_open_immersion.to_iso _ f.1 h _) _
+
 /-- A open immersion induces an isomorphism from the domain onto the image -/
 def iso_restrict : X ≅ (Z.restrict H.base_open : _) :=
 ⟨H.iso_restrict.hom, H.iso_restrict.inv, H.iso_restrict.hom_inv_id, H.iso_restrict.inv_hom_id⟩

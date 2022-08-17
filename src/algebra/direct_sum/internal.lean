@@ -159,6 +159,40 @@ begin
   simp_rw [direct_sum.coe_of_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
+lemma direct_sum.coe_of_mul_apply [add_left_cancel_monoid ι] [semiring R] [set_like σ R]
+  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A]
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] {i : ι} (r : A i) (r' : ⨁ i, A i) (j : ι):
+  ((direct_sum.of _ i r * r') (i + j) : R) = r * r' j :=
+begin
+  obtain rfl|hr := eq_or_ne r 0,
+  { simp only [add_submonoid_class.coe_zero, map_zero, zero_mul, direct_sum.zero_apply], },
+  erw [direct_sum.coe_mul_apply, direct_sum.support_of _ i r hr, finset.singleton_product,
+    finset.map_filter],
+  dsimp,
+  simp_rw [function.comp, add_left_cancel_iff, finset.filter_eq', finset.sum_map],
+  split_ifs with h,
+  { erw [finset.sum_singleton, direct_sum.of_eq_same], refl, },
+  { rw [finset.sum_empty, not_not.mp (dfinsupp.mem_support_iff.not.mp h),
+      add_submonoid_class.coe_zero, mul_zero], },
+end
+
+lemma direct_sum.coe_mul_of_apply [add_right_cancel_monoid ι] [semiring R] [set_like σ R]
+  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A]
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r : ⨁ i, A i)  {i : ι} (r' : A i) (j : ι):
+  ((r * direct_sum.of _ i r') (j + i) : R) = r j * r' :=
+begin
+  obtain rfl|hr := eq_or_ne r' 0,
+  { simp only [add_submonoid_class.coe_zero, map_zero, mul_zero, direct_sum.zero_apply], },
+  erw [direct_sum.coe_mul_apply, direct_sum.support_of _ i r' hr, finset.product_singleton,
+    finset.map_filter],
+  dsimp,
+  simp_rw [function.comp, add_right_cancel_iff, finset.filter_eq', finset.sum_map],
+  split_ifs with h,
+  { erw [finset.sum_singleton, direct_sum.of_eq_same], refl, },
+  { rw [finset.sum_empty, not_not.mp (dfinsupp.mem_support_iff.not.mp h),
+      add_submonoid_class.coe_zero, zero_mul], },
+end
+
 /-! #### From `submodule`s -/
 
 namespace submodule

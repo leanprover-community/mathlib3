@@ -731,4 +731,74 @@ def kaehler_differential.linear_map_equiv_derivation : (Ω[S⁄R] →ₗ[S] M) �
   right_inv := derivation.lift_kaehler_differential_comp,
   ..(derivation.llcomp.flip $ kaehler_differential.D R S) }
 
+/-- The quotient ring of `S ⊗ S ⧸ J` by `Ω[S⁄R]` is isomorphic to `S`. -/
+def kaehler_differential.quotient_cotangent_ideal :
+  (S ⊗ S ⧸ kaehler_differential.ideal R S ^ 2) ⧸ (kaehler_differential.ideal R S).cotangent_ideal ≃+* S :=
+begin
+  have : function.right_inverse tensor_product.include_left
+    (↑(tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S) : S ⊗[R] S →+* S),
+  { intro x, rw [alg_hom.coe_to_ring_hom, ← alg_hom.comp_apply,
+      tensor_product.lmul'_comp_include_left], refl },
+  refine (ideal.quot_cotangent _).trans _,
+  refine (ideal.quot_equiv_of_eq _).trans (ring_hom.quotient_ker_equiv_of_right_inverse this),
+  ext, refl,
+end
+
+lemma kaehler_differential.End_equiv_aux (f : S →ₐ[R] S ⊗ S ⧸ kaehler_differential.ideal R S ^ 2) :
+  (ideal.quotient.mkₐ R (kaehler_differential.ideal R S).cotangent_ideal).comp f =
+    is_scalar_tower.to_alg_hom R S _ ↔
+  (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S).ker_square_lift.comp f = alg_hom.id R S :=
+begin
+  rw [alg_hom.ext_iff, alg_hom.ext_iff],
+  apply forall_congr,
+  intro x,
+  have e₁ : (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S).ker_square_lift (f x) =
+    kaehler_differential.quotient_cotangent_ideal R S
+      (ideal.quotient.mk (kaehler_differential.ideal R S).cotangent_ideal $ f x),
+  { generalize : f x = y, obtain ⟨y, rfl⟩ := ideal.quotient.mk_surjective y, refl },
+  have e₂ : x = kaehler_differential.quotient_cotangent_ideal R S (is_scalar_tower.to_alg_hom R S _ x),
+  { exact ((tensor_product.lmul'_apply_tmul x 1).trans (mul_one x)).symm },
+  split,
+  { intro e,
+    exact (e₁.trans (@ring_equiv.congr_arg _ _ _ _ _ _
+      (kaehler_differential.quotient_cotangent_ideal R S) _ _ e)).trans e₂.symm },
+  { intro e, apply (kaehler_differential.quotient_cotangent_ideal R S).injective,
+    exact e₁.symm.trans (e.trans e₂) }
+end
+
+/-- Derivations into `Ω[S⁄R]` is equivalent to derivations
+into `(kaehler_differential.ideal R S).cotangent_ideal` -/
+-- This has type
+-- `derivation R S Ω[ S / R ] ≃ₗ[R] derivation R S (kaehler_differential.ideal R S).cotangent_ideal`
+-- But lean times-out if this is given explicitly.
+noncomputable
+def kaehler_differential.End_equiv_derivation' :=
+@linear_equiv.comp_der R _ _ _ _ Ω[S⁄R] _ _ _ _ _ _ _ _ _
+  ((kaehler_differential.ideal R S).cotangent_equiv_ideal.restrict_scalars S)
+
+/-- (Implementation) An `equiv` version of `kaehler_differential.End_equiv_aux`.
+Used in `kaehler_differential.End_equiv`. -/
+def kaehler_differential.End_equiv_aux_equiv :
+  {f // (ideal.quotient.mkₐ R (kaehler_differential.ideal R S).cotangent_ideal).comp f =
+    is_scalar_tower.to_alg_hom R S _ } ≃
+  { f // (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S).ker_square_lift.comp f = alg_hom.id R S } :=
+(equiv.refl _).subtype_equiv (kaehler_differential.End_equiv_aux R S)
+
+/--
+The endomorphisms of `Ω[S⁄R]` corresponds to sections of the surjection `S ⊗[R] S ⧸ J ^ 2 →ₐ[R] S`,
+with `J` being the kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`.
+-/
+noncomputable
+def kaehler_differential.End_equiv :
+  module.End S Ω[S⁄R] ≃
+    { f // (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S).ker_square_lift.comp f = alg_hom.id R S } :=
+(kaehler_differential.linear_map_equiv_derivation R S).to_equiv.trans $
+  (kaehler_differential.End_equiv_derivation' R S).to_equiv.trans $
+  (derivation_to_square_zero_equiv_lift
+  (kaehler_differential.ideal R S).cotangent_ideal
+  (kaehler_differential.ideal R S).cotangent_ideal_square).trans $
+  kaehler_differential.End_equiv_aux_equiv R S
+
+end kaehler_differential
+
 end kaehler_differential

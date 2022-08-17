@@ -353,6 +353,11 @@ begin
   simpa [h_zero] using h_sum
 end
 
+lemma nonsingular_inv_to_block_of_block_triangular [linear_order α]
+  [invertible M] (hM : block_triangular M b) (k : α) :
+  (M.to_block (λ i, b i < k) (λ i, b i < k))⁻¹ = M⁻¹.to_block (λ i, b i < k) (λ i, b i < k) :=
+inv_eq_left_inv (to_block_inverse_of_block_triangular hM k)
+
 lemma to_block_inverse_of_block_triangular' [linear_order α]
   [invertible M] (hM : block_triangular M b) (k : α) :
   M.to_block (λ i, k ≤ b i) (λ i, k ≤ b i) ⬝ M⁻¹.to_block (λ i, k ≤ b i) (λ i, k ≤ b i) = 1:=
@@ -417,17 +422,34 @@ begin
       { apply lt_of_le_of_ne _ h,
         exact (is_greatest_max' (univ.image b) _).2 (mem_image_of_mem b (mem_univ _)) },
       { apply ne_of_lt h } },
-    haveI : invertible A,
-    { dsimp only [A],
-      rw [h_ne_iff_lt],
-      apply invertible_to_block_of_block_triangular hM },
-    have hA : A.block_triangular b',
-    { intros i j, apply hM },
-    have hb' : image b' univ = (image b univ).erase k,
-    { convert xxx _, apply classical.dec_eq, },
-    have : A⁻¹.block_triangular b',
-      from ih ((univ.image b).erase k) (erase_ssubset (max'_mem _ _)) hA hb',
-    sorry }
+    show M⁻¹.block_triangular b,
+    { intros i j hij,
+      by_cases h : b i = k,
+      { have hi : k ≤ b i, sorry,
+        have hj : b j < k, sorry,
+        have : M⁻¹.to_block (λ (i : m), k ≤ b i) (λ (i : m), b i < k) ⟨i, hi⟩ ⟨j, hj⟩ = 0 :=
+          by simp only [to_block_inverse_eq_zero hM k, pi.zero_apply],
+        simp [this.symm] },
+      { haveI : invertible A,
+        { dsimp only [A],
+          rw [h_ne_iff_lt],
+          apply invertible_to_block_of_block_triangular hM },
+        have hA : A.block_triangular b',
+        { intros i j, apply hM },
+        have hb' : image b' univ = (image b univ).erase k,
+        { convert xxx _, apply classical.dec_eq, },
+        have : A⁻¹.block_triangular b',
+          from ih ((univ.image b).erase k) (erase_ssubset (max'_mem _ _)) hA hb',
+        simp_rw [A] at this,
+        have hi : b i ≠ k, sorry,
+        have hj : b j ≠ k, sorry,
+        have hij' : b' ⟨j, hj⟩ < b' ⟨i, hi⟩, sorry,
+        have := this hij',
+        have h_A_inv: A⁻¹ = M⁻¹.to_block (λ (i : m), b i ≠ k) (λ (i : m), b i ≠ k),
+        { simp_rw [A],
+          exact h_ne_iff_lt.symm ▸ nonsingular_inv_to_block_of_block_triangular hM k },
+        rw h_A_inv at this,
+        simp [this.symm] } } }
 end
 
 noncomputable lemma invertible_square_block_of_block_triangular [nontrivial R] [no_zero_divisors R]

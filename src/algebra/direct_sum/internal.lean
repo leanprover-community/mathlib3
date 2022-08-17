@@ -247,13 +247,13 @@ section nat
 
 lemma direct_sum.coe_mul_of_apply_of_le [semiring R]
   [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
-  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
+  (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
   (h : i ≤ n) : ((r * direct_sum.of _ i r') n : R) = r (n - i) * r' :=
 by conv_lhs { rw [show n = (n - i) + i, by linarith, direct_sum.coe_mul_of_apply] }
 
 lemma direct_sum.coe_mul_of_apply_of_not_le [semiring R]
   [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
-  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
+  (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
   (h : n < i) : ((r * direct_sum.of _ i r') n : R) = 0 :=
 begin
   classical,
@@ -263,13 +263,13 @@ end
 
 lemma direct_sum.coe_of_mul_apply_of_le [semiring R] [set_like σ R]
   [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
-  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
+  {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
   (h : i ≤ n) : ((direct_sum.of _ i r * r') n : R) = r * r' (n - i) :=
 by conv_lhs { rw [show n = i + (n - i), by linarith, direct_sum.coe_of_mul_apply] }
 
 lemma direct_sum.coe_of_mul_apply_of_not_le [semiring R] [set_like σ R]
   [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
-  [Π (i : ℕ) (x : A i), decidable (x ≠ 0)] {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
+  {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
   (h : n < i) : ((direct_sum.of _ i r * r') n : R) = 0 :=
 begin
   classical,

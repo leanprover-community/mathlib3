@@ -5,14 +5,15 @@ Authors: Yaël Dillies
 -/
 import algebra.big_operators.order
 import combinatorics.graph.multi.connectivity
-import combinatorics.graph.multi.degree
+import combinatorics.graph.multi.laplacian
 import data.int.order
 import linear_algebra.quotient
 
 /-!
-# Divisors of simple graphs
+# Divisors of multigraphs
 
-A *divisor* of a graph `G` with vertices `α` is a function `G → ℤ`.
+A *divisor* of a graph `G` with vertices `α` is a function `G → ℤ`. The Picard group of `G` is the
+quotient of its divisors by the image of its Laplacian.
 
 ## Tags
 

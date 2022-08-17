@@ -20,6 +20,7 @@ set_like objects. If we add those instances, we should remove this one. -/
 noncomputable instance {A B : Type*} [fintype B] [set_like A B] : fintype A :=
 fintype.of_injective coe set_like.coe_injective
 
+@[nolint dangerous_instance, priority 100] -- See note [lower instance priority]
 instance {A B : Type*} [finite B] [set_like A B] : finite A :=
 finite.of_injective coe set_like.coe_injective
 

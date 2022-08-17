@@ -1135,6 +1135,10 @@ end of_linear_equiv
 
 @[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
+@[simp] lemma mul_eq_trans {a b : A₁ ≃ₐ[R] A₁} : a * b = b.trans a := rfl
+
+@[simp] lemma inv_eq_symm {a : A₁ ≃ₐ[R] A₁} : a⁻¹ = a.symm := rfl
+
 /-- An algebra isomorphism induces a group isomorphism between automorphism groups -/
 @[simps apply]
 def aut_congr (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃ₐ[R] A₂) :=

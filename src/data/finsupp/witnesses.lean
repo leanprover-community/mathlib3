@@ -117,7 +117,7 @@ by rw [← add_diff_add_eq_right (- g), add_right_neg, diff_zero_right, sub_eq_a
 end diff
 
 section wit
-variables [nonempty α] [linear_order α]
+variables [inhabited α] [linear_order α]
 
 section N_has_zero
 variables [has_zero N] {f g : α →₀ N}
@@ -125,8 +125,8 @@ variables [has_zero N] {f g : α →₀ N}
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.wit f g` is an element of `α`.
 It is a "generic" element of `α` (namely, `nonempty.some _ : α`) if and only if `f = g`.
 Otherwise, it is `a` if `a : α` is the smallest value for which `f a ≠ g a`. -/
-noncomputable def wit (f g : α →₀ N) : α :=
-dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, nonempty.some ‹_›)
+def wit (f g : α →₀ N) : α :=
+dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, default)
 
 lemma wit_congr {f' g' : α →₀ N} (h : f.diff g = f'.diff g') :
   f.wit g = f'.wit g' :=

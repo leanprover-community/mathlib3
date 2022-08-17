@@ -28,7 +28,7 @@ decomposed as `S = LDLᴴ` where `L` is a lower-triangular matrix and `D` is a d
 -/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
-  {n : Type*} [linear_order n] [is_well_order n (<)] [locally_finite_order_bot n]
+variables {n : Type*} [linear_order n] [is_well_order n (<)] [locally_finite_order_bot n]
 
 local notation `⟪`x`, `y`⟫` :=
   @inner 𝕜 (n → 𝕜) (pi_Lp.inner_product_space (λ _, 𝕜)).to_has_inner x y

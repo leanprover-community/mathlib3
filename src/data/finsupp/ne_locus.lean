@@ -44,11 +44,8 @@ lemma coe_ne_locus : ↑(f.ne_locus g) = {x | f x ≠ g x} :=
 by { ext, exact mem_ne_locus }
 
 @[simp] lemma ne_locus_eq_empty : f.ne_locus g = ∅ ↔ f = g :=
-begin
-  refine ⟨λ h, _, λ h, h ▸ by simp [ne_locus]⟩,
-  ext a,
-  exact not_not.mp (mem_ne_locus.not.mp (finset.eq_empty_iff_forall_not_mem.mp h a)),
-end
+⟨λ h, ext (λ a, not_not.mp (mem_ne_locus.not.mp (finset.eq_empty_iff_forall_not_mem.mp h a))),
+  λ h, h ▸ by simp only [ne_locus, ne.def, eq_self_iff_true, not_true, finset.filter_false]⟩
 
 @[simp] lemma nonempty_ne_locus_iff : (f.ne_locus g).nonempty ↔ f ≠ g :=
 finset.nonempty_iff_ne_empty.trans ne_locus_eq_empty.not
@@ -68,11 +65,7 @@ lemma ne_locus_zero_left : (0 : α →₀ N).ne_locus f = f.support :=
 
 lemma subset_map_range_ne_locus {F : N → M} (F0 : F 0 = 0) :
   (f.map_range F F0).ne_locus (g.map_range F F0) ⊆ f.ne_locus g :=
-begin
-  refine λ x, _,
-  simp only [mem_ne_locus, map_range_apply, not_imp_not],
-  exact congr_arg _,
-end
+λ x, by simpa only [mem_ne_locus, map_range_apply, not_imp_not] using congr_arg F
 
 lemma zip_with_ne_locus_eq_left {F : M → N → P} (F0 : F 0 0 = 0)
   (f : α →₀ M) (g₁ g₂ : α →₀ N) (hF : ∀ f, function.injective (λ g, F f g)) :

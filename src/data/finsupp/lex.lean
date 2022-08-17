@@ -35,7 +35,8 @@ let i : is_strict_order (lex (α → N)) (<) := pi.lex.is_strict_order in
 variables [linear_order α]
 
 /--  The partial order on `finsupp`s obtained by the lexicographic ordering.
-`finsupp.lex.linear_order` is the proof that this partial order is in fact linear. -/
+
+See `finsupp.lex.linear_order` for a proof that this partial order is in fact linear. -/
 instance lex.partial_order [partial_order N] : partial_order (lex (α →₀ N)) :=
 partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_like.coe_injective
 
@@ -71,52 +72,32 @@ lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 end N_has_zero
 
 /--  This is a technical result.  Likely, you will need one of the consequences of this lemma.  -/
-lemma apply_min'_lt_apply_min'_of_le [linear_order α] [linear_order N] [has_zero N]
-  {f g : α →₀ N} (h : (f.diff g).nonempty) (ab : to_lex f ≤ to_lex g) :
-  f ((f.diff g).min' h) < g ((f.diff g).min' h) :=
+lemma apply_wit_lt_apply_wit_of_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
+  {f g : α →₀ N} (fg : to_lex f < to_lex g) :
+  f (f.wit g) < g (f.wit g) :=
 begin
-  rcases ab with ab | ⟨x, ltx, abx⟩,
-  { exact (not_ne_iff.mpr (fun_like.coe_fn_eq.mp ab) (nonempty_diff_iff.mp h)).elim },
-  convert abx,
-  repeat { refine le_antisymm (finset.min'_le _ _ _) _,
-    { simp only [diff, ne.def, finset.mem_filter, finset.mem_union, mem_support_iff],
-      exact ⟨abx.ne.ne_or_ne 0, abx.ne⟩ },
-    { refine finset.le_min' _ _ _ (λ y hy, _),
-      contrapose! hy,
-      simpa only [mem_diff, ne.def, not_not] using ltx _ hy } }
-end
-
-/--  This is a technical result.  Likely, you will need one of the consequences of this lemma.  -/
-lemma apply_min'_lt_apply_min'_iff [linear_order α] [linear_order N] [has_zero N] {f g : α →₀ N} :
-  to_lex f ≤ to_lex g ↔ dite (f.diff g).nonempty
-    (λ h, f ((f.diff g).min' h) < g ((f.diff g).min' h)) (λ _, true) :=
-begin
-  split_ifs with h h,
-  { refine ⟨apply_min'_lt_apply_min'_of_le _, λ h', _⟩,
-    refine le_of_lt ⟨((f.diff g).min' h), λ j hj, _, h'⟩,
-    refine not_ne_iff.mp (mem_diff.not.mp _),
-    contrapose! hj,
-    exact finset.min'_le _ _ hj },
-  { rw [nonempty_diff_iff, not_not] at h,
-    simp [h] }
-end
-
-lemma apply_to_lex_lt_iff_apply_wit_lt [inhabited α] [linear_order α] [linear_order N] [has_zero N]
-  {f g : (α →₀ N)} :
-  to_lex f < to_lex g ↔ f (f.wit g) < g (f.wit g) :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw ← min'_eq_wit_of_ne (id h.ne : f ≠ g),
-    exact apply_min'_lt_apply_min'_of_le (nonempty_diff_iff.mpr h.ne) h.le },
-  { refine lt_of_le_of_ne (apply_min'_lt_apply_min'_iff.mpr _) _,
-    rwa [dif_pos, min'_eq_wit_of_ne],
-    repeat { refine coe_fn_inj.not.mp (function.ne_iff.mpr ⟨_, h.ne⟩) } }
+  rcases fg with ⟨x, ltx, fgx⟩,
+  { convert fgx;
+    exact wit_eq_of_ne_of_forall fgx.ne ltx }
 end
 
 lemma to_lex_le_iff_apply_wit_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
+  {f g : α →₀ N} :
+  to_lex f ≤ to_lex g ↔ f ((f.wit g)) ≤ g ((f.wit g)) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases eq_or_ne f g with rfl | fg,
+    { exact le_rfl },
+    { exact (apply_wit_lt_apply_wit_of_le (h.lt_of_ne fg)).le } },
+  { contrapose! h,
+    rw wit_comm,
+    exact apply_wit_lt_apply_wit_of_le h }
+end
+
+lemma to_lex_lt_iff_apply_wit_lt [inhabited α] [linear_order α] [linear_order N] [has_zero N]
   {f g : (α →₀ N)} :
-  to_lex f ≤ to_lex g ↔ f (f.wit g) ≤ g (f.wit g) :=
-not_iff_not.mp (by simp only [not_le, apply_to_lex_lt_iff_apply_wit_lt, wit_comm])
+  to_lex f < to_lex g ↔ f (f.wit g) < g (f.wit g) :=
+not_iff_not.mp (by simp only [to_lex_le_iff_apply_wit_le, wit_comm, not_lt])
 
 lemma le_iff_of_lex_apply_wit_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
   {f g : lex (α →₀ N)} :

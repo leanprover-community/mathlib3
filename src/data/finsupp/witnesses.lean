@@ -148,6 +148,15 @@ begin
   { exact (hx (congr_fun (not_not.mp (nonempty_diff_iff.not.mp h)) x)).elim }
 end
 
+lemma wit_eq_of_ne_of_forall {x : α} (abx : f x ≠ g x) (ltx : ∀ (j : α), j < x → f j = g j) :
+  (f.wit g) = x :=
+begin
+  refine (wit_le abx).antisymm _,
+  rw [wit, dif_pos],
+  refine finset.le_min' _ _ _ (by simpa only [mem_diff, not_imp_comm, not_le]),
+  exact nonempty_diff_iff.mpr (ne_of_apply_ne _ abx),
+end
+
 lemma apply_eq_of_le_wit {f g : α →₀ N} {j : α} (hj : j < f.wit g) :
   f j = g j :=
 not_ne_iff.mp (λ h, not_le.mpr hj (wit_le h))

@@ -289,7 +289,7 @@ begin
   { rw polynomial.nat_degree_mul, rw bar_same_deg, rw bar_same_deg, intro rid, exact h.1 (f_bar_eq_0 f rid), intro rid, exact h.2 (f_bar_eq_0 g rid) },
   rw deg_eq,
   replace deg_eq : (f * g).nat_degree = f.nat_degree + g.nat_degree,
-  { rw polynomial.nat_degree_mul, intro rid, exact h.1 rid, intro rid, exact h.2 rid },
+  { rw polynomial.nat_degree_mul h.1 h.2 },
   rw [deg_eq, polynomial.eval_finset_sum], apply finset.sum_le_sum,
   intros x hx, simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow, polynomial.eval_mul], rw coeff_f_bar_mul, rw polynomial.coeff_mul,
   cases k,
@@ -300,7 +300,7 @@ begin
         zero_pow (nat.succ_pos x), polynomial.eval_finset_sum],
       exact finset.sum_nonneg (λ i hi, le_rfl), } },
 
-   { simp only [polynomial.eval_monomial, bar_coeff, ←abs_mul],
+  { simp only [polynomial.eval_monomial, bar_coeff, ←abs_mul],
     refine mul_le_mul_of_nonneg_right (finset.abs_sum_le_sum_abs _ _) _,
     { apply pow_nonneg, norm_cast, exact bot_le } }
 end
@@ -323,21 +323,22 @@ end
 theorem eval_f_bar_pow (f : ℤ[X]) (k n : ℕ) : polynomial.eval (k:ℤ) (f_bar (f^n)) ≤ (polynomial.eval (k:ℤ) (f_bar f))^n :=
 begin
   induction n with n H,
-  simp only [f_bar_1, polynomial.eval_one, pow_zero],
+  {simp only [f_bar_1, polynomial.eval_one, pow_zero]},
   rw pow_succ, have ineq := eval_f_bar_mul f (f^n) k,
   have ineq2 : polynomial.eval ↑k (f_bar f) * polynomial.eval ↑k (f_bar (f ^ n)) ≤  polynomial.eval ↑k (f_bar f) * polynomial.eval ↑k (f_bar f) ^ n,
-    apply mul_le_mul, exact le_refl (polynomial.eval ↑k (f_bar f)), exact H, exact eval_f_bar_nonneg (f ^ n) k, exact eval_f_bar_nonneg f k,
+  {apply mul_le_mul, exact le_refl (polynomial.eval ↑k (f_bar f)), exact H, exact eval_f_bar_nonneg (f ^ n) k, exact eval_f_bar_nonneg f k},
   exact le_trans ineq ineq2,
 end
 
 theorem eval_f_bar_prod (f : ℕ -> (ℤ[X])) (k : ℕ) (s:finset ℕ): polynomial.eval (k:ℤ) (f_bar (∏ i in s, (f i))) ≤ (∏ i in s, polynomial.eval (k:ℤ) (f_bar (f i))) :=
 begin
-  apply finset.induction_on s, simp only [f_bar_1, polynomial.eval_one, finset.prod_empty],
+  apply finset.induction_on s,
+  {simp only [f_bar_1, polynomial.eval_one, finset.prod_empty]},
   intros a s ha H, rw finset.prod_insert, rw finset.prod_insert,
   have ineq := eval_f_bar_mul (f a) (∏ (x : ℕ) in s, f x) k,
   have ineq2 : polynomial.eval ↑k (f_bar (f a)) * polynomial.eval ↑k (f_bar (∏ (x : ℕ) in s, f x)) ≤
     polynomial.eval ↑k (f_bar (f a)) * ∏ (i : ℕ) in s, polynomial.eval ↑k (f_bar (f i)),
-  apply mul_le_mul, exact le_refl _, exact H, exact eval_f_bar_nonneg (∏ (x : ℕ) in s, f x) k, exact eval_f_bar_nonneg (f a) k,
+  { apply mul_le_mul, exact le_refl _, exact H, exact eval_f_bar_nonneg (∏ (x : ℕ) in s, f x) k, exact eval_f_bar_nonneg (f a) k },
   exact le_trans ineq ineq2, exact ha, exact ha,
 end
 

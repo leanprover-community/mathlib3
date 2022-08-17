@@ -6,7 +6,7 @@ Authors: Damiano Testa
 import data.finsupp.basic
 
 /-!
-#  Witnesses for finitely supported functions
+#  `diff` and witnesses for finitely supported functions
 
 Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
 functions.
@@ -52,10 +52,7 @@ by simp_rw [diff, finset.union_comm, ne_comm]
 begin
   refine ⟨λ h, _, λ h, h ▸ by simp [diff]⟩,
   ext a,
-  refine not_ne_iff.mp (λ fg, not_ne_iff.mpr h _),
-  refine finset.ne_empty_of_mem (_ : a ∈ _),
-  simp only [diff, finset.mem_filter, finset.mem_union, finsupp.mem_support_iff],
-  exact ⟨fg.ne_or_ne _, fg⟩,
+  exact not_not.mp (mem_diff.not.mp (finset.eq_empty_iff_forall_not_mem.mp h a)),
 end
 
 @[simp] lemma nonempty_diff_iff : (f.diff g).nonempty ↔ f ≠ g :=
@@ -63,8 +60,7 @@ finset.nonempty_iff_ne_empty.trans diff_eq_empty.not
 
 @[simp]
 lemma diff_zero_right : f.diff 0 = f.support :=
-by simp only [diff, coe_zero, pi.zero_apply, support_zero, finset.union_empty,
-    finset.filter_true_of_mem, mem_support_iff, imp_self, implies_true_iff]
+by { ext, rw [mem_diff, mem_support_iff, coe_zero, pi.zero_apply] }
 
 @[simp]
 lemma diff_zero_left : (0 : α →₀ N).diff f = f.support :=
@@ -74,8 +70,8 @@ lemma subset_map_range_diff {M} [decidable_eq M] [has_zero M] {F : N → M} (F0 
   (f.map_range F F0).diff (g.map_range F F0) ⊆ f.diff g :=
 begin
   refine λ x, _,
-  simp only [mem_diff, map_range_apply, not_not],
-  exact not_imp_not.mpr (λ h, h ▸ rfl),
+  simp only [mem_diff, map_range_apply, not_imp_not],
+  exact congr_arg _,
 end
 
 lemma map_range_diff_eq {M} [decidable_eq M] [has_zero M]
@@ -123,7 +119,7 @@ section N_has_zero
 variables [has_zero N] {f g : α →₀ N}
 
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.wit f g` is an element of `α`.
-It is a "generic" element of `α` (namely, `nonempty.some _ : α`) if and only if `f = g`.
+It is a "generic" element of `α` (namely, `default : α`) if and only if `f = g`.
 Otherwise, it is `a` if `a : α` is the smallest value for which `f a ≠ g a`. -/
 def wit (f g : α →₀ N) : α :=
 dite (f.diff g).nonempty (λ h, (f.diff g).min' h) (λ _, default)
@@ -143,7 +139,7 @@ end
 lemma wit_le {x : α} (hx : f x ≠ g x) : (f.wit g) ≤ x :=
 begin
   unfold wit,
-  split_ifs,
+  split_ifs with h h,
   { exact (f.diff g).min'_le x (mem_diff.mpr hx) },
   { exact (hx (congr_fun (not_not.mp (nonempty_diff_iff.not.mp h)) x)).elim }
 end
@@ -157,7 +153,7 @@ begin
   exact nonempty_diff_iff.mpr (ne_of_apply_ne _ abx),
 end
 
-lemma apply_eq_of_le_wit {f g : α →₀ N} {j : α} (hj : j < f.wit g) :
+lemma apply_eq_of_lt_wit {f g : α →₀ N} {j : α} (hj : j < f.wit g) :
   f j = g j :=
 not_ne_iff.mp (λ h, not_le.mpr hj (wit_le h))
 

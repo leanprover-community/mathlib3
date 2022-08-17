@@ -503,6 +503,183 @@ noncomputable def unique_up_to_iso [is_localized_module S f] [is_localized_modul
   M' ≃ₗ[R] M'' :=
 (iso S f).symm.trans (iso S g)
 
+/--
+If `(M', f)` satisfies universal property of localized module, then `localization S` acts on `M'`
+via the isomorphism `M' ≅ localization S M` as `R`-module.
+-/
+noncomputable def has_localization_smul [is_localized_module S f] :
+  has_smul (localization S) M' :=
+{ smul := λ x m, iso S f $ x • (iso S f).symm m }
+
+local attribute [instance] has_localization_smul
+
+lemma has_localization_smul.mk_smul [is_localized_module S f] (r : R) (s : S) (x : M'):
+  (localization.mk r s : localization S) • x =
+  (is_localized_module.map_units f s).unit⁻¹ (r • x) :=
+begin
+  rw [module.End_algebra_map_is_unit_inv_apply_eq_iff'],
+  change r • x = s • iso S f _,
+  rcases is_localized_module.surj S f x with ⟨⟨a, b⟩, eq1⟩,
+  dsimp at eq1,
+  rw [iso_symm_apply' S f x _ _ eq1, localized_module.mk_smul_mk],
+  simp only [localized_module.lift_on_mk, submonoid.coe_mul, map_mul, iso_apply,
+    linear_map.to_fun_eq_coe, from_localized_module_apply, linear_map.map_smulₛₗ, ring_hom.id_apply],
+  generalize_proofs h1,
+  erw [←linear_map.map_smul],
+  rw [←map_mul] at h1,
+  convert (module.End_algebra_map_is_unit_inv_apply_eq_iff' h1 (s • r • f a) (r • x)).mpr _,
+  { rw map_mul },
+  conv_rhs { rw [←mul_smul, mul_assoc, mul_comm _ r, mul_smul, mul_smul] },
+  erw [eq1],
+  refl,
+end
+
+/--
+If `(M', f)` satisfies universal property of localized module, then `localization S` acts on `M'`
+via the isomorphism `M' ≅ localization S M` as `R`-module.
+-/
+noncomputable def localization_mul_action [is_localized_module S f] : mul_action (localization S) M' :=
+{ one_smul := λ b,
+  begin
+    change iso S _ _ = _,
+    rw [one_smul, linear_equiv.apply_symm_apply],
+  end,
+  mul_smul := λ x y m,
+  begin
+    induction x using localization.induction_on with a,
+    induction y using localization.induction_on with a',
+    rcases ⟨a, a'⟩ with ⟨⟨a, b⟩, ⟨a', b'⟩⟩,
+    rw [localization.mk_mul, has_localization_smul.mk_smul, has_localization_smul.mk_smul,
+      has_localization_smul.mk_smul],
+    dsimp,
+    generalize_proofs h1 h2 h3,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←linear_map.map_smul,
+      module.End_algebra_map_is_unit_inv_apply_eq_iff', ←linear_map.map_smul, ←linear_map.map_smul,
+      module.End_algebra_map_is_unit_inv_apply_eq_iff, mul_comm b, mul_smul, mul_smul],
+    refl,
+  end,
+  ..has_localization_smul S f }
+
+local attribute [instance] localization_mul_action
+
+/--
+If `(M', f)` satisfies universal property of localized module, then `localization S` acts on `M'`
+via the isomorphism `M' ≅ localization S M` as `R`-module.
+-/
+noncomputable def localization_distrib_mul_action [is_localized_module S f] :
+  distrib_mul_action (localization S) M' :=
+{ smul_add := λ r x y,
+  begin
+    change iso _ _ _ = iso _ _ _ + iso _ _ _,
+    simp only [←map_add, ←smul_add],
+  end,
+  smul_zero := λ r,
+  begin
+    change iso _ _ _ = _,
+    simp only [map_zero, smul_zero],
+  end,
+  ..localization_mul_action S f }
+
+local attribute [instance] localization_distrib_mul_action
+
+/--
+If `(M', f)` satisfies universal property of localized module, then `M'` is also a `localization S`
+module.
+-/
+noncomputable def localization_module [is_localized_module S f] :
+  module (localization S) M' :=
+{ add_smul := λ r s x,
+  begin
+    change iso _ _ _ = iso _ _ _ + iso _ _ _,
+    simp only [←map_add, ←add_smul],
+  end,
+  zero_smul := λ x,
+  begin
+    change iso _ _ _ = _,
+    simp only [zero_smul, map_zero],
+  end,
+  ..localization_distrib_mul_action S f }
+
+local attribute [instance] localization_module
+
+private lemma iso_localization_smul_aux [is_localized_module S f] (r : R) (s : S)
+  (m : M) (t : S) :
+  (localization.mk r s) • iso S f (localized_module.mk m t) =
+  iso S f (localized_module.mk (r • m) (s * t)) :=
+begin
+  rw [iso_apply_mk, iso_apply_mk],
+  unfold has_smul.smul,
+  rw [localization.lift_on_mk],
+  generalize_proofs h0 h1 h2 h3,
+  rcases is_localized_module.surj S f (h1.unit⁻¹ (f m)) with ⟨⟨a, b⟩, eq1⟩,
+  rw [iso_symm_apply' S f _ _ _ eq1, localized_module.lift_on_mk, iso_apply_mk],
+  generalize_proofs h4,
+  erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←linear_map.map_smul,
+    module.End_algebra_map_is_unit_inv_apply_eq_iff'],
+  dsimp only at *,
+  apply_fun h1.unit at eq1,
+  erw [linear_map.map_smul, module.End_is_unit_apply_inv_apply] at eq1,
+  change ↑b • f m = ↑t • f a at eq1,
+  simp only [submonoid.coe_mul, mul_smul, linear_map.map_smul],
+  simp only [←mul_smul, mul_comm _ r, ←mul_assoc],
+  simp only [mul_smul, eq1],
+end
+
+lemma iso_localization_smul [is_localized_module S f] (r : R) (s : S) (x : localized_module S M) :
+  (localization.mk r s) • iso S f x = iso S f (localization.mk r s • x) :=
+x.induction_on
+begin
+  intros m t,
+  convert iso_localization_smul_aux S f r s m t,
+  unfold has_smul.smul,
+  rw [localization.lift_on_mk, iso_symm_apply' S (localized_module.mk_linear_map S M)
+    (localized_module.mk m t) m t _, localized_module.lift_on_mk, iso_apply_mk,
+    module.End_algebra_map_is_unit_inv_apply_eq_iff],
+  work_on_goal 2
+  { change localized_module.mk _ _ = localized_module.mk _ _,
+    refine localized_module.mk_eq.mpr ⟨1, _⟩,
+    simp only [one_smul, one_mul],
+    refl },
+  dsimp,
+  change localized_module.mk _ _ = localized_module.mk _ _,
+  refine localized_module.mk_eq.mpr ⟨1, _⟩,
+  simpa only [one_smul, mul_smul, one_mul, algebra_map_smul],
+end
+
+/--
+If `(M', f)` satisfies universal property of localized module, there is a canonical `localization S`
+linear map from `localized_module S M` to `M'`.
+-/
+noncomputable def from_localized_module_as_localization_module [is_localized_module S f] :
+  localized_module S M →ₗ[localization S] M' :=
+{ to_fun := iso S f,
+  map_add' := map_add _,
+  map_smul' := λ r x, r.induction_on
+  begin
+    rintros ⟨a, b⟩,
+    induction x using localized_module.induction_on with a' b',
+    rw [ring_hom.id_apply, iso_localization_smul],
+  end }
+
+/--
+If `(M', f)` satisfies universal property of localized module, then `localized_module S M` and `M'`
+are isomorphic as `localization S`-module.
+-/
+noncomputable def iso_as_localization_module [is_localized_module S f] :
+  localized_module S M ≃ₗ[localization S] M' :=
+{ ..from_localized_module_as_localization_module S f,
+  ..equiv.of_bijective (from_localized_module_as_localization_module S f)
+    (from_localized_module.bij S f)}
+
+/--
+If `(M', f)` and `(M'', g)` both satisfy universal property of localized module, then `M''` and `M'`
+are isomorphic as `localization S`-module.
+-/
+noncomputable def unique_up_to_iso_as_localization_module
+  [is_localized_module S f] [is_localized_module S g] :
+  M' ≃ₗ[localization S] M'' :=
+(iso_as_localization_module S f).symm.trans (iso_as_localization_module S g)
+
 end
 
 end is_localized_module

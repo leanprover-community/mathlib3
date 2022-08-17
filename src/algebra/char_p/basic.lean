@@ -349,13 +349,16 @@ calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
          ... = ↑(k % p)               : by simp [cast_eq_zero]
 
 /-- The characteristic of a finite ring cannot be zero. -/
-theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
-assume h : p = 0,
-have char_zero R := @char_p_to_char_zero R _ (h ▸ hc),
-absurd (@nat.cast_injective R _ this) (not_injective_infinite_fintype coe)
+theorem char_ne_zero_of_finite (p : ℕ) [char_p R p] [finite R] : p ≠ 0 :=
+begin
+  unfreezingI { rintro rfl },
+  haveI : char_zero R := char_p_to_char_zero R,
+  casesI nonempty_fintype R,
+  exact absurd nat.cast_injective (not_injective_infinite_finite (coe : ℕ → R))
+end
 
-lemma ring_char_ne_zero_of_fintype [fintype R] : ring_char R ≠ 0 :=
-char_ne_zero_of_fintype R (ring_char R)
+lemma ring_char_ne_zero_of_finite [finite R] : ring_char R ≠ 0 :=
+char_ne_zero_of_finite R (ring_char R)
 
 end
 
@@ -432,11 +435,11 @@ end semiring
 
 section ring
 
-variables (R) [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
+variables (R) [ring R] [no_zero_divisors R] [nontrivial R] [finite R]
 
 theorem char_is_prime (p : ℕ) [char_p R p] :
   p.prime :=
-or.resolve_right (char_is_prime_or_zero R p) (char_ne_zero_of_fintype R p)
+or.resolve_right (char_is_prime_or_zero R p) (char_ne_zero_of_finite R p)
 
 end ring
 

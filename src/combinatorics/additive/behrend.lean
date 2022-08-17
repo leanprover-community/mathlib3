@@ -237,7 +237,7 @@ begin
   { rwa one_le_cast },
   rw le_sub_iff_add_le,
   norm_num,
-  exact le_mul_of_one_le_right zero_le_two (one_le_cast.2 hd),
+  exact one_le_cast.2 hd,
 end
 
 lemma bound_aux' (n d : ℕ) : (d ^ n / ↑(n * d^2) : ℝ) ≤ roth_number_nat ((2 * d - 1)^n) :=

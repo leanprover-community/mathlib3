@@ -396,8 +396,7 @@ variable {α : Type*}
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
 
-lemma region_between_subset (f g : α → ℝ) (s : set α) :
-  region_between f g s ⊆ s ×ˢ (univ : set ℝ) :=
+lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s ×ˢ univ :=
 by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
 
 variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}

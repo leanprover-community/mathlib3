@@ -67,7 +67,6 @@ quotient.induction_on s $ λ l, begin
   {congr; simp}, {simp}
 end
 
-
 theorem antidiagonal_eq_map_powerset [decidable_eq α] (s : multiset α) :
   s.antidiagonal = s.powerset.map (λ t, (s - t, t)) :=
 begin
@@ -84,7 +83,7 @@ end
 @[simp] theorem card_antidiagonal (s : multiset α) :
   card (antidiagonal s) = 2 ^ card s :=
 by have := card_powerset s;
-   rwa [← antidiagonal_map_fst, card_map] at this
+  rwa [← antidiagonal_map_fst, card_map] at this
 
 lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
   prod (s.map (λa, f a + g a)) =

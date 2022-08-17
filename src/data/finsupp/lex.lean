@@ -72,7 +72,7 @@ lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 end N_has_zero
 
 /--  This is a technical result.  Likely, you will need one of the consequences of this lemma.  -/
-lemma apply_wit_lt_apply_wit_of_le [inhabited α] [linear_order α] [linear_order N] [has_zero N]
+lemma apply_wit_lt_apply_wit_of_lt [inhabited α] [linear_order α] [linear_order N] [has_zero N]
   {f g : α →₀ N} (fg : to_lex f < to_lex g) :
   f (f.wit g) < g (f.wit g) :=
 begin
@@ -88,10 +88,10 @@ begin
   refine ⟨λ h, _, λ h, _⟩,
   { rcases eq_or_ne f g with rfl | fg,
     { exact le_rfl },
-    { exact (apply_wit_lt_apply_wit_of_le (h.lt_of_ne fg)).le } },
+    { exact (apply_wit_lt_apply_wit_of_lt (h.lt_of_ne fg)).le } },
   { contrapose! h,
     rw wit_comm,
-    exact apply_wit_lt_apply_wit_of_le h }
+    exact apply_wit_lt_apply_wit_of_lt h }
 end
 
 lemma to_lex_lt_iff_apply_wit_lt [inhabited α] [linear_order α] [linear_order N] [has_zero N]

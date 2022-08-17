@@ -182,18 +182,15 @@ f.to_linear_map.map_smulₛₗ c x
   f (c • x) = c • f x :=
 f.to_linear_map.map_smul c x
 
-@[simp] lemma norm_map [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) (x : E) :
-  ∥f x∥ = ∥x∥ := semilinear_isometry_class.norm_map f x
+@[simp] lemma norm_map (x : E) : ∥f x∥ = ∥x∥ := semilinear_isometry_class.norm_map f x
 
-@[simp] lemma nnnorm_map [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) (x : E) :
-  ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ norm_map f x
+@[simp] lemma nnnorm_map (x : E) : ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ norm_map f x
 
-protected lemma isometry [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) : isometry f :=
-add_monoid_hom_class.isometry_of_norm _ (norm_map _)
+protected lemma isometry : isometry f := add_monoid_hom_class.isometry_of_norm _ (norm_map _)
 
 @[simp] lemma is_complete_image_iff [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) {s : set E} :
   is_complete (f '' s) ↔ is_complete s :=
-is_complete_image_iff (linear_isometry.isometry f).uniform_inducing
+is_complete_image_iff (semilinear_isometry_class.isometry f).uniform_inducing
 
 lemma is_complete_map_iff [ring_hom_surjective σ₁₂] {p : submodule R E} :
   is_complete (p.map f.to_linear_map : set E₂) ↔ is_complete (p : set E) :=
@@ -214,7 +211,7 @@ instance complete_space_map' [ring_hom_surjective σ₁₂] (p : submodule R E) 
 @[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.isometry.dist_eq x y
 @[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.isometry.edist_eq x y
 
-protected lemma injective : injective f₁ := f₁.isometry.injective
+protected lemma injective : injective f₁ := isometry.injective (linear_isometry.isometry f₁)
 
 @[simp] lemma map_eq_iff {x y : F} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
 
@@ -245,10 +242,10 @@ lemma ediam_range : emetric.diam (range f) = emetric.diam (univ : set E) :=
 f.isometry.ediam_range
 
 lemma diam_image (s : set E) : metric.diam (f '' s) = metric.diam s :=
-f.isometry.diam_image s
+isometry.diam_image (linear_isometry.isometry f) s
 
 lemma diam_range : metric.diam (range f) = metric.diam (univ : set E) :=
-f.isometry.diam_range
+isometry.diam_range (linear_isometry.isometry f)
 
 /-- Interpret a linear isometry as a continuous linear map. -/
 def to_continuous_linear_map : E →SL[σ₁₂] E₂ := ⟨f.to_linear_map, f.continuous⟩
@@ -283,7 +280,7 @@ instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
 /-- Composition of linear isometries. -/
 def comp (g : E₂ →ₛₗᵢ[σ₂₃] E₃) (f : E →ₛₗᵢ[σ₁₂] E₂) : E →ₛₗᵢ[σ₁₃] E₃ :=
-⟨g.to_linear_map.comp f.to_linear_map, λ x, (g.norm_map _).trans (f.norm_map _)⟩
+⟨g.to_linear_map.comp f.to_linear_map, λ x, (norm_map g _).trans (norm_map f _)⟩
 
 include σ₁₃
 @[simp] lemma coe_comp (g : E₂ →ₛₗᵢ[σ₂₃] E₃) (f : E →ₛₗᵢ[σ₁₂] E₂) :
@@ -376,7 +373,7 @@ semilinear_isometry_equiv_class 𝓕 (ring_hom.id R) E E₂
 set_option old_structure_cmd false
 
 namespace semilinear_isometry_equiv_class
-variables (𝓕 : Type*)
+variables (𝓕)
 
 include σ₂₁
 -- `σ₂₁` becomes a metavariable, but it's OK since it's an outparam
@@ -403,11 +400,16 @@ lemma to_linear_equiv_injective : injective (to_linear_equiv : (E ≃ₛₗᵢ[�
   f.to_linear_equiv = g.to_linear_equiv ↔ f = g :=
 to_linear_equiv_injective.eq_iff
 
-instance : add_monoid_hom_class (E ≃ₛₗᵢ[σ₁₂] E₂) E E₂ :=
+instance : semilinear_isometry_equiv_class (E ≃ₛₗᵢ[σ₁₂] E₂) σ₁₂ E E₂ :=
 { coe := λ e, e.to_fun,
-  coe_injective' := λ f g h, to_linear_equiv_injective (fun_like.coe_injective h),
+  inv := λ e, e.inv_fun,
+  coe_injective' := λ f g h₁ h₂,
+    by { cases f with f' _, cases g with g' _, cases f', cases g', congr', },
+  left_inv := λ e, e.left_inv,
+  right_inv := λ e, e.right_inv,
   map_add := λ f, map_add f.to_linear_equiv,
-  map_zero := λ f, map_zero f.to_linear_equiv }
+  map_smulₛₗ := λ e, map_smulₛₗ e.to_linear_equiv,
+  norm_map := λ e, e.norm_map' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly.
@@ -645,7 +647,7 @@ omit σ₂₁
 @[simp] lemma map_smul [module R E₂] {e : E ≃ₗᵢ[R] E₂} (c : R) (x : E) : e (c • x) = c • e x :=
 e.1.map_smul c x
 
-@[simp] lemma nnnorm_map (x : E) : ∥e x∥₊ = ∥x∥₊ := e.to_linear_isometry.nnnorm_map x
+@[simp] lemma nnnorm_map (x : E) : ∥e x∥₊ = ∥x∥₊ := semilinear_isometry_class.nnnorm_map e x
 
 @[simp] lemma dist_map (x y : E) : dist (e x) (e y) = dist x y :=
 e.to_linear_isometry.dist_map x y
@@ -710,7 +712,7 @@ e.isometry.comp_continuous_iff
 
 instance complete_space_map (p : submodule R E) [complete_space p] :
   complete_space (p.map (e.to_linear_equiv : E →ₛₗ[σ₁₂] E₂)) :=
-e.to_linear_isometry.complete_space_map p
+e.to_linear_isometry.complete_space_map' p
 
 include σ₂₁
 /-- Construct a linear isometry equiv from a surjective linear isometry. -/

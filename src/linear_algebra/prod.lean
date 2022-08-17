@@ -622,8 +622,8 @@ begin
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },
   rcases mem_sup.1 this with ⟨x', hx', y', hy', H⟩,
   refine ⟨x' + x, _, _⟩,
-  { simp only [mem_ker.mp hx', map_add, zero_add], },
-  { simp only [←eq_sub_iff_add_eq.1 H, map_add, add_left_inj, self_eq_add_right, mem_ker.mp hy'] }
+  { simp only [mem_ker.mp hx', add_sub_cancel, mem_ker] },
+  { simp [←eq_sub_iff_add_eq.1 H, map_add, add_left_inj, self_eq_add_right, mem_ker.mp hy'] }
 end
 
 end linear_map

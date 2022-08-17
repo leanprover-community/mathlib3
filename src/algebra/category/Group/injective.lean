@@ -106,4 +106,38 @@ module.Baer.injective $
       congr, }, },
 end
 
+namespace divisible_emb
+
+-- In this section we prove that any additive abelian group A can be embed into a divisible group,
+-- namely `∏ᵢ (ℚ⧸ℤ)` where `i` indexing over all morphism `A →+ ℚ⧸ℤ`
+
+private def ℤ_as_ℚ_subgroup : add_subgroup ℚ :=
+{ carrier := set.range (coe : ℤ → ℚ),
+  add_mem' := by { rintros _ _ ⟨a, rfl⟩ ⟨b, rfl⟩, refine ⟨a + b, by norm_cast⟩, },
+  zero_mem' := ⟨0, rfl⟩,
+  neg_mem' := by { rintros _ ⟨a, rfl⟩, refine ⟨-a, by norm_cast⟩ } }
+
+local notation `Z` := ℤ_as_ℚ_subgroup
+
+noncomputable instance divisible_ℚ_quotient_ℤ : divisible_by (ℚ ⧸ Z) ℤ :=
+add_comm_group.divisible_by_int_of_smul_top_eq_top _ $ λ n hn, set_like.ext $ λ x,
+{ mp := λ _, trivial,
+  mpr := λ _, begin
+    induction x using quotient.induction_on',
+    refine ⟨quotient.mk' (x/n), trivial, _⟩,
+    change quotient.mk' (n • _) = _,
+    congr,
+    rw [div_eq_mul_inv, mul_comm],
+    norm_num,
+    rw [←mul_assoc, mul_inv_cancel, one_mul],
+    exact_mod_cast hn,
+  end }
+
+local notation `ℚ⧸ℤ` := (ulift.{u} (ℚ ⧸ Z))
+local notation `I` := A →+ ℚ⧸ℤ
+local notation `D` := (Π (i : I), ℚ⧸ℤ)
+
+end divisible_emb
+
+
 end AddCommGroup

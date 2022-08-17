@@ -7,6 +7,7 @@ import group_theory.subgroup.pointwise
 import group_theory.group_action.pi
 import group_theory.quotient_group
 import algebra.group.pi
+import algebra.group.ulift
 
 /-!
 # Divisible Group and rootable group
@@ -100,6 +101,12 @@ class rootable_by :=
 (root : A → α → A)
 (root_zero : ∀ a, root a 0 = 1)
 (root_cancel : ∀ {n : α} (a : A), n ≠ 0 → (root a n)^n = a)
+
+@[to_additive]
+instance ulift_rootable_by [rootable_by A α] : rootable_by (ulift A) α :=
+{ root := λ a n, ulift.up $ rootable_by.root a.down n,
+  root_zero := λ ⟨a⟩, by { ext, dsimp, rw rootable_by.root_zero },
+  root_cancel := λ n ⟨a⟩ hn, by { ext, dsimp, rwa rootable_by.root_cancel, } }
 
 @[to_additive smul_right_surj_of_divisible_by]
 lemma pow_left_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :

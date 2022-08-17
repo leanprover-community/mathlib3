@@ -712,7 +712,7 @@ calc  b * a < b * 1 : mul_lt_mul_left b0 ha
 
 -- proven with `a0 : 0 ≤ a` as `left.mul_le_one_of_le_of_le`
 /-- Assumes left covariance. -/
-lemma preorder.left.mul_le_one_of_le_of_le' [pos_mul_mono α]
+lemma preorder.left.mul_le_one_of_le_of_le [pos_mul_mono α]
   (a0 : 0 < a) (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
 preorder.mul_le_of_le_of_le_one a0 ha hb
 

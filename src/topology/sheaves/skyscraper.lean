@@ -826,7 +826,7 @@ variables {C : Type u} [category.{u} C] [concrete_category.{u} C] [has_colimits 
 variables [has_limits C] [preserves_limits (forget C)] [reflects_isomorphisms (forget C)]
 variables [preserves_filtered_colimits (forget C)]
 
-lemma skyscraper_presheaf_in_Ab_injective (S : C) [injective S] :
+lemma skyscraper_sheaf_injective (S : C) [injective S] :
   injective (skyscraper_sheaf p₀ S) :=
 injective.injective_of_adjoint (stalk_skyscraper_sheaf_adj p₀ C) S
 

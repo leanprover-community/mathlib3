@@ -521,7 +521,6 @@ def obj_sup_iso_prod_eq_locus {X : Top} (F : X.sheaf CommRing)
   F.1.obj (op $ U ⊔ V) ≅ CommRing.of (ring_hom.eq_locus _ _) :=
 (F.is_limit_pullback_cone U V).cone_point_unique_up_to_iso (CommRing.pullback_cone_is_limit _ _)
 
-@[simp]
 lemma obj_sup_iso_prod_eq_locus_hom_fst {X : Top} (F : X.sheaf CommRing)
   (U V : opens X) (x) :
   ((F.obj_sup_iso_prod_eq_locus U V).hom x).1.fst = F.1.map (hom_of_le le_sup_left).op x :=

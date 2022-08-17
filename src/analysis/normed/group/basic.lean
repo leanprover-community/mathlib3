@@ -216,6 +216,17 @@ by simpa only [dist_add_left, dist_add_right, dist_comm h₂]
 @[simp] lemma norm_nonneg (g : E) : 0 ≤ ∥g∥ :=
 by { rw[←dist_zero_right], exact dist_nonneg }
 
+section
+open tactic tactic.positivity
+
+/-- Extension for the `positivity` tactic: norms are nonnegative. -/
+@[positivity]
+meta def _root_.tactic.positivity_norm : expr → tactic strictness
+| `(∥%%a∥) := nonnegative <$> mk_app ``norm_nonneg [a]
+| _ := failed
+
+end
+
 @[simp] lemma norm_zero : ∥(0 : E)∥ = 0 :=  by rw [← dist_zero_right, dist_self]
 
 lemma ne_zero_of_norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { rintro rfl, exact norm_zero }
@@ -1061,6 +1072,16 @@ end
 end seminormed_add_comm_group
 
 section normed_add_comm_group
+
+/-- Construct a `normed_add_comm_group` from a `seminormed_add_comm_group` satisfying
+`∀ x, ∥x∥ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level
+when declaring a `normed_add_comm_group` instance as a special case of a more general
+`seminormed_add_comm_group` instance. -/
+def normed_add_comm_group.of_separation [h₁ : seminormed_add_comm_group E]
+  (h₂ : ∀ x : E, ∥x∥ = 0 → x = 0) : normed_add_comm_group E :=
+{ to_metric_space :=
+  { eq_of_dist_eq_zero := λ x y hxy, by rw h₁.dist_eq at hxy; rw ← sub_eq_zero; exact h₂ _ hxy },
+  ..h₁ }
 
 /-- Construct a normed group from a translation invariant distance -/
 def normed_add_comm_group.of_add_dist [has_norm E] [add_comm_group E] [metric_space E]

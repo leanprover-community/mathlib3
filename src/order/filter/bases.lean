@@ -5,7 +5,7 @@ Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import data.prod.pprod
 import data.set.countable
-import order.filter.basic
+import order.filter.prod
 
 /-!
 # Filter bases
@@ -706,6 +706,11 @@ includes `s i` for some `i`, and `s` is decreasing. -/
 @[protect_proj] structure has_antitone_basis (l : filter α) (s : ι'' → set α)
   extends has_basis l (λ _, true) s : Prop :=
 (antitone : antitone s)
+
+lemma has_antitone_basis.map {l : filter α} {s : ι'' → set α} {m : α → β}
+  (hf : has_antitone_basis l s) :
+  has_antitone_basis (map m l) (λ n, m '' s n) :=
+⟨has_basis.map _ hf.to_has_basis, λ i j hij, image_subset _ $ hf.2 hij⟩
 
 end same_type
 

@@ -24,6 +24,7 @@ import data.opposite
 import .mathlib
 import .reachable_outside
 import .bwd_map
+import .end_limit_construction
 
 
 open function
@@ -56,7 +57,10 @@ def sections_map
 
 end inverse_system
 
-namespace simple_graph
+
+open simple_graph
+open simple_graph.ro_component
+
 
 variables  {V : Type u}
            (G : simple_graph V)
@@ -71,10 +75,8 @@ variables  {V : Type u}
            (Gpc'' : preconnected G'')
 
 
-namespace ends
 
-open ro_component
-open simple_graph
+
 
 def cofinite (f : V → V') := ∀ x : V', (set.preimage f {x}).finite
 
@@ -117,6 +119,7 @@ lemma cofinite.of_inj {f : V → V'} (inj : function.injective f) : cofinite f :
 def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V :=
 set.finite.to_finset (cofinite.finite_preimage f cof K (finset.finite_to_set K))
 
+@[simp]
 lemma cofinite.preimage.coe {f : V → V'} (cof : cofinite f) (K : finset V') : ↑(cof.preimage K) = set.preimage f K :=
 begin
   show ↑(set.finite.to_finset (cofinite.finite_preimage f cof K (finset.finite_to_set K))) = f⁻¹' ↑K,
@@ -128,6 +131,17 @@ def good_finset (f : V → V') (cof : cofinite f) (K : finset V') :=
   {L : finset V | cofinite.preimage cof K ⊆ L
                 ∧ ∀ D : inf_ro_components' G L, ∃ C : inf_ro_components' G' K, f '' D.val ⊆ C.val}
 --                                              ^ note that this C is necessarily unique
+
+lemma good_finset.agree (f : V → V') (cof : cofinite f) (K : finset V')
+  (L L' : finset V) (LL' : L ⊆ L')
+  (HL : L ∈ good_finset G G' f cof K)   (HL' : L' ∈ good_finset G G' f cof K) :
+  ∀ D : inf_ro_components' G L', (HL'.2 D).some = (HL.2 (bwd_map.bwd_map_inf G Gpc LL' D)).some :=
+begin
+  rintro D,
+  simp,
+  sorry,
+end
+
 
 lemma good_finset.id (K : finset V) : K ∈ good_finset G G (@id V) (cofinite.id) K := by
 { split,
@@ -153,17 +167,14 @@ lemma good_finset.comp (f : V → V') (cof : cofinite f) (f' : V' → V'') (cof'
   (L' : finset V') (HL' : L' ∈ good_finset G' G'' f' cof' K)
   (L : finset V) (HL : L ∈ good_finset G G' f cof L') :
   L ∈ good_finset G G'' (f' ∘ f) (cofinite.comp cof cof') K :=
-begin
+begin  -- sould be simplified using cofinite.preimage_coe
   split,
   { apply finset.subset.trans _ HL.1,
-    dsimp [cofinite.preimage],
-    simp only [finite.to_finset_mono],
+    let HL'' := HL'.1,
+    simp only [←finset.coe_subset, cofinite.preimage.coe] at HL'' ⊢,
     rw set.preimage_comp,
     apply set.preimage_mono,
-    let lol := HL'.1,
-    dsimp [cofinite.preimage] at lol,
-    rw [←finset.coe_subset,set.finite.coe_to_finset] at lol,
-    exact lol,},
+    exact HL''},
   { rintro D,
     obtain ⟨D',D'good⟩ := HL.2 D,
     obtain ⟨C,Cgood⟩ := HL'.2 D',
@@ -193,11 +204,37 @@ structure coarse :=
   (cof : cofinite to_fun)
   (coarse : ∀ (K : finset V'), ∃ (L : finset V), L ∈ good_finset G G' to_fun cof K)
 
-def coarse.comp (φ : coarse G G') (φ' : coarse G' G'') : (coarse G G'') :=
+def coarse.id : (coarse G Gpc G) :=
+{ to_fun := id
+, cof := cofinite.id
+, coarse := λ K, ⟨K, good_finset.id G K⟩ }
+
+def coarse.comp (φ : coarse G Gpc G') (φ' : coarse G' Gpc' G'' ) : (coarse G Gpc G'') :=
 { to_fun := φ'.to_fun ∘ φ.to_fun
 , cof := cofinite.comp φ.cof φ'.cof
-, coarse := by {sorry}
-}
+, coarse := λ K,
+  let
+    ⟨L,HL⟩ := (φ'.coarse K)
+  , ⟨L',HL'⟩ := (φ.coarse L)
+  in
+    ⟨L',good_finset.comp G Gpc G' G'' φ.to_fun φ.cof φ'.to_fun φ'.cof K L HL L' HL'⟩}
+
+def coarse_to_ends [locally_finite G] [locally_finite G'] (φ : coarse G Gpc G') :
+  Endsinfty G Gpc → Endsinfty G' Gpc' :=
+begin
+  rintro ⟨s,sec⟩,
+  fsplit,
+  { rintro K,
+    let L := some (φ.coarse K),
+    let HL := some_spec (φ.coarse K),
+    exact some (HL.2 (s L)),},
+  { rintro K K' KK',
+    simp,
+    obtain ⟨L,⟨Lsub,Lgood⟩⟩ := φ.coarse K,
+    obtain ⟨L',⟨Lsub',Lgood'⟩⟩ := φ.coarse K',
+    sorry
+  }
+end
 
 
 def close (f g : coarse G G') :=
@@ -238,9 +275,3 @@ def coarse.of_qi_embedding (f : V → V') (qie : qi_embedding f) : coarse G G' f
 def coarse.comp {f : V → V'} {f' : V' → V''} (coa : coarse G G' f) (coa' : coarse G' G'' f') : coarse G G'' (f' ∘ f) := sorry
 
 def ends_map {f : V → V'} (coa : coarse G G' f) : @ends V G → @ends V' G' := sorry
-
-
-
-end ends
-
-end simple_graph

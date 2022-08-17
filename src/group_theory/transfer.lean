@@ -190,9 +190,7 @@ lemma key_sylow_lemma' {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [f
   {x : G} (hx : x ∈ P.1) (hy : g⁻¹ * x * g ∈ P.1) : ∃ n ∈ P.1.normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
 begin
   suffices : P.1 ≤ P.1.centralizer,
-  { replace hx := this hx,
-    replace hy := this hy,
-    exact key_sylow_lemma g P hx hy },
+  { exact key_sylow_lemma g P (this hx) (this hy) },
   refine λ z hz w hw, _,
   have this := hP.1.1,
   exact subtype.ext_iff.mp (this (⟨w, hw⟩ : P.1) (⟨z, hz⟩ : P.1)),
@@ -205,20 +203,41 @@ begin
   exact transfer (monoid_hom.id P.1),
 end
 
-lemma burnside_transfer_ker_inf {p : ℕ} [fact p.prime] {G : Type*} [group G] (P : sylow p G)
+/-- Auxillary lemma in order to state `burnside_transfer_eq_pow`. -/
+lemma burnside_transfer_eq_pow_aux {p : ℕ} [fact p.prime] {G : Type*} [group G]
+  [fintype (sylow p G)] (P : sylow p G) (hP : P.1.normalizer ≤ P.1.centralizer)
+  (g : G) (hg : g ∈ P) (k : ℕ) (g₀ : G) (h : g₀⁻¹ * g ^ k * g₀ ∈ P) : g₀⁻¹ * g ^ k * g₀ = g ^ k :=
+begin
+  obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩
+    (P.1.pow_mem hg k) h,
+  rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg k), inv_mul_cancel_left],
+end
+
+-- TODO: `fintype (G ⧸ P.1)` implies `fintype (sylow p G)`.
+
+lemma burnside_transfer_eq_pow {p : ℕ} [fact p.prime] {G : Type*} [group G] [fintype (sylow p G)]
+  (P : sylow p G) [fintype (G ⧸ P.1)] (hP : P.1.normalizer ≤ P.1.centralizer)
+  (g : G) (hg : g ∈ P) : burnside_transfer P hP g = ⟨g ^ P.1.index,
+    transfer_eq_pow_aux g (burnside_transfer_eq_pow_aux P hP g hg)⟩ :=
+by apply transfer_eq_pow
+
+lemma burnside_transfer_ker_disjoint {p : ℕ} [fact p.prime] {G : Type*} [group G] (P : sylow p G)
   [fintype (G ⧸ P.1)] [fintype G]
-  (hP : P.1.normalizer ≤ P.1.centralizer) : (burnside_transfer P hP).ker ⊓ P.1 = ⊥ :=
+  (hP : P.1.normalizer ≤ P.1.centralizer) : disjoint (burnside_transfer P hP).ker P.1 :=
 begin
   classical,
-  haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
-  refine le_bot_iff.mp (λ g hg, _),
-  have key := transfer_eq_pow (monoid_hom.id P.1) g (λ k g₀ hk, begin
-    obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.2 k) hk,
-    rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.2 k), inv_mul_cancel_left],
-  end),
+  intros g hg,
+  have key := burnside_transfer_eq_pow P hP g hg.2,
   have key' : (fintype.card P.1).coprime P.1.index := P.card_coprime_index,
-  have : pow_coprime key' ⟨g, hg.2⟩ = 1 := key.symm.trans hg.1,
+  have : pow_coprime P.card_coprime_index ⟨g, hg.2⟩ = 1 := key.symm.trans hg.1,
   rwa [←pow_coprime_one, equiv.apply_eq_iff_eq, subtype.ext_iff] at this,
+end
+
+lemma burnside_transfer_ker_disjoint' {p : ℕ} [fact p.prime] {G : Type*} [group G] (P Q : sylow p G)
+  [fintype (G ⧸ P.1)] [fintype G]
+  (hP : P.1.normalizer ≤ P.1.centralizer) : disjoint (burnside_transfer P hP).ker Q.1 :=
+begin
+  sorry,
 end
 
 lemma burnside_transfer_surjective {p : ℕ} {G : Type*} [group G] (P : sylow p G)
@@ -233,3 +252,5 @@ end
 end burnside_transfer
 
 end monoid_hom
+
+#lint

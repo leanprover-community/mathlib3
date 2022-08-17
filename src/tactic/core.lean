@@ -793,7 +793,7 @@ meta def subst' (h : expr) : tactic unit := do
     { let lhs := args.inth 1,
       let rhs := args.ilast,
       if rhs.is_local_constant then return rhs else
-      if lhs.is_local_constant then return lhs else fail
+      if lhs.is_local_constant then return lhs else fail format!
       "subst tactic failed, hypothesis '{h.local_pp_name}' is not of the form (x = t) or (t = x)." }
     else return h },
   success_if_fail (is_local_def e) <|>

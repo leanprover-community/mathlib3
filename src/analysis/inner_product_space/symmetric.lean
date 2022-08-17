@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Moritz Doll
+Authors: Moritz Doll, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.inner_product_space.basic
 
@@ -23,18 +23,6 @@ symmetric, if for all `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`
 
 * `is_symmetric.continuous`: if a symmetric operator is defined everywhere, then
   it is automatically continuous.
-
-## Notation
-
-
-
-## Implementation details
-
-
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
 
 ## Tags
 

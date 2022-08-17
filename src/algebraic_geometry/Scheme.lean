@@ -160,7 +160,7 @@ The empty scheme.
 def {u} Scheme.empty : Scheme.{u} :=
 { carrier := Top.of pempty,
   presheaf := (category_theory.functor.const _).obj (CommRing.of punit),
-  is_sheaf := is_sheaf_of_is_terminal _ CommRing.punit_is_terminal,
+  is_sheaf := presheaf.is_sheaf_of_is_terminal _ CommRing.punit_is_terminal,
   local_ring := λ x, pempty.elim x,
   local_affine := λ x, pempty.elim x }
 

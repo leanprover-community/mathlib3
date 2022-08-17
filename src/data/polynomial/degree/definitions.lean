@@ -403,7 +403,7 @@ by unfold degree; rw support_neg
 by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : R[X]) = 0 :=
-by rw [←map_int_cast C, nat_degree_C]
+by rw [←C_eq_int_cast, nat_degree_C]
 
 @[simp] lemma leading_coeff_neg (p : R[X]) : (-p).leading_coeff = -p.leading_coeff :=
 by rw [leading_coeff, leading_coeff, nat_degree_neg, coeff_neg]

@@ -356,7 +356,7 @@ by unfold trailing_degree; rw support_neg
 by simp [nat_trailing_degree]
 
 @[simp] lemma nat_trailing_degree_int_cast (n : ℤ) : nat_trailing_degree (n : R[X]) = 0 :=
-by simp only [←map_int_cast C, nat_trailing_degree_C]
+by simp only [←C_eq_int_cast, nat_trailing_degree_C]
 
 end ring
 

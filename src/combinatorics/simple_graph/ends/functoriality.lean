@@ -148,6 +148,30 @@ begin
   apply bwd_map.bwd_map_inf.sub,
 end
 
+lemma good_finset.comp (f : V → V') (cof : cofinite f) (f' : V' → V'') (cof' : cofinite f')
+  (K : finset V'')
+  (L' : finset V') (HL' : L' ∈ good_finset G' G'' f' cof' K)
+  (L : finset V) (HL : L ∈ good_finset G G' f cof L') :
+  L ∈ good_finset G G'' (f' ∘ f) (cofinite.comp cof cof') K :=
+begin
+  split,
+  { apply finset.subset.trans _ HL.1,
+    dsimp [cofinite.preimage],
+    simp only [finite.to_finset_mono],
+    rw set.preimage_comp,
+    apply set.preimage_mono,
+    sorry, -- should be just HL'.1 modulo conversions
+  },
+  { rintro D,
+    obtain ⟨D',D'good⟩ := HL.2 D,
+    obtain ⟨C,Cgood⟩ := HL'.2 D',
+    use C,
+    apply subset.trans _ Cgood,
+    rw set.image_comp,
+    apply image_subset f' D'good,
+  }
+end
+
 /- Not so sure it's true, actually
 lemma good_finset.inter( f : V → V') (cof : cofinite f) (K : finset V')
   (L L' : finset V) (H : L ∈  good_finset G G' f cof K) (H' : L' ∈  good_finset G G' f cof K) :

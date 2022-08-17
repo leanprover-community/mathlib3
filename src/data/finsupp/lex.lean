@@ -24,7 +24,8 @@ variables [has_zero N]
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
 pi.lex r (λ _, s) x y
 
-instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) := ⟨finsupp.lex (<) (<)⟩
+instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) :=
+⟨λ f g, finsupp.lex (<) (<) (of_lex f) (of_lex g)⟩
 
 instance lex.is_strict_order [linear_order α] [partial_order N] :
   is_strict_order (lex (α →₀ N)) (<) :=
@@ -42,22 +43,49 @@ partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_li
 
 variable [linear_order N]
 
-/-  The "decidable fields" of `lex.linear_order` are proved by appealing to `classical` reasoning.
-It may be possible to get a constructive version of this instance, but this seems to require a
-possibly long detour and I (DT) am not sure of the details. -/
+/-- Auxiliary helper to case split computably. There is no need for this to be public, as it
+can be written with `or.by_cases` on `lt_trichotomy` once the instances below are constructed. -/
+private def lt_trichotomy_rec {P : lex (α →₀ N) → lex (α →₀ N) → Sort*}
+  (h_lt : Π {f g}, to_lex f < to_lex g → P (to_lex f) (to_lex g))
+  (h_eq : Π {f g}, to_lex f = to_lex g → P (to_lex f) (to_lex g))
+  (h_gt : Π {f g}, to_lex g < to_lex f → P (to_lex f) (to_lex g)) :
+    ∀ f g, P f g  :=
+lex.rec $ λ f, lex.rec $ λ g,
+  match _, rfl : ∀ y, (f.diff g).min = y → _ with
+  | ⊤, h := h_eq (finsupp.diff_eq_empty.mp (finset.min_eq_top.mp h))
+  | (wit : α), h :=
+    have hne : f wit ≠ g wit := mem_diff.mp (finset.mem_of_min h),
+    if hwit : f wit < g wit then
+      h_lt ⟨wit, λ j hj, mem_diff.not_left.mp (not_mem_of_lt_min hj h), hwit⟩
+    else
+      have hwit' : g wit < f wit := hne.lt_or_lt.resolve_left hwit,
+      h_gt ⟨wit, by exact λ j hj, begin
+        refine mem_diff.not_left.mp (not_mem_of_lt_min hj _),
+        rwa diff_comm,
+      end, hwit'⟩
+  end
+
+instance lex.decidable_le : @decidable_rel (lex (α →₀ N)) (≤) :=
+lt_trichotomy_rec
+  (λ f g h, is_true $ or.inr h)
+  (λ f g h, is_true $ or.inl $ congr_arg _ h)
+  (λ f g h, is_false $ λ h', (lt_irrefl _ (h.trans_le h')).elim)
+
+instance lex.decidable_lt : @decidable_rel (lex (α →₀ N)) (<) :=
+lt_trichotomy_rec
+  (λ f g h, is_true h)
+  (λ f g h, is_false h.not_lt)
+  (λ f g h, is_false h.asymm)
+
 /--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
-noncomputable instance lex.linear_order : linear_order (lex (α →₀ N)) :=
-{ le_total := to_lex.surjective.forall₂.2 $ λ f g, begin
-    cases (f.diff g).eq_empty_or_nonempty with he he,
-    { exact or.inl (finsupp.diff_eq_empty.mp he).le },
-    { cases he with a ha,
-      haveI : inhabited α := ⟨a⟩,
-      cases le_or_lt (of_lex f (f.wit g)) (of_lex g (f.wit g)) with mf mg,
-      { refine or.inl (or.inr ⟨f.wit g, λ j hj, apply_eq_of_le_wit hj, mf.lt_of_ne _⟩),
-        exact wit_eq_wit_iff.not.mpr (nonempty_diff_iff.mp ⟨_, ha⟩) },
-      { exact or.inr (or.inr ⟨g.wit f, λ j hj, apply_eq_of_le_wit hj, (by rwa wit_comm at mg)⟩) } }
-    end,
-  decidable_le := by { classical, apply_instance },
+instance lex.linear_order : linear_order (lex (α →₀ N)) :=
+{ le_total := lt_trichotomy_rec
+    (λ f g h, or.inl h.le)
+    (λ f g h, or.inl h.le)
+    (λ f g h, or.inr h.le),
+  decidable_lt := by apply_instance,
+  decidable_le := by apply_instance,
+  decidable_eq := by apply_instance,
   ..lex.partial_order }
 
 lemma lex.le_of_forall_le {a b : lex (α →₀ N)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=

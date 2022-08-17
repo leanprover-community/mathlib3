@@ -848,8 +848,14 @@ finset.induction_on s (λ _ H, by cases H)
 lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) : ↑a ≤ s.max :=
 le_sup as
 
+lemma not_mem_of_max_lt_coe {a : α} {s : finset α} (h : s.max < a) : a ∉ s :=
+mt coe_le_max_of_mem h.not_le
+
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
 with_bot.coe_le_coe.mp $ (coe_le_max_of_mem h₁).trans h₂.le
+
+theorem not_mem_of_max_lt {s : finset α} {a b : α} (h₁ : b < a) (h₂ : s.max = ↑b) : a ∉ s :=
+finset.not_mem_of_max_lt_coe $ h₂.trans_lt $ with_bot.coe_lt_coe.mpr h₁
 
 lemma max_mono {s t : finset α} (st : s ⊆ t) : s.max ≤ t.max :=
 sup_mono st
@@ -892,8 +898,14 @@ theorem mem_of_min {s : finset α} : ∀ {a : α}, s.min = a → a ∈ s := @mem
 lemma min_le_coe_of_mem {a : α} {s : finset α} (as : a ∈ s) : s.min ≤ a :=
 inf_le as
 
+lemma not_mem_of_coe_lt_min {a : α} {s : finset α} (h : ↑a < s.min) : a ∉ s :=
+mt min_le_coe_of_mem h.not_le
+
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : s.min = a) : a ≤ b :=
 with_top.coe_le_coe.mp $ h₂.ge.trans (min_le_coe_of_mem h₁)
+
+theorem not_mem_of_lt_min {s : finset α} {a b : α} (h₁ : a < b) (h₂ : s.min = ↑b) : a ∉ s :=
+finset.not_mem_of_coe_lt_min $ ( with_top.coe_lt_coe.mpr h₁).trans_eq h₂.symm
 
 lemma min_mono {s t : finset α} (st : s ⊆ t) : t.min ≤ s.min :=
 inf_mono st

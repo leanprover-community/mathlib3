@@ -678,11 +678,7 @@ cancellative. This is not an instance at it would form a typeclass loop.
 See note [reducible non-instances]. -/
 @[reducible]
 def canonically_ordered_add_monoid.to_add_cancel_comm_monoid : add_cancel_comm_monoid α :=
-{ add_left_cancel := λ a b c h, begin
-    have := congr_arg (λ x, x - a) h,
-    dsimp at this,
-    rwa [add_tsub_cancel_left, add_tsub_cancel_left] at this,
-  end,
+{ add_left_cancel := λ a b c h, by simpa only [add_tsub_cancel_left] using congr_arg (λ x, x - a) h,
   ..(by apply_instance : add_comm_monoid α) }
 
 end contra

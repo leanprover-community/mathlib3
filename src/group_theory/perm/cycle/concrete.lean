@@ -46,9 +46,11 @@ to show it takes a long time. TODO: is this because computing the cycle factors 
 
 open equiv equiv.perm list
 
+variables {α : Type*}
+
 namespace list
 
-variables {α : Type*} [decidable_eq α] {l l' : list α}
+variables [decidable_eq α] {l l' : list α}
 
 lemma form_perm_disjoint_iff (hl : nodup l) (hl' : nodup l')
   (hn : 2 ≤ l.length) (hn' : 2 ≤ l'.length) :
@@ -124,7 +126,7 @@ end list
 
 namespace cycle
 
-variables {α : Type*} [decidable_eq α] (s s' : cycle α)
+variables [decidable_eq α] (s s' : cycle α)
 
 /--
 A cycle `s : cycle α` , given `nodup s` can be interpreted as a `equiv.perm α`
@@ -205,10 +207,9 @@ begin
 end
 
 end cycle
-variables {α : Type*}
 
 namespace equiv.perm
-
+section fintype
 variables [fintype α] [decidable_eq α] (p : equiv.perm α) (x : α)
 
 /--
@@ -397,49 +398,6 @@ begin
     simp [mem_to_list_iff, hy] }
 end
 
-lemma is_cycle.exists_unique_cycle {f : perm α} (hf : is_cycle f) :
-  ∃! (s : cycle α), ∃ (h : s.nodup), s.form_perm h = f :=
-begin
-  obtain ⟨x, hx, hy⟩ := id hf,
-  refine ⟨f.to_list x, ⟨nodup_to_list f x, _⟩, _⟩,
-  { simp [form_perm_to_list, hf.cycle_of_eq hx] },
-  { rintro ⟨l⟩ ⟨hn, rfl⟩,
-    simp only [cycle.mk_eq_coe, cycle.coe_eq_coe, subtype.coe_mk, cycle.form_perm_coe],
-    refine (to_list_form_perm_is_rotated_self _ _ hn _ _).symm,
-    { contrapose! hx,
-      suffices : form_perm l = 1,
-      { simp [this] },
-      rw form_perm_eq_one_iff _ hn,
-      exact nat.le_of_lt_succ hx },
-    { rw ←mem_to_finset,
-      refine support_form_perm_le l _,
-      simpa using hx } }
-end
-
-lemma is_cycle.exists_unique_cycle_subtype {f : perm α} (hf : is_cycle f) :
-  ∃! (s : {s : cycle α // s.nodup}), (s : cycle α).form_perm s.prop = f :=
-begin
-  obtain ⟨s, ⟨hs, rfl⟩, hs'⟩ := hf.exists_unique_cycle,
-  refine ⟨⟨s, hs⟩, rfl, _⟩,
-  rintro ⟨t, ht⟩ ht',
-  simpa using hs' _ ⟨ht, ht'⟩
-end
-
-lemma is_cycle.exists_unique_cycle_nontrivial_subtype {f : perm α} (hf : is_cycle f) :
-  ∃! (s : {s : cycle α // s.nodup ∧ s.nontrivial}), (s : cycle α).form_perm s.prop.left = f :=
-begin
-  obtain ⟨⟨s, hn⟩, hs, hs'⟩ := hf.exists_unique_cycle_subtype,
-  refine ⟨⟨s, hn, _⟩, _, _⟩,
-  { rw hn.nontrivial_iff,
-    subst f,
-    intro H,
-    refine hf.ne_one _,
-    simpa using cycle.form_perm_subsingleton _ H },
-  { simpa using hs },
-  { rintro ⟨t, ht, ht'⟩ ht'',
-    simpa using hs' ⟨t, ht⟩ ht'' }
-end
-
 /--
 Given a cyclic `f : perm α`, generate the `cycle α` in the order
 of application of `f`. Implemented by finding an element `x : α`
@@ -504,6 +462,59 @@ def iso_cycle : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.n
       { simpa using hx },
       { rintro _ rfl,
         simpa [nat.succ_le_succ_iff] using hl } } } }
+
+end fintype
+
+section finite
+variables [finite α] [decidable_eq α]
+
+lemma is_cycle.exists_unique_cycle {f : perm α} (hf : is_cycle f) :
+  ∃! (s : cycle α), ∃ (h : s.nodup), s.form_perm h = f :=
+begin
+  casesI nonempty_fintype α,
+  obtain ⟨x, hx, hy⟩ := id hf,
+  refine ⟨f.to_list x, ⟨nodup_to_list f x, _⟩, _⟩,
+  { simp [form_perm_to_list, hf.cycle_of_eq hx] },
+  { rintro ⟨l⟩ ⟨hn, rfl⟩,
+    simp only [cycle.mk_eq_coe, cycle.coe_eq_coe, subtype.coe_mk, cycle.form_perm_coe],
+    refine (to_list_form_perm_is_rotated_self _ _ hn _ _).symm,
+    { contrapose! hx,
+      suffices : form_perm l = 1,
+      { simp [this] },
+      rw form_perm_eq_one_iff _ hn,
+      exact nat.le_of_lt_succ hx },
+    { rw ←mem_to_finset,
+      refine support_form_perm_le l _,
+      simpa using hx } }
+end
+
+lemma is_cycle.exists_unique_cycle_subtype {f : perm α} (hf : is_cycle f) :
+  ∃! (s : {s : cycle α // s.nodup}), (s : cycle α).form_perm s.prop = f :=
+begin
+  obtain ⟨s, ⟨hs, rfl⟩, hs'⟩ := hf.exists_unique_cycle,
+  refine ⟨⟨s, hs⟩, rfl, _⟩,
+  rintro ⟨t, ht⟩ ht',
+  simpa using hs' _ ⟨ht, ht'⟩
+end
+
+lemma is_cycle.exists_unique_cycle_nontrivial_subtype {f : perm α} (hf : is_cycle f) :
+  ∃! (s : {s : cycle α // s.nodup ∧ s.nontrivial}), (s : cycle α).form_perm s.prop.left = f :=
+begin
+  obtain ⟨⟨s, hn⟩, hs, hs'⟩ := hf.exists_unique_cycle_subtype,
+  refine ⟨⟨s, hn, _⟩, _, _⟩,
+  { rw hn.nontrivial_iff,
+    subst f,
+    intro H,
+    refine hf.ne_one _,
+    simpa using cycle.form_perm_subsingleton _ H },
+  { simpa using hs },
+  { rintro ⟨t, ht, ht'⟩ ht'',
+    simpa using hs' ⟨t, ht⟩ ht'' }
+end
+
+end finite
+
+variables [fintype α] [decidable_eq α]
 
 /--
 Any cyclic `f : perm α` is isomorphic to the nontrivial `cycle α`

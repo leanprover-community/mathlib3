@@ -134,7 +134,7 @@ def continuous_linear_map :
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at p.1).comp $ p.2.comp $ e₁.symmL p.1⟩,
   inv_fun := λ p, ⟨p.1, (e₂.symmL p.1).comp $ p.2.comp $ e₁.continuous_linear_map_at p.1⟩,
   source := (bundle.total_space.proj) ⁻¹' (e₁.base_set ∩ e₂.base_set),
-  target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ →SL[σ] F₂)),
+  target := (e₁.base_set ∩ e₂.base_set) ×ˢ set.univ,
   map_source' := λ ⟨x, L⟩ h, ⟨h, set.mem_univ _⟩,
   map_target' := λ ⟨x, f⟩ h, h.1,
   left_inv' := λ ⟨x, L⟩ ⟨h₁, h₂⟩,

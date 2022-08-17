@@ -517,6 +517,11 @@ begin
 end
 hf hg
 
+lemma of_finite {f : A →+* B} (hf : f.finite) : f.finite_type :=
+@module.finite.finite_type _ _ _ _ f.to_algebra hf
+
+alias of_finite ← _root_.ring_hom.finite.to_finite_type
+
 lemma of_finite_presentation {f : A →+* B} (hf : f.finite_presentation) : f.finite_type :=
 @algebra.finite_type.of_finite_presentation A B _ _ f.to_algebra hf
 
@@ -966,9 +971,13 @@ noncomputable theory
 
 /-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
 choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
-@[simps]
 def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+lemma module_polynomial_of_endo_smul_def (n : R[X]) (a : M) :
+  @@has_smul.smul (module_polynomial_of_endo f).to_has_smul n a = polynomial.aeval f n a := rfl
+
+local attribute [simp] module_polynomial_of_endo_smul_def
 
 include f
 lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _

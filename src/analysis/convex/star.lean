@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import analysis.convex.basic
+import analysis.convex.segment
 
 /-!
 # Star-convex sets
@@ -41,10 +41,31 @@ Star-convex sets are contractible.
 A nonempty open star-convex set in `ℝ^n` is diffeomorphic to the entire space.
 -/
 
+section
+variables {𝕜 E : Type*} [semiring 𝕜] [add_comm_group E] [module 𝕜 E]
+
+lemma convex.combo_eq_vadd {x y : E} {a b : 𝕜} (h : a + b = 1) : a • x + b • y = b • (y - x) + x :=
+calc
+  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
+            ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
+
+end
+
+section
+variables {𝕜 E F : Type*} [ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+/-- Applying an affine map to an affine combination of two points yields an affine combination of
+the images. -/
+lemma convex.combo_affine_apply {x y : E} {a b : 𝕜} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
+  f (a • x + b • y) = a • f x + b • f y :=
+by { simp only [convex.combo_eq_vadd h, ←vsub_eq_sub], exact f.apply_line_map _ _ _ }
+
+end
+
 open set
 open_locale convex pointwise
 
-variables {𝕜 E F β : Type*}
+variables {𝕜 E F : Type*}
 
 section ordered_semiring
 variables [ordered_semiring 𝕜]
@@ -61,12 +82,6 @@ def star_convex : Prop :=
 ∀ ⦃y : E⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • x + b • y ∈ s
 
 variables {𝕜 x s} {t : set E}
-
-lemma convex_iff_forall_star_convex : convex 𝕜 s ↔ ∀ x ∈ s, star_convex 𝕜 x s :=
-forall_congr $ λ x, forall_swap
-
-lemma convex.star_convex (h : convex 𝕜 s) (hx : x ∈ s) : star_convex 𝕜 x s :=
-convex_iff_forall_star_convex.1 h _ hx
 
 lemma star_convex_iff_segment_subset : star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → [x -[𝕜] y] ⊆ s :=
 begin
@@ -141,9 +156,9 @@ lemma star_convex.prod {y : F} {s : set E} {t : set F} (hs : star_convex 𝕜 x 
 
 lemma star_convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
   [Π i, has_smul 𝕜 (E i)] {x : Π i, E i} {s : set ι} {t : Π i, set (E i)}
-  (ht : ∀ i, star_convex 𝕜 (x i) (t i)) :
+  (ht : ∀ ⦃i⦄, i ∈ s → star_convex 𝕜 (x i) (t i)) :
   star_convex 𝕜 x (s.pi t) :=
-λ y hy a b ha hb hab i hi, ht i (hy i hi) ha hb hab
+λ y hy a b ha hb hab i hi, ht hi (hy i hi) ha hb hab
 
 end has_smul
 
@@ -156,9 +171,6 @@ begin
   convert hs hy zero_le_one le_rfl (add_zero 1),
   rw [one_smul, zero_smul, add_zero],
 end
-
-lemma convex.star_convex_iff (hs : convex 𝕜 s) (h : s.nonempty) : star_convex 𝕜 x s ↔ x ∈ s :=
-⟨λ hxs, hxs.mem h, hs.star_convex⟩
 
 lemma star_convex_iff_forall_pos (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s :=
@@ -449,20 +461,3 @@ by simp_rw [ord_connected_iff_interval_subset_left hx, star_convex_iff_segment_s
 alias star_convex_iff_ord_connected ↔ star_convex.ord_connected _
 
 end ord_connected
-
-/-! #### Star-convexity of submodules/subspaces -/
-
-section submodule
-open submodule
-
-lemma submodule.star_convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
-  (K : submodule 𝕜 E) :
-  star_convex 𝕜 (0 : E) K :=
-K.convex.star_convex K.zero_mem
-
-lemma subspace.star_convex [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E]
-  (K : subspace 𝕜 E) :
-  star_convex 𝕜 (0 : E) K :=
-K.convex.star_convex K.zero_mem
-
-end submodule

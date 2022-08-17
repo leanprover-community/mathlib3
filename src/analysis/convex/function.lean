@@ -47,25 +47,25 @@ variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 β] (s : set E) (f : E → β)
 /-- Convexity of functions -/
 def convex_on : Prop :=
 convex 𝕜 s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
+  ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y
 
 /-- Concavity of functions -/
 def concave_on : Prop :=
 convex 𝕜 s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
+  ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     a • f x + b • f y ≤ f (a • x + b • y)
 
 /-- Strict convexity of functions -/
 def strict_convex_on : Prop :=
 convex 𝕜 s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+  ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     f (a • x + b • y) < a • f x + b • f y
 
 /-- Strict concavity of functions -/
 def strict_concave_on : Prop :=
 convex 𝕜 s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+  ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     a • f x + b • f y < f (a • x + b • y)
 
 variables {𝕜 s f}
@@ -88,21 +88,21 @@ lemma concave_on_id {s : set β} (hs : convex 𝕜 s) : concave_on 𝕜 s id := 
 
 lemma convex_on.subset {t : set E} (hf : convex_on 𝕜 t f) (hst : s ⊆ t) (hs : convex 𝕜 s) :
   convex_on 𝕜 s f :=
-⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
+⟨hs, λ x hx y hy, hf.2 (hst hx) (hst hy)⟩
 
 lemma concave_on.subset {t : set E} (hf : concave_on 𝕜 t f) (hst : s ⊆ t) (hs : convex 𝕜 s) :
   concave_on 𝕜 s f :=
-⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
+⟨hs, λ x hx y hy, hf.2 (hst hx) (hst hy)⟩
 
 lemma strict_convex_on.subset {t : set E} (hf : strict_convex_on 𝕜 t f) (hst : s ⊆ t)
   (hs : convex 𝕜 s) :
   strict_convex_on 𝕜 s f :=
-⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
+⟨hs, λ x hx y hy, hf.2 (hst hx) (hst hy)⟩
 
 lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hst : s ⊆ t)
   (hs : convex 𝕜 s) :
   strict_concave_on 𝕜 s f :=
-⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
+⟨hs, λ x hx y hy, hf.2 (hst hx) (hst hy)⟩
 
 end has_smul
 
@@ -111,7 +111,7 @@ variables [has_smul 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E �
 
 lemma convex_on.add (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   convex_on 𝕜 s (f + g) :=
-⟨hf.1, λ x y hx hy a b ha hb hab,
+⟨hf.1, λ x hx y hy a b ha hb hab,
   calc
     f (a • x + b • y) + g (a • x + b • y) ≤ (a • f x + b • f y) + (a • g x + b • g y)
       : add_le_add (hf.2 hx hy ha hb hab) (hg.2 hx hy ha hb hab)
@@ -134,8 +134,8 @@ lemma concave_on_const (c : β) (hs : convex 𝕜 s) : concave_on 𝕜 s (λ x:E
 
 lemma convex_on_of_convex_epigraph (h : convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2}) :
   convex_on 𝕜 s f :=
-⟨λ x y hx hy a b ha hb hab, (@h (x, f x) (y, f y) ⟨hx, le_rfl⟩ ⟨hy, le_rfl⟩ a b ha hb hab).1,
-  λ x y hx hy a b ha hb hab, (@h (x, f x) (y, f y) ⟨hx, le_rfl⟩ ⟨hy, le_rfl⟩ a b ha hb hab).2⟩
+⟨λ x hx y hy a b ha hb hab, (@h (x, f x) ⟨hx, le_rfl⟩ (y, f y) ⟨hy, le_rfl⟩ a b ha hb hab).1,
+  λ x hx y hy a b ha hb hab, (@h (x, f x) ⟨hx, le_rfl⟩ (y, f y) ⟨hy, le_rfl⟩ a b ha hb hab).2⟩
 
 lemma concave_on_of_convex_hypograph (h : convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1}) :
   concave_on 𝕜 s f :=
@@ -148,7 +148,7 @@ variables [has_smul 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} 
 
 lemma convex_on.convex_le (hf : convex_on 𝕜 s f) (r : β) :
   convex 𝕜 {x ∈ s | f x ≤ r} :=
-λ x y hx hy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha hb hab,
+λ x hx y hy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha hb hab,
   calc
     f (a • x + b • y) ≤ a • f x + b • f y : hf.2 hx.1 hy.1 ha hb hab
                   ... ≤ a • r + b • r     : add_le_add (smul_le_smul_of_nonneg hx.2 ha)
@@ -162,7 +162,7 @@ hf.dual.convex_le r
 lemma convex_on.convex_epigraph (hf : convex_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
 begin
-  rintro ⟨x, r⟩ ⟨y, t⟩ ⟨hx, hr⟩ ⟨hy, ht⟩ a b ha hb hab,
+  rintro ⟨x, r⟩ ⟨hx, hr⟩ ⟨y, t⟩ ⟨hy, ht⟩ a b ha hb hab,
   refine ⟨hf.1 hx hy ha hb hab, _⟩,
   calc f (a • x + b • y) ≤ a • f x + b • f y : hf.2 hx hy ha hb hab
   ... ≤ a • r + b • t : add_le_add (smul_le_smul_of_nonneg hr ha)
@@ -189,7 +189,7 @@ variables [module 𝕜 E] [has_smul 𝕜 β] {s : set E} {f : E → β}
 /-- Right translation preserves convexity. -/
 lemma convex_on.translate_right (hf : convex_on 𝕜 s f) (c : E) :
   convex_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, c + z)) :=
-⟨hf.1.translate_preimage_right _, λ x y hx hy a b ha hb hab,
+⟨hf.1.translate_preimage_right _, λ x hx y hy a b ha hb hab,
   calc
     f (c + (a • x + b • y)) = f (a • (c + x) + b • (c + y))
         : by rw [smul_add, smul_add, add_add_add_comm, convex.combo_self hab]
@@ -217,11 +217,11 @@ variables [module 𝕜 E] [module 𝕜 β]
 
 lemma convex_on_iff_forall_pos {s : set E} {f : E → β} :
   convex_on 𝕜 s f ↔ convex 𝕜 s ∧
-    ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → f (a • x + b • y) ≤ a • f x + b • f y :=
 begin
-  refine and_congr_right' ⟨λ h x y hx hy a b ha hb hab, h hx hy ha.le hb.le hab,
-    λ h x y hx hy a b ha hb hab, _⟩,
+  refine and_congr_right' ⟨λ h x hx y hy a b ha hb hab, h hx hy ha.le hb.le hab,
+    λ h x hx y hy a b ha hb hab, _⟩,
   obtain rfl | ha' := ha.eq_or_lt,
   { rw [zero_add] at hab, subst b, simp_rw [zero_smul, zero_add, one_smul] },
   obtain rfl | hb' := hb.eq_or_lt,
@@ -231,7 +231,7 @@ end
 
 lemma concave_on_iff_forall_pos {s : set E} {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧
-    ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → a • f x + b • f y ≤ f (a • x + b • y) :=
 @convex_on_iff_forall_pos 𝕜 E βᵒᵈ _ _ _ _ _ _ _
 
@@ -242,7 +242,7 @@ lemma convex_on_iff_pairwise_pos {s : set E} {f : E → β} :
 begin
   rw convex_on_iff_forall_pos,
   refine and_congr_right' ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha hb hab,
-    λ h x y hx hy a b ha hb hab, _⟩,
+    λ h x hx y hy a b ha hb hab, _⟩,
   obtain rfl | hxy := eq_or_ne x y,
   { rw [convex.combo_self hab, convex.combo_self hab] },
   exact h hx hy hxy ha hb hab,
@@ -297,7 +297,7 @@ verify the inequality `f (a • x + b • y) ≤ a • f x + b • f y` only for
 `b`. The main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order.
 -/
 lemma linear_order.convex_on_of_lt (hs : convex 𝕜 s)
-  (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+  (hf : ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y) : convex_on 𝕜 s f :=
 begin
   refine convex_on_iff_pairwise_pos.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
@@ -311,7 +311,7 @@ structures aren't necessarily compatible), in order to prove that it is concave 
 verify the inequality `a • f x + b • f y ≤ f (a • x + b • y)` for `x < y` and positive `a`, `b`. The
 main use case is `E = ℝ` however one can apply it, e.g., to `ℝ^n` with lexicographic order. -/
 lemma linear_order.concave_on_of_lt (hs : convex 𝕜 s)
-  (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+  (hf : ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
      a • f x + b • f y ≤ f (a • x + b • y)) : concave_on 𝕜 s f :=
 @linear_order.convex_on_of_lt _ _ βᵒᵈ _ _ _ _ _ _ s f hs hf
 
@@ -320,10 +320,10 @@ structures aren't necessarily compatible), in order to prove that it is strictly
 to verify the inequality `f (a • x + b • y) < a • f x + b • f y` for `x < y` and positive `a`, `b`.
 The main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order. -/
 lemma linear_order.strict_convex_on_of_lt (hs : convex 𝕜 s)
-  (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+  (hf : ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     f (a • x + b • y) < a • f x + b • f y) : strict_convex_on 𝕜 s f :=
 begin
-  refine ⟨hs, λ x y hx hy hxy a b ha hb hab, _⟩,
+  refine ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
   wlog h : x ≤ y using [x y a b, y x b a],
   { exact le_total _ _ },
   exact hf hx hy (h.lt_of_ne hxy) ha hb hab,
@@ -334,7 +334,7 @@ structures aren't necessarily compatible), in order to prove that it is strictly
 to verify the inequality `a • f x + b • f y < f (a • x + b • y)` for `x < y` and positive `a`, `b`.
 The main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order. -/
 lemma linear_order.strict_concave_on_of_lt (hs : convex 𝕜 s)
-  (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+  (hf : ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
      a • f x + b • f y < f (a • x + b • y)) : strict_concave_on 𝕜 s f :=
 @linear_order.strict_convex_on_of_lt _ _ βᵒᵈ _ _ _ _ _ _ _ _ hs hf
 
@@ -347,7 +347,7 @@ variables [module 𝕜 E] [module 𝕜 F] [has_smul 𝕜 β]
 /-- If `g` is convex on `s`, so is `(f ∘ g)` on `f ⁻¹' s` for a linear `f`. -/
 lemma convex_on.comp_linear_map {f : F → β} {s : set F} (hf : convex_on 𝕜 s f) (g : E →ₗ[𝕜] F) :
   convex_on 𝕜 (g ⁻¹' s) (f ∘ g) :=
-⟨hf.1.linear_preimage _, λ x y hx hy a b ha hb hab,
+⟨hf.1.linear_preimage _, λ x hx y hy a b ha hb hab,
   calc
     f (g (a • x + b • y)) = f (a • (g x) + b • (g y)) : by rw [g.map_add, g.map_smul, g.map_smul]
                       ... ≤ a • f (g x) + b • f (g y) : hf.2 hx hy ha hb hab⟩
@@ -368,7 +368,7 @@ variables [has_smul 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E �
 
 lemma strict_convex_on.add_convex_on (hf : strict_convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   strict_convex_on 𝕜 s (f + g) :=
-⟨hf.1, λ x y hx hy hxy a b ha hb hab,
+⟨hf.1, λ x hx y hy hxy a b ha hb hab,
   calc
     f (a • x + b • y) + g (a • x + b • y) < (a • f x + b • f y) + (a • g x + b • g y)
       : add_lt_add_of_lt_of_le (hf.2 hx hy hxy ha hb hab) (hg.2 hx hy ha.le hb.le hab)
@@ -380,7 +380,7 @@ lemma convex_on.add_strict_convex_on (hf : convex_on 𝕜 s f) (hg : strict_conv
 
 lemma strict_convex_on.add (hf : strict_convex_on 𝕜 s f) (hg : strict_convex_on 𝕜 s g) :
   strict_convex_on 𝕜 s (f + g) :=
-⟨hf.1, λ x y hx hy hxy a b ha hb hab,
+⟨hf.1, λ x hx y hy hxy a b ha hb hab,
   calc
     f (a • x + b • y) + g (a • x + b • y) < (a • f x + b • f y) + (a • g x + b • g y)
       : add_lt_add (hf.2 hx hy hxy ha hb hab) (hg.2 hx hy hxy ha hb hab)
@@ -404,7 +404,7 @@ section module
 variables [module 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
 lemma convex_on.convex_lt (hf : convex_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | f x < r} :=
-convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb.le hab,
+convex_iff_forall_pos.2 $ λ x hx y hy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb.le hab,
   calc
     f (a • x + b • y)
         ≤ a • f x + b • f y : hf.2 hx.1 hy.1 ha.le hb.le hab
@@ -434,7 +434,7 @@ hf.dual.open_segment_subset_strict_epigraph p q hp hq
 lemma convex_on.convex_strict_epigraph (hf : convex_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 < p.2} :=
 convex_iff_open_segment_subset.mpr $
-  λ p q hp hq, hf.open_segment_subset_strict_epigraph p q hp ⟨hq.1, hq.2.le⟩
+  λ p hp q hq, hf.open_segment_subset_strict_epigraph p q hp ⟨hq.1, hq.2.le⟩
 
 lemma concave_on.convex_strict_hypograph (hf : concave_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 < f p.1} :=
@@ -451,7 +451,7 @@ variables [linear_ordered_add_comm_monoid β] [has_smul 𝕜 E] [module 𝕜 β]
 lemma convex_on.sup (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   convex_on 𝕜 s (f ⊔ g) :=
 begin
-  refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
+  refine ⟨hf.left, λ x hx y hy a b ha hb hab, sup_le _ _⟩,
   { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
      (smul_le_smul_of_nonneg le_sup_left ha)
@@ -470,7 +470,7 @@ hf.dual.sup hg
 /-- The pointwise maximum of strictly convex functions is strictly convex. -/
 lemma strict_convex_on.sup (hf : strict_convex_on 𝕜 s f) (hg : strict_convex_on 𝕜 s g) :
   strict_convex_on 𝕜 s (f ⊔ g) :=
-⟨hf.left, λ x y hx hy hxy a b ha hb hab, max_lt
+⟨hf.left, λ x hx y hy hxy a b ha hb hab, max_lt
   (calc f (a • x + b • y) < a • f x + b • f y : hf.2 hx hy hxy ha hb hab
     ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
     (smul_le_smul_of_nonneg le_sup_left ha.le)
@@ -693,11 +693,11 @@ variables [ordered_add_comm_group β] [has_smul 𝕜 E] [module 𝕜 β] {s : se
 begin
   split,
   { rintro ⟨hconv, h⟩,
-    refine ⟨hconv, λ x y hx hy a b ha hb hab, _⟩,
+    refine ⟨hconv, λ x hx y hy a b ha hb hab, _⟩,
     simp [neg_apply, neg_le, add_comm] at h,
     exact h hx hy ha hb hab },
   { rintro ⟨hconv, h⟩,
-    refine ⟨hconv, λ x y hx hy a b ha hb hab, _⟩,
+    refine ⟨hconv, λ x hx y hy a b ha hb hab, _⟩,
     rw ←neg_le_neg_iff,
     simp_rw [neg_add, pi.neg_apply, smul_neg, neg_neg],
     exact h hx hy ha hb hab }
@@ -712,11 +712,11 @@ by rw [← neg_convex_on_iff, neg_neg f]
 begin
   split,
   { rintro ⟨hconv, h⟩,
-    refine ⟨hconv, λ x y hx hy hxy a b ha hb hab, _⟩,
+    refine ⟨hconv, λ x hx y hy hxy a b ha hb hab, _⟩,
     simp [neg_apply, neg_lt, add_comm] at h,
     exact h hx hy hxy ha hb hab },
   { rintro ⟨hconv, h⟩,
-    refine ⟨hconv, λ x y hx hy hxy a b ha hb hab, _⟩,
+    refine ⟨hconv, λ x hx y hy hxy a b ha hb hab, _⟩,
     rw ←neg_lt_neg_iff,
     simp_rw [neg_add, pi.neg_apply, smul_neg, neg_neg],
     exact h hx hy hxy ha hb hab }
@@ -771,7 +771,7 @@ variables [add_cancel_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E
 /-- Right translation preserves strict convexity. -/
 lemma strict_convex_on.translate_right (hf : strict_convex_on 𝕜 s f) (c : E) :
   strict_convex_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, c + z)) :=
-⟨hf.1.translate_preimage_right _, λ x y hx hy hxy a b ha hb hab,
+⟨hf.1.translate_preimage_right _, λ x hx y hy hxy a b ha hb hab,
   calc
     f (c + (a • x + b • y)) = f (a • (c + x) + b • (c + y))
         : by rw [smul_add, smul_add, add_add_add_comm, convex.combo_self hab]
@@ -805,7 +805,7 @@ section module
 variables [has_smul 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
 lemma convex_on.smul {c : 𝕜} (hc : 0 ≤ c) (hf : convex_on 𝕜 s f) : convex_on 𝕜 s (λ x, c • f x) :=
-⟨hf.1, λ x y hx hy a b ha hb hab,
+⟨hf.1, λ x hx y hy a b ha hb hab,
   calc
     c • f (a • x + b • y) ≤ c • (a • f x + b • f y)
       : smul_le_smul_of_nonneg (hf.2 hx hy ha hb hab) hc
@@ -832,7 +832,7 @@ variables [module 𝕜 E] [module 𝕜 F] [has_smul 𝕜 β]
 /-- If a function is convex on `s`, it remains convex when precomposed by an affine map. -/
 lemma convex_on.comp_affine_map {f : F → β} (g : E →ᵃ[𝕜] F) {s : set F} (hf : convex_on 𝕜 s f) :
   convex_on 𝕜 (g ⁻¹' s) (f ∘ g) :=
-⟨hf.1.affine_preimage _, λ x y hx hy a b ha hb hab,
+⟨hf.1.affine_preimage _, λ x hx y hy a b ha hb hab,
   calc
     (f ∘ g) (a • x + b • y) = f (g (a • x + b • y))         : rfl
                        ...  = f (a • (g x) + b • (g y))     : by rw [convex.combo_affine_apply hab]
@@ -857,41 +857,41 @@ section has_smul
 variables [has_smul 𝕜 E] [has_smul 𝕜 β] {s : set E}
 
 lemma convex_on_iff_div {f : E → β} :
-  convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
+  convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
   → f ((a/(a+b)) • x + (b/(a+b)) • y) ≤ (a/(a+b)) • f x + (b/(a+b)) • f y :=
 and_congr iff.rfl
 ⟨begin
-  intros h x y hx hy a b ha hb hab,
+  intros h x hx y hy a b ha hb hab,
   apply h hx hy (div_nonneg ha hab.le) (div_nonneg hb hab.le),
   rw [←add_div, div_self hab.ne'],
 end,
 begin
-  intros h x y hx hy a b ha hb hab,
+  intros h x hx y hy a b ha hb hab,
   simpa [hab, zero_lt_one] using h hx hy ha hb,
 end⟩
 
 lemma concave_on_iff_div {f : E → β} :
-  concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b
+  concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b
   → 0 < a + b → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @convex_on_iff_div _ _ βᵒᵈ _ _ _ _ _ _ _
 
 lemma strict_convex_on_iff_div {f : E → β} :
-  strict_convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a
+  strict_convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a
     → 0 < b → f ((a/(a+b)) • x + (b/(a+b)) • y) < (a/(a+b)) • f x + (b/(a+b)) • f y :=
 and_congr iff.rfl
 ⟨begin
-  intros h x y hx hy hxy a b ha hb,
+  intros h x hx y hy hxy a b ha hb,
   have hab := add_pos ha hb,
   apply h hx hy hxy (div_pos ha hab) (div_pos hb hab),
   rw [←add_div, div_self hab.ne'],
 end,
 begin
-  intros h x y hx hy hxy a b ha hb hab,
+  intros h x hx y hy hxy a b ha hb hab,
   simpa [hab, zero_lt_one] using h hx hy hxy ha hb,
 end⟩
 
 lemma strict_concave_on_iff_div {f : E → β} :
-  strict_concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a
+  strict_concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a
     → 0 < b → (a/(a+b)) • f x + (b/(a+b)) • f y < f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @strict_convex_on_iff_div _ _ βᵒᵈ _ _ _ _ _ _ _
 

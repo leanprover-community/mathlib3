@@ -75,7 +75,7 @@ lemma convex.quasiconcave_on_of_convex_ge (hs : convex 𝕜 s) (h : ∀ r, conve
 @convex.quasiconvex_on_of_convex_le 𝕜 E βᵒᵈ _ _ _ _ _ _ hs h
 
 lemma quasiconvex_on.convex [is_directed β (≤)] (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
-λ x y hx hy a b ha hb hab,
+λ x hx y hy a b ha hb hab,
   let ⟨z, hxz, hyz⟩ := exists_ge_ge (f x) (f y) in (hf _ ⟨hx, hxz⟩ ⟨hy, hyz⟩ ha hb hab).1
 
 lemma quasiconcave_on.convex [is_directed β (≥)] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
@@ -105,9 +105,9 @@ lemma quasiconvex_on_iff_le_max :
   quasiconvex_on 𝕜 s f ↔ convex 𝕜 s ∧
     ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
       f (a • x + b • y) ≤ max (f x) (f y) :=
-⟨λ hf, ⟨hf.convex, λ x y hx hy a b ha hb hab,
+⟨λ hf, ⟨hf.convex, λ x hx y hy a b ha hb hab,
   (hf _ ⟨hx, le_max_left _ _⟩ ⟨hy, le_max_right _ _⟩ ha hb hab).2⟩,
-  λ hf r x y hx hy a b ha hb hab,
+  λ hf r x hx y hy a b ha hb hab,
   ⟨hf.1 hx.1 hy.1 ha hb hab, (hf.2 hx.1 hy.1 ha hb hab).trans $ max_le hx.2 hy.2⟩⟩
 
 lemma quasiconcave_on_iff_min_le :
@@ -129,7 +129,7 @@ end
 
 lemma quasiconvex_on.convex_lt (hf : quasiconvex_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | f x < r} :=
 begin
-  refine λ x y hx hy a b ha hb hab, _,
+  refine λ x hx y hy a b ha hb hab, _,
   have h := hf _ ⟨hx.1, le_max_left _ _⟩ ⟨hy.1, le_max_right _ _⟩ ha hb hab,
   exact ⟨h.1, h.2.trans_lt $ max_lt hx.2 hy.2⟩,
 end

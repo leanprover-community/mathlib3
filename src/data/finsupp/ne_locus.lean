@@ -6,7 +6,7 @@ Authors: Damiano Testa
 import data.finsupp.basic
 
 /-!
-#  `ne_locus` for finitely supported functions
+#  Locus of unequal values for finitely supported functions
 
 Let `α N` be two Types, and assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
 functions.

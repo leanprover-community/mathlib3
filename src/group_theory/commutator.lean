@@ -174,7 +174,7 @@ end
 
 /-- The commutator of direct product is contained in the direct product of the commutators.
 
-See `commutator_pi_pi_of_fintype` for equality given `fintype η`.
+See `commutator_pi_pi_of_finite` for equality given `fintype η`.
 -/
 lemma commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
   (H K : Π i, subgroup (Gs i)) :
@@ -183,7 +183,7 @@ commutator_le.mpr $ λ p hp q hq i hi, commutator_mem_commutator (hp i hi) (hq i
 
 /-- The commutator of a finite direct product is contained in the direct product of the commutators.
 -/
-lemma commutator_pi_pi_of_fintype {η : Type*} [fintype η] {Gs : η → Type*}
+lemma commutator_pi_pi_of_finite {η : Type*} [finite η] {Gs : η → Type*}
   [∀ i, group (Gs i)] (H K : Π i, subgroup (Gs i)) :
   ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ = subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
 begin

@@ -351,8 +351,7 @@ lemma apply_mk_symm (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (
 e.to_pretrivialization.apply_mk_symm hb y
 
 lemma continuous_on_symm (e : trivialization R F E) :
-  continuous_on (λ z : B × F, total_space_mk z.1 (e.symm z.1 z.2))
-    (e.base_set ×ˢ (univ : set F)) :=
+  continuous_on (λ z : B × F, total_space_mk z.1 (e.symm z.1 z.2)) (e.base_set ×ˢ univ) :=
 begin
   have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
     total_space_mk z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
@@ -490,7 +489,7 @@ target both `s ×ˢ univ`, which on this set is of the form `λ (b, v), (b, ε b
 map `ε` from `s` to `F ≃L[R] F`. Here continuity is with respect to the operator norm on
 `F →L[R] F`. -/
 def continuous_transitions (e : local_equiv (B × F) (B × F)) : Prop :=
-∃ s : set B, e.source = s ×ˢ (univ : set F) ∧ e.target = s ×ˢ (univ : set F)
+∃ s : set B, e.source = s ×ˢ univ ∧ e.target = s ×ˢ univ
     ∧ ∃ ε : B → (F ≃L[R] F), continuous_on (λ b, (ε b : F →L[R] F)) s
       ∧ ∀ b ∈ s, ∀ v : F, e (b, v) = (b, ε b v)
 
@@ -992,8 +991,7 @@ def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
       ((a.continuous_on_coord_change he' he).prod_map continuous_on_id),
     have H : e'.to_fiber_bundle_pretrivialization.to_local_equiv.target ∩
       e'.to_fiber_bundle_pretrivialization.to_local_equiv.symm ⁻¹'
-      e.to_fiber_bundle_pretrivialization.to_local_equiv.source =
-      (e'.base_set ∩ e.base_set) ×ˢ (univ : set F),
+      e.to_fiber_bundle_pretrivialization.to_local_equiv.source =(e'.base_set ∩ e.base_set) ×ˢ univ,
     { rw [e'.target_eq, e.source_eq],
       ext ⟨b, f⟩,
       simp only [-total_space.proj, and.congr_right_iff, e'.proj_symm_apply', iff_self,

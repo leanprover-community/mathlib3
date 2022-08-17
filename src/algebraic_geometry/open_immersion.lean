@@ -1920,6 +1920,10 @@ begin
   exact Y.basic_open_subset r
 end
 
+instance {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) [is_open_immersion f] :
+  is_open_immersion (f ∣_ U) :=
+by { delta morphism_restrict, apply_instance }
+
 end morphism_restrict
 
 end algebraic_geometry

@@ -292,7 +292,7 @@ end⟩
 
 end has_coequalizer
 
-instance : has_colimits LocallyRingedSpace := colimits_from_coequalizers_and_coproducts
+instance : has_colimits LocallyRingedSpace := has_colimits_of_has_coequalizers_and_coproducts
 
 noncomputable
 instance : preserves_colimits LocallyRingedSpace.forget_to_SheafedSpace :=

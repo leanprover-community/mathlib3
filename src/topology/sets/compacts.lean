@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yaël Dillies
 -/
 import topology.sets.closeds
+import topology.quasi_separated
 
 /-!
 # Compact sets
@@ -108,11 +109,10 @@ congr_fun (image_eq_preimage_of_inverse f.left_inv f.right_inv) K.1
 
 /-- The product of two `compacts`, as a `compacts` in the product space. -/
 protected def prod (K : compacts α) (L : compacts β) : compacts (α × β) :=
-{ carrier := (K : set α) ×ˢ (L : set β),
+{ carrier := K ×ˢ L,
   compact' := is_compact.prod K.2 L.2 }
 
-@[simp] lemma coe_prod (K : compacts α) (L : compacts β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+@[simp] lemma coe_prod (K : compacts α) (L : compacts β) : (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end compacts
 
@@ -172,7 +172,7 @@ protected def prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
   .. K.to_compacts.prod L.to_compacts }
 
 @[simp] lemma coe_prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+  (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end nonempty_compacts
 
@@ -245,7 +245,7 @@ protected def prod (K : positive_compacts α) (L : positive_compacts β) :
   .. K.to_compacts.prod L.to_compacts }
 
 @[simp] lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+  (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end positive_compacts
 
@@ -278,8 +278,13 @@ lemma «open» (s : compact_opens α) : is_open (s : set α) := s.open'
 
 instance : has_sup (compact_opens α) :=
 ⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts, s.open.union t.open⟩⟩
-instance [t2_space α] : has_inf (compact_opens α) :=
-⟨λ s t, ⟨s.to_compacts ⊓ t.to_compacts, s.open.inter t.open⟩⟩
+
+instance [quasi_separated_space α] : has_inf (compact_opens α) :=
+⟨λ U V, ⟨⟨(U : set α) ∩ (V : set α),
+  quasi_separated_space.inter_is_compact U.1.1 V.1.1 U.2 U.1.2 V.2 V.1.2⟩, U.2.inter V.2⟩⟩
+instance [quasi_separated_space α] : semilattice_inf (compact_opens α) :=
+set_like.coe_injective.semilattice_inf _ (λ _ _, rfl)
+
 instance [compact_space α] : has_top (compact_opens α) := ⟨⟨⊤, is_open_univ⟩⟩
 instance : has_bot (compact_opens α) := ⟨⟨⊥, is_open_empty⟩⟩
 instance [t2_space α] : has_sdiff (compact_opens α) :=
@@ -326,7 +331,7 @@ protected def prod (K : compact_opens α) (L : compact_opens β) :
   .. K.to_compacts.prod L.to_compacts }
 
 @[simp] lemma coe_prod (K : compact_opens α) (L : compact_opens β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+  (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end compact_opens
 end topological_space

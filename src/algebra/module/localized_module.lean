@@ -684,4 +684,3 @@ noncomputable def unique_up_to_iso_as_localization_module
 end
 
 end is_localized_module
-#lint

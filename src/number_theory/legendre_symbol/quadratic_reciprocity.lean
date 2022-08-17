@@ -203,10 +203,7 @@ quadratic_char_neg_one_iff_not_is_square
 /-- The number of square roots of `a` modulo `p` is determined by the Legendre symbol. -/
 lemma legendre_sym_card_sqrts (hp : p ≠ 2) (a : ℤ) :
   ↑{x : zmod p | x^2 = a}.to_finset.card = legendre_sym p a + 1 :=
-begin
-  have h : ring_char (zmod p) ≠ 2 := by { rw ring_char_zmod_n, exact hp, },
-  exact quadratic_char_card_sqrts h a,
-end
+quadratic_char_card_sqrts (ne_of_eq_of_ne (ring_char_zmod_n p) hp) a
 
 /-- `legendre_sym p (-1)` is given by `χ₄ p`. -/
 lemma legendre_sym_neg_one (hp : p ≠ 2) : legendre_sym p (-1) = χ₄ p :=

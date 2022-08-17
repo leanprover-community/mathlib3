@@ -313,7 +313,7 @@ end linear_ordered_field
 
 section real
 
-variables {R S : Type*} [linear_ordered_field R] [linear_ordered_field S]
+variables {R S : Type*} [ordered_ring R] [ordered_ring S]
 
 lemma ring_hom_monotone (hR : ∀ r : R, 0 ≤ r → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
 begin

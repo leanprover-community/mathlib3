@@ -5,6 +5,7 @@ Authors: Antoine Labelle
 -/
 import category_theory.monoidal.braided
 import category_theory.concrete_category.basic
+import category_theory.closed.monoidal
 
 /-!
 # Full monoidal subcategories
@@ -33,7 +34,7 @@ variables {C : Type u} [category.{v} C] [monoidal_category C] (P : C → Prop)
 /--
 A property `C → Prop` is a monoidal predicate if it is closed under `𝟙_` and `⊗`.
 -/
-class monoidal_predicate :=
+class monoidal_predicate : Prop :=
 (prop_id' : P (𝟙_ C) . obviously)
 (prop_tensor' : ∀ {X Y}, P X → P Y → P (X ⊗ Y) . obviously)
 
@@ -45,11 +46,11 @@ open monoidal_predicate
 variables [monoidal_predicate P]
 
 /--
-When `P` is a monoidal predicate, the full subcategory `{X : C // P X}` inherits the monoidal
-structure of `C`
+When `P` is a monoidal predicate, the full subcategory for `P` inherits the monoidal structure of
+  `C`.
 -/
-instance full_monoidal_subcategory : monoidal_category {X : C // P X} :=
-{ tensor_obj := λ X Y, ⟨X ⊗ Y, prop_tensor X.2 Y.2⟩,
+instance full_monoidal_subcategory : monoidal_category (full_subcategory P) :=
+{ tensor_obj := λ X Y, ⟨X.1 ⊗ Y.1, prop_tensor X.2 Y.2⟩,
   tensor_hom := λ X₁ Y₁ X₂ Y₂ f g, by { change X₁.1 ⊗ X₂.1 ⟶ Y₁.1 ⊗ Y₂.1,
     change X₁.1 ⟶ Y₁.1 at f, change X₂.1 ⟶ Y₂.1 at g, exact f ⊗ g },
   tensor_unit := ⟨𝟙_ C, prop_id⟩,
@@ -71,7 +72,7 @@ The forgetful monoidal functor from a full monoidal subcategory into the origina
 ("forgetting" the condition).
 -/
 @[simps]
-def full_monoidal_subcategory_inclusion : monoidal_functor {X : C // P X} C :=
+def full_monoidal_subcategory_inclusion : monoidal_functor (full_subcategory P) C :=
 { to_functor := full_subcategory_inclusion P,
   ε := 𝟙 _,
   μ := λ X Y, 𝟙 _ }
@@ -87,7 +88,7 @@ variables {P} {P' : C → Prop} [monoidal_predicate P']
 subcategories. -/
 @[simps]
 def full_monoidal_subcategory.map (h : ∀ ⦃X⦄, P X → P' X) :
-  monoidal_functor {X : C // P X} {X : C // P' X}  :=
+  monoidal_functor (full_subcategory P) (full_subcategory P')  :=
 { to_functor := full_subcategory.map h,
   ε := 𝟙 _,
   μ := λ X Y, 𝟙 _ }
@@ -102,9 +103,9 @@ section braided
 variables (P) [braided_category C]
 
 /--
-The braided structure on `{X : C // P X}` inherited by the braided structure on `C`.
+The braided structure on a full subcategory inherited by the braided structure on `C`.
 -/
-instance full_braided_subcategory : braided_category {X : C // P X} :=
+instance full_braided_subcategory : braided_category (full_subcategory P) :=
 braided_category_of_faithful (full_monoidal_subcategory_inclusion P)
   (λ X Y, ⟨(β_ X.1 Y.1).hom, (β_ X.1 Y.1).inv, (β_ X.1 Y.1).hom_inv_id, (β_ X.1 Y.1).inv_hom_id⟩)
   (λ X Y, by tidy)
@@ -114,7 +115,7 @@ The forgetful braided functor from a full braided subcategory into the original 
 ("forgetting" the condition).
 -/
 @[simps]
-def full_braided_subcategory_inclusion : braided_functor {X : C // P X} C :=
+def full_braided_subcategory_inclusion : braided_functor (full_subcategory P) C :=
 { to_monoidal_functor := full_monoidal_subcategory_inclusion P,
   braided' := λ X Y, by { rw [is_iso.eq_inv_comp], tidy } }
 
@@ -129,7 +130,7 @@ variables {P}
 subcategories. -/
 @[simps]
 def full_braided_subcategory.map (h : ∀ ⦃X⦄, P X → P' X) :
-  braided_functor {X : C // P X} {X : C // P' X}  :=
+  braided_functor (full_subcategory P) (full_subcategory P')  :=
 { to_monoidal_functor := full_monoidal_subcategory.map h,
   braided' := λ X Y, by { rw [is_iso.eq_inv_comp], tidy }  }
 
@@ -144,10 +145,48 @@ section symmetric
 
 variables (P) [symmetric_category C]
 
-instance full_symmetric_subcategory : symmetric_category {X : C // P X} :=
+instance full_symmetric_subcategory : symmetric_category (full_subcategory P) :=
 symmetric_category_of_faithful (full_braided_subcategory_inclusion P)
 
 end symmetric
+
+section closed
+
+variables (P) [monoidal_closed C]
+
+/--
+A property `C → Prop` is a closed predicate if it is closed under taking internal homs
+-/
+class closed_predicate : Prop :=
+(prop_ihom' : ∀ {X Y}, P X → P Y → P ((ihom X).obj Y) . obviously)
+
+restate_axiom closed_predicate.prop_ihom'
+
+open closed_predicate
+
+variable  [closed_predicate P]
+
+instance full_monoidal_closed_subcategory : monoidal_closed (full_subcategory P) :=
+{ closed' := λ X,
+  { is_adj :=
+    { right := full_subcategory.lift P (full_subcategory_inclusion P ⋙ (ihom X.1))
+        (λ Y, prop_ihom X.2 Y.2),
+      adj := adjunction.mk_of_unit_counit
+      { unit := { app := λ Y, (ihom.coev X.1).app Y.1,
+                  naturality' := λ Y Z f, ihom.coev_naturality X.1 f },
+        counit := { app := λ Y, (ihom.ev X.1).app Y.1,
+                    naturality' := λ Y Z f, ihom.ev_naturality X.1 f },
+        left_triangle' := by { ext Y, simp, exact ihom.ev_coev X.1 Y.1 },
+        right_triangle' := by { ext Y, simp, exact ihom.coev_ev X.1 Y.1 } } } } }
+
+@[simp] lemma full_monoidal_closed_subcategory_ihom_obj (X Y : full_subcategory P) :
+  ((ihom X).obj Y).obj = (ihom (X.obj)).obj Y.obj := rfl
+
+@[simp] lemma full_monoidal_closed_subcategory_ihom_map (X : full_subcategory P)
+  {Y Z : full_subcategory P}
+  (f : Y ⟶ Z) : (ihom X).map f = (ihom (X.obj)).map f := rfl
+
+end closed
 
 end monoidal_category
 

@@ -44,7 +44,7 @@ instance : comm_semiring ℕ :=
   zero_mul       := nat.zero_mul,
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm,
-  nat_cast       := id,
+  nat_cast       := λ n, n,
   nat_cast_zero  := rfl,
   nat_cast_succ  := λ n, rfl,
   nsmul          := λ m n, m * n,
@@ -556,7 +556,7 @@ le_iff_le_iff_lt_iff_lt.1 mul_self_le_mul_self_iff
 
 theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_rfl
-| (n+1) := let t := nat.mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
+| (n+1) := by simp
 
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
@@ -742,6 +742,49 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
   (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
+
+/-- Recursion principle on even and odd numbers: if we have `P 0`, and for all `i : ℕ` we can
+extend from `P i` to both `P (2 * i)` and `P (2 * i + 1)`, then we have `P n` for all `n : ℕ`.
+This is nothing more than a wrapper around `nat.binary_rec`, to avoid having to switch to
+dealing with `bit0` and `bit1`. -/
+@[elab_as_eliminator]
+def even_odd_rec (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i))
+  (h_odd : ∀ i, P i → P (2 * i + 1)) : P n :=
+begin
+  refine @binary_rec P h0 (λ b i hi, _) n,
+  cases b,
+  { simpa [bit, bit0_val i] using h_even i hi },
+  { simpa [bit, bit1_val i] using h_odd i hi },
+end
+
+@[simp] lemma even_odd_rec_zero (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1)) :
+  @even_odd_rec 0 P h0 h_even h_odd = h0 := binary_rec_zero _ _
+
+@[simp] lemma even_odd_rec_even (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
+  (H : h_even 0 h0 = h0) :
+  @even_odd_rec (2 * n) P h0 h_even h_odd = h_even n (even_odd_rec n P h0 h_even h_odd) :=
+begin
+  convert binary_rec_eq _ ff n,
+  { exact (bit0_eq_two_mul _).symm },
+  { exact (bit0_eq_two_mul _).symm },
+  { apply heq_of_cast_eq, refl },
+  { exact H }
+end
+
+@[simp] lemma even_odd_rec_odd (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
+  (H : h_even 0 h0 = h0) :
+  @even_odd_rec (2 * n + 1) P h0 h_even h_odd = h_odd n (even_odd_rec n P h0 h_even h_odd) :=
+begin
+  convert binary_rec_eq _ tt n,
+  { exact (bit0_eq_two_mul _).symm },
+  { exact (bit0_eq_two_mul _).symm },
+  { apply heq_of_cast_eq, refl },
+  { exact H }
+end
 
 /-- Given a predicate on two naturals `P : ℕ → ℕ → Prop`, `P a b` is true for all `a < b` if
 `P (a + 1) (a + 1)` is true for all `a`, `P 0 (b + 1)` is true for all `b` and for all
@@ -976,6 +1019,15 @@ begin
 end
 
 /-! ### `mod`, `dvd` -/
+
+lemma mod_eq_iff_lt {a b : ℕ} (h : b ≠ 0) : a % b = a ↔ a < b :=
+begin
+  cases b, contradiction,
+  exact ⟨λ h, h.ge.trans_lt (mod_lt _ (succ_pos _)), mod_eq_of_lt⟩,
+end
+
+@[simp] lemma mod_succ_eq_iff_lt {a b : ℕ} : a % b.succ = a ↔ a < b.succ :=
+mod_eq_iff_lt (succ_ne_zero _)
 
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=
 (nat.add_comm _ _).trans (mod_add_div _ _)

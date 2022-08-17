@@ -45,7 +45,7 @@ which are lattices with only two elements, and related ideas.
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
   * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
-  * `fintype.to_is_atomic`, `fintype.to_is_coatomic`: Finite partial orders with bottom resp. top
+  * `finite.to_is_atomic`, `finite.to_is_coatomic`: Finite partial orders with bottom resp. top
     are atomic resp. coatomic.
 
 -/
@@ -454,17 +454,6 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
         simp [h] }
     end,
   top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
-  sup_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top],
-  inf_inf_sdiff := λ x y, begin
-      rcases eq_bot_or_eq_top x with rfl | rfl,
-      { simpa },
-      rcases eq_bot_or_eq_top y with rfl | rfl,
-      { simpa },
-      { simp only [true_and, top_inf_eq, eq_self_iff_true],
-        split_ifs with h h;
-        simpa [h] }
-    end,
   .. (show bounded_order α, by apply_instance),
   .. is_simple_order.distrib_lattice }
 
@@ -676,7 +665,7 @@ section fintype
 open finset
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
+instance finite.to_is_coatomic [partial_order α] [order_top α] [finite α] : is_coatomic α :=
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
   obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
@@ -688,7 +677,7 @@ begin
 end
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+instance finite.to_is_atomic [partial_order α] [order_bot α] [finite α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.mp finite.to_is_coatomic
 
 end fintype

@@ -71,7 +71,7 @@ namespace Mat_
 variables {C}
 
 /-- A morphism in `Mat_ C` is a dependently typed matrix of morphisms. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def hom (M N : Mat_ C) : Type v₁ := dmatrix M.ι N.ι (λ i j, M.X i ⟶ N.X j)
 
 namespace hom

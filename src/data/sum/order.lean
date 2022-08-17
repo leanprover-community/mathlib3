@@ -24,8 +24,9 @@ type synonym.
 * `α ⊕ₗ β`:  The linear sum of `α` and `β`.
 -/
 
-namespace sum
 variables {α β γ δ : Type*}
+
+namespace sum
 
 /-! ### Unbundled relation classes -/
 
@@ -87,7 +88,7 @@ instance [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α ⊕
 end⟩
 
 instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
-{ wf := sum.lex_wf is_well_order.wf is_well_order.wf }
+{ wf := sum.lex_wf is_well_founded.wf is_well_founded.wf }
 
 end lex
 
@@ -411,7 +412,7 @@ end sum
 open order_dual sum
 
 namespace order_iso
-variables {α β γ : Type*} [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
+variables [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
 
 /-- `equiv.sum_comm` promoted to an order isomorphism. -/
 @[simps apply] def sum_comm (α β : Type*) [has_le α] [has_le β] : α ⊕ β ≃o β ⊕ α :=
@@ -524,3 +525,49 @@ end,
   (sum_lex_dual_antidistrib α β).symm (inr (to_dual a)) = to_dual (inl a) := rfl
 
 end order_iso
+
+variable [has_le α]
+
+namespace with_bot
+
+/-- `with_bot α` is order-isomorphic to `punit ⊕ₗ α`, by sending `⊥` to `punit.star` and `↑a` to
+`a`. -/
+def order_iso_punit_sum_lex : with_bot α ≃o punit ⊕ₗ α :=
+⟨(equiv.option_equiv_sum_punit α).trans $ (equiv.sum_comm _ _).trans to_lex,
+  by rintro (a | _) (b | _); simp; exact not_coe_le_bot _⟩
+
+@[simp] lemma order_iso_punit_sum_lex_bot :
+  @order_iso_punit_sum_lex α _ ⊥ = to_lex (inl punit.star) := rfl
+
+@[simp] lemma order_iso_punit_sum_lex_coe (a : α) :
+  order_iso_punit_sum_lex (↑a) = to_lex (inr a) := rfl
+
+@[simp] lemma order_iso_punit_sum_lex_symm_inl (x : punit) :
+  (@order_iso_punit_sum_lex α _).symm (to_lex $ inl x) = ⊥ := rfl
+
+@[simp] lemma order_iso_punit_sum_lex_symm_inr (a : α) :
+  order_iso_punit_sum_lex.symm (to_lex $ inr a) = a := rfl
+
+end with_bot
+
+namespace with_top
+
+/-- `with_top α` is order-isomorphic to `α ⊕ₗ punit`, by sending `⊤` to `punit.star` and `↑a` to
+`a`. -/
+def order_iso_sum_lex_punit : with_top α ≃o α ⊕ₗ punit :=
+⟨(equiv.option_equiv_sum_punit α).trans to_lex,
+  by rintro (a | _) (b | _); simp; exact not_top_le_coe _⟩
+
+@[simp] lemma order_iso_sum_lex_punit_top :
+  @order_iso_sum_lex_punit α _ ⊤ = to_lex (inr punit.star) := rfl
+
+@[simp] lemma order_iso_sum_lex_punit_coe (a : α) :
+  order_iso_sum_lex_punit (↑a) = to_lex (inl a) := rfl
+
+@[simp] lemma order_iso_sum_lex_punit_symm_inr (x : punit) :
+  (@order_iso_sum_lex_punit α _).symm (to_lex $ inr x) = ⊤ := rfl
+
+@[simp] lemma order_iso_sum_lex_punit_symm_inl (a : α) :
+  order_iso_sum_lex_punit.symm (to_lex $ inl a) = a := rfl
+
+end with_top

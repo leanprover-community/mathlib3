@@ -17,9 +17,8 @@ variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [inline] list.head
 
--- TODO[gh-6025]: make this an instance once safe to do so
 /-- There is only one list of an empty type -/
-def unique_of_is_empty [is_empty α] : unique (list α) :=
+instance unique_of_is_empty [is_empty α] : unique (list α) :=
 { uniq := λ l, match l with
     | [] := rfl
     | (a :: l) := is_empty_elim a
@@ -1157,6 +1156,8 @@ theorem nth_len_le : ∀ {l : list α} {n}, length l ≤ n → nth l n = none
 | []       n     h := rfl
 | (a :: l) (n+1) h := nth_len_le (le_of_succ_le_succ h)
 
+@[simp] theorem nth_length (l : list α) : l.nth l.length = none := nth_len_le le_rfl
+
 theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n h = a :=
 ⟨λ e,
   have h : n < length l, from lt_of_not_ge $ λ hn,
@@ -1408,7 +1409,7 @@ lemma modify_nth_tail_modify_nth_tail_le
   (l.modify_nth_tail f n).modify_nth_tail g m =
     l.modify_nth_tail (λl, (f l).modify_nth_tail g (m - n)) n :=
 begin
-  rcases le_iff_exists_add.1 h with ⟨m, rfl⟩,
+  rcases exists_add_of_le h with ⟨m, rfl⟩,
   rw [add_tsub_cancel_left, add_comm, modify_nth_tail_modify_nth_tail]
 end
 
@@ -2917,6 +2918,14 @@ end
 @[simp] theorem filter_map_some (l : list α) : filter_map some l = l :=
 by rw filter_map_eq_map; apply map_id
 
+theorem map_filter_map_some_eq_filter_map_is_some (f : α → option β) (l : list α) :
+  (l.filter_map f).map some = (l.map f).filter (λ b, b.is_some) :=
+begin
+  induction l with x xs ih,
+  { simp },
+  { cases h : f x; rw [list.filter_map_cons, h]; simp [h, ih] },
+end
+
 @[simp] theorem mem_filter_map (f : α → option β) (l : list α) {b : β} :
   b ∈ filter_map f l ↔ ∃ a, a ∈ l ∧ f a = some b :=
 begin
@@ -2944,6 +2953,17 @@ theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
   (H : ∀ x : α, (f x).map g = some x) (l : list α) :
   map g (filter_map f l) = l :=
 by simp only [map_filter_map, H, filter_map_some]
+
+theorem length_filter_le (p : α → Prop) [decidable_pred p] (l : list α) :
+  (l.filter p).length ≤ l.length :=
+list.length_le_of_sublist (list.filter_sublist _)
+
+theorem length_filter_map_le (f : α → option β) (l : list α) :
+  (list.filter_map f l).length ≤ l.length :=
+begin
+  rw [← list.length_map some, list.map_filter_map_some_eq_filter_map_is_some, ← list.length_map f],
+  apply list.length_filter_le,
+end
 
 theorem sublist.filter_map (f : α → option β) {l₁ l₂ : list α}
   (s : l₁ <+ l₂) : filter_map f l₁ <+ filter_map f l₂ :=
@@ -3163,6 +3183,70 @@ by convert filter_eq_nil.2 (λ _ _, id)
 | (a::l) := if pa : p a then by rw [take_while, drop_while, if_pos pa, if_pos pa, cons_append,
       take_while_append_drop l]
     else by rw [take_while, drop_while, if_neg pa, if_neg pa, nil_append]
+
+lemma drop_while_nth_le_zero_not (l : list α) (hl : 0 < (l.drop_while p).length) :
+  ¬ p ((l.drop_while p).nth_le 0 hl) :=
+begin
+  induction l with hd tl IH,
+  { cases hl },
+  { simp only [drop_while],
+    split_ifs with hp,
+    { exact IH _ },
+    { simpa using hp } }
+end
+
+variables {p} {l : list α}
+
+@[simp] lemma drop_while_eq_nil_iff : drop_while p l = [] ↔ ∀ x ∈ l, p x :=
+begin
+  induction l with x xs IH,
+  { simp [drop_while] },
+  { by_cases hp : p x;
+    simp [hp, drop_while, IH] }
+end
+
+@[simp] lemma take_while_eq_self_iff : take_while p l = l ↔ ∀ x ∈ l, p x :=
+begin
+  induction l with x xs IH,
+  { simp [take_while] },
+  { by_cases hp : p x;
+    simp [hp, take_while, IH] }
+end
+
+@[simp] lemma take_while_eq_nil_iff :
+  take_while p l = [] ↔ ∀ (hl : 0 < l.length), ¬ p (l.nth_le 0 hl) :=
+begin
+  induction l with x xs IH,
+  { simp },
+  { by_cases hp : p x;
+    simp [hp, take_while, IH] }
+end
+
+lemma mem_take_while_imp {x : α} (hx : x ∈ take_while p l) : p x :=
+begin
+  induction l with hd tl IH,
+  { simpa [take_while] using hx },
+  { simp only [take_while] at hx,
+    split_ifs at hx,
+    { rw mem_cons_iff at hx,
+      rcases hx with rfl|hx,
+      { exact h },
+      { exact IH hx } },
+    { simpa using hx } }
+end
+
+lemma take_while_take_while (p q : α → Prop) [decidable_pred p] [decidable_pred q] (l : list α) :
+  take_while p (take_while q l) = take_while (λ a, p a ∧ q a) l :=
+begin
+  induction l with hd tl IH,
+  { simp [take_while] },
+  { by_cases hp : p hd;
+    by_cases hq : q hd;
+    simp [take_while, hp, hq, IH] }
+end
+
+lemma take_while_idem : take_while p (take_while p l) = take_while p l :=
+by simp_rw [take_while_take_while, and_self]
 
 end filter
 
@@ -3920,5 +4004,109 @@ begin
     { unfold_wf, apply xs_ih _ _ h,
       apply lt_of_succ_lt_succ hi, } },
 end
+
+/-! ### nthd and inth -/
+
+section nthd
+
+variables (l : list α) (x : α) (xs : list α) (d : α) (n : ℕ)
+
+@[simp] lemma nthd_nil : nthd d [] n = d := rfl
+
+@[simp] lemma nthd_cons_zero : nthd d (x::xs) 0 = x := rfl
+
+@[simp] lemma nthd_cons_succ : nthd d (x::xs) (n + 1) = nthd d xs n := rfl
+
+lemma nthd_eq_nth_le {n : ℕ} (hn : n < l.length) : l.nthd d n = l.nth_le n hn :=
+begin
+  induction l with hd tl IH generalizing n,
+  { exact absurd hn (not_lt_of_ge (nat.zero_le _)) },
+  { cases n,
+    { exact nthd_cons_zero _ _ _ },
+    { exact IH _ } }
+end
+
+lemma nthd_eq_default {n : ℕ} (hn : l.length ≤ n) : l.nthd d n = d :=
+begin
+  induction l with hd tl IH generalizing n,
+  { exact nthd_nil _ _ },
+  { cases n,
+    { refine absurd (nat.zero_lt_succ _) (not_lt_of_ge hn) },
+    { exact IH (nat.le_of_succ_le_succ hn) } }
+end
+
+/-- An empty list can always be decidably checked for the presence of an element.
+Not an instance because it would clash with `decidable_eq α`. -/
+def decidable_nthd_nil_ne {α} (a : α) : decidable_pred
+  (λ (i : ℕ), nthd a ([] : list α) i ≠ a) := λ i, is_false $ λ H, H (nthd_nil _ _)
+
+@[simp] lemma nthd_singleton_default_eq (n : ℕ) : [d].nthd d n = d :=
+by { cases n; simp }
+
+@[simp] lemma nthd_repeat_default_eq (r n : ℕ) : (repeat d r).nthd d n = d :=
+begin
+  induction r with r IH generalizing n,
+  { simp },
+  { cases n;
+    simp [IH] }
+end
+
+lemma nthd_append (l l' : list α) (d : α) (n : ℕ) (h : n < l.length)
+  (h' : n < (l ++ l').length := h.trans_le ((length_append l l').symm ▸ le_self_add)) :
+  (l ++ l').nthd d n = l.nthd d n :=
+by rw [nthd_eq_nth_le _ _ h', nth_le_append h' h, nthd_eq_nth_le]
+
+lemma nthd_append_right (l l' : list α) (d : α) (n : ℕ) (h : l.length ≤ n) :
+  (l ++ l').nthd d n = l'.nthd d (n - l.length) :=
+begin
+  cases lt_or_le _ _ with h' h',
+  { rw [nthd_eq_nth_le _ _ h', nth_le_append_right h h', nthd_eq_nth_le] },
+  { rw [nthd_eq_default _ _ h', nthd_eq_default],
+    rwa [le_tsub_iff_left h, ←length_append] }
+end
+
+lemma nthd_eq_get_or_else_nth (n : ℕ) :
+  l.nthd d n = (l.nth n).get_or_else d :=
+begin
+  cases lt_or_le _ _ with h h,
+  { rw [nthd_eq_nth_le _ _ h, nth_le_nth h, option.get_or_else_some] },
+  { rw [nthd_eq_default _ _ h, nth_eq_none_iff.mpr h, option.get_or_else_none] }
+end
+
+end nthd
+
+section inth
+
+variables [inhabited α] (l : list α) (x : α) (xs : list α) (n : ℕ)
+
+@[simp] lemma inth_nil : inth ([] : list α) n = default := rfl
+
+@[simp] lemma inth_cons_zero : inth (x::xs) 0 = x := rfl
+
+@[simp] lemma inth_cons_succ : inth (x::xs) (n + 1) = inth xs n := rfl
+
+lemma inth_eq_nth_le {n : ℕ} (hn : n < l.length) : l.inth n = l.nth_le n hn := nthd_eq_nth_le _ _ _
+
+lemma inth_eq_default {n : ℕ} (hn : l.length ≤ n) : l.inth n = default := nthd_eq_default _ _ hn
+
+lemma nthd_default_eq_inth : l.nthd default = l.inth := rfl
+
+lemma inth_append (l l' : list α) (n : ℕ) (h : n < l.length)
+  (h' : n < (l ++ l').length := h.trans_le ((length_append l l').symm ▸ le_self_add)) :
+  (l ++ l').inth n = l.inth n :=
+nthd_append _ _ _ _ h h'
+
+lemma inth_append_right (l l' : list α) (n : ℕ) (h : l.length ≤ n) :
+  (l ++ l').inth n = l'.inth (n - l.length) :=
+nthd_append_right _ _ _ _ h
+
+lemma inth_eq_iget_nth (n : ℕ) :
+  l.inth n = (l.nth n).iget :=
+by rw [←nthd_default_eq_inth, nthd_eq_get_or_else_nth, option.get_or_else_default_eq_iget]
+
+lemma inth_zero_eq_head : l.inth 0 = l.head :=
+by { cases l; refl, }
+
+end inth
 
 end list

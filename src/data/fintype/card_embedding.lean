@@ -29,7 +29,7 @@ lemma card_embedding_eq_of_unique {α β : Type*} [unique α] [fintype β] [fint
   ‖α ↪ β‖ = (‖β‖.desc_factorial ‖α‖) :=
 begin
   classical,
-  unfreezingI { induction ‹fintype α› using fintype.induction_empty_option'
+  unfreezingI { induction ‹fintype α› using fintype.induction_empty_option
     with α₁ α₂ h₂ e ih α h ih },
   { letI := fintype.of_equiv _ e.symm,
     rw [← card_congr (equiv.embedding_congr e (equiv.refl β)), ih, card_congr e] },

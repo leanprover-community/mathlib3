@@ -77,23 +77,6 @@ end
 
 /-Theorem
 $$
-\frac{\mathrm{d}\exp(t-x)}{\mathrm{d}x}=-\exp(t-x)
-$$
--/
-theorem deriv_exp_t_x (t : ℝ) : deriv (λ x, real.exp (t-x)) = -(λ x, real.exp (t-x)) :=
-begin
-    have triv : (λ x, real.exp (t-x)) = real.exp ∘ (λ x, t - x) := by simp only [],
-    ext,
-    rw triv,
-    rw deriv.scomp, simp only [neg_mul, deriv_exp, differentiable_at_const, mul_one, algebra.id.smul_eq_mul, one_mul, zero_sub, deriv_sub, differentiable_at_id', pi.neg_apply, deriv_id'', deriv_const'],
-
-    simp only [differentiable_at_id', differentiable_at.exp],
-    apply differentiable_at.const_sub,
-    exact differentiable_at_id,
-end
-
-/-Theorem
-$$
 \frac{\mathrm{d}-\exp(t-x)}{\mathrm{d}x}=\exp(t-x)
 $$
 -/

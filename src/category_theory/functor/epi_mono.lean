@@ -171,19 +171,9 @@ section
 
 variables (F : C ⥤ D) {X Y : C} (f : X ⟶ Y)
 
-/-- Split epimorphisms are preserved by the application of any functor. -/
-@[simps]
-def map_split_epi (s : split_epi f) : split_epi (F.map f) :=
-⟨F.map s.section_, by { rw [← F.map_comp, ← F.map_id], congr' 1, apply split_epi.id, }⟩
-
-/-- Split monomorphisms are preserved by the application of any functor. -/
-@[simps]
-def map_split_mono (s : split_mono f) : split_mono (F.map f) :=
-⟨F.map s.retraction, by { rw [← F.map_comp, ← F.map_id], congr' 1, apply split_mono.id, }⟩
-
 /-- If `F` is a fully faithful functor, split epimorphisms are preserved and reflected by `F`. -/
 def split_epi_equiv [full F] [faithful F] : split_epi f ≃ split_epi (F.map f) :=
-{ to_fun := F.map_split_epi f,
+{ to_fun := λ f, f.map F,
   inv_fun := λ s, begin
     refine ⟨F.preimage s.section_, _⟩,
     apply F.map_injective,
@@ -195,7 +185,7 @@ def split_epi_equiv [full F] [faithful F] : split_epi f ≃ split_epi (F.map f) 
 
 /-- If `F` is a fully faithful functor, split monomorphisms are preserved and reflected by `F`. -/
 def split_mono_equiv [full F] [faithful F] : split_mono f ≃ split_mono (F.map f) :=
-{ to_fun := F.map_split_mono f,
+{ to_fun := λ f, f.map F,
   inv_fun := λ s, begin
     refine ⟨F.preimage s.retraction, _⟩,
     apply F.map_injective,

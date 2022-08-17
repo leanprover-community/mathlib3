@@ -66,10 +66,7 @@ lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
 by rw [finite_field.is_square_neg_one_iff, card p]
 
 lemma mod_four_ne_three_of_sq_eq_neg_one {y : zmod p} (hy : y ^ 2 = -1) : p % 4 ≠ 3 :=
-begin
-  rw pow_two at hy,
-  exact (exists_sq_eq_neg_one_iff p).1 ⟨y, hy.symm⟩
-end
+(exists_sq_eq_neg_one_iff p).1 ⟨y, hy.symm.trans (pow_two y)⟩
 
 lemma mod_four_ne_three_of_sq_eq_neg_sq' {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
   p % 4 ≠ 3 :=

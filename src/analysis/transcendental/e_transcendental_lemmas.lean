@@ -49,6 +49,7 @@ theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f} (a b :
     (f_nonneg : ∀ x ∈ set.Icc a b, 0 ≤ f x) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) :
     (∫ x in a..b, f x) ≤ (b - a) * c :=
 begin
+    rw [mul_comm, ←abs_of_nonneg (sub_nonneg_of_le h)],
     have triv1 : (∫ x in a..b, f x) = ∥(∫ x in a..b, f x)∥,
     {
         rw real.norm_eq_abs,
@@ -56,19 +57,15 @@ begin
         rw interval_integral.integral_of_le h,
         apply measure_theory.integral_nonneg_of_ae,
         apply (@measure_theory.ae_restrict_iff ℝ _ _ (set.Ioc a b) _ _).2,
-        apply measure_theory.ae_of_all,
-        intros x hx,
-        simp only [and_imp, set.mem_Ioc, pi.zero_apply, ge_iff_le, set.mem_Icc] at *,
-        refine f_nonneg x _ _,
-        linarith, linarith,
-        simp only [pi.zero_apply],
-        refine measurable_set_le measurable_zero h1,
+        { apply measure_theory.ae_of_all,
+          intros x hx,
+          simp only [and_imp, set.mem_Ioc, pi.zero_apply, ge_iff_le, set.mem_Icc] at *,
+          refine f_nonneg x hx.1.le hx.2 },
+        { simp only [pi.zero_apply],
+          refine measurable_set_le measurable_zero h1 },
     },
     rw triv1,
-    have triv2 := @interval_integral.norm_integral_le_of_norm_le_const ℝ _ _ _ a b c f _,
-    {   rw abs_of_nonneg at triv2,
-        linarith,
-        linarith },
+    apply interval_integral.norm_integral_le_of_norm_le_const _,
     rw set.interval_oc_of_le h,
     intros x hx,
     rw real.norm_eq_abs,
@@ -256,12 +253,6 @@ begin
     have hn := h n, simp only [polynomial.coeff_zero] at hn, rw bar_coeff at hn, simp only [abs_eq_zero, polynomial.coeff_zero] at hn ⊢, assumption,
 end
 
-private lemma coeff_sum (f : ℕ -> (ℤ[X])) (m : ℕ) (s : finset ℕ) : (∑ i in s, (f i).coeff m) = (∑ i in s, f i).coeff m :=
-begin
-    apply finset.induction_on s, simp only [finset.sum_empty, polynomial.coeff_zero],
-    intros a s ha, simp only [forall_prop_of_true, polynomial.finset_sum_coeff],
-end
-
 theorem coeff_f_bar_mul (f g : ℤ[X]) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
 begin
     rw bar_coeff (f*g) n, rw polynomial.coeff_mul,
@@ -269,7 +260,7 @@ end
 
 theorem f_bar_eq (f : ℤ[X]) : f_bar f = ∑ i in finset.range f.nat_degree.succ, polynomial.C (abs (f.coeff i)) * polynomial.X^i :=
 begin
-    ext, rw bar_coeff, rw <-coeff_sum, simp_rw [polynomial.coeff_C_mul_X_pow],
+    ext, rw bar_coeff, rw polynomial.finset_sum_coeff, simp_rw [polynomial.coeff_C_mul_X_pow],
     simp only [finset.mem_range, finset.sum_ite_eq], split_ifs, refl, simp only [not_lt] at h,
     rw polynomial.coeff_eq_zero_of_nat_degree_lt h, exact rfl,
 end
@@ -278,19 +269,7 @@ lemma polynomial.aeval_eq_sum_support {R A : Type*} [comm_semiring R] [comm_semi
     (x : A) (f : R[X]) :
     polynomial.aeval x f = ∑ i in f.support, (f.coeff i) • x ^ i:=
 begin
-  rw [polynomial.aeval_eq_sum_range],
-  rw eq_comm,
-  apply finset.sum_subset_zero_on_sdiff,
-  { intros y hy,
-    contrapose! hy,
-    simp only [polynomial.mem_support_iff, not_not, ne.def],
-    simp only [not_lt, nat.succ_le_iff, finset.mem_range] at hy,
-    apply polynomial.coeff_eq_zero_of_nat_degree_lt hy },
-  { intros y hy,
-    simp only [polynomial.mem_support_iff, not_not, finset.mem_sdiff, ne.def, finset.mem_range] at hy,
-    rw hy.2,
-    simp only [int.cast_zero, zero_smul, eq_self_iff_true] },
-  { exact λ y hy, rfl },
+  simp_rw [polynomial.aeval_def, polynomial.eval₂_eq_sum, polynomial.sum, algebra.smul_def],
 end
 
 /-Theorem
@@ -299,124 +278,21 @@ $|f(x)|\le \bar{f}(t)$
 -/
 lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
 begin
-    intros x hx,
-    -- If we write $f(X)=a_0+a_1X+\cdots+a_nX^n$. Then $f(x)=a_0+a_1x+\cdots+a_nx^n$
-    have lhs : f_eval_on_ℝ f x = ∑ i in f.support, (f.coeff i : ℝ) * x ^ i,
-    { rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support x f], simp only [zsmul_eq_mul] },
-    rw lhs,
-    -- So $|f(x)|=|a_0+a_1x+\cdots+a_nx^n|\le |a_0|+|a_1|x+\cdots+|a_n|x^n$. (We assumed $x\ge0$).
-    have ineq1 : abs (∑ (i : ℕ) in f.support, (f.coeff i:ℝ) * x ^ i) ≤ ∑ i in f.support, (abs (f.coeff i:ℝ) * (x ^ i)),
-    {
-        -- we have $|a_0+a_1x+\cdots+a_nx^n|\le|a_0|+|a_1x|+\cdots+|a_nx^n|$
-        have ineq1' := @finset.abs_sum_le_sum_abs ℕ ℝ _ (λ i, (f.coeff i:ℝ) * (x ^ i)) f.support, simp only [] at ineq1',
-        -- and $|a_0|+|a_1x|+\cdots+|a_nx^n|=|a_0|+|a_1|x+\cdots+|a_n|x^n$
-        have eq1 : ∑ (x_1 : ℕ) in f.support, abs (↑(f.coeff x_1) * x ^ x_1) = ∑ (x_1 : ℕ) in f.support, abs (↑(f.coeff x_1)) * x ^ x_1,
-        {
-            apply congr_arg, ext, rw abs_mul,
-            rw @abs_of_nonneg ℝ _ _ _ (x^x_1) _, apply pow_nonneg, exact (set.mem_Icc.1 hx).1,
-        },
-        rw eq1 at ineq1', exact ineq1',
-    },
-
-    -- $\bar{f}(t)=|a_0|+|a_1|t+\cdots+|a_n|t^n$
-    have rhs : f_eval_on_ℝ (f_bar f) t = ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
-    {
-        rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support],
-        simp only [e_transcendental_lemmas.bar_coeff, finset.sum_congr, zsmul_eq_mul],
-        apply congr_arg, ext, norm_cast,
-    },
-    rw rhs,
-
-    -- Since $x^i\le t^i$, we have $|a_0|+|a_1|x+\cdots+|a_n|x^n\le|a_0|+|a_1|t+\cdots+|a_n|t^n$
-    have ineq2 : ∑ (i : ℕ) in f.support, abs (f.coeff i:ℝ) * x ^ i ≤  ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
-    {
-        rw bar_supp, apply finset.sum_le_sum, intros n hn,
-        suffices : x ^ n ≤ t ^ n,
-        {
-            apply mul_le_mul, exact le_refl (abs ↑(polynomial.coeff f n)), exact this, apply pow_nonneg, exact (set.mem_Icc.1 hx).1, exact abs_nonneg ↑(polynomial.coeff f n),
-        },
-        apply pow_le_pow_of_le_left, exact (set.mem_Icc.1 hx).1, exact (set.mem_Icc.1 hx).2,
-    },
-    -- combine `ineq1` and `ineq2` we are done.
-    exact le_trans ineq1 ineq2,
-end
-
-private lemma continuous_exp_f (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : continuous (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) :=
-begin
-    -- $|e^{t-x}f(x)|$ is composition of absolute value function and $e^{t-x}f(x)$
-      have eq1 : (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) = abs ∘ (λ (x : ℝ), (real.exp (t - x) * f_eval_on_ℝ f x)) := by simp only [eq_self_iff_true], rw eq1,
-      -- We now prove that $e^{t-x}f(x)$ is continuous by proving $e^{t-x}$ and $f(x)$ are continuous.
-      have cont2 : continuous (λ (x : ℝ), real.exp (t - x) * f_eval_on_ℝ f x),
-      {
-        -- $e^{t-x}$ is composition of $\exp$ and $t-x$.
-        have eq2 : (λ x : ℝ, real.exp (t-x)) = real.exp ∘ (λ x : ℝ, t - x), simp only [],
-        have cont21 : continuous (λ x : ℝ, real.exp (t-x)), rw eq2,
-        -- $\exp$ is continuous
-        have cont20 := real.continuous_exp,
-        -- $t-x$ is the constant function $t$ minus the identity function
-        have cont201 : continuous (λ (x : ℝ), t - x),
-        have eq3 : (λ (x : ℝ), t - x) = (λ (x : ℝ), (λ _, t) x - id x), ext, simp only [id], rw eq3,
-        -- constant function is continuous
-        have cont3 : continuous (λ _ :ℝ, t), exact continuous_const,
-        -- identity function is continuous
-        have cont3' : continuous (@id ℝ), exact continuous_id,
-        -- hence $t-x$ is continuous
-        have cont33 := continuous.sub cont3 cont3', assumption,
-        -- hence $e^{t-x}$ is continuous
-        exact continuous.comp cont20 cont201,
-        -- evaluating a polynomial is continuous
-        have cont4 : continuous (λ x , f_eval_on_ℝ f x),
-        { unfold f_eval_on_ℝ,
-            apply (differentiable_aeval _).continuous },
-        -- hence the product is continuous
-        exact continuous.mul cont21 cont4,
-      },
-      exact continuous.comp continuous_abs cont2,
-end
-
-/-Theorem
-$$
-\int_0^t |e^{t-x}f(d)|\mathrm{d}x\le te^t\bar{f}(t)
-$$
--/
-private lemma II_le2' (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : (∫ x in 0..t, abs ((t-x).exp * (f_eval_on_ℝ f x))) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
-begin
-    -- we are using `integral_le_max_times_length`
-    -- so we need to prove $|e^{t-x}f(x)|\le e^t\bar{f}(t)$
-    have ineq1 := integral_le_max_times_length ((λ x, abs ((t - x).exp * f_eval_on_ℝ f x))) 0 t ht (t.exp * f_eval_on_ℝ (f_bar f) t) _ _,
-    simp only [sub_zero] at ineq1,
-    have triv : t * (t.exp * f_eval_on_ℝ (f_bar f) t) = t * t.exp * f_eval_on_ℝ (f_bar f) t := by ring,
-    rw triv at ineq1, exact ineq1,
-
-    -- This to prove the functions we used are measurable and integrable.
-    {
-      refine continuous.measurable _,
-      apply continuous_exp_f _ _ ht,
-    },
-
-    -- This is to prove $0\le|e^{t-x}f(x)|$
-    {
-        intros x hx, simp only [ge_iff_le],
-        exact abs_nonneg (real.exp (t - x) * f_eval_on_ℝ f x),
-    },
-
-    -- This is to prove $|e^{t-x}f(x)|\le e^t \bar{f}(t)$
-    {
-        intros x hx, simp only [set.indicator, set.mem_Icc],
-        rw abs_mul,
-        have triv : abs (t - x).exp = (t-x).exp, {
-            apply abs_of_pos, exact (t - x).exp_pos,
-        },
-        rw triv,
-        -- We have $|f(x)|\le\bar{f}(t)$
-        have ineq1 := f_bar_ineq f t x hx,
-        -- We have $e^{t-x}\le e^{t}$
-        have ineq2 : (t - x).exp ≤ t.exp,
-        {
-            rw real.exp_le_exp, rw sub_le, simp only [sub_self], exact hx.1,
-        },
-        exact mul_le_mul ineq2 ineq1 (abs_nonneg _) (le_of_lt (real.exp_pos t)),
-    },
+  intros x hx,
+  rw set.mem_Icc at hx,
+  calc |f_eval_on_ℝ f x| = |∑ i in f.support, (f.coeff i : ℝ) * x ^ i| : _
+  ... ≤ ∑ i in f.support, |(f.coeff i:ℝ) * x ^ i| : finset.abs_sum_le_sum_abs _ _
+  ... = ∑ i in f.support, |(f.coeff i:ℝ)| * x ^ i : finset.sum_congr rfl (λ i hi, _)
+  ... ≤ ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i : _
+  ... = _ : _,
+  { rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support x f], simp only [zsmul_eq_mul] },
+  { have := pow_nonneg hx.1 i,
+    rw [abs_mul, abs_of_nonneg this], },
+  { rw bar_supp,
+    refine finset.sum_le_sum (λ n hn, mul_le_mul_of_nonneg_left _ (abs_nonneg _)),
+    exact pow_le_pow_of_le_left hx.1 hx.2 _ },
+  { rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support],
+    simp only [e_transcendental_lemmas.bar_coeff, finset.sum_congr, zsmul_eq_mul, int.cast_abs] }
 end
 
 /-Theorem
@@ -424,7 +300,19 @@ $$|I(f,t)|\le te^t\bar{f}(t)$$
 -/
 theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : abs (II f t) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
-  exact le_trans (interval_integral.abs_integral_le_integral_abs ht) (II_le2' f t ht),
+  refine (interval_integral.abs_integral_le_integral_abs ht).trans _,
+  convert integral_le_max_times_length ((λ x, abs ((t - x).exp * f_eval_on_ℝ f x))) 0 t ht
+    (t.exp * f_eval_on_ℝ (f_bar f) t) (λ x _, abs_nonneg _) _ using 1,
+  { rw [sub_zero, mul_assoc], },
+  { refine continuous.measurable _,
+    refine continuous_abs.comp _,
+    exact continuous.mul (real.continuous_exp.comp (continuous_sub_left _))
+      (differentiable_aeval _).continuous},
+  { intros x hx,
+    rw [abs_mul, real.abs_exp],
+    refine mul_le_mul _ (f_bar_ineq f t x hx) (abs_nonneg _) (real.exp_pos t).le,
+    rw set.mem_Icc at hx,
+    rw [real.exp_le_exp, sub_le, sub_self], exact hx.1 },
 end
 
 end e_transcendental_lemmas

@@ -112,7 +112,6 @@ by rw [← add_diff_add_eq_right (- g), add_right_neg, diff_zero_right, sub_eq_a
 
 end diff
 
-
 section wit
 variables [inhabited α] [linear_order α]
 

@@ -160,8 +160,10 @@ begin
     simp only [finite.to_finset_mono],
     rw set.preimage_comp,
     apply set.preimage_mono,
-    sorry, -- should be just HL'.1 modulo conversions
-  },
+    let lol := HL'.1,
+    dsimp [cofinite.preimage] at lol,
+    rw [←finset.coe_subset,set.finite.coe_to_finset] at lol,
+    exact lol,},
   { rintro D,
     obtain ⟨D',D'good⟩ := HL.2 D,
     obtain ⟨C,Cgood⟩ := HL'.2 D',

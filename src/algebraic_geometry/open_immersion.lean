@@ -1428,11 +1428,37 @@ instance of_is_iso [is_iso g] :
   is_open_immersion g := @@LocallyRingedSpace.is_open_immersion.of_is_iso _
 (show is_iso ((induced_functor _).map g), by apply_instance)
 
-lemma is_open_immersion.to_iso {X Y : Scheme} (f : X ⟶ Y) [h : is_open_immersion f]
+lemma to_iso {X Y : Scheme} (f : X ⟶ Y) [h : is_open_immersion f]
   [epi f.1.base] : is_iso f :=
 @@is_iso_of_reflects_iso _ _ f (Scheme.forget_to_LocallyRingedSpace ⋙
   LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace)
   (@@PresheafedSpace.is_open_immersion.to_iso _ f.1 h _) _
+
+lemma of_stalk_iso {X Y : Scheme} (f : X ⟶ Y) (hf : open_embedding f.1.base)
+  [∀ x, is_iso (PresheafedSpace.stalk_map f.1 x)] : is_open_immersion f :=
+SheafedSpace.is_open_immersion.of_stalk_iso f.1 hf
+
+lemma iff_stalk_iso {X Y : Scheme} (f : X ⟶ Y) :
+  is_open_immersion f ↔ open_embedding f.1.base ∧ ∀ x, is_iso (PresheafedSpace.stalk_map f.1 x) :=
+⟨λ H, ⟨H.1, by exactI infer_instance⟩, λ ⟨h₁, h₂⟩, @@is_open_immersion.of_stalk_iso f h₁ h₂⟩
+
+lemma _root_.algebraic_geometry.is_iso_iff_is_open_immersion {X Y : Scheme} (f : X ⟶ Y) :
+  is_iso f ↔ is_open_immersion f ∧ epi f.1.base :=
+⟨λ H, by exactI ⟨infer_instance, infer_instance⟩, λ ⟨h₁, h₂⟩, @@is_open_immersion.to_iso f h₁ h₂⟩
+
+lemma _root_.algebraic_geometry.is_iso_iff_stalk_iso {X Y : Scheme} (f : X ⟶ Y) :
+  is_iso f ↔ is_iso f.1.base ∧ ∀ x, is_iso (PresheafedSpace.stalk_map f.1 x) :=
+begin
+  rw [is_iso_iff_is_open_immersion, is_open_immersion.iff_stalk_iso, and_comm, ← and_assoc],
+  refine and_congr ⟨_, _⟩ iff.rfl,
+  { rintro ⟨h₁, h₂⟩,
+    convert_to is_iso (Top.iso_of_homeo (homeomorph.homeomorph_of_continuous_open
+      (equiv.of_bijective _ ⟨h₂.inj, (Top.epi_iff_surjective _).mp h₁⟩)
+      h₂.continuous h₂.is_open_map)).hom,
+    { ext, refl },
+    { apply_instance } },
+  { intro H, exactI ⟨infer_instance, (Top.homeo_of_iso (as_iso f.1.base)).open_embedding⟩ }
+end
 
 /-- A open immersion induces an isomorphism from the domain onto the image -/
 def iso_restrict : X ≅ (Z.restrict H.base_open : _) :=

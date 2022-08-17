@@ -45,11 +45,6 @@ has_finite_limits_of_has_terminal_and_pullbacks
 
 section initial
 
-lemma is_sheaf_of_is_terminal {C A : Type*} [category C] [category A] (J : grothendieck_topology C)
-  {X : A} (hX : is_terminal X) :
-  presheaf.is_sheaf J ((category_theory.functor.const _).obj X) :=
-λ _ _ _ _ _ _, ⟨hX.from _, λ _ _ _, hX.hom_ext _ _, λ _ _, hX.hom_ext _ _⟩
-
 /-- The map from the empty scheme. -/
 @[simps]
 def Scheme.empty_to (X : Scheme.{u}) : ∅ ⟶ X :=

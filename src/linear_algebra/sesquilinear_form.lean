@@ -37,7 +37,7 @@ Sesquilinear form,
 
 open_locale big_operators
 
-variables {R R₁ R₂ R₃ M M₁ M₂ K K₁ K₂ V V₁ V₂ n: Type*}
+variables {R R₁ R₂ R₃ M M₁ M₂ Mₗ₁ Mₗ₁' Mₗ₂ Mₗ₂' K K₁ K₂ V V₁ V₂ n : Type*}
 
 namespace linear_map
 
@@ -548,6 +548,46 @@ the only element that is left-orthogonal to every other element is `0`; i.e.,
 for every nonzero `x` in `M₁`, there exists `y` in `M₂` with `B x y ≠ 0`.-/
 def separating_left (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
 ∀ x : M₁, (∀ y : M₂, B x y = 0) → x = 0
+
+variables (M₁ M₂ I₁ I₂)
+
+/-- In a non-trivial module, zero is not non-degenerate. -/
+lemma not_separating_left_zero [nontrivial M₁] : ¬(0 : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R).separating_left :=
+let ⟨m, hm⟩ := exists_ne (0 : M₁) in λ h, hm (h m $ λ n, rfl)
+
+variables {M₁ M₂ I₁ I₂}
+
+lemma separating_left.ne_zero [nontrivial M₁] {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R}
+  (h : B.separating_left) : B ≠ 0 :=
+λ h0, not_separating_left_zero M₁ M₂ I₁ I₂ $ h0 ▸ h
+
+section linear
+
+variables [add_comm_monoid Mₗ₁] [add_comm_monoid Mₗ₂] [add_comm_monoid Mₗ₁'] [add_comm_monoid Mₗ₂']
+variables [module R Mₗ₁] [module R Mₗ₂] [module R Mₗ₁'] [module R Mₗ₂']
+variables {B : Mₗ₁ →ₗ[R] Mₗ₂ →ₗ[R] R} (e₁ : Mₗ₁ ≃ₗ[R] Mₗ₁') (e₂ : Mₗ₂ ≃ₗ[R] Mₗ₂')
+
+lemma separating_left.congr (h : B.separating_left) :
+  (e₁.arrow_congr (e₂.arrow_congr (linear_equiv.refl R R)) B).separating_left :=
+begin
+  intros x hx,
+  rw ←e₁.symm.map_eq_zero_iff,
+  refine h (e₁.symm x) (λ y, _),
+  specialize hx (e₂ y),
+  simp only [linear_equiv.arrow_congr_apply, linear_equiv.symm_apply_apply,
+    linear_equiv.map_eq_zero_iff] at hx,
+  exact hx,
+end
+
+@[simp] lemma separating_left_congr_iff :
+  (e₁.arrow_congr (e₂.arrow_congr (linear_equiv.refl R R)) B).separating_left ↔ B.separating_left :=
+⟨λ h, begin
+  convert h.congr e₁.symm e₂.symm,
+  ext x y,
+  simp,
+end, separating_left.congr e₁ e₂⟩
+
+end linear
 
 /-- A bilinear form is called right-separating if
 the only element that is right-orthogonal to every other element is `0`; i.e.,

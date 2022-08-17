@@ -81,7 +81,9 @@ lemma LDL.lower_inv_triangular {i j : n} (hij : i < j) :
 by rw [← @gram_schmidt_triangular 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _
     i j hij (pi.basis_fun 𝕜 n), pi.basis_fun_repr, LDL.lower_inv]
 
-lemma ldl_decomposition₀ : LDL.diag hS = LDL.lower_inv hS ⬝ S ⬝ (LDL.lower_inv hS)ᴴ :=
+/-- Inverse statement of **LDL decomposition**: we can conjugate a positive definite matrix
+by some lower triangular matrix and get a diagonal matrix. -/
+lemma LDL.diag_eq_lower_inv_conj : LDL.diag hS = LDL.lower_inv hS ⬝ S ⬝ (LDL.lower_inv hS)ᴴ :=
 begin
   ext i j,
   by_cases hij : i = j,

@@ -1241,7 +1241,7 @@ end
 ---is 1/(gaussian_density m s). We can just call this hℙ as counterpart of hμ.
 
 ---The meaning of such work is get the counterpart of hμ in  μ ≪ volume
----for proving volume ≪ μ. With this assumtion, we can proving volume ≪ μ
+---for proving volume ≪ μ. With this assumption, we can proving volume ≪ μ
 ---in a way similar to proof of μ ≪ volume, while replacing hμ by hℙ.
 
 

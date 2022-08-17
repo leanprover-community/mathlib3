@@ -25,7 +25,7 @@ associative or unital, or even to be compatible with the scalar actions. In a ty
 the operations will satisfy compatibility conditions making them into algebras (albeit possibly
 non-associative and/or non-unital) but such conditions are not required here for the definitions.
 
-The primary impetus for defining these types is that they consitute the morphisms in the categories
+The primary impetus for defining these types is that they constitute the morphisms in the categories
 of unital C⋆-algebras (with `star_alg_hom`s) and of C⋆-algebras (with `non_unital_star_alg_hom`s).
 
 TODO: add `star_alg_equiv`.
@@ -122,7 +122,7 @@ by { ext, refl, }
 
 section
 variables (R A)
-/-- The identity as a cocompact continuous map. -/
+/-- The identity as a non-unital ⋆-algebra homomorphism. -/
 protected def id : A →⋆ₙₐ[R] A :=
 { map_star' := λ x, rfl, .. (1 : A →ₙₐ[R] A) }
 
@@ -197,6 +197,7 @@ structure star_alg_hom (R A B: Type*) [comm_semiring R] [semiring A] [algebra R 
 
 infixr ` →⋆ₐ `:25 := star_alg_hom _
 notation A ` →⋆ₐ[`:25 R `] ` B := star_alg_hom R A B
+
 /-- `star_alg_hom_class F R A B` states that `F` is a type of ⋆-algebra homomorphisms.
 
 You should also extend this typeclass when you extend `star_alg_hom`. -/
@@ -206,8 +207,7 @@ class star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*)
 
 @[priority 100] /- See note [lower instance priority] -/
 instance star_alg_hom_class.to_non_unital_star_alg_hom_class
-  (F : Type*) (R : out_param Type*) (A : out_param Type*)
-  (B : out_param Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
+  (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
   [semiring B] [algebra R B] [has_star B] [star_alg_hom_class F R A B] :
   non_unital_star_alg_hom_class F R A B :=
 { map_smul := map_smul,
@@ -222,7 +222,7 @@ variables {F R A B C D : Type*} [comm_semiring R]
   [semiring C] [algebra R C] [has_star C]
   [semiring D] [algebra R D] [has_star D]
 
-instance : star_alg_hom_class (star_alg_hom R A B) R A B :=
+instance : star_alg_hom_class (A →⋆ₐ[R] B) R A B :=
 { coe :=  λ f, f.to_fun,
   coe_injective' := λ f g h,
   begin

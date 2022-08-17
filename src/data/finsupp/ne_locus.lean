@@ -74,7 +74,7 @@ begin
   exact congr_arg _,
 end
 
-lemma map_range_ne_locus_eq {F : M → N → P} (F0 : F 0 0 = 0)
+lemma zip_with_ne_locus_eq_left {F : M → N → P} (F0 : F 0 0 = 0)
   (f₁ f₂ : α →₀ M) (g : α →₀ N) (hF : ∀ g, function.injective (λ f, F f g)) :
   (zip_with F F0 f₁ g).ne_locus (zip_with F F0 f₂ g) = f₁.ne_locus f₂ :=
 by { ext, simpa only [mem_ne_locus] using (hF _).ne_iff }

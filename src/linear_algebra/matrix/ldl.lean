@@ -41,8 +41,8 @@ variables {S : matrix n n 𝕜} [fintype n] (hS : S.pos_def)
 applying Gram-Schmidt-Orthogonalization w.r.t. the inner product induced by `Sᵀ` on the standard
 basis vectors `pi.basis_fun`. -/
 noncomputable def LDL.lower_inv : matrix n n 𝕜 :=
-  @gram_schmidt
-    𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _ (λ k, pi.basis_fun 𝕜 n k)
+@gram_schmidt
+  𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _ (λ k, pi.basis_fun 𝕜 n k)
 
 lemma LDL.lower_inv_gram_schmidt_basis :
   LDL.lower_inv hS = ((pi.basis_fun 𝕜 n).to_matrix

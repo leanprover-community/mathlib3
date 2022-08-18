@@ -424,8 +424,8 @@ match p, hc with
 | (m+2), hc := or.inl (@char_is_prime_of_two_le R _ _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p R p] : fact p.prime :=
-⟨(char_p.char_is_prime_or_zero R _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
+lemma char_is_prime_of_pos (p : ℕ) [ne_zero p] [char_p R p] : fact p.prime :=
+⟨(char_p.char_is_prime_or_zero R _).resolve_right $ ne_zero.ne p⟩
 
 end nontrivial
 

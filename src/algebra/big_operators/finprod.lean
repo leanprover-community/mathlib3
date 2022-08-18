@@ -990,4 +990,3 @@ lemma finprod_emb_domain (f : α ↪ β) [decidable_pred (∈ set.range f)] (g :
 finprod_emb_domain' f.injective g
 
 end type
-#lint

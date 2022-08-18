@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Michael Stoll
 -/
-import number_theory.legendre_symbol.gauss_eisenstein_lemmas
 import number_theory.legendre_symbol.quadratic_char
 
 /-!
@@ -173,23 +172,6 @@ theorem legendre_sym_mod (p : ℕ) [fact p.prime] (a : ℤ) :
   legendre_sym p a = legendre_sym p (a % p) :=
 by simp only [legendre_sym, int_cast_mod]
 
-
-/-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
-  than `p/2` such that `(a * x) % p > p / 2` -/
-lemma gauss_lemma {a : ℤ} (hp : p ≠ 2) (ha0 : (a : zmod p) ≠ 0) :
-  legendre_sym p a = (-1) ^ ((Ico 1 (p / 2).succ).filter
-    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
-begin
-  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
-  have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
-    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
-    by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
-  cases legendre_sym_eq_one_or_neg_one p a ha0;
-  cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
-    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
-  simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
-end
-
 /-- When `p ∤ a`, then `legendre_sym p a = 1` iff `a` is a square mod `p`. -/
 lemma legendre_sym_eq_one_iff {a : ℤ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
@@ -215,28 +197,24 @@ end
 
 open_locale big_operators
 
-lemma eisenstein_lemma (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
-  legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
-begin
-  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
-  have ha0' : ((a : ℤ) : zmod p) ≠ 0 := by { norm_cast, exact ha0 },
-  rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p hp ha0', neg_one_pow_eq_pow_mod_two,
-      (by norm_cast : ((a : ℤ) : zmod p) = (a : zmod p)),
-      show _ = _, from legendre_symbol.eisenstein_lemma_aux p ha1 ha0]
-end
-
 /-- **Quadratic reciprocity theorem** -/
 theorem quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
 begin
+  have hp₁ := (nat.prime.eq_two_or_odd (fact.out p.prime)).resolve_left hp,
+  have hq₁ := (nat.prime.eq_two_or_odd (fact.out q.prime)).resolve_left hq,
+  have hq₂ := (ne_of_eq_of_ne (ring_char_zmod_n q) hq),
+  have hpq₁ : (p : zmod q) ≠ 0 :=
+  (mt (nat_coe_zmod_eq_zero_iff_dvd p q).mp
+        $ mt (nat.prime_dvd_prime_iff_eq (fact.out q.prime) (fact.out p.prime)).mp hpq.symm),
   have h := quadratic_char_odd_prime (ne_of_eq_of_ne (ring_char_zmod_n p) hp) hq
               (ne_of_eq_of_ne (ring_char_zmod_n p) hpq),
   rw [card p] at h,
   have nc : ∀ (n r : ℕ), ((n : ℤ) : zmod r) = n := by {intros n r, norm_cast},
-  rw [legendre_sym, legendre_sym, nc, nc, h, map_mul, mul_rotate', ← pow_two,
-      quadratic_char_sq_one, mul_one],
-  have := nat.odd_mod_four_iff.mp ((nat.prime.eq_two_or_odd (fact.out p.prime)).resolve_left hp),
-  sorry
+  have nc' : (((-1) ^ (p / 2) : ℤ) : zmod q) = (-1) ^ (p / 2) := by norm_cast,
+  rw [legendre_sym, legendre_sym, nc, nc, h, map_mul, mul_rotate', mul_comm (p / 2), ← pow_two,
+      quadratic_char_sq_one hpq₁, mul_one, pow_mul, χ₄_eq_neg_one_pow hp₁, nc', map_pow,
+      quadratic_char_neg_one hq₂, card q, χ₄_eq_neg_one_pow hq₁],
 end
 
 lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=

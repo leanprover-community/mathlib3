@@ -3,8 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import field_theory.finite.basic
-import data.zmod.basic
+import number_theory.legendre_symbol.quadratic_reciprocity
 
 /-!
 # Lemmas of Gauss and Eisenstein
@@ -153,6 +152,22 @@ lemma gauss_lemma_aux (p : ℕ) [hp : fact p.prime] [fact (p % 2 = 1)]
           exact nat.div_lt_self hp.1.pos dec_trivial)).1 $
   by simpa using gauss_lemma_aux₁ p hap
 
+/-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
+  than `p/2` such that `(a * x) % p > p / 2` -/
+lemma gauss_lemma {p : ℕ} [fact p.prime] {a : ℤ} (hp : p ≠ 2) (ha0 : (a : zmod p) ≠ 0) :
+  legendre_sym p a = (-1) ^ ((Ico 1 (p / 2).succ).filter
+    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
+begin
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
+    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
+    by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
+  cases legendre_sym_eq_one_or_neg_one p a ha0;
+  cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
+    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
+  simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
+end
+
 private lemma eisenstein_lemma_aux₁ (p : ℕ) [fact p.prime] [hp2 : fact (p % 2 = 1)]
   {a : ℕ} (hap : (a : zmod p) ≠ 0) :
   ((∑ x in Ico 1 (p / 2).succ, a * x : ℕ) : zmod 2) =
@@ -274,6 +289,17 @@ begin
   rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product],
   simp only [card_Ico, tsub_zero, succ_sub_succ_eq_sub]
+end
+
+lemma eisenstein_lemma {p : ℕ} [fact p.prime] (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1)
+  (ha0 : (a : zmod p) ≠ 0) :
+  legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
+begin
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  have ha0' : ((a : ℤ) : zmod p) ≠ 0 := by { norm_cast, exact ha0 },
+  rw [neg_one_pow_eq_pow_mod_two, gauss_lemma hp ha0', neg_one_pow_eq_pow_mod_two,
+      (by norm_cast : ((a : ℤ) : zmod p) = (a : zmod p)),
+      show _ = _, from legendre_symbol.eisenstein_lemma_aux p ha1 ha0]
 end
 
 end legendre_symbol

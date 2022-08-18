@@ -8,6 +8,7 @@ import data.finsupp.multiset
 import data.nat.prime
 import number_theory.padics.padic_val
 import data.nat.interval
+import tactic.interval_cases
 
 /-!
 # Prime factorizations
@@ -473,6 +474,16 @@ begin
   rcases eq_or_ne a 0 with rfl | ha0, { simp },
   rw pow_dvd_pow_iff_le_right pp.one_lt,
   exact (factorization_le_iff_dvd ha0 hb0).2 hab p,
+end
+
+lemma ord_proj_dvd_ord_proj_iff_dvd {a b : ℕ} (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+  (∀ p : ℕ, ord_proj[p] a ∣ ord_proj[p] b) ↔ (a ∣ b) :=
+begin
+  refine ⟨λ h, _, λ hab p, ord_proj_dvd_ord_proj_of_dvd hb0 hab p⟩,
+  rw ←factorization_le_iff_dvd ha0 hb0,
+  intro q,
+  rcases le_or_lt q 1 with hq_le | hq1, { interval_cases q; simp },
+  exact (pow_dvd_pow_iff_le_right hq1).1 (h q),
 end
 
 lemma ord_compl_dvd_ord_compl_of_dvd {a b p : ℕ} (hab : a ∣ b) :

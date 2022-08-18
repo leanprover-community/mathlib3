@@ -226,13 +226,18 @@ begin
 end
 
 /-- **Quadratic reciprocity theorem** -/
-theorem quadratic_reciprocity (hp1 : p ≠ 2) (hq1 : q ≠ 2) (hpq : p ≠ q) :
+theorem quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
-have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
-have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
-by rw [eisenstein_lemma q hq1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hp1) hpq0,
-       eisenstein_lemma p hp1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hq1) hqp0,
-  ← pow_add, legendre_symbol.sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
+begin
+  have h := quadratic_char_odd_prime (ne_of_eq_of_ne (ring_char_zmod_n p) hp) hq
+              (ne_of_eq_of_ne (ring_char_zmod_n p) hpq),
+  rw [card p] at h,
+  have nc : ∀ (n r : ℕ), ((n : ℤ) : zmod r) = n := by {intros n r, norm_cast},
+  rw [legendre_sym, legendre_sym, nc, nc, h, map_mul, mul_rotate', ← pow_two,
+      quadratic_char_sq_one, mul_one],
+  have := nat.odd_mod_four_iff.mp ((nat.prime.eq_two_or_odd (fact.out p.prime)).resolve_left hp),
+  sorry
+end
 
 lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=
 begin

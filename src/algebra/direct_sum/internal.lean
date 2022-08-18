@@ -137,144 +137,128 @@ instance gcomm_ring [add_comm_monoid ι] [comm_ring R] [set_like σ R]
 
 end set_like
 
+section coe
+
+variables [semiring R] [set_like σ R] [add_submonoid_class σ R] (A : ι → σ)
+
 /-- The canonical ring isomorphism between `⨁ i, A i` and `R`-/
 def direct_sum.coe_ring_hom [add_monoid ι] [semiring R] [set_like σ R]
   [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] : (⨁ i, A i) →+* R :=
 direct_sum.to_semiring (λ i, add_submonoid_class.subtype (A i)) rfl (λ _ _ _ _, rfl)
 
 /-- The canonical ring isomorphism between `⨁ i, A i` and `R`-/
-@[simp] lemma direct_sum.coe_ring_hom_of [add_monoid ι] [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] (i : ι) (x : A i) :
-  direct_sum.coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
+@[simp] lemma direct_sum.coe_ring_hom_of [add_monoid ι] [set_like.graded_monoid A] (i : ι)
+  (x : A i) : (direct_sum.coe_ring_hom A : _ →+* R) (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 
-lemma direct_sum.coe_mul_apply [add_monoid ι] [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A]
-  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
-  ((r * r') i : R) =
-    ∑ ij in (r.support ×ˢ r'.support).filter (λ ij : ι × ι, ij.1 + ij.2 = i), r ij.1 * r' ij.2 :=
+lemma direct_sum.coe_mul_apply [add_monoid ι] [set_like.graded_monoid A]
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (n : ι) :
+  ((r * r') n : R) =
+    ∑ ij in (r.support ×ˢ r'.support).filter (λ ij : ι × ι, ij.1 + ij.2 = n), r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
     add_submonoid_class.coe_finset_sum],
   simp_rw [direct_sum.coe_of_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
-lemma direct_sum.coe_of_mul_apply_eq_ite [add_left_cancel_monoid ι] [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] {i : ι}
-  (r : A i) (r' : ⨁ i, A i) (n : ι) [decidable (∃ (j : ι), i + j = n)] :
-  ((direct_sum.of _ i r * r') n : R) =
-  if h : ∃ j, i + j = n then r * r' h.some else 0 :=
+lemma direct_sum.coe_mul_apply_eq_dfinsupp_sum [add_monoid ι] [set_like.graded_monoid A]
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (n : ι) :
+  ((r * r') n : R) = r.sum (λ i ri, r'.sum (λ j rj, if i + j = n then ri * rj else 0)) :=
 begin
-  obtain rfl|hr := eq_or_ne r 0,
-  { simp only [add_submonoid_class.coe_zero, map_zero, zero_mul, direct_sum.zero_apply,
-      dite_eq_ite, if_t_t], },
-  classical,
-  erw [direct_sum.coe_mul_apply, direct_sum.support_of _ i r hr, finset.singleton_product,
-    finset.map_filter],
-  dsimp,
-  simp_rw [function.comp],
-  split_ifs with h,
-  { have : r'.support.filter (λ (x : ι), i + x = n) = r'.support.filter (λ x, x = h.some),
-    { congr, ext, split; intros H,
-      rw ←h.some_spec at H, exact add_left_cancel H,
-      subst H, exact h.some_spec, },
-    simp_rw [this, finset.filter_eq'],
-    split_ifs with h',
-    { erw [finset.map_singleton, finset.sum_singleton, direct_sum.of_eq_same],
-      refl, },
-    { rw [finset.map_empty, finset.sum_empty, not_not.mp (dfinsupp.mem_support_iff.not.mp h'),
-      add_submonoid_class.coe_zero, mul_zero], } },
-  { have : r'.support.filter (λ (x : ι), i + x = n) = r'.support.filter (λ _, false),
-    { congr, ext, split; intros H, exact h ⟨_, H⟩, exact H.elim },
-    simp_rw [this, finset.filter_false, finset.map_empty, finset.sum_empty], },
+  simp only [direct_sum.mul_eq_dfinsupp_sum, dfinsupp.sum_apply],
+  iterate 2 { rw [dfinsupp.sum, add_submonoid_class.coe_finset_sum], congr, ext },
+  dsimp only, split_ifs,
+  { subst h, rw direct_sum.of_eq_same, refl },
+  { rw direct_sum.of_eq_of_ne _ _ _ _ h, refl },
 end
 
-lemma direct_sum.coe_mul_of_apply_eq_ite [add_right_cancel_monoid ι] [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A]
-  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι) [decidable (∃ (j : ι), j + i = n)] :
-  ((r * direct_sum.of _ i r') n : R) =
-  if h : ∃ j, j + i = n then r h.some * r' else 0 :=
+lemma direct_sum.coe_of_mul_apply_eq_ite [add_left_cancel_monoid ι] [set_like.graded_monoid A]
+  {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι) [decidable (∃ j, i + j = n)] :
+  ((direct_sum.of _ i r * r') n : R) = if h : ∃ j, i + j = n then r * r' h.some else 0 :=
 begin
-  obtain rfl|hr := eq_or_ne r' 0,
-  { simp only [add_submonoid_class.coe_zero, map_zero, mul_zero, direct_sum.zero_apply,
-      dite_eq_ite, if_t_t], },
   classical,
-  erw [direct_sum.coe_mul_apply, direct_sum.support_of _ i r' hr, finset.product_singleton,
-    finset.map_filter],
-  dsimp,
-  simp_rw [function.comp],
-  split_ifs with h,
-  { have : r.support.filter (λ (x : ι), x + i = n) = r.support.filter (λ x, x = h.some),
-    { congr, ext, split; intros H,
-      rw ←h.some_spec at H, exact add_right_cancel H,
-      subst H, exact h.some_spec, },
-    simp_rw [this, finset.filter_eq'],
-    split_ifs with h',
-    { erw [finset.map_singleton, finset.sum_singleton, direct_sum.of_eq_same],
-      refl, },
-    { rw [finset.map_empty, finset.sum_empty, not_not.mp (dfinsupp.mem_support_iff.not.mp h'),
-      add_submonoid_class.coe_zero, zero_mul], } },
-  { have : r.support.filter (λ (x : ι), x + i = n) = r.support.filter (λ _, false),
-    { congr, ext, split; intros H, exact h ⟨_, H⟩, exact H.elim },
-    simp_rw [this, finset.filter_false, finset.map_empty, finset.sum_empty], },
+  rw direct_sum.coe_mul_apply_eq_dfinsupp_sum,
+  apply (dfinsupp.sum_single_index _).trans, swap,
+  { simp_rw [add_submonoid_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
+  split_ifs, swap,
+  { rw [dfinsupp.sum, finset.sum_ite_of_false], exacts [finset.sum_const_zero, λ x _ H, h ⟨x, H⟩] },
+  have : ∀ {j}, i + j = n ↔ j = h.some :=
+    λ j, ⟨λ he, add_left_cancel (he.trans h.some_spec.symm), λ he, he.symm ▸ h.some_spec⟩,
+  rw [dfinsupp.sum, finset.sum_eq_single h.some (λ j _ hj, _) (λ h', _)],
+  exacts [if_pos (this.2 rfl), if_neg (λ he, hj $ this.1 he),
+    by rw [dfinsupp.not_mem_support_iff.1 h', add_submonoid_class.coe_zero, mul_zero, if_t_t]],
 end
 
-lemma direct_sum.coe_of_mul_apply [add_left_cancel_monoid ι] [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] {i : ι}
-  (r : A i) (r' : ⨁ i, A i) (j : ι) : ((direct_sum.of _ i r * r') (i + j) : R) = r * r' j :=
+lemma direct_sum.coe_mul_of_apply_eq_ite [add_right_cancel_monoid ι] [set_like.graded_monoid A]
+  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι) [decidable (∃ j, j + i = n)] :
+  ((r * direct_sum.of _ i r') n : R) = if h : ∃ j, j + i = n then r h.some * r' else 0 :=
 begin
   classical,
-  rw [direct_sum.coe_of_mul_apply_eq_ite A r r' (i + j),
-    dif_pos (⟨j, rfl⟩ : ∃ (x : ι), i + x = i + j)],
-  generalize_proofs h1,
-  rw [show h1.some = j, from _],
-  exact add_left_cancel h1.some_spec,
+  rw [direct_sum.coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
+  apply (dfinsupp.sum_single_index _).trans, swap,
+  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
+  split_ifs, swap,
+  { rw [dfinsupp.sum, finset.sum_ite_of_false], exacts [finset.sum_const_zero, λ x _ H, h ⟨x, H⟩] },
+  have : ∀ {j}, j + i = n ↔ j = h.some :=
+    λ j, ⟨λ he, add_right_cancel (he.trans h.some_spec.symm), λ he, he.symm ▸ h.some_spec⟩,
+  rw [dfinsupp.sum, finset.sum_eq_single h.some (λ j _ hj, _) (λ h', _)],
+  exacts [if_pos (this.2 rfl), if_neg (λ he, hj $ this.1 he),
+    by rw [dfinsupp.not_mem_support_iff.1 h', add_submonoid_class.coe_zero, zero_mul, if_t_t]],
 end
 
-lemma direct_sum.coe_mul_of_apply [add_right_cancel_monoid ι] [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] (r : ⨁ i, A i)
-  {i : ι} (r' : A i) (j : ι): ((r * direct_sum.of _ i r') (j + i) : R) = r j * r' :=
+lemma direct_sum.coe_of_mul_apply [add_left_cancel_monoid ι] [set_like.graded_monoid A]
+  {i : ι} (r : A i) (r' : ⨁ i, A i) (j : ι) :
+  ((direct_sum.of _ i r * r') (i + j) : R) = r * r' j :=
 begin
   classical,
-  rw [direct_sum.coe_mul_of_apply_eq_ite A r r' (j + i),
-    dif_pos (⟨j, rfl⟩ : ∃ (x : ι), x + i = j + i)],
-  generalize_proofs h1,
-  rw [show h1.some = j, from _],
-  exact add_right_cancel h1.some_spec,
+  rw [direct_sum.coe_of_mul_apply_eq_ite A r r' (i + j), dif_pos (exists.intro j _)],
+  { generalize_proofs h1, rw add_left_cancel h1.some_spec },
+  refl,
 end
+
+lemma direct_sum.coe_mul_of_apply [add_right_cancel_monoid ι] [set_like.graded_monoid A]
+  (r : ⨁ i, A i) {i : ι} (r' : A i) (j : ι) :
+  ((r * direct_sum.of _ i r') (j + i) : R) = r j * r' :=
+begin
+  classical,
+  rw [direct_sum.coe_mul_of_apply_eq_ite A r r' (j + i), dif_pos (exists.intro j _)],
+  { generalize_proofs h1, rw add_right_cancel h1.some_spec },
+  refl,
+end
+
+end coe
 
 section nat
 
-lemma direct_sum.coe_mul_of_apply_of_le [semiring R]
-  [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+variables [semiring R] [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ)
+variables [set_like.graded_monoid A]
+
+lemma direct_sum.coe_mul_of_apply_of_le
   (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
   (h : i ≤ n) : ((r * direct_sum.of _ i r') n : R) = r (n - i) * r' :=
-by conv_lhs { rw [show n = (n - i) + i, by linarith, direct_sum.coe_mul_of_apply] }
+by conv_lhs { rw [← nat.sub_add_cancel h, direct_sum.coe_mul_of_apply] }
 
-lemma direct_sum.coe_mul_of_apply_of_not_le [semiring R]
-  [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+lemma direct_sum.coe_mul_of_apply_of_not_le
   (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
   (h : n < i) : ((r * direct_sum.of _ i r') n : R) = 0 :=
 begin
   classical,
   rw [direct_sum.coe_mul_of_apply_eq_ite A r r' n, dif_neg],
-  push_neg, intros j, contrapose! h, linarith,
+  simp_rw [eq_comm, ← le_iff_exists_add'], exact h.not_le,
 end
 
-lemma direct_sum.coe_of_mul_apply_of_le [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+lemma direct_sum.coe_of_mul_apply_of_le
   {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
   (h : i ≤ n) : ((direct_sum.of _ i r * r') n : R) = r * r' (n - i) :=
-by conv_lhs { rw [show n = i + (n - i), by linarith, direct_sum.coe_of_mul_apply] }
+by conv_lhs { rw [← nat.add_sub_of_le h, direct_sum.coe_of_mul_apply] }
 
-lemma direct_sum.coe_of_mul_apply_of_not_le [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ℕ → σ) [set_like.graded_monoid A]
+lemma direct_sum.coe_of_mul_apply_of_not_le
   {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
   (h : n < i) : ((direct_sum.of _ i r * r') n : R) = 0 :=
 begin
   classical,
   rw [direct_sum.coe_of_mul_apply_eq_ite A r r' n, dif_neg],
-  push_neg, intros j, contrapose! h, linarith,
+  simp_rw [eq_comm, ← le_iff_exists_add], exact h.not_le,
 end
 
 end nat

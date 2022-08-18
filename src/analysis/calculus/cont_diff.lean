@@ -654,10 +654,10 @@ lemma cont_diff_on.of_le (h : cont_diff_on 𝕜 n f s) (hmn : m ≤ n) :
   cont_diff_on 𝕜 m f s :=
 λ x hx, (h x hx).of_le hmn
 
-lemma cont_diff_on.of_succ (h : cont_diff_on 𝕜 (n + 1) f s) : cont_diff_on 𝕜 n f s :=
+lemma cont_diff_on.of_succ {n : ℕ} (h : cont_diff_on 𝕜 (n + 1) f s) : cont_diff_on 𝕜 n f s :=
 h.of_le $ with_top.coe_le_coe.mpr le_self_add
 
-lemma cont_diff_on.one_of_succ (h : cont_diff_on 𝕜 (n + 1) f s) : cont_diff_on 𝕜 1 f s :=
+lemma cont_diff_on.one_of_succ {n : ℕ} (h : cont_diff_on 𝕜 (n + 1) f s) : cont_diff_on 𝕜 1 f s :=
 h.of_le $ with_top.coe_le_coe.mpr le_add_self
 
 lemma cont_diff_on_iff_forall_nat_le :

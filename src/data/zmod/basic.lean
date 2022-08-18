@@ -111,7 +111,7 @@ def cast : Π {n : ℕ}, zmod n → R
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by cases n; simp
 
-lemma zmod.cast_eq_val [ne_zero n] (a : zmod n) : (a : R) = a.val :=
+lemma cast_eq_val [ne_zero n] (a : zmod n) : (a : R) = a.val :=
 begin
   casesI n,
   { cases ne_zero.ne 0 rfl },

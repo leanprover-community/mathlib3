@@ -166,6 +166,24 @@ by rw [relindex, subgroup_of_self, index_top]
 lemma card_mul_index : nat.card H * H.index = nat.card G :=
 by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
 
+@[to_additive] lemma card_dvd_of_injective' {G H : Type*} [group G] [group H] (f : G →* H)
+  (hf : function.injective f) : nat.card G ∣ nat.card H :=
+begin
+  rw nat.card_congr (monoid_hom.of_injective hf).to_equiv,
+  exact dvd.intro f.range.index f.range.card_mul_index,
+end
+
+@[to_additive] lemma card_dvd_of_surjective' {G H : Type*} [group G] [group H] (f : G →* H)
+  (hf : function.surjective f) : nat.card H ∣ nat.card G :=
+begin
+  rw ← nat.card_congr (quotient_group.quotient_ker_equiv_of_surjective f hf).to_equiv,
+  exact dvd.intro_left (nat.card f.ker) f.ker.card_mul_index,
+end
+
+@[to_additive] lemma card_dvd_of_surjective {G H : Type*} [group G] [group H] [fintype G]
+  [fintype H] (f : G →* H) (hf : function.surjective f) : fintype.card H ∣ fintype.card G :=
+by simp only [←nat.card_eq_fintype_card, card_dvd_of_surjective' f hf]
+
 @[to_additive] lemma index_map {G' : Type*} [group G'] (f : G →* G') :
   (H.map f).index = (H ⊔ f.ker).index * f.range.index :=
 by rw [←comap_map_eq, index_comap, relindex_mul_index (H.map_le_range f)]

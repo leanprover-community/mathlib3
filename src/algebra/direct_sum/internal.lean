@@ -197,12 +197,12 @@ begin
   rw [dfinsupp.not_mem_support_iff.mp h, add_submonoid_class.coe_zero, zero_mul],
 end
 
-lemma direct_sum.coe_of_mul_apply [add_left_cancel_monoid ι] [set_like.graded_monoid A]
+lemma direct_sum.coe_of_mul_apply_add [add_left_cancel_monoid ι] [set_like.graded_monoid A]
   {i : ι} (r : A i) (r' : ⨁ i, A i) (j : ι) :
   ((direct_sum.of _ i r * r') (i + j) : R) = r * r' j :=
 direct_sum.coe_of_mul_apply_aux _ _ _ (λ x, ⟨λ h, add_left_cancel h, λ h, h ▸ rfl⟩)
 
-lemma direct_sum.coe_mul_of_apply [add_right_cancel_monoid ι] [set_like.graded_monoid A]
+lemma direct_sum.coe_mul_of_apply_add [add_right_cancel_monoid ι] [set_like.graded_monoid A]
   (r : ⨁ i, A i) {i : ι} (r' : A i) (j : ι) :
   ((r * direct_sum.of _ i r') (j + i) : R) = r j * r' :=
 direct_sum.coe_mul_of_apply_aux _ _ _ (λ x, ⟨λ h, add_right_cancel h, λ h, h ▸ rfl⟩)
@@ -212,47 +212,62 @@ end coe
 section canonically_ordered_add_monoid
 
 variables [semiring R] [set_like σ R] [add_submonoid_class σ R] (A : ι → σ)
-variables [canonically_ordered_add_monoid ι] [has_sub ι] [has_ordered_sub ι] [is_left_cancel ι (+)]
+variables [canonically_ordered_add_monoid ι]
 variables [set_like.graded_monoid A]
 
-lemma direct_sum.coe_mul_of_apply_of_le
-  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)
-  (h : i ≤ n) : ((r * direct_sum.of _ i r') n : R) = r (n - i) * r' :=
-sorry
-
-lemma direct_sum.coe_mul_of_apply_of_not_le
-  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)
-  (h : n < i) : ((r * direct_sum.of _ i r') n : R) = 0 :=
-begin
-  classical,
-  rw [direct_sum.coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
-  apply (dfinsupp.sum_single_index _).trans, swap,
-  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
-  { rw [dfinsupp.sum, finset.sum_ite_of_false],
-    exact finset.sum_const_zero,
-    refine λ x _ H, _,
-    rw ← H at h,
-    exact not_le_of_lt h (self_le_add_left i x), },
-end
-
-lemma direct_sum.coe_of_mul_apply_of_le
+lemma direct_sum.coe_of_mul_apply_of_lt
   {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι)
-  (h : i ≤ n) : ((direct_sum.of _ i r * r') n : R) = r * r' (n - i) :=
-sorry
-
-lemma direct_sum.coe_of_mul_apply_of_not_le
-  {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι)
-  (h : n < i) : ((direct_sum.of _ i r * r') n : R) = 0 :=
+  (h : ¬ i ≤ n) : ((direct_sum.of _ i r * r') n : R) = 0 :=
 begin
   classical,
   rw direct_sum.coe_mul_apply_eq_dfinsupp_sum,
   apply (dfinsupp.sum_single_index _).trans, swap,
   { simp_rw [add_submonoid_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
-  { rw [dfinsupp.sum, finset.sum_ite_of_false],
-    exact finset.sum_const_zero,
-    refine λ x _ H, _,
-    rw ←H at h,
-    exact not_le_of_lt h (self_le_add_right i x), },
+  { rw [dfinsupp.sum, finset.sum_ite_of_false _ _ (λ x _ H, _), finset.sum_const_zero],
+    exact h ((self_le_add_right i x).trans_eq H) },
+end
+
+lemma direct_sum.coe_mul_of_apply_of_lt
+  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)
+  (h : ¬ i ≤ n) : ((r * direct_sum.of _ i r') n : R) = 0 :=
+begin
+  classical,
+  rw [direct_sum.coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
+  apply (dfinsupp.sum_single_index _).trans, swap,
+  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
+  { rw [dfinsupp.sum, finset.sum_ite_of_false _ _ (λ x _ H, _), finset.sum_const_zero],
+    exact h ((self_le_add_left i x).trans_eq H) },
+end
+
+variables [has_sub ι] [has_ordered_sub ι] [contravariant_class ι ι (+) (≤)]
+
+/- These two lemmas only require the same hypotheses as `eq_tsub_iff_add_eq_of_le`, but we
+  state them for `canonically_ordered_add_monoid` + the above three typeclasses for convenience. -/
+
+lemma direct_sum.coe_mul_of_apply_of_le
+  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)
+  (h : i ≤ n) : ((r * direct_sum.of _ i r') n : R) = r (n - i) * r' :=
+direct_sum.coe_mul_of_apply_aux _ _ _ (λ x, (eq_tsub_iff_add_eq_of_le h).symm)
+
+lemma direct_sum.coe_of_mul_apply_of_le
+  {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι)
+  (h : i ≤ n) : ((direct_sum.of _ i r * r') n : R) = r * r' (n - i) :=
+direct_sum.coe_of_mul_apply_aux _ _ _ (λ x, by rw [eq_tsub_iff_add_eq_of_le h, add_comm])
+
+lemma direct_sum.coe_mul_of_apply
+  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι) [decidable (i ≤ n)]:
+  ((r * direct_sum.of _ i r') n : R) = if i ≤ n then r (n - i) * r' else 0 :=
+begin
+  split_ifs,
+  exacts [direct_sum.coe_mul_of_apply_of_le _ _ _ n h, direct_sum.coe_mul_of_apply_of_lt _ _ _ n h],
+end
+
+lemma direct_sum.coe_of_mul_apply
+  {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι) [decidable (i ≤ n)]:
+  ((direct_sum.of _ i r * r') n : R) = if i ≤ n then r * r' (n - i) else 0 :=
+begin
+  split_ifs,
+  exacts [direct_sum.coe_of_mul_apply_of_le _ _ _ n h, direct_sum.coe_of_mul_apply_of_lt _ _ _ n h],
 end
 
 end canonically_ordered_add_monoid

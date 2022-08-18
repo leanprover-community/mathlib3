@@ -345,7 +345,7 @@ begin
     simp only [support_factorization, list.mem_to_finset],
     apply factors_subset_of_dvd h hb0 },
   rw [totient_eq_prod_factorization ha0, totient_eq_prod_factorization hb0],
-  refine finsupp.prod_dvd_prod_of_subset_of_dvd hab' (λ p hp, mul_dvd_mul _ dvd_rfl),
+  refine prod_dvd_prod_of_subset_of_dvd hab' (λ p hp, mul_dvd_mul _ dvd_rfl),
   exact pow_dvd_pow p (tsub_le_tsub_right ((factorization_le_iff_dvd ha0 hb0).2 h p) 1),
 end
 

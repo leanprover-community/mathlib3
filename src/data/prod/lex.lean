@@ -57,7 +57,8 @@ lemma le_iff [has_lt α] [has_le β] (a b : α × β) :
 lemma lt_iff [has_lt α] [has_lt β] (a b : α × β) :
   to_lex a < to_lex b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 < b.2 := prod.lex_def (<) (<)
 
-instance (r s) [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α × β) (prod.lex r s) :=
+instance (r s) [is_trichotomous α r] [is_trichotomous β s] :
+  is_trichotomous (α × β) (prod.lex r s) :=
 ⟨λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, begin
   rcases trichotomous_of r a₁ b₁ with (h | rfl | h),
   { exact or.inl (prod.lex.left _ _ h) },

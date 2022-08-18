@@ -38,7 +38,6 @@ open relation
 universes u v w
 
 
-
 noncomputable theory
 local attribute [instance] prop_decidable
 
@@ -111,6 +110,7 @@ begin
   apply cof',
 end
 
+
 lemma cofinite.id : cofinite (@id V) := by {intro,simp}
 lemma cofinite.of_inj {f : V → V'} (inj : function.injective f) : cofinite f := by
 { intro,dsimp [set.preimage], sorry } -- can we show it constructively?
@@ -126,6 +126,9 @@ begin
   simp,
 end
 
+lemma cofinite.image_infinite {f : V → V'} (cof : cofinite f) (S : set V) (Sinf : S.infinite) :
+  (f '' S).infinite := sorry
+
 
 def good_finset (f : V → V') (cof : cofinite f) (K : finset V') :=
   {L : finset V | cofinite.preimage cof K ⊆ L
@@ -138,7 +141,6 @@ lemma good_finset.agree (f : V → V') (cof : cofinite f) (K : finset V')
   ∀ D : inf_ro_components' G L', (HL'.2 D).some = (HL.2 (bwd_map.bwd_map_inf G Gpc LL' D)).some :=
 begin
   rintro D,
-  simp,
   sorry,
 end
 
@@ -160,6 +162,12 @@ begin
   apply subset.trans _ Csub,
   apply image_subset f _,
   apply bwd_map.bwd_map_inf.sub,
+end
+
+lemma good_finset.comono (f : V → V') (cof : cofinite f) (K : finset V') (K' : finset V') (K'K : K' ⊆ K)
+  (L ∈ good_finset G G' f cof K) : L ∈  good_finset G G' f cof K' :=
+begin
+  sorry
 end
 
 lemma good_finset.comp (f : V → V') (cof : cofinite f) (f' : V' → V'') (cof' : cofinite f')
@@ -219,6 +227,7 @@ def coarse.comp (φ : coarse G Gpc G') (φ' : coarse G' Gpc' G'' ) : (coarse G G
   in
     ⟨L',good_finset.comp G Gpc G' G'' φ.to_fun φ.cof φ'.to_fun φ'.cof K L HL L' HL'⟩}
 
+
 def coarse_to_ends [locally_finite G] [locally_finite G'] (φ : coarse G Gpc G') :
   Endsinfty G Gpc → Endsinfty G' Gpc' :=
 begin
@@ -228,15 +237,55 @@ begin
     let L := some (φ.coarse K),
     let HL := some_spec (φ.coarse K),
     exact some (HL.2 (s L)),},
-  { rintro K K' KK',
-    simp,
-    obtain ⟨L,⟨Lsub,Lgood⟩⟩ := φ.coarse K,
-    obtain ⟨L',⟨Lsub',Lgood'⟩⟩ := φ.coarse K',
-    sorry
-  }
+  { rintro K K' KK',                          -- Ugly proof, not sure how to have less haves and lets…
+    have KsubK' : K' ⊆ K, from le_of_hom KK',
+    --simp only [subtype.val_eq_coe, set.image_subset_iff],
+    let L := some (φ.coarse K),
+    let HL := some_spec (φ.coarse K),
+    let L' := some (φ.coarse K'),
+    let HL' := some_spec (φ.coarse K'),
+
+    let L'' := L ∪ L',
+    have LL : L ⊆ L'' := subset_union_left L L',
+    have LL' : L' ⊆ L'' := subset_union_right L L',
+
+    let D := s L,
+    let D' := s L',
+    let D'' := s L'',
+    have : D''.val.val ⊆ D.val.val :=
+      (bwd_map.bwd_map_inf.iff G Gpc LL D D'').mp (sec (hom_of_le LL)).symm,
+
+    have : D''.val.val ⊆ D'.val.val :=
+      (bwd_map.bwd_map_inf.iff G Gpc LL' D' D'').mp (sec (hom_of_le LL')).symm,
+
+    let C := some (HL.2 D),
+    let HC := some_spec (HL.2 D),
+    let C' := some (HL'.2 D'),
+    let HC' := some_spec (HL'.2 D'),
+
+    have DC :  φ.to_fun '' D''.val.val ⊆ C.val.val := (image_subset φ.to_fun (by assumption)).trans HC,
+    have DC' :  φ.to_fun '' D''.val.val ⊆ C'.val.val := (image_subset φ.to_fun (by assumption)).trans HC',
+
+    have : C.val.val ⊆ C'.val.val, by {
+      apply ro_component_subset_of_inter _ Gpc' K' K (KsubK') C'.val.val C'.val.prop C.val.val C.val.prop,
+      haveI : nonempty ↥(D''.val.val) := set.nonempty_coe_sort.mpr (set.infinite.nonempty D''.prop),
+      let d := some (set.nonempty_coe_sort.mp $ set.image.nonempty φ.to_fun D''.val.val),
+      let dD := some_spec (set.nonempty_coe_sort.mp $ set.image.nonempty φ.to_fun D''.val.val),
+      use d,split, exact DC' dD, exact DC dD,
+    },
+
+    exact ((bwd_map.bwd_map_inf.iff G' Gpc' KsubK' C' C).mpr this).symm,}
 end
 
+def coarse_to_ends.id [locally_finite G] : coarse_to_ends G Gpc G Gpc (coarse.id G Gpc) = id := sorry
+def coarse_to_ends.comp [locally_finite G] [locally_finite G'] [locally_finite G'']
+  (φ : coarse G Gpc G')  (φ' : coarse G' Gpc' G'') :
+  (coarse_to_ends G' Gpc' G'' Gpc'' φ') ∘ (coarse_to_ends G Gpc G' Gpc' φ) =
+  coarse_to_ends G Gpc G'' Gpc'' (coarse.comp G Gpc G' Gpc' G'' φ φ') := sorry
 
+
+
+/-
 def close (f g : coarse G G') :=
   ∀ (K : finset V') (L : good_finset G G' f.to_fun f.cof K) (M : good_finset G G' f.to_fun f.cof K),
     ∃ N : finset V, ↑L ⊆ N ∧ ↑M ⊆ N
@@ -275,3 +324,6 @@ def coarse.of_qi_embedding (f : V → V') (qie : qi_embedding f) : coarse G G' f
 def coarse.comp {f : V → V'} {f' : V' → V''} (coa : coarse G G' f) (coa' : coarse G' G'' f') : coarse G G'' (f' ∘ f) := sorry
 
 def ends_map {f : V → V'} (coa : coarse G G' f) : @ends V G → @ends V' G' := sorry
+
+
+-/

@@ -405,6 +405,16 @@ begin
   }
 end
 
+lemma ro_component_subset_of_inter (Gpc : G.preconnected) (K : finset V) (L : finset V) (K_sub_L : K ⊆ L)
+  (C : set V) (hC : C ∈ ro_components G K)
+  (D : set V) (hD : D ∈ ro_components G L) :
+  (∃ x : V, x ∈ C ∧ x ∈ D) → D ⊆ C :=
+begin
+  sorry
+  -- D is disjoint from L, thus from K, and is subconnected, hence containd in a
+  -- components C' for K. Since it intersects C, must have C = C'.
+end
+
 
 
 lemma img_ro_of_ro_of_embedding {U : Type*} (H : simple_graph U) (K : finset V)

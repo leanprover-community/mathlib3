@@ -349,14 +349,45 @@ begin
 end
 
 
+-- A function f is "coarse" if it has a good common finset with itself for each K if I'm not mistaken
+structure good_common_finset {f g : V → V'} (cof : cofinite f) (cog : cofinite g) (K : finset V') (L : finset V) :=
+(pref : cofinite.preimage cof K ⊆ L)
+(preg : cofinite.preimage cof K ⊆ L)
+(good : ∀ D : inf_ro_components' G L, {C : inf_ro_components' G' K | f '' D.val ⊆ C.val
+                                                                   ∧ g '' D.val ⊆ C.val})
 
-/-
-def close (f g : coarse G G') :=
-  ∀ (K : finset V') (L : good_finset G G' f.to_fun f.cof K) (M : good_finset G G' f.to_fun f.cof K),
-    ∃ N : finset V, ↑L ⊆ N ∧ ↑M ⊆ N
-                  ∧ ∀ D : inf_ro_components' G N,
-                    ∃! C : inf_ro_components' G' K, f.to_fun '' D.val ⊆ C.val ∧ g.to_fun '' D.val ⊆ C.val
+def coarse.close (φ ψ : coarse G Gpc G') :=
+  Π (K : finset V'), Σ (L : finset V), good_common_finset G Gpc G' φ.cof ψ.cof K L
 
+lemma coarse.close.eq_ends [locally_finite G] [locally_finite G']
+ (φ ψ : coarse G Gpc G') (cl : coarse.close G Gpc G' φ ψ) :
+  coarse_to_ends G Gpc G' Gpc' φ = coarse_to_ends G Gpc G' Gpc' ψ :=
+begin
+  dsimp only [coarse_to_ends],
+  simp,
+  apply funext,
+  rintro ⟨s,sec⟩,
+  simp,
+  apply funext,
+  rintro K,
+
+  obtain ⟨L,HL⟩ := (φ.coarse K),
+  obtain ⟨M,HM⟩ := (ψ.coarse K),
+  obtain ⟨N,HN⟩ := (cl K),
+
+  obtain ⟨C,HC⟩ := (HL.2 (s L)),
+  obtain ⟨D,HD⟩ := (HM.2 (s M)),
+  obtain ⟨E,HE⟩ := (HN.3 (s N)),
+
+  let O := s (L ∪ M ∪ N),
+
+
+  sorry, -- check that everything agrees
+end
+
+
+
+lemma coarse.close.refl (φ : coarse G Gpc G') : coarse.close G Gpc G' φ φ := sorry
 
 /-
   Any map which is cofinite and coarsely Lipschitz
@@ -382,6 +413,8 @@ def close (f g : coarse G G') :=
 
 -/
 
+
+/-
 def qi_embedding (f : V → V') : Prop := sorry -- ∃ (K : ℕ), ∀ (u v : V), dist (f u) (f v) ≤ K * (dist u v) + K ∧ dist u v ≤ K * (dist (f u) (f v)) + K
 
 def coarse.of_qi_embedding (f : V → V') (qie : qi_embedding f) : coarse G G' f := sorry

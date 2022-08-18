@@ -185,7 +185,7 @@ begin
   rw [dfinsupp.not_mem_support_iff.mp h, add_submonoid_class.coe_zero, mul_zero],
 end
 
-lemma direct_sum.coe_mul_of_apply_aux [add_right_cancel_monoid ι] [set_like.graded_monoid A]
+lemma direct_sum.coe_mul_of_apply_aux [add_monoid ι] [set_like.graded_monoid A]
   (r : ⨁ i, A i) {i : ι} (r' : A i) {j n : ι} (H : ∀ (x : ι), x + i = n ↔ x = j) :
   ((r * direct_sum.of _ i r') n : R) = r j * r' :=
 begin

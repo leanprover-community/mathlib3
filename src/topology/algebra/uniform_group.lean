@@ -422,6 +422,22 @@ end⟩
 
 variables {G}
 
+@[to_additive] lemma subgroup.is_closed_of_discrete [t2_space G]
+  {H : subgroup G} (h : discrete_topology H) : is_closed (H : set G) :=
+begin
+  obtain ⟨V, V_in, VH⟩ : ∃ (V : set G) (hV : V ∈ 𝓝 (1 : G)), V ∩ (H : set G) = {1},
+    from nhds_inter_eq_singleton_of_mem_discrete H.one_mem,
+  letI : uniform_space G := topological_group.to_uniform_space G,
+  haveI : separated_space G := separated_iff_t2.mpr ‹_›,
+  have : (λp:G×G, p.2 / p.1) ⁻¹' V ∈ 𝓤 G, from preimage_mem_comap V_in,
+  apply is_closed_of_spaced_out this,
+  intros h h_in h' h'_in,
+  contrapose!,
+  rintro (hyp : h' / h ∈ V),
+  have : h'/h ∈ ({1} :set G) := VH ▸ set.mem_inter hyp (H.div_mem h'_in h_in),
+  exact (eq_of_div_eq_one this).symm
+end
+
 @[to_additive] lemma topological_group.tendsto_uniformly_iff
   {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :
   @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p

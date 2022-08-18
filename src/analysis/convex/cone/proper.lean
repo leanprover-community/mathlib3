@@ -64,7 +64,6 @@ noncomputable instance : inhabited (proper_cone E) := ⟨0⟩
 
 lemma nonempty (K : proper_cone E) : (K : set E).nonempty := K.nonempty'
 
-
 lemma is_closed (K : proper_cone E) : is_closed (K : set E) := K.is_closed'
 
 lemma pointed (K : proper_cone E) : (K : convex_cone ℝ E).pointed :=

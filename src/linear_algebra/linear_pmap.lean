@@ -468,7 +468,6 @@ section graph
 def graph (f : E →ₗ.[R] F) : submodule R (E × F) :=
 f.to_fun.graph.map (f.domain.subtype.prod_map (linear_map.id : F →ₗ[R] F))
 
-
 lemma mem_graph_iff' (f : E →ₗ.[R] F) {x : E × F} :
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
 by simp [graph]

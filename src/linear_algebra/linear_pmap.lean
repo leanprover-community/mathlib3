@@ -465,7 +465,6 @@ rfl
 section graph
 
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
-
 def graph (f : E →ₗ.[R] F) : submodule R (E × F) :=
 f.to_fun.graph.map (f.domain.subtype.prod_map (linear_map.id : F →ₗ[R] F))
 

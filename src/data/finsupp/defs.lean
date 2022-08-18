@@ -186,8 +186,9 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
   equiv_fun_on_fintype.symm f = f :=
 by { ext, simp [equiv_fun_on_fintype], }
 
-/-- If `α` has a unique term,
-then the type of finitely supported functions `α →₀ β` is equivalent to `β`. -/
+/--
+If `α` has a unique term, the type of finitely supported functions `α →₀ β` is equivalent to `β`.
+-/
 @[simps] noncomputable
 def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
 finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique ι M)
@@ -199,8 +200,7 @@ end basic
 section single
 variables [has_zero M] {a a' : α} {b : M}
 
-/-- `single a b` is the finitely supported function which has
-  value `b` at `a` and zero otherwise. -/
+/-- `single a b` is the finitely supported function with value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : M) : α →₀ M :=
 ⟨if b = 0 then ∅ else {a}, λ a', if a = a' then b else 0, λ a', begin
   by_cases hb : b = 0; by_cases a = a';
@@ -429,8 +429,10 @@ section erase
 
 variables [has_zero M]
 
-/-- `erase a f` is the finitely supported function equal to `f` except at `a` where it is equal to
-  `0`. -/
+/--
+`erase a f` is the finitely supported function equal to `f` except at `a` where it is equal to `0`.
+If `a` is not in the support of `f` then `erase a f = f`.
+-/
 def erase (a : α) (f : α →₀ M) : α →₀ M :=
 ⟨f.support.erase a, (λa', if a' = a then 0 else f a'),
   assume a', by rw [mem_erase, mem_support_iff]; split_ifs;
@@ -479,8 +481,8 @@ section on_finset
 variables [has_zero M]
 
 /-- `on_finset s f hf` is the finsupp function representing `f` restricted to the finset `s`.
-  The function needs to be `0` outside of `s`. Use this when the set needs to be filtered anyways,
-  otherwise a better set representation is often available. -/
+The function must be `0` outside of `s`. Use this when the set needs to be filtered anyways,
+otherwise a better set representation is often available. -/
 def on_finset (s : finset α) (f : α → M) (hf : ∀a, f a ≠ 0 → a ∈ s) : α →₀ M :=
 ⟨s.filter (λa, f a ≠ 0), f, by simpa⟩
 
@@ -530,11 +532,11 @@ end of_support_finite
 section map_range
 variables [has_zero M] [has_zero N] [has_zero P]
 
-/-- The composition of `f : M → N` and `g : α →₀ M` is
-`map_range f hf g : α →₀ N`, well-defined when `f 0 = 0`.
+/-- The composition of `f : M → N` and `g : α →₀ M` is `map_range f hf g : α →₀ N`,
+which is well-defined when `f 0 = 0`.
 
 This preserves the structure on `f`, and exists in various bundled forms for when `f` is itself
-bundled:
+bundled (defined in `data/finsupp/basic`):
 
 * `finsupp.map_range.equiv`
 * `finsupp.map_range.zero_hom`
@@ -693,8 +695,9 @@ end emb_domain
 section zip_with
 variables [has_zero M] [has_zero N] [has_zero P]
 
-/-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
-  `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and it is well-defined when `f 0 0 = 0`. -/
+/-- Given finitely supported functions `g₁ : α →₀ M` and `g₂ : α →₀ N` and function `f : M → N → P`,
+`zip_with f hf g₁ g₂` is the finitely supported function `α →₀ P` satisfying
+`zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, which is well-defined when `f 0 0 = 0`. -/
 def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : α →₀ P :=
 on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $ λ a H,
 begin
@@ -752,14 +755,13 @@ fun_like.coe_injective.add_zero_class _ coe_zero coe_add
 
 /-- `finsupp.single` as an `add_monoid_hom`.
 
-See `finsupp.lsingle` for the stronger version as a linear map.
--/
+See `finsupp.lsingle` in `linear_algebra/finsupp` for the stronger version as a linear map. -/
 @[simps] def single_add_hom (a : α) : M →+ α →₀ M :=
 ⟨single a, single_zero a, single_add a⟩
 
 /-- Evaluation of a function `f : α →₀ M` at a point as an additive monoid homomorphism.
 
-See `finsupp.lapply` for the stronger version as a linear map. -/
+See `finsupp.lapply` in `linear_algebra/finsupp` for the stronger version as a linear map. -/
 @[simps apply]
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
@@ -848,8 +850,8 @@ top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
   λ a b f ha hb hf, add_submonoid.add_mem _
     (add_submonoid.subset_closure $ ⟨a, b, rfl⟩) hf
 
-/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
-they are equal. -/
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`,
+then they are equal. -/
 lemma add_hom_ext [add_zero_class N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x y, f (single x y) = g (single x y)) :
   f = g :=
@@ -859,8 +861,8 @@ begin
   apply H
 end
 
-/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
-they are equal.
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`,
+then they are equal.
 
 We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
 extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
@@ -978,7 +980,5 @@ end
 lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) :
   f.update a b = f - single a (f a) + single a b :=
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
-
-
 
 end finsupp

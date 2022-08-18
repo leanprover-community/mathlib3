@@ -719,7 +719,7 @@ eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_
 /-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
 is the discrete topology on `X`. -/
 lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
-  {f : X → Y} (hf : function.injective f) : @discrete_topology X (induced f tY) :=
+  {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
 by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
 
 lemma inducing.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]

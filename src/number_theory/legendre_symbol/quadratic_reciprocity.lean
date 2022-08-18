@@ -163,7 +163,7 @@ theorem legendre_sym_sq_one (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p
 quadratic_char_sq_one ha
 
 /-- The Legendre symbol of `a^2` at `p` is 1 if `p ∤ a`. -/
-theorem legendre_sym_sq_one'  (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p) ≠ 0) :
+theorem legendre_sym_sq_one' (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p) ≠ 0) :
   legendre_sym p (a ^ 2) = 1 :=
 by exact_mod_cast quadratic_char_sq_one' ha
 
@@ -177,10 +177,18 @@ lemma legendre_sym_eq_one_iff {a : ℤ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
 quadratic_char_one_iff_is_square ha0
 
+lemma legendre_sym_eq_one_iff' {a : ℕ} (ha0 : (a : zmod p) ≠ 0) :
+  legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
+by {rw legendre_sym_eq_one_iff, norm_cast, exact_mod_cast ha0}
+
 /-- `legendre_sym p a = -1` iff`a` is a nonsquare mod `p`. -/
 lemma legendre_sym_eq_neg_one_iff {a : ℤ} :
   legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
 quadratic_char_neg_one_iff_not_is_square
+
+lemma legendre_sym_eq_neg_one_iff' {a : ℕ} :
+  legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
+by {rw legendre_sym_eq_neg_one_iff, norm_cast}
 
 /-- The number of square roots of `a` modulo `p` is determined by the Legendre symbol. -/
 lemma legendre_sym_card_sqrts (hp : p ≠ 2) (a : ℤ) :
@@ -203,7 +211,7 @@ theorem quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
 begin
   have hp₁ := (nat.prime.eq_two_or_odd (fact.out p.prime)).resolve_left hp,
   have hq₁ := (nat.prime.eq_two_or_odd (fact.out q.prime)).resolve_left hq,
-  have hq₂ := (ne_of_eq_of_ne (ring_char_zmod_n q) hq),
+  have hq₂ := ne_of_eq_of_ne (ring_char_zmod_n q) hq,
   have hpq₁ : (p : zmod q) ≠ 0 :=
   (mt (nat_coe_zmod_eq_zero_iff_dvd p q).mp
         $ mt (nat.prime_dvd_prime_iff_eq (fact.out q.prime) (fact.out p.prime)).mp hpq.symm),
@@ -216,6 +224,14 @@ begin
       quadratic_char_sq_one hpq₁, mul_one, pow_mul, χ₄_eq_neg_one_pow hp₁, nc', map_pow,
       quadratic_char_neg_one hq₂, card q, χ₄_eq_neg_one_pow hq₁],
 end
+
+theorem quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
+  legendre_sym q p = legendre_sym p q :=
+sorry
+
+theorem quadratic_reciprocity_three_mod_four (hp : p % 4 = 3) (hq : q % 4 = 3):
+  legendre_sym q p = -legendre_sym p q :=
+sorry
 
 lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=
 begin
@@ -238,48 +254,18 @@ end
 
 lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q ≠ 2) :
   is_square (q : zmod p) ↔ is_square (p : zmod q) :=
-if hpq : p = q then by substI hpq else
-have h1 : ((p / 2) * (q / 2)) % 2 = 0,
-  from dvd_iff_mod_eq_zero.1
-    (dvd_mul_of_dvd_left (dvd_iff_mod_eq_zero.2 $
-    by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _),
 begin
-  have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp1, norm_num at hp1, },
-  have hpq0 : ((p : ℤ) : zmod q) ≠ 0 := by exact_mod_cast prime_ne_zero q p (ne.symm hpq),
-  have hqp0 : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q hpq,
-  have := quadratic_reciprocity p q hp_odd hq1 hpq,
-  rw [neg_one_pow_eq_pow_mod_two, h1, pow_zero] at this,
-  rw [(by norm_cast : (p : zmod q) = (p : ℤ)), (by norm_cast : (q : zmod p) = (q : ℤ)),
-       ← legendre_sym_eq_one_iff _ hpq0, ← legendre_sym_eq_one_iff _ hqp0],
-  cases (legendre_sym_eq_one_or_neg_one p q hqp0) with h h,
-  { simp only [h, eq_self_iff_true, true_iff, mul_one] at this ⊢,
-    exact this, },
-  { simp only [h, mul_neg, mul_one] at this ⊢,
-    rw eq_neg_of_eq_neg this.symm, },
+  cases eq_or_ne p q with h h,
+  { unfreezingI {subst p} },
+  { rw [← legendre_sym_eq_one_iff' p (prime_ne_zero p q h),
+        ← legendre_sym_eq_one_iff' q (prime_ne_zero q p h.symm),
+        quadratic_reciprocity_one_mod_four p q hp1 hq1], }
 end
 
-lemma exists_sq_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
-  (hq3 : q % 4 = 3) (hpq : p ≠ q) : is_square (q : zmod p) ↔ ¬ is_square (p : zmod q) :=
-have h1 : ((p / 2) * (q / 2)) % 2 = 1,
-  from nat.odd_mul_odd
-    (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)
-    (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hq3]; refl),
-begin
-  have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp3, norm_num at hp3, },
-  have hq_odd : q ≠ 2 := by { by_contra, simp [h] at hq3, norm_num at hq3, },
-  have hpq0 : ((p : ℤ) : zmod q) ≠ 0 := by exact_mod_cast prime_ne_zero q p (ne.symm hpq),
-  have hqp0 : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q hpq,
-  have := quadratic_reciprocity p q hp_odd hq_odd hpq,
-  rw [neg_one_pow_eq_pow_mod_two, h1, pow_one] at this,
-  rw [(by norm_cast : (p : zmod q) = (p : ℤ)), (by norm_cast : (q : zmod p) = (q : ℤ)),
-       ← legendre_sym_eq_one_iff _ hpq0, ← legendre_sym_eq_one_iff _ hqp0],
-  cases (legendre_sym_eq_one_or_neg_one q p hpq0) with h h,
-  { simp only [h, eq_self_iff_true, not_true, iff_false, one_mul] at this ⊢,
-    simp only [this],
-    norm_num, },
-  { simp only [h, neg_mul, one_mul, neg_inj] at this ⊢,
-    simp only [this, eq_self_iff_true, true_iff],
-    norm_num, },
-end
+lemma exists_sq_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3) (hq3 : q % 4 = 3)
+  (hpq : p ≠ q) :
+  is_square (q : zmod p) ↔ ¬ is_square (p : zmod q) :=
+by rw [← legendre_sym_eq_one_iff' p (prime_ne_zero p q hpq), ← legendre_sym_eq_neg_one_iff' q,
+       quadratic_reciprocity_three_mod_four p q hp3 hq3, neg_inj]
 
 end zmod

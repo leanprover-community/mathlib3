@@ -77,7 +77,7 @@ lemma strong_topology.topological_add_group [topological_space F] [topological_a
   @topological_add_group (E →SL[σ] F) (strong_topology σ E F 𝔖) _ :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
-  haveI : uniform_add_group F := topological_add_group_is_uniform,
+  haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
   letI : uniform_space (E →SL[σ] F) := strong_uniformity σ E F 𝔖,
   haveI : uniform_add_group (E →SL[σ] F) := strong_uniformity.uniform_add_group σ E F 𝔖,
   apply_instance
@@ -89,7 +89,7 @@ lemma strong_topology.has_continuous_smul [ring_hom_surjective σ] [ring_hom_iso
   @has_continuous_smul 𝕜₂ (E →SL[σ] F) _ _ (strong_topology σ E F 𝔖) :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
-  haveI : uniform_add_group F := topological_add_group_is_uniform,
+  haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
   letI : topological_space (E → F) := uniform_convergence_on.topological_space E F 𝔖,
   letI : topological_space (E →SL[σ] F) := strong_topology σ E F 𝔖,
   let φ : (E →SL[σ] F) →ₗ[𝕜₂] E → F := ⟨(coe_fn : (E →SL[σ] F) → E → F), λ _ _, rfl, λ _ _, rfl⟩,
@@ -105,7 +105,7 @@ lemma strong_topology.has_basis_nhds_zero_of_basis [topological_space F] [topolo
     (λ Si, {f : E →SL[σ] F | ∀ x ∈ Si.1, f x ∈ b Si.2}) :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
-  haveI : uniform_add_group F := topological_add_group_is_uniform,
+  haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
   rw nhds_induced,
   exact (uniform_convergence_on.has_basis_nhds_zero_of_basis 𝔖 h𝔖₁ h𝔖₂ h).comap coe_fn
 end

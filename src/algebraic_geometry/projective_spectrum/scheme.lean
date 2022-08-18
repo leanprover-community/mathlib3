@@ -480,7 +480,7 @@ begin
     proj_apply, decompose_of_mem_same 𝒜 one_mem, one_pow, pow_zero, ← mk_self 1],
 end
 
-lemma carrier.as_ideal.homogeneous  (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
+lemma carrier.as_ideal.homogeneous (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
   (carrier.as_ideal hm q).is_homogeneous 𝒜 :=
 λ i a ha j, (em (i = j)).elim
   (λ h, h ▸ by simpa only [proj_apply, decompose_coe, of_eq_same] using ha _)

@@ -211,7 +211,7 @@ end has_neg
 
 section special_cases
 
-lemma SL2_inv_det_expl (A : SL(2,R)) : det ![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]] = 1 :=
+lemma SL2_inv_expl_det (A : SL(2,R)) : det ![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]] = 1 :=
 begin
   rw [matrix.det_fin_two, mul_comm],
   simp only [subtype.val_eq_coe, cons_val_zero, cons_val_one, head_cons, mul_neg, neg_mul, neg_neg],
@@ -221,7 +221,7 @@ begin
 end
 
 lemma SL2_inv_expl (A : SL(2, R)) : A⁻¹ = ⟨![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]],
-    SL2_inv_det_expl A⟩ :=
+    SL2_inv_expl_det A⟩ :=
 begin
   ext,
   have := matrix.adjugate_fin_two A.1,

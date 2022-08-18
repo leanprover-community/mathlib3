@@ -66,6 +66,8 @@ instance : set_like young_diagram (ℕ × ℕ) :=
 @[simp] lemma mem_cells {μ : young_diagram} (c : ℕ × ℕ) :
   c ∈ μ.cells ↔ c ∈ μ := iff.rfl
 
+instance decidable_mem (μ : young_diagram) : decidable_pred (∈ μ) := λ _, μ.cells.decidable_mem _
+
 /-- In "English notation", a Young diagram is drawn so that (i1, j1) ≤ (i2, j2)
     means (i1, j1) is weakly up-and-left of (i2, j2). -/
 lemma up_left_mem (μ : young_diagram) {i1 i2 j1 j2 : ℕ}
@@ -176,7 +178,7 @@ def row (μ : young_diagram) (i : ℕ) : finset (ℕ × ℕ) := μ.cells.filter 
 lemma mem_row_iff {μ : young_diagram} {i : ℕ} {c : ℕ × ℕ} : c ∈ μ.row i ↔ c ∈ μ ∧ c.fst = i :=
 by simp [row]
 
-protected lemma exists_not_mem_row (μ : young_diagram) (i : ℕ) : ∃ j, (i, j) ∉ μ.cells :=
+protected lemma exists_not_mem_row (μ : young_diagram) (i : ℕ) : ∃ j, (i, j) ∉ μ :=
 begin
   obtain ⟨j, hj⟩ := infinite.exists_not_mem_finset
     ((μ.cells).preimage (prod.mk i) (λ _ _ _ _ h, by {cases h, refl})),

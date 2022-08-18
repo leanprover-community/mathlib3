@@ -79,7 +79,7 @@ card_congr equiv.plift
 
 open_locale big_operators
 
-@[simp] lemma nat.card_pi {α : Type*} {β : α → Type*} [fintype α] :
+lemma nat.card_pi {α : Type*} {β : α → Type*} [fintype α] :
   nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
 begin
   classical,

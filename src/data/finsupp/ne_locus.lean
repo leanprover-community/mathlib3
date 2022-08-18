@@ -25,11 +25,7 @@ namespace finsupp
 variable [decidable_eq α]
 
 section N_has_zero
-variables [decidable_eq N]
- --[decidable_eq M] [has_zero M]
-  --[decidable_eq P] [has_zero P]
-
-variables [has_zero N] (f g : α →₀ N)
+variables [decidable_eq N] [has_zero N] (f g : α →₀ N)
 
 /--  Given two finitely supported functions `f g : α →₀ N`, `finsupp.ne_locus f g` is the `finset`
 where `f` and `g` differ. This generalizes `(f - g).support` to situations without subtraction. -/
@@ -65,7 +61,6 @@ end N_has_zero
 
 section ne_locus_and_maps
 
-section N_has_zero
 lemma subset_map_range_ne_locus [decidable_eq N] [has_zero N] [decidable_eq M] [has_zero M]
   (f g : α →₀ N) {F : N → M} (F0 : F 0 = 0) :
   (f.map_range F F0).ne_locus (g.map_range F F0) ⊆ f.ne_locus g :=
@@ -88,10 +83,9 @@ lemma map_range_ne_locus_eq [decidable_eq N] [decidable_eq M] [has_zero M] [has_
   (f.map_range F F0).ne_locus (g.map_range F F0) = f.ne_locus g :=
 by { ext, simpa only [mem_ne_locus] using hF.ne_iff }
 
-end N_has_zero
-
 end ne_locus_and_maps
 
+section cancel_and_group
 variables [decidable_eq N]
 
 @[simp] lemma add_ne_locus_add_eq_left [add_left_cancel_monoid N] (f g h : α →₀ N) :
@@ -120,5 +114,6 @@ zip_with_ne_locus_eq_left _ _ _ _ (λ fn, sub_right_injective)
   (f - h).ne_locus (g - h) = f.ne_locus g  :=
 zip_with_ne_locus_eq_right _ _ _ _ (λ hn, sub_left_injective)
 
+end cancel_and_group
 
 end finsupp

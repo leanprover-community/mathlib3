@@ -562,8 +562,8 @@ begin
   obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
   by_cases hp : p ∣ n,
   { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero (multiplicity.pos_of_dvd hfin hp).ne',
-    haveI hpri : fact p.prime :=
-      @char_p.char_is_prime_of_pos R _ _ _ p ⟨nat.pos_of_dvd_of_pos hp n.pos⟩ _,
+    haveI : ne_zero p := ne_zero.of_pos (nat.pos_of_dvd_of_pos hp n.pos),
+    haveI hpri : fact p.prime := char_p.char_is_prime_of_pos R p,
     have := hζ.pow_eq_one,
     rw [hm.1, hk, pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at this,
     exfalso,
@@ -663,7 +663,6 @@ lemma zpowers_eq {k : ℕ+} {ζ : Rˣ} (h : is_primitive_root ζ k) :
   subgroup.zpowers ζ = roots_of_unity k R :=
 begin
   apply set_like.coe_injective,
-  haveI : fact (0 < (k : ℕ)) := ⟨k.pos⟩,
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_zpowers).to_equiv,
   refine @set.eq_of_subset_of_card_le Rˣ (subgroup.zpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
@@ -728,7 +727,6 @@ end
 lemma card_roots_of_unity' {n : ℕ+} (h : is_primitive_root ζ n) :
   fintype.card (roots_of_unity n R) = n :=
 begin
-  haveI : fact (0 < ↑n) := ⟨n.pos⟩,
   let e := h.zmod_equiv_zpowers,
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ e.to_equiv,
   calc fintype.card (roots_of_unity n R)

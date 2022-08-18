@@ -116,7 +116,7 @@ have hm : ∃ m < p, 0 < m ∧ ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = m * p,
     a, b, 1, 0, by simpa [sq] using hk.1⟩,
 let m := nat.find hm in
 let ⟨a, b, c, d, (habcd : a^2 + b^2 + c^2 + d^2 = m * p)⟩ := (nat.find_spec hm).snd.2 in
-by haveI hm0 : _root_.fact (0 < m) := ⟨(nat.find_spec hm).snd.1⟩; exact
+by haveI hm0 : ne_zero m := ne_zero.of_pos (nat.find_spec hm).snd.1; exact
 have hmp : m < p, from (nat.find_spec hm).fst,
 m.mod_two_eq_zero_or_one.elim
   (λ hm2 : m % 2 = 0,

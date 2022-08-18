@@ -47,7 +47,7 @@ begin
   have order_of_a : order_of a = p-1,
   { apply order_of_eq_of_pow_and_pow_div_prime _ ha hd,
     exact tsub_pos_of_lt hp1, },
-  haveI fhp0 : fact (0 < p) := ⟨h0.bot_lt⟩,
+  haveI : ne_zero p := ⟨h0⟩,
   rw nat.prime_iff_card_units,
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`
   refine le_antisymm (nat.card_units_zmod_lt_sub_one hp1) _,

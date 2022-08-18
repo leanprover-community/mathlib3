@@ -111,6 +111,13 @@ def cast : Π {n : ℕ}, zmod n → R
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by cases n; simp
 
+lemma zmod.cast_eq_val [ne_zero n] (a : zmod n) : (a : R) = a.val :=
+begin
+  casesI n,
+  { cases ne_zero.ne 0 rfl },
+  refl,
+end
+
 variables {S : Type*} [add_group_with_one S]
 
 @[simp] lemma _root_.prod.fst_zmod_cast (a : zmod n) : (a : R × S).fst = a :=
@@ -831,9 +838,6 @@ end zmod
 namespace zmod
 
 variables (p : ℕ) [fact p.prime]
-
--- will this slow down `ne_zero` searches?
-instance _root_.ne_zero.prime : ne_zero p := ⟨(fact.out (p.prime)).ne_zero⟩
 
 private lemma mul_inv_cancel_aux (a : zmod p) (h : a ≠ 0) : a * a⁻¹ = 1 :=
 begin

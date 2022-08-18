@@ -44,7 +44,7 @@ open nat local_ring padic
 
 namespace padic_int
 
-variables {p : ℕ} [hp_prime : fact (p.prime)]
+variables {p : ℕ} [hp_prime : fact p.prime]
 include hp_prime
 
 section ring_homs
@@ -496,8 +496,6 @@ begin
       int.cast_sub],
   dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
-  haveI : fact (p ^ i > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val, zmod.int_cast_cast],
 end
 
@@ -520,14 +518,16 @@ The `n`th value of the sequence is `((f n r).val : ℚ)`.
 -/
 def nth_hom_seq (r : R) : padic_seq p := ⟨λ n, nth_hom f r n, is_cau_seq_nth_hom f_compat r⟩
 
+-- this lemma ran into issues after changing to `ne_zero` and I'm not sure why.
 lemma nth_hom_seq_one : nth_hom_seq f_compat 1 ≈ 1 :=
 begin
   intros ε hε,
   change _ < _ at hε,
   use 1,
   intros j hj,
-  haveI : fact (1 < p^j) := ⟨nat.one_lt_pow _ _ (by linarith) hp_prime.1.one_lt⟩,
-  simp [nth_hom_seq, nth_hom, zmod.val_one, hε],
+  haveI : fact (1 < p ^ j) := ⟨nat.one_lt_pow _ _ (by linarith) hp_prime.1.one_lt⟩,
+  suffices : ((1 : zmod (p ^ j)) : ℚ) = 1, by simp [nth_hom_seq, nth_hom, this, hε],
+  rw [zmod.cast_eq_val, zmod.val_one, nat.cast_one]
 end
 
 lemma nth_hom_seq_add (r s : R) :
@@ -542,8 +542,6 @@ begin
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  haveI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   simp only [zmod.nat_cast_val, ring_hom.map_add, int.cast_sub, zmod.int_cast_cast, int.cast_add],
   rw [zmod.cast_add (show p^n ∣ p^j, from pow_dvd_pow _ hj), sub_self],
   { apply_instance },
@@ -561,8 +559,6 @@ begin
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  haveI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   simp only [zmod.nat_cast_val, ring_hom.map_mul, int.cast_sub, zmod.int_cast_cast, int.cast_mul],
   rw [zmod.cast_mul (show p^n ∣ p^j, from pow_dvd_pow _ hj), sub_self],
   { apply_instance },
@@ -641,7 +637,6 @@ See also `padic_int.lift_unique`.
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
-  haveI : fact (0 < p ^ n) := ⟨pow_pos hp_prime.1.pos n⟩,
   rw [ring_hom.comp_apply, ← zmod.nat_cast_zmod_val (f n r), ← map_nat_cast $ to_zmod_pow n,
       ← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, ker_to_zmod_pow],
   apply lift_sub_val_mem_span,

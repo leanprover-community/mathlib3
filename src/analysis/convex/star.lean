@@ -310,9 +310,9 @@ lemma star_convex_zero_iff :
   star_convex 𝕜 0 s ↔ ∀ ⦃x : E⦄, x ∈ s → ∀ ⦃a : 𝕜⦄, 0 ≤ a → a ≤ 1 → a • x ∈ s :=
 begin
   refine forall_congr (λ x, forall_congr $ λ hx, ⟨λ h a ha₀ ha₁, _, λ h a b ha hb hab, _⟩),
-  { simpa only [sub_add_cancel, eq_self_iff_true, forall_true_left, zero_add, smul_zero'] using
+  { simpa only [sub_add_cancel, eq_self_iff_true, forall_true_left, zero_add, smul_zero] using
       h (sub_nonneg_of_le ha₁) ha₀ },
-  { rw [smul_zero', zero_add],
+  { rw [smul_zero, zero_add],
     exact h hb (by { rw ←hab, exact le_add_of_nonneg_left ha }) }
 end
 

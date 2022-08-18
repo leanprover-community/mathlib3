@@ -228,7 +228,7 @@ end
 lemma has_compact_support.smul_left' (hf : has_compact_support f') : has_compact_support (f • f') :=
 begin
   rw [has_compact_support_iff_eventually_eq] at hf ⊢,
-  refine hf.mono (λ x hx, by simp_rw [pi.smul_apply', hx, pi.zero_apply, smul_zero'])
+  refine hf.mono (λ x hx, by simp_rw [pi.smul_apply', hx, pi.zero_apply, smul_zero])
 end
 
 end smul_with_zero

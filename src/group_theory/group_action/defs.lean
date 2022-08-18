@@ -490,20 +490,43 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_smul M N]
 
 end compatible_scalar
 
+/-- Typeclass for scalar multiplication that preserves `0` on the right. -/
+class smul_zero_class (M A : Type*) [has_zero A] extends has_smul M A :=
+(smul_zero : ∀ (a : M), a • (0 : A) = 0)
+
+@[simp] theorem smul_zero [has_zero A] [smul_zero_class M A] (a : M) : a • (0 : A) = 0 :=
+smul_zero_class.smul_zero _
+
+/-- Typeclass for scalar multiplication that preserves `0` and `+` on the right.
+
+This is exactly `distrib_mul_action` without the `mul_action` part.
+-/
+@[ext] class distrib_smul (M A : Type*) [add_zero_class A]
+  extends smul_zero_class M A :=
+(smul_add : ∀ (a : M) (x y : A), a • (x + y) = a • x + a • y)
+
+theorem smul_add [add_zero_class A] [distrib_smul M A] (a : M) (b₁ b₂ : A) :
+  a • (b₁ + b₂) = a • b₁ + a • b₂ :=
+distrib_smul.smul_add _ _ _
+
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-@[ext] class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
+@[ext] class distrib_mul_action (M A : Type*) [monoid M] [add_monoid A]
   extends mul_action M A :=
-(smul_add : ∀(r : M) (x y : A), r • (x + y) = r • x + r • y)
-(smul_zero : ∀(r : M), r • (0 : A) = 0)
+(smul_zero : ∀ (a : M), a • (0 : A) = 0)
+(smul_add : ∀ (a : M) (x y : A), a • (x + y) = a • x + a • y)
 
 section
+
 variables [monoid M] [add_monoid A] [distrib_mul_action M A]
 
-theorem smul_add (a : M) (b₁ b₂ : A) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
-distrib_mul_action.smul_add _ _ _
+instance distrib_mul_action.to_distrib_smul : distrib_smul M A :=
+{ ..‹distrib_mul_action M A› }
 
-@[simp] theorem smul_zero (a : M) : a • (0 : A) = 0 :=
-distrib_mul_action.smul_zero _
+/-! Since Lean 3 does not have definitional eta for structures, we have to make sure
+that the definition of `distrib_mul_action.to_distrib_smul` was done correctly,
+and the two paths from `distrib_mul_action` to `has_smul` are indeed definitionally equal. -/
+example : (distrib_mul_action.to_mul_action.to_has_smul : has_smul M A) =
+  distrib_mul_action.to_distrib_smul.to_has_smul := rfl
 
 /-- Pullback a distributive multiplicative action along an injective additive monoid
 homomorphism.

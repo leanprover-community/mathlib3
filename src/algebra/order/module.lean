@@ -107,7 +107,7 @@ end
 lemma smul_nonpos_of_nonpos_of_nonneg (hc : c ≤ 0) (ha : 0 ≤ a) : c • a ≤ 0 :=
 calc
   c • a ≤ c • 0 : smul_le_smul_of_nonpos ha hc
-  ... = 0 : smul_zero' M c
+  ... = 0 : smul_zero c
 
 lemma smul_nonneg_of_nonpos_of_nonpos (hc : c ≤ 0) (ha : a ≤ 0) : 0 ≤ c • a :=
 @smul_nonpos_of_nonpos_of_nonneg k Mᵒᵈ _ _ _ _ _ _ hc ha

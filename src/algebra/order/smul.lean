@@ -54,7 +54,7 @@ instance [has_smul R M] : has_smul R Mᵒᵈ := ⟨λ k x, order_dual.rec (λ x'
 
 instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] : smul_with_zero R Mᵒᵈ :=
 { zero_smul := λ m, order_dual.rec (zero_smul _) m,
-  smul_zero := λ r, order_dual.rec (smul_zero' _) r,
+  smul_zero := λ r, order_dual.rec smul_zero r,
   ..order_dual.has_smul }
 
 instance [monoid R] [mul_action R M] : mul_action R Mᵒᵈ :=
@@ -69,7 +69,7 @@ instance [monoid_with_zero R] [add_monoid M] [mul_action_with_zero R M] :
 instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R Mᵒᵈ :=
 { smul_add := λ k a, order_dual.rec (λ a' b, order_dual.rec (smul_add _ _) b) a,
-  smul_zero := λ r, order_dual.rec smul_zero r }
+  smul_zero := λ r, order_dual.rec (@smul_zero _ M _ _) r }
 
 instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   [ordered_smul R M] :
@@ -102,7 +102,7 @@ begin
 end
 
 lemma smul_nonneg (hc : 0 ≤ c) (ha : 0 ≤ a) : 0 ≤ c • a :=
-calc (0 : M) = c • (0 : M) : (smul_zero' M c).symm
+calc (0 : M) = c • (0 : M) : (smul_zero c).symm
          ... ≤ c • a : smul_le_smul_of_nonneg ha hc
 
 lemma smul_nonpos_of_nonneg_of_nonpos (hc : 0 ≤ c) (ha : a ≤ 0) : c • a ≤ 0 :=
@@ -120,7 +120,7 @@ lemma smul_lt_smul_iff_of_pos (hc : 0 < c) : c • a < c • b ↔ a < b :=
 ⟨λ h, lt_of_smul_lt_smul_of_nonneg h hc.le, λ h, smul_lt_smul_of_pos h hc⟩
 
 lemma smul_pos_iff_of_pos (hc : 0 < c) : 0 < c • a ↔ 0 < a :=
-calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero'
+calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero
            ... ↔ 0 < a         : smul_lt_smul_iff_of_pos hc
 
 alias smul_pos_iff_of_pos ↔ _ smul_pos

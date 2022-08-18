@@ -31,14 +31,14 @@ variables [mul_action_with_zero α ℝ] [ordered_smul α ℝ] {a : α}
 lemma real.Inf_smul_of_nonneg (ha : 0 ≤ a) (s : set ℝ) : Inf (a • s) = a • Inf s :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
-  { rw [smul_set_empty, real.Inf_empty, smul_zero'] },
+  { rw [smul_set_empty, real.Inf_empty, smul_zero] },
   obtain rfl | ha' := ha.eq_or_lt,
   { rw [zero_smul_set hs, zero_smul],
     exact cInf_singleton 0 },
   by_cases bdd_below s,
   { exact ((order_iso.smul_left ℝ ha').map_cInf' hs h).symm },
   { rw [real.Inf_of_not_bdd_below (mt (bdd_below_smul_iff_of_pos ha').1 h),
-      real.Inf_of_not_bdd_below h, smul_zero'] }
+      real.Inf_of_not_bdd_below h, smul_zero] }
 end
 
 lemma real.smul_infi_of_nonneg (ha : 0 ≤ a) (f : ι → ℝ) :
@@ -48,14 +48,14 @@ lemma real.smul_infi_of_nonneg (ha : 0 ≤ a) (f : ι → ℝ) :
 lemma real.Sup_smul_of_nonneg (ha : 0 ≤ a) (s : set ℝ) : Sup (a • s) = a • Sup s :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
-  { rw [smul_set_empty, real.Sup_empty, smul_zero'] },
+  { rw [smul_set_empty, real.Sup_empty, smul_zero] },
   obtain rfl | ha' := ha.eq_or_lt,
   { rw [zero_smul_set hs, zero_smul],
     exact cSup_singleton 0 },
   by_cases bdd_above s,
   { exact ((order_iso.smul_left ℝ ha').map_cSup' hs h).symm },
   { rw [real.Sup_of_not_bdd_above (mt (bdd_above_smul_iff_of_pos ha').1 h),
-      real.Sup_of_not_bdd_above h, smul_zero'] }
+      real.Sup_of_not_bdd_above h, smul_zero] }
 end
 
 lemma real.smul_supr_of_nonneg (ha : 0 ≤ a) (f : ι → ℝ) :
@@ -70,14 +70,14 @@ variables [module α ℝ] [ordered_smul α ℝ] {a : α}
 lemma real.Inf_smul_of_nonpos (ha : a ≤ 0) (s : set ℝ) : Inf (a • s) = a • Sup s :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
-  { rw [smul_set_empty, real.Inf_empty, real.Sup_empty, smul_zero'] },
+  { rw [smul_set_empty, real.Inf_empty, real.Sup_empty, smul_zero] },
   obtain rfl | ha' := ha.eq_or_lt,
   { rw [zero_smul_set hs, zero_smul],
     exact cInf_singleton 0 },
   by_cases bdd_above s,
   { exact ((order_iso.smul_left_dual ℝ ha').map_cSup' hs h).symm },
   { rw [real.Inf_of_not_bdd_below (mt (bdd_below_smul_iff_of_neg ha').1 h),
-      real.Sup_of_not_bdd_above h, smul_zero'] }
+      real.Sup_of_not_bdd_above h, smul_zero] }
 end
 
 lemma real.smul_supr_of_nonpos (ha : a ≤ 0) (f : ι → ℝ) :

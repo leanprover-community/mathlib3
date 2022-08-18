@@ -27,7 +27,8 @@ open_locale ennreal
 
 section lp_pi_Lp
 
-variables {α : Type*} {E : α → Type*} [Π i, normed_add_comm_group (E i)] (p : ℝ≥0∞)
+variables {α : Type*} {E : α → Type*} [Π i, normed_add_comm_group (E i)] {p : ℝ≥0∞}
+
 /-- When `α` is `finite`, every `f : pre_lp E p` satisfies `mem_ℓp f p`. -/
 lemma mem_ℓp.all [finite α] (f : Π i, E i) : mem_ℓp f p :=
 begin
@@ -42,11 +43,15 @@ variables [fintype α]
 /-- The canonical `equiv` between `lp E p ≃ pi_Lp p E` when `E : α → Type u` with `[fintype α]`. -/
 def equiv.lp_pi_Lp : lp E p ≃ pi_Lp p E :=
 { to_fun := λ f, f,
-  inv_fun := λ f, ⟨f, mem_ℓp.all p f⟩,
+  inv_fun := λ f, ⟨f, mem_ℓp.all f⟩,
   left_inv := λ f, lp.ext $ funext $ λ x, rfl,
   right_inv := λ f, funext $ λ x, rfl }
 
-lemma equiv_lp_pi_Lp_norm (f : lp E p) : ∥equiv.lp_pi_Lp p f∥ = ∥f∥ :=
+@[simp] lemma coe_equiv_lp_pi_Lp (f : lp E p) : equiv.lp_pi_Lp f = f := rfl
+@[simp] lemma coe_equiv_lp_pi_Lp_symm (f : pi_Lp p E) :
+  (equiv.lp_pi_Lp.symm f : Π i, E i) = f :=  rfl
+
+lemma equiv_lp_pi_Lp_norm (f : lp E p) : ∥equiv.lp_pi_Lp f∥ = ∥f∥ :=
 begin
   unfreezingI { rcases p.trichotomy with (rfl | rfl | h) },
   { rw [pi_Lp.norm_eq_card, lp.norm_eq_card_dsupport], refl },
@@ -58,17 +63,29 @@ end
 `[fintype α]` and `[fact (1 ≤ p)]`. -/
 def add_equiv.lp_pi_Lp [fact (1 ≤ p)] : lp E p ≃+ pi_Lp p E :=
 { map_add' := λ f g, rfl,
-  .. (equiv.lp_pi_Lp p) }
+  .. equiv.lp_pi_Lp }
+
+@[simp] lemma coe_add_equiv_lp_pi_Lp [fact (1 ≤ p)] (f : lp E p) :
+  add_equiv.lp_pi_Lp f = f := rfl
+@[simp] lemma coe_add_equiv_lp_pi_Lp_symm [fact (1 ≤ p)] (f : pi_Lp p E) :
+  (add_equiv.lp_pi_Lp.symm f : Π i, E i) = f :=  rfl
 
 section equivₗᵢ
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 /-- The canonical `add_equiv` between `lp E p` and `pi_Lp p E` when `E : α → Type u` with
 `[fintype α]` and `[fact (1 ≤ p)]`. -/
 noncomputable def lp_pi_Lpₗᵢ [fact (1 ≤ p)] : lp E p ≃ₗᵢ[𝕜] pi_Lp p E :=
 { map_smul' := λ k f, rfl,
-  norm_map' := equiv_lp_pi_Lp_norm p,
-  .. (add_equiv.lp_pi_Lp p) }
+  norm_map' := equiv_lp_pi_Lp_norm,
+  .. add_equiv.lp_pi_Lp }
+
+variables {𝕜}
+
+@[simp] lemma coe_lp_pi_Lpₗᵢ [fact (1 ≤ p)] (f : lp E p) :
+  lp_pi_Lpₗᵢ 𝕜 f = f := rfl
+@[simp] lemma coe_lp_pi_Lpₗᵢ_symm [fact (1 ≤ p)] (f : pi_Lp p E) :
+  ((lp_pi_Lpₗᵢ 𝕜).symm f : Π i, E i) = f :=  rfl
 
 end equivₗᵢ
 
@@ -79,10 +96,16 @@ section lp_bcf
 open_locale bounded_continuous_function
 open bounded_continuous_function
 
-variables (α E 𝕜 : Type*) [topological_space α] [discrete_topology α]
+-- note: `R` and `A` are explicit because otherwise Lean has elaboration problems
+variables {α E : Type*} (R A 𝕜 : Type*) [topological_space α] [discrete_topology α]
+variables [normed_ring A] [norm_one_class A] [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 A]
+variables [normed_add_comm_group E] [normed_space 𝕜 E] [non_unital_normed_ring R]
+
+
+section normed_add_comm_group
 
 /-- The canonical map between `lp (λ (_ : α), E) ∞` and `α →ᵇ E` as an `add_equiv`. -/
-noncomputable def add_equiv.lp_bcf [normed_add_comm_group E] :
+noncomputable def add_equiv.lp_bcf :
   lp (λ (_ : α), E) ∞ ≃+ (α →ᵇ E) :=
 { to_fun := λ f, of_normed_add_comm_group_discrete f (∥f∥) $ le_csupr (mem_ℓp_infty_iff.mp f.prop),
   inv_fun := λ f, ⟨f, f.bdd_above_range_norm_comp⟩,
@@ -90,24 +113,48 @@ noncomputable def add_equiv.lp_bcf [normed_add_comm_group E] :
   right_inv := λ f, ext $ λ x, rfl,
   map_add' := λ f g, ext $ λ x, rfl }
 
+@[simp] lemma coe_add_equiv_lp_bcf (f : lp (λ (_ : α), E) ∞) :
+  (add_equiv.lp_bcf f : α → E) = f := rfl
+@[simp] lemma coe_add_equiv_lp_bcf_symm (f : α →ᵇ E) : (add_equiv.lp_bcf.symm f : α → E) = f := rfl
+
 /-- The canonical map between `lp (λ (_ : α), E) ∞` and `α →ᵇ E` as a `linear_isometry_equiv`. -/
-noncomputable def equivₗᵢ.lp_bcf [normed_add_comm_group E] [nontrivially_normed_field 𝕜]
-  [normed_space 𝕜 E] : lp (λ (_ : α), E) ∞ ≃ₗᵢ[𝕜] (α →ᵇ E) :=
+noncomputable def lp_bcfₗᵢ : lp (λ (_ : α), E) ∞ ≃ₗᵢ[𝕜] (α →ᵇ E) :=
 { map_smul' := λ k f, rfl,
   norm_map' := λ f, by { simp only [norm_eq_supr_norm, lp.norm_eq_csupr], refl },
-  .. add_equiv.lp_bcf α E }
+  .. add_equiv.lp_bcf }
 
-/-- The canonical map between `lp (λ (_ : α), E) ∞` and `α →ᵇ E` as a `ring_equiv`. -/
-noncomputable def ring_equiv.lp_bcf [non_unital_normed_ring E] :
-  lp (λ (_ : α), E) ∞ ≃+* (α →ᵇ E) :=
-{ map_mul' := λ f g, ext $ λ x, rfl, .. add_equiv.lp_bcf α E }
+variables {𝕜}
 
--- the `norm_one_class E` shouldn't really be necessary, but currently it is for
+@[simp] lemma coe_lp_bcfₗᵢ (f : lp (λ (_ : α), E) ∞) : (lp_bcfₗᵢ 𝕜 f : α → E) = f := rfl
+@[simp] lemma coe_lp_bcfₗᵢ_symm (f : α →ᵇ E) : ((lp_bcfₗᵢ 𝕜).symm f : α → E) = f :=  rfl
+
+end normed_add_comm_group
+
+section ring_algebra
+
+/-- The canonical map between `lp (λ (_ : α), R) ∞` and `α →ᵇ R` as a `ring_equiv`. -/
+noncomputable def ring_equiv.lp_bcf : lp (λ (_ : α), R) ∞ ≃+* (α →ᵇ R) :=
+{ map_mul' := λ f g, ext $ λ x, rfl, .. @add_equiv.lp_bcf _ R _ _ _ }
+
+variables {R}
+@[simp] lemma coe_ring_equiv_lp_bcf (f : lp (λ (_ : α), R) ∞) :
+  (ring_equiv.lp_bcf R f : α → R) = f := rfl
+@[simp] lemma coe_ring_equiv_lp_bcf_symm (f : α →ᵇ R) :
+  ((ring_equiv.lp_bcf R).symm f : α → R) = f := rfl
+
+variables (α) -- even `α` needs to be explicit here for elaboration
+-- the `norm_one_class A` shouldn't really be necessary, but currently it is for
 -- `one_mem_ℓp_infty` to get the `ring` instance on `lp`.
-/-- The canonical map between `lp (λ (_ : α), E) ∞` and `α →ᵇ E` as an `alg_equiv`. -/
-noncomputable def alg_equiv.lp_bcf [normed_ring E] [norm_one_class E] [nontrivially_normed_field 𝕜]
-  [normed_algebra 𝕜 E] :
-  lp (λ (_ : α), E) ∞ ≃ₐ[𝕜] (α →ᵇ E) :=
-{ commutes' := λ k, rfl, .. ring_equiv.lp_bcf α E }
+/-- The canonical map between `lp (λ (_ : α), A) ∞` and `α →ᵇ A` as an `alg_equiv`. -/
+noncomputable def alg_equiv.lp_bcf : lp (λ (_ : α), A) ∞ ≃ₐ[𝕜] (α →ᵇ A) :=
+{ commutes' := λ k, rfl, .. ring_equiv.lp_bcf A }
+
+variables {α A 𝕜}
+@[simp] lemma coe_alg_equiv_lp_bcf (f : lp (λ (_ : α), A) ∞) :
+  (alg_equiv.lp_bcf α A 𝕜 f : α → A) = f := rfl
+@[simp] lemma coe_alg_equiv_lp_bcf_symm (f : α →ᵇ A) :
+  ((alg_equiv.lp_bcf α A 𝕜).symm f : α → A) = f := rfl
+
+end ring_algebra
 
 end lp_bcf

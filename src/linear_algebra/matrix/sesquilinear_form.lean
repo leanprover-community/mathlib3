@@ -481,7 +481,7 @@ begin
   refl,
 end
 
-@[simp] lemma is_adjoint_pair_to_bilin :
+@[simp] lemma is_adjoint_pair_to_linear_map₂ :
   is_adjoint_pair (matrix.to_linear_map₂ b₁ b₁ J) (matrix.to_linear_map₂ b₂ b₂ J')
       (matrix.to_lin b₁ b₂ A) (matrix.to_lin b₂ b₁ A') ↔
     matrix.is_adjoint_pair J J' A A' :=
@@ -608,8 +608,8 @@ by rw [←matrix.separating_left_to_linear_map₂'_iff_separating_left_to_linear
 matrix.separating_left_to_linear_map₂'_iff.symm.trans $
   (matrix.to_linear_map₂'_to_matrix' B).symm ▸ iff.rfl
 
-theorem separating_left.to_matrix₂' {B : (ι → R₁) →ₗ[R₁] (ι → R₁) →ₗ[R₁] R₁} (h : B.separating_left) :
-  B.to_matrix₂'.nondegenerate :=
+theorem separating_left.to_matrix₂' {B : (ι → R₁) →ₗ[R₁] (ι → R₁) →ₗ[R₁] R₁}
+  (h : B.separating_left) : B.to_matrix₂'.nondegenerate :=
 nondegenerate_to_matrix₂'_iff.mpr h
 
 @[simp] theorem nondegenerate_to_matrix_iff {B : M₁ →ₗ[R₁] M₁ →ₗ[R₁] R₁}

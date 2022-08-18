@@ -388,9 +388,7 @@ end galois_insertion
 
 end submonoid
 
-namespace submonoid_class
-
-section has_one
+namespace one_mem_class
 
 variables {A M₁ : Type*} [set_like A M₁] [has_one M₁] [hA : one_mem_class A M₁] (S' : A)
 include hA
@@ -408,7 +406,9 @@ variables (S')
 
 @[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem_class.one_mem S'⟩ := rfl
 
-end has_one
+end one_mem_class
+
+namespace submonoid_class
 
 variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
 

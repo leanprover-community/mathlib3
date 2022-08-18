@@ -185,6 +185,19 @@ begin
   rw [dfinsupp.not_mem_support_iff.mp h, add_submonoid_class.coe_zero, mul_zero],
 end
 
+lemma direct_sum.coe_mul_of_apply_aux [add_right_cancel_monoid ι] [set_like.graded_monoid A]
+  (r : ⨁ i, A i) {i : ι} (r' : A i) {j n : ι} (H : ∀ (x : ι), x + i = n ↔ x = j) :
+  ((r * direct_sum.of _ i r') n : R) = r j * r' :=
+begin
+  classical,
+  rw [direct_sum.coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
+  apply (dfinsupp.sum_single_index _).trans, swap,
+  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
+  simp_rw [dfinsupp.sum, H, finset.sum_ite_eq'],
+  split_ifs, refl,
+  rw [dfinsupp.not_mem_support_iff.mp h, add_submonoid_class.coe_zero, zero_mul],
+end
+
 lemma direct_sum.coe_of_mul_apply_eq_ite [add_left_cancel_monoid ι] [set_like.graded_monoid A]
   {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι) [decidable (∃ j, i + j = n)] :
   ((direct_sum.of _ i r * r') n : R) = if h : ∃ j, i + j = n then r * r' h.some else 0 :=
@@ -202,17 +215,13 @@ lemma direct_sum.coe_mul_of_apply_eq_ite [add_right_cancel_monoid ι] [set_like.
   (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι) [decidable (∃ j, j + i = n)] :
   ((r * direct_sum.of _ i r') n : R) = if h : ∃ j, j + i = n then r h.some * r' else 0 :=
 begin
-  classical,
+  classical, split_ifs,
+  { exact direct_sum.coe_mul_of_apply_aux _ _ _
+      (λ j, ⟨λ he, add_right_cancel (he.trans h.some_spec.symm), λ he, he.symm ▸ h.some_spec⟩) },
   rw [direct_sum.coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
   apply (dfinsupp.sum_single_index _).trans, swap,
   { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
-  split_ifs, swap,
   { rw [dfinsupp.sum, finset.sum_ite_of_false], exacts [finset.sum_const_zero, λ x _ H, h ⟨x, H⟩] },
-  have : ∀ {j}, j + i = n ↔ j = h.some :=
-    λ j, ⟨λ he, add_right_cancel (he.trans h.some_spec.symm), λ he, he.symm ▸ h.some_spec⟩,
-  rw [dfinsupp.sum, finset.sum_eq_single h.some (λ j _ hj, _) (λ h', _)],
-  exacts [if_pos (this.2 rfl), if_neg (λ he, hj $ this.1 he),
-    by rw [dfinsupp.not_mem_support_iff.1 h', add_submonoid_class.coe_zero, zero_mul, if_t_t]],
 end
 
 lemma direct_sum.coe_of_mul_apply [add_left_cancel_monoid ι] [set_like.graded_monoid A]

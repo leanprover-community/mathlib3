@@ -69,10 +69,13 @@ is_initial.of_unique _
 @[simp]
 lemma empty_is_initial_to : empty_is_initial.to = Scheme.empty_to := rfl
 
-instance : is_empty (Scheme.Spec.obj (op $ CommRing.of punit)).carrier :=
+instance : is_empty Scheme.empty.carrier :=
+show is_empty pempty, by apply_instance
+
+instance Spec_punit_is_empty : is_empty (Scheme.Spec.obj (op $ CommRing.of punit)).carrier :=
 ⟨prime_spectrum.punit⟩
 
-lemma is_open_immersion_of_is_empty {X Y : Scheme} (f : X ⟶ Y) [is_empty X.carrier] :
+instance is_open_immersion_of_is_empty {X Y : Scheme} (f : X ⟶ Y) [is_empty X.carrier] :
   is_open_immersion f :=
 begin
   apply_with is_open_immersion.of_stalk_iso { instances := ff },
@@ -84,39 +87,33 @@ begin
   { rintro (i : X.carrier), exact is_empty_elim i }
 end
 
-instance {X : Scheme} : is_open_immersion (empty_is_initial.to X) :=
-@@is_open_immersion_of_is_empty _ (by exact pempty.is_empty)
-
-lemma is_iso_of_is_empty {X Y : Scheme} (f : X ⟶ Y) [is_empty Y.carrier] : is_iso f :=
+instance is_iso_of_is_empty {X Y : Scheme} (f : X ⟶ Y) [is_empty Y.carrier] : is_iso f :=
 begin
   haveI : is_empty X.carrier := ⟨λ x, is_empty_elim (show Y.carrier, from f.1.base x)⟩,
-  apply_with is_open_immersion.to_iso { instances := ff },
-  { apply is_open_immersion_of_is_empty },
-  { rw Top.epi_iff_surjective, rintro (x : Y.carrier), exact is_empty_elim x }
+  haveI : epi f.1.base,
+  { rw Top.epi_iff_surjective, rintro (x : Y.carrier), exact is_empty_elim x },
+  apply is_open_immersion.to_iso
 end
 
-instance : is_iso (empty_is_initial.to (Scheme.Spec.obj (op $ CommRing.of punit))) :=
-is_iso_of_is_empty _
+/-- A scheme is initial if its underlying space is empty . -/
+noncomputable
+def is_initial_of_is_empty {X : Scheme} [is_empty X.carrier] : is_initial X :=
+empty_is_initial.of_iso (as_iso $ empty_is_initial.to _)
 
 /-- `Spec 0` is the initial object in the category of schemes. -/
 noncomputable
 def Spec_punit_is_initial : is_initial (Scheme.Spec.obj (op $ CommRing.of punit)) :=
 empty_is_initial.of_iso (as_iso $ empty_is_initial.to _)
 
-instance : is_affine Scheme.empty :=
-is_affine_of_iso (empty_is_initial.to (Scheme.Spec.obj (op $ CommRing.of punit)))
+instance is_affine_of_is_empty {X : Scheme} [is_empty X.carrier] : is_affine X :=
+is_affine_of_iso (inv (empty_is_initial.to X) ≫
+  empty_is_initial.to (Scheme.Spec.obj (op $ CommRing.of punit)))
 
 instance : has_initial Scheme :=
 has_initial_of_unique Scheme.empty
 
-instance : is_affine (⊥_ Scheme) :=
-is_affine_of_iso (is_initial.unique_up_to_iso initial_is_initial empty_is_initial).hom
-
 instance initial_is_empty : is_empty (⊥_ Scheme).carrier :=
 ⟨λ x, ((initial.to Scheme.empty : _).1.base x).elim⟩
-
-instance (X : Scheme) : is_open_immersion (initial.to X) :=
-is_open_immersion_of_is_empty _
 
 lemma bot_is_affine_open (X : Scheme) : is_affine_open (⊥ : opens X.carrier) :=
 begin
@@ -126,7 +123,7 @@ begin
 end
 
 instance : has_strict_initial_objects Scheme :=
-has_strict_initial_objects_of_initial_is_strict (λ A f, is_iso_of_is_empty f)
+has_strict_initial_objects_of_initial_is_strict (λ A f, by apply_instance)
 
 end initial
 

@@ -234,55 +234,21 @@ by rw [eisenstein_lemma q hq1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hp1) hpq0
        eisenstein_lemma p hp1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hq1) hqp0,
   ← pow_add, legendre_symbol.sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
-lemma legendre_sym_two (hp2 : p ≠ 2) : legendre_sym p 2 = (-1) ^ (p / 4 + p / 2) :=
+lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=
 begin
-  have hp1 := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp2,
-  have hp22 : p / 2 / 2 = _ := legendre_symbol.div_eq_filter_card (show 0 < 2, from dec_trivial)
-    (nat.div_le_self (p / 2) 2),
-  have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simp,
-  have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
-    from λ x hx, have h2xp : 2 * x < p,
-        from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
-          (le_of_lt_succ $ (mem_Ico.mp hx).2) dec_trivial
-        ... < _ : by conv_rhs {rw [← div_add_mod p 2, hp1]}; exact lt_succ_self _,
-      by rw [← nat.cast_two, ← nat.cast_mul, val_cast_of_lt h2xp],
-  have hdisj : disjoint
-      ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val))
-      ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)),
-    from disjoint_filter.2 (λ x hx, by { rw [nat.cast_two, hx2 x hx, mul_comm], simp }),
-  have hunion :
-      ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val)) ∪
-      ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)) =
-      Ico 1 (p / 2).succ,
-    begin
-      rw [filter_union_right],
-      conv_rhs {rw [← @filter_true _ (Ico 1 (p / 2).succ)]},
-      exact filter_congr (λ x hx,
-        by rw [nat.cast_two, hx2 x hx, mul_comm, iff_true_intro (lt_or_le _ _)])
-    end,
-  have hp2' := prime_ne_zero p 2 hp2,
-  rw (by norm_cast : ((2 : ℕ) : zmod p) = (2 : ℤ)) at *,
-  erw [gauss_lemma p hp2 hp2',
-      neg_one_pow_eq_pow_mod_two, @neg_one_pow_eq_pow_mod_two _ _ (p / 4 + p / 2)],
-  refine congr_arg2 _ rfl ((eq_iff_modeq_nat 2).1 _),
-  rw [show 4 = 2 * 2, from rfl, ← nat.div_div_eq_div_mul, hp22, nat.cast_add,
-      ← sub_eq_iff_eq_add', sub_eq_add_neg, neg_eq_self_mod_two,
-      ← nat.cast_add, ← card_disjoint_union hdisj, hunion, hcard]
+  have h := quadratic_char_two (ne_of_eq_of_ne (ring_char_zmod_n p) hp),
+  rw [card p] at h,
+  rw [legendre_sym],
+  exact_mod_cast h,
 end
 
-lemma exists_sq_eq_two_iff (hp1 : p ≠ 2) :
-  is_square (2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
+lemma exists_sq_eq_two_iff (hp : p ≠ 2) : is_square (2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 begin
-  have hp2 : ((2 : ℤ) : zmod p) ≠ 0, by exact_mod_cast prime_ne_zero p 2 hp1,
-  have hpm4 : p % 4 = p % 8 % 4, from (nat.mod_mul_left_mod p 2 4).symm,
-  have hpm2 : p % 2 = p % 8 % 2, from (nat.mod_mul_left_mod p 4 2).symm,
-  rw [show (2 : zmod p) = (2 : ℤ), by simp, ← legendre_sym_eq_one_iff p hp2],
-  erw [legendre_sym_two p hp1, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
-    even_add, even_div, even_div],
-  have := nat.mod_lt p (show 0 < 8, from dec_trivial),
-  have hp := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp1,
-  revert this hp,
-  erw [hpm4, hpm2],
+  rw [finite_field.is_square_two_iff, card p],
+  have h₁ := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp,
+  rw [← nat.mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
+  have h₂ := mod_lt p (by norm_num : 0 < 8),
+  revert h₂ h₁,
   generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
   dec_trivial!,
 end

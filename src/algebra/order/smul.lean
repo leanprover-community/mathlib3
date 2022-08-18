@@ -3,10 +3,11 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-
+import algebra.module.pi
+import algebra.module.prod
 import algebra.order.field
-import algebra.smul_with_zero
-import group_theory.group_action.group
+import algebra.order.pi
+import data.set.pointwise
 
 /-!
 # Ordered scalar product
@@ -35,6 +36,7 @@ In this file we define
 ordered module, ordered scalar, ordered smul, ordered action, ordered vector space
 -/
 
+open_locale pointwise
 
 /--
 The ordered scalar product property is when an ordered additive commutative monoid
@@ -46,9 +48,9 @@ class ordered_smul (R M : Type*)
 (smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)
 (lt_of_smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, c • a < c • b → 0 < c → a < b)
 
-namespace order_dual
+variables {ι 𝕜 R M N : Type*}
 
-variables {R M : Type*}
+namespace order_dual
 
 instance [has_smul R M] : has_smul R Mᵒᵈ := ⟨λ k x, order_dual.rec (λ x', (k • x' : M)) x⟩
 
@@ -85,10 +87,8 @@ rfl
 end order_dual
 
 section ordered_smul
-
-variables {R M : Type*}
-  [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] [ordered_smul R M]
-  {a b : M} {c : R}
+variables [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] [ordered_smul R M]
+  {s : set M} {a b : M} {c : R}
 
 lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_smul.smul_lt_smul_of_pos
 
@@ -131,46 +131,72 @@ lemma monotone_smul_left (hc : 0 ≤ c) : monotone (has_smul.smul c : M → M) :
 lemma strict_mono_smul_left (hc : 0 < c) : strict_mono (has_smul.smul c : M → M) :=
 λ a b h, smul_lt_smul_of_pos h hc
 
+lemma smul_lower_bounds_subset_lower_bounds_smul (hc : 0 ≤ c) :
+  c • lower_bounds s ⊆ lower_bounds (c • s) :=
+(monotone_smul_left hc).image_lower_bounds_subset_lower_bounds_image
+
+lemma smul_upper_bounds_subset_upper_bounds_smul (hc : 0 ≤ c) :
+  c • upper_bounds s ⊆ upper_bounds (c • s) :=
+(monotone_smul_left hc).image_upper_bounds_subset_upper_bounds_image
+
+lemma bdd_below.smul_of_nonneg (hs : bdd_below s) (hc : 0 ≤ c) : bdd_below (c • s) :=
+(monotone_smul_left hc).map_bdd_below hs
+
+lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) : bdd_above (c • s) :=
+(monotone_smul_left hc).map_bdd_above hs
+
 end ordered_smul
-
-/-- If `R` is a linear ordered semifield, then it suffices to verify only the first axiom of
-`ordered_smul`. Moreover, it suffices to verify that `a < b` and `0 < c` imply
-`c • a ≤ c • b`. We have no semifields in `mathlib`, so we use the assumption `∀ c ≠ 0, is_unit c`
-instead. -/
-lemma ordered_smul.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
-  [mul_action_with_zero R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
-  (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
-  ordered_smul R M :=
-begin
-  have hlt' : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a < c • b,
-  { refine λ a b c hab hc, (hlt hab hc).lt_of_ne _,
-    rw [ne.def, (hR hc.ne').smul_left_cancel],
-    exact hab.ne },
-  refine { smul_lt_smul_of_pos := hlt', .. },
-  intros a b c h hc,
-  rcases (hR hc.ne') with ⟨c, rfl⟩,
-  rw [← inv_smul_smul c a, ← inv_smul_smul c b],
-  refine hlt' h (pos_of_mul_pos_right _ hc.le),
-  simp only [c.mul_inv, zero_lt_one]
-end
-
-/-- If `R` is a linear ordered field, then it suffices to verify only the first axiom of
-`ordered_smul`. -/
-lemma ordered_smul.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
-  [mul_action_with_zero k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a ≤ c • b) :
-  ordered_smul k M :=
-ordered_smul.mk'' (λ c hc, is_unit.mk0 _ hc) hlt
 
 instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_semiring R] :
   ordered_smul R R :=
 { smul_lt_smul_of_pos        := ordered_semiring.mul_lt_mul_of_pos_left,
   lt_of_smul_lt_smul_of_pos  := λ _ _ _ h hc, lt_of_mul_lt_mul_left h hc.le }
 
-section field
+section linear_ordered_semifield
+variables [linear_ordered_semifield 𝕜]
 
-variables {k M : Type*} [linear_ordered_field k]
-  [ordered_add_comm_group M] [mul_action_with_zero k M] [ordered_smul k M]
-  {a b : M} {c : k}
+section ordered_add_comm_monoid
+variables [ordered_add_comm_monoid M] [ordered_add_comm_monoid N] [mul_action_with_zero 𝕜 M]
+  [mul_action_with_zero 𝕜 N]
+
+/-- To prove that a vector space over a linear ordered field is ordered, it suffices to verify only
+the first axiom of `ordered_smul`. -/
+lemma ordered_smul.mk' (h : ∀ ⦃a b : M⦄ ⦃c : 𝕜⦄, a < b → 0 < c → c • a ≤ c • b) :
+  ordered_smul 𝕜 M :=
+begin
+  have hlt' : ∀ ⦃a b : M⦄ ⦃c : 𝕜⦄, a < b → 0 < c → c • a < c • b,
+  { refine λ a b c hab hc, (h hab hc).lt_of_ne _,
+    rw [ne.def, hc.ne'.is_unit.smul_left_cancel],
+    exact hab.ne },
+  refine { smul_lt_smul_of_pos := hlt', .. },
+  intros a b c hab hc,
+  obtain ⟨c, rfl⟩ := hc.ne'.is_unit,
+  rw [← inv_smul_smul c a, ← inv_smul_smul c b],
+  refine hlt' hab (pos_of_mul_pos_right _ hc.le),
+  simp only [c.mul_inv, zero_lt_one]
+end
+
+instance [ordered_smul 𝕜 M] [ordered_smul 𝕜 N] : ordered_smul 𝕜 (M × N) :=
+ordered_smul.mk' $ λ a b c h hc,
+  ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
+
+instance pi.ordered_smul {M : ι → Type*} [Π i, ordered_add_comm_monoid (M i)]
+  [Π i, mul_action_with_zero 𝕜 (M i)] [∀ i, ordered_smul 𝕜 (M i)] :
+  ordered_smul 𝕜 (Π i, M i) :=
+ordered_smul.mk' $ λ v u c h hc i, smul_le_smul_of_nonneg (h.le i) hc.le
+
+/- Sometimes Lean fails to apply the dependent version to non-dependent functions, so we define
+another instance. -/
+instance pi.ordered_smul' [ordered_smul 𝕜 M] : ordered_smul 𝕜 (ι → M) := pi.ordered_smul
+
+/- Sometimes Lean fails to unify the module with the scalars, so we define another instance. -/
+instance pi.ordered_smul'' : ordered_smul 𝕜 (ι → 𝕜) := @pi.ordered_smul' ι 𝕜 𝕜 _ _ _ _
+
+end ordered_add_comm_monoid
+
+section ordered_add_comm_group
+variables [ordered_add_comm_group M] [mul_action_with_zero 𝕜 M] [ordered_smul 𝕜 M] {s : set M}
+  {a b : M} {c : 𝕜}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
 ⟨λ h, inv_smul_smul₀ hc.ne' a ▸ inv_smul_smul₀ hc.ne' b ▸
@@ -196,11 +222,26 @@ calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul₀ 
 variables (M)
 
 /-- Left scalar multiplication as an order isomorphism. -/
-@[simps] def order_iso.smul_left {c : k} (hc : 0 < c) : M ≃o M :=
+@[simps] def order_iso.smul_left (hc : 0 < c) : M ≃o M :=
 { to_fun := λ b, c • b,
   inv_fun := λ b, c⁻¹ • b,
   left_inv := inv_smul_smul₀ hc.ne',
   right_inv := smul_inv_smul₀ hc.ne',
   map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_pos hc }
 
-end field
+variables {M}
+
+@[simp] lemma lower_bounds_smul_of_pos (hc : 0 < c) : lower_bounds (c • s) = c • lower_bounds s :=
+(order_iso.smul_left _ hc).lower_bounds_image
+
+@[simp] lemma upper_bounds_smul_of_pos (hc : 0 < c) : upper_bounds (c • s) = c • upper_bounds s :=
+(order_iso.smul_left _ hc).upper_bounds_image
+
+@[simp] lemma bdd_below_smul_iff_of_pos (hc : 0 < c) : bdd_below (c • s) ↔ bdd_below s :=
+(order_iso.smul_left _ hc).bdd_below_image
+
+@[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) : bdd_above (c • s) ↔ bdd_above s :=
+(order_iso.smul_left _ hc).bdd_above_image
+
+end ordered_add_comm_group
+end linear_ordered_semifield

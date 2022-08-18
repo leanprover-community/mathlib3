@@ -149,7 +149,6 @@ instance : canonically_ordered_add_monoid (submodule R M) :=
 section
 variables [monoid α] [distrib_mul_action α M] [smul_comm_class α R M]
 
---set_option trace.class_instances true
 /-- The action on a submodule corresponding to applying the action to every element.
 
 This is available as an instance in the `pointwise` locale. -/

@@ -84,7 +84,8 @@ instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 @[to_additive] instance [h : has_div α] : has_div (lex α) := h
 @[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (lex α) := h
 @[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (lex α) := h
-@[to_additive lex.subtraction_monoid] instance [h : division_monoid α] : division_monoid (lex α) := h
+@[to_additive lex.subtraction_monoid]
+instance [h : division_monoid α] : division_monoid (lex α) := h
 @[to_additive lex.subtraction_comm_monoid]
 instance [h : division_comm_monoid α] : division_comm_monoid (lex α) := h
 @[to_additive] instance [h : group α] : group (lex α) := h

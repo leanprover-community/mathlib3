@@ -391,7 +391,7 @@ nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_m
 by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
 
 theorem dvd_iterate_derivative_pow (f : R[X]) (n m : ℕ) (c : R) (hm : 0 < m) :
-  (n:R) ∣ eval c (derivative^[m] (f^n)) :=
+  (n : R) ∣ eval c (derivative^[m] (f ^ n)) :=
 begin
   obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm.ne',
   rw [function.iterate_succ_apply, derivative_pow, mul_assoc, iterate_derivative_nat_cast_mul,
@@ -400,7 +400,7 @@ begin
 end
 
 lemma iterate_derivative_X_pow_eq_nat_cast_mul (n k : ℕ) :
-  (derivative^[k] (X^n : R[X])) = ↑(∏ i in finset.range k, (n - i)) * X ^ (n - k) :=
+  (derivative^[k] (X ^ n : R[X])) = ↑(∏ i in finset.range k, (n - i)) * X ^ (n - k) :=
 begin
   induction k with k ih,
   { rw [function.iterate_zero_apply, finset.range_zero, finset.prod_empty, nat.cast_one, one_mul,
@@ -427,10 +427,9 @@ begin
   induction k with k IH,
   { rw [function.iterate_zero_apply, finset.range_zero, finset.prod_empty, nat.cast_one, one_mul,
       tsub_zero] },
-  { simp only [function.iterate_succ_apply', IH, derivative_mul, zero_mul,
-      derivative_nat_cast, zero_add, finset.prod_range_succ, C_eq_nat_cast, nat.sub_sub, ←mul_assoc,
-      derivative_X_add_pow, nat.succ_eq_add_one,
-      nat.cast_mul] },
+  { simp only [function.iterate_succ_apply', IH, derivative_mul, zero_mul, derivative_nat_cast,
+      zero_add, finset.prod_range_succ, C_eq_nat_cast, nat.sub_sub, ←mul_assoc,
+      derivative_X_add_pow, nat.succ_eq_add_one, nat.cast_mul] },
 end
 
 lemma derivative_comp (p q : R[X]) :
@@ -521,7 +520,8 @@ begin
   simpa using (eval_ring_hom r).map_multiset_prod (multiset.map (λ a, X - C a) (S.erase r)),
 end
 
-lemma derivative_X_sub_pow (c:R) (m:ℕ) : ((X - C c) ^ m).derivative = m * (X - C c) ^ (m - 1) :=
+lemma derivative_X_sub_pow (c : R) (m : ℕ) :
+  ((X - C c) ^ m).derivative = m * (X - C c) ^ (m - 1) :=
 by rw [derivative_pow, derivative_sub, derivative_X, derivative_C, sub_zero, mul_one]
 
 lemma iterate_derivative_X_sub_pow (n k : ℕ) (c : R) :

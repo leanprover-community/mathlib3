@@ -143,12 +143,66 @@ begin
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
 end
 
-lemma key_lemma0 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
+open_locale big_operators
+
+lemma zmod.card {n : ℕ} : nat.card (zmod n) = n :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | h,
+  { exact nat.card_eq_zero_of_infinite },
+  { haveI := fact.mk h,
+    rw [nat.card_eq_fintype_card, zmod.card] },
+end
+
+lemma orbit_eq_self_of_mem {G : Type*} [group G] {H : subgroup G} {g : G} (h : g ∈ H) :
+  mul_action.orbit H g = H :=
+set.ext (λ x, ⟨λ ⟨y, z⟩, (congr_arg (∈ H) z).mp (H.mul_mem y.2 h),
+  λ y, ⟨⟨x, y⟩ * ⟨g, h⟩⁻¹, inv_mul_cancel_right x g⟩⟩)
+
+lemma orbit_one_eq_self {G : Type*} [group G] (H : subgroup G) : mul_action.orbit H (1 : G) = H :=
+orbit_eq_self_of_mem H.one_mem
+
+lemma order_eq_card_zpowers' {G : Type*} [group G] (g : G) : order_of g = nat.card (zpowers g) :=
+begin
+  have := nat.card_congr (mul_action.orbit_zpowers_equiv g (1 : G)),
+  rwa [zmod.card, orbit_one_eq_self, eq_comm] at this,
+end
+
+lemma key_lemma0 (G : Type*) [comm_group G] [group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
+  nat.card G ∣ monoid.exponent G ^ group.rank G :=
+begin
+  classical,
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
+  let f : (Π g : S, zpowers (g : G)) →* G :=
+  { to_fun := λ a, ∏ g : S, a g,
+    map_one' := finset.prod_const_one,
+    map_mul' := λ a b, finset.prod_mul_distrib },
+  have hf : function.surjective f,
+  { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
+    intros g₀ hg₀,
+    refine ⟨λ g, if ↑g = g₀ then ⟨g, mem_zpowers g⟩ else 1, _⟩,
+    simp only [f, monoid_hom.coe_mk],
+    refine (finset.prod_eq_single_of_mem (⟨g₀, hg₀⟩ : S) (finset.mem_univ ⟨g₀, hg₀⟩) _).trans _,
+    { intros g _ hg,
+      rw [if_neg, coe_one],
+      rwa [ne, subtype.ext_iff] at hg },
+    { rw [if_pos, subtype.coe_mk, subtype.coe_mk],
+      rw subtype.coe_mk } },
+  replace hf : nat.card G ∣ nat.card (Π g : S, zpowers (g : G)),
+  { sorry },
+  replace hf : nat.card G ∣ ∏ g : S, nat.card (zpowers (g : G)),
+  { sorry },
+  refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
+  rw ← order_eq_card_zpowers',
+  exact monoid.order_dvd_exponent (g : G),
+end
+
+lemma key_lemma17 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
   nat.card G ∣ n ^ group.rank G :=
-begin
-  sorry
-end
+(key_lemma0 G).trans
+    (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
 
 instance map_is_commutative {G G' : Type*} [group G] [group G'] (f : G →* G') {H : subgroup G}
   [hH : H.is_commutative] : (H.map f).is_commutative :=
@@ -174,10 +228,33 @@ subgroup.comap_injective_is_commutative subtype.coe_injective
 instance {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
 sorry
 
+@[to_additive] lemma subgroup.rank_le {G : Type*} [group G]
+  {H : subgroup G} [group.fg H]
+  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)]
+  {S : finset G} (hS : subgroup.closure (S : set G) = H) : group.rank H ≤ S.card :=
+begin
+  let T : finset H := S.preimage coe (subtype.coe_injective.inj_on _),
+  have key : S = T.map (function.embedding.subtype _),
+  { simp_rw [finset.ext_iff, finset.mem_map, finset.mem_preimage],
+    simp only [function.embedding.coe_subtype, exists_prop],
+    sorry },
+  rw [key, finset.card_map],
+  apply group.rank_le,
+  apply subgroup.map_injective (show function.injective H.subtype, from subtype.coe_injective),
+  rw [monoid_hom.map_closure, ←monoid_hom.range_eq_map, subtype_range],
+  rwa [key, finset.coe_map] at hS,
+end
+
 lemma rank_closure_le_card {G : Type*} [group G] (s : set G) [finite s]
   [decidable_pred (λ n, ∃ (S : finset (closure s)), S.card = n ∧ closure (S : set (closure s)) = ⊤)] :
   group.rank (closure s) ≤ nat.card s :=
 begin
+  haveI := fintype.of_finite s,
+  rw [nat.card_eq_fintype_card, ←set.to_finset_card],
+  have key := group.rank_le (closure s),
+  have key : nat.card s = s.to_finset.card,
+  { simp only [nat.card_eq_fintype_card, set.to_finset_card] },
+  have key := s.to_finset,
   sorry
 end
 
@@ -195,8 +272,7 @@ begin
 end
 
 lemma key_lemma [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
-  nat.card (commutator G) ∣ (center G).index ^
-    ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
+  nat.card (commutator G) ∣ (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
 begin
   classical,
   by_cases hG : (center G).index = 0,
@@ -207,7 +283,7 @@ begin
   have h2 := ne_zero_of_dvd_ne_zero hG h0,
   refine mul_dvd_mul (dvd_trans _ (pow_dvd_pow (center G).index ((rank_le_index_mul_rank h2).trans
     (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h0) (rank_commutator_le_card G))))) h0,
-  apply key_lemma0 (λ g, _),
+  apply key_lemma17 (λ g, _),
   have key := subtype.ext_iff.mp (abelianization.commutator_subset_ker
     (monoid_hom.transfer_center_pow' hG) g.1.2),
   exact subtype.ext (subtype.ext key),

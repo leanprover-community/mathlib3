@@ -145,6 +145,7 @@ end
 
 open_locale big_operators
 
+-- PRed
 lemma zmod.card {n : ℕ} : nat.card (zmod n) = n :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | h,
@@ -153,18 +154,73 @@ begin
     rw [nat.card_eq_fintype_card, zmod.card] },
 end
 
+-- PRed
 lemma orbit_eq_self_of_mem {G : Type*} [group G] {H : subgroup G} {g : G} (h : g ∈ H) :
   mul_action.orbit H g = H :=
 set.ext (λ x, ⟨λ ⟨y, z⟩, (congr_arg (∈ H) z).mp (H.mul_mem y.2 h),
   λ y, ⟨⟨x, y⟩ * ⟨g, h⟩⁻¹, inv_mul_cancel_right x g⟩⟩)
 
+-- PRed
 lemma orbit_one_eq_self {G : Type*} [group G] (H : subgroup G) : mul_action.orbit H (1 : G) = H :=
 orbit_eq_self_of_mem H.one_mem
 
+-- PR ready
 lemma order_eq_card_zpowers' {G : Type*} [group G] (g : G) : order_of g = nat.card (zpowers g) :=
 begin
   have := nat.card_congr (mul_action.orbit_zpowers_equiv g (1 : G)),
   rwa [zmod.card, orbit_one_eq_self, eq_comm] at this,
+end
+
+-- PRed
+lemma card_dvd_of_injective' {G H : Type*} [group G] [group H] (f : G →* H)
+  (hf : function.injective f) : nat.card G ∣ nat.card H :=
+begin
+  rw nat.card_congr (monoid_hom.of_injective hf).to_equiv,
+  exact dvd.intro f.range.index f.range.card_mul_index,
+end
+
+-- PRed
+lemma card_dvd_of_surjective' {G H : Type*} [group G] [group H] (f : G →* H)
+  (hf : function.surjective f) : nat.card H ∣ nat.card G :=
+begin
+  rw ← nat.card_congr (quotient_group.quotient_ker_equiv_of_surjective f hf).to_equiv,
+  exact dvd.intro_left (nat.card f.ker) f.ker.card_mul_index,
+end
+
+-- PRed
+lemma card_dvd_of_surjective {G H : Type*} [group G] [fintype G] [group H] [fintype H]
+  (f : G →* H) (hf : function.surjective f) : fintype.card H ∣ fintype.card G :=
+begin
+  rw [←nat.card_eq_fintype_card, ←nat.card_eq_fintype_card],
+  exact card_dvd_of_surjective' f hf,
+end
+
+universes u v
+
+@[simp] lemma nat.card_pi {α : Type u} {β : α → Type v} [fintype α] :
+  nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
+begin
+  classical,
+  by_cases h1 : ∃ a, is_empty (β a),
+  { haveI := is_empty_pi.mpr h1,
+    obtain ⟨a, h⟩ := h1,
+    rw [nat.card_of_is_empty, finset.prod_eq_zero (finset.mem_univ a)],
+    exactI nat.card_of_is_empty },
+  simp only [not_exists, not_is_empty_iff] at h1,
+  by_cases h2 : ∀ a, finite (β a),
+  { haveI := h2,
+    haveI := λ a, fintype.of_finite (β a),
+    simp only [nat.card_eq_fintype_card, fintype.card_pi] },
+  simp only [not_forall, not_finite_iff_infinite] at h2,
+  obtain ⟨a₀, h2⟩ := h2,
+  rw [finset.prod_eq_zero (finset.mem_univ a₀)],
+  { suffices : infinite (Π a, β a),
+    { exactI nat.card_eq_zero_of_infinite },
+    let f : (Π a, β a) → β a₀ := λ p, p a₀,
+    have hf : function.surjective f :=
+    λ b,  ⟨λ a, if h : a = a₀ then by rwa h else (h1 a).some, dif_pos rfl⟩,
+    exactI infinite.of_surjective f hf },
+  { exactI nat.card_eq_zero_of_infinite },
 end
 
 lemma key_lemma0 (G : Type*) [comm_group G] [group.fg G]
@@ -183,16 +239,12 @@ begin
     intros g₀ hg₀,
     refine ⟨λ g, if ↑g = g₀ then ⟨g, mem_zpowers g⟩ else 1, _⟩,
     simp only [f, monoid_hom.coe_mk],
-    refine (finset.prod_eq_single_of_mem (⟨g₀, hg₀⟩ : S) (finset.mem_univ ⟨g₀, hg₀⟩) _).trans _,
-    { intros g _ hg,
-      rw [if_neg, coe_one],
-      rwa [ne, subtype.ext_iff] at hg },
-    { rw [if_pos, subtype.coe_mk, subtype.coe_mk],
-      rw subtype.coe_mk } },
-  replace hf : nat.card G ∣ nat.card (Π g : S, zpowers (g : G)),
-  { sorry },
-  replace hf : nat.card G ∣ ∏ g : S, nat.card (zpowers (g : G)),
-  { sorry },
+    refine (finset.prod_eq_single_of_mem (⟨g₀, hg₀⟩ : S) (finset.mem_univ ⟨g₀, hg₀⟩)
+      (λ g _ hg, _)).trans (congr_arg coe (if_pos rfl)),
+    have := mt subtype.ext hg,
+    exact congr_arg coe (if_neg this) },
+  replace hf := card_dvd_of_surjective' f hf,
+  rw nat.card_pi at hf,
   refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
   rw ← order_eq_card_zpowers',
   exact monoid.order_dvd_exponent (g : G),

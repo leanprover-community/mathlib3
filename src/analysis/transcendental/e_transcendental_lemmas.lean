@@ -8,7 +8,13 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale polynomial
-open small_lemmas
+
+/--
+f_eval_on_ℝ p is to evaluate p as a real polynomial
+
+TODO: remove
+-/
+def f_eval_on_ℝ (f : polynomial ℤ) (α : ℝ) : ℝ := polynomial.aeval α f
 
 namespace e_transcendental_lemmas
 
@@ -105,12 +111,13 @@ By integration by part we have:
 \[I(f, t) = e^tf(0)-f(t)+I(f',t)\]
 -/
 lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) :
-    (II f t) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t) :=
+    (II f t) = (real.exp t) * (polynomial.aeval (0 : ℝ) f) - (polynomial.aeval t f) + (II f.derivative t) :=
 begin
-  rw [II, II],
+  simp only [II, f_eval_on_ℝ],
   have hd := real.differentiable_exp.comp (differentiable_id'.const_sub t),
   convert @interval_integral.integral_mul_deriv_eq_deriv_mul
-    0 t (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) (f_eval_on_ℝ f.derivative) (λ (x : ℝ), (t - x).exp) _ _ _ _ using 1,
+    0 t (λ x : ℝ, polynomial.aeval x f) (λ (x : ℝ), -(t - x).exp)
+    (λ x : ℝ, polynomial.aeval x f.derivative) (λ (x : ℝ), (t - x).exp) _ _ _ _ using 1,
   { apply interval_integral.integral_congr,
     intros x hx,
     dsimp only, rw mul_comm },
@@ -119,7 +126,8 @@ begin
     { rw [add_neg_self, neg_zero, add_zero, real.exp_zero], ring },
     { simp_rw [←interval_integral.integral_neg, neg_mul_eq_neg_mul, neg_neg] } },
   { intros x hx,
-    rw [←f_eval_on_ℝ_deriv, has_deriv_at_deriv_iff],
+    dsimp only,
+    rw [←polynomial.aeval_deriv, has_deriv_at_deriv_iff],
     apply differentiable_aeval },
   { intros x hx,
     rw [←deriv_exp_t_x', has_deriv_at_deriv_iff],
@@ -135,8 +143,9 @@ I(f,t)=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
 \]
 -/
 lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (m : ℕ) :
-  II f t = t.exp * (∑ i in finset.range (m+1), (f_eval_on_ℝ (polynomial.derivative^[i] f) 0)) -
-  (∑ i in finset.range (m+1), f_eval_on_ℝ (polynomial.derivative^[i] f) t) +
+  II f t =
+  t.exp * (∑ i in finset.range (m+1), (polynomial.aeval (0 : ℝ) (polynomial.derivative^[i] f))) -
+  (∑ i in finset.range (m+1), polynomial.aeval t (polynomial.derivative^[i] f)) +
   (II (polynomial.derivative^[m + 1] f) t) :=
 begin
     induction m with m ih,

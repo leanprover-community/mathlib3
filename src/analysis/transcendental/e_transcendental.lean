@@ -97,7 +97,8 @@ begin
   rw [J_eq1, J_eq2, J_eq3 _ e_root_g, zero_sub],
   simp_rw [finset.mul_sum, H],
   rw [finset.sum_comm],
-  simp_rw [int.cast_sum, int.cast_mul, f_eval_on_ℝ_nat],
+  simp_rw [int.cast_sum, int.cast_mul, f_eval_on_ℝ, polynomial.aeval_nat_cast',
+    algebra_map_int_eq, ring_hom.eq_int_cast],
 end
 
 theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
@@ -626,8 +627,7 @@ private lemma abs_J_ineq1'_coe (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
  ((∑ i in finset.range g.nat_degree.succ,
   (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@polynomial.eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ)))) :=
 begin
-  apply finset.sum_congr, refl, intros,
-  rw f_eval_on_ℝ_nat,
+  simp_rw [f_eval_on_ℝ, polynomial.aeval_nat_cast', algebra_map_int_eq, ring_hom.eq_int_cast],
 end
 
 lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :

@@ -22,14 +22,18 @@ variables {E : Type*} [inner_product_space ℝ E]
 construction is mainly used for defining maps between proper cones. -/
 def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 { carrier := closure ↑K,
-  smul_mem' := by {
+  smul_mem' :=
+  begin
     rw ← sequential_space.seq_closure_eq_closure,
-    exact λ c hc x ⟨seq, mem, tends⟩,
-      ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c⟩ ⟩ },
-  add_mem' := by {
+    rintros c hc x ⟨seq, mem, tends⟩,
+    exact ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c⟩⟩,
+  end,
+  add_mem' :=
+  begin
     rw ← sequential_space.seq_closure_eq_closure,
-    exact λ x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
-      ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends⟩ ⟩ } }
+    rintros x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
+    exact ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends⟩⟩,
+  end }
 
 @[simp] lemma coe_closure {K : convex_cone ℝ E} : (K.closure : set E) = _root_.closure ↑K := rfl
 

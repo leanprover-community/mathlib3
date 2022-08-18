@@ -241,7 +241,7 @@ end
 
 variables [has_sub ι] [has_ordered_sub ι] [contravariant_class ι ι (+) (≤)]
 
-/- These two lemmas only require the same hypotheses as `eq_tsub_iff_add_eq_of_le`, but we
+/- The following two lemmas only require the same hypotheses as `eq_tsub_iff_add_eq_of_le`, but we
   state them for `canonically_ordered_add_monoid` + the above three typeclasses for convenience. -/
 
 lemma coe_mul_of_apply_of_le (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)

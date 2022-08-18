@@ -25,23 +25,23 @@ local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
 open matrix.special_linear_group matrix
 
-/--The reduction mod `(N : ℕ)` map on `SL(2,ℤ)`. -/
-def SL_reduction_mod_hom (N : ℕ) : SL(2, ℤ) →* SL(2, (zmod N)) := map (int.cast_ring_hom (zmod N))
+variable (N : ℕ)
+
+local notation `SLMOD(`N`)`  := @matrix.special_linear_group.map (fin 2) _ _ _ _ _ _
+  (int.cast_ring_hom (zmod N))
+
 
 @[simp]
-lemma SL_reduction_mod_hom_val (N : ℕ) (γ : SL(2, ℤ)): ∀ (i j : fin 2),
-  ((SL_reduction_mod_hom N γ) : (matrix (fin 2) (fin 2) (zmod N))) i j =
-  (((↑ₘγ i j) : ℤ) : zmod N) :=
-begin
-  intros i j,
-  refl,
-end
+lemma SL_reduction_mod_hom_val (N : ℕ) (γ : SL(2, ℤ)) : ∀ (i j : fin 2),
+  ((SLMOD(N) γ) : (matrix (fin 2) (fin 2) (zmod N))) i j =
+  (((↑ₘγ i j) : ℤ) : zmod N) := λ i j, rfl
+
 
 /--The full level `N` congruence subgroup of `SL(2,ℤ)` of matrices that reduce to the identity
 modulo `N`.-/
-def Gamma (N : ℕ) : subgroup SL(2, ℤ) := (SL_reduction_mod_hom N).ker
+def Gamma (N : ℕ) : subgroup SL(2, ℤ) := (SLMOD(N)).ker
 
-lemma Gamma_mem' (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (SL_reduction_mod_hom N γ) = 1 := iff.rfl
+lemma Gamma_mem' (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (SLMOD(N) γ) = 1 := iff.rfl
 
 @[simp]
 lemma Gamma_mem (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (((↑ₘγ 0 0) : ℤ) : zmod N) = 1 ∧
@@ -59,7 +59,7 @@ begin
     all_goals {simp_rw h, refl} }
 end
 
-lemma Gamma_normal (N : ℕ) : subgroup.normal (Gamma N) := (SL_reduction_mod_hom N).normal_ker
+lemma Gamma_normal (N : ℕ) : subgroup.normal (Gamma N) := (SLMOD(N)).normal_ker
 
 lemma Gamma_one_top : (Gamma 1) = ⊤ :=
 begin
@@ -74,11 +74,11 @@ begin
     subgroup.mem_bot],
   split,
   { intro h,
-  ext,
-  fin_cases i; fin_cases j,
-  any_goals {simp [h]} },
+    ext,
+    fin_cases i; fin_cases j,
+    any_goals {simp [h]} },
   { intro h,
-   simp [h] }
+    simp [h] }
 end
 
 /--The congruence subgroup of `SL(2,ℤ)` of matrices whose lower left-hand entry reduces to zero
@@ -88,7 +88,7 @@ def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
   one_mem' := by { simp },
   mul_mem':= by {intros a b ha hb,
     simp only [ set.mem_set_of_eq],
-    have h := ((matrix.mat_two_mul_expl a.1 b.1).2.2.1),
+    have h := ((matrix.two_mul_expl a.1 b.1).2.2.1),
     simp only [coe_coe, coe_matrix_coe, coe_mul, int.coe_cast_ring_hom, map_apply,
       set.mem_set_of_eq, subtype.val_eq_coe, mul_eq_mul] at *,
     rw h,
@@ -103,7 +103,8 @@ def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
 @[simp]
 lemma Gamma0_mem (N : ℕ) (A: SL(2, ℤ)) : A ∈ (Gamma0 N) ↔ (((↑ₘA) 1 0 : ℤ) : zmod N) = 0 := iff.rfl
 
-lemma Gamma0_det (N : ℕ) (A : Gamma0 N) : (A.1.1.det : zmod N) = 1 := by {simp [A.1.property]}
+lemma Gamma0_det (N : ℕ) (A : Gamma0 N) : (A.1.1.det : zmod N) = 1 :=
+by {simp [A.1.property]}
 
 /--The group homomorphism from `Gamma0` to `zmod N` given by mapping a matrix to its lower
 right-hand entry. -/
@@ -111,7 +112,7 @@ def Gamma_0_map (N : ℕ): (Gamma0 N) →* (zmod N) :=
 { to_fun := λ g, ((↑ₘg 1 1 : ℤ) : zmod N),
   map_one' := by { simp, },
   map_mul' := by {intros A B,
-  have := (mat_two_mul_expl A.1.1 B.1.1).2.2.2,
+  have := (two_mul_expl A.1.1 B.1.1).2.2.2,
   simp only [coe_coe, subgroup.coe_mul, coe_matrix_coe, coe_mul, int.coe_cast_ring_hom, map_apply,
     subtype.val_eq_coe, mul_eq_mul] at *,
   rw this,
@@ -132,20 +133,20 @@ lemma Gamma1_to_Gamma0_mem (N : ℕ) (A : Gamma0 N) : A ∈ (Gamma1' N) ↔
   ((↑ₘA 0 0 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 1 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 0 : ℤ) : zmod N) = 0 :=
 begin
   split,
-  intro ha,
-  have hA := A.property,
-  rw Gamma0_mem at hA,
-  have adet := Gamma0_det N A,
-  rw matrix.det_fin_two at adet,
-  simp only [Gamma_0_map, coe_coe, coe_matrix_coe, int.coe_cast_ring_hom, map_apply, Gamma1_mem',
-    monoid_hom.coe_mk, subtype.val_eq_coe, int.cast_sub, int.cast_mul] at *,
-  rw [hA, ha] at adet,
-  simp only [mul_one, mul_zero, sub_zero] at adet,
-  simp only [adet, hA, ha, eq_self_iff_true, and_self],
-  intro ha,
-  simp only [Gamma1_mem', Gamma_0_map, monoid_hom.coe_mk, coe_coe, coe_matrix_coe,
-    int.coe_cast_ring_hom, map_apply],
-  exact ha.2.1,
+  { intro ha,
+    have hA := A.property,
+    rw Gamma0_mem at hA,
+    have adet := Gamma0_det N A,
+    rw matrix.det_fin_two at adet,
+    simp only [Gamma_0_map, coe_coe, coe_matrix_coe, int.coe_cast_ring_hom, map_apply, Gamma1_mem',
+      monoid_hom.coe_mk, subtype.val_eq_coe, int.cast_sub, int.cast_mul] at *,
+    rw [hA, ha] at adet,
+    simp only [mul_one, mul_zero, sub_zero] at adet,
+    simp only [adet, hA, ha, eq_self_iff_true, and_self]},
+  { intro ha,
+    simp only [Gamma1_mem', Gamma_0_map, monoid_hom.coe_mk, coe_coe, coe_matrix_coe,
+      int.coe_cast_ring_hom, map_apply],
+    exact ha.2.1,}
 end
 
 /--The congruence subgroup `Gamma1` of `SL(2,ℤ)` consisting of matrices whose bottom
@@ -219,7 +220,7 @@ open_locale pointwise
 
 lemma Gamma_cong_eq_self (N : ℕ) (g : conj_act SL(2, ℤ)) : g • (Gamma N) = (Gamma N) :=
 begin
-  apply subgroup.conj_act_normal (Gamma_normal N),
+  apply subgroup.normal.conj_act (Gamma_normal N),
 end
 
 lemma conj_cong_is_cong (g : conj_act SL(2, ℤ)) (Γ : subgroup SL(2, ℤ))

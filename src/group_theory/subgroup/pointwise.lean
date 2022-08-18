@@ -131,7 +131,7 @@ begin
   exact H.mul_mem hh hh',
 end
 
-lemma conj_act_normal {G : Type*} [group G] {H : subgroup G} (hH : H.normal ) (g : conj_act G) :
+lemma normal.conj_act {G : Type*} [group G] {H : subgroup G} (hH : H.normal ) (g : conj_act G) :
   g • H = H :=
 begin
   ext,

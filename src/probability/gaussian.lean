@@ -1520,6 +1520,25 @@ begin
   rw hf,
   ext1 S hS,
   have h_preim_of_S_eq_Sminusm : (h ⁻¹' S) = {x : ℝ | x + m ∈ S},
+    {
+      ext x,
+      simp,
+    },
+  simp_rw[h],
+  rw measure_theory.measure.map_apply_of_ae_measurable ae_measurable hS,
+  simp,
+  rw h_preim_of_S_eq_Sminusm,
+  rw measure_theory.with_density_apply,
+  rw measure_theory.with_density_apply,
+  {
+
+    sorry
+  },
+  {exact hS},
+  {
+    measurability,
+  },
+
 /-
   have h_ae_m_one : ae_measurable (λ (a : α), 1) ℙ,
     simp,

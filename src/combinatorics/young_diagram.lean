@@ -153,6 +153,7 @@ protected lemma le_of_transpose_le {μ ν : young_diagram} (h_le : μ.transpose 
 ⟨ young_diagram.le_of_transpose_le,
   by { convert @young_diagram.le_of_transpose_le μ.transpose ν.transpose, simp } ⟩
 
+/-- Transposing Young diagrams is an `order_iso`. -/
 def transpose_order_iso : young_diagram ≃o young_diagram :=
 ⟨⟨transpose, transpose, λ _, by simp, λ _, by simp⟩, by simp⟩
 
@@ -182,6 +183,7 @@ begin
   rw finset.mem_preimage at hj, exact ⟨j, hj⟩,
 end
 
+/-- Length of a row of a Young diagram --/
 def row_len (μ : young_diagram) (i : ℕ) : ℕ := nat.find $ μ.exists_not_mem_row i
 
 lemma mem_iff_lt_row_len {μ : young_diagram} {i j : ℕ} : (i, j) ∈ μ ↔ j < μ.row_len i :=
@@ -205,7 +207,9 @@ by { by_contra' h_lt, rw ← lt_self_iff_false (μ.row_len i1),
 end rows
 
 section columns
-/-- This section has an identical API to the rows section. --/
+/-- Columns and column lengths of Young diagrams.
+
+This section has an identical API to the rows section. --/
 
 def col (μ : young_diagram) (j : ℕ) := μ.cells.filter (λ c, c.snd = j)
 
@@ -217,6 +221,7 @@ by { obtain ⟨i, hi⟩ := infinite.exists_not_mem_finset
        ((μ.cells).preimage (λ i, prod.mk i j) (λ _ _ _ _ h, by {cases h, refl})),
      rw finset.mem_preimage at hi, exact ⟨i, hi⟩ }
 
+/-- Length of a column of a Young diagram --/
 def col_len (μ : young_diagram) (j : ℕ) : ℕ := nat.find $ μ.exists_not_mem_col j
 
 lemma mem_iff_lt_col_len {μ : young_diagram} {i j : ℕ} : (i, j) ∈ μ ↔ i < μ.col_len j :=

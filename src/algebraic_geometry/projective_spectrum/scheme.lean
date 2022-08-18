@@ -404,16 +404,16 @@ The set `{a | aᵢᵐ/fⁱ ∈ q}`
 * is relevant, as proved in `carrier.relevant`.
 -/
 def carrier (q : Spec.T (A⁰_ f_deg)) : set A :=
-{a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
+{a | ∀ i, (⟨mk (proj 𝒜 i a ^ m) ⟨_, _, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩ : A⁰_ f_deg) ∈ q.1}
 
 lemma mem_carrier_iff (q : Spec.T (A⁰_ f_deg)) (a : A) :
   a ∈ carrier q ↔
-  ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 :=
+  ∀ i, (⟨mk (proj 𝒜 i a ^ m) ⟨_, _, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩ : A⁰_ f_deg) ∈ q.1 :=
 iff.rfl
 
 lemma carrier.zero_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
-  (0 : A) ∈ carrier q := λ i,
-by simpa only [linear_map.map_zero, zero_pow hm, mk_zero] using submodule.zero_mem _
+  (0 : A) ∈ carrier q :=
+λ i, by simpa only [linear_map.map_zero, zero_pow hm, mk_zero] using submodule.zero_mem _
 
 lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A} (ha : a ∈ carrier q) (hb : b ∈ carrier q) :
   a + b ∈ carrier q :=
@@ -446,24 +446,19 @@ end
 lemma carrier.smul_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) (c x : A) (hx : x ∈ carrier q) :
   c • x ∈ carrier q :=
 begin
-  classical,
   revert c,
   refine direct_sum.decomposition.induction_on 𝒜 _ _ _,
-  { rw zero_smul, exact carrier.zero_mem hm _, },
+  { rw zero_smul, exact carrier.zero_mem hm _ },
   { rintros n ⟨a, ha⟩ i,
-    by_cases ineq1 : n ≤ i,
-    { rw show i = n + (i - n), by linarith,
-      simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_add_of_left_mem _ ha,
-        mul_pow, pow_add],
-      convert_to (⟨mk (a^m) ⟨f^n, ⟨_, rfl⟩⟩, ⟨n, ⟨a^m, pow_mem_graded m ha⟩, rfl⟩⟩ : A⁰_ f_deg) *
-        ⟨mk ((proj 𝒜 (i-n) x)^m) ⟨f^(i-n), ⟨_, rfl⟩⟩,
-          ⟨_, ⟨(proj 𝒜 (i-n) x)^m, by mem_tac⟩, rfl⟩⟩  ∈ q.1,
-      { simpa only [subtype.ext_iff, degree_zero_part.coe_mul, subtype.coe_mk, mk_mul], },
-      { exact ideal.mul_mem_left _ _ (hx _), }, },
-    { convert submodule.zero_mem _,
-      rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem_of_not_le _ ha,
-        zero_pow hm, mk_zero],
-      linarith, } }
+    simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem _ ha],
+    split_ifs,
+    { convert_to (⟨mk _ ⟨_, n, rfl⟩, n, ⟨_, pow_mem_graded m ha⟩, rfl⟩ : A⁰_ f_deg) *
+        ⟨mk _ ⟨_, i - n, rfl⟩, _, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, rfl⟩ ∈ q.1,
+      { erw [subtype.ext_iff, subring.coe_mul, mk_mul, subtype.coe_mk, mul_pow],
+        congr, erw [← pow_add, nat.add_sub_of_le h] },
+      { exact ideal.mul_mem_left _ _ (hx _) } },
+    { simp_rw [zero_pow hm, mk_zero], exact q.1.zero_mem } },
+  { intros _ _ h₁ h₂, rw add_smul, exact carrier.add_mem q h₁ h₂ },
 end
 
 /--
@@ -505,33 +500,28 @@ lemma carrier.denom_not_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) : f ∉ carr
 begin
   convert rid m,
   simpa only [subtype.ext_iff, degree_zero_part.coe_one, subtype.coe_mk, proj_apply,
-    decompose_of_mem_same _ f_deg] using (mk_self (⟨_, ⟨m, rfl⟩⟩ : submonoid.powers f)).symm,
+    decompose_of_mem_same _ f_deg] using (mk_self (⟨_, m, rfl⟩ : submonoid.powers f)).symm,
 end
 
 lemma carrier.relevant (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
   ¬ homogeneous_ideal.irrelevant 𝒜 ≤ carrier.as_homogeneous_ideal hm q :=
-λ rid, carrier.denom_not_mem hm q $ rid $ direct_sum.decompose_of_mem_ne 𝒜 f_deg $ by linarith
+λ rid, carrier.denom_not_mem hm q $ rid $ direct_sum.decompose_of_mem_ne 𝒜 f_deg hm.ne'
 
 lemma carrier.as_ideal.prime (hm : 0 < m)
   (q : Spec.T (A⁰_ f_deg)) : (carrier.as_ideal hm q).is_prime :=
 (carrier.as_ideal.homogeneous hm q).is_prime_of_homogeneous_mem_or_mem
-  (carrier.as_ideal.ne_top hm q)$ λ x y ⟨nx, hnx⟩ ⟨ny, hny⟩ hxy, show (∀ i, _ ∈ q.1) ∨ ∀ _, _ ∈ q.1,
+  (carrier.as_ideal.ne_top hm q) $ λ x y ⟨nx, hnx⟩ ⟨ny, hny⟩ hxy, show (∀ i, _ ∈ _) ∨ ∀ i, _ ∈ _,
 begin
-  contrapose! hxy,
-  obtain ⟨⟨ix, hix⟩, ⟨iy, hiy⟩⟩ := hxy,
-  refine λ rid, q.2.mul_mem_iff_mem_or_mem.not.mpr (not_or_distrib.mpr ⟨hix, hiy⟩) _,
-  change (⟨mk _ _ * mk _ _, _⟩ : A⁰_ f_deg) ∈ q.1,
-  have eqx : nx = ix,
-  { contrapose! hix,
-    convert submodule.zero_mem _,
-    rw [proj_apply, decompose_of_mem_ne 𝒜 hnx hix, zero_pow hm, mk_zero], },
-  have eqy : ny = iy,
-  { contrapose! hiy,
-    convert submodule.zero_mem _,
-    rw [proj_apply, decompose_of_mem_ne 𝒜 hny hiy, zero_pow hm, mk_zero], },
-  induction eqx, induction eqy,
-  simpa only [decompose_of_mem_same 𝒜 hnx, decompose_of_mem_same 𝒜 hny, mk_mul, ←mul_pow,
-    proj_apply, decompose_of_mem_same 𝒜 (mul_mem hnx hny), pow_add] using rid (nx + ny),
+  rw [← and_forall_ne nx, and_iff_left, ← and_forall_ne ny, and_iff_left],
+  { apply q.2.mem_or_mem, convert hxy (nx + ny) using 1,
+    simp_rw [proj_apply, decompose_of_mem_same 𝒜 hnx, decompose_of_mem_same 𝒜 hny,
+      decompose_of_mem_same 𝒜 (mul_mem hnx hny), mul_pow, pow_add],
+    exact subtype.ext (mk_mul _ _ _ _) },
+  all_goals { intros n hn,
+    convert q.1.zero_mem using 2,
+    rw [proj_apply, decompose_of_mem_ne 𝒜 _ hn.symm],
+    { rw [zero_pow hm, mk_zero] },
+    { exact hnx <|> exact hny } },
 end
 
 variable (f_deg)

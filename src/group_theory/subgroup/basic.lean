@@ -2676,6 +2676,10 @@ by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_co
 @[simp, to_additive zmultiples_eq_bot] lemma zpowers_eq_bot {g : G} : zpowers g = ⊥ ↔ g = 1 :=
 by rw [eq_bot_iff, zpowers_le, mem_bot]
 
+@[simp, to_additive zmultiples_zero_eq_bot] lemma zpowers_one_eq_bot :
+   subgroup.zpowers (1 : G) = ⊥ :=
+subgroup.zpowers_eq_bot.mpr rfl
+
 end subgroup
 
 namespace monoid_hom

@@ -614,6 +614,11 @@ instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 
 end division_ring
 
+@[priority 100] -- see note [lower instance priority]
+instance rat_module.no_zero_smul_divisors [add_comm_group M] [module ℚ M] :
+  no_zero_smul_divisors ℤ M :=
+⟨λ k x h, by simpa [zsmul_eq_smul_cast ℚ k x] using h⟩
+
 end no_zero_smul_divisors
 
 @[simp] lemma nat.smul_one_eq_coe {R : Type*} [semiring R] (m : ℕ) :

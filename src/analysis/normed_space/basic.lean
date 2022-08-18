@@ -65,6 +65,10 @@ begin
       by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
+lemma norm_zsmul [normed_add_comm_group γ] [normed_space ℚ γ] (e : γ) (k : ℤ) :
+  ∥k • e∥ = |k| • ∥e∥ :=
+by simp [zsmul_eq_smul_cast ℚ k e, norm_smul, int.norm_eq_abs]
+
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
@@ -157,6 +161,21 @@ theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
+
+instance {E : Type*} [normed_add_comm_group E] [normed_space ℚ E] (e : E) :
+  discrete_topology $ add_subgroup.zmultiples e :=
+begin
+  rcases eq_or_ne e 0 with rfl | he,
+  { rw [add_subgroup.zmultiples_zero_eq_bot], apply_instance, },
+  { rw [discrete_topology_iff_open_singleton_zero, is_open_induced_iff],
+    refine ⟨metric.ball 0 (∥e∥), metric.is_open_ball, _⟩,
+    ext ⟨x, hx⟩,
+    obtain ⟨k, rfl⟩ := add_subgroup.mem_zmultiples_iff.mp hx,
+    simp only [mem_preimage, mem_ball_zero_iff, add_subgroup.coe_mk, mem_singleton_iff,
+      subtype.ext_iff, add_subgroup.coe_zero, norm_zsmul, smul_eq_zero, or_false, he,
+      zero_lt.mul_lt_iff_lt_one_left (norm_pos_iff.mpr he), zsmul_eq_mul,
+      ← @int.cast_one ℝ _, int.cast_lt, int.abs_lt_one_iff], },
+end
 
 /-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
 This homeomorphism sends `x : E` to `(1 + ∥x∥²)^(- ½) • x`.

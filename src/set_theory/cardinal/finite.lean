@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import data.fintype.card
 import set_theory.cardinal.basic
 
 /-!
@@ -75,6 +76,34 @@ card_congr equiv.ulift
 
 @[simp] lemma card_plift (α : Type*) : nat.card (plift α) = nat.card α :=
 card_congr equiv.plift
+
+open_locale big_operators
+
+@[simp] lemma nat.card_pi {α : Type*} {β : α → Type*} [fintype α] :
+  nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
+begin
+  classical,
+  by_cases h1 : ∃ a, is_empty (β a),
+  { haveI := is_empty_pi.mpr h1,
+    obtain ⟨a, h⟩ := h1,
+    rw [nat.card_of_is_empty, finset.prod_eq_zero (finset.mem_univ a)],
+    exactI nat.card_of_is_empty },
+  simp only [not_exists, not_is_empty_iff] at h1,
+  by_cases h2 : ∀ a, finite (β a),
+  { haveI := h2,
+    haveI := λ a, fintype.of_finite (β a),
+    simp only [nat.card_eq_fintype_card, fintype.card_pi] },
+  simp only [not_forall, not_finite_iff_infinite] at h2,
+  obtain ⟨a₀, h2⟩ := h2,
+  rw [finset.prod_eq_zero (finset.mem_univ a₀)],
+  { suffices : infinite (Π a, β a),
+    { exactI nat.card_eq_zero_of_infinite },
+    let f : (Π a, β a) → β a₀ := λ p, p a₀,
+    have hf : function.surjective f :=
+    λ b,  ⟨λ a, if h : a = a₀ then by rwa h else (h1 a).some, dif_pos rfl⟩,
+    exactI infinite.of_surjective f hf },
+  { exactI nat.card_eq_zero_of_infinite },
+end
 
 end nat
 

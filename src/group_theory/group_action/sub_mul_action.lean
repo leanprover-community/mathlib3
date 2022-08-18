@@ -149,12 +149,11 @@ variables [hA : smul_mem_class A R M] (S' : A)
 
 include hA
 /-- A `sub_mul_action` of a `mul_action` is a `mul_action`.  -/
-@[priority 75] -- Prefer subclasses of `mul_action` over subclasses of `smul_mem_class`.
+@[priority 75] -- Prefer subclasses of `mul_action` over `smul_mem_class`.
 instance to_mul_action : mul_action R S' :=
 subtype.coe_injective.mul_action coe (set_like.coe_smul S')
 
 /-- The natural `mul_action_hom` over `R` from a `sub_mul_action` of `M` to `M`. -/
---@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 protected def subtype : S' →[R] M := ⟨coe,  λ _ _, rfl⟩
 
 @[simp] protected theorem coe_subtype : (smul_mem_class.subtype S' : S' → M) = coe := rfl

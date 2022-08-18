@@ -139,12 +139,11 @@ variables [semiring R] [add_comm_monoid M] [module R M] {A : Type*} [set_like A 
 
 include hA
 /-- A submodule of a `module` is a `module`.  -/
-@[priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
+@[priority 75] -- Prefer subclasses of `module` over `submodule_class`.
 instance to_module : module R S' :=
 subtype.coe_injective.module R (add_submonoid_class.subtype S') (set_like.coe_smul S')
 
 /-- The natural `R`-linear map from a submodule of an `R`-module `M` to `M`. -/
---@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 protected def subtype : S' →ₗ[R] M := ⟨coe, λ _ _, rfl, λ _ _, rfl⟩
 
 @[simp] protected theorem coe_subtype : (submodule_class.subtype S' : S' → M) = coe := rfl

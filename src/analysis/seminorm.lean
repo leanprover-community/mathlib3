@@ -117,15 +117,11 @@ variables (p q) (f : F →* E)
   mul_le'   := λ _ _, (zero_add _).ge,
   inv'      := λ x, rfl}⟩
 
-<<<<<<< HEAD
 @[simp, to_additive] lemma coe_zero : ⇑(0 : group_seminorm E) = 0 := rfl
 @[simp, to_additive] lemma zero_apply (x : E) : (0 : group_seminorm E) x = 0 := rfl
-=======
-/-- A seminorm is nontrivial if it is not the zero seminorm. -/
-def nontrivial (p : add_group_seminorm E) := ∃ x : E, p x ≠ 0
 
-@[simp] lemma coe_zero : ⇑(0 : add_group_seminorm E) = 0 := rfl
->>>>>>> suggested changes
+@[to_additive] lemma eq_zero_iff : p = 0 ↔ ∀ x, p x = 0 := fun_like.ext_iff
+@[to_additive] lemma ne_zero_iff : p ≠ 0 ↔ ∃ x, p x ≠ 0 := by simp [eq_zero_iff]
 
 @[to_additive] instance : inhabited (group_seminorm E) := ⟨0⟩
 

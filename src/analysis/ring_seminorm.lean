@@ -66,8 +66,8 @@ instance : has_zero (ring_seminorm R) :=
 ⟨{ mul_le' :=  λ _ _, eq.ge (zero_mul _),
   ..add_group_seminorm.has_zero.zero }⟩
 
-/-- A seminorm is nontrivial if it is not the zero seminorm. -/
-def nontrivial (p : ring_seminorm R) := ∃ x : R, p x ≠ 0
+lemma eq_zero_iff {p : ring_seminorm R} : p = 0 ↔ ∀ x, p x = 0 := fun_like.ext_iff
+lemma ne_zero_iff {p : ring_seminorm R} : p ≠ 0 ↔ ∃ x, p x ≠ 0 := by simp [eq_zero_iff]
 
 instance : inhabited (ring_seminorm R) := ⟨0⟩
 
@@ -92,10 +92,10 @@ by simpa only [pow_succ _ (n + 1)] using le_trans (p.mul_le x _)
   (mul_le_mul_of_nonneg_left (pow_le n.succ_pos) (p.nonneg _))
 
 lemma seminorm_one_eq_one_iff_nontrivial (hp : p 1 ≤ 1) :
-  p 1 = 1 ↔ nontrivial p :=
+  p 1 = 1 ↔ p ≠ 0 :=
 begin
-  refine ⟨λ h, ⟨1, by {rw h, exact one_ne_zero}⟩, λ h, _⟩,
-  obtain ⟨x, hx⟩ := h,
+  refine ⟨λ h, ne_zero_iff.mpr ⟨1, by {rw h, exact one_ne_zero}⟩, λ h, _⟩,
+  obtain ⟨x, hx⟩ := ne_zero_iff.mp h,
   by_cases hp0 : p 1 = 0,
   { have hx' : p x ≤ 0,
     { rw ← mul_one x,
@@ -174,9 +174,9 @@ instance [decidable_eq R] : inhabited (ring_norm R) := ⟨trivial_norm R⟩
 
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
 def of_ring_seminorm {K : Type*} [field K] (f : ring_seminorm K)
-  (hnt : ring_seminorm.nontrivial f) : ring_norm K :=
+  (hnt : f ≠ 0) : ring_norm K :=
 { ne_zero := λ x hx, begin
-    obtain ⟨c, hc⟩ := hnt,
+    obtain ⟨c, hc⟩ := ring_seminorm.ne_zero_iff.mp hnt,
     have hfx : 0 ≠ f x,
     { intro h0,
       have hc' : f c ≤ 0,

@@ -446,9 +446,9 @@ end
 section
 
 /-- A functor preserving zero morphisms, epis, and kernels preserves finite limits. -/
-def preserves_finite_limits_of_preserves_kernels_and_epis
+def preserves_finite_limits_of_preserves_epis_and_kernels
   [preserves_zero_morphisms L] [preserves_epimorphisms L]
-  [hL : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) L] : preserves_finite_limits L :=
+  [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) L] : preserves_finite_limits L :=
 begin
   apply preserves_finite_limits_of_map_exact,
   intros X Y Z f g h,
@@ -456,11 +456,33 @@ begin
   exact exact_of_is_kernel _ _ _ (is_limit_fork_map_of_is_limit' L _ (is_limit_image f g h))
 end
 
-/-- A functor preserving zero morphisms, monos, and cokernels preserves finite colimits. -/
-def preserves_finite_colimits_of_preserves_cokernels_and_monos
+/-- A functor preserving zero morphisms, monos, and cokernels preserves finite limits. -/
+def preserves_finite_limits_of_preserves_monos_and_cokernels
   [preserves_zero_morphisms L] [preserves_monomorphisms L]
-  [hL : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) L] :
-  preserves_finite_colimits L :=
+  [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) L] : preserves_finite_limits L :=
+begin
+  apply preserves_finite_limits_of_map_exact,
+  intros X Y Z f g h,
+  rw [← abelian.coimage.fac g, L.map_comp, exact_comp_mono_iff],
+  exact exact_of_is_cokernel _ _ _
+    (is_colimit_cofork_map_of_is_colimit' L _ (is_colimit_coimage f g h))
+end
+
+/-- A functor preserving zero morphisms, epis, and kernels preserves finite colimits. -/
+def preserves_finite_colimits_of_preserves_epis_and_kernels
+  [preserves_zero_morphisms L] [preserves_epimorphisms L]
+  [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) L] : preserves_finite_colimits L :=
+begin
+  apply preserves_finite_colimits_of_map_exact,
+  intros X Y Z f g h,
+  rw [← abelian.image.fac f, L.map_comp, exact_epi_comp_iff],
+  exact exact_of_is_kernel _ _ _ (is_limit_fork_map_of_is_limit' L _ (is_limit_image f g h))
+end
+
+/-- A functor preserving zero morphisms, monos, and cokernels preserves finite colimits. -/
+def preserves_finite_colimits_of_preserves_monos_and_cokernels
+  [preserves_zero_morphisms L] [preserves_monomorphisms L]
+  [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) L] : preserves_finite_colimits L :=
 begin
   apply preserves_finite_colimits_of_map_exact,
   intros X Y Z f g h,

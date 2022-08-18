@@ -1483,6 +1483,20 @@ def std_gaussian_rv (f : α → ℝ) : Prop := gaussian_rv f 0 1
 
 variables {f g : α → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
 
+
+lemma ae_measurable:
+ae_measurable (λ (x:ℝ), x+m) (volume.with_density (λ (x : ℝ), ennreal.of_real ((sqrt (2 * π * 1 ^ 2))⁻¹ * exp (-(2 * 1 ^ 2)⁻¹ * (x - 0) ^ 2)))):=
+begin
+  let μ : measure ℝ := volume.with_density (λ (x : ℝ), ennreal.of_real ((sqrt (2 * π * 1 ^ 2))⁻¹ * exp (-(2 * 1 ^ 2)⁻¹ * (x - 0) ^ 2))),
+  have h1 : ae_measurable (λ (x:ℝ), x+m) μ
+  ↔ ae_measurable (λ (x:ℝ), x+m) (volume.with_density (λ (x : ℝ), ennreal.of_real ((sqrt (2 * π * 1 ^ 2))⁻¹ * exp (-(2 * 1 ^ 2)⁻¹ * (x - 0) ^ 2)))),
+    {
+      simp_rw [μ],
+    },
+  rw ← h1,
+  measurability,
+end
+
 lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
   gaussian_rv (f + λ x, m) m 1 :=
 begin
@@ -1491,9 +1505,22 @@ begin
   unfold real_gaussian at *,
   simp at *,
   ---unfold with_density at *,
-
-  ---unfold map at *,
-
+  unfold gaussian_density at *,
+  ---ext1 S hS,
+  let h : ℝ → ℝ := λ x, x + m,
+  have h_f_plus_const_eq_comb : (f + λ x, m) = h ∘ f,
+    {
+      ext x,
+      simp,
+    },
+  rw h_f_plus_const_eq_comb,
+  have h_hmeas : measurable h,
+    {measurability},
+  rw ← measure.map_map h_hmeas hfmeas,
+  rw hf,
+  ext1 S hS,
+  have h_preim_of_S_eq_Sminusm : (h ⁻¹' S) = {x : ℝ | x + m ∈ S},
+/-
   have h_ae_m_one : ae_measurable (λ (a : α), 1) ℙ,
     simp,
   have h_ae_m_const : ae_measurable (λ (a : α), m) ℙ,
@@ -1510,7 +1537,7 @@ begin
   rw h_zeroeqno at hf,
 
   sorry,
-
+-/
 
 end
 

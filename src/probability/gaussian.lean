@@ -37,6 +37,7 @@ import analysis.special_functions.integrals
 #check real.coe_to_nnreal
 #check set.inter_comm
 #check function.const
+#check measure_theory.measure.map_apply_of_ae_measurable
 
 ---#check probability_theory.moment,
 
@@ -1575,6 +1576,12 @@ begin
 
 end
 
+
+
+-- lemma inv2_pos : 0 < 2⁻¹ :=
+-- begin
+
+-- end
 lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
   gaussian_rv (f + λ x, m) m 1 :=
 begin
@@ -1609,12 +1616,130 @@ begin
   rw measure_theory.with_density_apply,
   rw measure_theory.with_density_apply,
   {
-    sorry
+    rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
+    rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
+
+    {
+      simp_rw [change_of_vr_gaussian_with_var_one S hS],
+    },
+
+    {
+      {
+      rw integrable, fconstructor,
+      {
+        measurability,
+      },
+      {
+        refine (has_finite_integral_norm_iff
+   (λ (x : ℝ), (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x - m) ^ 2)))).mp
+  _,
+        apply integrable.has_finite_integral _,
+        refine integrable.abs _,
+        refine integrable.const_mul _ ((sqrt π)⁻¹ * (sqrt 2)⁻¹),
+        refine measure_theory.integrable_on.integrable _,
+        --hint: prove `integrable (λ (a : ℝ), exp (-(2⁻¹ * (a - m) ^ 2))) ℙ` first
+        have h₁: integrable (λ (a : ℝ), exp (-(2⁻¹ * (a - m) ^ 2))) ℙ,
+        {
+          rw integrable, fconstructor,
+          {measurability,},
+          {
+            /-
+            have hb : 0 < (2*s^2)⁻¹ := inv_pos.mpr (s_sq_pos_2 s h),
+
+        have h_gaussexp : integrable (λ (a : ℝ), exp (-2⁻¹ * a ^ 2)) ℙ,
+          rw ← neg_h_inveq,
+          exact integrable_exp_neg_mul_sq hb,
+
+        have h_eqfunc : (λ (a : ℝ), exp (-(2)⁻¹ * (a - m)^ 2)) = (λ (a : ℝ), exp (-(2⁻¹ * (a - m) ^ 2)))  ,
+          ext x,
+          simp,
+
+        rw ← h_eqfunc,
+        exact measure_theory.integrable.comp_sub_right h_gaussexp m,
+            -/
+            refine (has_finite_integral_norm_iff (λ (a : ℝ), exp (-(2⁻¹ * (a - m) ^ 2)))).mp _,
+            apply integrable.has_finite_integral _,
+            refine integrable.abs _,
+            simp,
+            have h_eqfunc : (λ (a : ℝ), exp (-(2)⁻¹ * (a - m)^ 2)) = (λ (a : ℝ), exp (-(2⁻¹ * (a - m) ^ 2)))  ,
+              {
+                ext x,
+                simp,
+              },
+            rw ← h_eqfunc,
+            have hb: (0:ℝ) < (2)⁻¹,
+              {simp,},
+            have h_gaussexp : integrable (λ (a : ℝ), exp (-2⁻¹ * a ^ 2)) ℙ,
+              {sorry},
+            sorry
+          },
+        },
+
+        simp[(measure_theory.integrable.integrable_on h₁)],
+      }
+    },
+    },
+
+    {
+      refine filter.eventually_of_forall _,
+      intro x,
+      simp,
+      have h₁: (sqrt π)⁻¹ * (sqrt 2)⁻¹ = (sqrt(2 * π))⁻¹,
+        {
+          rw ← mul_inv,
+          simp,
+          exact mul_comm ((sqrt 2)⁻¹) ((sqrt π)⁻¹),
+        },
+      rw h₁,
+      have h₂: 0 < (sqrt(2 * π))⁻¹,
+        {
+          simp,
+          exact pi_pos,
+        },
+      have h_compexp_pos : 0 < exp (-(2⁻¹ * (x - m) ^ 2)),
+        {
+          exact real.exp_pos (-(2⁻¹ * (x - m) ^ 2)),
+        },
+      rw  le_iff_lt_or_eq,
+      left,
+      exact mul_pos h₂ h_compexp_pos,
+    },
+
+    {
+      sorry,
+    },
+
+    {
+      refine filter.eventually_of_forall _,
+      intro x,
+      simp,
+      have h₁: (sqrt π)⁻¹ * (sqrt 2)⁻¹ = (sqrt(2 * π))⁻¹,
+        {
+          rw ← mul_inv,
+          simp,
+          exact mul_comm ((sqrt 2)⁻¹) ((sqrt π)⁻¹),
+        },
+      rw h₁,
+      have h₂: 0 < (sqrt(2 * π))⁻¹,
+        {
+          simp,
+          exact pi_pos,
+        },
+      have h_compexp_pos : 0 < exp (-(2⁻¹ * x ^ 2)),
+        {
+          exact real.exp_pos (-(2⁻¹ * x ^ 2)),
+        },
+      rw  le_iff_lt_or_eq,
+      left,
+      exact mul_pos h₂ h_compexp_pos,
+    },
   },
   {exact hS},
   {
     measurability,
   },
+
+
 
 end
 

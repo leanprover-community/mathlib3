@@ -209,18 +209,19 @@ direct_sum.coe_mul_of_apply_aux _ _ _ (λ x, ⟨λ h, add_right_cancel h, λ h, 
 
 end coe
 
-section nat
+section canonically_ordered_add_monoid
 
-variables [semiring R] [set_like σ R] [add_submonoid_class σ R] (A : ℕ → σ)
+variables [semiring R] [set_like σ R] [add_submonoid_class σ R] (A : ι → σ)
+variables [canonically_ordered_add_monoid ι] [has_sub ι] [has_ordered_sub ι] [is_left_cancel ι (+)]
 variables [set_like.graded_monoid A]
 
 lemma direct_sum.coe_mul_of_apply_of_le
-  (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
+  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)
   (h : i ≤ n) : ((r * direct_sum.of _ i r') n : R) = r (n - i) * r' :=
-by conv_lhs { rw [← nat.sub_add_cancel h, direct_sum.coe_mul_of_apply] }
+sorry
 
 lemma direct_sum.coe_mul_of_apply_of_not_le
-  (r : ⨁ i, A i) {i : ℕ} (r' : A i) (n : ℕ)
+  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)
   (h : n < i) : ((r * direct_sum.of _ i r') n : R) = 0 :=
 begin
   classical,
@@ -228,16 +229,19 @@ begin
   apply (dfinsupp.sum_single_index _).trans, swap,
   { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
   { rw [dfinsupp.sum, finset.sum_ite_of_false],
-    exacts [finset.sum_const_zero, λ _ _ _, by linarith] },
+    exact finset.sum_const_zero,
+    refine λ x _ H, _,
+    rw ← H at h,
+    exact not_le_of_lt h (self_le_add_left i x), },
 end
 
 lemma direct_sum.coe_of_mul_apply_of_le
-  {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
+  {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι)
   (h : i ≤ n) : ((direct_sum.of _ i r * r') n : R) = r * r' (n - i) :=
-by conv_lhs { rw [← nat.add_sub_of_le h, direct_sum.coe_of_mul_apply] }
+sorry
 
 lemma direct_sum.coe_of_mul_apply_of_not_le
-  {i : ℕ} (r : A i) (r' : ⨁ i, A i) (n : ℕ)
+  {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι)
   (h : n < i) : ((direct_sum.of _ i r * r') n : R) = 0 :=
 begin
   classical,
@@ -245,10 +249,13 @@ begin
   apply (dfinsupp.sum_single_index _).trans, swap,
   { simp_rw [add_submonoid_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
   { rw [dfinsupp.sum, finset.sum_ite_of_false],
-    exacts [finset.sum_const_zero, λ _ _ _, by linarith] },
+    exact finset.sum_const_zero,
+    refine λ x _ H, _,
+    rw ←H at h,
+    exact not_le_of_lt h (self_le_add_right i x), },
 end
 
-end nat
+end canonically_ordered_add_monoid
 
 /-! #### From `submodule`s -/
 

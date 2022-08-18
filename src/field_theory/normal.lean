@@ -375,3 +375,63 @@ begin
 end
 
 end lift
+
+section normal_closure
+
+open intermediate_field
+
+variables (F K) (L : Type*) [field L] [algebra F L] [algebra K L] [is_scalar_tower F K L]
+
+/-- The normal closure of `K` in `L`. -/
+noncomputable! def normal_closure : intermediate_field K L :=
+{ algebra_map_mem' := λ r, le_supr (λ f : K →ₐ[F] L, f.field_range)
+    (is_scalar_tower.to_alg_hom F K L) ⟨r, rfl⟩,
+  .. (⨆ f : K →ₐ[F] L, f.field_range).to_subfield }
+
+namespace normal_closure
+
+lemma restrict_scalars_eq_supr_adjoin [h : normal F L] :
+  (normal_closure F K L).restrict_scalars F = ⨆ x : K, adjoin F ((minpoly F x).root_set L) :=
+begin
+  refine le_antisymm (supr_le _) (supr_le (λ x, adjoin_le_iff.mpr (λ y hy, _))),
+  { rintros f _ ⟨x, rfl⟩,
+    refine le_supr (λ x, adjoin F ((minpoly F x).root_set L)) x
+      (subset_adjoin F ((minpoly F x).root_set L) _),
+    rw [polynomial.mem_root_set, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
+        polynomial.aeval_alg_hom_apply, minpoly.aeval, map_zero],
+    exact minpoly.ne_zero ((is_integral_algebra_map_iff (algebra_map K L).injective).mp
+      (h.is_integral (algebra_map K L x))) },
+  { rw [polynomial.root_set, finset.mem_coe, multiset.mem_to_finset] at hy,
+    let g := (alg_hom_adjoin_integral_equiv F ((is_integral_algebra_map_iff
+      (algebra_map K L).injective).mp (h.is_integral (algebra_map K L x)))).symm ⟨y, hy⟩,
+    refine le_supr (λ f : K →ₐ[F] L, f.field_range)
+      ((g.lift_normal L).comp (is_scalar_tower.to_alg_hom F K L))
+      ⟨x, (g.lift_normal_commutes L (adjoin_simple.gen F x)).trans _⟩,
+    rw [algebra.id.map_eq_id, ring_hom.id_apply],
+    apply power_basis.lift_gen },
+end
+
+instance normal [h : normal F L] : normal F (normal_closure F K L) :=
+begin
+  change normal F ((normal_closure F K L).restrict_scalars F),
+  rw restrict_scalars_eq_supr_adjoin,
+  apply intermediate_field.normal_supr F L _,
+  intro x,
+  apply normal.of_is_splitting_field (minpoly F x),
+  apply adjoin_root_set_is_splitting_field,
+  rw minpoly.eq_of_algebra_map_eq (algebra_map K L).injective ((is_integral_algebra_map_iff
+    (algebra_map K L).injective).mp (h.is_integral (algebra_map K L x))) rfl,
+  apply h.splits,
+end
+
+instance is_finite_dimensional [finite_dimensional F K] :
+  finite_dimensional F (normal_closure F K L) :=
+begin
+  haveI : ∀ f : K →ₐ[F] L, finite_dimensional F f.field_range :=
+  λ f, f.to_linear_map.finite_dimensional_range,
+  apply intermediate_field.finite_dimensional_supr_of_finite,
+end
+
+end normal_closure
+
+end normal_closure

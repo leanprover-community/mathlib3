@@ -387,6 +387,44 @@ lemma sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
 by simpa [sub_eq_add_neg] using add_algebra_map hx (-a)
 
+section alg_hom_fintype
+
+/-- A technical finiteness result. -/
+noncomputable def fintype.subtype_prod {E : Type*} {X : set E} (hX : X.finite) {L : Type*}
+  (F : E → multiset L) : fintype (Π x : X, {l : L // l ∈ F x}) :=
+let hX := finite.fintype hX in by exactI pi.fintype
+
+variables (F E K : Type*) [field F] [field E] [field K] [algebra F E] [algebra F K]
+  [finite_dimensional F E]
+
+/-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
+-- Marked as `noncomputable!` since this definition takes multiple seconds to compile,
+-- and isn't very computable in practice (since neither `finrank` nor `fin_basis` are).
+noncomputable! def roots_of_min_poly_pi_type (φ : E →ₐ[F] K)
+  (x : range (finite_dimensional.fin_basis F E : _ → E)) :
+  {l : K // l ∈ (((minpoly F x.1).map (algebra_map F K)).roots : multiset K)} :=
+⟨φ x, by rw [mem_roots_map (minpoly.ne_zero_of_finite_field_extension F x.val),
+  subtype.val_eq_coe, ←aeval_def, aeval_alg_hom_apply, minpoly.aeval, map_zero]⟩
+
+lemma aux_inj_roots_of_min_poly : injective (roots_of_min_poly_pi_type F E K) :=
+begin
+  intros f g h,
+  suffices : (f : E →ₗ[F] K) = g,
+  { rwa fun_like.ext'_iff at this ⊢ },
+  rw funext_iff at h,
+  exact linear_map.ext_on (finite_dimensional.fin_basis F E).span_eq
+    (λ e he, subtype.ext_iff.mp (h ⟨e, he⟩)),
+end
+
+/-- Given field extensions `E/F` and `K/F`, with `E/F` finite, there are finitely many `F`-algebra
+  homomorphisms `E →ₐ[K] K`. -/
+noncomputable instance alg_hom.fintype : fintype (E →ₐ[F] K) :=
+@fintype.of_injective _ _
+  (fintype.subtype_prod (set.finite_range (finite_dimensional.fin_basis F E))
+    (λ e, ((minpoly F e).map (algebra_map F K)).roots)) _ (aux_inj_roots_of_min_poly F E K)
+
+end alg_hom_fintype
+
 section gcd_domain
 
 variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gcd_monoid R]

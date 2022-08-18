@@ -89,8 +89,8 @@ begin
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
   -- This turns the problem into one for square matrices, which is easy.
   let e := index_equiv_of_inv hMM' hM'M,
-  rw [← det_minor_equiv_self e, ← minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
-    minor_mul_equiv, equiv.coe_refl, minor_id_id]
+  rw [← det_submatrix_equiv_self e, ← submatrix_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+    submatrix_mul_equiv, equiv.coe_refl, submatrix_id_id]
 end
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`.
@@ -486,7 +486,7 @@ map with respect to that basis, multiplied by the value of that alternating map 
 lemma alternating_map.eq_smul_basis_det (f : alternating_map R M R ι) : f = f e • e.det :=
 begin
   refine basis.ext_alternating e (λ i h, _),
-  let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
+  let σ : equiv.perm ι := equiv.of_bijective i (finite.injective_iff_bijective.1 h),
   change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
   simp [alternating_map.map_perm, basis.det_self]
 end

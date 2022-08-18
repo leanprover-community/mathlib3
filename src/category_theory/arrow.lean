@@ -100,6 +100,12 @@ and a proof that the square commutes. -/
   f ≅ g :=
 comma.iso_mk l r h
 
+/-- A variant of `arrow.iso_mk` that creates an iso between two `arrow.mk`s with a better type
+signature. -/
+abbreviation iso_mk' {W X Y Z : T} (f : W ⟶ X) (g : Y ⟶ Z)
+  (e₁ : W ≅ Y) (e₂ : X ≅ Z) (h : e₁.hom ≫ g = f ≫ e₂.hom) : arrow.mk f ≅ arrow.mk g :=
+arrow.iso_mk e₁ e₂ h
+
 section
 
 variables {f g : arrow T} (sq : f ⟶ g)
@@ -161,74 +167,6 @@ in terms of the inverse of `i`. -/
 lemma square_from_iso_invert {X Y : T} (i : X ≅ Y) (p : arrow T) (sq : arrow.mk i.hom ⟶ p) :
   i.inv ≫ sq.left ≫ p.hom = sq.right :=
 by simp only [iso.inv_hom_id_assoc, arrow.w, arrow.mk_hom]
-
-/-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
-@[ext] structure lift_struct {f g : arrow T} (sq : f ⟶ g) :=
-(lift : f.right ⟶ g.left)
-(fac_left' : f.hom ≫ lift = sq.left . obviously)
-(fac_right' : lift ≫ g.hom = sq.right . obviously)
-
-restate_axiom lift_struct.fac_left'
-restate_axiom lift_struct.fac_right'
-
-instance lift_struct_inhabited {X : T} : inhabited (lift_struct (𝟙 (arrow.mk (𝟙 X)))) :=
-⟨⟨𝟙 _, category.id_comp _, category.comp_id _⟩⟩
-
-/-- `has_lift sq` says that there is some `lift_struct sq`, i.e., that it is possible to find a
-    diagonal morphism making the two triangles commute. -/
-class has_lift {f g : arrow T} (sq : f ⟶ g) : Prop :=
-mk' :: (exists_lift : nonempty (lift_struct sq))
-
-lemma has_lift.mk {f g : arrow T} {sq : f ⟶ g} (s : lift_struct sq) : has_lift sq :=
-⟨nonempty.intro s⟩
-
-attribute [simp, reassoc] lift_struct.fac_left lift_struct.fac_right
-
-/-- Given `has_lift sq`, obtain a lift. -/
-noncomputable def has_lift.struct {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift_struct sq :=
-classical.choice has_lift.exists_lift
-
-/-- If there is a lift of a commutative square `sq`, we can access it by saying `lift sq`. -/
-noncomputable abbreviation lift {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.right ⟶ g.left :=
-(has_lift.struct sq).lift
-
-lemma lift.fac_left {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.hom ≫ lift sq = sq.left :=
-by simp
-
-lemma lift.fac_right {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift sq ≫ g.hom = sq.right :=
-by simp
-
-@[simp, reassoc]
-lemma lift.fac_right_of_to_mk {X Y : T} {f : arrow T} {g : X ⟶ Y} (sq : f ⟶ mk g) [has_lift sq] :
-  lift sq ≫ g = sq.right :=
-by simp only [←mk_hom g, lift.fac_right]
-
-@[simp, reassoc]
-lemma lift.fac_left_of_from_mk {X Y : T} {f : X ⟶ Y} {g : arrow T} (sq : mk f ⟶ g) [has_lift sq] :
-  f ≫ lift sq = sq.left :=
-by simp only [←mk_hom f, lift.fac_left]
-
-@[simp, reassoc]
-lemma lift_mk'_left {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
-  (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : f ≫ lift (arrow.hom_mk' h) = u :=
-by simp only [←arrow.mk_hom f, lift.fac_left, arrow.hom_mk'_left]
-
-@[simp, reassoc]
-lemma lift_mk'_right {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
-  (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : lift (arrow.hom_mk' h) ≫ g = v :=
-by simp only [←arrow.mk_hom g, lift.fac_right, arrow.hom_mk'_right]
-
-section
-
-instance subsingleton_lift_struct_of_epi {f g : arrow T} (sq : f ⟶ g) [epi f.hom] :
-  subsingleton (lift_struct sq) :=
-subsingleton.intro $ λ a b, lift_struct.ext a b $ (cancel_epi f.hom).1 $ by simp
-
-instance subsingleton_lift_struct_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g.hom] :
-  subsingleton (lift_struct sq) :=
-subsingleton.intro $ λ a b, lift_struct.ext a b $ (cancel_mono g.hom).1 $ by simp
-
-end
 
 variables {C : Type u} [category.{v} C]
 /-- A helper construction: given a square between `i` and `f ≫ g`, produce a square between

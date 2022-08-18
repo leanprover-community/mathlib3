@@ -23,4 +23,12 @@ lemma det_of_lower_triangular [fintype m] [linear_order m] (h : M.lower_triangul
   M.det = ∏ i : m, M i i :=
 by { rw ←det_transpose, exact det_of_upper_triangular h.transpose }
 
+lemma upper_triangular_inv_of_upper_triangular [fintype m] [linear_order m] [invertible M]
+  (hM : upper_triangular M) : upper_triangular M⁻¹ :=
+block_triangular_inv_of_block_triangular hM
+
+lemma lower_triangular_inv_of_lower_triangular [fintype m] [linear_order m] [invertible M]
+  (hM : lower_triangular M) : lower_triangular M⁻¹ :=
+block_triangular_inv_of_block_triangular hM
+
 end matrix

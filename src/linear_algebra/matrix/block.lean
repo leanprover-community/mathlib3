@@ -402,7 +402,7 @@ begin
     mul_inv_cancel_right_of_invertible],
 end
 
-lemma invertible_square_block_of_block_triangular
+lemma block_triangular_inv_of_block_triangular
     [invertible M] [linear_order α] (hM : block_triangular M b) :
   block_triangular M⁻¹ b :=
 begin

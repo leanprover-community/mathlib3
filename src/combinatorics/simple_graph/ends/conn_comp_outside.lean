@@ -226,12 +226,21 @@ begin
   },
   { rw [finset.not_nonempty_iff_eq_empty] at Knempty,
     subst Knempty,
-    refine ⟨{_}, _⟩,
-    have v : V := sorry, -- how do I get this?
-    exact component_of G ∅ ⟨v, by simp⟩,
-    dsimp [conn_comp_outside], apply connected_component.ind,
-    intro v', dsimp [component_of, compl], simp,
-  sorry, -- all vertices are reachable from each other because `G` is connected
+    -- refine ⟨{_}, _⟩,
+    by_cases nonempty V, {
+      refine ⟨{_}, _⟩,
+      have v := nonempty.some h,
+
+      exact component_of G ∅ ⟨v, by simp⟩,
+
+      apply connected_component.ind,
+      intro v', dsimp [compl, component_of],
+      simp, sorry -- all pairs of vertices are reachable in `G`
+    },
+    {
+      refine ⟨{_}, _⟩,
+      sorry,
+    }
    }
 end
 

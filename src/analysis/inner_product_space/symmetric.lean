@@ -21,7 +21,7 @@ symmetric, if for all `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`
 
 ## Main statements
 
-* `is_symmetric.continuous`: if a symmetric operator is defined everywhere, then
+* `is_symmetric.continuous`: if a symmetric operator is defined on a complete space, then
   it is automatically continuous.
 
 ## Tags

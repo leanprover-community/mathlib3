@@ -1568,20 +1568,11 @@ begin
 
   rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ hS h_h' h_h g,
 
-  ---nth_rewrite 0 h_S_is_im,
-
-
-  ---have h_integ_eq :
-
-
 end
 
 
+--The fifth important lemma
 
--- lemma inv2_pos : 0 < 2⁻¹ :=
--- begin
-
--- end
 lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
   gaussian_rv (f + λ x, m) m 1 :=
 begin
@@ -1589,9 +1580,7 @@ begin
   unfold gaussian_rv at *,
   unfold real_gaussian at *,
   simp at *,
-  ---unfold with_density at *,
   unfold gaussian_density at *,
-  ---ext1 S hS,
   let h : ℝ → ℝ := λ x, x + m,
   have h_f_plus_const_eq_comb : (f + λ x, m) = h ∘ f,
     {

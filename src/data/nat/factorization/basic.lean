@@ -486,7 +486,7 @@ begin
   exact (pow_dvd_pow_iff_le_right hq1).1 (h q),
 end
 
-lemma ord_compl_dvd_ord_compl_of_dvd {a b p : ℕ} (hab : a ∣ b) :
+lemma ord_compl_dvd_ord_compl_of_dvd {a b : ℕ} (hab : a ∣ b) (p : ℕ) :
   ord_compl[p] a ∣ ord_compl[p] b :=
 begin
   rcases em' p.prime with pp | pp, { simp [pp, hab] },

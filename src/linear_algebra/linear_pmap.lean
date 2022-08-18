@@ -466,7 +466,7 @@ section graph
 
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
 def graph (f : E →ₗ.[R] F) : submodule R (E × F) :=
-f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
+f.to_fun.graph.map (f.domain.subtype.prod_map (linear_map.id : F →ₗ[R] F))
 
 lemma mem_graph_iff' (f : E →ₗ.[R] F) {x : E × F} :
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
@@ -484,7 +484,8 @@ variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F
 
 /-- The graph of `z • f` as a pushforward. -/
 lemma smul_graph (f : E →ₗ.[R] F) (z : M) :
-  (z • f).graph = f.graph.map (linear_map.id.prod_map (z • linear_map.id)) :=
+  (z • f).graph = 
+    f.graph.map ((linear_map.id : E →ₗ[R] E).prod_map (z • (linear_map.id : F →ₗ[R] F))) :=
 begin
   ext x, cases x,
   split; intros h,
@@ -510,7 +511,7 @@ end
 
 /-- The graph of `-f` as a pushforward. -/
 lemma neg_graph (f : E →ₗ.[R] F) :
-  (-f).graph = f.graph.map (linear_map.id.prod_map (-linear_map.id)) :=
+  (-f).graph = f.graph.map ((linear_map.id : E →ₗ[R] E).prod_map (-(linear_map.id : F →ₗ[R] F))) :=
 begin
   ext, cases x,
   split; intros h,

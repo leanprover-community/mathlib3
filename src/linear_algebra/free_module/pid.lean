@@ -59,7 +59,7 @@ open submodule.is_principal submodule
 
 lemma eq_bot_of_generator_maximal_map_eq_zero (b : basis ι R M) {N : submodule R M}
   {ϕ : M →ₗ[R] R} (hϕ : ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ)
-  [(N.map ϕ).is_principal] (hgen : generator (N.map ϕ) = 0) : N = ⊥ :=
+  [(N.map ϕ).is_principal] (hgen : generator (N.map ϕ) = (0 : R)) : N = ⊥ :=
 begin
   rw submodule.eq_bot_iff,
   intros x hx,

@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import algebra.group.units
+import algebra.ne_zero
 import algebra.ring.basic
 
 /-!
@@ -211,6 +212,9 @@ calc m * ⅟m = 1       : mul_inv_of_self m
 lemma nonzero_of_invertible [mul_zero_one_class α] (a : α) [nontrivial α] [invertible a] : a ≠ 0 :=
 λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
                          ... = 1 : inv_of_mul_self a
+
+@[priority 100] instance ne_zero.invertible [mul_zero_one_class α] [nontrivial α] (a : α)
+  [invertible a] : ne_zero a := ⟨nonzero_of_invertible a⟩
 
 section monoid_with_zero
 variable [monoid_with_zero α]

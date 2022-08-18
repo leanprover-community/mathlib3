@@ -3,9 +3,10 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
-import tactic.apply_fun
+import algebra.ne_zero
 import data.nat.cast
 import order.rel_iso
+import tactic.apply_fun
 import tactic.localized
 
 /-!
@@ -54,7 +55,7 @@ This file expands on the development in the core library.
 
 ### Other casts
 
-* `fin.of_nat'`: given a positive number `n` (deduced from `[fact (0 < n)]`), `fin.of_nat' i` is
+* `fin.of_nat'`: given a positive number `n` (deduced from `[ne_zero n]`), `fin.of_nat' i` is
   `i % n` interpreted as an element of `fin n`;
 * `fin.cast_lt i h` : embed `i` into a `fin` where `h` proves it belongs into;
 * `fin.pred_above (p : fin n) i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
@@ -76,22 +77,6 @@ open fin nat function
 
 /-- Elimination principle for the empty set `fin 0`, dependent version. -/
 def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
-
-lemma fact.succ.pos {n} : fact (0 < succ n) := ⟨zero_lt_succ _⟩
-
-lemma fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
-⟨nat.zero_lt_bit0 $ ne_of_gt h.1⟩
-
-lemma fact.bit1.pos {n} : fact (0 < bit1 n) :=
-⟨nat.zero_lt_bit1 _⟩
-
-lemma fact.pow.pos {p n : ℕ} [h : fact $ 0 < p] : fact (0 < p ^ n) :=
-⟨pow_pos h.1 _⟩
-
-localized "attribute [instance] fact.succ.pos" in fin_fact
-localized "attribute [instance] fact.bit0.pos" in fin_fact
-localized "attribute [instance] fact.bit1.pos" in fin_fact
-localized "attribute [instance] fact.pow.pos" in fin_fact
 
 namespace fin
 
@@ -323,7 +308,7 @@ section add
 -/
 
 /-- Given a positive `n`, `fin.of_nat' i` is `i % n` as an element of `fin n`. -/
-def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h.1⟩
+def of_nat' [ne_zero n] (i : ℕ) : fin n := ⟨i%n, mod_lt _ $ ne_zero.pos n⟩
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
@@ -1668,7 +1653,7 @@ lemma coe_of_nat_eq_mod (m n : ℕ) :
   ((n : fin (succ m)) : ℕ) = n % succ m :=
 by rw [← of_nat_eq_coe]; refl
 
-@[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
+@[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : ne_zero m] :
   (@fin.of_nat' _ I n : ℕ) = n % m :=
 rfl
 

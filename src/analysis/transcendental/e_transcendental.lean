@@ -10,6 +10,13 @@ open_locale big_operators
 open_locale classical
 open_locale polynomial
 
+/-Definition
+For any integer polynomial $f$ and $n\in\mathbb N$ we define `deriv_n f n` to be the $n$-th derivative of polynomial $f$. $h^{[n]}$ means $h\circ h\circ h\cdots\circ h$ $n$-times.
+
+TODO: Remove this entirely.
+-/
+def deriv_n (f : ℤ[X]) (n : ℕ) : ℤ[X] := polynomial.derivative ^[n] f
+
 /--
 e is defined to be `exp 1`
 -/

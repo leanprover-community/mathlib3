@@ -10,34 +10,7 @@ open_locale classical
 open_locale polynomial
 open small_lemmas
 
-/-Definition
-For any integer polynomial $f$ and $n\in\mathbb N$ we define `deriv_n f n` to be the $n$-th derivative of polynomial $f$. $h^{[n]}$ means $h\circ h\circ h\cdots\circ h$ $n$-times.
-
-TODO: Remove this entirely.
--/
-def deriv_n (f : ℤ[X]) (n : ℕ) : ℤ[X] := polynomial.derivative ^[n] f
-
 namespace e_transcendental_lemmas
-
-/-- # Assumption-/
-/-Theorem
-fundamental theorem of calculus and integration by part is assumed. I am waiting for them to arrive in `mathlib` and I will update this part and prove relatvent additional assumptions.
--/
-
-theorem integrate_by_part (f g : ℝ -> ℝ)
-  {hf : differentiable ℝ f} {hf4 : continuous (deriv f)}
-  {hg : differentiable ℝ g} {hg4 : continuous (deriv g)}
-  (a b : ℝ) :
-  (∫ x in a..b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in a..b, (deriv f x) * (g x)) :=
-
-begin
-  have := @interval_integral.integral_mul_deriv_eq_deriv_mul a b f g (deriv f) (deriv g) _ _ _ _,
-  { convert this, ext, rw mul_comm },
-  { intros x hx, simp only [has_deriv_at_deriv_iff], exact hf.differentiable_at },
-  { intros x hx, simp only [has_deriv_at_deriv_iff], exact hg.differentiable_at },
-  { exact continuous_on.interval_integrable hf4.continuous_on },
-  { exact continuous_on.interval_integrable hg4.continuous_on },
-end
 
 /-Theorem
 If forall $x\in(a,b), 0 \le f(x)\le c$ then
@@ -134,20 +107,25 @@ By integration by part we have:
 lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) :
     (II f t) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t) :=
 begin
-  rw II,
-  convert integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t using 1,
-  { simp only [deriv_exp_t_x', mul_comm] },
+  rw [II, II],
+  have hd := real.differentiable_exp.comp (differentiable_id'.const_sub t),
+  convert @interval_integral.integral_mul_deriv_eq_deriv_mul
+    0 t (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) (f_eval_on_ℝ f.derivative) (λ (x : ℝ), (t - x).exp) _ _ _ _ using 1,
+  { apply interval_integral.integral_congr,
+    intros x hx,
+    dsimp only, rw mul_comm },
   { simp only [sub_eq_add_neg],
     apply congr_arg2,
-    { simp only [add_zero, neg_zero', mul_one, real.exp_zero, add_right_neg, neg_neg], ring },
-    { simp_rw [II, f_eval_on_ℝ_deriv, ←interval_integral.integral_neg, neg_mul_eq_mul_neg, neg_neg,
-        ←sub_eq_add_neg, mul_comm] } },
-  { apply differentiable_aeval f },
-  { rw f_eval_on_ℝ_deriv,
-    exact (differentiable_aeval f.derivative).continuous },
-  { exact (real.differentiable_exp.comp (differentiable_id'.const_sub t)).neg, },
-  { rw deriv_exp_t_x',
-    exact (real.differentiable_exp.comp (differentiable_id'.const_sub t)).continuous },
+    { rw [add_neg_self, neg_zero, add_zero, real.exp_zero], ring },
+    { simp_rw [←interval_integral.integral_neg, neg_mul_eq_neg_mul, neg_neg] } },
+  { intros x hx,
+    rw [←f_eval_on_ℝ_deriv, has_deriv_at_deriv_iff],
+    apply differentiable_aeval },
+  { intros x hx,
+    rw [←deriv_exp_t_x', has_deriv_at_deriv_iff],
+    exact hd.neg.differentiable_at },
+  { exact (differentiable_aeval f.derivative).continuous.continuous_on.interval_integrable },
+  { exact hd.continuous.continuous_on.interval_integrable },
 end
 
 /-Theorem

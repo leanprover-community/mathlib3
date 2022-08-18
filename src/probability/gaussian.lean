@@ -1484,7 +1484,7 @@ def std_gaussian_rv (f : α → ℝ) : Prop := gaussian_rv f 0 1
 variables {f g : α → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
 
 
-lemma ae_measurable:
+lemma ae_measurable1:
 ae_measurable (λ (x:ℝ), x+m) (volume.with_density (λ (x : ℝ), ennreal.of_real ((sqrt (2 * π * 1 ^ 2))⁻¹ * exp (-(2 * 1 ^ 2)⁻¹ * (x - 0) ^ 2)))):=
 begin
   let μ : measure ℝ := volume.with_density (λ (x : ℝ), ennreal.of_real ((sqrt (2 * π * 1 ^ 2))⁻¹ * exp (-(2 * 1 ^ 2)⁻¹ * (x - 0) ^ 2))),
@@ -1495,6 +1495,84 @@ begin
     },
   rw ← h1,
   measurability,
+end
+
+lemma mulone_eq_S (g : ℝ → ℝ) (f : ℝ → ℝ) (S : set ℝ):
+ ∫ (x : ℝ) in S, g (f x) = ∫ (x : ℝ) in S, 1 • g (f x) :=
+begin
+simp,
+end
+
+lemma S_is_im (S : set ℝ) : {x : ℝ | x + m ∈ S} = (λ (x:ℝ), x-m) '' S :=
+begin
+  ext e,
+  split,
+  {intro h1,
+  use (e+m),
+  split,
+  exact h1,
+  simp,},
+  {intro h2,
+  simp at h2,
+  simp [h2],
+  cases h2 with x h3,
+  cases h3 with h4 h5,
+  rw ← h5,
+  simp [h4]},
+end
+
+lemma integ_smul_eq_mul_S (f : ℝ → ℝ) (g : ℝ → ℝ) (S : set ℝ):
+∫ (x : ℝ) in S, 1 • g (f x)
+= ∫ (x : ℝ) in S, |(continuous_linear_map.id ℝ ℝ).det| • g (f x) :=
+begin
+rw detid_eq_one,
+simp,
+end
+
+lemma change_of_vr_gaussian_with_var_one (S : set ℝ) (hS : measurable_set S):
+ ∫ (x : ℝ) in {x : ℝ | x + m ∈ S}, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)) =
+∫ (x : ℝ) in S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x-m) ^ 2)):=
+begin
+  let h : ℝ → ℝ := λ x, x-m,
+  let g : ℝ → ℝ := λ x, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)),
+  rw S_is_im S,
+  simp_rw [← h],
+  simp_rw [← g],
+  have h_eq_integ : ∫ (x : ℝ) in S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x - m) ^ 2))
+   = ∫ (x : ℝ) in S, g (h x),
+    {
+      simp_rw [g],
+    },
+  rw h_eq_integ,
+  let h': ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
+  rw mulone_eq_S g h S,
+  rw integ_smul_eq_mul_S h g S,
+  have h_use_f'_tosubst : ∫ (x : ℝ) in set.univ, |(continuous_linear_map.id ℝ ℝ).det| • g (h x)
+    = ∫ (x : ℝ) in set.univ, |(h' x).det| • g (h x),
+    {refl},
+
+--     rw h_use_f'_tosubst,
+  have h_h : set.inj_on h S,
+    {refine set.inj_on_of_injective _ S,
+      ---refine set.injective_iff_inj_on_univ.mp _,
+    unfold function.injective,
+    intros a1 a2,
+    simp_rw[h],
+    simp,},
+
+  have h_h' : ∀ (x : ℝ), x ∈ S → has_fderiv_within_at h (h' x) S x,
+    {intros x hx,
+    refine has_fderiv_within_at.sub_const _ m,
+    exact has_fderiv_within_at_id x S},
+
+  rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ hS h_h' h_h g,
+
+  ---nth_rewrite 0 h_S_is_im,
+
+
+  ---have h_integ_eq :
+
+
 end
 
 lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
@@ -1525,13 +1603,12 @@ begin
       simp,
     },
   simp_rw[h],
-  rw measure_theory.measure.map_apply_of_ae_measurable ae_measurable hS,
+  rw measure_theory.measure.map_apply_of_ae_measurable ae_measurable1 hS,
   simp,
   rw h_preim_of_S_eq_Sminusm,
   rw measure_theory.with_density_apply,
   rw measure_theory.with_density_apply,
   {
-
     sorry
   },
   {exact hS},
@@ -1539,33 +1616,69 @@ begin
     measurability,
   },
 
-/-
-  have h_ae_m_one : ae_measurable (λ (a : α), 1) ℙ,
-    simp,
-  have h_ae_m_const : ae_measurable (λ (a : α), m) ℙ,
-    exact ae_measurable_const,
-  have h_eq_ae_m : ae_measurable f ℙ ↔ ae_measurable (f+λ (a : α), m) ℙ,
-    split,
-    intro h_eq_ae_m1,
-    exact ae_measurable.add' h_eq_ae_m1 h_ae_m_const,
-    intro h_eq_ae_m2,
-    exact measurable.ae_measurable hfmeas,
-  have h_zeroeqno : f = f + λ (a : α), 0,
-    ext x,
-    simp,
-  rw h_zeroeqno at hf,
-
-
-
-  sorry,
--/
-
 end
 
 lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f) (s : ℝ) :
   gaussian_rv (s • f) 0 s :=
 begin
-  sorry
+  unfold std_gaussian_rv at hf,
+  unfold gaussian_rv at *,
+  unfold real_gaussian at *,
+  simp at *,
+  split_ifs,
+  {
+    rw h,
+    rw zero_smul,
+    ext1 s hs,
+    simp,
+    sorry
+  },
+  {
+    let h1 : ℝ → ℝ := λ x, s • x,
+    have h_f_plus_const_eq_comb : (s • f) = h1 ∘ f,
+    {
+      ext x,
+      simp,
+      simp_rw[h1],
+      simp,
+    },
+    rw h_f_plus_const_eq_comb,
+    have h_hmeas : measurable h1,
+    {measurability},
+    rw ← measure.map_map h_hmeas hfmeas,
+    rw hf,
+    ext1 S hS,
+    have h_preim_of_S_eq_Sminusm : (h1 ⁻¹' S) = {x : ℝ | s • x ∈ S},
+    {
+      ext x,
+      simp,
+      simp_rw[h1],
+      simp,
+    },
+    rw measure_theory.with_density_apply,
+    {
+      --simp_rw[h1],
+      let μ : measure ℝ := (volume.with_density (gaussian_density 0 1)),
+      have ae_measurable2: ae_measurable h1 (volume.with_density (gaussian_density 0 1)),
+        {
+          have h₁: ae_measurable h1 (volume.with_density (gaussian_density 0 1)) ↔ ae_measurable h1 μ,
+            {
+              simp_rw[μ],
+            },
+          rw h₁,
+          measurability,
+        },
+      rw measure_theory.measure.map_apply_of_ae_measurable ae_measurable2 hS,
+      rw measure_theory.with_density_apply,
+      {
+        unfold gaussian_density,
+        sorry
+      },
+      {measurability,},
+    },
+    {exact hS},
+  },
+
 end
 --test --
 -- Hard!

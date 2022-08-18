@@ -19,6 +19,11 @@ inequality.
 * `finset.card_add_mul_le_card_add_mul_card_add`: Ruzsa's triangle inequality, sum version.
 * `finset.pluennecke_petridis`: The Plünnecke-Petridis lemma.
 * `finset.card_smul_sub_smul_le`: The Plünnecke-Ruzsa inequality.
+
+## References
+
+* [Giorgis Petridis, *The Plünnecke-Ruzsa inequality: an overview*][petridis2014]
+* [Terrence Tao, Van Vu, *Additive Combinatorics][tao-vu]
 -/
 
 open nat
@@ -27,7 +32,7 @@ open_locale pointwise
 namespace finset
 variables {α : Type*} [add_comm_group α] [decidable_eq α] {A B C X : finset α}
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Subtraction version. -/
 lemma card_sub_mul_le_card_sub_mul_card_sub (A B C : finset α) :
   (A - C).card * B.card ≤ (A - B).card * (B - C).card :=
 begin
@@ -43,7 +48,7 @@ begin
     exact sub_right_injective this }
 end
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Sub-add-add version. -/
 lemma card_sub_mul_le_card_add_mul_card_add (A B C : finset α) :
   (A - C).card * B.card ≤ (A + B).card * (B + C).card :=
 begin
@@ -51,12 +56,12 @@ begin
   exact card_sub_mul_le_card_sub_mul_card_sub _ _ _,
 end
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Add-sub-sub version. -/
 lemma card_add_mul_le_card_sub_mul_card_add (A B C : finset α) :
   (A + C).card * B.card ≤ (A - B).card * (B + C).card :=
 by { rw [←sub_neg_eq_add, ←sub_neg_eq_add B], exact card_sub_mul_le_card_sub_mul_card_sub _ _ _ }
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Add-add-sub version. -/
 lemma card_add_mul_le_card_add_mul_card_sub (A B C : finset α) :
   (A + C).card * B.card ≤ (A + B).card * (B - C).card :=
 by { rw [←sub_neg_eq_add, sub_eq_add_neg B], exact card_sub_mul_le_card_add_mul_card_add _ _ _ }
@@ -106,7 +111,7 @@ begin
     mem_powerset.2 $ hAA'.trans hAB),
 end
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Addition version. -/
 lemma card_add_mul_le_card_add_mul_card_add (A B C : finset α) :
   (A + C).card * B.card ≤ (A + B).card * (B + C).card :=
 begin
@@ -128,7 +133,7 @@ begin
   exact_mod_cast pluennecke_petridis C (aux hU.1 hU.2 hUA),
 end
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Add-sub-sub version. -/
 lemma card_add_mul_le_card_sub_mul_card_sub (A B C : finset α) :
   (A + C).card * B.card ≤ (A - B).card * (B - C).card :=
 begin
@@ -136,12 +141,12 @@ begin
   exact card_add_mul_le_card_add_mul_card_add _ _ _,
 end
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Sub-add-sub version. -/
 lemma card_sub_mul_le_card_add_mul_card_sub (A B C : finset α) :
   (A - C).card * B.card ≤ (A + B).card * (B - C).card :=
 by { rw [sub_eq_add_neg, sub_eq_add_neg], exact card_add_mul_le_card_add_mul_card_add _ _ _ }
 
-/-- **Ruzsa's triangle inequality** -/
+/-- **Ruzsa's triangle inequality**. Sub-sub-add version. -/
 lemma card_sub_mul_le_card_sub_mul_card_add (A B C : finset α) :
   (A - C).card * B.card ≤ (A - B).card * (B + C).card :=
 by { rw [←sub_neg_eq_add, sub_eq_add_neg], exact card_add_mul_le_card_sub_mul_card_sub _ _ _ }
@@ -160,24 +165,42 @@ begin
   exact mul_le_mul_of_nonneg_left ih (cast_nonneg _),
 end
 
-/-- The **Plünnecke-Ruzsa inequality**. -/
-lemma card_smul_sub_smul_le (hB : B.nonempty) (m n : ℕ) :
-  ((m • B - n • B).card : ℚ) ≤ ((B + B).card / B.card) ^ (m + n) * B.card :=
+/-- The **Plünnecke-Ruzsa inequality**. Addition version. -/
+lemma card_smul_sub_smul_le (hA : A.nonempty) (B : finset α) (m n : ℕ) :
+  ((m • B - n • B).card : ℚ) ≤ ((A + B).card / A.card) ^ (m + n) * A.card :=
 begin
-  have hB' : B ∈ B.powerset.erase ∅ := mem_erase_of_ne_of_mem hB.ne_empty (mem_powerset_self _),
-  obtain ⟨A, hA, hAB⟩ := exists_min_image (B.powerset.erase ∅) (λ A, (A + B).card/A.card : _ → ℚ)
-    ⟨B, hB'⟩,
-  rw [mem_erase, mem_powerset, ←nonempty_iff_ne_empty] at hA,
-  refine (mul_le_mul_right $ cast_pos.2 hA.1.card_pos).1 _,
+  have hA' : A ∈ A.powerset.erase ∅ := mem_erase_of_ne_of_mem hA.ne_empty (mem_powerset_self _),
+  obtain ⟨C, hC, hCA⟩ := exists_min_image (A.powerset.erase ∅) (λ C, (C + B).card/C.card : _ → ℚ)
+    ⟨A, hA'⟩,
+  rw [mem_erase, mem_powerset, ←nonempty_iff_ne_empty] at hC,
+  refine (mul_le_mul_right $ cast_pos.2 hC.1.card_pos).1 _,
   norm_cast,
   refine (cast_le.2 $ card_sub_mul_le_card_add_mul_card_add _ _ _).trans _,
   push_cast,
   rw [add_comm],
-  refine (mul_le_mul (card_add_nsmul_le (aux hA.1 hA.2 hAB) _)
-    (card_add_nsmul_le (aux hA.1 hA.2 hAB) _) (cast_nonneg _) $ by positivity).trans _,
+  refine (mul_le_mul (card_add_nsmul_le (aux hC.1 hC.2 hCA) _)
+    (card_add_nsmul_le (aux hC.1 hC.2 hCA) _) (cast_nonneg _) $ by positivity).trans _,
   rw [mul_mul_mul_comm, ←pow_add, ←mul_assoc],
-  exact mul_le_mul_of_nonneg_right (mul_le_mul (pow_le_pow_of_le_left (by positivity) (hAB _ hB') _)
-    (cast_le.2 $ card_le_of_subset hA.2) (by positivity) $ by positivity) (cast_nonneg _),
+  exact mul_le_mul_of_nonneg_right (mul_le_mul (pow_le_pow_of_le_left (by positivity) (hCA _ hA') _)
+    (cast_le.2 $ card_le_of_subset hC.2) (by positivity) $ by positivity) (cast_nonneg _),
 end
+
+/-- The **Plünnecke-Ruzsa inequality**. Subtraction version. -/
+lemma card_smul_sub_smul_le' (hA : A.nonempty) (B : finset α) (m n : ℕ) :
+  ((m • B - n • B).card : ℚ) ≤ ((A - B).card / A.card) ^ (m + n) * A.card :=
+begin
+  rw [←card_neg, neg_sub', ←neg_nsmul, ←neg_nsmul, sub_eq_add_neg A],
+  exact card_smul_sub_smul_le hA _ _ _,
+end
+
+/-- Special case of the **Plünnecke-Ruzsa inequality**. Addition version. -/
+lemma card_smul_le (hA : A.nonempty) (B : finset α) (n : ℕ) :
+  ((n • B).card : ℚ) ≤ ((A + B).card / A.card) ^ n * A.card :=
+by simpa only [zero_smul, sub_zero] using card_smul_sub_smul_le hA _ _ 0
+
+/-- Special case of the **Plünnecke-Ruzsa inequality**. Subtraction version. -/
+lemma card_smul_le' (hA : A.nonempty) (B : finset α) (n : ℕ) :
+  ((n • B).card : ℚ) ≤ ((A - B).card / A.card) ^ n * A.card :=
+by simpa only [zero_smul, sub_zero] using card_smul_sub_smul_le' hA _ _ 0
 
 end finset

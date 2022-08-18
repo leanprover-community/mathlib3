@@ -82,8 +82,8 @@ begin
   ext,
   simp only [homology_functor_map, homology.π_map_apply],
   -- To check that two elements are equal mod boundaries, it suffices to exhibit a boundary:
-  ext1, swap,
-  exact (to_prev i h.hom) x.1,
+  ext1,
+  swap, exact (to_prev i h.hom) x.1,
   -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
   ext1,
   simp only [map_add, image_to_kernel_arrow_apply, homological_complex.hom.sq_from_left,

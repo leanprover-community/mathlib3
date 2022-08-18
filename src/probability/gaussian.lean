@@ -37,6 +37,7 @@ import analysis.special_functions.integrals
 #check real.coe_to_nnreal
 #check set.inter_comm
 #check function.const
+#check measure_theory.measure.map_apply_of_ae_measurable
 
 ---#check probability_theory.moment,
 
@@ -1484,7 +1485,7 @@ def std_gaussian_rv (f : α → ℝ) : Prop := gaussian_rv f 0 1
 variables {f g : α → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
 
 
-lemma ae_measurable:
+lemma ae_measurable1:
 ae_measurable (λ (x:ℝ), x+m) (volume.with_density (λ (x : ℝ), ennreal.of_real ((sqrt (2 * π * 1 ^ 2))⁻¹ * exp (-(2 * 1 ^ 2)⁻¹ * (x - 0) ^ 2)))):=
 begin
   let μ : measure ℝ := volume.with_density (λ (x : ℝ), ennreal.of_real ((sqrt (2 * π * 1 ^ 2))⁻¹ * exp (-(2 * 1 ^ 2)⁻¹ * (x - 0) ^ 2))),
@@ -1497,6 +1498,151 @@ begin
   measurability,
 end
 
+lemma mulone_eq_S (g : ℝ → ℝ) (f : ℝ → ℝ) (S : set ℝ):
+ ∫ (x : ℝ) in S, g (f x) = ∫ (x : ℝ) in S, 1 • g (f x) :=
+begin
+simp,
+end
+-- lemma change_of_vr_gaussian_with_var_one (m s:ℝ):
+--    ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)) = ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)):=
+-- begin
+--     let g : ℝ → ℝ := λ (x:ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+--     let f : ℝ → ℝ := λ (x:ℝ), x-m,
+--     have h_set_eq : set.univ = f '' set.univ,
+--       {ext e,
+--       split,
+--       {intro h1,
+--       use (e+m),
+--       split,
+--       simp,
+--       simp_rw [f],
+--       simp},
+--       {intro h2,
+--       simp}},
+
+--     have h_integ_eq : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2))
+--      = ∫ (x : ℝ) in set.univ, g (x-m) ,
+--       {simp_rw [g],
+--         simp},
+
+--     rw h_integ_eq,
+
+--     have h_integ_eq2 : ∫ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+--      = ∫ (x : ℝ) in set.univ, g x ,
+--       {simp_rw [g],
+--         simp},
+
+--     rw h_integ_eq2,
+--     nth_rewrite 1 [h_set_eq],
+
+--     have h_comp_eq : ∀ (x:ℝ), g (x-m) = g (f x),
+--       {intro x,
+--       simp},
+
+--     simp_rw [h_comp_eq],
+--     let f_deriv : ℝ →L[ℝ] ℝ := continuous_linear_map.id ℝ ℝ,
+--     let f': ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
+
+--     rw mulone_eq g f,
+--     rw integ_smul_eq_mul f g,
+
+--     have h_use_f'_tosubst : ∫ (x : ℝ) in set.univ, |(continuous_linear_map.id ℝ ℝ).det| • g (f x)
+--      = ∫ (x : ℝ) in set.univ, |(f' x).det| • g (f x),
+--      {refl},
+
+--     rw h_use_f'_tosubst,
+
+--     have hf : set.inj_on f set.univ,
+--       refine set.injective_iff_inj_on_univ.mp _,
+--       unfold function.injective,
+--       intros a1 a2,
+--       simp_rw[f],
+--       simp,
+
+--     have hf' : ∀ (x : ℝ), x ∈ set.univ → has_fderiv_within_at f (f' x) set.univ x,
+--       {intros x hx,
+--       refine has_fderiv_within_at.sub_const _ m,
+--       exact has_fderiv_within_at_id x set.univ},
+--       {rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ measurable_set.univ hf' hf g},
+
+-- end
+lemma S_is_im (S : set ℝ) : {x : ℝ | x + m ∈ S} = (λ (x:ℝ), x-m) '' S :=
+begin
+  ext e,
+  split,
+  {intro h1,
+  use (e+m),
+  split,
+  exact h1,
+  simp,},
+  {intro h2,
+  simp at h2,
+  simp [h2],
+  cases h2 with x h3,
+  cases h3 with h4 h5,
+  rw ← h5,
+  simp [h4]},
+end
+
+lemma integ_smul_eq_mul_S (f : ℝ → ℝ) (g : ℝ → ℝ) (S : set ℝ):
+∫ (x : ℝ) in S, 1 • g (f x)
+= ∫ (x : ℝ) in S, |(continuous_linear_map.id ℝ ℝ).det| • g (f x) :=
+begin
+rw detid_eq_one,
+simp,
+end
+
+lemma change_of_vr_gaussian_with_var_one (S : set ℝ) (hS : measurable_set S):
+ ∫ (x : ℝ) in {x : ℝ | x + m ∈ S}, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)) =
+∫ (x : ℝ) in S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x-m) ^ 2)):=
+begin
+  let h : ℝ → ℝ := λ x, x-m,
+  let g : ℝ → ℝ := λ x, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)),
+  rw S_is_im S,
+  simp_rw [← h],
+  simp_rw [← g],
+  have h_eq_integ : ∫ (x : ℝ) in S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x - m) ^ 2))
+   = ∫ (x : ℝ) in S, g (h x),
+    {
+      simp_rw [g],
+    },
+  rw h_eq_integ,
+  let h': ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
+  rw mulone_eq_S g h S,
+  rw integ_smul_eq_mul_S h g S,
+  have h_use_f'_tosubst : ∫ (x : ℝ) in set.univ, |(continuous_linear_map.id ℝ ℝ).det| • g (h x)
+    = ∫ (x : ℝ) in set.univ, |(h' x).det| • g (h x),
+    {refl},
+
+--     rw h_use_f'_tosubst,
+  have h_h : set.inj_on h S,
+    {refine set.inj_on_of_injective _ S,
+      ---refine set.injective_iff_inj_on_univ.mp _,
+    unfold function.injective,
+    intros a1 a2,
+    simp_rw[h],
+    simp,},
+
+  have h_h' : ∀ (x : ℝ), x ∈ S → has_fderiv_within_at h (h' x) S x,
+    {intros x hx,
+    refine has_fderiv_within_at.sub_const _ m,
+    exact has_fderiv_within_at_id x S},
+
+  rw ← integral_image_eq_integral_abs_det_fderiv_smul ℙ hS h_h' h_h g,
+
+  ---nth_rewrite 0 h_S_is_im,
+
+
+  ---have h_integ_eq :
+
+
+end
+
+
+-- lemma inv2_pos : 0 < 2⁻¹ :=
+-- begin
+
+-- end
 lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
   gaussian_rv (f + λ x, m) m 1 :=
 begin
@@ -1525,19 +1671,72 @@ begin
       simp,
     },
   simp_rw[h],
-  rw measure_theory.measure.map_apply_of_ae_measurable ae_measurable hS,
+  rw measure_theory.measure.map_apply_of_ae_measurable ae_measurable1 hS,
   simp,
   rw h_preim_of_S_eq_Sminusm,
   rw measure_theory.with_density_apply,
   rw measure_theory.with_density_apply,
   {
+    rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
+    rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
 
-    sorry
+    {
+      simp_rw [change_of_vr_gaussian_with_var_one S hS],
+    },
+
+    {
+      {
+      rw integrable, fconstructor,
+      {
+        measurability,
+      },
+      {
+        refine (has_finite_integral_norm_iff
+   (λ (x : ℝ), (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x - m) ^ 2)))).mp
+  _,
+        apply integrable.has_finite_integral _,
+        refine integrable.abs _,
+        refine integrable.const_mul _ ((sqrt π)⁻¹ * (sqrt 2)⁻¹),
+        sorry,
+        /-
+        have neg_h_inveq : -(2*s^2)⁻¹ = -(s ^ 2)⁻¹ * 2⁻¹,
+        { simp [mul_comm] },
+
+        have hb : 0 < (2*s^2)⁻¹ := inv_pos.mpr (s_sq_pos_2 s h),
+
+        have h_gaussexp : integrable (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * a ^ 2)) ℙ,
+          rw ← neg_h_inveq,
+          exact integrable_exp_neg_mul_sq hb,
+
+        have h_eqfunc : (λ (a : ℝ), exp (-(s ^ 2)⁻¹ * 2⁻¹ * (a - m)^ 2)) = (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * (a - m) ^ 2)))  ,
+          ext x,
+          simp,
+
+        rw ← h_eqfunc,-/
+
+        --have hb
+        ---exact measure_theory.integrable.comp_sub_right h_gaussexp m,
+      }
+    },
+    },
+
+    {
+      sorry,
+    },
+
+    {
+      sorry,
+    },
+
+    {
+      sorry,
+    },
   },
   {exact hS},
   {
     measurability,
   },
+
 
 /-
   have h_ae_m_one : ae_measurable (λ (a : α), 1) ℙ,

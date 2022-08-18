@@ -501,7 +501,7 @@ begin
   exact (factorization_le_iff_dvd ha0 hb0).2 hab q,
 end
 
-lemma ord_compl_dvd_ord_compl_iff_dvd {a b : ℕ} :
+lemma ord_compl_dvd_ord_compl_iff_dvd (a b : ℕ) :
   (∀ p : ℕ, ord_compl[p] a ∣ ord_compl[p] b) ↔ (a ∣ b) :=
 begin
   refine ⟨λ h, _, λ hab p, ord_compl_dvd_ord_compl_of_dvd hab p⟩,

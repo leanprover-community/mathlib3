@@ -346,7 +346,7 @@ lemma direct_sum.coe_decompose_mul_of_right_mem {σ A} [semiring A]
 begin
   split_ifs,
   { exact direct_sum.coe_decompose_mul_of_right_mem_of_le _ b_mem h, },
-  { exact direct_sum.coe_decompose_mul_of_right_mem_of_not_le _ a_mem (by linarith), },
+  { exact direct_sum.coe_decompose_mul_of_right_mem_of_not_le _ b_mem (by linarith), },
 end
 
 end nat

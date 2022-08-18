@@ -310,3 +310,27 @@ instance : unique (β ≃+*o γ) := unique_of_subsingleton $ induced_order_ring_
 
 end induced_map
 end linear_ordered_field
+
+section real
+
+variables {R S : Type*} [linear_ordered_field R] [linear_ordered_field S]
+
+lemma ring_hom_monotone (hR : ∀ r : R, 0 ≤ r → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
+begin
+  intros a b hab,
+  apply le_of_sub_nonneg,
+  obtain ⟨s, hs⟩ := hR (b - a) (sub_nonneg.mpr hab),
+  calc
+    f b - f a = f (b - a) : (ring_hom.map_sub _ _ _).symm
+          ... = f(s^2)    : by rw ←hs
+          ... = f(s)^2    : ring_hom.map_pow _ _ _
+          ... ≥ 0         : sq_nonneg _
+end
+
+/-- There exists no nontrivial ring homomorphism `ℝ →+* ℝ`. -/
+instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
+{ default := ring_hom.id ℝ,
+  uniq := λ f, congr_arg order_ring_hom.to_ring_hom
+    (subsingleton.elim ⟨f, ring_hom_monotone (λ r hr, ⟨real.sqrt r, sq_sqrt hr⟩) f⟩ default), }
+
+end real

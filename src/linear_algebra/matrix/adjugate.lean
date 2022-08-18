@@ -21,10 +21,10 @@ which sends a matrix `A` and vector `b` to the vector consisting of the
 determinant of replacing the `i`th column of `A` with `b` at index `i`
 (written as `(A.update_column i b).det`).
 Using Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`.
-The entries of the adjugate are the determinants of each minor of `A`.
-Instead of defining a minor to be `A` with row `i` and column `j` deleted, we
-replace the `i`th row of `A` with the `j`th basis vector; this has the same
-determinant as the minor but more importantly equals Cramer's rule applied
+The entries of the adjugate are the minors of `A`.
+Instead of defining a minor by deleting row `i` and column `j` of `A`, we
+replace the `i`th row of `A` with the `j`th basis vector; the resulting matrix
+has the same determinant but more importantly equals Cramer's rule applied
 to `A` and the `j`th basis vector, simplifying the subsequent proofs.
 We prove the adjugate behaves like `det A • A⁻¹`.
 
@@ -166,10 +166,10 @@ These will hold for any matrix over a commutative ring.
 
 /-- The adjugate matrix is the transpose of the cofactor matrix.
 
-  Typically, the cofactor matrix is defined by taking the determinant of minors,
-  i.e. the matrix with a row and column removed.
-  However, the proof of `mul_adjugate` becomes a lot easier if we define the
-  minor as replacing a column with a basis vector, since it allows us to use
+  Typically, the cofactor matrix is defined by taking minors,
+  i.e. the determinant of the matrix with a row and column removed.
+  However, the proof of `mul_adjugate` becomes a lot easier if we use the
+  matrix replacing a column with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
 def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer Aᵀ (pi.single i 1)

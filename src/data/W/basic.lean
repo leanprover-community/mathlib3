@@ -90,7 +90,7 @@ lemma infinite_of_nonempty_of_is_empty (a b : α) [ha : nonempty (β a)]
 ⟨begin
   introsI hf,
   have hba : b ≠ a, from λ h, ha.elim (is_empty.elim' (show is_empty (β a), from h ▸ he)),
-  refine not_injective_infinite_fintype
+  refine not_injective_infinite_finite
     (λ n : ℕ, show W_type β, from nat.rec_on n
       ⟨b, is_empty.elim' he⟩
       (λ n ih, ⟨a, λ _, ih⟩)) _,

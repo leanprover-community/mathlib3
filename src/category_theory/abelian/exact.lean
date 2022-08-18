@@ -445,7 +445,7 @@ end
 
 section
 
-/-- A functor preserving zero morphisms, epis, and kernels preserves finite limites. -/
+/-- A functor preserving zero morphisms, epis, and kernels preserves finite limits. -/
 def preserves_finite_limits_of_preserves_kernels_and_epis
   [preserves_zero_morphisms L] [preserves_epimorphisms L]
   [hL : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) L] : preserves_finite_limits L :=
@@ -456,7 +456,7 @@ begin
   exact exact_of_is_kernel _ _ _ (is_limit_fork_map_of_is_limit' L _ (is_limit_image f g h))
 end
 
-/-- A functor preserving zero morphisms, epis, and kernels preserves finite limites. -/
+/-- A functor preserving zero morphisms, monos, and cokernels preserves finite colimits. -/
 def preserves_finite_colimits_of_preserves_cokernels_and_monos
   [preserves_zero_morphisms L] [preserves_monomorphisms L]
   [hL : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) L] :

@@ -197,51 +197,15 @@ begin
   rw [dfinsupp.not_mem_support_iff.mp h, add_submonoid_class.coe_zero, zero_mul],
 end
 
-lemma direct_sum.coe_of_mul_apply_eq_ite [add_left_cancel_monoid ι] [set_like.graded_monoid A]
-  {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι) [decidable (∃ j, i + j = n)] :
-  ((direct_sum.of _ i r * r') n : R) = if h : ∃ j, i + j = n then r * r' h.some else 0 :=
-begin
-  classical, split_ifs,
-  { exact direct_sum.coe_of_mul_apply_aux _ _ _
-     (λ j, ⟨λ he, add_left_cancel (he.trans h.some_spec.symm), λ he, he.symm ▸ h.some_spec⟩) },
-  rw direct_sum.coe_mul_apply_eq_dfinsupp_sum,
-  apply (dfinsupp.sum_single_index _).trans, swap,
-  { simp_rw [add_submonoid_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
-  { rw [dfinsupp.sum, finset.sum_ite_of_false], exacts [finset.sum_const_zero, λ x _ H, h ⟨x, H⟩] },
-end
-
-lemma direct_sum.coe_mul_of_apply_eq_ite [add_right_cancel_monoid ι] [set_like.graded_monoid A]
-  (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι) [decidable (∃ j, j + i = n)] :
-  ((r * direct_sum.of _ i r') n : R) = if h : ∃ j, j + i = n then r h.some * r' else 0 :=
-begin
-  classical, split_ifs,
-  { exact direct_sum.coe_mul_of_apply_aux _ _ _
-      (λ j, ⟨λ he, add_right_cancel (he.trans h.some_spec.symm), λ he, he.symm ▸ h.some_spec⟩) },
-  rw [direct_sum.coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
-  apply (dfinsupp.sum_single_index _).trans, swap,
-  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
-  { rw [dfinsupp.sum, finset.sum_ite_of_false], exacts [finset.sum_const_zero, λ x _ H, h ⟨x, H⟩] },
-end
-
 lemma direct_sum.coe_of_mul_apply [add_left_cancel_monoid ι] [set_like.graded_monoid A]
   {i : ι} (r : A i) (r' : ⨁ i, A i) (j : ι) :
   ((direct_sum.of _ i r * r') (i + j) : R) = r * r' j :=
-begin
-  classical,
-  rw [direct_sum.coe_of_mul_apply_eq_ite A r r' (i + j), dif_pos (exists.intro j _)],
-  { generalize_proofs h1, rw add_left_cancel h1.some_spec },
-  refl,
-end
+direct_sum.coe_of_mul_apply_aux _ _ _ (λ x, ⟨λ h, add_left_cancel h, λ h, h ▸ rfl⟩)
 
 lemma direct_sum.coe_mul_of_apply [add_right_cancel_monoid ι] [set_like.graded_monoid A]
   (r : ⨁ i, A i) {i : ι} (r' : A i) (j : ι) :
   ((r * direct_sum.of _ i r') (j + i) : R) = r j * r' :=
-begin
-  classical,
-  rw [direct_sum.coe_mul_of_apply_eq_ite A r r' (j + i), dif_pos (exists.intro j _)],
-  { generalize_proofs h1, rw add_right_cancel h1.some_spec },
-  refl,
-end
+direct_sum.coe_mul_of_apply_aux _ _ _ (λ x, ⟨λ h, add_right_cancel h, λ h, h ▸ rfl⟩)
 
 end coe
 
@@ -260,8 +224,11 @@ lemma direct_sum.coe_mul_of_apply_of_not_le
   (h : n < i) : ((r * direct_sum.of _ i r') n : R) = 0 :=
 begin
   classical,
-  rw [direct_sum.coe_mul_of_apply_eq_ite A r r' n, dif_neg],
-  simp_rw [eq_comm, ← le_iff_exists_add'], exact h.not_le,
+  rw [direct_sum.coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
+  apply (dfinsupp.sum_single_index _).trans, swap,
+  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
+  { rw [dfinsupp.sum, finset.sum_ite_of_false],
+    exacts [finset.sum_const_zero, λ _ _ _, by linarith] },
 end
 
 lemma direct_sum.coe_of_mul_apply_of_le
@@ -274,8 +241,11 @@ lemma direct_sum.coe_of_mul_apply_of_not_le
   (h : n < i) : ((direct_sum.of _ i r * r') n : R) = 0 :=
 begin
   classical,
-  rw [direct_sum.coe_of_mul_apply_eq_ite A r r' n, dif_neg],
-  simp_rw [eq_comm, ← le_iff_exists_add], exact h.not_le,
+  rw direct_sum.coe_mul_apply_eq_dfinsupp_sum,
+  apply (dfinsupp.sum_single_index _).trans, swap,
+  { simp_rw [add_submonoid_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
+  { rw [dfinsupp.sum, finset.sum_ite_of_false],
+    exacts [finset.sum_const_zero, λ _ _ _, by linarith] },
 end
 
 end nat

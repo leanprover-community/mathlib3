@@ -337,10 +337,8 @@ maps `Π i, α →o π i`. -/
 def subtype.val (p : α → Prop) : subtype p →o α :=
 ⟨subtype.val, λ x y h, h⟩
 
--- TODO[gh-6025]: make this a global instance once safe to do so
 /-- There is a unique monotone map from a subsingleton to itself. -/
-local attribute [instance]
-def unique [subsingleton α] : unique (α →o α) :=
+instance unique [subsingleton α] : unique (α →o α) :=
 { default := order_hom.id, uniq := λ a, ext _ _ (subsingleton.elim _ _) }
 
 lemma order_hom_eq_id [subsingleton α] (g : α →o α) : g = order_hom.id :=
@@ -836,25 +834,44 @@ by { rw [codisjoint, ←f.map_sup, ←f.map_top], exact f.monotone ha }
 
 namespace with_bot
 
-/-- Taking the dual then adding `⊥` is the same as adding `⊤` then taking the dual. -/
-protected def to_dual_top [has_le α] : with_bot αᵒᵈ ≃o (with_top α)ᵒᵈ := order_iso.refl _
+/-- Taking the dual then adding `⊥` is the same as adding `⊤` then taking the dual.
+This is the order iso form of `with_bot.of_dual`, as proven by `coe_to_dual_top_equiv_eq`.
+-/
+protected def to_dual_top_equiv [has_le α] : with_bot αᵒᵈ ≃o (with_top α)ᵒᵈ := order_iso.refl _
 
-@[simp] lemma to_dual_top_coe [has_le α] (a : α) :
-  with_bot.to_dual_top ↑(to_dual a) = to_dual (a : with_top α) := rfl
-@[simp] lemma to_dual_top_symm_coe [has_le α] (a : α) :
-  with_bot.to_dual_top.symm (to_dual (a : with_top α)) = ↑(to_dual a) := rfl
+@[simp] lemma to_dual_top_equiv_coe [has_le α] (a : α) :
+  with_bot.to_dual_top_equiv ↑(to_dual a) = to_dual (a : with_top α) := rfl
+@[simp] lemma to_dual_top_equiv_symm_coe [has_le α] (a : α) :
+  with_bot.to_dual_top_equiv.symm (to_dual (a : with_top α)) = ↑(to_dual a) := rfl
+@[simp] lemma to_dual_top_equiv_bot [has_le α]  :
+  with_bot.to_dual_top_equiv (⊥ : with_bot αᵒᵈ) = ⊥ := rfl
+@[simp] lemma to_dual_top_equiv_symm_bot [has_le α] :
+  with_bot.to_dual_top_equiv.symm (⊥ : (with_top α)ᵒᵈ) = ⊥ := rfl
+
+lemma coe_to_dual_top_equiv_eq [has_le α] :
+  (with_bot.to_dual_top_equiv : with_bot αᵒᵈ → (with_top α)ᵒᵈ) = to_dual ∘ with_bot.of_dual :=
+funext $ λ _, rfl
 
 end with_bot
 
 namespace with_top
 
-/-- Taking the dual then adding `⊤` is the same as adding `⊥` then taking the dual. -/
-protected def to_dual_bot [has_le α] : with_top αᵒᵈ ≃o (with_bot α)ᵒᵈ := order_iso.refl _
+/-- Taking the dual then adding `⊤` is the same as adding `⊥` then taking the dual.
+This is the order iso form of `with_top.of_dual`, as proven by `coe_to_dual_bot_equiv_eq`. -/
+protected def to_dual_bot_equiv [has_le α] : with_top αᵒᵈ ≃o (with_bot α)ᵒᵈ := order_iso.refl _
 
-@[simp] lemma to_dual_bot_coe [has_le α] (a : α) :
-  with_top.to_dual_bot ↑(to_dual a) = to_dual (a : with_bot α) := rfl
-@[simp] lemma to_dual_bot_symm_coe [has_le α] (a : α) :
-  with_top.to_dual_bot.symm (to_dual (a : with_bot α)) = ↑(to_dual a) := rfl
+@[simp] lemma to_dual_bot_equiv_coe [has_le α] (a : α) :
+  with_top.to_dual_bot_equiv ↑(to_dual a) = to_dual (a : with_bot α) := rfl
+@[simp] lemma to_dual_bot_equiv_symm_coe [has_le α] (a : α) :
+  with_top.to_dual_bot_equiv.symm (to_dual (a : with_bot α)) = ↑(to_dual a) := rfl
+@[simp] lemma to_dual_bot_equiv_top [has_le α] :
+  with_top.to_dual_bot_equiv (⊤ : with_top αᵒᵈ) = ⊤ := rfl
+@[simp] lemma to_dual_bot_equiv_symm_top [has_le α] :
+  with_top.to_dual_bot_equiv.symm (⊤ : (with_bot α)ᵒᵈ) = ⊤ := rfl
+
+lemma coe_to_dual_bot_equiv_eq [has_le α] :
+  (with_top.to_dual_bot_equiv : with_top αᵒᵈ → (with_bot α)ᵒᵈ) = to_dual ∘ with_top.of_dual :=
+funext $ λ _, rfl
 
 end with_top
 

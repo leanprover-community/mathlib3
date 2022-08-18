@@ -89,8 +89,8 @@ begin
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
   -- This turns the problem into one for square matrices, which is easy.
   let e := index_equiv_of_inv hMM' hM'M,
-  rw [← det_minor_equiv_self e, ← minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
-    minor_mul_equiv, equiv.coe_refl, minor_id_id]
+  rw [← det_submatrix_equiv_self e, ← submatrix_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+    submatrix_mul_equiv, equiv.coe_refl, submatrix_id_id]
 end
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`.
@@ -409,6 +409,25 @@ have is_unit (linear_map.to_matrix (finite_dimensional.fin_basis 𝕜 M)
     by simp only [linear_map.det_to_matrix, is_unit_iff_ne_zero.2 hf],
 linear_equiv.of_is_unit_det this
 
+lemma linear_map.associated_det_of_eq_comp (e : M ≃ₗ[R] M) (f f' : M →ₗ[R] M)
+  (h : ∀ x, f x = f' (e x)) : associated f.det f'.det :=
+begin
+  suffices : associated (f' ∘ₗ ↑e).det f'.det,
+  { convert this using 2, ext x, exact h x },
+  rw [← mul_one f'.det, linear_map.det_comp],
+  exact associated.mul_left _ (associated_one_iff_is_unit.mpr e.is_unit_det')
+end
+
+lemma linear_map.associated_det_comp_equiv {N : Type*} [add_comm_group N] [module R N]
+  (f : N →ₗ[R] M) (e e' : M ≃ₗ[R] N) :
+  associated (f ∘ₗ ↑e).det (f ∘ₗ ↑e').det :=
+begin
+  refine linear_map.associated_det_of_eq_comp (e.trans e'.symm) _ _ _,
+  intro x,
+  simp only [linear_map.comp_apply, linear_equiv.coe_coe, linear_equiv.trans_apply,
+             linear_equiv.apply_symm_apply],
+end
+
 /-- The determinant of a family of vectors with respect to some basis, as an alternating
 multilinear map. -/
 def basis.det : alternating_map R M R ι :=
@@ -445,7 +464,7 @@ lemma is_basis_iff_det {v : ι → M} :
 begin
   split,
   { rintro ⟨hli, hspan⟩,
-    set v' := basis.mk hli hspan with v'_eq,
+    set v' := basis.mk hli hspan.ge with v'_eq,
     rw e.det_apply,
     convert linear_equiv.is_unit_det (linear_equiv.refl _ _) v' e using 2,
     ext i j,
@@ -467,7 +486,7 @@ map with respect to that basis, multiplied by the value of that alternating map 
 lemma alternating_map.eq_smul_basis_det (f : alternating_map R M R ι) : f = f e • e.det :=
 begin
   refine basis.ext_alternating e (λ i h, _),
-  let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
+  let σ : equiv.perm ι := equiv.of_bijective i (finite.injective_iff_bijective.1 h),
   change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
   simp [alternating_map.map_perm, basis.det_self]
 end
@@ -516,7 +535,7 @@ end
 /-- If we fix a background basis `e`, then for any other basis `v`, we can characterise the
 coordinates provided by `v` in terms of determinants relative to `e`. -/
 lemma basis.det_smul_mk_coord_eq_det_update {v : ι → M}
-  (hli : linear_independent R v) (hsp : span R (range v) = ⊤) (i : ι) :
+  (hli : linear_independent R v) (hsp : ⊤ ≤ span R (range v)) (i : ι) :
   (e.det v) • (basis.mk hli hsp).coord i = e.det.to_multilinear_map.to_linear_map v i :=
 begin
   apply (basis.mk hli hsp).ext,

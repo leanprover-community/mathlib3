@@ -41,7 +41,6 @@ universes u v w
 noncomputable theory
 local attribute [instance] prop_decidable
 
-
 namespace inverse_system
 
 variables {J : Type u} [preorder J] [is_directed J ge] (F : J ⥤ Type v)
@@ -83,8 +82,9 @@ lemma cofinite.list_preimage (f : V → V') (cof : cofinite f) : ∀ l : list V'
 begin
   intro l,
   induction l,
-  { simp, },
-  { simp, rw [set.insert_eq, set.preimage_union],
+  { simp only [list.to_finset_nil, coe_empty, set.preimage_empty, finite_empty], },
+  { simp only [list.to_finset_cons, coe_insert],
+    rw [set.insert_eq, set.preimage_union],
     apply set.finite.union,
     {apply cof,},
     {assumption,} }
@@ -111,9 +111,9 @@ begin
 end
 
 
-lemma cofinite.id : cofinite (@id V) := by {intro,simp}
+lemma cofinite.id : cofinite (@id V) := by {intro,simp only [set.preimage_id, finite_singleton]}
 lemma cofinite.of_inj {f : V → V'} (inj : function.injective f) : cofinite f := by
-{ intro,dsimp [set.preimage], sorry } -- can we show it constructively?
+{ intro,dsimp only [set.preimage], sorry } -- can we show it constructively?
 
 
 def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V :=
@@ -147,8 +147,8 @@ end
 
 lemma good_finset.id (K : finset V) : K ∈ good_finset G G (@id V) (cofinite.id) K := by
 { split,
-  {dsimp [cofinite.preimage], rw ←finset.coe_subset, simp,},
-  {dsimp [id], rintro D, use D, simp, } }
+  {dsimp only [cofinite.preimage], rw ←finset.coe_subset, simp,},
+  {rintro D, use D, simp only [id.def, set.image_id'], } }
 
 include Gpc
 lemma good_finset.mono (f : V → V') (cof : cofinite f) (K : finset V')
@@ -175,23 +175,21 @@ lemma good_finset.comp (f : V → V') (cof : cofinite f) (f' : V' → V'') (cof'
   (L' : finset V') (HL' : L' ∈ good_finset G' G'' f' cof' K)
   (L : finset V) (HL : L ∈ good_finset G G' f cof L') :
   L ∈ good_finset G G'' (f' ∘ f) (cofinite.comp cof cof') K :=
-begin  -- sould be simplified using cofinite.preimage_coe
-  split,
+⟨ by
   { apply finset.subset.trans _ HL.1,
     let HL'' := HL'.1,
     simp only [←finset.coe_subset, cofinite.preimage.coe] at HL'' ⊢,
     rw set.preimage_comp,
     apply set.preimage_mono,
-    exact HL''},
-  { rintro D,
-    obtain ⟨D',D'good⟩ := HL.2 D,
-    obtain ⟨C,Cgood⟩ := HL'.2 D',
-    use C,
-    apply subset.trans _ Cgood,
-    rw set.image_comp,
-    apply image_subset f' D'good,
-  }
-end
+    exact HL''}
+, λ D,
+  ⟨(HL'.2 (HL.2 D).some).some
+  , by
+    { apply subset.trans _ ((HL'.2 (HL.2 D).some).some_spec),
+      rw set.image_comp,
+      apply image_subset f' (HL.2 D).some_spec,}
+    ⟩
+⟩
 
 /- Not so sure it's true, actually
 lemma good_finset.inter( f : V → V') (cof : cofinite f) (K : finset V')
@@ -277,11 +275,99 @@ begin
     exact ((bwd_map.bwd_map_inf.iff G' Gpc' KsubK' C' C).mpr this).symm,}
 end
 
-def coarse_to_ends.id [locally_finite G] : coarse_to_ends G Gpc G Gpc (coarse.id G Gpc) = id := sorry
+def coarse_to_ends.id [locally_finite G] : coarse_to_ends G Gpc G Gpc (coarse.id G Gpc) = id :=
+begin
+  apply funext,
+  rintro ⟨s,sec⟩,
+  dsimp only [coarse_to_ends],
+  simp only [id.def, set.image_id', subtype.val_eq_coe, subtype.mk_eq_mk],
+  apply funext,
+  rintro K,
+  let L := some ((coarse.id G Gpc).coarse K),
+  let HL := some_spec ((coarse.id G Gpc).coarse K),
+  have KL : K ⊆ L, by {have lol := HL.1,rw ←finset.coe_subset at lol, rw cofinite.preimage.coe at lol, dsimp [coarse.id] at lol, exact lol,},
+  let HC := some_spec (HL.2 (s L)),
+
+  apply subtype.ext, apply subtype.ext,
+  apply ro_component.eq_of_common_subset G K
+    (some (HL.2 (s L))).val.val (s K).val.val
+    (some (HL.2 (s L))).val.prop (s K).val.prop,
+  show (s L).val.val ⊆ (some (HL.2 (s L))).val.val, by { dsimp [coarse.id] at HC, simp at HC,simp,exact HC,},
+  show (s L).val.val ⊆ (s K).val.val, by
+  { dsimp only [ComplInfComp] at *,
+    apply (bwd_map.bwd_map_inf.iff G Gpc KL (s K) (s L)).mp _,
+    let lol := sec (hom_of_le KL),
+    exact lol.symm, -- strangely I can't do without the intermediate `let`
+  },
+  exact set.infinite.nonempty (s L).prop,
+end
+
 def coarse_to_ends.comp [locally_finite G] [locally_finite G'] [locally_finite G'']
   (φ : coarse G Gpc G')  (φ' : coarse G' Gpc' G'') :
   (coarse_to_ends G' Gpc' G'' Gpc'' φ') ∘ (coarse_to_ends G Gpc G' Gpc' φ) =
-  coarse_to_ends G Gpc G'' Gpc'' (coarse.comp G Gpc G' Gpc' G'' φ φ') := sorry
+  coarse_to_ends G Gpc G'' Gpc'' (coarse.comp G Gpc G' Gpc' G'' φ φ') :=
+begin
+  apply funext,
+  rintro ⟨s,sec⟩,
+
+  dsimp only [coarse_to_ends],
+  simp only [subtype.val_eq_coe, set.image_subset_iff, subtype.mk_eq_mk],
+  apply funext,
+  rintro K,
+  apply subtype.ext, apply subtype.ext,
+
+  let L := some (φ'.coarse K),
+  let HL := some_spec (φ'.coarse K),
+  let M := some (φ.coarse L),
+  let HM := some_spec (φ.coarse L),
+
+  let N := some ((coarse.comp G Gpc G' Gpc' G'' φ φ').coarse K),
+  let HN := some_spec ((coarse.comp G Gpc G' Gpc' G'' φ φ').coarse K),
+
+  let C := some (HM.2 (s M)),
+  let HC := some_spec (HM.2 (s M)),
+  let D := some (HL.2 C),
+  let HD := some_spec (HL.2 C),
+
+  let E := some (HN.2 (s N)),
+  let HE := some_spec (HN.2 (s N)),
+
+  have HMN : (s (M ∪ N)).val.val ⊆ (s M).val.val, by
+  { let lol := sec (hom_of_le (subset_union_left M N)),
+    dsimp only [ComplInfComp] at lol, rw ←lol,
+    apply bwd_map.bwd_map_inf.sub,},
+  have HNM : (s (M ∪ N)).val.val ⊆ (s N).val.val, by
+  { let lol := sec (hom_of_le (subset_union_right M N)),
+    dsimp only [ComplInfComp] at lol, rw ←lol,
+    apply bwd_map.bwd_map_inf.sub,},
+
+  dsimp only [subtype.val_eq_coe, set.image_subset_iff, coarse.comp, coarse_to_ends] at *,
+
+  have : ↑↑D = ↑↑E, by {
+    fapply ro_component.eq_of_common_subset G'' K ↑↑D ↑↑E D.val.prop E.val.prop,
+    { exact (φ'.to_fun ∘ φ.to_fun) '' (s (M ∪ N)).val.val,},
+    { rw set.image_comp,
+      refine (image_subset φ'.to_fun _).trans _,rotate 3,
+      exact φ.to_fun '' (s M).val.val,
+      exact image_subset φ.to_fun HMN,
+      apply subset.trans _ HD,
+      apply image_subset φ'.to_fun HC, },
+    { rw set.image_comp,
+      refine (image_subset φ'.to_fun _).trans _,rotate 3,
+      exact φ.to_fun '' (s N).val.val,
+      exact image_subset φ.to_fun HNM,
+      --dsimp only [coarse.comp] at HE,
+      simp only [subtype.val_eq_coe],
+      rw ←set.image_comp, exact HE, },
+    { rw set.nonempty_image_iff,
+      apply set.infinite.nonempty,
+      apply (λ (C : inf_ro_components' G _), C.prop), },
+  },
+  -- exact this,
+  sorry, -- `this` should exactly be the goal, I believe??
+
+
+end
 
 
 

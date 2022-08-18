@@ -172,6 +172,12 @@ begin
   exact eq_of_common_mem G K C D hC hD x xC xD,
 end
 
+lemma eq_of_common_subset (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
+  (S : set V) (SC : S ⊆ C) (SD : S ⊆ D) (Snempty : S.nonempty)  : C = D :=
+begin
+  exact eq_of_common_mem G K C D hC hD Snempty.some (SC Snempty.some_spec) (SD Snempty.some_spec),
+end
+
 lemma disjoint_of_neq (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
   (neq : C ≠ D) : disjoint C D :=
 begin
@@ -489,6 +495,7 @@ lemma bij_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) 
       {simp, rw [← set.eq_preimage_iff_image_eq], exact rel_iso.bijective φ,}
     }
   end
+
 
 
 

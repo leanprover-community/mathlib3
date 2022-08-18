@@ -1643,20 +1643,6 @@ begin
           rw integrable, fconstructor,
           {measurability,},
           {
-            /-
-            have hb : 0 < (2*s^2)⁻¹ := inv_pos.mpr (s_sq_pos_2 s h),
-
-        have h_gaussexp : integrable (λ (a : ℝ), exp (-2⁻¹ * a ^ 2)) ℙ,
-          rw ← neg_h_inveq,
-          exact integrable_exp_neg_mul_sq hb,
-
-        have h_eqfunc : (λ (a : ℝ), exp (-(2)⁻¹ * (a - m)^ 2)) = (λ (a : ℝ), exp (-(2⁻¹ * (a - m) ^ 2)))  ,
-          ext x,
-          simp,
-
-        rw ← h_eqfunc,
-        exact measure_theory.integrable.comp_sub_right h_gaussexp m,
-            -/
             refine (has_finite_integral_norm_iff (λ (a : ℝ), exp (-(2⁻¹ * (a - m) ^ 2)))).mp _,
             apply integrable.has_finite_integral _,
             refine integrable.abs _,
@@ -1670,8 +1656,10 @@ begin
             have hb: (0:ℝ) < (2)⁻¹,
               {simp,},
             have h_gaussexp : integrable (λ (a : ℝ), exp (-2⁻¹ * a ^ 2)) ℙ,
-              {sorry},
-            sorry
+              {
+                exact integrable_exp_neg_mul_sq hb,
+              },
+            exact measure_theory.integrable.comp_sub_right h_gaussexp m,
           },
         },
 
@@ -1706,7 +1694,40 @@ begin
     },
 
     {
-      sorry,
+      rw integrable, fconstructor,
+      {
+        measurability,
+      },
+      {
+        refine (has_finite_integral_norm_iff
+   (λ (x : ℝ), (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)))).mp
+  _,
+        apply integrable.has_finite_integral _,
+        refine integrable.abs _,
+        refine integrable.const_mul _ ((sqrt π)⁻¹ * (sqrt 2)⁻¹),
+        refine measure_theory.integrable_on.integrable _,
+        have h₁: integrable (λ (a : ℝ), exp (-(2⁻¹ * a ^ 2))) ℙ,
+          {
+            rw integrable, fconstructor,
+            {measurability,},
+            {
+              refine (has_finite_integral_norm_iff (λ (a : ℝ), exp (-(2⁻¹ * a ^ 2)))).mp _,
+              apply integrable.has_finite_integral _,
+              refine integrable.abs _,
+              simp,
+              have h_eqfunc : (λ (a : ℝ), exp (-(2)⁻¹ * a^ 2)) = (λ (a : ℝ), exp (-(2⁻¹ * a ^ 2)))  ,
+                {
+                  ext x,
+                  simp,
+                },
+              rw ← h_eqfunc,
+              have hb: (0:ℝ) < (2)⁻¹,
+                {simp,},
+              exact integrable_exp_neg_mul_sq hb,
+            }
+          },
+        simp[(measure_theory.integrable.integrable_on h₁)],
+      },
     },
 
     {
@@ -1754,7 +1775,7 @@ begin
   {
     rw h,
     rw zero_smul,
-    ext1 s hs,
+    ext1 S hS,
     simp,
     sorry
   },

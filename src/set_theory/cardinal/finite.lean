@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import data.zmod.defs
 import set_theory.cardinal.basic
 
 /-!
@@ -75,6 +76,14 @@ card_congr equiv.ulift
 
 @[simp] lemma card_plift (α : Type*) : nat.card (plift α) = nat.card α :=
 card_congr equiv.plift
+
+@[simp] lemma card_zmod (n : ℕ) : nat.card (zmod n) = n :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | h,
+  { exact nat.card_eq_zero_of_infinite },
+  { haveI := fact.mk h,
+    rw [nat.card_eq_fintype_card, zmod.card] },
+end
 
 end nat
 

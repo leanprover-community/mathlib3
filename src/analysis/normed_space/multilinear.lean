@@ -60,9 +60,6 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_add_comm_group.to_add_comm_group normed_space.to_module'
 
--- hack to speed up simp when dealing with complicated types
-local attribute [-instance] unique.subsingleton pi.subsingleton
-
 /-!
 ### Type variables
 
@@ -732,7 +729,7 @@ begin
   refine this _ _,
   intros m,
   simp only [continuous_multilinear_map.mk_pi_algebra_fin_apply, one_mul, list.of_fn_eq_map,
-    fin.univ_def, finset.fin_range, finset.prod, multiset.coe_map, multiset.coe_prod],
+    fin.prod_univ_def, multiset.coe_map, multiset.coe_prod],
   refine (list.norm_prod_le' _).trans_eq _,
   { rw [ne.def, list.map_eq_nil, list.fin_range_eq_nil],
     exact nat.succ_ne_zero _, },
@@ -1240,7 +1237,6 @@ isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the con
 derivatives, we register this isomorphism. -/
 
 section
-local attribute [instance] unique.subsingleton
 
 variables {𝕜 G G'}
 

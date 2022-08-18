@@ -17,9 +17,8 @@ variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [inline] list.head
 
--- TODO[gh-6025]: make this an instance once safe to do so
 /-- There is only one list of an empty type -/
-def unique_of_is_empty [is_empty α] : unique (list α) :=
+instance unique_of_is_empty [is_empty α] : unique (list α) :=
 { uniq := λ l, match l with
     | [] := rfl
     | (a :: l) := is_empty_elim a
@@ -2919,6 +2918,14 @@ end
 @[simp] theorem filter_map_some (l : list α) : filter_map some l = l :=
 by rw filter_map_eq_map; apply map_id
 
+theorem map_filter_map_some_eq_filter_map_is_some (f : α → option β) (l : list α) :
+  (l.filter_map f).map some = (l.map f).filter (λ b, b.is_some) :=
+begin
+  induction l with x xs ih,
+  { simp },
+  { cases h : f x; rw [list.filter_map_cons, h]; simp [h, ih] },
+end
+
 @[simp] theorem mem_filter_map (f : α → option β) (l : list α) {b : β} :
   b ∈ filter_map f l ↔ ∃ a, a ∈ l ∧ f a = some b :=
 begin
@@ -2946,6 +2953,17 @@ theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
   (H : ∀ x : α, (f x).map g = some x) (l : list α) :
   map g (filter_map f l) = l :=
 by simp only [map_filter_map, H, filter_map_some]
+
+theorem length_filter_le (p : α → Prop) [decidable_pred p] (l : list α) :
+  (l.filter p).length ≤ l.length :=
+list.length_le_of_sublist (list.filter_sublist _)
+
+theorem length_filter_map_le (f : α → option β) (l : list α) :
+  (list.filter_map f l).length ≤ l.length :=
+begin
+  rw [← list.length_map some, list.map_filter_map_some_eq_filter_map_is_some, ← list.length_map f],
+  apply list.length_filter_le,
+end
 
 theorem sublist.filter_map (f : α → option β) {l₁ l₂ : list α}
   (s : l₁ <+ l₂) : filter_map f l₁ <+ filter_map f l₂ :=

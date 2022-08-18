@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import logic.small
+import category_theory.category.ulift
 import category_theory.skeletal
 
 /-!
@@ -72,6 +73,9 @@ end
 lemma discrete.essentially_small_of_small {α : Type u} [small.{w} α] :
   essentially_small.{w} (discrete α) :=
 ⟨⟨discrete (shrink α), ⟨infer_instance, ⟨discrete.equivalence (equiv_shrink _)⟩⟩⟩⟩
+
+lemma essentially_small_self : essentially_small.{max w v u} C :=
+essentially_small.mk' (as_small.equiv : C ≌ as_small.{w} C)
 
 /--
 A category is `w`-locally small if every hom set is `w`-small.

@@ -4,25 +4,36 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.complex.abs_max
+import analysis.locally_convex.with_seminorms
 import geometry.manifold.mfderiv
+import topology.locally_constant.basic
 
 /-! # Holomorphic functions on complex manifolds
 
 Thanks to the rigidity of complex-differentiability compared to real-differentiability, there are
 many results about complex manifolds with no analogue for manifolds over a general normed field. For
-now, this file contains just one such result:
+now, this file contains just two (closely related) such results:
 
 ## Main results
 
+* `mdifferentiable.is_locally_constant`: A complex-differentiable function on a compact complex
+  manifold is locally constant.
 * `mdifferentiable.exists_eq_const_of_compact_space`: A complex-differentiable function on a compact
   preconnected complex manifold is constant.
 
 ## TODO
 
-There is a whole theory to develop here, but an obvious next step would be to generalize the above
-result to possibly disconnected compact complex manifolds, where the result should be that a
-complex-differentiable function is `is_locally_constant`.  There are some gaps in the
-`is_locally_constant` API that need to be filled for this.
+There is a whole theory to develop here.  Maybe a next step would be to develop a theory of
+holomorphic vector/line bundles, including:
+* the finite-dimensionality of the space of sections of a holomorphic vector bundle
+* Siegel's theorem: for any `n + 1` formal ratios `g 0 / h 0`, `g 1 / h 1`, .... `g n / h n` of
+  sections of a fixed line bundle `L` over a complex `n`-manifold, there exists a polynomial
+  relationship `P (g 0 / h 0, g 1 / h 1, .... g n / h n) = 0`
+
+Another direction would be to develop the relationship with sheaf theory, building the sheaves of
+holomorphic and meromorphic functions on a complex manifold and proving algebraic results about the
+stalks, such as the Weierstrass preparation theorem.
+
 -/
 
 open_locale manifold topological_space
@@ -85,6 +96,17 @@ begin
   rintros q ⟨hqs, hq : chart_at E p q ∈ _, hq'⟩,
   refine ⟨_, hqs⟩,
   simpa [local_homeomorph.left_inv _ hq', hp, -norm_eq_abs] using hUf (chart_at E p q) hq,
+end
+
+/-- A holomorphic function on a compact complex manifold is locally constant. -/
+protected lemma is_locally_constant [compact_space M]
+  {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
+  is_locally_constant f :=
+begin
+  haveI : locally_connected_space M := charted_space.locally_connected_space E M,
+  apply is_locally_constant.of_constant_on_preconnected_clopens,
+  intros s hs hs' x hx y hy,
+  exact hf.apply_eq_of_is_compact hs'.2.is_compact hs hs' hy hx,
 end
 
 /-- A holomorphic function on a compact connected complex manifold is constant. -/

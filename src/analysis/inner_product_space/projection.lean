@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.convex.basic
-import analysis.inner_product_space.basic
+import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 
 /-!
@@ -541,7 +541,7 @@ begin
   { intros x hx,
     obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
     have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
-    simp [inner_sub_left, inner_smul_left, inner_smul_right, ring_equiv.map_div, mul_comm, hv,
+    simp [inner_sub_left, inner_smul_left, inner_smul_right, map_div₀, mul_comm, hv,
       inner_product_space.conj_sym, hv] }
 end
 
@@ -938,6 +938,12 @@ lemma inner_orthogonal_projection_left_eq_right
   [complete_space K] (u v : E) :
   ⟪↑(orthogonal_projection K u), v⟫ = ⟪u, orthogonal_projection K v⟫ :=
 by rw [← inner_orthogonal_projection_eq_of_mem_left, inner_orthogonal_projection_eq_of_mem_right]
+
+/-- The orthogonal projection is symmetric. -/
+lemma orthogonal_projection_is_symmetric
+  [complete_space K] :
+  (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
+inner_orthogonal_projection_left_eq_right K
 
 open finite_dimensional
 

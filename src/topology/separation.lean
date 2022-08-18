@@ -717,9 +717,8 @@ lemma induced_bot {X Y : Type*} {f : X → Y} (hf : function.injective f) :
 eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
 
 lemma inducing.discrete_topology {X Y : Type*} [topological_space X] [topological_space Y]
-  [discrete_topology Y] {f : X → Y} (h1 : inducing f) (h2 : function.injective f) :
-  discrete_topology X :=
-⟨by rw [h1.induced, discrete_topology.eq_bot Y, induced_bot h2]⟩
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.injective]⟩
 
 /-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
 is the discrete topology on `X`. -/

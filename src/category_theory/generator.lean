@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.balanced
+import category_theory.limits.essentially_small
 import category_theory.limits.opposites
 import category_theory.limits.shapes.zero_morphisms
+import category_theory.subobject.lattice
+import category_theory.subobject.well_powered
 import data.set.opposite
 
 /-!
@@ -45,8 +48,6 @@ We
 
 * We currently don't have any examples yet.
 * We will want typeclasses `has_separator C` and similar.
-* To state the Special Adjoint Functor Theorem, we will need to be able to talk about *small*
-  separating sets.
 
 -/
 
@@ -237,6 +238,101 @@ lemma is_codetecting_empty_of_groupoid [∀ {X Y : C} (f : X ⟶ Y), is_iso f] :
 
 end empty
 
+lemma is_separating_iff_epi (𝒢 : set C)
+  [Π (A : C), has_coproduct (λ f : Σ G : 𝒢, (G : C) ⟶ A, (f.1 : C))] :
+  is_separating 𝒢 ↔ ∀ A : C, epi (sigma.desc (@sigma.snd 𝒢 (λ G, (G : C) ⟶ A))) :=
+begin
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ G hG f, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using (sigma.ι (λ f : Σ G : 𝒢, (G : C) ⟶ A, (f.1 : C)) ⟨⟨G, hG⟩, f⟩) ≫= huv },
+  { haveI := h X,
+    refine (cancel_epi (sigma.desc (@sigma.snd 𝒢 (λ G, (G : C) ⟶ X)))).1 (colimit.hom_ext (λ j, _)),
+    simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
+end
+
+lemma is_coseparating_iff_mono (𝒢 : set C)
+  [Π (A : C), has_product (λ f : Σ G : 𝒢, A ⟶ (G : C), (f.1 : C))] :
+  is_coseparating 𝒢 ↔ ∀ A : C, mono (pi.lift (@sigma.snd 𝒢 (λ G, A ⟶ (G : C)))) :=
+begin
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ G hG f, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using huv =≫ (pi.π (λ f : Σ G : 𝒢, A ⟶ (G : C), (f.1 : C)) ⟨⟨G, hG⟩, f⟩) },
+  { haveI := h Y,
+    refine (cancel_mono (pi.lift (@sigma.snd 𝒢 (λ G, Y ⟶ (G : C))))).1 (limit.hom_ext (λ j, _)),
+    simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
+end
+
+/-- An ingredient of the proof of the Special Adjoint Functor Theorem: a complete well-powered
+    category with a small coseparating set has an initial object.
+
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete. -/
+lemma has_initial_of_is_cosepatating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v} 𝒢]
+  (h𝒢 : is_coseparating 𝒢) : has_initial C :=
+begin
+  haveI := has_products_of_shape_of_small C 𝒢,
+  haveI := λ A, has_products_of_shape_of_small.{v} C (Σ G : 𝒢, A ⟶ (G : C)),
+  letI := complete_lattice_of_complete_semilattice_Inf (subobject (pi_obj (coe : 𝒢 → C))),
+  suffices : ∀ A : C, unique (((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) ⟶ A),
+  { exactI has_initial_of_unique ((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) },
+  refine λ A, ⟨⟨_⟩, λ f, _⟩,
+  { let s := pi.lift (λ f : Σ G : 𝒢, A ⟶ (G : C), id (pi.π (coe : 𝒢 → C)) f.1),
+    let t := pi.lift (@sigma.snd 𝒢 (λ G, A ⟶ (G : C))),
+    haveI : mono t := (is_coseparating_iff_mono 𝒢).1 h𝒢 A,
+    exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
+  { generalize : default = g,
+    suffices : split_epi (equalizer.ι f g),
+    { exactI eq_of_epi_equalizer },
+    exact ⟨subobject.of_le_mk _ (equalizer.ι f g ≫ subobject.arrow _) bot_le, by { ext, simp }⟩ }
+end
+
+/-- An ingredient of the proof of the Special Adjoint Functor Theorem: a cocomplete well-copowered
+    category with a small separating set has a terminal object.
+
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete. -/
+lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v} 𝒢]
+  (h𝒢 : is_separating 𝒢) : has_terminal C :=
+begin
+  haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
+  haveI : small.{v} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
+  haveI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating ((is_coseparating_op_iff _).2 h𝒢),
+  exact has_terminal_of_has_initial_op
+end
+
+section well_powered
+
+namespace subobject
+
+lemma eq_of_le_of_is_detecting {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C} (P Q : subobject X)
+  (h₁ : P ≤ Q) (h₂ : ∀ (G ∈ 𝒢) {f : G ⟶ X}, Q.factors f → P.factors f) : P = Q :=
+begin
+  suffices : is_iso (of_le _ _ h₁),
+  { exactI le_antisymm h₁ (le_of_comm (inv (of_le _ _ h₁)) (by simp)) },
+  refine h𝒢 _ (λ G hG f, _),
+  have : P.factors (f ≫ Q.arrow) := h₂ _ hG ((factors_iff _ _).2 ⟨_, rfl⟩),
+  refine ⟨factor_thru _ _ this, _, λ g (hg : g ≫ _ = f), _⟩,
+  { simp only [← cancel_mono Q.arrow, category.assoc, of_le_arrow, factor_thru_arrow] },
+  { simp only [← cancel_mono (subobject.of_le _ _ h₁), ← cancel_mono Q.arrow, hg,
+      category.assoc, of_le_arrow, factor_thru_arrow] }
+end
+
+lemma inf_eq_of_is_detecting [has_pullbacks C] {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C}
+  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) {f : G ⟶ X}, P.factors f → Q.factors f) : P ⊓ Q = P :=
+eq_of_le_of_is_detecting h𝒢 _ _ _root_.inf_le_left (λ G hG f hf, (inf_factors _).2 ⟨hf, h _ hG hf⟩)
+
+lemma eq_of_is_detecting [has_pullbacks C] {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C}
+  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) {f : G ⟶ X}, P.factors f ↔ Q.factors f) : P = Q :=
+calc P = P ⊓ Q : eq.symm $ inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG).1 hf
+   ... = Q ⊓ P : inf_comm
+   ... = Q     : inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG).2 hf
+
+end subobject
+
+/-- A category with pullbacks and a small detecting set is well-powered. -/
+lemma well_powered_of_is_detecting [has_pullbacks C] {𝒢 : set C} [small.{v} 𝒢]
+  (h𝒢 : is_detecting 𝒢) : well_powered C :=
+⟨λ X, @small_of_injective _ _ _ (λ P : subobject X, { f : Σ G : 𝒢, G.1 ⟶ X | P.factors f.2 }) $
+  λ P Q h, subobject.eq_of_is_detecting h𝒢 _ _ (by simpa [set.ext_iff] using h)⟩
+
+end well_powered
+
 /-- We say that `G` is a separator if the functor `C(G, -)` is faithful. -/
 def is_separator (G : C) : Prop :=
 is_separating ({G} : set C)
@@ -342,6 +438,28 @@ lemma is_coseparator_iff_faithful_yoneda_obj (G : C) :
  λ h, (is_coseparator_def _).2 $ λ X Y f g hfg, quiver.hom.op_inj $
   by exactI (yoneda.obj G).map_injective (funext hfg)⟩
 
+lemma is_separator_iff_epi (G : C) [Π A : C, has_coproduct (λ (f : G ⟶ A), G)] :
+  is_separator G ↔ ∀ (A : C), epi (sigma.desc (λ (f : G ⟶ A), f)) :=
+begin
+  rw is_separator_def,
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using (sigma.ι _ i) ≫= huv },
+  { haveI := h X,
+    refine (cancel_epi (sigma.desc (λ (f : G ⟶ X), f))).1 (colimit.hom_ext (λ j, _)),
+    simpa using hh j.as }
+end
+
+lemma is_coseparator_iff_mono (G : C) [Π A : C, has_product (λ (f : A ⟶ G), G)] :
+  is_coseparator G ↔ ∀ (A : C), mono (pi.lift (λ (f : A ⟶ G), f)) :=
+begin
+  rw is_coseparator_def,
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using huv =≫ (pi.π _ i) },
+  { haveI := h Y,
+    refine (cancel_mono (pi.lift (λ (f : Y ⟶ G), f))).1 (limit.hom_ext (λ j, _)),
+    simpa using hh j.as }
+end
+
 section zero_morphisms
 variables [has_zero_morphisms C]
 
@@ -441,5 +559,9 @@ begin
     { exactI @is_iso_of_reflects_iso _ _ _ _ _ _ _ (yoneda.obj G) _ h },
     rwa [is_iso_iff_bijective, function.bijective_iff_exists_unique] }
 end
+
+lemma well_powered_of_is_detector [has_pullbacks C] (G : C) (hG : is_detector G) :
+  well_powered C :=
+well_powered_of_is_detecting hG
 
 end category_theory

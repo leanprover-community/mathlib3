@@ -29,7 +29,7 @@ The category of `T`-structured arrows with domain `S : D` (here `T : C ⥤ D`),
 has as its objects `D`-morphisms of the form `S ⟶ T Y`, for some `Y : C`,
 and morphisms `C`-morphisms `Y ⟶ Y'` making the obvious triangle commute.
 -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def structured_arrow (S : D) (T : C ⥤ D) := comma (functor.from_punit S) T
 
 namespace structured_arrow
@@ -145,7 +145,7 @@ The category of `S`-costructured arrows with target `T : D` (here `S : C ⥤ D`)
 has as its objects `D`-morphisms of the form `S Y ⟶ T`, for some `Y : C`,
 and morphisms `C`-morphisms `Y ⟶ Y'` making the obvious triangle commute.
 -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def costructured_arrow (S : C ⥤ D) (T : D) := comma S (functor.from_punit T)
 
 namespace costructured_arrow

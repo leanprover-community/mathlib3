@@ -301,6 +301,27 @@ lemma mem_pi (x : ι → α) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
 
 end pi
 
+lemma Inf_is_prime_of_is_chain {s : set (ideal α)} (hs : s.nonempty) (hs' : is_chain (≤) s)
+  (H : ∀ p ∈ s, ideal.is_prime p) :
+  (Inf s).is_prime :=
+begin
+  constructor,
+  { intro e, obtain ⟨x, hx⟩ := hs,
+    exact ideal.is_prime.ne_top (H x hx) (eq_top_iff.mpr (e.symm.trans_le (Inf_le hx))) },
+  { intros x y e,
+    rw or_iff_not_imp_left,
+    intros hx,
+    rw ideal.mem_Inf at hx ⊢ e,
+    push_neg at hx,
+    obtain ⟨I, hI, hI'⟩ := hx,
+    intros J hJ,
+    by_cases I = J,
+    { exact h ▸ ((H I hI).mem_or_mem (e hI)).resolve_left hI' },
+    rcases hs' hI hJ h with (h'|h'),
+    { exact h' (((H I hI).mem_or_mem (e hI)).resolve_left hI') },
+    { exact ((H J hJ).mem_or_mem (e hJ)).resolve_left (λ x, hI' $ h' x) } }
+end
+
 end ideal
 
 end semiring

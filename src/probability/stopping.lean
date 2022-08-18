@@ -751,6 +751,37 @@ lemma is_stopping_time.measurable_set_lt_le (hτ : is_stopping_time f τ) {i j :
   measurable_set[f j] {ω | τ ω < i} :=
 f.mono hle _ $ hτ.measurable_set_lt i
 
+section coe
+
+variables {π : Ω → ι}
+
+lemma is_stopping_time.coe_measurable_set_lt (hπ : is_stopping_time f (λ ω, π ω)) (i : ι) :
+  measurable_set[f i] {ω | π ω < i} :=
+begin
+  have := hπ.measurable_set_lt i,
+  simp_rw [with_top.coe_lt_coe] at this,
+  assumption
+end
+
+lemma is_stopping_time.coe_measurable_set_ge (hπ : is_stopping_time f (λ ω, π ω)) (i : ι) :
+  measurable_set[f i] {ω | i ≤ π ω} :=
+begin
+  have := hπ.measurable_set_ge i,
+  simp_rw [with_top.coe_le_coe] at this,
+  assumption
+end
+
+lemma is_stopping_time.coe_measurable_set_eq (hπ : is_stopping_time f (λ ω, π ω)) (i : ι) :
+  measurable_set[f i] {ω | π ω = i} :=
+begin
+  have := hπ.measurable_set_eq i,
+  simp_rw [with_top.coe_eq_coe] at this,
+  assumption
+end
+
+
+end coe
+
 end topological_space
 
 end linear_order
@@ -1363,6 +1394,7 @@ rfl
 
 variables [linear_order ι]
 
+-- move
 namespace with_top
 
 def min_untop (i : ι) (j : with_top ι) : ι :=

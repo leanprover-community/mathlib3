@@ -37,27 +37,24 @@ open_locale classical measure_theory nnreal ennreal topological_space big_operat
 
 namespace measure_theory
 
-variables {Ω β ι : Type*} {m0 : measurable_space Ω}
+variables {Ω β ι : Type*} {m : measurable_space Ω}
 
 /-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s n m` is the first time
 `u` is in `s` after time `n` and before time `m` (if `u` does not hit `s` after time `n` and
 before `m` then the hitting time is simply `m`).
 
 The hitting time is a stopping time if the process is adapted and discrete. -/
-noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → Ω → β) (s : set β) (n m : with_top ι) :
-  Ω → with_top ι :=
-λ x, if ∃ (j : ι) (H : ↑j ∈ set.Icc n m), u j x ∈ s then
-  Inf (set.Icc n m ∩ coe '' {i : ι | u i x ∈ s}) else m
+noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → Ω → β) (s : set β) (n m : ι) : Ω → ι :=
+λ x, if ∃ j ∈ set.Icc n m, u j x ∈ s then Inf (set.Icc n m ∩ {i : ι | u i x ∈ s}) else m
 
 section inequalities
 
-variables [conditionally_complete_linear_order ι] {u : ι → Ω → β} {s : set β}
-  {n m i : with_top ι} {ω : Ω}
+variables [conditionally_complete_linear_order ι] {u : ι → Ω → β} {s : set β} {n i : ι} {ω : Ω}
 
-lemma hitting_of_lt (h : m < n) : hitting u s n m ω = m :=
+lemma hitting_of_lt {m : ι} (h : m < n) : hitting u s n m ω = m :=
 begin
   simp_rw [hitting],
-  have h_not : ¬ ∃ (j : ι) (H : ↑j ∈ set.Icc n m), u j ω ∈ s,
+  have h_not : ¬ ∃ (j : ι) (H : j ∈ set.Icc n m), u j ω ∈ s,
   { push_neg,
     intro j,
     rw set.Icc_eq_empty_of_lt h,
@@ -65,26 +62,24 @@ begin
   simp only [h_not, if_false],
 end
 
-lemma hitting_le (ω : Ω) : hitting u s n m ω ≤ m :=
+lemma hitting_le {m : ι} (ω : Ω) : hitting u s n m ω ≤ m :=
 begin
   cases le_or_lt n m with h_le h_lt,
   { simp only [hitting],
     split_ifs,
     { obtain ⟨j, hj₁, hj₂⟩ := h,
-      exact (cInf_le (bdd_below.inter_of_left bdd_below_Icc)
-        (set.mem_inter hj₁ $ (set.mem_image _ _ _).2 ⟨j, hj₂, rfl⟩)).trans hj₁.2 },
+      exact (cInf_le (bdd_below.inter_of_left bdd_below_Icc) (set.mem_inter hj₁ hj₂)).trans hj₁.2 },
     { exact le_rfl }, },
-  { rw hitting_of_lt h_lt,
-    exact le_rfl },
+  { rw hitting_of_lt h_lt, },
 end
 
-lemma le_hitting (hnm : n ≤ m) (ω : Ω) : n ≤ hitting u s n m ω :=
+lemma le_hitting {m : ι} (hnm : n ≤ m) (ω : Ω) : n ≤ hitting u s n m ω :=
 begin
   simp only [hitting],
   split_ifs,
   { refine le_cInf _ (λ b hb, _),
     { obtain ⟨k, hk_Icc, hk_s⟩ := h,
-      exact ⟨k, hk_Icc, (set.mem_image _ _ _).2 ⟨k, hk_s, rfl⟩⟩, },
+      exact ⟨k, hk_Icc, hk_s⟩, },
     { rw set.mem_inter_iff at hb,
       exact hb.1.1, }, },
   { exact hnm },
@@ -220,7 +215,7 @@ lemma is_stopping_time_hitting_is_stopping_time
   [conditionally_complete_linear_order ι] [is_well_order ι (<)] [encodable ι]
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
-  {f : filtration ι m} {u : ι → Ω → β} {τ : Ω → with_top ι} (hτ : is_stopping_time f τ)
+  {f : filtration ι m} {u : ι → Ω → β} {τ : Ω → ι} (hτ : is_stopping_time f (λ ω, τ ω))
   {N : ι} (hτbdd : ∀ x, τ x ≤ N) {s : set β} (hs : measurable_set s) (hf : adapted f u) :
   is_stopping_time f (λ ω, ↑(hitting u s (τ ω) N ω)) :=
 begin
@@ -236,8 +231,8 @@ begin
       exists_prop, set.mem_empty_eq, iff_false, not_exists, not_and, not_le],
     rintro m hm rfl,
     exact lt_of_lt_of_le hm (le_hitting (hτbdd _) _) },
-  rw [h₁, h₂, set.union_empty],
-  exact measurable_set.Union (λ i, measurable_set.Union_Prop
+  simp_rw [with_top.coe_le_coe, h₁, h₂, set.union_empty],
+  refine measurable_set.Union (λ i, measurable_set.Union_Prop
     (λ hi, (f.mono hi _ (hτ.measurable_set_eq i)).inter (hitting_is_stopping_time hf hs n))),
 end
 

@@ -940,7 +940,7 @@ lemma inner_orthogonal_projection_left_eq_right
 by rw [← inner_orthogonal_projection_eq_of_mem_left, inner_orthogonal_projection_eq_of_mem_right]
 
 /-- The orthogonal projection is symmetric. -/
-lemma orthogonal_projection_is_symmetric [complete_space E]
+lemma orthogonal_projection_is_symmetric
   [complete_space K] :
   (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
 inner_orthogonal_projection_left_eq_right K

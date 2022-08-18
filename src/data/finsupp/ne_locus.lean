@@ -77,7 +77,8 @@ lemma zip_with_ne_locus_eq_left [decidable_eq N] [has_zero M] [decidable_eq P] [
   (zip_with F F0 f g₁).ne_locus (zip_with F F0 f g₂) = g₁.ne_locus g₂ :=
 by { ext, simpa only [mem_ne_locus] using (hF _).ne_iff }
 
-lemma zip_with_ne_locus_eq_right [decidable_eq M] [has_zero M] [decidable_eq P] [has_zero P] [has_zero N] {F : M → N → P} (F0 : F 0 0 = 0)
+lemma zip_with_ne_locus_eq_right [decidable_eq M] [has_zero M] [decidable_eq P] [has_zero P]
+  [has_zero N] {F : M → N → P} (F0 : F 0 0 = 0)
   (f₁ f₂ : α →₀ M) (g : α →₀ N) (hF : ∀ g, function.injective (λ f, F f g)) :
   (zip_with F F0 f₁ g).ne_locus (zip_with F F0 f₂ g) = f₁.ne_locus f₂ :=
 by { ext, simpa only [mem_ne_locus] using (hF _).ne_iff }
@@ -92,6 +93,7 @@ end N_has_zero
 end ne_locus_and_maps
 
 variables [decidable_eq N]
+
 @[simp] lemma add_ne_locus_add_eq_left [add_left_cancel_monoid N] (f g h : α →₀ N) :
   (f + g).ne_locus (f + h) = g.ne_locus h  :=
 zip_with_ne_locus_eq_left _ _ _ _ (λ gn, add_right_injective _)
@@ -109,5 +111,14 @@ by rw [← neg_ne_locus_neg _ _, neg_neg]
 lemma ne_locus_eq_support_sub [add_group N] (f g : α →₀ N) :
   f.ne_locus g = (f - g).support :=
 by rw [← add_ne_locus_add_eq_right _ _ (- g), add_right_neg, ne_locus_zero_right, sub_eq_add_neg]
+
+@[simp] lemma sub_ne_locus_sub_eq_left [add_group N] (f g h : α →₀ N) :
+  (f - g).ne_locus (f - h) = g.ne_locus h  :=
+zip_with_ne_locus_eq_left _ _ _ _ (λ gn, sub_right_injective)
+
+@[simp] lemma sub_ne_locus_sub_eq_right [add_group N] (f g h : α →₀ N) :
+  (f - h).ne_locus (g - h) = f.ne_locus g  :=
+zip_with_ne_locus_eq_right _ _ _ _ (λ gn, sub_left_injective)
+
 
 end finsupp

@@ -726,6 +726,8 @@ namespace order_dual
 @[to_additive] instance [h : has_one α] : has_one αᵒᵈ := h
 @[to_additive] instance [h : semigroup α] : semigroup αᵒᵈ := h
 @[to_additive] instance [h : comm_semigroup α] : comm_semigroup αᵒᵈ := h
+@[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup αᵒᵈ := h
+@[to_additive] instance [h : right_cancel_semigroup α] : right_cancel_semigroup αᵒᵈ := h
 @[to_additive] instance [h : mul_one_class α] : mul_one_class αᵒᵈ := h
 @[to_additive] instance [h : monoid α] : monoid αᵒᵈ := h
 @[to_additive] instance [h : comm_monoid α] : comm_monoid αᵒᵈ := h
@@ -835,6 +837,8 @@ lemma of_dual_pow [monoid α] (n : ℕ) (a) : (of_dual a ^ n : α) = of_dual a ^
 @[to_additive] instance [h : has_one α] : has_one (lex α) := h
 @[to_additive] instance [h : semigroup α] : semigroup (lex α) := h
 @[to_additive] instance [h : comm_semigroup α] : comm_semigroup (lex α) := h
+@[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup (lex α) := h
+@[to_additive] instance [h : right_cancel_semigroup α] : right_cancel_semigroup (lex α) := h
 @[to_additive] instance [h : mul_one_class α] : mul_one_class (lex α) := h
 @[to_additive] instance [h : monoid α] : monoid (lex α) := h
 @[to_additive] instance [h : comm_monoid α] : comm_monoid (lex α) := h

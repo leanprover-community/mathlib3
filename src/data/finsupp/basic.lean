@@ -8,69 +8,23 @@ import data.finset.preimage
 import data.list.alist
 
 /-!
-# Type of functions with finite support
-
-For any type `α` and a type `M` with zero, we define the type `finsupp α M` (notation: `α →₀ M`)
-of finitely supported functions from `α` to `M`, i.e. the functions which are zero everywhere
-on `α` except on a finite set.
-
-Functions with finite support are used (at least) in the following parts of the library:
-
-* `monoid_algebra R M` and `add_monoid_algebra R M` are defined as `M →₀ R`;
-
-* polynomials and multivariate polynomials are defined as `add_monoid_algebra`s, hence they use
-  `finsupp` under the hood;
-
-* the linear combination of a family of vectors `v i` with coefficients `f i` (as used, e.g., to
-  define linearly independent family `linear_independent`) is defined as a map
-  `finsupp.total : (ι → M) → (ι →₀ R) →ₗ[R] M`.
-
-Some other constructions are naturally equivalent to `α →₀ M` with some `α` and `M` but are defined
-in a different way in the library:
-
-* `multiset α ≃+ α →₀ ℕ`;
-* `free_abelian_group α ≃+ α →₀ ℤ`.
-
-Most of the theory assumes that the range is a commutative additive monoid. This gives us the big
-sum operator as a powerful way to construct `finsupp` elements.
-
-Many constructions based on `α →₀ M` use `semireducible` type tags to avoid reusing unwanted type
-instances. E.g., `monoid_algebra`, `add_monoid_algebra`, and types based on these two have
-non-pointwise multiplication.
+# Miscellaneous definitions, lemmas, and constructions using finsupp
 
 ## Main declarations
 
-* `finsupp`: The type of finitely supported functions from `α` to `β`.
-* `finsupp.single`: The `finsupp` which is nonzero in exactly one point.
-* `finsupp.update`: Changes one value of a `finsupp`.
-* `finsupp.erase`: Replaces one value of a `finsupp` by `0`.
-* `finsupp.on_finset`: The restriction of a function to a `finset` as a `finsupp`.
-* `finsupp.map_range`: Composition of a `zero_hom` with a `finsupp`.
-* `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
-* `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing.
-* `finsupp.comap_domain`: Postcomposition of a `finsupp` with a function injective on the preimage
+* `finsupp.graph`: the finset of input and output pairs with non-zero outputs.
+* `alist.lookup_finsupp`: converts an association list into a finitely supported function
+  via `alist.lookup`, sending absent keys to zero.
+* `finsupp.map_range.equiv`: `finsupp.map_range` as an equiv.
+* `finsupp.map_domain`: maps the domain of a `finsupp` by a function and by summing.
+* `finsupp.comap_domain`: postcomposition of a `finsupp` with a function injective on the preimage
   of its support.
-* `finsupp.zip_with`: Postcomposition of two `finsupp`s with a function `f` such that `f 0 0 = 0`.
-* `finsupp.sum`: Sum of the values of a `finsupp`.
-* `finsupp.prod`: Product of the nonzero values of a `finsupp`.
-
-## Notations
-
-This file adds `α →₀ M` as a global notation for `finsupp α M`.
-
-We also use the following convention for `Type*` variables in this file
-
-* `α`, `β`, `γ`: types with no additional structure that appear as the first argument to `finsupp`
-  somewhere in the statement;
-
-* `ι` : an auxiliary index type;
-
-* `M`, `M'`, `N`, `P`: types with `has_zero` or `(add_)(comm_)monoid` structure; `M` is also used
-  for a (semi)module over a (semi)ring.
-
-* `G`, `H`: groups (commutative or not, multiplicative or additive);
-
-* `R`, `S`: (semi)rings.
+* `finsupp.some`: restrict a finitely supported function on `option α` to a finitely supported
+  function on `α`.
+* `finsupp.filter`: `filter p f` is the finitely supported function that is `f a` if `p a` is true
+  and 0 otherwise.
+* `finsupp.frange`: the image of a finitely supported function on its support.
+* `finsupp.subtype_domain`: the restriction of a finitely supported function `f` to a subtype.
 
 ## Implementation notes
 
@@ -78,9 +32,8 @@ This file is a `noncomputable theory` and uses classical logic throughout.
 
 ## TODO
 
-* This file is currently ~2.7K lines long, so it should be splitted into smaller chunks.
-  One option would be to move all the sum and product stuff to `algebra.big_operators.finsupp` and
-  move the definitions that depend on it to new files under `data.finsupp.`.
+* This file is currently ~1750 lines long and is quite a miscellany of definitions and lemmas,
+  so it should be divided into smaller pieces.
 
 * Expand the list of definitions and important lemmas to the module docstring.
 
@@ -94,7 +47,6 @@ open_locale classical big_operators
 variables {α β γ ι M M' N P G H R S : Type*}
 
 namespace finsupp
-
 
 /-! ### Declarations about `graph` -/
 
@@ -211,12 +163,6 @@ end alist
 
 end lookup_finsupp
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section map_range    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 lemma prod_dvd_prod_of_subset_of_dvd [add_comm_monoid M] [comm_monoid N]
   {f1 f2 : α →₀ M} {g1 g2 : α → M → N} (h1 : f1.support ⊆ f2.support)
   (h2 : ∀ (a : α), a ∈ f1.support → g1 a (f1 a) ∣ g2 a (f2 a)) :
@@ -228,6 +174,8 @@ begin
   apply prod_dvd_prod_of_dvd,
   exact h2,
 end
+
+/-! ### Declarations about `map_range` -/
 
 section map_range
 
@@ -329,7 +277,6 @@ lemma map_range_finset_sum (f : M →+ N) (s : finset ι) (g : ι → (α →₀
   map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
 (map_range.add_monoid_hom f : (α →₀ _) →+ _).map_sum _ _
 
-
 /-- `finsupp.map_range.add_monoid_hom` as an equiv. -/
 @[simps apply]
 def map_range.add_equiv (f : M ≃+ N) : (α →₀ M) ≃+ (α →₀ N) :=
@@ -379,28 +326,12 @@ end finsupp
 
 end map_range
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section map_range    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section equiv_congr_left    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
 /-! ### Declarations about `equiv_congr_left` -/
 
 section equiv_congr_left
+variable [has_zero M]
 
 namespace finsupp
-
-variable [has_zero M]
 
 /-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
 by mapping the support forwards and the function backwards. -/
@@ -453,11 +384,6 @@ end finsupp
 
 end equiv_congr_left
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section equiv_congr_left    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 section cast_finsupp
 variables [has_zero M] (f : α →₀ M)
@@ -501,20 +427,14 @@ end cast_finsupp
 
 
 
-namespace finsupp
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section map_domain    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 
 /-! ### Declarations about `map_domain` -/
 
+namespace finsupp
+
 section map_domain
 variables [add_comm_monoid M] {v v₁ v₂ : α →₀ M}
+
 
 /-- Given `f : α → β` and `v : α →₀ M`, `map_domain f v : β →₀ M`
   is the finitely supported function whose value at `a : β` is the sum
@@ -739,21 +659,6 @@ lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l 
 
 end map_domain
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section map_domain    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section comap_domain    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 
 /-! ### Declarations about `comap_domain` -/
 
@@ -868,21 +773,8 @@ end f_injective
 
 end comap_domain
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section comap_domain    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
-
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section option    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
+/-! ### Declarations about finitely supported functions whose support is an `option` type -/
 
 section option
 
@@ -930,27 +822,14 @@ f.sum_option_index _ (λ _, zero_smul _ _) (λ _ _ _, add_smul _ _ _)
 
 end option
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section option    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section filter    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
 /-! ### Declarations about `filter` -/
 
 section filter
 section has_zero
 variables [has_zero M] (p : α → Prop) (f : α →₀ M)
 
-/-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
+/--
+`filter p f` is the finitely supported function that is `f a` if `p a` is true and 0 otherwise. -/
 def filter (p : α → Prop) (f : α →₀ M) : α →₀ M :=
 { to_fun := λ a, if p a then f a else 0,
   support := f.support.filter (λ a, p a),
@@ -1012,19 +891,6 @@ coe_fn_injective $ set.indicator_self_add_compl {x | p x} f
 
 end filter
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section filter    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section frange    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 /-! ### Declarations about `frange` -/
 
 section frange
@@ -1048,30 +914,16 @@ theorem frange_single {x : α} {y : M} : frange (single x y) ⊆ {y} :=
 
 end frange
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section frange    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section subtype_domain    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 /-! ### Declarations about `subtype_domain` -/
 
 section subtype_domain
-
 
 section zero
 
 variables [has_zero M] {p : α → Prop}
 
-/-- `subtype_domain p f` is the restriction of the finitely supported function
-  `f` to the subtype `p`. -/
+/--
+`subtype_domain p f` is the restriction of the finitely supported function `f` to subtype `p`. -/
 def subtype_domain (p : α → Prop) (f : α →₀ M) : (subtype p →₀ M) :=
 ⟨f.support.subtype p, f ∘ coe, λ a, by simp only [mem_subtype, mem_support_iff]⟩
 
@@ -1186,14 +1038,6 @@ end group
 
 end subtype_domain
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section subtype_domain    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-
 lemma mem_support_multiset_sum [add_comm_monoid M]
   {s : multiset (α →₀ M)} (a : α) :
   a ∈ s.sum.support → ∃f∈s, a ∈ (f : α →₀ M).support :=
@@ -1214,13 +1058,6 @@ lemma mem_support_finset_sum [add_comm_monoid M]
 let ⟨f, hf, hfa⟩ := mem_support_multiset_sum a ha in
 let ⟨c, hc, eq⟩ := multiset.mem_map.1 hf in
 ⟨c, hc, eq.symm ▸ hfa⟩
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section curry_uncurry    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 
 /-! ### Declarations about `curry` and `uncurry` -/
@@ -1298,19 +1135,7 @@ end
 
 end curry_uncurry
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section curry_uncurry    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section sum    vvvvv  (in the sense of `⊕`!)
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
+/-! ### Declarations about finitely supported functions whose support is a `sum` type -/
 
 section sum
 
@@ -1402,12 +1227,7 @@ rfl
 
 end sum
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section sum    ^^^^^   (in the sense of `⊕`!)
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
+/-! ### Declarations about scalar multiplication -/
 
 section
 variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]

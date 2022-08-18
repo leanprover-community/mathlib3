@@ -802,5 +802,3 @@ def kaehler_differential.End_equiv :
   kaehler_differential.End_equiv_aux_equiv R S
 
 end kaehler_differential
-
-end kaehler_differential

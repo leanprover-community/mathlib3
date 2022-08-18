@@ -142,8 +142,7 @@ section coe
 variables [semiring R] [set_like σ R] [add_submonoid_class σ R] (A : ι → σ)
 
 /-- The canonical ring isomorphism between `⨁ i, A i` and `R`-/
-def direct_sum.coe_ring_hom [add_monoid ι] [semiring R] [set_like σ R]
-  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] : (⨁ i, A i) →+* R :=
+def direct_sum.coe_ring_hom [add_monoid ι] [set_like.graded_monoid A] : (⨁ i, A i) →+* R :=
 direct_sum.to_semiring (λ i, add_submonoid_class.subtype (A i)) rfl (λ _ _ _ _, rfl)
 
 /-- The canonical ring isomorphism between `⨁ i, A i` and `R`-/

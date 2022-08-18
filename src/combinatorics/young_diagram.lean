@@ -171,7 +171,7 @@ This section defines `μ.row` and `μ.row_len`, with the following API:
 Note: #3 is not convenient for defining `μ.row_len`; instead, `μ.row_len` is defined
 as the smallest `j` such that `(i, j) ∉ μ`. --/
 
-def row (μ : young_diagram) (i : ℕ) := μ.cells.filter (λ c, c.fst = i)
+def row (μ : young_diagram) (i : ℕ) : finset (ℕ × ℕ) := μ.cells.filter (λ c, c.fst = i)
 
 lemma mem_row_iff {μ : young_diagram} {i : ℕ} {c : ℕ × ℕ} : c ∈ μ.row i ↔ c ∈ μ ∧ c.fst = i :=
 by simp [row]
@@ -211,7 +211,7 @@ section columns
 
 This section has an identical API to the rows section. --/
 
-def col (μ : young_diagram) (j : ℕ) := μ.cells.filter (λ c, c.snd = j)
+def col (μ : young_diagram) (j : ℕ) : finset (ℕ × ℕ) := μ.cells.filter (λ c, c.snd = j)
 
 lemma mem_col_iff {μ : young_diagram} {j : ℕ} {c : ℕ × ℕ} : c ∈ μ.col j ↔ c ∈ μ ∧ c.snd = j :=
 by simp [col]

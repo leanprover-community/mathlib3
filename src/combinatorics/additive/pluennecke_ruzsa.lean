@@ -5,6 +5,7 @@ Authors: Yaël Dillies, George Shakan
 -/
 import combinatorics.double_counting
 import data.finset.pointwise
+import combinatorics.additive.positivity
 
 /-!
 # The Plünnecke-Ruzsa inequality
@@ -121,8 +122,7 @@ begin
   rw [mul_div_right_comm, add_comm _ B],
   refine (cast_le.2 $ card_le_card_add_left _ hU.1).trans _,
   refine le_trans _ (mul_le_mul (hUA _ hB') (cast_le.2 $ card_le_of_subset $
-    add_subset_add_right hU.2) (cast_nonneg _) $ div_nonneg (cast_nonneg _) $
-    cast_nonneg _),
+    add_subset_add_right hU.2) (cast_nonneg _) $ by positivity),
   rw [←mul_div_right_comm, ←add_assoc],
   refine (le_div_iff $ by exact cast_pos.2 hU.1.card_pos).2 _,
   exact_mod_cast pluennecke_petridis C (aux hU.1 hU.2 hUA),
@@ -174,17 +174,10 @@ begin
   push_cast,
   rw [add_comm],
   refine (mul_le_mul (card_add_nsmul_le (aux hA.1 hA.2 hAB) _)
-    (card_add_nsmul_le (aux hA.1 hA.2 hAB) _) (cast_nonneg _) $
-    mul_nonneg (pow_nonneg (div_nonneg (cast_nonneg _) $ cast_nonneg _) _) $ cast_nonneg _).trans _,
+    (card_add_nsmul_le (aux hA.1 hA.2 hAB) _) (cast_nonneg _) $ by positivity).trans _,
   rw [mul_mul_mul_comm, ←pow_add, ←mul_assoc],
-  refine mul_le_mul_of_nonneg_right _ (cast_nonneg _),
-  refine mul_le_mul _ _ _ _,
-  refine pow_le_pow_of_le_left (div_nonneg (cast_nonneg _) $ cast_nonneg _) _ _,
-  refine hAB _ hB',
-  refine cast_le.2 (card_le_of_subset hA.2),
-  refine cast_nonneg _,
-  refine pow_nonneg _ _,
-  refine div_nonneg (cast_nonneg _) (cast_nonneg _),
+  exact mul_le_mul_of_nonneg_right (mul_le_mul (pow_le_pow_of_le_left (by positivity) (hAB _ hB') _)
+    (cast_le.2 $ card_le_of_subset hA.2) (by positivity) $ by positivity) (cast_nonneg _),
 end
 
 end finset

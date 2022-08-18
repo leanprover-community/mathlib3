@@ -411,10 +411,6 @@ lemma mem_carrier_iff (q : Spec.T (A⁰_ f_deg)) (a : A) :
   ∀ i, (⟨mk (proj 𝒜 i a ^ m) ⟨_, _, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩ : A⁰_ f_deg) ∈ q.1 :=
 iff.rfl
 
-lemma carrier.zero_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
-  (0 : A) ∈ carrier q :=
-λ i, by simpa only [linear_map.map_zero, zero_pow hm, mk_zero] using submodule.zero_mem _
-
 lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A} (ha : a ∈ carrier q) (hb : b ∈ carrier q) :
   a + b ∈ carrier q :=
 begin
@@ -443,8 +439,13 @@ begin
   { rw [← mul_assoc, ← pow_add, nat.add_sub_of_le (le_of_not_le h1)] },
 end
 
-lemma carrier.smul_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) (c x : A) (hx : x ∈ carrier q) :
-  c • x ∈ carrier q :=
+variables (hm : 0 < m) (q : Spec.T (A⁰_ f_deg))
+include hm
+
+lemma carrier.zero_mem : (0 : A) ∈ carrier q :=
+λ i, by simpa only [linear_map.map_zero, zero_pow hm, mk_zero] using submodule.zero_mem _
+
+lemma carrier.smul_mem (c x : A) (hx : x ∈ carrier q) : c • x ∈ carrier q :=
 begin
   revert c,
   refine direct_sum.decomposition.induction_on 𝒜 _ _ _,
@@ -464,15 +465,13 @@ end
 /--
 For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as an ideal.
 -/
-def carrier.as_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
-  ideal A :=
+def carrier.as_ideal : ideal A :=
 { carrier := carrier q,
   zero_mem' := carrier.zero_mem hm q,
   add_mem' := λ a b, carrier.add_mem q,
   smul_mem' := carrier.smul_mem hm q }
 
-lemma carrier.as_ideal.ne_top (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
-  (carrier.as_ideal hm q) ≠ ⊤ :=
+lemma carrier.as_ideal.ne_top : (carrier.as_ideal hm q) ≠ ⊤ :=
 λ rid, q.2.ne_top $ (ideal.eq_top_iff_one _).mpr
 begin
   convert (ideal.eq_top_iff_one _).mp rid 0,
@@ -480,8 +479,7 @@ begin
     proj_apply, decompose_of_mem_same 𝒜 one_mem, one_pow, pow_zero, ← mk_self 1],
 end
 
-lemma carrier.as_ideal.homogeneous (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
-  (carrier.as_ideal hm q).is_homogeneous 𝒜 :=
+lemma carrier.as_ideal.homogeneous : (carrier.as_ideal hm q).is_homogeneous 𝒜 :=
 λ i a ha j, (em (i = j)).elim
   (λ h, h ▸ by simpa only [proj_apply, decompose_coe, of_eq_same] using ha _)
   (λ h, by simpa only [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem (decompose 𝒜 a i)) h,
@@ -490,10 +488,10 @@ lemma carrier.as_ideal.homogeneous (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
 /--
 For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as a homogeneous ideal.
 -/
-def carrier.as_homogeneous_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) : homogeneous_ideal 𝒜 :=
+def carrier.as_homogeneous_ideal : homogeneous_ideal 𝒜 :=
 ⟨carrier.as_ideal hm q, carrier.as_ideal.homogeneous hm q⟩
 
-lemma carrier.denom_not_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) : f ∉ carrier.as_ideal hm q :=
+lemma carrier.denom_not_mem : f ∉ carrier.as_ideal hm q :=
 λ rid, q.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr
 begin
   convert rid m,
@@ -501,12 +499,10 @@ begin
     decompose_of_mem_same _ f_deg] using (mk_self (⟨_, m, rfl⟩ : submonoid.powers f)).symm,
 end
 
-lemma carrier.relevant (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
-  ¬ homogeneous_ideal.irrelevant 𝒜 ≤ carrier.as_homogeneous_ideal hm q :=
+lemma carrier.relevant : ¬ homogeneous_ideal.irrelevant 𝒜 ≤ carrier.as_homogeneous_ideal hm q :=
 λ rid, carrier.denom_not_mem hm q $ rid $ direct_sum.decompose_of_mem_ne 𝒜 f_deg hm.ne'
 
-lemma carrier.as_ideal.prime (hm : 0 < m)
-  (q : Spec.T (A⁰_ f_deg)) : (carrier.as_ideal hm q).is_prime :=
+lemma carrier.as_ideal.prime : (carrier.as_ideal hm q).is_prime :=
 (carrier.as_ideal.homogeneous hm q).is_prime_of_homogeneous_mem_or_mem
   (carrier.as_ideal.ne_top hm q) $ λ x y ⟨nx, hnx⟩ ⟨ny, hny⟩ hxy, show (∀ i, _ ∈ _) ∨ ∀ i, _ ∈ _,
 begin
@@ -526,7 +522,7 @@ variable (f_deg)
 /--
 The function `Spec A⁰_f → Proj|D(f)` by sending `q` to `{a | aᵢᵐ/fⁱ ∈ q}`.
 -/
-def to_fun (hm : 0 < m) : (Spec.T (A⁰_ f_deg)) → (Proj.T| (pbo f)) :=
+def to_fun : (Spec.T (A⁰_ f_deg)) → (Proj.T| (pbo f)) :=
 λ q, ⟨⟨carrier.as_homogeneous_ideal hm q, carrier.as_ideal.prime hm q, carrier.relevant hm q⟩,
   (projective_spectrum.mem_basic_open _ f _).mp $ carrier.denom_not_mem hm q⟩
 

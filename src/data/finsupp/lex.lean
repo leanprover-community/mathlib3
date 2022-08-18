@@ -119,12 +119,11 @@ end N_has_zero
 variables [linear_order α] [linear_order N] [add_left_cancel_monoid N] [covariant_class N N (+) (≤)]
 
 instance : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (+) (≤) :=
-{ elim := λ f g h gh, begin
-      rcases eq_or_ne g h with rfl | gnh,
-      { exact le_rfl },
-      { rcases gh.lt_of_ne gnh with ⟨a, lta, ha⟩,
-        refine le_of_lt _,
-        refine ⟨a, λ j ja, congr_arg (has_add.add ((of_lex f) j)) (lta j ja), _⟩,
+{ elim := λ f g h, begin
+      rintros (gh | ⟨a, lta, ha⟩),
+      { exact or.inl (by apply congr_arg ((+) _) gh) },
+      { refine le_of_lt _,
+        refine ⟨a, λ j ja, congr_arg ((+) _) (lta j ja), _⟩,
         refine (add_le_add_left ha.le _).lt_of_ne _,
         exact not_imp_not.mpr add_left_cancel ha.ne }
     end }

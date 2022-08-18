@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
-import order.liminf_limsup
-import topology.metric_space.lipschitz
+import topology.algebra.order.monotone_continuity
+import analysis.normed.group.basic
 /-!
 # Extended non-negative reals
 -/
@@ -37,21 +37,7 @@ instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class 
 instance : normal_space ℝ≥0∞ := normal_of_compact_t2
 
 instance : second_countable_topology ℝ≥0∞ :=
-⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < real.to_nnreal q}, {a : ℝ≥0∞ | ↑(real.to_nnreal q) < a}},
-  (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,
-  le_antisymm
-    (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})
-    (le_generate_from $ λ s h, begin
-      rcases h with ⟨a, hs | hs⟩;
-      [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < real.to_nnreal q}, {b | ↑(real.to_nnreal q) < b},
-           from set.ext (assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn a b, and_assoc]),
-        rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ ↑(real.to_nnreal q) < a}, {b | b < ↑(real.to_nnreal q)},
-           from set.ext (assume b,
-             by simp [hs, @ennreal.lt_iff_exists_rat_btwn b a, and_comm, and_assoc])];
-      { apply is_open_Union, intro q,
-        apply is_open_Union, intro hq,
-        exact generate_open.basic _ (mem_bUnion hq.1 $ by simp) }
-    end)⟩⟩
+order_iso_unit_interval_birational.to_homeomorph.embedding.second_countable_topology
 
 lemma embedding_coe : embedding (coe : ℝ≥0 → ℝ≥0∞) :=
 ⟨⟨begin
@@ -310,12 +296,10 @@ have ht : ∀b:ℝ≥0∞, b ≠ 0 → tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 
 begin
   refine assume b hb, tendsto_nhds_top_iff_nnreal.2 $ assume n, _,
   rcases lt_iff_exists_nnreal_btwn.1 (pos_iff_ne_zero.2 hb) with ⟨ε, hε, hεb⟩,
-  replace hε : 0 < ε, from coe_pos.1 hε,
-  filter_upwards [prod_is_open.mem_nhds (lt_mem_nhds $ @coe_lt_top (n / ε)) (lt_mem_nhds hεb)],
-  rintros ⟨a₁, a₂⟩ ⟨h₁, h₂⟩,
-  dsimp at h₁ h₂ ⊢,
-  rw [← div_mul_cancel n hε.ne', coe_mul],
-  exact mul_lt_mul h₁ h₂
+  have : ∀ᶠ c : ℝ≥0∞ × ℝ≥0∞ in 𝓝 (∞, b), ↑n / ↑ε < c.1 ∧ ↑ε < c.2,
+    from (lt_mem_nhds $ div_lt_top coe_ne_top hε.ne').prod_nhds (lt_mem_nhds hεb),
+  refine this.mono (λ c hc, _),
+  exact (div_mul_cancel hε.ne' coe_ne_top).symm.trans_lt (mul_lt_mul hc.1 hc.2)
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
@@ -332,6 +316,18 @@ protected lemma tendsto.mul {f : filter α} {ma : α → ℝ≥0∞} {mb : α �
   tendsto (λa, ma a * mb a) f (𝓝 (a * b)) :=
 show tendsto ((λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
 tendsto.comp (ennreal.tendsto_mul ha hb) (hma.prod_mk_nhds hmb)
+
+lemma _root_.continuous_on.ennreal_mul [topological_space α] {f g : α → ℝ≥0∞} {s : set α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (h₁ : ∀ x ∈ s, f x ≠ 0 ∨ g x ≠ ∞)
+  (h₂ : ∀ x ∈ s, g x ≠ 0 ∨ f x ≠ ∞) :
+  continuous_on (λ x, f x * g x) s :=
+λ x hx, ennreal.tendsto.mul (hf x hx) (h₁ x hx) (hg x hx) (h₂ x hx)
+
+lemma _root_.continuous.ennreal_mul [topological_space α] {f g : α → ℝ≥0∞} (hf : continuous f)
+  (hg : continuous g) (h₁ : ∀ x, f x ≠ 0 ∨ g x ≠ ∞) (h₂ : ∀ x, g x ≠ 0 ∨ f x ≠ ∞) :
+  continuous (λ x, f x * g x) :=
+continuous_iff_continuous_at.2 $
+  λ x, ennreal.tendsto.mul hf.continuous_at (h₁ x) hg.continuous_at (h₂ x)
 
 protected lemma tendsto.const_mul {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=
@@ -464,8 +460,8 @@ begin
     casesI is_empty_or_nonempty ι,
     { rw [infi_of_empty, infi_of_empty, mul_top, if_neg],
       exact mt h0 (not_nonempty_iff.2 ‹_›) },
-    { exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-        ennreal.mul_left_mono).symm } }
+    { exact (ennreal.mul_left_mono.map_infi_of_continuous_at'
+            (ennreal.continuous_at_const_mul H)).symm } }
 end
 
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
@@ -499,13 +495,7 @@ lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
   (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
-instance : has_continuous_inv ℝ≥0∞ :=
-{ continuous_inv :=
-  continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
-  ⟨λ b hb, by simpa only [ennreal.lt_inv_iff_lt_inv]
-     using gt_mem_nhds (ennreal.lt_inv_iff_lt_inv.1 hb),
-   λ b hb, by simpa only [gt_iff_lt, ennreal.inv_lt_iff_inv_lt]
-     using lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)⟩ }
+instance : has_continuous_inv ℝ≥0∞ := ⟨order_iso.inv_ennreal.continuous⟩
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
@@ -528,7 +518,7 @@ protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ℝ≥0∞
 ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
 lemma supr_add {ι : Sort*} {s : ι → ℝ≥0∞} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
-map_supr_of_continuous_at_of_monotone' (continuous_at_id.add continuous_at_const) $
+monotone.map_supr_of_continuous_at' (continuous_at_id.add continuous_at_const) $
   monotone_id.add monotone_const
 
 lemma bsupr_add' {ι : Sort*} {p : ι → Prop} (h : ∃ i, p i) {f : ι → ℝ≥0∞} :
@@ -602,7 +592,7 @@ begin
   by_cases hf : ∀ i, f i = 0,
   { obtain rfl : f = (λ _, 0), from funext hf,
     simp only [supr_zero_eq_zero, mul_zero] },
-  { refine map_supr_of_continuous_at_of_monotone _ (monotone_id.const_mul' _) (mul_zero a),
+  { refine (monotone_id.const_mul' _).map_supr_of_continuous_at _ (mul_zero a),
     refine ennreal.tendsto.const_mul tendsto_id (or.inl _),
     exact mt supr_eq_zero.1 hf }
 end
@@ -633,18 +623,87 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
   from is_glb.Inf_eq $ is_lub_supr.is_glb_of_tendsto
     (assume x _ y _, tsub_le_tsub (le_refl (r : ℝ≥0∞)))
     (range_nonempty _)
-    (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
+    (ennreal.tendsto_coe_sub.comp (tendsto_id'.2 inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_rfl
 
 lemma exists_countable_dense_no_zero_top :
-  ∃ (s : set ℝ≥0∞), countable s ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=
+  ∃ (s : set ℝ≥0∞), s.countable ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=
 begin
-  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, s.countable ∧ dense s ∧
     (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) := exists_countable_dense_no_bot_top ℝ≥0∞,
   exact ⟨s, s_count, s_dense, λ h, hs.1 0 (by simp) h, λ h, hs.2 ∞ (by simp) h⟩,
 end
 
+lemma exists_lt_add_of_lt_add {x y z : ℝ≥0∞} (h : x < y + z) (hy : y ≠ 0) (hz : z ≠ 0) :
+  ∃ y' z', y' < y ∧ z' < z ∧ x < y' + z' :=
+begin
+  haveI : ne_bot (𝓝[<] y) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hy⟩,
+  haveI : ne_bot (𝓝[<] z) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hz⟩,
+  have A : tendsto (λ (p : ℝ≥0∞ × ℝ≥0∞), p.1 + p.2) ((𝓝[<] y).prod (𝓝[<] z)) (𝓝 (y + z)),
+  { apply tendsto.mono_left _ (filter.prod_mono nhds_within_le_nhds nhds_within_le_nhds),
+    rw ← nhds_prod_eq,
+    exact tendsto_add },
+  rcases (((tendsto_order.1 A).1 x h).and
+    (filter.prod_mem_prod self_mem_nhds_within self_mem_nhds_within)).exists
+    with ⟨⟨y', z'⟩, hx, hy', hz'⟩,
+  exact ⟨y', z', hy', hz', hx⟩,
+end
+
 end topological_space
+
+section liminf
+
+lemma exists_frequently_lt_of_liminf_ne_top
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  ∃ R, ∃ᶠ n in l, x n < R :=
+begin
+  by_contra h,
+  simp_rw [not_exists, not_frequently, not_lt] at h,
+  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
+  simp only [eventually_map, ennreal.coe_le_coe],
+  filter_upwards [h r] with i hi using hi.trans ((coe_nnnorm (x i)).symm ▸ le_abs_self (x i)),
+end
+
+lemma exists_frequently_lt_of_liminf_ne_top'
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  ∃ R, ∃ᶠ n in l, R < x n :=
+begin
+  by_contra h,
+  simp_rw [not_exists, not_frequently, not_lt] at h,
+  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
+  simp only [eventually_map, ennreal.coe_le_coe],
+  filter_upwards [h (-r)] with i hi using (le_neg.1 hi).trans (neg_le_abs_self _),
+end
+
+lemma exists_upcrossings_of_not_bounded_under
+  {ι : Type*} {l : filter ι} {x : ι → ℝ}
+  (hf : liminf l (λ i, (∥x i∥₊ : ℝ≥0∞)) ≠ ∞)
+  (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
+  ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
+begin
+  rw [is_bounded_under_le_abs, not_and_distrib] at hbdd,
+  obtain hbdd | hbdd := hbdd,
+  { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top hf,
+    obtain ⟨q, hq⟩ := exists_rat_gt R,
+    refine ⟨q, q + 1, (lt_add_iff_pos_right _).2 zero_lt_one, _, _⟩,
+    { refine λ hcon, hR _,
+      filter_upwards [hcon] with x hx using not_lt.2 (lt_of_lt_of_le hq (not_lt.1 hx)).le },
+    { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
+        ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
+      refine λ hcon, hbdd ↑(q + 1) _,
+      filter_upwards [hcon] with x hx using not_lt.1 hx } },
+  { obtain ⟨R, hR⟩ := exists_frequently_lt_of_liminf_ne_top' hf,
+    obtain ⟨q, hq⟩ := exists_rat_lt R,
+    refine ⟨q - 1, q, (sub_lt_self_iff _).2 zero_lt_one, _, _⟩,
+    { simp only [is_bounded_under, is_bounded, eventually_map, eventually_at_top,
+        ge_iff_le, not_exists, not_forall, not_le, exists_prop] at hbdd,
+      refine λ hcon, hbdd ↑(q - 1) _,
+      filter_upwards [hcon] with x hx using not_lt.1 hx },
+    { refine λ hcon, hR _,
+      filter_upwards [hcon] with x hx using not_lt.2 ((not_lt.1 hx).trans hq.le) } }
+end
+
+end liminf
 
 section tsum
 

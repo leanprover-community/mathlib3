@@ -218,7 +218,27 @@ end
 
 end mem
 
+/-! ### Singleton -/
+
+instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
+
+instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
+
+theorem singleton_eq_cons (a : α) : singleton a = a ::ₘ 0 := rfl
+
+@[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
+by simp only [singleton_eq_cons, mem_cons, iff_self, or_false, not_mem_zero]
+
+theorem mem_singleton_self (a : α) : a ∈ ({a} : multiset α) :=
+by { rw singleton_eq_cons, exact mem_cons_self _ _ }
+
+theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
+by { simp_rw [singleton_eq_cons], exact cons_inj_left _ }
+
+theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
+
 /-! ### `multiset.subset` -/
+
 section subset
 
 /-- `s ⊆ t` is the lift of the list subset relation. It means that any
@@ -268,6 +288,8 @@ lemma induction_on' {p : multiset α → Prop} (S : multiset α)
 
 end subset
 
+/-! ### `multiset.to_list` -/
+
 section to_list
 
 /-- Produces a list of the elements in the multiset using choice. -/
@@ -306,7 +328,7 @@ variables {s t : multiset α} {a : α}
 
 lemma subset_of_le : s ≤ t → s ⊆ t := quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
 
-alias subset_of_le ← multiset.le.subset
+alias subset_of_le ← le.subset
 
 lemma mem_of_le (h : s ≤ t) : a ∈ s → a ∈ t := mem_of_subset (subset_of_le h)
 
@@ -323,7 +345,12 @@ quotient.induction_on₂ s t (λ l₁ l₂ ⟨l, p, s⟩,
 theorem zero_le (s : multiset α) : 0 ≤ s :=
 quot.induction_on s $ λ l, (nil_sublist l).subperm
 
-lemma le_zero : s ≤ 0 ↔ s = 0 := ⟨λ h, le_antisymm h (zero_le _), le_of_eq⟩
+instance : order_bot (multiset α) := ⟨0, zero_le⟩
+
+/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
+@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
+
+lemma le_zero : s ≤ 0 ↔ s = 0 := le_bot_iff
 
 theorem lt_cons_self (s : multiset α) (a : α) : s < a ::ₘ s :=
 quot.induction_on s $ λ l,
@@ -352,24 +379,6 @@ begin
     ((sublist_or_mem_of_sublist s).resolve_right m₁).subperm)
 end
 
-end
-
-/-! ### Singleton -/
-instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
-
-instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
-
-theorem singleton_eq_cons (a : α) : singleton a = a ::ₘ 0 := rfl
-
-@[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
-by simp only [singleton_eq_cons, mem_cons, iff_self, or_false, not_mem_zero]
-
-theorem mem_singleton_self (a : α) : a ∈ ({a} : multiset α) :=
-by { rw singleton_eq_cons, exact mem_cons_self _ _ }
-
-theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
-by { simp_rw [singleton_eq_cons], exact cons_inj_left _ }
-
 @[simp] theorem singleton_ne_zero (a : α) : ({a} : multiset α) ≠ 0 :=
 ne_of_gt (lt_cons_self _ _)
 
@@ -377,7 +386,7 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
-theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
+end
 
 /-! ### Additive monoid -/
 
@@ -426,12 +435,10 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
   let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
  λ ⟨u, e⟩, e.symm ▸ le_add_right _ _⟩
 
-instance : order_bot (multiset α) :=
-{ bot                   := 0,
-  bot_le                := multiset.zero_le }
-
 instance : canonically_ordered_add_monoid (multiset α) :=
-{ le_iff_exists_add     := @le_iff_exists_add _,
+{ le_self_add := le_add_right,
+  exists_add_of_le := λ a b h, le_induction_on h $ λ l₁ l₂ s,
+    let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
   ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
 
@@ -848,6 +855,22 @@ begin
     simp }
 end
 
+lemma map_eq_cons [decidable_eq α] (f : α → β) (s : multiset α) (t : multiset β) (b : β) :
+  (∃ a ∈ s, f a = b ∧ (s.erase a).map f = t) ↔ s.map f = b ::ₘ t :=
+begin
+  split,
+  { rintro ⟨a, ha, rfl, rfl⟩,
+    rw [←map_cons, multiset.cons_erase ha] },
+  { intro h,
+    have : b ∈ s.map f,
+    { rw h, exact mem_cons_self _ _ },
+    obtain ⟨a, h1, rfl⟩ := mem_map.mp this,
+    obtain ⟨u, rfl⟩ := exists_cons_of_mem h1,
+    rw [map_cons, cons_inj_right] at h,
+    refine ⟨a, mem_cons_self _ _, rfl, _⟩,
+    rw [multiset.erase_cons_head, h] }
+end
+
 theorem mem_map_of_injective {f : α → β} (H : function.injective f) {a : α} {s : multiset α} :
   f a ∈ map f s ↔ a ∈ s :=
 quot.induction_on s $ λ l, mem_map_of_injective H
@@ -893,6 +916,17 @@ begin
   by_cases hxy : y = x,
   { cases hxy, simp },
   { rw [s.erase_cons_tail hxy, map_cons, map_cons, (s.map f).erase_cons_tail (hf.ne hxy), ih] }
+end
+
+lemma map_surjective_of_surjective {f : α → β} (hf : function.surjective f) :
+  function.surjective (map f) :=
+begin
+  intro s,
+  induction s using multiset.induction_on with x s ih,
+  { exact ⟨0, map_zero _⟩ },
+  { obtain ⟨y, rfl⟩ := hf x,
+    obtain ⟨t, rfl⟩ := ih,
+    exact ⟨y ::ₘ t, map_cons _ _ _⟩ }
 end
 
 /-! ### `multiset.fold` -/
@@ -1065,29 +1099,29 @@ variables {m : multiset α}
 
 /-- If `p` is a decidable predicate,
 so is the predicate that all elements of a multiset satisfy `p`. -/
-protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
-  decidable (∀a∈m, p a) :=
-quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
+protected def decidable_forall_multiset {p : α → Prop} [hp : ∀ a, decidable (p a)] :
+  decidable (∀ a ∈ m, p a) :=
+quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a ∈ l, p a) $ by simp)
 
-instance decidable_dforall_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
-  decidable (∀a (h : a ∈ m), p a h) :=
+instance decidable_dforall_multiset {p : Π a ∈ m, Prop} [hp : ∀ a (h : a ∈ m), decidable (p a h)] :
+  decidable (∀ a (h : a ∈ m), p a h) :=
 decidable_of_decidable_of_iff
   (@multiset.decidable_forall_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
   (iff.intro (assume h a ha, h ⟨a, ha⟩ (mem_attach _ _)) (assume h ⟨a, ha⟩ _, h _ _))
 
 /-- decidable equality for functions whose domain is bounded by multisets -/
-instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (β a)] :
-  decidable_eq (Πa∈m, β a) :=
-assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
+instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀ a, decidable_eq (β a)] :
+  decidable_eq (Π a ∈ m, β a) :=
+assume f g, decidable_of_iff (∀ a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
 /-- If `p` is a decidable predicate,
 so is the existence of an element in a multiset satisfying `p`. -/
-def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
+protected def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
   decidable (∃ x ∈ m, p x) :=
-quotient.rec_on_subsingleton m list.decidable_exists_mem
+quotient.rec_on_subsingleton m (λl, decidable_of_iff (∃ a ∈ l, p a) $ by simp)
 
-instance decidable_dexists_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
-  decidable (∃a (h : a ∈ m), p a h) :=
+instance decidable_dexists_multiset {p : Π a ∈ m, Prop} [hp : ∀ a (h : a ∈ m), decidable (p a h)] :
+  decidable (∃ a (h : a ∈ m), p a h) :=
 decidable_of_decidable_of_iff
   (@multiset.decidable_exists_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
   (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩)
@@ -1126,6 +1160,10 @@ multiset.induction_on t (by simp [multiset.sub_zero])
 
 instance : has_ordered_sub (multiset α) :=
 ⟨λ n m k, multiset.sub_le_iff_le_add⟩
+
+lemma cons_sub_of_le (a : α) {s t : multiset α} (h : t ≤ s) :
+  a ::ₘ s - t = a ::ₘ (s - t) :=
+by rw [←singleton_add, ←singleton_add, add_tsub_assoc_of_le h]
 
 theorem sub_eq_fold_erase (s t : multiset α) : s - t = foldl erase erase_comm s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂,
@@ -1383,6 +1421,10 @@ begin
   { rw [filter_cons_of_neg _ h, zero_add] },
 end
 
+lemma filter_singleton {a : α} (p : α → Prop) [decidable_pred p] :
+  filter p {a} = if p a then {a} else ∅ :=
+by simp only [singleton, filter_cons, filter_zero, add_zero, empty_eq_zero]
+
 lemma filter_nsmul (s : multiset α) (n : ℕ) :
   filter p (n • s) = n • filter p s :=
 begin
@@ -1546,6 +1588,9 @@ quot.induction_on s $ λ l, countp_le_length p
 
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
+
+@[simp] theorem countp_nsmul (s) (n : ℕ) : countp p (n • s) = n * countp p s :=
+by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
 
 theorem card_eq_countp_add_countp (s) : card s = countp p s + countp (λ x, ¬ p x) s :=
 quot.induction_on s $ λ l, by simp [l.length_eq_countp_add_countp p]
@@ -2040,6 +2085,28 @@ lemma rel_repeat_right {m : multiset α} {a : α} {r : α → α → Prop} {n : 
   m.rel r (repeat a n) ↔ m.card = n ∧ ∀ x, x ∈ m → r x a :=
 by { rw [← rel_flip], exact rel_repeat_left }
 
+lemma rel.trans (r : α → α → Prop) [is_trans α r] {s t u : multiset α}
+  (r1 : rel r s t) (r2 : rel r t u) :
+  rel r s u :=
+begin
+  induction t using multiset.induction_on with x t ih generalizing s u,
+  { rw [rel_zero_right.mp r1, rel_zero_left.mp r2, rel_zero_left] },
+  { obtain ⟨a, as, ha1, ha2, rfl⟩ := rel_cons_right.mp r1,
+    obtain ⟨b, bs, hb1, hb2, rfl⟩ := rel_cons_left.mp r2,
+    exact multiset.rel.cons (trans ha1 hb1) (ih ha2 hb2) }
+end
+
+lemma rel.countp_eq (r : α → α → Prop) [is_trans α r] [is_symm α r] {s t : multiset α} (x : α)
+  [decidable_pred (r x)] (h : rel r s t) :
+  countp (r x) s = countp (r x) t :=
+begin
+  induction s using multiset.induction_on with y s ih generalizing t,
+  { rw rel_zero_left.mp h, },
+  { obtain ⟨b, bs, hb1, hb2, rfl⟩ := rel_cons_left.mp h,
+    rw [countp_cons, countp_cons, ih hb2],
+    exact congr_arg _ (if_congr ⟨λ h, trans h hb1, λ h, trans h (symm hb1)⟩ rfl rfl) },
+end
+
 end rel
 
 section map
@@ -2156,6 +2223,13 @@ by { simp [disjoint, @eq_comm _ (f _) (g _)], refl }
 list. -/
 def pairwise (r : α → α → Prop) (m : multiset α) : Prop :=
 ∃l:list α, m = l ∧ l.pairwise r
+
+@[simp] lemma pairwise_nil (r : α → α → Prop) :
+  multiset.pairwise r 0 := ⟨[], rfl, list.pairwise.nil⟩
+
+lemma pairwise_coe_iff {r : α → α → Prop} {l : list α} :
+  multiset.pairwise r l ↔ ∃ l' : list α, l ~ l' ∧ l'.pairwise r :=
+exists_congr $ by simp
 
 lemma pairwise_coe_iff_pairwise {r : α → α → Prop} (hr : symmetric r) {l : list α} :
   multiset.pairwise r l ↔ l.pairwise r :=

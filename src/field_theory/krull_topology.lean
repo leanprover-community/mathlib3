@@ -208,7 +208,7 @@ lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field 
   is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
 begin
   have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
-   ⟨E.fixing_subgroup, ⟨E, _inst_4, rfl⟩, rfl⟩,
+   ⟨E.fixing_subgroup, ⟨E, ‹_›, rfl⟩, rfl⟩,
   have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
   rw mem_nhds_iff at h_nhd,
   rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,
@@ -244,12 +244,8 @@ lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
     refine ⟨left_coset f W, left_coset g W,
       ⟨hW_open.left_coset f, hW_open.left_coset g, ⟨1, hW_1, mul_one _⟩, ⟨1, hW_1, mul_one _⟩, _⟩⟩,
-    by_contra h_nonempty,
-    change left_coset f W ∩ left_coset g W ≠ ∅ at h_nonempty,
-    rw set.ne_empty_iff_nonempty at h_nonempty,
-    rcases h_nonempty with ⟨σ, ⟨⟨w1, hw1, hfw1⟩, ⟨w2, hw2, hgw2⟩⟩⟩,
-    rw ← hgw2 at hfw1,
-    rename hfw1 h,
+    rintro σ ⟨⟨w1, hw1, h⟩, w2, hw2, hgw2⟩,
+    rw ← hgw2 at h,
     rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
     have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
     rw h at h_in_H,

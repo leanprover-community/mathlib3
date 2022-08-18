@@ -3,9 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.functor
 import category_theory.adjunction.limits
 import category_theory.adjunction.mates
+import category_theory.functor.inv_isos
 
 /-!
 # Closed monoidal categories
@@ -16,7 +17,7 @@ Define (right) closed objects and (right) closed monoidal categories.
 Some of the theorems proved about cartesian closed categories
 should be generalised and moved to this file.
 -/
-universes v u u₂
+universes v u u₂ v₂
 
 namespace category_theory
 
@@ -235,6 +236,24 @@ end pre
 def internal_hom [monoidal_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, ihom X.unop,
   map := λ X Y f, pre f.unop }
+
+section of_equiv
+
+variables {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
+
+/-- Transport the property of being monoidal closed across a monoidal equivalence of categories -/
+noncomputable
+def of_equiv (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoidal_closed D] :
+  monoidal_closed C :=
+{ closed' := λ X,
+  { is_adj := begin
+      haveI q : closed (F.to_functor.obj X) := infer_instance,
+      haveI : is_left_adjoint (tensor_left (F.to_functor.obj X)) := q.is_adj,
+      have i := comp_inv_iso (monoidal_functor.comm_tensor_left F X),
+      exact adjunction.left_adjoint_of_nat_iso i,
+    end } }
+
+end of_equiv
 
 end monoidal_closed
 

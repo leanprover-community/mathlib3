@@ -55,7 +55,7 @@ def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* 
 { .. mul_distrib_mul_action.to_monoid_hom R x,
   .. distrib_mul_action.to_add_monoid_hom R x }
 
-theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R] :
+theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_smul M R] :
   function.injective (mul_semiring_action.to_ring_hom M R) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, ring_hom.ext_iff.1 h r
 
@@ -103,7 +103,7 @@ attribute [simp] smul_one smul_mul' smul_zero smul_add
 /-- Note that `smul_inv'` refers to the group case, and `smul_inv` has an additional inverse
 on `x`. -/
 @[simp] lemma smul_inv'' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
-(mul_semiring_action.to_ring_hom M F x).map_inv _
+map_inv₀ (mul_semiring_action.to_ring_hom M F x) _
 
 end simp_lemmas
 

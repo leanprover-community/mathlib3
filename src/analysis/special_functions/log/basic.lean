@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import analysis.special_functions.exp
+import data.nat.factorization.basic
 
 /-!
 # Real logarithm
@@ -48,6 +49,12 @@ by { rw exp_log_eq_abs hx.ne', exact abs_of_pos hx }
 lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
 by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
 
+lemma le_exp_log (x : ℝ) : x ≤ exp (log x) :=
+begin
+  by_cases h_zero : x = 0,
+  { rw [h_zero, log, dif_pos rfl, exp_zero], exact zero_le_one, },
+  { rw exp_log_eq_abs h_zero, exact le_abs_self _, },
+end
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
 
@@ -74,6 +81,12 @@ end
 
 @[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
 by rw [← log_abs x, ← log_abs (-x), abs_neg]
+
+lemma sinh_log {x : ℝ} (hx : 0 < x) : sinh (log x) = (x - x⁻¹) / 2 :=
+by rw [sinh_eq, exp_neg, exp_log hx]
+
+lemma cosh_log {x : ℝ} (hx : 0 < x) : cosh (log x) = (x + x⁻¹) / 2 :=
+by rw [cosh_eq, exp_neg, exp_log hx]
 
 lemma surj_on_log' : surj_on log (Iio 0) univ :=
 λ x _, ⟨-exp x, neg_lt_zero.2 $ exp_pos x, by rw [log_neg_eq_log, log_exp]⟩
@@ -189,6 +202,9 @@ begin
     neg_mul_eq_neg_mul],
 end
 
+lemma log_sqrt {x : ℝ} (hx : 0 ≤ x) : log (sqrt x) = log x / 2 :=
+by { rw [eq_div_iff, mul_comm, ← nat.cast_two, ← log_pow, sq_sqrt hx], exact two_ne_zero }
+
 lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
   rw le_sub_iff_add_le,
@@ -249,11 +265,21 @@ open_locale big_operators
 lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
   log (∏ i in s, f i) = ∑ i in s, log (f i) :=
 begin
-  classical,
-  induction s using finset.induction_on with a s ha ih,
+  induction s using finset.cons_induction_on with a s ha ih,
   { simp },
-  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
-  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+  { rw [finset.forall_mem_cons] at hf,
+    simp [ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)] }
+end
+
+lemma log_nat_eq_sum_factorization (n : ℕ) : log n = n.factorization.sum (λ p t, t * log p) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  nth_rewrite 0 [←nat.factorization_prod_pow_eq_self hn],
+  rw [finsupp.prod, nat.cast_prod, log_prod _ _ (λ p hp, _), finsupp.sum],
+  { simp_rw [nat.cast_pow, log_pow] },
+  { norm_cast,
+    exact pow_ne_zero _ (nat.prime_of_mem_factorization hp).ne_zero },
 end
 
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :
@@ -261,15 +287,14 @@ lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :
 ((tendsto_div_pow_mul_exp_add_at_top a b n ha.symm).comp tendsto_log_at_top).congr'
   (by filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by simp [exp_log hx])
 
-lemma is_o_pow_log_id_at_top {n : ℕ} : asymptotics.is_o (λ x, log x ^ n) id at_top :=
+lemma is_o_pow_log_id_at_top {n : ℕ} : (λ x, log x ^ n) =o[at_top] id :=
 begin
   rw asymptotics.is_o_iff_tendsto',
   { simpa using tendsto_pow_log_div_mul_add_at_top 1 0 n one_ne_zero },
   filter_upwards [eventually_ne_at_top (0 : ℝ)] with x h₁ h₂ using (h₁ h₂).elim,
 end
 
-lemma is_o_log_id_at_top : asymptotics.is_o log id at_top :=
-is_o_pow_log_id_at_top.congr_left (λ x, pow_one _)
+lemma is_o_log_id_at_top : log =o[at_top] id := is_o_pow_log_id_at_top.congr_left (λ x, pow_one _)
 
 end real
 

@@ -6,8 +6,7 @@ Authors: Eric Wieser, Utensil Song
 
 import algebra.ring_quot
 import linear_algebra.tensor_algebra.basic
-import linear_algebra.exterior_algebra.basic
-import linear_algebra.quadratic_form.basic
+import linear_algebra.quadratic_form.isometry
 
 /-!
 # Clifford Algebras
@@ -17,12 +16,12 @@ a quadratic_form `Q`.
 
 ## Notation
 
-The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is denoted as
-`clifford_algebra Q`.
+The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is
+an `R`-algebra denoted `clifford_algebra Q`.
 
 Given a linear morphism `f : M → A` from a module `M` to another `R`-algebra `A`, such that
 `cond : ∀ m, f m * f m = algebra_map _ _ (Q m)`, there is a (unique) lift of `f` to an `R`-algebra
-morphism, which is denoted `clifford_algebra.lift Q f cond`.
+morphism from `clifford_algebra Q` to `A`, which is denoted `clifford_algebra.lift Q f cond`.
 
 The canonical linear map `M → clifford_algebra Q` is denoted `clifford_algebra.ι Q`.
 
@@ -164,6 +163,8 @@ end
 
 /-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
 and is preserved under addition and muliplication, then it holds for all of `clifford_algebra Q`.
+
+See also the stronger `clifford_algebra.left_induction` and `clifford_algebra.right_induction`.
 -/
 -- This proof closely follows `tensor_algebra.induction`
 @[elab_as_eliminator]
@@ -192,26 +193,6 @@ begin
   convert subtype.prop (lift Q of a),
   exact alg_hom.congr_fun of_id a,
 end
-
-/-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
-def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
-alg_equiv.of_alg_hom
-  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R),
-    by simp only [forall_const, ring_hom.map_zero,
-                  exterior_algebra.ι_sq_zero, quadratic_form.zero_apply]⟩)
-  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)),
-    by simp only [forall_const, ring_hom.map_zero,
-                  quadratic_form.zero_apply, ι_sq_scalar]⟩)
-  (exterior_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  exterior_algebra.lift_ι_apply, clifford_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
-  (clifford_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  clifford_algebra.lift_ι_apply, exterior_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
 
 /-- The symmetric product of vectors is a scalar -/
 lemma ι_mul_ι_add_swap (a b : M) :
@@ -311,6 +292,30 @@ lemma equiv_of_isometry_refl :
 by { ext x, exact alg_hom.congr_fun (map_id Q₁) x }
 
 end map
+
+variables (Q)
+
+/-- If the quadratic form of a vector is invertible, then so is that vector. -/
+def invertible_ι_of_invertible (m : M) [invertible (Q m)] : invertible (ι Q m) :=
+{ inv_of := ι Q (⅟(Q m) • m),
+  inv_of_mul_self := by rw [map_smul, smul_mul_assoc, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one],
+  mul_inv_of_self := by rw [map_smul, mul_smul_comm, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one] }
+
+/-- For a vector with invertible quadratic form, $v^{-1} = \frac{v}{Q(v)}$ -/
+lemma inv_of_ι (m : M) [invertible (Q m)] [invertible (ι Q m)] : ⅟(ι Q m) = ι Q (⅟(Q m) • m) :=
+begin
+  letI := invertible_ι_of_invertible Q m,
+  convert (rfl : ⅟(ι Q m) = _),
+end
+
+lemma is_unit_ι_of_is_unit {m : M} (h : is_unit (Q m)) : is_unit (ι Q m) :=
+begin
+  casesI h.nonempty_invertible,
+  letI := invertible_ι_of_invertible Q m,
+  exactI is_unit_of_invertible (ι Q m),
+end
 
 end clifford_algebra
 

@@ -13,37 +13,31 @@ This file defines some additional constructive equivalences using `encodable` an
 function on `ℕ`.
 -/
 
-open nat
+open nat function
 
 namespace equiv
 
 variables {α : Type*}
 
 /--
-An equivalence between `ℕ × ℕ` and `ℕ`, using the `mkpair` and `unpair` functions in
-`data.nat.pairing`.
--/
-@[simp] def nat_prod_nat_equiv_nat : ℕ × ℕ ≃ ℕ :=
-⟨λ p, nat.mkpair p.1 p.2,
- nat.unpair,
- λ p, begin cases p, apply nat.unpair_mkpair end,
- nat.mkpair_unpair⟩
-
-/--
 An equivalence between `bool × ℕ` and `ℕ`, by mapping `(tt, x)` to `2 * x + 1` and `(ff, x)` to
 `2 * x`.
 -/
-@[simp] def bool_prod_nat_equiv_nat : bool × ℕ ≃ ℕ :=
-⟨λ ⟨b, n⟩, bit b n, bodd_div2,
- λ ⟨b, n⟩, by simp [bool_prod_nat_equiv_nat._match_1, bodd_bit, div2_bit],
- λ n, by simp [bool_prod_nat_equiv_nat._match_1, bit_decomp]⟩
+@[simps] def bool_prod_nat_equiv_nat : bool × ℕ ≃ ℕ :=
+{ to_fun := uncurry bit,
+  inv_fun := bodd_div2,
+  left_inv := λ ⟨b, n⟩, by simp only [bodd_bit, div2_bit, uncurry_apply_pair, bodd_div2_eq],
+  right_inv := λ n, by simp only [bit_decomp, bodd_div2_eq, uncurry_apply_pair] }
 
 /--
 An equivalence between `ℕ ⊕ ℕ` and `ℕ`, by mapping `(sum.inl x)` to `2 * x` and `(sum.inr x)` to
 `2 * x + 1`.
 -/
-@[simp] def nat_sum_nat_equiv_nat : ℕ ⊕ ℕ ≃ ℕ :=
+@[simps symm_apply] def nat_sum_nat_equiv_nat : ℕ ⊕ ℕ ≃ ℕ :=
 (bool_prod_equiv_sum ℕ).symm.trans bool_prod_nat_equiv_nat
+
+@[simp] lemma nat_sum_nat_equiv_nat_apply : ⇑nat_sum_nat_equiv_nat = sum.elim bit0 bit1 :=
+by ext (x|x); refl
 
 /--
 An equivalence between `ℤ` and `ℕ`, through `ℤ ≃ ℕ ⊕ ℕ` and `ℕ ⊕ ℕ ≃ ℕ`.
@@ -56,15 +50,7 @@ An equivalence between `α × α` and `α`, given that there is an equivalence b
 -/
 def prod_equiv_of_equiv_nat (e : α ≃ ℕ) : α × α ≃ α :=
 calc α × α ≃ ℕ × ℕ : prod_congr e e
-      ...  ≃ ℕ     : nat_prod_nat_equiv_nat
+      ...  ≃ ℕ     : mkpair_equiv
       ...  ≃ α     : e.symm
-
-/--
-An equivalence between `ℕ+` and `ℕ`, by mapping `x` in `ℕ+` to `x - 1` in `ℕ`.
--/
-def pnat_equiv_nat : ℕ+ ≃ ℕ :=
-⟨λ n, pred n.1, succ_pnat,
-  λ ⟨n, h⟩, by { cases n, cases h, simp [succ_pnat, h] }, λ n, by simp [succ_pnat] ⟩
-
 
 end equiv

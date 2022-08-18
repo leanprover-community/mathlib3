@@ -177,12 +177,12 @@ begin
   contrapose! h4,
   have h5 : fintype.card (G ⧸ K) < fintype.card G,
   { rw [←index_eq_card, ←K.index_mul_card],
-    refine lt_mul_of_one_lt_right (nat.pos_of_ne_zero index_ne_zero_of_fintype)
+    refine lt_mul_of_one_lt_right (nat.pos_of_ne_zero index_ne_zero_of_finite)
       (K.one_lt_card_iff_ne_bot.mpr h4.1) },
   have h6 : nat.coprime (fintype.card (N.map (quotient_group.mk' K)))
     (N.map (quotient_group.mk' K)).index,
   { have index_map := N.index_map_eq this (by rwa quotient_group.ker_mk),
-    have index_pos : 0 < N.index := nat.pos_of_ne_zero index_ne_zero_of_fintype,
+    have index_pos : 0 < N.index := nat.pos_of_ne_zero index_ne_zero_of_finite,
     rw index_map,
     refine h1.coprime_dvd_left _,
     rw [←nat.mul_dvd_mul_iff_left index_pos, index_mul_card, ←index_map, index_mul_card],
@@ -286,8 +286,8 @@ begin
   have hN3 : nat.card G ≠ 0,
   { rw ← N.card_mul_index,
     exact mul_ne_zero hN1 hN2 },
-  haveI := (cardinal.lt_omega_iff_fintype.mp
-    (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hN3))).some,
+  haveI := (cardinal.lt_aleph_0_iff_fintype.mp
+    (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hN3))).some,
   rw nat.card_eq_fintype_card at hN,
   exact exists_right_complement'_of_coprime_of_fintype hN,
 end

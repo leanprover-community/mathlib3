@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Sara Rousta
 -/
 import data.set_like.basic
+import data.set.intervals.ord_connected
 import order.hom.complete_lattice
 
 /-!
@@ -19,10 +20,17 @@ This file defines upper and lower sets in an order.
   of the set is in the set itself.
 * `upper_set`: The type of upper sets.
 * `lower_set`: The type of lower sets.
+* `upper_closure`: The greatest upper set containing a set.
+* `lower_closure`: The least lower set containing a set.
 * `upper_set.Ici`: Principal upper set. `set.Ici` as an upper set.
 * `upper_set.Ioi`: Strict principal upper set. `set.Ioi` as an upper set.
 * `lower_set.Iic`: Principal lower set. `set.Iic` as an lower set.
 * `lower_set.Iio`: Strict principal lower set. `set.Iio` as an lower set.
+
+## Notes
+
+Upper sets are ordered by **reverse** inclusion. This convention is motivated by the fact that this
+makes them order-isomorphic to lower sets and antichains, and matches the convention on `filter`.
 
 ## TODO
 
@@ -52,6 +60,12 @@ lemma is_upper_set_univ : is_upper_set (univ : set α) := λ _ _ _, id
 lemma is_lower_set_univ : is_lower_set (univ : set α) := λ _ _ _, id
 lemma is_upper_set.compl (hs : is_upper_set s) : is_lower_set sᶜ := λ a b h hb ha, hb $ hs h ha
 lemma is_lower_set.compl (hs : is_lower_set s) : is_upper_set sᶜ := λ a b h hb ha, hb $ hs h ha
+
+@[simp] lemma is_upper_set_compl : is_upper_set sᶜ ↔ is_lower_set s :=
+⟨λ h, by { convert h.compl, rw compl_compl }, is_lower_set.compl⟩
+
+@[simp] lemma is_lower_set_compl : is_lower_set sᶜ ↔ is_upper_set s :=
+⟨λ h, by { convert h.compl, rw compl_compl }, is_upper_set.compl⟩
 
 lemma is_upper_set.union (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_set (s ∪ t) :=
 λ a b h, or.imp (hs h) (ht h)
@@ -122,13 +136,55 @@ alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 end has_le
 
 section preorder
-variables [preorder α] (a : α)
+variables [preorder α] {s : set α} (a : α)
 
 lemma is_upper_set_Ici : is_upper_set (Ici a) := λ _ _, ge_trans
 lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
 lemma is_upper_set_Ioi : is_upper_set (Ioi a) := λ _ _, flip lt_of_lt_of_le
 lemma is_lower_set_Iio : is_lower_set (Iio a) := λ _ _, lt_of_le_of_lt
 
+lemma is_upper_set_iff_Ici_subset : is_upper_set s ↔ ∀ ⦃a⦄, a ∈ s → Ici a ⊆ s :=
+by simp [is_upper_set, subset_def, @forall_swap (_ ∈ s)]
+
+lemma is_lower_set_iff_Iic_subset : is_lower_set s ↔ ∀ ⦃a⦄, a ∈ s → Iic a ⊆ s :=
+by simp [is_lower_set, subset_def, @forall_swap (_ ∈ s)]
+
+alias is_upper_set_iff_Ici_subset ↔ is_upper_set.Ici_subset _
+alias is_lower_set_iff_Iic_subset ↔ is_lower_set.Iic_subset _
+
+lemma is_upper_set.ord_connected (h : is_upper_set s) : s.ord_connected :=
+⟨λ a ha b _, Icc_subset_Ici_self.trans $ h.Ici_subset ha⟩
+
+lemma is_lower_set.ord_connected (h : is_lower_set s) : s.ord_connected :=
+⟨λ a _ b hb, Icc_subset_Iic_self.trans $ h.Iic_subset hb⟩
+
+section order_top
+variables [order_top α]
+
+lemma is_lower_set.top_mem (hs : is_lower_set s) : ⊤ ∈ s ↔ s = univ :=
+⟨λ h, eq_univ_of_forall $ λ a, hs le_top h, λ h, h.symm ▸ mem_univ _⟩
+
+lemma is_upper_set.top_mem (hs : is_upper_set s) : ⊤ ∈ s ↔ s.nonempty :=
+⟨λ h, ⟨_, h⟩, λ ⟨a, ha⟩, hs le_top ha⟩
+
+lemma is_upper_set.not_top_mem (hs : is_upper_set s) : ⊤ ∉ s ↔ s = ∅ :=
+hs.top_mem.not.trans not_nonempty_iff_eq_empty
+
+end order_top
+
+section order_bot
+variables [order_bot α]
+
+lemma is_upper_set.bot_mem (hs : is_upper_set s) : ⊥ ∈ s ↔ s = univ :=
+⟨λ h, eq_univ_of_forall $ λ a, hs bot_le h, λ h, h.symm ▸ mem_univ _⟩
+
+lemma is_lower_set.bot_mem (hs : is_lower_set s) : ⊥ ∈ s ↔ s.nonempty :=
+⟨λ h, ⟨_, h⟩, λ ⟨a, ha⟩, hs bot_le ha⟩
+
+lemma is_lower_set.not_bot_mem (hs : is_lower_set s) : ⊥ ∉ s ↔ s = ∅ :=
+hs.bot_mem.not.trans not_nonempty_iff_eq_empty
+
+end order_bot
 end preorder
 
 /-! ### Bundled upper/lower sets -/
@@ -179,47 +235,50 @@ end lower_set
 namespace upper_set
 variables {S : set (upper_set α)} {s t : upper_set α} {a : α}
 
-instance : has_sup (upper_set α) := ⟨λ s t, ⟨s ∪ t, s.upper.union t.upper⟩⟩
-instance : has_inf (upper_set α) := ⟨λ s t, ⟨s ∩ t, s.upper.inter t.upper⟩⟩
-instance : has_top (upper_set α) := ⟨⟨univ, is_upper_set_univ⟩⟩
-instance : has_bot (upper_set α) := ⟨⟨∅, is_upper_set_empty⟩⟩
+instance : has_sup (upper_set α) := ⟨λ s t, ⟨s ∩ t, s.upper.inter t.upper⟩⟩
+instance : has_inf (upper_set α) := ⟨λ s t, ⟨s ∪ t, s.upper.union t.upper⟩⟩
+instance : has_top (upper_set α) := ⟨⟨∅, is_upper_set_empty⟩⟩
+instance : has_bot (upper_set α) := ⟨⟨univ, is_upper_set_univ⟩⟩
 instance : has_Sup (upper_set α) :=
-⟨λ S, ⟨⋃ s ∈ S, ↑s, is_upper_set_Union₂ $ λ s _, s.upper⟩⟩
-instance : has_Inf (upper_set α) :=
 ⟨λ S, ⟨⋂ s ∈ S, ↑s, is_upper_set_Inter₂ $ λ s _, s.upper⟩⟩
+instance : has_Inf (upper_set α) :=
+⟨λ S, ⟨⋃ s ∈ S, ↑s, is_upper_set_Union₂ $ λ s _, s.upper⟩⟩
 
 instance : complete_distrib_lattice (upper_set α) :=
-set_like.coe_injective.complete_distrib_lattice _
+(to_dual.injective.comp $ set_like.coe_injective).complete_distrib_lattice _
   (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) rfl rfl
 
 instance : inhabited (upper_set α) := ⟨⊥⟩
 
-@[simp] lemma coe_top : ((⊤ : upper_set α) : set α) = univ := rfl
-@[simp] lemma coe_bot : ((⊥ : upper_set α) : set α) = ∅ := rfl
-@[simp] lemma coe_sup (s t : upper_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simp] lemma coe_inf (s t : upper_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
-@[simp] lemma coe_Inf (S : set (upper_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
-@[simp] lemma coe_supr (f : ι → upper_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i := by simp [supr]
-@[simp] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i := by simp [infi]
-@[simp] lemma coe_supr₂ (f : Π i, κ i → upper_set α) : (↑(⨆ i j, f i j) : set α) = ⋃ i j, f i j :=
-by simp_rw coe_supr
-@[simp] lemma coe_infi₂ (f : Π i, κ i → upper_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
-by simp_rw coe_infi
+@[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ t ≤ s := iff.rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : upper_set α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : upper_set α) : set α) = univ := rfl
+@[simp, norm_cast] lemma coe_sup (s t : upper_set α) : (↑(s ⊔ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_inf (s t : upper_set α) : (↑(s ⊓ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = ⋂ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_Inf (S : set (upper_set α)) : (↑(Inf S) : set α) = ⋃ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_supr (f : ι → upper_set α) : (↑(⨆ i, f i) : set α) = ⋂ i, f i :=
+by simp [supr]
+@[simp, norm_cast] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⋃ i, f i :=
+by simp [infi]
+@[simp, norm_cast] lemma coe_supr₂ (f : Π i, κ i → upper_set α) :
+  (↑(⨆ i j, f i j) : set α) = ⋂ i j, f i j := by simp_rw coe_supr
+@[simp, norm_cast] lemma coe_infi₂ (f : Π i, κ i → upper_set α) :
+  (↑(⨅ i j, f i j) : set α) = ⋃ i j, f i j := by simp_rw coe_infi
 
-@[simp] lemma mem_top : a ∈ (⊤ : upper_set α) := trivial
-@[simp] lemma not_mem_bot : a ∉ (⊥ : upper_set α) := id
-@[simp] lemma mem_sup_iff : a ∈ s ⊔ t ↔ a ∈ s ∨ a ∈ t := iff.rfl
-@[simp] lemma mem_inf_iff : a ∈ s ⊓ t ↔ a ∈ s ∧ a ∈ t := iff.rfl
-@[simp] lemma mem_Sup_iff : a ∈ Sup S ↔ ∃ s ∈ S, a ∈ s := mem_Union₂
-@[simp] lemma mem_Inf_iff  : a ∈ Inf S ↔ ∀ s ∈ S, a ∈ s := mem_Inter₂
-@[simp] lemma mem_supr_iff {f : ι → upper_set α} : a ∈ (⨆ i, f i) ↔ ∃ i, a ∈ f i :=
-by { rw [←set_like.mem_coe, coe_supr], exact mem_Union }
-@[simp] lemma mem_infi_iff {f : ι → upper_set α} : a ∈ (⨅ i, f i) ↔ ∀ i, a ∈ f i :=
-by { rw [←set_like.mem_coe, coe_infi], exact mem_Inter }
-@[simp] lemma mem_supr₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨆ i j, f i j) ↔ ∃ i j, a ∈ f i j :=
+@[simp] lemma not_mem_top : a ∉ (⊤ : upper_set α) := id
+@[simp] lemma mem_bot : a ∈ (⊥ : upper_set α) := trivial
+@[simp] lemma mem_sup_iff : a ∈ s ⊔ t ↔ a ∈ s ∧ a ∈ t := iff.rfl
+@[simp] lemma mem_inf_iff : a ∈ s ⊓ t ↔ a ∈ s ∨ a ∈ t := iff.rfl
+@[simp] lemma mem_Sup_iff : a ∈ Sup S ↔ ∀ s ∈ S, a ∈ s := mem_Inter₂
+@[simp] lemma mem_Inf_iff  : a ∈ Inf S ↔ ∃ s ∈ S, a ∈ s := mem_Union₂
+@[simp] lemma mem_supr_iff {f : ι → upper_set α} : a ∈ (⨆ i, f i) ↔ ∀ i, a ∈ f i :=
+by { rw [←set_like.mem_coe, coe_supr], exact mem_Inter }
+@[simp] lemma mem_infi_iff {f : ι → upper_set α} : a ∈ (⨅ i, f i) ↔ ∃ i, a ∈ f i :=
+by { rw [←set_like.mem_coe, coe_infi], exact mem_Union }
+@[simp] lemma mem_supr₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨆ i j, f i j) ↔ ∀ i j, a ∈ f i j :=
 by simp_rw mem_supr_iff
-@[simp] lemma mem_infi₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨅ i j, f i j) ↔ ∀ i j, a ∈ f i j :=
+@[simp] lemma mem_infi₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨅ i j, f i j) ↔ ∃ i j, a ∈ f i j :=
 by simp_rw mem_infi_iff
 
 end upper_set
@@ -240,20 +299,21 @@ set_like.coe_injective.complete_distrib_lattice _
 
 instance : inhabited (lower_set α) := ⟨⊥⟩
 
-@[simp] lemma coe_top : ((⊤ : lower_set α) : set α) = univ := rfl
-@[simp] lemma coe_bot : ((⊥ : lower_set α) : set α) = ∅ := rfl
-@[simp] lemma coe_sup (s t : lower_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simp] lemma coe_inf (s t : lower_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp] lemma coe_Sup (S : set (lower_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
-@[simp] lemma coe_Inf (S : set (lower_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
-@[simp] lemma coe_supr (f : ι → lower_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i :=
+@[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := iff.rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : lower_set α) : set α) = univ := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : lower_set α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_sup (s t : lower_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_inf (s t : lower_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_Sup (S : set (lower_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_Inf (S : set (lower_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_supr (f : ι → lower_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i :=
 by simp_rw [supr, coe_Sup, mem_range, Union_exists, Union_Union_eq']
-@[simp] lemma coe_infi (f : ι → lower_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i :=
+@[simp, norm_cast] lemma coe_infi (f : ι → lower_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i :=
 by simp_rw [infi, coe_Inf, mem_range, Inter_exists, Inter_Inter_eq']
-@[simp] lemma coe_supr₂ (f : Π i, κ i → lower_set α) : (↑(⨆ i j, f i j) : set α) = ⋃ i j, f i j :=
-by simp_rw coe_supr
-@[simp] lemma coe_infi₂ (f : Π i, κ i → lower_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
-by simp_rw coe_infi
+@[simp, norm_cast] lemma coe_supr₂ (f : Π i, κ i → lower_set α) :
+  (↑(⨆ i j, f i j) : set α) = ⋃ i j, f i j := by simp_rw coe_supr
+@[simp, norm_cast] lemma coe_infi₂ (f : Π i, κ i → lower_set α) :
+  (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j := by simp_rw coe_infi
 
 @[simp] lemma mem_top : a ∈ (⊤ : lower_set α) := trivial
 @[simp] lemma not_mem_bot : a ∉ (⊥ : lower_set α) := id
@@ -281,76 +341,87 @@ def upper_set.compl (s : upper_set α) : lower_set α := ⟨sᶜ, s.upper.compl�
 def lower_set.compl (s : lower_set α) : upper_set α := ⟨sᶜ, s.lower.compl⟩
 
 namespace upper_set
-variables {s : upper_set α} {a : α}
+variables {s t : upper_set α} {a : α}
 
 @[simp] lemma coe_compl (s : upper_set α) : (s.compl : set α) = sᶜ := rfl
 @[simp] lemma mem_compl_iff : a ∈ s.compl ↔ a ∉ s := iff.rfl
 @[simp] lemma compl_compl (s : upper_set α) : s.compl.compl = s := upper_set.ext $ compl_compl _
+@[simp] lemma compl_le_compl : s.compl ≤ t.compl ↔ s ≤ t := compl_subset_compl
 
-@[simp] protected lemma compl_sup (s t : upper_set α) : (s ⊔ t).compl = s.compl ⊓ t.compl :=
-lower_set.ext compl_sup
-@[simp] protected lemma compl_inf (s t : upper_set α) : (s ⊓ t).compl = s.compl ⊔ t.compl :=
+@[simp] protected lemma compl_sup (s t : upper_set α) : (s ⊔ t).compl = s.compl ⊔ t.compl :=
 lower_set.ext compl_inf
-@[simp] protected lemma compl_top : (⊤ : upper_set α).compl = ⊥ := lower_set.ext compl_univ
-@[simp] protected lemma compl_bot : (⊥ : upper_set α).compl = ⊤ := lower_set.ext compl_empty
+@[simp] protected lemma compl_inf (s t : upper_set α) : (s ⊓ t).compl = s.compl ⊓ t.compl :=
+lower_set.ext compl_sup
+@[simp] protected lemma compl_top : (⊤ : upper_set α).compl = ⊤ := lower_set.ext compl_empty
+@[simp] protected lemma compl_bot : (⊥ : upper_set α).compl = ⊥  := lower_set.ext compl_univ
 @[simp] protected lemma compl_Sup (S : set (upper_set α)) :
-  (Sup S).compl = ⨅ s ∈ S, upper_set.compl s :=
-lower_set.ext $ by simp only [coe_compl, coe_Sup, compl_Union₂, lower_set.coe_infi₂]
+  (Sup S).compl = ⨆ s ∈ S, upper_set.compl s :=
+lower_set.ext $ by simp only [coe_compl, coe_Sup, compl_Inter₂, lower_set.coe_supr₂]
 
 @[simp] protected lemma compl_Inf (S : set (upper_set α)) :
-  (Inf S).compl = ⨆ s ∈ S, upper_set.compl s :=
-lower_set.ext $ by simp only [coe_compl, coe_Inf, compl_Inter₂, lower_set.coe_supr₂]
+  (Inf S).compl = ⨅ s ∈ S, upper_set.compl s :=
+lower_set.ext $ by simp only [coe_compl, coe_Inf, compl_Union₂, lower_set.coe_infi₂]
 
-@[simp] protected lemma compl_supr (f : ι → upper_set α) : (⨆ i, f i).compl = ⨅ i, (f i).compl :=
-lower_set.ext $ by simp only [coe_compl, coe_supr, compl_Union, lower_set.coe_infi]
+@[simp] protected lemma compl_supr (f : ι → upper_set α) : (⨆ i, f i).compl = ⨆ i, (f i).compl :=
+lower_set.ext $ by simp only [coe_compl, coe_supr, compl_Inter, lower_set.coe_supr]
 
-@[simp] protected lemma compl_infi (f : ι → upper_set α) : (⨅ i, f i).compl = ⨆ i, (f i).compl :=
-lower_set.ext $ by simp only [coe_compl, coe_infi, compl_Inter, lower_set.coe_supr]
+@[simp] protected lemma compl_infi (f : ι → upper_set α) : (⨅ i, f i).compl = ⨅ i, (f i).compl :=
+lower_set.ext $ by simp only [coe_compl, coe_infi, compl_Union, lower_set.coe_infi]
 
 @[simp] lemma compl_supr₂ (f : Π i, κ i → upper_set α) :
-  (⨆ i j, f i j).compl = ⨅ i j, (f i j).compl :=
+  (⨆ i j, f i j).compl = ⨆ i j, (f i j).compl :=
 by simp_rw upper_set.compl_supr
 
 @[simp] lemma compl_infi₂ (f : Π i, κ i → upper_set α) :
-  (⨅ i j, f i j).compl =  ⨆ i j, (f i j).compl :=
+  (⨅ i j, f i j).compl = ⨅ i j, (f i j).compl :=
 by simp_rw upper_set.compl_infi
 
 end upper_set
 
 namespace lower_set
-variables {s : lower_set α} {a : α}
+variables {s t : lower_set α} {a : α}
 
 @[simp] lemma coe_compl (s : lower_set α) : (s.compl : set α) = sᶜ := rfl
 @[simp] lemma mem_compl_iff : a ∈ s.compl ↔ a ∉ s := iff.rfl
 @[simp] lemma compl_compl (s : lower_set α) : s.compl.compl = s := lower_set.ext $ compl_compl _
+@[simp] lemma compl_le_compl : s.compl ≤ t.compl ↔ s ≤ t := compl_subset_compl
 
-protected lemma compl_sup (s t : lower_set α) : (s ⊔ t).compl = s.compl ⊓ t.compl :=
+protected lemma compl_sup (s t : lower_set α) : (s ⊔ t).compl = s.compl ⊔ t.compl :=
 upper_set.ext compl_sup
-protected lemma compl_inf (s t : lower_set α) : (s ⊓ t).compl = s.compl ⊔ t.compl :=
+protected lemma compl_inf (s t : lower_set α) : (s ⊓ t).compl = s.compl ⊓ t.compl :=
 upper_set.ext compl_inf
-protected lemma compl_top : (⊤ : lower_set α).compl = ⊥ := upper_set.ext compl_univ
-protected lemma compl_bot : (⊥ : lower_set α).compl = ⊤ := upper_set.ext compl_empty
-protected lemma compl_Sup (S : set (lower_set α)) : (Sup S).compl = ⨅ s ∈ S, lower_set.compl s :=
-upper_set.ext $ by simp only [coe_compl, coe_Sup, compl_Union₂, upper_set.coe_infi₂]
+protected lemma compl_top : (⊤ : lower_set α).compl = ⊤ := upper_set.ext compl_univ
+protected lemma compl_bot : (⊥ : lower_set α).compl = ⊥ := upper_set.ext compl_empty
+protected lemma compl_Sup (S : set (lower_set α)) : (Sup S).compl = ⨆ s ∈ S, lower_set.compl s :=
+upper_set.ext $ by simp only [coe_compl, coe_Sup, compl_Union₂, upper_set.coe_supr₂]
 
-protected lemma compl_Inf (S : set (lower_set α)) : (Inf S).compl = ⨆ s ∈ S, lower_set.compl s :=
-upper_set.ext $ by simp only [coe_compl, coe_Inf, compl_Inter₂, upper_set.coe_supr₂]
+protected lemma compl_Inf (S : set (lower_set α)) : (Inf S).compl = ⨅ s ∈ S, lower_set.compl s :=
+upper_set.ext $ by simp only [coe_compl, coe_Inf, compl_Inter₂, upper_set.coe_infi₂]
 
-protected lemma compl_supr (f : ι → lower_set α) : (⨆ i, f i).compl = ⨅ i, (f i).compl :=
-upper_set.ext $ by simp only [coe_compl, coe_supr, compl_Union, upper_set.coe_infi]
+protected lemma compl_supr (f : ι → lower_set α) : (⨆ i, f i).compl = ⨆ i, (f i).compl :=
+upper_set.ext $ by simp only [coe_compl, coe_supr, compl_Union, upper_set.coe_supr]
 
-protected lemma compl_infi (f : ι → lower_set α) : (⨅ i, f i).compl = ⨆ i, (f i).compl :=
-upper_set.ext $ by simp only [coe_compl, coe_infi, compl_Inter, upper_set.coe_supr]
+protected lemma compl_infi (f : ι → lower_set α) : (⨅ i, f i).compl = ⨅ i, (f i).compl :=
+upper_set.ext $ by simp only [coe_compl, coe_infi, compl_Inter, upper_set.coe_infi]
 
 @[simp] lemma compl_supr₂ (f : Π i, κ i → lower_set α) :
-  (⨆ i j, f i j).compl = ⨅ i j, (f i j).compl :=
+  (⨆ i j, f i j).compl = ⨆ i j, (f i j).compl :=
 by simp_rw lower_set.compl_supr
 
 @[simp] lemma compl_infi₂ (f : Π i, κ i → lower_set α) :
-  (⨅ i j, f i j).compl =  ⨆ i j, (f i j).compl :=
+  (⨅ i j, f i j).compl = ⨅ i j, (f i j).compl :=
 by simp_rw lower_set.compl_infi
 
 end lower_set
+
+/-- Upper sets are order-isomorphic to lower sets under complementation. -/
+@[simps] def upper_set_iso_lower_set : upper_set α ≃o lower_set α :=
+{ to_fun := upper_set.compl,
+  inv_fun := lower_set.compl,
+  left_inv := upper_set.compl_compl,
+  right_inv := lower_set.compl_compl,
+  map_rel_iff' := λ _ _, upper_set.compl_le_compl }
+
 end has_le
 
 /-! #### Principal sets -/
@@ -370,40 +441,39 @@ def Ioi (a : α) : upper_set α := ⟨Ioi a, is_upper_set_Ioi a⟩
 @[simp] lemma mem_Ici_iff : b ∈ Ici a ↔ a ≤ b := iff.rfl
 @[simp] lemma mem_Ioi_iff : b ∈ Ioi a ↔ a < b := iff.rfl
 
-lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
+lemma Ici_le_Ioi (a : α) : Ici a ≤ Ioi a := Ioi_subset_Ici_self
 
-@[simp] lemma Ici_top [order_bot α] : Ici (⊥ : α) = ⊤ := set_like.coe_injective Ici_bot
-@[simp] lemma Ioi_bot [order_top α] : Ioi (⊤ : α) = ⊥ := set_like.coe_injective Ioi_top
+@[simp] lemma Ioi_top [order_top α] : Ioi (⊤ : α) = ⊤ := set_like.coe_injective Ioi_top
+@[simp] lemma Ici_bot [order_bot α] : Ici (⊥ : α) = ⊥ := set_like.coe_injective Ici_bot
 
 end preorder
 
 section semilattice_sup
 variables [semilattice_sup α]
 
-@[simp] lemma Ici_sup (a b : α) : Ici (a ⊔ b) = Ici a ⊓ Ici b := ext Ici_inter_Ici.symm
+@[simp] lemma Ici_sup (a b : α) : Ici (a ⊔ b) = Ici a ⊔ Ici b := ext Ici_inter_Ici.symm
 
 /-- `upper_set.Ici` as a `sup_hom`. -/
-def Ici_sup_hom : sup_hom α (upper_set α)ᵒᵈ := ⟨Ici, Ici_sup⟩
+def Ici_sup_hom : sup_hom α (upper_set α) := ⟨Ici, Ici_sup⟩
 
-@[simp] lemma Ici_sup_hom_apply (a : α) : Ici_sup_hom a = to_dual (Ici a) := rfl
+@[simp] lemma Ici_sup_hom_apply (a : α) : Ici_sup_hom a = (Ici a) := rfl
 
 end semilattice_sup
 
 section complete_lattice
 variables [complete_lattice α]
 
-@[simp] lemma Ici_Sup (S : set α) : Ici (Sup S) = ⨅ a ∈ S, Ici a :=
-set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_infi_iff, Sup_le_iff]
+@[simp] lemma Ici_Sup (S : set α) : Ici (Sup S) = ⨆ a ∈ S, Ici a :=
+set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_supr_iff, Sup_le_iff]
 
-@[simp] lemma Ici_supr (f : ι → α) : Ici (⨆ i, f i) = ⨅ i, Ici (f i) :=
-set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_infi_iff, supr_le_iff]
+@[simp] lemma Ici_supr (f : ι → α) : Ici (⨆ i, f i) = ⨆ i, Ici (f i) :=
+set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_supr_iff, supr_le_iff]
 
-@[simp] lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⨅ i j, Ici (f i j) :=
+@[simp] lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⨆ i j, Ici (f i j) :=
 by simp_rw Ici_supr
 
 /-- `upper_set.Ici` as a `Sup_hom`. -/
-def Ici_Sup_hom : Sup_hom α (upper_set α)ᵒᵈ :=
-⟨Ici, λ s, (Ici_Sup s).trans Inf_image.symm⟩
+def Ici_Sup_hom : Sup_hom α (upper_set α) := ⟨Ici, λ s, (Ici_Sup s).trans Sup_image.symm⟩
 
 @[simp] lemma Ici_Sup_hom_apply (a : α) : Ici_Sup_hom a = to_dual (Ici a) := rfl
 
@@ -467,3 +537,125 @@ def Iic_Inf_hom : Inf_hom α (lower_set α) := ⟨Iic, λ s, (Iic_Inf s).trans I
 
 end complete_lattice
 end lower_set
+
+section closure
+variables [preorder α] {s t : set α} {x : α}
+
+/-- The greatest upper set containing a given set. -/
+def upper_closure (s : set α) : upper_set α :=
+⟨{x | ∃ a ∈ s, a ≤ x}, λ x y h, Exists₂.imp $ λ a _, h.trans'⟩
+
+/-- The least lower set containing a given set. -/
+def lower_closure (s : set α) : lower_set α :=
+⟨{x | ∃ a ∈ s, x ≤ a}, λ x y h, Exists₂.imp $ λ a _, h.trans⟩
+
+@[simp, norm_cast] lemma coe_upper_closure (s : set α) :
+  ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
+
+@[simp, norm_cast] lemma coe_lower_closure (s : set α) :
+  ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
+
+@[simp] lemma mem_upper_closure : x ∈ upper_closure s ↔ ∃ a ∈ s, a ≤ x := iff.rfl
+@[simp] lemma mem_lower_closure : x ∈ lower_closure s ↔ ∃ a ∈ s, x ≤ a := iff.rfl
+
+lemma subset_upper_closure : s ⊆ upper_closure s := λ x hx, ⟨x, hx, le_rfl⟩
+lemma subset_lower_closure : s ⊆ lower_closure s := λ x hx, ⟨x, hx, le_rfl⟩
+
+lemma upper_closure_min (h : s ⊆ t) (ht : is_upper_set t) : ↑(upper_closure s) ⊆ t :=
+λ a ⟨b, hb, hba⟩, ht hba $ h hb
+
+lemma lower_closure_min (h : s ⊆ t) (ht : is_lower_set t) : ↑(lower_closure s) ⊆ t :=
+λ a ⟨b, hb, hab⟩, ht hab $ h hb
+
+@[simp] lemma upper_set.infi_Ici (s : set α) : (⨅ a ∈ s, upper_set.Ici a) = upper_closure s :=
+by { ext, simp }
+
+@[simp] lemma lower_set.supr_Iic (s : set α) : (⨆ a ∈ s, lower_set.Iic a) = lower_closure s :=
+by { ext, simp }
+
+lemma gc_upper_closure_coe :
+  galois_connection (to_dual ∘ upper_closure : set α → (upper_set α)ᵒᵈ) (coe ∘ of_dual) :=
+λ s t, ⟨λ h, subset_upper_closure.trans $ upper_set.coe_subset_coe.2 h,
+  λ h, upper_closure_min h t.upper⟩
+
+lemma gc_lower_closure_coe : galois_connection (lower_closure : set α → lower_set α) coe :=
+λ s t, ⟨λ h, subset_lower_closure.trans $ lower_set.coe_subset_coe.2 h,
+  λ h, lower_closure_min h t.lower⟩
+
+/-- `upper_closure` forms a reversed Galois insertion with the coercion from upper sets to sets. -/
+def gi_upper_closure_coe :
+  galois_insertion (to_dual ∘ upper_closure : set α → (upper_set α)ᵒᵈ) (coe ∘ of_dual) :=
+{ choice := λ s hs, to_dual (⟨s, λ a b hab ha, hs ⟨a, ha, hab⟩⟩ : upper_set α),
+  gc := gc_upper_closure_coe,
+  le_l_u := λ _, subset_upper_closure,
+  choice_eq := λ s hs,
+    of_dual.injective $ set_like.coe_injective $ subset_upper_closure.antisymm hs }
+
+/-- `lower_closure` forms a Galois insertion with the coercion from lower sets to sets. -/
+def gi_lower_closure_coe : galois_insertion (lower_closure : set α → lower_set α) coe :=
+{ choice := λ s hs, ⟨s, λ a b hba ha, hs ⟨a, ha, hba⟩⟩,
+  gc := gc_lower_closure_coe,
+  le_l_u := λ _, subset_lower_closure,
+  choice_eq := λ s hs, set_like.coe_injective $ subset_lower_closure.antisymm hs }
+
+lemma upper_closure_anti : antitone (upper_closure : set α → upper_set α) :=
+gc_upper_closure_coe.monotone_l
+
+lemma lower_closure_mono : monotone (lower_closure : set α → lower_set α) :=
+gc_lower_closure_coe.monotone_l
+
+@[simp] lemma upper_closure_empty : upper_closure (∅ : set α) = ⊤ := by { ext, simp }
+@[simp] lemma lower_closure_empty : lower_closure (∅ : set α) = ⊥ := by { ext, simp }
+
+@[simp] lemma upper_closure_univ : upper_closure (univ : set α) = ⊥ :=
+le_bot_iff.1 subset_upper_closure
+
+@[simp] lemma lower_closure_univ : lower_closure (univ : set α) = ⊤ :=
+top_le_iff.1 subset_lower_closure
+
+@[simp] lemma upper_closure_eq_top_iff : upper_closure s = ⊤ ↔ s = ∅ :=
+⟨λ h, subset_empty_iff.1 $ subset_upper_closure.trans (congr_arg coe h).subset,
+  by { rintro rfl, exact upper_closure_empty }⟩
+
+@[simp] lemma lower_closure_eq_bot_iff : lower_closure s = ⊥ ↔ s = ∅ :=
+⟨λ h, subset_empty_iff.1 $ subset_lower_closure.trans (congr_arg coe h).subset,
+  by { rintro rfl, exact lower_closure_empty }⟩
+
+@[simp] lemma upper_closure_union (s t : set α) :
+  upper_closure (s ∪ t) = upper_closure s ⊓ upper_closure t :=
+by { ext, simp [or_and_distrib_right, exists_or_distrib] }
+
+@[simp] lemma lower_closure_union (s t : set α) :
+  lower_closure (s ∪ t) = lower_closure s ⊔ lower_closure t :=
+by { ext, simp [or_and_distrib_right, exists_or_distrib] }
+
+@[simp] lemma upper_closure_Union (f : ι → set α) :
+  upper_closure (⋃ i, f i) = ⨅ i, upper_closure (f i) :=
+by { ext, simp [←exists_and_distrib_right, @exists_comm α] }
+
+@[simp] lemma lower_closure_Union (f : ι → set α) :
+  lower_closure (⋃ i, f i) = ⨆ i, lower_closure (f i) :=
+by { ext, simp [←exists_and_distrib_right, @exists_comm α] }
+
+@[simp] lemma upper_closure_sUnion (S : set (set α)) :
+  upper_closure (⋃₀ S) = ⨅ s ∈ S, upper_closure s :=
+by simp_rw [sUnion_eq_bUnion, upper_closure_Union]
+
+@[simp] lemma lower_closure_sUnion (S : set (set α)) :
+  lower_closure (⋃₀ S) = ⨆ s ∈ S, lower_closure s :=
+by simp_rw [sUnion_eq_bUnion, lower_closure_Union]
+
+lemma set.ord_connected.upper_closure_inter_lower_closure (h : s.ord_connected) :
+  ↑(upper_closure s) ∩ ↑(lower_closure s) = s :=
+(subset_inter subset_upper_closure subset_lower_closure).antisymm' $ λ a ⟨⟨b, hb, hba⟩, c, hc, hac⟩,
+  h.out hb hc ⟨hba, hac⟩
+
+lemma ord_connected_iff_upper_closure_inter_lower_closure :
+  s.ord_connected ↔ ↑(upper_closure s) ∩ ↑(lower_closure s) = s :=
+begin
+  refine ⟨set.ord_connected.upper_closure_inter_lower_closure, λ h, _⟩,
+  rw ←h,
+  exact (upper_set.upper _).ord_connected.inter (lower_set.lower _).ord_connected,
+end
+
+end closure

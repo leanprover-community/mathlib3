@@ -158,7 +158,7 @@ variables [order_topology α] [topological_add_group α] [topological_space β] 
 
 /-- Do not use this, use `continuous_on.comp_fract` instead. -/
 lemma continuous_on.comp_fract' {f : β → α → γ}
-  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
+  (h : continuous_on (uncurry f) $ univ ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ st : β × α, f st.1 $ fract st.2) :=
 begin
   change continuous ((uncurry f) ∘ (prod.map id (fract))),
@@ -167,7 +167,7 @@ begin
   by_cases ht : t = floor t,
   { rw ht,
     rw ← continuous_within_at_univ,
-    have : (univ : set (β × α)) ⊆ ((univ : set β) ×ˢ Iio ↑⌊t⌋) ∪ ((univ : set β) ×ˢ Ici ↑⌊t⌋),
+    have : (univ : set (β × α)) ⊆ (univ ×ˢ Iio ↑⌊t⌋) ∪ (univ ×ˢ Ici ↑⌊t⌋),
     { rintros p -,
       rw ← prod_union,
       exact ⟨trivial, lt_or_le p.2 _⟩ },
@@ -178,14 +178,14 @@ begin
       have : (uncurry f) (s, 0) = (uncurry f) (s, (1 : α)),
         by simp [uncurry, hf],
       rw this,
-      refine (h _ ⟨true.intro, by exact_mod_cast right_mem_Icc.mpr zero_le_one⟩).tendsto.comp _,
+      refine (h _ ⟨⟨⟩, by exact_mod_cast right_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ],
       rw nhds_within_Icc_eq_nhds_within_Iic (@zero_lt_one α _ _),
       exact tendsto_id.prod_map
         (tendsto_nhds_within_mono_right Iio_subset_Iic_self $ tendsto_fract_left _) },
     { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
-      refine (h _ ⟨true.intro, by exact_mod_cast left_mem_Icc.mpr zero_le_one⟩).tendsto.comp _,
+      refine (h _ ⟨⟨⟩, by exact_mod_cast left_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ,
         nhds_within_Icc_eq_nhds_within_Ici (@zero_lt_one α _ _)],
       exact tendsto_id.prod_map (tendsto_fract_right _) } },
@@ -203,7 +203,7 @@ end
 lemma continuous_on.comp_fract
   {s : β → α}
   {f : β → α → γ}
-  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ (Icc 0 1 : set α))
+  (h : continuous_on (uncurry f) $ univ ×ˢ Icc 0 1)
   (hs : continuous s)
   (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ x : β, f x $ int.fract (s x)) :=

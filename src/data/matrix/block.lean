@@ -35,8 +35,8 @@ dimensions. -/
 @[pp_nodot]
 def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   matrix (n ⊕ o) (l ⊕ m) α :=
-sum.elim (λ i, sum.elim (A i) (B i))
-         (λ i, sum.elim (C i) (D i))
+of $ sum.elim (λ i, sum.elim (A i) (B i))
+              (λ i, sum.elim (C i) (D i))
 
 @[simp] lemma from_blocks_apply₁₁
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : l) :
@@ -61,22 +61,22 @@ rfl
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top left" submatrix. -/
 def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
-λ i j, M (sum.inl i) (sum.inl j)
+of $ λ i j, M (sum.inl i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top right" submatrix. -/
 def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
-λ i j, M (sum.inl i) (sum.inr j)
+of $ λ i j, M (sum.inl i) (sum.inr j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom left" submatrix. -/
 def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
-λ i j, M (sum.inr i) (sum.inl j)
+of $ λ i j, M (sum.inr i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom right" submatrix. -/
 def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
-λ i j, M (sum.inr i) (sum.inr j)
+of $ λ i j, M (sum.inr i) (sum.inr j)
 
 lemma from_blocks_to_blocks (M : matrix (n ⊕ o) (l ⊕ m) α) :
   from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ = M :=
@@ -125,6 +125,21 @@ begin
   simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
 
+@[simp] lemma from_blocks_submatrix_sum_swap_left
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → l ⊕ m) :
+  (from_blocks A B C D).submatrix sum.swap f = (from_blocks C D A B).submatrix id f :=
+by { ext i j, cases i; dsimp; cases f j; refl }
+
+@[simp] lemma from_blocks_submatrix_sum_swap_right
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → n ⊕ o) :
+  (from_blocks A B C D).submatrix f sum.swap = (from_blocks B A D C).submatrix f id :=
+by { ext i j, cases j; dsimp; cases f i; refl }
+
+lemma from_blocks_submatrix_sum_swap_sum_swap {l m n o α : Type*}
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).submatrix sum.swap sum.swap = from_blocks D C B A :=
+by simp
+
 /-- A 2x2 block matrix is block diagonal if the blocks outside of the diagonal vanish -/
 def is_two_block_diagonal [has_zero α] (A : matrix (n ⊕ o) (l ⊕ m) α) : Prop :=
 to_blocks₁₂ A = 0 ∧ to_blocks₂₁ A = 0
@@ -132,7 +147,7 @@ to_blocks₁₂ A = 0 ∧ to_blocks₂₁ A = 0
 /-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
   `to_block M p q` is the corresponding block matrix. -/
 def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :
-  matrix {a // p a} {a // q a} α := M.minor coe coe
+  matrix {a // p a} {a // q a} α := M.submatrix coe coe
 
 @[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) (q : n → Prop)
   (i : {a // p a}) (j : {a // q a}) : to_block M p q i j = M ↑i ↑j := rfl
@@ -140,7 +155,7 @@ def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :
 /-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
   `to_square_block M b k` is the block `k` matrix. -/
 def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
-  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+  matrix {a // b a = k} {a // b a = k} α := M.submatrix coe coe
 
 @[simp] lemma to_square_block_def (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
   to_square_block M b k = λ i j, M ↑i ↑j := rfl
@@ -148,7 +163,7 @@ def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) 
 /-- Alternate version with `b : m → nat`. Let `b` map rows and columns of a square matrix `M` to
   blocks. Then `to_square_block' M b k` is the block `k` matrix. -/
 def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
-  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+  matrix {a // b a = k} {a // b a = k} α := M.submatrix coe coe
 
 @[simp] lemma to_square_block_def' (M : matrix m m α) (b : m → nat) (k : nat) :
   to_square_block' M b k = λ i j, M ↑i ↑j := rfl
@@ -156,12 +171,12 @@ def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
 /-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
   `to_square_block_prop M p` is the corresponding block matrix. -/
 def to_square_block_prop (M : matrix m m α) (p : m → Prop) :
-  matrix {a // p a} {a // p a} α := M.minor coe coe
+  matrix {a // p a} {a // p a} α := M.submatrix coe coe
 
 @[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
   to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
 
-lemma from_blocks_smul [has_scalar R α]
+lemma from_blocks_smul [has_smul R α]
   (x : R) (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   x • (from_blocks A B C D) = from_blocks (x • A) (x • B) (x • C) (x • D) :=
 begin
@@ -187,8 +202,22 @@ lemma from_blocks_multiply [fintype l] [fintype m] [non_unital_non_assoc_semirin
 begin
   ext i j, rcases i; rcases j;
   simp only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
-    pi.add_apply],
+    pi.add_apply, of_apply],
 end
+
+lemma from_blocks_mul_vec [fintype l] [fintype m] [non_unital_non_assoc_semiring α]
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (x : l ⊕ m → α) :
+  mul_vec (from_blocks A B C D) x =
+  sum.elim (mul_vec A (x ∘ sum.inl) + mul_vec B (x ∘ sum.inr))
+           (mul_vec C (x ∘ sum.inl) + mul_vec D (x ∘ sum.inr)) :=
+by { ext i, cases i; simp [mul_vec, dot_product] }
+
+lemma vec_mul_from_blocks [fintype n] [fintype o] [non_unital_non_assoc_semiring α]
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (x : n ⊕ o → α) :
+  vec_mul x (from_blocks A B C D) =
+  sum.elim (vec_mul (x ∘ sum.inl) A + vec_mul (x ∘ sum.inr) C)
+           (vec_mul (x ∘ sum.inl) B + vec_mul (x ∘ sum.inr) D) :=
+by { ext i, cases i; simp [vec_mul, dot_product] }
 
 variables [decidable_eq l] [decidable_eq m]
 
@@ -431,8 +460,8 @@ lemma block_diagonal'_eq_block_diagonal (M : o → matrix m n α) {k k'} (i j) :
   block_diagonal M (i, k) (j, k') = block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ :=
 rfl
 
-lemma block_diagonal'_minor_eq_block_diagonal (M : o → matrix m n α) :
-  (block_diagonal' M).minor (prod.to_sigma ∘ prod.swap) (prod.to_sigma ∘ prod.swap) =
+lemma block_diagonal'_submatrix_eq_block_diagonal (M : o → matrix m n α) :
+  (block_diagonal' M).submatrix (prod.to_sigma ∘ prod.swap) (prod.to_sigma ∘ prod.swap) =
     block_diagonal M :=
 matrix.ext $ λ ⟨k, i⟩ ⟨k', j⟩, rfl
 

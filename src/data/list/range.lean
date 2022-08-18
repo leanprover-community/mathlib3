@@ -66,7 +66,7 @@ theorem chain_lt_range' (s n : ℕ) : chain (<) s (range' (s+1) n) :=
 
 theorem pairwise_lt_range' : ∀ s n : ℕ, pairwise (<) (range' s n)
 | s 0     := pairwise.nil
-| s (n+1) := (chain_iff_pairwise (by exact λ a b c, lt_trans)).1 (chain_lt_range' s n)
+| s (n+1) := chain_iff_pairwise.1 (chain_lt_range' s n)
 
 theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
 (pairwise_lt_range' s n).imp (λ a b, ne_of_lt)
@@ -199,7 +199,7 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
-/-- All elements of `fin n`, from `0` to `n-1`. -/
+/-- All elements of `fin n`, from `0` to `n-1`. The corresponding finset is `finset.univ`. -/
 def fin_range (n : ℕ) : list (fin n) :=
 (range n).pmap fin.mk (λ _, list.mem_range.1)
 

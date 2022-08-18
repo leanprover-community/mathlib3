@@ -3,7 +3,9 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.game.pgame
+
+import algebra.order.hom.monoid
+import set_theory.game.ordinal
 
 /-!
 # Surreal numbers
@@ -40,6 +42,10 @@ simultaneously. This will make for a fun and challenging project.
 
 The branch `surreal_mul` contains some progress on this proof.
 
+### Todo
+
+- Define the field structure on the surreals.
+
 ## References
 
 * [Conway, *On numbers and games*][conway2001]
@@ -57,21 +63,29 @@ namespace pgame
 and all the elements of L and R are also numeric. -/
 def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
-  (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
+  (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ j, numeric (R j))
 
-lemma numeric_def (x : pgame) : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
-  (∀ i, numeric (x.move_left i)) ∧ (∀ i, numeric (x.move_right i)) :=
+lemma numeric_def {x : pgame} : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
+  (∀ i, numeric (x.move_left i)) ∧ (∀ j, numeric (x.move_right j)) :=
 by { cases x, refl }
 
-lemma numeric.left_lt_right {x : pgame} (o : numeric x) (i : x.left_moves) (j : x.right_moves) :
+namespace numeric
+
+lemma mk {x : pgame} (h₁ : ∀ i j, x.move_left i < x.move_right j)
+  (h₂ : ∀ i, numeric (x.move_left i)) (h₃ : ∀ j, numeric (x.move_right j)) : numeric x :=
+numeric_def.2 ⟨h₁, h₂, h₃⟩
+
+lemma left_lt_right {x : pgame} (o : numeric x) (i : x.left_moves) (j : x.right_moves) :
   x.move_left i < x.move_right j :=
-by { cases x with xl xr xL xR, exact o.1 i j }
-lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
+by { cases x, exact o.1 i j }
+lemma move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
   numeric (x.move_left i) :=
-by { cases x with xl xr xL xR, exact o.2.1 i }
-lemma numeric.move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
+by { cases x, exact o.2.1 i }
+lemma move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   numeric (x.move_right j) :=
-by { cases x with xl xr xL xR, exact o.2.2 j }
+by { cases x, exact o.2.2 j }
+
+end numeric
 
 @[elab_as_eliminator]
 theorem numeric_rec {C : pgame → Prop}
@@ -87,43 +101,42 @@ begin
   refine numeric_rec (λ xl xr xL xR hx oxl oxr IHxl IHxr, _) x ox y oy,
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
   rw [mk_lf_mk, mk_lf_mk], rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
-  { exact IHxl _ _ (oyl _) (move_left_lf_of_le _ h₁) (move_left_lf_of_le _ h₂) },
-  { exact not_lf.2 (le_trans h₂ h₁) (lf_of_lt (hy _ _)) },
-  { exact not_lf.2 (le_trans h₁ h₂) (lf_of_lt (hx _ _)) },
-  { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
+  { exact IHxl _ _ (oyl _) (h₁.move_left_lf _) (h₂.move_left_lf _) },
+  { exact (le_trans h₂ h₁).not_gf (lf_of_lt (hy _ _)) },
+  { exact (le_trans h₁ h₂).not_gf (lf_of_lt (hx _ _)) },
+  { exact IHxr _ _ (oyr _) (h₁.lf_move_right _) (h₂.lf_move_right _) },
 end
 
-theorem le_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) : x ≤ y :=
+theorem le_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x ≤ y :=
 not_lf.1 (lf_asymm ox oy h)
 
-theorem lt_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) : x < y :=
-(lt_or_fuzzy_of_lf h).resolve_right (not_fuzzy_of_le (le_of_lf ox oy h))
+alias le_of_lf ← lf.le
+
+theorem lt_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x < y :=
+(lt_or_fuzzy_of_lf h).resolve_right (not_fuzzy_of_le (h.le ox oy))
+
+alias lt_of_lf ← lf.lt
 
 theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ x < y :=
-⟨lt_of_lf ox oy, lf_of_lt⟩
+⟨λ h, h.lt ox oy, lf_of_lt⟩
 
 /-- Definition of `x ≤ y` on numeric pre-games, in terms of `<` -/
 theorem le_iff_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x ≤ y ↔ (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j :=
 begin
-  rw le_iff_forall_lf,
-  convert iff.rfl;
-  refine propext (forall_congr $ λ i, (lf_iff_lt _ _).symm);
+  refine le_iff_forall_lf.trans (and_congr _ _);
+  refine forall_congr (λ i, lf_iff_lt _ _);
   apply_rules [numeric.move_left, numeric.move_right]
 end
 
-theorem le_of_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
-  ((∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) → x ≤ y :=
-(le_iff_forall_lt ox oy).2
-
 /-- Definition of `x < y` on numeric pre-games, in terms of `≤` -/
-theorem lt_iff_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+theorem lt_iff_exists_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x < y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
-by rw [←lf_iff_lt ox oy, lf_iff_forall_le]
+by rw [←lf_iff_lt ox oy, lf_iff_exists_le]
 
-theorem lt_of_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+theorem lt_of_exists_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   ((∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y) → x < y :=
-(lt_iff_forall_le ox oy).2
+(lt_iff_exists_le ox oy).2
 
 /-- The definition of `x < y` on numeric pre-games, in terms of `<` two moves later. -/
 theorem lt_def {x y : pgame} (ox : x.numeric) (oy : y.numeric) : x < y ↔
@@ -131,43 +144,58 @@ theorem lt_def {x y : pgame} (ox : x.numeric) (oy : y.numeric) : x < y ↔
    ∃ j, (∀ i, (x.move_right j).move_left i < y) ∧ ∀ j', x.move_right j < y.move_right j' :=
 begin
   rw [←lf_iff_lt ox oy, lf_def],
-  convert iff.rfl;
-  ext;
-  convert iff.rfl;
-  refine propext (forall_congr $ λ i, lf_iff_lt _ _);
-  apply_rules [numeric.move_left, numeric.move_right]
+  refine or_congr _ _;
+    refine exists_congr (λ x_1, _);
+    refine and_congr _ _;
+    refine (forall_congr $ λ i, lf_iff_lt _ _);
+    apply_rules [numeric.move_left, numeric.move_right]
 end
 
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
-λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
+λ h, not_lf.2 ((lf_of_fuzzy h).le ox oy) h.2
 
-theorem numeric_zero : numeric 0 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
-theorem numeric_one : numeric 1 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
+theorem lt_or_equiv_or_gt {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y ∨ x ≈ y ∨ y < x :=
+(lf_or_equiv_or_gf x y).imp (λ h, h.lt ox oy) $ or.imp_right $ λ h, h.lt oy ox
+
+theorem numeric_of_is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] :
+  numeric x :=
+numeric.mk is_empty_elim is_empty_elim is_empty_elim
+
+theorem numeric_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] :
+  (∀ j, numeric (x.move_right j)) → numeric x :=
+numeric.mk is_empty_elim is_empty_elim
+
+theorem numeric_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves]
+  (H : ∀ i, numeric (x.move_left i)) : numeric x :=
+numeric.mk (λ _, is_empty_elim) H is_empty_elim
+
+theorem numeric_zero : numeric 0 := numeric_of_is_empty 0
+theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, numeric_zero
 
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
-| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
+| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_neg_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
-theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
-lt_of_lf (o.move_left i) o (pgame.move_left_lf i)
-theorem numeric.move_left_le {x : pgame} (o : numeric x) (i) : x.move_left i ≤ x :=
+namespace numeric
+
+theorem move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
+(pgame.move_left_lf i).lt (o.move_left i) o
+theorem move_left_le {x : pgame} (o : numeric x) (i) : x.move_left i ≤ x :=
 (o.move_left_lt i).le
 
-theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j) : x < x.move_right j :=
-lt_of_lf o (o.move_right j) (pgame.lf_move_right j)
-theorem numeric.le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
+theorem lt_move_right {x : pgame} (o : numeric x) (j) : x < x.move_right j :=
+(pgame.lf_move_right j).lt o (o.move_right j)
+theorem le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
 (o.lt_move_right j).le
 
-theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
+theorem add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ox oy :=
 ⟨begin
    rintros (ix|iy) (jx|jy),
    { exact add_lt_add_right (ox.1 ix jx) _ },
-   { apply lt_of_lf ((ox.move_left ix).add oy) (ox.add (oy.move_right jy))
-      (add_lf_add_of_lf_of_le (pgame.move_left_lf ix) (oy.le_move_right jy)) },
-   { apply lt_of_lf (ox.add (oy.move_left iy)) ((ox.move_right jx).add oy)
-      (add_lf_add_of_lf_of_le (pgame.lf_move_right jx) (oy.move_left_le iy)) },
+   { exact (add_lf_add_of_lf_of_le (pgame.lf_mk _ _ ix) (oy.le_move_right jy)).lt
+     ((ox.move_left ix).add oy) (ox.add (oy.move_right jy)) },
+   { exact (add_lf_add_of_lf_of_le (pgame.mk_lf _ _ jx) (oy.move_left_le iy)).lt
+      (ox.add (oy.move_left iy)) ((ox.move_right jx).add oy) },
    { exact add_lt_add_left (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
  end,
  begin
@@ -181,22 +209,21 @@ theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
+lemma sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
+
+end numeric
 
 /-- Pre-games defined by natural numbers are numeric. -/
 theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
 | (n + 1) := (numeric_nat n).add numeric_one
 
-/-- The pre-game `half` is numeric. -/
-theorem numeric_half : numeric half :=
+/-- Ordinal games are numeric. -/
+theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
 begin
-  split,
-  { rintros ⟨ ⟩ ⟨ ⟩,
-    exact zero_lt_one },
-  split; rintro ⟨ ⟩,
-  { exact numeric_zero },
-  { exact numeric_one }
+  induction o using ordinal.induction with o IH,
+  apply numeric_of_is_empty_right_moves,
+  simpa using λ i, IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
 end pgame
@@ -206,27 +233,18 @@ def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
 
 open pgame
 
-instance surreal.setoid : setoid {x // pgame.numeric x} :=
-⟨λ x y, x.1 ≈ y.1,
- λ x, equiv_refl x.1,
- λ x y, pgame.equiv_symm,
- λ x y z, pgame.equiv_trans⟩
-
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
 the order becomes a total order. -/
-def surreal := quotient surreal.setoid
+def surreal := quotient (subtype.setoid numeric)
 
 namespace surreal
 
 /-- Construct a surreal number from a numeric pre-game. -/
-def mk (x : pgame) (h : x.numeric) : surreal := quotient.mk ⟨x, h⟩
+def mk (x : pgame) (h : x.numeric) : surreal := ⟦⟨x, h⟩⟧
 
-instance : has_zero surreal :=
-{ zero := ⟦⟨0, numeric_zero⟩⟧ }
-instance : has_one surreal :=
-{ one := ⟦⟨1, numeric_one⟩⟧ }
-
+instance : has_zero surreal := ⟨mk 0 numeric_zero⟩
+instance : has_one surreal := ⟨mk 1 numeric_one⟩
 instance : inhabited surreal := ⟨0⟩
 
 /-- Lift an equivalence-respecting function on pre-games to surreals. -/
@@ -238,7 +256,7 @@ quotient.lift (λ x : {x // numeric x}, f x.1 x.2) (λ x y, H x.2 y.2)
 def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
   (H : ∀ {x₁ y₁ x₂ y₂} (ox₁ : numeric x₁) (oy₁ : numeric y₁) (ox₂ : numeric x₂) (oy₂ : numeric y₂),
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
-lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂ h, H _ _ _ _ equiv_rfl h))
+lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
 instance : has_le surreal :=
@@ -259,7 +277,7 @@ the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
 ⟨surreal.lift
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
-  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
+  (λ _ _ _ _ a, quotient.sound (pgame.neg_equiv_neg_iff.2 a))⟩
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
@@ -274,19 +292,39 @@ instance : ordered_add_comm_group surreal :=
   lt                := (<),
   le_refl           := by { rintros ⟨_⟩, apply @le_rfl pgame },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
-  lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },
+  lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, apply @lt_iff_le_not_le pgame },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
 
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
-    or_iff_not_imp_left.2 (λ h, le_of_lf oy ox (pgame.not_le.1 h)),
+    or_iff_not_imp_left.2 (λ h, (pgame.not_le.1 h).le oy ox),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
--- We conclude with some ideas for further work on surreals; these would make fun projects.
+instance : add_monoid_with_one surreal := add_monoid_with_one.unary
 
--- TODO define the inclusion of groups `surreal → game`
--- TODO define the field structure on the surreals
+/-- Casts a `surreal` number into a `game`. -/
+def to_game : surreal →+o game :=
+{ to_fun := lift (λ x _, ⟦x⟧) (λ x y ox oy, quot.sound),
+  map_zero' := rfl,
+  map_add' := by { rintros ⟨_, _⟩ ⟨_, _⟩, refl },
+  monotone' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
+
+theorem zero_to_game : to_game 0 = 0 := rfl
+@[simp] theorem one_to_game : to_game 1 = 1 := rfl
+@[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n := map_nat_cast' _ one_to_game
 
 end surreal
+
+open surreal
+
+namespace ordinal
+
+/-- Converts an ordinal into the corresponding surreal. -/
+noncomputable def to_surreal : ordinal ↪o surreal :=
+{ to_fun := λ o, mk _ (numeric_to_pgame o),
+  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
+  map_rel_iff' := @to_pgame_le_iff }
+
+end ordinal

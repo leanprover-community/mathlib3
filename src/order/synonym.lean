@@ -74,10 +74,10 @@ protected def rec {C : αᵒᵈ → Sort*} (h₂ : Π a : α, C (to_dual a)) : �
 @[simp] protected lemma «forall» {p : αᵒᵈ → Prop} : (∀ a, p a) ↔ ∀ a, p (to_dual a) := iff.rfl
 @[simp] protected lemma «exists» {p : αᵒᵈ → Prop} : (∃ a, p a) ↔ ∃ a, p (to_dual a) := iff.rfl
 
-alias to_dual_le_to_dual ↔ _ has_le.le.dual
-alias to_dual_lt_to_dual ↔ _ has_lt.lt.dual
-alias of_dual_le_of_dual ↔ _ has_le.le.of_dual
-alias of_dual_lt_of_dual ↔ _ has_lt.lt.of_dual
+alias to_dual_le_to_dual ↔ _ _root_.has_le.le.dual
+alias to_dual_lt_to_dual ↔ _ _root_.has_lt.lt.dual
+alias of_dual_le_of_dual ↔ _ _root_.has_le.le.of_dual
+alias of_dual_lt_of_dual ↔ _ _root_.has_lt.lt.of_dual
 
 end order_dual
 

@@ -14,6 +14,7 @@ of characteristic zero. The result that the complex numbers are algebraically cl
 -/
 
 open_locale big_operators
+open set function
 
 /-! ### Definition and basic arithmmetic -/
 
@@ -30,7 +31,8 @@ open_locale complex_conjugate
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
-@[simps] def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
+@[simps apply]
+def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
 { to_fun := λ z, ⟨z.re, z.im⟩,
   inv_fun := λ p, ⟨p.1, p.2⟩,
   left_inv := λ ⟨x, y⟩, rfl,
@@ -45,6 +47,12 @@ theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
 ⟨λ H, by simp [H], and.rec ext⟩
+
+theorem re_surjective : surjective re := λ x, ⟨⟨x, 0⟩, rfl⟩
+theorem im_surjective : surjective im := λ y, ⟨⟨0, y⟩, rfl⟩
+
+@[simp] theorem range_re : range re = univ := re_surjective.range_eq
+@[simp] theorem range_im : range im = univ := im_surjective.range_eq
 
 instance : has_coe ℝ ℂ := ⟨λ r, ⟨r, 0⟩⟩
 
@@ -153,33 +161,53 @@ lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
 lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
 lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
 
+@[simp] lemma equiv_real_prod_symm_apply (p : ℝ × ℝ) :
+  equiv_real_prod.symm p = p.1 + p.2 * I :=
+by { ext; simp [equiv_real_prod] }
+
 /-! ### Commutative ring instance and lemmas -/
 
 /- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
 diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
 defined in `data.complex.module.lean`. -/
-instance : comm_ring ℂ :=
+
+instance : add_comm_group ℂ :=
 by refine_struct
   { zero := (0 : ℂ),
     add := (+),
     neg := has_neg.neg,
     sub := has_sub.sub,
-    one := 1,
-    mul := (*),
-    zero_add := λ z, by { apply ext_iff.2, simp },
-    add_zero := λ z, by { apply ext_iff.2, simp },
     nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
-    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
-/-- This shortcut instance ensures we do not find `add_comm_group` via the noncomputable
-`complex.normed_group` instance. -/
-instance : add_comm_group ℂ := by apply_instance
+instance : add_group_with_one ℂ :=
+{ nat_cast := λ n, ⟨n, 0⟩,
+  nat_cast_zero := by ext; simp [nat.cast],
+  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  int_cast := λ n, ⟨n, 0⟩,
+  int_cast_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  int_cast_neg_succ_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  one := 1,
+  .. complex.add_comm_group }
+
+instance : comm_ring ℂ :=
+by refine_struct
+  { zero := (0 : ℂ),
+    add := (+),
+    one := 1,
+    mul := (*),
+    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
+    .. complex.add_group_with_one };
+intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
 instance : ring ℂ := by apply_instance
+
+/-- This shortcut instance ensures we do not find `comm_semiring` via the noncomputable
+`complex.field` instance. -/
+instance : comm_semiring ℂ := infer_instance
 
 /-- The "real part" map, considered as an additive group homomorphism. -/
 def re_add_group_hom : ℂ →+ ℝ :=
@@ -269,6 +297,10 @@ by { ext; simp [norm_sq, mul_comm], }
 
 lemma norm_sq_nonneg (z : ℂ) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
+
+@[simp] lemma range_norm_sq : range norm_sq = Ici 0 :=
+subset.antisymm (range_subset_iff.2 norm_sq_nonneg) $ λ x hx,
+  ⟨real.sqrt x, by rw [norm_sq_of_real, real.mul_self_sqrt hx]⟩
 
 lemma norm_sq_eq_zero {z : ℂ} : norm_sq z = 0 ↔ z = 0 :=
 ⟨λ h, ext
@@ -367,10 +399,10 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 lemma conj_inv (x : ℂ) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-of_real.map_div r s
+map_div₀ of_real r s
 
 @[simp, norm_cast] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-of_real.map_zpow r n
+map_zpow₀ of_real r n
 
 @[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
 (div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
@@ -379,10 +411,10 @@ of_real.map_zpow r n
 by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-norm_sq.map_inv z
+map_inv₀ norm_sq z
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-norm_sq.map_div z w
+map_div₀ norm_sq z w
 
 /-! ### Cast lemmas -/
 
@@ -468,6 +500,9 @@ calc abs 2 = abs (2 : ℝ) : by rw [of_real_bit0, of_real_one]
 lemma abs_nonneg (z : ℂ) : 0 ≤ abs z :=
 real.sqrt_nonneg _
 
+@[simp] lemma range_abs : range abs = Ici 0 :=
+subset.antisymm (range_subset_iff.2 abs_nonneg) $ λ x hx, ⟨x, abs_of_nonneg hx⟩
+
 @[simp] lemma abs_eq_zero {z : ℂ} : abs z = 0 ↔ z = 0 :=
 (real.sqrt_eq_zero $ norm_sq_nonneg _).trans norm_sq_eq_zero
 
@@ -495,7 +530,7 @@ map_prod abs_hom _ _
 map_pow abs_hom z n
 
 @[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
-abs_hom.map_zpow z n
+map_zpow₀ abs_hom z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
@@ -555,6 +590,18 @@ abs_abv_sub_le_abv_sub abs
 
 lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ |z.re| + |z.im| :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
+
+lemma abs_le_sqrt_two_mul_max (z : ℂ) : abs z ≤ real.sqrt 2 * max (|z.re|) (|z.im|) :=
+begin
+  cases z with x y,
+  simp only [abs, norm_sq_mk, ← sq],
+  wlog hle : |x| ≤ |y| := le_total (|x|) (|y|) using [x y, y x] tactic.skip,
+  { calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
+      real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
+    ... = real.sqrt 2 * max (|x|) (|y|) :
+      by rw [max_eq_right hle, ← two_mul, real.sqrt_mul two_pos.le, real.sqrt_sq_eq_abs] },
+  { rwa [add_comm, max_comm] }
+end
 
 lemma abs_re_div_abs_le_one (z : ℂ) : |z.re / z.abs| ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]

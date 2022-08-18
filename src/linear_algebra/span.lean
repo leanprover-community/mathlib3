@@ -57,9 +57,12 @@ le_antisymm (span_le.2 h₁) h₂
 lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+lemma span_eq_span (hs : s ⊆ span R t) (ht : t ⊆ span R s) : span R s = span R t :=
+le_antisymm (span_le.2 hs) (span_le.2 ht)
+
 /-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/
 @[simp] lemma span_coe_eq_restrict_scalars
-  [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+  [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
   span S (p : set M) = p.restrict_scalars S :=
 span_eq (p.restrict_scalars S)
 
@@ -68,7 +71,7 @@ lemma map_span [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (
 eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
 map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
-alias submodule.map_span ← linear_map.map_span
+alias submodule.map_span ← _root_.linear_map.map_span
 
 lemma map_span_le [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (s : set M)
   (N : submodule R₂ M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
@@ -77,7 +80,7 @@ begin
   exact iff.rfl
 end
 
-alias submodule.map_span_le ← linear_map.map_span_le
+alias submodule.map_span_le ← _root_.linear_map.map_span_le
 
 @[simp] lemma span_insert_zero : span R (insert (0 : M) s) = span R s :=
 begin
@@ -91,7 +94,18 @@ lemma span_preimage_le (f : M →ₛₗ[σ₁₂] M₂) (s : set M₂) :
   span R (f ⁻¹' s) ≤ (span R₂ s).comap f :=
 by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
 
-alias submodule.span_preimage_le  ← linear_map.span_preimage_le
+alias submodule.span_preimage_le ← _root_.linear_map.span_preimage_le
+
+lemma closure_subset_span {s : set M} :
+  (add_submonoid.closure s : set M) ⊆ span R s :=
+(@add_submonoid.closure_le _ _ _ (span R s).to_add_submonoid).mpr subset_span
+
+lemma closure_le_to_add_submonoid_span {s : set M} :
+  add_submonoid.closure s ≤ (span R s).to_add_submonoid :=
+closure_subset_span
+
+@[simp] lemma span_closure {s : set M} : span R (add_submonoid.closure s : set M) = span R s :=
+le_antisymm (span_le.mpr closure_subset_span) (span_mono add_submonoid.subset_closure)
 
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
@@ -186,8 +200,15 @@ by rw [submodule.span_union, p.span_eq]
 lemma span_sup : span R s ⊔ p = span R (s ∪ p) :=
 by rw [submodule.span_union, p.span_eq]
 
-lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
+/- Note that the character `∙` U+2219 used below is different from the scalar multiplication
+character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
+notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
+
+lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
+
+lemma span_range_eq_supr {ι : Type*} {v : ι → M} : span R (range v) = ⨆ i, R ∙ v i :=
+by rw [span_eq_supr_of_singleton_spans, supr_range]
 
 lemma span_smul_le (s : set M) (r : R) :
   span R (r • s) ≤ span R s :=
@@ -306,10 +327,6 @@ end
 
 end
 
-/- This is the character `∙`, with escape sequence `\.`, and is thus different from the scalar
-multiplication character `•`, with escape sequence `\bub`. -/
-notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
-
 lemma mem_span_singleton_self (x : M) : x ∈ R ∙ x := subset_span rfl
 
 lemma nontrivial_span_singleton {x : M} (h : x ≠ 0) : nontrivial (R ∙ x) :=
@@ -348,14 +365,14 @@ by { ext, simp [mem_span_singleton, eq_comm] }
 lemma span_singleton_eq_range (y : M) : ↑(R ∙ y) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 
-lemma span_singleton_smul_le {S} [monoid S] [has_scalar S R] [mul_action S M]
+lemma span_singleton_smul_le {S} [monoid S] [has_smul S R] [mul_action S M]
   [is_scalar_tower S R M] (r : S) (x : M) : (R ∙ (r • x)) ≤ R ∙ x :=
 begin
   rw [span_le, set.singleton_subset_iff, set_like.mem_coe],
   exact smul_of_tower_mem _ _ (mem_span_singleton_self _)
 end
 
-lemma span_singleton_group_smul_eq {G} [group G] [has_scalar G R] [mul_action G M]
+lemma span_singleton_group_smul_eq {G} [group G] [has_smul G R] [mul_action G M]
   [is_scalar_tower G R M] (g : G) (x : M) : (R ∙ (g • x)) = R ∙ x :=
 begin
   refine le_antisymm (span_singleton_smul_le R g x) _,
@@ -416,18 +433,18 @@ lemma span_span : span R (span R s : set M) = span R s := span_eq _
 variables (R S s)
 
 /-- If `R` is "smaller" ring than `S` then the span by `R` is smaller than the span by `S`. -/
-lemma span_le_restrict_scalars [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+lemma span_le_restrict_scalars [semiring S] [has_smul R S] [module S M] [is_scalar_tower R S M] :
   span R s ≤ (span S s).restrict_scalars R :=
 submodule.span_le.2 submodule.subset_span
 
 /-- A version of `submodule.span_le_restrict_scalars` with coercions. -/
-@[simp] lemma span_subset_span [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+@[simp] lemma span_subset_span [semiring S] [has_smul R S] [module S M] [is_scalar_tower R S M] :
   ↑(span R s) ⊆ (span S s : set M) :=
 span_le_restrict_scalars R S s
 
 /-- Taking the span by a large ring of the span by the small ring is the same as taking the span
 by just the large ring. -/
-lemma span_span_of_tower [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+lemma span_span_of_tower [semiring S] [has_smul R S] [module S M] [is_scalar_tower R S M] :
   span S (span R s : set M) = span S s :=
 le_antisymm (span_le.2 $ span_subset_span R S s) (span_mono subset_span)
 
@@ -488,11 +505,12 @@ lemma not_mem_span_of_apply_not_mem_span_image
    x ∉ submodule.span R s :=
 h.imp (apply_mem_span_image_of_mem_span f)
 
-lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
-  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
-le_antisymm
-  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
+lemma supr_span {ι : Sort*} (p : ι → set M) : (⨆ i, span R (p i)) = span R (⋃ i, p i) :=
+le_antisymm (supr_le $ λ i, span_mono $ subset_Union _ i) $
+  span_le.mpr $ Union_subset $ λ i m hm, mem_supr_of_mem i $ subset_span hm
+
+lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) : (⨆ i, p i) = span R (⋃ i, ↑(p i)) :=
+by simp_rw [← supr_span, span_eq]
 
 lemma supr_to_add_submonoid {ι : Sort*} (p : ι → submodule R M) :
   (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
@@ -579,6 +597,18 @@ instance : is_compactly_generated (submodule R M) :=
   apply singleton_span_is_compact_element,
 end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
 
+/-- A submodule is equal to the supremum of the spans of the submodule's nonzero elements. -/
+lemma submodule_eq_Sup_le_nonzero_spans (p : submodule R M) :
+  p = Sup {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}} :=
+begin
+  let S := {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}},
+  apply le_antisymm,
+  { intros m hm, by_cases h : m = 0,
+    { rw h, simp },
+    { exact @le_Sup _ _ S _ ⟨m, ⟨hm, ⟨h, rfl⟩⟩⟩ m (mem_span_singleton_self m) } },
+  { rw Sup_le_iff, rintros S ⟨_, ⟨_, ⟨_, rfl⟩⟩⟩, rwa span_singleton_le_iff_mem }
+end
+
 lemma lt_sup_iff_not_mem {I : submodule R M} {a : M} : I < I ⊔ (R ∙ a) ↔ a ∉ I :=
 begin
   split,
@@ -638,12 +668,11 @@ variables {M' : Type*} [add_comm_monoid M'] [module R M'] (q₁ q₁' : submodul
 
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M') :=
-{ carrier   := (p : set M) ×ˢ (q₁ : set M'),
+{ carrier   := p ×ˢ q₁,
   smul_mem' := by rintro a ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨smul_mem _ a hx, smul_mem _ a hy⟩,
   .. p.to_add_submonoid.prod q₁.to_add_submonoid }
 
-@[simp] lemma prod_coe :
-  (prod p q₁ : set (M × M')) = (p : set M) ×ˢ (q₁ : set M') := rfl
+@[simp] lemma prod_coe : (prod p q₁ : set (M × M')) = p ×ˢ q₁ := rfl
 
 @[simp] lemma mem_prod {p : submodule R M} {q : submodule R M'} {x : M × M'} :
   x ∈ prod p q ↔ x.1 ∈ p ∧ x.2 ∈ q := set.mem_prod
@@ -766,7 +795,9 @@ variables (R) (M) [semiring R] [add_comm_monoid M] [module R M]
 lemma span_singleton_eq_range (x : M) : (R ∙ x) = (to_span_singleton R M x).range :=
 submodule.ext $ λ y, by {refine iff.trans _ linear_map.mem_range.symm, exact mem_span_singleton }
 
-lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
+@[simp] lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
+
+@[simp] lemma to_span_singleton_zero : to_span_singleton R M 0 = 0 := by { ext, simp, }
 
 end
 

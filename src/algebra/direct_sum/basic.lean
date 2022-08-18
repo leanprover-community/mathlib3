@@ -49,8 +49,7 @@ variables [Π i, add_comm_group (β i)]
 instance : add_comm_group (direct_sum ι β) := dfinsupp.add_comm_group
 
 variables {β}
-@[simp] lemma sub_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ - g₂) i = g₁ i - g₂ i :=
-dfinsupp.sub_apply _ _ _
+@[simp] lemma sub_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ - g₂) i = g₁ i - g₂ i := rfl
 
 end add_comm_group
 
@@ -59,8 +58,7 @@ variables [Π i, add_comm_monoid (β i)]
 @[simp] lemma zero_apply (i : ι) : (0 : ⨁ i, β i) i = 0 := rfl
 
 variables {β}
-@[simp] lemma add_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ + g₂) i = g₁ i + g₂ i :=
-dfinsupp.add_apply _ _ _
+@[simp] lemma add_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ + g₂) i = g₁ i + g₂ i := rfl
 
 variables (β)
 include dec_ι
@@ -178,8 +176,10 @@ variables {β}
 
 omit dec_ι
 
+instance unique [∀ i, subsingleton (β i)] : unique (⨁ i, β i) := dfinsupp.unique
+
 /-- A direct sum over an empty type is trivial. -/
-instance [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique
+instance unique_of_is_empty [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique_of_is_empty
 
 /-- The natural equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
@@ -223,10 +223,10 @@ variables {α : ι → Type u} {δ : Π i, α i → Type w} [Π i j, add_comm_mo
 noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
 { to_fun := @dfinsupp.sigma_curry _ _ δ _,
   map_zero' := dfinsupp.sigma_curry_zero,
-  map_add' := λ f g, dfinsupp.sigma_curry_add f g }
+  map_add' := λ f g, @dfinsupp.sigma_curry_add _ _ δ _ f g }
 
 @[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
-  sigma_curry f i j = f ⟨i, j⟩ := dfinsupp.sigma_curry_apply f i j
+  sigma_curry f i j = f ⟨i, j⟩ := @dfinsupp.sigma_curry_apply _ _ δ _ f i j
 
 /--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
@@ -245,73 +245,43 @@ noncomputable def sigma_curry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i
 end sigma
 
 /-- The canonical embedding from `⨁ i, A i` to `M` where `A` is a collection of `add_submonoid M`
-indexed by `ι`-/
-def add_submonoid_coe {M : Type*} [decidable_eq ι] [add_comm_monoid M]
-  (A : ι → add_submonoid M) : (⨁ i, A i) →+ M :=
-to_add_monoid (λ i, (A i).subtype)
+indexed by `ι`.
 
-@[simp] lemma add_submonoid_coe_of {M : Type*} [decidable_eq ι] [add_comm_monoid M]
-  (A : ι → add_submonoid M) (i : ι) (x : A i) :
-  add_submonoid_coe A (of (λ i, A i) i x) = x :=
+When `S = submodule _ M`, this is available as a `linear_map`, `direct_sum.coe_linear_map`. -/
+protected def coe_add_monoid_hom {M S : Type*} [decidable_eq ι] [add_comm_monoid M]
+  [set_like S M] [add_submonoid_class S M] (A : ι → S) : (⨁ i, A i) →+ M :=
+to_add_monoid (λ i, add_submonoid_class.subtype (A i))
+
+@[simp] lemma coe_add_monoid_hom_of {M S : Type*} [decidable_eq ι] [add_comm_monoid M]
+  [set_like S M] [add_submonoid_class S M] (A : ι → S) (i : ι) (x : A i) :
+  direct_sum.coe_add_monoid_hom A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
 
-lemma coe_of_add_submonoid_apply {M : Type*} [decidable_eq ι] [add_comm_monoid M]
-  {A : ι → add_submonoid M} (i j : ι) (x : A i) :
+lemma coe_of_apply {M S : Type*} [decidable_eq ι] [add_comm_monoid M]
+  [set_like S M] [add_submonoid_class S M] {A : ι → S} (i j : ι) (x : A i) :
   (of _ i x j : M) = if i = j then x else 0 :=
 begin
   obtain rfl | h := decidable.eq_or_ne i j,
   { rw [direct_sum.of_eq_same, if_pos rfl], },
-  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid.coe_zero], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid_class.coe_zero], },
 end
 
-/-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
-canonical map `(⨁ i, A i) →+ M` is bijective.
+/-- The `direct_sum` formed by a collection of additive submonoids (or subgroups, or submodules) of
+`M` is said to be internal if the canonical map `(⨁ i, A i) →+ M` is bijective.
 
-See `direct_sum.add_subgroup_is_internal` for the same statement about `add_subgroup`s. -/
-def add_submonoid_is_internal {M : Type*} [decidable_eq ι] [add_comm_monoid M]
-  (A : ι → add_submonoid M) : Prop :=
-function.bijective (add_submonoid_coe A)
+For the alternate statement in terms of independence and spanning, see
+`direct_sum.subgroup_is_internal_iff_independent_and_supr_eq_top` and
+`direct_sum.is_internal_submodule_iff_independent_and_supr_eq_top`. -/
+def is_internal {M S : Type*} [decidable_eq ι] [add_comm_monoid M]
+  [set_like S M] [add_submonoid_class S M] (A : ι → S) : Prop :=
+function.bijective (direct_sum.coe_add_monoid_hom A)
 
-lemma add_submonoid_is_internal.supr_eq_top {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+lemma is_internal.add_submonoid_supr_eq_top {M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (A : ι → add_submonoid M)
-  (h : add_submonoid_is_internal A) : supr A = ⊤ :=
+  (h : is_internal A) : supr A = ⊤ :=
 begin
   rw [add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom, add_monoid_hom.mrange_top_iff_surjective],
   exact function.bijective.surjective h,
 end
-
-/-- The canonical embedding from `⨁ i, A i` to `M`  where `A` is a collection of `add_subgroup M`
-indexed by `ι`-/
-def add_subgroup_coe {M : Type*} [decidable_eq ι] [add_comm_group M]
-  (A : ι → add_subgroup M) : (⨁ i, A i) →+ M :=
-to_add_monoid (λ i, (A i).subtype)
-
-@[simp] lemma add_subgroup_coe_of {M : Type*} [decidable_eq ι] [add_comm_group M]
-  (A : ι → add_subgroup M) (i : ι) (x : A i) :
-  add_subgroup_coe A (of (λ i, A i) i x) = x :=
-to_add_monoid_of _ _ _
-
-lemma coe_of_add_subgroup_apply {M : Type*} [decidable_eq ι] [add_comm_group M]
-  {A : ι → add_subgroup M} (i j : ι) (x : A i) :
-  (of _ i x j : M) = if i = j then x else 0 :=
-begin
-  obtain rfl | h := decidable.eq_or_ne i j,
-  { rw [direct_sum.of_eq_same, if_pos rfl], },
-  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_subgroup.coe_zero], },
-end
-
-/-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
-canonical map `(⨁ i, A i) →+ M` is bijective.
-
-See `direct_sum.submodule_is_internal` for the same statement about `submodules`s. -/
-def add_subgroup_is_internal {M : Type*} [decidable_eq ι] [add_comm_group M]
-  (A : ι → add_subgroup M) : Prop :=
-function.bijective (add_subgroup_coe A)
-
-lemma add_subgroup_is_internal.to_add_submonoid
-  {M : Type*} [decidable_eq ι] [add_comm_group M] (A : ι → add_subgroup M) :
-  add_subgroup_is_internal A ↔
-    add_submonoid_is_internal (λ i, (A i).to_add_submonoid) :=
-iff.rfl
 
 end direct_sum

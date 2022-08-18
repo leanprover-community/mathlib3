@@ -28,6 +28,8 @@ section ring
 variables {R : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
   {F : Type*} [add_comm_group F] [module R F]
   {G : Type*} [add_comm_group G] [module R G] (p q : submodule R E)
+variables {S : Type*} [semiring S] {M : Type*} [add_comm_monoid M] [module S M] (m : submodule S M)
+
 
 noncomputable theory
 
@@ -343,11 +345,11 @@ of `E` to `p` and fixes every element of `p`.
 The definition allow more generally any `fun_like` type and not just linear maps, so that it can be
 used for example with `continuous_linear_map` or `matrix`.
 -/
-structure is_proj {F : Type*} [fun_like F E (λ _, E)] (f : F) : Prop :=
-(map_mem : ∀ x, f x ∈ p)
-(map_id : ∀ x ∈ p, f x = x)
+structure is_proj {F : Type*} [fun_like F M (λ _, M)] (f : F) : Prop :=
+(map_mem : ∀ x, f x ∈ m)
+(map_id : ∀ x ∈ m, f x = x)
 
-lemma is_proj_iff_idempotent (f : E →ₗ[R] E) : (∃ p : submodule R E, is_proj p f) ↔ f ∘ₗ f = f :=
+lemma is_proj_iff_idempotent (f : M →ₗ[S] M) : (∃ p : submodule S M, is_proj p f) ↔ f ∘ₗ f = f :=
 begin
   split,
   { intro h, obtain ⟨p, hp⟩ := h, ext, rw comp_apply, exact hp.map_id (f x) (hp.map_mem x), },
@@ -358,26 +360,26 @@ end
 
 namespace is_proj
 
-variables {p}
+variables {p m}
 
 /--
 Restriction of the codomain of a projection of onto a subspace `p` to `p` instead of the whole
 space.
 -/
-def cod_restrict {f : E →ₗ[R] E} (h : is_proj p f) : E →ₗ[R] p :=
-f.cod_restrict p h.map_mem
+def cod_restrict {f : M →ₗ[S] M} (h : is_proj m f) : M →ₗ[S] m :=
+f.cod_restrict m h.map_mem
 
 @[simp]
-lemma cod_restrict_apply {f : E →ₗ[R] E} (h : is_proj p f) (x : E) :
-  ↑(h.cod_restrict x) = f x := f.cod_restrict_apply p x
+lemma cod_restrict_apply {f : M →ₗ[S] M} (h : is_proj m f) (x : M) :
+  ↑(h.cod_restrict x) = f x := f.cod_restrict_apply m x
 
 @[simp]
-lemma cod_restrict_apply_cod {f : E →ₗ[R] E} (h : is_proj p f) (x : p) :
+lemma cod_restrict_apply_cod {f : M →ₗ[S] M} (h : is_proj m f) (x : m) :
   h.cod_restrict x = x :=
 by {ext, rw [cod_restrict_apply], exact h.map_id x x.2}
 
-lemma cod_restrict_ker {f : E →ₗ[R] E} (h : is_proj p f) :
-  h.cod_restrict.ker = f.ker := f.ker_cod_restrict p _
+lemma cod_restrict_ker {f : M →ₗ[S] M} (h : is_proj m f) :
+  h.cod_restrict.ker = f.ker := f.ker_cod_restrict m _
 
 lemma is_compl {f : E →ₗ[R] E} (h : is_proj p f) : is_compl p f.ker :=
 by { rw ←cod_restrict_ker, exact is_compl_of_proj h.cod_restrict_apply_cod, }

@@ -21,7 +21,7 @@ Various operations (addition, subtraction, multiplication, power function)
 are defined on `onote` and `nonote`.
 -/
 
-open ordinal
+open ordinal order
 open_locale ordinal -- get notation for `ω`
 
 /-- Recursive definition of an ordinal notation. `zero` denotes the
@@ -176,7 +176,7 @@ theorem NF.snd {e n a} (h : NF (oadd e n a)) : NF a :=
 
 theorem NF.oadd {e a} (h₁ : NF e) (n)
   (h₂ : NF_below a (repr e)) : NF (oadd e n a) :=
-⟨⟨_, NF_below.oadd h₁ h₂ (ordinal.lt_succ_self _)⟩⟩
+⟨⟨_, NF_below.oadd h₁ h₂ (lt_succ _)⟩⟩
 
 instance NF.oadd_zero (e n) [h : NF e] : NF (oadd e n 0) :=
 h.oadd _ NF_below.zero
@@ -199,9 +199,9 @@ begin
   { rw repr,
     apply ((add_lt_add_iff_left _).2 IH).trans_le,
     rw ← mul_succ,
-    apply (mul_le_mul_left' (ordinal.succ_le.2 (nat_lt_omega _)) _).trans,
+    apply (mul_le_mul_left' (succ_le_of_lt (nat_lt_omega _)) _).trans,
     rw ← opow_succ,
-    exact opow_le_opow_right omega_pos (ordinal.succ_le.2 h₃) }
+    exact opow_le_opow_right omega_pos (succ_le_of_lt h₃) }
 end
 
 theorem NF_below.mono {o b₁ b₂} (bb : b₁ ≤ b₂) (h : NF_below o b₁) : NF_below o b₂ :=
@@ -237,8 +237,7 @@ begin
   simp [lt_def],
   refine lt_of_lt_of_le ((add_lt_add_iff_left _).2 h₁.snd'.repr_lt)
     (le_trans _ (le_add_right _ _)),
-  rwa [← mul_succ, mul_le_mul_iff_left (opow_pos _ omega_pos),
-       ordinal.succ_le, nat_cast_lt]
+  rwa [← mul_succ, mul_le_mul_iff_left (opow_pos _ omega_pos), succ_le_iff, nat_cast_lt]
 end
 
 theorem oadd_lt_oadd_3 {e n a₁ a₂} (h : a₁ < a₂) :
@@ -389,7 +388,7 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
     { simpa using (mul_le_mul_iff_left $
         opow_pos (repr e') omega_pos).2 (nat_cast_le.2 n'.pos) } },
   { change e = e' at ee, substI e',
-    rw [← add_assoc, ← ordinal.mul_add, ← nat.cast_add] }
+    rw [← add_assoc, ← mul_add, ← nat.cast_add] }
 end
 
 theorem sub_NF_below : ∀ {o₁ o₂ b}, NF_below o₁ b → NF o₂ → NF_below (o₁ - o₂) b
@@ -435,7 +434,7 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
           lt_of_le_of_ne (tsub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
     { simp [nat.succ_pnat, -nat.cast_succ],
       rw [(tsub_eq_iff_eq_add_of_le $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,
-          add_comm, nat.cast_add, ordinal.mul_add, add_assoc, add_sub_add_cancel],
+          add_comm, nat.cast_add, mul_add, add_assoc, add_sub_add_cancel],
       refine (ordinal.sub_eq_of_add_eq $ add_absorp h₂.snd'.repr_lt $
         le_trans _ (le_add_right _ _)).symm,
       simpa using mul_le_mul_left' (nat_cast_le.2 $ nat.succ_pos _) _ } },
@@ -453,8 +452,11 @@ def mul : onote → onote → onote
 
 instance : has_mul onote := ⟨mul⟩
 
-@[simp] theorem zero_mul (o : onote) : 0 * o = 0 := by cases o; refl
-@[simp] theorem mul_zero (o : onote) : o * 0 = 0 := by cases o; refl
+instance : mul_zero_class onote :=
+{ mul := (*),
+  zero := 0,
+  zero_mul := λ o, by cases o; refl,
+  mul_zero := λ o, by cases o; refl }
 
 theorem oadd_mul (e₁ n₁ a₁ e₂ n₂ a₂) : oadd e₁ n₁ a₁ * oadd e₂ n₂ a₂ =
   if e₂ = 0 then oadd e₁ (n₁ * n₂) a₁ else
@@ -481,8 +483,8 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
   ⟨⟨_, oadd_mul_NF_below hb₁ hb₂⟩⟩
 
 @[simp] theorem repr_mul : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ * o₂) = repr o₁ * repr o₂
-| 0               o               h₁ h₂ := by cases o; exact (ordinal.zero_mul _).symm
-| (oadd e₁ n₁ a₁) 0               h₁ h₂ := (ordinal.mul_zero _).symm
+| 0               o               h₁ h₂ := by cases o; exact (zero_mul _).symm
+| (oadd e₁ n₁ a₁) 0               h₁ h₂ := (mul_zero _).symm
 | (oadd e₁ n₁ a₁) (oadd e₂ n₂ a₂) h₁ h₂ := begin
   have IH : repr (mul _ _) = _ := @repr_mul _ _ h₁ h₂.snd,
   conv {to_lhs, simp [(*)]},
@@ -493,9 +495,9 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
   by_cases e0 : e₂ = 0; simp [e0, mul],
   { cases nat.exists_eq_succ_of_ne_zero n₂.ne_zero with x xe,
     simp [h₂.zero_of_zero e0, xe, -nat.cast_succ],
-    rw [← nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
+    rw [nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
   { haveI := h₁.fst, haveI := h₂.fst,
-    simp [IH, repr_add, opow_add, ordinal.mul_add],
+    simp [IH, repr_add, opow_add, mul_add],
     rw ← mul_assoc, congr' 2,
     have := mt repr_inj.1 e0,
     rw [add_mul_limit ao (opow_is_limit_left omega_is_limit this),
@@ -580,7 +582,7 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
     cases NF_repr_split' h' with IH₁ IH₂,
     simp [IH₂, split'],
     intros, substs o' m,
-    have : ω ^ repr e = ω ^ (1 : ordinal.{0}) * ω ^ (repr e - 1),
+    have : (ω : ordinal.{0}) ^ repr e = ω ^ (1 : ordinal.{0}) * ω ^ (repr e - 1),
     { have := mt repr_inj.1 e0,
       rw [← opow_add, ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this)] },
     refine ⟨NF.oadd (by apply_instance) _ _, _⟩,
@@ -588,7 +590,7 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
       refine IH₁.below_of_lt' ((mul_lt_mul_iff_left omega_pos).1 $
         lt_of_le_of_lt (le_add_right _ m') _),
       rw [← this, ← IH₂], exact h.snd'.repr_lt },
-    { rw this, simp [ordinal.mul_add, mul_assoc, add_assoc] } }
+    { rw this, simp [mul_add, mul_assoc, add_assoc] } }
 end
 
 theorem scale_eq_mul (x) [NF x] : ∀ o [NF o], scale x o = oadd x 1 0 * o
@@ -660,18 +662,18 @@ begin
       { simp [pow, opow, *, - npow_eq_pow], apply_instance } } },
   { simp [pow, opow, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
-    cases k with k; simp [succ_eq_add_one, opow]; resetI; apply_instance }
+    cases k with k; simp [opow]; resetI; apply_instance }
 end
 
 theorem scale_opow_aux (e a0 a : onote) [NF e] [NF a0] [NF a] :
   ∀ k m, repr (opow_aux e a0 a k m) = ω ^ repr e * repr (opow_aux 0 a0 a k m)
 | 0     m := by cases m; simp [opow_aux]
-| (k+1) m := by by_cases m = 0; simp [h, opow_aux,
-  ordinal.mul_add, opow_add, mul_assoc, scale_opow_aux]
+| (k+1) m := by by_cases m = 0; simp [h, opow_aux, mul_add, opow_add, mul_assoc, scale_opow_aux]
 
-theorem repr_opow_aux₁ {e a} [Ne : NF e] [Na : NF a] {a' : ordinal}
-  (e0 : repr e ≠ 0) (h : a' < ω ^ repr e) (aa : repr a = a') (n : ℕ+) :
-  (ω ^ repr e * (n:ℕ) + a') ^ ω = (ω ^ repr e) ^ ω :=
+theorem repr_opow_aux₁ {e a} [Ne : NF e] [Na : NF a] {a' : ordinal} (e0 : repr e ≠ 0)
+  (h : a' < (ω : ordinal.{0}) ^ repr e) (aa : repr a = a') (n : ℕ+) :
+  ((ω : ordinal.{0}) ^ repr e * (n:ℕ) + a') ^ (ω : ordinal.{0}) =
+  (ω ^ repr e) ^ (ω : ordinal.{0}) :=
 begin
   subst aa,
   have No := Ne.oadd n (Na.below_of_lt' h),
@@ -679,14 +681,14 @@ begin
   refine le_antisymm _ (opow_le_opow_left _ this),
   apply (opow_le_of_limit ((opow_pos _ omega_pos).trans_le this).ne' omega_is_limit).2,
   intros b l,
-  have := (No.below_of_lt (lt_succ_self _)).repr_lt, unfold repr at this,
+  have := (No.below_of_lt (lt_succ _)).repr_lt, unfold repr at this,
   apply (opow_le_opow_left b $ this.le).trans,
   rw [← opow_mul, ← opow_mul],
   apply opow_le_opow_right omega_pos,
   cases le_or_lt ω (repr e) with h h,
-  { apply (mul_le_mul_left' (lt_succ_self _).le _).trans,
-    rw [succ, add_mul_succ _ (one_add_of_omega_le h), ← succ,
-        succ_le, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
+  { apply (mul_le_mul_left' (le_succ b) _).trans,
+    rw [←add_one_eq_succ, add_mul_succ _ (one_add_of_omega_le h), add_one_eq_succ,
+        succ_le_iff, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
     exact omega_is_limit.2 _ l },
   { apply (principal_mul_omega (omega_is_limit.2 _ h) l).le.trans,
     simpa using mul_le_mul_right' (one_le_iff_ne_zero.2 e0) ω }
@@ -720,7 +722,7 @@ begin
     { simp [k0],
       refine lt_of_lt_of_le _ (opow_le_opow_right omega_pos (one_le_iff_ne_zero.2 e0)),
       cases m with m; simp [k0, R, opow_aux, omega_pos],
-      rw [← nat.cast_succ], apply nat_lt_omega },
+      rw [←add_one_eq_succ, ←nat.cast_succ], apply nat_lt_omega },
     { rw opow_mul, exact IH.1 k0 } },
   refine ⟨λ_, _, _⟩,
   { rw [RR, ← opow_mul _ _ (succ k.succ)],
@@ -733,16 +735,16 @@ begin
       refine mul_lt_omega_opow rr0 this (nat_lt_omega _),
       simpa using (add_lt_add_iff_left (repr a0)).2 e0 },
     { refine lt_of_lt_of_le Rl (opow_le_opow_right omega_pos $
-        mul_le_mul_left' (succ_le_succ.2 (nat_cast_le.2 (le_of_lt k.lt_succ_self))) _) } },
+        mul_le_mul_left' (succ_le_succ_iff.2 (nat_cast_le.2 (le_of_lt k.lt_succ_self))) _) } },
   calc
         ω0 ^ k.succ * α' + R'
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _
-  ... = (α' + m) ^ succ k.succ : by rw [← ordinal.mul_add, ← nat_cast_succ, opow_succ, IH.2],
+  ... = (α' + m) ^ succ k.succ : by rw [← mul_add, nat_cast_succ, opow_succ, IH.2],
   congr' 1,
   { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd_left
       (by simpa using opow_dvd_opow ω (one_le_iff_ne_zero.2 e0)) _) d,
-    rw [ordinal.mul_add (ω0 ^ k), add_assoc, ← mul_assoc, ← opow_succ,
+    rw [mul_add (ω0 ^ k), add_assoc, ← mul_assoc, ← opow_succ,
         add_mul_limit _ (is_limit_iff_omega_dvd.2 ⟨ne_of_gt α0, αd⟩), mul_assoc,
         @mul_omega_dvd n (nat_cast_pos.2 n.pos) (nat_lt_omega _) _ αd],
     apply @add_absorp _ (repr a0 * succ k),
@@ -753,7 +755,7 @@ begin
       rw opow_mul, simpa [-opow_succ] } },
   { cases m,
     { have : R = 0, {cases k; simp [R, opow_aux]}, simp [this] },
-    { rw [← nat_cast_succ, add_mul_succ],
+    { rw [nat_cast_succ, add_mul_succ],
       apply add_absorp Rl,
       rw [opow_mul, opow_succ],
       apply mul_le_mul_left',
@@ -784,12 +786,197 @@ begin
     simp [opow_def, opow, e₁, r₁, split_eq_scale_split' e₂],
     cases k with k; resetI,
     { simp [opow, r₂, opow_mul, repr_opow_aux₁ a00 al aa, add_assoc] },
-    { simp [succ_eq_add_one, opow, r₂, opow_add, opow_mul, mul_assoc, add_assoc],
+    { simp [opow, r₂, opow_add, opow_mul, mul_assoc, add_assoc],
       rw [repr_opow_aux₁ a00 al aa, scale_opow_aux], simp [opow_mul],
-      rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr' 1,
+      rw [← mul_add, ← add_assoc ((ω : ordinal.{0}) ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← opow_succ],
       exact (repr_opow_aux₂ _ ad a00 al _ _).2 } }
 end
+
+/-- Given an ordinal, returns `inl none` for `0`, `inl (some a)` for `a+1`, and
+  `inr f` for a limit ordinal `a`, where `f i` is a sequence converging to `a`. -/
+def fundamental_sequence : onote → option onote ⊕ (ℕ → onote)
+| zero := sum.inl none
+| (oadd a m b) :=
+  match fundamental_sequence b with
+  | sum.inr f := sum.inr (λ i, oadd a m (f i))
+  | sum.inl (some b') := sum.inl (some (oadd a m b'))
+  | sum.inl none := match fundamental_sequence a, m.nat_pred with
+    | sum.inl none, 0 := sum.inl (some zero)
+    | sum.inl none, m+1 := sum.inl (some (oadd zero m.succ_pnat zero))
+    | sum.inl (some a'), 0 := sum.inr (λ i, oadd a' i.succ_pnat zero)
+    | sum.inl (some a'), m+1 := sum.inr (λ i, oadd a m.succ_pnat (oadd a' i.succ_pnat zero))
+    | sum.inr f, 0 := sum.inr (λ i, oadd (f i) 1 zero)
+    | sum.inr f, m+1 := sum.inr (λ i, oadd a m.succ_pnat (oadd (f i) 1 zero))
+    end
+  end
+
+private theorem exists_lt_add {α} [hα : nonempty α] {o : ordinal} {f : α → ordinal}
+  (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) {b : ordinal} ⦃a⦄ (h : a < b + o) : ∃ i, a < b + f i :=
+begin
+  cases lt_or_le a b with h h',
+  { obtain ⟨i⟩ := id hα, exact ⟨i, h.trans_le (le_add_right _ _)⟩ },
+  { rw [← ordinal.add_sub_cancel_of_le h', add_lt_add_iff_left] at h,
+    refine (H h).imp (λ i H, _),
+    rwa [← ordinal.add_sub_cancel_of_le h', add_lt_add_iff_left] }
+end
+
+private theorem exists_lt_mul_omega' {o : ordinal} ⦃a⦄ (h : a < o * ω) : ∃ i : ℕ, a < o * ↑i + o :=
+begin
+  obtain ⟨i, hi, h'⟩ := (lt_mul_of_limit omega_is_limit).1 h,
+  obtain ⟨i, rfl⟩ := lt_omega.1 hi,
+  exact ⟨i, h'.trans_le (le_add_right _ _)⟩
+end
+
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+private theorem exists_lt_omega_opow' {α} {o b : ordinal}
+  (hb : 1 < b) (ho : o.is_limit) {f : α → ordinal}
+  (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) ⦃a⦄ (h : a < b ^ o) : ∃ i, a < b ^ f i :=
+begin
+  obtain ⟨d, hd, h'⟩ := (lt_opow_of_limit (ordinal.zero_lt_one.trans hb).ne' ho).1 h,
+  exact (H hd).imp (λ i hi, h'.trans $ (opow_lt_opow_iff_right hb).2 hi)
+end
+
+/-- The property satisfied by `fundamental_sequence o`:
+  * `inl none` means `o = 0`
+  * `inl (some a)` means `o = succ a`
+  * `inr f` means `o` is a limit ordinal and `f` is a
+    strictly increasing sequence which converges to `o` -/
+def fundamental_sequence_prop (o : onote) : option onote ⊕ (ℕ → onote) → Prop
+| (sum.inl none) := o = 0
+| (sum.inl (some a)) := o.repr = succ a.repr ∧ (o.NF → a.NF)
+| (sum.inr f) := o.repr.is_limit ∧
+  (∀ i, f i < f (i + 1) ∧ f i < o ∧ (o.NF → (f i).NF)) ∧
+  (∀ a, a < o.repr → ∃ i, a < (f i).repr)
+
+theorem fundamental_sequence_has_prop (o) : fundamental_sequence_prop o (fundamental_sequence o) :=
+begin
+  induction o with a m b iha ihb, {exact rfl},
+  rw [fundamental_sequence],
+  rcases e : b.fundamental_sequence with ⟨_|b'⟩|f;
+    simp only [fundamental_sequence, fundamental_sequence_prop];
+    rw [e, fundamental_sequence_prop] at ihb,
+  { rcases e : a.fundamental_sequence with ⟨_|a'⟩|f; cases e' : m.nat_pred with m';
+      simp only [fundamental_sequence, fundamental_sequence_prop];
+      rw [e, fundamental_sequence_prop] at iha;
+      try { rw show m = 1,
+        { have := pnat.nat_pred_add_one m, rw [e'] at this, exact pnat.coe_inj.1 this.symm } };
+      try { rw show m = m'.succ.succ_pnat,
+        { rw [← e', ← pnat.coe_inj, nat.succ_pnat_coe, ← nat.add_one, pnat.nat_pred_add_one] } };
+      simp only [repr, iha, ihb, opow_lt_opow_iff_right one_lt_omega,
+        add_lt_add_iff_left, add_zero, coe_coe, eq_self_iff_true, lt_add_iff_pos_right,
+        lt_def, mul_one, nat.cast_zero, nat.cast_succ, nat.succ_pnat_coe, opow_succ,
+        opow_zero, mul_add_one, pnat.one_coe, succ_zero, true_and, _root_.zero_add,
+        zero_def],
+    { apply_instance },
+    { exact ⟨rfl, infer_instance⟩ },
+    { have := opow_pos _ omega_pos,
+      refine ⟨mul_is_limit this omega_is_limit,
+        λ i, ⟨this, _, λ H, @NF.oadd_zero _ _ (iha.2 H.fst)⟩, exists_lt_mul_omega'⟩,
+      rw [← mul_succ, ← nat_cast_succ, ordinal.mul_lt_mul_iff_left this],
+      apply nat_lt_omega },
+    { have := opow_pos _ omega_pos,
+      refine ⟨
+        add_is_limit _ (mul_is_limit this omega_is_limit), λ i, ⟨this, _, _⟩,
+        exists_lt_add exists_lt_mul_omega'⟩,
+      { rw [← mul_succ, ← nat_cast_succ, ordinal.mul_lt_mul_iff_left this],
+        apply nat_lt_omega },
+      { refine λ H, H.fst.oadd _ (NF.below_of_lt' _ (@NF.oadd_zero _ _ (iha.2 H.fst))),
+        rw [repr, repr, add_zero, iha.1, opow_succ, ordinal.mul_lt_mul_iff_left this],
+        apply nat_lt_omega } },
+    { rcases iha with ⟨h1, h2, h3⟩,
+      refine ⟨opow_is_limit one_lt_omega h1, λ i, _, exists_lt_omega_opow' one_lt_omega h1 h3⟩,
+      obtain ⟨h4, h5, h6⟩ := h2 i, exact ⟨h4, h5, λ H, @NF.oadd_zero _ _ (h6 H.fst)⟩ },
+    { rcases iha with ⟨h1, h2, h3⟩,
+      refine ⟨add_is_limit _ (opow_is_limit one_lt_omega h1), λ i, _,
+        exists_lt_add (exists_lt_omega_opow' one_lt_omega h1 h3)⟩,
+      obtain ⟨h4, h5, h6⟩ := h2 i,
+      refine ⟨h4, h5, λ H, H.fst.oadd _ (NF.below_of_lt' _ (@NF.oadd_zero _ _ (h6 H.fst)))⟩,
+      rwa [repr, repr, add_zero, coe_coe, pnat.one_coe, nat.cast_one, mul_one,
+        opow_lt_opow_iff_right one_lt_omega] } },
+  { refine ⟨by rw [repr, ihb.1, add_succ, repr],
+      λ H, H.fst.oadd _ (NF.below_of_lt' _ (ihb.2 H.snd))⟩,
+    have := H.snd'.repr_lt, rw ihb.1 at this,
+    exact (lt_succ _).trans this },
+  { rcases ihb with ⟨h1, h2, h3⟩,
+    simp only [repr],
+    exact ⟨ordinal.add_is_limit _ h1,
+      λ i, ⟨oadd_lt_oadd_3 (h2 i).1, oadd_lt_oadd_3 (h2 i).2.1, λ H, H.fst.oadd _
+        (NF.below_of_lt' (lt_trans (h2 i).2.1 H.snd'.repr_lt) ((h2 i).2.2 H.snd))⟩,
+      exists_lt_add h3⟩ }
+end
+
+/-- The fast growing hierarchy for ordinal notations `< ε₀`. This is a sequence of
+functions `ℕ → ℕ` indexed by ordinals, with the definition:
+* `f_0(n) = n + 1`
+* `f_(α+1)(n) = f_α^[n](n)`
+* `f_α(n) = f_(α[n])(n)` where `α` is a limit ordinal
+   and `α[i]` is the fundamental sequence converging to `α` -/
+def fast_growing : onote → ℕ → ℕ
+| o :=
+  match fundamental_sequence o, fundamental_sequence_has_prop o with
+  | sum.inl none, _ := nat.succ
+  | sum.inl (some a), h :=
+    have a < o, { rw [lt_def, h.1], apply lt_succ },
+    λ i, (fast_growing a)^[i] i
+  | sum.inr f, h := λ i, have f i < o, from (h.2.1 i).2.1, fast_growing (f i) i
+  end
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨_, inv_image.wf repr ordinal.lt_wf⟩],
+  dec_tac := `[assumption] }
+
+theorem fast_growing_def
+  {o : onote} {x} (e : fundamental_sequence o = x) :
+    fast_growing o =
+    fast_growing._match_1 o
+      (λ a _ _, a.fast_growing)
+      (λ f _ i _, (f i).fast_growing i)
+      x (e ▸ fundamental_sequence_has_prop _) :=
+by { subst x, rw [fast_growing] }
+
+theorem fast_growing_zero' (o : onote) (h : fundamental_sequence o = sum.inl none) :
+  fast_growing o = nat.succ := by { rw [fast_growing_def h], refl }
+theorem fast_growing_succ (o) {a} (h : fundamental_sequence o = sum.inl (some a)) :
+  fast_growing o = λ i, ((fast_growing a)^[i] i) := by { rw [fast_growing_def h], refl }
+theorem fast_growing_limit (o) {f} (h : fundamental_sequence o = sum.inr f) :
+  fast_growing o = λ i, fast_growing (f i) i := by { rw [fast_growing_def h], refl }
+
+@[simp] theorem fast_growing_zero : fast_growing 0 = nat.succ := fast_growing_zero' _ rfl
+
+@[simp] theorem fast_growing_one : fast_growing 1 = (λ n, 2 * n) :=
+begin
+  rw [@fast_growing_succ 1 0 rfl], funext i, rw [two_mul, fast_growing_zero],
+  suffices : ∀ a b, nat.succ^[a] b = b + a, from this _ _,
+  intros a b, induction a; simp [*, function.iterate_succ', nat.add_succ],
+end
+
+section
+local infixr ^ := pow
+@[simp] theorem fast_growing_two : fast_growing 2 = (λ n, 2 ^ n * n) :=
+begin
+  rw [@fast_growing_succ 2 1 rfl], funext i, rw [fast_growing_one],
+  suffices : ∀ a b, (λ (n : ℕ), 2 * n)^[a] b = 2 ^ a * b, from this _ _,
+  intros a b, induction a; simp [*, function.iterate_succ', pow_succ, mul_assoc],
+end
+end
+
+/-- We can extend the fast growing hierarchy one more step to `ε₀` itself,
+  using `ω^(ω^...^ω^0)` as the fundamental sequence converging to `ε₀` (which is not an `onote`).
+  Extending the fast growing hierarchy beyond this requires a definition of fundamental sequence
+  for larger ordinals. -/
+def fast_growing_ε₀ (i : ℕ) : ℕ := fast_growing ((λ a, a.oadd 1 0)^[i] 0) i
+
+theorem fast_growing_ε₀_zero : fast_growing_ε₀ 0 = 1 := by simp [fast_growing_ε₀]
+
+theorem fast_growing_ε₀_one : fast_growing_ε₀ 1 = 2 :=
+by simp [fast_growing_ε₀, show oadd 0 1 0 = 1, from rfl]
+
+theorem fast_growing_ε₀_two : fast_growing_ε₀ 2 = 2048 :=
+by norm_num [fast_growing_ε₀,
+  show oadd 0 1 0 = 1, from rfl,
+  @fast_growing_limit (oadd 1 1 0) _ rfl,
+  show oadd 0 (2:nat).succ_pnat 0 = 3, from rfl,
+  @fast_growing_succ 3 2 rfl]
 
 end onote
 
@@ -832,8 +1019,9 @@ instance : preorder nonote :=
 instance : has_zero nonote := ⟨⟨0, NF.zero⟩⟩
 instance : inhabited nonote := ⟨0⟩
 
-theorem wf : @well_founded nonote (<) := inv_image.wf repr ordinal.wf
-instance : has_well_founded nonote := ⟨(<), wf⟩
+theorem lt_wf : @well_founded nonote (<) := inv_image.wf repr ordinal.lt_wf
+instance : well_founded_lt nonote := ⟨lt_wf⟩
+instance : has_well_founded nonote := ⟨(<), lt_wf⟩
 
 /-- Convert a natural number to an ordinal notation -/
 def of_nat (n : ℕ) : nonote := ⟨of_nat n, ⟨⟨_, NF_below_of_nat _⟩⟩⟩
@@ -851,8 +1039,7 @@ theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
 end
 
 instance : linear_order nonote := linear_order_of_compares cmp cmp_compares
-
-instance : is_well_order nonote (<) := ⟨wf⟩
+instance : is_well_order nonote (<) := { }
 
 /-- Asserts that `repr a < ω ^ repr b`. Used in `nonote.rec_on` -/
 def below (a b : nonote) : Prop := NF_below a.1 (repr b)

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
+import algebra.group_power.ring
 import data.int.cast
 
 /-!
@@ -24,15 +25,16 @@ variables {α : Type*} {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : 
 ### (Additive) monoid
 -/
 section monoid
-variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
-@[simp] theorem nsmul_one [has_one A] : ∀ n : ℕ, n • (1 : A) = n :=
+@[simp] theorem nsmul_one [add_monoid_with_one A] : ∀ n : ℕ, n • (1 : A) = n :=
 begin
   refine eq_nat_cast' (⟨_, _, _⟩ : ℕ →+ A) _,
-  { simp [zero_nsmul] },
-  { simp [add_nsmul] },
-  { simp }
+  { show 0 • (1 : A) = 0, simp [zero_nsmul] },
+  { show ∀ x y : ℕ, (x + y) • (1 : A) = x • 1 + y • 1, simp [add_nsmul] },
+  { show 1 • (1 : A) = 1, simp }
 end
+
+variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
 { inv_of := ⅟ m ^ n,
@@ -98,12 +100,7 @@ end
 
 end monoid
 
-section sub_neg_monoid
-variables [sub_neg_monoid A]
-
-lemma zsmul_one [has_one A] (n : ℤ) : n • (1 : A) = n := by cases n; simp
-
-end sub_neg_monoid
+lemma zsmul_one [add_group_with_one A] (n : ℤ) : n • (1 : A) = n := by cases n; simp
 
 section division_monoid
 variables [division_monoid α]
@@ -140,10 +137,13 @@ variables [group G]
 
 @[to_additive add_one_zsmul]
 lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
-| (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev,
-  inv_mul_cancel_right]
+| (n : ℕ) := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
+| -[1+ 0] := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, mul_left_inv]
+| -[1+ n+1] := begin
+  rw [zpow_neg_succ_of_nat, pow_succ, mul_inv_rev, inv_mul_cancel_right],
+  rw [int.neg_succ_of_nat_eq, neg_add, add_assoc, neg_add_self, add_zero],
+  exact zpow_neg_succ_of_nat _ _
+end
 
 @[to_additive zsmul_sub_one]
 lemma zpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -386,8 +386,8 @@ by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
 lemma mul_bit1 [non_assoc_ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
-@[simp] theorem zsmul_eq_mul [non_assoc_ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
-| (n : ℕ) := by { rw [coe_nat_zsmul, nsmul_eq_mul], refl }
+@[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
+| (n : ℕ) := by rw [coe_nat_zsmul, nsmul_eq_mul, int.cast_coe_nat]
 | -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=
@@ -472,7 +472,7 @@ lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n
 begin
   have : 0 ≤ C, by simpa only [pow_zero, mul_one] using h 0,
   refine this.eq_or_lt.elim (λ h, or.inl h.symm) (λ hC, or.inr ⟨hC, _⟩),
-  refine nonneg_of_mul_nonneg_left _ hC,
+  refine nonneg_of_mul_nonneg_right _ hC,
   simpa only [pow_one] using h 1
 end
 
@@ -519,23 +519,9 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
 end linear_ordered_ring
 
-/-- Bernoulli's inequality reformulated to estimate `(n : K)`. -/
-theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a)
-  (n : ℕ) :
-  (n : K) ≤ (a ^ n - 1) / (a - 1) :=
-(le_div_iff (sub_pos.2 H)).2 $ le_sub_left_of_add_le $
-  one_add_mul_sub_le_pow ((neg_le_self $ @zero_le_one K _).trans H.le) _
-
-/-- For any `a > 1` and a natural `n` we have `n ≤ a ^ n / (a - 1)`. See also
-`nat.cast_le_pow_sub_div_sub` for a stronger inequality with `a ^ n - 1` in the numerator. -/
-theorem nat.cast_le_pow_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a) (n : ℕ) :
-  (n : K) ≤ a ^ n / (a - 1) :=
-(n.cast_le_pow_sub_div_sub H).trans $ div_le_div_of_le (sub_nonneg.2 H.le)
-  (sub_le_self _ zero_le_one)
-
 namespace int
 
-alias int.units_sq ← int.units_pow_two
+alias units_sq ← units_pow_two
 
 lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
@@ -543,16 +529,16 @@ by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, on
 @[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [sq, int.nat_abs_mul_self', sq]
 
-alias int.nat_abs_sq ← int.nat_abs_pow_two
+alias nat_abs_sq ← nat_abs_pow_two
 
 lemma abs_le_self_sq (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
 by { rw [← int.nat_abs_sq a, sq], norm_cast, apply nat.le_mul_self }
 
-alias int.abs_le_self_sq ← int.abs_le_self_pow_two
+alias abs_le_self_sq ← abs_le_self_pow_two
 
 lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_sq _)
 
-alias int.le_self_sq ← int.le_self_pow_two
+alias le_self_sq ← le_self_pow_two
 
 lemma pow_right_injective {x : ℤ} (h : 1 < x.nat_abs) : function.injective ((^) x : ℕ → ℤ) :=
 begin

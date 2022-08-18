@@ -30,10 +30,10 @@ def pi (v : typevec.{u} n) : Type.{u} :=
 Π α : A, F α v
 
 instance sigma.inhabited {α} [inhabited A] [inhabited (F default α)] : inhabited (sigma F α) :=
-⟨ ⟨default, default⟩ ⟩
+⟨⟨default, default⟩⟩
 
 instance pi.inhabited {α} [Π a, inhabited (F a α)] : inhabited (pi F α) :=
-⟨ λ a, default ⟩
+⟨λ a, default⟩
 
 variables [Π α, mvfunctor $ F α]
 
@@ -86,7 +86,7 @@ protected def abs ⦃α⦄ : (pi.P F).obj α → pi F α
 /-- representation function for dependent products -/
 protected def repr ⦃α⦄ : pi F α → (pi.P F).obj α
 | f :=
-  ⟨ λ a, (mvqpf.repr (f a)).1, λ i a, (@mvqpf.repr _ _ _ (_inst_2 _) _ (f _)).2 _ a.2 ⟩
+  ⟨ λ a, (mvqpf.repr (f a)).1, λ i a, (mvqpf.repr (f _)).2 _ a.2 ⟩
 
 instance : mvqpf (pi F) :=
 { P := pi.P F,

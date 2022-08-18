@@ -3,14 +3,8 @@ Copyright (c) 2022 Stuart Presnell. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stuart Presnell, Eric Wieser, Yaël Dillies, Patrick Massot, Scott Morrison
 -/
-import data.set.intervals.basic
-import algebra.order.ring
 import algebra.group_power.order
-
-import topology.instances.real
-import topology.algebra.field
 import data.set.intervals.proj_Icc
-
 
 /-!
 # Algebraic instances for unit intervals
@@ -33,6 +27,8 @@ The strongest typeclass provided on each interval is:
 * algebraic instances for `(Ioo (-1) 1)ᶜ`
 * provide `has_distrib_neg` instances where applicable
 * prove versions of `mul_le_{left,right}` for other intervals
+* prove versions of the lemmas in `topology/unit_interval` with `ℝ` generalized to
+  some arbitrary ordered semiring
 
 -/
 
@@ -52,6 +48,7 @@ instance has_one : has_one (Icc (0:α) 1) := { one := ⟨1, right_mem_Icc.2 zero
 @[simp, norm_cast] lemma coe_one : ↑(1 : Icc (0:α) 1) = (1 : α) := rfl
 
 @[simp] lemma mk_zero (h : (0 : α) ∈ Icc (0 : α) 1) : (⟨0, h⟩ : Icc (0:α) 1) = 0 := rfl
+@[simp] lemma mk_one (h : (1 : α) ∈ Icc (0 : α) 1) : (⟨1, h⟩ : Icc (0:α) 1) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_eq_zero {x : Icc (0:α) 1} : (x : α) = 0 ↔ x = 0 :=
 by { symmetry, exact subtype.ext_iff }
@@ -59,21 +56,19 @@ by { symmetry, exact subtype.ext_iff }
 lemma coe_ne_zero {x : Icc (0:α) 1} : (x : α) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
 
-@[simp] lemma mk_one (h : (1 : α) ∈ Icc (0 : α) 1) : (⟨1, h⟩ : Icc (0:α) 1) = 1 := rfl
-
 @[simp, norm_cast] lemma coe_eq_one {x : Icc (0:α) 1} : (x : α) = 1 ↔ x = 1 :=
 by { symmetry, exact subtype.ext_iff }
 
 lemma coe_ne_one {x : Icc (0:α) 1} : (x : α) ≠ 1 ↔ x ≠ 1 :=
 not_iff_not.mpr coe_eq_one
 
-lemma nonneg (x : Icc (0:α) 1) : 0 ≤ (x : α) := x.2.1
-lemma le_one (x : Icc (0:α) 1) : (x : α) ≤ 1 := x.2.2
+lemma coe_nonneg (x : Icc (0:α) 1) : 0 ≤ (x : α) := x.2.1
+lemma coe_le_one (x : Icc (0:α) 1) : (x : α) ≤ 1 := x.2.2
 
-/-- like `nonneg`, but with the inequality in `Icc (0:α) 1`. -/
-lemma nonneg' {t : Icc (0:α) 1} : 0 ≤ t := t.2.1
-/-- like `le_one`, but with the inequality in `Icc (0:α) 1`. -/
-lemma le_one' {t : Icc (0:α) 1} : t ≤ 1 := t.2.2
+/-- like `coe_nonneg`, but with the inequality in `Icc (0:α) 1`. -/
+lemma nonneg {t : Icc (0:α) 1} : 0 ≤ t := t.2.1
+/-- like `coe_le_one`, but with the inequality in `Icc (0:α) 1`. -/
+lemma le_one {t : Icc (0:α) 1} : t ≤ 1 := t.2.2
 
 instance has_mul : has_mul (Icc (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩ }
@@ -164,9 +159,34 @@ namespace unit_interval
 
 end unit_interval
 
+lemma one_sub_nonneg (x : Icc (0:β) 1) : 0 ≤ 1 - (x : β) := by simpa using x.2.2
+lemma one_sub_le_one (x : Icc (0:β) 1) : 1 - (x : β) ≤ 1 := by simpa using x.2.1
+
+end set.Icc
+
 /-! ### Instances for `↥(set.Ico 0 1)` -/
 
 namespace set.Ico
+
+instance has_zero [nontrivial α] : has_zero (Ico (0:α) 1) :=
+  { zero := ⟨0, left_mem_Ico.2 zero_lt_one⟩ }
+
+@[simp, norm_cast] lemma coe_zero [nontrivial α] : ↑(0 : Ico (0:α) 1) = (0 : α) := rfl
+
+@[simp] lemma mk_zero [nontrivial α] (h : (0 : α) ∈ Ico (0 : α) 1) : (⟨0, h⟩ : Ico (0:α) 1) = 0 :=
+  rfl
+
+@[simp, norm_cast] lemma coe_eq_zero [nontrivial α] {x : Ico (0:α) 1} : (x : α) = 0 ↔ x = 0 :=
+by { symmetry, exact subtype.ext_iff }
+
+lemma coe_ne_zero [nontrivial α] {x : Ico (0:α) 1} : (x : α) ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr coe_eq_zero
+
+lemma coe_nonneg (x : Ico (0:α) 1) : 0 ≤ (x : α) := x.2.1
+lemma coe_lt_one (x : Ico (0:α) 1) : (x : α) < 1 := x.2.2
+
+/-- like `coe_nonneg`, but with the inequality in `Ico (0:α) 1`. -/
+lemma nonneg [nontrivial α] {t : Ico (0:α) 1} : 0 ≤ t := t.2.1
 
 instance has_mul : has_mul (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
@@ -187,6 +207,23 @@ end set.Ico
 namespace set.Ioc
 
 instance has_one [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩ }
+
+@[simp, norm_cast] lemma coe_one [nontrivial α] : ↑(1 : Ioc (0:α) 1) = (1 : α) := rfl
+
+@[simp] lemma mk_one [nontrivial α] (h : (1 : α) ∈ Ioc (0 : α) 1) : (⟨1, h⟩ : Ioc (0:α) 1) = 1 :=
+  rfl
+
+@[simp, norm_cast] lemma coe_eq_one [nontrivial α] {x : Ioc (0:α) 1} : (x : α) = 1 ↔ x = 1 :=
+by { symmetry, exact subtype.ext_iff }
+
+lemma coe_ne_one [nontrivial α] {x : Ioc (0:α) 1} : (x : α) ≠ 1 ↔ x ≠ 1 :=
+not_iff_not.mpr coe_eq_one
+
+lemma coe_pos (x : Ioc (0:α) 1) : 0 < (x : α) := x.2.1
+lemma coe_le_one (x : Ioc (0:α) 1) : (x : α) ≤ 1 := x.2.2
+
+/-- like `coe_le_one`, but with the inequality in `Ioc (0:α) 1`. -/
+lemma le_one [nontrivial α] {t : Ioc (0:α) 1} : t ≤ 1 := t.2.2
 
 instance has_mul : has_mul (Ioc (0:α) 1) :=
 { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩ }

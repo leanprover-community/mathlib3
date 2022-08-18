@@ -29,7 +29,7 @@ noncomputable theory
 
 universes u v
 
-open function
+open function order
 
 namespace ordinal
 
@@ -85,7 +85,7 @@ theorem nfp_family_le_fp (H : ∀ i, monotone (f i)) {a b} (ab : a ≤ b) (h : �
   nfp_family f a ≤ b :=
 sup_le $ λ l, begin
   by_cases hι : is_empty ι,
-  { rwa @unique.eq_default _ (@list.unique_of_is_empty ι hι) l },
+  { resetI, rwa unique.eq_default l },
   { haveI := not_is_empty_iff.1 hι,
     induction l with i l IH generalizing a, {exact ab},
     exact (H i (IH ab)).trans (h i) }
@@ -143,7 +143,7 @@ theorem deriv_family_limit (f : ι → ordinal → ordinal) {o} : is_limit o →
 limit_rec_on_limit _ _ _ _
 
 theorem deriv_family_is_normal (f : ι → ordinal → ordinal) : is_normal (deriv_family f) :=
-⟨λ o, by rw [deriv_family_succ, ← succ_le]; apply le_nfp_family,
+⟨λ o, by rw [deriv_family_succ, ← succ_le_iff]; apply le_nfp_family,
  λ o l a, by rw [deriv_family_limit _ l, bsup_le_iff]⟩
 
 theorem deriv_family_fp {i} (H : is_normal (f i)) (o : ordinal.{max u v}) :
@@ -170,7 +170,7 @@ theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   { cases le_or_lt a (deriv_family f o), {exact IH h},
     refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_family_succ,
-    exact nfp_family_le_fp (λ i, (H i).monotone) (succ_le.2 h) ha },
+    exact nfp_family_le_fp (λ i, (H i).monotone) (succ_le_of_lt h) ha },
   { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_family_limit _ l, ← not_le, bsup_le_iff, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
@@ -423,7 +423,7 @@ theorem deriv_is_normal (f) : is_normal (deriv f) :=
 deriv_family_is_normal _
 
 theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h, succ_inj])
+((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h])
 
 theorem is_normal.deriv_fp {f} (H : is_normal f) : ∀ o, f (deriv f o) = deriv f o :=
 @deriv_family_fp unit (λ _, f) unit.star H
@@ -442,7 +442,7 @@ theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
 
 theorem deriv_eq_id_of_nfp_eq_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
+(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h])
 
 end
 
@@ -490,8 +490,7 @@ begin
   { rw [deriv_zero, add_zero],
     exact nfp_add_zero a },
   { rw [deriv_succ, h, add_succ],
-    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans
-      (lt_succ_self _).le)) }
+    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans (le_succ _))) }
 end
 
 /-! ### Fixed points of multiplication -/
@@ -561,7 +560,7 @@ end
 theorem mul_eq_right_iff_opow_omega_dvd {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
-  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd],
+  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd_iff],
     exact eq_comm },
   refine ⟨λ hab, _, λ h, _⟩,
   { rw dvd_iff_mod_eq_zero,
@@ -579,7 +578,7 @@ theorem mul_le_right_iff_opow_omega_dvd {a b : ordinal} (ha : 0 < a) : a * b ≤
 by { rw ←mul_eq_right_iff_opow_omega_dvd, exact (mul_is_normal ha).le_iff_eq }
 
 theorem nfp_mul_opow_omega_add {a c : ordinal} (b) (ha : 0 < a) (hc : 0 < c) (hca : c ≤ a ^ omega) :
-  nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * b.succ :=
+  nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * (succ b) :=
 begin
   apply le_antisymm,
   { apply nfp_le_fp (mul_is_normal ha).monotone,
@@ -594,7 +593,7 @@ begin
     rw hd at this,
     have := (add_lt_add_left hc (a ^ omega * b)).trans_le this,
     rw [add_zero, mul_lt_mul_iff_left (opow_pos omega ha)] at this,
-    rwa succ_le }
+    rwa succ_le_iff }
 end
 
 theorem deriv_mul_eq_opow_omega_mul {a : ordinal.{u}} (ha : 0 < a) (b) :

@@ -1,15 +1,15 @@
 /-
-Copyright (c) 2021 Chris Hughes. All rights reserved.
+Copyright (c) 2021 Chris Hughes, Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Junyan Xu
 -/
-import data.mv_polynomial.cardinal
-import data.mv_polynomial.equiv
+import data.polynomial.basic
+import set_theory.cardinal.ordinal
 /-!
 # Cardinality of Polynomial Ring
 
 The reuslt in this file is that the cardinality of `polynomial R` is at most the maximum
-of `#R` and `ω`.
+of `#R` and `ℵ₀`.
 -/
 universe u
 
@@ -18,10 +18,15 @@ open cardinal
 
 namespace polynomial
 
-lemma cardinal_mk_le_max {R : Type u} [comm_semiring R] : #R[X] ≤ max (#R) ω :=
-calc #R[X] = #(mv_polynomial punit.{u + 1} R) :
-  cardinal.eq.2 ⟨(mv_polynomial.punit_alg_equiv.{u u} R).to_equiv.symm⟩
-... ≤ _ : mv_polynomial.cardinal_mk_le_max
-... ≤ _ : by rw [max_assoc, max_eq_right (lt_omega_of_fintype punit).le]
+@[simp] lemma cardinal_mk_eq_max {R : Type u} [semiring R] [nontrivial R] : #R[X] = max (#R) ℵ₀ :=
+(to_finsupp_iso R).to_equiv.cardinal_eq.trans $
+  by { rw [add_monoid_algebra, mk_finsupp_lift_of_infinite, lift_uzero, max_comm], refl }
+
+lemma cardinal_mk_le_max {R : Type u} [semiring R] : #R[X] ≤ max (#R) ℵ₀ :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { exact (mk_eq_one _).trans_le (le_max_of_le_right one_le_aleph_0) },
+  { exact cardinal_mk_eq_max.le },
+end
 
 end polynomial

@@ -117,17 +117,28 @@ end
   (linear_equiv_fun_on_fintype R M α).symm f = f :=
 by { ext, simp [linear_equiv_fun_on_fintype], }
 
+/-- If `α` has a unique term, then the type of finitely supported functions `α →₀ M` is
+`R`-linearly equivalent to `M`. -/
+noncomputable def linear_equiv.finsupp_unique (α : Type*) [unique α] : (α →₀ M) ≃ₗ[R] M :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ r x, rfl,
+  ..finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique α M) }
+
+variables {R M α}
+
+@[simp] lemma linear_equiv.finsupp_unique_apply (α : Type*) [unique α] (f : α →₀ M) :
+  linear_equiv.finsupp_unique R M α f = f default := rfl
+
+@[simp] lemma linear_equiv.finsupp_unique_symm_apply {α : Type*} [unique α] (m : M) :
+  (linear_equiv.finsupp_unique R M α).symm m = finsupp.single default m :=
+by ext; simp [linear_equiv.finsupp_unique]
+
 end finsupp
 
-section
-open_locale classical
-
 /-- decomposing `x : ι → R` as a sum along the canonical basis -/
-lemma pi_eq_sum_univ {ι : Type*} [fintype ι] {R : Type*} [semiring R] (x : ι → R) :
+lemma pi_eq_sum_univ {ι : Type*} [fintype ι] [decidable_eq ι] {R : Type*} [semiring R] (x : ι → R) :
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
 by { ext, simp }
-
-end
 
 /-! ### Properties of linear maps -/
 namespace linear_map
@@ -315,21 +326,34 @@ begin
   exact surjective.of_comp h,
 end
 
+lemma pow_apply_mem_of_forall_mem {p : submodule R M}
+  (n : ℕ) (h : ∀ x ∈ p, f' x ∈ p) (x : M) (hx : x ∈ p) :
+  (f'^n) x ∈ p :=
+begin
+  induction n with n ih generalizing x, { simpa, },
+  simpa only [iterate_succ, coe_comp, function.comp_app, restrict_apply] using ih _ (h _ hx),
 end
 
-section
-open_locale classical
+lemma pow_restrict {p : submodule R M} (n : ℕ)
+  (h : ∀ x ∈ p, f' x ∈ p) (h' := pow_apply_mem_of_forall_mem n h) :
+  (f'.restrict h)^n = (f'^n).restrict h' :=
+begin
+  induction n with n ih;
+  ext,
+  { simp [restrict_apply], },
+  { simp [restrict_apply, linear_map.iterate_succ, -linear_map.pow_apply, ih], },
+end
+
+end
 
 /-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
 of the canonical basis. -/
-lemma pi_apply_eq_sum_univ [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
+lemma pi_apply_eq_sum_univ [fintype ι] [decidable_eq ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
   f x = ∑ i, x i • (f (λj, if i = j then 1 else 0)) :=
 begin
   conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
   apply finset.sum_congr rfl (λl hl, _),
   rw map_smul
-end
-
 end
 
 end add_comm_monoid
@@ -552,6 +576,10 @@ def map (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) : submodule R₂ M�
   (map f p : set M₂) = f '' p := rfl
 
 lemma map_to_add_submonoid (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
+  (p.map f).to_add_submonoid = p.to_add_submonoid.map (f : M →+ M₂) :=
+set_like.coe_injective rfl
+
+lemma map_to_add_submonoid' (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
   (p.map f).to_add_submonoid = p.to_add_submonoid.map f :=
 set_like.coe_injective rfl
 
@@ -1513,8 +1541,8 @@ def of_eq (h : p = q) : p ≃ₗ[R] q :=
 variables {p q}
 
 @[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
-
 @[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
+@[simp] lemma of_eq_rfl : of_eq p p rfl = linear_equiv.refl R p := by ext; refl
 
 include σ₂₁
 /-- A linear equivalence which maps a submodule of one module onto another, restricts to a linear

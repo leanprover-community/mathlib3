@@ -177,6 +177,32 @@ lemma basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix
   c.to_matrix c' ⬝ linear_map.to_matrix b' c' f ⬝ b'.to_matrix b = linear_map.to_matrix b c f :=
 by rw [basis_to_matrix_mul_linear_map_to_matrix, linear_map_to_matrix_mul_basis_to_matrix]
 
+lemma basis_to_matrix_mul [decidable_eq κ]
+    (b₁ : basis ι R M) (b₂ : basis ι' R M) (b₃ : basis κ R N) (A : matrix ι' κ R) :
+  b₁.to_matrix b₂ ⬝ A = linear_map.to_matrix b₃ b₁ (to_lin b₃ b₂ A) :=
+begin
+  have := basis_to_matrix_mul_linear_map_to_matrix b₃ b₁ b₂ (matrix.to_lin b₃ b₂ A),
+  rwa [linear_map.to_matrix_to_lin] at this
+end
+
+lemma mul_basis_to_matrix [decidable_eq ι] [decidable_eq ι']
+    (b₁ : basis ι R M) (b₂ : basis ι' R M) (b₃ : basis κ R N) (A : matrix κ ι R) :
+  A ⬝ b₁.to_matrix b₂ = linear_map.to_matrix b₂ b₃ (to_lin b₁ b₃ A) :=
+begin
+  have := linear_map_to_matrix_mul_basis_to_matrix b₂ b₁ b₃ (matrix.to_lin b₁ b₃ A),
+  rwa [linear_map.to_matrix_to_lin] at this
+end
+
+lemma basis_to_matrix_basis_fun_mul (b : basis ι R (ι → R)) (A : matrix ι ι R) :
+  b.to_matrix (pi.basis_fun R ι) ⬝ A = of (λ i j, b.repr (Aᵀ j) i) :=
+begin
+  classical,
+  simp only [basis_to_matrix_mul _ _ (pi.basis_fun R ι), matrix.to_lin_eq_to_lin'],
+  ext i j,
+  rw [linear_map.to_matrix_apply, matrix.to_lin'_apply, pi.basis_fun_apply,
+    matrix.mul_vec_std_basis_apply, matrix.of_apply]
+end
+
 /-- A generalization of `linear_map.to_matrix_id`. -/
 @[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :
   linear_map.to_matrix b b' id = b'.to_matrix b :=
@@ -188,7 +214,7 @@ lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v = matrix.reindex_alg_equiv _ e (b.to_matrix (v ∘ e)) :=
 by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,
-        matrix.reindex_apply, matrix.minor_apply, function.comp_app, e.apply_symm_apply] }
+        matrix.reindex_apply, matrix.submatrix_apply, function.comp_app, e.apply_symm_apply] }
 
 end fintype
 
@@ -211,8 +237,8 @@ by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 @[simp]
 lemma basis.to_matrix_reindex
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
-  (b.reindex e).to_matrix v = (b.to_matrix v).minor e.symm id :=
-by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.minor_apply, id.def] }
+  (b.reindex e).to_matrix v = (b.to_matrix v).submatrix e.symm id :=
+by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.submatrix_apply, id.def] }
 
 @[simp]
 lemma basis.to_matrix_map (b : basis ι R M) (f : M ≃ₗ[R] N) (v : ι → N) :

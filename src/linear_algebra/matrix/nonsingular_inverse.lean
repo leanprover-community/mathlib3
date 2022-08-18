@@ -178,7 +178,7 @@ lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠
 
 end invertible
 
-variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring α]
+variables [fintype n] [decidable_eq n] [comm_ring α]
 variables (A : matrix n n α) (B : matrix n n α)
 
 lemma is_unit_det_transpose (h : is_unit A.det) : is_unit Aᵀ.det :=
@@ -246,11 +246,43 @@ begin
   rw [←inv_of_eq_nonsing_inv, matrix.inv_of_mul_self],
 end
 
+@[simp] lemma mul_nonsing_inv_cancel_right (B : matrix m n α) (h : is_unit A.det) :
+  B ⬝ A ⬝ A⁻¹ = B :=
+by simp [matrix.mul_assoc, mul_nonsing_inv A h]
+
+@[simp] lemma mul_nonsing_inv_cancel_left (B : matrix n m α) (h : is_unit A.det) :
+  A ⬝ (A⁻¹ ⬝ B) = B :=
+by simp [←matrix.mul_assoc, mul_nonsing_inv A h]
+
+@[simp] lemma nonsing_inv_mul_cancel_right (B : matrix m n α) (h : is_unit A.det) :
+  B ⬝ A⁻¹ ⬝ A = B :=
+by simp [matrix.mul_assoc, nonsing_inv_mul A h]
+
+@[simp] lemma nonsing_inv_mul_cancel_left (B : matrix n m α) (h : is_unit A.det) :
+  A⁻¹ ⬝ (A ⬝ B) = B :=
+by simp [←matrix.mul_assoc, nonsing_inv_mul A h]
+
 @[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
 mul_nonsing_inv A (is_unit_det_of_invertible A)
 
 @[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
 nonsing_inv_mul A (is_unit_det_of_invertible A)
+
+@[simp] lemma mul_inv_cancel_right_of_invertible (B : matrix m n α) [invertible A] :
+  B ⬝ A ⬝ A⁻¹ = B :=
+mul_nonsing_inv_cancel_right A B (is_unit_det_of_invertible A)
+
+@[simp] lemma mul_inv_cancel_left_of_invertible (B : matrix n m α) [invertible A] :
+  A ⬝ (A⁻¹ ⬝ B) = B :=
+mul_nonsing_inv_cancel_left A B (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_cancel_right_of_invertible (B : matrix m n α) [invertible A] :
+  B ⬝ A⁻¹ ⬝ A = B :=
+nonsing_inv_mul_cancel_right A B (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_cancel_left_of_invertible (B : matrix n m α) [invertible A] :
+  A⁻¹ ⬝ (A ⬝ B) = B :=
+nonsing_inv_mul_cancel_left A B (is_unit_det_of_invertible A)
 
 lemma nonsing_inv_cancel_or_zero :
   (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=
@@ -381,7 +413,8 @@ invertible.map (diagonal_ring_hom n α) v
 
 lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
   ⅟(diagonal v) = diagonal (⅟v) :=
-by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
+by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _),
+  convert subsingleton.elim _ _, apply invertible.subsingleton }
 
 /-- `v` is invertible if `diagonal v` is -/
 def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=
@@ -464,6 +497,9 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
 
 /-! ### More results about determinants -/
 
+section det
+variables [fintype m] [decidable_eq m]
+
 /-- A variant of `matrix.det_units_conj`. -/
 lemma det_conj {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
   det (M ⬝ N ⬝ M⁻¹) = det N :=
@@ -500,10 +536,10 @@ of the Schur complement. -/
 lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
 begin
-  have : from_blocks A B C D = (from_blocks D C B A).minor (sum_comm _ _) (sum_comm _ _),
+  have : from_blocks A B C D = (from_blocks D C B A).submatrix (sum_comm _ _) (sum_comm _ _),
   { ext i j,
     cases i; cases j; refl },
-  rw [this, det_minor_equiv_self, det_from_blocks₁₁],
+  rw [this, det_submatrix_equiv_self, det_from_blocks₁₁],
 end
 
 @[simp] lemma det_from_blocks_one₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) :
@@ -536,5 +572,7 @@ TODO: show this more generally. -/
 lemma det_one_add_col_mul_row (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
 by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_apply_eq,
        matrix.row_mul_col_apply]
+
+end det
 
 end matrix

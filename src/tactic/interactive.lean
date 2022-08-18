@@ -828,7 +828,7 @@ end
 meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") *> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
-do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
+do tp ← i_to_expr $ let t := tp.get_or_else pexpr.mk_placeholder in ``(%%t : Sort*),
    pv ← to_expr ``(%%pv : %%tp),
    tp ← instantiate_mvars tp,
    definev a tp pv,

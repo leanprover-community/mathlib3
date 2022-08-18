@@ -132,6 +132,8 @@ lemma mul_lt_mul_of_lt_of_lt [covariant_class α α (*) (<)] [covariant_class α
 calc  a * c < a * d : mul_lt_mul_left' h₂ a
         ... < b * d : mul_lt_mul_right' h₁ d
 
+alias add_lt_add_of_lt_of_lt ← add_lt_add
+
 @[to_additive]
 lemma mul_lt_mul_of_le_of_lt [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
   {a b c d : α} (h₁ : a ≤ b) (h₂ : c < d) : a * c < b * d :=
@@ -142,10 +144,17 @@ lemma mul_lt_mul_of_lt_of_le [covariant_class α α (*) (≤)] [covariant_class 
   {a b c d : α} (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
 (mul_le_mul_left' h₂ _).trans_lt (mul_lt_mul_right' h₁ d)
 
-@[to_additive add_lt_add]
-lemma mul_lt_mul''' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
+/-- Only assumes left strict covariance. -/
+@[to_additive "Only assumes left strict covariance"]
+lemma left.mul_lt_mul [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
   {a b c d : α} (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
 mul_lt_mul_of_le_of_lt h₁.le h₂
+
+/-- Only assumes right strict covariance. -/
+@[to_additive "Only assumes right strict covariance"]
+lemma right.mul_lt_mul [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (<)]
+  {a b c d : α} (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
+mul_lt_mul_of_lt_of_le h₁ h₂.le
 
 @[to_additive add_le_add]
 lemma mul_le_mul' [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
@@ -235,16 +244,32 @@ section has_le
 variables [has_le α]
 
 @[to_additive le_add_of_nonneg_right]
-lemma le_mul_of_one_le_right' [covariant_class α α (*) (≤)] {a b : α} (h : 1 ≤ b) :
+lemma le_mul_of_one_le_right' [covariant_class α α (*) (≤)]
+  {a b : α} (h : 1 ≤ b) :
   a ≤ a * b :=
-calc  a = a * 1  : (mul_one _).symm
+calc  a = a * 1  : (mul_one a).symm
     ... ≤ a * b  : mul_le_mul_left' h a
 
 @[to_additive add_le_of_nonpos_right]
-lemma mul_le_of_le_one_right' [covariant_class α α (*) (≤)] {a b : α} (h : b ≤ 1) :
+lemma mul_le_of_le_one_right' [covariant_class α α (*) (≤)]
+  {a b : α} (h : b ≤ 1) :
   a * b ≤ a :=
 calc  a * b ≤ a * 1 : mul_le_mul_left' h a
         ... = a     : mul_one a
+
+@[to_additive le_add_of_nonneg_left]
+lemma le_mul_of_one_le_left' [covariant_class α α (swap (*)) (≤)]
+  {a b : α} (h : 1 ≤ b) :
+  a ≤ b * a :=
+calc  a = 1 * a  : (one_mul a).symm
+    ... ≤ b * a  : mul_le_mul_right' h a
+
+@[to_additive add_le_of_nonpos_left]
+lemma mul_le_of_le_one_left' [covariant_class α α (swap (*)) (≤)]
+  {a b : α} (h : b ≤ 1) :
+  b * a ≤ a :=
+calc  b * a ≤ 1 * a : mul_le_mul_right' h a
+        ... = a     : one_mul a
 
 @[simp, to_additive le_add_iff_nonneg_right]
 lemma le_mul_iff_one_le_right'
@@ -280,12 +305,32 @@ section has_lt
 variable [has_lt α]
 
 @[to_additive lt_add_of_pos_right]
-lemma lt_mul_of_one_lt_right'
-  [covariant_class α α (*) (<)]
+lemma lt_mul_of_one_lt_right' [covariant_class α α (*) (<)]
   (a : α) {b : α} (h : 1 < b) :
   a < a * b :=
-calc a = a * 1 : (mul_one _).symm
-   ... < a * b : mul_lt_mul_left' h a
+calc  a = a * 1  : (mul_one a).symm
+    ... < a * b  : mul_lt_mul_left' h a
+
+@[to_additive add_lt_of_neg_right]
+lemma mul_lt_of_lt_one_right' [covariant_class α α (*) (<)]
+  (a : α) {b : α} (h : b < 1) :
+  a * b < a :=
+calc  a * b < a * 1 : mul_lt_mul_left' h a
+        ... = a     : mul_one a
+
+@[to_additive lt_add_of_pos_left]
+lemma lt_mul_of_one_lt_left' [covariant_class α α (swap (*)) (<)]
+  (a : α) {b : α} (h : 1 < b) :
+  a < b * a :=
+calc  a = 1 * a  : (one_mul a).symm
+    ... < b * a  : mul_lt_mul_right' h a
+
+@[to_additive add_lt_of_neg_left]
+lemma mul_lt_of_lt_one_left' [covariant_class α α (swap (*)) (<)]
+  (a : α) {b : α} (h : b < 1) :
+  b * a < a :=
+calc  b * a < 1 * a : mul_lt_mul_right' h a
+        ... = a     : one_mul a
 
 @[simp, to_additive lt_add_iff_pos_right]
 lemma lt_mul_iff_one_lt_right'
@@ -320,7 +365,7 @@ end has_lt
 section preorder
 variable [preorder α]
 
-/-! Lemmas in the form of `b ≤ c → a ≤ 1 → b * a ≤ c`,
+/-! Lemmas of the form `b ≤ c → a ≤ 1 → b * a ≤ c`,
 which assume left covariance. -/
 
 @[to_additive]
@@ -329,9 +374,6 @@ lemma mul_le_of_le_of_le_one [covariant_class α α (*) (≤)]
 calc  b * a ≤ b * 1 : mul_le_mul_left' ha b
         ... = b     : mul_one b
         ... ≤ c     : hbc
-
-alias mul_le_of_le_of_le_one ← mul_le_one'
-attribute [to_additive add_nonpos] mul_le_one'
 
 @[to_additive]
 lemma mul_lt_of_le_of_lt_one [covariant_class α α (*) (<)]
@@ -354,19 +396,56 @@ calc  b * a < b * 1 : mul_lt_mul_left' ha b
         ... = b     : mul_one b
         ... < c     : hbc
 
-/-- Assumes left covariance. The lemma assuming right covariance is `right.mul_lt_one`. -/
-@[to_additive "Assumes left covariance. The lemma assuming right covariance is `right.add_neg`."]
+@[to_additive]
+lemma mul_lt_of_lt_of_lt_one' [covariant_class α α (*) (≤)]
+  {a b c : α} (hbc : b < c) (ha : a < 1) : b * a < c :=
+mul_lt_of_lt_of_le_one hbc ha.le
+
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.mul_le_one`. -/
+@[to_additive "Assumes left covariance.
+The lemma assuming right covariance is `right.add_nonpos`."]
+lemma left.mul_le_one [covariant_class α α (*) (≤)]
+  {a b : α} (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
+mul_le_of_le_of_le_one ha hb
+
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.mul_lt_one_of_le_of_lt`. -/
+@[to_additive left.add_neg_of_nonpos_of_neg "Assumes left covariance.
+The lemma assuming right covariance is `right.add_neg_of_nonpos_of_neg`."]
+lemma left.mul_lt_one_of_le_of_lt [covariant_class α α (*) (<)]
+  {a b : α} (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
+mul_lt_of_le_of_lt_one ha hb
+
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.mul_lt_one_of_lt_of_le`. -/
+@[to_additive left.add_neg_of_neg_of_nonpos "Assumes left covariance.
+The lemma assuming right covariance is `right.add_neg_of_neg_of_nonpos`."]
+lemma left.mul_lt_one_of_lt_of_le [covariant_class α α (*) (≤)]
+  {a b : α} (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
+mul_lt_of_lt_of_le_one ha hb
+
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.mul_lt_one`. -/
+@[to_additive "Assumes left covariance.
+The lemma assuming right covariance is `right.add_neg`."]
 lemma left.mul_lt_one [covariant_class α α (*) (<)]
   {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
-calc  a * b < a * 1 : mul_lt_mul_left' hb a
-        ... = a     : mul_one a
-        ... < 1     : ha
+mul_lt_of_lt_of_lt_one ha hb
 
-/-! Lemmas in the form of `b ≤ c → 1 ≤ a → b ≤ c * a`,
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.mul_lt_one'`. -/
+@[to_additive "Assumes left covariance.
+The lemma assuming right covariance is `right.add_neg'`."]
+lemma left.mul_lt_one' [covariant_class α α (*) (≤)]
+  {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
+mul_lt_of_lt_of_lt_one' ha hb
+
+/-! Lemmas of the form `b ≤ c → 1 ≤ a → b ≤ c * a`,
 which assume left covariance. -/
 
 @[to_additive]
-lemma le_mul_of_le_of_le_one [covariant_class α α (*) (≤)]
+lemma le_mul_of_le_of_one_le [covariant_class α α (*) (≤)]
   {a b c : α} (hbc : b ≤ c) (ha : 1 ≤ a) : b ≤ c * a :=
 calc  b ≤ c     : hbc
     ... = c * 1 : (mul_one c).symm
@@ -394,46 +473,51 @@ calc  b < c     : hbc
     ... < c * a : mul_lt_mul_left' ha c
 
 @[to_additive]
-lemma lt_mul_of_lt_of_one_le' [covariant_class α α (*) (≤)]
-  {a b c : α} (hbc : b < c) (ha : 1 ≤ a) : b < c * a :=
-hbc.trans_le $ le_mul_of_one_le_right' ha
-
-@[to_additive]
 lemma lt_mul_of_lt_of_one_lt' [covariant_class α α (*) (≤)]
   {a b c : α} (hbc : b < c) (ha : 1 < a) : b < c * a :=
-lt_mul_of_lt_of_one_le' hbc ha.le
+lt_mul_of_lt_of_one_le hbc ha.le
 
-@[to_additive]
-lemma le_mul_of_le_of_one_le [covariant_class α α (*) (≤)]
-  {a b c : α} (hbc : b ≤ c) (ha : 1 ≤ a) : b ≤ c * a :=
-calc  b ≤ c : hbc
-    ... = c * 1 : (mul_one c).symm
-    ... ≤ c * a : mul_le_mul_left' ha c
-
-@[to_additive add_nonneg]
-lemma one_le_mul_right [covariant_class α α (*) (≤)]
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.one_le_mul`. -/
+@[to_additive left.add_nonneg "Assumes left covariance.
+The lemma assuming right covariance is `right.add_nonneg`."]
+lemma left.one_le_mul [covariant_class α α (*) (≤)]
   {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
-calc  1 ≤ a     : ha
-    ... = a * 1 : (mul_one a).symm
-    ... ≤ a * b : mul_le_mul_left' hb a
+le_mul_of_le_of_one_le ha hb
 
-/-  This lemma is present to mimick the name of an existing one. -/
-@[to_additive add_nonneg]
-lemma one_le_mul [covariant_class α α (*) (≤)]
-  {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
-le_mul_of_le_of_le_one ha hb
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.one_lt_mul_of_le_of_lt`. -/
+@[to_additive left.add_pos_of_nonneg_of_pos "Assumes left covariance.
+The lemma assuming right covariance is `right.add_pos_of_nonneg_of_pos`."]
+lemma left.one_lt_mul_of_le_of_lt [covariant_class α α (*) (<)]
+  {a b : α} (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+lt_mul_of_le_of_one_lt ha hb
 
-@[to_additive add_pos_of_pos_of_nonneg]
-lemma one_lt_mul_of_lt_of_le' [covariant_class α α (*) (≤)]
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.one_lt_mul_of_lt_of_le`. -/
+@[to_additive left.add_pos_of_pos_of_nonneg "Assumes left covariance.
+The lemma assuming right covariance is `right.add_pos_of_pos_of_nonneg`."]
+lemma left.one_lt_mul_of_lt_of_le [covariant_class α α (*) (≤)]
   {a b : α} (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-lt_of_lt_of_le ha $ le_mul_of_one_le_right' hb
+lt_mul_of_lt_of_one_le ha hb
 
-@[to_additive add_pos]
-lemma one_lt_mul' [covariant_class α α (*) (≤)]
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.one_lt_mul`. -/
+@[to_additive left.add_pos "Assumes left covariance.
+The lemma assuming right covariance is `right.add_pos`."]
+lemma left.one_lt_mul [covariant_class α α (*) (<)]
   {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
-one_lt_mul_of_lt_of_le' ha hb.le
+lt_mul_of_lt_of_one_lt ha hb
 
-/-! Lemmas in the form of `a ≤ 1 → b ≤ c → a * b ≤ c`,
+/-- Assumes left covariance.
+The lemma assuming right covariance is `right.one_lt_mul'`. -/
+@[to_additive left.add_pos' "Assumes left covariance.
+The lemma assuming right covariance is `right.add_pos'`."]
+lemma left.one_lt_mul' [covariant_class α α (*) (≤)]
+  {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
+lt_mul_of_lt_of_one_lt' ha hb
+
+/-! Lemmas of the form `a ≤ 1 → b ≤ c → a * b ≤ c`,
 which assume right covariance. -/
 
 @[to_additive]
@@ -464,21 +548,52 @@ calc  a * b < 1 * b : mul_lt_mul_right' ha b
         ... = b     : one_mul b
         ... < c     : hb
 
-@[to_additive add_le_of_nonpos_left]
-lemma mul_le_of_le_one_left' [covariant_class α α (swap (*)) (≤)]
-  {a b : α} (h : b ≤ 1) : b * a ≤ a :=
-calc  b * a ≤ 1 * a : mul_le_mul_right' h a
-        ... = a     : one_mul a
+@[to_additive]
+lemma mul_lt_of_lt_one_of_lt' [covariant_class α α (swap (*)) (≤)]
+  {a b c : α} (ha : a < 1) (hbc : b < c) : a * b < c :=
+mul_lt_of_le_one_of_lt ha.le hbc
 
-/-- Assumes right covariance. The lemma assuming left covariance is `left.mul_lt_one`. -/
-@[to_additive "Assumes right covariance. The lemma assuming left covariance is `left.add_neg`"]
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.mul_le_one`. -/
+@[to_additive "Assumes right covariance.
+The lemma assuming left covariance is `left.add_nonpos`."]
+lemma right.mul_le_one [covariant_class α α (swap (*)) (≤)]
+  {a b : α} (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
+mul_le_of_le_one_of_le ha hb
+
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.mul_lt_one_of_lt_of_le`. -/
+@[to_additive right.add_neg_of_neg_of_nonpos "Assumes right covariance.
+The lemma assuming left covariance is `left.add_neg_of_neg_of_nonpos`."]
+lemma right.mul_lt_one_of_lt_of_le [covariant_class α α (swap (*)) (<)]
+  {a b : α} (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
+mul_lt_of_lt_one_of_le ha hb
+
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.mul_lt_one_of_le_of_lt`. -/
+@[to_additive right.add_neg_of_nonpos_of_neg "Assumes right covariance.
+The lemma assuming left covariance is `left.add_neg_of_nonpos_of_neg`."]
+lemma right.mul_lt_one_of_le_of_lt [covariant_class α α (swap (*)) (≤)]
+  {a b : α} (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
+mul_lt_of_le_one_of_lt ha hb
+
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.mul_lt_one`. -/
+@[to_additive "Assumes right covariance.
+The lemma assuming left covariance is `left.add_neg`."]
 lemma right.mul_lt_one [covariant_class α α (swap (*)) (<)]
   {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
-calc  a * b < 1 * b : mul_lt_mul_right' ha b
-        ... = b     : one_mul b
-        ... < 1     : hb
+mul_lt_of_lt_one_of_lt ha hb
 
-/-! Lemmas in the form of `1 ≤ a → b ≤ c → b ≤ a * c`,
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.mul_lt_one'`. -/
+@[to_additive "Assumes right covariance.
+The lemma assuming left covariance is `left.add_neg'`."]
+lemma right.mul_lt_one' [covariant_class α α (swap (*)) (≤)]
+  {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
+mul_lt_of_lt_one_of_lt' ha hb
+
+/-! Lemmas of the form `1 ≤ a → b ≤ c → b ≤ a * c`,
 which assume right covariance. -/
 
 @[to_additive]
@@ -503,42 +618,88 @@ calc  b < c     : hbc
     ... ≤ a * c : mul_le_mul_right' ha c
 
 @[to_additive]
-lemma lt_mul_of_one_lt_of_lt [covariant_class α α (swap (*)) (≤)]
+lemma lt_mul_of_one_lt_of_lt [covariant_class α α (swap (*)) (<)]
+  {a b c : α} (ha : 1 < a) (hbc : b < c) : b < a * c :=
+calc  b < c     : hbc
+    ... = 1 * c : (one_mul c).symm
+    ... < a * c : mul_lt_mul_right' ha c
+
+@[to_additive]
+lemma lt_mul_of_one_lt_of_lt' [covariant_class α α (swap (*)) (≤)]
   {a b c : α} (ha : 1 < a) (hbc : b < c) : b < a * c :=
 lt_mul_of_one_le_of_lt ha.le hbc
 
-@[to_additive le_add_of_nonneg_left]
-lemma le_mul_of_one_le_left' [covariant_class α α (swap (*)) (≤)]
-  {a b : α} (h : 1 ≤ b) : a ≤ b * a :=
-calc  a = 1 * a : (one_mul a).symm
-    ... ≤ b * a : mul_le_mul_right' h a
-
-@[to_additive lt_add_of_pos_left]
-lemma lt_mul_of_one_lt_left' [covariant_class α α (swap (*)) (<)]
-  (a : α) {b : α} (h : 1 < b) : a < b * a :=
-calc a = 1 * a : (one_mul _).symm
-   ... < b * a : mul_lt_mul_right' h a
-
-/-- Assumes right covariance. -/
-@[to_additive right.add_nonneg "Assumes right covariance."]
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.one_le_mul`. -/
+@[to_additive right.add_nonneg "Assumes right covariance.
+The lemma assuming left covariance is `left.add_nonneg`."]
 lemma right.one_le_mul [covariant_class α α (swap (*)) (≤)]
   {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
-calc  1 ≤ b     : hb
-    ... = 1 * b : (one_mul b).symm
-    ... ≤ a * b : mul_le_mul_right' ha b
+le_mul_of_one_le_of_le ha hb
 
-@[to_additive add_pos_of_nonneg_of_pos]
-lemma one_lt_mul_of_le_of_lt' [covariant_class α α (swap (*)) (≤)]
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.one_lt_mul_of_lt_of_le`. -/
+@[to_additive right.add_pos_of_pos_of_nonneg "Assumes right covariance.
+The lemma assuming left covariance is `left.add_pos_of_pos_of_nonneg`."]
+lemma right.one_lt_mul_of_lt_of_le [covariant_class α α (swap (*)) (<)]
+  {a b : α} (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
+lt_mul_of_one_lt_of_le ha hb
+
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.one_lt_mul_of_le_of_lt`. -/
+@[to_additive right.add_pos_of_nonneg_of_pos "Assumes right covariance.
+The lemma assuming left covariance is `left.add_pos_of_nonneg_of_pos`."]
+lemma right.one_lt_mul_of_le_of_lt [covariant_class α α (swap (*)) (≤)]
   {a b : α} (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-lt_of_lt_of_le hb $ le_mul_of_one_le_left' ha
+lt_mul_of_one_le_of_lt ha hb
 
-/-- Assumes right covariance. -/
-@[to_additive right.add_pos "Assumes right covariance."]
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.one_lt_mul`. -/
+@[to_additive right.add_pos "Assumes right covariance.
+The lemma assuming left covariance is `left.add_pos`."]
 lemma right.one_lt_mul [covariant_class α α (swap (*)) (<)]
-  {a b : α} (hb : 1 < b) (ha : 1 < a) : 1 < a * b :=
-calc  1 < b     : hb
-    ... = 1 * b : (one_mul b).symm
-    ... < a * b : mul_lt_mul_right' ha b
+  {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
+lt_mul_of_one_lt_of_lt ha hb
+
+/-- Assumes right covariance.
+The lemma assuming left covariance is `left.one_lt_mul'`. -/
+@[to_additive right.add_pos' "Assumes right covariance.
+The lemma assuming left covariance is `left.add_pos'`."]
+lemma right.one_lt_mul' [covariant_class α α (swap (*)) (≤)]
+  {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
+lt_mul_of_one_lt_of_lt' ha hb
+
+alias left.mul_le_one             ← mul_le_one'
+alias left.mul_lt_one_of_le_of_lt ← mul_lt_one_of_le_of_lt
+alias left.mul_lt_one_of_lt_of_le ← mul_lt_one_of_lt_of_le
+alias left.mul_lt_one             ← mul_lt_one
+alias left.mul_lt_one'            ← mul_lt_one'
+attribute [to_additive add_nonpos "**Alias** of `left.add_nonpos`."]
+mul_le_one'
+attribute [to_additive add_neg_of_nonpos_of_neg "**Alias** of `left.add_neg_of_nonpos_of_neg`."]
+mul_lt_one_of_le_of_lt
+attribute [to_additive add_neg_of_neg_of_nonpos "**Alias** of `left.add_neg_of_neg_of_nonpos`."]
+mul_lt_one_of_lt_of_le
+attribute [to_additive "**Alias** of `left.add_neg`."]
+mul_lt_one
+attribute [to_additive "**Alias** of `left.add_neg'`."]
+mul_lt_one'
+
+alias left.one_le_mul             ← one_le_mul
+alias left.one_lt_mul_of_le_of_lt ← one_lt_mul_of_le_of_lt'
+alias left.one_lt_mul_of_lt_of_le ← one_lt_mul_of_lt_of_le'
+alias left.one_lt_mul             ← one_lt_mul'
+alias left.one_lt_mul'            ← one_lt_mul''
+attribute [to_additive add_nonneg "**Alias** of `left.add_nonneg`."]
+one_le_mul
+attribute [to_additive add_pos_of_nonneg_of_pos "**Alias** of `left.add_pos_of_nonneg_of_pos`."]
+one_lt_mul_of_le_of_lt'
+attribute [to_additive add_pos_of_pos_of_nonneg "**Alias** of `left.add_pos_of_pos_of_nonneg`."]
+one_lt_mul_of_lt_of_le'
+attribute [to_additive add_pos "**Alias** of `left.add_pos`."]
+one_lt_mul'
+attribute [to_additive add_pos' "**Alias** of `left.add_pos'`."]
+one_lt_mul''
 
 @[to_additive]
 lemma lt_of_mul_lt_of_one_le_left [covariant_class α α (*) (≤)]
@@ -652,9 +813,9 @@ def contravariant.to_right_cancel_semigroup
 { mul_right_cancel := λ a b c, mul_right_cancel''
   ..‹semigroup α› }
 
-@[to_additive] lemma mul_eq_mul_iff_eq_and_eq
-  [contravariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
-  [covariant_class α α (*) (<)] [contravariant_class α α (swap (*)) (≤)]
+@[to_additive] lemma left.mul_eq_mul_iff_eq_and_eq
+  [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
+  [contravariant_class α α (*) (≤)] [contravariant_class α α (swap (*)) (≤)]
   {a b c d : α} (hac : a ≤ c) (hbd : b ≤ d) : a * b = c * d ↔ a = c ∧ b = d :=
 begin
   refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
@@ -662,76 +823,229 @@ begin
   { exact ⟨rfl, mul_left_cancel'' h⟩ },
   rcases eq_or_lt_of_le hbd with rfl | hbd,
   { exact ⟨mul_right_cancel'' h, rfl⟩ },
-  exact ((mul_lt_mul''' hac hbd).ne h).elim,
+  exact ((left.mul_lt_mul hac hbd).ne h).elim,
 end
+
+@[to_additive] lemma right.mul_eq_mul_iff_eq_and_eq
+  [covariant_class α α (*) (≤)] [contravariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (<)] [contravariant_class α α (swap (*)) (≤)]
+  {a b c d : α} (hac : a ≤ c) (hbd : b ≤ d) : a * b = c * d ↔ a = c ∧ b = d :=
+begin
+  refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
+  rcases hac.eq_or_lt with rfl | hac,
+  { exact ⟨rfl, mul_left_cancel'' h⟩ },
+  rcases eq_or_lt_of_le hbd with rfl | hbd,
+  { exact ⟨mul_right_cancel'' h, rfl⟩ },
+  exact ((right.mul_lt_mul hac hbd).ne h).elim,
+end
+
+alias left.mul_eq_mul_iff_eq_and_eq ← mul_eq_mul_iff_eq_and_eq
+attribute [to_additive] mul_eq_mul_iff_eq_and_eq
 
 end partial_order
 
 end semigroup
 
 section mono
-variables [has_mul α] [preorder α] [preorder β] {f g : β → α}
+variables [has_mul α] [preorder α] [preorder β] {f g : β → α} {s : set β}
 
-@[to_additive monotone.const_add]
+@[to_additive const_add]
 lemma monotone.const_mul' [covariant_class α α (*) (≤)] (hf : monotone f) (a : α) :
   monotone (λ x, a * f x) :=
 λ x y h, mul_le_mul_left' (hf h) a
 
-@[to_additive monotone.add_const]
+@[to_additive const_add]
+lemma monotone_on.const_mul' [covariant_class α α (*) (≤)] (hf : monotone_on f s) (a : α) :
+  monotone_on (λ x, a * f x) s :=
+λ x hx y hy h, mul_le_mul_left' (hf hx hy h) a
+
+@[to_additive const_add]
+lemma antitone.const_mul' [covariant_class α α (*) (≤)] (hf : antitone f) (a : α) :
+  antitone (λ x, a * f x) :=
+λ x y h, mul_le_mul_left' (hf h) a
+
+@[to_additive const_add]
+lemma antitone_on.const_mul' [covariant_class α α (*) (≤)] (hf : antitone_on f s) (a : α) :
+  antitone_on (λ x, a * f x) s :=
+λ x hx y hy h, mul_le_mul_left' (hf hx hy h) a
+
+@[to_additive add_const]
 lemma monotone.mul_const' [covariant_class α α (swap (*)) (≤)]
   (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
 λ x y h, mul_le_mul_right' (hf h) a
 
+@[to_additive add_const]
+lemma monotone_on.mul_const' [covariant_class α α (swap (*)) (≤)]
+  (hf : monotone_on f s) (a : α) : monotone_on (λ x, f x * a) s :=
+λ x hx y hy h, mul_le_mul_right' (hf hx hy h) a
+
+@[to_additive add_const]
+lemma antitone.mul_const' [covariant_class α α (swap (*)) (≤)]
+  (hf : antitone f) (a : α) : antitone (λ x, f x * a) :=
+λ x y h, mul_le_mul_right' (hf h) a
+
+@[to_additive add_const]
+lemma antitone_on.mul_const' [covariant_class α α (swap (*)) (≤)]
+  (hf : antitone_on f s) (a : α) : antitone_on (λ x, f x * a) s :=
+λ x hx y hy h, mul_le_mul_right' (hf hx hy h) a
+
 /--  The product of two monotone functions is monotone. -/
-@[to_additive monotone.add "The sum of two monotone functions is monotone."]
+@[to_additive add "The sum of two monotone functions is monotone."]
 lemma monotone.mul' [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
 λ x y h, mul_le_mul' (hf h) (hg h)
 
+/--  The product of two monotone functions is monotone. -/
+@[to_additive add "The sum of two monotone functions is monotone."]
+lemma monotone_on.mul' [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x * g x) s :=
+λ x hx y hy h, mul_le_mul' (hf hx hy h) (hg hx hy h)
+
+/--  The product of two antitone functions is antitone. -/
+@[to_additive add "The sum of two antitone functions is antitone."]
+lemma antitone.mul' [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+  (hf : antitone f) (hg : antitone g) : antitone (λ x, f x * g x) :=
+λ x y h, mul_le_mul' (hf h) (hg h)
+
+/--  The product of two antitone functions is antitone. -/
+@[to_additive add "The sum of two antitone functions is antitone."]
+lemma antitone_on.mul' [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x * g x) s :=
+λ x hx y hy h, mul_le_mul' (hf hx hy h) (hg hx hy h)
+
 section left
 variables [covariant_class α α (*) (<)]
 
-@[to_additive strict_mono.const_add]
-lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
+@[to_additive const_add] lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
   strict_mono (λ x, c * f x) :=
 λ a b ab, mul_lt_mul_left' (hf ab) c
+
+@[to_additive const_add] lemma strict_mono_on.const_mul' (hf : strict_mono_on f s) (c : α) :
+  strict_mono_on (λ x, c * f x) s :=
+λ a ha b hb ab, mul_lt_mul_left' (hf ha hb ab) c
+
+@[to_additive const_add] lemma strict_anti.const_mul' (hf : strict_anti f) (c : α) :
+  strict_anti (λ x, c * f x) :=
+λ a b ab, mul_lt_mul_left' (hf ab) c
+
+@[to_additive const_add] lemma strict_anti_on.const_mul' (hf : strict_anti_on f s) (c : α) :
+  strict_anti_on (λ x, c * f x) s :=
+λ a ha b hb ab, mul_lt_mul_left' (hf ha hb ab) c
 
 end left
 
 section right
 variables [covariant_class α α (swap (*)) (<)]
 
-@[to_additive strict_mono.add_const]
-lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
+@[to_additive add_const] lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
   strict_mono (λ x, f x * c) :=
 λ a b ab, mul_lt_mul_right' (hf ab) c
+
+@[to_additive add_const] lemma strict_mono_on.mul_const' (hf : strict_mono_on f s) (c : α) :
+  strict_mono_on (λ x, f x * c) s :=
+λ a ha b hb ab, mul_lt_mul_right' (hf ha hb ab) c
+
+@[to_additive add_const] lemma strict_anti.mul_const' (hf : strict_anti f) (c : α) :
+  strict_anti (λ x, f x * c) :=
+λ a b ab, mul_lt_mul_right' (hf ab) c
+
+@[to_additive add_const] lemma strict_anti_on.mul_const' (hf : strict_anti_on f s) (c : α) :
+  strict_anti_on (λ x, f x * c) s :=
+λ a ha b hb ab, mul_lt_mul_right' (hf ha hb ab) c
 
 end right
 
 /--  The product of two strictly monotone functions is strictly monotone. -/
-@[to_additive strict_mono.add
-"The sum of two strictly monotone functions is strictly monotone."]
+@[to_additive add "The sum of two strictly monotone functions is strictly monotone."]
 lemma strict_mono.mul' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
   (hf : strict_mono f) (hg : strict_mono g) :
   strict_mono (λ x, f x * g x) :=
 λ a b ab, mul_lt_mul_of_lt_of_lt (hf ab) (hg ab)
 
+/--  The product of two strictly monotone functions is strictly monotone. -/
+@[to_additive add "The sum of two strictly monotone functions is strictly monotone."]
+lemma strict_mono_on.mul' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
+  (hf : strict_mono_on f s) (hg : strict_mono_on g s) :
+  strict_mono_on (λ x, f x * g x) s :=
+λ a ha b hb ab, mul_lt_mul_of_lt_of_lt (hf ha hb ab) (hg ha hb ab)
+
+/--  The product of two strictly antitone functions is strictly antitone. -/
+@[to_additive add "The sum of two strictly antitone functions is strictly antitone."]
+lemma strict_anti.mul' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
+  (hf : strict_anti f) (hg : strict_anti g) :
+  strict_anti (λ x, f x * g x) :=
+λ a b ab, mul_lt_mul_of_lt_of_lt (hf ab) (hg ab)
+
+/--  The product of two strictly antitone functions is strictly antitone. -/
+@[to_additive add "The sum of two strictly antitone functions is strictly antitone."]
+lemma strict_anti_on.mul' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
+  (hf : strict_anti_on f s) (hg : strict_anti_on g s) :
+  strict_anti_on (λ x, f x * g x) s :=
+λ a ha b hb ab, mul_lt_mul_of_lt_of_lt (hf ha hb ab) (hg ha hb ab)
+
 /--  The product of a monotone function and a strictly monotone function is strictly monotone. -/
-@[to_additive monotone.add_strict_mono
+@[to_additive add_strict_mono
 "The sum of a monotone function and a strictly monotone function is strictly monotone."]
 lemma monotone.mul_strict_mono' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
   {f g : β → α} (hf : monotone f) (hg : strict_mono g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_le_of_lt (hf h.le) (hg h)
 
+/--  The product of a monotone function and a strictly monotone function is strictly monotone. -/
+@[to_additive add_strict_mono
+"The sum of a monotone function and a strictly monotone function is strictly monotone."]
+lemma monotone_on.mul_strict_mono' [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (≤)] {f g : β → α}
+  (hf : monotone_on f s) (hg : strict_mono_on g s) :
+  strict_mono_on (λ x, f x * g x) s :=
+λ x hx y hy h, mul_lt_mul_of_le_of_lt (hf hx hy h.le) (hg hx hy  h)
+
+/--  The product of a antitone function and a strictly antitone function is strictly antitone. -/
+@[to_additive add_strict_anti
+"The sum of a antitone function and a strictly antitone function is strictly antitone."]
+lemma antitone.mul_strict_anti' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
+  {f g : β → α} (hf : antitone f) (hg : strict_anti g) :
+  strict_anti (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_le_of_lt (hf h.le) (hg h)
+
+/--  The product of a antitone function and a strictly antitone function is strictly antitone. -/
+@[to_additive add_strict_anti
+"The sum of a antitone function and a strictly antitone function is strictly antitone."]
+lemma antitone_on.mul_strict_anti' [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (≤)] {f g : β → α}
+  (hf : antitone_on f s) (hg : strict_anti_on g s) :
+  strict_anti_on (λ x, f x * g x) s :=
+λ x hx y hy h, mul_lt_mul_of_le_of_lt (hf hx hy h.le) (hg hx hy  h)
+
 variables [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (<)]
 
 /--  The product of a strictly monotone function and a monotone function is strictly monotone. -/
-@[to_additive strict_mono.add_monotone
+@[to_additive add_monotone
 "The sum of a strictly monotone function and a monotone function is strictly monotone."]
 lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
+
+/--  The product of a strictly monotone function and a monotone function is strictly monotone. -/
+@[to_additive add_monotone
+"The sum of a strictly monotone function and a monotone function is strictly monotone."]
+lemma strict_mono_on.mul_monotone' (hf : strict_mono_on f s) (hg : monotone_on g s) :
+  strict_mono_on (λ x, f x * g x) s :=
+λ x hx y hy h, mul_lt_mul_of_lt_of_le (hf hx hy h) (hg hx hy h.le)
+
+/--  The product of a strictly antitone function and a antitone function is strictly antitone. -/
+@[to_additive add_antitone
+"The sum of a strictly antitone function and a antitone function is strictly antitone."]
+lemma strict_anti.mul_antitone' (hf : strict_anti f) (hg : antitone g) :
+  strict_anti (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
+
+/--  The product of a strictly antitone function and a antitone function is strictly antitone. -/
+@[to_additive add_antitone
+"The sum of a strictly antitone function and a antitone function is strictly antitone."]
+lemma strict_anti_on.mul_antitone' (hf : strict_anti_on f s) (hg : antitone_on g s) :
+  strict_anti_on (λ x, f x * g x) s :=
+λ x hx y hy h, mul_lt_mul_of_lt_of_le (hf hx hy h) (hg hx hy h.le)
 
 end mono
 
@@ -753,6 +1067,9 @@ def mul_le_cancellable [has_mul α] [has_le α] (a : α) : Prop :=
 lemma contravariant.mul_le_cancellable [has_mul α] [has_le α] [contravariant_class α α (*) (≤)]
   {a : α} : mul_le_cancellable a :=
 λ b c, le_of_mul_le_mul_left'
+
+@[to_additive] lemma mul_le_cancellable_one [monoid α] [has_le α] : mul_le_cancellable (1 : α) :=
+λ a b, by simpa only [one_mul] using id
 
 namespace mul_le_cancellable
 

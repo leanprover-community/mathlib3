@@ -7,12 +7,12 @@ import topology.urysohns_lemma
 import topology.continuous_function.bounded
 
 /-!
-# Metrizability of a normal topological space with second countable topology
+# Metrizability of a T₃ topological space with second countable topology
 
 In this file we define metrizable topological spaces, i.e., topological spaces for which there
 exists a metric space structure that generates the same topology.
 
-We also show that a normal topological space with second countable topology `X` is metrizable.
+We also show that a T₃ topological space with second countable topology `X` is metrizable.
 
 First we prove that `X` can be embedded into `l^∞`, then use this embedding to pull back the metric
 space structure.
@@ -24,7 +24,7 @@ open_locale bounded_continuous_function filter topological_space
 namespace topological_space
 
 variables {ι X Y : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
-  [fintype ι] [Π i, topological_space (π i)]
+  [finite ι] [Π i, topological_space (π i)]
 
 /-- A topological space is *pseudo metrizable* if there exists a pseudo metric space structure
 compatible with the topology. To endow such a space with a compatible distance, use
@@ -68,7 +68,8 @@ inducing_coe.pseudo_metrizable_space
 
 instance pseudo_metrizable_space_pi [Π i, pseudo_metrizable_space (π i)] :
   pseudo_metrizable_space (Π i, π i) :=
-by { letI := λ i, pseudo_metrizable_space_pseudo_metric (π i), apply_instance }
+by { casesI nonempty_fintype ι, letI := λ i, pseudo_metrizable_space_pseudo_metric (π i),
+  apply_instance }
 
 /-- A topological space is metrizable if there exists a metric space structure compatible with the
 topology. To endow such a space with a compatible distance, use
@@ -117,14 +118,15 @@ instance metrizable_space.subtype [metrizable_space X] (s : set X) : metrizable_
 embedding_subtype_coe.metrizable_space
 
 instance metrizable_space_pi [Π i, metrizable_space (π i)] : metrizable_space (Π i, π i) :=
-by { letI := λ i, metrizable_space_metric (π i), apply_instance }
+by { casesI nonempty_fintype ι, letI := λ i, metrizable_space_metric (π i), apply_instance }
 
-variables (X) [normal_space X] [second_countable_topology X]
+variables (X) [t3_space X] [second_countable_topology X]
 
-/-- A normal topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
+/-- A T₃ topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
 -/
 lemma exists_embedding_l_infty : ∃ f : X → (ℕ →ᵇ ℝ), embedding f :=
 begin
+  haveI : normal_space X := normal_space_of_t3_second_countable X,
   -- Choose a countable basis, and consider the set `s` of pairs of set `(U, V)` such that `U ∈ B`,
   -- `V ∈ B`, and `closure U ⊆ V`.
   rcases exists_countable_basis X with ⟨B, hBc, -, hB⟩,
@@ -193,7 +195,7 @@ begin
     `(U, V) ∈ T`. For `(U, V) ∉ T`, the same inequality is true because both `F y (U, V)` and
     `F x (U, V)` belong to the interval `[0, ε (U, V)]`. -/
     refine (nhds_basis_closed_ball.comap _).ge_iff.2 (λ δ δ0, _),
-    have h_fin : finite {UV : s | δ ≤ ε UV}, by simpa only [← not_lt] using hε (gt_mem_nhds δ0),
+    have h_fin : {UV : s | δ ≤ ε UV}.finite, by simpa only [← not_lt] using hε (gt_mem_nhds δ0),
     have : ∀ᶠ y in 𝓝 x, ∀ UV, δ ≤ ε UV → dist (F y UV) (F x UV) ≤ δ,
     { refine (eventually_all_finite h_fin).2 (λ UV hUV, _),
       exact (f UV).continuous.tendsto x (closed_ball_mem_nhds _ δ0) },
@@ -202,11 +204,12 @@ begin
     exacts [hy _ hle, (real.dist_le_of_mem_Icc (hf0ε _ _) (hf0ε _ _)).trans (by rwa sub_zero)] }
 end
 
-/-- A normal topological space with second countable topology `X` is metrizable: there exists a
-metric space structure that generates the same topology. -/
-lemma metrizable_space_of_normal_second_countable : metrizable_space X :=
+/-- *Urysohn's metrization theorem* (Tychonoff's version): a T₃ topological space with second
+countable topology `X` is metrizable, i.e., there exists a metric space structure that generates the
+same topology. -/
+lemma metrizable_space_of_t3_second_countable : metrizable_space X :=
 let ⟨f, hf⟩ := exists_embedding_l_infty X in hf.metrizable_space
 
-instance : metrizable_space ennreal := metrizable_space_of_normal_second_countable ennreal
+instance : metrizable_space ennreal := metrizable_space_of_t3_second_countable ennreal
 
 end topological_space

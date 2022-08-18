@@ -52,8 +52,8 @@ variables [ordered_semiring 𝕜]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (x : E) (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (x : E) (s : set E)
 
 /-- Star-convexity of sets. `s` is star-convex at `x` if every segment from `x` to a point in `s` is
 contained in `s`. -/
@@ -140,12 +140,12 @@ lemma star_convex.prod {y : F} {s : set E} {t : set F} (hs : star_convex 𝕜 x 
 λ y hy a b ha hb hab, ⟨hs hy.1 ha hb hab, ht hy.2 ha hb hab⟩
 
 lemma star_convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
-  [Π i, has_scalar 𝕜 (E i)] {x : Π i, E i} {s : set ι} {t : Π i, set (E i)}
+  [Π i, has_smul 𝕜 (E i)] {x : Π i, E i} {s : set ι} {t : Π i, set (E i)}
   (ht : ∀ i, star_convex 𝕜 (x i) (t i)) :
   star_convex 𝕜 x (s.pi t) :=
 λ y hy a b ha hb hab i hi, ht i (hy i hi) ha hb hab
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {x y z : E} {s : set E}

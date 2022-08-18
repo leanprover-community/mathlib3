@@ -18,6 +18,9 @@ Here we prove some topological facts about the unit interval, and provide a cust
 for discharging `0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` when `x : I`.
 
 -/
+noncomputable theory
+open_locale classical topological_space filter
+open set int set.Icc
 
 /-! ### The unit interval in the real numbers
 
@@ -45,6 +48,43 @@ lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
 -- This specific instance occurs often enough to be worth having as a named lemma
 lemma double_mem {t : ℝ} (ht : t ∈ Icc (0 : ℝ) (1/2)) : 2 * t ∈ Icc (0:ℝ) 1 :=
 (@mul_pos_mem_iff ℝ _ 2 t zero_lt_two).2 ht
+lemma one_mem : (1 : ℝ) ∈ I := ⟨zero_le_one, le_rfl⟩
+
+lemma mul_mem {x y : ℝ} (hx : x ∈ I) (hy : y ∈ I) : x * y ∈ I :=
+⟨mul_nonneg hx.1 hy.1, (mul_le_mul hx.2 hy.2 hy.1 zero_le_one).trans_eq $ one_mul 1⟩
+
+lemma div_mem {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ I :=
+⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
+
+lemma fract_mem (x : ℝ) : fract x ∈ I := ⟨fract_nonneg _, (fract_lt_one _).le⟩
+
+lemma mem_iff_one_sub_mem {t : ℝ} : t ∈ I ↔ 1 - t ∈ I :=
+begin
+  rw [mem_Icc, mem_Icc],
+  split ; intro ; split ; linarith
+end
+
+instance has_zero : has_zero I := ⟨⟨0, zero_mem⟩⟩
+
+instance has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
+
+lemma coe_ne_zero {x : I} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr coe_eq_zero
+
+lemma coe_ne_one {x : I} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
+not_iff_not.mpr coe_eq_one
+
+instance : nonempty I := ⟨0⟩
+
+instance : has_mul I := ⟨λ x y, ⟨x * y, mul_mem x.2 y.2⟩⟩
+
+-- todo: we could set up a `linear_ordered_comm_monoid_with_zero I` instance
+
+lemma mul_le_left {x y : I} : x * y ≤ x :=
+subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_one x
+
+lemma mul_le_right {x y : I} : x * y ≤ y :=
+subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
 
 /-- Unit interval central symmetry. -/
 def symm : I → I := λ t, ⟨1 - t, one_sub_mem t.prop⟩
@@ -71,6 +111,28 @@ subtype.connected_space ⟨set.nonempty_Icc.mpr zero_le_one, is_preconnected_Icc
 
 /-- Verify there is an instance for `compact_space I`. -/
 example : compact_space I := by apply_instance
+
+lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
+lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
+lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
+lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+
+/-- like `unit_interval.nonneg`, but with the inequality in `I`. -/
+lemma nonneg' {t : I} : 0 ≤ t := t.2.1
+/-- like `unit_interval.le_one`, but with the inequality in `I`. -/
+lemma le_one' {t : I} : t ≤ 1 := t.2.2
+
+lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ I ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
+begin
+  split; rintros ⟨h₁, h₂⟩; split,
+  { exact nonneg_of_mul_nonneg_right h₁ ha },
+  { rwa [le_div_iff ha, mul_comm] },
+  { exact mul_nonneg ha.le h₁ },
+  { rwa [le_div_iff ha, mul_comm] at h₂ }
+end
+
+lemma two_mul_sub_one_mem_iff {t : ℝ} : 2 * t - 1 ∈ I ↔ t ∈ set.Icc (1/2 : ℝ) 1 :=
+by split; rintros ⟨h₁, h₂⟩; split; linarith
 
 end unit_interval
 

@@ -69,7 +69,8 @@ lemma is_of_fin_order_iff_pow_eq_one (x : G) :
 by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
 
 /-- Elements of finite order are of finite order in submonoids.-/
-@[to_additive is_of_fin_add_order_iff_coe]
+@[to_additive is_of_fin_add_order_iff_coe "Elements of finite order are of finite order in
+submonoids."]
 lemma is_of_fin_order_iff_coe (H : submonoid G) (x : H) :
   is_of_fin_order x ↔ is_of_fin_order (x : G) :=
 by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
@@ -192,11 +193,10 @@ begin
   exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
 end
 
-/--
-If `x^n = 1`, but `x^(n/p) ≠ 1` for all prime factors `p` of `r`,
-then `x` has order `n` in `G`.
+/-- If `x^n = 1`, but `x^(n/p) ≠ 1` for all prime factors `p` of `n`, then `x` has order `n` in `G`.
 -/
-@[to_additive add_order_of_eq_of_nsmul_and_div_prime_nsmul]
+@[to_additive add_order_of_eq_of_nsmul_and_div_prime_nsmul "If `n * x = 0`, but `n/p * x ≠ 0` for
+all prime factors `p` of `n`, then `x` has order `n` in `G`."]
 theorem order_of_eq_of_pow_and_pow_div_prime (hn : 0 < n) (hx : x^n = 1)
   (hd : ∀ p : ℕ, p.prime → p ∣ n → x^(n/p) ≠ 1) :
   order_of x = n :=
@@ -305,6 +305,15 @@ begin
   rwa is_periodic_pt_mul_iff_pow_eq_one,
 end
 
+@[to_additive exists_add_order_of_eq_prime_pow_iff]
+lemma exists_order_of_eq_prime_pow_iff :
+  (∃ k : ℕ, order_of x = p ^ k) ↔ (∃ m : ℕ, x ^ (p : ℕ) ^ m = 1) :=
+⟨λ ⟨k, hk⟩, ⟨k, by rw [←hk, pow_order_of_eq_one]⟩, λ ⟨_, hm⟩,
+begin
+  obtain ⟨k, _, hk⟩ := (nat.dvd_prime_pow hp.elim).mp (order_of_dvd_of_pow_eq_one hm),
+  exact ⟨k, hk⟩,
+end⟩
+
 omit hp
 -- An example on how to determine the order of an element of a finite group.
 example : order_of (-1 : ℤˣ) = 2 :=
@@ -320,7 +329,7 @@ variables [left_cancel_monoid G] (x y)
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
   (hn : n < order_of x) (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-iterate_injective_of_lt_minimal_period hn hm (by simpa only [mul_left_iterate, mul_one])
+eq_of_lt_minimal_period_of_iterate_eq hn hm (by simpa only [mul_left_iterate, mul_one])
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of']
 lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) :
@@ -419,15 +428,12 @@ lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
 
 end comm_monoid
 
-section fintype
-variables [fintype G] [fintype A]
-
 section finite_monoid
-variables [monoid G] [add_monoid A]
+variables [monoid G]
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq G] (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
   = (finset.univ.filter (λ x : G, x ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
@@ -448,19 +454,19 @@ variables [left_cancel_monoid G] [add_left_cancel_monoid A]
 
 -- TODO: Use this to show that a finite left cancellative monoid is a group.
 @[to_additive]
-lemma exists_pow_eq_one (x : G) : is_of_fin_order x :=
+lemma exists_pow_eq_one [finite G] (x : G) : is_of_fin_order x :=
 begin
   refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
   obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), x ^ i = x ^ j ∧ i ≠ j :=
     by simpa only [not_forall, exists_prop, injective]
-      using (not_injective_infinite_fintype (λi:ℕ, x^i)),
+      using (not_injective_infinite_finite (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
   refine ⟨i - j, tsub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
   rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
 end
 
 @[to_additive add_order_of_le_card_univ]
-lemma order_of_le_card_univ : order_of x ≤ fintype.card G :=
+lemma order_of_le_card_univ [fintype G] : order_of x ≤ fintype.card G :=
 finset.le_card_of_inj_on_range ((^) x)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, pow_injective_of_lt_order_of x hi hj)
@@ -470,7 +476,7 @@ finset.le_card_of_inj_on_range ((^) x)
 @[to_additive add_order_of_pos
 "This is the same as `add_order_of_pos' but with one fewer explicit assumption since this is
   automatic in case of a finite cancellative additive monoid."]
-lemma order_of_pos (x : G) : 0 < order_of x := order_of_pos' (exists_pow_eq_one x)
+lemma order_of_pos [finite G] (x : G) : 0 < order_of x := order_of_pos' (exists_pow_eq_one x)
 
 open nat
 
@@ -479,40 +485,34 @@ automatic in the case of a finite cancellative monoid.-/
 @[to_additive add_order_of_nsmul
 "This is the same as `add_order_of_nsmul'` and `add_order_of_nsmul` but with one assumption less
 which is automatic in the case of a finite cancellative additive monoid."]
-lemma order_of_pow (x : G) :
+lemma order_of_pow [finite G] (x : G) :
   order_of (x ^ n) = order_of x / gcd (order_of x) n := order_of_pow'' _ _ (exists_pow_eq_one _)
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of]
-lemma mem_powers_iff_mem_range_order_of [decidable_eq G] :
+lemma mem_powers_iff_mem_range_order_of [finite G] [decidable_eq G] :
   y ∈ submonoid.powers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos x)
   (assume i, pow_eq_mod_order_of.symm)
 
 @[to_additive decidable_multiples]
-noncomputable instance decidable_powers [decidable_eq G] :
-  decidable_pred (∈ submonoid.powers x) :=
-begin
-  assume y,
-  apply decidable_of_iff'
-    (y ∈ (finset.range (order_of x)).image ((^) x)),
-  exact mem_powers_iff_mem_range_order_of
-end
+noncomputable instance decidable_powers : decidable_pred (∈ submonoid.powers x) :=
+classical.dec_pred _
 
 /--The equivalence between `fin (order_of x)` and `submonoid.powers x`, sending `i` to `x ^ i`."-/
 @[to_additive fin_equiv_multiples "The equivalence between `fin (add_order_of a)` and
 `add_submonoid.multiples a`, sending `i` to `i • a`."]
-noncomputable def fin_equiv_powers (x : G) :
+noncomputable def fin_equiv_powers [finite G] (x : G) :
   fin (order_of x) ≃ (submonoid.powers x : set G) :=
 equiv.of_bijective (λ n, ⟨x ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij,
   subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of x hi hj (subtype.mk_eq_mk.1 ij)),
   λ ⟨_, i, rfl⟩, ⟨⟨i % order_of x, mod_lt i (order_of_pos x)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
 
 @[simp, to_additive fin_equiv_multiples_apply]
-lemma fin_equiv_powers_apply {x : G} {n : fin (order_of x)} :
+lemma fin_equiv_powers_apply [finite G] {x : G} {n : fin (order_of x)} :
   fin_equiv_powers x n = ⟨x ^ ↑n, n, rfl⟩ := rfl
 
 @[simp, to_additive fin_equiv_multiples_symm_apply]
-lemma fin_equiv_powers_symm_apply (x : G) (n : ℕ)
+lemma fin_equiv_powers_symm_apply [finite G] (x : G) (n : ℕ)
   {hn : ∃ (m : ℕ), x ^ m = x ^ n} :
   ((fin_equiv_powers x).symm ⟨x ^ n, hn⟩) = ⟨n % order_of x, nat.mod_lt _ (order_of_pos x)⟩ :=
 by rw [equiv.symm_apply_eq, fin_equiv_powers_apply, subtype.mk_eq_mk,
@@ -523,12 +523,12 @@ by rw [equiv.symm_apply_eq, fin_equiv_powers_apply, subtype.mk_eq_mk,
 @[to_additive multiples_equiv_multiples
 "The equivalence between `submonoid.multiples` of two elements `a, b` of the same additive order,
   mapping `i • a` to `i • b`."]
-noncomputable def powers_equiv_powers (h : order_of x = order_of y) :
+noncomputable def powers_equiv_powers [finite G] (h : order_of x = order_of y) :
   (submonoid.powers x : set G) ≃ (submonoid.powers y : set G) :=
 (fin_equiv_powers x).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_powers y))
 
 @[simp, to_additive multiples_equiv_multiples_apply]
-lemma powers_equiv_powers_apply (h : order_of x = order_of y)
+lemma powers_equiv_powers_apply [finite G] (h : order_of x = order_of y)
   (n : ℕ) : powers_equiv_powers h ⟨x ^ n, n, rfl⟩ = ⟨y ^ n, n, rfl⟩ :=
 begin
   rw [powers_equiv_powers, equiv.trans_apply, equiv.trans_apply,
@@ -537,8 +537,7 @@ begin
 end
 
 @[to_additive add_order_of_eq_card_multiples]
-lemma order_eq_card_powers [decidable_eq G] :
-  order_of x = fintype.card (submonoid.powers x : set G) :=
+lemma order_eq_card_powers [fintype G] : order_of x = fintype.card (submonoid.powers x : set G) :=
 (fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_powers x⟩)
 
 end finite_cancel_monoid
@@ -547,7 +546,7 @@ section finite_group
 variables [group G] [add_group A]
 
 @[to_additive]
-lemma exists_zpow_eq_one (x : G) : ∃ (i : ℤ) (H : i ≠ 0), x ^ (i : ℤ) = 1 :=
+lemma exists_zpow_eq_one [finite G] (x : G) : ∃ (i : ℤ) (H : i ≠ 0), x ^ (i : ℤ) = 1 :=
 begin
   rcases exists_pow_eq_one x with ⟨w, hw1, hw2⟩,
   refine ⟨w, int.coe_nat_ne_zero.mpr (ne_of_gt hw1), _⟩,
@@ -558,7 +557,7 @@ end
 open subgroup
 
 @[to_additive mem_multiples_iff_mem_zmultiples]
-lemma mem_powers_iff_mem_zpowers : y ∈ submonoid.powers x ↔ y ∈ zpowers x :=
+lemma mem_powers_iff_mem_zpowers [finite G] : y ∈ submonoid.powers x ↔ y ∈ zpowers x :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of x).nat_abs,
   by rwa [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
@@ -566,37 +565,32 @@ lemma mem_powers_iff_mem_zpowers : y ∈ submonoid.powers x ↔ y ∈ zpowers x 
     ← zpow_eq_mod_order_of]⟩⟩
 
 @[to_additive multiples_eq_zmultiples]
-lemma powers_eq_zpowers (x : G) : (submonoid.powers x : set G) = zpowers x :=
+lemma powers_eq_zpowers [finite G] (x : G) : (submonoid.powers x : set G) = zpowers x :=
 set.ext $ λ x, mem_powers_iff_mem_zpowers
 
 @[to_additive mem_zmultiples_iff_mem_range_add_order_of]
-lemma mem_zpowers_iff_mem_range_order_of [decidable_eq G] :
+lemma mem_zpowers_iff_mem_range_order_of [finite G] [decidable_eq G] :
   y ∈ subgroup.zpowers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 by rw [← mem_powers_iff_mem_zpowers, mem_powers_iff_mem_range_order_of]
 
 @[to_additive decidable_zmultiples]
-noncomputable instance decidable_zpowers [decidable_eq G] :
-  decidable_pred (∈ subgroup.zpowers x) :=
-begin
-  simp_rw ←set_like.mem_coe,
-  rw ← powers_eq_zpowers,
-  exact decidable_powers,
-end
+noncomputable instance decidable_zpowers : decidable_pred (∈ subgroup.zpowers x) :=
+classical.dec_pred _
 
 /-- The equivalence between `fin (order_of x)` and `subgroup.zpowers x`, sending `i` to `x ^ i`. -/
 @[to_additive fin_equiv_zmultiples
 "The equivalence between `fin (add_order_of a)` and `subgroup.zmultiples a`, sending `i`
 to `i • a`."]
-noncomputable def fin_equiv_zpowers (x : G) :
+noncomputable def fin_equiv_zpowers [finite G] (x : G) :
   fin (order_of x) ≃ (subgroup.zpowers x : set G) :=
 (fin_equiv_powers x).trans (equiv.set.of_eq (powers_eq_zpowers x))
 
 @[simp, to_additive fin_equiv_zmultiples_apply]
-lemma fin_equiv_zpowers_apply {n : fin (order_of x)} :
+lemma fin_equiv_zpowers_apply [finite G] {n : fin (order_of x)} :
   fin_equiv_zpowers x n = ⟨x ^ (n : ℕ), n, zpow_coe_nat x n⟩ := rfl
 
 @[simp, to_additive fin_equiv_zmultiples_symm_apply]
-lemma fin_equiv_zpowers_symm_apply (x : G) (n : ℕ)
+lemma fin_equiv_zpowers_symm_apply [finite G] (x : G) (n : ℕ)
   {hn : ∃ (m : ℤ), x ^ m = x ^ n} :
   ((fin_equiv_zpowers x).symm ⟨x ^ n, hn⟩) = ⟨n % order_of x, nat.mod_lt _ (order_of_pos x)⟩ :=
 by { rw [fin_equiv_zpowers, equiv.symm_trans_apply, equiv.set.of_eq_symm_apply],
@@ -607,12 +601,12 @@ by { rw [fin_equiv_zpowers, equiv.symm_trans_apply, equiv.set.of_eq_symm_apply],
 @[to_additive zmultiples_equiv_zmultiples
 "The equivalence between `subgroup.zmultiples` of two elements `a, b` of the same additive order,
   mapping `i • a` to `i • b`."]
-noncomputable def zpowers_equiv_zpowers (h : order_of x = order_of y) :
+noncomputable def zpowers_equiv_zpowers [finite G] (h : order_of x = order_of y) :
   (subgroup.zpowers x : set G) ≃ (subgroup.zpowers y : set G) :=
 (fin_equiv_zpowers x).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_zpowers y))
 
 @[simp, to_additive zmultiples_equiv_zmultiples_apply]
-lemma zpowers_equiv_zpowers_apply (h : order_of x = order_of y)
+lemma zpowers_equiv_zpowers_apply [finite G] (h : order_of x = order_of y)
   (n : ℕ) : zpowers_equiv_zpowers h ⟨x ^ n, n, zpow_coe_nat x n⟩ = ⟨y ^ n, n, zpow_coe_nat y n⟩ :=
 begin
   rw [zpowers_equiv_zpowers, equiv.trans_apply, equiv.trans_apply,
@@ -620,9 +614,10 @@ begin
   simp [h]
 end
 
+variables [fintype G]
+
 @[to_additive add_order_eq_card_zmultiples]
-lemma order_eq_card_zpowers [decidable_eq G] :
-  order_of x = fintype.card (subgroup.zpowers x : set G) :=
+lemma order_eq_card_zpowers : order_of x = fintype.card (zpowers x) :=
 (fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_zpowers x⟩)
 
 open quotient_group
@@ -652,13 +647,15 @@ begin
           (by rw [eq₁, eq₂, mul_comm])
 end
 
-@[simp, to_additive card_nsmul_eq_zero] lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
+@[simp, to_additive card_nsmul_eq_zero]
+lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
-  [fintype (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
-by rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one]
+  [finite (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
+by { casesI nonempty_fintype (G ⧸ H),
+  rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one] }
 
 @[to_additive] lemma pow_eq_mod_card (n : ℕ) :
   x ^ n = x ^ (n % fintype.card G) :=
@@ -703,21 +700,19 @@ end
 variable (a)
 
 /-- TODO: Generalise to `submonoid.powers`.-/
-@[to_additive image_range_add_order_of]
+@[to_additive image_range_add_order_of, nolint to_additive_doc]
 lemma image_range_order_of [decidable_eq G] :
   finset.image (λ i, x ^ i) (finset.range (order_of x)) = (zpowers x : set G).to_finset :=
 by { ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_zpowers_iff_mem_range_order_of] }
 
-/-- TODO: Generalise to `finite_cancel_monoid`. -/
-@[to_additive gcd_nsmul_card_eq_zero_iff]
+/-- TODO: Generalise to `finite` + `cancel_monoid`. -/
+@[to_additive gcd_nsmul_card_eq_zero_iff "TODO: Generalise to `finite` + `cancel_add_monoid`"]
 lemma pow_gcd_card_eq_one_iff : x ^ n = 1 ↔ x ^ (gcd n (fintype.card G)) = 1 :=
 ⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card G) in
     by rw [hm, pow_mul, h, one_pow]⟩
 
 end finite_group
-
-end fintype
 
 section pow_is_subgroup
 
@@ -756,10 +751,8 @@ have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
   exact set.pow_mem_pow ha (fintype.card G) },
 subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
   classical!,
-  refine (set.eq_of_subset_of_card_le
-    (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
-  change _ = fintype.card (_ * _ : set G),
-  rw [←pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
+  refine (set.eq_of_subset_of_card_le (set.subset_mul_left _ one_mem) (ge_of_eq _)).symm,
+  simp_rw [← pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
       group.card_pow_eq_card_pow_card_univ S (fintype.card G + fintype.card G) le_add_self],
 end
 

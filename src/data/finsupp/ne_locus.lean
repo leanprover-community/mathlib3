@@ -96,11 +96,11 @@ variables [decidable_eq N]
 
 @[simp] lemma add_ne_locus_add_eq_left [add_left_cancel_monoid N] (f g h : α →₀ N) :
   (f + g).ne_locus (f + h) = g.ne_locus h  :=
-zip_with_ne_locus_eq_left _ _ _ _ (λ gn, add_right_injective _)
+zip_with_ne_locus_eq_left _ _ _ _ add_right_injective
 
 @[simp] lemma add_ne_locus_add_eq_right [add_right_cancel_monoid N] (f g h : α →₀ N) :
   (f + h).ne_locus (g + h) = f.ne_locus g  :=
-zip_with_ne_locus_eq_right _ _ _ _ (λ gn, add_left_injective _)
+zip_with_ne_locus_eq_right _ _ _ _ add_left_injective
 
 @[simp] lemma neg_ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus (- g) = f.ne_locus g :=
 map_range_ne_locus_eq _ _ neg_zero neg_injective
@@ -114,11 +114,11 @@ by rw [← add_ne_locus_add_eq_right _ _ (- g), add_right_neg, ne_locus_zero_rig
 
 @[simp] lemma sub_ne_locus_sub_eq_left [add_group N] (f g h : α →₀ N) :
   (f - g).ne_locus (f - h) = g.ne_locus h  :=
-zip_with_ne_locus_eq_left _ _ _ _ (λ gn, sub_right_injective)
+zip_with_ne_locus_eq_left _ _ _ _ (λ fn, sub_right_injective)
 
 @[simp] lemma sub_ne_locus_sub_eq_right [add_group N] (f g h : α →₀ N) :
   (f - h).ne_locus (g - h) = f.ne_locus g  :=
-zip_with_ne_locus_eq_right _ _ _ _ (λ gn, sub_left_injective)
+zip_with_ne_locus_eq_right _ _ _ _ (λ hn, sub_left_injective)
 
 
 end finsupp

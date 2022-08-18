@@ -491,6 +491,36 @@ begin
   { intro i, exact H }
 end
 
+lemma affine_locally_of_comp
+  (H : ∀ {R S T : Type.{u}} [comm_ring R] [comm_ring S] [comm_ring T], by exactI
+    ∀ (f : R →+* S) (g : S →+* T), P (g.comp f) → P g)
+  {X Y Z : Scheme} {f : X ⟶ Y} {g : Y ⟶ Z} (h : affine_locally @P (f ≫ g)) :
+  affine_locally @P f :=
+begin
+  let 𝒰 : ∀ i, ((Z.affine_cover.pullback_cover (f ≫ g)).obj i).open_cover,
+  { intro i,
+    refine Scheme.open_cover.bind _ (λ i, Scheme.affine_cover _),
+    apply Scheme.open_cover.pushforward_iso _
+    (pullback_right_pullback_fst_iso g (Z.affine_cover.map i) f).hom,
+    apply Scheme.pullback.open_cover_of_right,
+    exact (pullback g (Z.affine_cover.map i)).affine_cover },
+  haveI h𝒰 : ∀ i j, is_affine ((𝒰 i).obj j), by { dsimp, apply_instance },
+  let 𝒰' := (Z.affine_cover.pullback_cover g).bind (λ i, Scheme.affine_cover _),
+  haveI h𝒰' : ∀ i, is_affine (𝒰'.obj i), by { dsimp, apply_instance },
+  rw hP.affine_open_cover_iff f 𝒰' (λ i, Scheme.affine_cover _),
+  rw hP.affine_open_cover_iff (f ≫ g) Z.affine_cover 𝒰 at h,
+  rintros ⟨i, j⟩ k,
+  dsimp at i j k,
+  specialize h i ⟨j, k⟩,
+  dsimp only [Scheme.open_cover.bind_map, Scheme.open_cover.pushforward_iso_obj,
+    Scheme.pullback.open_cover_of_right_obj, Scheme.open_cover.pushforward_iso_map,
+    Scheme.pullback.open_cover_of_right_map, Scheme.open_cover.bind_obj,
+    Scheme.open_cover.pullback_cover_obj, Scheme.open_cover.pullback_cover_map] at h ⊢,
+  rw [category.assoc, category.assoc, pullback_right_pullback_fst_iso_hom_snd,
+    pullback.lift_snd_assoc, category.assoc, ← category.assoc, op_comp, functor.map_comp] at h,
+  exact H _ _ h,
+end
+
 lemma affine_locally_stable_under_composition :
   (affine_locally @P).stable_under_composition :=
 begin

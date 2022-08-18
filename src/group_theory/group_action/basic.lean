@@ -71,6 +71,15 @@ set.range_subset_iff.2 $ λ a', mul_smul a' a b ▸ mem_orbit _ _
   ↑(a • b') = a • (b' : β) :=
 rfl
 
+lemma orbit_subgroup_eq_self_of_mem {G : Type*} [group G] {H : subgroup G} {g : G} (h : g ∈ H) :
+  mul_action.orbit H g = H :=
+set.ext (λ x, ⟨λ ⟨y, z⟩, (congr_arg (∈ H) z).mp (H.mul_mem y.2 h),
+  λ y, ⟨⟨x, y⟩ * ⟨g, h⟩⁻¹, inv_mul_cancel_right x g⟩⟩)
+
+@[simp] lemma orbit_subgroup_one_eq_self {G : Type*} [group G] (H : subgroup G) :
+  mul_action.orbit H (1 : G) = H :=
+orbit_subgroup_eq_self_of_mem H.one_mem
+
 variables (α) (β)
 
 /-- The set of elements fixed under the whole action. -/

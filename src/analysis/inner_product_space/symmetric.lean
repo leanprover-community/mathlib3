@@ -63,8 +63,7 @@ lemma is_symmetric.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_symmetric T) (
 by rw [hT x y, inner_conj_sym]
 
 @[simp] lemma is_symmetric.apply_clm {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E))
-  (x y : E) :
-  ⟪T x, y⟫ = ⟪x, T y⟫ :=
+  (x y : E) : ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
 lemma is_symmetric_zero : (0 : E →ₗ[𝕜] E).is_symmetric :=

@@ -1335,7 +1335,7 @@ lemma gaussian_without_ennreal_pos (hs : s≠0) : ∀ (x:ℝ),
  0 < (sqrt (2 * π * s ^ 2))⁻¹ * exp (-(2 * s ^ 2)⁻¹ * (x - m) ^ 2):=
 begin
   intro x,
-  simp [inv_sqrt_2pis2_pos hs] at *,
+  simp [inv_sqrt_2pis2_pos hs],
   exact (-((s ^ 2)⁻¹ * 2⁻¹ * (x - m) ^ 2)).exp_pos,
 end
 
@@ -1508,6 +1508,7 @@ begin
     ext x,
     simp,
   rw h_zeroeqno at hf,
+
 
 
   sorry,

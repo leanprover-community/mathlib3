@@ -725,7 +725,7 @@ def snd : A × B →ₐ[R] B :=
 
 variables {R A B}
 
-/-- The `alg_hom.prod` of two morphisms is a morphism. -/
+/-- The `pi.prod` of two morphisms is a morphism. -/
 @[simps] def prod (f : A →ₐ[R] B) (g : A →ₐ[R] C) : (A →ₐ[R] B × C) :=
 { commutes' := λ r, by simp only [to_ring_hom_eq_coe, ring_hom.to_fun_eq_coe, ring_hom.prod_apply,
     coe_to_ring_hom, commutes, algebra.algebra_map_prod_apply],

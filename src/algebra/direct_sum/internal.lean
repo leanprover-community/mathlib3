@@ -215,7 +215,7 @@ section canonically_ordered_add_monoid
 variables [semiring R] [set_like σ R] [add_submonoid_class σ R] (A : ι → σ)
 variables [canonically_ordered_add_monoid ι] [set_like.graded_monoid A]
 
-lemma coe_of_mul_apply_of_lt
+lemma coe_of_mul_apply_of_not_le
   {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι)
   (h : ¬ i ≤ n) : ((of _ i r * r') n : R) = 0 :=
 begin
@@ -227,7 +227,7 @@ begin
     exact h ((self_le_add_right i x).trans_eq H) },
 end
 
-lemma coe_mul_of_apply_of_lt
+lemma coe_mul_of_apply_of_not_le
   (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι)
   (h : ¬ i ≤ n) : ((r * of _ i r') n : R) = 0 :=
 begin
@@ -254,11 +254,11 @@ coe_of_mul_apply_aux _ _ _ (λ x, by rw [eq_tsub_iff_add_eq_of_le h, add_comm])
 
 lemma coe_mul_of_apply (r : ⨁ i, A i) {i : ι} (r' : A i) (n : ι) [decidable (i ≤ n)] :
   ((r * of _ i r') n : R) = if i ≤ n then r (n - i) * r' else 0 :=
-by { split_ifs, exacts [coe_mul_of_apply_of_le _ _ _ n h, coe_mul_of_apply_of_lt _ _ _ n h] }
+by { split_ifs, exacts [coe_mul_of_apply_of_le _ _ _ n h, coe_mul_of_apply_of_not_le _ _ _ n h] }
 
 lemma coe_of_mul_apply {i : ι} (r : A i) (r' : ⨁ i, A i) (n : ι) [decidable (i ≤ n)] :
   ((of _ i r * r') n : R) = if i ≤ n then r * r' (n - i) else 0 :=
-by { split_ifs, exacts [coe_of_mul_apply_of_le _ _ _ n h, coe_of_mul_apply_of_lt _ _ _ n h] }
+by { split_ifs, exacts [coe_of_mul_apply_of_le _ _ _ n h, coe_of_mul_apply_of_not_le _ _ _ n h] }
 
 end canonically_ordered_add_monoid
 

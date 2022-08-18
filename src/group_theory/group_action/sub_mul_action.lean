@@ -35,6 +35,45 @@ variables {S : Type u'} {T : Type u''} {R : Type u} {M : Type v}
 
 set_option old_structure_cmd true
 
+/-- `smul_mem_class S R M` says `S` is a type of subsets `s ≤ M` that are closed under the
+scalar action of `R` on `M`. -/
+class smul_mem_class (S : Type*) (R M : out_param $ Type*) [has_smul R M] [set_like S M] :=
+(smul_mem : ∀ {s : S} (r : R) {m : M}, m ∈ s → r • m ∈ s)
+
+export smul_mem_class (smul_mem)
+
+/-- `vadd_mem_class S R M` says `S` is a type of subsets `s ≤ M` that are closed under the
+additive action of `R` on `M`. -/
+class vadd_mem_class (S : Type*) (R M : out_param $ Type*) [has_vadd R M] [set_like S M] :=
+(vadd_mem : ∀ {s : S} (r : R) {m : M}, m ∈ s → r +ᵥ m ∈ s)
+
+export vadd_mem_class (vadd_mem)
+
+attribute [to_additive] smul_mem_class
+
+namespace set_like
+
+variables [has_smul R M] [set_like S M] [hS : smul_mem_class S R M] (s : S)
+include hS
+
+/-- A subset closed under the scalar action inherits that action. -/
+@[to_additive "A subset closed under the additive action inherits that action.",
+priority 900] -- lower priority so other instances are found first
+instance has_smul : has_smul R s := ⟨λ r x, ⟨r • x.1, smul_mem r x.2⟩⟩
+
+@[simp, norm_cast, to_additive, priority 900]
+-- lower priority so later simp lemmas are used first; to appease simp_nf
+lemma coe_smul (r : R) (x : s) : (↑(r • x) : M) = r • x := rfl
+
+@[simp, to_additive, priority 900]
+-- lower priority so later simp lemmas are used first; to appease simp_nf
+lemma mk_smul_mk (r : R) (x : M) (hx : x ∈ s) :
+  r • (⟨x, hx⟩ : s) = ⟨r • x, smul_mem r hx⟩ := rfl
+
+@[to_additive] lemma smul_def (r : R) (x : s) : r • x = ⟨r • x, smul_mem r x.2⟩ := rfl
+
+end set_like
+
 /-- A sub_mul_action is a set which is closed under scalar multiplication.  -/
 structure sub_mul_action (R : Type u) (M : Type v) [has_smul R M] : Type v :=
 (carrier : set M)
@@ -46,6 +85,9 @@ variables [has_smul R M]
 
 instance : set_like (sub_mul_action R M) M :=
 ⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+instance : smul_mem_class (sub_mul_action R M) R M :=
+{ smul_mem := smul_mem' }
 
 @[simp] lemma mem_carrier {p : sub_mul_action R M} {x : M} : x ∈ p.carrier ↔ x ∈ (p : set M) :=
 iff.rfl
@@ -99,6 +141,25 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 lemma subtype_eq_val : ((sub_mul_action.subtype p) : p → M) = subtype.val := rfl
 
 end has_smul
+
+namespace smul_mem_class
+
+variables [monoid R] [mul_action R M] {A : Type*} [set_like A M]
+variables [hA : smul_mem_class A R M] (S' : A)
+
+include hA
+/-- A `sub_mul_action` of a `mul_action` is a `mul_action`.  -/
+@[priority 75] -- Prefer subclasses of `mul_action` over subclasses of `smul_mem_class`.
+instance to_mul_action : mul_action R S' :=
+subtype.coe_injective.mul_action coe (set_like.coe_smul S')
+
+/-- The natural `mul_action_hom` over `R` from a `sub_mul_action` of `M` to `M`. -/
+--@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
+protected def subtype : S' →[R] M := ⟨coe,  λ _ _, rfl⟩
+
+@[simp] protected theorem coe_subtype : (smul_mem_class.subtype S' : S' → M) = coe := rfl
+
+end smul_mem_class
 
 section mul_action_monoid
 

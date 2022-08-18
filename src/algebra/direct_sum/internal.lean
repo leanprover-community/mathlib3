@@ -152,9 +152,9 @@ direct_sum.to_semiring (λ i, add_submonoid_class.subtype (A i)) rfl (λ _ _ _ _
 direct_sum.to_semiring_of _ _ _ _ _
 
 lemma direct_sum.coe_mul_apply [add_monoid ι] [set_like.graded_monoid A]
-  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
-  ((r * r') i : R) =
-    ∑ ij in (r.support ×ˢ r'.support).filter (λ ij : ι × ι, ij.1 + ij.2 = i), r ij.1 * r' ij.2 :=
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (n : ι) :
+  ((r * r') n : R) =
+    ∑ ij in (r.support ×ˢ r'.support).filter (λ ij : ι × ι, ij.1 + ij.2 = n), r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
     add_submonoid_class.coe_finset_sum],
@@ -162,8 +162,8 @@ begin
 end
 
 lemma direct_sum.coe_mul_apply_eq_dfinsupp_sum [add_monoid ι] [set_like.graded_monoid A]
-  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
-  ((r * r') i : R) = r.sum (λ j rj, r'.sum (λ k rk, if j + k = i then rj * rk else 0)) :=
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (n : ι) :
+  ((r * r') n : R) = r.sum (λ i ri, r'.sum (λ j rj, if i + j = n then ri * rj else 0)) :=
 begin
   simp only [direct_sum.mul_eq_dfinsupp_sum, dfinsupp.sum_apply],
   iterate 2 { rw [dfinsupp.sum, add_submonoid_class.coe_finset_sum], congr, ext },

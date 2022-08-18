@@ -476,10 +476,8 @@ lemma carrier.as_ideal.ne_top (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
 λ rid, q.2.ne_top $ (ideal.eq_top_iff_one _).mpr
 begin
   convert (ideal.eq_top_iff_one _).mp rid 0,
-  erw [subtype.ext_iff, degree_zero_part.coe_one, subtype.coe_mk, (_ : proj 𝒜 0 1 = 1),
-    one_pow, (by tidy : (⟨f^0, 0, rfl⟩ : submonoid.powers f) = 1), mk_self 1],
-  rw [proj_apply, decompose_of_mem_same],
-  exact one_mem,
+  simpa only [subtype.ext_iff, degree_zero_part.coe_one, subtype.coe_mk,
+    proj_apply, decompose_of_mem_same 𝒜 one_mem, one_pow, pow_zero, ← mk_self 1],
 end
 
 lemma carrier.as_ideal.homogeneous  (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :

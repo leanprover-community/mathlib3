@@ -116,7 +116,11 @@ lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 
 end N_has_zero
 
-variables [linear_order α] [linear_order N] [add_left_cancel_monoid N] [covariant_class N N (+) (≤)]
+section covariants
+variables [linear_order α] [linear_order N]
+
+section left_le
+variables [add_left_cancel_monoid N] [covariant_class N N (+) (≤)]
 
 instance : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (+) (≤) :=
 { elim := λ f g h, begin
@@ -127,5 +131,46 @@ instance : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (+) (≤) :=
         refine (add_le_add_left ha.le _).lt_of_ne _,
         exact not_imp_not.mpr add_left_cancel ha.ne }
     end }
+end left_le
+
+section left_lt
+--try to weaken the assumptions to `has_add N + has_zero N`?
+variables [add_monoid N] [covariant_class N N (+) (<)]
+
+instance : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (+) (<) :=
+{ elim := λ f g h, begin
+      rintros ⟨a, lta, ha⟩,
+      exact ⟨a, λ j ja, congr_arg ((+) _) (lta j ja), add_lt_add_left ha _⟩,
+    end }
+
+end left_lt
+
+section right_le
+variables [add_right_cancel_monoid N] [covariant_class N N (function.swap (+)) (≤)]
+
+instance _root_.finsupp.has_le.le.covariant_class_swap :
+  covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (function.swap (+)) (≤) :=
+{ elim := λ f g h, begin
+      rintros (gh | ⟨a, lta, ha⟩),
+      { exact or.inl (congr (congr_arg _ gh) rfl : of_lex _ + of_lex _ = of_lex _ + of_lex _) },
+      { refine le_of_lt ⟨a, λ j ja, (_ : _ + _ = _ + _), add_lt_add_right ha _⟩,
+        exact congr (congr_arg _ (lta _ ja)) rfl }
+    end }
+end right_le
+
+section right_lt
+--try to weaken the assumptions to `has_add N + has_zero N`?
+variables [add_monoid N] [covariant_class N N (function.swap (+)) (<)]
+
+instance _root_.finsupp.has_lt.lt.covariant_class_swap :
+  covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (function.swap (+)) (<) :=
+{ elim := λ f g h, begin
+      rintros ⟨a, lta, ha⟩,
+      exact ⟨a, λ j ja, congr_arg (+ (of_lex f j)) (lta j ja), add_lt_add_right ha _⟩,
+    end }
+
+end right_lt
+
+end covariants
 
 end finsupp

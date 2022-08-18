@@ -99,7 +99,7 @@ by rw [graded_ring.proj_apply, decompose_symm_of, equiv.apply_symm_apply]
 
 lemma graded_ring.mem_support_iff [Π i (x : 𝒜 i), decidable (x ≠ 0)] (r : A) (i : ι) :
   i ∈ (decompose 𝒜 r).support ↔ graded_ring.proj 𝒜 i r ≠ 0 :=
-dfinsupp.mem_support_iff.trans add_submonoid_class.coe_eq_zero.not.symm
+dfinsupp.mem_support_iff.trans zero_mem_class.coe_eq_zero.not.symm
 
 end graded_ring
 
@@ -269,10 +269,10 @@ def graded_ring.proj_zero_ring_hom : A →+* A :=
           cases (show i ≠ 0 ∨ j ≠ 0, by rwa [add_eq_zero_iff, not_and_distrib] at h) with h' h',
           { simp only [decompose_of_mem_ne 𝒜 hc h', zero_mul] },
           { simp only [decompose_of_mem_ne 𝒜 hc' h', mul_zero] } } },
-      { simp only [decompose_zero, zero_apply, add_submonoid_class.coe_zero, mul_zero], },
+      { simp only [decompose_zero, zero_apply, zero_mem_class.coe_zero, mul_zero], },
       { intros _ _ hd he,
         simp only [mul_add, decompose_add, add_apply, add_mem_class.coe_add, hd, he] } },
-    { simp only [decompose_zero, zero_apply, add_submonoid_class.coe_zero, zero_mul] },
+    { simp only [decompose_zero, zero_apply, zero_mem_class.coe_zero, zero_mul] },
     { rintros _ _ ha hb,
       simp only [add_mul, decompose_add, add_apply, add_mem_class.coe_add, ha, hb] },
   end }

@@ -212,6 +212,10 @@ linear_map.to_matrixₛₗ₂'.symm_symm
   matrix.to_linear_mapₛₗ₂' σ₁ σ₂ (linear_map.to_matrixₛₗ₂' B) = B :=
 (matrix.to_linear_mapₛₗ₂' σ₁ σ₂).apply_symm_apply B
 
+@[simp] lemma matrix.to_linear_map₂'_to_matrix' (B : (n → R) →ₗ[R] (m → R) →ₗ[R] R) :
+  matrix.to_linear_map₂' (linear_map.to_matrix₂' B) = B :=
+matrix.to_linear_map₂'.apply_symm_apply B
+
 @[simp] lemma linear_map.to_matrix'_to_linear_mapₛₗ₂' (M : matrix n m R) :
   linear_map.to_matrixₛₗ₂' (matrix.to_linear_mapₛₗ₂' σ₁ σ₂ M) = M :=
 linear_map.to_matrixₛₗ₂'.apply_symm_apply M
@@ -575,7 +579,6 @@ lemma _root_.matrix.separating_left_to_linear_map₂'_iff_separating_left_to_lin
 (separating_left_congr_iff b.equiv_fun.symm b.equiv_fun.symm).symm
 
 variables (B : M₁ →ₗ[R₁] M₁ →ₗ[R₁] R₁)
-variables [is_domain R₁]
 
 -- Lemmas transferring nondegeneracy between a matrix and its associated bilinear form
 
@@ -583,57 +586,61 @@ theorem _root_.matrix.nondegenerate.to_linear_map₂' {M : matrix ι ι R₁} (h
   M.to_linear_map₂'.separating_left :=
 λ x hx, h.eq_zero_of_ortho $ λ y, by simpa only [to_linear_map₂'_apply'] using hx y
 
-@[simp] lemma _root_.matrix.nondegenerate_to_linear_map₂'_iff {M : matrix ι ι R₁} :
+@[simp] lemma _root_.matrix.separating_left_to_linear_map₂'_iff {M : matrix ι ι R₁} :
   M.to_linear_map₂'.separating_left ↔ M.nondegenerate :=
 ⟨λ h v hv, h v $ λ w, (M.to_linear_map₂'_apply' _ _).trans $ hv w,
   matrix.nondegenerate.to_linear_map₂'⟩
 
-/-
-theorem _root_.matrix.nondegenerate.to_bilin {M : matrix ι ι R₃} (h : M.nondegenerate)
-  (b : basis ι R₃ M₃) : (to_bilin b M).nondegenerate :=
-(matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin b).mp h.to_bilin'
+theorem _root_.matrix.nondegenerate.to_linear_map₂ {M : matrix ι ι R₁} (h : M.nondegenerate)
+  (b : basis ι R₁ M₁) : (to_linear_map₂ b b M).separating_left :=
+(matrix.separating_left_to_linear_map₂'_iff_separating_left_to_linear_map₂ b).mp h.to_linear_map₂'
 
-@[simp] lemma _root_.matrix.nondegenerate_to_bilin_iff {M : matrix ι ι R₃} (b : basis ι R₃ M₃) :
-  (to_bilin b M).nondegenerate ↔ M.nondegenerate :=
-by rw [←matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin,
-       matrix.nondegenerate_to_bilin'_iff]
+@[simp] lemma _root_.matrix.separating_left_to_linear_map₂_iff {M : matrix ι ι R₁}
+  (b : basis ι R₁ M₁) : (to_linear_map₂ b b M).separating_left ↔ M.nondegenerate :=
+by rw [←matrix.separating_left_to_linear_map₂'_iff_separating_left_to_linear_map₂,
+       matrix.separating_left_to_linear_map₂'_iff]
 
 -- Lemmas transferring nondegeneracy between a bilinear form and its associated matrix
 
-@[simp] theorem nondegenerate_to_matrix'_iff {B : bilin_form R₃ (ι → R₃)} :
-  B.to_matrix'.nondegenerate ↔ B.nondegenerate :=
-matrix.nondegenerate_to_bilin'_iff.symm.trans $ (matrix.to_bilin'_to_matrix' B).symm ▸ iff.rfl
+@[simp] theorem nondegenerate_to_matrix₂'_iff {B : (ι → R₁) →ₗ[R₁] (ι → R₁) →ₗ[R₁] R₁} :
+  B.to_matrix₂'.nondegenerate ↔ B.separating_left :=
+matrix.separating_left_to_linear_map₂'_iff.symm.trans $
+  (matrix.to_linear_map₂'_to_matrix' B).symm ▸ iff.rfl
 
-theorem nondegenerate.to_matrix' {B : bilin_form R₃ (ι → R₃)} (h : B.nondegenerate) :
-  B.to_matrix'.nondegenerate :=
-nondegenerate_to_matrix'_iff.mpr h
+theorem separating_left.to_matrix₂' {B : (ι → R₁) →ₗ[R₁] (ι → R₁) →ₗ[R₁] R₁} (h : B.separating_left) :
+  B.to_matrix₂'.nondegenerate :=
+nondegenerate_to_matrix₂'_iff.mpr h
 
-@[simp] theorem nondegenerate_to_matrix_iff {B : bilin_form R₃ M₃} (b : basis ι R₃ M₃) :
-  (to_matrix b B).nondegenerate ↔ B.nondegenerate :=
-(matrix.nondegenerate_to_bilin_iff b).symm.trans $ (matrix.to_bilin_to_matrix b B).symm ▸ iff.rfl
+@[simp] theorem nondegenerate_to_matrix_iff {B : M₁ →ₗ[R₁] M₁ →ₗ[R₁] R₁}
+  (b : basis ι R₁ M₁) : (to_matrix₂ b b B).nondegenerate ↔ B.separating_left :=
+(matrix.separating_left_to_linear_map₂_iff b).symm.trans $
+  (matrix.to_linear_map₂_to_matrix₂ b b B).symm ▸ iff.rfl
 
-theorem nondegenerate.to_matrix {B : bilin_form R₃ M₃} (h : B.nondegenerate)
-  (b : basis ι R₃ M₃) : (to_matrix b B).nondegenerate :=
+theorem separating_left.to_matrix₂ {B : M₁ →ₗ[R₁] M₁ →ₗ[R₁] R₁} (h : B.separating_left)
+  (b : basis ι R₁ M₁) : (to_matrix₂ b b B).nondegenerate :=
 (nondegenerate_to_matrix_iff b).mpr h
 
 -- Some shorthands for combining the above with `matrix.nondegenerate_of_det_ne_zero`
 
-lemma nondegenerate_to_bilin'_iff_det_ne_zero {M : matrix ι ι A} :
-  M.to_bilin'.nondegenerate ↔ M.det ≠ 0 :=
-by rw [matrix.nondegenerate_to_bilin'_iff, matrix.nondegenerate_iff_det_ne_zero]
+variables [is_domain R₁]
 
-theorem nondegenerate_to_bilin'_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
-  M.to_bilin'.nondegenerate :=
-nondegenerate_to_bilin'_iff_det_ne_zero.mpr h
+lemma separating_left_to_linear_map₂'_iff_det_ne_zero {M : matrix ι ι R₁} :
+  M.to_linear_map₂'.separating_left ↔ M.det ≠ 0 :=
+by rw [matrix.separating_left_to_linear_map₂'_iff, matrix.nondegenerate_iff_det_ne_zero]
 
-lemma nondegenerate_iff_det_ne_zero {B : bilin_form A M₃}
-  (b : basis ι A M₃) : B.nondegenerate ↔ (to_matrix b B).det ≠ 0 :=
+theorem separating_left_to_linear_map₂'_of_det_ne_zero' (M : matrix ι ι R₁) (h : M.det ≠ 0) :
+  M.to_linear_map₂'.separating_left :=
+separating_left_to_linear_map₂'_iff_det_ne_zero.mpr h
+
+lemma separating_left_iff_det_ne_zero {B : M₁ →ₗ[R₁] M₁ →ₗ[R₁] R₁}
+  (b : basis ι R₁ M₁) : B.separating_left ↔ (to_matrix₂ b b B).det ≠ 0 :=
 by rw [←matrix.nondegenerate_iff_det_ne_zero, nondegenerate_to_matrix_iff]
 
-theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
-  B₃.nondegenerate :=
-(nondegenerate_iff_det_ne_zero b).mpr h
--/
+theorem separating_left_of_det_ne_zero {B : M₁ →ₗ[R₁] M₁ →ₗ[R₁] R₁} (b : basis ι R₁ M₁)
+  (h : (to_matrix₂ b b B).det ≠ 0) :
+  B.separating_left :=
+(separating_left_iff_det_ne_zero b).mpr h
+
 end det
 
 end linear_map

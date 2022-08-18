@@ -577,6 +577,13 @@ lemma pow_le_self {n : ℕ} (hn : n ≠ 0) : I^n ≤ I :=
 calc I^n ≤ I ^ 1 : pow_le_pow (nat.pos_of_ne_zero hn)
      ... = I : pow_one _
 
+lemma pow_mono {I J : ideal R} (e : I ≤ J) (n : ℕ) : I ^ n ≤ J ^ n :=
+begin
+  induction n,
+  { rw [pow_zero, pow_zero], exact rfl.le },
+  { rw [pow_succ, pow_succ], exact ideal.mul_mono e n_ih }
+end
+
 lemma mul_eq_bot {R : Type*} [comm_semiring R] [no_zero_divisors R] {I J : ideal R} :
   I * J = ⊥ ↔ I = ⊥ ∨ J = ⊥ :=
 ⟨λ hij, or_iff_not_imp_left.mpr (λ I_ne_bot, J.eq_bot_iff.mpr (λ j hj,
@@ -1365,6 +1372,15 @@ map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, map_pow f r n ▸ mem_map_of_m
 theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
 map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
 mul_mono (map_le_iff_le_comap.2 $ le_rfl) (map_le_iff_le_comap.2 $ le_rfl)
+
+lemma le_comap_pow (n : ℕ) :
+  (K.comap f) ^ n ≤ (K ^ n).comap f :=
+begin
+  induction n,
+  { rw [pow_zero, pow_zero, ideal.one_eq_top, ideal.one_eq_top], exact rfl.le },
+  { rw [pow_succ, pow_succ], exact (ideal.mul_mono_right n_ih).trans (ideal.le_comap_mul f) }
+end
+
 omit rc
 
 end comm_ring
@@ -1778,6 +1794,30 @@ lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R₁ I : A →+* A ⧸ 
 ideal.mk_ker
 
 variables {R₁}
+
+/-- `ideal.quotient.lift` as an `alg_hom`. -/
+def quotient.liftₐ (I : ideal A) (f : A →ₐ[R₁] B) (hI : ∀ (a : A), a ∈ I → f a = 0) :
+  A ⧸ I →ₐ[R₁] B :=
+{ commutes' := λ r, begin
+    -- this is is_scalar_tower.algebra_map_apply R₁ A (A ⧸ I) but the file `algebra.algebra.tower`
+    -- imports this file.
+    have : algebra_map R₁ (A ⧸ I) r = algebra_map A (A ⧸ I) (algebra_map R₁ A r),
+    { simp_rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul] },
+    rw [this, ideal.quotient.algebra_map_eq,
+      ring_hom.to_fun_eq_coe, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom,
+      algebra.algebra_map_eq_smul_one, algebra.algebra_map_eq_smul_one, map_smul, map_one],
+  end
+  ..(ideal.quotient.lift I (f : A →+* B) hI) }
+
+@[simp]
+lemma quotient.liftₐ_apply (I : ideal A) (f : A →ₐ[R₁] B) (hI : ∀ (a : A), a ∈ I → f a = 0) (x) :
+  ideal.quotient.liftₐ I f hI x = ideal.quotient.lift I (f : A →+* B) hI x :=
+rfl
+
+lemma quotient.liftₐ_comp (I : ideal A) (f : A →ₐ[R₁] B) (hI : ∀ (a : A), a ∈ I → f a = 0) :
+  (ideal.quotient.liftₐ I f hI).comp (ideal.quotient.mkₐ R₁ I) = f :=
+alg_hom.ext (λ x, (ideal.quotient.lift_mk I (f : A →+* B) hI : _))
+
 
 lemma ker_lift.map_smul (f : A →ₐ[R₁] B) (r : R₁) (x : A ⧸ f.to_ring_hom.ker) :
   f.to_ring_hom.ker_lift (r • x) = r • f.to_ring_hom.ker_lift x :=

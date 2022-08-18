@@ -300,23 +300,19 @@ variables (b₁ : basis n R M₁) (b₂ : basis m R M₂)
 /-- `linear_map.to_matrix₂ b₁ b₂` is the equivalence between `R`-bilinear forms on `M` and
 `n`-by-`n` matrices with entries in `R`, if `b` is an `R`-basis for `M`. -/
 noncomputable def linear_map.to_matrix₂ : (M₁ →ₗ[R] M₂ →ₗ[R] R) ≃ₗ[R] matrix n m R :=
-(b₁.equiv_fun.arrow_congr (b₂.equiv_fun.arrow_congr (1 : R ≃ₗ[R] R))).trans linear_map.to_matrix₂'
+(b₁.equiv_fun.arrow_congr (b₂.equiv_fun.arrow_congr (linear_equiv.refl R R))).trans linear_map.to_matrix₂'
 
 /-- `bilin_form.to_matrix b` is the equivalence between `R`-bilinear forms on `M` and
 `n`-by-`n` matrices with entries in `R`, if `b` is an `R`-basis for `M`. -/
 noncomputable def matrix.to_linear_map₂ : matrix n m R ≃ₗ[R] (M₁ →ₗ[R] M₂ →ₗ[R] R) :=
 (linear_map.to_matrix₂ b₁ b₂).symm
 
-@[simp] lemma linear_equiv_one_apply (x : M₁): (1 : M₁ ≃ₗ[R] M₁) x = x := rfl
-
-@[simp] lemma linear_equiv_one_symm : (1 : M₁ ≃ₗ[R] M₁).symm = (1 : M₁ ≃ₗ[R] M₁) := rfl
-
 -- We make this and not `linear_map.to_matrix₂` a `simp` lemma to avoid timeouts
 @[simp] lemma linear_map.to_matrix₂_apply (B : M₁ →ₗ[R] M₂ →ₗ[R] R) (i : n) (j : m) :
   linear_map.to_matrix₂ b₁ b₂ B i j = B (b₁ i) (b₂ j) :=
 by simp only [linear_map.to_matrix₂, linear_equiv.trans_apply, linear_map.to_matrix₂'_apply,
   linear_equiv.trans_apply, linear_map.to_matrix₂'_apply, linear_equiv.arrow_congr_apply,
-  basis.equiv_fun_symm_std_basis, linear_equiv_one_apply]
+  basis.equiv_fun_symm_std_basis, linear_equiv.refl_apply]
 
 @[simp] lemma matrix.to_linear_map₂_apply (M : matrix n m R) (x : M₁) (y : M₂) :
   matrix.to_linear_map₂ b₁ b₂ M x y = ∑ i j, b₁.repr x i * M i j * b₂.repr y j :=
@@ -573,25 +569,26 @@ open matrix
 variables [comm_ring R₁] [add_comm_monoid M₁] [module R₁ M₁]
 variables [decidable_eq ι] [fintype ι]
 
-lemma _root_.matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin {M : matrix ι ι R₁}
-  (b : basis ι R₁ M₁) : M.to_linear_map₂'.nondegenerate ↔
-  (matrix.to_linear_map₂ b b M).nondegenerate := sorry
---(nondegenerate_congr_iff b.equiv_fun.symm).symm
+lemma _root_.matrix.separating_left_to_linear_map₂'_iff_separating_left_to_linear_map₂
+  {M : matrix ι ι R₁} (b : basis ι R₁ M₁) : M.to_linear_map₂'.separating_left ↔
+  (matrix.to_linear_map₂ b b M).separating_left :=
+(separating_left_congr_iff b.equiv_fun.symm b.equiv_fun.symm).symm
 
 variables (B : M₁ →ₗ[R₁] M₁ →ₗ[R₁] R₁)
 variables [is_domain R₁]
 
 -- Lemmas transferring nondegeneracy between a matrix and its associated bilinear form
 
-theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₁} (h : M.nondegenerate) :
-  M.to_linear_map₂'.nondegenerate :=
-λ x hx, h.eq_zero_of_ortho $ λ y, by simpa only [to_bilin'_apply'] using hx y
+theorem _root_.matrix.nondegenerate.to_linear_map₂' {M : matrix ι ι R₁} (h : M.nondegenerate) :
+  M.to_linear_map₂'.separating_left :=
+λ x hx, h.eq_zero_of_ortho $ λ y, by simpa only [to_linear_map₂'_apply'] using hx y
+
+@[simp] lemma _root_.matrix.nondegenerate_to_linear_map₂'_iff {M : matrix ι ι R₁} :
+  M.to_linear_map₂'.separating_left ↔ M.nondegenerate :=
+⟨λ h v hv, h v $ λ w, (M.to_linear_map₂'_apply' _ _).trans $ hv w,
+  matrix.nondegenerate.to_linear_map₂'⟩
 
 /-
-@[simp] lemma _root_.matrix.nondegenerate_to_bilin'_iff {M : matrix ι ι R₃} :
-  M.to_bilin'.nondegenerate ↔ M.nondegenerate :=
-⟨λ h v hv, h v $ λ w, (M.to_bilin'_apply' _ _).trans $ hv w, matrix.nondegenerate.to_bilin'⟩
-
 theorem _root_.matrix.nondegenerate.to_bilin {M : matrix ι ι R₃} (h : M.nondegenerate)
   (b : basis ι R₃ M₃) : (to_bilin b M).nondegenerate :=
 (matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin b).mp h.to_bilin'

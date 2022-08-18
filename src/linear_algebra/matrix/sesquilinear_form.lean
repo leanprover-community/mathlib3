@@ -304,7 +304,8 @@ variables (b₁ : basis n R M₁) (b₂ : basis m R M₂)
 /-- `linear_map.to_matrix₂ b₁ b₂` is the equivalence between `R`-bilinear forms on `M` and
 `n`-by-`n` matrices with entries in `R`, if `b` is an `R`-basis for `M`. -/
 noncomputable def linear_map.to_matrix₂ : (M₁ →ₗ[R] M₂ →ₗ[R] R) ≃ₗ[R] matrix n m R :=
-(b₁.equiv_fun.arrow_congr (b₂.equiv_fun.arrow_congr (linear_equiv.refl R R))).trans linear_map.to_matrix₂'
+(b₁.equiv_fun.arrow_congr (b₂.equiv_fun.arrow_congr (linear_equiv.refl R R))).trans
+  linear_map.to_matrix₂'
 
 /-- `bilin_form.to_matrix b` is the equivalence between `R`-bilinear forms on `M` and
 `n`-by-`n` matrices with entries in `R`, if `b` is an `R`-basis for `M`. -/

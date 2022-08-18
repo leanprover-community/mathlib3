@@ -80,7 +80,7 @@ begin
   refl
 end
 
-/-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
+/-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined on a complete space, then
   it is automatically continuous. -/
 lemma is_symmetric.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_symmetric T) :
   continuous T :=

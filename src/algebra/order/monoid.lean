@@ -811,6 +811,27 @@ instance [linear_ordered_comm_monoid α] :
 
 end order_dual
 
+/-! ### Lexicographical order -/
+
+@[to_additive] instance [h : has_mul α] : has_mul (lex α) := h
+@[to_additive] instance [h : has_one α] : has_one (lex α) := h
+@[to_additive] instance [h : semigroup α] : semigroup (lex α) := h
+@[to_additive] instance [h : comm_semigroup α] : comm_semigroup (lex α) := h
+@[to_additive] instance [h : mul_one_class α] : mul_one_class (lex α) := h
+@[to_additive] instance [h : monoid α] : monoid (lex α) := h
+@[to_additive] instance [h : comm_monoid α] : comm_monoid (lex α) := h
+@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid (lex α) := h
+@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid (lex α) := h
+@[to_additive] instance [h : cancel_monoid α] : cancel_monoid (lex α) := h
+@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid (lex α) := h
+instance [h : mul_zero_class α] : mul_zero_class (lex α) := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class (lex α) := h
+instance [h : monoid_with_zero α] : monoid_with_zero (lex α) := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (lex α) := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (lex α) := h
+
+/-! ### Product -/
+
 namespace prod
 
 variables {M N : Type*}

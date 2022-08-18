@@ -458,7 +458,7 @@ begin
         congr, erw [← pow_add, nat.add_sub_of_le h] },
       { exact ideal.mul_mem_left _ _ (hx _) } },
     { simp_rw [zero_pow hm, mk_zero], exact q.1.zero_mem } },
-  { intros _ _ h₁ h₂, rw add_smul, exact carrier.add_mem q h₁ h₂ },
+  { simp_rw add_smul, exact λ _ _, carrier.add_mem q },
 end
 
 /--

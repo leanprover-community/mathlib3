@@ -17,7 +17,7 @@ If `C` is a category that has finite coproducts, a splitting
 of the datum of a sequence of objects `s.N : ℕ → C` and a
 sequence of morphisms `s.ι n : s.N n → X _[n]` that have
 the property that a certain canonical map identifies `X _[n]`
-with the direct sum of objects `s.N i` indexed by all possible
+with the coproduct of objects `s.N i` indexed by all possible
 epimorphisms `[n] ⟶ [i]` in `simplex_category`. (We do not
 assume that the morphisms `s.ι n` are monomorphisms: in the
 most common categories, this would be a consequence of the
@@ -108,28 +108,28 @@ variables (N : ℕ → C) (Δ : simplex_categoryᵒᵖ)
 /-- Given a sequences of objects `N : ℕ → C` in a category `C`, this is
 a family of objects indexed by the elements `A : splitting.index_set Δ`.
 The `Δ`-simplices of a split simplicial objects shall identify to the
-direct sum of objects in such a family. -/
+coproduct of objects in such a family. -/
 @[simp, nolint unused_arguments]
 def summand (A : index_set Δ) : C := N A.1.unop.len
 
 variable [has_finite_coproducts C]
 
-/-- The direct sum of the family `summand N Δ` -/
+/-- The coproduct of the family `summand N Δ` -/
 @[simp]
-def sum := sigma_obj (summand N Δ)
+def coprod := ∐ summand N Δ
 
 variable {Δ}
 
-/-- The inclusion of a summand in the direct sum. -/
+/-- The inclusion of a summand in the coproduct. -/
 @[simp]
-def ι_sum (A : index_set Δ) : N A.1.unop.len ⟶ sum N Δ := sigma.ι _ A
+def ι_coprod (A : index_set Δ) : N A.1.unop.len ⟶ coprod N Δ := sigma.ι _ A
 
 variables {N}
 
-/-- The canonical morphism `sum N Δ ⟶ X.obj Δ` attached to a sequence
+/-- The canonical morphism `coprod N Δ ⟶ X.obj Δ` attached to a sequence
 of objects `N` and a sequence of morphisms `N n ⟶ X _[n]`. -/
 @[simp]
-def map (Δ : simplex_categoryᵒᵖ) : sum N Δ ⟶ X.obj Δ :=
+def map (Δ : simplex_categoryᵒᵖ) : coprod N Δ ⟶ X.obj Δ :=
 sigma.desc (λ A, φ A.1.unop.len ≫ X.map A.e.op)
 
 end splitting
@@ -142,7 +142,8 @@ for all `Δ : simplex_categoryhᵒᵖ`, the canonical map `splitting.map X ι Δ
 is an isomorphism. -/
 @[nolint has_nonempty_instance]
 structure splitting (X : simplicial_object C) :=
-(N : ℕ → C) (ι : Π n, N n ⟶ X _[n])
+(N : ℕ → C)
+(ι : Π n, N n ⟶ X _[n])
 (map_is_iso' : ∀ (Δ : simplex_categoryᵒᵖ), is_iso (splitting.map X ι Δ))
 
 namespace splitting
@@ -154,14 +155,14 @@ s.map_is_iso' Δ
 
 /-- The isomorphism on simplices given by the axiom `splitting.map_is_iso'` -/
 @[simps]
-def iso (Δ : simplex_categoryᵒᵖ) : sum s.N Δ ≅ X.obj Δ :=
+def iso (Δ : simplex_categoryᵒᵖ) : coprod s.N Δ ≅ X.obj Δ :=
 as_iso (splitting.map X s.ι Δ)
 
 /-- Via the isomorphism `s.iso Δ`, this is the inclusion of a summand
 in the direct sum decomposition given by the splitting `s : splitting X`. -/
 def ι_summand {Δ : simplex_categoryᵒᵖ} (A : index_set Δ) :
   s.N A.1.unop.len ⟶ X.obj Δ :=
-splitting.ι_sum s.N A ≫ (s.iso Δ).hom
+splitting.ι_coprod s.N A ≫ (s.iso Δ).hom
 
 @[reassoc]
 lemma ι_summand_eq {Δ : simplex_categoryᵒᵖ} (A : index_set Δ) :
@@ -218,7 +219,7 @@ lemma ι_desc {Z : C} (Δ : simplex_categoryᵒᵖ)
   s.ι_summand A ≫ s.desc Δ F = F A :=
 begin
   dsimp only [ι_summand, desc],
-  simp only [assoc, iso.hom_inv_id_assoc, ι_sum],
+  simp only [assoc, iso.hom_inv_id_assoc, ι_coprod],
   erw [colimit.ι_desc, cofan.mk_ι_app],
 end
 

@@ -413,7 +413,8 @@ invertible.map (diagonal_ring_hom n α) v
 
 lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
   ⅟(diagonal v) = diagonal (⅟v) :=
-by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
+by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _),
+  convert subsingleton.elim _ _, apply invertible.subsingleton }
 
 /-- `v` is invertible if `diagonal v` is -/
 def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=
@@ -535,10 +536,10 @@ of the Schur complement. -/
 lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
 begin
-  have : from_blocks A B C D = (from_blocks D C B A).minor (sum_comm _ _) (sum_comm _ _),
+  have : from_blocks A B C D = (from_blocks D C B A).submatrix (sum_comm _ _) (sum_comm _ _),
   { ext i j,
     cases i; cases j; refl },
-  rw [this, det_minor_equiv_self, det_from_blocks₁₁],
+  rw [this, det_submatrix_equiv_self, det_from_blocks₁₁],
 end
 
 @[simp] lemma det_from_blocks_one₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) :

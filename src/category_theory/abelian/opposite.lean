@@ -21,8 +21,8 @@ open category_theory.limits
 variables (C : Type*) [category C] [abelian C]
 
 local attribute [instance]
-  finite_limits_from_equalizers_and_finite_products
-  finite_colimits_from_coequalizers_and_finite_coproducts
+  has_finite_limits_of_has_equalizers_and_finite_products
+  has_finite_colimits_of_has_coequalizers_and_finite_coproducts
   has_finite_limits_opposite has_finite_colimits_opposite has_finite_products_opposite
 
 instance : abelian Cᵒᵖ :=

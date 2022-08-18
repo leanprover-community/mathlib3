@@ -130,8 +130,10 @@ end
 
 variables {K} (C)
 
+-- We are not using @[simps] to avoid a timeout.
+
 /-- The equivalence between `L →ₐ[K] C` and `primitive_roots n C` given by a primitive root `ζ`. -/
-@[simps] noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is_domain C]
+noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is_domain C]
   [algebra K C] (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=
 ((hζ.power_basis K).lift_equiv).trans
 { to_fun    := λ x,
@@ -157,6 +159,11 @@ variables {K} (C)
   left_inv  := λ x, subtype.ext rfl,
   right_inv := λ x, subtype.ext rfl }
 
+@[simp]
+lemma embeddings_equiv_primitive_roots_apply_coe (C : Type*) [comm_ring C] [is_domain C]
+  [algebra K C] (hirr : irreducible (cyclotomic n K)) (φ : L →ₐ[K] C) :
+  (hζ.embeddings_equiv_primitive_roots C hirr φ : C) = φ ζ := rfl
+
 end is_primitive_root
 
 namespace is_cyclotomic_extension
@@ -181,19 +188,22 @@ section norm
 
 namespace is_primitive_root
 
-variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
+section comm_ring
+
+variables [comm_ring L] {ζ : L} (hζ : is_primitive_root ζ n)
 variables {K} [field K] [algebra K L]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
-lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
-by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp,
-  algebra.norm_algebra_map]
+lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) [is_domain L] :
+  norm K ζ = (-1) ^ finrank K L :=
+by rw [hζ.eq_neg_one_of_two_right, show -1 = algebra_map K L (-1), by simp,
+       algebra.norm_algebra_map]
 
 include hζ
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), the norm of a primitive root is
 `1` if `n ≠ 2`. -/
-lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
+lemma norm_eq_one [is_domain L] [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
   haveI := is_cyclotomic_extension.ne_zero' n K L,
@@ -218,7 +228,7 @@ begin
   exact strict_mono.injective hodd.strict_mono_pow hz
 end
 
-lemma norm_of_cyclotomic_irreducible [is_cyclotomic_extension {n} K L]
+lemma norm_of_cyclotomic_irreducible [is_domain L] [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = ite (n = 2) (-1) 1 :=
 begin
   split_ifs with hn,
@@ -228,6 +238,15 @@ begin
     all_goals { apply_instance } },
   { exact hζ.norm_eq_one hn hirr }
 end
+
+end comm_ring
+
+section field
+
+variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
+variables {K} [field K] [algebra K L]
+
+include hζ
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
@@ -312,7 +331,7 @@ begin
   haveI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
   { suffices : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η + 1⟯.to_subalgebra,
     { have H : K⟮η + 1⟯.to_subalgebra = K⟮η⟯.to_subalgebra,
-      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral
           (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
         refine subalgebra.ext (λ x, ⟨λ hx, adjoin_le _ hx, λ hx, adjoin_le _ hx⟩),
         { simp only [set.singleton_subset_iff, set_like.mem_coe],
@@ -322,7 +341,7 @@ begin
           refine subalgebra.sub_mem _ (subset_adjoin (mem_singleton _)) (subalgebra.one_mem _) } },
       rw [H] at this,
       exact this },
-    rw [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+    rw [intermediate_field.adjoin_simple_to_subalgebra_of_integral
       (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
     have hη' : is_primitive_root (η + 1) ↑(p ^ (k + 1 - s)) := by simpa using hη,
     convert hη'.adjoin_is_cyclotomic_extension K,
@@ -450,6 +469,8 @@ begin
       ← pow_succ] },
   { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hs htwo }
 end
+
+end field
 
 end is_primitive_root
 

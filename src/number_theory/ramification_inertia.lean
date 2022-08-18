@@ -21,7 +21,7 @@ the **ramification index** `ideal.ramification_idx f p P` is the multiplicity of
 and the **inertia degree** `ideal.inertia_deg f p P` is the degree of the field extension
 `(S / P) : (R / p)`.
 
-## TODO (#12287)
+## Main results
 
 The main theorem `ideal.sum_ramification_inertia` states that for all coprime `P` lying over `p`,
 `Σ P, ramification_idx f p P * inertia_deg f p P` equals the degree of the field extension
@@ -36,6 +36,11 @@ Often the above theory is set up in the case where:
  * `p` and `P` are maximal ideals,
  * `P` is an ideal lying over `p`
 We will try to relax the above hypotheses as much as possible.
+
+## Notation
+
+In this file, `e` stands for the ramification index and `f` for the inertia degree of `P` over `p`,
+leaving `p` and `P` implicit.
 
 -/
 
@@ -123,6 +128,13 @@ lemma le_pow_ramification_idx :
   map f p ≤ P ^ ramification_idx f p P :=
 le_pow_of_le_ramification_idx (le_refl _)
 
+lemma le_comap_pow_ramification_idx :
+  p ≤ comap f (P ^ ramification_idx f p P) :=
+map_le_iff_le_comap.mp le_pow_ramification_idx
+
+lemma le_comap_of_ramification_idx_ne_zero (h : ramification_idx f p P ≠ 0) : p ≤ comap f P :=
+ideal.map_le_iff_le_comap.mp $ le_pow_ramification_idx.trans $ ideal.pow_le_self $ h
+
 namespace is_dedekind_domain
 
 variables [is_domain S] [is_dedekind_domain S]
@@ -205,6 +217,8 @@ begin
 end
 
 end dec_eq
+
+section finrank_quotient_map
 
 open_locale big_operators
 open_locale non_zero_divisors
@@ -301,13 +315,12 @@ begin
   -- we can write the elements of `a` as `p`-linear combinations of other elements of `a`.
   have exists_sum : ∀ x : (S ⧸ M), ∃ a' : fin n → R, (∀ i, a' i ∈ p) ∧ ∑ i, a' i • a i = x,
   { intro x,
-    obtain ⟨a'', ha'', hx⟩ := submodule.exists_sum_of_mem_ideal_smul_span p set.univ a x _,
-    refine ⟨λ i, a'' ⟨i, set.mem_univ _⟩, λ i, ha'' _, _⟩,
-    rwa [finsupp.sum_fintype, fintype.sum_equiv (equiv.set.univ (fin n))] at hx,
-    { intros, simp only [eq_self_iff_true, subtype.coe_eta, equiv.set.univ_apply] },
-    { intros, simp only [zero_smul] },
-    rw [set.image_univ, ha, smul_top_eq],
-    exact submodule.mem_top },
+    obtain ⟨a'', ha'', hx⟩ := (submodule.mem_ideal_smul_span_iff_exists_sum p a x).1 _,
+    { refine ⟨λ i, a'' i, λ i, ha'' _, _⟩,
+      rw [← hx, finsupp.sum_fintype],
+      exact λ _, zero_smul _ _ },
+    { rw [ha, smul_top_eq],
+      exact submodule.mem_top } },
   choose A' hA'p hA' using λ i, exists_sum (a i),
   -- This gives us a(n invertible) matrix `A` such that `det A ∈ (M = span R b)`,
   let A : matrix (fin n) (fin n) R := A' - 1,
@@ -427,5 +440,394 @@ begin
       exact hp.ne_top },
     { exact is_fraction_ring.injective S L } },
 end
+
+end finrank_quotient_map
+
+section fact_le_comap
+
+local notation `e` := ramification_idx f p P
+
+/-- `R / p` has a canonical map to `S / (P ^ e)`, where `e` is the ramification index
+of `P` over `p`. -/
+noncomputable instance quotient.algebra_quotient_pow_ramification_idx :
+  algebra (R ⧸ p) (S ⧸ (P ^ e)) :=
+quotient.algebra_quotient_of_le_comap (ideal.map_le_iff_le_comap.mp le_pow_ramification_idx)
+
+@[simp] lemma quotient.algebra_map_quotient_pow_ramification_idx (x : R) :
+  algebra_map (R ⧸ p) (S ⧸ P ^ e) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
+rfl
+
+variables [hfp : fact (ramification_idx f p P ≠ 0)]
+include hfp
+
+/-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`.
+
+This can't be an instance since the map `f : R → S` is generally not inferrable.
+-/
+def quotient.algebra_quotient_of_ramification_idx_ne_zero :
+  algebra (R ⧸ p) (S ⧸ P) :=
+quotient.algebra_quotient_of_le_comap (le_comap_of_ramification_idx_ne_zero hfp.out)
+
+-- In this file, the value for `f` can be inferred.
+local attribute [instance] ideal.quotient.algebra_quotient_of_ramification_idx_ne_zero
+
+@[simp] lemma quotient.algebra_map_quotient_of_ramification_idx_ne_zero (x : R) :
+  algebra_map (R ⧸ p) (S ⧸ P) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
+rfl
+
+omit hfp
+
+/-- The inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)`. -/
+@[simps]
+def pow_quot_succ_inclusion (i : ℕ) :
+  ideal.map (P^e)^.quotient.mk (P ^ (i + 1)) →ₗ[R ⧸ p] ideal.map (P^e)^.quotient.mk (P ^ i) :=
+{ to_fun := λ x, ⟨x, ideal.map_mono (ideal.pow_le_pow i.le_succ) x.2⟩,
+  map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl }
+
+lemma pow_quot_succ_inclusion_injective (i : ℕ) :
+  function.injective (pow_quot_succ_inclusion f p P i) :=
+begin
+  rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
+  rintro ⟨x, hx⟩ hx0,
+  rw subtype.ext_iff at hx0 ⊢,
+  rwa pow_quot_succ_inclusion_apply_coe at hx0
+end
+
+/-- `S ⧸ P` embeds into the quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e`.
+See `quotient_to_quotient_range_pow_quot_succ` for this as a linear map,
+and `quotient_range_pow_quot_succ_inclusion_equiv` for this as a linear equivalence.
+-/
+noncomputable def quotient_to_quotient_range_pow_quot_succ_aux {i : ℕ} {a : S} (a_mem : a ∈ P^i) :
+  S ⧸ P → ((P ^ i).map (P ^ e)^.quotient.mk ⧸ (pow_quot_succ_inclusion f p P i).range) :=
+quotient.map' (λ (x : S), ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩)
+  (λ x y h, begin
+    rw submodule.quotient_rel_r_def at ⊢ h,
+    simp only [_root_.map_mul, linear_map.mem_range],
+    refine ⟨⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_mul h a_mem)⟩, _⟩,
+    ext,
+    rw [pow_quot_succ_inclusion_apply_coe, subtype.coe_mk, submodule.coe_sub, subtype.coe_mk,
+        subtype.coe_mk, _root_.map_mul, map_sub, sub_mul]
+  end)
+
+lemma quotient_to_quotient_range_pow_quot_succ_aux_mk {i : ℕ} {a : S} (a_mem : a ∈ P^i) (x : S) :
+  quotient_to_quotient_range_pow_quot_succ_aux f p P a_mem (submodule.quotient.mk x) =
+    submodule.quotient.mk ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩ :=
+by apply quotient.map'_mk'
+
+include hfp
+
+/-- `S ⧸ P` embeds into the quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e`. -/
+noncomputable def quotient_to_quotient_range_pow_quot_succ {i : ℕ} {a : S} (a_mem : a ∈ P^i) :
+  S ⧸ P →ₗ[R ⧸ p] ((P ^ i).map (P ^ e)^.quotient.mk ⧸ (pow_quot_succ_inclusion f p P i).range) :=
+{ to_fun := quotient_to_quotient_range_pow_quot_succ_aux f p P a_mem,
+  map_add' := begin
+    intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
+    simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
+              quotient_to_quotient_range_pow_quot_succ_aux_mk, add_mul],
+    refine congr_arg submodule.quotient.mk _,
+    ext,
+    refl
+  end,
+  map_smul' := begin
+    intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
+    simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
+              quotient_to_quotient_range_pow_quot_succ_aux_mk, ring_hom.id_apply],
+    refine congr_arg submodule.quotient.mk _,
+    ext,
+    simp only [subtype.coe_mk, _root_.map_mul, algebra.smul_def, submodule.coe_mk, mul_assoc,
+              ideal.quotient.mk_eq_mk, submodule.coe_smul_of_tower,
+              ideal.quotient.algebra_map_quotient_pow_ramification_idx]
+  end }
+
+lemma quotient_to_quotient_range_pow_quot_succ_mk {i : ℕ} {a : S} (a_mem : a ∈ P^i) (x : S) :
+  quotient_to_quotient_range_pow_quot_succ f p P a_mem (submodule.quotient.mk x) =
+    submodule.quotient.mk ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩ :=
+quotient_to_quotient_range_pow_quot_succ_aux_mk f p P a_mem x
+
+lemma quotient_to_quotient_range_pow_quot_succ_injective [is_domain S] [is_dedekind_domain S]
+  [P.is_prime] {i : ℕ} (hi : i < e) {a : S} (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
+  function.injective (quotient_to_quotient_range_pow_quot_succ f p P a_mem) :=
+λ x, quotient.induction_on' x $ λ x y, quotient.induction_on' y $ λ y h,
+begin
+  have Pe_le_Pi1 : P^e ≤ P^(i + 1) := ideal.pow_le_pow hi,
+  simp only [submodule.quotient.mk'_eq_mk, quotient_to_quotient_range_pow_quot_succ_mk,
+    submodule.quotient.eq, linear_map.mem_range, subtype.ext_iff, subtype.coe_mk,
+    submodule.coe_sub] at ⊢ h,
+  rcases h with ⟨⟨⟨z⟩, hz⟩, h⟩,
+  rw [submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk, ideal.mem_quotient_iff_mem_sup,
+      sup_eq_left.mpr Pe_le_Pi1] at hz,
+  rw [pow_quot_succ_inclusion_apply_coe, subtype.coe_mk, submodule.quotient.quot_mk_eq_mk,
+      ideal.quotient.mk_eq_mk, ← map_sub, ideal.quotient.eq, ← sub_mul] at h,
+  exact (ideal.is_prime.mul_mem_pow _
+    ((submodule.sub_mem_iff_right _ hz).mp (Pe_le_Pi1 h))).resolve_right a_not_mem,
+end
+
+lemma quotient_to_quotient_range_pow_quot_succ_surjective [is_domain S] [is_dedekind_domain S]
+  (hP0 : P ≠ ⊥) [hP : P.is_prime] {i : ℕ} (hi : i < e)
+  {a : S} (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
+  function.surjective (quotient_to_quotient_range_pow_quot_succ f p P a_mem) :=
+begin
+  rintro ⟨⟨⟨x⟩, hx⟩⟩,
+  have Pe_le_Pi : P^e ≤ P^i := ideal.pow_le_pow hi.le,
+  have Pe_le_Pi1 : P^e ≤ P^(i + 1) := ideal.pow_le_pow hi,
+  rw [submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk, ideal.mem_quotient_iff_mem_sup,
+      sup_eq_left.mpr Pe_le_Pi] at hx,
+  suffices hx' : x ∈ ideal.span {a} ⊔ P^(i+1),
+  { obtain ⟨y', hy', z, hz, rfl⟩ := submodule.mem_sup.mp hx',
+    obtain ⟨y, rfl⟩ := ideal.mem_span_singleton.mp hy',
+    refine ⟨submodule.quotient.mk y, _⟩,
+    simp only [submodule.quotient.quot_mk_eq_mk, quotient_to_quotient_range_pow_quot_succ_mk,
+        submodule.quotient.eq, linear_map.mem_range, subtype.ext_iff, subtype.coe_mk,
+        submodule.coe_sub],
+    refine ⟨⟨_, ideal.mem_map_of_mem _ (submodule.neg_mem _ hz)⟩, _⟩,
+    rw [pow_quot_succ_inclusion_apply_coe, subtype.coe_mk, ideal.quotient.mk_eq_mk, map_add,
+        mul_comm y a, sub_add_cancel', map_neg] },
+  letI := classical.dec_eq (ideal S),
+  rw [sup_eq_prod_inf_factors _ (pow_ne_zero _ hP0), normalized_factors_pow,
+      normalized_factors_irreducible ((ideal.prime_iff_is_prime hP0).mpr hP).irreducible,
+      normalize_eq, multiset.nsmul_singleton, multiset.inter_repeat, multiset.prod_repeat],
+  rw [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq] at a_mem a_not_mem,
+  rwa [ideal.count_normalized_factors_eq a_mem a_not_mem, min_eq_left i.le_succ],
+  { intro ha,
+    rw ideal.span_singleton_eq_bot.mp ha at a_not_mem,
+    have := (P^(i+1)).zero_mem,
+    contradiction },
+end
+
+/-- Quotienting `P^i / P^e` by its subspace `P^(i+1) ⧸ P^e` is
+`R ⧸ p`-linearly isomorphic to `S ⧸ P`. -/
+noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_domain S] [is_dedekind_domain S]
+  [P.is_prime] (hP : P ≠ ⊥) {i : ℕ} (hi : i < e) :
+  ((P ^ i).map (P ^ e)^.quotient.mk ⧸ (pow_quot_succ_inclusion f p P i).range) ≃ₗ[R ⧸ p] S ⧸ P :=
+begin
+  choose a a_mem a_not_mem using set_like.exists_of_lt
+    (ideal.strict_anti_pow P hP (ideal.is_prime.ne_top infer_instance) (le_refl i.succ)),
+  refine (linear_equiv.of_bijective _ _ _).symm,
+  { exact quotient_to_quotient_range_pow_quot_succ f p P a_mem },
+  { exact quotient_to_quotient_range_pow_quot_succ_injective f p P hi a_mem a_not_mem },
+  { exact quotient_to_quotient_range_pow_quot_succ_surjective f p P hP hi a_mem a_not_mem }
+end
+
+/-- Since the inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)` has a kernel isomorphic to `P / S`,
+`[P^i / P^e : R / p] = [P^(i+1) / P^e : R / p] + [P / S : R / p]` -/
+lemma dim_pow_quot_aux [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime]
+  (hP0 : P ≠ ⊥) {i : ℕ} (hi : i < e) :
+  module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ i)) =
+  module.rank (R ⧸ p) (S ⧸ P) + module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ (i + 1))) :=
+begin
+  letI : field (R ⧸ p) := ideal.quotient.field _,
+  rw [dim_eq_of_injective _ (pow_quot_succ_inclusion_injective f p P i),
+      (quotient_range_pow_quot_succ_inclusion_equiv f p P hP0 hi).symm.dim_eq],
+  exact (dim_quotient_add_dim (linear_map.range (pow_quot_succ_inclusion f p P i))).symm,
+end
+
+lemma dim_pow_quot [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime]
+  (hP0 : P ≠ ⊥) (i : ℕ) (hi : i ≤ e) :
+  module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ i)) =
+  (e - i) • module.rank (R ⧸ p) (S ⧸ P) :=
+begin
+  refine @nat.decreasing_induction' _ i e (λ j lt_e le_j ih, _) hi _,
+  { rw [dim_pow_quot_aux f p P _ lt_e, ih, ← succ_nsmul, nat.sub_succ, ← nat.succ_eq_add_one,
+      nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt lt_e)],
+    assumption },
+  { rw [nat.sub_self, zero_nsmul, map_quotient_self],
+    exact dim_bot (R ⧸ p) (S ⧸ (P^e)) }
+end
+
+omit hfp
+
+/-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
+then the dimension `[S/(P^e) : R/p]` is equal to `e * [S/P : R/p]`. -/
+lemma dim_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S] [p.is_maximal]
+  [P.is_prime] (hP0 : P ≠ ⊥) (he : e ≠ 0) :
+  module.rank (R ⧸ p) (S ⧸ P^e) =
+  e • @module.rank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
+    @@quotient.algebra_quotient_of_ramification_idx_ne_zero _ _ _ _ _ ⟨he⟩) :=
+begin
+  letI : fact (e ≠ 0) := ⟨he⟩,
+  have := dim_pow_quot f p P hP0 0 (nat.zero_le e),
+  rw [pow_zero, nat.sub_zero, ideal.one_eq_top, ideal.map_top] at this,
+  exact (dim_top (R ⧸ p) _).symm.trans this
+end
+
+/-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
+then the dimension `[S/(P^e) : R/p]`, as a natural number, is equal to `e * [S/P : R/p]`. -/
+lemma finrank_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S]
+  (hP0 : P ≠ ⊥) [p.is_maximal] [P.is_prime] (he : e ≠ 0) :
+  finrank (R ⧸ p) (S ⧸ P^e) =
+  e * @finrank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
+    @@quotient.algebra_quotient_of_ramification_idx_ne_zero _ _ _ _ _ ⟨he⟩) :=
+begin
+  letI : fact (e ≠ 0) := ⟨he⟩,
+  letI : algebra (R ⧸ p) (S ⧸ P) := quotient.algebra_quotient_of_ramification_idx_ne_zero f p P,
+  letI := ideal.quotient.field p,
+  have hdim := dim_prime_pow_ramification_idx _ _ _ hP0 he,
+  by_cases hP : finite_dimensional (R ⧸ p) (S ⧸ P),
+  { haveI := hP,
+    haveI := (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mpr hP,
+    refine cardinal.nat_cast_injective _,
+    rw [finrank_eq_dim, nat.cast_mul, finrank_eq_dim, hdim, nsmul_eq_mul] },
+  have hPe := mt (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mp hP,
+  simp only [finrank_of_infinite_dimensional hP, finrank_of_infinite_dimensional hPe, mul_zero],
+end
+
+end fact_le_comap
+
+section factors_map
+
+open_locale classical
+
+/-! ## Properties of the factors of `p.map (algebra_map R S)` -/
+
+variables [is_domain S] [is_dedekind_domain S] [algebra R S]
+
+lemma factors.ne_bot (P : (factors (map (algebra_map R S) p)).to_finset) :
+  (P : ideal S) ≠ ⊥ :=
+(prime_of_factor _ (multiset.mem_to_finset.mp P.2)).ne_zero
+
+instance factors.is_prime (P : (factors (map (algebra_map R S) p)).to_finset) :
+  is_prime (P : ideal S) :=
+ideal.is_prime_of_prime (prime_of_factor _ (multiset.mem_to_finset.mp P.2))
+
+lemma factors.ramification_idx_ne_zero (P : (factors (map (algebra_map R S) p)).to_finset) :
+  ramification_idx (algebra_map R S) p P ≠ 0 :=
+is_dedekind_domain.ramification_idx_ne_zero
+  (ne_zero_of_mem_factors (multiset.mem_to_finset.mp P.2))
+  (factors.is_prime p P)
+  (ideal.le_of_dvd (dvd_of_mem_factors (multiset.mem_to_finset.mp P.2)))
+
+instance factors.fact_ramification_idx_ne_zero (P : (factors (map (algebra_map R S) p)).to_finset) :
+  fact (ramification_idx (algebra_map R S) p P ≠ 0) :=
+⟨factors.ramification_idx_ne_zero p P⟩
+
+local attribute [instance] quotient.algebra_quotient_of_ramification_idx_ne_zero
+
+instance factors.is_scalar_tower
+  (P : (factors (map (algebra_map R S) p)).to_finset) :
+  is_scalar_tower R (R ⧸ p) (S ⧸ (P : ideal S)) :=
+is_scalar_tower.of_algebra_map_eq (λ x, by simp)
+
+local attribute [instance] ideal.quotient.field
+
+lemma factors.finrank_pow_ramification_idx [p.is_maximal]
+  (P : (factors (map (algebra_map R S) p)).to_finset) :
+  finrank (R ⧸ p) (S ⧸ (P : ideal S) ^ ramification_idx (algebra_map R S) p P) =
+    ramification_idx (algebra_map R S) p P * inertia_deg (algebra_map R S) p P :=
+begin
+  rw [finrank_prime_pow_ramification_idx, inertia_deg_algebra_map],
+  exact factors.ne_bot p P,
+end
+
+instance factors.finite_dimensional_quotient [is_noetherian R S] [p.is_maximal]
+  (P : (factors (map (algebra_map R S) p)).to_finset) :
+  finite_dimensional (R ⧸ p) (S ⧸ (P : ideal S)) :=
+is_noetherian.iff_fg.mp $
+is_noetherian_of_tower R $
+is_noetherian_of_surjective S (ideal.quotient.mkₐ _ _).to_linear_map $
+linear_map.range_eq_top.mpr ideal.quotient.mk_surjective
+
+lemma factors.inertia_deg_ne_zero [is_noetherian R S] [p.is_maximal]
+  (P : (factors (map (algebra_map R S) p)).to_finset) :
+  inertia_deg (algebra_map R S) p P ≠ 0 :=
+by { rw inertia_deg_algebra_map, exact (finite_dimensional.finrank_pos_iff.mpr infer_instance).ne' }
+
+instance factors.finite_dimensional_quotient_pow [is_noetherian R S] [p.is_maximal]
+  (P : (factors (map (algebra_map R S) p)).to_finset) :
+  finite_dimensional (R ⧸ p) (S ⧸ (P : ideal S) ^ ramification_idx (algebra_map R S) p P) :=
+begin
+  refine finite_dimensional.finite_dimensional_of_finrank _,
+  rw [pos_iff_ne_zero, factors.finrank_pow_ramification_idx],
+  exact mul_ne_zero (factors.ramification_idx_ne_zero p P) (factors.inertia_deg_ne_zero p P)
+end
+
+universes w
+
+/-- **Chinese remainder theorem** for a ring of integers: if the prime ideal `p : ideal R`
+factors in `S` as `∏ i, P i ^ e i`, then `S ⧸ I` factors as `Π i, R ⧸ (P i ^ e i)`. -/
+noncomputable def factors.pi_quotient_equiv
+  (p : ideal R) (hp : map (algebra_map R S) p ≠ ⊥) :
+  (S ⧸ map (algebra_map R S) p) ≃+* Π (P : (factors (map (algebra_map R S) p)).to_finset),
+    S ⧸ ((P : ideal S) ^ ramification_idx (algebra_map R S) p P) :=
+(is_dedekind_domain.quotient_equiv_pi_factors hp).trans $
+(@ring_equiv.Pi_congr_right (factors (map (algebra_map R S) p)).to_finset
+  (λ P, S ⧸ (P : ideal S) ^ (factors (map (algebra_map R S) p)).count P)
+  (λ P, S ⧸ (P : ideal S) ^ ramification_idx (algebra_map R S) p P) _ _
+  (λ P : (factors (map (algebra_map R S) p)).to_finset, ideal.quot_equiv_of_eq $
+  by rw is_dedekind_domain.ramification_idx_eq_factors_count hp
+    (factors.is_prime p P) (factors.ne_bot p P)))
+
+@[simp] lemma factors.pi_quotient_equiv_mk
+  (p : ideal R) (hp : map (algebra_map R S) p ≠ ⊥) (x : S) :
+  factors.pi_quotient_equiv p hp (ideal.quotient.mk _ x) = λ P, ideal.quotient.mk _ x :=
+rfl
+
+@[simp] lemma factors.pi_quotient_equiv_map
+  (p : ideal R) (hp : map (algebra_map R S) p ≠ ⊥) (x : R) :
+  factors.pi_quotient_equiv p hp (algebra_map _ _ x) =
+    λ P, ideal.quotient.mk _ (algebra_map _ _ x) :=
+rfl
+
+/-- **Chinese remainder theorem** for a ring of integers: if the prime ideal `p : ideal R`
+factors in `S` as `∏ i, P i ^ e i`,
+then `S ⧸ I` factors `R ⧸ I`-linearly as `Π i, R ⧸ (P i ^ e i)`. -/
+noncomputable def factors.pi_quotient_linear_equiv
+  (p : ideal R) (hp : map (algebra_map R S) p ≠ ⊥) :
+  (S ⧸ map (algebra_map R S) p) ≃ₗ[R ⧸ p] Π (P : (factors (map (algebra_map R S) p)).to_finset),
+    S ⧸ ((P : ideal S) ^ ramification_idx (algebra_map R S) p P) :=
+{ map_smul' := begin
+   rintro ⟨c⟩ ⟨x⟩, ext P,
+   simp only [ideal.quotient.mk_algebra_map,
+     factors.pi_quotient_equiv_mk, factors.pi_quotient_equiv_map, submodule.quotient.quot_mk_eq_mk,
+     pi.algebra_map_apply, ring_equiv.to_fun_eq_coe, pi.mul_apply,
+     ideal.quotient.algebra_map_quotient_map_quotient, ideal.quotient.mk_eq_mk, algebra.smul_def,
+     _root_.map_mul, ring_hom_comp_triple.comp_apply],
+   congr
+  end,
+  .. factors.pi_quotient_equiv p hp }
+
+open_locale big_operators
+
+/-- The **fundamental identity** of ramification index `e` and inertia degree `f`:
+for `P` ranging over the primes lying over `p`, `∑ P, e P * f P = [Frac(S) : Frac(R)]`;
+here `S` is a finite `R`-module (and thus `Frac(S) : Frac(R)` is a finite extension) and `p`
+is maximal.
+-/
+theorem sum_ramification_inertia (K L : Type*) [field K] [field L]
+  [is_domain R] [is_dedekind_domain R]
+  [algebra R K] [is_fraction_ring R K] [algebra S L] [is_fraction_ring S L]
+  [algebra K L] [algebra R L] [is_scalar_tower R S L] [is_scalar_tower R K L]
+  [is_noetherian R S] [is_integral_closure S R L] [p.is_maximal] (hp0 : p ≠ ⊥) :
+  ∑ P in (factors (map (algebra_map R S) p)).to_finset,
+    ramification_idx (algebra_map R S) p P * inertia_deg (algebra_map R S) p P =
+    finrank K L :=
+begin
+  set e := ramification_idx (algebra_map R S) p,
+  set f := inertia_deg (algebra_map R S) p,
+  have inj_RL : function.injective (algebra_map R L),
+  { rw [is_scalar_tower.algebra_map_eq R K L, ring_hom.coe_comp],
+    exact (ring_hom.injective _).comp (is_fraction_ring.injective R K) },
+  have inj_RS : function.injective (algebra_map R S),
+  { refine function.injective.of_comp (show function.injective (algebra_map S L ∘ _), from _),
+    rw [← ring_hom.coe_comp, ← is_scalar_tower.algebra_map_eq],
+    exact inj_RL },
+  calc  ∑ P in (factors (map (algebra_map R S) p)).to_finset, e P * f P
+      = ∑ P in (factors (map (algebra_map R S) p)).to_finset.attach,
+          finrank (R ⧸ p) (S ⧸ (P : ideal S)^(e P)) : _
+  ... = finrank (R ⧸ p) (Π P : (factors (map (algebra_map R S) p)).to_finset,
+          (S ⧸ (P : ideal S)^(e P))) :
+    (module.free.finrank_pi_fintype (R ⧸ p)).symm
+  ... = finrank (R ⧸ p) (S ⧸ map (algebra_map R S) p) : _
+  ... = finrank K L : _,
+  { rw ← finset.sum_attach,
+    refine finset.sum_congr rfl (λ P _, _),
+    rw factors.finrank_pow_ramification_idx },
+  { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv p _).symm,
+    rwa [ne.def, ideal.map_eq_bot_iff_le_ker, (ring_hom.injective_iff_ker_eq_bot _).mp inj_RS,
+         le_bot_iff] },
+  { exact finrank_quotient_map p K L },
+end
+
+end factors_map
 
 end ideal

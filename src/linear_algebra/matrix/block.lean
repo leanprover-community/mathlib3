@@ -47,17 +47,17 @@ variables [has_lt α]
 `block_triangular M n b` says the matrix is block triangular. -/
 def block_triangular (M : matrix m m R) (b : m → α) : Prop := ∀ ⦃i j⦄, b j < b i → M i j = 0
 
-@[simp] protected lemma block_triangular.minor {f : n → m} (h : M.block_triangular b) :
-  (M.minor f f).block_triangular (b ∘ f) :=
+@[simp] protected lemma block_triangular.submatrix {f : n → m} (h : M.block_triangular b) :
+  (M.submatrix f f).block_triangular (b ∘ f) :=
 λ i j hij, h hij
 
 lemma block_triangular_reindex_iff {b : n → α} {e : m ≃ n} :
   (reindex e e M).block_triangular b ↔ M.block_triangular (b ∘ e) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { convert h.minor,
-    simp only [reindex_apply, minor_minor, minor_id_id, equiv.symm_comp_self] },
-  { convert h.minor,
+  { convert h.submatrix,
+    simp only [reindex_apply, submatrix_submatrix, submatrix_id_id, equiv.symm_comp_self] },
+  { convert h.submatrix,
     simp only [comp.assoc b e e.symm, equiv.self_comp_symm, comp.right_id] }
 end
 
@@ -134,7 +134,7 @@ begin
   simp only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
     equiv.sum_compl_apply_inr, equiv.sum_compl_apply_inl,
     from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂,
-    matrix.minor_apply],
+    matrix.submatrix_apply],
 end
 
 lemma two_block_triangular_det (M : matrix m m R) (p : m → Prop) [decidable_pred p]

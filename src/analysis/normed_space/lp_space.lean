@@ -51,11 +51,6 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 * More versions of Hölder's inequality (for example: the case `p = 1`, `q = ∞`; a version for normed
   rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for
   three exponents satisfying `1 / r = 1 / p + 1 / q`)
-* Equivalence with `pi_Lp`, for `α` finite
-* Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
-  the counting measure on `α`
-* Equivalence with `bounded_continuous_function`, for `f : α → E` (i.e., functions rather than
-  pi-types) and `p = ∞`, and the discrete topology on `α`
 
 -/
 

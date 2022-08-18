@@ -9,7 +9,7 @@ import algebra.indicator_function
 /-!
 # Type of functions with finite support
 
-For any type `α` and a type `M` with zero, we define the type `finsupp α M` (notation: `α →₀ M`)
+For any type `α` and any type `M` with zero, we define the type `finsupp α M` (notation: `α →₀ M`)
 of finitely supported functions from `α` to `M`, i.e. the functions which are zero everywhere
 on `α` except on a finite set.
 
@@ -31,7 +31,8 @@ in a different way in the library:
 * `free_abelian_group α ≃+ α →₀ ℤ`.
 
 Most of the theory assumes that the range is a commutative additive monoid. This gives us the big
-sum operator as a powerful way to construct `finsupp` elements.
+sum operator as a powerful way to construct `finsupp` elements, which is defined in
+`algebra/big_operators/finsupp`.
 
 Many constructions based on `α →₀ M` use `semireducible` type tags to avoid reusing unwanted type
 instances. E.g., `monoid_algebra`, `add_monoid_algebra`, and types based on these two have
@@ -46,12 +47,7 @@ non-pointwise multiplication.
 * `finsupp.on_finset`: The restriction of a function to a `finset` as a `finsupp`.
 * `finsupp.map_range`: Composition of a `zero_hom` with a `finsupp`.
 * `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
-* `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing.
-* `finsupp.comap_domain`: Postcomposition of a `finsupp` with a function injective on the preimage
-  of its support.
 * `finsupp.zip_with`: Postcomposition of two `finsupp`s with a function `f` such that `f 0 0 = 0`.
-* `finsupp.sum`: Sum of the values of a `finsupp`.
-* `finsupp.prod`: Product of the nonzero values of a `finsupp`.
 
 ## Notations
 
@@ -76,10 +72,6 @@ We also use the following convention for `Type*` variables in this file
 This file is a `noncomputable theory` and uses classical logic throughout.
 
 ## TODO
-
-* This file is currently ~2.7K lines long, so it should be splitted into smaller chunks.
-  One option would be to move all the sum and product stuff to `algebra.big_operators.finsupp` and
-  move the definitions that depend on it to new files under `data.finsupp.`.
 
 * Expand the list of definitions and important lemmas to the module docstring.
 

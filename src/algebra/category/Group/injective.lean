@@ -11,6 +11,7 @@ import algebra.module.injective
 import category_theory.preadditive.injective
 import group_theory.divisible
 import ring_theory.principal_ideal_domain
+import tactic.omega
 
 /-!
 # Injective objects in the category of abelian groups
@@ -152,28 +153,23 @@ def embed_into_divisible : AddCommGroup.of A ⟶ Div :=
 section
 variable {A}
 
-noncomputable def rep {a : A} (x : (submodule.span ℤ {a} : submodule ℤ A)) : ℤ :=
+noncomputable def rep {a : A} (x : submodule.span ℤ {a}) : ℤ :=
 (submodule.mem_span_singleton.mp x.2).some
 
-lemma rep_eq {a : A} (x : (submodule.span ℤ {a} : submodule ℤ A)) :
-  (rep x) • a = x :=
+lemma rep_eq {a : A} (x : (submodule.span ℤ {a} : submodule ℤ A)) : rep x • a = x :=
 (submodule.mem_span_singleton.mp x.2).some_spec
 
 end
 
 namespace infinite_order
 
-variable {A}
+variables {A} {a : A}
 
-variables {a : A}
-
-
-noncomputable def to_fun : (submodule.span ℤ {a} : submodule ℤ A) → ℚ⧸ℤ :=
+@[reducible] noncomputable def to_fun : submodule.span ℤ {a} → ℚ⧸ℤ :=
 λ x, ⟨quotient.mk' (rat.mk (rep x) 2)⟩
 
 lemma to_fun_wd.aux (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0)
-  {m n : ℤ} (eq1 : m • a = n • a) :
-  m = n :=
+  {m n : ℤ} (eq1 : m • a = n • a) : m = n :=
 begin
   rw [←sub_eq_zero, ←sub_smul] at eq1,
   have eq2 : (m - n).nat_abs • a = 0,
@@ -190,40 +186,30 @@ begin
   refine ⟨infinite_order, eq2⟩,
 end
 
-lemma to_fun_wd
-  (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0)
-  (x : (submodule.span ℤ {a} : submodule ℤ A))
-  {m : ℤ} (hm : m • a = x) :
+lemma rep_add (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0)
+  (x y : (submodule.span ℤ {a} : submodule ℤ A)) : rep (x + y) = rep x + rep y :=
+to_fun_wd.aux infinite_order $ by simp only [add_smul, rep_eq, submodule.coe_add]
+
+lemma rep_smul (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0) (m : ℤ)
+  (x : (submodule.span ℤ {a} : submodule ℤ A)) : rep (m • x) = m * rep x :=
+to_fun_wd.aux infinite_order $ by rw [mul_smul, rep_eq x, rep_eq (m • x), submodule.coe_smul]
+
+lemma to_fun_wd (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0)
+  (x : (submodule.span ℤ {a} : submodule ℤ A)) {m : ℤ} (hm : m • a = x) :
   to_fun x = ⟨quotient.mk' (rat.mk m 2)⟩ :=
-begin
-  dunfold to_fun,
-  have eq1 : m = rep x,
-  { have := rep_eq x,
-    rw ←hm at this,
-    rw to_fun_wd.aux infinite_order this, },
-  subst eq1,
-end
+by rw show m = rep x, by { apply to_fun_wd.aux infinite_order, rw [hm, rep_eq x] }
 
 lemma map_add'
   (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0)
   (x y : (submodule.span ℤ {a} : submodule ℤ A)) :
   to_fun (x + y) = to_fun x + to_fun y :=
 begin
-  have : (rep x + rep y) • a = rep (x + y) • a,
-  { rw [add_smul, rep_eq, rep_eq, rep_eq, submodule.coe_add], },
-  have := to_fun_wd.aux infinite_order this,
-  dunfold to_fun,
+  rw [to_fun_wd infinite_order (x + y) (rep_eq _), to_fun_wd infinite_order x (rep_eq _),
+    to_fun_wd infinite_order y (rep_eq _)],
   ext1,
-  change _ = _ + _,
-  dsimp only,
-  change _ = quotient.mk' (_ + _),
-  rw [quotient_add_group.eq', rat.neg_def, rat.add_def, rat.add_def];
-  norm_num,
-  simp only [add_mul, mul_assoc],
-  norm_num,
-  rw [←add_mul, ←neg_mul, ←add_mul, this, ←sub_eq_neg_add, sub_self, zero_mul],
-  norm_num,
-  exact add_subgroup.zero_mem _,
+  erw [quotient_add_group.eq', rat.neg_def, rat.add_def, rat.add_def,
+    rep_add infinite_order, ←add_mul, mul_assoc, neg_mul, neg_add_self, rat.zero_mk],
+  exact add_subgroup.zero_mem _, all_goals { norm_num },
 end
 
 lemma map_smul'
@@ -231,23 +217,15 @@ lemma map_smul'
   (m : ℤ) (x : (submodule.span ℤ {a} : submodule ℤ A)) :
   to_fun (m • x) = m • to_fun x :=
 begin
-  have : (m * rep x) • a = rep (m • x) • a,
-  { rw [mul_smul, rep_eq x, rep_eq (m • x), submodule.coe_smul], },
-  have := to_fun_wd.aux infinite_order this,
-  dunfold to_fun,
   ext1,
-  change _ = _ • _,
-  change _ = quotient.mk' _,
-  dsimp only,
-  rw [quotient_add_group.eq', ←this, rat.neg_def],
-  norm_num,
-  rw [show (m : ℚ) = rat.mk m 1, from rat.coe_int_eq_mk _, rat.mul_def, rat.add_def];
-  norm_num,
-  refine ⟨0, by norm_num⟩,
+  erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
+    rat.mul_def, show (1 : ℤ) * 2 = 2, from rfl, neg_add_self],
+  exact add_subgroup.zero_mem _, all_goals { norm_num },
 end
 
 noncomputable def to_quotient
-  (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0) : (⟨(submodule.span ℤ {a} : submodule ℤ A)⟩ : Module ℤ) ⟶ ⟨ℚ⧸ℤ⟩ :=
+  (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0) :
+  (⟨(submodule.span ℤ {a} : submodule ℤ A)⟩ : Module ℤ) ⟶ ⟨ℚ⧸ℤ⟩ :=
 { to_fun := to_fun,
   map_add' := map_add' infinite_order,
   map_smul' := map_smul' infinite_order }
@@ -255,18 +233,7 @@ noncomputable def to_quotient
 lemma to_quotient.apply_ne_zero
   (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0) :
   to_quotient infinite_order ⟨a, submodule.mem_span_singleton_self _⟩ ≠ 0 :=
-have H : ∀ (m : ℤ), - m * 2 ≠ 1,
-begin
-  intros m r,
-  have : (2 : ℤ) ∣ -m * 2,
-  { exact dvd_mul_left 2 (-m), },
-  rw r at this,
-  have not_dvd : ¬ (2 : ℤ) ∣ 1,
-  { rw ←int.exists_lt_and_lt_iff_not_dvd,
-    refine ⟨0, by linarith, by linarith⟩,
-    linarith, },
-  exact not_dvd this,
-end,
+have H : ∀ (m : ℤ), - m * 2 ≠ 1, by omega,
 begin
   dunfold to_quotient,
   change to_fun _ ≠ 0,
@@ -313,8 +280,7 @@ namespace finite_order
 
 variables {A} {a : A}
 
-noncomputable def order
-  (fo : ∃ (n : ℕ), n ≠ 0 ∧ n • a = 0) : ℕ :=
+noncomputable def order (fo : ∃ (n : ℕ), n ≠ 0 ∧ n • a = 0) : ℕ :=
 @nat.find _ (classical.dec_pred _) fo
 
 lemma order_ne_zero
@@ -508,7 +474,8 @@ end finite_order
 
 lemma embed_into_injective_injective :
   function.injective (embed_into_divisible A) :=
-suffices h : ∀ (a : A) (ha : a ≠ 0), ∃ (f : (AddCommGroup.of A) ⟶ (AddCommGroup.of ℚ⧸ℤ)), (f : A ⟶ ℚ⧸ℤ) a ≠ 0,
+suffices h : ∀ (a : A) (ha : a ≠ 0), ∃ (f : (AddCommGroup.of A) ⟶ (AddCommGroup.of ℚ⧸ℤ)),
+  (f : A ⟶ ℚ⧸ℤ) a ≠ 0,
 begin
   contrapose! h,
   simp only [function.injective, not_forall] at h,
@@ -525,7 +492,8 @@ begin
     rwa [map_sub, sub_eq_zero], },
 end,
 λ a ha,
-suffices ∃ (f : (⟨submodule.span ℤ {a}⟩ : Module ℤ) ⟶ ⟨ℚ⧸ℤ⟩), f ⟨a, submodule.subset_span (set.mem_singleton _)⟩ ≠ 0,
+suffices ∃ (f : (⟨submodule.span ℤ {a}⟩ : Module ℤ) ⟶ ⟨ℚ⧸ℤ⟩),
+  f ⟨a, submodule.subset_span (set.mem_singleton _)⟩ ≠ 0,
 begin
   rcases this with ⟨f, eq1⟩,
   haveI injQZ : category_theory.injective (⟨ℚ⧸ℤ⟩ : Module ℤ),
@@ -564,10 +532,8 @@ def has_injective_presentation : category_theory.injective_presentation (AddComm
 
 end divisible_emb
 
-
 instance : category_theory.enough_injectives (AddCommGroup.{u}) :=
 { presentation := λ ⟨A, α⟩, nonempty.intro $
     by { resetI, exact divisible_emb.has_injective_presentation A } }
-
 
 end AddCommGroup

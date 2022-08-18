@@ -466,7 +466,7 @@ begin
     lt_self_iff_false] at hp
 end
 
-lemma ord_proj_dvd_ord_proj_of_dvd {a b p : ℕ} (hab : a ∣ b) (hb0 : b ≠ 0) :
+lemma ord_proj_dvd_ord_proj_of_dvd {a b : ℕ} (hb0 : b ≠ 0) (hab : a ∣ b) (p : ℕ) :
   ord_proj[p] a ∣ ord_proj[p] b :=
 begin
   rcases em' p.prime with pp | pp, { simp [pp] },

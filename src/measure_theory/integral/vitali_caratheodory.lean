@@ -154,7 +154,7 @@ lemma exists_le_lower_semicontinuous_lintegral_ge
   (f : α → ℝ≥0∞) (hf : measurable f) {ε : ℝ≥0∞} (εpos : ε ≠ 0) :
   ∃ g : α → ℝ≥0∞, (∀ x, f x ≤ g x) ∧ lower_semicontinuous g ∧ (∫⁻ x, g x ∂μ ≤ ∫⁻ x, f x ∂μ + ε) :=
 begin
-  rcases ennreal.exists_pos_sum_of_encodable' εpos ℕ with ⟨δ, δpos, hδ⟩,
+  rcases ennreal.exists_pos_sum_of_countable' εpos ℕ with ⟨δ, δpos, hδ⟩,
   have : ∀ n, ∃ g : α → ℝ≥0, (∀ x, simple_func.eapprox_diff f n x ≤ g x) ∧ lower_semicontinuous g ∧
     (∫⁻ x, g x ∂μ ≤ ∫⁻ x, simple_func.eapprox_diff f n x ∂μ + δ n) :=
   λ n, simple_func.exists_le_lower_semicontinuous_lintegral_ge μ

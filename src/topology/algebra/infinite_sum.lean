@@ -574,8 +574,9 @@ end
 
 end has_continuous_star
 
-section encodable
 open encodable
+
+section encodable
 variable [encodable γ]
 
 /-- You can compute a sum over an encodably type by summing over the natural numbers and
@@ -607,25 +608,29 @@ theorem tsum_Union_decode₂ (m : set β → α) (m0 : m ∅ = 0)
   (s : γ → set β) : ∑' i, m (⋃ b ∈ decode₂ γ i, s b) = ∑' b, m (s b) :=
 tsum_supr_decode₂ m m0 s
 
+end encodable
+
 /-! Some properties about measure-like functions.
   These could also be functions defined on complete sublattices of sets, with the property
   that they are countably sub-additive.
   `R` will probably be instantiated with `(≤)` in all applications.
 -/
 
-/-- If a function is countably sub-additive then it is sub-additive on encodable types -/
+section countable
+variables [countable γ]
+
+/-- If a function is countably sub-additive then it is sub-additive on countable types -/
 theorem rel_supr_tsum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ∑' i, m (s i))
   (s : γ → β) : R (m (⨆ b : γ, s b)) ∑' b : γ, m (s b) :=
-by { rw [← supr_decode₂, ← tsum_supr_decode₂ _ m0 s], exact m_supr _ }
+by { casesI nonempty_encodable γ, rw [←supr_decode₂, ←tsum_supr_decode₂ _ m0 s], exact m_supr _ }
 
 /-- If a function is countably sub-additive then it is sub-additive on finite sets -/
 theorem rel_supr_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
   (s : δ → β) (t : finset δ) :
   R (m (⨆ d ∈ t, s d)) (∑ d in t, m (s d)) :=
-by { cases t.nonempty_encodable, rw [supr_subtype'], convert rel_supr_tsum m m0 R m_supr _,
-     rw [← finset.tsum_subtype], assumption }
+by { rw [supr_subtype', ←finset.tsum_subtype], exact rel_supr_tsum m m0 R m_supr _ }
 
 /-- If a function is countably sub-additive then it is binary sub-additive -/
 theorem rel_sup_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
@@ -637,7 +642,7 @@ begin
   { rw [tsum_fintype, fintype.sum_bool, cond, cond] }
 end
 
-end encodable
+end countable
 
 variables [has_continuous_add α]
 

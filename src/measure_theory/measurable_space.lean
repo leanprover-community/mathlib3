@@ -286,7 +286,7 @@ instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
 
-lemma measurable_to_encodable [measurable_space α] [encodable α] [measurable_space β] {f : β → α}
+lemma measurable_to_countable [measurable_space α] [countable α] [measurable_space β] {f : β → α}
   (h : ∀ y, measurable_set (f ⁻¹' {f y})) :
   measurable f :=
 begin
@@ -309,7 +309,7 @@ variables [measurable_space α]
 measurable_from_top
 
 lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y})) → measurable f :=
-measurable_to_encodable
+measurable_to_countable
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
   {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
@@ -573,7 +573,7 @@ lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
 
-lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+lemma measurable_from_prod_countable [countable β] [measurable_singleton_class β]
   {mγ : measurable_space γ} {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
   measurable f :=
 begin
@@ -592,7 +592,7 @@ lemma measurable.find {m : measurable_space α}
   (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :
   measurable (λ x, f (nat.find (h x)) x) :=
 begin
-  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_encodable (λ n, hf n),
+  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_countable (λ n, hf n),
   exact this.comp (measurable.prod_mk measurable_id (measurable_find h hp)),
 end
 
@@ -676,7 +676,7 @@ lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : s.countab
   measurable_set (s.pi t) :=
 by { rw [pi_def], exact measurable_set.bInter hs (λ i hi, measurable_pi_apply _ (ht i hi)) }
 
-lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
+lemma measurable_set.univ_pi [countable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
 measurable_set.pi (to_countable _) (λ i _, ht i)
 
@@ -728,19 +728,14 @@ end
 
 end
 
-section fintype
-
-local attribute [instance] fintype.to_encodable
-
-lemma measurable_set.pi_finite [finite δ] {s : set δ} {t : Π i, set (π i)}
+lemma measurable_set.pi_countable [countable δ] {s : set δ} {t : Π i, set (π i)}
   (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
 measurable_set.pi (to_countable _) ht
 
-lemma measurable_set.univ_pi_finite [finite δ] {t : Π i, set (π i)}
+lemma measurable_set.univ_pi_countable [countable δ] {t : Π i, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi_finite (λ i _, ht i)
+measurable_set.pi_countable (λ i _, ht i)
 
-end fintype
 end pi
 
 instance tprod.measurable_space (π : δ → Type*) [∀ x, measurable_space (π x)] :

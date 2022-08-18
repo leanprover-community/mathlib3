@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import data.finset.basic
+import data.fintype.basic
 import data.set.pairwise
 import logic.encodable.basic
 
@@ -51,14 +52,3 @@ begin
 end
 
 end encodable
-
-namespace finset
-
-lemma nonempty_encodable {α} (t : finset α) : nonempty $ encodable {i // i ∈ t} :=
-begin
-  classical, induction t using finset.induction with x t hx ih,
-  { refine ⟨⟨λ _, 0, λ _, none, λ ⟨x,y⟩, y.rec _⟩⟩ },
-  { cases ih with ih, exactI ⟨encodable.of_equiv _ (finset.subtype_insert_equiv_option hx)⟩ }
-end
-
-end finset

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.bool.set
+import data.ulift
 import data.nat.basic
 import order.bounds
 
@@ -428,6 +429,12 @@ e.surjective.supr_congr _ h
   (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 by { obtain rfl := propext pq, congr' with x, apply f }
 
+lemma supr_plift_up (f : plift ι → α) : (⨆ i, f (plift.up i)) = ⨆ i, f i :=
+plift.up_surjective.supr_congr _ $ λ _, rfl
+
+lemma supr_plift_down (f : ι → α) : (⨆ i, f (plift.down i)) = ⨆ i, f i :=
+plift.down_surjective.supr_congr _ $ λ _, rfl
+
 lemma supr_range' (g : β → α) (f : ι → β) : (⨆ b : range f, g b) = ⨆ i, g (f i) :=
 by rw [supr, supr, ← image_eq_range, ← range_comp]
 
@@ -463,6 +470,12 @@ protected lemma equiv.infi_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g
 @[congr]lemma infi_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
 @supr_congr_Prop αᵒᵈ _ p q f₁ f₂ pq f
+
+lemma infi_plift_up (f : plift ι → α) : (⨅ i, f (plift.up i)) = ⨅ i, f i :=
+plift.up_surjective.infi_congr _ $ λ _, rfl
+
+lemma infi_plift_down (f : ι → α) : (⨅ i, f (plift.down i)) = ⨅ i, f i :=
+plift.down_surjective.infi_congr _ $ λ _, rfl
 
 lemma infi_range' (g : β → α) (f : ι → β) : (⨅ b : range f, g b) = ⨅ i, g (f i) :=
 @supr_range' αᵒᵈ _ _ _ _ _

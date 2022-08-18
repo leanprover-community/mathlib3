@@ -361,3 +361,22 @@ noncomputable instance valued_completion : valued (hat K) Γ₀ :=
   end }
 
 end valued
+
+variables {K : Type*} [field K] [topological_space K] [topological_division_ring K]
+  {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀] (v : valuation K Γ₀)
+
+class v_topological_field (h : ring_filter_basis K) extends topological_division_ring K :=
+( foo : ∀ W, W ∈ h.sets → ∃ U ∈ h.sets, ∀ x y, x * y ∈ U → x ∈ W ∨ y ∈ W )
+
+instance v_topology : v_topological_field (valuation.subgroups_basis v).to_ring_filter_basis :=
+{ foo := begin
+    rintros W ⟨r,hW⟩,
+    refine ⟨(λ (γ : Γ₀ˣ), v.lt_add_subgroup γ) (r * r), ⟨⟨r * r,rfl⟩, _⟩ ⟩,
+    rintros x y (h : v (x * y) < r * r),
+    simp only [hW, mem_set_of_eq],
+    by_cases hx : v x < r, {left, exact hx},
+    { rw not_lt at hx,
+      rw valuation.map_mul at h,
+      right, exact lt_of_mul_lt_mul_left' (mul_lt_of_mul_lt_right h hx) },
+  end,
+  ..(by apply_instance : topological_division_ring K) }

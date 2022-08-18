@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
-import algebra.ring.aut
-import algebra.ring.ulift
 import algebra.module.ulift
 import algebra.ne_zero
+import algebra.ring.aut
+import algebra.ring.ulift
 import linear_algebra.span
 import tactic.abel
 
@@ -1410,7 +1410,7 @@ smul_left_injective R one_ne_zero
 
 lemma of_no_zero_smul_divisors (n : ℕ) [comm_ring R] [ne_zero (n : R)] [ring A] [nontrivial A]
   [algebra R A] [no_zero_smul_divisors R A] : ne_zero (n : A) :=
-nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R A
+ne_zero.nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R A
 
 variables {R A}
 lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R A] :

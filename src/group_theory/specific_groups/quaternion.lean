@@ -148,24 +148,17 @@ def quaternion_group_zero_equiv_dihedral_group_zero : quaternion_group 0 ≃* di
   right_inv := by rintro (k | k); refl,
   map_mul' := by { rintros (k | k) (l | l); { dsimp, simp, }, } }
 
-/-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
-in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
-private lemma succ_mul_pos_fact {m : ℕ} [hn : fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
-⟨nat.succ_mul_pos m hn.1⟩
-
-local attribute [instance] succ_mul_pos_fact
-
 /--
 If `0 < n`, then `quaternion_group n` is a finite group.
 -/
-instance [fact (0 < n)] : fintype (quaternion_group n) := fintype.of_equiv _ fintype_helper
+instance as [ne_zero n] : fintype (quaternion_group n) := fintype.of_equiv _ fintype_helper
 
 instance : nontrivial (quaternion_group n) := ⟨⟨a 0, xa 0, dec_trivial⟩⟩
 
 /--
 If `0 < n`, then `quaternion_group n` has `4n` elements.
 -/
-lemma card [fact (0 < n)] : fintype.card (quaternion_group n) = 4 * n :=
+lemma card [ne_zero n] : fintype.card (quaternion_group n) = 4 * n :=
 begin
   rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card, two_mul],
   ring
@@ -205,7 +198,7 @@ end
 /--
 If `0 < n`, then `xa i` has order 4.
 -/
-@[simp] lemma order_of_xa [hpos : fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
+@[simp] lemma order_of_xa [ne_zero n] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
   change _ = 2^2,
   haveI : fact(nat.prime 2) := fact.mk (nat.prime_two),
@@ -216,7 +209,7 @@ begin
     apply_fun zmod.val at h',
     apply_fun ( / n) at h',
     simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
-             nat.div_self hpos.1] at h',
+               nat.div_self (ne_zero.pos n)] at h',
     norm_num at h' },
   { norm_num }
 end
@@ -234,15 +227,15 @@ If `0 < n`, then `a 1` has order `2 * n`.
 -/
 @[simp] lemma order_of_a_one : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn,
-  { simp_rw [mul_zero, order_of_eq_zero_iff'],
-    intros n hn,
+  casesI eq_zero_or_ne_zero n with hn hn,
+  { subst hn,
+    simp_rw [mul_zero, order_of_eq_zero_iff'],
+    intros n h,
     rw [one_def, a_one_pow],
     apply mt a.inj,
     haveI : char_zero (zmod (2 * 0)) := zmod.char_zero,
-    simpa using hn.ne' },
-  haveI := fact.mk hn,
-  apply (nat.le_of_dvd (nat.succ_mul_pos _ hn)
+    simpa using h.ne' },
+  apply (nat.le_of_dvd (ne_zero.pos _)
                        (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq.resolve_left,
   intro h,
   have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
@@ -255,7 +248,7 @@ end
 /--
 If `0 < n`, then `a i` has order `(2 * n) / gcd (2 * n) i`.
 -/
-lemma order_of_a [fact (0 < n)] (i : zmod (2 * n)) :
+lemma order_of_a [ne_zero n] (i : zmod (2 * n)) :
   order_of (a i) = (2 * n) / nat.gcd (2 * n) i.val :=
 begin
   conv_lhs { rw ← zmod.nat_cast_zmod_val i },
@@ -266,10 +259,10 @@ lemma exponent : monoid.exponent (quaternion_group n) = 2 * lcm n 2 :=
 begin
   rw [←normalize_eq 2, ←lcm_mul_left, normalize_eq],
   norm_num,
-  rcases n.eq_zero_or_pos with rfl | hn,
-  { simp only [lcm_zero_left, mul_zero],
+  casesI eq_zero_or_ne_zero n with hn hn,
+  { subst hn,
+    simp only [lcm_zero_left, mul_zero],
     exact monoid.exponent_eq_zero_of_order_zero order_of_a_one },
-  haveI := fact.mk hn,
   apply nat.dvd_antisymm,
   { apply monoid.exponent_dvd_of_forall_pow_eq_one,
     rintro (m | m),

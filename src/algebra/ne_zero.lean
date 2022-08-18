@@ -63,6 +63,11 @@ instance bit1 [canonically_ordered_comm_semiring M] [nontrivial M] : ne_zero (bi
 instance pow [monoid_with_zero M] [no_zero_divisors M] [ne_zero x] : ne_zero (x ^ n) :=
 ⟨pow_ne_zero n out⟩
 
+-- todo: this may become `mul_ne_zero out out` in the future.
+instance mul [has_zero M] [has_mul M] [no_zero_divisors M] [ne_zero x] [ne_zero y] :
+  ne_zero (x * y) :=
+⟨mt eq_zero_or_eq_zero_of_mul_eq_zero $ not_or_distrib.mpr ⟨out, out⟩⟩
+
 instance char_zero [ne_zero n] [add_monoid_with_one M] [char_zero M] : ne_zero (n : M) :=
 ⟨nat.cast_ne_zero.mpr out⟩
 

@@ -114,9 +114,6 @@ instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
--- see note [fact non_instances]
-lemma fact_pos (n : ℕ+) : fact (0 < ↑n) := ⟨n.pos⟩
-
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
 @[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff

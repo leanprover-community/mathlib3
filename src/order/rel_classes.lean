@@ -280,6 +280,16 @@ theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt α�
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
   extends is_trichotomous α r, is_trans α r, is_well_founded α r : Prop
 
+/-- The preferred way to state `is_well_order α (<)` is `linear_order α` + `well_founded_lt α`, as
+it's much easier to recover the `is_well_order` instance than the other way around. -/
+theorem is_well_order_lt_of_wf_of_linear_order (α) [linear_order α] [well_founded_lt α] :
+  is_well_order α (<) := { }
+
+/-- The preferred way to state `is_well_order α (>)` is `linear_order α` + `well_founded_gt α`, as
+it's much easier to recover the `is_well_order` instance than the other way around. -/
+theorem is_well_order_gt_of_wf_of_linear_order (α) [linear_order α] [well_founded_gt α] :
+  is_well_order α (>) := is_well_order_lt_of_wf_of_linear_order αᵒᵈ
+
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order' {α} (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order' α r := { }
@@ -374,32 +384,6 @@ instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well
 { trichotomous := is_empty_elim,
   trans        := is_empty_elim,
   wf           := well_founded_of_empty r }
-
-instance prod.lex.is_well_founded [is_well_founded α r] [is_well_founded β s] :
-  is_well_founded (α × β) (prod.lex r s) :=
-⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
-
-instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
-  is_well_order (α × β) (prod.lex r s) :=
-{ trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
-    match @trichotomous _ r _ a₁ b₁ with
-    | or.inl h₁ := or.inl $ prod.lex.left _ _ h₁
-    | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ h₁
-    | or.inr (or.inl e) := e ▸  match @trichotomous _ s _ a₂ b₂ with
-      | or.inl h := or.inl $ prod.lex.right _ h
-      | or.inr (or.inr h) := or.inr $ or.inr $ prod.lex.right _ h
-      | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
-      end
-    end,
-  trans := λ a b c h₁ h₂, begin
-    cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
-    cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
-    { exact prod.lex.left _ _ (trans ab bc) },
-    { exact prod.lex.left _ _ ab },
-    { exact prod.lex.left _ _ bc },
-    { exact prod.lex.right _ (trans ab bc) }
-  end,
-  wf := prod.lex_wf is_well_founded.wf is_well_founded.wf }
 
 instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :
   is_well_founded _ (inv_image r f) :=

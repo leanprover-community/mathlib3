@@ -87,8 +87,10 @@ instance [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α ⊕
   | inr a, inr b := (trichotomous_of s a b).imp3 lex.inr (congr_arg _) lex.inr
 end⟩
 
-instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
-{ wf := sum.lex_wf is_well_founded.wf is_well_founded.wf }
+instance [is_well_founded α r] [is_well_founded β s] : is_well_founded (α ⊕ β) (sum.lex r s) :=
+⟨sum.lex_wf is_well_founded.wf is_well_founded.wf⟩
+
+instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) := { }
 
 end lex
 
@@ -403,6 +405,18 @@ instance densely_ordered_of_no_min_order [has_lt α] [has_lt β] [densely_ordere
 | inr a, inr b, lex.inr h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inr c), inr_lt_inr_iff.2 ha, inr_lt_inr_iff.2 hb⟩
 end⟩
+
+instance is_well_founded_lt [has_lt α] [has_lt β] [well_founded_lt α] [well_founded_lt β] :
+  is_well_founded (α ⊕ₗ β) (<) :=
+sum.lex.is_well_founded _ _
+
+instance is_well_order_lt [linear_order α] [linear_order β]
+  [well_founded_lt α] [well_founded_lt β] : is_well_order (α ⊕ₗ β) (<) :=
+begin
+  haveI := is_well_order_lt_of_wf_of_linear_order α,
+  haveI := is_well_order_lt_of_wf_of_linear_order β,
+  apply sum.lex.is_well_order
+end
 
 end lex
 end sum

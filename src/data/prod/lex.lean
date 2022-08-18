@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
 import order.synonym
+import order.rel_classes
 
 /-!
 # Lexicographic order
@@ -56,6 +57,17 @@ lemma le_iff [has_lt α] [has_le β] (a b : α × β) :
 lemma lt_iff [has_lt α] [has_lt β] (a b : α × β) :
   to_lex a < to_lex b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 < b.2 := prod.lex_def (<) (<)
 
+instance (r s) [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α × β) (prod.lex r s) :=
+⟨λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, begin
+  rcases trichotomous_of r a₁ b₁ with (h | rfl | h),
+  { exact or.inl (prod.lex.left _ _ h) },
+  { rcases trichotomous_of s a₂ b₂ with (h | rfl | h),
+    { exact or.inl (prod.lex.right _ h) },
+    { exact or.inr (or.inl $ rfl) },
+    { exact or.inr (or.inr $ prod.lex.right _ h) } },
+  { exact or.inr (or.inr $ prod.lex.left _ _ h) }
+end⟩
+
 /-- Dictionary / lexicographic preorder for pairs. -/
 instance preorder (α β : Type*) [preorder α] [preorder β] : preorder (α ×ₗ β) :=
 { le_refl := by
@@ -104,5 +116,24 @@ instance linear_order (α β : Type*) [linear_order α] [linear_order β] : line
   decidable_lt := prod.lex.decidable _ _,
   decidable_eq := lex.decidable_eq _ _,
   .. prod.lex.partial_order α β }
+
+instance is_well_founded (r s) [is_well_founded α r] [is_well_founded β s] :
+  is_well_founded (α × β) (prod.lex r s) :=
+⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
+
+instance is_well_order (r s) [is_well_order α r] [is_well_order β s] :
+  is_well_order (α × β) (prod.lex r s) := { }
+
+instance is_well_founded_lt [has_lt α] [has_lt β] [well_founded_lt α] [well_founded_lt β] :
+  is_well_founded (α ×ₗ β) (<) :=
+prod.lex.is_well_founded _ _
+
+instance is_well_order_lt [linear_order α] [linear_order β]
+  [well_founded_lt α] [well_founded_lt β] : is_well_order (α ×ₗ β) (<) :=
+begin
+  haveI := is_well_order_lt_of_wf_of_linear_order α,
+  haveI := is_well_order_lt_of_wf_of_linear_order β,
+  apply prod.lex.is_well_order
+end
 
 end prod.lex

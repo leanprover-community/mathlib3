@@ -483,7 +483,6 @@ by simp
 variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F] (y : M)
 
 /-- The graph of `z • f` as a pushforward. -/
-
 lemma smul_graph (f : E →ₗ.[R] F) (z : M) :
   (z • f).graph = 
     f.graph.map ((linear_map.id : E →ₗ[R] E).prod_map (z • (linear_map.id : F →ₗ[R] F))) :=

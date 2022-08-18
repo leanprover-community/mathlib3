@@ -41,8 +41,9 @@ def normalize_fin_lt (n : ℕ) (a : fin n) (b : ℕ) := a.1 = b
 
 theorem normalize_fin_lt.coe {n} {a : fin n} {b : ℕ} (h : normalize_fin_lt n a b) : ↑a = b := h
 
-theorem normalize_fin_iff {n} [fact (0 < n)] {a b} :
-  normalize_fin n a b ↔ a = fin.of_nat' b :=
+-- for some reason if you don't write this, Lean doesn't infer `nat`'s `has_zero`.
+theorem normalize_fin_iff {n} [h : ne_zero n] {a b} :
+  normalize_fin n a b ↔ a = @fin.of_nat' n h b :=
 iff.symm (fin.eq_iff_veq _ _)
 
 theorem normalize_fin_lt.mk {n a b n'} (hn : n = n')

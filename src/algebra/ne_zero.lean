@@ -51,8 +51,12 @@ lemma pos (r : R) [canonically_ordered_add_monoid R] [ne_zero r] : 0 < r :=
 lemma of_pos [preorder M] [has_zero M] (h : 0 < x) : ne_zero x := ⟨h.ne'⟩
 lemma of_gt  [canonically_ordered_add_monoid M] (h : x < y) : ne_zero y := of_pos $ pos_of_gt h
 
-instance of_gt' [canonically_ordered_add_monoid M] [fact (x < y)] : ne_zero y :=
-of_gt $ fact.out $ x < y
+-- 1 < p is still an often-used `fact`, due to `nat.prime` implying it, and it implying `nontrivial`
+-- on `zmod`'s ring structure. We cannot just set this to be any `x < y`, else that becomes a
+-- metavariable and it will hugely slow down typeclass inference.
+@[priority 10]
+instance of_gt' [canonically_ordered_add_monoid M] [has_one M] [fact (1 < y)] : ne_zero y :=
+of_gt $ fact.out $ 1 < y
 
 instance bit0 [canonically_ordered_add_monoid M] [ne_zero x] : ne_zero (bit0 x) :=
 of_pos $ bit0_pos $ ne_zero.pos x

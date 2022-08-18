@@ -423,6 +423,56 @@ lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
 
 end update
 
+/-! ### Declarations about `erase` -/
+
+section erase
+
+variables [has_zero M]
+
+/-- `erase a f` is the finitely supported function equal to `f` except at `a` where it is equal to
+  `0`. -/
+def erase (a : α) (f : α →₀ M) : α →₀ M :=
+⟨f.support.erase a, (λa', if a' = a then 0 else f a'),
+  assume a', by rw [mem_erase, mem_support_iff]; split_ifs;
+    [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
+    exact and_iff_right h]⟩
+
+@[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
+  (f.erase a).support = f.support.erase a :=
+by convert rfl
+
+@[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
+if_pos rfl
+
+@[simp] lemma erase_ne {a a' : α} {f : α →₀ M} (h : a' ≠ a) : (f.erase a) a' = f a' :=
+if_neg h
+
+@[simp] lemma erase_single {a : α} {b : M} : (erase a (single a b)) = 0 :=
+begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, erase_same], refl },
+  { rw [erase_ne hs], exact single_eq_of_ne (ne.symm hs) }
+end
+
+lemma erase_single_ne {a a' : α} {b : M} (h : a ≠ a') : (erase a (single a' b)) = single a' b :=
+begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, erase_same, single_eq_of_ne (h.symm)] },
+  { rw [erase_ne hs] }
+end
+
+@[simp] lemma erase_of_not_mem_support {f : α →₀ M} {a} (haf : a ∉ f.support) : erase a f = f :=
+begin
+  ext b, by_cases hab : b = a,
+  { rwa [hab, erase_same, eq_comm, ←not_mem_support_iff] },
+  { rw erase_ne hab }
+end
+
+@[simp] lemma erase_zero (a : α) : erase a (0 : α →₀ M) = 0 :=
+by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
+
+end erase
+
 /-! ### Declarations about `on_finset` -/
 
 section on_finset
@@ -663,55 +713,7 @@ by rw subsingleton.elim D; exact support_on_finset_subset
 
 end zip_with
 
-/-! ### Declarations about `erase` -/
 
-section erase
-
-variables [has_zero M]
-
-/-- `erase a f` is the finitely supported function equal to `f` except at `a` where it is equal to
-  `0`. -/
-def erase (a : α) (f : α →₀ M) : α →₀ M :=
-⟨f.support.erase a, (λa', if a' = a then 0 else f a'),
-  assume a', by rw [mem_erase, mem_support_iff]; split_ifs;
-    [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
-    exact and_iff_right h]⟩
-
-@[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
-  (f.erase a).support = f.support.erase a :=
-by convert rfl
-
-@[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
-if_pos rfl
-
-@[simp] lemma erase_ne {a a' : α} {f : α →₀ M} (h : a' ≠ a) : (f.erase a) a' = f a' :=
-if_neg h
-
-@[simp] lemma erase_single {a : α} {b : M} : (erase a (single a b)) = 0 :=
-begin
-  ext s, by_cases hs : s = a,
-  { rw [hs, erase_same], refl },
-  { rw [erase_ne hs], exact single_eq_of_ne (ne.symm hs) }
-end
-
-lemma erase_single_ne {a a' : α} {b : M} (h : a ≠ a') : (erase a (single a' b)) = single a' b :=
-begin
-  ext s, by_cases hs : s = a,
-  { rw [hs, erase_same, single_eq_of_ne (h.symm)] },
-  { rw [erase_ne hs] }
-end
-
-@[simp] lemma erase_of_not_mem_support {f : α →₀ M} {a} (haf : a ∉ f.support) : erase a f = f :=
-begin
-  ext b, by_cases hab : b = a,
-  { rwa [hab, erase_same, eq_comm, ←not_mem_support_iff] },
-  { rw erase_ne hab }
-end
-
-@[simp] lemma erase_zero (a : α) : erase a (0 : α →₀ M) = 0 :=
-by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
-
-end erase
 
 
 

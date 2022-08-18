@@ -619,6 +619,7 @@ induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 theorem add_def {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
 
+/-- Note the `(<)` on the RHS is the comparison on `α ⊕ₗ β` via `sum.lex.has_le` -/
 theorem add_def_lt {α β : Type u} [has_lt α] [has_lt β]
   [is_well_order α (<)] [is_well_order β (<)] :
   @type α (<) _ + @type β (<) _ = @type (α ⊕ₗ β) (<) _ :=
@@ -633,6 +634,7 @@ begin
   exact (rel_iso.preimage equiv.ulift _).symm
 end
 
+/-- Note the `(<)` on the LHS is the comparison on `α ⊕ₗ β` via `sum.lex.has_le` -/
 @[simp] theorem type_lex_sum_lt {α : Type u} {β : Type v} [has_lt α] [has_lt β]
   [is_well_order α (<)] [is_well_order β (<)] :
   @type (α ⊕ₗ β) (<) _ = lift.{v} (@type α (<) _) + lift.{u} (@type β (<) _) :=

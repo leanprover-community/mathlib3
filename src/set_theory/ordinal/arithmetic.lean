@@ -595,6 +595,7 @@ instance : monoid ordinal.{u} :=
 theorem mul_def {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r * type s = type (prod.lex s r) := rfl
 
+/-- Note the `(<)` on the RHS is the comparison on `β ×ₗ α` via `prod.lex.has_le` -/
 theorem mul_def_lt {α β : Type u} [has_lt α] [has_lt β]
   [is_well_order α (<)] [is_well_order β (<)] :
   @type α (<) _ * @type β (<) _ = @type (β ×ₗ α) (<) _ :=
@@ -609,6 +610,7 @@ begin
   exact (rel_iso.preimage equiv.ulift _).symm
 end
 
+/-- Note the `(<)` on the LHS is the comparison on `β ×ₗ α` via `prod.lex.has_le` -/
 @[simp] theorem type_lex_prod_lt {α : Type u} {β : Type v} [has_lt α] [has_lt β]
   [is_well_order α (<)] [is_well_order β (<)] :
   @type (β ×ₗ α) (<) _ = lift.{v} (@type α (<) _) * lift.{u} (@type β (<) _) :=

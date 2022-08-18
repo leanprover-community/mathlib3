@@ -758,19 +758,6 @@ protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
 end ring
 
-section division_ring
-
-variables [comm_semiring R] [division_ring A] [division_ring B]
-variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
-
-@[simp] lemma map_inv (x) : φ (x⁻¹) = (φ x)⁻¹ :=
-φ.to_ring_hom.map_inv x
-
-@[simp] lemma map_div (x y) : φ (x / y) = φ x / φ y :=
-φ.to_ring_hom.map_div x y
-
-end division_ring
-
 end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
@@ -1220,19 +1207,6 @@ protected lemma map_sub (x y) : e (x - y) = e x - e y := map_sub e x y
 
 end ring
 
-section division_ring
-
-variables [comm_ring R] [division_ring A₁] [division_ring A₂]
-variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
-
-@[simp] lemma map_inv (x) : e (x⁻¹) = (e x)⁻¹ :=
-e.to_alg_hom.map_inv x
-
-@[simp] lemma map_div (x y) : e (x / y) = e x / e y :=
-e.to_alg_hom.map_div x y
-
-end division_ring
-
 end alg_equiv
 
 namespace mul_semiring_action
@@ -1363,8 +1337,7 @@ example : algebra_rat = algebra.id ℚ := rfl
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma algebra_rat_subsingleton {α} [semiring α] :
+instance algebra_rat_subsingleton {α} [semiring α] :
   subsingleton (algebra ℚ α) :=
 ⟨λ x y, algebra.algebra_ext x y $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
 

@@ -19,13 +19,7 @@ apply_nolint ring_hom.functions_ext fintype_finite
 apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
 
 -- algebra/char_p/basic.lean
-apply_nolint char_p.char_is_prime fintype_finite
-apply_nolint char_p.char_ne_zero_of_fintype fintype_finite
-apply_nolint char_p.ring_char_ne_zero_of_fintype fintype_finite
 apply_nolint is_square_of_char_two' fintype_finite
-
--- algebra/char_p/char_and_card.lean
-apply_nolint is_unit_iff_not_dvd_char fintype_finite
 
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
@@ -107,43 +101,8 @@ apply_nolint category_theory.limits.has_limits_of_shape_discrete fintype_finite
 -- category_theory/preadditive/biproducts.lean
 apply_nolint category_theory.biproduct.column_nonzero_of_iso' fintype_finite
 
--- combinatorics/additive/salem_spencer.lean
-apply_nolint mul_salem_spencer.decidable to_additive_doc
-
--- combinatorics/configuration.lean
-apply_nolint configuration.has_lines.point_count_le_line_count fintype_finite
-apply_nolint configuration.has_points.line_count_le_point_count fintype_finite
-apply_nolint configuration.projective_plane.card_lines fintype_finite
-apply_nolint configuration.projective_plane.card_points fintype_finite
-apply_nolint configuration.projective_plane.dual.order fintype_finite
-apply_nolint configuration.projective_plane.line_count_eq fintype_finite
-apply_nolint configuration.projective_plane.line_count_eq_line_count fintype_finite
-apply_nolint configuration.projective_plane.line_count_eq_point_count fintype_finite
-apply_nolint configuration.projective_plane.one_lt_order fintype_finite
-apply_nolint configuration.projective_plane.point_count_eq fintype_finite
-apply_nolint configuration.projective_plane.point_count_eq_point_count fintype_finite
-apply_nolint configuration.projective_plane.two_lt_line_count fintype_finite
-apply_nolint configuration.projective_plane.two_lt_point_count fintype_finite
-
 -- combinatorics/hales_jewett.lean
-apply_nolint combinatorics.exists_mono_homothetic_copy fintype_finite
 apply_nolint combinatorics.line.exists_mono_in_high_dimension fintype_finite
-
--- combinatorics/hall/finite.lean
-apply_nolint finset.all_card_le_bUnion_card_iff_exists_injective' fintype_finite
-apply_nolint hall_marriage_theorem.hall_hard_inductive fintype_finite
-
--- combinatorics/hindman.lean
-apply_nolint hindman.FP.mul to_additive_doc
-apply_nolint hindman.FP_partition_regular to_additive_doc
-apply_nolint hindman.exists_FP_of_finite_cover to_additive_doc
-
--- combinatorics/simple_graph/coloring.lean
-apply_nolint simple_graph.clique_free_of_chromatic_number_lt fintype_finite
-apply_nolint simple_graph.colorable_chromatic_number_of_fintype fintype_finite
-apply_nolint simple_graph.coloring.color_classes_finite_of_fintype fintype_finite
-apply_nolint simple_graph.is_clique.card_le_chromatic_number fintype_finite
-apply_nolint simple_graph.is_empty_of_chromatic_number_eq_zero fintype_finite
 
 -- computability/partrec.lean
 apply_nolint computable doc_blame
@@ -543,9 +502,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/setoid/partition.lean
-apply_nolint setoid.nonempty_fintype_classes_ker fintype_finite
-
 -- data/stream/defs.lean
 apply_nolint stream.corec doc_blame
 apply_nolint stream.corec' doc_blame
@@ -619,13 +575,6 @@ apply_nolint monoid.fg_of_fintype fintype_finite
 
 -- group_theory/group_action/basic.lean
 apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
-
--- group_theory/group_action/defs.lean
-apply_nolint comp_smul_left to_additive_doc
-apply_nolint has_mul.to_has_smul to_additive_doc
-apply_nolint mul_action.regular.is_pretransitive to_additive_doc
-apply_nolint mul_smul_comm to_additive_doc
-apply_nolint one_smul_eq_id to_additive_doc
 
 -- group_theory/group_action/group.lean
 apply_nolint mul_action.to_perm_injective to_additive_doc
@@ -953,9 +902,6 @@ apply_nolint is_cyclotomic_extension.number_field fintype_finite
 -- order/atoms.lean
 apply_nolint fintype.to_is_atomic fintype_finite
 apply_nolint fintype.to_is_coatomic fintype_finite
-
--- order/filter/ultrafilter.lean
-apply_nolint ultrafilter.eq_pure_of_fintype fintype_finite
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
@@ -1506,59 +1452,5 @@ apply_nolint transfer.compute_transfer doc_blame
 -- tactic/wlog.lean
 apply_nolint tactic.wlog doc_blame
 
--- topology/algebra/const_mul_action.lean
-apply_nolint fintype.properly_discontinuous_smul fintype_finite to_additive_doc
-apply_nolint fintype.properly_discontinuous_vadd fintype_finite
-apply_nolint is_open_map_quotient_mk_mul to_additive_doc
-apply_nolint t2_space_of_properly_discontinuous_smul_of_t2_space to_additive_doc
-
--- topology/algebra/constructions.lean
-apply_nolint mul_opposite.topological_space to_additive_doc
-apply_nolint units.topological_space to_additive_doc
-
--- topology/algebra/continuous_monoid_hom.lean
-apply_nolint continuous_monoid_hom.has_coe_to_fun to_additive_doc
-
--- topology/algebra/filter_basis.lean
-apply_nolint group_filter_basis.is_topological_group to_additive_doc
-
 -- topology/algebra/group.lean
-apply_nolint filter.tendsto.inv to_additive_doc
-apply_nolint group_topology.complete_semilattice_Inf to_additive_doc
-apply_nolint group_topology.continuous_inv' to_additive_doc
-apply_nolint group_topology.continuous_mul' to_additive_doc
-apply_nolint group_topology.has_Inf to_additive_doc
-apply_nolint group_topology.partial_order to_additive_doc
-apply_nolint separable_locally_compact_group.sigma_compact_space to_additive_doc
 apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc
-
--- topology/algebra/nonarchimedean/basic.lean
-apply_nolint nonarchimedean_group.nonarchimedean_of_emb to_additive_doc
-apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc
-apply_nolint nonarchimedean_group.prod_self_subset to_additive_doc
-apply_nolint nonarchimedean_group.prod_subset to_additive_doc
-
--- topology/algebra/order/compact.lean
-apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
-apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
-
--- topology/category/Profinite/cofiltered_limit.lean
-apply_nolint Profinite.exists_locally_constant_fintype_aux fintype_finite
-apply_nolint Profinite.exists_locally_constant_fintype_nonempty fintype_finite
-
--- topology/category/Top/open_nhds.lean
-apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/constructions.lean
-apply_nolint pi_generate_from_eq_fintype fintype_finite
-
--- topology/separation.lean
-apply_nolint discrete_of_t1_of_finite fintype_finite
-
--- topology/uniform_space/completion.lean
-apply_nolint Cauchy.extend doc_blame
-apply_nolint Cauchy.gen doc_blame
-apply_nolint uniform_space.completion.completion_separation_quotient_equiv doc_blame
-apply_nolint uniform_space.completion.cpkg doc_blame
-apply_nolint uniform_space.completion.extension₂ doc_blame
-apply_nolint uniform_space.completion.map₂ doc_blame

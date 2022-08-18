@@ -354,7 +354,7 @@ begin
   unfreezingI { rintro rfl },
   haveI : char_zero R := char_p_to_char_zero R,
   casesI nonempty_fintype R,
-  exact absurd nat.cast_injective (not_injective_infinite_fintype (coe : ℕ → R))
+  exact absurd nat.cast_injective (not_injective_infinite_finite (coe : ℕ → R))
 end
 
 lemma ring_char_ne_zero_of_finite [finite R] : ring_char R ≠ 0 :=

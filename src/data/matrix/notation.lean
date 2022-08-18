@@ -301,7 +301,7 @@ by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
 
-section minor
+section submatrix
 
 @[simp] lemma submatrix_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
   submatrix A row col = ![] :=
@@ -311,7 +311,7 @@ empty_eq _
   submatrix A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (submatrix A row col) :=
 by { ext i j, refine fin.cases _ _ i; simp [submatrix] }
 
-end minor
+end submatrix
 
 section vec2_and_vec3
 

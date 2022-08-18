@@ -1669,7 +1669,7 @@ ext $ λ _ _, rfl
   (A.submatrix r_reindex c_reindex)ᵀ = Aᵀ.submatrix c_reindex r_reindex :=
 ext $ λ _ _, rfl
 
-@[simp] lemma conj_transpose_minor
+@[simp] lemma conj_transpose_submatrix
   [has_star α] (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
   (A.submatrix r_reindex c_reindex)ᴴ = Aᴴ.submatrix c_reindex r_reindex :=
 ext $ λ _ _, rfl

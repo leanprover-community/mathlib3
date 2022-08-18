@@ -435,30 +435,6 @@ end
 
 end affine_target_morphism_property
 
-namespace Scheme
-
-instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) [is_affine X] [is_affine Y] [is_affine Z] :
-  is_affine (pullback f g) :=
-is_affine_of_iso (pullback.map f g (Spec.map (Γ.map f.op).op) (Spec.map (Γ.map g.op).op)
-  (Γ_Spec.adjunction.unit.app X) (Γ_Spec.adjunction.unit.app Y) (Γ_Spec.adjunction.unit.app Z)
-  (Γ_Spec.adjunction.unit.naturality f) (Γ_Spec.adjunction.unit.naturality g) ≫
-    (preserves_pullback.iso Spec _ _).inv)
-
-end Scheme
-
-/-- The canonical map `X ×ₛ Y ⟶ X ×ₜ Y`. -/
-abbreviation pullback.map_desc {C : Type*} [category C] {X Y S T : C} (f : X ⟶ S) (g : Y ⟶ S) (i : S ⟶ T) [has_pullback f g]
-  [has_pullback (f ≫ i) (g ≫ i)] :
-  pullback f g ⟶ pullback (f ≫ i) (g ≫ i) :=
-pullback.map f g (f ≫ i) (g ≫ i) (𝟙 _) (𝟙 _) i (category.id_comp _).symm (category.id_comp _).symm
-
-lemma pullback.map_desc_comp {C : Type*} [category C] {X Y S T S' : C} (f : X ⟶ T) (g : Y ⟶ T) (i : T ⟶ S)
-  (i' : S ⟶ S') [has_pullback f g] [has_pullback (f ≫ i) (g ≫ i)]
-  [has_pullback (f ≫ i ≫ i') (g ≫ i ≫ i')] [has_pullback ((f ≫ i) ≫ i') ((g ≫ i) ≫ i')] :
-  pullback.map_desc f g (i ≫ i') = pullback.map_desc f g i ≫ pullback.map_desc _ _ i' ≫
-    (pullback.congr_hom (category.assoc _ _ _) (category.assoc _ _ _)).hom :=
-by { ext; simp }
-
 /--
 The `affine_target_morphism_property` associated to `(target_affine_locally P).diagonal`.
 See `diagonal_target_affine_locally_eq_target_affine_locally`.

@@ -8,11 +8,8 @@ import data.real.nnreal
 /-!
 # Group seminorms
 
-This file defines seminorms in a group.
-
-A seminorm is a function to the reals which is positive-semidefinite, absolutely homogeneous, and
-subadditive. They are closely related to convex sets and a topological vector space is locally
-convex if and only if its topology is induced by a family of seminorms.
+This file defines seminorms in a group. A group seminorm is a function to the reals which is
+positive-semidefinite and subadditive.
 
 ## Main declarations
 
@@ -27,7 +24,7 @@ convex if and only if its topology is induced by a family of seminorms.
 
 ## Tags
 
-seminorm, locally convex
+seminorm
 -/
 
 set_option old_structure_cmd true
@@ -43,7 +40,8 @@ structure add_group_seminorm (G : Type*) [add_group G] extends zero_hom G ℝ :=
 (add_le' : ∀ r s, to_fun (r + s) ≤ to_fun r + to_fun s)
 (neg' : ∀ r, to_fun (-r) = to_fun r)
 
-/-- A seminorm on a group `G` is a function `f : G → ℝ` that preserves zero, is submultiplicative and such that `f x⁻¹ = f x` for all `x`. -/
+/-- A seminorm on a group `G` is a function `f : G → ℝ` that sends one to zero, is submultiplicative
+and such that `f x⁻¹ = f x` for all `x`. -/
 @[to_additive]
 structure group_seminorm (G : Type*) [group G] :=
 (to_fun : G → ℝ)
@@ -75,7 +73,7 @@ variables (p q : group_seminorm E) (x y : E) (r : ℝ)
 @[to_additive] protected lemma mul_le : p (x * y) ≤ p x + p y := p.mul_le' _ _
 @[simp, to_additive] protected lemma inv : p x⁻¹ = p x := p.inv' _
 
-@[to_additive] protected lemma div_le  : p (x / y) ≤ p x + p y :=
+@[to_additive] protected lemma div_le : p (x / y) ≤ p x + p y :=
 by { rw [div_eq_mul_inv, ←p.inv y], exact p.mul_le _ _ }
 
 @[to_additive] protected lemma nonneg : 0 ≤ p x :=
@@ -97,10 +95,10 @@ variables {p q}
 variables (p q) (f : F →* E)
 
 @[to_additive] instance : has_zero (group_seminorm E) :=
-⟨{ to_fun   := 0,
+⟨{ to_fun := 0,
   map_one' := pi.zero_apply _,
-  mul_le'   := λ _ _, (zero_add _).ge,
-  inv'      := λ x, rfl}⟩
+  mul_le' := λ _ _, (zero_add _).ge,
+  inv' := λ x, rfl}⟩
 
 @[simp, to_additive] lemma coe_zero : ⇑(0 : group_seminorm E) = 0 := rfl
 @[simp, to_additive] lemma zero_apply (x : E) : (0 : group_seminorm E) x = 0 := rfl
@@ -108,12 +106,12 @@ variables (p q) (f : F →* E)
 @[to_additive] instance : inhabited (group_seminorm E) := ⟨0⟩
 
 @[to_additive] instance : has_add (group_seminorm E) :=
-{ add := λ p q,
-  { to_fun    := λ x, p x + q x,
+⟨λ p q,
+  { to_fun := λ x, p x + q x,
     map_one' := by rw [p.map_one, q.map_one, zero_add],
-    mul_le'   := λ _ _, (add_le_add (p.mul_le _ _) $ q.mul_le _ _).trans_eq $
+    mul_le' := λ _ _, (add_le_add (p.mul_le _ _) $ q.mul_le _ _).trans_eq $
       add_add_add_comm _ _ _ _,
-    inv' := λ x, by rw [p.inv, q.inv] }}
+    inv' := λ x, by rw [p.inv, q.inv] }⟩
 
 @[simp, to_additive] lemma coe_add : ⇑(p + q) = p + q := rfl
 @[simp, to_additive] lemma add_apply (x : E) : (p + q) x = p x + q x := rfl
@@ -121,13 +119,13 @@ variables (p q) (f : F →* E)
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
 @[to_additive] noncomputable instance : has_sup (group_seminorm E) :=
-{ sup := λ p q,
-  { to_fun  := p ⊔ q,
+⟨λ p q,
+  { to_fun := p ⊔ q,
     map_one' := by rw [pi.sup_apply, ←p.map_one, sup_eq_left, p.map_one, q.map_one],
     mul_le' := λ x y, sup_le
       ((p.mul_le x y).trans $ add_le_add le_sup_left le_sup_left)
       ((q.mul_le x y).trans $ add_le_add le_sup_right le_sup_right),
-    inv' := λ x, by rw [pi.sup_apply, pi.sup_apply, p.inv, q.inv] }}
+    inv' := λ x, by rw [pi.sup_apply, pi.sup_apply, p.inv, q.inv] }⟩
 
 @[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
@@ -139,10 +137,10 @@ fun_like.coe_injective.semilattice_sup _ coe_sup
 @[to_additive "Composition of an additive group seminorm with an additive monoid homomorphism as an
 additive group seminorm."]
 def comp (p : group_seminorm E) (f : F →* E) : group_seminorm F :=
-{ to_fun   := λ x, p (f x),
+{ to_fun := λ x, p (f x),
   map_one' := by rw [f.map_one, p.map_one],
-  mul_le'  := λ _ _, (congr_arg p $ f.map_mul _ _).trans_le $ p.mul_le _ _,
-  inv'     := λ x, by rw [map_inv, p.inv] }
+  mul_le' := λ _ _, (congr_arg p $ f.map_mul _ _).trans_le $ p.mul_le _ _,
+  inv' := λ x, by rw [map_inv, p.inv] }
 
 @[simp, to_additive] lemma coe_comp : ⇑(p.comp f) = p ∘ f := rfl
 @[simp, to_additive] lemma comp_apply (x : F) : (p.comp f) x = p (f x) := rfl
@@ -167,12 +165,10 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
 /-- The direct path from `1` to `y` is shorter than the path with `x` "inserted" in between. -/
 @[to_additive "The direct path from `0` to `y` is shorter than the path with `x` \"inserted\" in
 between."]
-lemma le_insert : p y ≤ p x + p (x / y) :=
-calc p y = p (x / (x / y)) : by rw div_div_cancel
-     ... ≤ p x + p (x / y) : p.div_le  _ _
+lemma le_insert : p y ≤ p x + p (x / y) := (p.div_le _ _).trans_eq' $ by rw div_div_cancel
 
-/-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
-@[to_additive "The direct path from 0 to x is shorter than the path with y \"inserted\" in
+/-- The direct path from `1` to `x` is shorter than the path with `y` "inserted" in between. -/
+@[to_additive "The direct path from `0` to `x` is shorter than the path with `y` \"inserted\" in
 between."]
 lemma le_insert' : p x ≤ p y + p (x / y) := by { rw div_rev, exact le_insert _ _ _ }
 
@@ -180,22 +176,21 @@ lemma le_insert' : p x ≤ p y + p (x / y) := by { rw div_rev, exact le_insert _
 λ _, p.mul_le _ _
 
 @[to_additive] private lemma mul_bdd_below_range_add {p q : group_seminorm E} {x : E} :
-  bdd_below (range (λ y, p y + q (x / y))) :=
+  bdd_below (range $ λ y, p y + q (x / y)) :=
 ⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }⟩
 
 @[to_additive] noncomputable instance : has_inf (group_seminorm E) :=
-{ inf := λ p q,
-  { to_fun    := λ x, ⨅ y, p y + q (x / y),
+⟨λ p q,
+  { to_fun := λ x, ⨅ y, p y + q (x / y),
     map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
         (λ x, add_nonneg (p.nonneg _) (q.nonneg _))
         (λ r hr, ⟨1, by rwa [div_one, p.map_one, q.map_one, add_zero]⟩),
-    mul_le'   := λ x y, le_cinfi_add_cinfi $ λ u v, begin
-      apply cinfi_le_of_le mul_bdd_below_range_add (u * v),
-      dsimp,
+    mul_le' := λ x y, le_cinfi_add_cinfi $ λ u v, begin
+      refine cinfi_le_of_le mul_bdd_below_range_add (u * v) _,
       rw [mul_div_mul_comm, add_add_add_comm],
       exact add_le_add (p.mul_le _ _) (q.mul_le _ _),
     end,
-    inv' := λ x, (inv_surjective.infi_comp _).symm.trans $ by simp_rw [p.inv, ←inv_div', q.inv] }}
+    inv' := λ x, (inv_surjective.infi_comp _).symm.trans $ by simp_rw [p.inv, ←inv_div', q.inv] }⟩
 
 @[simp, to_additive] lemma inf_apply : (p ⊓ q) x = ⨅ y, p y + q (x / y) := rfl
 
@@ -258,7 +253,7 @@ variables [group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
 @[to_additive add_group_seminorm.has_smul] instance : has_smul R (group_seminorm E) :=
- ⟨λ r p,
+⟨λ r p,
   { to_fun := λ x, r • p x,
     map_one' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
       p.map_one, mul_zero],

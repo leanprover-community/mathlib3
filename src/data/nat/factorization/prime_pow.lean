@@ -77,8 +77,8 @@ lemma is_prime_pow_of_ord_compl_eq_one {n p : ℕ} (hn : n ≠ 1) (pp : p.prime)
   (h : ord_compl[p] n = 1) : is_prime_pow n :=
 begin
   rw is_prime_pow_nat_iff,
-  rw [←nat.eq_of_dvd_of_div_eq_one (nat.ord_proj_dvd n p) h] at |- hn,
-  refine ⟨p, n.factorization p, pp, _, (by simp)⟩,
+  rw [←nat.eq_of_dvd_of_div_eq_one (nat.ord_proj_dvd n p) h] at ⊢ hn,
+  refine ⟨p, n.factorization p, pp, _, by simp⟩,
   contrapose! hn,
   simp [le_zero_iff.1 hn],
 end

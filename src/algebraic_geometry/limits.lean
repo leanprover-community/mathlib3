@@ -75,6 +75,7 @@ show is_empty pempty, by apply_instance
 instance Spec_punit_is_empty : is_empty (Scheme.Spec.obj (op $ CommRing.of punit)).carrier :=
 ⟨prime_spectrum.punit⟩
 
+@[priority 100]
 instance is_open_immersion_of_is_empty {X Y : Scheme} (f : X ⟶ Y) [is_empty X.carrier] :
   is_open_immersion f :=
 begin
@@ -87,6 +88,7 @@ begin
   { rintro (i : X.carrier), exact is_empty_elim i }
 end
 
+@[priority 100]
 instance is_iso_of_is_empty {X Y : Scheme} (f : X ⟶ Y) [is_empty Y.carrier] : is_iso f :=
 begin
   haveI : is_empty X.carrier := ⟨λ x, is_empty_elim (show Y.carrier, from f.1.base x)⟩,
@@ -105,6 +107,7 @@ noncomputable
 def Spec_punit_is_initial : is_initial (Scheme.Spec.obj (op $ CommRing.of punit)) :=
 empty_is_initial.of_iso (as_iso $ empty_is_initial.to _)
 
+@[priority 100]
 instance is_affine_of_is_empty {X : Scheme} [is_empty X.carrier] : is_affine X :=
 is_affine_of_iso (inv (empty_is_initial.to X) ≫
   empty_is_initial.to (Scheme.Spec.obj (op $ CommRing.of punit)))

@@ -38,6 +38,7 @@ import analysis.special_functions.integrals
 #check set.inter_comm
 #check function.const
 #check measure_theory.measure.map_apply_of_ae_measurable
+#check congr_arg
 
 ---#check probability_theory.moment,
 
@@ -2012,6 +2013,27 @@ simp_rw [det_const_mul_id_eq_const],
 end
 -/
 
+lemma eq_measure (hμ : μ.real_gaussian 0 s) (hs : s=0):
+(map (0 : ℝ → ℝ) volume) = μ.map (0 : ℝ → ℝ) :=
+begin
+  unfold real_gaussian at hμ,
+  simp [hs] at hμ,
+  ext1 S hS,
+  simp,
+  rw measure_theory.measure.map_apply,
+  {
+
+    sorry,
+    },
+  {exact measurable_zero},
+  {exact hS},
+end
+lemma test (S K: set ℝ) (hS : measurable_set S) (hK : measurable_set K):
+S = K → volume S = volume K :=
+begin
+intro h,
+exact congr_arg volume h,
+end
 
 -- the 6th important theorem
 lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f) (s : ℝ) :
@@ -2053,7 +2075,21 @@ begin
       split_ifs,
       rw measure_theory.measure.map_apply,
       {
-        sorry
+        have h_empty_set : (0:ℝ→ℝ) ⁻¹' S = ∅,
+          {
+            ext (x:ℝ),
+            simp [xs],
+            ---exact not_of_eq_false rfl,
+          },
+
+        have h_eq_mea : volume ((0:ℝ→ℝ) ⁻¹' S) = volume ∅,
+          {
+            exact congr_arg volume h_empty_set,
+          },
+
+        simp at h_eq_mea,
+        exact h_eq_mea,
+
       },
       {exact measurable_zero},
       {measurability},

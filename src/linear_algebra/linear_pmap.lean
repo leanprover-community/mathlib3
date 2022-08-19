@@ -461,6 +461,27 @@ def coprod (f : E →ₗ.[R] G) (g : F →ₗ.[R] G) : (E × F) →ₗ.[R] G :=
   f.coprod g x = f ⟨(x : E × F).1, x.2.1⟩ + g ⟨(x : E × F).2, x.2.2⟩ :=
 rfl
 
+/-- Restrict a partially defined linear map to a submodule of `E` contained in `f.domain`. -/
+def dom_restrict (f : E →ₗ.[R] F) (S : submodule R E) :
+  E →ₗ.[R] F :=
+⟨S ⊓ f.domain, f.to_fun.comp (submodule.of_le (by simp))⟩
+
+@[simp] lemma dom_restrict_domain (f : E →ₗ.[R] F) {S : submodule R E} :
+  (f.dom_restrict S).domain = S ⊓ f.domain := rfl
+
+lemma dom_restrict_apply {f : E →ₗ.[R] F} {S : submodule R E}
+  ⦃x : S ⊓ f.domain⦄ ⦃y : f.domain⦄ (h : (x : E) = y) :
+  f.dom_restrict S x = f y :=
+begin
+  have : submodule.of_le (by simp) x = y :=
+  by { ext, simp[h] },
+  rw ←this,
+  exact linear_pmap.mk_apply _ _ _,
+end
+
+lemma dom_restrict_le {f : E →ₗ.[R] F} {S : submodule R E} : f.dom_restrict S ≤ f :=
+⟨by simp, λ x y hxy, dom_restrict_apply hxy⟩
+
 /-! ### Graph -/
 section graph
 
@@ -568,6 +589,10 @@ begin
   simp,
 end
 
+lemma mem_domain_of_mem_graph {f : E →ₗ.[R] F} {x : E} {y : F} (h : (x,y) ∈ f.graph) :
+  x ∈ f.domain :=
+by { rw mem_domain_iff, exact ⟨y, h⟩ }
+
 lemma image_iff {f : E →ₗ.[R] F} {x : E} {y : F} (hx : x ∈ f.domain) :
   y = f ⟨x, hx⟩ ↔ (x, y) ∈ f.graph :=
 begin
@@ -617,6 +642,22 @@ begin
   rw ←image_iff hx,
   simp [hxy],
 end
+
+lemma le_graph_of_le {f g : E →ₗ.[R] F} (h : f ≤ g) : f.graph ≤ g.graph :=
+begin
+  intros x hx,
+  rw mem_graph_iff at hx ⊢,
+  cases hx with y hx,
+  use y,
+  { exact h.1 y.2 },
+  simp only [hx, submodule.coe_mk, eq_self_iff_true, true_and],
+  convert hx.2,
+  refine (h.2 _).symm,
+  simp only [hx.1, submodule.coe_mk],
+end
+
+lemma le_graph_iff {f g : E →ₗ.[R] F} : f.graph ≤ g.graph ↔ f ≤ g :=
+⟨le_of_le_graph, le_graph_of_le⟩
 
 lemma eq_of_eq_graph {f g : E →ₗ.[R] F} (h : f.graph = g.graph) : f = g :=
 by {ext, exact mem_domain_iff_of_eq_graph h, exact (le_of_le_graph h.le).2 }

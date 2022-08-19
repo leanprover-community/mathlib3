@@ -9,12 +9,43 @@ import data.mv_polynomial.equiv
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
 
-This file proves that the `add_monoid_algebra R A` has no zero-divisors under the assumption that
-the semiring `R` itself has no zero-divisors and assuming that the addition on `A` satisfies some
-monotonicity assumptions.
+This file proves that the `add_monoid_algebra R A` has no zero-divisors under the following
+assumptions
+* the semiring `R` itself has no zero-divisors;
+* the grading type `A` has an addition, a linear order and both addition on the left and addition
+  on the right are strictly monotone functions.
 
-The eventual goal is to weaken some of these assumptions, by showing that they can be realized by
-choosing an appropriate linear extension of a partial order on `A`.
+The eventual goal is to weaken the assumptions on `A`.  For instance, imposing the same monotonicity
+assumptions on addition, but requiring the order on `A` to be a partial_order instead of a linear
+order should be enough:
+* TODO: a linear extension preserving the monotonicity assumptions should always exist.
+
+This is not (yet) formalized, though.
+
+###  Remarks
+
+We use `covariant_class` assumptions on `A`.  In combination with `linear_order A`, these
+assumptions actually imply that `A` is cancellative.  However, cancellativity alone in not enough.
+
+Indeed, using `zmod 2`, that is `ℤ / 2 ℤ`, as the grading type `A`, there are examples of
+`add_monoid_algebra`s containing non-zero zero divisors:
+```lean
+import data.zmod.defs
+import algebra.monoid_algebra.basic
+
+open finsupp add_monoid_algebra
+
+example {R} [ring R] [nontrivial R] :
+  ∃ x y : add_monoid_algebra R (zmod 2), x * y = 0 ∧ x ≠ 0 ∧ y ≠ 0 :=
+begin
+  --  use `[1 (mod 2)] - 1` and `[1 (mod 2)] + 1`, the rest is easy
+  refine ⟨single 1 1 - single (0 : zmod 2) 1, single 1 1 + single (0 : zmod 2) 1, _, _⟩,
+  { simp [sub_mul, mul_add, single_mul_single, sub_eq_zero], refl },
+  { simp [←finsupp.single_neg, single_eq_single_iff, sub_eq_add_neg, ←eq_neg_iff_add_eq_zero.not] }
+end
+```
+In this case, the grading type is the additive monoid `zmod 2` which is an abelian group (and,
+in particular, it is cancellative).
 -/
 
 namespace add_monoid_algebra

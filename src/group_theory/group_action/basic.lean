@@ -187,10 +187,11 @@ def orbit_rel : setoid β :=
 local attribute [instance] orbit_rel
 
 variables {α} {β}
+
 /-- When you take a set `U` in `β`, push it down to the quotient, and pull back, you get the union
-of the orbit of `U` under `α`.
--/
-@[to_additive] lemma quotient_preimage_image_eq_union_mul (U : set β) :
+of the orbit of `U` under `α`. -/
+@[to_additive "When you take a set `U` in `β`, push it down to the quotient, and pull back, you get
+the union of the orbit of `U` under `α`."] lemma quotient_preimage_image_eq_union_mul (U : set β) :
   quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ a : α, ((•) a) '' U :=
 begin
   set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,

@@ -325,7 +325,8 @@ instance : has_smul M (E →ₗ.[R] F) :=
 @[simp] lemma smul_apply (a : M) (f : E →ₗ.[R] F) (x : ((a • f).domain)) :
   (a • f) x = a • f x := rfl
 
-@[simp, norm_cast] lemma coe_smul (a : M) (f : E →ₗ.[R] F) : ⇑(a • f) = a • f := rfl
+@[simp, norm_cast] lemma coe_smul (a : M) (f : E →ₗ.[R] F) :
+  ((a • f) : f.domain →ₗ[k] F) = a • f := rfl
 
 instance [smul_comm_class M N F] : smul_comm_class M N (E →ₗ.[R] F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
@@ -365,7 +366,7 @@ instance : has_vadd (E →ₗ[R] F) (E →ₗ.[R] F) :=
   (f +ᵥ g) x = f x + g x := rfl
 
 @[simp, norm_cast] lemma coe_vadd (f : E →ₗ[R] F) (g : E →ₗ.[R] F) :
-  ⇑(f +ᵥ g) = f.comp g.domain.subtype + g := rfl
+  ((f +ᵥ g) : g.domain →ₗ[k] F) = f.comp g.domain.subtype + g := rfl
 
 instance : add_action (E →ₗ[R] F) (E →ₗ.[R] F) :=
 { vadd := (+ᵥ),

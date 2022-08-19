@@ -88,13 +88,13 @@ open order_dual
 @[simp, to_additive] lemma to_dual_inv [has_inv α] (a) : to_dual (a⁻¹ : α) = (to_dual a)⁻¹ := rfl
 @[simp, to_additive] lemma of_dual_inv [has_inv α] (a) : (of_dual a⁻¹ : α) = (of_dual a)⁻¹ := rfl
 @[simp, to_additive]
-lemma to_dual_div [has_div α] (a b) : to_dual (a / b : α) = to_dual a / to_dual b := rfl
+lemma to_dual_div [has_div α] (a b : α) : to_dual (a / b) = to_dual a / to_dual b := rfl
 @[simp, to_additive]
-lemma of_dual_div [has_div α] (a b) : (of_dual a / b : α) = of_dual a / of_dual b := rfl
+lemma of_dual_div [has_div α] (a b : αᵒᵈ) : of_dual (a / b) = of_dual a / of_dual b := rfl
 @[simp, to_additive]
-lemma to_dual_zpow [group α] (n : ℤ) (a) : to_dual (a ^ n : α) = to_dual a ^ n := rfl
+lemma to_dual_zpow [group α] (n : ℤ) (a : α) : to_dual (a ^ n : α) = to_dual a ^ n := rfl
 @[simp, to_additive]
-lemma of_dual_zpow [group α] (n : ℤ) (a) : (of_dual a ^ n : α) = of_dual a ^ n := rfl
+lemma of_dual_zpow [group α] (n : ℤ) (a : αᵒᵈ) : of_dual (a ^ n) = of_dual a ^ n := rfl
 @[simp] lemma to_dual_int_cast [has_int_cast α] (n : ℤ) : to_dual (n : α) = n := rfl
 @[simp] lemma of_dual_int_cast [has_int_cast α] (n : ℤ) : (of_dual n : α) = n := rfl
 
@@ -117,13 +117,13 @@ instance [h : add_comm_group_with_one α] : add_comm_group_with_one (lex α) := 
 @[simp, to_additive] lemma to_lex_inv [has_inv α] (a) : to_lex (a⁻¹ : α) = (to_lex a)⁻¹ := rfl
 @[simp, to_additive] lemma of_lex_inv [has_inv α] (a) : (of_lex a⁻¹ : α) = (of_lex a)⁻¹ := rfl
 @[simp, to_additive]
-lemma to_lex_div [has_div α] (a b) : to_lex (a / b : α) = to_lex a / to_lex b := rfl
+lemma to_lex_div [has_div α] (a b : α) : to_lex (a / b) = to_lex a / to_lex b := rfl
 @[simp, to_additive]
-lemma of_lex_div [has_div α] (a b) : (of_lex a / b : α) = of_lex a / of_lex b := rfl
+lemma of_lex_div [has_div α] (a b : αᵒᵈ) : of_lex (a / b) = of_lex a / of_lex b := rfl
 @[simp, to_additive]
-lemma to_lex_zpow [group α] (n : ℤ) (a) : to_lex (a ^ n : α) = to_lex a ^ n := rfl
+lemma to_lex_zpow [group α] (n : ℤ) (a : α) : to_lex (a ^ n) = to_lex a ^ n := rfl
 @[simp, to_additive]
-lemma of_lex_zpow [group α] (n : ℤ) (a) : (of_lex a ^ n : α) = of_lex a ^ n := rfl
+lemma of_lex_zpow [group α] (n : ℤ) (a : αᵒᵈ) : of_lex (a ^ n) = of_lex a ^ n := rfl
 @[simp] lemma to_lex_int_cast [has_int_cast α] (n : ℤ) : to_lex (n : α) = n := rfl
 @[simp] lemma of_lex_int_cast [has_int_cast α] (n : ℤ) : (of_lex n : α) = n := rfl
 

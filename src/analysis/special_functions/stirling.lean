@@ -9,7 +9,7 @@ import analysis.special_functions.log.deriv
 /-!
 # Stirling's formula
 
-This file proves Theorem 90 from the [100 Theorem List] <https://www.cs.ru.nl/~freek/100/>.
+This file proves Stirling's formula for the factorial.
 It states that $n!$ grows asymptotically like $\sqrt{2\pi n}(\frac{n}{e})^n$.
 TODO: Add Part 2 to complete the proof
 
@@ -182,13 +182,12 @@ begin
     field_simp, }
   ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
   ... ≤ 1 / 4 * d : by
-  { refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
+  { rw ←mul_le_mul_left (by positivity),
     refine sum_le_tsum (range n) (λ k _, _)
       ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
     apply le_of_lt,
-    rw one_div_pos,
-    rw sq_pos_iff,
-    exact nonzero_of_invertible ↑(succ k), },
+    rw [one_div_pos, sq_pos_iff],
+    exact nonzero_of_invertible (succ k), },
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/

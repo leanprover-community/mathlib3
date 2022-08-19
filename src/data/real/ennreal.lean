@@ -1937,7 +1937,8 @@ meta def positivity_coe_nnreal : expr → tactic strictness
     strictness_a ← core a,
     match inst, strictness_a with
     | `(@coe_base _ _ nnreal.real.has_coe), positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-    | `(@coe_base _ _ nnreal.real.has_coe), nonnegative p := nonnegative <$> mk_app ``nnreal_coe_nonneg [a]
+    | `(@coe_base _ _ nnreal.real.has_coe), nonnegative p :=
+      nonnegative <$> mk_app ``nnreal_coe_nonneg [a]
     | _, _ := failed
     end
   | _  := failed

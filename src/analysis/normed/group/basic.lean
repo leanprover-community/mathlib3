@@ -389,8 +389,7 @@ ne_zero_of_mem_sphere one_ne_zero _
 variables (E)
 
 /-- The norm of a seminormed group as an additive group seminorm. -/
-def norm_add_group_seminorm : add_group_seminorm E :=
-⟨norm, norm_zero, norm_nonneg, norm_add_le, norm_neg⟩
+def norm_add_group_seminorm : add_group_seminorm E := ⟨norm, norm_zero, norm_add_le, norm_neg⟩
 
 @[simp] lemma coe_norm_add_group_seminorm : ⇑(norm_add_group_seminorm E) = norm := rfl
 

@@ -37,21 +37,17 @@ open_locale nnreal
 
 variables {ι R R' E F G : Type*}
 
-/-- A seminorm on an additive group `G` is a function `f : G → ℝ` that preserves zero, takes
-nonnegative values, is subadditive and such that `f (-x) = f x` for all `x ∈ G`. -/
-structure add_group_seminorm (G : Type*) [add_group G]
-  extends zero_hom G ℝ :=
-(nonneg' : ∀ r, 0 ≤ to_fun r)
+/-- A seminorm on an additive group `G` is a function `f : G → ℝ` that preserves zero, is
+subadditive and such that `f (-x) = f x` for all `x`. -/
+structure add_group_seminorm (G : Type*) [add_group G] extends zero_hom G ℝ :=
 (add_le' : ∀ r s, to_fun (r + s) ≤ to_fun r + to_fun s)
 (neg' : ∀ r, to_fun (-r) = to_fun r)
 
-/-- A seminorm on a group `G` is a function `f : G → ℝ` that preserves zero, takes nonnegative
-values, is submultiplicative and such that `f x⁻¹ = f x` for all `x`. -/
+/-- A seminorm on a group `G` is a function `f : G → ℝ` that preserves zero, is submultiplicative and such that `f x⁻¹ = f x` for all `x`. -/
 @[to_additive]
 structure group_seminorm (G : Type*) [group G] :=
 (to_fun : G → ℝ)
 (map_one' : to_fun 1 = 0)
-(nonneg' : ∀ x, 0 ≤ to_fun x)
 (mul_le' : ∀ x y, to_fun (x * y) ≤ to_fun x + to_fun y)
 (inv' : ∀ x, to_fun x⁻¹ = to_fun x)
 
@@ -75,13 +71,15 @@ fun_like.ext p q
 
 variables (p q : group_seminorm E) (x y : E) (r : ℝ)
 
-@[to_additive] protected lemma nonneg : 0 ≤ p x := p.nonneg' _
 @[simp, to_additive] protected lemma map_one : p 1 = 0 := p.map_one'
 @[to_additive] protected lemma mul_le : p (x * y) ≤ p x + p y := p.mul_le' _ _
 @[simp, to_additive] protected lemma inv : p x⁻¹ = p x := p.inv' _
 
 @[to_additive] protected lemma div_le  : p (x / y) ≤ p x + p y :=
 by { rw [div_eq_mul_inv, ←p.inv y], exact p.mul_le _ _ }
+
+@[to_additive] protected lemma nonneg : 0 ≤ p x :=
+nonneg_of_mul_nonneg_right (by { rw [two_mul, ←p.map_one, ←div_self' x], apply p.div_le }) two_pos
 
 @[to_additive] lemma div_rev : p (x / y) = p (y / x) := by rw [←inv_div, p.inv]
 
@@ -100,7 +98,6 @@ variables (p q) (f : F →* E)
 
 @[to_additive] instance : has_zero (group_seminorm E) :=
 ⟨{ to_fun   := 0,
-  nonneg'   := λ r, le_rfl,
   map_one' := pi.zero_apply _,
   mul_le'   := λ _ _, (zero_add _).ge,
   inv'      := λ x, rfl}⟩
@@ -113,7 +110,6 @@ variables (p q) (f : F →* E)
 @[to_additive] instance : has_add (group_seminorm E) :=
 { add := λ p q,
   { to_fun    := λ x, p x + q x,
-    nonneg'   := λ x, add_nonneg (p.nonneg _) (q.nonneg _),
     map_one' := by rw [p.map_one, q.map_one, zero_add],
     mul_le'   := λ _ _, (add_le_add (p.mul_le _ _) $ q.mul_le _ _).trans_eq $
       add_add_add_comm _ _ _ _,
@@ -127,7 +123,6 @@ variables (p q) (f : F →* E)
 @[to_additive] noncomputable instance : has_sup (group_seminorm E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
-    nonneg' := λ x, le_sup_of_le_left $ p.nonneg _,
     map_one' := by rw [pi.sup_apply, ←p.map_one, sup_eq_left, p.map_one, q.map_one],
     mul_le' := λ x y, sup_le
       ((p.mul_le x y).trans $ add_le_add le_sup_left le_sup_left)
@@ -145,7 +140,6 @@ fun_like.coe_injective.semilattice_sup _ coe_sup
 additive group seminorm."]
 def comp (p : group_seminorm E) (f : F →* E) : group_seminorm F :=
 { to_fun   := λ x, p (f x),
-  nonneg'  := λ x, p.nonneg _,
   map_one' := by rw [f.map_one, p.map_one],
   mul_le'  := λ _ _, (congr_arg p $ f.map_mul _ _).trans_le $ p.mul_le _ _,
   inv'     := λ x, by rw [map_inv, p.inv] }
@@ -192,7 +186,6 @@ lemma le_insert' : p x ≤ p y + p (x / y) := by { rw div_rev, exact le_insert _
 @[to_additive] noncomputable instance : has_inf (group_seminorm E) :=
 { inf := λ p q,
   { to_fun    := λ x, ⨅ y, p y + q (x / y),
-    nonneg'   := λ x, le_cinfi $ λ x, add_nonneg (p.nonneg _) (q.nonneg _),
     map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
         (λ x, add_nonneg (p.nonneg _) (q.nonneg _))
         (λ r hr, ⟨1, by rwa [div_one, p.map_one, q.map_one, add_zero]⟩),
@@ -235,10 +228,6 @@ variables [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
 instance : has_smul R (add_group_seminorm E) :=
 ⟨λ r p,
   { to_fun := λ x, r • p x,
-    nonneg' := λ x, begin
-      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
-      exact mul_nonneg (nnreal.coe_nonneg _) (p.nonneg _)
-    end,
     map_zero' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
       p.map_zero, mul_zero],
     add_le' := λ _ _, begin
@@ -271,10 +260,6 @@ variables [group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
 @[to_additive add_group_seminorm.has_smul] instance : has_smul R (group_seminorm E) :=
  ⟨λ r p,
   { to_fun := λ x, r • p x,
-    nonneg' := λ x, begin
-      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
-      exact mul_nonneg (nnreal.coe_nonneg _) (p.nonneg _)
-    end,
     map_one' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
       p.map_one, mul_zero],
     mul_le' := λ _ _, begin

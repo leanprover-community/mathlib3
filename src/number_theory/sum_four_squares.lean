@@ -105,7 +105,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩
 
-private lemma prime_sum_four_squares (p : ℕ) [hp : _root_.fact p.prime] :
+private lemma prime_sum_four_squares (p : ℕ) [hp : fact p.prime] :
   ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = p :=
 have hm : ∃ m < p, 0 < m ∧ ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = m * p,
   from let ⟨a, b, k, hk⟩ := exists_sq_add_sq_add_one_eq_k p in
@@ -167,7 +167,7 @@ m.mod_two_eq_zero_or_one.elim
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,
           from int.coe_nat_dvd.1 ⟨ma^2 + mb^2 + mc^2 + md^2,
-            (mul_right_inj' (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0.1)).1 $
+            (mul_right_inj' (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero.2 hm0.1)).1 $
               by { rw [← habcd, hma, hmb, hmc, hmd], ring }⟩,
         (hp.1.eq_one_or_self_of_dvd _ hmdvdp).elim hm1
         (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
@@ -183,14 +183,14 @@ m.mod_two_eq_zero_or_one.elim
       have hn_nonneg : 0 ≤ n,
         from nonneg_of_mul_nonneg_right
           (by { erw [← hn], repeat {try {refine add_nonneg _ _}, try {exact sq_nonneg _}} })
-          (int.coe_nat_pos.2 hm0.1),
+          (int.coe_nat_pos.2 $ ne_zero.pos m),
       have hnm : n.nat_abs < m,
         from int.coe_nat_lt.1 (lt_of_mul_lt_mul_left
           (by { rw [int.nat_abs_of_nonneg hn_nonneg, ← hn, ← sq], exact hwxyzlt })
           (int.coe_nat_nonneg m)),
       have hstuv : s^2 + t^2 + u^2 + v^2 = n.nat_abs * p,
         from (mul_right_inj' (show (m^2 : ℤ) ≠ 0, from pow_ne_zero 2
-            (int.coe_nat_ne_zero_iff_pos.2 hm0.1))).1 $
+            (int.coe_nat_ne_zero.2 hm0.1))).1 $
           calc (m : ℤ)^2 * (s^2 + t^2 + u^2 + v^2) = ((m : ℕ) * s)^2 + ((m : ℕ) * t)^2 +
               ((m : ℕ) * u)^2 + ((m : ℕ) * v)^2 :
             by { simp [mul_pow], ring }
@@ -204,7 +204,7 @@ lemma sum_four_squares : ∀ n : ℕ, ∃ a b c d : ℕ, a^2 + b^2 + c^2 + d^2 =
 | 0 := ⟨0, 0, 0, 0, rfl⟩
 | 1 := ⟨1, 0, 0, 0, rfl⟩
 | n@(k+2) :=
-have hm : _root_.fact (min_fac (k+2)).prime := ⟨min_fac_prime dec_trivial⟩,
+have hm : fact (min_fac (k+2)).prime := ⟨min_fac_prime dec_trivial⟩,
 have n / min_fac n < n := factors_lemma,
 let ⟨a, b, c, d, h₁⟩ := show ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = min_fac n,
   by exactI prime_sum_four_squares (min_fac (k+2)) in

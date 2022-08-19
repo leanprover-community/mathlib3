@@ -281,7 +281,7 @@ well_founded.fix has_well_founded.wf $ λ x f_rec,
      y ← (shrink x).find (λ a, p a),
      f_rec y y.property <|> some y.val .
 
-instance fin.sampleable {n} [@ne_zero ℕ nat.has_zero n] : sampleable (fin n) :=
+instance fin.sampleable {n : ℕ} [ne_zero n] : sampleable (fin n) :=
 sampleable.lift ℕ fin.of_nat' subtype.val $
 λ i, (mod_le _ _ : i % n ≤ i)
 

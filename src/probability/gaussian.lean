@@ -1807,7 +1807,13 @@ begin
       rw measure_theory.with_density_apply,
       {
         unfold gaussian_density,
-        sorry
+        rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
+        rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
+        {sorry},
+        {sorry},
+        {sorry},
+        {sorry},
+        {sorry},
       },
       {measurability,},
     },

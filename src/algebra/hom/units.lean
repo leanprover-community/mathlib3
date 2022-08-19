@@ -79,6 +79,11 @@ variables [division_monoid α]
 @[field_simps] lemma _root_.divp_eq_div (a : α) (u : αˣ) : a /ₚ u = a / u :=
 by rw [div_eq_mul_inv, divp, u.coe_inv]
 
+@[simp, to_additive]
+lemma _root_.map_units_inv {F : Type*} [monoid_hom_class F M α] (f : F) (u : units M) :
+  f ↑u⁻¹ = (f u)⁻¹ :=
+((f : M →* α).comp (units.coe_hom M)).map_inv u
+
 end division_monoid
 
 /-- If a map `g : M → Nˣ` agrees with a homomorphism `f : M →* N`, then

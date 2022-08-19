@@ -172,11 +172,11 @@ begin
       exact irrefl _ h } },
   { intro a,
     have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_order.wf).min _ this,
-    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
+    let b := (is_well_founded.wf).min _ this,
+    have ba : ¬r b a := (is_well_founded.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
     rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
+    exact (is_well_founded.wf).not_lt_min _ this
       (is_order_connected.neg_trans h ba) }
 end
 

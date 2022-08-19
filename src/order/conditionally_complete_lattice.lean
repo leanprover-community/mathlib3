@@ -687,7 +687,8 @@ lemma exists_lt_of_cinfi_lt [nonempty ι] {f : ι → α} (h : infi f < a) : ∃
 open function
 variables [is_well_order α (<)]
 
-lemma Inf_eq_argmin_on (hs : s.nonempty) : Inf s = argmin_on id (@is_well_order.wf α (<) _) s hs :=
+lemma Inf_eq_argmin_on (hs : s.nonempty) :
+  Inf s = argmin_on id (@is_well_founded.wf α (<) _) s hs :=
 is_least.cInf_eq ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩
 
 lemma is_least_Inf (hs : s.nonempty) : is_least s (Inf s) :=
@@ -1177,6 +1178,23 @@ noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
   [conditionally_complete_linear_order α] : complete_linear_order (with_top (with_bot α)) :=
 { .. with_top.with_bot.complete_lattice,
   .. with_top.linear_order }
+
+lemma with_top.supr_coe_eq_top {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α]
+  (f : ι → α) : (⨆ x, (f x : with_top α)) = ⊤ ↔ ¬ bdd_above (set.range f) :=
+begin
+  refine ⟨_, λ hf, _⟩,
+  { rw [supr_eq_top, not_bdd_above_iff],
+    intros hf r,
+    rcases hf r (with_top.coe_lt_top r) with ⟨i, hi⟩,
+    exact ⟨f i, ⟨i, rfl⟩, with_top.coe_lt_coe.mp hi⟩ },
+  { refine (supr_eq_top _).mpr (λ a ha, _),
+    rcases not_bdd_above_iff.mp hf (a.untop ha.ne) with ⟨-, ⟨i, rfl⟩, hi⟩,
+    exact ⟨i, by simpa only [with_top.coe_untop _ ha.ne] using with_top.coe_lt_coe.mpr hi⟩ },
+end
+
+lemma with_top.supr_coe_lt_top {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α]
+  (f : ι → α) : (⨆ x, (f x : with_top α)) < ⊤ ↔ bdd_above (set.range f) :=
+by simpa only [not_not, lt_top_iff_ne_top] using not_iff_not.mpr (with_top.supr_coe_eq_top f)
 
 end with_top_bot
 

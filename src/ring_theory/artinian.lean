@@ -111,15 +111,14 @@ is_artinian_of_range_eq_ker
 
 @[priority 100]
 instance is_artinian_of_finite [finite M] : is_artinian R M :=
-let ⟨_⟩ := nonempty_fintype M in by exactI
-⟨fintype.well_founded_of_trans_of_irrefl _⟩
+⟨finite.well_founded_of_trans_of_irrefl _⟩
 
-local attribute [elab_as_eliminator] fintype.induction_empty_option
+local attribute [elab_as_eliminator] finite.induction_empty_option
 
-instance is_artinian_pi {R ι : Type*} [fintype ι] : Π {M : ι → Type*} [ring R]
+instance is_artinian_pi {R ι : Type*} [finite ι] : Π {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)], by exactI Π [Π i, module R (M i)],
   by exactI Π [∀ i, is_artinian R (M i)], is_artinian R (Π i, M i) :=
-fintype.induction_empty_option
+finite.induction_empty_option
   (begin
     introsI α β e hα M _ _ _ _,
     exact is_artinian_of_linear_equiv
@@ -136,7 +135,7 @@ fintype.induction_empty_option
 /-- A version of `is_artinian_pi` for non-dependent functions. We need this instance because
 sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
 prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
-instance is_artinian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+instance is_artinian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [finite ι]
   [is_artinian R M] : is_artinian R (ι → M) :=
 is_artinian_pi
 
@@ -278,7 +277,7 @@ variables {R : Type*} (M : Type*) [comm_ring R] [add_comm_group M] [module R M] 
 namespace is_artinian
 
 lemma range_smul_pow_stabilizes (r : R) : ∃ n : ℕ, ∀ m, n ≤ m →
-  (r^n • linear_map.id : M →ₗ[R] M).range = (r^m • linear_map.id).range :=
+  (r^n • linear_map.id : M →ₗ[R] M).range = (r^m • linear_map.id : M →ₗ[R] M).range :=
 monotone_stabilizes
 ⟨λ n, (r^n • linear_map.id : M →ₗ[R] M).range,
  λ n m h x ⟨y, hy⟩, ⟨r ^ (m - n) • y,
@@ -321,19 +320,13 @@ end comm_ring
 
 Strictly speaking, this should be called `is_left_artinian_ring` but we omit the `left_` for
 convenience in the commutative case. For a right Artinian ring, use `is_artinian Rᵐᵒᵖ R`. -/
-class is_artinian_ring (R) [ring R] extends is_artinian R R : Prop
-
--- TODO: Can we define `is_artinian_ring` in a different way so this isn't needed?
-@[priority 100]
-instance is_artinian_ring_of_finite (R) [ring R] [finite R] : is_artinian_ring R := ⟨⟩
+@[reducible] def is_artinian_ring (R) [ring R] := is_artinian R R
 
 theorem is_artinian_ring_iff {R} [ring R] : is_artinian_ring R ↔ is_artinian R R :=
-⟨λ h, h.1, @is_artinian_ring.mk _ _⟩
+iff.rfl
 
 theorem ring.is_artinian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_artinian_ring R :=
-by haveI := subsingleton_of_zero_eq_one h01;
-   haveI := fintype.of_subsingleton (0:R); split;
-  apply_instance
+have _ := subsingleton_of_zero_eq_one h01, by exactI infer_instance
 
 theorem is_artinian_of_submodule_of_artinian (R M) [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_artinian R M) : is_artinian R N :=
@@ -359,7 +352,6 @@ let ⟨s, hs⟩ := hN in
 begin
   haveI := classical.dec_eq M,
   haveI := classical.dec_eq R,
-  letI : is_artinian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_artinian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _ _ _)
     _ _ _ is_artinian_pi,

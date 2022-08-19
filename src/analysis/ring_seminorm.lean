@@ -91,7 +91,7 @@ lemma pow_le : ∀ {n : ℕ}, 0 < n → p (x ^ n) ≤ (p x) ^ n
 by simpa only [pow_succ _ (n + 1)] using le_trans (p.mul_le x _)
   (mul_le_mul_of_nonneg_left (pow_le n.succ_pos) (p.nonneg _))
 
-lemma seminorm_one_eq_one_iff_nontrivial (hp : p 1 ≤ 1) :
+lemma seminorm_one_eq_one_iff_ne_zero (hp : p 1 ≤ 1) :
   p 1 = 1 ↔ p ≠ 0 :=
 begin
   refine ⟨λ h, ne_zero_iff.mpr ⟨1, by {rw h, exact one_ne_zero}⟩, λ h, _⟩,

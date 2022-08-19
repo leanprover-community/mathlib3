@@ -40,7 +40,7 @@ In lemma names,
 -/
 
 set_option old_structure_cmd true
-open set function
+open function order_dual set
 
 variables {α β β₂ γ : Type*} {ι ι' : Sort*} {κ : ι → Sort*} {κ' : ι' → Sort*}
 
@@ -293,8 +293,19 @@ instance [complete_linear_order α] : complete_linear_order αᵒᵈ :=
 
 end order_dual
 
+open order_dual
+
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
+
+@[simp] lemma to_dual_Sup (s : set α) : to_dual (Sup s) = Inf (to_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_Inf (s : set α) : to_dual (Inf s) = Sup (to_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Sup (s : set αᵒᵈ) : of_dual (Sup s) = Inf (of_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Inf (s : set αᵒᵈ) : of_dual (Inf s) = Sup (of_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_supr (f : ι → α) : to_dual (⨆ i, f i) = ⨅ i, to_dual (f i) := rfl
+@[simp] lemma to_dual_infi (f : ι → α) : to_dual (⨅ i, f i) = ⨆ i, to_dual (f i) := rfl
+@[simp] lemma of_dual_supr (f : ι → αᵒᵈ) : of_dual (⨆ i, f i) = ⨅ i, of_dual (f i) := rfl
+@[simp] lemma of_dual_infi (f : ι → αᵒᵈ) : of_dual (⨅ i, f i) = ⨆ i, of_dual (f i) := rfl
 
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs

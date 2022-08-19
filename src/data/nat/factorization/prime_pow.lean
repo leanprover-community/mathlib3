@@ -73,9 +73,11 @@ begin
   simp,
 end
 
-lemma is_prime_pow_of_ord_compl_eq_one {n p : ℕ} (hn : n ≠ 1) (pp : p.prime)
-  (h : ord_compl[p] n = 1) : is_prime_pow n :=
+lemma exists_ord_compl_eq_one_iff_is_prime_pow {n : ℕ} (hn : n ≠ 1) :
+  is_prime_pow n ↔ ∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1 :=
 begin
+  refine ⟨λ h, exists_ord_compl_eq_one_of_is_prime_pow h, λ h, _⟩,
+  rcases h with ⟨p, pp, h⟩,
   rw is_prime_pow_nat_iff,
   rw [←nat.eq_of_dvd_of_div_eq_one (nat.ord_proj_dvd n p) h] at ⊢ hn,
   refine ⟨p, n.factorization p, pp, _, by simp⟩,

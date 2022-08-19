@@ -12,42 +12,6 @@ open_locale polynomial
 namespace e_transcendental_lemmas
 
 /-Theorem
-If forall $x\in(a,b), 0 \le f(x)\le c$ then
-$$
-\int_a^b f\le (b-a)c
-$$
--/
-theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f} (a b : ℝ) (h : a ≤ b) (c : ℝ)
-    (f_nonneg : ∀ x ∈ set.Icc a b, 0 ≤ f x) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) :
-    (∫ x in a..b, f x) ≤ (b - a) * c :=
-begin
-    rw [mul_comm, ←abs_of_nonneg (sub_nonneg_of_le h)],
-    have triv1 : (∫ x in a..b, f x) = ∥(∫ x in a..b, f x)∥,
-    {
-        rw real.norm_eq_abs,
-        rw abs_of_nonneg,
-        rw interval_integral.integral_of_le h,
-        apply measure_theory.integral_nonneg_of_ae,
-        apply (@measure_theory.ae_restrict_iff ℝ _ _ (set.Ioc a b) _ _).2,
-        { apply measure_theory.ae_of_all,
-          intros x hx,
-          simp only [and_imp, set.mem_Ioc, pi.zero_apply, ge_iff_le, set.mem_Icc] at *,
-          refine f_nonneg x hx.1.le hx.2 },
-        { simp only [pi.zero_apply],
-          refine measurable_set_le measurable_zero h1 },
-    },
-    rw triv1,
-    apply interval_integral.norm_integral_le_of_norm_le_const _,
-    rw set.interval_oc_of_le h,
-    intros x hx,
-    rw real.norm_eq_abs,
-    rw abs_of_nonneg,
-    { exact c_max _ (set.Ioc_subset_Icc_self hx) },
-    refine f_nonneg x _,
-    exact set.Ioc_subset_Icc_self hx,
-end
-
-/-Theorem
 $$
 \frac{\mathrm{d}-\exp(t-x)}{\mathrm{d}x}=\exp(t-x)
 $$
@@ -329,19 +293,17 @@ $$|I(f,t)|\le te^t\bar{f}(t)$$
 theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) :
   abs (II f t) ≤ t * t.exp * (polynomial.aeval t (f_bar f)) :=
 begin
-  refine (interval_integral.abs_integral_le_integral_abs ht).trans _,
-  convert integral_le_max_times_length ((λ x, abs ((t - x).exp * polynomial.aeval x f))) 0 t ht
-    (t.exp * polynomial.aeval t (f_bar f)) (λ x _, abs_nonneg _) _ using 1,
-  { rw [sub_zero, mul_assoc], },
-  { refine continuous.measurable _,
-    refine continuous_abs.comp _,
-    exact continuous.mul (real.continuous_exp.comp (continuous_sub_left _))
-      (differentiable_aeval _).continuous},
+  rw II,
+  rw ←real.norm_eq_abs,
+  refine (interval_integral.norm_integral_le_of_norm_le_const _).trans_eq _,
+  { exact real.exp t * polynomial.aeval t (f_bar f) },
   { intros x hx,
-    rw [abs_mul, real.abs_exp],
+    rw set.interval_oc_of_le ht at hx,
+    replace hx := set.Ioc_subset_Icc_self hx,
+    rw [real.norm_eq_abs, abs_mul, real.abs_exp],
     refine mul_le_mul _ (f_bar_ineq f t x hx) (abs_nonneg _) (real.exp_pos t).le,
-    rw set.mem_Icc at hx,
     rw [real.exp_le_exp, sub_le, sub_self], exact hx.1 },
+  { rw [sub_zero, abs_of_nonneg ht, mul_comm, mul_assoc] },
 end
 
 end e_transcendental_lemmas

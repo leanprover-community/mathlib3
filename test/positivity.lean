@@ -45,9 +45,9 @@ example {a : ℤ} (ha : 3 < a) : 0 < a + a := by positivity
 
 example {a b : ℚ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
 
--- TODO: this fails because `div_nonneg` doesn't apply directly to `ℤ` -- it requires a linearly
--- ordered field
--- example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
+example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
+
+example {a : ℤ} (ha : 0 < a) : 0 < a / a := by positivity
 
 example {a : ℕ} : 0 < a ^ 0 := by positivity
 

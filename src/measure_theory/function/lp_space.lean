@@ -1333,8 +1333,8 @@ begin
     refine eventually_of_forall (λ x, _),
     rw liminf_const (1 : ℝ≥0∞),
     exacts [ennreal.one_lt_top, at_top_ne_bot] },
-  have hp : p ≠ 0 := λ h, by simpa [h] using hp0,  
-  have hp' : p ≠ ∞ := λ h, by simpa [h] using hp0,  
+  have hp : p ≠ 0 := λ h, by simpa [h] using hp0,
+  have hp' : p ≠ ∞ := λ h, by simpa [h] using hp0,
   refine ae_lt_top
     (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
     (lt_of_le_of_lt (lintegral_liminf_le
@@ -2733,7 +2733,7 @@ linear_map.mk_continuous
 variables {𝕜}
 
 lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
-  (((to_Lp p μ 𝕜).range : submodule 𝕜 (Lp E p μ)).to_add_subgroup)
+  ((linear_map.range (to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ)).to_add_subgroup)
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 range_to_Lp_hom p μ
 
@@ -2766,13 +2766,13 @@ def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
 variables {𝕜}
 
 lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
-  ((to_Lp p μ 𝕜).range : submodule 𝕜 (Lp E p μ)).to_add_subgroup
+  (linear_map.range (to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ)).to_add_subgroup
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 begin
   refine set_like.ext' _,
   have := (linear_isometry_bounded_of_compact α E 𝕜).surjective,
   convert function.surjective.range_comp this (bounded_continuous_function.to_Lp p μ 𝕜),
-  rw ← bounded_continuous_function.range_to_Lp p μ,
+  rw ←bounded_continuous_function.range_to_Lp p μ,
   refl,
 end
 

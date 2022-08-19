@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.module.ulift
+import analysis.normed.group.seminorm
 import order.liminf_limsup
 import topology.algebra.uniform_group
 import topology.metric_space.algebra
@@ -384,6 +385,16 @@ ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 
 lemma ne_zero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
 ne_zero_of_mem_sphere one_ne_zero _
+
+variables (E)
+
+/-- The norm of a seminormed group as an additive group seminorm. -/
+def norm_add_group_seminorm : add_group_seminorm E :=
+⟨norm, norm_zero, norm_nonneg, norm_add_le, norm_neg⟩
+
+@[simp] lemma coe_norm_add_group_seminorm : ⇑(norm_add_group_seminorm E) = norm := rfl
+
+variables {E}
 
 namespace isometric
 -- TODO This material is superseded by similar constructions such as

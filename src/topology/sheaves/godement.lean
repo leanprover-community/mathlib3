@@ -122,17 +122,7 @@ example : true := trivial
 
 def godement_sheaf_in_Type : sheaf (Type u) X := sheaf_in_Type.obj (godement_sheaf 𝓖)
 
-def godement_sheaf_in_Type_obj_aux1 (U : (opens X)ᵒᵖ) :
-  (godement_sheaf_in_Type 𝓖).1.obj U ≅
-  (forget C).obj ∏ (λ x, (skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U) :=
-{ hom := (forget C).map $ (godement_sheaf_obj 𝓖 U).hom,
-  inv := (forget C).map $ (godement_sheaf_obj 𝓖 U).inv,
-  hom_inv_id' := by { rw [←(forget C).map_comp, iso.hom_inv_id, (forget C).map_id], refl, },
-  inv_hom_id' := by { rw [←(forget C).map_comp, iso.inv_hom_id, (forget C).map_id], } }
-
-example : true := trivial
-
-def godement_sheaf_in_Type_obj_aux2 (U : (opens X)ᵒᵖ) :
+def godement_sheaf_in_Type_obj_aux (U : (opens X)ᵒᵖ) :
   (forget C).obj ∏ (λ x, (skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U) ≅
   ∏ (λ x, (forget C).obj ((skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U)) :=
 { hom := pi.lift $ λ p, (forget C).map $ pi.π _ p,
@@ -155,23 +145,27 @@ def godement_sheaf_in_Type_obj_aux2 (U : (opens X)ᵒᵖ) :
     rw [preserves_limits_iso_hom_π, limit.lift_π],
     simpa only [cones.postcompose_obj_π, nat_trans.comp_app, fan.mk_π_app, forget_map_eq_coe],
   end,
-  inv_hom_id' := _ }
+  inv_hom_id' :=
+  begin
+    ext1 ⟨p⟩,
+    rw [category.assoc, limit.lift_π, fan.mk_π_app, category.assoc, preserves_limits_iso_inv_π,
+      lim_map_π, category.id_comp],
+    refl,
+  end }
 
 def godement_sheaf_in_Type_obj (U : (opens X)ᵒᵖ) :
   (godement_sheaf_in_Type 𝓖).1.obj U ≅
   ∏ (λ x, (forget C).obj $ (skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U) :=
-godement_sheaf_in_Type_obj_aux1 𝓖 U ≪≫
-{ hom := _,
-  inv := _,
-  hom_inv_id' := _,
-  inv_hom_id' := _ }
+((forget C).map_iso $ godement_sheaf_obj 𝓖 U) ≪≫ godement_sheaf_in_Type_obj_aux 𝓖 U
 
-lemma to_godement_sheaf_app_section (U : (opens X)ᵒᵖ) (s : (sheaf_in_Type.obj 𝓖).1.obj U) (x : U.unop) :
+lemma to_godement_sheaf_app_section (U : (opens X)ᵒᵖ) (s : (sheaf_in_Type.obj 𝓖).1.obj U)
+  (x : U.unop) :
   -- (forget C).map (godement_sheaf_obj 𝓖 U).hom ((sheaf_in_Type.map $ to_godement_sheaf 𝓖).1.app U s) =
   -- (forget C).obj (𝓖.1.stalk ) :=
   sorry :=
 begin
-  have := (forget C).map (godement_sheaf_obj 𝓖 U).hom,
+  have := (sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app U s,
+  have := (godement_sheaf_in_Type_obj 𝓖 U).hom,
 end
 
 

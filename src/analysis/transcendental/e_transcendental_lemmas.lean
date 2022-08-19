@@ -9,13 +9,6 @@ open_locale big_operators
 open_locale classical
 open_locale polynomial
 
-/--
-f_eval_on_ℝ p is to evaluate p as a real polynomial
-
-TODO: remove
--/
-def f_eval_on_ℝ (f : polynomial ℤ) (α : ℝ) : ℝ := polynomial.aeval α f
-
 namespace e_transcendental_lemmas
 
 /-Theorem
@@ -77,14 +70,14 @@ We use integration by parts to prove
 The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are using this on transcendence of $e$.
 -/
 def I (f : ℤ[X]) (t : ℝ) : ℝ :=
-    t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[i] f) 0)) -
-    (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[i] f) t))
+    t.exp * (∑ i in finset.range f.nat_degree.succ, (polynomial.aeval (0 : ℝ) (polynomial.derivative^[i] f))) -
+    (∑ i in finset.range f.nat_degree.succ, (polynomial.aeval t (polynomial.derivative^[i] f)))
 
 /--
 I equivalent definition
 \[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
 -/
-def II (f : ℤ[X]) (t : ℝ) : ℝ := ∫ x in 0..t, real.exp(t - x) * (f_eval_on_ℝ f x)
+def II (f : ℤ[X]) (t : ℝ) : ℝ := ∫ x in 0..t, real.exp(t - x) * (polynomial.aeval x f)
 
 /-Theorem
 $I(0,t)$ is 0.
@@ -92,7 +85,7 @@ $I(0,t)$ is 0.
 theorem II_0 (t : ℝ) : II 0 t = 0 :=
 begin
     -- We are integrating $\exp(t-x)\times 0$
-    rw II, unfold f_eval_on_ℝ,
+    rw II,
     simp only [mul_zero, polynomial.aeval_zero, polynomial.map_zero,
         interval_integral.integral_const, smul_zero],
 end
@@ -113,7 +106,7 @@ By integration by part we have:
 lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) :
     (II f t) = (real.exp t) * (polynomial.aeval (0 : ℝ) f) - (polynomial.aeval t f) + (II f.derivative t) :=
 begin
-  simp only [II, f_eval_on_ℝ],
+  simp only [II],
   have hd := real.differentiable_exp.comp (differentiable_id'.const_sub t),
   convert @interval_integral.integral_mul_deriv_eq_deriv_mul
     0 t (λ x : ℝ, polynomial.aeval x f) (λ (x : ℝ), -(t - x).exp)
@@ -246,22 +239,22 @@ end
 For any $x\in(0,t)$
 $|f(x)|\le \bar{f}(t)$
 -/
-lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
+lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) (x) (hx : x ∈ set.Icc 0 t) :
+  abs (polynomial.aeval x f) ≤ polynomial.aeval t (f_bar f) :=
 begin
-  intros x hx,
   rw set.mem_Icc at hx,
-  calc |f_eval_on_ℝ f x| = |∑ i in f.support, (f.coeff i : ℝ) * x ^ i| : _
-  ... ≤ ∑ i in f.support, |(f.coeff i:ℝ) * x ^ i| : finset.abs_sum_le_sum_abs _ _
-  ... = ∑ i in f.support, |(f.coeff i:ℝ)| * x ^ i : finset.sum_congr rfl (λ i hi, _)
-  ... ≤ ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i : _
+  calc |polynomial.aeval x f| = |∑ i in f.support, (f.coeff i : ℝ) * x ^ i| : _
+  ... ≤ ∑ i in f.support, |(f.coeff i : ℝ) * x ^ i| : finset.abs_sum_le_sum_abs _ _
+  ... = ∑ i in f.support, |(f.coeff i : ℝ)| * x ^ i : finset.sum_congr rfl (λ i hi, _)
+  ... ≤ ∑ i in (f_bar f).support, abs (f.coeff i : ℝ) * t ^ i : _
   ... = _ : _,
-  { rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support x f], simp only [zsmul_eq_mul] },
+  { rw [polynomial.aeval_eq_sum_support x f], simp only [zsmul_eq_mul] },
   { have := pow_nonneg hx.1 i,
     rw [abs_mul, abs_of_nonneg this], },
   { rw bar_supp,
     refine finset.sum_le_sum (λ n hn, mul_le_mul_of_nonneg_left _ (abs_nonneg _)),
     exact pow_le_pow_of_le_left hx.1 hx.2 _ },
-  { rw [f_eval_on_ℝ, polynomial.aeval_eq_sum_support],
+  { rw [polynomial.aeval_eq_sum_support],
     simp only [e_transcendental_lemmas.bar_coeff, finset.sum_congr, zsmul_eq_mul, int.cast_abs] }
 end
 
@@ -333,11 +326,12 @@ end
 /-Theorem
 $$|I(f,t)|\le te^t\bar{f}(t)$$
 -/
-theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : abs (II f t) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
+theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) :
+  abs (II f t) ≤ t * t.exp * (polynomial.aeval t (f_bar f)) :=
 begin
   refine (interval_integral.abs_integral_le_integral_abs ht).trans _,
-  convert integral_le_max_times_length ((λ x, abs ((t - x).exp * f_eval_on_ℝ f x))) 0 t ht
-    (t.exp * f_eval_on_ℝ (f_bar f) t) (λ x _, abs_nonneg _) _ using 1,
+  convert integral_le_max_times_length ((λ x, abs ((t - x).exp * polynomial.aeval x f))) 0 t ht
+    (t.exp * polynomial.aeval t (f_bar f)) (λ x _, abs_nonneg _) _ using 1,
   { rw [sub_zero, mul_assoc], },
   { refine continuous.measurable _,
     refine continuous_abs.comp _,

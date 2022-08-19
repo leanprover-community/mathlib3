@@ -5,7 +5,7 @@ import data.polynomial.derivative
 import data.real.irrational
 
 noncomputable theory
-open small_lemmas e_transcendental_lemmas
+open e_transcendental_lemmas
 open_locale big_operators
 open_locale classical
 open_locale polynomial
@@ -64,22 +64,22 @@ end
 
 private lemma J_eq2' (g : ℤ[X]) (p : ℕ) (k : ℕ) :
   (g.coeff k:ℝ) * (I (f_p p g.nat_degree) k) =
-   (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[j] (f_p p g.nat_degree)) 0)))
-  - (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[j] (f_p p g.nat_degree)) (k:ℝ))) :=
+   (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (polynomial.aeval (0 : ℝ) (polynomial.derivative^[j] (f_p p g.nat_degree)))))
+  - (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (polynomial.aeval (k : ℝ) (polynomial.derivative^[j] (f_p p g.nat_degree)))) :=
 begin
   rw <-mul_sub, rw I,
 end
 
 private lemma J_eq2 (g : ℤ[X]) (p : ℕ) :
   (∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p g.nat_degree) i)) =
-   (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[j] (f_p p g.nat_degree)) 0)))
-  -(∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[j] (f_p p g.nat_degree)) (k:ℝ))))) :=
+   (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (polynomial.aeval (0 : ℝ) (polynomial.derivative^[j] (f_p p g.nat_degree)))))
+  -(∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (polynomial.aeval (k : ℝ) (polynomial.derivative^[j] (f_p p g.nat_degree)))))) :=
 begin
   rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw J_eq2',
 end
 
 private lemma J_eq3 (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
-  (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (polynomial.derivative^[j] (f_p p g.nat_degree)) 0)))) = 0 :=
+  (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, (polynomial.aeval (0 : ℝ) (polynomial.derivative^[j] (f_p p g.nat_degree)))))) = 0 :=
 begin
   simp_rw ←mul_assoc,
   rw ←finset.sum_mul,
@@ -97,8 +97,8 @@ begin
   rw [J_eq1, J_eq2, J_eq3 _ e_root_g, zero_sub],
   simp_rw [finset.mul_sum, H],
   rw [finset.sum_comm],
-  simp_rw [int.cast_sum, int.cast_mul, f_eval_on_ℝ, polynomial.aeval_nat_cast',
-    algebra_map_int_eq, ring_hom.eq_int_cast],
+  simp_rw [int.cast_sum, int.cast_mul, polynomial.aeval_nat_cast', algebra_map_int_eq,
+    ring_hom.eq_int_cast],
 end
 
 theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
@@ -444,7 +444,7 @@ begin
 end
 
 theorem abs_J_ineq1' (g : ℤ[X]) (p : ℕ) :
-  abs (J g p) ≤ ∑ i in finset.range g.nat_degree.succ, (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * (f_eval_on_ℝ (f_bar (f_p p g.nat_degree)) (i:ℝ)) :=
+  abs (J g p) ≤ ∑ i in finset.range g.nat_degree.succ, (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * (polynomial.aeval (i : ℝ) (f_bar (f_p p g.nat_degree))) :=
 begin
   have ineq1 : abs (J g p) ≤ (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ) * (II (f_p p g.nat_degree) i))) := finset.abs_sum_le_sum_abs _ _,
   have triv :
@@ -454,7 +454,7 @@ begin
   rw triv at ineq1,
   have ineq2:
     (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * abs((II (f_p p g.nat_degree) i))) ≤
-    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * (i:ℝ)*(i:ℝ).exp * (f_eval_on_ℝ (f_bar (f_p p g.nat_degree)) (i:ℝ))),
+    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * (i:ℝ)*(i:ℝ).exp * (polynomial.aeval (i : ℝ) (f_bar (f_p p g.nat_degree)))),
   {
     apply finset.sum_le_sum, intros x hx, replace triv : (x:ℝ) ≥ 0, {norm_cast, exact bot_le,},
     have ineq3 := abs_II_le2 (f_p p g.nat_degree) (x:ℝ) triv,
@@ -623,11 +623,11 @@ zero_le_one.trans $ max_abs_coeff_1_ge_1 g
 
 private lemma abs_J_ineq1'_coe (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
   (∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * (f_eval_on_ℝ (f_bar (f_p p g.nat_degree)) (i:ℝ))) =
+    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * (polynomial.aeval (i : ℝ) (f_bar (f_p p g.nat_degree)))) =
  ((∑ i in finset.range g.nat_degree.succ,
   (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@polynomial.eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ)))) :=
 begin
-  simp_rw [f_eval_on_ℝ, polynomial.aeval_nat_cast', algebra_map_int_eq, ring_hom.eq_int_cast],
+  simp_rw [polynomial.aeval_nat_cast', algebra_map_int_eq, ring_hom.eq_int_cast],
 end
 
 lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :

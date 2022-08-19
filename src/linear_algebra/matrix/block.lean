@@ -267,88 +267,35 @@ end
 
 /-! ### Invertible -/
 
-lemma to_block_mul {m n k : Type*} [fintype n] (p : m → Prop) (q : k → Prop)
-    (A : matrix m n R) (B : matrix n k R) :
-  (A ⬝ B).to_block p q = A.to_block p (λ _, true) ⬝ B.to_block (λ _, true) q :=
-begin
-  ext i k,
-  simp only [to_block_apply, mul_apply],
-  rw sum_subtype,
-  simp,
-end
-
-lemma to_block_mul' {m n k : Type*} [fintype n] (p : m → Prop) (q : n → Prop) [decidable_pred q] (r : k → Prop)
-    (A : matrix m n R) (B : matrix n k R) :
-  (A ⬝ B).to_block p r =
-    A.to_block p q ⬝ B.to_block q r + A.to_block p (λ i, ¬ q i) ⬝ B.to_block (λ i, ¬ q i) r :=
-begin
-  classical,
-  ext i k,
-  simp only [to_block_apply, mul_apply, pi.add_apply],
-  convert (fintype.sum_subtype_add_sum_subtype q (λ x, A ↑i x * B x ↑k)).symm
-end
-
-lemma to_block_diagonal_eq (d : m → R) (p : m → Prop) :
-  matrix.to_block (diagonal d) p p = diagonal (λ i : subtype p, d ↑i) :=
-begin
-  ext i j,
-  by_cases i = j,
-  { simp [h] },
-  { simp [has_one.one, h, λ h', h $ subtype.ext h'], }
-end
-
-lemma to_block_diagonal_ne (d : m → R) (p : m → Prop) :
-  matrix.to_block (diagonal d) (λ i, ¬ p i) p = 0 :=
-begin
-  ext ⟨i, hi⟩ ⟨j, hj⟩,
-  have : i ≠ j, from λ h, hi (h.symm ▸ hj),
-  simp [diagonal_apply_ne d this]
-end
-
-lemma to_block_one_eq (p : m → Prop) : matrix.to_block (1 : matrix m m R) p p = 1 :=
-to_block_diagonal_eq _ p
-
-lemma to_block_one_ne (p : m → Prop) : matrix.to_block (1 : matrix m m R) (λ i, ¬ p i) p = 0 :=
-to_block_diagonal_ne _ p
-
-lemma to_block_inverse_of_block_triangular [linear_order α]
+lemma to_block_inverse_mul_to_block_eq_one_of_block_triangular [linear_order α]
   [invertible M] (hM : block_triangular M b) (k : α) :
   M⁻¹.to_block (λ i, b i < k) (λ i, b i < k) ⬝ M.to_block (λ i, b i < k) (λ i, b i < k) = 1 :=
 begin
   let p := (λ i, b i < k),
   have h_sum : M⁻¹.to_block p p ⬝ M.to_block p p +
       M⁻¹.to_block p (λ i, ¬ p i) ⬝ M.to_block (λ i, ¬ p i) p = 1,
-    by rw [←to_block_mul', inv_mul_of_invertible M, to_block_one_eq],
+    by rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_eq],
   have h_zero : M.to_block (λ i, ¬ p i) p = 0,
   { ext i j,
     simpa using hM (lt_of_lt_of_le j.2 (le_of_not_lt i.2)) },
   simpa [h_zero] using h_sum
 end
 
-lemma nonsingular_inv_to_block_of_block_triangular [linear_order α]
+/-- The inverse of an upper-left subblock of a block-triangular matrix `M` is the upper-left
+subblock of `M⁻¹`. -/
+lemma inv_to_block_of_block_triangular [linear_order α]
   [invertible M] (hM : block_triangular M b) (k : α) :
   (M.to_block (λ i, b i < k) (λ i, b i < k))⁻¹ = M⁻¹.to_block (λ i, b i < k) (λ i, b i < k) :=
-inv_eq_left_inv (to_block_inverse_of_block_triangular hM k)
+inv_eq_left_inv (to_block_inverse_mul_to_block_eq_one_of_block_triangular hM k)
 
-lemma to_block_inverse_of_block_triangular' [linear_order α]
-  [invertible M] (hM : block_triangular M b) (k : α) :
-  M.to_block (λ i, k ≤ b i) (λ i, k ≤ b i) ⬝ M⁻¹.to_block (λ i, k ≤ b i) (λ i, k ≤ b i) = 1:=
-begin
-  let p := (λ i, k ≤ b i),
-  have h_sum : M.to_block p p ⬝ M⁻¹.to_block p p +
-      M.to_block p (λ i, ¬ p i) ⬝ M⁻¹.to_block (λ i, ¬ p i) p = 1,
-    by rw [←to_block_mul', mul_inv_of_invertible M, to_block_one_eq],
-  have h_zero : M.to_block p (λ i, ¬ p i) = 0,
-  { ext i j,
-    simpa using hM (lt_of_lt_of_le (lt_of_not_le j.2) i.2) },
-  simpa [h_zero] using h_sum
-end
-
+/-- An upper-left subblock of an invertible block-triangular matrix is invertible. -/
 noncomputable def invertible_to_block_of_block_triangular
   [linear_order α] [invertible M] (hM : block_triangular M b) (k : α) :
   invertible (M.to_block (λ i, b i < k) (λ i, b i < k)) :=
-invertible_of_left_inverse _ _ (to_block_inverse_of_block_triangular hM k)
+invertible_of_left_inverse _ _ (to_block_inverse_mul_to_block_eq_one_of_block_triangular hM k)
 
+/-- A lower-left subblock of the inverse of a block-triangular matrix is zero. This is a first step
+towards `block_triangular_inv_of_block_triangular` below. -/
 lemma to_block_inverse_eq_zero [linear_order α]
   [invertible M] (hM : block_triangular M b) (k : α) :
   M⁻¹.to_block (λ i, k ≤ b i) (λ i, b i < k) = 0 :=
@@ -360,7 +307,7 @@ begin
   let q := (λ i, ¬ b i < k),
   have h_sum : M⁻¹.to_block q p ⬝ M.to_block p p +
       M⁻¹.to_block q q ⬝ M.to_block q p = 0,
-    by rw [←to_block_mul', inv_mul_of_invertible M, to_block_one_ne],
+    by rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_ne],
   have h_zero : M.to_block q p = 0,
   { ext i j,
     simpa using hM (lt_of_lt_of_le j.2 (le_of_not_lt i.2)) },
@@ -371,6 +318,7 @@ begin
     mul_inv_cancel_right_of_invertible],
 end
 
+/-- The inverse of a block-triangular matrix is block-triangular. -/
 lemma block_triangular_inv_of_block_triangular
     [invertible M] [linear_order α] (hM : block_triangular M b) :
   block_triangular M⁻¹ b :=
@@ -412,7 +360,7 @@ begin
         have hA := hA hij',
         have h_A_inv: A⁻¹ = M⁻¹.to_block (λ (i : m), b i < k) (λ (i : m), b i < k),
         { simp_rw [A],
-          exact nonsingular_inv_to_block_of_block_triangular hM k },
+          exact inv_to_block_of_block_triangular hM k },
         rw h_A_inv at hA,
         simp [hA.symm] } } }
 end

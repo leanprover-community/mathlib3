@@ -692,7 +692,7 @@ section
 variables [comm_ring R]
 
 lemma to_block_mul_eq_mul {m n k : Type*} [fintype n] (p : m → Prop) (q : k → Prop)
-    (A : matrix m n R) (B : matrix n k R) :
+  (A : matrix m n R) (B : matrix n k R) :
   (A ⬝ B).to_block p q = A.to_block p (λ _, true) ⬝ B.to_block (λ _, true) q :=
 begin
   ext i k,
@@ -701,8 +701,9 @@ begin
   simp,
 end
 
-lemma to_block_mul_eq_add {m n k : Type*} [fintype n] (p : m → Prop) (q : n → Prop) [decidable_pred q] (r : k → Prop)
-    (A : matrix m n R) (B : matrix n k R) :
+lemma to_block_mul_eq_add
+  {m n k : Type*} [fintype n] (p : m → Prop) (q : n → Prop) [decidable_pred q] (r : k → Prop)
+  (A : matrix m n R) (B : matrix n k R) :
   (A ⬝ B).to_block p r =
     A.to_block p q ⬝ B.to_block q r + A.to_block p (λ i, ¬ q i) ⬝ B.to_block (λ i, ¬ q i) r :=
 begin

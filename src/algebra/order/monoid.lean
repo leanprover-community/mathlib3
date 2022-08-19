@@ -722,28 +722,6 @@ end linear_ordered_cancel_comm_monoid
 
 namespace order_dual
 
-@[to_additive] instance [h : has_mul α] : has_mul αᵒᵈ := h
-@[to_additive] instance [h : has_one α] : has_one αᵒᵈ := h
-@[to_additive] instance [h : semigroup α] : semigroup αᵒᵈ := h
-@[to_additive] instance [h : comm_semigroup α] : comm_semigroup αᵒᵈ := h
-@[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup αᵒᵈ := h
-@[to_additive] instance [h : right_cancel_semigroup α] : right_cancel_semigroup αᵒᵈ := h
-@[to_additive] instance [h : mul_one_class α] : mul_one_class αᵒᵈ := h
-@[to_additive] instance [h : monoid α] : monoid αᵒᵈ := h
-@[to_additive] instance [h : comm_monoid α] : comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_monoid α] : cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid αᵒᵈ := h
-instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
-instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
-instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
-instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
-instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
-instance [h : has_nat_cast α] : has_nat_cast αᵒᵈ := h
-instance [h : add_monoid_with_one α] : add_monoid_with_one αᵒᵈ := h
-instance [h : add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵒᵈ := h
-
 @[to_additive]
 instance contravariant_class_mul_le [has_le α] [has_mul α] [c : contravariant_class α α (*) (≤)] :
   contravariant_class αᵒᵈ αᵒᵈ (*) (≤) :=
@@ -815,58 +793,6 @@ instance [linear_ordered_comm_monoid α] :
   .. order_dual.ordered_comm_monoid }
 
 end order_dual
-
-open order_dual
-
-@[simp, to_additive] lemma to_dual_one [has_one α] : to_dual (1 : α) = 1 := rfl
-@[simp, to_additive] lemma of_dual_one [has_one α] : (of_dual 1 : α) = 1 := rfl
-@[simp, to_additive]
-lemma to_dual_mul [has_mul α] (a b : α) : to_dual (a * b) = to_dual a * to_dual b := rfl
-@[simp, to_additive]
-lemma of_dual_mul [has_mul α] (a b : αᵒᵈ) : of_dual (a * b) = of_dual a * of_dual b := rfl
-@[simp, to_additive]
-lemma to_dual_pow [monoid α] (n : ℕ) (a : α) : to_dual (a ^ n) = to_dual a ^ n := rfl
-@[simp, to_additive]
-lemma of_dual_pow [monoid α] (n : ℕ) (a : αᵒᵈ) : of_dual (a ^ n) = of_dual a ^ n := rfl
-@[simp] lemma to_dual_nat_cast [has_nat_cast α] (n : ℕ) : to_dual (n : α) = n := rfl
-@[simp] lemma of_dual_nat_cast [has_nat_cast α] (n : ℕ) : (of_dual n : α) = n := rfl
-
-/-! ### Lexicographical order -/
-
-@[to_additive] instance [h : has_mul α] : has_mul (lex α) := h
-@[to_additive] instance [h : has_one α] : has_one (lex α) := h
-@[to_additive] instance [h : semigroup α] : semigroup (lex α) := h
-@[to_additive] instance [h : comm_semigroup α] : comm_semigroup (lex α) := h
-@[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup (lex α) := h
-@[to_additive] instance [h : right_cancel_semigroup α] : right_cancel_semigroup (lex α) := h
-@[to_additive] instance [h : mul_one_class α] : mul_one_class (lex α) := h
-@[to_additive] instance [h : monoid α] : monoid (lex α) := h
-@[to_additive] instance [h : comm_monoid α] : comm_monoid (lex α) := h
-@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid (lex α) := h
-@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid (lex α) := h
-@[to_additive] instance [h : cancel_monoid α] : cancel_monoid (lex α) := h
-@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid (lex α) := h
-instance [h : mul_zero_class α] : mul_zero_class (lex α) := h
-instance [h : mul_zero_one_class α] : mul_zero_one_class (lex α) := h
-instance [h : monoid_with_zero α] : monoid_with_zero (lex α) := h
-instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (lex α) := h
-instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (lex α) := h
-instance [h : has_nat_cast α] : has_nat_cast (lex α) := h
-instance [h : add_monoid_with_one α] : add_monoid_with_one (lex α) := h
-instance [h : add_comm_monoid_with_one α] : add_comm_monoid_with_one (lex α) := h
-
-@[simp, to_additive] lemma to_lex_one [has_one α] : to_lex (1 : α) = 1 := rfl
-@[simp, to_additive] lemma of_lex_one [has_one α] : (of_lex 1 : α) = 1 := rfl
-@[simp, to_additive]
-lemma to_lex_mul [has_mul α] (a b : α) : to_lex (a * b) = to_lex a * to_lex b := rfl
-@[simp, to_additive]
-lemma of_lex_mul [has_mul α] (a b : αᵒᵈ) : of_lex (a * b) = of_lex a * of_lex b := rfl
-@[simp, to_additive]
-lemma to_lex_pow [monoid α] (n : ℕ) (a : α) : to_lex (a ^ n) = to_lex a ^ n := rfl
-@[simp, to_additive]
-lemma of_lex_pow [monoid α] (n : ℕ) (a : αᵒᵈ) : of_lex (a ^ n) = (of_lex a) ^ n := rfl
-@[simp] lemma to_lex_nat_cast [has_nat_cast α] (n : ℕ) : to_lex (n : α) = n := rfl
-@[simp] lemma of_lex_nat_cast [has_nat_cast α] (n : ℕ) : (of_lex n : α) = n := rfl
 
 /-! ### Product -/
 

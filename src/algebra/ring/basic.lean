@@ -1279,3 +1279,43 @@ begin
 end
 
 end units
+
+/-! ### Order dual -/
+
+instance : Π [distrib α], distrib αᵒᵈ := id
+instance [has_mul α] [has_add α] : Π [left_distrib_class α], left_distrib_class αᵒᵈ := id
+instance [has_mul α] [has_add α] : Π [right_distrib_class α], right_distrib_class αᵒᵈ := id
+instance : Π [non_unital_non_assoc_semiring α], non_unital_non_assoc_semiring αᵒᵈ := id
+instance : Π [non_unital_semiring α], non_unital_semiring αᵒᵈ := id
+instance : Π [non_assoc_semiring α], non_assoc_semiring αᵒᵈ := id
+instance : Π [semiring α], semiring αᵒᵈ := id
+instance : Π [non_unital_comm_semiring α], non_unital_comm_semiring αᵒᵈ := id
+instance : Π [comm_semiring α], comm_semiring αᵒᵈ := id
+instance [has_mul α] : Π [has_distrib_neg α], has_distrib_neg αᵒᵈ := id
+instance : Π [non_unital_non_assoc_ring α], non_unital_non_assoc_ring αᵒᵈ := id
+instance : Π [non_unital_ring α], non_unital_ring αᵒᵈ := id
+instance : Π [non_assoc_ring α], non_assoc_ring αᵒᵈ := id
+instance : Π [ring α], ring αᵒᵈ := id
+instance : Π [non_unital_comm_ring α], non_unital_comm_ring αᵒᵈ := id
+instance : Π [comm_ring α], comm_ring αᵒᵈ := id
+instance [ring α] : Π [is_domain α], is_domain αᵒᵈ := id
+
+/-! ### Lexicographical order -/
+
+instance : Π [distrib α], distrib (lex α) := id
+instance [has_mul α] [has_add α] : Π [left_distrib_class α], left_distrib_class (lex α) := id
+instance [has_mul α] [has_add α] : Π [right_distrib_class α], right_distrib_class (lex α) := id
+instance : Π [non_unital_non_assoc_semiring α], non_unital_non_assoc_semiring (lex α) := id
+instance : Π [non_unital_semiring α], non_unital_semiring (lex α) := id
+instance : Π [non_assoc_semiring α], non_assoc_semiring (lex α) := id
+instance : Π [semiring α], semiring (lex α) := id
+instance : Π [non_unital_comm_semiring α], non_unital_comm_semiring (lex α) := id
+instance : Π [comm_semiring α], comm_semiring (lex α) := id
+instance [has_mul α] : Π [has_distrib_neg α], has_distrib_neg (lex α) := id
+instance : Π [non_unital_non_assoc_ring α], non_unital_non_assoc_ring (lex α) := id
+instance : Π [non_unital_ring α], non_unital_ring (lex α) := id
+instance : Π [non_assoc_ring α], non_assoc_ring (lex α) := id
+instance : Π [ring α], ring (lex α) := id
+instance : Π [non_unital_comm_ring α], non_unital_comm_ring (lex α) := id
+instance : Π [comm_ring α], comm_ring (lex α) := id
+instance [ring α] : Π [is_domain α], is_domain (lex α) := id

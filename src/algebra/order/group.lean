@@ -64,68 +64,9 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
-@[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
-@[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
-@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_monoid]
-instance [h : division_monoid α] : division_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_comm_monoid]
-instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : group α] : group αᵒᵈ := h
-@[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
-instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
-instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
-instance [h : has_int_cast α] : has_int_cast αᵒᵈ := h
-instance [h : add_group_with_one α] : add_group_with_one αᵒᵈ := h
-instance [h : add_comm_group_with_one α] : add_comm_group_with_one αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
-
-open order_dual
-
-@[simp, to_additive] lemma to_dual_inv [has_inv α] (a) : to_dual (a⁻¹ : α) = (to_dual a)⁻¹ := rfl
-@[simp, to_additive] lemma of_dual_inv [has_inv α] (a) : (of_dual a⁻¹ : α) = (of_dual a)⁻¹ := rfl
-@[simp, to_additive]
-lemma to_dual_div [has_div α] (a b : α) : to_dual (a / b) = to_dual a / to_dual b := rfl
-@[simp, to_additive]
-lemma of_dual_div [has_div α] (a b : αᵒᵈ) : of_dual (a / b) = of_dual a / of_dual b := rfl
-@[simp, to_additive]
-lemma to_dual_zpow [group α] (n : ℤ) (a : α) : to_dual (a ^ n : α) = to_dual a ^ n := rfl
-@[simp, to_additive]
-lemma of_dual_zpow [group α] (n : ℤ) (a : αᵒᵈ) : of_dual (a ^ n) = of_dual a ^ n := rfl
-@[simp] lemma to_dual_int_cast [has_int_cast α] (n : ℤ) : to_dual (n : α) = n := rfl
-@[simp] lemma of_dual_int_cast [has_int_cast α] (n : ℤ) : (of_dual n : α) = n := rfl
-
-@[to_additive] instance [h : has_inv α] : has_inv (lex α) := h
-@[to_additive] instance [h : has_div α] : has_div (lex α) := h
-@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (lex α) := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (lex α) := h
-@[to_additive lex.subtraction_monoid]
-instance [h : division_monoid α] : division_monoid (lex α) := h
-@[to_additive lex.subtraction_comm_monoid]
-instance [h : division_comm_monoid α] : division_comm_monoid (lex α) := h
-@[to_additive] instance [h : group α] : group (lex α) := h
-@[to_additive] instance [h : comm_group α] : comm_group (lex α) := h
-instance [h : group_with_zero α] : group_with_zero (lex α) := h
-instance [h : comm_group_with_zero α] : comm_group_with_zero (lex α) := h
-instance [h : has_int_cast α] : has_int_cast (lex α) := h
-instance [h : add_group_with_one α] : add_group_with_one (lex α) := h
-instance [h : add_comm_group_with_one α] : add_comm_group_with_one (lex α) := h
-
-@[simp, to_additive] lemma to_lex_inv [has_inv α] (a) : to_lex (a⁻¹ : α) = (to_lex a)⁻¹ := rfl
-@[simp, to_additive] lemma of_lex_inv [has_inv α] (a) : (of_lex a⁻¹ : α) = (of_lex a)⁻¹ := rfl
-@[simp, to_additive]
-lemma to_lex_div [has_div α] (a b : α) : to_lex (a / b) = to_lex a / to_lex b := rfl
-@[simp, to_additive]
-lemma of_lex_div [has_div α] (a b : αᵒᵈ) : of_lex (a / b) = of_lex a / of_lex b := rfl
-@[simp, to_additive]
-lemma to_lex_zpow [group α] (n : ℤ) (a : α) : to_lex (a ^ n) = to_lex a ^ n := rfl
-@[simp, to_additive]
-lemma of_lex_zpow [group α] (n : ℤ) (a : αᵒᵈ) : of_lex (a ^ n) = of_lex a ^ n := rfl
-@[simp] lemma to_lex_int_cast [has_int_cast α] (n : ℤ) : to_lex (n : α) = n := rfl
-@[simp] lemma of_lex_int_cast [has_int_cast α] (n : ℤ) : (of_lex n : α) = n := rfl
 
 section group
 variables [group α]

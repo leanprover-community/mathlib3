@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {M₀ G₀ M₀' G₀' F : Type*}
+variables {α M₀ G₀ M₀' G₀' F : Type*}
 
 section
 
@@ -1047,3 +1047,31 @@ noncomputable def comm_group_with_zero_of_is_unit_or_eq_zero [hM : comm_monoid_w
 { .. (group_with_zero_of_is_unit_or_eq_zero h), .. hM }
 
 end noncomputable_defs
+
+/-! ### Order dual -/
+
+open order_dual
+
+instance : Π [mul_zero_class α], mul_zero_class αᵒᵈ := id
+instance : Π [mul_zero_one_class α], mul_zero_one_class αᵒᵈ := id
+instance [has_mul α] [has_zero α] : Π [no_zero_divisors α], no_zero_divisors αᵒᵈ := id
+instance : Π [semigroup_with_zero α], semigroup_with_zero αᵒᵈ := id
+instance : Π [monoid_with_zero α], monoid_with_zero αᵒᵈ := id
+instance : Π [cancel_monoid_with_zero α], cancel_monoid_with_zero αᵒᵈ := id
+instance : Π [comm_monoid_with_zero α], comm_monoid_with_zero αᵒᵈ := id
+instance : Π [cancel_comm_monoid_with_zero α], cancel_comm_monoid_with_zero αᵒᵈ := id
+instance : Π [group_with_zero α], group_with_zero αᵒᵈ := id
+instance : Π [comm_group_with_zero α], comm_group_with_zero αᵒᵈ := id
+
+/-! ### Lexicographic order -/
+
+instance : Π [mul_zero_class α], mul_zero_class (lex α) := id
+instance : Π [mul_zero_one_class α], mul_zero_one_class (lex α) := id
+instance [has_mul α] [has_zero α] : Π [no_zero_divisors α], no_zero_divisors (lex α) := id
+instance : Π [semigroup_with_zero α], semigroup_with_zero (lex α) := id
+instance : Π [monoid_with_zero α], monoid_with_zero (lex α) := id
+instance : Π [cancel_monoid_with_zero α], cancel_monoid_with_zero (lex α) := id
+instance : Π [comm_monoid_with_zero α], comm_monoid_with_zero (lex α) := id
+instance : Π [cancel_comm_monoid_with_zero α], cancel_comm_monoid_with_zero (lex α) := id
+instance : Π [group_with_zero α], group_with_zero (lex α) := id
+instance : Π [comm_group_with_zero α], comm_group_with_zero (lex α) := id

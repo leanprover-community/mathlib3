@@ -286,3 +286,23 @@ instance : add_monoid_with_one (∀ a, β a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
+
+/-! ### Order dual -/
+
+open order_dual
+
+instance : Π [has_nat_cast α], has_nat_cast αᵒᵈ := id
+instance : Π [add_monoid_with_one α], add_monoid_with_one αᵒᵈ := id
+instance : Π [add_comm_monoid_with_one α], add_comm_monoid_with_one αᵒᵈ := id
+
+@[simp] lemma to_dual_nat_cast [has_nat_cast α] (n : ℕ) : to_dual (n : α) = n := rfl
+@[simp] lemma of_dual_nat_cast [has_nat_cast α] (n : ℕ) : (of_dual n : α) = n := rfl
+
+/-! ### Lexicographic order -/
+
+instance : Π [has_nat_cast α], has_nat_cast (lex α) := id
+instance : Π [add_monoid_with_one α], add_monoid_with_one (lex α) := id
+instance : Π [add_comm_monoid_with_one α], add_comm_monoid_with_one (lex α) := id
+
+@[simp] lemma to_lex_nat_cast [has_nat_cast α] (n : ℕ) : to_lex (n : α) = n := rfl
+@[simp] lemma of_lex_nat_cast [has_nat_cast α] (n : ℕ) : (of_lex n : α) = n := rfl

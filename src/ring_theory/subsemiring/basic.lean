@@ -696,8 +696,8 @@ closure_induction hx
 lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
 ⟨λ hx, add_submonoid.closure_induction (mem_closure_iff.1 hx)
-  (λ x hx, rsuffices ⟨t, ht1, ht2⟩ : ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
-    from ⟨[t], list.forall_mem_singleton.2 ht1,
+  (λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
+    from let ⟨t, ht1, ht2⟩ := this in ⟨[t], list.forall_mem_singleton.2 ht1,
       by rw [list.map_singleton, list.sum_singleton, ht2]⟩,
     submonoid.closure_induction hx
       (λ x hx, ⟨[x], list.forall_mem_singleton.2 hx, one_mul x⟩)

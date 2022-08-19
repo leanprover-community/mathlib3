@@ -30,6 +30,26 @@ variables  {V : Type u}
 namespace simple_graph
 
 
+lemma walk.split_along_set {V : Type u} {G : simple_graph V} :
+∀ (u v : V) (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S),
+  ∃ (x y : V) (w : G.walk u x) (a : G.adj x y) (w' : G.walk y v), p = w.append (cons a w') ∧  (w.support.to_finset : set V) ⊆ S ∧ y ∉ S
+| _ _ nil p uS vnS := (vnS uS).elim
+| _ _ (cons' u x v a w) S uS vnS := by
+{ by_cases h : S x,
+  { obtain ⟨x',y,w',a',w'',weq,wS,ynS⟩ := walk.split_along_set x v w S h vnS,
+    use [x',y,cons a w',a',w''],
+    split,
+    { simp only [cons_append,weq], },
+    { simp only [support_cons, list.to_finset_cons, coe_insert,set.insert_subset],
+      exact ⟨⟨uS,wS⟩,ynS⟩,}
+  },
+  { use [u,x,nil,a,w],
+    simp only [nil_append, eq_self_iff_true, support_nil, list.to_finset_cons,
+      list.to_finset_nil, insert_emptyc_eq, coe_singleton, set.singleton_subset_iff,true_and],
+    exact ⟨uS,h⟩, }
+}
+
+
 lemma walk.mem_support_to_exists_append  {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} (h : w ∈ p.support) :
   ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
 match u, v, w, p, h with

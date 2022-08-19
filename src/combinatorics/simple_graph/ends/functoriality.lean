@@ -129,7 +129,7 @@ begin
   simp,
 end
 
-lemma cofinite.image_infinite {f : V → V'} (cof : cofinite f) (S : set V) (Sinf : S.infinite) :
+lemma cofinite.image_infinite {f : V → V'} (cof : cofinite f) {S : set V} (Sinf : S.infinite) :
   (f '' S).infinite := sorry
 
 
@@ -403,10 +403,62 @@ lemma coarse_close.Endsinfty.eq' [locally_finite G] [locally_finite G']
 
 def coarse_Lipschitz (f : V → V') (K : ℕ) := ∀ (x y : V) (a : G.adj x y), (G'.dist (f x) (f y)) ≤ K
 
+include Gpc'
 def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V')
-  (K : ℕ) (fcl : coarse_Lipschitz G G' f K)
+  (m : ℕ) (fcl : coarse_Lipschitz G G' f m)
   (cof : cofinite f) : coarse G G' f :=
 begin
+  rintro K,
+  let K'set := {v : V' | ∃ k ∈ K, G'.dist v k ≤ m},
+  have : K'set.finite := sorry, -- locally finite
+  let K' := this.to_finset,
+  have KK' : K ⊆ K', by {rintro k kK,simp,use k,split, exact kK, rw (dist_self : G'.dist k k = 0),simp,},
+
+  have well_separated : ∀ (C C' : ro_components G' K) (c ∈ C.val) (c' ∈ C'.val),
+    c ∉ K' →  c' ∉ K' → G'.dist c c' ≤ m → C = C', by
+  { rintro C C' c cC c' cC' cnK cnK',
+    obtain ⟨w,wm⟩ := reachable.exists_walk_of_dist (Gpc' c c'), rw ←wm,
+    rintro hwm,
+    have wdisK : disjoint (w.support.to_finset : set V') K, by {
+      by_contradiction h, rw set.not_disjoint_iff at h,
+      obtain ⟨x,xw,xK⟩ := h,
+      rw finset.mem_coe at xw,
+      rw list.mem_to_finset at xw,
+      rw walk.mem_support_iff_exists_append at xw,
+      obtain ⟨cx,cx',rfl⟩ := xw,
+      sorry,
+      -- Now we have paths cx and cx' joining c and c' respectively to x, and these ar of length ≤ m,
+      -- By definition of K', we get c and c' ∈ K', a contradiction.
+      -- TODO: we can remove the assumption c' ∉ K' since only one side is needed
+    },
+    -- A path disjoint from K, thus by some lemma in `reachable_outside` (or actually by def), must
+    -- have C = C'.
+    sorry,
+  },
+
+  let L := cof.preimage K',
+  use L,
+  rintro D,
+  have : disjoint (f '' D.val : set V') K', by sorry,
+  have : disjoint (f '' D.val : set V') K := set.disjoint_of_subset_right KK' this,
+  have  fDinf: (f '' D.val.val : set V').infinite := cofinite.image_infinite cof D.prop,
+  let d := fDinf.nonempty.some,
+  have dfD := fDinf.nonempty.some_spec,
+  have dnK : d ∉ K := sorry,
+  let C := ro_component.of G' K d,
+
+  suffices : f '' D.val ⊆ C,
+  { use [C,ro_component.of_in_components G' K d dnK, set.infinite.mono this fDinf, this], },
+
+  rintro d' dfD',
+  have dnK' : d' ∉ K := sorry,
+  rcases dfD with ⟨e,⟨heD,hed⟩⟩,
+  rcases dfD' with ⟨e',⟨heD',hed'⟩⟩,
+  obtain ⟨w,wD⟩ := ro_component.to_subconnected G L D.val.val D.val.prop e heD e' heD',
+  -- by well_separated, each successive adjacent vertex in the walk is in C, since the start is,
+  -- and they're each at distance ≤ m from their neighbor.
+  -- thus d' is in C.
+
   /-
     Any map which is cofinite and coarsely Lipschitz
     (in the case for graphs, this means simply ∃m, ∀ (u v), G.adj u v → dist (f u) (f v) ≤ m)

@@ -788,17 +788,8 @@ end
 @[simp, norm_cast] lemma coe_inr [module R₁ M₂] :
   (inr R₁ M₁ M₂ : M₂ →ₗ[R₁] M₁ × M₂) = linear_map.inr R₁ M₁ M₂ := rfl
 
---/-- Kernel of a continuous linear map. -/
---def ker (f : M₁ →SL[σ₁₂] M₂) : submodule R₁ M₁ := (f : M₁ →ₛₗ[σ₁₂] M₂).ker
---
---@[norm_cast] lemma ker_coe (f : M₁ →SL[σ₁₂] M₂) : (f : M₁ →ₛₗ[σ₁₂] M₂).ker = f.ker := rfl
---
---@[simp] lemma mem_ker {f : M₁ →SL[σ₁₂] M₂} {x} : x ∈ f.ker ↔ f x = 0 := linear_map.mem_ker
-
 lemma is_closed_ker [t1_space M₂] (f : M₁ →SL[σ₁₂] M₂) : is_closed (ker f : set M₁) :=
 continuous_iff_is_closed.1 f.cont _ is_closed_singleton
-
---@[simp] lemma apply_ker (f : M₁ →SL[σ₁₂] M₂) (x : f.ker) : f x = 0 := mem_ker.1 x.2
 
 lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [module R₁ M'] [t1_space M₂] (f : M' →SL[σ₁₂] M₂) :
@@ -813,22 +804,6 @@ f.is_closed_ker.complete_space_coe
 @[simp] lemma ker_prod [module R₁ M₂] [module R₁ M₃] (f : M₁ →L[R₁] M₂) (g : M₁ →L[R₁] M₃) :
   ker (f.prod g) = ker f ⊓ ker g :=
 linear_map.ker_prod f g
-
---/-- Range of a continuous linear map. -/
---def range [ring_hom_surjective σ₁₂] (f : M₁ →SL[σ₁₂] M₂) : submodule R₂ M₂ :=
---(f : M₁ →ₛₗ[σ₁₂] M₂).range
---
---lemma range_coe [ring_hom_surjective σ₁₂] (f : M₁ →SL[σ₁₂] M₂) : (f.range : set M₂) = set.range f :=
---linear_map.range_coe _
---lemma mem_range [ring_hom_surjective σ₁₂] {f : M₁ →SL[σ₁₂] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y :=
---linear_map.mem_range
---
---lemma mem_range_self [ring_hom_surjective σ₁₂] (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : f x ∈ f.range :=
---mem_range.2 ⟨x, rfl⟩
---
---lemma range_prod_le [module R₁ M₂] [module R₁ M₃] (f : M₁ →L[R₁] M₂) (g : M₁ →L[R₁] M₃) :
---  range (f.prod g) ≤ (range f).prod (range g) :=
---(f : M₁ →ₗ[R₁] M₂).range_prod_le g
 
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M₁ →SL[σ₁₂] M₂) (p : submodule R₂ M₂) (h : ∀ x, f x ∈ p) :

@@ -1475,15 +1475,15 @@ section gaussian_rv
 
 /- ### Transformation of Gaussian random variables -/
 
-variables {α : Type*} [measure_space α]
+variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
 /-- A real-valued random variable is a Gaussian if its push-forward measure is a Gaussian measure
 on ℝ. -/
-def gaussian_rv (f : α → ℝ) (m s : ℝ) : Prop := (volume.map f).real_gaussian m s
+def gaussian_rv (f : Ω → ℝ) (m s : ℝ) : Prop := (volume.map f).real_gaussian m s
 
-def std_gaussian_rv (f : α → ℝ) : Prop := gaussian_rv f 0 1
+def std_gaussian_rv (f : Ω → ℝ) : Prop := gaussian_rv f 0 1
 
-variables {f g : α → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
+variables {f g : Ω → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
 
 
 lemma ae_measurable1:
@@ -1910,7 +1910,7 @@ begin
   rw ← h_eq_integ3,
 
 
---     rw h_use_f'_tosubst,
+
   have h_h : set.inj_on h S,
     {refine set.inj_on_of_injective _ S,
       ---refine set.injective_iff_inj_on_univ.mp _,
@@ -2013,27 +2013,14 @@ simp_rw [det_const_mul_id_eq_const],
 end
 -/
 
-lemma eq_measure (hμ : μ.real_gaussian 0 s) (hs : s=0):
-(map (0 : ℝ → ℝ) volume) = μ.map (0 : ℝ → ℝ) :=
-begin
-  unfold real_gaussian at hμ,
-  simp [hs] at hμ,
-  ext1 S hS,
-  simp,
-  rw measure_theory.measure.map_apply,
-  {
 
-    sorry,
-    },
-  {exact measurable_zero},
-  {exact hS},
-end
 lemma test (S K: set ℝ) (hS : measurable_set S) (hK : measurable_set K):
 S = K → volume S = volume K :=
 begin
 intro h,
 exact congr_arg volume h,
 end
+
 
 -- the 6th important theorem
 lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f) (s : ℝ) :
@@ -2046,55 +2033,14 @@ begin
   split_ifs,
   {
     rw h,
-    ---rw zero_smul,
+    rw zero_smul,
+    classical,
+    change map (λ x, 0 : Ω → ℝ) ℙ = dirac 0,
     ext1 S hS,
+    rw [measure.map_apply measurable_const hS, measure.dirac_apply,
+    set.indicator, set.preimage_const],
+    split_ifs;
     simp,
-    by_cases xs: (0:ℝ) ∈ S,
-    {
-      rw set.indicator,
-      split_ifs,
-      simp,
-      rw measure_theory.measure.map_apply,
-      {
-        have h₁: (0 ⁻¹' S) = set.univ,
-          {
-            ext (x:ℝ),
-            simp,
-            exact xs,
-          },
-        unfold gaussian_density at hf,
-        sorry
-
-      },
-      {exact measurable_zero},
-      {measurability},
-
-    },
-    {
-      rw set.indicator,
-      split_ifs,
-      rw measure_theory.measure.map_apply,
-      {
-        have h_empty_set : (0:ℝ→ℝ) ⁻¹' S = ∅,
-          {
-            ext (x:ℝ),
-            simp [xs],
-            ---exact not_of_eq_false rfl,
-          },
-
-        have h_eq_mea : volume ((0:ℝ→ℝ) ⁻¹' S) = volume ∅,
-          {
-            exact congr_arg volume h_empty_set,
-          },
-
-        simp at h_eq_mea,
-        exact h_eq_mea,
-
-      },
-      {exact measurable_zero},
-      {measurability},
-    },
-
 
   },
   {
@@ -2143,107 +2089,6 @@ begin
           simp,
           rw h_preim_of_S_eq_Sminusm,
           rw ← change_of_vr_gaussian_with_mean_zero S hS h,
-
-          /-
-          have change_of_vr :∫ (x : ℝ) in h1 ⁻¹' S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)) = ∫ (x : ℝ) in S, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
-          {
-            let g : ℝ → ℝ := λ (x:ℝ), (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)),
-            let f : ℝ → ℝ := λ (x:ℝ), x/s,
-            have h₁: ∫ (x : ℝ) in h1 ⁻¹' S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2))
-            = ∫ (x : ℝ) in h1 ⁻¹' S, g x ,
-              {simp_rw[g]},
-            rw h₁,
-            have h₂: h1 ⁻¹' S = f '' S,
-             {
-                ext x,
-                rw h_preim_of_S_eq_Sminusm,
-                simp,
-                split,
-                {
-                  intro h₃,
-                  use (s*x),
-                  split,
-                  {exact h₃},
-                  {
-                    simp_rw[f],
-                    rw division_def,
-                    rw mul_comm s x,
-                    rw mul_assoc,
-                    rw (mul_inv_eq_one s h),
-                    simp,
-                  },
-                },
-                {
-                  intro h₃,
-                  cases h₃ with a ha,
-                  cases ha,
-                  simp_rw[f] at ha_right,
-                  rw [div_eq_iff_mul_eq h] at ha_right,
-                  rw mul_comm at ha_right,
-                  rw ha_right,
-                  exact ha_left,
-                },
-              },
-              rw h₂,
-            have change_form: ∫ (x : ℝ) in S, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
-            = ∫ (x : ℝ) in S, |s⁻¹| • g (f x),
-              {
-                simp_rw[f],
-                simp_rw[g],
-                rw func_eq_trans S h,
-              },
-            rw change_form,
-            let f': ℝ → (ℝ →L[ℝ] ℝ) := λ x, (s⁻¹ • continuous_linear_map.id ℝ ℝ),
-            have h₃: ∫ (x : ℝ) in S, |s⁻¹| • g (f x) = ∫ (x : ℝ) in S, |(f' x).det| • g (f x),
-              {
-                simp_rw[f'],
-                simp,
-                rw mul_const_eq_mul_det_for_6th S f g,
-              },
-            rw h₃,
-            have hf' : ∀ (x : ℝ), x ∈ S → has_fderiv_within_at f (f' x) S x,
-              {
-                intros x hx,
-                let f_pre : ℝ → ℝ := λ (x:ℝ), x/(s^2),
-                let f'_pre : ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
-
-                have h_f_eq_fpre_smul_const : f = s • f_pre,
-                  {
-                    ext x,
-                    simp,
-                    simp_rw[f],
-                    simp_rw[f_pre],
-                    rw mul_div,
-                    rw mul_comm,
-                    rw ← mul_div,
-                    rw division_def,
-                    rw division_def,
-                    simp,
-                    left,
-                    rw ← inv_pow,
-                    rw pow_two,
-                    rw ← mul_assoc,
-                    rw (mul_inv_eq_one s h),
-                    simp,
-                  },
-
-                have h_f'_eq_f'pre_smul_const : f' = (s⁻¹) • f'_pre,
-                  {ext x,
-                  simp,},
-
-                sorry
-              },
-            have hf : set.inj_on f S,
-              {
-                unfold set.inj_on,
-                intros x1 hx1 x2 hx2 h₄,
-                simp_rw[f] at h₄,
-                rw [← (div_left_inj' h)],
-                exact h₄,
-              },
-            rw measure_theory.integral_image_eq_integral_abs_det_fderiv_smul ℙ hS hf' hf g,
-          },-/
-          ---simp_rw [change_of_vr],
         },
         {
           simp,
@@ -2374,12 +2219,14 @@ begin
   },
 
 end
+
 --test --
 -- Hard!
 lemma gaussian_rv_add (hf : gaussian_rv f m₁ s₁) (hg : gaussian_rv g m₂ s₂)
   (hfmeas : measurable f) (hgmeas : measurable g) (hfg : indep_fun f g) :
   gaussian_rv (f + g) (m₁ + m₂) (sqrt (s₁^2 + s₂^2)) :=
 begin
+
   sorry
 end
 

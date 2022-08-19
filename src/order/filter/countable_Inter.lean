@@ -42,7 +42,7 @@ lemma countable_sInter_mem {S : set (set α)} (hSc : S.countable) :
 ⟨λ hS s hs, mem_of_superset hS (sInter_subset_of_mem hs),
   countable_Inter_filter.countable_sInter_mem' hSc⟩
 
-lemma countable_Inter_mem [encodable ι] {s : ι → set α} :
+lemma countable_Inter_mem [countable ι] {s : ι → set α} :
   (⋂ i, s i) ∈ l ↔ ∀ i, s i ∈ l :=
 sInter_range s ▸ (countable_sInter_mem (countable_range _)).trans forall_range_iff
 
@@ -54,7 +54,7 @@ begin
   exact countable_Inter_mem.trans subtype.forall
 end
 
-lemma eventually_countable_forall [encodable ι] {p : α → ι → Prop} :
+lemma eventually_countable_forall [countable ι] {p : α → ι → Prop} :
   (∀ᶠ x in l, ∀ i, p x i) ↔ ∀ i, ∀ᶠ x in l, p x i :=
 by simpa only [filter.eventually, set_of_forall]
   using @countable_Inter_mem _ _ l _ _ (λ i, {x | p x i})
@@ -64,12 +64,12 @@ lemma eventually_countable_ball {S : set ι} (hS : S.countable) {p : Π (x : α)
 by simpa only [filter.eventually, set_of_forall]
   using @countable_bInter_mem _ _ l _ _ hS (λ i hi, {x | p x i hi})
 
-lemma eventually_le.countable_Union [encodable ι] {s t : ι → set α} (h : ∀ i, s i ≤ᶠ[l] t i) :
+lemma eventually_le.countable_Union [countable ι] {s t : ι → set α} (h : ∀ i, s i ≤ᶠ[l] t i) :
   (⋃ i, s i) ≤ᶠ[l] ⋃ i, t i :=
 (eventually_countable_forall.2 h).mono $ λ x hst hs, mem_Union.2 $
   (mem_Union.1 hs).imp hst
 
-lemma eventually_eq.countable_Union [encodable ι] {s t : ι → set α} (h : ∀ i, s i =ᶠ[l] t i) :
+lemma eventually_eq.countable_Union [countable ι] {s t : ι → set α} (h : ∀ i, s i =ᶠ[l] t i) :
   (⋃ i, s i) =ᶠ[l] ⋃ i, t i :=
 (eventually_le.countable_Union (λ i, (h i).le)).antisymm
   (eventually_le.countable_Union (λ i, (h i).symm.le))
@@ -87,11 +87,11 @@ lemma eventually_eq.countable_bUnion {S : set ι} (hS : S.countable) {s t : Π i
 (eventually_le.countable_bUnion hS (λ i hi, (h i hi).le)).antisymm
   (eventually_le.countable_bUnion hS (λ i hi, (h i hi).symm.le))
 
-lemma eventually_le.countable_Inter [encodable ι] {s t : ι → set α} (h : ∀ i, s i ≤ᶠ[l] t i) :
+lemma eventually_le.countable_Inter [countable ι] {s t : ι → set α} (h : ∀ i, s i ≤ᶠ[l] t i) :
   (⋂ i, s i) ≤ᶠ[l] ⋂ i, t i :=
 (eventually_countable_forall.2 h).mono $ λ x hst hs, mem_Inter.2 $ λ i, hst _ (mem_Inter.1 hs i)
 
-lemma eventually_eq.countable_Inter [encodable ι] {s t : ι → set α} (h : ∀ i, s i =ᶠ[l] t i) :
+lemma eventually_eq.countable_Inter [countable ι] {s t : ι → set α} (h : ∀ i, s i =ᶠ[l] t i) :
   (⋂ i, s i) =ᶠ[l] ⋂ i, t i :=
 (eventually_le.countable_Inter (λ i, (h i).le)).antisymm
   (eventually_le.countable_Inter (λ i, (h i).symm.le))

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 
-import data.mv_polynomial.equiv
+import data.mv_polynomial.comm_ring
+import data.finsupp.lex
+import order.extension
 
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
@@ -122,7 +124,7 @@ begin
       exact finset.max_erase_ne_self } },
 end
 
-protected lemma no_zero_divisors [no_zero_divisors R] : no_zero_divisors (add_monoid_algebra R A) :=
+instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors (add_monoid_algebra R A) :=
 begin
   refine ⟨λ a b ab, _⟩,
   contrapose! ab,
@@ -136,5 +138,25 @@ begin
 end
 
 end covariant_lt
+
+instance finsupp_no_zero_divisors {α N} [no_zero_divisors R] [add_monoid N] [linear_order N]
+  [covariant_class N N (+) (<)] [covariant_class N N (function.swap (+)) (<)] :
+  no_zero_divisors (add_monoid_algebra R (α →₀ N)) :=
+begin
+  haveI : linear_order α := @linear_extension.linear_order α
+  { le          := eq,
+    le_refl     := eq.refl,
+    le_trans    := λ _ _ _, eq.trans,
+    le_antisymm := λ _ _ h _, h },
+  exact @add_monoid_algebra.no_zero_divisors _ _ _ finsupp.lex.linear_order _ _ _ _,
+end
+
+instance mv_polynomial.is_domain {R σ : Type*} [comm_ring R] [is_domain R] :
+is_domain (mv_polynomial σ R) :=
+begin
+  haveI : no_zero_divisors (mv_polynomial σ R) := add_monoid_algebra.finsupp_no_zero_divisors,
+  exact ⟨λ _ _, mul_eq_zero.mp, ⟨mv_polynomial.C 1, mv_polynomial.C 0,
+    (mv_polynomial.C_inj _ _ _).not.mpr one_ne_zero⟩⟩
+end
 
 end add_monoid_algebra

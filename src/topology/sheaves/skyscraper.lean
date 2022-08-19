@@ -192,6 +192,17 @@ def skyscraper_sheaf : sheaf C X :=
         exact terminal_is_terminal.hom_ext _ _, }
     end⟩⟩
 
+def skyscraper_sheaf' {c : C} (it : is_terminal c) : sheaf C X :=
+⟨skyscraper_presheaf' p₀ S it,
+ (presheaf.is_sheaf_iso_iff (skyscraper_presheaf_iso p₀ S it)).mp (skyscraper_sheaf p₀ S).2⟩
+
+def skyscraper_sheaf_iso {c : C} (it : is_terminal c) :
+  skyscraper_sheaf p₀ S ≅ skyscraper_sheaf' p₀ S it :=
+{ hom := Sheaf.hom.mk (skyscraper_presheaf_iso p₀ S it).hom,
+  inv := Sheaf.hom.mk (skyscraper_presheaf_iso p₀ S it).inv,
+  hom_inv_id' := by { ext, dsimp, simp only [iso.hom_inv_id_app] },
+  inv_hom_id' := by { ext, dsimp, simp only [iso.inv_hom_id_app] } }
+
 end
 
 section

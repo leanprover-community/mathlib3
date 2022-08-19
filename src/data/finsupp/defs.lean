@@ -407,8 +407,12 @@ def update : α →₀ M :=
 
 @[simp] lemma coe_update [decidable_eq α] : (f.update a b : α → M) = function.update f a b :=
 by convert rfl
+
 @[simp] lemma update_self : f.update a (f a) = f :=
 by { ext, simp }
+
+@[simp] lemma zero_update : update 0 a b = single a b :=
+by { ext, rw single_eq_update, refl }
 
 lemma support_update [decidable_eq α] : support (f.update a b) =
   if b = 0 then f.support.erase a else insert a f.support := by convert rfl

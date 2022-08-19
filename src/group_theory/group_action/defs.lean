@@ -519,6 +519,7 @@ section
 
 variables [monoid M] [add_monoid A] [distrib_mul_action M A]
 
+@[priority 100] -- See note [lower instance priority]
 instance distrib_mul_action.to_distrib_smul : distrib_smul M A :=
 { ..‹distrib_mul_action M A› }
 

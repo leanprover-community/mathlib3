@@ -105,8 +105,26 @@ by simp_rw [←coe_nat_zsmul, int.coe_nat_bit0, int.coe_nat_one, two_zsmul_eq_if
 lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by convert two_nsmul_eq_iff; simp
 
+lemma two_nsmul_ne_zero_iff {θ : angle} : (2 : ℕ) • θ ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←two_nsmul_eq_zero_iff]
+
 lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
+
+lemma two_zsmul_ne_zero_iff {θ : angle} : (2 : ℤ) • θ ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←two_zsmul_eq_zero_iff]
+
+lemma eq_neg_self_iff {θ : angle} : θ = -θ ↔ θ = 0 ∨ θ = π :=
+by rw [←add_eq_zero_iff_eq_neg, ←two_nsmul, two_nsmul_eq_zero_iff]
+
+lemma ne_neg_self_iff {θ : angle} : θ ≠ -θ ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←eq_neg_self_iff.not]
+
+lemma neg_eq_self_iff {θ : angle} : -θ = θ ↔ θ = 0 ∨ θ = π :=
+by rw [eq_comm, eq_neg_self_iff]
+
+lemma neg_ne_self_iff {θ : angle} : -θ ≠ θ ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←neg_eq_self_iff.not]
 
 theorem cos_eq_iff_coe_eq_or_eq_neg {θ ψ : ℝ} :
   cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
@@ -178,7 +196,7 @@ def sin (θ : angle) : ℝ := sin_periodic.lift θ
 rfl
 
 @[continuity] lemma continuous_sin : continuous sin :=
-continuous_quotient_lift_on' _ real.continuous_sin
+real.continuous_sin.quotient_lift_on' _
 
 /-- The cosine of a `real.angle`. -/
 def cos (θ : angle) : ℝ := cos_periodic.lift θ
@@ -187,7 +205,7 @@ def cos (θ : angle) : ℝ := cos_periodic.lift θ
 rfl
 
 @[continuity] lemma continuous_cos : continuous cos :=
-continuous_quotient_lift_on' _ real.continuous_cos
+real.continuous_cos.quotient_lift_on' _
 
 lemma cos_eq_real_cos_iff_eq_or_eq_neg {θ : angle} {ψ : ℝ} : cos θ = real.cos ψ ↔ θ = ψ ∨ θ = -ψ :=
 begin
@@ -226,6 +244,9 @@ begin
   rw sin_eq_iff_eq_or_add_eq_pi,
   simp
 end
+
+lemma sin_ne_zero_iff {θ : angle} : sin θ ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←sin_eq_zero_iff]
 
 @[simp] lemma sin_neg (θ : angle) : sin (-θ) = -sin θ :=
 begin
@@ -302,6 +323,9 @@ by simp [sign_antiperiodic.sub_eq']
 
 lemma sign_eq_zero_iff {θ : angle} : θ.sign = 0 ↔ θ = 0 ∨ θ = π :=
 by rw [sign, sign_eq_zero_iff, sin_eq_zero_iff]
+
+lemma sign_ne_zero_iff {θ : angle} : θ.sign ≠ 0 ↔ θ ≠ 0 ∧ θ ≠ π :=
+by rw [←not_or_distrib, ←sign_eq_zero_iff]
 
 end angle
 

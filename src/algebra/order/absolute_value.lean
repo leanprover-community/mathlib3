@@ -141,22 +141,6 @@ end ring
 
 end linear_ordered_comm_ring
 
-section linear_ordered_field
-
-section field
-
-variables {R S : Type*} [division_ring R] [linear_ordered_field S] (abv : absolute_value R S)
-
-@[simp] protected theorem map_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-abv.to_monoid_with_zero_hom.map_inv a
-
-@[simp] protected theorem map_div (a b : R) : abv (a / b) = abv a / abv b :=
-abv.to_monoid_with_zero_hom.map_div a b
-
-end field
-
-end linear_ordered_field
-
 end absolute_value
 
 section is_absolute_value
@@ -269,11 +253,8 @@ end ring
 section field
 variables {R : Type*} [division_ring R] (abv : R → S) [is_absolute_value abv]
 
-theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-(abv_hom abv).map_inv a
-
-theorem abv_div (a b : R) : abv (a / b) = abv a / abv b :=
-(abv_hom abv).map_div a b
+theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ := map_inv₀ (abv_hom abv) a
+theorem abv_div (a b : R) : abv (a / b) = abv a / abv b := map_div₀ (abv_hom abv) a b
 
 end field
 

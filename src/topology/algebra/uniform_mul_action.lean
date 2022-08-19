@@ -18,6 +18,8 @@ In later files once the additive group structure is set up, we provide
 * `uniform_space.completion.distrib_mul_action`
 * `uniform_space.completion.mul_action_with_zero`
 * `uniform_space.completion.module`
+
+TODO: Generalise the results here from the concrete `completion` to any `abstract_completion`.
 -/
 
 universes u v w x y z
@@ -114,8 +116,33 @@ variable [has_smul M X]
 @[to_additive] instance : has_smul M (completion X) :=
 ⟨λ c, completion.map ((•) c)⟩
 
+lemma smul_def (c : M) (x : completion X) : c • x = completion.map ((•) c) x := rfl
+
 @[to_additive] instance : has_uniform_continuous_const_smul M (completion X) :=
 ⟨λ c, uniform_continuous_map⟩
+
+instance [has_smul N X] [has_smul M N]
+  [has_uniform_continuous_const_smul M X] [has_uniform_continuous_const_smul N X]
+  [is_scalar_tower M N X] : is_scalar_tower M N (completion X) :=
+⟨λ m n x, begin
+  have : _ = (_ : completion X → completion X) :=
+    map_comp (uniform_continuous_const_smul m) (uniform_continuous_const_smul n),
+  refine eq.trans _ (congr_fun this.symm x),
+  exact congr_arg (λ f, completion.map f x) (by exact funext (smul_assoc _ _)),
+end⟩
+
+instance [has_smul N X] [smul_comm_class M N X]
+  [has_uniform_continuous_const_smul M X] [has_uniform_continuous_const_smul N X] :
+  smul_comm_class M N (completion X) :=
+⟨λ m n x, begin
+  have hmn : m • n • x =
+    (( completion.map (has_smul.smul m)) ∘ (completion.map (has_smul.smul n))) x := rfl,
+  have hnm : n • m • x =
+    (( completion.map (has_smul.smul n)) ∘ (completion.map (has_smul.smul m))) x := rfl,
+  rw [hmn, hnm, map_comp, map_comp],
+  exact congr_arg (λ f, completion.map f x) (by exact funext (smul_comm _ _)),
+  repeat{ exact uniform_continuous_const_smul _},
+ end⟩
 
 instance [has_smul Mᵐᵒᵖ X] [is_central_scalar M X] : is_central_scalar M (completion X) :=
 ⟨λ c a, congr_arg (λ f, completion.map f a) $ by exact funext (op_smul_eq_smul c)⟩

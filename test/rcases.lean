@@ -331,8 +331,7 @@ begin
 end
 
 include β
--- this demonstrates that the `resetI` also applies onto the goal; this is potentially unwanted
--- behaviour and so a PR removing this may be welcome.
+-- this test demonstrates that the `resetI` also applies onto the goal.
 example (h : Π {α}, inhabited α) : inhabited α :=
 begin
   have : inhabited β := h,

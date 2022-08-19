@@ -964,8 +964,6 @@ The `rsufficesI` tactic is an instance-cache aware version of `rsuffices`; it re
 cache on the resulting goals.
 -/
 
--- TODO: this (I think) resets the instance cache also on the goal you need to make the instance.
--- This is not necessary; do we need this?
 meta def rsufficesI (h : parse obtain_parse) : tactic unit :=
 rsuffices h ; resetI
 

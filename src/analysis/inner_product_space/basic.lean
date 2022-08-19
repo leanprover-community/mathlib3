@@ -1799,7 +1799,8 @@ end bessels_inequality
 
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
-{ inner := (λ x y, (conj x) * y),
+{ to_normed_add_comm_group := non_unital_normed_ring.to_normed_add_comm_group,
+  inner := λ x y, conj x * y,
   norm_sq_eq_inner := λ x,
     by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
   conj_sym := λ x y, by simp [mul_comm],
@@ -1812,12 +1813,13 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 
 /-- Induced inner product on a submodule. -/
 instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_space 𝕜 W :=
-{ inner             := λ x y, ⟪(x:E), (y:E)⟫,
+{ to_normed_add_comm_group := submodule.normed_add_comm_group _,
+  inner             := λ x y, ⟪(x:E), (y:E)⟫,
   conj_sym          := λ _ _, inner_conj_sym _ _ ,
   norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
   add_left          := λ _ _ _ , inner_add_left,
   smul_left         := λ _ _ _, inner_smul_left,
-  ..submodule.normed_add_comm_group _, ..submodule.normed_space W }
+  ..submodule.normed_space W }
 
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
@@ -2066,7 +2068,8 @@ registered as an instance since it creates problems with the case `𝕜 = ℝ`, 
 proof to obtain a real inner product space structure from a given `𝕜`-inner product space
 structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
-{ norm_sq_eq_inner := norm_sq_eq_inner,
+{ to_normed_add_comm_group := inner_product_space.to_normed_add_comm_group 𝕜,
+  norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
   add_left := λ x y z, by
   { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,

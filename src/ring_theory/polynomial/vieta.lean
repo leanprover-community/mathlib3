@@ -18,8 +18,8 @@ for the product of linear terms `X + X i` with `i` in a `fintype σ` as a linear
 of the symmetric polynomials `esymm σ R j`.
 
 For `R` be an integral domain (so that `p.roots` is defined for any `p : R[X]` as a multiset),
-we derive the relationship between the coefficients and the roots of `p` for a polynomial `p`
-that splits (i.e. having as many roots as its degree).
+we derive `polynomial.vieta`, the relationship between the coefficients and the roots of `p` for
+a polynomial `p` that splits (i.e. having as many roots as its degree).
 -/
 
 open_locale big_operators polynomial

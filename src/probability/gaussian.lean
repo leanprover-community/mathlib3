@@ -1848,7 +1848,36 @@ begin
     rw zero_smul,
     ext1 S hS,
     simp,
-    sorry
+    by_cases xs: (0:ℝ) ∈ S,
+    {
+      rw set.indicator,
+      split_ifs,
+      simp,
+      rw measure_theory.measure.map_apply,
+      {
+        have h₁: (0 ⁻¹' S) = set.univ,
+          {
+            ext (x:ℝ),
+            simp,
+            exact xs,
+          },
+        sorry
+      },
+      {exact measurable_zero},
+      {measurability},
+
+    },
+    {
+      rw set.indicator,
+      split_ifs,
+      rw measure_theory.measure.map_apply,
+      {
+        sorry
+      },
+      {exact measurable_zero},
+      {measurability},
+    },
+
   },
   {
     let h1 : ℝ → ℝ := λ x, s • x,
@@ -1902,7 +1931,7 @@ begin
               {simp_rw[g]},
             rw h₁,
             have h₂: h1 ⁻¹' S = f '' S,
-             sorry{
+             {
                 ext x,
                 rw h_preim_of_S_eq_Sminusm,
                 simp,
@@ -1932,7 +1961,7 @@ begin
                   exact ha_left,
                 },
               },
-            rw h₂,
+              rw h₂,
             have change_form: ∫ (x : ℝ) in S, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
             = ∫ (x : ℝ) in S, |s⁻¹| • g (f x),
               {
@@ -1952,6 +1981,33 @@ begin
             have hf' : ∀ (x : ℝ), x ∈ S → has_fderiv_within_at f (f' x) S x,
               {
                 intros x hx,
+                let f_pre : ℝ → ℝ := λ (x:ℝ), x/(s^2),
+                let f'_pre : ℝ → (ℝ →L[ℝ] ℝ) := λ x, continuous_linear_map.id ℝ ℝ,
+
+                have h_f_eq_fpre_smul_const : f = s • f_pre,
+                  {
+                    ext x,
+                    simp,
+                    simp_rw[f],
+                    simp_rw[f_pre],
+                    rw mul_div,
+                    rw mul_comm,
+                    rw ← mul_div,
+                    rw division_def,
+                    rw division_def,
+                    simp,
+                    left,
+                    rw ← inv_pow,
+                    rw pow_two,
+                    rw ← mul_assoc,
+                    rw (mul_inv_eq_one s h),
+                    simp,
+                  },
+
+                have h_f'_eq_f'pre_smul_const : f' = (s⁻¹) • f'_pre,
+                  {ext x,
+                  simp,},
+
                 sorry
               },
             have hf : set.inj_on f S,

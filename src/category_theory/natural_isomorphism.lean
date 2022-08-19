@@ -163,7 +163,7 @@ by { ext, simp, }
 Construct a natural isomorphism between functors by giving object level isomorphisms,
 and checking naturality only in the forward direction.
 -/
-def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
+@[simps] def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
   F ≅ G :=
 { hom := { app := λ X, (app X).hom },
@@ -179,11 +179,6 @@ def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
 by tidy
-@[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
-  (of_components app naturality).hom.app X = (app X).hom := rfl
-@[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
-  (of_components app naturality).inv.app X = (app X).inv :=
-by simp [of_components]
 
 /--
 A natural transformation is an isomorphism if all its components are isomorphisms.

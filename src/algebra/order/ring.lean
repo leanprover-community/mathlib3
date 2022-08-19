@@ -3,9 +3,10 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.order.group
-import algebra.order.sub
 import algebra.char_zero.defs
+import algebra.order.group
+import algebra.order.monoid_lemmas_zero_lt
+import algebra.order.sub
 import algebra.hom.ring
 import data.set.intervals.basic
 
@@ -128,12 +129,26 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 (mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
-@[priority 100] instance ordered_semiring.zero_le_one_class [h : ordered_semiring α] :
-  zero_le_one_class α :=
-{ ..h }
-
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
+
+lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
+ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
+
+lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
+ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
+
+@[priority 100] -- see Note [lower instance priority]
+instance ordered_semiring.zero_le_one_class : zero_le_one_class α :=
+{ ..‹ordered_semiring α› }
+
+@[priority 200] -- see Note [lower instance priority]
+instance ordered_semiring.pos_mul_strict_mono : zero_lt.pos_mul_strict_mono α :=
+⟨λ x a b h, mul_lt_mul_of_pos_left h x.prop⟩
+
+@[priority 200] -- see Note [lower instance priority]
+instance ordered_semiring.mul_pos_strict_mono : zero_lt.mul_pos_strict_mono α :=
+⟨λ x a b h, mul_lt_mul_of_pos_right h x.prop⟩
 
 section nontrivial
 
@@ -168,12 +183,6 @@ alias zero_lt_three ← three_pos
 alias zero_lt_four ← four_pos
 
 end nontrivial
-
-lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
-ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
-
-lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
-ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
 
 lemma mul_lt_of_lt_one_left (hb : 0 < b) (ha : a < 1) : a * b < b :=
 (mul_lt_mul_of_pos_right ha hb).trans_le (one_mul _).le
@@ -365,6 +374,15 @@ by classical; exact decidable.lt_mul_of_one_lt_left
 
 lemma lt_two_mul_self [nontrivial α] (ha : 0 < a) : a < 2 * a :=
 lt_mul_of_one_lt_left ha one_lt_two
+
+lemma lt_mul_left (hn : 0 < a) (hm : 1 < b) : a < b * a :=
+by { convert mul_lt_mul_of_pos_right hm hn, rw one_mul }
+
+lemma lt_mul_right (hn : 0 < a) (hm : 1 < b) : a < a * b :=
+by { convert mul_lt_mul_of_pos_left hm hn, rw mul_one }
+
+lemma lt_mul_self (hn : 1 < a) : a < a * a :=
+lt_mul_left (hn.trans_le' zero_le_one) hn
 
 -- See Note [decidable namespace]
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
@@ -1435,7 +1453,7 @@ namespace ring
 
 /-- A positive cone in a ring consists of a positive cone in underlying `add_comm_group`,
 which contains `1` and such that the positive elements are closed under multiplication. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_cone α :=
 (one_nonneg : nonneg 1)
 (mul_pos : ∀ (a b), pos a → pos b → pos (a * b))
@@ -1444,7 +1462,7 @@ structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_c
 add_decl_doc positive_cone.to_positive_cone
 
 /-- A positive cone in a ring induces a linear order if `1` is a positive element. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure total_positive_cone (α : Type*) [ring α]
   extends positive_cone α, add_comm_group.total_positive_cone α :=
 (one_pos : pos 1)
@@ -1514,10 +1532,20 @@ instance to_no_zero_divisors : no_zero_divisors α :=
 instance to_covariant_mul_le : covariant_class α α (*) (≤) :=
 begin
   refine ⟨λ a b c h, _⟩,
-  rcases le_iff_exists_add.1 h with ⟨c, rfl⟩,
+  rcases exists_add_of_le h with ⟨c, rfl⟩,
   rw mul_add,
   apply self_le_add_right
 end
+
+@[priority 200] -- see Note [lower instance priority]
+instance canonically_ordered_comm_semiring.pos_mul_mono :
+  zero_lt.pos_mul_mono α :=
+⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [left_distrib, le_self_add], }⟩
+
+@[priority 200] -- see Note [lower instance priority]
+instance canonically_ordered_comm_semiring.mul_pos_mono :
+  zero_lt.mul_pos_mono α :=
+⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [right_distrib, le_self_add], }⟩
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
@@ -1815,5 +1843,21 @@ with_top.comm_monoid_with_zero
 
 instance [canonically_ordered_comm_semiring α] [nontrivial α] : comm_semiring (with_bot α) :=
 with_top.comm_semiring
+
+instance [canonically_ordered_comm_semiring α] [nontrivial α] :
+  zero_lt.pos_mul_mono (with_bot α) :=
+⟨ begin
+    rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
+    induction x using with_bot.rec_bot_coe,
+    { have := bot_lt_coe (0 : α), rw [coe_zero] at this, exact absurd x0.le this.not_le, },
+    { induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le], },
+      induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le, },
+      { simp only [← coe_mul, coe_le_coe] at *,
+        exact zero_lt.mul_le_mul_left h (zero_le x), }, },
+  end ⟩
+
+instance [canonically_ordered_comm_semiring α] [nontrivial α] :
+  zero_lt.mul_pos_mono (with_bot α) :=
+zero_lt.pos_mul_mono_iff_mul_pos_mono.mp zero_lt.pos_mul_mono
 
 end with_bot

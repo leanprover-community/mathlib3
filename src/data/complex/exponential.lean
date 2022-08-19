@@ -470,7 +470,7 @@ begin
   dsimp [exp', function.comp, cau_seq_conj],
   rw (star_ring_end _).map_sum,
   refine sum_congr rfl (λ n hn, _),
-  rw [ring_hom.map_div, ring_hom.map_pow, ← of_real_nat_cast, conj_of_real]
+  rw [map_div₀, map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
@@ -534,7 +534,7 @@ by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
 by rw [sinh, ← ring_hom.map_neg, exp_conj, exp_conj, ← ring_hom.map_sub, sinh,
-  ring_hom.map_div, conj_bit0, ring_hom.map_one]
+  map_div₀, conj_bit0, ring_hom.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -550,7 +550,7 @@ lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
 begin
   rw [cosh, ← ring_hom.map_neg, exp_conj, exp_conj, ← ring_hom.map_add, cosh,
-      ring_hom.map_div, conj_bit0, ring_hom.map_one]
+      map_div₀, conj_bit0, ring_hom.map_one]
 end
 
 lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
@@ -571,7 +571,7 @@ lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
 lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
-by rw [tanh, sinh_conj, cosh_conj, ← ring_hom.map_div, tanh]
+by rw [tanh, sinh_conj, cosh_conj, ← map_div₀, tanh]
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
@@ -792,7 +792,7 @@ by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
-by rw [tan, sin_conj, cos_conj, ← ring_hom.map_div, tan]
+by rw [tan, sin_conj, cos_conj, ← map_div₀, tan]
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]

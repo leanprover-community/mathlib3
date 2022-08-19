@@ -16,7 +16,7 @@ src/data/rbtree/default_lt.lean : line 6 : ERR_MOD : Module docstring missing, o
 src/data/rbtree/find.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/rbtree/init.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/rbtree/insert.lean : line 7 : ERR_MOD : Module docstring missing, or too late
-src/data/rbtree/main.lean : line 10 : ERR_MOD : Module docstring missing, or too late
+src/data/rbtree/main.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/rbtree/min_max.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/computation.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late

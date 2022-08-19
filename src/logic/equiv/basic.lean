@@ -88,7 +88,7 @@ namespace equiv
 
 instance : equiv_like (α ≃ β) α β :=
 { coe := to_fun, inv := inv_fun, left_inv := left_inv, right_inv := right_inv,
-  coe_injective' := λ e₁ e₂ h₁ h₂, by { cases e₁, cases e₂, congr' } }
+  coe_inv_injective' := λ e₁ e₂ h₁ h₂, by { cases e₁, cases e₂, congr' } }
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨to_fun⟩
 

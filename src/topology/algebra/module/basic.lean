@@ -341,9 +341,7 @@ include σ'
 @[priority 100, nolint dangerous_instance]
 instance [s: continuous_semilinear_equiv_class F σ M M₂] :
   continuous_semilinear_map_class F σ M M₂ :=
-{ coe := (coe : F → M → M₂),
-  coe_injective' := @fun_like.coe_injective F _ _ _,
-  ..s }
+{ ..s }
 omit σ'
 
 end continuous_semilinear_equiv_class
@@ -1414,7 +1412,7 @@ instance : has_coe (M₁ ≃SL[σ₁₂] M₂) (M₁ →SL[σ₁₂] M₂) := �
 instance : continuous_semilinear_equiv_class (M₁ ≃SL[σ₁₂] M₂) σ₁₂ M₁ M₂ :=
 { coe := λ f, f,
   inv := λ f, f.inv_fun,
-  coe_injective' := λ f g h₁ h₂, by { cases f with f' _, cases g with g' _,  cases f', cases g',
+  coe_inv_injective' := λ f g h₁ h₂, by { cases f with f' _, cases g with g' _,  cases f', cases g',
                                       congr' },
   left_inv := λ f, f.left_inv,
   right_inv := λ f, f.right_inv,

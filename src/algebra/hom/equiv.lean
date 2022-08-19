@@ -94,9 +94,7 @@ variables (F)
 @[priority 100, -- See note [lower instance priority]
   to_additive]
 instance [has_mul M] [has_mul N] [h : mul_equiv_class F M N] : mul_hom_class F M N :=
-{ coe := (coe : F → M → N),
-  coe_injective' := @fun_like.coe_injective F _ _ _,
-  .. h }
+{ .. h }
 
 @[priority 100, -- See note [lower instance priority]
   to_additive]

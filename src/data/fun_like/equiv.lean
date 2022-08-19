@@ -67,15 +67,16 @@ class my_iso_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class 
   extends equiv_like F A (λ _, B), my_hom_class F A B.
 
 -- You can replace `my_iso.equiv_like` with the below instance:
+-- note: the `coe_injective'` field is autofilled, you do not need to provide it
 instance : my_iso_class (my_iso A B) A B :=
 { coe := my_iso.to_fun,
   inv := my_iso.inv_fun,
   left_inv := my_iso.left_inv,
   right_inv := my_iso.right_inv,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
+  coe_inv_injective' := λ f g h₁ h₂, by cases f; cases g; congr',
   map_op := my_iso.map_op' }
 
--- [Insert `has_coe_to_fun`, `to_fun_eq_coe`, `ext` and `copy` here]
+-- [Insert `to_fun_eq_coe`, `ext` and `copy` here]
 ```
 
 The second step is to add instances of your new `my_iso_class` for all types extending `my_iso`.
@@ -97,11 +98,11 @@ my_iso_class.map_op
 -- You can also replace `my_iso.equiv_like` with the below instance:
 instance : cool_iso_class (cool_iso A B) A B :=
 { coe := cool_iso.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
+  coe_inv_injective' := λ f g h, by cases f; cases g; congr',
   map_op := cool_iso.map_op',
   map_cool := cool_iso.map_cool' }
 
--- [Insert `has_coe_to_fun`, `to_fun_eq_coe`, `ext` and `copy` here]
+-- [Insert `to_fun_eq_coe`, `ext` and `copy` here]
 ```
 
 Then any declaration taking a specific type of morphisms as parameter can instead take the
@@ -120,16 +121,16 @@ instead of linearly increasing the work per `my_iso`-related declaration.
 /-- The class `equiv_like E α β` expresses that terms of type `E` have an
 injective coercion to bijections between `α` and `β`.
 
-This typeclass is used in the definition of the homomorphism typeclasses,
+This typeclass is used in the definition of the isomorphism typeclasses,
 such as `zero_equiv_class`, `mul_equiv_class`, `monoid_equiv_class`, ....
 -/
-class equiv_like (E : Sort*) (α β : out_param Sort*) :=
-(coe : E → α → β)
+class equiv_like (E : Sort*) (α β : out_param Sort*) extends fun_like E α (λ _, β) :=
 (inv : E → β → α)
 (left_inv  : ∀ e, function.left_inverse (inv e) (coe e))
 (right_inv : ∀ e, function.right_inverse (inv e) (coe e))
--- The `inv` hypothesis makes this easier to prove with `congr'`
-(coe_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g)
+(coe_inv_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g)
+(coe_injective' := λ e g h, coe_inv_injective' e g h $ funext $
+  λ x, left_inv g (inv e x) ▸ congr_arg (inv g) (@id (coe e = coe g) h ▸ right_inv e x))
 
 namespace equiv_like
 
@@ -137,17 +138,18 @@ variables {E F α β γ : Sort*} [iE : equiv_like E α β] [iF : equiv_like F β
 include iE
 
 lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
-λ e g h, coe_injective' e g ((right_inv e).eq_right_inverse (h.symm ▸ left_inv g)) h
+λ e g h, fun_like.coe_injective' $ function.left_inverse.eq_right_inverse (right_inv e)
+  (h.symm ▸ left_inv g : function.right_inverse g (inv e))
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
-{ coe := coe,
-  coe_injective' := λ e g h, coe_injective' e g h
-    ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g)),
-  injective' := λ e, (left_inv e).injective }
+{ coe := fun_like.coe,
+  coe_injective' := fun_like.coe_injective',
+  injective' := λ e, function.left_inverse.injective (left_inv e) }
 
 protected lemma injective (e : E) : function.injective e := embedding_like.injective e
-protected lemma surjective (e : E) : function.surjective e := (right_inv e).surjective
+protected lemma surjective (e : E) : function.surjective e :=
+function.right_inverse.surjective (right_inv e)
 protected lemma bijective (e : E) : function.bijective (e : α → β) :=
 ⟨equiv_like.injective e, equiv_like.surjective e⟩
 

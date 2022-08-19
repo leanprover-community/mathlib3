@@ -96,9 +96,7 @@ variables [module R M] [module S M₂] {σ : R →+* S} {σ' : S →+* R}
 @[priority 100, nolint dangerous_instance]
 instance [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] [s : semilinear_equiv_class F σ M M₂] :
   semilinear_map_class F σ M M₂ :=
-{ coe := (coe : F → M → M₂),
-  coe_injective' := @fun_like.coe_injective F _ _ _,
-  ..s }
+{ ..s }
 
 end semilinear_equiv_class
 
@@ -146,7 +144,7 @@ to_linear_map_injective.eq_iff
 instance : semilinear_equiv_class (M ≃ₛₗ[σ] M₂) σ M M₂ :=
 { coe := linear_equiv.to_fun,
   inv := linear_equiv.inv_fun,
-  coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
+  coe_inv_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
   left_inv := linear_equiv.left_inv,
   right_inv := linear_equiv.right_inv,
   map_add := map_add',

@@ -558,7 +558,7 @@ instance : equiv_like (M ≃[L] N) M N :=
   inv := λ f, f.inv_fun,
   left_inv := λ f, f.left_inv,
   right_inv := λ f, f.right_inv,
-  coe_injective' := λ f g h₁ h₂, begin
+  coe_inv_injective' := λ f g h₁ h₂, begin
     cases f,
     cases g,
     simp only,

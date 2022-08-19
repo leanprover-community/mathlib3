@@ -851,7 +851,7 @@ variables (e : A₁ ≃ₐ[R] A₂)
 instance : alg_equiv_class (A₁ ≃ₐ[R] A₂) R A₁ A₂ :=
 { coe := to_fun,
   inv := inv_fun,
-  coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
+  coe_inv_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
   map_add := map_add',
   map_mul := map_mul',
   commutes := commutes',

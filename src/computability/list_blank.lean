@@ -11,6 +11,15 @@ import logic.function.iterate
 import order.basic
 import tactic.apply_fun
 
+/-!
+# Blanked Lists
+
+This file defines a quotient type for lists which are equivalent up to extension by some blank
+value. This is useful for Turing machine tapes, as well as a computable variant of
+finitely-supported functions on ℕ.
+
+-/
+
 /-- The `val_extends` partial order holds of `l₁` and `l₂` if `l₂` is obtained by adding
 vals (`val : Γ`) to the end of `l₁`. -/
 def val_extends {Γ} (val : Γ) (l₁ l₂ : list Γ) : Prop :=

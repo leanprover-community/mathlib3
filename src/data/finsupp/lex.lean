@@ -9,6 +9,7 @@ import data.finsupp.ne_locus
 
 /-!
 # Lexicographic order on finitely supported functions
+
 This file defines the lexicographic order on `finsupp`.
 -/
 
@@ -123,8 +124,7 @@ section left
 variables [covariant_class N N (+) (<)]
 
 instance lex.covariant_class_lt_left : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (+) (<) :=
-{ elim := λ f g h ⟨a, lta, ha⟩,
-  ⟨a, λ j ja, congr_arg ((+) _) (lta j ja), add_lt_add_left ha _⟩ }
+⟨λ f g h ⟨a, lta, ha⟩, ⟨a, λ j ja, congr_arg ((+) _) (lta j ja), add_lt_add_left ha _⟩⟩
 
 instance lex.covariant_class_le_left : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (+) (≤) :=
 has_add.to_covariant_class_left _
@@ -136,8 +136,7 @@ variables [covariant_class N N (function.swap (+)) (<)]
 
 instance lex.covariant_class_lt_right :
   covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (function.swap (+)) (<) :=
-{ elim := λ f g h ⟨a, lta, ha⟩,
-  ⟨a, λ j ja, congr_arg (+ (of_lex f j)) (lta j ja), add_lt_add_right ha _⟩ }
+⟨λ f g h ⟨a, lta, ha⟩, ⟨a, λ j ja, congr_arg (+ (of_lex f j)) (lta j ja), add_lt_add_right ha _⟩⟩
 
 instance lex.covariant_class_le_right :
   covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (function.swap (+)) (≤) :=

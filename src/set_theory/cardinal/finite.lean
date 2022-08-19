@@ -78,7 +78,7 @@ card_congr equiv.ulift
 card_congr equiv.plift
 
 lemma card_pi {β : α → Type*} [fintype α] : nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
-by simp_rw [nat.card, mk_pi, prod_of_fintype_eq, to_nat_lift, to_nat_finset_prod]
+by simp_rw [nat.card, mk_pi, prod_eq_of_fintype, to_nat_lift, to_nat_finset_prod]
 
 end nat
 

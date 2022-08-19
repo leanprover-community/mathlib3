@@ -717,7 +717,7 @@ begin
   exact mk_congr (equiv.ulift.trans $ equiv.Pi_congr_right $ λ i, equiv.ulift.symm)
 end
 
-lemma prod_of_fintype_eq {α : Type u} [fintype α] (f : α → cardinal.{v}) :
+lemma prod_eq_of_fintype {α : Type u} [fintype α] (f : α → cardinal.{v}) :
   prod f = cardinal.lift.{u} ∏ (i : α), (f i) :=
 begin
   revert f,

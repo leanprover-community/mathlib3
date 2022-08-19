@@ -317,7 +317,11 @@ end
 @[simp] theorem list_val.nth_map {Γ Γ'} {val : Γ} {val' : Γ'}
   (f : pointed_map Γ Γ' val val') (l : list_val Γ val) (n : ℕ) : (l.map f).nth n = f (l.nth n) :=
 l.induction_on begin
-  intro l, simp only [list.nth_map, list_val.map_mk, list_val.nth_mk, list.inth_eq_iget_nth],
+  intro l,
+  simp_rw [list_val.map_mk],
+  simp_rw [list_val.nth_mk],
+  simp_rw [list.nthd_map],
+  -- simp only [list.nth_map, list_val.map_mk, list_val.nth_mk, list.inth_eq_iget_nth],
   cases l.nth n, {exact f.2.symm}, {refl}
 end
 

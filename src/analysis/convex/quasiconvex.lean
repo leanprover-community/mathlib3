@@ -103,7 +103,7 @@ hf.dual.sup hg
 
 lemma quasiconvex_on_iff_le_max :
   quasiconvex_on 𝕜 s f ↔ convex 𝕜 s ∧
-    ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
+    ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
       f (a • x + b • y) ≤ max (f x) (f y) :=
 ⟨λ hf, ⟨hf.convex, λ x hx y hy a b ha hb hab,
   (hf _ ⟨hx, le_max_left _ _⟩ ⟨hy, le_max_right _ _⟩ ha hb hab).2⟩,
@@ -112,13 +112,13 @@ lemma quasiconvex_on_iff_le_max :
 
 lemma quasiconcave_on_iff_min_le :
   quasiconcave_on 𝕜 s f ↔ convex 𝕜 s ∧
-    ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
+    ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
       min (f x) (f y) ≤ f (a • x + b • y) :=
 @quasiconvex_on_iff_le_max 𝕜 E βᵒᵈ _ _ _ _ _ _
 
 lemma quasilinear_on_iff_mem_interval :
   quasilinear_on 𝕜 s f ↔ convex 𝕜 s ∧
-    ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
+    ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
       f (a • x + b • y) ∈ interval (f x) (f y) :=
 begin
   rw [quasilinear_on, quasiconvex_on_iff_le_max, quasiconcave_on_iff_min_le, and_and_and_comm,

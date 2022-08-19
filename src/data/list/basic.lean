@@ -4073,6 +4073,11 @@ begin
   { rw [nthd_eq_default _ _ h, nth_eq_none_iff.mpr h, option.get_or_else_none] }
 end
 
+@[simp] theorem nthd_map (d : α) (f : α → β) : ∀ l n, nthd (f d) (map f l) n = f (nthd d l n)
+| []       n     := rfl
+| (a :: l) 0     := rfl
+| (a :: l) (n+1) := nthd_map l n
+
 end nthd
 
 section inth

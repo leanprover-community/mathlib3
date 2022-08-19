@@ -7,6 +7,7 @@ Authors: Frédéric Dupuis
 import algebra.order.field
 import algebra.smul_with_zero
 import group_theory.group_action.group
+import tactic.positivity
 
 /-!
 # Ordered scalar product
@@ -204,3 +205,32 @@ variables (M)
   map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_pos hc }
 
 end field
+
+namespace tactic
+variables {R M : Type*} [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
+  [ordered_smul R M] {a : R} {b : M}
+
+private lemma smul_nonneg_of_pos_of_nonneg (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a • b :=
+smul_nonneg ha.le hb
+
+private lemma smul_nonneg_of_nonneg_of_pos (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a • b :=
+smul_nonneg ha hb.le
+
+open positivity
+
+/-- Extension for the `positivity` tactic: scalar multiplication is nonnegative if both sides are
+nonnegative, and strictly positive if both sides are. -/
+@[positivity]
+meta def positivity_smul : expr → tactic strictness
+| `(%%a • %%b) := do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``smul_pos [pa, pb]
+  | positive pa, nonnegative pb := nonnegative <$> mk_app ``smul_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb := nonnegative <$> mk_app ``smul_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``mul_nonneg [pa, pb]
+  end
+| _ := failed
+
+end tactic

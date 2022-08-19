@@ -3,7 +3,7 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
-import ring_theory.polynomial.basic
+import field_theory.splitting_field
 import ring_theory.polynomial.symmetric
 
 /-!
@@ -18,8 +18,8 @@ for the product of linear terms `X + X i` with `i` in a `fintype σ` as a linear
 of the symmetric polynomials `esymm σ R j`.
 
 For `R` be an integral domain (so that `p.roots` is defined for any `p : R[X]` as a multiset),
-we derive `polynomial.vieta`, the relationship between the coefficients and the roots of `p` for
-a polynomial `p` that splits (i.e. having as many roots as its degree).
+we derive `polynomial.coeff_eq_esymm_roots_of_card`, the relationship between the coefficients and
+the roots of `p` for a polynomial `p` that splits (i.e. having as many roots as its degree).
 -/
 
 open_locale big_operators polynomial
@@ -106,10 +106,9 @@ begin
   { rwa card_map },
 end
 
-/-- Vieta's formula for the coefficients and the roots of a split polynomial.
-  When `R` is a field, use `polynomial.splits_iff_card_roots` to derive the
-  condition `hroots` from `p.splits (ring_hom.id R)`.  -/
-theorem _root_.polynomial.vieta [is_domain R] {p : R[X]}
+/-- Vieta's formula for the coefficients and the roots of a polynomial over an integral domain
+  with as many roots as its degree. -/
+theorem _root_.polynomial.coeff_eq_esymm_roots_of_card [is_domain R] {p : R[X]}
   (hroots : p.roots.card = p.nat_degree) {k : ℕ} (h : k ≤ p.nat_degree) :
   p.coeff k = p.leading_coeff * (-1) ^ (p.nat_degree - k) * p.roots.esymm (p.nat_degree - k) :=
 begin
@@ -117,6 +116,12 @@ begin
   rw [coeff_C_mul, mul_assoc], congr,
   convert p.roots.prod_X_sub_C_coeff _ using 3; rw hroots, exact h,
 end
+
+/-- Vieta's formula for split polynomials over a field. -/
+theorem _root_.polynomial.coeff_eq_esymm_roots_of_splits {F} [field F] {p : F[X]}
+  (hsplit : p.splits (ring_hom.id F)) {k : ℕ} (h : k ≤ p.nat_degree) :
+  p.coeff k = p.leading_coeff * (-1) ^ (p.nat_degree - k) * p.roots.esymm (p.nat_degree - k) :=
+polynomial.coeff_eq_esymm_roots_of_card (splits_iff_card_roots.1 hsplit) h
 
 end ring
 

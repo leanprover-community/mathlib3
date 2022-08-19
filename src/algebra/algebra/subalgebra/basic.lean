@@ -278,8 +278,8 @@ protected lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebr
   ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
 protected lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n := submonoid_class.coe_pow x n
-protected lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 := add_submonoid_class.coe_eq_zero
-protected lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 := submonoid_class.coe_eq_one
+protected lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 := zero_mem_class.coe_eq_zero
+protected lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 := one_mem_class.coe_eq_one
 
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype

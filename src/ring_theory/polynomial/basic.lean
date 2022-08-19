@@ -696,7 +696,7 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, zero_mem_class.coe_zero,
     subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)

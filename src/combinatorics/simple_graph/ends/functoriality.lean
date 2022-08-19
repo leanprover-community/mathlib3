@@ -327,11 +327,13 @@ def good_common_finset.symm {f g : V → V'} {K : finset V'} {L : finset V} :
 
 def good_common_finset.trans {f g h : V → V'} {K : finset V'} {L : finset V} :
   (good_common_finset G G' f g K L) → good_common_finset G G' g h K L → good_common_finset G G' f h K L := sorry
+  -- what do we actually want???
 
+def good_common_finset.up {f g : V → V'} {K : finset V'}  {L L' : finset V} (LL' : L ⊆ L') :
+  (good_common_finset G G' f g K L) → good_common_finset G G' f g K L'  :=
+λ c D, ⟨(c (bwd_map_inf G Gpc LL' D)),sorry⟩
 
 -- Probably we also need versions of the `agree_up` `agree_down` and `up` `down` constructions for `good_finset`.
-
-
 
 
 def coarse_close (f g : V → V') :=
@@ -357,7 +359,9 @@ def coarse_close.trans (f g h : V → V') :
   coarse_close G G' f g → coarse_close G G' g h → coarse_close G G' f h :=
 λ iccfg iccgh K,
   ⟨ (iccfg K).1 ∪ (iccgh K).1
-  , by {sorry,}
+  , good_common_finset.trans G G'
+      (good_common_finset.up G Gpc G' (subset_union_left (iccfg K).1 (iccgh K).1) (iccfg K).2)
+      (good_common_finset.up G Gpc G' (subset_union_right (iccfg K).1 (iccgh K).1) (iccgh K).2)
   ⟩
 
 

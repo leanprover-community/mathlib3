@@ -125,7 +125,7 @@ lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin
   obtain ⟨i, j, hpij, hij⟩ : ∃ i j, p i = p j ∧ i ≠ j,
-  { rw [← fintype.injective_iff_bijective, injective] at H,
+  { rw [← finite.injective_iff_bijective, injective] at H,
     push_neg at H,
     exact H },
   exact sum_involution
@@ -214,8 +214,8 @@ lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i))
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
 @[simp]
-lemma det_minor_equiv_self (e : n ≃ m) (A : matrix m m R) :
-  det (A.minor e e) = det A :=
+lemma det_submatrix_equiv_self (e : n ≃ m) (A : matrix m m R) :
+  det (A.submatrix e e) = det A :=
 begin
   rw [det_apply', det_apply'],
   apply fintype.sum_equiv (equiv.perm_congr e),
@@ -224,16 +224,16 @@ begin
   congr' 1,
   apply fintype.prod_equiv e,
   intro i,
-  rw [equiv.perm_congr_apply, equiv.symm_apply_apply, minor_apply],
+  rw [equiv.perm_congr_apply, equiv.symm_apply_apply, submatrix_apply],
 end
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 
-For the `simp` version of this lemma, see `det_minor_equiv_self`; this one is unsuitable because
+For the `simp` version of this lemma, see `det_submatrix_equiv_self`; this one is unsuitable because
 `matrix.reindex_apply` unfolds `reindex` first.
 -/
 lemma det_reindex_self (e : m ≃ n) (A : matrix m m R) : det (reindex e e A) = det A :=
-det_minor_equiv_self e.symm A
+det_submatrix_equiv_self e.symm A
 
 /-- The determinant of a permutation matrix equals its sign. -/
 @[simp] lemma det_permutation (σ : perm n) :
@@ -642,10 +642,10 @@ by rw [←det_transpose, from_blocks_transpose, transpose_zero, det_from_blocks_
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column 0. -/
 lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ i : fin n.succ, (-1) ^ (i : ℕ) * A i 0 *
-    det (A.minor i.succ_above fin.succ) :=
+    det (A.submatrix i.succ_above fin.succ) :=
 begin
   rw [matrix.det_apply, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
-  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product, matrix.minor],
+  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product, matrix.submatrix],
   refine finset.sum_congr rfl (λ i _, fin.cases _ (λ i, _) i),
   { simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum,
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
@@ -676,16 +676,16 @@ end
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row 0. -/
 lemma det_succ_row_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ j : fin n.succ, (-1) ^ (j : ℕ) * A 0 j *
-    det (A.minor fin.succ j.succ_above) :=
+    det (A.submatrix fin.succ j.succ_above) :=
 by { rw [← det_transpose A, det_succ_column_zero],
      refine finset.sum_congr rfl (λ i _, _),
      rw [← det_transpose],
-     simp only [transpose_apply, transpose_minor, transpose_transpose] }
+     simp only [transpose_apply, transpose_submatrix, transpose_transpose] }
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row `i`. -/
 lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (i : fin n.succ) :
   det A = ∑ j : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (A.minor i.succ_above j.succ_above) :=
+    det (A.submatrix i.succ_above j.succ_above) :=
 begin
   simp_rw [pow_add, mul_assoc, ← mul_sum],
   have : det A = (-1 : R) ^ (i : ℕ) * (i.cycle_range⁻¹).sign * det A,
@@ -697,7 +697,7 @@ begin
   congr,
   rw [← det_permute, det_succ_row_zero],
   refine finset.sum_congr rfl (λ j _, _),
-  rw [mul_assoc, matrix.minor, matrix.minor],
+  rw [mul_assoc, matrix.submatrix, matrix.submatrix],
   congr,
   { rw [equiv.perm.inv_def, fin.cycle_range_symm_zero] },
   { ext i' j',
@@ -707,10 +707,10 @@ end
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column `j`. -/
 lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (j : fin n.succ) :
   det A = ∑ i : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (A.minor i.succ_above j.succ_above) :=
+    det (A.submatrix i.succ_above j.succ_above) :=
 by { rw [← det_transpose, det_succ_row _ j],
      refine finset.sum_congr rfl (λ i _, _),
-     rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
+     rw [add_comm, ← det_transpose, transpose_apply, transpose_submatrix, transpose_transpose] }
 
 
 /-- Determinant of 0x0 matrix -/

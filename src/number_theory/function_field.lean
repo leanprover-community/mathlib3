@@ -133,6 +133,9 @@ integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F
 instance : is_integrally_closed (ring_of_integers Fq F) :=
 integral_closure.is_integrally_closed_of_finite_extension (ratfunc Fq)
 
+instance [is_separable (ratfunc Fq) F] : is_noetherian Fq[X] (ring_of_integers Fq F) :=
+is_integral_closure.is_noetherian _ (ratfunc Fq) F _
+
 instance [is_separable (ratfunc Fq) F] :
   is_dedekind_domain (ring_of_integers Fq F) :=
 is_integral_closure.is_dedekind_domain Fq[X] (ratfunc Fq) F _

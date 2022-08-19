@@ -1291,7 +1291,7 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-lemma image_subtype_ne_univ_eq_image_erase [fintype α] [decidable_eq α] (k : β) (b : α → β) :
+lemma image_subtype_ne_univ_eq_image_erase [fintype α] (k : β) (b : α → β) :
   image (λ i : {a // b a ≠ k}, b ↑i) univ = (image b univ).erase k :=
 begin
   apply subset_antisymm,
@@ -1305,7 +1305,7 @@ begin
     exact ⟨⟨a, ne_of_mem_erase hi⟩, mem_univ _, rfl⟩ }
 end
 
-lemma image_subtype_univ_ssubset_image_univ [fintype α] [decidable_eq α] (k : β) (b : α → β)
+lemma image_subtype_univ_ssubset_image_univ [fintype α] (k : β) (b : α → β)
   (hk : k ∈ image b univ) (p : β → Prop) [decidable_pred p] (hp : ¬ p k) :
   image (λ i : {a // p (b a)}, b ↑i) univ ⊂ image b univ :=
 begin

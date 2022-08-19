@@ -136,7 +136,7 @@ lemma analytic_set.image_of_continuous {β : Type*} [topological_space β]
 hs.image_of_continuous_on hf.continuous_on
 
 /-- A countable intersection of analytic sets is analytic. -/
-theorem analytic_set.Inter [hι : nonempty ι] [encodable ι] [t2_space α]
+theorem analytic_set.Inter [hι : nonempty ι] [countable ι] [t2_space α]
   {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
   analytic_set (⋂ n, s n) :=
 begin
@@ -181,7 +181,7 @@ begin
 end
 
 /-- A countable union of analytic sets is analytic. -/
-theorem analytic_set.Union [encodable ι] {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
+theorem analytic_set.Union [countable ι] {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
   analytic_set (⋃ n, s n) :=
 begin
   /- For the proof, write each `s n` as the continuous image under a map `f n` of a
@@ -270,7 +270,7 @@ This is mostly interesting for Borel-separable sets. -/
 def measurably_separable {α : Type*} [measurable_space α] (s t : set α) : Prop :=
 ∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
 
-lemma measurably_separable.Union [encodable ι]
+lemma measurably_separable.Union [countable ι]
   {α : Type*} [measurable_space α] {s t : ι → set α}
   (h : ∀ m n, measurably_separable (s m) (t n)) :
   measurably_separable (⋃ n, s n) (⋃ m, t m) :=

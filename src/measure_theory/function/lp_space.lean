@@ -1333,8 +1333,8 @@ begin
     refine eventually_of_forall (λ x, _),
     rw liminf_const (1 : ℝ≥0∞),
     exacts [ennreal.one_lt_top, at_top_ne_bot] },
-  have hp : p ≠ 0 := λ h, by simpa [h] using hp0,  
-  have hp' : p ≠ ∞ := λ h, by simpa [h] using hp0,  
+  have hp : p ≠ 0 := λ h, by simpa [h] using hp0,
+  have hp' : p ≠ ∞ := λ h, by simpa [h] using hp0,
   refine ae_lt_top
     (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
     (lt_of_le_of_lt (lintegral_liminf_le
@@ -2294,7 +2294,7 @@ begin
   exact (continuous_nnnorm.tendsto (f_lim x)).comp hx,
 end
 
-lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [encodable ι]
+lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [countable ι]
   [linear_order ι] {f : ι → α → F} {f_lim : α → F}
   (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
   snorm f_lim ∞ μ ≤ at_top.liminf (λ n, snorm (f n) ∞ μ) :=

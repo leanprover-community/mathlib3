@@ -260,7 +260,7 @@ lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t
 not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
   measure_union_lt_top_iff]
 
-lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
+lemma exists_measure_pos_of_not_measure_Union_null [countable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
   contrapose! hs,
@@ -326,8 +326,7 @@ end⟩
 lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
 filter.eventually_imp_distrib_left
 
-lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
-  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
+lemma ae_all_iff [countable ι] {p : α → ι → Prop} : (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ ∀ i, ∀ᵐ a ∂ μ, p a i :=
 eventually_countable_forall
 
 lemma ae_ball_iff {S : set ι} (hS : S.countable) {p : Π (x : α) (i ∈ S), Prop} :

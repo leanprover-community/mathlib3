@@ -75,7 +75,7 @@ h.mono_ae hu.eventually_le hv.eventually_le
   ae_disjoint μ (⋃ i, s i) t ↔ ∀ i, ae_disjoint μ (s i) t :=
 by simp only [ae_disjoint, Union_inter, measure_Union_null_iff]
 
-@[simp] lemma Union_right_iff [encodable ι] {t : ι → set α} :
+@[simp] lemma Union_right_iff [countable ι] {t : ι → set α} :
   ae_disjoint μ s (⋃ i, t i) ↔ ∀ i, ae_disjoint μ s (t i) :=
 by simp only [ae_disjoint, inter_Union, measure_Union_null_iff]
 

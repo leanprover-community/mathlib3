@@ -142,7 +142,7 @@ h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _)
 h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _) (equiv.refl _) $
   smul_comm g
 
-variables [encodable G] {ν : measure α}
+variables [countable G] {ν : measure α}
 
 @[to_additive] lemma sum_restrict_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   sum (λ g : G, ν.restrict (g • s)) = ν :=

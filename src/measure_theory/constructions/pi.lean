@@ -33,12 +33,12 @@ where `pi univ s` is the product of the sets `{s i | i : ι}`.
 We then show that this induces a product of measures, called `measure_theory.measure.pi`.
 For a collection of σ-finite measures `μ` and a collection of measurable sets `s` we show that
 `measure.pi μ (pi univ s) = ∏ i, m i (s i)`. To do this, we follow the following steps:
-* We know that there is some ordering on `ι`, given by an element of `[encodable ι]`.
+* We know that there is some ordering on `ι`, given by an element of `[countable ι]`.
 * Using this, we have an equivalence `measurable_equiv.pi_measurable_equiv_tprod` between
   `Π ι, α i` and an iterated product of `α i`, called `list.tprod α l` for some list `l`.
 * On this iterated product we can easily define a product measure `measure_theory.measure.tprod`
   by iterating `measure_theory.measure.prod`
-* Using the previous two steps we construct `measure_theory.measure.pi'` on `Π ι, α i` for encodable
+* Using the previous two steps we construct `measure_theory.measure.pi'` on `Π ι, α i` for countable
   `ι`.
 * We know that `measure_theory.measure.pi'` sends products of sets to products of measures, and
   since `measure_theory.measure.pi` is the maximal such measure (or at least, it comes from an outer
@@ -83,7 +83,7 @@ lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  haveI := fintype.to_encodable ι,
+  casesI nonempty_encodable ι,
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
@@ -96,7 +96,7 @@ lemma generate_from_pi_eq {C : Π i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
   @measurable_space.pi _ _ (λ i, generate_from (C i)) = generate_from (pi univ '' pi univ C) :=
 begin
-  haveI := fintype.to_encodable ι,
+  casesI nonempty_encodable ι,
   apply le_antisymm,
   { refine supr_le _, intro i, rw [comap_generate_from],
     apply generate_from_le, rintro _ ⟨s, hs, rfl⟩, dsimp,

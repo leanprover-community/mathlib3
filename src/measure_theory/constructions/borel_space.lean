@@ -60,7 +60,7 @@ lemma borel_eq_top_of_discrete [topological_space α] [discrete_topology α] :
   borel α = ⊤ :=
 top_le_iff.1 $ λ s hs, generate_measurable.basic s (is_open_discrete s)
 
-lemma borel_eq_top_of_encodable [topological_space α] [t1_space α] [encodable α] :
+lemma borel_eq_top_of_countable [topological_space α] [t1_space α] [countable α] :
   borel α = ⊤ :=
 begin
   refine (top_le_iff.1 $ λ s hs, bUnion_of_singleton s ▸ _),
@@ -339,7 +339,7 @@ instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
   measurable_singleton_class α :=
 ⟨λ x, is_closed_singleton.measurable_set⟩
 
-instance pi.opens_measurable_space_encodable {ι : Type*} {π : ι → Type*} [encodable ι]
+instance pi.opens_measurable_space {ι : Type*} {π : ι → Type*} [countable ι]
   [t' : Π i, topological_space (π i)]
   [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
   [∀ i, opens_measurable_space (π i)] :
@@ -357,13 +357,6 @@ begin
   rw [eq_generate_from_countable_basis (π a)],
   exact generate_open.basic _ (hi a ha)
 end
-
-instance pi.opens_measurable_space_fintype {ι : Type*} {π : ι → Type*} [fintype ι]
-  [t' : Π i, topological_space (π i)]
-  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
-  [∀ i, opens_measurable_space (π i)] :
-  opens_measurable_space (Π i, π i) :=
-by { letI := fintype.to_encodable ι, apply_instance }
 
 instance prod.opens_measurable_space [second_countable_topology α] [second_countable_topology β] :
   opens_measurable_space (α × β) :=
@@ -929,17 +922,8 @@ begin
   { exact comap_le_iff_le_map.mpr continuous_snd.borel_measurable }
 end
 
-instance pi.borel_space_fintype_encodable {ι : Type*} {π : ι → Type*} [encodable ι]
-  [t' : Π i, topological_space (π i)]
-  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
-  [∀ i, borel_space (π i)] :
-  borel_space (Π i, π i) :=
-⟨le_antisymm pi_le_borel_pi opens_measurable_space.borel_le⟩
-
-instance pi.borel_space_finite {ι : Type*} {π : ι → Type*} [finite ι]
-  [t' : Π i, topological_space (π i)]
-  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
-  [∀ i, borel_space (π i)] :
+instance pi.borel_space {ι : Type*} {π : ι → Type*} [countable ι] [Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)] [∀ i, borel_space (π i)] :
   borel_space (Π i, π i) :=
 ⟨le_antisymm pi_le_borel_pi opens_measurable_space.borel_le⟩
 
@@ -1000,7 +984,7 @@ begin
   assumption
 end
 
-lemma measurable.is_lub {ι} [encodable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
+lemma measurable.is_lub {ι} [countable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_lub {a | ∃ i, f i b = a} (g b)) :
   measurable g :=
 begin
@@ -1013,7 +997,7 @@ begin
 end
 
 private lemma ae_measurable.is_lub_of_nonempty {ι} (hι : nonempty ι)
-  {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+  {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1039,7 +1023,7 @@ begin
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
-lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+lemma ae_measurable.is_lub {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1057,7 +1041,7 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_lub.unique hy hg.exists.some_spec)⟩,
 end
 
-lemma measurable.is_glb {ι} [encodable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
+lemma measurable.is_glb {ι} [countable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_glb {a | ∃ i, f i b = a} (g b)) :
   measurable g :=
 begin
@@ -1070,7 +1054,7 @@ begin
 end
 
 private lemma ae_measurable.is_glb_of_nonempty {ι} (hι : nonempty ι)
-  {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+  {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1096,7 +1080,7 @@ begin
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
-lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+lemma ae_measurable.is_glb {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1207,23 +1191,23 @@ section complete_linear_order
 variables [complete_linear_order α] [order_topology α] [second_countable_topology α]
 
 @[measurability]
-lemma measurable_supr {ι} [encodable ι] {f : ι → δ → α} (hf : ∀ i, measurable (f i)) :
+lemma measurable_supr {ι} [countable ι] {f : ι → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ b, ⨆ i, f i b) :=
 measurable.is_lub hf $ λ b, is_lub_supr
 
 @[measurability]
-lemma ae_measurable_supr {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α}
+lemma ae_measurable_supr {ι} {μ : measure δ} [countable ι] {f : ι → δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) :
   ae_measurable (λ b, ⨆ i, f i b) μ :=
 ae_measurable.is_lub hf $ (ae_of_all μ (λ b, is_lub_supr))
 
 @[measurability]
-lemma measurable_infi {ι} [encodable ι] {f : ι → δ → α} (hf : ∀ i, measurable (f i)) :
+lemma measurable_infi {ι} [countable ι] {f : ι → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ b, ⨅ i, f i b) :=
 measurable.is_glb hf $ λ b, is_glb_infi
 
 @[measurability]
-lemma ae_measurable_infi {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α}
+lemma ae_measurable_infi {ι} {μ : measure δ} [countable ι] {f : ι → δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) :
   ae_measurable (λ b, ⨅ i, f i b) μ :=
 ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))
@@ -1334,7 +1318,7 @@ instance unit.borel_space : borel_space unit := ⟨borel_eq_top_of_discrete.symm
 instance bool.borel_space : borel_space bool := ⟨borel_eq_top_of_discrete.symm⟩
 instance nat.borel_space : borel_space ℕ := ⟨borel_eq_top_of_discrete.symm⟩
 instance int.borel_space : borel_space ℤ := ⟨borel_eq_top_of_discrete.symm⟩
-instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm⟩
+instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_countable.symm⟩
 
 @[priority 900]
 instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable_space 𝕜 := borel 𝕜
@@ -1767,13 +1751,13 @@ ennreal.measurable_to_real.comp_ae_measurable hf
 
 /-- note: `ℝ≥0∞` can probably be generalized in a future version of this lemma. -/
 @[measurability]
-lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+lemma measurable.ennreal_tsum {ι} [countable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr,
   exact λ s, s.measurable_sum (λ i _, h i) }
 
 @[measurability]
-lemma measurable.ennreal_tsum' {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+lemma measurable.ennreal_tsum' {ι} [countable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
   measurable (∑' i, f i) :=
 begin
   convert measurable.ennreal_tsum h,
@@ -1782,7 +1766,7 @@ begin
 end
 
 @[measurability]
-lemma measurable.nnreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0} (h : ∀ i, measurable (f i)) :
+lemma measurable.nnreal_tsum {ι} [countable ι] {f : ι → α → ℝ≥0} (h : ∀ i, measurable (f i)) :
   measurable (λ x, ∑' i, f i x) :=
 begin
   simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
@@ -1790,7 +1774,7 @@ begin
 end
 
 @[measurability]
-lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} {μ : measure α}
+lemma ae_measurable.ennreal_tsum {ι} [countable ι] {f : ι → α → ℝ≥0∞} {μ : measure α}
   (h : ∀ i, ae_measurable (f i) μ) :
   ae_measurable (λ x, ∑' i, f i x) μ :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
@@ -2014,7 +1998,7 @@ lemma measurable_of_tendsto_metrizable_ae {μ : measure α} [μ.is_complete] {f 
 ae_measurable_iff_measurable.mp
   (ae_measurable_of_tendsto_metrizable_ae' (λ i, (hf i).ae_measurable) h_ae_tendsto)
 
-lemma measurable_limit_of_tendsto_metrizable_ae {ι} [encodable ι] [nonempty ι] {μ : measure α}
+lemma measurable_limit_of_tendsto_metrizable_ae {ι} [countable ι] [nonempty ι] {μ : measure α}
   {f : ι → α → β} {L : filter ι} [L.is_countably_generated] (hf : ∀ n, ae_measurable (f n) μ)
   (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, tendsto (λ n, f n x) L (𝓝 l)) :
   ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),

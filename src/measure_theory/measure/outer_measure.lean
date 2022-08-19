@@ -1413,7 +1413,7 @@ ext $ λ s, (trim_binop (sup_apply m₁ m₂) s).trans (sup_apply _ _ _).symm
 of the trimmed measures. -/
 lemma trim_supr {ι} [countable ι] (μ : ι → outer_measure α) : trim (⨆ i, μ i) = ⨆ i, trim (μ i) :=
 begin
-  simp_rw [←@supr_plift_down ι],
+  simp_rw [←@supr_plift_down _ ι],
   ext1 s,
   haveI : countable (option $ plift ι) := @option.countable (plift ι) _,
   obtain ⟨t, hst, ht, hμt⟩ := exists_measurable_superset_forall_eq_trim

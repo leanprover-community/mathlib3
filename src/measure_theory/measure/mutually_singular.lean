@@ -62,7 +62,7 @@ let ⟨s, hs, h₁, h₂⟩ := h in ⟨s, hs, hμ h₁, hν h₂⟩
 lemma mono (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≤ μ₁) (hν : ν₂ ≤ ν₁) : μ₂ ⊥ₘ ν₂ :=
 h.mono_ac hμ.absolutely_continuous hν.absolutely_continuous
 
-@[simp] lemma sum_left {ι : Type*} [encodable ι] {μ : ι → measure α} :
+@[simp] lemma sum_left {ι : Type*} [countable ι] {μ : ι → measure α} :
   (sum μ) ⊥ₘ ν ↔ ∀ i, μ i ⊥ₘ ν :=
 begin
   refine ⟨λ h i, h.mono (le_sum _ _) le_rfl, λ H, _⟩,
@@ -73,7 +73,7 @@ begin
   { rwa [compl_Inter, measure_Union_null_iff], }
 end
 
-@[simp] lemma sum_right {ι : Type*} [encodable ι] {ν : ι → measure α} :
+@[simp] lemma sum_right {ι : Type*} [countable ι] {ν : ι → measure α} :
   μ ⊥ₘ sum ν ↔ ∀ i, μ ⊥ₘ ν i :=
 comm.trans $ sum_left.trans $ forall_congr $ λ i, comm
 

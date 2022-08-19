@@ -863,7 +863,7 @@ tendsto_set_to_fun_filter_of_dominated_convergence (dominated_fin_meas_additive_
   bound hF_meas h_bound bound_integrable h_lim
 
 /-- Lebesgue dominated convergence theorem for series. -/
-lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
+lemma has_sum_integral_of_dominated_convergence {ι} [countable ι]
   {F : ι → α → E} {f : α → E} (bound : ι → α → ℝ)
   (hF_meas : ∀ n, ae_strongly_measurable (F n) μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound n a)

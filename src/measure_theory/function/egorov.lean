@@ -64,13 +64,13 @@ begin
   exact ⟨n, hn₁, hn₂.le⟩
 end
 
-lemma not_convergent_seq_measurable_set [preorder ι] [encodable ι]
+lemma not_convergent_seq_measurable_set [preorder ι] [countable ι]
   (hf : ∀ n, strongly_measurable[m] (f n)) (hg : strongly_measurable g) :
   measurable_set (not_convergent_seq f g n j) :=
 measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
   strongly_measurable.measurable_set_lt strongly_measurable_const $ (hf k).dist hg)
 
-lemma measure_not_convergent_seq_tendsto_zero [semilattice_sup ι] [encodable ι]
+lemma measure_not_convergent_seq_tendsto_zero [semilattice_sup ι] [countable ι]
   (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
   (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (n : ℕ) :
@@ -87,7 +87,7 @@ begin
     ⟨h.some, (lt_of_le_of_lt (measure_mono $ inter_subset_left _ _) (lt_top_iff_ne_top.2 hs)).ne⟩,
 end
 
-variables [semilattice_sup ι] [nonempty ι] [encodable ι]
+variables [semilattice_sup ι] [nonempty ι] [countable ι]
 
 lemma exists_not_convergent_seq_lt (hε : 0 < ε)
   (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
@@ -191,14 +191,14 @@ end
 
 end egorov
 
-variables [semilattice_sup ι] [nonempty ι] [encodable ι]
+variables [semilattice_sup ι] [nonempty ι] [countable ι]
   {γ : Type*} [topological_space γ]
   {f : ι → α → β} {g : α → β} {s : set α}
 
 /-- **Egorov's theorem**: If `f : ι → α → β` is a sequence of strongly measurable functions that
 converges to `g : α → β` almost everywhere on a measurable set `s` of finite measure,
 then for all `ε > 0`, there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g`
-uniformly on `s \ t`. We require the index type `ι` to be encodable, and usually `ι = ℕ`.
+uniformly on `s \ t`. We require the index type `ι` to be countable, and usually `ι = ℕ`.
 
 In other words, a sequence of almost everywhere convergent functions converges uniformly except on
 an arbitrarily small set. -/

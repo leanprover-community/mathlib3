@@ -258,7 +258,7 @@ have A : μ t = μ s, from h₂.antisymm (measure_mono h₁),
 have B : μ s ≠ ∞, from A ▸ ht,
 h₁.eventually_le.antisymm $ ae_le_set.2 $ by rw [measure_diff h₁ hsm B, A, tsub_self]
 
-lemma measure_Union_congr_of_subset [encodable β] {s : β → set α} {t : β → set α}
+lemma measure_Union_congr_of_subset [countable β] {s : β → set α} {t : β → set α}
   (hsub : ∀ b, s b ⊆ t b) (h_le : ∀ b, μ (t b) ≤ μ (s b)) :
   μ (⋃ b, s b) = μ (⋃ b, t b) :=
 begin
@@ -294,7 +294,7 @@ begin
   exact measure_Union_congr_of_subset (bool.forall_bool.2 ⟨ht, hs⟩) (bool.forall_bool.2 ⟨htμ, hsμ⟩)
 end
 
-@[simp] lemma measure_Union_to_measurable [encodable β] (s : β → set α) :
+@[simp] lemma measure_Union_to_measurable [countable β] (s : β → set α) :
   μ (⋃ b, to_measurable μ (s b)) = μ (⋃ b, s b) :=
 eq.symm $ measure_Union_congr_of_subset (λ b, subset_to_measurable _ _)
   (λ b, (measure_to_measurable _).le)
@@ -376,9 +376,10 @@ end
 
 /-- Continuity from below: the measure of the union of a directed sequence of (not necessarily
 -measurable) sets is the supremum of the measures. -/
-lemma measure_Union_eq_supr [encodable ι] {s : ι → set α} (hd : directed (⊆) s) :
+lemma measure_Union_eq_supr [countable ι] {s : ι → set α} (hd : directed (⊆) s) :
   μ (⋃ i, s i) = ⨆ i, μ (s i) :=
 begin
+  casesI nonempty_encodable ι,
   -- WLOG, `ι = ℕ`
   generalize ht : function.extend encodable.encode s ⊥ = t,
   replace hd : directed (⊆) t := ht ▸ hd.extend_bot encodable.encode_injective,
@@ -419,7 +420,7 @@ end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the infimum of the measures. -/
-lemma measure_Inter_eq_infi [encodable ι] {s : ι → set α}
+lemma measure_Inter_eq_infi [countable ι] {s : ι → set α}
   (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s) (hfin : ∃ i, μ (s i) ≠ ∞) :
   μ (⋂ i, s i) = (⨅ i, μ (s i)) :=
 begin
@@ -442,7 +443,7 @@ end
 
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
 is the limit of the measures. -/
-lemma tendsto_measure_Union [semilattice_sup ι] [encodable ι] {s : ι → set α} (hm : monotone s) :
+lemma tendsto_measure_Union [semilattice_sup ι] [countable ι] {s : ι → set α} (hm : monotone s) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr (directed_of_sup hm),
@@ -451,7 +452,7 @@ end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
-lemma tendsto_measure_Inter [encodable ι] [semilattice_sup ι] {s : ι → set α}
+lemma tendsto_measure_Inter [countable ι] [semilattice_sup ι] {s : ι → set α}
   (hs : ∀ n, measurable_set (s n)) (hm : antitone s) (hf : ∃ i, μ (s i) ≠ ∞) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
@@ -1292,7 +1293,7 @@ begin
   apply measure_union_le
 end
 
-lemma restrict_Union_apply_ae [encodable ι] {s : ι → set α}
+lemma restrict_Union_apply_ae [countable ι] {s : ι → set α}
   (hd : pairwise (ae_disjoint μ on s))
   (hm : ∀ i, null_measurable_set (s i) μ) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
@@ -1302,12 +1303,12 @@ begin
     (λ i, (ht.null_measurable_set.inter (hm i)))
 end
 
-lemma restrict_Union_apply [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
+lemma restrict_Union_apply [countable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
 restrict_Union_apply_ae hd.ae_disjoint (λ i, (hm i).null_measurable_set) ht
 
-lemma restrict_Union_apply_eq_supr [encodable ι] {s : ι → set α}
+lemma restrict_Union_apply_eq_supr [countable ι] {s : ι → set α}
   (hd : directed (⊆) s) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ⨆ i, μ.restrict (s i) t :=
 begin
@@ -1377,7 +1378,7 @@ begin
   rw [restrict_union_congr, ← hs]
 end
 
-lemma restrict_Union_congr [encodable ι] {s : ι → set α} :
+lemma restrict_Union_congr [countable ι] {s : ι → set α} :
   μ.restrict (⋃ i, s i) = ν.restrict (⋃ i, s i) ↔
     ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
 begin
@@ -1426,7 +1427,7 @@ end
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
   (formulated using `Union`). -/
-lemma ext_iff_of_Union_eq_univ [encodable ι] {s : ι → set α} (hs : (⋃ i, s i) = univ) :
+lemma ext_iff_of_Union_eq_univ [countable ι] {s : ι → set α} (hs : (⋃ i, s i) = univ) :
   μ = ν ↔ ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
 by rw [← restrict_Union_congr, hs, restrict_univ, restrict_univ]
 
@@ -1570,7 +1571,7 @@ to_measure_apply _ _ hs
 lemma le_sum (μ : ι → measure α) (i : ι) : μ i ≤ sum μ :=
 λ s hs, by simp only [sum_apply μ hs, ennreal.le_tsum i]
 
-@[simp] lemma sum_apply_eq_zero [encodable ι] {μ : ι → measure α} {s : set α} :
+@[simp] lemma sum_apply_eq_zero [countable ι] {μ : ι → measure α} {s : set α} :
   sum μ s = 0 ↔ ∀ i, μ i s = 0 :=
 begin
   refine ⟨λ h i, nonpos_iff_eq_zero.1 $ h ▸ le_iff'.1 (le_sum μ i) _, λ h, nonpos_iff_eq_zero.1 _⟩,
@@ -1583,7 +1584,7 @@ lemma sum_apply_eq_zero' {μ : ι → measure α} {s : set α} (hs : measurable_
   sum μ s = 0 ↔ ∀ i, μ i s = 0 :=
 by simp [hs]
 
-lemma ae_sum_iff [encodable ι] {μ : ι → measure α} {p : α → Prop} :
+lemma ae_sum_iff [countable ι] {μ : ι → measure α} {p : α → Prop} :
   (∀ᵐ x ∂(sum μ), p x) ↔ ∀ i, ∀ᵐ x ∂(μ i), p x :=
 sum_apply_eq_zero
 
@@ -1598,7 +1599,7 @@ by { ext1 s hs, simp only [sum_apply, finset_sum_apply, hs, tsum_fintype] }
   sum (λ i : s, μ i) = ∑ i in s, μ i :=
 by rw [sum_fintype, finset.sum_coe_sort s μ]
 
-@[simp] lemma ae_sum_eq [encodable ι] (μ : ι → measure α) : (sum μ).ae = ⨆ i, (μ i).ae :=
+@[simp] lemma ae_sum_eq [countable ι] (μ : ι → measure α) : (sum μ).ae = ⨆ i, (μ i).ae :=
 filter.ext $ λ s, ae_sum_iff.trans mem_supr.symm
 
 @[simp] lemma sum_bool (f : bool → measure α) : sum f = f tt + f ff :=
@@ -1631,9 +1632,9 @@ begin
              tsum_add ennreal.summable ennreal.summable],
 end
 
-/-- If `f` is a map with encodable codomain, then `μ.map f` is the sum of Dirac measures -/
-lemma map_eq_sum [encodable β] [measurable_singleton_class β]
-  (μ : measure α) (f : α → β) (hf : measurable f) :
+/-- If `f` is a map with countable codomain, then `μ.map f` is the sum of Dirac measures -/
+lemma map_eq_sum [countable β] [measurable_singleton_class β] (μ : measure α) (f : α → β)
+  (hf : measurable f) :
   μ.map f = sum (λ b : β, μ (f ⁻¹' {b}) • dirac b) :=
 begin
   ext1 s hs,
@@ -1642,25 +1643,25 @@ begin
     tsum_subtype s (λ b, μ (f ⁻¹' {b})), ← indicator_mul_right s (λ b, μ (f ⁻¹' {b}))]
 end
 
-/-- A measure on an encodable type is a sum of dirac measures. -/
-@[simp] lemma sum_smul_dirac [encodable α] [measurable_singleton_class α] (μ : measure α) :
+/-- A measure on an countable type is a sum of Dirac measures. -/
+@[simp] lemma sum_smul_dirac [countable α] [measurable_singleton_class α] (μ : measure α) :
   sum (λ a, μ {a} • dirac a) = μ :=
 by simpa using (map_eq_sum μ id measurable_id).symm
 
 omit m0
 end sum
 
-lemma restrict_Union_ae [encodable ι] {s : ι → set α} (hd : pairwise (ae_disjoint μ on s))
+lemma restrict_Union_ae [countable ι] {s : ι → set α} (hd : pairwise (ae_disjoint μ on s))
   (hm : ∀ i, null_measurable_set (s i) μ) :
   μ.restrict (⋃ i, s i) = sum (λ i, μ.restrict (s i)) :=
 ext $ λ t ht, by simp only [sum_apply _ ht, restrict_Union_apply_ae hd hm ht]
 
-lemma restrict_Union [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
+lemma restrict_Union [countable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, measurable_set (s i)) :
   μ.restrict (⋃ i, s i) = sum (λ i, μ.restrict (s i)) :=
 restrict_Union_ae hd.ae_disjoint (λ i, (hm i).null_measurable_set)
 
-lemma restrict_Union_le [encodable ι] {s : ι → set α} :
+lemma restrict_Union_le [countable ι] {s : ι → set α} :
   μ.restrict (⋃ i, s i) ≤ sum (λ i, μ.restrict (s i)) :=
 begin
   intros t ht,
@@ -1972,7 +1973,7 @@ begin
   { simp [map_of_not_ae_measurable h] }
 end
 
-@[simp] lemma ae_restrict_Union_eq [encodable ι] (s : ι → set α) :
+@[simp] lemma ae_restrict_Union_eq [countable ι] (s : ι → set α) :
   (μ.restrict (⋃ i, s i)).ae = ⨆ i, (μ.restrict (s i)).ae :=
 le_antisymm (ae_sum_eq (λ i, μ.restrict (s i)) ▸ ae_mono restrict_Union_le) $
   supr_le $ λ i, ae_mono $ restrict_mono (subset_Union s i) le_rfl
@@ -2901,7 +2902,7 @@ lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_sp
   exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
 end⟩
 
-lemma exists_pos_measure_of_cover [encodable ι] {U : ι → set α} (hU : (⋃ i, U i) = univ)
+lemma exists_pos_measure_of_cover [countable ι] {U : ι → set α} (hU : (⋃ i, U i) = univ)
   (hμ : μ ≠ 0) : ∃ i, 0 < μ (U i) :=
 begin
   contrapose! hμ with H,

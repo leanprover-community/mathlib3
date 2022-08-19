@@ -64,6 +64,12 @@ it returns `none` otherwise -/
 | []       := none
 | (a :: l) := some a
 
+/-- `headd d xs` returns the first element of `xs` if `xs` is non-empty;
+it returns `d` otherwise -/
+@[simp] def headd (d : α) : list α → α
+| []       := d
+| (a :: l) := a
+
 /-- Convert a list into an array (whose length is the length of `l`). -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}

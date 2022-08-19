@@ -65,9 +65,9 @@ begin
       by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
-lemma norm_zsmul [normed_add_comm_group γ] [normed_space ℚ γ] (e : γ) (k : ℤ) :
-  ∥k • e∥ = |k| • ∥e∥ :=
-by simp [zsmul_eq_smul_cast ℚ k e, norm_smul, int.norm_eq_abs]
+lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) :
+  ∥n • x∥ = ∥(n : α)∥ * ∥x∥ :=
+by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]
 
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
@@ -171,10 +171,11 @@ begin
     refine ⟨metric.ball 0 (∥e∥), metric.is_open_ball, _⟩,
     ext ⟨x, hx⟩,
     obtain ⟨k, rfl⟩ := add_subgroup.mem_zmultiples_iff.mp hx,
-    simp only [mem_preimage, mem_ball_zero_iff, add_subgroup.coe_mk, mem_singleton_iff,
-      subtype.ext_iff, add_subgroup.coe_zero, norm_zsmul, smul_eq_zero, or_false, he,
-      zero_lt.mul_lt_iff_lt_one_left (norm_pos_iff.mpr he), zsmul_eq_mul,
-      ← @int.cast_one ℝ _, int.cast_lt, int.abs_lt_one_iff], },
+    rw [mem_preimage, mem_ball_zero_iff, add_subgroup.coe_mk, mem_singleton_iff,
+      subtype.ext_iff, add_subgroup.coe_mk, add_subgroup.coe_zero, norm_zsmul ℚ k e,
+      int.norm_cast_rat, int.norm_eq_abs, ← int.cast_abs, zero_lt.mul_lt_iff_lt_one_left
+      (norm_pos_iff.mpr he), ← @int.cast_one ℝ _, int.cast_lt, int.abs_lt_one_iff, smul_eq_zero,
+      or_iff_left he], },
 end
 
 /-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.

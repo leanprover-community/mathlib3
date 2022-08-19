@@ -1040,10 +1040,9 @@ begin
   { rw [list.map_cons, list.sum_cons],
     exact ha this (ih HL.2) },
   replace HL := HL.1, clear ih tl,
-  suffices : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
+  rsuffices ⟨L, HL', HP | HP⟩ : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
     (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
-  { rcases this with ⟨L, HL', HP | HP⟩,
-    { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
+  { { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
       rw list.forall_mem_cons at HL',
       rw list.prod_cons,
       exact hs _ HL'.1 _ (ih HL'.2) },

@@ -322,10 +322,10 @@ instance : has_smul M (E →ₗ.[R] F) :=
   { domain := f.domain,
     to_fun := a • f.to_fun }⟩
 
-lemma smul_apply (a : M) (f : E →ₗ.[R] F) (x : ((a • f).domain)) :
+@[simp] lemma smul_apply (a : M) (f : E →ₗ.[R] F) (x : ((a • f).domain)) :
   (a • f) x = a • f x := rfl
 
-@[simp] lemma coe_smul (a : M) (f : E →ₗ.[R] F) : ⇑(a • f) = a • f := rfl
+@[simp, norm_cast] lemma coe_smul (a : M) (f : E →ₗ.[R] F) : ⇑(a • f) = a • f := rfl
 
 instance [smul_comm_class M N F] : smul_comm_class M N (E →ₗ.[R] F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
@@ -333,7 +333,7 @@ instance [smul_comm_class M N F] : smul_comm_class M N (E →ₗ.[R] F) :=
 instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (E →ₗ.[R] F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
 
-instance : mul_action M (linear_pmap R E F) :=
+instance : mul_action M (E →ₗ.[R] F) :=
 { smul := (•),
   one_smul := λ f,
   begin
@@ -356,18 +356,18 @@ end smul
 
 section vadd
 
-instance : has_vadd (E →ₗ[R] F) (linear_pmap R E F) :=
+instance : has_vadd (E →ₗ[R] F) (E →ₗ.[R] F) :=
 ⟨λ f g,
   { domain := g.domain,
     to_fun := f.comp g.domain.subtype + g.to_fun }⟩
 
-lemma vadd_apply (f : E →ₗ[R] F) (g : linear_pmap R E F) (x : (f +ᵥ g).domain) :
+@[simp] lemma vadd_apply (f : E →ₗ[R] F) (g : E →ₗ.[R] F) (x : (f +ᵥ g).domain) :
   (f +ᵥ g) x = f x + g x := rfl
 
-@[simp] lemma coe_vadd (f : E →ₗ[R] F) (g : linear_pmap R E F) :
+@[simp, norm_cast] lemma coe_vadd (f : E →ₗ[R] F) (g : E →ₗ.[R] F) :
   ⇑(f +ᵥ g) = f.comp g.domain.subtype + g := rfl
 
-instance : add_action (E →ₗ[R] F) (linear_pmap R E F) :=
+instance : add_action (E →ₗ[R] F) (E →ₗ.[R] F) :=
 { vadd := (+ᵥ),
   zero_vadd := λ f,
   begin
@@ -538,7 +538,7 @@ variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F
 
 /-- The graph of `z • f` as a pushforward. -/
 lemma smul_graph (f : E →ₗ.[R] F) (z : M) :
-  (z • f).graph = 
+  (z • f).graph =
     f.graph.map ((linear_map.id : E →ₗ[R] E).prod_map (z • (linear_map.id : F →ₗ[R] F))) :=
 begin
   ext x, cases x,

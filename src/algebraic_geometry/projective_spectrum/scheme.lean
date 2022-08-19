@@ -451,7 +451,7 @@ begin
   refine direct_sum.decomposition.induction_on 𝒜 _ _ _,
   { rw zero_smul, exact carrier.zero_mem hm _ },
   { rintros n ⟨a, ha⟩ i,
-    simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem _ ha],
+    simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem 𝒜 i ha],
     split_ifs,
     { convert_to (⟨mk _ ⟨_, n, rfl⟩, n, ⟨_, pow_mem_graded m ha⟩, rfl⟩ : A⁰_ f_deg) *
         ⟨mk _ ⟨_, i - n, rfl⟩, _, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, rfl⟩ ∈ q.1,

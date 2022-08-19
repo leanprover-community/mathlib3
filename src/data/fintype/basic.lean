@@ -1332,6 +1332,8 @@ end
 instance [monoid α] [fintype α] [decidable_eq α] : fintype αˣ :=
 fintype.of_equiv _ (units_equiv_prod_subtype α).symm
 
+instance [monoid α] [finite α] : finite αˣ := finite.of_injective _ units.ext
+
 lemma fintype.card_units [group_with_zero α] [fintype α] [fintype αˣ] :
   fintype.card αˣ = fintype.card α - 1 :=
 begin

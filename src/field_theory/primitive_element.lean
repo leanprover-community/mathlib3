@@ -47,7 +47,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-! ### Primitive element theorem for finite fields -/
 
 /-- **Primitive element theorem** assuming E is finite. -/
-lemma exists_primitive_element_of_fintype_top [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
+lemma exists_primitive_element_of_finite_top [finite E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),
   use α,
@@ -62,12 +62,9 @@ begin
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
-theorem exists_primitive_element_of_fintype_bot [fintype F] [finite_dimensional F E] :
+theorem exists_primitive_element_of_finite_bot [finite F] [finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
-begin
-  haveI : fintype E := fintype_of_fintype F E,
-  exact exists_primitive_element_of_fintype_top F E,
-end
+by { haveI : finite E := finite_of_finite F E, exact exists_primitive_element_of_finite_top F E }
 
 end primitive_element_finite
 
@@ -185,7 +182,7 @@ begin
       cases primitive_element_inf_aux F α β with γ hγ,
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
-  { exactI exists_primitive_element_of_fintype_bot F E }
+  { exactI exists_primitive_element_of_finite_bot F E }
 end
 
 /-- Alternative phrasing of primitive element theorem:

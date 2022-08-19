@@ -127,10 +127,11 @@ variables (K σ)
   map_smul' := λ a p, by { ext e, rw [smul_eq_C_mul, ring_hom.map_mul, eval_C], refl } }
 end
 
-variables [field K] [fintype K] [fintype σ]
+variables [field K] [fintype K] [finite σ]
 
 lemma map_restrict_dom_evalₗ : (restrict_degree σ K (fintype.card K - 1)).map (evalₗ K σ) = ⊤ :=
 begin
+  casesI nonempty_fintype σ,
   refine top_unique (set_like.le_def.2 $ assume e _, mem_map.2 _),
   refine ⟨∑ n : σ → K, e n • indicator n, _, _⟩,
   { exact sum_mem (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
@@ -197,26 +198,24 @@ calc module.rank K (R σ K) =
     (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
   ... = fintype.card (σ → K) : cardinal.mk_fintype _
 
-instance [fintype σ] : finite_dimensional K (R σ K) :=
-is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_aleph_0.mpr
-  (by simpa only [dim_R] using cardinal.nat_lt_aleph_0 (fintype.card (σ → K)))
+instance [finite σ] : finite_dimensional K (R σ K) :=
+by { casesI nonempty_fintype σ, exact is_noetherian.iff_fg.1 (is_noetherian.iff_dim_lt_aleph_0.mpr $
+  by simpa only [dim_R] using cardinal.nat_lt_aleph_0 (fintype.card (σ → K))) }
 
 lemma finrank_R [fintype σ] : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=
 finite_dimensional.finrank_eq_of_dim_eq (dim_R σ K)
 
-lemma range_evalᵢ [fintype σ] : (evalᵢ σ K).range = ⊤ :=
-begin
-  rw [evalᵢ, linear_map.range_comp, range_subtype],
-  exact map_restrict_dom_evalₗ
-end
+lemma range_evalᵢ [finite σ] : (evalᵢ σ K).range = ⊤ :=
+by { rw [evalᵢ, linear_map.range_comp, range_subtype], exact map_restrict_dom_evalₗ }
 
-lemma ker_evalₗ [fintype σ] : (evalᵢ σ K).ker = ⊥ :=
+lemma ker_evalₗ [finite σ] : (evalᵢ σ K).ker = ⊥ :=
 begin
+  casesI nonempty_fintype σ,
   refine (ker_eq_bot_iff_range_eq_top_of_finrank_eq_finrank _).mpr (range_evalᵢ _ _),
   rw [finite_dimensional.finrank_fintype_fun_eq_card, finrank_R]
 end
 
-lemma eq_zero_of_eval_eq_zero  [fintype σ] (p : mv_polynomial σ K)
+lemma eq_zero_of_eval_eq_zero  [finite σ] (p : mv_polynomial σ K)
   (h : ∀v:σ → K, eval v p = 0) (hp : p ∈ restrict_degree σ K (fintype.card K - 1)) :
   p = 0 :=
 let p' : R σ K := ⟨p, hp⟩ in

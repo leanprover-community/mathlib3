@@ -140,6 +140,7 @@ begin
   rw [hla, to_fun_apply, to_fun_apply, smul_smul, mul_inv_cancel_left]
 end
 
+section fintype
 variables [fintype G] (x : F)
 
 /-- `minpoly G F x` is the minimal polynomial of `(x : F)` over `fixed_points G F`. -/
@@ -217,30 +218,18 @@ theorem irreducible : irreducible (minpoly G F x) :=
 (polynomial.irreducible_of_monic (monic G F x) (ne_one G F x)).2 (irreducible_aux G F x)
 
 end minpoly
+end fintype
 
-theorem is_integral : is_integral (fixed_points.subfield G F) x :=
-⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩
+theorem is_integral [finite G] (x : F) : is_integral (fixed_points.subfield G F) x :=
+by { casesI nonempty_fintype G, exact ⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩ }
+
+section fintype
+variables [fintype G] (x : F)
 
 theorem minpoly_eq_minpoly :
   minpoly G F x = _root_.minpoly (fixed_points.subfield G F) x :=
 minpoly.eq_of_irreducible_of_monic (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
-
-instance normal : normal (fixed_points.subfield G F) F :=
-⟨λ x, (is_integral G F x).is_algebraic _, λ x, (polynomial.splits_id_iff_splits _).1 $
-by { rw [← minpoly_eq_minpoly, minpoly,
-    coe_algebra_map, ← subfield.to_subring.subtype_eq_subtype,
-    polynomial.map_to_subring _ (fixed_points.subfield G F).to_subring, prod_X_sub_smul],
-  exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _) }⟩
-
-instance separable : is_separable (fixed_points.subfield G F) F :=
-⟨λ x, is_integral G F x,
- λ x, by
-{ -- this was a plain rw when we were using unbundled subrings
-  erw [← minpoly_eq_minpoly,
-    ← polynomial.separable_map (fixed_points.subfield G F).subtype,
-    minpoly, polynomial.map_to_subring _ ((subfield G F).to_subring) ],
-  exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
 lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
 dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_coe_finset, finset.coe_sort_coe,
@@ -248,11 +237,36 @@ dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_coe_finset, finset.coe_so
   using cardinal_lift_le_dim_of_linear_independent'
     (linear_independent_smul_of_linear_independent G F hs)
 
-instance : finite_dimensional (fixed_points.subfield G F) F :=
-is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_aleph_0.2 $
-lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_aleph_0 _)
+end fintype
 
-lemma finrank_le_card : finrank (fixed_points.subfield G F) F ≤ fintype.card G :=
+section finite
+variables [finite G]
+
+instance normal : normal (fixed_points.subfield G F) F :=
+⟨λ x, (is_integral G F x).is_algebraic _, λ x, (polynomial.splits_id_iff_splits _).1 $
+begin
+  casesI nonempty_fintype G,
+  rw [←minpoly_eq_minpoly, minpoly, coe_algebra_map, ←subfield.to_subring.subtype_eq_subtype,
+    polynomial.map_to_subring _ (subfield G F).to_subring, prod_X_sub_smul],
+  exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _),
+end⟩
+
+instance separable : is_separable (fixed_points.subfield G F) F :=
+⟨is_integral G F, λ x, by
+{ casesI nonempty_fintype G,
+  -- this was a plain rw when we were using unbundled subrings
+  erw [← minpoly_eq_minpoly,
+    ← polynomial.separable_map (fixed_points.subfield G F).subtype,
+    minpoly, polynomial.map_to_subring _ ((subfield G F).to_subring) ],
+  exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
+
+instance : finite_dimensional (subfield G F) F :=
+by { casesI nonempty_fintype G, exact is_noetherian.iff_fg.1 (is_noetherian.iff_dim_lt_aleph_0.2 $
+  (dim_le_card G F).trans_lt $ cardinal.nat_lt_aleph_0 _) }
+
+end finite
+
+lemma finrank_le_card [fintype G] : finrank (subfield G F) F ≤ fintype.card G :=
 begin
   rw [← cardinal.nat_cast_le, finrank_eq_dim],
   apply dim_le_card,
@@ -350,9 +364,10 @@ calc  fintype.card G
 
 /-- `mul_semiring_action.to_alg_hom` is bijective. -/
 theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
+  [finite G] [mul_semiring_action G F] [has_faithful_smul G F] :
   function.bijective (mul_semiring_action.to_alg_hom _ _ : G → F →ₐ[subfield G F] F) :=
 begin
+  casesI nonempty_fintype G,
   rw fintype.bijective_iff_injective_and_card,
   split,
   { exact mul_semiring_action.to_alg_hom_injective _ F },

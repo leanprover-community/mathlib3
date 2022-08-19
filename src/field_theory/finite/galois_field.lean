@@ -151,8 +151,9 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
 h ▸ finite_field.has_sub.sub.polynomial.is_splitting_field K (zmod p)
 
 @[priority 100]
-instance {K K' : Type*} [field K] [field K'] [fintype K'] [algebra K K'] : is_galois K K' :=
+instance {K K' : Type*} [field K] [field K'] [finite K'] [algebra K K'] : is_galois K K' :=
 begin
+  casesI nonempty_fintype K',
   obtain ⟨p, hp⟩ := char_p.exists K,
   haveI : char_p K p := hp,
   haveI : char_p K' p := char_p_of_injective_algebra_map' K K' p,

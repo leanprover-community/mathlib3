@@ -1749,10 +1749,92 @@ begin
     measurability,
   },
 
-
-
 end
 
+
+lemma func_eq_trans (S: set ℝ) (h: ¬s = 0): ∫ (x : ℝ) in S, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+= ∫ (x : ℝ) in S, |s⁻¹| • ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2))) :=
+begin
+  have h₁: ∫ (x : ℝ) in S, |s⁻¹| • ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2)))
+  = ∫ (x : ℝ) in S, |s⁻¹| * ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2))),
+    {
+      simp,
+    },
+  rw h₁,
+  have h₂: ∫ (x : ℝ) in S, |s⁻¹| * ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2)))
+  = ∫ (x : ℝ) in S,|s⁻¹| * (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2)),
+    {
+      simp,
+      let b:=(sqrt π)⁻¹ * (sqrt 2)⁻¹,
+      have h₃: ∫ (x : ℝ) in S, |s⁻¹| * (b * exp (-(2⁻¹ * (x ^ 2 / s ^ 2))))
+  = ∫ (x : ℝ) in S, |s⁻¹| * ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x ^ 2 / s ^ 2)))),
+        {
+          simp_rw[b],
+        },
+      rw ← h₃,
+      have h₄: ∫ (x : ℝ) in S, |s⁻¹| * (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x ^ 2 / s ^ 2)))
+    = ∫ (x : ℝ) in S, |s⁻¹| * b * exp (-(2⁻¹ * (x ^ 2 / s ^ 2))),
+        {
+          simp_rw[b],
+          rw mul_assoc,
+        },
+      rw h₄,
+      simp [mul_assoc],
+    },
+  rw h₂,
+  have const_eq: (sqrt (2 * π * s ^ 2))⁻¹  = |s⁻¹| * (sqrt π)⁻¹ * (sqrt 2)⁻¹,
+    {
+      rw abs_inv,
+      rw ← mul_inv,
+      rw ← mul_inv,
+      rw ← real.sqrt_sq_eq_abs,
+      rw ← real.sqrt_mul,
+      {
+        rw ← real.sqrt_mul,
+        {
+          have h₅: 2 * π * s ^ 2 = s ^ 2 * π * 2,
+            {
+              rw mul_assoc,
+              rw mul_comm,
+              rw mul_comm π (s^2),
+            },
+          rw h₅,
+        },
+        {
+          rw le_iff_lt_or_eq,
+          left,
+          simp [pi_pos],
+          simp [sq_pos_of_ne_zero s h],
+        },
+      },
+      {
+        exact pow_two_nonneg s,
+      },
+    },
+  rw const_eq,
+  sorry,
+end
+
+
+lemma det_const_mul_id_eq_const : | (s⁻¹ • continuous_linear_map.id ℝ ℝ).det| = |s⁻¹| :=
+begin
+  have h_detid_eq_one : |(continuous_linear_map.id ℝ ℝ).det| = 1 := detid_eq_one,
+  have h_deteq : (s⁻¹ • continuous_linear_map.id ℝ ℝ).det = linear_map.det (s⁻¹ • linear_map.id),
+    refl,
+  rw h_deteq,
+  simp [h_detid_eq_one, sqrt_sq_eq_abs],
+end
+
+
+lemma mul_const_eq_mul_det_for_6th (S: set ℝ) (f g : ℝ → ℝ) : ∫ (x : ℝ) in S, |s⁻¹| * g (f x)
+ = ∫ (x : ℝ) in S, | (s⁻¹ • continuous_linear_map.id ℝ ℝ).det| * g (f x):=
+begin
+simp_rw [det_const_mul_id_eq_const],
+end
+
+
+
+-- the 6th important theorem
 lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f) (s : ℝ) :
   gaussian_rv (s • f) 0 s :=
 begin
@@ -1809,11 +1891,202 @@ begin
         unfold gaussian_density,
         rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
         rw ← measure_theory.of_real_integral_eq_lintegral_of_real,
-        {sorry},
-        {sorry},
-        {sorry},
-        {sorry},
-        {sorry},
+        {
+          simp,
+          have change_of_vr :∫ (x : ℝ) in h1 ⁻¹' S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)) = ∫ (x : ℝ) in S, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+          {
+            let g : ℝ → ℝ := λ (x:ℝ), (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)),
+            let f : ℝ → ℝ := λ (x:ℝ), x/s,
+            have h₁: ∫ (x : ℝ) in h1 ⁻¹' S, (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2))
+            = ∫ (x : ℝ) in h1 ⁻¹' S, g x ,
+              {simp_rw[g]},
+            rw h₁,
+            have h₂: h1 ⁻¹' S = f '' S,
+             sorry{
+                ext x,
+                rw h_preim_of_S_eq_Sminusm,
+                simp,
+                split,
+                {
+                  intro h₃,
+                  use (s*x),
+                  split,
+                  {exact h₃},
+                  {
+                    simp_rw[f],
+                    rw division_def,
+                    rw mul_comm s x,
+                    rw mul_assoc,
+                    rw (mul_inv_eq_one s h),
+                    simp,
+                  },
+                },
+                {
+                  intro h₃,
+                  cases h₃ with a ha,
+                  cases ha,
+                  simp_rw[f] at ha_right,
+                  rw [div_eq_iff_mul_eq h] at ha_right,
+                  rw mul_comm at ha_right,
+                  rw ha_right,
+                  exact ha_left,
+                },
+              },
+            rw h₂,
+            have change_form: ∫ (x : ℝ) in S, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
+            = ∫ (x : ℝ) in S, |s⁻¹| • g (f x),
+              {
+                simp_rw[f],
+                simp_rw[g],
+                rw func_eq_trans S h,
+              },
+            rw change_form,
+            let f': ℝ → (ℝ →L[ℝ] ℝ) := λ x, (s⁻¹ • continuous_linear_map.id ℝ ℝ),
+            have h₃: ∫ (x : ℝ) in S, |s⁻¹| • g (f x) = ∫ (x : ℝ) in S, |(f' x).det| • g (f x),
+              {
+                simp_rw[f'],
+                simp,
+                rw mul_const_eq_mul_det_for_6th S f g,
+              },
+            rw h₃,
+            have hf' : ∀ (x : ℝ), x ∈ S → has_fderiv_within_at f (f' x) S x,
+              {
+                intros x hx,
+                sorry
+              },
+            have hf : set.inj_on f S,
+              {
+                unfold set.inj_on,
+                intros x1 hx1 x2 hx2 h₄,
+                simp_rw[f] at h₄,
+                rw [← (div_left_inj' h)],
+                exact h₄,
+              },
+            rw measure_theory.integral_image_eq_integral_abs_det_fderiv_smul ℙ hS hf' hf g,
+          },
+          simp_rw [change_of_vr],
+        },
+        sorry{
+          simp,
+          rw integrable, fconstructor,
+          {
+            measurability,
+          },
+          {
+            refine (has_finite_integral_norm_iff
+   (λ (x : ℝ), (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)))).mp
+  _,
+            apply integrable.has_finite_integral _,
+            refine integrable.abs _,
+            simp,
+            refine integrable.const_mul _ (sqrt (2 * π * s ^ 2))⁻¹,
+            refine measure_theory.integrable_on.integrable _,
+            have h₁: integrable (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * a ^ 2))) ℙ,
+              {
+                rw integrable, fconstructor,
+                {measurability,},
+                {
+                  refine (has_finite_integral_norm_iff (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * a ^ 2)))).mp _,
+                  apply integrable.has_finite_integral _,
+                  refine integrable.abs _,
+                  simp,
+                  have h_eqfunc : (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹) * a ^ 2)) = (λ (a : ℝ), exp (-((s ^ 2)⁻¹ * 2⁻¹ * a ^ 2))),
+                    {
+                      ext x,
+                      simp,
+                    },
+                  rw ← h_eqfunc,
+                  have hb: (0:ℝ) < ((s ^ 2)⁻¹ * 2⁻¹),
+                    {
+                      simp,
+                      exact (s_sq_pos s h),
+                    },
+                  exact integrable_exp_neg_mul_sq hb,
+                },
+              },
+            simp[(measure_theory.integrable.integrable_on h₁)],
+          },
+        },
+        sorry{
+          refine filter.eventually_of_forall _,
+          intro x,
+          simp,
+          have h_invsqrt_pos : 0 < (sqrt (2 * π * s ^ 2))⁻¹,
+            {
+              simp,
+              exact s_sq_pos_2_pi s h,
+            },
+          have h_compexp_pos : 0 < exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+            {
+              exact real.exp_pos (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2)),
+            },
+          rw  le_iff_lt_or_eq,
+          left,
+          exact mul_pos h_invsqrt_pos h_compexp_pos,
+
+        },
+        sorry{
+          simp,
+          rw integrable, fconstructor,
+          {
+            measurability,
+          },
+          {
+            refine (has_finite_integral_norm_iff
+   (λ (x : ℝ), (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * x ^ 2)))).mp
+  _,
+            apply integrable.has_finite_integral _,
+            refine integrable.abs _,
+            simp,
+            refine integrable.const_mul _ ((sqrt π)⁻¹ * (sqrt 2)⁻¹),
+            refine measure_theory.integrable_on.integrable _,
+            have h₁: integrable (λ (a : ℝ), exp (-(2⁻¹ * a ^ 2))) ℙ,
+              {
+                rw integrable, fconstructor,
+                {measurability,},
+                {
+                  refine (has_finite_integral_norm_iff (λ (a : ℝ), exp (-(2⁻¹ * a ^ 2)))).mp _,
+                  apply integrable.has_finite_integral _,
+                  refine integrable.abs _,
+                  simp,
+                  have h_eqfunc : (λ (a : ℝ), exp (-(2)⁻¹ * a^ 2)) = (λ (a : ℝ), exp (-(2⁻¹ * a ^ 2)))  ,
+                    {
+                      ext x,
+                      simp,
+                    },
+                  rw ← h_eqfunc,
+                  have hb: (0:ℝ) < (2)⁻¹,
+                    {simp,},
+                  exact integrable_exp_neg_mul_sq hb,
+                },
+              },
+            simp[(measure_theory.integrable.integrable_on h₁)],
+          },
+        },
+        sorry{
+          refine filter.eventually_of_forall _,
+          intro x,
+          simp,
+          have h₁: (sqrt π)⁻¹ * (sqrt 2)⁻¹ = (sqrt(2 * π))⁻¹,
+            {
+              rw ← mul_inv,
+              simp,
+              exact mul_comm ((sqrt 2)⁻¹) ((sqrt π)⁻¹),
+            },
+          rw h₁,
+          have h₂: 0 < (sqrt(2 * π))⁻¹,
+            {
+              simp,
+              exact pi_pos,
+            },
+          have h_compexp_pos : 0 < exp (-(2⁻¹ * x ^ 2)),
+            {
+              exact real.exp_pos (-(2⁻¹ * x ^ 2)),
+            },
+          rw  le_iff_lt_or_eq,
+          left,
+          exact mul_pos h₂ h_compexp_pos,
+        },
       },
       {measurability,},
     },

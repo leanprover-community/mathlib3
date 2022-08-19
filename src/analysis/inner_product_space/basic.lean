@@ -2230,7 +2230,7 @@ by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (innerSL (v:E)).ker :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, linear_map.ker (innerSL (v:E) : E →L[𝕜] 𝕜) :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,

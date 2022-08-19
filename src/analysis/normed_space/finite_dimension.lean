@@ -523,7 +523,7 @@ let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
   .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
 
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
-  (f : E →L[𝕜] F) (hf : f.range = ⊤) :
+  (f : E →L[𝕜] F) (hf : linear_map.range f = ⊤) :
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
 let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf in
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩

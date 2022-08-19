@@ -1004,7 +1004,8 @@ specifically at most as many reflections as the dimension of the complement of t
 of `φ`. -/
 lemma linear_isometry_equiv.reflections_generate_dim_aux [finite_dimensional ℝ F] {n : ℕ}
   (φ : F ≃ₗᵢ[ℝ] F)
-  (hn : finrank ℝ (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).kerᗮ ≤ n) :
+  (hn : finrank ℝ
+    (linear_map.ker (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv))ᗮ ≤ n) :
   ∃ l : list F, l.length ≤ n ∧ φ = (l.map (λ v, reflection (ℝ ∙ v)ᗮ)).prod :=
 begin
   -- We prove this by strong induction on `n`, the dimension of the orthogonal complement of the
@@ -1012,13 +1013,14 @@ begin
   induction n with n IH generalizing φ,
   { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
     refine ⟨[], rfl.le, show φ = 1, from _⟩,
-    have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
+    have : linear_map.ker (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv) = ⊤,
     { rwa [nat.le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
     symmetry,
     ext x,
     have := linear_map.congr_fun (linear_map.ker_eq_top.mp this) x,
-    rwa [continuous_linear_map.coe_sub, linear_map.zero_apply, linear_map.sub_apply, sub_eq_zero]
-      at this },
+    simpa only [sub_eq_zero, continuous_linear_map.to_linear_map_eq_coe,
+                continuous_linear_map.coe_sub, linear_map.sub_apply, linear_map.zero_apply]
+                using this },
   { -- Inductive step.  Let `W` be the fixed subspace of `φ`.  We suppose its complement to have
     -- dimension at most n + 1.
     let W := (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker,

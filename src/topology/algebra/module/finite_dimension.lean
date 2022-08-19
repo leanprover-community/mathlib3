@@ -314,11 +314,11 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 rfl
 
 @[simp] lemma ker_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
-  f.to_continuous_linear_map.ker = f.ker :=
+  ker f.to_continuous_linear_map = ker f :=
 rfl
 
 @[simp] lemma range_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
-  f.to_continuous_linear_map.range = f.range :=
+  range f.to_continuous_linear_map = range f :=
 rfl
 
 end linear_map

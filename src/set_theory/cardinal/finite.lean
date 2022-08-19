@@ -79,31 +79,37 @@ card_congr equiv.plift
 
 open_locale big_operators
 
-lemma nat.card_pi {α : Type*} {β : α → Type*} [fintype α] :
-  nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
+/-- `cardinal.to_nat` as a `monoid_with_zero_hom`. -/
+def to_nat_hom : cardinal →*₀ ℕ :=
+{ to_fun := to_nat,
+  map_zero' := zero_to_nat,
+  map_one' := one_to_nat,
+  map_mul' := to_nat_mul }
+
+lemma to_nat_finset_prod (s : finset α) (f : α → cardinal) :
+  to_nat (∏ i in s, f i) = ∏ i in s, to_nat (f i) :=
+map_prod to_nat_hom _ _
+
+lemma {u v} prod_of_fintype_eq {α : Type u} [fintype α] (f : α → cardinal.{v}) :
+  prod f = cardinal.lift.{u} ∏ (i : α), (f i) :=
 begin
-  classical,
-  by_cases h1 : ∃ a, is_empty (β a),
-  { haveI := is_empty_pi.mpr h1,
-    obtain ⟨a, h⟩ := h1,
-    rw [nat.card_of_is_empty, finset.prod_eq_zero (finset.mem_univ a)],
-    exactI nat.card_of_is_empty },
-  simp only [not_exists, not_is_empty_iff] at h1,
-  by_cases h2 : ∀ a, finite (β a),
-  { haveI := h2,
-    haveI := λ a, fintype.of_finite (β a),
-    simp only [nat.card_eq_fintype_card, fintype.card_pi] },
-  simp only [not_forall, not_finite_iff_infinite] at h2,
-  obtain ⟨a₀, h2⟩ := h2,
-  rw [finset.prod_eq_zero (finset.mem_univ a₀)],
-  { suffices : infinite (Π a, β a),
-    { exactI nat.card_eq_zero_of_infinite },
-    let f : (Π a, β a) → β a₀ := λ p, p a₀,
-    have hf : function.surjective f :=
-    λ b,  ⟨λ a, if h : a = a₀ then by rwa h else (h1 a).some, dif_pos rfl⟩,
-    exactI infinite.of_surjective f hf },
-  { exactI nat.card_eq_zero_of_infinite },
+  revert f,
+  refine fintype.induction_empty_option _ _ _ α,
+  { intros α β hβ e h f,
+    letI := hβ,
+    letI := fintype.of_equiv β e.symm,
+    rw [←e.prod_comp f, ←h],
+    exact mk_congr (e.Pi_congr_left _).symm },
+  { intro f,
+    rw [fintype.univ_pempty, finset.prod_empty, lift_one, cardinal.prod, mk_eq_one] },
+  { intros α hα h f,
+    rw [cardinal.prod, mk_congr equiv.pi_option_equiv_prod, mk_prod, lift_umax', mk_out,
+        ←cardinal.prod, lift_prod, fintype.prod_option, lift_mul, ←h (λ a, f (some a))],
+    simp only [lift_id] },
 end
+
+lemma card_pi {β : α → Type*} [fintype α] : nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
+by simp_rw [nat.card, mk_pi, prod_of_fintype_eq, to_nat_lift, to_nat_finset_prod]
 
 end nat
 

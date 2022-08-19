@@ -71,7 +71,7 @@ begin
     subalgebra.to_submodule_injective _⟩,
   rw [algebra.top_to_submodule, eq_top_iff, ← s.span_eq, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
-    (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
+    (mem_roots $ mt (polynomial.map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
   { exact minpoly.ne_zero (h.is_integral (s x)) },
   rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],

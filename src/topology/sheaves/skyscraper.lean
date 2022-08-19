@@ -72,6 +72,63 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
       simpa only [eq_comp_eq_to_hom] using terminal_is_terminal.hom_ext _ _, }
   end }
 
+@[simps] def skyscraper_presheaf' {c : C} (it : is_terminal c) : presheaf C X :=
+{ obj := λ U, ite (p₀ ∈ unop U) S c,
+  map := λ U V i, dite (p₀ ∈ unop V)
+    (λ h, eq_to_hom (if_pos (le_of_hom i.unop h)) ≫ 𝟙 S ≫ eq_to_hom (if_pos h).symm)
+    (λ h, it.from _ ≫ eq_to_hom (if_neg h).symm),
+  map_id' := λ U,
+  begin
+    split_ifs,
+    { simp, },
+    { simpa only [eq_comp_eq_to_hom] using it.hom_ext _ _, },
+  end,
+  map_comp' := λ U V W iVU iWV,
+  begin
+    by_cases hW : p₀ ∈ unop W,
+    { have hV : p₀ ∈ unop V := le_of_hom iWV.unop hW,
+      have hU : p₀ ∈ unop U := le_of_hom iVU.unop hV,
+      split_ifs,
+      simp },
+    { split_ifs;
+      simpa only [eq_comp_eq_to_hom] using it.hom_ext _ _, }
+  end }
+
+def skyscraper_presheaf_iso {c : C} (it : is_terminal c) :
+  (skyscraper_presheaf p₀ S) ≅ (skyscraper_presheaf' p₀ S it) :=
+nat_iso.of_components
+  (λ U, iso.mk
+    (if m : p₀ ∈ U.unop
+      then eq_to_hom (by simp [if_pos m])
+      else it.from _ ≫ eq_to_hom (by simp [if_neg m]))
+    (if m : p₀ ∈ U.unop
+      then eq_to_hom (by simp [if_pos m])
+      else terminal.from _ ≫ eq_to_hom (by simp [if_neg m]))
+    begin
+      dsimp,
+      split_ifs,
+      { rw [eq_to_hom_trans, eq_to_hom_refl], },
+      { rw [←category.assoc, eq_comp_eq_to_hom],
+        exact terminal_is_terminal.hom_ext _ _, }
+    end
+    begin
+      dsimp,
+      split_ifs,
+      { rw [eq_to_hom_trans, eq_to_hom_refl], },
+      { rw [←category.assoc, eq_comp_eq_to_hom],
+        exact it.hom_ext _ _, }
+    end) $ λ U V inc,
+  begin
+    dsimp,
+    by_cases hV : p₀ ∈ V.unop,
+    { have hU : p₀ ∈ U.unop := le_of_hom inc.unop hV,
+      split_ifs,
+      simp only [category.id_comp, eq_to_hom_trans, eq_to_hom_refl], },
+    { split_ifs;
+      rw [←category.assoc, eq_comp_eq_to_hom];
+      exact it.hom_ext _ _, },
+  end
+
 section
 
 variables {p₀}

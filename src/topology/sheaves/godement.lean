@@ -158,14 +158,65 @@ def godement_sheaf_in_Type_obj (U : (opens X)ᵒᵖ) :
   ∏ (λ x, (forget C).obj $ (skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U) :=
 ((forget C).map_iso $ godement_sheaf_obj 𝓖 U) ≪≫ godement_sheaf_in_Type_obj_aux 𝓖 U
 
-lemma to_godement_sheaf_app_section (U : (opens X)ᵒᵖ) (s : (sheaf_in_Type.obj 𝓖).1.obj U)
-  (x : U.unop) :
-  -- (forget C).map (godement_sheaf_obj 𝓖 U).hom ((sheaf_in_Type.map $ to_godement_sheaf 𝓖).1.app U s) =
-  -- (forget C).obj (𝓖.1.stalk ) :=
-  sorry :=
+def sheaf_in_Type_skyscraper_sheaf (x : X) (c : C) :
+  (sheaf_in_Type.obj $ skyscraper_sheaf x c) ≅
+  skyscraper_sheaf x ((forget C).obj c) :=
+{ hom := Sheaf.hom.mk
+  { app := λ U, eq_to_hom
+    begin
+      change (forget C).obj _ = (skyscraper_sheaf x ((forget C).obj c)).1.obj _,
+      by_cases hU : x ∈ U.unop,
+      { erw [skyscraper_presheaf_obj_of_mem _ hU, skyscraper_presheaf_obj_of_mem _ hU], },
+      { erw [skyscraper_presheaf_obj_of_not_mem _ hU, skyscraper_presheaf_obj_of_not_mem _ hU],
+        -- need to make "skyscraper_presheaf_with_specified_terminal_object"
+          },
+    end,
+    naturality' := λ U V inc,
+    begin
+      dsimp,
+      rw [comp_dite, dite_comp],
+      by_cases hV : x ∈ V.unop,
+      { have hU : x ∈ U.unop := le_of_hom inc.unop hV,
+        split_ifs,
+        -- generalize_proofs _ h1 h2 h3 h4,
+        change (sheaf_in_Type.obj (skyscraper_sheaf x c)).val.map inc ≫
+            (forget C).map (eq_to_hom _) ≫ eq_to_hom _ =
+          ((forget C).map (eq_to_hom _) ≫ eq_to_hom _) ≫
+            (skyscraper_sheaf x ((forget C).obj c)).val.map inc,
+        rw [eq_to_hom_map, eq_to_hom_map, eq_to_hom_trans, eq_to_hom_trans],
+        generalize_proofs _ h1 h2,
+
+        sorry,
+        -- have := (sheaf_in_Type.obj (skyscraper_sheaf x c)).1.map_comp,
+        -- unfold_coes,
+        -- erw show (forget C).map (eq_to_hom h1) = _, from rfl,
+        -- erw [eq_to_hom_map (forget C) h1],
+        },
+      { split_ifs,
+        rw [←category.assoc, eq_comp_eq_to_hom],
+        exact terminal_is_terminal.hom_ext _ _, },
+    end },
+  inv := Sheaf.hom.mk
+  { app := λ U, if m : x ∈ U.unop
+      then eq_to_hom _
+      else _,
+    naturality' := _ },
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+
+lemma stalk_bundles (U : (opens X)ᵒᵖ) (s : (sheaf_in_Type.obj 𝓖).1.obj U)
+  (x : U.unop) : presheaf.stalk (sheaf_in_Type.obj 𝓖).1 x :=
+-- let S : (sheaf_in_Type.obj (skyscraper_sheaf x.val (𝓖.presheaf.stalk x.val))).1.obj U :=
+--    in
+-- presheaf.germ
 begin
-  have := (sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app U s,
-  have := (godement_sheaf_in_Type_obj 𝓖 U).hom,
+  have : (sheaf_in_Type.obj (skyscraper_sheaf x.val (𝓖.presheaf.stalk x.val))).1.obj U,
+  {  },
+  -- (types.product_iso _).hom (((godement_sheaf_in_Type_obj 𝓖 U).hom ((sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app U s))) x.1,
+  dsimp at S,
+  have := (sheaf_in_Type.obj 𝓖).presheaf.germ x,
+  -- have := ,
+  have := (types.product_iso _).hom (((godement_sheaf_in_Type_obj 𝓖 U).hom ((sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app U s))) x.1,
 end
 
 

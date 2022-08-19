@@ -107,6 +107,6 @@ theorem LDL.lower_conj_diag :
   LDL.lower hS ⬝ LDL.diag hS ⬝ (LDL.lower hS)ᴴ = S :=
 begin
   rw [LDL.lower, conj_transpose_nonsing_inv, matrix.mul_assoc,
-    matrix.inv_mul_eq_iff_eq_mul (LDL.lower_inv hS), matrix.mul_inv_eq_iff_eq_mul],
+    matrix.inv_mul_eq_iff_eq_mul_of_invertible (LDL.lower_inv hS), matrix.mul_inv_eq_iff_eq_mul],
   exact LDL.diag_eq_lower_inv_conj hS,
 end

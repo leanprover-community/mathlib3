@@ -313,15 +313,15 @@ nonsing_inv_mul_cancel_right A B (is_unit_det_of_invertible A)
   A⁻¹ ⬝ (A ⬝ B) = B :=
 nonsing_inv_mul_cancel_left A B (is_unit_det_of_invertible A)
 
-lemma inv_mul_eq_iff_eq_mul (A B C : matrix n n α) [invertible A] :
+lemma inv_mul_eq_iff_eq_mul_of_invertible (A B C : matrix n n α) [invertible A] :
   A⁻¹ ⬝ B = C ↔ B = A ⬝ C :=
 ⟨λ h, by rw [←h, mul_inv_cancel_left_of_invertible],
- λ h, by rw [h, inv_mul_cancel_left_of_invertible],⟩
+ λ h, by rw [h, inv_mul_cancel_left_of_invertible]⟩
 
-lemma mul_inv_eq_iff_eq_mul (A B C : matrix n n α) [invertible A] :
+lemma mul_inv_eq_iff_eq_mul_of_invertible (A B C : matrix n n α) [invertible A] :
   B ⬝ A⁻¹ = C ↔ B = C ⬝ A :=
 ⟨λ h, by rw [←h, inv_mul_cancel_right_of_invertible],
- λ h, by rw [h, mul_inv_cancel_right_of_invertible],⟩
+ λ h, by rw [h, mul_inv_cancel_right_of_invertible]⟩
 
 lemma nonsing_inv_cancel_or_zero :
   (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=

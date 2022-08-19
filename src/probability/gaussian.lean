@@ -1846,38 +1846,40 @@ begin
   {
     rw h,
     rw zero_smul,
-    ext1 S hS,
-    simp,
-    by_cases xs: (0:ℝ) ∈ S,
-    {
-      rw set.indicator,
-      split_ifs,
-      simp,
-      rw measure_theory.measure.map_apply,
-      {
-        have h₁: (0 ⁻¹' S) = set.univ,
-          {
-            ext (x:ℝ),
-            simp,
-            exact xs,
-          },
-        sorry
-      },
-      {exact measurable_zero},
-      {measurability},
+    classical,
 
-    },
-    {
-      rw set.indicator,
-      split_ifs,
-      rw measure_theory.measure.map_apply,
-      {
-        sorry
-      },
-      {exact measurable_zero},
-      {measurability},
-    },
+    -- ext1 S hS,
+    -- simp,
+    -- by_cases xs: (0:ℝ) ∈ S,
+    -- {
+    --   rw set.indicator,
+    --   split_ifs,
+    --   simp,
+    --   rw measure_theory.measure.map_apply,
+    --   {
+    --     have h₁: (0 ⁻¹' S) = set.univ,
+    --       {
+    --         ext (x:ℝ),
+    --         simp,
+    --         exact xs,
+    --       },
+    --     sorry
+    --   },
+    --   {exact measurable_zero},
+    --   {measurability},
 
+    -- },
+    -- {
+    --   rw set.indicator,
+    --   split_ifs,
+    --   rw measure_theory.measure.map_apply,
+    --   {
+    --     sorry
+    --   },
+    --   {exact measurable_zero},
+    --   {measurability},
+    -- },
+    sorry,
   },
   {
     let h1 : ℝ → ℝ := λ x, s • x,

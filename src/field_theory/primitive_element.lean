@@ -64,7 +64,10 @@ end
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
 theorem exists_primitive_element_of_finite_bot [finite F] [finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
-by { haveI : finite E := finite_of_finite F E, exact exists_primitive_element_of_finite_top F E }
+begin
+  haveI : finite E := finite_of_finite F E,
+  exact exists_primitive_element_of_finite_top F E
+end
 
 end primitive_element_finite
 

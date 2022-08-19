@@ -206,7 +206,10 @@ lemma finrank_R [fintype σ] : finite_dimensional.finrank K (R σ K) = fintype.c
 finite_dimensional.finrank_eq_of_dim_eq (dim_R σ K)
 
 lemma range_evalᵢ [finite σ] : (evalᵢ σ K).range = ⊤ :=
-by { rw [evalᵢ, linear_map.range_comp, range_subtype], exact map_restrict_dom_evalₗ }
+begin
+  rw [evalᵢ, linear_map.range_comp, range_subtype],
+  exact map_restrict_dom_evalₗ
+end
 
 lemma ker_evalₗ [finite σ] : (evalᵢ σ K).ker = ⊥ :=
 begin

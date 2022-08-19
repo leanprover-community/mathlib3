@@ -716,6 +716,6 @@ topological_group.to_uniform_space _
 @[to_additive] instance uniform_group.uniform_group_quotient
   {G : Type*} [comm_group G] [uniform_space G] [uniform_group G]
   (H : subgroup G) [H.normal] : uniform_group (G ⧸ H) :=
-topological_group_is_uniform
+topological_comm_group_is_uniform
 
 end quotients

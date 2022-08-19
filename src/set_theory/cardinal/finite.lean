@@ -3,7 +3,6 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.fintype.card
 import set_theory.cardinal.basic
 
 /-!
@@ -19,6 +18,7 @@ import set_theory.cardinal.basic
 
 open cardinal
 noncomputable theory
+open_locale big_operators
 
 variables {α β : Type*}
 
@@ -76,37 +76,6 @@ card_congr equiv.ulift
 
 @[simp] lemma card_plift (α : Type*) : nat.card (plift α) = nat.card α :=
 card_congr equiv.plift
-
-open_locale big_operators
-
-/-- `cardinal.to_nat` as a `monoid_with_zero_hom`. -/
-def to_nat_hom : cardinal →*₀ ℕ :=
-{ to_fun := to_nat,
-  map_zero' := zero_to_nat,
-  map_one' := one_to_nat,
-  map_mul' := to_nat_mul }
-
-lemma to_nat_finset_prod (s : finset α) (f : α → cardinal) :
-  to_nat (∏ i in s, f i) = ∏ i in s, to_nat (f i) :=
-map_prod to_nat_hom _ _
-
-lemma {u v} prod_of_fintype_eq {α : Type u} [fintype α] (f : α → cardinal.{v}) :
-  prod f = cardinal.lift.{u} ∏ (i : α), (f i) :=
-begin
-  revert f,
-  refine fintype.induction_empty_option _ _ _ α,
-  { intros α β hβ e h f,
-    letI := hβ,
-    letI := fintype.of_equiv β e.symm,
-    rw [←e.prod_comp f, ←h],
-    exact mk_congr (e.Pi_congr_left _).symm },
-  { intro f,
-    rw [fintype.univ_pempty, finset.prod_empty, lift_one, cardinal.prod, mk_eq_one] },
-  { intros α hα h f,
-    rw [cardinal.prod, mk_congr equiv.pi_option_equiv_prod, mk_prod, lift_umax', mk_out,
-        ←cardinal.prod, lift_prod, fintype.prod_option, lift_mul, ←h (λ a, f (some a))],
-    simp only [lift_id] },
-end
 
 lemma card_pi {β : α → Type*} [fintype α] : nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
 by simp_rw [nat.card, mk_pi, prod_of_fintype_eq, to_nat_lift, to_nat_finset_prod]

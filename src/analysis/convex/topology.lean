@@ -192,12 +192,12 @@ hs.add_smul_mem_interior' (subset_closure hx) hy ht
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 protected lemma convex.interior {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (interior s) :=
-convex_iff_open_segment_subset.mpr $ λ x y hx hy,
+convex_iff_open_segment_subset.mpr $ λ x hx y hy,
   hs.open_segment_closure_interior_subset_interior (interior_subset_closure hx) hy
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
 protected lemma convex.closure {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (closure s) :=
-λ x y hx hy a b ha hb hab,
+λ x hx y hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
 have hf : continuous (λ p : E × E, f p.1 p.2), from
   (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
@@ -305,7 +305,7 @@ variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 /-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/
 lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
-⟨hs, λ x y hx hy a b ha hb hab,
+⟨hs, λ x hx y hy a b ha hb hab,
   calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
     ... = a * ∥x∥ + b * ∥y∥
         : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩

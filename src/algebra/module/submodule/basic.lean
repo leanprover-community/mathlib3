@@ -168,7 +168,7 @@ variables (p)
 @[simp] protected lemma zero_mem : (0 : M) ∈ p := zero_mem _
 protected lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := add_mem h₁ h₂
 
-protected lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
+lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 lemma smul_of_tower_mem [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (h : x ∈ p) : r • x ∈ p :=
 p.to_sub_mul_action.smul_of_tower_mem r h

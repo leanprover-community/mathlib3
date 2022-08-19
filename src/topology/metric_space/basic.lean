@@ -800,6 +800,17 @@ begin
   exact hs _ (dist_mem_uniformity ε_pos),
 end
 
+/-- Expressing uniform convergence using `dist` -/
+lemma tendsto_uniformly_on_filter_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {p' : filter β} :
+  tendsto_uniformly_on_filter F f p p' ↔
+  ∀ ε > 0, ∀ᶠ (n : ι × β) in (p ×ᶠ p'), dist (f n.snd) (F n.fst n.snd) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
+  refine (H ε εpos).mono (λ n hn, hε hn),
+end
+
 /-- Expressing locally uniform convergence on a set using `dist`. -/
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
@@ -1308,22 +1319,35 @@ end
 end real
 
 section cauchy_seq
-variables [nonempty β] [semilattice_sup β]
-
-/-- In a pseudometric space, Cauchy sequences are characterized by the fact that, eventually,
-the distance between its elements is arbitrarily small -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem metric.cauchy_seq_iff {u : β → α} :
-  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u m) (u n) < ε :=
-uniformity_basis_dist.cauchy_seq_iff
-
-/-- A variation around the pseudometric characterization of Cauchy sequences -/
-theorem metric.cauchy_seq_iff' {u : β → α} :
-  cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
-uniformity_basis_dist.cauchy_seq_iff'
 
 /-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
 the distance between all its elements is uniformly, arbitrarily small -/
+theorem metric.uniform_cauchy_seq_on_iff' {p : filter β} {γ : Type*}
+  {F : β → γ → α} {s : set γ} :
+  uniform_cauchy_seq_on F p s ↔
+    ∀ ε : ℝ, ε > 0 → ∃ t ∈ p, ∀ m, m ∈ t → ∀ n, n ∈ t → ∀ x, x ∈ s →  dist (F m x) (F n x) < ε :=
+begin
+  split,
+  { intros h ε hε,
+    let u := { a : α × α | dist a.fst a.snd < ε },
+    have hu : u ∈ 𝓤 α := metric.mem_uniformity_dist.mpr ⟨ε, hε, (λ a b, by simp)⟩,
+    obtain ⟨pa, hpa, pb, hpb, hpapb⟩ := eventually_prod_iff.mp (h u hu),
+    let t := {a : β | pa a ∧ pb a},
+    refine ⟨t, hpa.and hpb, λ m hm n hn x hx, _⟩,
+    have hpam := (set.mem_set_of.mp hm).1,
+    have hpan := (set.mem_set_of.mp hn).2,
+    simpa [u] using (hpapb hpam hpan x hx), },
+  { intros h u hu,
+    rcases (metric.mem_uniformity_dist.mp hu) with ⟨ε, hε, hab⟩,
+    rcases h ε hε with ⟨N, hN, hNm⟩,
+    exact eventually_prod_iff.mpr ⟨(λ z, z ∈ N), hN, (λ z, z ∈ N), hN,
+      (λ n hn m hm x hx, hab (hNm n hn m hm x hx))⟩, },
+end
+
+variables [nonempty β] [semilattice_sup β]
+
+/-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
+the distance between all its elements is uniformly, arbitrarily small. Version for `at_top` -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.uniform_cauchy_seq_on_iff {γ : Type*}
   {F : β → γ → α} {s : set γ} :
@@ -1349,6 +1373,18 @@ begin
     rcases hb with ⟨hbl, hbr⟩,
     exact hab (hN b.fst hbl.ge b.snd hbr.ge x hx), },
 end
+
+/-- In a pseudometric space, Cauchy sequences are characterized by the fact that, eventually,
+the distance between its elements is arbitrarily small -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem metric.cauchy_seq_iff {u : β → α} :
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u m) (u n) < ε :=
+uniformity_basis_dist.cauchy_seq_iff
+
+/-- A variation around the pseudometric characterization of Cauchy sequences -/
+theorem metric.cauchy_seq_iff' {u : β → α} :
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
+uniformity_basis_dist.cauchy_seq_iff'
 
 /-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/

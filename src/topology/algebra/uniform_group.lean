@@ -323,7 +323,19 @@ uniform_continuous_inv.comp_cauchy_seq h
   by simp [← preimage_smul_inv, preimage]
 
 section uniform_convergence
-variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+variables {ι : Type*} {l : filter ι} {l' : filter β} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+
+@[to_additive] lemma tendsto_uniformly_on_filter.mul (hf : tendsto_uniformly_on_filter f g l l')
+  (hf' : tendsto_uniformly_on_filter f' g' l l') :
+  tendsto_uniformly_on_filter (f * f') (g * g') l l' :=
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly_on_filter
+  (hf.prod hf')) u hu).diag_of_prod_left
+
+@[to_additive] lemma tendsto_uniformly_on_filter.div (hf : tendsto_uniformly_on_filter f g l l')
+  (hf' : tendsto_uniformly_on_filter f' g' l l') :
+  tendsto_uniformly_on_filter (f / f') (g / g') l l' :=
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on_filter
+  (hf.prod hf')) u hu).diag_of_prod_left
 
 @[to_additive] lemma tendsto_uniformly_on.mul (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
@@ -332,6 +344,14 @@ variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → 
 @[to_additive] lemma tendsto_uniformly_on.div (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
 λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma tendsto_uniformly.mul (hf : tendsto_uniformly f g l)
+  (hf' : tendsto_uniformly f' g' l) : tendsto_uniformly (f * f') (g * g') l :=
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma tendsto_uniformly.div (hf : tendsto_uniformly f g l)
+  (hf' : tendsto_uniformly f' g' l) : tendsto_uniformly (f / f') (g / g') l :=
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly (hf.prod hf')) u hu).diag_of_prod
 
 @[to_additive] lemma uniform_cauchy_seq_on.mul (hf : uniform_cauchy_seq_on f l s)
   (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f * f') l s :=

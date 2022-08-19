@@ -22,18 +22,12 @@ For any prime number $p$ and natural number $n$, we can define a polynomial
 -/
 def f_p (p : ℕ) (n : ℕ): ℤ[X] := polynomial.X ^ (p - 1) * (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p)
 
-/--
-Theorem
-The degree of $f_{p,n}$ is $(n+1)p-1$
-- `polynomial.nat_degree_mul_eq` asserts that the degree of $pq$ is degree of $p$ plus degree of $q$ provided $p$ and $q$ are nonzero
-- `prod_deg` asserts that degree of $\prod_{i} p_i$ equals $\sum_i,\mathrm {degree of } p_i$ provided that for all $i,p_i\ne 0$.
--/
-lemma deg_f_p (p : ℕ) (hp : 1 ≤ p) (n : ℕ) : (f_p p n).nat_degree = (n+1)*p - 1 :=
+lemma deg_f_p (p : ℕ) (hp : 1 ≤ p) (n : ℕ) : (f_p p n).nat_degree + 1 = (n + 1) * p :=
 begin
   rw [f_p, polynomial.nat_degree_mul, polynomial.nat_degree_X_pow, polynomial.nat_degree_prod],
   simp only [polynomial.nat_degree_pow, polynomial.nat_degree_X_sub_C, finset.sum_const,
     finset.card_range, smul_eq_mul, mul_one],
-  rw [add_comm, ←nat.add_sub_assoc hp, add_one_mul],
+  rw [add_comm (p - 1), add_assoc, nat.sub_add_cancel hp, add_one_mul],
   { exact λ i hi, pow_ne_zero _ (polynomial.X_sub_C_ne_zero _), },
   { exact pow_ne_zero _ polynomial.X_ne_zero },
   { rw finset.prod_ne_zero_iff,
@@ -333,19 +327,6 @@ begin
   { exact k_ge_1_case_when_j_ge_p p hp n j j_ge_p k.succ hk (nat.succ_pos k) },
 end
 
-
-private lemma p_le (p m : ℕ) (hp : nat.prime p) : p ≤ ((m + 1) * p - 1).succ :=
-begin
-  apply nat.le_succ_of_pred_le,
-  induction m with m IH,
-  { simp only [one_mul, nat.pred_eq_sub_one] },
-  rw nat.succ_eq_add_one, rw add_mul, simp only [one_mul],
-  apply le_trans IH,
-  have triv : m.succ * p + p - 1 = m.succ * p - 1 + p,
-  { rw nat.sub_add_comm, apply nat.mul_pos, exact nat.succ_pos m, exact nat.prime.pos hp },
-  rw triv, apply nat.le_add_right,
-end
-
 theorem J_partial_sum_from_one_to_p_sub_one (g : ℤ[X]) (p : ℕ) :
   ∑ (j : ℕ) in finset.range (p - 1), H g p j = 0 :=
 begin
@@ -394,9 +375,9 @@ theorem J_eq_split (g : ℤ[X]) (p : ℕ) (hroot : polynomial.aeval e g = 0) (hp
     H g p (p - 1) +
     ∑ j in finset.Ico (p) (f_p p g.nat_degree).nat_degree.succ, H g p j) :=
 begin
-  have : p ≤ (f_p p g.nat_degree).nat_degree.succ,
+  have : p ≤ (f_p p g.nat_degree).nat_degree + 1,
   { rw deg_f_p _ hp.one_lt.le,
-    apply p_le _ _  hp },
+    exact nat.le_mul_of_pos_left (nat.succ_pos _) },
   rw [←finset.sum_range_succ, nat.sub_add_cancel hp.one_lt.le, finset.sum_range_add_sum_Ico _ this,
     J_eq'' _ hroot],
 end

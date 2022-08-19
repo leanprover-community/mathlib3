@@ -286,7 +286,7 @@ begin
   { dsimp [functor.op],
     conv_lhs { rw opens.open_embedding_obj_top },
     conv_rhs { rw opens.open_embedding_obj_top },
-    erw is_open_immersion.image_basic_open (X.of_restrict U.1.open_embedding),
+    erw (X.of_restrict U.1.open_embedding).image_basic_open,
     erw PresheafedSpace.is_open_immersion.of_restrict_inv_app_apply,
     rw Scheme.basic_open_res_eq },
   { apply_instance }

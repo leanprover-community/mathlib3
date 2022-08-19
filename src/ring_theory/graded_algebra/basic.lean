@@ -105,7 +105,7 @@ end graded_ring
 
 section add_cancel_monoid
 
-open direct_sum dfinsupp finset function
+open direct_sum dfinsupp
 
 variables [decidable_eq ι] [semiring A] [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ)
 variables {i j : ι}
@@ -250,45 +250,32 @@ def graded_ring.proj_zero_ring_hom : A →+* A :=
       simp only [add_mul, decompose_add, add_apply, add_mem_class.coe_add, ha, hb] },
   end }
 
-end canonical_order
-
-section nat
-
-open direct_sum finset function
-
-variables [semiring A] [set_like σ A] [add_submonoid_class σ A] (𝒜 : ℕ → σ) [graded_ring 𝒜]
-variables {a b : A} {n i : ℕ}
-
-lemma direct_sum.coe_decompose_mul_of_left_mem_of_le
-  (a_mem : a ∈ 𝒜 i) (ineq1 : i ≤ n) : (decompose 𝒜 (a * b) n : A) = a * decompose 𝒜 b (n - i) :=
-by conv_lhs { rw [← nat.add_sub_of_le ineq1, coe_decompose_mul_add_of_left_mem _ a_mem] }
-
-lemma direct_sum.coe_decompose_mul_of_right_mem_of_le
-  (b_mem : b ∈ 𝒜 i) (ineq1 : i ≤ n) : (decompose 𝒜 (a * b) n : A) = decompose 𝒜 a (n - i) * b :=
-by conv_lhs { rw [← nat.sub_add_cancel ineq1, coe_decompose_mul_add_of_right_mem _ b_mem] }
+variables {a b : A} {n i : ι}
 
 lemma direct_sum.coe_decompose_mul_of_left_mem_of_not_le
-  (a_mem : a ∈ 𝒜 i) (ineq1 : n < i) : (decompose 𝒜 (a * b) n : A) = 0 :=
+  (a_mem : a ∈ 𝒜 i) (h : ¬ i ≤ n) : (decompose 𝒜 (a * b) n : A) = 0 :=
 by { lift a to 𝒜 i using a_mem, rwa [decompose_mul, decompose_coe, coe_of_mul_apply_of_not_le] }
 
 lemma direct_sum.coe_decompose_mul_of_right_mem_of_not_le
-  (b_mem : b ∈ 𝒜 i) (ineq1 : n < i) : (decompose 𝒜 (a * b) n : A) = 0 :=
+  (b_mem : b ∈ 𝒜 i) (h : ¬ i ≤ n) : (decompose 𝒜 (a * b) n : A) = 0 :=
 by { lift b to 𝒜 i using b_mem, rwa [decompose_mul, decompose_coe, coe_mul_of_apply_of_not_le] }
 
-lemma direct_sum.coe_decompose_mul_of_left_mem (a_mem : a ∈ 𝒜 i) :
+variables [has_sub ι] [has_ordered_sub ι] [contravariant_class ι ι (+) (≤)]
+
+lemma direct_sum.coe_decompose_mul_of_left_mem_of_le
+  (a_mem : a ∈ 𝒜 i) (h : i ≤ n) : (decompose 𝒜 (a * b) n : A) = a * decompose 𝒜 b (n - i) :=
+by { lift a to 𝒜 i using a_mem, rwa [decompose_mul, decompose_coe, coe_of_mul_apply_of_le] }
+
+lemma direct_sum.coe_decompose_mul_of_right_mem_of_le
+  (b_mem : b ∈ 𝒜 i) (h : i ≤ n) : (decompose 𝒜 (a * b) n : A) = decompose 𝒜 a (n - i) * b :=
+by { lift b to 𝒜 i using b_mem, rwa [decompose_mul, decompose_coe, coe_mul_of_apply_of_le] }
+
+lemma direct_sum.coe_decompose_mul_of_left_mem (a_mem : a ∈ 𝒜 i) [decidable (i ≤ n)] :
   (decompose 𝒜 (a * b) n : A) = if i ≤ n then a * decompose 𝒜 b (n - i) else 0 :=
-begin
-  split_ifs,
-  { exact direct_sum.coe_decompose_mul_of_left_mem_of_le _ a_mem h, },
-  { exact direct_sum.coe_decompose_mul_of_left_mem_of_not_le _ a_mem (lt_of_not_le h), },
-end
+by { lift a to 𝒜 i using a_mem, rwa [decompose_mul, decompose_coe, coe_of_mul_apply] }
 
-lemma direct_sum.coe_decompose_mul_of_right_mem (b_mem : b ∈ 𝒜 i) :
+lemma direct_sum.coe_decompose_mul_of_right_mem (b_mem : b ∈ 𝒜 i) [decidable (i ≤ n)] :
   (decompose 𝒜 (a * b) n : A) = if i ≤ n then decompose 𝒜 a (n - i) * b else 0 :=
-begin
-  split_ifs,
-  { exact direct_sum.coe_decompose_mul_of_right_mem_of_le _ b_mem h, },
-  { exact direct_sum.coe_decompose_mul_of_right_mem_of_not_le _ b_mem (lt_of_not_le h), },
-end
+by { lift b to 𝒜 i using b_mem, rwa [decompose_mul, decompose_coe, coe_mul_of_apply] }
 
-end nat
+end canonical_order

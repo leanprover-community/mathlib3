@@ -76,10 +76,6 @@ instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   lt_of_smul_lt_smul_of_pos := λ a b,
     @ordered_smul.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
 
-@[simp] lemma to_dual_smul [has_smul R M] {c : R} {a : M} : to_dual (c • a) = c • to_dual a := rfl
-@[simp] lemma of_dual_smul [has_smul R M] {c : R} {a : Mᵒᵈ} : of_dual (c • a) = c • of_dual a :=
-rfl
-
 end order_dual
 
 section ordered_smul

@@ -61,7 +61,7 @@ by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_on
   pos_iff_ne_zero]
 
 lemma is_prime_pow.exists_ord_compl_eq_one {n : ℕ} (h : is_prime_pow n) :
-  (∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1) :=
+  ∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1 :=
 begin
   rcases eq_or_ne n 0 with rfl | hn0, { cases not_is_prime_pow_zero h },
   rcases is_prime_pow_iff_factorization_eq_single.mp h with ⟨p, k, hk0, h1⟩,

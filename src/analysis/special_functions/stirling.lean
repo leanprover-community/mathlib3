@@ -28,8 +28,6 @@ ingredients are
 open_locale topological_space big_operators
 open finset filter nat real
 
-namespace stirling
-
 /-!
  ### Part 1
  https://proofwiki.org/wiki/Stirling%27s_Formula#Part_1
@@ -41,6 +39,12 @@ Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
 n.factorial / (sqrt (2 * n) * (n / exp 1) ^ n)
+
+@[simp] lemma stiling_seq_1: stirling_seq 1 = exp 1 * (sqrt 2)⁻¹ :=
+begin
+  simp only [stirling_seq, factorial_one, cast_one, mul_one, one_div, pow_one, mul_inv_rev,
+    inv_inv],
+end
 
 /-- Define `log_stirling_seq n` as the log of `stirling_seq n`. -/
 noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
@@ -182,7 +186,7 @@ begin
     field_simp, }
   ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
   ... ≤ 1 / 4 * d : by
-  { rw ←mul_le_mul_left (by positivity),
+  { refine (mul_le_mul_left (one_div_pos.mpr four_pos)).mpr _,
     refine sum_le_tsum (range n) (λ k _, _)
       ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
     apply le_of_lt,

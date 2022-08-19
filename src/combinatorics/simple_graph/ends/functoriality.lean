@@ -321,17 +321,35 @@ def good_common_finset.refl {f : V → V'} {K : finset V'} {L : finset V} :
   (good_finset G G' f K L) → good_common_finset G G' f f K L :=
 λ c D, ⟨(c D).1,by {simp only [subtype.val_eq_coe, set.union_self, mem_set_of_eq], exact (c D).2, }⟩
 
+
+
 def good_common_finset.symm {f g : V → V'} {K : finset V'} {L : finset V} :
   (good_common_finset G G' f g K L) → good_common_finset G G' g f K L :=
 λ c D, ⟨(c D).1,by {simp only [subtype.val_eq_coe, mem_set_of_eq],rw set.union_comm, exact (c D).2, }⟩
 
 def good_common_finset.trans {f g h : V → V'} {K : finset V'} {L : finset V} :
-  (good_common_finset G G' f g K L) → good_common_finset G G' g h K L → good_common_finset G G' f h K L := sorry
-  -- what do we actually want???
+  (good_common_finset G G' f g K L) → good_common_finset G G' g h K L → good_common_finset G G' f h K L :=
+λ cfg cgh D,
+begin
+  have : (cfg D).1 = (cgh D).1, by
+  { have : cfg.right G G' = cgh.left G G', by apply good_finset.eq,
+    change (cfg.right G G' D).1 = (cgh.left G G' D).1,
+    rw this,},
+  use (cfg D).1,
+  let subfg := (cfg D).2,
+  let subgh := (cgh D).2, rw ←this at subgh,
+  simp only [subtype.val_eq_coe, mem_set_of_eq,set.union_subset_iff] at subfg subgh ⊢,
+  exact ⟨subfg.left,subgh.right⟩,
+end
 
 def good_common_finset.up {f g : V → V'} {K : finset V'}  {L L' : finset V} (LL' : L ⊆ L') :
   (good_common_finset G G' f g K L) → good_common_finset G G' f g K L'  :=
-λ c D, ⟨(c (bwd_map_inf G Gpc LL' D)),sorry⟩
+λ c D,
+  ⟨ (c (bwd_map_inf G Gpc LL' D)).1
+  , by
+    { refine subset.trans _ (c (bwd_map_inf G Gpc LL' D)).2,
+      apply set.union_subset_union; apply image_subset; apply bwd_map_inf.sub, }
+  ⟩
 
 -- Probably we also need versions of the `agree_up` `agree_down` and `up` `down` constructions for `good_finset`.
 
@@ -380,6 +398,7 @@ lemma coarse_close.Endsinfty.eq' [locally_finite G] [locally_finite G']
   (coarse.Endsinfty.ext G Gpc G' Gpc' fc (icc.left G G')).trans
   ( (coarse_close.Endsinfty.eq G Gpc G' Gpc' icc).trans
       (coarse.Endsinfty.ext G Gpc G' Gpc' gc (icc.right G G')).symm)
+
 
 
 def coarse_Lipschitz (f : V → V') (K : ℕ) := ∀ (x y : V) (a : G.adj x y), (G'.dist (f x) (f y)) ≤ K

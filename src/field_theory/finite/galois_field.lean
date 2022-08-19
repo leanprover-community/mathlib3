@@ -98,7 +98,7 @@ begin
       rwa mem_root_set aux at hx, }, },
   { dsimp only [g_poly],
     rw [← coeff_zero_eq_aeval_zero'],
-    simp only [coeff_X_pow, coeff_X_zero, sub_zero, map_eq_zero, ite_eq_right_iff,
+    simp only [coeff_X_pow, coeff_X_zero, sub_zero, _root_.map_eq_zero, ite_eq_right_iff,
       one_ne_zero, coeff_sub],
     intro hn,
     exact nat.not_lt_zero 1 (pow_eq_zero hn.symm ▸ hp), },

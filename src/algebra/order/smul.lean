@@ -229,7 +229,7 @@ meta def positivity_smul : expr → tactic strictness
   | positive pa, positive pb := positive <$> mk_app ``smul_pos [pa, pb]
   | positive pa, nonnegative pb := nonnegative <$> mk_app ``smul_nonneg_of_pos_of_nonneg [pa, pb]
   | nonnegative pa, positive pb := nonnegative <$> mk_app ``smul_nonneg_of_nonneg_of_pos [pa, pb]
-  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``mul_nonneg [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``smul_nonneg [pa, pb]
   end
 | _ := failed
 

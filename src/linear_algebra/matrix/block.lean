@@ -51,7 +51,7 @@ begin
   simp only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
     equiv.sum_compl_apply_inr, equiv.sum_compl_apply_inl,
     from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂,
-    matrix.minor_apply],
+    matrix.submatrix_apply],
 end
 
 lemma det_to_square_block (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :

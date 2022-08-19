@@ -722,7 +722,7 @@ lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discre
   {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
 by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
 
-lemma inducing.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
   [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
 ⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
 

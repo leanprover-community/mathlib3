@@ -325,9 +325,6 @@ instance : has_smul M (E →ₗ.[R] F) :=
 @[simp] lemma smul_apply (a : M) (f : E →ₗ.[R] F) (x : ((a • f).domain)) :
   (a • f) x = a • f x := rfl
 
-@[simp, norm_cast] lemma coe_smul (a : M) (f : E →ₗ.[R] F) :
-  ((a • f) : f.domain →ₗ[k] F) = a • f := rfl
-
 instance [smul_comm_class M N F] : smul_comm_class M N (E →ₗ.[R] F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
 
@@ -340,14 +337,14 @@ instance : mul_action M (E →ₗ.[R] F) :=
   begin
     ext, { refl },
     intros x y h,
-    simp only [coe_smul, one_smul],
+    simp only [smul_apply, one_smul],
     exact congr_arg f (subtype.ext h),
   end,
   mul_smul := λ a₁ a₂ f,
   begin
     ext, { refl },
     intros x y h,
-    simp only [coe_smul, pi.smul_apply],
+    simp only [smul_apply, pi.smul_apply],
     rw mul_smul,
     congr,
     exact subtype.ext h,
@@ -365,24 +362,20 @@ instance : has_vadd (E →ₗ[R] F) (E →ₗ.[R] F) :=
 @[simp] lemma vadd_apply (f : E →ₗ[R] F) (g : E →ₗ.[R] F) (x : (f +ᵥ g).domain) :
   (f +ᵥ g) x = f x + g x := rfl
 
-@[simp, norm_cast] lemma coe_vadd (f : E →ₗ[R] F) (g : E →ₗ.[R] F) :
-  ((f +ᵥ g) : g.domain →ₗ[k] F) = f.comp g.domain.subtype + g := rfl
-
 instance : add_action (E →ₗ[R] F) (E →ₗ.[R] F) :=
 { vadd := (+ᵥ),
   zero_vadd := λ f,
   begin
     ext, { refl },
     intros x y h,
-    simp only [coe_vadd, linear_map.zero_comp, pi.add_apply, linear_map.zero_apply, zero_add],
+    simp only [vadd_apply, linear_map.zero_apply, zero_add],
     exact congr_arg f (subtype.ext h),
   end,
   add_vadd := λ f₁ f₂ g,
   begin
     ext, { refl },
     intros x y h,
-    simp only [coe_vadd, linear_map.coe_comp, submodule.coe_subtype, pi.add_apply,
-      function.comp_app, linear_map.add_apply],
+    simp only [vadd_apply, linear_map.add_apply],
     rw [add_assoc, h],
     congr,
     exact subtype.ext h,

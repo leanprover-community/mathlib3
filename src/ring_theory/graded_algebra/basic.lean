@@ -105,7 +105,7 @@ end graded_ring
 
 section add_cancel_monoid
 
-open direct_sum dfinsupp
+open direct_sum
 
 variables [decidable_eq ι] [semiring A] [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ)
 variables {i j : ι}
@@ -201,7 +201,7 @@ end graded_algebra
 
 section canonical_order
 
-open graded_ring set_like.graded_monoid direct_sum
+open set_like.graded_monoid direct_sum
 
 variables [semiring A] [decidable_eq ι]
 variables [canonically_ordered_add_monoid ι]

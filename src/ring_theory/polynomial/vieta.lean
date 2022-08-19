@@ -111,8 +111,7 @@ end
   condition `hroots` from `p.splits (ring_hom.id R)`.  -/
 theorem _root_.polynomial.vieta [is_domain R] {p : R[X]}
   (hroots : p.roots.card = p.nat_degree) {k : ℕ} (h : k ≤ p.nat_degree) :
-  p.coeff k = p.leading_coeff * (-1) ^ (p.nat_degree - k) *
-    ((p.roots.powerset_len (p.nat_degree - k)).map multiset.prod).sum :=
+  p.coeff k = p.leading_coeff * (-1) ^ (p.nat_degree - k) * p.roots.esymm (p.nat_degree - k) :=
 begin
   conv_lhs { rw ← C_leading_coeff_mul_prod_multiset_X_sub_C hroots },
   rw [coeff_C_mul, mul_assoc], congr,

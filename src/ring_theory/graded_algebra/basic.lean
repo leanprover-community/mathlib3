@@ -265,11 +265,11 @@ lemma coe_decompose_mul_of_right_mem_of_le
   (b_mem : b ∈ 𝒜 i) (h : i ≤ n) : (decompose 𝒜 (a * b) n : A) = decompose 𝒜 a (n - i) * b :=
 by { lift b to 𝒜 i using b_mem, rwa [decompose_mul, decompose_coe, coe_mul_of_apply_of_le] }
 
-lemma coe_decompose_mul_of_left_mem (n) [decidable (i ≤ n)] (a_mem : a ∈ 𝒜 i) (b : A) :
+lemma coe_decompose_mul_of_left_mem (n) [decidable (i ≤ n)] (a_mem : a ∈ 𝒜 i) :
   (decompose 𝒜 (a * b) n : A) = if i ≤ n then a * decompose 𝒜 b (n - i) else 0 :=
 by { lift a to 𝒜 i using a_mem, rwa [decompose_mul, decompose_coe, coe_of_mul_apply] }
 
-lemma coe_decompose_mul_of_right_mem (n) [decidable (i ≤ n)] (a : A) (b_mem : b ∈ 𝒜 i) :
+lemma coe_decompose_mul_of_right_mem (n) [decidable (i ≤ n)] (b_mem : b ∈ 𝒜 i) :
   (decompose 𝒜 (a * b) n : A) = if i ≤ n then decompose 𝒜 a (n - i) * b else 0 :=
 by { lift b to 𝒜 i using b_mem, rwa [decompose_mul, decompose_coe, coe_mul_of_apply] }
 

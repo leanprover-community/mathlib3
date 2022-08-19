@@ -80,16 +80,16 @@ pi.lift (λ x, if m : x ∈ U.unop
       exact terminal_is_terminal.hom_ext _ _ },
   end }
 
-lemma godement_presheaf_stalk [decidable_eq X] (x : X) :
-  (godement_presheaf 𝓕).stalk x ≅ 𝓕.stalk x :=
-let ccc : colimit_cocone ((open_nhds.inclusion x).op ⋙ 𝓕) :=
-{ cocone :=
-  { X := (godement_presheaf 𝓕).stalk x,
-    ι :=
-    { app := λ U, _,
-      naturality' := _ } },
-  is_colimit := _ } in
-(colimit.iso_colimit_cocone ccc)
+-- lemma godement_presheaf_stalk [decidable_eq X] (x : X) :
+--   (godement_presheaf 𝓕).stalk x ≅ 𝓕.stalk x :=
+-- let ccc : colimit_cocone ((open_nhds.inclusion x).op ⋙ 𝓕) :=
+-- { cocone :=
+--   { X := (godement_presheaf 𝓕).stalk x,
+--     ι :=
+--     { app := λ U, _,
+--       naturality' := _ } },
+--   is_colimit := _ } in
+-- (colimit.iso_colimit_cocone ccc)
 
 lemma godement_presheaf_is_sheaf (h : 𝓕.is_sheaf) : (godement_presheaf 𝓕).is_sheaf :=
 limit_is_sheaf _ $ λ ⟨x⟩, (skyscraper_sheaf x _).2
@@ -161,48 +161,72 @@ def godement_sheaf_in_Type_obj (U : (opens X)ᵒᵖ) :
 def sheaf_in_Type_skyscraper_sheaf (x : X) (c : C) :
   (sheaf_in_Type.obj $ skyscraper_sheaf x c) ≅
   skyscraper_sheaf x ((forget C).obj c) :=
+let e1 := preserves_limit_iso (forget C) (functor.empty.{0} C) in
+have it : is_terminal $ (forget C).obj (terminal C),
+from is_terminal.of_iso
+begin
+  rw show functor.empty C ⋙ forget C = functor.empty (Type u), from functor.empty_ext' _ _,
+  exact terminal_is_terminal,
+end e1.symm,
+let e : (sheaf_in_Type.obj $ skyscraper_sheaf x c) ≅ skyscraper_sheaf' x ((forget C).obj c) it :=
 { hom := Sheaf.hom.mk
   { app := λ U, eq_to_hom
     begin
-      change (forget C).obj _ = (skyscraper_sheaf x ((forget C).obj c)).1.obj _,
+      change (forget C).obj _ = (skyscraper_sheaf' x ((forget C).obj c) _).1.obj _,
       by_cases hU : x ∈ U.unop,
-      { erw [skyscraper_presheaf_obj_of_mem _ hU, skyscraper_presheaf_obj_of_mem _ hU], },
-      { erw [skyscraper_presheaf_obj_of_not_mem _ hU, skyscraper_presheaf_obj_of_not_mem _ hU],
-        -- need to make "skyscraper_presheaf_with_specified_terminal_object"
-          },
+      { erw [skyscraper_presheaf_obj_of_mem _ hU, skyscraper_sheaf'],
+        dsimp, split_ifs, refl, },
+      { erw [skyscraper_presheaf_obj_of_not_mem _ hU, skyscraper_sheaf'],
+        dsimp, split_ifs, refl, },
     end,
     naturality' := λ U V inc,
     begin
-      dsimp,
-      rw [comp_dite, dite_comp],
+      dsimp [skyscraper_sheaf', sheaf_in_Type, skyscraper_sheaf],
+      change (forget C).map _ ≫ _ = _,
       by_cases hV : x ∈ V.unop,
       { have hU : x ∈ U.unop := le_of_hom inc.unop hV,
         split_ifs,
-        -- generalize_proofs _ h1 h2 h3 h4,
-        change (sheaf_in_Type.obj (skyscraper_sheaf x c)).val.map inc ≫
-            (forget C).map (eq_to_hom _) ≫ eq_to_hom _ =
-          ((forget C).map (eq_to_hom _) ≫ eq_to_hom _) ≫
-            (skyscraper_sheaf x ((forget C).obj c)).val.map inc,
-        rw [eq_to_hom_map, eq_to_hom_map, eq_to_hom_trans, eq_to_hom_trans],
-        generalize_proofs _ h1 h2,
-
-        sorry,
-        -- have := (sheaf_in_Type.obj (skyscraper_sheaf x c)).1.map_comp,
-        -- unfold_coes,
-        -- erw show (forget C).map (eq_to_hom h1) = _, from rfl,
-        -- erw [eq_to_hom_map (forget C) h1],
-        },
-      { split_ifs,
-        rw [←category.assoc, eq_comp_eq_to_hom],
-        exact terminal_is_terminal.hom_ext _ _, },
+        simp only [category.id_comp, eq_to_hom_trans, eq_to_hom_refl, eq_to_hom_map],
+        refl, },
+      { split_ifs;
+        symmetry;
+        rw [←category.assoc, eq_comp_eq_to_hom];
+        exact it.hom_ext _ _, },
     end },
   inv := Sheaf.hom.mk
-  { app := λ U, if m : x ∈ U.unop
-      then eq_to_hom _
-      else _,
-    naturality' := _ },
-  hom_inv_id' := _,
-  inv_hom_id' := _ }
+  { app := λ U, eq_to_hom
+    begin
+      change (skyscraper_sheaf' x ((forget C).obj c) _).1.obj _ = (forget C).obj _,
+      by_cases hU : x ∈ U.unop,
+      { erw [skyscraper_presheaf_obj_of_mem _ hU, skyscraper_sheaf'],
+        dsimp, split_ifs, refl, },
+      { erw [skyscraper_presheaf_obj_of_not_mem _ hU, skyscraper_sheaf'],
+        dsimp, split_ifs, refl, },
+    end,
+    naturality' := λ U V inc,
+    begin
+      dsimp [skyscraper_sheaf', sheaf_in_Type, skyscraper_sheaf],
+      change _ = _ ≫ (forget C).map _,
+      by_cases hV : x ∈ V.unop,
+      { have hU : x ∈ U.unop := le_of_hom inc.unop hV,
+        split_ifs,
+        simp only [category.id_comp, eq_to_hom_trans, eq_to_hom_refl, eq_to_hom_map],
+        refl, },
+      { split_ifs;
+        rw [eq_comp_eq_to_hom, eq_comp_eq_to_hom];
+        exact it.hom_ext _ _, },
+    end },
+  hom_inv_id' :=
+  begin
+    ext : 3, dsimp,
+    rw [eq_to_hom_trans, eq_to_hom_refl],
+  end,
+  inv_hom_id' :=
+  begin
+    ext : 3, dsimp,
+    rw [eq_to_hom_trans, eq_to_hom_refl],
+  end } in
+e.trans $ (skyscraper_sheaf_iso _ _ it).symm
 
 lemma stalk_bundles (U : (opens X)ᵒᵖ) (s : (sheaf_in_Type.obj 𝓖).1.obj U)
   (x : U.unop) : presheaf.stalk (sheaf_in_Type.obj 𝓖).1 x :=

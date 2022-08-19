@@ -64,9 +64,7 @@ lemma exists_ord_compl_eq_one_of_is_prime_pow {n : ℕ} (h : is_prime_pow n) :
   (∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn0, { cases not_is_prime_pow_zero h },
-  rcases eq_or_ne n 1 with rfl | hn1, { cases not_is_prime_pow_one h },
-  rw is_prime_pow_iff_factorization_eq_single at h,
-  rcases h with ⟨p, k, hk0, h1⟩,
+  rcases is_prime_pow_iff_factorization_eq_single.mp h with ⟨p, k, hk0, h1⟩,
   rcases em' p.prime with pp | pp,
   { refine absurd _ hk0.ne', simp [←nat.factorization_eq_zero_of_non_prime n pp, h1] },
   refine ⟨p, pp, _⟩,

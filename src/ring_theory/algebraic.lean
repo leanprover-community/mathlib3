@@ -229,7 +229,7 @@ begin
   obtain ⟨p, hp, he⟩ := ha b,
   let f' : p.root_set L → p.root_set L :=
     set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
-  have : function.surjective f' := fintype.injective_iff_surjective.1
+  have : function.surjective f' := finite.injective_iff_surjective.1
     (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
   obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
   exact ⟨a, subtype.ext_iff.1 ha⟩,

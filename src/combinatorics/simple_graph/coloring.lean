@@ -365,7 +365,7 @@ end
 begin
   apply chromatic_number_eq_card_of_forall_surj (self_coloring _),
   intro C,
-  rw ←fintype.injective_iff_surjective,
+  rw ←finite.injective_iff_surjective,
   intros v w,
   contrapose,
   intro h,

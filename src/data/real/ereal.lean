@@ -154,7 +154,19 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 @[simp, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
 rfl
 
-@[simp] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+
+@[simp, norm_cast] protected lemma coe_nonneg {x : ℝ} : (0 : ereal) ≤ x ↔ 0 ≤ x :=
+ereal.coe_le_coe_iff
+
+@[simp, norm_cast] protected lemma coe_nonpos {x : ℝ} : (x : ereal) ≤ 0 ↔ x ≤ 0 :=
+ereal.coe_le_coe_iff
+
+@[simp, norm_cast] protected lemma coe_pos {x : ℝ} : (0 : ereal) < x ↔ 0 < x :=
+ereal.coe_lt_coe_iff
+
+@[simp, norm_cast] protected lemma coe_neg' {x : ℝ} : (x : ereal) < 0 ↔ x < 0 :=
+ereal.coe_lt_coe_iff
 
 lemma to_real_le_to_real {x y : ereal} (h : x ≤ y) (hx : x ≠ ⊥) (hy : y ≠ ⊤) :
   x.to_real ≤ y.to_real :=
@@ -514,3 +526,35 @@ lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
 | ⊥ ⊥ := by simp
 
 end ereal
+namespace tactic
+
+open positivity
+
+meta instance : has_to_string strictness :=
+⟨λ s, match s with
+  | positive p := "strictness.positive (" ++ to_string p ++ ")"
+  | nonnegative p := "strictness.nonnegative (" ++ to_string p ++ ")"
+  end⟩
+
+meta instance : has_to_format strictness := ⟨λ s, to_string s⟩
+
+private lemma ereal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ereal) := ereal.coe_nonneg.2
+private lemma ereal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ereal) := ereal.coe_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ` to `ereal`. -/
+@[positivity]
+meta def positivity_coe_ereal : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  match inst with
+  | `(@coe_to_lift _ _ %%inst) := do
+    strictness_a ← core a,
+    match inst, strictness_a with
+    | `(@coe_base _ _ ereal.has_coe), positive p := positive <$> mk_app ``ereal_coe_pos [p]
+    | `(@coe_base _ _ ereal.has_coe), nonnegative p := nonnegative <$> mk_app ``ereal_coe_nonneg [p]
+    | _, _ := failed
+    end
+  | _  := failed
+  end
+| _ := failed
+
+end tactic

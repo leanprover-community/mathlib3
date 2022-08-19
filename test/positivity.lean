@@ -1,5 +1,6 @@
 import analysis.normed.group.basic
 import data.real.sqrt
+import data.real.ereal
 import tactic.positivity
 
 /-! # Tests for the `positivity` tactic
@@ -103,3 +104,13 @@ example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
 example {a : ℤ} (ha : 0 < a) : a ≥ 0 := by positivity
 
 example {a : ℤ} (ha : a > 0) : a ≥ 0 := by positivity
+
+/- ## Coercions -/
+
+open_locale nnreal
+
+example {n : ℕ} : 0 ≤ (n : ℤ) := by positivity
+example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ (n ^ 2 : ℤ) := by positivity
+example {α : Type*} [linear_ordered_field α] {a : ℚ} (ha : 0 < a) : 0 < (a : α) := by positivity
+example {r : ℝ≥0} : 0 ≤ (r : ℝ) := by positivity
+example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity

@@ -49,9 +49,7 @@ introduce these operations.
 
 ## TODO
 
-Implement extensions for other operations (raising to non-numeral powers, `exp`, `log`, coercions
-from `ℕ` and `ℝ≥0`).
-
+Implement extensions for other operations (raising to non-numeral powers, `exp`, `log`).
 -/
 
 namespace tactic
@@ -393,10 +391,11 @@ private lemma rat_cast_pos [linear_ordered_field α] {q : ℚ} : 0 < q → 0 < (
 /-- Extension for the `positivity` tactic: casts from `ℕ`, `ℤ`, `ℚ`. -/
 @[positivity]
 meta def positivity_coe : expr → tactic strictness
-| `(@coe %%typ_a _ %%inst %%a) := do
-  strictness_a ← core a,
+| `(@coe _ _ %%inst %%a) := do
   match inst with
-  | `(@coe_to_lift _ _ %%inst) := match inst, strictness_a with
+  | `(@coe_to_lift _ _ %%inst) := do
+    strictness_a ← core a,
+    match inst, strictness_a with
     | `(nat.cast_coe), positive p := positive <$> mk_app ``nat_cast_pos [p]
     | `(nat.cast_coe), nonnegative p := nonnegative <$> mk_app ``nat_cast_nonneg [a]
     | `(int.cast_coe), positive p := positive <$> mk_app ``int_cast_pos [p]
@@ -405,7 +404,7 @@ meta def positivity_coe : expr → tactic strictness
     | `(rat.cast_coe), nonnegative p := nonnegative <$> mk_app ``rat_cast_nonneg [p]
     | `(@coe_base _ _ int.has_coe), positive p := positive <$> mk_app ``int_coe_nat_pos [p]
     | `(@coe_base _ _ int.has_coe), nonnegative p := nonnegative <$> mk_app ``int_coe_nat_nonneg [a]
-    | _, _ := failed -- TODO: Handle `coe : nnreal → real`, possibly in another extension
+    | _, _ := failed
     end
   | _  := failed
   end

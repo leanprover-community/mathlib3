@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.real.nnreal
+import tactic.positivity
 
 /-!
 # Extended non-negative reals
@@ -1919,3 +1920,28 @@ by simpa only [image_image] using h.image_real_to_nnreal.image_coe_nnreal_ennrea
 
 end ord_connected
 end set
+
+namespace tactic
+
+open positivity
+
+private lemma nnreal_coe_nonneg (r : ℝ≥0) : 0 ≤ (r : ℝ) := r.coe_nonneg
+private lemma nnreal_coe_pos {r : ℝ≥0} : 0 < r → 0 < (r : ℝ) := nnreal.coe_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ≥0` to `ℝ`. -/
+@[positivity]
+meta def positivity_coe_nnreal : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  match inst with
+  | `(@coe_to_lift _ _ %%inst) := do
+    strictness_a ← core a,
+    match inst, strictness_a with
+    | `(@coe_base _ _ nnreal.real.has_coe), positive p := positive <$> mk_app ``nnreal_coe_pos [p]
+    | `(@coe_base _ _ nnreal.real.has_coe), nonnegative p := nonnegative <$> mk_app ``nnreal_coe_nonneg [a]
+    | _, _ := failed
+    end
+  | _  := failed
+  end
+| _ := failed
+
+end tactic

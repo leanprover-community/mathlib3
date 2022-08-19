@@ -113,12 +113,12 @@ variables {i j : ι}
 lemma direct_sum.coe_decompose_mul_add_of_left_mem
   [add_left_cancel_monoid ι] [graded_ring 𝒜] {a b : A} (a_mem : a ∈ 𝒜 i) :
   (decompose 𝒜 (a * b) (i + j) : A) = a * decompose 𝒜 b j :=
-by { lift a to 𝒜 i using a_mem, rw [decompose_mul, decompose_coe, coe_of_mul_apply] }
+by { lift a to 𝒜 i using a_mem, rw [decompose_mul, decompose_coe, coe_of_mul_apply_add] }
 
 lemma direct_sum.coe_decompose_mul_add_of_right_mem
   [add_right_cancel_monoid ι] [graded_ring 𝒜] {a b : A} (b_mem : b ∈ 𝒜 j) :
   (decompose 𝒜 (a * b) (i + j) : A) = decompose 𝒜 a i * b :=
-by { lift b to 𝒜 j using b_mem, rw [decompose_mul, decompose_coe, coe_mul_of_apply] }
+by { lift b to 𝒜 j using b_mem, rw [decompose_mul, decompose_coe, coe_mul_of_apply_add] }
 
 lemma direct_sum.decompose_mul_add_left
   [add_left_cancel_monoid ι] [graded_ring 𝒜] (a : 𝒜 i) {b : A} :

@@ -182,8 +182,7 @@ begin
       ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
     apply le_of_lt,
     rw [one_div_pos, sq_pos_iff],
-    exact nonzero_of_invertible (succ k),
-  },
+    exact nonzero_of_invertible (succ k), },
   calc
   log_stirling_seq 1 - log_stirling_seq n.succ = log_stirling_seq' 0 - log_stirling_seq' n : rfl
   ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) : by

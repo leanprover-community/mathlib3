@@ -222,6 +222,25 @@ begin
   dec_trivial!,
 end
 
+lemma legendre_sym_neg_two (hp : p ≠ 2) : legendre_sym p (-2) = χ₈' p :=
+begin
+  have h := quadratic_char_neg_two (ne_of_eq_of_ne (ring_char_zmod_n p) hp),
+  rw [card p] at h,
+  rw [legendre_sym],
+  exact_mod_cast h,
+end
+
+lemma exists_sq_eq_neg_two_iff (hp : p ≠ 2) : is_square (-2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 3 :=
+begin
+  rw [finite_field.is_square_neg_two_iff, card p],
+  have h₁ := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp,
+  rw [← nat.mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
+  have h₂ := mod_lt p (by norm_num : 0 < 8),
+  revert h₂ h₁,
+  generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
+  dec_trivial!,
+end
+
 /-- **Quadratic reciprocity theorem** -/
 theorem quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=

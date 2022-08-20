@@ -102,7 +102,7 @@ instance [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N] :
   monoid_hom_class F M N :=
 { map_one := λ e,
   calc e 1 = e 1 * 1 : (mul_one _).symm
-       ... = e 1 * e (inv e (1 : N) : M) : congr_arg _ $ eq.symm (right_inv e 1)
+       ... = e 1 * e (inv e (1 : N) : M) : congr_arg _ (right_inv e 1).symm
        ... = e (inv e (1 : N)) : by rw [← map_mul, one_mul]
        ... = 1 : right_inv e 1,
   .. mul_equiv_class.mul_hom_class F }

@@ -129,11 +129,13 @@ such as `zero_equiv_class`, `mul_equiv_class`, `monoid_equiv_class`, ....
 -/
 class equiv_like (E : Sort*) (α β : out_param Sort*) extends fun_like E α (λ _, β) :=
 (inv : E → β → α)
-(left_inv  : ∀ e, function.left_inverse (inv e) (coe e))
-(right_inv : ∀ e, function.right_inverse (inv e) (coe e))
+-- the `show` below fixes elaboration problems when using these fields stemming from the fact
+-- that in this case, `fun_like.coe : E → Π (_ : α), β`, not `E → α → β`.
+(left_inv  : ∀ e, function.left_inverse (inv e) (show α → β, from coe e))
+(right_inv : ∀ e, function.right_inverse (inv e) (show α → β, from coe e))
 (coe_inv_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g)
 (coe_injective' := λ e g h, coe_inv_injective' e g h $ funext $
-  λ x, left_inv g (inv e x) ▸ congr_arg (inv g) (@id (coe e = coe g) h ▸ right_inv e x))
+  λ x, left_inv g (inv e x) ▸ congr_arg (inv g) (h ▸ right_inv e x))
 
 namespace equiv_like
 
@@ -141,18 +143,16 @@ variables {E F α β γ : Sort*} [iE : equiv_like E α β] [iF : equiv_like F β
 include iE
 
 lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
-λ e g h, coe_injective' $ function.left_inverse.eq_right_inverse (right_inv e)
-  (h.symm ▸ left_inv g : function.right_inverse g (inv e))
+λ e g h, coe_injective' $ (right_inv e).eq_right_inverse (h.symm ▸ left_inv g)
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
 { coe := coe,
   coe_injective' := coe_injective',
-  injective' := λ e, function.left_inverse.injective (left_inv e) }
+  injective' := λ e, (left_inv e).injective  }
 
 protected lemma injective (e : E) : function.injective e := embedding_like.injective e
-protected lemma surjective (e : E) : function.surjective e :=
-function.right_inverse.surjective (right_inv e)
+protected lemma surjective (e : E) : function.surjective e := (right_inv e).surjective
 protected lemma bijective (e : E) : function.bijective (e : α → β) :=
 ⟨equiv_like.injective e, equiv_like.surjective e⟩
 

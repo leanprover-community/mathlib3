@@ -1340,6 +1340,66 @@ prod.ext (smul_apply _ _ _) (comap_domain_smul _ _ _ _)
 
 end equiv
 
+/-! ### Bundled versions of `dfinsupp.map_range`
+
+The names should match the equivalent bundled `finsupp.map_range` definitions.
+-/
+
+section map_range
+omit dec
+
+variables [Π i, add_zero_class (β i)] [Π i, add_zero_class (β₁ i)] [Π i, add_zero_class (β₂ i)]
+
+lemma map_range_add (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
+  (hf' : ∀ i x y, f i (x + y) = f i x + f i y) (g₁ g₂ : Π₀ i, β₁ i):
+  map_range f hf (g₁ + g₂) = map_range f hf g₁ + map_range f hf g₂ :=
+begin
+  ext,
+  simp only [map_range_apply f, coe_add, pi.add_apply, hf']
+end
+
+/-- `dfinsupp.map_range` as an `add_monoid_hom`. -/
+@[simps apply]
+def map_range.add_monoid_hom (f : Π i, β₁ i →+ β₂ i) : (Π₀ i, β₁ i) →+ (Π₀ i, β₂ i) :=
+{ to_fun := map_range (λ i x, f i x) (λ i, (f i).map_zero),
+  map_zero' := map_range_zero _ _,
+  map_add' := map_range_add _ _ (λ i, (f i).map_add) }
+
+@[simp]
+lemma map_range.add_monoid_hom_id :
+  map_range.add_monoid_hom (λ i, add_monoid_hom.id (β₂ i)) = add_monoid_hom.id _ :=
+add_monoid_hom.ext map_range_id
+
+lemma map_range.add_monoid_hom_comp (f : Π i, β₁ i →+ β₂ i) (f₂ : Π i, β i →+ β₁ i):
+  map_range.add_monoid_hom (λ i, (f i).comp (f₂ i)) =
+    (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
+add_monoid_hom.ext $ map_range_comp (λ i x, f i x) (λ i x, f₂ i x) _ _ _
+
+/-- `dfinsupp.map_range.add_monoid_hom` as an `add_equiv`. -/
+@[simps apply]
+def map_range.add_equiv (e : Π i, β₁ i ≃+ β₂ i) : (Π₀ i, β₁ i) ≃+ (Π₀ i, β₂ i) :=
+{ to_fun := map_range (λ i x, e i x) (λ i, (e i).map_zero),
+  inv_fun := map_range (λ i x, (e i).symm x) (λ i, (e i).symm.map_zero),
+  left_inv := λ x, by rw ←map_range_comp; { simp_rw add_equiv.symm_comp_self, simp },
+  right_inv := λ x, by rw ←map_range_comp; { simp_rw add_equiv.self_comp_symm, simp },
+  .. map_range.add_monoid_hom (λ i, (e i).to_add_monoid_hom) }
+
+@[simp]
+lemma map_range.add_equiv_refl :
+  (map_range.add_equiv $ λ i, add_equiv.refl (β₁ i)) = add_equiv.refl _ :=
+add_equiv.ext map_range_id
+
+lemma map_range.add_equiv_trans (f : Π i, β i ≃+ β₁ i) (f₂ : Π i, β₁ i ≃+ β₂ i):
+  map_range.add_equiv (λ i, (f i).trans (f₂ i)) =
+    (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
+add_equiv.ext $ map_range_comp (λ i x, f₂ i x) (λ i x, f i x) _ _ _
+
+@[simp]
+lemma map_range.add_equiv_symm (e : Π i, β₁ i ≃+ β₂ i) :
+  (map_range.add_equiv e).symm = map_range.add_equiv (λ i, (e i).symm) := rfl
+
+end map_range
+
 section prod_and_sum
 
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/
@@ -1751,65 +1811,7 @@ subtype_domain_sum
 
 end prod_and_sum
 
-/-! ### Bundled versions of `dfinsupp.map_range`
 
-The names should match the equivalent bundled `finsupp.map_range` definitions.
--/
-
-section map_range
-omit dec
-
-variables [Π i, add_zero_class (β i)] [Π i, add_zero_class (β₁ i)] [Π i, add_zero_class (β₂ i)]
-
-lemma map_range_add (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
-  (hf' : ∀ i x y, f i (x + y) = f i x + f i y) (g₁ g₂ : Π₀ i, β₁ i):
-  map_range f hf (g₁ + g₂) = map_range f hf g₁ + map_range f hf g₂ :=
-begin
-  ext,
-  simp only [map_range_apply f, coe_add, pi.add_apply, hf']
-end
-
-/-- `dfinsupp.map_range` as an `add_monoid_hom`. -/
-@[simps apply]
-def map_range.add_monoid_hom (f : Π i, β₁ i →+ β₂ i) : (Π₀ i, β₁ i) →+ (Π₀ i, β₂ i) :=
-{ to_fun := map_range (λ i x, f i x) (λ i, (f i).map_zero),
-  map_zero' := map_range_zero _ _,
-  map_add' := map_range_add _ _ (λ i, (f i).map_add) }
-
-@[simp]
-lemma map_range.add_monoid_hom_id :
-  map_range.add_monoid_hom (λ i, add_monoid_hom.id (β₂ i)) = add_monoid_hom.id _ :=
-add_monoid_hom.ext map_range_id
-
-lemma map_range.add_monoid_hom_comp (f : Π i, β₁ i →+ β₂ i) (f₂ : Π i, β i →+ β₁ i):
-  map_range.add_monoid_hom (λ i, (f i).comp (f₂ i)) =
-    (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
-add_monoid_hom.ext $ map_range_comp (λ i x, f i x) (λ i x, f₂ i x) _ _ _
-
-/-- `dfinsupp.map_range.add_monoid_hom` as an `add_equiv`. -/
-@[simps apply]
-def map_range.add_equiv (e : Π i, β₁ i ≃+ β₂ i) : (Π₀ i, β₁ i) ≃+ (Π₀ i, β₂ i) :=
-{ to_fun := map_range (λ i x, e i x) (λ i, (e i).map_zero),
-  inv_fun := map_range (λ i x, (e i).symm x) (λ i, (e i).symm.map_zero),
-  left_inv := λ x, by rw ←map_range_comp; { simp_rw add_equiv.symm_comp_self, simp },
-  right_inv := λ x, by rw ←map_range_comp; { simp_rw add_equiv.self_comp_symm, simp },
-  .. map_range.add_monoid_hom (λ i, (e i).to_add_monoid_hom) }
-
-@[simp]
-lemma map_range.add_equiv_refl :
-  (map_range.add_equiv $ λ i, add_equiv.refl (β₁ i)) = add_equiv.refl _ :=
-add_equiv.ext map_range_id
-
-lemma map_range.add_equiv_trans (f : Π i, β i ≃+ β₁ i) (f₂ : Π i, β₁ i ≃+ β₂ i):
-  map_range.add_equiv (λ i, (f i).trans (f₂ i)) =
-    (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
-add_equiv.ext $ map_range_comp (λ i x, f₂ i x) (λ i x, f i x) _ _ _
-
-@[simp]
-lemma map_range.add_equiv_symm (e : Π i, β₁ i ≃+ β₂ i) :
-  (map_range.add_equiv e).symm = map_range.add_equiv (λ i, (e i).symm) := rfl
-
-end map_range
 
 end dfinsupp
 

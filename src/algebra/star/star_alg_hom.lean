@@ -208,6 +208,9 @@ class star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*)
   (B : out_param Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
   [semiring B] [algebra R B] [has_star B] extends alg_hom_class F R A B, star_hom_class F A B
 
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] star_alg_hom_class.to_star_hom_class
+
 @[priority 100] /- See note [lower instance priority] -/
 instance star_alg_hom_class.to_non_unital_star_alg_hom_class
   (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]

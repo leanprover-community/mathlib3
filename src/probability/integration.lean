@@ -159,8 +159,8 @@ begin
   exact ennreal.mul_lt_top_iff.mpr (or.inl ⟨hX.2, hY.2⟩)
 end
 
-/-- If product of two independent, integrable, real_valued random variables is integrable and the
-second one is not almost everywhere zero, then the first one is integrable. -/
+/-- If the product of two independent real_valued random variables is integrable and
+the second one is not almost everywhere zero, then the first one is integrable. -/
 lemma indep_fun.integrable_left_of_integrable_mul {β : Type*} [measurable_space β] {X Y : Ω → β}
   [normed_division_ring β] [borel_space β]
   (hXY : indep_fun X Y μ) (h'XY : integrable (X * Y) μ)
@@ -168,23 +168,23 @@ lemma indep_fun.integrable_left_of_integrable_mul {β : Type*} [measurable_space
   integrable X μ :=
 begin
   refine ⟨hX, _⟩,
-  have I : ∫⁻ x, ∥Y x∥₊ ∂μ ≠ 0,
+  have I : ∫⁻ ω, ∥Y ω∥₊ ∂μ ≠ 0,
   { assume H,
-    have I : (λ (a : Ω), ↑∥Y a∥₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hY.ennnorm).1 H,
+    have I : (λ ω, ↑∥Y ω∥₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hY.ennnorm).1 H,
     apply h'Y,
-    filter_upwards [I] with x hx,
-    simpa using hx },
+    filter_upwards [I] with ω hω,
+    simpa using hω },
   apply lt_top_iff_ne_top.2 (λ H, _),
-  have J : indep_fun (λ (a : Ω), ↑∥X a∥₊) (λ (a : Ω), ↑∥Y a∥₊) μ,
+  have J : indep_fun (λ ω, ↑∥X ω∥₊) (λ ω, ↑∥Y ω∥₊) μ,
   { have M : measurable (λ (x : β), (∥x∥₊ : ℝ≥0∞)) := measurable_nnnorm.coe_nnreal_ennreal,
     apply indep_fun.comp hXY M M },
-  have A : ∫⁻ x, ∥X x * Y x∥₊ ∂μ < ∞ := h'XY.2,
+  have A : ∫⁻ ω, ∥X ω * Y ω∥₊ ∂μ < ∞ := h'XY.2,
   simp only [nnnorm_mul, ennreal.coe_mul] at A,
   rw [lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'' hX.ennnorm hY.ennnorm J, H] at A,
   simpa [ennreal.top_mul, I] using A,
 end
 
-/-- If product of two independent, integrable, real_valued random variables is integrable and the
+/-- If the product of two independent real_valued random variables is integrable and the
 first one is not almost everywhere zero, then the second one is integrable. -/
 lemma indep_fun.integrable_right_of_integrable_mul {β : Type*} [measurable_space β] {X Y : Ω → β}
   [normed_division_ring β] [borel_space β]
@@ -193,17 +193,17 @@ lemma indep_fun.integrable_right_of_integrable_mul {β : Type*} [measurable_spac
   integrable Y μ :=
 begin
   refine ⟨hY, _⟩,
-  have I : ∫⁻ x, ∥X x∥₊ ∂μ ≠ 0,
+  have I : ∫⁻ ω, ∥X ω∥₊ ∂μ ≠ 0,
   { assume H,
-    have I : (λ (a : Ω), ↑∥X a∥₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hX.ennnorm).1 H,
+    have I : (λ ω, ↑∥X ω∥₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hX.ennnorm).1 H,
     apply h'X,
-    filter_upwards [I] with x hx,
-    simpa using hx },
+    filter_upwards [I] with ω hω,
+    simpa using hω },
   apply lt_top_iff_ne_top.2 (λ H, _),
-  have J : indep_fun (λ (a : Ω), ↑∥X a∥₊) (λ (a : Ω), ↑∥Y a∥₊) μ,
+  have J : indep_fun (λ ω, ↑∥X ω∥₊) (λ ω, ↑∥Y ω∥₊) μ,
   { have M : measurable (λ (x : β), (∥x∥₊ : ℝ≥0∞)) := measurable_nnnorm.coe_nnreal_ennreal,
     apply indep_fun.comp hXY M M },
-  have A : ∫⁻ x, ∥X x * Y x∥₊ ∂μ < ∞ := h'XY.2,
+  have A : ∫⁻ ω, ∥X ω * Y ω∥₊ ∂μ < ∞ := h'XY.2,
   simp only [nnnorm_mul, ennreal.coe_mul] at A,
   rw [lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'' hX.ennnorm hY.ennnorm J, H] at A,
   simpa [ennreal.top_mul, I] using A,
@@ -289,27 +289,27 @@ begin
   ring
 end
 
+/-- The (Bochner) integral of the product of two independent random
+  variables is the product of their integrals. -/
 theorem indep_fun.integral_mul (hXY : indep_fun X Y μ)
-  (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
+  (hX : ae_strongly_measurable X μ) (hY : ae_strongly_measurable Y μ) :
   integral μ (X * Y) = integral μ X * integral μ Y :=
 begin
   by_cases h'X : X =ᵐ[μ] 0,
   { have h' : X * Y =ᵐ[μ] 0,
-    { filter_upwards [h'X] with x hx,
-      simp [hx] },
+    { filter_upwards [h'X] with ω hω,
+      simp [hω] },
     simp only [integral_congr_ae h'X, integral_congr_ae h', pi.zero_apply, integral_const,
       algebra.id.smul_eq_mul, mul_zero, zero_mul] },
   by_cases h'Y : Y =ᵐ[μ] 0,
   { have h' : X * Y =ᵐ[μ] 0,
-    { filter_upwards [h'Y] with x hx,
-      simp [hx] },
+    { filter_upwards [h'Y] with ω hω,
+      simp [hω] },
     simp only [integral_congr_ae h'Y, integral_congr_ae h', pi.zero_apply, integral_const,
       algebra.id.smul_eq_mul, mul_zero, zero_mul] },
   by_cases h : integrable (X * Y) μ,
-  { have HX : integrable X μ := hXY.integrable_left_of_integrable_mul
-      h hX.ae_strongly_measurable hY.ae_strongly_measurable h'Y,
-    have HY : integrable Y μ := hXY.integrable_right_of_integrable_mul
-      h hX.ae_strongly_measurable hY.ae_strongly_measurable h'X,
+  { have HX : integrable X μ := hXY.integrable_left_of_integrable_mul h hX hY h'Y,
+    have HY : integrable Y μ := hXY.integrable_right_of_integrable_mul h hX hY h'X,
     exact hXY.integral_mul_of_integrable HX HY },
   { have I : ¬(integrable X μ ∧ integrable Y μ),
     { rintros ⟨HX, HY⟩,
@@ -320,8 +320,8 @@ begin
 end
 
 theorem indep_fun.integral_mul' (hXY : indep_fun X Y μ)
-  (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
-  integral μ (λ x, X x * Y x) = integral μ X * integral μ Y :=
+  (hX : ae_strongly_measurable X μ) (hY : ae_strongly_measurable Y μ) :
+  integral μ (λ ω, X ω * Y ω) = integral μ X * integral μ Y :=
 hXY.integral_mul hX hY
 
 /-- Independence of functions `f` and `g` into arbitrary types is characterized by the relation

@@ -33,6 +33,10 @@ We also prove the supplementary laws that give conditions for when `-1` or `2`
 The proofs use results for quadratic characters on arbitrary finite fields
 from `number_theory.legendre_symbol.quadratic_char`, which in turn are based on
 properties of quadratic Gauss sums as provided by `number_theory.legendre_symbol.gauss_sum`.
+
+## Tags
+
+quadratic residue, quadratic nonresidue, Legendre symbol, quadratic reciprocity
 -/
 
 open finset nat char

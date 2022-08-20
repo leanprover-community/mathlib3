@@ -63,12 +63,4 @@ instance forget_preserves_monomorphisms : (forget (Module.{v} R)).preserves_mono
 { preserves := λ X Y f hf, by rwa [forget_map_eq_coe, category_theory.mono_iff_injective,
     ← mono_iff_injective] }
 
-instance forget₂_preserves_epimorphisms :
-  (forget₂ (Module.{v} R) AddCommGroup.{v}).preserves_epimorphisms :=
-{ preserves := λ X Y f, (AddCommGroup.epi_iff_surjective _).2 ∘ (epi_iff_surjective _).1 }
-
-instance forget₂_preserves_monomorphisms :
-  (forget₂ (Module.{v} R) AddCommGroup.{v}).preserves_monomorphisms :=
-{ preserves := λ X Y f, (AddCommGroup.mono_iff_injective _).2 ∘ (mono_iff_injective _).1 }
-
 end Module

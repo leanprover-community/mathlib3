@@ -366,14 +366,6 @@ lemma epi_iff_surjective : epi f ↔ function.surjective f :=
 by rw [epi_iff_range_eq_top, monoid_hom.range_top_iff_surjective]
 
 @[to_additive]
-instance forget₂_CommGroup_preserves_epi : (forget₂ CommGroup Group).preserves_epimorphisms :=
-{ preserves := λ X Y f e, by rwa [epi_iff_surjective, ←@Group.epi_iff_surjective ⟨X⟩ ⟨Y⟩ f] at e }
-
-@[to_additive]
-instance forget₂_CommGroup_preserves_mono : (forget₂ CommGroup Group).preserves_monomorphisms :=
-{ preserves := λ X Y f e, by rwa [mono_iff_injective, ←@Group.mono_iff_injective ⟨X⟩ ⟨Y⟩ f] at e }
-
-@[to_additive]
 instance forget_CommGroup_preserves_mono : (forget CommGroup).preserves_monomorphisms :=
 { preserves := λ X Y f e, by rwa [mono_iff_injective, ←category_theory.mono_iff_injective] at e }
 

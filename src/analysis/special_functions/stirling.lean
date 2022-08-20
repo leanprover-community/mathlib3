@@ -70,9 +70,8 @@ lemma log_stirling_seq_diff_has_sum (m : ℕ) :
   has_sum (λ k : ℕ, (1 : ℝ) / (2 * k.succ + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ k.succ)
   (log (stirling_seq m.succ) - log (stirling_seq m.succ.succ)) :=
 begin
-  change
-    has_sum ((λ b : ℕ, 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b) ∘ succ) _,
-  rw has_sum_nat_add_iff 1,
+  change has_sum ((λ b : ℕ, 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b) ∘ succ) _,
+  refine (has_sum_nat_add_iff 1).mpr _,
   convert (has_sum_log_one_add_inv $ cast_pos.mpr (succ_pos m)).mul_left ((m.succ : ℝ) + 1 / 2),
   { ext k,
     rw [← pow_mul, pow_add],
@@ -87,21 +86,15 @@ begin
       cast_succ, cast_zero, range_one, sum_singleton, h] { discharger :=
       `[norm_cast, apply_rules [mul_ne_zero, succ_ne_zero, factorial_ne_zero, exp_ne_zero]] },
     ring },
-  { apply_instance }
 end
 
 /-- The sequence `log ∘ stirling_seq ∘ succ` is monotone decreasing -/
 lemma log_stirling_seq'_antitone : antitone (log ∘ stirling_seq ∘ succ) :=
 begin
-  apply antitone_nat_of_succ_le,
-  intro n,
-  rw [← sub_nonneg, ← succ_eq_add_one],
-  refine (log_stirling_seq_diff_has_sum n).nonneg _,
-  norm_num,
-  simp only [one_div],
-  intro m,
-  refine mul_nonneg _ _,
-  all_goals {refine inv_nonneg.mpr _, norm_cast, exact (zero_le _)},
+    have : ∀ {k : ℕ}, 0 < (1 : ℝ) / (2 * k.succ + 1) :=
+  λ k, one_div_pos.mpr (add_pos (mul_pos two_pos (cast_pos.mpr k.succ_pos)) one_pos),
+  exact antitone_nat_of_succ_le (λ n, sub_nonneg.mp ((log_stirling_seq_diff_has_sum n).nonneg
+    (λ m, (mul_pos this (pow_pos (pow_pos this 2) m.succ)).le))),
 end
 
 /--
@@ -111,27 +104,18 @@ lemma log_stirling_seq_diff_le_geo_sum (n : ℕ) :
   log (stirling_seq n.succ) - log (stirling_seq n.succ.succ) ≤
   (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
-  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) := by positivity,
+  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) := sq_nonneg _,
   have g : has_sum (λ k : ℕ, ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
     ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)),
-  { have h_pow_succ := λ k : ℕ,
-      symm (pow_succ ((1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2) k),
-    have hlt : (1 / (2 * (n.succ : ℝ) + 1)) ^ 2 < 1,
-    { simp only [cast_succ, one_div, inv_pow],
-      refine inv_lt_one _,
-      norm_cast,
-      simp, },
-    exact (has_sum_geometric_of_lt_1 h_nonneg hlt).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) },
+  { refine (has_sum_geometric_of_lt_1 h_nonneg _).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
+    rw [one_div, inv_pow],
+    refine inv_lt_one (one_lt_pow ((lt_add_iff_pos_left 1).mpr
+      (mul_pos two_pos (cast_pos.mpr n.succ_pos))) two_ne_zero) },
   have hab : ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
     ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
-  { intro k,
-    have h_zero_le : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ := pow_nonneg h_nonneg _,
-    have h_left : 1 / (2 * (k.succ : ℝ) + 1) ≤ 1,
-    { rw [cast_succ, one_div],
-      refine inv_le_one _,
-      norm_cast,
-      exact (le_add_iff_nonneg_left 1).mpr zero_le', },
-    exact mul_le_of_le_one_left h_zero_le h_left, },
+  { refine λ k, mul_le_of_le_one_left (pow_nonneg h_nonneg k.succ) _,
+    rw one_div,
+    exact inv_le_one (le_add_of_nonneg_left (mul_pos two_pos (cast_pos.mpr k.succ_pos)).le) },
   exact has_sum_le hab (log_stirling_seq_diff_has_sum n) g,
 end
 

@@ -30,7 +30,8 @@ namespace dfinsupp
 section prod_and_sum
 
 open finset
-variables {ι : Type u} {γ : Type w} {β : ι → Type v} {β₁ : ι → Type v₁} {β₂ : ι → Type v₂} [dec : decidable_eq ι]
+variables {ι : Type u} {γ : Type w} {β : ι → Type v} {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
+variable [dec : decidable_eq ι]
 include dec
 
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/

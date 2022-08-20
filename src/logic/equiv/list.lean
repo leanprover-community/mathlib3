@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.finset.sort
 import logic.denumerable
-import data.finite.basic
 
 /-!
 # Equivalences involving `list`-like types
@@ -117,11 +116,6 @@ This can be locally made into an instance with `local attribute [instance] finty
 noncomputable def _root_.fintype.to_encodable (α : Type*) [fintype α] : encodable α :=
 by { classical, exact (fintype.trunc_encodable α).out }
 
-@[priority 100]
-instance _root_.finite.countable [finite α] : countable α :=
-let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α
-in ⟨⟨e.to_embedding.trans $ function.embedding.subtype _⟩⟩
-
 /-- If `α` is encodable, then so is `vector α n`. -/
 instance _root_.vector.encodable [encodable α] {n} : encodable (vector α n) := subtype.encodable
 
@@ -169,18 +163,6 @@ def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [
 (fintype.trunc_encodable α).bind $ λ a,
   (@fintype_arrow α (Σa, π a) _ _ (@sigma.encodable _ _ a _)).bind $ λ f,
   trunc.mk $ @encodable.of_equiv _ _ (@subtype.encodable _ _ f _) (equiv.pi_equiv_subtype_sigma α π)
-
-/-- If `α` is finite and each `π a`, `a : α`, is countable, then `Π a, π a` is countable. -/
-instance _root_.pi.countable {α : Sort*} {π : α → Sort*} [finite α] [∀ a, countable (π a)] :
-  countable (Π a, π a) :=
-begin
-  haveI := fintype.of_finite (plift α),
-  haveI := λ a, encodable.of_countable (plift (π a)),
-  haveI H : countable (Π a : plift α, plift (π (equiv.plift a))),
-  { rcases fintype_pi (plift α) (λ a, plift (π a.down)) with ⟨H⟩,
-    exact @encodable.countable _ H },
-  exact (equiv.plift.Pi_congr (λ a, equiv.plift)).symm.countable
-end
 
 /-- The elements of a `fintype` as a sorted list. -/
 def sorted_univ (α) [fintype α] [encodable α] : list α :=

@@ -201,8 +201,7 @@ begin
 end
 
 lemma indep_fun.mgf_add' {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
-  (hX : ae_strongly_measurable X μ)
-  (hY : ae_strongly_measurable Y μ) :
+  (hX : ae_strongly_measurable X μ) (hY : ae_strongly_measurable Y μ) :
   mgf (X + Y) μ t = mgf X μ t * mgf Y μ t :=
 begin
   have A : continuous (λ (x : ℝ), exp (t * x)), by continuity,
@@ -276,7 +275,7 @@ end
 
 lemma Indep_fun.mgf_sum [is_probability_measure μ]
   {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} :
+  (s : finset ι) :
   mgf (∑ i in s, X i) μ t = ∏ i in s, mgf (X i) μ t :=
 begin
   classical,

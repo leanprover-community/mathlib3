@@ -330,22 +330,6 @@ instance {α} [encodable α] : encodable (ulift α) := encodable.of_equiv _ equi
 /-- The lift of an encodable type is encodable. -/
 instance {α} [encodable α] : encodable (plift α) := encodable.of_equiv _ equiv.plift
 
-section countable
-
-instance {α β : Type*} [countable α] [countable β] : countable (α × β) :=
-by { haveI := encodable.of_countable α, haveI := encodable.of_countable β, apply_instance }
-
-instance {α β : Sort*} [countable α] [countable β] : countable (pprod α β) :=
-equiv.pprod_equiv_prod_plift.countable
-
-instance {α : Type*} {β : α → Type*} [countable α] [∀ a, countable (β a)] : countable (Σ a, β a) :=
-by { haveI := encodable.of_countable α, haveI := λ a, encodable.of_countable (β a), apply_instance }
-
-instance {α : Sort*} {β : α → Sort*} [countable α] [∀ a, countable (β a)] : countable (Σ' a, β a) :=
-(equiv.psigma_equiv_sigma_plift β).countable
-
-end countable
-
 section ulower
 local attribute [instance, priority 100] encodable.decidable_range_encode
 

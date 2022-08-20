@@ -349,7 +349,8 @@ def subtype : s →+* R :=
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
 /-- A subsemiring of an `ordered_cancel_semiring` is an `ordered_cancel_semiring`. -/
-instance to_ordered_semiring {R} [ordered_cancel_semiring R] (s : subsemiring R) : ordered_cancel_semiring s :=
+instance to_ordered_semiring {R} [ordered_cancel_semiring R] (s : subsemiring R) :
+  ordered_cancel_semiring s :=
 subtype.coe_injective.ordered_cancel_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 

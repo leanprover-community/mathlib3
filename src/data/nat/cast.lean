@@ -71,12 +71,12 @@ lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
 zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
 
 lemma cast_pos_of_pos {n : ℕ} (hn : 0 < n) : (0 : α) < n :=
-by { cases hn, exact cast_add_one_pos _ }
+by { cases n, { cases hn.false }, { rw cast_succ, exact cast_add_one_pos _ } }
 
 end ordered_semiring
 
 section ordered_cancel_semiring
-variables [ordered_cancel_semiring α]
+variables [ordered_cancel_semiring α] [nontrivial α]
 
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=

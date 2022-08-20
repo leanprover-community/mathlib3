@@ -3,6 +3,7 @@ import data.sym.sym2
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import combinatorics.simple_graph.prod
+import combinatorics.simple_graph.metric
 
 import topology.metric_space.basic
 import data.setoid.partition
@@ -13,7 +14,6 @@ open set
 open classical
 open simple_graph.walk
 open relation
-
 universes u v w
 
 
@@ -211,6 +211,30 @@ psum
       { rcases pfxq with ⟨rfl,pfxq'⟩, exact bad _ q_p pfxq',},},
   },
 }
+
+@[reducible]
+def neighborhood  {V : Type*} (G : simple_graph V) [locally_finite G] [preconnected G]
+  (S : set V) (n : ℕ) := {v : V | ∃ s ∈ S, G.dist s v ≤ n}
+
+lemma neighborhood.zero  {V : Type*} {G : simple_graph V} [lc : locally_finite G] [pc : preconnected G]  (S : set V) :
+  @neighborhood V G lc pc S 0 = S := sorry
+
+lemma neighborhood.succ {V : Type*} (G : simple_graph V) [lc : locally_finite G] [pc : preconnected G]  (S : set V) (n : ℕ) :
+  @neighborhood V G lc pc S (n+1) = ⋃ v ∈ @neighborhood V G lc pc S n, G.neighbor_set v := sorry
+
+
+def neighborhood_finite {V : Type*} (G : simple_graph V) [lc : locally_finite G] [pc : preconnected G]
+  (S: set V) (Sfin : S.finite) : Π (n : ℕ), (@neighborhood V G lc pc S n).finite
+| 0 := by {convert Sfin, apply neighborhood.zero,}
+| (n+1) := by
+{ rw neighborhood.succ,
+  apply set.finite.bUnion,
+  exact @neighborhood_finite n,
+  rintro i iS,
+  exact (neighbor_set G i).to_finite,
+}
+
+
 
 end simple_graph
 

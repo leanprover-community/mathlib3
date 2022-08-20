@@ -454,9 +454,9 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 @[simp] lemma floor_nat_cast (n : ℕ) : ⌊(n : α)⌋ = n :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, ← cast_coe_nat, cast_le]
 
-@[simp] lemma floor_zero : ⌊(0 : α)⌋ = 0 := by rw [← int.cast_zero, floor_coe]
+@[simp] lemma floor_zero : ⌊(0 : α)⌋ = 0 := by rw [← cast_zero, floor_int_cast]
 
-@[simp] lemma floor_one : ⌊(1 : α)⌋ = 1 := by rw [← int.cast_one, floor_coe]
+@[simp] lemma floor_one : ⌊(1 : α)⌋ = 1 := by rw [← cast_one, floor_int_cast]
 
 @[mono] lemma floor_mono : monotone (floor : α → ℤ) := gc_coe_floor.monotone_u
 
@@ -544,12 +544,12 @@ lemma abs_fract : |int.fract a| = int.fract a := abs_eq_self.mpr $ fract_nonneg 
 @[simp] lemma abs_one_sub_fract : |1 - fract a| = 1 - fract a :=
 abs_eq_self.mpr $ sub_nonneg.mpr (fract_lt_one a).le
 
-@[simp] lemma fract_coe (z : ℤ) : fract (z : α) = 0 :=
-by { unfold fract, rw floor_coe, exact sub_self _ }
+@[simp] lemma fract_int_cast (z : ℤ) : fract (z : α) = 0 :=
+by { unfold fract, rw floor_int_cast, exact sub_self _ }
 
-@[simp] lemma fract_coe' (n : ℕ) : fract (n : α) = 0 := by simp [fract]
+@[simp] lemma fract_nat_cast (n : ℕ) : fract (n : α) = 0 := by simp [fract]
 
-@[simp] lemma fract_floor (a : α) : fract (⌊a⌋ : α) = 0 := fract_coe _
+@[simp] lemma fract_floor (a : α) : fract (⌊a⌋ : α) = 0 := fract_int_cast _
 
 @[simp] lemma floor_fract (a : α) : ⌊fract a⌋ = 0 :=
 by rw [floor_eq_iff, int.cast_zero, zero_add]; exact ⟨fract_nonneg _, fract_lt_one _⟩
@@ -659,10 +659,10 @@ by { rw [ceil_le, int.cast_add, int.cast_one], exact (lt_floor_add_one a).le }
 
 lemma le_ceil (a : α) : a ≤ ⌈a⌉ := gc_ceil_coe.le_u_l a
 
-@[simp] lemma ceil_coe (z : ℤ) : ⌈(z : α)⌉ = z :=
+@[simp] lemma ceil_int_cast (z : ℤ) : ⌈(z : α)⌉ = z :=
 eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
 
-@[simp] lemma ceil_coe' (n : ℕ) : ⌈(n : α)⌉ = n :=
+@[simp] lemma ceil_nat_cast (n : ℕ) : ⌈(n : α)⌉ = n :=
 eq_of_forall_ge_iff $ λ a, by rw [ceil_le, ← cast_coe_nat, cast_le]
 
 lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
@@ -684,9 +684,9 @@ by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
 
 @[simp] lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by rw [← int.cast_zero, ceil_coe]
+@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by rw [← cast_zero, ceil_int_cast]
 
-@[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [←int.cast_one, ceil_coe]
+@[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [← cast_one, ceil_int_cast]
 
 lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ :=
 by exact_mod_cast ha.trans (le_ceil a)

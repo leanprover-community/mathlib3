@@ -129,7 +129,7 @@ such as `zero_equiv_class`, `mul_equiv_class`, `monoid_equiv_class`, ....
 class equiv_like (E : Sort*) (α β : out_param Sort*) extends fun_like E α (λ _, β) :=
 (inv : E → β → α)
 -- the `show` below fixes elaboration problems when using these fields stemming from the fact
--- that in this case, `fun_like.coe : E → Π (_ : α), β`, not `E → α → β`.
+-- that in this case, `fun_like.coe : E → Π (a : α), (λ _, β) a`, not `E → α → β`.
 (left_inv  : ∀ e, function.left_inverse (inv e) (show α → β, from coe e))
 (right_inv : ∀ e, function.right_inverse (inv e) (show α → β, from coe e))
 (coe_inv_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g)

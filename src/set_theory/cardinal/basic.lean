@@ -718,7 +718,7 @@ begin
 end
 
 lemma prod_eq_of_fintype {α : Type u} [fintype α] (f : α → cardinal.{v}) :
-  prod f = cardinal.lift.{u} ∏ (i : α), (f i) :=
+  prod f = cardinal.lift.{u} (∏ i, f i) :=
 begin
   revert f,
   refine fintype.induction_empty_option _ _ _ α,

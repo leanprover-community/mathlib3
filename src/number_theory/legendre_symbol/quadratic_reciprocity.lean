@@ -203,7 +203,24 @@ begin
   exact_mod_cast h₁,
 end
 
-open_locale big_operators
+lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=
+begin
+  have h := quadratic_char_two (ne_of_eq_of_ne (ring_char_zmod_n p) hp),
+  rw [card p] at h,
+  rw [legendre_sym],
+  exact_mod_cast h,
+end
+
+lemma exists_sq_eq_two_iff (hp : p ≠ 2) : is_square (2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
+begin
+  rw [finite_field.is_square_two_iff, card p],
+  have h₁ := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp,
+  rw [← nat.mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
+  have h₂ := mod_lt p (by norm_num : 0 < 8),
+  revert h₂ h₁,
+  generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
+  dec_trivial!,
+end
 
 /-- **Quadratic reciprocity theorem** -/
 theorem quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
@@ -256,25 +273,6 @@ begin
   have hq' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_three hq),
   rw [quadratic_reciprocity' p q hp' hq', pow_mul, neg_one_pow_three_mod_four_div_two hp,
       neg_one_pow_three_mod_four_div_two hq, neg_one_mul],
-end
-
-lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=
-begin
-  have h := quadratic_char_two (ne_of_eq_of_ne (ring_char_zmod_n p) hp),
-  rw [card p] at h,
-  rw [legendre_sym],
-  exact_mod_cast h,
-end
-
-lemma exists_sq_eq_two_iff (hp : p ≠ 2) : is_square (2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
-begin
-  rw [finite_field.is_square_two_iff, card p],
-  have h₁ := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp,
-  rw [← nat.mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
-  have h₂ := mod_lt p (by norm_num : 0 < 8),
-  revert h₂ h₁,
-  generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
-  dec_trivial!,
 end
 
 lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q ≠ 2) :

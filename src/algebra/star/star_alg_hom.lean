@@ -197,6 +197,10 @@ structure star_alg_hom (R A B: Type*) [comm_semiring R] [semiring A] [algebra R 
 infixr ` →⋆ₐ `:25 := star_alg_hom _
 notation A ` →⋆ₐ[`:25 R `] ` B := star_alg_hom R A B
 
+/-- Reinterpret a unital star algebra homomorphism as a unital algebra homomorphism
+by forgetting the interaction with the star operation. -/
+add_decl_doc star_alg_hom.to_alg_hom
+
 /-- `star_alg_hom_class F R A B` states that `F` is a type of ⋆-algebra homomorphisms.
 
 You should also extend this typeclass when you extend `star_alg_hom`. -/

@@ -74,7 +74,7 @@ begin
   rw nat.mul_div_assoc _ (prod_factorial_dvd_factorial_sum _ _),
 end
 
-lemma multinomial_add_n [decidable_eq α] (h : a ∉ s) {n : ℕ} (h₁: f a = n) :
+lemma multinomial_add_n [decidable_eq α] (h : a ∉ s) {n : ℕ} (h₁ : f a = n) :
   multinomial (insert a s) f = (n + s.sum f).choose n * multinomial s f :=
 begin
   rw choose_eq_factorial_div_factorial (le.intro rfl),

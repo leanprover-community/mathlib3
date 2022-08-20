@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import data.fun_like.embedding
+import tactic.congr
 
 /-!
 # Typeclass for a type `F` with an injective map to `A ≃ B`
@@ -118,6 +119,8 @@ instead of linearly increasing the work per `my_iso`-related declaration.
 
 -/
 
+set_option old_structure_cmd true
+
 /-- The class `equiv_like E α β` expresses that terms of type `E` have an
 injective coercion to bijections between `α` and `β`.
 
@@ -138,13 +141,13 @@ variables {E F α β γ : Sort*} [iE : equiv_like E α β] [iF : equiv_like F β
 include iE
 
 lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
-λ e g h, fun_like.coe_injective' $ function.left_inverse.eq_right_inverse (right_inv e)
+λ e g h, coe_injective' $ function.left_inverse.eq_right_inverse (right_inv e)
   (h.symm ▸ left_inv g : function.right_inverse g (inv e))
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
-{ coe := fun_like.coe,
-  coe_injective' := fun_like.coe_injective',
+{ coe := coe,
+  coe_injective' := coe_injective',
   injective' := λ e, function.left_inverse.injective (left_inv e) }
 
 protected lemma injective (e : E) : function.injective e := embedding_like.injective e

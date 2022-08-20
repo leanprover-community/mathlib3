@@ -116,6 +116,8 @@ variables (K)
 
 instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
 
+instance [number_field K] : is_noetherian ℤ (𝓞 K) := is_integral_closure.is_noetherian _ ℚ K _
+
 /-- The ring of integers of a number field is not a field. -/
 lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=
 begin

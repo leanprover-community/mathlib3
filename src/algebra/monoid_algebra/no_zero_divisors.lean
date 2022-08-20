@@ -53,11 +53,11 @@ namespace add_monoid_algebra
 variables {R A : Type*} [semiring R]
 
 section a_version_with_different_typeclass_assumptions
-variables [add_left_cancel_monoid A] {a b : A} {f g : A →₀ R}
+variables [add_left_cancel_monoid A] {a b : A} {f g : add_monoid_algebra R A}
 
 /--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
 somewhat weaker typeclass assumptions, but also proves a weaker result. -/
-lemma single_mul_single_add_apply' (r : R) :
+lemma single_mul_apply' (r : R) :
   (finsupp.single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
 begin
   classical,
@@ -78,7 +78,7 @@ variables [has_add A] [partial_order A] [covariant_class A A (+) (<)] {a b : A} 
 
 /--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
 somewhat weaker typeclass assumptions, but also proves a weaker result. -/
-lemma single_mul_single_add_apply (r : R) (fb : ∀ a ∈ f.support, a ≤ b) :
+lemma single_mul_apply_of_le (r : R) (fb : ∀ a ∈ f.support, a ≤ b) :
   (finsupp.single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
 begin
   classical,
@@ -102,7 +102,7 @@ lemma mul_apply_of_le (fa : ∀ i ∈ f.support, i ≤ a) (gb : ∀ i ∈ g.supp
 begin
   classical,
   nth_rewrite 0 ← f.erase_add_single a,
-  rw [add_mul, finsupp.add_apply, single_mul_single_add_apply _ gb],
+  rw [add_mul, finsupp.add_apply, single_mul_apply_of_le _ gb],
   convert zero_add _,
   refine finsupp.not_mem_support_iff.mp (λ h, _),
   refine not_not.mpr ((support_mul _ g) h) _,
@@ -115,7 +115,7 @@ end
 end covariant_lt
 
 variables [no_zero_divisors R] [has_add A] [linear_order A] [covariant_class A A (+) (<)]
-  [covariant_class A A (function.swap (+)) (<)] {a b : A} {f g : A →₀ R}
+  [covariant_class A A (function.swap (+)) (<)] {a b : A} {f g : add_monoid_algebra R A}
 
 protected lemma no_zero_divisors : no_zero_divisors (add_monoid_algebra R A) :=
 begin

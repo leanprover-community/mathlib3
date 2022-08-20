@@ -141,6 +141,8 @@ by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 theorem of_real_eq_zero {z : ℝ} : (z : K) = 0 ↔ z = 0 :=
 by rw [←of_real_zero]; exact of_real_inj
 
+theorem of_real_ne_zero {z : ℝ} : (z : K) ≠ 0 ↔ z ≠ 0 := of_real_eq_zero.not
+
 @[simp, is_R_or_C_simps, norm_cast, priority 900]
 lemma of_real_add ⦃r s : ℝ⦄ : ((r + s : ℝ) : K) = r + s :=
 by { apply (@is_R_or_C.ext_iff K _ ((r + s : ℝ) : K) (r + s)).mpr, simp }

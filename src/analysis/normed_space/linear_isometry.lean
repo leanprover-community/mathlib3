@@ -401,7 +401,7 @@ to_linear_equiv_injective.eq_iff
 instance : semilinear_isometry_equiv_class (E ≃ₛₗᵢ[σ₁₂] E₂) σ₁₂ E E₂ :=
 { coe := λ e, e.to_fun,
   inv := λ e, e.inv_fun,
-  coe_injective' := λ f g h₁ h₂,
+  coe_inv_injective' := λ f g h₁ h₂,
     by { cases f with f' _, cases g with g' _, cases f', cases g', congr', },
   left_inv := λ e, e.left_inv,
   right_inv := λ e, e.right_inv,

@@ -61,12 +61,6 @@ mk₂'ₛₗ σ₁ σ₂ (λ (v : n → R₁) (w : m → R₂), ∑ i j, σ₁ (
 
 variables [decidable_eq n] [decidable_eq m]
 
-@[simp] lemma ring_hom_ite_zero_one (p : Prop) [decidable p] : σ₁ (ite p 0 1) = ite p 0 1 :=
-by { split_ifs; simp [h] }
-
-@[simp] lemma ring_hom_ite_one_zero (p : Prop) [decidable p] : σ₁ (ite p 1 0) = ite p 1 0 :=
-by { split_ifs; simp [h] }
-
 lemma matrix.to_linear_map₂'_aux_std_basis (f : matrix n m R) (i : n) (j : m) :
   f.to_linear_map₂'_aux σ₁ σ₂ (std_basis R₁ (λ _, R₁) i 1) (std_basis R₂ (λ _, R₂) j 1) = f i j :=
 begin

@@ -62,9 +62,9 @@ interval_of_gt (lt_of_not_ge h)
 lemma interval_of_not_ge (h : ¬ b ≤ a) : [a, b] = Icc a b :=
 interval_of_lt (lt_of_not_ge h)
 
-lemma interval_eq_union : interval a b = Icc a b ∪ Icc b a := by rw [Icc_union_Icc', max_comm]; refl
+lemma interval_eq_union : [a, b] = Icc a b ∪ Icc b a := by rw [Icc_union_Icc', max_comm]; refl
 
-lemma mem_interval : a ∈ interval b c ↔ b ≤ a ∧ a ≤ c ∨ c ≤ a ∧ a ≤ b := by simp [interval_eq_union]
+lemma mem_interval : a ∈ [b, c] ↔ b ≤ a ∧ a ≤ c ∨ c ≤ a ∧ a ≤ b := by simp [interval_eq_union]
 
 @[simp] lemma interval_self : [a, a] = {a} :=
 set.ext $ by simp [le_antisymm_iff, and_comm]
@@ -72,11 +72,8 @@ set.ext $ by simp [le_antisymm_iff, and_comm]
 @[simp] lemma nonempty_interval : set.nonempty [a, b] :=
 by { simp only [interval, min_le_iff, le_max_iff, nonempty_Icc], left, left, refl }
 
-@[simp] lemma left_mem_interval : a ∈ [a, b] :=
-by { rw [interval, mem_Icc], exact ⟨min_le_left _ _, le_max_left _ _⟩ }
-
-@[simp] lemma right_mem_interval : b ∈ [a, b] :=
-by { rw interval_swap, exact left_mem_interval }
+@[simp] lemma left_mem_interval : a ∈ [a, b] := by simp [mem_interval, le_total]
+@[simp] lemma right_mem_interval : b ∈ [a, b] := by simp [mem_interval, le_total]
 
 lemma Icc_subset_interval : Icc a b ⊆ [a, b] :=
 Icc_subset_Icc (min_le_left _ _) (le_max_right _ _)
@@ -90,10 +87,10 @@ Icc_subset_interval ⟨ha, hb⟩
 lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
 Icc_subset_interval' ⟨hb, ha⟩
 
-lemma not_mem_interval_of_lt (ha : c < a) (hb : c < b) : c ∉ interval a b :=
+lemma not_mem_interval_of_lt (ha : c < a) (hb : c < b) : c ∉ [a, b] :=
 not_mem_Icc_of_lt $ lt_min_iff.mpr ⟨ha, hb⟩
 
-lemma not_mem_interval_of_gt (ha : a < c) (hb : b < c) : c ∉ interval a b :=
+lemma not_mem_interval_of_gt (ha : a < c) (hb : b < c) : c ∉ [a, b] :=
 not_mem_Icc_of_gt $ max_lt_iff.mpr ⟨ha, hb⟩
 
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
@@ -117,29 +114,18 @@ interval_subset_interval left_mem_interval h
 
 /-- A sort of triangle inequality. -/
 lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
-begin
-  rintro x hx,
-  obtain hac | hac := le_total a c,
-  { rw interval_of_le hac at hx,
-    obtain hb | hb := le_total x b,
-    { exact or.inl (mem_interval_of_le hx.1 hb) },
-    { exact or.inr (mem_interval_of_le hb hx.2) } },
-  { rw interval_of_ge hac at hx,
-    obtain hb | hb := le_total x b,
-    { exact or.inr (mem_interval_of_ge hx.1 hb) },
-    { exact or.inl (mem_interval_of_ge hb hx.2) } }
-end
+λ x, by simp only [mem_interval, mem_union_eq]; cases le_total a c; cases le_total x b; tauto
 
-lemma eq_of_mem_interval_of_mem_interval : a ∈ interval b c → b ∈ interval a c → a = b :=
+lemma eq_of_mem_interval_of_mem_interval : a ∈ [b, c] → b ∈ [a, c] → a = b :=
 by simp_rw mem_interval; rintro (⟨_, _⟩ | ⟨_, _⟩) (⟨_, _⟩ | ⟨_, _⟩); apply le_antisymm;
   assumption <|> { exact le_trans ‹_› ‹_› }
 
+lemma eq_of_mem_interval_of_mem_interval' : b ∈ [a, c] → c ∈ [a, b] → b = c :=
+by simpa [interval_swap a] using eq_of_mem_interval_of_mem_interval
+
 lemma interval_injective_right (a : α) : injective (λ b, interval b a) :=
-begin
-  rintro b c h,
-  rw ext_iff at h,
-  exact eq_of_mem_interval_of_mem_interval ((h _).1 left_mem_interval) ((h _).2 left_mem_interval),
-end
+λ b c h, by { rw ext_iff at h,
+  exact eq_of_mem_interval_of_mem_interval ((h _).1 left_mem_interval) ((h _).2 left_mem_interval) }
 
 lemma interval_injective_left (a : α) : injective (interval a) :=
 by simpa only [interval_swap] using interval_injective_right a

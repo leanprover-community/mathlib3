@@ -38,13 +38,11 @@ lemma prod_factorial_dvd_factorial_sum {α} (s : finset α) (f : α → ℕ) :
 begin
   classical,
   induction s using finset.induction with α' s' has ih,
-  { simp only [finset.sum_empty, finset.prod_empty, factorial],
-  },
+  { simp only [finset.sum_empty, finset.prod_empty, factorial], },
   { simp [finset.prod_insert has, finset.sum_insert has],
     refine dvd_trans (mul_dvd_mul_left ((f α')!) ih) _,
     convert factorial_mul_factorial_dvd_factorial (le.intro rfl),
-    rw nat.add_sub_cancel_left,
-  },
+    rw nat.add_sub_cancel_left, },
 end
 
 lemma mul_factorial_dvd_factorial_add (a b : ℕ) : a! * b! ∣ (a + b)! :=

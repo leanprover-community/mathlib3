@@ -535,7 +535,7 @@ begin
     split,
     { simp only [sq, one_pow, neg_one_sq], },
     { exact ring.neg_one_ne_one_of_char_ne_two hF, }, },
-  have h₁ := mt (fintype.injective_iff_surjective.mpr) h, -- sq not surjective
+  have h₁ := mt (finite.injective_iff_surjective.mpr) h, -- sq not surjective
   push_neg at h₁,
   cases h₁ with a h₁,
   use a,

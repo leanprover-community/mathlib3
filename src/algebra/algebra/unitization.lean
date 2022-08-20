@@ -345,9 +345,8 @@ instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [is_sc
       abel },
   ..unitization.mul_one_class }
 
--- This should work for `non_unital_comm_semiring`s, but we don't seem to have those
-instance [comm_monoid R] [comm_semiring A] [distrib_mul_action R A] [is_scalar_tower R A A]
-  [smul_comm_class R A A] : comm_monoid (unitization R A) :=
+instance [comm_monoid R] [non_unital_comm_semiring A] [distrib_mul_action R A]
+  [is_scalar_tower R A A] [smul_comm_class R A A] : comm_monoid (unitization R A) :=
 { mul_comm := λ x₁ x₂, ext (mul_comm x₁.1 x₂.1) $
     show x₁.1 • x₂.2 + x₂.1 • x₁.2 + x₁.2 * x₂.2 = x₂.1 • x₁.2 + x₁.1 • x₂.2 + x₂.2 * x₁.2,
     by rw [add_comm (x₁.1 • x₂.2), mul_comm],
@@ -358,8 +357,7 @@ instance [comm_semiring R] [non_unital_semiring A] [module R A] [is_scalar_tower
 { ..unitization.monoid,
   ..unitization.non_assoc_semiring }
 
--- This should work for `non_unital_comm_semiring`s, but we don't seem to have those
-instance [comm_semiring R] [comm_semiring A] [module R A] [is_scalar_tower R A A]
+instance [comm_semiring R] [non_unital_comm_semiring A] [module R A] [is_scalar_tower R A A]
   [smul_comm_class R A A] : comm_semiring (unitization R A) :=
 { ..unitization.comm_monoid,
   ..unitization.non_assoc_semiring }

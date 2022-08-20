@@ -114,10 +114,10 @@ end
 
 end covariant_lt
 
-variables [has_add A] [linear_order A] [covariant_class A A (+) (<)]
+variables [no_zero_divisors R] [has_add A] [linear_order A] [covariant_class A A (+) (<)]
   [covariant_class A A (function.swap (+)) (<)] {a b : A} {f g : A →₀ R}
 
-protected lemma no_zero_divisors [no_zero_divisors R] : no_zero_divisors (add_monoid_algebra R A) :=
+protected lemma no_zero_divisors : no_zero_divisors (add_monoid_algebra R A) :=
 begin
   refine ⟨λ a b ab, _⟩,
   contrapose! ab,

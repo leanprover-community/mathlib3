@@ -8,6 +8,7 @@ import combinatorics.simple_graph.prod
 import .mathlib
 import .reachable_outside
 import .end_limit_construction
+import .functoriality
 
 open function
 open finset
@@ -26,34 +27,33 @@ local attribute [instance] prop_decidable
 namespace simple_graph
 
 
-variables  {V : Type u}
-           (G : simple_graph V)
-           (Gpc: G.preconnected)
-           {V' : Type v}
-           (G' : simple_graph V')
-           (Gpc': G'.preconnected)
-           {V'' : Type w}
-           (G'' : simple_graph V'')
-
 
 namespace ends
 
 open ro_component
 open simple_graph
 
+variables  {V : Type u}
+           (G : simple_graph V)
+           (Gpc: G.preconnected)
+           [locally_finite G]
+
+
 
 section finite
 
+
 -- Locally_finite follows from finiteness
-lemma no_end_of_finite_graph  (Gpc: G.preconnected) [locally_finite G] (Vfinite : (@set.univ V).finite) : (Ends G Gpc) ≃ empty :=
+lemma no_end_of_finite_graph [finite V]: (Ends G Gpc) ≃ empty :=
 begin
+  have Vfin : (@set.univ V).finite := set.finite_univ,
   transitivity,
   exact Ends_equiv_Endsinfty G Gpc,
   apply @equiv.equiv_empty _ _,
   apply is_empty.mk,
   rintros ⟨f,f_comm⟩,
-  obtain ⟨⟨C,Ccomp⟩,Cinf⟩ := f (set.finite.to_finset Vfinite),
-  exact Cinf (set.finite.subset Vfinite (set.subset_univ C)),
+  obtain ⟨⟨C,Ccomp⟩,Cinf⟩ := f (set.finite.to_finset Vfin),
+  exact Cinf (set.finite.subset Vfin (set.subset_univ C)),
 end
 
 end finite
@@ -61,7 +61,7 @@ end finite
 
 section infinite
 
-lemma end_of_infinite_graph [infinite V] [locally_finite G] : (Ends G Gpc).nonempty :=
+lemma end_of_infinite_graph [infinite V] : (Ends G Gpc).nonempty :=
   @inverse_system.nonempty_sections_of_fintype_inverse_system' _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc)
 
 end infinite
@@ -148,13 +148,17 @@ end
 
 end nat
 
--- Commented because it makes lean lag, but will need to be included and corrected again
 
 section product
 
+variables  {V' : Type v}
+           (G' : simple_graph V')
+           (Gpc': G'.preconnected)
+           [locally_finite G']
+
+
 
 private lemma finprod_compl_subconnected
-  [locally_finite G] [locally_finite G']
   [infinite V] [infinite V']
   (K : finset V) (K' : finset V') :
   subconnected (G □ G') ((finset.product K K' : set (V × V') )ᶜ) :=
@@ -234,10 +238,9 @@ begin
   exact set.union_subset (set.union_subset uD vD') wD',
 end
 
-instance [locally_finite G] [locally_finite G'] : locally_finite (G □ G') := by sorry
+instance : locally_finite (G □ G') := by sorry
 
 lemma ends_product
-  [locally_finite G] [locally_finite G']
   [infinite V] [infinite V'] :
   Ends  (G □ G') (simple_graph.preconnected.box_prod Gpc Gpc') ≃ unit :=
 begin
@@ -280,6 +283,26 @@ end
 end product
 
 
+section quasi_isometry
+
+variables  {V' : Type v}
+           (G' : simple_graph V')
+           (Gpc': G'.preconnected)
+           [locally_finite G']
+
+lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ)
+  (φψ : ∀ (v : V), G.dist (ψ $ φ v) v ≤ m) (ψφ : ∀ (v : V'), G'.dist (φ $ ψ v) v ≤ m)
+  (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) :
+  Endsinfty G Gpc ≃ Endsinfty G' Gpc' := sorry
+-- First step: ψ and φ are cofinite :
+-- Then everything should follow from `.functoriality.lean`
+
+
+
+end quasi_isometry
+
+
 end ends
+
 
 end simple_graph

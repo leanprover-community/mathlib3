@@ -408,7 +408,7 @@ def coarse_Lipschitz (f : V → V') (K : ℕ) := ∀ (x y : V) (a : G.adj x y), 
 private def thicken (G : simple_graph V) (K : finset V) (m : ℕ) : finset V :=
 begin
   let K'set := {v : V | ∃ k ∈ K, G.dist v k ≤ m},
-  have : K'set.finite := sorry, -- locally finite
+  have : K'set.finite := sorry, -- locally finite TODO: WIP approach in `.mathlib.lean`
   exact this.to_finset,
 end
 

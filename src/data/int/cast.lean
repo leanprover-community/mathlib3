@@ -22,13 +22,14 @@ the integers into an additive group with a one (`int.cast`).
 
 open nat
 
+variables {α β : Type*}
+
 namespace int
 
 /-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
 def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
 
 section cast
-variables {α : Type*}
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
 λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, ih])
@@ -150,8 +151,7 @@ end cast
 end int
 
 namespace prod
-
-variables {α : Type*} {β : Type*} [add_group_with_one α] [add_group_with_one β]
+variables [add_group_with_one α] [add_group_with_one β]
 
 instance : add_group_with_one (α × β) :=
 { int_cast := λ n, (n, n),
@@ -233,8 +233,7 @@ ext_int h_neg_one $ ext_nat h_pos
 end monoid_with_zero_hom
 
 namespace ring_hom
-
-variables {α : Type*} {β : Type*} [non_assoc_ring α] [non_assoc_ring β]
+variables [non_assoc_ring α] [non_assoc_ring β]
 
 @[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
 f.to_add_monoid_hom.eq_int_cast f.map_one n
@@ -260,14 +259,14 @@ end ring_hom
 (ring_hom.id ℤ).eq_int_cast'.symm
 
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, has_int_cast (β a)]
+variables {π : α → Type*} [Π a, has_int_cast (π a)]
 
-instance : has_int_cast (∀ a, β a) :=
+instance : has_int_cast (Π a, π a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
-lemma int_apply (n : ℤ) (a : α) : (n : ∀ a, β a) a = n := rfl
+lemma int_apply (n : ℤ) (a : α) : (n : Π a, π a) a = n := rfl
 
-@[simp] lemma coe_int (n : ℤ) : (n : ∀ a, β a) = λ _, n := rfl
+@[simp] lemma coe_int (n : ℤ) : (n : Π a, π a) = λ _, n := rfl
 
 end pi
 
@@ -276,16 +275,15 @@ lemma sum.elim_int_cast_int_cast {α β γ : Type*} [has_int_cast γ] (n : ℤ) 
 @sum.elim_lam_const_lam_const α β γ n
 
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, add_group_with_one (β a)]
+variables {π : α → Type*} [Π a, add_group_with_one (π a)]
 
-instance : add_group_with_one (∀ a, β a) :=
+instance : add_group_with_one (Π a, π a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
 
 namespace mul_opposite
-
-variables {α : Type*} [add_group_with_one α]
+variables [add_group_with_one α]
 
 @[simp, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
 
@@ -297,18 +295,18 @@ end mul_opposite
 
 open order_dual
 
-instance : Π [has_int_cast α], has_int_cast αᵒᵈ := id
-instance : Π [add_group_with_one α], add_group_with_one αᵒᵈ := id
-instance : Π [add_comm_group_with_one α], add_comm_group_with_one αᵒᵈ := id
+instance [h : has_int_cast α] : has_int_cast αᵒᵈ := h
+instance [h : add_group_with_one α] : add_group_with_one αᵒᵈ := h
+instance [h : add_comm_group_with_one α] : add_comm_group_with_one αᵒᵈ := h
 
 @[simp] lemma to_dual_int_cast [has_int_cast α] (n : ℤ) : to_dual (n : α) = n := rfl
 @[simp] lemma of_dual_int_cast [has_int_cast α] (n : ℤ) : (of_dual n : α) = n := rfl
 
 /-! ### Lexicographic order -/
 
-instance : Π [has_int_cast α], has_int_cast (lex α) := id
-instance : Π [add_group_with_one α], add_group_with_one (lex α) := id
-instance : Π [add_comm_group_with_one α], add_comm_group_with_one (lex α) := id
+instance [h : has_int_cast α] : has_int_cast (lex α) := h
+instance [h : add_group_with_one α] : add_group_with_one (lex α) := h
+instance [h : add_comm_group_with_one α] : add_comm_group_with_one (lex α) := h
 
 @[simp] lemma to_lex_int_cast [has_int_cast α] (n : ℤ) : to_lex (n : α) = n := rfl
 @[simp] lemma of_lex_int_cast [has_int_cast α] (n : ℤ) : (of_lex n : α) = n := rfl

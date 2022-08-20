@@ -21,8 +21,9 @@ the natural numbers into an additive monoid with a one (`nat.cast`).
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
 -/
 
+variables {α β : Type*}
+
 namespace nat
-variables {α : Type*}
 
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
@@ -116,7 +117,7 @@ end nat
 
 namespace prod
 
-variables {α : Type*} {β : Type*} [add_monoid_with_one α] [add_monoid_with_one β]
+variables [add_monoid_with_one α] [add_monoid_with_one β]
 
 instance : add_monoid_with_one (α × β) :=
 { nat_cast := λ n, (n, n),
@@ -216,8 +217,7 @@ instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ �
 { default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
 
 namespace mul_opposite
-
-variables {α : Type*} [add_monoid_with_one α]
+variables [add_monoid_with_one α]
 
 @[simp, norm_cast] lemma op_nat_cast (n : ℕ) : op (n : α) = n := rfl
 
@@ -226,8 +226,6 @@ variables {α : Type*} [add_monoid_with_one α]
 end mul_opposite
 
 namespace with_top
-variables {α : Type*}
-
 variables [add_monoid_with_one α]
 
 @[simp, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
@@ -264,14 +262,14 @@ end
 end with_top
 
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, has_nat_cast (β a)]
+variables {π : α → Type*} [Π a, has_nat_cast (π a)]
 
-instance : has_nat_cast (∀ a, β a) :=
+instance : has_nat_cast (∀ a, π a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
-lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl
+lemma nat_apply (n : ℕ) (a : α) : (n : Π a, π a) a = n := rfl
 
-@[simp] lemma coe_nat (n : ℕ) : (n : ∀ a, β a) = λ _, n := rfl
+@[simp] lemma coe_nat (n : ℕ) : (n : Π a, π a) = λ _, n := rfl
 
 end pi
 
@@ -280,9 +278,9 @@ lemma sum.elim_nat_cast_nat_cast {α β γ : Type*} [has_nat_cast γ] (n : ℕ) 
 @sum.elim_lam_const_lam_const α β γ n
 
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]
+variables {π : α → Type*} [Π a, add_monoid_with_one (π a)]
 
-instance : add_monoid_with_one (∀ a, β a) :=
+instance : add_monoid_with_one (Π a, π a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
@@ -291,18 +289,18 @@ end pi
 
 open order_dual
 
-instance : Π [has_nat_cast α], has_nat_cast αᵒᵈ := id
-instance : Π [add_monoid_with_one α], add_monoid_with_one αᵒᵈ := id
-instance : Π [add_comm_monoid_with_one α], add_comm_monoid_with_one αᵒᵈ := id
+instance [h : has_nat_cast α] : has_nat_cast αᵒᵈ := h
+instance [h : add_monoid_with_one α] : add_monoid_with_one αᵒᵈ := h
+instance [h : add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵒᵈ := h
 
 @[simp] lemma to_dual_nat_cast [has_nat_cast α] (n : ℕ) : to_dual (n : α) = n := rfl
 @[simp] lemma of_dual_nat_cast [has_nat_cast α] (n : ℕ) : (of_dual n : α) = n := rfl
 
 /-! ### Lexicographic order -/
 
-instance : Π [has_nat_cast α], has_nat_cast (lex α) := id
-instance : Π [add_monoid_with_one α], add_monoid_with_one (lex α) := id
-instance : Π [add_comm_monoid_with_one α], add_comm_monoid_with_one (lex α) := id
+instance [h : has_nat_cast α] : has_nat_cast (lex α) := h
+instance [h : add_monoid_with_one α] : add_monoid_with_one (lex α) := h
+instance [h : add_comm_monoid_with_one α] : add_comm_monoid_with_one (lex α) := h
 
 @[simp] lemma to_lex_nat_cast [has_nat_cast α] (n : ℕ) : to_lex (n : α) = n := rfl
 @[simp] lemma of_lex_nat_cast [has_nat_cast α] (n : ℕ) : (of_lex n : α) = n := rfl

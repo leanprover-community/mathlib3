@@ -1052,26 +1052,26 @@ end noncomputable_defs
 
 open order_dual
 
-instance : Π [mul_zero_class α], mul_zero_class αᵒᵈ := id
-instance : Π [mul_zero_one_class α], mul_zero_one_class αᵒᵈ := id
-instance [has_mul α] [has_zero α] : Π [no_zero_divisors α], no_zero_divisors αᵒᵈ := id
-instance : Π [semigroup_with_zero α], semigroup_with_zero αᵒᵈ := id
-instance : Π [monoid_with_zero α], monoid_with_zero αᵒᵈ := id
-instance : Π [cancel_monoid_with_zero α], cancel_monoid_with_zero αᵒᵈ := id
-instance : Π [comm_monoid_with_zero α], comm_monoid_with_zero αᵒᵈ := id
-instance : Π [cancel_comm_monoid_with_zero α], cancel_comm_monoid_with_zero αᵒᵈ := id
-instance : Π [group_with_zero α], group_with_zero αᵒᵈ := id
-instance : Π [comm_group_with_zero α], comm_group_with_zero αᵒᵈ := id
+instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors αᵒᵈ := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero αᵒᵈ := h
+instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero αᵒᵈ := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
+instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 /-! ### Lexicographic order -/
 
-instance : Π [mul_zero_class α], mul_zero_class (lex α) := id
-instance : Π [mul_zero_one_class α], mul_zero_one_class (lex α) := id
-instance [has_mul α] [has_zero α] : Π [no_zero_divisors α], no_zero_divisors (lex α) := id
-instance : Π [semigroup_with_zero α], semigroup_with_zero (lex α) := id
-instance : Π [monoid_with_zero α], monoid_with_zero (lex α) := id
-instance : Π [cancel_monoid_with_zero α], cancel_monoid_with_zero (lex α) := id
-instance : Π [comm_monoid_with_zero α], comm_monoid_with_zero (lex α) := id
-instance : Π [cancel_comm_monoid_with_zero α], cancel_comm_monoid_with_zero (lex α) := id
-instance : Π [group_with_zero α], group_with_zero (lex α) := id
-instance : Π [comm_group_with_zero α], comm_group_with_zero (lex α) := id
+instance [h : mul_zero_class α] : mul_zero_class (lex α) := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class (lex α) := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors (lex α) := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero (lex α) := h
+instance [h : monoid_with_zero α] : monoid_with_zero (lex α) := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero (lex α) := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (lex α) := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (lex α) := h
+instance [h : group_with_zero α] : group_with_zero (lex α) := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero (lex α) := h

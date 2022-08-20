@@ -472,22 +472,22 @@ protected def function.injective.field [field K] {K'}
 
 /-! ### Order dual -/
 
-instance : Π [has_rat_cast α], has_rat_cast αᵒᵈ := id
-instance : Π [division_semiring α], division_semiring αᵒᵈ := id
-instance : Π [division_ring α], division_ring αᵒᵈ := id
-instance : Π [semifield α], semifield αᵒᵈ := id
-instance : Π [field α], field αᵒᵈ := id
+instance [h : has_rat_cast α] : has_rat_cast αᵒᵈ := h
+instance [h : division_semiring α] : division_semiring αᵒᵈ := h
+instance [h : division_ring α] : division_ring αᵒᵈ := h
+instance [h : semifield α] : semifield αᵒᵈ := h
+instance [h : field α] : field αᵒᵈ := h
 
 @[simp] lemma to_dual_rat_cast [has_rat_cast α] (n : ℚ) : to_dual (n : α) = n := rfl
 @[simp] lemma of_dual_rat_cast [has_rat_cast α] (n : ℚ) : (of_dual n : α) = n := rfl
 
 /-! ### Lexicographic order -/
 
-instance : Π [has_rat_cast α], has_rat_cast (lex α) := id
-instance : Π [division_semiring α], division_semiring (lex α) := id
-instance : Π [division_ring α], division_ring (lex α) := id
-instance : Π [semifield α], semifield (lex α) := id
-instance : Π [field α], field (lex α) := id
+instance [h : has_rat_cast α] : has_rat_cast (lex α) := h
+instance [h : division_semiring α] : division_semiring (lex α) := h
+instance [h : division_ring α] : division_ring (lex α) := h
+instance [h : semifield α] : semifield (lex α) := h
+instance [h : field α] : field (lex α) := h
 
 @[simp] lemma to_lex_rat_cast [has_rat_cast α] (n : ℚ) : to_lex (n : α) = n := rfl
 @[simp] lemma of_lex_rat_cast [has_rat_cast α] (n : ℚ) : (of_lex n : α) = n := rfl

@@ -654,31 +654,31 @@ end commutator
 
 open order_dual
 
-@[to_additive] instance : Π [has_one α], has_one αᵒᵈ := id
-@[to_additive] instance : Π [has_mul α], has_mul αᵒᵈ := id
-@[to_additive] instance : Π [has_inv α], has_inv αᵒᵈ := id
-@[to_additive] instance : Π [has_div α], has_div αᵒᵈ := id
-@[to_additive] instance : Π [has_smul α β], has_smul α βᵒᵈ := id
-@[to_additive] instance order_dual.has_pow : Π [has_pow α β], has_pow αᵒᵈ β := id
-@[to_additive] instance : Π [semigroup α], semigroup αᵒᵈ := id
-@[to_additive] instance : Π [comm_semigroup α], comm_semigroup αᵒᵈ := id
-@[to_additive] instance : Π [left_cancel_semigroup α], left_cancel_semigroup αᵒᵈ := id
-@[to_additive] instance : Π [right_cancel_semigroup α], right_cancel_semigroup αᵒᵈ := id
-@[to_additive] instance : Π [mul_one_class α], mul_one_class αᵒᵈ := id
-@[to_additive] instance : Π [monoid α], monoid αᵒᵈ := id
-@[to_additive] instance : Π [comm_monoid α], comm_monoid αᵒᵈ := id
-@[to_additive] instance : Π [left_cancel_monoid α], left_cancel_monoid αᵒᵈ := id
-@[to_additive] instance : Π [right_cancel_monoid α], right_cancel_monoid αᵒᵈ := id
-@[to_additive] instance : Π [cancel_monoid α], cancel_monoid αᵒᵈ := id
-@[to_additive] instance : Π [cancel_comm_monoid α], cancel_comm_monoid αᵒᵈ := id
-@[to_additive] instance : Π [has_involutive_inv α], has_involutive_inv αᵒᵈ := id
-@[to_additive] instance : Π [div_inv_monoid α], div_inv_monoid αᵒᵈ := id
+@[to_additive] instance [h : has_one α] : has_one αᵒᵈ := h
+@[to_additive] instance [h : has_mul α] : has_mul αᵒᵈ := h
+@[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
+@[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
+@[to_additive] instance [h : has_smul α β] : has_smul α βᵒᵈ := h
+@[to_additive] instance order_dual.has_pow [h : has_pow α β] : has_pow αᵒᵈ β := h
+@[to_additive] instance [h : semigroup α] : semigroup αᵒᵈ := h
+@[to_additive] instance [h : comm_semigroup α] : comm_semigroup αᵒᵈ := h
+@[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup αᵒᵈ := h
+@[to_additive] instance [h : right_cancel_semigroup α] : right_cancel_semigroup αᵒᵈ := h
+@[to_additive] instance [h : mul_one_class α] : mul_one_class αᵒᵈ := h
+@[to_additive] instance [h : monoid α] : monoid αᵒᵈ := h
+@[to_additive] instance [h : comm_monoid α] : comm_monoid αᵒᵈ := h
+@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid αᵒᵈ := h
+@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid αᵒᵈ := h
+@[to_additive] instance [h : cancel_monoid α] : cancel_monoid αᵒᵈ := h
+@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid αᵒᵈ := h
+@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
+@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
 @[to_additive order_dual.subtraction_monoid]
-instance : Π [division_monoid α], division_monoid αᵒᵈ := id
+instance [h : division_monoid α] : division_monoid αᵒᵈ := h
 @[to_additive order_dual.subtraction_comm_monoid]
-instance : Π [division_comm_monoid α], division_comm_monoid αᵒᵈ := id
-@[to_additive] instance : Π [group α], group αᵒᵈ := id
-@[to_additive] instance : Π [comm_group α], comm_group αᵒᵈ := id
+instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
+@[to_additive] instance [h : group α] : group αᵒᵈ := h
+@[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
 
 @[simp, to_additive] lemma to_dual_one [has_one α] : to_dual (1 : α) = 1 := rfl
 @[simp, to_additive] lemma of_dual_one [has_one α] : (of_dual 1 : α) = 1 := rfl
@@ -705,31 +705,31 @@ lemma of_dual_pow [has_pow α β] (a : αᵒᵈ) (b : β) : of_dual (a ^ b) = of
 
 /-! ### Lexicographical order -/
 
-@[to_additive] instance : Π [has_one α], has_one (lex α) := id
-@[to_additive] instance : Π [has_mul α], has_mul (lex α) := id
-@[to_additive] instance : Π [has_inv α], has_inv (lex α) := id
-@[to_additive] instance : Π [has_div α], has_div (lex α) := id
-@[to_additive] instance : Π [has_smul α β], has_smul α (lex β) := id
-@[to_additive] instance lex.has_pow : Π [has_pow α β], has_pow (lex α) β := id
-@[to_additive] instance : Π [semigroup α], semigroup (lex α) := id
-@[to_additive] instance : Π [comm_semigroup α], comm_semigroup (lex α) := id
-@[to_additive] instance : Π [left_cancel_semigroup α], left_cancel_semigroup (lex α) := id
-@[to_additive] instance : Π [right_cancel_semigroup α], right_cancel_semigroup (lex α) := id
-@[to_additive] instance : Π [mul_one_class α], mul_one_class (lex α) := id
-@[to_additive] instance : Π [monoid α], monoid (lex α) := id
-@[to_additive] instance : Π [comm_monoid α], comm_monoid (lex α) := id
-@[to_additive] instance : Π [left_cancel_monoid α], left_cancel_monoid (lex α) := id
-@[to_additive] instance : Π [right_cancel_monoid α], right_cancel_monoid (lex α) := id
-@[to_additive] instance : Π [cancel_monoid α], cancel_monoid (lex α) := id
-@[to_additive] instance : Π [cancel_comm_monoid α], cancel_comm_monoid (lex α) := id
-@[to_additive] instance : Π [has_involutive_inv α], has_involutive_inv (lex α) := id
-@[to_additive] instance : Π [div_inv_monoid α], div_inv_monoid (lex α) := id
+@[to_additive] instance [h : has_one α] : has_one (lex α) := h
+@[to_additive] instance [h : has_mul α] : has_mul (lex α) := h
+@[to_additive] instance [h : has_inv α] : has_inv (lex α) := h
+@[to_additive] instance [h : has_div α] : has_div (lex α) := h
+@[to_additive] instance [h : has_smul α β] : has_smul α (lex β) := h
+@[to_additive] instance lex.has_pow [h : has_pow α β] : has_pow (lex α) β := h
+@[to_additive] instance [h : semigroup α] : semigroup (lex α) := h
+@[to_additive] instance [h : comm_semigroup α] : comm_semigroup (lex α) := h
+@[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup (lex α) := h
+@[to_additive] instance [h : right_cancel_semigroup α] : right_cancel_semigroup (lex α) := h
+@[to_additive] instance [h : mul_one_class α] : mul_one_class (lex α) := h
+@[to_additive] instance [h : monoid α] : monoid (lex α) := h
+@[to_additive] instance [h : comm_monoid α] : comm_monoid (lex α) := h
+@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid (lex α) := h
+@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid (lex α) := h
+@[to_additive] instance [h : cancel_monoid α] : cancel_monoid (lex α) := h
+@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid (lex α) := h
+@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (lex α) := h
+@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (lex α) := h
 @[to_additive order_dual.subtraction_monoid]
-instance : Π [division_monoid α], division_monoid (lex α) := id
+instance [h : division_monoid α] : division_monoid (lex α) := h
 @[to_additive order_dual.subtraction_comm_monoid]
-instance : Π [division_comm_monoid α], division_comm_monoid (lex α) := id
-@[to_additive] instance : Π [group α], group (lex α) := id
-@[to_additive] instance : Π [comm_group α], comm_group (lex α) := id
+instance [h : division_comm_monoid α] : division_comm_monoid (lex α) := h
+@[to_additive] instance [h : group α] : group (lex α) := h
+@[to_additive] instance [h : comm_group α] : comm_group (lex α) := h
 
 @[simp, to_additive] lemma to_lex_one [has_one α] : to_lex (1 : α) = 1 := rfl
 @[simp, to_additive] lemma of_lex_one [has_one α] : (of_lex 1 : α) = 1 := rfl

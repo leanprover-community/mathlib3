@@ -1198,6 +1198,7 @@ begin
 end
 
 /-- `cardinal.to_nat` as a `monoid_with_zero_hom`. -/
+@[simps]
 def to_nat_hom : cardinal →*₀ ℕ :=
 { to_fun := to_nat,
   map_zero' := zero_to_nat,

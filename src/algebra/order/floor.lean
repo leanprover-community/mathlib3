@@ -430,11 +430,10 @@ lemma floor_le (a : α) : (⌊a⌋ : α) ≤ a := gc_coe_floor.l_u_le a
 
 lemma floor_nonneg : 0 ≤ ⌊a⌋ ↔ 0 ≤ a := by rw [le_floor, int.cast_zero]
 
+@[simp] lemma floor_le_sub_one_iff : ⌊a⌋ ≤ z - 1 ↔ a < z := by rw [← floor_lt, le_sub_one_iff]
+
 @[simp] lemma floor_le_neg_one_iff : ⌊a⌋ ≤ -1 ↔ a < 0 :=
-begin
-  have : a < 0 ↔ a < ((0 : ℤ) : α), { norm_cast, },
-  rw [this, ← floor_lt, lt_iff_add_one_le, ← le_neg_iff_add_nonpos_right],
-end
+by rw [← zero_sub (1 : ℤ), floor_le_sub_one_iff, cast_zero]
 
 lemma floor_nonpos (ha : a ≤ 0) : ⌊a⌋ ≤ 0 :=
 begin
@@ -650,11 +649,10 @@ eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_l
 
 lemma lt_ceil : z < ⌈a⌉ ↔ (z : α) < a := lt_iff_lt_of_le_iff_le ceil_le
 
+@[simp] lemma add_one_le_ceil_iff : z + 1 ≤ ⌈a⌉ ↔ (z : α) < a := by rw [← lt_ceil, add_one_le_iff]
+
 @[simp] lemma one_le_ceil_iff : 1 ≤ ⌈a⌉ ↔ 0 < a :=
-begin
-  have : 0 < a ↔ ((0 : ℤ) : α) < a, { norm_cast, },
-  rw [this, ← lt_ceil, lt_iff_add_one_le, zero_add],
-end
+by rw [← zero_add (1 : ℤ), add_one_le_ceil_iff, cast_zero]
 
 lemma ceil_le_floor_add_one (a : α) : ⌈a⌉ ≤ ⌊a⌋ + 1 :=
 by { rw [ceil_le, int.cast_add, int.cast_one], exact (lt_floor_add_one a).le }

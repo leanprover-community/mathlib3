@@ -186,28 +186,25 @@ by letI := classical.dec_pred (∈ s); exact piecewise_preimage s f 1 B
 @[to_additive] lemma mul_indicator_one_preimage (s : set M) :
   t.mul_indicator 1 ⁻¹' s ∈ ({set.univ, ∅} : set (set α)) :=
 begin
-  by_cases s1 : (1 : M) ∈ s,
-  work_on_goal 1 { refine or.inl _ },
-  work_on_goal 2 { refine or.inr _ },
-  all_goals { ext, simp [s1] },
+  classical,
+  rw [mul_indicator_one', preimage_one],
+  split_ifs; simp
+end
+
+@[to_additive] lemma mul_indicator_const_preimage_eq_union (U : set α) (s : set M) (a : M)
+  [decidable (a ∈ s)] [decidable ((1 : M) ∈ s)] :
+  U.mul_indicator (λ x, a) ⁻¹' s = (if a ∈ s then U else ∅) ∪ (if (1 : M) ∈ s then Uᶜ else ∅) :=
+begin
+  rw [mul_indicator_preimage, preimage_one, preimage_const],
+  split_ifs; simp [← compl_eq_univ_diff]
 end
 
 @[to_additive] lemma mul_indicator_const_preimage (U : set α) (s : set M) (a : M) :
   U.mul_indicator (λ x, a) ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
 begin
-  by_cases sa : a ∈ s;
-  by_cases s0 : (1 : M) ∈ s,
-  work_on_goal 1 { refine or.inl _ },
-  work_on_goal 2 { refine or.inr (or.inl _) },
-  work_on_goal 3 { refine or.inr (or.inr (or.inl _)) },
-  work_on_goal 4 { refine or.inr (or.inr (or.inr _)) },
-  all_goals
-  { ext x,
-    by_cases xU : x ∈ U,
-    { simp only [xU, sa, set.mem_preimage, set.mul_indicator_of_mem, pi.one_apply, set.mem_compl_eq,
-        not_true, set.mem_univ, set.mem_empty_eq] },
-    { simp only [xU, s0, set.mem_preimage, set.mul_indicator_of_not_mem, not_false_iff,
-      set.mem_compl_eq, set.mem_univ, set.mem_empty_eq] } }
+  classical,
+  rw [mul_indicator_const_preimage_eq_union],
+  split_ifs; simp
 end
 
 lemma indicator_one_preimage [has_zero M] (U : set α) (s : set M) :

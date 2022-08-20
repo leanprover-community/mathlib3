@@ -20,6 +20,11 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
+@[to_additive]
+lemma set.preimage_one {α β : Type*} [has_one β] (s : set β) [decidable ((1 : β) ∈ s)] :
+  (1 : α → β) ⁻¹' s = if (1 : β) ∈ s then set.univ else ∅ :=
+set.preimage_const 1 s
+
 namespace pi
 
 @[to_additive]

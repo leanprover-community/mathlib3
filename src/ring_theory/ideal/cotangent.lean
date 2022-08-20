@@ -104,7 +104,8 @@ lemma to_cotangent_to_quotient_square (x : I) : I.cotangent_to_quotient_square (
 def cotangent_ideal (I : ideal R) : ideal (R ⧸ I ^ 2) :=
 begin
   haveI : @ring_hom_surjective R (R ⧸ I ^ 2) _ _ _ := ⟨ideal.quotient.mk_surjective⟩,
-  exact submodule.map (ring_hom.to_semilinear_map (I ^ 2)^.quotient.mk) I,
+  let rq := (I ^ 2)^.quotient.mk,
+  exact submodule.map rq.to_semilinear_map I,
 end
 
 lemma cotangent_ideal_square (I : ideal R) : I.cotangent_ideal ^ 2 = ⊥ :=

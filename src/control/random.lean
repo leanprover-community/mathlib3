@@ -130,7 +130,7 @@ namespace io
 private def accum_char (w : ℕ) (c : char) : ℕ :=
 c.to_nat + 256 * w
 
-/-- create and a seed a random number generator -/
+/-- create and seed a random number generator -/
 def mk_generator : io std_gen := do
 seed ← io.rand 0 shift_31_left,
 return $ mk_std_gen seed

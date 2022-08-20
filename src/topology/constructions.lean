@@ -944,13 +944,18 @@ quotient_map_quot_mk
 lemma continuous_quotient_mk : continuous (@quotient.mk α s) :=
 continuous_coinduced_rng
 
-lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
+lemma continuous.quotient_lift {f : α → β} (h : continuous f) (hs : ∀ a b, a ≈ b → f a = f b) :
+  continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom.2 h
 
-lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
-continuous_coinduced_dom.2 h
+lemma continuous.quotient_lift_on' {f : α → β} (h : continuous f)
+  (hs : ∀ a b, @setoid.r _ s a b → f a = f b) :
+  continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
+h.quotient_lift hs
+
+lemma continuous.quotient_map' {t : setoid β} {f : α → β} (hf : continuous f)
+  (H : (s.r ⇒ t.r) f f) : continuous (quotient.map' f H) :=
+(continuous_quotient_mk.comp hf).quotient_lift _
 
 end quotient
 
@@ -1104,10 +1109,11 @@ begin
     exact assume s hs, generate_open.basic _ ⟨function.update (λa, univ) a s, {a}, by simp [hs]⟩ }
 end
 
-lemma pi_generate_from_eq_fintype {g : Πa, set (set (π a))} [fintype ι] (hg : ∀a, ⋃₀ g a = univ) :
+lemma pi_generate_from_eq_finite {g : Πa, set (set (π a))} [finite ι] (hg : ∀a, ⋃₀ g a = univ) :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
   generate_from {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} :=
 begin
+  casesI nonempty_fintype ι,
   rw [pi_generate_from_eq],
   refine le_antisymm (generate_from_mono _) (le_generate_from _),
   exact assume s ⟨t, ht, eq⟩, ⟨t, finset.univ, by simp [ht, eq]⟩,

@@ -73,7 +73,7 @@ lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i
 lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
 ext $ assume c, rfl
 
-lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
+lemma infi_ker_proj : (⨅i, ker (proj i : (Πi, φ i) →ₗ[R] φ i) : submodule R (Πi, φ i)) = ⊥ :=
 bot_unique $ set_like.le_def.2 $ assume a h,
 begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
@@ -154,7 +154,7 @@ variables (R φ)
 `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
-  (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃ₗ[R] (Πi:I, φ i) :=
+  (⨅i ∈ J, ker (proj i : (Πi, φ i) →ₗ[R] φ i) : submodule R (Πi, φ i)) ≃ₗ[R] (Πi:I, φ i) :=
 begin
   refine linear_equiv.of_linear
     (pi $ λi, (proj (i:ι)).comp (submodule.subtype _))
@@ -230,14 +230,14 @@ set_like.coe_injective $ set.pi_univ _
 lemma pi_mono {s : set ι} (h : ∀ i ∈ s, p i ≤ q i) : pi s p ≤ pi s q :=
 set.pi_mono h
 
-lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
+lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i : (Πi, φ i) →ₗ[R] φ i) (p i)) = pi I p :=
 by { ext x, simp }
 
-lemma infi_comap_proj : (⨅ i, comap (proj i) (p i)) = pi set.univ p :=
+lemma infi_comap_proj : (⨅ i, comap (proj i : (Πi, φ i) →ₗ[R] φ i) (p i)) = pi set.univ p :=
 by { ext x, simp }
 
 lemma supr_map_single [decidable_eq ι] [fintype ι] :
-  (⨆ i, map (linear_map.single i) (p i)) = pi set.univ p :=
+  (⨆ i, map (linear_map.single i : φ i →ₗ[R] (Πi, φ i)) (p i)) = pi set.univ p :=
 begin
   refine (supr_le $ λ i, _).antisymm _,
   { rintro _ ⟨x, hx : x ∈ p i, rfl⟩ j -,

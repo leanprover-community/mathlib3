@@ -91,6 +91,7 @@ full_subcategory_inclusion _
 lemma open_embedding {x : X} (U : open_nhds x) : open_embedding (U.1.inclusion) :=
 U.1.open_embedding
 
+/-- The preimage functor from neighborhoods of `f x` to neighborhoods of `x`. -/
 def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 { obj := λ U, ⟨(opens.map f).obj U.1, U.2⟩,
   map := λ U V i, (opens.map f).map i }

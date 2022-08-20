@@ -230,16 +230,6 @@ variables {α : Type*}
 
 variables [add_monoid_with_one α]
 
-@[simp, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
-| 0     := rfl
-| (n+1) := by { push_cast, rw [coe_nat n] }
-
-@[simp] lemma nat_ne_top (n : nat) : (n : with_top α) ≠ ⊤ :=
-by { rw [←coe_nat n], apply coe_ne_top }
-
-@[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
-by { rw [←coe_nat n], apply top_ne_coe }
-
 lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
 begin
   cases n, { exact le_top },

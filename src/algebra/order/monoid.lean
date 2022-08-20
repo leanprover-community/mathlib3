@@ -1109,6 +1109,10 @@ instance [canonically_linear_ordered_add_monoid α] :
   canonically_linear_ordered_add_monoid (with_top α) :=
 { ..with_top.canonically_ordered_add_monoid, ..with_top.linear_order }
 
+@[simp, norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_top α) = n := rfl
+@[simp] lemma nat_ne_top [add_monoid_with_one α] (n : ℕ) : (n : with_top α) ≠ ⊤ := coe_ne_top
+@[simp] lemma top_ne_nat [add_monoid_with_one α] (n : ℕ) : (⊤ : with_top α) ≠ n := top_ne_coe
+
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=
 ⟨coe, rfl, λ _ _, rfl⟩
@@ -1174,6 +1178,10 @@ with_top.coe_eq_one
 
 @[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
+
+@[simp, norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_bot α) = n := rfl
+@[simp] lemma nat_ne_bot [add_monoid_with_one α] (n : ℕ) : (n : with_bot α) ≠ ⊥ := coe_ne_bot
+@[simp] lemma bot_ne_nat [add_monoid_with_one α] (n : ℕ) : (⊥ : with_bot α) ≠ n := bot_ne_coe
 
 section has_add
 variables [has_add α] {a b c d : with_bot α} {x y : α}

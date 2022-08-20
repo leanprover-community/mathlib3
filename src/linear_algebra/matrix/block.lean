@@ -19,9 +19,9 @@ matrices built out of blocks.
    if the rows and columns are ordered according to some order `b : o → α`
 
 ## Main results
-  * `det_of_block_triangular`: the determinant of a block triangular matrix
+  * `matrix.det_of_block_triangular`: the determinant of a block triangular matrix
     is equal to the product of the determinants of all the blocks
-  * `det_of_upper_triangular` and `det_of_lower_triangular`: the determinant of
+  * `matrix.det_of_upper_triangular` and `matrix.det_of_lower_triangular`: the determinant of
     a triangular matrix is the product of the entries along the diagonal
 
 ## Tags

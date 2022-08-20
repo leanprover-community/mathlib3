@@ -309,6 +309,9 @@ lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
 
 @[simp] lemma mem_diagonal_iff {x : α × α} : x ∈ diagonal α ↔ x.1 = x.2 := iff.rfl
 
+instance decidable_mem_diagonal [h : decidable_eq α] (x : α × α) : decidable (x ∈ diagonal α) :=
+h x.1 x.2
+
 lemma preimage_coe_coe_diagonal (s : set α) : (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
 by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
 

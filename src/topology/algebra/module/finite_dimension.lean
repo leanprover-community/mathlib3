@@ -205,7 +205,7 @@ private lemma continuous_equiv_fun_basis_aux [ht2 : t2_space E] {ι : Type v} [f
   (ξ : basis ι 𝕜 E) : continuous ξ.equiv_fun :=
 begin
   letI : uniform_space E := topological_add_group.to_uniform_space E,
-  letI : uniform_add_group E := topological_add_group_is_uniform,
+  letI : uniform_add_group E := topological_add_comm_group_is_uniform,
   letI : separated_space E := separated_iff_t2.mpr ht2,
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { rw fintype.card_eq_zero_iff at hn,

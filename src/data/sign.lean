@@ -255,6 +255,15 @@ end
 
 end linear_order
 
+section ordered_semiring
+
+variables [ordered_semiring α] [decidable_rel ((<) : α → α → Prop)] [nontrivial α]
+
+@[simp] lemma sign_one : sign (1 : α) = 1 :=
+sign_pos zero_lt_one
+
+end ordered_semiring
+
 section linear_ordered_ring
 
 variables [linear_ordered_ring α] {a b : α}
@@ -263,6 +272,14 @@ variables [linear_ordered_ring α] {a b : α}
 113488-general/topic/type.20class.20inference.20issues/near/276937942 -/
 local attribute [instance] linear_ordered_ring.decidable_lt
 
+lemma sign_mul (x y : α) : sign (x * y) = sign x * sign y :=
+begin
+  rcases lt_trichotomy x 0 with hx | hx | hx; rcases lt_trichotomy y 0 with hy | hy | hy;
+    simp only [sign_zero, mul_zero, zero_mul, sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul,
+               neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero',
+               mul_neg_of_pos_of_neg, mul_pos]
+end
+
 /-- `sign` as a `monoid_with_zero_hom` for a nontrivial ordered semiring. Note that linearity
 is required; consider ℂ with the order `z ≤ w` iff they have the same imaginary part and
 `z - w ≤ 0` in the reals; then `1 + i` and `1 - i` are incomparable to zero, and thus we have:
@@ -270,12 +287,14 @@ is required; consider ℂ with the order `z ≤ w` iff they have the same imagin
 def sign_hom : α →*₀ sign_type :=
 { to_fun := sign,
   map_zero' := sign_zero,
-  map_one' := sign_pos zero_lt_one,
-  map_mul' := λ x y, by
-    rcases lt_trichotomy x 0 with hx | hx | hx; rcases lt_trichotomy y 0 with hy | hy | hy;
-    simp only [sign_zero, mul_zero, zero_mul, sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul,
-               neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero',
-               mul_neg_of_pos_of_neg, mul_pos] }
+  map_one' := sign_one,
+  map_mul' := sign_mul }
+
+lemma sign_pow (x : α) (n : ℕ) : sign (x ^ n) = (sign x) ^ n :=
+begin
+  change sign_hom (x ^ n) = (sign_hom x) ^ n,
+  exact map_pow _ _ _
+end
 
 end linear_ordered_ring
 

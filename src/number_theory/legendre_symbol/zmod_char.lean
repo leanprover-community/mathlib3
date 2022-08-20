@@ -67,6 +67,21 @@ begin
     ((nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn),
 end
 
+/-- If `n % 4 = 1`, then `(-1)^(n/2) = 1`. -/
+lemma _root_.neg_one_pow_one_mod_four_div_two {n : ℕ} (hn : n % 4 = 1) : (-1 : ℤ) ^ (n / 2) = 1 :=
+begin
+  rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_one hn), ← zmod.nat_cast_mod, hn],
+  refl,
+end
+
+/-- If `n % 4 = 3`, then `(-1)^(n/2) = -1`. -/
+lemma _root_.neg_one_pow_three_mod_four_div_two {n : ℕ} (hn : n % 4 = 3) :
+  (-1 : ℤ) ^ (n / 2) = -1 :=
+begin
+  rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_three hn), ← zmod.nat_cast_mod, hn],
+  refl,
+end
+
 /-- Define the first primitive quadratic character on `zmod 8`, `χ₈`.
 It corresponds to the extension `ℚ(√2)/ℚ`. -/
 @[simps] def χ₈ : mul_char (zmod 8) ℤ :=

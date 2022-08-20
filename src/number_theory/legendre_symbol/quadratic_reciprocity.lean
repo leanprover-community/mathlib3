@@ -225,13 +225,38 @@ begin
       quadratic_char_neg_one hq₂, card q, χ₄_eq_neg_one_pow hq₁],
 end
 
+theorem quadratic_reciprocity' (hp : p ≠ 2) (hq : q ≠ 2) :
+  legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) * legendre_sym p q :=
+begin
+  cases eq_or_ne p q with h h,
+  { unfreezingI {subst p},
+    have t : legendre_sym q q = 0 := by
+    { have : ((q : ℤ) : zmod q) = 0 := by exact_mod_cast nat_cast_self q,
+      exact (legendre_sym_eq_zero_iff q q).mpr this, },
+    rw [t, mul_zero], },
+  { have qr := quadratic_reciprocity p q hp hq h,
+    apply_fun (* legendre_sym p q) at qr,
+    simp only at qr,
+    have : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q h,
+    rwa [mul_assoc, ← pow_two, legendre_sym_sq_one p q this, mul_one] at qr, }
+end
+
 theorem quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
   legendre_sym q p = legendre_sym p q :=
-sorry
+begin
+  have hp' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_one hp),
+  rw [quadratic_reciprocity' p q hp' hq, pow_mul, neg_one_pow_one_mod_four_div_two hp,
+      one_pow, one_mul],
+end
 
 theorem quadratic_reciprocity_three_mod_four (hp : p % 4 = 3) (hq : q % 4 = 3):
   legendre_sym q p = -legendre_sym p q :=
-sorry
+begin
+  have hp' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_three hp),
+  have hq' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_three hq),
+  rw [quadratic_reciprocity' p q hp' hq', pow_mul, neg_one_pow_three_mod_four_div_two hp,
+      neg_one_pow_three_mod_four_div_two hq, neg_one_mul],
+end
 
 lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=
 begin

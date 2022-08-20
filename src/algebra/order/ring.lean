@@ -949,9 +949,9 @@ addition is monotone and multiplication by a positive number is strictly monoton
 class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
 
 @[priority 100] -- See note [lower instance priority]
-instance ordered_comm_ring.to_ordered_comm_semiring {α : Type u} [ordered_comm_ring α] :
-  ordered_comm_semiring α :=
-{ ..ordered_cancel_semiring.to_ordered_semiring, ..‹ordered_comm_ring α› }
+instance ordered_comm_ring.to_ordered_cancel_comm_semiring {α : Type u} [ordered_comm_ring α] :
+  ordered_cancel_comm_semiring α :=
+{ ..ordered_ring.to_ordered_cancel_semiring, ..‹ordered_comm_ring α› }
 
 /-- Pullback an `ordered_comm_ring` under an injective map.
 See note [reducible non-instances]. -/

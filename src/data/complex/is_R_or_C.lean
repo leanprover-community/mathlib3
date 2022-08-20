@@ -436,7 +436,7 @@ by rw [← of_real_nat_cast, of_real_re]
 by rw [← of_real_nat_cast, of_real_im]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900]
-lemma of_real_int_cast (n : ℤ) : ((n : ℝ) : K) = n := map_int_cast of_real_hom n
+lemma of_real_int_cast (n : ℤ) : ((n : ℝ) : K) = n := map_int_cast (@of_real_hom K _) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma int_cast_re (n : ℤ) : re (n : K) = n :=
 by rw [← of_real_int_cast, of_real_re]

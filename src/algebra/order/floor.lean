@@ -664,6 +664,9 @@ lemma le_ceil (a : α) : a ≤ ⌈a⌉ := gc_ceil_coe.le_u_l a
 @[simp] lemma ceil_coe (z : ℤ) : ⌈(z : α)⌉ = z :=
 eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
 
+@[simp] lemma ceil_coe' (n : ℕ) : ⌈(n : α)⌉ = n :=
+eq_of_forall_ge_iff $ λ a, by rw [ceil_le, ← cast_coe_nat, cast_le]
+
 lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
 
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=

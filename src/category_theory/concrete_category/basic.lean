@@ -205,7 +205,9 @@ has_forget₂ C D :=
 { forget₂ := faithful.div _ _ _ @h_obj _ @h_map,
   forget_comp := by apply faithful.div_comp }
 
-instance has_forget_to_Type (C : Type v) [category C] [concrete_category C] :
+/-- Every forgetful functor factors through the identity functor. This is not a global instance as
+    it is prone to creating type class resolution loops. -/
+def has_forget_to_Type (C : Type v) [category C] [concrete_category C] :
   has_forget₂ C (Type u) :=
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }

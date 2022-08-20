@@ -66,7 +66,8 @@ the existing limit. -/
 
 All we need to do is notice that the limit point has an `add_group` instance available, and then
 reuse the existing limit."]
-instance (F : J ⥤ Group.{max v u}) : creates_limit F (forget₂ Group.{max v u} Mon.{max v u}) :=
+instance forget₂.creates_limit (F : J ⥤ Group.{max v u}) :
+  creates_limit F (forget₂ Group.{max v u} Mon.{max v u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := Group.of (types.limit_cone (F ⋙ forget Group)).X,
@@ -159,8 +160,12 @@ We show that the forgetful functor `CommGroup ⥤ Group` creates limits.
 All we need to do is notice that the limit point has a `comm_group` instance available,
 and then reuse the existing limit.
 -/
-@[to_additive]
-instance (F : J ⥤ CommGroup.{max v u}) : creates_limit F (forget₂ CommGroup Group.{max v u}) :=
+@[to_additive "We show that the forgetful functor `AddCommGroup ⥤ AddGroup` creates limits.
+
+All we need to do is notice that the limit point has an `add_comm_group` instance available, and
+then reuse the existing limit."]
+instance forget₂.creates_limit (F : J ⥤ CommGroup.{max v u}) :
+  creates_limit F (forget₂ CommGroup Group.{max v u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommGroup.of (types.limit_cone (F ⋙ forget CommGroup)).X,

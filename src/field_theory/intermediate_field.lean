@@ -370,7 +370,7 @@ begin
       ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },
   { obtain ⟨P, hPmo, hProot⟩ := h,
     refine ⟨P, hPmo, _⟩,
-    rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
+    rw [← aeval_def, aeval_coe, aeval_def, hProot, zero_mem_class.coe_zero] },
 end
 
 /-- The map `E → F` when `E` is an intermediate field contained in the intermediate field `F`.

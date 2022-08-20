@@ -160,4 +160,11 @@ by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
   exact fintype.card_ne_zero,
 end⟩
 
+@[to_additive add_order_eq_card_zmultiples]
+lemma _root_.order_eq_card_zpowers' : order_of a = nat.card (zpowers a) :=
+begin
+  have := nat.card_congr (mul_action.orbit_zpowers_equiv a (1 : α)),
+  rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
+end
+
 end mul_action

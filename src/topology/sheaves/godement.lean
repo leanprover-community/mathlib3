@@ -55,6 +55,23 @@ pi.lift (λ x, if m : x ∈ U.unop
     𝓕.stalk (⟨x, m⟩ : U.unop) = (skyscraper_presheaf x (𝓕.stalk x)).obj U)
   else terminal.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ m).symm)
 
+@[reducible]
+def to_godement_presheaf_aux_comp_π {U : (opens X)ᵒᵖ} (p : U.unop) :
+  𝓕.obj U ⟶ 𝓕.stalk p :=
+to_godement_presheaf_aux 𝓕 U ≫ pi.π _ p ≫ eq_to_hom (if_pos p.2)
+
+lemma to_godement_presheaf_aux_comp_π_eq {U : (opens X)ᵒᵖ} (p : U.unop) :
+  to_godement_presheaf_aux_comp_π 𝓕 p = presheaf.germ 𝓕 p :=
+begin
+  dunfold to_godement_presheaf_aux_comp_π presheaf.germ to_godement_presheaf_aux,
+  rw [←category.assoc, limit.lift_π],
+  simp only [fan.mk_π_app],
+  split_ifs,
+  { rw [category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
+    refl },
+  { exfalso, exact h p.2, },
+end
+
 @[simps] def to_godement_presheaf : 𝓕 ⟶ godement_presheaf 𝓕 :=
 { app := λ U, to_godement_presheaf_aux 𝓕 U ≫ (godement_presheaf_obj 𝓕 U).inv,
   naturality' :=
@@ -80,17 +97,6 @@ pi.lift (λ x, if m : x ∈ U.unop
       exact terminal_is_terminal.hom_ext _ _ },
   end }
 
--- lemma godement_presheaf_stalk [decidable_eq X] (x : X) :
---   (godement_presheaf 𝓕).stalk x ≅ 𝓕.stalk x :=
--- let ccc : colimit_cocone ((open_nhds.inclusion x).op ⋙ 𝓕) :=
--- { cocone :=
---   { X := (godement_presheaf 𝓕).stalk x,
---     ι :=
---     { app := λ U, _,
---       naturality' := _ } },
---   is_colimit := _ } in
--- (colimit.iso_colimit_cocone ccc)
-
 lemma godement_presheaf_is_sheaf (h : 𝓕.is_sheaf) : (godement_presheaf 𝓕).is_sheaf :=
 limit_is_sheaf _ $ λ ⟨x⟩, (skyscraper_sheaf x _).2
 
@@ -109,7 +115,7 @@ variables [Π (U : opens X), preserves_colimits_of_shape
   ((opens.grothendieck_topology X).cover U)ᵒᵖ (forget C)]
 variables [reflects_isomorphisms (forget C)] [preserves_filtered_colimits (forget C)]
 
-def sheaf_in_Type : sheaf C X ⥤ sheaf (Type u) X :=
+@[simps] def sheaf_in_Type : sheaf C X ⥤ sheaf (Type u) X :=
 { obj := λ F, ⟨F.1 ⋙ forget C, (presheaf.is_sheaf_iff_is_sheaf_comp (forget C) F.1).mp F.2⟩,
   map := λ F G f, Sheaf.hom.mk
   { app := λ U, (forget C).map (f.1.app U),
@@ -228,46 +234,64 @@ let e : (sheaf_in_Type.obj $ skyscraper_sheaf x c) ≅ skyscraper_sheaf' x ((for
   end } in
 e.trans $ (skyscraper_sheaf_iso _ _ it).symm
 
-lemma stalk_bundles (U : (opens X)ᵒᵖ) (s : (sheaf_in_Type.obj 𝓖).1.obj U)
-  (x : U.unop) : presheaf.stalk (sheaf_in_Type.obj 𝓖).1 x :=
--- let S : (sheaf_in_Type.obj (skyscraper_sheaf x.val (𝓖.presheaf.stalk x.val))).1.obj U :=
---    in
--- presheaf.germ
+example : true := trivial
+
+/--
+`x y : 𝓖(U)`, and `p ∈ U`
+``
+-/
+def stalk_bundles_eq0 (U : (opens X)ᵒᵖ) (x y : (sheaf_in_Type.obj 𝓖).1.obj U)
+  (eq1 : (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U x =
+      (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U y) (p : U.unop) :
+  (forget C).map (to_godement_presheaf_aux 𝓖.presheaf U) x =
+  (forget C).map (to_godement_presheaf_aux 𝓖.presheaf U) y :=
 begin
-  have : (sheaf_in_Type.obj (skyscraper_sheaf x.val (𝓖.presheaf.stalk x.val))).1.obj U,
-  {  },
-  -- (types.product_iso _).hom (((godement_sheaf_in_Type_obj 𝓖 U).hom ((sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app U s))) x.1,
-  dsimp at S,
-  have := (sheaf_in_Type.obj 𝓖).presheaf.germ x,
-  -- have := ,
-  have := (types.product_iso _).hom (((godement_sheaf_in_Type_obj 𝓖 U).hom ((sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app U s))) x.1,
+  change (forget C).map ((to_godement_presheaf 𝓖.presheaf).app _) x =
+    (forget C).map ((to_godement_presheaf 𝓖.presheaf).app _) y at eq1,
+  dsimp at eq1,
+  change (forget C).map _ x = (forget C).map _ y at eq1,
+  have eq2 := congr_arg ((forget C).map (limit_obj_iso_limit_comp_evaluation (discrete.functor _) U).hom) eq1,
+  dsimp at eq2,
+  erw [←comp_apply, ←comp_apply, ←category.assoc] at eq2,
+  simp only [category.assoc, iso.inv_hom_id, category.comp_id] at eq2,
+  set α : nat_trans (discrete.functor (λ (x : ↥X), ite (x ∈ opposite.unop U) (𝓖.presheaf.stalk x) (⊤_ C)))
+  (discrete.functor (λ (x : ↥X), skyscraper_presheaf x (𝓖.presheaf.stalk x)) ⋙
+     (evaluation (opens ↥X)ᵒᵖ C).obj U) := _,
+  change (forget C).map (_ ≫ lim_map α) x = (forget C).map (_ ≫ lim_map α) y at eq2,
+  haveI : is_iso (lim_map α),
+  { refine is_iso.mk ⟨lim_map { app := λ x, 𝟙 _, naturality' := _ }, _, _⟩,
+    { rintros ⟨x⟩ ⟨y⟩ ⟨⟨eq0 : x = y⟩⟩, subst eq0, refl},
+    { ext1, simp only [category.assoc, lim_map_π, category.comp_id, category.id_comp], },
+    { ext1, simp only [category.assoc, lim_map_π, category.comp_id, category.id_comp], }, },
+  have eq3 := congr_arg ((forget C).map (inv (lim_map α))) eq2,
+  change ((forget C).map _ ≫ (forget C).map _) _ = ((forget C).map _ ≫ (forget C).map _) _ at eq3,
+  simpa only [←(forget C).map_comp, category.assoc, is_iso.hom_inv_id,category.comp_id] using eq3,
 end
 
+def stalk_bundles_eq (U : (opens X)ᵒᵖ) (x y : (sheaf_in_Type.obj 𝓖).1.obj U)
+  (eq1 : (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U x =
+      (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U y) (p : U.unop) :
+  (forget C).map (𝓖.presheaf.germ p) x = (forget C).map (𝓖.presheaf.germ p) y :=
+
+begin
+  have eq1' := stalk_bundles_eq0 𝓖 U x y eq1 p,
+  have eq1'' : (forget C).map (to_godement_presheaf_aux_comp_π 𝓖.presheaf p) x =
+    (forget C).map (to_godement_presheaf_aux_comp_π 𝓖.presheaf p) y,
+  { dsimp at eq1' ⊢,
+    dunfold to_godement_presheaf_aux_comp_π,
+    simp only [comp_apply, eq1'], },
+  rwa to_godement_presheaf_aux_comp_π_eq at eq1'',
+end
+
+example : true := trivial
+
+def forget_stalk_iso (U : (opens X)ᵒᵖ) (x : U.unop) :
+  (forget C).obj (𝓖.presheaf.stalk x) ≅ (sheaf_in_Type.obj 𝓖).presheaf.stalk x :=
+preserves_colimit_iso _ _
 
 lemma to_godement_sheaf_app_injective (U : opens X) :
   function.injective $ (forget C).map ((to_godement_sheaf 𝓖).1.app (opposite.op U)) :=
-λ x y eq1,
-begin
-  change (sheaf_in_Type.obj 𝓖).1.obj (opposite.op U) at x,
-  change (sheaf_in_Type.obj 𝓖).1.obj (opposite.op U) at y,
-  change (sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app (opposite.op U) x =
-    (sheaf_in_Type.map (to_godement_sheaf 𝓖)).1.app (opposite.op U) y at eq1,
-  apply presheaf.section_ext,
-  /-
-  U : opens ↥X,
-  x y : (sheaf_in_Type.obj 𝓖).val.obj (opposite.op U),
-  eq1 :
-    (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app (opposite.op U) x =
-      (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app (opposite.op U) y,
-  p : ↥U
-  ⊢ ⇑(𝓖.presheaf.germ p) x = ⇑(𝓖.presheaf.germ p) y
-  -/
-
-  intros p,
-  have := presheaf.germ_ext 𝓖.1 U p.2;
-  -- ext,
-  sorry
-end
+λ x y eq1, presheaf.section_ext _ _ _ _ (λ p, stalk_bundles_eq 𝓖 (opposite.op U) x y eq1 p)
 
 instance : mono $ to_godement_sheaf 𝓖 :=
 begin
@@ -275,8 +299,9 @@ begin
   intros x,
   change mono ((presheaf.stalk_functor C x).map (to_godement_presheaf 𝓖.1)),
   rw concrete_category.mono_iff_injective_of_preserves_pullback,
-  exact (presheaf.app_injective_iff_stalk_functor_map_injective (to_godement_presheaf 𝓖.1)).mpr
-    (to_godement_sheaf_app_injective 𝓖) x,
+  refine (presheaf.app_injective_iff_stalk_functor_map_injective (to_godement_presheaf 𝓖.1)).mpr
+    (λ U x y eq1, presheaf.section_ext _ _ _ _ (λ p, stalk_bundles_eq 𝓖 (opposite.op U) x y eq1 p))
+    x,
 end
 
 end presheaf

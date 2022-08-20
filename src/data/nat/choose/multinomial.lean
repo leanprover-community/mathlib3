@@ -6,7 +6,9 @@ Heavily inspired by code from Kyle Miller and Kevin Buzzard
 -/
 import data.nat.choose.basic
 import data.list.perm
-import tactic
+import data.finset.basic
+import algebra.big_operators.basic
+import tactic.linarith
 
 /-!
 # Multinomial

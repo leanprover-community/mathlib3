@@ -452,6 +452,9 @@ by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor a
 @[simp] lemma floor_coe (z : ℤ) : ⌊(z : α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 
+@[simp] lemma floor_coe' (n : ℕ) : ⌊(n : α)⌋ = n :=
+eq_of_forall_le_iff $ λ a, by rw [le_floor, ← cast_coe_nat, cast_le]
+
 @[simp] lemma floor_zero : ⌊(0 : α)⌋ = 0 := by rw [← int.cast_zero, floor_coe]
 
 @[simp] lemma floor_one : ⌊(1 : α)⌋ = 1 := by rw [← int.cast_one, floor_coe]
@@ -528,7 +531,7 @@ by rw [add_comm, fract_add_int]
 
 @[simp] lemma fract_sub_self (a : α) : fract a - a = -⌊a⌋ := sub_sub_cancel_left _ _
 
-lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
+@[simp] lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
 
 lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
 
@@ -537,13 +540,15 @@ lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
 @[simp] lemma fract_one : fract (1 : α) = 0 :=
 by simp [fract]
 
-@[simp] lemma abs_fract : |int.fract a| = int.fract a := abs_eq_self.mpr $ fract_nonneg a
+lemma abs_fract : |int.fract a| = int.fract a := abs_eq_self.mpr $ fract_nonneg a
 
 @[simp] lemma abs_one_sub_fract : |1 - fract a| = 1 - fract a :=
 abs_eq_self.mpr $ sub_nonneg.mpr (fract_lt_one a).le
 
 @[simp] lemma fract_coe (z : ℤ) : fract (z : α) = 0 :=
 by { unfold fract, rw floor_coe, exact sub_self _ }
+
+@[simp] lemma fract_coe' (n : ℕ) : fract (n : α) = 0 := by simp [fract]
 
 @[simp] lemma fract_floor (a : α) : fract (⌊a⌋ : α) = 0 := fract_coe _
 
@@ -764,6 +769,10 @@ def round (x : α) : ℤ := if 2 * fract x < 1 then ⌊x⌋ else ⌈x⌉
 @[simp] lemma round_zero : round (0 : α) = 0 := by simp [round]
 
 @[simp] lemma round_one : round (1 : α) = 1 := by simp [round]
+
+@[simp] lemma round_nat_cast (n : ℕ) : round (n : α) = n := by simp [round]
+
+@[simp] lemma round_int_cast (n : ℤ) : round (n : α) = n := by simp [round]
 
 lemma abs_sub_round_eq_min (x : α) : |x - round x| = min (fract x) (1 - fract x) :=
 begin

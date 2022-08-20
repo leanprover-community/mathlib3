@@ -541,6 +541,12 @@ begin
   simp only [not_le],
 end
 
+lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+begin
+  rw [max_comm, max_def, ← ite_not],
+  simp only [not_le],
+end
+
 end min_max_rec
 
 /-! ### `has_sup` and `has_inf` -/

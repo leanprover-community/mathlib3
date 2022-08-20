@@ -429,40 +429,24 @@ def pair_self_adjoint_matrices_submodule' : submodule R₃ (matrix n n R₃) :=
 lemma mem_pair_self_adjoint_matrices_submodule' :
   A ∈ (pair_self_adjoint_matrices_submodule J J₃) ↔ matrix.is_adjoint_pair J J₃ A A :=
 by simp only [mem_pair_self_adjoint_matrices_submodule]
-/-begin
-  simp only [pair_self_adjoint_matrices_submodule, linear_equiv.coe_coe,
-    linear_map.to_matrix'_apply, submodule.mem_map, bilin_form.mem_is_pair_self_adjoint_submodule],
-  split,
-  { rintros ⟨f, hf, hA⟩,
-    have hf' : f = A.to_lin' := by rw [←hA, matrix.to_lin'_to_matrix'], rw hf' at hf,
-    rw ← is_adjoint_pair_to_bilin',
-    exact hf, },
-  { intros h, refine ⟨A.to_lin', _, linear_map.to_matrix'_to_lin' _⟩,
-    exact (is_adjoint_pair_to_bilin' _ _ _ _).mpr h, },
-end-/
 
 /-- The submodule of self-adjoint matrices with respect to the bilinear form corresponding to
 the matrix `J`. -/
 def self_adjoint_matrices_submodule' : submodule R₃ (matrix n n R₃) :=
   pair_self_adjoint_matrices_submodule J J
 
-@[simp] lemma mem_self_adjoint_matrices_submodule' :
+lemma mem_self_adjoint_matrices_submodule' :
   A ∈ self_adjoint_matrices_submodule J ↔ J.is_self_adjoint A :=
 by simp only [mem_self_adjoint_matrices_submodule]
---{ erw mem_pair_self_adjoint_matrices_submodule, refl, }
 
 /-- The submodule of skew-adjoint matrices with respect to the bilinear form corresponding to
 the matrix `J`. -/
 def skew_adjoint_matrices_submodule' : submodule R₃ (matrix n n R₃) :=
   pair_self_adjoint_matrices_submodule (-J) J
 
-@[simp] lemma mem_skew_adjoint_matrices_submodule' :
+lemma mem_skew_adjoint_matrices_submodule' :
   A ∈ skew_adjoint_matrices_submodule J ↔ J.is_skew_adjoint A :=
-by simp only [mem_self_adjoint_matrices_submodule]
-/-begin
-  erw mem_pair_self_adjoint_matrices_submodule,
-  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair],
-end-/
+by simp only [mem_skew_adjoint_matrices_submodule]
 
 end matrix_adjoints
 

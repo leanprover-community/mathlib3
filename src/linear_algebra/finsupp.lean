@@ -110,7 +110,7 @@ rfl
 ker_eq_bot_of_injective (single_injective a)
 
 lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
-  (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
+  (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a : (α →₀ M) →ₗ[R] M)) :=
 begin
   refine supr_le (assume a₁, supr_le $ assume h₁, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
@@ -133,7 +133,8 @@ begin
 end
 
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
-  disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
+  disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range)
+    (⨆a∈t, (lsingle a : M →ₗ[R] (α →₀ M)).range) :=
 begin
   refine disjoint.mono
     (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
@@ -148,7 +149,7 @@ begin
 end
 
 lemma span_single_image (s : set M) (a : α) :
-  submodule.span R (single a '' s) = (submodule.span R s).map (lsingle a) :=
+  submodule.span R (single a '' s) = (submodule.span R s).map (lsingle a : M →ₗ[R] (α →₀ M)) :=
 by rw ← span_image; refl
 
 variables (M R)

@@ -133,6 +133,19 @@ lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map 
 ⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, algebra_map_aeval])⟩,
   is_algebraic_algebra_map_of_is_algebraic⟩
 
+lemma is_algebraic_of_pow {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r ^ n)) :
+  is_algebraic R r :=
+begin
+  obtain ⟨p, p_nonzero, hp⟩ := ht,
+  refine ⟨polynomial.expand _ n p, _, _⟩,
+  { rwa polynomial.expand_ne_zero hn },
+  { rwa polynomial.expand_aeval n p r },
+end
+
+lemma transcendental.pow {r : A} (ht : transcendental R r) {n : ℕ} (hn : 0 < n) :
+  transcendental R (r ^ n) :=
+λ ht', ht $ is_algebraic_of_pow hn ht'
+
 end zero_ne_one
 
 section field
@@ -216,7 +229,7 @@ begin
   obtain ⟨p, hp, he⟩ := ha b,
   let f' : p.root_set L → p.root_set L :=
     set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
-  have : function.surjective f' := fintype.injective_iff_surjective.1
+  have : function.surjective f' := finite.injective_iff_surjective.1
     (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
   obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
   exact ⟨a, subtype.ext_iff.1 ha⟩,

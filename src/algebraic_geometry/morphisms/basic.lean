@@ -96,6 +96,16 @@ lemma affine_cancel_right_is_iso
     (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g] [is_affine Z] [is_affine Y] : P (f ≫ g) ↔ P f :=
 by rw [← P.to_property_apply, ← P.to_property_apply, hP.cancel_right_is_iso]
 
+lemma affine_target_morphism_property.respects_iso_mk {P : affine_target_morphism_property}
+  (h₁ : ∀ {X Y Z} (e : X ≅ Y) (f : Y ⟶ Z) [is_affine Z], by exactI P f → P (e.hom ≫ f))
+  (h₂ : ∀ {X Y Z} (e : Y ≅ Z) (f : X ⟶ Y) [h : is_affine Y],
+     by exactI P f → @@P (f ≫ e.hom) (is_affine_of_iso e.inv)) : P.to_property.respects_iso :=
+begin
+  split,
+  { rintros X Y Z e f ⟨a, h⟩, exactI ⟨a, h₁ e f h⟩ },
+  { rintros X Y Z e f ⟨a, h⟩, exactI ⟨is_affine_of_iso e.inv, h₂ e f h⟩ },
+end
+
 /-- For a `P : affine_target_morphism_property`, `target_affine_locally P` holds for
 `f : X ⟶ Y` whenever `P` holds for the restriction of `f` on every affine open subset of `Y`. -/
 def target_affine_locally (P : affine_target_morphism_property) : morphism_property Scheme :=
@@ -371,11 +381,58 @@ begin
   tfae_finish
 end
 
-lemma affine_target_morphism_property.is_local.open_cover_iff
+lemma property_is_local_at_target.open_cover_iff
   {P : morphism_property Scheme} (hP : property_is_local_at_target P)
   {X Y : Scheme.{u}} (f : X ⟶ Y) (𝒰 : Scheme.open_cover.{u} Y) :
   P f ↔ ∀ i, P (pullback.snd : pullback f (𝒰.map i) ⟶ _) :=
 ⟨λ H, let h := ((hP.open_cover_tfae f).out 0 2).mp H in h 𝒰,
   λ H, let h := ((hP.open_cover_tfae f).out 1 0).mp in h ⟨𝒰, H⟩⟩
+
+namespace affine_target_morphism_property
+
+/-- A `P : affine_target_morphism_property` is stable under base change if `P` holds for `Y ⟶ S`
+implies that `P` holds for `X ×ₛ Y ⟶ X` with `X` and `S` affine schemes. -/
+def stable_under_base_change
+  (P : affine_target_morphism_property) : Prop :=
+∀ ⦃X Y S : Scheme⦄ [is_affine S] [is_affine X] (f : X ⟶ S) (g : Y ⟶ S),
+  by exactI P g → P (pullback.fst : pullback f g ⟶ X)
+
+lemma is_local.target_affine_locally_pullback_fst_of_right_of_stable_under_base_change
+  {P : affine_target_morphism_property} (hP : P.is_local) (hP' : P.stable_under_base_change)
+  {X Y S : Scheme} (f : X ⟶ S) (g : Y ⟶ S) [is_affine S] (H : P g) :
+  target_affine_locally P (pullback.fst : pullback f g ⟶ X) :=
+begin
+  rw (hP.affine_open_cover_tfae (pullback.fst : pullback f g ⟶ X)).out 0 1,
+  use [X.affine_cover, infer_instance],
+  intro i,
+  let e := pullback_symmetry _ _ ≪≫ pullback_right_pullback_fst_iso f g (X.affine_cover.map i),
+  have : e.hom ≫ pullback.fst = pullback.snd := by simp,
+  rw [← this, affine_cancel_left_is_iso hP.1],
+  apply hP'; assumption,
+end
+
+lemma is_local.stable_under_base_change
+  {P : affine_target_morphism_property} (hP : P.is_local) (hP' : P.stable_under_base_change) :
+  (target_affine_locally P).stable_under_base_change  :=
+begin
+  introv X H,
+  rw (hP.target_affine_locally_is_local.open_cover_tfae (pullback.fst : pullback f g ⟶ X)).out 0 1,
+  use S.affine_cover.pullback_cover f,
+  intro i,
+  rw (hP.affine_open_cover_tfae g).out 0 3 at H,
+  let e : pullback (pullback.fst : pullback f g ⟶ _) ((S.affine_cover.pullback_cover f).map i) ≅ _,
+  { refine pullback_symmetry _ _ ≪≫ pullback_right_pullback_fst_iso f g _ ≪≫ _ ≪≫
+      (pullback_right_pullback_fst_iso (S.affine_cover.map i) g
+        (pullback.snd : pullback f (S.affine_cover.map i) ⟶ _)).symm,
+    exact as_iso (pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _)
+      (by simpa using pullback.condition) (by simp)) },
+  have : e.hom ≫ pullback.fst = pullback.snd := by simp,
+  rw [← this, (target_affine_locally_respects_iso hP.1).cancel_left_is_iso],
+  apply hP.target_affine_locally_pullback_fst_of_right_of_stable_under_base_change hP',
+  rw [← pullback_symmetry_hom_comp_snd, affine_cancel_left_is_iso hP.1],
+  apply H
+end
+
+end affine_target_morphism_property
 
 end algebraic_geometry

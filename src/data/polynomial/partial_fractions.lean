@@ -151,11 +151,23 @@ open_locale big_operators
 begin
   classical,
   apply s.induction_on,
-  { simp only [finset.prod_empty],
-    sorry },
+  { unfold_coes,
+    simp only [finset.prod_empty, ring_hom.to_fun_eq_coe, map_one], },
   { intros j s hjs H,
     rw [finset.prod_insert hjs, finset.prod_insert hjs, ← H,
         ← polynomial.coe_algebra_map_mul _ _ (a j) (∏ (i : ι) in s, a i)], },
+end
+
+@[norm_cast] lemma coe_algebra_map_fin_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
+  ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, ((a i):K) :=
+begin
+classical,
+  apply s.induction_on,
+  { unfold_coes,
+    simp only [finset.sum_empty, ring_hom.to_fun_eq_coe, map_zero], },
+  { intros j s hjs H,
+    rw [finset.sum_insert hjs, finset.sum_insert hjs, ← H,
+        ← polynomial.coe_algebra_map_add _ _ (a j) (∑ (i : ι) in s, a i)], },
 end
 
 @[norm_cast] lemma coe_algebra_map_inj_iff (a b : R[X]) : (a : K) = b ↔ a = b :=

@@ -343,8 +343,8 @@ variables {R A B C}
 
 /-- The `pi.prod` of two morphisms is a morphism. -/
 @[simps] def prod (f : A →⋆ₙₐ[R] B) (g : A →⋆ₙₐ[R] C) : (A →⋆ₙₐ[R] B × C) :=
-{ map_star' := λ x, by simp only [pi.prod, prod.star_def, map_star],
-  .. non_unital_alg_hom.prod f g }
+{ map_star' := λ x, by simp [map_star, prod.star_def],
+  .. f.to_non_unital_alg_hom.prod g.to_non_unital_alg_hom }
 
 lemma coe_prod (f : A →⋆ₙₐ[R] B) (g : A →⋆ₙₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
 

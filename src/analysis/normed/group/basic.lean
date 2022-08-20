@@ -249,6 +249,9 @@ structure normed_group.core (E : Type*) [group E] [has_norm E]
   extends seminormed_group.core E : Prop :=
 (eq_one_of_norm : ∀ x : E, ∥x∥ = 0 → x = 1)
 
+-- The structure command incorrectly marks those as definitions
+attribute [nolint def_lemma doc_blame] normed_group.core.to_core normed_add_group.core.to_core
+
 /-- Constructing a seminormed group from core properties of a seminorm, i.e., registering the
 pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
 cases this instance creates bad definitional equalities (e.g., it does not take into account
@@ -346,7 +349,7 @@ lemma norm_inv' (a : E) : ∥a⁻¹∥ = ∥a∥ := by simpa using norm_div_rev 
 @[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
 by simp [dist_eq_norm_div]
 
-@[simp, to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
+@[to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
 by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
 
 @[simp, to_additive] lemma dist_div_eq_dist_mul_left (a b c : E) :

@@ -219,6 +219,7 @@ end
 protected lemma linear_independent.eventually {ι} [finite ι] {f : ι → E}
   (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
 begin
+  casesI nonempty_fintype ι,
   simp only [fintype.linear_independent_iff'] at hf ⊢,
   rcases linear_map.exists_antilipschitz_with _ hf with ⟨K, K0, hK⟩,
   have : tendsto (λ g : ι → E, ∑ i, ∥g i - f i∥) (𝓝 f) (𝓝 $ ∑ i, ∥f i - f i∥),
@@ -333,7 +334,8 @@ by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
 /-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
 lemma basis.exists_op_nnnorm_le {ι : Type*} [finite ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
-⟨ max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
+by casesI nonempty_fintype ι; exact
+  ⟨max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
   zero_lt_one.trans_le (le_max_right _ _),
   λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le M)⟩
 

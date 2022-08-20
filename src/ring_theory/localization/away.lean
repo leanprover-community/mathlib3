@@ -174,6 +174,8 @@ open polynomial adjoin_root localization
 
 variables {R : Type*} [comm_ring R] (M : submonoid R)
 
+local attribute [instance] is_localization.alg_hom_subsingleton
+
 /-- The `R`-`alg_equiv` between the localization of `R` away from `r` and
     `R` with an inverse of `r` adjoined. -/
 noncomputable def localization.away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=

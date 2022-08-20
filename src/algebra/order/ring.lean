@@ -758,11 +758,11 @@ le_of_not_gt $ λ ha, (mul_neg_of_neg_of_pos ha hb).not_le h
 lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : 0 < a) : 0 ≤ b :=
 le_of_not_gt $ λ hb, (mul_neg_of_pos_of_neg ha hb).not_le h
 
-lemma neg_of_mul_neg_left (h : a * b < 0) (ha : 0 ≤ a) : b < 0 :=
-lt_of_not_ge (λ hb : 0 ≤ b, (decidable.mul_nonneg ha hb).not_lt h)
+lemma neg_of_mul_neg_left (h : a * b < 0) (hb : 0 ≤ b) : a < 0 :=
+lt_of_not_ge $ λ ha, (decidable.mul_nonneg ha hb).not_lt h
 
-lemma neg_of_mul_neg_right (h : a * b < 0) (hb : 0 ≤ b) : a < 0 :=
-lt_of_not_ge (assume ha : 0 ≤ a, (decidable.mul_nonneg ha hb).not_lt h)
+lemma neg_of_mul_neg_right (h : a * b < 0) (ha : 0 ≤ a) : b < 0 :=
+lt_of_not_ge $ λ hb, (decidable.mul_nonneg ha hb).not_lt h
 
 lemma nonpos_of_mul_nonpos_left (h : a * b ≤ 0) (hb : 0 < b) : a ≤ 0 :=
 le_of_not_gt (assume ha : a > 0, (mul_pos ha hb).not_le h)

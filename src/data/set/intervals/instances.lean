@@ -32,9 +32,12 @@ The strongest typeclass provided on each interval is:
 
 -/
 
-variables {α : Type*} [ordered_semiring α]
-
 open set
+
+variables {α : Type*}
+
+section ordered_semiring
+variables [ordered_semiring α]
 
 /-! ### Instances for `↥(set.Icc 0 1)` -/
 
@@ -153,6 +156,10 @@ instance comm_semigroup {α : Type*} [ordered_comm_semiring α] : comm_semigroup
 subtype.coe_injective.comm_semigroup _ coe_mul
 
 end set.Ico
+
+end ordered_semiring
+
+variables [ordered_cancel_semiring α]
 
 /-! ### Instances for `↥(set.Ioc 0 1)` -/
 

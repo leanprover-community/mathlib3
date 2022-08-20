@@ -121,10 +121,24 @@ instance to_ordered_semiring {R} [ordered_semiring R] [set_like S R] [subsemirin
 subtype.coe_injective.ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
+/-- A subsemiring of an `ordered_cancel_semiring` is an `ordered_cancel_semiring`. -/
+instance to_ordered_cancel_semiring {R} [ordered_cancel_semiring R] [set_like S R]
+  [subsemiring_class S R] :
+  ordered_cancel_semiring s :=
+subtype.coe_injective.ordered_cancel_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] [set_like S R]
   [subsemiring_class S R] : ordered_comm_semiring s :=
 subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+/-- A subsemiring of an `ordered_cancel_comm_semiring` is an `ordered_cancel_comm_semiring`. -/
+instance to_ordered_cancel_comm_semiring {R} [ordered_cancel_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] :
+  ordered_cancel_comm_semiring s :=
+subtype.coe_injective.ordered_cancel_comm_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
@@ -334,9 +348,9 @@ def subtype : s →+* R :=
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
-/-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
-instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
-subtype.coe_injective.ordered_semiring coe
+/-- A subsemiring of an `ordered_cancel_semiring` is an `ordered_cancel_semiring`. -/
+instance to_ordered_semiring {R} [ordered_cancel_semiring R] (s : subsemiring R) : ordered_cancel_semiring s :=
+subtype.coe_injective.ordered_cancel_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
@@ -1069,14 +1083,14 @@ end subsemiring
 end actions
 
 -- While this definition is not about `subsemiring`s, this is the earliest we have
--- both `ordered_semiring` and `submonoid` available.
+-- both `ordered_cancel_semiring` and `submonoid` available.
 
 
 /-- Submonoid of positive elements of an ordered semiring. -/
-def pos_submonoid (R : Type*) [ordered_semiring R] [nontrivial R] : submonoid R :=
+def pos_submonoid (R : Type*) [ordered_cancel_semiring R] [nontrivial R] : submonoid R :=
 { carrier := {x | 0 < x},
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-@[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : Rˣ) :
+@[simp] lemma mem_pos_monoid {R : Type*} [ordered_cancel_semiring R] [nontrivial R] (u : Rˣ) :
   ↑u ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

@@ -394,7 +394,8 @@ section order
 
 variables {n : ℕ} {x : α}
 
-lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < ∑ i in range n, x ^ i :=
+lemma geom_sum_pos [ordered_cancel_semiring α] (hx : 0 < x) (hn : n ≠ 0) :
+  0 < ∑ i in range n, x ^ i :=
 sum_pos (λ k hk, pow_pos hx _) $ nonempty_range_iff.2 hn
 
 lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :

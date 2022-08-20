@@ -690,9 +690,9 @@ lemma tendsto_neg_at_bot_at_top : tendsto (has_neg.neg : β → β) at_bot at_to
 
 end ordered_group
 
-section ordered_semiring
+section ordered_cancel_semiring
 
-variables [ordered_semiring α] {l : filter β} {f g : β → α}
+variables [ordered_cancel_semiring α] {l : filter β} {f g : β → α}
 
 lemma tendsto_bit1_at_top : tendsto bit1 (at_top : filter α) at_top :=
 tendsto_at_top_add_nonneg_right tendsto_bit0_at_top (λ _, zero_le_one)
@@ -717,7 +717,7 @@ begin
   simpa only [pow_one] using pow_le_pow hx hn
 end
 
-end ordered_semiring
+end ordered_cancel_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
   (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=

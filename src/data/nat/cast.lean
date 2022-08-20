@@ -56,8 +56,7 @@ lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * 
 lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
-section
-
+section ordered_semiring
 variables [ordered_semiring α]
 
 @[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
@@ -68,6 +67,17 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 
 variable [nontrivial α]
 
+lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
+zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
+
+lemma cast_pos_of_pos {n : ℕ} (hn : 0 < n) : (0 : α) < n :=
+by { cases hn, exact cast_add_one_pos _ }
+
+end ordered_semiring
+
+section ordered_cancel_semiring
+variables [ordered_cancel_semiring α]
+
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
@@ -77,9 +87,6 @@ strict_mono_cast.lt_iff_lt
 
 @[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
-
-lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
-  add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 @[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]
@@ -93,7 +100,7 @@ by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 @[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
 
-end
+end ordered_cancel_semiring
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=

@@ -163,7 +163,7 @@ ordered_smul.mk'' (λ c hc, is_unit.mk0 _ hc) hlt
 
 instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_semiring R] :
   ordered_smul R R :=
-{ smul_lt_smul_of_pos        := ordered_semiring.mul_lt_mul_of_pos_left,
+{ smul_lt_smul_of_pos        := λ _ _ _, mul_lt_mul_of_pos_left,
   lt_of_smul_lt_smul_of_pos  := λ _ _ _ h hc, lt_of_mul_lt_mul_left h hc.le }
 
 section field

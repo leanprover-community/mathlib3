@@ -126,15 +126,6 @@ end
 
 end div_inv_monoid
 
-namespace canonically_ordered_comm_semiring
-
-variables [canonically_ordered_comm_semiring R]
-
-theorem pow_pos {a : R} (H : 0 < a) (n : ℕ) : 0 < a ^ n :=
-pos_iff_ne_zero.2 $ pow_ne_zero _ H.ne'
-
-end canonically_ordered_comm_semiring
-
 section ordered_semiring
 variables [ordered_semiring R] {a x y : R} {n m : ℕ}
 
@@ -159,22 +150,14 @@ begin
       by { rw [pow_succ _ n], exact mul_le_mul_of_nonneg_left (ih (nat.succ_ne_zero k)) h2 }
 end
 
-theorem pow_lt_pow_of_lt_left (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
-  x ^ n < y ^ n :=
-begin
-  cases lt_or_eq_of_le Hxpos,
-  { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt Hnpos),
-    induction (n - 1), { simpa only [pow_one] },
-    rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
-    apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },
-  { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
-end
+lemma pow_le_one : ∀ (n : ℕ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1), a ^ n ≤ 1
+| 0       h₀ h₁ := (pow_zero a).le
+| (n + 1) h₀ h₁ := (pow_succ' a n).le.trans (mul_le_one (pow_le_one n h₀ h₁) h₀ h₁)
 
-lemma pow_lt_one (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) : a ^ n < 1 :=
-(one_pow n).subst (pow_lt_pow_of_lt_left h₁ h₀ (nat.pos_of_ne_zero hn))
-
-theorem strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
-λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
+lemma pow_lt_one (h₀ : 0 ≤ a) (h₁ : a < 1) : ∀ {n : ℕ} (hn : n ≠ 0), a ^ n < 1
+| 0 h := (h rfl).elim
+| (n + 1) h :=
+  by { rw pow_succ, exact mul_lt_one_of_nonneg_of_lt_one_left h₀ h₁ (pow_le_one _ h₀ h₁.le) }
 
 theorem one_le_pow_of_one_le (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | 0     := by rw [pow_zero]
@@ -190,6 +173,44 @@ pow_mono ha h
 
 theorem le_self_pow (ha : 1 ≤ a) (h : 1 ≤ m) : a ≤ a ^ m :=
 eq.trans_le (pow_one a).symm (pow_le_pow ha h)
+
+@[mono] lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
+| 0     := by simp
+| (k+1) := by { rw [pow_succ, pow_succ],
+    exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
+
+lemma one_lt_pow (ha : 1 < a) : ∀ {n : ℕ} (hn : n ≠ 0), 1 < a ^ n
+| 0 h := (h rfl).elim
+| (n + 1) h :=
+  by { rw pow_succ, exact one_lt_mul_of_lt_of_le ha (one_le_pow_of_one_le ha.le _) }
+
+end ordered_semiring
+
+namespace canonically_ordered_comm_semiring
+
+variables [canonically_ordered_comm_semiring R]
+
+theorem pow_pos {a : R} (H : 0 < a) (n : ℕ) : 0 < a ^ n :=
+pos_iff_ne_zero.2 $ pow_ne_zero _ H.ne'
+
+end canonically_ordered_comm_semiring
+
+section ordered_cancel_semiring
+variables [ordered_cancel_semiring R] {a x y : R} {n m : ℕ}
+
+theorem pow_lt_pow_of_lt_left (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
+  x ^ n < y ^ n :=
+begin
+  cases lt_or_eq_of_le Hxpos,
+  { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt Hnpos),
+    induction (n - 1), { simpa only [pow_one] },
+    rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
+    apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },
+  { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
+end
+
+theorem strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
+λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
 lemma strict_mono_pow (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
 have 0 < a := zero_le_one.trans_lt h,
@@ -215,21 +236,9 @@ lemma pow_lt_pow_iff_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) : a ^ m < a ^ n ↔
 lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
 (pow_lt_pow_iff_of_lt_one h ha).2 hij
 
-@[mono] lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
-| 0     := by simp
-| (k+1) := by { rw [pow_succ, pow_succ],
-    exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
-
-lemma one_lt_pow (ha : 1 < a) {n : ℕ} (hn : n ≠ 0) : 1 < a ^ n :=
-pow_zero a ▸ pow_lt_pow ha (pos_iff_ne_zero.2 hn)
-
-lemma pow_le_one : ∀ (n : ℕ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1), a ^ n ≤ 1
-| 0       h₀ h₁ := (pow_zero a).le
-| (n + 1) h₀ h₁ := (pow_succ' a n).le.trans (mul_le_one (pow_le_one n h₀ h₁) h₀ h₁)
-
 lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha }
 
-end ordered_semiring
+end ordered_cancel_semiring
 
 section ordered_ring
 variables [ordered_ring R] {a : R}

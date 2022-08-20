@@ -48,36 +48,16 @@ structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_group
 
 attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
-private lemma map_zero.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_group E]
-  [smul_with_zero 𝕜 E] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : f 0 = 0 :=
-calc f 0 = f ((0 : 𝕜) • 0) : by rw zero_smul
-     ... = 0 : by rw [smul, norm_zero, zero_mul]
-
-private lemma neg.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E]
-  [module 𝕜 E] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) (x : E) :
-  f (-x) = f x :=
-by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul]
-
-private lemma nonneg.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  {f : E → ℝ} (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
-  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) (x : E) : 0 ≤ f x :=
-have h: 0 ≤ 2 * f x, from
-calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero.of_smul smul]
-...    ≤ f x + f (-x)  : add_le _ _
-...    = 2 * f x : by rw [neg.of_smul smul, two_mul],
-nonneg_of_mul_nonneg_right h zero_lt_two
-
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
 `semi_norm_ring 𝕜`. -/
 def seminorm.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   (f : E → ℝ) (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
-  map_zero' := map_zero.of_smul smul,
-  nonneg'   := nonneg.of add_le smul,
+  map_zero' := by rw [←zero_smul 𝕜 (0 : E), smul, norm_zero, zero_mul],
   add_le'   := add_le,
   smul'     := smul,
-  neg'      := neg.of_smul smul }
+  neg'      := λ x, by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul] }
 
 namespace seminorm
 
@@ -112,7 +92,7 @@ instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
-protected lemma nonneg : 0 ≤ p x := p.nonneg' _
+protected lemma nonneg : 0 ≤ p x := p.to_add_group_seminorm.nonneg _
 protected lemma map_zero : p 0 = 0 := p.map_zero'
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma add_le : p (x + y) ≤ p x + p y := p.add_le' _ _

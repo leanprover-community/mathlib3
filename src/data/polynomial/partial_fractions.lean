@@ -8,6 +8,7 @@ import data.polynomial.div -- theory of division and remainder for monic polynom
 import tactic.field_simp
 import tactic
 import data.zmod.basic
+import logic.function.basic
 /-
 
 # Partial fractions
@@ -254,7 +255,7 @@ section n_denominators
 open_locale big_operators
 
 lemma finite_product_of_monics_is_monic {ι : Type*} {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (s : finset ι) : (∏ i in s, g i).monic :=
+  (hg : ∀ (i : ι), (g i).monic) (s : finset ι) : (∏ i in s, g i).monic :=
 begin
   have h0 := monic_prod_of_monic s g _,
   { exact h0 },
@@ -292,25 +293,83 @@ begin
     { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
   { intros a b hab H,
     rcases H with ⟨q, r, Hdeg, Hind⟩,
-    have hcalc : (f : K) / ((g a) * ((∏ (j : ι) in b, ↑(g j)))) = (1 / (g a)) * ((f : K) / ((∏ (j : ι) in b, ↑(g j)))),
-      { field_simp, },
+    have hcalc : (f : K) / ((g a) * ((∏ (j : ι) in b, ↑(g j)))) =
+      (1 / (g a)) * ((f : K) / ((∏ (j : ι) in b, ↑(g j)))),
+    { field_simp, },
     rw [finset.prod_insert hab, hcalc, Hind, mul_add, mul_finite_sum],
     field_simp,
 
     sorry, },
 end
 
-/- SCRATCH (PROBABLY USELESS)
-have h1 : (∏ (i : ι) in insert a b, ↑(g i)) = ↑(g a) * (∏ (j : ι) in b, ↑(g j)),
-{ --exact finset.prod_insert hab, -- should work... right?
-refine unit.ext,
-{ exact comm_ring.to_comm_monoid unit },
-{ apply has_lift_t.mk, intro rx, exact (), },
-{ exact distrib.to_has_mul unit },
-{ apply has_lift_t.mk, intro rx, exact (), },
-{ exact comm_ring.to_comm_monoid unit, },
-{ apply has_lift_t.mk, intro rx, exact (), }, },
--/
+lemma div_eq_quo_add_sum_rem_div' (f : R[X]) {ι : Type*} {g : ι → R[X]}
+  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
+  (s : finset ι) [nonempty s] :
+  ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
+  (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
+begin
+  classical,
+  revert f,
+  apply s.induction_on,
+  { intro f,
+    refine ⟨f, (λ (i : ι), (0 : R[X])), _⟩,
+    split,
+    { intro i,
+      rw [degree_zero, bot_lt_iff_ne_bot],
+      intro hdg,
+      specialize hg i,
+      rw degree_eq_bot at hdg, rw hdg at hg,
+      have h0nmonic : ¬ (0:R[X]).monic := not_monic_zero,
+      contradiction, },
+    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
+  { intros a b hab Hind f,
+    rw finset.prod_insert hab,
+    have hcoprimecalc : is_coprime (g a) (∏ (x : ι) in b, (g x)),
+    { unfold is_coprime,
+      sorry },
+    have hdiv : ∃ q r₁ r₂ : R[X], r₁.degree < (g a).degree ∧
+      r₂.degree < (∏ (x : ι) in b, (g x)).degree ∧ (f : K) / ((g a) * (∏ (x : ι) in b, (g x))) =
+      q + r₁ / (g a) + r₂ / (∏ (x : ι) in b, (g x)),
+    { --have hpmonic : (∏ (x : ι) in b, (g x)).monic := finite_product_of_monics_is_monic (hg) b,
+      /- above line gives error
+        term `hg` has type `∀ (i : ι), (g i).monic : Prop` but is expected
+        to have type `Type : Type 1`
+      -/
+      --exact div_eq_quo_add_rem_div_add_rem_div (hg a) (hpmonic) (hcoprimecalc),
+      sorry },
+    rcases hdiv with ⟨ q', r1', r2', hd1, hd2, H2 ⟩,
+    rw H2,
+    specialize Hind r2',
+    rcases Hind with ⟨Q, R', Hdeg', H3⟩,
+    rw H3,
+    let myR : ι → R[X] := λ i, if i = a then r1' else R' i,
+    refine ⟨q' + Q, myR , _ ⟩,
+    have hc1 : myR a = r1',
+      simp only [ite_eq_left_iff, eq_self_iff_true, not_true, is_empty.forall_iff],
+    have hc2 : ∀i : ι, i ≠ a → myR i = R' i,
+      { intros i hi,
+        rw ite_eq_right_iff,
+        intro ha,
+        exfalso,
+        contradiction, },
+    split,
+    { intro i,
+      cases (eq_or_ne i a) with heq hne,
+      { rw [heq, hc1],
+        exact hd1, },
+      { rw hc2 i hne,
+        exact Hdeg' i, }, },
+    { rw [finset.sum_insert hab, hc1],
+      have hc3 : ∀ i : ι, i ∈ b → myR i = R' i,
+      { intros i hib,
+        have hia : i ≠ a,
+          { intro hi,
+            rw ← hi at hab,
+            contradiction, },
+        exact hc2 i hia, },
+      sorry, },
+  },
+end
 
 -- uniqueness
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g : ι → R[X]}

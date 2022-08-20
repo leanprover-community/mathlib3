@@ -311,4 +311,3 @@ def equiv_exterior [invertible (2 : R)] : clifford_algebra Q ≃ₗ[R] exterior_
   by simp [quadratic_form.to_quadratic_form_associated])
 
 end clifford_algebra
-#lint

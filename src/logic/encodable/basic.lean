@@ -339,11 +339,9 @@ section ulower
 local attribute [instance, priority 100] encodable.decidable_range_encode
 
 /-- `ulower α : Type` is an equivalent type in the lowest universe, given `encodable α`. -/
-@[derive [decidable_eq, encodable]]
+@[derive decidable_eq, derive encodable]
 def ulower (α : Type*) [encodable α] : Type :=
 set.range (encodable.encode : α → ℕ)
-
-instance {α : Type*} [encodable α] : countable (ulower α) := subtype.countable
 
 end ulower
 

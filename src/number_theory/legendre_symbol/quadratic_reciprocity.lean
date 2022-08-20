@@ -78,7 +78,7 @@ end
 lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
   a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 begin
-  cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
+  cases prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, revert a ha, dec_trivial },
   rw [← mul_self_eq_one_iff, ← pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
   exact pow_card_sub_one_eq_one ha
@@ -120,7 +120,7 @@ begin
       rw [legendre_sym, quadratic_char_eq_one_of_char_two hc ha],
       revert ha,
       generalize : (a : zmod 2) = b, revert b, dec_trivial } },
-  { convert quadratic_char_eq_pow_of_char_ne_two'' hc (a : zmod p),
+  { convert quadratic_char_eq_pow_of_char_ne_two' hc (a : zmod p),
     exact (card p).symm },
 end
 
@@ -148,7 +148,7 @@ lemma legendre_sym_mul (a b : ℤ) : legendre_sym p (a * b) = legendre_sym p a *
 begin
   rw [legendre_sym, legendre_sym, legendre_sym],
   push_cast,
-  exact quadratic_char_mul (a : zmod p) b,
+  exact quadratic_char_fun_mul (a : zmod p) b,
 end
 
 /-- The Legendre symbol is a homomorphism of monoids with zero. -/
@@ -254,8 +254,8 @@ end
 lemma exists_sq_eq_two_iff : is_square (2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 begin
   rw [finite_field.is_square_two_iff, card p],
-  have h₁ := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp,
-  rw [← nat.mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
+  have h₁ := prime.mod_two_eq_one_iff_ne_two.mpr hp,
+  rw [← mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
   have h₂ := mod_lt p (by norm_num : 0 < 8),
   revert h₂ h₁,
   generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
@@ -275,8 +275,8 @@ end
 lemma exists_sq_eq_neg_two_iff : is_square (-2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 3 :=
 begin
   rw [finite_field.is_square_neg_two_iff, card p],
-  have h₁ := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp,
-  rw [← nat.mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
+  have h₁ := prime.mod_two_eq_one_iff_ne_two.mpr hp,
+  rw [← mod_mod_of_dvd p (by norm_num : 2 ∣ 8)] at h₁,
   have h₂ := mod_lt p (by norm_num : 0 < 8),
   revert h₂ h₁,
   generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
@@ -299,12 +299,12 @@ include hpp hqp
 theorem quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
 begin
-  have hp₁ := (nat.prime.eq_two_or_odd hpp.1).resolve_left hp,
-  have hq₁ := (nat.prime.eq_two_or_odd hqp.1).resolve_left hq,
+  have hp₁ := (prime.eq_two_or_odd hpp.1).resolve_left hp,
+  have hq₁ := (prime.eq_two_or_odd hqp.1).resolve_left hq,
   have hq₂ := ne_of_eq_of_ne (ring_char_zmod_n q) hq,
   have hpq₁ : (p : zmod q) ≠ 0 :=
   (mt (nat_coe_zmod_eq_zero_iff_dvd p q).mp
-        $ mt (nat.prime_dvd_prime_iff_eq hqp.1 hpp.1).mp hpq.symm),
+        $ mt (prime_dvd_prime_iff_eq hqp.1 hpp.1).mp hpq.symm),
   have h := quadratic_char_odd_prime (ne_of_eq_of_ne (ring_char_zmod_n p) hp) hq
               (ne_of_eq_of_ne (ring_char_zmod_n p) hpq),
   rw [card p] at h,
@@ -338,7 +338,7 @@ then `(q / p) = (p / q)`. -/
 theorem quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
   legendre_sym q p = legendre_sym p q :=
 begin
-  have hp' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_one hp),
+  have hp' := prime.mod_two_eq_one_iff_ne_two.mp (odd_of_mod_four_eq_one hp),
   rw [quadratic_reciprocity' hp' hq, pow_mul, neg_one_pow_div_two_of_one_mod_four hp,
       one_pow, one_mul],
 end
@@ -348,8 +348,8 @@ to `3` mod `4`, then `(q / p) = -(p / q)`. -/
 theorem quadratic_reciprocity_three_mod_four (hp : p % 4 = 3) (hq : q % 4 = 3):
   legendre_sym q p = -legendre_sym p q :=
 begin
-  have hp' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_three hp),
-  have hq' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_three hq),
+  have hp' := prime.mod_two_eq_one_iff_ne_two.mp (odd_of_mod_four_eq_three hp),
+  have hq' := prime.mod_two_eq_one_iff_ne_two.mp (odd_of_mod_four_eq_three hq),
   rw [quadratic_reciprocity' hp' hq', pow_mul, neg_one_pow_div_two_of_three_mod_four hp,
       neg_one_pow_div_two_of_three_mod_four hq, neg_one_mul],
 end

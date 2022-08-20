@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 
 import data.fun_like.embedding
-import tactic.congr
 
 /-!
 # Typeclass for a type `F` with an injective map to `A ≃ B`

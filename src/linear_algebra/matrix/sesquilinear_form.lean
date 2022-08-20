@@ -46,6 +46,10 @@ variables [fintype n] [fintype m]
 
 variables (σ₁ : R₁ →+* R) (σ₂ : R₂ →+* R)
 
+
+/-- The map from `matrix n n R` to bilinear forms on `n → R`.
+
+This is an auxiliary definition for the equivalence `matrix.to_linear_map₂'`. -/
 def matrix.to_linear_map₂'_aux  (f : matrix n m R) :
   (n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R :=
 mk₂'ₛₗ σ₁ σ₂ (λ (v : n → R₁) (w : m → R₂), ∑ i j, σ₁ (v i) * f i j * σ₂ (w j))
@@ -56,13 +60,6 @@ mk₂'ₛₗ σ₁ σ₂ (λ (v : n → R₁) (w : m → R₂), ∑ i j, σ₁ (
     simp only [pi.smul_apply, smul_eq_mul, ring_hom.map_mul, mul_assoc, mul_left_comm, mul_sum] )
 
 variables [decidable_eq n] [decidable_eq m]
-
-@[simp] lemma std_basis_apply' (i i' : n) : (std_basis R₁ (λ (_x : n), R₁) i) 1 i' =
-  ite (i = i') 1 0  :=
-begin
-  rw [linear_map.std_basis_apply, function.update_apply, pi.zero_apply],
-  congr' 1, rw [eq_iff_iff, eq_comm],
-end
 
 @[simp] lemma ring_hom_ite_zero_one (p : Prop) [decidable p] : σ₁ (ite p 0 1) = ite p 0 1 :=
 by { split_ifs; simp [h] }

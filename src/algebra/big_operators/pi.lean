@@ -61,7 +61,7 @@ lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
 by { ext a, simp }
 
 lemma add_monoid_hom.functions_ext [finite I] (G : Type*) [add_comm_monoid G]
-  (g h : (Π i, Z i) →+ G) (H : ∀ i x, g (pi.single i x) = h (pi.single i x)) :g = h :=
+  (g h : (Π i, Z i) →+ G) (H : ∀ i x, g (pi.single i x) = h (pi.single i x)) : g = h :=
 begin
   casesI nonempty_fintype I,
   ext k,

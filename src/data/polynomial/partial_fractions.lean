@@ -280,35 +280,6 @@ lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
   (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
 begin
   classical,
-  apply s.induction_on,
-  { refine ⟨f, (λ (i : ι), (0 : R[X])), _⟩,
-    split,
-    { intro i,
-      rw [degree_zero, bot_lt_iff_ne_bot],
-      intro hdg,
-      specialize hg i,
-      rw degree_eq_bot at hdg, rw hdg at hg,
-      have h0nmonic : ¬ (0:R[X]).monic := not_monic_zero,
-      contradiction, },
-    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
-  { intros a b hab H,
-    rcases H with ⟨q, r, Hdeg, Hind⟩,
-    have hcalc : (f : K) / ((g a) * ((∏ (j : ι) in b, ↑(g j)))) =
-      (1 / (g a)) * ((f : K) / ((∏ (j : ι) in b, ↑(g j)))),
-    { field_simp, },
-    rw [finset.prod_insert hab, hcalc, Hind, mul_add, mul_finite_sum],
-    field_simp,
-
-    sorry, },
-end
-
-lemma div_eq_quo_add_sum_rem_div' (f : R[X]) {ι : Type*} {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (s : finset ι) [nonempty s] :
-  ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
-  (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
-begin
-  classical,
   revert f,
   apply s.induction_on,
   { intro f,
@@ -382,3 +353,35 @@ begin
 end
 
 end n_denominators
+
+
+/-
+lemma div_eq_quo_add_sum_rem_div' (f : R[X]) {ι : Type*} {g : ι → R[X]}
+  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
+  (s : finset ι) [nonempty s] :
+  ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
+  (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
+begin
+  classical,
+  apply s.induction_on,
+  { refine ⟨f, (λ (i : ι), (0 : R[X])), _⟩,
+    split,
+    { intro i,
+      rw [degree_zero, bot_lt_iff_ne_bot],
+      intro hdg,
+      specialize hg i,
+      rw degree_eq_bot at hdg, rw hdg at hg,
+      have h0nmonic : ¬ (0:R[X]).monic := not_monic_zero,
+      contradiction, },
+    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
+  { intros a b hab H,
+    rcases H with ⟨q, r, Hdeg, Hind⟩,
+    have hcalc : (f : K) / ((g a) * ((∏ (j : ι) in b, ↑(g j)))) =
+      (1 / (g a)) * ((f : K) / ((∏ (j : ι) in b, ↑(g j)))),
+    { field_simp, },
+    rw [finset.prod_insert hab, hcalc, Hind, mul_add, mul_finite_sum],
+    field_simp,
+
+    sorry, },
+end
+-/

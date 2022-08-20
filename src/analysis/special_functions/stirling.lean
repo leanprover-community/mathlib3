@@ -5,6 +5,7 @@ Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
 import analysis.special_functions.log.deriv
+import tactic.positivity
 
 /-!
 # Stirling's formula
@@ -46,20 +47,17 @@ begin
     inv_inv],
 end
 
-/-- Define `log_stirling_seq n` as the log of `stirling_seq n`. -/
-noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
-
 /--
 We have the expression
-`log_stirling_seq (n + 1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
+`log (stirling_seq (n + 1)) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
-lemma log_stirling_seq_formula (n : ℕ) : log_stirling_seq n.succ =
+lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
   log n.succ.factorial - 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
   have h3, from sqrt_ne_zero'.mpr (mul_pos two_pos $ cast_pos.mpr (succ_pos n)),
   have h4 : 0 ≠ ((n.succ : ℝ) / exp 1) ^ n.succ, from
     ne_of_lt (pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) n.succ),
-  rw [log_stirling_seq, stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow],
+  rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow],
   { linarith },
   { refine (zero_lt_mul_left two_pos).mpr _,
     rw ←cast_zero,
@@ -71,12 +69,12 @@ begin
 end
 
 /--
-The sequence `log_stirling_seq (m + 1) - log_stirling_seq (m + 2)` has the series expansion
+The sequence `log (stirling_seq (m + 1)) - log (stirling_seq (m + 2))` has the series expansion
    `∑ 1 / (2 * (k + 1) + 1) * (1 / 2 * (m + 1) + 1)^(2 * (k + 1))`
 -/
 lemma log_stirling_seq_diff_has_sum (m : ℕ) :
   has_sum (λ k : ℕ, (1 : ℝ) / (2 * k.succ + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ k.succ)
-  (log_stirling_seq m.succ - log_stirling_seq m.succ.succ) :=
+  (log (stirling_seq m.succ) - log (stirling_seq m.succ.succ)) :=
 begin
   change
     has_sum ((λ b : ℕ, 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b) ∘ succ) _,
@@ -98,8 +96,8 @@ begin
   { apply_instance }
 end
 
-/-- The sequence `log_stirling_seq ∘ succ` is monotone decreasing -/
-lemma log_stirling_seq'_antitone : antitone (log_stirling_seq ∘ succ) :=
+/-- The sequence `log ∘ stirling_seq ∘ succ` is monotone decreasing -/
+lemma log_stirling_seq'_antitone : antitone (log ∘ stirling_seq ∘ succ) :=
 begin
   apply antitone_nat_of_succ_le,
   intro n,
@@ -113,10 +111,10 @@ begin
 end
 
 /--
-We have the bound  `log_stirling_seq n - log_stirling_seq (n+1) ≤ 1/(2n+1)^2* 1/(1-(1/2n+1)^2)`.
+We have a bound for successive elements in the sequence `log (stirling_seq k)`.
 -/
 lemma log_stirling_seq_diff_le_geo_sum (n : ℕ) :
-  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤
+  log (stirling_seq n.succ) - log (stirling_seq n.succ.succ) ≤
   (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
   have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) := by positivity,
@@ -144,10 +142,10 @@ begin
 end
 
 /--
-We have the bound  `log_stirling_seq n - log_stirling_seq (n+1)` ≤ 1/(4 n^2)
+We have the bound  `log (stirling_seq n) - log (stirling_seq (n+1))` ≤ 1/(4 n^2)
 -/
 lemma log_stirling_seq_sub_log_stirling_seq_succ (n : ℕ) :
-  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ ^ 2) :=
+  log (stirling_seq n.succ) - log (stirling_seq n.succ.succ) ≤ 1 / (4 * n.succ ^ 2) :=
 begin
   have h₁ : 0 < 4 * ((n : ℝ) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
   have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
@@ -167,11 +165,11 @@ end
 
 /-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4 * ∑' 1/k^2`  -/
 lemma log_stirling_seq_bounded_aux :
-  ∃ (c : ℝ), ∀ (n : ℕ), log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
+  ∃ (c : ℝ), ∀ (n : ℕ), log (stirling_seq 1) - log (stirling_seq n.succ) ≤ c :=
 begin
   let d := ∑' k : ℕ, (1 : ℝ) / k.succ ^ 2,
   use (1 / 4 * d : ℝ),
-  let log_stirling_seq' : ℕ → ℝ := λ k, log_stirling_seq k.succ,
+  let log_stirling_seq' : ℕ → ℝ := λ k, log (stirling_seq k.succ),
   intro n,
   have h₁ : ∀ k, log_stirling_seq' k - log_stirling_seq' (k + 1) ≤ 1 / 4 * (1 / k.succ ^ 2) :=
   by { intro k, convert log_stirling_seq_sub_log_stirling_seq_succ k using 1, field_simp, },
@@ -182,7 +180,7 @@ begin
     rw [one_div_pos, sq_pos_iff],
     exact nonzero_of_invertible (succ k), },
   calc
-  log_stirling_seq 1 - log_stirling_seq n.succ = log_stirling_seq' 0 - log_stirling_seq' n : rfl
+  log (stirling_seq 1) - log (stirling_seq n.succ) = log_stirling_seq' 0 - log_stirling_seq' n : rfl
   ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) : by
     rw ← sum_range_sub' log_stirling_seq' n
   ... ≤ ∑ k in range n, (1/4) * (1 / k.succ^2) : sum_le_sum (λ k _, h₁ k)
@@ -191,10 +189,10 @@ begin
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/
-lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log_stirling_seq n.succ :=
+lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log (stirling_seq n.succ) :=
 begin
   obtain ⟨d, h⟩ := log_stirling_seq_bounded_aux,
-  exact ⟨log_stirling_seq 1 - d, λ n, sub_le.mp (h n)⟩,
+  exact ⟨log (stirling_seq 1) - d, λ n, sub_le.mp (h n)⟩,
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
@@ -230,5 +228,3 @@ begin
   rw ←filter.tendsto_add_at_top_iff_nat 1,
   exact tendsto_at_top_cinfi stirling_seq'_antitone ⟨x, hx'⟩,
 end
-
-end stirling

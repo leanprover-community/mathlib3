@@ -1414,6 +1414,14 @@ begin
     outer_measure.restrict_apply]
 end
 
+lemma exists_mem_of_measure_ne_zero_of_ae (hs : μ s ≠ 0)
+  {p : α → Prop} (hp : ∀ᵐ x ∂μ.restrict s, p x) :
+  ∃ x, x ∈ s ∧ p x :=
+begin
+  rw [← μ.restrict_apply_self, ← frequently_ae_mem_iff] at hs,
+  exact (hs.and_eventually hp).exists,
+end
+
 /-! ### Extensionality results -/
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
@@ -2863,6 +2871,13 @@ protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : 
   is_finite_measure_on_compacts (c • μ) :=
 ⟨λ K hK, ennreal.mul_lt_top hc (hK.measure_lt_top).ne⟩
 
+/-- Note this cannot be an instance because it would form a typeclass loop with
+`is_finite_measure_on_compacts_of_is_locally_finite_measure`. -/
+lemma compact_space.is_finite_measure
+  [topological_space α] [compact_space α] [is_finite_measure_on_compacts μ] :
+  is_finite_measure μ :=
+⟨is_finite_measure_on_compacts.lt_top_of_is_compact compact_univ⟩
+
 omit m0
 
 @[priority 100] -- see Note [lower instance priority]
@@ -3322,6 +3337,15 @@ instance is_finite_measure_on_compacts_of_is_locally_finite_measure
   [topological_space α] {m : measurable_space α} {μ : measure α}
   [is_locally_finite_measure μ] : is_finite_measure_on_compacts μ :=
 ⟨λ s hs, hs.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _⟩
+
+lemma is_finite_measure_iff_is_finite_measure_on_compacts_of_compact_space
+  [topological_space α] [measurable_space α] {μ : measure α} [compact_space α] :
+  is_finite_measure μ ↔ is_finite_measure_on_compacts μ :=
+begin
+  split; introsI,
+  { apply_instance, },
+  { exact compact_space.is_finite_measure, },
+end
 
 /-- Compact covering of a `σ`-compact topological space as
 `measure_theory.measure.finite_spanning_sets_in`. -/

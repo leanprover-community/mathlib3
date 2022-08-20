@@ -717,6 +717,14 @@ lemma ext_chart_at_to_inv :
   (ext_chart_at I x).symm ((ext_chart_at I x) x) = x :=
 (ext_chart_at I x).left_inv (mem_ext_chart_source I x)
 
+lemma maps_to_ext_chart_at (hs : s ⊆ (chart_at H x).source) :
+  maps_to (ext_chart_at I x) s ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+begin
+  rw [maps_to', ext_chart_at_coe, ext_chart_at_coe_symm, preimage_comp, ← I.image_eq, image_comp,
+    (chart_at H x).image_eq_target_inter_inv_preimage hs],
+  exact image_subset _ (inter_subset_right _ _)
+end
+
 lemma ext_chart_at_source_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
   (ext_chart_at I x).source ∈ 𝓝 x' :=
 is_open.mem_nhds (ext_chart_at_open_source I x) h

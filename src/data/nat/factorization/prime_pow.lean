@@ -80,7 +80,7 @@ begin
   -- So assume 0 < n
   refine ⟨p, n.factorization p, hp, hp.factorization_pos_of_dvd hn₀ hn, _⟩,
   simp only [and_imp] at hq,
-  apply nat.dvd_antisymm (nat.pow_factorization_dvd _ _),
+  apply nat.dvd_antisymm (nat.ord_proj_dvd _ _),
   -- We need to show n ∣ p ^ n.factorization p
   apply nat.dvd_of_factors_subperm hn₀,
   rw [hp.factors_pow, list.subperm_ext_iff],

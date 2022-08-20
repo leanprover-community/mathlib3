@@ -49,7 +49,12 @@ still falls in the class. -/
 def stable_under_composition (P : morphism_property C) : Prop :=
   ∀ ⦃X Y Z⦄ (f : X ⟶ Y) (g : Y ⟶ Z), P f → P g → P (f ≫ g)
 
-/-- A morphism property is `stable_under_composition` if the base change of such a morphism
+/-- A morphism property is `stable_under_inverse` if the inverse of a morphism satisfying
+the property still falls in the class. -/
+def stable_under_inverse (P : morphism_property C) : Prop :=
+∀ ⦃X Y⦄ (e : X ≅ Y), P e.hom → P e.inv
+
+/-- A morphism property is `stable_under_base_change` if the base change of such a morphism
 still falls in the class. -/
 def stable_under_base_change [has_pullbacks C] (P : morphism_property C) : Prop :=
 ∀ ⦃X Y S : C⦄ (f : X ⟶ S) (g : Y ⟶ S), P g → P (pullback.fst : pullback f g ⟶ X)
@@ -136,6 +141,36 @@ end
 to isomorphisms in `D`. -/
 def is_inverted_by (P : morphism_property C) (F : C ⥤ D) : Prop :=
 ∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P f), is_iso (F.map f)
+
+/-- Given `app : Π X, F₁.obj X ⟶ F₂.obj X` where `F₁` and `F₂` are two functors,
+this is the `morphism_property C` satisfied by the morphisms in `C` with respect
+to whom `app` is natural. -/
+@[simp]
+def naturality_property {F₁ F₂ : C ⥤ D} (app : Π X, F₁.obj X ⟶ F₂.obj X) :
+  morphism_property C := λ X Y f, F₁.map f ≫ app Y = app X ≫ F₂.map f
+
+namespace naturality_property
+
+lemma is_stable_under_composition {F₁ F₂ : C ⥤ D} (app : Π X, F₁.obj X ⟶ F₂.obj X) :
+  (naturality_property app).stable_under_composition := λ X Y Z f g hf hg,
+begin
+  simp only [naturality_property] at ⊢ hf hg,
+  simp only [functor.map_comp, category.assoc, hg],
+  slice_lhs 1 2 { rw hf },
+  rw category.assoc,
+end
+
+lemma is_stable_under_inverse {F₁ F₂ : C ⥤ D} (app : Π X, F₁.obj X ⟶ F₂.obj X) :
+  (naturality_property app).stable_under_inverse := λ X Y e he,
+begin
+  simp only [naturality_property] at ⊢ he,
+  rw ← cancel_epi (F₁.map e.hom),
+  slice_rhs 1 2 { rw he },
+  simp only [category.assoc, ← F₁.map_comp_assoc, ← F₂.map_comp,
+    e.hom_inv_id, functor.map_id, category.id_comp, category.comp_id],
+end
+
+end naturality_property
 
 end morphism_property
 

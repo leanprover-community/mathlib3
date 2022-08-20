@@ -1073,6 +1073,16 @@ end seminormed_add_comm_group
 
 section normed_add_comm_group
 
+/-- Construct a `normed_add_comm_group` from a `seminormed_add_comm_group` satisfying
+`∀ x, ∥x∥ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level
+when declaring a `normed_add_comm_group` instance as a special case of a more general
+`seminormed_add_comm_group` instance. -/
+def normed_add_comm_group.of_separation [h₁ : seminormed_add_comm_group E]
+  (h₂ : ∀ x : E, ∥x∥ = 0 → x = 0) : normed_add_comm_group E :=
+{ to_metric_space :=
+  { eq_of_dist_eq_zero := λ x y hxy, by rw h₁.dist_eq at hxy; rw ← sub_eq_zero; exact h₂ _ hxy },
+  ..h₁ }
+
 /-- Construct a normed group from a translation invariant distance -/
 def normed_add_comm_group.of_add_dist [has_norm E] [add_comm_group E] [metric_space E]
   (H1 : ∀ x : E, ∥x∥ = dist x 0)

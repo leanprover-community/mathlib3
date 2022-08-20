@@ -353,18 +353,21 @@ open zmod
 
 /-- The **Fermat-Euler totient theorem**. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
-@[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : (zmod n)ˣ) : x ^ φ n = 1 :=
-by rw [← card_units_eq_totient, pow_card_eq_one]
+@[simp] lemma zmod.pow_totient {n : ℕ} (x : (zmod n)ˣ) : x ^ φ n = 1 :=
+begin
+  cases n,
+  { rw [nat.totient_zero, pow_zero] },
+  { rw [← card_units_eq_totient, pow_card_eq_one] }
+end
 
 /-- The **Fermat-Euler totient theorem**. `zmod.pow_totient` is an alternative statement
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
-  cases n, {simp},
   rw ← zmod.eq_iff_modeq_nat,
-  let x' : units (zmod (n+1)) := zmod.unit_of_coprime _ h,
+  let x' : units (zmod n) := zmod.unit_of_coprime _ h,
   have := zmod.pow_totient x',
-  apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
+  apply_fun (coe : units (zmod n) → zmod n) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
     nat.cast_one, coe_unit_of_coprime, units.coe_pow],
 end
@@ -532,7 +535,7 @@ begin
     split,
     { simp only [sq, one_pow, neg_one_sq], },
     { exact ring.neg_one_ne_one_of_char_ne_two hF, }, },
-  have h₁ := mt (fintype.injective_iff_surjective.mpr) h, -- sq not surjective
+  have h₁ := mt (finite.injective_iff_surjective.mpr) h, -- sq not surjective
   push_neg at h₁,
   cases h₁ with a h₁,
   use a,

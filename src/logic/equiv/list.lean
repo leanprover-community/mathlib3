@@ -141,7 +141,7 @@ of_equiv _ (equiv.array_equiv_fin _ _)
 
 /-- If `α` is countable, then so is `array n α`. -/
 instance _root_.array.countable [countable α] {n} : countable (array n α) :=
-by { haveI := encodable.of_countable α, apply_instance }
+countable.of_equiv _ (equiv.vector_equiv_array _ _)
 
 /-- If `α` is encodable, then so is `finset α`. -/
 instance _root_.finset.encodable [encodable α] : encodable (finset α) :=
@@ -151,7 +151,7 @@ by haveI := decidable_eq_of_encodable α; exact
 
 /-- If `α` is countable, then so is `finset α`. -/
 instance _root_.finset.countable [countable α] : countable (finset α) :=
-by { haveI := encodable.of_countable α, apply_instance }
+finset.val_injective.countable
 
 -- TODO: Unify with `fintype_pi` and find a better name
 /-- When `α` is finite and `β` is encodable, `α → β` is encodable too. Because the encoding is not

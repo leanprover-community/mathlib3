@@ -24,7 +24,7 @@ Furthermore, we have the following results:
 -/
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 
 variables {α β : Type*} [topological_space α] [topological_space β]
   {s t s₁ s₂ t₁ t₂ : set α} {x : α}
@@ -50,6 +50,18 @@ lemma has_basis_nhds_set (s : set α) : (𝓝ˢ s).has_basis (λ U, is_open U �
 lemma is_open.mem_nhds_set (hU : is_open s) : s ∈ 𝓝ˢ t ↔ t ⊆ s :=
 by rw [← subset_interior_iff_mem_nhds_set, interior_eq_iff_open.mpr hU]
 
+lemma principal_le_nhds_set : 𝓟 s ≤ 𝓝ˢ s :=
+λ s hs, (subset_interior_iff_mem_nhds_set.mpr hs).trans interior_subset
+
+@[simp] lemma nhds_set_eq_principal_iff : 𝓝ˢ s = 𝓟 s ↔ is_open s :=
+by rw [← principal_le_nhds_set.le_iff_eq, le_principal_iff, mem_nhds_set_iff_forall,
+  is_open_iff_mem_nhds]
+
+alias nhds_set_eq_principal_iff ↔ _ is_open.nhds_set_eq
+
+@[simp] lemma nhds_set_interior : 𝓝ˢ (interior s) = 𝓟 (interior s) :=
+is_open_interior.nhds_set_eq
+
 @[simp] lemma nhds_set_singleton : 𝓝ˢ {x} = 𝓝 x :=
 by { ext,
      rw [← subset_interior_iff_mem_nhds_set, ← mem_interior_iff_mem_nhds, singleton_subset_iff] }
@@ -57,14 +69,13 @@ by { ext,
 lemma mem_nhds_set_interior : s ∈ 𝓝ˢ (interior s) :=
 subset_interior_iff_mem_nhds_set.mp subset.rfl
 
-lemma mem_nhds_set_empty : s ∈ 𝓝ˢ (∅ : set α) :=
-subset_interior_iff_mem_nhds_set.mp $ empty_subset _
-
 @[simp] lemma nhds_set_empty : 𝓝ˢ (∅ : set α) = ⊥ :=
-by { ext, simp [mem_nhds_set_empty] }
+by rw [is_open_empty.nhds_set_eq, principal_empty]
+
+lemma mem_nhds_set_empty : s ∈ 𝓝ˢ (∅ : set α) := by simp
 
 @[simp] lemma nhds_set_univ : 𝓝ˢ (univ : set α) = ⊤ :=
-by { ext, rw [← subset_interior_iff_mem_nhds_set, univ_subset_iff, interior_eq_univ, mem_top] }
+by rw [is_open_univ.nhds_set_eq, principal_univ]
 
 lemma monotone_nhds_set : monotone (𝓝ˢ : set α → filter α) :=
 λ s t hst, Sup_le_Sup $ image_subset _ hst

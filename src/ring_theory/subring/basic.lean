@@ -816,13 +816,11 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subring S) :
 /-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s ×̂ t`
 as a subring of `R × S`. -/
 def prod (s : subring R) (t : subring S) : subring (R × S) :=
-{ carrier := (s : set R) ×ˢ (t : set S),
+{ carrier := s ×ˢ t,
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
-lemma coe_prod (s : subring R) (t : subring S) :
-  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
-rfl
+lemma coe_prod (s : subring R) (t : subring S) : (s.prod t : set (R × S)) = s ×ˢ t := rfl
 
 lemma mem_prod {s : subring R} {t : subring S} {p : R × S} :
   p ∈ s.prod t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl

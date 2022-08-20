@@ -67,7 +67,7 @@ begin
   { exact h3, },
   { exact h4.symm, },
   { exact cast_ne_zero.mpr n.succ.factorial_ne_zero, },
-  { apply (mul_ne_zero h3 h4.symm), },
+  { exact mul_ne_zero h3 h4.symm, },
 end
 
 /--
@@ -119,8 +119,7 @@ lemma log_stirling_seq_diff_le_geo_sum (n : ℕ) :
   log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤
   (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
-  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
-  { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
+  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) := by positivity,
   have g : has_sum (λ k : ℕ, ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
     ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)),
   { have h_pow_succ := λ k : ℕ,
@@ -129,8 +128,7 @@ begin
     { simp only [cast_succ, one_div, inv_pow],
       refine inv_lt_one _,
       norm_cast,
-      simp only [nat.one_lt_pow_iff, ne.def, zero_eq_bit0, nat.one_ne_zero, not_false_iff,
-        lt_add_iff_pos_left, canonically_ordered_comm_semiring.mul_pos, succ_pos', and_self], },
+      simp, },
     exact (has_sum_geometric_of_lt_1 h_nonneg hlt).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) },
   have hab : ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
     ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
@@ -158,7 +156,7 @@ begin
     have H : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n],
     convert H using 1; field_simp [h₃.ne'] },
   refine (log_stirling_seq_diff_le_geo_sum n).trans _,
-  push_cast at *,
+  push_cast,
   rw div_le_div_iff h₂ h₁,
   field_simp [h₃.ne'],
   rw div_le_div_right h₃,
@@ -173,11 +171,11 @@ lemma log_stirling_seq_bounded_aux :
 begin
   let d := ∑' k : ℕ, (1 : ℝ) / k.succ ^ 2,
   use (1 / 4 * d : ℝ),
-  let log_stirling_seq' : ℕ → ℝ := λ k : ℕ, log_stirling_seq k.succ,
+  let log_stirling_seq' : ℕ → ℝ := λ k, log_stirling_seq k.succ,
   intro n,
-  have h₁: ∀ k, log_stirling_seq' k - log_stirling_seq' (k + 1) ≤ 1 / 4 * (1 / ↑(k.succ) ^ 2) :=
-  by {intro k, convert log_stirling_seq_sub_log_stirling_seq_succ k using 1, field_simp, },
-  have h₂: ∑ (k : ℕ) in range n, (1 : ℝ) / (k.succ) ^ 2 ≤ d := by
+  have h₁ : ∀ k, log_stirling_seq' k - log_stirling_seq' (k + 1) ≤ 1 / 4 * (1 / k.succ ^ 2) :=
+  by { intro k, convert log_stirling_seq_sub_log_stirling_seq_succ k using 1, field_simp, },
+  have h₂ : ∑ (k : ℕ) in range n, (1 : ℝ) / (k.succ) ^ 2 ≤ d := by
   { refine sum_le_tsum (range n) (λ k _, _)
       ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
     apply le_of_lt,
@@ -196,9 +194,7 @@ end
 lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log_stirling_seq n.succ :=
 begin
   obtain ⟨d, h⟩ := log_stirling_seq_bounded_aux,
-  use log_stirling_seq 1 - d,
-  intro n,
-  exact sub_le.mp (h n),
+  exact ⟨log_stirling_seq 1 - d, λ n, sub_le.mp (h n)⟩,
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/

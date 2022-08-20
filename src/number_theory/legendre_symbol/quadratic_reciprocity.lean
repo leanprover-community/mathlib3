@@ -10,22 +10,29 @@ import number_theory.legendre_symbol.quadratic_char
 
 This file contains results about quadratic residues modulo a prime number.
 
-We define the Legendre symbol `(a / p)` as `legendre_sym p a`.
-Note the order of arguments! The advantage of this form is that then `legendre_sym p`
+We define the Legendre symbol `(a / p)` as `zmod.legendre_sym p a`.
+Note the order of arguments! The advantage of this form is that then `zmod.legendre_sym p`
 is a multiplicative map.
 
-The main results are the law of quadratic reciprocity, `quadratic_reciprocity`, as well as the
-interpretations in terms of existence of square roots depending on the congruence mod 4,
-`exists_sq_eq_prime_iff_of_mod_four_eq_one`, and
-`exists_sq_eq_prime_iff_of_mod_four_eq_three`.
+## Main results
 
-Also proven are conditions for `-1` and `2` to be a square modulo a prime,
-`legende_sym_neg_one` and `exists_sq_eq_neg_one_iff` for `-1`, and
-`exists_sq_eq_two_iff` for `2`
+We prove the law of quadratic reciprocity, see `zmod.quadratic_reciprocity` and
+`zmod.quadratic_reciprocity'`, as well as the
+interpretations in terms of existence of square roots depending on the congruence mod 4,
+`zmod.exists_sq_eq_prime_iff_of_mod_four_eq_one`, and
+`zmod.exists_sq_eq_prime_iff_of_mod_four_eq_three`.
+
+We also prove the supplementary laws that give conditions for when `-1` or `2`
+(or `-2`) is a square modulo a prime `p`:
+`zmod.legende_sym_neg_one` and `zmod.exists_sq_eq_neg_one_iff` for `-1`,
+`zmod.legendre_sym_two` and `zmod.exists_sq_eq_two_iff` for `2`,
+`zmod.legendre_sym_neg_two` and `zmod.exists_sq_eq_neg_two_iff` for `-2`.
 
 ## Implementation notes
 
-The proof of quadratic reciprocity implemented uses Gauss' lemma and Eisenstein's lemma
+The proofs use results for quadratic characters on arbitrary finite fields
+from `number_theory.legendre_symbol.quadratic_char`, which in turn are based on
+properties of quadratic Gauss sums as provided by `number_theory.legendre_symbol.gauss_sum`.
 -/
 
 open finset nat char
@@ -61,27 +68,7 @@ begin
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
-lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
-by rw [finite_field.is_square_neg_one_iff, card p]
-
-lemma mod_four_ne_three_of_sq_eq_neg_one {y : zmod p} (hy : y ^ 2 = -1) : p % 4 ≠ 3 :=
-(exists_sq_eq_neg_one_iff p).1 ⟨y, hy.symm.trans (pow_two y)⟩
-
-lemma mod_four_ne_three_of_sq_eq_neg_sq' {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
-  p % 4 ≠ 3 :=
-@mod_four_ne_three_of_sq_eq_neg_one p _ (x / y) begin
-  apply_fun (λ z, z / y ^ 2) at hxy,
-  rwa [neg_div, ←div_pow, ←div_pow, div_self hy, one_pow] at hxy
-end
-
-lemma mod_four_ne_three_of_sq_eq_neg_sq {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
-  p % 4 ≠ 3 :=
-begin
-  apply_fun (λ x, -x) at hxy,
-  rw neg_neg at hxy,
-  exact mod_four_ne_three_of_sq_eq_neg_sq' p hx hxy.symm
-end
-
+/-- If `a : zmod p` is nonzero, then `a^(p/2)` is either `1` or `-1`. -/
 lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
   a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 begin
@@ -90,6 +77,10 @@ begin
   rw [← mul_self_eq_one_iff, ← pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
   exact pow_card_sub_one_eq_one ha
 end
+
+/-!
+### Definition of the Legendre symbol and basic properties
+-/
 
 /-- The Legendre symbol of `a : ℤ` and a prime `p`, `legendre_sym p a`,
 is an integer defined as
@@ -195,6 +186,10 @@ lemma legendre_sym_card_sqrts (hp : p ≠ 2) (a : ℤ) :
   ↑{x : zmod p | x^2 = a}.to_finset.card = legendre_sym p a + 1 :=
 quadratic_char_card_sqrts (ne_of_eq_of_ne (ring_char_zmod_n p) hp) a
 
+/-!
+### The value of the Legendre symbol at `-1`
+-/
+
 /-- `legendre_sym p (-1)` is given by `χ₄ p`. -/
 lemma legendre_sym_neg_one (hp : p ≠ 2) : legendre_sym p (-1) = χ₄ p :=
 begin
@@ -203,6 +198,34 @@ begin
   exact_mod_cast h₁,
 end
 
+/-- `-1` is a square in `zmod p` iff `p` is not congruent to `3` mod `4`. -/
+lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
+by rw [finite_field.is_square_neg_one_iff, card p]
+
+lemma mod_four_ne_three_of_sq_eq_neg_one {y : zmod p} (hy : y ^ 2 = -1) : p % 4 ≠ 3 :=
+(exists_sq_eq_neg_one_iff p).1 ⟨y, hy.symm.trans (pow_two y)⟩
+
+/-- If two nonzero squares are negatives of each other in `zmod p`, then `p % 4 ≠ 3`. -/
+lemma mod_four_ne_three_of_sq_eq_neg_sq' {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
+  p % 4 ≠ 3 :=
+@mod_four_ne_three_of_sq_eq_neg_one p _ (x / y) begin
+  apply_fun (λ z, z / y ^ 2) at hxy,
+  rwa [neg_div, ←div_pow, ←div_pow, div_self hy, one_pow] at hxy
+end
+
+lemma mod_four_ne_three_of_sq_eq_neg_sq {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
+  p % 4 ≠ 3 :=
+begin
+  apply_fun (λ x, -x) at hxy,
+  rw neg_neg at hxy,
+  exact mod_four_ne_three_of_sq_eq_neg_sq' p hx hxy.symm
+end
+
+/-!
+### The value of the Legendre symbol at `2` and `-2`
+-/
+
+/-- `legendre_sym p 2` is given by `χ₈ p`. -/
 lemma legendre_sym_two (hp : p ≠ 2) : legendre_sym p 2 = χ₈ p :=
 begin
   have h := quadratic_char_two (ne_of_eq_of_ne (ring_char_zmod_n p) hp),
@@ -211,6 +234,7 @@ begin
   exact_mod_cast h,
 end
 
+/-- `2` is a square modulo an odd prime `p` iff `p` is congruent to `1` or `7` mod `8`. -/
 lemma exists_sq_eq_two_iff (hp : p ≠ 2) : is_square (2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 begin
   rw [finite_field.is_square_two_iff, card p],
@@ -222,6 +246,7 @@ begin
   dec_trivial!,
 end
 
+/-- `legendre_sym p (-2)` is given by `χ₈' p`. -/
 lemma legendre_sym_neg_two (hp : p ≠ 2) : legendre_sym p (-2) = χ₈' p :=
 begin
   have h := quadratic_char_neg_two (ne_of_eq_of_ne (ring_char_zmod_n p) hp),
@@ -230,6 +255,7 @@ begin
   exact_mod_cast h,
 end
 
+/-- `-2` is a square modulo an odd prime `p` iff `p` is congruent to `1` or `3` mod `8`. -/
 lemma exists_sq_eq_neg_two_iff (hp : p ≠ 2) : is_square (-2 : zmod p) ↔ p % 8 = 1 ∨ p % 8 = 3 :=
 begin
   rw [finite_field.is_square_neg_two_iff, card p],
@@ -241,7 +267,12 @@ begin
   dec_trivial!,
 end
 
-/-- **Quadratic reciprocity theorem** -/
+/-!
+### The Law of Quadratic Reciprocity
+-/
+
+/-- The Law of Quadratic Reciprocity: if `p` and `q` are distinct odd primes, then
+`(q / p) * (p / q) = (-1)^((p-1)(q-1)/4)`. -/
 theorem quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
 begin
@@ -261,6 +292,8 @@ begin
       quadratic_char_neg_one hq₂, card q, χ₄_eq_neg_one_pow hq₁],
 end
 
+/-- The Law of Quadratic Reciprocity: if `p` and `q` are odd primes, then
+`(q / p) = (-1)^((p-1)(q-1)/4) * (p / q)`. -/
 theorem quadratic_reciprocity' (hp : p ≠ 2) (hq : q ≠ 2) :
   legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) * legendre_sym p q :=
 begin
@@ -277,6 +310,8 @@ begin
     rwa [mul_assoc, ← pow_two, legendre_sym_sq_one p q this, mul_one] at qr, }
 end
 
+/-- The Law of Quadratic Reciprocity: if `p` and `q` are odd primes and `p % 4 = 1`,
+then `(q / p) = (p / q)`. -/
 theorem quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
   legendre_sym q p = legendre_sym p q :=
 begin
@@ -285,6 +320,8 @@ begin
       one_pow, one_mul],
 end
 
+/-- The Law of Quadratic Reciprocity: if `p` and `q` are primes that are both congruent
+to `3` mod `4`, then `(q / p) = -(p / q)`. -/
 theorem quadratic_reciprocity_three_mod_four (hp : p % 4 = 3) (hq : q % 4 = 3):
   legendre_sym q p = -legendre_sym p q :=
 begin
@@ -294,6 +331,8 @@ begin
       neg_one_pow_three_mod_four_div_two hq, neg_one_mul],
 end
 
+/-- If `p` and `q` are odd primes and `p % 4 = 1`, then `q` is a square mod `p` iff
+`p` is a square mod `q`. -/
 lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q ≠ 2) :
   is_square (q : zmod p) ↔ is_square (p : zmod q) :=
 begin
@@ -304,6 +343,8 @@ begin
         quadratic_reciprocity_one_mod_four p q hp1 hq1], }
 end
 
+/-- If `p` and `q` are distinct primes that are both congruent to `3` mod `4`, then `q` is
+a square mod `p` iff `p` is a nonsquare mod `q`. -/
 lemma exists_sq_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3) (hq3 : q % 4 = 3)
   (hpq : p ≠ q) :
   is_square (q : zmod p) ↔ ¬ is_square (p : zmod q) :=

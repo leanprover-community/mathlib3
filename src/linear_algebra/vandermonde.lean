@@ -3,11 +3,11 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-
 import algebra.big_operators.fin
 import algebra.geom_sum
 import group_theory.perm.fin
 import linear_algebra.matrix.determinant
+import linear_algebra.matrix.nondegenerate
 
 /-!
 # Vandermonde matrix
@@ -135,5 +135,20 @@ end
 lemma det_vandermonde_ne_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
   det (vandermonde v) ≠ 0 ↔ function.injective v :=
 by simpa only [det_vandermonde_eq_zero_iff, ne.def, not_exists, not_and, not_not]
+
+theorem eq_zero_of_forall_index_sum_pow_mul_eq_zero {R : Type*} [comm_ring R]
+  [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
+  (hfv : ∀ j, ∑ i : fin n, (f j ^ (i : ℕ)) * v i = 0) : v = 0 :=
+eq_zero_of_mul_vec_eq_zero (det_vandermonde_ne_zero_iff.mpr hf) (funext hfv)
+
+theorem eq_zero_of_forall_index_sum_mul_pow_eq_zero {R : Type*} [comm_ring R]
+  [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
+  (hfv : ∀ j, ∑ i, v i * (f j ^ (i : ℕ)) = 0) : v = 0 :=
+by { apply eq_zero_of_forall_index_sum_pow_mul_eq_zero hf, simp_rw mul_comm, exact hfv }
+
+theorem eq_zero_of_forall_pow_sum_mul_pow_eq_zero {R : Type*} [comm_ring R]
+  [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
+  (hfv : ∀ i : fin n, ∑ j : fin n, v j * (f j ^ (i : ℕ)) = 0) : v = 0 :=
+eq_zero_of_vec_mul_eq_zero (det_vandermonde_ne_zero_iff.mpr hf) (funext hfv)
 
 end matrix

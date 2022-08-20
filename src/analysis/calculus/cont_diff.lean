@@ -1160,10 +1160,10 @@ hf.fderiv_within' (by { rw [insert_eq_of_mem hxs], exact eventually_of_mem self_
 continuous. -/
 lemma cont_diff_on.continuous_on_fderiv_within_apply
   (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
-  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ (univ : set E)) :=
+  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
 begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ (univ : set E)),
+  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
   { apply continuous_on.prod _ continuous_snd.continuous_on,
     exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
       (prod_subset_preimage_fst _ _) },
@@ -1519,6 +1519,16 @@ by simp [cont_diff_on_univ.symm, continuous_iff_continuous_on_univ,
     differentiable_on_univ.symm, iterated_fderiv_within_univ,
     cont_diff_on_iff_continuous_on_differentiable_on unique_diff_on_univ]
 
+/-- If `f` is `C^n` then its `m`-times iterated derivative is continuous for `m ≤ n`. -/
+lemma cont_diff.continuous_iterated_fderiv {m : ℕ} (hm : (m : with_top ℕ) ≤ n)
+  (hf : cont_diff 𝕜 n f) : continuous (λ x, iterated_fderiv 𝕜 m f x) :=
+(cont_diff_iff_continuous_differentiable.mp hf).1 m hm
+
+/-- If `f` is `C^n` then its `m`-times iterated derivative is differentiable for `m < n`. -/
+lemma cont_diff.differentiable_iterated_fderiv {m : ℕ} (hm : (m : with_top ℕ) < n)
+  (hf : cont_diff 𝕜 n f) : differentiable 𝕜 (λ x, iterated_fderiv 𝕜 m f x) :=
+(cont_diff_iff_continuous_differentiable.mp hf).2 m hm
+
 lemma cont_diff_of_differentiable_iterated_fderiv
   (h : ∀(m : ℕ), (m : with_top ℕ) ≤ n → differentiable 𝕜 (iterated_fderiv 𝕜 m f)) :
   cont_diff 𝕜 n f :=
@@ -1568,7 +1578,7 @@ end
 
 /-! ### Constants -/
 
-lemma iterated_fderiv_within_zero_fun {n : ℕ} :
+@[simp] lemma iterated_fderiv_zero_fun {n : ℕ} :
   iterated_fderiv 𝕜 n (λ x : E, (0 : F)) = 0 :=
 begin
   induction n with n IH,
@@ -1584,7 +1594,7 @@ lemma cont_diff_zero_fun :
   cont_diff 𝕜 n (λ x : E, (0 : F)) :=
 begin
   apply cont_diff_of_differentiable_iterated_fderiv (λm hm, _),
-  rw iterated_fderiv_within_zero_fun,
+  rw iterated_fderiv_zero_fun,
   apply differentiable_const (0 : (E [×m]→L[𝕜] F))
 end
 
@@ -2253,8 +2263,7 @@ lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
-  cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2)
-  (s ×ˢ (univ : set E)) :=
+  cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2) (s ×ˢ univ) :=
 begin
   have A : cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
   { apply is_bounded_bilinear_map.cont_diff,
@@ -2603,6 +2612,41 @@ lemma cont_diff_on.smul {s : set E} {f : E → 𝕜} {g : E → F}
   (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
   cont_diff_on 𝕜 n (λ x, f x • g x) s :=
 λ x hx, (hf x hx).smul (hg x hx)
+
+/-! ### Constant scalar multiplication -/
+
+section const_smul
+
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+variables [has_continuous_const_smul R F]
+
+/- The scalar multiplication with a constant is smooth. -/
+lemma cont_diff_const_smul (c : R) : cont_diff 𝕜 n (λ p : F, c • p) :=
+(c • continuous_linear_map.id 𝕜 F).cont_diff
+
+/-- The scalar multiplication of a constant and a `C^n` function within a set at a point is `C^n`
+within this set at this point. -/
+lemma cont_diff_within_at.const_smul {s : set E} {f : E → F} {x : E} (c : R)
+  (hf : cont_diff_within_at 𝕜 n f s x) : cont_diff_within_at 𝕜 n (λ y, c • f y) s x :=
+(cont_diff_const_smul c).cont_diff_at.comp_cont_diff_within_at x hf
+
+/-- The scalar multiplication of a constant and a `C^n` function at a point is `C^n` at this
+point. -/
+lemma cont_diff_at.const_smul {f : E → F} {x : E} (c : R)
+  (hf : cont_diff_at 𝕜 n f x) : cont_diff_at 𝕜 n (λ y, c • f y) x :=
+by rw [←cont_diff_within_at_univ] at *; exact hf.const_smul c
+
+/-- The scalar multiplication of a constant and a `C^n` function is `C^n`. -/
+lemma cont_diff.const_smul {f : E → F} (c : R)
+  (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ y, c • f y) :=
+(cont_diff_const_smul c).comp hf
+
+/-- The scalar multiplication of a constant and a `C^n` on a domain is `C^n`. -/
+lemma cont_diff_on.const_smul {s : set E} {f : E → F} (c : R)
+  (hf : cont_diff_on 𝕜 n f s) : cont_diff_on 𝕜 n (λ y, c • f y) s :=
+λ x hx, (hf x hx).const_smul c
+
+end const_smul
 
 /-! ### Cartesian product of two functions -/
 

@@ -1020,6 +1020,15 @@ end
 
 /-! ### `mod`, `dvd` -/
 
+lemma mod_eq_iff_lt {a b : ℕ} (h : b ≠ 0) : a % b = a ↔ a < b :=
+begin
+  cases b, contradiction,
+  exact ⟨λ h, h.ge.trans_lt (mod_lt _ (succ_pos _)), mod_eq_of_lt⟩,
+end
+
+@[simp] lemma mod_succ_eq_iff_lt {a b : ℕ} : a % b.succ = a ↔ a < b.succ :=
+mod_eq_iff_lt (succ_ne_zero _)
+
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=
 (nat.add_comm _ _).trans (mod_add_div _ _)
 

@@ -378,8 +378,9 @@ local attribute [instance, priority 20] finite_dimensional.complete
 /-- The adjoint of an operator from the finite-dimensional inner product space E to the finite-
 dimensional inner product space F. -/
 def adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E) :=
-  (linear_map.to_continuous_linear_map.trans continuous_linear_map.adjoint.to_linear_equiv).trans
-    linear_map.to_continuous_linear_map.symm
+((linear_map.to_continuous_linear_map : (E →ₗ[𝕜] F) ≃ₗ[𝕜] (E →L[𝕜] F)).trans
+  continuous_linear_map.adjoint.to_linear_equiv).trans
+  linear_map.to_continuous_linear_map.symm
 
 lemma adjoint_to_continuous_linear_map (A : E →ₗ[𝕜] F) :
   A.adjoint.to_continuous_linear_map = A.to_continuous_linear_map.adjoint := rfl

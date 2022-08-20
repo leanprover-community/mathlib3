@@ -64,11 +64,6 @@ not_finite_iff_infinite.mp h
 lemma not_infinite_iff_finite {α : Type*} : ¬ infinite α ↔ finite α :=
 not_finite_iff_infinite.not_right.symm
 
-lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
-
-@[nolint instance_priority]
-instance finite.prop (p : Prop) : finite p := of_subsingleton
-
 namespace finite
 
 lemma exists_max [finite α] [nonempty α] [linear_order β] (f : α → β) :
@@ -80,7 +75,11 @@ lemma exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
 by { haveI := fintype.of_finite α, exact fintype.exists_min f }
 
 @[priority 100] -- see Note [lower instance priority]
-instance of_is_empty {α : Sort*} [is_empty α] : finite α := finite.of_equiv _ equiv.plift
+instance of_subsingleton {α : Sort*} [subsingleton α] : finite α :=
+of_injective (function.const α ()) $ function.injective_of_subsingleton _
+
+@[nolint instance_priority] -- Higher priority for `Prop`s
+instance prop (p : Prop) : finite p := finite.of_subsingleton
 
 instance [finite α] [finite β] : finite (α × β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }

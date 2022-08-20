@@ -130,8 +130,10 @@ end
 
 variables {K} (C)
 
+-- We are not using @[simps] to avoid a timeout.
+
 /-- The equivalence between `L →ₐ[K] C` and `primitive_roots n C` given by a primitive root `ζ`. -/
-@[simps] noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is_domain C]
+noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is_domain C]
   [algebra K C] (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=
 ((hζ.power_basis K).lift_equiv).trans
 { to_fun    := λ x,
@@ -156,6 +158,11 @@ variables {K} (C)
   end,
   left_inv  := λ x, subtype.ext rfl,
   right_inv := λ x, subtype.ext rfl }
+
+@[simp]
+lemma embeddings_equiv_primitive_roots_apply_coe (C : Type*) [comm_ring C] [is_domain C]
+  [algebra K C] (hirr : irreducible (cyclotomic n K)) (φ : L →ₐ[K] C) :
+  (hζ.embeddings_equiv_primitive_roots C hirr φ : C) = φ ζ := rfl
 
 end is_primitive_root
 
@@ -312,7 +319,7 @@ begin
   haveI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
   { suffices : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η + 1⟯.to_subalgebra,
     { have H : K⟮η + 1⟯.to_subalgebra = K⟮η⟯.to_subalgebra,
-      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral
           (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
         refine subalgebra.ext (λ x, ⟨λ hx, adjoin_le _ hx, λ hx, adjoin_le _ hx⟩),
         { simp only [set.singleton_subset_iff, set_like.mem_coe],
@@ -322,7 +329,7 @@ begin
           refine subalgebra.sub_mem _ (subset_adjoin (mem_singleton _)) (subalgebra.one_mem _) } },
       rw [H] at this,
       exact this },
-    rw [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+    rw [intermediate_field.adjoin_simple_to_subalgebra_of_integral
       (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
     have hη' : is_primitive_root (η + 1) ↑(p ^ (k + 1 - s)) := by simpa using hη,
     convert hη'.adjoin_is_cyclotomic_extension K,

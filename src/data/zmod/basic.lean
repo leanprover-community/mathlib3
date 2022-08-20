@@ -138,7 +138,7 @@ nat_cast_right_inverse.surjective
 
 /-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
 ring, see `zmod.int_cast_cast`. -/
-lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
+@[norm_cast] lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
 begin
   cases n,
   { rw [int.cast_id a, int.cast_id a], },

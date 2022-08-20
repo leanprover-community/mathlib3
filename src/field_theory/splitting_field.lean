@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import field_theory.intermediate_field
 import ring_theory.adjoin_root
 
 /-!
@@ -229,6 +230,22 @@ theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
 (roots_map_of_injective_card_eq_total_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
+lemma image_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra_map F K))
+  (f : K →ₐ[F] L) : f '' p.root_set K = p.root_set L :=
+begin
+  classical,
+  rw [root_set, ←finset.coe_image, ←multiset.to_finset_map, ←f.coe_to_ring_hom, ←roots_map ↑f
+      ((splits_id_iff_splits (algebra_map F K)).mpr h), map_map, f.comp_algebra_map, ←root_set],
+end
+
+lemma adjoin_root_set_eq_range [algebra F K] [algebra F L] {p : F[X]}
+  (h : p.splits (algebra_map F K)) (f : K →ₐ[F] L) :
+  algebra.adjoin F (p.root_set L) = f.range ↔ algebra.adjoin F (p.root_set K) = ⊤ :=
+begin
+  rw [←image_root_set h f, algebra.adjoin_image, ←algebra.map_top],
+  exact (subalgebra.map_injective f.to_ring_hom.injective).eq_iff,
+end
+
 lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :
   p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
 begin
@@ -357,7 +374,6 @@ end splits
 
 end polynomial
 
-
 section embeddings
 
 variables (F) [field F]
@@ -479,24 +495,29 @@ theorem nat_degree_remove_factor' {f : K[X]} {n : ℕ} (hfn : f.nat_degree = n+1
   f.remove_factor.nat_degree = n :=
 by rw [nat_degree_remove_factor, hfn, n.add_sub_cancel]
 
-/-- Auxiliary construction to a splitting field of a polynomial. Uses induction on the degree. -/
-def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]),
-  f.nat_degree = n → Type u :=
-nat.rec_on n (λ K _ _ _, K) $ λ n ih K _ f hf, by exactI
-ih f.remove_factor (nat_degree_remove_factor' hf)
+/-- Auxiliary construction to a splitting field of a polynomial, which removes
+`n` (arbitrarily-chosen) factors.
+
+Uses recursion on the degree. For better definitional behaviour, structures
+including `splitting_field_aux` (such as instances) should be defined using
+this recursion in each field, rather than defining the whole tuple through
+recursion.
+-/
+def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]), Type u :=
+nat.rec_on n (λ K _ _, K) $ λ n ih K _ f, by exactI
+ih f.remove_factor
 
 namespace splitting_field_aux
 
-theorem succ (n : ℕ) (f : K[X]) (hfn : f.nat_degree = n + 1) :
-  splitting_field_aux (n+1) f hfn =
-    splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn) := rfl
+theorem succ (n : ℕ) (f : K[X]) :
+  splitting_field_aux (n+1) f = splitting_field_aux n f.remove_factor := rfl
 
 instance field (n : ℕ) : Π {K : Type u} [field K], by exactI
-  Π {f : K[X]} (hfn : f.nat_degree = n), field (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ K _ _ _, ‹field K›) $ λ n ih K _ f hf, ih _
+  Π {f : K[X]}, field (splitting_field_aux n f) :=
+nat.rec_on n (λ K _ _, ‹field K›) $ λ n ih K _ f, ih
 
-instance inhabited {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n) :
-  inhabited (splitting_field_aux n f hfn) := ⟨37⟩
+instance inhabited {n : ℕ} {f : K[X]} :
+  inhabited (splitting_field_aux n f) := ⟨37⟩
 
 /-
 Note that the recursive nature of this definition and `splitting_field_aux.field` creates
@@ -519,66 +540,66 @@ example (x : ℕ) {α} (a₀ aₙ : α) : (cases_twice a₀ aₙ x).1 = (cases_t
 We don't really care at this point because this is an implementation detail (which is why this is
 not a docstring), but we do in `splitting_field.algebra'` below. -/
 instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [field K],
-  by exactI Π [algebra R K] {f : K[X]} (hfn : f.nat_degree = n),
-    algebra R (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
-         λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
+  by exactI Π [algebra R K] {f : K[X]},
+    algebra R (splitting_field_aux n f) :=
+nat.rec_on n (λ R K _ _ _ _, by exactI ‹algebra R K›) $
+         λ n ih R K _ _ _ f, by exactI ih R
 
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
   [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],
-  by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]} (hfn : f.nat_degree = n),
-    is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
-         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f hfn, by exactI ih R₁ R₂ (nat_degree_remove_factor' hfn)
+  by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]},
+    is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
+nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
+         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
 
-instance algebra''' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
+instance algebra''' {n : ℕ} {f : K[X]} :
   algebra (adjoin_root f.factor)
-    (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra n _ _
+    (splitting_field_aux n f.remove_factor) :=
+splitting_field_aux.algebra n _
 
-instance algebra' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
-  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f hfn) :=
-splitting_field_aux.algebra''' _
+instance algebra' {n : ℕ} {f : K[X]} :
+  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f) :=
+splitting_field_aux.algebra'''
 
-instance algebra'' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
-  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra n K _
+instance algebra'' {n : ℕ} {f : K[X]} :
+  algebra K (splitting_field_aux n f.remove_factor) :=
+splitting_field_aux.algebra n K
 
-instance scalar_tower' {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
+instance scalar_tower' {n : ℕ} {f : K[X]} :
   is_scalar_tower K (adjoin_root f.factor)
-    (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
+    (splitting_field_aux n f.remove_factor) :=
 begin
   -- finding this instance ourselves makes things faster
   haveI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
     is_scalar_tower.right,
   exact
-    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor) (nat_degree_remove_factor' hfn),
+    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor),
 end
 
-instance scalar_tower {n : ℕ} {f : K[X]} (hfn : f.nat_degree = n + 1) :
-  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ f hfn) :=
-splitting_field_aux.scalar_tower' _
+instance scalar_tower {n : ℕ} {f : K[X]} :
+  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux (n + 1) f) :=
+splitting_field_aux.scalar_tower'
 
-theorem algebra_map_succ (n : ℕ) (f : K[X]) (hfn : f.nat_degree = n + 1) :
-  by exact algebra_map K (splitting_field_aux _ _ hfn) =
+theorem algebra_map_succ (n : ℕ) (f : K[X]) :
+  by exact algebra_map K (splitting_field_aux (n+1) f) =
     (algebra_map (adjoin_root f.factor)
-        (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn))).comp
+        (splitting_field_aux n f.remove_factor)).comp
       (adjoin_root.of f.factor) :=
 is_scalar_tower.algebra_map_eq _ _ _
 
 protected theorem splits (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n),
-    splits (algebra_map K $ splitting_field_aux n f hfn) f :=
+    splits (algebra_map K $ splitting_field_aux n f) f :=
 nat.rec_on n (λ K _ _ hf, by exactI splits_of_degree_le_one _
   (le_trans degree_le_nat_degree $ hf.symm ▸ with_bot.coe_le_coe.2 zero_le_one)) $ λ n ih K _ f hf,
 by { resetI, rw [← splits_id_iff_splits, algebra_map_succ, ← map_map, splits_id_iff_splits,
     ← X_sub_C_mul_remove_factor f (λ h, by { rw h at hf, cases hf })],
-exact splits_mul _ (splits_X_sub_C _) (ih _ _) }
+exact splits_mul _ (splits_X_sub_C _) (ih _ (nat_degree_remove_factor' hf)) }
 
 theorem exists_lift (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n) {L : Type*} [field L], by exactI
-    ∀ (j : K →+* L) (hf : splits j f), ∃ k : splitting_field_aux n f hfn →+* L,
+    ∀ (j : K →+* L) (hf : splits j f), ∃ k : splitting_field_aux n f →+* L,
       k.comp (algebra_map _ _) = j :=
 nat.rec_on n (λ K _ _ _ L _ j _, by exactI ⟨j, j.comp_id⟩) $ λ n ih K _ f hf L _ j hj, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hf, cases hf },
@@ -596,51 +617,54 @@ let ⟨k, hk⟩ := ih f.remove_factor (nat_degree_remove_factor' hf) (adjoin_roo
 
 theorem adjoin_roots (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n),
-    algebra.adjoin K (↑(f.map $ algebra_map K $ splitting_field_aux n f hfn).roots.to_finset :
-      set (splitting_field_aux n f hfn)) = ⊤ :=
+    algebra.adjoin K (↑(f.map $ algebra_map K $ splitting_field_aux n f).roots.to_finset :
+      set (splitting_field_aux n f)) = ⊤ :=
 nat.rec_on n (λ K _ f hf, by exactI algebra.eq_top_iff.2 (λ x, subalgebra.range_le _ ⟨x, rfl⟩)) $
 λ n ih K _ f hfn, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hfn, cases hfn },
 have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
-have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := map_ne_zero hfn0,
+have hmf0 : map (algebra_map K (splitting_field_aux n.succ f)) f ≠ 0 := map_ne_zero hfn0,
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf,
          polynomial.map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add,
     finset.coe_union, multiset.to_finset_singleton, finset.coe_singleton,
     algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
+      (splitting_field_aux n f.remove_factor),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
     is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
-    ih, subalgebra.restrict_scalars_top] }
+      (splitting_field_aux n f.remove_factor),
+    ih _ (nat_degree_remove_factor' hfn), subalgebra.restrict_scalars_top] }
 
 end splitting_field_aux
 
 /-- A splitting field of a polynomial. -/
 def splitting_field (f : K[X]) :=
-splitting_field_aux _ f rfl
+splitting_field_aux f.nat_degree f
 
 namespace splitting_field
 
 variables (f : K[X])
 
 instance : field (splitting_field f) :=
-splitting_field_aux.field _ _
+splitting_field_aux.field _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
-/-- This should be an instance globally, but it creates diamonds with the `ℕ` and `ℤ` actions:
+/-- This should be an instance globally, but it creates diamonds with the `ℕ`, `ℤ`, and `ℚ` algebras
+(via their `smul` and `to_fun` fields):
 
 ```lean
 example :
-  (add_comm_monoid.nat_module : module ℕ (splitting_field f)) =
-    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+  (algebra_nat : algebra ℕ (splitting_field f)) = splitting_field.algebra' f :=
 rfl  -- fails
 
 example :
-  (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
-    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+  (algebra_int _ : algebra ℤ (splitting_field f)) = splitting_field.algebra' f :=
+rfl  -- fails
+
+example [char_zero K] [char_zero (splitting_field f)] :
+  (algebra_rat : algebra ℚ (splitting_field f)) = splitting_field.algebra' f :=
 rfl  -- fails
 ```
 
@@ -649,29 +673,29 @@ Until we resolve these diamonds, it's more convenient to only turn this instance
 
 In the meantime, the `splitting_field.algebra` instance below is immune to these particular diamonds
 since `K = ℕ` and `K = ℤ` are not possible due to the `field K` assumption. Diamonds in
-`algebra ℚ (splitting_field f)` instances are still possible, but this is a problem throughout the
-library and not unique to this `algebra` instance.
+`algebra ℚ (splitting_field f)` instances are still possible via this instance unfortunately, but
+these are less common as they require suitable `char_zero` instances to be present.
 -/
 instance algebra' {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
-splitting_field_aux.algebra _ _ _
+splitting_field_aux.algebra _ _
 
 instance : algebra K (splitting_field f) :=
-splitting_field_aux.algebra _ _ _
+splitting_field_aux.algebra _ _
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
-splitting_field_aux.splits _ _ _
+splitting_field_aux.splits _ _ rfl
 
 variables [algebra K L] (hb : splits (algebra_map K L) f)
 
 /-- Embeds the splitting field into any other field that splits the polynomial. -/
 def lift : splitting_field f →ₐ[K] L :=
-{ commutes' := λ r, by { have := classical.some_spec (splitting_field_aux.exists_lift _ _ _ _ hb),
+{ commutes' := λ r, by { have := classical.some_spec (splitting_field_aux.exists_lift _ _ rfl _ hb),
     exact ring_hom.ext_iff.1 this r },
   .. classical.some (splitting_field_aux.exists_lift _ _ _ _ hb) }
 
 theorem adjoin_roots : algebra.adjoin K
     (↑(f.map (algebra_map K $ splitting_field f)).roots.to_finset : set (splitting_field f)) = ⊤ :=
-splitting_field_aux.adjoin_roots _ _ _
+splitting_field_aux.adjoin_roots _ _ rfl
 
 theorem adjoin_root_set : algebra.adjoin K (f.root_set f.splitting_field) = ⊤ :=
 adjoin_roots f
@@ -776,8 +800,41 @@ begin
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
 end
 
+lemma of_alg_equiv [algebra K F] (p : K[X]) (f : F ≃ₐ[K] L) [is_splitting_field K F p] :
+  is_splitting_field K L p :=
+begin
+  split,
+  { rw ← f.to_alg_hom.comp_algebra_map,
+    exact splits_comp_of_splits _ _ (splits F p) },
+  { rw [←(algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
+        ←root_set, adjoin_root_set_eq_range (splits F p), root_set, adjoin_roots F p] },
+end
+
 end is_splitting_field
 
 end splitting_field
 
 end polynomial
+
+namespace intermediate_field
+
+open polynomial
+
+variables [field K] [field L] [algebra K L] {p : polynomial K}
+
+lemma splits_of_splits {F : intermediate_field K L} (h : p.splits (algebra_map K L))
+  (hF : ∀ x ∈ p.root_set L, x ∈ F) : p.splits (algebra_map K F) :=
+begin
+  simp_rw [root_set, finset.mem_coe, multiset.mem_to_finset] at hF,
+  rw splits_iff_exists_multiset,
+  refine ⟨multiset.pmap subtype.mk _ hF, map_injective _ (algebra_map F L).injective _⟩,
+  conv_lhs { rw [polynomial.map_map, ←is_scalar_tower.algebra_map_eq,
+    eq_prod_roots_of_splits h, ←multiset.pmap_eq_map _ _ _ hF] },
+  simp_rw [polynomial.map_mul, polynomial.map_multiset_prod,
+    multiset.map_pmap, polynomial.map_sub, map_C, map_X],
+  refl,
+end
+
+-- TODO (Thomas): If `p` splits in `L/K`, then `p.is_splitting_field K (adjoin K (p.root_set L))`
+
+end intermediate_field

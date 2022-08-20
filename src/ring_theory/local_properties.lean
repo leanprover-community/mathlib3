@@ -111,9 +111,24 @@ def ring_hom.holds_for_localization_away : Prop :=
 ∀ ⦃R : Type u⦄ (S : Type u) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
   [by exactI is_localization.away r S], by exactI P (algebra_map R S)
 
-/-- A property `P` of ring homs satisfies `ring_hom.of_localization_span_target`
+/-- A property `P` of ring homs satisfies `ring_hom.of_localization_finite_span_target`
 if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spans `S` such that
-`P` holds for `R →+* Sᵣ`. -/
+`P` holds for `R →+* Sᵣ`.
+
+Note that this is equivalent to `ring_hom.of_localization_span_target` via
+`ring_hom.of_localization_span_target_iff_finite`, but this is easier to prove. -/
+def ring_hom.of_localization_finite_span_target : Prop :=
+∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  (s : finset S) (hs : by exactI ideal.span (s : set S) = ⊤)
+  (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
+  by exactI P f
+
+/-- A property `P` of ring homs satisfies `ring_hom.of_localization_span_target`
+if `P` holds for `R →+* S` whenever there exists a set `{ r }` that spans `S` such that
+`P` holds for `R →+* Sᵣ`.
+
+Note that this is equivalent to `ring_hom.of_localization_finite_span_target` via
+`ring_hom.of_localization_span_target_iff_finite`, but this has less restrictions when applying. -/
 def ring_hom.of_localization_span_target : Prop :=
 ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
   (s : set S) (hs : by exactI ideal.span s = ⊤)
@@ -139,6 +154,19 @@ lemma ring_hom.of_localization_span_iff_finite :
   ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=
 begin
   delta ring_hom.of_localization_span ring_hom.of_localization_finite_span,
+  apply forall₅_congr, -- TODO: Using `refine` here breaks `resetI`.
+  introsI,
+  split,
+  { intros h s, exact h s },
+  { intros h s hs hs',
+    obtain ⟨s', h₁, h₂⟩ := (ideal.span_eq_top_iff_finite s).mp hs,
+    exact h s' h₂ (λ x, hs' ⟨_, h₁ x.prop⟩) }
+end
+
+lemma ring_hom.of_localization_span_target_iff_finite :
+  ring_hom.of_localization_span_target @P ↔ ring_hom.of_localization_finite_span_target @P :=
+begin
+  delta ring_hom.of_localization_span_target ring_hom.of_localization_finite_span_target,
   apply forall₅_congr, -- TODO: Using `refine` here breaks `resetI`.
   introsI,
   split,
@@ -543,6 +571,37 @@ lemma localization_away_map_finite_type (r : R) [is_localization.away r R']
     (is_localization.away.map R' S' f r).finite_type :=
 localization_finite_type.away r hf
 
+variable {S'}
+
+/--
+Let `S` be an `R`-algebra, `M` a submonoid of `S`, `S' = M⁻¹S`.
+Suppose the image of some `x : S` falls in the adjoin of some finite `s ⊆ S'` over `R`,
+and `A` is an `R`-subalgebra of `S` containing both `M` and the numerators of `s`.
+Then, there exists some `m : M` such that `m • x` falls in `A`.
+-/
+lemma is_localization.exists_smul_mem_of_mem_adjoin [algebra R S]
+  [algebra R S'] [is_scalar_tower R S S'] (M : submonoid S)
+  [is_localization M S'] (x : S) (s : finset S') (A : subalgebra R S)
+  (hA₁ : (is_localization.finset_integer_multiple M s : set S) ⊆ A)
+  (hA₂ : M ≤ A.to_submonoid)
+  (hx : algebra_map S S' x ∈ algebra.adjoin R (s : set S')) :
+    ∃ m : M, m • x ∈ A :=
+begin
+  let g : S →ₐ[R] S' := is_scalar_tower.to_alg_hom R S S',
+  let y := is_localization.common_denom_of_finset M s,
+  have hx₁ : (y : S) • ↑s = g '' _ := (is_localization.finset_integer_multiple_image _ s).symm,
+  obtain ⟨n, hn⟩ := algebra.pow_smul_mem_of_smul_subset_of_mem_adjoin (y : S) (s : set S')
+    (A.map g) (by { rw hx₁, exact set.image_subset _ hA₁ }) hx (set.mem_image_of_mem _ (hA₂ y.2)),
+  obtain ⟨x', hx', hx''⟩ := hn n (le_of_eq rfl),
+  rw [algebra.smul_def, ← _root_.map_mul] at hx'',
+  obtain ⟨a, ha₂⟩ := (is_localization.eq_iff_exists M S').mp hx'',
+  use a * y ^ n,
+  convert A.mul_mem hx' (hA₂ a.2),
+  convert ha₂.symm,
+  simp only [submonoid.smul_def, submonoid.coe_pow, smul_eq_mul, submonoid.coe_mul],
+  ring,
+end
+
 /--
 Let `S` be an `R`-algebra, `M` an submonoid of `R`, and `S' = M⁻¹S`.
 If the image of some `x : S` falls in the adjoin of some finite `s ⊆ S'` over `R`,
@@ -556,30 +615,10 @@ lemma is_localization.lift_mem_adjoin_finset_integer_multiple [algebra R S]
     ∃ m : M, m • x ∈ algebra.adjoin R
       (is_localization.finset_integer_multiple (M.map (algebra_map R S : R →* S)) s : set S) :=
 begin
-  -- mirrors the proof of `is_localization.smul_mem_finset_integer_multiple_span`
-  let g : S →ₐ[R] S' := alg_hom.mk' (algebra_map S S')
-    (λ c x, by simp [algebra.algebra_map_eq_smul_one]),
-
-  let y := is_localization.common_denom_of_finset (M.map (algebra_map R S : R →* S)) s,
-  have hx₁ : (y : S) • ↑s = g '' _ := (is_localization.finset_integer_multiple_image _ s).symm,
-  obtain ⟨y', hy', e : algebra_map R S y' = y⟩ := y.prop,
-  have : algebra_map R S y' • (s : set S') = y' • s :=
-    by simp_rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul],
-  rw [← e, this] at hx₁,
-  replace hx₁ := congr_arg (algebra.adjoin R) hx₁,
-  obtain ⟨n, hn⟩ := algebra.pow_smul_mem_adjoin_smul _ y' (s : set S') hx,
-  specialize hn n (le_of_eq rfl),
-  erw [hx₁, ← g.map_smul, ← g.map_adjoin] at hn,
-  obtain ⟨x', hx', hx''⟩ := hn,
-  obtain ⟨⟨_, a, ha₁, rfl⟩, ha₂⟩ := (is_localization.eq_iff_exists
-    (M.map (algebra_map R S : R →* S)) S').mp hx'',
-  use (⟨a, ha₁⟩ : M) * (⟨y', hy'⟩ : M) ^ n,
-  convert (algebra.adjoin R (is_localization.finset_integer_multiple
-    (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem hx' a using 1,
-  convert ha₂.symm,
-  { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul,
-      algebra.smul_def, submonoid_class.coe_pow], refl },
-  { rw mul_comm, exact algebra.smul_def _ _ }
+  obtain ⟨⟨_, a, ha, rfl⟩, e⟩ := is_localization.exists_smul_mem_of_mem_adjoin
+    (M.map (algebra_map R S : R →* S)) x s (algebra.adjoin R _) algebra.subset_adjoin _ hx,
+  { exact ⟨⟨a, ha⟩, by simpa [submonoid.smul_def] using e⟩ },
+{ rintros _ ⟨a, ha, rfl⟩, exact subalgebra.algebra_map_mem _ a }
 end
 
 lemma finite_type_of_localization_span : ring_hom.of_localization_span @ring_hom.finite_type :=
@@ -613,7 +652,7 @@ begin
   rw [submonoid.smul_def, algebra.smul_def, is_scalar_tower.algebra_map_apply R S,
     subtype.coe_mk, ← map_mul] at hn₁,
   obtain ⟨⟨_, n₂, rfl⟩, hn₂⟩ := is_localization.lift_mem_adjoin_finset_integer_multiple
-    (submonoid.powers (r : R)) (localization.away (f r)) _ (s₁ r) hn₁,
+    (submonoid.powers (r : R)) _ (s₁ r) hn₁,
   rw [submonoid.smul_def, ← algebra.smul_def, smul_smul, subtype.coe_mk, ← pow_add] at hn₂,
   use n₂ + n₁,
   refine le_supr (λ (x : s), algebra.adjoin R (sf x : set S)) r _,

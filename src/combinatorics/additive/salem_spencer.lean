@@ -345,7 +345,7 @@ calc
 
 @[to_additive]
 lemma le_mul_roth_number_product (s : finset α) (t : finset β) :
-  mul_roth_number s * mul_roth_number t ≤ mul_roth_number (s.product t) :=
+  mul_roth_number s * mul_roth_number t ≤ mul_roth_number (s ×ˢ t) :=
 begin
   obtain ⟨u, hus, hucard, hu⟩ := mul_roth_number_spec s,
   obtain ⟨v, hvt, hvcard, hv⟩ := mul_roth_number_spec t,

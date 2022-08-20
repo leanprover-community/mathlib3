@@ -132,7 +132,7 @@ variables (R n)
 /-- A structure containing all the information from which one can build a nontrivial transvection.
 This structure is easier to manipulate than transvections as one has a direct access to all the
 relevant fields. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure transvection_struct :=
 (i j : n)
 (hij : i ≠ j)

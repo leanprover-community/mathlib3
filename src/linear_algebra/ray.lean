@@ -159,7 +159,7 @@ end same_ray
 
 /-- Nonzero vectors, as used to define rays. This type depends on an unused argument `R` so that
 `ray_vector.setoid` can be an instance. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def ray_vector (R M : Type*) [has_zero M] := {v : M // v ≠ 0}
 
 instance ray_vector.has_coe {R M : Type*} [has_zero M] :
@@ -177,7 +177,7 @@ instance : setoid (ray_vector R M) :=
     λ x y z hxy hyz, hxy.trans hyz $ λ hy, (y.2 hy).elim⟩ }
 
 /-- A ray (equivalence class of nonzero vectors with common positive multiples) in a module. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def module.ray := quotient (ray_vector.setoid R M)
 
 variables {R M}

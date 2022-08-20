@@ -1312,8 +1312,7 @@ def prod (H : subgroup G) (K : subgroup N) : subgroup (G × N) :=
   .. submonoid.prod H.to_submonoid K.to_submonoid}
 
 @[to_additive coe_prod]
-lemma coe_prod (H : subgroup G) (K : subgroup N) :
-  (H.prod K : set (G × N)) = (H : set G) ×ˢ (K : set N) := rfl
+lemma coe_prod (H : subgroup G) (K : subgroup N) : (H.prod K : set (G × N)) = H ×ˢ K := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {H : subgroup G} {K : subgroup N} {p : G × N} :

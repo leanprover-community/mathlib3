@@ -7,6 +7,7 @@ Authors: David Renshaw
 import algebra.geom_sum
 import data.rat.defs
 import data.real.basic
+import tactic.positivity
 
 /-!
 # IMO 2013 Q5
@@ -142,7 +143,7 @@ begin
   { simp only [pow_one] },
   have hpn' := hpn pn.succ_pos,
   rw [pow_succ' x (pn + 1), pow_succ' (f x) (pn + 1)],
-  have hxp : 0 < x := zero_lt_one.trans hx,
+  have hxp : 0 < x := by positivity,
   calc f ((x ^ (pn+1)) * x)
           ≤ f (x ^ (pn+1)) * f x : H1 (x ^ (pn+1)) x (pow_pos hxp (pn+1)) hxp
       ... ≤ (f x) ^ (pn+1) * f x : (mul_le_mul_right (f_pos_of_pos hxp H1 H4)).mpr hpn'
@@ -180,7 +181,7 @@ begin
                         ≤ f x + ((a^N - x) : ℚ) : add_le_add_right (H5 x hx) _
                     ... ≤ f x + f (a^N - x)     : add_le_add_left (H5 _ h_big_enough) _,
 
-  have hxp : 0 < x := zero_lt_one.trans hx,
+  have hxp : 0 < x := by positivity,
 
   have hNp : 0 < N,
   { by_contra' H, rw [nat.le_zero_iff.mp H] at hN, linarith },
@@ -244,7 +245,7 @@ begin
                                           H1 H2 H4
                      ... ≤ (f x)^n : pow_f_le_f_pow hn hx H1 H4 },
     have hx' : 1 < (x : ℝ) := by exact_mod_cast hx,
-    have hxp : 0 < x := zero_lt_one.trans hx,
+    have hxp : 0 < x := by positivity,
     exact le_of_all_pow_lt_succ' hx' (f_pos_of_pos hxp H1 H4) hxnm1 },
 
   have h_f_commutes_with_pos_nat_mul : ∀ n : ℕ, 0 < n → ∀ x : ℚ, 0 < x → f (n * x) = n * f x,

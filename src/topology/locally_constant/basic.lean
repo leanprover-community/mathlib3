@@ -185,6 +185,20 @@ begin
   apply h,
 end
 
+lemma of_constant_on_connected_components [locally_connected_space X] {f : X → Y}
+  (h : ∀ x, ∀ y ∈ connected_component x, f y = f x) :
+  is_locally_constant f :=
+begin
+  rw iff_exists_open,
+  exact λ x, ⟨connected_component x, is_open_connected_component, mem_connected_component, h x⟩,
+end
+
+lemma of_constant_on_preconnected_clopens [locally_connected_space X] {f : X → Y}
+  (h : ∀ U : set X, is_preconnected U → is_clopen U → ∀ x ∈ U, ∀ y ∈ U, f y = f x) :
+  is_locally_constant f :=
+of_constant_on_connected_components (λ x, h (connected_component x)
+  is_preconnected_connected_component is_clopen_connected_component x mem_connected_component)
+
 end is_locally_constant
 
 /-- A (bundled) locally constant function from a topological space `X` to a type `Y`. -/

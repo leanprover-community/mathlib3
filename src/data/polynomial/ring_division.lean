@@ -144,6 +144,12 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+lemma degree_le_of_dvd {p q : R[X]} (h1 : p ∣ q) (h2 : q ≠ 0) : degree p ≤ degree q :=
+begin
+  rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
+  exact degree_le_mul_left p h2.2,
+end
+
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
 lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
@@ -371,6 +377,12 @@ end
 
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
+
+lemma ne_zero_of_mem_roots (h : a ∈ p.roots) : p ≠ 0 :=
+λ hp, by rwa [hp, roots_zero] at h
+
+lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a :=
+(mem_roots $ ne_zero_of_mem_roots h).mp h
 
 theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=
@@ -671,6 +683,23 @@ begin
   rw ←polynomial.map_zero (algebra_map T S) at h,
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
+
+lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S'] (hp : p.map (algebra_map T S') ≠ 0)
+  (f : S →ₐ[T] S') : (p.root_set S).maps_to f (p.root_set S') :=
+λ x hx, begin
+  rw [mem_root_set_iff' hp, ← f.comp_algebra_map, ← map_map, eval_map],
+  erw [eval₂_hom, (mem_root_set_iff' (mt (λ h, _) hp) x).1 hx, _root_.map_zero],
+  rw [← f.comp_algebra_map, ← map_map, h, polynomial.map_zero],
+end
+
+lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {a : S}
+  (h : a ∈ p.root_set S) : p ≠ 0 :=
+λ hf, by rwa [hf, root_set_zero] at h
+
+lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
+  [no_zero_smul_divisors T S] {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
+(mem_root_set_iff (ne_zero_of_mem_root_set hx) a).mp hx
 
 end roots
 

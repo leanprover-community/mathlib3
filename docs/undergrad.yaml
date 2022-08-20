@@ -51,7 +51,7 @@ Linear algebra:
     Gaussian elimination: 'https://en.wikipedia.org/wiki/Gaussian_elimination'
     row-reduced matrices: 'https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form'
   Endomorphism polynomials:
-    annihilating polynomials: 'https://en.wikipedia.org/wiki/Minimal_polynomial_(linear_algebra)#Formal_definition'
+    annihilating polynomials: 'polynomial.ann_ideal'
     minimal polynomial: 'minpoly'
     characteristic polynomial: 'matrix.charpoly'
     Cayley-Hamilton theorem: 'matrix.aeval_self_charpoly'

@@ -18,7 +18,7 @@ An interface for multiplication and division of sub-R-modules of an R-algebra A 
 
 ## Main definitions
 
-Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
+Let `R` be a commutative ring (or semiring) and let `A` be an `R`-algebra.
 
 * `1 : submodule R A`       : the R-submodule R of the R-algebra A
 * `has_mul (submodule R A)` : multiplication of two sub-R-modules M and N of A is defined to be
@@ -27,6 +27,9 @@ Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
                               that `a • J ⊆ I`
 
 It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
+
+Additionally, in the `pointwise` locale we promote `submodule.pointwise_distrib_mul_action` to a
+`mul_semiring_action` as `submodule.pointwise_mul_semiring_action`.
 
 ## Tags
 
@@ -118,7 +121,7 @@ by rw [←map_equiv_eq_comap_symm, map_op_one]
 
 /-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
 smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
-instance : has_mul (submodule R A) := ⟨submodule.map₂ (algebra.lmul R A).to_linear_map⟩
+instance : has_mul (submodule R A) := ⟨submodule.map₂ $ linear_map.mul R A⟩
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N := apply_mem_map₂ _ hm hn
 
@@ -128,7 +131,7 @@ lemma mul_to_add_submonoid (M N : submodule R A) :
   (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
 begin
   dsimp [has_mul.mul],
-  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid _ N,
+  simp_rw [←linear_map.mul_left_to_add_monoid_hom R, linear_map.mul_left, ←map_to_add_submonoid _ N,
     map₂],
   rw supr_to_add_submonoid,
   refl,
@@ -189,7 +192,7 @@ image2_subset_map₂ (algebra.lmul R A).to_linear_map M N
 protected lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
 calc map f.to_linear_map (M * N)
-    = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
+    = ⨆ (i : M), (N.map (linear_map.mul R A i)).map f.to_linear_map : map_supr _ _
 ... = map f.to_linear_map M * map f.to_linear_map N  :
   begin
     apply congr_arg Sup,
@@ -454,6 +457,23 @@ def span.ring_hom : set_semiring A →+* submodule R A :=
   map_add' := span_union,
   map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
 
+section
+variables {α : Type*} [monoid α] [mul_semiring_action α A] [smul_comm_class α R A]
+
+/-- The action on a submodule corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale.
+
+This is a stronger version of `submodule.pointwise_distrib_mul_action`. -/
+protected def pointwise_mul_semiring_action : mul_semiring_action α (submodule R A) :=
+{ smul_mul := λ r x y, submodule.map_mul x y $ mul_semiring_action.to_alg_hom R A r,
+  smul_one := λ r, submodule.map_one $ mul_semiring_action.to_alg_hom R A r,
+  ..submodule.pointwise_distrib_mul_action }
+
+localized "attribute [instance] submodule.pointwise_mul_semiring_action" in pointwise
+
+end
+
 end ring
 
 section comm_ring
@@ -512,7 +532,7 @@ lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down �
 mul_le_mul (span_mono h₁) h₂
 
 lemma smul_singleton (a : A) (M : submodule R A) :
-  ({a} : set A).up • M = M.map (lmul_left _ a) :=
+  ({a} : set A).up • M = M.map (linear_map.mul_left _ a) :=
 begin
   conv_lhs {rw ← span_eq M},
   change span _ _ * span _ _ = _,

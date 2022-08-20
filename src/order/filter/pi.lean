@@ -31,6 +31,10 @@ section pi
 /-- The product of an indexed family of filters. -/
 def pi (f : Π i, filter (α i)) : filter (Π i, α i) := ⨅ i, comap (eval i) (f i)
 
+instance pi.is_countably_generated [countable ι] [∀ i, is_countably_generated (f i)] :
+  is_countably_generated (pi f) :=
+infi.is_countably_generated _
+
 lemma tendsto_eval_pi (f : Π i, filter (α i)) (i : ι) :
   tendsto (eval i) (pi f) (f i) :=
 tendsto_infi' i tendsto_comap
@@ -91,7 +95,7 @@ lemma has_basis_pi {ι' : ι → Type} {s : Π i, ι' i → set (α i)} {p : Π 
   (pi f).has_basis (λ If : set ι × Π i, ι' i, If.1.finite ∧ ∀ i ∈ If.1, p i (If.2 i))
     (λ If : set ι × Π i, ι' i, If.1.pi (λ i, s i $ If.2 i)) :=
 begin
-  have : (pi f).has_basis _ _ := has_basis_infi (λ i, (h i).comap (eval i : (Π j, α j) → α i)),
+  have : (pi f).has_basis _ _ := has_basis_infi' (λ i, (h i).comap (eval i : (Π j, α j) → α i)),
   convert this,
   ext,
   simp

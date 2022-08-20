@@ -956,6 +956,17 @@ linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
 end continuous_multilinear_map
 
+section smul
+
+variables {R : Type*} [semiring R] [module R G] [smul_comm_class 𝕜 R G]
+  [has_continuous_const_smul R G]
+
+instance : has_continuous_const_smul R (continuous_multilinear_map 𝕜 E G) :=
+⟨λ c, (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ G G
+  (c • continuous_linear_map.id 𝕜 G)).2⟩
+
+end smul
+
 section currying
 /-!
 ### Currying

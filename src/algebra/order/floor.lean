@@ -448,10 +448,10 @@ by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor a
 
 @[simp] lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋ := sub_lt_iff_lt_add.2 (lt_floor_add_one a)
 
-@[simp] lemma floor_coe (z : ℤ) : ⌊(z : α)⌋ = z :=
+@[simp] lemma floor_int_cast (z : ℤ) : ⌊(z : α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 
-@[simp] lemma floor_coe' (n : ℕ) : ⌊(n : α)⌋ = n :=
+@[simp] lemma floor_nat_cast (n : ℕ) : ⌊(n : α)⌋ = n :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, ← cast_coe_nat, cast_le]
 
 @[simp] lemma floor_zero : ⌊(0 : α)⌋ = 0 := by rw [← int.cast_zero, floor_coe]

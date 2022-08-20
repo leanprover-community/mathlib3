@@ -189,6 +189,14 @@ by { ext, rw [mem_restrict_scalars, mem_bot], exact set.ext_iff.mp subtype.range
   (⊤ : intermediate_field F E).restrict_scalars K = ⊤ :=
 rfl
 
+lemma _root_.alg_hom.field_range_eq_map {K : Type*} [field K] [algebra F K] (f : E →ₐ[F] K) :
+  f.field_range = intermediate_field.map f ⊤ :=
+set_like.ext' set.image_univ.symm
+
+lemma _root_.alg_hom.map_field_range {K L : Type*} [field K] [field L] [algebra F K] [algebra F L]
+  (f : E →ₐ[F] K) (g : K →ₐ[F] L) : f.field_range.map g = (g.comp f).field_range :=
+set_like.ext' (set.range_comp g f).symm
+
 end lattice
 
 section adjoin_def

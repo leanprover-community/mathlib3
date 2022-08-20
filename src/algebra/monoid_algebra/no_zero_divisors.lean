@@ -3,8 +3,7 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-
-import data.mv_polynomial.equiv
+import algebra.monoid_algebra.basic
 
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
@@ -39,7 +38,7 @@ example {R} [ring R] [nontrivial R] :
   ∃ x y : add_monoid_algebra R (zmod 2), x * y = 0 ∧ x ≠ 0 ∧ y ≠ 0 :=
 begin
   --  use `[1 (mod 2)] - 1` and `[1 (mod 2)] + 1`, the rest is easy
-  refine ⟨single 1 1 - single 0 1, single 1 1 +  single 0 1, _, _⟩,
+  refine ⟨of' _ _ 1 - single 0 1, of' _ _ 1 +  single 0 1, _, _⟩,
   { simp [sub_mul, mul_add, single_mul_single, sub_eq_zero], refl },
   { simp [←finsupp.single_neg, single_eq_single_iff, sub_eq_add_neg, ←eq_neg_iff_add_eq_zero.not] }
 end
@@ -53,7 +52,7 @@ namespace add_monoid_algebra
 variables {R A : Type*} [semiring R]
 
 section a_version_with_different_typeclass_assumptions
-variables [add_left_cancel_monoid A] {a b : A} {f g : add_monoid_algebra R A}
+variables [add_left_cancel_monoid A] {a b : A} {f : add_monoid_algebra R A}
 
 /--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
 somewhat weaker typeclass assumptions, but also proves a weaker result. -/
@@ -115,14 +114,14 @@ end
 end covariant_lt
 
 variables [no_zero_divisors R] [has_add A] [linear_order A] [covariant_class A A (+) (<)]
-  [covariant_class A A (function.swap (+)) (<)] {a b : A} {f g : add_monoid_algebra R A}
+  [covariant_class A A (function.swap (+)) (<)]
 
 protected lemma no_zero_divisors : no_zero_divisors (add_monoid_algebra R A) :=
 begin
-  refine ⟨λ a b ab, _⟩,
-  contrapose! ab,
-  apply_fun (λ x : add_monoid_algebra R A, x (a.support.max' (finsupp.support_nonempty_iff.mpr ab.1)
-    + b.support.max' (finsupp.support_nonempty_iff.mpr ab.2))),
+  refine ⟨λ f g fg, _⟩,
+  contrapose! fg,
+  apply_fun (λ x : add_monoid_algebra R A, x (f.support.max' (finsupp.support_nonempty_iff.mpr fg.1)
+    + g.support.max' (finsupp.support_nonempty_iff.mpr fg.2))),
   simp only [finsupp.coe_zero, pi.zero_apply],
   rw mul_apply_of_le;
   try { exact finset.le_max' _ },

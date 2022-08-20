@@ -41,27 +41,6 @@ Star-convex sets are contractible.
 A nonempty open star-convex set in `ℝ^n` is diffeomorphic to the entire space.
 -/
 
-section
-variables {𝕜 E : Type*} [semiring 𝕜] [add_comm_group E] [module 𝕜 E]
-
-lemma convex.combo_eq_vadd {x y : E} {a b : 𝕜} (h : a + b = 1) : a • x + b • y = b • (y - x) + x :=
-calc
-  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
-            ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
-
-end
-
-section
-variables {𝕜 E F : Type*} [ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
-
-/-- Applying an affine map to an affine combination of two points yields an affine combination of
-the images. -/
-lemma convex.combo_affine_apply {x y : E} {a b : 𝕜} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
-  f (a • x + b • y) = a • f x + b • f y :=
-by { simp only [convex.combo_eq_vadd h, ←vsub_eq_sub], exact f.apply_line_map _ _ _ }
-
-end
-
 open set
 open_locale convex pointwise
 

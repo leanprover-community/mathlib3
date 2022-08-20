@@ -8,6 +8,7 @@ import algebra.smul_with_zero
 import data.rat.cast
 import group_theory.group_action.big_operators
 import group_theory.group_action.group
+import tactic.abel
 
 /-!
 # Modules over a ring
@@ -250,10 +251,16 @@ by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
 
 variables (R)
 theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simp
-variables {R}
+
+variables {R} {a b : R}
 
 theorem sub_smul (r s : R) (y : M) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]
+
+lemma convex.combo_eq_vadd (h : a + b = 1) : a • x + b • y = b • (y - x) + x :=
+calc
+  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
+            ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
 
 end module
 

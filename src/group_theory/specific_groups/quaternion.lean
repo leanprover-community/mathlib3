@@ -151,7 +151,7 @@ def quaternion_group_zero_equiv_dihedral_group_zero : quaternion_group 0 ≃* di
 /--
 If `0 < n`, then `quaternion_group n` is a finite group.
 -/
-instance as [ne_zero n] : fintype (quaternion_group n) := fintype.of_equiv _ fintype_helper
+instance [ne_zero n] : fintype (quaternion_group n) := fintype.of_equiv _ fintype_helper
 
 instance : nontrivial (quaternion_group n) := ⟨⟨a 0, xa 0, dec_trivial⟩⟩
 

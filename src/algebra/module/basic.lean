@@ -252,7 +252,7 @@ by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
 variables (R)
 theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simp
 
-variables {R} {a b : R}
+variables {R} {a b : R} {x y}
 
 theorem sub_smul (r s : R) (y : M) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]

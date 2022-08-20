@@ -1,47 +1,13 @@
 import .all
 run_cmd tactic.skip
 
--- algebra/big_operators/fin.lean
-apply_nolint fin.prod_univ_cast_succ to_additive_doc
-apply_nolint fin.prod_univ_succ to_additive_doc
-apply_nolint fin.prod_univ_succ_above to_additive_doc
-
--- algebra/big_operators/finprod.lean
-apply_nolint finprod_mem_Union fintype_finite
-apply_nolint finsum_mem_Union fintype_finite
-
--- algebra/big_operators/pi.lean
-apply_nolint add_monoid_hom.functions_ext fintype_finite
-apply_nolint add_monoid_hom.functions_ext' fintype_finite
-apply_nolint ring_hom.functions_ext fintype_finite
-
--- algebra/category/Group/limits.lean
-apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
-
--- algebra/char_p/basic.lean
-apply_nolint is_square_of_char_two' fintype_finite
-
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
-
--- algebra/hom/freiman.lean
-apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
 -- algebra/hom/group.lean
 apply_nolint monoid_hom.ext_iff to_additive_doc
 apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
-
--- algebra/order/group.lean
-apply_nolint left.inv_le_one_iff to_additive_doc
-apply_nolint left.inv_lt_one_iff to_additive_doc
-apply_nolint left.one_le_inv_iff to_additive_doc
-apply_nolint left.one_lt_inv_iff to_additive_doc
-apply_nolint right.inv_le_one_iff to_additive_doc
-apply_nolint right.one_le_inv_iff to_additive_doc
-
--- algebra/order/lattice_group.lean
-apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
 
 -- analysis/box_integral/box/basic.lean
 apply_nolint box_integral.box.Union_Ioo_of_tendsto fintype_finite

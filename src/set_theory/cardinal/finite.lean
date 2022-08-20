@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import data.zmod.defs
 import set_theory.cardinal.basic
 
 /-!
@@ -79,6 +80,13 @@ card_congr equiv.plift
 
 lemma card_pi {β : α → Type*} [fintype α] : nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
 by simp_rw [nat.card, mk_pi, prod_eq_of_fintype, to_nat_lift, to_nat_finset_prod]
+
+@[simp] lemma card_zmod (n : ℕ) : nat.card (zmod n) = n :=
+begin
+  cases n,
+  { exact nat.card_eq_zero_of_infinite },
+  { rw [nat.card_eq_fintype_card, zmod.card] },
+end
 
 end nat
 

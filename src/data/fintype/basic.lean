@@ -851,7 +851,7 @@ instance : fintype punit := fintype.of_subsingleton punit.star
 
 @[simp] theorem fintype.card_punit : fintype.card punit = 1 := rfl
 
-instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases x; simp⟩
+instance : fintype bool := ⟨⟨{tt, ff}, by simp⟩, λ x, by cases x; simp⟩
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
@@ -1283,8 +1283,7 @@ instance plift.fintype_Prop (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=
-⟨⟨true ::ₘ false ::ₘ 0, by simp [true_ne_false]⟩,
- classical.cases (by simp) (by simp)⟩
+⟨⟨{true, false}, by simp [true_ne_false]⟩, classical.cases (by simp) (by simp)⟩
 
 @[simp] lemma fintype.card_Prop : fintype.card Prop = 2 := rfl
 
@@ -1331,6 +1330,8 @@ end
 
 instance [monoid α] [fintype α] [decidable_eq α] : fintype αˣ :=
 fintype.of_equiv _ (units_equiv_prod_subtype α).symm
+
+instance [monoid α] [finite α] : finite αˣ := finite.of_injective _ units.ext
 
 lemma fintype.card_units [group_with_zero α] [fintype α] [fintype αˣ] :
   fintype.card αˣ = fintype.card α - 1 :=

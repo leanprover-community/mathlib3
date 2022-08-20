@@ -346,7 +346,7 @@ variables {R A B C}
 { map_star' := λ x, by simp only [pi.prod, prod.star_def, map_star],
   .. non_unital_alg_hom.prod f g }
 
-lemma coe_prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
+lemma coe_prod (f : A →⋆ₙₐ[R] B) (g : A →⋆ₙₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
 
 @[simp] theorem fst_prod (f : A →⋆ₙₐ[R] B) (g : A →⋆ₙₐ[R] C) :
   (fst R B C).comp (prod f g) = f := by ext; refl

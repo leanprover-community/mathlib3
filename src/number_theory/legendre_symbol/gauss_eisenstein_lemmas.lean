@@ -162,7 +162,7 @@ begin
   have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
     by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
-  cases legendre_sym_eq_one_or_neg_one p a ha0;
+  cases legendre_sym_eq_one_or_neg_one p ha0;
   cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
   simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *

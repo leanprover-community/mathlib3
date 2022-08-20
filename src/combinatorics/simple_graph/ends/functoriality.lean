@@ -482,21 +482,20 @@ def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
   suffices : f '' D.val ⊆ C,
   { use [C,ro_component.of_in_components G' K d dnK, set.infinite.mono this fDinf, this], },
 
-  rintro d' dfD',
+  rintro d' ⟨e',⟨heD',hed'⟩⟩,
   rcases dfD with ⟨e,⟨heD,hed⟩⟩,
-  rcases dfD' with ⟨e',⟨heD',hed'⟩⟩,
   obtain ⟨w,wD⟩ := ro_component.to_subconnected G L D.val.val D.val.prop e heD e' heD',
 
   by_contradiction,
   have efC : e ∈ set.preimage f C, by {simp only [set.mem_preimage],rw hed,exact dC},
   have efC' : e' ∉ set.preimage f C, by {simp only [set.mem_preimage],rw hed', exact h},
   obtain ⟨x,y,_,a,_,_,xC,yC⟩ := w.split_along_set (set.preimage f C) efC efC',
-  have fxC : f x ∈ C, by { sorry }, -- x is containde in a path containde in f⁻¹ C
+  suffices : y ∈ set.preimage f C, { exact yC this, },
+  apply well_separated G' Gpc' K m (⟨C,Ccomp⟩) (f x) _ (f y) _ (fcl x y a),
+  { sorry }, -- x is containde in a path containde in f⁻¹ C
   have xD : x ∈ D.val.val, sorry, -- x lies in w, w is containde in D
   have fxnK' : f x ∉ K' := λ fxK', (disDK'.ne_of_mem (mem_image_of_mem f xD) fxK') (refl (f x)),
-  have : y ∈ set.preimage f C, from
-    well_separated G' Gpc' K m (⟨C,Ccomp⟩) (f x) fxC (f y) fxnK' (fcl x y a),
-  exact yC this,
+  exact fxnK',
 }⟩
 
 

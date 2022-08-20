@@ -996,7 +996,7 @@ begin
   exact measurable_set.Union (λ i, hf i (is_open_lt' _).measurable_set)
 end
 
-private lemma ae_measurable.is_lub_of_nonempty {ι} (hι : nonempty ι)
+private lemma ae_measurable.is_lub_of_nonempty {ι : Type*} (hι : nonempty ι)
   {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
@@ -1023,7 +1023,7 @@ begin
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
-lemma ae_measurable.is_lub {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
+lemma ae_measurable.is_lub {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1053,7 +1053,7 @@ begin
   exact measurable_set.Union (λ i, hf i (is_open_gt' _).measurable_set)
 end
 
-private lemma ae_measurable.is_glb_of_nonempty {ι} (hι : nonempty ι)
+private lemma ae_measurable.is_glb_of_nonempty {ι : Type*} (hι : nonempty ι)
   {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
@@ -1080,7 +1080,7 @@ begin
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
-lemma ae_measurable.is_glb {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
+lemma ae_measurable.is_glb {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1196,7 +1196,7 @@ lemma measurable_supr {ι} [countable ι] {f : ι → δ → α} (hf : ∀ i, me
 measurable.is_lub hf $ λ b, is_lub_supr
 
 @[measurability]
-lemma ae_measurable_supr {ι} {μ : measure δ} [countable ι] {f : ι → δ → α}
+lemma ae_measurable_supr {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) :
   ae_measurable (λ b, ⨆ i, f i b) μ :=
 ae_measurable.is_lub hf $ (ae_of_all μ (λ b, is_lub_supr))
@@ -1207,7 +1207,7 @@ lemma measurable_infi {ι} [countable ι] {f : ι → δ → α} (hf : ∀ i, me
 measurable.is_glb hf $ λ b, is_glb_infi
 
 @[measurability]
-lemma ae_measurable_infi {ι} {μ : measure δ} [countable ι] {f : ι → δ → α}
+lemma ae_measurable_infi {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) :
   ae_measurable (λ b, ⨅ i, f i b) μ :=
 ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))

@@ -403,86 +403,160 @@ lemma coarse_close.Endsinfty.eq' [locally_finite G] [locally_finite G']
 
 def coarse_Lipschitz (f : V → V') (K : ℕ) := ∀ (x y : V) (a : G.adj x y), (G'.dist (f x) (f y)) ≤ K
 
-include Gpc'
-def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V')
-  (m : ℕ) (fcl : coarse_Lipschitz G G' f m)
-  (cof : cofinite f) : coarse G G' f :=
+
+
+private def thicken (G : simple_graph V) (K : finset V) (m : ℕ) : finset V :=
 begin
-  rintro K,
-  let K'set := {v : V' | ∃ k ∈ K, G'.dist v k ≤ m},
+  let K'set := {v : V | ∃ k ∈ K, G.dist v k ≤ m},
   have : K'set.finite := sorry, -- locally finite
-  let K' := this.to_finset,
-  have KK' : K ⊆ K', by {rintro k kK,simp,use k,split, exact kK, rw (dist_self : G'.dist k k = 0),simp,},
+  exact this.to_finset,
+end
 
-  have well_separated : ∀ (C C' : ro_components G' K) (c ∈ C.val) (c' ∈ C'.val),
-    c ∉ K' →  c' ∉ K' → G'.dist c c' ≤ m → C = C', by
-  { rintro C C' c cC c' cC' cnK cnK',
-    obtain ⟨w,wm⟩ := reachable.exists_walk_of_dist (Gpc' c c'), rw ←wm,
-    rintro hwm,
-    have wdisK : disjoint (w.support.to_finset : set V') K, by {
-      by_contradiction h, rw set.not_disjoint_iff at h,
-      obtain ⟨x,xw,xK⟩ := h,
-      rw finset.mem_coe at xw,
-      rw list.mem_to_finset at xw,
-      rw walk.mem_support_iff_exists_append at xw,
-      obtain ⟨cx,cx',rfl⟩ := xw,
-      sorry,
-      -- Now we have paths cx and cx' joining c and c' respectively to x, and these ar of length ≤ m,
-      -- By definition of K', we get c and c' ∈ K', a contradiction.
-      -- TODO: we can remove the assumption c' ∉ K' since only one side is needed
-    },
-    -- A path disjoint from K, thus by some lemma in `reachable_outside` (or actually by def), must
-    -- have C = C'.
-    sorry,
+private lemma thicken.sub (G : simple_graph V) (K : finset V) (m : ℕ) :
+  K ⊆ thicken G K m :=
+begin
+  rintro k kK,
+  dsimp [thicken],
+  simp only [finite.mem_to_finset, mem_set_of_eq, exists_prop],
+  use k, split, exact kK,
+  rw (dist_self : G.dist k k = 0),
+  apply zero_le,
+end
+
+private lemma thicken.eq (G : simple_graph V) (K : finset V) (m : ℕ) :
+  (thicken G K m : set V) = {v : V | ∃ k ∈ K, G.dist v k ≤ m} := sorry
+
+private lemma well_separated (G : simple_graph V) (Gpc : G.preconnected) (K : finset V) (m : ℕ)
+  (C : ro_components G K)
+  (c : V) (cC : c ∈ C.val) (c' : V) :
+  c ∉ (thicken G K m) → G.dist c c' ≤ m → c' ∈ C.val :=
+begin
+  rintro cnK,
+  obtain ⟨w,wm⟩ := reachable.exists_walk_of_dist (Gpc c c'), rw ←wm,
+  rintro hwm,
+  have wdisK : disjoint w.support.to_finset K, by {
+    by_contradiction h, rw finset.not_disjoint_iff at h,
+    obtain ⟨x,xw,xK⟩ := h,
+    rw [list.mem_to_finset,walk.mem_support_iff_exists_append] at xw,
+    obtain ⟨cx,_,rfl⟩ := xw,
+    apply cnK,
+    dsimp only [thicken],
+    simp only [finite.mem_to_finset, mem_set_of_eq, exists_prop],
+    use [x,xK],
+    apply (dist_le cx).trans,
+    refine le_trans _ hwm,
+    simp only [length_append, le_add_iff_nonneg_right, zero_le'],
   },
+  apply mem_of_mem_of_ro G K C.val C.prop c c' cC ⟨w,wdisK.symm⟩,
+end
 
+
+include Gpc'
+def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
+  (fcl : coarse_Lipschitz G G' f m) (cof : cofinite f) : coarse G G' f :=
+λ K,
+⟨ cof.preimage $ thicken G' K m
+, by {
+
+  let K' := thicken G' K m,
   let L := cof.preimage K',
-  use L,
+
   rintro D,
-  have : disjoint (f '' D.val : set V') K', by sorry,
-  have : disjoint (f '' D.val : set V') K := set.disjoint_of_subset_right KK' this,
+  have disDK' : disjoint (f '' D.val) K', by
+  { rw set.disjoint_iff,
+    rintro x ⟨⟨y,⟨yD,rfl⟩⟩,xK⟩,
+    have : y ∈ L, by {rw ←set.mem_preimage at xK, rw ←cofinite.preimage.coe cof at xK, exact xK},
+    apply not_in_of_in_comp G L D.val.val D.val.prop y yD this,},
+
+  have disDK : disjoint (f '' D.val) K := set.disjoint_of_subset_right (thicken.sub G' K m) disDK',
   have  fDinf: (f '' D.val.val : set V').infinite := cofinite.image_infinite cof D.prop,
   let d := fDinf.nonempty.some,
   have dfD := fDinf.nonempty.some_spec,
-  have dnK : d ∉ K := sorry,
+  have dnK : d ∉ K := λ dK, (disDK.ne_of_mem dfD dK) (refl d),
+  have dnK'' : d ∉ K' := λ dK', (disDK'.ne_of_mem dfD dK') (refl d),
+
   let C := ro_component.of G' K d,
+  have Ccomp := ro_component.of_in_components G' K d dnK,
+  have dC := ro_component.mem_of G' K d dnK,
 
   suffices : f '' D.val ⊆ C,
   { use [C,ro_component.of_in_components G' K d dnK, set.infinite.mono this fDinf, this], },
 
   rintro d' dfD',
-  have dnK' : d' ∉ K := sorry,
   rcases dfD with ⟨e,⟨heD,hed⟩⟩,
   rcases dfD' with ⟨e',⟨heD',hed'⟩⟩,
   obtain ⟨w,wD⟩ := ro_component.to_subconnected G L D.val.val D.val.prop e heD e' heD',
-  -- by well_separated, each successive adjacent vertex in the walk is in C, since the start is,
-  -- and they're each at distance ≤ m from their neighbor.
-  -- thus d' is in C.
 
-  /-
-    Any map which is cofinite and coarsely Lipschitz
-    (in the case for graphs, this means simply ∃m, ∀ (u v), G.adj u v → dist (f u) (f v) ≤ m)
-    is coarse in the present sense.
-    So, assume f is coarsely Lipschitz with constant m as above, and cofinite.
-    Given K, we must find a good_finset L for K.
-    We choose `K' = {x : V | exists k : K, d k x ≤ m}`, i.e. the m-neighborhood of K, and `L := f⁻¹ K'`
-    Now, clearly f '' L contains K.
-    Fix D an infinite ro component for L, since D does not intersect L, f '' D does not intersect K'.
-    Thus, f '' D is contained in the union of all ro components for K', and a fortiori for K.
-    If f '' D is entirely contained in one such C, then C must be infinite, since f '' D is infinite (f being cofinite and D infinite).
-    It remains to check that f '' D really is contained in one such C.
-    Assume that f '' D intersects C and C' (assumed unequal). Since D is connected, f '' D is "m-connected" in the sense that
-    any two elements of f '' D can be joined by a sequence of elements of f '' D each at a distance at most k from its successor/predecessor.
-    Fix c ∈ C ∩ (f '' D) and c' ∈ C' ∩ (f '' D) and take such an "m-path" c = c₀ , c₁ , …, cₙ = c'.
-    There is a last cᵢ contained in C, and necessarily cᵢ₊₁ is not contained in C, and not in K either, thus
-    wlog is contained in C'.
-    In summary, we have some c ∈ C ∩ (f'' D) and c' ∈ C' ∩ (f'' D) joined by a path w of length at most m.
-    Then w must pass through K, since otherwise we'd have a path outside of K joining C and C', hence they would be equal ro components.
-    But now note that c c' ∉ K', obviously, meaning that c and c' are "far" from K, and the existence of this path w intersecting K is a contradiction.
-  -/
-  sorry
+  by_contradiction,
+  have efC : e ∈ set.preimage f C, by {simp only [set.mem_preimage],rw hed,exact dC},
+  have efC' : e' ∉ set.preimage f C, by {simp only [set.mem_preimage],rw hed', exact h},
+  obtain ⟨x,y,_,a,_,_,xC,yC⟩ := w.split_along_set (set.preimage f C) efC efC',
+  have fxC : f x ∈ C, by { sorry }, -- x is containde in a path containde in f⁻¹ C
+  have xD : x ∈ D.val.val, sorry, -- x lies in w, w is containde in D
+  have fxnK' : f x ∉ K' := λ fxK', (disDK'.ne_of_mem (mem_image_of_mem f xD) fxK') (refl (f x)),
+  have : y ∈ set.preimage f C, from
+    well_separated G' Gpc' K m (⟨C,Ccomp⟩) (f x) fxC (f y) fxnK' (fcl x y a),
+  exact yC this,
+}⟩
+
+
+include Gpc
+def coarse_close.of_close_of_coarse_Lipschitz_of_cofinite (f g : V → V')
+  (m : ℕ) (clf : coarse_Lipschitz G G' f m) (clg : coarse_Lipschitz G G' g m)
+  (cof : cofinite f) (cog : cofinite g) (close : ∀ v, G'.dist (f v) (g v) ≤ m) : coarse_close G G' f g :=
+begin
+  rintro K,
+
+  let K' := thicken G' K m,
+
+  let Lf := (coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' f m clf cof K).1,
+  let Hf := (coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' f m clf cof K).2,
+  have Lfdef : (Lf : set V) = set.preimage f K', by {
+    rw [←cofinite.preimage.coe cof K', finset.coe_inj], refl,},
+  -- If I do `obtain ⟨Lf,Hf⟩ := …` the proof of `Lfdef` doesn't work anymore.
+  -- I believe that's because `obtain` uses `have` which doesn't allow "unfolding" the defs.
+  obtain ⟨Lg,Hg⟩ := coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' g m clg cog K,
+
+  use Lf ∪ Lg,
+  let Hf' := good_finset.up G Gpc G' Hf (finset.subset_union_left Lf Lg),
+  let Hg' := good_finset.up G Gpc G' Hg (finset.subset_union_right Lf Lg),
+
+  rintro D,
+  suffices hh : (Hf' D).val = (Hg' D).val,
+  { use (Hf' D).val,
+    simp only [subtype.val_eq_coe, set.union_subset_iff, set.image_subset_iff, mem_set_of_eq],
+    split,
+    { have := (Hf' D).prop,
+      simp only [subtype.val_eq_coe, set.image_subset_iff, mem_set_of_eq] at this,
+      exact this, },
+    { have := (Hg' D).prop,
+      simp only [subtype.val_eq_coe, set.image_subset_iff, mem_set_of_eq] at this hh,
+      rw ←hh at this,
+      exact this, }
+  },
+
+
+  let d := D.prop.nonempty.some,
+  have dD := D.prop.nonempty.some_spec,
+  let c := f d,
+  let c' := g d,
+  have cC : c ∈ (Hf' D).val.val.val, by {refine mem_of_mem_of_subset _ (Hf' D).prop, exact ⟨d,dD,refl c⟩,},
+  have cC' : c' ∈ (Hg' D).val.val.val, by {refine mem_of_mem_of_subset _ (Hg' D).prop, exact ⟨d,dD,refl c'⟩,},
+  have cnK : c ∉ K', by
+  { rintro cK',
+    have : d ∈ Lf ∪ Lg, by
+    { simp only [finset.mem_union],
+      left,
+      rw [←finset.mem_coe, Lfdef, set.mem_preimage],
+      exact cK', },
+    apply not_in_comp_of_in G (Lf ∪ Lg) D.val.val D.val.prop d this dD,
+  },
+
+  apply subtype.ext, apply subtype.ext,
+  apply eq_of_common_mem G' K _ _ (Hf' D).val.val.prop (Hg' D).val.val.prop c' _ cC',
+  apply well_separated G' Gpc' K m (Hf' D).val.val c cC c' cnK (close d),
+
 end
-
 
 /-
 def qi_embedding (f : V → V') : Prop := sorry -- ∃ (K : ℕ), ∀ (u v : V), dist (f u) (f v) ≤ K * (dist u v) + K ∧ dist u v ≤ K * (dist (f u) (f v)) + K

@@ -31,12 +31,12 @@ namespace simple_graph
 
 
 lemma walk.split_along_set {V : Type u} {G : simple_graph V} :
-∀ (u v : V) (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S),
+∀ {u v : V} (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S),
   ∃ (x y : V) (w : G.walk u x) (a : G.adj x y) (w' : G.walk y v), p = w.append (cons a w') ∧  (w.support.to_finset : set V) ⊆ S ∧ y ∉ S
 | _ _ nil p uS vnS := (vnS uS).elim
 | _ _ (cons' u x v a w) S uS vnS := by
 { by_cases h : S x,
-  { obtain ⟨x',y,w',a',w'',weq,wS,ynS⟩ := walk.split_along_set x v w S h vnS,
+  { obtain ⟨x',y,w',a',w'',weq,wS,ynS⟩ := walk.split_along_set w S h vnS,
     use [x',y,cons a w',a',w''],
     split,
     { simp only [cons_append,weq], },

@@ -178,6 +178,26 @@ begin
   exact eq_of_common_mem G K C D hC hD Snempty.some (SC Snempty.some_spec) (SD Snempty.some_spec),
 end
 
+lemma eq_of_reachable_outside (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
+  (c d : V) (hc : c ∈ C) (hd : d ∈ D) (w : G.walk c d) : disjoint K w.support.to_finset → C = D :=
+begin
+  intro dis,
+  have  cd : reachable_outside G K c d := ⟨w,dis⟩,
+  rcases hC with ⟨c₀,cC₀,rfl⟩,
+  rcases hD with ⟨d₀,cD₀,rfl⟩,
+  dsimp at *,
+  have : reachable_outside G K c₀ d₀, by
+  { apply reachable_outside.trans G hc,
+    apply reachable_outside.trans G cd,
+    exact reachable_outside.symm G hd, },
+  have : reachable_outside G K c₀ = reachable_outside G K d₀, by
+  { apply funext, rintro x, apply propext, split,
+    { rintro e, exact reachable_outside.trans G (reachable_outside.symm G this) e, },
+    { rintro e, exact reachable_outside.trans G this e,} },
+  rw this, -- it's really way too complicated… this should be one line
+end
+
+
 lemma disjoint_of_neq (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
   (neq : C ≠ D) : disjoint C D :=
 begin

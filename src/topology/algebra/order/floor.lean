@@ -29,7 +29,8 @@ open_locale topological_space
 variables {α β γ : Type*} [linear_ordered_ring α] [floor_ring α]
 
 lemma tendsto_floor_at_top : tendsto (floor : α → ℤ) at_top at_top :=
-floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ), by { rw floor_int_cast, exact (lt_add_one _).le }⟩
+floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ),
+  by { rw floor_int_cast, exact (lt_add_one _).le }⟩
 
 lemma tendsto_floor_at_bot : tendsto (floor : α → ℤ) at_bot at_bot :=
 floor_mono.tendsto_at_bot_at_bot $ λ b, ⟨b, (floor_int_cast _).le⟩
@@ -38,7 +39,8 @@ lemma tendsto_ceil_at_top : tendsto (ceil : α → ℤ) at_top at_top :=
 ceil_mono.tendsto_at_top_at_top $ λ b, ⟨b, (ceil_int_cast _).ge⟩
 
 lemma tendsto_ceil_at_bot : tendsto (ceil : α → ℤ) at_bot at_bot :=
-ceil_mono.tendsto_at_bot_at_bot $ λ b, ⟨(b - 1 : ℤ), by { rw ceil_int_cast, exact (sub_one_lt _).le }⟩
+ceil_mono.tendsto_at_bot_at_bot $ λ b, ⟨(b - 1 : ℤ),
+  by { rw ceil_int_cast, exact (sub_one_lt _).le }⟩
 
 variables [topological_space α]
 

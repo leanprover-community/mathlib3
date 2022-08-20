@@ -617,7 +617,8 @@ def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[
 
 /-- If a `ring_hom` between `R`-algebras commutes with the `algebra_map`s,
     then it is an `alg_hom`. -/
-def of_comp_eq (f : A →+* B) (h : f.comp (algebra_map R A) = algebra_map R B) : A →ₐ[R] B :=
+@[simps] def of_comp_eq (f : A →+* B)
+  (h : f.comp (algebra_map R A) = algebra_map R B) : A →ₐ[R] B :=
 { to_fun := f, commutes' := λ r, by { rw ← h, refl }, .. f }
 
 section

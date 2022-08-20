@@ -303,6 +303,23 @@ by cases a; refl
 
 end subtype
 
+instance _root_.fin.encodable (n) : encodable (fin n) :=
+subtype.encodable
+
+instance _root_.int.encodable : encodable ℤ :=
+of_equiv _ equiv.int_equiv_nat
+
+instance _root_.pnat.encodable : encodable ℕ+ :=
+of_equiv _ equiv.pnat_equiv_nat
+
+/-- The lift of an encodable type is encodable. -/
+instance _root_.ulift.encodable [encodable α] : encodable (ulift α) :=
+of_equiv _ equiv.ulift
+
+/-- The lift of an encodable type is encodable. -/
+instance _root_.plift.encodable [encodable α] : encodable (plift α) :=
+of_equiv _ equiv.plift
+
 /-- If `β` is encodable and there is an injection `f : α → β`, then `α` is encodable as well. -/
 noncomputable def of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
 of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
@@ -316,19 +333,7 @@ nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
 
 end encodable
 
-instance (n) : encodable (fin n) := subtype.encodable
-
-instance : encodable ℤ := encodable.of_equiv _ equiv.int_equiv_nat
-instance : countable ℤ := encodable.countable
-
-instance : encodable ℕ+ := encodable.of_equiv _ equiv.pnat_equiv_nat
-instance : countable ℕ+ := encodable.countable
-
-/-- The lift of an encodable type is encodable. -/
-instance {α} [encodable α] : encodable (ulift α) := encodable.of_equiv _ equiv.ulift
-
-/-- The lift of an encodable type is encodable. -/
-instance {α} [encodable α] : encodable (plift α) := encodable.of_equiv _ equiv.plift
+instance : countable ℕ+ := subtype.countable -- short-circuit instance search
 
 section ulower
 local attribute [instance, priority 100] encodable.decidable_range_encode

@@ -217,6 +217,17 @@ h.trans (mul_le_mul_right' hle c)
 
 end preorder
 
+section bit
+variables [has_add α] [preorder α]
+
+lemma bit0_mono [covariant_class α α (+) (≤)] [covariant_class α α (swap (+)) (≤)] :
+  monotone (bit0 : α → α) := λ a b h, add_le_add h h
+
+lemma bit0_strict_mono [covariant_class α α (+) (<)] [covariant_class α α (swap (+)) (<)] :
+  strict_mono (bit0 : α → α) := λ a b h, add_lt_add h h
+
+end bit
+
 section partial_order
 variables [partial_order α]
 

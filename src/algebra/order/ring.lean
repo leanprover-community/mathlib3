@@ -23,17 +23,17 @@ Each typeclass here comprises
 For short,
 * "`+` respects `≤`" means "monotonicity of addition"
 * "`+` respects `<`" means "strict monotonicity of addition"
+* "`*` respects `≤`" means "monotonicity of multiplication by a nonnegative number".
 * "`*` respects `<`" means "strict monotonicity of multiplication by a positive number".
 
 ## Typeclasses
 
-* `ordered_semiring`: Semiring with a partial order such that `+` respects `≤` and `*` respects `<`.
-* `ordered_cancel_semiring`: Semiring with a partial order such that `+` respects `<` and `*`
-  respects `<`.
-* `ordered_comm_semiring`: Commutative semiring with a partial order such that `+` respects `≤` and
-  `*` respects `<`.
-* `ordered_cancel_comm_semiring`: Commutative semiring with a partial order such that `+` respects
-  `<` and `*` respects `<`.
+* `ordered_semiring`: Semiring with a partial order such that `+` and `*` respect `≤`.
+* `ordered_cancel_semiring`: Semiring with a partial order such that `+` and `*` respects `<`.
+* `ordered_comm_semiring`: Commutative semiring with a partial order such that `+` and `*` respect
+  `≤`.
+* `ordered_cancel_comm_semiring`: Commutative semiring with a partial order such that `+` and `*`
+  respect `<`.
 * `ordered_ring`: Ring with a partial order such that `+` respects `≤` and `*` respects `<`.
 * `ordered_comm_ring`: Commutative ring with a partial order such that `+` respects `≤` and
   `*` respects `<`.
@@ -43,9 +43,9 @@ For short,
 * `linear_ordered_comm_ring`: Commutative ring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
 * `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+`
-  respects `<`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
+  respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
 
-and some typeclasses to define ordered rings by specifying their nonegative elements:
+and some typeclasses to define ordered rings by specifying their nonnegative elements:
 * `nonneg_ring`: To define `ordered_ring`s.
 * `linear_nonneg_ring`: To define `linear_ordered_ring`s.
 
@@ -56,17 +56,17 @@ corresponding typeclass. Here's an attempt at demystifying it. For each typeclas
 immediate predecessors and what conditions are added to each of them.
 
 * `ordered_semiring`
-  - `ordered_add_comm_monoid` & multiplication & `*` respects `<`
-  - `semiring` & partial order structure & `+` respects `≤` & `*` respects `<`
+  - `ordered_add_comm_monoid` & multiplication & `*` respects `≤`
+  - `semiring` & partial order structure & `+` respects `≤` & `*` respects `≤`
 * `ordered_cancel_semiring`
   - `ordered_cancel_add_comm_monoid` & multiplication & `*` respects `<`
-  - `ordered_semiring` & `+` respects `<`
+  - `ordered_semiring` & `+` respects `<` & `*` respects `<`
 * `ordered_comm_semiring`
   - `ordered_semiring` & commutativity of multiplication
   - `comm_semiring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `ordered_cancel_comm_semiring`
   - `ordered_cancel_semiring` & commutativity of multiplication
-  - `ordered_comm_semiring` & `+` respects `<`
+  - `ordered_comm_semiring` & `+` respects `<` & `*` respects `<`
 * `ordered_ring`
   - `ordered_cancel_semiring` & additive inverses
   - `ordered_add_comm_group` & multiplication & `*` respects `<`
@@ -88,7 +88,7 @@ immediate predecessors and what conditions are added to each of them.
   - `linear_ordered_ring` & commutativity of multiplication
   - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
-  - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
+  - `canonically_ordered_add_monoid` & multiplication & `*` respects `≤` & no zero divisors
   - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
 
 ## TODO
@@ -98,26 +98,6 @@ We're still missing some typeclasses, like
 * `canonically_ordered_semiring`
 They have yet to come up in practice.
 -/
-
-section
-
-open function
-variables {α : Type*} [has_add α] [preorder α] [covariant_class α α (+) (≤)]
-  [covariant_class α α (swap (+)) (≤)]
-
-lemma bit0_mono : monotone (bit0 : α → α) := λ a b h, add_le_add h h
-
-end
-
-section
-open function
-
-variables {α : Type*} [has_add α] [preorder α] [covariant_class α α (+) (<)]
-  [covariant_class α α (swap (+)) (<)]
-
-lemma bit0_strict_mono : strict_mono (bit0 : α → α) := λ a b h, add_lt_add h h
-
-end
 
 set_option old_structure_cmd true
 

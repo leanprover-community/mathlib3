@@ -144,6 +144,20 @@ map_add (algebra_map R[X] K) a b
 @[norm_cast] lemma coe_algebra_map_mul (a b : R[X]) : ((a * b : R[X]) : K) = a * b :=
 map_mul (algebra_map R[X] K) a b
 
+open_locale big_operators
+
+@[norm_cast] lemma coe_algebra_map_fin_prod {ι : Type*} {s : finset ι} (a : ι → R[X]) :
+  ↑(( ∏ (i : ι) in s, a i)) = ∏ (i : ι) in s, ((a i):K) :=
+begin
+  classical,
+  apply s.induction_on,
+  { simp only [finset.prod_empty],
+    sorry },
+  { intros j s hjs H,
+    rw [finset.prod_insert hjs, finset.prod_insert hjs, ← H,
+        ← polynomial.coe_algebra_map_mul _ _ (a j) (∏ (i : ι) in s, a i)], },
+end
+
 @[norm_cast] lemma coe_algebra_map_inj_iff (a b : R[X]) : (a : K) = b ↔ a = b :=
 ⟨λ h, is_fraction_ring.injective R[X] K h, by rintro rfl; refl⟩
 
@@ -228,7 +242,7 @@ section two_denominators
 
 -- If `g₁` and `g₂` are coprime monics then `f/g₁g₂` can be written as `q+r₁/g₁+r₂/g₂`
 -- with deg(rᵢ) < deg(gᵢ)
-lemma div_eq_quo_add_rem_div_add_rem_div {f g₁ g₂ : R[X]}
+lemma div_eq_quo_add_rem_div_add_rem_div {f g₁ g₂ : R[X]} --(f : R[X])
   (hg₁ : g₁.monic) (hg₂ : g₂.monic) (hcoprime : is_coprime g₁ g₂ ) :
   ∃ q r₁ r₂ : R[X], r₁.degree < g₁.degree ∧ r₂.degree < g₂.degree ∧
   (f : K) / (g₁ * g₂) = q + r₁ / g₁ + r₂ / g₂ :=
@@ -299,16 +313,14 @@ begin
     { unfold is_coprime,
       sorry },
     have hdiv : ∃ q r₁ r₂ : R[X], r₁.degree < (g a).degree ∧
-      r₂.degree < (∏ (x : ι) in b, (g x)).degree ∧ (f : K) / ((g a) * (∏ (x : ι) in b, (g x))) =
-      q + r₁ / (g a) + r₂ / (∏ (x : ι) in b, (g x)),
-    { --have hpmonic : (∏ (x : ι) in b, (g x)).monic := finite_product_of_monics_is_monic (hg) b,
-      /- above line gives error
-        term `hg` has type `∀ (i : ι), (g i).monic : Prop` but is expected
-        to have type `Type : Type 1`
-      -/
-      --exact div_eq_quo_add_rem_div_add_rem_div (hg a) (hpmonic) (hcoprimecalc),
-      sorry },
+      r₂.degree < (∏ (x : ι) in b, (g x)).degree ∧ (f : K) / (↑(g a) * ↑(∏ (x : ι) in b, (g x))) =
+      q + r₁ / ↑(g a) + r₂ / ↑(∏ (x : ι) in b, (g x)) :=
+      div_eq_quo_add_rem_div_add_rem_div _ _ (hg a)
+        (finite_product_of_monics_is_monic _ (hg) b) (hcoprimecalc),
     rcases hdiv with ⟨ q', r1', r2', hd1, hd2, H2 ⟩,
+    have hannoyingcast : ↑ ∏ (x : ι) in b, (g x) = ∏ (x : ι) in b, ↑ (g x),
+    { sorry },
+    rw hannoyingcast at H2,
     rw H2,
     specialize Hind r2',
     rcases Hind with ⟨Q, R', Hdeg', H3⟩,

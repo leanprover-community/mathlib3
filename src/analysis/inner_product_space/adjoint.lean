@@ -47,59 +47,59 @@ variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-namespace inner_product_space
+namespace linear_map
 
-/-! ### Self-adjoint operators -/
+/-! ### Symmetric operators -/
 
-/-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
+/-- A (not necessarily bounded) operator on an inner product space is symmetric, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
-def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
+def is_symmetric (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
 
 section real
 
 variables {E' : Type*} [inner_product_space ℝ E']
 
 -- Todo: Generalize this to `is_R_or_C`.
-/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
+/-- An operator `T` on a `ℝ`-inner product space is symmetric if and only if it is
 `bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_bilin_form (T : E' →ₗ[ℝ] E') :
-  is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
-by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
+lemma is_symmetric_iff_bilin_form (T : E' →ₗ[ℝ] E') :
+  is_symmetric T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
+by simp [is_symmetric, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
 
 end real
 
-lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
+lemma is_symmetric.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_symmetric T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
 by rw [hT x y, inner_conj_sym]
 
-@[simp] lemma is_self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
+@[simp] lemma is_symmetric.apply_clm {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E))
   (x y : E) :
   ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
-lemma is_self_adjoint_zero : is_self_adjoint (0 : E →ₗ[𝕜] E) :=
+lemma is_symmetric_zero : (0 : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, (inner_zero_right : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left : ⟪0, y⟫ = 0)
 
-lemma is_self_adjoint_id : is_self_adjoint (linear_map.id : E →ₗ[𝕜] E) :=
+lemma is_symmetric_id : (linear_map.id : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, rfl
 
-lemma is_self_adjoint.add {T S : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
-  (hS : is_self_adjoint S) : is_self_adjoint (T + S) :=
+lemma is_symmetric.add {T S : E →ₗ[𝕜] E} (hT : T.is_symmetric) (hS : S.is_symmetric) :
+  (T + S).is_symmetric :=
 begin
   intros x y,
   rw [linear_map.add_apply, inner_add_left, hT x y, hS x y, ← inner_add_right],
   refl
 end
 
-/-- The orthogonal projection is self-adjoint. -/
-lemma orthogonal_projection_is_self_adjoint [complete_space E] (U : submodule 𝕜 E)
+/-- The orthogonal projection is symmetric. -/
+lemma _root_.orthogonal_projection_is_symmetric [complete_space E] (U : submodule 𝕜 E)
   [complete_space U] :
-  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U : E →ₗ[𝕜] E):=
+  (U.subtypeL ∘L orthogonal_projection U : E →ₗ[𝕜] E).is_symmetric :=
 inner_orthogonal_projection_left_eq_right U
 
 /-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
   it is automatically continuous. -/
-lemma is_self_adjoint.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) :
+lemma is_symmetric.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_symmetric T) :
   continuous T :=
 begin
   -- We prove it by using the closed graph theorem
@@ -115,18 +115,9 @@ begin
   exact hu.sub_const _,
 end
 
-/-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
-  defined symmetric operator.-/
-def is_self_adjoint.clm [complete_space E] {T : E →ₗ[𝕜] E}
-  (hT : is_self_adjoint T) : E →L[𝕜] E :=
-⟨T, hT.continuous⟩
-
-lemma is_self_adjoint.clm_apply [complete_space E] {T : E →ₗ[𝕜] E}
-  (hT : is_self_adjoint T) {x : E} : hT.clm x = T x := rfl
-
-/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
-@[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply
-  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
+/-- For a symmetric operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
+@[simp] lemma is_symmetric.coe_re_apply_inner_self_apply
+  {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E)) (x : E) :
   (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
 begin
   suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
@@ -136,26 +127,33 @@ begin
   exact hT.conj_inner_sym x x
 end
 
-/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
-self-adjoint. -/
-lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
+/-- If a symmetric operator preserves a submodule, its restriction to that submodule is
+symmetric. -/
+lemma is_symmetric.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_symmetric T)
   {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
-  is_self_adjoint (T.restrict hV) :=
+  is_symmetric (T.restrict hV) :=
 λ v w, hT v w
+
+lemma is_symmetric.restrict_scalars {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
+  @linear_map.is_symmetric ℝ E _ (inner_product_space.is_R_or_C_to_real 𝕜 E)
+  (@linear_map.restrict_scalars ℝ 𝕜 _ _ _ _ _ _
+    (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module
+    (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module _ _ _ T) :=
+λ x y, by simp [hT x y, real_inner_eq_re_inner, linear_map.coe_restrict_scalars_eq_coe]
 
 section complex
 
 variables {V : Type*}
   [inner_product_space ℂ V]
 
-/-- A linear operator on a complex inner product space is self-adjoint precisely when
+/-- A linear operator on a complex inner product space is symmetric precisely when
 `⟪T v, v⟫_ℂ` is real for all v.-/
-lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
-  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
+lemma is_symmetric_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
+  is_symmetric T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
 begin
   split,
   { intros hT v,
-    apply is_self_adjoint.conj_inner_sym hT },
+    apply is_symmetric.conj_inner_sym hT },
   { intros h x y,
     nth_rewrite 1 ← inner_conj_sym,
     nth_rewrite 1 inner_map_polarization,
@@ -170,7 +168,7 @@ end
 
 end complex
 
-end inner_product_space
+end linear_map
 
 /-! ### Adjoint operator -/
 
@@ -274,39 +272,11 @@ begin
   exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
 end
 
-@[simp] lemma is_self_adjoint_iff_adjoint_eq (A : E →L[𝕜] E) :
-  is_self_adjoint (A : E →ₗ[𝕜] E) ↔ A† = A :=
-by simp_rw [is_self_adjoint, coe_coe, ← eq_adjoint_iff, eq_comm]
-
-lemma _root_.inner_product_space.is_self_adjoint.adjoint_eq {A : E →L[𝕜] E}
-  (hA : is_self_adjoint (A : E →ₗ[𝕜] E)) : A† = A :=
-by rwa is_self_adjoint_iff_adjoint_eq at hA
-
-lemma _root_.inner_product_space.is_self_adjoint.conj_adjoint {T : E →L[𝕜] E}
-  (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (S : E →L[𝕜] F) :
-  is_self_adjoint (S ∘L T ∘L S† : F →ₗ[𝕜] F) :=
+@[simp] lemma adjoint_id : (continuous_linear_map.id 𝕜 E).adjoint = continuous_linear_map.id 𝕜 E :=
 begin
-  intros x y,
-  rw [coe_coe, comp_apply, comp_apply, ← adjoint_inner_right, ← coe_coe, hT, coe_coe,
-      adjoint_inner_left],
-  refl
-end
-
-lemma _root_.inner_product_space.is_self_adjoint.adjoint_conj {T : E →L[𝕜] E}
-  (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (S : F →L[𝕜] E) :
-  is_self_adjoint (S† ∘L T ∘L S : F →ₗ[𝕜] F) :=
-begin
-  convert hT.conj_adjoint (S†),
-  rw adjoint_adjoint
-end
-
-lemma _root_.inner_product_space.is_self_adjoint.conj_orthogonal_projection {T : E →L[𝕜] E}
-  (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (U : submodule 𝕜 E) [complete_space U] :
-  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
-    orthogonal_projection U : E →ₗ[𝕜] E) :=
-begin
-  have := hT.conj_adjoint (U.subtypeL ∘L orthogonal_projection U),
-  rwa (orthogonal_projection_is_self_adjoint U).adjoint_eq at this
+  refine eq.symm _,
+  rw eq_adjoint_iff,
+  simp,
 end
 
 lemma _root_.submodule.adjoint_subtypeL (U : submodule 𝕜 E)
@@ -334,6 +304,9 @@ instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoin
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
 lemma star_eq_adjoint (A : E →L[𝕜] E) : star A = A† := rfl
+
+/-- A continuous linear operator is self-adjoint iff it is equal to its adjoint. -/
+lemma is_self_adjoint_iff' {A : E →L[𝕜] E} : is_self_adjoint A ↔ A.adjoint = A := iff.rfl
 
 instance : cstar_ring (E →L[𝕜] E) :=
 ⟨begin
@@ -369,6 +342,84 @@ lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
 end real
 
 end continuous_linear_map
+
+/-! ### Self-adjoint operators -/
+
+namespace is_self_adjoint
+
+open continuous_linear_map
+
+variables [complete_space E] [complete_space F]
+
+lemma adjoint_eq {A : E →L[𝕜] E} (hA : is_self_adjoint A) : A.adjoint = A := hA
+
+/-- Every self-adjoint operator on an inner product space is symmetric. -/
+lemma is_symmetric {A : E →L[𝕜] E} (hA : is_self_adjoint A) :
+  (A : E →ₗ[𝕜] E).is_symmetric :=
+λ x y, by rw_mod_cast [←A.adjoint_inner_right, hA.adjoint_eq]
+
+/-- Conjugating preserves self-adjointness -/
+lemma conj_adjoint {T : E →L[𝕜] E} (hT : is_self_adjoint T) (S : E →L[𝕜] F) :
+  is_self_adjoint (S ∘L T ∘L S.adjoint) :=
+begin
+  rw is_self_adjoint_iff' at ⊢ hT,
+  simp only [hT, adjoint_comp, adjoint_adjoint],
+  exact continuous_linear_map.comp_assoc _ _ _,
+end
+
+/-- Conjugating preserves self-adjointness -/
+lemma adjoint_conj {T : E →L[𝕜] E} (hT : is_self_adjoint T) (S : F →L[𝕜] E) :
+  is_self_adjoint (S.adjoint ∘L T ∘L S) :=
+begin
+  rw is_self_adjoint_iff' at ⊢ hT,
+  simp only [hT, adjoint_comp, adjoint_adjoint],
+  exact continuous_linear_map.comp_assoc _ _ _,
+end
+
+lemma _root_.continuous_linear_map.is_self_adjoint_iff_is_symmetric {A : E →L[𝕜] E} :
+  is_self_adjoint A ↔ (A : E →ₗ[𝕜] E).is_symmetric :=
+⟨λ hA, hA.is_symmetric, λ hA, ext $ λ x, ext_inner_right 𝕜 $
+  λ y, (A.adjoint_inner_left y x).symm ▸ (hA x y).symm⟩
+
+lemma _root_.linear_map.is_symmetric.is_self_adjoint {A : E →L[𝕜] E}
+  (hA : (A : E →ₗ[𝕜] E).is_symmetric) : is_self_adjoint A :=
+by rwa ←continuous_linear_map.is_self_adjoint_iff_is_symmetric at hA
+
+/-- The orthogonal projection is self-adjoint. -/
+lemma _root_.orthogonal_projection_is_self_adjoint (U : submodule 𝕜 E)
+  [complete_space U] :
+  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U) :=
+(orthogonal_projection_is_symmetric U).is_self_adjoint
+
+lemma conj_orthogonal_projection {T : E →L[𝕜] E}
+  (hT : is_self_adjoint T) (U : submodule 𝕜 E) [complete_space U] :
+  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
+    orthogonal_projection U) :=
+begin
+  rw ←continuous_linear_map.comp_assoc,
+  nth_rewrite 0 ←(orthogonal_projection_is_self_adjoint U).adjoint_eq,
+  refine hT.adjoint_conj _,
+end
+
+end is_self_adjoint
+
+namespace linear_map
+
+variables [complete_space E]
+variables {T : E →ₗ[𝕜] E}
+
+/-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
+  defined symmetric operator.-/
+def is_symmetric.to_self_adjoint (hT : is_symmetric T) : self_adjoint (E →L[𝕜] E) :=
+⟨⟨T, hT.continuous⟩, continuous_linear_map.is_self_adjoint_iff_is_symmetric.mpr hT⟩
+
+lemma is_symmetric.coe_to_self_adjoint (hT : is_symmetric T) :
+  (hT.to_self_adjoint : E →ₗ[𝕜] E) = T := rfl
+
+lemma is_symmetric.to_self_adjoint_apply (hT : is_symmetric T) {x : E} :
+  hT.to_self_adjoint x = T x := rfl
+
+end linear_map
 
 namespace linear_map
 
@@ -456,10 +507,6 @@ begin
   refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
 end
 
-lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
-  is_self_adjoint A ↔ A = A.adjoint :=
-by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
-
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
@@ -468,6 +515,13 @@ instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 
 lemma star_eq_adjoint (A : E →ₗ[𝕜] E) : star A = A.adjoint := rfl
+
+/-- A continuous linear operator is self-adjoint iff it is equal to its adjoint. -/
+lemma is_self_adjoint_iff' {A : E →ₗ[𝕜] E} : is_self_adjoint A ↔ A.adjoint = A := iff.rfl
+
+lemma is_symmetric_iff_is_self_adjoint (A : E →ₗ[𝕜] E) :
+  is_symmetric A ↔ is_self_adjoint A :=
+by { rw [is_self_adjoint_iff', is_symmetric, ← linear_map.eq_adjoint_iff], exact eq_comm }
 
 section real
 
@@ -482,19 +536,18 @@ lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
 
 end real
 
-/-- The Gram operator T†T is self-adjoint. -/
-lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint (T.adjoint * T) :=
-λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left,
-  linear_map.adjoint_inner_right]
+/-- The Gram operator T†T is symmetric. -/
+lemma is_symmetric_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_symmetric (T.adjoint * T) :=
+λ x y, by simp only [mul_apply, adjoint_inner_left, adjoint_inner_right]
 
 /-- The Gram operator T†T is a positive operator. -/
 lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) (x : E) :
-  0 ≤ re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
-  linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
+  0 ≤ re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [mul_apply, adjoint_inner_right,
+    inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
 
 @[simp] lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
-  im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [linear_map.mul_apply,
-    linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
+  im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [mul_apply,
+    adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
 
 end linear_map
 

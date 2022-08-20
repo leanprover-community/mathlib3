@@ -945,5 +945,34 @@ add_tactic_doc
   decl_names := [`tactic.interactive.obtain],
   tags       := ["induction"] }
 
+/--
+The `rsuffices` tactic is an alternative version of `suffices`, that allows the usage
+of any syntax that would be valid in an `obtain` block. This tactic just calls `obtain`
+on the expression, and then `rotate 1`.
+-/
+meta def rsuffices (h : parse obtain_parse) : tactic unit :=
+focus1 $ obtain h >> tactic.rotate 1
+
+add_tactic_doc
+{ name       := "rsuffices",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rsuffices],
+  tags       := ["induction"] }
+
+/--
+The `rsufficesI` tactic is an instance-cache aware version of `rsuffices`; it resets the instance
+cache on the resulting goals.
+-/
+
+meta def rsufficesI (h : parse obtain_parse) : tactic unit :=
+rsuffices h ; resetI
+
+add_tactic_doc
+{ name       := "rsufficesI",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rsufficesI],
+  tags       := ["induction", "type class"] }
+
+
 end interactive
 end tactic

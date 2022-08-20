@@ -158,7 +158,7 @@ variables [order_topology α] [topological_add_group α] [topological_space β] 
 
 /-- Do not use this, use `continuous_on.comp_fract` instead. -/
 lemma continuous_on.comp_fract' {f : β → α → γ}
-  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
+  (h : continuous_on (uncurry f) $ univ ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ st : β × α, f st.1 $ fract st.2) :=
 begin
   change continuous ((uncurry f) ∘ (prod.map id (fract))),
@@ -167,7 +167,7 @@ begin
   by_cases ht : t = floor t,
   { rw ht,
     rw ← continuous_within_at_univ,
-    have : (univ : set (β × α)) ⊆ ((univ : set β) ×ˢ Iio ↑⌊t⌋) ∪ ((univ : set β) ×ˢ Ici ↑⌊t⌋),
+    have : (univ : set (β × α)) ⊆ (univ ×ˢ Iio ↑⌊t⌋) ∪ (univ ×ˢ Ici ↑⌊t⌋),
     { rintros p -,
       rw ← prod_union,
       exact ⟨trivial, lt_or_le p.2 _⟩ },
@@ -203,7 +203,7 @@ end
 lemma continuous_on.comp_fract
   {s : β → α}
   {f : β → α → γ}
-  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ (Icc 0 1 : set α))
+  (h : continuous_on (uncurry f) $ univ ×ˢ Icc 0 1)
   (hs : continuous s)
   (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ x : β, f x $ int.fract (s x)) :=

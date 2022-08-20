@@ -267,4 +267,6 @@ def open_nhds_of (x : α) : Type* := { s : set α // is_open s ∧ x ∈ s }
 instance open_nhds_of.inhabited {α : Type*} [topological_space α] (x : α) :
   inhabited (open_nhds_of x) := ⟨⟨set.univ, is_open_univ, set.mem_univ _⟩⟩
 
+instance [finite α] : finite (opens α) := subtype.finite
+
 end topological_space

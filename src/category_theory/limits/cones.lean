@@ -223,7 +223,7 @@ namespace cones
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
 /-- Eta rule for cones. -/
-@[simps] def iso_mk (c : cone F) : c ≅ ⟨c.X, c.π⟩ :=
+@[simps] def eta (c : cone F) : c ≅ ⟨c.X, c.π⟩ :=
 cones.ext (iso.refl _) (by tidy)
 
 /--
@@ -386,7 +386,7 @@ namespace cocones
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
 
 /-- Eta rule for cocones. -/
-@[simps] def iso_mk (c : cocone F) : c ≅ ⟨c.X, c.ι⟩ :=
+@[simps] def eta (c : cocone F) : c ≅ ⟨c.X, c.ι⟩ :=
 cocones.ext (iso.refl _) (by tidy)
 
 /--

@@ -165,9 +165,7 @@ variables [decidable_eq R]
 /-- `finset_approx` is a finite set such that each fractional ideal in the integral closure
 contains an element close to `finset_approx`. -/
 noncomputable def finset_approx : finset R :=
-((finset.univ.product finset.univ)
-  .image (λ (xy : _ × _), distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2))
-  .erase 0
+(finset.univ.image $ λ xy : _ × _, distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2).erase 0
 
 lemma finset_approx.zero_not_mem : (0 : R) ∉ finset_approx bS adm :=
 finset.not_mem_erase _ _
@@ -183,7 +181,7 @@ begin
     rintro rfl,
     simpa using hx },
   { rintros ⟨i, j, hij, rfl⟩,
-    refine ⟨_, ⟨i, j⟩, finset.mem_product.mpr ⟨finset.mem_univ _, finset.mem_univ _⟩, rfl⟩,
+    refine ⟨_, ⟨i, j⟩, finset.mem_univ _, rfl⟩,
     rw [ne.def, sub_eq_zero],
     exact λ h, hij ((distinct_elems bS adm).injective h) }
 end

@@ -341,7 +341,7 @@ def snd : A × B →⋆ₙₐ[R] B :=
 
 variables {R A B C}
 
-/-- The `non_unital_star_alg_hom.prod` of two morphisms is a morphism. -/
+/-- The `pi.prod` of two morphisms is a morphism. -/
 @[simps] def prod (f : A →⋆ₙₐ[R] B) (g : A →⋆ₙₐ[R] C) : (A →⋆ₙₐ[R] B × C) :=
 { map_star' := λ x, by simp only [pi.prod, prod.star_def, map_star],
   .. non_unital_alg_hom.prod f g }
@@ -411,7 +411,7 @@ def snd : A × B →⋆ₐ[R] B :=
 
 variables {R A B C}
 
-/-- The `star_alg_hom.prod` of two morphisms is a morphism. -/
+/-- The `pi.prod` of two morphisms is a morphism. -/
 @[simps] def prod (f : A →⋆ₐ[R] B) (g : A →⋆ₐ[R] C) : (A →⋆ₐ[R] B × C) :=
 { map_star' := λ x, by simp [prod.star_def, map_star],
  .. f.to_alg_hom.prod g.to_alg_hom }

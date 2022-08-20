@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pim Otte
 Heavily inspired by code from Kyle Miller and Kevin Buzzard
 -/
-import data.nat.choose.basic
-import data.list.perm
-import data.finset.basic
 import algebra.big_operators.basic
+import algebra.big_operators.fin
+import data.nat.choose.basic
+import data.finset.basic
+import data.list.perm
+import data.fin.vec_notation
+
 import tactic.linarith
 
 /-!
@@ -148,6 +151,21 @@ begin
     function.update_same, function.update_noteq (ne_comm.mp h)],
   convert succ_mul_choose_eq (f a + f b) (f a),
   exact succ_add (f a) (f b),
+end
+
+/-! ### Simple cases -/
+
+lemma multinomial_univ_two  (a b: ℕ) : multinomial finset.univ (![a, b]) = (a + b)! / (a! * b!) :=
+begin
+    unfold multinomial,
+    simp [fin.sum_univ_two, fin.prod_univ_two],
+end
+
+lemma multinomial_univ_three  (a b c: ℕ) : multinomial finset.univ (![a, b, c]) =
+  (a + b + c)! / (a! * b! * c!) :=
+begin
+    unfold multinomial,
+    simp [fin.sum_univ_three, fin.prod_univ_three],
 end
 
 end nat

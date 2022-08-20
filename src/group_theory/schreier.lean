@@ -145,30 +145,11 @@ end
 
 open_locale big_operators
 
--- PRed
-lemma zmod.card {n : ℕ} : nat.card (zmod n) = n :=
-begin
-  rcases nat.eq_zero_or_pos n with rfl | h,
-  { exact nat.card_eq_zero_of_infinite },
-  { haveI := fact.mk h,
-    rw [nat.card_eq_fintype_card, zmod.card] },
-end
-
--- PRed
-lemma orbit_eq_self_of_mem {G : Type*} [group G] {H : subgroup G} {g : G} (h : g ∈ H) :
-  mul_action.orbit H g = H :=
-set.ext (λ x, ⟨λ ⟨y, z⟩, (congr_arg (∈ H) z).mp (H.mul_mem y.2 h),
-  λ y, ⟨⟨x, y⟩ * ⟨g, h⟩⁻¹, inv_mul_cancel_right x g⟩⟩)
-
--- PRed
-lemma orbit_one_eq_self {G : Type*} [group G] (H : subgroup G) : mul_action.orbit H (1 : G) = H :=
-orbit_eq_self_of_mem H.one_mem
-
 -- PR ready
 lemma order_eq_card_zpowers' {G : Type*} [group G] (g : G) : order_of g = nat.card (zpowers g) :=
 begin
   have := nat.card_congr (mul_action.orbit_zpowers_equiv g (1 : G)),
-  rwa [zmod.card, orbit_one_eq_self, eq_comm] at this,
+  rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
 end
 
 -- PRed

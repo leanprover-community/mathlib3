@@ -323,7 +323,7 @@ variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [nontriv
   (hf : is_compact_operator f) : continuous f :=
 begin
   letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
-  haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+  haveI : uniform_add_group M₂ := topological_add_comm_group_is_uniform,
   -- Since `f` is linear, we only need to show that it is continuous at zero.
   -- Let `U` be a neighborhood of `0` in `M₂`.
   refine continuous_of_continuous_at_zero f (λ U hU, _),
@@ -345,7 +345,7 @@ begin
     rwa [mem_map, preimage_smul_setₛₗ _ _ _ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
     apply_instance },
   -- Since `σ₁₂ c⁻¹` = `(σ₁₂ c)⁻¹`, we have to prove that `K ⊆ σ₁₂ c • U`.
-  rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
+  rw [map_inv₀, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
   -- But `σ₁₂` is isometric, so `∥σ₁₂ c∥ = ∥c∥ > r`, which concludes the argument since
   -- `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
   refine hrU (σ₁₂ c) _,

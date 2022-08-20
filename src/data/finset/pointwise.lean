@@ -151,10 +151,10 @@ protected def has_mul : has_mul (finset α) := ⟨image₂ (*)⟩
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
 @[to_additive]
-lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
+lemma mul_def : s * t = (s ×ˢ t).image (λ p : α × α, p.1 * p.2) := rfl
 
 @[to_additive]
-lemma image_mul_product : (s.product t).image (λ x : α × α, x.fst * x.snd) = s * t := rfl
+lemma image_mul_product : (s ×ˢ t).image (λ x : α × α, x.fst * x.snd) = s * t := rfl
 
 @[to_additive]
 lemma mem_mul {x : α} : x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x := mem_image₂
@@ -167,7 +167,7 @@ lemma coe_mul (s t : finset α) : (↑(s * t) : set α) = ↑s * ↑t := coe_ima
 
 @[to_additive] lemma card_mul_iff :
   (s * t).card = s.card * t.card ↔
-    ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) := card_image₂_iff
+    (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) := card_image₂_iff
 
 @[simp, to_additive] lemma empty_mul (s : finset α) : ∅ * s = ∅ := image₂_empty_left
 @[simp, to_additive] lemma mul_empty (s : finset α) : s * ∅ = ∅ := image₂_empty_right
@@ -231,10 +231,10 @@ protected def has_div : has_div (finset α) := ⟨image₂ (/)⟩
 localized "attribute [instance] finset.has_div finset.has_sub" in pointwise
 
 @[to_additive]
-lemma div_def : s / t = (s.product t).image (λ p : α × α, p.1 / p.2) := rfl
+lemma div_def : s / t = (s ×ˢ t).image (λ p : α × α, p.1 / p.2) := rfl
 
 @[to_additive add_image_prod]
-lemma image_div_prod : (s.product t).image (λ x : α × α, x.fst / x.snd)  = s / t := rfl
+lemma image_div_prod : (s ×ˢ t).image (λ x : α × α, x.fst / x.snd)  = s / t := rfl
 
 @[to_additive] lemma mem_div : a ∈ s / t ↔ ∃ b c, b ∈ s ∧ c ∈ t ∧ b / c = a := mem_image₂
 
@@ -391,6 +391,18 @@ begin
   { rw pow_succ,
     exact ih.trans (subset_mul_right _ hs) }
 end
+
+@[simp, norm_cast, to_additive]
+lemma coe_list_prod (s : list (finset α)) : (↑s.prod : set α) = (s.map coe).prod :=
+map_list_prod (coe_monoid_hom : finset α →* set α) _
+
+@[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → finset α} :
+  a ∈ (list.of_fn s).prod ↔ ∃ f : (Π i : fin n, s i), (list.of_fn (λ i, (f i : α))).prod = a :=
+by { rw [←mem_coe, coe_list_prod, list.map_of_fn, set.mem_prod_list_of_fn], refl }
+
+@[to_additive] lemma mem_pow {a : α} {n : ℕ} :
+  a ∈ s ^ n ↔ ∃ f : fin n → s, (list.of_fn (λ i, ↑(f i))).prod = a :=
+by { simp_rw [←mem_coe, coe_pow, set.mem_pow], refl }
 
 @[simp, to_additive] lemma empty_pow (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
@@ -618,10 +630,10 @@ protected def has_smul : has_smul (finset α) (finset β) := ⟨image₂ (•)�
 
 localized "attribute [instance] finset.has_smul finset.has_vadd" in pointwise
 
-@[to_additive] lemma smul_def : s • t = (s.product t).image (λ p : α × β, p.1 • p.2) := rfl
+@[to_additive] lemma smul_def : s • t = (s ×ˢ t).image (λ p : α × β, p.1 • p.2) := rfl
 
 @[to_additive]
-lemma image_smul_product : (s.product t).image (λ x : α × β, x.fst • x.snd)  = s • t := rfl
+lemma image_smul_product : (s ×ˢ t).image (λ x : α × β, x.fst • x.snd)  = s • t := rfl
 
 @[to_additive] lemma mem_smul {x : β} : x ∈ s • t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y • z = x := mem_image₂
 
@@ -810,20 +822,20 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
   smul_comm_class (finset α) (finset β) (finset γ) :=
 ⟨λ s t u, coe_injective $ by simp_rw [coe_smul, smul_comm]⟩
 
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α β (finset γ) :=
 ⟨λ a b s, by simp only [←image_smul, image_image, smul_assoc]⟩
 
 variables [decidable_eq β]
 
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_assoc]⟩
 
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (finset α) (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_assoc]⟩
 
@@ -890,7 +902,7 @@ section left_cancel_semigroup
 variables [left_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
 
 @[to_additive] lemma pairwise_disjoint_smul_iff {s : set α} {t : finset α} :
-  s.pairwise_disjoint (• t) ↔ ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+  s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]
 
 @[simp, to_additive] lemma card_singleton_mul : ({a} * t).card = t.card :=

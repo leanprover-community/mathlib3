@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.hitting_time
-import probability.martingale
+import probability.martingale.basic
 
 /-!
 
@@ -43,7 +43,7 @@ convergence theorems.
   stopping time whenever the process it is associated to is adapted.
 * `measure_theory.submartingale.mul_integral_upcrossings_before_le_integral_pos_part`: Doob's
   upcrossing estimate.
-* `measure_theory.submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part`: the inequality
+* `measure_theory.submartingale.mul_lintegral_upcrossings_le_lintegral_pos_part`: the inequality
   obtained by taking the supremum on both sides of Doob's upcrossing estimate.
 
 ### References
@@ -83,7 +83,7 @@ $0 \le f_0$ and $a \le f_N$. In particular, we will show
 $$
   (b - a) \mathbb{E}[U_N(a, b)] \le \mathbb{E}[f_N].
 $$
-This is `measure_theory.integral_mul_upcrossing_le_integral` in our formalization.
+This is `measure_theory.integral_mul_upcrossings_before_le_integral` in our formalization.
 
 To prove this, we use the fact that given a non-negative, bounded, predictable process $(C_n)$
 (i.e. $(C_{n + 1})$ is adapted), $(C \bullet f)_n := \sum_{k \le n} C_{k + 1}(f_{k + 1} - f_k)$ is
@@ -746,7 +746,7 @@ lemma upcrossings_before_pos_eq (hab : a < b) :
   upcrossings_before 0 (b - a) (λ n ω, (f n ω - a)⁺) N ω = upcrossings_before a b f N ω :=
 by simp_rw [upcrossings_before, (crossing_pos_eq hab).1]
 
-lemma mul_integral_upcrossings_before_le_integral_pos_part_aux1 [is_finite_measure μ]
+lemma mul_integral_upcrossings_before_le_integral_pos_part_aux [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hab : a < b) :
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ ω, (f N ω - a)⁺] :=
 begin
@@ -758,11 +758,6 @@ begin
   refl,
 end
 
-lemma mul_integral_upcrossings_before_le_integral_pos_part_aux2 [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) (hab : a < b) :
-  (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ ω, (f N ω - a)⁺] :=
-mul_integral_upcrossings_before_le_integral_pos_part_aux1 hf hab
-
 /-- **Doob's upcrossing estimate**: given a real valued discrete submartingale `f` and real
 values `a` and `b`, we have `(b - a) * 𝔼[upcrossings_before a b f N] ≤ 𝔼[(f N - a)⁺]` where
 `upcrossings_before a b f N` is the number of times the process `f` crossed from below `a` to above
@@ -772,13 +767,13 @@ theorem submartingale.mul_integral_upcrossings_before_le_integral_pos_part [is_f
   (b - a) * μ[upcrossings_before a b f N] ≤ μ[λ ω, (f N ω - a)⁺] :=
 begin
   by_cases hab : a < b,
-  { exact mul_integral_upcrossings_before_le_integral_pos_part_aux2 hf hab },
+  { exact mul_integral_upcrossings_before_le_integral_pos_part_aux hf hab },
   { rw [not_lt, ← sub_nonpos] at hab,
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (integral_nonneg (λ ω, nat.cast_nonneg _)))
       (integral_nonneg (λ ω, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
-/-
+/-!
 
 ### Variant of the upcrossing estimate
 

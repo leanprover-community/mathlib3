@@ -82,7 +82,7 @@ begin
     h₁, function.comp_app],
   rw [div_mul_div_comm (nat.factorial_mul_factorial_dvd_factorial_add n (s.sum f))
     (prod_factorial_dvd_factorial_sum _ _), mul_comm n! (s.sum f)!, mul_assoc,
-    mul_comm _ (s.sum f)!, nat.mul_div_mul _ _ (factorial_pos (s.sum f))],
+    mul_comm _ (s.sum f)!, nat.mul_div_mul _ _ (factorial_pos _)],
 end
 
 /-! ### Connection to binomial coefficients -/

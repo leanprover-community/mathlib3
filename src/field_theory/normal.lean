@@ -30,24 +30,25 @@ open polynomial is_scalar_tower
 
 variables (F K : Type*) [field F] [field K] [algebra F K]
 
---TODO(Commelin): refactor normal to extend `is_algebraic`??
-
 /-- Typeclass for normal field extension: `K` is a normal extension of `F` iff the minimal
 polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x` is in `K`. -/
 class normal : Prop :=
-(is_integral' (x : K) : is_integral F x)
+(is_algebraic' : algebra.is_algebraic F K)
 (splits' (x : K) : splits (algebra_map F K) (minpoly F x))
 
 variables {F K}
 
-theorem normal.is_integral (h : normal F K) (x : K) : is_integral F x := normal.is_integral' x
+theorem normal.is_algebraic (h : normal F K) (x : K) : is_algebraic F x := normal.is_algebraic' x
+
+theorem normal.is_integral (h : normal F K) (x : K) : is_integral F x :=
+is_algebraic_iff_is_integral.mp (h.is_algebraic x)
 
 theorem normal.splits (h : normal F K) (x : K) :
   splits (algebra_map F K) (minpoly F x) := normal.splits' x
 
 theorem normal_iff : normal F K ↔
   ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x) :=
-⟨λ h x, ⟨h.is_integral x, h.splits x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+⟨λ h x, ⟨h.is_integral x, h.splits x⟩, λ h, ⟨λ x, (h x).1.is_algebraic F, λ x, (h x).2⟩⟩
 
 theorem normal.out : normal F K →
   ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x) := normal_iff.1
@@ -55,7 +56,7 @@ theorem normal.out : normal F K →
 variables (F K)
 
 instance normal_self : normal F F :=
-⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact splits_X_sub_C _ }⟩
+⟨λ x, is_integral_algebra_map.is_algebraic F, λ x, (minpoly.eq_X_sub_C' x).symm ▸ splits_X_sub_C _⟩
 
 variables {K}
 
@@ -194,6 +195,31 @@ end
 instance (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal_tower
+
+namespace intermediate_field
+
+/-- A compositum of normal extensions is normal -/
+instance normal_supr {ι : Type*} (t : ι → intermediate_field F K) [h : ∀ i, normal F (t i)] :
+  normal F (⨆ i, t i : intermediate_field F K) :=
+begin
+  refine ⟨is_algebraic_supr (λ i, (h i).1), λ x, _⟩,
+  obtain ⟨s, hx⟩ := exists_finset_of_mem_supr'' (λ i, (h i).1) x.2,
+  let E : intermediate_field F K := ⨆ i ∈ s, adjoin F ((minpoly F (i.2 : _)).root_set K),
+  have hF : normal F E,
+  { apply normal.of_is_splitting_field (∏ i in s, minpoly F i.2),
+    refine is_splitting_field_supr _ (λ i hi, adjoin_root_set_is_splitting_field _),
+    { exact finset.prod_ne_zero_iff.mpr (λ i hi, minpoly.ne_zero ((h i.1).is_integral i.2)) },
+    { exact polynomial.splits_comp_of_splits _ (algebra_map (t i.1) K) ((h i.1).splits i.2) } },
+  have hE : E ≤ ⨆ i, t i,
+  { refine supr_le (λ i, supr_le (λ hi, le_supr_of_le i.1 _)),
+    rw [adjoin_le_iff, ←image_root_set ((h i.1).splits i.2) (t i.1).val],
+    exact λ _ ⟨a, _, h⟩, h ▸ a.2 },
+  have := hF.splits ⟨x, hx⟩,
+  rw [minpoly_eq, subtype.coe_mk, ←minpoly_eq] at this,
+  exact polynomial.splits_comp_of_splits _ (inclusion hE).to_ring_hom this,
+end
+
+end intermediate_field
 
 variables {F} {K} {K₁ K₂ K₃:Type*} [field K₁] [field K₂] [field K₃]
  [algebra F K₁] [algebra F K₂] [algebra F K₃]

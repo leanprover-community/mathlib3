@@ -3,7 +3,7 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Aaron Anderson
 -/
-import data.finsupp.basic
+import data.finsupp.defs
 
 /-!
 # Pointwise order on finitely supported functions

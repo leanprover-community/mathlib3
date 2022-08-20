@@ -70,15 +70,15 @@ by delta_instance bundle.continuous_linear_map
 
 end defs
 
-variables {𝕜₁ : Type*} [nondiscrete_normed_field 𝕜₁] {𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₂]
+variables {𝕜₁ : Type*} [nontrivially_normed_field 𝕜₁] {𝕜₂ : Type*} [nontrivially_normed_field 𝕜₂]
   (σ : 𝕜₁ →+* 𝕜₂)
 
 variables {B : Type*} [topological_space B]
 
-variables (F₁ : Type*) [normed_group F₁] [normed_space 𝕜₁ F₁]
+variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜₁ F₁]
   (E₁ : B → Type*) [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜₁ (E₁ x)]
   [topological_space (total_space E₁)]
-variables (F₂ : Type*) [normed_group F₂][normed_space 𝕜₂ F₂]
+variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜₂ F₂]
   (E₂ : B → Type*) [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜₂ (E₂ x)]
   [topological_space (total_space E₂)]
 
@@ -134,7 +134,7 @@ def continuous_linear_map :
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at p.1).comp $ p.2.comp $ e₁.symmL p.1⟩,
   inv_fun := λ p, ⟨p.1, (e₂.symmL p.1).comp $ p.2.comp $ e₁.continuous_linear_map_at p.1⟩,
   source := (bundle.total_space.proj) ⁻¹' (e₁.base_set ∩ e₂.base_set),
-  target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ →SL[σ] F₂)),
+  target := (e₁.base_set ∩ e₂.base_set) ×ˢ set.univ,
   map_source' := λ ⟨x, L⟩ h, ⟨h, set.mem_univ _⟩,
   map_target' := λ ⟨x, f⟩ h, h.1,
   left_inv' := λ ⟨x, L⟩ ⟨h₁, h₂⟩,

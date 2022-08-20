@@ -357,7 +357,7 @@ ordered_comm_monoid.to_covariant_class_left ℝ≥0
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 begin
-  rcases le_iff_exists_add.1 (le_of_lt hxb) with ⟨ε, rfl⟩,
+  rcases exists_add_of_le (le_of_lt hxb) with ⟨ε, rfl⟩,
   exact h _ ((lt_add_iff_pos_right b).1 hxb)
 end
 

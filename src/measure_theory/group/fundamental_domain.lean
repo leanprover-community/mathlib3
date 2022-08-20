@@ -54,7 +54,7 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_smul G
 namespace is_fundamental_domain
 
 variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
-  [normed_group E] {s t : set α} {μ : measure α}
+  [normed_add_comm_group E] {s t : set α} {μ : measure α}
 
 /-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
 is a fundamental domain for the action of `G` on `α`. -/

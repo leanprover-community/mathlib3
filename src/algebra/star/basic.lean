@@ -148,7 +148,7 @@ op_injective $
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) :
   star (x / y) = star x / star y :=
-(star_mul_aut : R ≃* R).to_monoid_hom.map_div _ _
+map_div (star_mul_aut : R ≃* R) _ _
 
 section
 open_locale big_operators
@@ -156,7 +156,7 @@ open_locale big_operators
 @[simp] lemma star_prod [comm_monoid R] [star_semigroup R] {α : Type*}
   (s : finset α) (f : α → R):
   star (∏ x in s, f x) = ∏ x in s, star (f x) :=
-(star_mul_aut : R ≃* R).map_prod _ _
+map_prod (star_mul_aut : R ≃* R) _ _
 
 end
 
@@ -300,17 +300,15 @@ alias star_ring_end_self_apply ← complex.conj_conj
 alias star_ring_end_self_apply ← is_R_or_C.conj_conj
 
 @[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
-op_injective $
-  ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
+op_injective $ (map_inv₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x).trans (op_inv (star x)).symm
 
 @[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
-op_injective $
-  ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_zpow x z).trans (op_zpow (star x) z).symm
+op_injective $ (map_zpow₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
-(star_ring_end R).map_div _ _
+map_div₀ (star_ring_end R) _ _
 
 @[simp] lemma star_bit0 [add_monoid R] [star_add_monoid R] (r : R) :
   star (bit0 r) = bit0 (star r) :=

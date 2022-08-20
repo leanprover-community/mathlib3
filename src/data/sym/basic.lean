@@ -313,3 +313,68 @@ multiset.mem_attach _ _
 coe_injective $ multiset.attach_cons _ _
 
 end sym
+
+section equiv
+
+/-! ### Combinatorial equivalences -/
+
+variables {α : Type*} {n : ℕ}
+open sym
+
+namespace sym_option_succ_equiv
+
+/-- Function from the symmetric product over `option` splitting on whether or not
+it contains a `none`. -/
+def encode [decidable_eq α] (s : sym (option α) n.succ) : sym (option α) n ⊕ sym α n.succ :=
+if h : none ∈ s
+then sum.inl (s.erase none h)
+else sum.inr (s.attach.map $ λ o,
+  option.get $ option.ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h)
+
+@[simp] lemma encode_of_none_mem [decidable_eq α] (s : sym (option α) n.succ) (h : none ∈ s) :
+  encode s = sum.inl (s.erase none h) := dif_pos h
+
+@[simp] lemma encode_of_not_none_mem [decidable_eq α] (s : sym (option α) n.succ) (h : ¬ none ∈ s) :
+  encode s = sum.inr (s.attach.map $ λ o,
+    option.get $ option.ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h) := dif_neg h
+
+/-- Inverse of `sym_option_succ_equiv.decode`. -/
+@[simp] def decode : sym (option α) n ⊕ sym α n.succ → sym (option α) n.succ
+| (sum.inl s) := none ::ₛ s
+| (sum.inr s) := s.map embedding.coe_option
+
+@[simp] lemma decode_encode [decidable_eq α] (s : sym (option α) n.succ) :
+  decode (encode s) = s :=
+begin
+  by_cases h : none ∈ s,
+  { simp [h] },
+  { simp only [h, decode, not_false_iff, subtype.val_eq_coe, encode_of_not_none_mem,
+      embedding.coe_option_apply, map_map, comp_app, option.coe_get],
+    convert s.attach_map_coe }
+end
+
+@[simp] lemma encode_decode [decidable_eq α] (s : sym (option α) n ⊕ sym α n.succ) :
+  encode (decode s) = s :=
+begin
+  obtain (s | s) := s,
+  { simp },
+  { unfold sym_option_succ_equiv.encode,
+    split_ifs,
+    { obtain ⟨a, _, ha⟩ := multiset.mem_map.mp h,
+      exact option.some_ne_none _ ha },
+    { refine map_injective (option.some_injective _) _ _,
+      convert eq.trans _ (sym_option_succ_equiv.decode (sum.inr s)).attach_map_coe,
+      simp } }
+end
+
+end sym_option_succ_equiv
+
+/-- The symmetric product over `option` is a disjoint union over simpler symmetric products. -/
+@[simps] def sym_option_succ_equiv [decidable_eq α] :
+  sym (option α) n.succ ≃ sym (option α) n ⊕ sym α n.succ :=
+{ to_fun := sym_option_succ_equiv.encode,
+  inv_fun := sym_option_succ_equiv.decode,
+  left_inv := sym_option_succ_equiv.decode_encode,
+  right_inv := sym_option_succ_equiv.encode_decode }
+
+end equiv

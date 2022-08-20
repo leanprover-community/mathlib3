@@ -8,6 +8,7 @@ import algebra.order.module
 import linear_algebra.affine_space.midpoint
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.ray
+import tactic.positivity
 
 /-!
 # Convex sets and functions in vector spaces
@@ -331,8 +332,8 @@ begin
     use [a, b, ha, hb],
     rw [hab, div_one, div_one] },
   { rintro ⟨a, b, ha, hb, rfl⟩,
-    have hab : 0 < a + b, from add_pos ha hb,
-    refine ⟨a / (a + b), b / (a + b), div_pos ha hab, div_pos hb hab, _, rfl⟩,
+    have hab : 0 < a + b := by positivity,
+    refine ⟨a / (a + b), b / (a + b), by positivity, by positivity, _, rfl⟩,
     rw [← add_div, div_self hab.ne'] }
 end
 
@@ -1005,9 +1006,9 @@ begin
     exact ⟨p • v, q • v, smul_mem_smul_set hv, smul_mem_smul_set hv, (add_smul _ _ _).symm⟩ },
   { rintro ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
     have hpq := add_pos hp' hq',
-    exact mem_smul_set.2 ⟨_, h_conv h₁₂ h₂₂ (div_pos hp' hpq).le (div_pos hq' hpq).le
+    refine mem_smul_set.2 ⟨_, h_conv h₁₂ h₂₂ _ _
       (by rw [←div_self hpq.ne', add_div] : p / (p + q) + q / (p + q) = 1),
-      by simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩ }
+      by simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩; positivity }
 end
 
 end add_comm_group

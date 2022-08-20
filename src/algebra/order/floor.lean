@@ -199,6 +199,8 @@ eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
 
 @[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := by rw [← le_zero_iff, ceil_le, nat.cast_zero]
 
+@[simp] lemma ceil_pos : 0 < ⌈a⌉₊ ↔ 0 < a := by rw [lt_ceil, cast_zero]
+
 lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 
 lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.cast_le.2 h)
@@ -258,44 +260,44 @@ by { ext, simp [lt_ceil] }
 @[simp] lemma preimage_Iic {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋₊ :=
 by { ext, simp [le_floor_iff, ha] }
 
-end linear_ordered_semiring
-
-section linear_ordered_ring
-variables [linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ}
-
 lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :=
 eq_of_forall_le_iff $ λ b, begin
-  rw [le_floor_iff (add_nonneg ha n.cast_nonneg), ←sub_le_iff_le_add],
+  rw [le_floor_iff (add_nonneg ha n.cast_nonneg)],
   obtain hb | hb := le_total n b,
-  { rw [←cast_sub hb, ←tsub_le_iff_right],
-    exact (le_floor_iff ha).symm },
-  { exact iff_of_true ((sub_nonpos_of_le $ cast_le.2 hb).trans ha) (le_add_left hb) }
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_le_add_iff_right, add_le_add_iff_right,
+      le_floor_iff ha] },
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_left_comm _ b, add_left_comm _ (b : α)],
+    refine iff_of_true _ le_self_add,
+    exact (le_add_of_nonneg_right $ ha.trans $ le_add_of_nonneg_right d.cast_nonneg) }
 end
 
 lemma floor_add_one (ha : 0 ≤ a) : ⌊a + 1⌋₊ = ⌊a⌋₊ + 1 :=
 by { convert floor_add_nat ha 1, exact cast_one.symm }
 
-lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
+lemma floor_sub_nat [has_sub α] [has_ordered_sub α] [has_exists_add_of_le α] (a : α) (n : ℕ) :
+  ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
 begin
   obtain ha | ha := le_total a 0,
-  { rw [floor_of_nonpos ha, floor_of_nonpos (sub_nonpos_of_le (ha.trans n.cast_nonneg)),
+  { rw [floor_of_nonpos ha, floor_of_nonpos (tsub_nonpos_of_le (ha.trans n.cast_nonneg)),
       zero_tsub] },
   cases le_total a n,
   { rw [floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],
     exact nat.cast_le.1 ((nat.floor_le ha).trans h) },
-  { rw [eq_tsub_iff_add_eq_of_le (le_floor h), ←floor_add_nat (sub_nonneg_of_le h),
-      sub_add_cancel] }
+  { rw [eq_tsub_iff_add_eq_of_le (le_floor h), ←floor_add_nat _,
+      tsub_add_cancel_of_le h],
+    exact le_tsub_of_add_le_left ((add_zero _).trans_le h), }
 end
-
-lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋₊ := sub_lt_iff_lt_add.2 $ lt_floor_add_one a
 
 lemma ceil_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌈a + n⌉₊ = ⌈a⌉₊ + n :=
 eq_of_forall_ge_iff $ λ b, begin
   rw [←not_lt, ←not_lt, not_iff_not],
   rw [lt_ceil],
   obtain hb | hb := le_or_lt n b,
-  { rw [←tsub_lt_iff_right hb, ←sub_lt_iff_lt_add, ←cast_sub hb],
-    exact lt_ceil.symm },
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_lt_add_iff_right, add_lt_add_iff_right,
+      lt_ceil] },
   { exact iff_of_true (lt_add_of_nonneg_of_lt ha $ cast_lt.2 hb) (lt_add_left _ _ _ hb) }
 end
 
@@ -304,6 +306,13 @@ by { convert ceil_add_nat ha 1, exact cast_one.symm }
 
 lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
+
+end linear_ordered_semiring
+
+section linear_ordered_ring
+variables [linear_ordered_ring α] [floor_semiring α]
+
+lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋₊ := sub_lt_iff_lt_add.2 $ lt_floor_add_one a
 
 end linear_ordered_ring
 
@@ -519,6 +528,9 @@ lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
 
 @[simp] lemma fract_zero : fract (0 : α) = 0 := by rw [fract, floor_zero, cast_zero, sub_self]
 
+@[simp] lemma fract_one : fract (1 : α) = 0 :=
+by simp [fract]
+
 @[simp] lemma fract_coe (z : ℤ) : fract (z : α) = 0 :=
 by { unfold fract, rw floor_coe, exact sub_self _ }
 
@@ -647,7 +659,7 @@ by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
 
-lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, int.cast_zero]
+@[simp] lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 
 @[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by rw [← int.cast_zero, ceil_coe]
 

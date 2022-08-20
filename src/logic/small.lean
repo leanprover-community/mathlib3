@@ -34,7 +34,7 @@ lemma small.mk' {α : Type v} {S : Type w} (e : α ≃ S) : small.{w} α :=
 /--
 An arbitrarily chosen model in `Type w` for a `w`-small type.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def shrink (α : Type v) [small.{w} α] : Type w :=
 classical.some (@small.equiv_small α _)
 
@@ -94,7 +94,7 @@ begin
 end
 
 /-!
-We don't define `small_of_fintype` or `small_of_encodable` in this file,
+We don't define `small_of_fintype` or `small_of_countable` in this file,
 to keep imports to `logic` to a minimum.
 -/
 

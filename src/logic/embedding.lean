@@ -18,7 +18,7 @@ universes u v w x
 namespace function
 
 /-- `α ↪ β` is a bundled injective function. -/
-@[nolint has_inhabited_instance] -- depending on cardinalities, an injective function may not exist
+@[nolint has_nonempty_instance] -- depending on cardinalities, an injective function may not exist
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
 (inj'   : injective to_fun)
@@ -193,6 +193,12 @@ def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨coe, λ _ _, subtype.ext_val⟩
 
 @[simp] lemma coe_subtype {α} (p : α → Prop) : ⇑(subtype p) = coe := rfl
+
+/-- `quotient.out` as an embedding. -/
+noncomputable def quotient_out (α) [s : setoid α] : quotient s ↪ α :=
+⟨_, quotient.out_injective⟩
+
+@[simp] theorem coe_quotient_out (α) [s : setoid α] : ⇑(quotient_out α) = quotient.out := rfl
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=

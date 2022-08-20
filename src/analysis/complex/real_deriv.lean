@@ -79,7 +79,7 @@ theorem cont_diff.real_of_complex {n : with_top ℕ} (h : cont_diff ℂ n e) :
 cont_diff_iff_cont_diff_at.2 $ λ x,
   h.cont_diff_at.real_of_complex
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 
 lemma has_strict_deriv_at.complex_to_real_fderiv' {f : ℂ → E} {x : ℂ} {f' : E}
   (h : has_strict_deriv_at f f' x) :
@@ -122,7 +122,7 @@ section conformality
 open complex continuous_linear_map
 open_locale complex_conjugate
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {z : ℂ} {f : ℂ → E}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {z : ℂ} {f : ℂ → E}
 
 /-- A real differentiable function of the complex plane into some complex normed space `E` is
     conformal at a point `z` if it is holomorphic at that point with a nonvanishing differential.

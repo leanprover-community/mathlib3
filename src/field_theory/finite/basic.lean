@@ -46,10 +46,10 @@ diamonds, as `fintype` carries data.
 variables {K : Type*} {R : Type*}
 local notation `q` := fintype.card K
 
+open finset function
 open_locale big_operators polynomial
 
 namespace finite_field
-open finset function
 
 section polynomial
 
@@ -444,7 +444,10 @@ section
 
 namespace finite_field
 
-variables {F : Type*} [field F] [fintype F]
+variables {F : Type*} [field F]
+
+section finite
+variables [finite F]
 
 /-- In a finite field of characteristic `2`, all elements are squares. -/
 lemma is_square_of_char_two (hF : ring_char F = 2) (a : F) : is_square a :=
@@ -452,6 +455,25 @@ begin
   haveI hF' : char_p F 2 := ring_char.of_eq hF,
   exact is_square_of_char_two' a,
 end
+
+/-- In a finite field of odd characteristic, not every element is a square. -/
+lemma exists_nonsquare (hF : ring_char F ≠ 2) : ∃ (a : F), ¬ is_square a :=
+begin
+  -- Idea: the squaring map on `F` is not injective, hence not surjective
+  let sq : F → F := λ x, x ^ 2,
+  have h : ¬ injective sq,
+  { simp only [injective, not_forall, exists_prop],
+    refine ⟨-1, 1, _, ring.neg_one_ne_one_of_char_ne_two hF⟩,
+    simp only [sq, one_pow, neg_one_sq] },
+  rw finite.injective_iff_surjective at h, -- sq not surjective
+  simp_rw [is_square, ←pow_two, @eq_comm _ _ (_ ^ 2)],
+  push_neg at ⊢ h,
+  exact h,
+end
+
+end finite
+
+variables [fintype F]
 
 /-- The finite field `F` has even cardinality iff it has characteristic `2`. -/
 lemma even_card_iff_char_two : ring_char F = 2 ↔ fintype.card F % 2 = 0 :=
@@ -522,27 +544,6 @@ begin
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
-end
-
-/-- In a finite field of odd characteristic, not every element is a square. -/
-lemma exists_nonsquare (hF : ring_char F ≠ 2) : ∃ (a : F), ¬ is_square a :=
-begin
-  -- idea: the squaring map on `F` is not injetive, hence not surjective
-  let sq : F → F := λ x, x ^ 2,
-  have h : ¬ function.injective sq,
-  { simp only [function.injective, not_forall, exists_prop],
-    use [-1, 1],
-    split,
-    { simp only [sq, one_pow, neg_one_sq], },
-    { exact ring.neg_one_ne_one_of_char_ne_two hF, }, },
-  have h₁ := mt (finite.injective_iff_surjective.mpr) h, -- sq not surjective
-  push_neg at h₁,
-  cases h₁ with a h₁,
-  use a,
-  simp only [is_square, sq, not_exists, ne.def] at h₁ ⊢,
-  intros b hb,
-  rw ← pow_two at hb,
-  exact h₁ b hb.symm,
 end
 
 end finite_field

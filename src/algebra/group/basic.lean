@@ -749,7 +749,7 @@ lemma of_lex_vadd [has_vadd α β] (a : α) (b : βᵒᵈ) : of_lex (a +ᵥ b) =
 lemma to_lex_smul [has_smul α β] (a : α) (b : β) : to_lex (a • b) = a • to_lex b := rfl
 @[simp, to_additive]
 lemma of_lex_smul [has_smul α β] (a : α) (b : βᵒᵈ) : of_lex (a • b) = a • of_lex b := rfl
-@[simp, to_additive to_lex_smul]
+@[simp, to_additive to_lex_smul, to_additive_reorder 1 4]
 lemma to_lex_pow [has_pow α β] (a : α) (b : β) : to_lex (a ^ b) = to_lex a ^ b := rfl
-@[simp, to_additive of_lex_smul]
+@[simp, to_additive of_lex_smul, to_additive_reorder 1 4]
 lemma of_lex_pow [has_pow α β] (a : αᵒᵈ) (b : β) : of_lex (a ^ b) = of_lex a ^ b := rfl

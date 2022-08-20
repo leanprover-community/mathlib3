@@ -68,14 +68,15 @@ begin
 end
 
 /-- If `n % 4 = 1`, then `(-1)^(n/2) = 1`. -/
-lemma _root_.neg_one_pow_one_mod_four_div_two {n : ℕ} (hn : n % 4 = 1) : (-1 : ℤ) ^ (n / 2) = 1 :=
+lemma _root_.neg_one_pow_div_two_of_one_mod_four {n : ℕ} (hn : n % 4 = 1) :
+  (-1 : ℤ) ^ (n / 2) = 1 :=
 begin
   rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_one hn), ← zmod.nat_cast_mod, hn],
   refl,
 end
 
 /-- If `n % 4 = 3`, then `(-1)^(n/2) = -1`. -/
-lemma _root_.neg_one_pow_three_mod_four_div_two {n : ℕ} (hn : n % 4 = 3) :
+lemma _root_.neg_one_pow_div_two_of_three_mod_four {n : ℕ} (hn : n % 4 = 3) :
   (-1 : ℤ) ^ (n / 2) = -1 :=
 begin
   rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_three hn), ← zmod.nat_cast_mod, hn],

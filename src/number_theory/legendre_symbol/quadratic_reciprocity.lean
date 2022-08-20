@@ -339,7 +339,7 @@ theorem quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
   legendre_sym q p = legendre_sym p q :=
 begin
   have hp' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_one hp),
-  rw [quadratic_reciprocity' hp' hq, pow_mul, neg_one_pow_one_mod_four_div_two hp,
+  rw [quadratic_reciprocity' hp' hq, pow_mul, neg_one_pow_div_two_of_one_mod_four hp,
       one_pow, one_mul],
 end
 
@@ -350,8 +350,8 @@ theorem quadratic_reciprocity_three_mod_four (hp : p % 4 = 3) (hq : q % 4 = 3):
 begin
   have hp' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_three hp),
   have hq' := nat.prime.mod_two_eq_one_iff_ne_two.mp (nat.odd_of_mod_four_eq_three hq),
-  rw [quadratic_reciprocity' hp' hq', pow_mul, neg_one_pow_three_mod_four_div_two hp,
-      neg_one_pow_three_mod_four_div_two hq, neg_one_mul],
+  rw [quadratic_reciprocity' hp' hq', pow_mul, neg_one_pow_div_two_of_three_mod_four hp,
+      neg_one_pow_div_two_of_three_mod_four hq, neg_one_mul],
 end
 
 /-- If `p` and `q` are odd primes and `p % 4 = 1`, then `q` is a square mod `p` iff

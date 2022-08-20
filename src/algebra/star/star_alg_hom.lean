@@ -406,13 +406,8 @@ variables {R A B C}
 
 /-- The `star_alg_hom.prod` of two morphisms is a morphism. -/
 @[simps] def prod (f : A →⋆ₐ[R] B) (g : A →⋆ₐ[R] C) : (A →⋆ₐ[R] B × C) :=
-{ to_fun    := pi.prod f g,
-  map_zero' := by simp only [pi.prod, prod.zero_eq_mk, map_zero],
-  map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
-  map_mul'  := λ x y, by simp only [pi.prod, prod.mk_mul_mk, map_mul],
-  map_one'  := by simp only [pi.prod, prod.one_eq_mk, map_one],
-  commutes' := λ r, by { simp only [pi.prod, alg_hom_class.commutes], refl },
-  map_star' := λ x, by simp only [pi.prod, prod.star_def, map_star] }
+{ map_star' := λ x, by simp [prod.star_def, map_star],
+ .. f.to_alg_hom.prod g.to_alg_hom }
 
 lemma coe_prod (f : A →⋆ₐ[R] B) (g : A →⋆ₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
 

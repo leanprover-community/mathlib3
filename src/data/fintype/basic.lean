@@ -171,8 +171,11 @@ by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
 lemma insert_inj_on' (s : finset α) : set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
 by { rw coe_compl, exact s.insert_inj_on }
 
+lemma image_univ_iff_surjective [fintype β] {f : β → α} : image f univ = univ ↔ surjective f :=
+by rw [← coe_inj, coe_image, coe_univ, coe_univ, set.image_univ, set.range_iff_surjective]
+
 lemma image_univ_of_surjective [fintype β] {f : β → α} (hf : surjective f) : univ.image f = univ :=
-eq_univ_of_forall $ hf.forall.2 $ λ _, mem_image_of_mem _ $ mem_univ _
+image_univ_iff_surjective.mpr hf
 
 end boolean_algebra
 
@@ -1157,58 +1160,89 @@ card_congr (equiv.of_bijective f hf)
 
 end fintype
 
+namespace function
+
+variables {α' β' : Sort*} [finite α'] {f : α' → β'} {g : α' → α'}
+
+namespace injective
+
+lemma surjective_of_finite_of_equiv (hf : injective f) (e : α' ≃ β') : surjective f :=
+begin
+  casesI nonempty_fintype (plift α'),
+  rw [← equiv.comp_surjective f (equiv.plift.trans e).symm, ← equiv.surjective_comp equiv.plift,
+    ← finset.image_univ_iff_surjective],
+  refine finset.eq_univ_of_card _ (card_image_of_injective _ _),
+  exact ((equiv.injective _).comp hf).comp (equiv.injective _)
+end
+
+lemma bijective_of_finite_of_equiv (hf : injective f) (e : α' ≃ β') : bijective f :=
+⟨hf, hf.surjective_of_finite_of_equiv e⟩
+
+lemma bijective_of_finite (hg : injective g) : bijective g :=
+hg.bijective_of_finite_of_equiv (_root_.equiv.refl α')
+
+lemma surjective_of_finite (hg : injective g) : surjective g := hg.bijective_of_finite.surjective
+
+end injective
+
+namespace surjective
+
+lemma injective_of_finite_of_equiv (hf : surjective f) (e : α' ≃ β') : injective f :=
+begin
+  haveI := finite.of_surjective f hf,
+  exact left_inverse.injective (left_inverse_of_surjective_of_right_inverse
+    ((injective_surj_inv _).surjective_of_finite_of_equiv e.symm) (right_inverse_surj_inv hf))
+end
+
+lemma bijective_of_finite_of_equiv (hf : surjective f) (e : α' ≃ β') : bijective f :=
+⟨hf.injective_of_finite_of_equiv e, hf⟩
+
+lemma bijective_of_finite (hg : surjective g) : bijective g :=
+hg.bijective_of_finite_of_equiv (_root_.equiv.refl _)
+
+lemma injective_of_finite (hg : surjective g) : injective g := hg.bijective_of_finite.injective
+
+end surjective
+
+end function
+
 namespace finite
-variables [finite α]
 
-lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
-by haveI := classical.prop_decidable; casesI nonempty_fintype α; exact
-have ∀ {f : α → α}, injective f → surjective f,
-from λ f hinj x,
-  have h₁ : image f univ = univ := eq_of_subset_of_card_le (subset_univ _)
-    ((card_image_of_injective univ hinj).symm ▸ le_rfl),
-  have h₂ : x ∈ image f univ := h₁.symm ▸ mem_univ _,
-  exists_of_bex (mem_image.1 h₂),
-⟨this,
-  λ hsurj, has_left_inverse.injective
-    ⟨surj_inv hsurj, left_inverse_of_surjective_of_right_inverse
-      (this (injective_surj_inv _)) (right_inverse_surj_inv _)⟩⟩
+variables {α' β' : Sort*} [finite α']
 
-lemma injective_iff_bijective {f : α → α} : injective f ↔ bijective f :=
+lemma injective_iff_surjective_of_equiv {f : α' → β'} (e : α' ≃ β') :
+  injective f ↔ surjective f :=
+⟨λ h, h.surjective_of_finite_of_equiv e, λ h, h.injective_of_finite_of_equiv e⟩
+
+lemma injective_iff_surjective {f : α' → α'} : injective f ↔ surjective f :=
+injective_iff_surjective_of_equiv (equiv.refl α')
+
+lemma injective_iff_bijective {f : α' → α'} : injective f ↔ bijective f :=
 by simp [bijective, injective_iff_surjective]
 
-lemma surjective_iff_bijective {f : α → α} : surjective f ↔ bijective f :=
+lemma surjective_iff_bijective {f : α' → α'} : surjective f ↔ bijective f :=
 by simp [bijective, injective_iff_surjective]
-
-lemma injective_iff_surjective_of_equiv  {f : α → β} (e : α ≃ β) : injective f ↔ surjective f :=
-have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from injective_iff_surjective,
-⟨λ hinj, by simpa [function.comp] using
-  e.surjective.comp (this.1 (e.symm.injective.comp hinj)),
-λ hsurj, by simpa [function.comp] using
-  e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
-
-
-alias injective_iff_bijective ↔ _root_.function.injective.bijective_of_finite _
-alias surjective_iff_bijective ↔ _root_.function.surjective.bijective_of_finite _
-alias injective_iff_surjective_of_equiv ↔ _root_.function.injective.surjective_of_fintype
-  _root_.function.surjective.injective_of_fintype
 
 end finite
 
 namespace fintype
+
 variables [fintype α] [fintype β]
 
 lemma bijective_iff_injective_and_card (f : α → β) :
   bijective f ↔ injective f ∧ card α = card β :=
-⟨λ h, ⟨h.1, card_of_bijective h⟩, λ h, ⟨h.1, h.1.surjective_of_fintype $ equiv_of_card_eq h.2⟩⟩
+⟨λ h, ⟨h.1, card_of_bijective h⟩,
+  λ h, ⟨h.1, h.1.surjective_of_finite_of_equiv $ equiv_of_card_eq h.2⟩⟩
 
 lemma bijective_iff_surjective_and_card (f : α → β) :
   bijective f ↔ surjective f ∧ card α = card β :=
-⟨λ h, ⟨h.2, card_of_bijective h⟩, λ h, ⟨h.1.injective_of_fintype $ equiv_of_card_eq h.2, h.1⟩⟩
+⟨λ h, ⟨h.2, card_of_bijective h⟩,
+  λ h, ⟨h.1.injective_of_finite_of_equiv $ equiv_of_card_eq h.2, h.1⟩⟩
 
 lemma _root_.function.left_inverse.right_inverse_of_card_le {f : α → β} {g : β → α}
   (hfg : left_inverse f g) (hcard : card α ≤ card β) :
   right_inverse f g :=
-have hsurj : surjective f, from surjective_iff_has_right_inverse.2 ⟨g, hfg⟩,
+have hsurj : surjective f, from hfg.surjective,
 right_inverse_of_injective_of_left_inverse
   ((bijective_iff_surjective_and_card _).2
     ⟨hsurj, le_antisymm hcard (card_le_of_surjective f hsurj)⟩ ).1
@@ -1406,7 +1440,7 @@ lemma card_lt_of_surjective_not_injective [fintype α] [fintype β] (f : α → 
   (h : function.surjective f) (h' : ¬function.injective f) : card β < card α :=
 card_lt_of_injective_not_surjective _ (function.injective_surj_inv h) $ λ hg,
 have w : function.bijective (function.surj_inv h) := ⟨function.injective_surj_inv h, hg⟩,
-h' $ h.injective_of_fintype (equiv.of_bijective _ w).symm
+h' $ h.injective_of_finite_of_equiv (equiv.of_bijective _ w).symm
 
 variables [decidable_eq α] [fintype α] {δ : α → Type*}
 

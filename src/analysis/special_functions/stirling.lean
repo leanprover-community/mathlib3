@@ -41,11 +41,11 @@ Stirling's formula states that this sequence has limit $\sqrt(π)$.
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
 n.factorial / (sqrt (2 * n) * (n / exp 1) ^ n)
 
-@[simp] lemma stiling_seq_1: stirling_seq 1 = exp 1 * (sqrt 2)⁻¹ :=
-begin
-  simp only [stirling_seq, factorial_one, cast_one, mul_one, one_div, pow_one, mul_inv_rev,
-    inv_inv],
-end
+@[simp] lemma stirling_seq_zero : stirling_seq 0 = 0 :=
+by rw [stirling_seq, cast_zero, mul_zero, real.sqrt_zero, zero_mul, div_zero]
+
+@[simp] lemma stirling_seq_one : stirling_seq 1 = exp 1 / sqrt 2 :=
+by rw [stirling_seq, pow_one, factorial_one, cast_one, mul_one, mul_one_div, one_div_div]
 
 /--
 We have the expression
@@ -54,18 +54,12 @@ We have the expression
 lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
   log n.succ.factorial - 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
-  have h3, from sqrt_ne_zero'.mpr (mul_pos two_pos $ cast_pos.mpr (succ_pos n)),
-  have h4 : 0 ≠ ((n.succ : ℝ) / exp 1) ^ n.succ, from
-    ne_of_lt (pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) n.succ),
-  rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow],
-  { linarith },
-  { refine (zero_lt_mul_left two_pos).mpr _,
-    rw ←cast_zero,
-    exact cast_lt.mpr (succ_pos n), },
-  { exact h3, },
-  { exact h4.symm, },
-  { exact cast_ne_zero.mpr n.succ.factorial_ne_zero, },
-  { exact mul_ne_zero h3 h4.symm, },
+  have h1 : (0 : ℝ) < n.succ.factorial := cast_pos.mpr n.succ.factorial_pos,
+  have h2 : (0 : ℝ) < (2 * n.succ) := mul_pos two_pos (cast_pos.mpr (succ_pos n)),
+  have h3 := real.sqrt_pos.mpr h2,
+  have h4 := pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) n.succ,
+  have h5 := mul_pos h3 h4,
+  rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow]; linarith,
 end
 
 /--
@@ -197,11 +191,8 @@ end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
 lemma stirling_seq'_pos (n : ℕ) : 0 < stirling_seq n.succ :=
-begin
-  dsimp only [stirling_seq],
-  apply_rules [div_pos, cast_pos.mpr, mul_pos, factorial_pos, exp_pos, pow_pos, real.sqrt_pos.mpr,
-    two_pos, succ_pos] 7 {md := reducible}; apply_instance,
-end
+div_pos (cast_pos.mpr n.succ.factorial_pos) (mul_pos (real.sqrt_pos.mpr (mul_pos two_pos
+  (cast_pos.mpr n.succ_pos))) (pow_pos (div_pos (cast_pos.mpr n.succ_pos) (exp_pos 1)) n.succ))
 
 /--
 The sequence `stirling_seq` has a positive lower bound.

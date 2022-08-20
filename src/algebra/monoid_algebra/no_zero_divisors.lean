@@ -39,7 +39,7 @@ example {R} [ring R] [nontrivial R] :
   ∃ x y : add_monoid_algebra R (zmod 2), x * y = 0 ∧ x ≠ 0 ∧ y ≠ 0 :=
 begin
   --  use `[1 (mod 2)] - 1` and `[1 (mod 2)] + 1`, the rest is easy
-  refine ⟨single 1 1 - single (0 : zmod 2) 1, single 1 1 + single (0 : zmod 2) 1, _, _⟩,
+  refine ⟨single 1 1 - single 0 1, single 1 1 +  single 0 1, _, _⟩,
   { simp [sub_mul, mul_add, single_mul_single, sub_eq_zero], refl },
   { simp [←finsupp.single_neg, single_eq_single_iff, sub_eq_add_neg, ←eq_neg_iff_add_eq_zero.not] }
 end
@@ -50,77 +50,72 @@ in particular, it is cancellative).
 
 namespace add_monoid_algebra
 
-variables {R A : Type*} [semiring R] [linear_order A]
+variables {R A : Type*} [semiring R]
 
 section a_version_with_different_typeclass_assumptions
 variables [add_left_cancel_monoid A] {a b : A} {f g : A →₀ R}
 
 /--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
 somewhat weaker typeclass assumptions, but also proves a weaker result. -/
-lemma single_mul_single_add_apply' {r : R} (s : R) (fb : f.support.max < b) :
-  (finsupp.single a r * (finsupp.single b s + f) : add_monoid_algebra R A) (a + b) = r * s :=
+lemma single_mul_single_add_apply' (r : R) :
+  (finsupp.single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
 begin
+  classical,
+  nth_rewrite 0 ← f.erase_add_single b,
   rw [mul_add, single_mul_single, finsupp.add_apply, finsupp.single_eq_same],
-  convert add_zero _,
+  convert zero_add _,
   refine finsupp.not_mem_support_iff.mp (λ h, _),
-  refine not_not.mpr ((support_mul (finsupp.single a r) f) h) _,
-  simp only [finsupp.mem_support_single, finset.mem_bUnion, ne.def, finset.mem_singleton,
-    exists_prop, not_exists, not_and, and_imp, forall_eq, add_right_inj],
-  intros _ x xs,
-  refine (with_bot.coe_lt_coe.mp _).ne',
-  refine lt_of_le_of_lt _ fb,
-  refine le_trans _ (finset.coe_max' ⟨_, xs⟩).le,
-  exact with_bot.coe_le_coe.mpr (f.support.le_max' _ _),
+  refine not_not.mpr ((support_mul (finsupp.single a r) (f.erase b)) h) _,
+  simpa only [finsupp.mem_support_single, finset.mem_bUnion, ne.def, finset.mem_singleton,
+    exists_prop, not_exists, not_and, and_imp, forall_eq, finsupp.support_erase, add_right_inj]
+    using λ _ x xs, (finset.ne_of_mem_erase xs).symm,
 end
 
 end a_version_with_different_typeclass_assumptions
 
 section covariant_lt
-variables [has_add A] [covariant_class A A (+) (<)]
-   {a b : A} {f g : A →₀ R}
+variables [has_add A] [partial_order A] [covariant_class A A (+) (<)] {a b : A} {f g : A →₀ R}
 
 /--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
 somewhat weaker typeclass assumptions, but also proves a weaker result. -/
-lemma single_mul_single_add_apply {r : R} (s : R) (fb : f.support.max < b) :
-  (finsupp.single a r * (finsupp.single b s + f) : add_monoid_algebra R A) (a + b) = r * s :=
+lemma single_mul_single_add_apply (r : R) (fb : ∀ a ∈ f.support, a ≤ b) :
+  (finsupp.single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
 begin
+  classical,
+  nth_rewrite 0 ← f.erase_add_single b,
   rw [mul_add, single_mul_single, finsupp.add_apply, finsupp.single_eq_same],
-  convert add_zero _,
+  convert zero_add _,
   refine finsupp.not_mem_support_iff.mp (λ h, _),
-  refine not_not.mpr ((support_mul (finsupp.single a r) f) h) _,
+  refine not_not.mpr ((support_mul (finsupp.single a r) (f.erase b)) h) _,
   simp only [finsupp.mem_support_single, finset.mem_bUnion, ne.def, finset.mem_singleton,
-    exists_prop, not_exists, not_and, and_imp, forall_eq],
+    exists_prop, not_exists, not_and, and_imp, forall_eq, finsupp.support_erase],
   intros _ x xs,
   refine (add_lt_add_left (with_bot.coe_lt_coe.mp _) _).ne',
-  refine lt_of_le_of_lt _ fb,
-  refine le_trans _ (finset.coe_max' ⟨_, xs⟩).le,
-  exact with_bot.coe_le_coe.mpr (f.support.le_max' _ _),
+  refine with_bot.coe_lt_coe.mpr ((fb _ (finset.mem_of_mem_erase xs)).lt_of_ne _),
+  exact finset.ne_of_mem_erase xs,
 end
 
 variables [covariant_class A A (function.swap (+)) (<)]
 
-lemma mul_apply_of_le (fa : f.support.max ≤ a) (gb : g.support.max ≤ b) :
+lemma mul_apply_of_le (fa : ∀ i ∈ f.support, i ≤ a) (gb : ∀ i ∈ g.support, i ≤ b) :
   (f * g : add_monoid_algebra R A) (a + b) = f a * g b :=
 begin
-  rw [← f.erase_add_single a, add_mul, finsupp.add_apply, finsupp.add_apply, add_mul],
+  classical,
+  nth_rewrite 0 ← f.erase_add_single a,
+  rw [add_mul, finsupp.add_apply, single_mul_single_add_apply _ gb],
   convert zero_add _,
-  { refine finsupp.not_mem_support_iff.mp (λ h, _),
-    refine not_not.mpr ((support_mul _ g) h) _,
-    simp only [finsupp.support_erase, finset.mem_bUnion, finset.mem_erase, ne.def,
-      finset.mem_singleton, exists_prop, not_exists, not_and, and_imp],
-    haveI : covariant_class A A (+) (≤) := has_add.to_covariant_class_left A,
-    refine λ x xa xf y yg, (add_lt_add_of_lt_of_le (lt_of_le_of_ne _ xa) _).ne',
-    repeat { exact with_bot.coe_le_coe.mp ((finset.coe_le_max_of_mem ‹_›).trans ‹_›) } },
-  { --rw [finsupp.erase_same, zero_mul, zero_add],
-    convert zero_add _,
-    { rw [finsupp.erase_same, zero_mul] },
-    { nth_rewrite 0 ← g.single_add_erase b,
-      rw finsupp.single_eq_same,
-      refine single_mul_single_add_apply _ _,
-      rw [finsupp.support_erase],
-      refine (lt_of_le_of_ne ((finset.max_mono (g.support.erase_subset b)).trans gb) _),
-      exact finset.max_erase_ne_self } },
+  refine finsupp.not_mem_support_iff.mp (λ h, _),
+  refine not_not.mpr ((support_mul _ g) h) _,
+  simp only [finsupp.support_erase, finset.mem_bUnion, finset.mem_erase, ne.def,
+    finset.mem_singleton, exists_prop, not_exists, not_and, and_imp],
+  haveI : covariant_class A A (+) (≤) := has_add.to_covariant_class_left A,
+  exact λ x xa xf y yg, (add_lt_add_of_lt_of_le ((fa _ xf).lt_of_ne xa) (gb _ yg)).ne',
 end
+
+end covariant_lt
+
+variables [has_add A] [linear_order A] [covariant_class A A (+) (<)]
+  [covariant_class A A (function.swap (+)) (<)] {a b : A} {f g : A →₀ R}
 
 protected lemma no_zero_divisors [no_zero_divisors R] : no_zero_divisors (add_monoid_algebra R A) :=
 begin
@@ -130,11 +125,9 @@ begin
     + b.support.max' (finsupp.support_nonempty_iff.mpr ab.2))),
   simp only [finsupp.coe_zero, pi.zero_apply],
   rw mul_apply_of_le;
-  try { exact (finset.coe_max' _).ge },
+  try { exact finset.le_max' _ },
   refine mul_ne_zero_iff.mpr ⟨_, _⟩;
   exact finsupp.mem_support_iff.mp (finset.max'_mem _ _),
 end
-
-end covariant_lt
 
 end add_monoid_algebra

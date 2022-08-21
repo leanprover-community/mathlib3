@@ -109,11 +109,6 @@ by simp [pp.factorization]
 
 namespace prime
 
--- ^^^^ The counterparts of these are all already in data.nat.factorization.basic
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
--- vvv Versions translated into `factorization` vvv
-
 /-- **Legendre's Theorem**
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i` for `i ∈ Ico 1 n`. -/
 lemma factorization_factorial {p : ℕ} (pp : p.prime) {n : ℕ} :
@@ -238,13 +233,6 @@ lemma factorization_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
   n!.factorization p ≤ (n/(p - 1) : ℕ) :=
 by { rw hp.factorization_factorial, apply nat.geom_sum_Ico_le hp.two_le }
 
-
-
--- #exit
-
-
-
-
 end prime
 
 lemma factorization_two_factorial_lt {n : ℕ} : (n ≠ 0) →  n!.factorization 2 < n :=
@@ -261,111 +249,6 @@ begin
     refine lt_of_le_of_lt _ ((H i (hi2 hi0)).trans (lt_succ_self _)),
     simp [factorial_succ, factorization_mul (succ_ne_zero _) (factorial_ne_zero _),
           factorization_eq_zero_of_remainder i (mt nat.dvd_one.1 (succ_succ_ne_one 0))] },
-end
-
--- ^^^ Versions translated into `factorization` ^^^
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
-
--- vvv Original versions vvv
-
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
-
-#exit
-
-/-- **Legendre's Theorem**
-
-The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
-over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
-lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
-  ∀ {n b : ℕ}, log p n < b → multiplicity p n! = (∑ i in Ico 1 b, n / p ^ i : ℕ)
-| 0     b hb := by simp [Ico, hp.multiplicity_one]
-| (n+1) b hb :=
-  calc multiplicity p (n+1)! = multiplicity p n! + multiplicity p (n+1) :
-    by rw [factorial_succ, hp.multiplicity_mul, add_comm]
-  ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
-    by rw [multiplicity_factorial ((log_mono_right $ le_succ _).trans_lt hb),
-      ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
-  ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
-    by { rw [sum_add_distrib, sum_boole], simp }
-  ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
-    congr_arg coe $ finset.sum_congr rfl $ λ _ _, (succ_div _ _).symm
-
-/-- The multiplicity of `p` in `(p * (n + 1))!` is one more than the sum
-  of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/
-lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
-  multiplicity p (p * (n + 1))! = multiplicity p (p * n)! + multiplicity p (n + 1) + 1 :=
-begin
-  have hp' := prime_iff.mp hp,
-  have h0 : 2 ≤ p := hp.two_le,
-  have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
-  have h2 : p * n + 1 ≤ p * (n + 1), linarith,
-  have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
-  have hm : multiplicity p (p * n)! ≠ ⊤,
-  { rw [ne.def, eq_top_iff_not_finite, not_not, finite_nat_iff],
-    exact ⟨hp.ne_one, factorial_pos _⟩ },
-  revert hm,
-  have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
-  { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
-    rw [← not_dvd_iff_between_consec_multiples _ (pos_iff_ne_zero.mpr hp.ne_zero)],
-    rw [mem_Ico] at hm,
-    exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
-  simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
-    add_assoc], intro h,
-  rw [part_enat.add_left_cancel_iff h, sum_Ico_succ_top h2, multiplicity.mul hp',
-    hp.multiplicity_self, sum_congr rfl h4, sum_const_zero, zero_add,
-    add_comm (1 : part_enat)]
-end
-
-/-- The multiplicity of `p` in `(p * n)!` is `n` more than that of `n!`. -/
-lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
-  multiplicity p (p * n)! = multiplicity p n! + n :=
-begin
-  induction n with n ih,
-  { simp },
-  { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
-      multiplicity_factorial_mul_succ, ←add_assoc, nat.cast_one, nat.cast_add, factorial_succ],
-    congr' 1,
-    rw [add_comm, add_assoc] }
-end
-
-/-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
-  This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/
-lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
-   p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
-by rw [← part_enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
-
-lemma multiplicity_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
-  multiplicity p n! ≤ (n/(p - 1) : ℕ) :=
-begin
-  rw [hp.multiplicity_factorial (lt_succ_self _), part_enat.coe_le_coe],
-  exact nat.geom_sum_Ico_le hp.two_le _ _,
-end
-
-
-
-end prime
-
-lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n :=
-begin
-  have h2 := prime_iff.mp prime_two,
-  refine binary_rec _ _,
-  { contradiction },
-  { intros b n ih h,
-    by_cases hn : n = 0,
-    { subst hn, simp at h, simp [h, one_right h2.not_unit, part_enat.zero_lt_one] },
-    have : multiplicity 2 (2 * n)! < (2 * n : ℕ),
-    { rw [prime_two.multiplicity_factorial_mul],
-      refine (part_enat.add_lt_add_right (ih hn) (part_enat.coe_ne_top _)).trans_le _,
-      rw [two_mul], norm_cast },
-    cases b,
-    { simpa [bit0_eq_two_mul n] },
-    { suffices : multiplicity 2 (2 * n + 1) + multiplicity 2 (2 * n)! < ↑(2 * n) + 1,
-      { simpa [succ_eq_add_one, multiplicity.mul, h2, prime_two, nat.bit1_eq_succ_bit0,
-          bit0_eq_two_mul n] },
-      rw [multiplicity_eq_zero_of_not_dvd (two_not_dvd_two_mul_add_one n), zero_add],
-      refine this.trans _, exact_mod_cast lt_succ_self _ }}
 end
 
 end nat

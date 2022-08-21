@@ -172,7 +172,7 @@ end comm_semiring
 
 open polynomial adjoin_root localization
 
-variables {R : Type*} [comm_ring R] (M : submonoid R)
+variables {R : Type*} [comm_ring R]
 
 local attribute [instance] is_localization.alg_hom_subsingleton adjoin_root.alg_hom_subsingleton
 

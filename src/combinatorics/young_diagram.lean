@@ -143,7 +143,7 @@ by { change c ∈ μ.cells.map _ ↔ _, rw finset.mem_map_equiv, refl, }
 @[simp] lemma transpose_eq_iff {μ ν : young_diagram} : μ.transpose = ν ↔ μ = ν.transpose :=
 by { split; { rintro rfl, ext, simp } }
 
-@[simp] lemma transpose_transpose {μ : young_diagram} : μ.transpose.transpose = μ :=
+@[simp] lemma transpose_transpose (μ : young_diagram) : μ.transpose.transpose = μ :=
 by rw transpose_eq_iff
 
 -- This is effectively both directions of the iff statement below.
@@ -243,6 +243,12 @@ lemma col_len_decr (μ : young_diagram) (j1 j2 : ℕ) (hj : j1 ≤ j2) : μ.col_
 by { by_contra' h_lt, rw ← lt_self_iff_false (μ.col_len j1),
      rw ← mem_iff_lt_col_len at h_lt ⊢,
      exact μ.up_left_mem (by refl) hj h_lt }
+
+@[simp] lemma transpose_col_len (μ : young_diagram) (j : ℕ) : μ.transpose.col_len j = μ.row_len j :=
+by simp [row_len, col_len]
+
+@[simp] lemma transpose_row_len (μ : young_diagram) (i : ℕ) : μ.transpose.row_len i = μ.col_len i :=
+by simp [row_len, col_len]
 
 end columns
 

@@ -209,12 +209,14 @@ lift_of hfx
 section adjoin_inv
 
 @[simp] lemma root_is_inv (r : R) : of _ r * root (C r * X - 1) = 1 :=
-by { have := eval₂_root (C r * X - 1), revert this, simp [eval₂_sub, ← sub_eq_zero] }
+by convert sub_eq_zero.1 ((eval₂_sub _).symm.trans $ eval₂_root $ C r * X - 1);
+  simp only [eval₂_mul, eval₂_C, eval₂_X, eval₂_one]
 
 instance {S : Type*} [comm_ring S] [algebra R S] {r : R} :
   subsingleton (adjoin_root (C r * X - 1) →ₐ[R] S) :=
-⟨λ f g, alg_hom_ext (@inv_unique _ _ (algebra_map R S r) (f (root _)) _
-  (by simp [← f.commutes, ← f.map_mul]) (by simp [← g.commutes, ← g.map_mul]))⟩
+⟨λ f g, alg_hom_ext (@inv_unique _ _ (algebra_map R S r) (f $ root _) _
+  (by rw [← f.commutes, ← f.map_mul, algebra_map_eq, root_is_inv, map_one])
+  (by rw [← g.commutes, ← g.map_mul, algebra_map_eq, root_is_inv, map_one]))⟩
 
 end adjoin_inv
 

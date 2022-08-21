@@ -216,7 +216,7 @@ subtype.coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 instance cancel_comm_monoid {α : Type*} [ordered_comm_ring α] [is_domain α] :
   cancel_comm_monoid (Ioc (0:α) 1) :=
-{ ..set.Ioc.cancel_monoid, ..@set.Ioc.comm_monoid α _ }
+{ ..set.Ioc.cancel_monoid, ..set.Ioc.comm_monoid }
 
 end set.Ioc
 

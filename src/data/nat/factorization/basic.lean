@@ -231,7 +231,7 @@ begin
   refl,
 end
 
-/-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
+/-- The multiplicity of prime `p` in `p` is `1` -/
 @[simp] lemma prime.factorization_self {p : ℕ} (hp : prime p) : p.factorization p = 1 :=
 by simp [hp]
 
@@ -245,7 +245,10 @@ lemma eq_pow_of_factorization_eq_single {n p k : ℕ} (hn : n ≠ 0)
   (h : n.factorization = finsupp.single p k) : n = p ^ k :=
 by { rw [←nat.factorization_prod_pow_eq_self hn, h], simp }
 
-
+/-- The only prime factor of prime `p` is `p` itself. -/
+lemma prime.eq_of_factorization_pos {p q : ℕ} (hp : prime p) (h : p.factorization q ≠ 0) :
+  p = q :=
+by simpa [hp.factorization, single_apply] using h
 
 /-! ### Equivalence between `ℕ+` and `ℕ →₀ ℕ` with support in the primes. -/
 

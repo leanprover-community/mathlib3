@@ -500,7 +500,7 @@ begin
   refine (mul_le_max_of_aleph_0_le_left h).antisymm _,
   have : b ≤ a, from hb.le.trans h,
   rw [max_eq_left this],
-  convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
+  convert _root_.mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
 lemma mul_eq_max_of_aleph_0_le_right {a b : cardinal} (h' : a ≠ 0) (h : ℵ₀ ≤ b) : a * b = max a b :=
@@ -536,7 +536,7 @@ lemma mul_eq_right {a b : cardinal} (hb : ℵ₀ ≤ b) (ha : a ≤ b) (ha' : a 
 by { rw [mul_comm, mul_eq_left hb ha ha'] }
 
 lemma le_mul_left {a b : cardinal} (h : b ≠ 0) : a ≤ b * a :=
-by { convert mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
+by { convert _root_.mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
   rw [one_mul] }
 
 lemma le_mul_right {a b : cardinal} (h : b ≠ 0) : a ≤ a * b :=
@@ -686,7 +686,7 @@ let ⟨n, H3⟩ := lt_aleph_0.1 H2 in
 H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
   (lt_of_lt_of_le (by { rw [nat.cast_zero, power_zero], exact one_lt_aleph_0 }) H1).le
   (λ n ih, trans_rel_left _
-    (by { rw [nat.cast_succ, power_add, power_one], exact mul_le_mul_right' ih _ })
+    (by { rw [nat.cast_succ, power_add, power_one], exact _root_.mul_le_mul_right' ih _ })
     (mul_eq_self H1))) H1)
 
 theorem pow_eq {κ μ : cardinal.{u}} (H1 : ℵ₀ ≤ κ) (H2 : 1 ≤ μ) (H3 : μ < ℵ₀) : κ ^ μ = κ :=

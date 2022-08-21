@@ -686,7 +686,7 @@ let ⟨n, H3⟩ := lt_aleph_0.1 H2 in
 H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
   (lt_of_lt_of_le (by { rw [nat.cast_zero, power_zero], exact one_lt_aleph_0 }) H1).le
   (λ n ih, trans_rel_left _
-    (by { rw [nat.cast_succ, power_add, power_one], exact _root_.mul_le_mul_right' ih _ })
+    (by { rw [nat.cast_succ, power_add, power_one], exact mul_le_mul_right' ih _ })
     (mul_eq_self H1))) H1)
 
 theorem pow_eq {κ μ : cardinal.{u}} (H1 : ℵ₀ ≤ κ) (H2 : 1 ≤ μ) (H3 : μ < ℵ₀) : κ ^ μ = κ :=

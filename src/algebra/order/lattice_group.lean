@@ -445,7 +445,7 @@ mabs_of_one_le _ (one_le_abs _)
 lemma mabs_sup_div_sup_le_mabs [covariant_class α α (*) (≤)] (a b c : α) :
   |(a ⊔ c) / (b ⊔ c)| ≤ |a / b| :=
 begin
-  apply _root_.le_of_mul_le_of_one_le_left,
+  apply le_of_mul_le_of_one_le_left,
   { rw abs_div_sup_mul_abs_div_inf, },
   { exact one_le_abs _, },
 end
@@ -454,7 +454,7 @@ end
 lemma mabs_inf_div_inf_le_mabs [covariant_class α α (*) (≤)] (a b c : α) :
   |(a ⊓ c) / (b ⊓ c)| ≤ |a / b| :=
 begin
-  apply _root_.le_of_mul_le_of_one_le_right,
+  apply le_of_mul_le_of_one_le_right,
   { rw abs_div_sup_mul_abs_div_inf, },
   { exact one_le_abs _, },
 end

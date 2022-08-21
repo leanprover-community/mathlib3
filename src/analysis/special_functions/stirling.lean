@@ -91,7 +91,7 @@ end
 /-- The sequence `log ∘ stirling_seq ∘ succ` is monotone decreasing -/
 lemma log_stirling_seq'_antitone : antitone (log ∘ stirling_seq ∘ succ) :=
 begin
-    have : ∀ {k : ℕ}, 0 < (1 : ℝ) / (2 * k.succ + 1) :=
+  have : ∀ {k : ℕ}, 0 < (1 : ℝ) / (2 * k.succ + 1) :=
   λ k, one_div_pos.mpr (add_pos (mul_pos two_pos (cast_pos.mpr k.succ_pos)) one_pos),
   exact antitone_nat_of_succ_le (λ n, sub_nonneg.mp ((log_stirling_seq_diff_has_sum n).nonneg
     (λ m, (mul_pos this (pow_pos (pow_pos this 2) m.succ)).le))),

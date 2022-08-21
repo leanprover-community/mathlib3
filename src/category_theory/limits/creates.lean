@@ -245,7 +245,7 @@ def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorph
     end } }
 
 /--
-When `F` is fully faithful, to show that `F` creates the limit for `K` it suffices to exhibit a lift\
+When `F` is fully faithful, to show that `F` creates the limit for `K` it suffices to exhibit a lift
 of a limit cone for `K ⋙ F`.
 -/
 -- Notice however that even if the isomorphism is `iso.refl _`,

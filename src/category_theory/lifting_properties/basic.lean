@@ -107,30 +107,12 @@ end⟩
 lemma of_arrow_iso_left {A B A' B' X Y : C} {i : A ⟶ B} {i' : A' ⟶ B'}
   (e : arrow.mk i ≅ arrow.mk i') (p : X ⟶ Y)
   [hip : has_lifting_property i p] : has_lifting_property i' p :=
-begin
-  have eq : i' = (arrow.left_func.map_iso e).inv ≫ i ≫ (arrow.right_func.map_iso e).hom,
-  { simp only [functor.map_iso_inv, arrow.left_func_map, functor.map_iso_hom,
-      arrow.right_func_map, arrow.w_mk_right_assoc, arrow.mk_hom],
-    have eq' := arrow.hom.congr_right e.inv_hom_id,
-    dsimp at eq' ⊢,
-    rw [eq', category.comp_id], },
-  rw eq,
-  apply_instance,
-end
+by { rw arrow.iso_w' e, apply_instance, }
 
 lemma of_arrow_iso_right {A B X Y X' Y' : C} (i : A ⟶ B) {p : X ⟶ Y} {p' : X' ⟶ Y'}
   (e : arrow.mk p ≅ arrow.mk p')
   [hip : has_lifting_property i p] : has_lifting_property i p' :=
-begin
-  have eq : p' = (arrow.left_func.map_iso e).inv ≫ p ≫ (arrow.right_func.map_iso e).hom,
-  { simp only [functor.map_iso_inv, arrow.left_func_map, functor.map_iso_hom,
-      arrow.right_func_map, arrow.w_mk_right_assoc, arrow.mk_hom],
-    have eq' := arrow.hom.congr_right e.inv_hom_id,
-    dsimp at eq' ⊢,
-    rw [eq', category.comp_id], },
-  rw eq,
-  apply_instance,
-end
+by { rw arrow.iso_w' e, apply_instance, }
 
 lemma iff_of_arrow_iso_left {A B A' B' X Y : C} {i : A ⟶ B} {i' : A' ⟶ B'}
   (e : arrow.mk i ≅ arrow.mk i') (p : X ⟶ Y) :

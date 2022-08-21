@@ -34,10 +34,14 @@ example : succ_order ℤ := by apply_instance
 -- predecessor function
 example : pred_order ℤ := by apply_instance
 
+-- needed for some inductive proofs, asummed by paper
+example : is_succ_archimedean ℤ := by apply_instance
+
 variables (Z : Type*) [nonempty Z]
   [conditionally_complete_linear_order Z]
   [no_max_order Z] [no_min_order Z]
   [succ_order Z] [pred_order Z]
+  [is_succ_archimedean Z]
 
 open order
 
@@ -79,6 +83,7 @@ variables {Z : Type*} [nonempty Z]
   [conditionally_complete_linear_order Z]
   [no_max_order Z] [no_min_order Z]
   [succ_order Z] [pred_order Z]
+  [is_succ_archimedean Z]
   -- b is a fixed integer > 1
   {b : ℕ} [hb : fact (b > 0)] -- because we use the base - 1
 
@@ -222,6 +227,39 @@ def sub_aux (x : Z) : fin (b + 1) := f x - g x - difcar f g x
 
 omit hb
 
+lemma pred_min {Z : Type*} [linear_order Z] [pred_order Z] (x y : Z) : pred (min x y) = min (pred x) (pred y) :=
+begin
+  cases le_total x y,
+  { rw [min_eq_left h, min_eq_left],
+    simp [h] },
+  { rw [min_eq_right h, min_eq_right],
+    simp [h] }
+end
+lemma pred_max {Z : Type*} [linear_order Z] [pred_order Z] (x y : Z) : pred (max x y) = max (pred x) (pred y) :=
+begin
+  cases le_total x y,
+  { rw [max_eq_right h, max_eq_right],
+    simp [h] },
+  { rw [max_eq_left h, max_eq_left],
+    simp [h] }
+end
+lemma succ_min {Z : Type*} [linear_order Z] [succ_order Z] (x y : Z) : succ (min x y) = min (succ x) (succ y) :=
+begin
+  cases le_total x y,
+  { rw [min_eq_left h, min_eq_left],
+    simp [h] },
+  { rw [min_eq_right h, min_eq_right],
+    simp [h] }
+end
+lemma succ_max {Z : Type*} [linear_order Z] [succ_order Z] (x y : Z) : succ (max x y) = max (succ x) (succ y) :=
+begin
+  cases le_total x y,
+  { rw [max_eq_right h, max_eq_right],
+    simp [h] },
+  { rw [max_eq_left h, max_eq_left],
+    simp [h] }
+end
+
 @[simp] lemma fin.add_one_lt_iff {n : ℕ} {k : fin (n + 2)} :
   k + 1 < k ↔ k = fin.last _ :=
 begin
@@ -361,11 +399,15 @@ begin
           nat.mod_eq_of_lt (tsub_lt_self (nat.succ_pos _) (tsub_pos_of_lt h)), h] }
 end
 
+@[simp] lemma neg_last (n : ℕ) : - (fin.last n) = 1 :=
+by simp [neg_eq_iff_add_eq_zero]
+
+@[simp] lemma neg_coe_eq_one (n : ℕ) : - (n : fin (n + 1)) = 1 :=
+by simp [neg_eq_iff_add_eq_zero]
+
 end fin
 
 include hb
-
-variables [is_succ_archimedean Z]
 
 instance : has_sub Σ :=
 ⟨λ f g,
@@ -489,8 +531,6 @@ by { ext, simp [formal_series.sub_def] }
 end s03
 
 section s04
-
-variables [is_succ_archimedean Z]
 
 -- set_option pp.coercions false
 
@@ -679,8 +719,6 @@ end s04
 
 section s05
 
-variables [is_succ_archimedean Z]
-
 instance : has_add Σ := ⟨λ f g, f - (0 - g)⟩
 
 -- 5.1
@@ -735,3 +773,383 @@ instance : add_comm_group Σ :=
   add_comm := λ _ _, formal_series.add_comm _ _ }
 
 end s05
+
+section s06
+
+namespace formal_series
+
+protected def positive (f : Σ) : Prop := f ≠ 0 ∧ ∃ x, ∀ y < x, f y = 0
+
+protected def negative (f : Σ) : Prop := f ≠ 0 ∧ ∃ x, ∀ y < x, f y = b
+
+lemma not_positive_zero : ¬ formal_series.positive (0 : Σ) := λ H, H.left rfl
+lemma not_negative_zero : ¬ formal_series.negative (0 : Σ) := λ H, H.left rfl
+
+lemma positive.not_negative {f : Σ} (h : f.positive) : ¬ f.negative :=
+λ H, begin
+  suffices : (b : fin (b + 1)) = 0,
+  { simpa [fin.ext_iff, (ne_of_gt hb.out)] using this },
+  obtain ⟨x, hx⟩ := h.right,
+  obtain ⟨z, hz⟩ := H.right,
+  cases le_or_lt x z with hxz hxz,
+  { rw [←hx (pred x) (pred_lt _), hz (pred x)],
+    exact (pred_lt _).trans_le hxz },
+  { rw [←hx (pred z), hz (pred z) (pred_lt _)],
+    exact (pred_lt _).trans hxz }
+end
+
+lemma negative.not_positive {f : Σ} (h : f.negative) : ¬ f.positive :=
+λ H, begin
+  suffices : (b : fin (b + 1)) = 0,
+  { simpa [fin.ext_iff, (ne_of_gt hb.out)] using this },
+  obtain ⟨x, hx⟩ := h.right,
+  obtain ⟨z, hz⟩ := H.right,
+  cases le_or_lt x z with hxz hxz,
+  { rw [←hx (pred x) (pred_lt _), hz (pred x)],
+    exact (pred_lt _).trans_le hxz },
+  { rw [←hx (pred z), hz (pred z) (pred_lt _)],
+    exact (pred_lt _).trans hxz }
+end
+
+-- 6.1 defined by separate cases to provide for separate lemmas
+-- (i)
+lemma negative.neg_positive {f : Σ} (hf : f.negative) : (-f).positive :=
+begin
+  refine ⟨_, _⟩,
+  { rw [ne.def, neg_eq_iff_neg_eq, neg_zero],
+    exact hf.left.symm },
+  { simp_rw [f.neg_def, formal_series.sub_def],
+    obtain ⟨x, hx⟩ := hf.right,
+    refine ⟨pred x, λ y hy, _⟩,
+    simp_rw [hx y (hy.trans (pred_lt _)), zero_apply, zero_sub, sub_eq_zero],
+    rw [fin.neg_coe_eq_one b, eq_comm, difcar_eq_one_iff],
+    refine ⟨pred x, hy, _⟩,
+    simpa [hx (pred x) (pred_lt _), fin.lt_iff_coe_lt_coe] using hb.out }
+end
+
+lemma positive.sub_negative {f g : Σ} (hf : f.positive) (hg : g.negative): (f - g).positive :=
+begin
+  refine ⟨_, _⟩,
+  { rw [ne.def, sub_eq_zero],
+    rintro rfl,
+    exact hf.not_negative hg },
+  { obtain ⟨x, hx⟩ := hf.right,
+    obtain ⟨z, hz⟩ := hg.right,
+    refine ⟨min (pred x) (pred z), λ y hy, _⟩,
+    rw [formal_series.sub_def, sub_eq_zero, hx y (hy.trans _), hz y (hy.trans _), zero_sub,
+        fin.neg_coe_eq_one, eq_comm, difcar_eq_one_iff],
+    { refine ⟨min (pred x) (pred z), hy, _, λ w hw hyw, _⟩,
+      { rw [hx, hz, fin.lt_iff_coe_lt_coe],
+        { simpa using hb.out },
+        { simp },
+        { simp } },
+      { rw [hx _ (hw.trans _), hz _ (hw.trans _)],
+        { simp },
+        { simp },
+        { simp } } },
+      { simp },
+      { simp } }
+end
+
+-- (ii)
+lemma positive.neg_negative {f : Σ} (hf : f.positive) : (-f).negative :=
+begin
+  refine ⟨_, _⟩,
+  { rw [ne.def, neg_eq_iff_neg_eq, neg_zero],
+    exact hf.left.symm },
+  { simp_rw [f.neg_def, formal_series.sub_def],
+    obtain ⟨x, hx⟩ := hf.right,
+    obtain ⟨z, hz⟩ : ∃ z, 0 < f z,
+    { by_contra',
+      refine hf.left (formal_series.ext _ _ _),
+      simpa },
+    refine ⟨pred x, λ y hy, _⟩,
+    simp_rw [hx y (hy.trans (pred_lt _)), zero_apply, sub_self, zero_sub],
+    rw [neg_eq_iff_neg_eq, fin.neg_coe_eq_one b, eq_comm, difcar_eq_one_iff],
+    refine ⟨z, _, hz, _⟩,
+    { contrapose! hz,
+      rw hx _ (hz.trans_lt (hy.trans (pred_lt _))) },
+    { simp } }
+end
+
+lemma negative.sub_positive {f g : Σ} (hf : f.negative) (hg : g.positive): (f - g).negative :=
+begin
+  refine ⟨_, _⟩,
+  { rw [ne.def, sub_eq_zero],
+    rintro rfl,
+    exact hf.not_positive hg },
+  { obtain ⟨x, hx⟩ := hf.right,
+    obtain ⟨z, hz⟩ := hg.right,
+    refine ⟨pred (min (pred x) (pred z)), λ y hy, _⟩,
+    rw [formal_series.sub_def, hx y (hy.trans ((pred_lt _).trans _)),
+        hz y (hy.trans ((pred_lt _).trans _)), sub_zero, sub_eq_self, difcar_eq_zero_iff],
+    { intros w hw hfg,
+      rw [gt_iff_lt, ←succ_le_iff] at hw,
+      rw [←succ_lt_succ_iff, succ_pred] at hy,
+      rcases hw.eq_or_lt with rfl|hw',
+      { rw [hx _ (hy.trans _), hz _ (hy.trans _)] at hfg,
+        { simpa using hfg },
+        { simp },
+        { simp } },
+      { refine ⟨succ y, hw', lt_succ _, _⟩,
+        rw [hx _ (hy.trans _), hz _ (hy.trans _), fin.lt_iff_coe_lt_coe],
+        { simpa using hb.out },
+        { simp },
+        { simp } } },
+    { simp },
+    { simp } }
+end
+
+omit hb
+
+@[elab_as_eliminator] lemma succ.rec' {Z : Type*} [linear_order Z] [succ_order Z]
+  [is_succ_archimedean Z] {P : Z → Prop} {m : Z} (h0 : P m)
+  (h1 : ∀ n, m ≤ n → (∀ k, m ≤ k → k ≤ n → P k) → P (succ n)) ⦃n : Z⦄ (hmn : m ≤ n) : P n :=
+begin
+  refine succ.rec h0 _ hmn,
+  intros n hn hnp,
+  refine h1 n hn _,
+  intros k hk,
+  refine succ.rec (λ _, h0) _ hk,
+  intros w hw IH hsw,
+  sorry
+end
+
+include hb
+
+-- (iii)
+lemma positive.sub_positive {f g : Σ} (hf : f.positive) (hg : g.positive) (hne : f ≠ g) :
+  ((f - g).positive ∧ ∃ x₀, f x₀ > g x₀ ∧ ∀ y < x₀, f y = g y) ∨
+  ((f - g).negative ∧ ¬ ∃ x₀, f x₀ > g x₀ ∧ ∀ y < x₀, f y = g y) :=
+begin
+  obtain ⟨x, hx⟩ : ∃ x, ∀ y ≤ x, f y = 0 ∧ g y = 0,
+  { obtain ⟨x, hx⟩ := hf.right,
+    obtain ⟨z, hz⟩ := hg.right,
+    refine ⟨min (pred x) (pred z), λ y hy, ⟨hx _ (hy.trans_lt _), hz _ (hy.trans_lt _)⟩⟩;
+    simp },
+  obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ ≠ g x₀ ∧ ∀ y < x₀, f y = g y,
+  { contrapose! hne,
+    ext z : 1,
+    cases le_total z x,
+    { rw [(hx _ h).left, (hx _ h).right] },
+      refine succ.rec' _ _ h,
+      { rw [(hx _ le_rfl).left, (hx _ le_rfl).right] },
+      intros w hw IH,
+      by_cases H : f (succ w) = g (succ w),
+      { exact H },
+      { obtain ⟨y, hy, hne⟩ := hne _ H,
+        refine absurd (IH _ _ (le_of_lt_succ hy)) hne,
+        refine or.resolve_right (le_total _ _) (λ H, hne _),
+        rw [(hx _ H).left, (hx _ H).right] } },
+  have hd : (∀ z < x₀, difcar f g z = 1) ↔ f x₀ < g x₀,
+  { simp_rw difcar_eq_one_iff,
+    split,
+    { intro IH,
+      refine hx₀.left.lt_or_lt.resolve_right (not_lt_of_le _),
+      obtain ⟨w, hw, hfgw, IH'⟩ := IH (pred x₀) (pred_lt _),
+      cases (le_of_pred_lt hw).eq_or_lt with hw' hw',
+      { subst hw',
+        exact hfgw.le },
+      { exact IH' _ hw' (pred_lt _) } },
+    { intros hfgx z hz,
+      exact ⟨x₀, hz, hfgx, λ y hy _, (hx₀.right y hy).le⟩ } },
+  have hd' : (∀ z < x₀, difcar f g z = 0) ↔ g x₀ < f x₀,
+  { rw [←not_iff_not],
+    push_neg,
+    simp only [le_iff_lt_or_eq, hx₀.left, ←hd, ne.def, or_false],
+    split,
+    { rintro ⟨z, hz, H⟩,
+      rw difcar_eq_zero_iff at H,
+      push_neg at H,
+      obtain ⟨w, hw, hfgw, H⟩ := H,
+      intros k hk,
+      cases lt_or_le k w with hwk hwk,
+      { rw difcar_eq_one_iff,
+        refine ⟨w, hwk, hfgw, λ y hy hky, _⟩,
+        cases lt_or_le z y with hzy hzy,
+        { exact H _ hy hzy },
+        { exact (hx₀.right _ (hzy.trans_lt hz)).le } },
+      { exact absurd (hx₀.right _ (hwk.trans_lt hk)) hfgw.ne } },
+    { intro H,
+      refine ⟨pred x₀, pred_lt _, _⟩,
+      rw H _ (pred_lt _),
+      exact one_ne_zero } },
+  refine hx₀.left.lt_or_lt.symm.imp _ _; intro H,
+  { refine ⟨⟨_, x₀, λ y hy, _⟩, ⟨_, H, hx₀.right⟩⟩,
+    { rwa [ne.def, sub_eq_zero] },
+    { rw ←hd' at H,
+      simp [formal_series.sub_def, hx₀.right _ hy, H _ hy] } },
+  { refine ⟨⟨_, x₀, λ y hy, _⟩, _⟩,
+    { rwa [ne.def, sub_eq_zero] },
+    { rw ←hd at H,
+      simp only [formal_series.sub_def, hx₀.right _ hy, H _ hy, sub_self, zero_sub],
+      rw [neg_eq_iff_neg_eq, fin.neg_coe_eq_one] },
+    { push_neg,
+      intros z hz,
+      refine ⟨x₀, _, H.ne⟩,
+      contrapose! hz,
+      rcases hz.eq_or_lt with rfl|hz',
+      { exact H.le },
+      { exact (hx₀.right _ hz').le } } }
+end
+
+lemma negative.sub_negative {f g : Σ} (hf : f.negative) (hg : g.negative) (hne : f ≠ g) :
+  ((f - g).positive ∧ ∃ x₀, f x₀ > g x₀ ∧ ∀ y < x₀, f y = g y) ∨
+  ((f - g).negative ∧ ¬ ∃ x₀, f x₀ > g x₀ ∧ ∀ y < x₀, f y = g y) :=
+begin
+  -- ideally, use (hf.neg_positive).sub_positive (hg.neg_positive)
+  -- because the tactic proof is identical expect for this obtain
+  obtain ⟨x, hx⟩ : ∃ x, ∀ y ≤ x, f y = b ∧ g y = b,
+  { obtain ⟨x, hx⟩ := hf.right,
+    obtain ⟨z, hz⟩ := hg.right,
+    refine ⟨min (pred x) (pred z), λ y hy, ⟨hx _ (hy.trans_lt _), hz _ (hy.trans_lt _)⟩⟩;
+    simp },
+  obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ ≠ g x₀ ∧ ∀ y < x₀, f y = g y,
+  { contrapose! hne,
+    ext z : 1,
+    cases le_total z x,
+    { rw [(hx _ h).left, (hx _ h).right] },
+      refine succ.rec' _ _ h,
+      { rw [(hx _ le_rfl).left, (hx _ le_rfl).right] },
+      intros w hw IH,
+      by_cases H : f (succ w) = g (succ w),
+      { exact H },
+      { obtain ⟨y, hy, hne⟩ := hne _ H,
+        refine absurd (IH _ _ (le_of_lt_succ hy)) hne,
+        refine or.resolve_right (le_total _ _) (λ H, hne _),
+        rw [(hx _ H).left, (hx _ H).right] } },
+  have hd : (∀ z < x₀, difcar f g z = 1) ↔ f x₀ < g x₀,
+  { simp_rw difcar_eq_one_iff,
+    split,
+    { intro IH,
+      refine hx₀.left.lt_or_lt.resolve_right (not_lt_of_le _),
+      obtain ⟨w, hw, hfgw, IH'⟩ := IH (pred x₀) (pred_lt _),
+      cases (le_of_pred_lt hw).eq_or_lt with hw' hw',
+      { subst hw',
+        exact hfgw.le },
+      { exact IH' _ hw' (pred_lt _) } },
+    { intros hfgx z hz,
+      exact ⟨x₀, hz, hfgx, λ y hy _, (hx₀.right y hy).le⟩ } },
+  have hd' : (∀ z < x₀, difcar f g z = 0) ↔ g x₀ < f x₀,
+  { rw [←not_iff_not],
+    push_neg,
+    simp only [le_iff_lt_or_eq, hx₀.left, ←hd, ne.def, or_false],
+    split,
+    { rintro ⟨z, hz, H⟩,
+      rw difcar_eq_zero_iff at H,
+      push_neg at H,
+      obtain ⟨w, hw, hfgw, H⟩ := H,
+      intros k hk,
+      cases lt_or_le k w with hwk hwk,
+      { rw difcar_eq_one_iff,
+        refine ⟨w, hwk, hfgw, λ y hy hky, _⟩,
+        cases lt_or_le z y with hzy hzy,
+        { exact H _ hy hzy },
+        { exact (hx₀.right _ (hzy.trans_lt hz)).le } },
+      { exact absurd (hx₀.right _ (hwk.trans_lt hk)) hfgw.ne } },
+    { intro H,
+      refine ⟨pred x₀, pred_lt _, _⟩,
+      rw H _ (pred_lt _),
+      exact one_ne_zero } },
+  refine hx₀.left.lt_or_lt.symm.imp _ _; intro H,
+  { refine ⟨⟨_, x₀, λ y hy, _⟩, ⟨_, H, hx₀.right⟩⟩,
+    { rwa [ne.def, sub_eq_zero] },
+    { rw ←hd' at H,
+      simp [formal_series.sub_def, hx₀.right _ hy, H _ hy] } },
+  { refine ⟨⟨_, x₀, λ y hy, _⟩, _⟩,
+    { rwa [ne.def, sub_eq_zero] },
+    { rw ←hd at H,
+      simp only [formal_series.sub_def, hx₀.right _ hy, H _ hy, sub_self, zero_sub],
+      rw [neg_eq_iff_neg_eq, fin.neg_coe_eq_one] },
+    { push_neg,
+      intros z hz,
+      refine ⟨x₀, _, H.ne⟩,
+      contrapose! hz,
+      rcases hz.eq_or_lt with rfl|hz',
+      { exact H.le },
+      { exact (hx₀.right _ hz').le } } }
+end
+
+end formal_series
+
+end s06
+
+section s07
+
+variables (b) (Z)
+
+-- 7.1
+def formal_series.real : add_subgroup (formal_series Z b) :=
+{ carrier := {f | f.positive ∨ f.negative ∨ f = 0},
+  add_mem' := λ f g, begin
+    rw ←sub_neg_eq_add,
+    simp only [set.mem_set_of_eq],
+    rintro (hf|hf|rfl) (hg|hg|rfl),
+    { exact or.inl (hf.sub_negative (hg.neg_negative)) },
+    { rcases eq_or_ne f (-g) with rfl|hne,
+      { simp },
+      rw ←or.assoc,
+      exact or.inl ((hf.sub_positive (hg.neg_positive) hne).imp and.elim_left (λ H, H.left)) },
+    { simp [hf] },
+    { rcases eq_or_ne f (-g) with rfl|hne,
+      { simp },
+      rw ←or.assoc,
+      exact or.inl ((hf.sub_negative (hg.neg_negative) hne).imp and.elim_left (λ H, H.left)) },
+    { exact or.inr (or.inl (hf.sub_positive (hg.neg_positive))) },
+    { simp [hf] },
+    { simp [hg] },
+    { simp [hg] },
+    { simp }
+  end,
+  zero_mem' := by simp,
+  neg_mem' := λ f, begin
+    simp only [set.mem_set_of_eq],
+    rintro (hf|hf|rfl),
+    { exact or.inr (or.inl hf.neg_negative) },
+    { exact or.inl (hf.neg_positive) },
+    { simp }
+  end }
+
+instance : has_lt (formal_series.real Z b) :=
+⟨λ f g, ((g - f : Σ)).positive⟩
+
+variables {Z} {b}
+
+protected lemma formal_series.real.lt_def {f g : formal_series.real Z b} :
+  f < g ↔ (g - f : Σ).positive := iff.rfl
+
+variables (b) (Z)
+
+-- 7.2(ii)
+instance : preorder (formal_series.real Z b) :=
+{ le := λ f g, f = g ∨ f < g,
+  lt := (<),
+  le_refl := λ _, or.inl rfl,
+  le_trans := λ f g h, begin
+    rintro (rfl|hfg) (rfl|hgh),
+    { exact or.inl rfl },
+    { exact or.inr hgh },
+    { exact or.inr hfg },
+    { refine or.inr _,
+      rw formal_series.real.lt_def at hfg hgh ⊢,
+      rw [←sub_sub_sub_cancel_right _ _ (g : Σ), ←neg_sub (g : Σ) f],
+      exact hgh.sub_negative (hfg.neg_negative) },
+  end,
+  lt_iff_le_not_le := λ f g, begin
+    split,
+    { intro h,
+      refine ⟨or.inr h, _⟩,
+      rintro (rfl|H);
+      rw formal_series.real.lt_def at *,
+      { refine (_ : (g : Σ) ≠ g) rfl,
+        rw [ne.def, ←sub_eq_zero],
+        exact h.left },
+      { rw ←neg_sub at H,
+        exact h.neg_negative.not_positive H } },
+    { rintro ⟨(rfl|h), H⟩,
+      { contrapose! H,
+        exact or.inl rfl },
+      { exact h } }
+  end }
+
+end s07

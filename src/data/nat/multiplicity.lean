@@ -55,7 +55,8 @@ namespace nat
 --------------------------------------------------------------------------------------------------
 
 -- Temp: Yaël is going to PR some lemmas about intervals
-lemma Icc_insert_succ (n : ℕ): Icc 1 n.succ = insert n.succ (Icc 1 n) :=
+@[simp]
+lemma Icc_insert_succ (n : ℕ): insert n.succ (Icc 1 n) = Icc 1 n.succ :=
  by { rw [←insert_erase (mem_Icc.2 ⟨succ_le_succ (zero_le n), rfl.le⟩),
       Icc_erase_right, Ico_succ_right] }
 
@@ -164,7 +165,7 @@ lemma factorization_factorial {p : ℕ} (pp : p.prime) {n : ℕ} :
   n!.factorization p = (∑ i in Icc 1 n, n / p ^ i : ℕ) :=
 begin
   induction n with n IHn, { simp },
-  simp_rw [Icc_insert_succ, sum_insert (λ H, not_succ_le_self n (mem_Icc.1 H).2),
+  simp_rw [←Icc_insert_succ, sum_insert (λ H, not_succ_le_self n (mem_Icc.1 H).2),
     nat.div_eq_zero (lt_pow_self pp.one_lt n.succ), zero_add, succ_div, sum_add_distrib, ←IHn,
     factorial_succ, factorization_mul (succ_ne_zero n) (factorial_ne_zero n), add_comm],
   simp [factorization_eq_card_pow_dvd n.succ pp, ←Ico_succ_right],

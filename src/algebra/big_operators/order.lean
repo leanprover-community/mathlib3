@@ -545,9 +545,9 @@ lemma prod_add_prod_le' (hi : i ∈ s) (h2i : g i + h i ≤ f i)
   ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
 begin
   classical, simp_rw [prod_eq_mul_prod_diff_singleton hi],
-  refine le_trans _ (mul_le_mul_right' h2i _),
+  refine le_trans _ (_root_.mul_le_mul_right' h2i _),
   rw [right_distrib],
-  apply add_le_add; apply mul_le_mul_left'; apply prod_le_prod';
+  apply add_le_add; apply _root_.mul_le_mul_left'; apply prod_le_prod';
   simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
 end
 

@@ -130,7 +130,6 @@ begin
 end
 
 local attribute [-instance] cyclotomic_field.algebra
-local attribute [instance] algebra_rat_subsingleton
 
 /-- The integral closure of `ℤ` inside `cyclotomic_field (p ^ k) ℚ` is
 `cyclotomic_ring (p ^ k) ℤ ℚ`. -/

@@ -416,10 +416,8 @@ lemma map_rat_smul [add_comm_group M] [add_comm_group M₂] [module ℚ M] [modu
   f (c • x) = c • f x :=
 rat.cast_id c ▸ map_rat_cast_smul f ℚ ℚ c x
 
-/-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
-an instance because `simp` becomes very slow if we have many `subsingleton` instances,
-see [gh-6025]. -/
-lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
+/-- There can be at most one `module ℚ E` structure on an additive commutative group. -/
+instance subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
 ⟨λ P Q, module.ext' P Q $ λ r x,
   @map_rat_smul _ _ _ _ P Q _ _ (add_monoid_hom.id E) r x⟩
 

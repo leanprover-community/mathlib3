@@ -5,13 +5,14 @@ Authors: Adam Topaz, Junyan Xu, Jack McKoen
 -/
 import ring_theory.valuation.valuation_ring
 import ring_theory.localization.as_subring
+import ring_theory.subring.pointwise
 import algebraic_geometry.prime_spectrum.basic
 
 /-!
 
 # Valuation subrings of a field
 
-# Projects
+## Projects
 
 The order structure on `valuation_subring K`.
 
@@ -23,7 +24,7 @@ noncomputable theory
 variables (K : Type*) [field K]
 
 /-- A valuation subring of a field `K` is a subring `A` such that for every `x : K`,
-either `x ∈ A` or `x⁻¹ ∈ K`. -/
+either `x ∈ A` or `x⁻¹ ∈ A`. -/
 structure valuation_subring extends subring K :=
 (mem_or_inv_mem' : ∀ x : K, x ∈ carrier ∨ x⁻¹ ∈ carrier)
 
@@ -48,6 +49,9 @@ lemma mul_mem (x y : K) : x ∈ A → y ∈ A → x * y ∈ A := A.to_subring.mu
 lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
+
+lemma to_subring_injective : function.injective (to_subring : valuation_subring K → subring K) :=
+λ x y h, by { cases x, cases y, congr' }
 
 instance : comm_ring A := show comm_ring A.to_subring, by apply_instance
 instance : is_domain A := show is_domain A.to_subring, by apply_instance
@@ -131,7 +135,7 @@ lemma valuation_eq_one_iff (a : A) : is_unit a ↔ A.valuation a = 1 :=
     have ha : (a : K) ≠ 0,
     { intro c, rw [c, A.valuation.map_zero] at h, exact zero_ne_one h },
     have ha' : (a : K)⁻¹ ∈ A,
-    { rw [← valuation_le_one_iff, A.valuation.map_inv, h, inv_one] },
+    { rw [← valuation_le_one_iff, map_inv₀, h, inv_one] },
     apply is_unit_of_mul_eq_one a ⟨a⁻¹, ha'⟩, ext, field_simp,
   end ⟩
 
@@ -244,7 +248,7 @@ lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 begin
   ext x, split,
   { rintro ⟨a, r, hr, rfl⟩, apply mul_mem, { exact h a.2 },
-    { rw [← valuation_le_one_iff, valuation.map_inv, ← inv_one, inv_le_inv₀],
+    { rw [← valuation_le_one_iff, map_inv₀, ← inv_one, inv_le_inv₀],
       { exact not_lt.1 ((not_iff_not.2 $ valuation_lt_one_iff S _).1 hr) },
       { intro hh, erw [valuation.zero_iff, subring.coe_eq_zero_iff] at hh,
         apply hr, rw hh, apply ideal.zero_mem (R.ideal_of_le S h) },
@@ -321,7 +325,7 @@ def valuation_subring : valuation_subring K :=
     cases le_or_lt (v x) 1,
     { left, exact h },
     { right, change v x⁻¹ ≤ 1,
-      rw [v.map_inv, ← inv_one, inv_le_inv₀],
+      rw [map_inv₀ v, ← inv_one, inv_le_inv₀],
       { exact le_of_lt h },
       { intro c, simpa [c] using h },
       { exact one_ne_zero } }
@@ -631,5 +635,86 @@ lemma units_mod_principal_units_equiv_residue_field_units_comp_quotient_group_mk
   (quotient_group.mk x) = A.unit_group_to_residue_field_units x := rfl
 
 end principal_unit_group
+
+/-! ### Pointwise actions
+
+This transfers the action from `subring.pointwise_mul_action`, noting that it only applies when
+the action is by a group. Notably this provides an instances when `G` is `K ≃+* K`.
+
+These instances are in the `pointwise` locale.
+
+The lemmas in this section are copied from `ring_theory/subring/pointwise.lean`; try to keep these
+in sync.
+-/
+section pointwise_actions
+open_locale pointwise
+
+variables {G : Type*} [group G] [mul_semiring_action G K]
+
+/-- The action on a valuation subring corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+def pointwise_has_smul : has_smul G (valuation_subring K) :=
+{ smul := λ g S,
+  -- TODO: if we add `valuation_subring.map` at a later date, we should use it here
+  { mem_or_inv_mem' := λ x, (mem_or_inv_mem S (g⁻¹ • x)).imp
+      (subring.mem_pointwise_smul_iff_inv_smul_mem.mpr)
+      (λ h, subring.mem_pointwise_smul_iff_inv_smul_mem.mpr $ by rwa smul_inv''),
+    .. g • S.to_subring } }
+
+localized "attribute [instance] valuation_subring.pointwise_has_smul" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (g : G) (S : valuation_subring K) : ↑(g • S) = g • (S : set K) :=
+rfl
+
+@[simp] lemma pointwise_smul_to_subring (g : G) (S : valuation_subring K) :
+  (g • S).to_subring = g • S.to_subring := rfl
+
+/-- The action on a valuation subring corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale.
+
+This is a stronger version of `valuation_subring.pointwise_has_smul`. -/
+def pointwise_mul_action : mul_action G (valuation_subring K) :=
+to_subring_injective.mul_action to_subring pointwise_smul_to_subring
+
+localized "attribute [instance] valuation_subring.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+lemma smul_mem_pointwise_smul (g : G) (x : K) (S : valuation_subring K) : x ∈ S → g • x ∈ g • S :=
+(set.smul_mem_smul_set : _ → _ ∈ g • (S : set K))
+
+lemma mem_smul_pointwise_iff_exists (g : G) (x : K) (S : valuation_subring K) :
+  x ∈ g • S ↔ ∃ (s : K), s ∈ S ∧ g • s = x :=
+(set.mem_smul_set : x ∈ g • (S : set K) ↔ _)
+
+instance pointwise_central_scalar [mul_semiring_action Gᵐᵒᵖ K] [is_central_scalar G K] :
+  is_central_scalar G (valuation_subring K) :=
+⟨λ g S, to_subring_injective $ by exact op_smul_eq_smul g S.to_subring⟩
+
+@[simp] lemma smul_mem_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} :
+  g • x ∈ g • S ↔ x ∈ S :=
+set.smul_mem_smul_set_iff
+
+lemma mem_pointwise_smul_iff_inv_smul_mem {g : G} {S : valuation_subring K} {x : K} :
+  x ∈ g • S ↔ g⁻¹ • x ∈ S :=
+set.mem_smul_set_iff_inv_smul_mem
+
+lemma mem_inv_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} :
+  x ∈ g⁻¹ • S ↔ g • x ∈ S :=
+set.mem_inv_smul_set_iff
+
+@[simp] lemma pointwise_smul_le_pointwise_smul_iff {g : G} {S T : valuation_subring K} :
+  g • S ≤ g • T ↔ S ≤ T :=
+set.set_smul_subset_set_smul_iff
+
+lemma pointwise_smul_subset_iff {g : G} {S T : valuation_subring K} : g • S ≤ T ↔ S ≤ g⁻¹ • T :=
+set.set_smul_subset_iff
+
+lemma subset_pointwise_smul_iff {g : G} {S T : valuation_subring K} : S ≤ g • T ↔ g⁻¹ • S ≤ T :=
+set.subset_set_smul_iff
+
+end pointwise_actions
 
 end valuation_subring

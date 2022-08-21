@@ -5,7 +5,7 @@ Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
 import analysis.normed.group.pointwise
-import analysis.normed_space.finite_dimension
+import topology.algebra.module.finite_dimension
 import analysis.normed_space.ray
 import topology.path_connected
 import topology.algebra.affine

@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {F M₀ G₀ M₀' G₀' : Type*}
+variables {M₀ G₀ M₀' G₀' F : Type*}
 
 section
 
@@ -102,10 +102,17 @@ protected lemma function.injective.no_zero_divisors [has_mul M₀] [has_zero M�
   have f x * f y = 0, by rw [← mul, H, zero],
   (eq_zero_or_eq_zero_of_mul_eq_zero this).imp (λ H, hf $ by rwa zero)  (λ H, hf $ by rwa zero) }
 
-lemma eq_zero_of_mul_self_eq_zero [has_mul M₀] [has_zero M₀] [no_zero_divisors M₀]
-  {a : M₀} (h : a * a = 0) :
-  a = 0 :=
+section has_mul
+
+variables [has_mul M₀] [has_zero M₀] [no_zero_divisors M₀] {a b : M₀}
+
+lemma eq_zero_of_mul_self_eq_zero (h : a * a = 0) : a = 0 :=
 (eq_zero_or_eq_zero_of_mul_eq_zero h).elim id id
+
+@[field_simps] theorem mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
+mt eq_zero_or_eq_zero_of_mul_eq_zero $ not_or_distrib.mpr ⟨ha, hb⟩
+
+end has_mul
 
 section
 
@@ -125,10 +132,7 @@ by rw [eq_comm, mul_eq_zero]
 /-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
 are nonzero. -/
 theorem mul_ne_zero_iff : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
-(not_congr mul_eq_zero).trans not_or_distrib
-
-@[field_simps] theorem mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero_iff.2 ⟨ha, hb⟩
+mul_eq_zero.not.trans not_or_distrib
 
 /-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
 `b * a`. -/
@@ -138,12 +142,12 @@ mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
 /-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` is nonzero iff so is
 `b * a`. -/
 theorem mul_ne_zero_comm : a * b ≠ 0 ↔ b * a ≠ 0 :=
-not_congr mul_eq_zero_comm
+mul_eq_zero_comm.not
 
 lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
 lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
-lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := not_congr mul_self_eq_zero
-lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := not_congr zero_eq_mul_self
+lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := mul_self_eq_zero.not
+lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := zero_eq_mul_self.not
 
 end
 
@@ -811,7 +815,7 @@ by { rw div_eq_mul_inv, exact mul_ne_zero ha (inv_ne_zero hb) }
 by simp [div_eq_mul_inv]
 
 lemma div_ne_zero_iff : a / b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
-(not_congr div_eq_zero_iff).trans not_or_distrib
+div_eq_zero_iff.not.trans not_or_distrib
 
 lemma ring.inverse_eq_inv (a : G₀) : ring.inverse a = a⁻¹ :=
 begin
@@ -978,11 +982,12 @@ include M₀
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ map_zero f, λ ha, ((is_unit.mk0 a ha).map f).ne_zero⟩
 
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 $ map_ne_zero _
+@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
 end monoid_with_zero
 
 section group_with_zero
+
 variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero_hom_class F G₀ G₀']
   (f : F) (a b : G₀)
 include G₀'
@@ -992,10 +997,10 @@ include G₀'
 begin
   by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_eq_one_left,
-  rw [←map_mul, inv_mul_cancel h, map_one],
+  rw [← map_mul, inv_mul_cancel h, map_one]
 end
 
-@[simp] lemma map_div₀ : f (a / b) = f a / f b := by simp_rw [div_eq_mul_inv, map_mul, map_inv₀]
+@[simp] lemma map_div₀ : f (a / b) = f a / f b := map_div' f (map_inv₀ f) a b
 
 end group_with_zero
 
@@ -1021,14 +1026,6 @@ lemma monoid_with_zero.inverse_apply {M : Type*} [comm_monoid_with_zero M] (a : 
 def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : G₀ →*₀ G₀ :=
 { map_zero' := inv_zero,
   ..inv_monoid_hom }
-
-@[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
-  (f : M →* G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
-by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv, monoid_hom.map_inv]
-
-@[simp] lemma monoid_with_zero_hom.map_units_inv {M G₀ : Type*} [monoid_with_zero M]
-  [group_with_zero G₀] (f : M →*₀ G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
-f.to_monoid_hom.map_units_inv u
 
 section noncomputable_defs
 

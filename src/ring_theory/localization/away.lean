@@ -191,6 +191,6 @@ lemma is_localization.adjoin_inv (r : R) : is_localization.away r (adjoin_root $
 is_localization.is_localization_of_alg_equiv _ (localization.away_equiv_adjoin r)
 
 lemma is_localization.away.finite_presentation (r : R) {S} [comm_ring S] [algebra R S]
-  [is_localization (submonoid.powers r) S] : algebra.finite_presentation R S :=
+  [is_localization.away r S] : algebra.finite_presentation R S :=
 (adjoin_root.finite_presentation _).equiv $ (localization.away_equiv_adjoin r).symm.trans $
   is_localization.alg_equiv (submonoid.powers r) _ _

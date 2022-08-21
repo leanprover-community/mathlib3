@@ -155,22 +155,17 @@ by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 
 lemma factorization_eq_zero_of_remainder {p r : ℕ} (i : ℕ) (hr : ¬ p ∣ r) :
   (p * i + r).factorization p = 0 :=
-begin
-  apply factorization_eq_zero_of_not_dvd,
-  rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
-end
+by { apply factorization_eq_zero_of_not_dvd, rwa ←nat.dvd_add_iff_right (dvd.intro i rfl) }
 
 lemma factorization_eq_zero_iff_remainder {p r : ℕ} (i : ℕ) (pp : p.prime) (hr0 : r ≠ 0) :
   (¬ p ∣ r) ↔ (p * i + r).factorization p = 0 :=
 begin
   refine ⟨factorization_eq_zero_of_remainder i, λ h, _⟩,
-  rcases eq_or_ne i 0 with rfl | hi0, {
-    simp only [mul_zero, zero_add] at h,
-    simpa [pp, hr0] using (factorization_eq_zero_iff _ _).1 h },
   rw factorization_eq_zero_iff at h,
-  simp only [pp, hr0, not_true, _root_.add_eq_zero_iff, and_false, or_false, false_or] at h,
   contrapose! h,
-  rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
+  refine ⟨pp, _, _⟩,
+  { rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)) },
+  { contrapose! hr0, exact (_root_.add_eq_zero_iff.mp hr0).2 },
 end
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/

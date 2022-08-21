@@ -53,31 +53,36 @@ variables [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜
 @[simp, norm_cast, protected]
 lemma coe_coe (φ : character_space 𝕜 A) : ⇑(φ : weak_dual 𝕜 A) = φ := rfl
 
-lemma coe_apply (φ : character_space 𝕜 A) (x : A) : (φ : weak_dual 𝕜 A) x = φ x := rfl
+/-- Elements of the character space are continuous linear maps. -/
+instance : continuous_linear_map_class (character_space 𝕜 A) 𝕜 A 𝕜 :=
+{ coe := λ φ, (φ : A → 𝕜),
+  coe_injective' := λ φ ψ h, by { ext, exact congr_fun h x },
+  map_smulₛₗ := λ φ, (φ : weak_dual 𝕜 A).map_smul,
+  map_add := λ φ, (φ : weak_dual 𝕜 A).map_add,
+  map_continuous := λ φ, (φ : weak_dual 𝕜 A).cont }
 
 /-- An element of the character space, as a continuous linear map. -/
 def to_clm (φ : character_space 𝕜 A) : A →L[𝕜] 𝕜 := (φ : weak_dual 𝕜 A)
 
-lemma to_clm_apply (φ : character_space 𝕜 A) (x : A) : φ x = to_clm φ x := rfl
+@[simp] lemma coe_to_clm (φ : character_space 𝕜 A) (x : A) : ⇑(to_clm φ) = φ := rfl
 
-/-- An element of the character space, is a non-unital algebra homomorphism. -/
+/-- Elements of the character space are non-unital algebra homomorphisms. -/
 instance : non_unital_alg_hom_class (character_space 𝕜 A) 𝕜 A 𝕜 :=
-{ coe := λ φ, (φ : A → 𝕜),
-  coe_injective' := λ φ ψ h, by { ext, exact congr_fun h x },
-  map_smul := λ φ, (to_clm φ).map_smul,
-  map_add := λ φ, continuous_linear_map.map_add _,
-  map_zero := λ φ, continuous_linear_map.map_zero _,
-  map_mul := λ φ, φ.prop.2 }
+{ map_smul := λ φ, map_smul φ,
+  map_zero := λ φ, map_zero φ,
+  map_mul := λ φ, φ.prop.2,
+  .. character_space.continuous_linear_map_class }
 
 /-- An element of the character space, as an non-unital algebra homomorphism. -/
-@[simps] def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜 :=
+def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜 :=
 { to_fun := (φ : A → 𝕜),
   map_mul' := map_mul φ,
   map_smul' := map_smul φ,
   map_zero' := map_zero φ,
   map_add' := map_add φ }
 
-lemma continuous (φ : character_space 𝕜 A) : continuous φ := (to_clm φ).continuous
+@[simp]
+lemma coe_to_non_unital_alg_hom (φ : character_space 𝕜 A) : ⇑(to_non_unital_alg_hom φ) = φ := rfl
 
 end non_unital_non_assoc_semiring
 
@@ -86,7 +91,7 @@ section unital
 variables [comm_ring 𝕜] [no_zero_divisors 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
   [has_continuous_const_smul 𝕜 𝕜] [topological_space A] [semiring A] [algebra 𝕜 A]
 
-/-- An element of the character space in a unital algebra is an algebra homomorphism. -/
+/-- In a unital algebra, elements of the character space are algebra homomorphisms. -/
 instance : alg_hom_class (character_space 𝕜 A) 𝕜 A 𝕜 :=
 have map_one' : ∀ φ : character_space 𝕜 A, φ 1 = 1 := λ φ,
 begin
@@ -101,11 +106,11 @@ end,
   begin
   { rw [algebra.algebra_map_eq_smul_one, algebra.id.map_eq_id, ring_hom.id_apply],
     change ((φ : weak_dual 𝕜 A) : A →L[𝕜] 𝕜) (r • 1) = r,
-    rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, coe_apply, map_one' φ, mul_one] },
+    rw [map_smul, algebra.id.smul_eq_mul, character_space.coe_coe, map_one' φ, mul_one] },
   end,
   .. character_space.non_unital_alg_hom_class }
 
-/-- An element of the character space, as an algebra homomorphism. -/
+/-- An element of the character space of a unital algebra, as an algebra homomorphism. -/
 @[simps] def to_alg_hom (φ : character_space 𝕜 A) : A →ₐ[𝕜] 𝕜 :=
 { map_one' := map_one φ,
   commutes' := alg_hom_class.commutes φ,

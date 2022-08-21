@@ -22,8 +22,6 @@ import ring_theory.tensor_product
 
 ## List of notations
 Let `R, S` be rings and `f : R →+* S`
-* if `M` is an `R`-module, then notation `S ⨂[R, f] M` means the tensor product `S ⨂ M` where `S`
-  is considered as an `R`-module via restriction of scalars.
 * if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f] m` is the pure tensor
   `s ⊗ m : S ⊗[R, f] M`.
 -/

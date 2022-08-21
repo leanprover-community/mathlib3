@@ -193,7 +193,7 @@ begin
   rwa [← principal_singleton, le_principal_iff]
 end
 
-lemma eq_pure_of_fintype [fintype α] (f : ultrafilter α) : ∃ a, (f : filter α) = pure a :=
+lemma eq_pure_of_finite [finite α] (f : ultrafilter α) : ∃ a, (f : filter α) = pure a :=
 (eq_pure_of_finite_mem finite_univ univ_mem).imp $ λ a ⟨_, ha⟩, ha
 
 /-- Monadic bind for ultrafilters, coming from the one on filters

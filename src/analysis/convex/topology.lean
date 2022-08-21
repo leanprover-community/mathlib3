@@ -5,7 +5,7 @@ Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
 import analysis.normed.group.pointwise
-import analysis.normed_space.finite_dimension
+import topology.algebra.module.finite_dimension
 import analysis.normed_space.ray
 import topology.path_connected
 import topology.algebra.affine
@@ -300,7 +300,7 @@ end has_continuous_smul
 /-! ### Normed vector space -/
 
 section normed_space
-variables [semi_normed_group E] [normed_space ℝ E] {s t : set E}
+variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 
 /-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/

@@ -81,8 +81,8 @@ open continuous_linear_map metric
 open_locale pointwise topological_space nnreal
 
 variables {𝕜 G E E' E'' F F' F'' : Type*}
-variables [normed_group E] [normed_group E'] [normed_group E''] [normed_group F]
-variables {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
+variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
+  [normed_add_comm_group F] {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 
 section nontrivially_normed_field
 
@@ -563,9 +563,9 @@ by { rw [← convolution_flip], exact hcf.continuous_convolution_right_of_integr
 
 end comm_group
 
-section normed_group
+section normed_add_comm_group
 
-variables [semi_normed_group G]
+variables [seminormed_add_comm_group G]
 
 /-- Compute `(f ⋆ g) x₀` if the support of the `f` is within `metric.ball 0 R`, and `g` is constant
 on `metric.ball x₀ R`.
@@ -680,7 +680,7 @@ begin
     .trans_lt (half_lt_self hε)
 end
 
-end normed_group
+end normed_add_comm_group
 
 namespace cont_diff_bump_of_inner
 
@@ -725,7 +725,7 @@ lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : 
 begin
   refine convolution_tendsto_right (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
     _ hmg hcg,
-  rw [normed_group.tendsto_nhds_zero] at hφ,
+  rw [normed_add_comm_group.tendsto_nhds_zero] at hφ,
   rw [tendsto_small_sets_iff],
   intros t ht,
   rcases metric.mem_nhds_iff.mp ht with ⟨ε, hε, ht⟩,
@@ -764,8 +764,8 @@ variables [measurable_space G] {μ : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 
 section assoc
-variables [normed_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
-variables [normed_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
+variables [normed_add_comm_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
+variables [normed_add_comm_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
 variables {k : G → E''}
 variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
 variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
@@ -795,7 +795,7 @@ end
 
 end assoc
 
-variables [normed_group G] [borel_space G]
+variables [normed_add_comm_group G] [borel_space G]
 variables [second_countable_topology G] [sigma_compact_space G]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}

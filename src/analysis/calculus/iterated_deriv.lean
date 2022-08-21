@@ -46,8 +46,8 @@ open filter asymptotics set
 
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- The `n`-th iterated derivative of a function from `𝕜` to `F`, as a function from `𝕜` to `F`. -/
 def iterated_deriv (n : ℕ) (f : 𝕜 → F) (x : 𝕜) : F :=

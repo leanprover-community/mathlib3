@@ -223,7 +223,8 @@ begin
   { have h : filter.tendsto (λ (x : 𝕜 × E), x.fst • x.snd) (𝓝 (0,0)) (𝓝 0),
       from continuous_smul.tendsto' (0, 0) _ (smul_zero _),
     simpa only [← prod.exists', ← prod.forall', ← and_imp, ← and.assoc, exists_prop]
-      using h.basis_left (normed_group.nhds_zero_basis_norm_lt.prod_nhds ((𝓝 _).basis_sets)) U hU },
+      using h.basis_left (normed_add_comm_group.nhds_zero_basis_norm_lt.prod_nhds
+        ((𝓝 _).basis_sets)) U hU },
   rcases normed_field.exists_norm_lt 𝕜 hr with ⟨y, hy₀, hyr⟩,
   rw [norm_pos_iff] at hy₀,
   have : y • V ∈ 𝓝 (0 : E) := (set_smul_mem_nhds_zero_iff hy₀).mpr hV,

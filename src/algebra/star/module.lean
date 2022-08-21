@@ -72,7 +72,7 @@ variables (R : Type*) (A : Type*)
 
 /-- The self-adjoint elements of a star module, as a submodule. -/
 def self_adjoint.submodule : submodule R A :=
-{ smul_mem' := self_adjoint.smul_mem,
+{ smul_mem' := is_self_adjoint.smul,
   ..self_adjoint A }
 
 /-- The skew-adjoint elements of a star module, as a submodule. -/

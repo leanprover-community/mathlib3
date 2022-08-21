@@ -74,10 +74,10 @@ open set filter topological_space ennreal emetric
 namespace measure_theory
 
 variables {α E F F' G 𝕜 : Type*} {p : ℝ≥0∞}
-  [normed_group E] [normed_space ℝ E]
-  [normed_group F] [normed_space ℝ F]
-  [normed_group F'] [normed_space ℝ F']
-  [normed_group G]
+  [normed_add_comm_group E] [normed_space ℝ E]
+  [normed_add_comm_group F] [normed_space ℝ F]
+  [normed_add_comm_group F'] [normed_space ℝ F']
+  [normed_add_comm_group G]
   {m : measurable_space α} {μ : measure α}
 
 local infixr ` →ₛ `:25 := simple_func
@@ -180,13 +180,13 @@ end fin_meas_additive
 
 /-- A `fin_meas_additive` set function whose norm on every set is less than the measure of the
 set (up to a multiplicative constant). -/
-def dominated_fin_meas_additive {β} [semi_normed_group β] {m : measurable_space α}
+def dominated_fin_meas_additive {β} [seminormed_add_comm_group β] {m : measurable_space α}
   (μ : measure α) (T : set α → β) (C : ℝ) : Prop :=
 fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real
 
 namespace dominated_fin_meas_additive
 
-variables {β : Type*} [semi_normed_group β] {T T' : set α → β} {C C' : ℝ}
+variables {β : Type*} [seminormed_add_comm_group β] {T T' : set α → β} {C C' : ℝ}
 
 lemma zero {m : measurable_space α} (μ : measure α) (hC : 0 ≤ C) :
   dominated_fin_meas_additive μ (0 : set α → β) C :=
@@ -196,7 +196,7 @@ begin
   exact mul_nonneg hC to_real_nonneg,
 end
 
-lemma eq_zero_of_measure_zero {β : Type*} [normed_group β] {T : set α → β} {C : ℝ}
+lemma eq_zero_of_measure_zero {β : Type*} [normed_add_comm_group β] {T : set α → β} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) {s : set α}
   (hs : measurable_set s) (hs_zero : μ s = 0) :
   T s = 0 :=
@@ -206,7 +206,7 @@ begin
   rw [hs_zero, ennreal.zero_to_real, mul_zero],
 end
 
-lemma eq_zero {β : Type*} [normed_group β] {T : set α → β} {C : ℝ}
+lemma eq_zero {β : Type*} [normed_add_comm_group β] {T : set α → β} {C : ℝ}
   {m : measurable_space α} (hT : dominated_fin_meas_additive (0 : measure α) T C)
   {s : set α} (hs : measurable_set s) :
   T s = 0 :=
@@ -511,7 +511,7 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = c • set_to_simple_func T f :
 by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
-lemma set_to_simple_func_smul {E} [normed_group E] [normed_field 𝕜]
+lemma set_to_simple_func_smul {E} [normed_add_comm_group E] [normed_field 𝕜]
   [normed_space 𝕜 E] [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
   (h_add : fin_meas_additive μ T) (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
   (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
@@ -818,7 +818,7 @@ begin
   exact smul_to_simple_func c f,
 end
 
-lemma set_to_L1s_smul {E} [normed_group E] [normed_space ℝ E]
+lemma set_to_L1s_smul {E} [normed_add_comm_group E] [normed_space ℝ E]
   [normed_space 𝕜 E] [normed_space 𝕜 F]
   (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)

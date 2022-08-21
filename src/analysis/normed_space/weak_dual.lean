@@ -99,7 +99,7 @@ by the dual-norm (i.e. the operator-norm).
 -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
+variables {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 namespace normed_space
 

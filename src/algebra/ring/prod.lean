@@ -258,3 +258,17 @@ begin
   { exact zero_ne_one h.symm },
   { exact zero_ne_one h.symm }
 end
+
+/-! ### Order -/
+
+instance [ordered_semiring α] [ordered_semiring β] : ordered_semiring (α × β) :=
+{ add_le_add_left := λ _ _ _, add_le_add_left,
+  zero_le_one := ⟨zero_le_one, zero_le_one⟩,
+  mul_le_mul_of_nonneg_left := λ a b c hab hc,
+    ⟨mul_le_mul_of_nonneg_left hab.1 hc.1, mul_le_mul_of_nonneg_left hab.2 hc.2⟩,
+  mul_le_mul_of_nonneg_right := λ a b c hab hc,
+    ⟨mul_le_mul_of_nonneg_right hab.1 hc.1, mul_le_mul_of_nonneg_right hab.2 hc.2⟩,,
+  ..prod.semiring, ..prod.partial_order _ _ }
+
+instance [ordered_comm_semiring α] [ordered_comm_semiring β] : ordered_comm_semiring (α × β) :=
+{ .prod.comm_semiring, ..prod.ordered_semiring }

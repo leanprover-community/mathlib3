@@ -5,6 +5,7 @@ Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.group.pi
 import algebra.order.group
+import algebra.order.pi
 import tactic.pi_instances
 /-!
 # Pi instances for ordered groups and monoids

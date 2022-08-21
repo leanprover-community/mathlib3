@@ -1449,6 +1449,19 @@ contravariant.add_le_cancellable.tsub_mul
 
 end sub
 
+/-! ### Product of ordered semirings -/
+
+section pi
+variables {ι : Type*} {π : ι → Type*}
+
+instance [Π i, ordered_semiring (π i)] : ordered_semiring (Π i, π i) :=
+by refine_struct { ..pi.semiring, ..pi.partial_order }; tactic.pi_instance_derive_field
+
+instance [Π i, ordered_comm_semiring (π i)] : ordered_comm_semiring (Π i, π i) :=
+{ ..pi.comm_semiring, ..pi.ordered_semiring }
+
+end pi
+
 /-! ### Structures involving `*` and `0` on `with_top` and `with_bot`
 
 The main results of this section are `with_top.canonically_ordered_comm_semiring` and

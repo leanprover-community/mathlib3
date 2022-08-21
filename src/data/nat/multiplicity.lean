@@ -3,12 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.big_operators.intervals
-import algebra.geom_sum
-import data.nat.bitwise
-import data.nat.log
-import data.nat.parity
-import ring_theory.int.basic
+import data.nat.factorial.factorization
 
 /-!
 # Natural number multiplicity
@@ -44,6 +39,10 @@ open finset nat multiplicity
 open_locale big_operators nat
 
 namespace nat
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
 
 /-- The multiplicity of `m` in `n` is the number of positive natural numbers `i` such that `m ^ i`
 divides `n`. This set is expressed by filtering `Ico 1 b` where `b` is any bound greater than
@@ -141,12 +140,6 @@ begin
     congr' 1,
     rw [add_comm, add_assoc] }
 end
-
-/-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
-  This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/
-lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
-   p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
-by rw [← part_enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
 
 lemma multiplicity_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
   multiplicity p n! ≤ (n/(p - 1) : ℕ) :=

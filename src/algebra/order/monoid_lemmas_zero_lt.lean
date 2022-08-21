@@ -445,12 +445,12 @@ lemma pos_of_mul_pos_right [pos_mul_reflect_lt α] (h : 0 < a * b) (ha : 0 ≤ a
 lt_of_mul_lt_mul_left ((mul_zero a).symm ▸ h : a * 0 < a * b) ha
 
 lemma lt_of_mul_lt_mul_right [mul_pos_reflect_lt α]
-  (bc : b * a < c * a) (a0 : 0 ≤ a) :
-  b < c :=
+  (ab : a * c < b * c) (c0 : 0 ≤ c) :
+  a < b :=
 begin
-  by_cases a₀ : a = 0,
-  { exact (lt_irrefl (0 : α) (by simpa only [a₀, mul_zero] using bc)).elim },
-  { exact lt_of_mul_lt_mul_right' bc ((ne.symm a₀).le_iff_lt.mp a0) }
+  by_cases c₀ : c = 0,
+  { exact (lt_irrefl (0 : α) (by simpa only [c₀, mul_zero] using ab)).elim },
+  { exact lt_of_mul_lt_mul_right' ab ((ne.symm c₀).le_iff_lt.mp c0) }
 end
 
 lemma pos_of_mul_pos_left [mul_pos_reflect_lt α] (h : 0 < a * b) (hb : 0 ≤ b) :
@@ -967,19 +967,19 @@ lemma preorder.le_mul_of_one_le_left [mul_pos_mono α] (h : 1 ≤ a) (b0 : 0 < b
   b ≤ a * b :=
 preorder.le_mul_of_one_le_of_le h le_rfl b0
 
-lemma mul_lt_of_lt_one_right [pos_mul_strict_mono α] (h : b < 1) (a0 : 0 < a) :
+lemma mul_lt_of_lt_one_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : b < 1) :
   a * b < a :=
 mul_lt_of_le_of_lt_one le_rfl h a0
 
-lemma lt_mul_of_one_lt_right [pos_mul_strict_mono α] (h : 1 < b) (a0 : 0 < a) :
+lemma lt_mul_of_one_lt_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : 1 < b) :
   a < a * b :=
 lt_mul_of_le_of_one_lt le_rfl h a0
 
-lemma mul_lt_of_lt_one_left [mul_pos_strict_mono α] (h : a < 1) (b0 : 0 < b) :
+lemma mul_lt_of_lt_one_left [mul_pos_strict_mono α] (b0 : 0 < b) (h : a < 1) :
   a * b < b :=
 mul_lt_of_lt_one_of_le h le_rfl b0
 
-lemma lt_mul_of_one_lt_left [mul_pos_strict_mono α] (h : 1 < a) (b0 : 0 < b) :
+lemma lt_mul_of_one_lt_left [mul_pos_strict_mono α] (b0 : 0 < b) (h : 1 < a) :
   b < a * b :=
 lt_mul_of_one_lt_of_le h le_rfl b0
 
@@ -1177,19 +1177,19 @@ calc  b = 1 * b : (one_mul b).symm
     ... ≤ a * b : mul_le_mul_right_of_le_of_nonneg ha b0
     ... < a * c : mul_lt_mul_left' bc a0
 
-lemma mul_le_of_le_one_right [pos_mul_mono α] (h : b ≤ 1) (a0 : 0 ≤ a) :
+lemma mul_le_of_le_one_right [pos_mul_mono α] (a0 : 0 ≤ a) (h : b ≤ 1) :
   a * b ≤ a :=
 mul_le_of_le_of_le_one le_rfl h a0
 
-lemma le_mul_of_one_le_right [pos_mul_mono α] (h : 1 ≤ b) (a0 : 0 ≤ a) :
+lemma le_mul_of_one_le_right [pos_mul_mono α] (a0 : 0 ≤ a) (h : 1 ≤ b) :
   a ≤ a * b :=
 le_mul_of_le_of_one_le le_rfl h a0
 
-lemma mul_le_of_le_one_left [mul_pos_mono α] (h : a ≤ 1) (b0 : 0 ≤ b) :
+lemma mul_le_of_le_one_left [mul_pos_mono α] (b0 : 0 ≤ b) (h : a ≤ 1) :
   a * b ≤ b :=
 mul_le_of_le_one_of_le h le_rfl b0
 
-lemma le_mul_of_one_le_left [mul_pos_mono α] (h : 1 ≤ a) (b0 : 0 ≤ b) :
+lemma le_mul_of_one_le_left [mul_pos_mono α] (b0 : 0 ≤ b) (h : 1 ≤ a) :
   b ≤ a * b :=
 le_mul_of_one_le_of_le h le_rfl b0
 
@@ -1295,3 +1295,5 @@ by simp ! only [mul_comm]
 end comm_semigroup_has_zero
 
 end zero_lt
+
+export zero_lt

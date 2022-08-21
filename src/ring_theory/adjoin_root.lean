@@ -113,8 +113,7 @@ instance has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
     they agree on `root f`. -/
 @[ext] lemma alg_hom_ext [semiring S] [algebra R S] {g₁ g₂ : adjoin_root f →ₐ[R] S}
   (h : g₁ (root f) = g₂ (root f)) : g₁ = g₂ :=
-alg_hom.coe_ring_hom_injective (ideal.quotient.ring_hom_ext
-  (polynomial.ring_hom_ext (λ r, by erw [alg_hom.commutes, alg_hom.commutes]) h))
+ideal.quotient.alg_hom_ext R $ polynomial.alg_hom_ext h
 
 @[simp] lemma mk_eq_mk {g h : R[X]} : mk f g = mk f h ↔ f ∣ g - h :=
 ideal.quotient.eq.trans ideal.mem_span_singleton

@@ -85,29 +85,6 @@ multiplicity_self (prime_iff.mp hp).not_unit hp.ne_zero
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
 multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
 
--- ^^^^ The counterparts of these are all already in data.nat.factorization.basic
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
--- vvv Versions translated into `factorization` vvv
-
-
-
-
-
-#exit
-
-
--- end prime
-
--- ^^^ Versions translated into `factorization` ^^^
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
-
--- vvv Original versions vvv
-
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
-
 /-- **Legendre's Theorem**
 
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed

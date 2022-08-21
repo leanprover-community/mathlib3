@@ -102,6 +102,12 @@ lemma algebra_map_eq' [comm_semiring S] [algebra S R] :
 
 variables {S}
 
+lemma finite_type : algebra.finite_type R (adjoin_root f) :=
+(algebra.finite_type.polynomial R).of_surjective _ (ideal.quotient.mkₐ_surjective R _)
+
+lemma finite_presentation : algebra.finite_presentation R (adjoin_root f) :=
+(algebra.finite_presentation.polynomial R).quotient (submodule.fg_span_singleton f)
+
 /-- The adjoined root. -/
 def root : adjoin_root f := mk f X
 
@@ -214,7 +220,7 @@ by convert sub_eq_zero.1 ((eval₂_sub _).symm.trans $ eval₂_root $ C r * X - 
 
 instance {S : Type*} [comm_ring S] [algebra R S] {r : R} :
   subsingleton (adjoin_root (C r * X - 1) →ₐ[R] S) :=
-⟨λ f g, alg_hom_ext (@inv_unique _ _ (algebra_map R S r) (f $ root _) _
+⟨λ f g, alg_hom_ext (@inv_unique _ _ (algebra_map R S r) _ _
   (by rw [← f.commutes, ← f.map_mul, algebra_map_eq, root_is_inv, map_one])
   (by rw [← g.commutes, ← g.map_mul, algebra_map_eq, root_is_inv, map_one]))⟩
 

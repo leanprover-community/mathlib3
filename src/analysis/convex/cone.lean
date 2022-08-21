@@ -741,12 +741,11 @@ lemma pointed_of_nonempty_closed_convex_cone
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
 begin
   obtain ⟨x, hx⟩ := ne,
-  let f  := λ r : ℝ, r • x,
+  let f : ℝ → H := (• x),
 
   -- f (0, ∞) is a subset of K
   have fI : f '' set.Ioi 0 ⊆ (K : set H),
-  { rw set.subset_def,
-    rintro _ ⟨_, h, rfl⟩,
+  { rintro _ ⟨_, h, rfl⟩,
     exact K.smul_mem (set.mem_Ioi.1 h) hx },
 
   -- closure of f (0, ∞) is a subset of K
@@ -812,17 +811,16 @@ end
 /-- The inner dual of inner dual of a non-empty, closed convex cone is itself.  -/
 theorem inner_dual_cone_of_inner_dual_cone_eq_self
   {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
-  ((K : set H).inner_dual_cone : set H).inner_dual_cone = K := convex_cone.ext $ λ x, iff.intro
+  ((K : set H).inner_dual_cone : set H).inner_dual_cone = K :=
 begin
-  rw [mem_inner_dual_cone, ← set_like.mem_coe],
-  contrapose!,
-  rintro hx,
-  exact hyperplane_separation_point_nonempty_closed_convex_cone ne hc hx,
-end
-begin
-  rintro hxK y h,
-  specialize h x hxK,
-  rwa real_inner_comm,
+  ext x,
+  split,
+  { rw [mem_inner_dual_cone, ← set_like.mem_coe],
+    contrapose!,
+    exact hyperplane_separation_point_nonempty_closed_convex_cone ne hc },
+  { rintro hxK y h,
+    specialize h x hxK,
+    rwa real_inner_comm },
 end
 
 end complete_space

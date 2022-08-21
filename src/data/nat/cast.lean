@@ -116,7 +116,6 @@ alias coe_nat_dvd ← _root_.has_dvd.dvd.nat_cast
 end nat
 
 namespace prod
-
 variables [add_monoid_with_one α] [add_monoid_with_one β]
 
 instance : add_monoid_with_one (α × β) :=
@@ -264,7 +263,7 @@ end with_top
 namespace pi
 variables {π : α → Type*} [Π a, has_nat_cast (π a)]
 
-instance : has_nat_cast (∀ a, π a) :=
+instance : has_nat_cast (Π a, π a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 lemma nat_apply (n : ℕ) (a : α) : (n : Π a, π a) a = n := rfl

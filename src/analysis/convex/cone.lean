@@ -784,15 +784,12 @@ begin
   use z - b,
 
   split,
-  begin
-  -- the rest of the proof is a straightforward calculation
+  { -- the rest of the proof is a straightforward calculation
     rintros x hxK,
     specialize hinner _ (K.add_mem hxK hzK),
     rwa [add_sub_cancel, real_inner_comm, ← neg_nonneg, neg_eq_neg_one_mul,
-         ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner,
-  end,
-  begin
-    -- as `K` is closed and non-empty, it is pointed
+         ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner },
+  { -- as `K` is closed and non-empty, it is pointed
     have hinner₀ := hinner 0 (pointed_of_nonempty_closed_convex_cone ne hc),
 
     -- the rest of the proof is a straightforward calculation
@@ -804,8 +801,7 @@ begin
     ... = ⟪b - z, b - z⟫_ℝ + 0 : (add_zero _).symm
     ... ≤ ⟪b - z, b - z⟫_ℝ + ⟪b - z, z⟫_ℝ : add_le_add rfl.ge hinner₀
     ... = ⟪b - z, b - z + z⟫_ℝ : inner_add_right.symm
-    ... = ⟪b - z, b⟫_ℝ : by rw sub_add_cancel,
-  end,
+    ... = ⟪b - z, b⟫_ℝ : by rw sub_add_cancel },
 end
 
 /-- The inner dual of inner dual of a non-empty, closed convex cone is itself.  -/

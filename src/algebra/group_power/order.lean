@@ -493,21 +493,11 @@ namespace monoid_hom
 variables [ring R] [monoid M] [linear_order M] [covariant_class M M (*) (≤)] (f : R →* M)
 
 lemma map_neg_one : f (-1) = 1 :=
-(pow_eq_one_iff (nat.succ_ne_zero 1)).1 $
-  calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
-              ... = f ((-1) * - 1) : (f.map_mul _ _).symm
-              ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
-              ... = f 1            : congr_arg _ (neg_neg _)
-              ... = 1              : map_one f
+(pow_eq_one_iff (nat.succ_ne_zero 1)).1 $ by rw [←map_pow, neg_one_sq, map_one]
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=
-calc f (-x) = f (-1 * x)   : congr_arg _ (neg_one_mul _).symm
-        ... = f (-1) * f x : map_mul _ _ _
-        ... = 1 * f x      : _root_.congr_arg (λ g, g * (f x)) (map_neg_one f)
-        ... = f x          : one_mul _
+by rw [←neg_one_mul, map_mul, map_neg_one, one_mul]
 
-lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
-calc f (x - y) = f (-(y - x)) : congr_arg _ (neg_sub _ _).symm
-           ... = _            : map_neg _ _
+lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) := by rw [←map_neg, neg_sub]
 
 end monoid_hom

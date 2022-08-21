@@ -88,6 +88,8 @@ namespace conn_comp_outside
 
 @[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) : conn_comp_outside G K := connected_component_mk _ v
 
+lemma reachable_empty_compl {G : simple_graph V} {u v : V} (hreach : G.reachable u v) : (G.compl ∅).coe.reachable ⟨u, G.outside_to_compl id⟩ ⟨v, G.outside_to_compl id⟩ := sorry
+
 lemma reachable_coe {G : simple_graph V} {K L : set V} (h : K ⊆ L)
 {v a: ↥((G.compl L).verts)} (hreach: (G.compl L).coe.reachable a v) : (G.compl K).coe.reachable (vertex_coe h a) (vertex_coe h v) := sorry
 
@@ -153,7 +155,7 @@ section finite_components
     right_inv := by {simp [function.right_inverse, left_inverse],
       dsimp [conn_comp_outside, border],
       intro a, rintro ⟨b, _, _⟩,
-      tidy, -- yay!
+      tidy,
     } }
 
   lemma bdry_finite [Glocfin : locally_finite G] : (bdry G K).finite :=
@@ -282,19 +284,16 @@ section finite_components
       -- refine ⟨{_}, _⟩,
       by_cases nonempty V, {
         refine ⟨{_}, _⟩,
-        have v := nonempty.some h,
 
-        exact component_of ⟨v, outside_to_compl G (by simp)⟩,
+        exact component_of ⟨nonempty.some h, outside_to_compl G (by simp)⟩,
 
         apply connected_component.ind,
-        intro v', dsimp [compl, component_of],
-        simp, sorry -- all pairs of vertices are reachable in `G`
-      },
-      {
-        refine ⟨{_}, _⟩,
-        sorry, sorry,
-      }
-    }
+        rintro ⟨v', _⟩, dsimp [component_of],
+        simp, apply reachable_empty_compl, apply Gpc,},
+
+      { refine ⟨∅, _⟩, dsimp [conn_comp_outside],
+        apply connected_component.ind, rintro ⟨v, _⟩,
+        apply (not_nonempty_iff.mp h).elim v, }}
   end
 
   lemma nonempty_components (Vinf : (univ : set V).infinite) : nonempty (conn_comp_outside G K) :=

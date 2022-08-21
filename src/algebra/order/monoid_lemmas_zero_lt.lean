@@ -489,12 +489,12 @@ lemma le_mul_of_le_mul_right [mul_pos_mono α]
   a ≤ d * c :=
 h.trans (mul_le_mul_right_of_le_of_nonneg hle c0)
 
-lemma mul_left_cancel_iff [pos_mul_mono_rev α]
+lemma mul_left_cancel_iff_of_pos [pos_mul_mono_rev α]
   (a0 : 0 < a) :
   a * b = a * c ↔ b = c :=
 ⟨λ h, (le_of_mul_le_mul_left' h.le a0).antisymm (le_of_mul_le_mul_left' h.ge a0), congr_arg _⟩
 
-lemma mul_right_cancel_iff [mul_pos_mono_rev α]
+lemma mul_right_cancel_iff_of_pos [mul_pos_mono_rev α]
   (b0 : 0 < b) :
   a * b = c * b ↔ a = c :=
 ⟨λ h, (le_of_mul_le_mul_right' h.le b0).antisymm (le_of_mul_le_mul_right' h.ge b0), congr_arg _⟩
@@ -506,9 +506,9 @@ lemma mul_eq_mul_iff_eq_and_eq [pos_mul_strict_mono α] [mul_pos_strict_mono α]
 begin
   refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
   rcases hac.eq_or_lt with rfl | hac,
-  { exact ⟨rfl, (mul_left_cancel_iff a0).mp h⟩ },
+  { exact ⟨rfl, (mul_left_cancel_iff_of_pos a0).mp h⟩ },
   rcases eq_or_lt_of_le hbd with rfl | hbd,
-  { exact ⟨(mul_right_cancel_iff d0).mp h, rfl⟩ },
+  { exact ⟨(mul_right_cancel_iff_of_pos d0).mp h, rfl⟩ },
   exact ((mul_lt_mul_of_lt_of_lt hac hbd a0 d0).ne h).elim,
 end
 
@@ -519,9 +519,9 @@ lemma mul_eq_mul_iff_eq_and_eq' [pos_mul_strict_mono α] [mul_pos_strict_mono α
 begin
   refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
   rcases hac.eq_or_lt with rfl | hac,
-  { exact ⟨rfl, (mul_left_cancel_iff b0).mp h⟩ },
+  { exact ⟨rfl, (mul_left_cancel_iff_of_pos b0).mp h⟩ },
   rcases eq_or_lt_of_le hbd with rfl | hbd,
-  { exact ⟨(mul_right_cancel_iff c0).mp h, rfl⟩ },
+  { exact ⟨(mul_right_cancel_iff_of_pos c0).mp h, rfl⟩ },
   exact ((mul_lt_mul_of_lt_of_lt' hac hbd b0 c0).ne h).elim,
 end
 

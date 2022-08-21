@@ -23,8 +23,8 @@ variable [monoid M]
 section preorder
 variable [preorder M]
 
-section covariant_le
-variables [covariant_class M M (*) (≤)]
+section left
+variables [covariant_class M M (*) (≤)] {x : M}
 
 @[to_additive nsmul_le_nsmul_of_le_right, mono]
 lemma pow_le_pow_of_le_left' [covariant_class M M (swap (*)) (≤)] {a b : M} (hab : a ≤ b) :
@@ -82,14 +82,17 @@ lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
   strict_mono ((^) a : ℕ → M) :=
 λ m n, pow_lt_pow' ha
 
-lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : M}, 1 ≤ x → 1 ≤ x^n
-| 0       x _ := (pow_zero x).symm.le
-| (n + 1) x H := calc 1 ≤ x          : H
-                    ... = x * 1      : (mul_one x).symm
-                    ... ≤ x * x ^ n  : mul_le_mul_left' (left.one_le_pow_of_le H) x
-                    ... = x ^ n.succ : (pow_succ x n).symm
+@[to_additive left.pow_nonneg]
+lemma left.one_le_pow_of_le (hx : 1 ≤ x) : ∀ {n : ℕ}, 1 ≤ x^n
+| 0       := (pow_zero x).ge
+| (n + 1) := by { rw pow_succ, exact left.one_le_mul hx left.one_le_pow_of_le }
 
-end covariant_le
+@[to_additive left.pow_nonpos]
+lemma left.pow_le_one_of_le (hx : x ≤ 1) : ∀ {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero _).le
+| (n + 1) := by { rw pow_succ, exact left.mul_le_one hx left.pow_le_one_of_le }
+
+end left
 
 section right
 variables [covariant_class M M (swap (*)) (≤)] {x : M}
@@ -114,15 +117,10 @@ nat.le_induction ((pow_one _).trans_lt h) (λ n _ ih, by { rw pow_succ, exact mu
 
 @[to_additive right.pow_neg]
 lemma right.pow_lt_one_of_lt [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M}
-  (n0 : 0 < n) (H : x < 1) :
+  (hn : 0 < n) (h : x < 1) :
   x^n < 1 :=
-begin
-  refine nat.le_induction ((pow_one _).le.trans_lt H) (λ n n1 hn, _) _ (nat.succ_le_iff.mpr n0),
-  calc x ^ (n + 1) = x ^ n * x : pow_succ' x n
-               ... < 1 * x     : mul_lt_mul_right' hn x
-               ... = x         : one_mul x
-               ... < 1         : H
-end
+nat.le_induction ((pow_one _).trans_lt h)
+  (λ n _ ih, by { rw pow_succ, exact right.mul_lt_one h ih }) _ (nat.succ_le_iff.2 hn)
 
 end preorder
 

@@ -43,7 +43,7 @@ a `group_with_zero` lemma instead.
 field, division ring, skew field, skew-field, skewfield
 -/
 
-open function set
+open function order_dual set
 
 set_option old_structure_cmd true
 
@@ -460,3 +460,25 @@ protected def function.injective.field [field K] {K'}
   qsmul_eq_mul' := λ a x, hf (by erw [qsmul, mul, rat.smul_def, rat_cast]),
   .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
   .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
+
+/-! ### Order dual -/
+
+instance [h : has_rat_cast α] : has_rat_cast αᵒᵈ := h
+instance [h : division_semiring α] : division_semiring αᵒᵈ := h
+instance [h : division_ring α] : division_ring αᵒᵈ := h
+instance [h : semifield α] : semifield αᵒᵈ := h
+instance [h : field α] : field αᵒᵈ := h
+
+@[simp] lemma to_dual_rat_cast [has_rat_cast α] (n : ℚ) : to_dual (n : α) = n := rfl
+@[simp] lemma of_dual_rat_cast [has_rat_cast α] (n : ℚ) : (of_dual n : α) = n := rfl
+
+/-! ### Lexicographic order -/
+
+instance [h : has_rat_cast α] : has_rat_cast (lex α) := h
+instance [h : division_semiring α] : division_semiring (lex α) := h
+instance [h : division_ring α] : division_ring (lex α) := h
+instance [h : semifield α] : semifield (lex α) := h
+instance [h : field α] : field (lex α) := h
+
+@[simp] lemma to_lex_rat_cast [has_rat_cast α] (n : ℚ) : to_lex (n : α) = n := rfl
+@[simp] lemma of_lex_rat_cast [has_rat_cast α] (n : ℚ) : (of_lex n : α) = n := rfl

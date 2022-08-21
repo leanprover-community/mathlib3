@@ -50,7 +50,8 @@ variables [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜
   [has_continuous_const_smul 𝕜 𝕜] [non_unital_non_assoc_semiring A] [topological_space A]
   [module 𝕜 A]
 
-@[simp, norm_cast] lemma coe_coe (φ : character_space 𝕜 A) : ⇑(φ : weak_dual 𝕜 A) = φ := rfl
+@[simp, norm_cast, protected]
+lemma coe_coe (φ : character_space 𝕜 A) : ⇑(φ : weak_dual 𝕜 A) = φ := rfl
 
 lemma coe_apply (φ : character_space 𝕜 A) (x : A) : (φ : weak_dual 𝕜 A) x = φ x := rfl
 

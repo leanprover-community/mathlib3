@@ -155,9 +155,13 @@ begin
     rw [Ico_filter_pow_dvd_eq hp hk0.ne' hkn, ←Ico_succ_right, filter_union_right],
     refine le_trans ((Ico 1 n.succ).card_filter_le _) _,
     simp },
-  { apply (factorization_pow_self hp n).symm.le.trans,
-    exact factorization_le_factorization_choose_add hp hk0.ne' hkn },
+  { refine le_trans _ (factorization_le_factorization_choose_add hp hk0.ne' hkn),
+    simp [hp.factorization_pow] },
 end
+
+
+#exit
+
 
 -- end prime
 

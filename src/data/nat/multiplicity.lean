@@ -257,11 +257,6 @@ begin
   have : p.factorization p = 1, { simp [hp] },
   rw this,
   rw add_comm,
-
-  -- intros x hx1 hx2,
-  -- apply factorization_eq_zero_of_not_dvd,
-  -- rw ←not_dvd_iff_between_consec_multiples x hp.pos,
-  -- refine ⟨n, succ_le_iff.mp hx1, hx2⟩,
 end
 
 
@@ -329,33 +324,6 @@ begin
 end
 
 
--- /-- A lower bound on the multiplicity of `p` in `choose n k`. -/
--- lemma multiplicity_le_multiplicity_choose_add {p : ℕ} (hp : p.prime) : ∀ (n k : ℕ),
---   multiplicity p n ≤ multiplicity p (choose n k) + multiplicity p k
--- | _     0     := by simp
--- | 0     (_+1) := by simp
--- | (n+1) (k+1) :=
--- begin
---   rw ← hp.multiplicity_mul,
---   refine multiplicity_le_multiplicity_of_dvd_right _,
---   rw [← succ_mul_choose_eq],
---   exact dvd_mul_right _ _
--- end
-
--- /-- A lower bound on the multiplicity of `p` in `choose n k`.
--- Note that this needs more assumptions on `n` and `k` than the corresponding lemma
--- `multiplicity_le_multiplicity_choose_add`. -/
--- lemma factorization_le_factorization_choose_add {p n k : ℕ} (hp : p.prime) (hk0 : k ≠ 0)
---   (hnk: k ≤ n) : n.factorization p ≤ (choose n k).factorization p + k.factorization p :=
--- begin
---   have h1 := multiplicity_le_multiplicity_choose_add hp n k ,
---   rcases eq_or_ne n 0 with rfl | hn0, { simp },
---   rw [multiplicity_eq_factorization hp hn0, multiplicity_eq_factorization hp hk0,
---       multiplicity_eq_factorization hp (choose_pos hnk).ne'] at h1,
---   norm_cast at h1,
---   exact h1,
--- end
-
 /-- A lower bound on the multiplicity of `p` in `choose n k`.
 Note that this needs more assumptions on `n` and `k` than the corresponding lemma
 `multiplicity_le_multiplicity_choose_add`. -/
@@ -370,27 +338,6 @@ lemma factorization_le_factorization_choose_add {p : ℕ} (hp : p.prime) :
     have h1 := mul_ne_zero (succ_ne_zero n) ((choose_pos (succ_le_succ_iff.1 hkn)).ne'),
     have h2 := (factorization_le_iff_dvd (succ_ne_zero n) h1).2 (dvd_mul_right (n+1) (n.choose k)),
     exact finsupp.le_def.1 h2 p }
-
-
--- ^^^ Versions translated into `factorization` ^^^
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
--- vvv Versions to translate into `factorization` vvv
-
--- lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
---   (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
---   multiplicity p (choose (p ^ n) k) + multiplicity p k = n := sorry
-
-
--- lemma factorization_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
---   (choose (p ^ n) k).factorization p + k.factorization p = n :=
--- begin
---   have H := multiplicity_choose_prime_pow hp hkn hk0,
---   have h1 := λ H, not_lt_of_le hkn (choose_eq_zero_iff.1 H),
---   rw [multiplicity_eq_factorization hp h1, multiplicity_eq_factorization hp hk0.ne'] at H,
---   norm_cast at H,
---   exact part_enat.coe_inj.1 H,
--- end
 
 lemma factorization_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
   (choose (p ^ n) k).factorization p + k.factorization p = n :=
@@ -411,16 +358,6 @@ end
 
 end prime
 
--- lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n := sorry
-
--- lemma factorization_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), n!.factorization 2 < n :=
--- begin
---   rintro n hn0,
---   have H := multiplicity_two_factorial_lt hn0,
---   rw multiplicity_eq_factorization prime_two (factorial_ne_zero n) at H,
---   exact part_enat.coe_lt_coe.1 H,
--- end
-
 lemma factorization_two_factorial_lt {n : ℕ} : (n ≠ 0) →  n!.factorization 2 < n :=
 begin
   have H : ∀ i, (i!.factorization) 2 < i → ((2 * i)!.factorization) 2 < 2 * i,
@@ -437,7 +374,7 @@ begin
           factorization_eq_zero_of_remainder i (mt nat.dvd_one.1 (succ_succ_ne_one 0))] },
 end
 
--- ^^^ Versions to translate into `factorization` ^^^
+-- ^^^ Versions translated into `factorization` ^^^
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 

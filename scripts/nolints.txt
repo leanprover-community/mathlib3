@@ -1,47 +1,13 @@
 import .all
 run_cmd tactic.skip
 
--- algebra/big_operators/fin.lean
-apply_nolint fin.prod_univ_cast_succ to_additive_doc
-apply_nolint fin.prod_univ_succ to_additive_doc
-apply_nolint fin.prod_univ_succ_above to_additive_doc
-
--- algebra/big_operators/finprod.lean
-apply_nolint finprod_mem_Union fintype_finite
-apply_nolint finsum_mem_Union fintype_finite
-
--- algebra/big_operators/pi.lean
-apply_nolint add_monoid_hom.functions_ext fintype_finite
-apply_nolint add_monoid_hom.functions_ext' fintype_finite
-apply_nolint ring_hom.functions_ext fintype_finite
-
--- algebra/category/Group/limits.lean
-apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
-
--- algebra/char_p/basic.lean
-apply_nolint is_square_of_char_two' fintype_finite
-
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
-
--- algebra/hom/freiman.lean
-apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
 -- algebra/hom/group.lean
 apply_nolint monoid_hom.ext_iff to_additive_doc
 apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
-
--- algebra/order/group.lean
-apply_nolint left.inv_le_one_iff to_additive_doc
-apply_nolint left.inv_lt_one_iff to_additive_doc
-apply_nolint left.one_le_inv_iff to_additive_doc
-apply_nolint left.one_lt_inv_iff to_additive_doc
-apply_nolint right.inv_le_one_iff to_additive_doc
-apply_nolint right.one_le_inv_iff to_additive_doc
-
--- algebra/order/lattice_group.lean
-apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
 
 -- analysis/box_integral/box/basic.lean
 apply_nolint box_integral.box.Union_Ioo_of_tendsto fintype_finite
@@ -320,8 +286,8 @@ apply_nolint list.traverse doc_blame
 apply_nolint list.perm.prod_eq' to_additive_doc
 
 -- data/matrix/basic.lean
-apply_nolint matrix.mul_minor_one fintype_finite
-apply_nolint matrix.one_minor_mul fintype_finite
+apply_nolint matrix.mul_submatrix_one fintype_finite
+apply_nolint matrix.one_submatrix_mul fintype_finite
 
 -- data/matrix/basis.lean
 apply_nolint matrix.induction_on fintype_finite
@@ -485,37 +451,6 @@ apply_nolint stream.is_bisimulation doc_blame
 -- data/zmod/quotient.lean
 apply_nolint add_action.minimal_period_pos fintype_finite
 apply_nolint mul_action.minimal_period_pos fintype_finite
-
--- field_theory/finite/basic.lean
-apply_nolint finite_field.exists_nonsquare fintype_finite
-apply_nolint finite_field.is_square_of_char_two fintype_finite
-
--- field_theory/finite/galois_field.lean
-apply_nolint galois_field.is_galois fintype_finite
-
--- field_theory/finite/polynomial.lean
-apply_nolint mv_polynomial.R.finite_dimensional fintype_finite
-apply_nolint mv_polynomial.eq_zero_of_eval_eq_zero fintype_finite
-apply_nolint mv_polynomial.ker_evalₗ fintype_finite
-apply_nolint mv_polynomial.map_restrict_dom_evalₗ fintype_finite
-apply_nolint mv_polynomial.range_evalᵢ fintype_finite
-
--- field_theory/finite/trace.lean
-apply_nolint finite_field.trace_to_zmod_nondegenerate fintype_finite
-
--- field_theory/fixed.lean
-apply_nolint fixed_points.finite_dimensional fintype_finite
-apply_nolint fixed_points.is_integral fintype_finite
-apply_nolint fixed_points.normal fintype_finite
-apply_nolint fixed_points.separable fintype_finite
-apply_nolint fixed_points.to_alg_hom_bijective fintype_finite
-
--- field_theory/galois.lean
-apply_nolint is_galois.of_fixed_field fintype_finite
-
--- field_theory/primitive_element.lean
-apply_nolint field.exists_primitive_element_of_fintype_bot fintype_finite
-apply_nolint field.exists_primitive_element_of_fintype_top fintype_finite
 
 -- geometry/euclidean/circumcenter.lean
 apply_nolint affine_independent.exists_unique_dist_eq fintype_finite

@@ -104,7 +104,7 @@ end
 div_pos ha (pow_pos hb k)
 
 @[simp] lemma div_pow_le (ha : 0 < a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=
-(div_le_iff $ pow_pos (lt_of_lt_of_le zero_lt_one hb) k).mpr
+(div_le_iff $ pow_pos (zero_lt_one.trans_le hb) k).mpr
 (calc a = a * 1 : (mul_one a).symm
    ...  ≤ a*b^k : (mul_le_mul_left ha).mpr $ one_le_pow_of_one_le hb _)
 

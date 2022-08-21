@@ -5,9 +5,6 @@ Authors: Johannes Hölzl, Kenny Lau
 -/
 
 import data.dfinsupp.basic
-import algebra.big_operators.pi
-import algebra.big_operators.ring
-import algebra.big_operators.order
 
 /-!
 # Big operators for dfinsupps

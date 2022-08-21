@@ -154,7 +154,7 @@ begin
   change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis b,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
     refine continuous.matrix_det _,
     exact ((linear_map.to_matrix b b).to_linear_map.comp

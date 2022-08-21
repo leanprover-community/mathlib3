@@ -1931,6 +1931,7 @@ theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
 begin
+  casesI nonempty_encodable β,
   casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
   inhabit β,
   have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
@@ -2165,7 +2166,7 @@ section countable
 ### Lebesgue integral over finite and countable types and sets
 -/
 
-lemma lintegral_countable [countable α] [measurable_singleton_class α] (f : α → ℝ≥0∞) :
+lemma lintegral_countable' [countable α] [measurable_singleton_class α] (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
 begin
   conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
@@ -2700,7 +2701,7 @@ begin
   have hNs : ∀ n, N ⁻¹' {n} = s n := preimage_spanning_sets_index_singleton μ,
   refine ⟨δ ∘ N, λ x, δpos _, measurable_from_nat.comp hN_meas, _⟩,
   simpa [lintegral_comp measurable_from_nat.coe_nnreal_ennreal hN_meas, hNs,
-    lintegral_countable, measurable_spanning_sets_index, mul_comm] using δsum,
+    lintegral_countable', measurable_spanning_sets_index, mul_comm] using δsum,
 end
 
 lemma lintegral_trim {μ : measure α} (hm : m ≤ m0) {f : α → ℝ≥0∞} (hf : measurable[m] f) :

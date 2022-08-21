@@ -125,9 +125,8 @@ end
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
 This sum is expressed over the finset `Ico 1 (log p n).succ`. -/
 lemma factorization_factorial' {p : ℕ} (hp : p.prime) (n : ℕ) :
-  ∀ {n : ℕ}, n!.factorization p = (∑ i in Ico 1 (log p n).succ, n / p ^ i : ℕ) :=
+  n!.factorization p = (∑ i in Ico 1 (log p n).succ, n / p ^ i : ℕ) :=
 begin
-  intro n,
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
   rcases lt_or_le n p with hnp | hnp, {
     have : log p n = 0, { rw log_eq_zero_iff, simp [hnp] },
@@ -161,12 +160,11 @@ end
 /--
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
 This sum is expressed over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
-lemma factorization_factorial'' {p : ℕ} (hp : p.prime) :
-  ∀ {n b : ℕ}, log p n < b → n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
+lemma factorization_factorial'' {p : ℕ} (hp : p.prime) {n b : ℕ} (hbn : log p n < b) :
+  n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
 begin
-  rintro n b hbn,
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  rw factorization_factorial' hp b,
+  rw factorization_factorial' hp,
   rw ← @sum_Ico_consecutive ℕ _ _ 1 (log p n).succ b _ (succ_le_iff.2 hbn),
   { simp,
     rintro x hx1 hx2,
@@ -180,7 +178,6 @@ end
 lemma factorization_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
   (p * (n + 1))!.factorization p = (p * n)!.factorization p + (n + 1).factorization p + 1 :=
 begin
-
   have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
   have h2 : p * n + 1 ≤ p * (n + 1), linarith [hp.two_le],
   have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,

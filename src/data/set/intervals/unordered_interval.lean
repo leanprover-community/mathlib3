@@ -121,7 +121,7 @@ by simp_rw mem_interval; rintro (⟨_, _⟩ | ⟨_, _⟩) (⟨_, _⟩ | ⟨_, _�
   assumption <|> { exact le_trans ‹_› ‹_› }
 
 lemma eq_of_mem_interval_of_mem_interval' : b ∈ [a, c] → c ∈ [a, b] → b = c :=
-by simpa [interval_swap a] using eq_of_mem_interval_of_mem_interval
+by simpa only [interval_swap a] using eq_of_mem_interval_of_mem_interval
 
 lemma interval_injective_right (a : α) : injective (λ b, interval b a) :=
 λ b c h, by { rw ext_iff at h,
@@ -183,6 +183,9 @@ Ioc_subset_Ioc (min_le_right _ _) (le_max_left _ _)
 lemma eq_of_mem_interval_oc_of_mem_interval_oc : a ∈ Ι b c → b ∈ Ι a c → a = b :=
 by simp_rw mem_interval_oc; rintro (⟨_, _⟩ | ⟨_, _⟩) (⟨_, _⟩ | ⟨_, _⟩); apply le_antisymm;
   assumption <|> exact le_of_lt ‹_› <|> exact le_trans ‹_› (le_of_lt ‹_›)
+
+lemma eq_of_mem_interval_oc_of_mem_interval_oc' : b ∈ Ι a c → c ∈ Ι a b → b = c :=
+by simpa only [interval_oc_swap a] using eq_of_mem_interval_oc_of_mem_interval_oc
 
 lemma eq_of_not_mem_interval_oc_of_not_mem_interval_oc (ha : a ≤ c) (hb : b ≤ c) :
   a ∉ Ι b c → b ∉ Ι a c → a = b :=

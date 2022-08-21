@@ -102,8 +102,9 @@ instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicativ
 add_monoid.fg_iff_mul_fg.1 ‹_›
 
 @[to_additive, priority 100]
-instance monoid.fg_of_fintype [fintype M] : monoid.fg M :=
-⟨⟨finset.univ, by rw finset.coe_univ; exact submonoid.closure_univ⟩⟩
+instance monoid.fg_of_finite [finite M] : monoid.fg M :=
+by { casesI nonempty_fintype M,
+  exact ⟨⟨finset.univ, by rw finset.coe_univ; exact submonoid.closure_univ⟩⟩ }
 
 end monoid
 
@@ -264,8 +265,9 @@ instance group.fg_of_mul_group_fg [add_group.fg H] : group.fg (multiplicative H)
 add_group.fg_iff_mul_fg.1 ‹_›
 
 @[to_additive, priority 100]
-instance group.fg_of_fintype [fintype G] : group.fg G :=
-⟨⟨finset.univ, by rw finset.coe_univ; exact subgroup.closure_univ⟩⟩
+instance group.fg_of_finite [finite G] : group.fg G :=
+by { casesI nonempty_fintype G,
+  exact ⟨⟨finset.univ, by rw finset.coe_univ; exact subgroup.closure_univ⟩⟩ }
 
 @[to_additive]
 lemma group.fg_of_surjective {G' : Type*} [group G'] [hG : group.fg G] {f : G →* G'}

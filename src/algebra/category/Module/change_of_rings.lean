@@ -152,10 +152,10 @@ open_locale change_of_rings
 
 variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
 
-lemma smul_tmul {M : Module.{v} R} (s s' : S) (m : M) :
+@[simp] protected lemma smul_tmul {M : Module.{v} R} (s s' : S) (m : M) :
   s • (s' ⊗ₜ[R, f] m : (extend_scalars f).obj M) = (s * s') ⊗ₜ[R, f] m := rfl
 
-lemma map_tmul {M M' : Module.{v} R} (g : M ⟶ M') (s : S) (m : M) :
+@[simp] lemma map_tmul {M M' : Module.{v} R} (g : M ⟶ M') (s : S) (m : M) :
   (extend_scalars f).map g (s ⊗ₜ[R, f] m) = s ⊗ₜ[R, f] g m := rfl
 
 end extend_scalars

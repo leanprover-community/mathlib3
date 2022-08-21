@@ -177,20 +177,12 @@ namespace finite_type
 
 lemma self : finite_type R R := ⟨⟨{1}, subsingleton.elim _ _⟩⟩
 
-section
-open_locale classical
+protected lemma polynomial : finite_type R R[X] :=
+⟨⟨{polynomial.X}, by { rw finset.coe_singleton, exact polynomial.adjoin_X }⟩⟩
 
 protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_polynomial ι R) :=
-⟨⟨finset.univ.image mv_polynomial.X, begin
-  rw eq_top_iff, refine λ p, mv_polynomial.induction_on' p
-    (λ u x, finsupp.induction u (subalgebra.algebra_map_mem _ x)
-      (λ i n f hif hn ih, _))
-    (λ p q ihp ihq, subalgebra.add_mem _ ihp ihq),
-  rw [add_comm, mv_polynomial.monomial_add_single],
-  exact subalgebra.mul_mem _ ih
-    (subalgebra.pow_mem _ (subset_adjoin $ finset.mem_image_of_mem _ $ finset.mem_univ _) _)
-end⟩⟩
-end
+⟨⟨finset.univ.image mv_polynomial.X,
+  by {rw [finset.coe_image, finset.coe_univ, set.image_univ], exact mv_polynomial.adjoin_range_X}⟩⟩
 
 lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB : finite_type R B] :
   finite_type A B :=
@@ -335,20 +327,17 @@ variable (R)
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
 protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
   finite_presentation R (mv_polynomial ι R) :=
-begin
-  have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
-  refine ⟨_, alg_equiv.to_alg_hom equiv.symm, _⟩,
-  split,
-  { exact (alg_equiv.symm equiv).surjective },
-  suffices hinj : function.injective equiv.symm.to_alg_hom.to_ring_hom,
-  { rw [(ring_hom.injective_iff_ker_eq_bot _).1 hinj],
-    exact submodule.fg_bot },
-  exact (alg_equiv.symm equiv).injective
-end
+let eqv := (mv_polynomial.rename_equiv R $ fintype.equiv_fin ι).symm in
+⟨fintype.card ι, eqv, eqv.surjective,
+  ((ring_hom.injective_iff_ker_eq_bot _).1 eqv.injective).symm ▸ submodule.fg_bot⟩
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
 equiv (finite_presentation.mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
+
+/-- `R[X]` is finitely presented as `R`-algebra. -/
+lemma polynomial : finite_presentation R R[X] :=
+equiv (finite_presentation.mv_polynomial R punit) (mv_polynomial.punit_alg_equiv R)
 
 variable {R}
 

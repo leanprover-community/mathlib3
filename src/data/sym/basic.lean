@@ -71,7 +71,7 @@ The unique element in `sym α 0`.
 -/
 @[pattern] def nil : sym α 0 := ⟨0, multiset.card_zero⟩
 
-@[simp] def nil_coe : (coe (sym.nil)) = (0 : multiset α) :=
+@[simp] lemma nil_coe : (coe (@sym.nil α)) = (0 : multiset α) :=
 by rw [sym.nil, sym.mk_coe 0 multiset.card_zero]
 
 /--

@@ -470,14 +470,9 @@ section ordered_comm_semiring
 variables [ordered_comm_semiring R] {f g : ι → R} {s t : finset ι}
 open_locale classical
 
-/- this is also true for a ordered commutative multiplicative monoid -/
+/- this is also true for a ordered commutative multiplicative monoid with zero -/
 lemma prod_nonneg (h0 : ∀ i ∈ s, 0 ≤ f i) : 0 ≤ ∏ i in s, f i :=
 prod_induction f (λ i, 0 ≤ i) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
-
-/- this is also true for a ordered commutative multiplicative monoid -/
-lemma prod_pos [nontrivial R] (h0 : ∀ i ∈ s, 0 < f i) :
-  0 < ∏ i in s, f i :=
-prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
 /-- If all `f i`, `i ∈ s`, are nonnegative and each `f i` is less than or equal to `g i`, then the
 product of `f i` is less than or equal to the product of `g i`. See also `finset.prod_le_prod''` for
@@ -520,6 +515,15 @@ begin
 end
 
 end ordered_comm_semiring
+
+section ordered_cancel_comm_semiring
+variables [ordered_cancel_comm_semiring R] [nontrivial R] {f : ι → R} {s : finset ι}
+
+/- This is also true for a ordered commutative multiplicative monoid with zero -/
+lemma prod_pos (h0 : ∀ i ∈ s, 0 < f i) : 0 < ∏ i in s, f i :=
+prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
+
+end ordered_cancel_comm_semiring
 
 section canonically_ordered_comm_semiring
 

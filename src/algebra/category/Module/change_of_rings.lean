@@ -24,7 +24,7 @@ import ring_theory.tensor_product
 Let `R, S` be rings and `f : R →+* S`
 * if `M` is an `R`-module, then notation `S ⨂[R, f] M` means the tensor product `S ⨂ M` where `S`
   is considered as an `R`-module via restriction of scalars.
-* if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f]` is the pure tensor
+* if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f] m` is the pure tensor
   `s ⊗ m : S ⊗[R, f] M`.
 -/
 
@@ -117,7 +117,7 @@ def map' {M1 M2 : Module.{v} R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
 lemma map'_id {M : Module.{v} R} : map' f (𝟙 M) = 𝟙 _ :=
 linear_map.ext $ λ (x : obj' f M),
 begin
-  dsimp [map'],
+  dsimp only [map', Module.id_apply],
   induction x using tensor_product.induction_on with _ _ m s ihx ihy,
   { simp only [map_zero], },
   { rw [linear_map.base_change_tmul, Module.id_apply], },
@@ -128,10 +128,10 @@ lemma map'_comp {M₁ M₂ M₃ : Module.{v} R} (l₁₂ : M₁ ⟶ M₂) (l₂�
   map' f (l₁₂ ≫ l₂₃) = map' f l₁₂ ≫ map' f l₂₃ :=
 linear_map.ext $ λ (x : obj' f M₁),
 begin
-  dsimp [map'],
+  dsimp only [map'],
   induction x using tensor_product.induction_on with _ _ x y ihx ihy,
   { refl, },
-  { tidy, },
+  { refl, },
   { simp only [map_add, ihx, ihy], },
 end
 
@@ -142,7 +142,7 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` a
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
 def extend_scalars {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) :
-  Module R ⥤ Module S :=
+  Module.{v} R ⥤ Module.{max v u₂} S :=
 { obj := λ M, extend_scalars.obj' f M,
   map := λ M1 M2 l, extend_scalars.map' f l,
   map_id' := λ _, extend_scalars.map'_id f,

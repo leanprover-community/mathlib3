@@ -142,6 +142,19 @@ from a family of morphisms between the factors.
 abbreviation pi.map {f g : β → C} [has_product f] [has_product g]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
 lim_map (discrete.nat_trans (λ X, p X.as))
+
+instance pi.map_mono {f g : β → C} [has_product f] [has_product g]
+  (p : Π b, f b ⟶ g b) [Π i, mono (p i)] : mono (pi.map p) :=
+{ right_cancellation := λ c α₁ α₂ eq1,
+  begin
+    ext ⟨j⟩, dsimp,
+    have eq2 := eq_whisker eq1 (pi.π _ j),
+    rw [category.assoc, lim_map_π, category.assoc, lim_map_π,
+      ←category.assoc, ←category.assoc] at eq2,
+    simp only [discrete.nat_trans_app] at eq2, dsimp at eq2,
+    rwa cancel_mono at eq2,
+  end }
+
 /--
 Construct an isomorphism between categorical products (indexed by the same type)
 from a family of isomorphisms between the factors.

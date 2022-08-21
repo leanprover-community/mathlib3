@@ -123,123 +123,6 @@ variables [reflects_isomorphisms (forget C)] [preserves_filtered_colimits (forge
   map_id' := λ F, by { ext, dsimp, rw [id_apply] },
   map_comp' := λ F G H f g, by { ext, dsimp, rw [comp_apply] } }
 
-example : true := trivial
-
-
-def godement_sheaf_in_Type : sheaf (Type u) X := sheaf_in_Type.obj (godement_sheaf 𝓖)
-
-def godement_sheaf_in_Type_obj_aux (U : (opens X)ᵒᵖ) :
-  (forget C).obj ∏ (λ x, (skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U) ≅
-  ∏ (λ x, (forget C).obj ((skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U)) :=
-{ hom := pi.lift $ λ p, (forget C).map $ pi.π _ p,
-  inv :=
-  begin
-    refine lim_map _ ≫ (preserves_limit_iso (forget C) _).inv,
-    refine { app := λ p x, x, naturality' := _ },
-    rintros ⟨p⟩ ⟨q⟩ ⟨⟨(eq1 : p = q)⟩⟩,
-    dsimp,
-    induction eq1,
-    ext1,
-    dsimp,
-    simp only [discrete.functor_map_id, types_id_apply, id_apply],
-  end,
-  hom_inv_id' :=
-  begin
-    rw [←category.assoc, limit.lift_map, iso.comp_inv_eq, category.id_comp],
-    refine limit.hom_ext _,
-    rintros ⟨p⟩,
-    rw [preserves_limits_iso_hom_π, limit.lift_π],
-    simpa only [cones.postcompose_obj_π, nat_trans.comp_app, fan.mk_π_app, forget_map_eq_coe],
-  end,
-  inv_hom_id' :=
-  begin
-    ext1 ⟨p⟩,
-    rw [category.assoc, limit.lift_π, fan.mk_π_app, category.assoc, preserves_limits_iso_inv_π,
-      lim_map_π, category.id_comp],
-    refl,
-  end }
-
-def godement_sheaf_in_Type_obj (U : (opens X)ᵒᵖ) :
-  (godement_sheaf_in_Type 𝓖).1.obj U ≅
-  ∏ (λ x, (forget C).obj $ (skyscraper_presheaf x (𝓖.presheaf.stalk x)).obj U) :=
-((forget C).map_iso $ godement_sheaf_obj 𝓖 U) ≪≫ godement_sheaf_in_Type_obj_aux 𝓖 U
-
-def sheaf_in_Type_skyscraper_sheaf (x : X) (c : C) :
-  (sheaf_in_Type.obj $ skyscraper_sheaf x c) ≅
-  skyscraper_sheaf x ((forget C).obj c) :=
-let e1 := preserves_limit_iso (forget C) (functor.empty.{0} C) in
-have it : is_terminal $ (forget C).obj (terminal C),
-from is_terminal.of_iso
-begin
-  rw show functor.empty C ⋙ forget C = functor.empty (Type u), from functor.empty_ext' _ _,
-  exact terminal_is_terminal,
-end e1.symm,
-let e : (sheaf_in_Type.obj $ skyscraper_sheaf x c) ≅ skyscraper_sheaf' x ((forget C).obj c) it :=
-{ hom := Sheaf.hom.mk
-  { app := λ U, eq_to_hom
-    begin
-      change (forget C).obj _ = (skyscraper_sheaf' x ((forget C).obj c) _).1.obj _,
-      by_cases hU : x ∈ U.unop,
-      { erw [skyscraper_presheaf_obj_of_mem _ hU, skyscraper_sheaf'],
-        dsimp, split_ifs, refl, },
-      { erw [skyscraper_presheaf_obj_of_not_mem _ hU, skyscraper_sheaf'],
-        dsimp, split_ifs, refl, },
-    end,
-    naturality' := λ U V inc,
-    begin
-      dsimp [skyscraper_sheaf', sheaf_in_Type, skyscraper_sheaf],
-      change (forget C).map _ ≫ _ = _,
-      by_cases hV : x ∈ V.unop,
-      { have hU : x ∈ U.unop := le_of_hom inc.unop hV,
-        split_ifs,
-        simp only [category.id_comp, eq_to_hom_trans, eq_to_hom_refl, eq_to_hom_map],
-        refl, },
-      { split_ifs;
-        symmetry;
-        rw [←category.assoc, eq_comp_eq_to_hom];
-        exact it.hom_ext _ _, },
-    end },
-  inv := Sheaf.hom.mk
-  { app := λ U, eq_to_hom
-    begin
-      change (skyscraper_sheaf' x ((forget C).obj c) _).1.obj _ = (forget C).obj _,
-      by_cases hU : x ∈ U.unop,
-      { erw [skyscraper_presheaf_obj_of_mem _ hU, skyscraper_sheaf'],
-        dsimp, split_ifs, refl, },
-      { erw [skyscraper_presheaf_obj_of_not_mem _ hU, skyscraper_sheaf'],
-        dsimp, split_ifs, refl, },
-    end,
-    naturality' := λ U V inc,
-    begin
-      dsimp [skyscraper_sheaf', sheaf_in_Type, skyscraper_sheaf],
-      change _ = _ ≫ (forget C).map _,
-      by_cases hV : x ∈ V.unop,
-      { have hU : x ∈ U.unop := le_of_hom inc.unop hV,
-        split_ifs,
-        simp only [category.id_comp, eq_to_hom_trans, eq_to_hom_refl, eq_to_hom_map],
-        refl, },
-      { split_ifs;
-        rw [eq_comp_eq_to_hom, eq_comp_eq_to_hom];
-        exact it.hom_ext _ _, },
-    end },
-  hom_inv_id' :=
-  begin
-    ext : 3, dsimp,
-    rw [eq_to_hom_trans, eq_to_hom_refl],
-  end,
-  inv_hom_id' :=
-  begin
-    ext : 3, dsimp,
-    rw [eq_to_hom_trans, eq_to_hom_refl],
-  end } in
-e.trans $ (skyscraper_sheaf_iso _ _ it).symm
-
-example : true := trivial
-
-/--
-`x y : 𝓖(U)`, and `p ∈ U`
-``
--/
 def stalk_bundles_eq0 (U : (opens X)ᵒᵖ) (x y : (sheaf_in_Type.obj 𝓖).1.obj U)
   (eq1 : (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U x =
       (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U y) (p : U.unop) :
@@ -272,7 +155,6 @@ def stalk_bundles_eq (U : (opens X)ᵒᵖ) (x y : (sheaf_in_Type.obj 𝓖).1.obj
   (eq1 : (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U x =
       (sheaf_in_Type.map (to_godement_sheaf 𝓖)).val.app U y) (p : U.unop) :
   (forget C).map (𝓖.presheaf.germ p) x = (forget C).map (𝓖.presheaf.germ p) y :=
-
 begin
   have eq1' := stalk_bundles_eq0 𝓖 U x y eq1 p,
   have eq1'' : (forget C).map (to_godement_presheaf_aux_comp_π 𝓖.presheaf p) x =
@@ -285,23 +167,90 @@ end
 
 example : true := trivial
 
-def forget_stalk_iso (U : (opens X)ᵒᵖ) (x : U.unop) :
-  (forget C).obj (𝓖.presheaf.stalk x) ≅ (sheaf_in_Type.obj 𝓖).presheaf.stalk x :=
-preserves_colimit_iso _ _
-
-lemma to_godement_sheaf_app_injective (U : opens X) :
-  function.injective $ (forget C).map ((to_godement_sheaf 𝓖).1.app (opposite.op U)) :=
-λ x y eq1, presheaf.section_ext _ _ _ _ (λ p, stalk_bundles_eq 𝓖 (opposite.op U) x y eq1 p)
-
 instance : mono $ to_godement_sheaf 𝓖 :=
 begin
   rw presheaf.mono_iff_stalk_mono,
   intros x,
   change mono ((presheaf.stalk_functor C x).map (to_godement_presheaf 𝓖.1)),
   rw concrete_category.mono_iff_injective_of_preserves_pullback,
-  refine (presheaf.app_injective_iff_stalk_functor_map_injective (to_godement_presheaf 𝓖.1)).mpr
-    (λ U x y eq1, presheaf.section_ext _ _ _ _ (λ p, stalk_bundles_eq 𝓖 (opposite.op U) x y eq1 p))
-    x,
+  exact (presheaf.app_injective_iff_stalk_functor_map_injective (to_godement_presheaf 𝓖.1)).mpr
+    (λ U x y H, presheaf.section_ext _ _ _ _ (λ p, stalk_bundles_eq 𝓖 (opposite.op U) x y H p)) x,
 end
+
+section enough_injectives
+
+variables [enough_injectives C]
+
+namespace sheaf_enough_inj_aux
+
+def injective_sheaf : sheaf C X :=
+⟨∏ (λ x, skyscraper_presheaf x (injective.under $ 𝓕.stalk x) : X → presheaf C X),
+ limit_is_sheaf _ $ λ ⟨x⟩, (skyscraper_sheaf x _).2⟩
+
+def injective_sheaf_iso :
+  injective_sheaf 𝓖.1 ≅
+  ∏ (λ x, skyscraper_sheaf x (injective.under $ 𝓖.presheaf.stalk x)) :=
+{ hom := Sheaf.hom.mk $ eq_to_hom begin
+    change limit _ = limit _, congr, apply category_theory.functor.ext,
+    { rintros ⟨p⟩ ⟨q⟩ ⟨⟨(eq1 : p = q)⟩⟩, subst eq1,
+      rw [eq_to_hom_refl, category.id_comp, eq_to_hom_refl, category.comp_id], refl, },
+    { rintros ⟨p⟩, dsimp, refl, },
+  end ≫ (preserves_limit_iso (sheaf.forget C X) _).inv,
+  inv := Sheaf.hom.mk $ (preserves_limit_iso (sheaf.forget C X) _).hom ≫ eq_to_hom begin
+    change limit _ = limit _, congr, apply category_theory.functor.ext,
+    { rintros ⟨p⟩ ⟨q⟩ ⟨⟨(eq1 : p = q)⟩⟩, subst eq1,
+      rw [eq_to_hom_refl, category.id_comp, eq_to_hom_refl, category.comp_id], refl, },
+    { rintros ⟨p⟩, dsimp, refl, },
+  end,
+  hom_inv_id' :=
+  begin
+    ext ⟨p⟩ U, dsimp,
+    rw [←category.assoc, category.assoc _ _ ((preserves_limit_iso (sheaf.forget C X) _).hom.app U),
+      iso.inv_hom_id_app, category.comp_id, category.id_comp, ←nat_trans.comp_app, eq_to_hom_trans,
+      eq_to_hom_refl],
+    convert category.id_comp _,
+  end,
+  inv_hom_id' :=
+  begin
+    ext ⟨p⟩ U, dsimp,
+    rw [←category.assoc, category.assoc _ _ (eq_to_hom _), eq_to_hom_trans, eq_to_hom_refl,
+      category.comp_id, iso.hom_inv_id],
+  end }
+
+local notation `J` := injective_sheaf 𝓖.1
+
+instance injective_J : injective J :=
+injective.of_iso (injective_sheaf_iso 𝓖).symm $
+@@injective.category_theory.limits.pi_obj.injective _ _ _ $ λ p,
+(skyscraper_sheaf_injective p _ : injective
+  (skyscraper_sheaf p (injective.under (𝓖.presheaf.stalk p))))
+
+def to_J : 𝓖 ⟶ J :=
+Sheaf.hom.mk $ to_godement_presheaf _ ≫
+  pi.map (λ p, (skyscraper_presheaf_functor p).map $ injective.ι _)
+
+instance mono_to_J : mono (to_J 𝓖) :=
+(Sheaf.hom.mono_iff_presheaf_mono _ _ _).mpr
+begin
+  haveI t1 : mono (to_godement_sheaf 𝓖) := infer_instance,
+  rw Sheaf.hom.mono_iff_presheaf_mono at t1,
+  change mono (to_godement_presheaf 𝓖.1) at t1,
+  resetI,
+  haveI t2 : mono (pi.map (λ p, (skyscraper_presheaf_functor p).map
+    (injective.ι (presheaf.stalk 𝓖.val p)))),
+  { sorry },
+  apply mono_comp,
+end
+
+end sheaf_enough_inj_aux
+
+instance : enough_injectives (sheaf C X) :=
+{ presentation := λ 𝓖, nonempty.intro
+  { J := sheaf_enough_inj_aux.injective_sheaf 𝓖.1,
+    injective := sheaf_enough_inj_aux.injective_J _,
+    f := sheaf_enough_inj_aux.to_J _,
+    mono := sheaf_enough_inj_aux.mono_to_J 𝓖 } }
+
+end enough_injectives
 
 end presheaf

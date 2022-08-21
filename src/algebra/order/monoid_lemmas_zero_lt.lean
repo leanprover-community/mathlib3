@@ -1193,19 +1193,19 @@ lemma le_mul_of_one_le_left [mul_pos_mono α] (b0 : 0 ≤ b) (h : 1 ≤ a) :
   b ≤ a * b :=
 le_mul_of_one_le_of_le h le_rfl b0
 
-lemma le_of_mul_le_of_one_le_left [pos_mul_mono α]
+lemma le_of_mul_le_of_one_le_of_nonneg_left [pos_mul_mono α]
   (h : a * b ≤ c) (hle : 1 ≤ b) (a0 : 0 ≤ a) :
   a ≤ c :=
 a0.lt_or_eq.elim (preorder.le_of_mul_le_of_one_le_left h hle)
   (λ ha, by simpa only [← ha, zero_mul] using h)
 
-lemma le_of_le_mul_of_le_one_left [pos_mul_mono α]
+lemma le_of_le_mul_of_le_one_of_nonneg_left [pos_mul_mono α]
   (h : a ≤ b * c) (hle : c ≤ 1) (b0 : 0 ≤ b) :
   a ≤ b :=
 b0.lt_or_eq.elim (preorder.le_of_le_mul_of_le_one_left h hle)
   (λ hb, by simpa only [← hb, zero_mul] using h)
 
-lemma le_of_mul_le_of_one_le_right [mul_pos_mono α]
+lemma le_of_mul_le_of_one_le_nonneg_right [mul_pos_mono α]
   (h : a * b ≤ c) (hle : 1 ≤ a) (b0 : 0 ≤ b) :
   b ≤ c :=
 b0.lt_or_eq.elim (preorder.le_of_mul_le_of_one_le_right h hle)

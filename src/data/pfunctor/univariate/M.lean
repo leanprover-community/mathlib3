@@ -606,7 +606,7 @@ lemma bisim (R : M P → M P → Prop)
   ∀ x y, R x y → x = y :=
 begin
   introv h',
-  letI := inhabited.mk x.head,
+  haveI := inhabited.mk x.head,
   apply eq_of_bisim R _ _ _ h', clear h' x y,
   split; introv ih;
     rcases h _ _ ih with ⟨ a'', g, g', h₀, h₁, h₂ ⟩; clear h,

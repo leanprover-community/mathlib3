@@ -157,7 +157,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_Union {s : set β} (hs : s.finite)
+@[simp] lemma integrable_on_finite_bUnion {s : set β} (hs : s.finite)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -167,7 +167,7 @@ end
 
 @[simp] lemma integrable_on_finset_Union {s : finset β} {t : β → set α} :
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
-integrable_on_finite_Union s.finite_to_set
+integrable_on_finite_bUnion s.finite_to_set
 
 @[simp] lemma integrable_on_finite_Union [finite β] {t : β → set α} :
   integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=

@@ -134,6 +134,10 @@ lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.
   epi f :=
 (forget C).epi_of_epi_map ((epi_iff_surjective f).2 s)
 
+lemma concrete_category.bijective_of_is_iso {X Y : C} (f : X ⟶ Y) [is_iso f] :
+  function.bijective ((forget C).map f) :=
+by { rw ← is_iso_iff_bijective, apply_instance, }
+
 @[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
   coe_fn f = f :=
 rfl

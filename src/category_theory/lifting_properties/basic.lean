@@ -104,6 +104,44 @@ instance of_comp_right [has_lifting_property i p] [has_lifting_property i p'] :
       fac_right' := by simp only [comm_sq.fac_right_assoc, comm_sq.fac_right], },
 end⟩
 
+lemma of_arrow_iso_left {A B A' B' X Y : C} {i : A ⟶ B} {i' : A' ⟶ B'}
+  (e : arrow.mk i ≅ arrow.mk i') (p : X ⟶ Y)
+  [hip : has_lifting_property i p] : has_lifting_property i' p :=
+begin
+  have eq : i' = (arrow.left_func.map_iso e).inv ≫ i ≫ (arrow.right_func.map_iso e).hom,
+  { simp only [functor.map_iso_inv, arrow.left_func_map, functor.map_iso_hom,
+      arrow.right_func_map, arrow.w_mk_right_assoc, arrow.mk_hom],
+    have eq' := arrow.hom.congr_right e.inv_hom_id,
+    dsimp at eq' ⊢,
+    rw [eq', category.comp_id], },
+  rw eq,
+  apply_instance,
+end
+
+lemma of_arrow_iso_right {A B X Y X' Y' : C} (i : A ⟶ B) {p : X ⟶ Y} {p' : X' ⟶ Y'}
+  (e : arrow.mk p ≅ arrow.mk p')
+  [hip : has_lifting_property i p] : has_lifting_property i p' :=
+begin
+  have eq : p' = (arrow.left_func.map_iso e).inv ≫ p ≫ (arrow.right_func.map_iso e).hom,
+  { simp only [functor.map_iso_inv, arrow.left_func_map, functor.map_iso_hom,
+      arrow.right_func_map, arrow.w_mk_right_assoc, arrow.mk_hom],
+    have eq' := arrow.hom.congr_right e.inv_hom_id,
+    dsimp at eq' ⊢,
+    rw [eq', category.comp_id], },
+  rw eq,
+  apply_instance,
+end
+
+lemma iff_of_arrow_iso_left {A B A' B' X Y : C} {i : A ⟶ B} {i' : A' ⟶ B'}
+  (e : arrow.mk i ≅ arrow.mk i') (p : X ⟶ Y) :
+  has_lifting_property i p ↔ has_lifting_property i' p :=
+by { split; introI, exacts [of_arrow_iso_left e p, of_arrow_iso_left e.symm p], }
+
+lemma iff_of_arrow_iso_right {A B X Y X' Y' : C} (i : A ⟶ B) {p : X ⟶ Y} {p' : X' ⟶ Y'}
+  (e : arrow.mk p ≅ arrow.mk p') :
+  has_lifting_property i p ↔ has_lifting_property i p' :=
+by { split; introI, exacts [of_arrow_iso_right i e, of_arrow_iso_right i e.symm], }
+
 end has_lifting_property
 
 end category_theory

@@ -175,9 +175,7 @@ begin
   simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero],
 end
 
-
--- TODO: Fill in this docstring
-/-! ##  -/
+/-! ## Lemmas about factorizations of products and powers -/
 
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
@@ -213,8 +211,6 @@ begin
     simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
 end
 
-/-! ##  -/
-
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 @[simp] lemma factorization_pow (n k : ℕ) :
   factorization (n^k) = k • n.factorization :=
@@ -223,6 +219,8 @@ begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
   rw [pow_succ, factorization_mul hn (pow_ne_zero _ hn), ih, succ_eq_one_add, add_smul, one_smul],
 end
+
+/-! ## Lemmas about factorizations of primes and prime powers -/
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :

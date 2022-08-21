@@ -109,7 +109,7 @@ begin
   by_cases h : (choose n k).factorization p = 0, { simp [h] },
   cases em' p.prime with hp hp, { cases h (factorization_eq_zero_of_non_prime _ hp) },
   rcases lt_or_le n k with hnk | hkn, { simp [choose_eq_zero_of_lt hnk] },
-  simp only [hp.factorization_choose hkn (lt_add_one _)],
+  simp only [factorization_choose hp hkn (lt_add_one _)],
   apply (finset.card_filter_le _ _).trans,
   simp,
 end
@@ -142,7 +142,7 @@ lemma factorization_choose_of_lt_three_mul
 begin
   cases em' p.prime with hp hp, { exact factorization_eq_zero_of_non_prime _ hp },
   cases lt_or_le n k with hnk hkn, { simp [choose_eq_zero_of_lt hnk] },
-  simp only [hp.factorization_choose hkn (lt_add_one _)],
+  simp only [factorization_choose hp hkn (lt_add_one _)],
   simp only [finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],
   intros i hi,
   rcases eq_or_lt_of_le (finset.mem_Ico.mp hi).1 with rfl | hi,

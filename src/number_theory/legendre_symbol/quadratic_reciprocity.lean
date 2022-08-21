@@ -108,7 +108,7 @@ that `legendre_sym p` is a multiplicative function `ℤ → ℤ`.
 def legendre_sym (a : ℤ) : ℤ := quadratic_char (zmod p) a
 
 /-- We have the congruence `legendre_sym p a ≡ a ^ (p / 2) mod p`. -/
-lemma legendre_sym_eq_pow (a : ℤ) : (legendre_sym p a : zmod p) = (a ^ (p / 2)) :=
+lemma legendre_sym_eq_pow (a : ℤ) : (legendre_sym p a : zmod p) = a ^ (p / 2) :=
 begin
   cases eq_or_ne (ring_char (zmod p)) 2 with hc hc,
   { by_cases ha : (a : zmod p) = 0,
@@ -308,7 +308,7 @@ begin
   have h := quadratic_char_odd_prime (ne_of_eq_of_ne (ring_char_zmod_n p) hp) hq
               (ne_of_eq_of_ne (ring_char_zmod_n p) hpq),
   rw [card p] at h,
-  have nc : ∀ (n r : ℕ), ((n : ℤ) : zmod r) = n := by {intros n r, norm_cast},
+  have nc : ∀ (n r : ℕ), ((n : ℤ) : zmod r) = n := λ n r, by norm_cast,
   have nc' : (((-1) ^ (p / 2) : ℤ) : zmod q) = (-1) ^ (p / 2) := by norm_cast,
   rw [legendre_sym, legendre_sym, nc, nc, h, map_mul, mul_rotate', mul_comm (p / 2), ← pow_two,
       quadratic_char_sq_one hpq₁, mul_one, pow_mul, χ₄_eq_neg_one_pow hp₁, nc', map_pow,
@@ -322,15 +322,10 @@ theorem quadratic_reciprocity' (hp : p ≠ 2) (hq : q ≠ 2) :
 begin
   cases eq_or_ne p q with h h,
   { unfreezingI {subst p},
-    have t : legendre_sym q q = 0 := by
-    { have : ((q : ℤ) : zmod q) = 0 := by exact_mod_cast nat_cast_self q,
-      exact (legendre_sym_eq_zero_iff q q).mpr this, },
-    rw [t, mul_zero], },
-  { have qr := quadratic_reciprocity hp hq h,
-    apply_fun (* legendre_sym p q) at qr,
-    simp only at qr,
+    rw [(legendre_sym_eq_zero_iff q q).mpr (by exact_mod_cast nat_cast_self q), mul_zero] },
+  { have qr := congr_arg (* legendre_sym p q) (quadratic_reciprocity hp hq h),
     have : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q h,
-    rwa [mul_assoc, ← pow_two, legendre_sym_sq_one p this, mul_one] at qr, }
+    simpa only [mul_assoc, ← pow_two, legendre_sym_sq_one p this, mul_one] using qr }
 end
 
 /-- The Law of Quadratic Reciprocity: if `p` and `q` are odd primes and `p % 4 = 1`,
@@ -338,9 +333,8 @@ then `(q / p) = (p / q)`. -/
 theorem quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
   legendre_sym q p = legendre_sym p q :=
 begin
-  have hp' := prime.mod_two_eq_one_iff_ne_two.mp (odd_of_mod_four_eq_one hp),
-  rw [quadratic_reciprocity' hp' hq, pow_mul, neg_one_pow_div_two_of_one_mod_four hp,
-      one_pow, one_mul],
+  rw [quadratic_reciprocity' (prime.mod_two_eq_one_iff_ne_two.mp (odd_of_mod_four_eq_one hp)) hq,
+      pow_mul, neg_one_pow_div_two_of_one_mod_four hp, one_pow, one_mul],
 end
 
 /-- The Law of Quadratic Reciprocity: if `p` and `q` are primes that are both congruent

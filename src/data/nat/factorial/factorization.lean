@@ -141,20 +141,16 @@ begin
   have := @sum_Ico_consecutive ℕ _ _ 1 (log p n).succ n.succ _ _,
   rw ←this,
   simp,
-  {
-    rintro x hx1 hx2,
-    refine nat.div_eq_zero ((lt_pow_iff_log_lt hp.one_lt hn0).2 (succ_le_iff.1 hx1)),
-   },
+  { rintro x hx1 hx2,
+    refine nat.div_eq_zero ((lt_pow_iff_log_lt hp.one_lt hn0).2 (succ_le_iff.1 hx1)) },
   { apply succ_le_succ,
     rw ←pow_le_iff_le_log hp.one_lt hn0,
     simp,
-    exact succ_le_iff.mpr hn0,
-  },
+    exact succ_le_iff.mpr hn0 },
   { apply succ_le_succ,
     apply le_of_lt,
     rw ← lt_pow_iff_log_lt hp.one_lt hn0,
-    exact lt_pow_self hp.one_lt n,
-  },
+    exact lt_pow_self hp.one_lt n },
 end
 
 

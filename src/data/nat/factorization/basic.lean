@@ -119,6 +119,17 @@ prime.pos (prime_of_mem_factorization hp)
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)
 
+/-! ## Lemmas characterising when `n.factorization p = 0` -/
+
+lemma factorization_eq_zero_iff (n p : ℕ) :
+  n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=
+begin
+  rw [←not_mem_support_iff, support_factorization, mem_to_finset],
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  { simp [hn, nat.mem_factors, not_and_distrib] },
+end
+
 @[simp]
 lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
@@ -139,21 +150,6 @@ lemma prime.factorization_pos_of_dvd {n p : ℕ} (hp : p.prime) (hn : n ≠ 0) (
   0 < n.factorization p :=
 by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 
-/-- The only numbers with empty prime factorization are `0` and `1` -/
-lemma factorization_eq_zero_iff_le_one (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
-begin
-  rw factorization_eq_factors_multiset n,
-  simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero],
-end
-
-lemma factorization_eq_zero_iff (n p : ℕ) :
-  n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=
-begin
-  rw [←not_mem_support_iff, support_factorization, mem_to_finset],
-  rcases eq_or_ne n 0 with rfl | hn,
-  { simp },
-  { simp [hn, nat.mem_factors, not_and_distrib] },
-end
 
 lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
 begin
@@ -179,6 +175,17 @@ begin
   contrapose! h,
   rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
 end
+
+/-- The only numbers with empty prime factorization are `0` and `1` -/
+lemma factorization_eq_zero_iff_le_one (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
+begin
+  rw factorization_eq_factors_multiset n,
+  simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero],
+end
+
+
+-- TODO: Fill in this docstring
+/-! ##  -/
 
 
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/

@@ -252,7 +252,7 @@ calc f m ≤ f (m ⊔ n) : hf le_sup_left
      ... ≤ g n       : hg le_sup_right
 
 theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
-  (H : ∀ x y : α, (by letI := A; exact x ≤ y) ↔ x ≤ y)
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by letI := A; exact (x ⊔ y)) = x ⊔ y :=
 eq_of_forall_ge_iff $ λ c,
 by simp only [sup_le_iff]; rw [← H, @sup_le_iff α A, H, H]
@@ -409,7 +409,7 @@ lemma inf_eq_inf_iff_right : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤
 @sup_eq_sup_iff_right αᵒᵈ _ _ _ _
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
-  (H : ∀ x y : α, (by letI := A; exact x ≤ y) ↔ x ≤ y)
+  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by letI := A; exact (x ⊓ y)) = x ⊓ y :=
 eq_of_forall_le_iff $ λ c,
 by simp only [le_inf_iff]; rw [← H, @le_inf_iff α A, H, H]
@@ -982,11 +982,11 @@ protected def lattice [lattice α] {P : α → Prop}
 
 @[simp, norm_cast] lemma coe_sup [semilattice_sup α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (x y : subtype P) :
-  (by {letI := subtype.semilattice_sup Psup, exact (x ⊔ y : subtype P)} : α) = x ⊔ y := rfl
+  (by {haveI := subtype.semilattice_sup Psup, exact (x ⊔ y : subtype P)} : α) = x ⊔ y := rfl
 
 @[simp, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
   (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) (x y : subtype P) :
-  (by {letI := subtype.semilattice_inf Pinf, exact (x ⊓ y : subtype P)} : α) = x ⊓ y := rfl
+  (by {haveI := subtype.semilattice_inf Pinf, exact (x ⊓ y : subtype P)} : α) = x ⊓ y := rfl
 
 @[simp] lemma mk_sup_mk [semilattice_sup α] {P : α → Prop} (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y))
   {x y : α} (hx : P x) (hy : P y) :

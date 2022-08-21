@@ -514,6 +514,7 @@ instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)] [Π i, module R (M i)] [finite ι]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
 begin
+  casesI nonempty_fintype ι,
   haveI := classical.dec_eq ι,
   suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
   { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,

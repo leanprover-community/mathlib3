@@ -909,10 +909,13 @@ begin
   refine succ.rec h0 _ hmn,
   intros n hn hnp,
   refine h1 n hn _,
-  intros k hk,
-  refine succ.rec (λ _, h0) _ hk,
-  intros w hw IH hsw,
-  sorry
+  refine succ.rec _ _ hn,
+  { intros k hmk hkm,
+    rwa le_antisymm hkm hmk },
+  { intros n hmn IH k hmk hkn,
+    rcases hkn.eq_or_lt with rfl|hkn',
+    { exact h1 _ hmn IH },
+    { exact IH _ hmk (le_of_lt_succ hkn') } }
 end
 
 include hb
@@ -1121,7 +1124,7 @@ protected lemma formal_series.real.lt_def {f g : formal_series.real Z b} :
 variables (b) (Z)
 
 -- 7.2(ii)
-instance : preorder (formal_series.real Z b) :=
+instance : partial_order (formal_series.real Z b) :=
 { le := λ f g, f = g ∨ f < g,
   lt := (<),
   le_refl := λ _, or.inl rfl,
@@ -1150,6 +1153,53 @@ instance : preorder (formal_series.real Z b) :=
       { contrapose! H,
         exact or.inl rfl },
       { exact h } }
+  end,
+  le_antisymm := λ f g, begin
+    rintro (rfl|hfg) (hgf|hgf),
+    { refl },
+    { refl },
+    { exact hgf.symm },
+    { rw formal_series.real.lt_def at hfg hgf,
+      rw [←neg_sub] at hgf,
+      exact absurd hgf hfg.neg_negative.not_positive }
   end }
+
+-- 7.2(i)
+noncomputable instance : linear_order (formal_series.real Z b) :=
+{ le_total := λ f g, begin
+  rcases hfg : (f - g) with ⟨h, H|H|rfl⟩;
+  simp only [subtype.ext_iff, add_subgroup.coe_sub, subtype.coe_mk] at hfg,
+  { subst hfg,
+    exact or.inr (or.inr H) },
+  { subst hfg,
+    replace H := H.neg_positive,
+    rw neg_sub at H,
+    exact or.inl (or.inr H) },
+  { rw [sub_eq_zero, ←subtype.ext_iff] at hfg,
+    subst hfg,
+    exact or.inl le_rfl }
+  end,
+  decidable_le := classical.dec_rel _,
+  ..formal_series.real.partial_order _ _ }
+
+-- 7.2(iii)
+instance : covariant_class (formal_series.real Z b) (formal_series.real Z b) (+) (<) :=
+⟨λ _ _ _, by simp [formal_series.real.lt_def]⟩
+
+variables {Z} {b}
+
+-- 7.2(iv)
+lemma formal_series.real.positive_iff {f : formal_series.real Z b} :
+  (f : Σ).positive ↔ 0 < f :=
+by simp [formal_series.real.lt_def]
+
+lemma formal_series.real.negative_iff {f : formal_series.real Z b} :
+  (f : Σ).negative ↔ f < 0 :=
+begin
+  simp only [formal_series.real.lt_def, add_subgroup.coe_zero, zero_sub],
+  refine ⟨formal_series.negative.neg_positive, λ h, _⟩,
+  rw ←neg_neg (f : Σ),
+  exact h.neg_negative
+end
 
 end s07

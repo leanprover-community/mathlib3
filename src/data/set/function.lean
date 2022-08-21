@@ -261,6 +261,13 @@ subtype.map f h
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl
 
+lemma maps_to.coe_restrict (h : set.maps_to f s t) :
+  coe ∘ h.restrict f s t = s.restrict f := rfl
+
+lemma maps_to.range_restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
+  range (h.restrict f s t) = coe ⁻¹' (f '' s) :=
+set.range_subtype_map f h
+
 lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x : s, f x = g x :=
 ⟨λ h, ⟨h.restrict f s t, λ _, rfl⟩,
   λ ⟨g, hg⟩ x hx, by { erw [hg ⟨x, hx⟩], apply subtype.coe_prop }⟩
@@ -367,6 +374,26 @@ theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
 theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x ∈ t ↔ x ∈ s :=
 ⟨λ ht, by_contra $ λ hs, hc hs ht, λ hx, h hx⟩
 
+/-! ### Restriction onto preimage -/
+
+section
+
+variables (t f)
+
+/-- The restriction of a function onto the preimage of a set. -/
+@[simps] def restrict_preimage : f ⁻¹' t → t :=
+(set.maps_to_preimage f t).restrict _ _ _
+
+lemma range_restrict_preimage :
+  range (t.restrict_preimage f) = coe ⁻¹' (range f) :=
+begin
+  delta set.restrict_preimage,
+  rw [maps_to.range_restrict, set.image_preimage_eq_inter_range,
+    set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
+end
+
+end
+
 /-! ### Injectivity on a set -/
 
 /-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/
@@ -430,6 +457,11 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
 alias inj_on_iff_injective ↔ inj_on.injective _
+
+lemma exists_inj_on_iff_injective [nonempty β] :
+  (∃ f : α → β, inj_on f s) ↔ ∃ f : s → β, injective f :=
+⟨λ ⟨f, hf⟩, ⟨_, hf.injective⟩,
+  λ ⟨f, hf⟩, by { lift f to α → β using trivial, exact ⟨f, inj_on_iff_injective.2 hf⟩ }⟩
 
 lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ 𝒫 (range f)) :
   inj_on (preimage f) B :=

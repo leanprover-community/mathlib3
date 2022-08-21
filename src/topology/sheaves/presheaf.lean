@@ -37,7 +37,7 @@ variables (C : Type u) [category.{v} C]
 namespace Top
 
 /-- The category of `C`-valued presheaves on a (bundled) topological space `X`. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def presheaf (X : Top.{w}) := (opens X)ᵒᵖ ⥤ C
 
 variables {C}
@@ -208,13 +208,11 @@ lemma id_inv_app (U : opens Y) :
   (id ℱ).inv.app (op U) = colimit.ι (Lan.diagram (opens.map (𝟙 Y)).op ℱ (op U))
     (@costructured_arrow.mk _ _ _ _ _ (op U) _ (eq_to_hom (by simp))) :=
 begin
-  dsimp[id], simp, dsimp[colimit_of_diagram_terminal],
-  delta Lan.diagram,
-  refine eq.trans _ (category.id_comp _),
-  rw ← ℱ.map_id,
-  congr,
-  any_goals { apply subsingleton.helim },
-  all_goals { simp }
+  rw [← category.id_comp ((id ℱ).inv.app (op U)), ← nat_iso.app_inv, iso.comp_inv_eq],
+  dsimp [id],
+  rw colimit.ι_desc_assoc,
+  dsimp,
+  rw [← ℱ.map_comp, ← ℱ.map_id], refl,
 end
 
 end pullback

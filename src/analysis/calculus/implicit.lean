@@ -47,7 +47,7 @@ noncomputable theory
 
 open_locale topological_space
 open filter
-open continuous_linear_map (fst snd subtype_val smul_right ker_prod)
+open continuous_linear_map (fst snd smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)
 
 /-!
@@ -87,7 +87,7 @@ such that
 * both functions are strictly differentiable at `a`;
 * the derivatives are surjective;
 * the kernels of the derivatives are complementary subspaces of `E`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
   (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
@@ -309,9 +309,9 @@ end
 lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   has_strict_fderiv_at (hf.implicit_function_of_complemented f f' hf' hker (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by convert (implicit_function_data_of_complemented f f' hf hf'
-  hker).implicit_function_has_strict_fderiv_at (subtype_val f'.ker) _ _;
+  hker).implicit_function_has_strict_fderiv_at f'.ker.subtypeL _ _;
     [skip, ext, ext]; simp [classical.some_spec hker]
 
 end complemented
@@ -412,7 +412,7 @@ by apply eq_implicit_function_of_complemented
 
 lemma to_implicit_function (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   has_strict_fderiv_at (hf.implicit_function f f' hf' (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by apply to_implicit_function_of_complemented
 
 end finite_dimensional

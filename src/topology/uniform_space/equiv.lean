@@ -27,7 +27,7 @@ open_locale
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- Uniform isomorphism between `α` and `β` -/
-@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
+@[nolint has_nonempty_instance] -- not all spaces are homeomorphic to each other
 structure uniform_equiv (α : Type*) (β : Type*) [uniform_space α] [uniform_space β]
   extends α ≃ β :=
 (uniform_continuous_to_fun  : uniform_continuous to_fun)

@@ -202,8 +202,8 @@ variable {α}
 
 @[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := (cast_hom α).map_inv _
-@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := (cast_hom α).map_div _ _
+@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
+@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
@@ -281,7 +281,7 @@ open rat ring_hom
 
 lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
 calc f r = f (r.1 / r.2) : by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
-     ... = f r.1 / f r.2 : f.map_div _ _
+     ... = f r.1 / f r.2 : map_div₀ f _ _
      ... = r             : by rw [map_nat_cast, map_int_cast, cast_def]
 
 -- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
@@ -326,7 +326,7 @@ theorem ext_rat {f g : ℚ →*₀ M}
 begin
   have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
   ext x,
-  rw [← @rat.num_denom x, rat.mk_eq_div, f.map_div, g.map_div,
+  rw [← @rat.num_denom x, rat.mk_eq_div, map_div₀ f, map_div₀ g,
     same_on_int' x.num, same_on_int' x.denom],
 end
 

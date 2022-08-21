@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
 import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
-import tactic.norm_cast
+import tactic.positivity
 
 /-!
 # Square root of a real number
@@ -86,9 +86,9 @@ by rw [sqrt_eq_iff_sq_eq, mul_mul_mul_comm, mul_self_sqrt, mul_self_sqrt]
 /-- `nnreal.sqrt` as a `monoid_with_zero_hom`. -/
 noncomputable def sqrt_hom : ℝ≥0 →*₀ ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
 
-lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv x
+lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := map_inv₀ sqrt_hom x
 
-lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := sqrt_hom.map_div x y
+lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := map_div₀ sqrt_hom x y
 
 lemma continuous_sqrt : continuous sqrt := sqrt.continuous
 
@@ -271,6 +271,24 @@ by rw [← not_le, not_iff_not, sqrt_eq_zero']
 @[simp] theorem sqrt_pos : 0 < sqrt x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le (iff.trans
   (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
+
+alias sqrt_pos ↔ _ sqrt_pos_of_pos
+
+section
+open tactic tactic.positivity
+
+/-- Extension for the `positivity` tactic: a square root is nonnegative, and is strictly positive if
+its input is. -/
+@[positivity]
+meta def _root_.tactic.positivity_sqrt : expr → tactic strictness
+| `(real.sqrt %%a) := do
+  (do -- if can prove `0 < a`, report positivity
+    positive pa ← core a,
+    positive <$> mk_app ``sqrt_pos_of_pos [pa]) <|>
+  nonnegative <$> mk_app ``sqrt_nonneg [a] -- else report nonnegativity
+| _ := failed
+
+end
 
 @[simp] theorem sqrt_mul (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
 by simp_rw [sqrt, ← nnreal.coe_mul, nnreal.coe_eq, real.to_nnreal_mul hx, nnreal.sqrt_mul]

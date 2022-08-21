@@ -131,6 +131,17 @@ def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n 
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
 
+@[simp] theorem degree_lt_equiv_eq_zero_iff_eq_zero {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) :
+  degree_lt_equiv _ _ ⟨p, hp⟩ = 0 ↔ p = 0 :=
+by rw [linear_equiv.map_eq_zero_iff, submodule.mk_eq_zero]
+
+theorem eval_eq_sum_degree_lt_equiv {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) (x : R) :
+  p.eval x = ∑ i, degree_lt_equiv _ _ ⟨p, hp⟩ i * (x ^ (i : ℕ)) :=
+begin
+  simp_rw [eval_eq_sum],
+  exact (sum_fin _ (by simp_rw [zero_mul, forall_const]) (mem_degree_lt.mp hp)).symm
+end
+
 /-- The finset of nonzero coefficients of a polynomial. -/
 def frange (p : R[X]) : finset R :=
 finset.image (λ n, p.coeff n) p.support
@@ -685,7 +696,7 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, zero_mem_class.coe_zero,
     subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)

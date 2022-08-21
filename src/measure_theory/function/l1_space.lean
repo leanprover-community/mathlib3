@@ -903,6 +903,16 @@ lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x / c) μ :=
 by simp_rw [div_eq_mul_inv, h.mul_const]
 
+lemma integrable.bdd_mul' {f g : α → ℝ} {c : ℝ} (hg : integrable g μ)
+  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
+  filter_upwards [hf_bound] with x hx,
+  rw [pi.smul_apply, smul_eq_mul],
+  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
+end
+
 end normed_space
 
 section normed_space_over_complete_field

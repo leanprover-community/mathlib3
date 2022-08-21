@@ -3,12 +3,7 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.field.basic
-import algebra.group_power.lemmas
-import algebra.group_power.order
-import algebra.order.ring
-import order.bounds
-import tactic.monotonicity.basic
+import algebra.order.field_defs
 
 /-!
 # Linear ordered (semi)fields
@@ -27,18 +22,6 @@ A linear ordered (semi)field is a (semi)field equipped with a linear order such 
 set_option old_structure_cmd true
 
 variables {α β : Type*}
-
-/-- A linear ordered semifield is a field with a linear order respecting the operations. -/
-@[protect_proj] class linear_ordered_semifield (α : Type*)
-  extends linear_ordered_semiring α, semifield α
-
-/-- A linear ordered field is a field with a linear order respecting the operations. -/
-@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
-
-@[priority 100] -- See note [lower instance priority]
-instance linear_ordered_field.to_linear_ordered_semifield [linear_ordered_field α] :
-  linear_ordered_semifield α :=
-{ ..linear_ordered_ring.to_linear_ordered_semiring, ..‹linear_ordered_field α› }
 
 namespace function
 
@@ -101,8 +84,12 @@ suffices ∀ a : α, 0 < a → 0 < a⁻¹,
 from ⟨λ h, inv_inv a ▸ this _ h, this a⟩,
 assume a ha, flip lt_of_mul_lt_mul_left ha.le $ by simp [ne_of_gt ha, zero_lt_one]
 
+alias inv_pos ↔ _ inv_pos_of_pos
+
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
 by simp only [le_iff_eq_or_lt, inv_pos, zero_eq_inv]
+
+alias inv_nonneg ↔ _ inv_nonneg_of_nonneg
 
 @[simp] lemma inv_lt_zero : a⁻¹ < 0 ↔ a < 0 :=
 by simp only [← not_le, inv_nonneg]
@@ -835,8 +822,8 @@ eq.symm $ antitone.map_max $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma max_div_div_right_of_nonpos (hc : c ≤ 0) (a b : α) : max (a / c) (b / c) = (min a b) / c :=
 eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 
-lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := (abs_hom : α →*₀ α).map_inv a
-lemma abs_div (a b : α) : |a / b| = |a| / |b| := (abs_hom : α →*₀ α).map_div a b
+lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
+lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
 
 lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=

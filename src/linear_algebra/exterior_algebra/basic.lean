@@ -198,7 +198,9 @@ begin
 end
 
 /-- The generators of the exterior algebra are disjoint from its scalars. -/
-lemma ι_range_disjoint_one : disjoint (ι R).range (1 : submodule R (exterior_algebra R M)) :=
+lemma ι_range_disjoint_one :
+  disjoint (linear_map.range (ι R : M →ₗ[R] exterior_algebra R M))
+    (1 : submodule R (exterior_algebra R M)) :=
 begin
   rw submodule.disjoint_def,
   rintros _ ⟨x, hx⟩ ⟨r, (rfl : algebra_map _ _ _ = _)⟩,
@@ -268,7 +270,7 @@ lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
 
 lemma ι_multi_succ_curry_left {n : ℕ} (m : M) :
   (ι_multi R n.succ).curry_left m =
-    (algebra.lmul_left R (ι R m)).comp_alternating_map (ι_multi R n) :=
+    (linear_map.mul_left R (ι R m)).comp_alternating_map (ι_multi R n) :=
 alternating_map.ext $ λ v, (ι_multi_succ_apply _).trans $ begin
   simp_rw matrix.tail_cons,
   refl,

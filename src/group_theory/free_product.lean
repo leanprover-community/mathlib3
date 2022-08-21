@@ -380,7 +380,7 @@ variable (M)
 /-- A `neword M i j` is a representation of a non-empty reduced words where the first letter comes
 from `M i` and the last letter comes from `M j`. It can be constructed from singletons and via
 concatentation, and thus provides a useful induction principle. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 inductive neword : ι → ι → Type (max u_1 u_2)
 | singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
 | append : ∀ {i j k l} (w₁ : neword i j) (hne : j ≠ k) (w₂ : neword k l), neword i l

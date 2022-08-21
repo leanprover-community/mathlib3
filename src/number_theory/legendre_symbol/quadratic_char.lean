@@ -389,7 +389,7 @@ begin
       exact ne_of_eq_of_ne (map_nonunit (quadratic_char F) ha)
              (mt zero_eq_neg.mp one_ne_zero), },
     use hu.unit,
-    simp only [is_unit.unit_spec, ring_hom_comp_apply, ring_hom.eq_int_cast, ne.def, ha],
+    simp only [is_unit.unit_spec, ring_hom_comp_apply, eq_int_cast, ne.def, ha],
     rw [int.cast_neg, int.cast_one],
     exact ring.neg_one_ne_one_of_char_ne_two hF', },
   have hχ₂ : χ.is_quadratic := is_quadratic.comp (quadratic_char_is_quadratic F) _,

@@ -1244,6 +1244,10 @@ lemma vec_mul_conj_transpose [fintype n] [star_ring α] (A : matrix m n α) (x :
   vec_mul x Aᴴ = star (mul_vec A (star x)) :=
 funext $ λ i, dot_product_star _ _
 
+lemma mul_mul_apply [fintype n] (A B C : matrix n n α) (i j : n) :
+  (A ⬝ B ⬝ C) i j = A i ⬝ᵥ (B.mul_vec (Cᵀ j)) :=
+by { rw matrix.mul_assoc, simpa only [mul_apply, dot_product, mul_vec] }
+
 end non_unital_semiring
 
 section non_assoc_semiring

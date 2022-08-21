@@ -92,7 +92,7 @@ lemma _root_.is_open.analytic_set_image {β : Type*} [topological_space β] [pol
   analytic_set (f '' s) :=
 begin
   rw image_eq_range,
-  haveI : polish_space s := hs.polish_space,
+  letI : polish_space s := hs.polish_space,
   exact analytic_set_range_of_polish_space (f_cont.comp continuous_subtype_coe),
 end
 
@@ -154,7 +154,7 @@ begin
     assume n,
     exact is_closed_eq ((f_cont n).comp (continuous_apply n))
       ((f_cont i₀).comp (continuous_apply i₀)) },
-  haveI : polish_space t := t_closed.polish_space,
+  letI : polish_space t := t_closed.polish_space,
   let F : t → α := λ x, f i₀ ((x : γ) i₀),
   have F_cont : continuous F :=
     (f_cont i₀).comp ((continuous_apply i₀).comp continuous_subtype_coe),
@@ -204,7 +204,7 @@ end
 theorem _root_.is_closed.analytic_set [polish_space α] {s : set α} (hs : is_closed s) :
   analytic_set s :=
 begin
-  haveI : polish_space s := hs.polish_space,
+  letI : polish_space s := hs.polish_space,
   rw ← @subtype.range_val α s,
   exact analytic_set_range_of_polish_space continuous_subtype_coe,
 end
@@ -248,7 +248,7 @@ lemma _root_.measurable.exists_continuous {α β : Type*}
 begin
   obtain ⟨b, b_count, -, hb⟩ : ∃b : set (set β), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b :=
     exists_countable_basis β,
-  haveI : encodable b := b_count.to_encodable,
+  letI : encodable b := b_count.to_encodable,
   have : ∀ (s : b), is_clopenable (f ⁻¹' s),
   { assume s,
     apply measurable_set.is_clopenable,
@@ -451,7 +451,7 @@ begin
   letI := upgrade_polish_space γ,
   obtain ⟨b, b_count, b_nonempty, hb⟩ :
     ∃ b : set (set γ), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b := exists_countable_basis γ,
-  haveI : encodable b := b_count.to_encodable,
+  letI : encodable b := b_count.to_encodable,
   let A := {p : b × b // disjoint (p.1 : set γ) p.2},
   -- for each pair of disjoint sets in the topological basis `b`, consider Borel sets separating
   -- their images, by injectivity of `f` and the Lusin separation theorem.
@@ -536,7 +536,7 @@ begin
         add_le_add ((dist_le_diam_of_mem (hs m).1 (hy m) zsm).trans (hs m).2)
                    ((dist_le_diam_of_mem (hs n).1 zsn (hy n)).trans (hs n).2)
       ... ≤ 2 * u m : by linarith [u_anti.antitone hmn] },
-    haveI : nonempty γ := ⟨y 0⟩,
+    letI : nonempty γ := ⟨y 0⟩,
     -- let `z` be its limit.
     let z := lim at_top y,
     have y_lim : tendsto y at_top (𝓝 z) := cauchy_y.tendsto_lim,
@@ -574,7 +574,7 @@ theorem _root_.is_closed.measurable_set_image_of_continuous_on_inj_on
   measurable_set (f '' s) :=
 begin
   rw image_eq_range,
-  haveI : polish_space s := is_closed.polish_space hs,
+  letI : polish_space s := is_closed.polish_space hs,
   apply measurable_set_range_of_continuous_injective,
   { rwa continuous_on_iff_continuous_restrict at f_cont },
   { rwa inj_on_iff_injective at f_inj }

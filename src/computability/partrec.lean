@@ -346,7 +346,7 @@ theorem _root_.decidable.partrec.const' (s : part σ) [decidable s.dom] : partre
 (of_option (const (to_option s))).of_eq (λ a, of_to_option s)
 
 theorem const' (s : part σ) : partrec (λ a : α, s) :=
-by haveI := classical.dec s.dom; exact decidable.partrec.const' s
+by letI := classical.dec s.dom; exact decidable.partrec.const' s
 
 protected theorem bind {f : α →. β} {g : α → β →. σ}
   (hf : partrec f) (hg : partrec₂ g) : partrec (λ a, (f a).bind (g a)) :=

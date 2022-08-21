@@ -572,7 +572,7 @@ ideal.cotangent.is_scalar_tower _
 
 instance kaehler_differential.is_scalar_tower' : is_scalar_tower R S Ω[S⁄R] :=
 begin
-  haveI : is_scalar_tower R S (kaehler_differential.ideal R S),
+  letI : is_scalar_tower R S (kaehler_differential.ideal R S),
   { constructor, intros x y z, ext1, exact smul_assoc x y z.1 },
   exact submodule.quotient.is_scalar_tower _ _
 end

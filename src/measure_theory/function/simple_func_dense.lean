@@ -113,7 +113,7 @@ variables [measurable_space β] {f : β → α}
 noncomputable def approx_on (f : β → α) (hf : measurable f) (s : set α) (y₀ : α) (h₀ : y₀ ∈ s)
   [separable_space s] (n : ℕ) :
   β →ₛ α :=
-by haveI : nonempty s := ⟨⟨y₀, h₀⟩⟩;
+by letI : nonempty s := ⟨⟨y₀, h₀⟩⟩;
   exact comp (nearest_pt (λ k, nat.cases_on k y₀ (coe ∘ dense_seq s) : ℕ → α) n) f hf
 
 @[simp] lemma approx_on_zero {f : β → α} (hf : measurable f) {s : set α} {y₀ : α} (h₀ : y₀ ∈ s)
@@ -125,7 +125,7 @@ lemma approx_on_mem {f : β → α} (hf : measurable f) {s : set α} {y₀ : α}
   [separable_space s] (n : ℕ) (x : β) :
   approx_on f hf s y₀ h₀ n x ∈ s :=
 begin
-  haveI : nonempty s := ⟨⟨y₀, h₀⟩⟩,
+  letI : nonempty s := ⟨⟨y₀, h₀⟩⟩,
   suffices : ∀ n, (nat.cases_on n y₀ (coe ∘ dense_seq s) : α) ∈ s, { apply this },
   rintro (_|n),
   exacts [h₀, subtype.mem _]
@@ -140,7 +140,7 @@ lemma tendsto_approx_on {f : β → α} (hf : measurable f) {s : set α} {y₀ :
   [separable_space s] {x : β} (hx : f x ∈ closure s) :
   tendsto (λ n, approx_on f hf s y₀ h₀ n x) at_top (𝓝 $ f x) :=
 begin
-  haveI : nonempty s := ⟨⟨y₀, h₀⟩⟩,
+  letI : nonempty s := ⟨⟨y₀, h₀⟩⟩,
   rw [← @subtype.range_coe _ s, ← image_univ, ← (dense_range_dense_seq s).closure_eq] at hx,
   simp only [approx_on, coe_comp],
   refine tendsto_nearest_pt (closure_minimal _ is_closed_closure hx),

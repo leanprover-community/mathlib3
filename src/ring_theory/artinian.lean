@@ -350,8 +350,8 @@ theorem is_artinian_of_fg_of_artinian {R M} [ring R] [add_comm_group M] [module 
   (N : submodule R M) [is_artinian_ring R] (hN : N.fg) : is_artinian R N :=
 let ⟨s, hs⟩ := hN in
 begin
-  haveI := classical.dec_eq M,
-  haveI := classical.dec_eq R,
+  letI := classical.dec_eq M,
+  letI := classical.dec_eq R,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_artinian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _ _ _)
     _ _ _ is_artinian_pi,

@@ -50,7 +50,7 @@ lemma left_split.short_exact {f : A ⟶ B} {g : B ⟶ C} (h : left_split f g) : 
 { mono :=
   begin
     obtain ⟨φ, hφ⟩ := h.left_split,
-    haveI : mono (f ≫ φ) := by { rw hφ, apply_instance },
+    letI : mono (f ≫ φ) := by { rw hφ, apply_instance },
     exact mono_of_mono f φ,
   end,
   epi := h.epi,
@@ -69,7 +69,7 @@ lemma right_split.short_exact {f : A ⟶ B} {g : B ⟶ C} (h : right_split f g) 
 { epi :=
   begin
     obtain ⟨χ, hχ⟩ := h.right_split,
-    haveI : epi (χ ≫ g) := by { rw hχ, apply_instance },
+    letI : epi (χ ≫ g) := by { rw hχ, apply_instance },
     exact epi_of_epi χ g,
   end,
   mono := h.mono,
@@ -272,7 +272,7 @@ eq_sub_iff_add_eq.mpr ((add_comm _ _).trans h.split_add)
 lemma splittings_comm (h h' : splitting f g) :
   h'.section ≫ h.retraction = - h.section ≫ h'.retraction :=
 begin
-  haveI := h.mono,
+  letI := h.mono,
   rw ← cancel_mono f,
   simp [retraction_ι_eq_id_sub],
 end

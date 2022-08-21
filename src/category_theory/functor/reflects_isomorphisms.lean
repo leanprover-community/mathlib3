@@ -51,7 +51,7 @@ instance of_full_and_faithful (F : C ⥤ D) [full F] [faithful F] : reflects_iso
 instance (F : C ⥤ D) (G : D ⥤ E) [reflects_isomorphisms F] [reflects_isomorphisms G] :
   reflects_isomorphisms (F ⋙ G) :=
 ⟨λ _ _ f (hf : is_iso (G.map _)),
-  by { resetI, haveI := is_iso_of_reflects_iso (F.map f) G, exact is_iso_of_reflects_iso f F }⟩
+  by { resetI, letI := is_iso_of_reflects_iso (F.map f) G, exact is_iso_of_reflects_iso f F }⟩
 
 @[priority 100]
 instance reflects_isomorphisms_of_reflects_monomorphisms_of_reflects_epimorphisms [balanced C]
@@ -59,8 +59,8 @@ instance reflects_isomorphisms_of_reflects_monomorphisms_of_reflects_epimorphism
 { reflects := λ A B f hf,
   begin
     resetI,
-    haveI : epi f := epi_of_epi_map F infer_instance,
-    haveI : mono f := mono_of_mono_map F infer_instance,
+    letI : epi f := epi_of_epi_map F infer_instance,
+    letI : mono f := mono_of_mono_map F infer_instance,
     exact is_iso_of_mono_of_epi f
   end }
 

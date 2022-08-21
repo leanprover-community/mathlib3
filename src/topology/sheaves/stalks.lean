@@ -185,7 +185,7 @@ end
 lemma stalk_pushforward_iso_of_open_embedding {f : X ⟶ Y} (hf : open_embedding f)
    (F : X.presheaf C) (x : X) : is_iso (F.stalk_pushforward _ f x) :=
  begin
-   haveI := functor.initial_of_adjunction (hf.is_open_map.adjunction_nhds x),
+   letI := functor.initial_of_adjunction (hf.is_open_map.adjunction_nhds x),
    convert is_iso.of_iso ((functor.final.colimit_iso (hf.is_open_map.functor_nhds x).op
      ((open_nhds.inclusion (f x)).op ⋙ f _* F) : _).symm ≪≫ colim.map_iso _),
    swap,

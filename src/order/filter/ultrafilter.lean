@@ -223,7 +223,7 @@ lemma exists_le (f : filter α) [h : ne_bot f] : ∃u : ultrafilter α, ↑u ≤
 begin
   let τ                := {f' // ne_bot f' ∧ f' ≤ f},
   let r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
-  haveI                := nonempty_of_ne_bot f,
+  letI                := nonempty_of_ne_bot f,
   let top : τ          := ⟨f, h, le_refl f⟩,
   let sup : Π(c:set τ), is_chain r c → τ :=
     λc hc, ⟨⨅a:{a:τ // a ∈ insert top c}, a.1,
@@ -288,7 +288,7 @@ lemma mem_iff_ultrafilter : s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s
 begin
   refine ⟨λ hf g hg, hg hf, λ H, by_contra $ λ hf, _⟩,
   set g : filter ↥sᶜ := comap coe f,
-  haveI : ne_bot g := comap_ne_bot_iff_compl_range.2 (by simpa [compl_set_of]),
+  letI : ne_bot g := comap_ne_bot_iff_compl_range.2 (by simpa [compl_set_of]),
   simpa using H ((of g).map coe) (map_le_iff_le_comap.mpr (of_le g))
 end
 
@@ -367,7 +367,7 @@ noncomputable def of_comap_inf_principal (h : m '' s ∈ g) : ultrafilter α :=
 lemma of_comap_inf_principal_mem (h : m '' s ∈ g) : s ∈ of_comap_inf_principal h :=
 begin
   let f := filter.comap m g ⊓ 𝓟 s,
-  haveI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
+  letI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
   have : s ∈ f := mem_inf_of_right (mem_principal_self s),
   exact le_def.mp (of_le _) s this
 end
@@ -376,7 +376,7 @@ lemma of_comap_inf_principal_eq_of_map (h : m '' s ∈ g) :
   (of_comap_inf_principal h).map m = g :=
 begin
   let f := filter.comap m g ⊓ 𝓟 s,
-  haveI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
+  letI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
   apply eq_of_le,
   calc filter.map m (of f) ≤ filter.map m f : map_mono (of_le _)
   ... ≤ (filter.map m $ filter.comap m g) ⊓ filter.map m (𝓟 s) : map_inf_le

@@ -88,7 +88,7 @@ end
 
 lemma range_eq_top (coercive : is_coercive B) : B♯.range = ⊤ :=
 begin
-  haveI := coercive.closed_range.complete_space_coe,
+  letI := coercive.closed_range.complete_space_coe,
   rw ← B♯.range.orthogonal_orthogonal,
   rw submodule.eq_top_iff',
   intros v w mem_w_orthogonal,

@@ -50,7 +50,7 @@ variables {x y z : M}
 by { rw [subsingleton.elim x 0], exact zero_left _ }
 
 @[nontriviality] lemma of_subsingleton' [subsingleton R] (x y : M) : same_ray R x y :=
-by { haveI := module.subsingleton R M, exact of_subsingleton x y }
+by { letI := module.subsingleton R M, exact of_subsingleton x y }
 
 /-- `same_ray` is reflexive. -/
 @[refl] lemma refl (x : M) : same_ray R x x :=
@@ -323,7 +323,7 @@ end
 lemma eq_zero_of_same_ray_self_neg [no_zero_smul_divisors R M] (h : same_ray R x (-x)) :
   x = 0 :=
 begin
-  nontriviality M, haveI : nontrivial R := module.nontrivial R M,
+  nontriviality M, letI : nontrivial R := module.nontrivial R M,
   refine eq_zero_of_same_ray_neg_smul_right (neg_lt_zero.2 (@one_pos R _ _)) _,
   rwa [neg_one_smul]
 end

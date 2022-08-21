@@ -36,7 +36,7 @@ variables {k : Type v} [field k]
 instance {J : Type} [fintype J] (Z : J → Module.{v} k) [∀ j, finite_dimensional k (Z j)] :
   finite_dimensional k (∏ λ j, Z j : Module.{v} k) :=
 begin
-  haveI : finite_dimensional k (Module.of k (Π j, Z j)), { dsimp, apply_instance, },
+  letI : finite_dimensional k (Module.of k (Π j, Z j)), { dsimp, apply_instance, },
   exact finite_dimensional.of_injective
     (Module.pi_iso_pi _).hom
     ((Module.mono_iff_injective _).1 (by apply_instance)),
@@ -47,7 +47,7 @@ because we can realise them as subobjects of a finite product. -/
 instance (F : J ⥤ FinVect k) :
   finite_dimensional k (limit (F ⋙ forget₂ (FinVect k) (Module.{v} k)) : Module.{v} k) :=
 begin
-  haveI : ∀ j, finite_dimensional k ((F ⋙ forget₂ (FinVect k) (Module.{v} k)).obj j),
+  letI : ∀ j, finite_dimensional k ((F ⋙ forget₂ (FinVect k) (Module.{v} k)).obj j),
   { intro j, change finite_dimensional k (F.obj j).obj, apply_instance, },
   exact finite_dimensional.of_injective
     (limit_subobject_product (F ⋙ forget₂ (FinVect k) (Module.{v} k)))

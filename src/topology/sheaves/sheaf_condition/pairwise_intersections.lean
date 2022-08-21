@@ -386,7 +386,7 @@ begin
   { intros h ι U,
     exact ⟨preserves_limit_of_preserves_limit_cone (pairwise.cocone_is_colimit U).op (h U).some⟩ },
   { intros h ι U,
-    haveI := (h U).some,
+    letI := (h U).some,
     exact ⟨preserves_limit.preserves (pairwise.cocone_is_colimit U).op⟩ }
 end
 

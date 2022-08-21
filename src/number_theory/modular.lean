@@ -296,7 +296,7 @@ lemma exists_row_one_eq_and_min_re {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0)
   ∃ g : SL(2,ℤ), ↑ₘg 1 = cd ∧ (∀ g' : SL(2,ℤ), ↑ₘg 1 = ↑ₘg' 1 →
   |(g • z).re| ≤ |(g' • z).re|) :=
 begin
-  haveI : nonempty {g : SL(2, ℤ) // ↑ₘg 1 = cd} :=
+  letI : nonempty {g : SL(2, ℤ) // ↑ₘg 1 = cd} :=
     let ⟨x, hx⟩ := bottom_row_surj hcd in ⟨⟨x, hx.2⟩⟩,
   obtain ⟨g, hg⟩ := filter.tendsto.exists_forall_le (tendsto_abs_re_smul z hcd),
   refine ⟨g, g.2, _⟩,

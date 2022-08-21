@@ -496,8 +496,8 @@ begin
       int.cast_sub],
   dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
-  haveI : fact (p ^ i > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  letI : fact (p ^ i > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  letI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val, zmod.int_cast_cast],
 end
 
@@ -526,7 +526,7 @@ begin
   change _ < _ at hε,
   use 1,
   intros j hj,
-  haveI : fact (1 < p^j) := ⟨nat.one_lt_pow _ _ (by linarith) hp_prime.1.one_lt⟩,
+  letI : fact (1 < p^j) := ⟨nat.one_lt_pow _ _ (by linarith) hp_prime.1.one_lt⟩,
   simp [nth_hom_seq, nth_hom, zmod.val_one, hε],
 end
 
@@ -542,8 +542,8 @@ begin
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  haveI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  letI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  letI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   simp only [zmod.nat_cast_val, ring_hom.map_add, int.cast_sub, zmod.int_cast_cast, int.cast_add],
   rw [zmod.cast_add (show p^n ∣ p^j, from pow_dvd_pow _ hj), sub_self],
   { apply_instance },
@@ -561,8 +561,8 @@ begin
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  haveI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  letI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  letI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   simp only [zmod.nat_cast_val, ring_hom.map_mul, int.cast_sub, zmod.int_cast_cast, int.cast_mul],
   rw [zmod.cast_mul (show p^n ∣ p^j, from pow_dvd_pow _ hj), sub_self],
   { apply_instance },
@@ -641,7 +641,7 @@ See also `padic_int.lift_unique`.
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
-  haveI : fact (0 < p ^ n) := ⟨pow_pos hp_prime.1.pos n⟩,
+  letI : fact (0 < p ^ n) := ⟨pow_pos hp_prime.1.pos n⟩,
   rw [ring_hom.comp_apply, ← zmod.nat_cast_zmod_val (f n r), ← map_nat_cast $ to_zmod_pow n,
       ← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, ker_to_zmod_pow],
   apply lift_sub_val_mem_span,

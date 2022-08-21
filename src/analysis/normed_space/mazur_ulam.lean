@@ -48,7 +48,7 @@ begin
   set z := midpoint ℝ x y,
   -- Consider the set of `e : E ≃ᵢ E` such that `e x = x` and `e y = y`
   set s := { e : PE ≃ᵢ PE | e x = x ∧ e y = y },
-  haveI : nonempty s := ⟨⟨isometric.refl PE, rfl, rfl⟩⟩,
+  letI : nonempty s := ⟨⟨isometric.refl PE, rfl, rfl⟩⟩,
   -- On the one hand, `e` cannot send the midpoint `z` of `[x, y]` too far
   have h_bdd : bdd_above (range $ λ e : s, dist (e z) z),
   { refine ⟨dist x z + dist x z, forall_range_iff.2 $ subtype.forall.2 _⟩,

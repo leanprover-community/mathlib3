@@ -278,11 +278,11 @@ theorem separable_or {f : F[X]} (hf : irreducible f) : f.separable ∨
 if H : f.derivative = 0 then
 begin
   unfreezingI { rcases p.eq_zero_or_pos with rfl | hp },
-  { haveI := char_p.char_p_to_char_zero F,
+  { letI := char_p.char_p_to_char_zero F,
     have := nat_degree_eq_zero_of_derivative_eq_zero H,
     have := (nat_degree_pos_iff_degree_pos.mpr $ degree_pos_of_irreducible hf).ne',
     contradiction },
-  haveI := is_local_ring_hom_expand F hp,
+  letI := is_local_ring_hom_expand F hp,
   exact or.inr
         ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
         contract p f,
@@ -506,7 +506,7 @@ lemma is_separable.of_alg_hom (E' : Type*) [field E'] [algebra F E']
   (f : E →ₐ[F] E') [is_separable F E'] : is_separable F E :=
 begin
   letI : algebra E E' := ring_hom.to_algebra f.to_ring_hom,
-  haveI : is_scalar_tower F E E' := is_scalar_tower.of_algebra_map_eq (λ x, (f.commutes x).symm),
+  letI : is_scalar_tower F E E' := is_scalar_tower.of_algebra_map_eq (λ x, (f.commutes x).symm),
   exact is_separable_tower_bot_of_is_separable F E E',
 end
 

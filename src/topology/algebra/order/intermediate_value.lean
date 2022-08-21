@@ -557,7 +557,7 @@ lemma continuous_on.surj_on_of_tendsto {f : α → δ} {s : set α} [ord_connect
   (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_bot)
   (htop : tendsto (λ x : s, f x) at_top at_top) :
   surj_on f s univ :=
-by haveI := classical.inhabited_of_nonempty hs.to_subtype;
+by letI := classical.inhabited_of_nonempty hs.to_subtype;
   exact (surj_on_iff_surjective.2 $
     (continuous_on_iff_continuous_restrict.1 hf).surjective htop hbot)
 

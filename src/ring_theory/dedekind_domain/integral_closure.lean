@@ -103,7 +103,7 @@ to `(y : R) • x ∈ integral_closure R L`. -/
 lemma exists_integral_multiples (s : finset L) :
   ∃ (y ≠ (0 : A)), ∀ x ∈ s, is_integral A (y • x) :=
 begin
-  haveI := classical.dec_eq L,
+  letI := classical.dec_eq L,
   refine s.induction _ _,
   { use [1, one_ne_zero],
     rintros x ⟨⟩ },
@@ -161,7 +161,7 @@ Noetherian over `A`. -/
 lemma is_integral_closure.is_noetherian [is_integrally_closed A] [is_noetherian_ring A] :
   is_noetherian A C :=
 begin
-  haveI := classical.dec_eq L,
+  letI := classical.dec_eq L,
   obtain ⟨s, b, hb_int⟩ := finite_dimensional.exists_is_basis_integral A K L,
   let b' := (trace_form K L).dual_basis (trace_form_nondegenerate K L) b,
   letI := is_noetherian_span_of_finite A (set.finite_range b'),
@@ -200,7 +200,7 @@ and `C := integral_closure A L`.
 lemma is_integral_closure.is_dedekind_domain [h : is_dedekind_domain A] :
   is_dedekind_domain C :=
 begin
-  haveI : is_fraction_ring C L := is_integral_closure.is_fraction_ring_of_finite_extension A K L C,
+  letI : is_fraction_ring C L := is_integral_closure.is_fraction_ring_of_finite_extension A K L C,
   exact
   ⟨is_integral_closure.is_noetherian_ring A K L C,
    h.dimension_le_one.is_integral_closure _ L _,

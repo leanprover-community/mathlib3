@@ -929,7 +929,7 @@ Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
   @Lim _ _ ⟨a⟩ (𝓝[s] a) = a :=
-by haveI : ne_bot (𝓝[s] a) := mem_closure_iff_cluster_pt.1 h;
+by letI : ne_bot (𝓝[s] a) := mem_closure_iff_cluster_pt.1 h;
 exact Lim_eq inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
@@ -1051,7 +1051,7 @@ lemma set.eq_on.of_subset_closure [t2_space α] {s t : set β} {f g : β → α}
   eq_on f g t :=
 begin
   intros x hx,
-  haveI : (𝓝[s] x).ne_bot, from mem_closure_iff_cluster_pt.mp (hts hx),
+  letI : (𝓝[s] x).ne_bot, from mem_closure_iff_cluster_pt.mp (hts hx),
   exact tendsto_nhds_unique_of_eventually_eq ((hf x hx).mono_left $ nhds_within_mono _ hst)
     ((hg x hx).mono_left $ nhds_within_mono _ hst) (h.eventually_eq_of_mem self_mem_nhds_within)
 end
@@ -1490,7 +1490,7 @@ begin
     is_closed_Inter (λ Z, Z.2.1.2),
   rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_disj,
-  haveI := @normal_of_compact_t2 α _ _ _,
+  letI := @normal_of_compact_t2 α _ _ _,
   -- Since our space is normal, we get two larger disjoint open sets containing the disjoint
   -- closed sets. If we can show that our intersection is a subset of any of these we can then
   -- "descend" this to show that it is a subset of either a or b.
@@ -1592,7 +1592,7 @@ lemma nhds_basis_clopen (x : α) : (𝓝 x).has_basis (λ s : set α, x ∈ s �
     suffices : ∃ Z : N, Z.val ⊆ U,
     { rcases this with ⟨⟨s, hs, hs'⟩, hs''⟩,
       exact ⟨s, ⟨hs', hs⟩, hs''⟩ },
-    haveI : nonempty N := ⟨⟨univ, is_clopen_univ, mem_univ x⟩⟩,
+    letI : nonempty N := ⟨⟨univ, is_clopen_univ, mem_univ x⟩⟩,
     have hNcl : ∀ Z : N, is_closed Z.val := (λ Z, Z.property.1.2),
     have hdir : directed superset (λ Z : N, Z.val),
     { rintros ⟨s, hs, hxs⟩ ⟨t, ht, hxt⟩,
@@ -1642,7 +1642,7 @@ begin
   have u_open_in_s : is_open u := is_open_interior.preimage continuous_subtype_coe,
   let X : s := ⟨x, h xt⟩,
   have Xu : X ∈ u := xs,
-  haveI : compact_space s := is_compact_iff_compact_space.1 comp,
+  letI : compact_space s := is_compact_iff_compact_space.1 comp,
   obtain ⟨V : set s, clopen_in_s, Vx, V_sub⟩ := compact_exists_clopen_in_open u_open_in_s Xu,
   have V_clopen : is_clopen ((coe : s → H) '' V),
   { refine ⟨_, (comp.is_closed.closed_embedding_subtype_coe.closed_iff_image_closed).1

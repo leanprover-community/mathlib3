@@ -214,8 +214,8 @@ begin
     λ n z p, is_closed_closure.inter is_closed_ball,
   -- reindex the sets `K n z p`, to let them only depend on an integer parameter `q`.
   obtain ⟨F, hF⟩ : ∃ F : ℕ → ℕ × T × ℕ, function.surjective F,
-  { haveI : encodable T := T_count.to_encodable,
-    haveI : nonempty T,
+  { letI : encodable T := T_count.to_encodable,
+    letI : nonempty T,
     { unfreezingI { rcases eq_empty_or_nonempty T with rfl|hT },
       { rcases hs with ⟨x, xs⟩,
         rcases s_subset x xs with ⟨n, z, hnz⟩,
@@ -354,7 +354,7 @@ begin
       ∧ ∑' (x : ↥t), μ (closed_ball ↑x (r ↑x)) ≤ μ s + a :=
         besicovitch.exists_closed_ball_covering_tsum_measure_le μ ha.ne' (λ x, Ioi 0) s
         (λ x xs δ δpos, ⟨δ/2, by simp [half_pos δpos, half_lt_self δpos]⟩),
-    haveI : encodable t := t_count.to_encodable,
+    letI : encodable t := t_count.to_encodable,
     calc μ (f '' s)
         ≤ μ (⋃ (x : t), f '' (s ∩ closed_ball x (r x))) :
       begin

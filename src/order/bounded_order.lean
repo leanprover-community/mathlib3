@@ -142,8 +142,8 @@ H.maximal_of_maximal_image (λ p, by { rw h_top, exact le_top }) x
 
 theorem order_top.ext_top {α} {hA : partial_order α} (A : order_top α)
   {hB : partial_order α} (B : order_top α)
-  (H : ∀ x y : α, (by haveI := hA; exact x ≤ y) ↔ x ≤ y) :
-  (by haveI := A; exact ⊤ : α) = ⊤ :=
+  (H : ∀ x y : α, (by letI := hA; exact x ≤ y) ↔ x ≤ y) :
+  (by letI := A; exact ⊤ : α) = ⊤ :=
 top_unique $ by rw ← H; apply le_top
 
 theorem order_top.ext {α} [partial_order α] {A B : order_top α} : A = B :=
@@ -259,8 +259,8 @@ H.minimal_of_minimal_image (λ p, by { rw h_bot, exact bot_le }) x
 
 theorem order_bot.ext_bot {α} {hA : partial_order α} (A : order_bot α)
   {hB : partial_order α} (B : order_bot α)
-  (H : ∀ x y : α, (by haveI := hA; exact x ≤ y) ↔ x ≤ y) :
-  (by haveI := A; exact ⊥ : α) = ⊥ :=
+  (H : ∀ x y : α, (by letI := hA; exact x ≤ y) ↔ x ≤ y) :
+  (by letI := A; exact ⊥ : α) = ⊥ :=
 bot_unique $ by rw ← H; apply bot_le
 
 theorem order_bot.ext {α} [partial_order α] {A B : order_bot α} : A = B :=

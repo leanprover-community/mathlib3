@@ -100,7 +100,7 @@ instance representably_flat.id : representably_flat (𝟭 C) :=
 begin
   constructor,
   intro X,
-  haveI : nonempty (structured_arrow X (𝟭 C)) := ⟨structured_arrow.mk (𝟙 _)⟩,
+  letI : nonempty (structured_arrow X (𝟭 C)) := ⟨structured_arrow.mk (𝟙 _)⟩,
   suffices : is_cofiltered_or_empty (structured_arrow X (𝟭 C)),
   { resetI, constructor },
   constructor,
@@ -120,7 +120,7 @@ instance representably_flat.comp (F : C ⥤ D) (G : D ⥤ E)
 begin
   constructor,
   intro X,
-  haveI : nonempty (structured_arrow X (F ⋙ G)),
+  letI : nonempty (structured_arrow X (F ⋙ G)),
   { have f₁ : structured_arrow X G := nonempty.some infer_instance,
     have f₂ : structured_arrow f₁.right F := nonempty.some infer_instance,
     exact ⟨structured_arrow.mk (f₁.hom ≫ G.map f₂.hom)⟩ },
@@ -178,7 +178,7 @@ instance cofiltered_of_has_finite_limits [has_finite_limits C] : is_cofiltered C
 lemma flat_of_preserves_finite_limits [has_finite_limits C] (F : C ⥤ D)
   [preserves_finite_limits F] : representably_flat F := ⟨λ X,
 begin
-  haveI : has_finite_limits (structured_arrow X F) :=
+  letI : has_finite_limits (structured_arrow X F) :=
   begin
     apply has_finite_limits_of_has_finite_limits_of_size.{v₁} (structured_arrow X F),
     intros J sJ fJ, resetI, constructor
@@ -330,7 +330,7 @@ begin
   intros J _ _, resetI,
   apply preserves_limits_of_shape_of_evaluation (Lan F.op : (Cᵒᵖ ⥤ E) ⥤ (Dᵒᵖ ⥤ E)) J,
   intro K,
-  haveI : is_filtered (costructured_arrow F.op K) :=
+  letI : is_filtered (costructured_arrow F.op K) :=
     is_filtered.of_equivalence (structured_arrow_op_equivalence F (unop K)),
   exact preserves_limits_of_shape_of_nat_iso (Lan_evaluation_iso_colim _ _ _).symm,
 end
@@ -344,7 +344,7 @@ noncomputable
 instance Lan_preserves_finite_limits_of_preserves_finite_limits (F : C ⥤ D)
   [preserves_finite_limits F] : preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ E)) :=
 begin
-  haveI := flat_of_preserves_finite_limits F,
+  letI := flat_of_preserves_finite_limits F,
   apply_instance
 end
 
@@ -353,8 +353,8 @@ lemma flat_iff_Lan_flat (F : C ⥤ D) :
 ⟨λ H, by exactI infer_instance, λ H,
 begin
   resetI,
-  haveI := preserves_finite_limits_of_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)),
-  haveI : preserves_finite_limits F :=
+  letI := preserves_finite_limits_of_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)),
+  letI : preserves_finite_limits F :=
     begin
       apply preserves_finite_limits_of_preserves_finite_limits_of_size.{u₁},
       intros, resetI, apply preserves_limit_of_Lan_presesrves_limit

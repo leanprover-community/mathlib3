@@ -152,7 +152,7 @@ def invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A :=
 /-- The transpose of an invertible matrix is invertible. -/
 instance invertible_transpose [invertible A] : invertible Aᵀ :=
 begin
-  haveI : invertible Aᵀ.det,
+  letI : invertible Aᵀ.det,
     by simpa using det_invertible_of_invertible A,
   exact invertible_of_det_invertible Aᵀ
 end
@@ -421,7 +421,7 @@ begin
   { simp },
   cases (fintype.card n).zero_le.eq_or_lt with hc hc,
   { rw [eq_comm, fintype.card_eq_zero_iff] at hc,
-    haveI := hc,
+    letI := hc,
     ext i,
     exact (is_empty.false i).elim },
   { have hn : nonempty n := fintype.card_pos_iff.mp hc,
@@ -566,7 +566,7 @@ end
 @[simp] lemma det_from_blocks_one₁₁ (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) :
   (matrix.from_blocks 1 B C D).det = det (D - C ⬝ B) :=
 begin
-  haveI : invertible (1 : matrix m m α) := invertible_one,
+  letI : invertible (1 : matrix m m α) := invertible_one,
   rw [det_from_blocks₁₁, inv_of_one, matrix.mul_one, det_one, one_mul],
 end
 
@@ -584,7 +584,7 @@ end
 @[simp] lemma det_from_blocks_one₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) :
   (matrix.from_blocks A B C 1).det = det (A - B ⬝ C) :=
 begin
-  haveI : invertible (1 : matrix n n α) := invertible_one,
+  letI : invertible (1 : matrix n n α) := invertible_one,
   rw [det_from_blocks₂₂, inv_of_one, matrix.mul_one, det_one, one_mul],
 end
 

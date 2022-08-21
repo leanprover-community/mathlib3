@@ -196,7 +196,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
 bigger module in the directed system. -/
 theorem of.zero_exact [is_directed ι (≤)] {i x} (H : of R ι G f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
-by haveI : nonempty ι := ⟨i⟩; exact
+by letI : nonempty ι := ⟨i⟩; exact
 let ⟨j, hj, hxj⟩ := of.zero_exact_aux H in
 if hx0 : x = 0 then ⟨i, le_rfl, by simp [hx0]⟩
 else
@@ -482,7 +482,7 @@ end
 bigger module in the directed system. -/
 lemma of.zero_exact [is_directed ι (≤)] {i x} (hix : of G (λ i j h, f' i j h) i x = 0) :
   ∃ j (hij : i ≤ j), f' i j hij x = 0 :=
-by haveI : nonempty ι := ⟨i⟩; exact
+by letI : nonempty ι := ⟨i⟩; exact
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux hix in
 have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_of.1 hxs,
 ⟨j, H ⟨i, x⟩ hixs, by rw [restriction_of, dif_pos hixs, lift_of] at hx; exact hx⟩

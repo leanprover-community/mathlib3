@@ -54,7 +54,7 @@ end
 lemma finite.card_pos_iff [finite α] :
   0 < nat.card α ↔ nonempty α :=
 begin
-  haveI := fintype.of_finite α,
+  letI := fintype.of_finite α,
   simp only [nat.card_eq_fintype_card],
   exact fintype.card_pos_iff,
 end
@@ -62,23 +62,23 @@ end
 namespace finite
 
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
+by { letI := fintype.of_finite α, letI := fintype.of_finite β, simp [fintype.card_eq] }
 
 lemma card_le_one_iff_subsingleton [finite α] : nat.card α ≤ 1 ↔ subsingleton α :=
-by { haveI := fintype.of_finite α, simp [fintype.card_le_one_iff_subsingleton] }
+by { letI := fintype.of_finite α, simp [fintype.card_le_one_iff_subsingleton] }
 
 lemma one_lt_card_iff_nontrivial [finite α] : 1 < nat.card α ↔ nontrivial α :=
-by { haveI := fintype.of_finite α, simp [fintype.one_lt_card_iff_nontrivial] }
+by { letI := fintype.of_finite α, simp [fintype.one_lt_card_iff_nontrivial] }
 
 lemma one_lt_card [finite α] [h : nontrivial α] : 1 < nat.card α :=
 one_lt_card_iff_nontrivial.mpr h
 
 @[simp] lemma card_option [finite α] : nat.card (option α) = nat.card α + 1 :=
-by { haveI := fintype.of_finite α, simp }
+by { letI := fintype.of_finite α, simp }
 
 lemma card_le_of_injective [finite β] (f : α → β) (hf : function.injective f) :
   nat.card α ≤ nat.card β :=
-by { haveI := fintype.of_finite β, haveI := fintype.of_injective f hf,
+by { letI := fintype.of_finite β, letI := fintype.of_injective f hf,
      simpa using fintype.card_le_of_injective f hf }
 
 lemma card_le_of_embedding [finite β] (f : α ↪ β) : nat.card α ≤ nat.card β :=
@@ -86,21 +86,21 @@ card_le_of_injective _ f.injective
 
 lemma card_le_of_surjective [finite α] (f : α → β) (hf : function.surjective f) :
   nat.card β ≤ nat.card α :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_surjective f hf,
+by { letI := fintype.of_finite α, letI := fintype.of_surjective f hf,
      simpa using fintype.card_le_of_surjective f hf }
 
 lemma card_eq_zero_iff [finite α] : nat.card α = 0 ↔ is_empty α :=
-by { haveI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
+by { letI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
 
 lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
+by { letI := fintype.of_finite α, letI := fintype.of_finite β, simp }
 
 end finite
 
 theorem finite.card_subtype_le [finite α] (p : α → Prop) :
   nat.card {x // p x} ≤ nat.card α :=
-by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_le p }
+by { letI := fintype.of_finite α, simpa using fintype.card_subtype_le p }
 
 theorem finite.card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
   nat.card {x // p x} < nat.card α :=
-by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }
+by { letI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }

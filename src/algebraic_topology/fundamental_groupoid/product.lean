@@ -106,7 +106,7 @@ def pi_Top_to_pi_cone : (limits.fan.mk (πₓ (Top.of (Π i, X i))) (proj X)) �
 
 instance : is_iso (pi_Top_to_pi_cone X) :=
 begin
-  haveI : is_iso (pi_Top_to_pi_cone X).hom := (infer_instance : is_iso (pi_iso X).inv),
+  letI : is_iso (pi_Top_to_pi_cone X).hom := (infer_instance : is_iso (pi_iso X).inv),
   exact limits.cones.cone_iso_of_hom_iso (pi_Top_to_pi_cone X),
 end
 

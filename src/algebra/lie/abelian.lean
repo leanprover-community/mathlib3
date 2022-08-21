@@ -243,7 +243,7 @@ end
 
 lemma abelian_of_le_center (I : lie_ideal R L) (h : I ≤ center R L) : is_lie_abelian I :=
 begin
-  haveI : lie_module.is_trivial L I := (lie_module.trivial_iff_le_maximal_trivial R L L I).mpr h,
+  letI : lie_module.is_trivial L I := (lie_module.trivial_iff_le_maximal_trivial R L L I).mpr h,
   exact lie_ideal.is_lie_abelian_of_trivial R L I,
 end
 

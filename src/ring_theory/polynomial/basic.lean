@@ -842,7 +842,7 @@ begin
     have : (0 : R) ≠ 1,
     { intro h, apply hp0, ext i, refine (mul_one _).symm.trans _,
       rw [← h, mul_zero], refl },
-    haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩,
+    letI : nontrivial R := ⟨⟨0, 1, this⟩⟩,
     have : p.leading_coeff ∈ I.leading_coeff_nth N,
     { rw HN, exact hm2 k ((I.mem_leading_coeff_nth _ _).2
         ⟨_, hp, hn ▸ polynomial.degree_le_nat_degree, rfl⟩) },
@@ -1009,7 +1009,7 @@ lemma is_domain_fin (R : Type u) [comm_ring R] [is_domain R] :
 | 0 := is_domain_fin_zero R
 | (n+1) :=
   begin
-    haveI := is_domain_fin n,
+    letI := is_domain_fin n,
     exact ring_equiv.is_domain
       (polynomial (mv_polynomial (fin n) R))
       (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv
@@ -1198,8 +1198,8 @@ namespace polynomial
 @[priority 100]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
 begin
-  haveI := arbitrary (normalization_monoid D),
-  haveI := to_normalized_gcd_monoid D,
+  letI := arbitrary (normalization_monoid D),
+  letI := to_normalized_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
 

@@ -196,7 +196,7 @@ assume h, have a ∈ (0:multiset α), from h.symm ▸ mem_cons_self _ _, not_mem
 lemma cons_eq_cons {a b : α} {as bs : multiset α} :
   a ::ₘ as = b ::ₘ bs ↔ ((a = b ∧ as = bs) ∨ (a ≠ b ∧ ∃cs, as = b ::ₘ cs ∧ bs = a ::ₘ cs)) :=
 begin
-  haveI : decidable_eq α := classical.dec_eq α,
+  letI : decidable_eq α := classical.dec_eq α,
   split,
   { assume eq,
     by_cases a = b,

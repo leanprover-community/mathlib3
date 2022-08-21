@@ -1140,7 +1140,7 @@ instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 
 lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.connected) : H.connected :=
-by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
+by { letI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
 
 lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.connected ↔ H.connected :=

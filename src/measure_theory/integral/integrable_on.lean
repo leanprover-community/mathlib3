@@ -70,7 +70,7 @@ section normed_add_comm_group
 lemma has_finite_integral_restrict_of_bounded [normed_add_comm_group E] {f : α → E} {s : set α}
   {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
   has_finite_integral f (μ.restrict s) :=
-by haveI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
+by letI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
 
 variables [normed_add_comm_group E] {f g : α → E} {s t : set α} {μ ν : measure α}
@@ -241,7 +241,7 @@ begin
   refine mem_ℒp_one_iff_integrable.mp _,
   have hμ_restrict_univ : (μ.restrict s) set.univ < ∞,
     by simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply, lt_top_iff_ne_top],
-  haveI hμ_finite : is_finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
+  letI hμ_finite : is_finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
 
@@ -397,7 +397,7 @@ lemma continuous_on.integrable_at_nhds_within_of_is_separable
   (h't : topological_space.is_separable t) (ha : a ∈ t) :
   integrable_at_filter f (𝓝[t] a) μ :=
 begin
-  haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
+  letI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
   exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within,
     hft.ae_strongly_measurable_of_is_separable ht h't⟩ (μ.finite_at_nhds_within _ _),
 end
@@ -408,7 +408,7 @@ lemma continuous_on.integrable_at_nhds_within
   {a : α} {t : set α} {f : α → E} (hft : continuous_on f t) (ht : measurable_set t) (ha : a ∈ t) :
   integrable_at_filter f (𝓝[t] a) μ :=
 begin
-  haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
+  letI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
   exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩
     (μ.finite_at_nhds_within _ _),
 end

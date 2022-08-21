@@ -60,7 +60,7 @@ def coproduct : LocallyRingedSpace :=
 { to_SheafedSpace := colimit (F ⋙ forget_to_SheafedSpace : _),
   local_ring := λ x, begin
     obtain ⟨i, y, ⟨⟩⟩ := SheafedSpace.colimit_exists_rep (F ⋙ forget_to_SheafedSpace) x,
-    haveI : _root_.local_ring (((F ⋙ forget_to_SheafedSpace).obj i).to_PresheafedSpace.stalk y) :=
+    letI : _root_.local_ring (((F ⋙ forget_to_SheafedSpace).obj i).to_PresheafedSpace.stalk y) :=
       (F.obj i).local_ring _,
     exact (as_iso (PresheafedSpace.stalk_map (colimit.ι (F ⋙ forget_to_SheafedSpace) i : _) y)
       ).symm.CommRing_iso_to_ring_equiv.local_ring
@@ -86,7 +86,7 @@ def coproduct_cofan_is_colimit : is_colimit (coproduct_cofan F) :=
     rw ← is_iso.comp_inv_eq at this,
     erw [← this, PresheafedSpace.stalk_map.congr_hom _ _
       (colimit.ι_desc (forget_to_SheafedSpace.map_cocone s) i : _)],
-    haveI : is_local_ring_hom (PresheafedSpace.stalk_map
+    letI : is_local_ring_hom (PresheafedSpace.stalk_map
       ((forget_to_SheafedSpace.map_cocone s).ι.app i) y) := (s.ι.app i).2 y,
     apply_instance
   end⟩,

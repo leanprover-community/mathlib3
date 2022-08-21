@@ -354,12 +354,12 @@ begin
   let j : pullback (kernel.ι (cokernel.π f)) (kernel.ι g) ⟶ kernel g := pullback.snd,
 
   -- Since q is an epimorphism, in particular this means that j is an epimorphism.
-  haveI pe : epi j := by exactI epi_of_epi_fac hz₂,
+  letI pe : epi j := by exactI epi_of_epi_fac hz₂,
 
   -- But is is also a monomorphism, because kernel.ι (cokernel.π f) is: A kernel is
   -- always a monomorphism and the pullback of a monomorphism is a monomorphism.
   -- But mono + epi = iso, so j is an isomorphism.
-  haveI : is_iso j := is_iso_of_mono_of_epi _,
+  letI : is_iso j := is_iso_of_mono_of_epi _,
 
   -- But then kernel.ι g can be expressed using all of the maps of the pullback square, and we
   -- are done.

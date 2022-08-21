@@ -273,7 +273,7 @@ begin
   { rwa [ne.def, inv_mul_eq_one] },
   rcases (fun_like.exists_ne hστ) with ⟨x, hx : (σ⁻¹ * τ) x ≠ x⟩,
   let E := intermediate_field.adjoin K ({x} : set L),
-  haveI := intermediate_field.adjoin.finite_dimensional (h_int x),
+  letI := intermediate_field.adjoin.finite_dimensional (h_int x),
   refine ⟨left_coset σ E.fixing_subgroup,
     ⟨E.fixing_subgroup_is_open.left_coset σ, E.fixing_subgroup_is_closed.left_coset σ⟩,
     ⟨1, E.fixing_subgroup.one_mem', by simp⟩, _⟩,

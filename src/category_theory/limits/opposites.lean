@@ -260,7 +260,7 @@ If `C` has products indexed by `X`, then `Cᵒᵖ` has coproducts indexed by `X`
 lemma has_coproducts_opposite [has_products_of_shape X C] :
   has_coproducts_of_shape X Cᵒᵖ :=
 begin
-  haveI : has_limits_of_shape (discrete X)ᵒᵖ C :=
+  letI : has_limits_of_shape (discrete X)ᵒᵖ C :=
     has_limits_of_shape_of_equivalence (discrete.opposite X).symm,
   apply_instance
 end
@@ -271,7 +271,7 @@ If `C` has coproducts indexed by `X`, then `Cᵒᵖ` has products indexed by `X`
 lemma has_products_opposite [has_coproducts_of_shape X C] :
   has_products_of_shape X Cᵒᵖ :=
 begin
-  haveI : has_colimits_of_shape (discrete X)ᵒᵖ C :=
+  letI : has_colimits_of_shape (discrete X)ᵒᵖ C :=
     has_colimits_of_shape_of_equivalence (discrete.opposite X).symm,
   apply_instance
 end
@@ -279,7 +279,7 @@ end
 lemma has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
 { out := λ J 𝒟, begin
     resetI,
-    haveI : has_limits_of_shape (discrete J)ᵒᵖ C :=
+    letI : has_limits_of_shape (discrete J)ᵒᵖ C :=
       has_limits_of_shape_of_equivalence (discrete.opposite J).symm,
     apply_instance,
   end }
@@ -287,21 +287,21 @@ lemma has_finite_coproducts_opposite [has_finite_products C] : has_finite_coprod
 lemma has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
 { out := λ J 𝒟, begin
     resetI,
-    haveI : has_colimits_of_shape (discrete J)ᵒᵖ C :=
+    letI : has_colimits_of_shape (discrete J)ᵒᵖ C :=
       has_colimits_of_shape_of_equivalence (discrete.opposite J).symm,
     apply_instance,
   end }
 
 lemma has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
 begin
-  haveI : has_colimits_of_shape walking_parallel_pairᵒᵖ C :=
+  letI : has_colimits_of_shape walking_parallel_pairᵒᵖ C :=
     has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
 
 lemma has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
 begin
-  haveI : has_limits_of_shape walking_parallel_pairᵒᵖ C :=
+  letI : has_limits_of_shape walking_parallel_pairᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
@@ -316,14 +316,14 @@ lemma has_finite_limits_opposite [has_finite_colimits C] :
 
 lemma has_pullbacks_opposite [has_pushouts C] : has_pullbacks Cᵒᵖ :=
 begin
-  haveI : has_colimits_of_shape walking_cospanᵒᵖ C :=
+  letI : has_colimits_of_shape walking_cospanᵒᵖ C :=
     has_colimits_of_shape_of_equivalence walking_cospan_op_equiv.symm,
   apply has_limits_of_shape_op_of_has_colimits_of_shape,
 end
 
 lemma has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
 begin
-  haveI : has_limits_of_shape walking_spanᵒᵖ C :=
+  letI : has_limits_of_shape walking_spanᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_span_op_equiv.symm,
   apply has_colimits_of_shape_op_of_has_limits_of_shape,
 end

@@ -573,7 +573,7 @@ lemma coeff_mul_monomial' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ 
 begin
   obtain rfl | hr := eq_or_ne r 0,
   { simp only [monomial_zero, coeff_zero, mul_zero, if_t_t], },
-  haveI : nontrivial R := nontrivial_of_ne _ _ hr,
+  letI : nontrivial R := nontrivial_of_ne _ _ hr,
   split_ifs with h h,
   { conv_rhs {rw ← coeff_mul_monomial _ s},
     congr' with  t,

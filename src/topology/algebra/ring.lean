@@ -72,7 +72,7 @@ proving `continuous_neg`. -/
 lemma topological_semiring.to_topological_ring [topological_space α] [non_assoc_ring α]
   (h : topological_semiring α) : topological_ring α :=
 { ..h,
-  ..(by { haveI := h.to_has_continuous_mul,
+  ..(by { letI := h.to_has_continuous_mul,
           exact topological_semiring.has_continuous_neg_of_mul } : has_continuous_neg α) }
 
 @[priority 100] -- See note [lower instance priority]
@@ -229,7 +229,7 @@ lemma topological_ring.of_nhds_zero
   (hmul_right : ∀ (x₀ : R), tendsto (λ x : R, x * x₀) (𝓝 0) $ 𝓝 0)
   (hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0)) : topological_ring R :=
 begin
-  haveI := topological_add_group.of_comm_of_nhds_zero hadd hneg hleft,
+  letI := topological_add_group.of_comm_of_nhds_zero hadd hneg hleft,
   exact topological_ring.of_add_group_of_nhds_zero hmul hmul_left hmul_right
 end
 

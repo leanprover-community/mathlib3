@@ -78,7 +78,7 @@ protected lemma decomposition.induction_on {p : M → Prop}
 begin
   let ℳ' : ι → add_submonoid M :=
     λ i, (⟨ℳ i, λ _ _, add_mem_class.add_mem, zero_mem_class.zero_mem _⟩ : add_submonoid M),
-  haveI t : direct_sum.decomposition ℳ' :=
+  letI t : direct_sum.decomposition ℳ' :=
   { decompose' := direct_sum.decompose ℳ,
     left_inv := λ _, (decompose ℳ).left_inv _,
     right_inv := λ _, (decompose ℳ).right_inv _, },

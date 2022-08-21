@@ -63,8 +63,8 @@ lemma is_semisimple_iff_no_abelian_ideals :
 begin
   rw is_semisimple_iff_no_solvable_ideals,
   split; intros h₁ I h₂,
-  { haveI : is_lie_abelian I := h₂, apply h₁, exact lie_algebra.of_abelian_is_solvable R I, },
-  { haveI : is_solvable R I := h₂, rw ← abelian_of_solvable_ideal_eq_bot_iff, apply h₁,
+  { letI : is_lie_abelian I := h₂, apply h₁, exact lie_algebra.of_abelian_is_solvable R I, },
+  { letI : is_solvable R I := h₂, rw ← abelian_of_solvable_ideal_eq_bot_iff, apply h₁,
     exact abelian_derived_abelian_of_ideal I, },
 end
 

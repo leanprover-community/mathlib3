@@ -290,7 +290,7 @@ lemma grundy_value_eq_mex_right : ∀ (G : pgame) [G.impartial],
   rw [←grundy_value_neg, grundy_value_eq_mex_left],
   congr,
   ext i,
-  haveI : (R i).impartial := @impartial.move_right_impartial ⟨l, r, L, R⟩ _ i,
+  letI : (R i).impartial := @impartial.move_right_impartial ⟨l, r, L, R⟩ _ i,
   apply grundy_value_neg
 end
 

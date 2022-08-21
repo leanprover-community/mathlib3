@@ -257,7 +257,7 @@ the limit of the limits of the functors `G.obj (j, _)`.
 noncomputable def limit_iso_limit_curry_comp_lim : limit G ≅ limit ((curry.obj G) ⋙ lim) :=
 begin
   have i : G ≅ uncurry.obj ((@curry J _ K _ C _).obj G) := currying.symm.unit_iso.app G,
-  haveI : limits.has_limit (uncurry.obj ((@curry J _ K _ C _).obj G)) :=
+  letI : limits.has_limit (uncurry.obj ((@curry J _ K _ C _).obj G)) :=
     has_limit_of_iso i,
   transitivity limit (uncurry.obj ((@curry J _ K _ C _).obj G)),
   apply has_limit.iso_of_nat_iso i,

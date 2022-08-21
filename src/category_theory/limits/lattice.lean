@@ -104,7 +104,7 @@ end
 @[priority 100] -- see Note [lower instance priority]
 instance [semilattice_inf α] [order_top α] : has_binary_products α :=
 begin
-  haveI : ∀ (x y : α), has_limit (pair x y),
+  letI : ∀ (x y : α), has_limit (pair x y),
   { letI := has_finite_limits_of_has_finite_limits_of_size.{u} α, apply_instance },
   apply has_binary_products_of_has_limit_pair
 end
@@ -123,7 +123,7 @@ calc limits.prod x y = limit (pair x y) : rfl
 @[priority 100] -- see Note [lower instance priority]
 instance [semilattice_sup α] [order_bot α] : has_binary_coproducts α :=
 begin
-  haveI : ∀ (x y : α), has_colimit (pair x y),
+  letI : ∀ (x y : α), has_colimit (pair x y),
   { letI := has_finite_colimits_of_has_finite_colimits_of_size.{u} α, apply_instance },
   apply has_binary_coproducts_of_has_colimit_pair
 end

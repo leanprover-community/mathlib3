@@ -25,7 +25,7 @@ theorem coprime_of_div_gcd (s : finset ℕ) {x : ℕ} (hx : x ∈ s) (hnz : x �
 begin
   rw nat.eq_one_iff_not_exists_prime_dvd,
   intros p hp hdvd,
-  haveI : fact p.prime := ⟨hp⟩,
+  letI : fact p.prime := ⟨hp⟩,
   rw dvd_gcd_iff at hdvd,
   replace hdvd : ∀ b ∈ s, s.gcd id * p ∣ b,
   { intros b hb,

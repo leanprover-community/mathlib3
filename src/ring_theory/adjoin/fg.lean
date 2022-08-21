@@ -169,7 +169,7 @@ variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=
 let ⟨t, ht⟩ := HS in ht ▸ (algebra.adjoin_eq_range R (↑t : set A)).symm ▸
-by haveI : is_noetherian_ring (mv_polynomial (↑t : set A) R) :=
+by letI : is_noetherian_ring (mv_polynomial (↑t : set A) R) :=
 mv_polynomial.is_noetherian_ring;
 convert alg_hom.is_noetherian_ring_range _; apply_instance
 

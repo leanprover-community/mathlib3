@@ -544,7 +544,7 @@ begin
   { rw ←top_le_iff,
     simp only [finrank_eq_zero.1 (eq.trans finrank_top h_dim), bot_le] },
   -- Otherwise the vector space is nontrivial.
-  { haveI : nontrivial V := finrank_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
+  { letI : nontrivial V := finrank_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
     -- Hence, `f` has an eigenvalue `μ₀`.
     obtain ⟨μ₀, hμ₀⟩ : ∃ μ₀, f.has_eigenvalue μ₀ := exists_eigenvalue f,
     -- We define `ES` to be the generalized eigenspace

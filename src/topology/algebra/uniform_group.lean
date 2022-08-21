@@ -415,7 +415,7 @@ local attribute [instance] topological_group.to_uniform_space
 @[to_additive] lemma topological_group_is_uniform_of_compact_space
   [compact_space G] [t2_space G] : uniform_group G :=
 ⟨begin
-  haveI : separated_space G := separated_iff_t2.mpr (by apply_instance),
+  letI : separated_space G := separated_iff_t2.mpr (by apply_instance),
   apply compact_space.uniform_continuous_of_continuous,
   exact continuous_div',
 end⟩
@@ -427,7 +427,7 @@ variables {G}
 begin
   obtain ⟨V, V_in, VH⟩ : ∃ (V : set G) (hV : V ∈ 𝓝 (1 : G)), V ∩ (H : set G) = {1},
     from nhds_inter_eq_singleton_of_mem_discrete H.one_mem,
-  haveI : separated_space G := separated_iff_t2.mpr ‹_›,
+  letI : separated_space G := separated_iff_t2.mpr ‹_›,
   have : (λ p : G × G, p.2 / p.1) ⁻¹' V ∈ 𝓤 G, from preimage_mem_comap V_in,
   apply is_closed_of_spaced_out this,
   intros h h_in h' h'_in,
@@ -495,7 +495,7 @@ open set
 @[to_additive] lemma topological_group.t2_space_iff_one_closed :
   t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  haveI : uniform_group G := topological_comm_group_is_uniform,
+  letI : uniform_group G := topological_comm_group_is_uniform,
   rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,

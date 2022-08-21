@@ -372,7 +372,7 @@ begin
   { rintros ⟨x, x_in⟩,
     exact H x (t_sub x_in) },
   choose i hi using this,
-  haveI : fintype t := tfin.fintype,
+  letI : fintype t := tfin.fintype,
   use finset.image i finset.univ,
   transitivity ⋃ y ∈ t, ball y V,
   { intros x x_in,

@@ -135,7 +135,7 @@ end
 theorem revzip_powerset_aux_perm_aux' {l : list α} :
   revzip (powerset_aux l) ~ revzip (powerset_aux' l) :=
 begin
-  haveI := classical.dec_eq α,
+  letI := classical.dec_eq α,
   rw [revzip_powerset_aux_lemma l revzip_powerset_aux,
       revzip_powerset_aux_lemma l revzip_powerset_aux'],
   exact powerset_aux_perm_powerset_aux'.map _
@@ -144,7 +144,7 @@ end
 theorem revzip_powerset_aux_perm {l₁ l₂ : list α} (p : l₁ ~ l₂) :
   revzip (powerset_aux l₁) ~ revzip (powerset_aux l₂) :=
 begin
-  haveI := classical.dec_eq α,
+  letI := classical.dec_eq α,
   simp [λ l:list α, revzip_powerset_aux_lemma l revzip_powerset_aux, coe_eq_coe.2 p],
   exact (powerset_aux_perm p).map _
 end

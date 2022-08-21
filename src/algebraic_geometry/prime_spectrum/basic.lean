@@ -524,7 +524,7 @@ lemma comap_singleton_is_closed_of_surjective (f : R →+* S) (hf : function.sur
   (x : prime_spectrum S) (hx : is_closed ({x} : set (prime_spectrum S))) :
   is_closed ({comap f x} : set (prime_spectrum R)) :=
 begin
-  haveI : x.as_ideal.is_maximal := (is_closed_singleton_iff_is_maximal x).1 hx,
+  letI : x.as_ideal.is_maximal := (is_closed_singleton_iff_is_maximal x).1 hx,
   exact (is_closed_singleton_iff_is_maximal _).2 (ideal.comap_is_maximal_of_surjective f hf)
 end
 

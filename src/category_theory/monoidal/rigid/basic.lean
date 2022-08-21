@@ -588,7 +588,7 @@ def exact_pairing_congr_right {X Y Y' : C} [exact_pairing X Y'] (i : Y ≅ Y') :
 def exact_pairing_congr {X X' Y Y' : C} [exact_pairing X' Y'] (i : X ≅ X') (j : Y ≅ Y') :
   exact_pairing X Y :=
 begin
-  haveI : exact_pairing X' Y := exact_pairing_congr_right j,
+  letI : exact_pairing X' Y := exact_pairing_congr_right j,
   exact exact_pairing_congr_left i,
 end
 

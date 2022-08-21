@@ -197,7 +197,7 @@ lemma ring_hom.localization_preserves.away
     P (by exactI is_localization.away.map R' S' f r) :=
 begin
   resetI,
-  haveI : is_localization ((submonoid.powers r).map f) S',
+  letI : is_localization ((submonoid.powers r).map f) S',
   { rw submonoid.map_powers, assumption },
   exact H f (submonoid.powers r) R' S' hf,
 end
@@ -358,7 +358,7 @@ begin
   letI := ((algebra_map S S').comp f).to_algebra,
   let f' : R' →+* S' := is_localization.map S' f (submonoid.le_comap_map M),
   letI := f'.to_algebra,
-  haveI : is_scalar_tower R R' S' :=
+  letI : is_scalar_tower R R' S' :=
     is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp _).symm,
   let fₐ : S →ₐ[R] S' := alg_hom.mk' (algebra_map S S') (λ c x, ring_hom.map_mul _ _ _),
 
@@ -489,10 +489,10 @@ begin
   resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
-  haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
+  letI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
     (localization.away (f r)),
   { intro r, rw submonoid.map_powers, exact localization.is_localization },
-  haveI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
+  letI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
     λ r, is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp _).symm,
 
   -- By the hypothesis, we may find a finite generating set for each `Sᵣ`. This set can then be
@@ -541,7 +541,7 @@ begin
   letI := ((algebra_map S S').comp f).to_algebra,
   let f' : R' →+* S' := is_localization.map S' f (submonoid.le_comap_map M),
   letI := f'.to_algebra,
-  haveI : is_scalar_tower R R' S' :=
+  letI : is_scalar_tower R R' S' :=
     is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp _).symm,
   let fₐ : S →ₐ[R] S' := alg_hom.mk' (algebra_map S S') (λ c x, ring_hom.map_mul _ _ _),
 
@@ -629,10 +629,10 @@ begin
   resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
-  haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
+  letI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
     (localization.away (f r)),
   { intro r, rw submonoid.map_powers, exact localization.is_localization },
-  haveI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
+  letI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
     λ r, is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp _).symm,
 
   constructor,

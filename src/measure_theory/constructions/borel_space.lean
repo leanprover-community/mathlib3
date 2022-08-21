@@ -332,7 +332,7 @@ each `a`. This cannot be an `instance` because it depends on a non-instance `hs 
 lemma measurable_set.nhds_within_is_measurably_generated {s : set α} (hs : measurable_set s)
   (a : α) :
   (𝓝[s] a).is_measurably_generated :=
-by haveI := hs.principal_is_measurably_generated; exact filter.inf_is_measurably_generated _ _
+by letI := hs.principal_is_measurably_generated; exact filter.inf_is_measurably_generated _ _
 
 @[priority 100] -- see Note [lower instance priority]
 instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
@@ -1021,7 +1021,7 @@ begin
   let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
   have hg_seq : ∀ b, is_lub {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
   { intro b,
-    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
+    letI hα : nonempty α := nonempty.map g ⟨b⟩,
     simp only [ae_seq, g_seq],
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
@@ -1044,7 +1044,7 @@ lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   ae_measurable g μ :=
 begin
   by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_zero_measure },
-  haveI : μ.ae.ne_bot, { simpa [ne_bot_iff] },
+  letI : μ.ae.ne_bot, { simpa [ne_bot_iff] },
   by_cases hι : nonempty ι, { exact ae_measurable.is_lub_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
@@ -1078,7 +1078,7 @@ begin
   let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
   have hg_seq : ∀ b, is_glb {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
   { intro b,
-    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
+    letI hα : nonempty α := nonempty.map g ⟨b⟩,
     simp only [ae_seq, g_seq],
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
@@ -1101,7 +1101,7 @@ lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   ae_measurable g μ :=
 begin
   by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_zero_measure },
-  haveI : μ.ae.ne_bot, { simpa [ne_bot_iff] },
+  letI : μ.ae.ne_bot, { simpa [ne_bot_iff] },
   by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
@@ -1230,26 +1230,26 @@ ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))
 
 lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨆ i ∈ s, f i b) :=
-by { haveI : encodable s := hs.to_encodable, simp only [supr_subtype'],
+by { letI : encodable s := hs.to_encodable, simp only [supr_subtype'],
      exact measurable_supr (λ i, hf i) }
 
 lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨆ i ∈ s, f i b) μ :=
 begin
-  haveI : encodable s := hs.to_encodable,
+  letI : encodable s := hs.to_encodable,
   simp only [supr_subtype'],
   exact ae_measurable_supr (λ i, hf i),
 end
 
 lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨅ i ∈ s, f i b) :=
-by { haveI : encodable s := hs.to_encodable, simp only [infi_subtype'],
+by { letI : encodable s := hs.to_encodable, simp only [infi_subtype'],
      exact measurable_infi (λ i, hf i) }
 
 lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨅ i ∈ s, f i b) μ :=
 begin
-  haveI : encodable s := hs.to_encodable,
+  letI : encodable s := hs.to_encodable,
   simp only [infi_subtype'],
   exact ae_measurable_infi (λ i, hf i),
 end
@@ -2024,7 +2024,7 @@ begin
   unfreezingI { rcases eq_or_ne L ⊥ with rfl | hL },
   { exact ⟨(hf default).mk _, (hf default).measurable_mk,
       eventually_of_forall $ λ x, tendsto_bot⟩ },
-  haveI : ne_bot L := ⟨hL⟩,
+  letI : ne_bot L := ⟨hL⟩,
   let p : α → (ι → β) → Prop := λ x f', ∃ l : β, tendsto (λ n, f' n) L (𝓝 l),
   have hp_mem : ∀ x ∈ ae_seq_set hf p, p x (λ n, f n x),
     from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,

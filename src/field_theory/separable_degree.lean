@@ -154,7 +154,7 @@ begin
   { rcases hg with ⟨hg, m, hm⟩,
     let g' := classical.some hf,
     cases (classical.some_spec hf).2 with m' hm',
-    haveI : fact q.prime := fact_iff.2 hF_hprime,
+    letI : fact q.prime := fact_iff.2 hF_hprime,
     apply contraction_degree_eq_or_insep q g g' m m',
     rw [hm, hm'],
     exact hg, exact (classical.some_spec hf).1 }

@@ -217,17 +217,17 @@ private lemma step4 : (fintype.card N).min_fac.prime :=
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step5 {P : sylow (fintype.card N).min_fac N} : P.1 ≠ ⊥ :=
 begin
-  haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
+  letI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
   exact P.ne_bot_of_dvd_card (fintype.card N).min_fac_dvd,
 end
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step6 : is_p_group (fintype.card N).min_fac N :=
 begin
-  haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
+  letI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
   refine sylow.nonempty.elim (λ P, P.2.of_surjective P.1.subtype _),
   rw [←monoid_hom.range_top_iff_surjective, subtype_range],
-  haveI : (P.1.map N.subtype).normal := normalizer_eq_top.mp
+  letI : (P.1.map N.subtype).normal := normalizer_eq_top.mp
     (step1 h1 h2 h3 (P.1.map N.subtype).normalizer P.normalizer_sup_eq_top),
   exact (step3 h1 h2 h3 P.1).resolve_left (step5 h1 h2 h3),
 end
@@ -235,8 +235,8 @@ end
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 lemma step7 : is_commutative N :=
 begin
-  haveI := N.bot_or_nontrivial.resolve_left (step0 h1 h2 h3),
-  haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
+  letI := N.bot_or_nontrivial.resolve_left (step0 h1 h2 h3),
+  letI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
   exact ⟨⟨λ g h, eq_top_iff.mp ((step3 h1 h2 h3 N.center).resolve_left
     (step6 h1 h2 h3).bot_lt_center.ne') (mem_top h) g⟩⟩,
 end
@@ -254,7 +254,7 @@ begin
   apply nat.strong_induction_on n,
   rintros n ih G _ _ rfl N _ hN,
   refine not_forall_not.mp (λ h3, _),
-  haveI := by exactI
+  letI := by exactI
     schur_zassenhaus_induction.step7 hN (λ G' _ _ hG', by { apply ih _ hG', refl }) h3,
   exact not_exists_of_forall_not h3 (exists_right_complement'_of_coprime_aux hN),
 end
@@ -280,13 +280,13 @@ begin
     exact ⟨⊥, is_complement'_top_bot⟩ },
   by_cases hN2 : N.index = 0,
   { rw [hN2, nat.coprime_zero_right] at hN,
-    haveI := (cardinal.to_nat_eq_one_iff_unique.mp hN).1,
+    letI := (cardinal.to_nat_eq_one_iff_unique.mp hN).1,
     rw N.eq_bot_of_subsingleton,
     exact ⟨⊤, is_complement'_bot_top⟩ },
   have hN3 : nat.card G ≠ 0,
   { rw ← N.card_mul_index,
     exact mul_ne_zero hN1 hN2 },
-  haveI := (cardinal.lt_aleph_0_iff_fintype.mp
+  letI := (cardinal.lt_aleph_0_iff_fintype.mp
     (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hN3))).some,
   rw nat.card_eq_fintype_card at hN,
   exact exists_right_complement'_of_coprime_of_fintype hN,

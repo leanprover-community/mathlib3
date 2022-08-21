@@ -146,7 +146,7 @@ begin
   { use i,
     rwa (find c ne i).apply_eq (mt (mem_find_carrier_iff _).1 hi) },
   { simp_rw [not_exists, not_imp_not, chain_Sup_carrier, mem_Union₂] at hx,
-    haveI : nonempty (partial_refinement u s) := ⟨ne.some⟩,
+    letI : nonempty (partial_refinement u s) := ⟨ne.some⟩,
     choose! v hvc hiv using hx,
     rcases (hfin x hxs).exists_maximal_wrt v _ (mem_Union.1 (hU hxs))
       with ⟨i, hxi : x ∈ u i, hmax : ∀ j, x ∈ u j → v i ≤ v j → v i = v j⟩,
@@ -211,7 +211,7 @@ lemma exists_subset_Union_closure_subset (hs : is_closed s) (uo : ∀ i, is_open
   ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 begin
   classical,
-  haveI : nonempty (partial_refinement u s) := ⟨⟨u, ∅, uo, us, λ _, false.elim, λ _ _, rfl⟩⟩,
+  letI : nonempty (partial_refinement u s) := ⟨⟨u, ∅, uo, us, λ _, false.elim, λ _ _, rfl⟩⟩,
   have : ∀ c : set (partial_refinement u s), is_chain (≤) c → c.nonempty → ∃ ub, ∀ v ∈ c, v ≤ ub,
     from λ c hc ne, ⟨partial_refinement.chain_Sup c hc ne uf us,
       λ v hv, partial_refinement.le_chain_Sup _ _ _ _ hv⟩,

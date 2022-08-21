@@ -183,7 +183,7 @@ end
 theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
   irreducible x ∨ ∃ a b, ¬ is_unit a ∧ ¬ is_unit b ∧ a * b = x :=
 begin
-  haveI := classical.dec,
+  letI := classical.dec,
   refine or_iff_not_imp_right.2 (λ H, _),
   simp [h, irreducible_iff] at H ⊢,
   refine λ a b h, classical.by_contradiction $ λ o, _,

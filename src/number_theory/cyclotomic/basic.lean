@@ -222,10 +222,10 @@ begin
     refine module.finite_def.2 ⟨({1} : finset B), _⟩,
     simp [← top_to_submodule, ← empty, to_submodule_bot] },
   { introsI _ _ _ _ h,
-    haveI : is_cyclotomic_extension S A (adjoin A { b : B | ∃ (n : ℕ+),
+    letI : is_cyclotomic_extension S A (adjoin A { b : B | ∃ (n : ℕ+),
       n ∈ S ∧ b ^ (n : ℕ) = 1 }) := union_left _ (insert n S) _ _ (subset_insert n S),
-    haveI := H A (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }),
-    haveI : finite (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }) B,
+    letI := H A (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }),
+    letI : finite (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }) B,
     { rw [← union_singleton] at h,
       letI := @union_right S {n} A B _ _ _ h,
       exact finite_of_singleton n _ _ },
@@ -427,7 +427,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
     obtain ⟨r, hr⟩ := exists_root_of_splits (algebra_map K (cyclotomic_field n K))
       (splitting_field.splits _) (degree_cyclotomic_pos n K (n.pos)).ne',
     refine ⟨r, _⟩,
-    haveI := ne_zero.of_no_zero_smul_divisors K (cyclotomic_field n K) n,
+    letI := ne_zero.of_no_zero_smul_divisors K (cyclotomic_field n K) n,
     rwa [← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff] at hr
   end,
   adjoin_roots :=
@@ -436,7 +436,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
     letI := classical.dec_eq (cyclotomic_field n K),
     obtain ⟨ζ, hζ⟩ := exists_root_of_splits _ (splitting_field.splits (cyclotomic n K))
       (degree_cyclotomic_pos n _ n.pos).ne',
-    haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
+    letI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
       ne_zero.nat_of_injective (algebra_map K _).injective,
     rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
     exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ,
@@ -502,8 +502,8 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
   begin
     rw mem_singleton_iff at han,
     subst a,
-    haveI := ne_zero.of_no_zero_smul_divisors A K n,
-    haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
+    letI := ne_zero.of_no_zero_smul_divisors A K n,
+    letI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
     obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root
                       in h $ mem_singleton n,
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
@@ -589,7 +589,7 @@ begin
   refine ⟨λ a ha, _,  algebra.eq_top_iff.mp $ subsingleton.elim _ _ ⟩,
   obtain ⟨r, hr⟩ := is_alg_closed.exists_aeval_eq_zero K _ (degree_cyclotomic_pos a K a.pos).ne',
   refine ⟨r, _⟩,
-  haveI := h a ha,
+  letI := h a ha,
   rwa [coe_aeval_eq_eval, ← is_root.def, is_root_cyclotomic_iff] at hr,
 end
 

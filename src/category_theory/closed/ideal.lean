@@ -84,7 +84,7 @@ begin
   symmetry,
   apply nat_iso.of_components _ _,
   { intro X,
-    haveI := (exponential_ideal.exp_closed (i.obj_mem_ess_image X) A).unit_is_iso,
+    letI := (exponential_ideal.exp_closed (i.obj_mem_ess_image X) A).unit_is_iso,
     apply as_iso ((adjunction.of_right_adjoint i).unit.app (A ⟹ i.obj X)) },
   { simp }
 end
@@ -143,7 +143,7 @@ begin
         ir.hom_equiv_apply_eq, assoc, assoc, prod_comparison_natural_assoc, L.map_id,
         ← prod.map_id_comp_assoc, ir.left_triangle_components, prod.map_id_id, id_comp],
     apply is_iso.hom_inv_id_assoc },
-  haveI : is_split_mono (η.app (A ⟹ i.obj B)) := is_split_mono.mk' ⟨_, this⟩,
+  letI : is_split_mono (η.app (A ⟹ i.obj B)) := is_split_mono.mk' ⟨_, this⟩,
   apply mem_ess_image_of_unit_is_split_mono,
 end
 
@@ -163,7 +163,7 @@ def cartesian_closed_of_reflective : cartesian_closed D :=
         { symmetry,
           apply nat_iso.of_components _ _,
           { intro X,
-            haveI :=
+            letI :=
               adjunction.right_adjoint_preserves_limits.{0 0} (adjunction.of_right_adjoint i),
             apply as_iso (prod_comparison i B X) },
           { intros X Y f,
@@ -211,8 +211,8 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
    ... ≃ (i.obj ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B) ⟶ i.obj X) :
      begin
        apply iso.hom_congr _ (iso.refl _),
-       haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
-       haveI := preserves_smallest_limits_of_preserves_limits i,
+       letI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
+       letI := preserves_smallest_limits_of_preserves_limits i,
        exact (preserves_limit_pair.iso _ _ _).symm,
      end
    ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :

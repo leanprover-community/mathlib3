@@ -106,7 +106,7 @@ variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
 
 instance (X : Dᵒᵖ) : has_limits_of_shape (structured_arrow X G.op) A :=
 begin
-  haveI := limits.has_limits_of_size_shrink.{v (max u v) (max u v) (max u v)} A,
+  letI := limits.has_limits_of_size_shrink.{v (max u v) (max u v) (max u v)} A,
   exact has_limits_of_size.has_limits_of_shape _
 end
 

@@ -423,9 +423,9 @@ protected def mk_of_orthogonal_eq_bot (hon : orthonormal 𝕜 v) (hsp : (span �
 orthonormal_basis.mk hon
 begin
   refine eq.ge _,
-  haveI : finite_dimensional 𝕜 (span 𝕜 (range v)) :=
+  letI : finite_dimensional 𝕜 (span 𝕜 (range v)) :=
     finite_dimensional.span_of_finite 𝕜 (finite_range v),
-  haveI : complete_space (span 𝕜 (range v)) := finite_dimensional.complete 𝕜 _,
+  letI : complete_space (span 𝕜 (range v)) := finite_dimensional.complete 𝕜 _,
   rwa orthogonal_eq_bot_iff at hsp,
 end
 
@@ -687,8 +687,8 @@ begin
     exact BS.repr.trans BLS.repr.symm },
   let L3 := (LS)ᗮ.subtypeₗᵢ.comp E.to_linear_isometry,
   -- Project onto S and Sᗮ
-  haveI : complete_space S := finite_dimensional.complete 𝕜 S,
-  haveI : complete_space V := finite_dimensional.complete 𝕜 V,
+  letI : complete_space S := finite_dimensional.complete 𝕜 S,
+  letI : complete_space V := finite_dimensional.complete 𝕜 V,
   let p1 := (orthogonal_projection S).to_linear_map,
   let p2 := (orthogonal_projection Sᗮ).to_linear_map,
   -- Build a linear map from the isometries on S and Sᗮ
@@ -722,7 +722,7 @@ end
 lemma linear_isometry.extend_apply (L : S →ₗᵢ[𝕜] V) (s : S):
   L.extend s = L s :=
 begin
-  haveI : complete_space S := finite_dimensional.complete 𝕜 S,
+  letI : complete_space S := finite_dimensional.complete 𝕜 S,
   simp only [linear_isometry.extend, continuous_linear_map.to_linear_map_eq_coe,
     ←linear_isometry.coe_to_linear_map],
   simp only [add_right_eq_self, linear_isometry.coe_to_linear_map,

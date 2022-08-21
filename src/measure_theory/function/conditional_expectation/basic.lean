@@ -515,7 +515,7 @@ lemma is_complete_ae_strongly_measurable' [hp : fact (1 ≤ p)] [complete_space 
   is_complete {f : Lp F p μ | ae_strongly_measurable' m f μ} :=
 begin
   rw ← complete_space_coe_iff_is_complete,
-  haveI : fact (m ≤ m0) := ⟨hm⟩,
+  letI : fact (m ≤ m0) := ⟨hm⟩,
   change complete_space (Lp_meas_subgroup F m p μ),
   apply_instance,
 end
@@ -919,7 +919,7 @@ variables (𝕜)
 /-- Conditional expectation of a function in L2 with respect to a sigma-algebra -/
 def condexp_L2 (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 2 μ) :=
 @orthogonal_projection 𝕜 (α →₂[μ] E) _ _ (Lp_meas E 𝕜 m 2 μ)
-  (by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact infer_instance, })
+  (by { letI : fact (m ≤ m0) := ⟨hm⟩, exact infer_instance, })
 variables {𝕜}
 
 lemma ae_strongly_measurable'_condexp_L2 (hm : m ≤ m0) (f : α →₂[μ] E) :
@@ -937,7 +937,7 @@ lemma integrable_condexp_L2_of_is_finite_measure (hm : m ≤ m0) [is_finite_meas
 integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 
 lemma norm_condexp_L2_le_one (hm : m ≤ m0) : ∥@condexp_L2 α E 𝕜 _ _ _ _ _ μ hm∥ ≤ 1 :=
-by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact orthogonal_projection_norm_le _, }
+by { letI : fact (m ≤ m0) := ⟨hm⟩, exact orthogonal_projection_norm_le _, }
 
 lemma norm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) : ∥condexp_L2 𝕜 hm f∥ ≤ ∥f∥ :=
 ((@condexp_L2 _ E 𝕜 _ _ _ _ _ μ hm).le_op_norm f).trans
@@ -961,7 +961,7 @@ end
 
 lemma inner_condexp_L2_left_eq_right (hm : m ≤ m0) {f g : α →₂[μ] E} :
   ⟪(condexp_L2 𝕜 hm f : α →₂[μ] E), g⟫₂ = ⟪f, (condexp_L2 𝕜 hm g : α →₂[μ] E)⟫₂ :=
-by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact inner_orthogonal_projection_left_eq_right _ f g, }
+by { letI : fact (m ≤ m0) := ⟨hm⟩, exact inner_orthogonal_projection_left_eq_right _ f g, }
 
 lemma condexp_L2_indicator_of_measurable (hm : m ≤ m0)
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) (c : E) :
@@ -969,7 +969,7 @@ lemma condexp_L2_indicator_of_measurable (hm : m ≤ m0)
     = indicator_const_Lp 2 (hm s hs) hμs c :=
 begin
   rw condexp_L2,
-  haveI : fact (m ≤ m0) := ⟨hm⟩,
+  letI : fact (m ≤ m0) := ⟨hm⟩,
   have h_mem : indicator_const_Lp 2 (hm s hs) hμs c ∈ Lp_meas E 𝕜 m 2 μ,
     from mem_Lp_meas_indicator_const_Lp hm hs hμs,
   let ind := (⟨indicator_const_Lp 2 (hm s hs) hμs c, h_mem⟩ : Lp_meas E 𝕜 m 2 μ),
@@ -1970,7 +1970,7 @@ begin
   swap, { rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { rw condexp_of_not_sigma_finite hm hμm, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   refine (condexp_ae_eq_condexp_L1 hm f).trans (eventually_eq.trans _ (coe_fn_zero _ 1 _)),
   rw condexp_L1_undef hf,
 end
@@ -1981,7 +1981,7 @@ begin
   swap, { rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { rw condexp_of_not_sigma_finite hm hμm, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   exact condexp_of_strongly_measurable hm (@strongly_measurable_zero _ _ m _ _)
     (integrable_zero _ _ _),
 end
@@ -1992,7 +1992,7 @@ begin
   swap, { rw condexp_of_not_le hm, exact strongly_measurable_zero, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { rw condexp_of_not_sigma_finite hm hμm, exact strongly_measurable_zero, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   rw condexp_of_sigma_finite hm,
   swap, { apply_instance, },
   by_cases hfm : strongly_measurable[m] f,
@@ -2010,7 +2010,7 @@ begin
   swap, { simp_rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   exact (condexp_ae_eq_condexp_L1 hm f).trans
     (filter.eventually_eq.trans (by rw condexp_L1_congr_ae hm h)
     (condexp_ae_eq_condexp_L1 hm g).symm),
@@ -2031,7 +2031,7 @@ begin
   swap, { rw condexp_of_not_le hm, exact integrable_zero _ _ _, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { rw condexp_of_not_sigma_finite hm hμm, exact integrable_zero _ _ _, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   exact (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 hm f).symm,
 end
 
@@ -2076,7 +2076,7 @@ begin
   swap, { simp_rw condexp_of_not_le hm, simp, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, simp, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   refine (condexp_ae_eq_condexp_L1 hm _).trans _,
   rw condexp_L1_add hf hg,
   exact (coe_fn_add _ _).trans
@@ -2089,7 +2089,7 @@ begin
   swap, { simp_rw condexp_of_not_le hm, simp, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, simp, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   refine (condexp_ae_eq_condexp_L1 hm _).trans _,
   rw condexp_L1_smul c f,
   refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ m _ _ hm _ f).mp _,
@@ -2116,7 +2116,7 @@ lemma condexp_condexp_of_le {m₁ m₂ m0 : measurable_space α} {μ : measure �
 begin
   by_cases hμm₁ : sigma_finite (μ.trim (hm₁₂.trans hm₂)),
   swap, { simp_rw condexp_of_not_sigma_finite (hm₁₂.trans hm₂) hμm₁, },
-  haveI : sigma_finite (μ.trim (hm₁₂.trans hm₂)) := hμm₁,
+  letI : sigma_finite (μ.trim (hm₁₂.trans hm₂)) := hμm₁,
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' (hm₁₂.trans hm₂)
     (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, integrable_condexp.integrable_on)
     _ (strongly_measurable.ae_strongly_measurable' strongly_measurable_condexp)
@@ -2137,7 +2137,7 @@ begin
   swap, { simp_rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   exact (condexp_ae_eq_condexp_L1 hm _).trans_le
     ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
 end
@@ -2169,7 +2169,7 @@ lemma tendsto_condexp_unique (fs gs : ℕ → α → F') (f g : α → F')
 begin
   by_cases hm : m ≤ m0, swap, { simp_rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm), swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   refine (condexp_ae_eq_condexp_L1 hm f).trans ((condexp_ae_eq_condexp_L1 hm g).trans _).symm,
   rw ← Lp.ext_iff,
   have hn_eq : ∀ n, condexp_L1 hm μ (gs n) = condexp_L1 hm μ (fs n),

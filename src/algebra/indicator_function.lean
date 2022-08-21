@@ -40,12 +40,12 @@ variables [has_one M] [has_one N] {s t : set α} {f g : α → M} {a : α}
 
 /-- `indicator s f a` is `f a` if `a ∈ s`, `0` otherwise.  -/
 noncomputable def indicator {M} [has_zero M] (s : set α) (f : α → M) : α → M
-| x := by haveI := classical.dec_pred (∈ s); exact if x ∈ s then f x else 0
+| x := by letI := classical.dec_pred (∈ s); exact if x ∈ s then f x else 0
 
 /-- `mul_indicator s f a` is `f a` if `a ∈ s`, `1` otherwise.  -/
 @[to_additive]
 noncomputable def mul_indicator (s : set α) (f : α → M) : α → M
-| x :=  by haveI := classical.dec_pred (∈ s); exact if x ∈ s then f x else 1
+| x :=  by letI := classical.dec_pred (∈ s); exact if x ∈ s then f x else 1
 
 @[simp, to_additive] lemma piecewise_eq_mul_indicator [decidable_pred (∈ s)] :
   s.piecewise f 1 = s.mul_indicator f :=

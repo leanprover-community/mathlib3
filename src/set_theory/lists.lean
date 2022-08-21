@@ -317,12 +317,12 @@ with equiv.decidable : ∀ l₁ l₂ : lists α, decidable (l₁ ~ l₂)
 | ⟨ff, l₁⟩ ⟨tt, l₂⟩ := is_false $ by rintro ⟨⟩
 | ⟨tt, l₁⟩ ⟨ff, l₂⟩ := is_false $ by rintro ⟨⟩
 | ⟨tt, l₁⟩ ⟨tt, l₂⟩ := begin
-  haveI :=
+  letI :=
     have sizeof l₁ + sizeof l₂ <
          sizeof (⟨tt, l₁⟩ : lists α) + sizeof (⟨tt, l₂⟩ : lists α),
     by default_dec_tac,
     subset.decidable l₁ l₂,
-  haveI :=
+  letI :=
     have sizeof l₂ + sizeof l₁ <
          sizeof (⟨tt, l₁⟩ : lists α) + sizeof (⟨tt, l₂⟩ : lists α),
     by default_dec_tac,
@@ -332,12 +332,12 @@ end
 with subset.decidable : ∀ l₁ l₂ : lists' α tt, decidable (l₁ ⊆ l₂)
 | lists'.nil l₂ := is_true subset.nil
 | (@lists'.cons' _ b a l₁) l₂ := begin
-  haveI :=
+  letI :=
     have sizeof (⟨b, a⟩ : lists α) + sizeof l₂ <
          sizeof (lists'.cons' a l₁) + sizeof l₂,
     from add_lt_add_right (lt_sizeof_cons' _ _) _,
     mem.decidable ⟨b, a⟩ l₂,
-  haveI :=
+  letI :=
     have sizeof l₁ + sizeof l₂ <
          sizeof (lists'.cons' a l₁) + sizeof l₂,
     by default_dec_tac,
@@ -347,12 +347,12 @@ end
 with mem.decidable : ∀ (a : lists α) (l : lists' α tt), decidable (a ∈ l)
 | a lists'.nil := is_false $ by rintro ⟨_, ⟨⟩, _⟩
 | a (lists'.cons' b l₂) := begin
-  haveI :=
+  letI :=
     have sizeof a + sizeof (⟨_, b⟩ : lists α) <
          sizeof a + sizeof (lists'.cons' b l₂),
     from add_lt_add_left (lt_sizeof_cons' _ _) _,
     equiv.decidable a ⟨_, b⟩,
-  haveI :=
+  letI :=
     have sizeof a + sizeof l₂ <
          sizeof a + sizeof (lists'.cons' b l₂),
     by default_dec_tac,

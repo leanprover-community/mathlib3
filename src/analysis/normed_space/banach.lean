@@ -392,7 +392,7 @@ lemma closed_complemented_range_of_is_compl_of_ker_eq_bot (f : E →L[𝕜] F) (
   (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
   is_closed (f.range : set F) :=
 begin
-  haveI : complete_space G := hG.complete_space_coe,
+  letI : complete_space G := hG.complete_space_coe,
   let g := coprod_subtypeL_equiv_of_is_compl f h hker,
   rw congr_arg coe (range_eq_map_coprod_subtypeL_equiv_of_is_compl f h hker ),
   apply g.to_homeomorph.is_closed_image.2,

@@ -201,7 +201,7 @@ instance is_adic_complete.henselian_ring
       exact (ih.eval f).trans h₁, },
     have hf'c : ∀ n, is_unit (f'.eval (c n)),
     { intro n,
-      haveI := is_local_ring_hom_of_le_jacobson_bot I (is_adic_complete.le_jacobson_bot I),
+      letI := is_local_ring_hom_of_le_jacobson_bot I (is_adic_complete.le_jacobson_bot I),
       apply is_unit_of_map_unit (ideal.quotient.mk I),
       convert h₂ using 1,
       exact smodeq.def.mp ((hc_mod n).eval _), },

@@ -802,7 +802,7 @@ end
 
 instance is_iso_to_basic_open (f : R) : is_iso (show CommRing.of _ ⟶ _, from to_basic_open R f) :=
 begin
-  haveI : is_iso ((forget CommRing).map (show CommRing.of _ ⟶ _, from to_basic_open R f)) :=
+  letI : is_iso ((forget CommRing).map (show CommRing.of _ ⟶ _, from to_basic_open R f)) :=
     (is_iso_iff_bijective _).mpr ⟨to_basic_open_injective R f, to_basic_open_surjective R f⟩,
   exact is_iso_of_reflects_iso _ (forget CommRing),
 end
@@ -869,7 +869,7 @@ end
 instance is_iso_to_global : is_iso (to_open R ⊤) :=
 begin
   let hom := CommRing.of_hom (algebra_map R (localization.away (1 : R))),
-  haveI : is_iso hom := is_iso.of_iso
+  letI : is_iso hom := is_iso.of_iso
     ((is_localization.at_one R (localization.away (1 : R))).to_ring_equiv.to_CommRing_iso),
   rw to_global_factors R,
   apply_instance

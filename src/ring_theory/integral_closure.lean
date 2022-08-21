@@ -275,7 +275,7 @@ begin
       exact smul_mem _ y (subset_span (or.inl rfl)) } },
   have foo : ∀ z, z ∈ S₁ ↔ z ∈ algebra.adjoin ↥S₀ (y : set A),
     simp [this],
-  haveI : is_noetherian_ring ↥S₀ := is_noetherian_subring_closure _ (finset.finite_to_set _),
+  letI : is_noetherian_ring ↥S₀ := is_noetherian_subring_closure _ (finset.finite_to_set _),
   refine is_integral_of_submodule_noetherian (algebra.adjoin S₀ ↑y)
     (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y,
       by { rw [finset.coe_insert], ext z, simp [S₁], convert foo z}⟩) _ _,
@@ -945,9 +945,9 @@ begin
   letI := hR.to_field,
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
   let A := algebra.adjoin R ({x} : set S),
-  haveI : is_noetherian R A :=
+  letI : is_noetherian R A :=
   is_noetherian_of_fg_of_noetherian A.to_submodule (fg_adjoin_singleton_of_integral x (H x)),
-  haveI : module.finite R A := module.is_noetherian.finite R A,
+  letI : module.finite R A := module.is_noetherian.finite R A,
   obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@linear_map.mul_left_injective R A _ _ _ _
     ⟨x, subset_adjoin (set.mem_singleton x)⟩ (λ h, hx (subtype.ext_iff.mp h))) 1,
   exact ⟨y, subtype.ext_iff.mp hy⟩,

@@ -2158,7 +2158,7 @@ lemma is_lub_of_mem_closure {s : set α} {a : α} (hsa : a ∈ upper_bounds s) (
   is_lub s a :=
 begin
   rw [mem_closure_iff_cluster_pt, cluster_pt, inf_comm] at hsf,
-  haveI : (𝓟 s ⊓ 𝓝 a).ne_bot := hsf,
+  letI : (𝓟 s ⊓ 𝓝 a).ne_bot := hsf,
   exact is_lub_of_mem_nhds hsa (mem_principal_self s),
 end
 
@@ -2177,7 +2177,7 @@ lemma is_lub.mem_upper_bounds_of_tendsto [preorder γ] [topological_space γ]
 begin
   rintro _ ⟨x, hx, rfl⟩,
   replace ha := ha.inter_Ici_of_mem hx,
-  haveI := ha.nhds_within_ne_bot ⟨x, hx, le_rfl⟩,
+  letI := ha.nhds_within_ne_bot ⟨x, hx, le_rfl⟩,
   refine ge_of_tendsto (hb.mono_left (nhds_within_mono _ (inter_subset_left s (Ici x)))) _,
   exact mem_of_superset self_mem_nhds_within (λ y hy, hf hx hy.1 hy.2)
 end
@@ -2189,7 +2189,7 @@ lemma is_lub.is_lub_of_tendsto [preorder γ] [topological_space γ]
   (hf : monotone_on f s) (ha : is_lub s a) (hs : s.nonempty)
   (hb : tendsto f (𝓝[s] a) (𝓝 b)) : is_lub (f '' s) b :=
 begin
-  haveI := ha.nhds_within_ne_bot hs,
+  letI := ha.nhds_within_ne_bot hs,
   exact ⟨ha.mem_upper_bounds_of_tendsto hf hb, λ b' hb', le_of_tendsto hb
     (mem_of_superset self_mem_nhds_within $ λ x hx, hb' $ mem_image_of_mem _ hx)⟩
 end
@@ -2568,7 +2568,7 @@ lemma comap_coe_nhds_within_Iio_of_Ioo_subset (hb : s ⊆ Iio b)
   comap (coe : s → α) (𝓝[<] b) = at_top :=
 begin
   nontriviality,
-  haveI : nonempty s := nontrivial_iff_nonempty.1 ‹_›,
+  letI : nonempty s := nontrivial_iff_nonempty.1 ‹_›,
   rcases hs (nonempty_subtype.1 ‹_›) with ⟨a, h, hs⟩,
   ext u, split,
   { rintros ⟨t, ht, hts⟩,

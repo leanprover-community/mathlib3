@@ -81,7 +81,7 @@ by { simp_rw [algebra.smul_def, mul_comm _ a], apply exists_integer_multiple' }
 lemma exist_integer_multiples {ι : Type*} (s : finset ι) (f : ι → S) :
   ∃ (b : M), ∀ i ∈ s, is_localization.is_integer R ((b : R) • f i) :=
 begin
-  haveI := classical.prop_decidable,
+  letI := classical.prop_decidable,
   refine ⟨∏ i in s, (sec M (f i)).2, λ i hi, ⟨_, _⟩⟩,
   { exact (∏ j in s.erase i, (sec M (f j)).2) * (sec M (f i)).1 },
   rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←(algebra_map R S).map_mul, ← algebra.smul_def],

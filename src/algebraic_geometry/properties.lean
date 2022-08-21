@@ -100,7 +100,7 @@ instance {R : CommRing} [H : _root_.is_reduced R] : is_reduced (Scheme.Spec.obj 
 begin
   apply_with is_reduced_of_stalk_is_reduced { instances := ff },
   intro x, dsimp,
-  haveI : _root_.is_reduced (CommRing.of $ localization.at_prime (prime_spectrum.as_ideal x)),
+  letI : _root_.is_reduced (CommRing.of $ localization.at_prime (prime_spectrum.as_ideal x)),
   { dsimp, apply_instance },
   exact is_reduced_of_injective (structure_sheaf.stalk_iso R x).hom
     (structure_sheaf.stalk_iso R x).CommRing_iso_to_ring_equiv.injective,
@@ -112,7 +112,7 @@ begin
   refine ⟨_, λ h, by exactI infer_instance⟩,
   intro h,
   resetI,
-  haveI : _root_.is_reduced (LocallyRingedSpace.Γ.obj (op $ Spec.to_LocallyRingedSpace.obj $ op R)),
+  letI : _root_.is_reduced (LocallyRingedSpace.Γ.obj (op $ Spec.to_LocallyRingedSpace.obj $ op R)),
   { change _root_.is_reduced ((Scheme.Spec.obj $ op R).presheaf.obj $ op ⊤), apply_instance },
   exact is_reduced_of_injective (to_Spec_Γ R)
     ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
@@ -121,7 +121,7 @@ end
 lemma is_reduced_of_is_affine_is_reduced [is_affine X]
   [h : _root_.is_reduced (X.presheaf.obj (op ⊤))] : is_reduced X :=
 begin
-  haveI : is_reduced (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  letI : is_reduced (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
   { rw affine_is_reduced_iff, exact h },
   exact is_reduced_of_open_immersion X.iso_Spec.hom,
 end
@@ -187,7 +187,7 @@ begin
     { rw [← set.image_univ, set.preimage_image_eq _ hf.base_open.inj, set.top_eq_univ] },
     refine ⟨_, _, e, rfl, _⟩,
     rintros H hX s hs ⟨_, x, rfl⟩,
-    unfreezingI { haveI := is_reduced_of_open_immersion f },
+    unfreezingI { letI := is_reduced_of_open_immersion f },
     specialize H (f.1.c.app _ s) _ ⟨x, by { change x ∈ (f.val.base) ⁻¹' _, rw e, trivial }⟩,
     { rw [← Scheme.preimage_basic_open, hs], ext1, simp [opens.map] },
     { erw ← PresheafedSpace.stalk_map_germ_apply f.1 ⟨_,_⟩ ⟨x,_⟩ at H,
@@ -233,10 +233,10 @@ begin
   intro U,
   cases U.1.eq_empty_or_nonempty,
   { have : U = ∅ := subtype.eq h,
-    haveI := CommRing.subsingleton_of_is_terminal (X.sheaf.is_terminal_of_eq_empty this),
+    letI := CommRing.subsingleton_of_is_terminal (X.sheaf.is_terminal_of_eq_empty this),
     change _root_.is_reduced (X.sheaf.val.obj (op U)),
     apply_instance },
-  { haveI : nonempty U := by simpa, apply_instance }
+  { letI : nonempty U := by simpa, apply_instance }
 end
 
 instance is_irreducible_of_is_integral [is_integral X] : irreducible_space X.carrier :=
@@ -248,9 +248,9 @@ begin
   rcases H with ⟨S, T, hS, hT, h₁, h₂, h₃⟩,
   erw not_forall at h₂ h₃,
   simp_rw not_forall at h₂ h₃,
-  haveI : nonempty (⟨Sᶜ, hS.1⟩ : opens X.carrier) := ⟨⟨_, h₂.some_spec.some_spec⟩⟩,
-  haveI : nonempty (⟨Tᶜ, hT.1⟩ : opens X.carrier) := ⟨⟨_, h₃.some_spec.some_spec⟩⟩,
-  haveI : nonempty (⟨Sᶜ, hS.1⟩ ⊔ ⟨Tᶜ, hT.1⟩ : opens X.carrier) :=
+  letI : nonempty (⟨Sᶜ, hS.1⟩ : opens X.carrier) := ⟨⟨_, h₂.some_spec.some_spec⟩⟩,
+  letI : nonempty (⟨Tᶜ, hT.1⟩ : opens X.carrier) := ⟨⟨_, h₃.some_spec.some_spec⟩⟩,
+  letI : nonempty (⟨Sᶜ, hS.1⟩ ⊔ ⟨Tᶜ, hT.1⟩ : opens X.carrier) :=
     ⟨⟨_, or.inl h₂.some_spec.some_spec⟩⟩,
   let e : X.presheaf.obj _ ≅ CommRing.of _ := (X.sheaf.is_product_of_disjoint ⟨_, hS.1⟩ ⟨_, hT.1⟩ _)
     .cone_point_unique_up_to_iso (CommRing.prod_fan_is_limit _ _),
@@ -298,7 +298,7 @@ begin
   have : U = (opens.map f.1.base).obj (H.base_open.is_open_map.functor.obj U),
   { ext1, exact (set.preimage_image_eq _ H.base_open.inj).symm },
   rw this,
-  haveI : is_domain (Y.presheaf.obj (op (H.base_open.is_open_map.functor.obj U))),
+  letI : is_domain (Y.presheaf.obj (op (H.base_open.is_open_map.functor.obj U))),
   { apply_with is_integral.component_integral { instances := ff },
     apply_instance,
     refine ⟨⟨_, _, hU.some.prop, rfl⟩⟩ },
@@ -322,7 +322,7 @@ lemma affine_is_integral_iff (R : CommRing) :
 lemma is_integral_of_is_affine_is_domain [is_affine X] [nonempty X.carrier]
   [h : is_domain (X.presheaf.obj (op ⊤))] : is_integral X :=
 begin
-  haveI : is_integral (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  letI : is_integral (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
   { rw affine_is_integral_iff, exact h },
   exact is_integral_of_open_immersion X.iso_Spec.hom,
 end

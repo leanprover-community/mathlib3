@@ -178,8 +178,8 @@ lemma nontrivial_of_invariant_basis_number : nontrivial R :=
 begin
   by_contra h,
   refine zero_ne_one (eq_of_fin_equiv R _),
-  haveI := not_nontrivial_iff_subsingleton.1 h,
-  haveI : subsingleton (fin 1 → R) := ⟨λ a b, funext $ λ x, subsingleton.elim _ _⟩,
+  letI := not_nontrivial_iff_subsingleton.1 h,
+  letI : subsingleton (fin 1 → R) := ⟨λ a b, funext $ λ x, subsingleton.elim _ _⟩,
   refine { .. }; { intros, exact 0 } <|> tidy
 end
 

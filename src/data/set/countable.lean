@@ -108,7 +108,7 @@ end
 ⟨of_equiv _ (equiv.set.singleton a)⟩
 
 lemma countable.image {s : set α} (hs : s.countable) (f : α → β) : (f '' s).countable :=
-by { rw [image_eq_range], haveI := hs.to_subtype, apply countable_range }
+by { rw [image_eq_range], letI := hs.to_subtype, apply countable_range }
 
 lemma maps_to.countable_of_inj_on {s : set α} {t : set β} {f : α → β}
   (hf : maps_to f s t) (hf' : inj_on f s) (ht : t.countable) :
@@ -133,7 +133,7 @@ begin
     refine ⟨range s, countable_range s, forall_range_iff.2 hps, _⟩, rwa Sup_range },
   { rintro ⟨S, hSc, hps, hS⟩,
     rcases eq_empty_or_nonempty S with rfl|hne,
-    { rw [Sup_empty] at hS, haveI := subsingleton_of_bot_eq_top hS,
+    { rw [Sup_empty] at hS, letI := subsingleton_of_bot_eq_top hS,
       rcases h with ⟨x, hx⟩, exact ⟨λ n, x, λ n, hx, subsingleton.elim _ _⟩ },
     { rcases (set.countable_iff_exists_surjective hne).1 hSc with ⟨s, hs⟩,
       refine ⟨λ n, s n, λ n, hps _ (s n).coe_prop, _⟩,
@@ -152,7 +152,7 @@ countable_iff_exists_inj_on.2 ⟨g ∘ f, hg.comp hf (maps_to_image _ _)⟩
 
 lemma countable_Union {t : ι → set α} [countable ι] (ht : ∀ i, (t i).countable) :
   (⋃ i, t i).countable :=
-by { haveI := λ a, (ht a).to_subtype, rw Union_eq_range_psigma, apply countable_range }
+by { letI := λ a, (ht a).to_subtype, rw Union_eq_range_psigma, apply countable_range }
 
 @[simp] lemma countable_Union_iff [countable ι] {t : ι → set α} :
   (⋃ i, t i).countable ↔ ∀ i, (t i).countable :=
@@ -160,7 +160,7 @@ by { haveI := λ a, (ht a).to_subtype, rw Union_eq_range_psigma, apply countable
 
 lemma countable.bUnion_iff {s : set α} {t : Π a ∈ s, set β} (hs : s.countable) :
   (⋃ a ∈ s, t a ‹_›).countable ↔ ∀ a ∈ s, (t a ‹_›).countable :=
-by { haveI := hs.to_subtype, rw [bUnion_eq_Union, countable_Union_iff, set_coe.forall'] }
+by { letI := hs.to_subtype, rw [bUnion_eq_Union, countable_Union_iff, set_coe.forall'] }
 
 lemma countable.sUnion_iff {s : set (set α)} (hs : s.countable) :
   (⋃₀ s).countable ↔ ∀ a ∈ s, (a : _).countable :=
@@ -213,7 +213,7 @@ end
 lemma countable_univ_pi {π : α → Type*} [finite α] {s : Π a, set (π a)}
   (hs : ∀ a, (s a).countable) : (pi univ s).countable :=
 begin
-  haveI := λ a, (hs a).to_subtype,
+  letI := λ a, (hs a).to_subtype,
   exact (countable.of_equiv _ (equiv.set.univ_pi s).symm).to_set
 end
 
@@ -224,8 +224,8 @@ by simpa only [← mem_univ_pi] using countable_univ_pi hs
 protected lemma countable.prod {s : set α} {t : set β} (hs : s.countable) (ht : t.countable) :
   set.countable (s ×ˢ t) :=
 begin
-  haveI : countable s := hs.to_subtype,
-  haveI : countable t := ht.to_subtype,
+  letI : countable s := hs.to_subtype,
+  letI : countable t := ht.to_subtype,
   exact (countable.of_equiv _ $ (equiv.set.prod _ _).symm).to_set
 end
 

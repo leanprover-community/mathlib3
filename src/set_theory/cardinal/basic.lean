@@ -523,7 +523,7 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 ⟨λ a, classical.by_contradiction $ λ h, begin
   let ι := {c : cardinal // ¬ acc (<) c},
   let f : ι → cardinal := subtype.val,
-  haveI hι : nonempty ι := ⟨⟨_, h⟩⟩,
+  letI hι : nonempty ι := ⟨⟨_, h⟩⟩,
   obtain ⟨⟨c : cardinal, hc : ¬acc (<) c⟩, ⟨h_1 : Π j, (f ⟨c, hc⟩).out ↪ (f j).out⟩⟩ :=
     embedding.min_injective (λ i, (f i).out),
   apply hc (acc.intro _ (λ j h', classical.by_contradiction (λ hj, h'.2 _))),
@@ -938,7 +938,7 @@ theorem lt_aleph_0 {c : cardinal} : c < ℵ₀ ↔ ∃ n : ℕ, c = n :=
   { lift S to finset ℕ using this,
     simp },
   contrapose! h',
-  haveI := infinite.to_subtype h',
+  letI := infinite.to_subtype h',
   exact ⟨infinite.nat_embedding S⟩
 end, λ ⟨n, e⟩, e.symm ▸ nat_lt_aleph_0 _⟩
 
@@ -1238,7 +1238,7 @@ lemma mk_pnat : #ℕ+ = ℵ₀ := mk_denumerable ℕ+
 /-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
-  haveI : inhabited (Π (i : ι), (g i).out),
+  letI : inhabited (Π (i : ι), (g i).out),
   { refine ⟨λ i, classical.choice $ mk_ne_zero_iff.1 _⟩,
     rw mk_out,
     exact (H i).ne_bot },

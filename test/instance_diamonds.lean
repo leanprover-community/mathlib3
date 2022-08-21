@@ -170,7 +170,7 @@ example {k : Type*} [semiring k] [nontrivial kˣ] :
   (finsupp.comap_has_smul : has_smul kˣ (kˣ →₀ k)) ≠ finsupp.has_smul :=
 begin
   obtain ⟨u : kˣ, hu⟩ := exists_ne (1 : kˣ),
-  haveI : nontrivial k := ⟨⟨u, 1, units.ext.ne hu⟩⟩,
+  letI : nontrivial k := ⟨⟨u, 1, units.ext.ne hu⟩⟩,
   intro h,
   simp only [has_smul.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
   replace h := h u (finsupp.single 1 1) u,

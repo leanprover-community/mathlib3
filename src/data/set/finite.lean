@@ -218,7 +218,7 @@ def fintype_bUnion [decidable_eq α] {ι : Type*} (s : set ι) [fintype s]
   (t : ι → set α) (H : ∀ i ∈ s, fintype (t i)) : fintype (⋃(x ∈ s), t x) :=
 fintype.of_finset
 (s.to_finset.attach.bUnion
-  (λ x, by { haveI := H x (by simpa using x.property), exact (t x).to_finset })) $ by simp
+  (λ x, by { letI := H x (by simpa using x.property), exact (t x).to_finset })) $ by simp
 
 instance fintype_bUnion' [decidable_eq α] {ι : Type*} (s : set ι) [fintype s]
   (t : ι → set α) [∀ i, fintype (t i)] : fintype (⋃(x ∈ s), t x) :=
@@ -396,7 +396,7 @@ instance finite_diff (s t : set α) [finite s] :
   finite (s \ t : set α) := finite.set.subset s (diff_subset s t)
 
 instance finite_range (f : ι → α) [finite ι] : finite (range f) :=
-by { haveI := fintype.of_finite (plift ι), apply_instance }
+by { letI := fintype.of_finite (plift ι), apply_instance }
 
 instance finite_Union [finite ι] (f : ι → set α) [∀ i, finite (f i)] : finite (⋃ i, f i) :=
 begin
@@ -412,7 +412,7 @@ lemma finite_bUnion {ι : Type*} (s : set ι) [finite s] (t : ι → set α) (H 
   finite (⋃(x ∈ s), t x) :=
 begin
   rw [bUnion_eq_Union],
-  haveI : ∀ (i : s), finite (t i) := λ i, H i i.property,
+  letI : ∀ (i : s), finite (t i) := λ i, H i i.property,
   apply_instance,
 end
 
@@ -497,7 +497,7 @@ theorem finite.inf_of_right {s : set α} (h : s.finite) (t : set α) : (t ⊓ s)
 h.inter_of_right t
 
 theorem finite.subset {s : set α} (hs : s.finite) {t : set α} (ht : t ⊆ s) : t.finite :=
-by { casesI hs, haveI := finite.set.subset _ ht, apply to_finite }
+by { casesI hs, letI := finite.set.subset _ ht, apply to_finite }
 
 theorem finite.diff {s : set α} (hs : s.finite) (t : set α) : (s \ t).finite :=
 by { casesI hs, apply to_finite }
@@ -507,16 +507,16 @@ theorem finite.of_diff {s t : set α} (hd : (s \ t).finite) (ht : t.finite) : s.
 
 theorem finite_Union [finite ι] {f : ι → set α} (H : ∀ i, (f i).finite) :
   (⋃ i, f i).finite :=
-by { haveI := λ i, (H i).fintype, apply to_finite }
+by { letI := λ i, (H i).fintype, apply to_finite }
 
 theorem finite.sUnion {s : set (set α)} (hs : s.finite) (H : ∀ t ∈ s, set.finite t) :
   (⋃₀ s).finite :=
-by { casesI hs, haveI := λ (i : s), (H i i.2).to_subtype, apply to_finite }
+by { casesI hs, letI := λ (i : s), (H i i.2).to_subtype, apply to_finite }
 
 theorem finite.bUnion {ι} {s : set ι} (hs : s.finite)
   {t : ι → set α} (ht : ∀ i ∈ s, (t i).finite) : (⋃(i ∈ s), t i).finite :=
 by { classical, casesI hs,
-     haveI := fintype_bUnion s t (λ i hi, (ht i hi).fintype), apply to_finite }
+     letI := fintype_bUnion s t (λ i hi, (ht i hi).fintype), apply to_finite }
 
 /-- Dependent version of `finite.bUnion`. -/
 theorem finite.bUnion' {ι} {s : set ι} (hs : s.finite)
@@ -791,7 +791,7 @@ by rw ← card_fintype_insert_of_not_mem s h; congr
 lemma card_image_of_inj_on {s : set α} [fintype s]
   {f : α → β} [fintype (f '' s)] (H : ∀x∈s, ∀y∈s, f x = f y → x = y) :
   fintype.card (f '' s) = fintype.card s :=
-by haveI := classical.prop_decidable; exact
+by letI := classical.prop_decidable; exact
 calc fintype.card (f '' s) = (s.to_finset.image f).card : fintype.card_of_finset' _ (by simp)
 ... = s.to_finset.card : finset.card_image_of_inj_on
     (λ x hx y hy hxy, H x (mem_to_finset.1 hx) y (mem_to_finset.1 hy) hxy)
@@ -837,7 +837,7 @@ end
 lemma card_ne_eq [fintype α] (a : α) [fintype {x : α | x ≠ a}] :
   fintype.card {x : α | x ≠ a} = fintype.card α - 1 :=
 begin
-  haveI := classical.dec_eq α,
+  letI := classical.dec_eq α,
   rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
       finset.card_univ],
 end
@@ -859,7 +859,7 @@ infinite_coe_iff.2 h
 
 /-- Embedding of `ℕ` into an infinite set. -/
 noncomputable def infinite.nat_embedding (s : set α) (h : s.infinite) : ℕ ↪ s :=
-by { haveI := h.to_subtype, exact infinite.nat_embedding s }
+by { letI := h.to_subtype, exact infinite.nat_embedding s }
 
 lemma infinite.exists_subset_card_eq {s : set α} (hs : s.infinite) (n : ℕ) :
   ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
@@ -1050,7 +1050,7 @@ lemma Union_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] {�
   (⋃ j : ι', I.pi (λ i, s i j)) = I.pi (λ i, ⋃ j, s i j) :=
 begin
   simp only [pi_def, bInter_eq_Inter, preimage_Union],
-  haveI := hI.fintype,
+  letI := hI.fintype,
   exact Union_Inter_of_monotone (λ i j₁ j₂ h, preimage_mono $ hs i i.2 h)
 end
 

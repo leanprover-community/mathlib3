@@ -606,7 +606,7 @@ lemma mem_Sup_of_directed_on {S : set (subfield K)} (Sne : S.nonempty)
   (hS : directed_on (≤) S) {x : K} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
-  haveI : nonempty S := Sne.to_subtype,
+  letI : nonempty S := Sne.to_subtype,
   simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 

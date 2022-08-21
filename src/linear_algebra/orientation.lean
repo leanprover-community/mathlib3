@@ -177,7 +177,7 @@ end
 basis, or one constructed by negating a single (arbitrary) basis vector. -/
 def adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M) (x : orientation R M ι) :
   basis ι R M :=
-by haveI := classical.dec_eq (orientation R M ι); exact if e.orientation = x then e else
+by letI := classical.dec_eq (orientation R M ι); exact if e.orientation = x then e else
   (e.units_smul (function.update 1 (classical.arbitrary ι) (-1)))
 
 /-- `adjust_to_orientation` gives a basis with the required orientation. -/

@@ -1583,7 +1583,7 @@ lemma op_norm_comp_linear_isometry_equiv (f : F →SL[σ₂₃] G) (g : F' ≃�
   ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
 begin
   casesI subsingleton_or_nontrivial F',
-  { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
+  { letI := g.symm.to_linear_equiv.to_equiv.subsingleton,
     simp },
   refine le_antisymm _ _,
   { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
@@ -1592,7 +1592,7 @@ begin
       g.symm.to_linear_isometry.to_continuous_linear_map,
     { ext,
       simp },
-    haveI := g.symm.surjective.nontrivial,
+    letI := g.symm.surjective.nontrivial,
     simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
 end
 omit σ₂'' σ₂₃'
@@ -1656,7 +1656,7 @@ section
 variables [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 @[simp] lemma op_norm_lmul [norm_one_class 𝕜'] : ∥lmul 𝕜 𝕜'∥ = 1 :=
-by haveI := norm_one_class.nontrivial 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
+by letI := norm_one_class.nontrivial 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
 @[simp] lemma op_norm_lmul_right [norm_one_class 𝕜'] : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
 (op_norm_flip (lmul 𝕜 𝕜')).trans (op_norm_lmul _ _)
@@ -1766,7 +1766,7 @@ def coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 := (to_span_nonze
 @[simp] lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
-  haveI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
+  letI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
   exact continuous_linear_map.homothety_norm _
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end

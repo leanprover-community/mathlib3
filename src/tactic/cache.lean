@@ -34,7 +34,7 @@ begin
 end
 ```
 However, it will work, producing the identity function, if one replaces `have`
-by its variant `haveI` described below.
+by its variant `letI` described below.
 
 * `resetI`: Reset the instance cache. This allows any instances
   currently in the context to be used in typeclass inference.
@@ -48,7 +48,7 @@ by its variant `haveI` described below.
 
 * `substI`: like `subst`, but can also substitute in type-class arguments
 
-* `haveI`/`letI`/`rsufficesI`: `have`/`let`/`rsuffices` followed by `resetI`. Used
+* `letI`/`letI`/`rsufficesI`: `have`/`let`/`rsuffices` followed by `resetI`. Used
   to add typeclasses to the context so that they can be used in typeclass inference.
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
@@ -57,6 +57,6 @@ by its variant `haveI` described below.
 add_tactic_doc
 { name        := "Instance cache tactics",
   category    := doc_category.tactic,
-  decl_names  := [``resetI, ``unfreezingI, ``casesI, ``substI, ``introI, ``introsI, ``haveI, ``letI,
+  decl_names  := [``resetI, ``unfreezingI, ``casesI, ``substI, ``introI, ``introsI, ``letI, ``letI,
                   ``exactI],
   tags        := ["type class", "context management"] }

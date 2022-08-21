@@ -31,7 +31,7 @@ begin
       ((Module.epi_iff_surjective _).mp epi)⟩ },
   { refine module.projective_of_lifting_property _,
     introsI E X mE mX sE sX f g s,
-    haveI : epi ↟f := (Module.epi_iff_surjective ↟f).mpr s,
+    letI : epi ↟f := (Module.epi_iff_surjective ↟f).mpr s,
     letI : projective (Module.of R P) := h,
     exact ⟨projective.factor_thru ↟g ↟f, projective.factor_thru_comp ↟g ↟f⟩ }
 end

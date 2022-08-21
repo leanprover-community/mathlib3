@@ -69,7 +69,7 @@ lemma exists_approx_aux (n : ℕ) (h : abv.is_admissible) :
   ∀ {ε : ℝ} (hε : 0 < ε) {b : R} (hb : b ≠ 0) (A : fin (h.card ε ^ n).succ → (fin n → R)),
   ∃ (i₀ i₁), (i₀ ≠ i₁) ∧ ∀ k, (abv (A i₁ k % b - A i₀ k % b) : ℝ) < abv b • ε :=
 begin
-  haveI := classical.dec_eq R,
+  letI := classical.dec_eq R,
   induction n with n ih,
   { intros ε hε b hb A,
     refine ⟨0, 1, _, _⟩,

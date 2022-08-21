@@ -226,8 +226,8 @@ begin
     have h : ∀ s₁ (hs₁ : is_compact s₁) s₂ (hs₂ : is_compact s₂) (x : α) (hxs₁ : x ∈ s₁)
       (hxs₂ : x ∈ s₂), f s₁ hs₁ ⟨x, hxs₁⟩ = f s₂ hs₂ ⟨x, hxs₂⟩,
     { rintros s₁ hs₁ s₂ hs₂ x hxs₁ hxs₂,
-      haveI := is_compact_iff_compact_space.mp hs₁,
-      haveI := is_compact_iff_compact_space.mp hs₂,
+      letI := is_compact_iff_compact_space.mp hs₁,
+      letI := is_compact_iff_compact_space.mp hs₂,
       have h₁ := (continuous_eval_const' (⟨x, hxs₁⟩ : s₁)).continuous_at.tendsto.comp (hf s₁ hs₁),
       have h₂ := (continuous_eval_const' (⟨x, hxs₂⟩ : s₂)).continuous_at.tendsto.comp (hf s₂ hs₂),
       exact tendsto_nhds_unique h₁ h₂ },

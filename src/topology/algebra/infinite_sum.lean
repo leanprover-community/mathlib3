@@ -1420,7 +1420,7 @@ begin
   have : ∀ s : finset α, s.card ≤ n,
   { intros s,
     simpa [nsmul_le_nsmul_iff hb] using (H s).trans hn },
-  haveI : fintype α := fintype_of_finset_card_le n this,
+  letI : fintype α := fintype_of_finset_card_le n this,
   exact set.finite_univ
 end
 

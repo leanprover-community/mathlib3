@@ -149,8 +149,8 @@ finprod_eq_single f default $ λ x hx, (hx $ unique.eq_default _).elim
   ∏ᶠ i, f i = if h : p then f h else 1 :=
 begin
   split_ifs,
-  { haveI : unique p := ⟨⟨h⟩, λ _, rfl⟩, exact finprod_unique f },
-  { haveI : is_empty p := ⟨h⟩, exact finprod_of_is_empty f }
+  { letI : unique p := ⟨⟨h⟩, λ _, rfl⟩, exact finprod_unique f },
+  { letI : is_empty p := ⟨h⟩, exact finprod_of_is_empty f }
 end
 
 @[to_additive] lemma finprod_eq_if {p : Prop} [decidable p] {x : M} :
@@ -801,7 +801,7 @@ lemma finprod_mem_bUnion {I : set ι} {t : ι → set α} (h : I.pairwise_disjoi
   (ht : ∀ i ∈ I, (t i).finite) :
   ∏ᶠ a ∈ ⋃ x ∈ I, t x, f a = ∏ᶠ i ∈ I, ∏ᶠ j ∈ t i, f j :=
 begin
-  haveI := hI.fintype,
+  letI := hI.fintype,
   rw [bUnion_eq_Union, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
   exacts [λ x y hxy, h x.2 y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
 end

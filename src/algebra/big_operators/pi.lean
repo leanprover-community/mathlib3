@@ -48,7 +48,7 @@ finset.prod_apply a finset.univ g
 @[to_additive prod_mk_sum]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
   (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=
-by haveI := classical.dec_eq γ; exact
+by letI := classical.dec_eq γ; exact
 finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
 
 section single

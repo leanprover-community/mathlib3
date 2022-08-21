@@ -41,7 +41,7 @@ theorem schroeder_bernstein {f : α → β} {g : β → α}
   (hf : function.injective f) (hg : function.injective g) : ∃ h : α → β, bijective h :=
 begin
   casesI is_empty_or_nonempty β with hβ hβ,
-  { haveI : is_empty α, from function.is_empty f,
+  { letI : is_empty α, from function.is_empty f,
     exact ⟨_, ((equiv.equiv_empty α).trans (equiv.equiv_empty β).symm).bijective⟩ },
   set F : set α →o set α :=
   { to_fun := λ s, (g '' (f '' s)ᶜ)ᶜ,

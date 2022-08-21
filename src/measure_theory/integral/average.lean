@@ -116,7 +116,7 @@ integral_pair hfi.to_average hgi.to_average
 
 lemma measure_smul_set_average (f : α → E) {s : set α} (h : μ s ≠ ∞) :
   (μ s).to_real • ⨍ x in s, f x ∂μ = ∫ x in s, f x ∂μ :=
-by { haveI := fact.mk h.lt_top, rw [← measure_smul_average, restrict_apply_univ] }
+by { letI := fact.mk h.lt_top, rw [← measure_smul_average, restrict_apply_univ] }
 
 lemma average_union {f : α → E} {s t : set α} (hd : ae_disjoint μ s t)
   (ht : null_measurable_set t μ) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞)
@@ -125,7 +125,7 @@ lemma average_union {f : α → E} {s t : set α} (hd : ae_disjoint μ s t)
     ((μ s).to_real / ((μ s).to_real + (μ t).to_real)) • ⨍ x in s, f x ∂μ +
       ((μ t).to_real / ((μ s).to_real + (μ t).to_real)) • ⨍ x in t, f x ∂μ :=
 begin
-  haveI := fact.mk hsμ.lt_top, haveI := fact.mk htμ.lt_top,
+  letI := fact.mk hsμ.lt_top, letI := fact.mk htμ.lt_top,
   rw [restrict_union₀ hd ht, average_add_measure hfs hft, restrict_apply_univ, restrict_apply_univ]
 end
 

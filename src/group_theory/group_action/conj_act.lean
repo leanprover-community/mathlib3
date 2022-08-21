@@ -109,7 +109,7 @@ instance units_smul_comm_class [has_smul α M] [smul_comm_class α M M] [is_scal
 
 instance units_smul_comm_class' [has_smul α M] [smul_comm_class M α M] [is_scalar_tower α M M] :
   smul_comm_class (conj_act Mˣ) α M :=
-by { haveI : smul_comm_class α M M := smul_comm_class.symm _ _ _, exact smul_comm_class.symm _ _ _ }
+by { letI : smul_comm_class α M M := smul_comm_class.symm _ _ _, exact smul_comm_class.symm _ _ _ }
 
 end monoid
 
@@ -143,7 +143,7 @@ instance smul_comm_class₀ [has_smul α G₀] [smul_comm_class α G₀ G₀] [i
 
 instance smul_comm_class₀' [has_smul α G₀] [smul_comm_class G₀ α G₀] [is_scalar_tower α G₀ G₀] :
   smul_comm_class (conj_act G₀) α G₀ :=
-by { haveI := smul_comm_class.symm G₀ α G₀, exact smul_comm_class.symm _ _ _ }
+by { letI := smul_comm_class.symm G₀ α G₀, exact smul_comm_class.symm _ _ _ }
 
 end group_with_zero
 
@@ -173,7 +173,7 @@ instance smul_comm_class [has_smul α G] [smul_comm_class α G G] [is_scalar_tow
 
 instance smul_comm_class' [has_smul α G] [smul_comm_class G α G] [is_scalar_tower α G G] :
   smul_comm_class (conj_act G) α G :=
-by { haveI := smul_comm_class.symm G α G, exact smul_comm_class.symm _ _ _ }
+by { letI := smul_comm_class.symm G α G, exact smul_comm_class.symm _ _ _ }
 
 lemma smul_eq_mul_aut_conj (g : conj_act G) (h : G) : g • h = mul_aut.conj (of_conj_act g) h := rfl
 

@@ -410,7 +410,7 @@ namespace ring_equiv
 protected lemma local_ring {A B : Type*} [comm_semiring A] [local_ring A] [comm_semiring B]
   (e : A ≃+* B) : local_ring B :=
 begin
-  haveI := e.symm.to_equiv.nontrivial,
+  letI := e.symm.to_equiv.nontrivial,
   exact local_ring.of_surjective (e : A →+* B) e.surjective
 end
 

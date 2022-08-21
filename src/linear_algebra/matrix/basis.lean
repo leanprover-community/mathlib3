@@ -163,7 +163,7 @@ variables [fintype ι'] [fintype κ] [fintype κ']
 @[simp] lemma basis_to_matrix_mul_linear_map_to_matrix [decidable_eq ι'] :
   c.to_matrix c' ⬝ linear_map.to_matrix b' c' f = linear_map.to_matrix b' c f :=
 (matrix.to_lin b' c).injective
-  (by haveI := classical.dec_eq κ';
+  (by letI := classical.dec_eq κ';
       rw [to_lin_to_matrix, to_lin_mul b' c' c, to_lin_to_matrix, c.to_lin_to_matrix, id_comp])
 
 variable [fintype ι]
@@ -207,7 +207,7 @@ end
 /-- A generalization of `linear_map.to_matrix_id`. -/
 @[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :
   linear_map.to_matrix b b' id = b'.to_matrix b :=
-by { haveI := classical.dec_eq ι',
+by { letI := classical.dec_eq ι',
       rw [←@basis_to_matrix_mul_linear_map_to_matrix _ _ ι, to_matrix_id, matrix.mul_one] }
 
 /-- See also `basis.to_matrix_reindex` which gives the `simp` normal form of this result. -/
@@ -225,7 +225,7 @@ end fintype
 begin
   have  := classical.dec_eq ι,
   have  := classical.dec_eq ι',
-  haveI := classical.dec_eq ι'',
+  letI := classical.dec_eq ι'',
   ext i j,
   simp only [matrix.mul_apply, basis.to_matrix_apply, basis.sum_repr_mul_repr],
 end

@@ -89,7 +89,7 @@ private def finv : W_type (λ i, fin (arity α i)) → prop_form α
 
 instance [encodable α] : encodable (prop_form α) :=
 begin
-  haveI : encodable (constructors α),
+  letI : encodable (constructors α),
   { unfold constructors, apply_instance },
   exact encodable.of_left_inverse f finv
     (by { intro p, induction p; simp [f, finv, *] })

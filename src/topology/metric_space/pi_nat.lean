@@ -366,7 +366,7 @@ where the distance is given by `dist x y = (1/2)^n`, where `n` is the smallest i
 protected def metric_space_of_discrete_uniformity {E : ℕ → Type*} [∀ n, uniform_space (E n)]
   (h : ∀ n, uniformity (E n) = 𝓟 id_rel) : metric_space (Π n, E n) :=
 begin
-  haveI : ∀ n, discrete_topology (E n) := λ n, discrete_topology_of_discrete_uniformity (h n),
+  letI : ∀ n, discrete_topology (E n) := λ n, discrete_topology_of_discrete_uniformity (h n),
   exact
   { dist_triangle := pi_nat.dist_triangle,
     dist_comm := pi_nat.dist_comm,

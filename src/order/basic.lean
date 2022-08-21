@@ -223,7 +223,7 @@ protected lemma decidable.eq_iff_le_not_lt [partial_order α] [@decidable_rel α
   decidable.by_contradiction $ λ h₃, h₂ (h₁.lt_of_not_le h₃)⟩
 
 lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
-by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
+by letI := classical.dec; exact decidable.eq_iff_le_not_lt
 
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
 lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
@@ -256,7 +256,7 @@ protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] 
 ⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
 
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
-by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
+by letI := classical.dec; exact decidable.ne_iff_lt_iff_le
 
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
@@ -372,15 +372,15 @@ begin
 end
 
 theorem preorder.ext {α} {A B : preorder α}
-  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+  (H : ∀ x y : α, (by letI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 by { ext x y, exact H x y }
 
 theorem partial_order.ext {α} {A B : partial_order α}
-  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+  (H : ∀ x y : α, (by letI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 by { ext x y, exact H x y }
 
 theorem linear_order.ext {α} {A B : linear_order α}
-  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+  (H : ∀ x y : α, (by letI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 by { ext x y, exact H x y }
 
 /-- Given a relation `R` on `β` and a function `f : α → β`, the preimage relation on `α` is defined

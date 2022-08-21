@@ -171,7 +171,7 @@ lemma has_lines.point_count_le_line_count [has_lines P L] {p : P} {l : L} (h : p
 begin
   by_cases hf : infinite {p : P // p ∈ l},
   { exactI (le_of_eq nat.card_eq_zero_of_infinite).trans (zero_le (line_count L p)) },
-  haveI := fintype_of_not_infinite hf,
+  letI := fintype_of_not_infinite hf,
   casesI nonempty_fintype {l : L // p ∈ l},
   rw [line_count, point_count, nat.card_eq_fintype_card, nat.card_eq_fintype_card],
   have : ∀ p' : {p // p ∈ l}, p ≠ p' := λ p' hp', h ((congr_arg (∈ l) hp').mpr p'.2),
@@ -274,8 +274,8 @@ noncomputable def has_lines.has_points [has_lines P L] [fintype P] [fintype L]
 let this : ∀ l₁ l₂ : L, l₁ ≠ l₂ → ∃ p : P, p ∈ l₁ ∧ p ∈ l₂ := λ l₁ l₂ hl, begin
   classical,
   obtain ⟨f, hf1, hf2⟩ := has_lines.exists_bijective_of_card_eq h,
-  haveI : nontrivial L := ⟨⟨l₁, l₂, hl⟩⟩,
-  haveI := fintype.one_lt_card_iff_nontrivial.mp ((congr_arg _ h).mpr fintype.one_lt_card),
+  letI : nontrivial L := ⟨⟨l₁, l₂, hl⟩⟩,
+  letI := fintype.one_lt_card_iff_nontrivial.mp ((congr_arg _ h).mpr fintype.one_lt_card),
   have h₁ : ∀ p : P, 0 < line_count L p := λ p, exists.elim (exists_ne p) (λ q hq, (congr_arg _
     nat.card_eq_fintype_card).mpr (fintype.card_pos_iff.mpr ⟨⟨mk_line hq, (mk_line_ax hq).2⟩⟩)),
   have h₂ : ∀ l : L, 0 < point_count P l := λ l, (congr_arg _ (hf2 l)).mpr (h₁ (f l)),

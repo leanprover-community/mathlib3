@@ -51,7 +51,7 @@ namespace ring
 
 lemma dimension_le_one.principal_ideal_ring
   [is_domain A] [is_principal_ideal_ring A] : dimension_le_one A :=
-λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
+λ p nonzero prime, by { letI := prime, exact is_prime.to_maximal_ideal nonzero }
 
 lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [is_domain B]
   [nontrivial R] [algebra R A] [algebra R B] [algebra B A] [is_scalar_tower R B A]

@@ -1179,7 +1179,7 @@ by { rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.i
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
   cases (@le_top _ _ _ (μ univ)).lt_or_eq with hμ hμ,
-  { haveI : is_finite_measure μ := ⟨hμ⟩,
+  { letI : is_finite_measure μ := ⟨hμ⟩,
     exact set_to_fun_const (dominated_fin_meas_additive_weighted_smul _) _, },
   { by_cases hc : c = 0,
     { simp [hc, integral_zero] },
@@ -1318,7 +1318,7 @@ begin
   { rw [integral_undef hfi, integral_undef],
     rwa [← integrable_map_measure hfm.ae_strongly_measurable hφ.ae_measurable] },
   borelize E,
-  haveI : separable_space (range f ∪ {0} : set E) := hfm.separable_space_range_union_singleton,
+  letI : separable_space (range f ∪ {0} : set E) := hfm.separable_space_range_union_singleton,
   refine tendsto_nhds_unique
     (tendsto_integral_approx_on_of_measurable_of_range_subset hfm.measurable hfi _ subset.rfl) _,
   convert tendsto_integral_approx_on_of_measurable_of_range_subset (hfm.measurable.comp hφ)
@@ -1475,7 +1475,7 @@ begin
   { have hf_int_m : ¬ integrable f (μ.trim hm),
       from λ hf_int_m, hf_int (integrable_of_integrable_trim hm hf_int_m),
     rw [integral_undef hf_int, integral_undef hf_int_m], },
-  haveI : separable_space (range f ∪ {0} : set F) := hf.separable_space_range_union_singleton,
+  letI : separable_space (range f ∪ {0} : set F) := hf.separable_space_range_union_singleton,
   let f_seq := @simple_func.approx_on F β _ _ _ m _ hf.measurable (range f ∪ {0}) 0 (by simp) _,
   have hf_seq_meas : ∀ n, strongly_measurable[m] (f_seq n),
     from λ n, @simple_func.strongly_measurable β F m _ (f_seq n),

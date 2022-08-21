@@ -402,7 +402,7 @@ begin
   { intros H U g hg V,
     resetI,
     rw (hP.affine_open_cover_tfae f).out 0 3 at H,
-    haveI : is_affine _ := V.2,
+    letI : is_affine _ := V.2,
     rw ← category.assoc,
     apply H },
   tfae_have : 4 → 3,
@@ -462,7 +462,7 @@ begin
     apply hP.source_affine_locally_comp_of_is_open_immersion,
     apply H },
   { intros H U,
-    haveI : is_affine _ := U.2,
+    letI : is_affine _ := U.2,
     apply ((hP.open_cover_tfae (f ∣_ U.1)).out 1 0).mp,
     use 𝒰.pullback_cover (X.of_restrict _),
     intro i,
@@ -479,7 +479,7 @@ lemma affine_locally_of_is_open_immersion (hP : ring_hom.property_is_local @P) {
   (f : X ⟶ Y) [hf : is_open_immersion f] : affine_locally @P f :=
 begin
   intro U,
-  haveI H : is_affine _ := U.2,
+  letI H : is_affine _ := U.2,
   rw ← category.comp_id (f ∣_ U),
   apply hP.source_affine_locally_comp_of_is_open_immersion,
   rw hP.source_affine_open_cover_iff _ (Scheme.open_cover_of_is_iso (𝟙 _)),

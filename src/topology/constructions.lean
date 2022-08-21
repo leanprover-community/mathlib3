@@ -335,8 +335,8 @@ hf.fst'.prod_mk hg.snd'
 /-- A version of `continuous_inf_dom_left` for binary functions -/
 lemma continuous_inf_dom_left₂ {α β γ} {f : α → β → γ}
   {ta1 ta2 : topological_space α} {tb1 tb2 : topological_space β} {tc1 : topological_space γ}
-  (h : by haveI := ta1; haveI := tb1; exact continuous (λ p : α × β, f p.1 p.2)) :
-  by haveI := ta1 ⊓ ta2; haveI := tb1 ⊓ tb2; exact continuous (λ p : α × β, f p.1 p.2) :=
+  (h : by letI := ta1; letI := tb1; exact continuous (λ p : α × β, f p.1 p.2)) :
+  by letI := ta1 ⊓ ta2; letI := tb1 ⊓ tb2; exact continuous (λ p : α × β, f p.1 p.2) :=
 begin
   have ha := @continuous_inf_dom_left _ _ id ta1 ta2 ta1 (@continuous_id _ (id _)),
   have hb := @continuous_inf_dom_left _ _ id tb1 tb2 tb1 (@continuous_id _ (id _)),
@@ -347,8 +347,8 @@ end
 /-- A version of `continuous_inf_dom_right` for binary functions -/
 lemma continuous_inf_dom_right₂ {α β γ} {f : α → β → γ}
   {ta1 ta2 : topological_space α} {tb1 tb2 : topological_space β} {tc1 : topological_space γ}
-  (h : by haveI := ta2; haveI := tb2; exact continuous (λ p : α × β, f p.1 p.2)) :
-  by haveI := ta1 ⊓ ta2; haveI := tb1 ⊓ tb2; exact continuous (λ p : α × β, f p.1 p.2) :=
+  (h : by letI := ta2; letI := tb2; exact continuous (λ p : α × β, f p.1 p.2)) :
+  by letI := ta1 ⊓ ta2; letI := tb1 ⊓ tb2; exact continuous (λ p : α × β, f p.1 p.2) :=
 begin
   have ha := @continuous_inf_dom_right _ _ id ta1 ta2 ta2 (@continuous_id _ (id _)),
   have hb := @continuous_inf_dom_right _ _ id tb1 tb2 tb2 (@continuous_id _ (id _)),
@@ -362,7 +362,7 @@ lemma continuous_Inf_dom₂ {α β γ} {f : α → β → γ}
   {ta : topological_space α} {tb : topological_space β} {tc : topological_space γ}
   (ha : ta ∈ tas) (hb : tb ∈ tbs)
   (hf : continuous (λ p : α × β, f p.1 p.2)):
-  by haveI := Inf tas; haveI := Inf tbs; exact @continuous _ _ _ tc (λ p : α × β, f p.1 p.2) :=
+  by letI := Inf tas; letI := Inf tbs; exact @continuous _ _ _ tc (λ p : α × β, f p.1 p.2) :=
 begin
   let t : topological_space (α × β) := prod.topological_space,
   have ha := continuous_Inf_dom ha continuous_id,

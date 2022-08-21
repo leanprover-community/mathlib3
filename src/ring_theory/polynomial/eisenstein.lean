@@ -445,7 +445,7 @@ begin
   letI := finite_dimensional B,
   set P := minpoly R B.gen with hP,
   obtain ⟨n , hn⟩ := nat.exists_eq_succ_of_ne_zero B.dim_pos.ne',
-  haveI : no_zero_smul_divisors R L := no_zero_smul_divisors.trans R K L,
+  letI : no_zero_smul_divisors R L := no_zero_smul_divisors.trans R K L,
   let P₁ := P.map (algebra_map R L),
 
   -- There is a polynomial `Q` such that `p • z = aeval B.gen Q`. We can assume that

@@ -358,7 +358,7 @@ begin
   { rw [eq_comm, submodule.restrict_scalars_eq_top_iff, ideal.span_singleton_eq_top],
     refine is_unit.mk0 _ ((map_ne_zero_iff ((algebra_map R L)) hRL).mpr (
       @ne_zero_of_map _ _ _ _ _ _ (ideal.quotient.mk p) _ _)),
-    haveI := ideal.quotient.nontrivial hp,
+    letI := ideal.quotient.nontrivial hp,
     calc ideal.quotient.mk p (A.det)
           = matrix.det ((ideal.quotient.mk p).map_matrix A) :
         by rw [ring_hom.map_det, ring_hom.map_matrix_apply]
@@ -378,7 +378,7 @@ begin
   { intros x hx,
     rw [submodule.restrict_scalars_mem, is_scalar_tower.algebra_map_apply R S L] at hx,
     refine is_fraction_ring.ideal_span_singleton_map_subset R _ hRL span_d hx,
-    haveI : no_zero_smul_divisors R L := no_zero_smul_divisors.of_algebra_map_injective hRL,
+    letI : no_zero_smul_divisors R L := no_zero_smul_divisors.of_algebra_map_injective hRL,
     rw ← is_fraction_ring.is_algebraic_iff' R S,
     intros x,
     exact is_integral.is_algebraic _ (is_integral_of_noetherian infer_instance _) },
@@ -664,8 +664,8 @@ begin
   letI := ideal.quotient.field p,
   have hdim := dim_prime_pow_ramification_idx _ _ _ hP0 he,
   by_cases hP : finite_dimensional (R ⧸ p) (S ⧸ P),
-  { haveI := hP,
-    haveI := (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mpr hP,
+  { letI := hP,
+    letI := (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mpr hP,
     refine cardinal.nat_cast_injective _,
     rw [finrank_eq_dim, nat.cast_mul, finrank_eq_dim, hdim, nsmul_eq_mul] },
   have hPe := mt (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mp hP,

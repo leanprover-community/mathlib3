@@ -405,7 +405,7 @@ begin
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
   letI := linear_order_of_STO' r,
-  haveI : is_well_order α (<) := wo,
+  letI : is_well_order α (<) := wo,
   -- Define an order `s` on `α × α` by writing `(a, b) < (c, d)` if `max a b < max c d`, or
   -- the max are equal and `a < c`, or the max are equal and `a = c` and `b < d`.
   let g : α × α → α := λ p, max p.1 p.2,
@@ -413,7 +413,7 @@ begin
     ⟨λ p:α×α, (typein (<) (g p), p), λ p q, congr_arg prod.snd⟩,
   let s := f ⁻¹'o (prod.lex (<) (prod.lex (<) (<))),
   -- this is a well order on `α × α`.
-  haveI : is_well_order _ s := (rel_embedding.preimage _ _).is_well_order,
+  letI : is_well_order _ s := (rel_embedding.preimage _ _).is_well_order,
   /- it suffices to show that this well order is smaller than `r`
      if it were larger, then `r` would be a strict prefix of `s`. It would be contained in
     `β × β` for some `β` of cardinality `< c`. By the inductive assumption, this set has the
@@ -939,7 +939,7 @@ theorem extend_function_of_lt {α β : Type*} {s : set α} (f : s ↪ β) (hs : 
 begin
   casesI fintype_or_infinite α,
   { exact extend_function_finite f h },
-  { apply extend_function f, cases id h with g, haveI := infinite.of_injective _ g.injective,
+  { apply extend_function f, cases id h with g, letI := infinite.of_injective _ g.injective,
     rw [← lift_mk_eq'] at h ⊢,
     rwa [mk_compl_of_infinite s hs, mk_compl_of_infinite],
     rwa [← lift_lt, mk_range_eq_of_injective f.injective, ← h, lift_lt] },

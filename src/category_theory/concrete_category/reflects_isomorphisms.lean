@@ -32,8 +32,8 @@ lemma reflects_isomorphisms_forget₂ [has_forget₂ C D] [reflects_isomorphisms
 { reflects := λ X Y f i,
   begin
     resetI,
-    haveI i' : is_iso ((forget D).map ((forget₂ C D).map f)) := functor.map_is_iso (forget D) _,
-    haveI : is_iso ((forget C).map f) :=
+    letI i' : is_iso ((forget D).map ((forget₂ C D).map f)) := functor.map_is_iso (forget D) _,
+    letI : is_iso ((forget C).map f) :=
     begin
       have := has_forget₂.forget_comp,
       dsimp at this,

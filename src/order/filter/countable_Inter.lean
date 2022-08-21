@@ -50,7 +50,7 @@ lemma countable_bInter_mem {S : set ι} (hS : S.countable) {s : Π i ∈ S, set 
   (⋂ i ∈ S, s i ‹_›) ∈ l ↔  ∀ i ∈ S, s i ‹_› ∈ l :=
 begin
   rw [bInter_eq_Inter],
-  haveI := hS.to_encodable,
+  letI := hS.to_encodable,
   exact countable_Inter_mem.trans subtype.forall
 end
 
@@ -78,7 +78,7 @@ lemma eventually_le.countable_bUnion {S : set ι} (hS : S.countable) {s t : Π i
   (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋃ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋃ i ∈ S, t i ‹_› :=
 begin
   simp only [bUnion_eq_Union],
-  haveI := hS.to_encodable,
+  letI := hS.to_encodable,
   exact eventually_le.countable_Union (λ i, h i i.2)
 end
 
@@ -100,7 +100,7 @@ lemma eventually_le.countable_bInter {S : set ι} (hS : S.countable) {s t : Π i
   (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋂ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋂ i ∈ S, t i ‹_› :=
 begin
   simp only [bInter_eq_Inter],
-  haveI := hS.to_encodable,
+  letI := hS.to_encodable,
   exact eventually_le.countable_Inter (λ i, h i i.2)
 end
 

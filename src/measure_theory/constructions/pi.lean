@@ -83,7 +83,7 @@ lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  haveI := fintype.to_encodable ι,
+  letI := fintype.to_encodable ι,
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
@@ -96,7 +96,7 @@ lemma generate_from_pi_eq {C : Π i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
   @measurable_space.pi _ _ (λ i, generate_from (C i)) = generate_from (pi univ '' pi univ C) :=
 begin
-  haveI := fintype.to_encodable ι,
+  letI := fintype.to_encodable ι,
   apply le_antisymm,
   { refine supr_le _, intro i, rw [comap_generate_from],
     apply generate_from_le, rintro _ ⟨s, hs, rfl⟩, dsimp,
@@ -277,7 +277,7 @@ begin
   refine le_antisymm _ _,
   { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
-  { haveI : encodable ι := fintype.to_encodable ι,
+  { letI : encodable ι := fintype.to_encodable ι,
     rw [← pi'_pi μ s],
     simp_rw [← pi'_pi μ s, measure.pi,
       to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
@@ -297,8 +297,8 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
   (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) :
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
-  haveI := λ i, (hμ i).sigma_finite,
-  haveI := fintype.to_encodable ι,
+  letI := λ i, (hμ i).sigma_finite,
+  letI := fintype.to_encodable ι,
   refine ⟨λ n, pi univ (λ i, (hμ i).set ((decode (ι → ℕ) n).iget i)), λ n, _, λ n, _, _⟩;
   -- TODO (kmill) If this let comes before the refine, while the noncomputability checker
   -- correctly sees this definition is computable, the Lean VM fails to see the binding is
@@ -335,7 +335,7 @@ begin
     (is_pi_system.pi h2C) _,
   rintro _ ⟨s, hs, rfl⟩,
   rw [mem_univ_pi] at hs,
-  haveI := λ i, (h3C i).sigma_finite,
+  letI := λ i, (h3C i).sigma_finite,
   simp_rw [h₁ s hs, pi_pi_aux μ s (λ i, h4C i _ (hs i))]
 end
 
@@ -357,7 +357,7 @@ eq.symm $ pi_eq $ λ s hs, pi'_pi μ s
 
 @[simp] lemma pi_pi (s : Π i, set (α i)) : measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
-  haveI : encodable ι := fintype.to_encodable ι,
+  letI : encodable ι := fintype.to_encodable ι,
   rw [← pi'_eq_pi, pi'_pi]
 end
 
@@ -380,7 +380,7 @@ lemma pi_of_empty {α : Type*} [is_empty α] {β : α → Type*} {m : Π a, meas
   (μ : Π a : α, measure (β a)) (x : Π a, β a := is_empty_elim) :
   measure.pi μ = dirac x :=
 begin
-  haveI : ∀ a, sigma_finite (μ a) := is_empty_elim,
+  letI : ∀ a, sigma_finite (μ a) := is_empty_elim,
   refine pi_eq (λ s hs, _),
   rw [fintype.prod_empty, dirac_apply_of_mem],
   exact is_empty_elim
@@ -661,7 +661,7 @@ lemma measure_preserving_fin_two_arrow_vec {α : Type u} {m : measurable_space �
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   measure_preserving measurable_equiv.fin_two_arrow (measure.pi ![μ, ν]) (μ.prod ν) :=
 begin
-  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
+  letI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
   exact measure_preserving_pi_fin_two _
 end
 

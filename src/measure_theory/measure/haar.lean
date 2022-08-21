@@ -538,7 +538,7 @@ end
 @[to_additive]
 lemma haar_measure_self {K₀ : positive_compacts G} : haar_measure K₀ K₀ = 1 :=
 begin
-  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
+  letI : locally_compact_space G := K₀.locally_compact_space_of_group,
   rw [haar_measure_apply K₀.compact.measurable_set, ennreal.div_self],
   { rw [← pos_iff_ne_zero], exact haar_content_outer_measure_self_pos },
   { exact (content.outer_measure_lt_top_of_is_compact _ K₀.compact).ne }
@@ -549,7 +549,7 @@ end
 instance regular_haar_measure {K₀ : positive_compacts G} :
   (haar_measure K₀).regular :=
 begin
-  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
+  letI : locally_compact_space G := K₀.locally_compact_space_of_group,
   apply regular.smul,
   rw ennreal.inv_ne_top,
   exact haar_content_outer_measure_self_pos.ne',
@@ -559,7 +559,7 @@ end
 @[to_additive]
 instance sigma_finite_haar_measure [second_countable_topology G] {K₀ : positive_compacts G} :
   sigma_finite (haar_measure K₀) :=
-by { haveI : locally_compact_space G := K₀.locally_compact_space_of_group, apply_instance, }
+by { letI : locally_compact_space G := K₀.locally_compact_space_of_group, apply_instance, }
 
 /-- The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to compact
 sets and positive mass to nonempty open sets. -/
@@ -700,7 +700,7 @@ begin
   -- the image measure is a Haar measure. By uniqueness up to multiplication, it is of the form
   -- `c μ`. Applying again inversion, one gets the measure `c^2 μ`. But since inversion is an
   -- involution, this is also `μ`. Hence, `c^2 = 1`, which implies `c = 1`.
-  haveI : is_haar_measure (measure.map has_inv.inv μ) :=
+  letI : is_haar_measure (measure.map has_inv.inv μ) :=
     is_haar_measure_map μ (mul_equiv.inv G) continuous_inv continuous_inv,
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,

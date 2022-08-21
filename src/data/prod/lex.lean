@@ -59,11 +59,11 @@ lemma lt_iff [has_lt α] [has_lt β] (a b : α × β) :
 /-- Dictionary / lexicographic preorder for pairs. -/
 instance preorder (α β : Type*) [preorder α] [preorder β] : preorder (α ×ₗ β) :=
 { le_refl := by
-  { haveI : is_refl β (≤) := ⟨le_refl⟩,
+  { letI : is_refl β (≤) := ⟨le_refl⟩,
     exact refl_of (prod.lex _ _), },
   le_trans := λ _ _ _, by
-  { haveI : is_trans α (<) := ⟨λ _ _ _, lt_trans⟩,
-    haveI : is_trans β (≤) := ⟨λ _ _ _, le_trans⟩,
+  { letI : is_trans α (<) := ⟨λ _ _ _, lt_trans⟩,
+    letI : is_trans β (≤) := ⟨λ _ _ _, le_trans⟩,
     exact trans_of (prod.lex _ _) },
   lt_iff_le_not_le := λ x₁ x₂, match x₁, x₂ with
   | to_lex (a₁, b₁), to_lex (a₂, b₂) := begin
@@ -92,8 +92,8 @@ instance preorder (α β : Type*) [preorder α] [preorder β] : preorder (α ×�
 /-- Dictionary / lexicographic partial_order for pairs. -/
 instance partial_order (α β : Type*) [partial_order α] [partial_order β] : partial_order (α ×ₗ β) :=
 { le_antisymm := by
-  { haveI : is_strict_order α (<) := { irrefl := lt_irrefl, trans := λ _ _ _, lt_trans },
-    haveI : is_antisymm β (≤) := ⟨λ _ _, le_antisymm⟩,
+  { letI : is_strict_order α (<) := { irrefl := lt_irrefl, trans := λ _ _ _, lt_trans },
+    letI : is_antisymm β (≤) := ⟨λ _ _, le_antisymm⟩,
     exact @antisymm _ (prod.lex _ _) _, },
   .. prod.lex.preorder α β }
 

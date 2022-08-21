@@ -257,7 +257,7 @@ lemma fin_strongly_measurable_of_set_sigma_finite [topological_space β] [has_ze
   (ht : measurable_set t) (hft_zero : ∀ x ∈ tᶜ, f x = 0) (htμ : sigma_finite (μ.restrict t)) :
   fin_strongly_measurable f μ :=
 begin
-  haveI : sigma_finite (μ.restrict t) := htμ,
+  letI : sigma_finite (μ.restrict t) := htμ,
   let S := spanning_sets (μ.restrict t),
   have hS_meas : ∀ n, measurable_set (S n), from measurable_spanning_sets (μ.restrict t),
   let f_approx := hf_meas.approx,
@@ -594,7 +594,7 @@ begin
     exact closed_embedding_subtype_coe is_closed_closure },
   have g_meas : measurable g,
   { rw fg at H, exact T.measurable_comp_iff.1 H },
-  haveI : second_countable_topology (closure (range f)),
+  letI : second_countable_topology (closure (range f)),
   { suffices : separable_space (closure (range f)),
       by exactI uniform_space.second_countable_of_separable _,
     exact (is_separable.closure H').separable_space },
@@ -1850,7 +1850,7 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine measurable_of_tendsto_metrizable (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
+  letI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
         = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
@@ -1882,7 +1882,7 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine strongly_measurable_of_tendsto _ (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
+  letI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_str_meas : strongly_measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
     { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)

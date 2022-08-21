@@ -231,7 +231,7 @@ monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { haveI : unique (p * q).gal, { rw hpq, apply_instance },
+  { letI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,
@@ -239,14 +239,14 @@ begin
   ext x hx,
   rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
-  { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
+  { letI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
     have key : x = algebra_map (p.splitting_field) (p * q).splitting_field
       ((roots_equiv_roots p _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots p _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.1 _) },
-  { haveI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
+  { letI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_left q p)⟩,
     have key : x = algebra_map (q.splitting_field) (p * q).splitting_field
       ((roots_equiv_roots q _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
@@ -322,7 +322,7 @@ equal to the dimension of its splitting field over `F`. -/
 lemma card_of_separable (hp : p.separable) :
   fintype.card p.gal = finrank F p.splitting_field :=
 begin
-  haveI : is_galois F p.splitting_field := is_galois.of_separable_splitting_field hp,
+  letI : is_galois F p.splitting_field := is_galois.of_separable_splitting_field hp,
   exact is_galois.card_aut_eq_finrank F p.splitting_field,
 end
 

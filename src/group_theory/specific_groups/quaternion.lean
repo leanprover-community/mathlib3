@@ -208,7 +208,7 @@ If `0 < n`, then `xa i` has order 4.
 @[simp] lemma order_of_xa [hpos : fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
   change _ = 2^2,
-  haveI : fact(nat.prime 2) := fact.mk (nat.prime_two),
+  letI : fact(nat.prime 2) := fact.mk (nat.prime_two),
   apply order_of_eq_prime_pow,
   { intro h,
     simp only [pow_one, xa_sq] at h,
@@ -239,9 +239,9 @@ begin
     intros n hn,
     rw [one_def, a_one_pow],
     apply mt a.inj,
-    haveI : char_zero (zmod (2 * 0)) := zmod.char_zero,
+    letI : char_zero (zmod (2 * 0)) := zmod.char_zero,
     simpa using hn.ne' },
-  haveI := fact.mk hn,
+  letI := fact.mk hn,
   apply (nat.le_of_dvd (nat.succ_mul_pos _ hn)
                        (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq.resolve_left,
   intro h,
@@ -269,7 +269,7 @@ begin
   rcases n.eq_zero_or_pos with rfl | hn,
   { simp only [lcm_zero_left, mul_zero],
     exact monoid.exponent_eq_zero_of_order_zero order_of_a_one },
-  haveI := fact.mk hn,
+  letI := fact.mk hn,
   apply nat.dvd_antisymm,
   { apply monoid.exponent_dvd_of_forall_pow_eq_one,
     rintro (m | m),

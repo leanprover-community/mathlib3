@@ -166,7 +166,7 @@ theorem isocrystal_classification
   (h_dim : finrank K(p, k) V = 1) :
   ∃ (m : ℤ), nonempty (standard_one_dim_isocrystal p k m ≃ᶠⁱ[p, k] V) :=
 begin
-  haveI : nontrivial V := finite_dimensional.nontrivial_of_finrank_eq_succ h_dim,
+  letI : nontrivial V := finite_dimensional.nontrivial_of_finrank_eq_succ h_dim,
   obtain ⟨x, hx⟩ : ∃ x : V, x ≠ 0 := exists_ne 0,
   have : Φ(p, k) x ≠ 0 := by simpa only [map_zero] using Φ(p,k).injective.ne hx,
   obtain ⟨a, ha, hax⟩ : ∃ a : K(p, k), a ≠ 0 ∧ Φ(p, k) x = a • x,

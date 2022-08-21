@@ -1138,7 +1138,7 @@ begin
                             (μs n : measure α) F_closed.measurable_set (δs_pos M)),
   have ev_near' := eventually.mono ev_near aux,
   apply (filter.limsup_le_limsup ev_near').trans,
-  haveI : ne_bot L, from ⟨h⟩,
+  letI : ne_bot L, from ⟨h⟩,
   rw limsup_const,
   apply le_trans (add_le_add (hM M rfl.le).le (le_refl (ε/2 : ℝ≥0∞))),
   simp only [add_assoc, ennreal.add_halves, le_refl],

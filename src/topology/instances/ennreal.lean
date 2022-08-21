@@ -444,7 +444,7 @@ begin
   have : tendsto (* x) (𝓝[<] 1) (𝓝 (1 * x)) :=
     (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
   rw one_mul at this,
-  haveI : (𝓝[<] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, ennreal.zero_lt_one⟩,
+  letI : (𝓝[<] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, ennreal.zero_lt_one⟩,
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
@@ -523,7 +523,7 @@ monotone.map_supr_of_continuous_at' (continuous_at_id.add continuous_at_const) $
 
 lemma bsupr_add' {ι : Sort*} {p : ι → Prop} (h : ∃ i, p i) {f : ι → ℝ≥0∞} :
   (⨆ i (hi : p i), f i) + a = ⨆ i (hi : p i), f i + a :=
-by { haveI : nonempty {i // p i} := nonempty_subtype.2 h, simp only [supr_subtype', supr_add] }
+by { letI : nonempty {i // p i} := nonempty_subtype.2 h, simp only [supr_subtype', supr_add] }
 
 lemma add_bsupr' {ι : Sort*} {p : ι → Prop} (h : ∃ i, p i) {f : ι → ℝ≥0∞} :
   a + (⨆ i (hi : p i), f i) = ⨆ i (hi : p i), a + f i :=
@@ -637,8 +637,8 @@ end
 lemma exists_lt_add_of_lt_add {x y z : ℝ≥0∞} (h : x < y + z) (hy : y ≠ 0) (hz : z ≠ 0) :
   ∃ y' z', y' < y ∧ z' < z ∧ x < y' + z' :=
 begin
-  haveI : ne_bot (𝓝[<] y) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hy⟩,
-  haveI : ne_bot (𝓝[<] z) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hz⟩,
+  letI : ne_bot (𝓝[<] y) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hy⟩,
+  letI : ne_bot (𝓝[<] z) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hz⟩,
   have A : tendsto (λ (p : ℝ≥0∞ × ℝ≥0∞), p.1 + p.2) ((𝓝[<] y).prod (𝓝[<] z)) (𝓝 (y + z)),
   { apply tendsto.mono_left _ (filter.prod_mono nhds_within_le_nhds nhds_within_le_nhds),
     rw ← nhds_prod_eq,

@@ -600,7 +600,7 @@ begin
     rw [← diff_inter_self_eq_diff,
       measure_diff_le_iff_le_add _ (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
     { apply measurable_set.inter _ omeas,
-      haveI : encodable (u i) := (u_count i).to_encodable,
+      letI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union
         (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
     calc
@@ -978,7 +978,7 @@ begin
         by { congr' 1, ext x, rw r_t0 x x.2 }
       ... = μ (⋃ (x : t0), closed_ball x (r0 x)) :
         begin
-          haveI : encodable t0 := t0_count.to_encodable,
+          letI : encodable t0 := t0_count.to_encodable,
           rw measure_Union,
           { exact (pairwise_subtype_iff_pairwise_set _ _).2 t0_disj },
           { exact λ i, measurable_set_closed_ball }
@@ -1005,7 +1005,7 @@ begin
         by { congr' 1, ext x, have : (x : α) ∈ s' := x.1.2, simp only [r, if_pos this] }
       ... = μ (⋃ (x : S i), closed_ball x (r1 x)) :
         begin
-          haveI : encodable (S i) := (S_count i).to_encodable,
+          letI : encodable (S i) := (S_count i).to_encodable,
           rw measure_Union,
           { exact (pairwise_subtype_iff_pairwise_set _ _).2 (S_disj i) },
           { exact λ i, measurable_set_closed_ball }
@@ -1113,7 +1113,7 @@ lemma ae_tendsto_rn_deriv
   ∀ᵐ x ∂μ, tendsto (λ r, ρ (closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
+  letI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ] with x hx,
   exact hx.comp (tendsto_filter_at μ x)
 end
@@ -1128,7 +1128,7 @@ lemma ae_tendsto_measure_inter_div_of_measurable_set
   ∀ᵐ x ∂μ, tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (s.indicator 1 x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
+  letI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_measure_inter_div_of_measurable_set
     (besicovitch.vitali_family μ) hs],
   assume x hx,
@@ -1144,7 +1144,7 @@ lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure 
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ (closed_ball x r)) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 1) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
+  letI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
     with x hx using hx.comp (tendsto_filter_at μ x),
 end

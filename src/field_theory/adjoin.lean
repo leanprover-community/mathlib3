@@ -629,7 +629,7 @@ alg_equiv.of_bijective
   (adjoin_root.lift_hom (minpoly F α) (adjoin_simple.gen F α) (aeval_gen_minpoly F α))
   (begin
     set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
-    haveI := fact.mk (minpoly.irreducible h),
+    letI := fact.mk (minpoly.irreducible h),
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
@@ -986,7 +986,7 @@ instance finite_dimensional_supr_of_finset {ι : Type*}
   {f : ι → intermediate_field K L} {s : finset ι} [h : Π i ∈ s, finite_dimensional K (f i)] :
   finite_dimensional K (⨆ i ∈ s, f i : intermediate_field K L) :=
 begin
-  haveI : Π i : {i // i ∈ s}, finite_dimensional K (f i) := λ i, h i i.2,
+  letI : Π i : {i // i ∈ s}, finite_dimensional K (f i) := λ i, h i i.2,
   have : (⨆ i ∈ s, f i) = ⨆ i : {i // i ∈ s}, f i :=
   le_antisymm (supr_le (λ i, supr_le (λ h, le_supr (λ i : {i // i ∈ s}, f i) ⟨i, h⟩)))
     (supr_le (λ i, le_supr_of_le i (le_supr_of_le i.2 le_rfl))),
@@ -1001,7 +1001,7 @@ begin
   rintros ⟨x, hx⟩,
   obtain ⟨s, hx⟩ := exists_finset_of_mem_supr' hx,
   rw [is_algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←is_algebraic_iff],
-  haveI : ∀ i : (Σ i, f i), finite_dimensional K K⟮(i.2 : L)⟯ :=
+  letI : ∀ i : (Σ i, f i), finite_dimensional K K⟮(i.2 : L)⟯ :=
   λ ⟨i, x⟩, adjoin.finite_dimensional (is_integral_iff.1 (is_algebraic_iff_is_integral.1 (h i x))),
   apply algebra.is_algebraic_of_finite,
 end

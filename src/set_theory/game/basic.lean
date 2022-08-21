@@ -557,7 +557,7 @@ theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 def inv'_one : inv' 1 ≡r (1 : pgame.{u}) :=
 begin
   change relabelling (mk _ _ _ _) 1,
-  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
+  letI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
   { rw lt_self_iff_false, apply_instance },
   refine ⟨_, _, λ i, _, is_empty.elim _⟩; dsimp,
   { apply equiv.equiv_punit },

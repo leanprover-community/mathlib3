@@ -81,7 +81,7 @@ begin
   { exact ⟨s, ⟨hsnemp, hscomp.is_closed, is_extreme.rfl⟩, λ _, false.elim⟩ },
   refine ⟨⋂₀ F, ⟨_, is_closed_sInter $ λ t ht, (hFS ht).2.1, is_extreme_sInter hFnemp $
     λ t ht, (hFS ht).2.2⟩, λ t ht, sInter_subset_of_mem ht⟩,
-  haveI : nonempty ↥F := hFnemp.to_subtype,
+  letI : nonempty ↥F := hFnemp.to_subtype,
   rw sInter_eq_Inter,
   refine is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ (λ t u, _)
     (λ t, (hFS t.mem).1) (λ t, compact_of_is_closed_subset hscomp (hFS t.mem).2.1 (hFS t.mem).2.2.1)

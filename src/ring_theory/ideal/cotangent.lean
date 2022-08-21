@@ -103,7 +103,7 @@ lemma to_cotangent_to_quotient_square (x : I) : I.cotangent_to_quotient_square (
 /-- `I ⧸ I ^ 2` as an ideal of `R ⧸ I ^ 2`. -/
 def cotangent_ideal (I : ideal R) : ideal (R ⧸ I ^ 2) :=
 begin
-  haveI : @ring_hom_surjective R (R ⧸ I ^ 2) _ _ _ := ⟨ideal.quotient.mk_surjective⟩,
+  letI : @ring_hom_surjective R (R ⧸ I ^ 2) _ _ _ := ⟨ideal.quotient.mk_surjective⟩,
   let rq := (I ^ 2)^.quotient.mk,
   exact submodule.map rq.to_semilinear_map I,
 end

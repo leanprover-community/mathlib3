@@ -191,7 +191,7 @@ end restriction
 theorem is_supported_of {p} {s : set α} : is_supported (of p) s ↔ p ∈ s :=
 suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, subring.subset_closure ⟨p, hps, rfl⟩⟩,
 assume hps : is_supported (of p) s, begin
-  haveI := classical.dec_pred s,
+  letI := classical.dec_pred s,
   have : ∀ x, is_supported x s →
     ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : ℤ[X]) else polynomial.X) x = n,
   { intros x hx, refine subring.in_closure.rec_on hx _ _ _ _,

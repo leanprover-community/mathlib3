@@ -335,8 +335,8 @@ lemma embedding_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
   (hf : embedding f) (hg : embedding g) : embedding (limits.prod.map f g) :=
 ⟨inducing_prod_map hf.to_inducing hg.to_inducing,
 begin
-  haveI := (Top.mono_iff_injective _).mpr hf.inj,
-  haveI := (Top.mono_iff_injective _).mpr hg.inj,
+  letI := (Top.mono_iff_injective _).mpr hf.inj,
+  letI := (Top.mono_iff_injective _).mpr hg.inj,
   exact (Top.mono_iff_injective _).mp infer_instance
 end⟩
 
@@ -955,8 +955,8 @@ lemma nonempty_sections_of_fintype_cofiltered_system.init
   F.sections.nonempty :=
 begin
   let F' : J ⥤ Top := F ⋙ Top.discrete,
-  haveI : Π (j : J), fintype (F'.obj j) := hf,
-  haveI : Π (j : J), nonempty (F'.obj j) := hne,
+  letI : Π (j : J), fintype (F'.obj j) := hf,
+  letI : Π (j : J), nonempty (F'.obj j) := hne,
   obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system F',
   exact ⟨u, λ _ _ f, hu f⟩,
 end
@@ -973,8 +973,8 @@ begin
   let J' : Type (max w v u) := as_small.{max w v} J,
   let down : J' ⥤ J := as_small.down,
   let F' : J' ⥤ Type (max u v w) := down ⋙ F ⋙ ulift_functor.{(max u w) v},
-  haveI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
-  haveI : ∀ i, fintype (F'.obj i) := λ i, fintype.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
+  letI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
+  letI : ∀ i, fintype (F'.obj i) := λ i, fintype.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
   -- Step 2: apply the bootstrap theorem
   obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_cofiltered_system.init F',
   -- Step 3: interpret the results
@@ -1002,7 +1002,7 @@ theorem nonempty_sections_of_fintype_inverse_system
   F.sections.nonempty :=
 begin
   casesI is_empty_or_nonempty J,
-  { haveI : is_empty Jᵒᵖ := ⟨λ j, is_empty_elim j.unop⟩,  -- TODO: this should be a global instance
+  { letI : is_empty Jᵒᵖ := ⟨λ j, is_empty_elim j.unop⟩,  -- TODO: this should be a global instance
     exact ⟨is_empty_elim, is_empty_elim⟩, },
   { exact nonempty_sections_of_fintype_cofiltered_system _, },
 end

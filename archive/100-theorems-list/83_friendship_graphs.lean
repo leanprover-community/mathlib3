@@ -241,7 +241,7 @@ begin
   have p_dvd_d_pred := (zmod.nat_coe_zmod_eq_zero_iff_dvd _ _).mpr (d - 1).min_fac_dvd,
   have dpos : 0 < d := by linarith,
   have d_cast : ↑(d - 1) = (d : ℤ) - 1 := by norm_cast,
-  haveI : fact p.prime := ⟨nat.min_fac_prime (by linarith)⟩,
+  letI : fact p.prime := ⟨nat.min_fac_prime (by linarith)⟩,
   have hp2 : 2 ≤ p := (fact.out p.prime).two_le,
   have dmod : (d : zmod p) = 1,
   { rw [← nat.succ_pred_eq_of_pos dpos, nat.succ_eq_add_one, nat.pred_eq_sub_one],

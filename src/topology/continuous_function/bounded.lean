@@ -485,7 +485,7 @@ begin
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
-  { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
+  { letI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
       (λ x ε ε0, bex.imp_right (λ U U_nhds hU y hy z hz f hf, _) (H x ε ε0)),
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl

@@ -122,7 +122,7 @@ lemma orthogonal_supr_eigenspaces_eq_bot : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
 begin
   have hT' : is_symmetric _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
   -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue
-  haveI := hT'.subsingleton_of_no_eigenvalue_finite_dimensional hT.orthogonal_supr_eigenspaces,
+  letI := hT'.subsingleton_of_no_eigenvalue_finite_dimensional hT.orthogonal_supr_eigenspaces,
   exact submodule.eq_bot_of_subsingleton _,
 end
 

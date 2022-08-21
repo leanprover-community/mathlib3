@@ -66,7 +66,7 @@ def hat_inv : hat K → hat K := dense_inducing_coe.extend (λ x : K, (coe x⁻�
 lemma continuous_hat_inv [completable_top_field K] {x : hat K} (h : x ≠ 0) :
   continuous_at hat_inv x :=
 begin
-  haveI : t3_space (hat K) := completion.t3_space K,
+  letI : t3_space (hat K) := completion.t3_space K,
   refine dense_inducing_coe.continuous_at_extend _,
   apply mem_of_superset (compl_singleton_mem_nhds h),
   intros y y_ne,
@@ -75,7 +75,7 @@ begin
   rw ← filter.map_map,
   apply cauchy.map _ (completion.uniform_continuous_coe K),
   apply completable_top_field.nice,
-  { haveI := dense_inducing_coe.comap_nhds_ne_bot y,
+  { letI := dense_inducing_coe.comap_nhds_ne_bot y,
     apply cauchy_nhds.comap,
     { rw completion.comap_coe_eq_uniformity,
       exact le_rfl } },
@@ -118,7 +118,7 @@ variables [uniform_add_group K]
 
 lemma mul_hat_inv_cancel {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
 begin
-  haveI : t1_space (hat K) := t2_space.t1_space,
+  letI : t1_space (hat K) := t2_space.t1_space,
   let f := λ x : hat K, x*hat_inv x,
   let c := (coe : K → hat K),
   change f x = 1,

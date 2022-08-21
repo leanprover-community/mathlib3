@@ -97,7 +97,7 @@ local attribute [instance] move_right_short'
 theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.omega
 | ⟨xl, xr, xL, xR⟩ hs :=
 begin
-  haveI := hs,
+  letI := hs,
   unfreezingI { rcases hs with ⟨_, _, _, _, sL, sR, hl, hr⟩ },
   rw [birthday, max_lt_iff],
   split, all_goals
@@ -146,8 +146,8 @@ def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short
 | x y ⟨L, R, rL, rR⟩ S :=
 begin
   resetI,
-  haveI := fintype.of_equiv _ L,
-  haveI := fintype.of_equiv _ R,
+  letI := fintype.of_equiv _ L,
+  letI := fintype.of_equiv _ R,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
     (λ j, by simpa using short_of_relabelling (rR (R.symm j)) infer_instance)

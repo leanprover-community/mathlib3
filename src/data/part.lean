@@ -278,7 +278,7 @@ ext $ λ a, mem_of_option.trans mem_to_option
 
 /-- `part α` is (classically) equivalent to `option α`. -/
 noncomputable def equiv_option : part α ≃ option α :=
-by haveI := classical.dec; exact
+by letI := classical.dec; exact
 ⟨λ o, to_option o, of_option, λ o, of_to_option o,
  λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
 

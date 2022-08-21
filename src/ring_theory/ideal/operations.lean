@@ -1712,11 +1712,11 @@ begin
   convert map_Inf hf this,
   refine funext (λ j, propext ⟨_, _⟩),
   { rintros ⟨hj, hj'⟩,
-    haveI : j.is_prime := hj',
+    letI : j.is_prime := hj',
     exact ⟨comap f j, ⟨⟨map_le_iff_le_comap.1 hj, comap_is_prime f j⟩,
       map_comap_of_surjective f hf j⟩⟩ },
   { rintro ⟨J, ⟨hJ, hJ'⟩⟩,
-    haveI : J.is_prime := hJ.right,
+    letI : J.is_prime := hJ.right,
     refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
 

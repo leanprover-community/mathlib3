@@ -51,7 +51,7 @@ variables {M : Type*} [topological_space M] [compact_space M] [charted_space E M
 protected lemma is_locally_constant {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) :
   is_locally_constant f :=
 begin
-  haveI : locally_connected_space M := charted_space.locally_connected_space E M,
+  letI : locally_connected_space M := charted_space.locally_connected_space E M,
   apply is_locally_constant.of_constant_on_preconnected_clopens,
   intros s hs₂ hs₃ a ha b hb,
   have hs₁ : is_compact s := hs₃.2.is_compact,

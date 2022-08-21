@@ -41,9 +41,9 @@ variables {f : ℝ → E} {T : ℝ}
 lemma interval_integral_add_eq_of_pos (hf : periodic f T)
   (hT : 0 < T) (t s : ℝ) : ∫ x in t..t + T, f x = ∫ x in s..s + T, f x :=
 begin
-  haveI : encodable (add_subgroup.zmultiples T) := (countable_range _).to_encodable,
+  letI : encodable (add_subgroup.zmultiples T) := (countable_range _).to_encodable,
   simp only [integral_of_le, hT.le, le_add_iff_nonneg_right],
-  haveI : vadd_invariant_measure (add_subgroup.zmultiples T) ℝ volume :=
+  letI : vadd_invariant_measure (add_subgroup.zmultiples T) ℝ volume :=
     ⟨λ c s hs, measure_preimage_add _ _ _⟩,
   exact (is_add_fundamental_domain_Ioc hT t).set_integral_eq
     (is_add_fundamental_domain_Ioc hT s) hf.map_vadd_zmultiples

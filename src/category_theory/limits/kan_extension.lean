@@ -202,9 +202,9 @@ def loc (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] : L ⥤ D :=
     let gg : costructured_arrow ι _ ⥤ _ := costructured_arrow.map g,
     let dd := diagram ι F z,
     -- I don't know why lean can't deduce the following three instances...
-    haveI : has_colimit (ff ⋙ gg ⋙ dd) := I _,
-    haveI : has_colimit ((ff ⋙ gg) ⋙ dd) := I _,
-    haveI : has_colimit (gg ⋙ dd) :=  I _,
+    letI : has_colimit (ff ⋙ gg ⋙ dd) := I _,
+    letI : has_colimit ((ff ⋙ gg) ⋙ dd) := I _,
+    letI : has_colimit (gg ⋙ dd) :=  I _,
     change _ = colimit.ι ((ff ⋙ gg) ⋙ dd) j ≫ _ ≫ _,
     erw [colimit.pre_pre dd gg ff, colimit.ι_pre, colimit.ι_pre],
     congr' 1,
@@ -225,7 +225,7 @@ def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) 
     rw [← f.naturality (ι.map ff), ← category.assoc, ← category.assoc],
     let fff : costructured_arrow ι _ ⥤ _ := costructured_arrow.map (ι.map ff),
     -- same issue :-(
-    haveI : has_colimit (fff ⋙ diagram ι F (ι.obj y)) := I _,
+    letI : has_colimit (fff ⋙ diagram ι F (ι.obj y)) := I _,
     erw colimit.ι_pre (diagram ι F (ι.obj y)) fff (costructured_arrow.mk (𝟙 _)),
     let xx : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (ι.map ff),
     let yy : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (𝟙 _),

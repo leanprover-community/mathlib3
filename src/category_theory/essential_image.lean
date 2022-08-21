@@ -125,7 +125,7 @@ faithful.of_comp_iso F.to_ess_image_comp_essential_image_inclusion
 /-- The induced functor of a full functor is full -/
 instance full.to_ess_image (F : C ⥤ D) [full F] : full F.to_ess_image :=
 begin
-  haveI := full.of_iso F.to_ess_image_comp_essential_image_inclusion.symm,
+  letI := full.of_iso F.to_ess_image_comp_essential_image_inclusion.symm,
   exactI full.of_comp_faithful F.to_ess_image F.ess_image_inclusion
 end
 

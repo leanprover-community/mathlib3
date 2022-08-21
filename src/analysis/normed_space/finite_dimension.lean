@@ -136,7 +136,7 @@ def affine_equiv.to_homeomorph_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) : 
   continuous_to_fun := f.continuous_of_finite_dimensional,
   continuous_inv_fun :=
     begin
-      haveI : finite_dimensional 𝕜 F, from f.linear.finite_dimensional,
+      letI : finite_dimensional 𝕜 F, from f.linear.finite_dimensional,
       exact f.symm.continuous_of_finite_dimensional
     end }
 
@@ -154,7 +154,7 @@ begin
   change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
+    letI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
     refine continuous.matrix_det _,
     exact ((linear_map.to_matrix b b).to_linear_map.comp
@@ -277,7 +277,7 @@ variables {ι : Type*} [fintype ι]
 /-- Construct a continuous linear map given the value at a finite basis. -/
 def basis.constrL (v : basis ι 𝕜 E) (f : ι → F) :
   E →L[𝕜] F :=
-by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
+by letI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
   exact (v.constr 𝕜 f).to_continuous_linear_map
 
 @[simp, norm_cast] lemma basis.coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
@@ -287,7 +287,7 @@ by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
 functions from its basis indexing type to `𝕜`. -/
 def basis.equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
 { continuous_to_fun := begin
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v,
+    letI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v,
     exact v.equiv_fun.to_linear_map.continuous_of_finite_dimensional,
   end,
   continuous_inv_fun := begin
@@ -424,7 +424,7 @@ theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : 
   ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
 begin
   let F := submodule.span 𝕜 (s : set E),
-  haveI : finite_dimensional 𝕜 F := module.finite_def.2
+  letI : finite_dimensional 𝕜 F := module.finite_def.2
     ((submodule.fg_top _).2 (submodule.fg_def.2 ⟨s, finset.finite_to_set _, rfl⟩)),
   have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
   have : ∃ x, x ∉ F,
@@ -446,7 +446,7 @@ theorem exists_seq_norm_le_one_le_norm_sub' {c : 𝕜} (hc : 1 < ∥c∥) {R : �
   (h : ¬ (finite_dimensional 𝕜 E)) :
   ∃ f : ℕ → E, (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
 begin
-  haveI : is_symm E (λ (x y : E), 1 ≤ ∥x - y∥),
+  letI : is_symm E (λ (x y : E), 1 ≤ ∥x - y∥),
   { constructor,
     assume x y hxy,
     rw ← norm_neg,
@@ -517,7 +517,7 @@ lemma linear_equiv.closed_embedding_of_injective {f : E →ₗ[𝕜] F} (hf : f.
   closed_embedding ⇑f :=
 let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
 { closed_range := begin
-    haveI := f.finite_dimensional_range,
+    letI := f.finite_dimensional_range,
     simpa [f.range_coe] using f.range.closed_of_finite_dimensional
   end,
   .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
@@ -640,7 +640,7 @@ begin
   { rw ← closure_eq_interior_union_frontier, exact subset_closure hx },
   { rw [mem_interior_iff_mem_nhds, metric.nhds_basis_closed_ball.mem_iff] at hx',
     rcases hx' with ⟨r, hr₀, hrK⟩,
-    haveI : finite_dimensional ℝ E,
+    letI : finite_dimensional ℝ E,
       from finite_dimensional_of_is_compact_closed_ball ℝ hr₀
         (compact_of_is_closed_subset hK metric.is_closed_ball hrK),
     exact exists_mem_frontier_inf_dist_compl_eq_dist hx hK.ne_univ },

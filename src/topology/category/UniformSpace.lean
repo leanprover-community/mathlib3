@@ -97,7 +97,7 @@ CpltSepUniformSpace := ⟨X⟩
 
 instance : inhabited CpltSepUniformSpace :=
 begin
-  haveI : separated_space empty := separated_iff_t2.mpr (by apply_instance),
+  letI : separated_space empty := separated_iff_t2.mpr (by apply_instance),
   exact ⟨CpltSepUniformSpace.of empty⟩
 end
 

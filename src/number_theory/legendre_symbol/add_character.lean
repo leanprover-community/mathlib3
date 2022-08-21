@@ -316,8 +316,8 @@ noncomputable
 def primitive_zmod_char (n : ℕ+) (F' : Type v) [field F'] (h : (n : F') ≠ 0) :
   primitive_add_char (zmod n) F' :=
 begin
-  haveI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
-  haveI : ne_zero ((n : ℕ) : cyclotomic_field n F') := ne_zero.of_no_zero_smul_divisors F' _ n,
+  letI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
+  letI : ne_zero ((n : ℕ) : cyclotomic_field n F') := ne_zero.of_no_zero_smul_divisors F' _ n,
   exact
 { n := n,
   char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
@@ -338,7 +338,7 @@ def primitive_char_finite_field (F F': Type*) [field F] [fintype F] [field F']
   primitive_add_char F F' :=
 begin
   let p := ring_char F,
-  haveI hp : fact p.prime := ⟨char_p.char_is_prime F _⟩,
+  letI hp : fact p.prime := ⟨char_p.char_is_prime F _⟩,
   let pp := p.to_pnat hp.1.pos,
   have hp₂ : ¬ ring_char F' ∣ p :=
   begin

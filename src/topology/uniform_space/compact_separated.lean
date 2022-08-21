@@ -47,7 +47,7 @@ begin
   obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
   { simpa [le_iff_forall_inf_principal_compl] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
-  haveI : ne_bot F := ⟨h⟩,
+  letI : ne_bot F := ⟨h⟩,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
     cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=
@@ -70,10 +70,10 @@ lemma unique_uniformity_of_compact_t2 [t : topological_space γ] [compact_space 
 begin
   apply uniform_space_eq,
   change uniformity _ = uniformity _,
-  haveI : @compact_space γ u.to_topological_space, { rw h ; assumption },
-  haveI : @compact_space γ u'.to_topological_space, { rw h' ; assumption },
-  haveI : @separated_space γ u, { rwa [separated_iff_t2, h] },
-  haveI : @separated_space γ u', { rwa [separated_iff_t2, h'] },
+  letI : @compact_space γ u.to_topological_space, { rw h ; assumption },
+  letI : @compact_space γ u'.to_topological_space, { rw h' ; assumption },
+  letI : @separated_space γ u, { rwa [separated_iff_t2, h] },
+  letI : @separated_space γ u', { rwa [separated_iff_t2, h'] },
   rw [compact_space_uniformity, compact_space_uniformity, h, h']
 end
 
@@ -103,7 +103,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
     rw le_iff_forall_inf_principal_compl,
     intros V V_in,
     by_contra H,
-    haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := ⟨H⟩,
+    letI : ne_bot (F ⊓ 𝓟 Vᶜ) := ⟨H⟩,
     -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 Vᶜ
     obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : γ × γ), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact _,
     -- In particular (x, y) is a cluster point of 𝓟 Vᶜ, hence is not in the interior of V,
@@ -122,7 +122,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
       apply diag_subset,
       simp [h] },
     -- Since γ is compact and Hausdorff, it is normal, hence T₃.
-    haveI : normal_space γ := normal_of_compact_t2,
+    letI : normal_space γ := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
     -- U₁ and U₂.
     obtain

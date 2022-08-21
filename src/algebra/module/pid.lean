@@ -66,7 +66,7 @@ begin
   obtain ⟨P, dec, hP, e, this⟩ := is_internal_prime_power_torsion hM,
   refine ⟨P, infer_instance, dec, λ p, is_principal.generator (p : ideal R), _, e, _⟩,
   { rintro ⟨p, hp⟩,
-    haveI := ideal.is_prime_of_prime (hP p hp),
+    letI := ideal.is_prime_of_prime (hP p hp),
     exact (is_principal.prime_generator_of_is_prime p (hP p hp).ne_zero).irreducible },
   { convert this, ext p : 1,
     rw [← torsion_by_span_singleton_eq, ideal.submodule_span_eq, ← ideal.span_singleton_pow,
@@ -151,9 +151,9 @@ begin
   unfreezingI { induction d with d IH generalizing N },
   { use λ i, fin_zero_elim i,
     rw [set.range_eq_empty, submodule.span_empty] at hs,
-    haveI : unique N := ⟨⟨0⟩, λ x, by { rw [← mem_bot _, hs], trivial }⟩,
+    letI : unique N := ⟨⟨0⟩, λ x, by { rw [← mem_bot _, hs], trivial }⟩,
     exact ⟨0⟩ },
-  { haveI : Π x : N, decidable (x = 0), classical, apply_instance,
+  { letI : Π x : N, decidable (x = 0), classical, apply_instance,
     obtain ⟨j, hj⟩ := exists_is_torsion_by hN d.succ d.succ_ne_zero s hs,
     let s' : fin d → N ⧸ R ∙ s j := submodule.quotient.mk ∘ s ∘ j.succ_above,
     obtain ⟨k, ⟨f⟩⟩ := IH _ s' _; clear IH,
@@ -206,11 +206,11 @@ theorem equiv_direct_sum_of_is_torsion [h' : module.finite R N] (hN : module.is_
   nonempty $ N ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
   obtain ⟨I, fI, _, p, hp, e, h⟩ := submodule.is_internal_prime_power_torsion_of_pid hN,
-  haveI := fI,
+  letI := fI,
   have : ∀ i, ∃ (d : ℕ) (k : fin d → ℕ),
     nonempty $ torsion_by R N (p i ^ e i) ≃ₗ[R] ⨁ j, R ⧸ R ∙ (p i ^ k j),
-  { haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
-    haveI := λ i, is_noetherian_submodule' (torsion_by R N $ p i ^ e i),
+  { letI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
+    letI := λ i, is_noetherian_submodule' (torsion_by R N $ p i ^ e i),
     exact λ i, torsion_by_prime_power_decomposition (hp i)
       ((is_torsion'_powers_iff $ p i).mpr $ λ x, ⟨e i, smul_torsion_by _ _⟩) },
   refine ⟨Σ i, fin (this i).some, infer_instance,
@@ -229,12 +229,12 @@ theorem equiv_free_prod_direct_sum [h' : module.finite R N] :
   ∃ (n : ℕ) (ι : Type u) [fintype ι] (p : ι → R) (h : ∀ i, irreducible $ p i) (e : ι → ℕ),
   nonempty $ N ≃ₗ[R] (fin n →₀ R) × ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
-  haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
-  haveI := is_noetherian_submodule' (torsion R N),
-  haveI := module.finite.of_surjective _ (torsion R N).mkq_surjective,
+  letI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
+  letI := is_noetherian_submodule' (torsion R N),
+  letI := module.finite.of_surjective _ (torsion R N).mkq_surjective,
   obtain ⟨I, fI, p, hp, e, ⟨h⟩⟩ := equiv_direct_sum_of_is_torsion (@torsion_is_torsion R N _ _ _),
   obtain ⟨n, ⟨g⟩⟩ := @module.free_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
-  haveI : module.projective R (N ⧸ torsion R N) := module.projective_of_basis ⟨g⟩,
+  letI : module.projective R (N ⧸ torsion R N) := module.projective_of_basis ⟨g⟩,
   obtain ⟨f, hf⟩ := module.projective_lifting_property _ linear_map.id (torsion R N).mkq_surjective,
   refine ⟨n, I, fI, p, hp, e,
     ⟨(lequiv_prod_of_right_split_exact (torsion R N).injective_subtype _ hf).symm.trans $

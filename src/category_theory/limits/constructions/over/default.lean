@@ -47,7 +47,7 @@ begin
   apply @has_finite_limits_of_has_equalizers_and_finite_products _ _ _ _,
   { exact construct_products.over_finite_products_of_finite_wide_pullbacks, },
   { apply @has_equalizers_of_has_pullbacks_and_binary_products _ _ _ _,
-    { haveI : has_pullbacks C := ⟨by apply_instance⟩,
+    { letI : has_pullbacks C := ⟨by apply_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { apply_instance, } }
 end
@@ -57,7 +57,7 @@ begin
   apply @has_limits_of_has_equalizers_and_products _ _ _ _,
   { exact construct_products.over_products_of_wide_pullbacks },
   { apply @has_equalizers_of_has_pullbacks_and_binary_products _ _ _ _,
-    { haveI : has_pullbacks C := ⟨infer_instance⟩,
+    { letI : has_pullbacks C := ⟨infer_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { apply_instance, } }
 end

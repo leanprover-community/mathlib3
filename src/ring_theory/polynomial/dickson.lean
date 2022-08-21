@@ -187,8 +187,8 @@ begin
   obtain ⟨K, _, _, H⟩ : ∃ (K : Type) (_ : field K), by exactI ∃ (_ : char_p K p), infinite K,
   { let K := fraction_ring (polynomial (zmod p)),
     let f : zmod p →+* K := (algebra_map _ (fraction_ring _)).comp C,
-    haveI : char_p K p, { rw ← f.char_p_iff_char_p, apply_instance },
-    haveI : infinite K :=
+    letI : char_p K p, { rw ← f.char_p_iff_char_p, apply_instance },
+    letI : infinite K :=
     infinite.of_injective (algebra_map (polynomial (zmod p)) (fraction_ring (polynomial (zmod p))))
       (is_fraction_ring.injective _ _),
     refine ⟨K, _, _, _⟩; apply_instance },

@@ -103,7 +103,7 @@ begin
   refine has_integral_iff.2 (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.lt.le, rw [gt_iff_lt, nnreal.coe_pos] at ε0,
   rcases nnreal.exists_pos_sum_of_encodable ε0.ne' ℕ with ⟨δ, δ0, c, hδc, hcε⟩,
-  haveI := fact.mk (I.measure_coe_lt_top μ),
+  letI := fact.mk (I.measure_coe_lt_top μ),
   change μ.restrict I {x | f x ≠ 0} = 0 at hf,
   set N : (ι → ℝ) → ℕ := λ x, ⌈∥f x∥⌉₊,
   have N0 : ∀ {x}, N x = 0 ↔ f x = 0, by { intro x, simp [N] },
@@ -173,7 +173,7 @@ begin
   induction f using measure_theory.simple_func.induction with y s hs f g hd hfi hgi,
   { simpa [function.const, measure.restrict_apply hs]
       using box_integral.has_integral_indicator_const l hl hs I y μ },
-  { borelize E, haveI := fact.mk (I.measure_coe_lt_top μ),
+  { borelize E, letI := fact.mk (I.measure_coe_lt_top μ),
     rw integral_add,
     exacts [hfi.add hgi, integrable_iff.2 $ λ _ _, measure_lt_top _ _,
       integrable_iff.2 $ λ _ _, measure_lt_top _ _] }
@@ -200,7 +200,7 @@ begin
   borelize E,
   /- First we replace an `ae_strongly_measurable` function by a measurable one. -/
   rcases hf.ae_strongly_measurable with ⟨g, hg, hfg⟩,
-  haveI : separable_space (range g ∪ {0} : set E) := hg.separable_space_range_union_singleton,
+  letI : separable_space (range g ∪ {0} : set E) := hg.separable_space_range_union_singleton,
   rw integral_congr_ae hfg, have hgi : integrable_on g I μ := (integrable_congr hfg).1 hf,
   refine box_integral.has_integral.congr_ae _ hfg.symm hl,
   clear_dependent f,

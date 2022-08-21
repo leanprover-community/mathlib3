@@ -39,7 +39,7 @@ variables [comm_semiring R] {p q : R[X]}
 
 lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degree p)
   (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=
-have zn0 : (0 : R) ≠ 1, by haveI := nontrivial.of_polynomial_ne hq; exact zero_ne_one,
+have zn0 : (0 : R) ≠ 1, by letI := nontrivial.of_polynomial_ne hq; exact zero_ne_one,
 ⟨nat_degree q, λ ⟨r, hr⟩,
   have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
   have hr0 : r ≠ 0, from λ hr0, by simp * at *,
@@ -150,11 +150,11 @@ begin
 end
 
 @[simp] lemma mod_by_monic_zero (p : R[X]) : p %ₘ 0 = p :=
-if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
+if h : monic (0 : R[X]) then by { letI := monic_zero_iff_subsingleton.mp h, simp }
 else by unfold mod_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 @[simp] lemma div_by_monic_zero (p : R[X]) : p /ₘ 0 = 0 :=
-if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
+if h : monic (0 : R[X]) then by { letI := monic_zero_iff_subsingleton.mp h, simp }
 else by unfold div_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 lemma div_by_monic_eq_of_not_monic (p : R[X]) (hq : ¬monic q) : p /ₘ q = 0 := dif_neg hq
@@ -227,7 +227,7 @@ lemma degree_div_by_monic_le (p q : R[X]) : degree (p /ₘ q) ≤ degree p :=
 if hp0 : p = 0 then by simp only [hp0, zero_div_by_monic, le_refl]
 else if hq : monic q then
   if h : degree q ≤ degree p
-  then by haveI := nontrivial.of_polynomial_ne hp0;
+  then by letI := nontrivial.of_polynomial_ne hp0;
     rw [← degree_add_div_by_monic hq h, degree_eq_nat_degree hq.ne_zero,
       degree_eq_nat_degree (mt (div_by_monic_eq_zero_iff hq).1 (not_lt.2 h))];
     exact with_bot.coe_le_coe.2 (nat.le_add_left _ _)
@@ -240,12 +240,12 @@ lemma degree_div_by_monic_lt (p : R[X]) {q : R[X]} (hq : monic q)
   (hp0 : p ≠ 0) (h0q : 0 < degree q) : degree (p /ₘ q) < degree p :=
 if hpq : degree p < degree q
 then begin
-  haveI := nontrivial.of_polynomial_ne hp0,
+  letI := nontrivial.of_polynomial_ne hp0,
   rw [(div_by_monic_eq_zero_iff hq).2 hpq, degree_eq_nat_degree hp0],
   exact with_bot.bot_lt_coe _
 end
 else begin
-  haveI := nontrivial.of_polynomial_ne hp0,
+  letI := nontrivial.of_polynomial_ne hp0,
   rw [← degree_add_div_by_monic hq (not_lt.1 hpq), degree_eq_nat_degree hq.ne_zero,
         degree_eq_nat_degree (mt (div_by_monic_eq_zero_iff hq).1 hpq)],
   exact with_bot.coe_lt_coe.2 (nat.lt_add_of_pos_left
@@ -298,7 +298,7 @@ lemma map_mod_div_by_monic [comm_ring S] (f : R →+* S) (hq : monic q) :
   (p /ₘ q).map f = p.map f /ₘ q.map f ∧ (p %ₘ q).map f = p.map f %ₘ q.map f :=
 begin
   nontriviality S,
-  haveI : nontrivial R := f.domain_nontrivial,
+  letI : nontrivial R := f.domain_nontrivial,
   have : map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
   { exact (div_mod_by_monic_unique ((p /ₘ q).map f) _ (hq.map f)
       ⟨eq.symm $ by rw [← polynomial.map_mul, ← polynomial.map_add, mod_by_monic_add_div _ hq],
@@ -435,7 +435,7 @@ open_locale classical
 lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
 begin
-  haveI := nontrivial.of_polynomial_ne h0,
+  letI := nontrivial.of_polynomial_ne h0,
   refine multiplicity_finite_of_degree_pos_of_monic _ (monic_X_sub_C _) h0,
   rw degree_X_sub_C,
   dec_trivial,
@@ -503,7 +503,7 @@ lemma eval_div_by_monic_pow_root_multiplicity_ne_zero
   {p : R[X]} (a : R) (hp : p ≠ 0) :
   eval a (p /ₘ ((X - C a) ^ root_multiplicity a p)) ≠ 0 :=
 begin
-  haveI : nontrivial R := nontrivial.of_polynomial_ne hp,
+  letI : nontrivial R := nontrivial.of_polynomial_ne hp,
   rw [ne.def, ← is_root.def, ← dvd_iff_is_root],
   rintros ⟨q, hq⟩,
   have := div_by_monic_mul_pow_root_multiplicity_eq p a,

@@ -91,7 +91,7 @@ theorem monic_X_add_C (x : R) : monic (X + C x) :=
 pow_one (X : R[X]) ▸ monic_X_pow_add degree_C_le
 
 lemma monic.mul (hp : monic p) (hq : monic q) : monic (p * q) :=
-if h0 : (0 : R) = 1 then by haveI := subsingleton_of_zero_eq_one h0;
+if h0 : (0 : R) = 1 then by letI := subsingleton_of_zero_eq_one h0;
   exact subsingleton.elim _ _
 else
   have leading_coeff p * leading_coeff q ≠ 0, by simp [monic.def.1 hp, monic.def.1 hq, ne.symm h0],

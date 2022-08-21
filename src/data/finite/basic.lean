@@ -59,7 +59,7 @@ of_injective (function.const α ()) $ function.injective_of_subsingleton _
 instance prop (p : Prop) : finite p := finite.of_subsingleton
 
 instance [finite α] [finite β] : finite (α × β) :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }
+by { letI := fintype.of_finite α, letI := fintype.of_finite β, apply_instance }
 
 instance {α β : Sort*} [finite α] [finite β] : finite (pprod α β) :=
 of_equiv _ equiv.pprod_equiv_prod_plift.symm
@@ -71,7 +71,7 @@ lemma prod_right (α) [finite (α × β)] [nonempty α] : finite β :=
 of_surjective (prod.snd : α × β → β) prod.snd_surjective
 
 instance [finite α] [finite β] : finite (α ⊕ β) :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }
+by { letI := fintype.of_finite α, letI := fintype.of_finite β, apply_instance }
 
 lemma sum_left (β) [finite (α ⊕ β)] : finite α :=
 of_injective (sum.inl : α → α ⊕ β) sum.inl_injective
@@ -95,14 +95,14 @@ finite.of_injective coe subtype.coe_injective
 
 instance pi.finite {α : Sort*} {β : α → Sort*} [finite α] [∀ a, finite (β a)] : finite (Π a, β a) :=
 begin
-  haveI := fintype.of_finite (plift α),
-  haveI := λ a, fintype.of_finite (plift (β a)),
+  letI := fintype.of_finite (plift α),
+  letI := λ a, fintype.of_finite (plift (β a)),
   exact finite.of_equiv (Π (a : plift α), plift (β (equiv.plift a)))
     (equiv.Pi_congr equiv.plift (λ _, equiv.plift)),
 end
 
 instance vector.finite {α : Type*} [finite α] {n : ℕ} : finite (vector α n) :=
-by { haveI := fintype.of_finite α, apply_instance }
+by { letI := fintype.of_finite α, apply_instance }
 
 instance quot.finite {α : Sort*} [finite α] (r : α → α → Prop) : finite (quot r) :=
 finite.of_surjective _ (surjective_quot_mk r)
@@ -115,7 +115,7 @@ begin
   casesI is_empty_or_nonempty (α ↪ β) with _ h,
   { apply_instance, },
   { refine h.elim (λ f, _),
-    haveI : finite α := finite.of_injective _ f.injective,
+    letI : finite α := finite.of_injective _ f.injective,
     exact finite.of_injective _ fun_like.coe_injective },
 end
 
@@ -127,4 +127,4 @@ instance equiv.finite_left {α β : Sort*} [finite α] : finite (α ≃ β) :=
 finite.of_equiv _ ⟨equiv.symm, equiv.symm, equiv.symm_symm, equiv.symm_symm⟩
 
 instance [finite α] {n : ℕ} : finite (sym α n) :=
-by { haveI := fintype.of_finite α, apply_instance }
+by { letI := fintype.of_finite α, apply_instance }

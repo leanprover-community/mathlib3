@@ -325,7 +325,7 @@ def lie_ring_module.comp_lie_hom : lie_ring_module L₁ M :=
   leibniz_lie := λ x y m, by simp only [lie_lie, sub_add_cancel, lie_hom.map_lie], }
 
 lemma lie_ring_module.comp_lie_hom_apply (x : L₁) (m : M) :
-  by haveI := lie_ring_module.comp_lie_hom M f; exact
+  by letI := lie_ring_module.comp_lie_hom M f; exact
   ⁅x, m⁆ = ⁅f x, m⁆ :=
 rfl
 

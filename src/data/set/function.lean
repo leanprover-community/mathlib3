@@ -854,7 +854,7 @@ begin
   { rcases eq_empty_or_nonempty t with rfl|ht,
     { exact λ _, ⟨∅, empty_subset _, bij_on_empty f⟩ },
     { assume h,
-      haveI : nonempty α := ⟨classical.some (h.comap_nonempty ht)⟩,
+      letI : nonempty α := ⟨classical.some (h.comap_nonempty ht)⟩,
       exact ⟨_, h.maps_to_inv_fun_on.image_subset, h.bij_on_subset⟩ }},
   { rintros ⟨s', hs', hfs'⟩,
     exact hfs'.surj_on.mono hs' (subset.refl _) }

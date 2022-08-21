@@ -363,7 +363,7 @@ protected lemma antilipschitz (hf : approximates_linear_on f (f' : E →L[𝕜] 
   antilipschitz_with (N⁻¹ - c)⁻¹ (s.restrict f) :=
 begin
   cases hc with hE hc,
-  { haveI : subsingleton s := ⟨λ x y, subtype.eq $ @subsingleton.elim _ hE _ _⟩,
+  { letI : subsingleton s := ⟨λ x y, subtype.eq $ @subsingleton.elim _ hE _ _⟩,
     exact antilipschitz_with.of_subsingleton },
   convert (f'.antilipschitz.restrict s).add_lipschitz_with hf.lipschitz_sub hc,
   simp [restrict]
@@ -384,7 +384,7 @@ protected lemma surjective [complete_space E]
   surjective f :=
 begin
   cases hc with hE hc,
-  { haveI : subsingleton F := (equiv.subsingleton_congr f'.to_linear_equiv.to_equiv).1 hE,
+  { letI : subsingleton F := (equiv.subsingleton_congr f'.to_linear_equiv.to_equiv).1 hE,
     exact surjective_to_subsingleton _ },
   { apply forall_of_forall_mem_closed_ball (λ (y : F), ∃ a, f a = y) (f 0) _,
     have hc' : (0 : ℝ) < N⁻¹ - c, by { rw sub_pos, exact hc },
@@ -501,7 +501,7 @@ begin
     convert hu,
     ext x,
     simp only [add_sub_cancel', continuous_linear_equiv.coe_coe, pi.sub_apply] },
-  haveI : finite_dimensional ℝ E := f'.symm.to_linear_equiv.finite_dimensional,
+  letI : finite_dimensional ℝ E := f'.symm.to_linear_equiv.finite_dimensional,
   exact ⟨hg.to_homeomorph g hc, fg⟩,
 end
 

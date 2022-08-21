@@ -352,7 +352,7 @@ calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
 theorem char_ne_zero_of_finite (p : ℕ) [char_p R p] [finite R] : p ≠ 0 :=
 begin
   unfreezingI { rintro rfl },
-  haveI : char_zero R := char_p_to_char_zero R,
+  letI : char_zero R := char_p_to_char_zero R,
   casesI nonempty_fintype R,
   exact absurd nat.cast_injective (not_injective_infinite_finite (coe : ℕ → R))
 end

@@ -110,7 +110,7 @@ begin
   { intros a b c hab hbc,
     rw ← nonpos_iff_eq_zero,
     simpa only [*, max_eq_right, mul_zero] using hd a b c c },
-  haveI : is_trans X (λ x y, d x y = 0) := ⟨hd₀_trans⟩,
+  letI : is_trans X (λ x y, d x y = 0) := ⟨hd₀_trans⟩,
   induction hn : length l using nat.strong_induction_on with n ihn generalizing x y l,
   simp only at ihn, subst n,
   set L := zip_with d (x :: l) (l ++ [y]),

@@ -129,7 +129,7 @@ by simpa only [zero_mul, zero_add] using div_add_mod a 0
 ⟨λ h, by { rw [← div_add_mod a b, h, add_zero], exact dvd_mul_right _ _ },
  λ ⟨c, e⟩, begin
   rw [e, ← add_left_cancel_iff, div_add_mod, add_zero],
-  haveI := classical.dec,
+  letI := classical.dec,
   by_cases b0 : b = 0,
   { simp only [b0, zero_mul] },
   { rw [mul_div_cancel_left _ b0] }
@@ -142,7 +142,7 @@ lemma dvd_mod_iff {a b c : R} (h : c ∣ b) : c ∣ a % b ↔ c ∣ a :=
 by rw [dvd_add_iff_right (h.mul_right _), div_add_mod]
 
 lemma lt_one (a : R) : a ≺ (1:R) → a = 0 :=
-by { haveI := classical.dec, exact
+by { letI := classical.dec, exact
   not_imp_not.1 (λ h, by simpa only [one_mul] using mul_left_not_lt 1 h) }
 
 lemma val_dvd_le : ∀ a b : R, b ∣ a → a ≠ 0 → ¬a ≺ b
@@ -344,7 +344,7 @@ rwa [xgcd_aux_val, xgcd_val] at this }
 
 @[priority 70] -- see Note [lower instance priority]
 instance (R : Type*) [e : euclidean_domain R] : is_domain R :=
-by { haveI := classical.dec_eq R, exact
+by { letI := classical.dec_eq R, exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b h, (or_iff_not_and_not.2 $ λ h0,
       h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),

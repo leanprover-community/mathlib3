@@ -293,7 +293,7 @@ lemma submodule.nonempty_basis_of_pid {ι : Type*} [fintype ι]
   (b : basis ι R M) (N : submodule R M) :
   ∃ (n : ℕ), nonempty (basis (fin n) R N) :=
 begin
-  haveI := classical.dec_eq M,
+  letI := classical.dec_eq M,
   refine N.induction_on_rank b _ _,
   intros N ih,
   let b' := (b.reindex (fintype.equiv_fin ι)).map (linear_equiv.of_top _ rfl).symm,

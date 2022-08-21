@@ -229,7 +229,7 @@ end add_comm_group
 /-- A variant of `module.ext` that's convenient for term-mode. -/
 -- We'll later use this to show `module ℕ M` and `module ℤ M` are subsingletons.
 lemma module.ext' {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : module R M)
-  (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
+  (w : ∀ (r : R) (m : M), by { letI := P, exact r • m } = by { letI := Q, exact r • m }) :
   P = Q :=
 begin
   ext,
@@ -528,7 +528,7 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
 @[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
-by { haveI := nat.no_zero_smul_divisors R M, simp [smul_eq_zero] }
+by { letI := nat.no_zero_smul_divisors R M, simp [smul_eq_zero] }
 
 end nat
 

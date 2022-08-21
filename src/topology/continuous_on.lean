@@ -623,7 +623,7 @@ continuous_within_at_union.2 ⟨hs, ht⟩
 
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
-by haveI := (mem_closure_iff_nhds_within_ne_bot.1 hx);
+by letI := (mem_closure_iff_nhds_within_ne_bot.1 hx);
 exact (mem_closure_of_tendsto h $
   mem_of_superset self_mem_nhds_within (subset_preimage_image f s))
 

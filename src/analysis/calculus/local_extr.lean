@@ -360,7 +360,7 @@ namespace polynomial
 lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : F[X]) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
-  haveI : char_zero F :=
+  letI : char_zero F :=
     (ring_hom.char_zero_iff (algebra_map F ℝ).injective).mpr (by apply_instance),
   by_cases hp : p = 0,
   { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card', zero_le_one] },

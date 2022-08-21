@@ -64,7 +64,7 @@ by simpa only [dart_fst_fiber, finset.card_univ, card_neighbor_set_eq_degree]
 
 lemma dart_card_eq_sum_degrees : fintype.card G.dart = ∑ v, G.degree v :=
 begin
-  haveI := classical.dec_eq V,
+  letI := classical.dec_eq V,
   simp only [←card_univ, ←dart_fst_fiber_card_eq_degree],
   exact card_eq_sum_card_fiberwise (by simp),
 end
@@ -154,7 +154,7 @@ lemma exists_ne_odd_degree_of_exists_odd_degree [fintype V] [decidable_rel G.adj
   (v : V) (h : odd (G.degree v)) :
   ∃ (w : V), w ≠ v ∧ odd (G.degree w) :=
 begin
-  haveI := classical.dec_eq V,
+  letI := classical.dec_eq V,
   rcases G.odd_card_odd_degree_vertices_ne v h with ⟨k, hg⟩,
   have hg' : (filter (λ (w : V), w ≠ v ∧ odd (G.degree w)) univ).card > 0,
   { rw hg,

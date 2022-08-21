@@ -28,7 +28,7 @@ lemma supr_infi_eq_top_iff_pairwise {t : finset ι} (h : t.nonempty) (I : ι →
   (⨆ i ∈ t, ⨅ j (hj : j ∈ t) (ij : j ≠ i), I j) = ⊤ ↔
     (t : set ι).pairwise (λ i j, I i ⊔ I j = ⊤) :=
 begin
-  haveI : decidable_eq ι := classical.dec_eq ι,
+  letI : decidable_eq ι := classical.dec_eq ι,
   rw [eq_top_iff_one, submodule.mem_supr_finset_iff_exists_sum],
   refine h.cons_induction _ _; clear' t h,
   { simp only [finset.sum_singleton, finset.coe_singleton, set.pairwise_singleton, iff_true],

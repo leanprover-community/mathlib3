@@ -76,7 +76,7 @@ by simp only [coimage_image_comparison_app, iso.hom_inv_id_assoc, iso.hom_inv_id
 instance functor_category_is_iso_coimage_image_comparison :
   is_iso (abelian.coimage_image_comparison α) :=
 begin
-  haveI : ∀ X : C, is_iso ((abelian.coimage_image_comparison α).app X),
+  letI : ∀ X : C, is_iso ((abelian.coimage_image_comparison α).app X),
   { intros, rw coimage_image_comparison_app', apply_instance, },
   apply nat_iso.is_iso_of_is_iso_app,
 end

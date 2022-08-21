@@ -344,7 +344,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
 returns a local homeomorphism between `E` and `F × ker f'`. -/
 def implicit_to_local_homeomorph (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   local_homeomorph E (F × f'.ker) :=
-by haveI := finite_dimensional.complete 𝕜 F; exact
+by letI := finite_dimensional.complete 𝕜 F; exact
 hf.implicit_to_local_homeomorph_of_complemented f f' hf'
   f'.ker_closed_complemented_of_finite_dimensional_range
 

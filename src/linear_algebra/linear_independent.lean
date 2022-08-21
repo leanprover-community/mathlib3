@@ -190,7 +190,7 @@ begin
     map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
   unfold linear_independent at hv ⊢,
   rw [hv, le_bot_iff] at hf_inj,
-  haveI : inhabited M := ⟨0⟩,
+  letI : inhabited M := ⟨0⟩,
   rw [finsupp.total_comp, @finsupp.lmap_domain_total _ _ R _ _ _ _ _ _ _ _ _ _ f,
     linear_map.ker_comp, hf_inj],
   exact λ _, rfl,
@@ -821,7 +821,7 @@ begin
     intros f hsupport hsum,
     rcases eq_empty_or_nonempty c with rfl | hn,
     { simpa using hsupport },
-    haveI : is_refl X r := ⟨λ _, set.subset.refl _⟩,
+    letI : is_refl X r := ⟨λ _, set.subset.refl _⟩,
     obtain ⟨I, I_mem, hI⟩ : ∃ I ∈ c, (f.support : set ι) ⊆ I :=
       hc.directed_on.exists_mem_subset_of_finset_subset_bUnion hn hsupport,
     exact linear_independent_comp_subtype.mp I.2 f hI hsum },

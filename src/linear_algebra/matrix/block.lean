@@ -229,7 +229,7 @@ begin
   ext i,
   have h2 : ∀ (j : {a // id a = i}), j = ⟨i, rfl⟩ :=
     λ (j : {a // id a = i}), subtype.ext j.property,
-  haveI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, h2⟩,
+  letI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, h2⟩,
   simp [h2 default]
 end
 

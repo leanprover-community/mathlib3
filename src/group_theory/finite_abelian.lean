@@ -29,11 +29,11 @@ lemma finite_of_fg_torsion [add_comm_group M] [module ℤ M] [module.finite ℤ 
   (hM : module.is_torsion ℤ M) : _root_.finite M :=
 begin
   rcases module.equiv_direct_sum_of_is_torsion hM with ⟨ι, _, p, h, e, ⟨l⟩⟩,
-  haveI : ∀ i : ι, fact $ 0 < (p i ^ e i).nat_abs :=
+  letI : ∀ i : ι, fact $ 0 < (p i ^ e i).nat_abs :=
   λ i, fact.mk $ int.nat_abs_pos_of_ne_zero $ pow_ne_zero (e i) (h i).ne_zero,
-  haveI : ∀ i : ι, _root_.finite $ ℤ ⧸ submodule.span ℤ {p i ^ e i} :=
+  letI : ∀ i : ι, _root_.finite $ ℤ ⧸ submodule.span ℤ {p i ^ e i} :=
   λ i, finite.of_equiv _ (p i ^ e i).quotient_span_equiv_zmod.symm.to_equiv,
-  haveI : _root_.finite ⨁ i, ℤ ⧸ (submodule.span ℤ {p i ^ e i} : submodule ℤ ℤ) :=
+  letI : _root_.finite ⨁ i, ℤ ⧸ (submodule.span ℤ {p i ^ e i} : submodule ℤ ℤ) :=
   finite.of_equiv _ dfinsupp.equiv_fun_on_fintype.symm,
   exact finite.of_equiv _ l.symm.to_equiv
 end
@@ -72,7 +72,7 @@ begin
   obtain ⟨n, ι, fι, p, hp, e, ⟨f⟩⟩ := equiv_free_prod_direct_sum_zmod G,
   cases n,
   { exact ⟨ι, fι, p, hp, e, ⟨f.trans add_equiv.unique_prod⟩⟩ },
-  { haveI := @fintype.prod_left _ _ _ (fintype.of_equiv G f.to_equiv) _,
+  { letI := @fintype.prod_left _ _ _ (fintype.of_equiv G f.to_equiv) _,
     exact (fintype.of_surjective (λ f : fin n.succ →₀ ℤ, f 0) $
       λ a, ⟨finsupp.single 0 a, finsupp.single_eq_same⟩).false.elim }
 end

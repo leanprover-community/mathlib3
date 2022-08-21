@@ -551,7 +551,7 @@ by simp only [this, csupr_const]
 @supr_unique αᵒᵈ _ _ _ _
 
 @[simp] lemma csupr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
-by haveI := unique_prop hp; exact supr_unique
+by letI := unique_prop hp; exact supr_unique
 
 @[simp] lemma cinfi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
 @csupr_pos αᵒᵈ _ _ _ hp
@@ -589,7 +589,7 @@ lemma monotone.csupr_mem_Inter_Icc_of_antitone [semilattice_sup β]
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 begin
   refine mem_Inter.2 (λ n, _),
-  haveI : nonempty β := ⟨n⟩,
+  letI : nonempty β := ⟨n⟩,
   have : ∀ m, f m ≤ g n := λ m, hf.forall_le_of_antitone hg h m n,
   exact ⟨le_csupr ⟨g $ n, forall_range_iff.2 this⟩ _, csupr_le this⟩
 end
@@ -625,11 +625,11 @@ instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
   conditionally_complete_lattice (Π i, α i) :=
 { le_cSup := λ s f ⟨g, hg⟩ hf i, le_cSup ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
     ⟨⟨f, hf⟩, rfl⟩,
-  cSup_le := λ s f hs hf i, cSup_le (by haveI := hs.to_subtype; apply range_nonempty) $
+  cSup_le := λ s f hs hf i, cSup_le (by letI := hs.to_subtype; apply range_nonempty) $
     λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
   cInf_le := λ s f ⟨g, hg⟩ hf i, cInf_le ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
     ⟨⟨f, hf⟩, rfl⟩,
-  le_cInf := λ s f hs hf i, le_cInf (by haveI := hs.to_subtype; apply range_nonempty) $
+  le_cInf := λ s f hs hf i, le_cInf (by letI := hs.to_subtype; apply range_nonempty) $
     λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
   .. pi.lattice, .. pi.has_Sup, .. pi.has_Inf }
 
@@ -941,7 +941,7 @@ by rw [supr, gc.l_cSup (range_nonempty _) hf, supr_range']
 lemma l_csupr_set (gc : galois_connection l u) {s : set γ} {f : γ → α}
   (hf : bdd_above (f '' s)) (hne : s.nonempty) :
   l (⨆ i : s, f i) = ⨆ i : s, l (f i) :=
-by { haveI := hne.to_subtype, rw image_eq_range at hf, exact gc.l_csupr hf }
+by { letI := hne.to_subtype, rw image_eq_range at hf, exact gc.l_csupr hf }
 
 lemma u_cInf (gc : galois_connection l u) {s : set β} (hne : s.nonempty)
   (hbdd : bdd_below s) :

@@ -77,7 +77,7 @@ end
 lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
   is_unit x :=
 begin
-  haveI := invertible_of_pow_eq_one x n hx hn,
+  letI := invertible_of_pow_eq_one x n hx hn,
   exact is_unit_of_invertible x
 end
 

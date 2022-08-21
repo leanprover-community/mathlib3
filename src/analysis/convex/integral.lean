@@ -55,7 +55,7 @@ lemma convex.integral_mem [is_probability_measure μ] (hs : convex ℝ s) (hsc :
 begin
   borelize E,
   rcases hfi.ae_strongly_measurable with ⟨g, hgm, hfg⟩,
-  haveI : separable_space (range g ∩ s : set E) :=
+  letI : separable_space (range g ∩ s : set E) :=
     (hgm.is_separable_range.mono (inter_subset_left _ _)).separable_space,
   obtain ⟨y₀, h₀⟩ : (range g ∩ s).nonempty,
   { rcases (hf.and hfg).exists with ⟨x₀, h₀⟩,
@@ -86,7 +86,7 @@ lemma convex.average_mem [is_finite_measure μ] (hs : convex ℝ s) (hsc : is_cl
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   ⨍ x, f x ∂μ ∈ s :=
 begin
-  haveI : is_probability_measure ((μ univ)⁻¹ • μ),
+  letI : is_probability_measure ((μ univ)⁻¹ • μ),
     from is_probability_measure_smul hμ,
   refine hs.integral_mem hsc (ae_mono' _ hfs) hfi.to_average,
   exact absolutely_continuous.smul (refl _) _
@@ -99,7 +99,7 @@ lemma convex.set_average_mem (hs : convex ℝ s) (hsc : is_closed s) (h0 : μ t 
   (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s) (hfi : integrable_on f t μ) :
   ⨍ x in t, f x ∂μ ∈ s :=
 begin
-  haveI : fact (μ t < ∞) := ⟨ht.lt_top⟩,
+  letI : fact (μ t < ∞) := ⟨ht.lt_top⟩,
   refine hs.average_mem hsc _ hfs hfi,
   rwa [ne.def, restrict_eq_zero]
 end
@@ -160,7 +160,7 @@ lemma convex_on.set_average_mem_epigraph (hg : convex_on ℝ s g) (hgc : continu
   (hfi : integrable_on f t μ) (hgi : integrable_on (g ∘ f) t μ) :
   (⨍ x in t, f x ∂μ, ⨍ x in t, g (f x) ∂μ) ∈ {p : E × ℝ | p.1 ∈ s ∧ g p.1 ≤ p.2} :=
 begin
-  haveI : fact (μ t < ∞) := ⟨ht.lt_top⟩,
+  letI : fact (μ t < ∞) := ⟨ht.lt_top⟩,
   refine hg.average_mem_epigraph hgc hsc _ hfs hfi hgi,
   rwa [ne.def, restrict_eq_zero]
 end
@@ -329,7 +329,7 @@ begin
   by_cases hfi : integrable f μ, swap,
     by simp [average_def', integral_undef hfi, hC0, ennreal.to_real_pos_iff],
   cases (le_top : μ univ ≤ ∞).eq_or_lt with hμt hμt, { simp [average_def', hμt, hC0] },
-  haveI : is_finite_measure μ := ⟨hμt⟩,
+  letI : is_finite_measure μ := ⟨hμt⟩,
   replace h_le : ∀ᵐ x ∂μ, f x ∈ closed_ball (0 : E) C, by simpa only [mem_closed_ball_zero_iff],
   simpa only [interior_closed_ball _ hC0.ne', mem_ball_zero_iff]
     using (strict_convex_closed_ball ℝ (0 : E) C).ae_eq_const_or_average_mem_interior
@@ -358,7 +358,7 @@ lemma ae_eq_const_or_norm_set_integral_lt_of_norm_le_const [strict_convex_space 
   (ht : μ t ≠ ∞) (h_le : ∀ᵐ x ∂μ.restrict t, ∥f x∥ ≤ C) :
   (f =ᵐ[μ.restrict t] const α ⨍ x in t, f x ∂μ) ∨ ∥∫ x in t, f x ∂μ∥ < (μ t).to_real * C :=
 begin
-  haveI := fact.mk ht.lt_top,
+  letI := fact.mk ht.lt_top,
   rw [← restrict_apply_univ],
   exact ae_eq_const_or_norm_integral_lt_of_norm_le_const h_le
 end

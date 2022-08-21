@@ -155,7 +155,7 @@ begin
     suffices : is_iso (G.map f),
     { resetI,
       -- we have that `f` itself is an isomorphism, since `G` reflects isomorphisms
-      haveI : is_iso f := is_iso_of_reflects_iso f G,
+      letI : is_iso f := is_iso_of_reflects_iso f G,
       -- TODO package this up as a result elsewhere:
       apply is_limit.of_iso_limit (limit.is_limit _),
       apply iso.symm,
@@ -194,7 +194,7 @@ begin
       end,
       -- conclude that it is an isomorphism,
       -- just because it's a morphism between two limit cones.
-      haveI : is_iso f' := is_limit.hom_is_iso hc hd' f',
+      letI : is_iso f' := is_limit.hom_is_iso hc hd' f',
       -- A cone morphism is an isomorphism exactly if the morphism between the cone points is,
       -- so we're done!
       exact is_iso.of_iso ((cones.forget _).map_iso (as_iso f')) }, },

@@ -994,7 +994,7 @@ lemma ideal.count_normalized_factors_eq {p x : ideal R} [hp : p.is_prime] {n : �
   (normalized_factors x).count p = n :=
 count_normalized_factors_eq'
   ((ideal.is_prime_iff_bot_or_prime.mp hp).imp_right prime.irreducible)
-  (by { haveI : unique (ideal R)ˣ := ideal.unique_units, apply normalize_eq })
+  (by { letI : unique (ideal R)ˣ := ideal.unique_units, apply normalize_eq })
   (by convert ideal.dvd_iff_le.mpr hle) (by convert mt ideal.le_of_dvd hlt)
 /- Warning: even though a pure term-mode proof typechecks (the `by convert` can simply be
   removed), it's slower to the point of a possible timeout. -/
@@ -1057,10 +1057,10 @@ begin
   rw [finset.inf_insert, finset.prod_insert ha, ih],
   refine le_antisymm (ideal.le_mul_of_no_prime_factors _ inf_le_left inf_le_right) ideal.mul_le_inf,
   intros P hPa hPs hPp,
-  haveI := hPp,
+  letI := hPp,
   obtain ⟨b, hb, hPb⟩ := ideal.prod_le_prime.mp hPs,
-  haveI := ideal.is_prime_of_prime (prime a (finset.mem_insert_self a s)),
-  haveI := ideal.is_prime_of_prime (prime b (finset.mem_insert_of_mem hb)),
+  letI := ideal.is_prime_of_prime (prime a (finset.mem_insert_self a s)),
+  letI := ideal.is_prime_of_prime (prime b (finset.mem_insert_of_mem hb)),
   refine coprime a (finset.mem_insert_self a s) b (finset.mem_insert_of_mem hb) _
     (((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq _).mp
         (ideal.le_of_pow_le_prime hPa)).trans
@@ -1082,8 +1082,8 @@ noncomputable def is_dedekind_domain.quotient_equiv_pi_of_prod_eq {ι : Type*} [
     .trans $
 ideal.quotient_inf_ring_equiv_pi_quotient _ (λ i j hij, ideal.coprime_of_no_prime_ge (begin
   intros P hPi hPj hPp,
-  haveI := hPp,
-  haveI := ideal.is_prime_of_prime (prime i), haveI := ideal.is_prime_of_prime (prime j),
+  letI := hPp,
+  letI := ideal.is_prime_of_prime (prime i), letI := ideal.is_prime_of_prime (prime j),
   exact coprime i j hij
     (((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq (prime i).ne_zero).mp
       (ideal.le_of_pow_le_prime hPi)).trans

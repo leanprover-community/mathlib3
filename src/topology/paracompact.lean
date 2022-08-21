@@ -160,7 +160,7 @@ begin
   have : ∀ n (x : Kdiff (n + 1) ∩ s), (K n)ᶜ ∈ 𝓝 (x : X),
     from λ n x, is_open.mem_nhds (K.is_closed n).is_open_compl
       (λ hx', x.2.1.2 $ K.subset_interior_succ _ hx'),
-  haveI : ∀ n (x : Kdiff n ∩ s), nonempty (ι x) := λ n x, (hB x x.2.2).nonempty,
+  letI : ∀ n (x : Kdiff n ∩ s), nonempty (ι x) := λ n x, (hB x x.2.2).nonempty,
   choose! r hrp hr using (λ n (x : Kdiff (n + 1) ∩ s), (hB x x.2.2).mem_iff.1 (this n x)),
   have hxr : ∀ n x (hx : x ∈ Kdiff (n + 1) ∩ s), B x (r n ⟨x, hx⟩) ∈ 𝓝 x,
     from λ n x hx, (hB x hx.2).mem_of_mem (hrp _ ⟨x, hx⟩),

@@ -153,8 +153,8 @@ lemma equiv_of_dim_eq_lift_dim
   (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
-  haveI := classical.dec_eq V,
-  haveI := classical.dec_eq V',
+  letI := classical.dec_eq V,
+  letI := classical.dec_eq V',
   let m := basis.of_vector_space K V,
   let m' := basis.of_vector_space K V',
   rw [←cardinal.lift_inj.1 m.mk_eq_dim, ←cardinal.lift_inj.1 m'.mk_eq_dim] at h,

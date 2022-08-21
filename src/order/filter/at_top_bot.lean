@@ -397,7 +397,7 @@ lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α →
 begin
   have : ∀ᶠ x in at_top, a ≤ x ∧ b ≤ u x :=
     (eventually_ge_at_top a).and (h.eventually $ eventually_ge_at_top b),
-  haveI : nonempty α := ⟨a⟩,
+  letI : nonempty α := ⟨a⟩,
   rcases this.exists with ⟨a', ha, hb⟩,
   exact ⟨a', ha, hb⟩
 end
@@ -1128,7 +1128,7 @@ begin
     use ⟨x ⊔ y ⊔ a, h le_sup_right⟩,
     simp only [ge_iff_le, principal_mono, Ici_subset_Ici, ← subtype.coe_le_coe, subtype.coe_mk],
     exact ⟨le_sup_left.trans le_sup_left, le_sup_right.trans le_sup_left⟩ },
-  haveI : nonempty s := ⟨⟨a, h le_rfl⟩⟩,
+  letI : nonempty s := ⟨⟨a, h le_rfl⟩⟩,
   simp only [le_antisymm_iff, at_top, le_infi_iff, le_principal_iff, mem_map, mem_set_of_eq,
     map_infi_eq this, map_principal],
   split,
@@ -1414,7 +1414,7 @@ lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k
 begin
   refine ⟨λ h x hx, h.comp hx, λ H s hs, _⟩,
   contrapose! H,
-  haveI : ne_bot (k ⊓ 𝓟 (f ⁻¹' sᶜ)), by simpa [ne_bot_iff,  inf_principal_eq_bot],
+  letI : ne_bot (k ⊓ 𝓟 (f ⁻¹' sᶜ)), by simpa [ne_bot_iff,  inf_principal_eq_bot],
   rcases (k ⊓ 𝓟 (f ⁻¹' sᶜ)).exists_seq_tendsto with ⟨x, hx⟩,
   rw [tendsto_inf, tendsto_principal] at hx,
   refine ⟨x, hx.1, λ h, _⟩,
@@ -1445,7 +1445,7 @@ lemma frequently_iff_seq_frequently {ι : Type*} {l : filter ι} {p : ι → Pro
   (∃ᶠ n in l, p n) ↔ ∃ (x : ℕ → ι), tendsto x at_top l ∧ ∃ᶠ (n : ℕ) in at_top, p (x n) :=
 begin
   refine ⟨λ h_freq, _, λ h_exists_freq, _⟩,
-  { haveI : ne_bot (l ⊓ 𝓟 {x : ι | p x}), by simpa [ne_bot_iff, inf_principal_eq_bot],
+  { letI : ne_bot (l ⊓ 𝓟 {x : ι | p x}), by simpa [ne_bot_iff, inf_principal_eq_bot],
     obtain ⟨x, hx⟩ := exists_seq_tendsto (l ⊓ (𝓟 {x : ι | p x})),
     rw tendsto_inf at hx,
     cases hx with hx_l hx_p,

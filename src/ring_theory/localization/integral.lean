@@ -189,7 +189,7 @@ lemma ring_hom.is_integral_elem_localization_at_leading_coeff
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
-  haveI : nontrivial Rₘ := nontrivial_of_ne 1 0 triv,
+  letI : nontrivial Rₘ := nontrivial_of_ne 1 0 triv,
   obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.mp
     (map_units Rₘ ⟨p.leading_coeff, hM⟩),
   refine ⟨(p.map (algebra_map R Rₘ)) * C b, ⟨_, _⟩⟩,
@@ -271,7 +271,7 @@ lemma is_integral.exists_multiple_integral_of_is_localization
     ∃ m : M, is_integral R (m • x) :=
 begin
   cases subsingleton_or_nontrivial Rₘ with _ nontriv; resetI,
-  { haveI := (algebra_map Rₘ S).codomain_trivial,
+  { letI := (algebra_map Rₘ S).codomain_trivial,
     exact ⟨1, polynomial.X, polynomial.monic_X, subsingleton.elim _ _⟩ },
   obtain ⟨p, hp₁, hp₂⟩ := hx,
   obtain ⟨p', hp'₁, -, hp'₂⟩ := lifts_and_nat_degree_eq_and_monic
@@ -378,7 +378,7 @@ begin
           polynomial.degree_map_eq_of_injective
             (no_zero_smul_divisors.algebra_map_injective R (fraction_ring R)),
           polynomial.degree_eq_bot]},
-      { haveI : invertible (algebra_map S K b),
+      { letI : invertible (algebra_map S K b),
            from is_unit.invertible (is_unit_of_mem_non_zero_divisors
               (mem_non_zero_divisors_iff_ne_zero.2
                 (λ h, non_zero_divisors.ne_zero ha

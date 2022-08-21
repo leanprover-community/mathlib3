@@ -86,7 +86,7 @@ theorem nfp_family_le_fp (H : ∀ i, monotone (f i)) {a b} (ab : a ≤ b) (h : �
 sup_le $ λ l, begin
   by_cases hι : is_empty ι,
   { resetI, rwa unique.eq_default l },
-  { haveI := not_is_empty_iff.1 hι,
+  { letI := not_is_empty_iff.1 hι,
     induction l with i l IH generalizing a, {exact ab},
     exact (H i (IH ab)).trans (h i) }
 end

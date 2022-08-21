@@ -39,8 +39,8 @@ begin
   swap, { simp_rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
-  haveI : sigma_finite (μ.trim hm) := hμm,
-  haveI : sigma_finite ((μ.restrict s).trim hm),
+  letI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite ((μ.restrict s).trim hm),
   { rw ← restrict_trim hm _ hs,
     exact restrict.sigma_finite _ s, },
   by_cases hf_int : integrable f μ,
@@ -78,7 +78,7 @@ begin
   swap, { simp_rw [condexp_of_not_le hm, set.indicator_zero'], },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw [condexp_of_not_sigma_finite hm hμm, set.indicator_zero'], },
-  haveI : sigma_finite (μ.trim hm) := hμm,
+  letI : sigma_finite (μ.trim hm) := hμm,
   -- use `have` to perform what should be the first calc step because of an error I don't
   -- understand
   have : s.indicator (μ[f|m]) =ᵐ[μ] s.indicator (μ[s.indicator f + sᶜ.indicator f|m]),
@@ -121,7 +121,7 @@ lemma condexp_restrict_ae_eq_restrict (hm : m ≤ m0) [sigma_finite (μ.trim hm)
   (hs_m : measurable_set[m] s) (hf_int : integrable f μ) :
   (μ.restrict s)[f | m] =ᵐ[μ.restrict s] μ[f | m] :=
 begin
-  haveI : sigma_finite ((μ.restrict s).trim hm),
+  letI : sigma_finite ((μ.restrict s).trim hm),
   { rw ← restrict_trim hm _ hs_m, apply_instance, },
   rw ae_eq_restrict_iff_indicator_ae_eq (hm _ hs_m),
   swap, { apply_instance, },

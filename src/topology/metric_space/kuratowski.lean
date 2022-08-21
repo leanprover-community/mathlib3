@@ -88,7 +88,7 @@ begin
   { use (λ_, 0), assume x, exact absurd h (nonempty.ne_empty ⟨x, mem_univ x⟩) },
   { /- We construct a map x : ℕ → α with dense image -/
     rcases h with ⟨basepoint⟩,
-    haveI : inhabited α := ⟨basepoint⟩,
+    letI : inhabited α := ⟨basepoint⟩,
     have : ∃s:set α, s.countable ∧ dense s := exists_countable_dense α,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
     rcases set.countable_iff_exists_subset_range.1 S_countable with ⟨x, x_range⟩,

@@ -198,7 +198,7 @@ theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) �
 lemma measure_bUnion_le {s : set β} (hs : s.countable) (f : β → set α) :
   μ (⋃ b ∈ s, f b) ≤ ∑' p : s, μ (f p) :=
 begin
-  haveI := hs.to_encodable,
+  letI := hs.to_encodable,
   rw [bUnion_eq_Union],
   apply measure_Union_le
 end

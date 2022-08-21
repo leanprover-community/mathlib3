@@ -35,8 +35,8 @@ h.orthonormal_of_forall_eq_or_eq_neg (e.adjust_to_orientation_apply_eq_or_eq_neg
 protected def orientation.fin_orthonormal_basis {n : ℕ} (hn : 0 < n) (h : finrank ℝ E = n)
   (x : orientation ℝ E (fin n)) : basis (fin n) ℝ E :=
 begin
-  haveI := fin.pos_iff_nonempty.1 hn,
-  haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
+  letI := fin.pos_iff_nonempty.1 hn,
+  letI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
   exact (fin_std_orthonormal_basis h).to_basis.adjust_to_orientation x
 end
 
@@ -45,8 +45,8 @@ protected lemma orientation.fin_orthonormal_basis_orthonormal {n : ℕ} (hn : 0 
   (h : finrank ℝ E = n) (x : orientation ℝ E (fin n)) :
   orthonormal ℝ (x.fin_orthonormal_basis hn h) :=
 begin
-  haveI := fin.pos_iff_nonempty.1 hn,
-  haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
+  letI := fin.pos_iff_nonempty.1 hn,
+  letI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
   exact (show orthonormal ℝ (fin_std_orthonormal_basis h).to_basis, -- Note sure how to format this
     by simp only [orthonormal_basis.coe_to_basis, orthonormal_basis.orthonormal]
     ).orthonormal_adjust_to_orientation _
@@ -57,6 +57,6 @@ end
   (h : finrank ℝ E = n) (x : orientation ℝ E (fin n)) :
   (x.fin_orthonormal_basis hn h).orientation = x :=
 begin
-  haveI := fin.pos_iff_nonempty.1 hn,
+  letI := fin.pos_iff_nonempty.1 hn,
   exact basis.orientation_adjust_to_orientation _ _
 end

@@ -191,8 +191,8 @@ it suffices to check the `algebra_map`s agree.
 -- We'll later use this to show `algebra ℤ M` is a subsingleton.
 @[ext]
 lemma algebra_ext {R : Type*} [comm_semiring R] {A : Type*} [semiring A] (P Q : algebra R A)
-  (w : ∀ (r : R), by { haveI := P, exact algebra_map R A r } =
-    by { haveI := Q, exact algebra_map R A r }) :
+  (w : ∀ (r : R), by { letI := P, exact algebra_map R A r } =
+    by { letI := Q, exact algebra_map R A r }) :
   P = Q :=
 begin
   unfreezingI { rcases P with ⟨⟨P⟩⟩, rcases Q with ⟨⟨Q⟩⟩ },

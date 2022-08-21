@@ -48,7 +48,7 @@ lemma hall_cond_of_erase {x : ι} (a : α)
   (s' : finset {x' : ι | x' ≠ x}) :
   s'.card ≤ (s'.bUnion (λ x', (t x').erase a)).card :=
 begin
-  haveI := classical.dec_eq ι,
+  letI := classical.dec_eq ι,
   specialize ha (s'.image coe),
   rw [nonempty.image_iff, finset.card_image_of_injective s' subtype.coe_injective] at ha,
   by_cases he : s'.nonempty,
@@ -83,8 +83,8 @@ lemma hall_hard_inductive_step_A {n : ℕ} (hn : fintype.card ι = n + 1)
   (ha : ∀ (s : finset ι), s.nonempty → s ≠ univ → s.card < (s.bUnion t).card) :
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
-  haveI : nonempty ι := fintype.card_pos_iff.mp (hn.symm ▸ nat.succ_pos _),
-  haveI := classical.dec_eq ι,
+  letI : nonempty ι := fintype.card_pos_iff.mp (hn.symm ▸ nat.succ_pos _),
+  letI := classical.dec_eq ι,
   /- Choose an arbitrary element `x : ι` and `y : t x`. -/
   let x := classical.arbitrary ι,
   have tx_ne : (t x).nonempty,
@@ -134,7 +134,7 @@ lemma hall_cond_of_compl {ι : Type u} {t : ι → finset α} {s : finset ι}
   (s' : finset (sᶜ : set ι)) :
   s'.card ≤ (s'.bUnion (λ x', t x' \ s.bUnion t)).card :=
 begin
-  haveI := classical.dec_eq ι,
+  letI := classical.dec_eq ι,
   have disj : disjoint s (s'.image coe),
   { simp only [disjoint_left, not_exists, mem_image, exists_prop, set_coe.exists,
                exists_and_distrib_right, exists_eq_right, subtype.coe_mk],
@@ -174,7 +174,7 @@ lemma hall_hard_inductive_step_B {n : ℕ} (hn : fintype.card ι = n + 1)
   (hus : s.card = (s.bUnion t).card) :
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
-  haveI := classical.dec_eq ι,
+  letI := classical.dec_eq ι,
   /- Restrict to `s` -/
   let t' : s → finset α := λ x', t x',
   rw nat.add_one at hn,

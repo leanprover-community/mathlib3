@@ -52,7 +52,7 @@ def factorization (n : ℕ) : ℕ →₀ ℕ :=
         simp only [mem_factors hn0, mem_to_finset, ne.def, ite_eq_right_iff, not_forall,
           exists_prop, and.congr_right_iff],
         rintro p hp,
-        haveI := fact_iff.mpr hp,
+        letI := fact_iff.mpr hp,
         exact dvd_iff_padic_val_nat_ne_zero hn0,
       end }
 

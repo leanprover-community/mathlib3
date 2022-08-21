@@ -232,8 +232,8 @@ def preserves_finite_limits_of_preserves_terminal_and_pullbacks
   [preserves_limits_of_shape walking_cospan G] :
 preserves_finite_limits G :=
 begin
-  haveI : has_finite_limits C := has_finite_limits_of_has_terminal_and_pullbacks,
-  haveI : preserves_limits_of_shape (discrete walking_pair) G :=
+  letI : has_finite_limits C := has_finite_limits_of_has_terminal_and_pullbacks,
+  letI : preserves_limits_of_shape (discrete walking_pair) G :=
     preserves_binary_products_of_preserves_terminal_and_pullbacks G,
   exact @@preserves_finite_limits_of_preserves_equalizers_and_finite_products _ _ _ _ G
     (preserves_equalizers_of_preserves_pullbacks_and_binary_products G)
@@ -439,8 +439,8 @@ def preserves_finite_colimits_of_preserves_initial_and_pushouts
   [preserves_colimits_of_shape walking_span G] :
 preserves_finite_colimits G :=
 begin
-  haveI : has_finite_colimits C := has_finite_colimits_of_has_initial_and_pushouts,
-  haveI : preserves_colimits_of_shape (discrete walking_pair) G :=
+  letI : has_finite_colimits C := has_finite_colimits_of_has_initial_and_pushouts,
+  letI : preserves_colimits_of_shape (discrete walking_pair) G :=
     preserves_binary_coproducts_of_preserves_initial_and_pushouts G,
   exact @@preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts _ _ _ _ G
     (preserves_coequalizers_of_preserves_pushouts_and_binary_coproducts G)

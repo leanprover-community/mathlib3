@@ -1407,7 +1407,7 @@ instance nhds_Icc {x a b : ℝ} [h : fact (x ∈ Icc a b)] :
 
 instance nhds_interval {x a b : ℝ} [h : fact (x ∈ [a, b])] :
   FTC_filter x (𝓝[[a, b]] x) (𝓝[[a, b]] x) :=
-by { haveI : fact (x ∈ set.Icc (min a b) (max a b)) := h, exact FTC_filter.nhds_Icc }
+by { letI : fact (x ∈ set.Icc (min a b) (max a b)) := h, exact FTC_filter.nhds_Icc }
 
 end FTC_filter
 
@@ -2498,7 +2498,7 @@ begin
     rw [hI] at hg,
     have h3g : strongly_measurable_at_filter g (𝓝[I] f x) volume :=
     hg.strongly_measurable_at_filter_nhds_within measurable_set_Icc (f x),
-    haveI : fact (f x ∈ I) := ⟨h2x⟩,
+    letI : fact (f x ∈ I) := ⟨h2x⟩,
     have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
     integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
     refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,

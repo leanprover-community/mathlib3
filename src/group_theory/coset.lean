@@ -524,7 +524,7 @@ card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
 @[to_additive] lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
   (f : α →* H) [fintype (K.comap f)] (hf : function.injective f) :
   fintype.card (K.comap f) ∣ fintype.card K :=
-by haveI : fintype ((K.comap f).map f) :=
+by letI : fintype ((K.comap f).map f) :=
   fintype.of_equiv _ (equiv_map_of_injective _ _ hf).to_equiv;
 calc fintype.card (K.comap f) = fintype.card ((K.comap f).map f) :
        fintype.card_congr (equiv_map_of_injective _ _ hf).to_equiv

@@ -342,7 +342,7 @@ independent, then the original family of points is also affine-independent. -/
 lemma affine_independent.of_comp {p : ι → P} (f : P →ᵃ[k] P₂) (hai : affine_independent k (f ∘ p)) :
   affine_independent k p :=
 begin
-  cases is_empty_or_nonempty ι with h h, { haveI := h, apply affine_independent_of_subsingleton, },
+  cases is_empty_or_nonempty ι with h h, { letI := h, apply affine_independent_of_subsingleton, },
   obtain ⟨i⟩ := h,
   rw affine_independent_iff_linear_independent_vsub k p i,
   simp_rw [affine_independent_iff_linear_independent_vsub k (f ∘ p) i, function.comp_app,
@@ -356,7 +356,7 @@ lemma affine_independent.map'
   {p : ι → P} (hai : affine_independent k p) (f : P →ᵃ[k] P₂) (hf : function.injective f) :
   affine_independent k (f ∘ p) :=
 begin
-  cases is_empty_or_nonempty ι with h h, { haveI := h, apply affine_independent_of_subsingleton, },
+  cases is_empty_or_nonempty ι with h h, { letI := h, apply affine_independent_of_subsingleton, },
   obtain ⟨i⟩ := h,
   rw affine_independent_iff_linear_independent_vsub k p i at hai,
   simp_rw [affine_independent_iff_linear_independent_vsub k (f ∘ p) i, function.comp_app,
@@ -550,7 +550,7 @@ begin
     ext,
     fin_cases i,
     { simpa using hi } },
-  haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
+  letI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
   have hz : (![p₁, p₂] ↑default -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
   { rw he' default, simpa using h.symm },
   exact linear_independent_unique _ hz

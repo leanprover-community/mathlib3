@@ -125,11 +125,11 @@ lemma is_initial.is_split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) :
 
 /-- Any morphism from a terminal object is mono. -/
 lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
-by haveI := t.is_split_mono_from f; apply_instance
+by letI := t.is_split_mono_from f; apply_instance
 
 /-- Any morphism to an initial object is epi. -/
 lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
-by haveI := t.is_split_epi_to f; apply_instance
+by letI := t.is_split_epi_to f; apply_instance
 
 /-- If `T` and `T'` are terminal, they are isomorphic. -/
 @[simps]

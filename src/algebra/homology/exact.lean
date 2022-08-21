@@ -154,7 +154,7 @@ lemma exact_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
   (p : image_subobject f = kernel_subobject g) : exact f g :=
 { w := comp_eq_zero_of_image_eq_kernel f g p,
   epi := begin
-    haveI := image_to_kernel_is_iso_of_image_eq_kernel f g p,
+    letI := image_to_kernel_is_iso_of_image_eq_kernel f g p,
     apply_instance,
   end }
 
@@ -170,7 +170,7 @@ lemma exact_comp_hom_inv_comp (i : B ≅ D) (h : exact f g) : exact (f ≫ i.hom
 begin
   refine ⟨by simp [h.w], _⟩,
   rw image_to_kernel_comp_hom_inv_comp,
-  haveI := h.epi,
+  letI := h.epi,
   apply_instance,
 end
 
@@ -203,7 +203,7 @@ lemma exact_comp_mono_iff [mono h] : exact f (g ≫ h) ↔ exact f g :=
 begin
   refine ⟨λ hfg, ⟨zero_of_comp_mono h (by rw [category.assoc, hfg.1]), _⟩, λ h, exact_comp_mono h⟩,
   rw ← (iso.eq_comp_inv _).1 (image_to_kernel_comp_mono _ _ h hfg.1),
-  haveI := hfg.2, apply_instance
+  letI := hfg.2, apply_instance
 end
 
 @[simp]
@@ -320,7 +320,7 @@ lemma epi_iff_exact_zero_right [has_equalizers V] {A B : V} (f : A ⟶ B) :
     rw [category.assoc, is_iso.inv_hom_id, category.comp_id] at e₂,
     rw [←image_subobject_arrow] at e₂,
     resetI,
-    haveI : epi (image.ι f) := epi_of_epi (image_subobject_iso f).hom (image.ι f),
+    letI : epi (image.ι f) := epi_of_epi (image_subobject_iso f).hom (image.ι f),
     apply epi_of_epi_image,
   end⟩
 

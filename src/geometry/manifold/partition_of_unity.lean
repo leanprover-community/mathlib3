@@ -289,9 +289,9 @@ lemma exists_is_subordinate [t2_space M] [sigma_compact_space M] (hs : is_closed
   ∃ (ι : Type uM) (f : smooth_bump_covering ι I M s), f.is_subordinate U :=
 begin
   -- First we deduce some missing instances
-  haveI : locally_compact_space H := I.locally_compact,
-  haveI : locally_compact_space M := charted_space.locally_compact H M,
-  haveI : normal_space M := normal_of_paracompact_t2,
+  letI : locally_compact_space H := I.locally_compact,
+  letI : locally_compact_space M := charted_space.locally_compact H M,
+  letI : normal_space M := normal_of_paracompact_t2,
   -- Next we choose a covering by supports of smooth bump functions
   have hB := λ x hx, smooth_bump_function.nhds_basis_support I (hU x hx),
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs hB
@@ -445,9 +445,9 @@ lemma exists_is_subordinate {s : set M} (hs : is_closed s) (U : ι → set M) (h
   (hU : s ⊆ ⋃ i, U i) :
   ∃ f : smooth_partition_of_unity ι I M s, f.is_subordinate U :=
 begin
-  haveI : locally_compact_space H := I.locally_compact,
-  haveI : locally_compact_space M := charted_space.locally_compact H M,
-  haveI : normal_space M := normal_of_paracompact_t2,
+  letI : locally_compact_space H := I.locally_compact,
+  letI : locally_compact_space M := charted_space.locally_compact H M,
+  letI : normal_space M := normal_of_paracompact_t2,
   rcases bump_covering.exists_is_subordinate_of_prop (smooth I 𝓘(ℝ)) _ hs U ho hU
     with ⟨f, hf, hfU⟩,
   { exact ⟨f.to_smooth_partition_of_unity hf, hfU.to_smooth_partition_of_unity hf⟩ },

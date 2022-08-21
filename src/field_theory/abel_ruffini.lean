@@ -69,7 +69,7 @@ lemma gal_is_solvable_of_splits {p q : F[X]}
   (hpq : fact (p.splits (algebra_map F q.splitting_field))) (hq : is_solvable q.gal) :
   is_solvable p.gal :=
 begin
-  haveI : is_solvable (q.splitting_field ≃ₐ[F] q.splitting_field) := hq,
+  letI : is_solvable (q.splitting_field ≃ₐ[F] q.splitting_field) := hq,
   exact solvable_of_surjective (alg_equiv.restrict_normal_hom_surjective q.splitting_field),
 end
 
@@ -81,12 +81,12 @@ lemma gal_is_solvable_tower (p q : F[X])
 begin
   let K := p.splitting_field,
   let L := q.splitting_field,
-  haveI : fact (p.splits (algebra_map F L)) := ⟨hpq⟩,
+  letI : fact (p.splits (algebra_map F L)) := ⟨hpq⟩,
   let ϕ : (L ≃ₐ[K] L) ≃* (q.map (algebra_map F K)).gal :=
     (is_splitting_field.alg_equiv L (q.map (algebra_map F K))).aut_congr,
   have ϕ_inj : function.injective ϕ.to_monoid_hom := ϕ.injective,
-  haveI : is_solvable (K ≃ₐ[F] K) := hp,
-  haveI : is_solvable (L ≃ₐ[K] L) := solvable_of_solvable_injective ϕ_inj,
+  letI : is_solvable (K ≃ₐ[F] K) := hp,
+  letI : is_solvable (L ≃ₐ[K] L) := solvable_of_solvable_injective ϕ_inj,
   exact is_solvable_of_is_scalar_tower F p.splitting_field q.splitting_field,
 end
 
@@ -379,7 +379,7 @@ lemma is_solvable' {α : E} {q : F[X]} (q_irred : irreducible q)
   (q_aeval : aeval α q = 0) (hα : is_solvable_by_rad F α) :
   _root_.is_solvable q.gal :=
 begin
-  haveI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal,
+  letI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal,
   { rw [minpoly.eq_of_irreducible q_irred q_aeval,
         ←show minpoly F (⟨α, hα⟩ : solvable_by_rad F E) = minpoly F α,
         from minpoly.eq_of_algebra_map_eq (ring_hom.injective _) (is_integral ⟨α, hα⟩) rfl],

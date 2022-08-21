@@ -93,7 +93,7 @@ theorem fold_image_idem [decidable_eq α] {g : γ → α} {s : finset γ}
 begin
   induction s using finset.cons_induction with x xs hx ih,
   { rw [fold_empty, image_empty, fold_empty] },
-  { haveI := classical.dec_eq γ,
+  { letI := classical.dec_eq γ,
     rw [fold_cons, cons_eq_insert, image_insert, fold_insert_idem, ih], }
 end
 

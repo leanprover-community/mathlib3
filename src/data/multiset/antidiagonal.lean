@@ -38,7 +38,7 @@ quot.sound revzip_powerset_aux_perm_aux'
   x ∈ antidiagonal s ↔ x.1 + x.2 = s :=
 quotient.induction_on s $ λ l, begin
   simp [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
-  haveI := classical.dec_eq α,
+  letI := classical.dec_eq α,
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
   cases x with x₁ x₂,
   dsimp only,

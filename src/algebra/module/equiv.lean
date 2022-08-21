@@ -417,8 +417,8 @@ end
 /-- Interpret a `ring_equiv` `f` as an `f`-semilinear equiv. -/
 @[simps]
 def _root_.ring_equiv.to_semilinear_equiv (f : R ≃+* S) :
-  by haveI := ring_hom_inv_pair.of_ring_equiv f;
-     haveI := ring_hom_inv_pair.symm (↑f : R →+* S) (f.symm : S →+* R);
+  by letI := ring_hom_inv_pair.of_ring_equiv f;
+     letI := ring_hom_inv_pair.symm (↑f : R →+* S) (f.symm : S →+* R);
      exact (R ≃ₛₗ[(↑f : R →+* S)] S) :=
 by exact
 { to_fun := f,
@@ -522,7 +522,7 @@ namespace module
 /-- `g : R ≃+* S` is `R`-linear when the module structure on `S` is `module.comp_hom S g` . -/
 @[simps]
 def comp_hom.to_linear_equiv {R S : Type*} [semiring R] [semiring S] (g : R ≃+* S) :
-  (by haveI := comp_hom S (↑g : R →+* S); exact (R ≃ₗ[R] S)) :=
+  (by letI := comp_hom S (↑g : R →+* S); exact (R ≃ₗ[R] S)) :=
 by exact
 { to_fun := (g : R → S),
   inv_fun := (g.symm : S → R),

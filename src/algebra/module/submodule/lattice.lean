@@ -71,7 +71,7 @@ begin
 end
 
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
-by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
+by { letI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
 
 lemma nonzero_mem_of_bot_lt {p : submodule R M} (bot_lt : ⊥ < p) : ∃ a : p, a ≠ 0 :=
 let ⟨b, hb₁, hb₂⟩ := p.ne_bot_iff.mp bot_lt.ne' in ⟨⟨b, hb₁⟩, hb₂ ∘ (congr_arg coe)⟩

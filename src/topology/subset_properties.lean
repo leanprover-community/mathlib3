@@ -396,7 +396,7 @@ is_compact_of_finite_subcover $ assume ι U hUo hsU,
       (calc f i ⊆ ⋃ i ∈ s, f i : subset_bUnion_of_mem hi
             ... ⊆ ⋃ j, U j     : hsU),
   let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
-  by haveI : fintype (subtype s) := hs.fintype; exact
+  by letI : fintype (subtype s) := hs.fintype; exact
   let t := finset.bUnion finset.univ finite_subcovers in
   have (⋃ i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from Union₂_subset $
     assume i hi, calc
@@ -548,7 +548,7 @@ lemma tendsto.is_compact_insert_range_of_cofinite {f : ι → α} {a}
   (hf : tendsto f cofinite (𝓝 a)) :
   is_compact (insert a (range f)) :=
 begin
-  letI : topological_space ι := ⊥, haveI : discrete_topology ι := ⟨rfl⟩,
+  letI : topological_space ι := ⊥, letI : discrete_topology ι := ⟨rfl⟩,
   rw ← cocompact_eq_cofinite at hf,
   exact hf.is_compact_insert_range_of_cocompact continuous_of_discrete_topology
 end
@@ -1161,7 +1161,7 @@ begin
   obtain ⟨U, ⟨Uc, Uo, Ucne⟩, h⟩ := zorn_subset opens (λ c hc hz, begin
     by_cases hcne : c.nonempty,
     { obtain ⟨U₀, hU₀⟩ := hcne,
-      haveI : nonempty {U // U ∈ c} := ⟨⟨U₀, hU₀⟩⟩,
+      letI : nonempty {U // U ∈ c} := ⟨⟨U₀, hU₀⟩⟩,
       obtain ⟨U₀compl, U₀opn, U₀ne⟩ := hc hU₀,
       use ⋃₀ c,
       refine ⟨⟨_, _, _⟩, λ U hU a ha, ⟨U, hU, ha⟩⟩,
@@ -1577,7 +1577,7 @@ lemma irreducible_space.is_irreducible_univ (α : Type u) [topological_space α]
 lemma irreducible_space_def (α : Type u) [topological_space α] :
   irreducible_space α ↔ is_irreducible (⊤ : set α) :=
 ⟨@@irreducible_space.is_irreducible_univ α _,
-  λ h, by { haveI : preirreducible_space α := ⟨h.2⟩, exact ⟨⟨h.1.some⟩⟩ }⟩
+  λ h, by { letI : preirreducible_space α := ⟨h.2⟩, exact ⟨⟨h.1.some⟩⟩ }⟩
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=

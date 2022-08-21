@@ -61,7 +61,7 @@ lemma maximals_antichain : is_antichain r (maximals r s) :=
 λ a ha b hb hab h, hab $ eq_of_mem_maximals ha hb.1 h
 
 lemma minimals_antichain : is_antichain r (minimals r s) :=
-by { haveI := is_antisymm.swap r, exact (maximals_antichain _ _).swap }
+by { letI := is_antisymm.swap r, exact (maximals_antichain _ _).swap }
 
 end is_antisymm
 

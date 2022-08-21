@@ -45,7 +45,7 @@ cofork.is_colimit.mk _
   (λ s, f.range.liftq_mkq (cofork.π s) _)
   (λ s m h,
   begin
-    haveI : epi (as_hom f.range.mkq) := (epi_iff_range_eq_top _).mpr (submodule.range_mkq _),
+    letI : epi (as_hom f.range.mkq) := (epi_iff_range_eq_top _).mpr (submodule.range_mkq _),
     apply (cancel_epi (as_hom f.range.mkq)).1,
     convert h,
     exact submodule.liftq_mkq _ _ _

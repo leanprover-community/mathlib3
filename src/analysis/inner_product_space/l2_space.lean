@@ -360,7 +360,7 @@ lemma submodule.is_hilbert_sum_orthogonal (K : submodule 𝕜 E) [hK : complete_
   @is_hilbert_sum _ 𝕜 _ E _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
   (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
 begin
-  haveI : Π b, complete_space ((cond b K Kᗮ : submodule 𝕜 E) : Type*),
+  letI : Π b, complete_space ((cond b K Kᗮ : submodule 𝕜 E) : Type*),
   { intro b,
     cases b;
     exact orthogonal.complete_space K <|> assumption },

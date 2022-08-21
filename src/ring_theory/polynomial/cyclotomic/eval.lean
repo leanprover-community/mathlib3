@@ -45,7 +45,7 @@ by simp
 private lemma cyclotomic_neg_one_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] :
   0 < eval (-1 : R) (cyclotomic n R) :=
 begin
-  haveI := ne_zero.of_gt hn,
+  letI := ne_zero.of_gt hn,
   rw [←map_cyclotomic_int, ←int.cast_one, ←int.cast_neg, eval_int_cast_map,
       int.coe_cast_ring_hom, int.cast_pos],
   suffices : 0 < eval ↑(-1 : ℤ) (cyclotomic n ℝ),
@@ -151,7 +151,7 @@ begin
       linarith [cyclotomic_nonneg n (le_refl (1 : ℤ))] }, },
   rw [←int.nat_abs_eq_nat_abs_iff, int.nat_abs_one, nat.eq_one_iff_not_exists_prime_dvd],
   intros p hp hpe,
-  haveI := fact.mk hp,
+  letI := fact.mk hp,
 
   have hpn : p ∣ n,
   { apply hpe.trans,

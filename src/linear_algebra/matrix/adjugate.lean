@@ -265,7 +265,7 @@ end
 
 lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
 begin
-  haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
+  letI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
   exact adjugate_subsingleton _
 end
 
@@ -317,7 +317,7 @@ lemma det_adjugate (A : matrix n n α) : (adjugate A).det = A.det ^ (fintype.car
 begin
   -- get rid of the `- 1`
   cases (fintype.card n).eq_zero_or_pos with h_card h_card,
-  { haveI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
+  { letI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
     rw [h_card, nat.zero_sub, pow_zero, adjugate_subsingleton, det_one] },
   replace h_card := tsub_add_cancel_of_le h_card.nat_succ_le,
 
@@ -441,7 +441,7 @@ lemma adjugate_adjugate (A : matrix n n α) (h : fintype.card n ≠ 1) :
 begin
   -- get rid of the `- 2`
   cases h_card : (fintype.card n) with n',
-  { haveI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
+  { letI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
     apply subsingleton.elim, },
   cases n',
   { exact (h h_card).elim },

@@ -351,7 +351,7 @@ begin
     @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f),
   { change (K⟮x⟯ →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E), _,
     exact alg_hom_equiv_sigma },
-  haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := λ f, by
+  letI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := λ f, by
   { apply fintype.of_injective (sigma.mk f) (λ _ _ H, eq_of_heq ((sigma.mk.inj H).2)),
     exact fintype.of_equiv _ key_equiv },
   rw [fintype.card_congr key_equiv, fintype.card_sigma, intermediate_field.adjoin.finrank h],
@@ -368,7 +368,7 @@ end
 lemma of_separable_splitting_field [sp : p.is_splitting_field F E] (hp : p.separable) :
   is_galois F E :=
 begin
-  haveI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,
+  letI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,
   letI := classical.dec_eq E,
   let s := (p.map (algebra_map F E)).roots.to_finset,
   have adjoin_root : intermediate_field.adjoin F ↑s = ⊤,

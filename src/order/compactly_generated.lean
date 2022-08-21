@@ -292,7 +292,7 @@ end
 lemma well_founded.finite_of_independent (hwf : well_founded ((>) : α → α → Prop))
   {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
 begin
-  haveI := (well_founded.finite_of_set_independent hwf ht.set_independent_range).to_subtype,
+  letI := (well_founded.finite_of_set_independent hwf ht.set_independent_range).to_subtype,
   exact finite.of_injective_finite_range (ht.injective h_ne_bot),
 end
 
@@ -447,7 +447,7 @@ instance is_atomic_of_is_complemented [is_complemented α] : is_atomic α :=
     right,
     have hc' := complete_lattice.Iic_coatomic_of_compact_element hc,
     rw ← is_atomic_iff_is_coatomic at hc',
-    haveI := hc',
+    letI := hc',
     obtain con | ⟨a, ha, hac⟩ := eq_bot_or_exists_atom_le (⟨c, le_refl c⟩ : set.Iic c),
     { exfalso,
       apply hcbot,

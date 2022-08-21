@@ -191,7 +191,7 @@ lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
 subsingleton.measurable
 
 lemma measurable_of_empty_codomain [is_empty β] (f : α → β) : measurable f :=
-by { haveI := function.is_empty f, exact measurable_of_empty f }
+by { letI := function.is_empty f, exact measurable_of_empty f }
 
 /-- A version of `measurable_const` that assumes `f x = f y` for all `x, y`. This version works
 for functions between empty types. -/
@@ -1363,7 +1363,7 @@ begin
   refine ⟨⋂ i : t, U i, _, _, _⟩,
   { rw [← equiv.plift.surjective.infi_comp, mem_infi],
     refine ⟨t, ht, U, hUf, rfl⟩ },
-  { haveI := ht.countable.to_encodable,
+  { letI := ht.countable.to_encodable,
     exact measurable_set.Inter (λ i, (hU i).1) },
   { exact Inter_mono (λ i, (hU i).2) }
 end

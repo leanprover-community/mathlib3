@@ -57,7 +57,7 @@ noncomputable instance preserves_limits.preserves_finite_limits_of_size (F : C �
   [preserves_limits_of_size.{w w₂} F] : preserves_finite_limits F :=
 ⟨λ J sJ fJ,
   begin
-    haveI := preserves_smallest_limits_of_preserves_limits F,
+    letI := preserves_smallest_limits_of_preserves_limits F,
     exact preserves_limits_of_shape_of_equiv (fin_category.equiv_as_type J) F,
   end⟩
 
@@ -77,7 +77,7 @@ def preserves_finite_limits_of_preserves_finite_limits_of_size (F : C ⥤ D)
     resetI,
     letI : category.{w w} (ulift_hom.{w} (ulift.{w 0} J)),
     { apply ulift_hom.category.{0}, exact category_theory.ulift_category J },
-    haveI := h (ulift_hom.{w} (ulift.{w} J)) category_theory.fin_category_ulift,
+    letI := h (ulift_hom.{w} (ulift.{w} J)) category_theory.fin_category_ulift,
     exact preserves_limits_of_shape_of_equiv (ulift_hom_ulift_category.equiv.{w w} J).symm F
   end⟩
 
@@ -111,7 +111,7 @@ noncomputable instance preserves_colimits.preserves_finite_colimits (F : C ⥤ D
   [preserves_colimits_of_size.{w w₂} F] : preserves_finite_colimits F :=
 ⟨λ J sJ fJ,
   begin
-    haveI := preserves_smallest_colimits_of_preserves_colimits F,
+    letI := preserves_smallest_colimits_of_preserves_colimits F,
     exact preserves_colimits_of_shape_of_equiv (fin_category.equiv_as_type J) F,
   end⟩
 
@@ -126,7 +126,7 @@ def preserves_finite_colimits_of_preserves_finite_colimits_of_size (F : C ⥤ D)
     resetI,
     letI : category.{w w} (ulift_hom.{w} (ulift.{w 0} J)),
     { apply ulift_hom.category.{0}, exact category_theory.ulift_category J },
-    haveI := h (ulift_hom.{w} (ulift.{w} J)) category_theory.fin_category_ulift,
+    letI := h (ulift_hom.{w} (ulift.{w} J)) category_theory.fin_category_ulift,
     exact preserves_colimits_of_shape_of_equiv (ulift_hom_ulift_category.equiv.{w w} J).symm F
   end⟩
 

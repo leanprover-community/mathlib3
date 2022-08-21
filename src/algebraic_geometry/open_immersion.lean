@@ -495,8 +495,8 @@ preserves_pullback_symmetry (forget C) f g
 lemma pullback_snd_is_iso_of_range_subset (H : set.range g.base ⊆ set.range f.base) :
   is_iso (pullback.snd : pullback f g ⟶ _) :=
 begin
-  haveI := Top.snd_iso_of_left_embedding_range_subset hf.base_open.to_embedding g.base H,
-  haveI : is_iso (pullback.snd : pullback f g ⟶ _).base,
+  letI := Top.snd_iso_of_left_embedding_range_subset hf.base_open.to_embedding g.base H,
+  letI : is_iso (pullback.snd : pullback f g ⟶ _).base,
   { delta pullback.snd,
     rw ← limit.iso_limit_cone_hom_π ⟨_, pullback_cone_of_left_is_limit f g⟩ walking_cospan.right,
     change is_iso (_ ≫ pullback.snd),
@@ -512,7 +512,7 @@ commutes with these maps.
 -/
 def lift (H : set.range g.base ⊆ set.range f.base) : Y ⟶ X :=
 begin
-  haveI := pullback_snd_is_iso_of_range_subset f g H,
+  letI := pullback_snd_is_iso_of_range_subset f g H,
   exact inv (pullback.snd : pullback f g ⟶ _) ≫ pullback.fst,
 end
 
@@ -587,7 +587,7 @@ include H
 def to_LocallyRingedSpace : LocallyRingedSpace :=
 { to_SheafedSpace := to_SheafedSpace Y.to_SheafedSpace f,
   local_ring := λ x, begin
-    haveI : local_ring (Y.to_SheafedSpace.to_PresheafedSpace.stalk (f.base x)) := Y.local_ring _,
+    letI : local_ring (Y.to_SheafedSpace.to_PresheafedSpace.stalk (f.base x)) := Y.local_ring _,
     exact (as_iso (stalk_map f x)).CommRing_iso_to_ring_equiv.local_ring
   end }
 
@@ -776,7 +776,7 @@ lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
     rintros ⟨_, y, hy, rfl⟩,
     specialize H y,
     delta PresheafedSpace.stalk_map at H,
-    haveI H' := Top.presheaf.stalk_pushforward.stalk_pushforward_iso_of_open_embedding
+    letI H' := Top.presheaf.stalk_pushforward.stalk_pushforward_iso_of_open_embedding
       C hf X.presheaf y,
     have := @@is_iso.comp_is_iso _ H (@@is_iso.inv_is_iso _ H'),
     rw [category.assoc, is_iso.hom_inv_id, category.comp_id] at this,
@@ -1035,7 +1035,7 @@ begin
     { instances := ff },
   erw ← preserves_pullback.iso_hom_snd
     (LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace) f g,
-  haveI := PresheafedSpace.is_open_immersion.pullback_snd_is_iso_of_range_subset _ _ H',
+  letI := PresheafedSpace.is_open_immersion.pullback_snd_is_iso_of_range_subset _ _ H',
   apply_instance,
   apply_instance
 end
@@ -1048,7 +1048,7 @@ commutes with these maps.
 -/
 def lift (H' : set.range g.1.base ⊆ set.range f.1.base) : Y ⟶ X :=
 begin
-  haveI := pullback_snd_is_iso_of_range_subset f g H',
+  letI := pullback_snd_is_iso_of_range_subset f g H',
   exact inv (pullback.snd : pullback f g ⟶ _) ≫ pullback.fst,
 end
 
@@ -1063,7 +1063,7 @@ by rw [← cancel_mono f, hl, lift_fac]
 lemma lift_range (H' : set.range g.1.base ⊆ set.range f.1.base) :
   set.range (lift f g H').1.base = f.1.base ⁻¹' (set.range g.1.base) :=
 begin
-  haveI := pullback_snd_is_iso_of_range_subset f g H',
+  letI := pullback_snd_is_iso_of_range_subset f g H',
   dsimp only [lift],
   have : _ = (pullback.fst : pullback f g ⟶ _).val.base := preserves_pullback.iso_hom_fst
     (LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _) f g,

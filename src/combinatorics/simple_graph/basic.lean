@@ -924,7 +924,7 @@ lemma max_degree_le_of_forall_degree_le [decidable_rel G.adj] (k : ℕ)
   G.max_degree ≤ k :=
 begin
   by_cases hV : (univ : finset V).nonempty,
-  { haveI : nonempty V := univ_nonempty_iff.mp hV,
+  { letI : nonempty V := univ_nonempty_iff.mp hV,
     obtain ⟨v, hv⟩ := G.exists_maximal_degree_vertex,
     rw hv,
     apply h },

@@ -492,7 +492,7 @@ support_single_of_ne one_ne_zero
 lemma order_one [mul_zero_one_class R] :
   order (1 : hahn_series Γ R) = 0 :=
 begin
-  cases subsingleton_or_nontrivial R with h h; haveI := h,
+  cases subsingleton_or_nontrivial R with h h; letI := h,
   { rw [subsingleton.elim (1 : hahn_series Γ R) 0, order_zero] },
   { exact order_single one_ne_zero }
 end

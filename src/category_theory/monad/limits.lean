@@ -321,7 +321,7 @@ section
 
 lemma has_limit_of_reflective (F : J ⥤ D) (R : D ⥤ C) [has_limit (F ⋙ R)] [reflective R] :
   has_limit F :=
-by { haveI := monadic_creates_limits.{v u} R, exact has_limit_of_created F R }
+by { letI := monadic_creates_limits.{v u} R, exact has_limit_of_created F R }
 
 /-- If `C` has limits of shape `J` then any reflective subcategory has limits of shape `J`. -/
 lemma has_limits_of_shape_of_reflective [has_limits_of_shape J C] (R : D ⥤ C) [reflective R] :
@@ -362,8 +362,8 @@ noncomputable def left_adjoint_preserves_terminal_of_reflective (R : D ⥤ C) [r
 { preserves_limit := λ K, let F := functor.empty.{v} D in
   begin
     apply preserves_limit_of_iso_diagram _ (functor.empty_ext (F ⋙ R) _),
-    fsplit, intros c h, haveI : has_limit (F ⋙ R) := ⟨⟨⟨c,h⟩⟩⟩,
-    haveI : has_limit F := has_limit_of_reflective F R,
+    fsplit, intros c h, letI : has_limit (F ⋙ R) := ⟨⟨⟨c,h⟩⟩⟩,
+    letI : has_limit F := has_limit_of_reflective F R,
     apply is_limit_change_empty_cone D (limit.is_limit F),
     apply (as_iso ((adjunction.of_right_adjoint R).counit.app _)).symm.trans,
     { apply (left_adjoint R).map_iso, letI := monadic_creates_limits.{v v} R,

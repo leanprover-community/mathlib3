@@ -817,10 +817,10 @@ lemma measurable_space_le {ι} [semilattice_sup ι] {f : filtration ι m} {τ : 
   hτ.measurable_space ≤ m :=
 begin
   casesI is_empty_or_nonempty ι,
-  { haveI : is_empty Ω := ⟨λ ω, is_empty.false (τ ω)⟩,
+  { letI : is_empty Ω := ⟨λ ω, is_empty.false (τ ω)⟩,
     intros s hsτ,
     suffices hs : s = ∅, by { rw hs, exact measurable_set.empty, },
-    haveI : unique (set Ω) := set.unique_empty,
+    letI : unique (set Ω) := set.unique_empty,
     rw [unique.eq_default s, unique.eq_default ∅], },
   exact measurable_space_le' hτ,
 end

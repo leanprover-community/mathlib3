@@ -307,8 +307,8 @@ by rw [← dest_mk x,h,dest_mk]
 protected def cases {r : M F → Sort w}
   (f : ∀ (x : F.obj $ M F), r (M.mk x)) (x : M F) : r x :=
 suffices r (M.mk (dest x)),
-  by { haveI := classical.prop_decidable,
-       haveI := inhabited.mk x,
+  by { letI := classical.prop_decidable,
+       letI := inhabited.mk x,
        rw [← mk_dest x], exact this },
 f _
 
@@ -606,7 +606,7 @@ lemma bisim (R : M P → M P → Prop)
   ∀ x y, R x y → x = y :=
 begin
   introv h',
-  haveI := inhabited.mk x.head,
+  letI := inhabited.mk x.head,
   apply eq_of_bisim R _ _ _ h', clear h' x y,
   split; introv ih;
     rcases h _ _ ih with ⟨ a'', g, g', h₀, h₁, h₂ ⟩; clear h,

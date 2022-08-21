@@ -780,7 +780,7 @@ begin
   cases s.eq_empty_or_nonempty with hs hs,
   { rw hs, exact totally_bounded_empty },
   rcases hs with ⟨x0, hx0⟩,
-  haveI : inhabited s := ⟨⟨x0, hx0⟩⟩,
+  letI : inhabited s := ⟨⟨x0, hx0⟩⟩,
   refine totally_bounded_iff.2 (λ ε ε0, _),
   rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
   resetI,
@@ -1683,9 +1683,9 @@ lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : i
 begin
   classical,
   rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
-  { haveI : encodable (∅ : set α) := fintype.to_encodable ↥∅, exact encodable.to_separable_space },
+  { letI : encodable (∅ : set α) := fintype.to_encodable ↥∅, exact encodable.to_separable_space },
   rcases hs with ⟨c, hc, h'c⟩,
-  haveI : encodable c := hc.to_encodable,
+  letI : encodable c := hc.to_encodable,
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
     tendsto u at_top (𝓝 0) := exists_seq_strict_anti_tendsto (0 : ℝ),
   let f : c × ℕ → α := λ p, if h : (metric.ball (p.1 : α) (u p.2) ∩ s).nonempty then h.some else x₀,
@@ -1717,12 +1717,12 @@ protected lemma _root_.inducing.is_separable_preimage {f : β → α} [topologic
   (hf : inducing f) {s : set α} (hs : is_separable s) :
   is_separable (f ⁻¹' s) :=
 begin
-  haveI : second_countable_topology s,
-  { haveI : separable_space s := hs.separable_space,
+  letI : second_countable_topology s,
+  { letI : separable_space s := hs.separable_space,
     exact uniform_space.second_countable_of_separable _ },
   let g : f ⁻¹' s → s := cod_restrict (f ∘ coe) s (λ x, x.2),
   have : inducing g := (hf.comp inducing_coe).cod_restrict _,
-  haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
+  letI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
   rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)),
      by simpa only [image_univ, subtype.range_coe_subtype],
   exact (is_separable_of_separable_space _).image continuous_subtype_coe
@@ -2002,7 +2002,7 @@ end proper_space
 lemma is_compact.is_separable {s : set α} (hs : is_compact s) :
   is_separable s :=
 begin
-  haveI : compact_space s := is_compact_iff_compact_space.mp hs,
+  letI : compact_space s := is_compact_iff_compact_space.mp hs,
   exact is_separable_of_separable_space_subtype s,
 end
 
@@ -2738,7 +2738,7 @@ instance : metric_space punit.{u + 1} :=
   uniformity_dist :=
     begin
       simp only,
-      haveI : ne_bot (⨅ ε > (0 : ℝ), 𝓟 {p : punit.{u + 1} × punit.{u + 1} | 0 < ε}),
+      letI : ne_bot (⨅ ε > (0 : ℝ), 𝓟 {p : punit.{u + 1} × punit.{u + 1} | 0 < ε}),
       { exact @uniformity.ne_bot _ (uniform_space_of_dist (λ _ _, 0) (λ _, rfl) (λ _ _, rfl)
           (λ _ _ _, by rw zero_add)) _ },
       refine (eq_top_of_ne_bot _).trans (eq_top_of_ne_bot _).symm,
@@ -2804,7 +2804,7 @@ lemma second_countable_of_countable_discretization {α : Type u} [metric_space �
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,
-  { haveI : compact_space α := ⟨by rw hs; exact is_compact_empty⟩, by apply_instance },
+  { letI : compact_space α := ⟨by rw hs; exact is_compact_empty⟩, by apply_instance },
   rcases hs with ⟨x0, hx0⟩,
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),

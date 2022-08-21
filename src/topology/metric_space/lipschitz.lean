@@ -585,7 +585,7 @@ begin
   extended function is also `K`-Lipschitz. -/
   rcases eq_empty_or_nonempty s with rfl|hs,
   { exact ⟨λ x, 0, (lipschitz_with.const _).weaken (zero_le _), eq_on_empty _ _⟩ },
-  haveI : nonempty s, by simp only [hs, nonempty_coe_sort],
+  letI : nonempty s, by simp only [hs, nonempty_coe_sort],
   let g := λ (y : α), infi (λ (x : s), f x + K * dist y x),
   have B : ∀ (y : α), bdd_below (range (λ (x : s), f x + K * dist y x)),
   { assume y,

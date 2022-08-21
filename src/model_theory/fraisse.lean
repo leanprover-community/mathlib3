@@ -237,7 +237,7 @@ begin
       age.hereditary M, age.joint_embedding M⟩, },
   { rintros ⟨Kn, eqinv, cq, hfg, hp, jep⟩,
     obtain ⟨M, hM, rfl⟩ := exists_cg_is_age_of Kn eqinv cq hfg hp jep,
-    haveI := ((Structure.cg_iff_countable).1 hM).some,
+    letI := ((Structure.cg_iff_countable).1 hM).some,
     refine ⟨M, to_countable _, rfl⟩, }
 end
 

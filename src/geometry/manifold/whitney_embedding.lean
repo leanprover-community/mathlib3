@@ -134,7 +134,7 @@ lemma exists_embedding_euclidean_of_compact [t2_space M] [compact_space M] :
 begin
   rcases smooth_bump_covering.exists_is_subordinate I is_closed_univ (λ (x : M) _, univ_mem)
     with ⟨ι, f, -⟩,
-  haveI := f.fintype,
+  letI := f.fintype,
   rcases f.exists_immersion_euclidean with ⟨n, e, hsmooth, hinj, hinj_mfderiv⟩,
   exact ⟨n, e, hsmooth, hsmooth.continuous.closed_embedding hinj, hinj_mfderiv⟩
 end

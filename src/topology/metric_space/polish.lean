@@ -125,7 +125,7 @@ instance sigma {ι : Type*} [encodable ι]
 begin
   letI := λ n, upgrade_polish_space (E n),
   letI : metric_space (Σ n, E n) := sigma.metric_space,
-  haveI : complete_space (Σ n, E n) := sigma.complete_space,
+  letI : complete_space (Σ n, E n) := sigma.complete_space,
   apply_instance
 end
 
@@ -155,8 +155,8 @@ lemma _root_.closed_embedding.polish_space [topological_space α] [topological_s
 begin
   letI := upgrade_polish_space β,
   letI : metric_space α := hf.to_embedding.comap_metric_space f,
-  haveI : second_countable_topology α := hf.to_embedding.second_countable_topology,
-  haveI : complete_space α,
+  letI : second_countable_topology α := hf.to_embedding.second_countable_topology,
+  letI : complete_space α,
   { rw complete_space_iff_is_complete_range hf.to_embedding.to_isometry.uniform_inducing,
     apply is_closed.is_complete,
     exact hf.closed_range },
@@ -197,7 +197,7 @@ begin
   This is a Polish space, as a product of Polish spaces. Pulling back this topology under the
   diagonal embedding of `α`, one gets a Polish topology which is finer than all the `m n`. -/
   letI : ∀ (n : ι), topological_space (aux_copy α n) := λ n, m n,
-  haveI : ∀ (n : ι), polish_space (aux_copy α n) := λ n, h'm n,
+  letI : ∀ (n : ι), polish_space (aux_copy α n) := λ n, h'm n,
   letI T : topological_space (Π (n : ι), aux_copy α n) := by apply_instance,
   let f : α → Π (n : ι), aux_copy α n := λ x n, x,
   -- show that the induced topology is finer than all the `m n`.
@@ -348,7 +348,7 @@ begin
     { exact (dist_le_dist_complete_copy (u n) (u m)).trans (hu N n m hNn hNm).le },
     { exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num) } },
   obtain ⟨x, xlim⟩ : ∃ x, tendsto (λ n, (u n).1) at_top (𝓝 x),
-  { haveI : nonempty α := ⟨(u 0).1⟩,
+  { letI : nonempty α := ⟨(u 0).1⟩,
     exact ⟨_, A.tendsto_lim⟩ },
   suffices xs : x ∈ s,
   { refine ⟨⟨x, xs⟩, _⟩,
@@ -398,8 +398,8 @@ begin
     rw h's,
     exact is_closed_univ },
   { letI := upgrade_polish_space α,
-    haveI : complete_space (complete_copy s) := complete_space_complete_copy hs h's,
-    haveI : second_countable_topology (complete_copy s) :=
+    letI : complete_space (complete_copy s) := complete_space_complete_copy hs h's,
+    letI : second_countable_topology (complete_copy s) :=
       (complete_copy_id_homeo hs h's).embedding.second_countable_topology,
     exact (complete_copy_id_homeo hs h's).symm.closed_embedding.polish_space }
 end
@@ -422,9 +422,9 @@ begin
   /- Both sets `s` and `sᶜ` admit a Polish topology. So does their disjoint union `s ⊕ sᶜ`.
   Pulling back this topology by the canonical bijection with `α` gives the desired Polish
   topology in which `s` is both open and closed. -/
-  haveI : polish_space s := hs.polish_space,
+  letI : polish_space s := hs.polish_space,
   let t : set α := sᶜ,
-  haveI : polish_space t := hs.is_open_compl.polish_space,
+  letI : polish_space t := hs.is_open_compl.polish_space,
   let f : α ≃ (s ⊕ t) := (equiv.set.sum_compl s).symm,
   letI T : topological_space (s ⊕ t) := by apply_instance,
   let t' : topological_space α := T.induced f,

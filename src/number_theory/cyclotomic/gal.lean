@@ -99,7 +99,7 @@ let hζ := zeta_spec n K L,
     hμ := λ t, hζ.pow_of_coprime _ (zmod.val_coe_unit_coprime t) in
 { inv_fun := λ t, (hζ.power_basis K).equiv_of_minpoly ((hμ t).power_basis K)
   begin
-    haveI := is_cyclotomic_extension.ne_zero' n K L,
+    letI := is_cyclotomic_extension.ne_zero' n K L,
     simp only [is_primitive_root.power_basis_gen],
     have hr := is_primitive_root.minpoly_eq_cyclotomic_of_irreducible
                ((zeta_spec n K L).pow_of_coprime _ (zmod.val_coe_unit_coprime t)) h,

@@ -1240,18 +1240,18 @@ theorem dvd_eq_nat (a b c : ℕ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (
 theorem dvd_eq_int (a b c : ℤ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (a ∣ b) = p :=
 (propext $ by rw [← h₁, int.dvd_iff_mod_eq_zero]).trans h₂
 
-theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
+theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by letI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   a.to_nat = b := by rw ← h; simp
 theorem int_to_nat_neg (a : ℤ) (h : 0 < a) : (-a).to_nat = 0 :=
 by simp only [int.to_nat_of_nonpos, h.le, neg_nonpos]
 
-theorem nat_abs_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
+theorem nat_abs_pos (a : ℤ) (b : ℕ) (h : (by letI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   a.nat_abs = b := by rw ← h; simp
-theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
+theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by letI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   (-a).nat_abs = b := by rw ← h; simp
 
 theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
-  (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
+  (h₂ : (by letI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
   -[1+ a] = -c := by rw [← h₂, ← h₁]; refl
 
 /-- Evaluates some extra numeric operations on `nat` and `int`, specifically
@@ -1311,7 +1311,7 @@ meta def eval_nat_int_ext : expr → tactic (expr × expr)
 | _ := failed
 
 theorem int_to_nat_cast (a : ℕ) (b : ℤ)
-  (h : (by haveI := @nat.cast_coe ℤ; exact a : ℤ) = b) :
+  (h : (by letI := @nat.cast_coe ℤ; exact a : ℤ) = b) :
   ↑a = b := eq.trans (by simp) h
 
 /-- Evaluates the `↑n` cast operation from `ℕ`, `ℤ`, `ℚ` to an arbitrary type `α`. -/

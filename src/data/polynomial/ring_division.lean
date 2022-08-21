@@ -296,7 +296,7 @@ end
 
 lemma exists_multiset_roots : ∀ {p : R[X]} (hp : p ≠ 0),
   ∃ s : multiset R, (s.card : with_bot ℕ) ≤ degree p ∧ ∀ a, s.count a = root_multiplicity a p
-| p := λ hp, by haveI := classical.prop_decidable (∃ x, is_root p x); exact
+| p := λ hp, by letI := classical.prop_decidable (∃ x, is_root p x); exact
 if h : ∃ x, is_root p x
 then
   let ⟨x, hx⟩ := h in

@@ -141,7 +141,7 @@ lemma measure_bUnion₀ {s : set β} {f : β → set α} (hs : s.countable)
   (hd : s.pairwise (ae_disjoint μ on f)) (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 begin
-  haveI := hs.to_encodable,
+  letI := hs.to_encodable,
   rw bUnion_eq_Union,
   exact measure_Union₀ (hd.on_injective subtype.coe_injective $ λ x, x.2) (λ x, h x x.2)
 end
@@ -301,7 +301,7 @@ eq.symm $ measure_Union_congr_of_subset (λ b, subset_to_measurable _ _)
 
 lemma measure_bUnion_to_measurable {I : set β} (hc : I.countable) (s : β → set α) :
   μ (⋃ b ∈ I, to_measurable μ (s b)) = μ (⋃ b ∈ I, s b) :=
-by { haveI := hc.to_encodable, simp only [bUnion_eq_Union, measure_Union_to_measurable] }
+by { letI := hc.to_encodable, simp only [bUnion_eq_Union, measure_Union_to_measurable] }
 
 @[simp] lemma measure_to_measurable_union : μ (to_measurable μ s ∪ t) = μ (s ∪ t) :=
 eq.symm $ measure_union_congr_of_subset (subset_to_measurable _ _) (measure_to_measurable _).le
@@ -413,7 +413,7 @@ lemma measure_bUnion_eq_supr {s : ι → set α} {t : set ι} (ht : t.countable)
   (hd : directed_on ((⊆) on s) t) :
   μ (⋃ i ∈ t, s i) = ⨆ i ∈ t, μ (s i) :=
 begin
-  haveI := ht.to_encodable,
+  letI := ht.to_encodable,
   rw [bUnion_eq_Union, measure_Union_eq_supr hd.directed_coe, ← supr_subtype'']
 end
 
@@ -1394,7 +1394,7 @@ lemma restrict_bUnion_congr {s : set ι} {t : ι → set α} (hc : s.countable) 
   μ.restrict (⋃ i ∈ s, t i) = ν.restrict (⋃ i ∈ s, t i) ↔
     ∀ i ∈ s, μ.restrict (t i) = ν.restrict (t i) :=
 begin
-  haveI := hc.to_encodable,
+  letI := hc.to_encodable,
   simp only [bUnion_eq_Union, set_coe.forall', restrict_Union_congr]
 end
 
@@ -2747,7 +2747,7 @@ end
 instance sum.sigma_finite {ι} [fintype ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
   sigma_finite (sum μ) :=
 begin
-  haveI : encodable ι := fintype.to_encodable ι,
+  letI : encodable ι := fintype.to_encodable ι,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
     λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
   refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, λ _, trivial, λ n, _, _⟩⟩⟩,
@@ -2955,7 +2955,7 @@ lemma ext_on_measurable_space_of_generate_finite {α} (m₀ : measurable_space �
   (h_univ : μ set.univ = ν set.univ) {s : set α} (hs : measurable_set[m] s) :
   μ s = ν s :=
 begin
-  haveI : is_finite_measure ν := begin
+  letI : is_finite_measure ν := begin
      constructor,
      rw ← h_univ,
      apply is_finite_measure.measure_univ_lt_top,

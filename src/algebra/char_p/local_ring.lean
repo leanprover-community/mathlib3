@@ -25,7 +25,7 @@ begin
   apply or_iff_not_imp_left.2,
   intro q_pos,
   let K := local_ring.residue_field R,
-  haveI RM_char := ring_char.char_p K,
+  letI RM_char := ring_char.char_p K,
 
   let r := ring_char K,
   let n := (q.factorization) r,
@@ -70,9 +70,9 @@ begin
 
     /- Definition of prime power: `∃ r n, prime r ∧ 0 < n ∧ r ^ n = q`. -/
     exact ⟨r, ⟨n, ⟨nat.prime_iff.mp r_prime, ⟨pos_iff_ne_zero.mpr n_pos, q_eq_rn.symm⟩⟩⟩⟩},
-  { haveI K_char_p_0 := ring_char.of_eq r_zero,
-    haveI K_char_zero: char_zero K := char_p.char_p_to_char_zero K,
-    haveI R_char_zero := ring_hom.char_zero (local_ring.residue R),
+  { letI K_char_p_0 := ring_char.of_eq r_zero,
+    letI K_char_zero: char_zero K := char_p.char_p_to_char_zero K,
+    letI R_char_zero := ring_hom.char_zero (local_ring.residue R),
     /- Finally, `r = 0` would lead to a contradiction: -/
     have q_zero := char_p.eq R char_R_q (char_p.of_char_zero R),
     exact absurd q_zero q_pos}

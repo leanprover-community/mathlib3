@@ -354,7 +354,7 @@ lemma null_iff_of_is_mul_left_invariant [regular μ]
   μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
   by_cases h3μ : μ = 0, { simp [h3μ] },
-  { haveI := is_open_pos_measure_of_mul_left_invariant_of_regular h3μ,
+  { letI := is_open_pos_measure_of_mul_left_invariant_of_regular h3μ,
     simp only [h3μ, or_false, hs.measure_eq_zero_iff μ] },
 end
 

@@ -514,9 +514,9 @@ lemma charted_space.second_countable_of_countable_cover [second_countable_topolo
   (hsc : s.countable) :
   second_countable_topology M :=
 begin
-  haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
+  letI : ∀ x : M, second_countable_topology (chart_at H x).source :=
     λ x, (chart_at H x).second_countable_topology_source,
-  haveI := hsc.to_encodable,
+  letI := hsc.to_encodable,
   rw bUnion_eq_Union at hs,
   exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
 end
@@ -942,7 +942,7 @@ instance : charted_space H s :=
 instance [closed_under_restriction G] : has_groupoid s G :=
 { compatible := begin
     rintros e e' ⟨_, ⟨x, hc⟩, he⟩ ⟨_, ⟨x', hc'⟩, he'⟩,
-    haveI : nonempty s := ⟨x⟩,
+    letI : nonempty s := ⟨x⟩,
     simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
     simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
     rw [he, he'],

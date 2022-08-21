@@ -88,7 +88,7 @@ end
 /-- A minimal polynomial is not a unit. -/
 lemma not_is_unit [nontrivial B] : ¬ is_unit (minpoly A x) :=
 begin
-  haveI : nontrivial A := (algebra_map A B).domain_nontrivial,
+  letI : nontrivial A := (algebra_map A B).domain_nontrivial,
   by_cases hx : is_integral A x,
   { exact mt (eq_one_of_is_unit_of_monic (monic hx)) (ne_one A x) },
   { rw [eq_zero hx], exact not_is_unit_zero }

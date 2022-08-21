@@ -174,7 +174,7 @@ lemma uniform_embedding_of_spaced_out {α} {f : α → β} {s : set (β × β)} 
   (hf : pairwise (λ x y, (f x, f y) ∉ s)) :
   @uniform_embedding α β ⊥ ‹_› f :=
 begin
-  letI : uniform_space α := ⊥, haveI : separated_space α := separated_iff_t2.2 infer_instance,
+  letI : uniform_space α := ⊥, letI : separated_space α := separated_iff_t2.2 infer_instance,
   exact uniform_inducing.uniform_embedding ⟨comap_uniformity_of_spaced_out hs hf⟩
 end
 
@@ -295,7 +295,7 @@ lemma is_complete_image_iff {m : α → β} {s : set α} (hm : uniform_inducing 
   is_complete (m '' s) ↔ is_complete s :=
 begin
   refine ⟨is_complete_of_complete_image hm, λ c, _⟩,
-  haveI : complete_space s := c.complete_space_coe,
+  letI : complete_space s := c.complete_space_coe,
   set m' : s → β := m ∘ coe,
   suffices : is_complete (range m'), by rwa [range_comp, subtype.range_coe] at this,
   have hm' : uniform_inducing m' := hm.comp uniform_embedding_subtype_coe.to_uniform_inducing,

@@ -1009,7 +1009,7 @@ begin
   rw [← plift.down_surjective.infi_comp],
   refine has_countable_basis.is_countably_generated
     ⟨has_basis_infi (λ n, (hs _).to_has_basis), _⟩,
-  haveI := encodable.of_countable (plift ι),
+  letI := encodable.of_countable (plift ι),
   refine (countable_range $ sigma.map (coe : finset (plift ι) → set (plift ι)) (λ _, id)).mono _,
   rintro ⟨I, f⟩ ⟨hI, -⟩,
   lift I to finset (plift ι) using hI,

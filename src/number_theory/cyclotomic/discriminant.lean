@@ -35,7 +35,7 @@ discriminant of the power basis given by `ζ - 1`. -/
 lemma discr_zeta_eq_discr_zeta_sub_one (hζ : is_primitive_root ζ n) :
   discr ℚ (hζ.power_basis ℚ).basis = discr ℚ (hζ.sub_one_power_basis ℚ).basis :=
 begin
-  haveI : number_field K := number_field.mk,
+  letI : number_field K := number_field.mk,
   have H₁ : (aeval (hζ.power_basis ℚ).gen) (X - 1 : ℤ[X]) = (hζ.sub_one_power_basis ℚ).gen :=
     by simp,
   have H₂ : (aeval (hζ.sub_one_power_basis ℚ).gen) (X + 1 : ℤ[X]) = (hζ.power_basis ℚ).gen :=
@@ -66,7 +66,7 @@ lemma discr_prime_pow_ne_two [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : f
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
 begin
-  haveI hne := is_cyclotomic_extension.ne_zero' (p ^ (k + 1)) K L,
+  letI hne := is_cyclotomic_extension.ne_zero' (p ^ (k + 1)) K L,
   have hp2 : p = 2 → 1 ≤ k,
   { intro hp,
     refine one_le_iff_ne_zero.2 (λ h, _),
@@ -208,7 +208,7 @@ lemma discr_odd_prime [is_cyclotomic_extension {p} K L] [hp : fact (p : ℕ).pri
   (hζ : is_primitive_root ζ p) (hirr : irreducible (cyclotomic p K)) (hodd : p ≠ 2) :
   discr K (hζ.power_basis K).basis = (-1) ^ (((p : ℕ) - 1) / 2) * p ^ ((p : ℕ) - 2) :=
 begin
-  haveI : is_cyclotomic_extension {p ^ (0 + 1)} K L,
+  letI : is_cyclotomic_extension {p ^ (0 + 1)} K L,
   { rw [zero_add, pow_one],
     apply_instance },
   have hζ' : is_primitive_root ζ ↑(p ^ (0 + 1)) := by simpa using hζ,

@@ -55,15 +55,15 @@ lemma is_iso_of_mono_of_nonzero {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w :
 lemma simple.of_iso {X Y : C} [simple Y] (i : X ≅ Y) : simple X :=
 { mono_is_iso_iff_nonzero := λ Z f m, begin
     resetI,
-    haveI : mono (f ≫ i.hom) := mono_comp _ _,
+    letI : mono (f ≫ i.hom) := mono_comp _ _,
     split,
     { introsI h w,
-      haveI j : is_iso (f ≫ i.hom), apply_instance,
+      letI j : is_iso (f ≫ i.hom), apply_instance,
       rw simple.mono_is_iso_iff_nonzero at j,
       unfreezingI { subst w, },
       simpa using j, },
     { intro h,
-      haveI j : is_iso (f ≫ i.hom),
+      letI j : is_iso (f ≫ i.hom),
       { apply is_iso_of_mono_of_nonzero,
         intro w, apply h,
         simpa using (cancel_mono i.inv).2 w, },
@@ -77,7 +77,7 @@ lemma kernel_zero_of_nonzero_from_simple
 begin
   classical,
   by_contra,
-  haveI := is_iso_of_mono_of_nonzero h,
+  letI := is_iso_of_mono_of_nonzero h,
   exact w (eq_zero_of_epi_kernel f),
 end
 
@@ -90,7 +90,7 @@ lemma epi_of_nonzero_to_simple [has_equalizers C] {X Y : C} [simple Y]
   {f : X ⟶ Y} [has_image f] (w : f ≠ 0) : epi f :=
 begin
   rw ←image.fac f,
-  haveI : is_iso (image.ι f) := is_iso_of_mono_of_nonzero (λ h, w (eq_zero_of_image_eq_zero h)),
+  letI : is_iso (image.ι f) := is_iso_of_mono_of_nonzero (λ h, w (eq_zero_of_image_eq_zero h)),
   apply epi_comp,
 end
 
@@ -155,7 +155,7 @@ lemma is_iso_of_epi_of_nonzero {X Y : C} [simple X] {f : X ⟶ Y} [epi f] (w : f
   is_iso f :=
 begin
   -- `f ≠ 0` means that `kernel.ι f` is not an iso, and hence zero, and hence `f` is a mono.
-  haveI : mono f :=
+  letI : mono f :=
     preadditive.mono_of_kernel_zero (mono_to_simple_zero_of_not_iso (kernel_not_iso_of_nonzero w)),
   exact is_iso_of_mono_of_epi f,
 end
@@ -166,7 +166,7 @@ lemma cokernel_zero_of_nonzero_to_simple
 begin
   classical,
   by_contradiction h,
-  haveI := is_iso_of_epi_of_nonzero h,
+  letI := is_iso_of_epi_of_nonzero h,
   exact w (eq_zero_of_mono_cokernel f),
 end
 

@@ -730,7 +730,7 @@ lemma submodule.orthogonal_orthogonal_eq_closure [complete_space E] :
 begin
   refine le_antisymm _ _,
   { convert submodule.orthogonal_orthogonal_monotone K.submodule_topological_closure,
-    haveI : complete_space K.topological_closure :=
+    letI : complete_space K.topological_closure :=
       K.is_closed_topological_closure.complete_space_coe,
     rw K.topological_closure.orthogonal_orthogonal },
   { exact K.topological_closure_minimal K.le_orthogonal_orthogonal Kᗮ.is_closed_orthogonal }
@@ -955,8 +955,8 @@ lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E
   [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) :
   finrank 𝕜 K₁ + finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = finrank 𝕜 K₂ :=
 begin
-  haveI := submodule.finite_dimensional_of_le h,
-  haveI := proper_is_R_or_C 𝕜 K₁,
+  letI := submodule.finite_dimensional_of_le h,
+  letI := proper_is_R_or_C 𝕜 K₁,
   have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_complete_space h] at hd,
@@ -1027,7 +1027,7 @@ begin
     { obtain ⟨V, hV₁, hV₂⟩ := IH φ hn',
       exact ⟨V, hV₁.trans n.le_succ, hV₂⟩ },
     -- Take a nonzero element `v` of the orthogonal complement of `W`.
-    haveI : nontrivial Wᗮ := nontrivial_of_finrank_pos (by linarith [zero_le n] : 0 < finrank ℝ Wᗮ),
+    letI : nontrivial Wᗮ := nontrivial_of_finrank_pos (by linarith [zero_le n] : 0 < finrank ℝ Wᗮ),
     obtain ⟨v, hv⟩ := exists_ne (0 : Wᗮ),
     have hφv : φ v ∈ Wᗮ,
     { intros w hw,
@@ -1113,7 +1113,7 @@ lemma orthogonal_family.is_internal_iff_of_is_complete [decidable_eq ι]
   (hc : is_complete (↑(supr V) : set E)) :
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
-  haveI : complete_space ↥(supr V) := hc.complete_space_coe,
+  letI : complete_space ↥(supr V) := hc.complete_space_coe,
   simp only [direct_sum.is_internal_submodule_iff_independent_and_supr_eq_top, hV.independent,
     true_and, submodule.orthogonal_eq_bot_iff]
 end
@@ -1125,7 +1125,7 @@ lemma orthogonal_family.is_internal_iff [decidable_eq ι] [finite_dimensional �
   {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
-  haveI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),
+  letI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),
   exact hV.is_internal_iff_of_is_complete
     (complete_space_coe_iff_is_complete.mp infer_instance)
 end
@@ -1211,7 +1211,7 @@ lemma maximal_orthonormal_iff_basis_of_finite_dimensional
   (hv : orthonormal 𝕜 (coe : v → E)) :
   (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ ∃ b : basis v 𝕜 E, ⇑b = coe :=
 begin
-  haveI := proper_is_R_or_C 𝕜 (span 𝕜 v),
+  letI := proper_is_R_or_C 𝕜 (span 𝕜 v),
   rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
   have hv_compl : is_complete (span 𝕜 v : set E) := (span 𝕜 v).complete_of_finite_dimensional,
   rw submodule.orthogonal_eq_bot_iff,

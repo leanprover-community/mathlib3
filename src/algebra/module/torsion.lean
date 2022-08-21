@@ -405,7 +405,7 @@ def is_torsion_by_set.has_smul : has_smul (R ⧸ I) M :=
   end }
 
 @[simp] lemma is_torsion_by_set.mk_smul (b : R) (x : M) :
-  by haveI := hM.has_smul; exact ideal.quotient.mk I b • x = b • x := rfl
+  by letI := hM.has_smul; exact ideal.quotient.mk I b • x = b • x := rfl
 
 /-- A `(R ⧸ I)`-module is a `R`-module which `is_torsion_by_set R M I`. -/
 def is_torsion_by_set.module : module (R ⧸ I) M :=
@@ -527,7 +527,7 @@ lemma no_zero_smul_divisors_iff_torsion_eq_bot :
   no_zero_smul_divisors R M ↔ torsion R M = ⊥ :=
 begin
   split; intro h,
-  { haveI : no_zero_smul_divisors R M := h,
+  { letI : no_zero_smul_divisors R M := h,
     rw eq_bot_iff, rintro x ⟨a, hax⟩,
     change (a : R) • x = 0 at hax,
     cases eq_zero_or_eq_zero_of_smul_eq_zero hax with h0 h0,

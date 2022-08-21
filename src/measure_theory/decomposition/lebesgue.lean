@@ -183,7 +183,7 @@ lemma lintegral_rn_deriv_lt_top_of_measure_ne_top
   ∫⁻ x in s, μ.rn_deriv ν x ∂ν < ∞ :=
 begin
   by_cases hl : have_lebesgue_decomposition μ ν,
-  { haveI := hl,
+  { letI := hl,
     obtain ⟨-, -, hadd⟩ := have_lebesgue_decomposition_spec μ ν,
     suffices : ∫⁻ x in to_measurable μ s, μ.rn_deriv ν x ∂ν < ∞,
       from lt_of_le_of_lt (lintegral_mono_set (subset_to_measurable _ _)) this,
@@ -229,7 +229,7 @@ theorem eq_singular_part {s : measure α} {f : α → ℝ≥0∞} (hf : measurab
   (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   s = μ.singular_part ν :=
 begin
-  haveI : have_lebesgue_decomposition μ ν := ⟨⟨⟨s, f⟩, hf, hs, hadd⟩⟩,
+  letI : have_lebesgue_decomposition μ ν := ⟨⟨⟨s, f⟩, hf, hs, hadd⟩⟩,
   obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec μ ν,
   obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
   rw hadd' at hadd,
@@ -275,7 +275,7 @@ begin
   by_cases hr : r = 0,
   { rw [hr, zero_smul, zero_smul, singular_part_zero] },
   by_cases hl : have_lebesgue_decomposition μ ν,
-  { haveI := hl,
+  { letI := hl,
     refine (eq_singular_part ((measurable_rn_deriv μ ν).const_smul (r : ℝ≥0∞))
       (mutually_singular.smul r (have_lebesgue_decomposition_spec _ _).2.1) _).symm,
     rw [with_density_smul _ (measurable_rn_deriv _ _), ← smul_add,
@@ -319,7 +319,7 @@ theorem eq_with_density_rn_deriv {s : measure α} {f : α → ℝ≥0∞} (hf : 
   (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   ν.with_density f = ν.with_density (μ.rn_deriv ν) :=
 begin
-  haveI : have_lebesgue_decomposition μ ν := ⟨⟨⟨s, f⟩, hf, hs, hadd⟩⟩,
+  letI : have_lebesgue_decomposition μ ν := ⟨⟨⟨s, f⟩, hf, hs, hadd⟩⟩,
   obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec μ ν,
   obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
   rw hadd' at hadd,
@@ -600,7 +600,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
     simp_rw [supr_apply],
     rw lintegral_supr (λ i, (supr_mem_measurable_le _ hf₁ i).1) (supr_monotone _),
     exact supr_le (λ i, (supr_mem_measurable_le _ hf₁ i).2 B hB) },
-  haveI : is_finite_measure (ν.with_density ξ),
+  letI : is_finite_measure (ν.with_density ξ),
   { refine is_finite_measure_with_density _,
     have hle' := hle univ measurable_set.univ,
     rw [with_density_apply _ measurable_set.univ, measure.restrict_univ] at hle',
@@ -858,7 +858,7 @@ lemma singular_part_mutually_singular (s : signed_measure α) (μ : measure α) 
   s.to_jordan_decomposition.neg_part.singular_part μ :=
 begin
   by_cases hl : s.have_lebesgue_decomposition μ,
-  { haveI := hl,
+  { letI := hl,
     obtain ⟨i, hi, hpos, hneg⟩ := s.to_jordan_decomposition.mutually_singular,
     rw s.to_jordan_decomposition.pos_part.have_lebesgue_decomposition_add μ at hpos,
     rw s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition_add μ at hneg,
@@ -977,12 +977,12 @@ lemma to_jordan_decomposition_eq_of_eq_add_with_density
   s.to_jordan_decomposition = @jordan_decomposition.mk α _
     (t.to_jordan_decomposition.pos_part + μ.with_density (λ x, ennreal.of_real (f x)))
     (t.to_jordan_decomposition.neg_part + μ.with_density (λ x, ennreal.of_real (- f x)))
-    (by { haveI := is_finite_measure_with_density_of_real hfi.2, apply_instance })
-    (by { haveI := is_finite_measure_with_density_of_real hfi.neg.2, apply_instance })
+    (by { letI := is_finite_measure_with_density_of_real hfi.2, apply_instance })
+    (by { letI := is_finite_measure_with_density_of_real hfi.neg.2, apply_instance })
     (jordan_decomposition_add_with_density_mutually_singular hf htμ) :=
 begin
-  haveI := is_finite_measure_with_density_of_real hfi.2,
-  haveI := is_finite_measure_with_density_of_real hfi.neg.2,
+  letI := is_finite_measure_with_density_of_real hfi.2,
+  letI := is_finite_measure_with_density_of_real hfi.neg.2,
   refine to_jordan_decomposition_eq _,
   simp_rw [jordan_decomposition.to_signed_measure, hadd],
   ext i hi,
@@ -1145,7 +1145,7 @@ begin
   have hadd' : s = t + μ.with_densityᵥ f',
   { convert hadd using 2,
     exact with_densityᵥ_eq.congr_ae hfi.1.ae_eq_mk.symm },
-  haveI := have_lebesgue_decomposition_mk μ hfi.1.measurable_mk htμ hadd',
+  letI := have_lebesgue_decomposition_mk μ hfi.1.measurable_mk htμ hadd',
   refine (integrable.ae_eq_of_with_densityᵥ_eq (integrable_rn_deriv _ _) hfi _).symm,
   rw [← add_right_inj t, ← hadd, eq_singular_part _ f htμ hadd,
       singular_part_add_with_density_rn_deriv_eq],

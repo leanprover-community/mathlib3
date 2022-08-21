@@ -246,7 +246,7 @@ rfl
 
 example {α β : Type} (e : α ≃ β) (S : semigroup α) (x y : β) :
 begin
-  haveI := semigroup.map e S,
+  letI := semigroup.map e S,
   exact x * y = e (e.symm x * e.symm y)
 end :=
 rfl
@@ -326,14 +326,14 @@ rfl
 
 example {α β : Type} (e : α ≃ β) (S : monoid α) (x y : β) :
 begin
-  haveI := monoid.map e S,
+  letI := monoid.map e S,
   exact x * y = e (e.symm x * e.symm y)
 end :=
 rfl
 
 example {α β : Type} (e : α ≃ β) (S : monoid α) :
 begin
-  haveI := monoid.map e S,
+  letI := monoid.map e S,
   exact (1 : β) = e (1 : α)
 end :=
 rfl

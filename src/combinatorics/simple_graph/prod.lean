@@ -150,14 +150,14 @@ begin
 end
 
 protected lemma connected.box_prod (hG : G.connected) (hH : H.connected) : (G □ H).connected :=
-by { haveI := hG.nonempty, haveI := hH.nonempty, exact ⟨hG.preconnected.box_prod hH.preconnected⟩ }
+by { letI := hG.nonempty, letI := hH.nonempty, exact ⟨hG.preconnected.box_prod hH.preconnected⟩ }
 
 protected lemma connected.of_box_prod_left (h : (G □ H).connected) : G.connected :=
-by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonempty).2,
+by { letI := (nonempty_prod.1 h.nonempty).1, letI := (nonempty_prod.1 h.nonempty).2,
   exact ⟨h.preconnected.of_box_prod_left⟩ }
 
 protected lemma connected.of_box_prod_right (h : (G □ H).connected) : H.connected :=
-by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonempty).2,
+by { letI := (nonempty_prod.1 h.nonempty).1, letI := (nonempty_prod.1 h.nonempty).2,
   exact ⟨h.preconnected.of_box_prod_right⟩ }
 
 @[simp] lemma box_prod_connected : (G □ H).connected ↔ G.connected ∧ H.connected :=

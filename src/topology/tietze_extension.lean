@@ -338,7 +338,7 @@ begin
       forall_range_iff.2 $ λ x, (h (f x)).2) },
   set t' : set ℝ := (coe ∘ h) '' t,
   have ht_sub : t' ⊆ Ioo (-1 : ℝ) 1 := image_subset_iff.2 (λ x hx, (h x).2),
-  haveI : ord_connected t',
+  letI : ord_connected t',
   { constructor, rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ z hz,
     lift z to Ioo (-1 : ℝ) 1 using (Icc_subset_Ioo (h x).2.1 (h y).2.2 hz),
     change z ∈ Icc (h x) (h y) at hz, rw [← h.image_Icc] at hz,

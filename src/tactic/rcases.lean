@@ -199,9 +199,9 @@ meta instance has_reflect : has_reflect rcases_patt
 | (typed l e) :=
   (`(typed).subst (has_reflect l)).subst (reflect e)
 | (tuple l) := `(λ l, tuple l).subst $
-  by haveI := has_reflect; exact list.reflect l
+  by letI := has_reflect; exact list.reflect l
 | (alts l) := `(λ l, alts l).subst $
-  by haveI := has_reflect; exact list.reflect l
+  by letI := has_reflect; exact list.reflect l
 
 /-- Formats an `rcases` pattern. If the `bracket` argument is true, then it will be
 printed at high precedence, i.e. it will have parentheses around it if it is not already a tuple

@@ -163,7 +163,7 @@ instance bot.is_cyclic {α : Type u} [group α] : is_cyclic (⊥ : subgroup α) 
 
 @[to_additive add_subgroup.is_add_cyclic]
 instance subgroup.is_cyclic {α : Type u} [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=
-by haveI := classical.prop_decidable; exact
+by letI := classical.prop_decidable; exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
   let ⟨x, hx₁, hx₂⟩ := hx in
@@ -388,14 +388,14 @@ lemma is_simple_group_of_prime_card {α : Type u} [group α] [fintype α] {p : �
 ⟨begin
   have h' := nat.prime.one_lt (fact.out p.prime),
   rw ← h at h',
-  haveI := fintype.one_lt_card_iff_nontrivial.1 h',
+  letI := fintype.one_lt_card_iff_nontrivial.1 h',
   apply exists_pair_ne α,
 end, λ H Hn, begin
   classical,
   have hcard := card_subgroup_dvd_card H,
   rw [h, dvd_prime (fact.out p.prime)] at hcard,
   refine hcard.imp (λ h1, _) (λ hp, _),
-  { haveI := fintype.card_le_one_iff_subsingleton.1 (le_of_eq h1),
+  { letI := fintype.card_le_one_iff_subsingleton.1 (le_of_eq h1),
     apply eq_bot_of_subsingleton },
   { exact eq_top_of_card_eq _ (hp.trans h.symm) }
 end⟩
@@ -449,7 +449,7 @@ variables [comm_group α] [is_simple_group α]
 @[priority 100, to_additive is_simple_add_group.is_add_cyclic]
 instance : is_cyclic α :=
 begin
-  cases subsingleton_or_nontrivial α with hi hi; haveI := hi,
+  cases subsingleton_or_nontrivial α with hi hi; letI := hi,
   { apply is_cyclic_of_subsingleton },
   { obtain ⟨g, hg⟩ := exists_ne (1 : α),
     refine ⟨⟨g, λ x, _⟩⟩,
@@ -499,7 +499,7 @@ begin
   { introI h,
     exact ⟨is_simple_group.is_cyclic, is_simple_group.prime_card⟩ },
   { rintro ⟨hc, hp⟩,
-    haveI : fact (fintype.card α).prime := ⟨hp⟩,
+    letI : fact (fintype.card α).prime := ⟨hp⟩,
     exact is_simple_group_of_prime_card rfl }
 end
 

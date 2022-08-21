@@ -542,7 +542,7 @@ end⟩
 lemma is_iso_of_bijective {x y : simplex_category} {f : x ⟶ y}
   (hf : function.bijective (f.to_order_hom.to_fun)) : is_iso f :=
 begin
-  haveI : is_iso ((forget simplex_category).map f) := (is_iso_iff_bijective _).mpr hf,
+  letI : is_iso ((forget simplex_category).map f) := (is_iso_iff_bijective _).mpr hf,
   exact is_iso_of_reflects_iso f (forget simplex_category),
 end
 
@@ -715,8 +715,8 @@ begin
     simpa only [nat.one_ne_zero, add_le_iff_nonpos_right, nonpos_iff_eq_zero]
       using le_of_mono (mono_iff_injective.mpr h), },
   use i,
-  haveI : epi (σ i ≫ θ') := by { rw ← h, apply_instance, },
-  haveI := category_theory.epi_of_epi (σ i) θ',
+  letI : epi (σ i ≫ θ') := by { rw ← h, apply_instance, },
+  letI := category_theory.epi_of_epi (σ i) θ',
   rw [h, eq_id_of_epi θ', category.comp_id],
 end
 
@@ -727,8 +727,8 @@ begin
     simpa only [add_le_iff_nonpos_right, nonpos_iff_eq_zero]
       using le_of_epi (epi_iff_surjective.mpr h), },
   use i,
-  haveI : mono (θ' ≫ δ i) := by { rw ← h, apply_instance, },
-  haveI := category_theory.mono_of_mono θ' (δ i),
+  letI : mono (θ' ≫ δ i) := by { rw ← h, apply_instance, },
+  letI := category_theory.mono_of_mono θ' (δ i),
   rw [h, eq_id_of_mono θ', category.id_comp],
 end
 

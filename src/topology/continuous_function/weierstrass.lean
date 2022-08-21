@@ -76,7 +76,7 @@ begin
     exact p },
   { -- Otherwise, `b ≤ a`, and the interval is a subsingleton,
     -- so all subalgebras are the same anyway.
-    haveI : subsingleton (set.Icc a b) := ⟨λ x y, le_antisymm
+    letI : subsingleton (set.Icc a b) := ⟨λ x y, le_antisymm
       ((x.2.2.trans (not_lt.mp h)).trans y.2.1) ((y.2.2.trans (not_lt.mp h)).trans x.2.1)⟩,
     apply subsingleton.elim, }
 end

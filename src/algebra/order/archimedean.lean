@@ -125,7 +125,7 @@ let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by rw int.cast_neg; exact neg_lt.
 theorem exists_floor (x : α) :
   ∃ (fl : ℤ), ∀ (z : ℤ), z ≤ fl ↔ (z : α) ≤ x :=
 begin
-  haveI := classical.prop_decidable,
+  letI := classical.prop_decidable,
   have : ∃ (ub : ℤ), (ub:α) ≤ x ∧ ∀ (z : ℤ), (z:α) ≤ x → z ≤ ub :=
   int.exists_greatest_of_bdd
     (let ⟨n, hn⟩ := exists_int_gt x in ⟨n, λ z h',

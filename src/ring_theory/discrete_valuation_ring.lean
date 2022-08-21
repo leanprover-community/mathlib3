@@ -126,7 +126,7 @@ begin
       rw irreducible_iff_uniformizer at hQ2,
       exact hQ2.symm } },
   { rintro ⟨RPID, Punique⟩,
-    haveI : local_ring R := local_ring.of_unique_nonzero_prime Punique,
+    letI : local_ring R := local_ring.of_unique_nonzero_prime Punique,
     refine {not_a_field' := _},
     rcases Punique with ⟨P, ⟨hP1, hP2⟩, hP3⟩,
     have hPM : P ≤ maximal_ideal R := le_maximal_ideal (hP2.1),
@@ -279,7 +279,7 @@ lemma of_ufd_of_unique_irreducible
   discrete_valuation_ring R :=
 begin
   rw iff_pid_with_one_nonzero_prime,
-  haveI PID : is_principal_ideal_ring R := aux_pid_of_ufd_of_unique_irreducible R h₁ h₂,
+  letI PID : is_principal_ideal_ring R := aux_pid_of_ufd_of_unique_irreducible R h₁ h₂,
   obtain ⟨p, hp⟩ := h₁,
   refine ⟨PID, ⟨ideal.span {p}, ⟨_, _⟩, _⟩⟩,
   { rw submodule.ne_bot_iff,

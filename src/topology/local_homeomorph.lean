@@ -826,10 +826,10 @@ lemma prod_eq_prod_of_nonempty {e₁ e₁' : local_homeomorph α β} {e₂ e₂'
   e₁.prod e₂ = e₁'.prod e₂' ↔ e₁ = e₁' ∧ e₂ = e₂' :=
 begin
   obtain ⟨⟨x, y⟩, -⟩ := id h,
-  haveI : nonempty α := ⟨x⟩,
-  haveI : nonempty β  := ⟨e₁ x⟩,
-  haveI : nonempty γ := ⟨y⟩,
-  haveI : nonempty δ := ⟨e₂ y⟩,
+  letI : nonempty α := ⟨x⟩,
+  letI : nonempty β  := ⟨e₁ x⟩,
+  letI : nonempty γ := ⟨y⟩,
+  letI : nonempty δ := ⟨e₂ y⟩,
   simp_rw [local_homeomorph.ext_iff, prod_apply, prod_symm_apply, prod_source, prod.ext_iff,
     set.prod_eq_prod_iff_of_nonempty h,
     forall_and_distrib, prod.forall, forall_const, forall_forall_const, and_assoc, and.left_comm]
@@ -1068,7 +1068,7 @@ lemma continuous_at_iff
   {f : α → β} {g : β → γ} (hf : open_embedding f) {x : α} :
   continuous_at (g ∘ f) x ↔ continuous_at g (f x) :=
 begin
-  haveI : nonempty α := ⟨x⟩,
+  letI : nonempty α := ⟨x⟩,
   convert (((hf.to_local_homeomorph f).continuous_at_iff_continuous_at_comp_right) _).symm,
   { apply (local_homeomorph.left_inv _ _).symm,
     simp, },

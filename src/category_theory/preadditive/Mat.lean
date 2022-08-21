@@ -532,7 +532,7 @@ instance : ess_surj (equivalence_single_obj_inverse R) :=
 and the category of matrices over that ring considered as a single-object category. -/
 def equivalence_single_obj : Mat R ≌ Mat_ (single_obj Rᵐᵒᵖ) :=
 begin
-  haveI := equivalence.of_fully_faithfully_ess_surj (equivalence_single_obj_inverse R),
+  letI := equivalence.of_fully_faithfully_ess_surj (equivalence_single_obj_inverse R),
   exact (equivalence_single_obj_inverse R).as_equivalence.symm,
 end
 

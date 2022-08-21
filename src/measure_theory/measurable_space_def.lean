@@ -106,7 +106,7 @@ lemma measurable_set.bUnion {f : β → set α} {s : set β} (hs : s.countable)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋃ b ∈ s, f b) :=
 begin
   rw bUnion_eq_Union,
-  haveI := hs.to_encodable,
+  letI := hs.to_encodable,
   exact measurable_set.Union (by simpa using h)
 end
 

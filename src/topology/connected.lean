@@ -750,7 +750,7 @@ begin
     exactI ⟨x, eq_univ_of_univ_subset $
       is_preconnected_univ.subset_connected_component (mem_univ x)⟩ },
   { rintros ⟨x, h⟩,
-    haveI : preconnected_space α := ⟨by { rw ← h, exact is_preconnected_connected_component }⟩,
+    letI : preconnected_space α := ⟨by { rw ← h, exact is_preconnected_connected_component }⟩,
     exact ⟨⟨x⟩⟩ }
 end
 

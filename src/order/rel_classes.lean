@@ -211,7 +211,7 @@ instance is_strict_weak_order_of_is_strict_total_order'
 @[priority 100] -- see Note [lower instance priority]
 instance is_strict_weak_order_of_is_strict_total_order
   [is_strict_total_order α r] : is_strict_weak_order α r :=
-by { haveI : is_strict_total_order' α r := {}, apply_instance }
+by { letI : is_strict_total_order' α r := {}, apply_instance }
 
 /-! ### Well-order -/
 

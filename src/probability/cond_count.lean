@@ -100,7 +100,7 @@ end
 lemma cond_count_eq_one_of (hs : s.finite) (hs' : s.nonempty) (ht : s ⊆ t) :
   cond_count s t = 1 :=
 begin
-  haveI := cond_count_is_probability_measure hs hs',
+  letI := cond_count_is_probability_measure hs hs',
   refine eq_of_le_of_not_lt prob_le_one _,
   rw [not_lt, ← cond_count_self hs hs'],
   exact measure_mono ht,

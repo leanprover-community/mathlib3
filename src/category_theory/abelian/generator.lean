@@ -30,8 +30,8 @@ variables {C : Type u} [category.{v} C] [abelian C]
 theorem has_injective_coseparator [has_limits C] [enough_injectives C] (G : C)
   (hG : is_separator G) : ∃ G : C, injective G ∧ is_coseparator G :=
 begin
-  haveI : well_powered C := well_powered_of_is_detector G hG.is_detector,
-  haveI : has_products_of_shape (subobject (op G)) C := has_products_of_shape_of_small _ _,
+  letI : well_powered C := well_powered_of_is_detector G hG.is_detector,
+  letI : has_products_of_shape (subobject (op G)) C := has_products_of_shape_of_small _ _,
   let T : C := injective.under (pi_obj (λ P : subobject (op G), unop P)),
   refine ⟨T, infer_instance, (preadditive.is_coseparator_iff _).2 (λ X Y f hf, _)⟩,
   refine (preadditive.is_separator_iff _).1 hG _ (λ h, _),
@@ -50,7 +50,7 @@ end
 theorem has_projective_separator [has_colimits C] [enough_projectives C] (G : C)
   (hG : is_coseparator G) : ∃ G : C, projective G ∧ is_separator G :=
 begin
-  haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
+  letI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
   obtain ⟨T, hT₁, hT₂⟩ := has_injective_coseparator (op G) ((is_separator_op_iff _).2 hG),
   exactI ⟨unop T, infer_instance, (is_separator_unop_iff _).2 hT₂⟩
 end

@@ -266,7 +266,7 @@ end
 /-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
 lemma units_card (w : 1 < q) : fintype.card ((X q)ˣ) < q^2 :=
 begin
-  haveI : fact (1 < (q:ℕ)) := ⟨w⟩,
+  letI : fact (1 < (q:ℕ)) := ⟨w⟩,
   convert card_units_lt (X q),
   rw X_card,
 end
@@ -397,7 +397,7 @@ begin
     simp at ω_pow,
     have h : (1 : zmod (q (p'+2))) = -1 :=
       congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),
-    haveI : fact (2 < (q (p'+2) : ℕ)) := ⟨two_lt_q _⟩,
+    letI : fact (2 < (q (p'+2) : ℕ)) := ⟨two_lt_q _⟩,
     apply zmod.neg_one_ne_one h.symm, },
   { apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,

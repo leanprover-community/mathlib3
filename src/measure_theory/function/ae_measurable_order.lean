@@ -35,7 +35,7 @@ theorem measure_theory.ae_measurable_of_exist_almost_disjoint_supersets
     {x | f x < p} ⊆ u ∧ {x | q < f x} ⊆ v ∧ μ (u ∩ v) = 0) :
   ae_measurable f μ :=
 begin
-  haveI : encodable s := s_count.to_encodable,
+  letI : encodable s := s_count.to_encodable,
   have h' : ∀ p q, ∃ u v, measurable_set u ∧ measurable_set v ∧
     {x | f x < p} ⊆ u ∧ {x | q < f x} ⊆ v ∧ (p ∈ s → q ∈ s → p < q → μ (u ∩ v) = 0),
   { assume p q,

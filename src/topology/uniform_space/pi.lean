@@ -43,7 +43,7 @@ uniform_continuous_pi.1 uniform_continuous_id i
 instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i) :=
 ⟨begin
   intros f hf,
-  haveI := hf.1,
+  letI := hf.1,
   have : ∀ i, ∃ x : α i, filter.map (λ a : Πi, α i, a i) f ≤ 𝓝 x,
   { intro i,
     have key : cauchy (map (λ (a : Π (i : ι), α i), a i) f),

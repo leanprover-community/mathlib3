@@ -309,7 +309,7 @@ protected lemma finite_spanning_sets_in.outer_regular [opens_measurable_space α
 begin
   refine ⟨λ A hA r hr, _⟩,
   have hm : ∀ n, measurable_set (s.set n), from λ n, (s.set_mem n).1.measurable_set,
-  haveI : ∀ n, outer_regular (μ.restrict (s.set n)) := λ n, (s.set_mem n).2,
+  letI : ∀ n, outer_regular (μ.restrict (s.set n)) := λ n, (s.set_mem n).2,
   -- Note that `A = ⋃ n, A ∩ disjointed s n`. We replace `A` with this sequence.
   obtain ⟨A, hAm, hAs, hAd, rfl⟩ : ∃ A' : ℕ → set α, (∀ n, measurable_set (A' n)) ∧
     (∀ n, A' n ⊆ s.set n) ∧ pairwise (disjoint on A') ∧ A = ⋃ n, A' n,
@@ -517,8 +517,8 @@ protected lemma map [opens_measurable_space α] [measurable_space β] [topologic
   [t2_space β] [borel_space β] [regular μ] (f : α ≃ₜ β) :
   (measure.map f μ).regular :=
 begin
-  haveI := outer_regular.map f μ,
-  haveI := is_finite_measure_on_compacts.map μ f,
+  letI := outer_regular.map f μ,
+  letI := is_finite_measure_on_compacts.map μ f,
   exact ⟨regular.inner_regular.map f.to_equiv f.measurable.ae_measurable
     (λ U hU, hU.preimage f.continuous) (λ K hK, hK.image f.continuous)
     (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
@@ -527,8 +527,8 @@ end
 protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :
   (x • μ).regular :=
 begin
-  haveI := outer_regular.smul μ hx,
-  haveI := is_finite_measure_on_compacts.smul μ hx,
+  letI := outer_regular.smul μ hx,
+  letI := is_finite_measure_on_compacts.smul μ hx,
   exact ⟨regular.inner_regular.smul x⟩
 end
 
@@ -596,7 +596,7 @@ weakly regular. -/
 lemma restrict_of_measurable_set [borel_space α] [weakly_regular μ] (A : set α)
   (hA : measurable_set A) (h'A : μ A ≠ ∞) : weakly_regular (μ.restrict A) :=
 begin
-  haveI : fact (μ A < ∞) := ⟨h'A.lt_top⟩,
+  letI : fact (μ A < ∞) := ⟨h'A.lt_top⟩,
   refine inner_regular.weakly_regular_of_finite _ (λ V V_open, _),
   simp only [restrict_apply' hA], intros r hr,
   have : μ (V ∩ A) ≠ ∞, from ne_top_of_le_ne_top h'A (measure_mono $ inter_subset_right _ _),
@@ -621,9 +621,9 @@ instance of_pseudo_emetric_sigma_compact_space_of_locally_finite {X : Type*}
   (μ : measure X) [is_locally_finite_measure μ] :
   weakly_regular μ :=
 begin
-  haveI : outer_regular μ,
+  letI : outer_regular μ,
   { refine (μ.finite_spanning_sets_in_open.mono' $ λ U hU, _).outer_regular,
-    haveI : fact (μ U < ∞), from ⟨hU.2⟩,
+    letI : fact (μ U < ∞), from ⟨hU.2⟩,
     exact ⟨hU.1, infer_instance⟩ },
   exact ⟨inner_regular.of_pseudo_emetric_space μ⟩
 end

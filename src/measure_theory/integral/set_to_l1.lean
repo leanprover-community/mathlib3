@@ -641,7 +641,7 @@ begin
   by_cases hs_univ : s = univ,
   { casesI hα : is_empty_or_nonempty α,
     { refine absurd _ hs_empty,
-      haveI : subsingleton (set α), by { unfold set, apply_instance, },
+      letI : subsingleton (set α), by { unfold set, apply_instance, },
       exact subsingleton.elim s ∅, },
     simp [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,

@@ -38,7 +38,7 @@ begin
        ... < _ : sub_one_lt_nat_abs_cyclotomic_eval (one_lt_succ_succ k)
                    (one_lt_two.trans (hkey k.succ)).ne.symm, },
   let p := min_fac (eval ↑b (cyclotomic k ℤ)).nat_abs,
-  haveI hprime : fact p.prime := ⟨min_fac_prime (ne_of_lt hgt).symm⟩,
+  letI hprime : fact p.prime := ⟨min_fac_prime (ne_of_lt hgt).symm⟩,
   have hroot : is_root (cyclotomic k (zmod p)) (cast_ring_hom (zmod p) b),
   { rw [is_root.def, ← map_cyclotomic_int k (zmod p), eval_map, coe_cast_ring_hom,
     ← int.cast_coe_nat, ← int.coe_cast_ring_hom, eval₂_hom, int.coe_cast_ring_hom,
@@ -54,7 +54,7 @@ begin
       (zmod.unit_of_coprime b (coprime_of_root_cyclotomic hpos hroot))),
     have : ¬p ∣ k := hprime.1.coprime_iff_not_dvd.1
       (coprime_of_root_cyclotomic hpos hroot).symm.coprime_mul_left_right.coprime_mul_right_right,
-    haveI := ne_zero.of_not_dvd (zmod p) this,
+    letI := ne_zero.of_not_dvd (zmod p) this,
     have : k = order_of (b : zmod p) := (is_root_cyclotomic_iff.mp hroot).eq_order_of,
     rw [←order_of_units, zmod.coe_unit_of_coprime, ←this] at hdiv,
     exact ((modeq_iff_dvd' hprime.1.pos).2 hdiv).symm }

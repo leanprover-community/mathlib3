@@ -158,7 +158,7 @@ begin
     rw [r_one_pow, one_def],
     apply mt r.inj,
     simpa using hn.ne' },
-  { haveI := fact.mk hn,
+  { letI := fact.mk hn,
     apply (nat.le_of_dvd hn $ order_of_dvd_of_pow_eq_one $ @r_one_pow_n n).lt_or_eq.resolve_left,
     intro h,
     have h1 : (r 1 : dihedral_group n)^(order_of (r 1)) = 1,
@@ -182,7 +182,7 @@ lemma exponent : monoid.exponent (dihedral_group n) = lcm n 2 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn,
   { exact monoid.exponent_eq_zero_of_order_zero order_of_r_one },
-  haveI := fact.mk hn,
+  letI := fact.mk hn,
   apply nat.dvd_antisymm,
   { apply monoid.exponent_dvd_of_forall_pow_eq_one,
     rintro (m | m),

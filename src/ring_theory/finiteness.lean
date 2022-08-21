@@ -1001,7 +1001,7 @@ theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
   (f_surj : function.surjective f) : function.injective f :=
 begin
   letI := module_polynomial_of_endo f,
-  haveI : is_scalar_tower R R[X] M := module_polynomial_of_endo.is_scalar_tower f,
+  letI : is_scalar_tower R R[X] M := module_polynomial_of_endo.is_scalar_tower f,
   have hfgpoly : finite R[X] M, from finite.of_restrict_scalars_finite R _ _,
   have X_mul : ∀ o, (X : R[X]) • o = f o,
   { intro,

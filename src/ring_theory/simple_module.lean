@@ -140,7 +140,7 @@ noncomputable instance _root_.module.End.division_ring
     (equiv.of_bijective _ (bijective_of_ne_zero h)).left_inv
     (equiv.of_bijective _ (bijective_of_ne_zero h)).right_inv),
   exists_pair_ne := ⟨0, 1, begin
-    haveI := is_simple_module.nontrivial R M,
+    letI := is_simple_module.nontrivial R M,
     have h := exists_pair_ne M,
     contrapose! h,
     intros x y,

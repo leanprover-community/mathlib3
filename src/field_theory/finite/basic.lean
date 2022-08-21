@@ -138,7 +138,7 @@ variables (K) [field K] [fintype K]
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
-  haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
+  letI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
   letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K : zmod p →+* _).to_module },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
@@ -186,7 +186,7 @@ begin
   { to_fun   := λ x, x ^ i,
     map_one' := by rw [units.coe_one, one_pow],
     map_mul' := by { intros, rw [units.coe_mul, mul_pow] } },
-  haveI : decidable (φ = 1), { classical, apply_instance },
+  letI : decidable (φ = 1), { classical, apply_instance },
   calc ∑ x : Kˣ, φ x = if φ = 1 then fintype.card Kˣ else 0 : sum_hom_units φ
                       ... = if (q - 1) ∣ i then -1 else 0 : _,
   suffices : (q - 1) ∣ i ↔ φ = 1,
@@ -306,7 +306,7 @@ begin
   cases char_p.exists K with p hp,
   letI := hp,
   rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩,
-  haveI : fact p.prime := ⟨hp⟩,
+  letI : fact p.prime := ⟨hp⟩,
   dsimp at hn,
   rw [hn, ← map_expand_pow_char, frobenius_pow hn, ring_hom.one_def, map_id]
 end
@@ -340,7 +340,7 @@ lemma sq_add_sq (R : Type*) [comm_ring R] [is_domain R]
   (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
-  haveI := char_is_prime_of_pos R p,
+  letI := char_is_prime_of_pos R p,
   obtain ⟨a, b, hab⟩ := zmod.sq_add_sq p x,
   refine ⟨a.val, b.val, _⟩,
   simpa using congr_arg (zmod.cast_hom dvd_rfl R) hab
@@ -432,7 +432,7 @@ end zmod
 lemma int.modeq.pow_card_sub_one_eq_one {p : ℕ} (hp : nat.prime p) {n : ℤ} (hpn : is_coprime n p) :
   n ^ (p - 1) ≡ 1 [ZMOD p] :=
 begin
-  haveI : fact p.prime := ⟨hp⟩,
+  letI : fact p.prime := ⟨hp⟩,
   have : ¬ (n : zmod p) = 0,
   { rw [char_p.int_cast_eq_zero_iff _ p, ← (nat.prime_iff_prime_int.mp hp).coprime_iff_not_dvd],
     { exact hpn.symm },
@@ -452,7 +452,7 @@ variables [finite F]
 /-- In a finite field of characteristic `2`, all elements are squares. -/
 lemma is_square_of_char_two (hF : ring_char F = 2) (a : F) : is_square a :=
 begin
-  haveI hF' : char_p F 2 := ring_char.of_eq hF,
+  letI hF' : char_p F 2 := ring_char.of_eq hF,
   exact is_square_of_char_two' a,
 end
 

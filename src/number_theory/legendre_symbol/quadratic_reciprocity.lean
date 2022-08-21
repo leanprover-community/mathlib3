@@ -193,7 +193,7 @@ lemma gauss_lemma {a : ℤ} (hp : p ≠ 2) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = (-1) ^ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
 begin
-  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  letI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
   have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
     by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
@@ -235,7 +235,7 @@ open_locale big_operators
 lemma eisenstein_lemma (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
 begin
-  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  letI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
   have ha0' : ((a : ℤ) : zmod p) ≠ 0 := by { norm_cast, exact ha0 },
   rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p hp ha0', neg_one_pow_eq_pow_mod_two,
       (by norm_cast : ((a : ℤ) : zmod p) = (a : zmod p)),

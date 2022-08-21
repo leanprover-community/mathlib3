@@ -107,7 +107,7 @@ begin
   by_cases hH : H.index = 0,
   { rw [hH, pow_zero],
     exact H.one_mem },
-  haveI := fintype_of_index_ne_zero hH,
+  letI := fintype_of_index_ne_zero hH,
   classical,
   replace key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g ^ k ∈ H :=
   λ k g₀ hk, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk,

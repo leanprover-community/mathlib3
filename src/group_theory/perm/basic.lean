@@ -258,7 +258,7 @@ equiv.ext $ λ x, begin
   rw [of_subtype, subtype_perm],
   by_cases hx : p x,
   { simp only [hx, coe_fn_mk, dif_pos, monoid_hom.coe_mk, subtype.coe_mk]},
-  { haveI := classical.prop_decidable,
+  { letI := classical.prop_decidable,
     simp only [hx, not_not.mp (mt (h₂ x) hx), coe_fn_mk, dif_neg, not_false_iff,
       monoid_hom.coe_mk] }
 end

@@ -48,8 +48,8 @@ def tensor_closed {X Y : C}
   (hX : closed X) (hY : closed Y) : closed (X ⊗ Y) :=
 { is_adj :=
   begin
-    haveI := hX.is_adj,
-    haveI := hY.is_adj,
+    letI := hX.is_adj,
+    letI := hY.is_adj,
     exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
   end }
 
@@ -247,8 +247,8 @@ def of_equiv (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoi
   monoidal_closed C :=
 { closed' := λ X,
   { is_adj := begin
-      haveI q : closed (F.to_functor.obj X) := infer_instance,
-      haveI : is_left_adjoint (tensor_left (F.to_functor.obj X)) := q.is_adj,
+      letI q : closed (F.to_functor.obj X) := infer_instance,
+      letI : is_left_adjoint (tensor_left (F.to_functor.obj X)) := q.is_adj,
       have i := comp_inv_iso (monoidal_functor.comm_tensor_left F X),
       exact adjunction.left_adjoint_of_nat_iso i,
     end } }

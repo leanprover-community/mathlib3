@@ -360,7 +360,7 @@ If `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit` for all `d : D`, then `F` is 
 lemma cofinal_of_colimit_comp_coyoneda_iso_punit
   (I : Π d, colimit (F ⋙ coyoneda.obj (op d)) ≅ punit) : final F :=
 ⟨λ d, begin
-  haveI : nonempty (structured_arrow d F),
+  letI : nonempty (structured_arrow d F),
   { have := (I d).inv punit.star,
     obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective'.{v v} this,
     exact ⟨structured_arrow.mk y⟩, },

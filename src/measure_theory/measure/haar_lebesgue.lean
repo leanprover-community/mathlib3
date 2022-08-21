@@ -208,7 +208,7 @@ begin
   -- we reduce to the case of `E = ι → ℝ`, for which we have already proved the result using
   -- matrices in `map_linear_map_add_haar_pi_eq_smul_add_haar`.
   let ι := fin (finrank ℝ E),
-  haveI : finite_dimensional ℝ (ι → ℝ) := by apply_instance,
+  letI : finite_dimensional ℝ (ι → ℝ) := by apply_instance,
   have : finrank ℝ E = finrank ℝ (ι → ℝ), by simp,
   have e : E ≃ₗ[ℝ] ι → ℝ := linear_equiv.of_finrank_eq E (ι → ℝ) this,
   -- next line is to avoid `g` getting reduced by `simp`.
@@ -225,7 +225,7 @@ begin
   have Cg : continuous g := linear_map.continuous_of_finite_dimensional g,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
   rw [← map_map Cesymm.measurable (Cg.comp Ce).measurable, ← map_map Cg.measurable Ce.measurable],
-  haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
+  letI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
   rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
@@ -352,10 +352,10 @@ begin
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
   by_cases h : finrank ℝ E = 0,
-  { haveI : subsingleton E := finrank_zero_iff.1 h,
+  { letI : subsingleton E := finrank_zero_iff.1 h,
     simp only [h, one_mul, ennreal.of_real_one, abs_one, subsingleton.eq_univ_of_nonempty hs,
       pow_zero, subsingleton.eq_univ_of_nonempty (singleton_nonempty (0 : E))] },
-  { haveI : nontrivial E := nontrivial_of_finrank_pos (bot_lt_iff_ne_bot.2 h),
+  { letI : nontrivial E := nontrivial_of_finrank_pos (bot_lt_iff_ne_bot.2 h),
     simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
       measure_singleton] }
 end

@@ -83,7 +83,7 @@ def preserves_equalizer_of_preserves_kernels
   (f g : X ⟶ Y) : preserves_limit (parallel_pair f g) F :=
 begin
   letI := preserves_binary_biproducts_of_preserves_binary_products F,
-  haveI := additive_of_preserves_binary_biproducts F,
+  letI := additive_of_preserves_binary_biproducts F,
   constructor, intros c i,
   let c' := is_limit_kernel_fork_of_fork (i.of_iso_limit (fork.iso_fork_of_ι c)),
   dsimp only [kernel_fork_of_fork_of_ι] at c',
@@ -177,7 +177,7 @@ def preserves_coequalizer_of_preserves_cokernels
   (f g : X ⟶ Y) : preserves_colimit (parallel_pair f g) F :=
 begin
   letI := preserves_binary_biproducts_of_preserves_binary_coproducts F,
-  haveI := additive_of_preserves_binary_biproducts F,
+  letI := additive_of_preserves_binary_biproducts F,
   constructor, intros c i,
   let c' := is_colimit_cokernel_cofork_of_cofork (i.of_iso_colimit (cofork.iso_cofork_of_π c)),
   dsimp only [cokernel_cofork_of_cofork_of_π] at c',

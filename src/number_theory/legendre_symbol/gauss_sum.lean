@@ -220,8 +220,8 @@ begin
   apply (algebra_map F' FF').injective,
   rw [map_pow, map_mul, map_nat_cast, hc', hchar, nat.cast_pow],
   simp only [← mul_char.ring_hom_comp_apply],
-  haveI := fact.mk hp',
-  haveI := fact.mk (hchar.subst hp'),
+  letI := fact.mk hp',
+  letI := fact.mk (hchar.subst hp'),
   rw [ne, ← nat.prime_dvd_prime_iff_eq hp' hp, ← is_unit_iff_not_dvd_char, hchar] at hch₁,
   exact char.card_pow_char_pow (hχ₂.comp _) ψ.char (ring_char FF') n' hch₁ (hchar ▸ hch₂)
     (gauss_sum_sq (hχ₁.comp $ ring_hom.injective _) (hχ₂.comp _) ψ.prim),
@@ -255,12 +255,12 @@ begin
 
   -- we work in `FF`, the eighth cyclotomic field extension of `F`
   let FF := (polynomial.cyclotomic 8 F).splitting_field,
-  haveI : finite_dimensional F FF :=
+  letI : finite_dimensional F FF :=
     polynomial.is_splitting_field.finite_dimensional FF (polynomial.cyclotomic 8 F),
-  haveI : fintype FF := finite_dimensional.fintype_of_fintype F FF,
+  letI : fintype FF := finite_dimensional.fintype_of_fintype F FF,
   have hchar := algebra.ring_char_eq F FF,
   have FFp := hchar.subst hp,
-  haveI := fact.mk FFp,
+  letI := fact.mk FFp,
   have hFF := ne_of_eq_of_ne hchar.symm hF, -- `ring_char FF ≠ 2`
   have hu : is_unit (ring_char FF : zmod 8),
   { rw [is_unit_iff_not_dvd_char, ring_char_zmod_n],

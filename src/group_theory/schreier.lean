@@ -106,10 +106,10 @@ end
 lemma exists_finset_card_le_mul (hH : H.index ≠ 0) {S : finset G} (hS : closure (S : set G) = ⊤) :
   ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
-  haveI : decidable_eq G := classical.dec_eq G,
+  letI : decidable_eq G := classical.dec_eq G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
-  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
-  haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
+  letI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
+  letI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
@@ -138,7 +138,7 @@ lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index �
   [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)] :
   @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
 begin
-  haveI := fg_of_index_ne_zero hH,
+  letI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
   obtain ⟨T, hT₀, hT⟩ := exists_finset_card_le_mul hH hS,
   calc group.rank H ≤ T.card : group.rank_le H hT

@@ -351,7 +351,7 @@ rfl
 def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β)
   (H : ∀ a b, r a b → s (f a) (f b)) : r ↪r s :=
 begin
-  haveI := @is_asymm.is_irrefl β s _,
+  letI := @is_asymm.is_irrefl β s _,
   refine ⟨⟨f, λ a b e, _⟩, λ a b, ⟨λ h, _, H _ _⟩⟩,
   { refine ((@trichotomous _ r _ a b).resolve_left _).resolve_right _;
     exact λ h, @irrefl _ s _ _ (by simpa [e] using H _ _ h) },

@@ -131,7 +131,7 @@ def cof (o : ordinal.{u}) : cardinal.{u} :=
 o.lift_on (λ a, strict_order.cof a.r)
 begin
   rintros ⟨α, r, wo₁⟩ ⟨β, s, wo₂⟩ ⟨⟨f, hf⟩⟩,
-  haveI := wo₁, haveI := wo₂,
+  letI := wo₁, letI := wo₂,
   apply @rel_iso.cof_eq _ _ _ _ _ _ ,
   { split, exact λ a b, not_iff_not.2 hf },
   { exact ⟨(is_well_order.is_irrefl r).1⟩ },
@@ -430,7 +430,7 @@ end
     { rcases hl x with ⟨a', aS, hn⟩,
       rw (_ : ↑a = a') at h, {exact absurd h hn},
       refine congr_arg subtype.val (_ : a = ⟨a', aS⟩),
-      haveI := le_one_iff_subsingleton.1 (le_of_eq e),
+      letI := le_one_iff_subsingleton.1 (le_of_eq e),
       apply subsingleton.elim } }
 end, λ ⟨a, e⟩, by simp [e]⟩
 
@@ -503,10 +503,10 @@ begin
     exact ⟨_, hf.ord_cof⟩ },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
   rcases ord_eq ι with ⟨r, wo, hr⟩,
-  haveI := wo,
+  letI := wo,
   let r' := subrel r {i | ∀ j, r j i → f j < f i},
   let hrr' : r' ↪r r := subrel.rel_embedding _ _,
-  haveI := hrr'.is_well_order,
+  letI := hrr'.is_well_order,
   refine ⟨_, _, hrr'.ordinal_type_le.trans _, λ i j _ h _, (enum r' j h).prop _ _,
     le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
   { rw [←hι, hr] },
@@ -774,7 +774,7 @@ theorem mk_bounded_subset {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) {r : α �
 begin
   rcases eq_or_ne (#α) 0 with ha | ha,
   { rw ha,
-    haveI := mk_eq_zero_iff.1 ha,
+    letI := mk_eq_zero_iff.1 ha,
     rw mk_eq_zero_iff,
     split,
     rintro ⟨s, hs⟩,
@@ -806,7 +806,7 @@ begin
     simp [λ s, (cardinal.zero_le s).not_lt] },
   have h' : is_strong_limit (#α) := ⟨ha, h⟩,
   rcases ord_eq α with ⟨r, wo, hr⟩,
-  haveI := wo,
+  letI := wo,
   apply le_antisymm,
   { nth_rewrite_rhs 0 ←mk_bounded_subset h hr,
     apply mk_le_mk_of_subset (λ s hs, _),

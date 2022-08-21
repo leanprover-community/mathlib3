@@ -282,11 +282,11 @@ by { rw [← comp_id f, ← hom_inv_id g, ← assoc], apply_instance, }
 
 lemma of_is_iso_fac_left {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z}
   [is_iso f] [hh : is_iso h] (w : f ≫ g = h) : is_iso g :=
-by { rw ← w at hh, haveI := hh, exact of_is_iso_comp_left f g, }
+by { rw ← w at hh, letI := hh, exact of_is_iso_comp_left f g, }
 
 lemma of_is_iso_fac_right {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z}
   [is_iso g] [hh : is_iso h] (w : f ≫ g = h) : is_iso f :=
-by { rw ← w at hh, haveI := hh, exact of_is_iso_comp_right f g, }
+by { rw ← w at hh, letI := hh, exact of_is_iso_comp_right f g, }
 
 end is_iso
 

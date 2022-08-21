@@ -471,7 +471,7 @@ end
 lemma tendsto_locally_uniformly_on_iff_tendsto_uniformly_on_of_compact (hs : is_compact s) :
   tendsto_locally_uniformly_on F f p s ↔ tendsto_uniformly_on F f p s :=
 begin
-  haveI : compact_space s := is_compact_iff_compact_space.mp hs,
+  letI : compact_space s := is_compact_iff_compact_space.mp hs,
   refine ⟨λ h, _, tendsto_uniformly_on.tendsto_locally_uniformly_on⟩,
   rwa [tendsto_locally_uniformly_on_iff_tendsto_locally_uniformly_comp_coe,
     tendsto_locally_uniformly_iff_tendsto_uniformly_of_compact_space,

@@ -138,8 +138,8 @@ noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is
 ((hζ.power_basis K).lift_equiv).trans
 { to_fun    := λ x,
   begin
-    haveI := is_cyclotomic_extension.ne_zero' n K L,
-    haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
+    letI := is_cyclotomic_extension.ne_zero' n K L,
+    letI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [mem_primitive_roots n.pos, ←is_root_cyclotomic_iff, is_root.def,
@@ -148,8 +148,8 @@ noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is
   end,
   inv_fun   := λ x,
   begin
-    haveI := is_cyclotomic_extension.ne_zero' n K L,
-    haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
+    letI := is_cyclotomic_extension.ne_zero' n K L,
+    letI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [aeval_def, eval₂_eq_eval_map, hζ.power_basis_gen K,
@@ -175,7 +175,7 @@ cyclotomic extension is `n.totient`. -/
 lemma finrank (hirr : irreducible (cyclotomic n K)) :
   finrank K L = (n : ℕ).totient :=
 begin
-  haveI := is_cyclotomic_extension.ne_zero' n K L,
+  letI := is_cyclotomic_extension.ne_zero' n K L,
   rw [((zeta_spec n K L).power_basis K).finrank, is_primitive_root.power_basis_dim,
       ←(zeta_spec n K L).minpoly_eq_cyclotomic_of_irreducible hirr, nat_degree_cyclotomic]
 end
@@ -206,7 +206,7 @@ include hζ
 lemma norm_eq_one [is_domain L] [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
-  haveI := is_cyclotomic_extension.ne_zero' n K L,
+  letI := is_cyclotomic_extension.ne_zero' n K L,
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,
     rw [hζ, show 1 = algebra_map K L 1, by simp, algebra.norm_algebra_map, one_pow] },
@@ -254,7 +254,7 @@ lemma sub_one_norm_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L]
   (h : 2 < (n : ℕ)) (hirr : irreducible (cyclotomic n K)) :
   norm K (ζ - 1) = ↑(eval 1 (cyclotomic n ℤ)) :=
 begin
-  haveI := is_cyclotomic_extension.ne_zero' n K L,
+  letI := is_cyclotomic_extension.ne_zero' n K L,
   let E := algebraic_closure L,
   obtain ⟨z, hz⟩ := is_alg_closed.exists_root _ (degree_cyclotomic_pos n E n.pos).ne.symm,
   apply (algebra_map K E).injective,
@@ -269,7 +269,7 @@ begin
   { rw [cyclotomic', eval_prod, ← @finset.prod_attach E E, ← univ_eq_attach],
     refine fintype.prod_equiv (hζ.embeddings_equiv_primitive_roots E hirr) _ _ (λ σ, _),
     simp },
-  haveI : ne_zero ((n : ℕ) : E) := (ne_zero.of_no_zero_smul_divisors K _ (n : ℕ)),
+  letI : ne_zero ((n : ℕ) : E) := (ne_zero.of_no_zero_smul_divisors K _ (n : ℕ)),
   rw [this, cyclotomic', ← cyclotomic_eq_prod_X_sub_primitive_roots (is_root_cyclotomic_iff.1 hz),
     ← map_cyclotomic_int, _root_.map_int_cast, ←int.cast_one, eval_int_cast_map, eq_int_cast,
     int.cast_id]
@@ -302,7 +302,7 @@ lemma minpoly_sub_one_eq_cyclotomic_comp [algebra K A] [is_domain A] {ζ : A}
   (h : irreducible (polynomial.cyclotomic n K)) :
   minpoly K (ζ - 1) = (cyclotomic n K).comp (X + 1) :=
 begin
-  haveI := is_cyclotomic_extension.ne_zero' n K A,
+  letI := is_cyclotomic_extension.ne_zero' n K A,
   rw [show ζ - 1 = ζ + (algebra_map K A (-1)), by simp [sub_eq_add_neg], minpoly.add_algebra_map
     (is_cyclotomic_extension.integral {n} K A ζ), hζ.minpoly_eq_cyclotomic_of_irreducible h],
   simp
@@ -328,7 +328,7 @@ begin
   { rw [sub_add_cancel],
     refine is_primitive_root.pow (p ^ (k + 1)).pos hζ _,
     rw [pnat.pow_coe, ← pow_add, add_comm s, nat.sub_add_cancel (le_trans hs (nat.le_succ k))] },
-  haveI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
+  letI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
   { suffices : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η + 1⟯.to_subalgebra,
     { have H : K⟮η + 1⟯.to_subalgebra = K⟮η⟯.to_subalgebra,
       { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral
@@ -402,7 +402,7 @@ lemma sub_one_norm_prime [hpri : fact (p : ℕ).prime] [hcyc : is_cyclotomic_ext
 begin
   replace hirr : irreducible (cyclotomic (↑(p ^ (0 + 1)) : ℕ) K) := by simp [hirr],
   replace hζ : is_primitive_root ζ (↑(p ^ (0 + 1)) : ℕ) := by simp [hζ],
-  haveI : is_cyclotomic_extension {p ^ (0 + 1)} K L := by simp [hcyc],
+  letI : is_cyclotomic_extension {p ^ (0 + 1)} K L := by simp [hcyc],
   simpa using sub_one_norm_prime_ne_two hζ hirr h
 end
 
@@ -462,7 +462,7 @@ begin
       refine le_antisymm hs htwo },
     simp only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
       pow_coe] at ⊢ hζ hirr hcycl,
-    haveI := hcycl,
+    letI := hcycl,
     obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.1 hk),
     rw [hζ.pow_sub_one_norm_two hirr],
     rw [hk₁, pow_succ, pow_mul, neg_eq_neg_one_mul, mul_pow, neg_one_sq, one_mul, ← pow_mul,

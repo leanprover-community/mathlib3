@@ -204,7 +204,7 @@ instance [has_finite_limits D] [preserves_finite_limits (forget D)]
 begin
   apply preserves_finite_limits_of_preserves_finite_limits_of_size.{max v u},
   introsI K _ _,
-  haveI : reflects_limits_of_shape K (forget D) :=
+  letI : reflects_limits_of_shape K (forget D) :=
     reflects_limits_of_shape_of_reflects_isomorphisms,
   apply_instance
 end
@@ -236,7 +236,7 @@ instance : preserves_limits_of_shape K (presheaf_to_Sheaf J D) :=
 begin
   constructor, intros F, constructor, intros S hS,
   apply is_limit_of_reflects (Sheaf_to_presheaf J D),
-  haveI : reflects_limits_of_shape K (forget D) :=
+  letI : reflects_limits_of_shape K (forget D) :=
     reflects_limits_of_shape_of_reflects_isomorphisms,
   apply is_limit_of_preserves (J.sheafification D) hS,
 end

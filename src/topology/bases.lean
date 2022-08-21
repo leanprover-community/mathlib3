@@ -640,7 +640,7 @@ instance {ι : Type*} {π : ι → Type*}
   [countable ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
   second_countable_topology (∀a, π a) :=
 begin
-  haveI := encodable.of_countable ι,
+  letI := encodable.of_countable ι,
   have : t = (λa, generate_from (countable_basis (π a))),
     from funext (assume a, (is_basis_countable_basis (π a)).eq_generate_from),
   rw [this, pi_generate_from_eq],
@@ -691,7 +691,7 @@ lemma is_open_Union_countable [second_countable_topology α]
 begin
   let B := {b ∈ countable_basis α | ∃ i, b ⊆ s i},
   choose f hf using λ b : B, b.2.2,
-  haveI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
+  letI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
   refine ⟨_, countable_range f, (Union₂_subset_Union _ _).antisymm (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
   rcases (is_basis_countable_basis α).exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,

@@ -65,7 +65,7 @@ begin
     rw ← image_univ,
     exact subsingleton.image subsingleton_of_subsingleton b.points, },
   { -- The positive-dimensional case.
-    haveI : finite_dimensional ℝ E,
+    letI : finite_dimensional ℝ E,
     { classical,
       obtain ⟨i⟩ := (infer_instance : nonempty ι),
       exact finite_dimensional.of_fintype_basis (b.basis_of i), },
@@ -143,7 +143,7 @@ begin
     { rw [subtype.range_coe_subtype, set_of_mem_eq] at this,
       apply nonempty.mono _ this,
       mono* },
-    haveI : fintype t := fintype_of_fin_dim_affine_independent ℝ h_ind,
+    letI : fintype t := fintype_of_fin_dim_affine_independent ℝ h_ind,
     use finset.centroid ℝ (finset.univ : finset t) (coe : t → V),
     rw [h, ← @set_of_mem_eq V t, ← subtype.range_coe_subtype] at h_tot,
     let b : affine_basis t ℝ V := ⟨coe, h_ind, h_tot⟩,

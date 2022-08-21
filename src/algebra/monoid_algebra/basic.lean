@@ -512,7 +512,7 @@ end⟩
 
 instance smul_comm_class_symm_self [smul_comm_class k R k] :
   smul_comm_class (monoid_algebra k G) R (monoid_algebra k G) :=
-⟨λ t a b, by { haveI := smul_comm_class.symm k R k, rw ← smul_comm, } ⟩
+⟨λ t a b, by { letI := smul_comm_class.symm k R k, rw ← smul_comm, } ⟩
 
 variables {A : Type u₃} [non_unital_non_assoc_semiring A]
 

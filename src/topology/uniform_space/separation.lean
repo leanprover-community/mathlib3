@@ -186,7 +186,7 @@ end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_t3 [separated_space α] : t3_space α :=
-{ to_t0_space := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space },
+{ to_t0_space := by { letI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space },
   regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
       from is_open.mem_nhds hs.is_open_compl ha,

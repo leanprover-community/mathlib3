@@ -312,7 +312,7 @@ end
 lemma cast_hom_bijective [fintype R] (h : fintype.card R = n) :
   function.bijective (zmod.cast_hom (dvd_refl n) R) :=
 begin
-  haveI : fact (0 < n) :=
+  letI : fact (0 < n) :=
   ⟨begin
     rw [pos_iff_ne_zero],
     intro hn,
@@ -625,9 +625,9 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
     end
     else
       begin
-        haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
-        haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
-        haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
+        letI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
+        letI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
+        letI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
         have left_inv : function.left_inverse inv_fun to_fun,
         { intro x,
           dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
@@ -660,7 +660,7 @@ end⟩
 lemma le_div_two_iff_lt_neg (n : ℕ) [hn : fact ((n : ℕ) % 2 = 1)]
   {x : zmod n} (hx0 : x ≠ 0) : x.val ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).val :=
 begin
-  haveI npos : fact (0 < n) := ⟨by
+  letI npos : fact (0 < n) := ⟨by
   { apply (nat.eq_zero_or_pos n).resolve_left,
     unfreezingI { rintro rfl },
     simpa [fact_iff] using hn, }⟩,

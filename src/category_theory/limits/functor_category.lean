@@ -296,7 +296,7 @@ def preserves_limit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
 begin
   apply evaluation_jointly_reflects_limits,
   intro X,
-  haveI := H X,
+  letI := H X,
   change is_limit ((F ⋙ (evaluation K C).obj X).map_cone c),
   exact preserves_limit.preserves hc,
 end⟩
@@ -329,7 +329,7 @@ def preserves_colimit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
 begin
   apply evaluation_jointly_reflects_colimits,
   intro X,
-  haveI := H X,
+  letI := H X,
   change is_colimit ((F ⋙ (evaluation K C).obj X).map_cocone c),
   exact preserves_colimit.preserves hc,
 end⟩

@@ -55,7 +55,7 @@ begin
     rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
   intros q hq,
   obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
-  haveI : fact q.prime := ⟨hq1⟩,
+  letI : fact q.prime := ⟨hq1⟩,
   obtain ⟨g, hg⟩ := exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
   exact (hq1.pow_eq_iff.mp (hg.symm.trans hk).symm).1.symm,
@@ -117,7 +117,7 @@ lemma card_orbit (a : α) [fintype (orbit G a)] :
   ∃ n : ℕ, card (orbit G a) = p ^ n :=
 begin
   let ϕ := orbit_equiv_quotient_stabilizer G a,
-  haveI := fintype.of_equiv (orbit G a) ϕ,
+  letI := fintype.of_equiv (orbit G a) ϕ,
   rw [card_congr ϕ, ←subgroup.index_eq_card],
   exact hG.index (stabilizer G a),
 end
@@ -192,7 +192,7 @@ end
 
 lemma bot_lt_center [nontrivial G] [finite G] : ⊥ < subgroup.center G :=
 begin
-  haveI := center_nontrivial hG,
+  letI := center_nontrivial hG,
   casesI nonempty_fintype G,
   classical,
   exact bot_lt_iff_ne_bot.mpr ((subgroup.center G).one_lt_card_iff_ne_bot.mp fintype.one_lt_card),
@@ -306,7 +306,7 @@ lemma card_center_eq_prime_pow (hn : 0 < n) [fintype (center G)] :
 begin
   have hcG := to_subgroup (of_card hGpn) (center G),
   rcases iff_card.1 hcG with ⟨k, hk⟩,
-  haveI : nontrivial G := (nontrivial_iff_card $ of_card hGpn).2 ⟨n, hn, hGpn⟩,
+  letI : nontrivial G := (nontrivial_iff_card $ of_card hGpn).2 ⟨n, hn, hGpn⟩,
   exact (nontrivial_iff_card hcG).mp (center_nontrivial (of_card hGpn)),
 end
 

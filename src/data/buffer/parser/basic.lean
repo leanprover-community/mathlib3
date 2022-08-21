@@ -133,7 +133,7 @@ end
 
 lemma static.iff :
   static p ↔ (∀ (cb : char_buffer) (n n' : ℕ) (a : α), p cb n = done n' a → n = n') :=
-⟨λ h _ _ _ _ hp, by { haveI := h, exact static.of_done hp}, λ h, ⟨h⟩⟩
+⟨λ h _ _ _ _ hp, by { letI := h, exact static.of_done hp}, λ h, ⟨h⟩⟩
 
 lemma exists_done (p : parser α) [p.unfailing] (cb : char_buffer) (n : ℕ) :
   ∃ (n' : ℕ) (a : α), p cb n = done n' a :=
@@ -1113,7 +1113,7 @@ end
 lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.static → (F p).static) :
   static (fix F) :=
 ⟨λ cb n _ _ h,
-  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact static.of_done h }⟩
+  by { letI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact static.of_done h }⟩
 
 end static
 
@@ -1293,7 +1293,7 @@ lemma foldr {f : α → β → β} : bounded (foldr f p b) :=
 begin
   constructor,
   intros cb n hn,
-  haveI : (parser.foldr_core f p b (cb.size - n + 1)).bounded := foldr_core he,
+  letI : (parser.foldr_core f p b (cb.size - n + 1)).bounded := foldr_core he,
   obtain ⟨np, errp, hp⟩ := bounded.exists (parser.foldr_core f p b (cb.size - n + 1)) hn,
   simp [foldr, hp]
 end
@@ -1313,7 +1313,7 @@ lemma foldl {f : β → α → β} : bounded (foldl f b p) :=
 begin
   constructor,
   intros cb n hn,
-  haveI : (parser.foldl_core f b p (cb.size - n + 1)).bounded := foldl_core he,
+  letI : (parser.foldl_core f b p (cb.size - n + 1)).bounded := foldl_core he,
   obtain ⟨np, errp, hp⟩ := bounded.exists (parser.foldl_core f b p (cb.size - n + 1)) hn,
   simp [foldl, hp]
 end
@@ -1357,7 +1357,7 @@ lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.bounded →
 begin
   constructor,
   intros cb n hn,
-  haveI : (parser.fix_core F (cb.size - n + 1)).bounded := fix_core hF _,
+  letI : (parser.fix_core F (cb.size - n + 1)).bounded := fix_core hF _,
   obtain ⟨np, errp, hp⟩ := bounded.exists (parser.fix_core F (cb.size - n + 1)) hn,
   simp [fix, hp]
 end
@@ -1463,7 +1463,7 @@ begin
     obtain ⟨np, a, h⟩ := p.exists_done cb n,
     simpa [foldr_core_eq_done, h] using (static.of_done h).symm },
   { constructor,
-    haveI := hr,
+    letI := hr,
     intros cb n,
     obtain ⟨np, a, h⟩ := p.exists_done cb n,
     obtain rfl : n = np := static.of_done h,
@@ -1658,7 +1658,7 @@ err_static.decorate_error
 lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.err_static → (F p).err_static) :
   err_static (fix F) :=
 ⟨λ cb n _ _ h,
-  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact err_static.of_fail h }⟩
+  by { letI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact err_static.of_fail h }⟩
 
 end err_static
 
@@ -1829,7 +1829,7 @@ step.decorate_error
 lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.step → (F p).step) :
   step (fix F) :=
 ⟨λ cb n _ _ h,
-  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
+  by { letI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
 
 end step
 
@@ -2042,7 +2042,7 @@ prog.decorate_error
 lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
   prog (fix F) :=
 ⟨λ cb n _ _ h,
-  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
+  by { letI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
 
 end prog
 

@@ -79,7 +79,7 @@ by { rwa [norm_apply, ← linear_map.det_to_matrix b, ← to_matrix_lmul_eq], re
 lemma norm_algebra_map_of_basis (b : basis ι R S) (x : R) :
   norm R (algebra_map R S x) = x ^ fintype.card ι :=
 begin
-  haveI := classical.dec_eq ι,
+  letI := classical.dec_eq ι,
   rw [norm_apply, ← det_to_matrix b, lmul_algebra_map],
   convert @det_diagonal _ _ _ _ _ (λ (i : ι), x),
   { ext i j, rw [to_matrix_lsmul, matrix.diagonal] },
@@ -253,8 +253,8 @@ lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F] [is_a
   ((@@finset.univ (power_basis.alg_hom.fintype pb)).prod
     (λ σ : L →ₐ[K] E, σ pb.gen)) ^ finrank L F :=
 begin
-  haveI : finite_dimensional L F := finite_dimensional.right K L F,
-  haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
+  letI : finite_dimensional L F := finite_dimensional.right K L F,
+  letI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
   letI : fintype (L →ₐ[K] E) := power_basis.alg_hom.fintype pb,
   letI : ∀ (f : L →ₐ[K] E), fintype (@@alg_hom L F E _ _ _ _ f.to_ring_hom.to_algebra) := _,
   rw [fintype.prod_equiv alg_hom_equiv_sigma (λ (σ : F →ₐ[K] E), _) (λ σ, σ.1 pb.gen),
@@ -281,7 +281,7 @@ begin
   rw [norm_eq_norm_adjoin K x, ring_hom.map_pow, ← adjoin.power_basis_gen hx,
     norm_eq_prod_embeddings_gen E (adjoin.power_basis hx) (is_alg_closed.splits_codomain _)],
   { exact (prod_embeddings_eq_finrank_pow L E (adjoin.power_basis hx)).symm },
-  { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
+  { letI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
     exact is_separable.separable K _ }
 end
 

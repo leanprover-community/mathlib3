@@ -19,7 +19,7 @@ by transport using e
 -- Verify definitional equality of the new structure data.
 example {α : Type} [semilattice_sup α] {β : Type} (e : α ≃ β) (x y : β) :
 begin
-  haveI := sup.map e,
+  letI := sup.map e,
   exact (x ≤ y) = (e.symm x ≤ e.symm y),
 end :=
 rfl

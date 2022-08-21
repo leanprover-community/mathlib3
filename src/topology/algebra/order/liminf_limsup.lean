@@ -149,7 +149,7 @@ theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : �
   (h' : f.is_bounded_under (≥) u . is_bounded_default) :
   tendsto u f (𝓝 a) :=
 if hf : f = ⊥ then hf.symm ▸ tendsto_bot
-else by haveI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
+else by letI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
   (le_antisymm (le_trans (liminf_le_limsup h h') hsup) hinf)
   (le_antisymm hsup (le_trans hinf (liminf_le_limsup h h'))) h h'
 
@@ -165,7 +165,7 @@ lemma tendsto_of_no_upcrossings [densely_ordered α]
   ∃ (c : α), tendsto u f (𝓝 c) :=
 begin
   by_cases hbot : f = ⊥, { rw hbot, exact ⟨Inf ∅, tendsto_bot⟩ },
-  haveI : ne_bot f := ⟨hbot⟩,
+  letI : ne_bot f := ⟨hbot⟩,
   refine ⟨limsup f u, _⟩,
   apply tendsto_of_le_liminf_of_limsup_le _ le_rfl h h',
   by_contra' hlt,

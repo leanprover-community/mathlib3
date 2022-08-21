@@ -93,13 +93,13 @@ lemma mem_ess_image_of_unit_is_split_mono [reflective i] {A : C}
   [is_split_mono ((of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 begin
   let η : 𝟭 C ⟶ left_adjoint i ⋙ i := (of_right_adjoint i).unit,
-  haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (i.obj_mem_ess_image _).unit_is_iso,
+  letI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (i.obj_mem_ess_image _).unit_is_iso,
   have : epi (η.app A),
   { apply epi_of_epi (retraction (η.app A)) _,
     rw (show retraction _ ≫ η.app A = _, from η.naturality (retraction (η.app A))),
     apply epi_comp (η.app (i.obj ((left_adjoint i).obj A))) },
   resetI,
-  haveI := is_iso_of_epi_of_is_split_mono (η.app A),
+  letI := is_iso_of_epi_of_is_split_mono (η.app A),
   exact mem_ess_image_of_unit_is_iso A,
 end
 

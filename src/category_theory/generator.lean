@@ -244,7 +244,7 @@ lemma is_separating_iff_epi (𝒢 : set C)
 begin
   refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ G hG f, _)⟩, λ h X Y f g hh, _⟩,
   { simpa using (sigma.ι (λ f : Σ G : 𝒢, (G : C) ⟶ A, (f.1 : C)) ⟨⟨G, hG⟩, f⟩) ≫= huv },
-  { haveI := h X,
+  { letI := h X,
     refine (cancel_epi (sigma.desc (@sigma.snd 𝒢 (λ G, (G : C) ⟶ X)))).1 (colimit.hom_ext (λ j, _)),
     simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
 end
@@ -255,7 +255,7 @@ lemma is_coseparating_iff_mono (𝒢 : set C)
 begin
   refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ G hG f, _)⟩, λ h X Y f g hh, _⟩,
   { simpa using huv =≫ (pi.π (λ f : Σ G : 𝒢, A ⟶ (G : C), (f.1 : C)) ⟨⟨G, hG⟩, f⟩) },
-  { haveI := h Y,
+  { letI := h Y,
     refine (cancel_mono (pi.lift (@sigma.snd 𝒢 (λ G, Y ⟶ (G : C))))).1 (limit.hom_ext (λ j, _)),
     simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
 end
@@ -267,15 +267,15 @@ end
 lemma has_initial_of_is_cosepatating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v} 𝒢]
   (h𝒢 : is_coseparating 𝒢) : has_initial C :=
 begin
-  haveI := has_products_of_shape_of_small C 𝒢,
-  haveI := λ A, has_products_of_shape_of_small.{v} C (Σ G : 𝒢, A ⟶ (G : C)),
+  letI := has_products_of_shape_of_small C 𝒢,
+  letI := λ A, has_products_of_shape_of_small.{v} C (Σ G : 𝒢, A ⟶ (G : C)),
   letI := complete_lattice_of_complete_semilattice_Inf (subobject (pi_obj (coe : 𝒢 → C))),
   suffices : ∀ A : C, unique (((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) ⟶ A),
   { exactI has_initial_of_unique ((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) },
   refine λ A, ⟨⟨_⟩, λ f, _⟩,
   { let s := pi.lift (λ f : Σ G : 𝒢, A ⟶ (G : C), id (pi.π (coe : 𝒢 → C)) f.1),
     let t := pi.lift (@sigma.snd 𝒢 (λ G, A ⟶ (G : C))),
-    haveI : mono t := (is_coseparating_iff_mono 𝒢).1 h𝒢 A,
+    letI : mono t := (is_coseparating_iff_mono 𝒢).1 h𝒢 A,
     exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
   { generalize : default = g,
     suffices : is_split_epi (equalizer.ι f g),
@@ -291,9 +291,9 @@ end
 lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v} 𝒢]
   (h𝒢 : is_separating 𝒢) : has_terminal C :=
 begin
-  haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
-  haveI : small.{v} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
-  haveI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating ((is_coseparating_op_iff _).2 h𝒢),
+  letI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
+  letI : small.{v} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
+  letI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating ((is_coseparating_op_iff _).2 h𝒢),
   exact has_terminal_of_has_initial_op
 end
 
@@ -445,7 +445,7 @@ begin
   rw is_separator_def,
   refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
   { simpa using (sigma.ι _ i) ≫= huv },
-  { haveI := h X,
+  { letI := h X,
     refine (cancel_epi (sigma.desc (λ (f : G ⟶ X), f))).1 (colimit.hom_ext (λ j, _)),
     simpa using hh j.as }
 end
@@ -456,7 +456,7 @@ begin
   rw is_coseparator_def,
   refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
   { simpa using huv =≫ (pi.π _ i) },
-  { haveI := h Y,
+  { letI := h Y,
     refine (cancel_mono (pi.lift (λ (f : Y ⟶ G), f))).1 (limit.hom_ext (λ j, _)),
     simpa using hh j.as }
 end

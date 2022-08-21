@@ -297,7 +297,7 @@ end comm_ring
 @[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [fintype ι]
   (b : basis ι R M) (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.coord f (b i) = f i :=
-by { haveI := classical.dec_eq ι, rw [← coe_dual_basis, total_dual_basis] }
+by { letI := classical.dec_eq ι, rw [← coe_dual_basis, total_dual_basis] }
 
 -- TODO(jmc): generalize to rings, once `module.rank` is generalized
 theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : basis ι K V) :
@@ -373,7 +373,7 @@ variables {e : ι → M} {ε : ι → dual R M}
 /-- The coefficients of `v` on the basis `e` -/
 def coeffs [decidable_eq ι] (h : dual_pair e ε) (m : M) : ι →₀ R :=
 { to_fun := λ i, ε i m,
-  support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finset },
+  support := by { letI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finset },
   mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
 
 @[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_pair e ε) (m : M) (i : ι) :

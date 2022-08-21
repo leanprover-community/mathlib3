@@ -42,9 +42,9 @@ pullback ((pullback.fst : pullback ((𝒰.map i) ≫ f) g ⟶ _) ≫ (𝒰.map i
 that pullbacks are associative and symmetric. -/
 def t (i j : 𝒰.J) : V 𝒰 f g i j ⟶ V 𝒰 f g j i :=
 begin
-  haveI : has_pullback (pullback.snd ≫ 𝒰.map i ≫ f) g :=
+  letI : has_pullback (pullback.snd ≫ 𝒰.map i ≫ f) g :=
     has_pullback_assoc_symm (𝒰.map j) (𝒰.map i) (𝒰.map i ≫ f) g,
-  haveI : has_pullback (pullback.snd ≫ 𝒰.map j ≫ f) g :=
+  letI : has_pullback (pullback.snd ≫ 𝒰.map j ≫ f) g :=
     has_pullback_assoc_symm (𝒰.map i) (𝒰.map j) (𝒰.map j ≫ f) g,
   refine (pullback_symmetry _ _).hom ≫ _,
   refine (pullback_assoc _ _ _ _).inv ≫ _,

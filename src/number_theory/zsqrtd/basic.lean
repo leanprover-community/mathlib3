@@ -725,7 +725,7 @@ begin
   rw sub_eq_zero at ha,
   by_cases h : 0 ≤ d,
   { obtain ⟨d', rfl⟩ := int.eq_coe_of_zero_le h,
-    haveI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
+    letI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
     exact divides_sq_eq_zero_z ha, },
   { push_neg at h,
     suffices : a.re * a.re = 0,

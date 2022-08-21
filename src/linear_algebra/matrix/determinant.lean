@@ -95,7 +95,7 @@ by { ext, exact det_is_empty, }
 
 lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
 begin
-  haveI : is_empty n := fintype.card_eq_zero_iff.mp h,
+  letI : is_empty n := fintype.card_eq_zero_iff.mp h,
   exact det_is_empty,
 end
 
@@ -117,7 +117,7 @@ end
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin
-  haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
+  letI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
   exact det_eq_elem_of_subsingleton _ _
 end
 

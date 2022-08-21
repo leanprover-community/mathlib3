@@ -348,9 +348,9 @@ instance reflects_cone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : 
 begin
   constructor,
   introsI,
-  haveI : is_iso (F.map f.hom) :=
+  letI : is_iso (F.map f.hom) :=
     (cones.forget (K ⋙ F)).map_is_iso ((cones.functoriality K F).map f),
-  haveI := reflects_isomorphisms.reflects F f.hom,
+  letI := reflects_isomorphisms.reflects F f.hom,
   apply cone_iso_of_hom_iso
 end
 
@@ -520,9 +520,9 @@ instance reflects_cocone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K 
 begin
   constructor,
   introsI,
-  haveI : is_iso (F.map f.hom) :=
+  letI : is_iso (F.map f.hom) :=
     (cocones.forget (K ⋙ F)).map_is_iso ((cocones.functoriality K F).map f),
-  haveI := reflects_isomorphisms.reflects F f.hom,
+  letI := reflects_isomorphisms.reflects F f.hom,
   apply cocone_iso_of_hom_iso
 end
 

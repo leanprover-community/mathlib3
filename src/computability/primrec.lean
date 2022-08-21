@@ -217,12 +217,12 @@ theorem option_some_iff {f : α → σ} : primrec (λ a, some (f a)) ↔ primrec
 ⟨λ h, encode_iff.1 $ pred.comp $ encode_iff.2 h, option_some.comp⟩
 
 theorem of_equiv {β} {e : β ≃ α} :
-  by haveI := primcodable.of_equiv α e; exact
+  by letI := primcodable.of_equiv α e; exact
   primrec e :=
 by letI : primcodable β := primcodable.of_equiv α e; exact encode_iff.1 primrec.encode
 
 theorem of_equiv_symm {β} {e : β ≃ α} :
-  by haveI := primcodable.of_equiv α e; exact
+  by letI := primcodable.of_equiv α e; exact
   primrec e.symm :=
 by letI := primcodable.of_equiv α e; exact
 encode_iff.1
@@ -230,14 +230,14 @@ encode_iff.1
 
 theorem of_equiv_iff {β} (e : β ≃ α)
   {f : σ → β} :
-  by haveI := primcodable.of_equiv α e; exact
+  by letI := primcodable.of_equiv α e; exact
   primrec (λ a, e (f a)) ↔ primrec f :=
 by letI := primcodable.of_equiv α e; exact
 ⟨λ h, (of_equiv_symm.comp h).of_eq (λ a, by simp), of_equiv.comp⟩
 
 theorem of_equiv_symm_iff {β} (e : β ≃ α)
   {f : σ → α} :
-  by haveI := primcodable.of_equiv α e; exact
+  by letI := primcodable.of_equiv α e; exact
   primrec (λ a, e.symm (f a)) ↔ primrec f :=
 by letI := primcodable.of_equiv α e; exact
 ⟨λ h, (of_equiv.comp h).of_eq (λ a, by simp), of_equiv_symm.comp⟩
@@ -650,7 +650,7 @@ theorem list_index_of₁ [decidable_eq α] (l : list α) :
 theorem dom_fintype [fintype α] (f : α → σ) : primrec f :=
 let ⟨l, nd, m⟩ := finite.exists_univ_list α in
 option_some_iff.1 $ begin
-  haveI := decidable_eq_of_encodable α,
+  letI := decidable_eq_of_encodable α,
   refine ((list_nth₁ (l.map f)).comp (list_index_of₁ l)).of_eq (λ a, _),
   rw [list.nth_map, list.nth_le_nth (list.index_of_lt_length.2 (m _)),
       list.index_of_nth_le]; refl
@@ -735,8 +735,8 @@ private def prim : primcodable (list β) := ⟨H⟩
 
 private lemma list_cases'
   {f : α → list β} {g : α → σ} {h : α → β × list β → σ}
-  (hf : by haveI := prim H; exact primrec f) (hg : primrec g)
-  (hh : by haveI := prim H; exact primrec₂ h) :
+  (hf : by letI := prim H; exact primrec f) (hg : primrec g)
+  (hh : by letI := prim H; exact primrec₂ h) :
   @primrec _ σ _ _ (λ a, list.cases_on (f a) (g a) (λ b l, h a (b, l))) :=
 by letI := prim H; exact
 have @primrec _ (option σ) _ _ (λ a,
@@ -751,8 +751,8 @@ option_some_iff.1 $ this.of_eq $
 
 private lemma list_foldl'
   {f : α → list β} {g : α → σ} {h : α → σ × β → σ}
-  (hf : by haveI := prim H; exact primrec f) (hg : primrec g)
-  (hh : by haveI := prim H; exact primrec₂ h) :
+  (hf : by letI := prim H; exact primrec f) (hg : primrec g)
+  (hh : by letI := prim H; exact primrec₂ h) :
   primrec (λ a, (f a).foldl (λ s b, h a (s, b)) (g a)) :=
 by letI := prim H; exact
 let G (a : α) (IH : σ × list β) : σ × list β :=
@@ -775,12 +775,12 @@ this.of_eq $ λ a, begin
   rw [this, list.take_all_of_le (length_le_encode _)]
 end
 
-private lemma list_cons' : by haveI := prim H; exact primrec₂ (@list.cons β) :=
+private lemma list_cons' : by letI := prim H; exact primrec₂ (@list.cons β) :=
 by letI := prim H; exact
 encode_iff.1 (succ.comp $
 primrec₂.mkpair.comp (encode_iff.2 fst) (encode_iff.2 snd))
 
-private lemma list_reverse' : by haveI := prim H; exact
+private lemma list_reverse' : by letI := prim H; exact
   primrec (@list.reverse β) :=
 by letI := prim H; exact
 (list_foldl' H primrec.id (const []) $ to₂ $
@@ -1068,7 +1068,7 @@ variables [primcodable α] [primcodable β] [primcodable γ] [primcodable σ]
 
 theorem subtype_val {p : α → Prop} [decidable_pred p]
   {hp : primrec_pred p} :
-  by haveI := primcodable.subtype hp; exact
+  by letI := primcodable.subtype hp; exact
   primrec (@subtype.val α p) :=
 begin
   letI := primcodable.subtype hp,
@@ -1078,7 +1078,7 @@ end
 
 theorem subtype_val_iff {p : β → Prop} [decidable_pred p]
   {hp : primrec_pred p} {f : α → subtype p} :
-  by haveI := primcodable.subtype hp; exact
+  by letI := primcodable.subtype hp; exact
   primrec (λ a, (f a).1) ↔ primrec f :=
 begin
   letI := primcodable.subtype hp,
@@ -1090,7 +1090,7 @@ end
 
 theorem subtype_mk {p : β → Prop} [decidable_pred p] {hp : primrec_pred p}
   {f : α → β} {h : ∀ a, p (f a)} (hf : primrec f) :
-  by haveI := primcodable.subtype hp; exact
+  by letI := primcodable.subtype hp; exact
   primrec (λ a, @subtype.mk β p (f a) (h a)) :=
 subtype_val_iff.1 hf
 

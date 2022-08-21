@@ -107,7 +107,7 @@ by { rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, ←to_matrix_lmul_eq
 lemma trace_algebra_map_of_basis (x : R) :
   trace R S (algebra_map R S x) = fintype.card ι • x :=
 begin
-  haveI := classical.dec_eq ι,
+  letI := classical.dec_eq ι,
   rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
@@ -132,8 +132,8 @@ lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
   (b : basis ι R S) (c : basis κ S T) (x : T) :
   trace R S (trace S T x) = trace R T x :=
 begin
-  haveI := classical.dec_eq ι,
-  haveI := classical.dec_eq κ,
+  letI := classical.dec_eq ι,
+  letI := classical.dec_eq κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
       matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
@@ -203,7 +203,7 @@ lemma power_basis.trace_gen_eq_next_coeff_minpoly [nontrivial S] (pb : power_bas
 begin
   have d_pos : 0 < pb.dim := power_basis.dim_pos pb,
   have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
-  haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
+  letI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
   rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
       ← pb.nat_degree_minpoly, fintype.card_fin, ← next_coeff_of_pos_nat_degree _ d_pos']
 end
@@ -330,8 +330,8 @@ lemma sum_embeddings_eq_finrank_mul [finite_dimensional K F] [is_separable K F]
     finrank L F • (@@finset.univ (power_basis.alg_hom.fintype pb)).sum
       (λ σ : L →ₐ[K] E, σ pb.gen) :=
 begin
-  haveI : finite_dimensional L F := finite_dimensional.right K L F,
-  haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
+  letI : finite_dimensional L F := finite_dimensional.right K L F,
+  letI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
   letI : fintype (L →ₐ[K] E) := power_basis.alg_hom.fintype pb,
   letI : ∀ (f : L →ₐ[K] E), fintype (@@alg_hom L F E _ _ _ _ f.to_ring_hom.to_algebra) :=
     _, -- will be solved by unification
@@ -354,7 +354,7 @@ begin
       trace_eq_sum_embeddings_gen E (adjoin.power_basis hx) (is_alg_closed.splits_codomain _),
       ← algebra.smul_def, algebra_map_smul],
   { exact (sum_embeddings_eq_finrank_mul L E (adjoin.power_basis hx)).symm },
-  { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
+  { letI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
     exact is_separable.separable K _ }
 end
 
@@ -507,7 +507,7 @@ begin
   suffices : algebra_map K (algebraic_closure L) (det (trace_matrix K pb.basis)) ≠ 0,
   { refine mt (λ ht, _) this,
     rw [ht, ring_hom.map_zero] },
-  haveI : finite_dimensional K L := pb.finite_dimensional,
+  letI : finite_dimensional K L := pb.finite_dimensional,
   let e : fin pb.dim ≃ (L →ₐ[K] algebraic_closure L) := (fintype.equiv_fin_of_card_eq _).symm,
   rw [ring_hom.map_det, ring_hom.map_matrix_apply,
       trace_matrix_eq_embeddings_matrix_reindex_mul_trans K _ _ e,
@@ -522,7 +522,7 @@ end
 lemma det_trace_form_ne_zero [is_separable K L] [decidable_eq ι] (b : basis ι K L) :
   det (bilin_form.to_matrix b (trace_form K L)) ≠ 0 :=
 begin
-  haveI : finite_dimensional K L := finite_dimensional.of_fintype_basis b,
+  letI : finite_dimensional K L := finite_dimensional.of_fintype_basis b,
   let pb : power_basis K L := field.power_basis_of_finite_of_separable _ _,
   rw [← bilin_form.to_matrix_mul_basis_to_matrix pb.basis b,
       ← det_comm' (pb.basis.to_matrix_mul_to_matrix_flip b) _,

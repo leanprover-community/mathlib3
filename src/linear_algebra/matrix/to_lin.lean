@@ -492,7 +492,7 @@ lemma matrix.to_lin_mul [fintype l] [decidable_eq m] (A : matrix l m R) (B : mat
   (matrix.to_lin v₂ v₃ A).comp (matrix.to_lin v₁ v₂ B) :=
 begin
   apply (linear_map.to_matrix v₁ v₃).injective,
-  haveI : decidable_eq l := λ _ _, classical.prop_decidable _,
+  letI : decidable_eq l := λ _ _, classical.prop_decidable _,
   rw linear_map.to_matrix_comp v₁ v₂ v₃,
   repeat { rw linear_map.to_matrix_to_lin },
 end

@@ -229,7 +229,7 @@ theorem fg_of_fg_map_of_fg_inf_ker {R M P : Type*} [ring R] [add_comm_group M] [
   [add_comm_group P] [module R P] (f : M →ₗ[R] P)
   {s : submodule R M} (hs1 : (s.map f).fg) (hs2 : (s ⊓ f.ker).fg) : s.fg :=
 begin
-  haveI := classical.dec_eq R, haveI := classical.dec_eq M, haveI := classical.dec_eq P,
+  letI := classical.dec_eq R, letI := classical.dec_eq M, letI := classical.dec_eq P,
   cases hs1 with t1 ht1, cases hs2 with t2 ht2,
   have : ∀ y ∈ t1, ∃ x ∈ s, f x = y,
   { intros y hy,
@@ -260,7 +260,7 @@ begin
     x - finsupp.total M M R id ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l),
     _, add_sub_cancel'_right _ _⟩,
   { rw [← set.image_id (g '' ↑t1), finsupp.mem_span_image_iff_total], refine ⟨_, _, rfl⟩,
-    haveI : inhabited P := ⟨0⟩,
+    letI : inhabited P := ⟨0⟩,
     rw [← finsupp.lmap_domain_supported _ _ g, mem_map],
     refine ⟨l, hl1, _⟩,
     refl, },
@@ -514,7 +514,7 @@ instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
 begin
-  haveI := classical.dec_eq ι,
+  letI := classical.dec_eq ι,
   suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
   { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
     letI : is_noetherian R (Π i : finset.univ, M (coe_e i)) := on_finset finset.univ,
@@ -782,7 +782,7 @@ instance is_noetherian_of_finite (R M) [finite M] [semiring R] [add_comm_monoid 
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_of_subsingleton (R M) [subsingleton R] [semiring R] [add_comm_monoid M]
   [module R M] : is_noetherian R M :=
-by { haveI := module.subsingleton R M, exact is_noetherian_of_finite R M }
+by { letI := module.subsingleton R M, exact is_noetherian_of_finite R M }
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
@@ -816,8 +816,8 @@ theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [mod
   (N : submodule R M) [is_noetherian_ring R] (hN : N.fg) : is_noetherian R N :=
 let ⟨s, hs⟩ := hN in
 begin
-  haveI := classical.dec_eq M,
-  haveI := classical.dec_eq R,
+  letI := classical.dec_eq M,
+  letI := classical.dec_eq R,
   letI : is_noetherian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _ _ _)

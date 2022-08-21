@@ -65,7 +65,7 @@ end
 theorem exists_primitive_element_of_finite_bot [finite F] [finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  haveI : finite E := finite_of_finite F E,
+  letI : finite E := finite_of_finite F E,
   exact exists_primitive_element_of_finite_top F E
 end
 
@@ -181,7 +181,7 @@ begin
     { intros K β hK,
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
-      haveI : infinite F := is_empty_fintype.mp F_inf,
+      letI : infinite F := is_empty_fintype.mp F_inf,
       cases primitive_element_inf_aux F α β with γ hγ,
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },

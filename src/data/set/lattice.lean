@@ -707,7 +707,7 @@ by rw [bInter_insert, bInter_singleton]
 lemma bInter_inter {ι α : Type*} {s : set ι} (hs : s.nonempty) (f : ι → set α) (t : set α) :
   (⋂ i ∈ s, f i ∩ t) = (⋂ i ∈ s, f i) ∩ t :=
 begin
-  haveI : nonempty s := hs.to_subtype,
+  letI : nonempty s := hs.to_subtype,
   simp [bInter_eq_Inter, ← Inter_inter]
 end
 
@@ -1168,7 +1168,7 @@ lemma inj_on.image_bInter_eq {p : ι → Prop} {s : Π i (hi : p i), set α} (hp
   f '' (⋂ i hi, s i hi) = ⋂ i hi, f '' (s i hi) :=
 begin
   simp only [Inter, infi_subtype'],
-  haveI : nonempty {i // p i} := nonempty_subtype.2 hp,
+  letI : nonempty {i // p i} := nonempty_subtype.2 hp,
   apply inj_on.image_Inter_eq,
   simpa only [Union, supr_subtype'] using h
 end

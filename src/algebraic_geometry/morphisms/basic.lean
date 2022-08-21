@@ -114,7 +114,7 @@ def target_affine_locally (P : affine_target_morphism_property) : morphism_prope
 lemma is_affine_open.map_is_iso {X Y : Scheme} {U : opens Y.carrier} (hU : is_affine_open U)
   (f : X ⟶ Y) [is_iso f] : is_affine_open ((opens.map f.1.base).obj U) :=
 begin
-  haveI : is_affine _ := hU,
+  letI : is_affine _ := hU,
   exact is_affine_of_iso (f ∣_ U),
 end
 
@@ -127,8 +127,8 @@ begin
     exact H U },
   { introv H,
     rintro ⟨U, hU : is_affine_open U⟩, dsimp,
-    haveI : is_affine _ := hU,
-    haveI : is_affine _ := hU.map_is_iso e.hom,
+    letI : is_affine _ := hU,
+    letI : is_affine _ := hU.map_is_iso e.hom,
     rw [morphism_restrict_comp, affine_cancel_right_is_iso hP],
     exact H ⟨(opens.map e.hom.val.base).obj U, hU.map_is_iso e.hom⟩ }
 end
@@ -163,13 +163,13 @@ begin
   intro U,
   apply of_affine_open_cover U (set.range S),
   { intros U r h,
-    haveI : is_affine _ := U.2,
+    letI : is_affine _ := U.2,
     have := hP.2 (f ∣_ U.1),
     replace this := this (Y.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op r) h,
     rw ← P.to_property_apply at this ⊢,
     exact (hP.1.arrow_mk_iso_iff (morphism_restrict_restrict_basic_open f _ r)).mp this },
   { intros U s hs H,
-    haveI : is_affine _ := U.2,
+    letI : is_affine _ := U.2,
     apply hP.3 (f ∣_ U.1) (s.image (Y.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op)),
     { apply_fun ideal.comap (Y.presheaf.map (eq_to_hom U.1.open_embedding_obj_top.symm).op) at hs,
       rw ideal.comap_top at hs,
@@ -250,7 +250,7 @@ begin
   refine ⟨hP, _, _⟩,
   { introv h,
     resetI,
-    haveI : is_affine _ := (top_is_affine_open Y).basic_open_is_affine r,
+    letI : is_affine _ := (top_is_affine_open Y).basic_open_is_affine r,
     delta morphism_restrict,
     rw affine_cancel_left_is_iso hP,
     refine @@H f ⟨Scheme.open_cover_of_is_iso (𝟙 Y), _, _⟩ (Y.of_restrict _) _inst _,
@@ -266,7 +266,7 @@ begin
     { intro i, exact (top_is_affine_open Y).basic_open_is_affine _ },
     { rintro (i : s),
       specialize hs' i,
-      haveI : is_affine _ := (top_is_affine_open Y).basic_open_is_affine i.1,
+      letI : is_affine _ := (top_is_affine_open Y).basic_open_is_affine i.1,
       delta morphism_restrict at hs',
       rwa affine_cancel_left_is_iso hP at hs' } }
 end

@@ -197,7 +197,7 @@ lemma lintegral_eq_zero_of_is_mul_left_invariant [regular μ] (hμ : μ ≠ 0)
   {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
 begin
-  haveI := is_open_pos_measure_of_mul_left_invariant_of_regular hμ,
+  letI := is_open_pos_measure_of_mul_left_invariant_of_regular hμ,
   rw [lintegral_eq_zero_iff hf.measurable, hf.ae_eq_iff_eq μ continuous_zero]
 end
 

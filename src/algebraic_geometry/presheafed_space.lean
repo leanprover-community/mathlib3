@@ -282,14 +282,14 @@ def of_restrict {U : Top} (X : PresheafedSpace.{v v u} C)
 instance of_restrict_mono {U : Top} (X : PresheafedSpace C) (f : U ⟶ X.1)
    (hf : open_embedding f) : mono (X.of_restrict hf) :=
  begin
-   haveI : mono f := (Top.mono_iff_injective _).mpr hf.inj,
+   letI : mono f := (Top.mono_iff_injective _).mpr hf.inj,
    constructor,
    intros Z g₁ g₂ eq,
    ext V,
    { induction V using opposite.rec,
      have hV : (opens.map (X.of_restrict hf).base).obj (hf.is_open_map.functor.obj V) = V,
      { cases V, simp[opens.map, set.preimage_image_eq _ hf.inj] },
-     haveI : is_iso (hf.is_open_map.adjunction.counit.app
+     letI : is_iso (hf.is_open_map.adjunction.counit.app
                (unop (op (hf.is_open_map.functor.obj V)))) :=
        (nat_iso.is_iso_app_of_is_iso (whisker_left
          hf.is_open_map.functor hf.is_open_map.adjunction.counit) V : _),

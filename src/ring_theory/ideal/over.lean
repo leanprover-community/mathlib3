@@ -276,7 +276,7 @@ lemma is_maximal_comap_of_is_integral_of_is_maximal (hRS : algebra.is_integral R
   (I : ideal S) [hI : I.is_maximal] : is_maximal (I.comap (algebra_map R S)) :=
 begin
   refine quotient.maximal_of_is_field _ _,
-  haveI : is_prime (I.comap (algebra_map R S)) := comap_is_prime _ _,
+  letI : is_prime (I.comap (algebra_map R S)) := comap_is_prime _ _,
   exact is_field_of_is_integral_of_is_field (is_integral_quotient_of_is_integral hRS)
     algebra_map_quotient_injective (by rwa ← quotient.maximal_ideal_iff_is_field_quotient),
 end
@@ -350,7 +350,7 @@ begin
   letI : is_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
     is_localization.is_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
-  haveI Qₚ_max : is_maximal (comap _ Qₚ) :=
+  letI Qₚ_max : is_maximal (comap _ Qₚ) :=
     @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
       (localization_algebra P.prime_compl S)
       (is_integral_localization H) _ Qₚ_maximal,
@@ -381,7 +381,7 @@ begin
       (le_trans
         (le_of_eq ((ring_hom.injective_iff_ker_eq_bot _).1 algebra_map_quotient_injective))
         bot_le),
-  haveI := Q'_prime,
+  letI := Q'_prime,
   refine ⟨Q'.comap _, le_trans (le_of_eq mk_ker.symm) (ker_le_comap _), ⟨comap_is_prime _ Q', _⟩⟩,
   rw comap_comap,
   refine trans _ (trans (congr_arg (comap (quotient.mk (comap (algebra_map R S) I))) hQ') _),
@@ -397,7 +397,7 @@ lemma exists_ideal_over_maximal_of_is_integral [is_domain S] (H : algebra.is_int
   ∃ (Q : ideal S), is_maximal Q ∧ Q.comap (algebra_map R S) = P :=
 begin
   obtain ⟨Q, ⟨Q_prime, hQ⟩⟩ := exists_ideal_over_prime_of_is_integral' H P hP,
-  haveI : Q.is_prime := Q_prime,
+  letI : Q.is_prime := Q_prime,
   exact ⟨Q, is_maximal_of_is_integral_of_is_maximal_comap H _ (hQ.symm ▸ P_max), hQ⟩,
 end
 

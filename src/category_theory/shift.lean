@@ -232,7 +232,7 @@ faithful.of_comp_iso (shift_functor_comp_shift_functor_neg C i)
 /-- Shifting by `n` is a full functor. -/
 instance shift_functor_full (i : A) : full (shift_functor C i) :=
 begin
-  haveI : full (shift_functor C i ⋙ shift_functor C (-i)) :=
+  letI : full (shift_functor C i ⋙ shift_functor C (-i)) :=
     full.of_iso (shift_functor_comp_shift_functor_neg C i).symm,
   exact full.of_comp_faithful _ (shift_functor C (-i))
 end
@@ -428,7 +428,7 @@ the inclusion functor intertwines the shifts. -/
 def has_shift_of_fully_faithful_comm
   (s : A → C ⥤ C) (i : ∀ i, s i ⋙ F ≅ F ⋙ shift_functor D i) (m : A) :
   begin
-    haveI := has_shift_of_fully_faithful F s i,
+    letI := has_shift_of_fully_faithful F s i,
     exact (shift_functor C m) ⋙ F ≅ F ⋙ shift_functor D m
   end :=
 i m

@@ -292,8 +292,8 @@ lemma is_fraction_ring_of_is_domain_of_is_localization [is_domain R] (S T : Type
   [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] [algebra S T]
   [is_scalar_tower R S T] [is_localization M S] [is_fraction_ring R T] : is_fraction_ring S T :=
 begin
-  haveI := is_fraction_ring.nontrivial R T,
-  haveI := (algebra_map S T).domain_nontrivial,
+  letI := is_fraction_ring.nontrivial R T,
+  letI := (algebra_map S T).domain_nontrivial,
   apply is_fraction_ring_of_is_localization M S T,
   intros x hx,
   rw mem_non_zero_divisors_iff_ne_zero,

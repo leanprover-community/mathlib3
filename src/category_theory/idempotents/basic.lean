@@ -76,7 +76,7 @@ begin
   { intro h,
     refine ⟨_⟩,
     intros X p hp,
-    haveI := h X p hp,
+    letI := h X p hp,
     use equalizer (𝟙 X) p,
     use equalizer.ι (𝟙 X) p,
     use equalizer.lift p (show p ≫ 𝟙 X = p ≫ p, by rw [hp, comp_id]),
@@ -106,11 +106,11 @@ begin
   rw is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent,
   split,
   { intros h X p hp,
-    haveI := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
+    letI := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
     convert has_kernel_of_has_equalizer (𝟙 X) (𝟙 X - p),
     rw [sub_sub_cancel], },
   { intros h X p hp,
-    haveI : has_kernel (𝟙 _ - p) := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
+    letI : has_kernel (𝟙 _ - p) := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
     apply preadditive.has_equalizer_of_has_kernel, },
 end
 

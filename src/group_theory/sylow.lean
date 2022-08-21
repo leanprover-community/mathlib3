@@ -256,7 +256,7 @@ begin
       ↔ P.1 ≤ Q : P.2.sylow_mem_fixed_points_iff
   ... ↔ Q.1 = P.1 : ⟨P.3 Q.2, ge_of_eq⟩
   ... ↔ Q ∈ {P} : sylow.ext_iff.symm.trans set.mem_singleton_iff.symm),
-  haveI : fintype (fixed_points P.1 (sylow p G)), { rw this, apply_instance },
+  letI : fintype (fixed_points P.1 (sylow p G)), { rw this, apply_instance },
   have : card (fixed_points P.1 (sylow p G)) = 1, { simp [this] },
   exact (P.2.card_modeq_card_fixed_points (sylow p G)).trans (by rw this),
 end
@@ -315,7 +315,7 @@ lemma not_dvd_index_sylow' [hp : fact p.prime] (P : sylow p G) [(P : subgroup G)
   (hP : (P : subgroup G).index ≠ 0) : ¬ p ∣ (P : subgroup G).index :=
 begin
   intro h,
-  haveI : fintype (G ⧸ (P : subgroup G)) := fintype_of_index_ne_zero hP,
+  letI : fintype (G ⧸ (P : subgroup G)) := fintype_of_index_ne_zero hP,
   rw index_eq_card at h,
   obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
   have h := is_p_group.of_card ((order_eq_card_zpowers.symm.trans hx).trans (pow_one p).symm),
@@ -335,7 +335,7 @@ lemma not_dvd_index_sylow [hp : fact p.prime] [finite (sylow p G)] (P : sylow p 
 begin
   casesI nonempty_fintype (sylow p G),
   rw [←relindex_mul_index le_normalizer, ←card_sylow_eq_index_normalizer],
-  haveI : (P.subtype le_normalizer : subgroup (P : subgroup G).normalizer).normal :=
+  letI : (P.subtype le_normalizer : subgroup (P : subgroup G).normalizer).normal :=
   subgroup.normal_in_normalizer,
   replace hP := not_dvd_index_sylow' (P.subtype le_normalizer) hP,
   exact hp.1.not_dvd_mul hP (not_dvd_card_sylow p G),
@@ -584,7 +584,7 @@ lemma characteristic_of_normal {p : ℕ} [fact p.prime] [finite (sylow p G)] (P 
   (h : (P : subgroup G).normal) :
   (P : subgroup G).characteristic :=
 begin
-  haveI := sylow.subsingleton_of_normal P h,
+  letI := sylow.subsingleton_of_normal P h,
   rw characteristic_iff_map_eq,
   intros Φ,
   show (Φ • P).to_subgroup = P.to_subgroup,
@@ -616,7 +616,7 @@ lemma normal_of_all_max_subgroups_normal [finite G]
 normalizer_eq_top.mp begin
   rcases eq_top_or_exists_le_coatom ((↑P : subgroup G).normalizer) with heq | ⟨K, hK, hNK⟩,
   { exact heq },
-  { haveI := hnc _ hK,
+  { letI := hnc _ hK,
     have hPK := le_trans le_normalizer hNK,
     let P' := P.subtype hPK,
     exfalso,
@@ -649,8 +649,8 @@ begin
 
   have hcomm : pairwise (λ (p₁ p₂ : ps), ∀ (x y : G), x ∈ P p₁ → y ∈ P p₂ → commute x y),
   { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
-    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
-    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    letI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    letI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
     have hne' : p₁ ≠ p₂, by simpa using hne,
     apply subgroup.commute_of_normal_of_disjoint _ _ (hn (P p₁)) (hn (P p₂)),
     apply is_p_group.disjoint_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
@@ -661,8 +661,8 @@ begin
   { -- here we need to help the elaborator with an explicit instantiation
     apply @mul_equiv.Pi_congr_right ps (λ p, (Π P : sylow p G, P)) (λ p, P p) _ _ ,
     rintro ⟨p, hp⟩,
-    haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
-    haveI := subsingleton_of_normal _ (hn (P p)),
+    letI hp' := fact.mk (nat.prime_of_mem_factorization hp),
+    letI := subsingleton_of_normal _ (hn (P p)),
     change (Π (P : sylow p G), P) ≃* P p,
     exact mul_equiv.Pi_subsingleton _ _, },
 
@@ -675,8 +675,8 @@ begin
   { apply subgroup.injective_noncomm_pi_coprod_of_independent,
     apply independent_of_coprime_order hcomm,
     rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
-    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
-    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    letI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    letI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
     have hne' : p₁ ≠ p₂, by simpa using hne,
     apply is_p_group.coprime_card_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
 

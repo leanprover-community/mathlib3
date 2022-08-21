@@ -211,10 +211,10 @@ begin
         exact hj.elim' (C.π.app j x) } },
     simp only [← not_nonempty_iff, ← not_forall],
     intros h,
-    haveI : ∀ j : J, nonempty ((F ⋙ Profinite.to_Top).obj j) := h,
-    haveI : ∀ j : J, t2_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
+    letI : ∀ j : J, nonempty ((F ⋙ Profinite.to_Top).obj j) := h,
+    letI : ∀ j : J, t2_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
       (infer_instance : t2_space (F.obj j)),
-    haveI : ∀ j : J, compact_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
+    letI : ∀ j : J, compact_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
       (infer_instance : compact_space (F.obj j)),
     have cond := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system
       (F ⋙ Profinite.to_Top),

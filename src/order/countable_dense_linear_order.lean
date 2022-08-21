@@ -180,7 +180,7 @@ theorem embedding_from_countable_to_dense [encodable α] [densely_ordered β] [n
 begin
   rcases exists_pair_lt β with ⟨x, y, hxy⟩,
   cases exists_between hxy with a ha,
-  haveI : nonempty (set.Ioo x y) := ⟨⟨a, ha⟩⟩,
+  letI : nonempty (set.Ioo x y) := ⟨⟨a, ha⟩⟩,
   let our_ideal : ideal (partial_iso α _) :=
     ideal_of_cofinals default (defined_at_left (set.Ioo x y)),
   let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a),

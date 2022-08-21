@@ -908,7 +908,7 @@ lemma _root_.directed_on.exists_mem_subset_of_finset_subset_bUnion {α ι : Type
   {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
 begin
   rw set.bUnion_eq_Union at hs,
-  haveI := set.nonempty_coe_sort.2 hn,
+  letI := set.nonempty_coe_sort.2 hn,
   obtain ⟨⟨i, hic⟩, hi⟩ :=
     (directed_comp.2 hc.directed_coe).exists_mem_subset_of_finset_subset_bUnion hs,
   exact ⟨i, hic, hi⟩
@@ -2524,13 +2524,13 @@ by rw [inter_comm, bUnion_inter]; simp [inter_comm]
 
 theorem image_bUnion [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bUnion t = s.bUnion (λa, t (f a)) :=
-by haveI := classical.dec_eq α; exact
+by letI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
   by simp only [image_insert, bUnion_insert, ih])
 
 theorem bUnion_image [decidable_eq γ] {s : finset α} {t : α → finset β} {f : β → γ} :
   (s.bUnion t).image f = s.bUnion (λa, (t a).image f) :=
-by haveI := classical.dec_eq α; exact
+by letI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
   by simp only [bUnion_insert, image_union, ih])
 

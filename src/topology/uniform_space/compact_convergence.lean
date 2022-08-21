@@ -261,7 +261,7 @@ begin
       exact @is_open.mem_nhds C(α, β) compact_convergence_topology _ _ hX hf, },
     obtain ⟨-, ⟨⟨K, V⟩, ⟨hK, hV⟩, rfl⟩, hXf⟩ := hXf,
     obtain ⟨ι, hι, C, hC, U, hU, h₁, h₂⟩ := Inter_compact_open_gen_subset_compact_conv_nhd f hK hV,
-    haveI := hι,
+    letI := hι,
     exact ⟨⋂ i, compact_open.gen (C i) (U i), h₂.trans hXf,
       is_open_Inter (λ i, continuous_map.is_open_gen (hC i) (hU i)), h₁⟩, },
   { simp only [le_generate_from_iff_subset_is_open, and_imp, exists_prop, forall_exists_index,

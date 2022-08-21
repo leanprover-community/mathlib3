@@ -111,7 +111,7 @@ using `ne_bot (𝓝[≠] x)`.
 
 This lemma is not an instance because Lean would need to find `[has_continuous_smul ?m_1 M]` with
 unknown `?m_1`. We register this as an instance for `R = ℝ` in `real.punctured_nhds_module_ne_bot`.
-One can also use `haveI := module.punctured_nhds_ne_bot R M` in a proof.
+One can also use `letI := module.punctured_nhds_ne_bot R M` in a proof.
 -/
 lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[≠] (0 : R))]
   [no_zero_smul_divisors R M] (x : M) :

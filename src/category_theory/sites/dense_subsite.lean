@@ -321,7 +321,7 @@ we may obtain a natural isomorphism between presheaves.
 def presheaf_iso {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
   ℱ.val ≅ ℱ'.val :=
 begin
-  haveI : ∀ (X : Dᵒᵖ), is_iso ((sheaf_hom H i.hom).app X),
+  letI : ∀ (X : Dᵒᵖ), is_iso ((sheaf_hom H i.hom).app X),
   { intro X,
     apply is_iso_of_reflects_iso _ yoneda,
     use (sheaf_yoneda_hom H i.inv).app X,
@@ -331,7 +331,7 @@ begin
       exact ((presheaf_iso H (iso_over i (unop x))).app X).hom_inv_id,
       exact ((presheaf_iso H (iso_over i (unop x))).app X).inv_hom_id,
     apply_instance },
-  haveI : is_iso (sheaf_hom H i.hom) := by apply nat_iso.is_iso_of_is_iso_app,
+  letI : is_iso (sheaf_hom H i.hom) := by apply nat_iso.is_iso_of_is_iso_app,
   apply as_iso (sheaf_hom H i.hom),
 end
 
@@ -472,11 +472,11 @@ def Sheaf_equiv_of_cover_preserving_cover_lifting : Sheaf J A ≌ Sheaf K A :=
 begin
   symmetry,
   let α := sites.pullback_copullback_adjunction.{w v u} A Hp Hl Hd.compatible_preserving,
-  haveI : ∀ (X : Sheaf J A), is_iso (α.counit.app X),
+  letI : ∀ (X : Sheaf J A), is_iso (α.counit.app X),
   { intro ℱ,
     apply_with (reflects_isomorphisms.reflects (Sheaf_to_presheaf J A)) { instances := ff },
     exact is_iso.of_iso ((@as_iso _ _ _ _ _ (Ran.reflective A G.op)).app ℱ.val) },
-  haveI : is_iso α.counit := nat_iso.is_iso_of_is_iso_app _,
+  letI : is_iso α.counit := nat_iso.is_iso_of_is_iso_app _,
   exact
   { functor := sites.pullback A Hd.compatible_preserving Hp,
     inverse := sites.copullback A Hl,

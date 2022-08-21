@@ -253,7 +253,7 @@ theorem dense_bInter_of_Gδ {S : set β} {f : Π x ∈ S, set α} (ho : ∀s∈S
   (hS : S.countable) (hd : ∀s∈S, dense (f s ‹_›)) : dense (⋂s∈S, f s ‹_›) :=
 begin
   rw bInter_eq_Inter,
-  haveI := hS.to_encodable,
+  letI := hS.to_encodable,
   exact dense_Inter_of_Gδ (λ s, ho s s.2) (λ s, hd s s.2)
 end
 
@@ -325,7 +325,7 @@ lemma is_Gδ.dense_bUnion_interior_of_closed {t : set ι} {s : set α} (hs : is_
   (hU : s ⊆ ⋃ i ∈ t, f i) :
   dense (⋃ i ∈ t, interior (f i)) :=
 begin
-  haveI := ht.to_encodable,
+  letI := ht.to_encodable,
   simp only [bUnion_eq_Union, set_coe.forall'] at *,
   exact hs.dense_Union_interior_of_closed hd hc hU
 end

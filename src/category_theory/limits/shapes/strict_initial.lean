@@ -71,8 +71,8 @@ has_strict_initial_objects.out f hI
 lemma is_initial.strict_hom_ext (hI : is_initial I) {A : C} (f g : A ⟶ I) :
   f = g :=
 begin
-  haveI := hI.is_iso_to f,
-  haveI := hI.is_iso_to g,
+  letI := hI.is_iso_to f,
+  letI := hI.is_iso_to g,
   exact eq_of_inv_eq_inv (hI.hom_ext (inv f) (inv g)),
 end
 
@@ -151,7 +151,7 @@ lemma has_strict_initial_objects_of_initial_is_strict [has_initial C]
   has_strict_initial_objects C :=
 { out := λ I A f hI,
   begin
-    haveI := h A (f ≫ hI.to _),
+    letI := h A (f ≫ hI.to _),
     exact ⟨⟨hI.to _ ≫ inv (f ≫ hI.to ⊥_ C), by rw [←assoc, is_iso.hom_inv_id], hI.hom_ext _ _⟩⟩,
   end }
 
@@ -181,8 +181,8 @@ has_strict_terminal_objects.out f hI
 lemma is_terminal.strict_hom_ext (hI : is_terminal I) {A : C} (f g : I ⟶ A) :
   f = g :=
 begin
-  haveI := hI.is_iso_from f,
-  haveI := hI.is_iso_from g,
+  letI := hI.is_iso_from f,
+  letI := hI.is_iso_from g,
   exact eq_of_inv_eq_inv (hI.hom_ext (inv f) (inv g)),
 end
 
@@ -205,7 +205,7 @@ begin
     split_ifs,
     { cases h, cases h_1, obtain rfl : f = 𝟙 _ := subsingleton.elim _ _, simpa },
     { cases h, erw category.comp_id,
-      haveI : is_iso (F.map f) := (H _ h_1).is_iso_from _,
+      letI : is_iso (F.map f) := (H _ h_1).is_iso_from _,
       rw ← is_iso.comp_inv_eq,
       apply (H _ h_1).hom_ext },
     { cases h_1, apply (H _ h).hom_ext },
@@ -238,7 +238,7 @@ lemma has_strict_terminal_objects_of_terminal_is_strict (I : C) (h : ∀ A (f : 
   has_strict_terminal_objects C :=
 { out := λ I' A f hI',
   begin
-    haveI := h A (hI'.from _ ≫ f),
+    letI := h A (hI'.from _ ≫ f),
     exact ⟨⟨inv (hI'.from I ≫ f) ≫ hI'.from I,
       hI'.hom_ext _ _, by rw [assoc, is_iso.inv_hom_id]⟩⟩,
   end }

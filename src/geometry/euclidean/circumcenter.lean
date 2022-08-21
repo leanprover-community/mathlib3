@@ -99,7 +99,7 @@ lemma exists_unique_dist_eq_of_insert {s : affine_subspace ℝ P}
   ∃! cccr₂ : (P × ℝ), cccr₂.fst ∈ affine_span ℝ (insert p (s : set P)) ∧
     ∀ p1 ∈ insert p ps, dist p1 cccr₂.fst = cccr₂.snd :=
 begin
-  haveI : nonempty s := set.nonempty.to_subtype (hnps.mono hps),
+  letI : nonempty s := set.nonempty.to_subtype (hnps.mono hps),
   rcases hu with ⟨⟨cc, cr⟩, ⟨hcc, hcr⟩, hcccru⟩,
   simp only [prod.fst, prod.snd] at hcc hcr hcccru,
   let x := dist cc (orthogonal_projection s p),
@@ -204,7 +204,7 @@ begin
   { cases m,
     { rw fintype.card_eq_one_iff at hn,
       cases hn with i hi,
-      haveI : unique ι := ⟨⟨i⟩, hi⟩,
+      letI : unique ι := ⟨⟨i⟩, hi⟩,
       use (p i, 0),
       simp only [prod.fst, prod.snd, set.range_unique, affine_subspace.mem_affine_span_singleton],
       split,
@@ -231,7 +231,7 @@ begin
               hn],
           simp },
         { simp } },
-      haveI : nonempty ι2 := fintype.card_pos_iff.1 (hc.symm ▸ nat.zero_lt_succ _),
+      letI : nonempty ι2 := fintype.card_pos_iff.1 (hc.symm ▸ nat.zero_lt_succ _),
       have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) := ha.subtype _,
       replace hm := hm ha2 hc,
       have hr : set.range p = insert (p i) (set.range (λ i2 : ι2, p i2)),
@@ -776,7 +776,7 @@ lemma exists_circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimen
   (hd : finrank ℝ V = n) (hc : cospherical ps) :
   ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
 begin
-  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
+  letI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
   rw [←finrank_top, ←direction_top ℝ V P] at hd,
   refine exists_circumradius_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _
@@ -832,7 +832,7 @@ lemma exists_circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimen
   (hd : finrank ℝ V = n) (hc : cospherical ps) :
   ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
 begin
-  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
+  letI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
   rw [←finrank_top, ←direction_top ℝ V P] at hd,
   refine exists_circumcenter_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _

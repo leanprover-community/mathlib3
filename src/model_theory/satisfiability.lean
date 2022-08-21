@@ -84,7 +84,7 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
     λ T0, (h (T0.map (function.embedding.subtype (λ x, x ∈ T)))
       T0.map_subtype_subset).some with hM,
   let M' := filter.product ↑(ultrafilter.of (filter.at_top : filter (finset T))) M,
-  haveI h' : M' ⊨ T,
+  letI h' : M' ⊨ T,
   { refine ⟨λ φ hφ, _⟩,
     rw ultraproduct.sentence_realize,
     refine filter.eventually.filter_mono (ultrafilter.of_le _)
@@ -112,11 +112,11 @@ theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory)
   (h : cardinal.lift.{w'} (# s) ≤ cardinal.lift.{w} (# M)) :
   ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
 begin
-  haveI : inhabited M := classical.inhabited_of_nonempty infer_instance,
+  letI : inhabited M := classical.inhabited_of_nonempty infer_instance,
   rw [cardinal.lift_mk_le'] at h,
   letI : (constants_on α).Structure M :=
     constants_on.Structure (function.extend coe h.some default),
-  haveI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,
+  letI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,
   { refine ((Lhom.on_Theory_model _ _).2 infer_instance).union _,
     rw [model_distinct_constants_theory],
     refine λ a as b bs ab, _,
@@ -148,7 +148,7 @@ begin
   obtain ⟨N⟩ :=
     is_satisfiable_union_distinct_constants_theory_of_infinite T (set.univ : set κ.out) M,
   refine ⟨(N.is_model.mono (set.subset_union_left _ _)).bundled.reduct _, _⟩,
-  haveI : N ⊨ distinct_constants_theory _ _ := N.is_model.mono (set.subset_union_right _ _),
+  letI : N ⊨ distinct_constants_theory _ _ := N.is_model.mono (set.subset_union_right _ _),
   simp only [Model.reduct_carrier, coe_of, Model.carrier_eq_coe],
   refine trans (lift_le.2 (le_of_eq (cardinal.mk_out κ).symm)) _,
   rw [← mk_univ],
@@ -172,7 +172,7 @@ lemma exists_elementary_embedding_card_eq_of_le (M : Type w') [L.Structure M] [n
   ∃ (N : bundled L.Structure), nonempty (N ↪ₑ[L] M) ∧ # N = κ :=
 begin
   obtain ⟨S, _, hS⟩ := exists_elementary_substructure_card_eq L ∅ κ h1 (by simp) h2 h3,
-  haveI : small.{w} S,
+  letI : small.{w} S,
   { rw [← lift_inj.{_ (w + 1)}, lift_lift, lift_lift] at hS,
     exact small_iff_lift_mk_lt_univ.2 (lt_of_eq_of_lt hS κ.lift_lt_univ') },
   refine ⟨(equiv_shrink S).bundled_induced L,
@@ -195,7 +195,7 @@ begin
   obtain ⟨N, ⟨NN0⟩, hN⟩ := exists_elementary_embedding_card_eq_of_le (L[[M]]) N0 κ
     (aleph_0_le_lift.1 ((aleph_0_le_lift.2 (aleph_0_le_mk M)).trans h2)) _ (hN0.trans _),
   { letI := (Lhom_with_constants L M).reduct N,
-    haveI h : N ⊨ L.elementary_diagram M :=
+    letI h : N ⊨ L.elementary_diagram M :=
       (NN0.Theory_model_iff (L.elementary_diagram M)).2 infer_instance,
     refine ⟨bundled.of N, ⟨_⟩, hN⟩,
     apply elementary_embedding.of_models_elementary_diagram L M N, },
@@ -249,7 +249,7 @@ theorem exists_model_card_eq
 begin
   casesI h with M MI,
   obtain ⟨N, hN, rfl⟩ := exists_elementarily_equivalent_card_eq L M κ h1 h2,
-  haveI : nonempty N := hN.nonempty,
+  letI : nonempty N := hN.nonempty,
   exact ⟨hN.Theory_model.bundled, rfl⟩,
 end
 
@@ -521,8 +521,8 @@ lemma categorical.is_complete (h : κ.categorical T)
   obtain ⟨⟨MF, hMF⟩, MT, hMT⟩ := con,
   rw [sentence.realize_not, not_not] at hMT,
   refine hMF _,
-  haveI := hT MT,
-  haveI := hT MF,
+  letI := hT MT,
+  letI := hT MF,
   obtain ⟨NT, MNT, hNT⟩ := exists_elementarily_equivalent_card_eq L MT κ h1 h2,
   obtain ⟨NF, MNF, hNF⟩ := exists_elementarily_equivalent_card_eq L MF κ h1 h2,
   obtain ⟨TF⟩ := h (MNT.to_Model T) (MNF.to_Model T) hNT hNF,

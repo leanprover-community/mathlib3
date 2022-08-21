@@ -103,7 +103,7 @@ end
 
 lemma totient_even {n : ℕ} (hn : 2 < n) : even n.totient :=
 begin
-  haveI : fact (1 < n) := ⟨one_lt_two.trans hn⟩,
+  letI : fact (1 < n) := ⟨one_lt_two.trans hn⟩,
   suffices : 2 = order_of (-1 : (zmod n)ˣ),
   { rw [← zmod.card_units_eq_totient, even_iff_two_dvd, this], exact order_of_dvd_card_univ },
   rw [←order_of_units, units.coe_neg_one, order_of_neg_one, ring_char.eq (zmod n) n, if_neg hn.ne'],
@@ -115,9 +115,9 @@ if hmn0 : m * n = 0
     simp only [totient_zero, mul_zero, zero_mul, h]
   else
   begin
-    haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
-    haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
-    haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
+    letI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
+    letI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
+    letI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
     simp only [← zmod.card_units_eq_totient],
     rw [fintype.card_congr (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
@@ -226,7 +226,7 @@ end
 lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fintype ((zmod p)ˣ)] :
   fintype.card ((zmod p)ˣ) ≤ p - 1 :=
 begin
-  haveI : fact (0 < p) := ⟨zero_lt_one.trans hp⟩,
+  letI : fact (0 < p) := ⟨zero_lt_one.trans hp⟩,
   rw zmod.card_units_eq_totient p,
   exact nat.le_pred_of_lt (nat.totient_lt p hp),
 end
@@ -240,7 +240,7 @@ begin
     -- the substI created an non-defeq but subsingleton instance diamond; resolve it
     suffices : fintype.card ℤˣ ≠ 0, { convert this },
     simp },
-  haveI : fact (0 < p) := ⟨nat.pos_of_ne_zero hp⟩,
+  letI : fact (0 < p) := ⟨nat.pos_of_ne_zero hp⟩,
   rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))],
 end
 

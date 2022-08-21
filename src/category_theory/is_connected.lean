@@ -168,7 +168,7 @@ end)
 /-- Lifting the universe level of morphisms and objects preserves connectedness. -/
 instance [hc : is_connected J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
 begin
-  haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] },
+  letI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] },
   apply is_connected.of_induct,
   rintros p hj₀ h ⟨j⟩,
   let p' : set J := ((λ (j : J), p {down := j}) : set J),

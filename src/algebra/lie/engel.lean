@@ -167,7 +167,7 @@ begin
   intros M _i1 _i2 _i3 _i4 h,
   use 1,
   suffices : (⊤ : lie_ideal R L) = ⊥, { simp [this], },
-  haveI := (lie_submodule.subsingleton_iff R L L).mpr infer_instance,
+  letI := (lie_submodule.subsingleton_iff R L L).mpr infer_instance,
   apply subsingleton.elim,
 end
 
@@ -180,7 +180,7 @@ begin
   letI : lie_module R L M := comp_lie_hom M f,
   have hnp : ∀ x, is_nilpotent (to_endomorphism R L M x) := λ x, h' (f x),
   have surj_id : function.surjective (linear_map.id : M →ₗ[R] M) := function.surjective_id,
-  haveI : lie_module.is_nilpotent R L M := h M hnp,
+  letI : lie_module.is_nilpotent R L M := h M hnp,
   apply hf.lie_module_is_nilpotent surj_id,
   simp,
 end
@@ -246,18 +246,18 @@ begin
     apply lt_of_le_of_ne K.le_normalizer,
     rw [ne.def, eq_comm, K.normalizer_eq_self_iff, ← ne.def,
       ← lie_submodule.nontrivial_iff_ne_bot R K],
-    haveI : nontrivial (L' ⧸ K.to_lie_submodule),
+    letI : nontrivial (L' ⧸ K.to_lie_submodule),
     { replace hK₂ : K.to_lie_submodule ≠ ⊤ :=
         by rwa [ne.def, ← lie_submodule.coe_to_submodule_eq_iff, K.coe_to_lie_submodule,
           lie_submodule.top_coe_submodule, ← lie_subalgebra.top_coe_submodule,
           K.coe_to_submodule_eq_iff],
       exact submodule.quotient.nontrivial_of_lt_top _ hK₂.lt_top, },
-    haveI : lie_module.is_nilpotent R K (L' ⧸ K.to_lie_submodule),
+    letI : lie_module.is_nilpotent R K (L' ⧸ K.to_lie_submodule),
     { refine hK₁ _ (λ x, _),
       have hx := lie_algebra.is_nilpotent_ad_of_is_nilpotent (h x),
       exact module.End.is_nilpotent.mapq _ hx, },
     exact nontrivial_max_triv_of_is_nilpotent R K (L' ⧸ K.to_lie_submodule), },
-  haveI _i5 : is_noetherian R L' :=
+  letI _i5 : is_noetherian R L' :=
     is_noetherian_of_surjective L _ (linear_map.range_range_restrict (to_endomorphism R L M)),
   obtain ⟨K, hK₁, hK₂⟩ :=
     well_founded.well_founded_iff_has_max'.mp (lie_subalgebra.well_founded_of_noetherian R L') s hs,

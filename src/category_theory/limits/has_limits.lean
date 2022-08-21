@@ -427,7 +427,7 @@ If a `E ⋙ F` has a limit, and `E` is an equivalence, we can construct a limit 
 -/
 lemma has_limit_of_equivalence_comp (e : K ≌ J) [has_limit (e.functor ⋙ F)] : has_limit F :=
 begin
-  haveI : has_limit (e.inverse ⋙ e.functor ⋙ F) := limits.has_limit_equivalence_comp e.symm,
+  letI : has_limit (e.inverse ⋙ e.functor ⋙ F) := limits.has_limit_equivalence_comp e.symm,
   apply has_limit_of_iso (e.inv_fun_id_assoc F),
 end
 
@@ -905,7 +905,7 @@ If a `E ⋙ F` has a colimit, and `E` is an equivalence, we can construct a coli
 -/
 lemma has_colimit_of_equivalence_comp (e : K ≌ J) [has_colimit (e.functor ⋙ F)] : has_colimit F :=
 begin
-  haveI : has_colimit (e.inverse ⋙ e.functor ⋙ F) := limits.has_colimit_equivalence_comp e.symm,
+  letI : has_colimit (e.inverse ⋙ e.functor ⋙ F) := limits.has_colimit_equivalence_comp e.symm,
   apply has_colimit_of_iso (e.inv_fun_id_assoc F).symm,
 end
 

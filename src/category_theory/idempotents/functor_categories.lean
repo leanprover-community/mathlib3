@@ -35,7 +35,7 @@ begin
   refine ⟨_⟩,
   intros F p hp,
   have hC := (is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent C).mp infer_instance,
-  haveI : ∀ (j : J), has_equalizer (𝟙 _) (p.app j) := λ j, hC _ _ (congr_app hp j),
+  letI : ∀ (j : J), has_equalizer (𝟙 _) (p.app j) := λ j, hC _ _ (congr_app hp j),
   /- We construct the direct factor `Y` associated to `p : F ⟶ F` by computing
     the equalizer of the identity and `p.app j` on each object `(j : J)`.  -/
   let Y : J ⥤ C :=

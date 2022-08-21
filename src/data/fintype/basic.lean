@@ -572,7 +572,7 @@ by { letI := classical.dec_eq α, letI := classical.dec_eq β,
 end
 
 theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β ↔ nonempty (α ≃ β) :=
-⟨λ h, by { haveI := classical.prop_decidable, exact (trunc_equiv_of_card_eq h).nonempty },
+⟨λ h, by { letI := classical.prop_decidable, exact (trunc_equiv_of_card_eq h).nonempty },
  λ ⟨f⟩, card_congr f⟩
 
 /-- Any subsingleton type with a witness is a fintype (with one term). -/
@@ -883,7 +883,7 @@ def fintype_of_option {α : Type*} [fintype (option α)] : fintype α :=
 
 /-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
 def fintype_of_option_equiv [fintype α] (f : α ≃ option β) : fintype β :=
-by { haveI := fintype.of_equiv _ f, exact fintype_of_option }
+by { letI := fintype.of_equiv _ f, exact fintype_of_option }
 
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=
@@ -1023,7 +1023,7 @@ lemma finite.of_injective {α β : Sort*} [finite β] (f : α → β) (H : injec
 begin
   casesI nonempty_fintype (plift β),
   rw [← equiv.injective_comp equiv.plift f, ← equiv.comp_injective _ equiv.plift.symm] at H,
-  haveI := fintype.of_injective _ H,
+  letI := fintype.of_injective _ H,
   exact finite.of_equiv _ equiv.plift,
 end
 
@@ -1135,10 +1135,10 @@ begin
 end
 
 lemma exists_ne_of_one_lt_card (h : 1 < card α) (a : α) : ∃ b : α, b ≠ a :=
-by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_ne a }
+by { letI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_ne a }
 
 lemma exists_pair_of_one_lt_card (h : 1 < card α) : ∃ (a b : α), a ≠ b :=
-by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
+by { letI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
 
 lemma card_eq_one_of_forall_eq {i : α} (h : ∀ j, j = i) : card α = 1 :=
 fintype.card_eq_one_iff.2 ⟨i,h⟩
@@ -1161,7 +1161,7 @@ namespace finite
 variables [finite α]
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
-by haveI := classical.prop_decidable; casesI nonempty_fintype α; exact
+by letI := classical.prop_decidable; casesI nonempty_fintype α; exact
 have ∀ {f : α → α}, injective f → surjective f,
 from λ f hinj x,
   have h₁ : image f univ = univ := eq_of_subset_of_card_le (subset_univ _)
@@ -2030,7 +2030,7 @@ infinite.of_injective sum.inr sum.inr_injective
 @[simp] lemma infinite_sum : infinite (α ⊕ β) ↔ infinite α ∨ infinite β :=
 begin
   refine ⟨λ H, _, λ H, H.elim (@sum.infinite_of_left α β) (@sum.infinite_of_right α β)⟩,
-  contrapose! H, haveI := fintype_of_not_infinite H.1, haveI := fintype_of_not_infinite H.2,
+  contrapose! H, letI := fintype_of_not_infinite H.1, letI := fintype_of_not_infinite H.2,
   exact infinite.false
 end
 
@@ -2047,7 +2047,7 @@ begin
     (and_imp.2 $ @prod.infinite_of_right α β)⟩,
   rw and.comm, contrapose! H, introI H',
   rcases infinite.nonempty (α × β) with ⟨a, b⟩,
-  haveI := fintype_of_not_infinite (H.1 ⟨b⟩), haveI := fintype_of_not_infinite (H.2 ⟨a⟩),
+  letI := fintype_of_not_infinite (H.1 ⟨b⟩), letI := fintype_of_not_infinite (H.2 ⟨a⟩),
   exact H'.false
 end
 
@@ -2148,7 +2148,7 @@ begin
   classical,
   by_contra' hf,
   casesI nonempty_fintype β,
-  haveI := λ y, fintype_of_not_infinite $ hf y,
+  letI := λ y, fintype_of_not_infinite $ hf y,
   let key : fintype α :=
   { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },
@@ -2286,7 +2286,7 @@ lemma exists_seq_of_forall_finset_exists {α : Type*} (P : α → Prop) (r : α 
   ∃ (f : ℕ → α), (∀ n, P (f n)) ∧ (∀ m n, m < n → r (f m) (f n)) :=
 begin
   classical,
-  haveI : nonempty α,
+  letI : nonempty α,
   { rcases h ∅ (by simp) with ⟨y, hy⟩,
     exact ⟨y⟩ },
   choose! F hF using h,

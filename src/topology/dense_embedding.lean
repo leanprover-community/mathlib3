@@ -135,7 +135,7 @@ def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
 lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
   (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
   di.extend f b = c :=
-by haveI := di.comap_nhds_ne_bot; exact hf.lim_eq
+by letI := di.comap_nhds_ne_bot; exact hf.lim_eq
 
 lemma extend_eq_at [t2_space γ] {f : α → γ} {a : α} (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
@@ -184,7 +184,7 @@ lemma continuous_at_extend [t3_space γ] {b : β} {f : α → γ} (di : dense_in
   continuous_at (di.extend f) b :=
 begin
   set φ := di.extend f,
-  haveI := di.comap_nhds_ne_bot,
+  letI := di.comap_nhds_ne_bot,
   suffices : ∀ V' ∈ 𝓝 (φ b), is_closed V' → φ ⁻¹' V' ∈ 𝓝 b,
     by simpa [continuous_at, (closed_nhds_basis _).tendsto_right_iff],
   intros V' V'_in V'_closed,

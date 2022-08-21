@@ -167,7 +167,7 @@ end
 lemma _root_.nat.prime.exists_order_of_eq_pow_factorization_exponent {p : ℕ} (hp : p.prime) :
   ∃ g : G, order_of g = p ^ (exponent G).factorization p :=
 begin
-  haveI := fact.mk hp,
+  letI := fact.mk hp,
   rcases eq_or_ne ((exponent G).factorization p) 0 with h | h,
   { refine ⟨1, by rw [h, pow_zero, order_of_one]⟩ },
   have he : 0 < exponent G := ne.bot_lt (λ ht,

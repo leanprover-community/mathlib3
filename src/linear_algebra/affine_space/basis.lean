@@ -174,7 +174,7 @@ begin
   { rw ← image_univ,
     apply subsingleton.image,
     apply subsingleton_of_subsingleton, },
-  haveI := affine_subspace.subsingleton_of_subsingleton_span_eq_top hp b.tot,
+  letI := affine_subspace.subsingleton_of_subsingleton_span_eq_top hp b.tot,
   let s : finset ι := {i},
   have hi : i ∈ s, { simp, },
   have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },
@@ -378,7 +378,7 @@ lemma exists_affine_basis_of_finite_dimensional {ι : Type*} [fintype ι] [finit
   nonempty (affine_basis ι k P) :=
 begin
   obtain ⟨s, ⟨⟨incl, h_ind, h_tot⟩⟩⟩ := affine_basis.exists_affine_basis k V P,
-  haveI : fintype s := fintype_of_fin_dim_affine_independent k h_ind,
+  letI : fintype s := fintype_of_fin_dim_affine_independent k h_ind,
   have hs : fintype.card ι = fintype.card s,
   { rw h, exact (h_ind.affine_span_eq_top_iff_card_eq_finrank_add_one.mp h_tot).symm, },
   rw ← affine_independent_equiv (fintype.equiv_of_card_eq hs) at h_ind,

@@ -564,7 +564,7 @@ variables [conditionally_complete_linear_order α] {f : β → α} {s : set β} 
 lemma is_max_on.supr_eq (hx₀ : x₀ ∈ s) (h : is_max_on f s x₀) :
   (⨆ x : s, f x) = f x₀ :=
 begin
-  haveI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
+  letI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
   exact csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ x, h x.prop) (λ w hw, ⟨⟨x₀, hx₀⟩, hw⟩),
 end
 

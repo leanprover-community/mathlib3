@@ -61,7 +61,7 @@ def restrict_stalk_iso {U : Top} (X : PresheafedSpace.{v} C)
   (X.restrict h).stalk x ≅ X.stalk (f x) :=
 begin
   -- As a left adjoint, the functor `h.is_open_map.functor_nhds x` is initial.
-  haveI := initial_of_adjunction (h.is_open_map.adjunction_nhds x),
+  letI := initial_of_adjunction (h.is_open_map.adjunction_nhds x),
   -- Typeclass resolution knows that the opposite of an initial functor is final. The result
   -- follows from the general fact that postcomposing with a final functor doesn't change colimits.
   exact final.colimit_iso (h.is_open_map.functor_nhds x).op

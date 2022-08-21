@@ -268,7 +268,7 @@ begin
   letI := B'.topology,
   have basis := B'.nhds_zero_has_basis,
   have basis' := basis.prod basis,
-  haveI := B'.is_topological_add_group,
+  letI := B'.is_topological_add_group,
   apply topological_ring.of_add_group_of_nhds_zero,
   { rw basis'.tendsto_iff basis,
     suffices : ∀ U ∈ B', ∃ V W, (V ∈ B' ∧ W ∈ B') ∧ ∀ a b, a ∈ V → b ∈ W → a * b ∈ U, by simpa,
@@ -391,7 +391,7 @@ instance has_continuous_smul [topological_ring R] :
 begin
   let B' := B.to_add_group_filter_basis,
   letI := B'.topology,
-  haveI := B'.is_topological_add_group,
+  letI := B'.is_topological_add_group,
   exact has_continuous_smul.of_basis_zero B'.nhds_zero_has_basis (λ _, B.smul) B.smul_left
     B.smul_right,
 end

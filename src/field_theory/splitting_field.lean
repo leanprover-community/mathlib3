@@ -417,7 +417,7 @@ begin
   choose H3 H4 using H3,
   rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union_eq_adjoin_adjoin],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
-  haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
+  letI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
       (fg_adjoin_of_finite s.finite_to_set H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
@@ -571,7 +571,7 @@ instance scalar_tower' {n : ℕ} {f : K[X]} :
     (splitting_field_aux n f.remove_factor) :=
 begin
   -- finding this instance ourselves makes things faster
-  haveI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
+  letI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
     is_scalar_tower.right,
   exact
     splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor),
@@ -785,8 +785,8 @@ def alg_equiv (f : K[X]) [is_splitting_field K L f] : L ≃ₐ[K] splitting_fiel
 begin
   refine alg_equiv.of_bijective (lift L f $ splits (splitting_field f) f)
     ⟨ring_hom.injective (lift L f $ splits (splitting_field f) f).to_ring_hom, _⟩,
-  haveI := finite_dimensional (splitting_field f) f,
-  haveI := finite_dimensional L f,
+  letI := finite_dimensional (splitting_field f) f,
+  letI := finite_dimensional L f,
   have : finite_dimensional.finrank K L = finite_dimensional.finrank K (splitting_field f) :=
   le_antisymm
     (linear_map.finrank_le_finrank_of_injective

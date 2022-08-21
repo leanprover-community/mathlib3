@@ -77,7 +77,7 @@ def ker (f : α → β) : setoid α :=
 ext' $ λ x y, quotient.eq
 
 lemma ker_apply_mk_out {f : α → β} (a : α) :
-  f (by haveI := setoid.ker f; exact ⟦a⟧.out) = f a :=
+  f (by letI := setoid.ker f; exact ⟦a⟧.out) = f a :=
 @quotient.mk_out _ (setoid.ker f) a
 
 lemma ker_apply_mk_out' {f : α → β} (a : α) :

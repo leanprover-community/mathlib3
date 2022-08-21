@@ -216,7 +216,7 @@ CompHaus.is_closed_map _
 /-- Any continuous bijection of profinite spaces induces an isomorphism. -/
 lemma is_iso_of_bijective (bij : function.bijective f) : is_iso f :=
 begin
-  haveI := CompHaus.is_iso_of_bijective (Profinite_to_CompHaus.map f) bij,
+  letI := CompHaus.is_iso_of_bijective (Profinite_to_CompHaus.map f) bij,
   exact is_iso_of_fully_faithful Profinite_to_CompHaus _
 end
 
@@ -287,8 +287,8 @@ lemma mono_iff_injective {X Y : Profinite.{u}} (f : X ⟶ Y) : mono f ↔ functi
 begin
   split,
   { intro h,
-    haveI : limits.preserves_limits Profinite_to_CompHaus := infer_instance,
-    haveI : mono (Profinite_to_CompHaus.map f) := infer_instance,
+    letI : limits.preserves_limits Profinite_to_CompHaus := infer_instance,
+    letI : mono (Profinite_to_CompHaus.map f) := infer_instance,
     rwa ← CompHaus.mono_iff_injective },
   { rw ← category_theory.mono_iff_injective,
     apply (forget Profinite).mono_of_mono_map }

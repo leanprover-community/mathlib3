@@ -661,7 +661,7 @@ lemma monic_of_degree_le_of_coeff_eq_one (n : ℕ) (pn : p.degree ≤ n) (p1 : p
 monic_of_nat_degree_le_of_coeff_eq_one n (nat_degree_le_of_degree_le pn) p1
 
 lemma monic.ne_zero_of_polynomial_ne {r} (hp : monic p) (hne : q ≠ r) : p ≠ 0 :=
-by { haveI := nontrivial.of_polynomial_ne hne, exact hp.ne_zero }
+by { letI := nontrivial.of_polynomial_ne hne, exact hp.ne_zero }
 
 lemma leading_coeff_add_of_degree_lt (h : degree p < degree q) :
   leading_coeff (p + q) = leading_coeff q :=
@@ -874,7 +874,7 @@ lemma nat_degree_smul_le (a : R) (p : R[X]) : nat_degree (a • p) ≤ nat_degre
 nat_degree_le_nat_degree (degree_smul_le a p)
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
-by haveI := nontrivial.of_polynomial_ne hp; exact
+by letI := nontrivial.of_polynomial_ne hp; exact
 have leading_coeff p * leading_coeff X ≠ 0, by simpa,
 by erw [degree_mul' this, degree_eq_nat_degree hp,
     degree_X, ← with_bot.coe_one, ← with_bot.coe_add, with_bot.coe_lt_coe];
@@ -900,8 +900,8 @@ with_bot.coe_le_coe.mp ((degree_eq_nat_degree $ ne_zero_of_coe_le_degree hdeg) �
 lemma degree_sum_fin_lt {n : ℕ} (f : fin n → R) :
   degree (∑ i : fin n, C (f i) * X ^ (i : ℕ)) < n :=
 begin
-  haveI : is_commutative (with_bot ℕ) max := ⟨max_comm⟩,
-  haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
+  letI : is_commutative (with_bot ℕ) max := ⟨max_comm⟩,
+  letI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
   calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
       ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
   ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : rfl

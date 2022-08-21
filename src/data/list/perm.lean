@@ -790,7 +790,7 @@ end
 instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)
 | []      []      := is_true $ perm.refl _
 | []      (b::l₂) := is_false $ λ h, by have := h.nil_eq; contradiction
-| (a::l₁) l₂      := by haveI := decidable_perm l₁ (l₂.erase a);
+| (a::l₁) l₂      := by letI := decidable_perm l₁ (l₂.erase a);
                         exact decidable_of_iff' _ cons_perm_iff_perm_erase
 
 -- @[congr]

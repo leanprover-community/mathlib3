@@ -422,7 +422,7 @@ lemma snorm_le_of_ae_bound {f : α → F} {C : ℝ} (hfC : ∀ᵐ x ∂μ, ∥f 
 begin
   by_cases hμ : μ = 0,
   { simp [hμ] },
-  haveI : μ.ae.ne_bot := ae_ne_bot.mpr hμ,
+  letI : μ.ae.ne_bot := ae_ne_bot.mpr hμ,
   by_cases hp : p = 0,
   { simp [hp] },
   have hC : 0 ≤ C, from le_trans (norm_nonneg _) hfC.exists.some_spec,
@@ -1140,7 +1140,7 @@ by { rw sub_eq_add_neg, exact hf.add hg.neg }
 lemma mem_ℒp_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, mem_ℒp (f i) p μ) :
   mem_ℒp (λ a, ∑ i in s, f i a) p μ :=
 begin
-  haveI : decidable_eq ι := classical.dec_eq _,
+  letI : decidable_eq ι := classical.dec_eq _,
   revert hf,
   refine finset.induction_on s _ _,
   { simp only [zero_mem_ℒp', finset.sum_empty, implies_true_iff], },

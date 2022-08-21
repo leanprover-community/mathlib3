@@ -133,7 +133,7 @@ lemma coeff_add_of_disjoint (x y : 𝕎 R) (h : ∀ n, x.coeff n = 0 ∨ y.coeff
   (x + y).coeff n = x.coeff n + y.coeff n :=
 begin
   let P : ℕ → Prop := λ n, y.coeff n = 0,
-  haveI : decidable_pred P := classical.dec_pred P,
+  letI : decidable_pred P := classical.dec_pred P,
   set z := mk p (λ n, if P n then x.coeff n else y.coeff n) with hz,
   have hx : select P z = x,
   { ext1 n, rw [select, coeff_mk, coeff_mk],

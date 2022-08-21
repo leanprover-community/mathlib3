@@ -607,7 +607,7 @@ begin
   generalize hn : group.nilpotency_class G = n,
   rcases n with rfl | n,
   { simp [nilpotency_class_zero_iff_subsingleton] at *,
-    haveI := hn,
+    letI := hn,
     apply_instance, },
   { suffices : group.nilpotency_class (G ⧸ center G) = n, by simpa,
     apply le_antisymm,
@@ -655,7 +655,7 @@ lemma nilpotent_center_quotient_ind
 begin
   obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
   unfreezingI { induction n with n ih generalizing G },
-  { haveI := nilpotency_class_zero_iff_subsingleton.mp h,
+  { letI := nilpotency_class_zero_iff_subsingleton.mp h,
     exact hbase _, },
   { have hn : group.nilpotency_class (G ⧸ center G) = n :=
       by simp [nilpotency_class_quotient_center, h],
@@ -884,9 +884,9 @@ theorem is_nilpotent_of_product_of_sylow_group
 begin
   classical,
   let ps := (fintype.card G).factorization.support,
-  haveI : ∀ (p : ps) (P : sylow p G), is_nilpotent (↑P : subgroup G),
+  letI : ∀ (p : ps) (P : sylow p G), is_nilpotent (↑P : subgroup G),
   { intros p P,
-    haveI : fact (nat.prime ↑p) := fact.mk (nat.prime_of_mem_factorization (finset.coe_mem p)),
+    letI : fact (nat.prime ↑p) := fact.mk (nat.prime_of_mem_factorization (finset.coe_mem p)),
     exact P.is_p_group'.is_nilpotent, },
   exact nilpotent_of_mul_equiv e,
 end

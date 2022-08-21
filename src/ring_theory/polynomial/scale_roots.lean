@@ -64,7 +64,7 @@ le_antisymm (support_scale_roots_le p s)
 @[simp] lemma degree_scale_roots (p : R[X]) {s : R} :
   degree (scale_roots p s) = degree p :=
 begin
-  haveI := classical.prop_decidable,
+  letI := classical.prop_decidable,
   by_cases hp : p = 0,
   { rw [hp, zero_scale_roots] },
   have := scale_roots_ne_zero hp s,

@@ -481,9 +481,9 @@ begin
     rw div_self ,
     exact nat.cast_add_one_ne_zero p },
   { intros q p qp h₁ h₂,
-    haveI := cond_count_is_probability_measure
+    letI := cond_count_is_probability_measure
       (counted_sequence_finite p (q + 1)) (counted_sequence_nonempty _ _),
-    haveI := cond_count_is_probability_measure
+    letI := cond_count_is_probability_measure
       (counted_sequence_finite (p + 1) q) (counted_sequence_nonempty _ _),
     have h₃ : p + 1 + (q + 1) > 0 := nat.add_pos_left (nat.succ_pos _) _,
     rw [← cond_count_add_compl_eq {l : list ℤ | l.head = 1} _ (counted_sequence_finite _ _),
@@ -513,7 +513,7 @@ theorem ballot_problem :
   ∀ q p, q < p → cond_count (counted_sequence p q) stays_positive = (p - q) / (p + q) :=
 begin
   intros q p qp,
-  haveI := cond_count_is_probability_measure
+  letI := cond_count_is_probability_measure
     (counted_sequence_finite p q) (counted_sequence_nonempty _ _),
   have : (cond_count (counted_sequence p q) stays_positive).to_real =
     ((p - q) / (p + q) : ennreal).to_real,

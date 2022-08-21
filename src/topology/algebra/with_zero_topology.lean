@@ -213,7 +213,7 @@ instance ordered_topology : order_closed_topology Γ₀ :=
 @[priority 100]
 instance t3_space : t3_space Γ₀ :=
 begin
-  haveI : t1_space Γ₀ := t2_space.t1_space,
+  letI : t1_space Γ₀ := t2_space.t1_space,
   split,
   intros s x s_closed x_not_in_s,
   by_cases hx : x = 0,

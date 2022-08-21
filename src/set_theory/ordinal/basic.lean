@@ -505,9 +505,9 @@ quotient.eq.trans
 
 theorem lift_type_lt {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
   lift.{max v w} (type r) < lift.{max u w} (type s) ↔ nonempty (r ≺i s) :=
-by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max v w} α ⁻¹'o r)
+by letI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max v w} α ⁻¹'o r)
      r (rel_iso.preimage equiv.ulift.{max v w} r) _;
-   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max u w} β ⁻¹'o s)
+   letI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max u w} β ⁻¹'o s)
      s (rel_iso.preimage equiv.ulift.{max u w} s) _; exact
 ⟨λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r).symm).lt_le
     (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
@@ -538,7 +538,7 @@ cardinal.induction_on c (λ α, induction_on b $ λ β s _ e', begin
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,
-  haveI := (g : ⇑f ⁻¹'o s ↪r s).is_well_order,
+  letI := (g : ⇑f ⁻¹'o s ↪r s).is_well_order,
   have := lift_type_eq.{u (max u v) (max u v)}.2 ⟨g⟩,
   rw [lift_id, lift_umax.{u v}] at this,
   exact ⟨_, this⟩
@@ -706,7 +706,7 @@ private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
     (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
     (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  haveI := hs,
+  letI := hs,
   refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _ _ _ (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
   { rcases a with a|_; rcases b with b|_,
@@ -785,7 +785,7 @@ def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=
 ⟨_, enum_zero_le' ho⟩
 
 theorem enum_zero_eq_bot {o : ordinal} (ho : 0 < o) :
-  enum (<) 0 (by rwa type_lt) = by { haveI H := out_order_bot_of_pos ho, exact ⊥ } :=
+  enum (<) 0 (by rwa type_lt) = by { letI H := out_order_bot_of_pos ho, exact ⊥ } :=
 rfl
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
@@ -852,7 +852,7 @@ begin
   from λ α β h, (this h).antisymm (this (setoid.symm h)),
   rintros α β ⟨f⟩,
   refine le_cinfi_iff'.2 (λ i, _),
-  haveI := @rel_embedding.is_well_order _ _ (f ⁻¹'o i.1) _ ↑(rel_iso.preimage f i.1) i.2,
+  letI := @rel_embedding.is_well_order _ _ (f ⁻¹'o i.1) _ ↑(rel_iso.preimage f i.1) i.2,
   exact (cinfi_le' _ (subtype.mk (⇑f ⁻¹'o i.val)
     (@rel_embedding.is_well_order _ _  _ _ ↑(rel_iso.preimage f i.1) i.2))).trans_eq
     (quot.sound ⟨rel_iso.preimage f i.1⟩)
@@ -874,7 +874,7 @@ let ⟨r, _, e⟩ := ord_eq α in begin
   { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,
-    haveI := rel_embedding.is_well_order g,
+    letI := rel_embedding.is_well_order g,
     exact le_trans (ord_le_type _) g.ordinal_type_le }
 end
 

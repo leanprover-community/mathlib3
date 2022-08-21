@@ -51,7 +51,7 @@ open associates nat
 
 theorem of_wf_dvd_monoid_associates (h : wf_dvd_monoid (associates α)): wf_dvd_monoid α :=
 ⟨begin
-  haveI := h,
+  letI := h,
   refine (surjective.well_founded_iff mk_surjective _).2 well_founded_dvd_not_unit,
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
@@ -79,7 +79,7 @@ let ⟨b, hs, hr⟩ := well_founded_dvd_not_unit.has_min {b | b ∣ a ∧ ¬ is_
   (h0 : P 0) (hu : ∀ u : α, is_unit u → P u)
   (hi : ∀ a i : α, a ≠ 0 → irreducible i → P a → P (i * a)) :
   P a :=
-by haveI := classical.dec; exact
+by letI := classical.dec; exact
 well_founded_dvd_not_unit.fix
   (λ a ih, if ha0 : a = 0 then ha0.substr h0
     else if hau : is_unit a then hu a hau
@@ -180,7 +180,7 @@ end unique_factorization_monoid
 lemma prime_factors_unique [cancel_comm_monoid_with_zero α] : ∀ {f g : multiset α},
   (∀ x ∈ f, prime x) → (∀ x ∈ g, prime x) → f.prod ~ᵤ g.prod →
   multiset.rel associated f g :=
-by haveI := classical.dec_eq α; exact
+by letI := classical.dec_eq α; exact
 λ f, multiset.induction_on f
   (λ g _ hg h,
     multiset.rel_zero_left.2 $
@@ -220,7 +220,7 @@ lemma prime_factors_irreducible [cancel_comm_monoid_with_zero α] {a : α} {f : 
   (ha : irreducible a) (pfa : (∀ b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
   ∃ p, a ~ᵤ p ∧ f = {p} :=
 begin
-  haveI := classical.dec_eq α,
+  letI := classical.dec_eq α,
   refine multiset.induction_on f (λ h, (ha.not_unit
     (associated_one_iff_is_unit.1 (associated.symm h))).elim) _ pfa.2 pfa.1,
   rintros p s _ ⟨u, hu⟩ hs,
@@ -698,7 +698,7 @@ begin
   refine induction_on_prime c _ _ _,
   { intro no_factors,
     simp only [dvd_zero, mul_zero, forall_prop_of_true],
-    haveI := classical.prop_decidable,
+    letI := classical.prop_decidable,
     exact is_unit_iff_forall_dvd.mp
       (no_factors_of_no_prime_factors ha @no_factors (dvd_refl a) (dvd_zero a)) _ },
   { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
@@ -721,7 +721,7 @@ out their common factor `c'` gives `a'` and `b'` with no factors in common. -/
 lemma exists_reduced_factors : ∀ (a ≠ (0 : R)) b,
   ∃ a' b' c', (∀ {d}, d ∣ a' → d ∣ b' → is_unit d) ∧ c' * a' = a ∧ c' * b' = b :=
 begin
-  haveI := classical.prop_decidable,
+  letI := classical.prop_decidable,
   intros a,
   refine induction_on_prime a _ _ _,
   { intros, contradiction },
@@ -1234,7 +1234,7 @@ omit dec'
 
 lemma dvd_of_mem_factors' {a : α} {p : associates α} {hp : irreducible p} {hz : a ≠ 0}
   (h_mem : subtype.mk p hp ∈ factors' a) : p ∣ associates.mk a :=
-by { haveI := classical.dec_eq (associates α),
+by { letI := classical.dec_eq (associates α),
   apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ hp,
   rw factors_mk _ hz,
   apply mem_factor_set_some.2 h_mem }
@@ -1604,10 +1604,10 @@ noncomputable def fintype_subtype_dvd {M : Type*} [cancel_comm_monoid_with_zero 
   (y : M) (hy : y ≠ 0) :
   fintype {x // x ∣ y} :=
 begin
-  haveI : nontrivial M := ⟨⟨y, 0, hy⟩⟩,
-  haveI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
-  haveI := classical.dec_eq M,
-  haveI := classical.dec_eq (associates M),
+  letI : nontrivial M := ⟨⟨y, 0, hy⟩⟩,
+  letI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
+  letI := classical.dec_eq M,
+  letI := classical.dec_eq (associates M),
   -- We'll show `λ (u : Mˣ) (f ⊆ factors y) → u * Π f` is injective
   -- and has image exactly the divisors of `y`.
   refine fintype.of_finset

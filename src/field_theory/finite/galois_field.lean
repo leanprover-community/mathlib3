@@ -155,8 +155,8 @@ instance {K K' : Type*} [field K] [field K'] [finite K'] [algebra K K'] : is_gal
 begin
   casesI nonempty_fintype K',
   obtain ⟨p, hp⟩ := char_p.exists K,
-  haveI : char_p K p := hp,
-  haveI : char_p K' p := char_p_of_injective_algebra_map' K K' p,
+  letI : char_p K p := hp,
+  letI : char_p K' p := char_p_of_injective_algebra_map' K K' p,
   exact is_galois.of_separable_splitting_field (galois_poly_separable p (fintype.card K')
     (let ⟨n, hp, hn⟩ := finite_field.card K' p in hn.symm ▸ dvd_pow_self p n.ne_zero)),
 end
@@ -164,7 +164,7 @@ end
 /-- Any finite field is (possibly non canonically) isomorphic to some Galois field. -/
 def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
-by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
+by letI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
 
 end galois_field
 
@@ -178,9 +178,9 @@ def alg_equiv_of_card_eq (p : ℕ) [fact p.prime] [algebra (zmod p) K] [algebra 
   (hKK' : fintype.card K = fintype.card K') :
   K ≃ₐ[zmod p] K' :=
 begin
-  haveI : char_p K p,
+  letI : char_p K p,
   { rw ← algebra.char_p_iff (zmod p) K p, exact zmod.char_p p, },
-  haveI : char_p K' p,
+  letI : char_p K' p,
   { rw ← algebra.char_p_iff (zmod p) K' p, exact zmod.char_p p, },
   choose n a hK using finite_field.card K p,
   choose n' a' hK' using finite_field.card K' p,
@@ -207,7 +207,7 @@ begin
     exact nat.prime.ne_one hp' h2,
     all_goals {apply_instance}, },
   rw ← hpp' at *,
-  haveI := fact_iff.2 hp,
+  letI := fact_iff.2 hp,
   exact alg_equiv_of_card_eq p hKK',
 end
 

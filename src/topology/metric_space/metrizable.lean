@@ -126,16 +126,16 @@ variables (X) [t3_space X] [second_countable_topology X]
 -/
 lemma exists_embedding_l_infty : ∃ f : X → (ℕ →ᵇ ℝ), embedding f :=
 begin
-  haveI : normal_space X := normal_space_of_t3_second_countable X,
+  letI : normal_space X := normal_space_of_t3_second_countable X,
   -- Choose a countable basis, and consider the set `s` of pairs of set `(U, V)` such that `U ∈ B`,
   -- `V ∈ B`, and `closure U ⊆ V`.
   rcases exists_countable_basis X with ⟨B, hBc, -, hB⟩,
   set s : set (set X × set X) := {UV ∈ B ×ˢ B| closure UV.1 ⊆ UV.2},
   -- `s` is a countable set.
-  haveI : encodable s := ((hBc.prod hBc).mono (inter_subset_left _ _)).to_encodable,
+  letI : encodable s := ((hBc.prod hBc).mono (inter_subset_left _ _)).to_encodable,
   -- We don't have the space of bounded (possibly discontinuous) functions, so we equip `s`
   -- with the discrete topology and deal with `s →ᵇ ℝ` instead.
-  letI : topological_space s := ⊥, haveI : discrete_topology s := ⟨rfl⟩,
+  letI : topological_space s := ⊥, letI : discrete_topology s := ⟨rfl⟩,
   suffices : ∃ f : X → (s →ᵇ ℝ), embedding f,
   { rcases this with ⟨f, hf⟩,
     exact ⟨λ x, (f x).extend (encodable.encode' s) 0, (bounded_continuous_function.isometry_extend

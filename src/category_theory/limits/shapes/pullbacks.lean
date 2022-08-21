@@ -2205,7 +2205,7 @@ wide_pullback_shape_op_equiv _
 @[priority 100] -- see Note [lower instance priority]
 instance has_pullbacks_of_has_wide_pullbacks [has_wide_pullbacks.{w} C] : has_pullbacks C :=
 begin
-  haveI := has_wide_pullbacks_shrink.{0 w} C,
+  letI := has_wide_pullbacks_shrink.{0 w} C,
   apply_instance
 end
 

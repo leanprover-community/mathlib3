@@ -198,7 +198,7 @@ by rw [linear_map.coe_det, dif_pos, det_aux_def' _ b]; assumption
 @[simp] lemma det_to_matrix
   (b : basis ι A M) (f : M →ₗ[A] M) :
   matrix.det (to_matrix b b f) = f.det :=
-by { haveI := classical.dec_eq M,
+by { letI := classical.dec_eq M,
      rw [det_eq_det_to_matrix_of_finset b.reindex_finset_range, det_to_matrix_eq_det_to_matrix b] }
 
 @[simp] lemma det_to_matrix' {ι : Type*} [fintype ι] [decidable_eq ι]
@@ -237,7 +237,7 @@ linear_map.det.map_one
   linear_map.det (c • f) = c ^ (finite_dimensional.finrank 𝕜 M) * linear_map.det f :=
 begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
-  { haveI : finite_dimensional 𝕜 M,
+  { letI : finite_dimensional 𝕜 M,
     { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
     simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
               fintype.card_fin, det_smul] },
@@ -248,7 +248,7 @@ end
 
 lemma det_zero' {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
   linear_map.det (0 : M →ₗ[A] M) = 0 :=
-by { haveI := classical.dec_eq ι,
+by { letI := classical.dec_eq ι,
      rw [← det_to_matrix b, linear_equiv.map_zero, det_zero],
      assumption }
 
@@ -305,7 +305,7 @@ end
 lemma range_lt_top_of_det_eq_zero {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
   {f : M →ₗ[𝕜] M} (hf : f.det = 0) : f.range < ⊤ :=
 begin
-  haveI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
+  letI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
   contrapose hf,
   simp only [lt_top_iff_ne_top, not_not, ← is_unit_iff_range_eq_top] at hf,
   exact is_unit_iff_ne_zero.1 (f.is_unit_det hf)
@@ -315,7 +315,7 @@ end
 lemma bot_lt_ker_of_det_eq_zero {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
   {f : M →ₗ[𝕜] M} (hf : f.det = 0) : ⊥ < f.ker :=
 begin
-  haveI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
+  letI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
   contrapose hf,
   simp only [bot_lt_iff_ne_bot, not_not, ← is_unit_iff_ker_eq_bot] at hf,
   exact is_unit_iff_ne_zero.1 (f.is_unit_det hf)

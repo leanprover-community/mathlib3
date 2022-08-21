@@ -101,7 +101,7 @@ instance decidable_rel [decidable_eq α] (r : α → α → Prop)
 | l₁ [] := is_false $ λ h, by cases h
 | [] (b::l₂) := is_true lex.nil
 | (a::l₁) (b::l₂) := begin
-  haveI := decidable_rel l₁ l₂,
+  letI := decidable_rel l₁ l₂,
   refine decidable_of_iff (r a b ∨ a = b ∧ lex r l₁ l₂) ⟨λ h, _, λ h, _⟩,
   { rcases h with h | ⟨rfl, h⟩,
     { exact lex.rel h },

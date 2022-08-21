@@ -308,7 +308,7 @@ instance colimit_limit_to_limit_colimit_is_iso :
 instance colimit_limit_to_limit_colimit_cone_iso (F : J ⥤ K ⥤ Type v) :
   is_iso (colimit_limit_to_limit_colimit_cone F) :=
 begin
-  haveI : is_iso (colimit_limit_to_limit_colimit_cone F).hom,
+  letI : is_iso (colimit_limit_to_limit_colimit_cone F).hom,
   { dsimp only [colimit_limit_to_limit_colimit_cone], apply_instance },
   apply cones.cone_iso_of_hom_iso,
 end
@@ -336,7 +336,7 @@ noncomputable
 instance filtered_colim_preserves_finite_limits :
   preserves_limits_of_shape J (colim : (K ⥤ C) ⥤ _) :=
 begin
-  haveI : preserves_limits_of_shape J ((colim : (K ⥤ C) ⥤ _) ⋙ forget C) :=
+  letI : preserves_limits_of_shape J ((colim : (K ⥤ C) ⥤ _) ⋙ forget C) :=
     preserves_limits_of_shape_of_nat_iso (preserves_colimit_nat_iso _).symm,
   exactI preserves_limits_of_shape_of_reflects_of_preserves _ (forget C)
 end

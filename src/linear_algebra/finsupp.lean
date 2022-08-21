@@ -175,7 +175,7 @@ iff.rfl
 
 lemma mem_supported' {s : set α}  (p : α →₀ M) :
   p ∈ supported M R s ↔ ∀ x ∉ s, p x = 0 :=
-by haveI := classical.dec_pred (λ (x : α), x ∈ s);
+by letI := classical.dec_pred (λ (x : α), x ∈ s);
    simp [mem_supported, set.subset_def, not_imp_comm]
 
 lemma mem_supported_support (p : α →₀ M) :
@@ -244,7 +244,7 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
   supported M R (⋃ i, s i) = ⨆ i, supported M R (s i) :=
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
-  haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
+  letI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤
     ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
@@ -399,7 +399,7 @@ begin
   rintro l ⟨h₁, h₂⟩,
   rw [set_like.mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
   simp, ext x,
-  haveI := classical.dec_pred (λ x, x ∈ s),
+  letI := classical.dec_pred (λ x, x ∈ s),
   by_cases xs : x ∈ s,
   { have : finsupp.sum l (λ a, finsupp.single (f a)) (f x) = 0, {rw h₂, refl},
     rw [finsupp.sum_apply, finsupp.sum, finset.sum_eq_single x] at this,
@@ -519,7 +519,7 @@ begin
   { refine map_le_iff_le_comap.2 (λ z hz, _),
     have : ∀i, z i • v i ∈ span R (v '' s),
     { intro c,
-      haveI := classical.dec_pred (λ x, x ∈ s),
+      letI := classical.dec_pred (λ x, x ∈ s),
       by_cases c ∈ s,
       { exact smul_mem _ _ (subset_span (set.mem_image_of_mem _ h)) },
       { simp [(finsupp.mem_supported' R _).1 hz _ h] } },
@@ -632,8 +632,8 @@ by simp [finsupp.dom_lcongr, finsupp.dom_congr, equiv_map_domain_single]
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
   supported M R s ≃ₗ[R] supported M R t :=
 begin
-  haveI := classical.dec_pred (λ x, x ∈ s),
-  haveI := classical.dec_pred (λ x, x ∈ t),
+  letI := classical.dec_pred (λ x, x ∈ s),
+  letI := classical.dec_pred (λ x, x ∈ t),
   refine (finsupp.supported_equiv_finsupp s) ≪≫ₗ
       (_ ≪≫ₗ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e

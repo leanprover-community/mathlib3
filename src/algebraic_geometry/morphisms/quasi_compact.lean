@@ -130,7 +130,7 @@ begin
       refl },
     erw ← X.to_LocallyRingedSpace.to_RingedSpace.basic_open_res this.op,
     exact is_affine_open.basic_open_is_affine V.1.prop _ },
-  haveI : finite s := hs.to_subtype,
+  letI : finite s := hs.to_subtype,
   refine ⟨set.range g, set.finite_range g, _⟩,
   refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_subset _ _)).symm.trans _,
   rw [e, set.Union₂_inter],

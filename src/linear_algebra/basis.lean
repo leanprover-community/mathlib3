@@ -304,7 +304,7 @@ See also `basis.algebra_map_coeffs` for the case where `f` is equal to `algebra_
 def map_coeffs : basis ι R' M :=
 begin
   letI : module R' R := module.comp_hom R (↑f.symm : R' →+* R),
-  haveI : is_scalar_tower R' R M :=
+  letI : is_scalar_tower R' R M :=
   { smul_assoc := λ x y z, begin dsimp [(•)],  rw [mul_smul, ←h, f.apply_symm_apply], end },
   exact (of_repr $ (b.repr.restrict_scalars R').trans $
     finsupp.map_range.linear_equiv (module.comp_hom.to_linear_equiv f.symm).symm )
@@ -1106,7 +1106,7 @@ def submodule.induction_on_rank_aux (b : basis ι R M) (P : submodule R M → So
     linear_independent R (coe ∘ v : fin m → M) → m ≤ n) :
   P N :=
 begin
-  haveI : decidable_eq M := classical.dec_eq M,
+  letI : decidable_eq M := classical.dec_eq M,
   have Pbot : P ⊥,
   { apply ih,
     intros N N_le x x_mem x_ortho,
@@ -1292,7 +1292,7 @@ begin
   let C := this.extend (subset_univ _),
   have BC := this.subset_extend (subset_univ _),
   let hC := basis.extend this,
-  haveI : inhabited V := ⟨0⟩,
+  letI : inhabited V := ⟨0⟩,
   refine ⟨hC.constr K (C.restrict (inv_fun f)), hB.ext (λ b, _)⟩,
   rw image_subset_iff at BC,
   have fb_eq : f b = hC ⟨f b, BC b.2⟩,
@@ -1315,7 +1315,7 @@ lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
 begin
   let C := basis.of_vector_space_index K V',
   let hC := basis.of_vector_space K V',
-  haveI : inhabited V := ⟨0⟩,
+  letI : inhabited V := ⟨0⟩,
   use hC.constr K (C.restrict (inv_fun f)),
   refine hC.ext (λ c, _),
   rw [linear_map.comp_apply, hC.constr_basis],

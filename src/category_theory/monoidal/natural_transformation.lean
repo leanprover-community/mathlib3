@@ -186,7 +186,7 @@ let e := F.to_functor.as_equivalence in
 
 instance (F : monoidal_functor C D) [is_equivalence F.to_functor] : is_iso (monoidal_unit F) :=
 begin
-  haveI : ∀ (X : C), is_iso ((monoidal_unit F).to_nat_trans.app X),
+  letI : ∀ (X : C), is_iso ((monoidal_unit F).to_nat_trans.app X),
   { intros, dsimp, apply_instance, },
   exact monoidal_nat_iso.is_iso_of_is_iso_app _
 end
@@ -226,7 +226,7 @@ let e := F.to_functor.as_equivalence in
 
 instance (F : monoidal_functor C D) [is_equivalence F.to_functor] : is_iso (monoidal_counit F) :=
 begin
-  haveI : ∀ (X : D), is_iso ((monoidal_counit F).to_nat_trans.app X),
+  letI : ∀ (X : D), is_iso ((monoidal_counit F).to_nat_trans.app X),
   { intros, dsimp, apply_instance, },
   exact monoidal_nat_iso.is_iso_of_is_iso_app _
 end

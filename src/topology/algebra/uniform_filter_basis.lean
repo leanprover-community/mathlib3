@@ -38,7 +38,7 @@ lemma cauchy_iff {F : filter G} :
   @cauchy G B.uniform_space F ↔ F.ne_bot ∧ ∀ U ∈ B, ∃ M ∈ F, ∀ x y ∈ M, y - x ∈ U :=
 begin
   letI := B.uniform_space,
-  haveI := B.uniform_add_group,
+  letI := B.uniform_add_group,
   suffices : F ×ᶠ F ≤ 𝓤 G ↔ ∀ U ∈ B, ∃ M ∈ F, ∀ x y ∈ M, y - x ∈ U,
     by split ; rintros ⟨h', h⟩ ; refine ⟨h', _⟩ ; [rwa ← this, rwa this],
   rw [uniformity_eq_comap_nhds_zero G, ← map_le_iff_le_comap],

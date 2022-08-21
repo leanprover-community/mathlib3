@@ -42,7 +42,7 @@ cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp,
 lemma cauchy.ultrafilter_of {l : filter α} (h : cauchy l) :
   cauchy (@ultrafilter.of _ l h.1 : filter α) :=
 begin
-  haveI := h.1,
+  letI := h.1,
   have := ultrafilter.of_le l,
   exact ⟨ultrafilter.ne_bot _, (filter.prod_mono this this).trans h.2⟩
 end
@@ -154,7 +154,7 @@ lemma cauchy_seq.mem_entourage {β : Type*} [semilattice_sup β] {u : β → α}
   (h : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
   ∃ k₀, ∀ i j, k₀ ≤ i → k₀ ≤ j → (u i, u j) ∈ V :=
 begin
-  haveI := h.nonempty,
+  letI := h.nonempty,
   have := h.tendsto_uniformity, rw ← prod_at_top_at_top_eq at this,
   simpa [maps_to] using at_top_basis.prod_self.tendsto_left_iff.1 this V hV
 end
@@ -214,7 +214,7 @@ by simpa only [cauchy_seq, prod_map_map_eq', prod_at_top_at_top_eq] using hu.pro
 lemma cauchy_seq.prod {γ} [uniform_space β] [semilattice_sup γ] {u : γ → α} {v : γ → β}
   (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (λ x, (u x, v x)) :=
 begin
-  haveI := hu.nonempty,
+  letI := hu.nonempty,
   exact (hu.prod hv).mono (tendsto.prod_mk le_rfl le_rfl)
 end
 
@@ -306,7 +306,7 @@ lemma is_complete_iff_ultrafilter {s : set α} :
   is_complete s ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → ↑l ≤ 𝓟 s → ∃ x ∈ s, ↑l ≤ 𝓝 x :=
 begin
   refine ⟨λ h l, h l, λ H, is_complete_iff_cluster_pt.2 $ λ l hl hls, _⟩,
-  haveI := hl.1,
+  letI := hl.1,
   rcases H (ultrafilter.of l) hl.ultrafilter_of ((ultrafilter.of_le l).trans hls)
     with ⟨x, hxs, hxl⟩,
   exact ⟨x, hxs, (cluster_pt.of_le_nhds hxl).mono (ultrafilter.of_le l)⟩
@@ -430,7 +430,7 @@ begin
   choose hk f hfs hfr using λ x : u, x.coe_prop,
   refine ⟨range f, _, _, _⟩,
   { exact range_subset_iff.2 hfs },
-  { haveI : fintype u := (fk.inter_of_left _).fintype,
+  { letI : fintype u := (fk.inter_of_left _).fintype,
     exact finite_range f },
   { intros x xs,
     obtain ⟨y, hy, xy⟩ : ∃ y ∈ k, (x, y) ∈ r, from mem_Union₂.1 (ks xs),

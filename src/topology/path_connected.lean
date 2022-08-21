@@ -897,7 +897,7 @@ lemma path_connected_space_iff_univ : path_connected_space X ↔ is_path_connect
 begin
   split,
   { introI h,
-    haveI := @path_connected_space.nonempty X _ _,
+    letI := @path_connected_space.nonempty X _ _,
     inhabit X,
     refine ⟨default, mem_univ _, _⟩,
     simpa using path_connected_space.joined default },
@@ -1022,6 +1022,6 @@ lemma is_open.is_connected_iff_is_path_connected
   is_path_connected U ↔ is_connected U :=
 begin
   rw [is_connected_iff_connected_space, is_path_connected_iff_path_connected_space],
-  haveI := loc_path_connected_of_is_open U_op,
+  letI := loc_path_connected_of_is_open U_op,
   exact path_connected_space_iff_connected_space
 end

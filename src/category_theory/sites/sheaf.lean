@@ -538,9 +538,9 @@ begin
     is_sheaf_for_is_sheaf_for' P s U R,
   rw ←equiv.nonempty_congr this,
   split,
-  { haveI := preserves_smallest_limits_of_preserves_limits s,
+  { letI := preserves_smallest_limits_of_preserves_limits s,
     exact nonempty.map (λ t, is_limit_of_preserves s t) },
-  { haveI := reflects_smallest_limits_of_reflects_limits s,
+  { letI := reflects_smallest_limits_of_reflects_limits s,
     exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
 

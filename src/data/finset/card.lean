@@ -274,7 +274,7 @@ lemma inj_on_of_surj_on_of_card_le {t : finset β} (f : Π a ∈ s, β) (hf : �
   (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha) (hst : s.card ≤ t.card) ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s)
   (ha₂ : a₂ ∈ s) (ha₁a₂: f a₁ ha₁ = f a₂ ha₂) :
   a₁ = a₂ :=
-by haveI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
+by letI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
 let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ in
 let g : {x // x ∈ t} → {x // x ∈ s} :=
   @surj_inv _ _ f'

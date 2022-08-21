@@ -129,7 +129,7 @@ normal_mono_category.normal_mono_of_mono _
 instance regular_mono_category_of_normal_mono_category [normal_mono_category C] :
   regular_mono_category C :=
 { regular_mono_of_mono := λ _ _ f _,
-    by { haveI := by exactI normal_mono_of_mono f, apply_instance } }
+    by { letI := by exactI normal_mono_of_mono f, apply_instance } }
 
 end
 
@@ -270,6 +270,6 @@ normal_epi_category.normal_epi_of_epi _
 instance regular_epi_category_of_normal_epi_category [normal_epi_category C] :
   regular_epi_category C :=
 { regular_epi_of_epi := λ _ _ f _,
-    by { haveI := by exactI normal_epi_of_epi f, apply_instance } }
+    by { letI := by exactI normal_epi_of_epi f, apply_instance } }
 
 end category_theory

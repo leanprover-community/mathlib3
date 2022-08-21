@@ -6,14 +6,14 @@ when frozen.is_none $ tactic.fail "instances are not frozen"
 
 example (α) (a : α) :=
 begin
-  haveI h : inhabited α := ⟨a⟩,
+  letI h : inhabited α := ⟨a⟩,
   assert_frozen_instances,
   exact (default : α)
 end
 
 example (α) (a : α) :=
 begin
-  haveI h := inhabited.mk a,
+  letI h := inhabited.mk a,
   assert_frozen_instances,
   exact (default : α)
 end

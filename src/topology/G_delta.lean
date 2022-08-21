@@ -75,7 +75,7 @@ lemma is_Gδ_bInter {s : set ι} (hs : s.countable) {t : Π i ∈ s, set α}
   (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) : is_Gδ (⋂ i ∈ s, t i ‹_›) :=
 begin
   rw [bInter_eq_Inter],
-  haveI := hs.to_encodable,
+  letI := hs.to_encodable,
   exact is_Gδ_Inter (λ x, ht x x.2)
 end
 

@@ -626,7 +626,7 @@ lemma is_root_cyclotomic_iff [ne_zero (n : R)] {μ : R} :
   is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
 begin
   have hf : function.injective _ := is_fraction_ring.injective R (fraction_ring R),
-  haveI : ne_zero (n : fraction_ring R) := ne_zero.nat_of_injective hf,
+  letI : ne_zero (n : fraction_ring R) := ne_zero.nat_of_injective hf,
   rw [←is_root_map_iff hf, ←is_primitive_root.map_iff_of_injective hf, map_cyclotomic,
       ←is_root_cyclotomic_iff']
 end
@@ -670,7 +670,7 @@ begin
     rw [nat_degree_one, nat_degree_cyclotomic] at hnm,
     by_contra,
     exact (nat.totient_pos (zero_lt_iff.2 (ne.symm h))).ne hnm },
-  { haveI := ne_zero.mk hzero,
+  { letI := ne_zero.mk hzero,
     rw [← map_cyclotomic_int _ R, ← map_cyclotomic_int _ R] at hnm,
     replace hnm := map_injective (int.cast_ring_hom R) int.cast_injective hnm,
     replace hnm := congr_arg (map (int.cast_ring_hom ℂ)) hnm,
@@ -678,7 +678,7 @@ begin
     have hprim := complex.is_primitive_root_exp _ hzero,
     have hroot := is_root_cyclotomic_iff.2 hprim,
     rw hnm at hroot,
-    haveI hmzero : ne_zero m := ⟨λ h, by simpa [h] using hroot⟩,
+    letI hmzero : ne_zero m := ⟨λ h, by simpa [h] using hroot⟩,
     rw is_root_cyclotomic_iff at hroot,
     replace hprim := hprim.eq_order_of,
     rwa [← is_primitive_root.eq_order_of hroot] at hprim}
@@ -836,7 +836,7 @@ lemma _root_.is_primitive_root.minpoly_eq_cyclotomic_of_irreducible {K : Type*} 
   {R : Type*} [comm_ring R] [is_domain R] {μ : R} {n : ℕ} [algebra K R] (hμ : is_primitive_root μ n)
   (h : irreducible $ cyclotomic n K) [ne_zero (n : K)] : cyclotomic n K = minpoly K μ :=
 begin
-  haveI := ne_zero.of_no_zero_smul_divisors K R n,
+  letI := ne_zero.of_no_zero_smul_divisors K R n,
   refine minpoly.eq_of_irreducible_of_monic h _ (cyclotomic.monic n K),
   rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic, ←is_root.def, is_root_cyclotomic_iff]
 end
@@ -902,7 +902,7 @@ section expand
 begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
   { simp },
-  haveI := ne_zero.of_pos hnpos,
+  letI := ne_zero.of_pos hnpos,
   suffices : expand ℤ p (cyclotomic n ℤ) = (cyclotomic (n * p) ℤ) * (cyclotomic n ℤ),
   { rw [← map_cyclotomic_int, ← map_expand, this, polynomial.map_mul, map_cyclotomic_int] },
   refine eq_of_monic_of_dvd_of_nat_degree_le ((cyclotomic.monic _ _).mul
@@ -942,7 +942,7 @@ end
 begin
   rcases n.eq_zero_or_pos with rfl | hzero,
   { simp },
-  haveI := ne_zero.of_pos hzero,
+  letI := ne_zero.of_pos hzero,
   suffices : expand ℤ p (cyclotomic n ℤ) = cyclotomic (n * p) ℤ,
   { rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
   refine eq_of_monic_of_dvd_of_nat_degree_le (cyclotomic.monic _ _)

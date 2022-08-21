@@ -138,7 +138,7 @@ variables [partial_order α] {s t : set α} {a : α}
 
 theorem is_wf_iff_no_descending_seq : is_wf s ↔ ∀ f : ℕᵒᵈ ↪o α, ¬ (range f) ⊆ s :=
 begin
-  haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) :=
+  letI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) :=
   { to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
     to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩, },
   rw [is_wf, well_founded_on_iff_no_descending_seq],
@@ -163,7 +163,7 @@ begin
     contrapose! h,
     exact finite.union h.1 h.2, },
   rw [← infinite_coe_iff, ← infinite_coe_iff] at h,
-  cases h with inf inf; haveI := inf,
+  cases h with inf inf; letI := inf,
   { apply hs ((nat.order_embedding_of_set (f ⁻¹' s)).dual.trans f),
     change range (function.comp f (nat.order_embedding_of_set (f ⁻¹' s))) ⊆ s,
     rw [range_comp, image_subset_iff],
@@ -304,7 +304,7 @@ lemma partially_well_ordered_on.well_founded_on [is_partial_order α r]
   (h : s.partially_well_ordered_on r) :
   s.well_founded_on (λ a b, r a b ∧ a ≠ b) :=
 begin
-  haveI : is_strict_order α (λ a b, r a b ∧ a ≠ b) :=
+  letI : is_strict_order α (λ a b, r a b ∧ a ≠ b) :=
   { to_is_irrefl := ⟨λ a con, con.2 rfl⟩,
     to_is_trans := ⟨λ a b c ab bc, ⟨trans ab.1 bc.1,
       λ ac, ab.2 (antisymm ab.1 (ac.symm ▸ bc.1))⟩⟩ },
@@ -381,7 +381,7 @@ begin
     contrapose! h,
     exact finite.union h.1 h.2, },
   rw [← infinite_coe_iff, ← infinite_coe_iff] at h,
-  cases h with inf inf; haveI := inf,
+  cases h with inf inf; letI := inf,
   { obtain ⟨g, hg⟩ := hs (f ∘ (nat.order_embedding_of_set (f ⁻¹' s))) _,
     { rw [function.comp.assoc, ← rel_embedding.coe_trans] at hg,
       exact ⟨_, hg⟩ },
@@ -639,7 +639,7 @@ begin
       rw [finset.mem_coe, finset.mem_singleton, list.eq_nil_iff_forall_not_mem],
       exact hl, },
     apply_instance },
-  haveI : inhabited α := ⟨as⟩,
+  letI : inhabited α := ⟨as⟩,
   rw [iff_not_exists_is_min_bad_seq (list.length)],
   rintro ⟨f, hf1, hf2⟩,
   have hnil : ∀ n, f n ≠ list.nil :=

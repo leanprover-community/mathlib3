@@ -34,7 +34,7 @@ instance discrete_topology.second_countable_topology_of_encodable
   [hd : discrete_topology α] [encodable α] :
   second_countable_topology α :=
 begin
-  haveI : ∀ (i : α), second_countable_topology ↥({i} : set α),
+  letI : ∀ (i : α), second_countable_topology ↥({i} : set α),
     from λ i, { is_open_generated_countable :=
       ⟨{univ}, countable_singleton _, by simp only [eq_iff_true_of_subsingleton]⟩, },
   exact second_countable_topology_of_countable_cover (singletons_open_iff_discrete.mpr hd)

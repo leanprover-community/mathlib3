@@ -116,7 +116,7 @@ end preimage
 lemma prod_preimage' [comm_monoid β] (f : α → γ) [decidable_pred $ λ x, x ∈ set.range f]
   (s : finset γ) (hf : set.inj_on f (f ⁻¹' ↑s)) (g : γ → β) :
   ∏ x in s.preimage f hf, g (f x) = ∏ x in s.filter (λ x, x ∈ set.range f), g x :=
-by haveI := classical.dec_eq γ;
+by letI := classical.dec_eq γ;
 calc ∏ x in preimage s f hf, g (f x) = ∏ x in image f (preimage s f hf), g x :
   eq.symm $ prod_image $ by simpa only [mem_preimage, inj_on] using hf
   ... = ∏ x in s.filter (λ x, x ∈ set.range f), g x : by rw [image_preimage]

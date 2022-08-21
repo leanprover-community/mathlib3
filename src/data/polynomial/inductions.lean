@@ -51,7 +51,7 @@ lemma div_X_add : div_X (p + q) = div_X p + div_X q :=
 ext $ by simp
 
 lemma degree_div_X_lt (hp0 : p ≠ 0) : (div_X p).degree < p.degree :=
-by haveI := nontrivial.of_polynomial_ne hp0;
+by letI := nontrivial.of_polynomial_ne hp0;
 calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
   if h : degree p ≤ 0
   then begin

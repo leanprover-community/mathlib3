@@ -511,7 +511,7 @@ show (⨅ i, f i) ≤ f i, from infi_le _ _
 lemma mem_infi_of_Inter {ι} {s : ι → filter α} {U : set α} {I : set ι} (I_fin : I.finite)
   {V : I → set α} (hV : ∀ i, V i ∈ s i) (hU : (⋂ i, V i) ⊆ U) : U ∈ ⨅ i, s i :=
 begin
-  haveI := I_fin.fintype,
+  letI := I_fin.fintype,
   refine mem_of_superset (Inter_mem.2 $ λ i, _) hU,
   exact mem_infi_of_mem i (hV _)
 end
@@ -649,7 +649,7 @@ lemma forall_mem_nonempty_iff_ne_bot {f : filter α} :
 
 lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
 ⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
-  λ h, hfg $ by haveI : is_empty α := not_nonempty_iff.1 h; exact subsingleton.elim _ _,
+  λ h, hfg $ by letI : is_empty α := not_nonempty_iff.1 h; exact subsingleton.elim _ _,
   λ ⟨x⟩, ⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,
     by rwa [mem_top.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
 
@@ -698,7 +698,7 @@ by simp only [← filter.mem_sets, infi_sets_eq h, mem_Union]
 lemma mem_binfi_of_directed {f : β → filter α} {s : set β}
   (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) {t : set α} :
   t ∈ (⨅ i ∈ s, f i) ↔ ∃ i ∈ s, t ∈ f i :=
-by haveI : nonempty {x // x  ∈ s} := ne.to_subtype;
+by letI : nonempty {x // x  ∈ s} := ne.to_subtype;
   erw [infi_subtype', mem_infi_of_directed h.directed_coe, subtype.exists]; refl
 
 lemma binfi_sets_eq {f : β → filter α} {s : set β}
@@ -1911,7 +1911,7 @@ begin
   casesI is_empty_or_nonempty (Π j, α j) with H H,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [skip, assumption],
     simp [← classical.nonempty_pi] },
-  { haveI : ∀ j, nonempty (α j), from classical.nonempty_pi.1 H,
+  { letI : ∀ j, nonempty (α j), from classical.nonempty_pi.1 H,
     simp [comap_ne_bot_iff_frequently, *] }
 end
 
@@ -1997,7 +1997,7 @@ lemma map_binfi_eq {ι : Type w} {f : ι → filter α} {m : α → β} {p : ι 
   (h : directed_on (f ⁻¹'o (≥)) {x | p x}) (ne : ∃ i, p i) :
   map m (⨅ i (h : p i), f i) = (⨅ i (h : p i), map m (f i)) :=
 begin
-  haveI := nonempty_subtype.2 ne,
+  letI := nonempty_subtype.2 ne,
   simp only [infi_subtype'],
   exact map_infi_eq h.directed_coe
 end

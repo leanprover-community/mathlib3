@@ -233,7 +233,7 @@ lemma sum_prob_mem_Ioc_le
   ∑ j in range K, ℙ {ω | X ω ∈ set.Ioc (j : ℝ) N} ≤ ennreal.of_real (𝔼[X] + 1) :=
 begin
   let ρ : measure ℝ := measure.map X ℙ,
-  haveI : is_probability_measure ρ := is_probability_measure_map hint.ae_measurable,
+  letI : is_probability_measure ρ := is_probability_measure_map hint.ae_measurable,
   have A : ∑ j in range K, ∫ x in j..N, (1 : ℝ) ∂ρ ≤ 𝔼[X] + 1, from calc
   ∑ j in range K, ∫ x in j..N, (1 : ℝ) ∂ρ
       = ∑ j in range K, ∑ i in Ico j N, ∫ x in i..(i+1 : ℕ), (1 : ℝ) ∂ρ :

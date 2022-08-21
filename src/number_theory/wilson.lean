@@ -48,7 +48,7 @@ theorem prime_iff_fac_equiv_neg_one (h : n ≠ 1) :
   prime n ↔ ((n - 1)! : zmod n) = -1 :=
 begin
   refine ⟨λ h1, _, λ h2, prime_of_fac_equiv_neg_one h2 h⟩,
-  haveI := fact.mk h1,
+  letI := fact.mk h1,
   exact zmod.wilsons_lemma n,
 end
 

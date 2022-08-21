@@ -219,7 +219,7 @@ lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M 
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
 if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
-by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
+by letI : nonempty c := set.nonempty.to_subtype hcn; exact
 { carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
   emb := subalgebra.supr_lift
     (λ i : c, (i : subfield_with_hom K L M hL).carrier)
@@ -443,10 +443,10 @@ begin
       exact is_algebraic_algebra_map _
     end,
   letI : algebra R L := ring_hom.to_algebra ((algebra_map S L).comp (algebra_map R S)),
-  haveI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
-  haveI : is_scalar_tower S R L := is_scalar_tower.of_algebra_map_eq
+  letI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
+  letI : is_scalar_tower S R L := is_scalar_tower.of_algebra_map_eq
     (by simp [ring_hom.algebra_map_to_algebra]),
-  haveI : no_zero_smul_divisors R S :=
+  letI : no_zero_smul_divisors R S :=
     no_zero_smul_divisors.of_algebra_map_injective hSR.symm.injective,
   refine ⟨equiv_of_algebraic' R S L M (algebra.is_algebraic_of_larger_base_of_injective
       (show function.injective (algebra_map S R), from hSR.injective)

@@ -835,7 +835,7 @@ by rw [infi_inf_eq, infi_const]
 
 lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
   (⨅ i (h : p i), f i h) ⊓ a = ⨅ i (h : p i), f i h ⊓ a :=
-by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
+by letI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
   rw [infi_subtype', infi_subtype', infi_inf]
 
 lemma inf_binfi {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :

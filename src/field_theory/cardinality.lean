@@ -37,7 +37,7 @@ universe u
 lemma fintype.is_prime_pow_card_of_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
 begin
   casesI char_p.exists α with p _,
-  haveI hp := fact.mk (char_p.char_is_prime α p),
+  letI hp := fact.mk (char_p.char_is_prime α p),
   let b := is_noetherian.finset_basis (zmod p) α,
   rw [module.card_fintype b, zmod.card, is_prime_pow_pow_iff],
   { exact hp.1.is_prime_pow },
@@ -50,7 +50,7 @@ lemma fintype.nonempty_field_iff {α} [fintype α] : nonempty (field α) ↔ is_
 begin
   refine ⟨λ ⟨h⟩, by exactI fintype.is_prime_pow_card_of_field, _⟩,
   rintros ⟨p, n, hp, hn, hα⟩,
-  haveI := fact.mk (nat.prime_iff.mpr hp),
+  letI := fact.mk (nat.prime_iff.mpr hp),
   exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,
 end
 

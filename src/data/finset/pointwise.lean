@@ -815,7 +815,7 @@ instance smul_comm_class_finset' [has_smul α γ] [has_smul β γ] [smul_comm_cl
 @[to_additive]
 instance smul_comm_class_finset'' [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class (finset α) β (finset γ) :=
-by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
+by letI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
 @[to_additive]
 instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :

@@ -119,7 +119,7 @@ lemma epi_of_zero_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
   { rw [←hm, category.assoc, hw, comp_zero] },
   obtain ⟨n, hn⟩ := cokernel_cofork.is_colimit.desc' l _ hwf,
   rw [cofork.π_of_π, zero_comp] at hn,
-  haveI : is_iso (equalizer.ι u v),
+  letI : is_iso (equalizer.ι u v),
   { apply is_iso_limit_cone_parallel_pair_of_eq hn.symm hl },
   apply (cancel_epi (equalizer.ι u v)).1,
   exact equalizer.condition _ _
@@ -241,7 +241,7 @@ lemma mono_of_zero_kernel {X Y : C} (f : X ⟶ Y) (Z : C)
   { rw [←hm, reassoc_of hw, zero_comp] },
   obtain ⟨n, hn⟩ := kernel_fork.is_limit.lift' l _ hwf,
   rw [fork.ι_of_ι, has_zero_morphisms.comp_zero] at hn,
-  haveI : is_iso (coequalizer.π u v),
+  letI : is_iso (coequalizer.π u v),
   { apply is_iso_colimit_cocone_parallel_pair_of_eq hn.symm hl },
   apply (cancel_mono (coequalizer.π u v)).1,
   exact coequalizer.condition _ _

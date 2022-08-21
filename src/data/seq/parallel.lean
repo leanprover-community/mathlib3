@@ -210,7 +210,7 @@ begin
     funext c, dsimp [id, function.comp], rw [←map_comp], exact (map_id _).symm },
   have pe := congr_arg parallel this, rw ←map_parallel at pe,
   have h' := h, rw pe at h',
-  haveI : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨⟨_, h'⟩⟩,
+  letI : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨⟨_, h'⟩⟩,
   induction e : get (parallel T) with a' c,
   have : a ∈ c ∧ c ∈ S,
   { rcases exists_of_mem_map h' with ⟨d, dT, cd⟩,
@@ -229,7 +229,7 @@ theorem parallel_promises {S : wseq (computation α)} {a}
 
 theorem mem_parallel {S : wseq (computation α)} {a}
   (H : ∀ s ∈ S, s ~> a) {c} (cs : c ∈ S) (ac : a ∈ c) : a ∈ parallel S :=
-by haveI := terminates_of_mem ac; haveI := terminates_parallel cs;
+by letI := terminates_of_mem ac; letI := terminates_parallel cs;
    exact mem_of_promises _ (parallel_promises H)
 
 theorem parallel_congr_lem {S T : wseq (computation α)} {a}

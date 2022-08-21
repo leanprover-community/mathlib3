@@ -119,7 +119,7 @@ lemma is_bounded_under.bdd_above_range_of_cofinite [semilattice_sup β] {f : α 
   (hf : is_bounded_under (≤) cofinite f) : bdd_above (range f) :=
 begin
   rcases hf with ⟨b, hb⟩,
-  haveI : nonempty β := ⟨b⟩,
+  letI : nonempty β := ⟨b⟩,
   rw [← image_univ, ← union_compl_self {x | f x ≤ b}, image_union, bdd_above_union],
   exact ⟨⟨b, ball_image_iff.2 $ λ x, id⟩, (hb.image f).bdd_above⟩
 end

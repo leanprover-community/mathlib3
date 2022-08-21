@@ -217,7 +217,7 @@ begin
   { subst hI', apply h₁, rw [← ideal.zero_eq_bot, zero_pow], exact zero_lt_two },
   cases n,
   { rw [pow_zero, ideal.one_eq_top] at hI,
-    haveI := subsingleton_of_bot_eq_top hI.symm,
+    letI := subsingleton_of_bot_eq_top hI.symm,
     exact (hI' (subsingleton.elim _ _)).elim },
   cases n,
   { rw [pow_one] at hI,

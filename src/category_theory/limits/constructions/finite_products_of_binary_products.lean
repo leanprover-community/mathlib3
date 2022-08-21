@@ -107,7 +107,7 @@ private lemma has_product_fin :
   end
 | (n+1) := λ f,
   begin
-    haveI := has_product_fin n,
+    letI := has_product_fin n,
     apply has_limit.mk ⟨_, extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)⟩,
   end
 
@@ -157,7 +157,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
   end
 | (n+1) :=
   begin
-    haveI := preserves_fin_of_preserves_binary_and_terminal n,
+    letI := preserves_fin_of_preserves_binary_and_terminal n,
     intro f,
     refine preserves_limit_of_preserves_limit_cone
       (extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)) _,
@@ -188,7 +188,7 @@ def preserves_shape_fin_of_preserves_binary_and_terminal (n : ℕ) :
 { preserves_limit := λ K,
   begin
     let : discrete.functor (λ n, K.obj ⟨n⟩) ≅ K := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
-    haveI := preserves_fin_of_preserves_binary_and_terminal F n (λ n, K.obj ⟨n⟩),
+    letI := preserves_fin_of_preserves_binary_and_terminal F n (λ n, K.obj ⟨n⟩),
     apply preserves_limit_of_iso_diagram F this,
   end }
 
@@ -199,7 +199,7 @@ def preserves_finite_products_of_preserves_binary_and_terminal
 begin
   classical,
   let e := fintype.equiv_fin J,
-  haveI := preserves_shape_fin_of_preserves_binary_and_terminal F (fintype.card J),
+  letI := preserves_shape_fin_of_preserves_binary_and_terminal F (fintype.card J),
   apply preserves_limits_of_shape_of_equiv.{0 0}
     (discrete.equivalence e).symm,
 end
@@ -282,7 +282,7 @@ private lemma has_coproduct_fin :
   end
 | (n+1) := λ f,
   begin
-    haveI := has_coproduct_fin n,
+    letI := has_coproduct_fin n,
     apply has_colimit.mk
       ⟨_, extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)⟩,
   end
@@ -333,7 +333,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_initial  :
   end
 | (n+1) :=
   begin
-    haveI := preserves_fin_of_preserves_binary_and_initial n,
+    letI := preserves_fin_of_preserves_binary_and_initial n,
     intro f,
     refine preserves_colimit_of_preserves_colimit_cocone
       (extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)) _,
@@ -363,7 +363,7 @@ def preserves_shape_fin_of_preserves_binary_and_initial (n : ℕ) :
 { preserves_colimit := λ K,
   begin
     let : discrete.functor (λ n, K.obj ⟨n⟩) ≅ K := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
-    haveI := preserves_fin_of_preserves_binary_and_initial F n (λ n, K.obj ⟨n⟩),
+    letI := preserves_fin_of_preserves_binary_and_initial F n (λ n, K.obj ⟨n⟩),
     apply preserves_colimit_of_iso_diagram F this,
   end }
 
@@ -374,7 +374,7 @@ def preserves_finite_coproducts_of_preserves_binary_and_initial
 begin
   classical,
   let e := fintype.equiv_fin J,
-  haveI := preserves_shape_fin_of_preserves_binary_and_initial F (fintype.card J),
+  letI := preserves_shape_fin_of_preserves_binary_and_initial F (fintype.card J),
   apply preserves_colimits_of_shape_of_equiv.{0 0} (discrete.equivalence e).symm,
 end
 

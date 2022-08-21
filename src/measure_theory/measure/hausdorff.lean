@@ -542,7 +542,7 @@ lemma mk_metric_le_liminf_sum {β : Type*} {ι : β → Type*} [hι : ∀ n, fin
   (m : ℝ≥0∞ → ℝ≥0∞) :
   mk_metric m s ≤ liminf l (λ n, ∑ i, m (diam (t n i))) :=
 begin
-  haveI : ∀ n, encodable (ι n), from λ n, fintype.to_encodable _,
+  letI : ∀ n, encodable (ι n), from λ n, fintype.to_encodable _,
   simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m,
 end
 
@@ -677,7 +677,7 @@ begin
   { rw (subsingleton_iff_singleton hx).1 hs,
     rcases eq_or_lt_of_le hd with rfl|dpos,
     { simp only [le_refl, hausdorff_measure_zero_singleton] },
-    { haveI := no_atoms_hausdorff X dpos,
+    { letI := no_atoms_hausdorff X dpos,
       simp only [zero_le, measure_singleton] } }
 end
 
@@ -817,7 +817,7 @@ begin
     { simp only [ennreal.rpow_zero, one_mul, mul_zero],
       rw hausdorff_measure_zero_singleton,
       exact one_le_hausdorff_measure_zero_of_nonempty ⟨x, hx⟩ },
-    { haveI := no_atoms_hausdorff Y h'd,
+    { letI := no_atoms_hausdorff Y h'd,
       simp only [zero_le, measure_singleton] } },
   -- Now assume `C ≠ 0`
   { have hCd0 : (C : ℝ≥0∞) ^ d ≠ 0, by simp [hC0.ne'],
@@ -882,7 +882,7 @@ begin
   { rcases eq_empty_or_nonempty (f ⁻¹' s) with hs|⟨x, hx⟩,
     { simp only [hs, measure_empty, zero_le], },
     have : f ⁻¹' s = {x},
-    { haveI : subsingleton X := hf.subsingleton,
+    { letI : subsingleton X := hf.subsingleton,
       have : (f ⁻¹' s).subsingleton, from subsingleton_univ.anti (subset_univ _),
       exact (subsingleton_iff_singleton hx).1 this },
     rw this,
@@ -890,7 +890,7 @@ begin
     { simp only [ennreal.rpow_zero, one_mul, mul_zero],
       rw hausdorff_measure_zero_singleton,
       exact one_le_hausdorff_measure_zero_of_nonempty ⟨f x, hx⟩ },
-    { haveI := no_atoms_hausdorff X h'd,
+    { letI := no_atoms_hausdorff X h'd,
       simp only [zero_le, measure_singleton] } },
   have hKd0 : (K : ℝ≥0∞) ^ d ≠ 0, by simp [h0],
   have hKd : (K : ℝ≥0∞) ^ d ≠ ∞, by simp [hd],

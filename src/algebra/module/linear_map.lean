@@ -484,7 +484,7 @@ namespace module
 /-- `g : R →+* S` is `R`-linear when the module structure on `S` is `module.comp_hom S g` . -/
 @[simps]
 def comp_hom.to_linear_map {R S : Type*} [semiring R] [semiring S] (g : R →+* S) :
-  (by haveI := comp_hom S g; exact (R →ₗ[R] S)) :=
+  (by letI := comp_hom S g; exact (R →ₗ[R] S)) :=
 by exact
 { to_fun := (g : R → S),
   map_add' := g.map_add,

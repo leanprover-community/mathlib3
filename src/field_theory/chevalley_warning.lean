@@ -48,7 +48,7 @@ lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomi
   (h : f.total_degree < (q - 1) * fintype.card σ) :
   (∑ x, eval x f) = 0 :=
 begin
-  haveI : decidable_eq K := classical.dec_eq K,
+  letI : decidable_eq K := classical.dec_eq K,
   calc (∑ x, eval x f)
         = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : by simp only [eval_eq']
     ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm

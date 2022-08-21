@@ -40,7 +40,7 @@ that a nonzero morphism between simple objects is an isomorphism.
 lemma is_iso_of_hom_simple [has_kernels C] {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
-  haveI := mono_of_nonzero_from_simple w,
+  letI := mono_of_nonzero_from_simple w,
   exact is_iso_of_mono_of_nonzero w
 end
 
@@ -65,11 +65,11 @@ the endomorphisms of a simple object form a division ring.
 noncomputable
 instance [has_kernels C] {X : C} [simple X] : division_ring (End X) :=
 by classical; exact
-{ inv := λ f, if h : f = 0 then 0 else by { haveI := is_iso_of_hom_simple h, exact inv f, },
+{ inv := λ f, if h : f = 0 then 0 else by { letI := is_iso_of_hom_simple h, exact inv f, },
   exists_pair_ne := ⟨𝟙 X, 0, id_nonzero _⟩,
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ f h, begin
-    haveI := is_iso_of_hom_simple h,
+    letI := is_iso_of_hom_simple h,
     convert is_iso.inv_hom_id f,
     exact dif_neg h,
   end,
@@ -89,7 +89,7 @@ lemma finrank_hom_simple_simple_eq_zero_of_not_iso
   (h : (X ≅ Y) → false):
   finrank 𝕜 (X ⟶ Y) = 0 :=
 begin
-  haveI := subsingleton_of_forall_eq (0 : X ⟶ Y) (λ f, begin
+  letI := subsingleton_of_forall_eq (0 : X ⟶ Y) (λ f, begin
     have p := not_congr (is_iso_iff_nonzero f),
     simp only [not_not, ne.def] at p,
     refine p.mp (λ _, by exactI h (as_iso f)),
@@ -126,7 +126,7 @@ begin
   apply finrank_eq_one (𝟙 X),
   { exact id_nonzero, },
   { intro f,
-    haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
+    letI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
     obtain ⟨c, nu⟩ := @spectrum.nonempty_of_is_alg_closed_of_finite_dimensional 𝕜 (End X) _ _ _ _ _
       (by { convert I, ext, refl, ext, refl, }) (End.of f),
     use c,
@@ -183,7 +183,7 @@ begin
     rw finrank_zero_of_subsingleton,
     exact zero_le_one },
   { obtain ⟨f, nz⟩ := (nontrivial_iff_exists_ne 0).mp h,
-    haveI fi := (is_iso_iff_nonzero f).mpr nz,
+    letI fi := (is_iso_iff_nonzero f).mpr nz,
     apply finrank_le_one f,
     intro g,
     obtain ⟨c, w⟩ := endomorphism_simple_eq_smul_id 𝕜 (g ≫ inv f),

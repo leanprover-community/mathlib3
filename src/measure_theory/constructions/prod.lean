@@ -172,7 +172,7 @@ begin
   have : ∀ x, measurable_set (prod.mk x ⁻¹' s) := λ x, measurable_prod_mk_left hs,
   simp only [← @supr_restrict_spanning_sets _ _ ν, this],
   apply measurable_supr, intro i,
-  haveI := fact.mk (measure_spanning_sets_lt_top ν i),
+  letI := fact.mk (measure_spanning_sets_lt_top ν i),
   exact measurable_measure_prod_mk_left_finite hs
 end
 
@@ -253,7 +253,7 @@ lemma measure_theory.strongly_measurable.integral_prod_right [sigma_finite ν] �
   (hf : strongly_measurable (uncurry f)) : strongly_measurable (λ x, ∫ y, f x y ∂ν) :=
 begin
   borelize E,
-  haveI : separable_space (range (uncurry f) ∪ {0} : set E) :=
+  letI : separable_space (range (uncurry f) ∪ {0} : set E) :=
     hf.separable_space_range_union_singleton,
   let s : ℕ → simple_func (α × β) E := simple_func.approx_on _ hf.measurable
     (range (uncurry f) ∪ {0}) 0 (by simp),
@@ -460,7 +460,7 @@ noncomputable! def finite_spanning_sets_in.prod {ν : measure β} {C : set (set 
   (hμ : μ.finite_spanning_sets_in C) (hν : ν.finite_spanning_sets_in D) :
   (μ.prod ν).finite_spanning_sets_in (image2 (×ˢ) C D) :=
 begin
-  haveI := hν.sigma_finite,
+  letI := hν.sigma_finite,
   refine ⟨λ n, hμ.set n.unpair.1 ×ˢ hν.set n.unpair.2,
     λ n, mem_image2_of_mem (hμ.set_mem _) (hν.set_mem _), λ n, _, _⟩,
   { rw [prod_prod],
@@ -497,7 +497,7 @@ begin
   refine (h3C.prod h3D).ext
     (generate_from_eq_prod hC hD h3C.is_countably_spanning h3D.is_countably_spanning).symm
     (h2C.prod h2D) _,
-  { rintro _ ⟨s, t, hs, ht, rfl⟩, haveI := h3D.sigma_finite,
+  { rintro _ ⟨s, t, hs, ht, rfl⟩, letI := h3D.sigma_finite,
     rw [h₁ s hs t ht, prod_prod] }
 end
 
@@ -597,7 +597,7 @@ lemma map_prod_map {δ} [measurable_space δ] {f : α → β} {g : γ → δ}
   (hgc : sigma_finite (map g μc)) (hf : measurable f) (hg : measurable g) :
   (map f μa).prod (map g μc) = map (prod.map f g) (μa.prod μc) :=
 begin
-  haveI := hgc.of_map μc hg.ae_measurable,
+  letI := hgc.of_map μc hg.ae_measurable,
   refine prod_eq (λ s t hs ht, _),
   rw [map_apply (hf.prod_map hg) (hs.prod ht), map_apply hf hs, map_apply hg ht],
   exact prod_prod (f ⁻¹' s) (g ⁻¹' t)
@@ -624,7 +624,7 @@ begin
   rcases eq_or_ne μa 0 with (rfl|ha),
   { rw [← hf.map_eq, zero_prod, measure.map_zero, zero_prod],
     exact ⟨this, by simp only [measure.map_zero]⟩ },
-  haveI : sigma_finite μc,
+  letI : sigma_finite μc,
   { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
     exact sigma_finite.of_map _ hgm.of_uncurry_left.ae_measurable (by rwa hx) },
   -- Thus we can apply `measure.prod_eq` to prove equality of measures.

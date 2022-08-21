@@ -575,7 +575,7 @@ lemma smooth_manifold_with_corners_of_cont_diff_on
   smooth_manifold_with_corners I M :=
 { compatible :=
   begin
-    haveI : has_groupoid M (cont_diff_groupoid ∞ I) := has_groupoid_of_pregroupoid _ h,
+    letI : has_groupoid M (cont_diff_groupoid ∞ I) := has_groupoid_of_pregroupoid _ h,
     apply structure_groupoid.compatible,
   end }
 

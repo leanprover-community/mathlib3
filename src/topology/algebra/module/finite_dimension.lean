@@ -210,7 +210,7 @@ begin
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { rw fintype.card_eq_zero_iff at hn,
     exact continuous_of_const (λ x y, funext hn.elim) },
-  { haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
+  { letI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
     -- first step: thanks to the induction hypothesis, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
     have H₁ : ∀s : submodule 𝕜 E, finrank 𝕜 s = n → is_closed (s : set E),
@@ -283,7 +283,7 @@ norms are equivalent in finite dimensions. -/
 theorem continuous_equiv_fun_basis [t2_space E] {ι : Type*} [fintype ι] (ξ : basis ι 𝕜 E) :
   continuous ξ.equiv_fun :=
 begin
-  haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
+  letI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
   exact ξ.equiv_fun.to_linear_map.continuous_of_finite_dimensional
 end
 
@@ -332,7 +332,7 @@ space. -/
 def to_continuous_linear_equiv (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
-    haveI : finite_dimensional 𝕜 F := e.finite_dimensional,
+    letI : finite_dimensional 𝕜 F := e.finite_dimensional,
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }

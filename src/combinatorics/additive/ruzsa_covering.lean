@@ -26,7 +26,7 @@ variables {α : Type*} [decidable_eq α] [comm_group α] (s : finset α) {t : fi
 lemma exists_subset_mul_div (ht : t.nonempty) :
   ∃ u : finset α, u.card * t.card ≤ (s * t).card ∧ s ⊆ u * t / t :=
 begin
-  haveI : Π u, decidable ((u : set α).pairwise_disjoint (• t)) := λ u, classical.dec _,
+  letI : Π u, decidable ((u : set α).pairwise_disjoint (• t)) := λ u, classical.dec _,
   set C := s.powerset.filter (λ u, (u : set α).pairwise_disjoint (• t)),
   obtain ⟨u, hu, hCmax⟩ := C.exists_maximal
     (filter_nonempty_iff.2 ⟨∅, empty_mem_powerset _, set.pairwise_disjoint_empty⟩),

@@ -163,7 +163,7 @@ Quiv.lift
   map := λ X Y, begin
     rintro (f|⟨g, hg⟩),
     { exact G.map f, },
-    { haveI := hG g hg,
+    { letI := hG g hg,
       exact inv (G.map g), },
   end, }
 

@@ -205,7 +205,7 @@ variables [semiring β] [is_absolute_value abv]
 
 lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
   abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
-by haveI := classical.dec_eq γ; exact
+by letI := classical.dec_eq γ; exact
 finset.induction_on s (by simp [abv_zero abv])
   (λ a s has ih, by rw [sum_insert has, sum_insert has];
     exact le_trans (abv_add abv _ _) (add_le_add_left ih _))

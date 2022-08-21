@@ -89,7 +89,7 @@ begin
     rw [this a, this b],
     simp only [functor.comp_map], congr, },
   { rintro ⟨⟨p⟩, h⟩,
-    haveI := λ x y, (h x y).some,
+    letI := λ x y, (h x y).some,
     refine nonempty.intro (category_theory.equivalence.mk
       ((functor.const _).obj ⟨⟨⟩⟩) ((functor.const _).obj p) _ (by apply functor.punit_ext)),
     exact nat_iso.of_components (λ _, { hom := default, inv := default }) (λ _ _ _, by tidy), },

@@ -244,7 +244,7 @@ by { rw sub_eq_add_neg, exact hf.add hg.neg }
 lemma finset_sum {ι} (s : finset ι) {f : ι → Π i, E i} (hf : ∀ i ∈ s, mem_ℓp (f i) p) :
   mem_ℓp (λ a, ∑ i in s, f i a) p :=
 begin
-  haveI : decidable_eq ι := classical.dec_eq _,
+  letI : decidable_eq ι := classical.dec_eq _,
   revert hf,
   refine finset.induction_on s _ _,
   { simp only [zero_mem_ℓp', finset.sum_empty, implies_true_iff], },
@@ -517,7 +517,7 @@ section compare_pointwise
 lemma norm_apply_le_norm (hp : p ≠ 0) (f : lp E p) (i : α) : ∥f i∥ ≤ ∥f∥ :=
 begin
   rcases eq_or_ne p ∞ with rfl | hp',
-  { haveI : nonempty α := ⟨i⟩,
+  { letI : nonempty α := ⟨i⟩,
     exact (is_lub_norm f).1 ⟨i, rfl⟩ },
   have hp'' : 0 < p.to_real := ennreal.to_real_pos hp hp',
   have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real,

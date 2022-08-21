@@ -101,8 +101,8 @@ normal_mono_category.epi_of_zero_cancel _ $ λ R (g : I ⟶ R) (hpg : p ≫ g = 
 begin
   -- Since C is abelian, u := ker g ≫ i is the kernel of some morphism h.
   let u := kernel.ι g ≫ i,
-  haveI : mono u := mono_comp _ _,
-  haveI hu := normal_mono_of_mono u,
+  letI : mono u := mono_comp _ _,
+  letI hu := normal_mono_of_mono u,
   let h := hu.g,
   -- By hypothesis, p factors through the kernel of g via some t.
   obtain ⟨t, ht⟩ := kernel.lift' g p hpg,
@@ -121,7 +121,7 @@ begin
   -- i factors through u = ker h via some s.
   obtain ⟨s, hs⟩ := normal_mono.lift' u i hih,
   have hs' : (s ≫ kernel.ι g) ≫ i = 𝟙 I ≫ i, by rw [category.assoc, hs, category.id_comp],
-  haveI : epi (kernel.ι g) := epi_of_epi_fac ((cancel_mono _).1 hs'),
+  letI : epi (kernel.ι g) := epi_of_epi_fac ((cancel_mono _).1 hs'),
   -- ker g is an epimorphism, but ker g ≫ g = 0 = ker g ≫ 0, so g = 0 as required.
   exact zero_of_epi_comp _ (kernel.condition g)
 end
@@ -137,8 +137,8 @@ normal_epi_category.mono_of_cancel_zero _ $ λ R (g : R ⟶ I) (hgi : g ≫ i = 
 begin
   -- Since C is abelian, u := p ≫ coker g is the cokernel of some morphism h.
   let u := p ≫ cokernel.π g,
-  haveI : epi u := epi_comp _ _,
-  haveI hu := normal_epi_of_epi u,
+  letI : epi u := epi_comp _ _,
+  letI hu := normal_epi_of_epi u,
   let h := hu.g,
   -- By hypothesis, i factors through the cokernel of g via some t.
   obtain ⟨t, ht⟩ := cokernel.desc' g i hgi,
@@ -157,7 +157,7 @@ begin
   -- p factors through u = coker h via some s.
   obtain ⟨s, hs⟩ := normal_epi.desc' u p hhp,
   have hs' : p ≫ cokernel.π g ≫ s = p ≫ 𝟙 I, by rw [←category.assoc, hs, category.comp_id],
-  haveI : mono (cokernel.π g) := mono_of_mono_fac ((cancel_epi _).1 hs'),
+  letI : mono (cokernel.π g) := mono_of_mono_fac ((cancel_epi _).1 hs'),
   -- coker g is a monomorphism, but g ≫ coker g = 0 = 0 ≫ coker g, so g = 0 as required.
   exact zero_of_comp_mono _ (cokernel.condition g)
 end
@@ -215,7 +215,7 @@ begin
   have hyy : y = 0,
   { erw [←category.comp_id y, ←limits.prod.lift_snd (𝟙 A) (𝟙 A),  ←category.assoc, hy,
       category.assoc, prod.lift_snd, has_zero_morphisms.comp_zero] },
-  haveI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
+  letI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
   apply (cancel_mono (prod.lift (𝟙 A) (0 : A ⟶ A))).1,
   rw [←hy, hyy, zero_comp, zero_comp]
 end
@@ -228,7 +228,7 @@ begin
     { intro s,
       ext; simp, erw category.comp_id },
     { intros s m h,
-      haveI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
+      letI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
       apply (cancel_mono (prod.lift (𝟙 A) (0 : A ⟶ A))).1,
       convert h,
       ext; simp } },

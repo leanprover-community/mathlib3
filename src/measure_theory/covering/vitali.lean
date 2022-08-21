@@ -156,7 +156,7 @@ theorem exists_disjoint_subfamily_covering_enlargment_closed_ball [metric_space 
 begin
   rcases eq_empty_or_nonempty t with rfl|tnonempty,
   { exact ⟨∅, subset.refl _, pairwise_disjoint_empty, by simp⟩ },
-  haveI : inhabited α,
+  letI : inhabited α,
   { choose s hst using tnonempty,
     choose x r hxr using ht s hst,
     exact ⟨x⟩ },
@@ -258,7 +258,7 @@ begin
   rcases eq_empty_or_nonempty s with rfl|nonempty,
   { refine ⟨∅, empty_subset _, countable_empty, pairwise_disjoint_empty,
       by simp only [measure_empty, Union_false, Union_empty, diff_self]⟩ },
-  haveI : inhabited α,
+  letI : inhabited α,
   { choose x hx using nonempty,
     exact ⟨x⟩ },
   -- choose around each `x` a small ball on which the measure is finite
@@ -359,7 +359,7 @@ begin
   -- we can obtain a finite subfamily of `v`, such that the measures of the remaining elements
   -- add up to an arbitrarily small number, say `ε / C`.
   obtain ⟨w, hw⟩ : ∃ (w : finset ↥v), ∑' (a : {a // a ∉ w}), μ (↑a) < ε / C,
-  { haveI : ne_bot (at_top : filter (finset v)) := at_top_ne_bot,
+  { letI : ne_bot (at_top : filter (finset v)) := at_top_ne_bot,
     have : 0 < ε / C, by simp only [ennreal.div_pos_iff, εpos.ne', ennreal.coe_ne_top, ne.def,
                                     not_false_iff, and_self],
     exact ((tendsto_order.1 (ennreal.tendsto_tsum_compl_at_top_zero I.ne)).2 _ this).exists },
@@ -421,7 +421,7 @@ begin
     exact subset_Union (λ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α))) b'' },
   -- now that we have proved our main inclusion, we can use it to estimate the measure of the points
   -- in `ball x (r x)` not covered by `u`.
-  haveI : encodable v := (u_count.mono vu).to_encodable,
+  letI : encodable v := (u_count.mono vu).to_encodable,
   calc μ ((s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x))
       ≤ μ (⋃ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α))) : measure_mono M
   ... ≤ ∑' (a : {a // a ∉ w}), μ (closed_ball (y (↑a)) (3 * diam (↑a : set α))) :
@@ -458,7 +458,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
     assume s f fsubset ffine,
     rcases eq_empty_or_nonempty s with rfl|H,
     { exact ⟨∅, λ _, ∅, by simp, by simp⟩ },
-    haveI : inhabited α, { choose x hx using H, exact ⟨x⟩ },
+    letI : inhabited α, { choose x hx using H, exact ⟨x⟩ },
     let t := ⋃ (x ∈ s), f x,
     have A₁ : ∀ x ∈ s, ∀ (ε : ℝ), 0 < ε → (∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε),
     { assume x xs ε εpos,

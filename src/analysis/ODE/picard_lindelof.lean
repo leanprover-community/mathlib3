@@ -216,7 +216,7 @@ lemma next_apply (t : Icc v.t_min v.t_max) : f.next t = v.x₀ + ∫ τ : ℝ in
 lemma has_deriv_within_at_next (t : Icc v.t_min v.t_max) :
   has_deriv_within_at (f.next ∘ v.proj) (v t (f t)) (Icc v.t_min v.t_max) t :=
 begin
-  haveI : fact ((t : ℝ) ∈ Icc v.t_min v.t_max) := ⟨t.2⟩,
+  letI : fact ((t : ℝ) ∈ Icc v.t_min v.t_max) := ⟨t.2⟩,
   simp only [(∘), next_apply],
   refine has_deriv_within_at.const_add _ _,
   have : has_deriv_within_at (λ t : ℝ, ∫ τ in v.t₀..t, f.v_comp τ) (f.v_comp t)

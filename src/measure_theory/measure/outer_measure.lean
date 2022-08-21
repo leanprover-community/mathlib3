@@ -101,7 +101,7 @@ by simpa [h] using m.Union s
 
 lemma bUnion_null_iff (m : outer_measure α) {s : set β} (hs : s.countable) {t : β → set α} :
   m (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, m (t i) = 0 :=
-by { haveI := hs.to_encodable, rw [bUnion_eq_Union, Union_null_iff, set_coe.forall'] }
+by { letI := hs.to_encodable, rw [bUnion_eq_Union, Union_null_iff, set_coe.forall'] }
 
 lemma sUnion_null_iff (m : outer_measure α) {S : set (set α)} (hS : S.countable) :
   m (⋃₀ S) = 0 ↔ ∀ s ∈ S, m s = 0 :=
@@ -647,7 +647,7 @@ lemma smul_of_function {c : ℝ≥0∞} (hc : c ≠ ∞) :
   c • outer_measure.of_function m m_empty = outer_measure.of_function (c • m) (by simp [m_empty]) :=
 begin
   ext1 s,
-  haveI : nonempty {t : ℕ → set α // s ⊆ ⋃ i, t i} := ⟨⟨λ _, s, subset_Union (λ _, s) 0⟩⟩,
+  letI : nonempty {t : ℕ → set α // s ⊆ ⋃ i, t i} := ⟨⟨λ _, s, subset_Union (λ _, s) 0⟩⟩,
   simp only [smul_apply, of_function_apply, ennreal.tsum_mul_left, pi.smul_apply, smul_eq_mul,
     infi_subtype', ennreal.infi_mul_left (λ h, (hc h).elim)],
 end
@@ -967,7 +967,7 @@ the minimum value of a measure on that set: it is the infimum sum of measures of
 sets that covers that set, where a different measure can be used for each set in the cover. -/
 lemma binfi_apply {ι} {I : set ι} (hI : I.nonempty) (m : ι → outer_measure α) (s : set α) :
   (⨅ i ∈ I, m i) s = ⨅ (t : ℕ → set α) (h2 : s ⊆ Union t), ∑' n, ⨅ i ∈ I, m i (t n) :=
-by { haveI := hI.to_subtype, simp only [← infi_subtype'', infi_apply] }
+by { letI := hI.to_subtype, simp only [← infi_subtype'', infi_apply] }
 
 /-- The value of the Infimum of a nonempty family of outer measures on a set is not simply
 the minimum value of a measure on that set: it is the infimum sum of measures of countable set of
@@ -1013,7 +1013,7 @@ end
 
 lemma map_binfi_comap {ι β} {I : set ι} (hI : I.nonempty) {f : α → β} (m : ι → outer_measure β) :
   map f (⨅ i ∈ I, comap f (m i)) = ⨅ i ∈ I, map f (comap f (m i)) :=
-by { haveI := hI.to_subtype, rw [← infi_subtype'', ← infi_subtype''], exact map_infi_comap _ }
+by { letI := hI.to_subtype, rw [← infi_subtype'', ← infi_subtype''], exact map_infi_comap _ }
 
 lemma restrict_infi_restrict {ι} (s : set α) (m : ι → outer_measure α) :
   restrict s (⨅ i, restrict s (m i)) = restrict s (⨅ i, m i) :=
@@ -1028,7 +1028,7 @@ lemma restrict_infi {ι} [nonempty ι] (s : set α) (m : ι → outer_measure α
 
 lemma restrict_binfi {ι} {I : set ι} (hI : I.nonempty) (s : set α) (m : ι → outer_measure α) :
   restrict s (⨅ i ∈ I, m i) = ⨅ i ∈ I, restrict s (m i) :=
-by { haveI := hI.to_subtype, rw [← infi_subtype'', ← infi_subtype''], exact restrict_infi _ _ }
+by { letI := hI.to_subtype, rw [← infi_subtype'', ← infi_subtype''], exact restrict_infi _ _ }
 
 /-- This proves that Inf and restrict commute for outer measures, so long as the set of
 outer measures is nonempty. -/

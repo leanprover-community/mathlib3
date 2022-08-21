@@ -103,21 +103,21 @@ equiv_ess_image_of_reflective.symm
 
 instance Γ_is_equiv : is_equivalence Γ.{u} :=
 begin
-  haveI : is_equivalence Γ.{u}.right_op.op := is_equivalence.of_equivalence equiv_CommRing.op,
+  letI : is_equivalence Γ.{u}.right_op.op := is_equivalence.of_equivalence equiv_CommRing.op,
   exact (functor.is_equivalence_trans Γ.{u}.right_op.op (op_op_equivalence _).functor : _),
 end
 
 instance : has_colimits AffineScheme.{u} :=
 begin
-  haveI := adjunction.has_limits_of_equivalence.{u} Γ.{u},
-  haveI : has_colimits AffineScheme.{u} ᵒᵖᵒᵖ := has_colimits_op_of_has_limits,
+  letI := adjunction.has_limits_of_equivalence.{u} Γ.{u},
+  letI : has_colimits AffineScheme.{u} ᵒᵖᵒᵖ := has_colimits_op_of_has_limits,
   exactI adjunction.has_colimits_of_equivalence.{u} (op_op_equivalence AffineScheme.{u}).inverse
 end
 
 instance : has_limits AffineScheme.{u} :=
 begin
-  haveI := adjunction.has_colimits_of_equivalence Γ.{u},
-  haveI : has_limits AffineScheme.{u} ᵒᵖᵒᵖ := limits.has_limits_op_of_has_colimits,
+  letI := adjunction.has_colimits_of_equivalence Γ.{u},
+  letI : has_limits AffineScheme.{u} ᵒᵖᵒᵖ := limits.has_limits_op_of_has_colimits,
   exactI adjunction.has_limits_of_equivalence (op_op_equivalence AffineScheme.{u}).inverse
 end
 
@@ -183,7 +183,7 @@ end
 def is_affine_open.from_Spec {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :
   Scheme.Spec.obj (op $ X.presheaf.obj $ op U) ⟶ X :=
 begin
-  haveI : is_affine (X.restrict U.open_embedding) := hU,
+  letI : is_affine (X.restrict U.open_embedding) := hU,
   have : U.open_embedding.is_open_map.functor.obj ⊤ = U,
   { ext1, exact set.image_univ.trans subtype.range_coe },
   exact Scheme.Spec.map (X.presheaf.map (eq_to_hom this.symm).op).op ≫
@@ -224,7 +224,7 @@ lemma is_affine_open.image_is_open_immersion {X Y : Scheme} {U : opens X.carrier
   (hU : is_affine_open U)
   (f : X ⟶ Y) [H : is_open_immersion f] : is_affine_open (H.open_functor.obj U) :=
 begin
-  haveI : is_affine _ := hU,
+  letI : is_affine _ := hU,
   convert range_is_affine_open_of_open_immersion (X.of_restrict U.open_embedding ≫ f),
   ext1,
   change f.1.base '' U.1 = set.range (f.1.base ∘ coe),
@@ -274,7 +274,7 @@ lemma is_affine_open.Spec_Γ_identity_hom_app_from_Spec {X : Scheme} {U : opens 
   (Spec_Γ_identity.hom.app (X.presheaf.obj $ op U)) ≫ hU.from_Spec.1.c.app (op U) =
     (Scheme.Spec.obj _).presheaf.map (eq_to_hom hU.from_Spec_base_preimage).op :=
 begin
-  haveI : is_affine _ := hU,
+  letI : is_affine _ := hU,
   have e₁ :=
     Spec_Γ_identity.hom.naturality (X.presheaf.map (eq_to_hom U.open_embedding_obj_top).op),
   rw ← is_iso.comp_inv_eq at e₁,
@@ -390,7 +390,7 @@ lemma is_affine_open.exists_basic_open_subset {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) {V : opens X.carrier} (x : V) (h : ↑x ∈ U) :
   ∃ f : X.presheaf.obj (op U), X.basic_open f ⊆ V ∧ ↑x ∈ X.basic_open f :=
 begin
-  haveI : is_affine _ := hU,
+  letI : is_affine _ := hU,
   obtain ⟨_, ⟨_, ⟨r, rfl⟩, rfl⟩, h₁, h₂⟩ := (is_basis_basic_open (X.restrict U.open_embedding))
     .exists_subset_of_mem_open _ ((opens.map U.inclusion).obj V).prop,
   swap, exact ⟨x, h⟩,
@@ -488,7 +488,7 @@ lemma basic_open_basic_open_is_basic_open {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) (g : X.presheaf.obj (op $ X.basic_open f)) :
   ∃ f' : X.presheaf.obj (op U), X.basic_open f' = X.basic_open g :=
 begin
-  haveI := is_localization_basic_open hU f,
+  letI := is_localization_basic_open hU f,
   obtain ⟨x, ⟨_, n, rfl⟩, rfl⟩ := is_localization.surj' (submonoid.powers f) g,
   use f * x,
   rw [algebra.smul_def, Scheme.basic_open_mul, Scheme.basic_open_mul],
@@ -561,8 +561,8 @@ lemma is_affine_open.is_localization_stalk {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (x : U) :
   is_localization.at_prime (X.presheaf.stalk x) (hU.prime_ideal_of x).as_ideal :=
 begin
-  haveI : is_affine _ := hU,
-  haveI : nonempty U := ⟨x⟩,
+  letI : is_affine _ := hU,
+  letI : nonempty U := ⟨x⟩,
   rcases x with ⟨x, hx⟩,
   let y := hU.prime_ideal_of ⟨x, hx⟩,
   have : hU.from_Spec.val.base y = x := hU.from_Spec_prime_ideal_of ⟨x, hx⟩,

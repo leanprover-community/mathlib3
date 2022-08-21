@@ -156,7 +156,7 @@ begin
   refine trans (map_Inf hf this) (le_antisymm _ _),
   { refine Inf_le_Inf (λ J hJ, ⟨comap f J, ⟨⟨le_comap_of_map_le hJ.1, _⟩,
     map_comap_of_surjective f hf J⟩⟩),
-    haveI : J.is_maximal := hJ.right,
+    letI : J.is_maximal := hJ.right,
     exact comap_is_maximal_of_surjective f hf },
   { refine Inf_le_Inf_of_subset_insert_top (λ j hj, hj.rec_on (λ J hJ, _)),
     rw ← hJ.2,
@@ -190,7 +190,7 @@ begin
         ⟨le_map_of_comap_le_of_surjective f hf hJ.1, hmax⟩, this⟩⟩ } },
   { rw comap_Inf,
     refine le_infi_iff.2 (λ J, (le_infi_iff.2 (λ hJ, _))),
-    haveI : J.is_maximal := hJ.right,
+    letI : J.is_maximal := hJ.right,
     refine Inf_le ⟨comap_mono hJ.left, comap_is_maximal_of_surjective _ hf⟩ }
 end
 
@@ -280,7 +280,7 @@ lemma jacobson_bot_polynomial_le_Inf_map_maximal :
   jacobson (⊥ : ideal R[X]) ≤ Inf (map (C : R →+* R[X]) '' {J : ideal R | J.is_maximal}) :=
 begin
   refine le_Inf (λ J, exists_imp_distrib.2 (λ j hj, _)),
-  haveI : j.is_maximal := hj.1,
+  letI : j.is_maximal := hj.1,
   refine trans (jacobson_mono bot_le) (le_of_eq _ : J.jacobson ≤ J),
   suffices : (⊥ : ideal (polynomial (R ⧸ j))).jacobson = ⊥,
   { rw [← hj.2, jacobson_eq_iff_jacobson_quotient_eq_bot],

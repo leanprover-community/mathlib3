@@ -276,7 +276,7 @@ lemma prod_filter_mul_prod_filter_not (s : finset α) (p : α → Prop) [decidab
   [decidable_pred (λ x, ¬p x)] (f : α → β) :
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬p x), f x) = ∏ x in s, f x :=
 begin
-  haveI := classical.dec_eq α,
+  letI := classical.dec_eq α,
   rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
 end
 
@@ -357,7 +357,7 @@ lemma prod_on_sum [fintype α] [fintype γ] (f : α ⊕ γ → β) :
   ∏ (x : α ⊕ γ), f x  =
     (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
 begin
-  haveI := classical.dec_eq (α ⊕ γ),
+  letI := classical.dec_eq (α ⊕ γ),
   convert prod_sum_elim univ univ (λ x, f (sum.inl x)) (λ x, f (sum.inr x)),
   { ext a,
     split,
@@ -377,7 +377,7 @@ lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
   (hs : set.pairwise_disjoint ↑s t) :
   (∏ x in (s.bUnion t), f x) = ∏ x in s, ∏ i in t x, f i :=
 begin
-  haveI := classical.dec_eq γ,
+  letI := classical.dec_eq γ,
   induction s using finset.induction_on with x s hxs ih hd,
   { simp_rw [bUnion_empty, prod_empty] },
   { simp_rw [coe_insert, set.pairwise_disjoint_insert, mem_coe] at hs,
@@ -574,7 +574,7 @@ end
 @[to_additive]
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀ x ∈ s₂, x ∉ s₁ → f x = 1) :
   (∏ x in s₁, f x) = ∏ x in s₂, f x :=
-by haveI := classical.dec_eq α; exact prod_subset_one_on_sdiff h (by simpa) (λ _ _, rfl)
+by letI := classical.dec_eq α; exact prod_subset_one_on_sdiff h (by simpa) (λ _ _, rfl)
 
 @[to_additive]
 lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
@@ -605,7 +605,7 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
 lemma prod_eq_single_of_mem {s : finset α} {f : α → β} (a : α) (h : a ∈ s)
   (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) : (∏ x in s, f x) = f a :=
 begin
-  haveI := classical.dec_eq α,
+  letI := classical.dec_eq α,
   calc (∏ x in s, f x) = ∏ x in {a}, f x :
       begin
         refine (prod_subset _ _).symm,
@@ -618,7 +618,7 @@ end
 @[to_additive]
 lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
   (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : (∏ x in s, f x) = f a :=
-by haveI := classical.dec_eq α;
+by letI := classical.dec_eq α;
 from classical.by_cases
   (assume : a ∈ s, prod_eq_single_of_mem a this h₀)
   (assume : a ∉ s,
@@ -629,7 +629,7 @@ from classical.by_cases
 lemma prod_eq_mul_of_mem {s : finset α} {f : α → β} (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hn : a ≠ b)
   (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) : (∏ x in s, f x) = (f a) * (f b) :=
 begin
-  haveI := classical.dec_eq α;
+  letI := classical.dec_eq α;
   let s' := ({a, b} : finset α),
   have hu : s' ⊆ s,
   { refine insert_subset.mpr _, apply and.intro ha, apply singleton_subset_iff.mpr hb },
@@ -651,7 +651,7 @@ lemma prod_eq_mul {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
   (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (ha : a ∉ s → f a = 1) (hb : b ∉ s → f b = 1) :
   (∏ x in s, f x) = (f a) * (f b) :=
 begin
-  haveI := classical.dec_eq α;
+  letI := classical.dec_eq α;
   by_cases h₁ : a ∈ s; by_cases h₂ : b ∈ s,
   { exact prod_eq_mul_of_mem a b h₁ h₂ hn h₀ },
   { rw [hb h₂, mul_one],
@@ -668,7 +668,7 @@ end
 
 @[to_additive]
 lemma prod_attach {f : α → β} : (∏ x in s.attach, f x) = (∏ x in s, f x) :=
-by haveI := classical.dec_eq α; exact
+by letI := classical.dec_eq α; exact
   calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
@@ -1129,7 +1129,7 @@ begin
 end
 
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
-by haveI := classical.dec_eq α; exact
+by letI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (λ a s has ih,
 by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 
@@ -1139,7 +1139,7 @@ lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
 @[to_additive]
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
-by haveI := classical.dec_eq α; exact
+by letI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
 @[to_additive]
@@ -1160,8 +1160,8 @@ lemma prod_involution {s : finset α} {f : α → β} :
   (g_mem : ∀ a ha, g a ha ∈ s)
   (g_inv : ∀ a ha, g (g a ha) (g_mem a ha) = a),
   (∏ x in s, f x) = 1 :=
-by haveI := classical.dec_eq α;
-haveI := classical.dec_eq β; exact
+by letI := classical.dec_eq α;
+letI := classical.dec_eq β; exact
 finset.strong_induction_on s
   (λ s ih g h g_ne g_mem g_inv,
     s.eq_empty_or_nonempty.elim (λ hs, hs.symm ▸ rfl)
@@ -1481,7 +1481,7 @@ calc (s.bUnion t).card = ∑ i in s.bUnion t, 1 : by simp
 
 lemma card_bUnion_le [decidable_eq β] {s : finset α} {t : α → finset β} :
   (s.bUnion t).card ≤ ∑ a in s, (t a).card :=
-by haveI := classical.dec_eq α; exact
+by letI := classical.dec_eq α; exact
 finset.induction_on s (by simp)
   (λ a s has ih,
     calc ((insert a s).bUnion t).card ≤ (t a).card + (s.bUnion t).card :
@@ -1511,7 +1511,7 @@ section prod_eq_zero
 variables [comm_monoid_with_zero β]
 
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
-by { haveI := classical.dec_eq α, rw [←prod_erase_mul _ _ ha, h, mul_zero] }
+by { letI := classical.dec_eq α, rw [←prod_erase_mul _ _ ha, h, mul_zero] }
 
 lemma prod_boole {s : finset α} {p : α → Prop} [decidable_pred p] :
   ∏ i in s, ite (p i) (1 : β) (0 : β) = ite (∀ i ∈ s, p i) 1 0 :=
@@ -1601,7 +1601,7 @@ by rw [eq_empty_of_is_empty (univ : finset α), finset.prod_empty]
   (f : α → β) (a : α) :
   (∏ x : α, f x) = f a :=
 begin
-  haveI : unique α := unique_of_subsingleton a,
+  letI : unique α := unique_of_subsingleton a,
   convert prod_unique f
 end
 

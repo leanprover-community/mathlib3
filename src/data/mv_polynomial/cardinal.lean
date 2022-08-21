@@ -26,7 +26,7 @@ variables {σ : Type u} {R : Type v} [comm_semiring R]
 @[simp] lemma cardinal_mk_eq_max_lift [nonempty σ] [nontrivial R] :
   #(mv_polynomial σ R) = max (max (cardinal.lift.{u} $ #R) $ cardinal.lift.{v} $ #σ) ℵ₀ :=
 begin
-  haveI : infinite (σ →₀ ℕ) := infinite_iff.2 ((le_max_right _ _).trans (mk_finsupp_nat σ).ge),
+  letI : infinite (σ →₀ ℕ) := infinite_iff.2 ((le_max_right _ _).trans (mk_finsupp_nat σ).ge),
   refine (mk_finsupp_lift_of_infinite _ R).trans _,
   rw [mk_finsupp_nat, max_assoc, lift_max, lift_aleph_0, max_comm],
 end

@@ -370,7 +370,7 @@ begin
   constructor,
   introsI C _ _ I hI f₁ f₂ e,
   letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
-  haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
+  letI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
   apply alg_hom.restrict_scalars_injective R,
   apply tensor_product.ext,
   any_goals { apply_instance },
@@ -392,7 +392,7 @@ begin
   constructor,
   introsI C _ _ I hI f,
   letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
-  haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
+  letI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
   refine ⟨tensor_product.product_left_alg_hom (algebra.of_id B C) _, _⟩,
   { exact formally_smooth.lift I ⟨2, hI⟩
       ((f.restrict_scalars R).comp tensor_product.include_right) },
@@ -490,23 +490,23 @@ formally_etale.iff_unramified_and_smooth.mpr
 
 lemma formally_smooth.localization_map [formally_smooth R S] : formally_smooth Rₘ Sₘ :=
 begin
-  haveI : formally_smooth S Sₘ := formally_smooth.of_is_localization (M.map (algebra_map R S)),
-  haveI : formally_smooth R Sₘ := formally_smooth.comp R S Sₘ,
+  letI : formally_smooth S Sₘ := formally_smooth.of_is_localization (M.map (algebra_map R S)),
+  letI : formally_smooth R Sₘ := formally_smooth.comp R S Sₘ,
   exact formally_smooth.localization_base M
 end
 
 lemma formally_unramified.localization_map [formally_unramified R S] : formally_unramified Rₘ Sₘ :=
 begin
-  haveI : formally_unramified S Sₘ :=
+  letI : formally_unramified S Sₘ :=
     formally_unramified.of_is_localization (M.map (algebra_map R S)),
-  haveI : formally_unramified R Sₘ := formally_unramified.comp R S Sₘ,
+  letI : formally_unramified R Sₘ := formally_unramified.comp R S Sₘ,
   exact formally_unramified.localization_base M
 end
 
 lemma formally_etale.localization_map [formally_etale R S] : formally_etale Rₘ Sₘ :=
 begin
-  haveI : formally_etale S Sₘ := formally_etale.of_is_localization (M.map (algebra_map R S)),
-  haveI : formally_etale R Sₘ := formally_etale.comp R S Sₘ,
+  letI : formally_etale S Sₘ := formally_etale.of_is_localization (M.map (algebra_map R S)),
+  letI : formally_etale R Sₘ := formally_etale.comp R S Sₘ,
   exact formally_etale.localization_base M
 end
 

@@ -205,7 +205,7 @@ end
 
 lemma fin_encoding.card_le_aleph_0 {α : Type u} (e : fin_encoding α) : #α ≤ ℵ₀ :=
 begin
-  haveI : encodable e.Γ := fintype.to_encodable _,
+  letI : encodable e.Γ := fintype.to_encodable _,
   exact e.to_encoding.card_le_aleph_0
 end
 

@@ -44,7 +44,7 @@ tendsto_nhds_lim h
 lemma extend_from_eq [t2_space Y] {A : set X} {f : X → Y} {x : X} {y : Y} (hx : x ∈ closure A)
   (hf : tendsto f (𝓝[A] x) (𝓝 y)) : extend_from A f x = y :=
 begin
-  haveI := mem_closure_iff_nhds_within_ne_bot.mp hx,
+  letI := mem_closure_iff_nhds_within_ne_bot.mp hx,
   exact tendsto_nhds_unique (tendsto_nhds_lim ⟨y, hf⟩) hf,
 end
 
@@ -69,7 +69,7 @@ begin
   suffices : ∀ y ∈ V ∩ B, φ y ∈ V',
     from mem_of_superset (inter_mem_inf V_in $ mem_principal_self B) this,
   rintros y ⟨hyV, hyB⟩,
-  haveI := mem_closure_iff_nhds_within_ne_bot.mp (hB hyB),
+  letI := mem_closure_iff_nhds_within_ne_bot.mp (hB hyB),
   have limy : tendsto f (𝓝[A] y) (𝓝 $ φ y) := tendsto_extend_from (hf y hyB),
   have hVy : V ∈ 𝓝 y := is_open.mem_nhds V_op hyV,
   have : V ∩ A ∈ (𝓝[A] y),

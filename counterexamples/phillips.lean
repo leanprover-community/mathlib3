@@ -232,7 +232,7 @@ begin
   -- convenient to formalize the inductive construction.
   let A : set (set α) := {t | t.countable},
   let empty : A := ⟨∅, countable_empty⟩,
-  haveI : nonempty A := ⟨empty⟩,
+  letI : nonempty A := ⟨empty⟩,
   -- given a countable set `s`, one can find a set `t` in its complement with measure close to
   -- maximal.
   have : ∀ (s : A), ∃ (t : A), (∀ (u : A), f (↑u \ ↑s) ≤ 2 * f (↑t \ ↑s)),

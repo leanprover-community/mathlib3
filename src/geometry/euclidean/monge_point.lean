@@ -738,7 +738,7 @@ begin
   refine ext_of_direction_eq _
     ⟨p 0, mem_affine_span ℝ (set.mem_range_self _), mem_affine_span ℝ (hps (set.mem_range_self _))⟩,
   have hfd : finite_dimensional ℝ (affine_span ℝ s).direction, { rw hs, apply_instance },
-  haveI := hfd,
+  letI := hfd,
   refine eq_of_le_of_finrank_eq (direction_le (affine_span_mono ℝ hps)) _,
   rw [hs, direction_affine_span, direction_affine_span,
       ha.finrank_vector_span (fintype.card_fin _),

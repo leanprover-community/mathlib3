@@ -348,7 +348,7 @@ lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 begin
   rw ← measure.restrict_apply_univ at *,
-  haveI : is_finite_measure (μ.restrict s) := ⟨‹_›⟩,
+  letI : is_finite_measure (μ.restrict s) := ⟨‹_›⟩,
   exact norm_integral_le_of_norm_le_const hC
 end
 
@@ -618,7 +618,7 @@ variables {𝕜}
 lemma continuous_set_integral [normed_space ℝ E] [complete_space E] (s : set α) :
   continuous (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ) :=
 begin
-  haveI : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩,
+  letI : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩,
   have h_comp : (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ)
     = (integral (μ.restrict s)) ∘ (λ f, Lp_to_Lp_restrict_clm α E ℝ μ 1 s f),
   { ext1 f,
@@ -687,7 +687,7 @@ lemma continuous_within_at.integral_sub_linear_is_o_ae
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
   (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
-by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
+by letI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
 exact (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae
   hfm (μ.finite_at_nhds_within a t) hs m hsμ
 

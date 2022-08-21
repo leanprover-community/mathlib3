@@ -127,7 +127,7 @@ instance image_to_kernel_epi_of_epi_of_zero [has_images V] [epi f] :
   epi (image_to_kernel f (0 : B ⟶ C) (by simp)) :=
 begin
   simp only [image_to_kernel_zero_right],
-  haveI := epi_image_of_epi f,
+  letI := epi_image_of_epi f,
   rw ←image_subobject_arrow,
   refine @epi_comp _ _ _ _ _ _ (epi_comp _ _) _ _,
 end

@@ -167,7 +167,7 @@ variables [t2_space γ]
 lemma ultrafilter_extend_extends (f : α → γ) : ultrafilter.extend f ∘ pure = f :=
 begin
   letI : topological_space α := ⊥,
-  haveI : discrete_topology α := ⟨rfl⟩,
+  letI : discrete_topology α := ⟨rfl⟩,
   exact funext (dense_inducing_pure.extend_eq continuous_of_discrete_topology)
 end
 
@@ -181,7 +181,7 @@ have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap pure (𝓝 b)) (𝓝 c) :
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin
   letI : topological_space α := ⊥,
-  haveI : normal_space γ := normal_of_compact_t2,
+  letI : normal_space γ := normal_of_compact_t2,
   exact dense_inducing_pure.continuous_extend this
 end
 

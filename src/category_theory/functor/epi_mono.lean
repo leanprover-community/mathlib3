@@ -74,7 +74,7 @@ lemma preserves_monomorphisms.of_iso {F G : C ⥤ D} [preserves_monomorphisms F]
   preserves_monomorphisms G :=
 { preserves := λ X Y f h,
   begin
-    haveI : mono (F.map f ≫ (α.app Y).hom) := by exactI mono_comp _ _,
+    letI : mono (F.map f ≫ (α.app Y).hom) := by exactI mono_comp _ _,
     convert (mono_comp _ _ : mono ((α.app X).inv ≫ F.map f ≫ (α.app Y).hom)),
     rw [iso.eq_inv_comp, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }
@@ -88,7 +88,7 @@ lemma preserves_epimorphisms.of_iso {F G : C ⥤ D} [preserves_epimorphisms F] (
   preserves_epimorphisms G :=
 { preserves := λ X Y f h,
   begin
-    haveI : epi (F.map f ≫ (α.app Y).hom) := by exactI epi_comp _ _,
+    letI : epi (F.map f ≫ (α.app Y).hom) := by exactI epi_comp _ _,
     convert (epi_comp _ _ : epi ((α.app X).inv ≫ F.map f ≫ (α.app Y).hom)),
     rw [iso.eq_inv_comp, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }
@@ -103,7 +103,7 @@ lemma reflects_monomorphisms.of_iso {F G : C ⥤ D} [reflects_monomorphisms F] (
 { reflects := λ X Y f h,
   begin
     apply F.mono_of_mono_map,
-    haveI : mono (G.map f ≫ (α.app Y).inv) := by exactI mono_comp _ _,
+    letI : mono (G.map f ≫ (α.app Y).inv) := by exactI mono_comp _ _,
     convert (mono_comp _ _ : mono ((α.app X).hom ≫ G.map f ≫ (α.app Y).inv)),
     rw [← category.assoc, iso.eq_comp_inv, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }
@@ -118,7 +118,7 @@ lemma reflects_epimorphisms.of_iso {F G : C ⥤ D} [reflects_epimorphisms F] (α
 { reflects := λ X Y f h,
   begin
     apply F.epi_of_epi_map,
-    haveI : epi (G.map f ≫ (α.app Y).inv) := by exactI epi_comp _ _,
+    letI : epi (G.map f ≫ (α.app Y).inv) := by exactI epi_comp _ _,
     convert (epi_comp _ _ : epi ((α.app X).hom ≫ G.map f ≫ (α.app Y).inv)),
     rw [← category.assoc, iso.eq_comp_inv, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }

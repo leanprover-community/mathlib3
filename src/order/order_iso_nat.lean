@@ -40,7 +40,7 @@ rfl
 
 /-- If `f` is a strictly `r`-decreasing sequence, then this returns `f` as an order embedding. -/
 def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) : ((>) : ℕ → ℕ → Prop) ↪r r :=
-by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
+by letI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
 
 theorem well_founded_iff_no_descending_seq :
   well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
@@ -114,7 +114,7 @@ begin
   classical,
   let bad : set ℕ := { m | ∀ n, m < n → ¬ r (f m) (f n) },
   by_cases hbad : infinite bad,
-  { haveI := hbad,
+  { letI := hbad,
     refine ⟨nat.order_embedding_of_set bad, or.intro_right _ (λ m n mn, _)⟩,
     have h := set.mem_range_self m,
     rw nat.order_embedding_of_set_range bad at h,

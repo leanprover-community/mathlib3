@@ -95,7 +95,7 @@ begin
     ← int.cast_mul, units.inv_mul, int.cast_one, one_mul,
     show (p : ℚ) ^ n • x = ((p : ℕ) : ℤ) ^ n • x, by simp [smul_def]] at H,
   unfreezingI { cases k },
-  { haveI : is_cyclotomic_extension {1} ℚ K := by simpa using hcycl,
+  { letI : is_cyclotomic_extension {1} ℚ K := by simpa using hcycl,
     have : x ∈ (⊥ : subalgebra ℚ K),
     { rw [singleton_one ℚ K],
       exact mem_top },
@@ -111,7 +111,7 @@ begin
       rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
       rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
         show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
-      haveI : char_zero ℚ := ordered_semiring.to_char_zero,
+      letI : char_zero ℚ := ordered_semiring.to_char_zero,
       rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
         ((algebra_map ℤ ℚ).injective_int) h₂],
       exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
@@ -136,8 +136,8 @@ local attribute [-instance] cyclotomic_field.algebra
 lemma cyclotomic_ring_is_integral_closure_of_prime_pow :
   is_integral_closure (cyclotomic_ring (p ^ k) ℤ ℚ) ℤ (cyclotomic_field (p ^ k) ℚ) :=
 begin
-  haveI : char_zero ℚ := ordered_semiring.to_char_zero,
-  haveI : is_cyclotomic_extension {p ^ k} ℚ (cyclotomic_field (p ^ k) ℚ),
+  letI : char_zero ℚ := ordered_semiring.to_char_zero,
+  letI : is_cyclotomic_extension {p ^ k} ℚ (cyclotomic_field (p ^ k) ℚ),
   { convert cyclotomic_field.is_cyclotomic_extension (p ^ k) _,
     { exact subsingleton.elim _ _ },
     { exact ne_zero.char_zero } },
@@ -150,7 +150,7 @@ begin
     { simp only [eq_iff_true_of_subsingleton] },
     { simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
       exact hζ.pow_eq_one } },
-  { haveI : is_cyclotomic_extension {p ^ k} ℤ (cyclotomic_ring (p ^ k) ℤ ℚ),
+  { letI : is_cyclotomic_extension {p ^ k} ℤ (cyclotomic_ring (p ^ k) ℤ ℚ),
     { convert cyclotomic_ring.is_cyclotomic_extension _ ℤ ℚ,
       { exact subsingleton.elim _ _ },
       { exact ne_zero.char_zero } },

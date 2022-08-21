@@ -165,7 +165,7 @@ by classical; exact
 /--
 As a convenience, provide an instance automatically if `(f default)` is nontrivial.
 
-If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
+If a different index has the non-trivial type, then use `letI := nontrivial_at that_index`.
 -/
 instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f default)] :
   nontrivial (Π i : I, f i) := nontrivial_at default

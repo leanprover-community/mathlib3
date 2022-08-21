@@ -117,7 +117,7 @@ initial_seg.eq (f.trans g) (initial_seg.refl _)
 /-- If we have order embeddings between `α` and `β` whose images are initial segments, and `β`
 is a well-order then `α` and `β` are order-isomorphic. -/
 def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃r s :=
-by haveI := f.to_rel_embedding.is_well_order; exact
+by letI := f.to_rel_embedding.is_well_order; exact
 ⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.map_rel_iff'⟩
 
 @[simp] theorem antisymm_to_fun [is_well_order β s]
@@ -390,7 +390,7 @@ end
 /-- Construct an initial segment from an order embedding into a well order, by collapsing it
 to fill the gaps. -/
 noncomputable def collapse [is_well_order β s] (f : r ↪r s) : r ≼i s :=
-by haveI := rel_embedding.is_well_order f; exact
+by letI := rel_embedding.is_well_order f; exact
 ⟨rel_embedding.of_monotone
   (λ a, (collapse_F f a).1) (λ a b, collapse_F.lt f),
 λ a b, acc.rec_on (is_well_founded.wf.apply b : acc s b) (λ b H IH a h, begin

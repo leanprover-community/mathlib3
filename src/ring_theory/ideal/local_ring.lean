@@ -226,7 +226,7 @@ lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_semiring R] [comm_se
   [H : _root_.local_ring S] (f : R →+* S)
   [is_local_ring_hom f] : _root_.local_ring R :=
 begin
-  haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
+  letI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
   apply local_ring.of_nonunits_add,
   intros a b,
   simp_rw [←map_mem_nonunits_iff f, f.map_add],

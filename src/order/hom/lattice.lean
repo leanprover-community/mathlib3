@@ -724,7 +724,7 @@ variables (α β) [linear_order α] [lattice β] [order_hom_class F α β]
 
 /-- Reinterpret an order homomorphism to a linear order as a `lattice_hom`. -/
 def to_lattice_hom (f : F) : lattice_hom α β :=
-by { haveI : lattice_hom_class F α β := order_hom_class.to_lattice_hom_class α β, exact f }
+by { letI : lattice_hom_class F α β := order_hom_class.to_lattice_hom_class α β, exact f }
 
 @[simp] lemma coe_to_lattice_hom (f : F) : ⇑(to_lattice_hom α β f) = f := rfl
 @[simp] lemma to_lattice_hom_apply (f : F) (a : α) : to_lattice_hom α β f a = f a := rfl

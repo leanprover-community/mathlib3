@@ -199,7 +199,7 @@ begin
   intros t h h',
   obtain ⟨x, hx⟩ := h.1,
   obtain ⟨U, hU, hU'⟩ : x ∈ ⋃₀S := by { rw hS'', trivial },
-  haveI : quasi_sober U := hS' ⟨U, hU⟩,
+  letI : quasi_sober U := hS' ⟨U, hU⟩,
   have H : is_preirreducible (coe ⁻¹' t : set U) :=
     h.2.preimage (hS ⟨U, hU⟩).open_embedding_subtype_coe,
   replace H : is_irreducible (coe ⁻¹' t : set U) := ⟨⟨⟨x, hU'⟩, by simpa using hx⟩, H⟩,

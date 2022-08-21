@@ -81,7 +81,7 @@ isomorphic to `E`. -/
 def prod_equiv_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
   (hq : is_closed (q : set E)) : (p × q) ≃L[𝕜] E :=
 begin
-  haveI := hp.complete_space_coe, haveI := hq.complete_space_coe,
+  letI := hp.complete_space_coe, letI := hq.complete_space_coe,
   refine (p.prod_equiv_of_is_compl q h).to_continuous_linear_equiv_of_continuous _,
   exact (p.subtypeL.coprod q.subtypeL).continuous
 end
@@ -124,7 +124,7 @@ lemma closed_complemented_of_quotient_finite_dimensional [complete_space 𝕜]
   p.closed_complemented :=
 begin
   obtain ⟨q, hq⟩ : ∃ q, is_compl p q := p.exists_is_compl,
-  haveI : finite_dimensional 𝕜 q := (p.quotient_equiv_of_is_compl q hq).finite_dimensional,
+  letI : finite_dimensional 𝕜 q := (p.quotient_equiv_of_is_compl q hq).finite_dimensional,
   exact closed_complemented_of_closed_compl hq hp q.closed_of_finite_dimensional
 end
 

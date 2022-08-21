@@ -1424,8 +1424,8 @@ lemma to_topological_space_prod {α} {β} [u : uniform_space α] [v : uniform_sp
 /-- A version of `uniform_continuous_inf_dom_left` for binary functions -/
 lemma uniform_continuous_inf_dom_left₂ {α β γ} {f : α → β → γ}
   {ua1 ua2 : uniform_space α} {ub1 ub2 : uniform_space β} {uc1 : uniform_space γ}
-  (h : by haveI := ua1; haveI := ub1; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
-  by haveI := ua1 ⊓ ua2; haveI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
+  (h : by letI := ua1; letI := ub1; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
+  by letI := ua1 ⊓ ua2; letI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
 begin
   -- proof essentially copied from ``continuous_inf_dom_left₂`
   have ha := @uniform_continuous_inf_dom_left _ _ id ua1 ua2 ua1 (@uniform_continuous_id _ (id _)),
@@ -1438,8 +1438,8 @@ end
 /-- A version of `uniform_continuous_inf_dom_right` for binary functions -/
 lemma uniform_continuous_inf_dom_right₂ {α β γ} {f : α → β → γ}
   {ua1 ua2 : uniform_space α} {ub1 ub2 : uniform_space β} {uc1 : uniform_space γ}
-  (h : by haveI := ua2; haveI := ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
-  by haveI := ua1 ⊓ ua2; haveI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
+  (h : by letI := ua2; letI := ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
+  by letI := ua1 ⊓ ua2; letI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
 begin
   -- proof essentially copied from ``continuous_inf_dom_right₂`
   have ha := @uniform_continuous_inf_dom_right _ _ id ua1 ua2 ua2 (@uniform_continuous_id _ (id _)),
@@ -1455,7 +1455,7 @@ lemma uniform_continuous_Inf_dom₂ {α β γ} {f : α → β → γ}
   {ua : uniform_space α} {ub : uniform_space β} {uc : uniform_space γ}
   (ha : ua ∈ uas) (hb : ub ∈ ubs)
   (hf : uniform_continuous (λ p : α × β, f p.1 p.2)):
-  by haveI := Inf uas; haveI := Inf ubs;
+  by letI := Inf uas; letI := Inf ubs;
     exact @uniform_continuous _ _ _ uc (λ p : α × β, f p.1 p.2) :=
 begin
   -- proof essentially copied from ``continuous_Inf_dom`

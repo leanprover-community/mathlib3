@@ -94,7 +94,7 @@ countable.of_equiv (Σ a : plift α, plift (π a.down)) (equiv.psigma_equiv_sigm
 
 instance [finite α] [Π a, countable (π a)] : countable (Π a, π a) :=
 begin
-  haveI : ∀ n, countable (fin n → ℕ),
+  letI : ∀ n, countable (fin n → ℕ),
   { intro n, induction n with n ihn,
     { apply_instance },
     { exactI countable.of_equiv _ (equiv.pi_fin_succ _ _).symm } },

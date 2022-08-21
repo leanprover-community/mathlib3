@@ -303,7 +303,7 @@ end⟩
 instance nonempty_compacts.second_countable_topology [second_countable_topology α] :
   second_countable_topology (nonempty_compacts α) :=
 begin
-  haveI : separable_space (nonempty_compacts α) :=
+  letI : separable_space (nonempty_compacts α) :=
   begin
     /- To obtain a countable dense subset of `nonempty_compacts α`, start from
     a countable dense subset `s` of α, and then consider all its finite nonempty subsets.

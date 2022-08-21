@@ -179,8 +179,8 @@ first cone was limiting also.
 def of_point_iso {r t : cone F} (P : is_limit r) [i : is_iso (P.lift t)] : is_limit t :=
 of_iso_limit P
 begin
-  haveI : is_iso (P.lift_cone_morphism t).hom := i,
-  haveI : is_iso (P.lift_cone_morphism t) := cones.cone_iso_of_hom_iso _,
+  letI : is_iso (P.lift_cone_morphism t).hom := i,
+  letI : is_iso (P.lift_cone_morphism t) := cones.cone_iso_of_hom_iso _,
   symmetry,
   apply as_iso (P.lift_cone_morphism t),
 end
@@ -634,8 +634,8 @@ first cocone was colimiting also.
 def of_point_iso {r t : cocone F} (P : is_colimit r) [i : is_iso (P.desc t)] : is_colimit t :=
 of_iso_colimit P
 begin
-  haveI : is_iso (P.desc_cocone_morphism t).hom := i,
-  haveI : is_iso (P.desc_cocone_morphism t) := cocones.cocone_iso_of_hom_iso _,
+  letI : is_iso (P.desc_cocone_morphism t).hom := i,
+  letI : is_iso (P.desc_cocone_morphism t) := cocones.cocone_iso_of_hom_iso _,
   apply as_iso (P.desc_cocone_morphism t),
 end
 

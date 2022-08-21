@@ -79,8 +79,8 @@ begin
   letI : semigroup M' :=
     { mul       := λ p q, ⟨p.1 * q.1, s_add _ p.2 _ q.2⟩,
       mul_assoc := λ p q r, subtype.eq (mul_assoc _ _ _) },
-  haveI : compact_space M' := is_compact_iff_compact_space.mp s_compact,
-  haveI : nonempty M' := nonempty_subtype.mpr snemp,
+  letI : compact_space M' := is_compact_iff_compact_space.mp s_compact,
+  letI : nonempty M' := nonempty_subtype.mpr snemp,
   have : ∀ p : M', continuous (* p) := λ p, continuous_subtype_mk _
     ((continuous_mul_left p.1).comp continuous_subtype_val),
   obtain ⟨⟨m, hm⟩, idem⟩ := exists_idempotent_of_compact_t2_of_continuous_mul_left this,

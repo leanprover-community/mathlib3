@@ -139,7 +139,7 @@ lemma ae_lt_top [is_finite_measure ℙ] {μ : measure E} {X : Ω → E} :
   ∀ᵐ x ∂μ, pdf X ℙ μ x < ∞ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
-  { haveI := hpdf,
+  { letI := hpdf,
     refine ae_lt_top (measurable_pdf X ℙ μ) _,
     rw lintegral_eq_measure_univ,
     exact (measure_lt_top _ _).ne },
@@ -227,7 +227,7 @@ begin
   { intro hX',
     exactI ⟨hX'.pdf'.1, have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous⟩ },
   { rintros ⟨hX, h_decomp, h⟩,
-    haveI := h_decomp,
+    letI := h_decomp,
     refine ⟨⟨hX, (measure.map X ℙ).rn_deriv μ, measurable_rn_deriv _ _, _⟩⟩,
     rwa with_density_rn_deriv_eq }
 end
@@ -353,7 +353,7 @@ lemma measure_preimage {m : measurable_space Ω} {X : Ω → E} {ℙ : measure �
   {A : set E} (hA : measurable_set A) :
   ℙ (X ⁻¹' A) = μ (s ∩ A) / μ s :=
 begin
-  haveI := hu.has_pdf hns hnt,
+  letI := hu.has_pdf hns hnt,
   rw [←measure.map_apply (has_pdf.measurable X ℙ μ) hA, map_eq_set_lintegral_pdf X ℙ μ hA,
     lintegral_congr_ae hu.restrict],
   simp only [hms, hA, lintegral_indicator, pi.smul_apply, pi.one_apply, algebra.id.smul_eq_mul,
@@ -405,8 +405,8 @@ end
 lemma integral_eq (hnt : volume s ≠ ∞) (huX : is_uniform X s ℙ) :
   ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
 begin
-  haveI := has_pdf hns hnt huX,
-  haveI := huX.is_probability_measure hns hnt hms,
+  letI := has_pdf hns hnt huX,
+  letI := huX.is_probability_measure hns hnt hms,
   rw ← integral_mul_eq_integral,
   rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq huX)),
   have : ∀ x, x * (s.indicator ((volume s)⁻¹ • (1 : ℝ → ℝ≥0∞)) x).to_real =

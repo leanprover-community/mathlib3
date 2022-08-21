@@ -75,7 +75,7 @@ lemma has_terminal_of_has_terminal_of_preserves_limit [preserves_limit (functor.
   has_terminal D :=
 ⟨λ F,
 begin
-  haveI := has_limit.mk ⟨_, is_limit_of_has_terminal_of_preserves_limit G⟩,
+  letI := has_limit.mk ⟨_, is_limit_of_has_terminal_of_preserves_limit G⟩,
   apply has_limit_of_iso F.unique_from_empty.symm,
 end⟩
 
@@ -170,7 +170,7 @@ lemma has_initial_of_has_initial_of_preserves_colimit [preserves_colimit (functo
   has_initial D :=
 ⟨λ F,
 begin
-  haveI := has_colimit.mk ⟨_, is_colimit_of_has_initial_of_preserves_colimit G⟩,
+  letI := has_colimit.mk ⟨_, is_colimit_of_has_initial_of_preserves_colimit G⟩,
   apply has_colimit_of_iso F.unique_from_empty,
 end⟩
 

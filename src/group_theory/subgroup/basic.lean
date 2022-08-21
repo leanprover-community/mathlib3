@@ -665,7 +665,7 @@ end
 (set_like.ext'_iff.trans (by refl)).symm
 
 @[to_additive] lemma coe_eq_singleton {H : subgroup G} : (∃ g : G, (H : set G) = {g}) ↔ H = ⊥ :=
-⟨λ ⟨g, hg⟩, by { haveI : subsingleton (H : set G) := by { rw hg, apply_instance },
+⟨λ ⟨g, hg⟩, by { letI : subsingleton (H : set G) := by { rw hg, apply_instance },
   exact H.eq_bot_of_subsingleton }, λ h, ⟨1, set_like.ext'_iff.mp h⟩⟩
 
 @[to_additive] instance fintype_bot : fintype (⊥ : subgroup G) := ⟨{1},
@@ -681,7 +681,7 @@ fintype.card_eq_one_iff.2
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
   (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
-  haveI : fintype (H : set G) := ‹fintype H›,
+  letI : fintype (H : set G) := ‹fintype H›,
   rw [set_like.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
     ← finset.card_eq_iff_eq_univ, ← h, set.to_finset_card],
   congr
@@ -1103,7 +1103,7 @@ lemma mem_Sup_of_directed_on {K : set (subgroup G)} (Kne : K.nonempty)
   (hK : directed_on (≤) K) {x : G} :
   x ∈ Sup K ↔ ∃ s ∈ K, x ∈ s :=
 begin
-  haveI : nonempty K := Kne.to_subtype,
+  letI : nonempty K := Kne.to_subtype,
   simp only [Sup_eq_supr', mem_supr_of_directed hK.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
@@ -1679,8 +1679,8 @@ def set_normalizer (S : set G) : subgroup G :=
 
 lemma mem_normalizer_fintype {S : set G} [finite S] {x : G}
   (h : ∀ n, n ∈ S → x * n * x⁻¹ ∈ S) : x ∈ subgroup.set_normalizer S :=
-by haveI := classical.prop_decidable; casesI nonempty_fintype S;
-haveI := set.fintype_image S (λ n, x * n * x⁻¹); exact
+by letI := classical.prop_decidable; casesI nonempty_fintype S;
+letI := set.fintype_image S (λ n, x * n * x⁻¹); exact
 λ n, ⟨h n, λ h₁,
 have heq : (λ n, x * n * x⁻¹) '' S = S := set.eq_of_subset_of_card_le
   (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective S conj_injective),

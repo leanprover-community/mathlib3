@@ -153,7 +153,7 @@ theorem exists_fixed_point' {s : set α} (hsc : is_complete s) (hsf : maps_to f 
   ∃ y ∈ s, is_fixed_pt f y ∧ tendsto (λ n, f^[n] x) at_top (𝓝 y) ∧
     ∀ n:ℕ, edist (f^[n] x) y ≤ (edist x (f x)) * K^n / (1 - K) :=
 begin
-  haveI := hsc.complete_space_coe,
+  letI := hsc.complete_space_coe,
   rcases hf.exists_fixed_point ⟨x, hxs⟩ hx with ⟨y, hfy, h_tendsto, hle⟩,
   refine ⟨y, y.2, subtype.ext_iff_val.1 hfy, _, λ n, _⟩,
   { convert (continuous_subtype_coe.tendsto _).comp h_tendsto, ext n,

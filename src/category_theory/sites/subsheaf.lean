@@ -385,7 +385,7 @@ def image_factorization {F F' : Sheaf J (Type (max v u))} (f : F ⟶ F') :
 { F := image_mono_factorization f,
   is_image :=
   { lift := λ I, begin
-      haveI := (Sheaf.hom.mono_iff_presheaf_mono J _ _).mp I.m_mono,
+      letI := (Sheaf.hom.mono_iff_presheaf_mono J _ _).mp I.m_mono,
       refine ⟨subpresheaf.hom_of_le _ ≫ inv (to_image_presheaf I.m.1)⟩,
       apply subpresheaf.sheafify_le,
       { conv_lhs { rw ← I.fac }, apply image_presheaf_comp_le },

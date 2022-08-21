@@ -855,7 +855,7 @@ lemma exists_orthogonal_basis [hK : invertible (2 : K)]
 begin
   unfreezingI { induction hd : finrank K V with d ih generalizing V },
   { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _⟩ },
-  haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
+  letI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
   -- either the bilinear form is trivial or we can pick a non-null `x`
   obtain rfl | hB₁ := eq_or_ne B 0,
   { let b := finite_dimensional.fin_basis K V,

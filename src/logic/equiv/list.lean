@@ -42,7 +42,7 @@ instance _root_.list.encodable : encodable (list α) :=
   by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
 
 instance _root_.list.countable {α : Type*} [countable α] : countable (list α) :=
-by { haveI := encodable.of_countable α, apply_instance }
+by { letI := encodable.of_countable α, apply_instance }
 
 @[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
 @[simp] theorem encode_list_cons (a : α) (l : list α) :
@@ -139,7 +139,7 @@ countable.of_equiv _ (equiv.vector_equiv_array _ _)
 
 /-- If `α` is encodable, then so is `finset α`. -/
 instance _root_.finset.encodable [encodable α] : encodable (finset α) :=
-by haveI := decidable_eq_of_encodable α; exact
+by letI := decidable_eq_of_encodable α; exact
  of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
@@ -186,7 +186,7 @@ finset.sort_to_finset _ _
 def fintype_equiv_fin {α} [fintype α] [encodable α] :
   α ≃ fin (fintype.card α) :=
 begin
-  haveI : decidable_eq α := encodable.decidable_eq_of_encodable _,
+  letI : decidable_eq α := encodable.decidable_eq_of_encodable _,
   transitivity,
   { exact ((sorted_univ_nodup α).nth_le_equiv_of_forall_mem_list _ mem_sorted_univ).symm },
   exact equiv.cast (congr_arg _ (length_sorted_univ α))

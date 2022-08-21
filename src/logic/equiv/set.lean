@@ -488,7 +488,7 @@ lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
   of_left_inverse f f_inv hf = of_injective f
     ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by
-    { haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
+    { letI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
 by { ext, simp }
 
 lemma of_left_inverse'_eq_of_injective {α β : Type*}

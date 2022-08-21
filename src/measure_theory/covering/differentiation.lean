@@ -120,7 +120,7 @@ begin
     apply frequently.mono this,
     rintros a ⟨ρa, av, aU⟩,
     exact ⟨ρa, aU⟩ },
-  haveI : encodable h.index := h.index_countable.to_encodable,
+  letI : encodable h.index := h.index_countable.to_encodable,
   calc ρ s ≤ ∑' (x : h.index), ρ (h.covering x) : h.measure_le_tsum_of_absolutely_continuous hρ
   ... ≤ ∑' (x : h.index), ν (h.covering x) : ennreal.tsum_le_tsum (λ x, (h.covering_mem x.2).1)
   ... = ν (⋃ (x : h.index), h.covering x) :
@@ -713,7 +713,7 @@ holds, but it only gives the first conclusion, see `ae_tendsto_measure_inter_div
 lemma ae_tendsto_measure_inter_div_of_measurable_set {s : set α} (hs : measurable_set s) :
   ∀ᵐ x ∂μ, tendsto (λ a, μ (s ∩ a) / μ a) (v.filter_at x) (𝓝 (s.indicator 1 x)) :=
 begin
-  haveI : is_locally_finite_measure (μ.restrict s) :=
+  letI : is_locally_finite_measure (μ.restrict s) :=
     is_locally_finite_measure_of_le restrict_le_self,
   filter_upwards [ae_tendsto_rn_deriv v (μ.restrict s), rn_deriv_restrict μ hs],
   assume x hx h'x,

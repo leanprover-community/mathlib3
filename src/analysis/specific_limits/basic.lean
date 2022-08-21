@@ -419,7 +419,7 @@ lemma set.countable.exists_pos_has_sum_le {ι : Type*} {s : set ι} (hs : s.coun
   {ε : ℝ} (hε : 0 < ε) :
   ∃ ε' : ι → ℝ, (∀ i, 0 < ε' i) ∧ ∃ c, has_sum (λ i : s, ε' i) c ∧ c ≤ ε :=
 begin
-  haveI := hs.to_encodable,
+  letI := hs.to_encodable,
   rcases pos_sum_of_encodable hε s with ⟨f, hf0, ⟨c, hfc, hcε⟩⟩,
   refine ⟨λ i, if h : i ∈ s then f ⟨i, h⟩ else 1, λ i, _, ⟨c, _, hcε⟩⟩,
   { split_ifs, exacts [hf0 _, zero_lt_one] },

@@ -259,7 +259,7 @@ def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
     (image_subset_range _ _)).subset (range_extend_subset _ _ _),
   measurable_set_fiber' :=
     begin
-      letI : measurable_space γ := ⊤, haveI : measurable_singleton_class γ := ⟨λ _, trivial⟩,
+      letI : measurable_space γ := ⊤, letI : measurable_singleton_class γ := ⟨λ _, trivial⟩,
       exact λ x, hg.measurable_extend f₁.measurable f₂.measurable (measurable_set_singleton _)
     end }
 
@@ -1983,7 +1983,7 @@ lemma lintegral_bUnion₀ {t : set β} {s : β → set α} (ht : t.countable)
   (hd : t.pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
 begin
-  haveI := ht.to_encodable,
+  letI := ht.to_encodable,
   rw [bUnion_eq_Union, lintegral_Union₀ (set_coe.forall'.1 hm) (hd.subtype _ _)]
 end
 

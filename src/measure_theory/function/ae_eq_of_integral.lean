@@ -76,7 +76,7 @@ lemma ae_eq_zero_of_forall_dual_of_is_separable [normed_add_comm_group E] [norme
   f =ᵐ[μ] 0 :=
 begin
   rcases ht with ⟨d, d_count, hd⟩,
-  haveI : encodable d := d_count.to_encodable,
+  letI : encodable d := d_count.to_encodable,
   have : ∀ (x : d), ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = ∥(x : E)∥ := λ x, exists_dual_vector'' 𝕜 x,
   choose s hs using this,
   have A : ∀ (a : E), a ∈ t → (∀ x, ⟪a, s x⟫ = (0 : 𝕜)) → a = 0,
@@ -338,7 +338,7 @@ begin
   let t := hf.sigma_finite_set,
   suffices : 0 ≤ᵐ[μ.restrict t] f,
     from ae_of_ae_restrict_of_ae_restrict_compl _ this hf.ae_eq_zero_compl.symm.le,
-  haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
+  letI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite (λ s hs hμts, _)
     (λ s hs hμts, _),
   { rw [integrable_on, measure.restrict_restrict hs],
@@ -459,7 +459,7 @@ begin
   let t := hf.sigma_finite_set,
   suffices : f =ᵐ[μ.restrict t] 0,
     from ae_of_ae_restrict_of_ae_restrict_compl _ this hf.ae_eq_zero_compl,
-  haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
+  letI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite _ _,
   { intros s hs hμs,
     rw [integrable_on, measure.restrict_restrict hs],
@@ -512,7 +512,7 @@ lemma ae_eq_zero_of_forall_set_integral_eq_of_fin_strongly_measurable_trim (hm :
   f =ᵐ[μ] 0 :=
 begin
   obtain ⟨t, ht_meas, htf_zero, htμ⟩ := hf.exists_set_sigma_finite,
-  haveI : sigma_finite ((μ.restrict t).trim hm) := by rwa restrict_trim hm μ ht_meas at htμ,
+  letI : sigma_finite ((μ.restrict t).trim hm) := by rwa restrict_trim hm μ ht_meas at htμ,
   have htf_zero : f =ᵐ[μ.restrict tᶜ] 0,
   { rw [eventually_eq, ae_restrict_iff' (measurable_set.compl (hm _ ht_meas))],
     exact eventually_of_forall htf_zero, },

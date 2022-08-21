@@ -518,8 +518,8 @@ lemma is_iso_to_sheafify {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
   is_iso (J.to_sheafify P) :=
 begin
   dsimp [to_sheafify],
-  haveI : is_iso (J.to_plus P) := by { apply is_iso_to_plus_of_is_sheaf J P hP },
-  haveI : is_iso ((J.plus_functor D).map (J.to_plus P)) := by { apply functor.map_is_iso },
+  letI : is_iso (J.to_plus P) := by { apply is_iso_to_plus_of_is_sheaf J P hP },
+  letI : is_iso ((J.plus_functor D).map (J.to_plus P)) := by { apply functor.map_is_iso },
   exact @is_iso.comp_is_iso _ _ _ _ _ (J.to_plus P)
     ((J.plus_functor D).map (J.to_plus P)) _ _,
 end

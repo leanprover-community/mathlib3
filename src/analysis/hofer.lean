@@ -44,7 +44,7 @@ begin
     simpa [reformulation] using
       H (ε/2^k) (by simp [ε_pos, zero_lt_two]) x' (by simp [ε_pos, zero_lt_two, one_le_two]) },
   clear reformulation,
-  haveI : nonempty X := ⟨x⟩,
+  letI : nonempty X := ⟨x⟩,
   choose! F hF using H,  -- Use the axiom of choice
   -- Now define u by induction starting at x, with u_{n+1} = F(n, u_n)
   let u : ℕ → X := λ n, nat.rec_on n x F,

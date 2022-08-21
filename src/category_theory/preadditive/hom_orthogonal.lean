@@ -57,7 +57,7 @@ variables {ι : Type*} {s : ι → C}
 
 lemma eq_zero [has_zero_morphisms C] (o : hom_orthogonal s)
   {i j : ι} (w : i ≠ j) (f : s i ⟶ s j) : f = 0 :=
-by { haveI := o i j w, apply subsingleton.elim, }
+by { letI := o i j w, apply subsingleton.elim, }
 
 section
 variables [has_zero_morphisms C] [has_finite_biproducts C]

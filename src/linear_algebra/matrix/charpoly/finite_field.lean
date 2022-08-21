@@ -25,7 +25,7 @@ begin
   casesI (is_empty_or_nonempty n).symm,
   { cases char_p.exists K with p hp, letI := hp,
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
-    haveI : fact p.prime := ⟨hp⟩,
+    letI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
     apply (frobenius_inj K[X] p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },

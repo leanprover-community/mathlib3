@@ -237,7 +237,7 @@ lemma monotone.ge_of_tendsto [topological_space α] [preorder α] [order_closed_
   (ha : tendsto f at_top (𝓝 a)) (b : β) :
   f b ≤ a :=
 begin
-  haveI : nonempty β := nonempty.intro b,
+  letI : nonempty β := nonempty.intro b,
   exact ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy))
 end
 

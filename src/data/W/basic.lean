@@ -164,7 +164,7 @@ encodable.of_left_inverse (f n) (finv n) (by { rintro ⟨⟨_, _⟩, _⟩, refl 
 encodable. -/
 instance : encodable (W_type β) :=
 begin
-  haveI h' : Π n, encodable (W_type' β n) :=
+  letI h' : Π n, encodable (W_type' β n) :=
     λ n, nat.rec_on n encodable_zero encodable_succ,
   let f    : W_type β → Σ n, W_type' β n   := λ t, ⟨t.depth, ⟨t, le_rfl⟩⟩,
   let finv : (Σ n, W_type' β n) → W_type β := λ p, p.2.1,

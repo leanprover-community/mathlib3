@@ -150,13 +150,13 @@ regular_mono_category.regular_mono_of_mono _
 instance regular_mono_category_of_split_mono_category [split_mono_category C] :
   regular_mono_category C :=
 { regular_mono_of_mono := λ _ _ f _,
-  by { haveI := by exactI is_split_mono_of_mono f, apply_instance } }
+  by { letI := by exactI is_split_mono_of_mono f, apply_instance } }
 
 @[priority 100]
 instance strong_mono_category_of_regular_mono_category [regular_mono_category C] :
   strong_mono_category C :=
 { strong_mono_of_mono := λ _ _ f _,
-    by { haveI := by exactI regular_mono_of_mono f, apply_instance } }
+    by { letI := by exactI regular_mono_of_mono f, apply_instance } }
 
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
 class regular_epi (f : X ⟶ Y) :=
@@ -273,11 +273,11 @@ regular_epi_category.regular_epi_of_epi _
 @[priority 100]
 instance regular_epi_category_of_split_epi_category [split_epi_category C] :
   regular_epi_category C :=
-{ regular_epi_of_epi := λ _ _ f _, by { haveI := by exactI is_split_epi_of_epi f, apply_instance } }
+{ regular_epi_of_epi := λ _ _ f _, by { letI := by exactI is_split_epi_of_epi f, apply_instance } }
 
 @[priority 100]
 instance strong_epi_category_of_regular_epi_category [regular_epi_category C] :
   strong_epi_category C :=
-{ strong_epi_of_epi := λ _ _ f _, by { haveI := by exactI regular_epi_of_epi f, apply_instance } }
+{ strong_epi_of_epi := λ _ _ f _, by { letI := by exactI regular_epi_of_epi f, apply_instance } }
 
 end category_theory

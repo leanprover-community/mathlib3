@@ -130,10 +130,10 @@ begin
   split,
   { intro h,
     /- Set up the functor -/
-    haveI : ∀ (ι' : (finset ι)ᵒᵖ), nonempty ((hall_matchings_functor t).obj ι') :=
+    letI : ∀ (ι' : (finset ι)ᵒᵖ), nonempty ((hall_matchings_functor t).obj ι') :=
       λ ι', hall_matchings_on.nonempty t h ι'.unop,
     classical,
-    haveI : Π (ι' : (finset ι)ᵒᵖ), fintype ((hall_matchings_functor t).obj ι') := begin
+    letI : Π (ι' : (finset ι)ᵒᵖ), fintype ((hall_matchings_functor t).obj ι') := begin
       intro ι',
       rw [hall_matchings_functor],
       apply_instance,
@@ -224,7 +224,7 @@ theorem fintype.all_card_le_filter_rel_iff_exists_injective
   (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card) ↔
     (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin
-  haveI := classical.dec_eq β,
+  letI := classical.dec_eq β,
   let r' := λ a, univ.filter (λ b, r a b),
   have h : ∀ (A : finset α), (univ.filter (λ (b : β), ∃ a ∈ A, r a b)) = (A.bUnion r'),
   { intro A,

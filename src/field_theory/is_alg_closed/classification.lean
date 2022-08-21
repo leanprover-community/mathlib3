@@ -202,7 +202,7 @@ if they have the same cardinality and the same characteristic. -/
 begin
   apply classical.choice,
   rcases char_p.char_is_prime_or_zero K p with hp | hp,
-  { haveI : fact p.prime := ⟨hp⟩,
+  { letI : fact p.prime := ⟨hp⟩,
     exact ⟨ring_equiv_of_cardinal_eq_of_char_p p hK hKL⟩ },
   { rw [hp] at *,
     resetI,

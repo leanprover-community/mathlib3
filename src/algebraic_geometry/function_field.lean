@@ -70,7 +70,7 @@ begin
   rw ← (X.presheaf.germ x).map_zero at hy,
   obtain ⟨W, hW, iU, iV, e⟩ := X.presheaf.germ_eq _ x.prop x.prop _ _ hy,
   cases (show iU = iV, from subsingleton.elim _ _),
-  haveI : nonempty W := ⟨⟨_, hW⟩⟩,
+  letI : nonempty W := ⟨⟨_, hW⟩⟩,
   exact map_injective_of_is_integral X iU e
 end
 
@@ -138,7 +138,7 @@ end
 instance {X : Scheme} [is_integral X] {U : opens X.carrier} [hU : nonempty U] :
   is_integral (X.restrict U.open_embedding) :=
 begin
-  haveI : nonempty (X.restrict U.open_embedding).carrier := hU,
+  letI : nonempty (X.restrict U.open_embedding).carrier := hU,
   exact is_integral_of_open_immersion (X.of_restrict U.open_embedding)
 end
 
@@ -148,7 +148,7 @@ lemma is_affine_open.prime_ideal_of_generic_point {X : Scheme} [is_integral X]
     ((generic_point_spec X.carrier).mem_open_set_iff U.prop).mpr (by simpa using h)⟩ =
   generic_point (Scheme.Spec.obj $ op $ X.presheaf.obj $ op U).carrier :=
 begin
-  haveI : is_affine _ := hU,
+  letI : is_affine _ := hU,
   have e : U.open_embedding.is_open_map.functor.obj ⊤ = U,
   { ext1, exact set.image_univ.trans subtype.range_coe },
   delta is_affine_open.prime_ideal_of,
@@ -163,9 +163,9 @@ lemma function_field_is_fraction_ring_of_is_affine_open [is_integral X] (U : ope
   (hU : is_affine_open U) [hU' : nonempty U] :
   is_fraction_ring (X.presheaf.obj $ op U) X.function_field :=
 begin
-  haveI : is_affine _ := hU,
-  haveI : nonempty (X.restrict U.open_embedding).carrier := hU',
-  haveI : is_integral (X.restrict U.open_embedding) := @@is_integral_of_is_affine_is_domain _ _ _
+  letI : is_affine _ := hU,
+  letI : nonempty (X.restrict U.open_embedding).carrier := hU',
+  letI : is_integral (X.restrict U.open_embedding) := @@is_integral_of_is_affine_is_domain _ _ _
     (by { dsimp, rw opens.open_embedding_obj_top, apply_instance }),
   have e : U.open_embedding.is_open_map.functor.obj ⊤ = U,
   { ext1, exact set.image_univ.trans subtype.range_coe },
@@ -183,7 +183,7 @@ instance [h : is_integral X] (x : X.carrier) :
 begin
   let U : opens X.carrier := ⟨set.range (X.affine_cover.map x).1.base,
     PresheafedSpace.is_open_immersion.base_open.open_range⟩,
-  haveI : nonempty U := ⟨⟨_, X.affine_cover.covers x⟩⟩,
+  letI : nonempty U := ⟨⟨_, X.affine_cover.covers x⟩⟩,
   have hU : is_affine_open U := range_is_affine_open_of_open_immersion (X.affine_cover.map x),
   exact @@is_fraction_ring.is_fraction_ring_of_is_domain_of_is_localization _ _ _ _ _ _ _ _ _ _ _
     (hU.is_localization_stalk ⟨x, X.affine_cover.covers x⟩)

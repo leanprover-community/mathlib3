@@ -218,7 +218,7 @@ lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
 begin
   rw [hs.convex_hull_eq_image],
   apply (compact_std_simplex _).image,
-  haveI := hs.fintype,
+  letI := hs.fintype,
   apply linear_map.continuous_on_pi
 end
 

@@ -304,9 +304,9 @@ exponentiable object is an isomorphism.
 -/
 lemma strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
 begin
-  haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
+  letI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,
-  haveI: is_split_epi f := is_split_epi.mk' ⟨t.to _, t.hom_ext _ _⟩,
+  letI: is_split_epi f := is_split_epi.mk' ⟨t.to _, t.hom_ext _ _⟩,
   apply is_iso_of_mono_of_is_split_epi
 end
 
@@ -317,8 +317,8 @@ strict_initial initial_is_initial _
 lemma initial_mono {I : C} (B : C) (t : is_initial I) [cartesian_closed C] : mono (t.to B) :=
 ⟨λ B g h _,
 begin
-  haveI := strict_initial t g,
-  haveI := strict_initial t h,
+  letI := strict_initial t g,
+  letI := strict_initial t h,
   exact eq_of_inv_eq_inv (t.hom_ext _ _)
 end⟩
 
@@ -340,7 +340,7 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
 { closed' := λ X,
   { is_adj :=
     begin
-      haveI q : exponentiable (e.inverse.obj X) := infer_instance,
+      letI q : exponentiable (e.inverse.obj X) := infer_instance,
       have : is_left_adjoint (prod.functor.obj (e.inverse.obj X)) := q.is_adj,
       have : e.functor ⋙ prod.functor.obj X ⋙ e.inverse ≅ prod.functor.obj (e.inverse.obj X),
       apply nat_iso.of_components _ _,

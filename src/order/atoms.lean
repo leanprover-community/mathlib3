@@ -316,7 +316,7 @@ export is_simple_order (eq_bot_or_eq_top)
 theorem is_simple_order_iff_is_simple_order_order_dual [has_le α] [bounded_order α] :
   is_simple_order α ↔ is_simple_order αᵒᵈ :=
 begin
-  split; intro i; haveI := i,
+  split; intro i; letI := i,
   { exact { exists_pair_ne := @exists_pair_ne α _,
       eq_bot_or_eq_top := λ a, or.symm (eq_bot_or_eq_top ((order_dual.of_dual a)) : _ ∨ _) } },
   { exact { exists_pair_ne := @exists_pair_ne αᵒᵈ _,

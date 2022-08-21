@@ -179,7 +179,6 @@ end
 -- TODO: Fill in this docstring
 /-! ##  -/
 
-
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization = a.factorization + b.factorization :=
@@ -193,6 +192,28 @@ begin
   simp only [finset.mem_union, factor_iff_mem_factorization],
   exact mem_factors_mul ha hb
 end
+
+/-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors
+then it's equal to the corresponding product over `n.factors.to_finset` -/
+lemma prod_factorization_eq_prod_factors {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
+  n.factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
+by { apply prod_congr support_factorization, simp }
+
+/-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
+the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
+Generalises `factorization_mul`, which is the special case where `S.card = 2` and `g = id`. -/
+lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS : ∀ x ∈ S, g x ≠ 0) :
+  (S.prod g).factorization = S.sum (λ x, (g x).factorization) :=
+begin
+  classical,
+  ext p,
+  apply finset.induction_on' S, { simp },
+  { intros x T hxS hTS hxT IH,
+    have hT : T.prod g ≠ 0 := prod_ne_zero_iff.mpr (λ x hx, hS x (hTS hx)),
+    simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
+end
+
+/-! ##  -/
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 @[simp] lemma factorization_pow (n k : ℕ) :
@@ -226,25 +247,7 @@ lemma eq_pow_of_factorization_eq_single {n p k : ℕ} (hn : n ≠ 0)
   (h : n.factorization = finsupp.single p k) : n = p ^ k :=
 by { rw [←nat.factorization_prod_pow_eq_self hn, h], simp }
 
-/-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors
-then it's equal to the corresponding product over `n.factors.to_finset` -/
-lemma prod_factorization_eq_prod_factors {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
-  n.factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
-by { apply prod_congr support_factorization, simp }
 
-/-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
-the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
-Generalises `factorization_mul`, which is the special case where `S.card = 2` and `g = id`. -/
-lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS : ∀ x ∈ S, g x ≠ 0) :
-  (S.prod g).factorization = S.sum (λ x, (g x).factorization) :=
-begin
-  classical,
-  ext p,
-  apply finset.induction_on' S, { simp },
-  { intros x T hxS hTS hxT IH,
-    have hT : T.prod g ≠ 0 := prod_ne_zero_iff.mpr (λ x hx, hS x (hTS hx)),
-    simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
-end
 
 /-! ### Equivalence between `ℕ+` and `ℕ →₀ ℕ` with support in the primes. -/
 

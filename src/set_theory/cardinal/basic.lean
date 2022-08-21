@@ -970,12 +970,13 @@ alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
   #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
 lt_aleph_0_iff_set_finite
 
+lemma mk_le_aleph_0_iff : #α ≤ ℵ₀ ↔ countable α :=
+by rw [countable_iff_nonempty_embedding, aleph_0, ← lift_uzero (#α), lift_mk_le']
+
+@[simp] lemma mk_le_aleph_0 [countable α] : #α ≤ ℵ₀ := mk_le_aleph_0_iff.mpr ‹_›
+
 @[simp] lemma le_aleph_0_iff_set_countable {s : set α} : #s ≤ ℵ₀ ↔ s.countable :=
-begin
-  rw [set.countable_iff_exists_injective], split,
-  { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
-  { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
-end
+by rw [mk_le_aleph_0_iff, countable_coe_iff]
 
 alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
 
@@ -1064,12 +1065,6 @@ theorem infinite_iff {α : Type u} : infinite α ↔ ℵ₀ ≤ #α :=
 by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
 @[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
-
-lemma encodable_iff {α : Type u} : nonempty (encodable α) ↔ #α ≤ ℵ₀ :=
-⟨λ ⟨h⟩, ⟨(@encodable.encode' α h).trans equiv.ulift.symm.to_embedding⟩,
-  λ ⟨h⟩, ⟨encodable.of_inj _ (h.trans equiv.ulift.to_embedding).injective⟩⟩
-
-@[simp] lemma mk_le_aleph_0 [encodable α] : #α ≤ ℵ₀ := encodable_iff.1 ⟨‹_›⟩
 
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀ :=
 ⟨λ ⟨h⟩, mk_congr ((@denumerable.eqv α h).trans equiv.ulift.symm),

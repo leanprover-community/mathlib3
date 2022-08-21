@@ -35,6 +35,10 @@ structures.
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
 
+## TODO
+
+Use `[countable L.symbols]` instead of `[L.countable]`.
+
 ## References
 For the Flypitch project:
 - [J. Han, F. van Doorn, *A formal proof of the independence of the continuum hypothesis*]
@@ -125,7 +129,7 @@ rfl
 def card : cardinal := # L.symbols
 
 /-- A language is countable when it has countably many symbols. -/
-class countable : Prop := (card_le_aleph_0' : L.card ≤ ℵ₀)
+@[protected] class countable : Prop := (card_le_aleph_0' : L.card ≤ ℵ₀)
 
 lemma card_le_aleph_0 [L.countable] : L.card ≤ ℵ₀ := countable.card_le_aleph_0'
 
@@ -194,8 +198,8 @@ instance subsingleton_mk₂_relations {c f₁ f₂ : Type u} {r₁ r₂ : Type v
 nat.cases_on n ⟨λ x, pempty.elim x⟩
   (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
 
-lemma encodable.countable [h : encodable L.symbols] : L.countable :=
-⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+lemma encodable.countable [_root_.countable L.symbols] : L.countable :=
+⟨cardinal.mk_le_aleph_0⟩
 
 @[simp] lemma empty_card : language.empty.card = 0 :=
 by simp [card_eq_card_functions_add_card_relations]
@@ -211,7 +215,7 @@ instance countable_empty : language.empty.countable :=
 end⟩
 
 lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] : L.countable_functions :=
-⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+⟨cardinal.mk_le_aleph_0⟩
 
 @[priority 100] instance is_relational.countable_functions [L.is_relational] :
   L.countable_functions :=

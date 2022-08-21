@@ -1,8 +1,37 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
 import topology.sheaves.sheaf
 import topology.sheaves.limits
 import topology.sheaves.skyscraper
 import topology.sheaves.stalks
 import category_theory.preadditive.injective
+
+/-!
+# Godement resolution
+
+For a presheaf `𝓕 : (opens X)ᵒᵖ ⥤ C`, we can embedded `𝓕` into a sheaf `∏ₓ skyscraper(𝓕ₓ)` where
+`x` ranges over `X` and `𝓕 ⟶ ∏ₓ skyscraper(𝓕ₓ)` is mono.
+
+## Main definition
+* `godement_presheaf`: for a presheaf `𝓕`, its Godement presheaf is `∏ₓ skyscraper(𝓕ₓ)`
+* `to_godement_presheaf`: the canonical map `𝓕 ⟶ godement_presheaf 𝓕` sending `s : 𝓕(U)` to a
+  bundle of stalks `x ↦ sₓ`.
+* `godement_sheaf`: the Godement presheaf of any presheaf is a sheaf.
+* `to_godement_sheaf`: for a sheaf `𝓖`, the canonical sheaf morphism `𝓖 ⟶ godement_sheaf 𝓖.1`.
+For a sheaf `𝓖 : sheaf C X` where `C` is concrete and the forgetful functor preserves limits and
+filtered colimits
+* `mono_to_godement_sheaf`: the canonical map `𝓖 ⟶ godement_sheaf 𝓖` is mono.
+If further `C` has enough injectives
+* `sheaf_enough_inj_aux.injective_sheaf`: since each `𝓕ₓ` can be embedded into `𝓕ₓ ⟶ I(x)` via a
+  monomorphism, `𝓖` can be embedded into `∏ₓ skyscraper(I(x))`.
+* `sheaf_enough_inj_aux.injective_J`: `∏ₓ skyscraper(I(x))` is injective.
+* `sheaf_enough_inj_aux.to_J_mono`: the canonical map `𝓖 ⟶ ∏ₓ skyscraper(I(x))` is mono.
+* `sheaf_has_enough_injectives`: the category of sheaves on `X` in `C` has enough injectives.
+-/
+
 
 noncomputable theory
 
@@ -111,8 +140,6 @@ def to_godement_sheaf : 𝓖 ⟶ godement_sheaf 𝓖 :=
 ⟨to_godement_presheaf 𝓖.1⟩
 
 variables [concrete_category.{u} C] [preserves_limits (forget C)]
-variables [Π (U : opens X), preserves_colimits_of_shape
-  ((opens.grothendieck_topology X).cover U)ᵒᵖ (forget C)]
 variables [reflects_isomorphisms (forget C)] [preserves_filtered_colimits (forget C)]
 
 @[simps] def sheaf_in_Type : sheaf C X ⥤ sheaf (Type u) X :=
@@ -167,7 +194,7 @@ end
 
 example : true := trivial
 
-instance : mono $ to_godement_sheaf 𝓖 :=
+instance mono_to_godement_sheaf : mono $ to_godement_sheaf 𝓖 :=
 begin
   rw presheaf.mono_iff_stalk_mono,
   intros x,
@@ -248,7 +275,7 @@ end
 
 end sheaf_enough_inj_aux
 
-instance : enough_injectives (sheaf C X) :=
+instance sheaf_has_enough_injectives : enough_injectives (sheaf C X) :=
 { presentation := λ 𝓖, nonempty.intro
   { J := sheaf_enough_inj_aux.injective_sheaf 𝓖.1,
     injective := sheaf_enough_inj_aux.injective_J _,

@@ -9,6 +9,7 @@ import data.nat.bitwise
 import data.nat.log
 import data.nat.parity
 import ring_theory.int.basic
+import data.nat.factorization.basic
 
 /-!
 # Natural number multiplicity
@@ -49,41 +50,6 @@ namespace nat
 --------------------------------------------------------------------------------------------------
 
 -- TODO: Write versions of all these lemmas in terms of factorization instead of multiplicity
-
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
-
--- Temp: PRed in #15014
-/-- A crude upper bound on `n.factorization p` -/
-lemma factorization_lt {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.factorization p < n :=
-sorry
-
-/-- An upper bound on `n.factorization p` -/
-lemma factorization_le_of_le_pow {n p b : ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
-sorry
-
-lemma Icc_factorization_eq_pow_dvd (n : ℕ) {p : ℕ} (pp : prime p) :
-  Icc 1 ((n.factorization) p) = (Ico 1 n).filter (λ (i : ℕ), p ^ i ∣ n) := sorry
-
-lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :
-  n.factorization p = ((Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=
-sorry
-
-lemma Ico_filter_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : n ≤ p ^ b):
-  (Ico 1 n).filter (λ i, p ^ i ∣ n) = (Icc 1 b).filter (λ i, p ^ i ∣ n) :=
-sorry
-
-lemma lt_of_pow_dvd_right {p i n : ℕ} (hn : n ≠ 0) (hp : 2 ≤ p) (h : p ^ i ∣ n) : i < n :=
-sorry
-
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
-
--- Temp: PRed in #15457
-@[elab_as_eliminator]
-def even_odd_rec (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
-  (h_even : ∀ i, P i → P (2 * i))
-  (h_odd : ∀ i, P i → P (2 * i + 1)) : P n := sorry
 
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------

@@ -132,7 +132,10 @@ end
 
 @[simp]
 lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
-not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
+by simp [factorization_eq_zero_iff, hp]
+
+lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
+by simp [factorization_eq_zero_iff, h]
 
 lemma factorization_eq_zero_of_lt {n p : ℕ} (h : n < p) : n.factorization p = 0 :=
 finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
@@ -149,12 +152,6 @@ dvd_of_mem_factors (factor_iff_mem_factorization.1 (mem_support_iff.2 hn))
 lemma prime.factorization_pos_of_dvd {n p : ℕ} (hp : p.prime) (hn : n ≠ 0) (h : p ∣ n) :
   0 < n.factorization p :=
 by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
-
-
-lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
-begin
-  rw factorization_eq_zero_iff, simp [h],
-end
 
 lemma factorization_eq_zero_of_remainder {p r : ℕ} (i : ℕ) (hr : ¬ p ∣ r) :
   (p * i + r).factorization p = 0 :=

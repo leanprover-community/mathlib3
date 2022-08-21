@@ -887,6 +887,7 @@ lemma restrict_le_restrict_countable_Union [countable β] {f : β → set α}
   (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v ≤[f b] w) :
   v ≤[⋃ b, f b] w :=
 begin
+  casesI nonempty_encodable β,
   rw ← encodable.Union_decode₂,
   refine restrict_le_restrict_Union v w _ _,
   { intro n, measurability },

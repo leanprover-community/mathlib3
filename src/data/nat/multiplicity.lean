@@ -73,20 +73,6 @@ begin
   rw factorization_eq_zero_iff', simp [h],
 end
 
-
-lemma pow_eq_one_iff_of_ne_one (p r : ℕ) (hp : p ≠ 1) : p ^ r = 1 ↔ r = 0 :=
-begin
-  refine ⟨_, _⟩,
-  { intro h,
-    by_contra H,
-    cases hp ((pow_eq_one_iff H).1 h) },
-  { rintro rfl, simp },
-end
-
-lemma factorization_pow_self {p : ℕ} (pp : p.prime) (n : ℕ) : (p ^ n).factorization p = n :=
-by simp [pp.factorization]
-
-
 lemma factorization_eq_zero_of_remainder {p r : ℕ} (i : ℕ) (hr : ¬ p ∣ r) :
   (p * i + r).factorization p = 0 :=
 begin
@@ -108,6 +94,18 @@ begin
 end
 
 
+
+lemma pow_eq_one_iff_of_ne_one (p r : ℕ) (hp : p ≠ 1) : p ^ r = 1 ↔ r = 0 :=
+begin
+  refine ⟨_, _⟩,
+  { intro h,
+    by_contra H,
+    cases hp ((pow_eq_one_iff H).1 h) },
+  { rintro rfl, simp },
+end
+
+lemma factorization_pow_self {p : ℕ} (pp : p.prime) (n : ℕ) : (p ^ n).factorization p = n :=
+by simp [pp.factorization]
 
 
 --------------------------------------------------------------------------------------------------

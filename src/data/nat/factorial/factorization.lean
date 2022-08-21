@@ -105,6 +105,11 @@ end
 
 namespace prime
 
+/-! ## Versions of Legendre's Theorem evaluating the factorization of factorials
+
+TODO: Which version(s) of this should be kept?  Inline and reduce proofs accordingly.
+-/
+
 /-- **Legendre's Theorem**
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i` for `i ∈ Ico 1 n`. -/
 lemma factorization_factorial {p : ℕ} (pp : p.prime) {n : ℕ} :
@@ -168,6 +173,8 @@ begin
   { apply succ_le_succ, simp, },
 end
 
+
+/-! ## Further lemmas about the factorization of factorials -/
 
 /-- The multiplicity of `p` in `(p * (n + 1))!` is one more than the sum
   of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/

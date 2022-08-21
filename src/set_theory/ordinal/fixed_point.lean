@@ -588,7 +588,7 @@ begin
   { cases mul_eq_right_iff_opow_omega_dvd.1 ((mul_is_normal ha).nfp_fp (a ^ omega * b + c))
       with d hd,
     rw hd,
-    apply mul_le_mul_left',
+    apply _root_.mul_le_mul_left',
     have := le_nfp (has_mul.mul a) (a ^ omega * b + c),
     rw hd at this,
     have := (add_lt_add_left hc (a ^ omega * b)).trans_le this,

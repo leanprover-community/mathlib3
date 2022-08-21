@@ -155,6 +155,32 @@ begin
   { simp [hn, nat.mem_factors, not_and_distrib] },
 end
 
+lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
+begin
+  rw factorization_eq_zero_iff', simp [h],
+end
+
+lemma factorization_eq_zero_of_remainder {p r : ℕ} (i : ℕ) (hr : ¬ p ∣ r) :
+  (p * i + r).factorization p = 0 :=
+begin
+  apply factorization_eq_zero_of_not_dvd,
+  rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
+end
+
+lemma factorization_eq_zero_iff_remainder {p r : ℕ} (i : ℕ) (pp : p.prime) (hr0 : r ≠ 0) :
+  (¬ p ∣ r) ↔ (p * i + r).factorization p = 0 :=
+begin
+  refine ⟨factorization_eq_zero_of_remainder i, λ h, _⟩,
+  rcases eq_or_ne i 0 with rfl | hi0, {
+    simp only [mul_zero, zero_add] at h,
+    simpa [pp, hr0] using (factorization_eq_zero_iff' _ _).1 h },
+  rw factorization_eq_zero_iff' at h,
+  simp only [pp, hr0, not_true, _root_.add_eq_zero_iff, and_false, or_false, false_or] at h,
+  contrapose! h,
+  rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
+end
+
+
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization = a.factorization + b.factorization :=

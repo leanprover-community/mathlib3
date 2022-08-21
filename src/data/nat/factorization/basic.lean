@@ -169,7 +169,7 @@ begin
 end
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/
-lemma factorization_eq_zero_iff_le_one (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
+lemma factorization_eq_zero_iff' (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 begin
   rw factorization_eq_factors_multiset n,
   simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero],

@@ -174,7 +174,7 @@ open polynomial adjoin_root localization
 
 variables {R : Type*} [comm_ring R] (M : submonoid R)
 
-local attribute [instance] is_localization.alg_hom_subsingleton
+local attribute [instance] is_localization.alg_hom_subsingleton adjoin_root.alg_hom_subsingleton
 
 /-- The `R`-`alg_equiv` between the localization of `R` away from `r` and
     `R` with an inverse of `r` adjoined. -/
@@ -187,5 +187,10 @@ alg_equiv.of_alg_hom
   (subsingleton.elim _ _)
   (subsingleton.elim _ _)
 
-lemma is_localization.adjoin_root (r : R) : is_localization.away r (adjoin_root $ C r * X - 1) :=
+lemma is_localization.adjoin_inv (r : R) : is_localization.away r (adjoin_root $ C r * X - 1) :=
 is_localization.is_localization_of_alg_equiv _ (localization.away_equiv_adjoin r)
+
+lemma is_localization.away.finite_presentation (r : R) {S} [comm_ring S] [algebra R S]
+  [is_localization (submonoid.powers r) S] : algebra.finite_presentation R S :=
+(adjoin_root.finite_presentation _).equiv $ (localization.away_equiv_adjoin r).symm.trans $
+  is_localization.alg_equiv (submonoid.powers r) _ _

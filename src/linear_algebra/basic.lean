@@ -11,6 +11,7 @@ import algebra.module.submodule.lattice
 import data.dfinsupp.basic
 import data.finsupp.basic
 import order.compactly_generated
+import algebra.big_operators.dfinsupp
 
 /-!
 # Linear algebra

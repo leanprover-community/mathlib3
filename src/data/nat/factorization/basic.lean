@@ -140,13 +140,13 @@ lemma prime.factorization_pos_of_dvd {n p : ℕ} (hp : p.prime) (hn : n ≠ 0) (
 by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/
-lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
+lemma factorization_eq_zero_iff_le_one (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 begin
   rw factorization_eq_factors_multiset n,
   simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero],
 end
 
-lemma factorization_eq_zero_iff' (n p : ℕ) :
+lemma factorization_eq_zero_iff (n p : ℕ) :
   n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=
 begin
   rw [←not_mem_support_iff, support_factorization, mem_to_finset],
@@ -157,7 +157,7 @@ end
 
 lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
 begin
-  rw factorization_eq_zero_iff', simp [h],
+  rw factorization_eq_zero_iff, simp [h],
 end
 
 lemma factorization_eq_zero_of_remainder {p r : ℕ} (i : ℕ) (hr : ¬ p ∣ r) :
@@ -173,8 +173,8 @@ begin
   refine ⟨factorization_eq_zero_of_remainder i, λ h, _⟩,
   rcases eq_or_ne i 0 with rfl | hi0, {
     simp only [mul_zero, zero_add] at h,
-    simpa [pp, hr0] using (factorization_eq_zero_iff' _ _).1 h },
-  rw factorization_eq_zero_iff' at h,
+    simpa [pp, hr0] using (factorization_eq_zero_iff _ _).1 h },
+  rw factorization_eq_zero_iff at h,
   simp only [pp, hr0, not_true, _root_.add_eq_zero_iff, and_false, or_false, false_or] at h,
   contrapose! h,
   rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
@@ -459,7 +459,7 @@ begin
   by_cases pp : p.prime, swap, { simp [pp] },
   ext q,
   rcases eq_or_ne q p with rfl | hqp,
-  { simp only [finsupp.erase_same, factorization_eq_zero_iff', not_dvd_ord_compl pp hn],
+  { simp only [finsupp.erase_same, factorization_eq_zero_iff, not_dvd_ord_compl pp hn],
     simp },
   { rw [finsupp.erase_ne hqp, factorization_div (ord_proj_dvd n p)],
     simp [pp.factorization, hqp.symm] },
@@ -474,7 +474,7 @@ begin
   rw [←(factorization_le_iff_dvd hd0 (ord_compl_pos p hn0).ne'), factorization_ord_compl],
   intro q,
   rcases eq_or_ne q p with rfl | hqp,
-  { simp [factorization_eq_zero_iff', hpd] },
+  { simp [factorization_eq_zero_iff, hpd] },
   { simp [hqp, (factorization_le_iff_dvd hd0 hn0).2 hdn q] },
 end
 

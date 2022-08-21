@@ -239,7 +239,7 @@ lt_of_le_of_ne zero_le_one zero_ne_one
 @[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
 @[simp] lemma zero_lt_three : (0 : α) < 3 :=
 zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono zero_le_one
-@[simp] lemma zero_lt_four : 0 < (4:α) := zero_lt_two.trans_le $ bit0_mono one_le_two
+@[simp] lemma zero_lt_four : (0 : α) < 4 := zero_lt_two.trans_le $ bit0_mono one_le_two
 
 @[field_simps] lemma two_ne_zero : (2 : α) ≠ 0 := zero_lt_two.ne'
 @[field_simps] lemma three_ne_zero : (3 : α) ≠ 0 := zero_lt_three.ne'
@@ -252,6 +252,13 @@ alias zero_lt_four ← four_pos
 
 lemma bit1_pos (h : 0 ≤ a) : 0 < bit1 a :=
 zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono h
+
+variables (α)
+
+lemma zero_lt_one' : (0 : α) < 1 := zero_lt_one
+lemma zero_lt_two' : (0 : α) < 2 := zero_lt_two
+lemma zero_lt_three' : (0 : α) < 3 := zero_lt_three
+lemma zero_lt_four' : (0 : α) < 4 := zero_lt_four
 
 end nontrivial
 
@@ -527,13 +534,6 @@ class linear_ordered_semiring (α : Type u)
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
-
--- `norm_num` expects the lemma stating `0 < 1` to have a single typeclass argument
--- (see `norm_num.prove_pos_nat`).
--- Rather than working out how to relax that assumption,
--- we provide a synonym for `zero_lt_one` (which needs both `ordered_semiring α` and `nontrivial α`)
--- with only a `linear_ordered_semiring` typeclass argument.
-lemma zero_lt_one' : 0 < (1 : α) := zero_lt_one
 
 lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 by haveI := @linear_order.decidable_le α _; exact lt_of_not_ge

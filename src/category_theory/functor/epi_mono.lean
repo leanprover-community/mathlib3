@@ -256,17 +256,18 @@ namespace category_theory.functor
 
 variables {C D : Type*} [category C] [category D] {F : C ⥤ D} {A B : C} (f : A ⟶ B)
 
-lemma strong_epi_iff_strong_epi_map_of_is_equivalence [is_equivalence F] :
-  strong_epi f ↔ strong_epi (F.map f) :=
+@[simp]
+lemma strong_epi_map_iff_strong_epi_of_is_equivalence [is_equivalence F] :
+  strong_epi (F.map f) ↔ strong_epi f  :=
 begin
   split,
-  { introI,
-    apply_instance, },
   { introI,
     have e : arrow.mk f ≅ arrow.mk (F.inv.map (F.map f)) :=
       arrow.iso_of_nat_iso F.as_equivalence.unit_iso (arrow.mk f),
     rw strong_epi.iff_of_arrow_iso e,
-    apply_instance, }
+    apply_instance, },
+  { introI,
+    apply_instance, },
 end
 
 end category_theory.functor

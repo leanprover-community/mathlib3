@@ -236,9 +236,13 @@ begin
   rw Sheaf.hom.mono_iff_presheaf_mono at t1,
   change mono (to_godement_presheaf 𝓖.1) at t1,
   resetI,
-  haveI t2 : mono (pi.map (λ p, (skyscraper_presheaf_functor p).map
-    (injective.ι (presheaf.stalk 𝓖.val p)))),
-  { sorry },
+  have t21 : ∀ (p : X), mono ((skyscraper_presheaf_functor p).map
+    (injective.ι (presheaf.stalk 𝓖.val p))),
+  { exact λ p, @@functor.map_mono _ _ (skyscraper_presheaf_functor p)
+      (functor.preserves_monomorphisms_of_adjunction (stalk_skyscraper_presheaf_adj p))
+      (injective.ι (presheaf.stalk 𝓖.val p)) _, },
+  haveI t22 : mono (pi.map (λ p, (skyscraper_presheaf_functor p).map
+    (injective.ι (presheaf.stalk 𝓖.val p)))) := @pi.map_mono _ _ _ _ _ _ _ _ t21,
   apply mono_comp,
 end
 

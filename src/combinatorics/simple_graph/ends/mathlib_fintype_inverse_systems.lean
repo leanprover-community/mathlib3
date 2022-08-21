@@ -508,66 +508,75 @@ begin
   exact @nonempty_sections_of_fintype_inverse_system' _ _ _ (above_point F j x) (above_point.fintype F j x)  (above_point.nonempty F j Fsurj x),
 end
 
+
+private def sections_at_point_fwd  (j : J) (x : F.obj j) :
+  {s : F.sections | s.val j = x} → (above_point F j x).sections :=
+begin
+  rintro ⟨⟨s,sec⟩,sjx⟩,
+  simp only [set.mem_set_of_eq] at sjx,
+  rcases sjx with rfl,
+  split, rotate,
+  { rintro ⟨i,ij⟩,
+    exact ⟨s i,sec $ hom_of_le ij⟩, },
+  { rintro ⟨i,ij⟩ ⟨k,kj⟩ ik,
+    simp only [←subtype.coe_inj],
+    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk],
+    apply sec, },
+end
+
+private def sections_at_point_bwd_aux (j : J) (x : F.obj j) :
+  Π (s : (above_point F j x).sections) (i : J),
+                 {y : F.obj i | ∃ (k : J) (ik : k ≤ i) (jk : k ≤ j),
+                                y =  F.map (hom_of_le ik) (s.val $  ⟨k,jk⟩).val} :=
+begin
+  rintro ⟨s,sec⟩ i,
+  let m := (directed_of (≥) i j).some,
+  obtain ⟨mi,mj⟩ := (directed_of (≥) i j).some_spec,
+  use F.map (hom_of_le mi) (s ⟨m,mj⟩).val,
+  exact ⟨m,mi,mj,rfl⟩,
+end
+
+private def sections_at_point_bwd  (j : J) (x : F.obj j) :
+  (above_point F j x).sections → {s : F.sections | s.val j = x} :=
+begin
+  rintro ss,
+  dsimp only [functor.sections],
+  split, rotate,
+  { split, rotate,
+    { exact (λ i, (sections_at_point_bwd_aux F j x ss i).val) },
+    { rintro i k ik',
+      obtain ⟨m,mi,mj,meq⟩ := (sections_at_point_bwd_aux F j x ss i).prop,
+      obtain ⟨n,nk,nj,neq⟩ := (sections_at_point_bwd_aux F j x ss k).prop,
+      let l := (directed_of (≥) m n).some,
+      obtain ⟨lm,ln⟩ := (directed_of (≥) m n).some_spec,
+      obtain ⟨s,sec⟩ := ss,
+      simp only [subtype.val_eq_coe,meq,neq],
+      rw ←(@sec  ⟨l, lm.le.trans mj⟩ ⟨m, mj⟩ (hom_of_le $ lm)),
+      rw ←(@sec  ⟨l, ln.le.trans nj⟩ ⟨n, nj⟩ (hom_of_le $ ln)),
+      dsimp [above_point],
+      simp only [←functor_to_types.map_comp_apply],
+      reflexivity, },},
+  { simp only [subtype.val_eq_coe, set.mem_set_of_eq, subtype.coe_mk],
+    obtain ⟨y,k,jk,jk',rfl⟩ := sections_at_point_bwd_aux F j x ss j,
+    simp only [subtype.val_eq_coe, subtype.coe_mk],
+    dsimp [above_point,functor.sections] at ss,
+    obtain ⟨s,sec⟩ := ss,
+    simp only [subtype.coe_mk],
+    obtain ⟨y,yh⟩ := s ⟨k,jk⟩,
+    exact yh,}
+end
+
+
 -- This should maybe be split into more basic components…
 def sections_at_point (j : J) (x : F.obj j) :
   {s : F.sections | s.val j = x} ≃ (above_point F j x).sections :=
 begin
 
-  let fwd : {s : F.sections | s.val j = x} → (above_point F j x).sections, by
-  { rintro ⟨⟨s,sec⟩,sjx⟩,
-    simp only [set.mem_set_of_eq] at sjx,
-    rcases sjx with rfl,
-    split, rotate,
-    { rintro ⟨i,ij⟩,
-      exact ⟨s i,sec $ hom_of_le ij⟩, },
-    { rintro ⟨i,ij⟩ ⟨k,kj⟩ ik,
-      simp only [←subtype.coe_inj],
-      simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk],
-      apply sec, },},
-
-
-  let bwd_aux :  Π (s : (above_point F j x).sections) (i : J),
-                 {y : F.obj i | ∃ (k : J) (ik : k ≤ i) (jk : k ≤ j),
-                                y =  F.map (hom_of_le ik) (s.val $  ⟨k,jk⟩).val}, by
-  { rintro ⟨s,sec⟩ i,
-    let m := (directed_of (≥) i j).some,
-    obtain ⟨mi,mj⟩ := (directed_of (≥) i j).some_spec,
-    use F.map (hom_of_le mi) (s ⟨m,mj⟩).val,
-    exact ⟨m,mi,mj,rfl⟩, },
-
-  let bwd : (above_point F j x).sections → {s : F.sections | s.val j = x}, by
-  { rintro ss,
-    dsimp only [functor.sections],
-    split, rotate,
-    { split, rotate,
-      { exact (λ i, (bwd_aux ss i).val) },
-      { rintro i k ik',
-        obtain ⟨m,mi,mj,meq⟩ := (bwd_aux ss i).prop,
-        obtain ⟨n,nk,nj,neq⟩ := (bwd_aux ss k).prop,
-        let l := (directed_of (≥) m n).some,
-        obtain ⟨lm,ln⟩ := (directed_of (≥) m n).some_spec,
-        obtain ⟨s,sec⟩ := ss,
-        simp only [subtype.val_eq_coe,meq,neq],
-        rw ←(@sec  ⟨l, lm.le.trans mj⟩ ⟨m, mj⟩ (hom_of_le $ lm)),
-        rw ←(@sec  ⟨l, ln.le.trans nj⟩ ⟨n, nj⟩ (hom_of_le $ ln)),
-        dsimp [above_point],
-        simp only [←functor_to_types.map_comp_apply],
-        reflexivity, },},
-    { simp only [subtype.val_eq_coe, set.mem_set_of_eq, subtype.coe_mk],
-      obtain ⟨y,k,jk,jk',rfl⟩ := bwd_aux ss j,
-      simp only [subtype.val_eq_coe, subtype.coe_mk],
-      dsimp [above_point,functor.sections] at ss,
-      obtain ⟨s,sec⟩ := ss,
-      simp only [subtype.coe_mk],
-      obtain ⟨y,yh⟩ := s ⟨k,jk⟩,
-      exact yh,}
-  },
-
   split, rotate 2,
-  exact fwd,
-  exact bwd,
+  exact sections_at_point_fwd F j x,
+  exact sections_at_point_bwd F j x,
   { dsimp only [function.left_inverse],
-    dsimp only [fwd,bwd],
+    dsimp only [sections_at_point_fwd,sections_at_point_bwd],
     rintro ⟨⟨s,sec⟩,sjx⟩,
     simp only [set.mem_set_of_eq] at sjx,
     rcases sjx with rfl,
@@ -576,23 +585,24 @@ begin
     apply subtype.mk_eq_mk.mpr,
     apply funext,
     rintro i,
-    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (fwd ⟨⟨s, λ _ _, sec⟩,rfl⟩) i,
-    simp only,
-    rw e,
-    dsimp only [fwd],
+    obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j (s j) (sections_at_point_fwd F j (s j) ⟨⟨s, λ _ _, sec⟩,rfl⟩) i,
     rw ←sec (hom_of_le ki),
+    dsimp only [sections_at_point_fwd] at e,
+    rw ←e,
    },
   { dsimp only [function.right_inverse,function.left_inverse],
     rintro ss,
-    dsimp only [fwd,bwd],
+    dsimp only [sections_at_point_fwd,sections_at_point_bwd],
     rcases ss with ⟨s,sec⟩,
     apply subtype.coe_eq_of_eq_mk,
     apply funext,
     rintro ⟨i,ij⟩,
-    obtain ⟨a,k,ki,kj,e⟩ := bwd_aux (⟨s, @sec⟩ : (above_point F j x).sections) i,
+    obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i,
     rcases e with rfl,
-    --dsimp only [id],
-    --dsimp only [bwd_aux],
+    dsimp only [sections_at_point_fwd,sections_at_point_bwd,sections_at_point_bwd_aux],
+    dsimp only [id],
+    simp,
+    -- serious work to be done here…
     sorry, },
 end
 

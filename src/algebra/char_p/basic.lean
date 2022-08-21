@@ -591,13 +591,12 @@ end
 
 namespace ne_zero
 
-variables (R) (M : Type*) {r : R} {x y : M} {n p : ℕ} {a : ℕ+}
+variables (R) [add_monoid_with_one R] {r : R} {n p : ℕ} {a : ℕ+}
 
-lemma of_not_dvd [add_monoid_with_one M] [char_p M p] (h : ¬ p ∣ n) : ne_zero (n : M) :=
-⟨(not_iff_not.mpr $ char_p.cast_eq_zero_iff M p n).mpr h⟩
+lemma of_not_dvd [char_p R p] (h : ¬ p ∣ n) : ne_zero (n : R) :=
+⟨(char_p.cast_eq_zero_iff R p n).not.mpr h⟩
 
-lemma not_char_dvd [add_monoid_with_one R] (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] :
-  ¬ p ∣ k :=
-by rwa [←not_iff_not.mpr $ char_p.cast_eq_zero_iff R p k, ←ne.def, ←ne_zero_iff]
+lemma not_char_dvd  (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] : ¬ p ∣ k :=
+by rwa [←char_p.cast_eq_zero_iff R p k, ←ne.def, ←ne_zero_iff]
 
 end ne_zero

@@ -213,7 +213,7 @@ lemma nonzero_of_invertible [mul_zero_one_class α] (a : α) [nontrivial α] [in
 λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
                          ... = 1 : inv_of_mul_self a
 
-@[priority 100] instance ne_zero.invertible [mul_zero_one_class α] [nontrivial α] (a : α)
+@[priority 100] instance invertible.ne_zero [mul_zero_one_class α] [nontrivial α] (a : α)
   [invertible a] : ne_zero a := ⟨nonzero_of_invertible a⟩
 
 section monoid_with_zero

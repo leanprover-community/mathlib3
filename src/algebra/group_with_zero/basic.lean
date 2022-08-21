@@ -974,9 +974,8 @@ by { rw div_eq_mul_inv, exact hac.mul_left hbc.inv_left₀ }
 
 end commute
 
-namespace monoid_with_zero_hom
-
-variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
+section monoid_with_zero
+variables [group_with_zero G₀] [monoid_with_zero M₀] [nontrivial M₀]
   [monoid_with_zero_hom_class F G₀ M₀] (f : F) {a : G₀}
 include M₀
 
@@ -985,7 +984,7 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-end monoid_with_zero_hom
+end monoid_with_zero
 
 section group_with_zero
 

@@ -782,9 +782,6 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 protected lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
 protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
-@[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
-φ.to_ring_hom.map_int_cast n
-
 end ring
 
 end alg_hom
@@ -1401,7 +1398,7 @@ variables (R : Type*) [ring R]
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
 
-/-- A special case of `ring_hom.eq_int_cast'` that happens to be true definitionally -/
+/-- A special case of `eq_int_cast'` that happens to be true definitionally -/
 @[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
 
 variables {R}

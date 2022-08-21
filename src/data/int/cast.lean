@@ -22,13 +22,14 @@ the integers into an additive group with a one (`int.cast`).
 
 open nat
 
+variables {F ι α β : Type*}
+
 namespace int
 
 /-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
 def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
 
 section cast
-variables {α : Type*}
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
 λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, ih])
@@ -151,7 +152,7 @@ end int
 
 namespace prod
 
-variables {α : Type*} {β : Type*} [add_group_with_one α] [add_group_with_one β]
+variables [add_group_with_one α] [add_group_with_one β]
 
 instance : add_group_with_one (α × β) :=
 { int_cast := λ n, (n, n),
@@ -183,10 +184,11 @@ variables [add_group_with_one A]
 theorem eq_int_cast_hom (f : ℤ →+ A) (h1 : f 1 = 1) : f = int.cast_add_hom A :=
 ext_int $ by simp [h1]
 
-theorem eq_int_cast (f : ℤ →+ A) (h1 : f 1 = 1) : ∀ n : ℤ, f n = n :=
-ext_iff.1 (f.eq_int_cast_hom h1)
-
 end add_monoid_hom
+
+lemma eq_int_cast' [add_group_with_one α] [add_monoid_hom_class F ℤ α] (f : F) (h₁ : f 1 = 1) :
+  ∀ n : ℤ, f n = n :=
+add_monoid_hom.ext_iff.1 $ (f : ℤ →+ α).eq_int_cast_hom h₁
 
 @[simp] lemma int.cast_add_hom_int : int.cast_add_hom ℤ = add_monoid_hom.id ℤ :=
 ((add_monoid_hom.id ℤ).eq_int_cast_hom rfl).symm
@@ -225,25 +227,26 @@ variables {M : Type*} [monoid_with_zero M]
   f = g :=
 to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_fun h_nat : _)
 
-/-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
-lemma ext_int' {φ₁ φ₂ : ℤ →*₀ M} (h_neg_one : φ₁ (-1) = φ₂ (-1))
-  (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
-ext_int h_neg_one $ ext_nat h_pos
-
 end monoid_with_zero_hom
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
+lemma ext_int' [monoid_with_zero α] [monoid_with_zero_hom_class F ℤ α] {f g : F}
+  (h_neg_one : f (-1) = g (-1)) (h_pos : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
+fun_like.ext _ _ $ λ n, by { have := fun_like.congr_fun (@monoid_with_zero_hom.ext_int _ _
+  (f : ℤ →*₀ α) (g : ℤ →*₀ α) h_neg_one $ monoid_with_zero_hom.ext_nat h_pos) n, exact this }
+
+section non_assoc_ring
+variables [non_assoc_ring α] [non_assoc_ring β]
+
+@[simp] lemma eq_int_cast [ring_hom_class F ℤ α] (f : F) (n : ℤ) : f n = n :=
+eq_int_cast' f (map_one _) n
+
+@[simp] lemma map_int_cast [ring_hom_class F α β] (f : F) (n : ℤ) : f n = n :=
+eq_int_cast ((f : α →+* β).comp (int.cast_ring_hom α)) n
 
 namespace ring_hom
 
-variables {α : Type*} {β : Type*} [non_assoc_ring α] [non_assoc_ring β]
-
-@[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
-f.to_add_monoid_hom.eq_int_cast f.map_one n
-
-lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
-ring_hom.ext f.eq_int_cast
-
-@[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
-(f.comp (int.cast_ring_hom α)).eq_int_cast n
+lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α := ring_hom.ext $ eq_int_cast f
 
 lemma ext_int {R : Type*} [non_assoc_semiring R] (f g : ℤ →+* R) : f = g :=
 coe_add_monoid_hom_injective $ add_monoid_hom.ext_int $ f.map_one.trans g.map_one.symm
@@ -252,22 +255,22 @@ instance int.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingl
 ⟨ring_hom.ext_int⟩
 
 end ring_hom
+end non_assoc_ring
 
-@[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
-((ring_hom.id ℤ).eq_int_cast n).symm
+@[simp, norm_cast] lemma int.cast_id (n : ℤ) : ↑n = n := (eq_int_cast (ring_hom.id ℤ) _).symm
 
 @[simp] lemma int.cast_ring_hom_int : int.cast_ring_hom ℤ = ring_hom.id ℤ :=
 (ring_hom.id ℤ).eq_int_cast'.symm
 
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, has_int_cast (β a)]
+variables {π : ι → Type*} [Π i, has_int_cast (π i)]
 
-instance : has_int_cast (∀ a, β a) :=
+instance : has_int_cast (Π i, π i) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
-lemma int_apply (n : ℤ) (a : α) : (n : ∀ a, β a) a = n := rfl
+lemma int_apply (n : ℤ) (i : ι) : (n : Π i, π i) i = n := rfl
 
-@[simp] lemma coe_int (n : ℤ) : (n : ∀ a, β a) = λ _, n := rfl
+@[simp] lemma coe_int (n : ℤ) : (n : Π i, π i) = λ _, n := rfl
 
 end pi
 
@@ -276,16 +279,15 @@ lemma sum.elim_int_cast_int_cast {α β γ : Type*} [has_int_cast γ] (n : ℤ) 
 @sum.elim_lam_const_lam_const α β γ n
 
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, add_group_with_one (β a)]
+variables {π : ι → Type*} [Π i, add_group_with_one (π i)]
 
-instance : add_group_with_one (∀ a, β a) :=
+instance : add_group_with_one (Π i, π i) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
 
 namespace mul_opposite
-
-variables {α : Type*} [add_group_with_one α]
+variables [add_group_with_one α]
 
 @[simp, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
 

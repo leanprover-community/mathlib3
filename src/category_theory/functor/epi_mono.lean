@@ -237,7 +237,6 @@ end
 
 end category_theory.functor
 
-
 namespace category_theory.adjunction
 
 variables {C D : Type*} [category C] [category D] {F : C ⥤ D} {F' : D ⥤ C} {A B : C}
@@ -247,7 +246,8 @@ lemma strong_epi_map_of_strong_epi (adj : F ⊣ F') (f : A ⟶ B)
   strong_epi (F.map f) :=
 ⟨infer_instance, λ X Y Z, by { introI, rw adj.has_lifting_property_iff, apply_instance, }⟩
 
-instance [is_equivalence F] (f : A ⟶ B) [h : strong_epi f] : strong_epi (F.map f) :=
+instance strong_epi_map_of_is_equivalence [is_equivalence F] (f : A ⟶ B) [h : strong_epi f] :
+  strong_epi (F.map f) :=
 F.as_equivalence.to_adjunction.strong_epi_map_of_strong_epi f
 
 end category_theory.adjunction

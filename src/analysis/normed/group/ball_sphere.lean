@@ -14,7 +14,7 @@ semi normed group.
 
 open metric set
 
-variables {E : Type*} [semi_normed_group E] {r : ℝ}
+variables {E : Type*} [seminormed_add_comm_group E] {r : ℝ}
 
 /-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
 antipodal map. -/

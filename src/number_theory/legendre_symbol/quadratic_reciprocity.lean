@@ -64,7 +64,7 @@ end
 
 lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
 begin
-  have h := @is_square_neg_one_iff (zmod p) _ _,
+  have h := @finite_field.is_square_neg_one_iff (zmod p) _ _,
   rw card p at h,
   exact h,
 end
@@ -117,7 +117,7 @@ lemma legendre_sym_eq_pow (p : ℕ) (a : ℤ) [hp : fact p.prime] :
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
-  { simp only [ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), quadratic_char_zero,
+  { simp only [ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), mul_char.map_zero,
                int.cast_zero], },
   by_cases hp₁ : p = 2,
   { substI p,
@@ -143,13 +143,13 @@ quadratic_char_eq_neg_one_iff_not_one ha
 /-- The Legendre symbol of `p` and `a` is zero iff `p ∣ a`. -/
 lemma legendre_sym_eq_zero_iff (p : ℕ) [fact p.prime] (a : ℤ) :
   legendre_sym p a = 0 ↔ (a : zmod p) = 0 :=
-quadratic_char_eq_zero_iff a
+quadratic_char_eq_zero_iff
 
 @[simp] lemma legendre_sym_zero (p : ℕ) [fact p.prime] : legendre_sym p 0 = 0 :=
-by rw [legendre_sym, int.cast_zero, quadratic_char_zero]
+by rw [legendre_sym, int.cast_zero, mul_char.map_zero]
 
 @[simp] lemma legendre_sym_one (p : ℕ) [fact p.prime] : legendre_sym p 1 = 1 :=
-by rw [legendre_sym, int.cast_one, quadratic_char_one]
+by rw [legendre_sym, int.cast_one, mul_char.map_one]
 
 /-- The Legendre symbol is multiplicative in `a` for `p` fixed. -/
 lemma legendre_sym_mul (p : ℕ) [fact p.prime] (a b : ℤ) :

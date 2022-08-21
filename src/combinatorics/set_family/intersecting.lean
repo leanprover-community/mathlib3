@@ -154,7 +154,7 @@ lemma intersecting.is_max_iff_card_eq (hs : (s : set α).intersecting) :
   (∀ t : finset α, (t : set α).intersecting → s ⊆ t → s = t) ↔ 2 * s.card = fintype.card α :=
 begin
   classical,
-  refine ⟨λ h, _, λ h t ht hst, eq_of_subset_of_card_le hst $
+  refine ⟨λ h, _, λ h t ht hst, finset.eq_of_subset_of_card_le hst $
     le_of_mul_le_mul_left (ht.card_le.trans_eq h.symm) two_pos⟩,
   suffices : s ∪ s.map ⟨compl, compl_injective⟩ = finset.univ,
   { rw [fintype.card, ←this, two_mul, card_union_eq, card_map],

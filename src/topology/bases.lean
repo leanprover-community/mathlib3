@@ -275,7 +275,7 @@ If `α` might be empty, then `exists_countable_dense` is the main way to use sep
 lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, dense_range u :=
 begin
   obtain ⟨s : set α, hs, s_dense⟩ := exists_countable_dense α,
-  cases countable_iff_exists_surjective.mp hs with u hu,
+  cases set.countable_iff_exists_subset_range.mp hs with u hu,
   exact ⟨u, s_dense.mono hu⟩,
 end
 
@@ -292,7 +292,7 @@ variable {α}
 
 @[priority 100]
 instance encodable.to_separable_space [encodable α] : separable_space α :=
-{ exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
+{ exists_countable_dense := ⟨set.univ, set.countable_univ, dense_univ⟩ }
 
 lemma separable_space_of_dense_range {ι : Type*} [encodable ι] (u : ι → α) (hu : dense_range u) :
   separable_space α :=
@@ -530,6 +530,20 @@ end first_countable_topology
 
 variables {α}
 
+instance {β} [topological_space β] [first_countable_topology α] [first_countable_topology β] :
+  first_countable_topology (α × β) :=
+⟨λ ⟨x, y⟩, by { rw nhds_prod_eq, apply_instance }⟩
+
+section pi
+
+omit t
+
+instance {ι : Type*} {π : ι → Type*} [countable ι] [Π i, topological_space (π i)]
+  [∀ i, first_countable_topology (π i)] : first_countable_topology (Π i, π i) :=
+⟨λ f, by { rw nhds_pi, apply_instance }⟩
+
+end pi
+
 instance is_countably_generated_nhds_within (x : α) [is_countably_generated (𝓝 x)] (s : set α) :
   is_countably_generated (𝓝[s] x) :=
 inf.is_countably_generated _ _
@@ -622,10 +636,11 @@ instance {β : Type*} [topological_space β]
 ((is_basis_countable_basis α).prod (is_basis_countable_basis β)).second_countable_topology $
   (countable_countable_basis α).image2 (countable_countable_basis β) _
 
-instance second_countable_topology_encodable {ι : Type*} {π : ι → Type*}
-  [encodable ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
+instance {ι : Type*} {π : ι → Type*}
+  [countable ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
   second_countable_topology (∀a, π a) :=
 begin
+  haveI := encodable.of_countable ι,
   have : t = (λa, generate_from (countable_basis (π a))),
     from funext (assume a, (is_basis_countable_basis (π a)).eq_generate_from),
   rw [this, pi_generate_from_eq],
@@ -644,11 +659,6 @@ begin
     rcases @subtype.surjective_restrict ι (λ i, set (π i)) _ (λ i, i ∈ I) s with ⟨s, rfl⟩,
     exact ⟨s, I, λ i hi, hs ⟨i, hi⟩, set.ext $ λ f, subtype.forall⟩ }
 end
-
-instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
-  [fintype ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
-  second_countable_topology (∀a, π a) :=
-by { letI := fintype.to_encodable ι, exact topological_space.second_countable_topology_encodable }
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space

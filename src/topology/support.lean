@@ -80,6 +80,11 @@ closure_mono (support_mul_subset_right _ _)
 
 end one
 
+lemma tsupport_smul_subset_left {M α} [topological_space X] [has_zero M] [has_zero α]
+  [smul_with_zero M α] (f : X → M) (g : X → α) :
+  tsupport (λ x, f x • g x) ⊆ tsupport f :=
+closure_mono $ support_smul_subset_left f g
+
 section
 
 variables [topological_space α] [topological_space α']
@@ -87,9 +92,14 @@ variables [has_one β] [has_one γ] [has_one δ]
 variables {g : β → γ} {f : α → β} {f₂ : α → γ} {m : β → γ → δ} {x : α}
 
 @[to_additive]
-lemma not_mem_closure_mul_support_iff_eventually_eq : x ∉ mul_tsupport f ↔ f =ᶠ[𝓝 x] 1 :=
+lemma not_mem_mul_tsupport_iff_eventually_eq : x ∉ mul_tsupport f ↔ f =ᶠ[𝓝 x] 1 :=
 by simp_rw [mul_tsupport, mem_closure_iff_nhds, not_forall, not_nonempty_iff_eq_empty,
     ← disjoint_iff_inter_eq_empty, disjoint_mul_support_iff, eventually_eq_iff_exists_mem]
+
+@[to_additive] lemma continuous_of_mul_tsupport [topological_space β] {f : α → β}
+  (hf : ∀ x ∈ mul_tsupport f, continuous_at f x) : continuous f :=
+continuous_iff_continuous_at.2 $ λ x, (em _).elim (hf x) $ λ hx,
+  (@continuous_at_const _ _ _ _ _ 1).congr (not_mem_mul_tsupport_iff_eventually_eq.mp hx).symm
 
 /-- A function `f` *has compact multiplicative support* or is *compactly supported* if the closure
 of the multiplicative support of `f` is compact. In a T₂ space this is equivalent to `f` being equal

@@ -171,7 +171,7 @@ by rw [inf_comm, sup_comm, ← sup_inf_assoc_of_le y h, inf_comm, sup_comm]
 
 instance : is_modular_lattice αᵒᵈ :=
 ⟨λ x y z xz, le_of_eq (by { rw [inf_comm, sup_comm, eq_comm, inf_comm, sup_comm],
-  convert sup_inf_assoc_of_le (order_dual.of_dual y) (order_dual.dual_le.2 xz) })⟩
+  exact @sup_inf_assoc_of_le α _ _ _ y _ xz })⟩
 
 variables {x y z : α}
 

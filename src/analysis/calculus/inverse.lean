@@ -61,11 +61,11 @@ open_locale topological_space classical nnreal
 
 noncomputable theory
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
-variables {G' : Type*} [normed_group G'] [normed_space 𝕜 G']
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜 G']
 variables {ε : ℝ}
 
 
@@ -481,8 +481,8 @@ omit cs
 
 /-- In a real vector space, a function `f` that approximates a linear equivalence on a subset `s`
 can be extended to a homeomorphism of the whole space. -/
-lemma exists_homeomorph_extension {E : Type*} [normed_group E] [normed_space ℝ E]
-  {F : Type*} [normed_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
+lemma exists_homeomorph_extension {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
   {s : set E} {f : E → F} {f' : E ≃L[ℝ] F} {c : ℝ≥0}
   (hf : approximates_linear_on f (f' : E →L[ℝ] F) s c)
   (hc : subsingleton E ∨ lipschitz_extension_constant F * c < (∥(f'.symm : F →L[ℝ] E)∥₊)⁻¹) :
@@ -725,8 +725,8 @@ is_open_map_iff_nhds_le.2 $ λ x, ((hf x).map_nhds_eq (h0 x)).ge
 
 namespace cont_diff_at
 variables {𝕂 : Type*} [is_R_or_C 𝕂]
-variables {E' : Type*} [normed_group E'] [normed_space 𝕂 E']
-variables {F' : Type*} [normed_group F'] [normed_space 𝕂 F']
+variables {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕂 E']
+variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕂 F']
 variables [complete_space E'] (f : E' → F') {f' : E' ≃L[𝕂] F'} {a : E'}
 
 /-- Given a `cont_diff` function over `𝕂` (which is `ℝ` or `ℂ`) with an invertible

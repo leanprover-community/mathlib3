@@ -116,7 +116,7 @@ end
 
 /-- See also `finset.product_bUnion`. -/
 lemma sup_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
 begin
   refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ i' hi', le_sup $ mem_product.2 ⟨hi, hi'⟩)),
   refine sup_le _,
@@ -127,7 +127,7 @@ begin
 end
 
 lemma sup_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
 by rw [sup_product_left, sup_comm]
 
 @[simp] lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
@@ -163,6 +163,14 @@ by { rw [comp_sup_eq_sup_comp coe]; intros; refl }
   (s : finset α) (f : α → multiset β) :
   (s.sup f).to_finset = s.sup (λ x, (f x).to_finset) :=
 comp_sup_eq_sup_comp multiset.to_finset to_finset_union rfl
+
+lemma _root_.list.foldr_sup_eq_sup_to_finset [decidable_eq α] (l : list α) :
+  l.foldr (⊔) ⊥ = l.to_finset.sup id :=
+begin
+  rw [←coe_fold_r, ←multiset.fold_dedup_idem, sup_def, ←list.to_finset_coe, to_finset_val,
+      multiset.map_id],
+  refl
+end
 
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
@@ -314,11 +322,11 @@ lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
 @sup_comm αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
 @sup_product_left αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
 @sup_product_right αᵒᵈ _ _ _ _ _ _ _
 
 @[simp] lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
@@ -361,6 +369,14 @@ lemma inf_coe {P : α → Prop}
   (t : finset β) (f : β → {x : α // P x}) :
   (@inf _ _ (subtype.semilattice_inf Pinf) (subtype.order_top Ptop) t f : α) = t.inf (λ x, f x) :=
 @sup_coe αᵒᵈ _ _ _ _ Ptop Pinf t f
+
+lemma _root_.list.foldr_inf_eq_inf_to_finset [decidable_eq α] (l : list α) :
+  l.foldr (⊓) ⊤ = l.to_finset.inf id :=
+begin
+  rw [←coe_fold_r, ←multiset.fold_dedup_idem, inf_def, ←list.to_finset_coe, to_finset_val,
+      multiset.map_id],
+  refl
+end
 
 lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
@@ -500,12 +516,12 @@ Exists.imp (λ a, Exists.fst) (@le_sup (with_bot α) _ _ _ _ _ _ h (f b) rfl)
 unbounded) join-semilattice `α`, where `H` is a proof of nonemptiness. If `α` has a bottom element
 you may instead use `finset.sup` which does not require `s` nonempty. -/
 def sup' (s : finset β) (H : s.nonempty) (f : β → α) : α :=
-option.get $ let ⟨b, hb⟩ := H in option.is_some_iff_exists.2 (sup_of_mem f hb)
+with_bot.unbot (s.sup (coe ∘ f)) (by simpa using H)
 
 variables {s : finset β} (H : s.nonempty) (f : β → α)
 
 @[simp] lemma coe_sup' : ((s.sup' H f : α) : with_bot α) = s.sup (coe ∘ f) :=
-by rw [sup', ←with_bot.some_eq_coe, option.some_get]
+by rw [sup', with_bot.coe_unbot]
 
 @[simp] lemma sup'_cons {b : β} {hb : b ∉ s} {h : (cons b s hb).nonempty} :
   (cons b s hb).sup' h f = f b ⊔ s.sup' H f :=
@@ -544,15 +560,16 @@ lemma comp_sup'_eq_sup'_comp [semilattice_sup γ] {s : finset β} (H : s.nonempt
   g (s.sup' H f) = s.sup' H (g ∘ f) :=
 begin
   rw [←with_bot.coe_eq_coe, coe_sup'],
-  let g' : with_bot α → with_bot γ := with_bot.rec_bot_coe ⊥ (λ x, ↑(g x)),
+  let g' := with_bot.map g,
   show g' ↑(s.sup' H f) = s.sup (λ a, g' ↑(f a)),
   rw coe_sup',
   refine comp_sup_eq_sup_comp g' _ rfl,
   intros f₁ f₂,
-  cases f₁,
-  { rw [with_bot.none_eq_bot, bot_sup_eq], exact bot_sup_eq.symm, },
-  { cases f₂, refl,
-    exact congr_arg coe (g_sup f₁ f₂), },
+  induction f₁ using with_bot.rec_bot_coe,
+  { rw [bot_sup_eq], exact bot_sup_eq.symm, },
+  { induction f₂ using with_bot.rec_bot_coe,
+    { refl },
+    { exact congr_arg coe (g_sup f₁ f₂) } }
 end
 
 lemma sup'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))
@@ -580,6 +597,11 @@ begin
   simp only [sup'_le_iff, h₂] { contextual := tt }
 end
 
+@[simp] lemma sup'_map {s : finset γ} {f : γ ↪ β} (g : β → α) (hs : (s.map f).nonempty)
+  (hs': s.nonempty := finset.map_nonempty.mp hs) :
+  (s.map f).sup' hs g = s.sup' hs' (g ∘ f) :=
+by rw [←with_bot.coe_eq_coe, coe_sup', sup_map, coe_sup']
+
 end sup'
 
 section inf'
@@ -593,7 +615,7 @@ lemma inf_of_mem {s : finset β} (f : β → α) {b : β} (h : b ∈ s) :
 unbounded) meet-semilattice `α`, where `H` is a proof of nonemptiness. If `α` has a top element you
 may instead use `finset.inf` which does not require `s` nonempty. -/
 def inf' (s : finset β) (H : s.nonempty) (f : β → α) : α :=
-@sup' αᵒᵈ _ _ s H f
+with_top.untop (s.inf (coe ∘ f)) (by simpa using H)
 
 variables {s : finset β} (H : s.nonempty) (f : β → α) {a : α} {b : β}
 
@@ -602,11 +624,11 @@ variables {s : finset β} (H : s.nonempty) (f : β → α) {a : α} {b : β}
 
 @[simp] lemma inf'_cons {b : β} {hb : b ∉ s} {h : (cons b s hb).nonempty} :
   (cons b s hb).inf' h f = f b ⊓ s.inf' H f :=
-@sup'_cons αᵒᵈ _ _ _ H f _ _ _
+@sup'_cons αᵒᵈ _ _ _ H f _ _ h
 
 @[simp] lemma inf'_insert [decidable_eq β] {b : β} {h : (insert b s).nonempty} :
   (insert b s).inf' h f = f b ⊓ s.inf' H f :=
-@sup'_insert αᵒᵈ _ _ _ H f _ _ _
+@sup'_insert αᵒᵈ _ _ _ H f _ _ h
 
 @[simp] lemma inf'_singleton {b : β} {h : ({b} : finset β).nonempty} :
   ({b} : finset β).inf' h f = f b := rfl
@@ -614,7 +636,7 @@ variables {s : finset β} (H : s.nonempty) (f : β → α) {a : α} {b : β}
 lemma le_inf' (hs : ∀ b ∈ s, a ≤ f b) : a ≤ s.inf' H f := @sup'_le αᵒᵈ _ _ _ H f _ hs
 lemma inf'_le (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b := @le_sup' αᵒᵈ _ _ _ f _ h
 
-@[simp] lemma inf'_const (a : α) : s.inf' H (λ b, a) = a := @sup'_const αᵒᵈ _ _ _ _ _
+@[simp] lemma inf'_const (a : α) : s.inf' H (λ b, a) = a := @sup'_const αᵒᵈ _ _ _ H _
 
 @[simp] lemma le_inf'_iff : a ≤ s.inf' H f ↔ ∀ b ∈ s, a ≤ f b := @sup'_le_iff αᵒᵈ _ _ _ H f _
 
@@ -639,6 +661,11 @@ lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
 @[congr] lemma inf'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.inf' H f = t.inf' (h₁ ▸ H) g :=
 @sup'_congr αᵒᵈ _ _ _ H _ _ _ h₁ h₂
+
+@[simp] lemma inf'_map {s : finset γ} {f : γ ↪ β} (g : β → α) (hs : (s.map f).nonempty)
+  (hs': s.nonempty := finset.map_nonempty.mp hs) :
+  (s.map f).inf' hs g = s.inf' hs' (g ∘ f) :=
+@sup'_map αᵒᵈ _ _ _ _ _ _ hs hs'
 
 end inf'
 
@@ -782,6 +809,8 @@ and `⊥` otherwise. It belongs to `with_bot α`. If you want to get an element 
 protected def max (s : finset α) : with_bot α :=
 sup s coe
 
+lemma max_eq_sup_coe {s : finset α} : s.max = s.sup coe := rfl
+
 theorem max_eq_sup_with_bot (s : finset α) :
   s.max = sup s coe := rfl
 
@@ -877,19 +906,17 @@ le_inf st
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
 taking values in `with_top α`. -/
 def min' (s : finset α) (H : s.nonempty) : α :=
-with_top.untop s.min $ mt min_eq_top.1 H.ne_empty
+inf' s H id
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
 taking values in `with_bot α`. -/
 def max' (s : finset α) (H : s.nonempty) : α :=
-with_bot.unbot s.max $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := max_of_mem hk in by simp [hb]
+sup' s H id
 
 variables (s : finset α) (H : s.nonempty) {x : α}
 
-theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
+theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min', finset.min]
 
 theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x :=
 min_le_of_mem H2 (with_top.coe_untop _ _).symm
@@ -906,7 +933,7 @@ le_is_glb_iff (is_least_min' s H).is_glb
   ({a} : finset α).min' (singleton_nonempty _) = a :=
 by simp [min']
 
-theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
+theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max', finset.max]
 
 theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ :=
 le_max_of_mem H2 (with_bot.coe_unbot _ _).symm
@@ -1017,11 +1044,33 @@ end
   {f : α → β} (hf : monotone f) (s : finset α) (h : (s.image f).nonempty) :
   (s.image f).min' h = f (s.min' ((nonempty.image_iff f).mp h)) :=
 begin
-  refine le_antisymm (min'_le _ _ (mem_image.mpr ⟨_, min'_mem _ _, rfl⟩))
-    (le_min' _ _ _ (λ y hy, _)),
-  obtain ⟨x, hx, rfl⟩ := mem_image.mp hy,
-  exact hf (min'_le _ _ hx)
+  convert @max'_image αᵒᵈ βᵒᵈ _ _ (λ a : αᵒᵈ, to_dual (f (of_dual a))) (by simpa) _ _; convert h,
+  rw nonempty.image_iff,
 end
+
+lemma coe_max' {s : finset α} (hs : s.nonempty) : ↑(s.max' hs) = s.max := coe_sup' hs id
+
+lemma coe_min' {s : finset α} (hs : s.nonempty) : ↑(s.min' hs) = s.min := coe_inf' hs id
+
+lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).max' s0 ≠ x :=
+ne_of_mem_erase (max'_mem _ s0)
+
+lemma min'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).min' s0 ≠ x :=
+ne_of_mem_erase (min'_mem _ s0)
+
+lemma max_erase_ne_self {s : finset α} : (s.erase x).max ≠ x :=
+begin
+  by_cases s0 : (s.erase x).nonempty,
+  { refine ne_of_eq_of_ne (coe_max' s0).symm _,
+    exact with_bot.coe_eq_coe.not.mpr (max'_erase_ne_self _) },
+  { rw [not_nonempty_iff_eq_empty.mp s0, max_empty],
+    exact with_bot.bot_ne_coe }
+end
+
+lemma min_erase_ne_self {s : finset α} : (s.erase x).min ≠ x :=
+by convert @max_erase_ne_self αᵒᵈ _ _ _
 
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:

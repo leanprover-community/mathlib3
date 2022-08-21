@@ -7,6 +7,7 @@ import data.nat.basic
 import data.nat.cast.defs
 import algebra.group.pi
 import tactic.pi_instances
+import data.sum.basic
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -196,7 +197,7 @@ end ring_hom_class
 
 namespace ring_hom
 
-/-- This is primed to match `ring_hom.eq_int_cast'`. -/
+/-- This is primed to match `eq_int_cast'`. -/
 lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
 ring_hom.ext $ eq_nat_cast f
 
@@ -273,6 +274,10 @@ lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl
 @[simp] lemma coe_nat (n : ℕ) : (n : ∀ a, β a) = λ _, n := rfl
 
 end pi
+
+lemma sum.elim_nat_cast_nat_cast {α β γ : Type*} [has_nat_cast γ] (n : ℕ) :
+  sum.elim (n : α → γ) (n : β → γ) = n :=
+@sum.elim_lam_const_lam_const α β γ n
 
 namespace pi
 variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]

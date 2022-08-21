@@ -250,10 +250,10 @@ lemma is_nilpotent_to_endomorphism_weight_space_zero
 begin
   obtain ⟨k, hk⟩ := exists_pre_weight_space_zero_le_ker_of_is_noetherian R M x,
   use k,
-  ext ⟨m, hm : m ∈ pre_weight_space M 0⟩,
+  ext ⟨m, hm⟩,
   rw [linear_map.zero_apply, lie_submodule.coe_zero, submodule.coe_eq_zero,
     ← lie_submodule.to_endomorphism_restrict_eq_to_endomorphism, linear_map.pow_restrict,
-    ← set_like.coe_eq_coe, linear_map.restrict_apply, submodule.coe_mk, lie_submodule.coe_zero],
+    ← set_like.coe_eq_coe, linear_map.restrict_apply, submodule.coe_mk, submodule.coe_zero],
   exact hk hm,
 end
 

@@ -6,7 +6,6 @@ Authors: Robert Y. Lewis, Chris Hughes
 import algebra.associated
 import algebra.big_operators.basic
 import ring_theory.valuation.basic
-import data.nat.factorization.basic
 
 /-!
 # Multiplicity of a divisor
@@ -511,23 +510,6 @@ begin
   have := nat.dvd_gcd h (hle _ h),
   rw [coprime.gcd_eq_one hab, nat.dvd_one, pow_one] at this,
   exact hp this
-end
-
-lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
-  multiplicity p n = n.factorization p :=
-multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
-
-@[to_additive sum_factors_gcd_add_sum_factors_mul]
-lemma prod_factors_gcd_mul_prod_factors_mul {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
-  (m.gcd n).factors.to_finset.prod f * (m * n).factors.to_finset.prod f
-    = m.factors.to_finset.prod f * n.factors.to_finset.prod f :=
-begin
-  rcases eq_or_ne n 0 with rfl | hm0, { simp },
-  rcases eq_or_ne m 0 with rfl | hn0, { simp },
-  rw [←@finset.prod_union_inter _ _ m.factors.to_finset n.factors.to_finset, mul_comm],
-  congr,
-  { apply factors_mul_to_finset; assumption },
-  { simp only [←support_factorization, factorization_gcd hn0 hm0, finsupp.support_inf] },
 end
 
 end nat

@@ -316,9 +316,9 @@ lemma linear_order.concave_on_of_lt (hs : convex 𝕜 s)
 @linear_order.convex_on_of_lt _ _ βᵒᵈ _ _ _ _ _ _ s f hs hf
 
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic
-structures aren't necessarily compatible), in order to prove that it is convex, it suffices to
-verify the inequality `f (a • x + b • y) ≤ a • f x + b • f y` for `x < y` and positive `a`, `b`. The
-main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order. -/
+structures aren't necessarily compatible), in order to prove that it is strictly convex, it suffices
+to verify the inequality `f (a • x + b • y) < a • f x + b • f y` for `x < y` and positive `a`, `b`.
+The main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order. -/
 lemma linear_order.strict_convex_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     f (a • x + b • y) < a • f x + b • f y) : strict_convex_on 𝕜 s f :=
@@ -330,9 +330,9 @@ begin
 end
 
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic
-structures aren't necessarily compatible), in order to prove that it is concave it suffices to
-verify the inequality `a • f x + b • f y ≤ f (a • x + b • y)` for `x < y` and positive `a`, `b`. The
-main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order. -/
+structures aren't necessarily compatible), in order to prove that it is strictly concave it suffices
+to verify the inequality `a • f x + b • f y < f (a • x + b • y)` for `x < y` and positive `a`, `b`.
+The main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order. -/
 lemma linear_order.strict_concave_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
      a • f x + b • f y < f (a • x + b • y)) : strict_concave_on 𝕜 s f :=

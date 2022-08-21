@@ -70,14 +70,14 @@ begin
   rw nat.mul_div_assoc _ (prod_factorial_dvd_factorial_sum _ _),
 end
 
-lemma multinomial_insert [decidable_eq α] (h : a ∉ s) {n : ℕ} :
+lemma multinomial_insert [decidable_eq α] (h : a ∉ s) :
   multinomial (insert a s) f = (f a + s.sum f).choose (f a) * multinomial s f :=
 begin
   rw choose_eq_factorial_div_factorial (le.intro rfl),
   simp only [multinomial, nat.add_sub_cancel_left, finset.sum_insert h, finset.prod_insert h,
-    h₁, function.comp_app],
-  rw [div_mul_div_comm (n.factorial_mul_factorial_dvd_factorial_add (s.sum f))
-    prod_factorial_dvd_factorial_sum _ _, mul_comm n! (s.sum f)!, mul_assoc,
+    function.comp_app],
+  rw [div_mul_div_comm ((f a).factorial_mul_factorial_dvd_factorial_add (s.sum f))
+    (prod_factorial_dvd_factorial_sum _ _), mul_comm (f a)! (s.sum f)!, mul_assoc,
     mul_comm _ (s.sum f)!, nat.mul_div_mul _ _ (factorial_pos _)],
 end
 
@@ -97,7 +97,7 @@ by simpa [finset.sum_pair hab, finset.prod_pair hab] using multinomial_spec {a, 
 
 @[simp] lemma binomial_one [decidable_eq α] (h : a ≠ b) (h₁ : f a = 1) :
   multinomial {a, b} f = (f b).succ :=
-by simp [multinomial_one {b} f (finset.not_mem_singleton.mpr h) h₁]
+by simp [multinomial_insert_one {b} f (finset.not_mem_singleton.mpr h) h₁]
 
 lemma binomial_succ_succ [decidable_eq α] (h : a ≠ b) :
   multinomial {a, b} (function.update (function.update f a (f a).succ) b (f b).succ) =

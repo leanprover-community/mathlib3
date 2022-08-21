@@ -174,25 +174,6 @@ strong_epi_category.strong_epi_of_epi _
 lemma strong_mono_of_mono [strong_mono_category C] (f : P ⟶ Q) [mono f] : strong_mono f :=
 strong_mono_category.strong_mono_of_mono _
 
-lemma strong_epi_of_is_split_epi (f : P ⟶ Q) [is_split_epi f] : strong_epi f :=
-strong_epi.mk' begin
-  introsI X Y z hz u v sq,
-  exact comm_sq.has_lift.mk'
-  { l := section_ f ≫ u,
-    fac_left' := by simp only [← cancel_mono z, sq.w, category.assoc, is_split_epi.id_assoc],
-    fac_right' := by simp only [sq.w, category.assoc, is_split_epi.id_assoc], }
-end
-
-lemma strong_mono_of_is_split_mono (f : P ⟶ Q) [is_split_mono f] : strong_mono f :=
-strong_mono.mk' begin
-  introsI X Y z hz u v sq,
-  exact comm_sq.has_lift.mk'
-  { l := v ≫ retraction f,
-    fac_left' := by simp only [← sq.w_assoc, is_split_mono.id, category.comp_id],
-    fac_right' := by simp [← cancel_epi z, category.assoc, ← sq.w_assoc, sq.w,
-      is_split_mono.id_assoc], }
-end
-
 section
 local attribute [instance] strong_epi_of_epi
 

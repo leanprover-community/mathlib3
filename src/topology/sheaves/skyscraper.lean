@@ -88,45 +88,45 @@ point, then the skyscraper sheaf `𝓕` with value `A` is defined by `U ↦ A` i
 -/
 def skyscraper_sheaf : sheaf C X :=
 ⟨skyscraper_presheaf p₀ S, λ c U s hs x hx,
-  ⟨dite (p₀ ∈ U)
-    (λ h, x (hs p₀ h).some_spec.some (hs p₀ h).some_spec.some_spec.1 ≫
+  ⟨if h : p₀ ∈ U
+   then x (hs p₀ h).some_spec.some (hs p₀ h).some_spec.some_spec.1 ≫
         eq_to_hom ((skyscraper_presheaf_obj_of_mem S (hs p₀ h).some_spec.some_spec.2).trans
-          (skyscraper_presheaf_obj_of_mem S h).symm))
-    (λ h, terminal.from c ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem S h).symm),
-    λ V inc h,
-    begin
-      by_cases hV : p₀ ∈ V,
-      { have hU : p₀ ∈ U := le_of_hom inc hV,
-        split_ifs,
-        generalize_proofs h₁ h₂,
-        dsimp,
-        split_ifs,
-        have := hx (hom_of_le inf_le_left) (hom_of_le inf_le_right) h₂.some_spec.1 h rfl,
-        dsimp at this,
-        split_ifs at this with H, swap,
-        { exact false.elim (H ⟨h₁.some_spec.some_spec.2, hV⟩) },
-        rw [eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans] at this,
-        rw [this, category.assoc, eq_to_hom_trans, category.assoc, eq_to_hom_trans,
-          eq_to_hom_refl, category.comp_id] },
-      { dsimp,
-        split_ifs,
-        rw [←category.assoc, eq_comp_eq_to_hom],
-        exact terminal_is_terminal.hom_ext _ _, }
-    end,
-    λ y (hy : x.is_amalgamation y),
-    begin
-      split_ifs,
-      { generalize_proofs h₁ h₂,
-        have := hy h₂.some h₂.some_spec.1,
-        dsimp at this,
-        split_ifs at this with H, swap,
-        { exact false.elim (H h₂.some_spec.2), },
-        rw [eq_comp_eq_to_hom] at this,
-        rw [this, eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
-          category.comp_id], },
-      { rw [←eq_comp_eq_to_hom],
-        exact terminal_is_terminal.hom_ext _ _, }
-    end⟩⟩
+          (skyscraper_presheaf_obj_of_mem S h).symm)
+   else terminal.from c ≫ (eq_to_hom (skyscraper_presheaf_obj_of_not_mem S h).symm),
+   λ V inc h,
+   begin
+     by_cases hV : p₀ ∈ V,
+     { have hU : p₀ ∈ U := le_of_hom inc hV,
+       split_ifs,
+       generalize_proofs h₁ h₂,
+       dsimp,
+       split_ifs,
+       have := hx (hom_of_le inf_le_left) (hom_of_le inf_le_right) h₂.some_spec.1 h rfl,
+       dsimp at this,
+       split_ifs at this with H, swap,
+       { exact false.elim (H ⟨h₁.some_spec.some_spec.2, hV⟩) },
+       rw [eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans] at this,
+       rw [this, category.assoc, eq_to_hom_trans, category.assoc, eq_to_hom_trans,
+         eq_to_hom_refl, category.comp_id] },
+     { dsimp,
+       split_ifs,
+       rw [←category.assoc, eq_comp_eq_to_hom],
+       exact terminal_is_terminal.hom_ext _ _, }
+   end,
+   λ y (hy : x.is_amalgamation y),
+   begin
+     split_ifs,
+     { generalize_proofs h₁ h₂,
+       have := hy h₂.some h₂.some_spec.1,
+       dsimp at this,
+       split_ifs at this with H, swap,
+       { exact false.elim (H h₂.some_spec.2), },
+       rw [eq_comp_eq_to_hom] at this,
+       rw [this, eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
+         category.comp_id], },
+     { rw [←eq_comp_eq_to_hom],
+       exact terminal_is_terminal.hom_ext _ _, }
+   end⟩⟩
 
 end
 
@@ -157,7 +157,7 @@ variable [Π (U : opens X), decidable (p₀ ∈ U)]
 /--
 The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}`
 -/
-@[simps] def skyscraper_presheaf_cocone_of_mem_closure₀ {y : X} (h : p₀ ⤳ y) :
+@[simps] def skyscraper_presheaf_cocone_of_specializes {y : X} (h : p₀ ⤳ y) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S) :=
 { X := S,
   ι :=
@@ -189,7 +189,7 @@ The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y 
 colimit
 -/
 noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes [has_colimits C]
-  {y : X} (h : p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone_of_mem_closure₀ p₀ S h) :=
+  {y : X} (h : p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone_of_specializes p₀ S h) :=
 { desc := λ c, (skyscraper_presheaf_from p₀ S ≫ colimit.desc _ _ : S ⟶ c.X),
   fac' := λ c U,
   begin
@@ -220,9 +220,9 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes [has_coli
 If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y` is `S`
 -/
 @[reducible]
-noncomputable def skyscraper_presheaf_stalk_of_mem_closure₀ [has_colimits C]
+noncomputable def skyscraper_presheaf_stalk_of_specializes [has_colimits C]
   {y : X} (h : p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ S :=
-colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit p₀ S h⟩
+colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ S h)⟩
 
 /--
 The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}`
@@ -237,7 +237,7 @@ The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S` when `y �
 /--
 The canonical map `* ⟶ (skyscraper_presheaf p₀ S).stalk y` when `y ∉ closure {p₀}`
 -/
-noncomputable def skyscraper_presheaf_of_not_mem_closure₀_from [has_colimits C]
+noncomputable def skyscraper_presheaf_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : terminal C ⟶ (skyscraper_presheaf p₀ S).stalk y :=
 eq_to_hom (skyscraper_presheaf_obj_of_not_mem S $
   (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec).symm ≫
@@ -248,7 +248,7 @@ eq_to_hom (skyscraper_presheaf_obj_of_not_mem S $
 The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}` is a
 colimit
 -/
-noncomputable def skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit [has_colimits C]
+noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone p₀ S) :=
 { desc := λ c, (eq_to_hom ((skyscraper_presheaf_obj_of_not_mem _
       (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec).symm)) ≫
@@ -309,6 +309,6 @@ If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y`
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_mem_closure₀ [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ terminal C :=
-colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit _ S h⟩
+colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_not_specializes _ S h⟩
 
 end

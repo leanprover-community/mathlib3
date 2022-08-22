@@ -144,7 +144,7 @@ universes u v
 
 variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{u} C] (S : C) [has_terminal C]
 
-lemma mem_nhds_of_not_mem_closure_singleton {y : X} (h : ¬p₀ ⤳ y) :
+private lemma mem_nhds_of_not_specializes {y : X} (h : ¬p₀ ⤳ y) :
   ∃ (U : open_nhds y), p₀ ∉ U.1 :=
 begin
   have := (not_iff_not.mpr specializes_iff_forall_open).mp h,
@@ -240,9 +240,9 @@ The canonical map `* ⟶ (skyscraper_presheaf p₀ S).stalk y` when `y ∉ closu
 noncomputable def skyscraper_presheaf_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : terminal C ⟶ (skyscraper_presheaf p₀ S).stalk y :=
 eq_to_hom (skyscraper_presheaf_obj_of_not_mem S $
-  (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec).symm ≫
-  (skyscraper_presheaf p₀ S).germ (⟨y, (mem_nhds_of_not_mem_closure_singleton p₀ h).some.2⟩ :
-    (mem_nhds_of_not_mem_closure_singleton p₀ h).some.1)
+  (mem_nhds_of_not_specializes p₀ h).some_spec).symm ≫
+  (skyscraper_presheaf p₀ S).germ (⟨y, (mem_nhds_of_not_specializes p₀ h).some.2⟩ :
+    (mem_nhds_of_not_specializes p₀ h).some.1)
 
 /--
 The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}` is a
@@ -251,9 +251,9 @@ colimit
 noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone p₀ S) :=
 { desc := λ c, (eq_to_hom ((skyscraper_presheaf_obj_of_not_mem _
-      (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec).symm)) ≫
+      (mem_nhds_of_not_specializes p₀ h).some_spec).symm)) ≫
     presheaf.germ (skyscraper_presheaf p₀ S)
-      ⟨y, (mem_nhds_of_not_mem_closure_singleton p₀ h).some.2⟩ ≫ colimit.desc _ _,
+      ⟨y, (mem_nhds_of_not_specializes p₀ h).some.2⟩ ≫ colimit.desc _ _,
   fac' := λ c U,
   begin
     simp only [presheaf.germ, skyscraper_presheaf_cocone_ι_app],
@@ -307,7 +307,7 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes [has_
 If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y` is `*`
 -/
 @[reducible]
-noncomputable def skyscraper_presheaf_stalk_of_not_mem_closure₀ [has_colimits C]
+noncomputable def skyscraper_presheaf_stalk_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ terminal C :=
 colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_not_specializes _ S h⟩
 

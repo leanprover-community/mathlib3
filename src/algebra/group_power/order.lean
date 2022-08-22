@@ -126,6 +126,15 @@ end
 
 end div_inv_monoid
 
+namespace canonically_ordered_comm_semiring
+
+variables [canonically_ordered_comm_semiring R]
+
+theorem pow_pos {a : R} (H : 0 < a) (n : ℕ) : 0 < a ^ n :=
+pos_iff_ne_zero.2 $ pow_ne_zero _ H.ne'
+
+end canonically_ordered_comm_semiring
+
 section ordered_semiring
 variables [ordered_semiring R] {a x y : R} {n m : ℕ}
 
@@ -186,19 +195,10 @@ lemma one_lt_pow (ha : 1 < a) : ∀ {n : ℕ} (hn : n ≠ 0), 1 < a ^ n
 
 end ordered_semiring
 
-namespace canonically_ordered_comm_semiring
-
-variables [canonically_ordered_comm_semiring R]
-
-theorem pow_pos {a : R} (H : 0 < a) (n : ℕ) : 0 < a ^ n :=
-pos_iff_ne_zero.2 $ pow_ne_zero _ H.ne'
-
-end canonically_ordered_comm_semiring
-
 section ordered_cancel_semiring
 variables [ordered_cancel_semiring R] {a x y : R} {n m : ℕ}
 
-theorem pow_lt_pow_of_lt_left (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
+lemma pow_lt_pow_of_lt_left (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
   x ^ n < y ^ n :=
 begin
   cases lt_or_eq_of_le Hxpos,
@@ -209,7 +209,7 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-theorem strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
+lemma strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
 λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
 lemma strict_mono_pow (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=

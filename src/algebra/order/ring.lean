@@ -230,9 +230,7 @@ def function.injective.ordered_semiring [has_zero β] [has_one β] [has_add β] 
 section nontrivial
 variables [nontrivial α]
 
-@[simp] lemma zero_lt_one : 0 < (1 : α) :=
-lt_of_le_of_ne zero_le_one zero_ne_one
-
+@[simp] lemma zero_lt_one : 0 < (1 : α) := zero_le_one.lt_of_ne zero_ne_one
 @[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
 @[simp] lemma zero_lt_three : (0 : α) < 3 :=
 zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono zero_le_one
@@ -272,19 +270,17 @@ ha.trans_le $ le_mul_of_one_le_right (zero_le_one.trans ha.le) hb
 
 alias one_lt_mul_of_le_of_lt ← one_lt_mul
 
-lemma mul_le_of_le_one_right (ha : 0 ≤ a) (hb1 : b ≤ 1) : a * b ≤ a :=
-calc a * b ≤ a * 1 : mul_le_mul_of_nonneg_left hb1 ha
-... = a : mul_one a
+lemma mul_le_of_le_one_right (ha : 0 ≤ a) (hb : b ≤ 1) : a * b ≤ a :=
+by simpa only [mul_one] using mul_le_mul_of_nonneg_left hb ha
 
-lemma mul_le_of_le_one_left (hb : 0 ≤ b) (ha1 : a ≤ 1) : a * b ≤ b :=
-calc a * b ≤ 1 * b : mul_le_mul ha1 le_rfl hb zero_le_one
-... = b : one_mul b
+lemma mul_le_of_le_one_left (hb : 0 ≤ b) (ha : a ≤ 1) : a * b ≤ b :=
+by simpa only [one_mul] using mul_le_mul_of_nonneg_right ha hb
 
-lemma mul_lt_one_of_nonneg_of_lt_one_left (ha0 : 0 ≤ a) (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
-(mul_le_of_le_one_right ha0 hb).trans_lt ha
+lemma mul_lt_one_of_nonneg_of_lt_one_left (ha₀ : 0 ≤ a) (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
+(mul_le_of_le_one_right ha₀ hb).trans_lt ha
 
-lemma mul_lt_one_of_nonneg_of_lt_one_right (ha : a ≤ 1) (hb0 : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
-(mul_le_of_le_one_left hb0 ha).trans_lt hb
+lemma mul_lt_one_of_nonneg_of_lt_one_right (ha : a ≤ 1) (hb₀ : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
+(mul_le_of_le_one_left hb₀ ha).trans_lt hb
 
 end ordered_semiring
 
@@ -376,11 +372,11 @@ h4.lt_or_eq_dec.elim
 lemma mul_lt_mul'' : a < c → b < d → 0 ≤ a → 0 ≤ b → a * b < c * d :=
 by classical; exact decidable.mul_lt_mul''
 
-lemma lt_mul_of_one_lt_right (hb : 0 < b) (h : 1 < a) : b < b * a :=
-by simpa only [mul_one] using mul_lt_mul' le_rfl h zero_le_one hb
+lemma lt_mul_of_one_lt_right (ha : 0 < a) (hb : 1 < b) : a < a * b :=
+by simpa only [mul_one] using mul_lt_mul_of_pos_left hb ha
 
-lemma lt_mul_of_one_lt_left (hb : 0 < b) (h : 1 < a) : b < a * b :=
-by simpa only [one_mul] using mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
+lemma lt_mul_of_one_lt_left (hb : 0 < b) (ha : 1 < a) : b < a * b :=
+by simpa only [one_mul] using mul_lt_mul_of_pos_right ha hb
 
 lemma lt_mul_left (hn : 0 < a) (hm : 1 < b) : a < b * a :=
 by { convert mul_lt_mul_of_pos_right hm hn, rw one_mul }
@@ -864,7 +860,7 @@ have b * -c < a * -c,     from mul_lt_mul_of_pos_right h this,
 have -(b * c) < -(a * c), by rwa [mul_neg, mul_neg] at this,
 lt_of_neg_lt_neg this
 
-lemma mul_pos_of_neg_of_neg (ha : a < 0) (hb : b < 0) : 0 < a * b :=
+lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 have 0 * b < a * b, from mul_lt_mul_of_neg_right ha hb,
 by rwa zero_mul at this
 
@@ -1022,8 +1018,8 @@ have h' : a * c ≤ b * c, from calc
        ... ≤ b * c : mul_le_mul_of_nonneg_left hc hb,
 le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
 
-lemma nonneg_le_nonneg_of_sq_le_sq (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
-le_of_not_gt (λhab, (mul_self_lt_mul_self hb hab).not_le h)
+lemma nonneg_le_nonneg_of_sq_le_sq {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
+le_of_not_gt $ λ hab, (mul_self_lt_mul_self hb hab).not_le h
 
 lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
 ⟨mul_self_le_mul_self h1, nonneg_le_nonneg_of_sq_le_sq h2⟩

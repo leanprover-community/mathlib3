@@ -220,7 +220,7 @@ def to_order_iso (f : α ≃+*o β) : α ≃o β := ⟨f.to_ring_equiv.to_equiv,
 instance : order_ring_iso_class (α ≃+*o β) α β :=
 { coe := λ f, f.to_fun,
   inv := λ f, f.inv_fun,
-  coe_inv_injective' := λ f g h₁ h₂, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr'},
+  coe_inv_injective' := λ f g _ _, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
   map_add := λ f, f.map_add',
   map_mul := λ f, f.map_mul',
   map_le_map_iff := λ f, f.map_le_map_iff',

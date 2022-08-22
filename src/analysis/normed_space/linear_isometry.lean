@@ -379,7 +379,8 @@ include σ₂₁
 -- `σ₂₁` becomes a metavariable, but it's OK since it's an outparam
 @[priority 100, nolint dangerous_instance]
 instance [s : semilinear_isometry_equiv_class 𝓕 σ₁₂ E E₂] : semilinear_isometry_class 𝓕 σ₁₂ E E₂ :=
-{ ..s }
+{ coe := (coe : 𝓕 → E → E₂),
+  ..s }
 omit σ₂₁
 
 end semilinear_isometry_equiv_class

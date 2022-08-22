@@ -96,7 +96,8 @@ variables [module R M] [module S M₂] {σ : R →+* S} {σ' : S →+* R}
 @[priority 100, nolint dangerous_instance]
 instance [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] [s : semilinear_equiv_class F σ M M₂] :
   semilinear_map_class F σ M M₂ :=
-{ ..s }
+{ coe := (coe : F → M → M₂),
+  ..s }
 
 end semilinear_equiv_class
 

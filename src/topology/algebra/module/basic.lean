@@ -341,7 +341,8 @@ include σ'
 @[priority 100, nolint dangerous_instance]
 instance [s: continuous_semilinear_equiv_class F σ M M₂] :
   continuous_semilinear_map_class F σ M M₂ :=
-{ ..s }
+{ coe := (coe : F → M → M₂),
+  ..s }
 omit σ'
 
 end continuous_semilinear_equiv_class

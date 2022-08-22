@@ -27,12 +27,6 @@ algebra and we provide some basic definitions for doing so here.
     `has_bracket` (denoted `⁅, ⁆`) into a `has_mul` (denoted `*`).
   * `lie_hom.to_non_unital_alg_hom`
 
-## Implementation notes
-
-Previously the structure was added by a non-instance `lie_ring.to_non_unital_non_assoc_semiring`,
-which could be made an instance locally. This caused instance diamonds since all rings are
-also Lie rings, so we'd get two incompatible multiplications on each ring.
-
 ## Tags
 
 lie algebra, non-unital, non-associative

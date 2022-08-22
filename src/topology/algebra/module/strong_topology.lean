@@ -64,13 +64,25 @@ def strong_uniformity [uniform_space F] [uniform_add_group F]
   (strong_uniformity σ E F 𝔖).to_topological_space = strong_topology σ E F 𝔖 :=
 rfl
 
-lemma uniform_embedding_coe_fn [uniform_space F] [uniform_add_group F] (𝔖 : set (set E)) :
+lemma strong_uniformity.uniform_embedding_coe_fn [uniform_space F] [uniform_add_group F] (𝔖 : set (set E)) :
   @uniform_embedding (E →SL[σ] F) (E → F) (strong_uniformity σ E F 𝔖)
   (uniform_convergence_on.uniform_space E F 𝔖) coe_fn :=
 begin
   letI : uniform_space (E → F) := uniform_convergence_on.uniform_space E F 𝔖,
   letI : uniform_space (E →SL[σ] F) := strong_uniformity σ E F 𝔖,
   exact ⟨⟨rfl⟩, fun_like.coe_injective⟩
+end
+
+lemma strong_topology.embedding_coe_fn [topological_space F] [topological_add_group F]
+  (𝔖 : set (set E)) :
+  @embedding (E →SL[σ] F) (E → F) (strong_topology σ E F 𝔖)
+  (@uniform_convergence_on.topological_space E F (topological_add_group.to_uniform_space F) 𝔖)
+  coe_fn :=
+begin
+  letI : uniform_space F := topological_add_group.to_uniform_space F,
+  haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
+  exact @uniform_embedding.embedding _ _ (_root_.id _) (_root_.id _) _
+    (strong_uniformity.uniform_embedding_coe_fn _ _ _ _)
 end
 
 lemma strong_uniformity.uniform_add_group [uniform_space F] [uniform_add_group F]
@@ -95,9 +107,15 @@ begin
   apply_instance
 end
 
-lemma strong_topology.t2_space [topological_space F] [topological_add_group F]
+lemma strong_topology.t2_space [topological_space F] [topological_add_group F] [t2_space F]
   (𝔖 : set $ set E) (h𝔖 : ⋃₀ 𝔖 = set.univ) : @t2_space (E →SL[σ] F) (strong_topology σ E F 𝔖) :=
-embedding.t2_space ⟨coe_fn : E →SL[σ] F → E → F, _⟩
+begin
+  letI : uniform_space F := topological_add_group.to_uniform_space F,
+  letI : topological_space (E → F) := uniform_convergence_on.topological_space E F 𝔖,
+  letI : topological_space (E →SL[σ] F) := strong_topology σ E F 𝔖,
+  haveI : t2_space (E → F) := uniform_convergence_on.t2_space_of_covering h𝔖,
+  exact (strong_topology.embedding_coe_fn σ E F 𝔖).t2_space
+end
 
 lemma strong_topology.has_continuous_smul [ring_hom_surjective σ] [ring_hom_isometric σ]
   [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜₂ F] (𝔖 : set $ set E)
@@ -175,6 +193,11 @@ strong_uniformity σ E F {S | bornology.is_vonN_bounded 𝕜₁ S}
 
 instance [uniform_space F] [uniform_add_group F] : uniform_add_group (E →SL[σ] F) :=
 strong_uniformity.uniform_add_group σ E F _
+
+instance [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜₁ E] [t2_space F] :
+  t2_space (E →SL[σ] F) :=
+strong_topology.t2_space σ E F _ (set.eq_univ_of_forall $ λ x,
+  set.mem_sUnion_of_mem (set.mem_singleton x) (bornology.is_vonN_bounded_singleton x))
 
 protected lemma has_basis_nhds_zero_of_basis [topological_space F]
   [topological_add_group F] {ι : Type*} {p : ι → Prop} {b : ι → set F}

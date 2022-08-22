@@ -46,6 +46,8 @@ m.succ_def ▸ (order.succ_le_iff_of_not_is_max $ by rwa [is_max_iff_eq_top])
 
 lemma one_le_iff_pos : 1 ≤ n ↔ 0 < n := add_one_le_iff with_top.zero_ne_top
 
+lemma one_le_iff_ne_zero : 1 ≤ n ↔ n ≠ 0 := one_le_iff_pos.trans pos_iff_ne_zero
+
 lemma le_of_lt_add_one (h : m < n + 1) : m ≤ n := order.le_of_lt_succ $ n.succ_def.symm ▸ h
 
 @[elab_as_eliminator]

@@ -510,6 +510,15 @@ by induction m; simp only [*, zero_add, succ_add, repeat]; split; refl
 theorem repeat_subset_singleton (a : α) (n) : repeat a n ⊆ [a] :=
 λ b h, mem_singleton.2 (eq_of_mem_repeat h)
 
+lemma subset_singleton_iff {a : α} : ∀ L : list α, L ⊆ [a] ↔ ∃ n, L = repeat a n
+| [] := ⟨λ h, ⟨0, by simp⟩, by simp⟩
+| (h :: L) := begin
+  refine ⟨λ h, _, λ ⟨k, hk⟩, by simp [hk, repeat_subset_singleton]⟩,
+  rw [cons_subset] at h,
+  obtain ⟨n, rfl⟩ := (subset_singleton_iff L).mp h.2,
+  exact ⟨n.succ, by simp [mem_singleton.mp h.1]⟩
+end
+
 @[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
 by induction l; [refl, simp only [*, map]]; split; refl
 

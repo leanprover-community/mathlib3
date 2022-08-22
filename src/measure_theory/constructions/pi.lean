@@ -75,6 +75,7 @@ lemma is_pi_system_pi [Π i, measurable_space (α i)] :
   is_pi_system (pi univ '' pi univ (λ i, {s : set (α i) | measurable_set s})) :=
 is_pi_system.pi (λ i, is_pi_system_measurable_set)
 
+section finite
 variables [finite ι] [finite ι']
 
 /-- Boxes of countably spanning sets are countably spanning. -/
@@ -83,7 +84,7 @@ lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  casesI nonempty_encodable ι,
+  casesI nonempty_encodable (ι → ℕ),
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
@@ -132,9 +133,11 @@ lemma generate_from_pi [Π i, measurable_space (α i)] :
   measurable_space.pi :=
 generate_from_eq_pi (λ i, generate_from_measurable_set) (λ i, is_countably_spanning_measurable_set)
 
+end finite
+
 namespace measure_theory
 
-variables {m : Π i, outer_measure (α i)}
+variables [fintype ι] {m : Π i, outer_measure (α i)}
 
 /-- An upper bound for the measure in a finite product space.
   It is defined to by taking the image of the set under all projections, and taking the product

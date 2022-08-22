@@ -17,9 +17,6 @@ variables {α β : Type*}
 
 section extras
 
-lemma set.not_subsingleton_iff {s : set α} : ¬ s.subsingleton ↔ ∃ x y ∈ s, x ≠ y :=
-by simp_rw [set.subsingleton, not_forall]
-
 open_locale ennreal
 
 lemma le_edist_pi_iff {π : β → Type*} [fintype β] [nonempty β]
@@ -260,7 +257,7 @@ end
 
 lemma infsep_anti (hst : s ⊆ t) (hs : ¬ s.subsingleton) : t.infsep ≤ s.infsep :=
 begin
-  have ht : ¬ t.subsingleton := λ ht, hs (ht.mono hst),
+  have ht : ¬ t.subsingleton := λ ht, hs (ht.anti hst),
   rw ← infesep_eq_infty_iff at hs ht,
   exact (ennreal.to_real_le_to_real ht hs).2 (infesep_anti hst)
 end

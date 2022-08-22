@@ -64,7 +64,7 @@ instance : continuous_linear_map_class (character_space 𝕜 A) 𝕜 A 𝕜 :=
 /-- An element of the character space, as a continuous linear map. -/
 def to_clm (φ : character_space 𝕜 A) : A →L[𝕜] 𝕜 := (φ : weak_dual 𝕜 A)
 
-@[simp] lemma coe_to_clm (φ : character_space 𝕜 A) (x : A) : ⇑(to_clm φ) = φ := rfl
+@[simp] lemma coe_to_clm (φ : character_space 𝕜 A) : ⇑(to_clm φ) = φ := rfl
 
 /-- Elements of the character space are non-unital algebra homomorphisms. -/
 instance : non_unital_alg_hom_class (character_space 𝕜 A) 𝕜 A 𝕜 :=

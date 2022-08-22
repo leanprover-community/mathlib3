@@ -526,20 +526,13 @@ lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
 | ⊥ ⊥ := by simp
 
 end ereal
+
 namespace tactic
 
 open positivity
 
-meta instance : has_to_string strictness :=
-⟨λ s, match s with
-  | positive p := "strictness.positive (" ++ to_string p ++ ")"
-  | nonnegative p := "strictness.nonnegative (" ++ to_string p ++ ")"
-  end⟩
-
-meta instance : has_to_format strictness := ⟨λ s, to_string s⟩
-
-private lemma ereal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ereal) := ereal.coe_nonneg.2
-private lemma ereal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ereal) := ereal.coe_pos.2
+private alias ereal.coe_nonneg ↔ _ ereal_coe_nonneg
+private alias ereal.coe_pos ↔ _ ereal_coe_pos
 
 /-- Extension for the `positivity` tactic: cast from `ℝ` to `ereal`. -/
 @[positivity]

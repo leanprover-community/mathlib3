@@ -100,10 +100,10 @@ end formal_multilinear_series
 /-! ### The radius of a formal multilinear series -/
 
 
-variables [nondiscrete_normed_field 𝕜]
-[normed_group E] [normed_space 𝕜 E]
-[normed_group F] [normed_space 𝕜 F]
-[normed_group G] [normed_space 𝕜 G]
+variables [nontrivially_normed_field 𝕜]
+[normed_add_comm_group E] [normed_space 𝕜 E]
+[normed_add_comm_group F] [normed_space 𝕜 F]
+[normed_add_comm_group G] [normed_space 𝕜 G]
 
 namespace formal_multilinear_series
 
@@ -222,7 +222,7 @@ in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
 
 lemma le_radius_of_tendsto (p : formal_multilinear_series 𝕜 E F) {l : ℝ}
   (h : tendsto (λ n, ∥p n∥ * r^n) at_top (𝓝 l)) : ↑r ≤ p.radius :=
-p.le_radius_of_is_O (is_O_one_of_tendsto _ h)
+p.le_radius_of_is_O (h.is_O_one _)
 
 lemma le_radius_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
   (hs : summable (λ n, ∥p n∥ * r^n)) : ↑r ≤ p.radius :=

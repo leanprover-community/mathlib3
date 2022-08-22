@@ -26,8 +26,6 @@ instance : Π n, locally_finite_order_top (fin n)
 | (n + 1) := infer_instance
 
 namespace fin
-
-section bounded
 variables {n} (a b : fin n)
 
 lemma Icc_eq_finset_subtype : Icc a b = (Icc (a : ℕ) b).subtype (λ x, x < n) := rfl
@@ -133,59 +131,5 @@ by rw [fintype.card_of_finset, card_Iic]
 
 @[simp] lemma card_fintype_Iio : fintype.card (set.Iio b) = b :=
 by rw [fintype.card_of_finset, card_Iio]
-
-end bounded
-
-section filter
-
-variables {n} (a b : fin n)
-
-@[simp]
-lemma card_filter_lt : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
-by rw [filter_lt_eq_Ioi, card_Ioi, tsub_right_comm]
-
-@[simp]
-lemma card_filter_le : (univ.filter $ λ j, a ≤ j).card = n - a := by rw [filter_le_eq_Ici, card_Ici]
-
-@[simp]
-lemma card_filter_gt : (univ.filter $ λ j, j < a).card = a := by rw [filter_gt_eq_Iio, card_Iio]
-
-@[simp]
-lemma card_filter_ge : (univ.filter $ λ j, j ≤ a).card = a + 1 := by rw [filter_ge_eq_Iic, card_Iic]
-
-@[simp]
-lemma card_filter_lt_lt : (univ.filter (λ j, a < j ∧ j < b)).card = b - a - 1 :=
-by rw [filter_lt_lt_eq_Ioo, card_Ioo]
-
-@[simp]
-lemma card_filter_lt_le : (finset.univ.filter (λ j, a < j ∧ j ≤ b)).card = b - a :=
-by rw [filter_lt_le_eq_Ioc, card_Ioc]
-
-@[simp]
-lemma card_filter_le_lt : (finset.univ.filter (λ j, a ≤ j ∧ j < b)).card = b - a :=
-by rw [filter_le_lt_eq_Ico, card_Ico]
-
-@[simp]
-lemma card_filter_le_le : (finset.univ.filter (λ j, a ≤ j ∧ j ≤ b)).card = b + 1 - a :=
-by rw [filter_le_le_eq_Icc, card_Icc]
-
-lemma prod_filter_lt_mul_neg_eq_prod_off_diag {R : Type*} [comm_monoid R] {n : ℕ}
-  {f : fin n → fin n → R} :
-  ∏ i, (∏ j in univ.filter (λ j, i < j), (f j i) * (f i j)) =
-  ∏ i, (∏ j in univ.filter (λ j, i ≠ j), (f j i)) :=
-begin
-  simp_rw [ne_iff_lt_or_gt, or.comm, filter_or, prod_mul_distrib],
-  have : ∀ i : fin n, disjoint (filter (gt i) univ) (filter (has_lt.lt i) univ),
-  { simp_rw disjoint_filter,
-    intros i x y,
-    apply lt_asymm },
-  simp only [prod_union, this, prod_mul_distrib],
-  rw mul_comm,
-  congr' 1,
-  rw [prod_sigma', prod_sigma'],
-  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp
-end
-
-end filter
 
 end fin

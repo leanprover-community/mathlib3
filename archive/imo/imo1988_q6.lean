@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.nat.prime
-import data.rat.basic
+import data.rat.defs
 import order.well_founded
 import tactic.linarith
 
@@ -127,8 +127,8 @@ begin
   have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_nonempty,
   have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_nonempty hk,
   -- It suffices to show that there is point (a,b) with b ∈ S and b < m.
-  suffices hp' : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
-  { rcases hp' with ⟨p', p'_mem, p'_small⟩, solve_by_elim },
+  rsuffices ⟨p', p'_mem, p'_small⟩ : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
+  { solve_by_elim },
   -- Let (m_x, m_y) be a point on the upper branch that projects to m ∈ S
   -- and that does not lie in the exceptional locus.
   rcases m_mem with ⟨⟨mx, my⟩, ⟨⟨hHm, mx_lt_my⟩, h_base⟩, m_eq⟩,
@@ -226,9 +226,9 @@ begin
       { rw [← sub_eq_zero, ← h_root],
         ring, },
       rw hzx at hpos,
-      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
+      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_left hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,
-      apply nonneg_of_mul_nonneg_right hpos (by exact_mod_cast hx), },
+      apply nonneg_of_mul_nonneg_left hpos (by exact_mod_cast hx), },
     { contrapose! hV₀ with x_lt_z,
       apply ne_of_gt,
       calc z * y > x*x     : by apply mul_lt_mul'; linarith
@@ -271,7 +271,7 @@ begin
     split,
     { have zy_pos : z * y ≥ 0,
       { rw hV₀, exact_mod_cast (nat.zero_le _) },
-      apply nonneg_of_mul_nonneg_right zy_pos,
+      apply nonneg_of_mul_nonneg_left zy_pos,
       linarith },
     { contrapose! hV₀ with x_lt_z,
       apply ne_of_gt,

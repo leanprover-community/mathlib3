@@ -46,10 +46,10 @@ diffeomorphism, manifold
 open_locale manifold topological_space
 open function set
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 {G : Type*} [topological_space G]
@@ -70,7 +70,7 @@ variables (I I' M M' n)
 /--
 `n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
 -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure diffeomorph extends M ≃ M' :=
 (cont_mdiff_to_fun  : cont_mdiff I I' n to_equiv)
 (cont_mdiff_inv_fun : cont_mdiff I' I n to_equiv.symm)
@@ -398,7 +398,7 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
 { to_equiv := equiv.refl M,
   cont_mdiff_to_fun := λ x,
     begin
-      refine cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, _⟩,
+      refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
       { simp only [equiv.coe_refl, id, (∘), I.coe_ext_chart_at_trans_diffeomorph,
           (ext_chart_at I x).right_inv hy.1] },
@@ -407,7 +407,7 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
     end,
   cont_mdiff_inv_fun := λ x,
     begin
-      refine cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, _⟩,
+      refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.symm.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
       { simp only [mem_inter_eq, I.ext_chart_at_trans_diffeomorph_target] at hy,
         simp only [equiv.coe_refl, equiv.refl_symm, id, (∘),

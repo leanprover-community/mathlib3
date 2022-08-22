@@ -116,10 +116,10 @@ alias smul_pos_iff_of_neg ↔ _ smul_pos_of_neg_of_neg
 alias smul_neg_iff_of_pos ↔ _ smul_neg_of_pos_of_neg
 alias smul_neg_iff_of_neg ↔ _ smul_neg_of_neg_of_pos
 
-lemma antitone_smul_left (hc : c ≤ 0) : antitone (has_scalar.smul c : M → M) :=
+lemma antitone_smul_left (hc : c ≤ 0) : antitone (has_smul.smul c : M → M) :=
 λ a b h, smul_le_smul_of_nonpos h hc
 
-lemma strict_anti_smul_left (hc : c < 0) : strict_anti (has_scalar.smul c : M → M) :=
+lemma strict_anti_smul_left (hc : c < 0) : strict_anti (has_smul.smul c : M → M) :=
 λ a b h, smul_lt_smul_of_neg h hc
 
 /-- Binary **rearrangement inequality**. -/
@@ -196,6 +196,10 @@ variables {M} [ordered_add_comm_group N] [module k N] [ordered_smul k N]
 instance prod.ordered_smul : ordered_smul k (M × N) :=
 ordered_smul.mk' $ λ (v u : M × N) (c : k) h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
+
+instance pi.smul_with_zero'' {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
+  [Π i, mul_action_with_zero k (M i)] :
+  smul_with_zero k (Π i : ι, M i) := by apply_instance
 
 instance pi.ordered_smul {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
   [Π i, mul_action_with_zero k (M i)] [∀ i, ordered_smul k (M i)] :

@@ -330,9 +330,7 @@ begin
 end
 
 theorem Gamma_eq_integral (s : ℂ) (hs : 0 < s.re) : Gamma s = Gamma_integral s :=
-begin
-  refine Gamma_eq_Gamma_aux s 0 (_ : _ < 0), linarith,
-end
+Gamma_eq_Gamma_aux s 0 (by { norm_cast, linarith })
 
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = nat.factorial n :=
 begin
@@ -505,7 +503,7 @@ end
 theorem differentiable_at_Gamma (s : ℂ) (hs : ∀ m:ℕ, s + m ≠ 0) : differentiable_at ℂ Gamma s :=
 begin
   let n := ⌊1 - s.re⌋₊ + 1,
-  have hn : 1 - s.re < n := nat.lt_floor_add_one (1 - s.re),
+  have hn : 1 - s.re < n := by exact_mod_cast nat.lt_floor_add_one (1 - s.re),
   apply (differentiable_at_Gamma_aux s n hn hs).congr_of_eventually_eq,
   let S := { t : ℂ | 1 - t.re < n },
   have : S ∈ 𝓝 s,

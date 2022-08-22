@@ -49,7 +49,7 @@ def tendsto_in_measure [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (l : filter ι) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) l (𝓝 0)
 
-lemma tendsto_in_measure_iff_norm [semi_normed_group E] {l : filter ι}
+lemma tendsto_in_measure_iff_norm [seminormed_add_comm_group E] {l : filter ι}
   {f : ι → α → E} {g : α → E} :
   tendsto_in_measure μ f l g
   ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ∥f i x - g x∥}) l (𝓝 0) :=
@@ -259,7 +259,7 @@ end exists_seq_tendsto_ae
 
 section ae_measurable_of
 
-variables [measurable_space E] [normed_group E] [borel_space E]
+variables [measurable_space E] [normed_add_comm_group E] [borel_space E]
 
 lemma tendsto_in_measure.ae_measurable
   {u : filter ι} [ne_bot u] [is_countably_generated u]
@@ -275,7 +275,7 @@ end ae_measurable_of
 
 section tendsto_in_measure_of
 
-variables [normed_group E] {p : ℝ≥0∞}
+variables [normed_add_comm_group E] {p : ℝ≥0∞}
 variables {f : ι → α → E} {g : α → E}
 
 /-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
@@ -326,8 +326,8 @@ end
 
 /-- See also `measure_theory.tendsto_in_measure_of_tendsto_snorm` which work for general
 Lp-convergence for all `p ≠ 0`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_group E] {f : ι → α → E} {g : α → E}
-  {l : filter ι} (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) l (𝓝 0)) :
+lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_add_comm_group E] {f : ι → α → E}
+  {g : α → E} {l : filter ι} (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) l (𝓝 0)) :
   tendsto_in_measure μ f l g :=
 begin
   intros δ hδ,

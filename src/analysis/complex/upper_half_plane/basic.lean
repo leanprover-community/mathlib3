@@ -134,7 +134,7 @@ begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
-  { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
+  { simp only [denom_ne_zero g z, map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux', -coe_coe],
   rw (matrix.det_fin_two (↑ₘg)),
   ring,
@@ -190,7 +190,7 @@ mul_action.comp_hom ℍ $ (special_linear_group.to_GL_pos).comp $ map (algebra_m
 
 instance : has_coe SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ g , ((g : SL(2, ℝ)) : (GL(2, ℝ)⁺))⟩
 
-instance SL_on_GL_pos : has_scalar SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
+instance SL_on_GL_pos : has_smul SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 
 lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
   (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
@@ -198,7 +198,7 @@ lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
 instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL(2, ℝ)⁺) ℍ :=
 { smul_assoc := by {intros s g z, simp only [SL_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
-instance subgroup_GL_pos : has_scalar Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
+instance subgroup_GL_pos : has_smul Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 
 lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
   (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
@@ -207,7 +207,7 @@ instance subgroup_on_GL_pos : is_scalar_tower Γ (GL(2, ℝ)⁺) ℍ :=
 { smul_assoc :=
   by {intros s g z, simp only [subgroup_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
-instance subgroup_SL : has_scalar Γ SL(2,ℤ) := ⟨λ s g, s * g⟩
+instance subgroup_SL : has_smul Γ SL(2,ℤ) := ⟨λ s g, s * g⟩
 
 lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
   (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl

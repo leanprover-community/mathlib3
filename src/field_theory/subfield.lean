@@ -80,12 +80,32 @@ Be assured that we're not actually proving that subfields are subgroups:
 @[priority 100] -- See note [lower instance priority]
 instance subfield_class.to_subgroup_class : subgroup_class S K := { .. h }
 
+variables {S}
+
+lemma coe_rat_mem (s : S) (x : ℚ) : (x : K) ∈ s :=
+by simpa only [rat.cast_def] using div_mem (coe_int_mem s x.num) (coe_nat_mem s x.denom)
+
+instance (s : S) : has_rat_cast s :=
+⟨λ x, ⟨↑x, coe_rat_mem s x⟩⟩
+
+@[simp] lemma coe_rat_cast (s : S) (x : ℚ) : ((x : s) : K) = x := rfl
+
+lemma rat_smul_mem (s : S) (a : ℚ) (x : s) : (a • x : K) ∈ s :=
+by simpa only [rat.smul_def] using mul_mem (coe_rat_mem s a) x.prop
+
+instance (s : S) : has_smul ℚ s :=
+⟨λ a x, ⟨a • x, rat_smul_mem s a x⟩⟩
+
+@[simp] lemma coe_rat_smul (s : S) (a : ℚ) (x : s) : (↑(a • x) : K) = a • x := rfl
+
+variables (S)
+
 /-- A subfield inherits a field structure -/
 @[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
 instance to_field (s : S) : field s :=
 subtype.coe_injective.field (coe : s → K)
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl)
 
 omit h
 
@@ -96,7 +116,8 @@ instance to_linear_ordered_field {K} [linear_ordered_field K] [set_like S K]
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 end subfield_class
 
@@ -235,16 +256,17 @@ instance : has_pow s ℤ := ⟨λ x z, ⟨x ^ z, s.zpow_mem x.2 z⟩⟩
 
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
-subtype.coe_injective.field coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.field (coe : s → K)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
 instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
@@ -297,7 +319,7 @@ variables (f : K →+* L)
 
 /-- The preimage of a subfield along a ring homomorphism is a subfield. -/
 def comap (s : subfield L) : subfield K :=
-{ inv_mem' := λ x hx, show f (x⁻¹) ∈ s, by { rw f.map_inv, exact s.inv_mem hx },
+{ inv_mem' := λ x hx, show f (x⁻¹) ∈ s, by { rw map_inv₀ f, exact s.inv_mem hx },
   .. s.to_subring.comap f }
 
 @[simp] lemma coe_comap (s : subfield L) : (s.comap f : set K) = f ⁻¹' s := rfl
@@ -313,7 +335,7 @@ rfl
 
 /-- The image of a subfield along a ring homomorphism is a subfield. -/
 def map (s : subfield K) : subfield L :=
-{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, s.inv_mem hx, f.map_inv x⟩ },
+{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, s.inv_mem hx, map_inv₀ f x⟩ },
   .. s.to_subring.map f }
 
 @[simp] lemma coe_map : (s.map f : set L) = f '' s := rfl
@@ -610,7 +632,7 @@ f.srange_restrict
 /-- The subfield of elements `x : R` such that `f x = g x`, i.e.,
 the equalizer of f and g as a subfield of R -/
 def eq_locus_field (f g : K →+* L) : subfield K :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [map_inv₀ f, map_inv₀ g, hx],
   carrier := {x | f x = g x}, .. (f : K →+* L).eq_locus g }
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subfield closure. -/

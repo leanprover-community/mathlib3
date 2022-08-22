@@ -139,9 +139,9 @@ begin
     rw [mem_singleton_iff, ←pnat.coe_eq_one_iff],
     exact_mod_cast hζ.unique (is_primitive_root.of_subsingleton ζ) },
   { rintro (rfl|rfl),
-    { refine ⟨λ _ h, h.elim, λ x, by convert subalgebra.zero_mem _⟩ },
+    { refine ⟨λ _ h, h.elim, λ x, by convert (mem_top : x ∈ ⊤)⟩ },
     { rw iff_singleton,
-      refine ⟨⟨0, is_primitive_root.of_subsingleton 0⟩, λ x, by convert subalgebra.zero_mem _⟩ } }
+      refine ⟨⟨0, is_primitive_root.of_subsingleton 0⟩, λ x, by convert (mem_top : x ∈ ⊤)⟩ } }
 end
 
 /-- If `B` is a cyclotomic extension of `A` given by roots of unity of order in `S ∪ T`, then `B`
@@ -370,8 +370,8 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
     refine set.ext (λ x, _),
     simp only [polynomial.map_pow, mem_singleton_iff, multiset.mem_to_finset, exists_eq_left,
       mem_set_of_eq, polynomial.map_X, polynomial.map_one, finset.mem_coe, polynomial.map_sub],
-    rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero _ _ (field.to_nontrivial L) _
-      n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
+    rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero L _ _ _ n.pos _), is_root.def,
+      eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
 
 localized "attribute [instance] is_cyclotomic_extension.splitting_field_X_pow_sub_one" in cyclotomic

@@ -84,4 +84,7 @@ def map_path {a : V} :
 | _ path.nil := rfl
 | _ (path.cons p e) := begin dsimp, rw [map_path_comp], end
 
+@[simp]
+lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
+
 end prefunctor

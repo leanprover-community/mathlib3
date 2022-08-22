@@ -88,11 +88,11 @@ open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
 
-variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 
 section
-variables {F : Type v} [normed_group F] [normed_space 𝕜 F]
-variables {E : Type w} [normed_group E] [normed_space 𝕜 E]
+variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type w} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /--
 `f` has the derivative `f'` at the point `x` as `x` goes along the filter `L`.
@@ -424,6 +424,11 @@ lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
   (hxs : unique_diff_within_at 𝕜 s x) : deriv_within f s x = deriv f x :=
 by { unfold deriv_within deriv, rw h.fderiv_within hxs }
 
+theorem has_deriv_within_at.deriv_eq_zero (hd : has_deriv_within_at f 0 s x)
+  (H : unique_diff_within_at 𝕜 s x) : deriv f x = 0 :=
+(em' (differentiable_at 𝕜 f x)).elim deriv_zero_of_not_differentiable_at $
+  λ h, H.eq_deriv _ h.has_deriv_at.has_deriv_within_at hd
+
 lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :
   deriv_within f s x = deriv_within f t x :=
@@ -456,7 +461,8 @@ lemma differentiable_within_at_Ioi_iff_Ici [partial_order 𝕜] :
 ⟨λ h, h.has_deriv_within_at.Ici_of_Ioi.differentiable_within_at,
 λ h, h.has_deriv_within_at.Ioi_of_Ici.differentiable_within_at⟩
 
-lemma deriv_within_Ioi_eq_Ici {E : Type*} [normed_group E] [normed_space ℝ E] (f : ℝ → E) (x : ℝ) :
+lemma deriv_within_Ioi_eq_Ici {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] (f : ℝ → E)
+  (x : ℝ) :
   deriv_within f (Ioi x) x = deriv_within f (Ici x) x :=
 begin
   by_cases H : differentiable_within_at ℝ f (Ioi x) x,
@@ -487,6 +493,10 @@ has_fderiv_within_at.congr_mono h ht hx h₁
 lemma has_deriv_within_at.congr (h : has_deriv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
   (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 h.congr_mono hs hx (subset.refl _)
+
+lemma has_deriv_within_at.congr_of_mem (h : has_deriv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+  (hx : x ∈ s) : has_deriv_within_at f₁ f' s x :=
+h.congr hs (hs _ hx)
 
 lemma has_deriv_within_at.congr_of_eventually_eq (h : has_deriv_within_at f f' s x)
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
@@ -746,7 +756,7 @@ section pi
 
 /-! ### Derivatives of functions `f : 𝕜 → Π i, E i` -/
 
-variables {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+variables {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   [Π i, normed_space 𝕜 (E' i)] {φ : 𝕜 → Π i, E' i} {φ' : Π i, E' i}
 
 @[simp] lemma has_strict_deriv_at_pi :
@@ -781,7 +791,7 @@ section smul
 
 /-! ### Derivative of the multiplication of a scalar function and a vector function -/
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : 𝕜 → 𝕜'} {c' : 𝕜'}
 
 theorem has_deriv_within_at.smul
@@ -991,7 +1001,7 @@ has_fderiv_at_filter.is_O_sub h
 theorem has_deriv_at_filter.is_O_sub_rev (hf : has_deriv_at_filter f f' x L) (hf' : f' ≠ 0) :
   (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
 suffices antilipschitz_with ∥f'∥₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'), from hf.is_O_sub_rev this,
-(smul_right (1 : 𝕜 →L[𝕜] 𝕜) f').to_linear_map.antilipschitz_of_bound $
+add_monoid_hom_class.antilipschitz_of_bound (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') $
   λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
 
 theorem has_deriv_at_filter.sub_const
@@ -1066,7 +1076,7 @@ end continuous
 section cartesian_product
 /-! ### Derivative of the cartesian product of two functions -/
 
-variables {G : Type w} [normed_group G] [normed_space 𝕜 G]
+variables {G : Type w} [normed_add_comm_group G] [normed_space 𝕜 G]
 variables {f₂ : 𝕜 → G} {f₂' : G}
 
 lemma has_deriv_at_filter.prod
@@ -1103,7 +1113,7 @@ usual multiplication in `comp` lemmas.
 
 /- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {s' t' : set 𝕜'}
   {h : 𝕜 → 𝕜'} {h₁ : 𝕜 → 𝕜} {h₂ : 𝕜' → 𝕜'} {h' h₂' : 𝕜'} {h₁' : 𝕜}
   {g₁ : 𝕜' → F} {g₁' : F} {L' : filter 𝕜'} (x)
@@ -1557,7 +1567,7 @@ end inverse
 section division
 /-! ### Derivative of `x ↦ c x / d x` -/
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   {c d : 𝕜 → 𝕜'} {c' d' : 𝕜'}
 
 lemma has_deriv_within_at.div
@@ -1661,8 +1671,8 @@ section clm_comp_apply
 
 open continuous_linear_map
 
-variables {G : Type*} [normed_group G] [normed_space 𝕜 G] {c : 𝕜 → F →L[𝕜] G} {c' : F →L[𝕜] G}
-  {d : 𝕜 → E →L[𝕜] F} {d' : E →L[𝕜] F} {u : 𝕜 → F} {u' : F}
+variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G] {c : 𝕜 → F →L[𝕜] G}
+  {c' : F →L[𝕜] G} {d : 𝕜 → E →L[𝕜] F} {d' : E →L[𝕜] F} {u : 𝕜 → F} {u' : F}
 
 lemma has_strict_deriv_at.clm_comp (hc : has_strict_deriv_at c c' x)
   (hd : has_strict_deriv_at d d' x) :
@@ -1896,7 +1906,7 @@ end polynomial
 section pow
 /-! ### Derivative of `x ↦ x^n` for `n : ℕ` -/
 variables {x : 𝕜} {s : set 𝕜} {c : 𝕜 → 𝕜} {c' : 𝕜}
-variable {n : ℕ }
+variable (n : ℕ)
 
 lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
   has_strict_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
@@ -1917,19 +1927,19 @@ lemma differentiable_at_pow : differentiable_at 𝕜 (λx, x^n) x :=
 (has_deriv_at_pow n x).differentiable_at
 
 lemma differentiable_within_at_pow : differentiable_within_at 𝕜 (λx, x^n) s x :=
-differentiable_at_pow.differentiable_within_at
+(differentiable_at_pow n).differentiable_within_at
 
 lemma differentiable_pow : differentiable 𝕜 (λx:𝕜, x^n) :=
-λx, differentiable_at_pow
+λ x, differentiable_at_pow n
 
 lemma differentiable_on_pow : differentiable_on 𝕜 (λx, x^n) s :=
-differentiable_pow.differentiable_on
+(differentiable_pow n).differentiable_on
 
-lemma deriv_pow : deriv (λx, x^n) x = (n : 𝕜) * x^(n-1) :=
+lemma deriv_pow : deriv (λ x, x^n) x = (n : 𝕜) * x^(n-1) :=
 (has_deriv_at_pow n x).deriv
 
-@[simp] lemma deriv_pow' : deriv (λx, x^n) = λ x, (n : 𝕜) * x^(n-1) :=
-funext $ λ x, deriv_pow
+@[simp] lemma deriv_pow' : deriv (λ x, x^n) = λ x, (n : 𝕜) * x^(n-1) :=
+funext $ λ x, deriv_pow n
 
 lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x^n) s x = (n : 𝕜) * x^(n-1) :=
@@ -1941,38 +1951,22 @@ lemma has_deriv_within_at.pow (hc : has_deriv_within_at c c' s x) :
 
 lemma has_deriv_at.pow (hc : has_deriv_at c c' x) :
   has_deriv_at (λ y, (c y)^n) ((n : 𝕜) * (c x)^(n-1) * c') x :=
-by { rw ← has_deriv_within_at_univ at *, exact hc.pow }
-
-lemma differentiable_within_at.pow (hc : differentiable_within_at 𝕜 c s x) :
-  differentiable_within_at 𝕜 (λx, (c x)^n) s x :=
-hc.has_deriv_within_at.pow.differentiable_within_at
-
-@[simp] lemma differentiable_at.pow (hc : differentiable_at 𝕜 c x) :
-  differentiable_at 𝕜 (λx, (c x)^n) x :=
-hc.has_deriv_at.pow.differentiable_at
-
-lemma differentiable_on.pow (hc : differentiable_on 𝕜 c s) :
-  differentiable_on 𝕜 (λx, (c x)^n) s :=
-λx h, (hc x h).pow
-
-@[simp] lemma differentiable.pow (hc : differentiable 𝕜 c) :
-  differentiable 𝕜 (λx, (c x)^n) :=
-λx, (hc x).pow
+by { rw ← has_deriv_within_at_univ at *, exact hc.pow n }
 
 lemma deriv_within_pow' (hc : differentiable_within_at 𝕜 c s x)
   (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, (c x)^n) s x = (n : 𝕜) * (c x)^(n-1) * (deriv_within c s x) :=
-hc.has_deriv_within_at.pow.deriv_within hxs
+(hc.has_deriv_within_at.pow n).deriv_within hxs
 
 @[simp] lemma deriv_pow'' (hc : differentiable_at 𝕜 c x) :
   deriv (λx, (c x)^n) x = (n : 𝕜) * (c x)^(n-1) * (deriv c x) :=
-hc.has_deriv_at.pow.deriv
+(hc.has_deriv_at.pow n).deriv
 
 end pow
 
 section zpow
 /-! ### Derivative of `x ↦ x^m` for `m : ℤ` -/
-variables {x : 𝕜} {s : set 𝕜} {m : ℤ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {x : 𝕜} {s : set 𝕜} {m : ℤ}
 
 lemma has_strict_deriv_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_strict_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
@@ -2071,6 +2065,24 @@ by simpa only [zpow_neg_one, int.cast_neg, int.cast_one] using iter_deriv_zpow (
   deriv^[k] has_inv.inv = λ x : 𝕜, (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=
 funext (iter_deriv_inv k)
 
+variables {f : E → 𝕜} {t : set E} {a : E}
+
+lemma differentiable_within_at.zpow (hf : differentiable_within_at 𝕜 f t a) (h : f a ≠ 0 ∨ 0 ≤ m) :
+  differentiable_within_at 𝕜 (λ x, f x ^ m) t a :=
+(differentiable_at_zpow.2 h).comp_differentiable_within_at a hf
+
+lemma differentiable_at.zpow (hf : differentiable_at 𝕜 f a) (h : f a ≠ 0 ∨ 0 ≤ m) :
+  differentiable_at 𝕜 (λ x, f x ^ m) a :=
+(differentiable_at_zpow.2 h).comp a hf
+
+lemma differentiable_on.zpow (hf : differentiable_on 𝕜 f t) (h : (∀ x ∈ t, f x ≠ 0) ∨ 0 ≤ m) :
+  differentiable_on 𝕜 (λ x, f x ^ m) t :=
+λ x hx, (hf x hx).zpow $ h.imp_left (λ h, h x hx)
+
+lemma differentiable.zpow (hf : differentiable 𝕜 f) (h : (∀ x, f x ≠ 0) ∨ 0 ≤ m) :
+  differentiable 𝕜 (λ x, f x ^ m) :=
+λ x, (hf x).zpow $ h.imp_left (λ h, h x)
+
 end zpow
 
 /-! ### Support of derivatives -/
@@ -2078,14 +2090,14 @@ end zpow
 section support
 
 open function
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F] {f : 𝕜 → F}
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] {f : 𝕜 → F}
 
 lemma support_deriv_subset : support (deriv f) ⊆ tsupport f :=
 begin
   intros x,
   rw [← not_imp_not],
   intro h2x,
-  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  rw [not_mem_tsupport_iff_eventually_eq] at h2x,
   exact nmem_support.mpr (h2x.deriv_eq.trans (deriv_const x 0))
 end
 
@@ -2120,7 +2132,7 @@ section real_space
 
 open metric
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : ℝ → E} {f' : E} {s : set ℝ}
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] {f : ℝ → E} {f' : E} {s : set ℝ}
   {x r : ℝ}
 
 /-- If `f` has derivative `f'` within `s` at `x`, then for any `r > ∥f'∥` the ratio

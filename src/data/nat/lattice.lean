@@ -3,7 +3,6 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Gabriel Ebner, Yury Kudryashov
 -/
-import data.nat.enat
 import order.conditionally_complete_lattice
 
 /-!
@@ -12,7 +11,7 @@ import order.conditionally_complete_lattice
 In this file we
 
 * define a `conditionally_complete_linear_order_bot` structure on `ℕ`;
-* define a `complete_linear_order` structure on `enat`;
+* define a `complete_linear_order` structure on `part_enat`;
 * prove a few lemmas about `supr`/`infi`/`set.Union`/`set.Inter` and natural numbers.
 -/
 
@@ -114,6 +113,9 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   .. (infer_instance : order_bot ℕ), .. (linear_order.to_lattice : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
 
+lemma Sup_mem {s : set ℕ} (h₁ : s.nonempty) (h₂ : bdd_above s) : Sup s ∈ s :=
+let ⟨k, hk⟩ := h₂ in h₁.cSup_mem ((finite_le_nat k).subset hk)
+
 lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
   Inf {m | p (m + n)} + n = Inf {m | p m} :=
 begin
@@ -181,19 +183,3 @@ lemma bInter_lt_succ' (u : ℕ → set α) (n : ℕ) : (⋂ k < n + 1, u k) = u 
 nat.infi_lt_succ' u n
 
 end set
-
-namespace enat
-open_locale classical
-
-noncomputable instance : complete_linear_order enat :=
-{ inf := (⊓),
-  sup := (⊔),
-  top := ⊤,
-  bot := ⊥,
-  le := (≤),
-  lt := (<),
-  .. enat.lattice,
-  .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
-  .. enat.linear_order, }
-
-end enat

@@ -69,7 +69,7 @@ variables {F : J ⥤ C}
 section limit
 
 /-- `limit_cone F` contains a cone over `F` together with the information that it is a limit. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure limit_cone (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
@@ -508,7 +508,8 @@ lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u
 ⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
-lemma has_smallest_limits_of_has_limits [has_limits C] :
+@[priority 100]
+instance has_smallest_limits_of_has_limits [has_limits C] :
   has_limits_of_size.{0 0} C := has_limits_of_size_shrink.{0 0} C
 
 end limit
@@ -518,7 +519,7 @@ section colimit
 
 /-- `colimit_cocone F` contains a cocone over `F` together with the information that it is a
     colimit. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure colimit_cocone (F : J ⥤ C) :=
 (cocone : cocone F)
 (is_colimit : is_colimit cocone)
@@ -991,7 +992,8 @@ lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u�
 ⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
-lemma has_smallest_colimits_of_has_colimits [has_colimits C] :
+@[priority 100]
+instance has_smallest_colimits_of_has_colimits [has_colimits C] :
   has_colimits_of_size.{0 0} C := has_colimits_of_size_shrink.{0 0} C
 
 end colimit

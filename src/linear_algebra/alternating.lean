@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
+import group_theory.group_action.quotient
 import group_theory.perm.sign
 import group_theory.perm.subgroup
-import group_theory.quotient_group
 import linear_algebra.linear_independent
 import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
@@ -175,11 +175,11 @@ end
 as `multilinear_map`
 -/
 
-section has_scalar
+section has_smul
 
 variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
 
-instance : has_scalar S (alternating_map R M N ι) :=
+instance : has_smul S (alternating_map R M N ι) :=
 ⟨λ c f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
@@ -193,7 +193,11 @@ instance : has_scalar S (alternating_map R M N ι) :=
 lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
 rfl
 
-end has_scalar
+instance [distrib_mul_action Sᵐᵒᵖ N] [is_central_scalar S N] :
+  is_central_scalar S (alternating_map R M N ι) :=
+⟨λ c f, ext $ λ x, op_smul_eq_smul _ _⟩
+
+end has_smul
 
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
@@ -290,6 +294,13 @@ def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
 
 end
 
+/-- Restrict the codomain of an alternating map to a submodule. -/
+@[simps]
+def cod_restrict (f : alternating_map R M N ι) (p : submodule R N) (h : ∀ v, f v ∈ p) :
+  alternating_map R M p ι :=
+{ to_fun := λ v, ⟨f v, h v⟩,
+  map_eq_zero_of_eq' := λ v i j hv hij, subtype.ext $ map_eq_zero_of_eq _ _ hv hij,
+  ..f.to_multilinear_map.cod_restrict p h }
 
 end alternating_map
 
@@ -312,8 +323,22 @@ def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ 
 @[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
   ⇑(g.comp_alternating_map f) = g ∘ f := rfl
 
+@[simp]
 lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
   g.comp_alternating_map f m = g (f m) := rfl
+
+@[simp]
+lemma subtype_comp_alternating_map_cod_restrict (f : alternating_map R M N ι) (p : submodule R N)
+  (h) :
+  p.subtype.comp_alternating_map (f.cod_restrict p h) = f :=
+alternating_map.ext $ λ v, rfl
+
+@[simp]
+lemma comp_alternating_map_cod_restrict (g : N →ₗ[R] N₂) (f : alternating_map R M N ι)
+  (p : submodule R N₂) (h) :
+  (g.cod_restrict p h).comp_alternating_map f =
+    (g.comp_alternating_map f).cod_restrict p (λ v, h (f v)):=
+alternating_map.ext $ λ v, rfl
 
 end linear_map
 
@@ -671,7 +696,7 @@ abbreviation mod_sum_congr (α β : Type*) :=
 _ ⧸ (equiv.perm.sum_congr_hom α β).range
 
 lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
-  function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
+  function.involutive (has_smul.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
 λ σ, begin
   apply σ.induction_on' (λ σ, _),
   exact _root_.congr_arg quotient.mk' (equiv.swap_mul_involutive i j σ)
@@ -691,11 +716,13 @@ quotient.lift_on' σ
   (λ σ,
     σ.sign •
       (multilinear_map.dom_coprod ↑a ↑b : multilinear_map R' (λ _, Mᵢ) (N₁ ⊗ N₂)).dom_dom_congr σ)
-  (λ σ₁ σ₂ ⟨⟨sl, sr⟩, h⟩, begin
+  (λ σ₁ σ₂ H, begin
+    rw quotient_group.left_rel_apply at H,
+    obtain ⟨⟨sl, sr⟩, h⟩ := H,
     ext v,
     simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
       coe_multilinear_map, multilinear_map.smul_apply],
-    replace h := inv_mul_eq_iff_eq_mul.mp h.symm,
+    replace h := inv_mul_eq_iff_eq_mul.mp (h.symm),
     have : (σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign = σ₁.sign * (sl.sign * sr.sign) :=
       by simp,
     rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff,
@@ -749,7 +776,7 @@ begin
       substs hi hj, },
   case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
   { -- the term pairs with and cancels another term
-    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
+    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient_group.left_rel_apply.mp (quotient.exact' hσ), },
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
@@ -781,7 +808,7 @@ Here, we generalize this by replacing:
 * the additions in the subscripts of $\sigma$ with an index of type `sum`
 
 The specialized version can be obtained by combining this definition with `fin_sum_fin_equiv` and
-`algebra.lmul'`.
+`linear_map.mul'`.
 -/
 @[simps]
 def dom_coprod
@@ -871,9 +898,7 @@ begin
   -- unfold the quotient mess left by `finset.sum_partition`
   conv in (_ = quotient.mk' _)
   { change quotient.mk' _ = quotient.mk' _,
-    rw quotient.eq',
-    rw [quotient_group.left_rel],
-    dsimp only [setoid.r] },
+    rw quotient_group.eq' },
 
   -- eliminate a multiplication
   have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) :=
@@ -955,9 +980,10 @@ end basis
 section currying
 
 variables
-  {R' : Type*} {M'' N'' : Type*}
-  [comm_semiring R'] [add_comm_monoid M''] [add_comm_monoid N'']
-  [module R' M''] [module R' N'']
+  {R' : Type*} {M'' M₂'' N'' N₂'': Type*}
+  [comm_semiring R']
+  [add_comm_monoid M''] [add_comm_monoid M₂''] [add_comm_monoid N''] [add_comm_monoid N₂'']
+  [module R' M''] [module R' M₂''] [module R' N''] [module R' N₂'']
 
 namespace alternating_map
 
@@ -978,19 +1004,42 @@ def curry_left {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ)) :
   map_add' := λ m₁ m₂, ext $ λ v, f.map_vec_cons_add _ _ _,
   map_smul' := λ r m, ext $ λ v, f.map_vec_cons_smul _ _ _ }
 
+@[simp] lemma curry_left_zero {n : ℕ} :
+  curry_left (0 : alternating_map R' M'' N'' (fin n.succ)) = 0 := rfl
+
+@[simp] lemma curry_left_add {n : ℕ} (f g : alternating_map R' M'' N'' (fin n.succ)) :
+  curry_left (f + g) = curry_left f + curry_left g := rfl
+
+@[simp] lemma curry_left_smul {n : ℕ} (r : R') (f : alternating_map R' M'' N'' (fin n.succ)) :
+  curry_left (r • f) = r • curry_left f := rfl
+
 /-- `alternating_map.curry_left` as a `linear_map`. This is a separate definition as dot notation
 does not work for this version. -/
 @[simps]
 def curry_left_linear_map {n : ℕ} :
   alternating_map R' M'' N'' (fin n.succ) →ₗ[R'] M'' →ₗ[R'] alternating_map R' M'' N'' (fin n) :=
 { to_fun := λ f, f.curry_left,
-  map_add' := λ f₁ f₂, rfl,
-  map_smul' := λ f₁ f₂, rfl }
+  map_add' := curry_left_add,
+  map_smul' := curry_left_smul }
 
 /-- Currying with the same element twice gives the zero map. -/
 @[simp] lemma curry_left_same {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ.succ)) (m : M'') :
   (f.curry_left m).curry_left m = 0 :=
 ext $ λ x, f.map_eq_zero_of_eq _ (by simp) fin.zero_ne_one
+
+@[simp] lemma curry_left_comp_alternating_map {n : ℕ} (g : N'' →ₗ[R'] N₂'')
+  (f : alternating_map R' M'' N'' (fin n.succ)) (m : M'') :
+  (g.comp_alternating_map f).curry_left m = g.comp_alternating_map (f.curry_left m) :=
+rfl
+
+@[simp] lemma curry_left_comp_linear_map {n : ℕ} (g : M₂'' →ₗ[R'] M'')
+  (f : alternating_map R' M'' N'' (fin n.succ)) (m : M₂'') :
+  (f.comp_linear_map g).curry_left m = (f.curry_left (g m)).comp_linear_map g :=
+ext $ λ v, congr_arg f $ funext $ begin
+  refine fin.cases _ _,
+  { refl },
+  { simp }
+end
 
 /-- The space of constant maps is equivalent to the space of maps that are alternating with respect
 to an empty family. -/

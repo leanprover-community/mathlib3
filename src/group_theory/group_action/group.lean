@@ -40,7 +40,8 @@ by rw [smul_smul, mul_right_inv, one_smul]
 add_decl_doc add_action.to_perm
 
 /-- `mul_action.to_perm` is injective on faithful actions. -/
-@[to_additive] lemma mul_action.to_perm_injective [has_faithful_smul α β] :
+@[to_additive "`add_action.to_perm` is injective on faithful actions."]
+lemma mul_action.to_perm_injective [has_faithful_smul α β] :
   function.injective (mul_action.to_perm : α → equiv.perm β) :=
 (show function.injective (equiv.to_fun ∘ mul_action.to_perm), from smul_left_injective').of_comp
 
@@ -238,7 +239,9 @@ end mul_distrib_mul_action
 section arrow
 
 /-- If `G` acts on `A`, then it acts also on `A → B`, by `(g • F) a = F (g⁻¹ • a)`. -/
-@[simps] def arrow_action {G A B : Type*} [group G] [mul_action G A] : mul_action G (A → B) :=
+@[to_additive arrow_add_action "If `G` acts on `A`, then it acts also on `A → B`, by
+`(g +ᵥ F) a = F (g⁻¹ +ᵥ a)`", simps]
+def arrow_action {G A B : Type*} [division_monoid G] [mul_action G A] : mul_action G (A → B) :=
 { smul := λ g F a, F (g⁻¹ • a),
   one_smul := by { intro, simp only [inv_one, one_smul] },
   mul_smul := by { intros, simp only [mul_smul, mul_inv_rev] } }

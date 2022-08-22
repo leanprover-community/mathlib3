@@ -391,6 +391,12 @@ begin
   exact to_real_inj
 end
 
+lemma pi_ne_zero : (π : angle) ≠ 0 :=
+begin
+  rw [←to_real_injective.ne_iff, to_real_pi, to_real_zero],
+  exact pi_ne_zero
+end
+
 lemma abs_to_real_coe_eq_self_iff {θ : ℝ} : |(θ : angle).to_real| = θ ↔ 0 ≤ θ ∧ θ ≤ π :=
 ⟨λ h, h ▸ ⟨abs_nonneg _, abs_to_real_le_pi _⟩, λ h,
  (to_real_coe_eq_self_iff.2 ⟨(left.neg_neg_iff.2 real.pi_pos).trans_le h.1, h.2⟩).symm ▸

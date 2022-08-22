@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Moritz Doll
+Authors: Moritz Doll, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.inner_product_space.basic
 
@@ -21,20 +21,8 @@ symmetric, if for all `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`
 
 ## Main statements
 
-* `is_symmetric.continuous`: if a symmetric operator is defined everywhere, then
+* `is_symmetric.continuous`: if a symmetric operator is defined on a complete space, then
   it is automatically continuous.
-
-## Notation
-
-
-
-## Implementation details
-
-
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
 
 ## Tags
 
@@ -75,8 +63,7 @@ lemma is_symmetric.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_symmetric T) (
 by rw [hT x y, inner_conj_sym]
 
 @[simp] lemma is_symmetric.apply_clm {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E))
-  (x y : E) :
-  ⟪T x, y⟫ = ⟪x, T y⟫ :=
+  (x y : E) : ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
 lemma is_symmetric_zero : (0 : E →ₗ[𝕜] E).is_symmetric :=
@@ -93,8 +80,8 @@ begin
   refl
 end
 
-/-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
-  it is automatically continuous. -/
+/-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined on a complete space,
+  then it is automatically continuous. -/
 lemma is_symmetric.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_symmetric T) :
   continuous T :=
 begin
@@ -116,9 +103,8 @@ end
   {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E)) (x : E) :
   (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
 begin
-  suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
-  { obtain ⟨r, hr⟩ := this,
-    simp [hr, T.re_apply_inner_self_apply] },
+  rsuffices ⟨r, hr⟩ : ∃ r : ℝ, ⟪T x, x⟫ = r,
+  { simp [hr, T.re_apply_inner_self_apply] },
   rw ← eq_conj_iff_real,
   exact hT.conj_inner_sym x x
 end

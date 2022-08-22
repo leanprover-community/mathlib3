@@ -502,11 +502,23 @@ lemma linear_isometry.map_orthogonal_projection {E E' : Type*} [inner_product_sp
   (x : E) :
   f (orthogonal_projection p x) = orthogonal_projection (p.map f.to_linear_map) (f x) :=
 begin
-  refine (eq_orthogonal_projection_of_mem_of_inner_eq_zero (submodule.apply_coe_mem_map _ _) $
+  refine (eq_orthogonal_projection_of_mem_of_inner_eq_zero _ $
     λ y hy, _).symm,
+  refine submodule.apply_coe_mem_map _ _,
   rcases hy with ⟨x', hx', rfl : f x' = y⟩,
-  rw [f.coe_to_linear_map, ← f.map_sub, f.inner_map_map,
-    orthogonal_projection_inner_eq_zero x x' hx']
+  rw [← f.map_sub, f.inner_map_map, orthogonal_projection_inner_eq_zero x x' hx']
+end
+
+lemma linear_isometry.map_orthogonal_projection' {E E' : Type*} [inner_product_space 𝕜 E]
+  [inner_product_space 𝕜 E'] (f : E →ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
+  (x : E) :
+  f (orthogonal_projection p x) = orthogonal_projection (p.map f) (f x) :=
+begin
+  refine (eq_orthogonal_projection_of_mem_of_inner_eq_zero _ $
+    λ y hy, _).symm,
+  refine submodule.apply_coe_mem_map _ _,
+  rcases hy with ⟨x', hx', rfl : f x' = y⟩,
+  rw [← f.map_sub, f.inner_map_map, orthogonal_projection_inner_eq_zero x x' hx']
 end
 
 /-- Orthogonal projection onto the `submodule.map` of a subspace. -/
@@ -941,6 +953,12 @@ by rw [← inner_orthogonal_projection_eq_of_mem_left, inner_orthogonal_projecti
 
 /-- The orthogonal projection is symmetric. -/
 lemma orthogonal_projection_is_symmetric
+  [complete_space K] :
+  (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
+inner_orthogonal_projection_left_eq_right K
+
+/-- The orthogonal projection is symmetric. -/
+lemma orthogonal_projection_is_symmetric [complete_space E]
   [complete_space K] :
   (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
 inner_orthogonal_projection_left_eq_right K

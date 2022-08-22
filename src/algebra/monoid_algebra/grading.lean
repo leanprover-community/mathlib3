@@ -62,7 +62,7 @@ end
 
 lemma mem_grade_iff' (m : M) (a : add_monoid_algebra R M) :
   a ∈ grade R m ↔
-    a ∈ ((finsupp.lsingle m).range : submodule R (add_monoid_algebra R M)) :=
+    a ∈ ((finsupp.lsingle m : R →ₗ[R] (M →₀ R)).range : submodule R (add_monoid_algebra R M)) :=
 begin
   rw [mem_grade_iff, finsupp.support_subset_singleton'],
   apply exists_congr,
@@ -70,7 +70,7 @@ begin
   split; exact eq.symm
 end
 
-lemma grade_eq_lsingle_range (m : M) : grade R m = (finsupp.lsingle m).range :=
+lemma grade_eq_lsingle_range (m : M) : grade R m = (finsupp.lsingle m : R →ₗ[R] (M →₀ R)).range :=
 submodule.ext (mem_grade_iff' R m)
 
 lemma single_mem_grade_by {R} [comm_semiring R] (f : M → ι) (m : M) (r : R) :

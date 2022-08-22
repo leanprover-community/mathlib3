@@ -55,10 +55,10 @@ show non_unital_non_assoc_semiring L, from
 
 namespace lie_algebra
 
-instance [nonempty L] : nonempty (commutator_ring L) :=
+instance (L : Type v) [nonempty L] : nonempty (commutator_ring L) :=
 ‹nonempty L›
 
-instance [inhabited L] : inhabited (commutator_ring L) :=
+instance (L : Type v) [inhabited L] : inhabited (commutator_ring L) :=
 ‹inhabited L›
 
 instance : lie_ring (commutator_ring L) :=

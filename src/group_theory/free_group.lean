@@ -390,7 +390,7 @@ begin
   simp [inv_rev],
 end
 
-lemma red.inv_rev {L₁ : list (α × bool)} {L₂ : list (α × bool)} (h : red L₁ L₂) :
+lemma red.inv_rev {L₁ L₂ : list (α × bool)} (h : red L₁ L₂) :
   red (inv_rev L₁) (inv_rev L₂) :=
 relation.refl_trans_gen.lift _ (λ a b, red.step.inv_rev) h
 

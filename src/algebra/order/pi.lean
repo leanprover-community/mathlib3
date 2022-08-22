@@ -3,9 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.group.pi
-import algebra.order.ring
-import tactic.pi_instances
+import algebra.ring.pi
+
 /-!
 # Pi instances for ordered groups and monoids
 
@@ -57,7 +56,11 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ..pi.ordered_comm_monoid, }
 
 instance [Π i, ordered_semiring (f i)] : ordered_semiring (Π i, f i) :=
-by refine_struct { ..pi.semiring, ..pi.partial_order }; tactic.pi_instance_derive_field
+{ add_le_add_left := λ a b hab c i, add_le_add_left (hab _) _,
+  zero_le_one := λ _, zero_le_one,
+  mul_le_mul_of_nonneg_left := λ a b c hab hc i, mul_le_mul_of_nonneg_left (hab _) $ hc _,
+  mul_le_mul_of_nonneg_right := λ a b c hab hc i, mul_le_mul_of_nonneg_right (hab _) $ hc _,
+    ..pi.semiring, ..pi.partial_order }
 
 instance [Π i, ordered_comm_semiring (f i)] : ordered_comm_semiring (Π i, f i) :=
 { ..pi.comm_semiring, ..pi.ordered_semiring }

@@ -24,9 +24,9 @@ point, then the skyscraper (pre)sheaf `𝓕` with value `A` is defined by `U ↦
 
 ## Main statements
 
-* `skyscraper_stalk_of_mem_closure₀`: if `y ∈ closure {p₀}` then the stalk of
+* `skyscraper_presheaf_stalk_of_specializes`: if `y ∈ closure {p₀}` then the stalk of
   `skyscraper_presheaf p₀ S` at `y` is `S`.
-* `skyscraper_stalk_of_not_mem_closure₀`: if `y ∉ closure {p₀}` then the stalk of
+* `skyscraper_presheaf_stalk_of_not_specializes`: if `y ∉ closure {p₀}` then the stalk of
   `skyscraper_presheaf p₀ S` at `y` is `*` the terminal object.
 
 -/

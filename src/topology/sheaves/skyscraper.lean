@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebraic_geometry.sheafed_space
-import topology.sheaves.sheaf_condition.unique_gluing
 import topology.sheaves.stalks
 import category_theory.preadditive.injective
 import algebra.category.Group.abelian
@@ -126,7 +125,8 @@ def skyscraper_sheaf : sheaf C X :=
          category.comp_id], },
      { rw [←eq_comp_eq_to_hom],
        exact terminal_is_terminal.hom_ext _ _, }
-   end⟩⟩
+   end⟩
+   ⟩
 
 end
 

@@ -61,6 +61,14 @@ is_limit.of_iso_limit hY
 { hom := { hom := i.hom },
   inv := { hom := i.inv } }
 
+def is_terminal.ite {Y Z : C} {P : Prop} [decidable P] (h : P) (hY : is_terminal Y) :
+  is_terminal $ if P then Y else Z :=
+hY.of_iso $ eq_to_iso $ by rw [if_pos h]
+
+def is_terminal.ite_not {Y Z : C} {P : Prop} [decidable P] (h : ¬P) (hZ : is_terminal Z) :
+  is_terminal $ if P then Y else Z :=
+hZ.of_iso $ eq_to_iso $ by rw [if_neg h]
+
 /-- An object `X` is initial iff for every `Y` there is a unique morphism `X ⟶ Y`. -/
 def is_initial_equiv_unique (F : discrete.{0} pempty.{1} ⥤ C) (X : C) :
   is_colimit (⟨X, by tidy⟩ : cocone F) ≃ ∀ Y : C, unique (X ⟶ Y) :=

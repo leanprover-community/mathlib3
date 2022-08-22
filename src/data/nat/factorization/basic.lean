@@ -754,4 +754,13 @@ begin
     card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
+-- TODO: Re-write this using `min`
+lemma factorization_add_of_lt (p a b : ℕ) (h : a.factorization p ≤ b.factorization p) :
+  (a + b).factorization p = a.factorization p :=
+begin
+
+  sorry,
+end
+
+
 end nat

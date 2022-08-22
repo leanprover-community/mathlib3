@@ -300,8 +300,6 @@ div_nonneg ha hb.le
 private lemma int_div_self_pos {a : ℤ} (ha : 0 < a) : 0 < a / a :=
 by { rw int.div_self ha.ne', exact zero_lt_one }
 
-private lemma int_div_nonneg {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b := int.div_nonneg ha hb
-
 private lemma int_div_nonneg_of_pos_of_nonneg {a b : ℤ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a / b :=
 int.div_nonneg ha.le hb
 
@@ -321,14 +319,15 @@ meta def positivity_div : expr → tactic strictness
   typ ← infer_type a,
   match typ, strictness_a, strictness_b with
   | `(ℤ), positive pa, positive pb :=
-      if a = b -- Only attempts to prove `0 < a / a`, otherwise falls back to `0 ≤ a / b`
-      then positive <$> mk_app ``int_div_self_pos [pa]
-      else nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_pos [pa, pb]
+      if a = b then -- Only attempts to prove `0 < a / a`, otherwise falls back to `0 ≤ a / b`
+        positive <$> mk_app ``int_div_self_pos [pa]
+      else
+       nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_pos [pa, pb]
   | `(ℤ), positive pa, nonnegative pb :=
     nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_nonneg [pa, pb]
   | `(ℤ), nonnegative pa, positive pb :=
     nonnegative <$> mk_app ``int_div_nonneg_of_nonneg_of_pos [pa, pb]
-  | `(ℤ), nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``int_div_nonneg [pa, pb]
+  | `(ℤ), nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``int.div_nonneg [pa, pb]
   | _, positive pa, positive pb := positive <$> mk_app ``div_pos [pa, pb]
   | _, positive pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg_of_pos_of_nonneg [pa, pb]
   | _, nonnegative pa, positive pb := nonnegative <$> mk_app ``div_nonneg_of_nonneg_of_pos [pa, pb]

@@ -149,10 +149,8 @@ def subtype (s : S) : s →+* R :=
  .. add_subgroup_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
-map_nat_cast (subtype s) n
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-(subtype s : s →+* R).map_int_cast n
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n := map_nat_cast (subtype s) n
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n := map_int_cast (subtype s) n
 
 end subring_class
 
@@ -415,10 +413,8 @@ def subtype (s : subring R) : s →+* R :=
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
-map_nat_cast s.subtype
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-s.subtype.map_int_cast n
+@[simp, norm_cast] lemma coe_nat_cast : ∀ n : ℕ, ((n : s) : R) = n := map_nat_cast s.subtype
+@[simp, norm_cast] lemma coe_int_cast : ∀ n : ℤ, ((n : s) : R) = n := map_int_cast s.subtype
 
 /-! ## Partial order -/
 
@@ -816,13 +812,11 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subring S) :
 /-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s ×̂ t`
 as a subring of `R × S`. -/
 def prod (s : subring R) (t : subring S) : subring (R × S) :=
-{ carrier := (s : set R) ×ˢ (t : set S),
+{ carrier := s ×ˢ t,
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
-lemma coe_prod (s : subring R) (t : subring S) :
-  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
-rfl
+lemma coe_prod (s : subring R) (t : subring S) : (s.prod t : set (R × S)) = s ×ˢ t := rfl
 
 lemma mem_prod {s : subring R} {t : subring S} {p : R × S} :
   p ∈ s.prod t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl

@@ -23,13 +23,13 @@ Do we need a `finset` version?
 
 open function set
 
-variables {α : Type*} (r r₁ r₂ : α → α → Prop) (s t : set α) (a : α)
+variables {α : Type*} (r r₁ r₂ : α → α → Prop) (s t : set α) (a b : α)
 
 /-- Turns a set into an antichain by keeping only the "maximal" elements. -/
-def maximals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r a b → a = b}
+def maximals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r a b → r b a}
 
 /-- Turns a set into an antichain by keeping only the "minimal" elements. -/
-def minimals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r b a → a = b}
+def minimals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r b a → r a b}
 
 lemma maximals_subset : maximals r s ⊆ s := sep_subset _ _
 lemma minimals_subset : minimals r s ⊆ s := sep_subset _ _
@@ -38,15 +38,32 @@ lemma minimals_subset : minimals r s ⊆ s := sep_subset _ _
 @[simp] lemma minimals_empty : minimals r ∅ = ∅ := sep_empty _
 
 @[simp] lemma maximals_singleton : maximals r {a} = {a} :=
-(maximals_subset _ _).antisymm $ singleton_subset_iff.2 $ ⟨rfl, λ b hb _, hb.symm⟩
+(maximals_subset _ _).antisymm $ singleton_subset_iff.2 $
+  ⟨rfl, by { rintro b (rfl : b = a), exact id }⟩
 
 @[simp] lemma minimals_singleton : minimals r {a} = {a} := maximals_singleton _ _
 
 lemma maximals_swap : maximals (swap r) s = minimals r s := rfl
 lemma minimals_swap : minimals (swap r) s = maximals r s := rfl
 
-lemma maximals_antichain : is_antichain r (maximals r s) := λ a ha b hb hab h, hab $ ha.2 hb.1 h
-lemma minimals_antichain : is_antichain r (minimals r s) := (maximals_antichain _ _).swap
+section is_antisymm
+variables {r s t a b} [is_antisymm α r]
+
+lemma eq_of_mem_maximals (ha : a ∈ maximals r s) (hb : b ∈ s) (h : r a b) : a = b :=
+antisymm h $ ha.2 hb h
+
+lemma eq_of_mem_minimals (ha : a ∈ minimals r s) (hb : b ∈ s) (h : r b a) : a = b :=
+antisymm (ha.2 hb h) h
+
+variables (r s)
+
+lemma maximals_antichain : is_antichain r (maximals r s) :=
+λ a ha b hb hab h, hab $ eq_of_mem_maximals ha hb.1 h
+
+lemma minimals_antichain : is_antichain r (minimals r s) :=
+by { haveI := is_antisymm.swap r, exact (maximals_antichain _ _).swap }
+
+end is_antisymm
 
 lemma maximals_eq_minimals [is_symm α r] : maximals r s = minimals r s :=
 by { congr, ext a b, exact comm }
@@ -58,11 +75,15 @@ h.induction_on (minimals_empty _) (maximals_singleton _)
 
 lemma set.subsingleton.minimals_eq (h : s.subsingleton) : minimals r s = s := h.maximals_eq
 
-lemma maximals_mono (h : ∀ a b, r₁ a b → r₂ a b) : maximals r₂ s ⊆ maximals r₁ s :=
-λ a ha, ⟨ha.1, λ b hb, ha.2 hb ∘ h _ _⟩
+lemma maximals_mono [is_antisymm α r₂] (h : ∀ a b, r₁ a b → r₂ a b) :
+  maximals r₂ s ⊆ maximals r₁ s :=
+λ a ha, ⟨ha.1, λ b hb hab,
+  by { have := eq_of_mem_maximals ha hb (h _ _ hab), subst this, exact hab }⟩
 
-lemma minimals_mono (h : ∀ a b, r₁ a b → r₂ a b) : minimals r₂ s ⊆ minimals r₁ s :=
-λ a ha, ⟨ha.1, λ b hb, ha.2 hb ∘ h _ _⟩
+lemma minimals_mono [is_antisymm α r₂] (h : ∀ a b, r₁ a b → r₂ a b) :
+  minimals r₂ s ⊆ minimals r₁ s :=
+λ a ha, ⟨ha.1, λ b hb hab,
+  by { have := eq_of_mem_minimals ha hb (h _ _ hab), subst this, exact hab }⟩
 
 lemma maximals_union : maximals r (s ∪ t) ⊆ maximals r s ∪ maximals r t :=
 begin
@@ -85,13 +106,15 @@ lemma inter_maximals_subset : s ∩ maximals r t ⊆ maximals r (s ∩ t) :=
 lemma inter_minimals_subset : s ∩ minimals r t ⊆ minimals r (s ∩ t) := inter_maximals_subset
 
 lemma _root_.is_antichain.maximals_eq (h : is_antichain r s) : maximals r s = s :=
-(maximals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq ha⟩
+(maximals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b hb hab,
+  by { have := h.eq ha hb hab, subst this, exact hab }⟩
 
 lemma _root_.is_antichain.minimals_eq (h : is_antichain r s) : minimals r s = s :=
-(minimals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq' ha⟩
+(minimals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b hb hab,
+  by { have := h.eq hb ha hab, subst this, exact hab }⟩
 
 @[simp] lemma maximals_idem : maximals r (maximals r s) = maximals r s :=
-(maximals_antichain _ _).maximals_eq
+(maximals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b hb, ha.2 hb.1⟩
 
 @[simp] lemma minimals_idem : minimals r (minimals r s) = minimals r s := maximals_idem
 
@@ -119,22 +142,19 @@ end
 
 variables [partial_order α]
 
-lemma is_least.mem_minimals (h : is_least s a) : a ∈ minimals (≤) s :=
-⟨h.1, λ b hb, (h.2 hb).antisymm⟩
-
-lemma is_greatest.mem_maximals (h : is_greatest s a) : a ∈ maximals (≤) s :=
-⟨h.1, λ b hb, (h.2 hb).antisymm'⟩
+lemma is_least.mem_minimals (h : is_least s a) : a ∈ minimals (≤) s := ⟨h.1, λ b hb _, h.2 hb⟩
+lemma is_greatest.mem_maximals (h : is_greatest s a) : a ∈ maximals (≤) s := ⟨h.1, λ b hb _, h.2 hb⟩
 
 lemma is_least.minimals_eq (h : is_least s a) : minimals (≤) s = {a} :=
-eq_singleton_iff_unique_mem.2 ⟨h.mem_minimals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩
+eq_singleton_iff_unique_mem.2 ⟨h.mem_minimals, λ b hb, eq_of_mem_minimals hb h.1 $ h.2 hb.1⟩
 
 lemma is_greatest.maximals_eq (h : is_greatest s a) : maximals (≤) s = {a} :=
-eq_singleton_iff_unique_mem.2 ⟨h.mem_maximals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩
+eq_singleton_iff_unique_mem.2 ⟨h.mem_maximals, λ b hb, eq_of_mem_maximals hb h.1 $ h.2 hb.1⟩
 
 lemma is_antichain.minimals_upper_closure (hs : is_antichain (≤) s) :
   minimals (≤) (upper_closure s : set α) = s :=
-hs.max_minimals (λ a ⟨⟨b, hb, hba⟩, h⟩, by rwa h (subset_upper_closure hb) hba) $ λ a ha,
-  ⟨a, ⟨subset_upper_closure ha, λ b ⟨c, hc, hcb⟩ hba, hba.antisymm' $
+hs.max_minimals (λ a ⟨⟨b, hb, hba⟩, h⟩, by rwa eq_of_mem_minimals ‹a ∈ _› (subset_upper_closure hb)
+  hba) $ λ a ha, ⟨a, ⟨subset_upper_closure ha, λ b ⟨c, hc, hcb⟩ hba,
     by rwa hs.eq' ha hc (hcb.trans hba)⟩, le_rfl⟩
 
 lemma is_antichain.maximals_lower_closure (hs : is_antichain (≤) s) :

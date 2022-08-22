@@ -202,8 +202,8 @@ variable {α}
 
 @[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := (cast_hom α).map_inv _
-@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := (cast_hom α).map_div _ _
+@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
+@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
@@ -281,10 +281,9 @@ open rat
 
 @[simp] lemma map_rat_cast [division_ring α] [division_ring β] [ring_hom_class F α β]
   (f : F) (q : ℚ) : f q = q :=
-calc f q = (f : α →+* β) q : rfl
-... = q : by rw [cast_def, ring_hom.map_div, (f : α →+* β).map_int_cast, map_nat_cast, cast_def]
+by rw [cast_def, map_div₀, map_int_cast, map_nat_cast, cast_def]
 
-lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
+@[simp] lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
 by rw [← map_rat_cast f, rat.cast_id]
 
 lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
@@ -323,7 +322,7 @@ theorem ext_rat {f g : ℚ →*₀ M}
 begin
   have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
   ext x,
-  rw [← @rat.num_denom x, rat.mk_eq_div, f.map_div, g.map_div,
+  rw [← @rat.num_denom x, rat.mk_eq_div, map_div₀ f, map_div₀ g,
     same_on_int' x.num, same_on_int' x.denom],
 end
 

@@ -438,6 +438,14 @@ theorem measurable_set_supr {ι} {m : ι → measurable_space α} {s : set α} :
     generate_measurable {s : set α | ∃ i, measurable_set[m i] s} s :=
 by simp only [supr, measurable_set_Sup, exists_range_iff]
 
+lemma measurable_space_supr_eq (m : ι → measurable_space α) :
+  (⨆ n, m n) = measurable_space.generate_from {s | ∃ n, measurable_set[m n] s} :=
+begin
+  ext s,
+  rw measurable_space.measurable_set_supr,
+  refl,
+end
+
 end complete_lattice
 
 end measurable_space

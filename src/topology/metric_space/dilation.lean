@@ -10,28 +10,24 @@ import data.fun_like.basic
 /-!
 # Dilations
 
-We define dilations, i.e., maps between emetric spaces that
-satisfy `edist (f x) (f y) = r * edist x y`.
+We define dilations, i.e., maps between emetric spaces that satisfy
+`edist (f x) (f y) = r * edist x y`.
 
 ## Main defintions
 
-* `dilation.ratio f`: the value of `r` in the relation above, defaulting to 1 in the case where it is not well-defined.
-  Note that `ratio f : ℝ≥0`, so we do not exclude the degenerate case of dilations
-  which collapse into constant maps. Statements that do need strict dilations should
-  say `f : dilation α β` and `hr : ratio f ≠ 0`.
+* `dilation.ratio f : ℝ≥0`: the value of `r` in the relation above, defaulting to 1 in the case
+  where it is not well-defined.
 
 ## Implementation notes
 
-The type of dilations defined in this file are also referred to as
-"similiarties" or "similitudes" by other authors. The name `dilation` was choosen
-to match the Wikipedia name.
+The type of dilations defined in this file are also referred to as "similiarties" or "similitudes"
+by other authors. The name `dilation` was choosen to match the Wikipedia name.
 
-Since a lot of elementary properties don't require `eq_of_dist_eq_zero`
-we start setting up the theory for `pseudo_emetric_space` and
-we specialize to `pseudo_metric_space` and `metric_space` when needed.
+Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
+theory for `pseudo_emetric_space` and we specialize to `pseudo_metric_space` and `metric_space` when
+needed.
 
-TODO: Introduce dilation equivs. Refactor the `isometry` API
-to match the `*_hom_class` API below.
+TODO: Introduce dilation equivs. Refactor the `isometry` API to match the `*_hom_class` API below.
 
 ## References
 
@@ -215,8 +211,7 @@ variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_sp
 variables [dilation_class F α β] [dilation_class G β γ]
 variables (f : F) (g : G) {x y z : α}  {s : set α}
 
-lemma lipschitz : lipschitz_with (ratio f) (f : α → β) :=
-λ x y, (edist_eq f x y).le
+lemma lipschitz : lipschitz_with (ratio f) (f : α → β) := λ x y, (edist_eq f x y).le
 
 lemma antilipschitz : antilipschitz_with (ratio f)⁻¹ (f : α → β) :=
 λ x y, begin

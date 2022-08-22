@@ -197,10 +197,6 @@ protected lemma decidable.mul_nonneg_le_one_le {α : Type*} [ordered_semiring α
   (h₁ : 0 ≤ c) (h₂ : a ≤ c) (h₃ : 0 ≤ b) (h₄ : b ≤ 1) : a * b ≤ c :=
 by simpa only [mul_one] using decidable.mul_le_mul h₂ h₄ h₃ h₁
 
-lemma mul_nonneg_le_one_le {α : Type*} [ordered_semiring α] {a b c : α} :
-  0 ≤ c → a ≤ c → 0 ≤ b → b ≤ 1 → a * b ≤ c :=
-mul_nonneg_le_one_le
-
 -- See Note [decidable namespace]
 protected lemma decidable.mul_nonneg [@decidable_rel α (≤)]
   (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
@@ -727,10 +723,6 @@ mul_lt_mul_right hb
 lemma le_mul_iff_one_le_right (hb : 0 < b) : b ≤ b * a ↔ 1 ≤ a :=
 suffices b * 1 ≤ b * a ↔ 1 ≤ a, by rwa mul_one at this,
 mul_le_mul_left hb
-
-lemma lt_mul_iff_one_lt_right (hb : 0 < b) : b < b * a ↔ 1 < a :=
-suffices b * 1 < b * a ↔ 1 < a, by rwa mul_one at this,
-mul_lt_mul_left hb
 
 theorem mul_nonneg_iff_right_nonneg_of_pos (ha : 0 < a) : 0 ≤ a * b ↔ 0 ≤ b :=
 by haveI := @linear_order.decidable_le α _; exact

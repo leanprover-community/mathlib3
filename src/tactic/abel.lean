@@ -179,6 +179,8 @@ theorem term_neg {α} [add_comm_group α] (n x a n' a')
   -@termg α _ n x a = termg n' x a' :=
 by simp [h₂.symm, h₁.symm, termg]; ac_refl
 
+lemma neg_zero {α} [subtraction_monoid α] : -(0 : α) = 0 := neg_zero
+
 meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
   p ← c.mk_app ``neg_zero ``subtraction_monoid [],

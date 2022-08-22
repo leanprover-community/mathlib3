@@ -74,6 +74,8 @@ theorem bit0_succ {α} [semiring α] (a : α) : bit0 a + 1 = bit1 a := rfl
 theorem bit1_succ {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 = bit0 b :=
 h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 
+lemma neg_zero {α} [subtraction_monoid α] : -(0 : α) = 0 := neg_zero
+
 section
 open match_numeral_result
 

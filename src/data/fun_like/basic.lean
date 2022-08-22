@@ -88,6 +88,7 @@ structure cooler_hom (A B : Type*) [cool_class A] [cool_class B]
   extends my_hom A B :=
 (map_cool' : to_fun cool_class.cool = cool_class.cool)
 
+section
 set_option old_structure_cmd true
 
 class cooler_hom_class (F : Type*) (A B : out_param $ Type*) [cool_class A] [cool_class B]

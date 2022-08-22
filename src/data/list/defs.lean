@@ -540,6 +540,9 @@ def revzip (l : list α) : list (α × α) := zip l l.reverse
 def product (l₁ : list α) (l₂ : list β) : list (α × β) :=
 l₁.bind $ λ a, l₂.map $ prod.mk a
 
+/- This notation binds more strongly than (pre)images, unions and intersections. -/
+infixr ` ×ˢ `:82 := list.product
+
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
      sigma [1, 2] (λ_, [(5 : ℕ), 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)] -/

@@ -202,8 +202,8 @@ variable {α}
 
 @[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := (cast_hom α).map_inv _
-@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := (cast_hom α).map_div _ _
+@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
+@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
@@ -295,10 +295,9 @@ open rat
 
 @[simp] lemma map_rat_cast [division_ring α] [division_ring β] [ring_hom_class F α β]
   (f : F) (q : ℚ) : f q = q :=
-by rw [cast_def, ← ring_hom_class.coe_fn_coe f, ring_hom.map_div, (f : α →+* β).map_int_cast,
-  map_nat_cast, cast_def]
+by rw [cast_def, map_div₀, map_int_cast, map_nat_cast, cast_def]
 
-lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
+@[simp] lemma eq_rat_cast {k} [division_ring k] [ring_hom_class F ℚ k] (f : F) (r : ℚ) : f r = r :=
 by rw [← map_rat_cast f, rat.cast_id]
 
 namespace monoid_with_zero_hom

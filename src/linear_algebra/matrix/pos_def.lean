@@ -31,6 +31,13 @@ M.is_hermitian ∧ ∀ x : n → 𝕜, x ≠ 0 → 0 < is_R_or_C.re (dot_product
 
 lemma pos_def.is_hermitian {M : matrix n n 𝕜} (hM : M.pos_def) : M.is_hermitian := hM.1
 
+lemma pos_def.transpose {M : matrix n n 𝕜} (hM : M.pos_def) : Mᵀ.pos_def :=
+begin
+  refine ⟨is_hermitian.transpose hM.1, λ x hx, _⟩,
+  convert hM.2 (star x) (star_ne_zero.2 hx) using 2,
+  rw [mul_vec_transpose, matrix.dot_product_mul_vec, star_star, dot_product_comm]
+end
+
 lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   (hM : M.is_symm) (hMq : M.to_quadratic_form'.pos_def) :
   M.pos_def :=

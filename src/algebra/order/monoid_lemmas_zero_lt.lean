@@ -371,7 +371,7 @@ lemma left.mul_pos [pos_mul_strict_mono α]
 have h : a * 0 < a * b, from mul_lt_mul_left' hb ha,
 by rwa [mul_zero] at h
 
-alias left.mul_pos ← mul_pos
+alias left.mul_pos ← _root_.mul_pos
 
 lemma mul_neg_of_pos_of_neg [pos_mul_strict_mono α]
   (ha : 0 < a) (hb : b < 0) :
@@ -983,7 +983,7 @@ lemma mul_lt_of_lt_one_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : b < 1) :
   a * b < a :=
 mul_lt_of_le_of_lt_one le_rfl h a0
 
-lemma lt_mul_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : 1 < b) :
+lemma lt_mul_of_one_lt_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : 1 < b) :
   a < a * b :=
 lt_mul_of_le_of_one_lt le_rfl h a0
 

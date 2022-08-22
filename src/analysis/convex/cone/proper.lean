@@ -178,20 +178,21 @@ namespace cone_program
 
 def feasible (p : cone_program E F) (x : E) := (p.b - p.A x ∈ p.L) ∧ (x ∈ p.K)
 
-def feasible_values (p : cone_program E F) := { r : ℝ | ∃ x : E, ⟪p.c, x⟫_ℝ = r ∧ p.feasible x }
+def feasible_values (p : cone_program E F) := { r : ℝ | ∃ x : E, p.feasible x ∧ ⟪p.c, x⟫_ℝ = r }
 
 noncomputable def value (p : cone_program E F) := Sup p.feasible_values
 
 def optimal_solution (p : cone_program E F) (x : E) :=
-p.feasible x ∧ ∀ y, p.feasible x → ⟪c, x⟫_ℝ ≥ ⟪c, y⟫_ℝ
+p.feasible x ∧ ∀ y, p.feasible x → ⟪p.c, y⟫_ℝ ≤ ⟪p.c, x⟫_ℝ
 
 lemma bdd_if_optimal (p : cone_program E F) (x : E) (hx : p.optimal_solution x) :
   bdd_above p.feasible_values :=
 begin
   rw bdd_above_def,
   use ⟪p.c, x⟫_ℝ,
-  intros y hy,
-
+  rintro y ⟨_, hinner, _⟩,
+  rw ← hinner,
+  exact hx.2 _ hx.1,
 end
 
 end cone_program

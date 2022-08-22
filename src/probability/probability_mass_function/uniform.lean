@@ -245,7 +245,7 @@ begin
 end
 
 @[simp] lemma to_measure_of_list_apply (t : set α) [measurable_space α] (ht : measurable_set t) :
-  (of_list l h).to_measure t = l.countp t / l.length :=
+  (of_list l h).to_measure t = l.countp (∈ t) / l.length :=
 (to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
   (to_outer_measure_of_list_apply l h t)
 

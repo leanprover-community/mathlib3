@@ -145,26 +145,24 @@ end complex_scalars
 
 namespace star_alg_hom
 
-variables {A B : Type*}
+variables {F A B : Type*}
 [normed_ring A] [normed_algebra ℂ A] [norm_one_class A]
 [complete_space A] [star_ring A] [cstar_ring A]
 [normed_ring B] [normed_algebra ℂ B] [norm_one_class B]
 [complete_space B] [star_ring B] [cstar_ring B]
-(φ : A →⋆ₐ[ℂ] B)
+[star_alg_hom_class F ℂ A B] (φ : F)
 
-lemma norm_le (a : A) : ∥φ a∥₊ ≤ ∥a∥₊ :=
+/-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
+lemma norm_apply_le (a : A) : ∥(φ a : B)∥₊ ≤ ∥a∥₊ :=
 begin
   suffices : ∀ s : A, is_self_adjoint s → ∥φ s∥₊ ≤ ∥s∥₊,
   { exact nonneg_le_nonneg_of_sq_le_sq zero_le'
       (by simpa only [nnnorm_star_mul_self, map_star, map_mul]
       using this _ (is_self_adjoint.star_mul_self a)) },
   { intros s hs,
-    have : spectral_radius ℂ (φ s) ≤ spectral_radius ℂ s,
-    { refine supr_le_supr_of_subset (alg_hom.spectrum_apply_subset φ.to_alg_hom s),
-
-       },
     simpa only [coe_le_coe, hs.spectral_radius_eq_nnnorm, (hs.star_hom φ).spectral_radius_eq_nnnorm]
-      using this, }
+      using (show spectral_radius ℂ (φ s) ≤ spectral_radius ℂ s,
+      from supr_le_supr_of_subset (spectrum_apply_subset φ s)) }
 end
 
 end star_alg_hom

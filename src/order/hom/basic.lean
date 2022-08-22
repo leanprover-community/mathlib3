@@ -498,7 +498,7 @@ instance : order_iso_class (α ≃o β) α β :=
   inv := λ f, f.inv_fun,
   left_inv := λ f, f.left_inv,
   right_inv := λ f, f.right_inv,
-  coe_inv_injective' := λ f g h₁ h₂, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr'},
+  coe_inv_injective' := λ f g _ _, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
   map_le_map_iff := λ f, f.map_rel_iff' }
 
 @[simp] lemma to_fun_eq_coe {f : α ≃o β} : f.to_fun = f := rfl

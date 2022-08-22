@@ -116,6 +116,14 @@ This means anything set up for `my_iso`s will automatically work for `cool_iso_c
 and defining `cool_iso_class` only takes a constant amount of effort,
 instead of linearly increasing the work per `my_iso`-related declaration.
 
+If you already have a definition of homomorphisms (e.g. `my_hom_class`), you
+could also try defining the corresponding isomorphism by extending both
+`my_hom_class` and `equiv_like`. Make sure however that this does not create
+extra work in this particular instance: it's often easier to show a bijective
+map is an isomorphism, compared to showing a map is a homomorphism.  Compare the
+class of group homomorphisms `monoid_hom_class` which needs a proof of `map_mul`
+and `map_one`, and the class of group isomorphisms `mul_hom_class` which only
+needs `map_mul`. Thus, `mul_hom_class` does not extend `monoid_hom_class`.
 -/
 
 set_option old_structure_cmd true

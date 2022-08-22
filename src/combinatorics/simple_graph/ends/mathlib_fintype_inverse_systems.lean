@@ -597,11 +597,14 @@ begin
     apply subtype.coe_eq_of_eq_mk,
     apply funext,
     rintro ⟨i,ij⟩,
-    obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i,
-    rcases e with rfl,
-    dsimp only [sections_at_point_fwd,sections_at_point_bwd,sections_at_point_bwd_aux],
+    --obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i,
+    let a := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).val,
+    obtain ⟨k,ki,kj,e⟩ := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).prop,
+    --rcases e with rfl,
+    dsimp only [sections_at_point_fwd,sections_at_point_bwd/-,sections_at_point_bwd_aux-/],
     dsimp only [id],
-    simp,
+    rw ←subtype.val_eq_coe at e,
+    -- not sure how to proceed…
     -- serious work to be done here…
     sorry, },
 end

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_deriv
+import analysis.special_functions.trigonometric.basic
+import data.set.intervals.monotone
 
 /-!
 # Differentiability of trigonometric functions
@@ -239,7 +241,7 @@ end
 section
 /-! ### Simp lemmas for derivatives of `λ x, complex.cos (f x)` etc., `f : E → ℂ` -/
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
   {x : E} {s : set E}
 
 /-! #### `complex.cos` -/
@@ -547,6 +549,65 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma sinh_strict_mono : strict_mono sinh :=
 strict_mono_of_deriv_pos $ by { rw real.deriv_sinh, exact cosh_pos }
 
+/-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b`. -/
+lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
+
+@[simp] lemma sinh_inj : sinh x = sinh y ↔ x = y := sinh_injective.eq_iff
+@[simp] lemma sinh_le_sinh : sinh x ≤ sinh y ↔ x ≤ y := sinh_strict_mono.le_iff_le
+@[simp] lemma sinh_lt_sinh : sinh x < sinh y ↔ x < y := sinh_strict_mono.lt_iff_lt
+
+@[simp] lemma sinh_pos_iff : 0 < sinh x ↔ 0 < x :=
+by simpa only [sinh_zero] using @sinh_lt_sinh 0 x
+
+@[simp] lemma sinh_nonpos_iff : sinh x ≤ 0 ↔ x ≤ 0 :=
+by simpa only [sinh_zero] using @sinh_le_sinh x 0
+
+@[simp] lemma sinh_neg_iff : sinh x < 0 ↔ x < 0 :=
+by simpa only [sinh_zero] using @sinh_lt_sinh x 0
+
+@[simp] lemma sinh_nonneg_iff : 0 ≤ sinh x ↔ 0 ≤ x :=
+by simpa only [sinh_zero] using @sinh_le_sinh 0 x
+
+lemma cosh_strict_mono_on : strict_mono_on cosh (Ici 0) :=
+(convex_Ici _).strict_mono_on_of_deriv_pos continuous_cosh.continuous_on $ λ x hx,
+  by { rw [interior_Ici, mem_Ioi] at hx, rwa [deriv_cosh, sinh_pos_iff] }
+
+@[simp] lemma cosh_le_cosh : cosh x ≤ cosh y ↔ |x| ≤ |y| :=
+cosh_abs x ▸ cosh_abs y ▸ cosh_strict_mono_on.le_iff_le (_root_.abs_nonneg x) (_root_.abs_nonneg y)
+
+@[simp] lemma cosh_lt_cosh : cosh x < cosh y ↔ |x| < |y| :=
+lt_iff_lt_of_le_iff_le cosh_le_cosh
+
+@[simp] lemma one_le_cosh (x : ℝ) : 1 ≤ cosh x :=
+cosh_zero ▸ cosh_le_cosh.2 (by simp only [_root_.abs_zero, _root_.abs_nonneg])
+
+@[simp] lemma one_lt_cosh : 1 < cosh x ↔ x ≠ 0 :=
+cosh_zero ▸ cosh_lt_cosh.trans (by simp only [_root_.abs_zero, abs_pos])
+
+lemma sinh_sub_id_strict_mono : strict_mono (λ x, sinh x - x) :=
+begin
+  refine strict_mono_of_odd_strict_mono_on_nonneg (λ x, by simp) _,
+  refine (convex_Ici _).strict_mono_on_of_deriv_pos _ (λ x hx, _),
+  { exact (continuous_sinh.sub continuous_id).continuous_on },
+  { rw [interior_Ici, mem_Ioi] at hx,
+    rw [deriv_sub, deriv_sinh, deriv_id'', sub_pos, one_lt_cosh],
+    exacts [hx.ne', differentiable_at_sinh, differentiable_at_id] }
+end
+
+@[simp] lemma self_le_sinh_iff : x ≤ sinh x ↔ 0 ≤ x :=
+calc x ≤ sinh x ↔ sinh 0 - 0 ≤ sinh x - x : by simp
+... ↔ 0 ≤ x : sinh_sub_id_strict_mono.le_iff_le
+
+@[simp] lemma sinh_le_self_iff : sinh x ≤ x ↔ x ≤ 0 :=
+calc sinh x ≤ x ↔ sinh x - x ≤ sinh 0 - 0 : by simp
+... ↔ x ≤ 0 : sinh_sub_id_strict_mono.le_iff_le
+
+@[simp] lemma self_lt_sinh_iff : x < sinh x ↔ 0 < x :=
+lt_iff_lt_of_le_iff_le sinh_le_self_iff
+
+@[simp] lemma sinh_lt_self_iff : sinh x < x ↔ x < 0 :=
+lt_iff_lt_of_le_iff_le self_le_sinh_iff
+
 end real
 
 section
@@ -652,7 +713,7 @@ section
 
 /-! ### Simp lemmas for derivatives of `λ x, real.cos (f x)` etc., `f : E → ℝ` -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
 
 /-! #### `real.cos` -/

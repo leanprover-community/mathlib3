@@ -51,6 +51,11 @@ lemma inverses_right (h : semiconj f ga gb) (ha : right_inverse ga' ga)
   semiconj f ga' gb' :=
 λ x, by rw [← hb (f (ga' x)), ← h.eq, ha x]
 
+lemma option_map {f : α → β} {ga : α → α} {gb : β → β} (h : semiconj f ga gb) :
+  semiconj (option.map f) (option.map ga) (option.map gb)
+| none := rfl
+| (some a) := congr_arg some $ h _
+
 end semiconj
 
 /-- Two maps `f g : α → α` commute if `f (g x) = g (f x)` for all `x : α`.
@@ -77,6 +82,9 @@ lemma comp_left (h : commute f g) (h' : commute f' g) : commute (f ∘ f') g :=
 lemma id_right : commute f id := semiconj.id_right
 
 lemma id_left : commute id f := semiconj.id_left
+
+lemma option_map {f g : α → α} : commute f g → commute (option.map f) (option.map g) :=
+semiconj.option_map
 
 end commute
 

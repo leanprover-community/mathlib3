@@ -53,7 +53,7 @@ namespace graded_object
 
 variables {C : Type u} [category.{v} C]
 
-instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
+instance category_of_graded_objects (β : Type w) : category.{max w v} (graded_object β C) :=
 category_theory.pi (λ _, C)
 
 /-- The projection of a graded object to its `i`-th component. -/
@@ -124,7 +124,7 @@ rfl
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
-  has_zero_morphisms.{(max w v)} (graded_object β C) :=
+  has_zero_morphisms.{max w v} (graded_object β C) :=
 { has_zero := λ X Y,
   { zero := λ b, 0 } }
 
@@ -136,7 +136,7 @@ section
 open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
-  has_zero_object.{(max w v)} (graded_object β C) :=
+  has_zero_object.{max w v} (graded_object β C) :=
 by { refine ⟨⟨λ b, 0, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩⟩⟩; ext, }
 end
 
@@ -148,7 +148,7 @@ namespace graded_object
 -- If you're grading by things in higher universes, have fun!
 variables (β : Type)
 variables (C : Type u) [category.{v} C]
-variables [has_coproducts C]
+variables [has_coproducts.{0} C]
 
 section
 local attribute [tidy] tactic.discrete_cases
@@ -157,8 +157,8 @@ local attribute [tidy] tactic.discrete_cases
 The total object of a graded object is the coproduct of the graded components.
 -/
 noncomputable def total : graded_object β C ⥤ C :=
-{ obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
-  map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
+{ obj := λ X, ∐ (λ i : β, X i),
+  map := λ X Y f, limits.sigma.map (λ i, f i) }.
 
 end
 
@@ -174,8 +174,9 @@ instance : faithful (total β C) :=
   begin
     classical,
     ext i,
-    replace w := sigma.ι (λ i : ulift.{v} β, X i.down) ⟨i⟩ ≫= w,
+    replace w := sigma.ι (λ i : β, X i) i ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
+    simp at *,
     exact mono.right_cancellation _ _ w,
   end }
 
@@ -187,7 +188,7 @@ noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]
-  [has_coproducts C] [has_zero_morphisms C]
+  [has_coproducts.{0} C] [has_zero_morphisms C]
 
 instance : concrete_category (graded_object β C) :=
 { forget := total β C ⋙ forget C }

@@ -68,7 +68,7 @@ begin
 end
 
 lemma omega_limit_mono_left {f₁ f₂ : filter τ} (hf : f₁ ≤ f₂) : ω f₁ ϕ s ⊆ ω f₂ ϕ s :=
-omega_limit_subset_of_tendsto ϕ s (tendsto_id' hf)
+omega_limit_subset_of_tendsto ϕ s (tendsto_id'.2 hf)
 
 lemma omega_limit_mono_right {s₁ s₂ : set α} (hs : s₁ ⊆ s₂) : ω f ϕ s₁ ⊆ ω f ϕ s₂ :=
 Inter₂_mono $ λ u hu, closure_mono (image2_subset subset.rfl hs)

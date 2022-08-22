@@ -19,8 +19,8 @@ noncomputable theory
 open_locale nnreal topological_space
 open filter
 
-variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [normed_add_torsor V P]
-variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
+variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]
+  [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
 
 section normed_space
 
@@ -128,7 +128,7 @@ variables (𝕜)
 lemma eventually_homothety_mem_of_mem_interior (x : Q) {s : set Q} {y : Q} (hy : y ∈ interior s) :
   ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ y ∈ s :=
 begin
-  rw (normed_group.nhds_basis_norm_lt (1 : 𝕜)).eventually_iff,
+  rw (normed_add_comm_group.nhds_basis_norm_lt (1 : 𝕜)).eventually_iff,
   cases eq_or_ne y x with h h, { use 1, simp [h.symm, interior_subset hy], },
   have hxy : 0 < ∥y -ᵥ x∥, { rwa [norm_pos_iff, vsub_ne_zero], },
   obtain ⟨u, hu₁, hu₂, hu₃⟩ := mem_interior.mp hy,

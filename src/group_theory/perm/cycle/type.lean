@@ -179,8 +179,8 @@ cycle_induction_on
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
-  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, ←singleton_eq_cons, lcm_singleton,
-    order_of_is_cycle hσ, normalize_eq])
+  (λ σ hσ, by rw [hσ.cycle_type, coe_singleton, lcm_singleton, order_of_is_cycle hσ,
+    normalize_eq])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, lcm_eq_nat_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
@@ -331,8 +331,7 @@ lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
 begin
   obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
   by_cases g'1 : g' = 1,
-  { rw [hd.cycle_type, hc.cycle_type, multiset.singleton_eq_cons, multiset.singleton_coe,
-      g'1, cycle_type_one, add_zero] },
+  { rw [hd.cycle_type, hc.cycle_type, coe_singleton, g'1, cycle_type_one, add_zero] },
   contrapose! hn2,
   apply le_trans _ (c * g').support.card_le_univ,
   rw [hd.card_support_mul],
@@ -434,7 +433,7 @@ by appending the inverse of the product of `v`. -/
 by deleting the last entry of `v`. -/
 def equiv_vector : vectors_prod_eq_one G n ≃ vector G (n - 1) :=
 ((vector_equiv G (n - 1)).trans (if hn : n = 0 then (show vectors_prod_eq_one G (n - 1 + 1) ≃
-  vectors_prod_eq_one G n, by { rw hn, exact equiv_of_unique_of_unique })
+  vectors_prod_eq_one G n, by { rw hn, apply equiv_of_unique })
   else by rw tsub_add_cancel_of_le (nat.pos_of_ne_zero hn).nat_succ_le)).symm
 
 instance [fintype G] : fintype (vectors_prod_eq_one G n) :=
@@ -581,11 +580,13 @@ begin
     exact (ne_of_lt zero_lt_three h).elim },
   obtain ⟨n, hn⟩ := exists_mem_of_ne_zero h0,
   by_cases h1 : σ.cycle_type.erase n = 0,
-  { rw [←sum_cycle_type, ←cons_erase hn, h1, ←singleton_eq_cons, multiset.sum_singleton] at h,
-    rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_cons] },
+  { rw [←sum_cycle_type, ←cons_erase hn, h1, cons_zero, multiset.sum_singleton] at h,
+    rw [is_three_cycle, ←cons_erase hn, h1, h, ←cons_zero] },
   obtain ⟨m, hm⟩ := exists_mem_of_ne_zero h1,
   rw [←sum_cycle_type, ←cons_erase hn, ←cons_erase hm, multiset.sum_cons, multiset.sum_cons] at h,
-  linarith [two_le_of_mem_cycle_type hn, two_le_of_mem_cycle_type (mem_of_mem_erase hm)],
+  -- TODO: linarith [...] should solve this directly
+  have : ∀ {k}, 2 ≤ m → 2 ≤ n → n + (m + k) = 3 → false, { intros, linarith },
+  cases this (two_le_of_mem_cycle_type (mem_of_mem_erase hm)) (two_le_of_mem_cycle_type hn) h,
 end
 
 lemma is_cycle (h : is_three_cycle σ) : is_cycle σ :=

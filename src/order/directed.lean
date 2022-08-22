@@ -73,6 +73,11 @@ lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
   monotone f → directed (≤) f :=
 directed_of_sup
 
+/-- A set stable by supremum is `≤`-directed. -/
+lemma directed_on_of_sup_mem [semilattice_sup α] {S : set α}
+  (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊔ j ∈ S) : directed_on (≤) S :=
+λ a ha b hb, ⟨a ⊔ b, H ha hb, le_sup_left, le_sup_right⟩
+
 lemma directed.extend_bot [preorder α] [order_bot α] {e : ι → β} {f : ι → α}
   (hf : directed (≤) f) (he : function.injective e) :
   directed (≤) (function.extend e f ⊥) :=
@@ -91,6 +96,11 @@ end
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
   (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 λ x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
+
+/-- A set stable by infimum is `≥`-directed. -/
+lemma directed_on_of_inf_mem [semilattice_inf α] {S : set α}
+  (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊓ j ∈ S) : directed_on (≥) S :=
+λ a ha b hb, ⟨a ⊓ b, H ha hb, inf_le_left, inf_le_right⟩
 
 /-- `is_directed α r` states that for any elements `a`, `b` there exists an element `c` such that
 `r a c` and `r b c`. -/
@@ -119,38 +129,38 @@ lemma is_directed_mono [is_directed α r] (h : ∀ ⦃a b⦄, r a b → s a b) :
 lemma exists_ge_ge [has_le α] [is_directed α (≤)] (a b : α) : ∃ c, a ≤ c ∧ b ≤ c :=
 directed_of (≤) a b
 
-lemma exists_le_le [has_le α] [is_directed α (swap (≤))] (a b : α) : ∃ c, c ≤ a ∧ c ≤ b :=
-directed_of (swap (≤)) a b
+lemma exists_le_le [has_le α] [is_directed α (≥)] (a b : α) : ∃ c, c ≤ a ∧ c ≤ b :=
+directed_of (≥) a b
 
-instance order_dual.is_directed_ge [has_le α] [is_directed α (≤)] : is_directed αᵒᵈ (swap (≤)) :=
+instance order_dual.is_directed_ge [has_le α] [is_directed α (≤)] : is_directed αᵒᵈ (≥) :=
 by assumption
 
-instance order_dual.is_directed_le [has_le α] [is_directed α (swap (≤))] : is_directed αᵒᵈ (≤) :=
+instance order_dual.is_directed_le [has_le α] [is_directed α (≥)] : is_directed αᵒᵈ (≤) :=
 by assumption
 
 section preorder
 variables [preorder α] {a : α}
 
-protected lemma is_min.is_bot [is_directed α (swap (≤))] (h : is_min a) : is_bot a :=
+protected lemma is_min.is_bot [is_directed α (≥)] (h : is_min a) : is_bot a :=
 λ b, let ⟨c, hca, hcb⟩ := exists_le_le a b in (h hca).trans hcb
 
 protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
-λ b, let ⟨c, hac, hbc⟩ := exists_ge_ge a b in hbc.trans $ h hac
+h.to_dual.is_bot
 
 lemma is_top_or_exists_gt [is_directed α (≤)] (a : α) : is_top a ∨ (∃ b, a < b) :=
 (em (is_max a)).imp is_max.is_top not_is_max_iff.mp
 
-lemma is_bot_or_exists_lt [is_directed α (swap (≤))] (a : α) : is_bot a ∨ (∃ b, b < a) :=
+lemma is_bot_or_exists_lt [is_directed α (≥)] (a : α) : is_bot a ∨ (∃ b, b < a) :=
 @is_top_or_exists_gt αᵒᵈ _ _ a
 
-lemma is_bot_iff_is_min [is_directed α (swap (≤))] : is_bot a ↔ is_min a :=
+lemma is_bot_iff_is_min [is_directed α (≥)] : is_bot a ↔ is_min a :=
 ⟨is_bot.is_min, is_min.is_bot⟩
 
 lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
 
 variables (β) [partial_order β]
 
-theorem exists_lt_of_directed_ge [is_directed β (swap (≤))] [nontrivial β] : ∃ a b : β, a < b :=
+theorem exists_lt_of_directed_ge [is_directed β (≥)] [nontrivial β] : ∃ a b : β, a < b :=
 begin
   rcases exists_pair_ne β with ⟨a, b, hne⟩,
   rcases is_bot_or_exists_lt a with ha|⟨c, hc⟩,
@@ -167,7 +177,7 @@ instance semilattice_sup.to_is_directed_le [semilattice_sup α] : is_directed α
 ⟨λ a b, ⟨a ⊔ b, le_sup_left, le_sup_right⟩⟩
 
 @[priority 100]  -- see Note [lower instance priority]
-instance semilattice_inf.to_is_directed_ge [semilattice_inf α] : is_directed α (swap (≤)) :=
+instance semilattice_inf.to_is_directed_ge [semilattice_inf α] : is_directed α (≥) :=
 ⟨λ a b, ⟨a ⊓ b, inf_le_left, inf_le_right⟩⟩
 
 @[priority 100]  -- see Note [lower instance priority]
@@ -175,5 +185,5 @@ instance order_top.to_is_directed_le [has_le α] [order_top α] : is_directed α
 ⟨λ a b, ⟨⊤, le_top, le_top⟩⟩
 
 @[priority 100]  -- see Note [lower instance priority]
-instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (swap (≤)) :=
+instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (≥) :=
 ⟨λ a b, ⟨⊥, bot_le, bot_le⟩⟩

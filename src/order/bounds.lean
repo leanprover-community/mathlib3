@@ -22,7 +22,8 @@ In this file we define:
 We also prove various lemmas about monotonicity, behaviour under `∪`, `∩`, `insert`, and provide
 formulas for `∅`, `univ`, and intervals.
 -/
-open set order_dual (to_dual of_dual)
+
+open function set order_dual (to_dual of_dual)
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
@@ -941,11 +942,13 @@ by { rintro _ ⟨a, ha, rfl⟩, exact Hf.mem_upper_bounds_image ha }
 lemma image_lower_bounds_subset_lower_bounds_image : f '' lower_bounds s ⊆ lower_bounds (f '' s) :=
 Hf.dual.image_upper_bounds_subset_upper_bounds_image
 
-/-- The image under a monotone function of a set which is bounded above is bounded above. -/
+/-- The image under a monotone function of a set which is bounded above is bounded above. See also
+`bdd_above.image2`. -/
 lemma map_bdd_above : bdd_above s → bdd_above (f '' s)
 | ⟨C, hC⟩ := ⟨f C, Hf.mem_upper_bounds_image hC⟩
 
-/-- The image under a monotone function of a set which is bounded below is bounded below. -/
+/-- The image under a monotone function of a set which is bounded below is bounded below. See also
+`bdd_below.image2`. -/
 lemma map_bdd_below : bdd_below s → bdd_below (f '' s)
 | ⟨C, hC⟩ := ⟨f C, Hf.mem_lower_bounds_image hC⟩
 
@@ -991,6 +994,176 @@ lemma map_is_least : is_least s a → is_greatest (f '' s) (f a) :=
 hf.dual_right.map_is_least
 
 end antitone
+
+section image2
+variables [preorder α] [preorder β] [preorder γ] {f : α → β → γ} {s : set α} {t : set β} {a : α}
+  {b : β}
+
+section monotone_monotone
+variables (h₀ : ∀ b, monotone (swap f b)) (h₁ : ∀ a, monotone (f a))
+include h₀ h₁
+
+lemma mem_upper_bounds_image2 (ha : a ∈ upper_bounds s) (hb : b ∈ upper_bounds t) :
+  f a b ∈ upper_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma mem_lower_bounds_image2 (ha : a ∈ lower_bounds s) (hb : b ∈ lower_bounds t) :
+  f a b ∈ lower_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma image2_upper_bounds_upper_bounds_subset :
+  image2 f (upper_bounds s) (upper_bounds t) ⊆ upper_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_upper_bounds_image2 h₀ h₁ ha hb }
+
+lemma image2_lower_bounds_lower_bounds_subset :
+  image2 f (lower_bounds s) (lower_bounds t) ⊆ lower_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_lower_bounds_image2 h₀ h₁ ha hb }
+
+/-- See also `monotone.map_bdd_above`. -/
+lemma bdd_above.image2 : bdd_above s → bdd_above t → bdd_above (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩, exact ⟨f a b, mem_upper_bounds_image2 h₀ h₁ ha hb⟩ }
+
+/-- See also `monotone.map_bdd_below`. -/
+lemma bdd_below.image2 : bdd_below s → bdd_below t → bdd_below (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩, exact ⟨f a b, mem_lower_bounds_image2 h₀ h₁ ha hb⟩ }
+
+lemma is_greatest.image2 (ha : is_greatest s a) (hb : is_greatest t b) :
+  is_greatest (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1, mem_upper_bounds_image2 h₀ h₁ ha.2 hb.2⟩
+
+lemma is_least.image2 (ha : is_least s a) (hb : is_least t b) : is_least (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1, mem_lower_bounds_image2 h₀ h₁ ha.2 hb.2⟩
+
+end monotone_monotone
+
+section monotone_antitone
+variables (h₀ : ∀ b, monotone (swap f b)) (h₁ : ∀ a, antitone (f a))
+include h₀ h₁
+
+lemma mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_lower_bounds (ha : a ∈ upper_bounds s)
+  (hb : b ∈ lower_bounds t) : f a b ∈ upper_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_upper_bounds (ha : a ∈ lower_bounds s)
+  (hb : b ∈ upper_bounds t) : f a b ∈ lower_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma image2_upper_bounds_lower_bounds_subset_upper_bounds_image2 :
+  image2 f (upper_bounds s) (lower_bounds t) ⊆ upper_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩,
+  exact mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_lower_bounds h₀ h₁ ha hb }
+
+lemma image2_lower_bounds_upper_bounds_subset_lower_bounds_image2 :
+  image2 f (lower_bounds s) (upper_bounds t) ⊆ lower_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩,
+  exact mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_upper_bounds h₀ h₁ ha hb }
+
+lemma bdd_above.bdd_above_image2_of_bdd_below :
+  bdd_above s → bdd_below t → bdd_above (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  exact ⟨f a b, mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_lower_bounds h₀ h₁ ha hb⟩ }
+
+lemma bdd_below.bdd_below_image2_of_bdd_above :
+  bdd_below s → bdd_above t → bdd_below (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  exact ⟨f a b, mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_upper_bounds h₀ h₁ ha hb⟩ }
+
+lemma is_greatest.is_greatest_image2_of_is_least (ha : is_greatest s a) (hb : is_least t b) :
+  is_greatest (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1,
+  mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_lower_bounds h₀ h₁ ha.2 hb.2⟩
+
+lemma is_least.is_least_image2_of_is_greatest (ha : is_least s a) (hb : is_greatest t b) :
+  is_least (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1,
+  mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_upper_bounds h₀ h₁ ha.2 hb.2⟩
+
+end monotone_antitone
+
+section antitone_antitone
+variables (h₀ : ∀ b, antitone (swap f b)) (h₁ : ∀ a, antitone (f a))
+include h₀ h₁
+
+lemma mem_upper_bounds_image2_of_mem_lower_bounds (ha : a ∈ lower_bounds s)
+  (hb : b ∈ lower_bounds t) :
+  f a b ∈ upper_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma mem_lower_bounds_image2_of_mem_upper_bounds (ha : a ∈ upper_bounds s)
+  (hb : b ∈ upper_bounds t) :
+  f a b ∈ lower_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma image2_upper_bounds_upper_bounds_subset_upper_bounds_image2 :
+  image2 f (lower_bounds s) (lower_bounds t) ⊆ upper_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_upper_bounds_image2_of_mem_lower_bounds h₀ h₁ ha hb }
+
+lemma image2_lower_bounds_lower_bounds_subset_lower_bounds_image2 :
+  image2 f (upper_bounds s) (upper_bounds t) ⊆ lower_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_lower_bounds_image2_of_mem_upper_bounds h₀ h₁ ha hb }
+
+lemma bdd_below.image2_bdd_above : bdd_below s → bdd_below t → bdd_above (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  exact ⟨f a b, mem_upper_bounds_image2_of_mem_lower_bounds h₀ h₁ ha hb⟩ }
+
+lemma bdd_above.image2_bdd_below : bdd_above s → bdd_above t → bdd_below (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  exact ⟨f a b, mem_lower_bounds_image2_of_mem_upper_bounds h₀ h₁ ha hb⟩ }
+
+lemma is_least.is_greatest_image2 (ha : is_least s a) (hb : is_least t b) :
+  is_greatest (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1, mem_upper_bounds_image2_of_mem_lower_bounds h₀ h₁ ha.2 hb.2⟩
+
+lemma is_greatest.is_least_image2 (ha : is_greatest s a) (hb : is_greatest t b) :
+  is_least (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1, mem_lower_bounds_image2_of_mem_upper_bounds h₀ h₁ ha.2 hb.2⟩
+
+end antitone_antitone
+
+section antitone_monotone
+variables (h₀ : ∀ b, antitone (swap f b)) (h₁ : ∀ a, monotone (f a))
+include h₀ h₁
+
+lemma mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_upper_bounds (ha : a ∈ lower_bounds s)
+  (hb : b ∈ upper_bounds t) : f a b ∈ upper_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_lower_bounds (ha : a ∈ upper_bounds s)
+  (hb : b ∈ lower_bounds t) : f a b ∈ lower_bounds (image2 f s t) :=
+forall_image2_iff.2 $ λ x hx y hy, (h₀ _ $ ha hx).trans $ h₁ _ $ hb hy
+
+lemma image2_lower_bounds_upper_bounds_subset_upper_bounds_image2 :
+  image2 f (lower_bounds s) (upper_bounds t) ⊆ upper_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩,
+  exact mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_upper_bounds h₀ h₁ ha hb }
+
+lemma image2_upper_bounds_lower_bounds_subset_lower_bounds_image2 :
+  image2 f (upper_bounds s) (lower_bounds t) ⊆ lower_bounds (image2 f s t) :=
+by { rintro _ ⟨a, b, ha, hb, rfl⟩,
+  exact mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_lower_bounds h₀ h₁ ha hb }
+
+lemma bdd_below.bdd_above_image2_of_bdd_above :
+  bdd_below s → bdd_above t → bdd_above (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  exact ⟨f a b, mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_upper_bounds h₀ h₁ ha hb⟩ }
+
+lemma bdd_above.bdd_below_image2_of_bdd_above :
+  bdd_above s → bdd_below t → bdd_below (image2 f s t) :=
+by { rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  exact ⟨f a b, mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_lower_bounds h₀ h₁ ha hb⟩ }
+
+lemma is_least.is_greatest_image2_of_is_greatest (ha : is_least s a) (hb : is_greatest t b) :
+  is_greatest (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1,
+  mem_upper_bounds_image2_of_mem_upper_bounds_of_mem_upper_bounds h₀ h₁ ha.2 hb.2⟩
+
+lemma is_greatest.is_least_image2_of_is_least (ha : is_greatest s a) (hb : is_least t b) :
+  is_least (image2 f s t) (f a b) :=
+⟨mem_image2_of_mem ha.1 hb.1,
+  mem_lower_bounds_image2_of_mem_lower_bounds_of_mem_lower_bounds h₀ h₁ ha.2 hb.2⟩
+
+end antitone_monotone
+end image2
 
 lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
   {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :

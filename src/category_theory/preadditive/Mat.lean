@@ -59,8 +59,8 @@ variables (C : Type u₁) [category.{v₁} C] [preadditive C]
 /--
 An object in `Mat_ C` is a finite tuple of objects in `C`.
 -/
-structure Mat_ : Type (max (v₁+1) u₁) :=
-(ι : Type v₁)
+structure Mat_ :=
+(ι : Type)
 [F : fintype ι]
 (X : ι → C)
 
@@ -71,7 +71,7 @@ namespace Mat_
 variables {C}
 
 /-- A morphism in `Mat_ C` is a dependently typed matrix of morphisms. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def hom (M N : Mat_ C) : Type v₁ := dmatrix M.ι N.ι (λ i j, M.X i ⟶ N.X j)
 
 namespace hom
@@ -503,7 +503,7 @@ instance (M N : Mat R) : inhabited (M ⟶ N) := ⟨λ (i : M) (j : N), (0 : R)�
 
 end
 
-variables (R : Type u) [ring R]
+variables (R : Type) [ring R]
 
 open opposite
 

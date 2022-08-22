@@ -19,7 +19,7 @@ satisfy `edist (f x) (f y) = r * edist x y`.
   Note that `ratio f : ℝ≥0`, so we do not exclude the degenerate case of dilations
   which collapse into constant maps. Statements that do need strict dilations should
   say `f : dilation α β` and `hr : ratio f ≠ 0`.
-  
+
 ## Implementation notes
 
 The type of dilations defined in this file are also referred to as

@@ -58,6 +58,17 @@ lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
 
+lemma star_mul_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (star x * x) :=
+by simp only [is_self_adjoint, star_mul, star_star]
+
+lemma mul_star_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (x * star x) :=
+by simpa only [star_star] using star_mul_self (star x)
+
+/-- Functions in a `star_hom_class` preserve self-adjoint elements. -/
+lemma star_hom_apply {F R S : Type*} [has_star R] [has_star S] [star_hom_class F R S]
+  {x : R} (hx : is_self_adjoint x) (f : F) : is_self_adjoint (f x) :=
+show star (f x) = f x, from map_star f x ▸ congr_arg f hx
+
 section add_group
 variables [add_group R] [star_add_monoid R]
 

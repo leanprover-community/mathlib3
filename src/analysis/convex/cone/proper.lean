@@ -190,7 +190,7 @@ lemma bdd_if_optimal (p : cone_program E F) (x : E) (hx : p.optimal_solution x) 
 begin
   rw bdd_above_def,
   use ⟪p.c, x⟫_ℝ,
-  rintro y ⟨_, hinner, _⟩,
+  rintro y ⟨_, _, hinner⟩,
   rw ← hinner,
   exact hx.2 _ hx.1,
 end

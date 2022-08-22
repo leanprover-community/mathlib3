@@ -95,7 +95,7 @@ class cooler_hom_class (F : Type*) (A B : out_param $ Type*) [cool_class A] [coo
   extends my_hom_class F A B :=
 (map_cool : ∀ (f : F), f cool_class.cool = cool_class.cool)
 
-set_option old_structure_cmd false
+end
 
 @[simp] lemma map_cool {F A B : Type*} [cool_class A] [cool_class B] [cooler_hom_class F A B]
   (f : F) : f cool_class.cool = cool_class.cool :=

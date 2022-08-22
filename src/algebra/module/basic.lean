@@ -8,6 +8,7 @@ import algebra.smul_with_zero
 import data.rat.cast
 import group_theory.group_action.big_operators
 import group_theory.group_action.group
+import tactic.abel
 
 /-!
 # Modules over a ring
@@ -223,6 +224,12 @@ by letI := H.to_has_smul; exact
 { zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, H.add_smul r s x)).map_zero,
   smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
+
+lemma convex.combo_eq_smul_sub_add [module R M] {x y : M} {a b : R} (h : a + b = 1) :
+  a • x + b • y = b • (y - x) + x :=
+calc
+  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
+            ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
 
 end add_comm_group
 

@@ -135,6 +135,11 @@ lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod
 lemma prod_map_mul : (m.map $ λ i, f i * g i).prod = (m.map f).prod * (m.map g).prod :=
 m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
+@[simp]
+lemma prod_map_neg [has_distrib_neg α] (s : multiset α) :
+  (s.map has_neg.neg).prod = (-1) ^ s.card * s.prod :=
+by { refine quotient.ind _ s, simp }
+
 @[to_additive]
 lemma prod_map_pow {n : ℕ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
 m.prod_hom' (pow_monoid_hom n : α →* α) f

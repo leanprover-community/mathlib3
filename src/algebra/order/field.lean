@@ -21,6 +21,8 @@ A linear ordered (semi)field is a (semi)field equipped with a linear order such 
 
 set_option old_structure_cmd true
 
+open order_dual
+
 variables {α β : Type*}
 
 namespace function

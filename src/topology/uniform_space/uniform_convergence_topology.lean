@@ -47,7 +47,7 @@ This file contains a lot of technical facts, so it is heavily commented, proofs 
   indeed the uniform structure of uniform convergence
 * `uniform_convergence_on.uniform_continuous_eval_of_mem`: evaluation at a point contained in a
   set of `𝔖` is uniformly continuous for `𝒱(α, β, 𝔖 uβ)`
-* `uniform_convergence.t2_space`: the topology of `𝔖`-convergence on `α → β` is T₂ if
+* `uniform_convergence_on.t2_space_of_covering`: the topology of `𝔖`-convergence on `α → β` is T₂ if
   `β` is T₂ and `𝔖` covers `α`
 * `uniform_convergence_on.tendsto_iff_tendsto_uniformly_on`:
   `𝒱(α, β, 𝔖 uβ)` is indeed the uniform structure of `𝔖`-convergence

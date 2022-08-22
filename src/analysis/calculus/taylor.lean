@@ -353,7 +353,7 @@ begin
   use [has_Sup.Sup (g '' set.Icc a b)],
   intros x hx,
   have h' : ∀ (y : ℝ) (hy : y ∈ set.Ico a b),
-    ∥((↑(n.factorial))⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (set.Icc a b) y∥
+    ∥((n.factorial : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (set.Icc a b) y∥
     ≤ (n.factorial : ℝ)⁻¹ * ∥(x - a)∥^n * has_Sup.Sup (g '' set.Icc a b) :=
   begin
     intros y hy,
@@ -362,19 +362,16 @@ begin
     --rw norm_inv,
     simp only [real.norm_eq_abs],
     refine mul_le_mul _ _ (by positivity) (by positivity),
-    {
-      rw abs_mul,
+    { rw abs_mul,
       rw abs_pow,
       rw abs_inv,
       rw nat.abs_cast,
       refine mul_le_mul_of_nonneg_left _ fac_inv_nonneg,
       refine pow_le_pow_of_le_left (by positivity) _ _,
-      sorry,
-    },
+      sorry, },
     { -- continuous_on.le_Sup_image_Icc
       refine continuous_on.le_Sup_image_Icc _ (set.Ico_subset_Icc_self hy),
-      sorry,
-    },
+      sorry, },
   end,
   have := norm_image_sub_le_of_norm_deriv_le_segment'
     (λ _ ht, taylor_within_eval_has_deriv_within_at_Icc x h ht hf hf') h' x hx,

@@ -266,7 +266,8 @@ structure {u v} specified_pointed_map (Γ : Type u) (Γ' : Type v)
 instance {Γ Γ'} (val : Γ) (val' : Γ') : inhabited (specified_pointed_map Γ Γ' val val') :=
 ⟨⟨λ _, val', rfl⟩⟩
 
-instance {Γ Γ'} (val : Γ) (val' : Γ') : has_coe_to_fun (specified_pointed_map Γ Γ' val val') (λ _, Γ → Γ') :=
+instance {Γ Γ'} (val : Γ) (val' : Γ') :
+  has_coe_to_fun (specified_pointed_map Γ Γ' val val') (λ _, Γ → Γ') :=
 ⟨specified_pointed_map.f⟩
 
 @[simp] theorem specified_pointed_map.mk_val {Γ Γ'} (val : Γ) (val' : Γ')
@@ -317,7 +318,8 @@ begin
 end
 
 @[simp] theorem list_val.nth_map {Γ Γ'} {val : Γ} {val' : Γ'}
-  (f : specified_pointed_map Γ Γ' val val') (l : list_val Γ val) (n : ℕ) : (l.map f).nth n = f (l.nth n) :=
+  (f : specified_pointed_map Γ Γ' val val') (l : list_val Γ val) (n : ℕ) :
+  (l.map f).nth n = f (l.nth n) :=
 l.induction_on begin
   intro l,
   simp_rw [list_val.map_mk],

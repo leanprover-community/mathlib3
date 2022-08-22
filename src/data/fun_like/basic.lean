@@ -57,6 +57,7 @@ the axioms of your new type of morphisms.
 Continuing the example above:
 
 ```
+section
 set_option old_structure_cmd true
 
 /-- `my_hom_class F A B` states that `F` is a type of `my_class.op`-preserving morphisms.
@@ -65,8 +66,7 @@ class my_hom_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class 
   extends fun_like F A (λ _, B) :=
 (map_op : ∀ (f : F) (x y : A), f (my_class.op x y) = my_class.op (f x) (f y))
 
-set_option old_structure_cmd false
-
+end
 @[simp] lemma map_op {F A B : Type*} [my_class A] [my_class B] [my_hom_class F A B]
   (f : F) (x y : A) : f (my_class.op x y) = my_class.op (f x) (f y) :=
 my_hom_class.map_op

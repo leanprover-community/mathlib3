@@ -1653,11 +1653,11 @@ namespace TM2to1
 
 -- A displaced lemma proved in unnecessary generality
 theorem stk_nth_val {K : Type*} {Γ : K → Type*} {L : list_blank (∀ k, option (Γ k))} {k S} (n)
-  (hL : list_blank.map (proj k) L = list_blank.mk (list.map some S).reverse) :
+  (hL : list_blank.map (pointed_map_proj k) L = list_blank.mk (list.map some S).reverse) :
   L.nth n k = S.reverse.nth n :=
 begin
-  rw [←proj_map_nth, hL, ←list.map_reverse, list_blank.nth_mk, list.inth_eq_iget_nth, list.nth_map],
-  cases S.reverse.nth n; refl
+  rw [←pointed_map_proj_map_nth, hL, ←list.map_reverse, list_blank.nth_mk, list.inth_eq_iget_nth, list.nth_map],
+  cases S.reverse.nth n; refl,
 end
 
 section
@@ -1837,12 +1837,12 @@ by rcases s with _|_|_; unfold tr_stmts₁ st_run
 
 theorem tr_respects_aux₂
   {k q v} {S : Π k, list (Γ k)} {L : list_blank (∀ k, option (Γ k))}
-  (hL : ∀ k, L.map (proj k) = list_blank.mk ((S k).map some).reverse) (o) :
+  (hL : ∀ k, L.map (pointed_map_proj k) = list_blank.mk ((S k).map some).reverse) (o) :
   let v' := st_var v (S k) o,
       Sk' := st_write v (S k) o,
       S' := update S k Sk' in
   ∃ (L' : list_blank (∀ k, option (Γ k))),
-    (∀ k, L'.map (proj k) = list_blank.mk ((S' k).map some).reverse) ∧
+    (∀ k, L'.map (pointed_map_proj k) = list_blank.mk ((S' k).map some).reverse) ∧
     TM1.step_aux (tr_st_act q o) v
       ((tape.move dir.right)^[(S k).length] (tape.mk' ∅ (add_bottom L))) =
     TM1.step_aux q v'
@@ -1858,21 +1858,21 @@ begin
       add_bottom_modify_nth (λ a, update a k (some (f v))),
       nat.add_one, iterate_succ']⟩,
     refine list_blank.ext (λ i, _),
-    rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
+    rw [list_blank.nth_map, list_blank.nth_modify_nth, pointed_map_proj, pointed_map.mk_val],
     by_cases h' : k' = k,
     { subst k', split_ifs; simp only [list.reverse_cons,
         function.update_same, list_blank.nth_mk, list.map],
       { rw [list.inth_eq_nth_le, list.nth_le_append_right];
         simp only [h, list.nth_le_singleton, list.length_map, list.length_reverse, nat.succ_pos',
           list.length_append, lt_add_iff_pos_right, list.length] },
-      rw [← proj_map_nth, hL, list_blank.nth_mk],
+      rw [← pointed_map_proj_map_nth, hL, list_blank.nth_mk],
       cases lt_or_gt_of_ne h with h h,
       { rw list.inth_append, simpa only [list.length_map, list.length_reverse] using h },
       { rw gt_iff_lt at h,
         rw [list.inth_eq_default, list.inth_eq_default];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
-    { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
+    { split_ifs; rw [function.update_noteq h', ← pointed_map_proj_map_nth, hL],
       rw function.update_noteq h' } },
   case TM2to1.st_act.peek : f
   { rw function.update_eq_self,
@@ -1896,18 +1896,18 @@ begin
         by rw [list.reverse_cons, ← list.length_reverse, list.nth_concat_length]; refl,
         list.head', list.tail]⟩,
     refine list_blank.ext (λ i, _),
-    rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
+    rw [list_blank.nth_map, list_blank.nth_modify_nth, pointed_map_proj, pointed_map.mk_val],
     by_cases h' : k' = k,
     { subst k', split_ifs; simp only [
         function.update_same, list_blank.nth_mk, list.tail],
       { rw [list.inth_eq_default], {refl}, rw [h, list.length_reverse, list.length_map] },
-      rw [← proj_map_nth, hL, list_blank.nth_mk, e, list.map, list.reverse_cons],
+      rw [← pointed_map_proj_map_nth, hL, list_blank.nth_mk, e, list.map, list.reverse_cons],
       cases lt_or_gt_of_ne h with h h,
       { rw list.inth_append, simpa only [list.length_map, list.length_reverse] using h },
       { rw gt_iff_lt at h, rw [list.inth_eq_default, list.inth_eq_default];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
-    { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
+    { split_ifs; rw [function.update_noteq h', ← pointed_map_proj_map_nth, hL],
       rw function.update_noteq h' } } },
 end
 
@@ -1929,11 +1929,11 @@ local attribute [pp_using_anonymous_constructor] turing.TM1.cfg
 /-- The relation between TM2 configurations and TM1 configurations of the TM2 emulator. -/
 inductive tr_cfg : cfg₂ → cfg₁ → Prop
 | mk {q v} {S : ∀ k, list (Γ k)} (L : list_blank (∀ k, option (Γ k))) :
-  (∀ k, L.map (proj k) = list_blank.mk ((S k).map some).reverse) →
+  (∀ k, L.map (pointed_map_proj k) = list_blank.mk ((S k).map some).reverse) →
   tr_cfg ⟨q, v, S⟩ ⟨q.map normal, v, tape.mk' ∅ (add_bottom L)⟩
 
 theorem tr_respects_aux₁ {k} (o q v) {S : list (Γ k)} {L : list_blank (∀ k, option (Γ k))}
-  (hL : L.map (proj k) = list_blank.mk (S.map some).reverse) (n ≤ S.length) :
+  (hL : L.map (pointed_map_proj k) = list_blank.mk (S.map some).reverse) (n ≤ S.length) :
   reaches₀ (TM1.step tr)
     ⟨some (go k o q), v, (tape.mk' ∅ (add_bottom L))⟩
     ⟨some (go k o q), v, (tape.move dir.right)^[n] (tape.mk' ∅ (add_bottom L))⟩ :=
@@ -1958,10 +1958,10 @@ begin
 end
 
 theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
-  (hT : ∀ k, list_blank.map (proj k) T = list_blank.mk ((S k).map some).reverse)
+  (hT : ∀ k, list_blank.map (pointed_map_proj k) T = list_blank.mk ((S k).map some).reverse)
   (o : st_act k)
   (IH : ∀ {v : σ} {S : Π (k : K), list (Γ k)} {T : list_blank (∀ k, option (Γ k))},
-    (∀ k, list_blank.map (proj k) T = list_blank.mk ((S k).map some).reverse) →
+    (∀ k, list_blank.map (pointed_map_proj k) T = list_blank.mk ((S k).map some).reverse) →
     (∃ b, tr_cfg (TM2.step_aux q v S) b ∧
       reaches (TM1.step tr) (TM1.step_aux (tr_normal q) v (tape.mk' ∅ (add_bottom T))) b)) :
   ∃ b, tr_cfg (TM2.step_aux (st_run o q) v S) b ∧
@@ -2008,7 +2008,7 @@ begin
   { refine ⟨list_blank.mk (L.reverse.map $ λ a, update default k (some a)), λ k', _⟩,
     refine list_blank.ext (λ i, _),
     rw [list_blank.map_mk, list_blank.nth_mk, list.inth_eq_iget_nth, list.map_map, (∘),
-       list.nth_map, proj, pointed_map.mk_val],
+       list.nth_map, pointed_map_proj, pointed_map.mk_val],
     by_cases k' = k,
     { subst k', simp only [function.update_same],
       rw [list_blank.nth_mk, list.inth_eq_iget_nth, ← list.map_reverse, list.nth_map] },
@@ -2028,7 +2028,7 @@ theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
   (H₂ : L₂ ∈ TM2.eval M k L) :
   ∃ (S : ∀ k, list (Γ k)) (L' : list_blank (∀ k, option (Γ k))),
     add_bottom L' = L₁ ∧
-    (∀ k, L'.map (proj k) = list_blank.mk ((S k).map some).reverse) ∧
+    (∀ k, L'.map (pointed_map_proj k) = list_blank.mk ((S k).map some).reverse) ∧
     S k = L₂ :=
 begin
   obtain ⟨c₁, h₁, rfl⟩ := (part.mem_map_iff _).1 H₁,

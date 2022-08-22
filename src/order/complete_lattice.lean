@@ -40,7 +40,7 @@ In lemma names,
 -/
 
 set_option old_structure_cmd true
-open set function
+open function order_dual set
 
 variables {α β β₂ γ : Type*} {ι ι' : Sort*} {κ : ι → Sort*} {κ' : ι' → Sort*}
 
@@ -293,8 +293,19 @@ instance [complete_linear_order α] : complete_linear_order αᵒᵈ :=
 
 end order_dual
 
+open order_dual
+
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
+
+@[simp] lemma to_dual_Sup (s : set α) : to_dual (Sup s) = Inf (of_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_Inf (s : set α) : to_dual (Inf s) = Sup (of_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Sup (s : set αᵒᵈ) : of_dual (Sup s) = Inf (to_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Inf (s : set αᵒᵈ) : of_dual (Inf s) = Sup (to_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_supr (f : ι → α) : to_dual (⨆ i, f i) = ⨅ i, to_dual (f i) := rfl
+@[simp] lemma to_dual_infi (f : ι → α) : to_dual (⨅ i, f i) = ⨆ i, to_dual (f i) := rfl
+@[simp] lemma of_dual_supr (f : ι → αᵒᵈ) : of_dual (⨆ i, f i) = ⨅ i, of_dual (f i) := rfl
+@[simp] lemma of_dual_infi (f : ι → αᵒᵈ) : of_dual (⨅ i, f i) = ⨆ i, of_dual (f i) := rfl
 
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs
@@ -412,9 +423,17 @@ lemma function.surjective.supr_comp {f : ι → ι'} (hf : surjective f) (g : ι
   (⨆ x, g (f x)) = ⨆ y, g y :=
 by simp only [supr, hf.range_comp]
 
+lemma equiv.supr_comp {g : ι' → α} (e : ι ≃ ι') :
+  (⨆ x, g (e x)) = ⨆ y, g y :=
+e.surjective.supr_comp _
+
 protected lemma function.surjective.supr_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
 by { convert h1.supr_comp g, exact (funext h2).symm }
+
+protected lemma equiv.supr_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g (e x) = f x) :
+  (⨆ x, f x) = ⨆ y, g y :=
+e.surjective.supr_congr _ h
 
 @[congr] lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α} (pq : p ↔ q)
   (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
@@ -440,9 +459,17 @@ lemma function.surjective.infi_comp {f : ι → ι'} (hf : surjective f) (g : ι
   (⨅ x, g (f x)) = ⨅ y, g y :=
 @function.surjective.supr_comp αᵒᵈ _ _  _ f hf g
 
-lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
+lemma equiv.infi_comp {g : ι' → α} (e : ι ≃ ι') :
+  (⨅ x, g (e x)) = ⨅ y, g y :=
+@equiv.supr_comp αᵒᵈ _ _ _ _ e
+
+protected lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
 @function.surjective.supr_congr αᵒᵈ _ _ _ _ _ h h1 h2
+
+protected lemma equiv.infi_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g (e x) = f x) :
+  (⨅ x, f x) = ⨅ y, g y :=
+@equiv.supr_congr αᵒᵈ _ _ _ _ _ e h
 
 @[congr]lemma infi_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=

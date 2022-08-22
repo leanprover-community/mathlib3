@@ -134,6 +134,48 @@ begin
     exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
 end
 
+@[simp] lemma realize_constants_to_vars [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {t : L[[α]].term β} {v : β → M} :
+  t.constants_to_vars.realize (sum.elim (λ a, ↑(L.con a)) v) = t.realize v :=
+begin
+  induction t with _ n f _ ih,
+  { simp },
+  { cases n,
+    { cases f,
+      { simp [ih], },
+      { simp only [realize, constants_to_vars, sum.elim_inl, fun_map_eq_coe_constants],
+        refl } },
+    { cases f,
+      { simp [ih] },
+      { exact is_empty_elim f } } }
+end
+
+@[simp] lemma realize_vars_to_constants [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {t : L.term (α ⊕ β)} {v : β → M} :
+  t.vars_to_constants.realize v = t.realize (sum.elim (λ a, ↑(L.con a)) v) :=
+begin
+  induction t with ab n f ts ih,
+  { cases ab;
+    simp [language.con], },
+  { simp [ih], }
+end
+
+lemma realize_constants_vars_equiv_left [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {t : L[[α]].term (β ⊕ fin n)} {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv_left t).realize (sum.elim (sum.elim (λ a, ↑(L.con a)) v) xs) =
+    t.realize (sum.elim v xs) :=
+begin
+  simp only [constants_vars_equiv_left, realize_relabel, equiv.coe_trans, function.comp_app,
+    constants_vars_equiv_apply, relabel_equiv_symm_apply],
+  refine trans _ (realize_constants_to_vars),
+  rcongr,
+  rcases x with (a | (b | i));
+  simp,
+end
+
 end term
 
 namespace Lhom
@@ -144,7 +186,7 @@ namespace Lhom
 begin
   induction t with _ n f ts ih,
   { refl },
-  { simp only [term.realize, Lhom.on_term, Lhom.is_expansion_on.map_on_function, ih] }
+  { simp only [term.realize, Lhom.on_term, Lhom.map_on_function, ih] }
 end
 
 end Lhom
@@ -393,6 +435,20 @@ begin
   { simp [restrict_free_var, realize, ih3] },
 end
 
+lemma realize_constants_vars_equiv [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {φ : L[[α]].bounded_formula β n} {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize v xs :=
+begin
+  refine realize_map_term_rel_id (λ n t xs, realize_constants_vars_equiv_left) (λ n R xs, _),
+  rw ← (Lhom_with_constants L α).map_on_relation (equiv.sum_empty (L.relations n)
+    ((constants_on α).relations n) R) xs,
+  rcongr,
+  cases R,
+  { simp, },
+  { exact is_empty_elim R }
+end
+
 variables [nonempty M]
 
 lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
@@ -486,7 +542,7 @@ begin
   { refl },
   { simp only [on_bounded_formula, realize_bd_equal, realize_on_term],
     refl, },
-  { simp only [on_bounded_formula, realize_rel, realize_on_term, is_expansion_on.map_on_relation],
+  { simp only [on_bounded_formula, realize_rel, realize_on_term, Lhom.map_on_relation],
     refl, },
   { simp only [on_bounded_formula, ih1, ih2, realize_imp], },
   { simp only [on_bounded_formula, ih3, realize_all], },

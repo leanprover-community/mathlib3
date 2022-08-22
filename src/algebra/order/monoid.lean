@@ -732,23 +732,6 @@ end linear_ordered_cancel_comm_monoid
 
 namespace order_dual
 
-@[to_additive] instance [h : has_mul α] : has_mul αᵒᵈ := h
-@[to_additive] instance [h : has_one α] : has_one αᵒᵈ := h
-@[to_additive] instance [h : semigroup α] : semigroup αᵒᵈ := h
-@[to_additive] instance [h : comm_semigroup α] : comm_semigroup αᵒᵈ := h
-@[to_additive] instance [h : mul_one_class α] : mul_one_class αᵒᵈ := h
-@[to_additive] instance [h : monoid α] : monoid αᵒᵈ := h
-@[to_additive] instance [h : comm_monoid α] : comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_monoid α] : cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid αᵒᵈ := h
-instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
-instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
-instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
-instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
-instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
-
 @[to_additive]
 instance contravariant_class_mul_le [has_le α] [has_mul α] [c : contravariant_class α α (*) (≤)] :
   contravariant_class αᵒᵈ αᵒᵈ (*) (≤) :=
@@ -820,6 +803,8 @@ instance [linear_ordered_comm_monoid α] :
   .. order_dual.ordered_comm_monoid }
 
 end order_dual
+
+/-! ### Product -/
 
 namespace prod
 
@@ -1012,6 +997,18 @@ protected lemma add_lt_add_of_lt_of_le [preorder α] [covariant_class α α (+) 
   [covariant_class α α (swap (+)) (<)] (hc : c ≠ ⊤) (hab : a < b) (hcd : c ≤ d) : a + c < b + d :=
 (with_top.add_lt_add_right hc hab).trans_le $ add_le_add_left hcd _
 
+/-  There is no `with_top.map_mul_of_mul_hom`, since `with_top` does not have a multiplication. -/
+@[simp] protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_top α) :
+  (a + b).map f = a.map f + b.map f :=
+begin
+  induction a using with_top.rec_top_coe,
+  { exact (top_add _).symm },
+  { induction b using with_top.rec_top_coe,
+    { exact (add_top _).symm },
+    { rw [map_coe, map_coe, ← coe_add, ← coe_add, ← map_add],
+      refl } },
+end
+
 end has_add
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
@@ -1054,6 +1051,15 @@ instance [add_monoid α] : add_monoid (with_top α) :=
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { ..with_top.add_monoid, ..with_top.add_comm_semigroup }
+
+instance [add_monoid_with_one α] : add_monoid_with_one (with_top α) :=
+{ nat_cast := λ n, ↑(n : α),
+  nat_cast_zero := by rw [nat.cast_zero, with_top.coe_zero],
+  nat_cast_succ := λ n, by rw [nat.cast_add_one, with_top.coe_add, with_top.coe_one],
+  .. with_top.has_one, .. with_top.add_monoid }
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one (with_top α) :=
+{ .. with_top.add_monoid_with_one, .. with_top.add_comm_monoid }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 { add_le_add_left :=
@@ -1098,6 +1104,10 @@ instance [canonically_linear_ordered_add_monoid α] :
   canonically_linear_ordered_add_monoid (with_top α) :=
 { ..with_top.canonically_ordered_add_monoid, ..with_top.linear_order }
 
+@[simp, norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_top α) = n := rfl
+@[simp] lemma nat_ne_top [add_monoid_with_one α] (n : ℕ) : (n : with_top α) ≠ ⊤ := coe_ne_top
+@[simp] lemma top_ne_nat [add_monoid_with_one α] (n : ℕ) : (⊤ : with_top α) ≠ n := top_ne_coe
+
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=
 ⟨coe, rfl, λ _ _, rfl⟩
@@ -1123,11 +1133,7 @@ protected def _root_.one_hom.with_top_map {M N : Type*} [has_one M] [has_one N] 
   {M N : Type*} [has_add M] [has_add N] (f : add_hom M N) :
   add_hom (with_top M) (with_top N) :=
 { to_fun := with_top.map f,
-  map_add' := λ x y, match x, y with
-    ⊤, y := by rw [top_add, map_top, top_add],
-    x, ⊤ := by rw [add_top, map_top, add_top],
-    (x : M), (y : M) := by simp only [← coe_add, map_coe, map_add]
-  end }
+  map_add' := with_top.map_add f }
 
 /-- A version of `with_top.map` for `add_monoid_hom`s. -/
 @[simps { fully_applied := ff }] protected def _root_.add_monoid_hom.with_top_map
@@ -1147,6 +1153,10 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.
 instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero_class
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) := with_top.add_comm_monoid
+instance [add_monoid_with_one α] : add_monoid_with_one (with_bot α) := with_top.add_monoid_with_one
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one (with_bot α) :=
+with_top.add_comm_monoid_with_one
 
 instance [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
   zero_le_one_class (with_bot α) :=
@@ -1163,6 +1173,10 @@ with_top.coe_eq_one
 
 @[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
+
+@[norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_bot α) = n := rfl
+@[simp] lemma nat_ne_bot [add_monoid_with_one α] (n : ℕ) : (n : with_bot α) ≠ ⊥ := coe_ne_bot
+@[simp] lemma bot_ne_nat [add_monoid_with_one α] (n : ℕ) : (⊥ : with_bot α) ≠ n := bot_ne_coe
 
 section has_add
 variables [has_add α] {a b c d : with_bot α} {x y : α}
@@ -1185,6 +1199,32 @@ lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a
 
 @[simp] lemma add_coe_eq_bot_iff : a + y = ⊥ ↔ a = ⊥ := with_top.add_coe_eq_top_iff
 @[simp] lemma coe_add_eq_bot_iff : ↑x + b = ⊥ ↔ b = ⊥ := with_top.coe_add_eq_top_iff
+
+/-  There is no `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have a multiplication. -/
+@[simp] protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_bot α) :
+  (a + b).map f = a.map f + b.map f :=
+with_top.map_add f a b
+
+/-- A version of `with_bot.map` for `one_hom`s. -/
+@[to_additive "A version of `with_bot.map` for `zero_hom`s", simps { fully_applied := ff }]
+protected def _root_.one_hom.with_bot_map {M N : Type*} [has_one M] [has_one N] (f : one_hom M N) :
+  one_hom (with_bot M) (with_bot N) :=
+{ to_fun := with_bot.map f,
+  map_one' := by rw [with_bot.map_one, map_one, coe_one] }
+
+/-- A version of `with_bot.map` for `add_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_hom.with_bot_map
+  {M N : Type*} [has_add M] [has_add N] (f : add_hom M N) :
+  add_hom (with_bot M) (with_bot N) :=
+{ to_fun := with_bot.map f,
+  map_add' := with_bot.map_add f }
+
+/-- A version of `with_bot.map` for `add_monoid_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_monoid_hom.with_bot_map
+  {M N : Type*} [add_zero_class M] [add_zero_class N] (f : M →+ N) :
+  with_bot M →+ with_bot N :=
+{ to_fun := with_bot.map f,
+  .. f.to_zero_hom.with_bot_map, .. f.to_add_hom.with_bot_map }
 
 variables [preorder α]
 

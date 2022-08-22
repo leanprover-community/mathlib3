@@ -121,12 +121,6 @@ the arrow. -/
 localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
 localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
 
-/- `simp` looks for subsingleton instances at every call. This turns out to be very
-inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
-Disable two such instances to speed up things.
-NB: this is just a hack. TODO: fix `simp` properly. -/
-localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
-
 open set local_homeomorph
 
 /-! ### Structure groupoids-/
@@ -503,6 +497,16 @@ lemma chart_source_mem_nhds (x : M) : (chart_at H x).source ∈ 𝓝 x :=
 lemma chart_target_mem_nhds (x : M) : (chart_at H x).target ∈ 𝓝 (chart_at H x x) :=
 (chart_at H x).open_target.mem_nhds $ mem_chart_target H x
 
+/-- `achart H x` is the chart at `x`, considered as an element of the atlas.
+Especially useful for working with `basic_smooth_vector_bundle_core` -/
+def achart (x : M) : atlas H M := ⟨chart_at H x, chart_mem_atlas H x⟩
+
+lemma achart_def (x : M) : achart H x = ⟨chart_at H x, chart_mem_atlas H x⟩ := rfl
+@[simp, mfld_simps]
+lemma coe_achart (x : M) : (achart H x : local_homeomorph M H) = chart_at H x := rfl
+@[simp, mfld_simps]
+lemma achart_val (x : M) : (achart H x).1 = chart_at H x := rfl
+
 open topological_space
 
 lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
@@ -542,6 +546,23 @@ begin
   refine locally_compact_space_of_has_basis this _,
   rintro x s ⟨h₁, h₂, h₃⟩,
   exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
+end
+
+/-- If a topological space admits an atlas with locally connected charts, then the space itself is
+locally connected. -/
+lemma charted_space.locally_connected_space [locally_connected_space H] :
+  locally_connected_space M :=
+begin
+  let E : M → local_homeomorph M H := chart_at H,
+  refine locally_connected_space_of_connected_bases
+    (λ x s, (E x).symm '' s)
+    (λ x s, (is_open s ∧ E x x ∈ s ∧ is_connected s) ∧ s ⊆ (E x).target) _ _,
+  { intros x,
+    simpa only [local_homeomorph.symm_map_nhds_eq, mem_chart_source] using
+      ((locally_connected_space.open_connected_basis (E x x)).restrict_subset
+      ((E x).open_target.mem_nhds (mem_chart_target H x))).map (E x).symm },
+  { rintros x s ⟨⟨-, -, hsconn⟩, hssubset⟩,
+    exact hsconn.is_preconnected.image _ ((E x).continuous_on_symm.mono hssubset) },
 end
 
 end
@@ -648,7 +669,7 @@ end charted_space
 have a topological structure, where the topology would come from the charts. For this, one needs
 charts that are only local equivs, and continuity properties for their composition.
 This is formalised in `charted_space_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure charted_space_core (H : Type*) [topological_space H] (M : Type*) :=
 (atlas            : set (local_equiv M H))
 (chart_at         : M → local_equiv M H)
@@ -792,13 +813,13 @@ def structure_groupoid.maximal_atlas : set (local_homeomorph M H) :=
 variable {M}
 
 /-- The elements of the atlas belong to the maximal atlas for any structure groupoid -/
-lemma structure_groupoid.mem_maximal_atlas_of_mem_atlas [has_groupoid M G]
-  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ G.maximal_atlas M :=
-λ e' he', ⟨G.compatible he he', G.compatible he' he⟩
+lemma structure_groupoid.subset_maximal_atlas [has_groupoid M G] :
+  atlas H M ⊆ G.maximal_atlas M :=
+λ e he e' he', ⟨G.compatible he he', G.compatible he' he⟩
 
 lemma structure_groupoid.chart_mem_maximal_atlas [has_groupoid M G]
   (x : M) : chart_at H x ∈ G.maximal_atlas M :=
-G.mem_maximal_atlas_of_mem_atlas (chart_mem_atlas H x)
+G.subset_maximal_atlas (chart_mem_atlas H x)
 
 variable {G}
 
@@ -835,7 +856,7 @@ variable (G)
 
 /-- In the model space, the identity is in any maximal atlas. -/
 lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
-G.mem_maximal_atlas_of_mem_atlas (by simp)
+G.subset_maximal_atlas $ by simp
 
 end maximal_atlas
 
@@ -939,7 +960,7 @@ end topological_space.opens
 /-- A `G`-diffeomorphism between two charted spaces is a homeomorphism which, when read in the
 charts, belongs to `G`. We avoid the word diffeomorph as it is too related to the smooth category,
 and use structomorph instead. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure structomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
   [topological_space M] [topological_space M'] [charted_space H M] [charted_space H M']
   extends homeomorph M M' :=

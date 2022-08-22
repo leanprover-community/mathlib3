@@ -116,7 +116,7 @@ end
 
 /-- See also `finset.product_bUnion`. -/
 lemma sup_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
 begin
   refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ i' hi', le_sup $ mem_product.2 ⟨hi, hi'⟩)),
   refine sup_le _,
@@ -127,7 +127,7 @@ begin
 end
 
 lemma sup_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
 by rw [sup_product_left, sup_comm]
 
 @[simp] lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
@@ -163,6 +163,14 @@ by { rw [comp_sup_eq_sup_comp coe]; intros; refl }
   (s : finset α) (f : α → multiset β) :
   (s.sup f).to_finset = s.sup (λ x, (f x).to_finset) :=
 comp_sup_eq_sup_comp multiset.to_finset to_finset_union rfl
+
+lemma _root_.list.foldr_sup_eq_sup_to_finset [decidable_eq α] (l : list α) :
+  l.foldr (⊔) ⊥ = l.to_finset.sup id :=
+begin
+  rw [←coe_fold_r, ←multiset.fold_dedup_idem, sup_def, ←list.to_finset_coe, to_finset_val,
+      multiset.map_id],
+  refl
+end
 
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
@@ -314,11 +322,11 @@ lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
 @sup_comm αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
 @sup_product_left αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
 @sup_product_right αᵒᵈ _ _ _ _ _ _ _
 
 @[simp] lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
@@ -361,6 +369,14 @@ lemma inf_coe {P : α → Prop}
   (t : finset β) (f : β → {x : α // P x}) :
   (@inf _ _ (subtype.semilattice_inf Pinf) (subtype.order_top Ptop) t f : α) = t.inf (λ x, f x) :=
 @sup_coe αᵒᵈ _ _ _ _ Ptop Pinf t f
+
+lemma _root_.list.foldr_inf_eq_inf_to_finset [decidable_eq α] (l : list α) :
+  l.foldr (⊓) ⊤ = l.to_finset.inf id :=
+begin
+  rw [←coe_fold_r, ←multiset.fold_dedup_idem, inf_def, ←list.to_finset_coe, to_finset_val,
+      multiset.map_id],
+  refl
+end
 
 lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
@@ -793,6 +809,8 @@ and `⊥` otherwise. It belongs to `with_bot α`. If you want to get an element 
 protected def max (s : finset α) : with_bot α :=
 sup s coe
 
+lemma max_eq_sup_coe {s : finset α} : s.max = s.sup coe := rfl
+
 theorem max_eq_sup_with_bot (s : finset α) :
   s.max = sup s coe := rfl
 
@@ -1026,11 +1044,33 @@ end
   {f : α → β} (hf : monotone f) (s : finset α) (h : (s.image f).nonempty) :
   (s.image f).min' h = f (s.min' ((nonempty.image_iff f).mp h)) :=
 begin
-  refine le_antisymm (min'_le _ _ (mem_image.mpr ⟨_, min'_mem _ _, rfl⟩))
-    (le_min' _ _ _ (λ y hy, _)),
-  obtain ⟨x, hx, rfl⟩ := mem_image.mp hy,
-  exact hf (min'_le _ _ hx)
+  convert @max'_image αᵒᵈ βᵒᵈ _ _ (λ a : αᵒᵈ, to_dual (f (of_dual a))) (by simpa) _ _; convert h,
+  rw nonempty.image_iff,
 end
+
+lemma coe_max' {s : finset α} (hs : s.nonempty) : ↑(s.max' hs) = s.max := coe_sup' hs id
+
+lemma coe_min' {s : finset α} (hs : s.nonempty) : ↑(s.min' hs) = s.min := coe_inf' hs id
+
+lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).max' s0 ≠ x :=
+ne_of_mem_erase (max'_mem _ s0)
+
+lemma min'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).min' s0 ≠ x :=
+ne_of_mem_erase (min'_mem _ s0)
+
+lemma max_erase_ne_self {s : finset α} : (s.erase x).max ≠ x :=
+begin
+  by_cases s0 : (s.erase x).nonempty,
+  { refine ne_of_eq_of_ne (coe_max' s0).symm _,
+    exact with_bot.coe_eq_coe.not.mpr (max'_erase_ne_self _) },
+  { rw [not_nonempty_iff_eq_empty.mp s0, max_empty],
+    exact with_bot.bot_ne_coe }
+end
+
+lemma min_erase_ne_self {s : finset α} : (s.erase x).min ≠ x :=
+by convert @max_erase_ne_self αᵒᵈ _ _ _
 
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:

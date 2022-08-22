@@ -253,9 +253,8 @@ lemma disjoint_partial_infs_eventually_top (f : ℕ → submodule R M)
   ∃ n : ℕ, ∀ m, n ≤ m → f m = ⊤  :=
 begin
   -- A little off-by-one cleanup first:
-  suffices t : ∃ n : ℕ, ∀ m, n ≤ m → order_dual.to_dual f (m+1) = ⊤,
-  { obtain ⟨n, w⟩ := t,
-    use n+1,
+  rsuffices ⟨n, w⟩ : ∃ n : ℕ, ∀ m, n ≤ m → order_dual.to_dual f (m+1) = ⊤,
+  { use n+1,
     rintros (_|m) p,
     { cases p, },
     { apply w,

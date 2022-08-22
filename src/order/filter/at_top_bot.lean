@@ -1386,9 +1386,8 @@ lemma has_antitone_basis.subbasis_with_rel {f : filter α} {s : ℕ → set α}
   (hs : f.has_antitone_basis s) {r : ℕ → ℕ → Prop} (hr : ∀ m, ∀ᶠ n in at_top, r m n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ (∀ ⦃m n⦄, m < n → r (φ m) (φ n)) ∧ f.has_antitone_basis (s ∘ φ) :=
 begin
-  suffices : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
-  { rcases this with ⟨φ, hφ, hrφ⟩,
-    exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
+  rsuffices ⟨φ, hφ, hrφ⟩ : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
+  { exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
   have : ∀ t : set ℕ, t.finite → ∀ᶠ n in at_top, ∀ m ∈ t, m < n ∧ r m n,
     from λ t ht, (eventually_all_finite ht).2 (λ m hm, (eventually_gt_at_top m).and (hr _)),
   rcases seq_of_forall_finite_exists (λ t ht, (this t ht).exists) with ⟨φ, hφ⟩,

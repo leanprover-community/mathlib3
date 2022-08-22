@@ -755,9 +755,29 @@ begin
 end
 
 -- TODO: Re-write this using `min`
-lemma factorization_add_of_lt (p a b : ℕ) (h : a.factorization p ≤ b.factorization p) :
+lemma factorization_add_of_lt (p a b : ℕ) (h : a.factorization p ≤ b.factorization p)
+  (ha0 : a ≠ 0) :
   (a + b).factorization p = a.factorization p :=
 begin
+  rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
+  rcases em' p.prime with pp | pp, { simp [pp] },
+
+  have ha := (ord_proj_mul_ord_compl_eq_self a p).symm,
+  have hb := (ord_proj_mul_ord_compl_eq_self b p).symm,
+  set a' := ord_compl[p] a with ha',
+  set b' := ord_compl[p] b with hb',
+  set α := a.factorization p with hα,
+  set β := b.factorization p with hβ,
+  have h1 : a + b = p^α * (a' + p^(β-α)*b'),
+  { rw [mul_add, ←ha, add_right_inj, ←mul_assoc, ←pow_add, hb, add_tsub_cancel_iff_le.2 h] },
+  rw h1,
+  rw factorization_mul (ord_proj_pos a p).ne', swap,
+  { apply ne_of_gt,
+    apply add_pos (ord_compl_pos p ha0),
+    exact mul_pos (pow_pos pp.pos _) (ord_compl_pos p hb0) },
+    rw finsupp.add_apply,
+  suffices : (a' + p ^ (β - α) * b').factorization p = 0,
+  { rw [this, add_zero, pp.factorization_pow], simp },
 
   sorry,
 end

@@ -136,30 +136,36 @@ begin
   rw nat.cast_sub hi.le,
 end
 
+lemma finset.prod_neg
+  {α β : Type*} [comm_ring α] (s : finset β) (f : β → α) :
+    ∏ x in s, -f x = (-1) ^ s.card * ∏ x in s, f x :=
+by simp_rw [←finset.prod_const, ←finset.prod_mul_distrib, neg_one_mul]
+
+lemma nat.sub_sub_comm (a b c : ℕ) : a - b - c = a - c - b :=
+by rw [nat.sub_sub, add_comm, ←nat.sub_sub]
+
 theorem deriv_f_p_zero_when_j_eq_p_sub_one (p : ℕ) (hp : 1 < p) (n : ℕ) :
   polynomial.eval 0 (polynomial.derivative^[p - 1] (f_p p n)) = (p-1).factorial * (-1)^(n*p)*(n.factorial)^p :=
 begin
   rw [f_p, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
   rw finset.sum_eq_single 0,
-  { simp only [nat.choose_self, int.cast_add, one_mul, int.coe_nat_zero, polynomial.eval_mul,
-      int.coe_nat_succ, zero_add, nat.factorial, function.iterate_zero_apply, int.cast_coe_nat,
-      ring_hom.eq_int_cast, nat.choose_zero_right, polynomial.iterate_derivative_X_pow_eq_smul,
-      polynomial.eval_prod, polynomial.eval_X, mul_one, algebra.id.smul_eq_mul, zero_sub,
-      nat.sub_self, polynomial.eval_one, polynomial.eval_pow, int.cast_one, polynomial.eval_smul,
-      polynomial.eval_nat_cast, nat.sub_zero, polynomial.eval_add, neg_add_rev, polynomial.eval_sub,
-      pow_zero, one_smul],
-    rw mul_assoc,
+  { rw [mul_assoc, nat.choose_zero_right, one_smul, polynomial.eval_mul],
     congr' 1,
-    { rw [fact_eq_prod', nat.cast_prod],
-      apply finset.prod_congr rfl (λ i hi, _),
-      rw [finset.mem_range] at hi,
-      exact nat.cast_sub hi.le },
-    rw fact_eq_prod, rw pow_mul, rw <-mul_pow, simp_rw <-neg_add,
-
-    have rhs : ((-1:ℤ) ^ n * ∏ (i : ℕ) in finset.range n, (↑i + 1)) = (∏ (i : ℕ) in finset.range n, (-1) * (↑i + 1)),
-    {rw finset.prod_mul_distrib, rw finset.prod_const, rw [finset.card_range]},
-    rw rhs, rw finset.prod_pow, congr' 1, apply finset.prod_congr rfl, rintro x -,
-    rw neg_one_mul, rw add_comm },
+    { rw [tsub_zero, polynomial.iterate_derivative_X_pow_eq_smul,
+        tsub_self, pow_zero, polynomial.eval_smul, polynomial.eval_one,
+        int.smul_one_eq_coe, int.cast_coe_nat, ←finset.prod_range_add_one_eq_factorial,
+        ←finset.prod_range_reflect (λ x, x + 1)],
+      refine congr_arg _ (finset.prod_congr rfl (λ i hi, _)),
+      rw [finset.mem_range, ←nat.add_one_le_iff] at hi,
+      simp only [],
+      rw [nat.sub_sub_comm (p - 1), nat.sub_add_cancel],
+      exact le_tsub_of_add_le_left hi },
+    { rw [function.iterate_zero_apply, finset.prod_pow, polynomial.eval_pow,
+        polynomial.eval_prod],
+      simp_rw [polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C, zero_sub],
+      rw [finset.prod_neg, finset.card_range, mul_pow, pow_mul,
+        ←finset.prod_range_add_one_eq_factorial, nat.cast_prod],
+      simp_rw [nat.cast_add, nat.cast_one] } },
 
   { intros i hi1 hi2,
     have : 0 < p - 1 - (p - 1 - i),

@@ -91,7 +91,7 @@ def skyscraper_sheaf : sheaf C X :=
    then x (hs p₀ h).some_spec.some (hs p₀ h).some_spec.some_spec.1 ≫
         eq_to_hom ((skyscraper_presheaf_obj_of_mem S (hs p₀ h).some_spec.some_spec.2).trans
           (skyscraper_presheaf_obj_of_mem S h).symm)
-   else terminal.from c ≫ (eq_to_hom (skyscraper_presheaf_obj_of_not_mem S h).symm),
+   else (is_terminal.ite_not h terminal_is_terminal).from _,
    λ V inc h,
    begin
      by_cases hV : p₀ ∈ V,
@@ -120,9 +120,9 @@ def skyscraper_sheaf : sheaf C X :=
        rw [eq_comp_eq_to_hom] at this,
        rw [this, eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
          category.comp_id], },
-     { rw [←eq_comp_eq_to_hom],
-       exact terminal_is_terminal.hom_ext _ _, }
-   end⟩⟩
+     { exact (is_terminal.ite_not h terminal_is_terminal).hom_ext _ _, }
+   end⟩
+   ⟩
 
 end
 
@@ -156,21 +156,17 @@ The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S` when `y �
 @[simps] def skyscraper_presheaf_cocone_of_specializes {y : X} (h : p₀ ⤳ y) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S) :=
 { X := S,
-  ι :=
-  { app := λ U, eq_to_hom $ if_pos (h.mem_open U.unop.1.2 U.unop.2),
-    naturality' := λ U V inc,
-    begin
-      simp only [functor.op_obj, unop_op, functor.comp_map, functor.op_map, skyscraper_presheaf_map,
-        category.id_comp, eq_to_hom_trans, functor.const_obj_map, category.assoc],
-      by_cases hV : p₀ ∈ (open_nhds.inclusion y).obj V.unop,
-      { have hU : p₀ ∈ unop ((open_nhds.inclusion y).op.obj U) := le_of_hom inc.unop hV,
-        split_ifs,
-        erw [eq_to_hom_trans, category.comp_id],
-        refl },
-      { split_ifs with hU;
-        erw [category.comp_id, category.assoc, eq_to_hom_trans, eq_comp_eq_to_hom, eq_to_hom_trans];
-        exact terminal_is_terminal.hom_ext _ _, },
-    end } }
+  ι := eq_to_hom $ category_theory.functor.ext
+  begin
+    intros U, dsimp, rw if_pos, exact h.mem_open U.unop.1.2 U.unop.2,
+  end
+  begin
+    intros U V inc,
+    dsimp, rw [category.id_comp, eq_to_hom_trans],
+    have hV : p₀ ∈ (open_nhds.inclusion y).obj (unop V) := h.mem_open V.unop.1.2 V.unop.2,
+    have hU : p₀ ∈ (open_nhds.inclusion y).obj (unop U):= h.mem_open U.unop.1.2 U.unop.2,
+    split_ifs, refl,
+  end }
 
 /--
 The canonical map `S ⟶ (skyscraper_presheaf p₀ S t).stalk y` when `y ∈ closure {p₀}`
@@ -198,8 +194,7 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes [has_coli
     have h'' : p₀ ∈ (open_nhds.inclusion y).obj ⊤ := trivial,
     split_ifs at this,
     rw [category.comp_id, eq_eq_to_hom_comp] at this,
-    rw [this, eq_eq_to_hom_comp, ←category.assoc, eq_to_hom_trans, eq_to_hom_refl,
-      category.id_comp],
+    rw [eq_to_hom_app, ←category.assoc, eq_to_hom_trans, this],
     congr,
   end,
   uniq' := λ c f h,
@@ -208,7 +203,7 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes [has_coli
     erw [colimit.ι_desc],
     specialize h (op ⟨⊤, trivial⟩),
     erw [←h],
-    simp only [skyscraper_presheaf_cocone_of_specializes_ι_app, category.assoc,
+    simp only [skyscraper_presheaf_cocone_of_specializes_ι, eq_to_hom_app,
       eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp],
   end }
 
@@ -267,25 +262,21 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes [has_
       eq_comp_eq_to_hom, eq_to_hom_refl, category.comp_id],
     transitivity _ ≫ c.ι.app (op (U.unop ⊓ h1.some)),
     work_on_goal 2
-    { refine terminal.from _ ≫ eq_to_hom _,
-      have h1 : p₀ ∉ (open_nhds.inclusion y).obj (unop U ⊓ h1.some),
-      { exact λ h, h1.some_spec h.2, },
-      dsimp,
-      rw if_neg h1, },
+    { refine (is_terminal.ite_not _ terminal_is_terminal).from _,
+      exact λ h, h1.some_spec h.2, },
     work_on_goal 2
     { have := c.ι.naturality ((hom_of_le inf_le_left).op : op U.unop ⟶ op (unop U ⊓ h1.some)),
       erw [category.comp_id] at this,
       erw ←this,
       congr,
-      rw [eq_comp_eq_to_hom],
-      exact terminal_is_terminal.hom_ext _ _, },
+      refine (is_terminal.ite_not _ terminal_is_terminal).hom_ext _ _,
+      exact λ h, h1.some_spec h.2, },
     have := c.ι.naturality ((hom_of_le inf_le_right).op : op h1.some ⟶ op (unop U ⊓ h1.some)),
     erw [category.comp_id] at this,
     erw [←this, ←category.assoc],
     congr' 1,
-    symmetry,
-    rw [eq_comp_eq_to_hom],
-    exact terminal_is_terminal.hom_ext _ _,
+    refine (is_terminal.ite_not _ terminal_is_terminal).hom_ext _ _,
+    exact λ h, h1.some_spec h.2,
   end,
   uniq' := λ c f H,
   begin

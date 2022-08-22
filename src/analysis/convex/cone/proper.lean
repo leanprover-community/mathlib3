@@ -159,4 +159,42 @@ begin
   use ⟨x, hxK, rfl⟩,
 end
 
+section definitions
+
+/-- Let `K` and `L` be proper cones in `E` and `F`, respectively. Let `c : E` and `b : F`. A cone
+program is the constrained optimization problem maximizing `⟪c, x⟫_ℝ` subject to `b - A x ∈ L`
+and `x ∈ K`. -/
+structure cone_program  (E F : Type*)
+  [inner_product_space ℝ E] [complete_space E] [inner_product_space ℝ F] [complete_space F] :=
+(K : proper_cone E)
+(L : proper_cone F)
+(c : E)
+(b : F)
+(A : E →L[ℝ] F)
+
+end definitions
+
+namespace cone_program
+
+def feasible (p : cone_program E F) (x : E) := (p.b - p.A x ∈ p.L) ∧ (x ∈ p.K)
+
+def feasible_values (p : cone_program E F) := { r : ℝ | ∃ x : E, ⟪p.c, x⟫_ℝ = r ∧ p.feasible x }
+
+noncomputable def value (p : cone_program E F) := Sup p.feasible_values
+
+def optimal_solution (p : cone_program E F) (x : E) :=
+p.feasible x ∧ ∀ y, p.feasible x → ⟪c, x⟫_ℝ ≥ ⟪c, y⟫_ℝ
+
+lemma bdd_if_optimal (p : cone_program E F) (x : E) (hx : p.optimal_solution x) :
+  bdd_above p.feasible_values :=
+begin
+  rw bdd_above_def,
+  use ⟪p.c, x⟫_ℝ,
+  intros y hy,
+
+end
+
+end cone_program
+
+
 end complete_space

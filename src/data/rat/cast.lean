@@ -284,6 +284,11 @@ open set
 @[simp] lemma preimage_cast_Iio (a : ℚ) : coe ⁻¹' (Iio (a : K)) = Iio a := by { ext x, simp }
 
 end linear_ordered_field
+
+@[norm_cast] theorem cast_id (n : ℚ) : (↑n : ℚ) = n := by rw [cast_def, num_div_denom]
+@[simp] theorem cast_eq_id : (coe : ℚ → ℚ) = id := funext cast_id
+@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ := ring_hom.ext cast_id
+
 end rat
 
 open rat ring_hom

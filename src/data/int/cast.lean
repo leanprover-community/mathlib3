@@ -294,3 +294,23 @@ variables [add_group_with_one α]
 @[simp, norm_cast] lemma unop_int_cast (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
 
 end mul_opposite
+
+/-! ### Order dual -/
+
+open order_dual
+
+instance [h : has_int_cast α] : has_int_cast αᵒᵈ := h
+instance [h : add_group_with_one α] : add_group_with_one αᵒᵈ := h
+instance [h : add_comm_group_with_one α] : add_comm_group_with_one αᵒᵈ := h
+
+@[simp] lemma to_dual_int_cast [has_int_cast α] (n : ℤ) : to_dual (n : α) = n := rfl
+@[simp] lemma of_dual_int_cast [has_int_cast α] (n : ℤ) : (of_dual n : α) = n := rfl
+
+/-! ### Lexicographic order -/
+
+instance [h : has_int_cast α] : has_int_cast (lex α) := h
+instance [h : add_group_with_one α] : add_group_with_one (lex α) := h
+instance [h : add_comm_group_with_one α] : add_comm_group_with_one (lex α) := h
+
+@[simp] lemma to_lex_int_cast [has_int_cast α] (n : ℤ) : to_lex (n : α) = n := rfl
+@[simp] lemma of_lex_int_cast [has_int_cast α] (n : ℤ) : (of_lex n : α) = n := rfl

@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {M₀ G₀ M₀' G₀' F : Type*}
+variables {α M₀ G₀ M₀' G₀' F : Type*}
 
 section
 
@@ -1050,3 +1050,31 @@ noncomputable def comm_group_with_zero_of_is_unit_or_eq_zero [hM : comm_monoid_w
 { .. (group_with_zero_of_is_unit_or_eq_zero h), .. hM }
 
 end noncomputable_defs
+
+/-! ### Order dual -/
+
+open order_dual
+
+instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors αᵒᵈ := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero αᵒᵈ := h
+instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero αᵒᵈ := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
+instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
+
+/-! ### Lexicographic order -/
+
+instance [h : mul_zero_class α] : mul_zero_class (lex α) := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class (lex α) := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors (lex α) := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero (lex α) := h
+instance [h : monoid_with_zero α] : monoid_with_zero (lex α) := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero (lex α) := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (lex α) := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (lex α) := h
+instance [h : group_with_zero α] : group_with_zero (lex α) := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero (lex α) := h

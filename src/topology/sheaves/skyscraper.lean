@@ -297,8 +297,8 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes [has_
     simp only [skyscraper_presheaf_cocone_ι_app],
     dsimp,
     have : terminal.from
-      (ite (p₀ ∈ (mem_nhds_of_not_mem_closure_singleton p₀ h).some.1) S (terminal C)) =
-      eq_to_hom (if_neg (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec) :=
+      (ite (p₀ ∈ (mem_nhds_of_not_specializes p₀ h).some.1) S (terminal C)) =
+      eq_to_hom (if_neg (mem_nhds_of_not_specializes p₀ h).some_spec) :=
     terminal_is_terminal.hom_ext _ _,
     erw [this, ←category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.id_comp]
   end }

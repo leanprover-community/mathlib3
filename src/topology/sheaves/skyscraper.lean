@@ -92,7 +92,7 @@ def skyscraper_sheaf : sheaf C X :=
     (λ h, x (hs p₀ h).some_spec.some (hs p₀ h).some_spec.some_spec.1 ≫
         eq_to_hom ((skyscraper_presheaf_obj_of_mem S (hs p₀ h).some_spec.some_spec.2).trans
           (skyscraper_presheaf_obj_of_mem S h).symm))
-    (λ h, terminal.from c ≫ (eq_to_hom (skyscraper_presheaf_obj_of_not_mem S h).symm)),
+    (λ h, terminal.from c ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem S h).symm),
     λ V inc h,
     begin
       by_cases hV : p₀ ∈ V,
@@ -181,11 +181,11 @@ The canonical map `S ⟶ (skyscraper_presheaf p₀ S t).stalk y` when `y ∈ clo
 -/
 noncomputable def skyscraper_presheaf_from [has_colimits C] {y : X} :
   S ⟶ (skyscraper_presheaf p₀ S).stalk y :=
-eq_to_hom (skyscraper_presheaf_obj_of_mem S (by tauto : p₀ ∈ ⊤)).symm ≫
+eq_to_hom (skyscraper_presheaf_obj_of_mem S (trivial : p₀ ∈ ⊤)).symm ≫
   (skyscraper_presheaf p₀ S).germ (⟨y, trivial⟩ : (⊤ : opens X))
 
 /--
-The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}` is a
+The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}` is a
 colimit
 -/
 noncomputable def skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit [has_colimits C]
@@ -222,7 +222,7 @@ If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y`
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_mem_closure₀ [has_colimits C]
   {y : X} (h : p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ S :=
-colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit p₀ S h)⟩
+colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit p₀ S h⟩
 
 /--
 The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}`
@@ -309,6 +309,6 @@ If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y`
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_mem_closure₀ [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ terminal C :=
-colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit _ S h)⟩
+colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit _ S h⟩
 
 end

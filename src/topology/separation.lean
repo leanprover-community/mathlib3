@@ -1021,7 +1021,7 @@ begin
   { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
 end
 
-variables [topological_space β]
+variables {γ : Type*} [topological_space β] [topological_space γ]
 
 lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
@@ -1043,6 +1043,22 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
+
+lemma eq_on_closure₂' [t2_space α] {s : set β} {t : set γ} {f g : β → γ → α}
+  (h : ∀ (x ∈ s) (y ∈ t), f x y = g x y) (hf₁ : ∀ x, continuous (f x))
+  (hf₂ : ∀ y, continuous (λ x, f x y)) (hg₁ : ∀ x, continuous (g x))
+  (hg₂ : ∀ y, continuous (λ x, g x y)) :
+  ∀ (x ∈ closure s) (y ∈ closure t), f x y = g x y :=
+suffices closure s ⊆ ⋂ y ∈ closure t, {x | f x y = g x y}, by simpa only [subset_def, mem_Inter],
+closure_minimal (λ x hx, mem_Inter₂.2 $ set.eq_on.closure (h x hx) (hf₁ _) (hg₁ _)) $
+  is_closed_bInter $ λ y hy, is_closed_eq (hf₂ _) (hg₂ _)
+
+lemma eq_on_closure₂ [t2_space α] {s : set β} {t : set γ} {f g : β → γ → α}
+  (h : ∀ (x ∈ s) (y ∈ t), f x y = g x y) (hf : continuous (uncurry f))
+  (hg : continuous (uncurry g)) :
+  ∀ (x ∈ closure s) (y ∈ closure t), f x y = g x y :=
+eq_on_closure₂' h (λ x, continuous_uncurry_left x hf) (λ x, continuous_uncurry_right x hf)
+  (λ y, continuous_uncurry_left y hg) (λ y, continuous_uncurry_right y hg)
 
 /-- If `f x = g x` for all `x ∈ s` and `f`, `g` are continuous on `t`, `s ⊆ t ⊆ closure s`, then
 `f x = g x` for all `x ∈ t`. See also `set.eq_on.closure`. -/

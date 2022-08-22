@@ -18,6 +18,29 @@ namespace convex_cone
 
 variables {E : Type*} [inner_product_space ℝ E]
 
+instance : has_add (convex_cone ℝ E) :=
+⟨ λ K₁ K₂,
+{ carrier := { c | ∃ a b, a ∈ K₁ ∧ b ∈ K₂ ∧ a + b = c },
+  smul_mem' :=
+  begin
+    rintro c hc x ⟨y, z, hy, hz, rfl⟩,
+    simp_rw [smul_add, exists_and_distrib_left, set.mem_set_of_eq],
+    use [c • y, K₁.smul_mem hc hy, c • z, K₂.smul_mem hc hz],
+  end,
+  add_mem' :=
+  begin
+    rintro x ⟨x₁, x₂, hx₁, hx₂, rfl⟩ y ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+    simp_rw [exists_and_distrib_left, set.mem_set_of_eq],
+    use [x₁ + y₁, K₁.add_mem hx₁ hy₁, x₂ + y₂, K₂.add_mem hx₂ hy₂],
+    abel,
+  end } ⟩
+
+@[simp] lemma mem_add {K₁ K₂ : convex_cone ℝ E} {a : E} :
+  a ∈ K₁ + K₂ ↔ ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = a := iff.rfl
+
+@[simp] lemma coe_add {K₁ K₂ : convex_cone ℝ E} :
+  ↑(K₁ + K₂) = { c | ∃ a b, a ∈ K₁ ∧ b ∈ K₂ ∧ a + b = c }:= rfl
+
 /-- The closure of a convex cone inside a real inner product space is a convex cone. This
 construction is mainly used for defining maps between proper cones. -/
 def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
@@ -164,7 +187,7 @@ section definitions
 /-- Let `K` and `L` be proper cones in `E` and `F`, respectively. Let `c : E` and `b : F`. A cone
 program is the constrained optimization problem maximizing `⟪c, x⟫_ℝ` subject to `b - A x ∈ L`
 and `x ∈ K`. -/
-structure cone_program  (E F : Type*)
+structure cone_primal  (E F : Type*)
   [inner_product_space ℝ E] [complete_space E] [inner_product_space ℝ F] [complete_space F] :=
 (K : proper_cone E)
 (L : proper_cone F)
@@ -174,18 +197,18 @@ structure cone_program  (E F : Type*)
 
 end definitions
 
-namespace cone_program
+namespace cone_primal
 
-def feasible (p : cone_program E F) (x : E) := (p.b - p.A x ∈ p.L) ∧ (x ∈ p.K)
+def feasible (p : cone_primal E F) (x : E) := (p.b - p.A x ∈ p.L) ∧ (x ∈ p.K)
 
-def feasible_values (p : cone_program E F) := { r : ℝ | ∃ x : E, p.feasible x ∧ ⟪p.c, x⟫_ℝ = r }
+def feasible_values (p : cone_primal E F) := { r : ℝ | ∃ x : E, p.feasible x ∧ ⟪p.c, x⟫_ℝ = r }
 
-noncomputable def value (p : cone_program E F) := Sup p.feasible_values
+noncomputable def value (p : cone_primal E F) := Sup p.feasible_values
 
-def optimal_solution (p : cone_program E F) (x : E) :=
+def optimal_solution (p : cone_primal E F) (x : E) :=
 p.feasible x ∧ ∀ y, p.feasible x → ⟪p.c, y⟫_ℝ ≤ ⟪p.c, x⟫_ℝ
 
-lemma bdd_if_optimal (p : cone_program E F) (x : E) (hx : p.optimal_solution x) :
+lemma bdd_if_optimal (p : cone_primal E F) (x : E) (hx : p.optimal_solution x) :
   bdd_above p.feasible_values :=
 begin
   rw bdd_above_def,
@@ -195,7 +218,7 @@ begin
   exact hx.2 _ hx.1,
 end
 
-end cone_program
+end cone_primal
 
 
 end complete_space

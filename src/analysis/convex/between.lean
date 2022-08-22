@@ -15,7 +15,7 @@ This file defines notions of a point in an affine space being between two given 
 
 * `affine_segment R x y`: The segment of points weakly between `x` and `y`.
 * `wbtw R x y z`: The point `y` is weakly between `x` and `z`.
-* `sbtw R x y z`: The point `y` is strictly between `y` and `z`.
+* `sbtw R x y z`: The point `y` is strictly between `x` and `z`.
 
 -/
 

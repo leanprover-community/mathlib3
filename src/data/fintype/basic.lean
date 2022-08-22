@@ -776,7 +776,7 @@ lemma card_finset_fin_le {n : ℕ} (s : finset (fin n)) : s.card ≤ n :=
 by simpa only [fintype.card_fin] using s.card_le_univ
 
 lemma fin.equiv_iff_eq {m n : ℕ} : nonempty (fin m ≃ fin n) ↔ m = n :=
-  ⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
+⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
 
 @[simp] lemma fin.image_succ_above_univ {n : ℕ} (i : fin (n + 1)) :
   univ.image i.succ_above = {i}ᶜ :=
@@ -969,9 +969,8 @@ begin
   rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
   { simp [finset.card_univ] },
   { intros x hx,
-    suffices : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
-    { obtain ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ := this,
-      simpa using hb },
+    rsuffices ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
+    { simpa using hb },
     simpa using hx }
 end
 
@@ -1330,6 +1329,8 @@ end
 
 instance [monoid α] [fintype α] [decidable_eq α] : fintype αˣ :=
 fintype.of_equiv _ (units_equiv_prod_subtype α).symm
+
+instance [monoid α] [finite α] : finite αˣ := finite.of_injective _ units.ext
 
 lemma fintype.card_units [group_with_zero α] [fintype α] [fintype αˣ] :
   fintype.card αˣ = fintype.card α - 1 :=

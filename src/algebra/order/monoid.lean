@@ -722,23 +722,6 @@ end linear_ordered_cancel_comm_monoid
 
 namespace order_dual
 
-@[to_additive] instance [h : has_mul α] : has_mul αᵒᵈ := h
-@[to_additive] instance [h : has_one α] : has_one αᵒᵈ := h
-@[to_additive] instance [h : semigroup α] : semigroup αᵒᵈ := h
-@[to_additive] instance [h : comm_semigroup α] : comm_semigroup αᵒᵈ := h
-@[to_additive] instance [h : mul_one_class α] : mul_one_class αᵒᵈ := h
-@[to_additive] instance [h : monoid α] : monoid αᵒᵈ := h
-@[to_additive] instance [h : comm_monoid α] : comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_monoid α] : cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid αᵒᵈ := h
-instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
-instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
-instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
-instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
-instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
-
 @[to_additive]
 instance contravariant_class_mul_le [has_le α] [has_mul α] [c : contravariant_class α α (*) (≤)] :
   contravariant_class αᵒᵈ αᵒᵈ (*) (≤) :=
@@ -810,6 +793,8 @@ instance [linear_ordered_comm_monoid α] :
   .. order_dual.ordered_comm_monoid }
 
 end order_dual
+
+/-! ### Product -/
 
 namespace prod
 

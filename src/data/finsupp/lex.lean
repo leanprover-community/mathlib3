@@ -16,6 +16,7 @@ This file defines the lexicographic order on `finsupp`.
 variables {α N : Type*}
 
 namespace finset
+--  These lemmas in the `finset` namespace appear in PR #16192
 variables [linear_order α]
 
 lemma not_mem_of_max_lt_coe {a : α} {s : finset α} (h : s.max < a) : a ∉ s :=

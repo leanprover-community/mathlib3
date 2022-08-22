@@ -550,7 +550,8 @@ meta def positivity_coe_ereal : expr → tactic strictness
     strictness_a ← core a,
     match inst, strictness_a with
     | `(@coe_base _ _ ereal.has_coe), positive p := positive <$> mk_app ``ereal_coe_pos [p]
-    | `(@coe_base _ _ ereal.has_coe), nonnegative p := nonnegative <$> mk_app ``ereal_coe_nonneg [p]
+    | `(@coe_base _ _ ereal.has_coe), nonnegative p :=
+      nonnegative <$> mk_mapp ``ereal_coe_nonneg [a, p]
     | _, _ := failed
     end
   | _  := failed

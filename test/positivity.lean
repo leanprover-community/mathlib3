@@ -112,5 +112,5 @@ open_locale nnreal
 example {n : ℕ} : 0 ≤ (n : ℤ) := by positivity
 example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ (n ^ 2 : ℤ) := by positivity
 example {α : Type*} [linear_ordered_field α] {a : ℚ} (ha : 0 < a) : 0 < (a : α) := by positivity
-example {r : ℝ≥0} : 0 ≤ (r : ℝ) := by positivity
+example {r : ℝ≥0} : 0 ≤ ((r : ℝ) : ereal) := by positivity
 example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity

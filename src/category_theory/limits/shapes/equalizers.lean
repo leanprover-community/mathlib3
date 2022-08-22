@@ -51,20 +51,20 @@ namespace category_theory.limits
 
 local attribute [tidy] tactic.case_bash
 
-universes v u u₂
+universes v v₂ u u₂
 
 /-- The type of objects for the diagram indexing a (co)equalizer. -/
-@[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type v
+@[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type
 | zero | one
 
 open walking_parallel_pair
 
 /-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
 @[derive decidable_eq] inductive walking_parallel_pair_hom :
-  walking_parallel_pair → walking_parallel_pair → Type v
+  walking_parallel_pair → walking_parallel_pair → Type
 | left : walking_parallel_pair_hom zero one
 | right : walking_parallel_pair_hom zero one
-| id : Π X : walking_parallel_pair.{v}, walking_parallel_pair_hom X X
+| id : Π X : walking_parallel_pair, walking_parallel_pair_hom X X
 
 /-- Satisfying the inhabited linter -/
 instance : inhabited (walking_parallel_pair_hom zero one) :=
@@ -96,7 +96,7 @@ rfl
 The functor `walking_parallel_pair ⥤ walking_parallel_pairᵒᵖ` sending left to left and right to
 right.
 -/
-def walking_parallel_pair_op : walking_parallel_pair.{u} ⥤ walking_parallel_pair.{u₂}ᵒᵖ :=
+def walking_parallel_pair_op : walking_parallel_pair ⥤ walking_parallel_pairᵒᵖ :=
 { obj := (λ x, op $ by { cases x, exacts [one, zero] }),
   map := λ i j f, by { cases f; apply quiver.hom.op, exacts [left, right,
     walking_parallel_pair_hom.id _] },
@@ -116,7 +116,7 @@ The equivalence `walking_parallel_pair ⥤ walking_parallel_pairᵒᵖ` sending 
 right.
 -/
 @[simps functor inverse]
-def walking_parallel_pair_op_equiv : walking_parallel_pair.{u} ≌ walking_parallel_pair.{u₂}ᵒᵖ :=
+def walking_parallel_pair_op_equiv : walking_parallel_pair ≌ walking_parallel_pairᵒᵖ :=
 { functor := walking_parallel_pair_op,
   inverse := walking_parallel_pair_op.left_op,
   unit_iso := nat_iso.of_components (λ j, eq_to_iso (by { cases j; refl }))
@@ -128,20 +128,20 @@ def walking_parallel_pair_op_equiv : walking_parallel_pair.{u} ≌ walking_paral
       rcases i with (_|_); rcases j with (_|_); rcases g with (_|_|_); refl }) }
 
 @[simp] lemma walking_parallel_pair_op_equiv_unit_iso_zero :
-  walking_parallel_pair_op_equiv.{u u₂}.unit_iso.app zero = iso.refl zero := rfl
+  walking_parallel_pair_op_equiv.unit_iso.app zero = iso.refl zero := rfl
 @[simp] lemma walking_parallel_pair_op_equiv_unit_iso_one :
-  walking_parallel_pair_op_equiv.{u u₂}.unit_iso.app one = iso.refl one := rfl
+  walking_parallel_pair_op_equiv.unit_iso.app one = iso.refl one := rfl
 @[simp] lemma walking_parallel_pair_op_equiv_counit_iso_zero :
-  walking_parallel_pair_op_equiv.{u u₂}.counit_iso.app (op zero) = iso.refl (op zero) := rfl
+  walking_parallel_pair_op_equiv.counit_iso.app (op zero) = iso.refl (op zero) := rfl
 @[simp] lemma walking_parallel_pair_op_equiv_counit_iso_one :
-  walking_parallel_pair_op_equiv.{u u₂}.counit_iso.app (op one) = iso.refl (op one) := rfl
+  walking_parallel_pair_op_equiv.counit_iso.app (op one) = iso.refl (op one) := rfl
 
 variables {C : Type u} [category.{v} C]
 variables {X Y : C}
 
 /-- `parallel_pair f g` is the diagram in `C` consisting of the two morphisms `f` and `g` with
     common domain and codomain. -/
-def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair.{v} ⥤ C :=
+def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair ⥤ C :=
 { obj := λ x, match x with
   | zero := X
   | one := Y
@@ -198,13 +198,20 @@ def parallel_pair_hom {X' Y' : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y') (p : X ⟶
 /-- Construct a natural isomorphism between functors out of the walking parallel pair from
 its components. -/
 @[simps]
-def parallel_pair.ext {F G : walking_parallel_pair.{v} ⥤ C}
+def parallel_pair.ext {F G : walking_parallel_pair ⥤ C}
   (zero : F.obj zero ≅ G.obj zero) (one : F.obj one ≅ G.obj one)
   (left : F.map left ≫ one.hom = zero.hom ≫ G.map left)
   (right : F.map right ≫ one.hom = zero.hom ≫ G.map right) : F ≅ G :=
 nat_iso.of_components
   (by { rintro ⟨j⟩, exacts [zero, one] })
   (by { rintro ⟨j₁⟩ ⟨j₂⟩ ⟨f⟩; simp [left, right], })
+
+/-- Construct a natural isomorphism between `parallel_pair f g` and `parallel_pair f' g'` given
+equalities `f = f'` and `g = g'`. -/
+@[simps]
+def parallel_pair.eq_of_hom_eq {f g f' g' : X ⟶ Y} (hf : f = f') (hg : g = g') :
+  parallel_pair f g ≅ parallel_pair f' g' :=
+parallel_pair.ext (iso.refl _) (iso.refl _) (by simp [hf]) (by simp [hg])
 
 /-- A fork on `f` and `g` is just a `cone (parallel_pair f g)`. -/
 abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
@@ -486,6 +493,12 @@ def cofork.of_cocone
 @[simp] lemma cofork.of_cocone_ι {F : walking_parallel_pair ⥤ C} (t : cocone F) (j) :
   (cofork.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
+@[simp] lemma fork.ι_postcompose {f' g' : X ⟶ Y} {α : parallel_pair f g ⟶ parallel_pair f' g'}
+  {c : fork f g} : fork.ι ((cones.postcompose α).obj c) = c.ι ≫ α.app _ := rfl
+
+@[simp] lemma cofork.π_precompose {f' g' : X ⟶ Y} {α : parallel_pair f g ⟶ parallel_pair f' g'}
+  {c : cofork f' g'} : cofork.π ((cocones.precompose α).obj c) = α.app _ ≫ c.π := rfl
+
 /--
 Helper function for constructing morphisms between equalizer forks.
 -/
@@ -508,6 +521,10 @@ and check that it commutes with the `ι` morphisms.
 def fork.ext {s t : fork f g} (i : s.X ≅ t.X) (w : i.hom ≫ t.ι = s.ι) : s ≅ t :=
 { hom := fork.mk_hom i.hom w,
   inv := fork.mk_hom i.inv (by rw [← w, iso.inv_hom_id_assoc]) }
+
+/-- Every fork is isomorphic to one of the form `fork.of_ι _ _`. -/
+def fork.iso_fork_of_ι (c : fork f g) : c ≅ fork.of_ι c.ι c.condition :=
+fork.ext (by simp only [fork.of_ι_X, functor.const_obj_obj]) (by simp)
 
 /--
 Helper function for constructing morphisms between coequalizer coforks.
@@ -537,6 +554,10 @@ and check that it commutes with the `π` morphisms.
 def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) : s ≅ t :=
 { hom := cofork.mk_hom i.hom w,
   inv := cofork.mk_hom i.inv (by rw [iso.comp_inv_eq, w]) }
+
+/-- Every cofork is isomorphic to one of the form `cofork.of_π _ _`. -/
+def cofork.iso_cofork_of_π (c : cofork f g) : c ≅ cofork.of_π c.π c.condition :=
+cofork.ext (by simp only [cofork.of_π_X, functor.const_obj_obj]) (by dsimp; simp)
 
 variables (f g)
 
@@ -827,7 +848,7 @@ rfl
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
 
 /--
 The comparison morphism for the equalizer of `f,g`.
@@ -872,10 +893,10 @@ end comparison
 variables (C)
 
 /-- `has_equalizers` represents a choice of equalizer for every pair of morphisms -/
-abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair.{v} C
+abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
 
 /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
-abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair.{v} C
+abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 lemma has_equalizers_of_has_limit_parallel_pair
@@ -890,22 +911,23 @@ lemma has_coequalizers_of_has_colimit_parallel_pair
 
 section
 -- In this section we show that a split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
-variables {C} [split_mono f]
+variables {C} [is_split_mono f]
 
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
-Here we build the cone, and show in `split_mono_equalizes` that it is a limit cone.
+Here we build the cone, and show in `is_split_mono_equalizes` that it is a limit cone.
 -/
 @[simps {rhs_md := semireducible}]
-def cone_of_split_mono : fork (𝟙 Y) (retraction f ≫ f) :=
+def cone_of_is_split_mono : fork (𝟙 Y) (retraction f ≫ f) :=
 fork.of_ι f (by simp)
 
-@[simp] lemma cone_of_split_mono_ι : (cone_of_split_mono f).ι = f := rfl
+@[simp] lemma cone_of_is_split_mono_ι : (cone_of_is_split_mono f).ι = f := rfl
 
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 -/
-def split_mono_equalizes {X Y : C} (f : X ⟶ Y) [split_mono f] : is_limit (cone_of_split_mono f) :=
+def is_split_mono_equalizes {X Y : C} (f : X ⟶ Y) [is_split_mono f] :
+  is_limit (cone_of_is_split_mono f) :=
 fork.is_limit.mk' _ $ λ s,
 ⟨s.ι ≫ retraction f,
  by { dsimp, rw [category.assoc, ←s.condition], apply category.comp_id },
@@ -913,7 +935,7 @@ fork.is_limit.mk' _ $ λ s,
 
 end
 
-/-- We show that the converse to `split_mono_equalizes` is true:
+/-- We show that the converse to `is_split_mono_equalizes` is true:
 Whenever `f` equalizes `(r ≫ f)` and `(𝟙 Y)`, then `r` is a retraction of `f`. -/
 def split_mono_of_equalizer {X Y : C} {f : X ⟶ Y} {r : Y ⟶ X} (hr : f ≫ r ≫ f = f)
   (h : is_limit (fork.of_ι f (hr.trans (category.comp_id _).symm : f ≫ r ≫ f = f ≫ 𝟙 Y))) :
@@ -958,23 +980,23 @@ split_mono_of_idempotent_of_is_limit_fork _ hf (limit.is_limit _)
 
 section
 -- In this section we show that a split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
-variables {C} [split_epi f]
+variables {C} [is_split_epi f]
 
 /--
 A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
-Here we build the cocone, and show in `split_epi_coequalizes` that it is a colimit cocone.
+Here we build the cocone, and show in `is_split_epi_coequalizes` that it is a colimit cocone.
 -/
 @[simps {rhs_md := semireducible}]
-def cocone_of_split_epi : cofork (𝟙 X) (f ≫ section_ f) :=
+def cocone_of_is_split_epi : cofork (𝟙 X) (f ≫ section_ f) :=
 cofork.of_π f (by simp)
 
-@[simp] lemma cocone_of_split_epi_π : (cocone_of_split_epi f).π = f := rfl
+@[simp] lemma cocone_of_is_split_epi_π : (cocone_of_is_split_epi f).π = f := rfl
 
 /--
 A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
 -/
-def split_epi_coequalizes {X Y : C} (f : X ⟶ Y) [split_epi f] :
-  is_colimit (cocone_of_split_epi f) :=
+def is_split_epi_coequalizes {X Y : C} (f : X ⟶ Y) [is_split_epi f] :
+  is_colimit (cocone_of_is_split_epi f) :=
 cofork.is_colimit.mk' _ $ λ s,
 ⟨section_ f ≫ s.π,
  by { dsimp, rw [← category.assoc, ← s.condition, category.id_comp] },
@@ -982,7 +1004,7 @@ cofork.is_colimit.mk' _ $ λ s,
 
 end
 
-/-- We show that the converse to `split_epi_equalizes` is true:
+/-- We show that the converse to `is_split_epi_equalizes` is true:
 Whenever `f` coequalizes `(f ≫ s)` and `(𝟙 X)`, then `s` is a section of `f`. -/
 def split_epi_of_coequalizer {X Y : C} {f : X ⟶ Y} {s : Y ⟶ X} (hs : f ≫ s ≫ f = f)
   (h : is_colimit (cofork.of_π f ((category.assoc _ _ _).trans $

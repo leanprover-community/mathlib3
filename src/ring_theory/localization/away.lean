@@ -125,6 +125,18 @@ noncomputable
 def at_one [is_localization.away (1 : R) S] : R ≃ₐ[R] S :=
 @at_unit R _ S _ _ (1 : R) is_unit_one _
 
+lemma away_of_is_unit_of_bijective {R : Type*} (S : Type*) [comm_ring R] [comm_ring S]
+  [algebra R S] {r : R} (hr : is_unit r) (H : function.bijective (algebra_map R S)) :
+  is_localization.away r S :=
+{ map_units := by { rintros ⟨_, n, rfl⟩, exact (algebra_map R S).is_unit_map (hr.pow _) },
+  surj := λ z, by { obtain ⟨z', rfl⟩ := H.2 z, exact ⟨⟨z', 1⟩, by simp⟩ },
+  eq_iff_exists := λ x y, begin
+    erw H.1.eq_iff,
+    split,
+    { rintro rfl, exact ⟨1, rfl⟩ },
+    { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_left_inj.mp e }
+  end }
+
 end at_units
 
 end is_localization

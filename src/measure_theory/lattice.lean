@@ -197,3 +197,34 @@ include m
 end measurable_inf₂
 
 end inf
+
+section semilattice_sup
+
+open finset
+
+variables {δ : Type*} [measurable_space δ] [semilattice_sup α] [has_measurable_sup₂ α]
+
+@[measurability] lemma finset.measurable_sup' {ι : Type*} {s : finset ι} (hs : s.nonempty)
+  {f : ι → δ → α} (hf : ∀ n ∈ s, measurable (f n)) :
+  measurable (s.sup' hs f) :=
+finset.sup'_induction hs _ (λ f hf g hg, hf.sup hg) (λ n hn, hf n hn)
+
+@[measurability] lemma finset.measurable_range_sup'
+  {f : ℕ → δ → α} {n : ℕ} (hf : ∀ k ≤ n, measurable (f k)) :
+  measurable ((range (n + 1)).sup' nonempty_range_succ f) :=
+begin
+  simp_rw ← nat.lt_succ_iff at hf,
+  refine finset.measurable_sup' _ _,
+  simpa [finset.mem_range],
+end
+
+@[measurability] lemma finset.measurable_range_sup''
+  {f : ℕ → δ → α} {n : ℕ} (hf : ∀ k ≤ n, measurable (f k)) :
+  measurable (λ x, (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) :=
+begin
+  convert finset.measurable_range_sup' hf,
+  ext x,
+  simp,
+end
+
+end semilattice_sup

@@ -37,7 +37,7 @@ instance : wf_dvd_monoid ℕ :=
   cases a,
   { exfalso, revert h, simp [dvd_not_unit] },
   cases b,
-  { simp [succ_ne_zero, with_top.coe_lt_top] },
+  { simpa [succ_ne_zero] using with_top.coe_lt_top (a + 1) },
   cases dvd_and_not_dvd_iff.2 h with h1 h2,
   simp only [succ_ne_zero, with_top.coe_lt_coe, if_false],
   apply lt_of_le_of_ne (nat.le_of_dvd (nat.succ_pos _) h1) (λ con, h2 _),

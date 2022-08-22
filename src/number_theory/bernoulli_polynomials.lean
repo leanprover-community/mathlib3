@@ -1,24 +1,25 @@
 /-
 Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ashvni Narayanan
+Authors: Ashvni Narayanan, David Loeffler
 -/
 import data.polynomial.algebra_map
+import data.polynomial.derivative
 import data.nat.choose.cast
 import number_theory.bernoulli
 
 /-!
 # Bernoulli polynomials
 
-The Bernoulli polynomials (defined here : https://en.wikipedia.org/wiki/Bernoulli_polynomials)
+The [Bernoulli polynomials](https://en.wikipedia.org/wiki/Bernoulli_polynomials)
 are an important tool obtained from Bernoulli numbers.
 
 ## Mathematical overview
 
 The $n$-th Bernoulli polynomial is defined as
-$$ B_n(X) = ∑_{k = 0}^n {n \choose k} (-1)^k * B_k * X^{n - k} $$
+$$ B_n(X) = ∑_{k = 0}^n {n \choose k} (-1)^k  B_k  X^{n - k} $$
 where $B_k$ is the $k$-th Bernoulli number. The Bernoulli polynomials are generating functions,
-$$ t * e^{tX} / (e^t - 1) = ∑_{n = 0}^{\infty} B_n(X) * \frac{t^n}{n!} $$
+$$ \frac{t  e^{tX} }{ e^t - 1} = ∑_{n = 0}^{\infty} B_n(X)  \frac{t^n}{n!} $$
 
 ## Implementation detail
 
@@ -27,13 +28,13 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 ## Main theorems
 
 - `sum_bernoulli`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
-  coefficients up to n is `(n + 1) * X^n`.
-- `bernoulli_generating_function`: The Bernoulli polynomials act as generating functions
+  coefficients up to `n` is `(n + 1) * X^n`.
+- `polynomial.bernoulli_generating_function`: The Bernoulli polynomials act as generating functions
   for the exponential.
 
 ## TODO
 
-- `bernoulli_eval_one_neg` : $$ B_n(1 - x) = (-1)^n*B_n(x) $$
+- `bernoulli_eval_one_neg` : $$ B_n(1 - x) = (-1)^n B_n(x) $$
 
 -/
 
@@ -90,6 +91,28 @@ end
 
 end examples
 
+lemma derivative_bernoulli_add_one (k : ℕ) :
+  (bernoulli (k + 1)).derivative = (k + 1) * bernoulli k :=
+begin
+  simp_rw [bernoulli, derivative_sum, derivative_monomial, nat.sub_sub, nat.add_sub_add_right],
+  -- LHS sum has an extra term, but the coefficient is zero:
+  rw [range_add_one, sum_insert not_mem_range_self, tsub_self, cast_zero, mul_zero, map_zero,
+    zero_add, mul_sum],
+  -- the rest of the sum is termwise equal:
+  refine sum_congr (by refl) (λ m hm, _),
+  conv_rhs { rw [←nat.cast_one, ←nat.cast_add, ←C_eq_nat_cast, C_mul_monomial, mul_comm], },
+  rw [mul_assoc, mul_assoc, ←nat.cast_mul, ←nat.cast_mul],
+  congr' 3,
+  rw [(choose_mul_succ_eq k m).symm, mul_comm],
+end
+
+lemma derivative_bernoulli (k : ℕ) : (bernoulli k).derivative = k * bernoulli (k - 1) :=
+begin
+  cases k,
+  { rw [nat.cast_zero, zero_mul, bernoulli_zero, derivative_one], },
+  { exact_mod_cast derivative_bernoulli_add_one k, }
+end
+
 @[simp] theorem sum_bernoulli (n : ℕ) :
   ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli k = monomial n (n + 1 : ℚ) :=
 begin
@@ -123,12 +146,8 @@ end
 /-- Another version of `polynomial.sum_bernoulli`. -/
 lemma bernoulli_eq_sub_sum (n : ℕ) : (n.succ : ℚ) • bernoulli n = monomial n (n.succ : ℚ) -
   ∑ k in finset.range n, ((n + 1).choose k : ℚ) • bernoulli k :=
-begin
-  change _ = (monomial n) ((n : ℚ) + 1) - ∑ (k : ℕ) in range n,
-    ↑((n + 1).choose k) • bernoulli k,
-  rw [←sum_bernoulli n, sum_range_succ, add_comm],
-  simp only [cast_succ, choose_succ_self_right, add_sub_cancel],
-end
+by rw [nat.cast_succ, ← sum_bernoulli n, sum_range_succ, add_sub_cancel',
+  choose_succ_self_right, nat.cast_succ]
 
 /-- Another version of `bernoulli.sum_range_pow`. -/
 lemma sum_range_pow_eq_bernoulli_sub (n p : ℕ) :
@@ -217,7 +236,8 @@ begin
   simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, power_series.coeff_one,
     units.coe_mk, coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
-    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],
+    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one,
+    ← polynomial.C_eq_algebra_map, polynomial.aeval_mul, polynomial.aeval_C],
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',
   apply congr_arg,

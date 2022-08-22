@@ -46,8 +46,8 @@ In this file we define various operations on `subsemigroup`s and `mul_hom`s.
 ### Operations on `mul_hom`s
 
 * `mul_hom.srange`: range of a semigroup homomorphism as a subsemigroup of the codomain;
-* `mul_hom.srestrict`: restrict a semigroup homomorphism to a subsemigroup;
-* `mul_hom.cod_srestrict`: restrict the codomain of a semigroup homomorphism to a subsemigroup;
+* `mul_hom.restrict`: restrict a semigroup homomorphism to a subsemigroup;
+* `mul_hom.cod_restrict`: restrict the codomain of a semigroup homomorphism to a subsemigroup;
 * `mul_hom.srange_restrict`: restrict a semigroup homomorphism to its range;
 
 ### Implementation notes
@@ -60,7 +60,7 @@ necessary.
 subsemigroup, range, product, map, comap
 -/
 
-variables {M N P : Type*}
+variables {M N P σ : Type*}
 
 /-!
 ### Conversion to/from `additive`/`multiplicative`
@@ -470,13 +470,11 @@ of `M × N`. -/
 @[to_additive prod "Given `add_subsemigroup`s `s`, `t` of `add_semigroup`s `A`, `B` respectively,
 `s × t` as an `add_subsemigroup` of `A × B`."]
 def prod (s : subsemigroup M) (t : subsemigroup N) : subsemigroup (M × N) :=
-{ carrier := (s : set M) ×ˢ (t : set N),
+{ carrier := s ×ˢ t,
   mul_mem' := λ p q hp hq, ⟨s.mul_mem hp.1 hq.1, t.mul_mem hp.2 hq.2⟩ }
 
 @[to_additive coe_prod]
-lemma coe_prod (s : subsemigroup M) (t : subsemigroup N) :
- (s.prod t : set (M × N)) = (s : set M) ×ˢ (t : set N) :=
-rfl
+lemma coe_prod (s : subsemigroup M) (t : subsemigroup N) : (s.prod t : set (M × N)) = s ×ˢ t := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {s : subsemigroup M} {t : subsemigroup N} {p : M × N} :
@@ -601,24 +599,27 @@ le_antisymm
 
 /-- Restriction of a semigroup hom to a subsemigroup of the domain. -/
 @[to_additive "Restriction of an add_semigroup hom to an `add_subsemigroup` of the domain."]
-def srestrict {N : Type*} [has_mul N] (f : M →ₙ* N) (S : subsemigroup M) : S →ₙ* N :=
+def restrict {N : Type*} [has_mul N] [set_like σ M] [mul_mem_class σ M] (f : M →ₙ* N) (S : σ) :
+  S →ₙ* N :=
 f.comp (mul_mem_class.subtype S)
 
 @[simp, to_additive]
-lemma srestrict_apply {N : Type*} [has_mul N] (f : M →ₙ* N) (x : S) : f.srestrict S x = f x :=
+lemma restrict_apply {N : Type*} [has_mul N] [set_like σ M] [mul_mem_class σ M] (f : M →ₙ* N)
+  {S : σ} (x : S) : f.restrict S x = f x :=
 rfl
 
 /-- Restriction of a semigroup hom to a subsemigroup of the codomain. -/
 @[to_additive "Restriction of an `add_semigroup` hom to an `add_subsemigroup` of the
 codomain.", simps]
-def cod_srestrict (f : M →ₙ* N) (S : subsemigroup N) (h : ∀ x, f x ∈ S) : M →ₙ* S :=
+def cod_restrict [set_like σ N] [mul_mem_class σ N] (f : M →ₙ* N) (S : σ) (h : ∀ x, f x ∈ S) :
+  M →ₙ* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_mul' := λ x y, subtype.eq (map_mul f x y) }
 
 /-- Restriction of a semigroup hom to its range interpreted as a subsemigroup. -/
 @[to_additive "Restriction of an `add_semigroup` hom to its range interpreted as a subsemigroup."]
 def srange_restrict {N} [has_mul N] (f : M →ₙ* N) : M →ₙ* f.srange :=
-f.cod_srestrict f.srange $ λ x, ⟨x, rfl⟩
+f.cod_restrict f.srange $ λ x, ⟨x, rfl⟩
 
 @[simp, to_additive]
 lemma coe_srange_restrict {N} [has_mul N] (f : M →ₙ* N) (x : M) :
@@ -680,7 +681,7 @@ by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← srang
 /-- The semigroup hom associated to an inclusion of subsemigroups. -/
 @[to_additive "The `add_semigroup` hom associated to an inclusion of subsemigroups."]
 def inclusion {S T : subsemigroup M} (h : S ≤ T) : S →ₙ* T :=
-(mul_mem_class.subtype S).cod_srestrict _ (λ x, h x.2)
+(mul_mem_class.subtype S).cod_restrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : subsemigroup M) : (mul_mem_class.subtype s).srange = s :=

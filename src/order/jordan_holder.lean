@@ -7,6 +7,7 @@ import order.lattice
 import data.list.sort
 import logic.equiv.fin
 import logic.equiv.functor
+import data.fintype.basic
 /-!
 # Jordan-Hölder Theorem
 
@@ -248,14 +249,7 @@ list.pairwise_iff_nth_le.2 (λ i j hi hij,
   end)
 
 lemma to_list_nodup (s : composition_series X) : s.to_list.nodup :=
-list.nodup_iff_nth_le_inj.2
-  (λ i j hi hj,
-    begin
-      delta to_list,
-      rw [list.nth_le_of_fn', list.nth_le_of_fn', s.injective.eq_iff, fin.ext_iff,
-        fin.coe_mk, fin.coe_mk],
-      exact id
-    end)
+s.to_list_sorted.nodup
 
 @[simp] lemma mem_to_list {s : composition_series X} {x : X} : x ∈ s.to_list ↔ x ∈ s :=
 by rw [to_list, list.mem_of_fn, mem_def]

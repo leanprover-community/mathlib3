@@ -67,6 +67,7 @@ local attribute [instance] quotient_group.left_rel
 
 instance : comm_group (abelianization G) :=
 { mul_comm := λ x y, quotient.induction_on₂' x y $ λ a b, quotient.sound' $
+    quotient_group.left_rel_apply.mpr $
     subgroup.subset_closure ⟨b⁻¹, subgroup.mem_top b⁻¹, a⁻¹, subgroup.mem_top a⁻¹, by group⟩,
 .. quotient_group.quotient.group _ }
 

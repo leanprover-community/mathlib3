@@ -543,9 +543,10 @@ theorem dual_insert [preorder α] [is_total α (≤)] [@decidable_rel α (≤)] 
   ∀ t : ordnode α, dual (ordnode.insert x t) = @ordnode.insert αᵒᵈ _ _ x (dual t)
 | nil := rfl
 | (node _ l y r) := begin
-  rw [ordnode.insert, dual, ordnode.insert, order_dual.cmp_le_flip, ← cmp_le_swap x y],
+  have : @cmp_le αᵒᵈ _ _ x y = cmp_le y x := rfl,
+  rw [ordnode.insert, dual, ordnode.insert, this, ← cmp_le_swap x y],
   cases cmp_le x y;
-  simp [ordering.swap, ordnode.insert, dual_balance_l, dual_balance_r, dual_insert]
+    simp [ordering.swap, ordnode.insert, dual_balance_l, dual_balance_r, dual_insert]
 end
 
 /-! ### `balance` properties -/

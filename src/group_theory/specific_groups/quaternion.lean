@@ -174,7 +174,7 @@ end
 @[simp] lemma a_one_pow (k : ℕ) : (a 1 : quaternion_group n) ^ k = a k :=
 begin
   induction k with k IH,
-  { refl },
+  { rw nat.cast_zero, refl },
   { rw [pow_succ, IH, a_mul_a],
     congr' 1,
     norm_cast,
@@ -239,6 +239,7 @@ begin
     intros n hn,
     rw [one_def, a_one_pow],
     apply mt a.inj,
+    haveI : char_zero (zmod (2 * 0)) := zmod.char_zero,
     simpa using hn.ne' },
   haveI := fact.mk hn,
   apply (nat.le_of_dvd (nat.succ_mul_pos _ hn)

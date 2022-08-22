@@ -96,6 +96,17 @@ protected lemma is_chain.directed {f : β → α} {c : set β} (h : is_chain (f 
     exact ⟨b, hb, refl _⟩) $
   λ hab, (h ha hb hab).elim (λ h, ⟨⟨b, hb⟩, h, refl _⟩) $ λ h, ⟨⟨a, ha⟩, refl _, h⟩
 
+lemma is_chain.exists3 (hchain : is_chain r s) [is_trans α r] {a b c}
+  (mem1 : a ∈ s) (mem2 : b ∈ s) (mem3 : c ∈ s) :
+  ∃ (z) (mem4 : z ∈ s), r a z ∧ r b z ∧ r c z :=
+begin
+  rcases directed_on_iff_directed.mpr (is_chain.directed hchain) a mem1 b mem2 with
+    ⟨z, mem4, H1, H2⟩,
+  rcases directed_on_iff_directed.mpr (is_chain.directed hchain) z mem4 c mem3 with
+    ⟨z', mem5, H3, H4⟩,
+  exact ⟨z', mem5, trans H1 H3, trans H2 H3, H4⟩,
+end
+
 end total
 
 lemma is_max_chain.is_chain (h : is_max_chain r s) : is_chain r s := h.1

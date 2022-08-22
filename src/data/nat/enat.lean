@@ -11,8 +11,8 @@ import data.nat.succ_pred
 -/
 
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
-  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub, complete_linear_order,
-  linear_ordered_add_comm_monoid_with_top, succ_order]]
+  linear_order, canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
+  complete_linear_order, linear_ordered_add_comm_monoid_with_top, succ_order]]
 def enat : Type := with_top ℕ
 
 notation `ℕ∞` := enat

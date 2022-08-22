@@ -1656,7 +1656,8 @@ theorem stk_nth_val {K : Type*} {Γ : K → Type*} {L : list_blank (∀ k, optio
   (hL : list_blank.map (pointed_map_proj k) L = list_blank.mk (list.map some S).reverse) :
   L.nth n k = S.reverse.nth n :=
 begin
-  rw [←pointed_map_proj_map_nth, hL, ←list.map_reverse, list_blank.nth_mk, list.inth_eq_iget_nth, list.nth_map],
+  rw [←pointed_map_proj_map_nth, hL, ←list.map_reverse, list_blank.nth_mk, list.inth_eq_iget_nth,
+      list.nth_map],
   cases S.reverse.nth n; refl,
 end
 

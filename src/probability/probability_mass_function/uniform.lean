@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import probability.probability_mass_function.constructions
+import data.multiset.basic
 
 /-!
 # Uniform Probability Mass Functions
@@ -129,7 +130,6 @@ end measure
 
 end uniform_of_fintype
 
-
 section of_multiset
 
 /-- Given a non-empty multiset `s` we construct the `pmf` which sends `a` to the fraction of
@@ -183,5 +183,74 @@ end
 end measure
 
 end of_multiset
+
+section of_list
+
+def of_list (l : list α) (h : ¬ l.empty) : pmf α :=
+pmf.of_multiset (quotient.mk l) (mt ((list.empty_iff_eq_nil).2 ∘ (multiset.coe_eq_zero l).1) h)
+
+variables (l : list α) (h : ¬ l.empty)
+
+@[simp] lemma of_list_apply (a : α) : of_list l h a = l.count a / l.length :=
+(pmf.of_multiset_apply _ a).trans (by rw [multiset.quot_mk_to_coe,
+  multiset.coe_count, multiset.coe_card])
+
+@[simp] lemma support_of_list : (of_list l h).support = {x | x ∈ l} :=
+trans (pmf.support_of_multiset _) (set.ext $ λ x, by simp only [multiset.quot_mk_to_coe,
+  finset.mem_coe, multiset.mem_to_finset, multiset.mem_coe, set.mem_set_of_eq])
+
+lemma mem_support_of_list_iff (a : α) : a ∈ (of_list l h).support ↔ a ∈ l :=
+by rw [support_of_list, set.mem_set_of_eq]
+
+@[simp] lemma of_list_apply_eq_zero_iff_not_mem (a : α) : of_list l h a = 0 ↔ a ∉ l :=
+by rw [pmf.apply_eq_zero_iff _ a, mem_support_of_list_iff]
+
+lemma of_list_apply_eq_one_iff (a : α) : of_list l h a = 1 ↔ ∀ a' ∈ l, a' = a :=
+begin
+  rw [pmf.apply_eq_one_iff, support_of_list],
+  refine ⟨λ ha a' ha', set.mem_singleton_iff.1 (ha ▸ ha'), λ ha, _⟩,
+  { refine set.ext (λ a', ⟨λ ha', _, λ ha', _⟩),
+    { by_cases hal : a' ∈ l,
+      { exact ha a' hal ▸ rfl },
+      { exact false.elim (hal ha') } },
+    { refine ha'.symm ▸ _,
+      simp_rw [list.empty_iff_eq_nil,
+        list.eq_nil_iff_forall_not_mem, not_forall, not_not] at h,
+      exact let ⟨x, hx⟩ := h in ha x hx ▸ hx } }
+end
+
+section measure
+
+variable (t : set α)
+
+@[simp] lemma to_outer_measure_of_list_apply (t : set α) :
+  (of_list l h).to_outer_measure t = l.countp (∈ t) / l.length :=
+begin
+  refine trans (pmf.to_outer_measure_of_multiset_apply _ _) _,
+  simp only [multiset.quot_mk_to_coe, multiset.coe_filter, multiset.coe_count, multiset.coe_card,
+    vector.to_list_length, nat.cast_add, nat.cast_one],
+  refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) _,
+  calc ∑' (x : α), ↑((l.filter (∈ t)).count x)
+    = ∑ (x : α) in l.to_finset.filter (∈ t), ↑((l.filter (∈ t)).count x) : begin
+      suffices : ∀ b ∉ l.to_finset.filter (∈ t), (list.count b (list.filter (∈ t) l) : ℝ≥0∞) = 0,
+      from tsum_eq_sum this,
+      refine (λ b hb, nat.cast_eq_zero.2 $ list.count_eq_zero_of_not_mem _),
+      rw [finset.mem_filter, list.mem_to_finset] at hb,
+      exact λ hb', hb (list.mem_filter.1 hb')
+    end
+    ... = ∑ (x : α) in l.to_finset.filter (∈ t), ↑(l.count x) : finset.sum_congr rfl (λ x hx,
+      congr_arg coe $ list.count_filter (finset.mem_filter.1 hx).2)
+    ... = ↑∑ (x : α) in l.to_finset.filter (∈ t), l.count x : symm (nat.cast_sum _ _)
+    ... = ↑(l.countp (∈ t)) : congr_arg coe $ finset.sum_filter_count_eq_countp _ l
+end
+
+@[simp] lemma to_measure_of_list_apply (t : set α) [measurable_space α] (ht : measurable_set t) :
+  (of_list l h).to_measure t = l.countp t / l.length :=
+(to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
+  (to_outer_measure_of_list_apply l h t)
+
+end measure
+
+end of_list
 
 end pmf

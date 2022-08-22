@@ -173,11 +173,6 @@ begin
   { intro rid, exfalso, simp only [nat.succ_pos', not_true, finset.mem_range] at rid, exact rid },
 end
 
-theorem f_p_n_succ (p : ℕ) (n : ℕ) : (f_p p n.succ) = (f_p p n) * (polynomial.X- polynomial.C (n+1:ℤ))^p :=
-begin
-  rw f_p, rw f_p, rw finset.prod_range_succ, ring,
-end
-
 lemma deriv_f_p_when_j_lt_p (p : ℕ) (n : ℕ) : ∀ x : ℕ, ∀ j : ℕ, j < p ->
   0 < x -> x < n.succ -> polynomial.eval (x:ℤ) (polynomial.derivative^[j] (f_p p n)) = 0 :=
 begin
@@ -185,19 +180,19 @@ begin
   { intros x j hj hx1 hx2,
     linarith },
   { intros x j hj hx1 hx2,
-    rw [f_p_n_succ, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
-    apply finset.sum_eq_zero, intros y hy, simp only [finset.mem_range] at hy,
-    rw [polynomial.eval_smul, polynomial.eval_mul],
-    replace hx2 : x < n.succ ∨ x = n.succ, exact nat.lt_succ_iff_lt_or_eq.mp hx2,
-    cases hx2,
-    { rw IH x (j-y) (gt_of_gt_of_ge hj (nat.sub_le j y)) hx1 hx2,
-      rw [zero_mul, smul_zero] },
-    { rw smul_eq_zero, right,
-      rw [hx2, polynomial.iterate_derivative_X_sub_pow, polynomial.eval_mul, polynomial.eval_pow],
+    rw [f_p, finset.prod_range_succ, ←mul_assoc, polynomial.iterate_derivative_mul,
+      polynomial.eval_finset_sum, ←f_p],
+    refine finset.sum_eq_zero (λ y hy, _),
+    simp only [finset.mem_range] at hy,
+    rw [polynomial.eval_smul],
+    obtain hx2|rfl := nat.lt_succ_iff_lt_or_eq.mp hx2,
+    { have := IH x (j-y) (gt_of_gt_of_ge hj (nat.sub_le j y)) hx1 hx2,
+      rw [polynomial.eval_mul, this, zero_mul, smul_zero] },
+    { rw [polynomial.iterate_derivative_X_sub_pow, polynomial.eval_mul, polynomial.eval_mul,
+        polynomial.eval_pow],
       simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_succ, polynomial.eval_sub,
-        sub_self, mul_eq_zero],
-      right, right, apply zero_pow (nat.sub_pos_of_lt (gt_of_ge_of_gt hj hy))
-    },
+        sub_self, zero_pow (nat.sub_pos_of_lt (gt_of_ge_of_gt hj hy)),
+        mul_zero, smul_zero, eq_self_iff_true] },
   },
 end
 

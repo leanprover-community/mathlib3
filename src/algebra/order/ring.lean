@@ -326,10 +326,10 @@ suffices 1 * b < a * b, by rwa one_mul at this,
 decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 
 lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a :=
-lt_mul_left ha (@one_lt_two α _ (nontrivial_of_ne 0 a ha.ne))
+lt_mul_of_one_lt_left ha (@one_lt_two α _ (nontrivial_of_ne 0 a ha.ne))
 
 lemma lt_mul_self (hn : 1 < a) : a < a * a :=
-lt_mul_left (hn.trans_le' zero_le_one) hn
+lt_mul_of_one_lt_left (hn.trans_le' zero_le_one) hn
 
 -- See Note [decidable namespace]
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}

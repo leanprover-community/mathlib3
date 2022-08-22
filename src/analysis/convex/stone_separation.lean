@@ -87,7 +87,7 @@ begin
   obtain ⟨C, hC, hsC, hCmax⟩ := zorn_subset_nonempty S
     (λ c hcS hc ⟨t, ht⟩, ⟨⋃₀ c, ⟨hc.directed_on.convex_sUnion (λ s hs, (hcS hs).1),
      disjoint_sUnion_left.2 $ λ c hc, (hcS hc).2⟩, λ s, subset_sUnion_of_mem⟩) s ⟨hs, hst⟩,
-  refine ⟨C, hC.1, convex_iff_segment_subset.2 $ λ x y hx hy z hz hzC, _, hsC,
+  refine ⟨C, hC.1, convex_iff_segment_subset.2 $ λ x hx y hy z hz hzC, _, hsC,
      hC.2.subset_compl_left⟩,
   suffices h : ∀ c ∈ Cᶜ, ∃ a ∈ C, (segment 𝕜 c a ∩ t).nonempty,
   { obtain ⟨p, hp, u, hu, hut⟩ := h x hx,

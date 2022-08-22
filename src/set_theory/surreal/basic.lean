@@ -233,16 +233,10 @@ def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
 
 open pgame
 
-instance surreal.setoid : setoid {x // pgame.numeric x} :=
-⟨λ x y, x.1 ≈ y.1,
- λ x, equiv_rfl,
- λ x y, pgame.equiv.symm,
- λ x y z, pgame.equiv.trans⟩
-
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
 the order becomes a total order. -/
-def surreal := quotient surreal.setoid
+def surreal := quotient (subtype.setoid numeric)
 
 namespace surreal
 

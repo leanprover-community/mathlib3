@@ -5,7 +5,7 @@ Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import data.prod.pprod
 import data.set.countable
-import order.filter.basic
+import order.filter.prod
 
 /-!
 # Filter bases
@@ -415,7 +415,7 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
 (hl.inf' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
   (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
 
-lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
+lemma has_basis_infi' {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
   {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
   (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, If.1.finite ∧ ∀ i ∈ If.1, p i (If.2 i))
     (λ If : set ι × Π i, ι' i, ⋂ i ∈ If.1, s i (If.2 i)) :=
@@ -423,15 +423,28 @@ lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
   intro t,
   split,
   { simp only [mem_infi', (hl _).mem_iff],
-    rintros ⟨I, hI, V, hV, -, hVt, -⟩,
+    rintros ⟨I, hI, V, hV, -, rfl, -⟩,
     choose u hu using hV,
-    refine ⟨⟨I, u⟩, ⟨hI, λ i _, (hu i).1⟩, _⟩,
-    rw hVt,
-    exact Inter_mono (λ i, Inter_mono $ λ hi, (hu i).2) },
+    exact ⟨⟨I, u⟩, ⟨hI, λ i _, (hu i).1⟩, Inter_mono (λ i, Inter_mono $ λ hi, (hu i).2)⟩ },
   { rintros ⟨⟨I, f⟩, ⟨hI₁, hI₂⟩, hsub⟩,
     refine mem_of_superset _ hsub,
     exact (bInter_mem hI₁).mpr (λ i hi, mem_infi_of_mem i $ (hl i).mem_of_mem $ hI₂ _ hi) }
 end⟩
+
+lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
+  {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
+  (⨅ i, l i).has_basis (λ If : Σ I : set ι, Π i : I, ι' i, If.1.finite ∧ ∀ i : If.1, p i (If.2 i))
+    (λ If, ⋂ i : If.1, s i (If.2 i)) :=
+begin
+  refine ⟨λ t, ⟨λ ht, _, _⟩⟩,
+  { rcases (has_basis_infi' hl).mem_iff.mp ht with ⟨⟨I, f⟩, ⟨hI, hf⟩, hsub⟩,
+    exact ⟨⟨I, λ i, f i⟩, ⟨hI, subtype.forall.mpr hf⟩,
+      trans_rel_right _ (Inter_subtype _ _) hsub⟩ },
+  { rintro ⟨⟨I, f⟩, ⟨hI, hf⟩, hsub⟩,
+    refine mem_of_superset _ hsub,
+    casesI hI.nonempty_fintype,
+    exact Inter_mem.2 (λ i, mem_infi_of_mem i $ (hl i).mem_of_mem $ hf _) }
+end
 
 lemma has_basis_infi_of_directed' {ι : Type*} {ι' : ι → Sort*}
   [nonempty ι]
@@ -542,7 +555,7 @@ lemma has_basis.inf_principal_ne_bot_iff (hl : l.has_basis p s) {t : set α} :
   ne_bot (l ⊓ 𝓟 t) ↔ ∀ ⦃i⦄ (hi : p i), (s i ∩ t).nonempty :=
 (hl.inf_principal t).ne_bot_iff
 
-lemma has_basis.disjoint_basis_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+lemma has_basis.disjoint_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   disjoint l l' ↔ ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
 not_iff_not.mp $ by simp only [disjoint_iff, ← ne.def, ← ne_bot_iff, hl.inf_basis_ne_bot_iff hl',
   not_exists, bot_eq_empty, ne_empty_iff_nonempty, inf_eq_inter]
@@ -662,22 +675,6 @@ lemma comap_has_basis (f : α → β) (l : filter β) :
   has_basis (comap f l) (λ s : set β, s ∈ l) (λ s, f ⁻¹' s) :=
 ⟨λ t, mem_comap⟩
 
-lemma has_basis.prod_self (hl : l.has_basis p s) :
-  (l ×ᶠ l).has_basis p (λ i, s i ×ˢ s i) :=
-⟨begin
-  intro t,
-  apply mem_prod_iff.trans,
-  split,
-  { rintros ⟨t₁, ht₁, t₂, ht₂, H⟩,
-    rcases hl.mem_iff.1 (inter_mem ht₁ ht₂) with ⟨i, hi, ht⟩,
-    exact ⟨i, hi, λ p ⟨hp₁, hp₂⟩, H ⟨(ht hp₁).1, (ht hp₂).2⟩⟩ },
-  { rintros ⟨i, hi, H⟩,
-    exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
-end⟩
-
-lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, t ×ˢ t ⊆ s :=
-l.basis_sets.prod_self.mem_iff
-
 lemma has_basis.forall_mem_mem (h : has_basis l p s) {x : α} :
   (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i :=
 begin
@@ -685,12 +682,18 @@ begin
   exact ⟨λ h i hi, h (s i) i hi subset.rfl, λ h t i hi ht, ht (h i hi)⟩
 end
 
-lemma has_basis.sInter_sets (h : has_basis l p s) :
-  ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
-begin
-  ext x,
-  simp only [mem_Inter, mem_sInter, filter.mem_sets, h.forall_mem_mem],
-end
+protected lemma has_basis.binfi_mem [complete_lattice β] {f : set α → β} (h : has_basis l p s)
+  (hf : monotone f) :
+  (⨅ t ∈ l, f t) = ⨅ i (hi : p i), f (s i) :=
+le_antisymm (le_infi₂ $ λ i hi, infi₂_le (s i) (h.mem_of_mem hi)) $
+  le_infi₂ $ λ t ht, let ⟨i, hpi, hi⟩ := h.mem_iff.1 ht in infi₂_le_of_le i hpi (hf hi)
+
+protected lemma has_basis.bInter_mem {f : set α → set β} (h : has_basis l p s) (hf : monotone f) :
+  (⋂ t ∈ l, f t) = ⋂ i (hi : p i), f (s i) :=
+h.binfi_mem hf
+
+lemma has_basis.sInter_sets (h : has_basis l p s) : ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
+by { rw [sInter_eq_bInter], exact h.bInter_mem monotone_id }
 
 variables {ι'' : Type*} [preorder ι''] (l) (s'' : ι'' → set α)
 
@@ -703,6 +706,11 @@ includes `s i` for some `i`, and `s` is decreasing. -/
 @[protect_proj] structure has_antitone_basis (l : filter α) (s : ι'' → set α)
   extends has_basis l (λ _, true) s : Prop :=
 (antitone : antitone s)
+
+lemma has_antitone_basis.map {l : filter α} {s : ι'' → set α} {m : α → β}
+  (hf : has_antitone_basis l s) :
+  has_antitone_basis (map m l) (λ n, m '' s n) :=
+⟨has_basis.map _ hf.to_has_basis, λ i j hij, image_subset _ $ hf.2 hij⟩
 
 end same_type
 
@@ -736,7 +744,7 @@ lemma tendsto.basis_both (H : tendsto f la lb) (hla : la.has_basis pa sa)
   ∀ ib (hib : pb ib), ∃ ia (hia : pa ia), ∀ x ∈ sa ia, f x ∈ sb ib :=
 (hla.tendsto_iff hlb).1 H
 
-lemma has_basis.prod'' (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
+lemma has_basis.prod_pprod (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
   (la ×ᶠ lb).has_basis (λ i : pprod ι ι', pa i.1 ∧ pb i.2) (λ i, sa i.1 ×ˢ sb i.2) :=
 (hla.comap prod.fst).inf' (hlb.comap prod.snd)
 
@@ -745,13 +753,12 @@ lemma has_basis.prod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {p
   (la ×ᶠ lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, sa i.1 ×ˢ sb i.2) :=
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
 
-lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι → Prop}
-  {sa : ι → set α} {sb : ι → set β}
+lemma has_basis.prod_same_index {p : ι → Prop} {sb : ι → set β}
   (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
   (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
   (la ×ᶠ lb).has_basis p (λ i, sa i ×ˢ sb i) :=
 begin
-  simp only [has_basis_iff, (hla.prod hlb).mem_iff],
+  simp only [has_basis_iff, (hla.prod_pprod hlb).mem_iff],
   refine λ t, ⟨_, _⟩,
   { rintros ⟨⟨i, j⟩, ⟨hi, hj⟩, hsub : sa i ×ˢ sb j ⊆ t⟩,
     rcases h_dir hi hj with ⟨k, hk, ki, kj⟩,
@@ -760,18 +767,34 @@ begin
     exact ⟨⟨i, i⟩, ⟨hi, hi⟩, h⟩ },
 end
 
-lemma has_antitone_basis.prod {f : filter α} {g : filter β}
-  {s : ℕ → set α} {t : ℕ → set β} (hf : has_antitone_basis f s) (hg : has_antitone_basis g t) :
+lemma has_basis.prod_same_index_mono {ι : Type*} [linear_order ι]
+  {p : ι → Prop} {sa : ι → set α} {sb : ι → set β}
+  (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
+  (hsa : monotone_on sa {i | p i}) (hsb : monotone_on sb {i | p i}) :
+  (la ×ᶠ lb).has_basis p (λ i, sa i ×ˢ sb i) :=
+hla.prod_same_index hlb $ λ i j hi hj,
+  have p (min i j), from min_rec' _ hi hj,
+  ⟨min i j, this, hsa this hi $ min_le_left _ _, hsb this hj $ min_le_right _ _⟩
+
+lemma has_basis.prod_same_index_anti {ι : Type*} [linear_order ι]
+  {p : ι → Prop} {sa : ι → set α} {sb : ι → set β}
+  (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
+  (hsa : antitone_on sa {i | p i}) (hsb : antitone_on sb {i | p i}) :
+  (la ×ᶠ lb).has_basis p (λ i, sa i ×ˢ sb i) :=
+@has_basis.prod_same_index_mono _ _ _ _ ιᵒᵈ _ _ _ _  hla hlb hsa.dual_left hsb.dual_left
+
+lemma has_basis.prod_self (hl : la.has_basis pa sa) :
+  (la ×ᶠ la).has_basis pa (λ i, sa i ×ˢ sa i) :=
+hl.prod_same_index hl $ λ i j hi hj, by simpa only [exists_prop, subset_inter_iff]
+  using hl.mem_iff.1 (inter_mem (hl.mem_of_mem hi) (hl.mem_of_mem hj))
+
+lemma mem_prod_self_iff {s} : s ∈ la ×ᶠ la ↔ ∃ t ∈ la, t ×ˢ t ⊆ s :=
+la.basis_sets.prod_self.mem_iff
+
+lemma has_antitone_basis.prod {ι : Type*} [linear_order ι] {f : filter α} {g : filter β}
+  {s : ι → set α} {t : ι → set β} (hf : has_antitone_basis f s) (hg : has_antitone_basis g t) :
   has_antitone_basis (f ×ᶠ g) (λ n, s n ×ˢ t n) :=
-begin
-  have h : has_basis (f ×ᶠ g) _ _ := has_basis.prod' hf.to_has_basis hg.to_has_basis _,
-  swap,
-  { intros i j,
-    simp only [true_and, forall_true_left],
-    exact ⟨max i j, hf.antitone (le_max_left _ _), hg.antitone (le_max_right _ _)⟩, },
-  refine ⟨h, λ n m hn_le_m, set.prod_mono _ _⟩,
-  exacts [hf.antitone hn_le_m, hg.antitone hn_le_m]
-end
+⟨hf.1.prod_same_index_anti hg.1 (hf.2.antitone_on _) (hg.2.antitone_on _), hf.2.set_prod hg.2⟩
 
 lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {pb : ι' → Prop}
   {sb : ι' → set β} (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
@@ -932,9 +955,17 @@ begin
     ⟨hs.to_has_basis.sup ht.to_has_basis, set.to_countable _⟩
 end
 
+instance prod.is_countably_generated (la : filter α) (lb : filter β) [is_countably_generated la]
+  [is_countably_generated lb] : is_countably_generated (la ×ᶠ lb) :=
+filter.inf.is_countably_generated _ _
+
+instance coprod.is_countably_generated (la : filter α) (lb : filter β) [is_countably_generated la]
+  [is_countably_generated lb] : is_countably_generated (la.coprod lb) :=
+filter.sup.is_countably_generated _ _
+
 end is_countably_generated
 
-@[instance] lemma is_countably_generated_seq [encodable β] (x : β → set α) :
+lemma is_countably_generated_seq [encodable β] (x : β → set α) :
   is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
   use [range x, countable_range x],
@@ -971,14 +1002,18 @@ by { rw ← principal_singleton, exact is_countably_generated_principal _, }
 @[instance] lemma is_countably_generated_top : is_countably_generated (⊤ : filter α) :=
 @principal_univ α ▸ is_countably_generated_principal _
 
-instance is_countably_generated.prod {f : filter α} {g : filter β}
-  [hf : f.is_countably_generated] [hg : g.is_countably_generated] :
-  is_countably_generated (f ×ᶠ g) :=
+instance infi.is_countably_generated {ι : Sort*} [countable ι] (f : ι → filter α)
+  [∀ i, is_countably_generated (f i)] : is_countably_generated (⨅ i, f i) :=
 begin
-  simp_rw is_countably_generated_iff_exists_antitone_basis at hf hg ⊢,
-  rcases hf with ⟨s, hs⟩,
-  rcases hg with ⟨t, ht⟩,
-  refine ⟨_, hs.prod ht⟩,
+  choose s hs using λ i, exists_antitone_basis (f i),
+  rw [← plift.down_surjective.infi_comp],
+  refine has_countable_basis.is_countably_generated
+    ⟨has_basis_infi (λ n, (hs _).to_has_basis), _⟩,
+  haveI := encodable.of_countable (plift ι),
+  refine (countable_range $ sigma.map (coe : finset (plift ι) → set (plift ι)) (λ _, id)).mono _,
+  rintro ⟨I, f⟩ ⟨hI, -⟩,
+  lift I to finset (plift ι) using hI,
+  exact ⟨⟨I, f⟩, rfl⟩
 end
 
 end filter

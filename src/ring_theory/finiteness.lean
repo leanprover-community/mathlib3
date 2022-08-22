@@ -144,6 +144,24 @@ end finite
 
 end module
 
+instance module.finite.base_change [comm_semiring R] [semiring A] [algebra R A]
+  [add_comm_monoid M] [module R M] [h : module.finite R M] :
+  module.finite A (tensor_product R A M) :=
+begin
+  classical,
+  obtain ⟨s, hs⟩ := h.out,
+  refine ⟨⟨s.image (tensor_product.mk R A M 1), eq_top_iff.mpr $ λ x _, _⟩⟩,
+  apply tensor_product.induction_on x,
+  { exact zero_mem _ },
+  { intros x y,
+    rw [finset.coe_image, ← submodule.span_span_of_tower R, submodule.span_image, hs,
+      submodule.map_top, linear_map.range_coe],
+      change _ ∈ submodule.span A (set.range $ tensor_product.mk R A M 1),
+    rw [← mul_one x, ← smul_eq_mul, ← tensor_product.smul_tmul'],
+    exact submodule.smul_mem _ x (submodule.subset_span $ set.mem_range_self y) },
+  { exact λ _ _, submodule.add_mem _ }
+end
+
 instance module.finite.tensor_product [comm_semiring R]
   [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
   [hM : module.finite R M] [hN : module.finite R N] : module.finite R (tensor_product R M N) :=
@@ -498,6 +516,11 @@ begin
   refl
 end
 hf hg
+
+lemma of_finite {f : A →+* B} (hf : f.finite) : f.finite_type :=
+@module.finite.finite_type _ _ _ _ f.to_algebra hf
+
+alias of_finite ← _root_.ring_hom.finite.to_finite_type
 
 lemma of_finite_presentation {f : A →+* B} (hf : f.finite_presentation) : f.finite_type :=
 @algebra.finite_type.of_finite_presentation A B _ _ f.to_algebra hf
@@ -948,9 +971,13 @@ noncomputable theory
 
 /-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
 choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
-@[simps]
 def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+lemma module_polynomial_of_endo_smul_def (n : R[X]) (a : M) :
+  @@has_smul.smul (module_polynomial_of_endo f).to_has_smul n a = polynomial.aeval f n a := rfl
+
+local attribute [simp] module_polynomial_of_endo_smul_def
 
 include f
 lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _

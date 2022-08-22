@@ -69,7 +69,7 @@ variables {F : J ⥤ C}
 section limit
 
 /-- `limit_cone F` contains a cone over `F` together with the information that it is a limit. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure limit_cone (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
@@ -519,7 +519,7 @@ section colimit
 
 /-- `colimit_cocone F` contains a cocone over `F` together with the information that it is a
     colimit. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure colimit_cocone (F : J ⥤ C) :=
 (cocone : cocone F)
 (is_colimit : is_colimit cocone)

@@ -41,7 +41,7 @@ class continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_
   extends fun_like F α (λ _, β) :=
 (map_continuous (f : F) : continuous f)
 
-set_option old_structure_cmd false
+end
 
 export continuous_map_class (map_continuous)
 

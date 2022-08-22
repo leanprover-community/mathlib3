@@ -9,22 +9,32 @@ import data.fun_like.basic
 
 /-!
 # Dilations
+
 We define dilations, i.e., maps between emetric spaces that
 satisfy `edist (f x) (f y) = r * edist x y`.
-Defines `ratio f`, which is the ratio of some `f : dilation α β`.
-Note that `ratio f : ℝ≥0`, so we do not exclude the degenerate case of dilations
-which collapse into constant maps. Statements that do need strict dilations should
-say `f : dilation α β` and `hr : ratio f ≠ 0`.
-TODO: Introduce dilation equivs. Refactor the isometry API
-to match the `*_hom_class` API below.
-Since a lot of elementary properties don't require `eq_of_dist_eq_zero`
-we start setting up the theory for `pseudo_emetric_space` and
-we specialize to `pseudo_metric_space` and `metric_space` when needed.
-# Notes
+
+## Main defintions
+
+* `dilation.ratio f`: the value of `r` in the relation above, defaulting to 1 in the case where it is not well-defined.
+  Note that `ratio f : ℝ≥0`, so we do not exclude the degenerate case of dilations
+  which collapse into constant maps. Statements that do need strict dilations should
+  say `f : dilation α β` and `hr : ratio f ≠ 0`.
+  
+## Implementation notes
+
 The type of dilations defined in this file are also referred to as
 "similiarties" or "similitudes" by other authors. The name `dilation` was choosen
 to match the Wikipedia name.
-# References
+
+Since a lot of elementary properties don't require `eq_of_dist_eq_zero`
+we start setting up the theory for `pseudo_emetric_space` and
+we specialize to `pseudo_metric_space` and `metric_space` when needed.
+
+TODO: Introduce dilation equivs. Refactor the `isometry` API
+to match the `*_hom_class` API below.
+
+## References
+
 - https://en.wikipedia.org/wiki/Dilation_(metric_space)
 - Marcel Berger, Geometry
 -/
@@ -42,8 +52,6 @@ variables (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_emetric_sp
 structure dilation :=
 (to_fun : α → β)
 (edist_eq' : ∃ r : ℝ≥0, r ≠ 0 ∧ ∀ x y : α, edist (to_fun x) (to_fun y) = r * edist x y)
-
-attribute [nolint has_inhabited_instance] dilation
 
 /--
 `dilation_class F α β r` states that `F` is a type of `r`-dilations.
@@ -210,8 +218,6 @@ variables (f : F) (g : G) {x y z : α}  {s : set α}
 lemma lipschitz : lipschitz_with (ratio f) (f : α → β) :=
 λ x y, (edist_eq f x y).le
 
--- TODO: add `instance ennreal.div_inv_comm_monoid`
--- TODO: fix `antilipschitz_with` decl header
 lemma antilipschitz : antilipschitz_with (ratio f)⁻¹ (f : α → β) :=
 λ x y, begin
   have hr : ratio f ≠ 0 := ratio_ne_zero f,

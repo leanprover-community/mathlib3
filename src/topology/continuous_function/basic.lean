@@ -31,6 +31,7 @@ structure continuous_map (α β : Type*) [topological_space α] [topological_spa
 
 notation `C(` α `, ` β `)` := continuous_map α β
 
+section
 set_option old_structure_cmd true
 /-- `continuous_map_class F α β` states that `F` is a type of continuous maps.
 

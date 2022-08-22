@@ -21,7 +21,7 @@ trivial `simp` lemmas, and define the following operations on `ring_hom`s and si
   sends `(x, y)` to `(f x, g y)`.
 -/
 
-variables {R : Type*} {R' : Type*} {S : Type*} {S' : Type*} {T : Type*} {T' : Type*}
+variables {α β R R' S S' T T' : Type*}
 
 namespace prod
 

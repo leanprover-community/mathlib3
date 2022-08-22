@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {α M₀ G₀ M₀' G₀' F : Type*}
+variables {α M₀ G₀ M₀' G₀' F F' : Type*}
 
 section
 
@@ -976,7 +976,8 @@ end commute
 
 section monoid_with_zero
 variables [group_with_zero G₀] [monoid_with_zero M₀] [nontrivial M₀]
-  [monoid_with_zero_hom_class F G₀ M₀] (f : F) {a : G₀}
+  [monoid_with_zero M₀'] [monoid_with_zero_hom_class F G₀ M₀]
+  [monoid_with_zero_hom_class F' G₀ M₀'] (f : F) {a : G₀}
 include M₀
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
@@ -984,12 +985,15 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-lemma eq_on_inv (f g : F) (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
+omit M₀
+include M₀'
+
+lemma eq_on_inv₀ (f g : F') (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
 begin
   rcases eq_or_ne a 0 with rfl|ha, { simp },
   lift a to units G₀ using is_unit.mk0 a ha,
   rw [← units.coe_inv],
-  change f.to_monoid_hom.comp (units.coe_hom G₀) a⁻¹ = g.to_monoid_hom.comp (units.coe_hom G₀) a⁻¹,
+  change (f : G₀ →* M₀').comp (units.coe_hom G₀) a⁻¹ = (g : G₀ →* M₀').comp (units.coe_hom G₀) a⁻¹,
   exact monoid_hom.eq_on_inv h
 end
 

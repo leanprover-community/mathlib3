@@ -309,7 +309,7 @@ theorem ext_rat' (h : ∀ m : ℤ, f m = g m) : f = g :=
 begin
   ext r,
   rw [← r.num_div_denom, div_eq_mul_inv, map_mul, map_mul, h, ← int.cast_coe_nat,
-    f.eq_on_inv g (h _)]
+    eq_on_inv₀ f g (h _)]
 end
 
 /-- If `f` and `g` agree on the integers then they are equal `φ`.

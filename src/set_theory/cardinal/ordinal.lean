@@ -500,7 +500,7 @@ begin
   refine (mul_le_max_of_aleph_0_le_left h).antisymm _,
   have : b ≤ a, from hb.le.trans h,
   rw [max_eq_left this],
-  convert _root_.mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
+  convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
 lemma mul_eq_max_of_aleph_0_le_right {a b : cardinal} (h' : a ≠ 0) (h : ℵ₀ ≤ b) : a * b = max a b :=
@@ -536,7 +536,7 @@ lemma mul_eq_right {a b : cardinal} (hb : ℵ₀ ≤ b) (ha : a ≤ b) (ha' : a 
 by { rw [mul_comm, mul_eq_left hb ha ha'] }
 
 lemma le_mul_left {a b : cardinal} (h : b ≠ 0) : a ≤ b * a :=
-by { convert _root_.mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
+by { convert mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
   rw [one_mul] }
 
 lemma le_mul_right {a b : cardinal} (h : b ≠ 0) : a ≤ a * b :=

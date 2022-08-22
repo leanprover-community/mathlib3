@@ -383,7 +383,7 @@ instance : has_inv (free_group α) :=
 
 @[simp] lemma inv_mk : (mk L)⁻¹ = mk (inv_rev L) := rfl
 
-lemma red.step.inv_rev {L₁ : list (α × bool)} {L₂ : list (α × bool)} (h : red.step L₁ L₂) :
+lemma red.step.inv_rev {L₁ L₂ : list (α × bool)} (h : red.step L₁ L₂) :
   red.step (inv_rev L₁) (inv_rev L₂) :=
 begin
   cases h with a b x y,

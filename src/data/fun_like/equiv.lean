@@ -69,7 +69,7 @@ You should extend this class when you extend `my_iso`. -/
 class my_iso_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class B]
   extends equiv_like F A (λ _, B), my_hom_class F A B.
 
-set_option old_structure_cmd false
+end
 
 -- You can replace `my_iso.equiv_like` with the below instance:
 instance : my_iso_class (my_iso A B) A B :=

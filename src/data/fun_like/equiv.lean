@@ -61,6 +61,7 @@ the axioms of your new type of isomorphisms.
 Continuing the example above:
 
 ```
+section
 set_option old_structure_cmd true
 
 /-- `my_iso_class F A B` states that `F` is a type of `my_class.op`-preserving morphisms.

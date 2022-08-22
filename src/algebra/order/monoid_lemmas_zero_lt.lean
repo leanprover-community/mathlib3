@@ -983,7 +983,7 @@ lemma mul_lt_of_lt_one_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : b < 1) :
   a * b < a :=
 mul_lt_of_le_of_lt_one le_rfl h a0
 
-lemma lt_mul_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : 1 < b) :
+lemma lt_mul_of_one_lt_right [pos_mul_strict_mono α] (a0 : 0 < a) (h : 1 < b) :
   a < a * b :=
 lt_mul_of_le_of_one_lt le_rfl h a0
 

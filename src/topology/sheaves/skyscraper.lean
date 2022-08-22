@@ -18,7 +18,7 @@ point, then the skyscraper (pre)sheaf `𝓕` with value `A` is defined by `U ↦
 
 ## Main definitions
 
-* `skyscraper_presheaf`:  `skyscraper_presheaf p₀ A` is the skyscraper presheaf at point `p₀` with
+* `skyscraper_presheaf`: `skyscraper_presheaf p₀ A` is the skyscraper presheaf at point `p₀` with
   value `A`.
 * `skyscraper_sheaf`: the skyscraper presheaf satisfies the sheaf condition.
 
@@ -51,25 +51,22 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 `U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
 -/
 @[simps] def skyscraper_presheaf : presheaf C X :=
-{ obj := λ U, ite (p₀ ∈ unop U) S (terminal C),
-  map := λ U V i, dite (p₀ ∈ unop V)
-    (λ h, eq_to_hom (if_pos (le_of_hom i.unop h)) ≫ 𝟙 S ≫ eq_to_hom (if_pos h).symm)
-    (λ h, terminal.from _ ≫ eq_to_hom (if_neg h).symm),
+{ obj := λ U, if p₀ ∈ unop U then S else terminal C,
+  map := λ U V i, if h : p₀ ∈ unop V
+    then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
+    else terminal.from _ ≫ eq_to_hom (if_neg h).symm,
   map_id' := λ U,
   begin
     split_ifs,
-    { simp, },
+    { apply eq_to_hom_refl },
     { simpa only [eq_comp_eq_to_hom] using terminal_is_terminal.hom_ext _ _, },
   end,
   map_comp' := λ U V W iVU iWV,
   begin
     by_cases hW : p₀ ∈ unop W,
     { have hV : p₀ ∈ unop V := le_of_hom iWV.unop hW,
-      have hU : p₀ ∈ unop U := le_of_hom iVU.unop hV,
-      split_ifs,
-      simp },
-    { split_ifs;
-      simpa only [eq_comp_eq_to_hom] using terminal_is_terminal.hom_ext _ _, }
+      simp only [dif_pos hW, dif_pos hV, eq_to_hom_trans] },
+    { rw [dif_neg hW, eq_comp_eq_to_hom], apply terminal_is_terminal.hom_ext }
   end }
 
 section

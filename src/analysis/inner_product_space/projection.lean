@@ -957,12 +957,6 @@ lemma orthogonal_projection_is_symmetric
   (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
 inner_orthogonal_projection_left_eq_right K
 
-/-- The orthogonal projection is symmetric. -/
-lemma orthogonal_projection_is_symmetric [complete_space E]
-  [complete_space K] :
-  (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
-inner_orthogonal_projection_left_eq_right K
-
 open finite_dimensional
 
 /-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`

@@ -193,9 +193,6 @@ begin
   exact (mul_lt_mul_of_pos_left (h₁.lt_of_not_le ba) (h₂.lt_of_not_le c0)).le,
 end
 
-lemma mul_le_mul_of_nonneg_left : a ≤ b → 0 ≤ c → c * a ≤ c * b :=
-by classical; exact decidable.mul_le_mul_of_nonneg_left
-
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonneg_right [@decidable_rel α (≤)]
   (h₁ : a ≤ b) (h₂ : 0 ≤ c) : a * c ≤ b * c :=
@@ -205,9 +202,6 @@ begin
   exact (mul_lt_mul_of_pos_right (h₁.lt_of_not_le ba) (h₂.lt_of_not_le c0)).le,
 end
 
-lemma mul_le_mul_of_nonneg_right : a ≤ b → 0 ≤ c → a * c ≤ b * c :=
-by classical; exact decidable.mul_le_mul_of_nonneg_right
-
 -- TODO: there are four variations, depending on which variables we assume to be nonneg
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul [@decidable_rel α (≤)]
@@ -215,9 +209,6 @@ protected lemma decidable.mul_le_mul [@decidable_rel α (≤)]
 calc
   a * b ≤ c * b : decidable.mul_le_mul_of_nonneg_right hac nn_b
     ... ≤ c * d : decidable.mul_le_mul_of_nonneg_left hbd nn_c
-
-lemma mul_le_mul : a ≤ c → b ≤ d → 0 ≤ b → 0 ≤ c → a * b ≤ c * d :=
-by classical; exact decidable.mul_le_mul
 
 -- See Note [decidable namespace]
 protected lemma decidable.mul_nonneg_le_one_le {α : Type*} [ordered_semiring α]
@@ -227,15 +218,13 @@ by simpa only [mul_one] using decidable.mul_le_mul h₂ h₄ h₃ h₁
 
 lemma mul_nonneg_le_one_le {α : Type*} [ordered_semiring α] {a b c : α} :
   0 ≤ c → a ≤ c → 0 ≤ b → b ≤ 1 → a * b ≤ c :=
-by classical; exact decidable.mul_nonneg_le_one_le
+mul_nonneg_le_one_le
 
 -- See Note [decidable namespace]
 protected lemma decidable.mul_nonneg [@decidable_rel α (≤)]
   (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 have h : 0 * b ≤ a * b, from decidable.mul_le_mul_of_nonneg_right ha hb,
 by rwa [zero_mul] at h
-
-lemma mul_nonneg : 0 ≤ a → 0 ≤ b → 0 ≤ a * b := by classical; exact decidable.mul_nonneg
 
 @[simp] theorem pow_nonneg (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := by { rw pow_zero, exact zero_le_one}
@@ -272,10 +261,6 @@ calc
 
 lemma mul_lt_mul' : a ≤ c → b < d → 0 ≤ b → 0 < c → a * b < c * d :=
 by classical; exact decidable.mul_lt_mul'
-
-lemma mul_pos (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
-have h : 0 * b < a * b, from mul_lt_mul_of_pos_right ha hb,
-by rwa zero_mul at h
 
 @[simp] theorem pow_pos (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
@@ -340,14 +325,8 @@ protected lemma decidable.lt_mul_of_one_lt_left [@decidable_rel α (≤)]
 suffices 1 * b < a * b, by rwa one_mul at this,
 decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 
-lemma lt_two_mul_self [nontrivial α] (ha : 0 < a) : a < 2 * a :=
-lt_mul_of_one_lt_left ha one_lt_two
-
-lemma lt_mul_left (hn : 0 < a) (hm : 1 < b) : a < b * a :=
-by { convert mul_lt_mul_of_pos_right hm hn, rw one_mul }
-
-lemma lt_mul_right (hn : 0 < a) (hm : 1 < b) : a < a * b :=
-by { convert mul_lt_mul_of_pos_left hm hn, rw mul_one }
+lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a :=
+lt_mul_left ha (@one_lt_two α _ (nontrivial_of_ne 0 a ha.ne))
 
 lemma lt_mul_self (hn : 1 < a) : a < a * a :=
 lt_mul_left (hn.trans_le' zero_le_one) hn
@@ -529,6 +508,7 @@ by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_lt_mul_add_m
 
 end has_exists_add_of_le
 end ordered_semiring
+
 section ordered_comm_semiring
 
 /-- An `ordered_comm_semiring α` is a commutative semiring `α` with a partial order such that
@@ -621,12 +601,6 @@ by { convert mul_le_mul_left h, simp }
 
 @[simp] lemma zero_le_mul_right (h : 0 < c) : 0 ≤ b * c ↔ 0 ≤ b :=
 by { convert mul_le_mul_right h, simp }
-
-@[simp] lemma zero_lt_mul_left (h : 0 < c) : 0 < c * b ↔ 0 < b :=
-by { convert mul_lt_mul_left h, simp }
-
-@[simp] lemma zero_lt_mul_right (h : 0 < c) : 0 < b * c ↔ 0 < b :=
-by { convert mul_lt_mul_right h, simp }
 
 lemma add_le_mul_of_left_le_right (a2 : 2 ≤ a) (ab : a ≤ b) : a + b ≤ a * b :=
 have 0 < b, from
@@ -1724,7 +1698,7 @@ instance [canonically_ordered_comm_semiring α] [nontrivial α] :
     { induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le], },
       induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le, },
       { simp only [← coe_mul, coe_le_coe] at *,
-        exact mul_le_mul_left_of_le_of_nonneg h (zero_le x), }, },
+        exact mul_le_mul_left' h x, }, },
   end ⟩
 
 instance [canonically_ordered_comm_semiring α] [nontrivial α] :

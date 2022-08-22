@@ -113,27 +113,12 @@ begin
   exact nat.sub_pos_of_lt ineq,
 end
 
-lemma fact_eq_prod (n : ℕ) : (n.factorial:ℤ) = ∏ i in finset.range n, (i+1:ℤ) :=
-begin
-  rw ←finset.prod_range_add_one_eq_factorial,
-  simp only [nat.cast_prod, eq_self_iff_true, nat.cast_add, nat.cast_one],
-end
-
 lemma fact_eq_prod'' (n : ℕ) : n.factorial = ∏ i in finset.range n, (n - i) :=
 begin
   rw [←finset.prod_range_reflect, ←finset.prod_range_add_one_eq_factorial],
   apply finset.prod_congr rfl (λ i hi, _),
   rw [finset.mem_range, ←nat.one_add_le_iff] at hi,
   rw [nat.sub_sub, nat.sub_sub_self hi, add_comm],
-end
-
-lemma fact_eq_prod' (n : ℕ) : (n.factorial:ℤ) = ∏ i in finset.range n, (n-i:ℤ) :=
-begin
-  rw [fact_eq_prod''],
-  simp only [nat.cast_prod],
-  apply finset.prod_congr rfl (λ i hi, _),
-  rw [finset.mem_range] at hi,
-  rw nat.cast_sub hi.le,
 end
 
 lemma finset.prod_neg

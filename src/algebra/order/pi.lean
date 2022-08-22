@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.group.pi
-import algebra.order.group
+import algebra.order.ring
 import tactic.pi_instances
 /-!
 # Pi instances for ordered groups and monoids
@@ -55,5 +55,11 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   npow := monoid.npow,
   ..pi.comm_group,
   ..pi.ordered_comm_monoid, }
+
+instance [Π i, ordered_semiring (f i)] : ordered_semiring (Π i, f i) :=
+by refine_struct { ..pi.semiring, ..pi.partial_order }; tactic.pi_instance_derive_field
+
+instance [Π i, ordered_comm_semiring (f i)] : ordered_comm_semiring (Π i, f i) :=
+{ ..pi.comm_semiring, ..pi.ordered_semiring }
 
 end pi

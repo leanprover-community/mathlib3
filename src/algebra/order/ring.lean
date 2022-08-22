@@ -6,7 +6,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 import algebra.char_zero.defs
 import algebra.order.group
 import algebra.order.monoid_lemmas_zero_lt
-import algebra.order.pi
 import algebra.order.sub
 import algebra.hom.ring
 import data.set.intervals.basic
@@ -1449,19 +1448,6 @@ lemma tsub_mul (a b c : α) : (a - b) * c = a * c - b * c :=
 contravariant.add_le_cancellable.tsub_mul
 
 end sub
-
-/-! ### Product of ordered semirings -/
-
-section pi
-variables {ι : Type*} {π : ι → Type*}
-
-instance [Π i, ordered_semiring (π i)] : ordered_semiring (Π i, π i) :=
-by refine_struct { ..pi.semiring, ..pi.partial_order }; tactic.pi_instance_derive_field
-
-instance [Π i, ordered_comm_semiring (π i)] : ordered_comm_semiring (Π i, π i) :=
-{ ..pi.comm_semiring, ..pi.ordered_semiring }
-
-end pi
 
 /-! ### Structures involving `*` and `0` on `with_top` and `with_bot`
 

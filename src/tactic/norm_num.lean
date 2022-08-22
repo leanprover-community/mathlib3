@@ -75,6 +75,7 @@ theorem bit1_succ {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 = b
 h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 
 lemma neg_zero {α} [subtraction_monoid α] : -(0 : α) = 0 := neg_zero
+lemma sub_zero {α} [subtraction_monoid α] (a : α) : a - 0 = a := sub_zero a
 
 section
 open match_numeral_result

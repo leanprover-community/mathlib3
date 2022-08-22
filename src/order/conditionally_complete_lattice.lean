@@ -556,11 +556,6 @@ by haveI := unique_prop hp; exact supr_unique
 @[simp] lemma cinfi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
 @csupr_pos αᵒᵈ _ _ _ hp
 
-lemma csupr_set {s : set β} {f : β → α} : (⨆ x : s, f x) = Sup (f '' s) :=
-Sup_image'.symm
-
-lemma cinfi_set {s : set β} {f : β → α} : (⨅ x : s, f x) = Inf (f '' s) := @csupr_set αᵒᵈ _ _ _ _
-
 /--Introduction rule to prove that `b` is the supremum of `f`: it suffices to check that `b`
 is larger than `f i` for all `i`, and that this is not the case of any `w<b`.
 See `supr_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
@@ -924,7 +919,7 @@ eq.symm $ is_lub.csupr_set_eq (gc.is_lub_l_image $ is_lub_cSup hne hbdd) hne
 
 lemma l_cSup' (gc : galois_connection l u) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
   l (Sup s) = Sup (l '' s) :=
-by rw [gc.l_cSup hne hbdd, csupr_set]
+by rw [gc.l_cSup hne hbdd, Sup_image']
 
 lemma l_csupr (gc : galois_connection l u) {f : ι → α}
   (hf : bdd_above (range f)) :

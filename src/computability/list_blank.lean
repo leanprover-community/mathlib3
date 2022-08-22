@@ -201,10 +201,10 @@ def list_val.nth {Γ} {val : Γ} (l : list_val Γ val) (n : ℕ) : Γ :=
 l.lift_on (λ l, list.nthd val l n) begin
   rintro l _ ⟨i, rfl⟩,
   simp only,
-  cases lt_or_le _ _ with h h, {rw list.nthd_append _ _ _ h},
-  rw list.inth_eq_default _ h,
-  cases le_or_lt _ _ with h₂ h₂, {rw list.inth_eq_default _ h₂},
-  rw [list.inth_eq_nth_le _ h₂, list.nth_le_append_right h, list.nth_le_repeat]
+  cases lt_or_le n l.length with h h, {rw list.nthd_append _ _ _ _ h, },
+  rw list.nthd_eq_default _ _ h,
+  cases le_or_lt _ _ with h₂ h₂, {rw list.nthd_eq_default _ _ h₂},
+  rw [list.nthd_eq_nth_le _ _ h₂, list.nth_le_append_right h, list.nth_le_repeat],
 end
 
 @[simp] theorem list_val.nth_mk {Γ} (val : Γ) (l : list Γ) (n : ℕ) :
@@ -235,9 +235,9 @@ begin
   simp only [list_val.nth_mk] at H,
   cases lt_or_le i l₁.length with h' h',
   { simp only [list.nth_le_append _ h', list.nth_le_nth h, list.nth_le_nth h',
-               ←list.inth_eq_nth_le _ h, ←list.inth_eq_nth_le _ h', H] },
-  { simp only [list.nth_le_append_right h', list.nth_le_repeat, list.nth_le_nth h,
-               list.nth_len_le h', ←list.inth_eq_default _ h', H, list.inth_eq_nth_le _ h] }
+               ←list.nthd_eq_nth_le _ val h, ←list.nthd_eq_nth_le _ val h', H], },
+  { simp only [list.nth_le_append_right h', list.nth_le_repeat, ←list.nthd_eq_nth_le _ val h,
+               ←H, list.nthd_eq_default _ val h'], }
 end
 
 /-- Apply a function to a value stored at the nth position of the list. -/
@@ -276,8 +276,10 @@ instance {Γ Γ'} (val : Γ) (val' : Γ') : has_coe_to_fun (pointed_map Γ Γ' v
   (f : pointed_map Γ Γ' val val') : f val = val' := pointed_map.map_pt' _
 
 @[simp] theorem pointed_map.head_map {Γ Γ'} (val : Γ) (val' : Γ')
-  (f : pointed_map Γ Γ' val val') (l : list Γ) : (l.map f).headd val' = f l.headd val :=
-by cases l; [exact (pointed_map.map_pt f).symm, refl]
+  (f : pointed_map Γ Γ' val val') (l : list Γ) : (l.map f).headd val' = f (l.headd val) :=
+begin
+  cases l; simp,
+end
 
 /-- The `map` function on lists is well defined on `list_val`s provided that the map is
 pointed. -/
@@ -320,9 +322,9 @@ l.induction_on begin
   intro l,
   simp_rw [list_val.map_mk],
   simp_rw [list_val.nth_mk],
-  simp_rw [list.nthd_map],
-  -- simp only [list.nth_map, list_val.map_mk, list_val.nth_mk, list.inth_eq_iget_nth],
-  cases l.nth n, {exact f.2.symm}, {refl}
+  rw [←list.nthd_map val (f : Γ -> Γ') l n],
+  congr,
+  exact f.2.symm,
 end
 
 /-- The `i`-th projection as a pointed map. -/
@@ -379,116 +381,116 @@ l.induction_on $ by intro; simp only [list_val.append_mk,
 
 section list_blank
 
-/-- The `blank_extends` partial order holds of `l₁` and `l₂` if `l₂` is obtained by adding
-blanks (`default : Γ`) to the end of `l₁`. -/
-def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
-∃ n, l₂ = l₁ ++ list.repeat default n
+-- /-- The `blank_extends` partial order holds of `l₁` and `l₂` if `l₂` is obtained by adding
+-- blanks (`default : Γ`) to the end of `l₁`. -/
+-- def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
+-- ∃ n, l₂ = l₁ ++ list.repeat default n
 
-@[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
-⟨0, by simp⟩
+-- @[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
+-- ⟨0, by simp⟩
 
-@[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
-  blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
-by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.repeat_add]⟩ }
+-- @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
+--   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
+-- by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.repeat_add]⟩ }
 
-theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
-  blank_extends l l₁ → blank_extends l l₂ →
-  l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
-begin
-  rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
-  simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
-  simp only [← list.repeat_add, add_tsub_cancel_of_le h, list.append_assoc],
-end
+-- theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
+--   blank_extends l l₁ → blank_extends l l₂ →
+--   l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
+-- begin
+--   rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
+--   simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
+--   simp only [← list.repeat_add, add_tsub_cancel_of_le h, list.append_assoc],
+-- end
 
-/-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
-longer of `l₁` and `l₂`). -/
-def blank_extends.above {Γ} [inhabited Γ] {l l₁ l₂ : list Γ}
-  (h₁ : blank_extends l l₁) (h₂ : blank_extends l l₂) :
-  {l' // blank_extends l₁ l' ∧ blank_extends l₂ l'} :=
-if h : l₁.length ≤ l₂.length then
-  ⟨l₂, h₁.below_of_le h₂ h, blank_extends.refl _⟩
-else
-  ⟨l₁, blank_extends.refl _, h₂.below_of_le h₁ (le_of_not_ge h)⟩
+-- /-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
+-- longer of `l₁` and `l₂`). -/
+-- def blank_extends.above {Γ} [inhabited Γ] {l l₁ l₂ : list Γ}
+--   (h₁ : blank_extends l l₁) (h₂ : blank_extends l l₂) :
+--   {l' // blank_extends l₁ l' ∧ blank_extends l₂ l'} :=
+-- if h : l₁.length ≤ l₂.length then
+--   ⟨l₂, h₁.below_of_le h₂ h, blank_extends.refl _⟩
+-- else
+--   ⟨l₁, blank_extends.refl _, h₂.below_of_le h₁ (le_of_not_ge h)⟩
 
-theorem blank_extends.above_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
-  blank_extends l₁ l → blank_extends l₂ l →
-  l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
-begin
-  rintro ⟨i, rfl⟩ ⟨j, e⟩ h, use i - j,
-  refine list.append_right_cancel (e.symm.trans _),
-  rw [list.append_assoc, ← list.repeat_add, tsub_add_cancel_of_le],
-  apply_fun list.length at e,
-  simp only [list.length_append, list.length_repeat] at e,
-  rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
-end
+-- theorem blank_extends.above_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
+--   blank_extends l₁ l → blank_extends l₂ l →
+--   l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
+-- begin
+--   rintro ⟨i, rfl⟩ ⟨j, e⟩ h, use i - j,
+--   refine list.append_right_cancel (e.symm.trans _),
+--   rw [list.append_assoc, ← list.repeat_add, tsub_add_cancel_of_le],
+--   apply_fun list.length at e,
+--   simp only [list.length_append, list.length_repeat] at e,
+--   rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
+-- end
 
-/-- `blank_rel` is the symmetric closure of `blank_extends`, turning it into an equivalence
-relation. Two lists are related by `blank_rel` if one extends the other by blanks. -/
-def blank_rel {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
-blank_extends l₁ l₂ ∨ blank_extends l₂ l₁
+-- /-- `blank_rel` is the symmetric closure of `blank_extends`, turning it into an equivalence
+-- relation. Two lists are related by `blank_rel` if one extends the other by blanks. -/
+-- def blank_rel {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
+-- blank_extends l₁ l₂ ∨ blank_extends l₂ l₁
 
-@[refl] theorem blank_rel.refl {Γ} [inhabited Γ] (l : list Γ) : blank_rel l l :=
-or.inl (blank_extends.refl _)
+-- @[refl] theorem blank_rel.refl {Γ} [inhabited Γ] (l : list Γ) : blank_rel l l :=
+-- or.inl (blank_extends.refl _)
 
-@[symm] theorem blank_rel.symm {Γ} [inhabited Γ] {l₁ l₂ : list Γ} :
-  blank_rel l₁ l₂ → blank_rel l₂ l₁ := or.symm
+-- @[symm] theorem blank_rel.symm {Γ} [inhabited Γ] {l₁ l₂ : list Γ} :
+--   blank_rel l₁ l₂ → blank_rel l₂ l₁ := or.symm
 
-@[trans] theorem blank_rel.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
-  blank_rel l₁ l₂ → blank_rel l₂ l₃ → blank_rel l₁ l₃ :=
-begin
-  rintro (h₁|h₁) (h₂|h₂),
-  { exact or.inl (h₁.trans h₂) },
-  { cases le_total l₁.length l₃.length with h h,
-    { exact or.inl (h₁.above_of_le h₂ h) },
-    { exact or.inr (h₂.above_of_le h₁ h) } },
-  { cases le_total l₁.length l₃.length with h h,
-    { exact or.inl (h₁.below_of_le h₂ h) },
-    { exact or.inr (h₂.below_of_le h₁ h) } },
-  { exact or.inr (h₂.trans h₁) },
-end
+-- @[trans] theorem blank_rel.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
+--   blank_rel l₁ l₂ → blank_rel l₂ l₃ → blank_rel l₁ l₃ :=
+-- begin
+--   rintro (h₁|h₁) (h₂|h₂),
+--   { exact or.inl (h₁.trans h₂) },
+--   { cases le_total l₁.length l₃.length with h h,
+--     { exact or.inl (h₁.above_of_le h₂ h) },
+--     { exact or.inr (h₂.above_of_le h₁ h) } },
+--   { cases le_total l₁.length l₃.length with h h,
+--     { exact or.inl (h₁.below_of_le h₂ h) },
+--     { exact or.inr (h₂.below_of_le h₁ h) } },
+--   { exact or.inr (h₂.trans h₁) },
+-- end
 
-/-- Given two `blank_rel` lists, there exists (constructively) a common join. -/
-def blank_rel.above {Γ} [inhabited Γ] {l₁ l₂ : list Γ} (h : blank_rel l₁ l₂) :
-  {l // blank_extends l₁ l ∧ blank_extends l₂ l} :=
-begin
-  refine if hl : l₁.length ≤ l₂.length
-    then ⟨l₂, or.elim h id (λ h', _), blank_extends.refl _⟩
-    else ⟨l₁, blank_extends.refl _, or.elim h (λ h', _) id⟩,
-  exact (blank_extends.refl _).above_of_le h' hl,
-  exact (blank_extends.refl _).above_of_le h' (le_of_not_ge hl)
-end
+-- /-- Given two `blank_rel` lists, there exists (constructively) a common join. -/
+-- def blank_rel.above {Γ} [inhabited Γ] {l₁ l₂ : list Γ} (h : blank_rel l₁ l₂) :
+--   {l // blank_extends l₁ l ∧ blank_extends l₂ l} :=
+-- begin
+--   refine if hl : l₁.length ≤ l₂.length
+--     then ⟨l₂, or.elim h id (λ h', _), blank_extends.refl _⟩
+--     else ⟨l₁, blank_extends.refl _, or.elim h (λ h', _) id⟩,
+--   exact (blank_extends.refl _).above_of_le h' hl,
+--   exact (blank_extends.refl _).above_of_le h' (le_of_not_ge hl)
+-- end
 
-/-- Given two `blank_rel` lists, there exists (constructively) a common meet. -/
-def blank_rel.below {Γ} [inhabited Γ] {l₁ l₂ : list Γ} (h : blank_rel l₁ l₂) :
-  {l // blank_extends l l₁ ∧ blank_extends l l₂} :=
-begin
-  refine if hl : l₁.length ≤ l₂.length
-    then ⟨l₁, blank_extends.refl _, or.elim h id (λ h', _)⟩
-    else ⟨l₂, or.elim h (λ h', _) id, blank_extends.refl _⟩,
-  exact (blank_extends.refl _).above_of_le h' hl,
-  exact (blank_extends.refl _).above_of_le h' (le_of_not_ge hl)
-end
+-- /-- Given two `blank_rel` lists, there exists (constructively) a common meet. -/
+-- def blank_rel.below {Γ} [inhabited Γ] {l₁ l₂ : list Γ} (h : blank_rel l₁ l₂) :
+--   {l // blank_extends l l₁ ∧ blank_extends l l₂} :=
+-- begin
+--   refine if hl : l₁.length ≤ l₂.length
+--     then ⟨l₁, blank_extends.refl _, or.elim h id (λ h', _)⟩
+--     else ⟨l₂, or.elim h (λ h', _) id, blank_extends.refl _⟩,
+--   exact (blank_extends.refl _).above_of_le h' hl,
+--   exact (blank_extends.refl _).above_of_le h' (le_of_not_ge hl)
+-- end
 
-theorem blank_rel.equivalence (Γ) [inhabited Γ] : equivalence (@blank_rel Γ _) :=
-⟨blank_rel.refl, @blank_rel.symm _ _, @blank_rel.trans _ _⟩
+-- theorem blank_rel.equivalence (Γ) [inhabited Γ] : equivalence (@blank_rel Γ _) :=
+-- ⟨blank_rel.refl, @blank_rel.symm _ _, @blank_rel.trans _ _⟩
 
-/-- Construct a setoid instance for `blank_rel`. -/
-def blank_rel.setoid (Γ) [inhabited Γ] : setoid (list Γ) := ⟨_, blank_rel.equivalence _⟩
+-- /-- Construct a setoid instance for `blank_rel`. -/
+-- def blank_rel.setoid (Γ) [inhabited Γ] : setoid (list Γ) := ⟨_, blank_rel.equivalence _⟩
 
 /-- A `list_blank Γ` is a quotient of `list Γ` by extension by blanks at the end. This is used to
 represent half-tapes of a Turing machine, so that we can pretend that the list continues
 infinitely with blanks. -/
-def list_blank (Γ) [inhabited Γ] := quotient (blank_rel.setoid Γ)
+def list_blank (Γ) [inhabited Γ] := list_val Γ default
 
 instance list_blank.inhabited {Γ} [inhabited Γ] : inhabited (list_blank Γ) := ⟨quotient.mk' []⟩
 instance list_blank.has_emptyc {Γ} [inhabited Γ] : has_emptyc (list_blank Γ) := ⟨quotient.mk' []⟩
 
-/-- A modified version of `quotient.lift_on'` specialized for `list_blank`, with the stronger
-precondition `blank_extends` instead of `blank_rel`. -/
-@[elab_as_eliminator, reducible]
-protected def list_blank.lift_on {Γ} [inhabited Γ] {α} (l : list_blank Γ) (f : list Γ → α)
-  (H : ∀ a b, blank_extends a b → f a = f b) : α :=
-l.lift_on' f $ by rintro a b (h|h); [exact H _ _ h, exact (H _ _ h).symm]
+-- /-- A modified version of `quotient.lift_on'` specialized for `list_blank`, with the stronger
+-- precondition `blank_extends` instead of `blank_rel`. -/
+-- @[elab_as_eliminator, reducible]
+-- protected def list_blank.lift_on {Γ} [inhabited Γ] {α} (l : list_blank Γ) (f : list Γ → α)
+--   (H : ∀ a b, blank_extends a b → f a = f b) : α :=
+-- l.lift_on' f $ by rintro a b (h|h); [exact H _ _ h, exact (H _ _ h).symm]
 
 /-- The quotient map turning a `list` into a `list_blank`. -/
 def list_blank.mk {Γ} [inhabited Γ] : list Γ → list_blank Γ := quotient.mk'
@@ -614,116 +616,116 @@ begin
     { simp only [IH, list_blank.modify_nth, list_blank.nth_succ, list_blank.tail_cons] } }
 end
 
-/-- A pointed map of `inhabited` types is a map that sends one default value to the other. -/
-structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
-  [inhabited Γ] [inhabited Γ'] : Type (max u v) :=
-(f : Γ → Γ') (map_pt' : f default = default)
+-- /-- A pointed map of `inhabited` types is a map that sends one default value to the other. -/
+-- structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
+--   [inhabited Γ] [inhabited Γ'] : Type (max u v) :=
+-- (f : Γ → Γ') (map_pt' : f default = default)
 
-instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
-⟨⟨default, rfl⟩⟩
+-- instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
+-- ⟨⟨default, rfl⟩⟩
 
-instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
-⟨pointed_map.f⟩
+-- instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
+-- ⟨pointed_map.f⟩
 
-@[simp] theorem pointed_map.mk_val {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : Γ → Γ') (pt) : (pointed_map.mk f pt : Γ → Γ') = f := rfl
+-- @[simp] theorem pointed_map.mk_val {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : Γ → Γ') (pt) : (pointed_map.mk f pt : Γ → Γ') = f := rfl
 
-@[simp] theorem pointed_map.map_pt {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') : f default = default := pointed_map.map_pt' _
+-- @[simp] theorem pointed_map.map_pt {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') : f default = default := pointed_map.map_pt' _
 
-@[simp] theorem pointed_map.head_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') (l : list Γ) : (l.map f).head = f l.head :=
-by cases l; [exact (pointed_map.map_pt f).symm, refl]
+-- @[simp] theorem pointed_map.head_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') (l : list Γ) : (l.map f).head = f l.head :=
+-- by cases l; [exact (pointed_map.map_pt f).symm, refl]
 
-/-- The `map` function on lists is well defined on `list_blank`s provided that the map is
-pointed. -/
-def list_blank.map {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') (l : list_blank Γ) : list_blank Γ' :=
-l.lift_on (λ l, list_blank.mk (list.map f l)) begin
-  rintro l _ ⟨i, rfl⟩, refine quotient.sound' (or.inl ⟨i, _⟩),
-  simp only [pointed_map.map_pt, list.map_append, list.map_repeat],
-end
+-- /-- The `map` function on lists is well defined on `list_blank`s provided that the map is
+-- pointed. -/
+-- def list_blank.map {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') (l : list_blank Γ) : list_blank Γ' :=
+-- l.lift_on (λ l, list_blank.mk (list.map f l)) begin
+--   rintro l _ ⟨i, rfl⟩, refine quotient.sound' (or.inl ⟨i, _⟩),
+--   simp only [pointed_map.map_pt, list.map_append, list.map_repeat],
+-- end
 
-@[simp] theorem list_blank.map_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') (l : list Γ) : (list_blank.mk l).map f = list_blank.mk (l.map f) := rfl
+-- @[simp] theorem list_blank.map_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') (l : list Γ) : (list_blank.mk l).map f = list_blank.mk (l.map f) := rfl
 
-@[simp] theorem list_blank.head_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') (l : list_blank Γ) : (l.map f).head = f l.head :=
-begin
-  conv {to_lhs, rw [← list_blank.cons_head_tail l]},
-  exact quotient.induction_on' l (λ a, rfl)
-end
+-- @[simp] theorem list_blank.head_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') (l : list_blank Γ) : (l.map f).head = f l.head :=
+-- begin
+--   conv {to_lhs, rw [← list_blank.cons_head_tail l]},
+--   exact quotient.induction_on' l (λ a, rfl)
+-- end
 
-@[simp] theorem list_blank.tail_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') (l : list_blank Γ) : (l.map f).tail = l.tail.map f :=
-begin
-  conv {to_lhs, rw [← list_blank.cons_head_tail l]},
-  exact quotient.induction_on' l (λ a, rfl)
-end
+-- @[simp] theorem list_blank.tail_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') (l : list_blank Γ) : (l.map f).tail = l.tail.map f :=
+-- begin
+--   conv {to_lhs, rw [← list_blank.cons_head_tail l]},
+--   exact quotient.induction_on' l (λ a, rfl)
+-- end
 
-@[simp] theorem list_blank.map_cons {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') (l : list_blank Γ) (a : Γ) : (l.cons a).map f = (l.map f).cons (f a) :=
-begin
-  refine (list_blank.cons_head_tail _).symm.trans _,
-  simp only [list_blank.head_map, list_blank.head_cons, list_blank.tail_map, list_blank.tail_cons]
-end
+-- @[simp] theorem list_blank.map_cons {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') (l : list_blank Γ) (a : Γ) : (l.cons a).map f = (l.map f).cons (f a) :=
+-- begin
+--   refine (list_blank.cons_head_tail _).symm.trans _,
+--   simp only [list_blank.head_map, list_blank.head_cons, list_blank.tail_map, list_blank.tail_cons]
+-- end
 
-@[simp] theorem list_blank.nth_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') (l : list_blank Γ) (n : ℕ) : (l.map f).nth n = f (l.nth n) :=
-l.induction_on begin
-  intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk, list.inth_eq_iget_nth],
-  cases l.nth n, {exact f.2.symm}, {refl}
-end
+-- @[simp] theorem list_blank.nth_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (f : pointed_map Γ Γ') (l : list_blank Γ) (n : ℕ) : (l.map f).nth n = f (l.nth n) :=
+-- l.induction_on begin
+--   intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk, list.inth_eq_iget_nth],
+--   cases l.nth n, {exact f.2.symm}, {refl}
+-- end
 
-/-- The `i`-th projection as a pointed map. -/
-def proj {ι : Type*} {Γ : ι → Type*} [∀ i, inhabited (Γ i)] (i : ι) :
-  pointed_map (∀ i, Γ i) (Γ i) := ⟨λ a, a i, rfl⟩
+-- /-- The `i`-th projection as a pointed map. -/
+-- def proj {ι : Type*} {Γ : ι → Type*} [∀ i, inhabited (Γ i)] (i : ι) :
+--   pointed_map (∀ i, Γ i) (Γ i) := ⟨λ a, a i, rfl⟩
 
-theorem proj_map_nth {ι : Type*} {Γ : ι → Type*} [∀ i, inhabited (Γ i)] (i : ι)
-  (L n) : (list_blank.map (@proj ι Γ _ i) L).nth n = L.nth n i :=
-by rw list_blank.nth_map; refl
+-- theorem proj_map_nth {ι : Type*} {Γ : ι → Type*} [∀ i, inhabited (Γ i)] (i : ι)
+--   (L n) : (list_blank.map (@proj ι Γ _ i) L).nth n = L.nth n i :=
+-- by rw list_blank.nth_map; refl
 
-theorem list_blank.map_modify_nth {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (F : pointed_map Γ Γ') (f : Γ → Γ) (f' : Γ' → Γ')
-  (H : ∀ x, F (f x) = f' (F x)) (n) (L : list_blank Γ) :
-  (L.modify_nth f n).map F = (L.map F).modify_nth f' n :=
-by induction n with n IH generalizing L; simp only [*,
-  list_blank.head_map, list_blank.modify_nth, list_blank.map_cons, list_blank.tail_map]
+-- theorem list_blank.map_modify_nth {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (F : pointed_map Γ Γ') (f : Γ → Γ) (f' : Γ' → Γ')
+--   (H : ∀ x, F (f x) = f' (F x)) (n) (L : list_blank Γ) :
+--   (L.modify_nth f n).map F = (L.map F).modify_nth f' n :=
+-- by induction n with n IH generalizing L; simp only [*,
+--   list_blank.head_map, list_blank.modify_nth, list_blank.map_cons, list_blank.tail_map]
 
-/-- Append a list on the left side of a list_blank. -/
-@[simp] def list_blank.append {Γ} [inhabited Γ] : list Γ → list_blank Γ → list_blank Γ
-| [] L := L
-| (a :: l) L := list_blank.cons a (list_blank.append l L)
+-- /-- Append a list on the left side of a list_blank. -/
+-- @[simp] def list_blank.append {Γ} [inhabited Γ] : list Γ → list_blank Γ → list_blank Γ
+-- | [] L := L
+-- | (a :: l) L := list_blank.cons a (list_blank.append l L)
 
-@[simp] theorem list_blank.append_mk {Γ} [inhabited Γ] (l₁ l₂ : list Γ) :
-  list_blank.append l₁ (list_blank.mk l₂) = list_blank.mk (l₁ ++ l₂) :=
-by induction l₁; simp only [*,
-     list_blank.append, list.nil_append, list.cons_append, list_blank.cons_mk]
+-- @[simp] theorem list_blank.append_mk {Γ} [inhabited Γ] (l₁ l₂ : list Γ) :
+--   list_blank.append l₁ (list_blank.mk l₂) = list_blank.mk (l₁ ++ l₂) :=
+-- by induction l₁; simp only [*,
+--      list_blank.append, list.nil_append, list.cons_append, list_blank.cons_mk]
 
-theorem list_blank.append_assoc {Γ} [inhabited Γ] (l₁ l₂ : list Γ) (l₃ : list_blank Γ) :
-  list_blank.append (l₁ ++ l₂) l₃ = list_blank.append l₁ (list_blank.append l₂ l₃) :=
-l₃.induction_on $ by intro; simp only [list_blank.append_mk, list.append_assoc]
+-- theorem list_blank.append_assoc {Γ} [inhabited Γ] (l₁ l₂ : list Γ) (l₃ : list_blank Γ) :
+--   list_blank.append (l₁ ++ l₂) l₃ = list_blank.append l₁ (list_blank.append l₂ l₃) :=
+-- l₃.induction_on $ by intro; simp only [list_blank.append_mk, list.append_assoc]
 
-/-- The `bind` function on lists is well defined on `list_blank`s provided that the default element
-is sent to a sequence of default elements. -/
-def list_blank.bind {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (l : list_blank Γ) (f : Γ → list Γ')
-  (hf : ∃ n, f default = list.repeat default n) : list_blank Γ' :=
-l.lift_on (λ l, list_blank.mk (list.bind l f)) begin
-  rintro l _ ⟨i, rfl⟩, cases hf with n e, refine quotient.sound' (or.inl ⟨i * n, _⟩),
-  rw [list.bind_append, mul_comm], congr,
-  induction i with i IH, refl,
-  simp only [IH, e, list.repeat_add, nat.mul_succ, add_comm, list.repeat_succ, list.cons_bind],
-end
+-- /-- The `bind` function on lists is well defined on `list_blank`s provided that the default element
+-- is sent to a sequence of default elements. -/
+-- def list_blank.bind {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (l : list_blank Γ) (f : Γ → list Γ')
+--   (hf : ∃ n, f default = list.repeat default n) : list_blank Γ' :=
+-- l.lift_on (λ l, list_blank.mk (list.bind l f)) begin
+--   rintro l _ ⟨i, rfl⟩, cases hf with n e, refine quotient.sound' (or.inl ⟨i * n, _⟩),
+--   rw [list.bind_append, mul_comm], congr,
+--   induction i with i IH, refl,
+--   simp only [IH, e, list.repeat_add, nat.mul_succ, add_comm, list.repeat_succ, list.cons_bind],
+-- end
 
-@[simp] lemma list_blank.bind_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (l : list Γ) (f : Γ → list Γ') (hf) :
-  (list_blank.mk l).bind f hf = list_blank.mk (l.bind f) := rfl
+-- @[simp] lemma list_blank.bind_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (l : list Γ) (f : Γ → list Γ') (hf) :
+--   (list_blank.mk l).bind f hf = list_blank.mk (l.bind f) := rfl
 
-@[simp] lemma list_blank.cons_bind {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (a : Γ) (l : list_blank Γ) (f : Γ → list Γ') (hf) :
-  (l.cons a).bind f hf = (l.bind f hf).append (f a) :=
-l.induction_on $ by intro; simp only [list_blank.append_mk,
-  list_blank.bind_mk, list_blank.cons_mk, list.cons_bind]
+-- @[simp] lemma list_blank.cons_bind {Γ Γ'} [inhabited Γ] [inhabited Γ']
+--   (a : Γ) (l : list_blank Γ) (f : Γ → list Γ') (hf) :
+--   (l.cons a).bind f hf = (l.bind f hf).append (f a) :=
+-- l.induction_on $ by intro; simp only [list_blank.append_mk,
+--   list_blank.bind_mk, list_blank.cons_mk, list.cons_bind]
 
 end list_blank

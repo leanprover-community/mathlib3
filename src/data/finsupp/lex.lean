@@ -15,9 +15,6 @@ This file defines the lexicographic order on `finsupp`.
 
 variables {α N : Type*}
 
---  PR #16122 has this instance
-instance finsupp.lex.has_add [h : has_add N] : has_add (lex N) := h
-
 namespace finset
 variables [linear_order α]
 

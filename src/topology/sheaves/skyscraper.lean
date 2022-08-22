@@ -98,16 +98,14 @@ def skyscraper_sheaf : sheaf C X :=
       by_cases hV : p₀ ∈ V,
       { have hU : p₀ ∈ U := le_of_hom inc hV,
         split_ifs,
-        generalize_proofs h₁ h₂ h₃ h₄,
+        generalize_proofs h₁ h₂,
         dsimp,
         split_ifs,
-        generalize_proofs h₅,
         have := hx (hom_of_le inf_le_left) (hom_of_le inf_le_right) h₂.some_spec.1 h rfl,
         dsimp at this,
         split_ifs at this with H, swap,
         { exact false.elim (H ⟨h₁.some_spec.some_spec.2, hV⟩) },
         rw [eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans] at this,
-        generalize_proofs h₆ at this,
         rw [this, category.assoc, eq_to_hom_trans, category.assoc, eq_to_hom_trans,
           eq_to_hom_refl, category.comp_id] },
       { dsimp,
@@ -118,7 +116,7 @@ def skyscraper_sheaf : sheaf C X :=
     λ y (hy : x.is_amalgamation y),
     begin
       split_ifs,
-      { generalize_proofs h₁ h₂ h₃ h₄,
+      { generalize_proofs h₁ h₂,
         have := hy h₂.some h₂.some_spec.1,
         dsimp at this,
         split_ifs at this with H, swap,
@@ -261,72 +259,37 @@ noncomputable def skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit [h
     simp only [presheaf.germ, skyscraper_presheaf_cocone_ι_app],
     erw [colimit.ι_desc],
     dsimp,
-    by_cases h' : p₀ ∈ (open_nhds.inclusion y).obj (unop U),
-    { have eq1 : terminal.from (ite (p₀ ∈ (open_nhds.inclusion y).obj (unop U)) S (terminal C)) =
-          eq_to_hom (if_pos h') ≫ terminal.from _ := terminal_is_terminal.hom_ext _ _,
-      rw [eq1, category.assoc, eq_eq_to_hom_comp],
-      have := c.ι.naturality (hom_of_le (le_top : U.unop ≤ ⊤)).op,
-      dsimp at this,
-      have h'' : p₀ ∈ (open_nhds.inclusion y).obj ⊤ := trivial,
-      split_ifs at this,
-      rw [eq_eq_to_hom_comp] at this,
-      rw [this, category.comp_id, ←category.assoc _ _ (c.ι.app (op ⊤)), eq_to_hom_trans],
-      clear this,
-      have := c.ι.naturality
-        (hom_of_le (le_top : (mem_nhds_of_not_mem_closure_singleton p₀ h).some ≤ ⊤)).op,
-      dsimp at this,
-      have h''' : p₀ ∉ (mem_nhds_of_not_mem_closure_singleton p₀ h).some.1 :=
-        (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec,
-      split_ifs at this,
-      have eq2 : terminal.from (ite (p₀ ∈ (open_nhds.inclusion y).obj ⊤) S (terminal C)) =
-        eq_to_hom (if_pos h'') ≫ terminal.from _ := terminal_is_terminal.hom_ext _ _,
-      rw [category.comp_id, eq2, category.assoc, category.assoc] at this,
-      simp only [←this, ←category.assoc],
-      convert eq_whisker _ _,
-      { ext, refl, },
-      { rw [eq_comp_eq_to_hom],
-        exact terminal_is_terminal.hom_ext _ _ } },
-    { have eq1 : terminal.from (ite (p₀ ∈ (open_nhds.inclusion y).obj (unop U)) S (terminal C)) =
-        eq_to_hom (if_neg h') := terminal_is_terminal.hom_ext _ _,
-      have eq2 : terminal.from (ite (p₀ ∈ (open_nhds.inclusion y).obj ⊤) S (terminal C)) =
-        eq_to_hom (if_pos trivial) ≫ terminal.from _ := terminal_is_terminal.hom_ext _ _,
-      have eq3 : terminal.from (ite (p₀ ∈ (open_nhds.inclusion y).obj
-          (mem_nhds_of_not_mem_closure_singleton p₀ h).some) S (terminal C)) =
-        eq_to_hom (if_neg (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec):=
-      terminal_is_terminal.hom_ext _ _,
-      rw [eq1, ←category.assoc, eq_to_hom_trans],
-      have := c.ι.naturality (hom_of_le (inf_le_left :
-          (mem_nhds_of_not_mem_closure_singleton p₀ h).some ⊓ unop U ≤
-          (mem_nhds_of_not_mem_closure_singleton p₀ h).some)).op,
-      dsimp at this,
-      rw [dite_comp, category.comp_id] at this,
-      simp_rw [eq3, eq_to_hom_trans] at this,
-      generalize_proofs h₁ h₂ h₃ h₄ at this,
-      have h' : p₀ ∉ (open_nhds.inclusion y).obj (h₁.some ⊓ unop U) := λ r, h₁.some_spec r.1,
-      split_ifs at this,
-      { exfalso, exact h₁.some_spec (by assumption), },
-      have eq_coe : c.ι.app (op ⟨h₁.some.1, h₂⟩) =
-        eq_to_hom (by { congr, ext, refl }) ≫ c.ι.app (op h₁.some) ≫
-          eq_to_hom (by { congr, ext, refl }),
-      { symmetry,
-        rw [eq_eq_to_hom_comp],
-        have e := c.ι.naturality (eq_to_hom (by {ext, refl}) :
-          (⟨h₁.some.1, h₂⟩ : open_nhds y) ⟶ h₁.some).op,
-        dsimp at e,
-        split_ifs at e with temp,
-        rw [category.comp_id, show terminal.from (ite (p₀ ∈ (open_nhds.inclusion y).obj h₁.some)
-          S (terminal C)) = eq_to_hom (if_neg h₁.some_spec), from terminal_is_terminal.hom_ext _ _,
-          eq_to_hom_trans, eq_to_hom_refl, category.id_comp] at e,
-        rw [←e, eq_to_hom_refl, category.comp_id, eq_to_hom_refl, category.id_comp], },
-      erw [eq_coe, ←this, ←category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id,
-        ←category.assoc, eq_to_hom_trans],
-      clear this,
-      have := c.ι.naturality (hom_of_le (inf_le_right :
-          (mem_nhds_of_not_mem_closure_singleton p₀ h).some ⊓ unop U ≤ unop U)).op,
-      dsimp at this,
-      rw [dite_comp, category.comp_id] at this,
-      split_ifs at this,
-      rw [←this, eq1, eq_to_hom_trans], }
+    generalize_proofs h1 h2 h3,
+    have eq0 : c.ι.app (op {obj := h1.some.1, property := h1.some.2}) =
+      eq_to_hom (by { congr, ext, refl }) ≫ c.ι.app (op h1.some) ≫
+      eq_to_hom (by { congr, ext, refl }),
+    { symmetry, rw [eq_eq_to_hom_comp], symmetry,
+      convert (c.ι.naturality) _, swap,
+      { refine eq_to_hom _, congr, ext, refl, },
+      { rw eq_to_hom_map, }, },
+    erw [eq0, ←category.assoc (eq_to_hom h3), eq_to_hom_trans, ←category.assoc, ←category.assoc,
+      eq_comp_eq_to_hom, eq_to_hom_refl, category.comp_id],
+    transitivity _ ≫ c.ι.app (op (U.unop ⊓ h1.some)),
+    work_on_goal 2
+    { refine terminal.from _ ≫ eq_to_hom _,
+      have h1 : p₀ ∉ (open_nhds.inclusion y).obj (unop U ⊓ h1.some),
+      { exact λ h, h1.some_spec h.2, },
+      dsimp,
+      rw if_neg h1, },
+    work_on_goal 2
+    { have := c.ι.naturality ((hom_of_le inf_le_left).op : op U.unop ⟶ op (unop U ⊓ h1.some)),
+      erw [category.comp_id] at this,
+      erw ←this,
+      congr,
+      rw [eq_comp_eq_to_hom],
+      exact terminal_is_terminal.hom_ext _ _, },
+    have := c.ι.naturality ((hom_of_le inf_le_right).op : op h1.some ⟶ op (unop U ⊓ h1.some)),
+    erw [category.comp_id] at this,
+    erw [←this, ←category.assoc],
+    congr' 1,
+    symmetry,
+    rw [eq_comp_eq_to_hom],
+    exact terminal_is_terminal.hom_ext _ _,
   end,
   uniq' := λ c f H,
   begin

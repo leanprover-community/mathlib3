@@ -181,7 +181,7 @@ The canonical map `S ⟶ (skyscraper_presheaf p₀ S t).stalk y` when `y ∈ clo
 -/
 noncomputable def skyscraper_presheaf_from [has_colimits C] {y : X} :
   S ⟶ (skyscraper_presheaf p₀ S).stalk y :=
-eq_to_hom (skyscraper_presheaf_obj_of_mem S (trivial : p₀ ∈ ⊤)).symm ≫
+eq_to_hom (skyscraper_presheaf_obj_of_mem S (by trivial : p₀ ∈ ⊤)).symm ≫
   (skyscraper_presheaf p₀ S).germ (⟨y, trivial⟩ : (⊤ : opens X))
 
 /--
@@ -212,7 +212,7 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes [has_coli
     erw [colimit.ι_desc],
     specialize h (op ⟨⊤, trivial⟩),
     erw [←h],
-    simp only [skyscraper_presheaf_cocone_of_mem_closure₀_ι_app, category.assoc,
+    simp only [skyscraper_presheaf_cocone_of_specializes_ι_app, category.assoc,
       eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp],
   end }
 
@@ -222,7 +222,7 @@ If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y`
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_specializes [has_colimits C]
   {y : X} (h : p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ S :=
-colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ S h)⟩
+colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ S h⟩
 
 /--
 The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}`

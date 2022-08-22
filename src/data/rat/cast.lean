@@ -283,7 +283,7 @@ open rat
   (f : F) (q : ℚ) : f q = q :=
 by rw [cast_def, map_div₀, map_int_cast, map_nat_cast, cast_def]
 
-@[simp] lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
+@[simp] lemma eq_rat_cast {k} [division_ring k] [ring_hom_class F ℚ k] (f : F) (r : ℚ) : f r = r :=
 by rw [← map_rat_cast f, rat.cast_id]
 
 lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=

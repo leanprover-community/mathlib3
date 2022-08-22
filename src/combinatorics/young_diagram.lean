@@ -63,6 +63,8 @@ instance : set_like young_diagram (ℕ × ℕ) :=
 @[simp] lemma mem_cells {μ : young_diagram} (c : ℕ × ℕ) :
   c ∈ μ.cells ↔ c ∈ μ := iff.rfl
 
+instance decidable_mem (μ : young_diagram) : decidable_pred (∈ μ) := λ _, μ.cells.decidable_mem _
+
 /-- In "English notation", a Young diagram is drawn so that (i1, j1) ≤ (i2, j2)
     means (i1, j1) is weakly up-and-left of (i2, j2). -/
 lemma up_left_mem (μ : young_diagram) {i1 i2 j1 j2 : ℕ}

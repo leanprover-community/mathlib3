@@ -188,7 +188,7 @@ eq_to_hom (skyscraper_presheaf_obj_of_mem S (trivial : p₀ ∈ ⊤)).symm ≫
 The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}` is a
 colimit
 -/
-noncomputable def skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit [has_colimits C]
+noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes [has_colimits C]
   {y : X} (h : p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone_of_mem_closure₀ p₀ S h) :=
 { desc := λ c, (skyscraper_presheaf_from p₀ S ≫ colimit.desc _ _ : S ⟶ c.X),
   fac' := λ c U,

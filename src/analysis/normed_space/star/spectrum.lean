@@ -90,7 +90,7 @@ begin
   have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
   refine tendsto_nhds_unique _ hconst,
   convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
-      (nat.tendsto_pow_at_top_at_top_of_one_lt (by linarith : 1 < 2)),
+      (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two),
   refine funext (λ n, _),
   rw [function.comp_app, nnnorm_pow_two_pow_of_self_adjoint ha, ennreal.coe_pow, ←rpow_nat_cast,
     ←rpow_mul],
@@ -101,7 +101,6 @@ lemma spectral_radius_eq_nnnorm_of_star_normal [norm_one_class A] (a : A) [is_st
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
   refine (ennreal.pow_strict_mono two_ne_zero).injective _,
-  have ha := is_self_adjoint.star_mul_self a,
   have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
     = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
   { funext,
@@ -111,11 +110,12 @@ begin
     (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a),
   rw ←heq at h₂,
   convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
-  rw [ha.spectral_radius_eq_nnnorm, sq, nnnorm_star_mul_self, coe_mul],
+  rw [(is_self_adjoint.star_mul_self a).spectral_radius_eq_nnnorm, sq, nnnorm_star_mul_self,
+    coe_mul],
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : A}
   (ha : is_self_adjoint a) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
   let Iu := units.mk0 I I_ne_zero,
@@ -129,21 +129,21 @@ begin
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem self_adjoint.mem_spectrum_eq_re' [star_module ℂ A] [nontrivial A]
+theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A]
   (a : self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ (a : A)) : z = z.re :=
-self_adjoint.mem_spectrum_eq_re a.property hz
+a.property.mem_spectrum_eq_re hz
 
 /-- The spectrum of a selfadjoint is real -/
-theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
   (ha : a ∈ self_adjoint A) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
-le_antisymm (λ z hz, ⟨z, hz, (self_adjoint.mem_spectrum_eq_re ha hz).symm⟩) (λ z, by
+le_antisymm (λ z hz, ⟨z, hz, (ha.mem_spectrum_eq_re hz).symm⟩) (λ z, by
   { rintros ⟨z, hz, rfl⟩,
-    simpa only [(self_adjoint.mem_spectrum_eq_re ha hz).symm, function.comp_app] using hz })
+    simpa only [(ha.mem_spectrum_eq_re hz).symm, function.comp_app] using hz })
 
 /-- The spectrum of a selfadjoint is real -/
-theorem self_adjoint.coe_re_map_spectrum' [star_module ℂ A] [nontrivial A] (a : self_adjoint A) :
+theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] (a : self_adjoint A) :
   spectrum ℂ (a : A) = (coe ∘ re '' (spectrum ℂ (a : A)) : set ℂ) :=
-self_adjoint.coe_re_map_spectrum a.property
+a.property.coe_re_map_spectrum
 
 end complex_scalars
 

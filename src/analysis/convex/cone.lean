@@ -160,8 +160,7 @@ section module
 variables [module 𝕜 E] (S : convex_cone 𝕜 E)
 
 protected lemma convex : convex 𝕜 (S : set E) :=
-convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
-  S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
+convex_iff_forall_pos.2 $ λ x hx y hy a b ha hb _, S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
 
 end module
 end ordered_semiring
@@ -481,7 +480,7 @@ variables [add_comm_group E] [module ℝ E]
 
 namespace riesz_extension
 open submodule
-variables (s : convex_cone ℝ E) (f : linear_pmap ℝ E ℝ)
+variables (s : convex_cone ℝ E) (f : E →ₗ.[ℝ] ℝ)
 
 /-- Induction step in M. Riesz extension theorem. Given a convex cone `s` in a vector space `E`,
 a partially defined linear map `f : f.domain → ℝ`, assume that `f` is nonnegative on `f.domain ∩ p`
@@ -539,7 +538,7 @@ begin
         mul_inv_cancel hr.ne', one_mul] at this } }
 end
 
-theorem exists_top (p : linear_pmap ℝ E ℝ)
+theorem exists_top (p : E →ₗ.[ℝ] ℝ)
   (hp_nonneg : ∀ x : p.domain, (x : E) ∈ s → 0 ≤ p x)
   (hp_dense : ∀ y, ∃ x : p.domain, (x : E) + y ∈ s) :
   ∃ q ≥ p, q.domain = ⊤ ∧ ∀ x : q.domain, (x : E) ∈ s → 0 ≤ q x :=
@@ -570,7 +569,7 @@ end riesz_extension
 and a linear `f : p → ℝ`, assume that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then
 there exists a globally defined linear function `g : E → ℝ` that agrees with `f` on `p`,
 and is nonnegative on `s`. -/
-theorem riesz_extension (s : convex_cone ℝ E) (f : linear_pmap ℝ E ℝ)
+theorem riesz_extension (s : convex_cone ℝ E) (f : E →ₗ.[ℝ] ℝ)
   (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x) (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) :
   ∃ g : E →ₗ[ℝ] ℝ, (∀ x : f.domain, g x = f x) ∧ (∀ x ∈ s, 0 ≤ g x) :=
 begin
@@ -586,7 +585,7 @@ end
 defined on a subspace of `E`, and `f x ≤ N x` for all `x` in the domain of `f`,
 then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
 for all `x`. -/
-theorem exists_extension_of_le_sublinear (f : linear_pmap ℝ E ℝ) (N : E → ℝ)
+theorem exists_extension_of_le_sublinear (f : E →ₗ.[ℝ] ℝ) (N : E → ℝ)
   (N_hom : ∀ (c : ℝ), 0 < c → ∀ x, N (c • x) = c * N x)
   (N_add : ∀ x y, N (x + y) ≤ N x + N y)
   (hf : ∀ x : f.domain, f x ≤ N x) :

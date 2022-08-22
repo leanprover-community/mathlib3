@@ -37,6 +37,11 @@ section ordered_semiring
 
 variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
 
+instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  map_mul := λ f, f.map_mul' }
+
 instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
@@ -94,20 +99,18 @@ variables [nontrivial R]
 (mul_right_inj' $ abv.ne_zero one_ne_zero).1 $
 by rw [← abv.map_mul, mul_one, mul_one]
 
+instance : monoid_with_zero_hom_class (absolute_value R S) R S :=
+{ map_zero := λ f, f.map_zero,
+  map_one := λ f, f.map_one,
+  ..absolute_value.mul_hom_class }
+
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*`, `0` and `1`. -/
-def to_monoid_with_zero_hom : R →*₀ S :=
-{ to_fun := abv,
-  map_zero' := abv.map_zero,
-  map_one' := abv.map_one,
-  .. abv }
+def to_monoid_with_zero_hom : R →*₀ S := abv
 
 @[simp] lemma coe_to_monoid_with_zero_hom : ⇑abv.to_monoid_with_zero_hom = abv := rfl
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*` and `1`. -/
-def to_monoid_hom : monoid_hom R S :=
-{ to_fun := abv,
-  map_one' := abv.map_one,
-  .. abv }
+def to_monoid_hom : R →* S := abv
 
 @[simp] lemma coe_to_monoid_hom : ⇑abv.to_monoid_hom = abv := rfl
 

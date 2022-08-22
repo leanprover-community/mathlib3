@@ -53,19 +53,19 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 { obj := λ U, if p₀ ∈ unop U then S else terminal C,
   map := λ U V i, if h : p₀ ∈ unop V
     then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
-    else terminal.from _ ≫ eq_to_hom (if_neg h).symm,
+    else (is_terminal.ite_not h terminal_is_terminal).from _,
   map_id' := λ U,
   begin
     split_ifs,
     { apply eq_to_hom_refl },
-    { simpa only [eq_comp_eq_to_hom] using terminal_is_terminal.hom_ext _ _, },
+    { exact (is_terminal.ite_not h terminal_is_terminal).hom_ext _ _ },
   end,
   map_comp' := λ U V W iVU iWV,
   begin
     by_cases hW : p₀ ∈ unop W,
     { have hV : p₀ ∈ unop V := le_of_hom iWV.unop hW,
       simp only [dif_pos hW, dif_pos hV, eq_to_hom_trans] },
-    { rw [dif_neg hW, eq_comp_eq_to_hom], apply terminal_is_terminal.hom_ext }
+    { rw [dif_neg hW], apply (is_terminal.ite_not hW terminal_is_terminal).hom_ext }
   end }
 
 section
@@ -107,10 +107,7 @@ def skyscraper_sheaf : sheaf C X :=
        rw [eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans] at this,
        rw [this, category.assoc, eq_to_hom_trans, category.assoc, eq_to_hom_trans,
          eq_to_hom_refl, category.comp_id] },
-     { dsimp,
-       split_ifs,
-       rw [←category.assoc, eq_comp_eq_to_hom],
-       exact terminal_is_terminal.hom_ext _ _, }
+     { exact (is_terminal.ite_not hV terminal_is_terminal).hom_ext _ _, }
    end,
    λ y (hy : x.is_amalgamation y),
    begin
@@ -125,8 +122,7 @@ def skyscraper_sheaf : sheaf C X :=
          category.comp_id], },
      { rw [←eq_comp_eq_to_hom],
        exact terminal_is_terminal.hom_ext _ _, }
-   end⟩
-   ⟩
+   end⟩⟩
 
 end
 

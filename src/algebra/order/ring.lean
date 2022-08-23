@@ -555,6 +555,9 @@ variables [ordered_cancel_comm_semiring α]
 choice in basic `nat` lemmas. -/
 @[reducible] def ordered_cancel_comm_semiring.to_ordered_comm_semiring' [@decidable_rel α (≤)] :
   ordered_comm_semiring α :=
+{ ..‹ordered_cancel_comm_semiring α›, ..ordered_cancel_semiring.to_ordered_semiring' }
+
+instance ordered_cancel_comm_semiring.to_ordered_comm_semiring : ordered_comm_semiring α :=
 { ..‹ordered_cancel_comm_semiring α›, ..ordered_cancel_semiring.to_ordered_semiring }
 
 /-- Pullback an `ordered_comm_semiring` under an injective map.

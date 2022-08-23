@@ -74,8 +74,8 @@ center_nontrivial (p_group p G hG)
 
 open_locale classical
 
-/-- G ⧸ Z(G) is a fintype. -/
-@[instance] def quotient_with_center_is_fintype : finite (G ⧸ subgroup.center G) :=
+/-- G ⧸ Z(G) is finite. -/
+@[instance] def quotient_with_center_is_finite : finite (G ⧸ subgroup.center G) :=
 infer_instance
 
 /-- |G ⧸ Z(G)| is not prime. -/
@@ -87,7 +87,7 @@ begin
   have h2 := commutative_of_cyclic_center_quotient (quotient_group.mk' (subgroup.center G))
     (by simp),
   unfreezingI { lift ‹group G› to comm_group G using h2 },
-  have h3 : subgroup.center G = ⊤, exact comm_group.center_eq_top,
+  have h3 : subgroup.center G = ⊤ := comm_group.center_eq_top,
   have h4 : card (G ⧸ subgroup.center G) = 1,
   { simp_rw [h3, ← nat.card_eq_fintype_card],
     exact subgroup.index_top, },
@@ -100,62 +100,53 @@ theorem order_psq_abelian [nontrivial G] : (∀ x1 x2 : G, x1 * x2 = x2 * x1) :=
 begin
   -- We show it suffices to show that Z(G) = ⊤.
   apply group.of_comm_center_eq_top,
-  have h1 : (card (subgroup.center G) ∣ card (G)), exact (subgroup.center G).card_subgroup_dvd_card,
-  unfold order_psq at hG,
-  rw [hG, nat.dvd_prime_pow] at h1,
   -- We know it suffices to show that |Z(G)| = |G| = p^2.
   -- We can thus use Lagrange's Theorem and condition on |Z(G)|.
-  rcases h1 with ⟨k, hk1, hk2⟩,
+  have h1 : (card (subgroup.center G) ∣ card (G)) := (subgroup.center G).card_subgroup_dvd_card,
+  unfold order_psq at hG,
+  rw [hG, nat.dvd_prime_pow] at h1,
   swap,
-  apply fact.out,
-  interval_cases k,
-  -- We look at the case |Z(G)| = 1
-  { simp at hk2,
-    exfalso,
-    have h31 : nontrivial (subgroup.center G), exact center_nontrivial (p_group p G hG),
-    rw subgroup.nontrivial_iff_exists_ne_one at h31,
-    rcases h31 with ⟨x, hx, hxx⟩,
-    have h32 : subgroup.center G = ⊥, rw [← subgroup.card_le_one_iff_eq_bot, hk2],
-    have hxx' : x = 1,
-    { rw subgroup.eq_bot_iff_forall at h32,
-      exact h32 x hx, },
-    contradiction, },
-  -- We look at the case |Z(G)| = p
-  { exfalso,
-    have h41 : p * (subgroup.center G).index = p^2,
+  { apply fact.out, },
+  { rcases h1 with ⟨k, hk1, hk2⟩,
+    interval_cases k,
+    -- We look at the case |Z(G)| = 1
     { simp at hk2,
-      simp_rw ← nat.card_eq_fintype_card at hk2,
-      simp_rw ← nat.card_eq_fintype_card at hG,
-      rw [← hG, ← hk2],
-      exact subgroup.card_mul_index (subgroup.center G), },
-    have h42 : (subgroup.center G).index = p,
-    { have hcalc : p * (subgroup.center G).index = p * p,
-      { simp_rw h41,
-        exact sq p, },
-      simp at hcalc,
-      have hcalc2 : ¬ (p = 0),
-      { intro hcp,
-        have hcp2 := _inst_1.out,
-        rw hcp at hcp2,
-        have hcp3 := nat.not_prime_zero,
-        contradiction, },
-      cases hcalc with hcl hcr,
-      { exact hcl, },
-      { exfalso,
-        contradiction, }, },
-    have h43 : nat.prime (card (G ⧸ subgroup.center G)),
-    { have hcalc : nat.card (G ⧸ subgroup.center G) = p, exact h42,
-      rw nat.card_eq_fintype_card at hcalc,
-      rw hcalc,
-      exact _inst_1.out, },
-    have h44 : ¬ nat.prime (fintype.card (G ⧸ subgroup.center G)),
-    { apply center_index_not_prime p G,
-      exact hG, },
-    contradiction, },
-  -- We look at the case |Z(G)| = p^2
-  { apply subgroup.eq_top_of_card_eq,
-    rw hG,
-    exact hk2, },
+      exfalso,
+      have h31 : nontrivial (subgroup.center G) := center_nontrivial (p_group p G hG),
+      rw subgroup.nontrivial_iff_exists_ne_one at h31,
+      rcases h31 with ⟨x, hx, hxx⟩,
+      have h32 : subgroup.center G = ⊥, rw [← subgroup.card_le_one_iff_eq_bot, hk2],
+      have hxx' : x = 1,
+      { rw subgroup.eq_bot_iff_forall at h32,
+        exact h32 x hx, },
+      contradiction, },
+    -- We look at the case |Z(G)| = p
+    { exfalso,
+      have h41 : p * (subgroup.center G).index = p^2,
+      { rw pow_one at hk2,
+        simp_rw ← nat.card_eq_fintype_card at hk2 hG,
+        rw [← hG, ← hk2],
+        exact subgroup.card_mul_index (subgroup.center G), },
+      have h42 : (subgroup.center G).index = p,
+      { rw [sq p, mul_eq_mul_left_iff] at h41,
+        cases h41 with hcl hcr,
+        { exact hcl, },
+        { exfalso,
+          have hcp2 := _inst_1.out,
+          rw hcr at hcp2,
+          have hcp3 := nat.not_prime_zero,
+          contradiction, }, },
+      have h43 : nat.prime (card (G ⧸ subgroup.center G)),
+      { unfold subgroup.index at h42,
+        rw nat.card_eq_fintype_card at h42,
+        rw h42,
+        exact _inst_1.out, },
+      have h44 : ¬ nat.prime (fintype.card (G ⧸ subgroup.center G)) := center_index_not_prime p G hG,
+      contradiction, },
+    -- We look at the case |Z(G)| = p^2
+    { apply subgroup.eq_top_of_card_eq,
+      rw hG,
+      exact hk2, },},
 end
 
 end G_has_order_psq

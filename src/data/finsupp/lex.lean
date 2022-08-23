@@ -15,26 +15,6 @@ This file defines the lexicographic order on `finsupp`.
 
 variables {α N : Type*}
 
---  PR #16122 has this instance
-instance finsupp.lex.has_add [h : has_add N] : has_add (lex N) := h
-
-namespace finset
-variables [linear_order α]
-
-lemma not_mem_of_max_lt_coe {a : α} {s : finset α} (h : s.max < a) : a ∉ s :=
-mt coe_le_max_of_mem h.not_le
-
-theorem not_mem_of_max_lt {s : finset α} {a b : α} (h₁ : b < a) (h₂ : s.max = ↑b) : a ∉ s :=
-finset.not_mem_of_max_lt_coe $ h₂.trans_lt $ with_bot.coe_lt_coe.mpr h₁
-
-lemma not_mem_of_coe_lt_min {a : α} {s : finset α} (h : ↑a < s.min) : a ∉ s :=
-mt min_le_coe_of_mem h.not_le
-
-theorem not_mem_of_lt_min {s : finset α} {a b : α} (h₁ : a < b) (h₂ : s.min = ↑b) : a ∉ s :=
-finset.not_mem_of_coe_lt_min $ ( with_top.coe_lt_coe.mpr h₁).trans_eq h₂.symm
-
-end finset
-
 namespace finsupp
 
 section N_has_zero

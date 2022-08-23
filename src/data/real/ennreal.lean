@@ -1925,8 +1925,7 @@ namespace tactic
 
 open positivity
 
-private lemma nnreal_coe_nonneg (r : ℝ≥0) : 0 ≤ (r : ℝ) := r.coe_nonneg
-private lemma nnreal_coe_pos {r : ℝ≥0} : 0 < r → 0 < (r : ℝ) := nnreal.coe_pos.2
+private alias nnreal.coe_pos ↔ _ nnreal_coe_pos
 
 /-- Extension for the `positivity` tactic: cast from `ℝ≥0` to `ℝ`. -/
 @[positivity]
@@ -1938,7 +1937,7 @@ meta def positivity_coe_nnreal : expr → tactic strictness
     match inst, strictness_a with
     | `(@coe_base _ _ nnreal.real.has_coe), positive p := positive <$> mk_app ``nnreal_coe_pos [p]
     | `(@coe_base _ _ nnreal.real.has_coe), nonnegative p :=
-      nonnegative <$> mk_app ``nnreal_coe_nonneg [a]
+      nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
     | _, _ := failed
     end
   | _  := failed

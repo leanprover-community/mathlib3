@@ -9,31 +9,31 @@ def min_generator_card (p : submodule R M) : ℕ :=
 ⨅ s : { s : set M // s.finite ∧ span R s = p}, s.2.1.to_finset.card
 
 noncomputable
-def min_generator_card_with_top (p : submodule R M) : with_top ℕ :=
+def size (p : submodule R M) : with_top ℕ :=
 ⨅ s : { s : set M // s.finite ∧ span R s = p}, s.2.1.to_finset.card
 
-lemma min_generator_card_with_top_ne_top_iff {p : submodule R M} :
-  p.min_generator_card_with_top ≠ ⊤ ↔ p.fg :=
+lemma size_ne_top_iff {p : submodule R M} :
+  p.size ≠ ⊤ ↔ p.fg :=
 begin
-  simp [min_generator_card_with_top, submodule.fg_def],
+  simp [size, submodule.fg_def],
 end
 
 lemma fg_iff_card_finset_nonempty {p : submodule R M} :
   p.fg ↔ set.nonempty (finset.card '' { s : finset M | span R (s : set M) = p }) :=
 set.nonempty_image_iff.symm
 
-lemma fg_iff_min_generator_card_with_top_eq {p : submodule R M} :
-  p.fg ↔ p.min_generator_card_with_top = p.min_generator_card :=
+lemma fg_iff_size_eq {p : submodule R M} :
+  p.fg ↔ p.size = p.min_generator_card :=
 begin
   split,
   { intro h,
     haveI : nonempty {s : set M // s.finite ∧ span R s = p},
     { rwa [nonempty_subtype, ← fg_def] },
     exact (with_top.coe_infi _).symm },
-  { intro e, rw [← min_generator_card_with_top_ne_top_iff, e], exact with_top.coe_ne_top }
+  { intro e, rw [← size_ne_top_iff, e], exact with_top.coe_ne_top }
 end
 
-alias fg_iff_min_generator_card_with_top_eq ↔ fg.min_generator_card_with_top_eq _
+alias fg_iff_size_eq ↔ fg.size_eq _
 
 lemma fg.exists_generator_eq_min_generator_card {p : submodule R M} (h : p.fg) :
   ∃ f : fin p.min_generator_card → M, span R (set.range f) = p :=
@@ -49,13 +49,13 @@ begin
 end
 
 lemma fg.min_generator_card_le_iff_exists {p : submodule R M} {n : ℕ} :
-  p.min_generator_card_with_top ≤ n ↔ ∃ f : fin n → M, span R (set.range f) = p :=
+  p.size ≤ n ↔ ∃ f : fin n → M, span R (set.range f) = p :=
 begin
   classical,
   split,
   { intro e,
-    have h := min_generator_card_with_top_ne_top_iff.mp (e.trans_lt (with_top.coe_lt_top n)).ne,
-    rw [h.min_generator_card_with_top_eq, with_top.coe_le_coe] at e,
+    have h := size_ne_top_iff.mp (e.trans_lt (with_top.coe_lt_top n)).ne,
+    rw [h.size_eq, with_top.coe_le_coe] at e,
     obtain ⟨f, hf⟩ := h.exists_generator_eq_min_generator_card,
     let f' : fin n → M := λ i, if h : i.1 < p.min_generator_card then f (fin.cast_lt i h) else 0,
     use f',
@@ -70,7 +70,7 @@ begin
   { rintros ⟨f, hf⟩,
     let s : { s : set M // s.finite ∧ span R s = p} :=
       ⟨set.range f, set.finite.intro infer_instance, hf⟩,
-    calc p.min_generator_card_with_top
+    calc p.size
         ≤ s.2.1.to_finset.card : cInf_le (order_bot.bdd_below _) (set.mem_range_self _)
     ... = (finset.univ.image f).card : by { congr' 2, ext, simp }
     ... ≤ n : by { rw with_top.coe_le_coe, convert finset.card_image_le,

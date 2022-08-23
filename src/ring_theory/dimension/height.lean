@@ -259,13 +259,13 @@ begin
   { unfreezingI { rintro rfl }, rw local_ring.maximal_ideal_prime_height }
 end
 
-lemma submodule.min_generator_card_with_top_eq_zero_iff : I.min_generator_card_with_top = 0 ↔ I = ⊥ :=
+lemma submodule.size_eq_zero_iff : I.size = 0 ↔ I = ⊥ :=
 begin
   split,
   { intro e,
     have H : submodule.fg I,
-    { rw [← submodule.min_generator_card_with_top_ne_top_iff, e], rintro ⟨⟩ },
-    rw [H.min_generator_card_with_top_eq, ← with_top.coe_zero, with_top.coe_eq_coe] at e,
+    { rw [← submodule.size_ne_top_iff, e], rintro ⟨⟩ },
+    rw [H.size_eq, ← with_top.coe_zero, with_top.coe_eq_coe] at e,
     have := H.exists_generator_eq_min_generator_card,
     rw e at this,
     obtain ⟨f, hf⟩ := this,
@@ -277,20 +277,20 @@ begin
     refine ⟨f, by rw [show set.range f = ∅, by simp, submodule.span_empty, bot_eq_zero]⟩ }
 end
 
-lemma submodule.min_generator_card_with_top_sup {p q : ideal R} :
-  (p ⊔ q).min_generator_card_with_top ≤ p.min_generator_card_with_top + q.min_generator_card_with_top :=
+lemma submodule.size_sup {p q : ideal R} :
+  (p ⊔ q).size ≤ p.size + q.size :=
 begin
   by_cases hp : submodule.fg p,
   swap,
-  { rw [← submodule.min_generator_card_with_top_ne_top_iff, not_ne_iff] at hp,
+  { rw [← submodule.size_ne_top_iff, not_ne_iff] at hp,
     rw [hp, top_add], exact le_top },
   by_cases hq : submodule.fg q,
   swap,
-  { rw [← submodule.min_generator_card_with_top_ne_top_iff, not_ne_iff] at hq,
+  { rw [← submodule.size_ne_top_iff, not_ne_iff] at hq,
     rw [hq, add_top], exact le_top },
   obtain ⟨f, hf⟩ := hp.exists_generator_eq_min_generator_card,
   obtain ⟨g, hg⟩ := hq.exists_generator_eq_min_generator_card,
-  rw submodule.fg_iff_min_generator_card_with_top_eq at hp hq,
+  rw submodule.fg_iff_size_eq at hp hq,
   rw [hp, hq, ← with_top.coe_add, submodule.fg.min_generator_card_le_iff_exists],
   refine ⟨(sum.elim f g) ∘ fin_sum_fin_equiv.symm, _⟩,
   rw [set.range_comp, set.range_iff_surjective.mpr (equiv.surjective _), set.image_univ,
@@ -298,7 +298,7 @@ begin
 end
 
 lemma submodule.min_generator_card_span_set_finite {s : set R} (hs : s.finite) :
-  (submodule.span R s).min_generator_card_with_top ≤ hs.to_finset.card :=
+  (submodule.span R s).size ≤ hs.to_finset.card :=
 begin
   rw submodule.fg.min_generator_card_le_iff_exists,
   refine ⟨subtype.val ∘ hs.to_finset.equiv_fin.symm, _⟩,
@@ -307,8 +307,8 @@ begin
   congr, ext, exact hs.mem_to_finset,
 end
 
-lemma submodule.min_generator_card_with_top_bot : (⊥ : ideal R).min_generator_card_with_top = 0 :=
-submodule.min_generator_card_with_top_eq_zero_iff.mpr rfl
+lemma submodule.size_bot : (⊥ : ideal R).size = 0 :=
+submodule.size_eq_zero_iff.mpr rfl
 
 lemma mem_minimal_primes_of_height_eq {I J : ideal R} [J.is_prime] (e : I ≤ J)
   (e' : I.height = J.prime_height) [J.finite_height] : J ∈ I.minimal_primes :=
@@ -323,31 +323,31 @@ begin
                   ... < J.prime_height : ideal.prime_height_strict_mono e'''
 end
 
-lemma foobar [local_ring R] [is_noetherian_ring R] (r : ℕ) (hr : ↑r ≤ krull_dimension R) :
-  ∃ I : ideal R, I.min_generator_card_with_top ≤ r ∧ ↑r ≤ I.height :=
+lemma exists_size_le_and_le_height_of_le_height [is_noetherian_ring R] (I : ideal R) (r : ℕ)
+  (hr : ↑r ≤ I.height) :
+  ∃ J ≤ I, J.size ≤ r ∧ ↑r ≤ J.height :=
 begin
   induction r with r H,
-  { refine ⟨⊥, _, zero_le _⟩, rw submodule.min_generator_card_with_top_bot, exact rfl.le },
-  { obtain ⟨I, h₁, h₂⟩ := H ((with_top.coe_le_coe.mpr r.le_succ).trans hr),
-    let S := { J | J ∈ I.minimal_primes ∧ ideal.height J = r },
-    have hS : S.finite := set.finite.subset I.minimal_primes_finite (λ _ h, h.1),
-    have : ¬ ↑(local_ring.maximal_ideal R) ⊆ ⋃ J ∈ hS.to_finset, (J : set R),
+  { refine ⟨⊥, bot_le, _, zero_le _⟩, rw submodule.size_bot, exact rfl.le },
+  { obtain ⟨J, h₁, h₂, h₃⟩ := H ((with_top.coe_le_coe.mpr r.le_succ).trans hr),
+    let S := { K | K ∈ J.minimal_primes ∧ ideal.height K = r },
+    have hS : S.finite := set.finite.subset J.minimal_primes_finite (λ _ h, h.1),
+    have : ¬ ↑I ⊆ ⋃ J ∈ hS.to_finset, (J : set R),
     { refine (ideal.subset_union_prime ⊥ ⊥ _).not.mpr _,
-      { rintro J hJ - -, rw set.finite.mem_to_finset at hJ, exact hJ.1.1.1 },
+      { rintro K hK - -, rw set.finite.mem_to_finset at hK, exact hK.1.1.1 },
       { push_neg,
-        intros J hJ e,
-        rw set.finite.mem_to_finset at hJ,
-        replace e := (local_ring.le_maximal_ideal hJ.1.1.1.1).antisymm e,
-        subst e,
-        rw [nat.succ_eq_add_one, ← local_ring.maximal_ideal_height, hJ.2,
-          with_top.coe_le_coe] at hr,
-        linarith [r] } },
+        intros K hK e,
+        have := hr.trans (ideal.height_mono e),
+        rw set.finite.mem_to_finset at hK,
+        rw [hK.2, with_top.coe_le_coe, ← not_lt] at this,
+        exact this r.lt_succ_self } },
     simp_rw [set.not_subset, set.mem_Union, not_exists, set.finite.mem_to_finset] at this,
     obtain ⟨x, hx₁, hx₂⟩ := this,
-    refine ⟨I ⊔ ideal.span {x}, _, _⟩,
-    { refine submodule.min_generator_card_with_top_sup.trans _,
+    refine ⟨J ⊔ ideal.span {x}, sup_le h₁ _, _, _⟩,
+    { rwa [ideal.span_le, set.singleton_subset_iff] },
+    { refine submodule.size_sup.trans _,
       rw [nat.succ_eq_add_one, with_top.coe_add],
-      refine add_le_add h₁ _,
+      refine add_le_add h₂ _,
       refine (submodule.min_generator_card_span_set_finite $ set.to_finite _).trans _,
       simp },
     { refine le_infi₂ _,
@@ -359,12 +359,12 @@ begin
       have := ideal.height_mono (le_sup_left.trans hp.1.2),
       suffices h : ↑r ≠ p.prime_height,
       { rw [nat.succ_eq_add_one, with_top.coe_add],
-        have := h₂.trans this,
+        have := h₃.trans this,
         rw ideal.height_eq_prime_height at this,
         exact with_top.add_one_le_of_lt (lt_of_le_of_ne this h) },
       intro e,
       apply hx₂ p,
-      { have : I.height = p.prime_height,
+      { have : J.height = p.prime_height,
         { apply le_antisymm, { rwa ← p.height_eq_prime_height }, { rwa ← e } },
         refine ⟨mem_minimal_primes_of_height_eq (le_sup_left.trans hp.1.2) this, _⟩,
         rwa [p.height_eq_prime_height, eq_comm] },

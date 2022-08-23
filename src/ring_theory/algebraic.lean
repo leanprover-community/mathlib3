@@ -100,8 +100,8 @@ by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
 lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
 by { rw ←_root_.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
-lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
-  [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
+lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [algebra R A] (n : ℚ) :
+  is_algebraic R (n : A) :=
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_of_mem_root_set {R : Type u} {A : Type v} [field R] [field A] [algebra R A]

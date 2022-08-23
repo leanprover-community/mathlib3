@@ -176,7 +176,7 @@ instance add_monoid_with_one [ordered_semiring α] : add_monoid_with_one {x : α
 { nat_cast := λ n, ⟨n, nat.cast_nonneg n⟩,
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := λ _, by simp [nat.cast]; refl,
-  .. nonneg.has_one, .. nonneg.ordered_cancel_add_comm_monoid }
+  .. nonneg.has_one, .. nonneg.ordered_add_comm_monoid }
 
 instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 { pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
@@ -202,7 +202,7 @@ instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semirin
 subtype.coe_injective.ordered_comm_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
-instance ordered_cancel_comm_semiring [ordered_comm_semiring α] :
+instance ordered_cancel_comm_semiring [ordered_cancel_comm_semiring α] :
   ordered_cancel_comm_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_cancel_comm_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)

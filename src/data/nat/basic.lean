@@ -77,6 +77,8 @@ instance : linear_ordered_comm_monoid_with_zero ℕ :=
 instance : ordered_cancel_comm_semiring ℕ := { ..nat.comm_semiring, ..nat.linear_ordered_semiring }
 
 /-! Extra instances to short-circuit type class resolution -/
+instance : ordered_semiring ℕ := ordered_cancel_semiring.to_ordered_semiring'
+instance : ordered_comm_semiring ℕ := ordered_cancel_comm_semiring.to_ordered_comm_semiring'
 instance : add_comm_monoid nat    := by apply_instance
 instance : add_monoid nat         := by apply_instance
 instance : monoid nat             := by apply_instance
@@ -87,7 +89,6 @@ instance : add_comm_semigroup nat := by apply_instance
 instance : add_semigroup nat      := by apply_instance
 instance : distrib nat            := by apply_instance
 instance : semiring nat           := by apply_instance
-instance : ordered_semiring nat   := by apply_instance
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }

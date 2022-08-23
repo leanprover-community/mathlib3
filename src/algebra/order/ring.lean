@@ -307,21 +307,35 @@ lemma mul_lt_of_lt_one_left (hb : 0 < b) (ha : a < 1) : a * b < b :=
 lemma mul_lt_of_lt_one_right (ha : 0 < a) (hb : b < 1) : a * b < a :=
 (mul_lt_mul_of_pos_left hb ha).trans_le (mul_one _).le
 
-@[priority 100] -- see Note [lower instance priority]
-instance ordered_cancel_semiring.to_ordered_semiring : ordered_semiring α :=
+/-- A choice-free version of `ordered_cancel_semiring.to_ordered_semiring` to avoid using choice in
+basic `nat` lemmas. -/
+@[reducible] def ordered_cancel_semiring.to_ordered_semiring' [@decidable_rel α (≤)] :
+  ordered_semiring α :=
 { mul_le_mul_of_nonneg_left := λ a b c hab hc, begin
-    obtain rfl | hab := hab.eq_or_lt,
+    obtain rfl | hab := decidable.eq_or_lt_of_le hab,
     { refl },
-    obtain rfl | hc := hc.eq_or_lt,
+    obtain rfl | hc := decidable.eq_or_lt_of_le hc,
     { simp },
     { exact (mul_lt_mul_of_pos_left hab hc).le }
   end,
   mul_le_mul_of_nonneg_right := λ a b c hab hc, begin
-    obtain rfl | hab := hab.eq_or_lt,
+    obtain rfl | hab := decidable.eq_or_lt_of_le hab,
     { refl },
-    obtain rfl | hc := hc.eq_or_lt,
+    obtain rfl | hc := decidable.eq_or_lt_of_le hc,
     { simp },
     { exact (mul_lt_mul_of_pos_right hab hc).le }
+  end,
+  ..‹ordered_cancel_semiring α› }
+
+@[priority 100] -- see Note [lower instance priority]
+instance ordered_cancel_semiring.to_ordered_semiring : ordered_semiring α :=
+{ mul_le_mul_of_nonneg_left := λ _ _ _, begin
+    letI := @ordered_cancel_semiring.to_ordered_semiring' α _ (classical.dec_rel _),
+    exact mul_le_mul_of_nonneg_left,
+  end,
+  mul_le_mul_of_nonneg_right := λ _ _ _, begin
+    letI := @ordered_cancel_semiring.to_ordered_semiring' α _ (classical.dec_rel _),
+    exact mul_le_mul_of_nonneg_right,
   end,
   ..‹ordered_cancel_semiring α› }
 
@@ -534,18 +548,28 @@ addition is strictly monotone and multiplication by a positive number is strictl
 @[protect_proj]
 class ordered_cancel_comm_semiring (α : Type u) extends ordered_cancel_semiring α, comm_semiring α
 
+section ordered_cancel_comm_semiring
+variables [ordered_cancel_comm_semiring α]
+
+/-- A choice-free version of `ordered_cancel_comm_semiring.to_ordered_comm_semiring` to avoid using
+choice in basic `nat` lemmas. -/
+@[reducible] def ordered_cancel_comm_semiring.to_ordered_comm_semiring' [@decidable_rel α (≤)] :
+  ordered_comm_semiring α :=
+{ ..‹ordered_cancel_comm_semiring α›, ..ordered_cancel_semiring.to_ordered_semiring }
+
 /-- Pullback an `ordered_comm_semiring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
-def function.injective.ordered_cancel_comm_semiring [ordered_cancel_comm_semiring α]
-  [add_monoid_with_one β] [has_mul β] [has_pow β ℕ]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+def function.injective.ordered_cancel_comm_semiring [add_monoid_with_one β] [has_mul β]
+  [has_pow β ℕ] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) :
   ordered_cancel_comm_semiring β :=
 { ..hf.comm_semiring f zero one add mul nsmul npow nat_cast,
   ..hf.ordered_cancel_semiring f zero one add mul nsmul npow nat_cast }
+
+end ordered_cancel_comm_semiring
 
 /--
 A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
@@ -973,18 +997,18 @@ addition is monotone and multiplication by a positive number is strictly monoton
 @[protect_proj]
 class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
 
+variables [ordered_comm_ring α]
+
 @[priority 100] -- See note [lower instance priority]
-instance ordered_comm_ring.to_ordered_cancel_comm_semiring {α : Type u} [ordered_comm_ring α] :
-  ordered_cancel_comm_semiring α :=
+instance ordered_comm_ring.to_ordered_cancel_comm_semiring : ordered_cancel_comm_semiring α :=
 { ..ordered_ring.to_ordered_cancel_semiring, ..‹ordered_comm_ring α› }
 
 /-- Pullback an `ordered_comm_ring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
-def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]
-  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+def function.injective.ordered_comm_ring [has_zero β] [has_one β] [has_add β] [has_mul β]
+  [has_neg β] [has_sub β] [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β]
+  [has_int_cast β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)

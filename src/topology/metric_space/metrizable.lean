@@ -136,9 +136,8 @@ begin
   -- We don't have the space of bounded (possibly discontinuous) functions, so we equip `s`
   -- with the discrete topology and deal with `s →ᵇ ℝ` instead.
   letI : topological_space s := ⊥, haveI : discrete_topology s := ⟨rfl⟩,
-  suffices : ∃ f : X → (s →ᵇ ℝ), embedding f,
-  { rcases this with ⟨f, hf⟩,
-    exact ⟨λ x, (f x).extend (encodable.encode' s) 0, (bounded_continuous_function.isometry_extend
+  rsuffices ⟨f, hf⟩ : ∃ f : X → (s →ᵇ ℝ), embedding f,
+  { exact ⟨λ x, (f x).extend (encodable.encode' s) 0, (bounded_continuous_function.isometry_extend
       (encodable.encode' s) (0 : ℕ →ᵇ ℝ)).embedding.comp hf⟩ },
   have hd : ∀ UV : s, disjoint (closure UV.1.1) (UV.1.2ᶜ) :=
     λ UV, disjoint_compl_right.mono_right (compl_subset_compl.2 UV.2.2),

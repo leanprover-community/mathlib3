@@ -969,9 +969,8 @@ begin
   rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
   { simp [finset.card_univ] },
   { intros x hx,
-    suffices : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
-    { obtain ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ := this,
-      simpa using hb },
+    rsuffices ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
+    { simpa using hb },
     simpa using hx }
 end
 

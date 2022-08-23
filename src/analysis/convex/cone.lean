@@ -220,6 +220,28 @@ set_like.coe_injective $ preimage_comp.symm
 @[simp] lemma mem_comap {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 F} {x : E} : x ∈ S.comap f ↔ f x ∈ S :=
 iff.rfl
 
+instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
+{ carrier := { c | ∃ a b, a ∈ K₁ ∧ b ∈ K₂ ∧ a + b = c },
+  smul_mem' :=
+  begin
+    rintro c hc _ ⟨x, y, hx, hy, rfl⟩,
+    simp_rw [smul_add, exists_and_distrib_left, set.mem_set_of_eq],
+    use [c • x, K₁.smul_mem hc hx, c • y, K₂.smul_mem hc hy],
+  end,
+  add_mem' :=
+  begin
+    rintro _ ⟨x₁, x₂, hx₁, hx₂, rfl⟩ y ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+    simp_rw [exists_and_distrib_left, set.mem_set_of_eq],
+    use [x₁ + y₁, K₁.add_mem hx₁ hy₁, x₂ + y₂, K₂.add_mem hx₂ hy₂],
+    abel,
+  end } ⟩
+
+@[simp] lemma mem_add {K₁ K₂ : convex_cone 𝕜 E} {a : E} :
+  a ∈ K₁ + K₂ ↔ ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = a := iff.rfl
+
+@[simp] lemma coe_add {K₁ K₂ : convex_cone 𝕜 E} :
+  ↑(K₁ + K₂) = { c | ∃ a b, a ∈ K₁ ∧ b ∈ K₂ ∧ a + b = c } := rfl
+
 end module
 end add_comm_monoid
 

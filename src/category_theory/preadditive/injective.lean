@@ -6,6 +6,7 @@ Authors: Jujian Zhang, Kevin Buzzard
 
 import algebra.homology.exact
 import category_theory.types
+import category_theory.functor.epi_mono
 import category_theory.preadditive.projective
 import category_theory.limits.shapes.biproducts
 

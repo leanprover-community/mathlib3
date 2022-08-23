@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Heather Macbeth, Winston Yin
 -/
 
-import geometry.manifold.smooth_manifold_with_corners
 import geometry.manifold.algebra.lie_group
 import analysis.normed_space.units
 

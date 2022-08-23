@@ -2124,6 +2124,7 @@ hf.smul hg
 
 /-! ### Smoothness of an open embedding and its inverse -/
 
+variable (I)
 lemma cont_mdiff_open_embedding
   {M : Type*} [topological_space M] [nonempty M]
   {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
@@ -2181,4 +2182,3 @@ begin
   rw [set.preimage_inter] at this,
   exact this.1
 end
-variable (I)

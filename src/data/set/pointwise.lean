@@ -7,6 +7,7 @@ import algebra.module.basic
 import data.fin.tuple.basic
 import data.set.finite
 import group_theory.submonoid.basic
+import order.well_founded_set
 
 /-!
 # Pointwise operations of sets
@@ -1469,3 +1470,123 @@ begin
 end
 
 end group
+
+
+namespace set
+variables {s t : set α}
+
+@[to_additive]
+lemma is_pwo.mul [ordered_cancel_comm_monoid α] (hs : s.is_pwo) (ht : t.is_pwo) : is_pwo (s * t) :=
+by { rw ←image_mul_prod, exact (hs.prod ht).image_of_monotone (monotone_fst.mul' monotone_snd) }
+
+variables [linear_ordered_cancel_comm_monoid α]
+
+@[to_additive]
+lemma is_wf.mul (hs : s.is_wf) (ht : t.is_wf) : is_wf (s * t) := (hs.is_pwo.mul ht.is_pwo).is_wf
+
+@[to_additive]
+lemma is_wf.min_mul (hs : s.is_wf) (ht : t.is_wf) (hsn : s.nonempty) (htn : t.nonempty) :
+  (hs.mul ht).min (hsn.mul htn) = hs.min hsn * ht.min htn :=
+begin
+  refine le_antisymm (is_wf.min_le _ _ (mem_mul.2 ⟨_, _, hs.min_mem _, ht.min_mem _, rfl⟩)) _,
+  rw is_wf.le_min_iff,
+  rintro _ ⟨x, y, hx, hy, rfl⟩,
+  exact mul_le_mul' (hs.min_le _ hx) (ht.min_le _ hy),
+end
+
+end set
+
+/-! ### Multiplication antidiagonal -/
+
+namespace set
+section has_mul
+variables [has_mul α] {s t : set α} {a : α} {x : α × α}
+
+/-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
+that multiply to `a`. -/
+@[to_additive "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an
+element in `t` that add to `a`."]
+def mul_antidiagonal (s t : set α) (a : α) : set (α × α) :=
+{x | x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t}
+
+@[simp, to_additive]
+lemma mem_mul_antidiagonal : x ∈ mul_antidiagonal s t a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
+iff.rfl
+
+end has_mul
+
+namespace mul_antidiagonal
+
+section cancel_comm_monoid
+variables [cancel_comm_monoid α] {s t : set α} {a : α}
+
+@[to_additive]
+lemma fst_eq_fst_iff_snd_eq_snd {x y : (mul_antidiagonal s t a)} :
+  (x : α × α).fst = (y : α × α).fst ↔ (x : α × α).snd = (y : α × α).snd :=
+⟨λ h, begin
+  have hx := x.2.1,
+  rw [subtype.val_eq_coe, h] at hx,
+  apply mul_left_cancel (hx.trans y.2.1.symm),
+end, λ h, begin
+  have hx := x.2.1,
+  rw [subtype.val_eq_coe, h] at hx,
+  apply mul_right_cancel (hx.trans y.2.1.symm),
+end⟩
+
+@[to_additive]
+lemma eq_of_fst_eq_fst {x y : (mul_antidiagonal s t a)}
+  (h : (x : α × α).fst = (y : α × α).fst) : x = y :=
+subtype.ext (prod.ext h (mul_antidiagonal.fst_eq_fst_iff_snd_eq_snd.1 h))
+
+@[to_additive]
+lemma eq_of_snd_eq_snd {x y : (mul_antidiagonal s t a)}
+  (h : (x : α × α).snd = (y : α × α).snd) : x = y :=
+subtype.ext (prod.ext (mul_antidiagonal.fst_eq_fst_iff_snd_eq_snd.2 h) h)
+
+end cancel_comm_monoid
+
+section ordered_cancel_comm_monoid
+variables [ordered_cancel_comm_monoid α] (s t : set α) (a : α)
+
+@[to_additive]
+lemma eq_of_fst_le_fst_of_snd_le_snd {x y : (mul_antidiagonal s t a)}
+  (h1 : (x : α × α).fst ≤ (y : α × α).fst) (h2 : (x : α × α).snd ≤ (y : α × α).snd ) :
+  x = y :=
+begin
+  apply eq_of_fst_eq_fst,
+  cases eq_or_lt_of_le h1 with heq hlt,
+  { exact heq },
+  exfalso,
+  exact ne_of_lt (mul_lt_mul_of_lt_of_le hlt h2)
+    ((mem_mul_antidiagonal.1 x.2).1.trans (mem_mul_antidiagonal.1 y.2).1.symm)
+end
+
+variables {s} {t}
+
+@[to_additive]
+theorem finite_of_is_pwo (hs : s.is_pwo) (ht : t.is_pwo) (a) :
+  (mul_antidiagonal s t a).finite :=
+begin
+  by_contra h,
+  rw [← set.infinite] at h,
+  have h1 : (mul_antidiagonal s t a).partially_well_ordered_on (prod.fst ⁻¹'o (≤)),
+    from λ f hf, hs (prod.fst ∘ f) (λ n, (mem_mul_antidiagonal.1 (hf n)).2.1),
+  have h2 : (mul_antidiagonal s t a).partially_well_ordered_on (prod.snd ⁻¹'o (≤)),
+    from λ f hf, ht (prod.snd ∘ f) (λ n, (mem_mul_antidiagonal.1 (hf n)).2.2),
+  obtain ⟨g, hg⟩ := h1.exists_monotone_subseq (λ n, h.nat_embedding _ n)
+    (λ n, (h.nat_embedding _ n).2),
+  obtain ⟨m, n, mn, h2'⟩ := h2 (λ x, (h.nat_embedding _) (g x)) (λ n, (h.nat_embedding _ _).2),
+  apply ne_of_lt mn (g.injective ((h.nat_embedding _).injective _)),
+  exact eq_of_fst_le_fst_of_snd_le_snd _ _ _ (hg _ _ (le_of_lt mn)) h2',
+end
+
+end ordered_cancel_comm_monoid
+
+@[to_additive]
+theorem finite_of_is_wf [linear_ordered_cancel_comm_monoid α] {s t : set α}
+  (hs : s.is_wf) (ht : t.is_wf) (a) :
+  (mul_antidiagonal s t a).finite :=
+finite_of_is_pwo hs.is_pwo ht.is_pwo a
+
+end mul_antidiagonal
+end set

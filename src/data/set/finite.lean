@@ -122,6 +122,7 @@ lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
 /-! ### Basic properties of `set.finite.to_finset` -/
 
 section finite_to_finset
+variables {s t : set α}
 
 @[simp] lemma finite.coe_to_finset {s : set α} (h : s.finite) : (h.to_finset : set α) = s :=
 @set.coe_to_finset _ s h.fintype
@@ -152,11 +153,11 @@ by rw [← finset.coe_subset, ht.coe_to_finset]
   h.to_finset = ∅ ↔ s = ∅ :=
 by simp only [←finset.coe_inj, finite.coe_to_finset, finset.coe_empty]
 
-@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_subset {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
 by simp only [← finset.coe_subset, finite.coe_to_finset]
 
-@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_ssubset {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 by simp only [← finset.coe_ssubset, finite.coe_to_finset]
 
@@ -820,9 +821,154 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 (eq_or_ssubset_of_subset hsub).elim id
   (λ h, absurd hcard $ not_le_of_lt $ card_lt_card h)
 
-lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
-  s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
-by simp
+lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
+  [fintype (range f)] : fintype.card (range f) = fintype.card α :=
+eq.symm $ fintype.card_congr $ equiv.of_injective f hf
+
+lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset.card = fintype.card s :=
+begin
+  rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card],
+  refine fintype.card_congr (equiv.set_congr _),
+  ext x,
+  show x ∈ h.to_finset ↔ x ∈ s,
+  simp,
+end
+
+lemma card_ne_eq [fintype α] (a : α) [fintype {x : α | x ≠ a}] :
+  fintype.card {x : α | x ≠ a} = fintype.card α - 1 :=
+begin
+  haveI := classical.dec_eq α,
+  rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
+      finset.card_univ],
+end
+
+
+/-! ### Infinite sets -/
+
+theorem infinite_univ_iff : (@univ α).infinite ↔ infinite α :=
+by rw [set.infinite, finite_univ_iff, not_finite_iff_infinite]
+
+theorem infinite_univ [h : infinite α] : (@univ α).infinite :=
+infinite_univ_iff.2 h
+
+theorem infinite_coe_iff {s : set α} : infinite s ↔ s.infinite :=
+⟨λ ⟨h₁⟩ h₂, h₁ h₂.fintype, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
+
+theorem infinite.to_subtype {s : set α} (h : s.infinite) : infinite s :=
+infinite_coe_iff.2 h
+
+/-- Embedding of `ℕ` into an infinite set. -/
+noncomputable def infinite.nat_embedding (s : set α) (h : s.infinite) : ℕ ↪ s :=
+by { haveI := h.to_subtype, exact infinite.nat_embedding s }
+
+lemma infinite.exists_subset_card_eq {s : set α} (hs : s.infinite) (n : ℕ) :
+  ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
+⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
+
+lemma infinite.nonempty {s : set α} (h : s.infinite) : s.nonempty :=
+let a := infinite.nat_embedding s h 37 in ⟨a.1, a.2⟩
+
+lemma infinite_of_finite_compl [infinite α] {s : set α} (hs : sᶜ.finite) : s.infinite :=
+λ h, set.infinite_univ (by simpa using hs.union h)
+
+lemma finite.infinite_compl [infinite α] {s : set α} (hs : s.finite) : sᶜ.infinite :=
+λ h, set.infinite_univ (by simpa using hs.union h)
+
+protected theorem infinite.mono {s t : set α} (h : s ⊆ t) : s.infinite → t.infinite :=
+mt (λ ht, ht.subset h)
+
+lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
+λ h, hs $ h.of_diff ht
+
+@[simp] lemma infinite_union {s t : set α} : (s ∪ t).infinite ↔ s.infinite ∨ t.infinite :=
+by simp only [set.infinite, finite_union, not_and_distrib]
+
+theorem infinite_of_infinite_image (f : α → β) {s : set α} (hs : (f '' s).infinite) :
+  s.infinite :=
+mt (finite.image f) hs
+
+theorem infinite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
+  (f '' s).infinite ↔ s.infinite :=
+not_congr $ finite_image_iff hi
+
+theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
+  (hi : inj_on f s) (hm : maps_to f s t) (hs : s.infinite) : t.infinite :=
+((infinite_image_iff hi).2 hs).mono (maps_to'.mp hm)
+
+theorem infinite.exists_ne_map_eq_of_maps_to {s : set α} {t : set β} {f : α → β}
+  (hs : s.infinite) (hf : maps_to f s t) (ht : t.finite) :
+  ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
+begin
+  contrapose! ht,
+  exact infinite_of_inj_on_maps_to (λ x hx y hy, not_imp_not.1 (ht x hx y hy)) hf hs
+end
+
+theorem infinite_range_of_injective [infinite α] {f : α → β} (hi : injective f) :
+  (range f).infinite :=
+by { rw [←image_univ, infinite_image_iff (inj_on_of_injective hi _)], exact infinite_univ }
+
+theorem infinite_of_injective_forall_mem [infinite α] {s : set β} {f : α → β}
+  (hi : injective f) (hf : ∀ x : α, f x ∈ s) : s.infinite :=
+by { rw ←range_subset_iff at hf, exact (infinite_range_of_injective hi).mono hf }
+
+lemma infinite.exists_nat_lt {s : set ℕ} (hs : s.infinite) (n : ℕ) : ∃ m ∈ s, n < m :=
+let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
+
+lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
+  ∃ a ∈ s, a ∉ f :=
+let ⟨a, has, haf⟩ := (hs.diff (to_finite f)).nonempty
+in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
+
+
+/-! ### Order properties -/
+
+lemma finite_is_top (α : Type*) [partial_order α] : {x : α | is_top x}.finite :=
+(subsingleton_is_top α).finite
+
+lemma finite_is_bot (α : Type*) [partial_order α] : {x : α | is_bot x}.finite :=
+(subsingleton_is_bot α).finite
+
+theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t : set β} {f : α → β}
+  (hs : s.infinite) (hf : maps_to f s t) (ht : t.finite) :
+  ∃ (x ∈ s) (y ∈ s), x < y ∧ f x = f y :=
+let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
+in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
+
+lemma finite.exists_lt_map_eq_of_forall_mem [linear_order α] [infinite α] {t : set β}
+  {f : α → β} (hf : ∀ a, f a ∈ t) (ht : t.finite) :
+  ∃ a b, a < b ∧ f a = f b :=
+begin
+  rw ←maps_univ_to at hf,
+  obtain ⟨a, -, b, -, h⟩ := (@infinite_univ α _).exists_lt_map_eq_of_maps_to hf ht,
+  exact ⟨a, b, h⟩,
+end
+
+lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : s.finite) :
+  s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
+| ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
+  using h1.to_finset.exists_min_image f ⟨x, h1.mem_to_finset.2 hx⟩
+
+lemma exists_max_image [linear_order β] (s : set α) (f : α → β) (h1 : s.finite) :
+  s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f b ≤ f a
+| ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
+  using h1.to_finset.exists_max_image f ⟨x, h1.mem_to_finset.2 hx⟩
+
+theorem exists_lower_bound_image [hα : nonempty α] [linear_order β] (s : set α) (f : α → β)
+  (h : s.finite) : ∃ (a : α), ∀ b ∈ s, f a ≤ f b :=
+begin
+  by_cases hs : set.nonempty s,
+  { exact let ⟨x₀, H, hx₀⟩ := set.exists_min_image s f h hs in ⟨x₀, λ x hx, hx₀ x hx⟩ },
+  { exact nonempty.elim hα (λ a, ⟨a, λ x hx, absurd (set.nonempty_of_mem hx) hs⟩) }
+end
+
+theorem exists_upper_bound_image [hα : nonempty α] [linear_order β] (s : set α) (f : α → β)
+  (h : s.finite) : ∃ (a : α), ∀ b ∈ s, f b ≤ f a :=
+begin
+  by_cases hs : set.nonempty s,
+  { exact let ⟨x₀, H, hx₀⟩ := set.exists_max_image s f h hs in ⟨x₀, λ x hx, hx₀ x hx⟩ },
+  { exact nonempty.elim hα (λ a, ⟨a, λ x hx, absurd (set.nonempty_of_mem hx) hs⟩) }
+end
 
 lemma finite.supr_binfi_of_monotone {ι ι' α : Type*} [preorder ι'] [nonempty ι']
   [is_directed ι' (≤)] [order.frame α] {s : set ι} (hs : s.finite) {f : ι → ι' → α}

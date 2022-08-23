@@ -3,8 +3,6 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.pointwise
-import group_theory.submonoid.membership
 import order.antichain
 import order.order_iso_nat
 import order.well_founded
@@ -49,9 +47,7 @@ Prove that `s` is partial well ordered iff it has no infinite descending chain o
  * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]
 -/
 
-open_locale pointwise
-
-variables {α : Type*}
+variables {α β : Type*}
 
 namespace set
 
@@ -212,8 +208,6 @@ def partially_well_ordered_on (s : set α) (r : α → α → Prop) : Prop :=
 def is_pwo [preorder α] (s) : Prop :=
 partially_well_ordered_on s ((≤) : α → α → Prop)
 
-@[simp] theorem is_pwo_empty [preorder α] : is_pwo (∅ : set α) := partially_well_ordered_on_empty _
-
 theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
   (ht : t.partially_well_ordered_on r) (hsub : s ⊆ t) :
   s.partially_well_ordered_on r :=
@@ -235,11 +229,6 @@ end
   (s ∪ t).partially_well_ordered_on r ↔
     s.partially_well_ordered_on r ∧ t.partially_well_ordered_on r :=
 ⟨λ h, ⟨h.mono $ subset_union_left _ _, h.mono $ subset_union_right _ _⟩, λ h, h.1.union h.2⟩
-
-theorem is_pwo.mono [preorder α] {s t : set α}
-  (ht : t.is_pwo) (hsub : s ⊆ t) :
-  s.is_pwo :=
-partially_well_ordered_on.mono ht hsub
 
 theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
   {r : α → α → Prop} {β : Type*} {r' : β → β → Prop}
@@ -263,7 +252,6 @@ begin
   exact hmn.ne ((hi.nat_embedding _).injective $ subtype.val_injective $
     ha.eq (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
 end
-
 protected lemma finite.partially_well_ordered_on {s : set α} {r : α → α → Prop} [is_refl α r]
   (hs : s.finite) :
   s.partially_well_ordered_on r :=
@@ -370,8 +358,9 @@ end
 end partial_order
 
 section preorder
+variables [preorder α] [preorder β] {s t : set α}
 
-variables [preorder α] {s t : set α}
+lemma is_pwo.mono (ht : t.is_pwo) : s ⊆ t → s.is_pwo := ht.mono
 
 theorem is_pwo.exists_monotone_subseq (h : s.is_pwo) (f : ℕ → α) (hf : ∀ n, f n ∈ s) :
   ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
@@ -384,47 +373,41 @@ partially_well_ordered_on_iff_exists_monotone_subseq
 protected lemma is_pwo.is_wf (h : s.is_pwo) : s.is_wf :=
 by simpa only [← lt_iff_le_not_le] using h.well_founded_on
 
-lemma is_pwo.prod {β : Type*} [preorder β] {t : set β} (hs : s.is_pwo) (ht : t.is_pwo) :
-  is_pwo (s ×ˢ t) :=
-hs.prod ht
+lemma is_pwo.prod {t : set β} (hs : s.is_pwo) (ht : t.is_pwo) : is_pwo (s ×ˢ t) := hs.prod ht
 
-theorem is_pwo.image_of_monotone_on {β : Type*} [preorder β] (hs : s.is_pwo) {f : α → β}
-  (hf : monotone_on f s) :
-  is_pwo (f '' s) :=
+lemma is_pwo.image_of_monotone_on (hs : s.is_pwo) {f : α → β} (hf : monotone_on f s) :
+ is_pwo (f '' s) :=
 hs.image_of_monotone_on hf
 
-theorem is_pwo.image_of_monotone {β : Type*} [preorder β] (hs : s.is_pwo) {f : α → β}
-  (hf : monotone f) :
-  is_pwo (f '' s) :=
+lemma is_pwo.image_of_monotone (hs : s.is_pwo) {f : α → β} (hf : monotone f) : is_pwo (f '' s) :=
 hs.image_of_monotone_on (hf.monotone_on _)
 
-protected theorem is_pwo.union (hs : is_pwo s) (ht : is_pwo t) : is_pwo (s ∪ t) := hs.union ht
+protected lemma is_pwo.union (hs : is_pwo s) (ht : is_pwo t) : is_pwo (s ∪ t) := hs.union ht
 
-@[simp] theorem is_pwo_union : is_pwo (s ∪ t) ↔ is_pwo s ∧ is_pwo t :=
-partially_well_ordered_on_union
+@[simp] lemma is_pwo_union : is_pwo (s ∪ t) ↔ is_pwo s ∧ is_pwo t := partially_well_ordered_on_union
 
-protected theorem finite.is_pwo (hs : finite s) : is_pwo s := hs.partially_well_ordered_on
+protected lemma finite.is_pwo (hs : s.finite) : is_pwo s := hs.partially_well_ordered_on
+@[simp] lemma is_pwo_of_finite [finite α] : s.is_pwo := s.to_finite.is_pwo
 
-@[simp] theorem is_pwo_singleton (a : α) : is_pwo ({a} : set α) := (finite_singleton a).is_pwo
+@[simp] lemma is_pwo_singleton (a : α) : is_pwo ({a} : set α) := (finite_singleton a).is_pwo
 
-@[simp] theorem is_pwo_empty : is_pwo (∅ : set α) := finite_empty.is_pwo
+@[simp] lemma is_pwo_empty : is_pwo (∅ : set α) := finite_empty.is_pwo
 
-protected theorem subsingleton.is_pwo (hs : s.subsingleton) : is_pwo s := hs.finite.is_pwo
+protected lemma subsingleton.is_pwo (hs : s.subsingleton) : is_pwo s := hs.finite.is_pwo
 
-@[simp] theorem is_pwo_insert {a} : is_pwo (insert a s) ↔ is_pwo s :=
-by simp only [← singleton_union, is_pwo_union, is_pwo_singleton, true_and]
+@[simp] lemma is_pwo_insert {a} : is_pwo (insert a s) ↔ is_pwo s :=
+by simp only [←singleton_union, is_pwo_union, is_pwo_singleton, true_and]
 
-protected theorem is_pwo.insert (h : is_pwo s) (a : α) : is_pwo (insert a s) := is_pwo_insert.2 h
+protected lemma is_pwo.insert (h : is_pwo s) (a : α) : is_pwo (insert a s) := is_pwo_insert.2 h
 
-protected theorem finite.is_wf (hs : finite s) : is_wf s := hs.is_pwo.is_wf
-@[simp] theorem is_wf_empty : is_wf (∅ : set α) := finite_empty.is_wf
-@[simp] theorem is_wf_singleton {a : α} : is_wf ({a} : set α) := (finite_singleton a).is_wf
-protected theorem subsingleton.is_wf (hs : s.subsingleton) : is_wf s := hs.is_pwo.is_wf
+protected lemma finite.is_wf (hs : s.finite) : is_wf s := hs.is_pwo.is_wf
+@[simp] lemma is_wf_singleton {a : α} : is_wf ({a} : set α) := (finite_singleton a).is_wf
+protected lemma subsingleton.is_wf (hs : s.subsingleton) : is_wf s := hs.is_pwo.is_wf
 
-@[simp] theorem is_wf_insert {a} : is_wf (insert a s) ↔ is_wf s :=
-by simp only [← singleton_union, is_wf_union, is_wf_singleton, true_and]
+@[simp] lemma is_wf_insert {a} : is_wf (insert a s) ↔ is_wf s :=
+by simp only [←singleton_union, is_wf_union, is_wf_singleton, true_and]
 
-theorem is_wf.insert (h : is_wf s) (a : α) : is_wf (insert a s) := is_wf_insert.2 h
+lemma is_wf.insert (h : is_wf s) (a : α) : is_wf (insert a s) := is_wf_insert.2 h
 
 end preorder
 
@@ -432,29 +415,27 @@ section well_founded_on
 
 variables {r : α → α → Prop} [is_strict_order α r] {s : set α} {a : α}
 
-protected theorem finite.well_founded_on (hs : finite s) :
-  set.well_founded_on s r :=
+protected lemma finite.well_founded_on (hs : s.finite) : s.well_founded_on r :=
 by { letI := partial_order_of_SO r, exact hs.is_wf }
 
-@[simp] theorem well_founded_on_empty : well_founded_on (∅ : set α) r :=
-finite_empty.well_founded_on
-
-@[simp] theorem well_founded_on_singleton : well_founded_on ({a} : set α) r :=
+@[simp] lemma well_founded_on_singleton : well_founded_on ({a} : set α) r :=
 (finite_singleton a).well_founded_on
 
-protected theorem subsingleton.well_founded_on (hs : s.subsingleton) :
-  well_founded_on s r :=
+protected lemma subsingleton.well_founded_on (hs : s.subsingleton) : s.well_founded_on r :=
 hs.finite.well_founded_on
 
-@[simp] theorem well_founded_on_insert : well_founded_on (insert a s) r ↔ well_founded_on s r :=
-by simp only [← singleton_union, well_founded_on_union, well_founded_on_singleton, true_and]
+@[simp] lemma well_founded_on_insert : well_founded_on (insert a s) r ↔ well_founded_on s r :=
+by simp only [←singleton_union, well_founded_on_union, well_founded_on_singleton, true_and]
 
-theorem well_founded_on.insert (h : well_founded_on s r) (a : α) : well_founded_on (insert a s) r :=
+lemma well_founded_on.insert (h : well_founded_on s r) (a : α) : well_founded_on (insert a s) r :=
 well_founded_on_insert.2 h
 
 end well_founded_on
 
-protected theorem is_wf.is_pwo [linear_order α] {s : set α} (hs : s.is_wf) : s.is_pwo :=
+section linear_order
+variables [linear_order α] {s : set α}
+
+protected lemma is_wf.is_pwo (hs : s.is_wf) : s.is_pwo :=
 begin
   intros f hf,
   lift f to ℕ → s using hf,
@@ -465,10 +446,9 @@ begin
 end
 
 /-- In a linear order, the predicates `set.is_wf` and `set.is_pwo` are equivalent. -/
-theorem is_wf_iff_is_pwo [linear_order α] {s : set α} :
-  s.is_wf ↔ s.is_pwo :=
-⟨is_wf.is_pwo, is_pwo.is_wf⟩
+lemma is_wf_iff_is_pwo : s.is_wf ↔ s.is_pwo := ⟨is_wf.is_pwo, is_pwo.is_wf⟩
 
+end linear_order
 end set
 
 namespace finset
@@ -531,8 +511,6 @@ section preorder
 
 variables [preorder α] {s : set α} {a : α}
 
-@[simp] protected theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite.of_fintype s).is_pwo
-
 /-- `is_wf.min` returns a minimal element of a nonempty well-founded set. -/
 noncomputable def is_wf.min (hs : is_wf s) (hn : s.nonempty) : α :=
 hs.min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype)
@@ -579,33 +557,6 @@ begin
 end
 
 end linear_order
-
-section pointwise
-
-@[to_additive]
-theorem is_pwo.mul [ordered_cancel_comm_monoid α] {s t : set α} (hs : s.is_pwo) (ht : t.is_pwo) :
-  is_pwo (s * t) :=
-begin
-  rw ← image_mul_prod,
-  exact (hs.prod ht).image_of_monotone (monotone_fst.mul' monotone_snd)
-end
-
-variables [linear_ordered_cancel_comm_monoid α] {s t : set α}
-
-@[to_additive]
-theorem is_wf.mul (hs : s.is_wf) (ht : t.is_wf) : is_wf (s * t) := (hs.is_pwo.mul ht.is_pwo).is_wf
-
-@[to_additive]
-theorem is_wf.min_mul (hs : s.is_wf) (ht : t.is_wf) (hsn : s.nonempty) (htn : t.nonempty) :
-  (hs.mul ht).min (hsn.mul htn) = hs.min hsn * ht.min htn :=
-begin
-  refine le_antisymm (is_wf.min_le _ _ (mem_mul.2 ⟨_, _, hs.min_mem _, ht.min_mem _, rfl⟩)) _,
-  rw is_wf.le_min_iff,
-  rintros _ ⟨x, y, hx, hy, rfl⟩,
-  exact mul_le_mul' (hs.min_le _ hx) (ht.min_le _ hy),
-end
-
-end pointwise
 
 end set
 
@@ -735,180 +686,6 @@ begin
 end
 
 end partially_well_ordered_on
-
-namespace is_pwo
-
-@[to_additive]
-lemma submonoid_closure [ordered_cancel_comm_monoid α] {s : set α} (hpos : ∀ x : α, x ∈ s → 1 ≤ x)
-  (h : s.is_pwo) : is_pwo ((submonoid.closure s) : set α) :=
-begin
-  rw submonoid.closure_eq_image_prod,
-  refine (h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _,
-  exact λ l1 hl1 l2 hl2 h12, h12.prod_le_prod' (λ x hx, hpos x $ hl2 x hx)
-end
-
-end is_pwo
-
-/-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
-  that multiply to `a`. -/
-@[to_additive "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s`
-  and an element in `t` that add to `a`."]
-def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
-{ x | x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t }
-
-namespace mul_antidiagonal
-
-@[simp, to_additive]
-lemma mem_mul_antidiagonal [monoid α] {s t : set α} {a : α} {x : α × α} :
-  x ∈ mul_antidiagonal s t a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
-
-section cancel_comm_monoid
-variables [cancel_comm_monoid α] {s t : set α} {a : α}
-
-@[to_additive]
-lemma fst_eq_fst_iff_snd_eq_snd {x y : (mul_antidiagonal s t a)} :
-  (x : α × α).fst = (y : α × α).fst ↔ (x : α × α).snd = (y : α × α).snd :=
-⟨λ h, begin
-  have hx := x.2.1,
-  rw [subtype.val_eq_coe, h] at hx,
-  apply mul_left_cancel (hx.trans y.2.1.symm),
-end, λ h, begin
-  have hx := x.2.1,
-  rw [subtype.val_eq_coe, h] at hx,
-  apply mul_right_cancel (hx.trans y.2.1.symm),
-end⟩
-
-@[to_additive]
-lemma eq_of_fst_eq_fst {x y : (mul_antidiagonal s t a)}
-  (h : (x : α × α).fst = (y : α × α).fst) : x = y :=
-subtype.ext (prod.ext h (mul_antidiagonal.fst_eq_fst_iff_snd_eq_snd.1 h))
-
-@[to_additive]
-lemma eq_of_snd_eq_snd {x y : (mul_antidiagonal s t a)}
-  (h : (x : α × α).snd = (y : α × α).snd) : x = y :=
-subtype.ext (prod.ext (mul_antidiagonal.fst_eq_fst_iff_snd_eq_snd.2 h) h)
-
-end cancel_comm_monoid
-
-section ordered_cancel_comm_monoid
-variables [ordered_cancel_comm_monoid α] (s t : set α) (a : α)
-
-@[to_additive]
-lemma eq_of_fst_le_fst_of_snd_le_snd {x y : (mul_antidiagonal s t a)}
-  (h1 : (x : α × α).fst ≤ (y : α × α).fst) (h2 : (x : α × α).snd ≤ (y : α × α).snd ) :
-  x = y :=
-begin
-  apply eq_of_fst_eq_fst,
-  cases eq_or_lt_of_le h1 with heq hlt,
-  { exact heq },
-  exfalso,
-  exact ne_of_lt (mul_lt_mul_of_lt_of_le hlt h2)
-    ((mem_mul_antidiagonal.1 x.2).1.trans (mem_mul_antidiagonal.1 y.2).1.symm)
-end
-
-variables {s} {t}
-
-@[to_additive]
-theorem finite_of_is_pwo (hs : s.is_pwo) (ht : t.is_pwo) (a) :
-  (mul_antidiagonal s t a).finite :=
-begin
-  by_contra h,
-  rw [← set.infinite] at h,
-  have h1 : (mul_antidiagonal s t a).partially_well_ordered_on (prod.fst ⁻¹'o (≤)),
-    from λ f hf, hs (prod.fst ∘ f) (λ n, (mem_mul_antidiagonal.1 (hf n)).2.1),
-  have h2 : (mul_antidiagonal s t a).partially_well_ordered_on (prod.snd ⁻¹'o (≤)),
-    from λ f hf, ht (prod.snd ∘ f) (λ n, (mem_mul_antidiagonal.1 (hf n)).2.2),
-  obtain ⟨g, hg⟩ := h1.exists_monotone_subseq (λ n, h.nat_embedding _ n)
-    (λ n, (h.nat_embedding _ n).2),
-  obtain ⟨m, n, mn, h2'⟩ := h2 (λ x, (h.nat_embedding _) (g x)) (λ n, (h.nat_embedding _ _).2),
-  apply ne_of_lt mn (g.injective ((h.nat_embedding _).injective _)),
-  exact eq_of_fst_le_fst_of_snd_le_snd _ _ _ (hg _ _ (le_of_lt mn)) h2',
-end
-
-end ordered_cancel_comm_monoid
-
-@[to_additive]
-theorem finite_of_is_wf [linear_ordered_cancel_comm_monoid α] {s t : set α}
-  (hs : s.is_wf) (ht : t.is_wf) (a) :
-  (mul_antidiagonal s t a).finite :=
-finite_of_is_pwo hs.is_pwo ht.is_pwo a
-
-end mul_antidiagonal
-end set
-
-namespace finset
-
-variables [ordered_cancel_comm_monoid α]
-variables {s t : set α} (hs : s.is_pwo) (ht : t.is_pwo) (a : α)
-
-/-- `finset.mul_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
-  `s` and an element in `t` that multiply to `a`, but its construction requires proofs
-  `hs` and `ht` that `s` and `t` are well-ordered. -/
-@[to_additive "`finset.add_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
-  `s` and an element in `t` that add to `a`, but its construction requires proofs
-  `hs` and `ht` that `s` and `t` are well-ordered."]
-noncomputable def mul_antidiagonal : finset (α × α) :=
-(set.mul_antidiagonal.finite_of_is_pwo hs ht a).to_finset
-
-variables {hs} {ht} {u : set α} {hu : u.is_pwo} {a} {x : α × α}
-
-@[simp, to_additive]
-lemma mem_mul_antidiagonal :
-  x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
-by simp [mul_antidiagonal]
-
-@[to_additive]
-lemma mul_antidiagonal_mono_left (hus : u ⊆ s) :
-  (finset.mul_antidiagonal hu ht a) ⊆ (finset.mul_antidiagonal hs ht a) :=
-λ x hx, begin
-  rw mem_mul_antidiagonal at *,
-  exact ⟨hx.1, hus hx.2.1, hx.2.2⟩,
-end
-
-@[to_additive]
-lemma mul_antidiagonal_mono_right (hut : u ⊆ t) :
-  (finset.mul_antidiagonal hs hu a) ⊆ (finset.mul_antidiagonal hs ht a) :=
-λ x hx, begin
-  rw mem_mul_antidiagonal at *,
-  exact ⟨hx.1, hx.2.1, hut hx.2.2⟩,
-end
-
-@[to_additive]
-lemma support_mul_antidiagonal_subset_mul :
-  { a : α | (mul_antidiagonal hs ht a).nonempty } ⊆ s * t :=
-(λ x ⟨⟨a1, a2⟩, ha⟩, begin
-  obtain ⟨hmul, h1, h2⟩ := mem_mul_antidiagonal.1 ha,
-  exact ⟨a1, a2, h1, h2, hmul⟩,
-end)
-
-@[to_additive]
-theorem is_pwo_support_mul_antidiagonal :
-  { a : α | (mul_antidiagonal hs ht a).nonempty }.is_pwo :=
-(hs.mul ht).mono support_mul_antidiagonal_subset_mul
-
-@[to_additive]
-theorem mul_antidiagonal_min_mul_min {α} [linear_ordered_cancel_comm_monoid α] {s t : set α}
-  (hs : s.is_wf) (ht : t.is_wf)
-  (hns : s.nonempty) (hnt : t.nonempty) :
-  mul_antidiagonal hs.is_pwo ht.is_pwo ((hs.min hns) * (ht.min hnt)) =
-    {(hs.min hns, ht.min hnt)} :=
-begin
-  ext ⟨a1, a2⟩,
-  rw [mem_mul_antidiagonal, finset.mem_singleton, prod.ext_iff],
-  split,
-  { rintro ⟨hast, has, hat⟩,
-    cases eq_or_lt_of_le (hs.min_le hns has) with heq hlt,
-    { refine ⟨heq.symm, _⟩,
-      rw heq at hast,
-      exact mul_left_cancel hast },
-    { contrapose hast,
-      exact ne_of_gt (mul_lt_mul_of_lt_of_le hlt (ht.min_le hnt hat)) } },
-  { rintro ⟨ha1, ha2⟩,
-    rw [ha1, ha2],
-    exact ⟨rfl, hs.min_mem _, ht.min_mem _⟩ }
-end
-
-end finset
 
 lemma well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop)) (s : set α) :
   s.is_wf :=

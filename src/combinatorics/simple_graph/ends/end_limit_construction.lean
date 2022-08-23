@@ -62,57 +62,13 @@ def ComplInfComp' : finset V ⥤ Type u :=
 
 def Endsinfty := (ComplInfComp G).sections
 
-lemma ComplInfComp'_eq_ComplComp_to_surjective' : ComplInfComp' G = inverse_system.to_surjective' (ComplComp G) :=
+lemma ComplInfComp'_eq_ComplComp_to_surjective : ComplInfComp' G = inverse_system.to_surjective (ComplComp G) :=
 begin
   apply functor.subfunctor.ext,
   dsimp [ComplComp], intro K, ext C,
   show C.verts.infinite ↔ C ∈ (⋂ (i : {L // K ⊆ L}), _),
   rw [inf_conn_comp_outside.iff_in_all_range],
   obviously,
-end
-
-lemma ComplInfComp_eq_ComplComp_to_surjective : ComplInfComp G = inverse_system.to_surjective (ComplComp G) :=
-begin
-  have objeq₀ : ∀ (K : (finset V)) (C : conn_comp_outside G K),
-    C.verts.infinite ↔ ∀ (L : finset V) (H : L ≤ K), C ∈ set.range (conn_comp_outside_back H), by
-  { rintros K C, split,
-    { rintro Cinf L KL,
-      -- simp only [subtype.val_eq_coe, set.mem_set_of_eq] at Cinf,
-      obtain ⟨⟨D,Dinf⟩,DtoC⟩ := bwd_map_inf.surjective G Gpc KL ⟨C,Cinf⟩,
-      use [D.val, D.prop],
-      dsimp only [bwd_map_inf] at DtoC,
-      rw [subtype.ext_iff_val,subtype.val_eq_coe,set.maps_to.coe_restrict_apply] at DtoC,
-      exact DtoC, },
-    { apply bwd_map.inf_of_surjective_on G Gpc, },},
-
-  have objeq : ∀ (X : (finset V)), (ComplInfComp G Gpc).obj X = (inverse_system.to_surjective (ComplComp G Gpc)).obj X, by
-  { simp only [ComplInfComp,inverse_system.to_surjective,ComplComp],
-    rintro K, apply congr_arg (λ (X : set $ G.ro_components K), subtype X),
-    apply set.ext,
-    unfold inf_ro_components',
-    simp only [set.mem_set_of_eq, subtype.coe_mk, subtype.val_eq_coe, set.Inter_coe_set,
-               set.mem_Inter, set.mem_range, set_coe.exists] at objeq₀ ⊢,
-    specialize objeq₀ K,
-    exact objeq₀,},
-
-  -- TODO: this should be very clean, but isn't!!! please help me
-  fapply category_theory.functor.hext,
-  { exact objeq, },
-  { rintro K L KL,
-    dsimp only [ComplInfComp, ComplComp, inverse_system.to_surjective, set.maps_to.restrict,bwd_map_inf] at ⊢,
-    apply function.hfunext, exact objeq K, rintro a a' aea',
-    dsimp only [subtype.map],
-    rw subtype.heq_iff_coe_eq at aea' ⊢,
-    { simp only [subtype.coe_mk], rw aea', },
-    all_goals { rintro C,
-      dsimp only [inf_ro_components'],
-      simp only [set.mem_set_of_eq, subtype.val_eq_coe, set.mem_range, set_coe.exists, bex_imp_distrib],
-      specialize objeq₀ _ C,
-      rw subtype.val_eq_coe at objeq₀,
-      rw objeq₀, split,
-      { rintro h D M ML rfl, exact h M ML, },
-      { rintro h M ML, exact h (set.range (bwd_map G Gpc ML)) M ML (refl _),}
-     },},
 end
 
 lemma Ends_equiv_Endsinfty : Ends G ≃ Endsinfty G :=

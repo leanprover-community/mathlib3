@@ -111,36 +111,7 @@ def is_surjective_on (j : J) : Prop :=
 lemma is_surjective_iff :
   (is_surjective F) ↔ ∀ (i j : J) (h : i ≤ j), function.surjective (F.map (hom_of_le h)) := by refl
 
--- why do I need to make it an explicit argument
 def to_surjective (F : J ⥤ Type v) : J ⥤ Type v :=
-begin
-  let Fsur_obj : Π (j : J), set (F.obj j) := λ j, ⋂ (i : {i | i ≤ j}), set.range (F.map  (hom_of_le i.prop)),
-  have subfunctor : Π (i j : J) (hij : i ⟶ j), set.maps_to (F.map hij) (Fsur_obj i) (Fsur_obj j), by
-  -- Thanks Andrew Yang
-  { rintro i j hij,
-    rintro x h s ⟨⟨k, _⟩, rfl⟩,
-    obtain ⟨l,lk,li⟩ := directed_of ge k i,
-    rw set.mem_Inter at h,
-    obtain ⟨y,rfl⟩ := h ⟨l, li⟩,
-    use F.map (hom_of_le lk) y,
-    rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
-    refl },
-
-  refine_struct ⟨(λ j, subtype (Fsur_obj j)),_,_,_⟩,
-  { rintro j' j m, exact set.maps_to.restrict _ _ _ (subfunctor j' j m)},
-  { rintro j,
-    apply funext,
-    rintro ⟨x,xh⟩,
-    rw ←subtype.coe_inj,
-    simp only [category_theory.functor.map_id, set.maps_to.coe_restrict_apply, category_theory.types_id_apply],},
-  { rintro j j' j'' m m',
-    apply funext,
-    rintro ⟨x,xh⟩,
-    rw ←subtype.coe_inj,
-    simp only [category_theory.functor.map_comp, set.maps_to.coe_restrict_apply, category_theory.types_comp_apply],},
-end
-
-def to_surjective' (F : J ⥤ Type v) : J ⥤ Type v :=
   F.subfunctor
   (λ j, ⋂ (i : {i | i ≤ j}), set.range (F.map  (hom_of_le i.prop)))
   (by { rintro i j hij,

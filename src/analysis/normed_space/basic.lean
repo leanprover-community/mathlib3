@@ -188,9 +188,9 @@ def homeomorph_unit_ball [normed_space ℝ E] :
       by nlinarith [norm_nonneg (y : E), (mem_ball_zero_iff.1 y.2 : ∥(y : E)∥ < 1)],
     field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
   end,
-  continuous_to_fun := continuous_subtype_mk _ $
+  continuous_to_fun :=
   begin
-    suffices : continuous (λ x, (1 + ∥x∥^2).sqrt⁻¹), { exact this.smul continuous_id, },
+    suffices : continuous (λ x, (1 + ∥x∥^2).sqrt⁻¹), from (this.smul continuous_id).subtype_mk _,
     refine continuous.inv₀ _ (λ x, real.sqrt_ne_zero'.mpr (by positivity)),
     continuity,
   end,

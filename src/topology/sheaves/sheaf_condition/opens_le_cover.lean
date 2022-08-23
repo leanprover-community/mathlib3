@@ -38,10 +38,9 @@ open topological_space.opens
 namespace Top
 
 variables {C : Type u} [category.{v} C]
+variables {X : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X)
 
 namespace presheaf
-
-variables {X : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X)
 
 namespace sheaf_condition
 
@@ -315,7 +314,6 @@ begin
   { intros h Y S, rw ← sieve.generate_sieve S, intro hS,
     rw ← (is_limit_opens_le_equiv_generate₂ F S hS).nonempty_congr, apply h },
 end
-set_option pp.universes true
 
 end
 

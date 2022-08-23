@@ -2678,6 +2678,15 @@ theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a →
   pmap f l H₁ = pmap g l H₂ :=
 by induction l with _ _ ih; [refl, rw [pmap, pmap, h, ih]]
 
+theorem pmap_congr' {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
+  (l : list α) {H₁ H₂} (h : ∀ (a ∈ l) h₁ h₂, f a h₁ = g a h₂) :
+  pmap f l H₁ = pmap g l H₂ :=
+begin
+  induction l with _ _ ih,
+  { refl, },
+  { rw [pmap, pmap, h _ (mem_cons_self _ _), ih (λ a ha, h a (mem_cons_of_mem _ ha))], },
+end
+
 theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
 by induction l; [refl, simp only [*, pmap, map]]; split; refl

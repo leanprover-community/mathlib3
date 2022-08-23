@@ -780,6 +780,8 @@ def inr [module R₁ M₂] : M₂ →L[R₁] M₁ × M₂ := (0 : M₂ →L[R₁
 
 end
 
+variables {F : Type*}
+
 @[simp] lemma inl_apply [module R₁ M₂] (x : M₁) : inl R₁ M₁ M₂ x = (x, 0) := rfl
 @[simp] lemma inr_apply [module R₁ M₂] (x : M₂) : inr R₁ M₁ M₂ x = (0, x) := rfl
 
@@ -788,18 +790,19 @@ end
 @[simp, norm_cast] lemma coe_inr [module R₁ M₂] :
   (inr R₁ M₁ M₂ : M₂ →ₗ[R₁] M₁ × M₂) = linear_map.inr R₁ M₁ M₂ := rfl
 
-lemma is_closed_ker [t1_space M₂] (f : M₁ →SL[σ₁₂] M₂) : is_closed (ker f : set M₁) :=
-continuous_iff_is_closed.1 f.cont _ is_closed_singleton
+lemma is_closed_ker [t1_space M₂] [continuous_semilinear_map_class F σ₁₂ M₁ M₂]
+  (f : F) : is_closed (ker f : set M₁) :=
+continuous_iff_is_closed.1 (map_continuous f) _ is_closed_singleton
 
 lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
-  [module R₁ M'] [t1_space M₂] (f : M' →SL[σ₁₂] M₂) :
-  is_complete (ker f : set M') :=
-f.is_closed_ker.is_complete
+  [module R₁ M'] [t1_space M₂] [continuous_semilinear_map_class F σ₁₂ M' M₂]
+  (f : F) : is_complete (ker f : set M') :=
+(is_closed_ker f).is_complete
 
 instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
-  [module R₁ M'] [t1_space M₂] (f : M' →SL[σ₁₂] M₂) :
-  complete_space (ker f) :=
-f.is_closed_ker.complete_space_coe
+  [module R₁ M'] [t1_space M₂] [continuous_semilinear_map_class F σ₁₂ M' M₂]
+  (f : F) : complete_space (ker f) :=
+(is_closed_ker f).complete_space_coe
 
 @[simp] lemma ker_prod [module R₁ M₂] [module R₁ M₃] (f : M₁ →L[R₁] M₂) (g : M₁ →L[R₁] M₃) :
   ker (f.prod g) = ker f ⊓ ker g :=

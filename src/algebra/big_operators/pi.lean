@@ -86,8 +86,8 @@ open pi
 variables {I : Type*} [decidable_eq I] {f : I → Type*}
 variables [Π i, non_assoc_semiring (f i)]
 
-@[ext] lemma ring_hom.functions_ext [fintype I] (G : Type*) [non_assoc_semiring G]
-  (g h : (Π i, f i) →+* G) (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+@[ext] lemma ring_hom.functions_ext [finite I] (G : Type*) [non_assoc_semiring G]
+  (g h : (Π i, f i) →+* G) (H : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
 ring_hom.coe_add_monoid_hom_injective $
   @add_monoid_hom.functions_ext I _ f _ _ G _ (g : (Π i, f i) →+ G) h H
 

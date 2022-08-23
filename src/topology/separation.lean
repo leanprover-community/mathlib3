@@ -1498,9 +1498,8 @@ begin
   -- If we can find a clopen set around x, contained in u ∪ v, we get a disjoint decomposition
   -- Z = Z ∩ u ∪ Z ∩ v of clopen sets. The intersection of all clopen neighbourhoods will then lie
   -- in whichever of u or v x lies in and hence will be a subset of either a or b.
-  suffices : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
-  { cases this with Z H,
-    have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
+  rsuffices ⟨Z, H⟩ : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
+  { have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
     rw [union_comm] at H,
     have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu huv.symm,
     by_cases (x ∈ u),
@@ -1589,9 +1588,8 @@ lemma nhds_basis_clopen (x : α) : (𝓝 x).has_basis (λ s : set α, x ∈ s �
     rw connected_component_eq_Inter_clopen at this,
     intros hU,
     let N := {Z // is_clopen Z ∧ x ∈ Z},
-    suffices : ∃ Z : N, Z.val ⊆ U,
-    { rcases this with ⟨⟨s, hs, hs'⟩, hs''⟩,
-      exact ⟨s, ⟨hs', hs⟩, hs''⟩ },
+    rsuffices ⟨⟨s, hs, hs'⟩, hs''⟩ : ∃ Z : N, Z.val ⊆ U,
+    { exact ⟨s, ⟨hs', hs⟩, hs''⟩ },
     haveI : nonempty N := ⟨⟨univ, is_clopen_univ, mem_univ x⟩⟩,
     have hNcl : ∀ Z : N, is_closed Z.val := (λ Z, Z.property.1.2),
     have hdir : directed superset (λ Z : N, Z.val),

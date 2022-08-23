@@ -381,7 +381,7 @@ begin
     have := div_nonpos_of_nonneg_of_nonpos (sub_nonneg.2 $ J.lower_le_upper i) (not_lt.1 hr),
     rw ← h at this,
     exact this.not_lt (sub_pos.2 $ I.lower_lt_upper i) },
-  simp only [nnreal.finset_sup_div, div_div_div_cancel_right _ (real.nnabs.map_ne_zero.2 this.ne')]
+  simp_rw [nnreal.finset_sup_div, div_div_div_cancel_right _ ((map_ne_zero real.nnabs).2 this.ne')],
 end
 
 lemma nndist_le_distortion_mul (I : box ι) (i : ι) :

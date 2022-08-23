@@ -219,7 +219,7 @@ begin
   rw eventually_map at h_restrict_le ⊢,
   rw ae_restrict_iff' hs at h_restrict_le,
   have hc : 0 ≤ c,
-  { suffices : ∃ x, 0 ≤ f x ∧ f x ≤ c, by { obtain ⟨x, hx⟩ := this, exact hx.1.trans hx.2, },
+  { rsuffices ⟨x, hx⟩ : ∃ x, 0 ≤ f x ∧ f x ≤ c, from hx.1.trans hx.2,
     refine frequently.exists _,
     { exact μ.ae, },
     rw [eventually_le, ae_restrict_iff' hs] at hf,

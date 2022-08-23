@@ -783,7 +783,6 @@ begin
     card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
--- TODO: Re-write this using `min`
 lemma factorization_add_of_lt {p a b : ℕ} (h : a.factorization p < b.factorization p)
   (ha0 : a ≠ 0) :
   (a + b).factorization p = a.factorization p :=
@@ -791,32 +790,27 @@ begin
   rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
   rcases em' p.prime with pp | pp, { simp [pp] },
 
-  have ha := (ord_proj_mul_ord_compl_eq_self a p).symm,
-  have hb := (ord_proj_mul_ord_compl_eq_self b p).symm,
   set a' := ord_compl[p] a with ha',
   set b' := ord_compl[p] b with hb',
   set α := a.factorization p with hα,
   set β := b.factorization p with hβ,
-  have ha'_pos := ord_compl_pos p ha0,
-  have h3 : ¬p ∣ a' := not_dvd_ord_compl pp ha0,
+
   have h1 : a + b = p^α * (a' + p^(β-α)*b'),
-  { rw [mul_add, ←ha, add_right_inj, ←mul_assoc, ←pow_add, hb, add_tsub_cancel_of_le h.le] },
-  rw h1,
-  rw factorization_mul (ord_proj_pos a p).ne', swap,
-  { apply ne_of_gt,
-    apply add_pos ha'_pos,
-    exact mul_pos (pow_pos pp.pos _) (ord_compl_pos p hb0) },
-    rw finsupp.add_apply,
+  { rw [mul_add, ←mul_assoc, ←pow_add, add_tsub_cancel_of_le h.le],
+    simp_rw ord_proj_mul_ord_compl_eq_self },
+
+  have h2 : a' + p ^ (β - α) * b' ≠ 0, { intro H, simpa [H, ha0, hb0] using h1 },
+
+  rw [h1, factorization_mul (ord_proj_pos a p).ne' h2, finsupp.add_apply],
+
   suffices : (a' + p ^ (β - α) * b').factorization p = 0,
-  { rw [this, add_zero, pp.factorization_pow], simp },
-  rw add_comm,
+  { simp [this, add_zero, pp.factorization_pow]},
+
   apply factorization_eq_zero_of_not_dvd,
-  contrapose! h3,
-  refine (nat.dvd_add_right _).1 h3,
-  apply dvd_mul_of_dvd_left,
-  apply dvd_pow_self,
-  apply ne_of_gt,
-  exact tsub_pos_of_lt h,
+
+  have h4 : p ∣ p ^ (β - α) * b' := dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt h).ne') b',
+  rw nat.dvd_add_left h4,
+  exact not_dvd_ord_compl pp ha0,
 end
 
 

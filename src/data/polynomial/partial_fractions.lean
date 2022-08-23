@@ -161,7 +161,7 @@ end
 @[norm_cast] lemma coe_algebra_map_fin_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
   ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, ((a i):K) :=
 begin
-classical,
+  classical,
   apply s.induction_on,
   { unfold_coes,
     simp only [finset.sum_empty, ring_hom.to_fun_eq_coe, map_zero], },
@@ -330,9 +330,7 @@ begin
       div_eq_quo_add_rem_div_add_rem_div _ _ (hg a)
         (finite_product_of_monics_is_monic _ (hg) b) (hcoprimecalc),
     rcases hdiv with ⟨ q', r1', r2', hd1, hd2, H2 ⟩,
-    have hannoyingcast : ↑ ∏ (x : ι) in b, (g x) = ∏ (x : ι) in b, ↑ (g x),
-    { sorry },
-    rw hannoyingcast at H2,
+    rw polynomial.coe_algebra_map_fin_prod _ K g at H2, -- why isn't norm_cast working?
     rw H2,
     specialize Hind r2',
     rcases Hind with ⟨Q, R', Hdeg', H3⟩,
@@ -362,6 +360,7 @@ begin
             rw ← hi at hab,
             contradiction, },
         exact hc2 i hia, },
+
       sorry, },
   },
 end

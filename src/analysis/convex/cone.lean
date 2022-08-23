@@ -220,28 +220,6 @@ set_like.coe_injective $ preimage_comp.symm
 @[simp] lemma mem_comap {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 F} {x : E} : x ∈ S.comap f ↔ f x ∈ S :=
 iff.rfl
 
-instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
-{ carrier := { c | ∃ a b, a ∈ K₁ ∧ b ∈ K₂ ∧ a + b = c },
-  smul_mem' :=
-  begin
-    rintro c hc _ ⟨x, y, hx, hy, rfl⟩,
-    simp_rw [smul_add, exists_and_distrib_left, set.mem_set_of_eq],
-    use [c • x, K₁.smul_mem hc hx, c • y, K₂.smul_mem hc hy],
-  end,
-  add_mem' :=
-  begin
-    rintro _ ⟨x₁, x₂, hx₁, hx₂, rfl⟩ y ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
-    simp_rw [exists_and_distrib_left, set.mem_set_of_eq],
-    use [x₁ + y₁, K₁.add_mem hx₁ hy₁, x₂ + y₂, K₂.add_mem hx₂ hy₂],
-    abel,
-  end } ⟩
-
-@[simp] lemma mem_add {K₁ K₂ : convex_cone 𝕜 E} {a : E} :
-  a ∈ K₁ + K₂ ↔ ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = a := iff.rfl
-
-@[simp] lemma coe_add {K₁ K₂ : convex_cone 𝕜 E} :
-  ↑(K₁ + K₂) = { c | ∃ a b, a ∈ K₁ ∧ b ∈ K₂ ∧ a + b = c } := rfl
-
 end module
 end add_comm_monoid
 
@@ -377,6 +355,38 @@ instance : has_zero (convex_cone 𝕜 E) :=
 @[simp] lemma coe_zero : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
 
 lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
+
+instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
+{ carrier := K₁ + K₂,
+  smul_mem' :=
+  begin
+    rintro c hc _ ⟨x, y, hx, hy, rfl⟩,
+    rw [smul_add, set.mem_add],
+    use [c • x, c • y, K₁.smul_mem hc hx, K₂.smul_mem hc hy],
+  end,
+  add_mem' :=
+  begin
+    rintro _ ⟨x₁, x₂, hx₁, hx₂, rfl⟩ y ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+    rw [set.mem_add],
+    use [x₁ + y₁, x₂ + y₂, K₁.add_mem hx₁ hy₁, K₂.add_mem hx₂ hy₂],
+    abel,
+  end } ⟩
+
+@[simp] lemma mem_add {K₁ K₂ : convex_cone 𝕜 E} {a : E} :
+  a ∈ K₁ + K₂ ↔ ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = a := iff.rfl
+
+@[simp] lemma coe_add {K₁ K₂ : convex_cone 𝕜 E} : ((K₁ + K₂) : set E) = ↑K₁ + ↑K₂ := rfl
+
+instance : add_zero_class (convex_cone 𝕜 E) :=
+{ zero := has_zero.zero,
+  add := has_add.add,
+  zero_add := λ _, by { ext, simp },
+  add_zero := λ _, by { ext, simp } }
+
+instance : add_comm_semigroup (convex_cone 𝕜 E) :=
+{ add := has_add.add,
+  add_assoc := λ _ _ _, set_like.coe_injective $ by apply set.add_comm_semigroup.add_assoc,
+  add_comm := λ _ _, set_like.coe_injective $ by apply set.add_comm_semigroup.add_comm }
 
 end module
 end ordered_semiring

@@ -1643,7 +1643,7 @@ begin
     tsum_subtype s (λ b, μ (f ⁻¹' {b})), ← indicator_mul_right s (λ b, μ (f ⁻¹' {b}))]
 end
 
-/-- A measure on an countable type is a sum of Dirac measures. -/
+/-- A measure on a countable type is a sum of Dirac measures. -/
 @[simp] lemma sum_smul_dirac [countable α] [measurable_singleton_class α] (μ : measure α) :
   sum (λ a, μ {a} • dirac a) = μ :=
 by simpa using (map_eq_sum μ id measurable_id).symm

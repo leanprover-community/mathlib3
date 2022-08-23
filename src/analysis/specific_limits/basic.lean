@@ -401,7 +401,7 @@ end
 
 /-! ### Positive sequences with small sums on countable types -/
 
-/-- For any positive `ε`, define on an countable type a positive sequence with sum less than `ε` -/
+/-- For any positive `ε`, define on a countable type a positive sequence with sum less than `ε` -/
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
 begin

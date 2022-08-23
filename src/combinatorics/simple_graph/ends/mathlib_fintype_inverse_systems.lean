@@ -508,19 +508,16 @@ begin
   exact @nonempty_sections_of_fintype_inverse_system' _ _ _ (above_point F j x) (above_point.fintype F j x)  (above_point.nonempty F j Fsurj x),
 end
 
-
 private def sections_at_point_fwd  (j : J) (x : F.obj j) :
   {s : F.sections | s.val j = x} → (above_point F j x).sections :=
 begin
   rintro ⟨⟨s,sec⟩,sjx⟩,
-  simp only [set.mem_set_of_eq] at sjx,
-  rcases sjx with rfl,
-  split, rotate,
-  { rintro ⟨i,ij⟩,
-    exact ⟨s i,sec $ hom_of_le ij⟩, },
+  rw set.mem_set_of_eq at sjx,
+  rw ←sjx,
+  fsplit,
+  { rintro ⟨i,ij⟩, exact ⟨s i,sec $ hom_of_le ij⟩, },
   { rintro ⟨i,ij⟩ ⟨k,kj⟩ ik,
-    simp only [←subtype.coe_inj],
-    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk],
+    simp only [←subtype.coe_inj, set.maps_to.coe_restrict_apply, subtype.coe_mk],
     apply sec, },
 end
 

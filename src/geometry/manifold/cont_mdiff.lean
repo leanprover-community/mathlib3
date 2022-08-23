@@ -2125,9 +2125,6 @@ hf.smul hg
 /-! ### Smoothness of an open embedding and its inverse -/
 
 lemma cont_mdiff_open_embedding
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M] [nonempty M]
   {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
   @cont_mdiff _ _ _ _ _ _ _ I _ _ h.singleton_charted_space _ _ _ _ _ I _ _ _ n e :=
@@ -2156,10 +2153,8 @@ begin
   exact this
 end
 
+variable {I}
 lemma cont_mdiff_on_open_embedding_symm
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
   {M : Type*} [topological_space M] [nonempty M]
   {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
   @cont_mdiff_on _ _ _ _ _ _ _ I _ _ _ _ _ _ _ _ I _ _ h.singleton_charted_space
@@ -2186,3 +2181,4 @@ begin
   rw [set.preimage_inter] at this,
   exact this.1
 end
+variable (I)

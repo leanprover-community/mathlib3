@@ -783,22 +783,6 @@ begin
     card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
--- TODO: Add this to #16185
-lemma factorization_eq_zero_iff_remainder' {p r x : ℕ} (pp : p.prime) (hr0 : r ≠ 0) (hx : p ∣ x) :
-  (¬ p ∣ r) ↔ (x + r).factorization p = 0 :=
-begin
-  split,
-  { intros h,
-    rcases hx with ⟨i, rfl⟩,
-    apply factorization_eq_zero_of_remainder i h },
-  { intros h,
-    rw factorization_eq_zero_iff at h,
-    contrapose! h,
-    refine ⟨pp, (nat.dvd_add_iff_right hx).1 h, _⟩,
-    contrapose! hr0, exact (_root_.add_eq_zero_iff.mp hr0).2 }
-end
-
-
 -- TODO: Re-write this using `min`
 lemma factorization_add_of_lt (p a b : ℕ) (h : a.factorization p < b.factorization p)
   (ha0 : a ≠ 0) :
@@ -826,7 +810,9 @@ begin
   suffices : (a' + p ^ (β - α) * b').factorization p = 0,
   { rw [this, add_zero, pp.factorization_pow], simp },
   rw add_comm,
-  refine (factorization_eq_zero_iff_remainder' pp ha'_pos.ne' _).1 h3,
+  apply factorization_eq_zero_of_not_dvd,
+  contrapose! h3,
+  refine (nat.dvd_add_right _).1 h3,
   apply dvd_mul_of_dvd_left,
   apply dvd_pow_self,
   apply ne_of_gt,

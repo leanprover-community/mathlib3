@@ -160,7 +160,7 @@ variables [comm_ring 𝕜] [no_zero_divisors 𝕜] [topological_space 𝕜] [has
   [has_continuous_const_smul 𝕜 𝕜] [topological_space A] [ring A] [algebra 𝕜 A]
 
 lemma apply_mem_spectrum [nontrivial 𝕜] (φ : character_space 𝕜 A) (a : A) : φ a ∈ spectrum 𝕜 a :=
-(to_alg_hom φ).apply_mem_spectrum a
+alg_hom.apply_mem_spectrum φ a
 
 end ring
 

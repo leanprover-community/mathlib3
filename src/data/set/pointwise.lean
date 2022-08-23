@@ -1527,6 +1527,11 @@ iff.rfl
 
 end has_mul
 
+@[simp, to_additive] lemma swap_mem_mul_antidiagonal [comm_semigroup α] {s t : set α} {a : α}
+  {x : α × α} :
+  x.swap ∈ set.mul_antidiagonal s t a ↔ x ∈ set.mul_antidiagonal t s a :=
+by simp [mul_comm, and.left_comm]
+
 namespace mul_antidiagonal
 
 section cancel_comm_monoid
@@ -1608,6 +1613,10 @@ finite.to_finset_subset.2 $ set.mul_antidiagonal_mono_left h
 @[to_additive] lemma mul_antidiagonal_mono_right (h : u ⊆ t) :
   mul_antidiagonal hs hu a ⊆ mul_antidiagonal hs ht a :=
 finite.to_finset_subset.2 $ set.mul_antidiagonal_mono_right h
+
+@[simp, to_additive] lemma swap_mem_mul_antidiagonal :
+  x.swap ∈ finset.mul_antidiagonal hs ht a ↔ x ∈ finset.mul_antidiagonal ht hs a :=
+by simp [mul_comm, and.left_comm]
 
 @[to_additive]
 lemma support_mul_antidiagonal_subset_mul : {a | (mul_antidiagonal hs ht a).nonempty} ⊆ s * t :=

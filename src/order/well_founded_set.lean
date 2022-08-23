@@ -458,37 +458,37 @@ s.finite_to_set.is_wf
   set.well_founded_on (↑s : set α) r :=
 by { letI := partial_order_of_SO r, exact s.is_wf }
 
-lemma well_founded_on_sup [is_strict_order α r] {s : finset ι} {f : ι → set α} :
+lemma well_founded_on_sup [is_strict_order α r] (s : finset ι) {f : ι → set α} :
   (s.sup f).well_founded_on r ↔ ∀ i ∈ s, (f i).well_founded_on r :=
 finset.cons_induction_on s (by simp) $ λ a s ha hs, by simp [-sup_set_eq_bUnion, hs]
 
-lemma partially_well_ordered_on_sup {s : finset ι} {f : ι → set α} :
+lemma partially_well_ordered_on_sup (s : finset ι) {f : ι → set α} :
   (s.sup f).partially_well_ordered_on r ↔ ∀ i ∈ s, (f i).partially_well_ordered_on r :=
 finset.cons_induction_on s (by simp) $ λ a s ha hs, by simp [-sup_set_eq_bUnion, hs]
 
-lemma is_wf_sup [preorder α] {s : finset ι} {f : ι → set α} :
+lemma is_wf_sup [preorder α] (s : finset ι) {f : ι → set α} :
   (s.sup f).is_wf ↔ ∀ i ∈ s, (f i).is_wf :=
-well_founded_on_sup
+s.well_founded_on_sup
 
-lemma is_pwo_sup [preorder α] {s : finset ι} {f : ι → set α} :
- (s.sup f).is_pwo ↔ ∀ i ∈ s, (f i).is_pwo :=
-partially_well_ordered_on_sup
+lemma is_pwo_sup [preorder α] (s : finset ι) {f : ι → set α} :
+  (s.sup f).is_pwo ↔ ∀ i ∈ s, (f i).is_pwo :=
+s.partially_well_ordered_on_sup
 
-@[simp] lemma well_founded_on_bUnion [is_strict_order α r] {s : finset ι} {f : ι → set α} :
+@[simp] lemma well_founded_on_bUnion [is_strict_order α r] (s : finset ι) {f : ι → set α} :
   (⋃ i ∈ s, f i).well_founded_on r ↔ ∀ i ∈ s, (f i).well_founded_on r :=
-by simpa only [finset.sup_eq_supr] using well_founded_on_sup
+by simpa only [finset.sup_eq_supr] using s.well_founded_on_sup
 
-@[simp] lemma partially_well_ordered_on_bUnion {s : finset ι} {f : ι → set α} :
+@[simp] lemma partially_well_ordered_on_bUnion (s : finset ι) {f : ι → set α} :
   (⋃ i ∈ s, f i).partially_well_ordered_on r ↔ ∀ i ∈ s, (f i).partially_well_ordered_on r :=
-by simpa only [finset.sup_eq_supr] using partially_well_ordered_on_sup
+by simpa only [finset.sup_eq_supr] using s.partially_well_ordered_on_sup
 
-@[simp] lemma is_wf_bUnion [preorder α] {s : finset ι} {f : ι → set α} :
+@[simp] lemma is_wf_bUnion [preorder α] (s : finset ι) {f : ι → set α} :
   (⋃ i ∈ s, f i).is_wf ↔ ∀ i ∈ s, (f i).is_wf :=
-well_founded_on_bUnion
+s.well_founded_on_bUnion
 
-@[simp] lemma is_pwo_bUnion [preorder α] {s : finset ι} {f : ι → set α} :
+@[simp] lemma is_pwo_bUnion [preorder α] (s : finset ι) {f : ι → set α} :
   (⋃ i ∈ s, f i).is_pwo ↔ ∀ i ∈ s, (f i).is_pwo :=
-partially_well_ordered_on_bUnion
+s.partially_well_ordered_on_bUnion
 
 end finset
 

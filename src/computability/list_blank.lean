@@ -14,9 +14,16 @@ import tactic.apply_fun
 /-!
 # Blanked Lists
 
-This file defines a quotient type for lists which are equivalent up to extension by some blank
+This file defines a quotient type for lists which are equivalent up to extension by some specific
 value. This is useful for Turing machine tapes, as well as a computable variant of
 finitely-supported functions on ℕ.
+
+## Main Definitions
+
+The main definitions in this file are
+
+* `list_val Γ val` - a quotient type over lists of `Γ` which are equivalent up to extension by `val`
+* `list_blank Γ` - A `list_val` instantiation for inhabited types, using the default as the value
 
 -/
 

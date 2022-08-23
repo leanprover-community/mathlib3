@@ -87,7 +87,7 @@ begin
   have h2 := commutative_of_cyclic_center_quotient (quotient_group.mk' (subgroup.center G))
     (by simp),
   unfreezingI { lift ‹group G› to comm_group G using h2 },
-  have h3 : subgroup.center G = ⊤ := comm_group.center_eq_top,
+  have h3 : subgroup.center G = ⊤ := comm_group.center_eq_top,n
   have h4 : card (G ⧸ subgroup.center G) = 1,
   { simp_rw [h3, ← nat.card_eq_fintype_card],
     exact subgroup.index_top, },
@@ -141,7 +141,8 @@ begin
         rw nat.card_eq_fintype_card at h42,
         rw h42,
         exact _inst_1.out, },
-      have h44 : ¬ nat.prime (fintype.card (G ⧸ subgroup.center G)) := center_index_not_prime p G hG,
+      have h44 : ¬ nat.prime (fintype.card (G ⧸ subgroup.center G)) :=
+        center_index_not_prime p G hG,
       contradiction, },
     -- We look at the case |Z(G)| = p^2
     { apply subgroup.eq_top_of_card_eq,

@@ -46,6 +46,19 @@ section coercions
   apply subtype.mk_eq_mk.mpr, dsimp [vertex_coe] at h,
   apply subtype.mk_eq_mk.mp, assumption, }
 
+  lemma compl_galois_connection {S : set ↥(G.compl L).verts} {T : set ↥(G.compl K).verts} : compl_coe h S ⊆ T ↔ S ⊆ compl_rev h T :=
+  begin
+    split,
+    { intros h v hvS,
+      rw [compl_rev_mem_iff_vert_coe], apply h,
+      rw [compl_coe_mem_iff_vert_coe], exact hvS,
+    }, {
+      intros h v hvcS,
+      dsimp [compl_coe] at hvcS, rcases hvcS with ⟨v', hv'S, hv'coe⟩,
+      have := h hv'S, rw [compl_rev_mem_iff_vert_coe, hv'coe] at this,
+      assumption, }
+  end
+
   lemma vertex_coe_self (S : set ↥(G.compl K).verts) {h : K ⊆ K} : ∀ (v : (G.compl K).verts), vertex_coe h v = v := λ ⟨v, _, _⟩, rfl
 
   lemma vertex_coe_trans {M : set V} {h' : L ⊆ M} : ∀ (v : (G.compl M).verts),
@@ -78,10 +91,10 @@ end
 
 
 def inf_conn_comp_outside (G : simple_graph V) (K : set V) :=
- {C : G.conn_comp_outside K // infinite C.verts}
+ {C : G.conn_comp_outside K // C.verts.infinite}
 
 def fin_conn_comp_outside (G : simple_graph V) (K : set V) :=
-  {C : G.conn_comp_outside K // finite C.verts}
+  {C : G.conn_comp_outside K // C.verts.finite}
 
 
 namespace conn_comp_outside
@@ -158,7 +171,7 @@ section finite_components
       tidy,
     } }
 
-  lemma bdry_finite [Glocfin : locally_finite G] : (bdry G K).finite :=
+  lemma bdry_finite [locally_finite G] : (bdry G K).finite :=
   begin
     rw [bdry.iff], refine finite_Union _, rintro k,
     apply set.finite.preimage,
@@ -311,17 +324,17 @@ section back_map
 variables (G : simple_graph V) (K : set V)
 
 -- this is the `bwd_map`
-def conn_comp_outside_back {K L : finset V} {G : simple_graph V} (h : K ⊆ L) : Π (C : conn_comp_outside G L), conn_comp_outside G K :=
+def conn_comp_outside_back {K L : set V} {G : simple_graph V} (h : K ⊆ L) : conn_comp_outside G L → conn_comp_outside G K :=
   connected_component.lift
-  (λ (v : ↥((compl G ↑L).verts)), component_of (vertex_coe h v))
+  (λ (v : ↥((compl G L).verts)), component_of (vertex_coe h v))
   (λ v w p _, connected_component.eq.mpr (reachable_coe h (nonempty.intro p)))
 
-@[simp] lemma conn_comp_outside_back_of_vert {K L : finset V} (h : K ⊆ L) (v : (G.compl L).verts) : conn_comp_outside_back h ((G.compl L).coe.connected_component_mk v) = connected_component_mk _ (vertex_coe h v) :=
+@[simp] lemma conn_comp_outside_back_of_vert {K L : set V} (h : K ⊆ L) (v : (G.compl L).verts) : conn_comp_outside_back h ((G.compl L).coe.connected_component_mk v) = connected_component_mk _ (vertex_coe h v) :=
 begin
   dsimp [conn_comp_outside_back], refl,
 end
 
-lemma conn_comp_outside_back_unique {K L : finset V} (h : K ⊆ L) (C : conn_comp_outside G L) : ∀ D : conn_comp_outside G K, conn_comp_outside_back h C = D ↔ C.verts ⊆ compl_rev h D.verts :=
+lemma conn_comp_outside_back.unique {K L : set V} (h : K ⊆ L) (C : conn_comp_outside G L) : ∀ D : conn_comp_outside G K, conn_comp_outside_back h C = D ↔ C.verts ⊆ compl_rev h D.verts :=
 begin
   refine connected_component.ind _ C, intros v D,
   rw [conn_comp_outside_back_of_vert], split,
@@ -329,23 +342,37 @@ begin
   { intro h, apply h, exact @rfl _ (connected_component_mk _ v),}
 end
 
-lemma conn_comp_outside_back.refl (K : finset V) (C : conn_comp_outside G K) :
-  conn_comp_outside_back (finset.subset.refl K) C = C :=
+lemma conn_comp_outside_back.unique' {K L : set V} (h : K ⊆ L) (C : conn_comp_outside G L) : ∀ D : conn_comp_outside G K, conn_comp_outside_back h C = D ↔ compl_coe h C.verts ⊆ D.verts := by {intro _, rw [conn_comp_outside_back.unique, compl_galois_connection],}
+
+lemma conn_comp_outside_back.refl (K : set V) (C : conn_comp_outside G K) :
+  conn_comp_outside_back (set.subset.refl K) C = C :=
 begin
-  rw [conn_comp_outside_back_unique, compl_rev_set_self],
+  rw [conn_comp_outside_back.unique, compl_rev_set_self],
 end
 
-lemma conn_comp_outside_back.comm  {J K L : finset V} (k : J ⊆ K) (h : K ⊆ L) (C : conn_comp_outside G L) :
+lemma conn_comp_outside_back.trans {J K L : set V} (k : J ⊆ K) (h : K ⊆ L) (C : conn_comp_outside G L) :
   conn_comp_outside_back k (conn_comp_outside_back h C) = conn_comp_outside_back (k.trans h) C :=
 begin
-  apply eq.symm, rw [conn_comp_outside_back_unique],
+  apply eq.symm, rw [conn_comp_outside_back.unique],
   refine connected_component.ind _ C,
   simp_rw [conn_comp_outside_back_of_vert, vertex_coe_trans],
   apply comp_sub_compl_rev_coe,
 end
 
+
+def inf_conn_comp_outside_back {K L : set V} {G : simple_graph V} (h : K ⊆ L) : G.inf_conn_comp_outside L → G.inf_conn_comp_outside K :=
+  λ ⟨C, hinf⟩, ⟨conn_comp_outside_back h C, by {
+    apply infinite.mono, rw [← conn_comp_outside_back.unique'],
+    refine (infinite_image_iff _).mpr hinf,
+    refine inj_on_of_injective _ C.verts,
+    -- using `obviously` or `tidy` here gives a weird error
+    rintros ⟨_, _, _⟩ ⟨_, _, _⟩, simp [vertex_coe], }⟩
+
+lemma inf_conn_comp_outside_back.def {K L : set V} {G : simple_graph V} (h : K ⊆ L) : ∀ (C : G.inf_conn_comp_outside L), (inf_conn_comp_outside_back h C).val = conn_comp_outside_back h C.val := by {rintro ⟨_, _⟩, refl,}
+
+
 -- TODO: An infinite graph has at least one infinite connected component
-lemma inf_graph_has_conn_comp [infinite V] : nonempty (conn_comp_outside G K) := sorry
+lemma inf_graph_has_inf_conn_comp [infinite V] : nonempty (inf_conn_comp_outside G K) := sorry
 
 -- TODO: A locally finite graph has finitely many infinite connected components
 lemma inf_graph_fin_inf_conn_comp [locally_finite G] : finite (inf_conn_comp_outside G K) := sorry

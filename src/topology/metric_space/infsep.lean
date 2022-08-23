@@ -56,6 +56,10 @@ lemma ennreal.to_real_min {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞) :
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, min_eq_left])
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, min_eq_right])
 
+lemma ennreal.to_real_sup {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
+  : (a ⊔ b).to_real = a.to_real ⊔ b.to_real :=
+by simp_rw [sup_eq_max, ennreal.to_real_max hr hp]
+
 lemma ennreal.to_real_inf {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
   : (a ⊓ b).to_real = a.to_real ⊓ b.to_real :=
 by simp_rw [inf_eq_min, ennreal.to_real_min hr hp]
@@ -418,9 +422,5 @@ section bonus
 open_locale ennreal
 lemma finset.coe_pair [decidable_eq α] {x y : α} : (({x, y} : finset α) : set α) = {x, y} :=
 by rw [finset.coe_insert, finset.coe_singleton]
-
-lemma ennreal.to_real_sup {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
-  : (a ⊔ b).to_real = a.to_real ⊔ b.to_real :=
-by simp_rw [sup_eq_max, ennreal.to_real_max hr hp]
 
 end bonus

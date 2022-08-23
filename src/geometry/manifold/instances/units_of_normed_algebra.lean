@@ -44,6 +44,8 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 R
 instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 
+/-- The embedding of the units `Rˣ` of a complete normed ring `R` into `R` is a smooth manifold
+map. -/
 lemma cont_mdiff_coe {m : with_top ℕ} : cont_mdiff 𝓘(𝕜, R) 𝓘(𝕜, R) m (coe : Rˣ → R) :=
 cont_mdiff_open_embedding 𝓘(𝕜, R) units.open_embedding_coe
 

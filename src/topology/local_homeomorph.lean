@@ -1077,21 +1077,21 @@ end
 
 lemma to_local_homeomorph_left_inv
   [nonempty α] {x : α} :
-  (open_embedding.to_local_homeomorph f h).symm (f x) = x :=
+  (h.to_local_homeomorph f).symm (f x) = x :=
 begin
-  rw ←congr_fun (open_embedding.to_local_homeomorph_apply f h),
+  rw ←congr_fun (h.to_local_homeomorph_apply f),
   rw local_homeomorph.left_inv,
-  rw open_embedding.to_local_homeomorph_source,
+  rw to_local_homeomorph_source,
   apply set.mem_univ
 end
 
 lemma to_local_homeomorph_right_inv
   [nonempty α] {x : β} (hx : x ∈ set.range f) :
-  f ((open_embedding.to_local_homeomorph f h).symm x) = x :=
+  f ((h.to_local_homeomorph f).symm x) = x :=
 begin
-  rw ←congr_fun (open_embedding.to_local_homeomorph_apply f h),
+  rw ←congr_fun (h.to_local_homeomorph_apply f),
   rw local_homeomorph.right_inv,
-  rw open_embedding.to_local_homeomorph_target,
+  rw to_local_homeomorph_target,
   exact hx
 end
 

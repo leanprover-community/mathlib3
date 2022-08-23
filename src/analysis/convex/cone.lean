@@ -668,7 +668,7 @@ eq_top_iff.mpr $ λ x hy y, false.elim
 eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ inner_zero_left.ge
 
 /-- Dual cone of the total space is the convex cone {0}. -/
-lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 :=
+@[simp] lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 :=
 begin
   suffices : ∀ x : H, x ∈ (set.univ : set H).inner_dual_cone → x = 0,
   { apply set_like.coe_injective,
@@ -737,8 +737,8 @@ begin
   exact is_closed_Ici.preimage (by continuity),
 end
 
-lemma pointed_of_nonempty_closed_convex_cone
-  {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
+lemma pointed_of_nonempty_closed_convex_cone {K : convex_cone ℝ H}
+  (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
 begin
   obtain ⟨x, hx⟩ := ne,
   let f : ℝ → H := (• x),

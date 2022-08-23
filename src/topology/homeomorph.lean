@@ -457,6 +457,25 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
   continuous_inv_fun := continuous_subtype_mk _ (continuous.prod_mk
     (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd)) }
 
+section
+
+variables [decidable_eq α] (i : α)
+
+/-- A product of topological spaces can be split as the binary product of one of the spaces and
+  the product of all the remaining spaces. -/
+@[simps] def pi_split_at (β : α → Type*) [Π j, topological_space (β j)] :
+  (Π j, β j) ≃ₜ β i × Π j : {j // j ≠ i}, β j :=
+{ to_equiv := equiv.pi_split_at i β,
+  continuous_to_fun := (continuous_apply i).prod_mk (continuous_pi $ λ j, continuous_apply j),
+  continuous_inv_fun := continuous_pi $ λ j, by { dsimp only [equiv.pi_split_at],
+    split_ifs, subst h, exacts [continuous_fst, (continuous_apply _).comp continuous_snd] } }
+
+/-- A product of copies of a topological space can be split as the binary product of one copy and
+  the product of all the remaining copies. -/
+@[simps] def fun_split_at : (α → β) ≃ₜ β × ({j // j ≠ i} → β) := pi_split_at i _
+
+end
+
 end homeomorph
 
 /-- An inducing equiv between topological spaces is a homeomorphism. -/

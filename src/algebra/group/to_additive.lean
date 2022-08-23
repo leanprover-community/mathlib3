@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 import tactic.transform_decl
 import tactic.algebra
 import tactic.lint.basic
+import tactic.alias
 
 /-!
 # Transport multiplicative to additive
@@ -217,6 +218,14 @@ meta def tr : bool → list string → list string
 | is_comm ("pow" :: s)                := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
+| is_comm ("is" :: "square" :: s)     := add_comm_prefix is_comm "even"      :: tr ff s
+| is_comm ("is" :: "scalar" :: "tower" :: s) :=
+   add_comm_prefix is_comm "vadd_assoc_class"   :: tr ff s
+| is_comm ("is" :: "regular" :: s)    := add_comm_prefix is_comm "is_add_regular"   :: tr ff s
+| is_comm ("is" :: "left" :: "regular" :: s)  :=
+  add_comm_prefix is_comm "is_add_left_regular"  :: tr ff s
+| is_comm ("is" :: "right" :: "regular" :: s) :=
+  add_comm_prefix is_comm "is_add_right_regular" :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
@@ -228,6 +237,8 @@ meta def tr : bool → list string → list string
 | is_comm ("unit" :: s)        := ("add_" ++ add_comm_prefix is_comm "unit")      :: tr ff s
 | is_comm ("units" :: s)       := ("add_" ++ add_comm_prefix is_comm "units")     :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
+| is_comm ("root" :: s)        := add_comm_prefix is_comm "div" :: tr ff s
+| is_comm ("rootable" :: s)    := add_comm_prefix is_comm "divisible" :: tr ff s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]
 | ff []                        := []
@@ -537,7 +548,7 @@ protected meta def attr : user_attribute unit value_type :=
       transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `norm_cast, `instance, `refl, `symm, `trans,
           `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias,
-          `_ext_core, `_ext_lemma_core, `nolint],
+          `_ext_core, `_ext_lemma_core, `nolint, `protected],
       mwhen (has_attribute' `simps src)
         (trace "Apply the simps attribute after the to_additive attribute"),
       mwhen (has_attribute' `mono src)
@@ -545,7 +556,11 @@ protected meta def attr : user_attribute unit value_type :=
           "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
-      | none := skip
+      | none := do
+        some alias_target ← tactic.alias.get_alias_target src | skip,
+        let alias_name := alias_target.to_name,
+        some add_alias_name ← pure (dict.find alias_name) | skip,
+        add_doc_string tgt alias_target.to_string
       end }
 
 add_tactic_doc

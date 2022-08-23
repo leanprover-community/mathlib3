@@ -114,79 +114,102 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, add_left, neg_left]
 lemma sub_right (x y z : M₁) : B₁ x (y - z) = B₁ x y - B₁ x z :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, add_right, neg_right]
 
-variable {D : bilin_form R M}
+variables {D : bilin_form R M} {D₁ : bilin_form R₁ M₁}
+
+-- TODO: instantiate `fun_like`
+lemma coe_injective : function.injective (coe_fn : bilin_form R M → (M → M → R)) :=
+λ B D h, by { cases B, cases D, congr' }
 
 @[ext] lemma ext (H : ∀ (x y : M), B x y = D x y) : B = D :=
-by { cases B, cases D, congr, funext, exact H _ _ }
+coe_injective $ by { funext, exact H _ _ }
 
 lemma congr_fun (h : B = D) (x y : M) : B x y = D x y := h ▸ rfl
 
 lemma ext_iff : B = D ↔ (∀ x y, B x y = D x y) := ⟨congr_fun, ext⟩
 
-instance : add_comm_monoid (bilin_form R M) :=
+instance : has_zero (bilin_form R M) :=
+{ zero := { bilin := λ x y, 0,
+            bilin_add_left := λ x y z, (add_zero 0).symm,
+            bilin_smul_left := λ a x y, (mul_zero a).symm,
+            bilin_add_right := λ x y z, (zero_add 0).symm,
+            bilin_smul_right := λ a x y, (mul_zero a).symm } }
+
+@[simp] lemma coe_zero : ⇑(0 : bilin_form R M) = 0 := rfl
+@[simp] lemma zero_apply (x y : M) : (0 : bilin_form R M) x y = 0 := rfl
+
+variables (B D B₁ D₁)
+
+instance : has_add (bilin_form R M) :=
 { add := λ B D, { bilin := λ x y, B x y + D x y,
                   bilin_add_left := λ x y z, by rw [add_left, add_left, add_add_add_comm],
                   bilin_smul_left := λ a x y, by rw [smul_left, smul_left, mul_add],
                   bilin_add_right := λ x y z, by rw [add_right, add_right, add_add_add_comm],
-                  bilin_smul_right := λ a x y, by rw [smul_right, smul_right, mul_add] },
-  add_assoc := by { intros, ext, unfold bilin coe_fn has_coe_to_fun.coe bilin, rw add_assoc },
-  zero := { bilin := λ x y, 0,
-            bilin_add_left := λ x y z, (add_zero 0).symm,
-            bilin_smul_left := λ a x y, (mul_zero a).symm,
-            bilin_add_right := λ x y z, (zero_add 0).symm,
-            bilin_smul_right := λ a x y, (mul_zero a).symm },
-  zero_add := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_add },
-  add_zero := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_zero },
-  add_comm := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_comm } }
+                  bilin_smul_right := λ a x y, by rw [smul_right, smul_right, mul_add] } }
 
-instance : add_comm_group (bilin_form R₁ M₁) :=
-{ neg := λ B, { bilin := λ x y, - (B.1 x y),
-                bilin_add_left := λ x y z, by rw [bilin_add_left, neg_add],
-                bilin_smul_left := λ a x y, by rw [bilin_smul_left, mul_neg],
-                bilin_add_right := λ x y z, by rw [bilin_add_right, neg_add],
-                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg] },
-  add_left_neg := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self },
-  .. bilin_form.add_comm_monoid }
+@[simp] lemma coe_add : ⇑(B + D) = B + D := rfl
+@[simp] lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
 
-@[simp]
-lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
-
-@[simp]
-lemma zero_apply (x y : M) : (0 : bilin_form R M) x y = 0 := rfl
-
-@[simp]
-lemma neg_apply (x y : M₁) : (-B₁) x y = -(B₁ x y) := rfl
-
-instance : inhabited (bilin_form R M) := ⟨0⟩
-
-section
-
-/-- `bilin_form R M` inherits the scalar action from any commutative subalgebra `R₂` of `R`.
+/-- `bilin_form R M` inherits the scalar action by `α` on `R` if this is compatible with
+multiplication.
 
 When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
-instance [algebra R₂ R] : module R₂ (bilin_form R M) :=
+instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
+  has_smul α (bilin_form R M) :=
 { smul := λ c B,
   { bilin := λ x y, c • B x y,
-    bilin_add_left := λ x y z,
-      by { unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, smul_add] },
-    bilin_smul_left := λ a x y, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_smul_left, ←algebra.mul_smul_comm] },
-    bilin_add_right := λ x y z, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_add_right, smul_add] },
-    bilin_smul_right := λ a x y, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_smul_right, ←algebra.mul_smul_comm] } },
-  smul_add := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_add },
-  add_smul := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_smul },
-  mul_smul := λ a c D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw ←smul_assoc, refl },
-  one_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw one_smul },
-  zero_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_smul },
-  smul_zero := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_zero } }
+    bilin_add_left := λ x y z, by { rw [add_left, smul_add] },
+    bilin_smul_left := λ a x y, by { rw [smul_left, ←mul_smul_comm] },
+    bilin_add_right := λ x y z, by { rw [add_right, smul_add] },
+    bilin_smul_right := λ a x y, by { rw [smul_right, ←mul_smul_comm] } } }
 
-@[simp] lemma smul_apply [algebra R₂ R] (B : bilin_form R M) (a : R₂) (x y : M) :
+@[simp] lemma coe_smul {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) (B : bilin_form R M) : ⇑(a • B) = a • B := rfl
+
+@[simp] lemma smul_apply {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) (B : bilin_form R M) (x y : M) :
   (a • B) x y = a • (B x y) :=
 rfl
 
-end
+instance : add_comm_monoid (bilin_form R M) :=
+function.injective.add_comm_monoid _ coe_injective coe_zero coe_add (λ n x, coe_smul _ _)
+
+instance : has_neg (bilin_form R₁ M₁) :=
+{ neg := λ B, { bilin := λ x y, -(B x y),
+                bilin_add_left := λ x y z, by rw [add_left, neg_add],
+                bilin_smul_left := λ a x y, by rw [smul_left, mul_neg],
+                bilin_add_right := λ x y z, by rw [add_right, neg_add],
+                bilin_smul_right := λ a x y, by rw [smul_right, mul_neg] } }
+
+@[simp] lemma coe_neg : ⇑(-B₁) = -B₁ := rfl
+@[simp] lemma neg_apply (x y : M₁) : (-B₁) x y = -(B₁ x y) := rfl
+
+instance : has_sub (bilin_form R₁ M₁) :=
+{ sub := λ B D, { bilin := λ x y, B x y - D x y,
+                  bilin_add_left := λ x y z, by rw [add_left, add_left, add_sub_add_comm],
+                  bilin_smul_left := λ a x y, by rw [smul_left, smul_left, mul_sub],
+                  bilin_add_right := λ x y z, by rw [add_right, add_right, add_sub_add_comm],
+                  bilin_smul_right := λ a x y, by rw [smul_right, smul_right, mul_sub] } }
+
+@[simp] lemma coe_sub : ⇑(B₁ - D₁) = B₁ - D₁ := rfl
+@[simp] lemma sub_apply (x y : M₁) : (B₁ - D₁) x y = B₁ x y - D₁ x y := rfl
+
+instance : add_comm_group (bilin_form R₁ M₁) :=
+function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_sub
+  (λ n x, coe_smul _ _) (λ n x, coe_smul _ _)
+
+instance : inhabited (bilin_form R M) := ⟨0⟩
+
+/-- `coe_fn` as an `add_monoid_hom` -/
+def coe_fn_add_monoid_hom : bilin_form R M →+ (M → M → R) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
+
+instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
+  distrib_mul_action α (bilin_form R M) :=
+function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
+
+instance {α} [semiring α] [module α R] [smul_comm_class α R R] :
+  module α (bilin_form R M) :=
+function.injective.module _ coe_fn_add_monoid_hom coe_injective coe_smul
 
 section flip
 
@@ -381,6 +404,23 @@ lemma bilin_form.to_lin_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ 
 
 end equiv_lin
 
+namespace linear_map
+
+variables {R' : Type} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
+
+/-- Apply a linear map on the output of a bilinear form. -/
+@[simps]
+def comp_bilin_form (f : R →ₗ[R'] R') (B : bilin_form R M) : bilin_form R' M :=
+{ bilin := λ x y, f (B x y),
+  bilin_add_left := λ x y z, by rw [bilin_form.add_left, map_add],
+  bilin_smul_left := λ r x y, by rw [←smul_one_smul R r (_ : M), bilin_form.smul_left,
+                                     smul_one_mul r (_ : R), map_smul, smul_eq_mul],
+  bilin_add_right := λ x y z, by rw [bilin_form.add_right, map_add],
+  bilin_smul_right := λ r x y, by rw [←smul_one_smul R r (_ : M), bilin_form.smul_right,
+                                      smul_one_mul r (_ : R), map_smul, smul_eq_mul] }
+
+end linear_map
+
 namespace bilin_form
 
 section comp
@@ -444,7 +484,7 @@ by { ext, refl }
   B.comp linear_map.id linear_map.id = B :=
 by { ext, refl }
 
-lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
+lemma comp_inj (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
   B₁.comp l r = B₂.comp l r ↔ B₁ = B₂ :=
 begin
@@ -616,20 +656,20 @@ end
 
 section basis
 
-variables {B₃ F₃ : bilin_form R₃ M₃}
-variables {ι : Type*} (b : basis ι R₃ M₃)
+variables {F₂ : bilin_form R₂ M₂}
+variables {ι : Type*} (b : basis ι R₂ M₂)
 
 /-- Two bilinear forms are equal when they are equal on all basis vectors. -/
-lemma ext_basis (h : ∀ i j, B₃ (b i) (b j) = F₃ (b i) (b j)) : B₃ = F₃ :=
+lemma ext_basis (h : ∀ i j, B₂ (b i) (b j) = F₂ (b i) (b j)) : B₂ = F₂ :=
 to_lin.injective $ b.ext $ λ i, b.ext $ λ j, h i j
 
 /-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis. -/
-lemma sum_repr_mul_repr_mul (x y : M₃) :
-  (b.repr x).sum (λ i xi, (b.repr y).sum (λ j yj, xi • yj • B₃ (b i) (b j))) = B₃ x y :=
+lemma sum_repr_mul_repr_mul (x y : M₂) :
+  (b.repr x).sum (λ i xi, (b.repr y).sum (λ j yj, xi • yj • B₂ (b i) (b j))) = B₂ x y :=
 begin
   conv_rhs { rw [← b.total_repr x, ← b.total_repr y] },
   simp_rw [finsupp.total_apply, finsupp.sum, sum_left, sum_right,
-    smul_left, smul_right, smul_eq_mul]
+    smul_left, smul_right, smul_eq_mul],
 end
 
 end basis
@@ -781,21 +821,18 @@ def is_pair_self_adjoint_submodule : submodule R₂ (module.End R₂ M₂) :=
   f ∈ is_pair_self_adjoint_submodule B₂ F₂ ↔ is_pair_self_adjoint B₂ F₂ f :=
 by refl
 
-variables {M₃' : Type*} [add_comm_group M₃'] [module R₃ M₃']
-variables (B₃ F₃ : bilin_form R₃ M₃)
-
-lemma is_pair_self_adjoint_equiv (e : M₃' ≃ₗ[R₃] M₃) (f : module.End R₃ M₃) :
-  is_pair_self_adjoint B₃ F₃ f ↔
-    is_pair_self_adjoint (B₃.comp ↑e ↑e) (F₃.comp ↑e ↑e) (e.symm.conj f) :=
+lemma is_pair_self_adjoint_equiv (e : M₂' ≃ₗ[R₂] M₂) (f : module.End R₂ M₂) :
+  is_pair_self_adjoint B₂ F₂ f ↔
+    is_pair_self_adjoint (B₂.comp ↑e ↑e) (F₂.comp ↑e ↑e) (e.symm.conj f) :=
 begin
-  have hₗ : (F₃.comp ↑e ↑e).comp_left (e.symm.conj f) = (F₃.comp_left f).comp ↑e ↑e :=
+  have hₗ : (F₂.comp ↑e ↑e).comp_left (e.symm.conj f) = (F₂.comp_left f).comp ↑e ↑e :=
     by { ext, simp [linear_equiv.symm_conj_apply], },
-  have hᵣ : (B₃.comp ↑e ↑e).comp_right (e.symm.conj f) = (B₃.comp_right f).comp ↑e ↑e :=
+  have hᵣ : (B₂.comp ↑e ↑e).comp_right (e.symm.conj f) = (B₂.comp_right f).comp ↑e ↑e :=
     by { ext, simp [linear_equiv.conj_apply], },
-  have he : function.surjective (⇑(↑e : M₃' →ₗ[R₃] M₃) : M₃' → M₃) := e.surjective,
+  have he : function.surjective (⇑(↑e : M₂' →ₗ[R₂] M₂) : M₂' → M₂) := e.surjective,
   show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
   rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
-      hᵣ, hₗ, comp_injective _ _ he he],
+      hᵣ, hₗ, comp_inj _ _ he he],
 end
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
@@ -817,6 +854,8 @@ def self_adjoint_submodule := is_pair_self_adjoint_submodule B₂ B₂
 
 @[simp] lemma mem_self_adjoint_submodule (f : module.End R₂ M₂) :
   f ∈ B₂.self_adjoint_submodule ↔ B₂.is_self_adjoint f := iff.rfl
+
+variables (B₃ : bilin_form R₃ M₃)
 
 /-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
 it is a Lie subalgebra.) -/
@@ -906,8 +945,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
+  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 
@@ -976,10 +1015,10 @@ end
 lemma nondegenerate.ker_eq_bot {B : bilin_form R₂ M₂} (h : B.nondegenerate) :
   B.to_lin.ker = ⊥ := nondegenerate_iff_ker_eq_bot.mp h
 
-/-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
+/-- The restriction of a reflexive bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  (B : bilin_form R₁ M₁) (b : B.is_symm)
+  (B : bilin_form R₁ M₁) (b : B.is_refl)
   {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
   (B.restrict W).nondegenerate :=
 begin
@@ -987,7 +1026,8 @@ begin
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
   refine hW ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
-  rwa [restrict_apply, submodule.coe_mk, submodule.coe_mk, b] at b₁
+  rw [restrict_apply, submodule.coe_mk, submodule.coe_mk] at b₁,
+  exact is_ortho_def.mpr (b x y b₁),
 end
 
 /-- An orthogonal basis with respect to a nondegenerate bilinear form has no self-orthogonal
@@ -1032,7 +1072,7 @@ end
 section
 
 lemma to_lin_restrict_ker_eq_inf_orthogonal
-  (B : bilin_form K V) (W : subspace K V) (b : B.is_symm) :
+  (B : bilin_form K V) (W : subspace K V) (b : B.is_refl) :
   (B.to_lin.dom_restrict W).ker.map W.subtype = (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   ext x, split; intro hx,
@@ -1069,7 +1109,7 @@ variable [finite_dimensional K V]
 open finite_dimensional
 
 lemma finrank_add_finrank_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_refl) :
   finrank K W + finrank K (B.orthogonal W) =
   finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
@@ -1083,10 +1123,10 @@ begin
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some
-bilinear form if that bilinear form restricted on to the subspace is nondegenerate. -/
+reflexive bilinear form if that bilinear form restricted on to the subspace is nondegenerate. -/
 lemma restrict_nondegenerate_of_is_compl_orthogonal
   {B : bilin_form K V} {W : subspace K V}
-  (b₁ : B.is_symm) (b₂ : (B.restrict W).nondegenerate) :
+  (b₁ : B.is_refl) (b₂ : (B.restrict W).nondegenerate) :
   is_compl W (B.orthogonal W) :=
 begin
   have : W ⊓ B.orthogonal W = ⊥,
@@ -1097,20 +1137,17 @@ begin
     rintro ⟨n, hn⟩,
     rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
-  refine ⟨this ▸ le_rfl, _⟩,
-  { rw top_le_iff,
-    refine eq_top_of_finrank_eq _,
-    refine le_antisymm (submodule.finrank_le _) _,
-    conv_rhs { rw ← add_zero (finrank K _) },
-    rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        finrank_add_finrank_orthogonal b₁],
-    exact nat.le.intro rfl }
+  refine is_compl.of_eq this (eq_top_of_finrank_eq $ (submodule.finrank_le _).antisymm _),
+  conv_rhs { rw ← add_zero (finrank K _) },
+  rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+      finrank_add_finrank_orthogonal b₁],
+  exact le_self_add,
 end
 
-/-- A subspace is complement to its orthogonal complement with respect to some bilinear form
-if and only if that bilinear form restricted on to the subspace is nondegenerate. -/
+/-- A subspace is complement to its orthogonal complement with respect to some reflexive bilinear
+form if and only if that bilinear form restricted on to the subspace is nondegenerate. -/
 theorem restrict_nondegenerate_iff_is_compl_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_refl) :
   (B.restrict W).nondegenerate ↔ is_compl W (B.orthogonal W) :=
 ⟨λ b₂, restrict_nondegenerate_of_is_compl_orthogonal b₁ b₂,
  λ h, B.nondegenerate_restrict_of_disjoint_orthogonal b₁ h.1⟩
@@ -1162,10 +1199,10 @@ lemma below since the below lemma does not require `V` to be finite dimensional.
 `bilin_form.restrict_nondegenerate_iff_is_compl_orthogonal` does not require `B` to be nondegenerate
 on the whole space. -/
 
-/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
+/-- The restriction of a reflexive, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
-  (b₁ : B.nondegenerate) (b₂ : B.is_symm) {x : V} (hx : ¬ B.is_ortho x x) :
+  (b₁ : B.nondegenerate) (b₂ : B.is_refl) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (b₁ m.1 (λ n, _)),

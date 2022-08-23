@@ -47,7 +47,7 @@ instance has_forget_to_Preorder : has_forget₂ PartialOrder Preorder := bundled
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : PartialOrder ⥤ PartialOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : PartialOrder ≌ PartialOrder :=

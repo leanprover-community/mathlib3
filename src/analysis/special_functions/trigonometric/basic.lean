@@ -100,20 +100,20 @@ protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
-  (by rw div_self (@two_ne_zero' ℝ _ _ _); exact one_le_pi_div_two)
+  (by rw div_self (@two_ne_zero' ℝ _ _); exact one_le_pi_div_two)
 
 lemma pi_le_four : π ≤ 4 :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
@@ -364,9 +364,9 @@ lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
   λ h, by simp [h]⟩
 
 lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x :=
-⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (sub_floor_div_mul_nonneg _ pi_pos))
+⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (int.sub_floor_div_mul_nonneg _ pi_pos))
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃,
-    (sin_pos_of_pos_of_lt_pi h₃ (sub_floor_div_mul_lt _ pi_pos)).ne
+    (sin_pos_of_pos_of_lt_pi h₃ (int.sub_floor_div_mul_lt _ pi_pos)).ne
     (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 
@@ -481,10 +481,10 @@ subset.antisymm (range_subset_iff.2 cos_mem_Icc) surj_on_cos.subset_range
 subset.antisymm (range_subset_iff.2 sin_mem_Icc) surj_on_sin.subset_range
 
 lemma range_cos_infinite : (range real.cos).infinite :=
-by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+by { rw real.range_cos, exact Icc_infinite (by norm_num) }
 
 lemma range_sin_infinite : (range real.sin).infinite :=
-by { rw real.range_sin, exact Icc.infinite (by norm_num) }
+by { rw real.range_sin, exact Icc_infinite (by norm_num) }
 
 
 section cos_div_sq
@@ -1043,5 +1043,24 @@ exp_antiperiodic z
 
 @[simp] lemma exp_sub_pi_mul_I (z : ℂ) : exp (z - π * I) = -exp z :=
 exp_antiperiodic.sub_eq z
+
+/-- A supporting lemma for the **Phragmen-Lindelöf principle** in a horizontal strip. If `z : ℂ`
+belongs to a horizontal strip `|complex.im z| ≤ b`, `b ≤ π / 2`, and `a ≤ 0`, then
+$$\left|exp^{a\left(e^{z}+e^{-z}\right)}\right| \le e^{a\cos b \exp^{|re z|}}.$$
+-/
+lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le {a b : ℝ} (ha : a ≤ 0)
+  {z : ℂ} (hz : |z.im| ≤ b) (hb : b ≤ π / 2) :
+  abs (exp (a * (exp z + exp (-z)))) ≤ real.exp (a * real.cos b * real.exp (|z.re|)) :=
+begin
+  simp only [abs_exp, real.exp_le_exp, of_real_mul_re, add_re, exp_re, neg_im, real.cos_neg,
+    ← add_mul, mul_assoc, mul_comm (real.cos b), neg_re, ← real.cos_abs z.im],
+  have : real.exp (|z.re|) ≤ real.exp z.re + real.exp (-z.re),
+    from apply_abs_le_add_of_nonneg (λ x, (real.exp_pos x).le) z.re,
+  refine mul_le_mul_of_nonpos_left (mul_le_mul this _ _ ((real.exp_pos _).le.trans this)) ha,
+  { exact real.cos_le_cos_of_nonneg_of_le_pi (_root_.abs_nonneg _)
+      (hb.trans $ half_le_self $ real.pi_pos.le) hz },
+  { refine real.cos_nonneg_of_mem_Icc ⟨_, hb⟩,
+    exact (neg_nonpos.2 $ real.pi_div_two_pos.le).trans ((_root_.abs_nonneg _).trans hz) }
+end
 
 end complex

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
 import category_theory.types
-import category_theory.epi_mono
+import category_theory.functor.epi_mono
 
 /-!
 # Concrete categories
@@ -118,13 +118,6 @@ congr_fun ((forget _).map_id X) x
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
 
-@[simp] lemma coe_hom_inv_id {X Y : C} (f : X ≅ Y) (x : X) :
-  f.inv (f.hom x) = x :=
-congr_fun ((forget C).map_iso f).hom_inv_id x
-@[simp] lemma coe_inv_hom_id {X Y : C} (f : X ≅ Y) (y : Y) :
-  f.hom (f.inv y) = y :=
-congr_fun ((forget C).map_iso f).inv_hom_id y
-
 lemma concrete_category.congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
 congr_fun (congr_arg (λ f : X ⟶ Y, (f : X → Y)) h) x
 
@@ -134,12 +127,12 @@ congr_arg (f : X → Y) h
 /-- In any concrete category, injective morphisms are monomorphisms. -/
 lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) :
   mono f :=
-faithful_reflects_mono (forget C) ((mono_iff_injective f).2 i)
+(forget C).mono_of_mono_map ((mono_iff_injective f).2 i)
 
 /-- In any concrete category, surjective morphisms are epimorphisms. -/
 lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.surjective f) :
   epi f :=
-faithful_reflects_epi (forget C) ((epi_iff_surjective f).2 s)
+(forget C).epi_of_epi_map ((epi_iff_surjective f).2 s)
 
 @[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
   coe_fn f = f :=
@@ -175,6 +168,15 @@ instance induced_category.has_forget₂ {C : Type v} {D : Type v'} [category D] 
   (f : C → D) :
   has_forget₂ (induced_category D f) D :=
 { forget₂ := induced_functor f,
+  forget_comp := rfl }
+
+instance full_subcategory.concrete_category {C : Type v} [category C] [concrete_category C]
+  (Z : C → Prop) : concrete_category (full_subcategory Z) :=
+{ forget := full_subcategory_inclusion Z ⋙ forget C }
+
+instance full_subcategory.has_forget₂ {C : Type v} [category C] [concrete_category C]
+  (Z : C → Prop) : has_forget₂ (full_subcategory Z) C :=
+{ forget₂ := full_subcategory_inclusion Z,
   forget_comp := rfl }
 
 /--

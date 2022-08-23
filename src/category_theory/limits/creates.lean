@@ -5,6 +5,14 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.preserves.basic
 
+/-!
+# Creating (co)limits
+
+We say that `F` creates limits of `K` if, given any limit cone `c` for `K ⋙ F`
+(i.e. below) we can lift it to a cone "above", and further that `F` reflects
+limits for `K`.
+-/
+
 open category_theory category_theory.limits
 
 noncomputable theory

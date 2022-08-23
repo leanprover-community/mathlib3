@@ -21,6 +21,8 @@ they are equivalent to `{ f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 }`.
 an augmented exact complex of projectives.)
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 
@@ -164,8 +166,9 @@ is the same as the zero functor.
 -/
 noncomputable
 def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
-  (λ X Y f, by ext)
+nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫
+    homology_zero_zero ≪≫ (functor.zero_obj _).iso_zero.symm)
+  (λ X Y f, by { exact (functor.zero_obj _).eq_of_tgt _ _ })
 
 end
 
@@ -277,8 +280,9 @@ is the same as the zero functor.
 -/
 noncomputable
 def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
-  (λ X Y f, by ext)
+nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫
+    homology_zero_zero ≪≫ (functor.zero_obj _).iso_zero.symm)
+  (λ X Y f, by { exact (functor.zero_obj _).eq_of_tgt _ _ })
 
 end
 

@@ -181,7 +181,7 @@ by simp [h₂.symm, h₁.symm, termg]; ac_refl
 
 meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
-  p ← c.mk_app ``neg_zero ``add_group [],
+  p ← c.mk_app ``neg_zero ``subtraction_monoid [],
   return (zero' c, p)
 | (nterm e n x a) := do
   (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.eval_field,
@@ -196,7 +196,7 @@ theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
 by simp [smul, nsmul_zero]
 
 theorem zero_smulg {α} [add_comm_group α] (c) : smulg c (0 : α) = 0 :=
-by simp [smulg]
+by simp [smulg, zsmul_zero]
 
 theorem term_smul {α} [add_comm_monoid α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smul c a = a') :
@@ -227,8 +227,7 @@ meta def eval_atom (c : context) (e : expr) : tactic (normal_expr × expr) :=
 do n1 ← c.int_to_expr 1,
    return (term' c (n1, 1) e (zero' c), c.iapp ``term_atom [e])
 
-lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c :=
+lemma unfold_sub {α} [subtraction_monoid α] (a b c : α) (h : a + -b = c) : a - b = c :=
 by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
@@ -295,7 +294,7 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   e₂' ← mk_app ``has_neg.neg [e₂],
   e ← mk_app ``has_add.add [e₁, e₂'],
   (e', p) ← eval e,
-  p' ← c.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+  p' ← c.mk_app ``unfold_sub ``subtraction_monoid [e₁, e₂, e', p],
   return (e', p')
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
@@ -310,9 +309,9 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
   return (e', c.app ``unfold_zsmul c.inst [e₁, e₂, e', p])
-| e@`(@has_scalar.smul nat _ add_monoid.has_scalar_nat %%e₁ %%e₂) :=
+| e@`(@has_smul.smul nat _ add_monoid.has_smul_nat %%e₁ %%e₂) :=
   eval_smul' c eval ff e e₁ e₂
-| e@`(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) :=
+| e@`(@has_smul.smul int _ sub_neg_monoid.has_smul_int %%e₁ %%e₂) :=
   eval_smul' c eval tt e e₁ e₂
 | e@`(smul %%e₁ %%e₂) := eval_smul' c eval ff e e₁ e₂
 | e@`(smulg %%e₁ %%e₂) := eval_smul' c eval tt e e₁ e₂

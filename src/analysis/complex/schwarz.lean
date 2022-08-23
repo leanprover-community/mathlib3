@@ -53,7 +53,8 @@ namespace complex
 
 section space
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {R R₁ R₂ : ℝ} {f : ℂ → E} {c z : ℂ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {R R₁ R₂ : ℝ} {f : ℂ → E}
+  {c z : ℂ}
 
 /-- An auxiliary lemma for `complex.norm_dslope_le_div_of_maps_to_ball`. -/
 lemma schwarz_aux {f : ℂ → ℂ} (hd : differentiable_on ℂ f (ball c R₁))
@@ -67,16 +68,20 @@ begin
   rw mem_ball at hz,
   filter_upwards [Ioo_mem_nhds_within_Iio ⟨hz, le_rfl⟩] with r hr,
   have hr₀ : 0 < r, from dist_nonneg.trans_lt hr.1,
-  replace hd : differentiable_on ℂ (dslope f c) (closed_ball c r) :=
-    ((differentiable_on_dslope $ ball_mem_nhds _ hR₁).mpr hd).mono (closed_ball_subset_ball hr.2),
-  refine norm_le_of_forall_mem_frontier_norm_le (is_compact_closed_ball c r)
-    hd.diff_on_int_cont _ hr.1.le,
-  rw frontier_closed_ball',
-  intros z hz,
-  have hz' : z ≠ c, by { rintro rfl, simpa [hr₀.ne] using hz },
-  rw [dslope_of_ne _ hz', slope_def_module, norm_smul, norm_inv,
-    (mem_sphere_iff_norm _ _ _).1 hz, ← div_eq_inv_mul, div_le_div_right hr₀, ← dist_eq_norm],
-  exact le_of_lt (h_maps (mem_ball.2 (by { rw mem_sphere.1 hz, exact hr.2 })))
+  replace hd : diff_cont_on_cl ℂ (dslope f c) (ball c r),
+  { refine differentiable_on.diff_cont_on_cl _,
+    rw closure_ball c hr₀.ne',
+    exact ((differentiable_on_dslope $ ball_mem_nhds _ hR₁).mpr hd).mono
+      (closed_ball_subset_ball hr.2) },
+  refine norm_le_of_forall_mem_frontier_norm_le bounded_ball hd _ _,
+  { rw frontier_ball c hr₀.ne',
+    intros z hz,
+    have hz' : z ≠ c, from ne_of_mem_sphere hz hr₀.ne',
+    rw [dslope_of_ne _ hz', slope_def_module, norm_smul, norm_inv,
+      (mem_sphere_iff_norm _ _ _).1 hz, ← div_eq_inv_mul, div_le_div_right hr₀, ← dist_eq_norm],
+    exact le_of_lt (h_maps (mem_ball.2 (by { rw mem_sphere.1 hz, exact hr.2 }))) },
+  { rw [closure_ball c hr₀.ne', mem_closed_ball],
+    exact hr.1.le }
 end
 
 /-- Two cases of the **Schwarz Lemma** (derivative and distance), merged together. -/

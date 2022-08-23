@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
+import algebra.field.basic
 import data.finset.pi
 import data.finset.powerset
 
@@ -24,6 +25,21 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {b : β}  {f g : α → β}
 
+section comm_monoid
+variables [comm_monoid β]
+
+open_locale classical
+
+lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
+  ∀ {s : finset α}, (∏ i in s, x ^ (f i)) = x ^ (∑ x in s, f x) :=
+begin
+  apply finset.induction,
+  { simp },
+  { assume a s has H,
+    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
+end
+
+end comm_monoid
 
 section semiring
 variables [non_unital_non_assoc_semiring β]
@@ -36,7 +52,7 @@ add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
 
 lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
   (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
-  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
+  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁ ×ˢ s₂, f₁ p.1 * f₂ p.2 :=
 by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 end semiring
@@ -178,15 +194,6 @@ begin
   rw [← prod_const, prod_add],
   refine finset.sum_congr rfl (λ t ht, _),
   rw [prod_const, prod_const, ← card_sdiff (mem_powerset.1 ht)]
-end
-
-lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
-  ∀ {s : finset α}, (∏ i in s, x ^ (f i)) = x ^ (∑ x in s, f x) :=
-begin
-  apply finset.induction,
-  { simp },
-  { assume a s has H,
-    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
 end
 
 theorem dvd_sum {b : β} {s : finset α} {f : α → β}

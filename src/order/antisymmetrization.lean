@@ -108,13 +108,12 @@ instance : partial_order (antisymmetrization α (≤)) :=
   lt_iff_le_not_le := λ a b, quotient.induction_on₂' a b $ λ a b, lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂' a b $ λ a b hab hba, quotient.sound' ⟨hab, hba⟩ }
 
--- TODO@Yaël: Make computable by adding the missing decidability instances for `quotient.lift` and
--- `quotient.lift₂`
-noncomputable instance [is_total α (≤)] : linear_order (antisymmetrization α (≤)) :=
+instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
+  linear_order (antisymmetrization α (≤)) :=
 { le_total := λ a b, quotient.induction_on₂' a b $ total_of (≤),
-  decidable_eq := classical.dec_rel _,
-  decidable_le := classical.dec_rel _,
-  decidable_lt := classical.dec_rel _,
+  decidable_eq := @quotient.decidable_eq _ (antisymm_rel.setoid _ (≤)) antisymm_rel.decidable_rel,
+  decidable_le := λ _ _, quotient.lift_on₂'.decidable _ _ _ _,
+  decidable_lt := λ _ _, quotient.lift_on₂'.decidable _ _ _ _,
   ..antisymmetrization.partial_order }
 
 @[simp] lemma to_antisymmetrization_le_to_antisymmetrization_iff :
@@ -170,7 +169,7 @@ variables (α)
 
 /-- `antisymmetrization` and `order_dual` commute. -/
 def order_iso.dual_antisymmetrization :
-  order_dual (antisymmetrization α (≤)) ≃o antisymmetrization (order_dual α) (≤) :=
+  (antisymmetrization α (≤))ᵒᵈ ≃o antisymmetrization αᵒᵈ (≤) :=
 { to_fun := quotient.map' id $ λ _ _, and.symm,
   inv_fun := quotient.map' id $ λ _ _, and.symm,
   left_inv := λ a, quotient.induction_on' a $ λ a, by simp_rw [quotient.map'_mk', id],

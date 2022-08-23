@@ -3,10 +3,9 @@ Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
-
-import group_theory.perm.cycle_type
 import analysis.complex.polynomial
 import field_theory.galois
+import group_theory.perm.cycle.type
 
 /-!
 # Galois Groups of Polynomials
@@ -56,6 +55,9 @@ namespace gal
 
 instance : has_coe_to_fun p.gal (λ _, p.splitting_field → p.splitting_field) :=
 alg_equiv.has_coe_to_fun
+
+instance apply_mul_semiring_action : mul_semiring_action p.gal p.splitting_field :=
+alg_equiv.apply_mul_semiring_action
 
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin
@@ -186,10 +188,7 @@ variables (p E)
 
 /-- `polynomial.gal.gal_action` as a permutation representation -/
 def gal_action_hom [fact (p.splits (algebra_map F E))] : p.gal →* equiv.perm (root_set p E) :=
-{ to_fun := λ ϕ, equiv.mk (λ x, ϕ • x) (λ x, ϕ⁻¹ • x)
-  (λ x, inv_smul_smul ϕ x) (λ x, smul_inv_smul ϕ x),
-  map_one' := by { ext1 x, exact mul_action.one_smul x },
-  map_mul' := λ x y, by { ext1 z, exact mul_action.mul_smul x y z } }
+mul_action.to_perm_hom _ _
 
 lemma gal_action_hom_restrict [fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑(gal_action_hom p E (restrict p E ϕ) x) = ϕ x :=
@@ -199,7 +198,7 @@ restrict_smul ϕ x
 lemma gal_action_hom_injective [fact (p.splits (algebra_map F E))] :
   function.injective (gal_action_hom p E) :=
 begin
-  rw monoid_hom.injective_iff,
+  rw injective_iff_map_eq_one,
   intros ϕ hϕ,
   ext x hx,
   have key := equiv.perm.ext_iff.mp hϕ (roots_equiv_roots p E ⟨x, hx⟩),
@@ -238,7 +237,7 @@ begin
   dsimp only [restrict_prod, restrict_dvd] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
-  rw [root_set, map_mul, polynomial.roots_mul] at hx,
+  rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,

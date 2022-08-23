@@ -27,7 +27,7 @@ introduced.
 
 -/
 
-universe u
+universes v u
 
 open category_theory
 
@@ -165,7 +165,7 @@ namespace CompHaus
 
 /-- An explicit limit cone for a functor `F : J ⥤ CompHaus`, defined in terms of
 `Top.limit_cone`. -/
-def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
+def limit_cone {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
   limits.cone F :=
 { X :=
   { to_Top := (Top.limit_cone (F ⋙ CompHaus_to_Top)).X,
@@ -190,10 +190,10 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
   π :=
   { app := λ j, (Top.limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
     naturality' := by { intros _ _ _, ext ⟨x, hx⟩,
-      simp only [comp_apply, functor.const.obj_map, id_apply], exact (hx f).symm, } } }
+      simp only [comp_apply, functor.const_obj_map, id_apply], exact (hx f).symm, } } }
 
 /-- The limit cone `CompHaus.limit_cone F` is indeed a limit cone. -/
-def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
+def limit_cone_is_limit {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
   limits.is_limit (limit_cone F) :=
 { lift := λ S,
     (Top.limit_cone_is_limit (F ⋙ CompHaus_to_Top)).lift (CompHaus_to_Top.map_cone S),
@@ -228,7 +228,7 @@ begin
     simp only [subtype.mk_eq_mk, hφ1 (set.mem_singleton y), pi.one_apply] at H,
     exact zero_ne_one H, },
   { rw ← category_theory.epi_iff_surjective,
-    apply faithful_reflects_epi (forget CompHaus) },
+    apply (forget CompHaus).epi_of_epi_map }
 end
 
 lemma mono_iff_injective {X Y : CompHaus.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
@@ -242,7 +242,7 @@ begin
     apply_fun (λ e, e punit.star) at this,
     exact this },
   { rw ← category_theory.mono_iff_injective,
-    apply faithful_reflects_mono (forget CompHaus) }
+    apply (forget CompHaus).mono_of_mono_map }
 end
 
 end CompHaus

@@ -9,21 +9,21 @@ import analysis.normed_space.ordered
 /-!
 # Asymptotic equivalence
 
-In this file, we define the relation `is_equivalent u v l`, which means that `u-v` is little o of
+In this file, we define the relation `is_equivalent l u v`, which means that `u-v` is little o of
 `v` along the filter `l`.
 
 Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomain `β`. While the
-definition only requires `β` to be a `normed_group`, most interesting properties require it to be a
-`normed_field`.
+definition only requires `β` to be a `normed_add_comm_group`, most interesting properties require it
+to be a `normed_field`.
 
 ## Notations
 
-We introduce the notation `u ~[l] v := is_equivalent u v l`, which you can use by opening the
+We introduce the notation `u ~[l] v := is_equivalent l u v`, which you can use by opening the
 `asymptotics` locale.
 
 ## Main results
 
-If `β` is a `normed_group` :
+If `β` is a `normed_add_comm_group` :
 
 - `_ ~[l] _` is an equivalence relation
 - Equivalent statements for `u ~[l] const _ c` :
@@ -47,6 +47,11 @@ If `β` is a `normed_linear_ordered_field` :
 - If `u ~[l] v`, we have `tendsto u l at_top ↔ tendsto v l at_top`
   (see `is_equivalent.tendsto_at_top_iff`)
 
+## Implementation Notes
+
+Note that `is_equivalent` takes the parameters `(l : filter α) (u v : α → β)` in that order.
+This is to enable `calc` support, as `calc` requires that the last two explicit arguments are `u v`.
+
 -/
 
 namespace asymptotics
@@ -54,24 +59,24 @@ namespace asymptotics
 open filter function
 open_locale topological_space
 
-section normed_group
+section normed_add_comm_group
 
-variables {α β : Type*} [normed_group β]
+variables {α β : Type*} [normed_add_comm_group β]
 
 /-- Two functions `u` and `v` are said to be asymptotically equivalent along a filter `l` when
     `u x - v x = o(v x)` as x converges along `l`. -/
-def is_equivalent (u v : α → β) (l : filter α) := is_o (u - v) v l
+def is_equivalent (l : filter α) (u v : α → β) := (u - v) =o[l] v
 
-localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent u v l" in asymptotics
+localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent l u v" in asymptotics
 
 variables {u v w : α → β} {l : filter α}
 
-lemma is_equivalent.is_o (h : u ~[l] v) : is_o (u - v) v l := h
+lemma is_equivalent.is_o (h : u ~[l] v) : (u - v) =o[l] v := h
 
-lemma is_equivalent.is_O (h : u ~[l] v) : is_O u v l :=
+lemma is_equivalent.is_O (h : u ~[l] v) : u =O[l] v :=
 (is_O.congr_of_sub h.is_O.symm).mp (is_O_refl _ _)
 
-lemma is_equivalent.is_O_symm (h : u ~[l] v) : is_O v u l :=
+lemma is_equivalent.is_O_symm (h : u ~[l] v) : v =O[l] u :=
 begin
   convert h.is_o.right_is_O_add,
   ext,
@@ -87,12 +92,13 @@ end
 @[symm] lemma is_equivalent.symm (h : u ~[l] v) : v ~[l] u :=
 (h.is_o.trans_is_O h.is_O_symm).symm
 
-@[trans] lemma is_equivalent.trans (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
+@[trans] lemma is_equivalent.trans {l : filter α} {u v w : α → β}
+  (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
 (huv.is_o.trans_is_O hvw.is_O).triangle hvw.is_o
 
 lemma is_equivalent.congr_left {u v w : α → β} {l : filter α} (huv : u ~[l] v)
   (huw : u =ᶠ[l] w) : w ~[l] v :=
-is_o.congr' (huw.sub (eventually_eq.refl _ _)) (eventually_eq.refl _ _) huv
+huv.congr' (huw.sub (eventually_eq.refl _ _)) (eventually_eq.refl _ _)
 
 lemma is_equivalent.congr_right {u v w : α → β} {l : filter α} (huv : u ~[l] v)
   (hvw : v =ᶠ[l] w) : u ~[l] w :=
@@ -104,7 +110,7 @@ begin
   exact is_o_zero_right_iff
 end
 
-lemma is_equivalent_zero_iff_is_O_zero : u ~[l] 0 ↔ is_O u (0 : α → β) l :=
+lemma is_equivalent_zero_iff_is_O_zero : u ~[l] 0 ↔ u =O[l] (0 : α → β) :=
 begin
   refine ⟨is_equivalent.is_O, λ h, _⟩,
   rw [is_equivalent_zero_iff_eventually_zero, eventually_eq_iff_exists_mem],
@@ -140,15 +146,13 @@ end
 lemma is_equivalent.tendsto_nhds_iff {c : β} (huv : u ~[l] v) :
   tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c) := ⟨huv.tendsto_nhds, huv.symm.tendsto_nhds⟩
 
-lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : is_o w v l) : (w + u) ~[l] v :=
-begin
-  rw is_equivalent at *,
-  convert hwv.add huv,
-  ext,
-  simp [add_sub],
-end
+lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : w =o[l] v) : (w + u) ~[l] v :=
+by simpa only [is_equivalent, pi.sub_apply, add_sub] using hwv.add huv
 
-lemma is_o.is_equivalent (huv : is_o (u - v) v l) : u ~[l] v := huv
+lemma is_o.add_is_equivalent (hu : u =o[l] w) (hv : v ~[l] w) : (u + v) ~[l] w :=
+add_comm u v ▸ hv.add_is_o hu
+
+lemma is_o.is_equivalent (huv : (u - v) =o[l] v) : u ~[l] v := huv
 
 lemma is_equivalent.neg (huv : u ~[l] v) : (λ x, - u x) ~[l] (λ x, - v x) :=
 begin
@@ -158,7 +162,7 @@ begin
   simp,
 end
 
-end normed_group
+end normed_add_comm_group
 
 open_locale asymptotics
 
@@ -213,7 +217,7 @@ end normed_field
 
 section smul
 
-lemma is_equivalent.smul {α E 𝕜 : Type*} [normed_field 𝕜] [normed_group E]
+lemma is_equivalent.smul {α E 𝕜 : Type*} [normed_field 𝕜] [normed_add_comm_group E]
   [normed_space 𝕜 E] {a b : α → 𝕜} {u v : α → E} {l : filter α} (hab : a ~[l] b) (huv : u ~[l] v) :
   (λ x, a x • u x) ~[l] (λ x, b x • v x) :=
 begin
@@ -266,7 +270,7 @@ begin
   refine ⟨λ x, (φ x)⁻¹, tendsto.inv₀ hφ (by norm_num) , _⟩,
   convert h.inv,
   ext,
-  simp [mul_inv₀]
+  simp [mul_inv]
 end
 
 lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :
@@ -306,7 +310,7 @@ end asymptotics
 open filter asymptotics
 open_locale asymptotics
 
-variables {α β : Type*} [normed_group β]
+variables {α β : Type*} [normed_add_comm_group β]
 
 lemma filter.eventually_eq.is_equivalent {u v : α → β} {l : filter α} (h : u =ᶠ[l] v) : u ~[l] v :=
-is_o.congr' h.sub_eq.symm (eventually_eq.refl _ _) (is_o_zero v l)
+is_equivalent.congr_right (is_o_refl_left _ _) h

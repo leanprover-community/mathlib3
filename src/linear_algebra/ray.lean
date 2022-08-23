@@ -3,7 +3,7 @@ Copyright (c) 2021 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.basic
+import linear_algebra.linear_independent
 
 /-!
 # Rays in modules
@@ -42,9 +42,9 @@ namespace same_ray
 
 variables {x y z : M}
 
-lemma zero_left (y : M) : same_ray R 0 y := or.inl rfl
+@[simp] lemma zero_left (y : M) : same_ray R 0 y := or.inl rfl
 
-lemma zero_right (x : M) : same_ray R x 0 := or.inr $ or.inl rfl
+@[simp] lemma zero_right (x : M) : same_ray R x 0 := or.inr $ or.inl rfl
 
 @[nontriviality] lemma of_subsingleton [subsingleton M] (x y : M) : same_ray R x y :=
 by { rw [subsingleton.elim x 0], exact zero_left _ }
@@ -58,6 +58,8 @@ begin
   nontriviality R,
   exact or.inr (or.inr $ ⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩)
 end
+
+protected lemma rfl : same_ray R x x := refl _
 
 /-- `same_ray` is symmetric. -/
 @[symm] lemma symm (h : same_ray R x y) : same_ray R y x :=
@@ -157,7 +159,7 @@ end same_ray
 
 /-- Nonzero vectors, as used to define rays. This type depends on an unused argument `R` so that
 `ray_vector.setoid` can be an instance. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def ray_vector (R M : Type*) [has_zero M] := {v : M // v ≠ 0}
 
 instance ray_vector.has_coe {R M : Type*} [has_zero M] :
@@ -175,7 +177,7 @@ instance : setoid (ray_vector R M) :=
     λ x y z hxy hyz, hxy.trans hyz $ λ hy, (y.2 hy).elim⟩ }
 
 /-- A ray (equivalence class of nonzero vectors with common positive multiples) in a module. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def module.ray := quotient (ray_vector.setoid R M)
 
 variables {R M}
@@ -465,6 +467,53 @@ end
 by rw [← neg_inj, neg_neg, ← module.ray.neg_units_smul, units_smul_eq_self_iff, units.coe_neg,
   neg_pos]
 
+/-- Two vectors are in the same ray, or the first is in the same ray as the negation of the
+second, if and only if they are not linearly independent. -/
+lemma same_ray_or_same_ray_neg_iff_not_linear_independent {x y : M} :
+  (same_ray R x y ∨ same_ray R x (-y)) ↔ ¬ linear_independent R ![x, y] :=
+begin
+  by_cases hx : x = 0, { simp [hx, λ h : linear_independent R ![0, y], h.ne_zero 0 rfl] },
+  by_cases hy : y = 0, { simp [hy, λ h : linear_independent R ![x, 0], h.ne_zero 1 rfl] },
+  simp_rw [fintype.not_linear_independent_iff, fin.sum_univ_two, fin.exists_fin_two],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with (hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩)|(hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩),
+    { exact false.elim (hx hx0) },
+    { exact false.elim (hy hy0) },
+    { refine ⟨![r₁, -r₂], _⟩, simp [h, hr₁.ne.symm] },
+    { exact false.elim (hx hx0) },
+    { exact false.elim (hy (neg_eq_zero.1 hy0)) },
+    { refine ⟨![r₁, r₂], _⟩, simp [h, hr₁.ne.symm] } },
+  { rcases h with ⟨m, hm, hmne⟩,
+    change m 0 • x + m 1 • y = 0 at hm,
+    rw add_eq_zero_iff_eq_neg at hm,
+    rcases lt_trichotomy (m 0) 0 with hm0|hm0|hm0; rcases lt_trichotomy (m 1) 0 with hm1|hm1|hm1,
+    { refine or.inr (or.inr (or.inr ⟨-(m 0), -(m 1), left.neg_pos_iff.2 hm0,
+                                     left.neg_pos_iff.2 hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm1, hx, hm0.ne] using hm },
+    { refine or.inl (or.inr (or.inr ⟨-(m 0), m 1, left.neg_pos_iff.2 hm0, hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm0, hy, hm1.ne] using hm },
+    { refine false.elim (not_and_distrib.2 hmne ⟨hm0, hm1⟩) },
+    { exfalso, simpa [hm0, hy, hm1.ne.symm] using hm },
+    { refine or.inl (or.inr (or.inr ⟨m 0, -(m 1), hm0, left.neg_pos_iff.2 hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm1, hx, hm0.ne.symm] using hm },
+    { refine or.inr (or.inr (or.inr ⟨m 0, m 1, hm0, hm1, _⟩)),
+      simp [hm] } }
+end
+
+/-- Two vectors are in the same ray, or they are nonzero and the first is in the same ray as the
+negation of the second, if and only if they are not linearly independent. -/
+lemma same_ray_or_ne_zero_and_same_ray_neg_iff_not_linear_independent {x y : M} :
+  (same_ray R x y ∨ x ≠ 0 ∧ y ≠ 0 ∧ same_ray R x (-y)) ↔ ¬ linear_independent R ![x, y] :=
+begin
+  rw ←same_ray_or_same_ray_neg_iff_not_linear_independent,
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0;
+    simp [hx, hy]
+end
+
 end
 
 end linear_ordered_comm_ring
@@ -472,24 +521,30 @@ end linear_ordered_comm_ring
 namespace same_ray
 
 variables {R : Type*} [linear_ordered_field R]
-variables {M : Type*} [add_comm_group M] [module R M] {v₁ v₂ : M}
+variables {M : Type*} [add_comm_group M] [module R M] {x y v₁ v₂ : M}
+
+lemma exists_pos_left (h : same_ray R x y) (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∃ r : R, 0 < r ∧ r • x = y :=
+let ⟨r₁, r₂, hr₁, hr₂, h⟩ := h.exists_pos hx hy in
+  ⟨r₂⁻¹ * r₁, mul_pos (inv_pos.2 hr₂) hr₁, by rw [mul_smul, h, inv_smul_smul₀ hr₂.ne']⟩
+
+lemma exists_pos_right (h : same_ray R x y) (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∃ r : R, 0 < r ∧ x = r • y :=
+(h.symm.exists_pos_left hy hx).imp $ λ _, and.imp_right eq.symm
 
 /-- If a vector `v₂` is on the same ray as a nonzero vector `v₁`, then it is equal to `c • v₁` for
 some nonnegative `c`. -/
-lemma exists_right_eq_smul (h : same_ray R v₁ v₂) (h₀ : v₁ ≠ 0) :
-  ∃ c : R, 0 ≤ c ∧ v₂ = c • v₁ :=
+lemma exists_nonneg_left (h : same_ray R x y) (hx : x ≠ 0) : ∃ r : R, 0 ≤ r ∧ r • x = y :=
 begin
-  rcases h.resolve_left h₀ with (rfl|⟨r₁, r₂, hr₁, hr₂, H⟩),
-  { exact ⟨0, le_rfl, (zero_smul _ _).symm⟩ },
-  { refine ⟨r₁ / r₂, div_nonneg hr₁.le hr₂.le, _⟩,
-    rwa [div_eq_inv_mul, mul_smul, H, inv_smul_smul₀ hr₂.ne'] }
+  obtain rfl | hy := eq_or_ne y 0,
+  { exact ⟨0, le_rfl, zero_smul _ _⟩ },
+  { exact (h.exists_pos_left hx hy).imp (λ _, and.imp_left le_of_lt) }
 end
 
 /-- If a vector `v₁` is on the same ray as a nonzero vector `v₂`, then it is equal to `c • v₂` for
 some nonnegative `c`. -/
-lemma exists_left_eq_smul (h : same_ray R v₁ v₂) (h₀ : v₂ ≠ 0) :
-  ∃ c : R, 0 ≤ c ∧ v₁ = c • v₂ :=
-h.symm.exists_right_eq_smul h₀
+lemma exists_nonneg_right (h : same_ray R x y) (hy : y ≠ 0) : ∃ r : R, 0 ≤ r ∧ x = r • y :=
+(h.symm.exists_nonneg_left hy).imp $ λ _, and.imp_right eq.symm
 
 /-- If vectors `v₁` and `v₂` are on the same ray, then for some nonnegative `a b`, `a + b = 1`, we
 have `v₁ = a • (v₁ + v₂)` and `v₂ = b • (v₁ + v₂)`. -/

@@ -57,7 +57,7 @@ protected def map_right {ra' : α → α → Prop} (h : ∀a₁ a₂, ra a₁ a�
   quot ra → quot ra' :=
 quot.map id h
 
-/-- weaken the relation of a quotient -/
+/-- Weaken the relation of a quotient. This is the same as `quot.map id`. -/
 def factor {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y → s x y) :
   quot r → quot s :=
 quot.lift (quot.mk s) (λ x y rxy, quot.sound (h x y rxy))
@@ -121,6 +121,14 @@ lemma map₂_mk (f : α → β → γ)
   (hs : ∀ a₁ a₂ b, r a₁ a₂ → t (f a₁ b) (f a₂ b))
   (a : α) (b : β) : quot.map₂ f hr hs (quot.mk r a) (quot.mk s b) = quot.mk t (f a b) := rfl
 
+/-- A binary version of `quot.rec_on_subsingleton`. -/
+@[reducible, elab_as_eliminator]
+protected def rec_on_subsingleton₂ {φ : quot r → quot s → Sort*}
+  [h : ∀ a b, subsingleton (φ ⟦a⟧ ⟦b⟧)] (q₁ : quot r) (q₂ : quot s) (f : Π a b, φ ⟦a⟧ ⟦b⟧) :
+  φ q₁ q₂ :=
+@quot.rec_on_subsingleton _ r (λ q, φ q q₂) (λ a, quot.ind (h a) q₂) q₁ $
+  λ a, quot.rec_on_subsingleton q₂ $ λ b, f a b
+
 attribute [elab_as_eliminator]
 protected lemma induction_on₂
   {δ : quot r → quot s → Prop} (q₁ : quot r) (q₂ : quot s)
@@ -133,6 +141,28 @@ protected lemma induction_on₃
   (h : ∀ a b c, δ (quot.mk r a) (quot.mk s b) (quot.mk t c)) : δ q₁ q₂ q₃ :=
 quot.ind (λ a₁, quot.ind (λ a₂, quot.ind (λ a₃, h a₁ a₂ a₃) q₃) q₂) q₁
 
+instance (r : α → α → Prop) (f : α → Prop) (h : ∀ a b, r a b → f a = f b) [hf : decidable_pred f] :
+  decidable_pred (quot.lift f h) :=
+λ q, quot.rec_on_subsingleton q hf
+
+/-- Note that this provides `decidable_rel (quot.lift₂ f ha hb)` when `α = β`. -/
+instance (r : α → α → Prop) (s : β → β → Prop) (f : α → β → Prop)
+  (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
+  [hf : Π a, decidable_pred (f a)] (q₁ : quot r) :
+  decidable_pred (quot.lift₂ f ha hb q₁) :=
+λ q₂, quot.rec_on_subsingleton₂ q₁ q₂ hf
+
+instance (r : α → α → Prop) (q : quot r) (f : α → Prop) (h : ∀ a b, r a b → f a = f b)
+  [decidable_pred f] :
+  decidable (quot.lift_on q f h) :=
+quot.lift.decidable_pred _ _ _ _
+
+instance (r : α → α → Prop) (s : β → β → Prop) (q₁ : quot r) (q₂ : quot s) (f : α → β → Prop)
+  (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
+  [Π a, decidable_pred (f a)] :
+  decidable (quot.lift_on₂ q₁ q₂ f ha hb) :=
+quot.lift₂.decidable_pred _ _ _ _ _ _ _
+
 end quot
 
 namespace quotient
@@ -143,6 +173,11 @@ instance (s : setoid α) [inhabited α] : inhabited (quotient s) := ⟨⟦defaul
 
 instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
 quot.subsingleton
+
+instance {α : Type*} [setoid α] : is_equiv α (≈) :=
+{ refl := setoid.refl,
+  symm := λ a b, setoid.symm,
+  trans := λ a b c, setoid.trans }
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -171,6 +206,31 @@ quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.s
 
 @[simp] lemma map₂_mk (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) (x : α) (y : β) :
   quotient.map₂ f h (⟦x⟧ : quotient sa) (⟦y⟧ : quotient sb) = (⟦f x y⟧ : quotient sc) := rfl
+
+include sa
+
+instance (f : α → Prop) (h : ∀ a b, a ≈ b → f a = f b) [decidable_pred f] :
+  decidable_pred (quotient.lift f h) :=
+quot.lift.decidable_pred _ _ _
+
+include sb
+
+/-- Note that this provides `decidable_rel (quotient.lift₂ f h)` when `α = β`. -/
+instance (f : α → β → Prop) (h : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ = f a₂ b₂)
+  [hf : Π a, decidable_pred (f a)] (q₁ : quotient sa) :
+  decidable_pred (quotient.lift₂ f h q₁) :=
+λ q₂, quotient.rec_on_subsingleton₂ q₁ q₂ hf
+
+omit sb
+
+instance (q : quotient sa) (f : α → Prop) (h : ∀ a b, a ≈ b → f a = f b) [decidable_pred f] :
+  decidable (quotient.lift_on q f h) :=
+quotient.lift.decidable_pred _ _ _
+
+instance (q₁ : quotient sa) (q₂ : quotient sb) (f : α → β → Prop)
+  (h : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ = f a₂ b₂) [Π a, decidable_pred (f a)] :
+  decidable (quotient.lift_on₂ q₁ q₂ f h) :=
+quotient.lift₂.decidable_pred _ _ _ _
 
 end quotient
 
@@ -245,7 +305,7 @@ begin
 end
 
 lemma quotient.eq_mk_iff_out [s : setoid α] {x : quotient s} {y : α} :
-  x = ⟦y⟧ ↔ quotient.out x ≈ y  :=
+  x = ⟦y⟧ ↔ quotient.out x ≈ y :=
 begin
   refine iff.trans _ quotient.eq,
   rw quotient.out_eq x,
@@ -255,9 +315,12 @@ end
   x.out ≈ y.out ↔ x = y :=
 by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
 
+lemma quotient.out_injective {s : setoid α} : function.injective (@quotient.out α s) :=
+λ a b h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _
+
 @[simp] lemma quotient.out_inj {s : setoid α} {x y : quotient s} :
   x.out = y.out ↔ x = y :=
-⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
+⟨λ h, quotient.out_injective h, λ h, h ▸ rfl⟩
 
 section pi
 
@@ -291,6 +354,8 @@ end pi
 
 lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty α :=
 ⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
+
+/-! ### Truncation -/
 
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar
@@ -384,6 +449,8 @@ protected theorem nonempty (q : trunc α) : nonempty α :=
 nonempty_of_exists q.exists_rep
 
 end trunc
+
+/-! ### `quotient` with implicit `setoid` -/
 
 namespace quotient
 variables {γ : Sort*} {φ : Sort*}
@@ -550,5 +617,16 @@ protected lemma mk'_eq_mk (x : α) : quotient.mk' x = ⟦x⟧ := rfl
 @[simp] lemma map'_mk [setoid β] (f : α → β) (h) (x : α) : ⟦x⟧.map' f h = ⟦f x⟧ := rfl
 
 end
+
+instance (q : quotient s₁) (f : α → Prop) (h : ∀ a b, @setoid.r α s₁ a b → f a = f b)
+  [decidable_pred f] :
+  decidable (quotient.lift_on' q f h) :=
+quotient.lift.decidable_pred _ _ q
+
+instance (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → Prop)
+  (h : ∀ a₁ b₁ a₂ b₂, @setoid.r α s₁ a₁ a₂ → @setoid.r β s₂ b₁ b₂ → f a₁ b₁ = f a₂ b₂)
+  [Π a, decidable_pred (f a)] :
+  decidable (quotient.lift_on₂' q₁ q₂ f h) :=
+quotient.lift₂.decidable_pred _ _ _ _
 
 end quotient

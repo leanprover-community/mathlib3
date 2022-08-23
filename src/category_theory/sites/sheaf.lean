@@ -15,7 +15,7 @@ import category_theory.sites.sheaf_of_types
 If C is a category with a Grothendieck topology, we define the notion of a sheaf taking values in
 an arbitrary category `A`. We follow the definition in https://stacks.math.columbia.edu/tag/00VR,
 noting that the presheaf of sets "defined above" can be seen in the comments between tags 00VQ and
-00VR on the page https://stacks.math.columbia.edu/tag/00VL. The advantage of this definition is
+00VR on the page <https://stacks.math.columbia.edu/tag/00VL>. The advantage of this definition is
 that we need no assumptions whatsoever on `A` other than the assumption that the morphisms in `C`
 and `A` live in the same universe.
 
@@ -206,6 +206,10 @@ lemma is_sheaf.hom_ext {A : Type u₂} [category.{max v₁ u₁} A]
   e₁ = e₂ :=
 (hP _ _ S.condition).is_separated_for.ext (λ Y f hf, h ⟨Y,f,hf⟩)
 
+lemma is_sheaf_of_iso_iff {P P' : Cᵒᵖ ⥤ A} (e : P ≅ P') : is_sheaf J P ↔ is_sheaf J P' :=
+forall_congr $ λ a, ⟨presieve.is_sheaf_iso J (iso_whisker_right e _),
+  presieve.is_sheaf_iso J (iso_whisker_right e.symm _)⟩
+
 variable (J)
 
 end presheaf
@@ -252,6 +256,14 @@ def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 
 instance : full (Sheaf_to_presheaf J A) := { preimage := λ X Y f, ⟨f⟩ }
 instance : faithful (Sheaf_to_presheaf J A) := {}
+
+/--This is stated as a lemma to prevent class search from forming a loop since a sheaf morphism is
+monic if and only if it is monic as a presheaf morphism (under suitable assumption).-/
+lemma Sheaf.hom.mono_of_presheaf_mono {F G : Sheaf J A} (f : F ⟶ G) [h : mono f.1] : mono f :=
+(Sheaf_to_presheaf J A).mono_of_mono_map h
+
+instance Sheaf.hom.epi_of_presheaf_epi {F G : Sheaf J A} (f : F ⟶ G) [h : epi f.1] : epi f :=
+(Sheaf_to_presheaf J A).epi_of_epi_map h
 
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
 @[simps] def sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
@@ -396,18 +408,18 @@ end multiequalizer_conditions
 
 section
 
-variables [has_products A]
+variables [has_products.{(max u₁ v₁)} A]
 
 /--
 The middle object of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
-of https://stacks.math.columbia.edu/tag/00VM.
+of <https://stacks.math.columbia.edu/tag/00VM>.
 -/
 def first_obj : A :=
 ∏ (λ (f : Σ V, {f : V ⟶ U // R f}), P.obj (op f.1))
 
 /--
 The left morphism of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
-of https://stacks.math.columbia.edu/tag/00VM.
+of <https://stacks.math.columbia.edu/tag/00VM>.
 -/
 def fork_map : P.obj (op U) ⟶ first_obj R P :=
 pi.lift (λ f, P.map f.2.1.op)
@@ -422,11 +434,11 @@ def second_obj : A :=
 ∏ (λ (fg : (Σ V, {f : V ⟶ U // R f}) × (Σ W, {g : W ⟶ U // R g})),
   P.obj (op (pullback fg.1.2.1 fg.2.2.1)))
 
-/-- The map `pr₀*` of https://stacks.math.columbia.edu/tag/00VM. -/
+/-- The map `pr₀*` of <https://stacks.math.columbia.edu/tag/00VM>. -/
 def first_map : first_obj R P ⟶ second_obj R P :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.fst.op)
 
-/-- The map `pr₁*` of https://stacks.math.columbia.edu/tag/00VM. -/
+/-- The map `pr₁*` of <https://stacks.math.columbia.edu/tag/00VM>. -/
 def second_map : first_obj R P ⟶ second_obj R P :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.snd.op)
 
@@ -472,7 +484,7 @@ begin
         simp } } },
   { refine fork.ext (iso.refl _) _,
     dsimp [equalizer.fork_map, fork_map],
-    simp }
+    simp [fork.ι] }
 end
 
 /-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/
@@ -493,6 +505,7 @@ begin
     rw equalizer.presieve.sheaf_condition,
     refine ⟨_⟩,
     refine is_sheaf_for_is_sheaf_for' _ _ _ _ _,
+    letI := preserves_smallest_limits_of_preserves_limits (coyoneda.obj (op U)),
     apply is_limit_of_preserves,
     apply classical.choice (h _ S _),
     simpa }
@@ -525,8 +538,10 @@ begin
     is_sheaf_for_is_sheaf_for' P s U R,
   rw ←equiv.nonempty_congr this,
   split,
-  { exact nonempty.map (λ t, is_limit_of_preserves s t) },
-  { exact nonempty.map (λ t, is_limit_of_reflects s t) }
+  { haveI := preserves_smallest_limits_of_preserves_limits s,
+    exact nonempty.map (λ t, is_limit_of_preserves s t) },
+  { haveI := reflects_smallest_limits_of_reflects_limits s,
+    exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
 
 end concrete

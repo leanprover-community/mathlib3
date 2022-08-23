@@ -21,7 +21,7 @@ universes v u
 open_locale classical
 noncomputable theory
 
-open category_theory category_theory.limits homological_complex
+open category_theory category_theory.category category_theory.limits homological_complex
 
 variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [preadditive V]
@@ -35,10 +35,10 @@ instance : has_zero (C ⟶ D) := ⟨{ f := λ i, 0 }⟩
 instance : has_add (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i + g.f i, }⟩
 instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i) }⟩
 instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
-instance has_nat_scalar : has_scalar ℕ (C ⟶ D) := ⟨λ n f,
+instance has_nat_scalar : has_smul ℕ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
-instance has_int_scalar : has_scalar ℤ (C ⟶ D) := ⟨λ n f,
+instance has_int_scalar : has_smul ℤ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
 
@@ -66,8 +66,6 @@ end homological_complex
 namespace homological_complex
 
 instance eval_additive (i : ι) : (eval V c i).additive := {}
-
-variables [has_zero_object V]
 
 instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
@@ -140,9 +138,30 @@ by tidy
 
 end category_theory
 
+namespace chain_complex
+
+variables {W : Type*} [category W] [preadditive W]
+variables {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+lemma map_chain_complex_of (F : V ⥤ W) [F.additive] (X : α → V) (d : Π n, X (n+1) ⟶ X n)
+  (sq : ∀ n, d (n+1) ≫ d n = 0) :
+  (F.map_homological_complex _).obj (chain_complex.of X d sq) =
+  chain_complex.of (λ n, F.obj (X n))
+    (λ n, F.map (d n)) (λ n, by rw [ ← F.map_comp, sq n, functor.map_zero]) :=
+begin
+  refine homological_complex.ext rfl _,
+  rintro i j (rfl : j + 1 = i),
+  simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
+    eq_to_hom_refl, comp_id, id_comp],
+end
+
+end chain_complex
+
 variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero_object W]
 
 namespace homological_complex
+
+local attribute [simp] eq_to_hom_map
 
 /--
 Turning an object into a complex supported at `j` then applying a functor is

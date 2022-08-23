@@ -15,7 +15,7 @@ and prove their basic properties.
 
 ## Main definitions and results
 
-Let `𝕜` be a nondiscrete normed field, and `F` a normed vector space over `𝕜`. Let `f : 𝕜 → F`.
+Let `𝕜` be a nontrivially normed field, and `F` a normed vector space over `𝕜`. Let `f : 𝕜 → F`.
 
 * `iterated_deriv n f` is the `n`-th derivative of `f`, seen as a function from `𝕜` to `F`.
   It is defined as the `n`-th Fréchet derivative (which is a multilinear map) applied to the
@@ -45,9 +45,9 @@ open_locale classical topological_space big_operators
 open filter asymptotics set
 
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- The `n`-th iterated derivative of a function from `𝕜` to `F`, as a function from `𝕜` to `F`. -/
 def iterated_deriv (n : ℕ) (f : 𝕜 → F) (x : 𝕜) : F :=

@@ -22,6 +22,7 @@ universes v u
 noncomputable theory
 
 open category_theory category_theory.category category_theory.limits category_theory.subobject
+  opposite
 
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
@@ -81,17 +82,17 @@ def kernel_subobject_iso :
   (kernel_subobject f : C) ≅ kernel f :=
 subobject.underlying_iso (kernel.ι f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).hom ≫ kernel.ι f = (kernel_subobject f).arrow :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow' :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow_comp :
   (kernel_subobject f).arrow ≫ f = 0 :=
 by { rw [←kernel_subobject_arrow], simp only [category.assoc, kernel.condition, comp_zero], }
@@ -130,7 +131,7 @@ subobject.factor_thru _
   ((kernel_subobject f).arrow ≫ sq.left)
   (kernel_subobject_factors _ _ (by simp [sq.w]))
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_map_arrow (sq : arrow.mk f ⟶ arrow.mk f') :
   kernel_subobject_map sq ≫ (kernel_subobject f').arrow =
     (kernel_subobject f).arrow ≫ sq.left :=
@@ -203,6 +204,50 @@ begin
   { simp, },
 end
 
+/-- Taking cokernels is an order-reversing map from the subobjects of `X` to the quotient objects
+    of `X`. -/
+@[simps]
+def cokernel_order_hom [has_cokernels C] (X : C) : subobject X →o (subobject (op X))ᵒᵈ :=
+{ to_fun := subobject.lift (λ A f hf, subobject.mk (cokernel.π f).op)
+  begin
+    rintros A B f g hf hg i rfl,
+    refine subobject.mk_eq_mk_of_comm _ _ (iso.op _) (quiver.hom.unop_inj _),
+    { exact (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+        (is_cokernel_epi_comp (colimit.is_colimit _) i.hom rfl)).symm },
+    { simp only [iso.comp_inv_eq, iso.op_hom, iso.symm_hom, unop_comp, quiver.hom.unop_op,
+        colimit.comp_cocone_point_unique_up_to_iso_hom, cofork.of_π_ι_app, coequalizer.cofork_π] }
+  end,
+  monotone' := subobject.ind₂ _ $
+  begin
+    introsI A B f g hf hg h,
+    dsimp only [subobject.lift_mk],
+    refine subobject.mk_le_mk_of_comm (cokernel.desc f (cokernel.π g) _).op _,
+    { rw [← subobject.of_mk_le_mk_comp h, category.assoc, cokernel.condition, comp_zero] },
+    { exact quiver.hom.unop_inj (cokernel.π_desc _ _ _) }
+  end }
+
+/-- Taking kernels is an order-reversing map from the quotient objects of `X` to the subobjects of
+    `X`. -/
+@[simps]
+def kernel_order_hom [has_kernels C] (X : C) : (subobject (op X))ᵒᵈ →o subobject X :=
+{ to_fun := subobject.lift (λ A f hf, subobject.mk (kernel.ι f.unop))
+  begin
+    rintros A B f g hf hg i rfl,
+    refine subobject.mk_eq_mk_of_comm _ _ _ _,
+    { exact is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
+        (is_kernel_comp_mono (limit.is_limit (parallel_pair g.unop 0)) i.unop.hom rfl) },
+    { dsimp,
+      simp only [←iso.eq_inv_comp, limit.cone_point_unique_up_to_iso_inv_comp, fork.of_ι_π_app] }
+  end,
+  monotone' := subobject.ind₂ _ $
+  begin
+    introsI A B f g hf hg h,
+    dsimp only [subobject.lift_mk],
+    refine subobject.mk_le_mk_of_comm (kernel.lift g.unop (kernel.ι f.unop) _) _,
+    { rw [← subobject.of_mk_le_mk_comp h, unop_comp, kernel.condition_assoc, zero_comp] },
+    { exact quiver.hom.op_inj (by simp) }
+  end }
+
 end kernel
 
 section image
@@ -235,7 +280,7 @@ factor_thru_image f ≫ (image_subobject_iso f).inv
 instance [has_equalizers C] : epi (factor_thru_image_subobject f) :=
 by { dsimp [factor_thru_image_subobject], apply epi_comp, }
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
@@ -327,6 +372,9 @@ lemma image_subobject_comp_iso_inv_arrow
 by simp [image_subobject_comp_iso]
 
 end
+
+lemma image_subobject_mono (f : X ⟶ Y) [mono f] : image_subobject f = mk f :=
+eq_of_comm (image_subobject_iso f ≪≫ image_mono_iso_source f ≪≫ (underlying_iso f).symm) (by simp)
 
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]

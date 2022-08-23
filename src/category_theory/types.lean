@@ -5,7 +5,7 @@ Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
 import category_theory.epi_mono
 import category_theory.functor.fully_faithful
-import data.equiv.basic
+import logic.equiv.basic
 
 /-!
 # The category `Type`.
@@ -163,7 +163,7 @@ lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
 /--
 A morphism in `Type` is a monomorphism if and only if it is injective.
 
-See https://stacks.math.columbia.edu/tag/003C.
+See <https://stacks.math.columbia.edu/tag/003C>.
 -/
 lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
 begin
@@ -181,7 +181,7 @@ lemma injective_of_mono {X Y : Type u} (f : X ⟶ Y) [hf : mono f] : function.in
 /--
 A morphism in `Type` is an epimorphism if and only if it is surjective.
 
-See https://stacks.math.columbia.edu/tag/003C.
+See <https://stacks.math.columbia.edu/tag/003C>.
 -/
 lemma epi_iff_surjective {X Y : Type u} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
@@ -278,8 +278,8 @@ iff.intro
   (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
   (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
 
-noncomputable instance : split_epi_category (Type u) :=
-{ split_epi_of_epi := λ X Y f hf,
+instance : split_epi_category (Type u) :=
+{ is_split_epi_of_epi := λ X Y f hf, is_split_epi.mk'
   { section_ := function.surj_inv $ (epi_iff_surjective f).1 hf,
     id' := funext $ function.right_inverse_surj_inv $ (epi_iff_surjective f).1 hf } }
 

@@ -32,7 +32,7 @@ Alternate forms which operate on `[is_scalar_tower ℝ 𝕜 F]` instead are prov
 
 open is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [seminormed_add_comm_group F] [normed_space 𝕜 F]
 local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
 /-- Extend `fr : F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜` in a way that will also be continuous and have its norm
@@ -132,7 +132,7 @@ noncomputable def linear_map.extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) 
 fr.extend_to_𝕜'
 
 lemma linear_map.extend_to_𝕜_apply (fr : (restrict_scalars ℝ 𝕜 F) →ₗ[ℝ] ℝ) (x : F) :
-  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
+  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x : _) := rfl
 
 /-- Extend `fr : restrict_scalars ℝ 𝕜 F →L[ℝ] ℝ` to `F →L[𝕜] 𝕜`. -/
 noncomputable def continuous_linear_map.extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) :
@@ -140,4 +140,4 @@ noncomputable def continuous_linear_map.extend_to_𝕜 (fr : (restrict_scalars �
 fr.extend_to_𝕜'
 
 lemma continuous_linear_map.extend_to_𝕜_apply (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) (x : F) :
-  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
+  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x : _) := rfl

@@ -25,7 +25,7 @@ a Borel measure `f.measure`.
 noncomputable theory
 open classical set filter
 open ennreal (of_real)
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topological_space measure_theory
 
 /-! ### Basic properties of Stieltjes functions -/
 
@@ -99,7 +99,7 @@ nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
 @[simp] lemma length_Ioc (a b : ℝ) :
   f.length (Ioc a b) = of_real (f b - f a) :=
 begin
-  refine le_antisymm (infi_le_of_le a $ binfi_le b (subset.refl _))
+  refine le_antisymm (infi_le_of_le a $ infi₂_le b subset.rfl)
     (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, ennreal.coe_le_coe.2 _),
   cases le_or_lt b a with ab ab,
   { rw real.to_nnreal_of_nonpos (sub_nonpos.2 (f.mono ab)), apply zero_le, },
@@ -107,9 +107,8 @@ begin
   exact real.to_nnreal_le_to_nnreal (sub_le_sub (f.mono h₁) (f.mono h₂))
 end
 
-lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
-  f.length s₁ ≤ f.length s₂ :=
-infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_rfl⟩
+lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) : f.length s₁ ≤ f.length s₂ :=
+infi_mono $ λ a, binfi_mono $ λ b, h.trans
 
 open measure_theory
 
@@ -172,7 +171,7 @@ begin
   will get an open interval `(p i, q' i)` covering `s i` with `f (q' i) - f (p i)` within `ε' i`
   of the `f`-length of `s i`. -/
   refine le_antisymm (by { rw ← f.length_Ioc, apply outer_le_length })
-    (le_binfi $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
+    (le_infi₂ $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
   let δ := ε / 2,
   have δpos : 0 < (δ : ℝ≥0∞), by simpa using εpos.ne',
   rcases ennreal.exists_pos_sum_of_encodable δpos.ne' ℕ with ⟨ε', ε'0, hε⟩,
@@ -215,7 +214,7 @@ begin
 end
 
 lemma measurable_set_Ioi {c : ℝ} :
-  f.outer.caratheodory.measurable_set' (Ioi c) :=
+  measurable_set[f.outer.caratheodory] (Ioi c) :=
 begin
   apply outer_measure.of_function_caratheodory (λ t, _),
   refine le_infi (λ a, le_infi (λ b, le_infi (λ h, _))),

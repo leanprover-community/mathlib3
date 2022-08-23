@@ -302,35 +302,35 @@ by rw [← map_rat_cast f, rat.cast_id]
 
 namespace monoid_with_zero_hom
 
-variables {M₀ : Type*} [monoid_with_zero M₀] {f g : ℚ →*₀ M₀}
+variables {M₀ : Type*} [monoid_with_zero M₀] [monoid_with_zero_hom_class F ℚ M₀] {f g : F}
+include M₀
 
 /-- If `f` and `g` agree on the integers then they are equal `φ`. -/
 theorem ext_rat' (h : ∀ m : ℤ, f m = g m) : f = g :=
-begin
-  ext r,
-  rw [← r.num_div_denom, div_eq_mul_inv, map_mul, map_mul, h, ← int.cast_coe_nat,
-    eq_on_inv₀ f g (h _)]
-end
+fun_like.ext f g $ λ r, by rw [← r.num_div_denom, div_eq_mul_inv, map_mul, map_mul, h,
+  ← int.cast_coe_nat, eq_on_inv₀ f g (h _)]
 
 /-- If `f` and `g` agree on the integers then they are equal `φ`.
 
 See note [partially-applied ext lemmas] for why `comp` is used here. -/
-@[ext] theorem ext_rat
+@[ext] theorem ext_rat {f g : ℚ →*₀ M₀}
   (h : f.comp (int.cast_ring_hom ℚ : ℤ →*₀ ℚ) = g.comp (int.cast_ring_hom ℚ)) : f = g :=
 ext_rat' $ congr_fun h
 
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
 theorem ext_rat_on_pnat
   (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
-ext_rat $ ext_int' (by simpa) ‹_›
+ext_rat' $ fun_like.congr_fun $ show (f : ℚ →*₀ M₀).comp (int.cast_ring_hom ℚ : ℤ →*₀ ℚ) =
+  (g : ℚ →*₀ M₀).comp (int.cast_ring_hom ℚ : ℤ →*₀ ℚ),
+  from ext_int' (by simpa) (by simpa)
 
 end monoid_with_zero_hom
 
 /-- Any two ring homomorphisms from `ℚ` to a semiring are equal. If the codomain is a division ring,
-then the proof is trivial. -/
-lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
-ring_hom.coe_monoid_with_zero_hom_injective $ monoid_with_zero_hom.ext_rat' $
-  ring_hom.congr_fun $ (f.comp (int.cast_ring_hom ℚ)).ext_int (g.comp (int.cast_ring_hom ℚ))
+then this lemma follows from `eq_rat_cast`. -/
+lemma ring_hom.ext_rat {R : Type*} [semiring R] [ring_hom_class F ℚ R] (f g : F) : f = g :=
+monoid_with_zero_hom.ext_rat' $ ring_hom.congr_fun $
+  ((f : ℚ →+* R).comp (int.cast_ring_hom ℚ)).ext_int ((g : ℚ →+* R).comp (int.cast_ring_hom ℚ))
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩

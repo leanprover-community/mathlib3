@@ -160,8 +160,7 @@ section module
 variables [module 𝕜 E] (S : convex_cone 𝕜 E)
 
 protected lemma convex : convex 𝕜 (S : set E) :=
-convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
-  S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
+convex_iff_forall_pos.2 $ λ x hx y hy a b ha hb _, S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
 
 end module
 end ordered_semiring

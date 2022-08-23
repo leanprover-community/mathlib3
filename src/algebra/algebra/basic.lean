@@ -782,16 +782,13 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 protected lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
 protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
-@[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
-φ.to_ring_hom.map_int_cast n
-
 end ring
 
 end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
   @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
-by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
+by rw [algebra.smul_def, mul_one, eq_rat_cast]
 
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
@@ -1401,7 +1398,7 @@ variables (R : Type*) [ring R]
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
 
-/-- A special case of `ring_hom.eq_int_cast'` that happens to be true definitionally -/
+/-- A special case of `eq_int_cast'` that happens to be true definitionally -/
 @[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
 
 variables {R}

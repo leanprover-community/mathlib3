@@ -120,8 +120,8 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
       unique_diff_on.univ_pi (fin n) (λ _, ℝ) _ (λ i, unique_diff_on_Ici 0),
     by simpa only [pi_univ_Ici] using this,
   continuous_to_fun  := continuous_subtype_val,
-  continuous_inv_fun := (continuous_pi $ λ i,
-    (continuous_id.max continuous_const).comp (continuous_apply i)).subtype_mk _ }
+  continuous_inv_fun := continuous.subtype_mk (continuous_pi $ λ i,
+    (continuous_id.max continuous_const).comp (continuous_apply i)) _ }
 
 localized "notation `𝓡 `n :=
   (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :

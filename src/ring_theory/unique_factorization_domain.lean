@@ -604,6 +604,18 @@ begin
     apply multiset.prod_dvd_prod_of_le }
 end
 
+lemma associated_iff_normalized_factors_eq_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  x ~ᵤ y ↔ normalized_factors x = normalized_factors y :=
+begin
+  split,
+  { intro h,
+    apply le_antisymm; rw [← dvd_iff_normalized_factors_le_normalized_factors],
+    all_goals { simp [*, h.dvd, h.symm.dvd], }, },
+  { intro h,
+    apply associated_of_dvd_dvd; rw [dvd_iff_normalized_factors_le_normalized_factors],
+    all_goals { simp [*, h.le, h.ge], }, },
+end
+
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
   normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]

@@ -62,8 +62,8 @@ lemma coe_to_Top_map {x y : simplex_category} (f : x ⟶ y) (g : x.to_Top_obj) (
 @[continuity]
 lemma continuous_to_Top_map {x y : simplex_category} (f : x ⟶ y) :
   continuous (to_Top_map f) :=
-(continuous_pi $ λ i, continuous_finset_sum _ $
-  λ j hj, (continuous_apply _).comp continuous_subtype_val).subtype_mk _
+continuous.subtype_mk (continuous_pi $ λ i, continuous_finset_sum _ $
+  λ j hj, (continuous_apply _).comp continuous_subtype_val) _
 
 /-- The functor associating the topological `n`-simplex to `[n] : simplex_category`. -/
 @[simps]

@@ -259,23 +259,14 @@ lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 
 /-- The only continuous ring homomorphisms from `ℂ` to `ℂ` are the identity and the complex
-conjugation, -/
-lemma ring_hom_continuous (f : ℂ →+* ℂ) (hf : continuous f) :
+conjugation. -/
+lemma ring_hom_eq_id_or_conj_of_continuous (f : ℂ →+* ℂ) (hf : continuous f) :
   f = ring_hom.id ℂ ∨ f = conj :=
 begin
-  have f_real : ∀ z : ℂ, f ∘ (λ (x : ℝ), x • z) = λ (x : ℝ), x • (f z),
-  { intro z,
-    simp_rw complex.real_smul,
-    refine rat.dense_embedding_coe_real.dense.equalizer (by continuity : _) (by continuity : _) _,
-    ext1 q,
-    simp only [function.comp_app, map_rat_cast, of_real_rat_cast, map_mul], },
-  rcases real_alg_hom (alg_hom.mk' f (λ x z, congr_fun (f_real z) x)),
-  { left,
-    convert congr_arg alg_hom.to_ring_hom h,
-    ext1 z, refl, },
-  { right,
-    convert congr_arg alg_hom.to_ring_hom h,
-    ext1 z, refl, },
+  refine (real_alg_hom_eq_id_or_conj $ alg_hom.mk' f $ λ x z, congr_fun _ x).imp (λ h, _) (λ h, _),
+  { refine rat.dense_embedding_coe_real.dense.equalizer (by continuity) (by continuity) _,
+    ext1, simp only [real_smul, function.comp_app, map_rat_cast, of_real_rat_cast, map_mul], },
+  all_goals { convert congr_arg alg_hom.to_ring_hom h, ext1, refl, },
 end
 
 @[simp] lemma of_real_clm_coe : (of_real_clm : ℝ →ₗ[ℝ] ℂ) = of_real_am.to_linear_map := rfl

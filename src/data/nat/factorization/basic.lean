@@ -783,6 +783,20 @@ begin
     card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
+lemma factorization_add {p a b : ℕ} :
+  min (a.factorization p) (b.factorization p) ≤ (a + b).factorization p :=
+begin
+  rcases a.eq_zero_or_pos with rfl | ha0, { simp },
+  rcases b.eq_zero_or_pos with rfl | hb0, { simp },
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  rw ←pp.pow_dvd_iff_le_factorization (add_pos ha0 hb0).ne',
+  rcases le_or_lt (a.factorization p) (b.factorization p) with h1 | h2,
+  { rw [min_eq_left h1, nat.dvd_add_right (ord_proj_dvd a p)],
+    exact pow_dvd_of_le_of_pow_dvd h1 (ord_proj_dvd b p) },
+  { rw [min_eq_right_of_lt h2, nat.dvd_add_left (ord_proj_dvd b p)],
+    exact pow_dvd_of_le_of_pow_dvd h2.le (ord_proj_dvd a p) },
+end
+
 lemma factorization_add_of_lt {p a b : ℕ} (h : a.factorization p < b.factorization p)
   (ha0 : a ≠ 0) :
   (a + b).factorization p = a.factorization p :=

@@ -186,6 +186,8 @@ end of_multiset
 
 section of_list
 
+/-- Given a non-empty list `l` construct the `pmf` which sends `a` to the fraction of
+  elements in `l` that are `a`. -/
 def of_list (l : list α) (h : ¬ l.empty) : pmf α :=
 pmf.of_multiset (quotient.mk l) (mt ((list.empty_iff_eq_nil).2 ∘ (multiset.coe_eq_zero l).1) h)
 
@@ -202,7 +204,7 @@ trans (pmf.support_of_multiset _) (set.ext $ λ x, by simp only [multiset.quot_m
 lemma mem_support_of_list_iff (a : α) : a ∈ (of_list l h).support ↔ a ∈ l :=
 by rw [support_of_list, set.mem_set_of_eq]
 
-@[simp] lemma of_list_apply_eq_zero_iff_not_mem (a : α) : of_list l h a = 0 ↔ a ∉ l :=
+lemma of_list_apply_eq_zero_iff_not_mem (a : α) : of_list l h a = 0 ↔ a ∉ l :=
 by rw [pmf.apply_eq_zero_iff _ a, mem_support_of_list_iff]
 
 lemma of_list_apply_eq_one_iff (a : α) : of_list l h a = 1 ↔ ∀ a' ∈ l, a' = a :=

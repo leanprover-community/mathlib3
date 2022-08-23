@@ -18,23 +18,6 @@ local postfix `⋆`:std.prec.max_plus := star
 open_locale topological_space ennreal
 open filter ennreal spectrum cstar_ring
 
-section comm_semiring
-
-variables {F R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
-variables [alg_hom_class F R A B]
-local notation `σ` := spectrum R
-local notation `↑ₐ` := algebra_map R A
-
-lemma mem_resolvent_set_apply (φ : F) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
-  r ∈ resolvent_set R ((φ : A → B) a) :=
-by simpa only [map_sub, alg_hom_class.commutes] using h.map φ
-
-lemma spectrum_apply_subset (φ : F) (a : A) : σ ((φ : A → B) a) ⊆ σ a :=
-λ _, mt (mem_resolvent_set_apply φ)
-
-end comm_semiring
-
-
 section unitary_spectrum
 
 variables

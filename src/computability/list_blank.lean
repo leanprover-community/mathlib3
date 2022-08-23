@@ -146,19 +146,17 @@ protected lemma list_val.induction_on {Γ} {val : Γ}
   {p : list_val Γ val → Prop} (q : list_val Γ val)
   (h : ∀ a, p (list_val.mk val a)) : p q := quotient.induction_on' q h
 
--- TODO use headd
 /-- The head of a `list_val` is well defined. -/
 def list_val.head {Γ} {val : Γ} (l : list_val Γ val) : Γ :=
-l.lift_on (@list.head _ (by { refine {default := val} })) begin
+l.lift_on (list.headd val) begin
   rintro _ _ ⟨i, rfl⟩,
   cases a, {cases i; refl}, refl
 end
 
--- TODO no longer true
--- @[simp] theorem list_val.head_mk {Γ} (val : Γ) (l : list Γ) :
---   list_val.head val (list_val.mk val l) = l.head := rfl
+/-- The head of a `list_val` is the defaulted head of a list that constructs it. -/
+@[simp] theorem list_val.head_mk {Γ} (val : Γ) (l : list Γ) :
+  list_val.head (list_val.mk val l) = l.headd val := rfl
 
--- TODO implicit arg
 /-- The tail of a `list_val` is well defined (up to the tail of vals). -/
 def list_val.tail {Γ} {val : Γ} (l : list_val Γ val) : list_val Γ val :=
 l.lift_on (λ l, list_val.mk val l.tail) begin

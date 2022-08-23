@@ -123,7 +123,8 @@ variables {F A B : Type*}
 [complete_space A] [star_ring A] [cstar_ring A]
 [normed_ring B] [normed_algebra ℂ B] [norm_one_class B]
 [complete_space B] [star_ring B] [cstar_ring B]
-[star_alg_hom_class F ℂ A B] (φ : F)
+[hF : star_alg_hom_class F ℂ A B] (φ : F)
+include hF
 
 /-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
 lemma nnnorm_apply_le (a : A) : ∥(φ a : B)∥₊ ≤ ∥a∥₊ :=
@@ -137,5 +138,10 @@ begin
       coe_le_coe] using (show spectral_radius ℂ (φ s) ≤ spectral_radius ℂ s,
       from supr_le_supr_of_subset (alg_hom.spectrum_apply_subset φ s)) }
 end
+
+noncomputable instance : continuous_linear_map_class F ℂ A B :=
+{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1
+    (by simpa only [one_mul] using nnnorm_apply_le φ),
+  .. alg_hom_class.linear_map_class }
 
 end star_alg_hom

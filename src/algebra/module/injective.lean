@@ -261,7 +261,7 @@ begin
   rw extension_of_max_adjoin.extend_ideal_to_is_extension i f h y r
     (by rw eq1; exact submodule.zero_mem _ : r • y ∈ _),
   simp only [extension_of_max_adjoin.ideal_to, linear_map.coe_mk, eq1, subtype.coe_mk,
-    ← add_submonoid_class.zero_def, (extension_of_max i f).to_linear_pmap.map_zero]
+    ← zero_mem_class.zero_def, (extension_of_max i f).to_linear_pmap.map_zero]
 end
 
 lemma extension_of_max_adjoin.extend_ideal_to_wd (h : module.Baer R Q) {y : N} (r r' : R)

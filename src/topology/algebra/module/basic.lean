@@ -799,6 +799,7 @@ lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_c
   (f : F) : is_complete (ker f : set M') :=
 (is_closed_ker f).is_complete
 
+@[priority 100]
 instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [module R₁ M'] [t1_space M₂] [continuous_semilinear_map_class F σ₁₂ M' M₂]
   (f : F) : complete_space (ker f) :=

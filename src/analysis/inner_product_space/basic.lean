@@ -2245,8 +2245,9 @@ end
 lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (innerSL (v:E)).is_closed_ker),
-  simp
+  have := λ v : K, continuous_linear_map.is_closed_ker (innerSL (v:E) : E →L[𝕜] 𝕜),
+  convert is_closed_Inter this,
+  simp only [submodule.infi_coe],
 end
 
 /-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/

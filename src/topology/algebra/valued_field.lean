@@ -362,21 +362,22 @@ noncomputable instance valued_completion : valued (hat K) Γ₀ :=
 
 end valued
 
-variables {K : Type*} [field K] [topological_space K] [topological_division_ring K]
-  {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀] (v : valuation K Γ₀)
+class v_topology (K : Type*) [field K] [topological_space K] [topological_division_ring K]
+  extends topological_division_ring K :=
+( cond : ∀ W ∈ 𝓝 (0 : K), ∃ U ∈ 𝓝 (0 : K), ∀ x y, x * y ∈ U → x ∈ W ∨ y ∈ W )
 
-class v_topological_field (h : ring_filter_basis K) extends topological_division_ring K :=
-( foo : ∀ W, W ∈ h.sets → ∃ U ∈ h.sets, ∀ x y, x * y ∈ U → x ∈ W ∨ y ∈ W )
-
-instance v_topology : v_topological_field (valuation.subgroups_basis v).to_ring_filter_basis :=
-{ foo := begin
+instance v_topological_field {K Γ₀: Type*} [field K] [linear_ordered_comm_group_with_zero Γ₀]
+  [valued K Γ₀] : v_topology K :=
+{ cond := begin
+    simp only [valued.mem_nhds_zero],
     rintros W ⟨r,hW⟩,
-    refine ⟨(λ (γ : Γ₀ˣ), v.lt_add_subgroup γ) (r * r), ⟨⟨r * r,rfl⟩, _⟩ ⟩,
-    rintros x y (h : v (x * y) < r * r),
-    simp only [hW, mem_set_of_eq],
-    by_cases hx : v x < r, {left, exact hx},
-    { rw not_lt at hx,
+    refine ⟨{x | valued.v x < ↑(r * r)}, ⟨r * r, rfl.subset⟩ , _⟩,
+    rintros x y (h : valued.v (x * y) < ↑(r * r)),
+    by_cases hx : valued.v x < ↑r, {left, exact mem_of_mem_of_subset hx hW},
+    { right,
+      rw not_lt at hx,
       rw valuation.map_mul at h,
-      right, exact lt_of_mul_lt_mul_left' (mul_lt_of_mul_lt_right h hx) },
+      have := lt_of_mul_lt_mul_left' (mul_lt_of_mul_lt_right h hx),
+      exact mem_of_mem_of_subset this hW, },
   end,
   ..(by apply_instance : topological_division_ring K) }

@@ -990,11 +990,9 @@ include M₀'
 
 lemma eq_on_inv₀ (f g : F') (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
 begin
-  rcases eq_or_ne a 0 with rfl|ha, { simp },
-  lift a to units G₀ using is_unit.mk0 a ha,
-  rw [← units.coe_inv],
-  change (f : G₀ →* M₀').comp (units.coe_hom G₀) a⁻¹ = (g : G₀ →* M₀').comp (units.coe_hom G₀) a⁻¹,
-  exact monoid_hom.eq_on_inv h
+  rcases eq_or_ne a 0 with rfl|ha,
+  { rw [inv_zero, map_zero, map_zero] },
+  { exact (is_unit.mk0 a ha).eq_on_inv f g h }
 end
 
 end monoid_with_zero

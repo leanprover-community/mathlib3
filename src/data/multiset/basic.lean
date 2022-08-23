@@ -1070,9 +1070,9 @@ theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a →
 quot.induction_on s (λ l H₁ H₂, congr_arg coe $ pmap_congr l h) H₁ H₂
 
 theorem pmap_congr' {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
-  (s : multiset α) {H₁ H₂} (h : ∀ (a ∈ s) h₁ h₂, f a h₁ = g a h₂) :
-  pmap f s H₁ = pmap g s H₂ :=
-quot.induction_on s (λ l H₁ H₂, congr_arg coe $ pmap_congr' l h) H₁ H₂
+  (s : multiset α) {H₁ H₂} :
+  (∀ (a ∈ s) h₁ h₂, f a h₁ = g a h₂) → pmap f s H₁ = pmap g s H₂ :=
+quot.induction_on s (λ l H₁ H₂ h, congr_arg coe $ pmap_congr' l h) H₁ H₂
 
 theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (s) : ∀ H, map g (pmap f s H) = pmap (λ a h, g (f a h)) s H :=

@@ -44,6 +44,10 @@ lemma mem_prod_eq {p : α × β} : p ∈ s ×ˢ t = (p.1 ∈ s ∧ p.2 ∈ t) :=
 
 lemma mk_mem_prod (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := ⟨ha, hb⟩
 
+instance decidable_mem_prod [hs : decidable_pred (∈ s)] [ht : decidable_pred (∈ t)] :
+  decidable_pred (∈ (s ×ˢ t)) :=
+λ _, and.decidable
+
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
@@ -308,6 +312,9 @@ def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
 
 @[simp] lemma mem_diagonal_iff {x : α × α} : x ∈ diagonal α ↔ x.1 = x.2 := iff.rfl
+
+instance decidable_mem_diagonal [h : decidable_eq α] (x : α × α) : decidable (x ∈ diagonal α) :=
+h x.1 x.2
 
 lemma preimage_coe_coe_diagonal (s : set α) : (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
 by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }

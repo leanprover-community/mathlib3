@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yaël Dillies
 -/
 import topology.sets.closeds
+import topology.quasi_separated
 
 /-!
 # Compact sets
@@ -277,8 +278,13 @@ lemma «open» (s : compact_opens α) : is_open (s : set α) := s.open'
 
 instance : has_sup (compact_opens α) :=
 ⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts, s.open.union t.open⟩⟩
-instance [t2_space α] : has_inf (compact_opens α) :=
-⟨λ s t, ⟨s.to_compacts ⊓ t.to_compacts, s.open.inter t.open⟩⟩
+
+instance [quasi_separated_space α] : has_inf (compact_opens α) :=
+⟨λ U V, ⟨⟨(U : set α) ∩ (V : set α),
+  quasi_separated_space.inter_is_compact U.1.1 V.1.1 U.2 U.1.2 V.2 V.1.2⟩, U.2.inter V.2⟩⟩
+instance [quasi_separated_space α] : semilattice_inf (compact_opens α) :=
+set_like.coe_injective.semilattice_inf _ (λ _ _, rfl)
+
 instance [compact_space α] : has_top (compact_opens α) := ⟨⟨⊤, is_open_univ⟩⟩
 instance : has_bot (compact_opens α) := ⟨⟨⊥, is_open_empty⟩⟩
 instance [t2_space α] : has_sdiff (compact_opens α) :=

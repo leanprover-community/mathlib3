@@ -121,9 +121,10 @@ instance fun_like : fun_like (A →*[n] β) α (λ _, β) :=
 instance freiman_hom_class : freiman_hom_class (A →*[n] β) A β n :=
 { map_prod_eq_map_prod' := map_prod_eq_map_prod' }
 
-/-- Helper instance for when there's too many metavariables to apply
-`fun_like.has_coe_to_fun` directly. -/
-@[to_additive]
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
 instance : has_coe_to_fun (A →*[n] β) (λ _, α → β) := ⟨to_fun⟩
 
 initialize_simps_projections freiman_hom (to_fun → apply)

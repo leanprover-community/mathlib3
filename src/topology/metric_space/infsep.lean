@@ -88,7 +88,7 @@ theorem infesep_pos :
   0 < s.infesep ↔ ∃ C (hC : 0 < C), ∀ (x y ∈ s) (hxy : x ≠ y), C ≤ edist x y :=
 by { rw [pos_iff_ne_zero, ne.def, infesep_zero], simp only [not_forall, not_exists, not_lt] }
 
-lemma infesep_top : s.infesep = ∞ ↔ ∀ x y ∈ s, x ≠ y → edist x y = ∞ :=
+lemma infesep_top : s.infesep = ∞ ↔ ∀ (x y ∈ s) (hxy : x ≠ y), edist x y = ∞ :=
 by simp_rw [infesep, infi_eq_top]
 
 lemma infesep_lt_top : s.infesep < ∞ ↔ ∃ (x y ∈ s) (hxy : x ≠ y), edist x y < ∞ :=
@@ -97,7 +97,7 @@ by simp_rw [infesep, infi_lt_iff]
 lemma infesep_ne_top : s.infesep ≠ ∞ ↔ ∃ (x y ∈ s) (hxy : x ≠ y), edist x y ≠ ∞ :=
 by simp_rw [←lt_top_iff_ne_top, infesep_lt_top]
 
-lemma le_infesep_iff {d} : d ≤ s.infesep ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist x y :=
+lemma le_infesep_iff {d} : d ≤ s.infesep ↔ ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ edist x y :=
 by simp_rw [infesep, le_infi_iff]
 
 lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ (x y ∈ s) (h : x ≠ y), edist x y < d :=
@@ -125,7 +125,7 @@ lemma infesep_le_edist_of_mem {x} (hx : x ∈ s) {y} (hy : y ∈ s) (hxy : x ≠
 lemma infesep_le_of_mem_of_edist_le {d x} (hx : x ∈ s) {y} (hy : y ∈ s) (hxy : x ≠ y)
   (hxy' : edist x y ≤ d) : s.infesep ≤ d := le_trans (infesep_le_edist_of_mem hx hy hxy) hxy'
 
-lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ s.infesep := le_infesep_iff.2 h
+lemma le_infesep {d} (h : ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ edist x y) : d ≤ s.infesep := le_infesep_iff.2 h
 
 @[simp] lemma infesep_empty : (∅ : set α).infesep = ∞ := subsingleton_empty.infesep
 
@@ -251,7 +251,7 @@ theorem infesep_lt_top_iff : s.infesep < ∞ ↔ s.nontrivial :=
 theorem infesep_ne_top_iff : s.infesep ≠ ∞ ↔ s.nontrivial :=
 ⟨nontrivial_of_infesep_ne_top, nontrivial.infesep_ne_top⟩
 
-lemma le_infesep_of_forall_dist_le {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ dist x y) :
+lemma le_infesep_of_forall_dist_le {d} (h : ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y) :
    ennreal.of_real d ≤ s.infesep :=
 le_infesep $
 λ x hx y hy hxy, (edist_dist x y).symm ▸ ennreal.of_real_le_of_real (h x hx y hy hxy)
@@ -338,7 +338,7 @@ open_locale classical
 variables [pseudo_metric_space α] {x y z: α} {s t : set α}
 
 lemma nontrivial.le_infsep_iff {d} (hs : s.nontrivial) :
-d ≤ s.infsep ↔ ∀ x y ∈ s, x ≠ y → d ≤ dist x y :=
+d ≤ s.infsep ↔ ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y :=
 by simp_rw [infsep, ← ennreal.of_real_le_iff_le_to_real (hs.infesep_ne_top), le_infesep_iff,
             edist_dist, ennreal.of_real_le_of_real_iff (dist_nonneg)]
 

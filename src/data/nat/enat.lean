@@ -8,8 +8,12 @@ import data.nat.succ_pred
 
 /-!
 # Definition and basic properties of extended natural numbers
+
+In this file we define `enat` (notation: `ℕ∞`) to be `with_top ℕ` and prove some basic lemmas
+about this type.
 -/
 
+/-- Extended natural numbers `ℕ∞ = with_top ℕ`. -/
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
   linear_order, order_bot, order_top, has_bot, has_top, canonically_linear_ordered_add_monoid,
   has_sub, has_ordered_sub, complete_linear_order, linear_ordered_add_comm_monoid_with_top,
@@ -19,6 +23,8 @@ def enat : Type := with_top ℕ
 notation `ℕ∞` := enat
 
 namespace enat
+
+instance : inhabited ℕ∞ := ⟨0⟩
 
 variables {m n : ℕ∞}
 

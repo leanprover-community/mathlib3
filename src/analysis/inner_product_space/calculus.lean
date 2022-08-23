@@ -338,7 +338,7 @@ section diffeomorph_unit_ball
 
 open metric (hiding mem_nhds_iff)
 
-variables {n : with_top ℕ} {E : Type*} [inner_product_space ℝ E]
+variables {n : ℕ∞} {E : Type*} [inner_product_space ℝ E]
 
 lemma cont_diff_homeomorph_unit_ball :
   cont_diff ℝ n $ λ (x : E), (homeomorph_unit_ball x : E) :=

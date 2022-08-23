@@ -1527,12 +1527,12 @@ by simp [cont_diff_on_univ.symm, continuous_iff_continuous_on_univ,
     cont_diff_on_iff_continuous_on_differentiable_on unique_diff_on_univ]
 
 /-- If `f` is `C^n` then its `m`-times iterated derivative is continuous for `m ≤ n`. -/
-lemma cont_diff.continuous_iterated_fderiv {m : ℕ} (hm : (m : with_top ℕ) ≤ n)
+lemma cont_diff.continuous_iterated_fderiv {m : ℕ} (hm : (m : ℕ∞) ≤ n)
   (hf : cont_diff 𝕜 n f) : continuous (λ x, iterated_fderiv 𝕜 m f x) :=
 (cont_diff_iff_continuous_differentiable.mp hf).1 m hm
 
 /-- If `f` is `C^n` then its `m`-times iterated derivative is differentiable for `m < n`. -/
-lemma cont_diff.differentiable_iterated_fderiv {m : ℕ} (hm : (m : with_top ℕ) < n)
+lemma cont_diff.differentiable_iterated_fderiv {m : ℕ} (hm : (m : ℕ∞) < n)
   (hf : cont_diff 𝕜 n f) : differentiable 𝕜 (λ x, iterated_fderiv 𝕜 m f x) :=
 (cont_diff_iff_continuous_differentiable.mp hf).2 m hm
 
@@ -2415,7 +2415,7 @@ begin
   induction i with i hi generalizing x,
   { ext h, simp },
   { ext h,
-    have hi' : (i : with_top ℕ) < i+1 :=
+    have hi' : (i : ℕ∞) < i+1 :=
       with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
     have hdf : differentiable_on 𝕜 (iterated_fderiv_within 𝕜 i f s) s :=
       hf.differentiable_on_iterated_fderiv_within hi' hu,
@@ -2484,7 +2484,7 @@ begin
   induction i with i hi generalizing x,
   { ext h, simp },
   { ext h,
-    have hi' : (i : with_top ℕ) < i+1 :=
+    have hi' : (i : ℕ∞) < i+1 :=
       with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
     calc iterated_fderiv_within 𝕜 (i+1) (-f) s x h
         = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (-f) s) s x (h 0) (fin.tail h) : rfl
@@ -2746,7 +2746,7 @@ begin
   induction i with i hi generalizing x,
   { ext, simp },
   { ext h,
-    have hi' : (i : with_top ℕ) < i+1 :=
+    have hi' : (i : ℕ∞) < i+1 :=
       with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
     have hdf : differentiable_on 𝕜 (iterated_fderiv_within 𝕜 i f s) s :=
       hf.differentiable_on_iterated_fderiv_within hi' hu,

@@ -1552,7 +1552,7 @@ variables (Z : basic_smooth_vector_bundle_core I M E')
 /-- A version of `cont_mdiff_at_iff_target` when the codomain is the total space of
   a `basic_smooth_vector_bundle_core`. The continuity condition in the RHS is weaker. -/
 lemma cont_mdiff_at_iff_target {f : N → Z.to_topological_vector_bundle_core.total_space}
-  {x : N} {n : with_top ℕ} :
+  {x : N} {n : ℕ∞} :
   cont_mdiff_at J (I.prod 𝓘(𝕜, E')) n f x ↔ continuous_at (bundle.total_space.proj ∘ f) x ∧
     cont_mdiff_at J 𝓘(𝕜, E × E') n (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
 begin

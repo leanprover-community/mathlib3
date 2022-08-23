@@ -14,6 +14,7 @@ import data.fintype.basic
 import data.opposite
 
 import .mathlib
+import .subfunctors
 
 universes u v w
 
@@ -138,6 +139,19 @@ begin
     rw ←subtype.coe_inj,
     simp only [category_theory.functor.map_comp, set.maps_to.coe_restrict_apply, category_theory.types_comp_apply],},
 end
+
+def to_surjective' (F : J ⥤ Type v) : J ⥤ Type v :=
+  F.subfunctor
+  (λ j, ⋂ (i : {i | i ≤ j}), set.range (F.map  (hom_of_le i.prop)))
+  (by { rintro i j hij,
+    rintro x h s ⟨⟨k, _⟩, rfl⟩,
+    obtain ⟨l,lk,li⟩ := directed_of ge k i,
+    rw set.mem_Inter at h,
+    obtain ⟨y,rfl⟩ := h ⟨l, li⟩,
+    use F.map (hom_of_le lk) y,
+    rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
+    refl, })
+
 
 lemma to_surjective.subfunctor :
   ∀ (i j : J) (ij : i ⟶ j), subtype.simps.coe ∘ (to_surjective F).map ij = (F.map ij) ∘ subtype.simps.coe :=

@@ -360,13 +360,19 @@ begin
 end
 
 
+def conn_comp_outside_back.inf_to_inf {K L : set V} {G : simple_graph V} (h : K ⊆ L) (C : conn_comp_outside G L) (hinf : C.verts.infinite) : (conn_comp_outside_back h C).verts.infinite :=
+begin
+  apply infinite.mono, rw [← conn_comp_outside_back.unique'],
+  refine (infinite_image_iff _).mpr hinf,
+  refine inj_on_of_injective _ _,
+  obviously,
+end
+
+lemma inf_conn_comp_outside.iff_in_all_range : ∀ (K : (finset V)) (C : conn_comp_outside G K),
+    C.verts.infinite ↔ ∀ (L : finset V) (h : K ⊆ L), C ∈ set.range (@conn_comp_outside_back _ _ _ G h) := sorry
+
 def inf_conn_comp_outside_back {K L : set V} {G : simple_graph V} (h : K ⊆ L) : G.inf_conn_comp_outside L → G.inf_conn_comp_outside K :=
-  λ ⟨C, hinf⟩, ⟨conn_comp_outside_back h C, by {
-    apply infinite.mono, rw [← conn_comp_outside_back.unique'],
-    refine (infinite_image_iff _).mpr hinf,
-    refine inj_on_of_injective _ C.verts,
-    -- using `obviously` or `tidy` here gives a weird error
-    rintros ⟨_, _, _⟩ ⟨_, _, _⟩, simp [vertex_coe], }⟩
+  λ ⟨C, hinf⟩, ⟨conn_comp_outside_back h C, conn_comp_outside_back.inf_to_inf h C hinf⟩
 
 lemma inf_conn_comp_outside_back.def {K L : set V} {G : simple_graph V} (h : K ⊆ L) : ∀ (C : G.inf_conn_comp_outside L), (inf_conn_comp_outside_back h C).val = conn_comp_outside_back h C.val := by {rintro ⟨_, _⟩, refl,}
 

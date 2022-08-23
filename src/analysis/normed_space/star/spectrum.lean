@@ -99,11 +99,11 @@ end
 /-- Any element of the spectrum of a selfadjoint is real. -/
 theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A]
   (a : self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ (a : A)) : z = z.re :=
-a.property.mem_spectrum_eq_re hz
+a.prop.mem_spectrum_eq_re hz
 
 /-- The spectrum of a selfadjoint is real -/
 theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
-  (ha : a ∈ self_adjoint A) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
+  (ha : is_self_adjoint a) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
 le_antisymm (λ z hz, ⟨z, hz, (ha.mem_spectrum_eq_re hz).symm⟩) (λ z, by
   { rintros ⟨z, hz, rfl⟩,
     simpa only [(ha.mem_spectrum_eq_re hz).symm, function.comp_app] using hz })

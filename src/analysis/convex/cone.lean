@@ -16,7 +16,7 @@ images (`convex_cone.map`) and preimages (`convex_cone.comap`) under linear maps
 We define pointed, blunt, flat and salient cones, and prove the correspondence between
 convex cones and ordered modules.
 
-We also define `convex.to_cone` to be the minimal cone that includes a given convex set.
+We define `convex.to_cone` to be the minimal cone that includes a given convex set.
 
 We define `set.inner_dual_cone` to be the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`.
@@ -36,6 +36,18 @@ We prove two extension theorems:
   then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
   for all `x`
 
+We prove the following theorems:
+* `hyperplane_separation_point_nonempty_closed_convex_cone`:
+  This variant of the
+  [hyperplane separation theorem](https://en.wikipedia.org/wiki/Hyperplane_separation_theorem)
+  states that given a nonempty, closed, convex cone `K` in a complete, real inner product space `H`
+  and a point `b` disjoint from it, there is a vector `y` which separates `b` from `K` in the sense
+  that for all points `x` in `K`, `0 ≤ ⟪x, y⟫_ℝ` and `⟪y, b⟫_ℝ < 0`. This is also a geometric
+  interpretation of the
+  [Farkas lemma](https://en.wikipedia.org/wiki/Farkas%27_lemma#Geometric_interpretation).
+* `inner_dual_cone_of_inner_dual_cone_eq_self`:
+  The `inner_dual_cone` of a the `inner_dual_cone` of a nonempty, closed, convex cone is itself.
+
 ## Implementation notes
 
 While `convex 𝕜` is a predicate on sets, `convex_cone 𝕜 E` is a bundled convex cone.
@@ -43,6 +55,8 @@ While `convex 𝕜` is a predicate on sets, `convex_cone 𝕜 E` is a bundled co
 ## References
 
 * https://en.wikipedia.org/wiki/Convex_cone
+* https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
+* https://en.wikipedia.org/wiki/Farkas%27_lemma#Geometric_interpretation
 -/
 
 

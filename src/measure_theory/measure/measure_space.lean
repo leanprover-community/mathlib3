@@ -1414,6 +1414,14 @@ begin
     outer_measure.restrict_apply]
 end
 
+lemma exists_mem_of_measure_ne_zero_of_ae (hs : μ s ≠ 0)
+  {p : α → Prop} (hp : ∀ᵐ x ∂μ.restrict s, p x) :
+  ∃ x, x ∈ s ∧ p x :=
+begin
+  rw [← μ.restrict_apply_self, ← frequently_ae_mem_iff] at hs,
+  exact (hs.and_eventually hp).exists,
+end
+
 /-! ### Extensionality results -/
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets

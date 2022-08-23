@@ -1043,18 +1043,18 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
   smul_comm_class (set α) (set β) (set γ) :=
 ⟨λ _ _ _, image2_left_comm smul_comm⟩
 
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α β (set γ) :=
 { smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
 
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (set β) (set γ) :=
 ⟨λ _ _ _, image2_image_left_comm $ smul_assoc _⟩
 
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
@@ -1194,23 +1194,6 @@ end vsub
 
 open_locale pointwise
 
-section ring
-variables [ring α] [add_comm_group β] [module α β] {s : set α} {t : set β} {a : α}
-
-@[simp] lemma neg_smul_set : -a • t = -(a • t) :=
-by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
-
-@[simp] lemma smul_set_neg : a • -t = -(a • t) :=
-by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
-
-@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
-by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
-
-@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
-by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
-
-end ring
-
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}
 
@@ -1236,7 +1219,7 @@ lemma zero_smul_set_subset (s : set β) : (0 : α) • s ⊆ 0 :=
 image_subset_iff.2 $ λ x _, zero_smul α x
 
 lemma subsingleton_zero_smul_set (s : set β) : ((0 : α) • s).subsingleton :=
-subsingleton_singleton.mono $ zero_smul_set_subset s
+subsingleton_singleton.anti $ zero_smul_set_subset s
 
 lemma zero_mem_smul_set {t : set β} {a : α} (h : (0 : β) ∈ t) : (0 : β) ∈ a • t :=
 ⟨0, h, smul_zero' _ _⟩
@@ -1268,7 +1251,7 @@ section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}
 
 @[to_additive] lemma pairwise_disjoint_smul_iff :
-  s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+  s.pairwise_disjoint (• t) ↔ (s ×ˢ t).inj_on (λ p, p.1 * p.2) :=
 pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
 
 end left_cancel_semigroup
@@ -1351,6 +1334,28 @@ eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
 
 end group_with_zero
 
+section monoid
+variables [monoid α] [add_group β] [distrib_mul_action α β] (a : α) (s : set α) (t : set β)
+
+@[simp] lemma smul_set_neg : a • -t = -(a • t) :=
+by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
+
+@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
+by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
+
+end monoid
+
+section ring
+variables [ring α] [add_comm_group β] [module α β] (a : α) (s : set α) (t : set β)
+
+@[simp] lemma neg_smul_set : -a • t = -(a • t) :=
+by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
+
+@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
+by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
+
+end ring
+
 end set
 
 /-! ### Miscellaneous -/
@@ -1395,6 +1400,7 @@ le_antisymm
     (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
+@[to_additive]
 lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
   [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
   ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=

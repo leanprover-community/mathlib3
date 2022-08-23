@@ -160,8 +160,7 @@ section module
 variables [module 𝕜 E] (S : convex_cone 𝕜 E)
 
 protected lemma convex : convex 𝕜 (S : set E) :=
-convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
-  S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
+convex_iff_forall_pos.2 $ λ x hx y hy a b ha hb _, S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
 
 end module
 end ordered_semiring
@@ -207,6 +206,8 @@ def comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : convex_cone 𝕜 E :
 { carrier := f ⁻¹' S,
   smul_mem' := λ c hc x hx, by { rw [mem_preimage, f.map_smul c], exact S.smul_mem hc hx },
   add_mem' := λ x hx y hy, by { rw [mem_preimage, f.map_add], exact S.add_mem hx hy } }
+
+@[simp] lemma coe_comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : (S.comap f : set E) = f ⁻¹' S := rfl
 
 @[simp] lemma comap_id (S : convex_cone 𝕜 E) : S.comap linear_map.id = S :=
 set_like.coe_injective preimage_id
@@ -479,7 +480,7 @@ variables [add_comm_group E] [module ℝ E]
 
 namespace riesz_extension
 open submodule
-variables (s : convex_cone ℝ E) (f : linear_pmap ℝ E ℝ)
+variables (s : convex_cone ℝ E) (f : E →ₗ.[ℝ] ℝ)
 
 /-- Induction step in M. Riesz extension theorem. Given a convex cone `s` in a vector space `E`,
 a partially defined linear map `f : f.domain → ℝ`, assume that `f` is nonnegative on `f.domain ∩ p`
@@ -537,7 +538,7 @@ begin
         mul_inv_cancel hr.ne', one_mul] at this } }
 end
 
-theorem exists_top (p : linear_pmap ℝ E ℝ)
+theorem exists_top (p : E →ₗ.[ℝ] ℝ)
   (hp_nonneg : ∀ x : p.domain, (x : E) ∈ s → 0 ≤ p x)
   (hp_dense : ∀ y, ∃ x : p.domain, (x : E) + y ∈ s) :
   ∃ q ≥ p, q.domain = ⊤ ∧ ∀ x : q.domain, (x : E) ∈ s → 0 ≤ q x :=
@@ -568,7 +569,7 @@ end riesz_extension
 and a linear `f : p → ℝ`, assume that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then
 there exists a globally defined linear function `g : E → ℝ` that agrees with `f` on `p`,
 and is nonnegative on `s`. -/
-theorem riesz_extension (s : convex_cone ℝ E) (f : linear_pmap ℝ E ℝ)
+theorem riesz_extension (s : convex_cone ℝ E) (f : E →ₗ.[ℝ] ℝ)
   (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x) (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) :
   ∃ g : E →ₗ[ℝ] ℝ, (∀ x : f.domain, g x = f x) ∧ (∀ x ∈ s, 0 ≤ g x) :=
 begin
@@ -584,7 +585,7 @@ end
 defined on a subspace of `E`, and `f x ≤ N x` for all `x` in the domain of `f`,
 then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
 for all `x`. -/
-theorem exists_extension_of_le_sublinear (f : linear_pmap ℝ E ℝ) (N : E → ℝ)
+theorem exists_extension_of_le_sublinear (f : E →ₗ.[ℝ] ℝ) (N : E → ℝ)
   (N_hom : ∀ (c : ℝ), 0 < c → ∀ x, N (c • x) = c * N x)
   (N_add : ∀ x y, N (x + y) ≤ N x + N y)
   (hf : ∀ x : f.domain, f x ≤ N x) :
@@ -640,8 +641,8 @@ def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
     exact add_nonneg (hu x hx) (hv x hx)
   end }
 
-lemma mem_inner_dual_cone (y : H) (s : set H) :
-  y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := by refl
+@[simp] lemma mem_inner_dual_cone (y : H) (s : set H) :
+  y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := iff.rfl
 
 @[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
 eq_top_iff.mpr $ λ x hy y, false.elim
@@ -687,5 +688,22 @@ by simp_rw [Inf_image, sUnion_eq_bUnion, inner_dual_cone_Union]
 lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 by rw [←convex_cone.coe_infi, ←inner_dual_cone_Union, Union_of_singleton_coe]
+
+lemma is_closed_inner_dual_cone : is_closed (s.inner_dual_cone : set H) :=
+begin
+  -- reduce the problem to showing that dual cone of a singleton `{x}` is closed
+  rw inner_dual_cone_eq_Inter_inner_dual_cone_singleton,
+  apply is_closed_Inter,
+  intros x,
+
+  -- the dual cone of a singleton `{x}` is the preimage of `[0, ∞)` under `inner x`
+  have h : ↑({x} : set H).inner_dual_cone = (inner x : H → ℝ) ⁻¹' set.Ici 0,
+  { rw [inner_dual_cone_singleton, convex_cone.coe_comap, convex_cone.coe_positive,
+      innerₛₗ_apply_coe] },
+
+  -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
+  rw h,
+  exact is_closed_Ici.preimage (by continuity),
+end
 
 end dual

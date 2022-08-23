@@ -403,7 +403,7 @@ by unfold degree; rw support_neg
 by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : R[X]) = 0 :=
-by simp only [←C_eq_int_cast, nat_degree_C]
+by rw [←C_eq_int_cast, nat_degree_C]
 
 @[simp] lemma leading_coeff_neg (p : R[X]) : (-p).leading_coeff = -p.leading_coeff :=
 by rw [leading_coeff, leading_coeff, nat_degree_neg, coeff_neg]
@@ -838,12 +838,6 @@ begin
     { rw [←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],
       exact coeff_mul_degree_add_degree _ _ } }
 end
-
-lemma subsingleton_of_monic_zero (h : monic (0 : R[X])) :
-  (∀ p q : R[X], p = q) ∧ (∀ a b : R, a = b) :=
-by rw [monic.def, leading_coeff_zero] at h;
-  exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
-    λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
 
 lemma zero_le_degree_iff {p : R[X]} : 0 ≤ degree p ↔ p ≠ 0 :=
 by rw [ne.def, ← degree_eq_bot];

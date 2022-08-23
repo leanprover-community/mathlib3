@@ -388,102 +388,6 @@ l.induction_on $ by intro; simp only [list_val.append_mk,
 
 section list_blank
 
--- /-- The `blank_extends` partial order holds of `l₁` and `l₂` if `l₂` is obtained by adding
--- blanks (`default : Γ`) to the end of `l₁`. -/
--- def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
--- ∃ n, l₂ = l₁ ++ list.repeat default n
-
--- @[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
--- ⟨0, by simp⟩
-
--- @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
---   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
--- by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.repeat_add]⟩ }
-
--- theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
---   blank_extends l l₁ → blank_extends l l₂ →
---   l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
--- begin
---   rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
---   simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
---   simp only [← list.repeat_add, add_tsub_cancel_of_le h, list.append_assoc],
--- end
-
--- /-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
--- longer of `l₁` and `l₂`). -/
--- def blank_extends.above {Γ} [inhabited Γ] {l l₁ l₂ : list Γ}
---   (h₁ : blank_extends l l₁) (h₂ : blank_extends l l₂) :
---   {l' // blank_extends l₁ l' ∧ blank_extends l₂ l'} :=
--- if h : l₁.length ≤ l₂.length then
---   ⟨l₂, h₁.below_of_le h₂ h, blank_extends.refl _⟩
--- else
---   ⟨l₁, blank_extends.refl _, h₂.below_of_le h₁ (le_of_not_ge h)⟩
-
--- theorem blank_extends.above_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
---   blank_extends l₁ l → blank_extends l₂ l →
---   l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
--- begin
---   rintro ⟨i, rfl⟩ ⟨j, e⟩ h, use i - j,
---   refine list.append_right_cancel (e.symm.trans _),
---   rw [list.append_assoc, ← list.repeat_add, tsub_add_cancel_of_le],
---   apply_fun list.length at e,
---   simp only [list.length_append, list.length_repeat] at e,
---   rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
--- end
-
--- /-- `blank_rel` is the symmetric closure of `blank_extends`, turning it into an equivalence
--- relation. Two lists are related by `blank_rel` if one extends the other by blanks. -/
--- def blank_rel {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
--- blank_extends l₁ l₂ ∨ blank_extends l₂ l₁
-
--- @[refl] theorem blank_rel.refl {Γ} [inhabited Γ] (l : list Γ) : blank_rel l l :=
--- or.inl (blank_extends.refl _)
-
--- @[symm] theorem blank_rel.symm {Γ} [inhabited Γ] {l₁ l₂ : list Γ} :
---   blank_rel l₁ l₂ → blank_rel l₂ l₁ := or.symm
-
--- @[trans] theorem blank_rel.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
---   blank_rel l₁ l₂ → blank_rel l₂ l₃ → blank_rel l₁ l₃ :=
--- begin
---   rintro (h₁|h₁) (h₂|h₂),
---   { exact or.inl (h₁.trans h₂) },
---   { cases le_total l₁.length l₃.length with h h,
---     { exact or.inl (h₁.above_of_le h₂ h) },
---     { exact or.inr (h₂.above_of_le h₁ h) } },
---   { cases le_total l₁.length l₃.length with h h,
---     { exact or.inl (h₁.below_of_le h₂ h) },
---     { exact or.inr (h₂.below_of_le h₁ h) } },
---   { exact or.inr (h₂.trans h₁) },
--- end
-
--- /-- Given two `blank_rel` lists, there exists (constructively) a common join. -/
--- def blank_rel.above {Γ} [inhabited Γ] {l₁ l₂ : list Γ} (h : blank_rel l₁ l₂) :
---   {l // blank_extends l₁ l ∧ blank_extends l₂ l} :=
--- begin
---   refine if hl : l₁.length ≤ l₂.length
---     then ⟨l₂, or.elim h id (λ h', _), blank_extends.refl _⟩
---     else ⟨l₁, blank_extends.refl _, or.elim h (λ h', _) id⟩,
---   exact (blank_extends.refl _).above_of_le h' hl,
---   exact (blank_extends.refl _).above_of_le h' (le_of_not_ge hl)
--- end
-
--- /-- Given two `blank_rel` lists, there exists (constructively) a common meet. -/
--- def blank_rel.below {Γ} [inhabited Γ] {l₁ l₂ : list Γ} (h : blank_rel l₁ l₂) :
---   {l // blank_extends l l₁ ∧ blank_extends l l₂} :=
--- begin
---   refine if hl : l₁.length ≤ l₂.length
---     then ⟨l₁, blank_extends.refl _, or.elim h id (λ h', _)⟩
---     else ⟨l₂, or.elim h (λ h', _) id, blank_extends.refl _⟩,
---   exact (blank_extends.refl _).above_of_le h' hl,
---   exact (blank_extends.refl _).above_of_le h' (le_of_not_ge hl)
--- end
-
--- theorem blank_rel.equivalence (Γ) [inhabited Γ] : equivalence (@blank_rel Γ _) :=
--- ⟨blank_rel.refl, @blank_rel.symm _ _, @blank_rel.trans _ _⟩
-
--- /-- Construct a setoid instance for `blank_rel`. -/
--- def blank_rel.setoid (Γ) [inhabited Γ] : setoid (list Γ) := ⟨_, blank_rel.equivalence _⟩
-
 /-- A `list_blank Γ` is a quotient of `list Γ` by extension by blanks at the end. This is used to
 represent half-tapes of a Turing machine, so that we can pretend that the list continues
 infinitely with blanks. -/
@@ -491,13 +395,6 @@ def list_blank (Γ) [inhabited Γ] := list_val Γ default
 
 instance list_blank.inhabited {Γ} [inhabited Γ] : inhabited (list_blank Γ) := ⟨quotient.mk' []⟩
 instance list_blank.has_emptyc {Γ} [inhabited Γ] : has_emptyc (list_blank Γ) := ⟨quotient.mk' []⟩
-
--- /-- A modified version of `quotient.lift_on'` specialized for `list_blank`, with the stronger
--- precondition `blank_extends` instead of `blank_rel`. -/
--- @[elab_as_eliminator, reducible]
--- protected def list_blank.lift_on {Γ} [inhabited Γ] {α} (l : list_blank Γ) (f : list Γ → α)
---   (H : ∀ a b, blank_extends a b → f a = f b) : α :=
--- l.lift_on' f $ by rintro a b (h|h); [exact H _ _ h, exact (H _ _ h).symm]
 
 /-- The quotient map turning a `list` into a `list_blank`. -/
 def list_blank.mk {Γ} [inhabited Γ] : list Γ → list_blank Γ := quotient.mk'

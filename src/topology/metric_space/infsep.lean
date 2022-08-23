@@ -342,17 +342,28 @@ d ≤ s.infsep ↔ ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y :=
 by simp_rw [infsep, ← ennreal.of_real_le_iff_le_to_real (hs.infesep_ne_top), le_infesep_iff,
             edist_dist, ennreal.of_real_le_of_real_iff (dist_nonneg)]
 
-lemma nontrivial.le_infsep_of_forall_le_dist {d : ℝ} (hs : s.nontrivial)
-  (h : ∀ x y ∈ s, x ≠ y → d ≤ dist x y) : d ≤ s.infsep := hs.le_infsep_iff.2 h
+lemma nontrivial.infsep_lt_iff {d} (hs : s.nontrivial) :
+s.infsep < d ↔ ∃ (x y ∈ s) (hxy : x ≠ y), dist x y < d :=
+by { rw ← not_iff_not, push_neg, exact hs.le_infsep_iff }
+
+lemma nontrivial.le_infsep {d} (hs : s.nontrivial) (h : ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y) :
+  d ≤ s.infsep := hs.le_infsep_iff.2 h
+
+lemma le_edist_of_le_infsep {d x} (hx : x ∈ s) {y} (hy : y ∈ s)
+  (hxy : x ≠ y) (hd : d ≤ s.infsep) : d ≤ dist x y :=
+begin
+  by_cases hs : s.nontrivial,
+  { exact hs.le_infsep_iff.1 hd x hx y hy hxy },
+  { rw not_nontrivial_iff at hs,
+    rw hs.infsep at hd,
+    exact le_trans hd dist_nonneg }
+end
 
 lemma infsep_le_dist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.infsep ≤ dist x y :=
-begin
-  by_cases hs : s.infesep = ∞,
-  { rw infesep_eq_top_iff at hs,
-    exact false.elim (hxy $ hs hx hy) },
-  { rw [infsep, dist_edist, ennreal.to_real_le_to_real hs (edist_ne_top _ _)],
-    exact infesep_le_edist_of_mem hx hy hxy }
-end
+le_edist_of_le_infsep hx hy hxy le_rfl
+
+lemma infsep_le_of_mem_of_edist_le {d x} (hx : x ∈ s) {y} (hy : y ∈ s) (hxy : x ≠ y)
+  (hxy' : dist x y ≤ d) : s.infsep ≤ d := le_trans (infsep_le_dist_of_mem hx hy hxy) hxy'
 
 lemma infsep_pair : ({x, y} : set α).infsep = dist x y :=
 by { rw [infsep_pair_eq_to_real, edist_dist], exact ennreal.to_real_of_real (dist_nonneg) }

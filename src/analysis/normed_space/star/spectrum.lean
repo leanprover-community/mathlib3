@@ -126,7 +126,7 @@ variables {F A B : Type*}
 [star_alg_hom_class F ℂ A B] (φ : F)
 
 /-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
-lemma norm_apply_le (a : A) : ∥(φ a : B)∥₊ ≤ ∥a∥₊ :=
+lemma nnnorm_apply_le (a : A) : ∥(φ a : B)∥₊ ≤ ∥a∥₊ :=
 begin
   suffices : ∀ s : A, is_self_adjoint s → ∥φ s∥₊ ≤ ∥s∥₊,
   { exact nonneg_le_nonneg_of_sq_le_sq zero_le'

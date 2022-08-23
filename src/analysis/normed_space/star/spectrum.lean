@@ -18,20 +18,6 @@ local postfix `⋆`:std.prec.max_plus := star
 open_locale topological_space ennreal
 open filter ennreal spectrum cstar_ring
 
--- what, we don't have this?
-lemma is_self_adjoint.star_mul_self {R : Type*} [semigroup R] [star_semigroup R] (r : R) :
-  is_self_adjoint (r⋆ * r) :=
-by simp only [is_self_adjoint, star_mul, star_star]
-
-lemma is_self_adjoint.mul_star_self {R : Type*} [semigroup R] [star_semigroup R] (r : R) :
-  is_self_adjoint (r * r⋆) :=
-by simpa only [star_star] using is_self_adjoint.star_mul_self r⋆
-
--- this holds just for `star_hom_class`s and `star_ring_hom`s, but we don't have that.
-lemma is_self_adjoint.star_hom {F R S : Type*} [has_star R] [has_star S]
-  [star_hom_class F R S] {r : R} (hr : is_self_adjoint r) (f : F) : is_self_adjoint (f r) :=
-show (f r)⋆ = f r, from map_star f r ▸ congr_arg f hr
-
 section comm_semiring
 
 variables {F R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]

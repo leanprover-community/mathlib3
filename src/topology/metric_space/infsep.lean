@@ -29,26 +29,37 @@ begin
 end
 
 lemma finset.off_diag_nonempty_iff [decidable_eq α] {s : finset α} :
-  s.off_diag.nonempty ↔ ∃ x y, x ∈ s ∧ y ∈ s ∧ x ≠ y :=
-by simp_rw [finset.nonempty, finset.mem_off_diag, prod.exists]
+  (s : set α).nontrivial ↔ s.off_diag.nonempty :=
+by simp_rw [set.nontrivial, finset.nonempty, finset.mem_off_diag, finset.mem_coe,
+            prod.exists, exists_and_distrib_left, exists_prop]
 
-lemma finset.off_diag_nonempty_of_exists_ne [decidable_eq α] {s : finset α} {x} (hx : x ∈ s)
-  {y} (hy : y ∈ s) (hxy : x ≠ y) : s.off_diag.nonempty :=
-finset.off_diag_nonempty_iff.mpr ⟨_, _, hx, hy, hxy⟩
+lemma set.nontrivial_iff_to_finset_off_diag_nonempty [decidable_eq α] {s : set α} [fintype s]
+  : s.to_finset.off_diag.nonempty ↔ s.nontrivial :=
+by simp_rw [set.nontrivial, finset.nonempty, finset.mem_off_diag, set.mem_to_finset,
+           prod.exists, exists_and_distrib_left, exists_prop]
 
-@[simp] lemma ennreal.to_real_min {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞) :
+lemma set.nontrivial.to_finset_off_diag_nonempty [decidable_eq α] {s : set α}
+  [fintype s] (hs : s.nontrivial) : s.to_finset.off_diag.nonempty :=
+set.nontrivial_iff_to_finset_off_diag_nonempty.mpr hs
+
+lemma set.finite.nontrivial_iff_to_finset_off_diag_nonempty [decidable_eq α] {s : set α}
+  (hs : s.finite) : hs.to_finset.off_diag.nonempty ↔ s.nontrivial :=
+by { letI := hs.fintype, exact set.nontrivial_iff_to_finset_off_diag_nonempty }
+
+lemma set.finite.to_finset_off_diag_nonempty_of_nontrivial [decidable_eq α] {s : set α}
+  (hsf : s.finite) (hs : s.nontrivial) : hsf.to_finset.off_diag.nonempty :=
+hsf.nontrivial_iff_to_finset_off_diag_nonempty.mpr hs
+
+lemma ennreal.to_real_min {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞) :
   ennreal.to_real (min a b) = min (ennreal.to_real a) (ennreal.to_real b) :=
 (le_total a b).elim
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, min_eq_left])
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, min_eq_right])
 
-lemma ennreal.to_real_sup {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
-  : (a ⊔ b).to_real = a.to_real ⊔ b.to_real :=
-by simp_rw [sup_eq_max, ennreal.to_real_max hr hp]
-
-@[simp] lemma ennreal.to_real_inf {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
+lemma ennreal.to_real_inf {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
   : (a ⊓ b).to_real = a.to_real ⊓ b.to_real :=
 by simp_rw [inf_eq_min, ennreal.to_real_min hr hp]
+
 
 end extras
 
@@ -63,44 +74,68 @@ noncomputable def infesep [has_edist α] (s : set α) : ℝ≥0∞ :=
 ⨅ (x ∈ s) (y ∈ s) (hxy : x ≠ y), edist x y
 
 section has_edist
-variables [has_edist α] {x y : α} {s : set α}
+variables [has_edist α] {x y : α} {s t : set α}
+
+theorem infesep_zero :
+  s.infesep = 0 ↔ ∀ C (hC : 0 < C), ∃ (x y ∈ s) (hxy : x ≠ y), edist x y < C :=
+by simp_rw [infesep, ← bot_eq_zero, infi_eq_bot, infi_lt_iff]
+
+theorem infesep_pos :
+  0 < s.infesep ↔ ∃ C (hC : 0 < C), ∀ (x y ∈ s) (hxy : x ≠ y), C ≤ edist x y :=
+by { rw [pos_iff_ne_zero, ne.def, infesep_zero], simp only [not_forall, not_exists, not_lt] }
+
+lemma infesep_top : s.infesep = ∞ ↔ ∀ x y ∈ s, x ≠ y → edist x y = ∞ :=
+by simp_rw [infesep, infi_eq_top]
+
+lemma infesep_lt_top : s.infesep < ∞ ↔ ∃ (x y ∈ s) (hxy : x ≠ y), edist x y < ∞ :=
+by simp_rw [infesep, infi_lt_iff]
+
+lemma infesep_ne_top : s.infesep ≠ ∞ ↔ ∃ (x y ∈ s) (hxy : x ≠ y), edist x y ≠ ∞ :=
+by simp_rw [←lt_top_iff_ne_top, infesep_lt_top]
 
 lemma le_infesep_iff {d} : d ≤ s.infesep ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist x y :=
 by simp_rw [infesep, le_infi_iff]
+
+lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ (x y ∈ s) (h : x ≠ y), edist x y < d :=
+by simp_rw [infesep, infi_lt_iff]
+
+lemma nontrivial_of_infesep_lt_top (hs : s.infesep < ∞) : s.nontrivial :=
+by { rcases infesep_lt_top.1 hs with ⟨_, hx, _, hy, hxy, _⟩, exact ⟨_, hx, _, hy, hxy⟩ }
+
+lemma nontrivial_of_infesep_ne_top (hs : s.infesep ≠ ∞) : s.nontrivial :=
+nontrivial_of_infesep_lt_top (lt_top_iff_ne_top.mpr hs)
+
+lemma subsingleton.infesep (hs : s.subsingleton) : s.infesep = ∞ :=
+by { rw infesep_top, exact λ _ hx _ hy hxy, (hxy $ hs hx hy).elim }
 
 lemma le_infesep_image_iff {d} {f : β → α} {s : set β} :
   d ≤ infesep (f '' s) ↔ ∀ x y ∈ s, f x ≠ f y → d ≤ edist (f x) (f y) :=
 by simp_rw [le_infesep_iff, ball_image_iff]
 
-lemma le_edist_of_le_infesep {d} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) (hd : d ≤ s.infesep) :
-  d ≤ edist x y := le_infesep_iff.1 hd x hx y hy hxy
+lemma le_edist_of_le_infesep {d x} (hx : x ∈ s) {y} (hy : y ∈ s) (hxy : x ≠ y)
+  (hd : d ≤ s.infesep) : d ≤ edist x y := le_infesep_iff.1 hd x hx y hy hxy
 
-lemma infesep_le_edist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.infesep ≤ edist x y :=
-le_edist_of_le_infesep hx hy hxy le_rfl
+lemma infesep_le_edist_of_mem {x} (hx : x ∈ s) {y} (hy : y ∈ s) (hxy : x ≠ y) :
+  s.infesep ≤ edist x y := le_edist_of_le_infesep hx hy hxy le_rfl
+
+lemma infesep_le_of_mem_of_edist_le {d x} (hx : x ∈ s) {y} (hy : y ∈ s) (hxy : x ≠ y)
+  (hxy' : edist x y ≤ d) : s.infesep ≤ d := le_trans (infesep_le_edist_of_mem hx hy hxy) hxy'
 
 lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ s.infesep := le_infesep_iff.2 h
 
-lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ (x y ∈ s) (h : x ≠ y), edist x y < d :=
-by simp_rw [infesep, infi_lt_iff]
+@[simp] lemma infesep_empty : (∅ : set α).infesep = ∞ := subsingleton_empty.infesep
 
-lemma infesep_subsingleton (hs : s.subsingleton) : s.infesep = ∞ :=
-eq_top_iff.2 (le_infesep (λ x hx y hy hxy, false.elim (hxy (hs hx hy))))
-
-@[simp] lemma infesep_empty : (∅ : set α).infesep = ∞ :=
-infesep_subsingleton subsingleton_empty
-
-@[simp] lemma infesep_singleton : ({x} : set α).infesep = ∞ :=
-infesep_subsingleton subsingleton_singleton
+@[simp] lemma infesep_singleton : ({x} : set α).infesep = ∞ := subsingleton_singleton.infesep
 
 lemma infesep_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
   (⋃ i ∈ o, s i).infesep = ⨅ i ∈ o, (s i).infesep := by cases o; simp
 
-lemma infesep_anti : @antitone (set α) _ _ _ infesep :=
-λ s t h, le_infesep $ λ x hx y hy, infesep_le_edist_of_mem (h hx) (h hy)
+lemma infesep_anti (hst : s ⊆ t) : t.infesep ≤ s.infesep :=
+le_infesep $ λ x hx y hy, infesep_le_edist_of_mem (hst hx) (hst hy)
 
 lemma infesep_insert_le : (insert x s).infesep ≤ ⨅ (y ∈ s) (hxy : x ≠ y), edist x y :=
 begin
-  simp_rw [le_infi_iff],
+  simp_rw le_infi_iff,
   refine λ _ hy hxy, infesep_le_edist_of_mem (mem_insert _ _) (mem_insert_of_mem _ hy) hxy
 end
 
@@ -118,6 +153,32 @@ by rw pair_comm; exact infesep_pair_le_left hxy.symm
 
 lemma infesep_pair_eq_inf (hxy : x ≠ y) : ({x, y} : set α).infesep = (edist x y) ⊓ (edist y x) :=
 le_antisymm (le_inf (infesep_pair_le_left hxy) (infesep_pair_le_right hxy)) le_infesep_pair
+
+lemma infesep_fintype [decidable_eq α] [fintype s] :
+  s.infesep = s.to_finset.off_diag.inf (uncurry edist) :=
+begin
+  refine eq_of_forall_le_iff _,
+  simp_rw [le_infesep_iff, finset.le_inf_iff, finset.mem_off_diag, ne.def, mem_to_finset,
+           and_imp, prod.forall, uncurry_apply_pair, imp_forall_iff, iff_self, forall_const]
+end
+
+lemma finite.infesep [decidable_eq α] (hs : s.finite) :
+  s.infesep = hs.to_finset.off_diag.inf (uncurry edist) :=
+by { letI := hs.fintype, exact infesep_fintype }
+
+lemma nontrivial.infesep_exists_of_fintype [decidable_eq α] [fintype s] (hs : s.nontrivial) :
+∃ (x y ∈ s) (hxy : x ≠ y), s.infesep = edist x y :=
+begin
+  simp_rw infesep_fintype,
+  rcases finset.exists_mem_eq_inf _ (hs.to_finset_off_diag_nonempty) (uncurry edist)
+    with ⟨_, hxy, hed⟩,
+  simp_rw [finset.mem_off_diag, mem_to_finset] at hxy,
+  exact ⟨w.fst, hxy.1, w.snd, hxy.2.1, hxy.2.2, hed⟩
+end
+
+lemma finite.infesep_exists_of_nontrivial [decidable_eq α] (hsf : s.finite) (hs : s.nontrivial) :
+∃ (x y ∈ s) (hxy : x ≠ y), s.infesep = edist x y :=
+by { letI := hsf.fintype, exact hs.infesep_exists_of_fintype }
 
 end has_edist
 
@@ -165,20 +226,26 @@ end pseudo_emetric_space
 section pseudo_metric_space
 variables [pseudo_metric_space α] {s : set α}
 
-theorem infesep_eq_infty_iff : s.infesep = ∞ ↔ s.subsingleton :=
+theorem subsingleton_of_infesep_eq_top (hs : s.infesep = ∞) : s.subsingleton :=
 begin
-  split,
-  rw infesep, simp_rw infi_eq_top,
-  intros H _ hx _ hy, by_contradiction hxy,
-  exact edist_ne_top _ _ (H _ hx _ hy hxy),
-  exact infesep_subsingleton
+  rw infesep_top at hs,
+  exact λ _ hx _ hy, of_not_not (λ hxy, edist_ne_top _ _ (hs _ hx _ hy hxy))
 end
 
-theorem subsingleton.infesep_eq_infty (hs : s.subsingleton) : s.infesep = ∞ :=
-infesep_eq_infty_iff.2 hs
+theorem infesep_eq_top_iff : s.infesep = ∞ ↔ s.subsingleton :=
+⟨subsingleton_of_infesep_eq_top, subsingleton.infesep⟩
 
-theorem infesep_ne_infty_of_not_subsingleton (hs : ¬ s.subsingleton) : s.infesep ≠ ∞ :=
-(not_congr infesep_eq_infty_iff).2 hs
+theorem nontrivial.infesep_ne_top (hs : s.nontrivial) : s.infesep ≠ ∞ :=
+by { contrapose! hs, rw not_nontrivial_iff, exact subsingleton_of_infesep_eq_top hs }
+
+theorem nontrivial.infesep_lt_top (hs : s.nontrivial) : s.infesep < ∞ :=
+by { rw lt_top_iff_ne_top, exact hs.infesep_ne_top }
+
+theorem infesep_lt_top_iff : s.infesep < ∞ ↔ s.nontrivial :=
+⟨nontrivial_of_infesep_lt_top, nontrivial.infesep_lt_top⟩
+
+theorem infesep_ne_top_iff : s.infesep ≠ ∞ ↔ s.nontrivial :=
+⟨nontrivial_of_infesep_ne_top, nontrivial.infesep_ne_top⟩
 
 lemma le_infesep_of_forall_dist_le {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ dist x y) :
    ennreal.of_real d ≤ s.infesep :=
@@ -187,27 +254,62 @@ le_infesep $
 
 end pseudo_metric_space
 
+section emetric_space
+variables [emetric_space α] {x y z : α} {s t : set α} {C : ℝ≥0∞} {sC : set ℝ≥0∞}
+
+lemma infesep_pos_of_fintype [decidable_eq α] [fintype s] : 0 < s.infesep :=
+begin
+  by_cases hs : s.nontrivial,
+  { rcases hs.infesep_exists_of_fintype with ⟨x, hx, y, hy, hxy, hxy'⟩,
+    exact hxy'.symm ▸ edist_pos.2 hxy },
+  { rw not_nontrivial_iff at hs,
+    exact hs.infesep.symm ▸ with_top.zero_lt_top }
+end
+
+lemma relatively_discrete_of_fintype [decidable_eq α] [fintype s] :
+  ∃ C (hC : 0 < C), ∀ (x y ∈ s) (hxy : x ≠ y), C ≤ edist x y :=
+by { rw ← infesep_pos, exact infesep_pos_of_fintype }
+
+lemma finite.infesep_pos [decidable_eq α] (hs : s.finite) : 0 < s.infesep  :=
+by { letI := hs.fintype, exact infesep_pos_of_fintype }
+
+lemma finite.relatively_discrete [decidable_eq α] (hs : s.finite) :
+  ∃ C (hC : 0 < C), ∀ (x y ∈ s) (hxy : x ≠ y), C ≤ edist x y :=
+by { letI := hs.fintype, exact relatively_discrete_of_fintype }
+
+end emetric_space
+
 end infesep
 
 section infsep
 open_locale ennreal
 open set function
+
 /-- The "infimum separation" of a set with an edist function. -/
 noncomputable def infsep [has_edist α] (s : set α) : ℝ := ennreal.to_real (s.infesep)
 
 section has_edist
 variables [has_edist α] {x y : α} {s : set α}
 
+lemma infsep_zero : s.infsep = 0 ↔ s.infesep = 0 ∨ s.infesep = ∞ :=
+by rw [infsep, ennreal.to_real_eq_zero_iff]
+
 lemma infsep_nonneg : 0 ≤ s.infsep := ennreal.to_real_nonneg
 
-lemma infsep_subsingleton (hs : s.subsingleton) : s.infsep = 0 :=
-by simp_rw [infsep, infesep_subsingleton hs, ennreal.top_to_real]
+lemma infsep_pos : 0 < s.infsep ↔ 0 < s.infesep ∧ s.infesep < ∞ :=
+by simp_rw [infsep, ennreal.to_real_pos_iff]
+
+lemma subsingleton.infsep (hs : s.subsingleton) : s.infsep = 0 :=
+by { rw [infsep_zero, hs.infesep], right, refl }
+
+lemma nontrivial_of_infsep_pos (hs : 0 < s.infsep) : s.nontrivial :=
+by { contrapose hs, rw not_nontrivial_iff at hs, exact hs.infsep ▸ lt_irrefl _ }
 
 lemma infsep_empty : (∅ : set α).infsep = 0 :=
-infsep_subsingleton subsingleton_empty
+subsingleton_empty.infsep
 
 lemma infsep_singleton : ({x} : set α).infsep = 0 :=
-infsep_subsingleton subsingleton_singleton
+subsingleton_singleton.infsep
 
 lemma infsep_pair_eq_inf_to_real (hxy : x ≠ y) :
   ({x, y} : set α).infsep ≤ (edist x y ⊓ edist y x).to_real :=
@@ -228,7 +330,25 @@ end
 end pseudo_emetric_space
 
 section pseudo_metric_space
+open_locale classical
 variables [pseudo_metric_space α] {x y z: α} {s t : set α}
+
+lemma nontrivial.le_infsep_iff {d} (hs : s.nontrivial) :
+d ≤ s.infsep ↔ ∀ x y ∈ s, x ≠ y → d ≤ dist x y :=
+by simp_rw [infsep, ← ennreal.of_real_le_iff_le_to_real (hs.infesep_ne_top), le_infesep_iff,
+            edist_dist, ennreal.of_real_le_of_real_iff (dist_nonneg)]
+
+lemma nontrivial.le_infsep_of_forall_le_dist {d : ℝ} (hs : s.nontrivial)
+  (h : ∀ x y ∈ s, x ≠ y → d ≤ dist x y) : d ≤ s.infsep := hs.le_infsep_iff.2 h
+
+lemma infsep_le_dist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.infsep ≤ dist x y :=
+begin
+  by_cases hs : s.infesep = ∞,
+  { rw infesep_eq_top_iff at hs,
+    exact false.elim (hxy $ hs hx hy) },
+  { rw [infsep, dist_edist, ennreal.to_real_le_to_real hs (edist_ne_top _ _)],
+    exact infesep_le_edist_of_mem hx hy hxy }
+end
 
 lemma infsep_pair : ({x, y} : set α).infsep = dist x y :=
 by { rw [infsep_pair_eq_to_real, edist_dist], exact ennreal.to_real_of_real (dist_nonneg) }
@@ -239,195 +359,68 @@ by simp only [infsep, infesep_triple hxy hyz hxz, ennreal.to_real_inf, edist_ne_
              edist_ne_top x z, edist_ne_top y z, dist_edist, ne.def, inf_eq_top_iff,
              and_self, not_false_iff]
 
-lemma le_infsep_of_forall_le_dist {d : ℝ} (hs : ¬ s.subsingleton)
-  (h : ∀ x y ∈ s, x ≠ y → d ≤ dist x y) : d ≤ s.infsep :=
+
+lemma nontrivial.infsep_anti (hs : s.nontrivial) (hst : s ⊆ t) : t.infsep ≤ s.infsep :=
+ennreal.to_real_mono hs.infesep_ne_top (infesep_anti hst)
+
+lemma nontrivial.infsep_fintype [decidable_eq α] [fintype s] (hs : s.nontrivial) :
+  s.infsep = s.to_finset.off_diag.inf' hs.to_finset_off_diag_nonempty (uncurry dist) :=
 begin
-  rw infsep, rw ← ennreal.of_real_le_iff_le_to_real (infesep_ne_infty_of_not_subsingleton hs),
-  exact le_infesep_of_forall_dist_le h
+  refine eq_of_forall_le_iff _,
+  simp_rw [hs.le_infsep_iff, finset.le_inf'_iff, finset.mem_off_diag, ne.def, mem_to_finset,
+           and_imp, prod.forall, uncurry_apply_pair, imp_forall_iff, iff_self, forall_const]
 end
 
-lemma infsep_le_dist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.infsep ≤ dist x y :=
+lemma finite.infsep [decidable_eq α] (hsf : s.finite) (hs : s.nontrivial) :
+  s.infsep = hsf.to_finset.off_diag.inf' (hsf.to_finset_off_diag_nonempty_of_nontrivial hs)
+  (uncurry dist) := by { letI := hsf.fintype, exact hs.infsep_fintype }
+
+lemma nontrivial.infsep_exists_of_fintype [decidable_eq α] [fintype s] (hs : s.nontrivial) :
+∃ (x y ∈ s) (hxy : x ≠ y), s.infsep = dist x y :=
 begin
-  by_cases hs : s.infesep = ∞,
-  { rw infesep_eq_infty_iff at hs,
-    exact false.elim (hxy $ hs hx hy) },
-  { rw [infsep, dist_edist, ennreal.to_real_le_to_real hs (edist_ne_top _ _)],
-    exact infesep_le_edist_of_mem hx hy hxy }
+  simp_rw hs.infsep_fintype,
+  rcases finset.exists_mem_eq_inf' (hs.to_finset_off_diag_nonempty) (uncurry dist)
+    with ⟨_, hxy, hed⟩,
+  simp_rw [finset.mem_off_diag, mem_to_finset] at hxy,
+  exact ⟨w.fst, hxy.1, w.snd, hxy.2.1, hxy.2.2, hed⟩
 end
 
-lemma infsep_anti (hst : s ⊆ t) (hs : ¬ s.subsingleton) : t.infsep ≤ s.infsep :=
-begin
-  have ht : ¬ t.subsingleton := λ ht, hs (ht.anti hst),
-  rw ← infesep_eq_infty_iff at hs ht,
-  exact (ennreal.to_real_le_to_real ht hs).2 (infesep_anti hst)
-end
+lemma finite.infsep_exists_of_nontrivial [decidable_eq α] (hsf : s.finite) (hs : s.nontrivial) :
+∃ (x y ∈ s) (hxy : x ≠ y), s.infsep = dist x y :=
+by { letI := hsf.fintype, exact hs.infsep_exists_of_fintype }
 
 end pseudo_metric_space
+
+section metric_space
+variables [metric_space α] {x y z: α} {s t : set α}
+
+lemma infsep_zero_iff_subsingleton_of_fintype [decidable_eq α] [fintype s] :
+  s.infsep = 0 ↔ s.subsingleton :=
+begin
+  rw [infsep_zero, infesep_eq_top_iff, or_iff_right_iff_imp],
+  exact λ H, (infesep_pos_of_fintype.ne' H).elim
+end
+
+lemma infsep_pos_iff_nontrivial_of_fintype [decidable_eq α] [fintype s] :
+  0 < s.infsep ↔ s.nontrivial :=
+begin
+  rw [infsep_pos, infesep_lt_top_iff, and_iff_right_iff_imp],
+  exact λ _, infesep_pos_of_fintype
+end
+
+end metric_space
 
 end infsep
 
 end set
 
-namespace finset
-section infesep
+section bonus
 open_locale ennreal
-open function
+lemma finset.coe_pair [decidable_eq α] {x y : α} : (({x, y} : finset α) : set α) = {x, y} :=
+by rw [finset.coe_insert, finset.coe_singleton]
 
-/-- The "extended infimum separation" of a finset with an edist function. -/
-noncomputable def infesep [decidable_eq α] [has_edist α] (s : finset α) : ℝ≥0∞ :=
-s.off_diag.inf (uncurry edist)
+lemma ennreal.to_real_sup {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
+  : (a ⊔ b).to_real = a.to_real ⊔ b.to_real :=
+by simp_rw [sup_eq_max, ennreal.to_real_max hr hp]
 
-variables [decidable_eq α]
-
-section has_edist
-variables [has_edist α] {x y : α} {s : finset α}
-
-lemma le_infesep_iff {d} : d ≤ s.infesep ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist x y :=
-begin
-  simp_rw [infesep, le_inf_iff, mem_off_diag], split,
-  { exact λ H _ hx _ hy hxy, H ⟨_, _⟩ ⟨hx, hy, hxy⟩ },
-  { exact λ H _ ⟨hx, hy, hxy⟩, H _ hx _ hy hxy }
-end
-
-lemma le_infesep_image_iff {d} {f : β → α} {s : finset β} :
-  d ≤ infesep (image f s) ↔ ∀ x y ∈ s, f x ≠ f y → d ≤ edist (f x) (f y) :=
-begin
-  simp_rw [le_infesep_iff, mem_image], split,
-  { exact λ H x hx y hy hxy, H _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy },
-  { rintros H _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy, exact H _ hx _ hy hxy }
-end
-
-lemma le_edist_of_le_infesep {d} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) (hd : d ≤ s.infesep) :
-  d ≤ edist x y := le_infesep_iff.1 hd x hx y hy hxy
-
-lemma infesep_le_edist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.infesep ≤ edist x y :=
-le_edist_of_le_infesep hx hy hxy le_rfl
-
-lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ s.infesep := le_infesep_iff.2 h
-
-lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ x y ∈ s, x ≠ y ∧ edist x y < d :=
-begin
-  simp_rw [infesep, finset.inf_lt_iff, exists_prop, mem_off_diag], split,
-  { rintros ⟨_, ⟨hx, hy, hxy⟩, hxyd⟩, exact ⟨_, hx, _, hy, hxy, hxyd⟩ },
-  { rintros ⟨x, hx, y, hy, hxy, hxyd⟩, exact ⟨(x, y), ⟨hx, hy, hxy⟩, hxyd⟩ }
-end
-
-lemma infesep_subsingleton (hs : ∀ {a b : α}, a ∈ s → b ∈ s → a = b) : s.infesep = ∞ :=
-eq_top_iff.2 (le_infesep (λ x hx y hy hxy, false.elim (hxy (hs hx hy))))
-
-@[simp] lemma infesep_empty : infesep (∅ : finset α) = ∞ :=
-infesep_subsingleton (λ _ _ ha _, false.elim (not_mem_empty _ ha))
-
-@[simp] lemma infesep_singleton : infesep ({x} : finset α) = ∞ :=
-infesep_subsingleton (λ a b ha hb, by rw [mem_singleton.1 ha, mem_singleton.1 hb])
-
-lemma infesep_anti : @antitone (finset α) _ _ _ infesep :=
-λ s t h, le_infesep $ λ x hx y hy, infesep_le_edist_of_mem (h hx) (h hy)
-
-lemma infesep_insert_le : infesep (insert x s) ≤ ⨅ (y ∈ s) (hxy : x ≠ y), edist x y :=
-begin
-  simp_rw [le_infi_iff],
-  refine λ _ hy hxy, infesep_le_edist_of_mem (mem_insert_self _ _) (mem_insert_of_mem hy) hxy
-end
-
-lemma infesep_pair_le_left (hxy : x ≠ y) : infesep ({x, y} : finset α) ≤ edist x y :=
-infesep_le_edist_of_mem (mem_insert_self _ _) (mem_insert_of_mem (mem_singleton_self _)) hxy
-
-lemma infesep_pair_le_right (hxy : x ≠ y) : infesep ({x, y} : finset α) ≤ edist y x :=
-by rw pair_comm; exact infesep_pair_le_left hxy.symm
-
-lemma le_infesep_pair : (edist x y) ⊓ (edist y x) ≤ infesep ({x, y} : finset α) :=
-begin
-  simp_rw [le_infesep_iff, inf_le_iff, mem_insert, mem_singleton],
-  rintros a (rfl | rfl) b (rfl | rfl) hab; finish
-end
-
-lemma infesep_pair_eq_inf (hxy : x ≠ y) : infesep ({x, y} : finset α) = (edist x y) ⊓ (edist y x) :=
-le_antisymm (_root_.le_inf (infesep_pair_le_left hxy) (infesep_pair_le_right hxy)) le_infesep_pair
-
-lemma infesep_exists (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) :
-∃ x' y', (x' ∈ s) ∧ (y' ∈ s) ∧ (x' ≠ y') ∧ s.infesep = edist x' y' :=
-begin
-  have H := off_diag_nonempty_of_exists_ne hx hy hxy,
-  rcases exists_mem_eq_inf _ H (uncurry edist) with ⟨⟨x', y'⟩, hxy', hs⟩,
-  rw mem_off_diag at hxy', rcases hxy' with ⟨hx', hy', hxy'⟩,
-  exact ⟨x', y', hx', hy', hxy', hs⟩
-end
-
-end has_edist
-
-section pseudo_emetric_space
-variables [pseudo_emetric_space α] {x y z : α} {s t : finset α}
-
-lemma infesep_pair (hxy : x ≠ y) : infesep ({x, y} : finset α) = edist x y :=
-begin
-  nth_rewrite 0 [← min_self (edist x y)],
-  convert infesep_pair_eq_inf hxy using 2,
-  rw edist_comm
-end
-
-lemma infesep_insert :
-  infesep (insert x s) = (⨅ (y ∈ s) (hxy : x ≠ y), edist x y) ⊓ (s.infesep) :=
-begin
-  refine le_antisymm (_root_.le_min infesep_insert_le (infesep_anti (subset_insert _ _))) _,
-  simp_rw [le_infesep_iff, inf_le_iff, mem_insert],
-  rintros y (rfl | hy) z (rfl | hz) hyz,
-  { exact false.elim (hyz rfl) },
-  { exact or.inl (infi_le_of_le _ (infi₂_le hz hyz)) },
-  { rw edist_comm, exact or.inl (infi_le_of_le _ (infi₂_le hy hyz.symm)) },
-  { exact or.inr (infesep_le_edist_of_mem hy hz hyz) }
-end
-
-lemma infesep_triple (hxy : x ≠ y) (hyz : y ≠ z) (hxz : x ≠ z) :
-  infesep ({x, y, z} : finset α) = edist x y ⊓ edist x z ⊓ edist y z :=
-by simp_rw [infesep_insert, infi_insert, infi_singleton, infesep_singleton,
-            inf_top_eq, cinfi_pos hxy, cinfi_pos hyz, cinfi_pos hxz]
-
-end pseudo_emetric_space
-
-end infesep
-
-section infsep
-open set function
-
-/-- The "infimum separation" of a finset with an edist function. -/
-noncomputable def infsep [decidable_eq α] [has_edist α] (s : finset α) : ℝ :=
-(s.off_diag.inf (uncurry edist)).to_real
-
--- TODO
-
-end infsep
-
-end finset
-
-section esep_set_finset
-open_locale classical
-open function
-variables [has_edist α]
-
-lemma set.infesep_to_finset {s : set α} [fintype s] : s.infesep = s.to_finset.infesep :=
-begin
-  refine le_antisymm _ _,
-  { simp_rw [finset.le_infesep_iff, set.mem_to_finset],
-    exact λ _ hx _, set.infesep_le_edist_of_mem hx },
-  { simp_rw [set.le_infesep_iff, ←set.mem_to_finset],
-    exact λ _ hx _, finset.infesep_le_edist_of_mem hx }
-end
-
-lemma set.finite.infesep_to_finset {s : set α} (hs : s.finite) :
-  s.infesep = hs.to_finset.infesep := @set.infesep_to_finset _ _ _ hs.fintype
-
-lemma finset.infesep_coe {s : finset α} : s.infesep = (s : set α).infesep :=
-begin
-  refine le_antisymm _ _,
-  { simp_rw set.le_infesep_iff,
-    exact λ _ hx _, finset.infesep_le_edist_of_mem hx },
-  { simp_rw [finset.le_infesep_iff, ←finset.mem_coe],
-    exact λ _ hx _, set.infesep_le_edist_of_mem hx }
-end
-
-end esep_set_finset
-
-section sep_set_finset
---TODO
-end sep_set_finset
+end bonus

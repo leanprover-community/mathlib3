@@ -30,34 +30,6 @@ noncomputable theory
 
 open_locale manifold
 
-/-- Let `M'` be a manifold whose chart structure is given by an open embedding `e'` into its model
-space `H'`. Then the smoothness of `e' ∘ f : M → H'` implies the smoothness of `f`.
-
-This is useful, for example, when `e' ∘ f = g ∘ e` for smooth maps `e : M → X` and `g : X → H'`. -/
-lemma cont_mdiff.of_comp_open_embedding
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-  {M : Type*} [topological_space M] [charted_space H M]
-  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-  {M' : Type*} [topological_space M'] [nonempty M']
-  {e' : M' → H'} (h : open_embedding e') {n : with_top ℕ}
-  {f : M → M'} (hf : cont_mdiff I I' n (e' ∘ f)) :
-  @cont_mdiff _ _ _ _ _ _ _ I _ _ _ _ _ _ _ _ I' _ _ h.singleton_charted_space n f :=
-begin
-  have : f = (open_embedding.to_local_homeomorph e' h).symm ∘ e' ∘ f,
-  { ext,
-    rw [function.comp_app, function.comp_app, open_embedding.to_local_homeomorph_left_inv] },
-  rw this,
-  apply cont_mdiff_on.comp_cont_mdiff _ hf,
-  show set H',
-  { exact set.range e' },
-  { intros,
-    simp },
-  exact cont_mdiff_on_open_embedding_symm h
-end
-
 namespace units
 
 variables {R : Type*} [normed_ring R] [complete_space R]

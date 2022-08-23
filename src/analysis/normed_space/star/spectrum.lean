@@ -133,9 +133,9 @@ begin
       (by simpa only [nnnorm_star_mul_self, map_star, map_mul]
       using this _ (is_self_adjoint.star_mul_self a)) },
   { intros s hs,
-    simpa only [coe_le_coe, hs.spectral_radius_eq_nnnorm, (hs.star_hom φ).spectral_radius_eq_nnnorm]
-      using (show spectral_radius ℂ (φ s) ≤ spectral_radius ℂ s,
-      from supr_le_supr_of_subset (spectrum_apply_subset φ s)) }
+    simpa only [hs.spectral_radius_eq_nnnorm, (hs.star_hom_apply φ).spectral_radius_eq_nnnorm,
+      coe_le_coe] using (show spectral_radius ℂ (φ s) ≤ spectral_radius ℂ s,
+      from supr_le_supr_of_subset (alg_hom.spectrum_apply_subset φ s)) }
 end
 
 end star_alg_hom

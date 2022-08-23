@@ -301,7 +301,7 @@ end
 lemma exists_mi : ∃(i : ι), i ∈ bcubes cs c ∧ ∀(i' ∈ bcubes cs c),
   (cs i).w ≤ (cs i').w :=
 by simpa
-  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (finite.of_fintype _) (nonempty_bcubes h v)
+  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (set.to_finite _) (nonempty_bcubes h v)
 
 /-- We let `mi` be the (index for the) smallest cube in the valley `c` -/
 def mi : ι := classical.some $ exists_mi h v
@@ -350,7 +350,7 @@ begin
   have hs : s.nonempty,
   { rcases (two_le_iff' (⟨i, hi⟩ : bcubes cs c)).mp (two_le_mk_bcubes h v) with ⟨⟨i', hi'⟩, h2i'⟩,
     refine ⟨i', hi', _⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
-  rcases set.exists_min_image s (w ∘ cs) (finite.of_fintype _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
+  rcases set.exists_min_image s (w ∘ cs) (set.to_finite _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
   rw [mem_singleton_iff] at h2i',
   let x := c.b j.succ + c.w - (cs i').w,
   have hx : x < (cs i).b j.succ,
@@ -496,13 +496,12 @@ noncomputable def sequence_of_cubes : ℕ → { i : ι // valley cs ((cs i).shif
 | 0     := let v := valley_unit_cube h      in ⟨mi h v, valley_mi⟩
 | (k+1) := let v := (sequence_of_cubes k).2 in ⟨mi h v, valley_mi⟩
 
-def decreasing_sequence (k : ℕ) : order_dual ℝ :=
-(cs (sequence_of_cubes h k).1).w
+def decreasing_sequence (k : ℕ) : ℝ := (cs (sequence_of_cubes h k).1).w
 
-lemma strict_mono_sequence_of_cubes : strict_mono $ decreasing_sequence h :=
-strict_mono_nat_of_lt_succ $
+lemma strict_anti_sequence_of_cubes : strict_anti $ decreasing_sequence h :=
+strict_anti_nat_of_succ_lt $ λ k,
 begin
-  intro k, let v := (sequence_of_cubes h k).2, dsimp only [decreasing_sequence, sequence_of_cubes],
+  let v := (sequence_of_cubes h k).2, dsimp only [decreasing_sequence, sequence_of_cubes],
   apply w_lt_w h v (mi_mem_bcubes : mi h v ∈ _),
 end
 
@@ -510,9 +509,9 @@ omit h
 /-- The infinite sequence of cubes contradicts the finiteness of the family. -/
 theorem not_correct : ¬correct cs :=
 begin
-  intro h, apply (lt_omega_of_fintype ι).not_le,
-  rw [omega, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
-  intros n m hnm, apply strict_mono.injective (strict_mono_sequence_of_cubes h),
+  intro h, apply (lt_aleph_0_of_finite ι).not_le,
+  rw [aleph_0, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
+  intros n m hnm, apply (strict_anti_sequence_of_cubes h).injective,
   dsimp only [decreasing_sequence], rw hnm
 end
 

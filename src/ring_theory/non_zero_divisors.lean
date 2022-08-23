@@ -132,7 +132,7 @@ le_non_zero_divisors_of_no_zero_divisors (λ h, absurd (h.rec_on (λ _ hn, pow_e
 
 lemma map_le_non_zero_divisors_of_injective [no_zero_divisors M']
   [monoid_with_zero_hom_class F M M'] (f : F) (hf : function.injective f) {S : submonoid M}
-  (hS : S ≤ M⁰) : S.map ↑f ≤ M'⁰ :=
+  (hS : S ≤ M⁰) : S.map f ≤ M'⁰ :=
 begin
   casesI subsingleton_or_nontrivial M,
   { simp [subsingleton.elim S ⊥] },

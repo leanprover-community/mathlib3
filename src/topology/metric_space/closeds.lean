@@ -193,7 +193,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
   rcases emetric.totally_bounded_iff.1
     (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos with ⟨s, fs, hs⟩,
-  -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
+  -- s : set α,  fs : s.finite,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.
   have main : ∀ u : set α, ∃v ⊆ s, Hausdorff_edist u v ≤ δ,
   { assume u,
@@ -211,12 +211,13 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   let F := {f : closeds α | (f : set α) ⊆ s},
   refine ⟨F, _, λ u _, _⟩,
   -- `F` is finite
-  { apply @finite_of_finite_image _ _ F coe,
-    { exact set_like.coe_injective.inj_on F },
-    { refine fs.finite_subsets.subset (λb, _),
+  { apply @finite.of_finite_image _ _ F coe,
+    { apply fs.finite_subsets.subset (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
-      rwa hx' at hx }},
+      rwa hx' at hx },
+    { exact set_like.coe_injective.inj_on F } },
+
   -- `F` is ε-dense
   { obtain ⟨t0, t0s, Dut0⟩ := main u,
     have : is_closed t0 := (fs.subset t0s).is_compact.is_closed,
@@ -270,7 +271,7 @@ begin
     rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2)
       (ennreal.half_pos εpos.ne') with ⟨u, fu, ut⟩,
     refine ⟨u, ⟨fu, λx hx, _⟩⟩,
-    -- u : set α,  fu : finite u,  ut : t ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
+    -- u : set α,  fu : u.finite,  ut : t ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨z, hz, Dxz⟩,
     rcases mem_Union₂.1 (ut hz) with ⟨y, hy, Dzy⟩,
@@ -311,10 +312,10 @@ begin
     approximations in `s` of the centers of these balls give the required finite approximation
     of `t`. -/
     rcases exists_countable_dense α with ⟨s, cs, s_dense⟩,
-    let v0 := {t : set α | finite t ∧ t ⊆ s},
+    let v0 := {t : set α | t.finite ∧ t ⊆ s},
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | (t : set α) ∈ v0},
     refine  ⟨⟨v, _, _⟩⟩,
-    { have : countable v0, from countable_set_of_finite_subset cs,
+    { have : v0.countable, from countable_set_of_finite_subset cs,
       exact this.preimage set_like.coe_injective },
     { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
@@ -331,10 +332,10 @@ begin
       -- cover `t` with finitely many balls. Their centers form a set `a`
       have : totally_bounded (t : set α) := t.compact.totally_bounded,
       rcases totally_bounded_iff.1 this (δ/2) δpos' with ⟨a, af, ta⟩,
-      -- a : set α,  af : finite a,  ta : t ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
+      -- a : set α,  af : a.finite,  ta : t ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
       let b := F '' a,
-      have : finite b := af.image _,
+      have : b.finite := af.image _,
       have tb : ∀ x ∈ t, ∃ y ∈ b, edist x y < δ,
       { assume x hx,
         rcases mem_Union₂.1 (ta hx) with ⟨z, za, Dxz⟩,
@@ -344,7 +345,7 @@ begin
              ... = δ : ennreal.add_halves _ },
       -- keep only the points in `b` that are close to point in `t`, yielding a new set `c`
       let c := {y ∈ b | ∃ x ∈ t, edist x y < δ},
-      have : finite c := ‹finite b›.subset (λx hx, hx.1),
+      have : c.finite := ‹b.finite›.subset (λx hx, hx.1),
       -- points in `t` are well approximated by points in `c`
       have tc : ∀ x ∈ t, ∃ y ∈ c, edist x y ≤ δ,
       { assume x hx,
@@ -366,13 +367,13 @@ begin
       have hc : c.nonempty,
         from nonempty_of_Hausdorff_edist_ne_top t.nonempty (ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
-      let d : nonempty_compacts α := ⟨⟨c, ‹finite c›.is_compact⟩, hc⟩,
+      let d : nonempty_compacts α := ⟨⟨c, ‹c.finite›.is_compact⟩, hc⟩,
       have : c ⊆ s,
       { assume x hx,
         rcases (mem_image _ _ _).1 hx.1 with ⟨y, ⟨ya, yx⟩⟩,
         rw ← yx,
         exact (Fspec y).1 },
-      have : d ∈ v := ⟨‹finite c›, this⟩,
+      have : d ∈ v := ⟨‹c.finite›, this⟩,
       -- we have proved that `d` is a good approximation of `t` as requested
       exact ⟨d, ‹d ∈ v›, Dtc⟩ },
   end,

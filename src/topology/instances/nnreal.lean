@@ -73,6 +73,15 @@ continuous_subtype_mk _ $ continuous_id.max continuous_const
 lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ) :=
 continuous_subtype_val
 
+/-- Embedding of `ℝ≥0` to `ℝ` as a bundled continuous map. -/
+@[simps { fully_applied := ff }] def _root_.continuous_map.coe_nnreal_real : C(ℝ≥0, ℝ) :=
+⟨coe, continuous_coe⟩
+
+instance {X : Type*} [topological_space X] : can_lift C(X, ℝ) C(X, ℝ≥0) :=
+{ coe := continuous_map.coe_nnreal_real.comp,
+  cond := λ f, ∀ x, 0 ≤ f x,
+  prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, continuous_subtype_mk _ f.2⟩, fun_like.ext' rfl⟩ }
+
 @[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
   tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=
 tendsto_subtype_rng.symm

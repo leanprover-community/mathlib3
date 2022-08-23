@@ -145,7 +145,7 @@ lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
  quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R₁)
-  [has_scalar R₁ R] [is_scalar_tower R₁ R R] [has_scalar R₁ (s i)] [is_scalar_tower R₁ R (s i)] :
+  [has_smul R₁ R] [is_scalar_tower R₁ R R] [has_smul R₁ (s i)] [is_scalar_tower R₁ R (s i)] :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
 begin
   have h₁ : r • z = (r • (1 : R)) * z := by rw [smul_mul_assoc, one_mul],
@@ -205,7 +205,7 @@ variables [monoid R₂] [distrib_mul_action R₂ R] [smul_comm_class R₂ R R]
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance has_scalar' : has_scalar R₁ (⨂[R] i, s i) :=
+instance has_smul' : has_smul R₁ (⨂[R] i, s i) :=
 ⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r • f.1) f.2)
   (λ r' f i hf, by simp_rw [zero_tprod_coeff' _ f i hf])
   (λ f, by simp [zero_tprod_coeff])
@@ -213,7 +213,7 @@ instance has_scalar' : has_scalar R₁ (⨂[R] i, s i) :=
   (λ r' r'' f, by simp [add_tprod_coeff', mul_add])
   (λ z f i r', by simp [smul_tprod_coeff, mul_smul_comm])⟩
 
-instance : has_scalar R (⨂[R] i, s i) := pi_tensor_product.has_scalar'
+instance : has_smul R (⨂[R] i, s i) := pi_tensor_product.has_smul'
 
 lemma smul_tprod_coeff' (r : R₁) (z : R) (f : Π i, s i) :
   r • (tprod_coeff R z f) = tprod_coeff R (r • z) f := rfl
@@ -238,7 +238,7 @@ instance smul_comm_class' [smul_comm_class R₁ R₂ R] : smul_comm_class R₁ R
   (λ xr xf, by simp only [smul_tprod_coeff', smul_comm])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
 
-instance is_scalar_tower' [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ R] :
+instance is_scalar_tower' [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ R] :
   is_scalar_tower R₁ R₂ (⨂[R] i, s i) :=
 ⟨λ r' r'' x, pi_tensor_product.induction_on' x
   (λ xr xf, by simp only [smul_tprod_coeff', smul_assoc])
@@ -397,7 +397,7 @@ end
 
 @[simp] lemma reindex_tprod (e : ι ≃ ι₂) (f : Π i, M) :
   reindex R M e (tprod R f) = tprod R (λ i, f (e.symm i)) :=
-lift.tprod f
+lift_aux_tprod _ f
 
 @[simp] lemma reindex_comp_tprod (e : ι ≃ ι₂) :
   (reindex R M e : ⨂[R] i : ι, M →ₗ[R] ⨂[R] i : ι₂, M).comp_multilinear_map (tprod R) =
@@ -479,7 +479,7 @@ def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R
     apply x.induction_on,
     { intros r f,
       simp only [linear_map.map_smul, lift.tprod, of_subsingleton_apply, function.eval,
-                 this f, map_smul, update_eq_self], },
+                 this f, multilinear_map.map_smul, update_eq_self], },
     { intros x y hx hy,
       simp only [multilinear_map.map_add, this 0 (_ + _), linear_map.map_add, ←this 0 (lift _ _),
         hx, hy] } },

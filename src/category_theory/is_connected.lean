@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Jakob von Raumer
 -/
 import data.list.chain
 import category_theory.punit
 import category_theory.groupoid
+import category_theory.category.ulift
 
 /-!
 # Connected category
@@ -91,7 +92,7 @@ The converse is given in `is_connected.of_any_functor_const_on_obj`.
 lemma any_functor_const_on_obj [is_preconnected J]
   {α : Type u₁} (F : J ⥤ discrete α) (j j' : J) :
   F.obj j = F.obj j' :=
-((iso_constant F j').hom.app j).down.1
+by { ext, exact ((iso_constant F j').hom.app j).down.1 }
 
 /--
 If any functor to a discrete category is constant on objects, J is connected.
@@ -113,7 +114,9 @@ The converse is shown in `is_connected.of_constant_of_preserves_morphisms`
 lemma constant_of_preserves_morphisms [is_preconnected J] {α : Type u₁} (F : J → α)
   (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j j' : J) :
   F j = F j' :=
-any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j j'
+by simpa using any_functor_const_on_obj
+  { obj := discrete.mk ∘ F,
+    map := λ _ _ f, eq_to_hom (by { ext, exact (h _ _ f), }) } j j'
 
 /--
 `J` is connected if: given any function `F : J → α` which is constant for any
@@ -126,7 +129,8 @@ lemma is_connected.of_constant_of_preserves_morphisms [nonempty J]
   (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) →
     (∀ j j' : J, F j = F j')) :
   is_connected J :=
-is_connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
+is_connected.of_any_functor_const_on_obj
+  (λ _ F, h F.obj (λ _ _ f, by { ext, exact discrete.eq_of_hom (F.map f) }))
 
 /--
 An inductive-like property for the objects of a connected category.
@@ -160,6 +164,18 @@ begin
   intros j j',
   rw [w j, w j'],
 end)
+
+/-- Lifting the universe level of morphisms and objects preserves connectedness. -/
+instance [hc : is_connected J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
+begin
+  haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] },
+  apply is_connected.of_induct,
+  rintros p hj₀ h ⟨j⟩,
+  let p' : set J := ((λ (j : J), p {down := j}) : set J),
+  have hj₀' : (classical.choice hc.is_nonempty) ∈ p', { simp only [p'], exact hj₀ },
+  apply induct_on_objects (λ (j : J), p {down := j}) hj₀'
+    (λ _ _ f, h ((ulift_hom_ulift_category.equiv J).functor.map f))
+end
 
 /--
 Another induction principle for `is_preconnected J`:
@@ -197,12 +213,11 @@ lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
 
 /-- If `J` is preconnected, then `Jᵒᵖ` is preconnected as well. -/
 instance is_preconnected_op [is_preconnected J] : is_preconnected Jᵒᵖ :=
-{ iso_constant := λ α F X, ⟨
-    nat_iso.of_components
-      (λ Y, (nonempty.some $ is_preconnected.iso_constant
-        (F.right_op ⋙ (discrete.opposite α).functor) (unop X)).app (unop Y))
-      (λ Y Z f, subsingleton.elim _ _)
-  ⟩ }
+{ iso_constant := λ α F X, ⟨nat_iso.of_components
+      (λ Y, eq_to_iso (discrete.ext _ _ (discrete.eq_of_hom ((nonempty.some
+        (is_preconnected.iso_constant (F.right_op ⋙ (discrete.opposite α).functor) (unop X))).app
+          (unop Y)).hom)))
+      (λ Y Z f, subsingleton.elim _ _)⟩ }
 
 /-- If `J` is connected, then `Jᵒᵖ` is connected as well. -/
 instance is_connected_op [is_connected J] : is_connected Jᵒᵖ :=
@@ -315,7 +330,7 @@ end
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
 def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=
 discrete.equiv_of_equivalence.{u₁ u₁}
-  { functor := functor.star α,
+  { functor := functor.star (discrete α),
     inverse := discrete.functor (λ _, classical.arbitrary _),
     unit_iso := by { exact (iso_constant _ (classical.arbitrary _)), },
     counit_iso := functor.punit_ext _ _ }

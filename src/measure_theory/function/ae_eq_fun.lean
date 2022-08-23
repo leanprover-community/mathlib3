@@ -116,11 +116,11 @@ ae_strongly_measurable.strongly_measurable_mk _
 protected lemma ae_strongly_measurable (f : α →ₘ[μ] β) : ae_strongly_measurable f μ :=
 f.strongly_measurable.ae_strongly_measurable
 
-protected lemma measurable [metrizable_space β] [measurable_space β] [borel_space β]
+protected lemma measurable [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   (f : α →ₘ[μ] β) : measurable f :=
 ae_strongly_measurable.measurable_mk _
 
-protected lemma ae_measurable [metrizable_space β] [measurable_space β] [borel_space β]
+protected lemma ae_measurable [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   (f : α →ₘ[μ] β) :
   ae_measurable f μ :=
 f.measurable.ae_measurable
@@ -199,8 +199,9 @@ by { rw [comp_eq_mk], apply coe_fn_mk }
 
 section comp_measurable
 
-variables [measurable_space β] [metrizable_space β] [borel_space β]
-  [measurable_space γ] [metrizable_space γ] [opens_measurable_space γ] [second_countable_topology γ]
+variables [measurable_space β] [pseudo_metrizable_space β] [borel_space β]
+  [measurable_space γ] [pseudo_metrizable_space γ] [opens_measurable_space γ]
+  [second_countable_topology γ]
 
 /-- Given a measurable function `g : β → γ`, and an almost everywhere equal function `[f] : α →ₘ β`,
     return the equivalence class of `g ∘ f`, i.e., the almost everywhere equal function
@@ -277,9 +278,11 @@ by { rw comp₂_eq_mk, apply coe_fn_mk }
 
 section
 
-variables [measurable_space β] [metrizable_space β] [borel_space β] [second_countable_topology β]
-  [measurable_space γ] [metrizable_space γ] [borel_space γ] [second_countable_topology γ]
-  [measurable_space δ] [metrizable_space δ] [opens_measurable_space δ] [second_countable_topology δ]
+variables
+  [measurable_space β] [pseudo_metrizable_space β] [borel_space β] [second_countable_topology β]
+  [measurable_space γ] [pseudo_metrizable_space γ] [borel_space γ] [second_countable_topology γ]
+  [measurable_space δ] [pseudo_metrizable_space δ] [opens_measurable_space δ]
+  [second_countable_topology δ]
 
 /-- Given a measurable function `g : β → γ → δ`, and almost everywhere equal functions
     `[f₁] : α →ₘ β` and `[f₂] : α →ₘ γ`, return the equivalence class of the function
@@ -331,9 +334,9 @@ lemma comp_to_germ (g : β → γ) (hg : continuous g) (f : α →ₘ[μ] β) :
   (comp g hg f).to_germ = f.to_germ.map g :=
 induction_on f $ λ f hf, by simp
 
-lemma comp_measurable_to_germ [measurable_space β] [borel_space β] [metrizable_space β]
-  [metrizable_space γ] [second_countable_topology γ] [measurable_space γ] [opens_measurable_space γ]
-  (g : β → γ) (hg : measurable g) (f : α →ₘ[μ] β) :
+lemma comp_measurable_to_germ [measurable_space β] [borel_space β] [pseudo_metrizable_space β]
+  [pseudo_metrizable_space γ] [second_countable_topology γ] [measurable_space γ]
+  [opens_measurable_space γ] (g : β → γ) (hg : measurable g) (f : α →ₘ[μ] β) :
   (comp_measurable g hg f).to_germ = f.to_germ.map g :=
 induction_on f $ λ f hf, by simp
 
@@ -343,10 +346,10 @@ lemma comp₂_to_germ (g : β → γ → δ) (hg : continuous (uncurry g))
 induction_on₂ f₁ f₂ $ λ f₁ hf₁ f₂ hf₂, by simp
 
 lemma comp₂_measurable_to_germ
-  [metrizable_space β] [second_countable_topology β] [measurable_space β] [borel_space β]
-  [metrizable_space γ] [second_countable_topology γ] [measurable_space γ] [borel_space γ]
-  [metrizable_space δ] [second_countable_topology δ] [measurable_space δ] [opens_measurable_space δ]
-  (g : β → γ → δ) (hg : measurable (uncurry g))
+  [pseudo_metrizable_space β] [second_countable_topology β] [measurable_space β] [borel_space β]
+  [pseudo_metrizable_space γ] [second_countable_topology γ] [measurable_space γ] [borel_space γ]
+  [pseudo_metrizable_space δ] [second_countable_topology δ] [measurable_space δ]
+  [opens_measurable_space δ] (g : β → γ → δ) (hg : measurable (uncurry g))
   (f₁ : α →ₘ[μ] β) (f₂ : α →ₘ[μ] γ) :
   (comp₂_measurable g hg f₁ f₂).to_germ = f₁.to_germ.map₂ g f₂.to_germ :=
 induction_on₂ f₁ f₂ $ λ f₁ hf₁ f₂ hf₂, by simp
@@ -386,14 +389,13 @@ partial_order.lift to_germ to_germ_injective
 section lattice
 
 section sup
-variables [semilattice_sup β] [measurable_space β] [second_countable_topology β]
-  [metrizable_space β] [borel_space β] [has_measurable_sup₂ β]
+variables [semilattice_sup β] [has_continuous_sup β]
 
 instance : has_sup (α →ₘ[μ] β) :=
-{ sup := λ f g, ae_eq_fun.comp₂_measurable (⊔) measurable_sup f g }
+{ sup := λ f g, ae_eq_fun.comp₂ (⊔) continuous_sup f g }
 
 lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x :=
-coe_fn_comp₂_measurable _ _ _ _
+coe_fn_comp₂ _ _ _ _
 
 protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_left, }
@@ -412,14 +414,13 @@ end
 end sup
 
 section inf
-variables [semilattice_inf β] [measurable_space β] [second_countable_topology β]
-  [metrizable_space β] [borel_space β] [has_measurable_inf₂ β]
+variables [semilattice_inf β] [has_continuous_inf β]
 
 instance : has_inf (α →ₘ[μ] β) :=
-{ inf := λ f g, ae_eq_fun.comp₂_measurable (⊓) measurable_inf f g }
+{ inf := λ f g, ae_eq_fun.comp₂ (⊓) continuous_inf f g }
 
 lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x :=
-coe_fn_comp₂_measurable _ _ _ _
+coe_fn_comp₂ _ _ _ _
 
 protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_left, }
@@ -437,9 +438,7 @@ end
 
 end inf
 
-instance [lattice β] [measurable_space β] [second_countable_topology β]
-  [metrizable_space β] [borel_space β]
-  [has_measurable_sup₂ β] [has_measurable_inf₂ β] : lattice (α →ₘ[μ] β) :=
+instance [lattice β] [topological_lattice β] : lattice (α →ₘ[μ] β) :=
 { sup           := has_sup.sup,
   le_sup_left   := ae_eq_fun.le_sup_left,
   le_sup_right  := ae_eq_fun.le_sup_right,
@@ -474,13 +473,13 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 
 -- Note we set up the scalar actions before the `monoid` structures in case we want to
 -- try to override the `nsmul` or `zsmul` fields in future.
-section has_scalar
+section has_smul
 
 variables {𝕜 𝕜' : Type*}
-variables [has_scalar 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
-variables [has_scalar 𝕜' γ] [has_continuous_const_smul 𝕜' γ]
+variables [has_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
+variables [has_smul 𝕜' γ] [has_continuous_const_smul 𝕜' γ]
 
-instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
+instance : has_smul 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (continuous_id.const_smul c) f⟩
 
 @[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf : ae_strongly_measurable f μ) :
@@ -495,13 +494,13 @@ comp_to_germ _ _ _
 instance [smul_comm_class 𝕜 𝕜' γ] : smul_comm_class 𝕜 𝕜' (α →ₘ[μ] γ) :=
 ⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_comm]⟩
 
-instance [has_scalar 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
+instance [has_smul 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
 ⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_assoc]⟩
 
-instance [has_scalar 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=
+instance [has_smul 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ a f, induction_on f $ λ f hf, by simp_rw [smul_mk, op_smul_eq_smul]⟩
 
-end has_scalar
+end has_smul
 
 section has_mul
 variables [has_mul γ] [has_continuous_mul γ]
@@ -671,10 +670,24 @@ by rw [← lintegral_mk, mk_coe_fn]
 induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf.ae_measurable).trans mk_eq_mk.symm
 
 lemma lintegral_add (f g : α →ₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
-induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf.ae_measurable hg.ae_measurable]
+induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add_left' hf.ae_measurable]
 
 lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
+
+section abs
+
+lemma coe_fn_abs {β} [topological_space β] [lattice β] [topological_lattice β]
+  [add_group β] [topological_add_group β]
+  (f : α →ₘ[μ] β) :
+  ⇑|f| =ᵐ[μ] λ x, |f x| :=
+begin
+  simp_rw abs_eq_sup_neg,
+  filter_upwards [ae_eq_fun.coe_fn_sup f (-f), ae_eq_fun.coe_fn_neg f] with x hx_sup hx_neg,
+  rw [hx_sup, hx_neg, pi.neg_apply],
+end
+
+end abs
 
 section pos_part
 
@@ -703,7 +716,7 @@ namespace continuous_map
 open measure_theory
 
 variables [topological_space α] [borel_space α] (μ)
-variables [topological_space β] [second_countable_topology_either α β] [metrizable_space β]
+variables [topological_space β] [second_countable_topology_either α β] [pseudo_metrizable_space β]
 
 /-- The equivalence class of `μ`-almost-everywhere measurable functions associated to a continuous
 map. -/
@@ -726,7 +739,7 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
     f.continuous.ae_strongly_measurable g.continuous.ae_strongly_measurable }
 
 variables {𝕜 : Type*} [semiring 𝕜]
-variables [topological_space γ] [metrizable_space γ] [add_comm_group γ]
+variables [topological_space γ] [pseudo_metrizable_space γ] [add_comm_group γ]
   [module 𝕜 γ] [topological_add_group γ] [has_continuous_const_smul 𝕜 γ]
   [second_countable_topology_either α γ]
 

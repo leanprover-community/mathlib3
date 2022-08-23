@@ -190,3 +190,26 @@ lemma pow_eq_aeval_mod_charpoly (M : matrix n n R) (k : ℕ) : M^k = aeval M (X^
 by rw [←aeval_eq_aeval_mod_charpoly, map_pow, aeval_X]
 
 end matrix
+
+section ideal
+
+lemma coeff_charpoly_mem_ideal_pow {I : ideal R} (h : ∀ i j, M i j ∈ I) (k : ℕ) :
+  M.charpoly.coeff k ∈ I ^ (fintype.card n - k) :=
+begin
+  delta charpoly,
+  rw [matrix.det_apply, finset_sum_coeff],
+  apply sum_mem,
+  rintro c -,
+  rw [coeff_smul, submodule.smul_mem_iff'],
+  have : ∑ (x : n), 1 = fintype.card n := by rw [finset.sum_const, card_univ, smul_eq_mul, mul_one],
+  rw ← this,
+  apply coeff_prod_mem_ideal_pow_tsub,
+  rintro i - (_|k),
+  { rw [tsub_zero, pow_one, charmatrix_apply, coeff_sub, coeff_X_mul_zero, coeff_C_zero, zero_sub,
+      neg_mem_iff],
+    exact h (c i) i },
+  { rw [nat.succ_eq_one_add, tsub_self_add, pow_zero, ideal.one_eq_top],
+    exact submodule.mem_top }
+end
+
+end ideal

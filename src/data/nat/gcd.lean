@@ -275,6 +275,8 @@ theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n)
 
 theorem coprime_comm {m n : ℕ} : coprime n m ↔ coprime m n := ⟨coprime.symm, coprime.symm⟩
 
+theorem coprime.symmetric : symmetric coprime := λ m n, coprime.symm
+
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in
 by rwa [gcd_mul_left, H1.gcd_eq_one, mul_one] at t

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.order.ring
-import algebra.group_power.basic
+import algebra.group_power.ring
 
 /-!
 # Lemmas about the interaction of power operations with order
@@ -54,7 +54,7 @@ begin
   induction l with l IH,
   { simpa using ha },
   { rw pow_succ,
-    exact one_lt_mul' ha IH }
+    exact one_lt_mul'' ha IH }
 end
 
 @[to_additive nsmul_neg]
@@ -137,6 +137,10 @@ end canonically_ordered_comm_semiring
 
 section ordered_semiring
 variables [ordered_semiring R] {a x y : R} {n m : ℕ}
+
+lemma zero_pow_le_one : ∀ n : ℕ, (0 : R) ^ n ≤ 1
+| 0 := (pow_zero _).le
+| (n + 1) := by { rw [zero_pow n.succ_pos], exact zero_le_one }
 
 theorem pow_add_pow_le (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) : x ^ n + y ^ n ≤ (x + y) ^ n :=
 begin
@@ -247,7 +251,7 @@ end
 end ordered_ring
 
 section linear_ordered_semiring
-variable [linear_ordered_semiring R]
+variables [linear_ordered_semiring R] {a b : R}
 
 lemma pow_le_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ 1 ↔ a ≤ 1 :=
 begin
@@ -293,6 +297,9 @@ le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
 
 @[simp] lemma sq_eq_sq {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 = b ^ 2 ↔ a = b :=
 pow_left_inj ha hb dec_trivial
+
+lemma lt_of_mul_self_lt_mul_self (hb : 0 ≤ b) : a * a < b * b → a < b :=
+by { simp_rw ←sq, exact lt_of_pow_lt_pow _ hb }
 
 end linear_ordered_semiring
 
@@ -341,63 +348,46 @@ by simpa only [sq] using abs_mul_abs_self x
 theorem abs_sq (x : R) : |x ^ 2| = x ^ 2 :=
 by simpa only [sq] using abs_mul_self x
 
-theorem sq_lt_sq (h : |x| < |y|) : x ^ 2 < y ^ 2 :=
-by simpa only [sq_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
+theorem sq_lt_sq : x ^ 2 < y ^ 2 ↔ |x| < |y| :=
+by simpa only [sq_abs]
+  using (@strict_mono_on_pow R _ _ two_pos).lt_iff_lt (abs_nonneg x) (abs_nonneg y)
 
 theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
-sq_lt_sq (lt_of_lt_of_le (abs_lt.2 ⟨h1, h2⟩) (le_abs_self _))
+sq_lt_sq.2 (lt_of_lt_of_le (abs_lt.2 ⟨h1, h2⟩) (le_abs_self _))
 
-theorem sq_le_sq (h : |x| ≤ |y|) : x ^ 2 ≤ y ^ 2 :=
-by simpa only [sq_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
+theorem sq_le_sq : x ^ 2 ≤ y ^ 2 ↔ |x| ≤ |y| :=
+by simpa only [sq_abs]
+  using (@strict_mono_on_pow R _ _ two_pos).le_iff_le (abs_nonneg x) (abs_nonneg y)
 
 theorem sq_le_sq' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
-sq_le_sq (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
-
-theorem abs_lt_abs_of_sq_lt_sq (h : x^2 < y^2) : |x| < |y| :=
-lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sq_abs x, ← sq_abs y] at h
+sq_le_sq.2 (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
 
 theorem abs_lt_of_sq_lt_sq (h : x^2 < y^2) (hy : 0 ≤ y) : |x| < y :=
-begin
-  rw [← abs_of_nonneg hy],
-  exact abs_lt_abs_of_sq_lt_sq h,
-end
+by rwa [← abs_of_nonneg hy, ← sq_lt_sq]
 
 theorem abs_lt_of_sq_lt_sq' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
 abs_lt.mp $ abs_lt_of_sq_lt_sq h hy
 
-theorem abs_le_abs_of_sq_le_sq (h : x^2 ≤ y^2) : |x| ≤ |y| :=
-le_of_pow_le_pow 2 (abs_nonneg y) (1:ℕ).succ_pos $ by rwa [← sq_abs x, ← sq_abs y] at h
-
 theorem abs_le_of_sq_le_sq (h : x^2 ≤ y^2) (hy : 0 ≤ y) : |x| ≤ y :=
-begin
-  rw [← abs_of_nonneg hy],
-  exact abs_le_abs_of_sq_le_sq h,
-end
+by rwa [← abs_of_nonneg hy, ← sq_le_sq]
 
 theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
 abs_le.mp $ abs_le_of_sq_le_sq h hy
 
 lemma sq_eq_sq_iff_abs_eq_abs (x y : R) : x^2 = y^2 ↔ |x| = |y| :=
-⟨λ h, (abs_le_abs_of_sq_le_sq h.le).antisymm (abs_le_abs_of_sq_le_sq h.ge),
- λ h, by rw [←sq_abs, h, sq_abs]⟩
-
-@[simp] lemma sq_eq_one_iff (x : R) : x^2 = 1 ↔ x = 1 ∨ x = -1 :=
-by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
-
-lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
-(not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
+by simp only [le_antisymm_iff, sq_le_sq]
 
 @[simp] lemma sq_le_one_iff_abs_le_one (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
-have t : x^2 ≤ 1^2 ↔ |x| ≤ |1| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
+by simpa only [one_pow, abs_one] using @sq_le_sq _ _ x 1
 
 @[simp] lemma sq_lt_one_iff_abs_lt_one (x : R) : x^2 < 1 ↔ |x| < 1 :=
-have t : x^2 < 1^2 ↔ |x| < |1| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
+by simpa only [one_pow, abs_one] using @sq_lt_sq _ _ x 1
 
 @[simp] lemma one_le_sq_iff_one_le_abs (x : R) : 1 ≤ x^2 ↔ 1 ≤ |x| :=
-have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
+by simpa only [one_pow, abs_one] using @sq_le_sq _ _ 1 x
 
 @[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
-have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
+by simpa only [one_pow, abs_one] using @sq_lt_sq _ _ 1 x
 
 lemma pow_four_le_pow_two_of_pow_two_le {x y : R} (h : x^2 ≤ y) : x^4 ≤ y^2 :=
 (pow_mul x 2 2).symm ▸ pow_le_pow_of_le_left (sq_nonneg x) h 2

@@ -121,9 +121,10 @@ instance fun_like : fun_like (A →*[n] β) α (λ _, β) :=
 instance freiman_hom_class : freiman_hom_class (A →*[n] β) A β n :=
 { map_prod_eq_map_prod' := map_prod_eq_map_prod' }
 
-/-- Helper instance for when there's too many metavariables to apply
-`fun_like.has_coe_to_fun` directly. -/
-@[to_additive]
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
 instance : has_coe_to_fun (A →*[n] β) (λ _, α → β) := ⟨to_fun⟩
 
 initialize_simps_projections freiman_hom (to_fun → apply)
@@ -232,7 +233,7 @@ Freiman homomorphism sending `x` to `-f x`."]
 instance : has_inv (A →*[n] G) :=
 ⟨λ f, { to_fun := λ x, (f x)⁻¹,
   map_prod_eq_map_prod' := λ s t hsA htA hs ht h,
-    by rw [prod_map_inv', prod_map_inv', map_prod_eq_map_prod f hsA htA hs ht h] }⟩
+    by rw [prod_map_inv, prod_map_inv, map_prod_eq_map_prod f hsA htA hs ht h] }⟩
 
 @[simp, to_additive] lemma inv_apply (f : A →*[n] G) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
 

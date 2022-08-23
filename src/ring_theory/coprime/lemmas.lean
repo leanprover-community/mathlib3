@@ -33,6 +33,8 @@ theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.
 λ H, ⟨nat.gcd_a m n, nat.gcd_b m n, by rw [mul_comm _ (m : ℤ), mul_comm _ (n : ℤ),
     ← nat.gcd_eq_gcd_ab, show _ = _, from H, int.coe_nat_one]⟩⟩
 
+alias nat.is_coprime_iff_coprime ↔ is_coprime.nat_coprime nat.coprime.is_coprime
+
 theorem is_coprime.prod_left : (∀ i ∈ t, is_coprime (s i) x) → is_coprime (∏ i in t, s i) x :=
 finset.induction_on t (λ _, is_coprime_one_left) $ λ b t hbt ih H,
 by { rw finset.prod_insert hbt, rw finset.forall_mem_insert at H, exact H.1.mul_left (ih H.2) }
@@ -96,7 +98,7 @@ begin
     refine ⟨ih.mp ⟨pi.single h.some (μ a * s h.some) + μ * λ _, s a, _⟩, λ b hb, _⟩,
     { rw [prod_eq_mul_prod_diff_singleton h.some_spec, ← mul_assoc,
         ← @if_pos _ _ h.some_spec R (_ * _) 0, ← sum_pi_single', ← sum_add_distrib] at hμ,
-      rw [← hμ, sum_congr rfl], intros x hx, convert add_mul _ _ _ using 2,
+      rw [← hμ, sum_congr rfl], intros x hx, convert @add_mul R _ _ _ _ _ _ using 2,
       { by_cases hx : x = h.some,
         { rw [hx, pi.single_eq_same, pi.single_eq_same] },
         { rw [pi.single_eq_of_ne hx, pi.single_eq_of_ne hx, zero_mul] } },

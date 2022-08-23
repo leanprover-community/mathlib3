@@ -8,6 +8,31 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.functor.reflects_isomorphisms
 
+/-!
+# Cones and cocones
+
+We define `cone F`, a cone over a functor `F`,
+and `F.cones : Cᵒᵖ ⥤ Type`, the functor associating to `X` the cones over `F` with cone point `X`.
+
+A cone `c` is defined by specifying its cone point `c.X` and a natural transformation `c.π`
+from the constant `c.X` valued functor to `F`.
+
+We provide `c.w f : c.π.app j ≫ F.map f = c.π.app j'` for any `f : j ⟶ j'`
+as a wrapper for `c.π.naturality f` avoiding unneeded identity morphisms.
+
+We define `c.extend f`, where `c : cone F` and `f : Y ⟶ c.X` for some other `Y`,
+which replaces the cone point by `Y` and inserts `f` into each of the components of the cone.
+Similarly we have `c.whisker F` producing a `cone (E ⋙ F)`
+
+We define morphisms of cones, and the category of cones.
+
+We define `cone.postcompose α : cone F ⥤ cone G` for `α` a natural transformation `F ⟶ G`.
+
+And, of course, we dualise all this to cocones as well.
+
+For more results about the category of cones, see `cone_category.lean`.
+-/
+
 -- morphism levels before object levels. See note [category_theory universes].
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 open category_theory
@@ -68,6 +93,9 @@ end
 
 namespace limits
 
+section
+local attribute [tidy] tactic.discrete_cases
+
 /--
 A `c : cone F` is:
 * an object `c.X` and
@@ -80,8 +108,9 @@ structure cone (F : J ⥤ C) :=
 (π : (const J).obj X ⟶ F)
 
 instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
-⟨{ X := F.obj punit.star,
-   π := { app := λ ⟨⟩, 𝟙 _ } }⟩
+⟨{ X := F.obj ⟨⟨⟩⟩,
+   π :=
+   { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
 @[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
@@ -99,12 +128,15 @@ structure cocone (F : J ⥤ C) :=
 (ι : F ⟶ (const J).obj X)
 
 instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
-⟨{ X := F.obj punit.star,
-   ι := { app := λ ⟨⟩, 𝟙 _ } }⟩
+⟨{ X := F.obj ⟨⟨⟩⟩,
+   ι :=
+  { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
 @[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
 by { rw c.ι.naturality f, apply comp_id }
+
+end
 
 variables {F : J ⥤ C}
 
@@ -189,6 +221,10 @@ namespace cones
   (φ : c.X ≅ c'.X) (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
+
+/-- Eta rule for cones. -/
+@[simps] def eta (c : cone F) : c ≅ ⟨c.X, c.π⟩ :=
+cones.ext (iso.refl _) (by tidy)
 
 /--
 Given a cone morphism whose object part is an isomorphism, produce an
@@ -348,6 +384,10 @@ namespace cocones
   (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
+
+/-- Eta rule for cocones. -/
+@[simps] def eta (c : cocone F) : c ≅ ⟨c.X, c.ι⟩ :=
+cocones.ext (iso.refl _) (by tidy)
 
 /--
 Given a cocone morphism whose object part is an isomorphism, produce an

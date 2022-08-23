@@ -317,15 +317,22 @@ variables {M}
 
 include hS
 
+private lemma fraction_ring.is_algebraic :
+  by letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R S).is_domain _; exact
+  algebra.is_algebraic (fraction_ring R) (fraction_ring S) :=
+begin
+  introsI inst x,
+  exact (is_fraction_ring.is_algebraic_iff R (fraction_ring R) (fraction_ring S)).1
+    ((is_fraction_ring.is_algebraic_iff' R S (fraction_ring S)).1 hS x)
+end
+
 /-- A (random) homomorphism from an algebraic extension of R into an algebraically
   closed extension of R. -/
-
 @[irreducible] noncomputable def lift : S →ₐ[R] M :=
 begin
   letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R S).is_domain _,
-  have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S),
-    from λ x, (is_fraction_ring.is_algebraic_iff R (fraction_ring R) (fraction_ring S)).1
-      ((is_fraction_ring.is_algebraic_iff' R S (fraction_ring S)).1 hS x),
+  have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S) :=
+    fraction_ring.is_algebraic hS,
   let f : fraction_ring S →ₐ[fraction_ring R] M :=
     lift_aux (fraction_ring R) (fraction_ring S) M hfRfS,
   exact (f.restrict_scalars R).comp ((algebra.of_id S (fraction_ring S)).restrict_scalars R),

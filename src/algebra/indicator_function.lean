@@ -419,6 +419,11 @@ begin
   exact (ne_of_mem_of_not_mem ha' haI).symm
 end
 
+@[to_additive] lemma mul_indicator_finset_bUnion_apply {ι} (I : finset ι)
+  (s : ι → set α) {f : α → M} (h : ∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (s i) (s j)) (x : α) :
+  mul_indicator (⋃ i ∈ I, s i) f x = ∏ i in I, mul_indicator (s i) f x :=
+by rw set.mul_indicator_finset_bUnion I s h
+
 end comm_monoid
 
 section mul_zero_class
@@ -452,12 +457,21 @@ lemma inter_indicator_one {s t : set α} :
 funext (λ _, by simpa only [← inter_indicator_mul, pi.mul_apply, pi.one_apply, one_mul])
 
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
-  (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
-begin
-  letI := classical.dec_pred (∈ s),
-  letI := classical.dec_pred (∈ t),
-  simp [indicator_apply, ← ite_and],
-end
+  (s ×ˢ t).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
+by { classical, simp [indicator_apply, ←ite_and] }
+
+variables (M) [nontrivial M]
+
+lemma indicator_eq_zero_iff_not_mem {U : set α} {x : α} :
+  indicator U 1 x = (0 : M) ↔ x ∉ U :=
+by { classical, simp [indicator_apply, imp_false] }
+
+lemma indicator_eq_one_iff_mem {U : set α} {x : α} :
+  indicator U 1 x = (1 : M) ↔ x ∈ U :=
+by { classical, simp [indicator_apply, imp_false] }
+
+lemma indicator_one_inj {U V : set α} (h : indicator U (1 : α → M) = indicator V 1) : U = V :=
+by { ext, simp_rw [← indicator_eq_one_iff_mem M, h] }
 
 end mul_zero_one_class
 

@@ -382,6 +382,9 @@ theorem iget_mem [inhabited α] : ∀ {o : option α}, is_some o → o.iget ∈ 
 theorem iget_of_mem [inhabited α] {a : α} : ∀ {o : option α}, a ∈ o → o.iget = a
 | _ rfl := rfl
 
+lemma get_or_else_default_eq_iget [inhabited α] (o : option α) : o.get_or_else default = o.iget :=
+by cases o; refl
+
 @[simp] theorem guard_eq_some {p : α → Prop} [decidable_pred p] {a b : α} :
   guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
@@ -490,11 +493,7 @@ rfl
 @[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
 rfl
 
---TODO: Swap arguments to `option.elim` so that it is exactly `option.cons`
-/-- Functions from `option` can be combined similarly to `vector.cons`. -/
-def cons (a : β) (f : α → β) : option α → β := λ o, o.elim a f
-
-@[simp] lemma cons_none_some (f : option α → β) : cons (f none) (f ∘ some) = f :=
+@[simp] lemma elim_none_some (f : option α → β) : option.elim (f none) (f ∘ some) = f :=
 funext $ λ o, by cases o; refl
 
 end option

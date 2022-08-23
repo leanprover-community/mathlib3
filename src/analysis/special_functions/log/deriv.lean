@@ -15,7 +15,7 @@ that the series `∑' n : ℕ, x ^ (n + 1) / (n + 1)` converges to `(-real.log (
 
 ## Tags
 
-logarighm, derivative
+logarithm, derivative
 -/
 
 open filter finset set
@@ -115,8 +115,8 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {x : E} {f' : E →L[ℝ] ℝ}
-  {s : set E}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {x : E}
+  {f' : E →L[ℝ] ℝ} {s : set E}
 
 lemma has_fderiv_within_at.log (hf : has_fderiv_within_at f f' s x) (hx : f x ≠ 0) :
   has_fderiv_within_at (λ x, log (f x)) ((f x)⁻¹ • f') s x :=
@@ -207,7 +207,7 @@ begin
     have : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
     { congr' with i,
       exact mul_div_cancel_left _ (nat.cast_add_one_pos i).ne' },
-    field_simp [F, this, ← geom_sum_def, geom_sum_eq (ne_of_lt hy.2),
+    field_simp [F, this, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
     ring },
   -- second step: show that the derivative of `F` is small
@@ -230,7 +230,7 @@ begin
       have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
       simp [F, this] },
     apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
-    { simpa using abs_nonneg x },
+    { simp },
     { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
   -- fourth step: conclude by massaging the inequality of the third step
   simpa [F, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using C
@@ -253,12 +253,12 @@ begin
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
     calc ∥x ^ (i + 1) / (i + 1)∥
-    = |x| ^ (i+1) / (i+1) :
+    = |x| ^ (i + 1) / (i + 1) :
       begin
         have : (0 : ℝ) ≤ i + 1 := le_of_lt (nat.cast_add_one_pos i),
         rw [norm_eq_abs, abs_div, ← pow_abs, abs_of_nonneg this],
       end
-    ... ≤ |x| ^ (i+1) / (0 + 1) :
+    ... ≤ |x| ^ (i + 1) / (0 + 1) :
       begin
         apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg, add_le_add_right,
           i.cast_nonneg],
@@ -266,6 +266,49 @@ begin
       end
     ... ≤ |x| ^ i :
       by simpa [pow_succ'] using mul_le_of_le_one_right (pow_nonneg (abs_nonneg x) i) (le_of_lt h) }
+end
+
+/-- Power series expansion of `log(1 + x) - log(1 - x)` for `|x| < 1`. -/
+lemma has_sum_log_sub_log_of_abs_lt_1 {x : ℝ} (h : |x| < 1) :
+  has_sum (λ k : ℕ, (2 : ℝ) * (1 / (2 * k + 1)) * x ^ (2 * k + 1)) (log (1 + x) - log(1 - x)) :=
+begin
+  let term := λ n : ℕ, (-1) * ((-x) ^ (n + 1) / ((n : ℝ) + 1)) + x ^ (n + 1) / (n + 1),
+  have h_term_eq_goal : term ∘ (*) 2 = λ k : ℕ, 2 * (1 / (2 * k + 1)) * x ^ (2 * k + 1),
+  { ext n,
+    dsimp [term],
+    rw [odd.neg_pow (⟨n, rfl⟩ : odd (2 * n + 1)) x],
+    push_cast,
+    ring_nf, },
+  rw [← h_term_eq_goal, (nat.mul_right_injective two_pos).has_sum_iff],
+  { have h₁ := (has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h)).mul_left (-1),
+    convert h₁.add (has_sum_pow_div_log_of_abs_lt_1 h),
+    ring_nf },
+  { intros m hm,
+    rw [range_two_mul, set.mem_set_of_eq, ← nat.even_add_one] at hm,
+    dsimp [term],
+    rw [even.neg_pow hm, neg_one_mul, neg_add_self] },
+end
+
+/-- Expansion of `log (1 + a⁻¹)` as a series in powers of `1 / (2 * a + 1)`. -/
+theorem has_sum_log_one_add_inv {a : ℝ} (h : 0 < a) :
+  has_sum (λ k : ℕ, (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
+  (log (1 + a⁻¹)) :=
+begin
+  have h₁ : |1 / (2 * a + 1)| < 1,
+  { rw [abs_of_pos, div_lt_one],
+    { linarith, },
+    { linarith, },
+    { exact div_pos one_pos (by linarith), }, },
+  convert has_sum_log_sub_log_of_abs_lt_1 h₁,
+  have h₂ : (2 : ℝ) * a + 1 ≠ 0 := by linarith,
+  have h₃ := h.ne',
+  rw ← log_div,
+  { congr,
+    field_simp,
+    linarith, },
+  { field_simp,
+    linarith } ,
+  { field_simp },
 end
 
 end real

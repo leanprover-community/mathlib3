@@ -60,7 +60,7 @@ end
 theorem fg_bot : (⊥ : L.substructure M).fg :=
 ⟨∅, by rw [finset.coe_empty, closure_empty]⟩
 
-theorem fg_closure {s : set M} (hs : finite s) : fg (closure L s) :=
+theorem fg_closure {s : set M} (hs : s.finite) : fg (closure L s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
 
 theorem fg_closure_singleton (x : M) : fg (closure L ({x} : set M)) :=
@@ -111,7 +111,7 @@ begin
   { rintros ⟨S, Scount, hS⟩,
     cases eq_empty_or_nonempty ↑N with h h,
     { exact or.intro_left _ h },
-    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_surjective
+    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_eq_range
       (singleton_nonempty h.some).inr,
     refine or.intro_right _ ⟨f, _⟩,
     rw [← h', closure_union, hS, sup_eq_left, closure_le],

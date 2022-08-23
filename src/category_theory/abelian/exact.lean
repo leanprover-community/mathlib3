@@ -1,11 +1,13 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel, Adam Topaz, Johan Commelin
+Authors: Markus Himmel, Adam Topaz, Johan Commelin, Jakob von Raumer
 -/
 import category_theory.abelian.opposite
+import category_theory.limits.constructions.finite_products_of_binary_products
 import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.kernels
+import category_theory.preadditive.left_exact
 import category_theory.adjunction.limits
 import algebra.homology.exact
 import tactic.tfae
@@ -27,7 +29,8 @@ true in more general settings.
   sequences.
 * `X ⟶ Y ⟶ Z ⟶ 0` is exact if and only if the second map is a cokernel of the first, and
   `0 ⟶ X ⟶ Y ⟶ Z` is exact if and only if the first map is a kernel of the second.
-
+* An exact functor preserves exactness, more specifically, `F` preserves finite colimits and
+  finite limits, if and only if `exact f g` implies `exact (F.map f) (F.map g)`.
 -/
 
 universes v₁ v₂ u₁ u₂
@@ -78,7 +81,7 @@ begin
       { ext, simp },
       rw this,
       apply_instance, },
-    refine is_limit.of_ι _ _ _ _ _,
+    refine kernel_fork.is_limit.of_ι _ _ _ _ _,
     { refine λ W u hu,
         kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom ≫ (image_subobject_iso _).inv,
       rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
@@ -121,13 +124,24 @@ begin
     is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
 end
 
+/-- The dual result is true even in non-abelian categories, see
+    `category_theory.exact_epi_comp_iff`. -/
+lemma exact_epi_comp_iff {W : C} (h : W ⟶ X) [epi h] : exact (h ≫ f) g ↔ exact f g :=
+begin
+  refine ⟨λ hfg, _, λ h, exact_epi_comp h⟩,
+  let hc := is_cokernel_of_comp _ _ (colimit.is_colimit (parallel_pair (h ≫ f) 0))
+    (by rw [← cancel_epi h, ← category.assoc, cokernel_cofork.condition, comp_zero]) rfl,
+  refine (exact_iff' _ _ (limit.is_limit _) hc).2 ⟨_, ((exact_iff _ _).1 hfg).2⟩,
+  exact zero_of_epi_comp h (by rw [← hfg.1, category.assoc])
+end
+
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image (h : exact f g) :
   is_limit
     (kernel_fork.of_ι (abelian.image.ι f) (image_ι_comp_eq_zero h.1) : kernel_fork g) :=
 begin
   rw exact_iff at h,
-  refine is_limit.of_ι _ _ _ _ _,
+  refine kernel_fork.is_limit.of_ι _ _ _ _ _,
   { refine λ W u hu, kernel.lift (cokernel.π f) u _,
     rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
   tidy
@@ -143,7 +157,7 @@ def is_colimit_coimage (h : exact f g) : is_colimit (cokernel_cofork.of_π (abel
   (abelian.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
 begin
   rw exact_iff at h,
-  refine is_colimit.of_π _ _ _ _ _,
+  refine cokernel_cofork.is_colimit.of_π _ _ _ _ _,
   { refine λ W u hu, cokernel.desc (kernel.ι g) u _,
     rw [←cokernel.π_desc f u hu, ←category.assoc, h.2, has_zero_morphisms.zero_comp] },
   tidy
@@ -288,11 +302,15 @@ end opposite
 end abelian
 
 namespace functor
+
+section
+
 variables {D : Type u₂} [category.{v₂} D] [abelian D]
+variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 @[priority 100]
-instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C ⥤ D)
-  [preserves_zero_morphisms F] [faithful F] : reflects_exact_sequences F :=
+instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful [faithful F] :
+  reflects_exact_sequences F :=
 { reflects := λ X Y Z f g hfg,
   begin
     rw [abelian.exact_iff, ← F.map_comp, F.map_eq_zero_iff] at hfg,
@@ -303,6 +321,121 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C
       (by simp only [← F.map_comp, cokernel.condition, category_theory.functor.map_zero]),
     rw [F.map_comp, ← hk, ← hl, category.assoc, reassoc_of hfg.2, zero_comp, comp_zero]
   end }
+
+end
+
+end functor
+
+namespace functor
+
+open limits abelian
+
+variables {A : Type u₁} {B : Type u₂} [category.{v₁} A] [category.{v₂} B]
+variables [abelian A] [abelian B]
+variables (L : A ⥤ B)
+
+section
+
+variables [preserves_finite_limits L] [preserves_finite_colimits L]
+
+/-- A functor preserving finite limits and finite colimits preserves exactness. The converse
+result is also true, see `functor.preserves_finite_limits_of_map_exact` and
+`functor.preserves_finite_colimits_of_map_exact`. -/
+lemma map_exact {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
+  exact (L.map f) (L.map g) :=
+begin
+  let hcoker := is_colimit_of_has_cokernel_of_preserves_colimit L f,
+  let hker := is_limit_of_has_kernel_of_preserves_limit L g,
+  refine (exact_iff' _ _ hker hcoker).2 ⟨by simp [← L.map_comp, e1.1], _⟩,
+  rw [fork.ι_of_ι, cofork.π_of_π, ← L.map_comp, kernel_comp_cokernel _ _ e1, L.map_zero]
+end
+
+end
+
+section
+
+variables (h : ∀ ⦃X Y Z : A⦄ {f : X ⟶ Y} {g : Y ⟶ Z}, exact f g → exact (L.map f) (L.map g))
+include h
+
+open_locale zero_object
+
+/-- A functor which preserves exactness preserves zero morphisms. -/
+lemma preserves_zero_morphisms_of_map_exact : L.preserves_zero_morphisms :=
+begin
+  replace h := (h (exact_of_zero (𝟙 0) (𝟙 0))).w,
+  rw [L.map_id, category.comp_id] at h,
+  exact preserves_zero_morphisms_of_map_zero_object (id_zero_equiv_iso_zero _ h),
+end
+
+/-- A functor which preserves exactness preserves monomorphisms. -/
+lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
+{ preserves := λ X Y f hf,
+  begin
+    letI := preserves_zero_morphisms_of_map_exact L h,
+    apply ((tfae_mono (L.obj 0) (L.map f)).out 2 0).mp,
+    rw ←L.map_zero,
+    exact h (((tfae_mono 0 f).out 0 2).mp hf)
+  end }
+
+/-- A functor which preserves exactness preserves epimorphisms. -/
+lemma preserves_epimorphisms_of_map_exact : L.preserves_epimorphisms :=
+{ preserves := λ X Y f hf,
+  begin
+    letI := preserves_zero_morphisms_of_map_exact L h,
+    apply ((tfae_epi (L.obj 0) (L.map f)).out 2 0).mp,
+    rw ←L.map_zero,
+    exact h (((tfae_epi 0 f).out 0 2).mp hf)
+  end }
+
+/-- A functor which preserves exactness preserves kernels. -/
+def preserves_kernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
+  preserves_limit (parallel_pair f 0) L :=
+{ preserves := λ c ic,
+  begin
+    letI := preserves_zero_morphisms_of_map_exact L h,
+    letI := preserves_monomorphisms_of_map_exact L h,
+    letI := mono_of_is_limit_fork ic,
+    have hf := (is_limit_map_cone_fork_equiv' L (kernel_fork.condition c)).symm
+      (is_limit_of_exact_of_mono (L.map (fork.ι c)) (L.map f)
+        (h (exact_of_is_kernel (fork.ι c) f (kernel_fork.condition c)
+          (ic.of_iso_limit (iso_of_ι _))))),
+    exact hf.of_iso_limit ((cones.functoriality _ L).map_iso (iso_of_ι _).symm),
+  end }
+
+/-- A functor which preserves exactness preserves zero cokernels. -/
+def preserves_cokernels_of_map_exact (X Y : A) (f : X ⟶ Y) :
+  preserves_colimit (parallel_pair f 0) L :=
+{ preserves := λ c ic,
+  begin
+    letI := preserves_zero_morphisms_of_map_exact L h,
+    letI := preserves_epimorphisms_of_map_exact L h,
+    letI := epi_of_is_colimit_cofork ic,
+    have hf := (is_colimit_map_cocone_cofork_equiv' L (cokernel_cofork.condition c)).symm
+      (is_colimit_of_exact_of_epi (L.map f) (L.map (cofork.π c))
+        (h (exact_of_is_cokernel f (cofork.π c) (cokernel_cofork.condition c)
+          (ic.of_iso_colimit (iso_of_π _))))),
+    exact hf.of_iso_colimit ((cocones.functoriality _ L).map_iso (iso_of_π _).symm),
+  end }
+
+/-- A functor which preserves exactness is left exact, i.e. preserves finite limits.
+This is part of the inverse implication to `functor.map_exact`. -/
+def preserves_finite_limits_of_map_exact : limits.preserves_finite_limits L :=
+begin
+  letI := preserves_zero_morphisms_of_map_exact L h,
+  letI := preserves_kernels_of_map_exact L h,
+  apply preserves_finite_limits_of_preserves_kernels,
+end
+
+/-- A functor which preserves exactness is right exact, i.e. preserves finite colimits.
+This is part of the inverse implication to `functor.map_exact`. -/
+def preserves_finite_colimits_of_map_exact : limits.preserves_finite_colimits L :=
+begin
+  letI := preserves_zero_morphisms_of_map_exact L h,
+  letI := preserves_cokernels_of_map_exact L h,
+  apply preserves_finite_colimits_of_preserves_cokernels,
+end
+
+end
 
 end functor
 

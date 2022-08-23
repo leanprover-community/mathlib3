@@ -119,9 +119,9 @@ begin
     by simpa only [norm_to_nnreal, nnnorm_pow k (n+1)]
       using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
-  have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
+  have hn : 0 < ((n + 1 : ℕ) : ℝ), by exact_mod_cast nat.succ_pos',
   convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
-  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one], rw nat.cast_succ,
 end
 
 end spectrum_compact
@@ -130,7 +130,7 @@ section resolvent
 
 open filter asymptotics
 
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
@@ -146,7 +146,7 @@ end
 
 /- TODO: Once there is sufficient API for bornology, we should get a nice filter / asymptotics
 version of this, for example: `tendsto (resolvent a) (cobounded 𝕜) (𝓝 0)` or more specifically
-`is_O (resolvent a) (λ z, z⁻¹) (cobounded 𝕜)`. -/
+`(resolvent a) =O[cobounded 𝕜] (λ z, z⁻¹)`. -/
 lemma norm_resolvent_le_forall (a : A) :
   ∀ ε > 0, ∃ R > 0, ∀ z : 𝕜, R ≤ ∥z∥ → ∥resolvent a z∥ ≤ ε :=
 begin
@@ -163,7 +163,7 @@ begin
   replace hz := inv_le_of_inv_le min_pos hz,
   rcases (⟨units.mk0 z hnz, units.coe_mk0 hnz⟩ : is_unit z) with ⟨z, rfl⟩,
   have lt_δ : ∥z⁻¹ • a∥ < δ,
-  { rw [units.smul_def, norm_smul, units.coe_inv', norm_inv],
+  { rw [units.smul_def, norm_smul, units.coe_inv, norm_inv],
     calc ∥(z : 𝕜)∥⁻¹ * ∥a∥ ≤ δ * (∥a∥ + 1)⁻¹ * ∥a∥
         : mul_le_mul_of_nonneg_right (hz.trans (min_le_left _ _)) (norm_nonneg _)
     ...                   < δ
@@ -171,7 +171,7 @@ begin
                exact mul_lt_mul_of_pos_left
                  ((inv_mul_lt_iff ha₁).mpr ((mul_one (∥a∥ + 1)).symm ▸ (lt_add_one _))) δ_pos } },
   rw [←inv_smul_smul z (resolvent a (z : 𝕜)), units_smul_resolvent_self, resolvent,
-    algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv', norm_inv],
+    algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv, norm_inv],
   calc _ ≤ ε * c⁻¹ * c : mul_le_mul (hz.trans (min_le_right _ _)) (hδ (mem_ball_zero_iff.mpr lt_δ))
                            (norm_nonneg _) (mul_pos hε (inv_pos.mpr c_pos)).le
   ...    = _           : inv_mul_cancel_right₀ c_pos.ne.symm ε,
@@ -185,10 +185,10 @@ open continuous_multilinear_map ennreal formal_multilinear_series
 open_locale nnreal ennreal
 
 variables
-[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+[nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
-/-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
+/-- In a Banach algebra `A` over a nontrivially normed field `𝕜`, for any `a : A` the
 power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
 radius `∥a∥₊⁻¹`. -/
 lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) :
@@ -232,7 +232,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv', nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv, nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
@@ -288,6 +288,7 @@ begin
   refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
   { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
     refine le_trans _ (le_supr _ 0),
+    simp only [nat.cast_succ],
     exact le_infi₂ (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
   { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
 end
@@ -423,8 +424,8 @@ lemma continuous [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : continuous φ :
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 @[simp] lemma to_continuous_linear_map_norm [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
@@ -433,6 +434,6 @@ continuous_linear_map.op_norm_eq_of_bounds zero_le_one
   (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _))
   (λ _ _ h, by simpa only [to_continuous_linear_map_apply, mul_one, map_one, norm_one] using h 1)
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 end alg_hom

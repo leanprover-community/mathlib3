@@ -789,30 +789,21 @@ lemma factorization_add_of_lt {p a b : ℕ} (h : a.factorization p < b.factoriza
 begin
   rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
   rcases em' p.prime with pp | pp, { simp [pp] },
-
-  set a' := ord_compl[p] a with ha',
-  set b' := ord_compl[p] b with hb',
-  set α := a.factorization p with hα,
-  set β := b.factorization p with hβ,
-
-  have h1 : a + b = p^α * (a' + p^(β-α)*b'),
+  let a' := ord_compl[p] a,
+  let b' := ord_compl[p] b,
+  let α := a.factorization p,
+  let β := b.factorization p,
+  have h1 : a + b = p ^ α * (a' + p ^ (β - α) * b'),
   { rw [mul_add, ←mul_assoc, ←pow_add, add_tsub_cancel_of_le h.le],
     simp_rw ord_proj_mul_ord_compl_eq_self },
-
   have h2 : a' + p ^ (β - α) * b' ≠ 0, { intro H, simpa [H, ha0, hb0] using h1 },
-
   rw [h1, factorization_mul (ord_proj_pos a p).ne' h2, finsupp.add_apply],
-
   suffices : (a' + p ^ (β - α) * b').factorization p = 0,
   { simp [this, add_zero, pp.factorization_pow]},
-
   apply factorization_eq_zero_of_not_dvd,
-
-  have h4 : p ∣ p ^ (β - α) * b' := dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt h).ne') b',
-  rw nat.dvd_add_left h4,
+  rw nat.dvd_add_left (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt h).ne') b'),
   exact not_dvd_ord_compl pp ha0,
 end
-
 
 lemma factorization_add_min (p a b : ℕ) (h : a.factorization p ≠ b.factorization p)
   (ha0 : a ≠ 0) (hb0 : b ≠ 0) :

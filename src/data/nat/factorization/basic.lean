@@ -784,7 +784,7 @@ begin
 end
 
 -- TODO: Re-write this using `min`
-lemma factorization_add_of_lt (p a b : ℕ) (h : a.factorization p < b.factorization p)
+lemma factorization_add_of_lt {p a b : ℕ} (h : a.factorization p < b.factorization p)
   (ha0 : a ≠ 0) :
   (a + b).factorization p = a.factorization p :=
 begin
@@ -819,5 +819,14 @@ begin
   exact tsub_pos_of_lt h,
 end
 
+
+lemma factorization_add_min (p a b : ℕ) (h : a.factorization p ≠ b.factorization p)
+  (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+  (a + b).factorization p = min (a.factorization p) (b.factorization p) :=
+begin
+  rcases lt_or_lt_iff_ne.2 h with h | h,
+  { rw [factorization_add_of_lt h ha0, min_eq_left_of_lt h] },
+  { rw [add_comm, factorization_add_of_lt h hb0, min_eq_right_of_lt h] },
+end
 
 end nat

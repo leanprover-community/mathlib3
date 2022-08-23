@@ -814,16 +814,24 @@ begin
   { rw [add_comm, factorization_add_of_lt h hb0, min_eq_right_of_lt h] },
 end
 
+lemma factorization_eq_of_lt_factorization_add {p a b : ℕ} (hb0 : b ≠ 0)
+  (h : b.factorization p < (a + b).factorization p) :
+  a.factorization p = b.factorization p :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha0, { simpa using h },
+  contrapose! h,
+  rw [factorization_add_min h ha0 hb0, min_le_iff],
+  exact or.inr (le_refl _),
+end
+
 lemma factorization_sub_of_lt {p a b : ℕ} (h : b.factorization p < a.factorization p)
   (hab : b ≤ a) (hb0 : b ≠ 0) :
   (a - b).factorization p = b.factorization p :=
 begin
   rcases (exists_eq_add_of_le hab) with ⟨k, rfl⟩,
   simp only [add_tsub_cancel_left],
-  rcases eq_or_ne k 0 with rfl | hk0, { simpa using h },
-  contrapose! h,
-  rw [factorization_add_min h.symm hb0 hk0, min_le_iff],
-  exact or.inl (le_refl _),
+  rw add_comm at h,
+  exact factorization_eq_of_lt_factorization_add hb0 h,
 end
 
 end nat

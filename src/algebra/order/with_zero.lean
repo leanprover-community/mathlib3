@@ -202,22 +202,6 @@ by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 lemma div_le_iff₀ (hc : c ≠ 0) : a / c ≤ b ↔ a ≤ b*c :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
 
-lemma eq_one_of_mul_eq_one_left (ha : a ≤ 1) (hb : b ≤ 1) (hab : a * b = 1) : a = 1 :=
-le_antisymm ha $ (inv_le_one₀ $ left_ne_zero_of_mul_eq_one hab).mp $
-  eq_inv_of_mul_eq_one_right hab ▸ hb
-
-lemma eq_one_of_mul_eq_one_right (ha : a ≤ 1) (hb : b ≤ 1) (hab : a * b = 1) : b = 1 :=
-le_antisymm hb $ (inv_le_one₀ $ right_ne_zero_of_mul_eq_one hab).mp $
-  eq_inv_of_mul_eq_one_left hab ▸ ha
-
-lemma eq_one_of_mul_eq_one_left' (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b = 1) : a = 1 :=
-le_antisymm
-  ((one_le_inv₀ $ left_ne_zero_of_mul_eq_one hab).mp $ eq_inv_of_mul_eq_one_right hab ▸ hb) ha
-
-lemma eq_one_of_mul_eq_one_right' (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b = 1) : b = 1 :=
-le_antisymm
-  ((one_le_inv₀ $ right_ne_zero_of_mul_eq_one hab).mp $ eq_inv_of_mul_eq_one_left hab ▸ ha) hb
-
 /-- `equiv.mul_left₀` as an order_iso on a `linear_ordered_comm_group_with_zero.`.
 
 Note that `order_iso.mul_left₀` refers to the `linear_ordered_field` version. -/

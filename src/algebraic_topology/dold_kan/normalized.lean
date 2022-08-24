@@ -48,7 +48,7 @@ begin
     _ j (by simp only [finset.mem_univ])), assoc, kernel_subobject_arrow_comp, comp_zero],
 end
 
-lemma P_infty_factors_thru_Moore_complex_degreewise (n : ℕ) :
+lemma factors_normalized_Moore_complex_P_infty (n : ℕ) :
   subobject.factors (normalized_Moore_complex.obj_X X n) (P_infty.f n) :=
 begin
   cases n,

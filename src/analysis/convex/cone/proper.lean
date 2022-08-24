@@ -24,8 +24,8 @@ variables {E : Type*} [add_comm_monoid E] [topological_space E] [has_continuous_
   [sequential_space E]
 variables [has_smul 𝕜 E] [has_continuous_const_smul 𝕜 E]
 
-/-- The closure of a convex cone inside a real inner product space is a convex cone. This
-construction is mainly used for defining maps between proper cones. -/
+/-- The closure of a convex cone inside sequential space is a convex cone. This construction is
+mainly used for defining maps between proper cones. -/
 def closure (K : convex_cone 𝕜 E) : convex_cone 𝕜 E :=
 { carrier := closure ↑K,
   smul_mem' :=

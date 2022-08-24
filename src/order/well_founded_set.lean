@@ -45,9 +45,7 @@ variables {ι α β : Type*}
 
 namespace set
 
-/-!
-### Relations well-founded on sets
--/
+/-! ### Relations well-founded on sets -/
 
 /-- `s.well_founded_on r` indicates that the relation `r` is well-founded when restricted to `s`. -/
 def well_founded_on (s : set α) (r : α → α → Prop) : Prop := well_founded $ λ a b : s, r a b
@@ -56,11 +54,9 @@ def well_founded_on (s : set α) (r : α → α → Prop) : Prop := well_founded
 well_founded_of_empty _
 
 section well_founded_on
-
 variables {r r' : α → α → Prop}
 
 section any_rel
-
 variables {s t : set α} {x y : α}
 
 lemma well_founded_on_iff :
@@ -82,7 +78,7 @@ end
 namespace well_founded_on
 
 protected lemma induction (hs : s.well_founded_on r) (hx : x ∈ s) {P : α → Prop}
-  (hP : ∀ (y ∈ s), (∀ (z ∈ s), r z y → P z) → P y) : P x :=
+  (hP : ∀ y ∈ s, (∀ z ∈ s, r z y → P z) → P y) : P x :=
 begin
   let Q : s → Prop := λ y, P y,
   change Q ⟨x, hx⟩,
@@ -101,11 +97,9 @@ end
 lemma subset (h : t.well_founded_on r) (hst : s ⊆ t) : s.well_founded_on r := h.mono le_rfl hst
 
 end well_founded_on
-
 end any_rel
 
 section is_strict_order
-
 variables [is_strict_order α r] {s t : set α}
 
 instance is_strict_order.subset : is_strict_order α (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
@@ -118,13 +112,13 @@ begin
   simp only [well_founded_on_iff, rel_embedding.well_founded_iff_no_descending_seq, ← not_exists,
     ← not_nonempty_iff, not_iff_not],
   split,
-  { rintro ⟨⟨f, hf : ∀ {m n}, (r (f m) (f n) ∧ f m ∈ s ∧ f n ∈ s) ↔ n < m⟩⟩,
+  { rintro ⟨⟨f, hf⟩⟩,
     have H : ∀ n, f n ∈ s, from λ n, (hf.2 n.lt_succ_self).2.2,
     refine ⟨⟨f, _⟩, H⟩,
     simpa only [H, and_true] using @hf },
   { rintro ⟨⟨f, hf⟩, hfs : ∀ n, f n ∈ s⟩,
     refine ⟨⟨f, _⟩⟩,
-    simpa only [hfs, and_true] using @hf },
+    simpa only [hfs, and_true] using @hf }
 end
 
 lemma well_founded_on.union (hs : s.well_founded_on r) (ht : t.well_founded_on r) :
@@ -141,15 +135,11 @@ end
 ⟨λ h, ⟨h.subset $ subset_union_left _ _, h.subset $ subset_union_right _ _⟩, λ h, h.1.union h.2⟩
 
 end is_strict_order
-
 end well_founded_on
 
-/-!
-### Sets well-founded w.r.t. the strict inequality
--/
+/-! ### Sets well-founded w.r.t. the strict inequality -/
 
 section has_lt
-
 variables [has_lt α] {s t : set α}
 
 /-- `s.is_wf` indicates that `<` is well-founded when restricted to `s`. -/
@@ -402,7 +392,6 @@ lemma is_wf.insert (h : is_wf s) (a : α) : is_wf (insert a s) := is_wf_insert.2
 end is_pwo
 
 section well_founded_on
-
 variables {r : α → α → Prop} [is_strict_order α r] {s : set α} {a : α}
 
 protected lemma finite.well_founded_on (hs : s.finite) : s.well_founded_on r :=
@@ -493,9 +482,7 @@ s.partially_well_ordered_on_bUnion
 end finset
 
 namespace set
-
 section preorder
-
 variables [preorder α] {s : set α} {a : α}
 
 /-- `is_wf.min` returns a minimal element of a nonempty well-founded set. -/
@@ -516,16 +503,12 @@ eq_of_mem_singleton (is_wf.min_mem hs hn)
 end preorder
 
 section linear_order
-
 variables [linear_order α] {s t : set α} {a : α}
 
-lemma is_wf.min_le
-  (hs : s.is_wf) (hn : s.nonempty) (ha : a ∈ s) : hs.min hn ≤ a :=
+lemma is_wf.min_le (hs : s.is_wf) (hn : s.nonempty) (ha : a ∈ s) : hs.min hn ≤ a :=
 le_of_not_lt (hs.not_lt_min hn ha)
 
-lemma is_wf.le_min_iff
-  (hs : s.is_wf) (hn : s.nonempty) :
-  a ≤ hs.min hn ↔ ∀ b, b ∈ s → a ≤ b :=
+lemma is_wf.le_min_iff (hs : s.is_wf) (hn : s.nonempty) : a ≤ hs.min hn ↔ ∀ b, b ∈ s → a ≤ b :=
 ⟨λ ha b hb, le_trans ha (hs.min_le hn hb), λ h, h _ (hs.min_mem _)⟩
 
 lemma is_wf.min_le_min_of_subset
@@ -544,11 +527,11 @@ begin
 end
 
 end linear_order
-
 end set
 
-namespace set
-namespace partially_well_ordered_on
+open set
+
+namespace set.partially_well_ordered_on
 variables {r : α → α → Prop}
 
 /-- In the context of partial well-orderings, a bad sequence is a nonincreasing sequence
@@ -669,10 +652,7 @@ begin
       exact list.sublist_forall₂.cons (hg _ _ (le_of_lt mn)) hmn, } }
 end
 
-end partially_well_ordered_on
-end set
-
-open set
+end set.partially_well_ordered_on
 
 lemma well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop)) (s : set α) : s.is_wf :=
 (set.is_wf_univ_iff.2 h).mono s.subset_univ

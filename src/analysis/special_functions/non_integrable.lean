@@ -39,8 +39,8 @@ integrable function
 open_locale measure_theory topological_space interval nnreal ennreal
 open measure_theory topological_space set filter asymptotics interval_integral
 
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
-[complete_space E] [normed_group F]
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [second_countable_topology E]
+[complete_space E] [normed_add_comm_group F]
 
 /-- If `f` is eventually differentiable along a nontrivial filter `l : filter ℝ` that is generated
 by convex sets, the norm of `f` tends to infinity along `l`, and `f' = O(g)` along `l`, where `f'`

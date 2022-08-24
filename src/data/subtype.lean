@@ -88,6 +88,9 @@ ext_iff
 theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
 ext_iff
 
+lemma coe_eq_of_eq_mk {a : {a // p a}} {b : α} (h : ↑a = b) :
+  a = ⟨b, h ▸ a.2⟩ := subtype.ext h
+
 theorem coe_eq_iff {a : {a // p a}} {b : α} : ↑a = b ↔ ∃ h, a = ⟨b, h⟩ :=
 ⟨λ h, h ▸ ⟨a.2, (coe_eta _ _).symm⟩, λ ⟨hb, ha⟩, ha.symm ▸ rfl⟩
 

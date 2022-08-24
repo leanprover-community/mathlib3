@@ -34,7 +34,7 @@ local attribute [instance]
   concrete_category.has_coe_to_fun
 
 /-- A concrete version of the multiequalizer, to be used below. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def meq {X : C} (P : Cᵒᵖ ⥤ D) (S : J.cover X) :=
 { x : Π (I : S.arrow), P.obj (op I.Y) //
   ∀ (I : S.relation), P.map I.g₁.op (x I.fst) = P.map I.g₂.op (x I.snd) }
@@ -620,6 +620,16 @@ adjunction.mk_of_hom_equiv
     apply J.sheafify_map_sheafify_lift,
   end,
   hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc } }
+
+instance Sheaf_to_presheaf_is_right_adjoint : is_right_adjoint (Sheaf_to_presheaf J D) :=
+⟨_, sheafification_adjunction J D⟩
+
+instance presheaf_mono_of_mono {F G : Sheaf J D} (f : F ⟶ G) [mono f] : mono f.1 :=
+(Sheaf_to_presheaf J D).map_mono _
+
+lemma Sheaf.hom.mono_iff_presheaf_mono {F G : Sheaf J D} (f : F ⟶ G) : mono f ↔ mono f.1 :=
+⟨λ m, by { resetI, apply_instance },
+ λ m, by { resetI, exact Sheaf.hom.mono_of_presheaf_mono J D f }⟩
 
 variables {J D}
 /-- A sheaf `P` is isomorphic to its own sheafification. -/

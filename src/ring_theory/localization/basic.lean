@@ -469,6 +469,12 @@ lemma ring_hom_ext ⦃j k : S →+* P⦄
   (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
 ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
 
+/- This is not an instance because the submonoid `M` would become a metavariable
+  in typeclass search. -/
+lemma alg_hom_subsingleton [algebra R P] : subsingleton (S →ₐ[R] P) :=
+⟨λ f g, alg_hom.coe_ring_hom_injective $ is_localization.ring_hom_ext M $
+  by rw [f.comp_algebra_map, g.comp_algebra_map]⟩
+
 /-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
 on the image of the base ring, if they preserve `1` and `*`. -/
 protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
@@ -793,6 +799,26 @@ instance : comm_semiring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
   .. localization.comm_monoid_with_zero M }
 
+/--For any given denominator `b : M`, the map `a ↦ a / b` is an `add_monoid_hom` from `R` to
+  `localization M`-/
+@[simps]
+def mk_add_monoid_hom (b : M) : R →+ localization M :=
+{ to_fun := λ a, mk a b,
+  map_zero' := mk_zero _,
+  map_add' := λ x y, (add_mk_self _ _ _).symm }
+
+lemma mk_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
+  mk (∑ i in s, f i) b = ∑ i in s, mk (f i) b :=
+(mk_add_monoid_hom b).map_sum f s
+
+lemma mk_list_sum (l : list R) (b : M) :
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
+(mk_add_monoid_hom b).map_list_sum l
+
+lemma mk_multiset_sum (l : multiset R) (b : M) :
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
+(mk_add_monoid_hom b).map_multiset_sum l
+
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
@@ -987,12 +1013,9 @@ from map_ne_zero_of_mem_non_zero_divisors (algebra_map R S) (is_localization.inj
 
 variables {S}
 
-lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) {x : S} :
+lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) (x : S) :
   ((sec M x).snd : R) ≠ 0 :=
-begin
-  change ((⟨(sec M x).snd.val, hM (sec M x).snd.property⟩ : non_zero_divisors R) : R) ≠ 0,
-  exact non_zero_divisors.coe_ne_zero _
-end
+non_zero_divisors.coe_ne_zero ⟨(sec M x).snd.val, hM (sec M x).snd.property⟩
 
 lemma sec_fst_ne_zero [nontrivial R] [no_zero_divisors S] (hM : M ≤ non_zero_divisors R) {x : S}
   (hx : x ≠ 0) : (sec M x).fst ≠ 0 :=
@@ -1000,7 +1023,7 @@ begin
   have hsec := sec_spec M x,
   intro hfst,
   rw [hfst, map_zero, mul_eq_zero, _root_.map_eq_zero_iff] at hsec,
-  { exact or.elim hsec hx (sec_snd_ne_zero hM) },
+  { exact or.elim hsec hx (sec_snd_ne_zero hM x) },
   { exact is_localization.injective S hM }
 end
 

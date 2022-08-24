@@ -729,3 +729,16 @@ def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
 add_equiv.to_multiplicative''.symm
 
 end type_tags
+
+section
+variables (G) (H)
+
+/-- `additive (multiplicative G)` is just `G`. -/
+def add_equiv.additive_multiplicative [add_zero_class G] : additive (multiplicative G) ≃+ G :=
+mul_equiv.to_additive'' (mul_equiv.refl (multiplicative G))
+
+/-- `multiplicative (additive H)` is just `H`. -/
+def mul_equiv.multiplicative_additive [mul_one_class H] : multiplicative (additive H) ≃* H :=
+add_equiv.to_multiplicative'' (add_equiv.refl (additive H))
+
+end

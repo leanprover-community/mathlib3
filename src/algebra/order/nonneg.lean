@@ -125,7 +125,8 @@ subtype.coe_injective.ordered_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 instance linear_ordered_add_comm_monoid [linear_ordered_add_comm_monoid α] :
   linear_ordered_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 instance ordered_cancel_add_comm_monoid [ordered_cancel_add_comm_monoid α] :
   ordered_cancel_add_comm_monoid {x : α // 0 ≤ x} :=
@@ -134,6 +135,7 @@ subtype.coe_injective.ordered_cancel_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _
 instance linear_ordered_cancel_add_comm_monoid [linear_ordered_cancel_add_comm_monoid α] :
   linear_ordered_cancel_add_comm_monoid {x : α // 0 ≤ x} :=
 subtype.coe_injective.linear_ordered_cancel_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Coercion `{x : α // 0 ≤ x} → α` as a `add_monoid_hom`. -/
 def coe_add_monoid_hom [ordered_add_comm_monoid α] : {x : α // 0 ≤ x} →+ α :=
@@ -209,7 +211,7 @@ instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x
 instance linear_ordered_semiring [linear_ordered_semiring α] :
   linear_ordered_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.linear_ordered_semiring _
-  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)(λ _ _, rfl) (λ _ _, rfl)
 
 instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
   linear_ordered_comm_monoid_with_zero {x : α // 0 ≤ x} :=

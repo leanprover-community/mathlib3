@@ -57,7 +57,7 @@ lemma one_le_m_coe [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card
 nat.one_le_cast.2 $ m_pos hPα
 
 lemma eps_pow_five_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε^5 :=
-pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonneg (by norm_num) _
+pos_of_mul_pos_right ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonneg (by norm_num) _
 
 lemma eps_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε :=
 pow_bit1_pos_iff.1 $ eps_pow_five_pos hPε

@@ -268,7 +268,9 @@ instance : add_comm_group (centroid_hom α) :=
 to_End_injective.add_comm_group _ (by { ext, refl }) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl) (λ _ _, by { ext, refl })
 
-instance : ring (centroid_hom α) := { ..centroid_hom.semiring, ..centroid_hom.add_comm_group }
+instance : ring (centroid_hom α) := to_End_injective.ring _ (by { ext, refl }) (by { ext, refl })
+  (λ _ _, rfl)  (λ _ _, rfl) (congr_fun rfl) (congr_fun₂ rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, by { ext, refl }) (λ n, rfl) (λ n, rfl)
 
 @[simp] lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
 @[simp] lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl

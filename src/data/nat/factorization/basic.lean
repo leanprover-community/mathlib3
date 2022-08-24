@@ -857,8 +857,7 @@ begin
   rcases eq_or_ne k 0 with rfl | hk0, { simpa using h },
   simp only [add_tsub_cancel_left],
   rw add_comm,
-  rw eq_comm,
-  refine factorization_add_of_lt _ hk0,
+  refine (factorization_add_of_lt _ hk0).symm,
   simpa using lt_of_le_of_lt factorization_add h,
 end
 
@@ -870,6 +869,5 @@ begin
   { rw [factorization_sub_of_lt' h hab hb0, min_eq_left_of_lt h] },
   { rw [factorization_sub_of_lt h hab hb0, min_eq_right_of_lt h] },
 end
-
 
 end nat

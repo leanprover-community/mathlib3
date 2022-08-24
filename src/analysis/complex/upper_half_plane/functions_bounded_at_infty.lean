@@ -35,10 +35,10 @@ lemma at_im_infty_mem (S : set ℍ) : S ∈ at_im_infty ↔ (∃ A : ℝ, ∀ z 
 begin
   simp only [at_im_infty, filter.mem_comap', filter.mem_at_top_sets, ge_iff_le, set.mem_set_of_eq,
     upper_half_plane.coe_im],
-   refine ⟨λ ⟨a, h⟩, ⟨a, (λ z hz, h (im z) hz rfl)⟩, _⟩,
-  { rintro ⟨A, h⟩,
-    refine ⟨A, λ b hb x hx, h x _⟩,
-    rwa hx, }
+  refine ⟨λ ⟨a, h⟩, ⟨a, (λ z hz, h (im z) hz rfl)⟩, _⟩,
+  rintro ⟨A, h⟩,
+  refine ⟨A, λ b hb x hx, h x _⟩,
+  rwa hx,
 end
 
 /--A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M, A` such that

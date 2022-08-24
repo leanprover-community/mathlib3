@@ -51,8 +51,8 @@ def zero_at_filter_add_submonoid [topological_space β]
 def bounded_at_filter [has_norm β] [has_one (α → β)] (l : filter α) (f : α → β) : Prop :=
 asymptotics.is_O l f (1 : α → β)
 
-lemma zero_at_filter_is_bounded_at_filter [normed_field β]
-(l : filter α) (f : α → β) (hf : zero_at_filter l f) : bounded_at_filter l f :=
+lemma zero_at_filter_is_bounded_at_filter [normed_field β] (l : filter α) (f : α → β)
+  (hf : zero_at_filter l f) : bounded_at_filter l f :=
 asymptotics.is_O_of_div_tendsto_nhds (by simp) _ (by { convert hf, ext1, simp, })
 
 lemma zero_is_bounded_at_filter [normed_field β] (l : filter α) :

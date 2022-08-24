@@ -60,7 +60,7 @@ begin
   convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
       (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two),
   refine funext (λ n, _),
-  rw [function.comp_app, nnnorm_pow_two_pow_of_self_adjoint ha, ennreal.coe_pow, ←rpow_nat_cast,
+  rw [function.comp_app, ha.nnnorm_pow_two_pow, ennreal.coe_pow, ←rpow_nat_cast,
     ←rpow_mul],
   simp,
 end
@@ -93,7 +93,7 @@ begin
   exact complex.ext (of_real_re _)
     (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
       real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
-      using spectrum.subset_circle_of_unitary (self_adjoint.exp_i_smul_unitary ha) this),
+      using spectrum.subset_circle_of_unitary ha.exp_i_smul_unitary this),
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/

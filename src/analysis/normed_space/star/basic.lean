@@ -162,7 +162,7 @@ norm_mul_coe_unitary A ⟨U, hU⟩
 end unital
 end cstar_ring
 
-lemma is_self_adjoint.nnnorm_pow_two_pow_of_self_adjoint [normed_ring E] [star_ring E]
+lemma is_self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E]
   [cstar_ring E] {x : E} (hx : is_self_adjoint x) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
 begin
   induction n with k hk,
@@ -174,7 +174,7 @@ end
 
 lemma self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E] [cstar_ring E]
   (x : self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
-x.prop.nnnorm_pow_two_pow_of_self_adjoint _
+x.prop.nnnorm_pow_two_pow _
 
 section starₗᵢ
 

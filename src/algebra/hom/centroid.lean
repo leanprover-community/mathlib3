@@ -95,8 +95,7 @@ instance : centroid_hom_class (centroid_hom α) α :=
 directly. -/
 instance : has_coe_to_fun (centroid_hom α) (λ _, α → α) := fun_like.has_coe_to_fun
 
--- Eligible for `dsimp`
-@[simp, nolint simp_nf] lemma to_fun_eq_coe {f : centroid_hom α} : f.to_fun = (f : α → α) := rfl
+@[simp] lemma to_fun_eq_coe {f : centroid_hom α} : f.to_fun = (f : α → α) := rfl
 
 @[ext] lemma ext {f g : centroid_hom α} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 

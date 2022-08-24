@@ -26,9 +26,8 @@ begin
 /- We apply Zorn's lemma to the poset of nonempty closed subsemigroups of `M`. It will turn out that
 any minimal element is `{m}` for an idempotent `m : M`. -/
   let S : set (set M) := {N | is_closed N ∧ N.nonempty ∧ ∀ m m' ∈ N, m * m' ∈ N},
-  suffices : ∃ N ∈ S, ∀ N' ∈ S, N' ⊆ N → N' = N,
-  { rcases this with ⟨N, ⟨N_closed, ⟨m, hm⟩, N_mul⟩, N_minimal⟩,
-    use m,
+  rsuffices ⟨N, ⟨N_closed, ⟨m, hm⟩, N_mul⟩, N_minimal⟩ : ∃ N ∈ S, ∀ N' ∈ S, N' ⊆ N → N' = N,
+  { use m,
 /- We now have an element `m : M` of a minimal subsemigroup `N`, and want to show `m + m = m`.
 We first show that every element of `N` is of the form `m' + m`.-/
     have scaling_eq_self : (* m) '' N = N,

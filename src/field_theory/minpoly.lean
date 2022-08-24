@@ -394,8 +394,13 @@ noncomputable def fintype.subtype_prod {E : Type*} {X : set E} (hX : X.finite) {
   (F : E → multiset L) : fintype (Π x : X, {l : L // l ∈ F x}) :=
 let hX := finite.fintype hX in by exactI pi.fintype
 
+<<<<<<< HEAD
 variables (F E K : Type*) [field F] [field E] [field K] [algebra F E] [algebra F K]
   [finite_dimensional F E]
+=======
+variables (F E K : Type*) [field F] [ring E] [comm_ring K] [is_domain K]
+  [algebra F E] [algebra F K] [finite_dimensional F E]
+>>>>>>> master
 
 /-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
 -- Marked as `noncomputable!` since this definition takes multiple seconds to compile,
@@ -419,9 +424,8 @@ end
 /-- Given field extensions `E/F` and `K/F`, with `E/F` finite, there are finitely many `F`-algebra
   homomorphisms `E →ₐ[K] K`. -/
 noncomputable instance alg_hom.fintype : fintype (E →ₐ[F] K) :=
-@fintype.of_injective _ _
-  (fintype.subtype_prod (set.finite_range (finite_dimensional.fin_basis F E))
-    (λ e, ((minpoly F e).map (algebra_map F K)).roots)) _ (aux_inj_roots_of_min_poly F E K)
+@fintype.of_injective _ _ (fintype.subtype_prod (finite_range (finite_dimensional.fin_basis F E))
+  (λ e, ((minpoly F e).map (algebra_map F K)).roots)) _ (aux_inj_roots_of_min_poly F E K)
 
 end alg_hom_fintype
 

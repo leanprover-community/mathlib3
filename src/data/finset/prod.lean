@@ -160,13 +160,11 @@ by { simp only [diag, mem_filter, mem_product], split; intros h;
 by { simp only [off_diag, mem_filter, mem_product], split; intros h;
      simp only [h, ne.def, not_false_iff, and_self] }
 
-@[simp] lemma off_diag_nonempty_iff [decidable_eq α] {s : finset α} :
-  (s : set α).nontrivial ↔ s.off_diag.nonempty :=
+@[simp] lemma off_diag_nonempty_iff {s : finset α} : (s : set α).nontrivial ↔ s.off_diag.nonempty :=
 by simp_rw [set.nontrivial, finset.nonempty, mem_off_diag, mem_coe,
             prod.exists, exists_and_distrib_left, exists_prop]
 
-@[simp] lemma off_diag_empty_iff [decidable_eq α] {s : finset α} :
-  (s : set α).subsingleton ↔ s.off_diag = ∅ :=
+@[simp] lemma off_diag_empty_iff {s : finset α} : (s : set α).subsingleton ↔ s.off_diag = ∅ :=
 by rw [← not_iff_not, set.not_subsingleton_iff, off_diag_nonempty_iff, nonempty_iff_ne_empty]
 
 @[simp] lemma diag_card : (diag s).card = s.card :=

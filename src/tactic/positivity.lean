@@ -383,13 +383,13 @@ private alias rat.cast_pos ↔ _ rat_cast_pos
 /-- Extension for the `positivity` tactic: casts from `ℕ`, `ℤ`, `ℚ`. -/
 @[positivity]
 meta def positivity_coe : expr → tactic strictness
-| `(@coe _ _ %%inst %%a) := do
+| `(@coe _ %%typ %%inst %%a) := do
   match inst with
   | `(@coe_to_lift _ _ %%inst) := do
     strictness_a ← core a,
     match inst, strictness_a with
     | `(nat.cast_coe), positive p := positive <$> mk_app ``nat_cast_pos [p]
-    | `(nat.cast_coe), _ := nonnegative <$> mk_app ``nat.cast_nonneg [a]
+    | `(nat.cast_coe), _ := nonnegative <$> mk_mapp ``nat.cast_nonneg [typ, none, a]
     | `(int.cast_coe), positive p := positive <$> mk_app ``int_cast_pos [p]
     | `(int.cast_coe), nonnegative p := nonnegative <$> mk_app ``int_cast_nonneg [p]
     | `(rat.cast_coe), positive p := positive <$> mk_app ``rat_cast_pos [p]

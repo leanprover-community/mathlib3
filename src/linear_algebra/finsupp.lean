@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.finsupp.basic
+import data.finsupp.defs
 import linear_algebra.pi
 import linear_algebra.span
 
@@ -110,7 +110,7 @@ rfl
 ker_eq_bot_of_injective (single_injective a)
 
 lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
-  (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
+  (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a : (α →₀ M) →ₗ[R] M)) :=
 begin
   refine supr_le (assume a₁, supr_le $ assume h₁, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
@@ -133,7 +133,8 @@ begin
 end
 
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
-  disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
+  disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range)
+    (⨆a∈t, (lsingle a : M →ₗ[R] (α →₀ M)).range) :=
 begin
   refine disjoint.mono
     (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
@@ -148,7 +149,7 @@ begin
 end
 
 lemma span_single_image (s : set M) (a : α) :
-  submodule.span R (single a '' s) = (submodule.span R s).map (lsingle a) :=
+  submodule.span R (single a '' s) = (submodule.span R s).map (lsingle a : M →ₗ[R] (α →₀ M)) :=
 by rw ← span_image; refl
 
 variables (M R)
@@ -855,27 +856,10 @@ lemma submodule.exists_finset_of_mem_supr
   {ι : Sort*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
   ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
 begin
-  obtain ⟨f, hf, rfl⟩ : ∃ f ∈ finsupp.supported R R (⋃ i, ↑(p i)), finsupp.total M M R id f = m,
-  { have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
-    rwa [supr_eq_span, ← aux, finsupp.mem_span_image_iff_total R] at hm },
-  let t : finset M := f.support,
-  have ht : ∀ x : {x // x ∈ t}, ∃ i, ↑x ∈ p i,
-  { intros x,
-    rw finsupp.mem_supported at hf,
-    specialize hf x.2,
-    rwa set.mem_Union at hf },
-  choose g hg using ht,
-  let s : finset ι := finset.univ.image g,
-  use s,
-  simp only [mem_supr, supr_le_iff],
-  assume N hN,
-  rw [finsupp.total_apply, finsupp.sum, ← set_like.mem_coe],
-  apply N.sum_mem,
-  assume x hx,
-  apply submodule.smul_mem,
-  let i : ι := g ⟨x, hx⟩,
-  have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
-  exact hN i hi (hg _),
+  have := complete_lattice.is_compact_element.exists_finset_of_le_supr (submodule R M)
+    (submodule.singleton_span_is_compact_element m) p,
+  simp only [submodule.span_singleton_le_iff_mem] at this,
+  exact this hm,
 end
 
 /-- `submodule.exists_finset_of_mem_supr` as an `iff` -/

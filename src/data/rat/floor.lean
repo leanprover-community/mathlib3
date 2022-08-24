@@ -22,6 +22,7 @@ rat, rationals, ℚ, floor
 open int
 
 namespace rat
+variables {α : Type*} [linear_ordered_field α] [floor_ring α]
 
 /-- `floor q` is the largest integer `z` such that `z ≤ q` -/
 protected def floor : ℚ → ℤ
@@ -55,6 +56,19 @@ begin
   refine (int.mul_div_mul_of_pos _ _ $ pos_of_mul_pos_left _ $ int.coe_nat_nonneg q.denom).symm,
   rwa [←d_eq_c_mul_denom, int.coe_nat_pos],
 end
+
+@[simp, norm_cast] lemma floor_cast (x : ℚ) : ⌊(x : α)⌋ = ⌊x⌋ :=
+floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
+
+@[simp, norm_cast] lemma ceil_cast (x : ℚ) : ⌈(x : α)⌉ = ⌈x⌉ :=
+by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
+
+@[simp, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
+have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
+by rw [round, round, ← this, floor_cast]
+
+@[simp, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
+by simp only [fract, cast_sub, cast_coe_int, floor_cast]
 
 end rat
 

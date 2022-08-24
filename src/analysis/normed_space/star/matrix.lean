@@ -53,7 +53,7 @@ begin
   exact norm_sum,
 end
 
-local attribute [instance] matrix.normed_group
+local attribute [instance] matrix.normed_add_comm_group
 
 /-- The entrywise sup norm of a unitary matrix is at most 1. -/
 lemma entrywise_sup_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) :

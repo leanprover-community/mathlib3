@@ -64,18 +64,6 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
-@[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
-@[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
-@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_monoid]
-instance [h : division_monoid α] : division_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_comm_monoid]
-instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : group α] : group αᵒᵈ := h
-@[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
-instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
-instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
@@ -87,13 +75,13 @@ section typeclasses_left_le
 variables [has_le α] [covariant_class α α (*) (≤)] {a b c d : α}
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_nonpos_iff]
+@[simp, to_additive left.neg_nonpos_iff "Uses `left` co(ntra)variant."]
 lemma left.inv_le_one_iff :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_left a], simp }
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.nonneg_neg_iff]
+@[simp, to_additive left.nonneg_neg_iff "Uses `left` co(ntra)variant."]
 lemma left.one_le_inv_iff :
   1 ≤ a⁻¹ ↔ a ≤ 1 :=
 by { rw [← mul_le_mul_iff_left a], simp }
@@ -128,13 +116,13 @@ section typeclasses_left_lt
 variables [has_lt α] [covariant_class α α (*) (<)] {a b c : α}
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_pos_iff]
+@[simp, to_additive left.neg_pos_iff "Uses `left` co(ntra)variant."]
 lemma left.one_lt_inv_iff :
   1 < a⁻¹ ↔ a < 1 :=
 by rw [← mul_lt_mul_iff_left a, mul_inv_self, mul_one]
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_neg_iff]
+@[simp, to_additive left.neg_neg_iff "Uses `left` co(ntra)variant."]
 lemma left.inv_lt_one_iff :
   a⁻¹ < 1 ↔ 1 < a :=
 by rw [← mul_lt_mul_iff_left a, mul_inv_self, mul_one]
@@ -169,13 +157,13 @@ section typeclasses_right_le
 variables [has_le α] [covariant_class α α (swap (*)) (≤)] {a b c : α}
 
 /--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.neg_nonpos_iff]
+@[simp, to_additive right.neg_nonpos_iff "Uses `right` co(ntra)variant."]
 lemma right.inv_le_one_iff :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_right a], simp }
 
 /--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.nonneg_neg_iff]
+@[simp, to_additive right.nonneg_neg_iff "Uses `right` co(ntra)variant."]
 lemma right.one_le_inv_iff :
   1 ≤ a⁻¹ ↔ a ≤ 1 :=
 by { rw [← mul_le_mul_iff_right a], simp }
@@ -895,14 +883,15 @@ See note [reducible non-instances]. -/
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
-  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  [has_sup β] [has_inf β] (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_group β :=
-{ ..linear_order.lift f hf,
+{ ..linear_order.lift f hf hsup hinf,
   ..hf.ordered_comm_group f one mul inv div npow zpow }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
@@ -1257,7 +1246,7 @@ namespace add_comm_group
 /-- A collection of elements in an `add_comm_group` designated as "non-negative".
 This is useful for constructing an `ordered_add_commm_group`
 by choosing a positive cone in an exisiting `add_comm_group`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure positive_cone (α : Type*) [add_comm_group α] :=
 (nonneg          : α → Prop)
 (pos             : α → Prop := λ a, nonneg a ∧ ¬ nonneg (-a))
@@ -1268,7 +1257,7 @@ structure positive_cone (α : Type*) [add_comm_group α] :=
 
 /-- A positive cone in an `add_comm_group` induces a linear order if
 for every `a`, either `a` or `-a` is non-negative. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure total_positive_cone (α : Type*) [add_comm_group α] extends positive_cone α :=
 (nonneg_decidable : decidable_pred nonneg)
 (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))

@@ -73,11 +73,11 @@ lemma reindex_linear_equiv_comp_apply (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁'
   (e₂' : n' ≃ n'') (M : matrix m n A) :
   (reindex_linear_equiv R A e₁' e₂') (reindex_linear_equiv R A e₁ e₂ M) =
     reindex_linear_equiv R A (e₁.trans e₁') (e₂.trans e₂') M :=
-minor_minor _ _ _ _ _
+submatrix_submatrix _ _ _ _ _
 
 lemma reindex_linear_equiv_one [decidable_eq m] [decidable_eq m'] [has_one A]
   (e : m ≃ m') : (reindex_linear_equiv R A e e (1 : matrix m m A)) = 1 :=
-minor_one_equiv e.symm
+submatrix_one_equiv e.symm
 
 end add_comm_monoid
 
@@ -88,12 +88,12 @@ lemma reindex_linear_equiv_mul [fintype n] [fintype n']
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₒ : o ≃ o') (M : matrix m n A) (N : matrix n o A) :
   reindex_linear_equiv R A eₘ eₙ M ⬝ reindex_linear_equiv R A eₙ eₒ N =
     reindex_linear_equiv R A eₘ eₒ (M ⬝ N) :=
-minor_mul_equiv M N _ _ _
+submatrix_mul_equiv M N _ _ _
 
 lemma mul_reindex_linear_equiv_one [fintype n] [fintype o] [decidable_eq o] (e₁ : o ≃ n)
   (e₂ : o ≃ n') (M : matrix m n A) : M.mul (reindex_linear_equiv R A e₁ e₂ 1) =
     reindex_linear_equiv R A (equiv.refl m) (e₁.symm.trans e₂) M :=
-mul_minor_one _ _ _
+mul_submatrix_one _ _ _
 
 end semiring
 
@@ -108,7 +108,7 @@ a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equiv
 def reindex_alg_equiv (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
   map_mul'  := λ a b, (reindex_linear_equiv_mul R R e e e a b).symm,
-  commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, minor_smul],
+  commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, submatrix_smul],
   ..(reindex_linear_equiv R R e e) }
 
 @[simp] lemma reindex_alg_equiv_apply (e : m ≃ n) (M : matrix m m R) :
@@ -130,7 +130,7 @@ end algebra
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 
-For the `simp` version of this lemma, see `det_minor_equiv_self`.
+For the `simp` version of this lemma, see `det_submatrix_equiv_self`.
 -/
 lemma det_reindex_linear_equiv_self [comm_ring R] [fintype m] [decidable_eq m]
   [fintype n] [decidable_eq n] (e : m ≃ n) (M : matrix m m R) :
@@ -139,7 +139,7 @@ det_reindex_self e M
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 
-For the `simp` version of this lemma, see `det_minor_equiv_self`.
+For the `simp` version of this lemma, see `det_submatrix_equiv_self`.
 -/
 lemma det_reindex_alg_equiv [comm_ring R] [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
   (e : m ≃ n) (A : matrix m m R) :

@@ -11,7 +11,7 @@ import algebraic_topology.dold_kan.notations
 
 # Construction of homotopies for the Dold-Kan correspondence
 
-TODO (@joelriou) continue adding the various files references below
+TODO (@joelriou) continue adding the various files referenced below
 
 (The general strategy of proof of the Dold-Kan correspondence is explained
 in `equivalence.lean`.)
@@ -169,8 +169,7 @@ def nat_trans_Hσ (q : ℕ) :
     rw [null_homotopic_map'_comp, comp_null_homotopic_map'],
     congr,
     ext n m hnm,
-    simp only [alternating_face_map_complex_map, alternating_face_map_complex.map,
-      chain_complex.of_hom_f, hσ'_naturality],
+    simp only [alternating_face_map_complex_map_f, hσ'_naturality],
   end, }
 
 /-- The maps `hσ' q n m hnm` are compatible with the application of additive functors. -/

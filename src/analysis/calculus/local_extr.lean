@@ -69,7 +69,7 @@ open_locale topological_space classical polynomial
 
 section module
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
   {f' : E →L[ℝ] ℝ}
 
 /-- "Positive" tangent cone to `s` at `x`; the only difference from `tangent_cone_at`

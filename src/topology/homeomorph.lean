@@ -32,7 +32,7 @@ open_locale topological_space
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- Homeomorphism between `α` and `β`, also called topological isomorphism -/
-@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
+@[nolint has_nonempty_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
@@ -105,6 +105,12 @@ h.to_equiv.apply_symm_apply x
 
 @[simp] lemma symm_apply_apply (h : α ≃ₜ β) (x : α) : h.symm (h x) = x :=
 h.to_equiv.symm_apply_apply x
+
+@[simp] lemma self_trans_symm (h : α ≃ₜ β) : h.trans h.symm = homeomorph.refl α :=
+by { ext, apply symm_apply_apply }
+
+@[simp] lemma symm_trans_self (h : α ≃ₜ β) : h.symm.trans h = homeomorph.refl β :=
+by { ext, apply apply_symm_apply }
 
 protected lemma bijective (h : α ≃ₜ β) : function.bijective h := h.to_equiv.bijective
 protected lemma injective (h : α ≃ₜ β) : function.injective h := h.to_equiv.injective
@@ -196,8 +202,8 @@ h.symm.embedding.t1_space
 protected lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
 h.symm.embedding.t2_space
 
-protected lemma regular_space [regular_space α] (h : α ≃ₜ β) : regular_space β :=
-h.symm.embedding.regular_space
+protected lemma t3_space [t3_space α] (h : α ≃ₜ β) : t3_space β :=
+h.symm.embedding.t3_space
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
@@ -322,18 +328,8 @@ def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
 
 /-- Sum of two homeomorphisms. -/
 def sum_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α ⊕ γ ≃ₜ β ⊕ δ :=
-{ continuous_to_fun  :=
-  begin
-    convert continuous_sum_rec (continuous_inl.comp h₁.continuous)
-      (continuous_inr.comp h₂.continuous),
-    ext x, cases x; refl,
-  end,
-  continuous_inv_fun :=
-  begin
-    convert continuous_sum_rec (continuous_inl.comp h₁.symm.continuous)
-      (continuous_inr.comp h₂.symm.continuous),
-    ext x, cases x; refl
-  end,
+{ continuous_to_fun  := h₁.continuous.sum_map h₂.continuous,
+  continuous_inv_fun := h₁.symm.continuous.sum_map h₂.symm.continuous,
   to_equiv := h₁.to_equiv.sum_congr h₂.to_equiv }
 
 /-- Product of two homeomorphisms. -/
@@ -395,16 +391,10 @@ section distrib
 
 /-- `(α ⊕ β) × γ` is homeomorphic to `α × γ ⊕ β × γ`. -/
 def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
-begin
-  refine (homeomorph.homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm _ _).symm,
-  { convert continuous_sum_rec
-      ((continuous_inl.comp continuous_fst).prod_mk continuous_snd)
-      ((continuous_inr.comp continuous_fst).prod_mk continuous_snd),
-    ext1 x, cases x; refl, },
-  { exact (is_open_map_sum
-    (open_embedding_inl.prod open_embedding_id).is_open_map
-    (open_embedding_inr.prod open_embedding_id).is_open_map) }
-end
+homeomorph.symm $ homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
+  ((continuous_inl.prod_map continuous_id).sum_elim (continuous_inr.prod_map continuous_id)) $
+  is_open_map_sum (open_embedding_inl.is_open_map.prod is_open_map.id)
+    (open_embedding_inr.is_open_map.prod is_open_map.id)
 
 /-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
 def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=
@@ -457,6 +447,15 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
 { to_equiv := equiv.set.univ α,
   continuous_to_fun := continuous_subtype_coe,
   continuous_inv_fun := continuous_subtype_mk _ continuous_id }
+
+/-- `s ×ˢ t` is homeomorphic to `s × t`. -/
+@[simps] def set.prod (s : set α) (t : set β) : ↥(s ×ˢ t) ≃ₜ s × t :=
+{ to_equiv := equiv.set.prod s t,
+  continuous_to_fun := continuous.prod_mk
+    (continuous_subtype_mk _ (continuous_fst.comp continuous_induced_dom))
+    (continuous_subtype_mk _ (continuous_snd.comp continuous_induced_dom)),
+  continuous_inv_fun := continuous_subtype_mk _ (continuous.prod_mk
+    (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd)) }
 
 end homeomorph
 

@@ -446,9 +446,8 @@ singleton_injective.eq_iff
 @[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
 by { ext, simp }
 
-@[simp, norm_cast] lemma coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
-  (s : set α) = {a} ↔ s = {a} :=
-by rw [←finset.coe_singleton, finset.coe_inj]
+@[simp, norm_cast] lemma coe_eq_singleton {s : finset α} {a : α} : (s : set α) = {a} ↔ s = {a} :=
+by rw [←coe_singleton, coe_inj]
 
 lemma eq_singleton_iff_unique_mem {s : finset α} {a : α} :
   s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
@@ -611,8 +610,7 @@ lemma mem_of_mem_insert_of_ne (h : b ∈ insert a s) : b ≠ a → b ∈ s := (m
 lemma eq_of_not_mem_of_mem_insert (ha : b ∈ insert a s) (hb : b ∉ s) : b = a :=
 (mem_insert.1 ha).resolve_right hb
 
-@[simp] theorem cons_eq_insert {α} [decidable_eq α] (a s h) : @cons α a s h = insert a s :=
-ext $ λ a, by simp
+@[simp] theorem cons_eq_insert (a s h) : @cons α a s h = insert a s := ext $ λ a, by simp
 
 @[simp, norm_cast] lemma coe_insert (a : α) (s : finset α) :
   ↑(insert a s) = (insert a s : set α) :=

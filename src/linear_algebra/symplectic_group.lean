@@ -17,8 +17,6 @@ This file defines the symplectic group and proves elementary properties.
 `matrix.J`: the canonical `2n × 2n` skew-symmetric matrix
 `symplectic_group`: the group of symplectic matrices
 
-## Implementation Notes
-
 ## TODO
 * Every symplectic matrix has determinant 1.
 * For `n = 1` the symplectic group coincides with the special linear group.
@@ -28,21 +26,18 @@ open_locale matrix
 
 variables {l R : Type*}
 
-section J_matrix_lemmas
-
 namespace matrix
 
-variables (l) [decidable_eq l]
+variables (l) [decidable_eq l] (R) [comm_ring R]
 
-variables (R) [comm_ring R]
+section J_matrix_lemmas
 
 /-- The matrix defining the canonical skew-symmetric bilinear form. -/
 def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
 
 @[simp] lemma J_transpose : (J l R)ᵀ = - (J l R) :=
 begin
-  unfold J,
-  rw [from_blocks_transpose, ←neg_one_smul R (from_blocks _ _ _ _), from_blocks_smul,
+  rw [J, from_blocks_transpose, ←neg_one_smul R (from_blocks _ _ _ _), from_blocks_smul,
     matrix.transpose_zero, matrix.transpose_one, transpose_neg],
   simp [from_blocks],
 end
@@ -51,10 +46,9 @@ variables [fintype l]
 
 lemma J_squared : (J l R) ⬝ (J l R) = -1 :=
 begin
-  unfold J,
-  rw from_blocks_multiply,
+  rw [J, from_blocks_multiply],
   simp only [matrix.zero_mul, matrix.neg_mul, zero_add, neg_zero', matrix.one_mul, add_zero],
-  rw [← neg_zero, ← matrix.from_blocks_neg,← from_blocks_one],
+  rw [← neg_zero, ← matrix.from_blocks_neg, ← from_blocks_one],
 end
 
 lemma J_inv : (J l R)⁻¹ = -(J l R) :=
@@ -64,29 +58,22 @@ begin
   exact neg_neg 1,
 end
 
-variables (R)
-variables [nontrivial R]
-
 lemma J_det_mul_J_det [rc : fact (ring_char R ≠ 2)] : (det (J l R)) * (det (J l R)) = 1 :=
 begin
   rw [←det_mul, J_squared],
   rw [←one_smul R (-1 : matrix _ _ R)],
   rw [smul_neg, ←neg_smul, det_smul],
   simp only [fintype.card_sum, det_one, mul_one],
-  rw neg_one_pow_eq_one_iff_even (ring.neg_one_ne_one_of_char_ne_two (fact.elim rc)),
+  apply even.neg_one_pow,
   exact even_add_self _
 end
 
-lemma J_det_unit [fact (ring_char R ≠ 2)] : is_unit (det (J l R)) :=
+lemma is_unit_det_J [fact (ring_char R ≠ 2)] : is_unit (det (J l R)) :=
 is_unit_iff_exists_inv.mpr ⟨det (J l R), J_det_mul_J_det _ _⟩
-
-end matrix
 
 end J_matrix_lemmas
 
-namespace matrix
-
-variables (l) (R) [decidable_eq l] [fintype l] [comm_ring R]
+variable [fintype l]
 
 /-- The group of symplectic matrices over a ring `R`. -/
 def symplectic_group : submonoid (matrix (l ⊕ l) (l ⊕ l)  R) :=
@@ -112,23 +99,8 @@ lemma mem_iff {A : matrix (l ⊕ l) (l ⊕ l)  R} :
   A ∈ symplectic_group l R ↔ A ⬝ (J l R) ⬝ Aᵀ = J l R :=
 by simp [symplectic_group]
 
-instance coe_matrix : has_coe (symplectic_group l R) (matrix (l ⊕ l) (l ⊕ l)  R) := ⟨subtype.val⟩
-
-section coe_lemmas
-
-variables (A B : symplectic_group l R)
-
-@[simp] lemma mul_val : ↑(A * B) = (A : matrix (l ⊕ l) (l ⊕ l) R) ⬝ (B : matrix (l ⊕ l) (l ⊕ l) R)
-:= rfl
-
-@[simp] lemma one_val : ↑(1 : symplectic_group l R) = (1 : matrix (l ⊕ l) (l ⊕ l)  R) := rfl
-
-lemma mul_mem {A B : matrix (l ⊕ l) (l ⊕ l) R}
-  (hA : A ∈ symplectic_group l R) (hB : B ∈ symplectic_group l R) :
-  A ⬝ B ∈ symplectic_group l R :=
-submonoid.mul_mem _ hA hB
-
-end coe_lemmas
+instance coe_matrix : has_coe (symplectic_group l R) (matrix (l ⊕ l) (l ⊕ l)  R)
+:= by apply_instance
 
 section symplectic_J
 
@@ -137,8 +109,7 @@ variables (l) (R)
 lemma J_mem : (J l R) ∈ symplectic_group l R :=
 begin
   rw mem_iff,
-  unfold J,
-  rw [from_blocks_multiply, from_blocks_transpose, from_blocks_multiply],
+  rw [J, from_blocks_multiply, from_blocks_transpose, from_blocks_multiply],
   simp,
 end
 
@@ -159,14 +130,13 @@ begin
   simp [h],
 end
 
-variables [nontrivial R]
 variables [fact (ring_char R ≠ 2)]
 
 lemma symplectic_det (hA : A ∈ symplectic_group l R) : is_unit $ det A :=
 begin
   rw is_unit_iff_exists_inv,
   use A.det,
-  refine (J_det_unit l R).mul_left_cancel _,
+  refine (is_unit_det_J l R).mul_left_cancel _,
   rw [mul_one],
   rw mem_iff at hA,
   apply_fun det at hA,
@@ -196,7 +166,7 @@ begin
   ... = (J l R) : by simp [J_inv]
 end
 
-lemma transpose_mem_iff : Aᵀ ∈ symplectic_group l R ↔ A ∈ symplectic_group l R :=
+@[simp] lemma transpose_mem_iff : Aᵀ ∈ symplectic_group l R ↔ A ∈ symplectic_group l R :=
 ⟨λ hA, by simpa using transpose_mem hA , transpose_mem⟩
 
 lemma mem_iff' : A ∈ symplectic_group l R ↔ Aᵀ ⬝ (J l R) ⬝ A = J l R :=
@@ -209,7 +179,7 @@ instance : has_inv (symplectic_group l R) :=
 @[simp] lemma coe_inv (A : symplectic_group l R) :
   (↑(A⁻¹) : matrix _ _ _) = - (J l R) ⬝ (A : matrix (l ⊕ l) (l ⊕ l) R)ᵀ ⬝ (J l R) := rfl
 
-lemma inv_left_mul_aux {A : matrix (l ⊕ l) (l ⊕ l) R} (hA : A ∈ symplectic_group l R) :
+lemma inv_left_mul_aux (hA : A ∈ symplectic_group l R) :
   -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A) = 1 :=
 calc -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A)
     = - J l R ⬝ (Aᵀ ⬝ J l R ⬝ A) : by simp only [matrix.mul_assoc, matrix.neg_mul]
@@ -229,11 +199,12 @@ lemma inv_eq_symplectic_inv (A : matrix (l ⊕ l) (l ⊕ l) R) (hA : A ∈ sympl
 inv_eq_left_inv (by simp only [matrix.neg_mul, inv_left_mul_aux hA])
 
 instance : group (symplectic_group l R) :=
-{ mul_left_inv :=
+{ mul_left_inv := λ A,
   begin
-    intro A,
     apply subtype.ext,
-    simp only [mul_val, one_val, matrix.neg_mul, coe_inv],
+    simp only [submonoid.coe_one, submonoid.coe_mul, matrix.neg_mul, coe_inv],
+    change -(J l R ⬝ (↑A)ᵀ ⬝ J l R) ⬝ ↑A = 1,
+    rw matrix.neg_mul,
     exact inv_left_mul_aux A.2,
   end,
   .. symplectic_group.has_inv,

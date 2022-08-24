@@ -40,7 +40,7 @@ universe v
 
 variables {A : Type*} [category A] [abelian A] {X : simplicial_object A}
 
-lemma higher_faces_vanish.on_Moore_complex (n : ℕ) :
+lemma higher_faces_vanish.inclusion_of_Moore_complex_map (n : ℕ) :
   higher_faces_vanish (n+1) ((inclusion_of_Moore_complex_map X).f (n+1)) := λ j hj,
 begin
   dsimp [inclusion_of_Moore_complex_map],

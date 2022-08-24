@@ -136,7 +136,7 @@ section roots
 open_locale polynomial
 open_locale nnreal
 
-variables {F K : Type*} [field F] [nontrivial K] [normed_field K]
+variables {F K : Type*} [field F] [normed_field K]
 
 open multiset
 

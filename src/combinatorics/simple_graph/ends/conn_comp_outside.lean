@@ -410,7 +410,6 @@ end back_map
 -- TODO: Mapping of connected sets under homomorphisms
 -- TODO: Show that components are preserved under isomorphisms
 
--- Returns K ∪ (all finite connected components in the compl)
 def conn_comp_outside.extend_to_connected
   (G : simple_graph V) [Glf : locally_finite G] (K : finset V) (Knempty : K.nonempty):
   { K' : finset V // K ⊆ K' ∧ (G.induce ↑K').connected } := sorry
@@ -424,25 +423,25 @@ def conn_comp_outside.extend_connected_with_fin_components
 
 -- TODO: Prove lemmas about cofinite infinite components
 
+instance (G : simple_graph V) (K : set V) : has_coe (inf_conn_comp_outside G K) (conn_comp_outside G K) := ⟨λ x, x.val⟩
 
 lemma nicely_arranged {G : simple_graph V} [locally_finite G] (Gpc : G.preconnected) (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E E' : conn_comp_outside G H) (En : E ≠ E')
-  (F : conn_comp_outside G K)
+  (E E' : inf_conn_comp_outside G H) (En : E ≠ E')
+  (F : inf_conn_comp_outside G K)
   (H_F : (H : set V) ⊆ F)
   (K_E : (K : set V) ⊆ E) : (E : set V) ⊆ (F : set V) :=
 begin
-  rcases E with ⟨⟨EE,Ecomp⟩,Einf⟩,
-  rcases E' with ⟨⟨EE',Ecomp'⟩,Einf'⟩,
-  rcases F with ⟨⟨FF,Fcomp⟩,Finf⟩,
-  by_cases h : (EE' ∩ K).nonempty,
+
+  by_cases h : ((E' : set V) ∩ K).nonempty,
   { rcases h with ⟨v,v_in⟩,
-    have vE' : v ∈ EE', from ((set.mem_inter_iff v EE' K).mp v_in).left,
-    have vE : v ∈ EE, from  K_E ((set.mem_inter_iff v EE' K).mp v_in).right,
+    have vE' : v ∈ (E' : set V), from ((set.mem_inter_iff v E' K).mp v_in).left,
+    have vE : v ∈ (E : set V), from  K_E ((set.mem_inter_iff v E' K).mp v_in).right,
     exfalso,
-    apply En,
-    simp only [subtype.mk_eq_mk],
-    exact ro_component.eq_of_common_mem G H EE EE' Ecomp Ecomp' v vE vE'},
+    apply En, -- common element, hence equal: needs a lemma
+    sorry,
+    --exact ro_component.eq_of_common_mem G H EE EE' Ecomp Ecomp' v vE vE'
+    },
   {
     have : ∃ F' : inf_ro_components' G K, EE' ⊆ F'.val.val, by {
       rcases ro_component.of_subconnected_disjoint G K EE'

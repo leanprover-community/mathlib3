@@ -405,7 +405,8 @@ by rw [infsep_of_fintype, dif_pos hs]
 
 lemma finite.infsep [decidable_eq α] (hsf : s.finite) (hs : s.nontrivial) :
   s.infsep = if hs : s.nontrivial
-             then hsf.to_finset.off_diag.inf' (hsf.to_finset_off_diag_nonempty_of_nontrivial hs) (uncurry dist)
+             then hsf.to_finset.off_diag.inf' (hsf.to_finset_off_diag_nonempty_of_nontrivial hs)
+                  (uncurry dist)
              else 0 := by { letI := hsf.fintype, exact infsep_of_fintype }
 
 lemma finite.infsep_of_nontrivial [decidable_eq α] (hsf : s.finite) (hs : s.nontrivial) :

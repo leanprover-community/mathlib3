@@ -57,23 +57,23 @@ namespace ssyt
 instance {μ : young_diagram} : has_coe_to_fun (ssyt μ) (λ _, ℕ → ℕ → ℕ) :=
 { coe := λ T i j, T.entry i j }
 
-@[simp] lemma to_entry {μ : young_diagram} (T : ssyt μ) (i j : ℕ) :
-  T.entry i j = T i j := rfl
+@[simp] lemma entry_eq_coe {μ : young_diagram} (T : ssyt μ) :
+  T.entry = T := rfl
 
 lemma zeros {μ : young_diagram} (T : ssyt μ)
   {i j : ℕ} (not_cell : (i, j) ∉ μ) : T i j = 0 := T.zeros' not_cell
 
 lemma row_weak_of_le {μ : young_diagram} (T : ssyt μ) {i j1 j2 : ℕ}
   (hj : j1 ≤ j2) (cell : (i, j2) ∈ μ) : T i j1 ≤ T i j2 :=
-by {cases eq_or_lt_of_le hj, subst h, exact T.row_weak h cell}
+by { cases eq_or_lt_of_le hj, subst h, exact T.row_weak h cell }
 
 lemma col_weak {μ : young_diagram} (T : ssyt μ) {i1 i2 j : ℕ}
   (hi : i1 ≤ i2) (cell : (i2, j) ∈ μ) : T i1 j ≤ T i2 j :=
-by {cases eq_or_lt_of_le hi, subst h, exact le_of_lt (T.col_strict h cell)}
+by { cases eq_or_lt_of_le hi, subst h, exact le_of_lt (T.col_strict h cell) }
 
 /-- The "highest weight" SSYT of a given shape is has all i's in row i, for each i. --/
 def highest_weight (μ : young_diagram) : ssyt μ :=
-{ entry := λ i j, ite ((i, j) ∈ μ) i 0,
+{ entry := λ i j, if (i, j) ∈ μ then i else 0,
   row_weak := λ i j1 j2 hj hcell,
     by rw [if_pos hcell, if_pos (μ.up_left_mem (by refl) (le_of_lt hj) hcell)],
   col_strict := λ i1 i2 j hi hcell,

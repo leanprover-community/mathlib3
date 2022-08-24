@@ -881,7 +881,7 @@ variables [linear_ordered_field α] [linear_ordered_field β] [floor_ring α] [f
 include β
 
 lemma map_round (f : F) (hf : strict_mono f) (a : α) : round (f a) = round a :=
-by simp_rw [round, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0, map_one]
+by simp_rw [round_eq, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0, map_one]
 
 end int
 

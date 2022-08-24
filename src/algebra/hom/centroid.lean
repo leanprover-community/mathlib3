@@ -221,7 +221,7 @@ instance : has_nat_cast (centroid_hom α) :=
 { nat_cast := λ n, n • 1 }
 
 @[simp] lemma nat_cast_apply (n : ℕ) (m : α):
-  (↑n : centroid_hom α) m = n • m := rfl
+  (n : centroid_hom α) m = n • m := rfl
 
 -- cf `add_monoid.End.semiring`
 instance : semiring (centroid_hom α) :=

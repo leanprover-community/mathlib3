@@ -55,8 +55,7 @@ While `convex 𝕜` is a predicate on sets, `convex_cone 𝕜 E` is a bundled co
 ## References
 
 * https://en.wikipedia.org/wiki/Convex_cone
-* https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
-* https://en.wikipedia.org/wiki/Farkas%27_lemma#Geometric_interpretation
+* https://ti.inf.ethz.ch/ew/lehre/ApproxSDP09/notes/conelp.pdf
 -/
 
 
@@ -812,8 +811,8 @@ begin
 end
 
 /-- The inner dual of inner dual of a non-empty, closed convex cone is itself.  -/
-theorem inner_dual_cone_of_inner_dual_cone_eq_self
-  {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
+theorem convex_cone.inner_dual_cone_of_inner_dual_cone_eq_self (K : convex_cone ℝ H)
+  (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
   ((K : set H).inner_dual_cone : set H).inner_dual_cone = K :=
 begin
   ext x,

@@ -18,8 +18,6 @@ Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `
 along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
 the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
 
-This file also defines locally finite families of subsets of `α`.
-
 For topological spaces `α` and `β`, a function `f : α → β` and a point `a : α`,
 `continuous_at f a` means `f` is continuous at `a`, and global continuity is
 `continuous f`. There is also a version of continuity `pcontinuous` for
@@ -148,6 +146,10 @@ is_open_bInter finite_univ (λ i _, h i)
 lemma is_open_Inter_prop {p : Prop} {s : p → set α}
   (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=
 by by_cases p; simp *
+
+lemma is_open_bInter_finset {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_open (f i)) :
+  is_open (⋂ i ∈ s, f i) :=
+is_open_bInter (to_finite _) h
 
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
 by_cases
@@ -1028,11 +1030,13 @@ mem_closure_iff_cluster_pt.trans cluster_pt_principal_iff
 
 theorem mem_closure_iff_nhds' {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, ∃ y : s, ↑y ∈ t :=
-by simp only [mem_closure_iff_nhds, set.nonempty_inter_iff_exists_right]
+by simp only [mem_closure_iff_nhds, set.inter_nonempty_iff_exists_right,
+              set_coe.exists, subtype.coe_mk]
 
 theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
   x ∈ closure A ↔ ne_bot (comap (coe : A → α) (𝓝 x)) :=
-by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.nonempty_inter_iff_exists_right]
+by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.inter_nonempty_iff_exists_right,
+            set_coe.exists, subtype.coe_mk]
 
 theorem mem_closure_iff_nhds_basis' {a : α} {p : ι → Prop} {s : ι → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :

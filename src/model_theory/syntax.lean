@@ -31,6 +31,9 @@ above a particular index.
 variables with given terms.
 * Language maps can act on syntactic objects with functions such as
 `first_order.language.Lhom.on_formula`.
+* `first_order.language.term.constants_vars_equiv` and
+`first_order.language.bounded_formula.constants_vars_equiv` switch terms and formulas between having
+constants in the language and having extra variables indexed by the same type.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
@@ -112,6 +115,10 @@ end
   (term.relabel g ∘ term.relabel f : L.term α → L.term γ) = term.relabel (g ∘ f) :=
 funext (relabel_relabel f g)
 
+/-- Relabels a term's variables along a bijection. -/
+@[simps] def relabel_equiv (g : α ≃ β) : L.term α ≃ L.term β :=
+⟨relabel g, relabel g.symm, λ t, by simp, λ t, by simp⟩
+
 /-- Restricts a term to use only a set of the given variables. -/
 def restrict_var [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
 | (var a) f := var (f ⟨a, mem_singleton_self a⟩)
@@ -139,6 +146,54 @@ def functions.apply₁ (f : L.functions 1) (t : L.term α) : L.term α := func f
 def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α := func f ![t₁, t₂]
 
 namespace term
+
+/-- Sends a term with constants to a term with extra variables. -/
+@[simp] def constants_to_vars : L[[γ]].term α → L.term (γ ⊕ α)
+| (var a) := var (sum.inr a)
+| (@func _ _ 0 f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
+    (λ c, var (sum.inl c))
+| (@func _ _ (n + 1) f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
+    (λ c, is_empty_elim c)
+
+/-- Sends a term with extra variables to a term with constants. -/
+@[simp] def vars_to_constants : L.term (γ ⊕ α) → L[[γ]].term α
+| (var (sum.inr a)) := var a
+| (var (sum.inl c)) := constants.term (sum.inr c)
+| (func f ts) := func (sum.inl f) (λ i, (ts i).vars_to_constants)
+
+/-- A bijection between terms with constants and terms with extra variables. -/
+@[simps] def constants_vars_equiv : L[[γ]].term α ≃ L.term (γ ⊕ α) :=
+⟨constants_to_vars, vars_to_constants, begin
+  intro t,
+  induction t with _ n f _ ih,
+  { refl },
+  { cases n,
+    { cases f,
+      { simp [constants_to_vars, vars_to_constants, ih] },
+      { simp [constants_to_vars, vars_to_constants, constants.term] } },
+    { cases f,
+      { simp [constants_to_vars, vars_to_constants, ih] },
+      { exact is_empty_elim f } } }
+end, begin
+  intro t,
+  induction t with x n f _ ih,
+  { cases x;
+    refl },
+  { cases n;
+    { simp [vars_to_constants, constants_to_vars, ih] } }
+end⟩
+
+/-- A bijection between terms with constants and terms with extra variables. -/
+def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
+constants_vars_equiv.trans (relabel_equiv (equiv.sum_assoc _ _ _)).symm
+
+@[simp] lemma constants_vars_equiv_left_apply (t : L[[γ]].term (α ⊕ β)) :
+  constants_vars_equiv_left t = (constants_to_vars t).relabel (equiv.sum_assoc _ _ _).symm :=
+rfl
+
+@[simp] lemma constants_vars_equiv_left_symm_apply (t : L.term ((γ ⊕ α) ⊕ β)) :
+  constants_vars_equiv_left.symm t = vars_to_constants (t.relabel (equiv.sum_assoc _ _ _)) :=
+rfl
 
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
@@ -484,6 +539,10 @@ end
 @[simp] def subst {n : ℕ} (φ : L.bounded_formula α n) (f : α → L.term β) : L.bounded_formula β n :=
 φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr)))
   (λ _, id) (λ _, id)
+
+/-- A bijection sending formulas with constants to formulas with extra variables. -/
+def constants_vars_equiv : L[[γ]].bounded_formula α n ≃ L.bounded_formula (γ ⊕ α) n :=
+map_term_rel_equiv (λ _, term.constants_vars_equiv_left) (λ _, equiv.sum_empty _ _)
 
 /-- Turns the extra variables of a bounded formula into free variables. -/
 @[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)
@@ -864,7 +923,7 @@ def nonempty_theory : L.Theory := {sentence.card_ge L 1}
 
 /-- A theory indicating that each of a set of constants is distinct. -/
 def distinct_constants_theory (s : set α) : L[[α]].Theory :=
-(λ ab : α × α, (((L.con ab.1).term.equal (L.con ab.2).term).not)) '' ((s ×ˢ s) ∩ (set.diagonal α)ᶜ)
+(λ ab : α × α, (((L.con ab.1).term.equal (L.con ab.2).term).not)) '' (s ×ˢ s ∩ (set.diagonal α)ᶜ)
 
 variables {L} {α}
 

@@ -3,9 +3,10 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.order.group
-import algebra.order.sub
 import algebra.char_zero.defs
+import algebra.order.group
+import algebra.order.monoid_lemmas_zero_lt
+import algebra.order.sub
 import algebra.hom.ring
 import data.set.intervals.basic
 
@@ -92,27 +93,8 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
-namespace order_dual
-
 /-! Note that `order_dual` does not satisfy any of the ordered ring typeclasses due to the
 `zero_le_one` field. -/
-
-instance [h : distrib α] : distrib αᵒᵈ := h
-instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg αᵒᵈ := h
-instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring αᵒᵈ := h
-instance [h : non_unital_semiring α] : non_unital_semiring αᵒᵈ := h
-instance [h : non_assoc_semiring α] : non_assoc_semiring αᵒᵈ := h
-instance [h : semiring α] : semiring αᵒᵈ := h
-instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring αᵒᵈ := h
-instance [h : comm_semiring α] : comm_semiring αᵒᵈ := h
-instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring αᵒᵈ := h
-instance [h : non_unital_ring α] : non_unital_ring αᵒᵈ := h
-instance [h : non_assoc_ring α] : non_assoc_ring αᵒᵈ := h
-instance [h : ring α] : ring αᵒᵈ := h
-instance [h : non_unital_comm_ring α] : non_unital_comm_ring αᵒᵈ := h
-instance [h : comm_ring α] : comm_ring αᵒᵈ := h
-
-end order_dual
 
 lemma add_one_le_two_mul [has_le α] [semiring α] [covariant_class α α (+) (≤)]
   {a : α} (a1 : 1 ≤ a) :
@@ -128,12 +110,26 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 (mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
-@[priority 100] instance ordered_semiring.zero_le_one_class [h : ordered_semiring α] :
-  zero_le_one_class α :=
-{ ..h }
-
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
+
+lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
+ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
+
+lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
+ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
+
+@[priority 100] -- see Note [lower instance priority]
+instance ordered_semiring.zero_le_one_class : zero_le_one_class α :=
+{ ..‹ordered_semiring α› }
+
+@[priority 200] -- see Note [lower instance priority]
+instance ordered_semiring.pos_mul_strict_mono : zero_lt.pos_mul_strict_mono α :=
+⟨λ x a b h, mul_lt_mul_of_pos_left h x.prop⟩
+
+@[priority 200] -- see Note [lower instance priority]
+instance ordered_semiring.mul_pos_strict_mono : zero_lt.mul_pos_strict_mono α :=
+⟨λ x a b h, mul_lt_mul_of_pos_right h x.prop⟩
 
 section nontrivial
 
@@ -168,12 +164,6 @@ alias zero_lt_three ← three_pos
 alias zero_lt_four ← four_pos
 
 end nontrivial
-
-lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
-ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
-
-lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
-ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
 
 lemma mul_lt_of_lt_one_left (hb : 0 < b) (ha : a < 1) : a * b < b :=
 (mul_lt_mul_of_pos_right ha hb).trans_le (one_mul _).le
@@ -393,6 +383,93 @@ protected lemma decidable.one_le_mul_of_one_le_of_one_le [@decidable_rel α (≤
 lemma one_le_mul_of_one_le_of_one_le {a b : α} : 1 ≤ a → 1 ≤ b → (1 : α) ≤ a * b :=
 by classical; exact decidable.one_le_mul_of_one_le_of_one_le
 
+namespace decidable
+
+variables {β : Type*} [@decidable_rel α (≤)] [preorder β] {f g : β → α}
+
+lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
+assume b c b_le_c, decidable.mul_le_mul_of_nonneg_left b_le_c ha
+
+lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
+assume b c b_le_c, decidable.mul_le_mul_of_nonneg_right b_le_c ha
+
+lemma monotone_mul {β : Type*} [preorder β] {f g : β → α}
+  (hf : monotone f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x) (hg0 : ∀ x, 0 ≤ g x) :
+  monotone (λ x, f x * g x) :=
+λ x y h, decidable.mul_le_mul (hf h) (hg h) (hg0 x) (hf0 y)
+
+lemma strict_mono_mul_monotone (hf : strict_mono f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x)
+  (hg0 : ∀ x, 0 < g x) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, decidable.mul_lt_mul (hf h) (hg h.le) (hg0 x) (hf0 y)
+
+lemma monotone_mul_strict_mono (hf : monotone f) (hg : strict_mono g) (hf0 : ∀ x, 0 < f x)
+  (hg0 : ∀ x, 0 ≤ g x) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, decidable.mul_lt_mul' (hf h.le) (hg h) (hg0 x) (hf0 y)
+
+lemma strict_mono_mul (hf : strict_mono f) (hg : strict_mono g) (hf0 : ∀ x, 0 ≤ f x)
+  (hg0 : ∀ x, 0 ≤ g x) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, decidable.mul_lt_mul'' (hf h) (hg h) (hf0 x) (hg0 x)
+
+end decidable
+
+section mono
+
+open_locale classical
+
+variables {β : Type*} [preorder β] {f g : β → α}
+
+lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
+decidable.monotone_mul_left_of_nonneg ha
+
+lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
+decidable.monotone_mul_right_of_nonneg ha
+
+lemma monotone.mul_const (hf : monotone f) (ha : 0 ≤ a) :
+  monotone (λ x, (f x) * a) :=
+(monotone_mul_right_of_nonneg ha).comp hf
+
+lemma monotone.const_mul (hf : monotone f) (ha : 0 ≤ a) :
+  monotone (λ x, a * (f x)) :=
+(monotone_mul_left_of_nonneg ha).comp hf
+
+lemma monotone.mul (hf : monotone f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x) (hg0 : ∀ x, 0 ≤ g x) :
+  monotone (λ x, f x * g x) :=
+decidable.monotone_mul hf hg hf0 hg0
+
+lemma strict_mono_mul_left_of_pos (ha : 0 < a) : strict_mono (λ x, a * x) :=
+assume b c b_lt_c, mul_lt_mul_of_pos_left b_lt_c ha
+
+lemma strict_mono_mul_right_of_pos (ha : 0 < a) : strict_mono (λ x, x * a) :=
+assume b c b_lt_c, mul_lt_mul_of_pos_right b_lt_c ha
+
+lemma strict_mono.mul_const (hf : strict_mono f) (ha : 0 < a) :
+  strict_mono (λ x, (f x) * a) :=
+(strict_mono_mul_right_of_pos ha).comp hf
+
+lemma strict_mono.const_mul (hf : strict_mono f) (ha : 0 < a) :
+  strict_mono (λ x, a * (f x)) :=
+(strict_mono_mul_left_of_pos ha).comp hf
+
+lemma strict_mono.mul_monotone (hf : strict_mono f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x)
+  (hg0 : ∀ x, 0 < g x) :
+  strict_mono (λ x, f x * g x) :=
+decidable.strict_mono_mul_monotone hf hg hf0 hg0
+
+lemma monotone.mul_strict_mono (hf : monotone f) (hg : strict_mono g) (hf0 : ∀ x, 0 < f x)
+  (hg0 : ∀ x, 0 ≤ g x) :
+  strict_mono (λ x, f x * g x) :=
+decidable.monotone_mul_strict_mono hf hg hf0 hg0
+
+lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf0 : ∀ x, 0 ≤ f x)
+  (hg0 : ∀ x, 0 ≤ g x) :
+  strict_mono (λ x, f x * g x) :=
+decidable.strict_mono_mul hf hg hf0 hg0
+
+end mono
+
 /-- Pullback an `ordered_semiring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -596,6 +673,8 @@ class linear_ordered_semiring (α : Type u)
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
 
+local attribute [instance] linear_ordered_semiring.decidable_le
+
 -- `norm_num` expects the lemma stating `0 < 1` to have a single typeclass argument
 -- (see `norm_num.prove_pos_nat`).
 -- Rather than working out how to relax that assumption,
@@ -604,33 +683,20 @@ variables [linear_ordered_semiring α] {a b c d : α}
 lemma zero_lt_one' : 0 < (1 : α) := zero_lt_one
 
 lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
-by haveI := @linear_order.decidable_le α _; exact lt_of_not_ge
-  (assume h1 : b ≤ a,
-   have h2 : c * b ≤ c * a, from decidable.mul_le_mul_of_nonneg_left h1 hc,
-   h2.not_lt h)
+(decidable.monotone_mul_left_of_nonneg hc).reflect_lt h
 
 lemma lt_of_mul_lt_mul_right (h : a * c < b * c) (hc : 0 ≤ c) : a < b :=
-by haveI := @linear_order.decidable_le α _; exact lt_of_not_ge
-  (assume h1 : b ≤ a,
-   have h2 : b * c ≤ a * c, from decidable.mul_le_mul_of_nonneg_right h1 hc,
-   h2.not_lt h)
+(decidable.monotone_mul_right_of_nonneg hc).reflect_lt h
 
 lemma le_of_mul_le_mul_left (h : c * a ≤ c * b) (hc : 0 < c) : a ≤ b :=
-le_of_not_gt
-  (assume h1 : b < a,
-   have h2 : c * b < c * a, from mul_lt_mul_of_pos_left h1 hc,
-   h2.not_le h)
+(strict_mono_mul_left_of_pos hc).le_iff_le.1 h
 
 lemma le_of_mul_le_mul_right (h : a * c ≤ b * c) (hc : 0 < c) : a ≤ b :=
-le_of_not_gt
-  (assume h1 : b < a,
-   have h2 : b * c < a * c, from mul_lt_mul_of_pos_right h1 hc,
-   h2.not_le h)
+(strict_mono_mul_right_of_pos hc).le_iff_le.1 h
 
 lemma pos_and_pos_or_neg_and_neg_of_mul_pos (hab : 0 < a * b) :
   (0 < a ∧ 0 < b) ∨ (a < 0 ∧ b < 0) :=
 begin
-  haveI := @linear_order.decidable_le α _,
   rcases lt_trichotomy 0 a with (ha|rfl|ha),
   { refine or.inl ⟨ha, lt_imp_lt_of_le_imp_le (λ hb, _) hab⟩,
     exact decidable.mul_nonpos_of_nonneg_of_nonpos ha.le hb },
@@ -642,7 +708,6 @@ end
 lemma nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg (hab : 0 ≤ a * b) :
     (0 ≤ a ∧ 0 ≤ b) ∨ (a ≤ 0 ∧ b ≤ 0) :=
 begin
-  haveI := @linear_order.decidable_le α _,
   refine decidable.or_iff_not_and_not.2 _,
   simp only [not_and, not_le], intros ab nab, apply not_lt_of_le hab _,
   rcases lt_trichotomy 0 a with (ha|rfl|ha),
@@ -675,12 +740,10 @@ lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : 0 < a) : 0 ≤ b :=
 le_of_not_gt $ λ hb, (mul_neg_of_pos_of_neg ha hb).not_le h
 
 lemma neg_of_mul_neg_left (h : a * b < 0) (hb : 0 ≤ b) : a < 0 :=
-by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (λ ha : a ≥ 0, (decidable.mul_nonneg ha hb).not_lt h)
+lt_of_not_ge $ λ ha, (decidable.mul_nonneg ha hb).not_lt h
 
 lemma neg_of_mul_neg_right (h : a * b < 0) (ha : 0 ≤ a) : b < 0 :=
-by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (assume hb : b ≥ 0, (decidable.mul_nonneg ha hb).not_lt h)
+lt_of_not_ge $ λ hb, (decidable.mul_nonneg ha hb).not_lt h
 
 lemma nonpos_of_mul_nonpos_left (h : a * b ≤ 0) (hb : 0 < b) : a ≤ 0 :=
 le_of_not_gt (assume ha : a > 0, (mul_pos ha hb).not_le h)
@@ -689,22 +752,16 @@ lemma nonpos_of_mul_nonpos_right (h : a * b ≤ 0) (ha : 0 < a) : b ≤ 0 :=
 le_of_not_gt (assume hb : b > 0, (mul_pos ha hb).not_le h)
 
 @[simp] lemma mul_le_mul_left (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨λ h', le_of_mul_le_mul_left h' h, λ h', decidable.mul_le_mul_of_nonneg_left h' h.le⟩
+(strict_mono_mul_left_of_pos h).le_iff_le
 
 @[simp] lemma mul_le_mul_right (h : 0 < c) : a * c ≤ b * c ↔ a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨λ h', le_of_mul_le_mul_right h' h, λ h', decidable.mul_le_mul_of_nonneg_right h' h.le⟩
+(strict_mono_mul_right_of_pos h).le_iff_le
 
 @[simp] lemma mul_lt_mul_left (h : 0 < c) : c * a < c * b ↔ a < b :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨lt_imp_lt_of_le_imp_le $ λ h', decidable.mul_le_mul_of_nonneg_left h' h.le,
- λ h', mul_lt_mul_of_pos_left h' h⟩
+(strict_mono_mul_left_of_pos h).lt_iff_lt
 
 @[simp] lemma mul_lt_mul_right (h : 0 < c) : a * c < b * c ↔ a < b :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨lt_imp_lt_of_le_imp_le $ λ h', decidable.mul_le_mul_of_nonneg_right h' h.le,
- λ h', mul_lt_mul_of_pos_right h' h⟩
+(strict_mono_mul_right_of_pos h).lt_iff_lt
 
 @[simp] lemma zero_le_mul_left (h : 0 < c) : 0 ≤ c * b ↔ 0 ≤ b :=
 by { convert mul_le_mul_left h, simp }
@@ -852,64 +909,6 @@ ordered_semiring.to_char_zero
 
 end linear_ordered_semiring
 
-section mono
-variables {β : Type*} [linear_ordered_semiring α] [preorder β] {f g : β → α} {a : α}
-
-lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
-by haveI := @linear_order.decidable_le α _; exact
-assume b c b_le_c, decidable.mul_le_mul_of_nonneg_left b_le_c ha
-
-lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
-by haveI := @linear_order.decidable_le α _; exact
-assume b c b_le_c, decidable.mul_le_mul_of_nonneg_right b_le_c ha
-
-lemma monotone.mul_const (hf : monotone f) (ha : 0 ≤ a) :
-  monotone (λ x, (f x) * a) :=
-(monotone_mul_right_of_nonneg ha).comp hf
-
-lemma monotone.const_mul (hf : monotone f) (ha : 0 ≤ a) :
-  monotone (λ x, a * (f x)) :=
-(monotone_mul_left_of_nonneg ha).comp hf
-
-lemma monotone.mul (hf : monotone f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x) (hg0 : ∀ x, 0 ≤ g x) :
-  monotone (λ x, f x * g x) :=
-by haveI := @linear_order.decidable_le α _; exact
-λ x y h, decidable.mul_le_mul (hf h) (hg h) (hg0 x) (hf0 y)
-
-lemma strict_mono_mul_left_of_pos (ha : 0 < a) : strict_mono (λ x, a * x) :=
-assume b c b_lt_c, (mul_lt_mul_left ha).2 b_lt_c
-
-lemma strict_mono_mul_right_of_pos (ha : 0 < a) : strict_mono (λ x, x * a) :=
-assume b c b_lt_c, (mul_lt_mul_right ha).2 b_lt_c
-
-lemma strict_mono.mul_const (hf : strict_mono f) (ha : 0 < a) :
-  strict_mono (λ x, (f x) * a) :=
-(strict_mono_mul_right_of_pos ha).comp hf
-
-lemma strict_mono.const_mul (hf : strict_mono f) (ha : 0 < a) :
-  strict_mono (λ x, a * (f x)) :=
-(strict_mono_mul_left_of_pos ha).comp hf
-
-lemma strict_mono.mul_monotone (hf : strict_mono f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x)
-  (hg0 : ∀ x, 0 < g x) :
-  strict_mono (λ x, f x * g x) :=
-by haveI := @linear_order.decidable_le α _; exact
-λ x y h, decidable.mul_lt_mul (hf h) (hg h.le) (hg0 x) (hf0 y)
-
-lemma monotone.mul_strict_mono (hf : monotone f) (hg : strict_mono g) (hf0 : ∀ x, 0 < f x)
-  (hg0 : ∀ x, 0 ≤ g x) :
-  strict_mono (λ x, f x * g x) :=
-by haveI := @linear_order.decidable_le α _; exact
-λ x y h, decidable.mul_lt_mul' (hf h.le) (hg h) (hg0 x) (hf0 y)
-
-lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf0 : ∀ x, 0 ≤ f x)
-  (hg0 : ∀ x, 0 ≤ g x) :
-  strict_mono (λ x, f x * g x) :=
-by haveI := @linear_order.decidable_le α _; exact
-λ x y h, decidable.mul_lt_mul'' (hf h) (hg h) (hf0 x) (hg0 x)
-
-end mono
-
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c : α}
 
@@ -1040,6 +1039,26 @@ lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 have 0 * b < a * b, from mul_lt_mul_of_neg_right ha hb,
 by rwa zero_mul at this
 
+lemma decidable.antitone_mul_left [@decidable_rel α (≤)] {a : α} (ha : a ≤ 0) :
+  antitone ((*) a) :=
+λ b c b_le_c, decidable.mul_le_mul_of_nonpos_left b_le_c ha
+
+lemma antitone_mul_left {a : α} (ha : a ≤ 0) : antitone ((*) a) :=
+λ b c b_le_c, mul_le_mul_of_nonpos_left b_le_c ha
+
+lemma decidable.antitone_mul_right [@decidable_rel α (≤)] {a : α} (ha : a ≤ 0) :
+  antitone (λ x, x * a) :=
+λ b c b_le_c, decidable.mul_le_mul_of_nonpos_right b_le_c ha
+
+lemma antitone_mul_right {a : α} (ha : a ≤ 0) : antitone (λ x, x * a) :=
+λ b c b_le_c, mul_le_mul_of_nonpos_right b_le_c ha
+
+lemma strict_anti_mul_left {a : α} (ha : a < 0) : strict_anti ((*) a) :=
+λ b c b_lt_c, mul_lt_mul_of_neg_left b_lt_c ha
+
+lemma strict_anti_mul_right {a : α} (ha : a < 0) : strict_anti (λ x, x * a) :=
+λ b c b_lt_c, mul_lt_mul_of_neg_right b_lt_c ha
+
 /-- Pullback an `ordered_ring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -1132,6 +1151,8 @@ end linear_ordered_semiring
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
+
+local attribute [instance] linear_ordered_ring.decidable_le linear_ordered_ring.decidable_lt
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semiring α :=
@@ -1254,20 +1275,16 @@ lt_of_mul_lt_mul_left h3 nhc
 lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
-  λ h', decidable.mul_le_mul_of_nonpos_left h' h.le⟩
+(strict_anti_mul_left h).le_iff_le
 
 @[simp] lemma mul_le_mul_right_of_neg {a b c : α} (h : c < 0) : a * c ≤ b * c ↔ b ≤ a :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_right h' h,
-  λ h', decidable.mul_le_mul_of_nonpos_right h' h.le⟩
+(strict_anti_mul_right h).le_iff_le
 
 @[simp] lemma mul_lt_mul_left_of_neg {a b c : α} (h : c < 0) : c * a < c * b ↔ b < a :=
-lt_iff_lt_of_le_iff_le (mul_le_mul_left_of_neg h)
+(strict_anti_mul_left h).lt_iff_lt
 
 @[simp] lemma mul_lt_mul_right_of_neg {a b c : α} (h : c < 0) : a * c < b * c ↔ b < a :=
-lt_iff_lt_of_le_iff_le (mul_le_mul_right_of_neg h)
+(strict_anti_mul_right h).lt_iff_lt
 
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)
@@ -1527,6 +1544,16 @@ begin
   rw mul_add,
   apply self_le_add_right
 end
+
+@[priority 200] -- see Note [lower instance priority]
+instance canonically_ordered_comm_semiring.pos_mul_mono :
+  zero_lt.pos_mul_mono α :=
+⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [left_distrib, le_self_add], }⟩
+
+@[priority 200] -- see Note [lower instance priority]
+instance canonically_ordered_comm_semiring.mul_pos_mono :
+  zero_lt.mul_pos_mono α :=
+⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [right_distrib, le_self_add], }⟩
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
@@ -1824,5 +1851,21 @@ with_top.comm_monoid_with_zero
 
 instance [canonically_ordered_comm_semiring α] [nontrivial α] : comm_semiring (with_bot α) :=
 with_top.comm_semiring
+
+instance [canonically_ordered_comm_semiring α] [nontrivial α] :
+  zero_lt.pos_mul_mono (with_bot α) :=
+⟨ begin
+    rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
+    induction x using with_bot.rec_bot_coe,
+    { have := bot_lt_coe (0 : α), rw [coe_zero] at this, exact absurd x0.le this.not_le, },
+    { induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le], },
+      induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le, },
+      { simp only [← coe_mul, coe_le_coe] at *,
+        exact zero_lt.mul_le_mul_left h (zero_le x), }, },
+  end ⟩
+
+instance [canonically_ordered_comm_semiring α] [nontrivial α] :
+  zero_lt.mul_pos_mono (with_bot α) :=
+zero_lt.pos_mul_mono_iff_mul_pos_mono.mp zero_lt.pos_mul_mono
 
 end with_bot

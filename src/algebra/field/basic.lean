@@ -43,7 +43,7 @@ a `group_with_zero` lemma instead.
 field, division ring, skew field, skew-field, skewfield
 -/
 
-open function set
+open function order_dual set
 
 set_option old_structure_cmd true
 
@@ -358,30 +358,10 @@ end
 end is_field
 
 namespace ring_hom
-section semiring
-variables [semiring α] [division_semiring β]
-
-@[simp] lemma map_units_inv (f : α →+* β) (u : αˣ) : f ↑u⁻¹ = (f ↑u)⁻¹ :=
-(f : α →* β).map_units_inv u
-
-variables [nontrivial α] (f : β →+* α) {a : β}
-
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := f.to_monoid_with_zero_hom.map_eq_zero
-lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
-
-end semiring
-
-section division_semiring
-variables [division_semiring α] [division_semiring β] (f : α →+* β) (a b : α)
-
-lemma map_inv : f a⁻¹ = (f a)⁻¹ := f.to_monoid_with_zero_hom.map_inv _
-lemma map_div : f (a / b) = f a / f b := f.to_monoid_with_zero_hom.map_div _ _
-
-end division_semiring
 
 protected lemma injective [division_ring α] [semiring β] [nontrivial β] (f : α →+* β) :
   injective f :=
-(injective_iff_map_eq_zero f).2 $ λ x, f.map_eq_zero.1
+(injective_iff_map_eq_zero f).2 $ λ x, (map_eq_zero f).1
 
 end ring_hom
 
@@ -480,3 +460,25 @@ protected def function.injective.field [field K] {K'}
   qsmul_eq_mul' := λ a x, hf (by erw [qsmul, mul, rat.smul_def, rat_cast]),
   .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
   .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
+
+/-! ### Order dual -/
+
+instance [h : has_rat_cast α] : has_rat_cast αᵒᵈ := h
+instance [h : division_semiring α] : division_semiring αᵒᵈ := h
+instance [h : division_ring α] : division_ring αᵒᵈ := h
+instance [h : semifield α] : semifield αᵒᵈ := h
+instance [h : field α] : field αᵒᵈ := h
+
+@[simp] lemma to_dual_rat_cast [has_rat_cast α] (n : ℚ) : to_dual (n : α) = n := rfl
+@[simp] lemma of_dual_rat_cast [has_rat_cast α] (n : ℚ) : (of_dual n : α) = n := rfl
+
+/-! ### Lexicographic order -/
+
+instance [h : has_rat_cast α] : has_rat_cast (lex α) := h
+instance [h : division_semiring α] : division_semiring (lex α) := h
+instance [h : division_ring α] : division_ring (lex α) := h
+instance [h : semifield α] : semifield (lex α) := h
+instance [h : field α] : field (lex α) := h
+
+@[simp] lemma to_lex_rat_cast [has_rat_cast α] (n : ℚ) : to_lex (n : α) = n := rfl
+@[simp] lemma of_lex_rat_cast [has_rat_cast α] (n : ℚ) : (of_lex n : α) = n := rfl

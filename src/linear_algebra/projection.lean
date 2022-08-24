@@ -74,7 +74,7 @@ open linear_map
 def quotient_equiv_of_is_compl (h : is_compl p q) : (E ⧸ p) ≃ₗ[R] q :=
 linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
   (by simp only [← ker_eq_bot, ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
-  (by simp only [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
+  (by rw [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
 
 @[simp] lemma quotient_equiv_of_is_compl_symm_apply (h : is_compl p q) (x : q) :
   (quotient_equiv_of_is_compl p q h).symm x = quotient.mk x := rfl
@@ -300,7 +300,7 @@ def equiv_prod_of_surjective_of_is_compl (f : E →ₗ[R] F) (g : E →ₗ[R] G)
   (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
   E ≃ₗ[R] F × G :=
 linear_equiv.of_bijective (f.prod g) (by simp [← ker_eq_bot, hfg.inf_eq_bot])
-  (by simp [← range_eq_top, range_prod_eq hfg.sup_eq_top, *])
+  (by { rw [←range_eq_top], simp [range_prod_eq hfg.sup_eq_top, *] })
 
 @[simp] lemma coe_equiv_prod_of_surjective_of_is_compl {f : E →ₗ[R] F} {g : E →ₗ[R] G}
   (hf : f.range = ⊤) (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :

@@ -17,7 +17,7 @@ summable.  This construction is sometimes called the *Hilbert sum* of the family
 `G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this construction.
 
 We also define a *predicate* `is_hilbert_sum 𝕜 E V`, where `V : Π i, G i →ₗᵢ[𝕜] E`, expressing that
-that `V` is an `orthogonal_family` and that the associated map `lp G 2 →ₗᵢ[𝕜] E` is surjective.
+`V` is an `orthogonal_family` and that the associated map `lp G 2 →ₗᵢ[𝕜] E` is surjective.
 
 ## Main definitions
 
@@ -354,6 +354,20 @@ is_hilbert_sum.mk hv.orthogonal_family
 begin
   convert hsp,
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
+end
+
+lemma submodule.is_hilbert_sum_orthogonal (K : submodule 𝕜 E) [hK : complete_space K] :
+  @is_hilbert_sum _ 𝕜 _ E _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
+  (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
+begin
+  haveI : Π b, complete_space ((cond b K Kᗮ : submodule 𝕜 E) : Type*),
+  { intro b,
+    cases b;
+    exact orthogonal.complete_space K <|> assumption },
+  refine is_hilbert_sum.mk_internal _ K.orthogonal_family_self _,
+  refine le_trans _ (submodule.submodule_topological_closure _),
+  rw supr_bool_eq,
+  exact submodule.is_compl_orthogonal_of_complete_space.2
 end
 
 end is_hilbert_sum

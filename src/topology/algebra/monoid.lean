@@ -249,17 +249,17 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
+  closure (s : set M) * closure s ⊆ closure s :=
 calc
-(closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
+closure (s : set M) * closure s
+    = (λ p : M × M, p.1 * p.2) '' closure (s ×ˢ s) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' s ×ˢ s) :
   image_closure_subset_closure_image continuous_mul
 ... = closure s : by simp [s.coe_mul_self_eq]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) = closure (s : set M) :=
+  closure (s : set M) * closure s = closure s :=
 subset.antisymm
   s.top_closure_mul_self_subset
   (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
@@ -300,7 +300,7 @@ def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
     have h₁ : (s.topological_closure : set M) = closure s := rfl,
     let f₁ := λ (x : M × M), x.1 * x.2,
     let f₂ := λ (x : M × M), x.2 * x.1,
-    let S : set (M × M) := (s : set M) ×ˢ (s : set M),
+    let S : set (M × M) := s ×ˢ s,
     have h₃ : set.eq_on f₁ f₂ (closure S),
     { refine set.eq_on.closure _ continuous_mul (by continuity),
       intros x hx,
@@ -478,6 +478,10 @@ the predicate `has_continuous_neg` has not yet been defined."]
 instance : has_continuous_mul αˣ := inducing_embed_product.has_continuous_mul (embed_product α)
 
 end units
+
+@[to_additive] lemma continuous.units_map [monoid M] [monoid N] [topological_space M]
+  [topological_space N] (f : M →* N) (hf : continuous f) : continuous (units.map f) :=
+units.continuous_iff.2 ⟨hf.comp units.continuous_coe, hf.comp units.continuous_coe_inv⟩
 
 section
 

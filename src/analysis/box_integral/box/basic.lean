@@ -374,14 +374,14 @@ lemma distortion_eq_of_sub_eq_div {I J : box ι} {r : ℝ}
   (h : ∀ i, I.upper i - I.lower i = (J.upper i - J.lower i) / r) :
   distortion I = distortion J :=
 begin
-  simp only [distortion, nndist_pi_def, real.nndist_eq', h, real.nnabs.map_div],
+  simp only [distortion, nndist_pi_def, real.nndist_eq', h, map_div₀],
   congr' 1 with i,
   have : 0 < r,
   { by_contra hr,
     have := div_nonpos_of_nonneg_of_nonpos (sub_nonneg.2 $ J.lower_le_upper i) (not_lt.1 hr),
     rw ← h at this,
     exact this.not_lt (sub_pos.2 $ I.lower_lt_upper i) },
-  simp only [nnreal.finset_sup_div, div_div_div_cancel_right _ (real.nnabs.map_ne_zero.2 this.ne')]
+  simp_rw [nnreal.finset_sup_div, div_div_div_cancel_right _ ((map_ne_zero real.nnabs).2 this.ne')],
 end
 
 lemma nndist_le_distortion_mul (I : box ι) (i : ι) :

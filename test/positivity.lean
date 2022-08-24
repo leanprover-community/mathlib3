@@ -96,6 +96,9 @@ example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by posi
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
 
+example {E : Type*} [add_group E] {p : add_group_seminorm E} {x : E} : 0 ≤ p x := by positivity
+example {E : Type*} [group E] {p : group_seminorm E} {x : E} : 0 ≤ p x := by positivity
+
 /- ## Tests that the tactic is agnostic on reversed inequalities -/
 
 example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity

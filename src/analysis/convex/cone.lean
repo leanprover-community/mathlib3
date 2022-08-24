@@ -37,7 +37,7 @@ We prove two extension theorems:
   for all `x`
 
 We prove the following theorems:
-* `hyperplane_separation_point_nonempty_closed_convex_cone`:
+* `hyperplane_separation_of_nonempty_of_is_closed_of_nmem`:
   This variant of the
   [hyperplane separation theorem](https://en.wikipedia.org/wiki/Hyperplane_separation_theorem)
   states that given a nonempty, closed, convex cone `K` in a complete, real inner product space `H`

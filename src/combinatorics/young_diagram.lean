@@ -28,8 +28,8 @@ to say that `(i, j)` (in matrix coordinates) is in the Young diagram `μ`.
 - `young_diagram.card` : the number of cells in a Young diagram (its *cardinality*)
 - `young_diagram.distrib_lattice` : a distributive lattice instance for Young diagrams
   ordered by containment, with `(⊥ : young_diagram)` the empty diagram.
-- `young_diagram.row` and `young_diagram.row_len`: (lengths of) rows of a Young a diagram
-- `young_diagram.col` and `young_diagram.col_len`: (lengths of) columns of a Young diagram
+- `young_diagram.row` and `young_diagram.row_len`: rows of a Young diagram and their lengths
+- `young_diagram.col` and `young_diagram.col_len`: columns of a Young diagram and their lengths
 
 ## Notation
 
@@ -133,9 +133,12 @@ section transpose
 
 def transpose (μ : young_diagram) : young_diagram :=
 { cells :=  (equiv.prod_comm _ _).finset_congr μ.cells,
-  is_lower_set := λ _ _ h, by {
+  is_lower_set := λ _ _ h, begin
     simp only [finset.mem_coe, equiv.finset_congr_apply, finset.mem_map_equiv],
-    intro hcell, apply μ.is_lower_set _ hcell, simp [h], } }
+    intro hcell,
+    apply μ.is_lower_set _ hcell,
+    simp [h],
+  end }
 
 @[simp] lemma mem_transpose {μ : young_diagram} {c : ℕ × ℕ} : c ∈ μ.transpose ↔ c.swap ∈ μ :=
 by { change c ∈ μ.cells.map _ ↔ _, rw finset.mem_map_equiv, refl, }
@@ -162,7 +165,7 @@ def transpose_order_iso : young_diagram ≃o young_diagram :=
 end transpose
 
 section rows
-/-- Rows and row lengths of Young diagrams.
+/-! ### Rows and row lengths of Young diagrams.
 
 This section defines `μ.row` and `μ.row_len`, with the following API:
       1.  `(i, j) ∈ μ ↔ j < μ.row_len i`
@@ -173,6 +176,7 @@ This section defines `μ.row` and `μ.row_len`, with the following API:
 Note: #3 is not convenient for defining `μ.row_len`; instead, `μ.row_len` is defined
 as the smallest `j` such that `(i, j) ∉ μ`. --/
 
+/-- The `i`-th row of a Young diagram consists of the cells whose first coordinate is `i`. --/
 def row (μ : young_diagram) (i : ℕ) : finset (ℕ × ℕ) := μ.cells.filter (λ c, c.fst = i)
 
 lemma mem_row_iff {μ : young_diagram} {i : ℕ} {c : ℕ × ℕ} : c ∈ μ.row i ↔ c ∈ μ ∧ c.fst = i :=
@@ -182,7 +186,8 @@ protected lemma exists_not_mem_row (μ : young_diagram) (i : ℕ) : ∃ j, (i, j
 begin
   obtain ⟨j, hj⟩ := infinite.exists_not_mem_finset
     ((μ.cells).preimage (prod.mk i) (λ _ _ _ _ h, by {cases h, refl})),
-  rw finset.mem_preimage at hj, exact ⟨j, hj⟩,
+  rw finset.mem_preimage at hj,
+  exact ⟨j, hj⟩,
 end
 
 /-- Length of a row of a Young diagram --/
@@ -201,7 +206,8 @@ by { ext ⟨a, b⟩,
 lemma row_len_eq_card (μ : young_diagram) {i : ℕ} : μ.row_len i = (μ.row i).card :=
 by simp [row_eq_prod]
 
-lemma row_len_decr (μ : young_diagram) (i1 i2 : ℕ) (hi : i1 ≤ i2) : μ.row_len i2 ≤ μ.row_len i1 :=
+@[mono]
+lemma row_len_anti (μ : young_diagram) (i1 i2 : ℕ) (hi : i1 ≤ i2) : μ.row_len i2 ≤ μ.row_len i1 :=
 by { by_contra' h_lt, rw ← lt_self_iff_false (μ.row_len i1),
      rw ← mem_iff_lt_row_len at h_lt ⊢,
      exact μ.up_left_mem hi (by refl) h_lt }
@@ -209,19 +215,23 @@ by { by_contra' h_lt, rw ← lt_self_iff_false (μ.row_len i1),
 end rows
 
 section columns
-/-- Columns and column lengths of Young diagrams.
+/-! ### Columns and column lengths of Young diagrams.
 
 This section has an identical API to the rows section. --/
 
+/-- The `j`-th column of a Young diagram consists of the cells whose second coordinate is `j`. --/
 def col (μ : young_diagram) (j : ℕ) : finset (ℕ × ℕ) := μ.cells.filter (λ c, c.snd = j)
 
 lemma mem_col_iff {μ : young_diagram} {j : ℕ} {c : ℕ × ℕ} : c ∈ μ.col j ↔ c ∈ μ ∧ c.snd = j :=
 by simp [col]
 
 protected lemma exists_not_mem_col (μ : young_diagram) (j : ℕ) : ∃ i, (i, j) ∉ μ.cells :=
-by { obtain ⟨i, hi⟩ := infinite.exists_not_mem_finset
-       ((μ.cells).preimage (λ i, prod.mk i j) (λ _ _ _ _ h, by {cases h, refl})),
-     rw finset.mem_preimage at hi, exact ⟨i, hi⟩ }
+begin
+  obtain ⟨i, hi⟩ := infinite.exists_not_mem_finset
+    ((μ.cells).preimage (λ i, prod.mk i j) (λ _ _ _ _ h, by {cases h, refl})),
+  rw finset.mem_preimage at hi,
+  exact ⟨i, hi⟩,
+end
 
 /-- Length of a column of a Young diagram --/
 def col_len (μ : young_diagram) (j : ℕ) : ℕ := nat.find $ μ.exists_not_mem_col j
@@ -239,7 +249,8 @@ by { ext ⟨a, b⟩,
 lemma col_len_eq_card (μ : young_diagram) {j : ℕ} : μ.col_len j = (μ.col j).card :=
 by simp [col_eq_prod]
 
-lemma col_len_decr (μ : young_diagram) (j1 j2 : ℕ) (hj : j1 ≤ j2) : μ.col_len j2 ≤ μ.col_len j1 :=
+@[mono]
+lemma col_len_anti (μ : young_diagram) (j1 j2 : ℕ) (hj : j1 ≤ j2) : μ.col_len j2 ≤ μ.col_len j1 :=
 by { by_contra' h_lt, rw ← lt_self_iff_false (μ.col_len j1),
      rw ← mem_iff_lt_col_len at h_lt ⊢,
      exact μ.up_left_mem (by refl) hj h_lt }

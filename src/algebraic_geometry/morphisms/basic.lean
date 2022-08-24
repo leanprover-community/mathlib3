@@ -413,9 +413,10 @@ end
 
 lemma is_local.stable_under_base_change
   {P : affine_target_morphism_property} (hP : P.is_local) (hP' : P.stable_under_base_change) :
-  (target_affine_locally P).stable_under_base_change  :=
+  (target_affine_locally P).stable_under_base_change :=
+morphism_property.stable_under_base_change.mk (target_affine_locally_respects_iso hP.respects_iso)
 begin
-  introv X H,
+  intros X Y S f g H,
   rw (hP.target_affine_locally_is_local.open_cover_tfae (pullback.fst : pullback f g ⟶ X)).out 0 1,
   use S.affine_cover.pullback_cover f,
   intro i,

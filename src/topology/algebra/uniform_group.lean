@@ -205,6 +205,13 @@ end
   𝓤 α = comap (λx:α×α, x.1 / x.2) (𝓝 (1:α)) :=
 by { rw [← comap_swap_uniformity, uniformity_eq_comap_nhds_one, comap_comap, (∘)], refl }
 
+variables {α}
+
+@[to_additive] theorem uniform_group.uniformity_countably_generated
+  [(𝓝 (1 : α)).is_countably_generated] :
+  (𝓤 α).is_countably_generated :=
+by { rw uniformity_eq_comap_nhds_one, exact filter.comap.is_countably_generated _ _ }
+
 open mul_opposite
 
 @[to_additive]
@@ -421,6 +428,21 @@ local attribute [instance] topological_group.to_uniform_space
 end⟩
 
 variables {G}
+
+@[to_additive] instance subgroup.is_closed_of_discrete [t2_space G]
+  {H : subgroup G} [discrete_topology H] : is_closed (H : set G) :=
+begin
+  obtain ⟨V, V_in, VH⟩ : ∃ (V : set G) (hV : V ∈ 𝓝 (1 : G)), V ∩ (H : set G) = {1},
+    from nhds_inter_eq_singleton_of_mem_discrete H.one_mem,
+  haveI : separated_space G := separated_iff_t2.mpr ‹_›,
+  have : (λ p : G × G, p.2 / p.1) ⁻¹' V ∈ 𝓤 G, from preimage_mem_comap V_in,
+  apply is_closed_of_spaced_out this,
+  intros h h_in h' h'_in,
+  contrapose!,
+  rintro (hyp : h' / h ∈ V),
+  have : h'/h ∈ ({1} : set G) := VH ▸ set.mem_inter hyp (H.div_mem h'_in h_in),
+  exact (eq_of_div_eq_one this).symm
+end
 
 @[to_additive] lemma topological_group.tendsto_uniformly_iff
   {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :

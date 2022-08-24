@@ -834,6 +834,113 @@ lemma oangle_eq_angle_or_eq_neg_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
     hb.oangle x y = -inner_product_geometry.angle x y :=
 real.angle.cos_eq_real_cos_iff_eq_or_eq_neg.1 $ hb.cos_oangle_eq_cos_angle hx hy
 
+/-- The unoriented angle between two nonzero vectors is the absolute value of the oriented angle,
+converted to a real. -/
+lemma angle_eq_abs_oangle_to_real {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  inner_product_geometry.angle x y = |(hb.oangle x y).to_real| :=
+begin
+  have h0 := inner_product_geometry.angle_nonneg x y,
+  have hpi := inner_product_geometry.angle_le_pi x y,
+  rcases hb.oangle_eq_angle_or_eq_neg_angle hx hy with (h|h),
+  { rw [h, eq_comm, real.angle.abs_to_real_coe_eq_self_iff],
+    exact ⟨h0, hpi⟩ },
+  { rw [h, eq_comm, real.angle.abs_to_real_neg_coe_eq_self_iff],
+    exact ⟨h0, hpi⟩ }
+end
+
+/-- If the sign of the oriented angle between two vectors is zero, either one of the vectors is
+zero or the unoriented angle is 0 or π. -/
+lemma eq_zero_or_angle_eq_zero_or_pi_of_sign_oangle_eq_zero {x y : V}
+  (h : (hb.oangle x y).sign = 0) :
+  x = 0 ∨ y = 0 ∨ inner_product_geometry.angle x y = 0 ∨ inner_product_geometry.angle x y = π :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0, { simp [hy] },
+  rw hb.angle_eq_abs_oangle_to_real hx hy,
+  rw real.angle.sign_eq_zero_iff at h,
+  rcases h with h|h;
+    simp [h, real.pi_pos.le]
+end
+
+/-- If two unoriented angles are equal, and the signs of the corresponding oriented angles are
+equal, then the oriented angles are equal (even in degenerate cases). -/
+lemma oangle_eq_of_angle_eq_of_sign_eq {w x y z : V}
+  (h : inner_product_geometry.angle w x = inner_product_geometry.angle y z)
+  (hs : (hb.oangle w x).sign = (hb.oangle y z).sign) : hb.oangle w x = hb.oangle y z :=
+begin
+  by_cases h0 : (w = 0 ∨ x = 0) ∨ (y = 0 ∨ z = 0),
+  { have hs' : (hb.oangle w x).sign = 0 ∧ (hb.oangle y z).sign = 0,
+    { rcases h0 with (rfl|rfl)|rfl|rfl,
+      { simpa using hs.symm },
+      { simpa using hs.symm },
+      { simpa using hs },
+      { simpa using hs } },
+    rcases hs' with ⟨hswx, hsyz⟩,
+    have h' : inner_product_geometry.angle w x = π / 2 ∧ inner_product_geometry.angle y z = π / 2,
+    { rcases h0 with (rfl|rfl)|rfl|rfl,
+      { simpa using h.symm },
+      { simpa using h.symm },
+      { simpa using h },
+      { simpa using h } },
+    rcases h' with ⟨hwx, hyz⟩,
+    have hpi : π / 2 ≠ π,
+    { intro hpi,
+      rw [div_eq_iff, eq_comm, ←sub_eq_zero, mul_two, add_sub_cancel] at hpi,
+      { exact real.pi_pos.ne.symm hpi },
+      { exact two_ne_zero } },
+    have h0wx : (w = 0 ∨ x = 0),
+    { have h0' := hb.eq_zero_or_angle_eq_zero_or_pi_of_sign_oangle_eq_zero hswx,
+      simpa [hwx, real.pi_pos.ne.symm, hpi] using h0' },
+    have h0yz : (y = 0 ∨ z = 0),
+    { have h0' := hb.eq_zero_or_angle_eq_zero_or_pi_of_sign_oangle_eq_zero hsyz,
+      simpa [hyz, real.pi_pos.ne.symm, hpi] using h0' },
+    rcases h0wx with h0wx|h0wx; rcases h0yz with h0yz|h0yz;
+      simp [h0wx, h0yz] },
+  { push_neg at h0,
+    rw real.angle.eq_iff_abs_to_real_eq_of_sign_eq hs,
+    rwa [hb.angle_eq_abs_oangle_to_real h0.1.1 h0.1.2,
+         hb.angle_eq_abs_oangle_to_real h0.2.1 h0.2.2] at h }
+end
+
+/-- If the signs of two oriented angles between nonzero vectors are equal, the oriented angles are
+equal if and only if the unoriented angles are equal. -/
+lemma oangle_eq_iff_angle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
+  (hz : z ≠ 0) (hs : (hb.oangle w x).sign = (hb.oangle y z).sign) :
+  inner_product_geometry.angle w x = inner_product_geometry.angle y z ↔
+    hb.oangle w x = hb.oangle y z :=
+begin
+  refine ⟨λ h, hb.oangle_eq_of_angle_eq_of_sign_eq h hs, λ h, _⟩,
+  rw [hb.angle_eq_abs_oangle_to_real hw hx, hb.angle_eq_abs_oangle_to_real hy hz, h]
+end
+
+/-- The oriented angle between two nonzero vectors is zero if and only if the unoriented angle
+is zero. -/
+lemma oangle_eq_zero_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  hb.oangle x y = 0 ↔ inner_product_geometry.angle x y = 0 :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { simpa [hb.angle_eq_abs_oangle_to_real hx hy] },
+  { have ha := hb.oangle_eq_angle_or_eq_neg_angle hx hy,
+    rw h at ha,
+    simpa using ha }
+end
+
+/-- The oriented angle between two vectors is `π` if and only if the unoriented angle is `π`. -/
+lemma oangle_eq_pi_iff_angle_eq_pi {x y : V} :
+  hb.oangle x y = π ↔ inner_product_geometry.angle x y = π :=
+begin
+  by_cases hx : x = 0, { simp [hx, real.angle.pi_ne_zero.symm, div_eq_mul_inv, mul_right_eq_self₀,
+                               not_or_distrib, real.pi_ne_zero], norm_num },
+  by_cases hy : y = 0, { simp [hy, real.angle.pi_ne_zero.symm, div_eq_mul_inv, mul_right_eq_self₀,
+                               not_or_distrib, real.pi_ne_zero], norm_num },
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [hb.angle_eq_abs_oangle_to_real hx hy, h],
+    simp [real.pi_pos.le] },
+  { have ha := hb.oangle_eq_angle_or_eq_neg_angle hx hy,
+    rw h at ha,
+    simpa using ha }
+end
+
 end orthonormal
 
 namespace orientation
@@ -1284,5 +1391,44 @@ lemma oangle_eq_angle_or_eq_neg_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
   o.oangle x y = inner_product_geometry.angle x y ∨
     o.oangle x y = -inner_product_geometry.angle x y :=
 (ob).oangle_eq_angle_or_eq_neg_angle hx hy
+
+/-- The unoriented angle between two nonzero vectors is the absolute value of the oriented angle,
+converted to a real. -/
+lemma angle_eq_abs_oangle_to_real {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  inner_product_geometry.angle x y = |(o.oangle x y).to_real| :=
+(ob).angle_eq_abs_oangle_to_real hx hy
+
+/-- If the sign of the oriented angle between two vectors is zero, either one of the vectors is
+zero or the unoriented angle is 0 or π. -/
+lemma eq_zero_or_angle_eq_zero_or_pi_of_sign_oangle_eq_zero {x y : V}
+  (h : (o.oangle x y).sign = 0) :
+  x = 0 ∨ y = 0 ∨ inner_product_geometry.angle x y = 0 ∨ inner_product_geometry.angle x y = π :=
+(ob).eq_zero_or_angle_eq_zero_or_pi_of_sign_oangle_eq_zero h
+
+/-- If two unoriented angles are equal, and the signs of the corresponding oriented angles are
+equal, then the oriented angles are equal (even in degenerate cases). -/
+lemma oangle_eq_of_angle_eq_of_sign_eq {w x y z : V}
+  (h : inner_product_geometry.angle w x = inner_product_geometry.angle y z)
+  (hs : (o.oangle w x).sign = (o.oangle y z).sign) : o.oangle w x = o.oangle y z :=
+(ob).oangle_eq_of_angle_eq_of_sign_eq h hs
+
+/-- If the signs of two oriented angles between nonzero vectors are equal, the oriented angles are
+equal if and only if the unoriented angles are equal. -/
+lemma oangle_eq_iff_angle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
+  (hz : z ≠ 0) (hs : (o.oangle w x).sign = (o.oangle y z).sign) :
+  inner_product_geometry.angle w x = inner_product_geometry.angle y z ↔
+    o.oangle w x = o.oangle y z :=
+(ob).oangle_eq_iff_angle_eq_of_sign_eq hw hx hy hz hs
+
+/-- The oriented angle between two nonzero vectors is zero if and only if the unoriented angle
+is zero. -/
+lemma oangle_eq_zero_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  o.oangle x y = 0 ↔ inner_product_geometry.angle x y = 0 :=
+(ob).oangle_eq_zero_iff_angle_eq_zero hx hy
+
+/-- The oriented angle between two vectors is `π` if and only if the unoriented angle is `π`. -/
+lemma oangle_eq_pi_iff_angle_eq_pi {x y : V} :
+  o.oangle x y = π ↔ inner_product_geometry.angle x y = π :=
+(ob).oangle_eq_pi_iff_angle_eq_pi
 
 end orientation

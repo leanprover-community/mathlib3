@@ -61,7 +61,7 @@ end
 
 /-- P_infty factors through the normalized_Moore_complex -/
 @[simps]
-def P_infty_into_Moore_subcomplex (X : simplicial_object A) : K[X] ⟶ N[X] :=
+def P_infty_to_normalized_Moore_complex (X : simplicial_object A) : K[X] ⟶ N[X] :=
 chain_complex.of_hom _ _ _ _ _ _
   (λ n, factor_thru _ _ (P_infty_factors_thru_Moore_complex_degreewise n))
   (λ n, begin

@@ -88,23 +88,18 @@ begin
     apply (h v).mp, apply congr_arg, refl,}
 end
 
+
 @[reducible, simp] def conn_comp_outside.verts_supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :=
   {v : V | ∃ h : v ∈ (@set.univ V) \ K, connected_component_mk _ (by {dsimp only [compl], exact ⟨v,h⟩}) = C}
 
-@[ext] lemma conn_comp_eq_of_eq_verts_supp {G : simple_graph V} {K : set V} (C D : conn_comp_outside G K) : C = D ↔ C.verts_supp = D.verts_supp :=
-begin
-  split,
-  { intro h, subst h, },
-  { refine connected_component.ind₂ _ C D,
+instance {G : simple_graph V} {K : set V} : set_like (conn_comp_outside G K) V :=
+⟨ conn_comp_outside.verts_supp
+, by
+  { rintro C D, refine connected_component.ind₂ _ C D,
     rintros ⟨v,vh⟩ ⟨w,wh⟩, dsimp [conn_comp_outside.verts_supp],
     intro h, simp_rw [set.ext_iff] at h,
     have := (h v).mp ⟨vh,rfl⟩, simp only [mem_set_of_eq] at this,
-    obtain ⟨_,_⟩ := this, assumption, },
-end
-
-instance conn_comp_outside_support  {G : simple_graph V} (K : set V) :
-  has_coe (conn_comp_outside G K) (set V) := {coe := conn_comp_outside.verts_supp}
-
+    obtain ⟨_,_⟩ := this, assumption, }, ⟩
 
 
 def inf_conn_comp_outside (G : simple_graph V) (K : set V) :=

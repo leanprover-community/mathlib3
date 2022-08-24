@@ -111,8 +111,12 @@ variables [linear_ordered_comm_group_with_zero α]
 lemma zero_lt_one₀ : (0 : α) < 1 :=
 lt_of_le_of_ne zero_le_one zero_ne_one
 
+-- TODO: Do we really need the following two?
+
+/-- Alias of `mul_le_one'` for unification. -/
 lemma mul_le_one₀ (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 := mul_le_one' ha hb
 
+/-- Alias of `one_le_mul'` for unification. -/
 lemma one_le_mul₀ (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b := one_le_mul ha hb
 
 lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=

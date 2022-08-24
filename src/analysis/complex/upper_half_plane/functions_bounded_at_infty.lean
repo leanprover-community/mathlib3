@@ -60,8 +60,8 @@ def zero_at_im_infty_submodule : submodule ℂ (ℍ → ℂ) := zero_at_filter_s
 /--Subalgebra of functions that are bounded at infinity.-/
 def bounded_at_im_infty_subalgebra : subalgebra ℂ (ℍ → ℂ) := bounded_filter_subalgebra at_im_infty
 
-lemma prod_of_bounded_is_bounded {f g : ℍ → ℂ} (hf : is_bounded_at_im_infty f) (hg : is_bounded_at_im_infty g) :
-  is_bounded_at_im_infty (f * g) :=
+lemma prod_of_bounded_is_bounded {f g : ℍ → ℂ} (hf : is_bounded_at_im_infty f)
+  (hg : is_bounded_at_im_infty g) : is_bounded_at_im_infty (f * g) :=
 by simpa only [pi.one_apply, mul_one, norm_eq_abs, complex.abs_mul] using hf.mul hg
 
 @[simp] lemma bounded_mem (f : ℍ → ℂ) :

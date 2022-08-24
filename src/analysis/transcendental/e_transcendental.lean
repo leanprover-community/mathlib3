@@ -103,13 +103,16 @@ lemma deriv_f_p_k_eq_zero_k_eq_0_when_j_lt_p_sub_one (p : ℕ) (n j : ℕ) (hj :
   polynomial.eval 0 (polynomial.derivative^[j] (f_p p n)) = 0 :=
 begin
   rw [f_p, polynomial.iterate_derivative_mul, polynomial.eval_finset_sum],
-  apply finset.sum_eq_zero, intros i hi, rw polynomial.eval_smul,
-  simp only [nat.succ_pos', finset.mem_range] at hi,
-  rw [smul_eq_zero], right,
+  refine finset.sum_eq_zero (λ i hi, _),
+  rw [finset.mem_range] at hi,
+  rw [polynomial.eval_smul, smul_eq_zero],
+  right,
   have ineq : j - i < p - 1 := gt_of_gt_of_ge hj (nat.sub_le j i),
   rw [polynomial.eval_mul, mul_eq_zero], left,
   rw [polynomial.iterate_derivative_X_pow_eq_C_mul, polynomial.eval_mul],
-  simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_zero, polynomial.eval_pow, mul_eq_zero], right, apply zero_pow,
+  apply mul_eq_zero_of_right,
+  rw [polynomial.eval_pow, polynomial.eval_X],
+  apply zero_pow,
   exact nat.sub_pos_of_lt ineq,
 end
 

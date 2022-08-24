@@ -76,7 +76,7 @@ lemma proj_std_basis_ne (i j : ι) (h : i ≠ j) : (proj i).comp (std_basis R φ
 linear_map.ext $ std_basis_ne R φ _ _ h
 
 lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
-  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
   refine (supr_le $ λ i, supr_le $ λ hi, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
@@ -87,7 +87,7 @@ begin
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
-  (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
+  (⨅ i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
 set_like.le_def.2
 begin
   assume b hb,
@@ -99,12 +99,12 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem_bsupr (λ i hi, (std_basis R φ i).mem_range_self (b i))
+  exact sum_mem_bsupr (λ i hi, mem_range_self (std_basis R φ i) (b i))
 end
 
 lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) (hI : set.finite I) :
-  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },

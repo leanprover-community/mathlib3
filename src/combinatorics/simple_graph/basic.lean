@@ -233,7 +233,7 @@ instance : boolean_algebra (simple_graph V) :=
 
 @[simp] lemma empty_graph_eq_bot (V : Type u) : empty_graph V = ⊥ := rfl
 
-instance (V : Type u) : inhabited (simple_graph V) := ⟨⊤⟩
+@[simps] instance (V : Type u) : inhabited (simple_graph V) := ⟨⊥⟩
 
 section decidable
 
@@ -400,8 +400,8 @@ to the darts `d` with `d.fst = v`. --/
 lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
 λ e₁ e₂ h, subtype.ext $ by { injection h with h', convert congr_arg prod.snd h' }
 
-instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set default)] :
-  inhabited G.dart := ⟨G.dart_of_neighbor_set default default⟩
+instance nonempty_dart_top [nontrivial V] : nonempty (⊤ : simple_graph V).dart :=
+by { obtain ⟨v, w, h⟩ := exists_pair_ne V, exact ⟨⟨(v, w), h⟩⟩ }
 
 end darts
 

@@ -166,10 +166,10 @@ lemma order_emb_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fi
   (hfs : ∀ x, f x ∈ s) (hmono : strict_mono f) : f = s.order_emb_of_fin h :=
 begin
   apply fin.strict_mono_unique hmono (s.order_emb_of_fin h).strict_mono,
-  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_fin_range, ← coe_image, coe_inj],
+  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_univ, ← coe_image, coe_inj],
   refine eq_of_subset_of_card_le (λ x hx, _) _,
   { rcases mem_image.1 hx with ⟨x, hx, rfl⟩, exact hfs x },
-  { rw [h, card_image_of_injective _ hmono.injective, fin_range_card] }
+  { rw [h, card_image_of_injective _ hmono.injective, card_univ, fintype.card_fin] }
 end
 
 /-- An order embedding `f` from `fin k` to a finset of cardinality `k` has to coincide with

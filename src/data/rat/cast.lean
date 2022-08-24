@@ -202,8 +202,8 @@ variable {α}
 
 @[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := (cast_hom α).map_inv _
-@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := (cast_hom α).map_div _ _
+@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
+@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
@@ -238,57 +238,67 @@ map_prod (rat.cast_hom α) _ _
 
 end field
 
-@[simp, norm_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
-| ⟨n, d, h, c⟩ :=
-  by { rw [num_denom', cast_mk, mk_eq_div, div_nonneg_iff, div_nonneg_iff], norm_cast }
+section linear_ordered_field
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=
-by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
+variables {K : Type*} [linear_ordered_field K]
 
-@[simp, norm_cast] theorem cast_lt [linear_ordered_field α] {m n : ℚ} : (m : α) < n ↔ m < n :=
-by simpa [-cast_le] using not_congr (@cast_le α _ n m)
+lemma cast_pos_of_pos {r : ℚ} (hr : 0 < r) : (0 : K) < r :=
+begin
+  rw [rat.cast_def],
+  exact div_pos (int.cast_pos.2 $ num_pos_iff_pos.2 hr) (nat.cast_pos.2 r.pos)
+end
 
-@[simp] theorem cast_nonpos [linear_ordered_field α] {n : ℚ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
-by rw [← cast_zero, cast_le]
+@[mono] lemma cast_strict_mono : strict_mono (coe : ℚ → K) :=
+λ m n, by simpa only [sub_pos, cast_sub] using @cast_pos_of_pos K _ (n - m)
 
-@[simp] theorem cast_pos [linear_ordered_field α] {n : ℚ} : (0 : α) < n ↔ 0 < n :=
-by rw [← cast_zero, cast_lt]
+@[mono] lemma cast_mono : monotone (coe : ℚ → K) := cast_strict_mono.monotone
 
-@[simp] theorem cast_lt_zero [linear_ordered_field α] {n : ℚ} : (n : α) < 0 ↔ n < 0 :=
-by rw [← cast_zero, cast_lt]
+/-- Coercion from `ℚ` as an order embedding. -/
+@[simps] def cast_order_embedding : ℚ ↪o K := order_embedding.of_strict_mono coe cast_strict_mono
 
-@[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
-| ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
+@[simp, norm_cast] theorem cast_le {m n : ℚ} : (m : K) ≤ n ↔ m ≤ n := cast_order_embedding.le_iff_le
+@[simp, norm_cast] theorem cast_lt {m n : ℚ} : (m : K) < n ↔ m < n := cast_strict_mono.lt_iff_lt
 
-@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ :=
-ring_hom.ext cast_id
+@[simp] theorem cast_nonneg {n : ℚ} : 0 ≤ (n : K) ↔ 0 ≤ n := by norm_cast
+@[simp] theorem cast_nonpos {n : ℚ} : (n : K) ≤ 0 ↔ n ≤ 0 := by norm_cast
+@[simp] theorem cast_pos {n : ℚ} : (0 : K) < n ↔ 0 < n := by norm_cast
+@[simp] theorem cast_lt_zero {n : ℚ} : (n : K) < 0 ↔ n < 0 := by norm_cast
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
-  (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min_def]
+@[simp, norm_cast] theorem cast_min {a b : ℚ} : (↑(min a b) : K) = min a b :=
+(@cast_mono K _).map_min
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
-  (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [h, max_def]
+@[simp, norm_cast] theorem cast_max {a b : ℚ} : (↑(max a b) : K) = max a b :=
+(@cast_mono K _).map_max
 
-@[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
-  ((|q| : ℚ) : α) = |q| :=
-by simp [abs_eq_max_neg]
+@[simp, norm_cast] theorem cast_abs {q : ℚ} : ((|q| : ℚ) : K) = |q| := by simp [abs_eq_max_neg]
+
+open set
+
+@[simp] lemma preimage_cast_Icc (a b : ℚ) : coe ⁻¹' (Icc (a : K) b) = Icc a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ico (a b : ℚ) : coe ⁻¹' (Ico (a : K) b) = Ico a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ioc (a b : ℚ) : coe ⁻¹' (Ioc (a : K) b) = Ioc a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ioo (a b : ℚ) : coe ⁻¹' (Ioo (a : K) b) = Ioo a b := by { ext x, simp }
+@[simp] lemma preimage_cast_Ici (a : ℚ) : coe ⁻¹' (Ici (a : K)) = Ici a := by { ext x, simp }
+@[simp] lemma preimage_cast_Iic (a : ℚ) : coe ⁻¹' (Iic (a : K)) = Iic a := by { ext x, simp }
+@[simp] lemma preimage_cast_Ioi (a : ℚ) : coe ⁻¹' (Ioi (a : K)) = Ioi a := by { ext x, simp }
+@[simp] lemma preimage_cast_Iio (a : ℚ) : coe ⁻¹' (Iio (a : K)) = Iio a := by { ext x, simp }
+
+end linear_ordered_field
+
+@[norm_cast] theorem cast_id (n : ℚ) : (↑n : ℚ) = n := by rw [cast_def, num_div_denom]
+@[simp] theorem cast_eq_id : (coe : ℚ → ℚ) = id := funext cast_id
+@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ := ring_hom.ext cast_id
 
 end rat
 
-open rat ring_hom
+open rat
 
-lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
-calc f r = f (r.1 / r.2) : by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
-     ... = f r.1 / f r.2 : f.map_div _ _
-     ... = r             : by rw [map_nat_cast, map_int_cast, cast_def]
-
--- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
--- but the proof would be much longer
-@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [char_zero α] [ring_hom_class F α β]
+@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [ring_hom_class F α β]
   (f : F) (q : ℚ) : f q = q :=
-((f : α →+* β).comp $ cast_hom α).eq_rat_cast q
+by rw [cast_def, map_div₀, map_int_cast, map_nat_cast, cast_def]
+
+@[simp] lemma eq_rat_cast {k} [division_ring k] [ring_hom_class F ℚ k] (f : F) (r : ℚ) : f r = r :=
+by rw [← map_rat_cast f, rat.cast_id]
 
 lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
 begin
@@ -326,7 +336,7 @@ theorem ext_rat {f g : ℚ →*₀ M}
 begin
   have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
   ext x,
-  rw [← @rat.num_denom x, rat.mk_eq_div, f.map_div, g.map_div,
+  rw [← @rat.num_denom x, rat.mk_eq_div, map_div₀ f, map_div₀ g,
     same_on_int' x.num, same_on_int' x.denom],
 end
 

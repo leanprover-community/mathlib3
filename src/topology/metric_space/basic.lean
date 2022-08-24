@@ -1373,9 +1373,8 @@ theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
 begin
   rcases metric.cauchy_seq_iff'.1 hu 1 zero_lt_one with ⟨N, hN⟩,
-  suffices : ∃ R > 0, ∀ n, dist (u n) (u N) < R,
-  { rcases this with ⟨R, R0, H⟩,
-    exact ⟨_, add_pos R0 R0, λ m n,
+  rsuffices ⟨R, R0, H⟩ : ∃ R > 0, ∀ n, dist (u n) (u N) < R,
+  { exact ⟨_, add_pos R0 R0, λ m n,
       lt_of_le_of_lt (dist_triangle_right _ _ _) (add_lt_add (H m) (H n))⟩ },
   let R := finset.sup (finset.range N) (λ n, nndist (u n) (u N)),
   refine ⟨↑R + 1, add_pos_of_nonneg_of_pos R.2 zero_lt_one, λ n, _⟩,
@@ -2564,7 +2563,7 @@ begin
 end
 
 lemma subsingleton_sphere (x : γ) {r : ℝ} (hr : r ≤ 0) : (sphere x r).subsingleton :=
-(subsingleton_closed_ball x hr).mono sphere_subset_closed_ball
+(subsingleton_closed_ball x hr).anti sphere_subset_closed_ball
 
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
@@ -2718,8 +2717,6 @@ metric_space.induced coe subtype.coe_injective ‹_›
 
 @[to_additive] instance {α : Type*} [metric_space α] : metric_space (αᵐᵒᵖ) :=
 metric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
-
-local attribute [instance] filter.unique
 
 instance : metric_space empty :=
 { dist := λ _ _, 0,

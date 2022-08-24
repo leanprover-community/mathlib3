@@ -799,7 +799,7 @@ begin
     rwa [add_sub_cancel, real_inner_comm, ← neg_nonneg, neg_eq_neg_one_mul,
          ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner },
   { -- as `K` is closed and non-empty, it is pointed
-    have hinner₀ := hinner 0 (pointed_of_nonempty_closed_convex_cone ne hc),
+    have hinner₀ := hinner 0 (K.pointed_of_nonempty_of_is_closed ne hc),
 
     -- the rest of the proof is a straightforward calculation
     rw [zero_sub, inner_neg_right, right.neg_nonpos_iff] at hinner₀,
@@ -822,7 +822,7 @@ begin
   split,
   { rw [mem_inner_dual_cone, ← set_like.mem_coe],
     contrapose!,
-    exact hyperplane_separation_point_nonempty_closed_convex_cone ne hc },
+    exact K.hyperplane_separation_of_nonempty_of_is_closed_of_nmem ne hc },
   { rintro hxK y h,
     specialize h x hxK,
     rwa real_inner_comm },

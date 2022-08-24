@@ -95,6 +95,15 @@ lex.le_of_forall_le h
 lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 λ _ _, lex.le_of_forall_le
 
+lemma lex_eq_pi_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
+  pi.lex r (λ _, s) (a : α → N) (b : α → N) = finsupp.lex r s a b :=
+rfl
+
+/-  Oh, have I tried to prove it with `rfl`... -/
+lemma lex_def {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
+  finsupp.lex r s a b ↔ ∃ j, (∀ d, r d j → a d = b d) ∧ s (a j) (b j) :=
+by refl
+
 end N_has_zero
 
 section covariants

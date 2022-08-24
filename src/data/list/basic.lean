@@ -2674,11 +2674,6 @@ end
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
 theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
-  (l : list α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
-  pmap f l H₁ = pmap g l H₂ :=
-by induction l with _ _ ih; [refl, rw [pmap, pmap, h, ih]]
-
-theorem pmap_congr' {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
   (l : list α) {H₁ H₂} (h : ∀ (a ∈ l) h₁ h₂, f a h₁ = g a h₂) :
   pmap f l H₁ = pmap g l H₂ :=
 begin
@@ -2697,7 +2692,7 @@ by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
   (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
-by rw [attach, map_pmap]; exact pmap_congr l (λ a h₁ h₂, rfl)
+by rw [attach, map_pmap]; exact pmap_congr l (λ _ _ _ _, rfl)
 
 theorem attach_map_val (l : list α) : l.attach.map subtype.val = l :=
 by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)

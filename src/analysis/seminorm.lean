@@ -897,7 +897,7 @@ variables [has_smul ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
 /-- A seminorm is convex. Also see `convex_on_norm`. -/
 protected lemma convex_on : convex_on ℝ univ p :=
 begin
-  refine ⟨convex_univ, λ x y _ _ a b ha hb hab, _⟩,
+  refine ⟨convex_univ, λ x _ y _ a b ha hb hab, _⟩,
   calc p (a • x + b • y) ≤ p (a • x) + p (b • y) : p.add_le _ _
     ... = ∥a • (1 : 𝕜)∥ * p x + ∥b • (1 : 𝕜)∥ * p y
         : by rw [←p.smul, ←p.smul, smul_one_smul, smul_one_smul]

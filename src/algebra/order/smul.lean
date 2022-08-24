@@ -50,8 +50,6 @@ namespace order_dual
 
 variables {R M : Type*}
 
-instance [has_smul R M] : has_smul R Mᵒᵈ := ⟨λ k x, order_dual.rec (λ x', (k • x' : M)) x⟩
-
 instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] : smul_with_zero R Mᵒᵈ :=
 { zero_smul := λ m, order_dual.rec (zero_smul _) m,
   smul_zero := λ r, order_dual.rec (smul_zero' _) r,
@@ -77,10 +75,6 @@ instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
 { smul_lt_smul_of_pos := λ a b, @ordered_smul.smul_lt_smul_of_pos R M _ _ _ _ b a,
   lt_of_smul_lt_smul_of_pos := λ a b,
     @ordered_smul.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
-
-@[simp] lemma to_dual_smul [has_smul R M] {c : R} {a : M} : to_dual (c • a) = c • to_dual a := rfl
-@[simp] lemma of_dual_smul [has_smul R M] {c : R} {a : Mᵒᵈ} : of_dual (c • a) = c • of_dual a :=
-rfl
 
 end order_dual
 

@@ -1194,23 +1194,6 @@ end vsub
 
 open_locale pointwise
 
-section ring
-variables [ring α] [add_comm_group β] [module α β] {s : set α} {t : set β} {a : α}
-
-@[simp] lemma neg_smul_set : -a • t = -(a • t) :=
-by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
-
-@[simp] lemma smul_set_neg : a • -t = -(a • t) :=
-by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
-
-@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
-by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
-
-@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
-by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
-
-end ring
-
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}
 
@@ -1350,6 +1333,28 @@ lemma smul_set_univ₀ (ha : a ≠ 0) : a • (univ : set β) = univ :=
 eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
 
 end group_with_zero
+
+section monoid
+variables [monoid α] [add_group β] [distrib_mul_action α β] (a : α) (s : set α) (t : set β)
+
+@[simp] lemma smul_set_neg : a • -t = -(a • t) :=
+by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
+
+@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
+by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
+
+end monoid
+
+section ring
+variables [ring α] [add_comm_group β] [module α β] (a : α) (s : set α) (t : set β)
+
+@[simp] lemma neg_smul_set : -a • t = -(a • t) :=
+by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
+
+@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
+by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
+
+end ring
 
 end set
 

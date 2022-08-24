@@ -384,7 +384,7 @@ open continuous_map
 of its purely real-valued elements also separates points. -/
 lemma subalgebra.separates_points.is_R_or_C_to_real {A : subalgebra 𝕜 C(X, 𝕜)}
   (hA : A.separates_points) (hA' : conj_invariant_subalgebra (A.restrict_scalars ℝ)) :
-  ((A.restrict_scalars ℝ).comap'
+  ((A.restrict_scalars ℝ).comap
     (of_real_am.comp_left_continuous ℝ continuous_of_real)).separates_points :=
 begin
   intros x₁ x₂ hx,

@@ -350,7 +350,7 @@ by induction x using alexandroff.rec; induction y using alexandroff.rec;
 
 In this section we prove that `alexandroff X` is a compact space; it is a T₀ (resp., T₁) space if
 the original space satisfies the same separation axiom. If the original space is a locally compact
-Hausdorff space, then `alexandroff X` is a normal (hence, regular and Hausdorff) space.
+Hausdorff space, then `alexandroff X` is a normal (hence, T₃ and Hausdorff) space.
 
 Finally, if the original space `X` is *not* compact and is a preconnected space, then
 `alexandroff X` is a connected space.

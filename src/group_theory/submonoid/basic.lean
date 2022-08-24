@@ -76,6 +76,7 @@ section
 set_option old_structure_cmd true
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
+@[ancestor subsemigroup]
 structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
 
@@ -96,6 +97,7 @@ set_option old_structure_cmd true
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
+@[ancestor add_subsemigroup]
 structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
 
@@ -447,7 +449,8 @@ def eq_mlocus (f g : M →* N) : submonoid M :=
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
-@[to_additive]
+@[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its submonoid
+closure."]
 lemma eq_on_mclosure {f g : M →* N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_mlocus g, from closure_le.2 h

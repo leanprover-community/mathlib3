@@ -61,13 +61,8 @@ calc #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
   cardinal_mk_le_sigma_polynomial R L halg
 ... = cardinal.sum (λ p : R[X], #{ x : L | x ∈ (p.map (algebra_map R L)).roots }) :
   by rw ← mk_sigma; refl
-... ≤ cardinal.sum.{u u} (λ p : R[X], ℵ₀) : sum_le_sum _ _
-  (λ p, le_of_lt begin
-    rw [lt_aleph_0_iff_finite],
-    classical,
-    simp only [← @multiset.mem_to_finset _ _ _ (p.map (algebra_map R L)).roots],
-    apply_instance
-  end)
+... ≤ cardinal.sum.{u u} (λ p : R[X], ℵ₀) :
+  sum_le_sum _ _ $ λ p, (multiset.finite_to_set _).lt_aleph_0.le
 ... = #R[X] * ℵ₀ : sum_const' _ _
 ... ≤ max (max (#R[X]) ℵ₀) ℵ₀ : mul_le_max _ _
 ... ≤ max (max (max (#R) ℵ₀) ℵ₀) ℵ₀ :

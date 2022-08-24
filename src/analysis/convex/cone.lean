@@ -360,10 +360,7 @@ end add_comm_group
 section module
 variables [add_comm_monoid E] [module 𝕜 E]
 
-instance : has_zero (convex_cone 𝕜 E) :=
-⟨ { carrier := 0,
-    smul_mem' := λ _ _, by simp,
-    add_mem' := λ _, by simp } ⟩
+instance : has_zero (convex_cone 𝕜 E) := ⟨⟨0, λ _ _, by simp, λ _, by simp⟩⟩
 
 @[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := iff.rfl
 @[simp] lemma coe_zero : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
@@ -682,14 +679,12 @@ eq_top_iff.mpr $ λ x hy y, false.elim
 eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ inner_zero_left.ge
 
 /-- Dual cone of the total space is the convex cone {0}. -/
-@[simp] lemma inner_dual_cone_univ : (set.univ : set H).inner_dual_cone = 0 :=
+@[simp] lemma inner_dual_cone_univ : (univ : set H).inner_dual_cone = 0 :=
 begin
-  suffices : ∀ x : H, x ∈ (set.univ : set H).inner_dual_cone → x = 0,
+  suffices : ∀ x : H, x ∈ (univ : set H).inner_dual_cone → x = 0,
   { apply set_like.coe_injective,
     exact eq_singleton_iff_unique_mem.mpr ⟨λ x hx, inner_zero_right.ge, this⟩ },
-  intros x hx,
-  rw ←real_inner_self_nonpos,
-  simpa using hx (-x) (mem_univ _),
+exact λ x hx, by simpa [←real_inner_self_nonpos] using hx (-x) (mem_univ _),
 end
 
 lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
@@ -751,7 +746,7 @@ begin
   exact is_closed_Ici.preimage (by continuity),
 end
 
-lemma pointed_of_nonempty_closed_convex_cone {K : convex_cone ℝ H}
+lemma convex_cone.pointed_of_nonempty_of_is_closed (K : convex_cone ℝ H)
   (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
 begin
   obtain ⟨x, hx⟩ := ne,
@@ -770,13 +765,11 @@ begin
     (continuous_id.smul continuous_const).continuous_within_at,
 
   -- 0 belongs to the closure of the f (0, ∞)
-  have mem₀ := fc.mem_closure_image (by rw [closure_Ioi (0 : ℝ), set.mem_Ici]),
-  have f₀ : f 0 = 0 := zero_smul ℝ x,
-  rw f₀ at mem₀,
+  have mem₀ := fc.mem_closure_image (by rw [closure_Ioi (0 : ℝ), mem_Ici]),
 
   -- as 0 ∈ closure f (0, ∞) and closure f (0, ∞) ⊆ K, 0 ∈ K.
-  rw [convex_cone.pointed, ← set_like.mem_coe],
-  exact set.mem_of_subset_of_mem clf mem₀,
+  have f₀ : f 0 = 0 := zero_smul ℝ x,
+  simpa only [f₀, convex_cone.pointed, ← set_like.mem_coe] using mem_of_subset_of_mem clf mem₀,
 end
 
 section complete_space
@@ -784,7 +777,7 @@ variables [complete_space H]
 
 /-- This is a stronger version of the Hahn-Banach separation theorem for closed convex cones. This
 is also the geometric interpretation of Farkas' lemma. -/
-theorem hyperplane_separation_point_nonempty_closed_convex_cone {K : convex_cone ℝ H}
+theorem convex_cone.hyperplane_separation_of_nonempty_of_is_closed_of_nmem (K : convex_cone ℝ H)
   (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) {b : H} (disj : b ∉ K) :
   ∃ (y : H), (∀ x : H, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ) ∧ ⟪y, b⟫_ℝ < 0 :=
 begin

@@ -852,7 +852,7 @@ begin
 end
 
 lemma factorization_sub_of_lt' {p a b : ℕ} (h : a.factorization p < b.factorization p)
-  (hab : b ≤ a) (hb0 : b ≠ 0) :
+  (hab : b ≤ a) :
   (a - b).factorization p = a.factorization p :=
 begin
   rcases (exists_eq_add_of_le hab) with ⟨k, rfl⟩,
@@ -864,11 +864,11 @@ begin
 end
 
 lemma factorization_sub_min {p a b : ℕ} (h : a.factorization p ≠ b.factorization p)
-  (hab : b ≤ a) (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+  (hab : b ≤ a) (hb0 : b ≠ 0) :
   (a - b).factorization p = min (a.factorization p) (b.factorization p) :=
 begin
   rcases lt_or_lt_iff_ne.2 h with h | h,
-  { rw [factorization_sub_of_lt' h hab hb0, min_eq_left_of_lt h] },
+  { rw [factorization_sub_of_lt' h hab, min_eq_left_of_lt h] },
   { rw [factorization_sub_of_lt h hab hb0, min_eq_right_of_lt h] },
 end
 

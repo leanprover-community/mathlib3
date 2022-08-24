@@ -21,24 +21,24 @@ namespace mul_action
 
 variables (M α : Type*) [group M] [mul_action M α]
 
-example (e : enat) (h : e + 1 = 1) : e = 0 :=
+example (e : part_enat) (h : e + 1 = 1) : e = 0 :=
 begin
-  rw [← enat.add_right_cancel_iff, zero_add],
+  rw [← part_enat.add_right_cancel_iff, zero_add],
   exact h,
   rw ← nat.cast_one,
-  exact enat.coe_ne_top 1
+  exact part_enat.coe_ne_top 1
 end
 
-example (n : ℕ) (h : (n : enat) = 0) : n = 0 :=
+example (n : ℕ) (h : (n : part_enat) = 0) : n = 0 :=
 begin
   rw ← nat.cast_zero at h,
-    rw enat.coe_inj at h, exact h,
+    rw part_enat.coe_inj at h, exact h,
 end
 
-example (c : cardinal) (n : ℕ) (h : c.to_enat = n) : c = n :=
+example (c : cardinal) (n : ℕ) (h : c.to_part_enat = n) : c = n :=
 begin
   apply symm,
-  rw ← enat.coe_nat_eq_iff_eq,
+  rw ← part_enat.coe_nat_eq_iff_eq,
   exact h.symm,
 end
 
@@ -50,7 +50,7 @@ is not only pretransitive but also preprimitive. (Wielandt, §10)
 -/
 def is_multiply_preprimitive (n : ℕ) :=
   is_multiply_pretransitive M α n ∧
-  (∀ (s : set α) (hs : enat.card s + 1 = n),
+  (∀ (s : set α) (hs : part_enat.card s + 1 = n),
     is_preprimitive (fixing_subgroup M s) (sub_mul_action.of_fixing_subgroup M s))
 
 /-- Any action is 0-fold preprimitive -/
@@ -63,7 +63,7 @@ begin
     apply not.elim,
     intro h,
     simp only [nat.cast_zero, add_eq_zero_iff, not_and] at h,
-    exact ne_of_lt enat.zero_lt_one h.right.symm }
+    exact ne_of_lt part_enat.zero_lt_one h.right.symm }
 end
 
 /-- An action is preprimitive iff it is 1-preprimitive -/
@@ -82,19 +82,19 @@ begin
         (sub_mul_action.of_fixing_subgroup_empty_map_scalars_surjective M α)
         (sub_mul_action.of_fixing_subgroup_empty_map_bijective M α),
       exact h },
-    suffices : enat.card s = 0,
+    suffices : part_enat.card s = 0,
     { rw ← cardinal.mk_emptyc_iff ,
       apply symm,
-      rw [← nat.cast_zero, ← enat.coe_nat_eq_iff_eq],
-      unfold enat.card at this, rw this,
+      rw [← nat.cast_zero, ← part_enat.coe_nat_eq_iff_eq],
+      unfold part_enat.card at this, rw this,
       simp only [nat.cast_zero] },
-    rw [← enat.add_right_cancel_iff, zero_add], exact hs,
-    rw ← nat.cast_one, exact enat.coe_ne_top 1 },
+    rw [← part_enat.add_right_cancel_iff, zero_add], exact hs,
+    rw ← nat.cast_one, exact part_enat.coe_ne_top 1 },
   { rintro ⟨h1, h1'⟩,
     apply is_preprimitive_of_surjective_map
       (function.bijective.surjective (sub_mul_action.of_fixing_subgroup_empty_map_bijective M α)),
     apply h1',
-    simp only [enat.card_eq_coe_fintype_card, set.empty_card',
+    simp only [part_enat.card_eq_coe_fintype_card, set.empty_card',
       nat.cast_zero, zero_add, nat.cast_one] }
 end
 
@@ -125,30 +125,30 @@ begin
 
     apply hn.right,
 
-    suffices enat_one_ne_top : (1 : enat) ≠ ⊤,
+    suffices part_enat_one_ne_top : (1 : part_enat) ≠ ⊤,
     { simp only [nat.cast_succ],
-      rw enat.add_right_cancel_iff enat_one_ne_top,
+      rw part_enat.add_right_cancel_iff part_enat_one_ne_top,
       apply symm,
-      unfold enat.card,
-      rw enat.coe_nat_eq_iff_eq,
+      unfold part_enat.card,
+      rw part_enat.coe_nat_eq_iff_eq,
       rw [cardinal.mk_insert, cardinal.mk_image_eq  subtype.coe_injective ],
-      rw ← enat.coe_nat_eq_iff_eq,
+      rw ← part_enat.coe_nat_eq_iff_eq,
       rw ← hs, simp only [map_add],
       conv_rhs { rw ← nat.cast_one },
-      rw [cardinal.to_enat_cast, nat.cast_one,
-       enat.add_right_cancel_iff enat_one_ne_top],
+      rw [cardinal.to_part_enat_cast, nat.cast_one,
+       part_enat.add_right_cancel_iff part_enat_one_ne_top],
       refl,
       { -- a ∉ coe '' s
         rintro ⟨x, hx, hx'⟩,
         apply x.prop, simp only [set.mem_singleton_iff],
         exact hx' } },
-    { -- (1 : enat) ≠ ⊤
-      rw ← nat.cast_one, exact enat.coe_ne_top 1 } },
+    { -- (1 : part_enat) ≠ ⊤
+      rw ← nat.cast_one, exact part_enat.coe_ne_top 1 } },
   { intro hn_0,
     split,
     { rw (stabilizer.is_multiply_pretransitive M α h),
       exact (hn_0).left },
-    { suffices : ∀ (s : set α) (hs : enat.card s + 1 = n.succ) (has : a ∈ s),
+    { suffices : ∀ (s : set α) (hs : part_enat.card s + 1 = n.succ) (has : a ∈ s),
         is_preprimitive (fixing_subgroup M s) (sub_mul_action.of_fixing_subgroup M s),
       { intros s hs,
         have : ∃ (b : α), b ∈ s,
@@ -158,28 +158,28 @@ begin
           by simpa only [this, ge_iff_le, nonpos_iff_eq_zero, nat.one_ne_zero] using hn,
 
           rw ← cardinal.mk_emptyc_iff at h,
-          unfold enat.card at hs,
+          unfold part_enat.card at hs,
           rw h at hs,
 
           simp only [map_zero, nat.cast_succ] at hs,
           rw ← nat.cast_zero at hs,
-          rw [enat.add_right_cancel_iff, enat.coe_inj] at hs,
+          rw [part_enat.add_right_cancel_iff, part_enat.coe_inj] at hs,
           exact hs.symm,
-          rw ← nat.cast_one, exact enat.coe_ne_top 1 },
+          rw ← nat.cast_one, exact part_enat.coe_ne_top 1 },
         obtain ⟨b, hb⟩ := this,
         obtain ⟨g, hg : g • b = a⟩ := h_eq b a,
         apply is_preprimitive_of_surjective_map
             (sub_mul_action.of_fixing_subgroup.conj_map_bijective M (inv_smul_smul g s)).surjective,
         refine this (g • s) _ _,
         { suffices : # ↥(g • s) = # ↥s,
-          rw ← hs, unfold enat.card, rw this,
+          rw ← hs, unfold part_enat.card, rw this,
           change # ((λ x, g • x) '' s)  = _,
           rw cardinal.mk_image_eq (mul_action.injective g) },
         exact ⟨b, hb, hg⟩ },
 
       intros s hs has,
       rw [← nat.cast_one, nat.cast_add n 1] at hs,
-      rw enat.add_right_cancel_iff (enat.coe_ne_top 1) at hs,
+      rw part_enat.add_right_cancel_iff (part_enat.coe_ne_top 1) at hs,
       let t : set (sub_mul_action.of_stabilizer M a) := coe ⁻¹' s,
       have hst : s = insert a (coe '' t),
       { ext,
@@ -207,11 +207,11 @@ begin
         let hz : # ↥(insert a (coe '' t)) = _ := cardinal.mk_insert ha,
         rw [← hst, cardinal.mk_image_eq  subtype.coe_injective] at hz,
         rw ← hs,
-        unfold enat.card,
+        unfold part_enat.card,
         simp only [hz, map_add],
         apply congr_arg2 (+) rfl,
         conv_lhs { rw ← nat.cast_one },
-        rw enat.coe_nat_eq_iff_eq, rw nat.cast_one } } }
+        rw part_enat.coe_nat_eq_iff_eq, rw nat.cast_one } } }
 end
 
 /- lemma is_multiply_preprimitive_of_subgroup {H : subgroup M}
@@ -266,7 +266,7 @@ end
 /-- The fixator of a subset of cardinal d in an n-primitive action
   acts (n-d) primitively on the remaining (d ≤ n)-/
 lemma remaining_primitivity {n : ℕ} (h : is_multiply_preprimitive M α n)
-  {d : ℕ} (hdn : d ≤ n) {s : set α} (hs : enat.card s = d) :
+  {d : ℕ} (hdn : d ≤ n) {s : set α} (hs : part_enat.card s = d) :
   is_multiply_preprimitive (fixing_subgroup M s) (sub_mul_action.of_fixing_subgroup M s) (n-d) :=
 begin
   split,
@@ -279,10 +279,10 @@ begin
     apply is_preprimitive_of_surjective_map
         (sub_mul_action.of_fixing_subgroup_union.map_bijective M s t').surjective,
     apply h.right,
-    unfold enat.card at ⊢ ht hs,
+    unfold part_enat.card at ⊢ ht hs,
     rw cardinal.mk_union_of_disjoint,
     { simp only [map_add, cardinal.mk_image_eq (subtype.coe_injective)],
-      rw [add_assoc, ht, hs, ← nat.cast_add, enat.coe_inj],
+      rw [add_assoc, ht, hs, ← nat.cast_add, part_enat.coe_inj],
       exact nat.add_sub_of_le hdn },
     intro a, rintro ⟨has, ⟨b, hbt, rfl⟩⟩,
     exfalso, exact b.prop has }
@@ -290,7 +290,7 @@ end
 
 /-- n.succ-fold pretransitivity implies n-fold preprimitivity -/
 theorem is_multiply_preprimitive_of_multiply_pretransitive_succ {n : ℕ}
-  (hα : ↑n.succ ≤ enat.card α)
+  (hα : ↑n.succ ≤ part_enat.card α)
   (h : is_multiply_pretransitive M α n.succ) : is_multiply_preprimitive M α n :=
 begin
   cases nat.eq_zero_or_pos n with hn hn,
@@ -308,9 +308,9 @@ begin
   rw this,
   apply remaining_transitivity,
   { simp at hs,
-    rw ← enat.add_right_cancel_iff,
+    rw ← part_enat.add_right_cancel_iff,
     rw hs, exact add_comm 1 ↑m,
-    rw ← nat.cast_one, exact enat.coe_ne_top 1 },
+    rw ← nat.cast_one, exact part_enat.coe_ne_top 1 },
   exact h,
   simp only [hm, nat.succ_eq_one_add, ← add_assoc],
   norm_num,
@@ -318,7 +318,7 @@ end
 
 /-- An n-fold preprimitive action is m-fold preprimitive for m ≤ n -/
 lemma is_multiply_preprimitive_of_higher {n : ℕ}
-  {m : ℕ} (hmn : m ≤ n) (hα : ↑n ≤ enat.card α)
+  {m : ℕ} (hmn : m ≤ n) (hα : ↑n ≤ part_enat.card α)
   (hn : is_multiply_preprimitive M α n) :
   is_multiply_preprimitive M α m :=
 begin
@@ -332,7 +332,7 @@ begin
 
   apply hrec (nat.lt_succ_iff.mp hmn'),
   refine le_trans _ hα,
-  rw enat.coe_le_coe,
+  rw part_enat.coe_le_coe,
   exact nat.le_succ n,
 
   apply is_multiply_preprimitive_of_multiply_pretransitive_succ
@@ -351,9 +351,9 @@ begin
   intros t ht,
   let s := f ⁻¹' t,
   have hs' : f '' s = t := set.image_preimage_eq t hf.surjective,
-  have hs : enat.card s + 1 = n,
+  have hs : part_enat.card s + 1 = n,
   { rw [← ht, ← hs'],
-    rw enat.card_image_of_injective f s hf.injective },
+    rw part_enat.card_image_of_injective f s hf.injective },
   let φ' : fixing_subgroup M s → fixing_subgroup N t := λ ⟨m, hm⟩, ⟨φ m, λ ⟨y, hy⟩,
     begin
       rw [← hs', set.mem_image_iff_bex] at hy,

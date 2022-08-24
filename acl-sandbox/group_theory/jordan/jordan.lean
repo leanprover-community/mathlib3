@@ -122,7 +122,7 @@ variables {G : Type*} [group G] [mul_action G α]
 
 /-- In a 2-pretransitive action, the normal closure of stabilizers is the full group -/
 lemma normal_closure_of_stabilizer_eq_top
-  (hsn' : 2 <  enat.card α) (hG' : is_multiply_pretransitive G α 2)
+  (hsn' : 2 <  part_enat.card α) (hG' : is_multiply_pretransitive G α 2)
   {a : α} : subgroup.normal_closure (stabilizer G a).carrier = ⊤ :=
 begin
   haveI hG : is_pretransitive G α,
@@ -166,10 +166,10 @@ begin
           simpa using h },
         -- 1 ≤ 3
         simp only [one_le_bit1, zero_le'],
-        -- ↑3 ≤ enat.card α,
-        rw enat.coe_le_iff,
+        -- ↑3 ≤ part_enat.card α,
+        rw part_enat.coe_le_iff,
         intro h, rw nat.succ_le_iff, revert h,
-        rw [← enat.coe_lt_iff, nat.cast_two],
+        rw [← part_enat.coe_lt_iff, nat.cast_two],
         exact hsn',
 /-
         rw ← nontrivial_iff ,
@@ -227,9 +227,9 @@ begin
       rw inv_smul_eq_iff, exact hinvab.symm } },
 
     haveI : nontrivial α,
-    { rw [← enat.one_lt_card_iff_nontrivial],
+    { rw [← part_enat.one_lt_card_iff_nontrivial],
       refine lt_trans _ hsn',
-      rw [← nat.cast_two, ← nat.cast_one, enat.coe_lt_coe ],
+      rw [← nat.cast_two, ← nat.cast_one, part_enat.coe_lt_coe ],
       norm_num },
 
     rw maximal_stabilizer_iff_preprimitive G a,
@@ -317,7 +317,6 @@ begin
   apply_instance,
 end
 
-
 -- α = Ω, s = Δ, α \ s = Γ
 -- 1 ≤ #Δ < #Ω, 1 < #Γ < #Ω
 --
@@ -381,7 +380,7 @@ begin
   cases nat.lt_or_ge n.succ 2 with hn hn,
   { -- Initialization : n = 0
     have hn : n = 0,
-    { rw ← nat.le_zero_iff,
+    { rw ← le_zero_iff,
       apply nat.le_of_succ_le_succ ,
       apply nat.le_of_lt_succ,
       exact hn },
@@ -617,7 +616,7 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
   cases nat.lt_or_ge n.succ 2 with hn hn,
   { -- Initialization : n = 0
     have hn : n = 0,
-    { rw ← nat.le_zero_iff,
+    { rw ← le_zero_iff,
       apply nat.le_of_succ_le_succ ,
       apply nat.le_of_lt_succ,
       exact hn },
@@ -879,7 +878,7 @@ begin
         refine is_preprimitive_of_surjective_map
           (sub_mul_action.of_fixing_subgroup.conj_map_bijective G hst).surjective
           hGs },
-      { rw [enat.of_fintype, ← nat.cast_one, ← nat.cast_add, enat.coe_inj, add_left_inj] at h,
+      { rw [part_enat.of_fintype, ← nat.cast_one, ← nat.cast_add, part_enat.coe_inj, add_left_inj] at h,
         exact h } } },
   -- Induction step
   introsI α G _ _ _ hG s hsn hα hGs,

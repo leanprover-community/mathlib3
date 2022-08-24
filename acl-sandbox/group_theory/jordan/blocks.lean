@@ -700,7 +700,7 @@ begin
   cases nat.lt_or_ge k 2 with hk hk,
   rw nat.lt_succ_iff at hk,
   cases lt_or_eq_of_le hk with hk hk,
-  { rw [nat.lt_succ_iff, nat.le_zero_iff] at hk,
+  { simp only [nat.lt_one_iff] at hk,
     rw [hk, mul_zero] at h,
     apply le_antisymm (set_fintype_card_le_univ B),
     rw h, apply nat.zero_le },

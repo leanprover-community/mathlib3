@@ -212,7 +212,7 @@ begin
   apply le_trans _ h,
   change 2 ≤ _, rw [← hH, ← subgroup.normal_core_eq_ker H],
   apply nat.le_of_dvd,
-  { rw zero_lt_iff, apply subgroup.index_ne_zero_of_fintype },
+  { rw zero_lt_iff, exact subgroup.index_ne_zero_of_finite, },
   apply subgroup.index_dvd_of_le,
   exact (subgroup.normal_core_le H),
   rw hH, exact two_pos
@@ -337,7 +337,7 @@ lemma large_subgroup_of_perm_contains_alternating {G : subgroup (equiv.perm α)}
 begin
   cases nat.eq_zero_or_pos G.index,
   { exfalso,
-    exact subgroup.index_ne_zero_of_fintype h },
+    exact subgroup.index_ne_zero_of_finite h },
   cases eq_or_gt_of_le (nat.succ_le_iff.mpr h) with h h,
   { rw subgroup.index_eq_one at h, rw h, exact le_top },
   rw ← nat.succ_le_iff at h, norm_num at h,

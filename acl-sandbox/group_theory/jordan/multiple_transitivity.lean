@@ -411,7 +411,7 @@ end
 /-- An n-pretransitive action is m-pretransitive for any m ≤ n -/
 lemma is_multiply_pretransitive_of_higher  {n : ℕ}
   (hn : is_multiply_pretransitive M α n) {m : ℕ} (hmn : m ≤ n)
-  (hα : ↑n ≤ enat.card α) :
+  (hα : ↑n ≤ part_enat.card α) :
   is_multiply_pretransitive M α m :=
 begin
   unfold is_multiply_pretransitive,
@@ -640,7 +640,7 @@ end
 
 /-- The fixator of a subset of cardinal d in a k-transitive action
 acts (k-d) transitively on the remaining -/
-lemma remaining_transitivity (d : ℕ) (s : set α) (hs : enat.card s = d)
+lemma remaining_transitivity (d : ℕ) (s : set α) (hs : part_enat.card s = d)
   (n : ℕ)
   (h : is_multiply_pretransitive M α n) :
   is_multiply_pretransitive
@@ -652,7 +652,7 @@ begin
     intros x y,
     let h_eq := h.exists_smul_eq,
 
-    obtain ⟨z'⟩ := (equiv_fin_of_enat_card_eq hs),
+    obtain ⟨z'⟩ := (equiv_fin_of_part_enat_card_eq hs),
     let z := z'.symm,
     have hd' : n = (n - d) + d := (nat.sub_add_cancel hdn).symm,
 
@@ -689,7 +689,7 @@ end
 
 lemma remaining_transitivity' (s : set α) [fintype s]
   (m n : ℕ)
-  (hn : (n : enat) ≤ enat.card α)
+  (hn : (n : part_enat) ≤ part_enat.card α)
   (hmn : m + fintype.card s ≤ n)
   (h : is_multiply_pretransitive M α n) :
   is_multiply_pretransitive
@@ -699,7 +699,7 @@ begin
   let d := fintype.card s,
   rw ← nat.add_sub_cancel m d,
   apply remaining_transitivity,
-  exact enat.of_fintype ↥s,
+  exact part_enat.of_fintype ↥s,
   apply is_multiply_pretransitive_of_higher,
   exact h,
   exact hmn,
@@ -732,7 +732,7 @@ begin
     apply is_multiply_pretransitive_of_higher M α hmk,
     { rw nat.succ_le_succ_iff, apply nat.zero_le },
     { rw ← hs,
-      simp only [enat.card_eq_coe_fintype_card, fintype.card_coe, enat.coe_le_coe],
+      simp only [part_enat.card_eq_coe_fintype_card, fintype.card_coe, part_enat.coe_le_coe],
       exact finset.card_le_univ s } },
   suffices : s.nonempty,
   obtain ⟨a, has⟩ := finset.nonempty.bex this,
@@ -832,9 +832,9 @@ open_locale classical
 theorem is_preprimitive_of_two_pretransitive
   (h2 : is_multiply_pretransitive M α 2) : is_preprimitive M α :=
 begin
-  cases le_or_gt (enat.card α) 1 with hα hα,
+  cases le_or_gt (part_enat.card α) 1 with hα hα,
   -- Trivial case where subsingleton α
-  { rw enat.card_le_one_iff_subsingleton at hα,
+  { rw part_enat.card_le_one_iff_subsingleton at hα,
     resetI,
     apply is_preprimitive.on_subsingleton,/-
     haveI : is_pretransitive M α,
@@ -846,7 +846,7 @@ begin
       exact @set.subsingleton_of_subsingleton _ hα B } -/ },
   -- Important case : 2 ≤ #α
   let hα' := id hα, rw gt_iff_lt at hα',
-  rw [← cast_one, ← enat.succ_le_iff] at hα',
+  rw [← cast_one, ← part_enat.succ_le_iff] at hα',
   haveI : is_pretransitive M α,
   { rw is_pretransitive_iff_is_one_pretransitive,
     apply is_multiply_pretransitive_of_higher M α h2 _ hα',
@@ -854,15 +854,15 @@ begin
 
   apply is_preprimitive.mk,
   intros B hB,
-  cases le_or_gt (enat.card B) 1 with h h,
+  cases le_or_gt (part_enat.card B) 1 with h h,
   { -- Case : subsingleton
     apply or.intro_left,
-    rw [enat.card_le_one_iff_subsingleton, set.subsingleton_coe] at h,
+    rw [part_enat.card_le_one_iff_subsingleton, set.subsingleton_coe] at h,
     exact h },
   -- Case : top
   apply or.intro_right,
-  unfold enat.card at h,
-  rw [gt_iff_lt, ← cast_one, ← enat.succ_le_iff] at h,
+  unfold part_enat.card at h,
+  rw [gt_iff_lt, ← cast_one, ← part_enat.succ_le_iff] at h,
   obtain ⟨x : fin 2 ↪ ↥B⟩ := gimme_some h,
   rw set.top_eq_univ,
   apply set.eq_univ_of_forall,
@@ -956,7 +956,7 @@ begin
   apply equiv_perm_is_fully_pretransitive,
   rw ← fintype.one_lt_card_iff_nontrivial at h,
   exact h,
-  apply le_of_eq, rw enat.of_fintype,
+  apply le_of_eq, rw part_enat.of_fintype,
 end
 
 
@@ -1040,9 +1040,9 @@ begin
   intros x y,
 
   obtain ⟨x', hx'⟩ :=
-    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) x,
+    may_extend hn_le (le_of_eq (part_enat.of_fintype α).symm) x,
   obtain ⟨y', hy'⟩ :=
-    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) y,
+    may_extend hn_le (le_of_eq (part_enat.of_fintype α).symm) y,
   let heq := (equiv_perm_is_fully_pretransitive α).exists_smul_eq,
   obtain ⟨g, hg⟩ := heq x' y',
   cases int.units_eq_one_or g.sign with h h,
@@ -1186,9 +1186,9 @@ begin
   intros x y,
 
   obtain ⟨x', hx'⟩ :=
-    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) x,
+    may_extend hn_le (le_of_eq (part_enat.of_fintype α).symm) x,
   obtain ⟨y', hy'⟩ :=
-    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) y,
+    may_extend hn_le (le_of_eq (part_enat.of_fintype α).symm) y,
   let heq := (equiv_perm_is_fully_pretransitive α).exists_smul_eq,
   obtain ⟨g, hg⟩ := heq x' y',
   cases int.units_eq_one_or g.sign with h h,
@@ -1300,7 +1300,7 @@ begin
   apply is_multiply_pretransitive_of_higher,
   exact alternating_group_is_fully_minus_two_pretransitive α,
   apply le_trans _ (nat.sub_le_sub_right h 2), norm_num,
-  simp only [enat.of_fintype, enat.coe_le_coe, nat.sub_le]
+  simp only [part_enat.of_fintype, part_enat.coe_le_coe, nat.sub_le]
 end
 
 /- This lemma proves the trivial blocks property even if the action is not preprimitive
@@ -1389,7 +1389,7 @@ begin
   apply is_multiply_pretransitive_of_higher,
   apply alternating_group_is_fully_minus_two_pretransitive,
   apply le_trans _ (nat.sub_le_sub_right h4 2), norm_num,
-  simp only [enat.of_fintype, enat.coe_le_coe, nat.sub_le],
+  simp only [part_enat.of_fintype, part_enat.coe_le_coe, nat.sub_le],
 end
 
 /-- The alternating group on 3 letters or more acts primitively -/

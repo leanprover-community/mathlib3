@@ -29,7 +29,8 @@ open_locale topological_space
 def zero_at_filter [has_zero β] [topological_space β] (l : filter α) (f : α → β) : Prop :=
 filter.tendsto f l (𝓝 0)
 
-lemma zero_is_zero_at_filter [has_zero β] [topological_space β] (l : filter α) : zero_at_filter l (0 : α → β) := tendsto_const_nhds
+lemma zero_is_zero_at_filter [has_zero β] [topological_space β] (l : filter α) : zero_at_filter l
+  (0 : α → β) := tendsto_const_nhds
 
 /--The submodule of funtions that are `zero_at_filter`.-/
 def zero_at_filter_submodule [topological_space β] [semiring β]
@@ -47,8 +48,8 @@ def zero_at_filter_add_submonoid [topological_space β]
   zero_mem' := zero_is_zero_at_filter l, }
 
 /--A function `f: α → β` is `bounded_at_filter` if `f =O[l] 1`. -/
-def bounded_at_filter [has_norm β] [has_one (α → β)] (l : filter α)
-(f : α → β) : Prop := asymptotics.is_O l f (1 : α → β)
+def bounded_at_filter [has_norm β] [has_one (α → β)] (l : filter α) (f : α → β) : Prop :=
+asymptotics.is_O l f (1 : α → β)
 
 lemma zero_at_filter_is_bounded_at_filter [normed_field β]
 (l : filter α) (f : α → β) (hf : zero_at_filter l f) : bounded_at_filter l f :=
@@ -59,8 +60,7 @@ lemma zero_is_bounded_at_filter [normed_field β] (l : filter α) :
 (zero_at_filter_is_bounded_at_filter l _) (zero_is_zero_at_filter l)
 
 /--The submodule of funtions that are `bounded_at_filter`.-/
-def bounded_filter_submodule [normed_field β] (l : filter α) :
-  submodule β (α → β) :=
+def bounded_filter_submodule [normed_field β] (l : filter α) : submodule β (α → β) :=
 { carrier := bounded_at_filter l,
   zero_mem' := zero_is_bounded_at_filter l,
   add_mem' := by { intros f g hf hg, simpa using hf.add hg, },

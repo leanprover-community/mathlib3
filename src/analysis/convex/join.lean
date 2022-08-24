@@ -184,7 +184,7 @@ protected lemma convex.convex_join (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
 begin
   rw convex_iff_segment_subset at ⊢ ht hs,
   simp_rw mem_convex_join,
-  rintro x y ⟨xa, hxa, xb, hxb, hx⟩ ⟨ya, hya, yb, hyb, hy⟩,
+  rintro x ⟨xa, hxa, xb, hxb, hx⟩ y ⟨ya, hya, yb, hyb, hy⟩,
   refine (segment_subset_convex_join hx hy).trans _,
   have triv : ({xa, xb, ya, yb} : set E) = {xa, ya, xb, yb} := by simp only [set.insert_comm],
   rw [convex_join_segments, triv, ←convex_join_segments],

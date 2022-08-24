@@ -33,7 +33,7 @@ We express this in two equivalent ways, as
 
 noncomputable theory
 
-universes v u
+universes w v u
 
 open topological_space
 open Top
@@ -43,9 +43,10 @@ open category_theory.limits
 
 namespace Top.presheaf
 
-variables {X : Top.{v}}
-
 variables {C : Type u} [category.{v} C]
+
+section
+variables {X : Top.{w}}
 
 /--
 An alternative formulation of the sheaf condition
@@ -56,7 +57,7 @@ A presheaf is a sheaf if `F` sends the cone `(pairwise.cocone U).op` to a limit 
 (Recall `pairwise.cocone U` has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
 -/
 def is_sheaf_pairwise_intersections (F : presheaf C X) : Prop :=
-∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (pairwise.cocone U).op))
+∀ ⦃ι : Type w⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (pairwise.cocone U).op))
 
 /--
 An alternative formulation of the sheaf condition
@@ -68,14 +69,16 @@ A presheaf is a sheaf if `F` preserves the limit of `pairwise.diagram U`.
 `U i ⊓ U j` mapping into the open sets `U i`. This diagram has limit `supr U`.)
 -/
 def is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) : Prop :=
-∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (preserves_limit (pairwise.diagram U).op F)
+∀ ⦃ι : Type w⦄ (U : ι → opens X), nonempty (preserves_limit (pairwise.diagram U).op F)
+
+end
 
 /-!
 The remainder of this file shows that these conditions are equivalent
 to the usual sheaf condition.
 -/
 
-variables [has_products.{v} C]
+variables {X : Top.{v}} [has_products.{v} C]
 
 namespace sheaf_condition_pairwise_intersections
 

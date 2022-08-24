@@ -270,11 +270,11 @@ to_End_injective.add_comm_group _ (by { ext, refl }) (λ _ _, rfl) (λ _, rfl) (
 
 instance : ring (centroid_hom α) := { ..centroid_hom.semiring, ..centroid_hom.add_comm_group }
 
-lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
-lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl
+@[simp] lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
+@[simp] lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl
 
-lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - f a := rfl
-lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a := rfl
+@[simp] lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - f a := rfl
+@[simp] lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a := rfl
 
 end non_unital_non_assoc_ring
 

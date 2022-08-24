@@ -400,21 +400,21 @@ begin
 end
 
 lemma iterate_derivative_X_pow_eq_nat_cast_mul (n k : ℕ) :
-  (derivative^[k] (X ^ n : R[X])) = ↑(∏ i in finset.range k, (n - i)) * X ^ (n - k) :=
+  (derivative^[k] (X ^ n : R[X])) = ↑(nat.desc_factorial n k) * X ^ (n - k) :=
 begin
   induction k with k ih,
-  { rw [function.iterate_zero_apply, finset.range_zero, finset.prod_empty, nat.cast_one, one_mul,
-      nat.sub_zero] },
+  { rw [function.iterate_zero_apply, tsub_zero, nat.desc_factorial_zero, nat.cast_one, one_mul] },
   { rw [function.iterate_succ_apply', ih, derivative_nat_cast_mul, derivative_X_pow,
-      nat.succ_eq_add_one, finset.prod_range_succ, nat.sub_sub, nat.cast_mul, mul_assoc] },
+      nat.succ_eq_add_one, nat.desc_factorial_succ, nat.sub_sub, nat.cast_mul, ←mul_assoc,
+      mul_comm ↑(nat.desc_factorial _ _)] },
 end
 
 lemma iterate_derivative_X_pow_eq_C_mul (n k : ℕ) :
-  (derivative^[k] (X^n : R[X])) = C ↑(∏ i in finset.range k, (n - i)) * X ^ (n - k) :=
+  (derivative^[k] (X^n : R[X])) = C ↑(nat.desc_factorial n k) * X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_nat_cast_mul n k, C_eq_nat_cast]
 
 lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) :
-  (derivative^[k] (X^n : R[X])) = (↑∏ i in finset.range k, (n - i) : R) • X ^ (n - k) :=
+  (derivative^[k] (X^n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_C_mul n k, smul_eq_C_mul]
 
 lemma derivative_X_add_pow (c:R) (m:ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=

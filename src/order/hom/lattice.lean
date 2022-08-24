@@ -187,7 +187,6 @@ instance order_iso_class.to_sup_hom_class [semilattice_sup α] [semilattice_sup 
 instance order_iso_class.to_inf_hom_class [semilattice_inf α] [semilattice_inf β]
   [order_iso_class F α β] :
   inf_hom_class F α β :=
---⟨λ f a b, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_inf_iff]⟩
 { map_inf := λ f a b, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_inf_iff],
   .. show order_hom_class F α β, from infer_instance }
 

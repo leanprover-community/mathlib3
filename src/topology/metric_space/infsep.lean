@@ -403,7 +403,7 @@ lemma nontrivial.infsep_of_fintype [decidable_eq α] [fintype s] (hs : s.nontriv
   s.infsep = s.to_finset.off_diag.inf' hs.to_finset_off_diag_nonempty (uncurry dist) :=
 by rw [infsep_of_fintype, dif_pos hs]
 
-lemma finite.infsep [decidable_eq α] (hsf : s.finite) (hs : s.nontrivial) :
+lemma finite.infsep [decidable_eq α] (hsf : s.finite) :
   s.infsep = if hs : s.nontrivial
              then hsf.to_finset.off_diag.inf' (hsf.to_finset_off_diag_nonempty_of_nontrivial hs)
                   (uncurry dist)

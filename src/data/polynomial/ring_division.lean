@@ -8,6 +8,7 @@ import data.polynomial.degree.lemmas
 import data.polynomial.div
 import ring_theory.localization.fraction_ring
 import algebra.polynomial.big_operators
+import algebra.monoid_algebra.no_zero_divisors
 
 /-!
 # Theory of univariate polynomials
@@ -100,17 +101,12 @@ section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
 instance : no_zero_divisors R[X] :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
-    rw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
-    refine eq_zero_or_eq_zero_of_mul_eq_zero _,
-    rw [← leading_coeff_zero, ← leading_coeff_mul, h],
-  end }
+⟨λ a b h, by { apply_fun (to_finsupp_iso R).to_fun at h, simpa using h }⟩
 
 lemma nat_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
   nat_degree p + nat_degree q :=
-by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
-    with_bot.coe_add, ← degree_eq_nat_degree hp,
-    ← degree_eq_nat_degree hq, degree_mul]
+nat_degree_eq_of_le_of_coeff_ne_zero nat_degree_mul_le $
+  ne_of_eq_of_ne (coeff_mul_of_nat_degree_le le_rfl le_rfl) (by simp [hp, hq])
 
 lemma trailing_degree_mul : (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
 begin
@@ -118,9 +114,7 @@ begin
   { rw [hp, zero_mul, trailing_degree_zero, top_add] },
   by_cases hq : q = 0,
   { rw [hq, mul_zero, trailing_degree_zero, add_top] },
-  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
-      trailing_degree_eq_nat_trailing_degree (mul_ne_zero hp hq),
-      nat_trailing_degree_mul hp hq, with_top.coe_add],
+  exact trailing_degree_mul' (by simp [hp, hq]),
 end
 
 @[simp] lemma nat_degree_pow (p : R[X]) (n : ℕ) :

@@ -39,10 +39,12 @@ instance : has_norm ℂ := ⟨abs⟩
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 instance : normed_add_comm_group ℂ :=
-normed_add_comm_group.of_core ℂ
-{ norm_eq_zero_iff := λ z, abs_eq_zero,
-  triangle := abs_add,
-  norm_neg := abs_neg }
+add_group_norm.to_normed_add_comm_group
+{ to_fun := norm,
+  map_zero' := abs_zero,
+  neg' := abs_neg,
+  add_le' := abs_add,
+  eq_zero_of_map_eq_zero' := λ z, abs_eq_zero.1 }
 
 instance : normed_field ℂ :=
 { norm := abs,

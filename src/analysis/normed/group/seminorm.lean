@@ -117,7 +117,7 @@ instance add_group_seminorm_class.to_zero_hom_class [add_group E] [add_group_sem
 { ..‹add_group_seminorm_class F E› }
 
 section group_seminorm_class
-variables [group E] [group_seminorm_class F E] (f : F) (x y : E)
+variables [group E] [group_seminorm_class F E] (f : F) (x y z : E)
 include E
 
 @[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
@@ -140,6 +140,10 @@ by simpa only [add_comm, div_mul_cancel'] using map_mul_le_add f (x / y) y
 between."]
 lemma le_map_add_map_div : f y ≤ f x + f (x / y) :=
 by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (y / x) x
+
+@[to_additive]
+lemma le_map_div_add_map_div : f (x / z) ≤ f (x / y) + f (y / z) :=
+by simpa only [div_mul_div_cancel'] using map_mul_le_add f (x / y) (y / z)
 
 end group_seminorm_class
 

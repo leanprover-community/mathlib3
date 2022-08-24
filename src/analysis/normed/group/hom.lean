@@ -438,14 +438,23 @@ coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _
 /-- Normed group homomorphisms themselves form a seminormed group with respect to
     the operator norm. -/
 instance to_seminormed_add_comm_group : seminormed_add_comm_group (normed_add_group_hom V₁ V₂) :=
-seminormed_add_comm_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg⟩
+add_group_seminorm.to_seminormed_add_comm_group
+{ to_fun := op_norm,
+  map_zero' := op_norm_zero,
+  neg' := op_norm_neg,
+  add_le' := op_norm_add_le }
 
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/
 instance to_normed_add_comm_group {V₁ V₂ : Type*} [normed_add_comm_group V₁]
   [normed_add_comm_group V₂] :
   normed_add_comm_group (normed_add_group_hom V₁ V₂) :=
-normed_add_comm_group.of_core _ ⟨λ f, op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+add_group_norm.to_normed_add_comm_group
+{ to_fun := op_norm,
+  map_zero' := op_norm_zero,
+  neg' := op_norm_neg,
+  add_le' := op_norm_add_le,
+  eq_zero_of_map_eq_zero' := λ f, op_norm_zero_iff.1 }
 
 /-- Coercion of a `normed_add_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.
 -/

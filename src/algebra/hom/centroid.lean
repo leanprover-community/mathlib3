@@ -228,8 +228,6 @@ instance : semiring (centroid_hom α) :=
 to_End_injective.semiring _ (by { ext, refl }) (by { ext, refl }) (λ _ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl) (λ _ _, by { ext, refl }) (λ n, rfl)
 
-
-
 lemma comp_mul_comm (T S : centroid_hom α) (a b : α) : (T ∘ S) (a * b) = (S ∘ T) (a * b) :=
 by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]
 
@@ -259,6 +257,12 @@ instance has_smul_int : has_smul ℤ (centroid_hom α) :=
     map_mul_right' := λ a b,
       by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, ←smul_mul_assoc] },
     .. (n • f : α →+ α) }⟩
+
+instance : has_int_cast (centroid_hom α) :=
+{ int_cast := λ z, z • 1 }
+
+@[simp] lemma int_cast_apply (z : ℤ) (m : α):
+  (z : centroid_hom α) m = z • m := rfl
 
 instance : add_comm_group (centroid_hom α) :=
 to_End_injective.add_comm_group _ (by { ext, refl }) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)

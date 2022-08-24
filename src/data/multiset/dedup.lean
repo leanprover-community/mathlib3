@@ -66,7 +66,7 @@ quot.induction_on m $ λ l, count_dedup _ _
 
 @[simp] lemma dedup_idempotent {m : multiset α} :
   m.dedup.dedup = m.dedup :=
-quot.induction_on m $ λ l, @congr_arg _ _ _ _ coe list.dedup_idempotent
+quot.induction_on m $ λ l, @congr_arg _ _ _ _ coe dedup_idempotent
 
 @[simp] lemma dedup_bind_dedup [decidable_eq β] (m : multiset α) (f : α → multiset β) :
   (m.dedup.bind f).dedup = (m.bind f).dedup :=

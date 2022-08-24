@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.Spec
+import algebra.category.Ring.constructions
 
 /-!
 # The category of schemes
@@ -154,10 +155,15 @@ The spectrum, as a contravariant functor from commutative rings to schemes.
   map_comp' := λ R S T f g, by rw [unop_comp, Spec_map_comp] }
 
 /--
-The empty scheme, as `Spec 0`.
+The empty scheme.
 -/
-def empty : Scheme :=
-Spec_obj (CommRing.of punit)
+@[simps]
+def {u} empty : Scheme.{u} :=
+{ carrier := Top.of pempty,
+  presheaf := (category_theory.functor.const _).obj (CommRing.of punit),
+  is_sheaf := presheaf.is_sheaf_of_is_terminal _ CommRing.punit_is_terminal,
+  local_ring := λ x, pempty.elim x,
+  local_affine := λ x, pempty.elim x }
 
 instance : has_emptyc Scheme := ⟨empty⟩
 

@@ -1289,11 +1289,38 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
-by simp only [ext_iff, set.ext_iff, set.mem_to_finset, not_mem_empty, set.mem_empty_eq]
+namespace set
+variables {s : set α} [fintype s]
 
-@[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
-set.to_finset_eq_empty_iff.mpr rfl
+@[simp] lemma to_finset_eq_empty_iff : s.to_finset = ∅ ↔ s = ∅ :=
+by simp only [finset.ext_iff, ext_iff, mem_to_finset, finset.not_mem_empty, mem_empty_eq]
+
+@[simp] lemma to_finset_empty : (∅ : set α).to_finset = ∅ := to_finset_eq_empty_iff.mpr rfl
+
+@[simp] lemma to_finset_nonempty_iff  : s.to_finset.nonempty ↔ s.nonempty :=
+by rw [← not_iff_not, finset.not_nonempty_iff_eq_empty,
+       to_finset_eq_empty_iff, not_nonempty_iff_eq_empty]
+
+lemma nonempty.to_finset_nonempty (hs : s.nonempty) :
+  s.to_finset.nonempty := to_finset_nonempty_iff.mpr hs
+
+@[simp] lemma nontrivial_iff_to_finset_off_diag_nonempty [decidable_eq α]
+  : s.to_finset.off_diag.nonempty ↔ s.nontrivial :=
+by simp_rw [set.nontrivial, finset.nonempty, finset.mem_off_diag, mem_to_finset,
+            prod.exists, exists_and_distrib_left, exists_prop]
+
+lemma nontrivial.to_finset_off_diag_nonempty [decidable_eq α] (hs : s.nontrivial) :
+  s.to_finset.off_diag.nonempty := nontrivial_iff_to_finset_off_diag_nonempty.mpr hs
+
+@[simp] lemma subsingleton_iff_to_finset_off_diag_empty [decidable_eq α]
+  : s.to_finset.off_diag = ∅ ↔ s.subsingleton :=
+by rw [← not_iff_not, ← ne.def, ← nonempty_iff_ne_empty,
+       nontrivial_iff_to_finset_off_diag_nonempty, not_subsingleton_iff]
+
+lemma subsingleton.to_finset_off_diag_empty [decidable_eq α] (hs : s.subsingleton) :
+  s.to_finset.off_diag = ∅ := subsingleton_iff_to_finset_off_diag_empty.mpr hs
+
+end set
 
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
 def set_fintype [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=

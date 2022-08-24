@@ -313,25 +313,29 @@ int.div_nonneg ha.le hb.le
 are nonnegative, and strictly positive if both numerator and denominator are. -/
 @[positivity]
 meta def positivity_div : expr → tactic strictness
-| `(%%a / %%b) := do
+| `(@has_div.div int _ %%a %%b) := do
   strictness_a ← core a,
   strictness_b ← core b,
-  typ ← infer_type a,
-  match typ, strictness_a, strictness_b with
-  | `(ℤ), positive pa, positive pb :=
+  match strictness_a, strictness_b with
+  | positive pa, positive pb :=
       if a = b then -- Only attempts to prove `0 < a / a`, otherwise falls back to `0 ≤ a / b`
         positive <$> mk_app ``int_div_self_pos [pa]
       else
        nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_pos [pa, pb]
-  | `(ℤ), positive pa, nonnegative pb :=
+  | positive pa, nonnegative pb :=
     nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_nonneg [pa, pb]
-  | `(ℤ), nonnegative pa, positive pb :=
+  | nonnegative pa, positive pb :=
     nonnegative <$> mk_app ``int_div_nonneg_of_nonneg_of_pos [pa, pb]
-  | `(ℤ), nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``int.div_nonneg [pa, pb]
-  | _, positive pa, positive pb := positive <$> mk_app ``div_pos [pa, pb]
-  | _, positive pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg_of_pos_of_nonneg [pa, pb]
-  | _, nonnegative pa, positive pb := nonnegative <$> mk_app ``div_nonneg_of_nonneg_of_pos [pa, pb]
-  | _, nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``int.div_nonneg [pa, pb]
+  end
+| `(%%a / %%b) := do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``div_pos [pa, pb]
+  | positive pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb := nonnegative <$> mk_app ``div_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg [pa, pb]
   end
 | _ := failed
 

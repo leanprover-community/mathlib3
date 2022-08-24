@@ -112,7 +112,7 @@ variable (A)
 the functor `N₁ : simplicial_object A ⥤ karoubi (chain_complex A ℕ)` defined
 using `P_infty` identifies to the composition of the normalized Moore complex functor
 and the inclusion in the Karoubi envelope. -/
-def N₁_iso_to_karoubi_normalized :
+def N₁_iso_normalized_Moore_complex_comp_to_karoubi :
   N₁ ≅ (normalized_Moore_complex A ⋙ to_karoubi _) :=
 { hom :=
   { app := λ X,

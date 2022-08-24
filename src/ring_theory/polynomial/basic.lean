@@ -994,9 +994,8 @@ instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
 
 lemma no_zero_divisors_fin_zero (R : Type u) [comm_semiring R] [no_zero_divisors R] :
   no_zero_divisors (mv_polynomial (fin 0) R) :=
-((rename_equiv R fin_zero_equiv').to_ring_equiv.trans
-  (mv_polynomial.is_empty_ring_equiv R pempty)).injective.no_zero_divisors _
-    (map_zero _) (map_mul _)
+((rename_equiv R fin_zero_equiv').trans (mv_polynomial.is_empty_alg_equiv R pempty))
+  .injective.no_zero_divisors _ (map_zero _) (map_mul _)
 
 /-- Auxiliary lemma:
 Multivariate polynomials over an integral domain
@@ -1007,8 +1006,7 @@ See `mv_polynomial.no_zero_divisors` for the general case. -/
 lemma no_zero_divisors_fin (R : Type u) [comm_semiring R] [no_zero_divisors R] :
   ∀ (n : ℕ), no_zero_divisors (mv_polynomial (fin n) R)
 | 0 := no_zero_divisors_fin_zero R
-| (n+1) :=
-  begin
+| (n+1) := begin
     haveI := no_zero_divisors_fin n,
     exact (mv_polynomial.fin_succ_equiv R n).injective.no_zero_divisors _ (map_zero _) (map_mul _)
   end

@@ -46,7 +46,7 @@ We prove the following theorems:
   interpretation of the
   [Farkas lemma](https://en.wikipedia.org/wiki/Farkas%27_lemma#Geometric_interpretation).
 * `inner_dual_cone_of_inner_dual_cone_eq_self`:
-  The `inner_dual_cone` of a the `inner_dual_cone` of a nonempty, closed, convex cone is itself.
+  The `inner_dual_cone` of the `inner_dual_cone` of a nonempty, closed, convex cone is itself.
 
 ## Implementation notes
 

@@ -783,7 +783,7 @@ begin
     card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
-/-! ### Lemmas about factorizations of sums and differences -/
+/-! ### Lemmas about factorizations of sums -/
 
 lemma factorization_add {p a b : ℕ} :
   min (a.factorization p) (b.factorization p) ≤ (a + b).factorization p :=
@@ -839,6 +839,8 @@ begin
   rw [factorization_add_min h ha0 hb0, min_le_iff],
   exact or.inl (le_refl _),
 end
+
+/-! ### Lemmas about factorizations of subtractions -/
 
 lemma factorization_sub_of_lt {p a b : ℕ} (h : b.factorization p < a.factorization p)
   (hab : b ≤ a) (hb0 : b ≠ 0) :

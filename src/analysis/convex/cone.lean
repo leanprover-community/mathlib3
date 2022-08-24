@@ -37,7 +37,7 @@ We prove two extension theorems:
   for all `x`
 
 We prove the following theorems:
-* `hyperplane_separation_of_nonempty_of_is_closed_of_nmem`:
+* `convex_cone.hyperplane_separation_of_nonempty_of_is_closed_of_nmem`:
   This variant of the
   [hyperplane separation theorem](https://en.wikipedia.org/wiki/Hyperplane_separation_theorem)
   states that given a nonempty, closed, convex cone `K` in a complete, real inner product space `H`
@@ -45,7 +45,7 @@ We prove the following theorems:
   that for all points `x` in `K`, `0 ≤ ⟪x, y⟫_ℝ` and `⟪y, b⟫_ℝ < 0`. This is also a geometric
   interpretation of the
   [Farkas lemma](https://en.wikipedia.org/wiki/Farkas%27_lemma#Geometric_interpretation).
-* `inner_dual_cone_of_inner_dual_cone_eq_self`:
+* `convex_cone.inner_dual_cone_of_inner_dual_cone_eq_self`:
   The `inner_dual_cone` of the `inner_dual_cone` of a nonempty, closed, convex cone is itself.
 
 ## Implementation notes

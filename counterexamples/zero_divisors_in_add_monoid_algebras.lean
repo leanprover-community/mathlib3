@@ -12,7 +12,7 @@ This example addresses a comment in `data.finsupp.lex` to the effect that the pr
 is monotone on `α →₀ N` uses that it is *strictly* monotone on `N`.
 
 The specific statement is about `finsupp.lex.covariant_class_le_left` and its analogue
-`finsupp.lex.covariant_class_lt_right`.  We do not need two separate counterexamples, since the
+`finsupp.lex.covariant_class_le_right`.  We do not need two separate counterexamples, since the
 operation is commutative.
 
 The example is very simple.  Let `F = {0, 1}` with order determined by `0 < 1` and absorbing

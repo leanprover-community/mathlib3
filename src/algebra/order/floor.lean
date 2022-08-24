@@ -37,8 +37,6 @@ for `nnnorm`.
 
 ## TODO
 
-Some `nat.floor` and `nat.ceil` lemmas require `linear_ordered_ring α`. Is `has_ordered_sub` enough?
-
 `linear_ordered_ring`/`linear_ordered_semiring` can be relaxed to `order_ring`/`order_semiring` in
 many lemmas.
 
@@ -48,7 +46,7 @@ rounding, floor, ceil
 -/
 
 open set
-variables {α : Type*}
+variables {F α β : Type*}
 
 /-! ### Floor semiring -/
 
@@ -736,6 +734,62 @@ begin
 end
 
 end round
+
+namespace nat
+variables [linear_ordered_semiring α] [linear_ordered_semiring β] [floor_semiring α]
+  [floor_semiring β] [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma floor_congr (h : ∀ n : ℕ, (n : α) ≤ a ↔ (n : β) ≤ b) : ⌊a⌋₊ = ⌊b⌋₊ :=
+begin
+  have h₀ : 0 ≤ a ↔ 0 ≤ b := by simpa only [cast_zero] using h 0,
+  obtain ha | ha := lt_or_le a 0,
+  { rw [floor_of_nonpos ha.le, floor_of_nonpos (le_of_not_le $ h₀.not.mp ha.not_le)] },
+  exact (le_floor $ (h _).1 $ floor_le ha).antisymm (le_floor $ (h _).2 $ floor_le $ h₀.1 ha),
+end
+
+lemma ceil_congr (h : ∀ n : ℕ, a ≤ n ↔ b ≤ n) : ⌈a⌉₊ = ⌈b⌉₊ :=
+(ceil_le.2 $ (h _).2 $ le_ceil _).antisymm $ ceil_le.2 $ (h _).1 $ le_ceil _
+
+lemma map_floor (f : F) (hf : strict_mono f) (a : α) : ⌊f a⌋₊ = ⌊a⌋₊ :=
+floor_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]
+
+lemma map_ceil (f : F) (hf : strict_mono f) (a : α) : ⌈f a⌉₊ = ⌈a⌉₊ :=
+ceil_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]
+
+end nat
+
+namespace int
+variables [linear_ordered_ring α] [linear_ordered_ring β] [floor_ring α] [floor_ring β]
+  [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma floor_congr (h : ∀ n : ℤ, (n : α) ≤ a ↔ (n : β) ≤ b) : ⌊a⌋ = ⌊b⌋ :=
+(le_floor.2 $ (h _).1 $ floor_le _).antisymm $ le_floor.2 $ (h _).2 $ floor_le _
+
+lemma ceil_congr (h : ∀ n : ℤ, a ≤ n ↔ b ≤ n) : ⌈a⌉ = ⌈b⌉ :=
+(ceil_le.2 $ (h _).2 $ le_ceil _).antisymm $ ceil_le.2 $ (h _).1 $ le_ceil _
+
+lemma map_floor (f : F) (hf : strict_mono f) (a : α) : ⌊f a⌋ = ⌊a⌋ :=
+floor_congr $ λ n, by rw [←map_int_cast f, hf.le_iff_le]
+
+lemma map_ceil (f : F) (hf : strict_mono f) (a : α) : ⌈f a⌉ = ⌈a⌉ :=
+ceil_congr $ λ n, by rw [←map_int_cast f, hf.le_iff_le]
+
+lemma map_fract (f : F) (hf : strict_mono f) (a : α) : fract (f a) = f (fract a) :=
+by simp_rw [fract, map_sub, map_int_cast, map_floor _ hf]
+
+end int
+
+namespace int
+variables [linear_ordered_field α] [linear_ordered_field β] [floor_ring α] [floor_ring β]
+  [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma map_round (f : F) (hf : strict_mono f) (a : α) : round (f a) = round a :=
+by simp_rw [round, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0, map_one]
+
+end int
 
 variables {α} [linear_ordered_ring α] [floor_ring α]
 

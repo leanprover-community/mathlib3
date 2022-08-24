@@ -33,7 +33,7 @@ lemma zero_is_zero_at_filter [has_zero β] [topological_space β] (l : filter α
 
 /--The submodule of funtions that are `zero_at_filter`.-/
 def zero_at_filter_submodule [topological_space β] [semiring β]
-[has_continuous_add β] [has_continuous_mul β] (l : filter α) : submodule β (α → β) :=
+  [has_continuous_add β] [has_continuous_mul β] (l : filter α) : submodule β (α → β) :=
 { carrier := zero_at_filter l,
   zero_mem' := zero_is_zero_at_filter l,
   add_mem' := by { intros a b ha hb, simpa using ha.add hb, },

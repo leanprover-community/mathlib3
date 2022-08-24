@@ -1011,9 +1011,10 @@ Multivariate polynomials in finitely many variables over an integral domain form
 This fact is proven by transport of structure from the `mv_polynomial.no_zero_divisors_fin`,
 and then used to prove the general case without finiteness hypotheses.
 See `mv_polynomial.no_zero_divisors` for the general case. -/
-lemma no_zero_divisors_fintype (R : Type u) (σ : Type v) [comm_semiring R] [fintype σ]
+lemma no_zero_divisors_of_finite (R : Type u) (σ : Type v) [comm_semiring R] [finite σ]
   [no_zero_divisors R] : no_zero_divisors (mv_polynomial σ R) :=
 begin
+  casesI nonempty_fintype σ,
   haveI := no_zero_divisors_fin R (fintype.card σ),
   exact (rename_equiv R (fintype.equiv_fin σ)).injective.no_zero_divisors _ (map_zero _) (map_mul _)
 end
@@ -1027,7 +1028,7 @@ instance {R : Type u} [comm_semiring R] [no_zero_divisors R] {σ : Type v} :
     rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) p *
     rename (subtype.map id (finset.subset_union_right s t) : {x // x ∈ t} → {x // x ∈ s ∪ t}) q = 0,
   { apply rename_injective _ subtype.val_injective, simpa using h },
-  letI := mv_polynomial.no_zero_divisors_fintype R {x // x ∈ (s ∪ t)},
+  letI := mv_polynomial.no_zero_divisors_of_finite R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
   cases this; [left, right],
   all_goals { simpa using congr_arg (rename subtype.val) this }

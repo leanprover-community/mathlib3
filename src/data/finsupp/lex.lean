@@ -20,8 +20,11 @@ namespace finsupp
 section N_has_zero
 variables [has_zero N]
 
-/-- The lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
-  and `N` is ordered by `s`. -/
+/-- `finsupp.lex r s` is the lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
+and `N` is ordered by `s`.
+
+The type synonym `_root_.lex (α →₀ N)` has an order given by `finsupp.lex (<) (<)`.
+-/
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
 pi.lex r (λ _, s) x y
 

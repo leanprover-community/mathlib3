@@ -634,8 +634,13 @@ insert_eq_of_mem $ mem_singleton_self _
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
-theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
-insert.comm a b ∅
+@[simp, norm_cast] lemma coe_pair [decidable_eq α] {a b : α} :
+  (({a, b} : finset α) : set α) = {a, b} := by { ext, simp }
+
+@[simp, norm_cast] lemma coe_eq_pair {s : finset α} {a b : α} :
+  (s : set α) = {a, b} ↔ s = {a, b} := by rw [←finset.coe_pair, finset.coe_inj]
+
+theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} := insert.comm a b ∅
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]

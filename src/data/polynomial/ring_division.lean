@@ -101,7 +101,7 @@ section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
 instance : no_zero_divisors R[X] :=
-⟨λ a b h, by { apply_fun (to_finsupp_iso R).to_fun at h, simpa using h }⟩
+⟨λ a b h, by { apply_fun to_finsupp_iso R at h, simpa using h }⟩
 
 lemma nat_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
   nat_degree p + nat_degree q :=

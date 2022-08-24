@@ -51,11 +51,14 @@ attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 /-- `seminorm_class F 𝕜 E` states that `F` is a type of seminorms on the `𝕜`-module E.
 
 You should extend this class when you extend `seminorm`. -/
-class seminorm_class (F 𝕜 E : Type*) [semi_normed_ring 𝕜] [add_group E] [has_smul 𝕜 E]
-  extends add_group_seminorm_class F E :=
+class seminorm_class (F : Type*) (𝕜 E : out_param $ Type*) [semi_normed_ring 𝕜] [add_group E]
+  [has_smul 𝕜 E] extends add_group_seminorm_class F E :=
 (map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ∥a∥ * f x)
 
 export seminorm_class (map_smul_eq_mul)
+
+-- `𝕜` is an `out_param`, so this is a false positive.
+attribute [nolint dangerous_instance] seminorm_class.to_add_group_seminorm_class
 
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
 `semi_norm_ring 𝕜`. -/

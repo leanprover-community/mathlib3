@@ -949,7 +949,7 @@ begin
   induction m with m hm,
   { simp },
   erw [prod_range_succ, hm],
-  simp [hu]
+  simp [hu, @zero_le' ℕ],
 end
 
 @[to_additive]

@@ -401,7 +401,7 @@ end
 
 /-! ### Positive sequences with small sums on countable types -/
 
-/-- For any positive `ε`, define on a countable type a positive sequence with sum less than `ε` -/
+/-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
 begin
@@ -441,11 +441,13 @@ namespace nnreal
 
 theorem exists_pos_sum_of_countable {ε : ℝ≥0} (hε : ε ≠ 0) (ι) [countable ι] :
   ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
-by casesI nonempty_encodable ι; exact let ⟨a, a0, aε⟩ := exists_between (pos_iff_ne_zero.2 hε) in
-let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
-⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.1 $ hε' i,
-  ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
-   lt_of_le_of_lt (nnreal.coe_le_coe.1 hcε) aε ⟩
+begin
+  casesI nonempty_encodable ι,
+  obtain ⟨a, a0, aε⟩ := exists_between (pos_iff_ne_zero.2 hε),
+  obtain ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι,
+  exact ⟨λ i, ⟨ε' i, (hε' i).le⟩, λ i, nnreal.coe_lt_coe.1 $ hε' i, ⟨c, has_sum_le (λ i, (hε' i).le)
+    has_sum_zero hc⟩, nnreal.has_sum_coe.1 hc, aε.trans_le' $ nnreal.coe_le_coe.1 hcε⟩,
+end
 
 end nnreal
 

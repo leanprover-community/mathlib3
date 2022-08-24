@@ -50,8 +50,7 @@ by { rw coe_eq_pi, exact measurable_set.univ_pi (λ i, measurable_set_Ioc) }
 
 lemma measurable_set_Icc : measurable_set I.Icc := measurable_set_Icc
 
-lemma measurable_set_Ioo : measurable_set I.Ioo :=
-(measurable_set_pi countable_univ).2 $ or.inl $ λ i hi, measurable_set_Ioo
+lemma measurable_set_Ioo : measurable_set I.Ioo := measurable_set.univ_pi $ λ i, measurable_set_Ioo
 
 end countable
 

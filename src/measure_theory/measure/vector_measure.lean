@@ -130,7 +130,7 @@ begin
   casesI nonempty_encodable β,
   set g := λ i : ℕ, ⋃ (b : β) (H : b ∈ encodable.decode₂ β i), f b with hg,
   have hg₁ : ∀ i, measurable_set (g i),
-  { exact λ _, measurable_set.Union (λ b, measurable_set.Union_Prop $ λ _, hf₁ b) },
+  { exact λ _, measurable_set.Union (λ b, measurable_set.Union $ λ _, hf₁ b) },
   have hg₂ : pairwise (disjoint on g),
   { exact encodable.Union_decode₂_disjoint_on hf₂ },
   have := v.of_disjoint_Union_nat hg₁ hg₂,

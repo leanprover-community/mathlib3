@@ -130,10 +130,6 @@ lemma set.finite.measurable_set_sUnion {s : set (set α)} (hs : s.finite)
   measurable_set (⋃₀ s) :=
 measurable_set.sUnion hs.countable h
 
-lemma measurable_set.Union_Prop {p : Prop} {f : p → set α} (hf : ∀ b, measurable_set (f b)) :
-  measurable_set (⋃ b, f b) :=
-by { by_cases p; simp [h, hf, measurable_set.empty] }
-
 lemma measurable_set.Inter [countable ι] {f : ι → set α} (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋂ b, f b) :=
 measurable_set.compl_iff.1 $
@@ -159,10 +155,6 @@ by { rw sInter_eq_bInter, exact measurable_set.bInter hs h }
 lemma set.finite.measurable_set_sInter {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, measurable_set t) : measurable_set (⋂₀ s) :=
 measurable_set.sInter hs.countable h
-
-lemma measurable_set.Inter_Prop {p : Prop} {f : p → set α} (hf : ∀ b, measurable_set (f b)) :
-  measurable_set (⋂ b, f b) :=
-by { by_cases p; simp [h, hf, measurable_set.univ] }
 
 @[simp] lemma measurable_set.union {s₁ s₂ : set α} (h₁ : measurable_set s₁)
   (h₂ : measurable_set s₂) :

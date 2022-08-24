@@ -727,7 +727,7 @@ lemma add
 begin
   intro i,
   rw (_ : {ω | (τ + π) ω ≤ i} = ⋃ k ≤ i, {ω | π ω = k} ∩ {ω | τ ω + k ≤ i}),
-  { exact measurable_set.Union (λ k, measurable_set.Union_Prop
+  { exact measurable_set.Union (λ k, measurable_set.Union
       (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
   ext ω,
   simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],

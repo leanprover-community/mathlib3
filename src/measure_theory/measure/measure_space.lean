@@ -2537,7 +2537,7 @@ monotone_accumulate
 
 lemma measurable_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
   measurable_set (spanning_sets μ i) :=
-measurable_set.Union $ λ j, measurable_set.Union_Prop $
+measurable_set.Union $ λ j, measurable_set.Union $
   λ hij, μ.to_finite_spanning_sets_in.set_mem j
 
 lemma measure_spanning_sets_lt_top (μ : measure α) [sigma_finite μ] (i : ℕ) :

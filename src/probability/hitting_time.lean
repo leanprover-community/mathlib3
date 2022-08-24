@@ -194,7 +194,7 @@ begin
       rw [set.mem_set_of_eq, hitting_le_iff_of_lt _ hi],
       simp only [set.mem_Icc, exists_prop, set.mem_Union, set.mem_preimage], },
     rw h_set_eq_Union,
-    exact measurable_set.Union (λ j, measurable_set.Union_Prop $
+    exact measurable_set.Union (λ j, measurable_set.Union $
       λ hj, f.mono hj.2 _ ((hu j).measurable hs)) }
 end
 
@@ -232,7 +232,7 @@ begin
     rintro m hm rfl,
     exact lt_of_lt_of_le hm (le_hitting (hτbdd _) _) },
   rw [h₁, h₂, set.union_empty],
-  exact measurable_set.Union (λ i, measurable_set.Union_Prop
+  exact measurable_set.Union (λ i, measurable_set.Union
     (λ hi, (f.mono hi _ (hτ.measurable_set_eq i)).inter (hitting_is_stopping_time hf hs n))),
 end
 

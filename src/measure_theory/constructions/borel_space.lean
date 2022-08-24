@@ -530,7 +530,7 @@ begin
       { rintro ⟨l, -, u, -, -, hua, -, hyu⟩,
         exact hyu.trans_le hua } },
     { refine measurable_set.bUnion hc (λ a ha, measurable_set.bUnion hc $ λ b hb, _),
-      refine measurable_set.Union_Prop (λ hab, measurable_set.Union_Prop $ λ hb', _),
+      refine measurable_set.Union (λ hab, measurable_set.Union $ λ hb', _),
       exact generate_measurable.basic _ ⟨a, hts ha, b, hts hb, hab, mem_singleton _⟩ } },
   { simp only [not_forall, not_nonempty_iff_eq_empty] at ha,
     replace ha : a ∈ s := hIoo ha.some a ha.some_spec.fst ha.some_spec.snd,
@@ -540,7 +540,7 @@ begin
         mem_Ici, mem_Iio],
       intros x hx, rcases htd.exists_le' (λ b hb, htb _ hb (hbot b hb)) x with ⟨z, hzt, hzx⟩,
       exact ⟨z, hzt, hzx.trans_lt hx, hzx⟩ },
-    { refine measurable_set.bUnion hc (λ x hx, measurable_set.Union_Prop $ λ hlt, _),
+    { refine measurable_set.bUnion hc (λ x hx, measurable_set.Union $ λ hlt, _),
       exact generate_measurable.basic _ ⟨x, hts hx, a, ha, hlt, mem_singleton _⟩ } }
 end
 
@@ -996,7 +996,7 @@ begin
   exact measurable_set.Union (λ i, hf i (is_open_lt' _).measurable_set)
 end
 
-private lemma ae_measurable.is_lub_of_nonempty {ι : Type*} (hι : nonempty ι)
+private lemma ae_measurable.is_lub_of_nonempty {ι} (hι : nonempty ι)
   {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
@@ -1023,7 +1023,7 @@ begin
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
-lemma ae_measurable.is_lub {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
+lemma ae_measurable.is_lub {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1053,7 +1053,7 @@ begin
   exact measurable_set.Union (λ i, hf i (is_open_gt' _).measurable_set)
 end
 
-private lemma ae_measurable.is_glb_of_nonempty {ι : Type*} (hι : nonempty ι)
+private lemma ae_measurable.is_glb_of_nonempty {ι} (hι : nonempty ι)
   {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
@@ -1080,7 +1080,7 @@ begin
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
-lemma ae_measurable.is_glb {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
+lemma ae_measurable.is_glb {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
@@ -1196,7 +1196,7 @@ lemma measurable_supr {ι} [countable ι] {f : ι → δ → α} (hf : ∀ i, me
 measurable.is_lub hf $ λ b, is_lub_supr
 
 @[measurability]
-lemma ae_measurable_supr {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α}
+lemma ae_measurable_supr {ι} {μ : measure δ} [countable ι] {f : ι → δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) :
   ae_measurable (λ b, ⨆ i, f i b) μ :=
 ae_measurable.is_lub hf $ (ae_of_all μ (λ b, is_lub_supr))
@@ -1207,7 +1207,7 @@ lemma measurable_infi {ι} [countable ι] {f : ι → δ → α} (hf : ∀ i, me
 measurable.is_glb hf $ λ b, is_glb_infi
 
 @[measurability]
-lemma ae_measurable_infi {ι : Type*} {μ : measure δ} [countable ι] {f : ι → δ → α}
+lemma ae_measurable_infi {ι} {μ : measure δ} [countable ι] {f : ι → δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) :
   ae_measurable (λ b, ⨅ i, f i b) μ :=
 ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))
@@ -1944,7 +1944,7 @@ lemma measurable_of_tendsto_metrizable {f : ℕ → α → β} {g : α → β}
   measurable g :=
 measurable_of_tendsto_metrizable' at_top hf lim
 
-lemma ae_measurable_of_tendsto_metrizable_ae {ι : Type*}
+lemma ae_measurable_of_tendsto_metrizable_ae {ι}
   {μ : measure α} {f : ι → α → β} {g : α → β}
   (u : filter ι) [hu : ne_bot u] [is_countably_generated u]
   (hf : ∀ n, ae_measurable (f n) μ) (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
@@ -1961,7 +1961,7 @@ begin
   { simp_rw [ae_seq, ae_seq_lim],
     split_ifs with hx,
     { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set h'f hx,
-      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ h'f x hx, },
+      exact @ae_seq.fun_prop_of_mem_ae_seq_set _ α β _ _ _ _ _ h'f x hx, },
     { exact tendsto_const_nhds } },
   { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f (v 0) x⟩ : nonempty β).some)
       (ae_seq_set h'f p) (ae_seq.measure_compl_ae_seq_set_eq_zero h'f hp)).symm },

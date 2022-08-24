@@ -475,11 +475,11 @@ begin
     { assume b,
       refine is_closed_closure.measurable_set.inter _,
       refine measurable_set.Inter (λ s, _),
-      exact measurable_set.Inter_Prop (λ hs, (q_meas _).diff (q_meas _)) },
+      exact measurable_set.Inter (λ hs, (q_meas _).diff (q_meas _)) },
     have F_meas : ∀ n, measurable_set (F n),
     { assume n,
       refine measurable_set.Union (λ s, _),
-      exact measurable_set.Union_Prop (λ hs, E_meas _) },
+      exact measurable_set.Union (λ hs, E_meas _) },
     rw this,
     exact measurable_set.Inter (λ n, F_meas n) },
   -- we check both inclusions.

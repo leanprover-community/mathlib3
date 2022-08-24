@@ -109,8 +109,9 @@ protected lemma congr (hs : null_measurable_set s μ) (h : s =ᵐ[μ] t) :
   null_measurable_set t μ :=
 let ⟨s', hm, hs'⟩ := hs in ⟨s', hm, h.symm.trans hs'⟩
 
-protected lemma Union [countable ι] {s : ι → set α}
-  (h : ∀ i, null_measurable_set (s i) μ) : null_measurable_set (⋃ i, s i) μ :=
+protected lemma Union {ι : Sort*} [countable ι] {s : ι → set α}
+  (h : ∀ i, null_measurable_set (s i) μ) :
+  null_measurable_set (⋃ i, s i) μ :=
 measurable_set.Union h
 
 protected lemma bUnion_decode₂ [encodable ι] ⦃f : ι → set α⦄ (h : ∀ i, null_measurable_set (f i) μ)
@@ -125,11 +126,8 @@ protected lemma sUnion {s : set (set α)} (hs : s.countable) (h : ∀ t ∈ s, n
   null_measurable_set (⋃₀ s) μ :=
 by { rw sUnion_eq_bUnion, exact measurable_set.bUnion hs h }
 
-lemma Union_Prop {p : Prop} {f : p → set α} (hf : ∀ i, null_measurable_set (f i) μ) :
-  null_measurable_set (⋃ i, f i) μ :=
-measurable_set.Union_Prop hf
-
-protected lemma Inter [countable ι] {f : ι → set α} (h : ∀ i, null_measurable_set (f i) μ) :
+protected lemma Inter {ι : Sort*} [countable ι] {f : ι → set α}
+  (h : ∀ i, null_measurable_set (f i) μ) :
   null_measurable_set (⋂ i, f i) μ :=
 measurable_set.Inter h
 
@@ -140,10 +138,6 @@ measurable_set.bInter hs h
 protected lemma sInter {s : set (set α)} (hs : s.countable) (h : ∀ t ∈ s, null_measurable_set t μ) :
   null_measurable_set (⋂₀ s) μ :=
 measurable_set.sInter hs h
-
-lemma Inter_Prop {p : Prop} {f : p → set α} (hf : ∀ b, null_measurable_set (f b) μ) :
-  null_measurable_set (⋂ b, f b) μ :=
-measurable_set.Inter_Prop hf
 
 @[simp] protected lemma union (hs : null_measurable_set s μ) (ht : null_measurable_set t μ) :
   null_measurable_set (s ∪ t) μ :=

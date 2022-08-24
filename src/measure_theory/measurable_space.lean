@@ -292,7 +292,7 @@ lemma measurable_to_countable [measurable_space α] [countable α] [measurable_s
 begin
   assume s hs,
   rw [← bUnion_preimage_singleton],
-  refine measurable_set.Union (λ y, measurable_set.Union_Prop $ λ hy, _),
+  refine measurable_set.Union (λ y, measurable_set.Union $ λ hy, _),
   by_cases hyf : y ∈ range f,
   { rcases hyf with ⟨y, rfl⟩,
     apply h },
@@ -323,7 +323,7 @@ begin
   refine measurable_find_greatest' (λ k hk, _),
   simp only [nat.find_greatest_eq_iff, set_of_and, set_of_forall, ← compl_set_of],
   repeat { apply_rules [measurable_set.inter, measurable_set.const, measurable_set.Inter,
-    measurable_set.Inter_Prop, measurable_set.compl, hN]; try { intros } }
+    measurable_set.Inter, measurable_set.compl, hN]; try { intros } }
 end
 
 lemma measurable_find {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
@@ -697,7 +697,6 @@ begin
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
 
-section
 variable (π)
 
 @[measurability]
@@ -725,16 +724,6 @@ begin
   { apply measurable_pi_iff.2 (λ j, _),
     simp only [pi_equiv_pi_subtype_prod_apply, measurable_pi_apply] }
 end
-
-end
-
-lemma measurable_set.pi_countable [countable δ] {s : set δ} {t : Π i, set (π i)}
-  (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
-measurable_set.pi (to_countable _) ht
-
-lemma measurable_set.univ_pi_countable [countable δ] {t : Π i, set (π i)}
-  (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi_countable (λ i _, ht i)
 
 end pi
 

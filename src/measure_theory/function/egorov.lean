@@ -67,7 +67,7 @@ end
 lemma not_convergent_seq_measurable_set [preorder ι] [countable ι]
   (hf : ∀ n, strongly_measurable[m] (f n)) (hg : strongly_measurable g) :
   measurable_set (not_convergent_seq f g n j) :=
-measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
+measurable_set.Union (λ k, measurable_set.Union $ λ hk,
   strongly_measurable.measurable_set_lt strongly_measurable_const $ (hf k).dist hg)
 
 lemma measure_not_convergent_seq_tendsto_zero [semilattice_sup ι] [countable ι]

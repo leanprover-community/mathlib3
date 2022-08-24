@@ -909,6 +909,21 @@ ordered_semiring.to_char_zero
 
 end linear_ordered_semiring
 
+section mono
+variables [linear_ordered_semiring α] {a : α}
+
+local attribute [instance] linear_ordered_semiring.decidable_lt
+
+lemma cmp_mul_pos_left (ha : 0 < a) (b c : α) :
+  cmp (a * b) (a * c) = cmp b c :=
+(strict_mono_mul_left_of_pos ha).cmp_map_eq b c
+
+lemma cmp_mul_pos_right (ha : 0 < a) (b c : α) :
+  cmp (b * a) (c * a) = cmp b c :=
+(strict_mono_mul_right_of_pos ha).cmp_map_eq b c
+
+end mono
+
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c : α}
 
@@ -1285,6 +1300,12 @@ lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 
 @[simp] lemma mul_lt_mul_right_of_neg {a b c : α} (h : c < 0) : a * c < b * c ↔ b < a :=
 (strict_anti_mul_right h).lt_iff_lt
+
+lemma cmp_mul_neg_left {a : α} (ha : a < 0) (b c : α) : cmp (a * b) (a * c) = cmp c b :=
+(strict_anti_mul_left ha).cmp_map_eq b c
+
+lemma cmp_mul_neg_right {a : α} (ha : a < 0) (b c : α) : cmp (b * a) (c * a) = cmp c b :=
+(strict_anti_mul_right ha).cmp_map_eq b c
 
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)

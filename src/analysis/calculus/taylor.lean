@@ -203,7 +203,7 @@ begin
     exact (monomial_has_deriv_aux y x).has_deriv_within_at.const_mul _,
   end,
   convert this.smul hf'',
-  field_simp[nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k],
+  field_simp [nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k],
   rw neg_div,
   rw neg_smul,
   rw sub_eq_add_neg,
@@ -356,7 +356,7 @@ begin
   hf.differentiable_on_iterated_deriv_within (with_top.coe_lt_coe.mpr n.lt_succ_self)
     (unique_diff_on_Icc h),
   -- natural numbers are non-negative
-  have fac_nonneg : 0 ≤ (n.factorial : ℝ) := (nat.factorial n).cast_nonneg,
+  have fac_nonneg : 0 ≤ (n.factorial : ℝ) := n.factorial.cast_nonneg,
 
   -- We estimate by the supremum of the norm of the iterated derivative
   let g : ℝ → ℝ := λ y, ∥iterated_deriv_within (n + 1) f (set.Icc a b) y∥,
@@ -383,12 +383,13 @@ begin
     rw [norm_smul, real.norm_eq_abs],
     -- Estimate the iterated derivative by `Sup (g '' set.Icc a b)`
     refine mul_le_mul _ (le_Sup_Icc y (set.Ico_subset_Icc_self hy)) (by positivity) (by positivity),
-    -- The rest is a trivial calculation using that |x - y| ≤ |b - a|:
+    -- The rest is a trivial calculation
     rw [abs_mul, abs_pow, abs_inv, nat.abs_cast],
-    refine mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr fac_nonneg),
-    refine pow_le_pow_of_le_left (by positivity) _ _,
-    -- We use linarith to prove |x - y| ≤ |b - a|:
-    exact abs_le_abs (by linarith [hx.2, hy.1]) (by linarith [hx.1, hy.2]),
+    mono*,
+    any_goals { positivity },
+    { exact hx.2 },
+    { exact hy.1 },
+    { linarith [hx.1, hy.2] },
   end,
   -- Apply the mean value theorem for vector valued functions:
   have := norm_image_sub_le_of_norm_deriv_le_segment'
@@ -396,14 +397,17 @@ begin
   simp only [taylor_within_eval_self] at this,
   refine le_trans this _,
   -- The rest is a trivial calculation
-  rw abs_of_pos (sub_pos.mpr h),
+  -- We need to help positivity with a few hypotheses
+  have hxa : 0 ≤ x - a := sub_nonneg.mpr hx.1,
+  have hba : 0 < b - a := sub_pos.mpr h,
+  rw abs_of_pos hba,
   rw pow_succ,
   field_simp [nat.factorial_ne_zero n],
-  refine div_le_div_of_le_of_nonneg _ fac_nonneg,
+  mono,
   nth_rewrite 1 mul_comm,
   rw mul_assoc,
-  refine mul_le_mul_of_nonneg_left _ hSup,
   nth_rewrite 1 mul_comm,
-  refine mul_le_mul_of_nonneg_left _ (pow_nonneg (sub_pos.mpr h).le _),
-  exact sub_le_sub_right hx.2 _,
+  mono* with 0 ≤ (b - a) ^ n,
+  any_goals { positivity },
+  exact hx.2,
 end

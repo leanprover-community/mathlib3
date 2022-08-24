@@ -55,7 +55,8 @@ While `convex 𝕜` is a predicate on sets, `convex_cone 𝕜 E` is a bundled co
 ## References
 
 * https://en.wikipedia.org/wiki/Convex_cone
-* https://ti.inf.ethz.ch/ew/lehre/ApproxSDP09/notes/conelp.pdf
+* Notes from a Theory of Computation course at ETH Zurich by Prof. Emo Welzl and Prof. Bernd
+  Gärtner: https://ti.inf.ethz.ch/ew/lehre/ApproxSDP09/notes/conelp.pdf
 * Stephen P. Boyd and Lieven Vandenberghe. Convex Optimization. Cambridge University Press.
   ISBN 978-0-521-83378-3. available at https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf
 -/

@@ -296,19 +296,21 @@ end subset
 section to_list
 
 /-- Produces a list of the elements in the multiset using choice. -/
-@[reducible] noncomputable def to_list {α : Type*} (s : multiset α) :=
-classical.some (quotient.exists_rep s)
-
-@[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
-(multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
+noncomputable def to_list (s : multiset α) := s.out'
 
 @[simp, norm_cast]
-lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
-classical.some_spec (quotient.exists_rep _)
+lemma coe_to_list (s : multiset α) : (s.to_list : multiset α) = s := s.out_eq'
 
-@[simp]
-lemma mem_to_list {α : Type*} (a : α) (s : multiset α) : a ∈ s.to_list ↔ a ∈ s :=
-by rw [←multiset.mem_coe, multiset.coe_to_list]
+@[simp] lemma to_list_eq_nil {s : multiset α} : s.to_list = [] ↔ s = 0 :=
+by rw [← coe_eq_zero, coe_to_list]
+
+@[simp] lemma empty_to_list {s : multiset α} : s.to_list.empty ↔ s = 0 :=
+empty_iff_eq_nil.trans to_list_eq_nil
+
+@[simp] lemma to_list_zero : (multiset.to_list 0 : list α) = [] := to_list_eq_nil.mpr rfl
+
+@[simp] lemma mem_to_list {a : α} {s : multiset α} : a ∈ s.to_list ↔ a ∈ s :=
+by rw [← mem_coe, coe_to_list]
 
 end to_list
 

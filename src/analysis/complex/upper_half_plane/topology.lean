@@ -51,8 +51,8 @@ begin
   refine ⟨λ h, _⟩,
   have : is_compact (complex.im ⁻¹' Ioi 0), from is_compact_iff_is_compact_univ.2 h,
   replace := this.is_closed.closure_eq,
-  rw [closure_preimage_im, closure_Ioi, im_surjective.preimage_injective.eq_iff] at this,
-  exact Ioi_ssubset_Ici_self.ne' this
+  rw [closure_preimage_im, closure_Ioi, set.ext_iff] at this,
+  exact absurd ((this 0).1 left_mem_Ici) (lt_irrefl _)
 end
 
 instance : locally_compact_space ℍ := open_embedding_coe.locally_compact_space

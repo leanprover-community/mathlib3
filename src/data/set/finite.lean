@@ -129,16 +129,24 @@ section finite_to_finset
 @[simp] theorem finite.mem_to_finset {s : set α} (h : s.finite) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 
-@[simp] theorem finite.nonempty_to_finset {s : set α} (h : s.finite) :
-  h.to_finset.nonempty ↔ s.nonempty :=
-by rw [← finset.coe_nonempty, finite.coe_to_finset]
-
 @[simp] lemma finite.coe_sort_to_finset {s : set α} (h : s.finite) :
   (h.to_finset : Type*) = s :=
 by rw [← finset.coe_sort_coe _, h.coe_to_finset]
 
+@[simp] theorem finite.nonempty_to_finset {s : set α} (h : s.finite) :
+  h.to_finset.nonempty ↔ s.nonempty :=
+by rw [← finset.coe_nonempty, finite.coe_to_finset]
+
 @[simp] lemma finite_empty_to_finset (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
+
+@[simp] lemma finite.nontrivial_iff_to_finset_off_diag_nonempty [decidable_eq α] {s : set α}
+  (hs : s.finite) : hs.to_finset.off_diag.nonempty ↔ s.nontrivial :=
+by { letI := hs.fintype, exact nontrivial_iff_to_finset_off_diag_nonempty }
+
+@[simp] lemma finite.subsingleton_iff_to_finset_off_diag_empty [decidable_eq α] {s : set α}
+  (hs : s.finite) : hs.to_finset.off_diag = ∅ ↔ s.subsingleton :=
+by { letI := hs.fintype, exact subsingleton_iff_to_finset_off_diag_empty }
 
 @[simp] lemma finite.to_finset_inj {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset = ht.to_finset ↔ s = t :=

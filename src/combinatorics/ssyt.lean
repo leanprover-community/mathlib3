@@ -46,7 +46,7 @@ in each column are strictly increasing (top to bottom).
 
 Here, an SSYT is represented as an unrestricted function `ℕ → ℕ → ℕ`, but which is required to
 vanish outside `μ`. --/
-@[ext] structure ssyt (μ : young_diagram) :=
+structure ssyt (μ : young_diagram) :=
   (entry : ℕ → ℕ → ℕ)
   (row_weak : ∀ {i j1 j2 : ℕ}, j1 < j2 → (i, j2) ∈ μ → entry i j1 ≤ entry i j2)
   (col_strict : ∀ {i1 i2 j: ℕ}, i1 < i2 → (i2, j) ∈ μ → entry i1 j < entry i2 j)
@@ -54,11 +54,28 @@ vanish outside `μ`. --/
 
 namespace ssyt
 
-instance {μ : young_diagram} : has_coe_to_fun (ssyt μ) (λ _, ℕ → ℕ → ℕ) :=
-{ coe := λ T i j, T.entry i j }
+instance fun_like {μ : young_diagram} : fun_like (ssyt μ) ℕ (λ _, ℕ → ℕ) :=
+{ coe := λ T, T.entry,
+  coe_injective' := λ T T' h, by { cases T, cases T', congr' } }
 
-@[simp] lemma entry_eq_coe {μ : young_diagram} (T : ssyt μ) :
-  T.entry = T := rfl
+/-- Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
+instance {μ : young_diagram} : has_coe_to_fun (ssyt μ) (λ _, ℕ → ℕ → ℕ) :=
+  fun_like.has_coe_to_fun
+
+@[simp] lemma to_fun_eq_coe {μ : young_diagram} {T : ssyt μ} : T.entry = (T : ℕ → ℕ → ℕ) := rfl
+
+@[ext] theorem ext {μ : young_diagram} {T T': ssyt μ} (h : ∀ i j, T i j = T' i j) : T = T' :=
+  fun_like.ext T T' (λ x, by { funext, apply h })
+
+/-- Copy of an `ssyt μ` with a new `entry` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy {μ : young_diagram} {T : ssyt μ} (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+ssyt μ :=
+{ entry := entry',
+  row_weak := h.symm ▸ T.row_weak,
+  col_strict := h.symm ▸ T.col_strict,
+  zeros' := h.symm ▸ T.zeros' }
 
 lemma zeros {μ : young_diagram} (T : ssyt μ)
   {i j : ℕ} (not_cell : (i, j) ∉ μ) : T i j = 0 := T.zeros' not_cell

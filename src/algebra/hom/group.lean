@@ -1064,9 +1064,9 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
-/-- If two homomorphism from a division monoid to a monoid are equal at a unit `x`, then they are
+/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
 equal at `x⁻¹`. -/
-@[to_additive "If two homomorphism from a subtraction monoid to an additive monoid are equal at an
+@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
 additive unit `x`, then they are equal at `-x`."]
 lemma _root_.is_unit.eq_on_inv {G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
   (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=

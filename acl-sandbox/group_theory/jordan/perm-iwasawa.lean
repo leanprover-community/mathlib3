@@ -1307,14 +1307,6 @@ begin
   rw [finset.mem_insert, finset.mem_singleton],
 end
 
-lemma exists_congr_left0 {α β : Type*} (f : α ≃ β) {p : α → Prop} :
-  (∃ a, p a) ↔ (∃ b, p (f.symm b)) := begin
-split,
-rintro ⟨a, h⟩,
-use f a, simpa using h,
-rintro ⟨b, h⟩,
-use f.symm b, exact h,
-end
 
 -- The main theorem, unfortunately weaker than expected
 /-- If α has at least 5 elements, then

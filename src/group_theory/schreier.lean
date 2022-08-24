@@ -145,39 +145,16 @@ end
 
 open_locale big_operators
 
--- PR ready
+-- merging
 lemma order_eq_card_zpowers' {G : Type*} [group G] (g : G) : order_of g = nat.card (zpowers g) :=
 begin
   have := nat.card_congr (mul_action.orbit_zpowers_equiv g (1 : G)),
   rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
 end
 
--- PRed
-lemma card_dvd_of_injective' {G H : Type*} [group G] [group H] (f : G →* H)
-  (hf : function.injective f) : nat.card G ∣ nat.card H :=
-begin
-  rw nat.card_congr (monoid_hom.of_injective hf).to_equiv,
-  exact dvd.intro f.range.index f.range.card_mul_index,
-end
-
--- PRed
-lemma card_dvd_of_surjective' {G H : Type*} [group G] [group H] (f : G →* H)
-  (hf : function.surjective f) : nat.card H ∣ nat.card G :=
-begin
-  rw ← nat.card_congr (quotient_group.quotient_ker_equiv_of_surjective f hf).to_equiv,
-  exact dvd.intro_left (nat.card f.ker) f.ker.card_mul_index,
-end
-
--- PRed
-lemma card_dvd_of_surjective {G H : Type*} [group G] [fintype G] [group H] [fintype H]
-  (f : G →* H) (hf : function.surjective f) : fintype.card H ∣ fintype.card G :=
-begin
-  rw [←nat.card_eq_fintype_card, ←nat.card_eq_fintype_card],
-  exact card_dvd_of_surjective' f hf,
-end
-
 universes u v
 
+-- PRed
 @[simp] lemma nat.card_pi {α : Type u} {β : α → Type v} [fintype α] :
   nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
 begin
@@ -224,7 +201,7 @@ begin
       (λ g _ hg, _)).trans (congr_arg coe (if_pos rfl)),
     have := mt subtype.ext hg,
     exact congr_arg coe (if_neg this) },
-  replace hf := card_dvd_of_surjective' f hf,
+  replace hf := nat_card_dvd_of_surjective f hf,
   rw nat.card_pi at hf,
   refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
   rw ← order_eq_card_zpowers',
@@ -236,27 +213,6 @@ lemma key_lemma17 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g 
   nat.card G ∣ n ^ group.rank G :=
 (key_lemma0 G).trans
     (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
-
-instance map_is_commutative {G G' : Type*} [group G] [group G'] (f : G →* G') {H : subgroup G}
-  [hH : H.is_commutative] : (H.map f).is_commutative :=
-⟨⟨begin
-  rintros ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩,
-  rw [subtype.ext_iff, coe_mul, coe_mul, subtype.coe_mk, subtype.coe_mk, ←map_mul, ←map_mul],
-  exact congr_arg f (subtype.ext_iff.mp (mul_comm ⟨a, ha⟩ ⟨b, hb⟩)),
-end⟩⟩
-
-lemma comap_injective_is_commutative {G G' : Type*} [group G] [group G'] {f : G →* G'}
-  (hf : function.injective f) {H : subgroup G'}
-  [hH : H.is_commutative] : (H.comap f).is_commutative :=
-⟨⟨λ a b, subtype.ext begin
-  have := mul_comm (⟨f a, a.2⟩ : H) (⟨f b, b.2⟩ : H),
-  rwa [subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ←map_mul, ←map_mul, hf.eq_iff] at this,
-end⟩⟩
-
-instance subgroup_of_is_commutative
-  {G : Type*} [group G] {H K : subgroup G} [hH : H.is_commutative] :
-  (H.subgroup_of K).is_commutative :=
-subgroup.comap_injective_is_commutative subtype.coe_injective
 
 instance {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
 sorry
@@ -288,7 +244,7 @@ begin
   have key : nat.card s = s.to_finset.card,
   { simp only [nat.card_eq_fintype_card, set.to_finset_card] },
   have key := s.to_finset,
-  sorry
+  all_goals { sorry },
 end
 
 instance (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :

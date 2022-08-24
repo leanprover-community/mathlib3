@@ -484,12 +484,23 @@ lemma edist_pi_const [nonempty β] (a b : α) :
   edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
 lemma edist_le_pi_edist [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) (b : β) :
-  edist (f b) (g b) ≤ edist f g :=
-finset.le_sup (finset.mem_univ b)
+  edist (f b) (g b) ≤ edist f g := finset.le_sup (finset.mem_univ b)
 
 lemma edist_pi_le_iff [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d : ℝ≥0∞} :
   edist f g ≤ d ↔ ∀ b, edist (f b) (g b) ≤ d :=
 finset.sup_le_iff.trans $ by simp only [finset.mem_univ, forall_const]
+
+lemma le_edist_pi_iff_of_bot_lt {π : β → Type*} [Π b, pseudo_emetric_space (π b)]
+  {f g : Π b, π b} {d : ℝ≥0∞} (hd : ⊥ < d) : d ≤ edist f g ↔ ∃ b, d ≤ edist (f b) (g b) :=
+(finset.le_sup_iff hd).trans $ by simp only [finset.mem_univ, exists_true_left]
+
+lemma le_edist_pi_iff_of_nonempty {π : β → Type*} [nonempty β] [Π b, pseudo_emetric_space (π b)]
+  {f g : Π b, π b} {d : ℝ≥0∞} : d ≤ edist f g ↔ ∃ b, d ≤ edist (f b) (g b) :=
+begin
+  by_cases hd : ⊥ < d,
+  { exact le_edist_pi_iff_of_bot_lt hd },
+  { rw not_bot_lt_iff at hd, rw hd, simp_rw [bot_le, exists_const] }
+end
 
 end pi
 

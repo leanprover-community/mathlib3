@@ -155,9 +155,23 @@ class has_forget₂ (C : Type v) (D : Type v') [category C] [concrete_category.{
   [concrete_category D] [has_forget₂ C D] : C ⥤ D :=
 has_forget₂.forget₂
 
-instance forget_faithful (C : Type v) (D : Type v') [category C] [concrete_category C] [category D]
+instance forget₂_faithful (C : Type v) (D : Type v') [category C] [concrete_category C] [category D]
   [concrete_category D] [has_forget₂ C D] : faithful (forget₂ C D) :=
 has_forget₂.forget_comp.faithful_of_comp
+
+instance forget₂_preserves_monomorphisms (C : Type v) (D : Type v') [category C]
+  [concrete_category C] [category D] [concrete_category D] [has_forget₂ C D]
+  [(forget C).preserves_monomorphisms] : (forget₂ C D).preserves_monomorphisms :=
+have (forget₂ C D ⋙ forget D).preserves_monomorphisms,
+  by { simp only [has_forget₂.forget_comp], apply_instance },
+by exactI functor.preserves_monomorphisms_of_preserves_of_reflects _ (forget D)
+
+instance forget₂_preserves_epimorphisms (C : Type v) (D : Type v') [category C]
+  [concrete_category C] [category D] [concrete_category D] [has_forget₂ C D]
+  [(forget C).preserves_epimorphisms] : (forget₂ C D).preserves_epimorphisms :=
+have (forget₂ C D ⋙ forget D).preserves_epimorphisms,
+  by { simp only [has_forget₂.forget_comp], apply_instance },
+by exactI functor.preserves_epimorphisms_of_preserves_of_reflects _ (forget D)
 
 instance induced_category.concrete_category {C : Type v} {D : Type v'} [category D]
   [concrete_category D] (f : C → D) :
@@ -191,7 +205,9 @@ has_forget₂ C D :=
 { forget₂ := faithful.div _ _ _ @h_obj _ @h_map,
   forget_comp := by apply faithful.div_comp }
 
-instance has_forget_to_Type (C : Type v) [category C] [concrete_category C] :
+/-- Every forgetful functor factors through the identity functor. This is not a global instance as
+    it is prone to creating type class resolution loops. -/
+def has_forget_to_Type (C : Type v) [category C] [concrete_category C] :
   has_forget₂ C (Type u) :=
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }

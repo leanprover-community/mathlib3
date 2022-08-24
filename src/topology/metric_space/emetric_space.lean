@@ -486,6 +486,10 @@ lemma edist_pi_const [nonempty β] (a b : α) :
 lemma edist_le_pi_edist [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) (b : β) :
   edist (f b) (g b) ≤ edist f g := finset.le_sup (finset.mem_univ b)
 
+lemma edist_le_pi_edist' [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) (b : β)
+  (hb : ∀ b', edist (f b') (g b') ≤ edist (f b) (g b)) :
+edist f g ≤ edist (f b) (g b) := finset.sup_le (λ b' _, hb b')
+
 lemma edist_pi_le_iff [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d : ℝ≥0∞} :
   edist f g ≤ d ↔ ∀ b, edist (f b) (g b) ≤ d :=
 finset.sup_le_iff.trans $ by simp only [finset.mem_univ, forall_const]

@@ -5,8 +5,7 @@ import combinatorics.simple_graph.connectivity
 import topology.metric_space.basic
 import data.setoid.partition
 import .mathlib
-import .reachable_outside
-import .bwd_map
+import .conn_comp_outside
 import .end_limit_construction
 import .mathlib_fintype_inverse_systems
 
@@ -30,8 +29,7 @@ namespace simple_graph
 
 namespace ends
 
-open ro_component
-open bwd_map
+open conn_comp_outside
 
 variables  {V : Type u}
            (G : simple_graph V)
@@ -44,10 +42,10 @@ variables  {V : Type u}
   bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
 -/
 lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
-  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
+  (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V)
-  (inf_comp_H_large : fin 3 ↪ (inf_ro_components' G K)) :
-  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map_inf G Gpc ‹K' ⊆ L›) :=
+  (inf_comp_H_large : fin 3 ↪ (inf_conn_comp_outside G K)) :
+  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (inf_conn_comp_outside_back ‹↑K' ⊆ ↑L› : G.inf_conn_comp_outside L → G.inf_conn_comp_outside K') :=
 begin
 
   by_cases Knempty : K.nonempty,
@@ -84,7 +82,7 @@ begin
     apply inf_comp_H_large.trans,
     refine function.embedding.trans _ (inf_ro_components_equiv_of_isom' G G K' φ).to_embedding,
     apply function.embedding.of_surjective,
-    exact bwd_map_inf.surjective G Gpc (KKp.trans KK'),},
+    exact inf_conn_comp_outside_back.surjective G Gpc (KKp.trans KK'),},
   { rw finset.not_nonempty_iff_eq_empty at Knempty,
     sorry, -- Need a lemma saying that the connected components for K=∅ are just {V} when G is connected
     -- or even better a general statement holding when G is disconnected.
@@ -95,9 +93,9 @@ begin
 end
 
 
-lemma Freudenthal_Hopf [locally_finite G] (Gpc: G.preconnected)
+lemma Freudenthal_Hopf [locally_finite G] [Gpc : G.preconnected]
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
-  (fin 3 ↪ Endsinfty G Gpc) → (Endsinfty G Gpc).infinite :=
+  (fin 3 ↪ Endsinfty G) → (Endsinfty G).infinite :=
 begin
 
   -- Assume we have at least three ends, but finitely many
@@ -105,25 +103,27 @@ begin
 
   -- Boring boilerplate
   --have Vinf : (@set.univ V).infinite := sorry, -- from the assumption that at least three ends
-  haveI : fintype (ComplInfComp G Gpc).sections := finite.fintype finite_ends,
-  haveI : Π (j : finset V), fintype ((ComplInfComp G Gpc).obj j) := ComplInfComp_fintype G Gpc,
-  have surj : inverse_system.is_surjective (ComplInfComp G Gpc) := ComplInfComp.surjective G Gpc,
+  haveI : fintype (ComplInfComp G).sections := finite.fintype finite_ends,
+  haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := @ComplInfComp_fintype V _ G _ Gpc,
+  have surj : inverse_system.is_surjective (ComplInfComp G) := ComplInfComp.surjective G,
 
-  -- By finitely many ends, and since the system is nice, there is some K such that each bwd_map_inf to K is injective
-  obtain ⟨K,top⟩ := inverse_system.sections_fintype_to_injective (ComplInfComp G Gpc) surj,
-  -- Since each bwd_map_inf to K is injective, the map from sections to K is also injective
-  let inj' := inverse_system.sections_injective (ComplInfComp G Gpc) K top,
+  -- By finitely many ends, and since the system is nice, there is some K such that each inf_conn_comp_outside_back to K is injective
+  obtain ⟨K,top⟩ := inverse_system.sections_fintype_to_injective (ComplInfComp G) surj,
+  -- Since each inf_conn_comp_outside_back to K is injective, the map from sections to K is also injective
+  let inj' := inverse_system.sections_injective (ComplInfComp G) K top,
 
   -- Because we have at least three ends and enough automorphisms, we can apply `good_autom_bwd_map_not_inj`
-  -- giving us K ⊆ K' ⊆ L with the bwd_map_inf from L to K' not injective.
+  -- giving us K ⊆ K' ⊆ L with the inf_conn_comp_outside_back from L to K' not injective.
   rcases (good_autom_bwd_map_not_inj G Gpc auts K (many_ends.trans ⟨_,inj'⟩)) with ⟨K',L,KK',K'L,bwd_K_not_inj⟩,
-  -- which is in contradiction with the fact that all bwd_map_inf to K are injective
+  -- which is in contradiction with the fact that all inf_conn_comp_outside_back to K are injective
   apply bwd_K_not_inj,
   -- The following is just that if f ∘ g is injective, then so is g
   rintro x y eq,
   apply top ⟨L,by {exact KK'.trans K'L,}⟩,
-  have eq' := congr_arg (bwd_map_inf G Gpc KK') eq,
-  simp only [bwd_map_inf.comp'] at eq', exact eq',
+  simp only [ComplInfComp.map],
+  have eq' := congr_arg (@inf_conn_comp_outside_back _ _ _ G KK') eq,
+  simp only [inf_conn_comp_outside_back.comp_apply] at eq',
+  exact eq',
 end
 
 end ends

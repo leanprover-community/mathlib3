@@ -99,9 +99,11 @@ def fin_conn_comp_outside (G : simple_graph V) (K : set V) :=
 
 namespace conn_comp_outside
 
-@[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) : conn_comp_outside G K := connected_component_mk _ v
+@[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) :
+  conn_comp_outside G K := connected_component_mk _ v
 
-lemma reachable_empty_compl {G : simple_graph V} {u v : V} (hreach : G.reachable u v) : (G.compl ∅).coe.reachable ⟨u, G.outside_to_compl id⟩ ⟨v, G.outside_to_compl id⟩ := sorry
+lemma reachable_empty_compl {G : simple_graph V} {u v : V} (hreach : G.reachable u v) :
+  (G.compl ∅).coe.reachable ⟨u, G.outside_to_compl id⟩ ⟨v, G.outside_to_compl id⟩ := sorry
 
 lemma reachable_coe {G : simple_graph V} {K L : set V} (h : K ⊆ L)
 {v a: ↥((G.compl L).verts)} (hreach: (G.compl L).coe.reachable a v) : (G.compl K).coe.reachable (vertex_coe h a) (vertex_coe h v) := sorry
@@ -375,6 +377,10 @@ def inf_conn_comp_outside_back {K L : set V} {G : simple_graph V} (h : K ⊆ L) 
   λ ⟨C, hinf⟩, ⟨conn_comp_outside_back h C, conn_comp_outside_back.inf_to_inf h C hinf⟩
 
 lemma inf_conn_comp_outside_back.def {K L : set V} {G : simple_graph V} (h : K ⊆ L) : ∀ (C : G.inf_conn_comp_outside L), (inf_conn_comp_outside_back h C).val = conn_comp_outside_back h C.val := by {rintro ⟨_, _⟩, refl,}
+
+lemma inf_conn_comp_outside_back.comp_apply {K L M : set V} {G : simple_graph V} (hKL : K ⊆ L) (hLM : L ⊆ M) :
+  ∀ (C : G.inf_conn_comp_outside M), inf_conn_comp_outside_back hKL (inf_conn_comp_outside_back hLM C) = inf_conn_comp_outside_back (hKL.trans hLM) C := sorry
+
 
 
 -- TODO: An infinite graph has at least one infinite connected component

@@ -42,7 +42,7 @@ lemma countable_sInter_mem {S : set (set α)} (hSc : S.countable) :
 ⟨λ hS s hs, mem_of_superset hS (sInter_subset_of_mem hs),
   countable_Inter_filter.countable_sInter_mem' hSc⟩
 
-lemma countable_Inter_mem [countable ι] {s : ι → set α} :
+lemma countable_Inter_mem {ι : Sort*} [countable ι] {s : ι → set α} :
   (⋂ i, s i) ∈ l ↔ ∀ i, s i ∈ l :=
 sInter_range s ▸ (countable_sInter_mem (countable_range _)).trans forall_range_iff
 
@@ -54,10 +54,10 @@ begin
   exact countable_Inter_mem.trans subtype.forall
 end
 
-lemma eventually_countable_forall [countable ι] {p : α → ι → Prop} :
+lemma eventually_countable_forall {ι : Sort*} [countable ι] {p : α → ι → Prop} :
   (∀ᶠ x in l, ∀ i, p x i) ↔ ∀ i, ∀ᶠ x in l, p x i :=
 by simpa only [filter.eventually, set_of_forall]
-  using @countable_Inter_mem _ _ l _ _ (λ i, {x | p x i})
+  using @countable_Inter_mem _ l _ _ _ (λ i, {x | p x i})
 
 lemma eventually_countable_ball {S : set ι} (hS : S.countable) {p : Π (x : α) (i ∈ S), Prop} :
   (∀ᶠ x in l, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᶠ x in l, p x i ‹_› :=

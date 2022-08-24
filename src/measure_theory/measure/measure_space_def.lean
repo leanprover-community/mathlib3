@@ -326,7 +326,8 @@ end⟩
 lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
 filter.eventually_imp_distrib_left
 
-lemma ae_all_iff [countable ι] {p : α → ι → Prop} : (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ ∀ i, ∀ᵐ a ∂ μ, p a i :=
+lemma ae_all_iff {ι : Sort*} [countable ι] {p : α → ι → Prop} :
+  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ ∀ i, ∀ᵐ a ∂ μ, p a i :=
 eventually_countable_forall
 
 lemma ae_ball_iff {S : set ι} (hS : S.countable) {p : Π (x : α) (i ∈ S), Prop} :

@@ -360,7 +360,7 @@ begin
   { simp },
   { rw [list.prod_cons, list.map_cons, list.foldr_cons],
     refine (support_mul_le hd tl.prod).trans _,
-    exact sup_le_sup (le_refl _) hl }
+    exact sup_le_sup le_rfl hl }
 end
 
 lemma support_zpow_le (σ : perm α) (n : ℤ) :
@@ -381,7 +381,7 @@ lemma support_swap_iff (x y : α) :
 begin
   refine ⟨λ h H, _, support_swap⟩,
   subst H,
-  simp only [swap_self, support_refl, insert_singleton_self_eq] at h,
+  simp only [swap_self, support_refl, pair_eq_singleton] at h,
   have : x ∈ ∅,
   { rw h,
     exact mem_singleton.mpr rfl },
@@ -539,7 +539,7 @@ begin
 end
 
 @[simp] lemma card_support_le_one {f : perm α} : f.support.card ≤ 1 ↔ f = 1 :=
-by rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero,
+by rw [le_iff_lt_or_eq, nat.lt_succ_iff, le_zero_iff, card_support_eq_zero,
   or_iff_not_imp_right, imp_iff_right f.card_support_ne_one]
 
 lemma two_le_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :

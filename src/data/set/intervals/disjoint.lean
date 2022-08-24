@@ -28,10 +28,10 @@ variables [preorder α] {a b c : α}
 λ x ⟨ha, hb⟩, not_le_of_lt (h.trans_lt hb) ha
 
 @[simp] lemma Iic_disjoint_Ioc (h : a ≤ b) : disjoint (Iic a) (Ioc b c) :=
-(Iic_disjoint_Ioi h).mono (le_refl _) (λ _, and.left)
+(Iic_disjoint_Ioi h).mono le_rfl (λ _, and.left)
 
 @[simp] lemma Ioc_disjoint_Ioc_same {a b c : α} : disjoint (Ioc a b) (Ioc b c) :=
-(Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) (le_refl _)
+(Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) le_rfl
 
 @[simp] lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
 λ x hx, not_le_of_lt hx.1.2 hx.2.1
@@ -41,6 +41,39 @@ by rw [set.disjoint_iff_inter_eq_empty, Ici_inter_Iic, Icc_eq_empty_iff]
 
 @[simp] lemma Iic_disjoint_Ici : disjoint (Iic a) (Ici b) ↔ ¬(b ≤ a) :=
 disjoint.comm.trans Ici_disjoint_Iic
+
+@[simp] lemma Union_Iic : (⋃ a : α, Iic a) = univ := Union_eq_univ_iff.2 $ λ x, ⟨x, right_mem_Iic⟩
+@[simp] lemma Union_Ici : (⋃ a : α, Ici a) = univ := Union_eq_univ_iff.2 $ λ x, ⟨x, left_mem_Ici⟩
+
+@[simp] lemma Union_Icc_right (a : α) : (⋃ b, Icc a b) = Ici a :=
+by simp only [← Ici_inter_Iic, ← inter_Union, Union_Iic, inter_univ]
+
+@[simp] lemma Union_Ioc_right (a : α) : (⋃ b, Ioc a b) = Ioi a :=
+by simp only [← Ioi_inter_Iic, ← inter_Union, Union_Iic, inter_univ]
+
+@[simp] lemma Union_Icc_left (b : α) : (⋃ a, Icc a b) = Iic b :=
+by simp only [← Ici_inter_Iic, ← Union_inter, Union_Ici, univ_inter]
+
+@[simp] lemma Union_Ico_left (b : α) : (⋃ a, Ico a b) = Iio b :=
+by simp only [← Ici_inter_Iio, ← Union_inter, Union_Ici, univ_inter]
+
+@[simp] lemma Union_Iio [no_max_order α] : (⋃ a : α, Iio a) = univ :=
+Union_eq_univ_iff.2 exists_gt
+
+@[simp] lemma Union_Ioi [no_min_order α] : (⋃ a : α, Ioi a) = univ :=
+Union_eq_univ_iff.2 exists_lt
+
+@[simp] lemma Union_Ico_right [no_max_order α] (a : α) : (⋃ b, Ico a b) = Ici a :=
+by simp only [← Ici_inter_Iio, ← inter_Union, Union_Iio, inter_univ]
+
+@[simp] lemma Union_Ioo_right [no_max_order α] (a : α) : (⋃ b, Ioo a b) = Ioi a :=
+by simp only [← Ioi_inter_Iio, ← inter_Union, Union_Iio, inter_univ]
+
+@[simp] lemma Union_Ioc_left [no_min_order α] (b : α) : (⋃ a, Ioc a b) = Iic b :=
+by simp only [← Ioi_inter_Iic, ← Union_inter, Union_Ioi, univ_inter]
+
+@[simp] lemma Union_Ioo_left [no_min_order α] (b : α) : (⋃ a, Ioo a b) = Iio b :=
+by simp only [← Ioi_inter_Iio, ← Union_inter, Union_Ioi, univ_inter]
 
 end preorder
 

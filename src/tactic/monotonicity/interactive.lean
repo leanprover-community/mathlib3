@@ -609,7 +609,7 @@ meta def assert_or_rule : lean.parser (pexpr ⊕ pexpr) :=
 (tk ":=" *> inl <$> texpr <|> (tk ":" *> inr <$> texpr))
 
 meta def arity : lean.parser rep_arity :=
-rep_arity.many <$ tk "*" <|>
+tk "*" *> pure rep_arity.many <|>
 rep_arity.exactly <$> (tk "^" *> small_nat) <|>
 pure rep_arity.one
 

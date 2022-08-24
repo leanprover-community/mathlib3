@@ -67,7 +67,7 @@ end
 
 variables [decidable_eq α]
 
-@[simp] lemma lcm_erase_dup (s : multiset α) : (erase_dup s).lcm = s.lcm :=
+@[simp] lemma lcm_dedup (s : multiset α) : (dedup s).lcm = s.lcm :=
 multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
   unfold lcm,
@@ -77,15 +77,15 @@ end
 
 @[simp] lemma lcm_ndunion (s₁ s₂ : multiset α) :
   (ndunion s₁ s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
-by { rw [← lcm_erase_dup, erase_dup_ext.2, lcm_erase_dup, lcm_add], simp }
+by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_add], simp }
 
 @[simp] lemma lcm_union (s₁ s₂ : multiset α) :
   (s₁ ∪ s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
-by { rw [← lcm_erase_dup, erase_dup_ext.2, lcm_erase_dup, lcm_add], simp }
+by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_add], simp }
 
 @[simp] lemma lcm_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).lcm = gcd_monoid.lcm a s.lcm :=
-by { rw [← lcm_erase_dup, erase_dup_ext.2, lcm_erase_dup, lcm_cons], simp }
+by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_cons], simp }
 
 end lcm
 
@@ -136,7 +136,7 @@ end
 
 variables [decidable_eq α]
 
-@[simp] lemma gcd_erase_dup (s : multiset α) : (erase_dup s).gcd = s.gcd :=
+@[simp] lemma gcd_dedup (s : multiset α) : (dedup s).gcd = s.gcd :=
 multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
   unfold gcd,
@@ -146,15 +146,15 @@ end
 
 @[simp] lemma gcd_ndunion (s₁ s₂ : multiset α) :
   (ndunion s₁ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
-by { rw [← gcd_erase_dup, erase_dup_ext.2, gcd_erase_dup, gcd_add], simp }
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
 
 @[simp] lemma gcd_union (s₁ s₂ : multiset α) :
   (s₁ ∪ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
-by { rw [← gcd_erase_dup, erase_dup_ext.2, gcd_erase_dup, gcd_add], simp }
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
 
 @[simp] lemma gcd_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).gcd = gcd_monoid.gcd a s.gcd :=
-by { rw [← gcd_erase_dup, erase_dup_ext.2, gcd_erase_dup, gcd_cons], simp }
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simp }
 
 end gcd
 

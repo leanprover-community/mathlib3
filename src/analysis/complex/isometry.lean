@@ -42,6 +42,13 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 
+@[simp] lemma rotation_symm (a : circle) : (rotation a).symm = rotation a⁻¹ :=
+linear_isometry_equiv.ext $ λ x, rfl
+
+@[simp] lemma rotation_trans (a b : circle) :
+  (rotation a).trans (rotation b) = rotation (b * a) :=
+by { ext1, simp }
+
 lemma rotation_ne_conj_lie (a : circle) : rotation a ≠ conj_lie :=
 begin
   intro h,
@@ -134,7 +141,7 @@ begin
 end
 
 /-- The matrix representation of `rotation a` is equal to the conformal matrix
-`![![re a, -im a], ![im a, re a]]`. -/
+`!![re a, -im a; im a, re a]`. -/
 lemma to_matrix_rotation (a : circle) :
   linear_map.to_matrix basis_one_I basis_one_I (rotation a).to_linear_equiv =
     matrix.plane_conformal_matrix (re a) (im a) (by simp [pow_two, ←norm_sq_apply]) :=

@@ -36,6 +36,7 @@ example : ((1:real) / 2)⁻¹ = 2 := by norm_num
 example : 2 ^ 17 - 1 = 131071 :=
 by {norm_num, tactic.try_for 200 (tactic.result >>= tactic.type_check)}
 example : (3 : real) ^ (-2 : ℤ) = 1/9 := by norm_num
+example : (3 : real) ^ (-2 : ℤ) = 1/9 := by norm_num1
 example : (-3 : real) ^ (0 : ℤ) = 1 := by norm_num
 example : (-3 : real) ^ (-1 : ℤ) = -1/3 := by norm_num
 example : (-3 : real) ^ (2 : ℤ) = 9 := by norm_num
@@ -43,6 +44,7 @@ example : (-3 : real) ^ (2 : ℤ) = 9 := by norm_num
 example : (1:complex) ≠ 2 := by norm_num
 example : (1:complex) / 3 ≠ 2 / 7 := by norm_num
 
+example : (1:real) ≠ 2 := by norm_num
 example {α} [semiring α] [char_zero α] : (1:α) ≠ 2 := by norm_num
 example {α} [ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
@@ -55,6 +57,7 @@ example : (0 + 1) / 2 < 0 + 1 := by norm_num
 example : nat.succ (nat.succ (2 ^ 3)) = 10 := by norm_num
 example : 10 = (-1 : ℤ) % 11 := by norm_num
 example : (12321 - 2 : ℤ) = 12319 := by norm_num
+example : (63:ℚ) ≥ 5 := by norm_num
 
 example (x : ℤ) (h : 1000 + 2000 < x) : 100 * 30 < x :=
 by norm_num at *; try_for 100 {exact h}
@@ -184,6 +187,28 @@ example : (9 * 9 * 9) * (12 : α) / 27 = 81 * (2 + 2) := by norm_num
 example : (-2 : α) * 4 / 3 = -8 / 3 := by norm_num
 example : - (-4 / 3) = 1 / (3 / (4 : α)) := by norm_num
 
+-- user command
+
+set_option trace.silence_norm_num_if_true true
+#norm_num 1 = 1
+example : 1 = 1 := by norm_num
+#norm_num 2^4-1 ∣ 2^16-1
+example : 2^4-1 ∣ 2^16-1 := by norm_num
+#norm_num (3 : real) ^ (-2 : ℤ) = 1/9
+example : (3 : real) ^ (-2 : ℤ) = 1/9 := by norm_num
+
+section norm_num_cmd_variable
+variables (x y : ℕ)
+
+#norm_num bit0 x < bit0 (y + x) ↔ 0 < y
+example : bit0 x < bit0 (y + x) ↔ 0 < y := by norm_num
+#norm_num bit0 x < bit0 (y + (2^10%11 - 1) + x) ↔ 0 < y
+example : bit0 x < bit0 (y + (2^10%11 - 1) + x) ↔ 0 < y := by norm_num
+#norm_num bit0 x < bit0 (y + (2^10%11 - 1) + x) + 3*2-6 ↔ 0 < y
+example : bit0 x < bit0 (y + (2^10%11 - 1) + x) + 3*2-6 ↔ 0 < y := by norm_num
+
+end norm_num_cmd_variable
+
 -- auto gen tests
 example : ((25 * (1 / 1)) + (30 - 16)) = (39 : α) := by norm_num
 example : ((19 * (- 2 - 3)) / 6) = (-95/6 : α) := by norm_num
@@ -273,3 +298,5 @@ example : ((3 / ((- 28 * 45) * (19 + ((- (- 88 - (- (- 1 + 90) + 8)) + 87) * 48)
 example : ((- - (28 + 48) / 75) + ((- 59 - 14) - 0)) = (-5399/75 : α) := by norm_num
 example : (- ((- (((66 - 86) - 36) / 94) - 3) / - - (77 / (56 - - - 79))) + 87) =
   (312254/3619 : α) := by norm_num
+
+example : 2 ^ 13 - 1 = int.of_nat 8191 := by norm_num

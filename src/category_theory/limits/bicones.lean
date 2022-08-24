@@ -23,7 +23,10 @@ This is used in `category_theory.flat_functors.preserves_finite_limits_of_flat`.
 
 universes v₁ u₁
 
+noncomputable theory
+
 open category_theory.limits
+open_locale classical
 
 namespace category_theory
 section bicone
@@ -38,11 +41,11 @@ inductive bicone
 
 instance : inhabited (bicone J) := ⟨bicone.left⟩
 
-instance fin_bicone [fintype J] [decidable_eq J] : fintype (bicone J) :=
+instance fin_bicone [fintype J] : fintype (bicone J) :=
 { elems := [bicone.left, bicone.right].to_finset ∪ finset.image bicone.diagram (fintype.elems J),
   complete := λ j, by { cases j; simp, exact fintype.complete j, }, }
 
-variables [category.{v₁} J] [∀ (j k : J), decidable_eq (j ⟶ k)]
+variables [category.{v₁} J]
 
 /-- The homs for a walking `bicone J`. -/
 inductive bicone_hom : bicone J → bicone J → Type (max u₁ v₁)
@@ -80,7 +83,7 @@ variables (J : Type v₁) [small_category J]
 /--
 Given a diagram `F : J ⥤ C` and two `cone F`s, we can join them into a diagram `bicone J ⥤ C`.
 -/
-@[simps] def bicone_mk [∀ (j k : J), decidable_eq (j ⟶ k)] {C : Type u₁} [category.{v₁} C]
+@[simps] def bicone_mk {C : Type u₁} [category.{v₁} C]
   {F : J ⥤ C} (c₁ c₂ : cone F) : bicone J ⥤ C :=
 { obj := λ X, bicone.cases_on X c₁.X c₂.X (λ j, F.obj j),
   map := λ X Y f, by
@@ -113,8 +116,8 @@ begin
             { cases f, simp only [finset.mem_image], use f_f, simpa using fintype.complete _, } },
 end
 
-instance bicone_small_category [∀ (j k : J), decidable_eq (j ⟶ k)] :
-  small_category (bicone J) := category_theory.bicone_category J
+instance bicone_small_category : small_category (bicone J) :=
+category_theory.bicone_category J
 
 instance bicone_fin_category [fin_category J] : fin_category (bicone J) := {}
 end small_category

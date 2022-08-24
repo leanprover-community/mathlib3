@@ -28,13 +28,13 @@ variables {μ} {s t u v : set α}
 family of measurable null sets `t i` such that `s i \ t i` are pairwise disjoint. -/
 lemma exists_null_pairwise_disjoint_diff [encodable ι] {s : ι → set α}
   (hd : pairwise (ae_disjoint μ on s)) :
-  ∃ t : ι → set α, (∀ i, measurable_set (t i)) ∧ (∀ i, μ (t i) = 0) ∧ 
+  ∃ t : ι → set α, (∀ i, measurable_set (t i)) ∧ (∀ i, μ (t i) = 0) ∧
     pairwise (disjoint on (λ i, s i \ t i)) :=
 begin
   refine ⟨λ i, to_measurable μ (s i ∩ ⋃ j ∈ ({i}ᶜ : set ι), s j),
     λ i, measurable_set_to_measurable _ _, λ i, _, _⟩,
-  { simp only [measure_to_measurable, inter_Union, measure_bUnion_null_iff (countable_encodable _)],
-    exact λ j hj, hd _ _ (ne.symm hj) },
+  { simp only [measure_to_measurable, inter_Union],
+    exact (measure_bUnion_null_iff $ to_countable _).2 (λ j hj, hd _ _ (ne.symm hj)) },
   { simp only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
     intros i j hne x hi hU hj,
     replace hU : x ∉ s i ∩ ⋃ j ≠ i, s j := λ h, hU (subset_to_measurable _ _ h),
@@ -53,8 +53,17 @@ protected lemma symmetric : symmetric (ae_disjoint μ) := λ s t h, h.symm
 
 protected lemma comm : ae_disjoint μ s t ↔ ae_disjoint μ t s := ⟨λ h, h.symm, λ h, h.symm⟩
 
-lemma _root_.disjoint.ae_disjoint (h : disjoint s t) : ae_disjoint μ s t :=
+protected lemma _root_.disjoint.ae_disjoint (h : disjoint s t) : ae_disjoint μ s t :=
 by rw [ae_disjoint, disjoint_iff_inter_eq_empty.1 h, measure_empty]
+
+protected lemma _root_.pairwise.ae_disjoint {f : ι → set α} (hf : pairwise (disjoint on f)) :
+  pairwise (ae_disjoint μ on f) :=
+hf.mono $ λ i j h, h.ae_disjoint
+
+protected lemma _root_.set.pairwise_disjoint.ae_disjoint {f : ι → set α} {s : set ι}
+  (hf : s.pairwise_disjoint f) :
+  s.pairwise (ae_disjoint μ on f) :=
+hf.mono' $ λ i j h, h.ae_disjoint
 
 lemma mono_ae (h : ae_disjoint μ s t) (hu : u ≤ᵐ[μ] s) (hv : v ≤ᵐ[μ] t) : ae_disjoint μ u v :=
 measure_mono_null_ae (hu.inter hv) h
@@ -106,7 +115,7 @@ lemma of_null_left (h : μ s = 0) : ae_disjoint μ s t := (of_null_right h).symm
 
 end ae_disjoint
 
-lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ s _).ae_disjoint
-lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ s _).ae_disjoint
+lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ _ s).ae_disjoint
+lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ _ s).ae_disjoint
 
 end measure_theory

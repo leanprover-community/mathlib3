@@ -3,9 +3,9 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.fintype.card
 import data.finset.sort
 import algebra.big_operators.order
+import algebra.big_operators.fin
 
 /-!
 # Compositions
@@ -180,7 +180,7 @@ begin
 end
 
 @[simp] lemma size_up_to_length : c.size_up_to c.length = n :=
-c.size_up_to_of_length_le c.length (le_refl _)
+c.size_up_to_of_length_le c.length le_rfl
 
 lemma size_up_to_le (i : ℕ) : c.size_up_to i ≤ n :=
 begin
@@ -207,8 +207,7 @@ a virtual point at the right of the last block, to make for a nice equiv with
 `composition_as_set n`. -/
 def boundary : fin (c.length + 1) ↪o fin (n+1) :=
 order_embedding.of_strict_mono (λ i, ⟨c.size_up_to i, nat.lt_succ_of_le (c.size_up_to_le i)⟩) $
- fin.strict_mono_iff_lt_succ.2 $ λ i hi, c.size_up_to_strict_mono $
-   lt_of_add_lt_add_right hi
+ fin.strict_mono_iff_lt_succ.2 $ λ ⟨i, hi⟩, c.size_up_to_strict_mono hi
 
 @[simp] lemma boundary_zero : c.boundary 0 = 0 :=
 by simp [boundary, fin.ext_iff]
@@ -286,8 +285,7 @@ begin
   set i := c.index j with hi,
   push_neg at H,
   have i_pos : (0 : ℕ) < i,
-  { by_contradiction i_pos,
-    push_neg at i_pos,
+  { by_contra' i_pos,
     revert H, simp [nonpos_iff_eq_zero.1 i_pos, c.size_up_to_zero] },
   let i₁ := (i : ℕ).pred,
   have i₁_lt_i : i₁ < i := nat.pred_lt (ne_of_gt i_pos),

@@ -9,7 +9,7 @@ import linear_algebra.affine_space.slope
 /-!
 # Slope of a differentiable function
 
-Given a function `f : 𝕜 → E` from a nondiscrete normed field to a normed space over this field,
+Given a function `f : 𝕜 → E` from a nontrivially normed field to a normed space over this field,
 `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and as `deriv f a`
 for `a = b`.
 
@@ -20,7 +20,7 @@ differentiability.
 open_locale classical topological_space filter
 open function set filter
 
-variables {𝕜 E : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and
 `deriv f a` for `a = b`. -/
@@ -32,6 +32,16 @@ variables {f : 𝕜 → E} {a b : 𝕜} {s : set 𝕜}
 
 lemma dslope_of_ne (f : 𝕜 → E) (h : b ≠ a) : dslope f a b = slope f a b :=
 update_noteq h _ _
+
+lemma continuous_linear_map.dslope_comp {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+  (f : E →L[𝕜] F) (g : 𝕜 → E) (a b : 𝕜) (H : a = b → differentiable_at 𝕜 g a) :
+  dslope (f ∘ g) a b = f (dslope g a b) :=
+begin
+  rcases eq_or_ne b a with rfl|hne,
+  { simp only [dslope_same],
+    exact (f.has_fderiv_at.comp_has_deriv_at b (H rfl).has_deriv_at).deriv },
+  { simpa only [dslope_of_ne _ hne] using f.to_linear_map.slope_comp g a b }
+end
 
 lemma eq_on_dslope_slope (f : 𝕜 → E) (a : 𝕜) : eq_on (dslope f a) (slope f a) {a}ᶜ :=
 λ b, dslope_of_ne f

@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import topology.algebra.ordered.extend_from
+import data.polynomial.field_division
+import topology.algebra.order.extend_from
 import topology.algebra.polynomial
 import topology.local_extr
-import data.polynomial.field_division
 
 /-!
 # Local extrema of smooth functions
@@ -65,11 +65,11 @@ local extremum, Fermat's Theorem, Rolle's Theorem
 universes u v
 
 open filter set
-open_locale topological_space classical
+open_locale topological_space classical polynomial
 
 section module
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
   {f' : E →L[ℝ] ℝ}
 
 /-- "Positive" tangent cone to `s` at `x`; the only difference from `tangent_cone_at`
@@ -357,7 +357,7 @@ end Rolle
 
 namespace polynomial
 
-lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
+lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : F[X]) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
   haveI : char_zero F :=

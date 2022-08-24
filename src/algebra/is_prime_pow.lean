@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import algebra.associated
-import data.nat.factorization
+import number_theory.divisors
 
 /-!
 # Prime powers
@@ -79,6 +79,9 @@ lemma is_prime_pow_nat_iff (n : ℕ) :
   is_prime_pow n ↔ ∃ (p k : ℕ), nat.prime p ∧ 0 < k ∧ p ^ k = n :=
 by simp only [is_prime_pow_def, nat.prime_iff]
 
+lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p :=
+(nat.prime_iff.mp hp).is_prime_pow
+
 lemma is_prime_pow_nat_iff_bounded (n : ℕ) :
   is_prime_pow n ↔ ∃ (p : ℕ), p ≤ n ∧ ∃ (k : ℕ), k ≤ n ∧ p.prime ∧ 0 < k ∧ p ^ k = n :=
 begin
@@ -92,31 +95,6 @@ end
 instance {n : ℕ} : decidable (is_prime_pow n) :=
 decidable_of_iff' _ (is_prime_pow_nat_iff_bounded n)
 
-lemma is_prime_pow.min_fac_pow_factorization_eq {n : ℕ} (hn : is_prime_pow n) :
-  n.min_fac ^ n.factorization n.min_fac = n :=
-begin
-  obtain ⟨p, k, hp, hk, rfl⟩ := hn,
-  rw ←nat.prime_iff at hp,
-  rw [hp.pow_min_fac hk.ne', hp.factorization_pow, finsupp.single_eq_same],
-end
-
-lemma is_prime_pow_of_min_fac_pow_factorization_eq {n : ℕ}
-  (h : n.min_fac ^ n.factorization n.min_fac = n) (hn : n ≠ 1) :
-  is_prime_pow n :=
-begin
-  rcases n.eq_zero_or_pos with rfl | hn',
-  { simpa using h },
-  refine ⟨_, _, nat.prime_iff.1 (nat.min_fac_prime hn), _, h⟩,
-  rw [pos_iff_ne_zero, ←finsupp.mem_support_iff, nat.factor_iff_mem_factorization,
-    nat.mem_factors_iff_dvd hn' (nat.min_fac_prime hn)],
-  apply nat.min_fac_dvd
-end
-
-lemma is_prime_pow_iff_min_fac_pow_factorization_eq {n : ℕ} (hn : n ≠ 1) :
-  is_prime_pow n ↔ n.min_fac ^ n.factorization n.min_fac = n :=
-⟨λ h, h.min_fac_pow_factorization_eq, λ h, is_prime_pow_of_min_fac_pow_factorization_eq h hn⟩
-
-
 lemma is_prime_pow.dvd {n m : ℕ} (hn : is_prime_pow n) (hm : m ∣ n) (hm₁ : m ≠ 1) :
   is_prime_pow m :=
 begin
@@ -129,36 +107,12 @@ begin
   simpa using hm₁,
 end
 
-/-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime
-dividing it. -/
-lemma is_prime_pow_iff_unique_prime_dvd {n : ℕ} :
-  is_prime_pow n ↔ ∃! p : ℕ, p.prime ∧ p ∣ n :=
+lemma nat.disjoint_divisors_filter_prime_pow {a b : ℕ} (hab : a.coprime b) :
+  disjoint (a.divisors.filter is_prime_pow) (b.divisors.filter is_prime_pow) :=
 begin
-  rw is_prime_pow_nat_iff,
-  split,
-  { rintro ⟨p, k, hp, hk, rfl⟩,
-    refine ⟨p, ⟨hp, dvd_pow_self _ hk.ne'⟩, _⟩,
-    rintro q ⟨hq, hq'⟩,
-    exact (nat.prime_dvd_prime_iff_eq hq hp).1 (hq.dvd_of_dvd_pow hq') },
-  rintro ⟨p, ⟨hp, hn⟩, hq⟩,
-  -- Take care of the n = 0 case
-  rcases n.eq_zero_or_pos with rfl | hn₀,
-  { obtain ⟨q, hq', hq''⟩ := nat.exists_infinite_primes (p + 1),
-    cases hq q ⟨hq'', by simp⟩,
-    simpa using hq' },
-  -- So assume 0 < n
-  refine ⟨p, n.factors.count p, hp, _, _⟩,
-  { apply list.count_pos.2,
-    rwa nat.mem_factors_iff_dvd hn₀ hp },
-  simp only [and_imp] at hq,
-  apply nat.dvd_antisymm (nat.pow_factors_count_dvd _ _),
-  -- We need to show n ∣ p ^ n.factors.count p
-  apply nat.dvd_of_factors_subperm hn₀.ne',
-  rw [hp.factors_pow, list.subperm_ext_iff],
-  intros q hq',
-  rw nat.mem_factors hn₀.ne' at hq',
-  cases hq _ hq'.1 hq'.2,
-  simp,
+  simp only [finset.disjoint_left, finset.mem_filter, and_imp, nat.mem_divisors, not_and],
+  rintro n han ha hn hbn hb -,
+  exact hn.ne_one (nat.eq_one_of_dvd_coprimes hab han hbn),
 end
 
 lemma is_prime_pow.two_le : ∀ {n : ℕ}, is_prime_pow n → 2 ≤ n

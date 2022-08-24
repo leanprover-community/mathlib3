@@ -3,8 +3,9 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
+import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
-import topology.algebra.ordered.monotone_continuity
+import tactic.positivity
 
 /-!
 # Square root of a real number
@@ -21,7 +22,7 @@ Then we prove some basic properties of these functions.
 We define `nnreal.sqrt` as the noncomputable inverse to the function `x ↦ x * x`. We use general
 theory of inverses of strictly monotone functions to prove that `nnreal.sqrt x` exists. As a side
 effect, `nnreal.sqrt` is a bundled `order_iso`, so for `nnreal` numbers we get continuity as well as
-theorems like `sqrt x ≤ y ↔ x * x ≤ y` for free.
+theorems like `sqrt x ≤ y ↔ x ≤ y * y` for free.
 
 Then we define `real.sqrt x` to be `nnreal.sqrt (real.to_nnreal x)`. We also define a Cauchy
 sequence `real.sqrt_aux (f : cau_seq ℚ abs)` which converges to `sqrt (mk f)` but do not prove (yet)
@@ -85,9 +86,9 @@ by rw [sqrt_eq_iff_sq_eq, mul_mul_mul_comm, mul_self_sqrt, mul_self_sqrt]
 /-- `nnreal.sqrt` as a `monoid_with_zero_hom`. -/
 noncomputable def sqrt_hom : ℝ≥0 →*₀ ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
 
-lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv x
+lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := map_inv₀ sqrt_hom x
 
-lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := sqrt_hom.map_div x y
+lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := map_div₀ sqrt_hom x y
 
 lemma continuous_sqrt : continuous sqrt := sqrt.continuous
 
@@ -115,9 +116,8 @@ begin
   { exact this.imp (λ h e, ⟨x, x0, hx, e⟩) },
   apply of_near,
 
-  suffices : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
-  { rcases this with ⟨δ, δ0, hδ⟩,
-    intros }
+  rsuffices ⟨δ, δ0, hδ⟩ : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
+  { intros }
 end -/
 
 /-- The square root of a real number. This returns 0 for negative inputs. -/
@@ -140,7 +140,7 @@ by rw [real.sqrt, real.to_nnreal_coe]
 
 @[continuity]
 lemma continuous_sqrt : continuous sqrt :=
-nnreal.continuous_coe.comp $ nnreal.sqrt.continuous.comp nnreal.continuous_of_real
+nnreal.continuous_coe.comp $ nnreal.sqrt.continuous.comp continuous_real_to_nnreal
 
 theorem sqrt_eq_zero_of_nonpos (h : x ≤ 0) : sqrt x = 0 :=
 by simp [sqrt, real.to_nnreal_eq_zero.2 h]
@@ -222,14 +222,18 @@ begin
   exact sqrt_le_left
 end
 
+lemma sqrt_lt (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff hx, sqrt_sq hy]
+
+lemma sqrt_lt' (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
+
 /- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sq_le`.
    if you have `x > 0`, consider using `le_sqrt'` -/
 theorem le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), sq, mul_self_sqrt hy]
+le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt hy hx
 
-theorem le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
-  real.le_to_nnreal_iff_coe_le', sq, nnreal.coe_mul], exact mul_pos hx hx }
+lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y := le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt' hx
 
 theorem abs_le_sqrt (h : x^2 ≤ y) : |x| ≤ sqrt y :=
 by rw ← sqrt_sq_eq_abs; exact sqrt_le_sqrt h
@@ -252,7 +256,7 @@ theorem le_sqrt_of_sq_le (h : x^2 ≤ y) : x ≤ sqrt y :=
 by simp [le_antisymm_iff, hx, hy]
 
 @[simp] theorem sqrt_eq_zero (h : 0 ≤ x) : sqrt x = 0 ↔ x = 0 :=
-by simpa using sqrt_inj h (le_refl _)
+by simpa using sqrt_inj h le_rfl
 
 theorem sqrt_eq_zero' : sqrt x = 0 ↔ x ≤ 0 :=
 by rw [sqrt, nnreal.coe_eq_zero, nnreal.sqrt_eq_zero, real.to_nnreal_eq_zero]
@@ -266,6 +270,24 @@ by rw [← not_le, not_iff_not, sqrt_eq_zero']
 @[simp] theorem sqrt_pos : 0 < sqrt x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le (iff.trans
   (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
+
+alias sqrt_pos ↔ _ sqrt_pos_of_pos
+
+section
+open tactic tactic.positivity
+
+/-- Extension for the `positivity` tactic: a square root is nonnegative, and is strictly positive if
+its input is. -/
+@[positivity]
+meta def _root_.tactic.positivity_sqrt : expr → tactic strictness
+| `(real.sqrt %%a) := do
+  (do -- if can prove `0 < a`, report positivity
+    positive pa ← core a,
+    positive <$> mk_app ``sqrt_pos_of_pos [pa]) <|>
+  nonnegative <$> mk_app ``sqrt_nonneg [a] -- else report nonnegativity
+| _ := failed
+
+end
 
 @[simp] theorem sqrt_mul (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
 by simp_rw [sqrt, ← nnreal.coe_mul, nnreal.coe_eq, real.to_nnreal_mul hx, nnreal.sqrt_mul]
@@ -292,20 +314,35 @@ by rw [←div_sqrt, one_div_div, div_sqrt]
 theorem sqrt_div_self : sqrt x / x = (sqrt x)⁻¹ :=
 by rw [sqrt_div_self', one_div]
 
-theorem lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
-by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), sq, mul_self_sqrt hy]
+lemma lt_sqrt (hx : 0 ≤ x) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [←sqrt_lt_sqrt_iff (sq_nonneg _), sqrt_sq hx]
 
-theorem sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
-begin
-  split,
-  { simpa only [← sqrt_lt_sqrt_iff (sq_nonneg x), sqrt_sq_eq_abs] using abs_lt.mp },
-  { rw [← abs_lt, ← sq_abs],
-    exact λ h, (lt_sqrt (abs_nonneg x) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg x) h)).le).mp h },
-end
+lemma sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y := by rw [←abs_lt, ←sq_abs, lt_sqrt (abs_nonneg _)]
 
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
+
+lemma lt_sq_of_sqrt_lt {x y : ℝ} (h : sqrt x < y) : x < y ^ 2 :=
+by { have hy := x.sqrt_nonneg.trans_lt h,
+  rwa [←sqrt_lt_sqrt_iff_of_pos (sq_pos_of_pos hy), sqrt_sq hy.le] }
+
+/-- The natural square root is at most the real square root -/
+lemma nat_sqrt_le_real_sqrt {a : ℕ} : ↑(nat.sqrt a) ≤ real.sqrt ↑a :=
+begin
+  rw real.le_sqrt (nat.cast_nonneg _) (nat.cast_nonneg _),
+  norm_cast,
+  exact nat.sqrt_le' a,
+end
+
+/-- The real square root is at most the natural square root plus one -/
+lemma real_sqrt_le_nat_sqrt_succ {a : ℕ} : real.sqrt ↑a ≤ nat.sqrt a + 1 :=
+begin
+  rw real.sqrt_le_iff,
+  split,
+  { norm_cast, simp, },
+  { norm_cast, exact le_of_lt (nat.lt_succ_sqrt' a), },
+end
 
 instance : star_ordered_ring ℝ :=
 { nonneg_iff := λ r, by

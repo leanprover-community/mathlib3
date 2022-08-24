@@ -86,26 +86,6 @@ by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff
 
 end get
 
-/-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
-protected def map (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β'
-| (inl x) := inl (f x)
-| (inr x) := inr (g x)
-
-@[simp] lemma map_inl (f : α → α') (g : β → β') (x : α) : (inl x).map f g = inl (f x) := rfl
-@[simp] lemma map_inr (f : α → α') (g : β → β') (x : β) : (inr x).map f g = inr (g x) := rfl
-
-@[simp] lemma map_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
-  ∀ x : α ⊕ β, (x.map f g).map f' g' = x.map (f' ∘ f) (g' ∘ g)
-| (inl a) := rfl
-| (inr b) := rfl
-
-@[simp] lemma map_comp_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
-  (sum.map f' g') ∘ (sum.map f g) = sum.map (f' ∘ f) (g' ∘ g) :=
-funext $ map_map f' g' f g
-
-@[simp] lemma map_id_id (α β) : sum.map (@id α) (@id β) = id :=
-funext $ λ x, sum.rec_on x (λ _, rfl) (λ _, rfl)
-
 theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
 ⟨inl.inj, congr_arg _⟩
 
@@ -142,6 +122,29 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 @[simp] lemma elim_comp_inl_inr {α β γ : Sort*} (f : α ⊕ β → γ) :
   sum.elim (f ∘ inl) (f ∘ inr) = f :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
+
+/-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
+protected def map (f : α → α') (g : β → β') : α ⊕ β → α' ⊕ β' :=
+sum.elim (inl ∘ f) (inr ∘ g)
+
+@[simp] lemma map_inl (f : α → α') (g : β → β') (x : α) : (inl x).map f g = inl (f x) := rfl
+@[simp] lemma map_inr (f : α → α') (g : β → β') (x : β) : (inr x).map f g = inr (g x) := rfl
+
+@[simp] lemma map_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+  ∀ x : α ⊕ β, (x.map f g).map f' g' = x.map (f' ∘ f) (g' ∘ g)
+| (inl a) := rfl
+| (inr b) := rfl
+
+@[simp] lemma map_comp_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+  (sum.map f' g') ∘ (sum.map f g) = sum.map (f' ∘ f) (g' ∘ g) :=
+funext $ map_map f' g' f g
+
+@[simp] lemma map_id_id (α β) : sum.map (@id α) (@id β) = id :=
+funext $ λ x, sum.rec_on x (λ _, rfl) (λ _, rfl)
+
+lemma elim_comp_map {α β γ δ ε : Sort*} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} :
+  sum.elim f₂ g₂ ∘ sum.map f₁ g₁ = sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+by ext (_|_); refl
 
 open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
 
@@ -192,10 +195,10 @@ update_comp_eq_of_injective _ inr_injective _ _
 by rw ← update_inr_comp_inr
 
 /-- Swap the factors of a sum type -/
-@[simp] def swap : α ⊕ β → β ⊕ α
-| (inl a) := inr a
-| (inr b) := inl b
+def swap : α ⊕ β → β ⊕ α := sum.elim inr inl
 
+@[simp] lemma swap_inl (x : α) : swap (inl x : α ⊕ β) = inr x := rfl
+@[simp] lemma swap_inr (x : β) : swap (inr x : α ⊕ β) = inl x := rfl
 @[simp] lemma swap_swap (x : α ⊕ β) : swap (swap x) = x := by cases x; refl
 @[simp] lemma swap_swap_eq : swap ∘ swap = @id (α ⊕ β) := funext $ swap_swap
 @[simp] lemma swap_left_inverse : function.left_inverse (@swap α β) swap := swap_swap
@@ -283,6 +286,8 @@ instance [decidable_rel r] [decidable_rel s] : decidable_rel (lex r s)
 protected lemma lift_rel.lex {a b : α ⊕ β} (h : lift_rel r s a b) : lex r s a b :=
 by { cases h, exacts [lex.inl ‹_›, lex.inr ‹_›] }
 
+lemma lift_rel_subrelation_lex : subrelation (lift_rel r s) (lex r s) := λ a b, lift_rel.lex
+
 lemma lex.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b) (h : lex r₁ s₁ x y) :
   lex r₂ s₂ x y :=
 by { cases h, exacts [lex.inl (hr _ _ ‹_›), lex.inr (hs _ _ ‹_›), lex.sep _ _] }
@@ -290,7 +295,7 @@ by { cases h, exacts [lex.inl (hr _ _ ‹_›), lex.inr (hs _ _ ‹_›), lex.se
 lemma lex.mono_left (hr : ∀ a b, r₁ a b → r₂ a b) (h : lex r₁ s x y) : lex r₂ s x y :=
 h.mono hr $ λ _ _, id
 
-lemma lex.mono_right (hs : ∀ a b, s₁ a b → s₂ a b)  (h : lex r s₁ x y) : lex r s₂ x y :=
+lemma lex.mono_right (hs : ∀ a b, s₁ a b → s₂ a b) (h : lex r s₁ x y) : lex r s₂ x y :=
 h.mono (λ _ _, id) hs
 
 lemma lex_acc_inl {a} (aca : acc r a) : acc (lex r s) (inl a) :=
@@ -317,9 +322,9 @@ have aca : ∀ a, acc (lex r s) (inl a), from λ a, lex_acc_inl (ha.apply a),
 end lex
 end sum
 
-namespace function
-
 open sum
+
+namespace function
 
 lemma injective.sum_elim {f : α → γ} {g : β → γ}
   (hf : injective f) (hg : injective g) (hfg : ∀ a b, f a ≠ g b) :
@@ -340,3 +345,56 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
 end function
+
+namespace sum
+open function
+
+lemma elim_const_const (c : γ) :
+  sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c :=
+by { ext x, cases x; refl }
+
+@[simp]
+lemma elim_lam_const_lam_const (c : γ) :
+  sum.elim (λ (_ : α), c) (λ (_ : β), c) = λ _, c :=
+sum.elim_const_const c
+
+lemma elim_update_left [decidable_eq α] [decidable_eq β]
+    (f : α → γ) (g : β → γ) (i : α) (c : γ) :
+  sum.elim (function.update f i c) g = function.update (sum.elim f g) (inl i) c :=
+begin
+  ext x, cases x,
+  { by_cases h : x = i,
+    { subst h, simp },
+    { simp [h] } },
+  { simp }
+end
+
+lemma elim_update_right [decidable_eq α] [decidable_eq β]
+    (f : α → γ) (g : β → γ) (i : β) (c : γ) :
+  sum.elim f (function.update g i c) = function.update (sum.elim f g) (inr i) c :=
+begin
+  ext x, cases x,
+  { simp },
+  { by_cases h : x = i,
+    { subst h, simp },
+    { simp [h] } }
+end
+
+end sum
+
+/-!
+### Ternary sum
+
+Abbreviations for the maps from the summands to `α ⊕ β ⊕ γ`. This is useful for pattern-matching.
+-/
+
+namespace sum3
+
+/-- The map from the first summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₀ (a) : α ⊕ β ⊕ γ := inl a
+/-- The map from the second summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₁ (b) : α ⊕ β ⊕ γ := inr $ inl b
+/-- The map from the third summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₂ (c) : α ⊕ β ⊕ γ := inr $ inr c
+
+end sum3

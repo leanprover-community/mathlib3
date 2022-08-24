@@ -23,7 +23,7 @@ In this file we define the following measurable equivalences:
 * `measurable_equiv.add_right`: additive version of `measurable_equiv.mul_right`;
 * `measurable_equiv.mul_left₀`, `measurable_equiv.mul_right₀`: versions of
   `measurable_equiv.mul_left` and `measurable_equiv.mul_right` for groups with zero;
-* `measurable_equiv.inv`, `measurable_equiv.inv₀`: `has_inv.inv` as a measurable automorphism
+* `measurable_equiv.inv`: `has_inv.inv` as a measurable automorphism
   of a group (or a group with zero);
 * `measurable_equiv.neg`: negation as a measurable automorphism of an additive group.
 
@@ -148,26 +148,30 @@ lemma _root_.measurable_embedding_mul_right₀ {g : G₀} (hg : g ≠ 0) :
 
 end mul
 
-variables (G G₀)
-
-/-- Inversion as a measurable automorphism of a group. -/
+/-- Inversion as a measurable automorphism of a group or group with zero. -/
 @[to_additive "Negation as a measurable automorphism of an additive group.",
   simps to_equiv apply { fully_applied := ff }]
-def inv [has_measurable_inv G] : G ≃ᵐ G :=
+def inv (G) [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] : G ≃ᵐ G :=
 { to_equiv := equiv.inv G,
   measurable_to_fun := measurable_inv,
   measurable_inv_fun := measurable_inv }
 
-/-- Inversion as a measurable automorphism of a group with zero. -/
-@[simps to_equiv apply { fully_applied := ff }]
-def inv₀ [has_measurable_inv G₀] : G₀ ≃ᵐ G₀ :=
-{ to_equiv := equiv.inv₀ G₀,
-  measurable_to_fun := measurable_inv,
-  measurable_inv_fun := measurable_inv }
+@[simp, to_additive]
+lemma symm_inv {G} [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] :
+  (inv G).symm = inv G := rfl
 
-variables {G G₀}
+/-- `equiv.div_right` as a `measurable_equiv`. -/
+@[to_additive /-" `equiv.sub_right` as a `measurable_equiv` "-/]
+def div_right [has_measurable_mul G] (g : G) : G ≃ᵐ G :=
+{ to_equiv := equiv.div_right g,
+  measurable_to_fun := measurable_div_const' g,
+  measurable_inv_fun := measurable_mul_const g }
 
-@[simp] lemma symm_inv [has_measurable_inv G] : (inv G).symm = inv G := rfl
-@[simp] lemma symm_inv₀ [has_measurable_inv G₀] : (inv₀ G₀).symm = inv₀ G₀ := rfl
+/-- `equiv.div_left` as a `measurable_equiv` -/
+@[to_additive /-" `equiv.sub_left` as a `measurable_equiv` "-/]
+def div_left [has_measurable_mul G] [has_measurable_inv G] (g : G) : G ≃ᵐ G :=
+{ to_equiv := equiv.div_left g,
+  measurable_to_fun := measurable_id.const_div g,
+  measurable_inv_fun := measurable_inv.mul_const g }
 
 end measurable_equiv

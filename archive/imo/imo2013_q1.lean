@@ -51,8 +51,9 @@ begin
   { intro n, use (λ_, 1), simp }, -- For the base case, any m works.
 
   intro n,
-  obtain ⟨t, ht : ↑n = 2 * t⟩ | ⟨t, ht : ↑n = 2 * t + 1⟩ := (n : ℕ).even_or_odd,
+  obtain ⟨t, ht : ↑n = t + t⟩ | ⟨t, ht : ↑n = 2 * t + 1⟩ := (n : ℕ).even_or_odd,
   { -- even case
+    rw ← two_mul at ht,
     cases t, -- Eliminate the zero case to simplify later calculations.
     { exfalso, rw mul_zero at ht, exact pnat.ne_zero n ht },
 

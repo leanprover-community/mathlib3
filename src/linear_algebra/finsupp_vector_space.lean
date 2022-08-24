@@ -52,12 +52,16 @@ begin
       simp only [supr_singleton],
       rw range_coe,
       apply range_comp_subset_range },
-    { refine supr_le_supr (λ i, supr_le_supr _),
-      intros hi,
-      rw span_le,
-      rw range_coe,
+    { refine supr₂_mono (λ i hi, _),
+      rw [span_le, range_coe],
       apply range_comp_subset_range } }
 end
+
+end ring
+
+section semiring
+variables {R : Type*} {M : Type*} {ι : Type*}
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 open linear_map submodule
 
@@ -118,7 +122,7 @@ basis.of_repr (linear_equiv.refl _ _)
   (finsupp.basis_single_one : ι → (ι →₀ R)) = λ i, finsupp.single i 1 :=
 funext $ λ i, basis.apply_eq_iff.mpr rfl
 
-end ring
+end semiring
 
 section dim
 variables {K : Type u} {V : Type v} {ι : Type v}
@@ -196,13 +200,12 @@ begin
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
-lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
-  #V < ω :=
+lemma cardinal_lt_aleph_0_of_finite_dimensional [fintype K] [finite_dimensional K V] : #V < ℵ₀ :=
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
-  exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
-    (is_noetherian.dim_lt_omega K V),
+  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_finite K)
+    (is_noetherian.dim_lt_aleph_0 K V),
 end
 
 end module

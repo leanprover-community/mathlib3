@@ -122,7 +122,7 @@ lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
   (∑ i in s, f i).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
-  { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_refl _ },
+  { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_rfl },
   { assume i s his ih,
     rw [finset.sup_insert, finset.sum_insert his],
     exact le_trans (degrees_add _ _) (sup_le_sup_left ih _) }
@@ -252,7 +252,8 @@ by rw [vars, degrees_monomial_eq _ _ h, finsupp.to_finset_to_multiset]
 by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X [nontrivial R] : (X n : mv_polynomial σ R).vars = {n} :=
-by rw [X, vars_monomial (@one_ne_zero R _ _), finsupp.support_single_ne_zero (one_ne_zero : 1 ≠ 0)]
+by rw [X, vars_monomial (@one_ne_zero R _ _),
+  finsupp.support_single_ne_zero _ (one_ne_zero : 1 ≠ 0)]
 
 lemma mem_vars (i : σ) :
   i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
@@ -408,7 +409,7 @@ by simp [vars, degrees_map_of_injective _ hf]
 
 lemma vars_monomial_single (i : σ) {e : ℕ} {r : R} (he : e ≠ 0) (hr : r ≠ 0) :
   (monomial (finsupp.single i e) r).vars = {i} :=
-by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
+by rw [vars_monomial hr, finsupp.support_single_ne_zero _ he]
 
 lemma vars_eq_support_bUnion_support : p.vars = p.support.bUnion finsupp.support :=
 by { ext i, rw [mem_vars, finset.mem_bUnion] }
@@ -536,7 +537,7 @@ nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   begin
     rw [finset.mem_singleton] at this,
     subst this,
-    exact le_refl _
+    exact le_rfl
   end
 
 @[simp] lemma total_degree_zero : (0 : mv_polynomial σ R).total_degree = 0 :=
@@ -597,7 +598,7 @@ finset.sup_le $ assume n hn,
   begin
     simp only [finset.mem_bUnion, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
-    rw [finsupp.sum_add_index],
+    rw [finsupp.sum_add_index'],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
     { assume a, refl },
     { assume a b₁ b₂, refl }
@@ -690,7 +691,7 @@ begin
   rw finset.mem_image at h',
   rcases h' with ⟨s, hs, rfl⟩,
   rw finsupp.sum_map_domain_index,
-  exact le_trans (le_refl _) (finset.le_sup hs),
+  exact le_trans le_rfl (finset.le_sup hs),
   exact assume _, rfl,
   exact assume _ _ _, rfl
 end
@@ -710,10 +711,10 @@ begin
   conv_lhs { rw p.as_sum },
   simp only [ring_hom.map_sum, eval₂_hom_monomial],
   by_cases h0 : constant_coeff p = 0,
-  work_on_goal 0
+  work_on_goal 1
   { rw [h0, f.map_zero, finset.sum_eq_zero],
     intros d hd },
-  work_on_goal 1
+  work_on_goal 2
   { rw [finset.sum_eq_single (0 : σ →₀ ℕ)],
     { rw [finsupp.prod_zero_index, mul_one],
       refl },
@@ -769,7 +770,7 @@ lemma exists_rename_eq_of_vars_subset_range
   (p : mv_polynomial σ R) (f : τ → σ)
   (hfi : injective f) (hf : ↑p.vars ⊆ set.range f) :
   ∃ q : mv_polynomial τ R, rename f q = p :=
-⟨bind₁ (λ i : σ, option.elim (partial_inv f i) 0 X) p,
+⟨bind₁ (λ i : σ, option.elim 0 X $ partial_inv f i) p,
   begin
     show (rename f).to_ring_hom.comp _ p = ring_hom.id _ p,
     refine hom_congr_vars _ _ _,

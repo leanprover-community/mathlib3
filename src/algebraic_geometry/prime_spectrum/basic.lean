@@ -3,12 +3,13 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.opens
+import algebra.punit_instances
+import linear_algebra.finsupp
+import ring_theory.nilpotent
+import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import linear_algebra.finsupp
-import algebra.punit_instances
-import ring_theory.nilpotent
+import topology.sets.opens
 import topology.sober
 
 /-!
@@ -56,7 +57,7 @@ is the type of all prime ideals of `R`.
 It is naturally endowed with a topology (the Zariski topology),
 and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def prime_spectrum := {I : ideal R // I.is_prime}
 
 variable {R}
@@ -160,14 +161,12 @@ section gc
 variable (R)
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc : @galois_connection
-  (ideal R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc : @galois_connection (ideal R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc_set : @galois_connection
-  (set R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc_set : @galois_connection (set R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ s, zero_locus s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,
 by simpa [zero_locus_span, function.comp] using ideal_gc.compose (gc R)
@@ -416,7 +415,7 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 
@@ -502,7 +501,7 @@ variables (f : R →+* S)
   (comap f y).as_ideal = ideal.comap f y.as_ideal :=
 rfl
 
-@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id := by { ext, refl }
+@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id _ := by { ext, refl }
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = (comap f).comp (comap g) :=
@@ -586,6 +585,63 @@ begin
     exact is_localization.comap_map_of_is_prime_disjoint M S _ x.2 h }
 end
 
+section spec_of_surjective
+/-! The comap of a surjective ring homomorphism is a closed embedding between the prime spectra. -/
+
+open function ring_hom
+
+lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
+{ induced := begin
+    simp_rw [topological_space_eq_iff, ←is_closed_compl_iff, is_closed_induced_iff,
+      is_closed_iff_zero_locus],
+    refine λ s, ⟨λ ⟨F, hF⟩, ⟨zero_locus (f ⁻¹' F), ⟨f ⁻¹' F, rfl⟩,
+      by rw [preimage_comap_zero_locus, surjective.image_preimage hf, hF]⟩, _⟩,
+    rintros ⟨-, ⟨F, rfl⟩, hF⟩,
+    exact ⟨f '' F, hF.symm.trans (preimage_comap_zero_locus f F)⟩,
+  end }
+
+lemma image_comap_zero_locus_eq_zero_locus_comap (hf : surjective f) (I : ideal S) :
+  comap f '' zero_locus I = zero_locus (I.comap f) :=
+begin
+  simp only [set.ext_iff, set.mem_image, mem_zero_locus, set_like.coe_subset_coe],
+  refine λ p, ⟨_, λ h_I_p, _⟩,
+  { rintro ⟨p, hp, rfl⟩ a ha,
+    exact hp ha },
+  { have hp : ker f ≤ p.as_ideal := (ideal.comap_mono bot_le).trans h_I_p,
+    refine ⟨⟨p.as_ideal.map f, ideal.map_is_prime_of_surjective hf hp⟩, λ x hx, _, _⟩,
+    { obtain ⟨x', rfl⟩ := hf x,
+      exact ideal.mem_map_of_mem f (h_I_p hx) },
+    { ext x,
+      change f x ∈ p.as_ideal.map f ↔ _,
+      rw ideal.mem_map_iff_of_surjective f hf,
+      refine ⟨_, λ hx, ⟨x, hx, rfl⟩⟩,
+      rintros ⟨x', hx', heq⟩,
+      rw ← sub_sub_cancel x' x,
+      refine p.as_ideal.sub_mem hx' (hp _),
+      rwa [mem_ker, map_sub, sub_eq_zero] } },
+end
+
+lemma range_comap_of_surjective (hf : surjective f) :
+  set.range (comap f) = zero_locus (ker f) :=
+begin
+  rw ← set.image_univ,
+  convert image_comap_zero_locus_eq_zero_locus_comap _ _ hf _,
+  rw zero_locus_bot,
+end
+
+lemma is_closed_range_comap_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=
+begin
+  rw range_comap_of_surjective _ f hf,
+  exact is_closed_zero_locus ↑(ker f),
+end
+
+lemma closed_embedding_comap_of_surjective (hf : surjective f) : closed_embedding (comap f) :=
+{ induced := (comap_inducing_of_surjective S f hf).induced,
+  inj := comap_injective_of_surjective f hf,
+  closed_range := is_closed_range_comap_of_surjective S f hf }
+
+end spec_of_surjective
+
 end comap
 
 section basic_open
@@ -666,7 +722,7 @@ begin
   rcases submodule.exists_finset_of_mem_supr I hn with ⟨s, hs⟩,
   use s,
   -- Using simp_rw here, because `hI` and `zero_locus_supr` need to be applied underneath binders
-  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
+  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm (zero_locus {f})ᶜ, ← set.diff_eq,
            set.diff_eq_empty, hI, ← zero_locus_supr],
   rw ← zero_locus_radical, -- this one can't be in `simp_rw` because it would loop
   apply zero_locus_anti_mono,
@@ -717,8 +773,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=
@@ -739,11 +793,14 @@ by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
 
 lemma le_iff_specializes (x y : prime_spectrum R) :
   x ≤ y ↔ x ⤳ y :=
-le_iff_mem_closure x y
+(le_iff_mem_closure x y).trans specializes_iff_mem_closure.symm
 
-instance : t0_space (prime_spectrum R) :=
-by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
-  ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
+/-- `nhds` as an order embedding. -/
+@[simps { fully_applied := tt }]
+def nhds_order_embedding : prime_spectrum R ↪o filter (prime_spectrum R) :=
+order_embedding.of_map_le_iff nhds $ λ a b, (le_iff_specializes a b).symm
+
+instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
 
 end order
 
@@ -751,13 +808,14 @@ end order
 the localization of `x`. -/
 def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
   localization.at_prime y.as_ideal →+* localization.at_prime x.as_ideal :=
-@is_localization.lift _ _ _ _ _ _ _ _ localization.is_localization (algebra_map R _)
-begin
-  rintro ⟨a, ha⟩,
-  rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
-    ← set.compl_subset_compl] at h,
-  exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
-end
+@is_localization.lift _ _ _ _ _ _ _ _
+  localization.is_localization (algebra_map R (localization.at_prime x.as_ideal))
+  begin
+    rintro ⟨a, ha⟩,
+    rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
+      ← set.compl_subset_compl] at h,
+    exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
+  end
 
 end prime_spectrum
 

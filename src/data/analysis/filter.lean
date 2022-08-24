@@ -97,8 +97,8 @@ protected def principal (s : set α) : (principal s).realizer := ⟨unit,
 { f            := λ _, s,
   pt           := (),
   inf          := λ _ _, (),
-  inf_le_left  := λ _ _, le_refl _,
-  inf_le_right := λ _ _, le_refl _ },
+  inf_le_left  := λ _ _, le_rfl,
+  inf_le_right := λ _ _, le_rfl },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨_, s⟩, s, λ h, ⟨(), h⟩⟩⟩
 
@@ -187,8 +187,7 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨s, h⟩, s.finite_to_set.subset (compl_subset_comm.1 h),
- λ ⟨fs⟩, by exactI ⟨xᶜ.to_finset, λ a (h : a ∉ xᶜ.to_finset),
-  classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
+ λ h, ⟨h.to_finset, by simp⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
 protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) :

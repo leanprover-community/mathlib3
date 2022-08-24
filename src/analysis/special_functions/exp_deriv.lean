@@ -23,6 +23,7 @@ open filter asymptotics set function
 open_locale classical topological_space
 
 namespace complex
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
@@ -31,14 +32,14 @@ begin
   have : (1 : ℕ) < 2 := by norm_num,
   refine (is_O.of_bound (∥exp x∥) _).trans_is_o (is_o_pow_id this),
   filter_upwards [metric.ball_mem_nhds (0 : ℂ) zero_lt_one],
-  simp only [metric.mem_ball, dist_zero_right, normed_field.norm_pow],
+  simp only [metric.mem_ball, dist_zero_right, norm_pow],
   exact λ z hz, exp_bound_sq x z hz.le,
 end
 
-lemma differentiable_exp : differentiable ℂ exp :=
-λx, (has_deriv_at_exp x).differentiable_at
+lemma differentiable_exp : differentiable 𝕜 exp :=
+λ x, (has_deriv_at_exp x).differentiable_at.restrict_scalars 𝕜
 
-lemma differentiable_at_exp {x : ℂ} : differentiable_at ℂ exp x :=
+lemma differentiable_at_exp {x : ℂ} : differentiable_at 𝕜 exp x :=
 differentiable_exp x
 
 @[simp] lemma deriv_exp : deriv exp = exp :=
@@ -48,18 +49,20 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
+lemma cont_diff_exp : ∀ {n}, cont_diff 𝕜 n exp :=
 begin
-  refine times_cont_diff_all_iff_nat.2 (λ n, _),
-  induction n with n ihn,
-  { exact times_cont_diff_zero.2 continuous_exp },
-  { rw times_cont_diff_succ_iff_deriv,
-    use differentiable_exp,
-    rwa deriv_exp }
+  refine cont_diff_all_iff_nat.2 (λ n, _),
+  have : cont_diff ℂ ↑n exp,
+  { induction n with n ihn,
+    { exact cont_diff_zero.2 continuous_exp },
+    { rw cont_diff_succ_iff_deriv,
+      use differentiable_exp,
+      rwa deriv_exp }, },
+  exact this.restrict_scalars 𝕜
 end
 
 lemma has_strict_deriv_at_exp (x : ℂ) : has_strict_deriv_at exp (exp x) x :=
-times_cont_diff_exp.times_cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
+cont_diff_exp.cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
 
 lemma has_strict_fderiv_at_exp_real (x : ℂ) :
   has_strict_fderiv_at exp (exp x • (1 : ℂ →L[ℝ] ℂ)) x :=
@@ -71,7 +74,8 @@ open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 end complex
 
 section
-variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
+  {f : 𝕜 → ℂ} {f' : ℂ} {x : 𝕜} {s : set 𝕜}
 
 lemma has_strict_deriv_at.cexp (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
@@ -85,39 +89,20 @@ lemma has_deriv_within_at.cexp (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') s x :=
 (complex.has_deriv_at_exp (f x)).comp_has_deriv_within_at x hf
 
-lemma deriv_within_cexp (hf : differentiable_within_at ℂ f s x)
-  (hxs : unique_diff_within_at ℂ s x) :
-  deriv_within (λx, complex.exp (f x)) s x = complex.exp (f x) * (deriv_within f s x) :=
+lemma deriv_within_cexp (hf : differentiable_within_at 𝕜 f s x)
+  (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (λ x, complex.exp (f x)) s x = complex.exp (f x) * deriv_within f s x :=
 hf.has_deriv_within_at.cexp.deriv_within hxs
 
-@[simp] lemma deriv_cexp (hc : differentiable_at ℂ f x) :
-  deriv (λx, complex.exp (f x)) x = complex.exp (f x) * (deriv f x) :=
+@[simp] lemma deriv_cexp (hc : differentiable_at 𝕜 f x) :
+  deriv (λ x, complex.exp (f x)) x = complex.exp (f x) * deriv f x :=
 hc.has_deriv_at.cexp.deriv
 
 end
 
 section
-variables {f : ℝ → ℂ} {f' : ℂ} {x : ℝ} {s : set ℝ}
-
-open complex
-
-lemma has_strict_deriv_at.cexp_real (h : has_strict_deriv_at f f' x) :
-  has_strict_deriv_at (λ x, exp (f x)) (exp (f x) * f') x :=
-(has_strict_fderiv_at_exp_real (f x)).comp_has_strict_deriv_at x h
-
-lemma has_deriv_at.cexp_real (h : has_deriv_at f f' x) :
-  has_deriv_at (λ x, exp (f x)) (exp (f x) * f') x :=
-(has_strict_fderiv_at_exp_real (f x)).has_fderiv_at.comp_has_deriv_at x h
-
-lemma has_deriv_within_at.cexp_real (h : has_deriv_within_at f f' s x) :
-  has_deriv_within_at (λ x, exp (f x)) (exp (f x) * f') s x :=
-(has_strict_fderiv_at_exp_real (f x)).has_fderiv_at.comp_has_deriv_within_at x h
-
-end
-
-section
-
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {f : E → ℂ} {f' : E →L[𝕜] ℂ}
   {x : E} {s : set E}
 
 lemma has_strict_fderiv_at.cexp (hf : has_strict_fderiv_at f f' x) :
@@ -132,37 +117,37 @@ lemma has_fderiv_at.cexp (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') x :=
 has_fderiv_within_at_univ.1 $ hf.has_fderiv_within_at.cexp
 
-lemma differentiable_within_at.cexp (hf : differentiable_within_at ℂ f s x) :
-  differentiable_within_at ℂ (λ x, complex.exp (f x)) s x :=
+lemma differentiable_within_at.cexp (hf : differentiable_within_at 𝕜 f s x) :
+  differentiable_within_at 𝕜 (λ x, complex.exp (f x)) s x :=
 hf.has_fderiv_within_at.cexp.differentiable_within_at
 
-@[simp] lemma differentiable_at.cexp (hc : differentiable_at ℂ f x) :
-  differentiable_at ℂ (λx, complex.exp (f x)) x :=
+@[simp] lemma differentiable_at.cexp (hc : differentiable_at 𝕜 f x) :
+  differentiable_at 𝕜 (λ x, complex.exp (f x)) x :=
 hc.has_fderiv_at.cexp.differentiable_at
 
-lemma differentiable_on.cexp (hc : differentiable_on ℂ f s) :
-  differentiable_on ℂ (λx, complex.exp (f x)) s :=
-λx h, (hc x h).cexp
+lemma differentiable_on.cexp (hc : differentiable_on 𝕜 f s) :
+  differentiable_on 𝕜 (λ x, complex.exp (f x)) s :=
+λ x h, (hc x h).cexp
 
-@[simp] lemma differentiable.cexp (hc : differentiable ℂ f) :
-  differentiable ℂ (λx, complex.exp (f x)) :=
-λx, (hc x).cexp
+@[simp] lemma differentiable.cexp (hc : differentiable 𝕜 f) :
+  differentiable 𝕜 (λ x, complex.exp (f x)) :=
+λ x, (hc x).cexp
 
-lemma times_cont_diff.cexp {n} (h : times_cont_diff ℂ n f) :
-  times_cont_diff ℂ n (λ x, complex.exp (f x)) :=
-complex.times_cont_diff_exp.comp h
+lemma cont_diff.cexp {n} (h : cont_diff 𝕜 n f) :
+  cont_diff 𝕜 n (λ x, complex.exp (f x)) :=
+complex.cont_diff_exp.comp h
 
-lemma times_cont_diff_at.cexp {n} (hf : times_cont_diff_at ℂ n f x) :
-  times_cont_diff_at ℂ n (λ x, complex.exp (f x)) x :=
-complex.times_cont_diff_exp.times_cont_diff_at.comp x hf
+lemma cont_diff_at.cexp {n} (hf : cont_diff_at 𝕜 n f x) :
+  cont_diff_at 𝕜 n (λ x, complex.exp (f x)) x :=
+complex.cont_diff_exp.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.cexp {n} (hf : times_cont_diff_on ℂ n f s) :
-  times_cont_diff_on ℂ n (λ x, complex.exp (f x)) s :=
-complex.times_cont_diff_exp.comp_times_cont_diff_on  hf
+lemma cont_diff_on.cexp {n} (hf : cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ x, complex.exp (f x)) s :=
+complex.cont_diff_exp.comp_cont_diff_on hf
 
-lemma times_cont_diff_within_at.cexp {n} (hf : times_cont_diff_within_at ℂ n f s x) :
-  times_cont_diff_within_at ℂ n (λ x, complex.exp (f x)) s x :=
-complex.times_cont_diff_exp.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.cexp {n} (hf : cont_diff_within_at 𝕜 n f s x) :
+  cont_diff_within_at 𝕜 n (λ x, complex.exp (f x)) s x :=
+complex.cont_diff_exp.cont_diff_at.comp_cont_diff_within_at x hf
 
 end
 
@@ -176,8 +161,8 @@ lemma has_strict_deriv_at_exp (x : ℝ) : has_strict_deriv_at exp (exp x) x :=
 lemma has_deriv_at_exp (x : ℝ) : has_deriv_at exp (exp x) x :=
 (complex.has_deriv_at_exp x).real_of_complex
 
-lemma times_cont_diff_exp {n} : times_cont_diff ℝ n exp :=
-complex.times_cont_diff_exp.real_of_complex
+lemma cont_diff_exp {n} : cont_diff ℝ n exp :=
+complex.cont_diff_exp.real_of_complex
 
 lemma differentiable_exp : differentiable ℝ exp :=
 λx, (has_deriv_at_exp x).differentiable_at
@@ -228,24 +213,24 @@ section
 /-! Register lemmas for the derivatives of the composition of `real.exp` with a differentiable
 function, for standalone use and use with `simp`. -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
 
-lemma times_cont_diff.exp {n} (hf : times_cont_diff ℝ n f) :
-  times_cont_diff ℝ n (λ x, real.exp (f x)) :=
-real.times_cont_diff_exp.comp hf
+lemma cont_diff.exp {n} (hf : cont_diff ℝ n f) :
+  cont_diff ℝ n (λ x, real.exp (f x)) :=
+real.cont_diff_exp.comp hf
 
-lemma times_cont_diff_at.exp {n} (hf : times_cont_diff_at ℝ n f x) :
-  times_cont_diff_at ℝ n (λ x, real.exp (f x)) x :=
-real.times_cont_diff_exp.times_cont_diff_at.comp x hf
+lemma cont_diff_at.exp {n} (hf : cont_diff_at ℝ n f x) :
+  cont_diff_at ℝ n (λ x, real.exp (f x)) x :=
+real.cont_diff_exp.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.exp {n} (hf : times_cont_diff_on ℝ n f s) :
-  times_cont_diff_on ℝ n (λ x, real.exp (f x)) s :=
-real.times_cont_diff_exp.comp_times_cont_diff_on  hf
+lemma cont_diff_on.exp {n} (hf : cont_diff_on ℝ n f s) :
+  cont_diff_on ℝ n (λ x, real.exp (f x)) s :=
+real.cont_diff_exp.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.exp {n} (hf : times_cont_diff_within_at ℝ n f s x) :
-  times_cont_diff_within_at ℝ n (λ x, real.exp (f x)) s x :=
-real.times_cont_diff_exp.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.exp {n} (hf : cont_diff_within_at ℝ n f s x) :
+  cont_diff_within_at ℝ n (λ x, real.exp (f x)) s x :=
+real.cont_diff_exp.cont_diff_at.comp_cont_diff_within_at x hf
 
 lemma has_fderiv_within_at.exp (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (λ x, real.exp (f x)) (real.exp (f x) • f') s x :=

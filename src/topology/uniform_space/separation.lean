@@ -16,7 +16,7 @@ This file studies uniform spaces whose underlying topological spaces are separat
 (also known as Hausdorff or T₂).
 This turns out to be equivalent to asking that the intersection of all entourages
 is the diagonal only. This condition actually implies the stronger separation property
-that the space is regular (T₃), hence those conditions are equivalent for topologies coming from
+that the space is T₃, hence those conditions are equivalent for topologies coming from
 a uniform structure.
 
 More generally, the intersection `𝓢 X` of all entourages of `X`, which has type `set (X × X)` is an
@@ -101,6 +101,11 @@ lemma separated_equiv : equivalence (λx y, (x, y) ∈ 𝓢 α) :=
     h_ts $ show (x, z) ∈ comp_rel t t,
       from ⟨y, hxy t ht, hyz t ht⟩⟩
 
+lemma filter.has_basis.mem_separation_rel {ι : Sort*} {p : ι → Prop} {s : ι → set (α × α)}
+  (h : (𝓤 α).has_basis p s) {a : α × α} :
+  a ∈ 𝓢 α ↔ ∀ i, p i → a ∈ s i :=
+h.forall_mem_mem
+
 /-- A uniform space is separated if its separation relation is trivial (each point
 is related only to itself). -/
 class separated_space (α : Type u) [uniform_space α] : Prop := (out : 𝓢 α = id_rel)
@@ -176,12 +181,12 @@ begin
     intros x y hxy,
     rcases t2_separation hxy with ⟨u, v, uo, vo, hx, hy, h⟩,
     rcases is_open_iff_ball_subset.1 uo x hx with ⟨r, hrU, hr⟩,
-    exact ⟨r, hrU, λ H, disjoint_iff.2 h ⟨hr H, hy⟩⟩ }
+    exact ⟨r, hrU, λ H, h ⟨hr H, hy⟩⟩ }
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance separated_regular [separated_space α] : regular_space α :=
-{ t0 := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space.t0 },
+instance separated_t3 [separated_space α] : t3_space α :=
+{ to_t0_space := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space },
   regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
       from is_open.mem_nhds hs.is_open_compl ha,
@@ -194,7 +199,7 @@ instance separated_regular [separated_space α] : regular_space α :=
     begin
       rw [←closure_prod_eq, closure_eq_inter_uniformity],
       change (⨅d' ∈ 𝓤 α, _) ≤ comp_rel d (comp_rel _ d),
-      exact (infi_le_of_le d $ infi_le_of_le hd $ le_refl _)
+      exact (infi_le_of_le d $ infi_le_of_le hd $ le_rfl)
     end,
     have e_subset : closure e ⊆ sᶜ,
       from assume a' ha',
@@ -373,7 +378,7 @@ rfl
 
 lemma uniform_continuous_quotient_mk :
   uniform_continuous (quotient.mk : α → quotient (separation_setoid α)) :=
-le_refl _
+le_rfl
 
 lemma uniform_continuous_quotient {f : quotient (separation_setoid α) → β}
   (hf : uniform_continuous (λx, f ⟦x⟧)) : uniform_continuous f :=
@@ -444,11 +449,10 @@ lemma _root_.is_separated.eq_of_uniform_continuous {f : α → β} {x y : α} {s
 def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_setoid α)
 
 namespace separation_quotient
-instance : uniform_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
-instance : separated_space (separation_quotient α) :=
-  by dunfold separation_quotient ; apply_instance
+instance : uniform_space (separation_quotient α) := separation_setoid.uniform_space
+instance : separated_space (separation_quotient α) := uniform_space.separated_separation
 instance [inhabited α] : inhabited (separation_quotient α) :=
-by unfold separation_quotient; apply_instance
+quotient.inhabited (separation_setoid α)
 
 /-- Factoring functions to a separated space through the separation quotient. -/
 def lift [separated_space β] (f : α → β) : (separation_quotient α → β) :=

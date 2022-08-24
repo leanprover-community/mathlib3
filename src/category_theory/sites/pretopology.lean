@@ -24,9 +24,9 @@ coverage, pretopology, site
 
 ## References
 
-* [https://ncatlab.org/nlab/show/Grothendieck+pretopology][nlab]
+* [nLab, *Grothendieck pretopology*](https://ncatlab.org/nlab/show/Grothendieck+pretopology)
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
-* [https://stacks.math.columbia.edu/tag/00VG][Stacks]
+* [Stacks, *00VG*](https://stacks.math.columbia.edu/tag/00VG)
 -/
 
 universes v u
@@ -80,7 +80,7 @@ lemma le_def {K₁ K₂ : pretopology C} : K₁ ≤ K₂ ↔ (K₁ : Π (X : C),
 variable (C)
 
 instance : partial_order (pretopology C) :=
-{ le_refl := λ K, le_def.mpr (le_refl _),
+{ le_refl := λ K, le_def.mpr le_rfl,
   le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
   le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology.ext _ _ (le_antisymm h₁₂ h₂₁),
   ..pretopology.has_le }
@@ -99,7 +99,7 @@ instance : inhabited (pretopology C) := ⟨⊤⟩
 A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a sieve to be
 `J`-covering if it contains a family in `K`.
 
-See https://stacks.math.columbia.edu/tag/00ZC, or [MM92] Chapter III, Section 2, Equation (2).
+See <https://stacks.math.columbia.edu/tag/00ZC>, or [MM92] Chapter III, Section 2, Equation (2).
 -/
 def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
 { sieves := λ X S, ∃ R ∈ K X, R ≤ (S : presieve _),
@@ -162,7 +162,7 @@ def gi : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
       apply J.superset_covering _ (h _ hR),
       rwa sieve.gi_generate.gc }
   end,
-  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_refl _⟩,
+  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_rfl⟩,
   choice := λ x hx, to_grothendieck C x,
   choice_eq := λ _ _, rfl }
 
@@ -170,7 +170,7 @@ def gi : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
 The trivial pretopology, in which the coverings are exactly singleton isomorphisms. This topology is
 also known as the indiscrete, coarse, or chaotic topology.
 
-See https://stacks.math.columbia.edu/tag/07GE
+See <https://stacks.math.columbia.edu/tag/07GE>
 -/
 def trivial : pretopology C :=
 { coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = presieve.singleton f,

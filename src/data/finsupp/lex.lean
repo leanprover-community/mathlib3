@@ -66,13 +66,13 @@ lex.rec $ λ f, lex.rec $ λ g,
       end, hwit⟩)
   end
 
-instance lex.decidable_le : @decidable_rel (lex (α →₀ N)) (≤) :=
+@[irreducible] instance lex.decidable_le : @decidable_rel (lex (α →₀ N)) (≤) :=
 lt_trichotomy_rec
   (λ f g h, is_true $ or.inr h)
   (λ f g h, is_true $ or.inl $ congr_arg _ h)
   (λ f g h, is_false $ λ h', (lt_irrefl _ (h.trans_le h')).elim)
 
-instance lex.decidable_lt : @decidable_rel (lex (α →₀ N)) (<) :=
+@[irreducible] instance lex.decidable_lt : @decidable_rel (lex (α →₀ N)) (<) :=
 lt_trichotomy_rec
   (λ f g h, is_true h)
   (λ f g h, is_false h.not_lt)

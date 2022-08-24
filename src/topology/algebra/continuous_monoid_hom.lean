@@ -47,6 +47,9 @@ When you extend this structure, make sure to extend `continuous_add_monoid_hom_c
 structure continuous_monoid_hom extends A →* B :=
 (continuous_to_fun : continuous to_fun)
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_add_monoid_hom_class F α β` states that `F` is a type of continuous additive monoid
 homomorphisms.
 
@@ -63,6 +66,8 @@ You should also extend this typeclass when you extend `continuous_monoid_hom`. -
 class continuous_monoid_hom_class (F α β : Type*) [monoid α] [monoid β]
   [topological_space α] [topological_space β] extends monoid_hom_class F α β :=
 (map_continuous (f : F) : continuous f)
+
+end
 
 /-- Reinterpret a `continuous_monoid_hom` as a `monoid_hom`. -/
 add_decl_doc continuous_monoid_hom.to_monoid_hom

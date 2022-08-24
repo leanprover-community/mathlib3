@@ -151,7 +151,7 @@ lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
-{ coe := coe,
+{ coe := (coe : E → α → β),
   coe_injective' := λ e g h, coe_injective' e g h
     ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g)),
   injective' := λ e, (left_inv e).injective }

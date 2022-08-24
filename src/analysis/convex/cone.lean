@@ -686,7 +686,7 @@ begin
   suffices : ∀ x : H, x ∈ (univ : set H).inner_dual_cone → x = 0,
   { apply set_like.coe_injective,
     exact eq_singleton_iff_unique_mem.mpr ⟨λ x hx, inner_zero_right.ge, this⟩ },
-exact λ x hx, by simpa [←real_inner_self_nonpos] using hx (-x) (mem_univ _),
+  exact λ x hx, by simpa [←real_inner_self_nonpos] using hx (-x) (mem_univ _),
 end
 
 lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :

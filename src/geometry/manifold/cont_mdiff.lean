@@ -2134,7 +2134,7 @@ begin
   rw cont_mdiff_iff,
   split,
   { apply h.continuous },
-  intros, -- show the function is actually the identity on the range of I ∘ e
+  intros x y, -- show the function is actually the identity on the range of I ∘ e
   apply cont_diff_on.congr cont_diff_on_id,
   intros z hz, -- factorise into the chart (=e) and the model (=id)
   rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],
@@ -2166,7 +2166,7 @@ begin
   split,
   { rw ←open_embedding.to_local_homeomorph_target,
     apply local_homeomorph.continuous_on_symm (open_embedding.to_local_homeomorph e h) },
-  intros, -- show the function is actually the identity on the range of I ∘ e
+  intros x y, -- show the function is actually the identity on the range of I ∘ e
   apply cont_diff_on.congr cont_diff_on_id,
   intros z hz, -- factorise into the chart (=e) and the model (=id)
   rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],

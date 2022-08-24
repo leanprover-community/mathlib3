@@ -477,6 +477,23 @@ linear_map.ker_smul _ _ ha
 
 end module
 
+namespace linear_map
+
+variables {R : Type*} {A : Type*} {B : Type*} [comm_semiring R] [semiring A] [semiring B]
+  [algebra R A] [algebra R B]
+
+/-- An alternate statement of `linear_map.map_smul` for when `algebra_map` is more convenient to
+work with than `•`. -/
+lemma map_algebra_map_mul (f : A →ₗ[R] B) (a : A) (r : R) :
+  f (algebra_map R A r * a) = algebra_map R B r * f a :=
+by rw [←algebra.smul_def, ←algebra.smul_def, map_smul]
+
+lemma map_mul_algebra_map (f : A →ₗ[R] B) (a : A) (r : R) :
+  f (a * algebra_map R A r) = f a * algebra_map R B r :=
+by rw [←algebra.commutes, ←algebra.commutes, map_algebra_map_mul]
+
+end linear_map
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 @[nolint has_nonempty_instance]

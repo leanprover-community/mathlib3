@@ -846,11 +846,11 @@ instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :
     { convert this },
     rw [PresheafedSpace.comp_c_app,
       ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
-    suffices : is_iso (limit.π (PresheafedSpace.componentwise_diagram
+    rsufficesI : is_iso (limit.π (PresheafedSpace.componentwise_diagram
       (F ⋙ SheafedSpace.forget_to_PresheafedSpace)
       ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
       (unop $ op $ H.is_open_map.functor.obj U))) (op i)),
-    { resetI, apply_instance },
+    { apply_instance },
     apply limit_π_is_iso_of_is_strict_terminal,
     intros j hj,
     induction j using opposite.rec,

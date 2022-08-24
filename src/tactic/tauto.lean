@@ -28,6 +28,7 @@ do hs ← local_context,
          | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(decidable.not_and_distrib'.mp %%h) <|>
                             replace h.local_pp_name ``(decidable.not_and_distrib.mp %%h)
          | `(¬ (_ ∨ _))  := replace h.local_pp_name ``(not_or_distrib.mp %%h)
+         | `(¬ _ ≠ _)      := replace h.local_pp_name ``(decidable.of_not_not %%h)
          | `(¬ ¬ _)      := replace h.local_pp_name ``(decidable.of_not_not %%h)
          | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(decidable.not_imp.mp %%h)
          | `(¬ (_ ↔ _)) := replace h.local_pp_name ``(decidable.not_iff.mp %%h)

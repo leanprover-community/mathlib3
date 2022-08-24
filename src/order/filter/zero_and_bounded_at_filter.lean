@@ -41,7 +41,7 @@ def zero_at_filter_submodule [topological_space β] [semiring β]
 
 /--The additive submonoid of funtions that are `zero_at_filter`.-/
 def zero_at_filter_add_submonoid [topological_space β]
-[add_zero_class β] [has_continuous_add β] (l : filter α) : add_submonoid (α → β) :=
+  [add_zero_class β] [has_continuous_add β] (l : filter α) : add_submonoid (α → β) :=
 { carrier := zero_at_filter l,
   add_mem' := by { intros a b ha hb, simpa using ha.add hb },
   zero_mem' := zero_is_zero_at_filter l, }

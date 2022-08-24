@@ -61,7 +61,7 @@ variables {α : Type*} [topological_space α]
 begin
   apply polynomial.induction_on' g,
   { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply f x n], },
+  { intros n a, simp [pi.pow_apply], },
 end
 
 end

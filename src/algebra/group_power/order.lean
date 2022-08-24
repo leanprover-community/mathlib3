@@ -23,8 +23,8 @@ variable [monoid M]
 section preorder
 variable [preorder M]
 
-section covariant_le
-variables [covariant_class M M (*) (≤)]
+section left
+variables [covariant_class M M (*) (≤)] {x : M}
 
 @[to_additive nsmul_le_nsmul_of_le_right, mono]
 lemma pow_le_pow_of_le_left' [covariant_class M M (swap (*)) (≤)] {a b : M} (hab : a ≤ b) :
@@ -82,14 +82,17 @@ lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
   strict_mono ((^) a : ℕ → M) :=
 λ m n, pow_lt_pow' ha
 
-lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : M}, 1 ≤ x → 1 ≤ x^n
-| 0       x _ := (pow_zero x).symm.le
-| (n + 1) x H := calc 1 ≤ x          : H
-                    ... = x * 1      : (mul_one x).symm
-                    ... ≤ x * x ^ n  : mul_le_mul_left' (left.one_le_pow_of_le H) x
-                    ... = x ^ n.succ : (pow_succ x n).symm
+@[to_additive left.pow_nonneg]
+lemma left.one_le_pow_of_le (hx : 1 ≤ x) : ∀ {n : ℕ}, 1 ≤ x^n
+| 0       := (pow_zero x).ge
+| (n + 1) := by { rw pow_succ, exact left.one_le_mul hx left.one_le_pow_of_le }
 
-end covariant_le
+@[to_additive left.pow_nonpos]
+lemma left.pow_le_one_of_le (hx : x ≤ 1) : ∀ {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero _).le
+| (n + 1) := by { rw pow_succ, exact left.mul_le_one hx left.pow_le_one_of_le }
+
+end left
 
 section right
 variables [covariant_class M M (swap (*)) (≤)] {x : M}
@@ -114,15 +117,10 @@ nat.le_induction ((pow_one _).trans_lt h) (λ n _ ih, by { rw pow_succ, exact mu
 
 @[to_additive right.pow_neg]
 lemma right.pow_lt_one_of_lt [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M}
-  (n0 : 0 < n) (H : x < 1) :
+  (hn : 0 < n) (h : x < 1) :
   x^n < 1 :=
-begin
-  refine nat.le_induction ((pow_one _).le.trans_lt H) (λ n n1 hn, _) _ (nat.succ_le_iff.mpr n0),
-  calc x ^ (n + 1) = x ^ n * x : pow_succ' x n
-               ... < 1 * x     : mul_lt_mul_right' hn x
-               ... = x         : one_mul x
-               ... < 1         : H
-end
+nat.le_induction ((pow_one _).trans_lt h)
+  (λ n _ ih, by { rw pow_succ, exact right.mul_lt_one h ih }) _ (nat.succ_le_iff.2 hn)
 
 end preorder
 
@@ -493,21 +491,11 @@ namespace monoid_hom
 variables [ring R] [monoid M] [linear_order M] [covariant_class M M (*) (≤)] (f : R →* M)
 
 lemma map_neg_one : f (-1) = 1 :=
-(pow_eq_one_iff (nat.succ_ne_zero 1)).1 $
-  calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
-              ... = f ((-1) * - 1) : (f.map_mul _ _).symm
-              ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
-              ... = f 1            : congr_arg _ (neg_neg _)
-              ... = 1              : map_one f
+(pow_eq_one_iff (nat.succ_ne_zero 1)).1 $ by rw [←map_pow, neg_one_sq, map_one]
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=
-calc f (-x) = f (-1 * x)   : congr_arg _ (neg_one_mul _).symm
-        ... = f (-1) * f x : map_mul _ _ _
-        ... = 1 * f x      : _root_.congr_arg (λ g, g * (f x)) (map_neg_one f)
-        ... = f x          : one_mul _
+by rw [←neg_one_mul, map_mul, map_neg_one, one_mul]
 
-lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
-calc f (x - y) = f (-(y - x)) : congr_arg _ (neg_sub _ _).symm
-           ... = _            : map_neg _ _
+lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) := by rw [←map_neg, neg_sub]
 
 end monoid_hom

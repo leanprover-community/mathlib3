@@ -29,8 +29,7 @@ open_locale topological_space
 def zero_at_filter [has_zero β] [topological_space β] (l : filter α) (f : α → β) : Prop :=
 filter.tendsto f l (𝓝 0)
 
-lemma zero_is_zero_at_filter [has_zero β] [topological_space β]
-(l : filter α) : zero_at_filter l (0 : α → β) := tendsto_const_nhds
+lemma zero_is_zero_at_filter [has_zero β] [topological_space β] (l : filter α) : zero_at_filter l (0 : α → β) := tendsto_const_nhds
 
 /--The submodule of funtions that are `zero_at_filter`.-/
 def zero_at_filter_submodule [topological_space β] [semiring β]

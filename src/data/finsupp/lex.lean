@@ -102,7 +102,7 @@ lemma lt_of_forall_lt_of_lt (a b : lex (α →₀ N)) (i : α) :
   (∀ j < i, of_lex a j = of_lex b j) → of_lex a i < of_lex b i → a < b :=
 λ h1 h2, ⟨i, h1, h2⟩
 
-lemma lex_eq_pi_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
+lemma _root_.pi.lex_eq_finsupp_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
   pi.lex r (λ _, s) (a : α → N) (b : α → N) = finsupp.lex r s a b :=
 rfl
 

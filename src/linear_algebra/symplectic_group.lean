@@ -58,7 +58,7 @@ begin
   exact neg_neg 1,
 end
 
-lemma J_det_mul_J_det [rc : fact (ring_char R ≠ 2)] : (det (J l R)) * (det (J l R)) = 1 :=
+lemma J_det_mul_J_det : (det (J l R)) * (det (J l R)) = 1 :=
 begin
   rw [←det_mul, J_squared],
   rw [←one_smul R (-1 : matrix _ _ R)],
@@ -177,7 +177,7 @@ instance : has_inv (symplectic_group l R) :=
   mul_mem (mul_mem (neg_mem $ J_mem _ _) $ transpose_mem A.2) $ J_mem _ _⟩ }
 
 @[simp] lemma coe_inv (A : symplectic_group l R) :
-  (↑(A⁻¹) : matrix _ _ _) = - (J l R) ⬝ (A : matrix (l ⊕ l) (l ⊕ l) R)ᵀ ⬝ (J l R) := rfl
+  - (J l R) ⬝ (A : matrix (l ⊕ l) (l ⊕ l) R)ᵀ ⬝ (J l R) = (↑(A⁻¹) : matrix _ _ _) := rfl
 
 lemma inv_left_mul_aux (hA : A ∈ symplectic_group l R) :
   -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A) = 1 :=
@@ -191,7 +191,7 @@ calc -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A)
 lemma coe_inv' (A : symplectic_group l R) : (↑(A⁻¹) : matrix (l ⊕ l) (l ⊕ l) R) = A⁻¹ :=
 begin
   refine (coe_inv A).trans (inv_eq_left_inv _).symm,
-  simp only [matrix.neg_mul, inv_left_mul_aux, set_like.coe_mem],
+  simp only [matrix.neg_mul, inv_left_mul_aux, set_like.coe_mem, ← coe_inv],
 end
 
 lemma inv_eq_symplectic_inv (A : matrix (l ⊕ l) (l ⊕ l) R) (hA : A ∈ symplectic_group l R) :
@@ -202,7 +202,7 @@ instance : group (symplectic_group l R) :=
 { mul_left_inv := λ A,
   begin
     apply subtype.ext,
-    simp only [submonoid.coe_one, submonoid.coe_mul, matrix.neg_mul, coe_inv],
+    simp only [submonoid.coe_one, submonoid.coe_mul, matrix.neg_mul, ← coe_inv],
     change -(J l R ⬝ (↑A)ᵀ ⬝ J l R) ⬝ ↑A = 1,
     rw matrix.neg_mul,
     exact inv_left_mul_aux A.2,

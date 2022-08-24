@@ -78,7 +78,6 @@ def conn_comp_outside (G : simple_graph V) (K : set V) : Type u :=
 @[reducible, simp] def conn_comp_outside.verts {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :=
   {v : (G.compl K).verts | connected_component_mk _ v = C}
 
-
 @[ext] lemma conn_comp_eq_of_eq_verts {G : simple_graph V} {K : set V} (C D : conn_comp_outside G K) : C = D ↔ C.verts = D.verts :=
 begin
   split,
@@ -88,6 +87,24 @@ begin
     intro h, simp_rw [set.ext_iff] at h,
     apply (h v).mp, apply congr_arg, refl,}
 end
+
+@[reducible, simp] def conn_comp_outside.verts_supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :=
+  {v : V | ∃ h : v ∈ (@set.univ V) \ K, connected_component_mk _ (by {dsimp only [compl], exact ⟨v,h⟩}) = C}
+
+@[ext] lemma conn_comp_eq_of_eq_verts_supp {G : simple_graph V} {K : set V} (C D : conn_comp_outside G K) : C = D ↔ C.verts_supp = D.verts_supp :=
+begin
+  split,
+  { intro h, subst h, },
+  { refine connected_component.ind₂ _ C D,
+    rintros ⟨v,vh⟩ ⟨w,wh⟩, dsimp [conn_comp_outside.verts_supp],
+    intro h, simp_rw [set.ext_iff] at h,
+    have := (h v).mp ⟨vh,rfl⟩, simp only [mem_set_of_eq] at this,
+    obtain ⟨_,_⟩ := this, assumption, },
+end
+
+instance conn_comp_outside_support  {G : simple_graph V} (K : set V) :
+  has_coe (conn_comp_outside G K) (set V) := {coe := conn_comp_outside.verts_supp}
+
 
 
 def inf_conn_comp_outside (G : simple_graph V) (K : set V) :=
@@ -107,6 +124,8 @@ lemma reachable_empty_compl {G : simple_graph V} {u v : V} (hreach : G.reachable
 
 lemma reachable_coe {G : simple_graph V} {K L : set V} (h : K ⊆ L)
 {v a: ↥((G.compl L).verts)} (hreach: (G.compl L).coe.reachable a v) : (G.compl K).coe.reachable (vertex_coe h a) (vertex_coe h v) := sorry
+
+lemma of_empty_is_subsingleton  {G : simple_graph V} (Gpc : G.preconnected) : subsingleton (conn_comp_outside G (∅ : finset V)) := sorry
 
 lemma component_subset_iff_eq {G : simple_graph V} {K : set V} {C D : conn_comp_outside G K} : C.verts ⊆ D.verts ↔ C = D :=
 begin
@@ -397,11 +416,60 @@ end back_map
 -- TODO: Show that components are preserved under isomorphisms
 
 -- Returns K ∪ (all finite connected components in the compl)
-def conn_comp_outside.extend_fin (G : simple_graph V) [Glf : locally_finite G] (K : finset V) : finset V := sorry
+def conn_comp_outside.extend_to_connected
+  (G : simple_graph V) [Glf : locally_finite G] (K : finset V) (Knempty : K.nonempty):
+  { K' : finset V // K ⊆ K' ∧ (G.induce ↑K').connected } := sorry
+
+def conn_comp_outside.extend_connected_with_fin_components
+  (G : simple_graph V) [Glf : locally_finite G] (K : finset V)
+  (Kconn : (G.induce ↑K).connected) :
+  { K' : finset V // K ⊆ K' ∧  (G.induce ↑K').connected ∧ (∀ C : conn_comp_outside G K', C.verts.infinite) } := sorry
 
 -- TODO: Build all the associated lemmas. Mainly prove that the resulting set of connected components are precisely the infinite connected components of the original graph.
 
 -- TODO: Prove lemmas about cofinite infinite components
+
+
+lemma nicely_arranged {G : simple_graph V} [locally_finite G] (Gpc : G.preconnected) (H K : finset V)
+  (Hnempty : H.nonempty) (Knempty : K.nonempty)
+  (E E' : conn_comp_outside G H) (En : E ≠ E')
+  (F : conn_comp_outside G K)
+  (H_F : (H : set V) ⊆ F)
+  (K_E : (K : set V) ⊆ E) : (E : set V) ⊆ (F : set V) :=
+begin
+  rcases E with ⟨⟨EE,Ecomp⟩,Einf⟩,
+  rcases E' with ⟨⟨EE',Ecomp'⟩,Einf'⟩,
+  rcases F with ⟨⟨FF,Fcomp⟩,Finf⟩,
+  by_cases h : (EE' ∩ K).nonempty,
+  { rcases h with ⟨v,v_in⟩,
+    have vE' : v ∈ EE', from ((set.mem_inter_iff v EE' K).mp v_in).left,
+    have vE : v ∈ EE, from  K_E ((set.mem_inter_iff v EE' K).mp v_in).right,
+    exfalso,
+    apply En,
+    simp only [subtype.mk_eq_mk],
+    exact ro_component.eq_of_common_mem G H EE EE' Ecomp Ecomp' v vE vE'},
+  {
+    have : ∃ F' : inf_ro_components' G K, EE' ⊆ F'.val.val, by {
+      rcases ro_component.of_subconnected_disjoint G K EE'
+             (set.infinite.nonempty Einf')
+             (by {unfold disjoint, rw [le_bot_iff], rw [set.not_nonempty_iff_eq_empty] at h, assumption,}) -- empty intersection means disjoint
+             (ro_component.to_subconnected G H EE' Ecomp') with ⟨F',F'comp,sub⟩,
+      have F'inf : F'.infinite, from set.infinite.mono sub Einf',
+      use ⟨⟨F',F'comp⟩,F'inf⟩,
+      exact sub,
+    },
+    rcases this with ⟨⟨⟨FF',Fcomp'⟩,Finf'⟩,E'_sub_F'⟩,
+    by_cases Fe : FF' = FF,
+    { exact Fe ▸ E'_sub_F',},
+    { rcases ro_component.adjacent_to G Gpc H Hnempty EE' Ecomp' with ⟨v,vh,vhH,vF',adj⟩,
+      have : vh ∈ FF, from H_F vhH,
+      have : FF = FF',
+        from ro_component.eq_of_adj_mem G K FF Fcomp FF' Fcomp' vh v this (E'_sub_F' vF') adj,
+      exfalso,
+      exact Fe (this.symm),},
+  },
+end
+
 
 end conn_comp_outside
 

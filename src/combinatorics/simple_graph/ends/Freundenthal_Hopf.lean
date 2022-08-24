@@ -45,50 +45,54 @@ lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V)
   (inf_comp_H_large : fin 3 ↪ (inf_conn_comp_outside G K)) :
-  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (inf_conn_comp_outside_back ‹↑K' ⊆ ↑L› : G.inf_conn_comp_outside L → G.inf_conn_comp_outside K') :=
+  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),
+    ¬ injective (inf_conn_comp_outside_back ‹↑K' ⊆ ↑L› : G.inf_conn_comp_outside L → G.inf_conn_comp_outside K') :=
 begin
+  have Knempty : K.nonempty, by
+  { rw nonempty_iff_ne_empty,
+    by_contradiction h, rw h at inf_comp_H_large,
+    have e : fin 3 ↪ (conn_comp_outside G (∅ : finset V)), by
+    { apply inf_comp_H_large.trans,
+      fconstructor,
+      exact subtype.val, exact subtype.val_injective,},
+    haveI := conn_comp_outside.of_empty_is_subsingleton Gpc,
+    have := e.inj' (subsingleton.elim (e 0) (e 1)),
+    finish,},
+  obtain ⟨Kp,⟨KKp,Kpconn⟩⟩ := conn_comp_outside.extend_to_connected G K Knempty,
+  rcases conn_comp_outside.extend_connected_with_fin_components G Kp Kpconn  with ⟨K',KK',K'conn,finn⟩,
+  rcases auts K' with ⟨φ,φgood⟩,
 
-  by_cases Knempty : K.nonempty,
-  { rcases extend_to_subconnected G Gpc K (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
-    rcases extend_subconnected_to_fin_ro_components G Gpc Kp (finset.nonempty.mono KKp Knempty) Kpconn  with ⟨K',KK',K'conn,finn⟩,
-    rcases auts K' with ⟨φ,φgood⟩,
+  let φK' := finset.image φ K',
+  let K'nempty := finset.nonempty.mono (KKp.trans KK') Knempty,
+  let φK'nempty := finset.nonempty.image K'nempty φ,
+  let L := K' ∪ φK',
+  use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
 
-    let φK' := finset.image φ K',
-    let K'nempty := finset.nonempty.mono (KKp.trans KK') Knempty,
-    let φK'nempty := finset.nonempty.image K'nempty φ,
-    let L := K' ∪ φK',
-    use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
+  have φK'conn : subconnected G φK' := begin
+    have := simple_graph.subconnected.image G G φ K'conn,
+    simp only [coe_coe, rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, coe_image] at this,
+    simp only [coe_image],
+    exact this,
+  end,
 
-    have φK'conn : subconnected G φK' := begin
-      have := simple_graph.subconnected.image G G φ K'conn,
-      simp only [coe_coe, rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, coe_image] at this,
-      simp only [coe_image],
-      exact this,
-    end,
+  rcases of_subconnected_disjoint G K' φK' φK'nempty (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
+  rcases of_subconnected_disjoint G φK' K' K'nempty (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
 
-    rcases of_subconnected_disjoint G K' φK' φK'nempty (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
-    rcases of_subconnected_disjoint G φK' K' K'nempty (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
+  have Einf : E.infinite := finn ⟨E,Ecomp⟩,
+  have Finf : F.infinite, by {
+    rcases  ro_component.bij_ro_components_of_isom G G K' φ with ⟨mapsto,inj,sur⟩,
+    rcases sur Fcomp with ⟨F₀,F₀comp,rfl⟩,
+    let F₀inf := finn ⟨F₀,F₀comp⟩,
+    rcases ro_component.bij_inf_ro_components_of_isom G G K' φ with ⟨infmapsto,_,_⟩,
+    exact (infmapsto ⟨F₀comp,F₀inf⟩).2,},
 
-    have Einf : E.infinite := finn ⟨E,Ecomp⟩,
-    have Finf : F.infinite, by {
-      rcases  ro_component.bij_ro_components_of_isom G G K' φ with ⟨mapsto,inj,sur⟩,
-      rcases sur Fcomp with ⟨F₀,F₀comp,rfl⟩,
-      let F₀inf := finn ⟨F₀,F₀comp⟩,
-      rcases ro_component.bij_inf_ro_components_of_isom G G K' φ with ⟨infmapsto,_,_⟩,
-      exact (infmapsto ⟨F₀comp,F₀inf⟩).2,},
+  apply nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'nempty) (K'nempty) ⟨⟨F,Fcomp⟩,Finf⟩ _ ⟨⟨E,Ecomp⟩,Einf⟩ Esub Fsub,
+  have := (inf_ro_components_equiv_of_isom' G G K' φ),
+  apply inf_comp_H_large.trans,
+  refine function.embedding.trans _ (inf_ro_components_equiv_of_isom' G G K' φ).to_embedding,
+  apply function.embedding.of_surjective,
+  exact inf_conn_comp_outside_back.surjective G Gpc (KKp.trans KK'),
 
-    apply nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'nempty) (K'nempty) ⟨⟨F,Fcomp⟩,Finf⟩ _ ⟨⟨E,Ecomp⟩,Einf⟩ Esub Fsub,
-    have := (inf_ro_components_equiv_of_isom' G G K' φ),
-    apply inf_comp_H_large.trans,
-    refine function.embedding.trans _ (inf_ro_components_equiv_of_isom' G G K' φ).to_embedding,
-    apply function.embedding.of_surjective,
-    exact inf_conn_comp_outside_back.surjective G Gpc (KKp.trans KK'),},
-  { rw finset.not_nonempty_iff_eq_empty at Knempty,
-    sorry, -- Need a lemma saying that the connected components for K=∅ are just {V} when G is connected
-    -- or even better a general statement holding when G is disconnected.
-    -- in any case, here we know that we have at least 3 components, which is a contradiction.
-    -- Probably the proof here shouldn't be done by cases, but Knempty argued from the assumptions.
-  }
 
 end
 

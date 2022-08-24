@@ -8,6 +8,7 @@ import algebra.smul_with_zero
 import data.rat.cast
 import group_theory.group_action.big_operators
 import group_theory.group_action.group
+import tactic.abel
 
 /-!
 # Modules over a ring
@@ -224,6 +225,12 @@ by letI := H.to_has_smul; exact
   smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
 
+lemma convex.combo_eq_smul_sub_add [module R M] {x y : M} {a b : R} (h : a + b = 1) :
+  a • x + b • y = b • (y - x) + x :=
+calc
+  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
+            ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
+
 end add_comm_group
 
 /-- A variant of `module.ext` that's convenient for term-mode. -/
@@ -416,10 +423,8 @@ lemma map_rat_smul [add_comm_group M] [add_comm_group M₂] [module ℚ M] [modu
   f (c • x) = c • f x :=
 rat.cast_id c ▸ map_rat_cast_smul f ℚ ℚ c x
 
-/-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
-an instance because `simp` becomes very slow if we have many `subsingleton` instances,
-see [gh-6025]. -/
-lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
+/-- There can be at most one `module ℚ E` structure on an additive commutative group. -/
+instance subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
 ⟨λ P Q, module.ext' P Q $ λ r x,
   @map_rat_smul _ _ _ _ P Q _ _ (add_monoid_hom.id E) r x⟩
 

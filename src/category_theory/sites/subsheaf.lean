@@ -6,6 +6,7 @@ Authors: Andrew Yang
 import category_theory.elementwise
 import category_theory.sites.compatible_sheafification
 import category_theory.limits.constructions.epi_mono
+import category_theory.adjunction.evaluation
 
 /-!
 
@@ -24,6 +25,9 @@ We define the sub(pre)sheaf of a type valued presheaf.
   The sheafification is a sheaf
 - `category_theory.grothendieck_topology.subpresheaf.sheafify_lift` :
   The descent of a map into a sheaf to the sheafification.
+- `category_theory.grothendieck_topology.image_sheaf` : The image sheaf of a morphism.
+- `category_theory.grothendieck_topology.image_factorization` : The image sheaf as a
+  `limits.image_factorization`.
 -/
 
 universes w v u
@@ -41,7 +45,7 @@ structure subpresheaf (F : Cᵒᵖ ⥤ Type w) :=
 (obj : Π U, set (F.obj U))
 (map : Π {U V : Cᵒᵖ} (i : U ⟶ V), (obj U) ⊆ (F.map i) ⁻¹' (obj V))
 
-variables {F F' : Cᵒᵖ ⥤ Type w} (G G' : subpresheaf F)
+variables {F F' F'' : Cᵒᵖ ⥤ Type w} (G G' : subpresheaf F)
 
 instance : partial_order (subpresheaf F) :=
 partial_order.lift subpresheaf.obj subpresheaf.ext
@@ -80,6 +84,21 @@ instance {G G' : subpresheaf F} (h : G ≤ G') : mono (subpresheaf.hom_of_le h) 
 ⟨λ H f₁ f₂ e, nat_trans.ext f₁ f₂ $ funext $ λ U,
   funext $ λ x, subtype.ext $ (congr_arg subtype.val $ (congr_fun (congr_app e U) x : _) : _)⟩
 
+@[simp, reassoc]
+lemma subpresheaf.hom_of_le_ι  {G G' : subpresheaf F} (h : G ≤ G') :
+  subpresheaf.hom_of_le h ≫ G'.ι = G.ι :=
+by { ext, refl }
+
+/-- If the image of a morphism falls in a subpresheaf, then the morphism factors through it. -/
+@[simps]
+def subpresheaf.lift (f : F' ⟶ F) (hf : ∀ U x, f.app U x ∈ G.obj U) : F' ⟶ G.to_presheaf :=
+{ app := λ U x, ⟨f.app U x, hf U x⟩,
+  naturality' := by { have := elementwise_of f.naturality, intros, ext, simp [this] } }
+
+@[simp, reassoc]
+lemma subpresheaf.lift_ι (f : F' ⟶ F) (hf : ∀ U x, f.app U x ∈ G.obj U) :
+  G.lift f hf ≫ G.ι = f := by { ext, refl }
+
 /-- Given a subpresheaf `G` of `F`, an `F`-section `s` on `U`, we may define a sieve of `U`
 consisting of all `f : V ⟶ U` such that the restriction of `s` along `f` is in `G`. -/
 @[simps]
@@ -103,6 +122,11 @@ begin
   rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply,
     ← op_comp, ← op_comp, e],
 end
+
+lemma subpresheaf.nat_trans_naturality (f : F' ⟶ G.to_presheaf) {U V : Cᵒᵖ} (i : U ⟶ V)
+  (x : F'.obj U) :
+  (f.app V (F'.map i x)).1 = F.map i (f.app U x).1 :=
+congr_arg subtype.val (functor_to_types.naturality _ _ f i x)
 
 include J
 
@@ -233,5 +257,154 @@ begin
   have := elementwise_of f.naturality,
   exact (presieve.is_sheaf_for.valid_glue _ _ _ hi).trans (this _ _)
 end
+
+lemma subpresheaf.to_sheafify_lift_unique (h : presieve.is_sheaf J F')
+  (l₁ l₂ : (G.sheafify J).to_presheaf ⟶ F')
+  (e : subpresheaf.hom_of_le (G.le_sheafify J) ≫ l₁ =
+    subpresheaf.hom_of_le (G.le_sheafify J) ≫ l₂) : l₁ = l₂ :=
+begin
+  ext U ⟨s, hs⟩,
+  apply (h _ hs).is_separated_for.ext,
+  rintros V i hi,
+  dsimp at hi,
+  erw [← functor_to_types.naturality, ← functor_to_types.naturality],
+  exact (congr_fun (congr_app e $ op V) ⟨_, hi⟩ : _)
+end
+
+lemma subpresheaf.sheafify_le (h : G ≤ G') (hF : presieve.is_sheaf J F)
+  (hG' : presieve.is_sheaf J G'.to_presheaf) :
+  G.sheafify J ≤ G' :=
+begin
+  intros U x hx,
+  convert ((G.sheafify_lift (subpresheaf.hom_of_le h) hG').app U ⟨x, hx⟩).2,
+  apply (hF _ hx).is_separated_for.ext,
+  intros V i hi,
+  have := congr_arg (λ f : G.to_presheaf ⟶ G'.to_presheaf, (nat_trans.app f (op V) ⟨_, hi⟩).1)
+    (G.to_sheafify_lift (subpresheaf.hom_of_le h) hG'),
+  convert this.symm,
+  erw ← subpresheaf.nat_trans_naturality,
+  refl,
+end
+
+omit J
+
+section image
+
+/-- The image presheaf of a morphism, whose components are the set-theoretic images. -/
+@[simps]
+def image_presheaf (f : F' ⟶ F) : subpresheaf F :=
+{ obj := λ U, set.range (f.app U),
+  map := λ U V i,
+    by { rintros _ ⟨x, rfl⟩, have := elementwise_of f.naturality, exact ⟨_, this i x⟩ } }
+
+@[simp] lemma top_subpresheaf_obj (U) : (⊤ : subpresheaf F).obj U = ⊤ := rfl
+
+@[simp]
+lemma image_presheaf_id : image_presheaf (𝟙 F) = ⊤ :=
+by { ext, simp }
+
+/-- A morphism factors through the image presheaf. -/
+@[simps]
+def to_image_presheaf (f : F' ⟶ F) : F' ⟶ (image_presheaf f).to_presheaf :=
+(image_presheaf f).lift f (λ U x, set.mem_range_self _)
+
+@[simp, reassoc]
+lemma to_image_presheaf_ι (f : F' ⟶ F) : to_image_presheaf f ≫ (image_presheaf f).ι = f :=
+(image_presheaf f).lift_ι _ _
+
+lemma image_presheaf_comp_le (f₁ : F ⟶ F') (f₂ : F' ⟶ F'') :
+  image_presheaf (f₁ ≫ f₂) ≤ image_presheaf f₂ :=
+λ U x hx, ⟨f₁.app U hx.some, hx.some_spec⟩
+
+instance {F F' : Cᵒᵖ ⥤ Type (max v w)} (f : F ⟶ F') [hf : mono f] :
+  is_iso (to_image_presheaf f) :=
+begin
+  apply_with nat_iso.is_iso_of_is_iso_app { instances := ff },
+  intro X,
+  rw is_iso_iff_bijective,
+  split,
+  { intros x y e,
+    have := (nat_trans.mono_iff_app_mono _ _).mp hf X,
+    rw mono_iff_injective at this,
+    exact this (congr_arg subtype.val e : _) },
+  { rintro ⟨_, ⟨x, rfl⟩⟩, exact ⟨x, rfl⟩ }
+end
+
+/-- The image sheaf of a morphism between sheaves, defined to be the sheafification of
+`image_presheaf`. -/
+@[simps]
+def image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : Sheaf J (Type w) :=
+⟨((image_presheaf f.1).sheafify J).to_presheaf,
+  by { rw is_sheaf_iff_is_sheaf_of_type, apply subpresheaf.sheafify_is_sheaf,
+    rw ← is_sheaf_iff_is_sheaf_of_type, exact F'.2 }⟩
+
+/-- A morphism factors through the image sheaf. -/
+@[simps]
+def to_image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : F ⟶ image_sheaf f :=
+⟨to_image_presheaf f.1 ≫ subpresheaf.hom_of_le ((image_presheaf f.1).le_sheafify J)⟩
+
+/-- The inclusion of the image sheaf to the target. -/
+@[simps]
+def image_sheaf_ι {F F' : Sheaf J (Type w)} (f : F ⟶ F') : image_sheaf f ⟶ F' :=
+⟨subpresheaf.ι _⟩
+
+@[simp, reassoc]
+lemma to_image_sheaf_ι {F F' : Sheaf J (Type w)} (f : F ⟶ F') :
+  to_image_sheaf f ≫ image_sheaf_ι f = f :=
+by { ext1, simp }
+
+instance {F F' : Sheaf J (Type w)} (f : F ⟶ F') : mono (image_sheaf_ι f) :=
+(Sheaf_to_presheaf J _).mono_of_mono_map (by { dsimp, apply_instance })
+
+instance {F F' : Sheaf J (Type w)} (f : F ⟶ F') : epi (to_image_sheaf f) :=
+begin
+  refine ⟨λ G' g₁ g₂ e, _⟩,
+  ext U ⟨s, hx⟩,
+  apply ((is_sheaf_iff_is_sheaf_of_type J _).mp G'.2 _ hx).is_separated_for.ext,
+  rintros V i ⟨y, e'⟩,
+  change (g₁.val.app _ ≫ G'.val.map _) _ = (g₂.val.app _ ≫ G'.val.map _) _,
+  rw [← nat_trans.naturality, ← nat_trans.naturality],
+  have E : (to_image_sheaf f).val.app (op V) y =
+    (image_sheaf f).val.map i.op ⟨s, hx⟩ := subtype.ext e',
+  have := congr_arg (λ f : F ⟶ G', (Sheaf.hom.val f).app _ y) e,
+  dsimp at this ⊢,
+  convert this; exact E.symm
+end
+
+/-- The mono factorization given by `image_sheaf` for a morphism. -/
+def image_mono_factorization {F F' : Sheaf J (Type w)} (f : F ⟶ F') :
+  limits.mono_factorisation f :=
+{ I := image_sheaf f,
+  m := image_sheaf_ι f,
+  e := to_image_sheaf f }
+
+/-- The mono factorization given by `image_sheaf` for a morphism is an image. -/
+noncomputable
+def image_factorization {F F' : Sheaf J (Type (max v u))} (f : F ⟶ F') :
+  limits.image_factorisation f :=
+{ F := image_mono_factorization f,
+  is_image :=
+  { lift := λ I, begin
+      haveI := (Sheaf.hom.mono_iff_presheaf_mono J _ _).mp I.m_mono,
+      refine ⟨subpresheaf.hom_of_le _ ≫ inv (to_image_presheaf I.m.1)⟩,
+      apply subpresheaf.sheafify_le,
+      { conv_lhs { rw ← I.fac }, apply image_presheaf_comp_le },
+      { rw ← is_sheaf_iff_is_sheaf_of_type, exact F'.2 },
+      { apply presieve.is_sheaf_iso J (as_iso $ to_image_presheaf I.m.1),
+        rw ← is_sheaf_iff_is_sheaf_of_type, exact I.I.2 }
+    end,
+    lift_fac' := λ I, begin
+      ext1,
+      dsimp [image_mono_factorization],
+      generalize_proofs h,
+      rw [← subpresheaf.hom_of_le_ι h, category.assoc],
+      congr' 1,
+      rw [is_iso.inv_comp_eq, to_image_presheaf_ι],
+    end } }
+
+instance : limits.has_images (Sheaf J (Type (max v u))) :=
+⟨λ _ _ f, ⟨⟨image_factorization f⟩⟩⟩
+
+end image
 
 end category_theory.grothendieck_topology

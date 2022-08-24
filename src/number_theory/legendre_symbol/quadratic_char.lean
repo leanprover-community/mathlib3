@@ -31,7 +31,7 @@ It takes the value zero at zero; for non-zero argument `a : α`, it is `1`
 if `a` is a square, otherwise it is `-1`.
 
 This only deserves the name "character" when it is multiplicative,
-e.g., when `α` is a finite field. See `quadratic_char_mul`.
+e.g., when `α` is a finite field. See `quadratic_char_fun_mul`.
 
 We will later define `quadratic_char` to be a multiplicative character
 of type `mul_char F ℤ`, when the domain is a finite field `F`.
@@ -57,7 +57,7 @@ open mul_char
 variables {F : Type*} [field F] [fintype F] [decidable_eq F]
 
 /-- Some basic API lemmas -/
-lemma quadratic_char_eq_zero_iff' {a : F} : quadratic_char_fun F a = 0 ↔ a = 0 :=
+lemma quadratic_char_fun_eq_zero_iff {a : F} : quadratic_char_fun F a = 0 ↔ a = 0 :=
 begin
   simp only [quadratic_char_fun],
   by_cases ha : a = 0,
@@ -67,15 +67,15 @@ begin
 end
 
 @[simp]
-lemma quadratic_char_zero : quadratic_char_fun F 0 = 0 :=
+lemma quadratic_char_fun_zero : quadratic_char_fun F 0 = 0 :=
 by simp only [quadratic_char_fun, eq_self_iff_true, if_true, id.def]
 
 @[simp]
-lemma quadratic_char_one : quadratic_char_fun F 1 = 1 :=
+lemma quadratic_char_fun_one : quadratic_char_fun F 1 = 1 :=
 by simp only [quadratic_char_fun, one_ne_zero, is_square_one, if_true, if_false, id.def]
 
 /-- If `ring_char F = 2`, then `quadratic_char_fun F` takes the value `1` on nonzero elements. -/
-lemma quadratic_char_eq_one_of_char_two' (hF : ring_char F = 2) {a : F} (ha : a ≠ 0) :
+lemma quadratic_char_fun_eq_one_of_char_two (hF : ring_char F = 2) {a : F} (ha : a ≠ 0) :
   quadratic_char_fun F a = 1 :=
 begin
   simp only [quadratic_char_fun, ha, if_false, ite_eq_left_iff],
@@ -84,7 +84,7 @@ end
 
 /-- If `ring_char F` is odd, then `quadratic_char_fun F a` can be computed in
 terms of `a ^ (fintype.card F / 2)`. -/
-lemma quadratic_char_eq_pow_of_char_ne_two' (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
+lemma quadratic_char_fun_eq_pow_of_char_ne_two (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
   quadratic_char_fun F a = if a ^ (fintype.card F / 2) = 1 then 1 else -1 :=
 begin
   simp only [quadratic_char_fun, ha, if_false],
@@ -92,26 +92,26 @@ begin
 end
 
 /-- The quadratic character is multiplicative. -/
-lemma quadratic_char_mul (a b : F) :
+lemma quadratic_char_fun_mul (a b : F) :
   quadratic_char_fun F (a * b) = quadratic_char_fun F a * quadratic_char_fun F b :=
 begin
   by_cases ha : a = 0,
-  { rw [ha, zero_mul, quadratic_char_zero, zero_mul], },
+  { rw [ha, zero_mul, quadratic_char_fun_zero, zero_mul], },
   -- now `a ≠ 0`
   by_cases hb : b = 0,
-  { rw [hb, mul_zero, quadratic_char_zero, mul_zero], },
+  { rw [hb, mul_zero, quadratic_char_fun_zero, mul_zero], },
   -- now `a ≠ 0` and `b ≠ 0`
   have hab := mul_ne_zero ha hb,
   by_cases hF : ring_char F = 2,
   { -- case `ring_char F = 2`
-    rw [quadratic_char_eq_one_of_char_two' hF ha,
-        quadratic_char_eq_one_of_char_two' hF hb,
-        quadratic_char_eq_one_of_char_two' hF hab,
+    rw [quadratic_char_fun_eq_one_of_char_two hF ha,
+        quadratic_char_fun_eq_one_of_char_two hF hb,
+        quadratic_char_fun_eq_one_of_char_two hF hab,
         mul_one], },
   { -- case of odd characteristic
-    rw [quadratic_char_eq_pow_of_char_ne_two' hF ha,
-        quadratic_char_eq_pow_of_char_ne_two' hF hb,
-        quadratic_char_eq_pow_of_char_ne_two' hF hab,
+    rw [quadratic_char_fun_eq_pow_of_char_ne_two hF ha,
+        quadratic_char_fun_eq_pow_of_char_ne_two hF hb,
+        quadratic_char_fun_eq_pow_of_char_ne_two hF hab,
         mul_pow],
     cases finite_field.pow_dichotomy hF hb with hb' hb',
     { simp only [hb', mul_one, eq_self_iff_true, if_true], },
@@ -126,15 +126,19 @@ variables (F)
 /-- The quadratic character as a multiplicative character. -/
 @[simps] def quadratic_char : mul_char F ℤ :=
 { to_fun := quadratic_char_fun F,
-  map_one' := quadratic_char_one,
-  map_mul' := quadratic_char_mul,
-  map_nonunit' := λ a ha, by { rw of_not_not (mt ne.is_unit ha), exact quadratic_char_zero, } }
+  map_one' := quadratic_char_fun_one,
+  map_mul' := quadratic_char_fun_mul,
+  map_nonunit' := λ a ha, by { rw of_not_not (mt ne.is_unit ha), exact quadratic_char_fun_zero, } }
 
 variables {F}
 
 /-- The value of the quadratic character on `a` is zero iff `a = 0`. -/
 lemma quadratic_char_eq_zero_iff {a : F} : quadratic_char F a = 0 ↔ a = 0 :=
-quadratic_char_eq_zero_iff'
+quadratic_char_fun_eq_zero_iff
+
+@[simp]
+lemma quadratic_char_zero : quadratic_char F 0 = 0 :=
+by simp only [quadratic_char_apply, quadratic_char_fun_zero]
 
 /-- For nonzero `a : F`, `quadratic_char F a = 1 ↔ is_square a`. -/
 lemma quadratic_char_one_iff_is_square {a : F} (ha : a ≠ 0) :
@@ -181,15 +185,15 @@ lemma quadratic_char_exists_neg_one (hF : ring_char F ≠ 2) : ∃ a, quadratic_
 /-- If `ring_char F = 2`, then `quadratic_char F` takes the value `1` on nonzero elements. -/
 lemma quadratic_char_eq_one_of_char_two (hF : ring_char F = 2) {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 :=
-quadratic_char_eq_one_of_char_two' hF ha
+quadratic_char_fun_eq_one_of_char_two hF ha
 
 /-- If `ring_char F` is odd, then `quadratic_char F a` can be computed in
 terms of `a ^ (fintype.card F / 2)`. -/
 lemma quadratic_char_eq_pow_of_char_ne_two (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
   quadratic_char F a = if a ^ (fintype.card F / 2) = 1 then 1 else -1 :=
-quadratic_char_eq_pow_of_char_ne_two' hF ha
+quadratic_char_fun_eq_pow_of_char_ne_two hF ha
 
-lemma quadratic_char_eq_pow_of_char_ne_two'' (hF : ring_char F ≠ 2) (a : F) :
+lemma quadratic_char_eq_pow_of_char_ne_two' (hF : ring_char F ≠ 2) (a : F) :
   (quadratic_char F a : F) = a ^ (fintype.card F / 2) :=
 begin
   by_cases ha : a = 0,
@@ -318,7 +322,7 @@ end
 lemma quadratic_char_two [decidable_eq F] (hF : ring_char F ≠ 2) :
   quadratic_char F 2 = χ₈ (fintype.card F) :=
 is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F) is_quadratic_χ₈ hF
-  ((quadratic_char_eq_pow_of_char_ne_two'' hF 2).trans (finite_field.two_pow_card hF))
+  ((quadratic_char_eq_pow_of_char_ne_two' hF 2).trans (finite_field.two_pow_card hF))
 
 /-- `2` is a square in `F` iff `#F` is not congruent to `3` or `5` mod `8`. -/
 lemma finite_field.is_square_two_iff :
@@ -389,12 +393,12 @@ begin
       exact ne_of_eq_of_ne (map_nonunit (quadratic_char F) ha)
              (mt zero_eq_neg.mp one_ne_zero), },
     use hu.unit,
-    simp only [is_unit.unit_spec, ring_hom_comp_apply, ring_hom.eq_int_cast, ne.def, ha],
+    simp only [is_unit.unit_spec, ring_hom_comp_apply, eq_int_cast, ne.def, ha],
     rw [int.cast_neg, int.cast_one],
     exact ring.neg_one_ne_one_of_char_ne_two hF', },
   have hχ₂ : χ.is_quadratic := is_quadratic.comp (quadratic_char_is_quadratic F) _,
   have h := char.card_pow_card hχ₁ hχ₂ h hF',
-  rw [← quadratic_char_eq_pow_of_char_ne_two'' hF'] at h,
+  rw [← quadratic_char_eq_pow_of_char_ne_two' hF'] at h,
   exact (is_quadratic.eq_of_eq_coe (quadratic_char_is_quadratic F')
              (quadratic_char_is_quadratic F) hF' h).symm,
 end

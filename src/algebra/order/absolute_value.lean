@@ -306,7 +306,6 @@ section semiring
 
 variables {R : Type*} [semiring R] [nontrivial R] (abv : R → S) [is_absolute_value abv]
 
-@[simp]
 lemma abv_one' : abv 1 = 1 :=
 (to_absolute_value abv).map_one_of_is_regular
   $ (is_regular_of_ne_zero $ (to_absolute_value abv).ne_zero one_ne_zero).left

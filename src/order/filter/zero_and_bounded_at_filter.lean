@@ -26,8 +26,8 @@ variables {α β : Type*}
 open_locale topological_space
 
 /--A function `f : α → β` is `zero_at_filter` if in the limit it is zero.-/
-def zero_at_filter [has_zero β] [topological_space β] (l : filter α)
-(f : α → β) : Prop := filter.tendsto f l (𝓝 0)
+def zero_at_filter [has_zero β] [topological_space β] (l : filter α) (f : α → β) : Prop :=
+filter.tendsto f l (𝓝 0)
 
 lemma zero_is_zero_at_filter [has_zero β] [topological_space β]
 (l : filter α) : zero_at_filter l (0 : α → β) := tendsto_const_nhds

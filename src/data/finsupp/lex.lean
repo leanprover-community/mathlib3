@@ -103,7 +103,7 @@ lemma lex_eq_pi_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α �
 rfl
 
 /-  Oh, have I tried to prove it with `rfl`... -/
-lemma lex_def {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
+lemma lex_def {r : α → α → Prop} {s : N → N → Prop} {a b : α →₀ N} :
   finsupp.lex r s a b ↔ ∃ j, (∀ d, r d j → a d = b d) ∧ s (a j) (b j) :=
 by refl
 

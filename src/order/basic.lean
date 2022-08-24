@@ -409,7 +409,6 @@ instance (α : Type*) [h : nonempty α] : nonempty αᵒᵈ := h
 instance (α : Type*) [h : subsingleton α] : subsingleton αᵒᵈ := h
 instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
-instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
 instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,
@@ -769,6 +768,23 @@ lemma min_eq : min a b = star := rfl
 instance : densely_ordered punit := ⟨λ _ _, false.elim⟩
 
 end punit
+
+section prop
+
+/-- Propositions form a complete boolean algebra, where the `≤` relation is given by implication. -/
+instance Prop.has_le : has_le Prop := ⟨(→)⟩
+
+@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
+
+lemma subrelation_iff_le {r s : α → α → Prop} : subrelation r s ↔ r ≤ s := iff.rfl
+
+instance Prop.partial_order : partial_order Prop :=
+{ le_refl      := λ _, id,
+  le_trans     := λ a b c f g, g ∘ f,
+  le_antisymm  := λ a b Hab Hba, propext ⟨Hab, Hba⟩,
+  ..Prop.has_le }
+
+end prop
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

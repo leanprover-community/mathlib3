@@ -70,6 +70,22 @@ instance reflects_epimorphisms_comp (F : C ⥤ D) (G : D ⥤ E) [reflects_epimor
   [reflects_epimorphisms G] : reflects_epimorphisms (F ⋙ G) :=
 { reflects := λ X Y f h, (F.epi_of_epi_map (G.epi_of_epi_map h)) }
 
+lemma preserves_epimorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_epimorphisms (F ⋙ G)] [reflects_epimorphisms G] : preserves_epimorphisms F :=
+⟨λ X Y f hf, G.epi_of_epi_map $ show epi ((F ⋙ G).map f), by exactI infer_instance⟩
+
+lemma preserves_monomorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_monomorphisms (F ⋙ G)] [reflects_monomorphisms G] : preserves_monomorphisms F :=
+⟨λ X Y f hf, G.mono_of_mono_map $ show mono ((F ⋙ G).map f), by exactI infer_instance⟩
+
+lemma reflects_epimorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_epimorphisms G] [reflects_epimorphisms (F ⋙ G)] : reflects_epimorphisms F :=
+⟨λ X Y f hf, (F ⋙ G).epi_of_epi_map $ show epi (G.map (F.map f)), by exactI infer_instance⟩
+
+lemma reflects_monomorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_monomorphisms G] [reflects_monomorphisms (F ⋙ G)] : reflects_monomorphisms F :=
+⟨λ X Y f hf, (F ⋙ G).mono_of_mono_map $ show mono (G.map (F.map f)), by exactI infer_instance⟩
+
 lemma preserves_monomorphisms.of_iso {F G : C ⥤ D} [preserves_monomorphisms F] (α : F ≅ G) :
   preserves_monomorphisms G :=
 { preserves := λ X Y f h,
@@ -166,5 +182,55 @@ instance reflects_monomorphisms_of_faithful (F : C ⥤ D) [faithful F] : reflect
 instance reflects_epimorphisms_of_faithful (F : C ⥤ D) [faithful F] : reflects_epimorphisms F :=
 { reflects := λ X Y f hf, ⟨λ Z g h hgh, by exactI F.map_injective ((cancel_epi (F.map f)).1
     (by rw [← F.map_comp, hgh, F.map_comp]))⟩ }
+
+section
+
+variables (F : C ⥤ D) {X Y : C} (f : X ⟶ Y)
+
+/-- If `F` is a fully faithful functor, split epimorphisms are preserved and reflected by `F`. -/
+def split_epi_equiv [full F] [faithful F] : split_epi f ≃ split_epi (F.map f) :=
+{ to_fun := λ f, f.map F,
+  inv_fun := λ s, begin
+    refine ⟨F.preimage s.section_, _⟩,
+    apply F.map_injective,
+    simp only [map_comp, image_preimage, map_id],
+    apply split_epi.id,
+  end,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/-- If `F` is a fully faithful functor, split monomorphisms are preserved and reflected by `F`. -/
+def split_mono_equiv [full F] [faithful F] : split_mono f ≃ split_mono (F.map f) :=
+{ to_fun := λ f, f.map F,
+  inv_fun := λ s, begin
+    refine ⟨F.preimage s.retraction, _⟩,
+    apply F.map_injective,
+    simp only [map_comp, image_preimage, map_id],
+    apply split_mono.id,
+  end,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+@[simp]
+lemma epi_map_iff_epi [hF₁ : preserves_epimorphisms F] [hF₂ : reflects_epimorphisms F] :
+  epi (F.map f) ↔ epi f :=
+begin
+  split,
+  { exact F.epi_of_epi_map, },
+  { introI h,
+    exact F.map_epi f, },
+end
+
+@[simp]
+lemma mono_map_iff_mono [hF₁ : preserves_monomorphisms F] [hF₂ : reflects_monomorphisms F] :
+  mono (F.map f) ↔ mono f :=
+begin
+  split,
+  { exact F.mono_of_mono_map, },
+  { introI h,
+    exact F.map_mono f, },
+end
+
+end
 
 end category_theory.functor

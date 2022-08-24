@@ -337,7 +337,7 @@ partially_well_ordered_on_iff_exists_monotone_subseq
 
 lemma is_pwo.prod (hs : s.is_pwo)
   (ht : t.is_pwo) :
-  (s ×ˢ t : set _).is_pwo :=
+  (s ×ˢ t).is_pwo :=
 begin
   classical,
   rw is_pwo_iff_exists_monotone_subseq at *,
@@ -895,7 +895,7 @@ begin
   { intros f hf, existsi rel_embedding.refl (≤),
     simp only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f hf,
-    obtain ⟨g, hg⟩ := (is_well_order.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
+    obtain ⟨g, hg⟩ := (is_well_founded.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
       ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),
     obtain ⟨g', hg'⟩ := ih (f ∘ g) (set.subset_univ _),
     refine ⟨g'.trans g, λ a b hab, _⟩,

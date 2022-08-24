@@ -143,20 +143,29 @@ def transpose (μ : young_diagram) : young_diagram :=
 @[simp] lemma mem_transpose {μ : young_diagram} {c : ℕ × ℕ} : c ∈ μ.transpose ↔ c.swap ∈ μ :=
 by { change c ∈ μ.cells.map _ ↔ _, rw finset.mem_map_equiv, refl, }
 
-@[simp] lemma transpose_eq_iff {μ ν : young_diagram} : μ.transpose = ν ↔ μ = ν.transpose :=
-by { split; { rintro rfl, ext, simp } }
-
 @[simp] lemma transpose_transpose (μ : young_diagram) : μ.transpose.transpose = μ :=
-by rw transpose_eq_iff
+by { ext, simp }
+
+lemma transpose_eq_iff_eq_transpose {μ ν : young_diagram} :
+  μ.transpose = ν ↔ μ = ν.transpose :=
+by { split; { rintro rfl, simp } }
+
+@[simp] lemma transpose_eq_iff {μ ν : young_diagram} :
+  μ.transpose = ν.transpose ↔ μ = ν :=
+by { rw transpose_eq_iff_eq_transpose, simp }
 
 -- This is effectively both directions of the iff statement below.
 protected lemma le_of_transpose_le {μ ν : young_diagram} (h_le : μ.transpose ≤ ν) :
   μ ≤ ν.transpose :=
 λ c hc, by { simp only [mem_transpose], apply h_le, simpa }
 
-@[simp] lemma transpose_le_iff {μ ν : young_diagram} : μ.transpose ≤ ν ↔ μ ≤ ν.transpose :=
-⟨ young_diagram.le_of_transpose_le,
-  by { convert @young_diagram.le_of_transpose_le μ.transpose ν.transpose, simp } ⟩
+@[simp] lemma transpose_le_iff {μ ν : young_diagram} : μ.transpose ≤ ν.transpose ↔ μ ≤ ν :=
+⟨ λ h, by { convert young_diagram.le_of_transpose_le h, simp },
+  λ h, by { convert @young_diagram.le_of_transpose_le _ _ _, simpa } ⟩
+
+@[mono]
+protected lemma transpose_mono {μ ν : young_diagram} (h_le : μ ≤ ν) : μ.transpose ≤ ν.transpose :=
+by simp [h_le]
 
 /-- Transposing Young diagrams is an `order_iso`. -/
 def transpose_order_iso : young_diagram ≃o young_diagram :=

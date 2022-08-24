@@ -47,22 +47,28 @@ def ComplComp : finset V ⥤ Type u := {
 
 def Ends := (ComplComp G).sections
 
-/-The functor assigning a finite set in `V` to the set of **infinite** connected components in its complement-/
+/-/-The functor assigning a finite set in `V` to the set of **infinite** connected components in its complement-/
 def ComplInfComp : finset V ⥤ Type u := {
   obj := λ A, inf_conn_comp_outside G A,
   map := λ _ _ f, inf_conn_comp_outside_back (le_of_hom f),
   map_id' := by {intro, funext, simp, apply subtype.eq, rw [inf_conn_comp_outside_back.def], apply conn_comp_outside_back.refl, },
   map_comp' := by {intros, funext, simp, symmetry, apply subtype.eq, repeat {rw [inf_conn_comp_outside_back.def]}, apply conn_comp_outside_back.trans, },
-}
+}-/
 
-def ComplInfComp' : finset V ⥤ Type u :=
+
+def ComplInfComp : finset V ⥤ Type u :=
   (ComplComp G).subfunctor
     (λ K, {C : conn_comp_outside G K | C.verts.infinite})
     (by {intros _ _ _, apply conn_comp_outside_back.inf_to_inf,})
 
 def Endsinfty := (ComplInfComp G).sections
 
-lemma ComplInfComp'_eq_ComplComp_to_surjective : ComplInfComp' G = inverse_system.to_surjective (ComplComp G) :=
+lemma ComplInfComp.obj : ∀ K : finset V, (ComplInfComp G).obj K = inf_conn_comp_outside G K := by {intro, refl,}
+
+lemma ComplInfComp.map : ∀ {K L : finset V}, ∀ f : K ⟶ L, (ComplInfComp G).map f = inf_conn_comp_outside_back (le_of_hom f) := by {intros, ext ⟨_, _⟩, refl,}
+
+
+lemma ComplInfComp_eq_ComplComp_to_surjective : ComplInfComp G = inverse_system.to_surjective (ComplComp G) :=
 begin
   apply functor.subfunctor.ext,
   dsimp [ComplComp], intro K, ext C,

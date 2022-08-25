@@ -199,10 +199,20 @@ begin
 end
 
 lemma of_connected_disjoint {G : simple_graph V} {K : set V} (S : set V)
-  (Sconn : (G.induce S).connected) (Sdis : disjoint S K) : {C  : conn_comp_outside G K | S ⊆ C} := sorry
+  (Sconn : ((⊤ : G.subgraph).induce S).connected) (Sdis : disjoint S K) : {C  : conn_comp_outside G K | S ⊆ C} :=
+begin
+  sorry
+end
 
 lemma of_vertex {G : simple_graph V} {K : set V} (v : V)
-   (hv : v ∉ K) : {C  : conn_comp_outside G K | v ∈ C} := sorry
+   (hv : v ∉ K) : {C  : conn_comp_outside G K | v ∈ C} :=
+begin
+  let S := {v},
+  have Sconn : ((⊤ : G.subgraph).induce S).connected, by apply subgraph.induce_singleton_connected,
+  have Sdis : disjoint S K, by {simp only [set.disjoint_singleton_left], exact hv},
+  obtain ⟨C,hC⟩ := of_connected_disjoint S Sconn Sdis,
+  use C, simp only [set.singleton_subset_iff] at hC, exact hC,
+end
 
 
 @[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) :

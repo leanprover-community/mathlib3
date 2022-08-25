@@ -840,6 +840,17 @@ begin
   exact or.inl (le_refl _),
 end
 
+lemma factorization_add_le_of_factorization_add_eq {p b a : ℕ} (ha0 : a ≠ 0)
+  (h : (a + b).factorization p = b.factorization p) :
+  (a + b).factorization p ≤ a.factorization p :=
+begin
+  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  rcases eq_or_ne (a.factorization p) (b.factorization p) with h1 | h2,
+  { rw [h, h1] },
+  simp [factorization_add_min h2 ha0 hb0],
+end
+
 /-! ### Lemmas about factorizations of subtractions -/
 
 lemma factorization_sub_of_lt {p a b : ℕ} (h : b.factorization p < a.factorization p)
@@ -872,29 +883,24 @@ begin
   { rw [factorization_sub_of_lt h hab hb0, min_eq_right_of_lt h] },
 end
 
-lemma factorization_sub {p a b : ℕ}
-(hab : b < a)
-:
+lemma factorization_sub {p a b : ℕ} (hab : b < a) :
   min (a.factorization p) (b.factorization p) ≤ (a - b).factorization p :=
 begin
   rcases eq_or_ne a 0 with rfl | ha0, { simp at * },
   rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
   rcases em' p.prime with pp | pp, { simp [pp] },
-
   have : a - b ≠ 0, { simp [hab] },
   rw ←pp.pow_dvd_iff_le_factorization this,
-
   rcases eq_or_ne (a.factorization p) (b.factorization p) with h7 | h8, swap,
   { rw ←factorization_sub_min h8 hab.le hb0, apply ord_proj_dvd },
   refine pow_dvd_of_le_of_pow_dvd _ (ord_proj_dvd (a-b) p),
+  rw [min_le_iff, ←h7, or_self],
   rcases exists_eq_add_of_lt hab with ⟨k, hk⟩,
   rw add_assoc at hk,
   subst hk,
-  simp,
-  rcases eq_or_ne (b.factorization p) ((k+1).factorization p) with H1 | H2,
-  { rw h7, simp [H1.le] },
-  rw factorization_add_min H2 hb0 (succ_ne_zero k),
-  simp,
+  rw [add_tsub_cancel_left],
+  rw add_comm at h7 ⊢,
+  exact factorization_add_le_of_factorization_add_eq (succ_ne_zero k) h7,
 end
 
 

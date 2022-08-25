@@ -81,7 +81,7 @@ lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom
 begin
   rw is_unit_iff,
   apply le_antisymm (r.denom : ℤ_[p]).2,
-  rw [← not_lt, val_eq_coe, coe_coe],
+  rw [← not_lt, val_eq_coe, coe_nat_cast],
   intro norm_denom_lt,
   have hr : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
   { rw_mod_cast @rat.mul_denom_eq_num r, refl, },
@@ -123,10 +123,10 @@ begin
   rw [norm_lt_one_iff_dvd, ← (is_unit_denom r h).dvd_mul_right],
   suffices : ↑p ∣ r.num - n * r.denom,
   { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
-    simp only [sub_mul, int.cast_coe_nat, ring_hom.eq_int_cast, int.cast_mul,
+    simp only [sub_mul, int.cast_coe_nat, eq_int_cast, int.cast_mul,
       sub_left_inj, int.cast_sub],
     apply subtype.coe_injective,
-    simp only [coe_mul, subtype.coe_mk, coe_coe],
+    simp only [coe_mul, subtype.coe_mk, coe_nat_cast],
     rw_mod_cast @rat.mul_denom_eq_num r, refl },
   exact norm_sub_mod_part_aux r h
 end
@@ -164,7 +164,7 @@ begin
   simp only [pow_one] at this,
   specialize this hm hn,
   apply_fun zmod.cast_hom (show p ∣ p ^ 1, by rw pow_one) (zmod p) at this,
-  simp only [ring_hom.map_int_cast] at this,
+  simp only [map_int_cast] at this,
   simpa only [int.cast_coe_nat] using this
 end
 
@@ -182,7 +182,7 @@ begin
   lift n to ℕ using hzn,
   use n,
   split, {exact_mod_cast hnp},
-  simp only [norm_def, coe_sub, subtype.coe_mk, coe_coe] at hn ⊢,
+  simp only [norm_def, coe_sub, subtype.coe_mk, coe_nat_cast] at hn ⊢,
   rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,
   apply lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _),
   apply max_lt hr,
@@ -587,8 +587,7 @@ begin
   apply lt_trans _ hε',
   change ↑(padic_norm_e _) < _,
   norm_cast,
-  convert hN _ hn,
-  simp [nth_hom, lim_nth_hom, nth_hom_seq, of_int_seq],
+  exact hN _ hn,
 end
 
 lemma lim_nth_hom_zero : lim_nth_hom f_compat 0 = 0 :=
@@ -630,7 +629,7 @@ begin
   rw sub_eq_sub_add_sub (lim_nth_hom f_compat r) _ ↑(nth_hom f r (max n k)),
   apply ideal.add_mem _ _ this,
   rw [ideal.mem_span_singleton],
-  simpa only [ring_hom.eq_int_cast, ring_hom.map_pow, int.cast_sub] using
+  simpa only [eq_int_cast, ring_hom.map_pow, int.cast_sub] using
     (int.cast_ring_hom ℤ_[p]).map_dvd
       (pow_dvd_nth_hom_sub f_compat r n (max n k) (le_max_left _ _)),
 end

@@ -33,7 +33,7 @@ We express this in two equivalent ways, as
 
 noncomputable theory
 
-universes v u
+universes w v u
 
 open topological_space
 open Top
@@ -43,9 +43,10 @@ open category_theory.limits
 
 namespace Top.presheaf
 
-variables {X : Top.{v}}
-
 variables {C : Type u} [category.{v} C]
+
+section
+variables {X : Top.{w}}
 
 /--
 An alternative formulation of the sheaf condition
@@ -56,7 +57,7 @@ A presheaf is a sheaf if `F` sends the cone `(pairwise.cocone U).op` to a limit 
 (Recall `pairwise.cocone U` has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
 -/
 def is_sheaf_pairwise_intersections (F : presheaf C X) : Prop :=
-∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (pairwise.cocone U).op))
+∀ ⦃ι : Type w⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (pairwise.cocone U).op))
 
 /--
 An alternative formulation of the sheaf condition
@@ -68,14 +69,16 @@ A presheaf is a sheaf if `F` preserves the limit of `pairwise.diagram U`.
 `U i ⊓ U j` mapping into the open sets `U i`. This diagram has limit `supr U`.)
 -/
 def is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) : Prop :=
-∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (preserves_limit (pairwise.diagram U).op F)
+∀ ⦃ι : Type w⦄ (U : ι → opens X), nonempty (preserves_limit (pairwise.diagram U).op F)
+
+end
 
 /-!
 The remainder of this file shows that these conditions are equivalent
 to the usual sheaf condition.
 -/
 
-variables [has_products.{v} C]
+variables {X : Top.{v}} [has_products.{v} C]
 
 namespace sheaf_condition_pairwise_intersections
 
@@ -369,6 +372,7 @@ to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 lemma is_sheaf_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
   F.is_sheaf ↔ F.is_sheaf_pairwise_intersections :=
+(is_sheaf_iff_is_sheaf_equalizer_products F).trans $
 iff.intro (λ h ι U, ⟨is_limit_map_cone_of_is_limit_sheaf_condition_fork F U (h U).some⟩)
   (λ h ι U, ⟨is_limit_sheaf_condition_fork_of_is_limit_map_cone F U (h U).some⟩)
 
@@ -393,7 +397,7 @@ end Top.presheaf
 
 namespace Top.sheaf
 
-variables {X : Top.{v}} {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {X : Top.{v}} {C : Type u} [category.{v} C]
 variables (F : X.sheaf C) (U V : opens X)
 open category_theory.limits
 
@@ -414,8 +418,12 @@ pullback_cone.mk (F.1.map (hom_of_le le_sup_left).op) (F.1.map (hom_of_le le_sup
 variable (s : pullback_cone
   (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op))
 
+variable [has_products.{v} C]
+
 /-- (Implementation).
-Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`. -/
+Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`.
+TODO: generalize to `C` without products.
+-/
 def inter_union_pullback_cone_lift : s.X ⟶ F.1.obj (op (U ∪ V)) :=
 begin
   let ι : ulift.{v} walking_pair → opens X := λ j, walking_pair.cases_on j.down U V,
@@ -427,7 +435,7 @@ begin
       exacts [⟨⟨walking_pair.left⟩, h⟩, ⟨⟨walking_pair.right⟩, h⟩] },
     { rintro ⟨⟨_ | _⟩, h⟩,
       exacts [or.inl h, or.inr h] } },
-  refine (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
+  refine (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
     ⟨s.X, { app := _, naturality' := _ }⟩ ≫ F.1.map (eq_to_hom hι).op,
   { apply opposite.rec,
     rintro ((_|_)|(_|_)),
@@ -443,14 +451,14 @@ begin
       category.assoc],
     erw [← F.1.map_comp, ← F.1.map_comp],
     convert s.condition.symm },
-  { convert s.condition }
 end
 
 lemma inter_union_pullback_cone_lift_left :
   inter_union_pullback_cone_lift F U V s ≫ F.1.map (hom_of_le le_sup_left).op = s.fst :=
 begin
+  dsimp,
   erw [category.assoc, ←F.1.map_comp],
-  exact (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
     (op $ pairwise.single (ulift.up walking_pair.left))
 end
 
@@ -458,7 +466,7 @@ lemma inter_union_pullback_cone_lift_right :
   inter_union_pullback_cone_lift F U V s ≫ F.1.map (hom_of_le le_sup_right).op = s.snd :=
 begin
   erw [category.assoc, ←F.1.map_comp],
-  exact (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
     (op $ pairwise.single (ulift.up walking_pair.right))
 end
 
@@ -482,7 +490,7 @@ begin
   { apply inter_union_pullback_cone_lift_right },
   { intros m h₁ h₂,
     rw ← cancel_mono (F.1.map (eq_to_hom hι.symm).op),
-    apply (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.hom_ext,
+    apply (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.hom_ext,
     apply opposite.rec,
     rintro ((_|_)|(_|_)); rw [category.assoc, category.assoc],
     { erw ← F.1.map_comp,

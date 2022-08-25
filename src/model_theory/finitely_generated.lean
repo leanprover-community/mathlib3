@@ -111,7 +111,7 @@ begin
   { rintros ⟨S, Scount, hS⟩,
     cases eq_empty_or_nonempty ↑N with h h,
     { exact or.intro_left _ h },
-    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_surjective
+    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_eq_range
       (singleton_nonempty h.some).inr,
     refine or.intro_right _ ⟨f, _⟩,
     rw [← h', closure_union, hS, sup_eq_left, closure_le],

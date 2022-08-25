@@ -469,6 +469,12 @@ lemma ring_hom_ext ⦃j k : S →+* P⦄
   (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
 ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
 
+/- This is not an instance because the submonoid `M` would become a metavariable
+  in typeclass search. -/
+lemma alg_hom_subsingleton [algebra R P] : subsingleton (S →ₐ[R] P) :=
+⟨λ f g, alg_hom.coe_ring_hom_injective $ is_localization.ring_hom_ext M $
+  by rw [f.comp_algebra_map, g.comp_algebra_map]⟩
+
 /-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
 on the image of the base ring, if they preserve `1` and `*`. -/
 protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
@@ -1009,10 +1015,7 @@ variables {S}
 
 lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) (x : S) :
   ((sec M x).snd : R) ≠ 0 :=
-begin
-  change ((⟨(sec M x).snd.val, hM (sec M x).snd.property⟩ : non_zero_divisors R) : R) ≠ 0,
-  exact non_zero_divisors.coe_ne_zero _
-end
+non_zero_divisors.coe_ne_zero ⟨(sec M x).snd.val, hM (sec M x).snd.property⟩
 
 lemma sec_fst_ne_zero [nontrivial R] [no_zero_divisors S] (hM : M ≤ non_zero_divisors R) {x : S}
   (hx : x ≠ 0) : (sec M x).fst ≠ 0 :=

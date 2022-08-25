@@ -14,7 +14,7 @@ preserved by `f` because:
 * `f` preserves the naturals/integers in `α` and `β` because it's a ring hom.
 * `f` preserves what's between `n` and `n + 1` because it's monotone.
 
-However, that "between" doesn't have to be strict. Potentially something whose floor was `n` could
+However, there is a catch. Potentially something whose floor was `n` could
 get mapped to `n + 1`, and this has floor `n + 1`, not `n`. Note that this is at most an off by one
 error.
 

@@ -198,20 +198,39 @@ begin
     use [znK,zp.some.reverse], },
 end
 
-lemma of_connected_disjoint {G : simple_graph V} {K : set V} (S : set V)
-  (Sconn : ((⊤ : G.subgraph).induce S).connected) (Sdis : disjoint S K) : {C  : conn_comp_outside G K | S ⊆ C} :=
-begin
-  sorry
-end
 
-lemma of_vertex {G : simple_graph V} {K : set V} (v : V)
+
+lemma of_vertex (G : simple_graph V) {K : set V} (v : V)
    (hv : v ∉ K) : {C  : conn_comp_outside G K | v ∈ C} :=
 begin
+  sorry
+  /-
   let S := {v},
   have Sconn : ((⊤ : G.subgraph).induce S).connected, by apply subgraph.induce_singleton_connected,
   have Sdis : disjoint S K, by {simp only [set.disjoint_singleton_left], exact hv},
   obtain ⟨C,hC⟩ := of_connected_disjoint S Sconn Sdis,
   use C, simp only [set.singleton_subset_iff] at hC, exact hC,
+  -/
+end
+
+lemma of_connected_disjoint {G : simple_graph V} {K : set V} (S : set V)
+  (Sconn : ((⊤ : G.subgraph).induce S).connected) (Sdis : disjoint S K) : {C  : conn_comp_outside G K | S ⊆ C} :=
+begin
+  rw subgraph.connected_iff at Sconn,
+  let v := Sconn.right.some,
+  let vS := Sconn.right.some_spec, simp only [subgraph.induce_verts] at vS,
+  have : v ∉ K, by {rintro vK, apply set.disjoint_iff.mp Sdis ⟨vS,vK⟩,},
+  obtain ⟨C,vC⟩ := of_vertex G v ‹v∉K›,
+  use C,
+  simp only [mem_set_of_eq],
+  rintro u uS,
+  simp only [mem_diff, set.mem_univ, true_and, set_like.mem_coe, mem_supp_iff],
+  have : u ∉ K, by {rintro uK, apply set.disjoint_iff.mp Sdis ⟨uS,uK⟩,},
+  use ‹u∉K›,
+  simp only [mem_diff, set.mem_univ, true_and, mem_supp_iff, mem_set_of_eq] at vC,
+  rw ←vC.some_spec,
+  simp only [connected_component.eq],
+  sorry
 end
 
 

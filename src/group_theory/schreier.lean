@@ -214,53 +214,84 @@ lemma key_lemma17 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g 
 (key_lemma0 G).trans
     (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
 
-instance {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
-sorry
-
-@[to_additive] lemma subgroup.rank_le {G : Type*} [group G]
-  {H : subgroup G} [group.fg H]
-  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)]
-  {S : finset G} (hS : subgroup.closure (S : set G) = H) : group.rank H ≤ S.card :=
+@[to_additive]
+lemma closure_preimage_eq_top {G : Type*} [group G] (s : set G) :
+  closure ((closure s).subtype ⁻¹' s) = ⊤ :=
 begin
-  let T : finset H := S.preimage coe (subtype.coe_injective.inj_on _),
-  have key : S = T.map (function.embedding.subtype _),
-  { simp_rw [finset.ext_iff, finset.mem_map, finset.mem_preimage],
-    simp only [function.embedding.coe_subtype, exists_prop],
-    sorry },
-  rw [key, finset.card_map],
-  apply group.rank_le,
-  apply subgroup.map_injective (show function.injective H.subtype, from subtype.coe_injective),
-  rw [monoid_hom.map_closure, ←monoid_hom.range_eq_map, subtype_range],
-  rwa [key, finset.coe_map] at hS,
+  apply map_injective (show function.injective (closure s).subtype, from subtype.coe_injective),
+  rwa [monoid_hom.map_closure, ←monoid_hom.range_eq_map, subtype_range,
+    set.image_preimage_eq_of_subset],
+  rw [coe_subtype, subtype.range_coe_subtype],
+  exact subset_closure,
 end
 
-lemma rank_closure_le_card {G : Type*} [group G] (s : set G) [finite s]
+@[to_additive]
+instance closure_finset_fg {G : Type*} [group G] (s : finset G) : group.fg (closure (s : set G)) :=
+begin
+  refine ⟨⟨s.preimage coe (subtype.coe_injective.inj_on _), _⟩⟩,
+  rw finset.coe_preimage,
+  exact closure_preimage_eq_top s,
+end
+
+@[to_additive]
+instance closure_finite_fg {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
+begin
+  haveI := fintype.of_finite s,
+  exact s.coe_to_finset ▸ subgroup.closure_finset_fg s.to_finset,
+end
+
+@[to_additive] lemma rank_closure_finset_le_card {G : Type*} [group G] (s : finset G)
+  [decidable_pred (λ n, ∃ (S : finset (closure (s : set G))),
+    S.card = n ∧ subgroup.closure (S : set (closure (s : set G))) = ⊤)] :
+  group.rank (closure (s : set G)) ≤ s.card :=
+begin
+  classical,
+  let t : finset (closure (s : set G)) := s.preimage coe (subtype.coe_injective.inj_on _),
+  have ht : closure (t : set (closure (s : set G))) = ⊤,
+  { rw finset.coe_preimage,
+    exact closure_preimage_eq_top s },
+  apply (group.rank_le (closure (s : set G)) ht).trans,
+  rw [←finset.card_image_of_inj_on, finset.image_preimage],
+  { apply finset.card_filter_le },
+  { apply subtype.coe_injective.inj_on },
+end
+
+lemma rank_closure_finite_le_nat_card {G : Type*} [group G] (s : set G) [finite s]
   [decidable_pred (λ n, ∃ (S : finset (closure s)), S.card = n ∧ closure (S : set (closure s)) = ⊤)] :
   group.rank (closure s) ≤ nat.card s :=
 begin
+  classical,
   haveI := fintype.of_finite s,
   rw [nat.card_eq_fintype_card, ←set.to_finset_card],
-  have key := group.rank_le (closure s),
-  have key : nat.card s = s.to_finset.card,
-  { simp only [nat.card_eq_fintype_card, set.to_finset_card] },
-  have key := s.to_finset,
-  all_goals { sorry },
+  let t : finset (closure s) := s.to_finset.preimage coe (subtype.coe_injective.inj_on _),
+  have ht : closure (t : set (closure s)) = ⊤,
+  { rw [finset.coe_preimage, s.coe_to_finset],
+    exact closure_preimage_eq_top s },
+  apply (group.rank_le (closure s) ht).trans,
+  rw [←finset.card_image_of_inj_on, finset.image_preimage],
+  { apply finset.card_filter_le },
+  { apply subtype.coe_injective.inj_on },
 end
 
 instance (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.fg (commutator G) :=
 begin
-  sorry
+  haveI : finite {g | ∃ g₁ g₂ ∈ (⊤ : subgroup G), ⁅g₁, g₂⁆ = g},
+  { simpa only [mem_top, exists_true_left] },
+  apply subgroup.closure_finite_fg,
 end
 
 lemma rank_commutator_le_card (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
   [decidable_pred (λ n, ∃ (S : finset (commutator G)), S.card = n ∧ closure (S : set (commutator G)) = ⊤)] :
   group.rank (commutator G) ≤ nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
-  sorry
+  haveI : finite {g | ∃ g₁ g₂ ∈ (⊤ : subgroup G), ⁅g₁, g₂⁆ = g},
+  { simpa only [mem_top, exists_true_left] },
+  apply (subgroup.rank_closure_finite_le_nat_card _).trans,
+  simp only [mem_top, exists_true_left],
 end
 
-lemma key_lemma [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ∣ (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
 begin
   classical,
@@ -278,8 +309,16 @@ begin
   exact subtype.ext (subtype.ext key),
 end
 
--- bounded commutators and bounded index of center implies bounded commutator subgroup
+-- bounded commutators and bounded index of center implies bounded commutator subgroup (DONE!)
+
 -- bounded commutators implies bounded index of center
--- bounded index of center implies bounded commutators
+-- * reduce to the case where G is finitely generated by passing to the subgroup generated by the elements occuring in list of commutators
+-- * center equals intersection of finitely many centralizers
+-- * each centralizer has finite index (i.e., each conjugacy class is finite)
+-- * h * g * h⁻¹ = h * g * h⁻¹ * g⁻¹ * g = [h, g] * g
+
+-- And then we can start Neumann...
+
+-- bounded index of center implies bounded commutators (less important)
 
 end subgroup

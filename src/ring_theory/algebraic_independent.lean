@@ -153,8 +153,7 @@ lemma alg_hom.algebraic_independent_iff (f : A →ₐ[R] A') (hf : injective f) 
 
 @[nontriviality]
 lemma algebraic_independent_of_subsingleton [subsingleton R] : algebraic_independent R x :=
-by haveI := @mv_polynomial.unique R ι;
-  exact algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
+algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
 
 theorem algebraic_independent_equiv (e : ι ≃ ι') {f : ι' → A} :
   algebraic_independent R (f ∘ e) ↔ algebraic_independent R f :=

@@ -409,7 +409,6 @@ instance (α : Type*) [h : nonempty α] : nonempty αᵒᵈ := h
 instance (α : Type*) [h : subsingleton α] : subsingleton αᵒᵈ := h
 instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
-instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
 instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,

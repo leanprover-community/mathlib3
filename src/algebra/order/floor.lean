@@ -37,8 +37,6 @@ for `nnnorm`.
 
 ## TODO
 
-Some `nat.floor` and `nat.ceil` lemmas require `linear_ordered_ring α`. Is `has_ordered_sub` enough?
-
 `linear_ordered_ring`/`linear_ordered_semiring` can be relaxed to `order_ring`/`order_semiring` in
 many lemmas.
 
@@ -48,7 +46,7 @@ rounding, floor, ceil
 -/
 
 open set
-variables {α : Type*}
+variables {F α β : Type*}
 
 /-! ### Floor semiring -/
 
@@ -260,44 +258,44 @@ by { ext, simp [lt_ceil] }
 @[simp] lemma preimage_Iic {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋₊ :=
 by { ext, simp [le_floor_iff, ha] }
 
-end linear_ordered_semiring
-
-section linear_ordered_ring
-variables [linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ}
-
 lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :=
 eq_of_forall_le_iff $ λ b, begin
-  rw [le_floor_iff (add_nonneg ha n.cast_nonneg), ←sub_le_iff_le_add],
+  rw [le_floor_iff (add_nonneg ha n.cast_nonneg)],
   obtain hb | hb := le_total n b,
-  { rw [←cast_sub hb, ←tsub_le_iff_right],
-    exact (le_floor_iff ha).symm },
-  { exact iff_of_true ((sub_nonpos_of_le $ cast_le.2 hb).trans ha) (le_add_left hb) }
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_le_add_iff_right, add_le_add_iff_right,
+      le_floor_iff ha] },
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_left_comm _ b, add_left_comm _ (b : α)],
+    refine iff_of_true _ le_self_add,
+    exact (le_add_of_nonneg_right $ ha.trans $ le_add_of_nonneg_right d.cast_nonneg) }
 end
 
 lemma floor_add_one (ha : 0 ≤ a) : ⌊a + 1⌋₊ = ⌊a⌋₊ + 1 :=
 by { convert floor_add_nat ha 1, exact cast_one.symm }
 
-lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
+lemma floor_sub_nat [has_sub α] [has_ordered_sub α] [has_exists_add_of_le α] (a : α) (n : ℕ) :
+  ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
 begin
   obtain ha | ha := le_total a 0,
-  { rw [floor_of_nonpos ha, floor_of_nonpos (sub_nonpos_of_le (ha.trans n.cast_nonneg)),
+  { rw [floor_of_nonpos ha, floor_of_nonpos (tsub_nonpos_of_le (ha.trans n.cast_nonneg)),
       zero_tsub] },
   cases le_total a n,
   { rw [floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],
     exact nat.cast_le.1 ((nat.floor_le ha).trans h) },
-  { rw [eq_tsub_iff_add_eq_of_le (le_floor h), ←floor_add_nat (sub_nonneg_of_le h),
-      sub_add_cancel] }
+  { rw [eq_tsub_iff_add_eq_of_le (le_floor h), ←floor_add_nat _,
+      tsub_add_cancel_of_le h],
+    exact le_tsub_of_add_le_left ((add_zero _).trans_le h), }
 end
-
-lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋₊ := sub_lt_iff_lt_add.2 $ lt_floor_add_one a
 
 lemma ceil_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌈a + n⌉₊ = ⌈a⌉₊ + n :=
 eq_of_forall_ge_iff $ λ b, begin
   rw [←not_lt, ←not_lt, not_iff_not],
   rw [lt_ceil],
   obtain hb | hb := le_or_lt n b,
-  { rw [←tsub_lt_iff_right hb, ←sub_lt_iff_lt_add, ←cast_sub hb],
-    exact lt_ceil.symm },
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_lt_add_iff_right, add_lt_add_iff_right,
+      lt_ceil] },
   { exact iff_of_true (lt_add_of_nonneg_of_lt ha $ cast_lt.2 hb) (lt_add_left _ _ _ hb) }
 end
 
@@ -306,6 +304,13 @@ by { convert ceil_add_nat ha 1, exact cast_one.symm }
 
 lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
+
+end linear_ordered_semiring
+
+section linear_ordered_ring
+variables [linear_ordered_ring α] [floor_semiring α]
+
+lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋₊ := sub_lt_iff_lt_add.2 $ lt_floor_add_one a
 
 end linear_ordered_ring
 
@@ -729,6 +734,62 @@ begin
 end
 
 end round
+
+namespace nat
+variables [linear_ordered_semiring α] [linear_ordered_semiring β] [floor_semiring α]
+  [floor_semiring β] [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma floor_congr (h : ∀ n : ℕ, (n : α) ≤ a ↔ (n : β) ≤ b) : ⌊a⌋₊ = ⌊b⌋₊ :=
+begin
+  have h₀ : 0 ≤ a ↔ 0 ≤ b := by simpa only [cast_zero] using h 0,
+  obtain ha | ha := lt_or_le a 0,
+  { rw [floor_of_nonpos ha.le, floor_of_nonpos (le_of_not_le $ h₀.not.mp ha.not_le)] },
+  exact (le_floor $ (h _).1 $ floor_le ha).antisymm (le_floor $ (h _).2 $ floor_le $ h₀.1 ha),
+end
+
+lemma ceil_congr (h : ∀ n : ℕ, a ≤ n ↔ b ≤ n) : ⌈a⌉₊ = ⌈b⌉₊ :=
+(ceil_le.2 $ (h _).2 $ le_ceil _).antisymm $ ceil_le.2 $ (h _).1 $ le_ceil _
+
+lemma map_floor (f : F) (hf : strict_mono f) (a : α) : ⌊f a⌋₊ = ⌊a⌋₊ :=
+floor_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]
+
+lemma map_ceil (f : F) (hf : strict_mono f) (a : α) : ⌈f a⌉₊ = ⌈a⌉₊ :=
+ceil_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]
+
+end nat
+
+namespace int
+variables [linear_ordered_ring α] [linear_ordered_ring β] [floor_ring α] [floor_ring β]
+  [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma floor_congr (h : ∀ n : ℤ, (n : α) ≤ a ↔ (n : β) ≤ b) : ⌊a⌋ = ⌊b⌋ :=
+(le_floor.2 $ (h _).1 $ floor_le _).antisymm $ le_floor.2 $ (h _).2 $ floor_le _
+
+lemma ceil_congr (h : ∀ n : ℤ, a ≤ n ↔ b ≤ n) : ⌈a⌉ = ⌈b⌉ :=
+(ceil_le.2 $ (h _).2 $ le_ceil _).antisymm $ ceil_le.2 $ (h _).1 $ le_ceil _
+
+lemma map_floor (f : F) (hf : strict_mono f) (a : α) : ⌊f a⌋ = ⌊a⌋ :=
+floor_congr $ λ n, by rw [←map_int_cast f, hf.le_iff_le]
+
+lemma map_ceil (f : F) (hf : strict_mono f) (a : α) : ⌈f a⌉ = ⌈a⌉ :=
+ceil_congr $ λ n, by rw [←map_int_cast f, hf.le_iff_le]
+
+lemma map_fract (f : F) (hf : strict_mono f) (a : α) : fract (f a) = f (fract a) :=
+by simp_rw [fract, map_sub, map_int_cast, map_floor _ hf]
+
+end int
+
+namespace int
+variables [linear_ordered_field α] [linear_ordered_field β] [floor_ring α] [floor_ring β]
+  [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma map_round (f : F) (hf : strict_mono f) (a : α) : round (f a) = round a :=
+by simp_rw [round, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0, map_one]
+
+end int
 
 variables {α} [linear_ordered_ring α] [floor_ring α]
 

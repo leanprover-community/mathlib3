@@ -157,6 +157,9 @@ F.map e.inv = eq_to_hom (by rw hY) ≫ G.map e.inv ≫ eq_to_hom (by rw hX) :=
 by simp only [← is_iso.iso.inv_hom e, functor.map_inv, h₂, is_iso.inv_comp,
   inv_eq_to_hom, category.assoc]
 
+lemma congr_map (F : C ⥤ D) {X Y : C} {f g : X ⟶ Y} (h : f = g) :
+  F.map f = F.map g := by rw h
+
 section heq
 
 /- Composition of functors and maps w.r.t. heq -/

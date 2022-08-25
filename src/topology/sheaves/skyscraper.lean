@@ -58,14 +58,14 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
   begin
     split_ifs,
     { apply eq_to_hom_refl },
-    { exact (is_terminal.ite_not h terminal_is_terminal).hom_ext _ _ },
+    { exact (terminal_is_terminal.if_neg h).hom_ext _ _ },
   end,
   map_comp' := λ U V W iVU iWV,
   begin
     by_cases hW : p₀ ∈ unop W,
     { have hV : p₀ ∈ unop V := le_of_hom iWV.unop hW,
       simp only [dif_pos hW, dif_pos hV, eq_to_hom_trans] },
-    { rw [dif_neg hW], apply (is_terminal.ite_not hW terminal_is_terminal).hom_ext }
+    { rw [dif_neg hW], apply (terminal_is_terminal.if_neg hW).hom_ext }
   end }
 
 section
@@ -86,43 +86,47 @@ point, then the skyscraper sheaf `𝓕` with value `A` is defined by `U ↦ A` i
 `U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
 -/
 def skyscraper_sheaf : sheaf C X :=
-⟨skyscraper_presheaf p₀ S, λ c U s hs x hx,
-  ⟨if h : p₀ ∈ U
-   then x (hs p₀ h).some_spec.some (hs p₀ h).some_spec.some_spec.1 ≫
-        eq_to_hom ((skyscraper_presheaf_obj_of_mem S (hs p₀ h).some_spec.some_spec.2).trans
-          (skyscraper_presheaf_obj_of_mem S h).symm)
-   else (is_terminal.ite_not h terminal_is_terminal).from _,
-   λ V inc h,
+⟨_, (skyscraper_presheaf p₀ S).is_sheaf_iff_is_sheaf_opens_le_cover.mpr $ λ ι U, nonempty.intro
+ { lift := λ c, if h : p₀ ∈ (presheaf.sheaf_condition.opens_le_cover_cocone U).X
+    then c.π.app (op ⟨_, ⟨(opens.mem_supr.mp h).some, le_refl _⟩⟩) ≫ eq_to_hom
+      begin
+       dsimp, rw [if_pos h, if_pos (opens.mem_supr.mp h).some_spec],
+      end
+    else (terminal_is_terminal.if_neg h).from _,
+   fac' := λ c j,
    begin
-     by_cases hV : p₀ ∈ V,
-     { have hU : p₀ ∈ U := le_of_hom inc hV,
-       split_ifs,
-       generalize_proofs h₁ h₂,
-       dsimp,
-       split_ifs,
-       have := hx (hom_of_le inf_le_left) (hom_of_le inf_le_right) h₂.some_spec.1 h rfl,
-       dsimp at this,
-       split_ifs at this with H, swap,
-       { exact false.elim (H ⟨h₁.some_spec.some_spec.2, hV⟩) },
-       rw [eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans] at this,
-       rw [this, category.assoc, eq_to_hom_trans, category.assoc, eq_to_hom_trans,
-         eq_to_hom_refl, category.comp_id] },
-     { exact (is_terminal.ite_not hV terminal_is_terminal).hom_ext _ _, }
+    dsimp, split_ifs with h0, swap,
+    { exact (terminal_is_terminal.if_neg h0).hom_ext _ _, },
+    by_cases h1 : p₀ ∈ (presheaf.sheaf_condition.opens_le_cover_cocone U).X;
+    split_ifs, swap,
+    { rw [eq_comp_eq_to_hom], exact (terminal_is_terminal.if_neg h1).hom_ext _ _, },
+    rw [category.assoc, eq_to_hom_trans],
+    transitivity c.π.app (op ⟨U (opens.mem_supr.mp h1).some ⊓ j.unop.obj, ⟨_, inf_le_left⟩⟩) ≫
+      eq_to_hom _,
+    rotate, { dsimp, rw [if_pos h0, if_pos], exact ⟨(opens.mem_supr.mp h1).some_spec, h0⟩ },
+    { have := @nat_trans.naturality _ _ _ _ _ _ c.π j
+        (op ⟨U (opens.mem_supr.mp h1).some ⊓ j.unop.obj, ⟨_, inf_le_left⟩⟩)
+        (quiver.hom.op (hom_of_le _) : op j.unop ⟶ _), swap, exact inf_le_right,
+      dsimp at this, simp only [category.id_comp] at this,
+      have h : p₀ ∈ U _ ⊓ j.unop.obj := ⟨(opens.mem_supr.mp h1).some_spec, h0⟩,
+      split_ifs at this with h', swap, { exact false.elim (h' h), },
+      rw [this, category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id] },
+    { have := @nat_trans.naturality _ _ _ _ _ _ c.π
+        (op ⟨_, ⟨(opens.mem_supr.mp h1).some, le_refl _⟩⟩)
+        (op ⟨U (opens.mem_supr.mp h1).some ⊓ j.unop.obj, ⟨_, inf_le_left⟩⟩)
+        (quiver.hom.op (hom_of_le inf_le_left)),
+      dsimp at this, simp only [category.id_comp] at this,
+      have h : p₀ ∈ U _ ⊓ j.unop.obj := ⟨(opens.mem_supr.mp h1).some_spec, h0⟩,
+      split_ifs at this with h', swap, { exact false.elim (h' h), },
+      rw [this, category.assoc, eq_to_hom_trans], },
    end,
-   λ y (hy : x.is_amalgamation y),
+   uniq' := λ s f h0,
    begin
-     split_ifs,
-     { generalize_proofs h₁ h₂,
-       have := hy h₂.some h₂.some_spec.1,
-       dsimp at this,
-       split_ifs at this with H, swap,
-       { exact false.elim (H h₂.some_spec.2), },
-       rw [eq_comp_eq_to_hom] at this,
-       rw [this, eq_comp_eq_to_hom, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
-         category.comp_id], },
-     { exact (is_terminal.ite_not h terminal_is_terminal).hom_ext _ _, }
-   end⟩
-   ⟩
+    dsimp at *, split_ifs with h1, swap, { exact (terminal_is_terminal.if_neg h1).hom_ext _ _ },
+    specialize h0 (op ⟨_, ⟨(opens.mem_supr.mp h1).some, le_refl _⟩⟩),
+    split_ifs at h0 with h2, swap, { exact false.elim (h2 (opens.mem_supr.mp h1).some_spec) },
+    rw [←h0, category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
+   end }⟩
 
 end
 
@@ -262,20 +266,20 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes [has_
       eq_comp_eq_to_hom, eq_to_hom_refl, category.comp_id],
     transitivity _ ≫ c.ι.app (op (U.unop ⊓ h1.some)),
     work_on_goal 2
-    { refine (is_terminal.ite_not _ terminal_is_terminal).from _,
+    { refine (terminal_is_terminal.if_neg _).from _,
       exact λ h, h1.some_spec h.2, },
     work_on_goal 2
     { have := c.ι.naturality ((hom_of_le inf_le_left).op : op U.unop ⟶ op (unop U ⊓ h1.some)),
       erw [category.comp_id] at this,
       erw ←this,
       congr,
-      refine (is_terminal.ite_not _ terminal_is_terminal).hom_ext _ _,
+      refine (terminal_is_terminal.if_neg _).hom_ext _ _,
       exact λ h, h1.some_spec h.2, },
     have := c.ι.naturality ((hom_of_le inf_le_right).op : op h1.some ⟶ op (unop U ⊓ h1.some)),
     erw [category.comp_id] at this,
     erw [←this, ←category.assoc],
     congr' 1,
-    refine (is_terminal.ite_not _ terminal_is_terminal).hom_ext _ _,
+    refine (terminal_is_terminal.if_neg _).hom_ext _ _,
     exact λ h, h1.some_spec h.2,
   end,
   uniq' := λ c f H,

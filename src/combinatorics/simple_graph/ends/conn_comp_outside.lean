@@ -6,6 +6,7 @@ import topology.metric_space.basic
 import data.setoid.partition
 import category_theory.functor.basic
 import .mathlib
+import .connected
 
 open function finset set classical simple_graph.walk relation
 
@@ -88,9 +89,8 @@ begin
     apply (h v).mp, apply congr_arg, refl,}
 end
 
-
 @[reducible, simp] def conn_comp_outside.supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :=
-  {v : V | ∃ h : v ∈ (@set.univ V) \ K, connected_component_mk _ (by {dsimp only [compl], exact ⟨v,h⟩}) = C}
+  {v : V | ∃ h : v ∈ set.univ \ K, connected_component_mk _ (⟨v,h⟩ : (G.compl K).verts) = C}
 
 instance {G : simple_graph V} {K : set V} : set_like (conn_comp_outside G K) V :=
 ⟨ conn_comp_outside.supp
@@ -101,6 +101,16 @@ instance {G : simple_graph V} {K : set V} : set_like (conn_comp_outside G K) V :
     have := (h v).mp ⟨vh,rfl⟩, simp only [mem_set_of_eq] at this,
     obtain ⟨_,_⟩ := this,
     assumption, }, ⟩
+
+@[simp] lemma conn_comp_outside.mem_supp_iff {G : simple_graph V} {K : set V}
+  {v : V} {C : conn_comp_outside G K} :
+(v ∈ C) ↔ (∃ (h : v ∈ (set.univ \ K)), connected_component_mk _ (⟨v,h⟩ : (G.compl K).verts) = C) :=
+begin
+  -- lol
+  simp only [set_like.has_mem,has_mem.mem,coe,coe_to_lift,lift_t,has_lift_t.lift,coe_t,has_coe_t.coe,set_like.coe],
+  refl,
+end
+
 
 def inf_conn_comp_outside (G : simple_graph V) (K : set V) :=
  {C : G.conn_comp_outside K // C.verts.infinite}
@@ -117,22 +127,54 @@ instance fin_coe (G : simple_graph V) (K : set V) :
 namespace conn_comp_outside
 
 lemma disjoint_supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :
-  disjoint (C : set V) K := sorry
+  disjoint (C : set V) K :=
+begin
+  rw set.disjoint_iff,
+  rintro v ⟨vC,vK⟩,
+  simp only [mem_diff, set.mem_univ, true_and, set_like.mem_coe, mem_supp_iff] at vC,
+  apply (vC.some vK).elim,
+end
 
 lemma pairwise_disjoint_supp {G : simple_graph V} {K : set V} (C D : conn_comp_outside G K) :
-  disjoint (C : set V) (D : set V) := sorry
+  ¬ disjoint (C : set V) (D : set V) → C = D :=
+begin
+  rw set.not_disjoint_iff,
+  rintros ⟨v,vC,vD⟩,
+  simp only [mem_diff, set.mem_univ, true_and, set_like.mem_coe, mem_supp_iff] at vC vD,
+  rw [←vC.some_spec,←vD.some_spec],
+end
 
 lemma nonempty_supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :
-  (C : set V).nonempty := sorry
+  (C : set V).nonempty :=
+begin
+  refine connected_component.ind _ C,
+  rintro ⟨v,vK⟩, use v,
+  simp only [mem_diff, set.mem_univ, true_and, set_like.mem_coe, mem_supp_iff, connected_component.eq],
+  dsimp [compl] at vK,
+  use vK.2,
+  refl,
+end
 
 lemma connected_supp  {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :
-   (G.induce (C : set V)).connected := sorry
+   ((⊤ : G.subgraph).induce (C : set V)).connected :=
+begin
+  rw subgraph.connected_iff,
+  refine ⟨_,nonempty_supp C⟩,
+  refine connected_component.ind _ C,
+  simp,
+  rintro v vK,
+  rintro ⟨u,uK⟩ ⟨w,wK⟩,
+  --dsimp [compl,subgraph.induce,subgraph.verts,subgraph.delete_verts,subgraph.coe] at vK uK wK,
+  --simp at vK uK wK,
+
+end
 
 lemma of_connected_disjoint {G : simple_graph V} {K : set V} (S : set V)
   (Sconn : (G.induce S).connected) (Sdis : disjoint S K) : {C  : conn_comp_outside G K | S ⊆ C} := sorry
 
 lemma of_vertex {G : simple_graph V} {K : set V} (v : V)
    (hv : v ∉ K) : {C  : conn_comp_outside G K | v ∈ C} := sorry
+
 
 @[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) :
   conn_comp_outside G K := connected_component_mk _ v

@@ -65,7 +65,7 @@ def is_terminal.if_pos {Y Z : C} {P : Prop} [decidable P] (h : P) (hY : is_termi
   is_terminal $ if P then Y else Z :=
 hY.of_iso $ eq_to_iso $ by rw [if_pos h]
 
-def is_terminal.ite_not {Y Z : C} {P : Prop} [decidable P] (h : ¬P) (hZ : is_terminal Z) :
+def is_terminal.if_neg {Y Z : C} {P : Prop} [decidable P] (h : ¬P) (hZ : is_terminal Z) :
   is_terminal $ if P then Y else Z :=
 hZ.of_iso $ eq_to_iso $ by rw [if_neg h]
 

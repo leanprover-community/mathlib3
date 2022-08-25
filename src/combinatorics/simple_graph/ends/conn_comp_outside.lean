@@ -89,18 +89,18 @@ begin
 end
 
 
-@[reducible, simp] def conn_comp_outside.verts_supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :=
+@[reducible, simp] def conn_comp_outside.supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :=
   {v : V | ∃ h : v ∈ (@set.univ V) \ K, connected_component_mk _ (by {dsimp only [compl], exact ⟨v,h⟩}) = C}
 
 instance {G : simple_graph V} {K : set V} : set_like (conn_comp_outside G K) V :=
-⟨ conn_comp_outside.verts_supp
+⟨ conn_comp_outside.supp
 , by
   { rintro C D, refine connected_component.ind₂ _ C D,
-    rintros ⟨v,vh⟩ ⟨w,wh⟩, dsimp [conn_comp_outside.verts_supp],
+    rintros ⟨v,vh⟩ ⟨w,wh⟩, dsimp [conn_comp_outside.supp],
     intro h, simp_rw [set.ext_iff] at h,
     have := (h v).mp ⟨vh,rfl⟩, simp only [mem_set_of_eq] at this,
-    obtain ⟨_,_⟩ := this, assumption, }, ⟩
-
+    obtain ⟨_,_⟩ := this,
+    assumption, }, ⟩
 
 def inf_conn_comp_outside (G : simple_graph V) (K : set V) :=
  {C : G.conn_comp_outside K // C.verts.infinite}
@@ -108,8 +108,31 @@ def inf_conn_comp_outside (G : simple_graph V) (K : set V) :=
 def fin_conn_comp_outside (G : simple_graph V) (K : set V) :=
   {C : G.conn_comp_outside K // C.verts.finite}
 
+instance inf_coe (G : simple_graph V) (K : set V) :
+  has_coe (inf_conn_comp_outside G K) (conn_comp_outside G K) := ⟨λ x, x.val⟩
+
+instance fin_coe (G : simple_graph V) (K : set V) :
+  has_coe (fin_conn_comp_outside G K) (conn_comp_outside G K) := ⟨λ x, x.val⟩
 
 namespace conn_comp_outside
+
+lemma disjoint_supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :
+  disjoint (C : set V) K := sorry
+
+lemma pairwise_disjoint_supp {G : simple_graph V} {K : set V} (C D : conn_comp_outside G K) :
+  disjoint (C : set V) (D : set V) := sorry
+
+lemma nonempty_supp {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :
+  (C : set V).nonempty := sorry
+
+lemma connected_supp  {G : simple_graph V} {K : set V} (C : conn_comp_outside G K) :
+   (G.induce (C : set V)).connected := sorry
+
+lemma of_connected_disjoint {G : simple_graph V} {K : set V} (S : set V)
+  (Sconn : (G.induce S).connected) (Sdis : disjoint S K) : {C  : conn_comp_outside G K | S ⊆ C} := sorry
+
+lemma of_vertex {G : simple_graph V} {K : set V} (v : V)
+   (hv : v ∉ K) : {C  : conn_comp_outside G K | v ∈ C} := sorry
 
 @[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) :
   conn_comp_outside G K := connected_component_mk _ v
@@ -423,8 +446,6 @@ def conn_comp_outside.extend_connected_with_fin_components
 
 -- TODO: Prove lemmas about cofinite infinite components
 
-instance (G : simple_graph V) (K : set V) : has_coe (inf_conn_comp_outside G K) (conn_comp_outside G K) := ⟨λ x, x.val⟩
-
 lemma nicely_arranged {G : simple_graph V} [locally_finite G] (Gpc : G.preconnected) (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
   (E E' : inf_conn_comp_outside G H) (En : E ≠ E')
@@ -443,7 +464,7 @@ begin
     --exact ro_component.eq_of_common_mem G H EE EE' Ecomp Ecomp' v vE vE'
     },
   {
-    have : ∃ F' : inf_ro_components' G K, EE' ⊆ F'.val.val, by {
+    have : ∃ F' : inf_conn_comp_outside G K, (E' : set V) ⊆ F', by {
       rcases ro_component.of_subconnected_disjoint G K EE'
              (set.infinite.nonempty Einf')
              (by {unfold disjoint, rw [le_bot_iff], rw [set.not_nonempty_iff_eq_empty] at h, assumption,}) -- empty intersection means disjoint

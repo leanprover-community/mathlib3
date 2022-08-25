@@ -173,13 +173,12 @@ variables {R : Type u} {M : Type v}
 [module R M] [has_continuous_smul R M]
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  ⊆ closure (s : set M) :=
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
 calc
-(λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-    = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R) ×ˢ (s : set M))) :
+(λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s)
+    = (λ p : R × M, p.1 • p.2) '' closure (set.univ ×ˢ s) :
   by simp [closure_prod_eq]
-... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ (s : set M))) :
+... ⊆ closure ((λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ s)) :
   image_closure_subset_closure_image continuous_smul
 ... = closure s : begin
   congr,
@@ -190,10 +189,8 @@ calc
 end
 
 lemma submodule.closure_smul_self_eq (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  = closure (s : set M) :=
-set.subset.antisymm s.closure_smul_self_subset
-  (λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩)
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) = closure s :=
+s.closure_smul_self_subset.antisymm $ λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩
 
 variables [has_continuous_add M]
 
@@ -836,7 +833,7 @@ lemma range_prod_le [module R₁ M₂] [module R₁ M₃] (f : M₁ →L[R₁] M
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M₁ →SL[σ₁₂] M₂) (p : submodule R₂ M₂) (h : ∀ x, f x ∈ p) :
   M₁ →SL[σ₁₂] p :=
-{ cont := continuous_subtype_mk h f.continuous,
+{ cont := f.continuous.subtype_mk _,
   to_linear_map := (f : M₁ →ₛₗ[σ₁₂] M₂).cod_restrict p h}
 
 @[norm_cast] lemma coe_cod_restrict (f : M₁ →SL[σ₁₂] M₂) (p : submodule R₂ M₂) (h : ∀ x, f x ∈ p) :
@@ -1025,15 +1022,15 @@ of `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
   (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
-⟨ linear_map.infi_ker_proj_equiv R φ hd hu,
-  continuous_pi (λ i, begin
+{ to_linear_equiv := linear_map.infi_ker_proj_equiv R φ hd hu,
+  continuous_to_fun := continuous_pi (λ i, begin
     have := @continuous_subtype_coe _ _ (λ x, x ∈ (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i))),
     have := continuous.comp (by exact continuous_apply i) this,
     exact this
   end),
-  continuous_subtype_mk _ (continuous_pi (λ i, begin
+  continuous_inv_fun := continuous.subtype_mk (continuous_pi (λ i, begin
     dsimp, split_ifs; [apply continuous_apply, exact continuous_zero]
-  end)) ⟩
+  end)) _ }
 
 end pi
 

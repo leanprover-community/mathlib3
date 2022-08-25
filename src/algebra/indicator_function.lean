@@ -457,12 +457,8 @@ lemma inter_indicator_one {s t : set α} :
 funext (λ _, by simpa only [← inter_indicator_mul, pi.mul_apply, pi.one_apply, one_mul])
 
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
-  (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
-begin
-  letI := classical.dec_pred (∈ s),
-  letI := classical.dec_pred (∈ t),
-  simp [indicator_apply, ← ite_and],
-end
+  (s ×ˢ t).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
+by { classical, simp [indicator_apply, ←ite_and] }
 
 variables (M) [nontrivial M]
 

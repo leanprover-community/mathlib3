@@ -178,7 +178,7 @@ begin
     { simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
     exact λ hd, hp.one_lt.not_le ((mul_le_iff_le_one_left he).mp $
                 nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (nat.dvd_of_mem_factorization h) hd) },
-  obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := nat.pow_factorization_dvd _ _,
+  obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := nat.ord_proj_dvd _ _,
   obtain ⟨t, ht⟩ := nat.exists_eq_succ_of_ne_zero (finsupp.mem_support_iff.mp h),
   refine ⟨g ^ k, _⟩,
   rw ht,
@@ -235,8 +235,9 @@ section left_cancel_monoid
 variable [left_cancel_monoid G]
 
 @[to_additive]
-lemma exponent_ne_zero_of_fintype [fintype G] : exponent G ≠ 0 :=
-by simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne'
+lemma exponent_ne_zero_of_finite [finite G] : exponent G ≠ 0 :=
+by { casesI nonempty_fintype G,
+  simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne' }
 
 end left_cancel_monoid
 
@@ -268,7 +269,7 @@ begin
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
     exact this.not_le (le_cSup hfin.bdd_above $ set.mem_range_self _) },
-  have hpk  : p ^ k ∣ order_of t := nat.pow_factorization_dvd _ _,
+  have hpk  : p ^ k ∣ order_of t := nat.ord_proj_dvd _ _,
   have hpk' : order_of (t ^ p ^ k) = order_of t / p ^ k,
   { rw [order_of_pow' t (pow_ne_zero k hp.ne_zero), nat.gcd_eq_right hpk] },
   obtain ⟨a, ha⟩ := nat.exists_eq_add_of_lt hpe,

@@ -250,7 +250,7 @@ lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
   classical,
   refine rel_hom_class.well_founded
-    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop))
+    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : ℕ∞ → ℕ∞ → Prop))
     (with_top.well_founded_lt nat.lt_wf),
   { intro a,
     by_cases h : a = 0, { exact ⊤ },
@@ -631,6 +631,14 @@ lemma normalized_factors_prod_of_prime [nontrivial α] [unique αˣ] {m : multis
   (h : ∀ p ∈ m, prime p) : (normalized_factors m.prod) = m :=
 by simpa only [←multiset.rel_eq, ←associated_eq_eq] using prime_factors_unique
   (prime_of_normalized_factor) h (normalized_factors_prod (m.prod_ne_zero_of_prime h))
+
+lemma mem_normalized_factors_eq_of_associated {a b c : α} (ha : a ∈ normalized_factors c)
+  (hb : b ∈ normalized_factors c) (h : associated a b) : a = b :=
+begin
+  rw [← normalize_normalized_factor a ha, ← normalize_normalized_factor b hb,
+    normalize_eq_normalize_iff],
+  apply associated.dvd_dvd h,
+end
 
 end unique_factorization_monoid
 

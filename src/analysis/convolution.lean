@@ -684,7 +684,7 @@ end normed_add_comm_group
 
 namespace cont_diff_bump_of_inner
 
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [normed_space ℝ E']
 variables [inner_product_space ℝ G]
 variables [complete_space E']
@@ -758,7 +758,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space 𝕜 E'']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [complete_space F]
 variables [measurable_space G] {μ : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
@@ -854,7 +854,7 @@ lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
-  induction n using with_top.nat_induction with n ih ih generalizing g,
+  induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },
   { have h : ∀ x, has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x) x :=
@@ -888,7 +888,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
 variables {f₀ : 𝕜 → E} {g₀ : 𝕜 → E'}
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 variables [complete_space F]
 variables {μ : measure 𝕜}

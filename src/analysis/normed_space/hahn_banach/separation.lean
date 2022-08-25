@@ -42,7 +42,7 @@ lemma separate_convex_open_set [seminormed_add_comm_group E] [normed_space ℝ E
   (hs₀ : (0 : E) ∈ s) (hs₁ : convex ℝ s) (hs₂ : is_open s) {x₀ : E} (hx₀ : x₀ ∉ s) :
   ∃ f : E →L[ℝ] ℝ, f x₀ = 1 ∧ ∀ x ∈ s, f x < 1 :=
 begin
-  let f : linear_pmap ℝ E ℝ :=
+  let f : E →ₗ.[ℝ] ℝ :=
     linear_pmap.mk_span_singleton x₀ 1 (ne_of_mem_of_not_mem hs₀ hx₀).symm,
   obtain ⟨r, hr, hrs⟩ := metric.mem_nhds_iff.1
     (filter.inter_mem (hs₂.mem_nhds hs₀) $ hs₂.neg.mem_nhds $ by rwa [mem_neg, neg_zero]),

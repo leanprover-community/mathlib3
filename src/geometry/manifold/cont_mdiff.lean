@@ -70,12 +70,12 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
 {N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
 -- declare functions, sets, points and smoothness indices
-{f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : with_top ℕ}
+{f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : ℕ∞}
 
 /-- Property in the model space of a model with corners of being `C^n` within at set at a point,
 when read in the model vector space. This property will be lifted to manifolds to define smooth
 functions between manifolds. -/
-def cont_diff_within_at_prop (n : with_top ℕ) (f : H → H') (s : set H) (x : H) : Prop :=
+def cont_diff_within_at_prop (n : ℕ∞) (f : H → H') (s : set H) (x : H) : Prop :=
 cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) (I x)
 
 lemma cont_diff_within_at_prop_self_source {f : E → H'} {s : set E} {x : E} :
@@ -96,7 +96,7 @@ iff.rfl
 
 /-- Being `Cⁿ` in the model space is a local property, invariant under smooth maps. Therefore,
 it will lift nicely to manifolds. -/
-lemma cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
+lemma cont_diff_within_at_local_invariant_prop (n : ℕ∞) :
   (cont_diff_groupoid ∞ I).local_invariant_prop (cont_diff_groupoid ∞ I')
   (cont_diff_within_at_prop I I' n) :=
 { is_local :=
@@ -146,7 +146,7 @@ lemma cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
     { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.1 }
   end }
 
-lemma cont_diff_within_at_prop_mono (n : with_top ℕ)
+lemma cont_diff_within_at_prop_mono (n : ℕ∞)
   ⦃s x t⦄ ⦃f : H → H'⦄ (hts : t ⊆ s) (h : cont_diff_within_at_prop I I' n f s x) :
   cont_diff_within_at_prop I I' n f t x :=
 begin
@@ -169,7 +169,7 @@ end
 /-- A function is `n` times continuously differentiable within a set at a point in a manifold if
 it is continuous and it is `n` times continuously differentiable in this set around this point, when
 read in the preferred chart at this point. -/
-def cont_mdiff_within_at (n : with_top ℕ) (f : M → M') (s : set M) (x : M) :=
+def cont_mdiff_within_at (n : ℕ∞) (f : M → M') (s : set M) (x : M) :=
 lift_prop_within_at (cont_diff_within_at_prop I I' n) f s x
 
 /-- Abbreviation for `cont_mdiff_within_at I I' ⊤ f s x`. See also documentation for `smooth`.
@@ -180,10 +180,10 @@ cont_mdiff_within_at I I' ⊤ f s x
 /-- A function is `n` times continuously differentiable at a point in a manifold if
 it is continuous and it is `n` times continuously differentiable around this point, when
 read in the preferred chart at this point. -/
-def cont_mdiff_at (n : with_top ℕ) (f : M → M') (x : M) :=
+def cont_mdiff_at (n : ℕ∞) (f : M → M') (x : M) :=
 cont_mdiff_within_at I I' n f univ x
 
-lemma cont_mdiff_at_iff {n : with_top ℕ} {f : M → M'} {x : M} :
+lemma cont_mdiff_at_iff {n : ℕ∞} {f : M → M'} {x : M} :
   cont_mdiff_at I I' n f x ↔ continuous_at f x ∧ cont_diff_within_at 𝕜 n
     (ext_chart_at I' (f x) ∘ f ∘ (ext_chart_at I x).symm) (range I) (ext_chart_at I x x) :=
 lift_prop_at_iff.trans $ by { rw [cont_diff_within_at_prop, preimage_univ, univ_inter], refl }
@@ -194,7 +194,7 @@ lift_prop_at_iff.trans $ by { rw [cont_diff_within_at_prop, preimage_univ, univ_
 /-- A function is `n` times continuously differentiable in a set of a manifold if it is continuous
 and, for any pair of points, it is `n` times continuously differentiable on this set in the charts
 around these points. -/
-def cont_mdiff_on (n : with_top ℕ) (f : M → M') (s : set M) :=
+def cont_mdiff_on (n : ℕ∞) (f : M → M') (s : set M) :=
 ∀ x ∈ s, cont_mdiff_within_at I I' n f s x
 
 /-- Abbreviation for `cont_mdiff_on I I' ⊤ f s`. See also documentation for `smooth`. -/
@@ -203,7 +203,7 @@ def cont_mdiff_on (n : with_top ℕ) (f : M → M') (s : set M) :=
 /-- A function is `n` times continuously differentiable in a manifold if it is continuous
 and, for any pair of points, it is `n` times continuously differentiable in the charts
 around these points. -/
-def cont_mdiff (n : with_top ℕ) (f : M → M') :=
+def cont_mdiff (n : ℕ∞) (f : M → M') :=
 ∀ x, cont_mdiff_at I I' n f x
 
 /-- Abbreviation for `cont_mdiff I I' ⊤ f`.
@@ -699,7 +699,7 @@ lemma cont_mdiff_top :
 
 lemma cont_mdiff_within_at_iff_nat :
   cont_mdiff_within_at I I' n f s x ↔
-  (∀m:ℕ, (m : with_top ℕ) ≤ n → cont_mdiff_within_at I I' m f s x) :=
+  (∀m:ℕ, (m : ℕ∞) ≤ n → cont_mdiff_within_at I I' m f s x) :=
 begin
   refine ⟨λ h m hm, h.of_le hm, λ h, _⟩,
   cases n,
@@ -1286,33 +1286,31 @@ begin
   { assume y hy,
     simpa only [unique_mdiff_on, unique_mdiff_within_at, hy.1, inter_comm] with mfld_simps
       using hs (I.symm y) hy.2 },
-  have U : unique_diff_on 𝕜 ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)) :=
-    U'.prod unique_diff_on_univ,
   rw cont_mdiff_on_iff,
   refine ⟨hf.continuous_on_tangent_map_within_aux one_le_n hs, λp q, _⟩,
-  have A : range I ×ˢ (univ : set E) ∩
+  have A : range I ×ˢ univ ∩
       ((equiv.sigma_equiv_prod H E).symm ∘ λ (p : E × E), ((I.symm) p.fst, p.snd)) ⁻¹'
         (tangent_bundle.proj I H ⁻¹' s)
-      = (range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E),
+      = (range I ∩ I.symm ⁻¹' s) ×ˢ univ,
     by { ext ⟨x, v⟩, simp only with mfld_simps },
   suffices h : cont_diff_on 𝕜 m (((λ (p : H' × E'), (I' p.fst, p.snd)) ∘
       (equiv.sigma_equiv_prod H' E')) ∘ tangent_map_within I I' f s ∘
       ((equiv.sigma_equiv_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))
-    ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s) ×ˢ (univ : set E)),
+    ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s) ×ˢ univ),
     by simpa [A] using h,
   change cont_diff_on 𝕜 m (λ (p : E × E),
     ((I' (f (I.symm p.fst)), ((mfderiv_within I I' f s (I.symm p.fst)) : E → E') p.snd) : E' × E'))
-    ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)),
+    ((range I ∩ I.symm ⁻¹' s) ×ˢ univ),
   -- check that all bits in this formula are `C^n`
   have hf' := cont_mdiff_on_iff.1 hf,
   have A : cont_diff_on 𝕜 m (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) :=
     by simpa only with mfld_simps using (hf'.2 (I.symm 0) (I'.symm 0)).of_le m_le_n,
   have B : cont_diff_on 𝕜 m ((I' ∘ f ∘ I.symm) ∘ prod.fst)
-           ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)) :=
+           ((range I ∩ I.symm ⁻¹' s) ×ˢ univ) :=
     A.comp (cont_diff_fst.cont_diff_on) (prod_subset_preimage_fst _ _),
   suffices C : cont_diff_on 𝕜 m (λ (p : E × E),
     ((fderiv_within 𝕜 (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) p.1 : _) p.2))
-    ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)),
+    ((range I ∩ I.symm ⁻¹' s) ×ˢ univ),
   { apply cont_diff_on.prod B _,
     apply C.congr (λp hp, _),
     simp only with mfld_simps at hp,
@@ -1554,7 +1552,7 @@ variables (Z : basic_smooth_vector_bundle_core I M E')
 /-- A version of `cont_mdiff_at_iff_target` when the codomain is the total space of
   a `basic_smooth_vector_bundle_core`. The continuity condition in the RHS is weaker. -/
 lemma cont_mdiff_at_iff_target {f : N → Z.to_topological_vector_bundle_core.total_space}
-  {x : N} {n : with_top ℕ} :
+  {x : N} {n : ℕ∞} :
   cont_mdiff_at J (I.prod 𝓘(𝕜, E')) n f x ↔ continuous_at (bundle.total_space.proj ∘ f) x ∧
     cont_mdiff_at J 𝓘(𝕜, E × E') n (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
 begin

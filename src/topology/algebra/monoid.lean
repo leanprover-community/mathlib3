@@ -249,17 +249,17 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
+  closure (s : set M) * closure s ⊆ closure s :=
 calc
-(closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
+closure (s : set M) * closure s
+    = (λ p : M × M, p.1 * p.2) '' closure (s ×ˢ s) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' s ×ˢ s) :
   image_closure_subset_closure_image continuous_mul
 ... = closure s : by simp [s.coe_mul_self_eq]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
-  (closure (s : set M)) * closure (s : set M) = closure (s : set M) :=
+  closure (s : set M) * closure s = closure s :=
 subset.antisymm
   s.top_closure_mul_self_subset
   (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
@@ -295,25 +295,10 @@ topological closure."]
 def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
   (hs : ∀ (x y : s), x * y = y * x) : comm_monoid s.topological_closure :=
 { mul_comm :=
-  begin
-    intros a b,
-    have h₁ : (s.topological_closure : set M) = closure s := rfl,
-    let f₁ := λ (x : M × M), x.1 * x.2,
-    let f₂ := λ (x : M × M), x.2 * x.1,
-    let S : set (M × M) := (s : set M) ×ˢ (s : set M),
-    have h₃ : set.eq_on f₁ f₂ (closure S),
-    { refine set.eq_on.closure _ continuous_mul (by continuity),
-      intros x hx,
-      rw [set.mem_prod] at hx,
-      rcases hx with ⟨hx₁, hx₂⟩,
-      change ((⟨x.1, hx₁⟩ : s) : M) * (⟨x.2, hx₂⟩ : s) = (⟨x.2, hx₂⟩ : s) * (⟨x.1, hx₁⟩ : s),
-      exact_mod_cast hs _ _ },
-    ext,
-    change f₁ ⟨a, b⟩ = f₂ ⟨a, b⟩,
-    refine h₃ _,
-    rw [closure_prod_eq, set.mem_prod],
-    exact ⟨by simp [←h₁], by simp [←h₁]⟩
-  end,
+    have ∀ (x ∈ s) (y ∈ s), x * y = y * x,
+      from λ x hx y hy, congr_arg subtype.val (hs ⟨x, hx⟩ ⟨y, hy⟩),
+    λ ⟨x, hx⟩ ⟨y, hy⟩, subtype.ext $
+      eq_on_closure₂ this continuous_mul (continuous_snd.mul continuous_fst) x hx y hy,
   ..s.topological_closure.to_monoid }
 
 @[to_additive exists_open_nhds_zero_half]

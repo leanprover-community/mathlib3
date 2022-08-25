@@ -958,10 +958,11 @@ begin
   have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
   { rw ← set.range_comp,
     refl },
-  have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))
-    = span R (range v),
+  have h₂ : map (submodule.subtype (span R (range v)))
+    (span R (set.range (λ i, subtype.mk (v i) _))) = span R (range v),
   { rw [← span_image, submodule.coe_subtype, h₁] },
-  have h₃ : (x : M) ∈ map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _))),
+  have h₃ : (x : M) ∈ map (submodule.subtype (span R (range v)))
+    (span R (set.range (λ i, subtype.mk (v i) _))),
   { rw h₂, apply subtype.mem x },
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
   have h_x_eq_y : x = y,
@@ -1115,7 +1116,7 @@ begin
   induction n with n rank_ih generalizing N,
   { suffices : N = ⊥,
     { rwa this },
-    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, nat.le_zero_iff.mp (rank_le v hv)) },
+    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, le_zero_iff.mp (rank_le v hv)) },
   apply ih,
   intros N' N'_le x x_mem x_ortho,
   apply rank_ih,

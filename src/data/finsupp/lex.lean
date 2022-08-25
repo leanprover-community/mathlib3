@@ -28,6 +28,15 @@ The type synonym `_root_.lex (α →₀ N)` has an order given by `finsupp.lex (
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
 pi.lex r (λ _, s) x y
 
+lemma _root_.pi.lex_eq_finsupp_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
+  pi.lex r (λ _, s) (a : α → N) (b : α → N) = finsupp.lex r s a b :=
+rfl
+
+/-  Oh, have I tried to prove it with `rfl`... -/
+lemma lex_def {r : α → α → Prop} {s : N → N → Prop} {a b : α →₀ N} :
+  finsupp.lex r s a b ↔ ∃ j, (∀ d, r d j → a d = b d) ∧ s (a j) (b j) :=
+by refl
+
 instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) :=
 ⟨λ f g, finsupp.lex (<) (<) (of_lex f) (of_lex g)⟩
 
@@ -101,15 +110,6 @@ lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 lemma lt_of_forall_lt_of_lt (a b : lex (α →₀ N)) (i : α) :
   (∀ j < i, of_lex a j = of_lex b j) → of_lex a i < of_lex b i → a < b :=
 λ h1 h2, ⟨i, h1, h2⟩
-
-lemma _root_.pi.lex_eq_finsupp_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
-  pi.lex r (λ _, s) (a : α → N) (b : α → N) = finsupp.lex r s a b :=
-rfl
-
-/-  Oh, have I tried to prove it with `rfl`... -/
-lemma lex_def {r : α → α → Prop} {s : N → N → Prop} {a b : α →₀ N} :
-  finsupp.lex r s a b ↔ ∃ j, (∀ d, r d j → a d = b d) ∧ s (a j) (b j) :=
-by refl
 
 end N_has_zero
 

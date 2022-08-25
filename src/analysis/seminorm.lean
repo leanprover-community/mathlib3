@@ -50,13 +50,9 @@ attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
 section of
 
-section semi_normed_ring
-
-variables [semi_normed_ring 𝕜]
-
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
 `semi_norm_ring 𝕜`. -/
-def seminorm.of [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
+def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
@@ -65,15 +61,10 @@ def seminorm.of [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   smul'     := smul,
   neg'      := λ x, by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul] }
 
-end semi_normed_ring
-
-section normed_field
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-
 /-- Alternative constructor for a `seminorm` over a normed field `𝕜` that only assumes an
 inequality for the scalar multiplication. -/
-def seminorm.of_smul_le (f : E → ℝ) (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
+def seminorm.of_smul_le [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
+  (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
   (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
 seminorm.of f add_le
   (λ r x, begin
@@ -87,8 +78,6 @@ seminorm.of f add_le
     convert smul_le,
     simp [h],
   end)
-
-end normed_field
 
 end of
 

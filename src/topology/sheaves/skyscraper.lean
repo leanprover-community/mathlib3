@@ -53,7 +53,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 { obj := λ U, if p₀ ∈ unop U then S else terminal C,
   map := λ U V i, if h : p₀ ∈ unop V
     then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
-    else (is_terminal.ite_not h terminal_is_terminal).from _,
+    else (terminal_is_terminal.ite_not h).from _,
   map_id' := λ U,
   begin
     split_ifs,

@@ -1555,7 +1555,7 @@ lemma to_real_min {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞) :
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, min_eq_left])
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, min_eq_right])
 
-lemma to_real_sup {a b : ℝ≥0∞} (hr : a ≠ ∞)
+lemma to_real_sup {a b : ℝ≥0∞}
   : a ≠ ∞ → b ≠ ∞ → (a ⊔ b).to_real = a.to_real ⊔ b.to_real := to_real_max
 
 lemma to_real_inf {a b : ℝ≥0∞}

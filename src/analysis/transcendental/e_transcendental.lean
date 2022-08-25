@@ -116,14 +116,6 @@ begin
   exact nat.sub_pos_of_lt ineq,
 end
 
-lemma fact_eq_prod'' (n : ℕ) : n.factorial = ∏ i in finset.range n, (n - i) :=
-begin
-  rw [←finset.prod_range_reflect, ←finset.prod_range_add_one_eq_factorial],
-  apply finset.prod_congr rfl (λ i hi, _),
-  rw [finset.mem_range, ←nat.one_add_le_iff] at hi,
-  rw [nat.sub_sub, nat.sub_sub_self hi, add_comm],
-end
-
 lemma finset.prod_neg
   {α β : Type*} [comm_ring α] (s : finset β) (f : β → α) :
     ∏ x in s, -f x = (-1) ^ s.card * ∏ x in s, f x :=
@@ -141,13 +133,7 @@ begin
     congr' 1,
     { rw [tsub_zero, polynomial.iterate_derivative_X_pow_eq_smul,
         tsub_self, pow_zero, polynomial.eval_smul, polynomial.eval_one,
-        int.smul_one_eq_coe, int.cast_coe_nat, ←finset.prod_range_add_one_eq_factorial,
-        ←finset.prod_range_reflect (λ x, x + 1)],
-      refine congr_arg _ (finset.prod_congr rfl (λ i hi, _)),
-      rw [finset.mem_range, ←nat.add_one_le_iff] at hi,
-      simp only [],
-      rw [nat.sub_sub_comm (p - 1), nat.sub_add_cancel],
-      exact le_tsub_of_add_le_left hi },
+        int.smul_one_eq_coe, int.cast_coe_nat, nat.desc_factorial_self] },
     { rw [function.iterate_zero_apply, finset.prod_pow, polynomial.eval_pow,
         polynomial.eval_prod],
       simp_rw [polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C, zero_sub],
@@ -220,8 +206,7 @@ begin
     { obtain ⟨c, hc⟩ := this,
       rw [hc],
       convert dvd_mul_right _ (c * (j.choose x)) using 1,
-      rw [←nat.mul_factorial_pred hp.pos, int.coe_nat_mul, fact_eq_prod''],
-      rw nat.cast_prod,
+      rw [←nat.mul_factorial_pred hp.pos, int.coe_nat_mul, nat.desc_factorial_self],
       ring },
     have : 0 < x,
     { rw pos_iff_ne_zero,

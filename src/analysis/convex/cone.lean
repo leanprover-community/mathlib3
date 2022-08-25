@@ -385,8 +385,6 @@ instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
 @[simp] lemma mem_add {K₁ K₂ : convex_cone 𝕜 E} {a : E} :
   a ∈ K₁ + K₂ ↔ ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = a := iff.rfl
 
-@[simp] lemma coe_add {K₁ K₂ : convex_cone 𝕜 E} : ((K₁ + K₂) : set E) = ↑K₁ + ↑K₂ := rfl
-
 instance : add_zero_class (convex_cone 𝕜 E) :=
 ⟨0, has_add.add, λ _, by {ext, simp}, λ _, by {ext, simp}⟩
 

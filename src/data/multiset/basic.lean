@@ -486,6 +486,9 @@ def card : multiset α →+ ℕ :=
 
 @[simp] theorem coe_card (l : list α) : card (l : multiset α) = length l := rfl
 
+@[simp] theorem length_to_list (s : multiset α) : s.to_list.length = s.card :=
+by rw [← coe_card, coe_to_list]
+
 @[simp] theorem card_zero : @card α 0 = 0 := rfl
 
 theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=

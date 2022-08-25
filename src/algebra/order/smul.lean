@@ -242,8 +242,8 @@ end ordered_add_comm_group
 end linear_ordered_semifield
 
 namespace tactic
-variables {R M : Type*} [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
-  [ordered_smul R M] {a : R} {b : M}
+variables [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] [ordered_smul R M]
+  {a : R} {b : M}
 
 private lemma smul_nonneg_of_pos_of_nonneg (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a • b :=
 smul_nonneg ha.le hb

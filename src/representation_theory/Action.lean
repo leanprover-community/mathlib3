@@ -288,10 +288,13 @@ instance : preadditive (Action V G) :=
   comp_add' := by { intros, ext, exact preadditive.comp_add _ _ _ _ _ _, }, }
 
 instance : functor.additive (functor_category_equivalence V G).functor := {}
+instance forget_additive : functor.additive (forget V G) := {}
 
 @[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
 @[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
 @[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
+@[simp] lemma sum_hom {X Y : Action V G} {ι : Type*} (f : ι → (X ⟶ Y)) (s : finset ι) :
+  (s.sum f).hom = s.sum (λ i, (f i).hom) := (forget V G).map_sum f s
 
 end preadditive
 
@@ -520,6 +523,15 @@ instance res_additive [preadditive V] : (res V f).additive := {}
 variables {R : Type*} [semiring R]
 
 instance res_linear [preadditive V] [linear R V] : (res V f).linear R := {}
+
+/-- Bundles a type `H` with a multiplicative action of `G` as an `Action`. -/
+def of_mul_action (G H : Type u) [monoid G] [mul_action G H] : Action (Type u) (Mon.of G) :=
+{ V := H,
+  ρ := @mul_action.to_End_hom _ _ _ (by assumption) }
+
+@[simp] lemma of_mul_action_apply {G H : Type u} [monoid G] [mul_action G H] (g : G) (x : H) :
+  (of_mul_action G H).ρ g x = (g • x : H) :=
+rfl
 
 end Action
 

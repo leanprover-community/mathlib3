@@ -3,8 +3,12 @@ Copyright (c) 2022 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import representation_theory.Rep
+
+import algebraic_topology.alternating_face_map_complex
 import representation_theory.basic
+import representation_theory.Rep
+import algebraic_topology.nerve
+import algebraic_topology.cech_nerve
 
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
@@ -26,6 +30,7 @@ This allows us to define a `k[G]`-basis on `k[Gⁿ⁺¹]`, by mapping the natura
  * `Rep.of_mul_action`
  * `group_cohomology.resolution.equiv_tensor`
  * `group_cohomology.resolution.of_mul_action_basis`
+ * `group_cohomology.resolution.standard_resolution`
 
 ## TODO
 
@@ -52,6 +57,7 @@ universes u
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 
 open_locale tensor_product
+open category_theory
 
 local notation `Gⁿ` := fin n → G
 local notation `Gⁿ⁺¹` := fin (n + 1) → G
@@ -60,6 +66,7 @@ namespace group_cohomology.resolution
 
 open finsupp (hiding lift) fin (partial_prod) representation
 
+section basis
 variables (k G n) [group G]
 
 /-- The `k`-linear map from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` sending `(g₀, ..., gₙ)`
@@ -132,12 +139,6 @@ end
 
 variables (k G n)
 
-/-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
-`G →* End(k[H])` as a term of type `Rep k G`. -/
-abbreviation _root_.Rep.of_mul_action (G : Type u) [monoid G] (H : Type u) [mul_action G H] :
-  Rep k G :=
-Rep.of $ representation.of_mul_action k G H
-
 /-- A hom of `k`-linear representations of `G` from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) sending `(g₀, ..., gₙ)` to
 `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. -/
@@ -184,7 +185,6 @@ Action.mk_iso (linear_equiv.to_Module_iso
   right_inv := λ x, by convert to_tensor_aux_right_inv x,
   ..to_tensor_aux k G n }) (to_tensor k G n).comm
 
--- not quite sure which simp lemmas to make here
 @[simp] lemma equiv_tensor_def :
   (equiv_tensor k G n).hom = to_tensor k G n := rfl
 
@@ -216,10 +216,67 @@ def of_mul_action_basis  :
   basis (fin n → G) (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
 @basis.map _ (monoid_algebra k G) (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k))
   _ _ _ _ _ _ (@algebra.tensor_product.basis k _ (monoid_algebra k G) _ _ ((fin n → G) →₀ k) _ _
-  (fin n → G) (⟨linear_equiv.refl k _⟩)) (of_mul_action_basis_aux k G n)
+  (fin n → G) ⟨linear_equiv.refl k _⟩) (of_mul_action_basis_aux k G n)
 
 lemma of_mul_action_free :
   module.free (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
 module.free.of_basis (of_mul_action_basis k G n)
 
+end basis
+section differential
+variables (k G)
+
+/- This should maybe be expressed as a nerve... -/
+/-- The simplicial `G`-action sending `[n]` to `Gⁿ⁺¹` equipped with the diagonal action of `G`. -/
+def _root_.simplicial_object.standard_resolution [group G] :
+  simplicial_object (Action (Type u) $ Mon.of G) :=
+{ obj := λ n, Action.of_mul_action G (fin (n.unop.len + 1) → G),
+  map := λ m n f,
+  { hom := λ x, x ∘ f.unop.to_order_hom,
+    comm' := λ g, rfl },
+  map_id' := λ n, rfl,
+  map_comp' := λ i j k f g, rfl }
+
+/-- The `k`-linear map underlying the differential in the standard resolution of `k` as a trivial
+`k`-linear `G`-representation. It sends `(g₀, ..., gₙ) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ)`. -/
+def d (n : ℕ) : ((fin (n + 1) → G) →₀ k) →ₗ[k] ((fin n → G) →₀ k) :=
+finsupp.lift ((fin n → G) →₀ k) k (fin (n + 1) → G) (λ g, (@finset.univ (fin (n + 1)) _).sum
+  (λ p, finsupp.single (g ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))))
+
+variables {k G}
+
+@[simp] lemma d_of {n : ℕ} (c : fin (n + 1) → G) :
+  d k G n (finsupp.single c 1) = finset.univ.sum (λ p : fin (n + 1), finsupp.single
+    (c ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))) :=
+by simp [d]
+
+variables (k G) [group G]
+
+/-- The standard resolution of `k` as a trivial representation, defined as the alternating
+face map complex of a simplicial `k`-linear `G`-representation. -/
+def standard_resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
+  (simplicial_object.standard_resolution G ⋙ (Rep.linearisation k G).1.1)
+
+/- Leaving this here for now - not sure it should exist or where it should go. Everything I tried
+to avoid this lemma was messy or gave me weird errors. -/
+lemma int_cast_smul {k V : Type*} [comm_ring k] [add_comm_group V] [module k V] (r : ℤ) (x : V) :
+  (r : k) • x = r • x :=
+algebra_map_smul k r x
+
+/-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
+equipped with the representation induced by the diagonal action of `G`. -/
+def standard_resolution_X (n : ℕ) :
+  (standard_resolution k G).X n ≅ Rep.of_mul_action k G (fin (n + 1) → G) := iso.refl _
+
+/-- Simpler expression for the differential in the standard resolution of `k` as a
+`G`-representation. It sends `(g₀, ..., gₙ₊₁) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ₊₁)`. -/
+theorem standard_resolution_d (n : ℕ) :
+  ((standard_resolution k G).d (n + 1) n).hom = d k G (n + 1) :=
+begin
+  ext x y,
+  dsimp [standard_resolution],
+  simpa [←@int_cast_smul k, simplicial_object.δ],
+end
+
+end differential
 end group_cohomology.resolution

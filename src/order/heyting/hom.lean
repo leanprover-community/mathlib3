@@ -91,8 +91,8 @@ instance heyting_hom_class.to_bounded_lattice_hom_class [heyting_algebra α] [he
   ..‹heyting_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance coheyting_hom_class.to_bounded_lattice_hom_class [coheyting_algebra α] [coheyting_algebra β]
-  [coheyting_hom_class F α β] : bounded_lattice_hom_class F α β :=
+instance coheyting_hom_class.to_bounded_lattice_hom_class [coheyting_algebra α]
+  [coheyting_algebra β] [coheyting_hom_class F α β] : bounded_lattice_hom_class F α β :=
 { map_bot := λ f, by rw [←@sdiff_self α _ ⊤, ←sdiff_self, map_sdiff],
   ..‹coheyting_hom_class F α β› }
 

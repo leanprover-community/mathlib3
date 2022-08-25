@@ -70,7 +70,7 @@ end
 def foo (α : Type) :=
 quot $ foo.R α
 
-instance {α} [inhabited α] : inhabited (foo α) := ⟨ quot.mk _ (default _) ⟩
+instance {α} [inhabited α] : inhabited (foo α) := ⟨ quot.mk _ default ⟩
 
 /-- functor operation of `foo` -/
 def foo.map {α β} (f : α → β) (x : foo α) : foo β :=
@@ -86,7 +86,7 @@ lemma foo.map_mk {α β : Type} (f : α → β) (x : bool × α) :
 by simp [(<$>),foo.map]
 
 noncomputable instance qpf.foo : qpf foo :=
-@qpf.quotient_qpf (prod bool) _ ex.qpf foo _ (λ α, quot.mk _) (λ α, quot.out)
+@qpf.quotient_qpf (prod bool) _ ex.prod.qpf foo _ (λ α, quot.mk _) (λ α, quot.out)
   (by simp)
   (by intros; simp)
 
@@ -102,8 +102,8 @@ by simp only [foo.mk, foo.map_mk]; refl
 lemma foo.map_tt {α : Type} (x y : α) :
   foo.mk tt x = foo.mk tt y ↔ x = y :=
 by simp [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
-   rw relation.eqv_gen_iff_of_equivalence at h;
-   [exact h.2 rfl, apply equivalence_foo.R]
+   rw (equivalence_foo.R _).eqv_gen_iff at h;
+   exact h.2 rfl
 
 /-- consequence of original definition of `supp`. If there exists more than
 one value of type `α`, then the support of `foo.mk ff x` is empty -/
@@ -141,7 +141,7 @@ lemma foo_not_uniform : ¬ @qpf.is_uniform foo _ qpf.foo :=
 begin
   simp only [qpf.is_uniform, foo, qpf.foo, set.image_univ, not_forall, not_imp],
   existsi [bool,ff,ff,λ a : unit, tt,λ a : unit, ff], split,
-  { apply quot.sound, simp [foo.R,qpf.abs,qpf._match_1], },
+  { apply quot.sound, simp [foo.R, qpf.abs, prod.qpf._match_1] },
   { simp! only [set.range, set.ext_iff],
     simp only [not_exists, false_iff, bool.forall_bool, eq_self_iff_true, exists_false, not_true,
       and_self, set.mem_set_of_eq, iff_false],
@@ -157,7 +157,7 @@ begin
   { introv hp, simp [functor.liftp] at hp,
     rcases hp with ⟨⟨z,z',hz⟩,hp⟩,
     simp at hp, replace hp := quot.exact _ hp,
-    rw relation.eqv_gen_iff_of_equivalence (equivalence_foo.R _) at hp,
+    rw (equivalence_foo.R _).eqv_gen_iff at hp,
     rcases hp with ⟨⟨⟩,hp⟩, subst y,
     replace hp := hp rfl, cases hp,
     exact hz }
@@ -175,14 +175,15 @@ end
 lemma supp_mk_tt' {α} (x : α) : qpf.supp' (foo.mk tt x) = {x} :=
 begin
   dsimp [qpf.supp'], ext, simp, dsimp [qpf.box], split; intro h,
-  { specialize h {x} _, { simp at h, assumption },
-    clear h, introv hfg, simp, rw hfg, simp },
+  { specialize h {x} _,
+    { clear h, introv hfg, simp, rw hfg, simp },
+    { simp at h, assumption }, },
   { introv hfg, subst x_1, classical,
     let f : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr tt,
     let g : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr ff,
     specialize hfg _ f g _,
+    { intros, simp [*,f,g,if_pos] },
     { simp [f,g] at hfg, split_ifs at hfg,
-      assumption, cases hfg },
-    { intros, simp [*,f,g,if_pos] } }
+      assumption, cases hfg } }
 end
 end ex

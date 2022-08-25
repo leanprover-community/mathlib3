@@ -3,9 +3,9 @@ Copyright (c) 2020 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
+import algebra.order.floor
 import algebra.continued_fractions.basic
-import algebra.ordered_field
-import algebra.archimedean
+import algebra.order.field
 /-!
 # Computable Continued Fractions
 
@@ -14,9 +14,9 @@ import algebra.archimedean
 We formalise the standard computation of (regular) continued fractions for linear ordered floor
 fields. The algorithm is rather simple. Here is an outline of the procedure adapted from Wikipedia:
 
-Take a value `v`. We call `⌊v⌋` the *integer part* of `v` and `v − ⌊v⌋` the *fractional part* of
+Take a value `v`. We call `⌊v⌋` the *integer part* of `v` and `v - ⌊v⌋` the *fractional part* of
 `v`.  A continued fraction representation of `v` can then be given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
-`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`.  This
+`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v - ⌊v⌋)`.  This
 process stops when the fractional part hits 0.
 
 In other words: to calculate a continued fraction representation of a number `v`, write down the
@@ -61,7 +61,6 @@ numerics, number theory, approximations, fractions
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
 
 -- Fix a carrier `K`.
 variable (K : Type*)
@@ -72,6 +71,8 @@ We collect an integer part `b = ⌊v⌋` and fractional part `fr = v - ⌊v⌋` 
 -/
 structure int_fract_pair := (b : ℤ) (fr : K)
 
+variable {K}
+
 /-! Interlude: define some expected coercions and instances. -/
 namespace int_fract_pair
 
@@ -79,19 +80,22 @@ namespace int_fract_pair
 instance [has_repr K] : has_repr (int_fract_pair K) :=
 ⟨λ p, "(b : " ++ (repr p.b) ++ ", fract : " ++ (repr p.fr) ++ ")"⟩
 
-instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, (default _)⟩⟩
+instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, default⟩⟩
 
-variable {K}
+/--
+Maps a function `f` on the fractional components of a given pair.
+-/
+def mapFr {β : Type*} (f : K → β) (gp : int_fract_pair K) : int_fract_pair β :=
+⟨gp.b, f gp.fr⟩
 
 section coe
 /-! Interlude: define some expected coercions. -/
-/- Fix another type `β` and assume `K` can be converted to `β`. -/
+/- Fix another type `β` which we will convert to. -/
 variables {β : Type*} [has_coe K β]
 
 /-- Coerce a pair by coercing the fractional component. -/
 instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
-⟨λ ⟨b, fr⟩, ⟨b, (fr : β)⟩⟩
-
+⟨mapFr coe⟩
 
 @[simp, norm_cast]
 lemma coe_to_int_fract_pair {b : ℤ} {fr : K} :
@@ -100,13 +104,13 @@ rfl
 
 end coe
 
--- Note: this could be relaxed to something like `discrete_linear_ordered_division_ring` in the
+-- Note: this could be relaxed to something like `linear_ordered_division_ring` in the
 -- future.
 /- Fix a discrete linear ordered field with `floor` function. -/
-variables [discrete_linear_ordered_field K] [floor_ring K]
+variables [linear_ordered_field K] [floor_ring K]
 
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/
-protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, fract v⟩
+protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, int.fract v⟩
 
 /--
 Creates the stream of integer and fractional parts of a value `v` needed to obtain the continued
@@ -153,21 +157,20 @@ protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
 
 end int_fract_pair
 
-variable {K}
-
 /--
 Returns the `generalized_continued_fraction` of a value. In fact, the returned gcf is also
 a `continued_fraction` that terminates if and only if `v` is rational (those proofs will be
 added in a future commit).
 
 The continued fraction representation of `v` is given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
-`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`. This
-process stops when the fractional part `v- ⌊v⌋` hits 0 at some step.
+`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v - ⌊v⌋)`. This
+process stops when the fractional part `v - ⌊v⌋` hits 0 at some step.
 
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued
 fraction. Refer to said function for more details about the computation process.
 -/
-protected def of [discrete_linear_ordered_field K] [floor_ring K] (v : K) : gcf K :=
+protected def of [linear_ordered_field K] [floor_ring K] (v : K) :
+  generalized_continued_fraction K :=
 let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fractional parts.
 ⟨ h.b, -- the head is just the first integer part
   s.map (λ p, ⟨1, p.b⟩) ⟩ -- the sequence consists of the remaining integer parts as the partial

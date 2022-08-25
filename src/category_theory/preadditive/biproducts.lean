@@ -54,24 +54,22 @@ If
 ```
 is invertible, then `f` is invertible.
 -/
-def is_iso_left_of_is_iso_biprod_map
+lemma is_iso_left_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso f :=
-{ inv := biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
-  hom_inv_id' :=
-  begin
+⟨⟨biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
+  ⟨begin
     have t := congr_arg (λ p : W ⊞ X ⟶ W ⊞ X, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.hom_inv_id (biprod.map f g)),
     simp only [category.id_comp, category.assoc, biprod.inl_map_assoc] at t,
     simp [t],
   end,
-  inv_hom_id' :=
   begin
     have t := congr_arg (λ p : Y ⊞ Z ⟶ Y ⊞ Z, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.inv_hom_id (biprod.map f g)),
     simp only [category.id_comp, category.assoc, biprod.map_fst] at t,
     simp only [category.assoc],
     simp [t],
-  end }
+  end⟩⟩⟩
 
 /--
 If
@@ -81,7 +79,7 @@ If
 ```
 is invertible, then `g` is invertible.
 -/
-def is_iso_right_of_is_iso_biprod_map
+lemma is_iso_right_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 begin
   letI : is_iso (biprod.map g f) := by
@@ -250,10 +248,8 @@ lemma biprod.column_nonzero_of_iso {W X Y Z : C}
   (f : W ⊞ X ⟶ Y ⊞ Z) [is_iso f] :
   𝟙 W = 0 ∨ biprod.inl ≫ f ≫ biprod.fst ≠ 0 ∨ biprod.inl ≫ f ≫ biprod.snd ≠ 0 :=
 begin
-  classical,
-  by_contradiction,
-  rw [not_or_distrib, not_or_distrib, not_not, not_not] at a,
-  rcases a with ⟨nz, a₁, a₂⟩,
+  by_contra' h,
+  rcases h with ⟨nz, a₁, a₂⟩,
   set x := biprod.inl ≫ f ≫ inv f ≫ biprod.fst,
   have h₁ : x = 𝟙 W, by simp [x],
   have h₀ : x = 0,
@@ -269,14 +265,13 @@ begin
   exact nz (h₁.symm.trans h₀),
 end
 
-
 end
 
 variables [preadditive.{v} C]
 
 lemma biproduct.column_nonzero_of_iso'
-  {σ τ : Type v} [decidable_eq σ] [decidable_eq τ] [fintype τ]
-  {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
+  {σ τ : Type} [fintype τ]
+  {S : σ → C} [has_biproduct S] {T : τ → C} [has_biproduct T]
   (s : σ) (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=
 begin
@@ -297,20 +292,18 @@ If `f : ⨁ S ⟶ ⨁ T` is an isomorphism, and `s` is a non-trivial summand of 
 then there is some `t` in the target so that the `s, t` matrix entry of `f` is nonzero.
 -/
 def biproduct.column_nonzero_of_iso
-  {σ τ : Type v} [decidable_eq σ] [decidable_eq τ] [fintype τ]
-  {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
+  {σ τ : Type} [fintype τ]
+  {S : σ → C} [has_biproduct S] {T : τ → C} [has_biproduct T]
   (s : σ) (nz : 𝟙 (S s) ≠ 0)
-  [∀ t, decidable_eq (S s ⟶ T t)]
   (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   trunc (Σ' t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t ≠ 0) :=
 begin
-  apply trunc_sigma_of_exists,
-  -- Do this before we run `classical`, so we get the right `decidable_eq` instances.
-  have t := biproduct.column_nonzero_of_iso'.{v} s f,
   classical,
-  by_contradiction,
-  simp only [not_exists_not] at a,
-  exact nz (t a)
+  apply trunc_sigma_of_exists,
+  have t := biproduct.column_nonzero_of_iso'.{v} s f,
+  by_contradiction h,
+  simp only [not_exists_not] at h,
+  exact nz (t h)
 end
 
 end category_theory

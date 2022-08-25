@@ -23,9 +23,14 @@ universes u
 
 variables (m : Type u → Type u) [_root_.monad m] [is_lawful_monad m]
 
-instance : monad (of_type_functor m) :=
-{ η           := ⟨@pure m _, assume α β f, (is_lawful_applicative.map_comp_pure f).symm ⟩,
-  μ           := ⟨@mjoin m _, assume α β (f : α → β), funext $ assume a, mjoin_map_map f a ⟩,
+/--
+A lawful `control.monad` gives a category theory `monad` on the category of types.
+-/
+@[simps]
+def of_type_monad : monad (Type u) :=
+{ to_functor  := of_type_functor m,
+  η'          := ⟨@pure m _, assume α β f, (is_lawful_applicative.map_comp_pure f).symm ⟩,
+  μ'          := ⟨@mjoin m _, assume α β (f : α → β), funext $ assume a, mjoin_map_map f a ⟩,
   assoc'      := assume α, funext $ assume a, mjoin_map_mjoin a,
   left_unit'  := assume α, funext $ assume a, mjoin_pure a,
   right_unit' := assume α, funext $ assume a, mjoin_map_pure a }
@@ -35,7 +40,7 @@ The `Kleisli` category of a `control.monad` is equivalent to the `kleisli` categ
 category-theoretic version, provided the monad is lawful.
 -/
 @[simps]
-def eq : Kleisli m ≌ kleisli (of_type_functor m) :=
+def eq : Kleisli m ≌ kleisli (of_type_monad m) :=
 { functor :=
   { obj := λ X, X,
     map := λ X Y f, f,
@@ -44,6 +49,7 @@ def eq : Kleisli m ≌ kleisli (of_type_functor m) :=
     begin
       unfold_projs,
       ext,
+      dsimp,
       simp [mjoin, seq_bind_eq],
     end },
   inverse :=
@@ -54,6 +60,7 @@ def eq : Kleisli m ≌ kleisli (of_type_functor m) :=
     begin
       unfold_projs,
       ext,
+      dsimp,
       simp [mjoin, seq_bind_eq],
     end },
   unit_iso :=

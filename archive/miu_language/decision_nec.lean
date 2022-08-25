@@ -57,7 +57,7 @@ begin
   cases h2,
   { rw h2, exact h1, },
   { cases h1,
-    { right, simpa [h2,mul_mod,h1], },
+    { right, simp [h2,mul_mod,h1, nat.succ_lt_succ] },
     { left, simpa [h2,mul_mod,h1], }, },
 end
 
@@ -71,12 +71,12 @@ begin
   intro h,
   induction h,
   { left, apply mod_def, },
-    any_goals {apply mod3_eq_1_or_mod3_eq_2 h_ih},
-    { left, simp only [count_append], refl, },
-    { right, simp only [count, countp, count_append, if_false,two_mul], },
-    { left, simp only [count, count_append, countp, if_false, if_pos],
-      rw [add_right_comm, add_mod_right], },
-    { left, simp only [count ,countp, countp_append, if_false, add_zero], },
+  any_goals {apply mod3_eq_1_or_mod3_eq_2 h_ih},
+  { left, simp only [count_append], refl, },
+  { right, simp only [count, countp, count_append, if_false,two_mul], },
+  { left, simp only [count, count_append, countp, if_false, if_pos],
+    rw [add_right_comm, add_mod_right], },
+  { left, simp only [count ,countp, countp_append, if_false, add_zero], },
 end
 
 /--

@@ -23,6 +23,7 @@ open category_theory
 open linear_map
 
 open_locale tensor_product
+local attribute [ext] tensor_product.ext
 
 namespace Module
 
@@ -90,31 +91,32 @@ Converting a bundled algebra to a monoid object in `Module R`.
 def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
 { X := Module.of R A,
   one := algebra.linear_map R A,
-  mul := @algebra.lmul' R A _ _ _,
+  mul := linear_map.mul' R A,
   one_mul' :=
   begin
     ext x,
-    dsimp,
-    rw [algebra.lmul'_apply, monoidal_category.left_unitor_hom_apply, algebra.smul_def],
-    refl,
+    dsimp only [Algebra.id_apply, tensor_product.mk_apply,
+      algebra.linear_map_apply, linear_map.compr₂_apply, function.comp_app,
+      ring_hom.map_one, Module.monoidal_category.hom_apply, Algebra.coe_comp,
+      Module.monoidal_category.left_unitor_hom_apply],
+    rw [linear_map.mul'_apply, monoidal_category.left_unitor_hom_apply, ← algebra.smul_def]
   end,
   mul_one' :=
   begin
     ext x,
-    dsimp,
-    rw [algebra.lmul'_apply, monoidal_category.right_unitor_hom_apply,
-      ←algebra.commutes, algebra.smul_def],
-    refl,
+    dsimp only [Algebra.id_apply, tensor_product.mk_apply, algebra.linear_map_apply,
+      linear_map.compr₂_apply, function.comp_app, Module.monoidal_category.hom_apply,
+      Algebra.coe_comp],
+    rw [linear_map.mul'_apply, Module.monoidal_category.right_unitor_hom_apply,
+        ← algebra.commutes, ← algebra.smul_def]
   end,
   mul_assoc' :=
   begin
-    ext xy z,
-    dsimp,
-    apply tensor_product.induction_on xy,
-    { simp only [linear_map.map_zero, tensor_product.zero_tmul], },
-    { intros x y, dsimp, simp only [mul_assoc, algebra.lmul'_apply], },
-    { intros x y hx hy, dsimp,
-      simp only [tensor_product.add_tmul, hx, hy, map_add], },
+    ext x y z,
+    dsimp only [Algebra.id_apply, tensor_product.mk_apply, linear_map.compr₂_apply,
+      function.comp_app, Module.monoidal_category.hom_apply,
+      Algebra.coe_comp, monoidal_category.associator_hom_apply],
+    simp only [linear_map.mul'_apply, mul_assoc]
   end }
 
 /--
@@ -124,7 +126,11 @@ Converting a bundled algebra to a monoid object in `Module R`.
 def inverse : Algebra.{u} R ⥤ Mon_ (Module.{u} R) :=
 { obj := inverse_obj,
   map := λ A B f,
-  { hom := f.to_linear_map, }, }.
+  { hom := f.to_linear_map,
+    one_hom' :=
+      by { ext, dsimp, simp only [ring_hom.map_one, alg_hom.map_one] },
+    mul_hom' :=
+      by { ext, dsimp, simp only [linear_map.mul'_apply, ring_hom.map_mul, alg_hom.map_mul] } } }.
 
 end Mon_Module_equivalence_Algebra
 
@@ -139,8 +145,12 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
   inverse := inverse,
   unit_iso := nat_iso.of_components
     (λ A,
-    { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } },
-      inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } } })
+    { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
+               mul_hom' := by { ext, dsimp at *,
+                                simp only [linear_map.mul'_apply, Mon_.X.ring_mul] } },
+      inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
+               mul_hom' := by { ext, dsimp at *,
+                                simp only [linear_map.mul'_apply, Mon_.X.ring_mul]} } })
     (by tidy),
   counit_iso := nat_iso.of_components (λ A,
   { hom :=
@@ -148,15 +158,15 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
       map_zero' := rfl,
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one,
-      map_mul' := λ x y, algebra.lmul'_apply,
+      map_mul' := λ x y, linear_map.mul'_apply,
       commutes' := λ r, rfl, },
     inv :=
     { to_fun := id,
       map_zero' := rfl,
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one.symm,
-      map_mul' := λ x y, algebra.lmul'_apply.symm,
-      commutes' := λ r, rfl } }) (by tidy), }.
+      map_mul' := λ x y, (@linear_map.mul'_apply R _ _ _ _ _ _ x y).symm,
+      commutes' := λ r, rfl } }) (by { intros, refl }), }.
 
 /--
 The equivalence `Mon_ (Module R) ≌ Algebra R`

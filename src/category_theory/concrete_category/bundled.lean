@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 -/
-import category_theory.category
+import tactic.pi_instances
 
 /-!
 # Bundled types
@@ -22,7 +22,7 @@ variables {c d : Type u → Type v} {α : Type u}
 
 /-- `bundled` is a type bundled with a type class instance for that type. Only
 the type class is exposed as a parameter. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
 (α : Type u)
 (str : c α . tactic.apply_instance)
@@ -33,11 +33,9 @@ namespace bundled
 -- Usually explicit instances will provide their own version of this, e.g. `Mon.of` and `Top.of`.
 def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
 
-instance : has_coe_to_sort (bundled c) :=
-{ S := Type u, coe := bundled.α }
+instance : has_coe_to_sort (bundled c) (Type u) := ⟨bundled.α⟩
 
-@[simp]
-lemma coe_mk (α) (str) : (@bundled.mk c α str : Type u) = α := rfl
+@[simp] lemma coe_mk (α) (str) : (@bundled.mk c α str : Type u) = α := rfl
 
 /-
 `bundled.map` is reducible so that, if we define a category

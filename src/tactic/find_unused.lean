@@ -3,6 +3,8 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
+import data.bool.basic
+import meta.rb_map
 import tactic.core
 
 /-!
@@ -41,7 +43,8 @@ meta def main_declaration_attr : user_attribute :=
 /-- `update_unsed_decls_list n m` removes from the map of unneeded declarations those
 referenced by declaration named `n` which is considerred to be a
 main declaration -/
-private meta def update_unsed_decls_list : name → name_map declaration → tactic (name_map declaration)
+private meta def update_unsed_decls_list :
+  name → name_map declaration → tactic (name_map declaration)
 | n m :=
   do d ← get_decl n,
      if m.contains n then do

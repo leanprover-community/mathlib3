@@ -6,8 +6,30 @@ Authors: Simon Hudon
 
 import tactic.ext
 import tactic.solve_by_elim
-import data.stream.basic
+import data.stream.init
 import data.finset.basic
+import tactic.rcases
+
+section ext_trace_test
+setup_tactic_parser
+
+namespace tactic
+namespace interactive
+
+meta def ext_trace_test (patts : parse rcases_patt_parse_hi*)
+  (fuel : parse (tk ":" *> small_nat)?) (tgt_trace : string) : tactic unit := do
+  ⟨_, σ⟩ ← state_t.run (ext_core {}) ⟨patts, [], fuel⟩,
+  guard $ ", ".intercalate σ.trace_msg = tgt_trace
+
+end interactive
+end tactic
+
+end ext_trace_test
+
+example (α β γ : Type) (f g : α × β → γ) (H : ∀ a : α, ∀ b : β, f (a,b) = g (a,b)) : f = g :=
+begin
+  ext_trace_test ⟨a,b⟩ "apply funext, rintro ⟨a, b⟩", apply H
+end
 
 example : subsingleton unit :=
 begin
@@ -61,10 +83,16 @@ by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
 example (s₀ s₁ : ℤ → set (ℕ × ℕ))
         (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
 begin
-  ext i ⟨a,b⟩,
+  ext ((i) ⟨a,b⟩),
   apply h
 end
 
+example (s₀ s₁ : ℤ → set (ℕ × ℕ))
+        (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
+begin
+  ext_trace_test i ⟨a,b⟩ "apply funext, rintro i, apply set.ext, rintro ⟨a, b⟩",
+  apply h
+end
 
 /- extensionality -/
 
@@ -88,7 +116,7 @@ begin
     admit },
   have : ∀ (s₀ s₁ : stream ℕ), s₀ = s₁,
   { intros, ext1,
-    guard_target stream.nth n s₀ = stream.nth n s₁,
+    guard_target s₀.nth n = s₁.nth n,
     admit },
   have : ∀ n (s₀ s₁ : array n ℕ), s₀ = s₁,
   { intros, ext1,

@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.rat.basic
+import data.nat.prime
+import data.rat.defs
 import order.well_founded
 import tactic.linarith
-import tactic.omega
 
 /-!
-# IMO1988 Q6 and constant descent Vieta jumping
+# IMO 1988 Q6 and constant descent Vieta jumping
 
 Question 6 of IMO1988 is somewhat (in)famous. Several expert problem solvers
 could not tackle the question within the given time limit.
@@ -20,13 +20,12 @@ so called “Vieta jumping”.
 In this file we formalise constant descent Vieta jumping,
 and apply this to prove Q6 of IMO1988.
 To illustrate the technique, we also prove a similar result.
-
 -/
 
 -- open_locale classical
 
 local attribute [instance] classical.prop_decidable
-local attribute [simp] pow_two
+local attribute [simp] sq
 
 /-- Constant descent Vieta jumping.
 
@@ -100,8 +99,8 @@ begin
     { rw H_symm at hH, solve_by_elim },
     { solve_by_elim },
     -- The final two cases are very similar.
-    all_goals {
-      -- Consider the quadratic equation that (a,b) satisfies.
+    all_goals
+    { -- Consider the quadratic equation that (a,b) satisfies.
       rw H_quad at hH,
       -- We find the other root of the equation, and Vieta's formulas.
       rcases Vieta_formula_quadratic hH with ⟨c, h_root, hV₁, hV₂⟩,
@@ -128,8 +127,8 @@ begin
   have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_nonempty,
   have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_nonempty hk,
   -- It suffices to show that there is point (a,b) with b ∈ S and b < m.
-  suffices hp' : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
-  { rcases hp' with ⟨p', p'_mem, p'_small⟩, solve_by_elim },
+  rsuffices ⟨p', p'_mem, p'_small⟩ : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
+  { solve_by_elim },
   -- Let (m_x, m_y) be a point on the upper branch that projects to m ∈ S
   -- and that does not lie in the exceptional locus.
   rcases m_mem with ⟨⟨mx, my⟩, ⟨⟨hHm, mx_lt_my⟩, h_base⟩, m_eq⟩,
@@ -140,7 +139,7 @@ begin
   -- Finally, it also means that (m_x, m_y) does not lie in the base locus,
   -- that m_x ≠ 0, m_x ≠ m_y, B(m_x) ≠ m_y, and B(m_x) ≠ m_x + m_y.
   rcases h_base with ⟨h_base, hmx, hm_diag, hm_B₁, hm_B₂⟩,
-  replace hmx : 0 < mx := nat.pos_iff_ne_zero.mpr hmx,
+  replace hmx : 0 < mx := pos_iff_ne_zero.mpr hmx,
   -- Consider the quadratic equation that (m_x, m_y) satisfies.
   have h_quad := hHm, rw H_quad at h_quad,
   -- We find the other root of the equation, and Vieta's formulas.
@@ -189,7 +188,7 @@ lemma imo1988_q6 {a b : ℕ} (h : (a*b+1) ∣ a^2 + b^2) :
 begin
   rcases h with ⟨k, hk⟩,
   rw [hk, nat.mul_div_cancel_left _ (nat.succ_pos (a*b))],
-  simp only [pow_two] at hk,
+  simp only [sq] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.
@@ -206,7 +205,7 @@ begin
   { -- Show that the claim is true if a = b.
     intros x hx,
     suffices : k ≤ 1,
-    { rw [nat.le_add_one_iff, nat.le_zero_iff] at this,
+    { rw [nat.le_add_one_iff, le_zero_iff] at this,
       rcases this with rfl|rfl,
       { use 0, simp },
       { use 1, simp } },
@@ -227,9 +226,9 @@ begin
       { rw [← sub_eq_zero, ← h_root],
         ring, },
       rw hzx at hpos,
-      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
+      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_left hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,
-      apply nonneg_of_mul_nonneg_right hpos (by exact_mod_cast hx), },
+      apply nonneg_of_mul_nonneg_left hpos (by exact_mod_cast hx), },
     { contrapose! hV₀ with x_lt_z,
       apply ne_of_gt,
       calc z * y > x*x     : by apply mul_lt_mul'; linarith
@@ -248,7 +247,7 @@ example {a b : ℕ} (h : a*b ∣ a^2 + b^2 + 1) :
 begin
   rcases h with ⟨k, hk⟩,
   suffices : k = 3, { simp * at *, ring, },
-  simp only [pow_two] at hk,
+  simp only [sq] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.
@@ -272,7 +271,7 @@ begin
     split,
     { have zy_pos : z * y ≥ 0,
       { rw hV₀, exact_mod_cast (nat.zero_le _) },
-      apply nonneg_of_mul_nonneg_right zy_pos,
+      apply nonneg_of_mul_nonneg_left zy_pos,
       linarith },
     { contrapose! hV₀ with x_lt_z,
       apply ne_of_gt,
@@ -287,11 +286,11 @@ begin
         end, } },
   { -- Show the base case.
     intros x y h h_base,
-    obtain rfl|rfl : x = 0 ∨ x = 1 := by rwa [nat.le_add_one_iff, nat.le_zero_iff] at h_base,
+    obtain rfl|rfl : x = 0 ∨ x = 1 := by rwa [nat.le_add_one_iff, le_zero_iff] at h_base,
     { simpa using h, },
     { simp only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
-      obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
-      all_goals { ring at h, omega } } }
+      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply nat.eq_of_mul_eq_mul_left,
+      exacts [zero_lt_one, h.symm, zero_lt_two, h.symm] } }
 end

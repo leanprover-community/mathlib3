@@ -76,8 +76,8 @@ do
   (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
 
   /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
-  simp_result ← lean.parser.of_tactic $ λ _, do {
-    /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
+  simp_result ← lean.parser.of_tactic $ λ _, do
+  { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
        hypotheses added to the `ts : tactic_state` which we are using. -/
     e ← to_expr e,
 
@@ -99,8 +99,7 @@ do
     let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
 
     /- Finally, call `expr.simp` with `e` and return the result. -/
-    prod.fst <$> e.simp {} failed no_dflt attr_names hs
-  } ts,
+    prod.fst <$> e.simp {} failed no_dflt attr_names hs } ts,
 
   /- Trace the result. -/
   when (¬ is_trace_enabled_for `silence_simp_if_true ∨ simp_result ≠ expr.const `true [])

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.core
 
@@ -53,7 +53,7 @@ cases ← gs.mmap $ λ g, do
   let vs := vs.map $ λ v, (m.find v.get_prefix).get_or_else `_,
   let var_decls := string.intercalate " " $ vs.map to_string,
   let var_decls := if vs.empty then "" else " : " ++ var_decls,
-  pure sformat!"  case {ts.head}{var_decls}\n  {{ admit }" },
+  pure sformat!"  case {ts.head}{var_decls}\n  {{ admit }}" },
 let cases := string.intercalate ",\n" cases,
 pure sformat!"Try this:\n{cases}"
 

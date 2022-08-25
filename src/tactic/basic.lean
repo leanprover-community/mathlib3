@@ -5,12 +5,14 @@ import tactic.converter.apply_congr
 import tactic.congr
 import tactic.dec_trivial
 import tactic.delta_instance
+import tactic.dependencies
 import tactic.elide
 import tactic.explode
 import tactic.find
 import tactic.finish
 import tactic.generalizes
 import tactic.generalize_proofs
+import tactic.itauto
 import tactic.lift
 import tactic.lint
 import tactic.localized

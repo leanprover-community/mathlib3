@@ -1,4 +1,5 @@
 import tactic.slim_check
+import testing.slim_check.functions
 import .mk_slim_check_test
 
 example : true :=
@@ -386,6 +387,40 @@ y := ff
 issue: false does not hold
 issue: ¬ true does not hold
 (0 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : ℕ →₀ ℕ) : true :=
+begin
+  have : f = 0,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [0 ↦ 1, _ ↦ 0]
+(2 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : Π₀ n : ℕ, ℕ) : true :=
+begin
+  have : f.update 0 0 = 0,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [1 ↦ 1, _ ↦ 0]
+(1 shrinks)
 -------------------
 ",
   admit,

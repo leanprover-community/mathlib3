@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov.
+Authors: Yury Kudryashov
 -/
 import analysis.calculus.inverse
 import analysis.normed_space.complemented
@@ -47,7 +47,7 @@ noncomputable theory
 
 open_locale topological_space
 open filter
-open continuous_linear_map (fst snd subtype_val smul_right ker_prod)
+open continuous_linear_map (fst snd smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)
 
 /-!
@@ -87,11 +87,11 @@ such that
 * both functions are strictly differentiable at `a`;
 * the derivatives are surjective;
 * the kernels of the derivatives are complementary subspaces of `E`. -/
-@[nolint has_inhabited_instance]
-structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  (F : Type*) [normed_group F] [normed_space 𝕜 F] [complete_space F]
-  (G : Type*) [normed_group G] [normed_space 𝕜 G] [complete_space G] :=
+@[nolint has_nonempty_instance]
+structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
+  (G : Type*) [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G] :=
 (left_fun : E → F)
 (left_deriv : E →L[𝕜] F)
 (right_fun : E → G)
@@ -105,10 +105,10 @@ structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 
 namespace implicit_function_data
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
-  {G : Type*} [normed_group G] [normed_space 𝕜 G] [complete_space G]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
+  {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G]
   (φ : implicit_function_data 𝕜 E F G)
 
 /-- The function given by `x ↦ (left_fun x, right_fun x)`. -/
@@ -165,6 +165,10 @@ lemma implicit_function_apply_image :
   ∀ᶠ x in 𝓝 φ.pt, φ.implicit_function (φ.left_fun x) (φ.right_fun x) = x :=
 φ.has_strict_fderiv_at.eventually_left_inverse
 
+lemma map_nhds_eq : map φ.left_fun (𝓝 φ.pt) = 𝓝 (φ.left_fun φ.pt) :=
+show map (prod.fst ∘ φ.prod_fun) (𝓝 φ.pt) = 𝓝 (φ.prod_fun φ.pt).1,
+by rw [← map_map, φ.has_strict_fderiv_at.map_nhds_eq_of_equiv, map_fst_nhds]
+
 lemma implicit_function_has_strict_fderiv_at
   (g'inv : G →L[𝕜] E) (hg'inv : φ.right_deriv.comp g'inv = continuous_linear_map.id 𝕜 G)
   (hg'invf : φ.left_deriv.comp g'inv = 0) :
@@ -199,9 +203,9 @@ Note that a map with these properties is not unique. E.g., different choices of 
 complementary to `ker f'` lead to different maps `φ`.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
   {f : E → F} {f' : E →L[𝕜] F} {a : E}
 
 section defs
@@ -293,12 +297,21 @@ lemma eq_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
     (hf.implicit_to_local_homeomorph_of_complemented f f' hf' hker x).snd = x :=
 (implicit_function_data_of_complemented f f' hf hf' hker).implicit_function_apply_image
 
+@[simp] lemma implicit_function_of_complemented_apply_image (hf : has_strict_fderiv_at f f' a)
+  (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
+  hf.implicit_function_of_complemented f f' hf' hker (f a) 0 = a :=
+begin
+  convert (hf.implicit_to_local_homeomorph_of_complemented f f' hf' hker).left_inv
+    (hf.mem_implicit_to_local_homeomorph_of_complemented_source hf' hker),
+  exact congr_arg prod.snd (hf.implicit_to_local_homeomorph_of_complemented_self hf' hker).symm
+end
+
 lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   has_strict_fderiv_at (hf.implicit_function_of_complemented f f' hf' hker (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by convert (implicit_function_data_of_complemented f f' hf hf'
-  hker).implicit_function_has_strict_fderiv_at (subtype_val f'.ker) _ _;
+  hker).implicit_function_has_strict_fderiv_at f'.ker.subtypeL _ _;
     [skip, ext, ext]; simp [classical.some_spec hker]
 
 end complemented
@@ -322,9 +335,9 @@ complementary to `ker f'` lead to different maps `φ`.
 
 section finite_dimensional
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
   (f : E → F) (f' : E →L[𝕜] F) {a : E}
 
 /-- Given a map `f : E → F` to a finite dimensional space with a surjective derivative `f'`,
@@ -367,10 +380,28 @@ lemma mem_implicit_to_local_homeomorph_target (hf : has_strict_fderiv_at f f' a)
   (f a, (0 : f'.ker)) ∈ (hf.implicit_to_local_homeomorph f f' hf').target :=
 by apply mem_implicit_to_local_homeomorph_of_complemented_target
 
+lemma tendsto_implicit_function (hf : has_strict_fderiv_at f f' a)
+  (hf' : f'.range = ⊤) {α : Type*} {l : filter α} {g₁ : α → F} {g₂ : α → f'.ker}
+  (h₁ : tendsto g₁ l (𝓝 $ f a)) (h₂ : tendsto g₂ l (𝓝 0)) :
+  tendsto (λ t, hf.implicit_function f f' hf' (g₁ t) (g₂ t)) l (𝓝 a) :=
+begin
+  refine ((hf.implicit_to_local_homeomorph f f' hf').tendsto_symm
+    (hf.mem_implicit_to_local_homeomorph_source hf')).comp _,
+  rw [implicit_to_local_homeomorph_self],
+  exact h₁.prod_mk_nhds h₂
+end
+
+alias tendsto_implicit_function ← _root_.filter.tendsto.implicit_function
+
 /-- `implicit_function` sends `(z, y)` to a point in `f ⁻¹' z`. -/
 lemma map_implicit_function_eq (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   ∀ᶠ (p : F × f'.ker) in 𝓝 (f a, 0), f (hf.implicit_function f f' hf' p.1 p.2) = p.1 :=
 by apply map_implicit_function_of_complemented_eq
+
+@[simp] lemma implicit_function_apply_image (hf : has_strict_fderiv_at f f' a)
+  (hf' : f'.range = ⊤) :
+  hf.implicit_function f f' hf' (f a) 0 = a :=
+by apply implicit_function_of_complemented_apply_image
 
 /-- Any point in some neighborhood of `a` can be represented as `implicit_function`
 of some point. -/
@@ -381,7 +412,7 @@ by apply eq_implicit_function_of_complemented
 
 lemma to_implicit_function (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   has_strict_fderiv_at (hf.implicit_function f f' hf' (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by apply to_implicit_function_of_complemented
 
 end finite_dimensional

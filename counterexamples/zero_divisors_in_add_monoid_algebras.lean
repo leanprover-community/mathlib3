@@ -16,9 +16,11 @@ The specific statement is about `finsupp.lex.covariant_class_le_left` and its an
 operation is commutative.
 
 The example is very simple.  Let `F = {0, 1}` with order determined by `0 < 1` and absorbing
-addition (which is the same as `max` in this case).  The inequality
-`{ (0 ↦ 0) (1 ↦ 1) } ≤ { (0 ↦ 1) (1 ↦ 0) }` holds.  However, adding `{ (0 ↦ 1) (1 ↦ 0) }` to both
-sides yields the *reversed* inequality `{ (0 ↦ 1) (1 ↦ 0) } < { (0 ↦ 1) (1 ↦ 1) }`.
+addition (which is the same as `max` in this case).  We denote a function `f : F → F` (which is
+automatically finitely supported!) by `[f 0, f 1]`, listing its values.  Recall that the order on
+finitely supported function is lexicographic, matching the list notation.  The inequality
+`[0, 1] ≤ [1, 0]` holds.  However, adding `[1, 0]` to both sides yields the *reversed* inequality
+`[1, 1] > [1, 0]`.
 -/
 open finsupp
 /--  `F` is the type with two elements `zero` and `one`.  We define the "obvious" linear order and
@@ -35,12 +37,12 @@ def list.drop_until {α} [decidable_eq α] : list α → list α → list α
 | l [] := []
 | l (a::as) := ((a::as).get_rest l).get_or_else (l.drop_until as)
 
-/- `guard_decl_in_file na loc` makes sure that the declaration with name `na` is in the file with
+/-- `guard_decl_in_file na loc` makes sure that the declaration with name `na` is in the file with
 relative path `"src/" ++ "/".intercalate loc ++ ".lean"`.
 ```lean
 #eval guard_decl_in_file `nat.nontrivial ["data", "nat", "basic"]  -- does nothing
 
-#eval guard_decl_in_file `nat.nontrivial ["dta", "nat", "basic"]
+#eval guard_decl_in_file `nat.nontrivial ["not", "in", "here"]
 -- fails giving the location 'data/nat/basic.lean'
 ```
 
@@ -107,8 +109,8 @@ example : ¬ covariant_class F F (+) (<) := λ h, lt_irrefl 1 $ (h.elim : covari
 @[simp] lemma f110 : of_lex (single (1 : F) (1 : F)) 0 = 0 := single_apply_eq_zero.mpr (λ h, h.symm)
 
 /--  Here we see that (not-necessarily strict) monotonicity of addition on `lex (F →₀ F)` is not
-a consequence of monotonicity of addition on `F`.  Strict monotonicity would be enough and this
-is the content of `finsupp.lex.covariant_class_le_left`. -/
+a consequence of monotonicity of addition on `F`.  Strict monotonicity of addition on `F` is
+enough and is the content of `finsupp.lex.covariant_class_le_left`. -/
 example : ¬ covariant_class (lex (F →₀ F)) (lex (F →₀ F)) (+) (≤) :=
 begin
   rintro ⟨h⟩,

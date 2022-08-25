@@ -134,7 +134,7 @@ begin
 end
 
 lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0) :
-  @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
+  @group.rank H _ (fg_of_index_ne_zero hH) ≤ H.index * group.rank G :=
 begin
   haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,

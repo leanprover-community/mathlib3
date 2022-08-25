@@ -498,7 +498,7 @@ theorem pos_add_lim_zero {f g : cau_seq α abs} : pos f → lim_zero g → pos (
 protected theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * g)
 | ⟨F, F0, hF⟩ ⟨G, G0, hG⟩ :=
   let ⟨i, h⟩ := exists_forall_ge_and hF hG in
-  ⟨_, _root_.mul_pos F0 G0, i,
+  ⟨_, zero_lt.mul_pos F0 G0, i,
     λ j ij, let ⟨h₁, h₂⟩ := h _ ij in
     mul_le_mul h₁ h₂ (le_of_lt G0) (le_trans (le_of_lt F0) h₁)⟩
 

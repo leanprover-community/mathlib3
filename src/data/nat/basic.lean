@@ -869,7 +869,7 @@ attribute [simp] nat.div_self
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
 (nat.eq_zero_or_pos k).elim
   (λ k0, by rw [k0, nat.div_zero]; apply zero_le)
-  (λ k0, (_root_.mul_le_mul_left k0).1 $
+  (λ k0, (mul_le_mul_left k0).1 $
     calc k * (m / k)
         ≤ m % k + k * (m / k) : nat.le_add_left _ _
     ... = m                   : mod_add_div _ _

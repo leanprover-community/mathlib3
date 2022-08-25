@@ -139,6 +139,9 @@ begin
       from supr_le_supr_of_subset (alg_hom.spectrum_apply_subset φ s)) }
 end
 
+/-- Star algebra homomorphisms between C⋆-algebras are continuous linear maps.
+See note [lower instance priority] -/
+@[priority 100]
 noncomputable instance : continuous_linear_map_class F ℂ A B :=
 { map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1
     (by simpa only [one_mul] using nnnorm_apply_le φ),

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.finsupp.lex
+import algebra.monoid_algebra.basic
 
 /-!
 # Addition on `α →₀ N` need not be monotone, when it is monotone on `N`
@@ -119,5 +120,20 @@ begin
   { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, coe_add, pi.to_lex_apply,
       pi.add_apply, forall_eq, f010, f1, eq_self_iff_true, f011, f111, zero_add, and_self] },
 end
+
+/--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
+monoid with an element satisfying `n • a = a`, for some `2 ≤ n`, then `add_monoid_algebra R A`
+contains non-zero zero-divisors. -/
+example {R A} [nontrivial R] [ring R] [add_monoid A] (n : ℕ) (a : A) (n2 : 2 ≤ n) (na : n • a = a)
+  (na1 : (n - 1) • a ≠ 0) : ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
+begin
+  refine ⟨single a 1, single ((n - 1) • a) 1 - single 0 1, by simp, _, _⟩,
+  { exact sub_ne_zero.mpr (by simpa [single_eq_single_iff]) },
+  { rw [mul_sub, add_monoid_algebra.single_mul_single, add_monoid_algebra.single_mul_single,
+      sub_eq_zero, add_zero, ← succ_nsmul, nat.sub_add_cancel (one_le_two.trans n2), na] },
+end
+
+example : 2 • (single 0 1 : F →₀ F) = single 0 1 ∧ (single 0 1 : F →₀ F) ≠ 0 :=
+⟨smul_single _ _ _, by simpa only [ne.def, single_eq_zero] using z01.ne⟩
 
 end F

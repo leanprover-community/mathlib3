@@ -29,13 +29,21 @@ open function
 
 variables {α : Type*}
 
-section heyting_algebra
-variables [heyting_algebra α] {a b : α}
+section has_compl
+variables [has_compl α] {a : α}
 
 /-- An element of an Heyting algebra is regular if its double complement is itself. -/
 def is_heyting_regular (a : α) : Prop := aᶜᶜ = a
 
 protected lemma is_heyting_regular.eq : is_heyting_regular a → aᶜᶜ = a := id
+
+instance is_heyting_regular.decidable_pred [decidable_eq α] :
+  @decidable_pred α is_heyting_regular := λ _, ‹decidable_eq α› _ _
+
+end has_compl
+
+section heyting_algebra
+variables [heyting_algebra α] {a b : α}
 
 lemma is_heyting_regular_bot : is_heyting_regular (⊥ : α) :=
 by rw [is_heyting_regular, compl_bot, compl_top]
@@ -61,7 +69,7 @@ protected lemma is_heyting_regular.disjoint_compl_right_iff (hb : is_heyting_reg
   disjoint a bᶜ ↔ a ≤ b :=
 by rw [←le_compl_iff_disjoint_right, hb.eq]
 
-/-- A Heyting algebra where all elements are regular is a boolean algebra. -/
+/-- A Heyting algebra with regular excluded middle is a boolean algebra. -/
 @[reducible] -- See note [reducible non-instances]
 def boolean_algebra.of_heyting_regular (h : ∀ a : α, is_heyting_regular (a ⊔ aᶜ)) :
   boolean_algebra α :=
@@ -148,3 +156,8 @@ end heyting_algebra
 variables [boolean_algebra α]
 
 lemma is_heyting_regular_of_boolean : ∀ a : α, is_heyting_regular a := compl_compl
+
+/-- A decidable proposition is intuitionistically Heyting-regular. -/
+@[nolint decidable_classical]
+lemma is_heyting_regular_of_decidable (p : Prop) [decidable p] : is_heyting_regular p :=
+propext $ decidable.not_not_iff _

@@ -141,10 +141,36 @@ lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) : bdd_above (c 
 
 end ordered_smul
 
+/-- To prove that a linear ordered module is ordered, it suffices to verify only the first axiom of
+`ordered_smul`. -/
+lemma ordered_smul.mk'' [ordered_semiring 𝕜] [linear_ordered_add_comm_monoid M] [smul_with_zero 𝕜 M]
+  (h : ∀ ⦃c : 𝕜⦄, 0 < c → strict_mono (λ a : M, c • a)) :
+  ordered_smul 𝕜 M :=
+{ smul_lt_smul_of_pos := λ a b c hab hc, h hc hab,
+  lt_of_smul_lt_smul_of_pos := λ a b c hab hc, (h hc).lt_iff_lt.1 hab }
+
+instance nat.ordered_smul [linear_ordered_cancel_add_comm_monoid M] : ordered_smul ℕ M :=
+ordered_smul.mk'' $ λ n hn a b hab, begin
+  cases n,
+  { cases hn },
+  induction n with n ih,
+  { simp only [one_nsmul, hab], },
+  { simp only [succ_nsmul _ n.succ, add_lt_add hab (ih n.succ_pos)] }
+end
+
+instance int.ordered_smul [linear_ordered_add_comm_group M] : ordered_smul ℤ M :=
+ordered_smul.mk'' $ λ n hn, begin
+  cases n,
+  { simp only [int.of_nat_eq_coe, int.coe_nat_pos, coe_nat_zsmul] at ⊢ hn,
+    exact strict_mono_smul_left hn },
+  { cases (int.neg_succ_not_pos _).1 hn }
+end
+
+-- TODO: `linear_ordered_field M → ordered_smul ℚ M`
+
 instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_semiring R] :
   ordered_smul R R :=
-{ smul_lt_smul_of_pos        := ordered_semiring.mul_lt_mul_of_pos_left,
-  lt_of_smul_lt_smul_of_pos  := λ _ _ _ h hc, lt_of_mul_lt_mul_left h hc.le }
+ordered_smul.mk'' $ λ c, strict_mono_mul_left_of_pos
 
 section linear_ordered_semifield
 variables [linear_ordered_semifield 𝕜]

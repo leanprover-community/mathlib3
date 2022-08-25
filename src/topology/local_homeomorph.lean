@@ -991,10 +991,10 @@ def to_homeomorph_source_target : e.source ≃ₜ e.target :=
   inv_fun := e.symm_maps_to.restrict _ _ _,
   left_inv := λ x, subtype.eq $ e.left_inv x.2,
   right_inv := λ x, subtype.eq $ e.right_inv x.2,
-  continuous_to_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.continuous_on,
-  continuous_inv_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.symm.continuous_on }
+  continuous_to_fun :=
+    (continuous_on_iff_continuous_restrict.1 e.continuous_on).subtype_mk _,
+  continuous_inv_fun :=
+    (continuous_on_iff_continuous_restrict.1 e.symm.continuous_on).subtype_mk _ }
 
 lemma second_countable_topology_source [second_countable_topology β]
   (e : local_homeomorph α β) :

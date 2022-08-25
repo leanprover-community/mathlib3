@@ -110,23 +110,40 @@ instance biheyting_hom_class.to_coheyting_hom_class [biheyting_algebra α] [bihe
 { map_top := λ f, by rw [←@himp_self α _ ⊥, ←himp_self, map_himp],
   ..‹biheyting_hom_class F α β› }
 
-/- The following two could be combined into a single
-`bounded_lattice_hom_class F α β → biheyting_hom_class F α β` instance, but that would form a loop.
--/
-
 @[priority 100] -- See note [lower instance priority]
-instance bounded_lattice_hom_class.to_heyting_hom_class [boolean_algebra α] [boolean_algebra β]
-  [bounded_lattice_hom_class F α β] :
+instance order_iso_class.to_heyting_hom_class [heyting_algebra α] [heyting_algebra β]
+  [order_iso_class F α β] :
   heyting_hom_class F α β :=
-{ map_himp := λ f a b, by rw [himp_eq, himp_eq, map_sup, (is_compl_compl.map _).compl_eq],
-  ..‹bounded_lattice_hom_class F α β› }
+{ map_himp := λ f a b, eq_of_forall_le_iff $ λ c,
+    by { simp only [←map_inv_le_iff, le_himp_iff], rw ←order_iso_class.map_le_map_iff f, simp },
+  ..order_iso_class.to_bounded_lattice_hom_class }
 
 @[priority 100] -- See note [lower instance priority]
-instance bounded_lattice_hom_class.to_coheyting_hom_class [boolean_algebra α] [boolean_algebra β]
-  [bounded_lattice_hom_class F α β] :
+instance order_iso_class.to_coheyting_hom_class [coheyting_algebra α] [coheyting_algebra β]
+  [order_iso_class F α β] :
   coheyting_hom_class F α β :=
-{ map_sdiff := λ f a b, by rw [sdiff_eq, sdiff_eq, map_inf, (is_compl_compl.map _).compl_eq],
-  ..‹bounded_lattice_hom_class F α β› }
+{ map_sdiff := λ f a b, eq_of_forall_ge_iff $ λ c,
+    by { simp only [←le_map_inv_iff, sdiff_le_iff], rw ←order_iso_class.map_le_map_iff f, simp },
+  ..order_iso_class.to_bounded_lattice_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_biheyting_hom_class [biheyting_algebra α] [biheyting_algebra β]
+  [order_iso_class F α β] :
+  biheyting_hom_class F α β :=
+{ map_himp := λ f a b, eq_of_forall_le_iff $ λ c,
+    by { simp only [←map_inv_le_iff, le_himp_iff], rw ←order_iso_class.map_le_map_iff f, simp },
+  map_sdiff := λ f a b, eq_of_forall_ge_iff $ λ c,
+    by { simp only [←le_map_inv_iff, sdiff_le_iff], rw ←order_iso_class.map_le_map_iff f, simp },
+  ..order_iso_class.to_lattice_hom_class }
+
+/-- This can't be an instance because of typeclass loops. -/
+@[priority 100] -- See note [lower instance priority]
+def bounded_lattice_hom_class.to_heyting_hom_class [boolean_algebra α] [boolean_algebra β]
+  [bounded_lattice_hom_class F α β] :
+  biheyting_hom_class F α β :=
+{ map_himp := λ f a b, by rw [himp_eq, himp_eq, map_sup, (is_compl_compl.map _).compl_eq],
+  map_sdiff := λ f a b, by rw [sdiff_eq, sdiff_eq, map_inf, (is_compl_compl.map _).compl_eq],
+   ..‹bounded_lattice_hom_class F α β› }
 
 section heyting_algebra
 variables [heyting_algebra α] [heyting_algebra β] [heyting_hom_class F α β] (f : F)

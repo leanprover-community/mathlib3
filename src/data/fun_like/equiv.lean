@@ -175,6 +175,9 @@ function.injective.of_comp_iff' f (equiv_like.bijective e)
   function.bijective (f ∘ e) ↔ function.bijective f :=
 (equiv_like.bijective e).of_comp_iff f
 
+@[simp] lemma inv_apply_apply (e : E) (a : α) : equiv_like.inv e (e a) = a := left_inv _ _
+@[simp] lemma apply_inv_apply (e : E) (b : β) : e (equiv_like.inv e b) = b := right_inv _ _
+
 omit iE
 include iF
 

@@ -502,8 +502,7 @@ def const_lim_adj : (const J : C ⥤ (J ⥤ C)) ⊣ lim :=
   hom_equiv_unit' := λ c g f, limit.hom_ext $ λ j, by simp,
   hom_equiv_counit' := λ c g f, nat_trans.ext _ _ $ funext $ λ j, by simp }
 
-instance : is_right_adjoint (lim : (J ⥤ C) ⥤ C) :=
-⟨_, const_lim_adj⟩
+instance : is_right_adjoint (lim : (J ⥤ C) ⥤ C) := ⟨_, const_lim_adj⟩
 
 end lim_functor
 

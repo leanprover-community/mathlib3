@@ -488,6 +488,32 @@ def lim_yoneda : lim ⋙ yoneda ⋙ (whiskering_right _ _ _).obj ulift_functor.{
 nat_iso.of_components (λ F, nat_iso.of_components (λ W, limit.hom_iso F (unop W)) (by tidy))
   (by tidy)
 
+@[reducible] def const_lim_adj.from_const_to_to_limit (c : C) (g : J ⥤ C)
+  (f : (const J).obj c ⟶ g) : c ⟶ limit g :=
+limit.lift _ ⟨c, f⟩
+
+@[reducible, simps] def const_lim_adj.to_limit_to_from_const (c : C) (g : J ⥤ C)
+  (f : c ⟶ limit g) : (const J).obj c ⟶ g :=
+{ app := λ j, f ≫ limit.π _ _ , naturality' := λ _ _ _, by tidy }
+
+@[simps] def const_lim_adj.unit : 𝟭 C ⟶ const J ⋙ lim :=
+{ app := λ c, limit.lift _ ⟨_, 𝟙 _⟩, naturality' := λ _ _ _, by tidy }
+
+@[simps] def const_lim_adj.counit : lim ⋙ const J ⟶ 𝟭 (J ⥤ C) :=
+{ app := λ g, { app := λ j, limit.π _ _, naturality' := λ _ _ _, by tidy },
+  naturality' := λ _ _ _, by tidy }
+
+def const_lim_adj : (const J : C ⥤ (J ⥤ C)) ⊣ lim :=
+{ hom_equiv := λ c g,
+  { to_fun := const_lim_adj.from_const_to_to_limit c g,
+    inv_fun := const_lim_adj.to_limit_to_from_const c g,
+    left_inv := λ _, nat_trans.ext _ _ $ funext $ λ j, limit.lift_π _ _,
+    right_inv := λ α, limit.hom_ext $ λ j, limit.lift_π _ _ },
+  unit := const_lim_adj.unit,
+  counit := const_lim_adj.counit,
+  hom_equiv_unit' := λ c g f, limit.hom_ext $ λ j, by simp,
+  hom_equiv_counit' := λ c g f, nat_trans.ext _ _ $ funext $ λ j, by simp }
+
 end lim_functor
 
 /--

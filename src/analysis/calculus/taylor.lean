@@ -45,45 +45,6 @@ open_locale big_operators interval topological_space
 variables {𝕜 E F : Type*}
 variables [normed_add_comm_group E] [normed_space ℝ E]
 
-namespace polynomial_module
-
-variables {R S M N : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M]
-
-variables [semiring S] [add_comm_group N] [module S N]
-variables (σ : R →+* S) (f : M →ₛₗ[σ] N) (x : S)
-
-/-- Evaluate a polynomial `p` given a ring hom `σ`, a semilinear map `f`,
-and a value `x` for the variable in the target -/
-def eval₂ (p : polynomial_module R M) : N :=
-p.sum (λ e a, x ^ e • f a)
-
-variables {σ f}
-
-variables {p q : polynomial_module R M}
-
-lemma eval₂_eq_sum {x : S} : p.eval₂ σ f x = p.sum (λ e a, x ^ e • f a) := rfl
-
-/-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
-def eval : R → polynomial_module R M → M := eval₂ (ring_hom.id _) (linear_map.id)
-
-@[simp] lemma eval_add {x : R} : (p + q).eval x = p.eval x + q.eval x := sorry
-
-lemma eval_eq_sum {x : R} : p.eval x = p.sum (λ e a, x ^ e • a) := rfl
-
--- We cannot invoke `eval₂` since `q` is a polynomial and not a scalar
-noncomputable
-def comp (p : polynomial_module R M) (q : polynomial R) : polynomial_module R M :=
-p.sum (λ e a, q^e • polynomial_module.single R 0 a)
-
-@[simp] lemma eval_comp {p : polynomial_module R M} {q : polynomial R} {x : R} :
-  (p.comp q).eval x = p.eval (q.eval x) := sorry
-
-@[simp] lemma eval_monomial {a : M} {i : ℕ} {x : R} :
-  (polynomial_module.single R i a).eval x = x^i • a := sorry
-
-end polynomial_module
-
 /-- The `k`th coefficient of the Taylor polynomial. -/
 noncomputable
 def taylor_coeff_within (f : ℝ → E) (k : ℕ) (s : set ℝ) (x₀ : ℝ) : E :=
@@ -93,27 +54,30 @@ def taylor_coeff_within (f : ℝ → E) (k : ℕ) (s : set ℝ) (x₀ : ℝ) : E
 noncomputable
 def taylor_within (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ : ℝ) : polynomial_module ℝ E :=
 (finset.range (n+1)).sum (λ k,
-  (polynomial_module.single ℝ k (taylor_coeff_within f k s x₀)).comp
-  (polynomial.X - polynomial.C x₀))
+  polynomial_module.comp (polynomial.X - polynomial.C x₀)
+  (polynomial_module.single ℝ k (taylor_coeff_within f k s x₀)))
+
+noncomputable
+def taylor_within_eval (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ x : ℝ) : E :=
+polynomial_module.eval x (taylor_within f n s x₀)
 
 lemma taylor_within_succ {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ : ℝ} :
   taylor_within f (n+1) s x₀ = taylor_within f n s x₀
-  + (polynomial_module.single ℝ (n+1) (taylor_coeff_within f (n+1) s x₀)).comp
-  (polynomial.X - polynomial.C x₀) :=
+  + polynomial_module.comp (polynomial.X - polynomial.C x₀)
+  (polynomial_module.single ℝ (n+1) (taylor_coeff_within f (n+1) s x₀)) :=
 begin
   dunfold taylor_within,
   rw finset.sum_range_succ,
 end
 
 @[simp] lemma taylor_within_eval_succ {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
-  (taylor_within f (n+1) s x₀).eval x = (taylor_within f n s x₀).eval x
+  taylor_within_eval f (n+1) s x₀ x = taylor_within_eval f n s x₀ x
   + (((↑n + 1) * ↑(n.factorial))⁻¹ * (x - x₀)^(n+1)) • iterated_deriv_within (n + 1) f s x₀ :=
 begin
-  rw [taylor_within_succ],
-  rw [polynomial_module.eval_add],
+  simp_rw [taylor_within_eval, taylor_within_succ, linear_map.map_add, polynomial_module.comp_eval],
   congr,
-  simp only [polynomial_module.eval_comp, polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C,
-    polynomial_module.eval_monomial, mul_inv_rev],
+  simp only [polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C,
+    polynomial_module.eval_single, mul_inv_rev],
   dunfold taylor_coeff_within,
   rw [←mul_smul, mul_comm, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one,
     mul_inv_rev],
@@ -121,8 +85,9 @@ end
 
 /-- The Taylor polynomial of order zero evaluates to `f x`. -/
 @[simp] lemma taylor_within_zero_eval {f : ℝ → E} {s : set ℝ} {x₀ x : ℝ} :
-  (taylor_within f 0 s x₀).eval x = f x₀ :=
+  taylor_within_eval f 0 s x₀ x = f x₀ :=
 begin
+  dunfold taylor_within_eval,
   dunfold taylor_within,
   dunfold taylor_coeff_within,
   simp,
@@ -130,7 +95,7 @@ end
 
 /-- Evaluating the Taylor polynomial at `x = x₀` yields `f x`. -/
 @[simp] lemma taylor_within_eval_self {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ : ℝ} :
-  (taylor_within f n s x₀).eval x₀ = f x₀ :=
+  taylor_within_eval f n s x₀ x₀ = f x₀ :=
 begin
   induction n with k hk,
   { exact taylor_within_zero_eval },
@@ -138,7 +103,7 @@ begin
 end
 
 lemma taylor_within_apply {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
-  (taylor_within f n s x₀).eval x = ∑ k in finset.range (n+1),
+  taylor_within_eval f n s x₀ x = ∑ k in finset.range (n+1),
     ((k.factorial : ℝ)⁻¹ * (x - x₀)^k) • iterated_deriv_within k f s x₀ :=
 begin
   induction n with k hk,
@@ -151,7 +116,7 @@ end
   second variable. -/
 lemma taylor_within_eval_continuous_on {f : ℝ → E} {x : ℝ} {n : ℕ} {s : set ℝ}
   (hs : unique_diff_on ℝ s) (hf : cont_diff_on ℝ n f s) :
-  continuous_on (λ t, (taylor_within f n s t).eval x) s :=
+  continuous_on (λ t, taylor_within_eval f n s t x) s :=
 begin
   simp_rw taylor_within_apply,
   refine continuous_on_finset_sum (finset.range (n+1)) (λ i hi, _),
@@ -217,7 +182,7 @@ lemma taylor_within_eval_has_deriv_within_at {f : ℝ → E} {x y : ℝ} {n : �
   (hs' : s' ∈ 𝓝[s] y) (hy : y ∈ s') (h : s' ⊆ s)
   (hf : cont_diff_on ℝ n f s)
   (hf' : differentiable_on ℝ (iterated_deriv_within n f s) s') :
-  has_deriv_within_at (λ t, (taylor_within f n s t).eval x)
+  has_deriv_within_at (λ t, taylor_within_eval f n s t x)
     (((n.factorial : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) s' y :=
 begin
   induction n with k hk,
@@ -249,7 +214,7 @@ lemma taylor_within_eval_has_deriv_at_Ioo {f : ℝ → E} {a b t : ℝ} (x : ℝ
   (hx : a < b) (ht : t ∈ set.Ioo a b)
   (hf : cont_diff_on ℝ n f (set.Icc a b))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc a b)) (set.Ioo a b)) :
-  has_deriv_at (λ y, (taylor_within f n (set.Icc a b) y).eval x)
+  has_deriv_at (λ y, taylor_within_eval f n (set.Icc a b) y x)
     (((n.factorial : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (set.Icc a b) t)) t :=
 begin
   have h_nhds := is_open.mem_nhds is_open_Ioo ht,
@@ -264,7 +229,7 @@ Version for closed intervals -/
 lemma taylor_within_eval_has_deriv_within_at_Icc {f : ℝ → E} {a b t : ℝ} (x : ℝ) {n : ℕ}
   (hx : a < b) (ht : t ∈ set.Icc a b) (hf : cont_diff_on ℝ n f (set.Icc a b))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc a b)) (set.Icc a b)) :
-  has_deriv_within_at (λ y, (taylor_within f n (set.Icc a b) y).eval x)
+  has_deriv_within_at (λ y, taylor_within_eval f n (set.Icc a b) y x)
     (((n.factorial : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (set.Icc a b) t))
     (set.Icc a b) t :=
 taylor_within_eval_has_deriv_within_at (unique_diff_on_Icc hx t ht) (unique_diff_on_Icc hx)
@@ -279,12 +244,13 @@ lemma taylor_mean_remainder {f : ℝ → ℝ} {g g' : ℝ → ℝ} {x x₀ : ℝ
   (gcont : continuous_on g (set.Icc x₀ x))
   (gdiff : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at g (g' x_1) x_1)
   (g'_ne : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → g' x_1 ≠ 0) :
-  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - (taylor_within f n (set.Icc x₀ x) x₀).eval x =
-  ((x - x')^n /n.factorial * (g x - g x₀) / g' x') • (iterated_deriv_within (n+1) f (set.Icc x₀ x) x')
+  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_within_eval f n (set.Icc x₀ x) x₀ x =
+  ((x - x')^n /n.factorial * (g x - g x₀) / g' x') •
+    (iterated_deriv_within (n+1) f (set.Icc x₀ x) x')
   :=
 begin
   -- We apply the mean value theorem
-  rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, (taylor_within f n (set.Icc x₀ x) t).eval x)
+  rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_within_eval f n (set.Icc x₀ x) t x)
     (λ t, ((n.factorial : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (set.Icc x₀ x) t)) hx
     (taylor_within_eval_continuous_on (unique_diff_on_Icc hx) hf)
     (λ _ hy, taylor_within_eval_has_deriv_at_Ioo x hx hy hf hf')
@@ -302,7 +268,7 @@ end
 lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x)) :
-  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - (taylor_within f n (set.Icc x₀ x) x₀).eval x =
+  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_within_eval f n (set.Icc x₀ x) x₀ x =
   (iterated_deriv_within (n+1) f (set.Icc x₀ x) x') * (x - x₀)^(n+1) /(n+1).factorial :=
 begin
   have gcont : continuous_on (λ (t : ℝ), (x - t) ^ (n + 1)) (set.Icc x₀ x) :=
@@ -331,7 +297,7 @@ end
 lemma taylor_mean_remainder_cauchy {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x)) :
-  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - (taylor_within f n (set.Icc x₀ x) x₀).eval x =
+  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_within_eval f n (set.Icc x₀ x) x₀ x =
   (iterated_deriv_within (n+1) f (set.Icc x₀ x) x') * (x - x')^n /n.factorial * (x - x₀) :=
 begin
   have gcont : continuous_on id (set.Icc x₀ x) := continuous.continuous_on (by continuity),
@@ -349,7 +315,7 @@ end
 lemma taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (h : a < b) (hf : cont_diff_on ℝ (n+1) f (set.Icc a b)) :
   ∃ C : ℝ, ∀ (x : ℝ) (hx : x ∈ set.Icc a b),
-  ∥f x - (taylor_within f n (set.Icc a b) a).eval x∥ ≤ C * (b - a)^(n+1) / n.factorial :=
+  ∥f x - taylor_within_eval f n (set.Icc a b) a x∥ ≤ C * (b - a)^(n+1) / n.factorial :=
 begin
   -- The nth iterated derivative is differentiable
   have hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc a b)) (set.Icc a b) :=

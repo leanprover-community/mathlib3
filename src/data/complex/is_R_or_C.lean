@@ -211,9 +211,6 @@ by simp only [bit0, ring_hom.map_add, eq_self_iff_true]
 by simp only [bit0, ext_iff, bit1_re, conj_im, eq_self_iff_true, conj_re, neg_add_rev,
               and_self, bit1_im]
 
-lemma conj_neg (z : K) : conj (-z) = -conj z := by simp [ext_iff]
-
-@[simp] lemma conj_I : conj I = (-I : K) := by simp [ext_iff]
 @[simp, is_R_or_C_simps] lemma conj_neg_I : conj (-I) = (I : K) :=
 by simp only [conj_I, ring_hom.map_neg, eq_self_iff_true, neg_neg]
 

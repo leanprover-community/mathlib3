@@ -222,8 +222,7 @@ lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 @[simp, norm_cast] lemma coe_bit1 : (↑(bit1 r) : ℝ≥0∞) = bit1 r := by simp [bit1]
 lemma coe_two : ((2:ℝ≥0) : ℝ≥0∞) = 2 := by norm_cast
 
-protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
-  canonically_ordered_comm_semiring.zero_lt_one
+protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) := zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)

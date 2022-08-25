@@ -388,7 +388,7 @@ instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
 @[simp] lemma coe_add {K₁ K₂ : convex_cone 𝕜 E} : ((K₁ + K₂) : set E) = ↑K₁ + ↑K₂ := rfl
 
 instance : add_zero_class (convex_cone 𝕜 E) :=
-  ⟨0, has_add.add, λ _, by {ext, simp}, λ _, by {ext, simp}⟩
+⟨0, has_add.add, λ _, by {ext, simp}, λ _, by {ext, simp}⟩
 
 instance : add_comm_semigroup (convex_cone 𝕜 E) :=
 { add := has_add.add,

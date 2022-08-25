@@ -29,23 +29,34 @@ absorbing addition on it to generate our counterexample. -/
 from the beginning, returning `[]` if there is no match.  For instance,
 ```lean
 #eval [1,2].drop_until [3,1,2,4,1,2]  -- [4, 1, 2]
-``` -/
+```
+-/
 def list.drop_until {α} [decidable_eq α] : list α → list α → list α
 | l [] := []
 | l (a::as) := ((a::as).get_rest l).get_or_else (l.drop_until as)
 
-/- A test to make sure that the comment referring to this example is in the file claimed in the
+/- `guard_decl_in_file na loc` makes sure that the declaration with name `na` is in the file with
+relative path `"src/" ++ "/".intercalate loc ++ ".lean"`.
+```lean
+#eval guard_decl_in_file `nat.nontrivial ["data", "nat", "basic"]  -- does nothing
+
+#eval guard_decl_in_file `nat.nontrivial ["dta", "nat", "basic"]
+-- fails giving the location 'data/nat/basic.lean'
+```
+
+This test makes sure that the comment referring to this example is in the file claimed in the
 doc-module to this counterexample. -/
-run_cmd (do
-  env ← tactic.get_env,
-  let fil := env.decl_olean `finsupp.lex.covariant_class_le_left,
-  some fil ← pure fil |
-    tactic.fail "the instance `finsupp.lex.covariant_class_le_left` is not imported!",
+meta def guard_decl_in_file (na : name) (loc : list string) : tactic unit :=
+do env ← tactic.get_env,
+  some fil ← pure $ env.decl_olean na | fail!"the instance `{na}` is not imported!",
   let path : string := ⟨list.drop_until "/src/".to_list fil.to_list⟩,
-  guard (fil.ends_with "src/data/finsupp/lex.lean") <|>
-    fail!("instance `finsupp.lex.covariant_class_lt_left` is no longer in " ++
-      "`data.finsupp.lex`.\n\n" ++
-      "Please, update the doc-module and this message with the correct location:\n\n'{path}'\n"))
+  let locdot : string := ".".intercalate loc,
+  guard (fil.ends_with ("src/" ++ "/".intercalate loc ++ ".lean")) <|>
+    fail!("instance `{na}` is no longer in `{locdot}`.\n\n" ++
+      "Please, update the doc-module and this check with the correct location:\n\n'{path}'\n")
+
+#eval guard_decl_in_file `finsupp.lex.covariant_class_le_left ["data", "finsupp", "lex"]
+#eval guard_decl_in_file `finsupp.lex.covariant_class_le_right ["data", "finsupp", "lex"]
 
 namespace F
 

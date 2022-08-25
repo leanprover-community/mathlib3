@@ -854,4 +854,3 @@ end
 
 end complete_space
 end dual
-#check set.has_add

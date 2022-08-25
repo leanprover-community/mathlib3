@@ -638,7 +638,7 @@ ext $ λ x, by simp only [mem_insert, or.left_comm]
   (({a, b} : finset α) : set α) = {a, b} := by { ext, simp }
 
 @[simp, norm_cast] lemma coe_eq_pair {s : finset α} {a b : α} :
-  (s : set α) = {a, b} ↔ s = {a, b} := by rw [←finset.coe_pair, finset.coe_inj]
+  (s : set α) = {a, b} ↔ s = {a, b} := by rw [←coe_pair, coe_inj]
 
 theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} := insert.comm a b ∅
 

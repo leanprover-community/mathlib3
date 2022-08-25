@@ -127,7 +127,7 @@ nnreal.tendsto_coe.2 $ tendsto_to_nnreal ha
 /-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
 def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ ℝ≥0 :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_coe,
+  continuous_inv_fun := continuous_coe.subtype_mk _,
   .. ne_top_equiv_nnreal }
 
 /-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/

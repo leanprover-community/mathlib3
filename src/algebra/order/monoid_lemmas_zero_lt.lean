@@ -1104,6 +1104,21 @@ end mul_one_class
 section mul_zero_one_class
 variables [mul_zero_one_class α]
 
+section preorder
+variables [preorder α]
+
+lemma left.zero_lt_one_of_pos [pos_mul_reflect_lt α]
+  (a0 : 0 < a) : (0 : α) < 1 :=
+lt_of_mul_lt_mul_left' a0 ((mul_zero _).le.trans_lt (a0.trans_le (mul_one _).ge))
+
+lemma right.zero_lt_one_of_pos [mul_pos_reflect_lt α]
+  (a0 : 0 < a) : (0 : α) < 1 :=
+lt_of_mul_lt_mul_right' a0 ((zero_mul _).le.trans_lt (a0.trans_le (one_mul _).ge))
+
+alias left.zero_lt_one_of_pos ← zero_lt_one_of_pos
+
+end preorder
+
 section partial_order
 variables [partial_order α]
 

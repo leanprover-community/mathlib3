@@ -57,6 +57,7 @@ def taylor_within (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ : ℝ) : polynom
   polynomial_module.comp (polynomial.X - polynomial.C x₀)
   (polynomial_module.single ℝ k (taylor_coeff_within f k s x₀)))
 
+/-- The Taylor polynomial considered as a function `ℝ → E`-/
 noncomputable
 def taylor_within_eval (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ x : ℝ) : E :=
 polynomial_module.eval x (taylor_within f n s x₀)

@@ -111,7 +111,6 @@ begin
   refl,
 end
 
-
 def inf_conn_comp_outside (G : simple_graph V) (K : set V) :=
  {C : G.conn_comp_outside K // C.verts.infinite}
 
@@ -161,12 +160,42 @@ begin
   rw subgraph.connected_iff,
   refine ⟨_,nonempty_supp C⟩,
   refine connected_component.ind _ C,
-  simp,
-  rintro v vK,
+  simp only [set_coe.forall],
+  rintro v vnK,
+  let C' : conn_comp_outside G K := (G.compl K).coe.connected_component_mk ⟨v, vnK⟩,
   rintro ⟨u,uK⟩ ⟨w,wK⟩,
-  --dsimp [compl,subgraph.induce,subgraph.verts,subgraph.delete_verts,subgraph.coe] at vK uK wK,
-  --simp at vK uK wK,
+  change v ∈ set.univ \ K at vnK,
+  have vK : v ∈ ((⊤ : G.subgraph).induce (C' : set V)).verts, by
+  { simp only [mem_diff, set.mem_univ, true_and, subgraph.induce_verts, set_like.mem_coe, mem_supp_iff, connected_component.eq],
+    use vnK.2,},
+  let puv := uK.some_spec,
+  let pwv := wK.some_spec.symm,
+  rw simple_graph.connected_component.eq at puv pwv,
 
+  fapply @reachable.trans,
+  { exact ⟨v,vK⟩, },
+  { constructor,
+    fapply walk.contained.to_subgraph, exact puv.some.map (G.compl K).hom,
+    rw walk.contained_induced_iff,
+    rintro z zz,
+    simp only [walk.support_map, list.mem_map, subgraph.hom_apply, set_coe.exists, subtype.coe_mk,
+               exists_and_distrib_right, exists_eq_right] at zz,
+    obtain ⟨znK,zp⟩ := zz,
+    simp only [compl, subgraph.induce_verts, subgraph.top_verts, mem_diff, set.mem_univ, true_and] at znK,
+    rw mem_support_iff_exists_append at zp,
+    simp only [mem_diff, set.mem_univ, true_and, set_like.mem_coe, mem_supp_iff, connected_component.eq],
+    use [znK,zp.some_spec.some], },
+  { constructor,
+    fapply walk.contained.to_subgraph, exact pwv.some.map (G.compl K).hom,
+    rw walk.contained_induced_iff,
+    rintro z zz,
+    simp only [walk.support_map, list.mem_map, subgraph.hom_apply, set_coe.exists, subtype.coe_mk,
+               exists_and_distrib_right, exists_eq_right] at zz,
+    obtain ⟨znK,zp⟩ := zz,
+    simp only [compl, subgraph.induce_verts, subgraph.top_verts, mem_diff, set.mem_univ, true_and] at znK,
+    rw mem_support_iff_exists_append at zp,
+    simp only [mem_diff, set.mem_univ, true_and, set_like.mem_coe, mem_supp_iff, connected_component.eq],
+    use [znK,zp.some.reverse], },
 end
 
 lemma of_connected_disjoint {G : simple_graph V} {K : set V} (S : set V)

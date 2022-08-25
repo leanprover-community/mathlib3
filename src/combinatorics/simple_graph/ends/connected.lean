@@ -203,8 +203,8 @@ lemma walk.contained_append_right (H : G.subgraph)
   {u v w : V} (p : G.walk u v) (q : G.walk v w) : (p.append q).contained H → p.contained H := sorry
 
 /-- A walk `contained` in a subgraph can be viewed as a walk of the subgraph -/
-def walk.contained.to_subgraph (H : G.subgraph)
-  {u w : H.verts} (p : G.walk u w) (pcon : p.contained H) : H.coe.walk u w :=
+def walk.contained.to_subgraph {H : G.subgraph}
+  {u w : H.verts} {p : G.walk u w} (pcon : p.contained H) : H.coe.walk u w :=
 begin
   rcases u with ⟨uu,hu⟩,
   rcases w with ⟨ww,hw⟩,
@@ -219,9 +219,9 @@ begin
     exact ih hv hw pcon.2,},
 end
 
-lemma walk.contained.to_subgraph_map_eq (H : G.subgraph)
-  {u w : H.verts} (p : G.walk u w) (pcon : p.contained H) :
-  (walk.contained.to_subgraph H p pcon).map H.hom = p :=
+lemma walk.contained.to_subgraph_map_eq {H : G.subgraph}
+  {u w : H.verts} {p : G.walk u w} (pcon : p.contained H) :
+  (walk.contained.to_subgraph pcon).map H.hom = p :=
 begin
   rcases u with ⟨uu,hu⟩,
   rcases w with ⟨ww,hw⟩,

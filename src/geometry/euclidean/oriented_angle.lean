@@ -1127,7 +1127,7 @@ by rw [sub_eq_add_neg, ←neg_smul, add_comm, oangle_sign_smul_add_right]
 
 /-- Subtracting a multiple of the second vector passed to `oangle` from the first vector does
 not change the sign of the angle. -/
-@[simp] lemma oangle_sign_add_sub_left (x y : V) (r : ℝ) :
+@[simp] lemma oangle_sign_sub_smul_left (x y : V) (r : ℝ) :
   (hb.oangle (x - r • y) y).sign = (hb.oangle x y).sign :=
 by rw [sub_eq_add_neg, ←neg_smul, oangle_sign_add_smul_left]
 
@@ -1738,9 +1738,9 @@ not change the sign of the angle. -/
 
 /-- Subtracting a multiple of the second vector passed to `oangle` from the first vector does
 not change the sign of the angle. -/
-@[simp] lemma oangle_sign_add_sub_left (x y : V) (r : ℝ) :
+@[simp] lemma oangle_sign_sub_smul_left (x y : V) (r : ℝ) :
   (o.oangle (x - r • y) y).sign = (o.oangle x y).sign :=
-(ob).oangle_sign_add_sub_left x y r
+(ob).oangle_sign_sub_smul_left x y r
 
 /-- The sign of the angle between a vector, and a linear combination of that vector with a second
 vector, is the sign of the factor by which the second vector is multiplied in that combination

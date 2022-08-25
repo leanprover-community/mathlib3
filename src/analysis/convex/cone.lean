@@ -366,17 +366,18 @@ instance : has_zero (convex_cone 𝕜 E) := ⟨⟨0, λ _ _, by simp, λ _, by s
 
 lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
 
-instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
-{ carrier := {z | ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = z},
+@[reducible] instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
+{ carrier := K₁ + K₂,
   smul_mem' :=
   begin
     rintro c hc _ ⟨x, y, hx, hy, rfl⟩,
-    rw smul_add,
+    rw [smul_add, set.mem_add],
     use [c • x, c • y, K₁.smul_mem hc hx, K₂.smul_mem hc hy],
   end,
   add_mem' :=
   begin
     rintro _ ⟨x₁, x₂, hx₁, hx₂, rfl⟩ y ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+    rw [set.mem_add],
     use [x₁ + y₁, x₂ + y₂, K₁.add_mem hx₁ hy₁, K₂.add_mem hx₂ hy₂],
     abel,
   end } ⟩
@@ -853,3 +854,4 @@ end
 
 end complete_space
 end dual
+#check set.has_add

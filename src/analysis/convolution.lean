@@ -356,11 +356,13 @@ noncomputable def convolution [has_sub G] (f : G → E) (g : G → E') (L : E �
   (μ : measure G . volume_tac) : G → F :=
 λ x, ∫ t, L (f t) (g (x - t)) ∂μ
 
-localized "notation f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 := convolution f g L μ" in convolution
-localized "notation f ` ⋆[`:67 L:67 `]`:0 g:66 := convolution f g L
-  measure_theory.measure_space.volume" in convolution
-localized "notation f ` ⋆ `:67 g:66 := convolution f g (continuous_linear_map.lsmul ℝ ℝ)
-  measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution) f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 :=
+  convolution f g L μ" in convolution
+localized "notation (name := convolution.volume) f ` ⋆[`:67 L:67 `]`:0 g:66 :=
+  convolution f g L measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution.lsmul) f ` ⋆ `:67 g:66 :=
+  convolution f g (continuous_linear_map.lsmul ℝ ℝ) measure_theory.measure_space.volume"
+  in convolution
 
 lemma convolution_def [has_sub G] : (f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ := rfl
 

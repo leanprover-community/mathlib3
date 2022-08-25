@@ -62,8 +62,8 @@ noncomputable def epsilon : ℝ* := of_seq $ λ n, n⁻¹
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq coe
 
-localized "notation `ε` := hyperreal.epsilon" in hyperreal
-localized "notation `ω` := hyperreal.omega" in hyperreal
+localized "notation (name := hyperreal.epsilon) `ε` := hyperreal.epsilon" in hyperreal
+localized "notation (name := hyperreal.omega) `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 

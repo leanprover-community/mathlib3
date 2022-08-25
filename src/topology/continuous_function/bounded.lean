@@ -37,7 +37,8 @@ structure bounded_continuous_function (α : Type u) (β : Type v)
   Type (max u v) :=
 (map_bounded' : ∃ C, ∀ x y, dist (to_fun x) (to_fun y) ≤ C)
 
-localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
+localized "infixr (name := bounded_continuous_function)
+  ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
 
 /-- `bounded_continuous_map_class F α β` states that `F` is a type of bounded continuous maps.
 

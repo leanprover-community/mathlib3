@@ -1919,7 +1919,8 @@ if hm : m ≤ m0
   else 0
 
 -- We define notation `μ[f|m]` for the conditional expectation of `f` with respect to `m`.
-localized "notation  μ `[` f `|` m `]` := measure_theory.condexp m μ f" in measure_theory
+localized "notation (name := measure_theory.condexp)
+  μ `[` f `|` m `]` := measure_theory.condexp m μ f" in measure_theory
 
 lemma condexp_of_not_le (hm_not : ¬ m ≤ m0) : μ[f|m] = 0 := by rw [condexp, dif_neg hm_not]
 

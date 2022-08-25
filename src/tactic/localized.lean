@@ -111,6 +111,10 @@ add_tactic_doc
 meta def print_localized_commands (ns : list name) : tactic unit :=
 do cmds ← get_localized ns, cmds.mmap' trace
 
+-- This should be used instead of `_` inside localized commands,
+-- because otherwise `open_locale` will fail if some of the notations are already available.
+notation `hole!` := _
+
 -- you can run `open_locale classical` to get the decidability of all propositions, and downgrade
 -- the priority of decidability instances that make Lean run through all the algebraic hierarchy
 -- whenever it wants to solve a decidability question
@@ -118,5 +122,5 @@ localized "attribute [instance, priority 9] classical.prop_decidable" in classic
 localized "attribute [instance, priority 8] eq.decidable" in classical
 
 
-localized "postfix `?`:9001 := optional" in parser
-localized "postfix *:9001 := lean.parser.many" in parser
+localized "postfix (name := parser.optional) `?`:9001 := optional" in parser
+localized "postfix (name := parser.many) *:9001 := lean.parser.many" in parser

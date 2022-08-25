@@ -545,7 +545,7 @@ begin
     { ext ⟨i, his⟩,
       have : ¬i = a, { rintro rfl, exact has his },
       dsimp only [or.by_cases], change i ∈ s at his,
-      rw [dif_neg this, dif_pos his] } },
+      rw dif_neg this } },
   { intro f, ext ⟨i, hi⟩,
     rcases finset.mem_insert.1 hi with rfl | h,
     { simp only [or.by_cases, dif_pos], },

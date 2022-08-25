@@ -88,9 +88,9 @@ end
 This allows us to simply write `W n` or `W_ ℤ n`. -/
 
 -- Notation with ring of coefficients explicit
-localized "notation `W_` := witt_polynomial p"   in witt
+localized "notation (name := witt_polynomial) `W_` := witt_polynomial p" in witt
 -- Notation with ring of coefficients implicit
-localized "notation `W`  := witt_polynomial p _" in witt
+localized "notation (name := witt_polynomial.infer) `W`  := witt_polynomial p hole!" in witt
 
 open_locale witt
 open mv_polynomial

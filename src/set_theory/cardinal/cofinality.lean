@@ -710,7 +710,7 @@ end ordinal
 namespace cardinal
 open ordinal
 
-local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
+local infixr (name := cardinal.pow) ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 
 /-- A cardinal is a limit if it is not zero or a successor
   cardinal. Note that `ℵ₀` is a limit cardinal by this definition. -/

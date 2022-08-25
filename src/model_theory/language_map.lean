@@ -108,7 +108,7 @@ Lhom.funext (funext (λ n, nat.cases_on n (funext h0) (λ n, nat.cases_on n (fun
 @[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=
 ⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
 
-local infix ` ∘ `:60 := Lhom.comp
+local infix (name := Lhom.comp) ` ∘ `:60 := Lhom.comp
 
 @[simp] lemma id_comp (F : L →ᴸ L') : (Lhom.id L') ∘ F = F :=
 by {cases F, refl}
@@ -334,7 +334,8 @@ variables (α : Type w')
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
 def with_constants : language.{(max u w') v} := L.sum (constants_on α)
 
-localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
+localized "notation (name := language.with_constants)
+  L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 
 @[simp] lemma card_with_constants :
   (L[[α]]).card = cardinal.lift.{w'} L.card + cardinal.lift.{max u v} (# α) :=

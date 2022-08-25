@@ -103,7 +103,7 @@ def mk : ℤ → ℤ → ℚ
 | n (d : ℕ) := mk_nat n d
 | n -[1+ d] := mk_pnat (-n) d.succ_pnat
 
-localized "infix ` /. `:70 := rat.mk" in rat
+localized "infix (name := rat.mk) ` /. `:70 := rat.mk" in rat
 
 theorem mk_pnat_eq (n d h) : mk_pnat n ⟨d, h⟩ = n /. d :=
 by change n /. d with dite _ _ _; simp [ne_of_gt h]

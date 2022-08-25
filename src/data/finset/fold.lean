@@ -18,7 +18,7 @@ variables {α β γ : Type*}
 /-! ### fold -/
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
-local notation a * b := op a b
+local notation (name := op) a * b := op a b
 include hc ha
 
 /-- `fold op b f s` folds the commutative associative operation `op` over the

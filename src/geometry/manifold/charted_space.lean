@@ -118,8 +118,10 @@ variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
 `local_homeomorph.trans` and `local_equiv.trans`.
 Note that, as is usual for equivs, the composition is from left to right, hence the direction of
 the arrow. -/
-localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
-localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
+localized "infixr (name := local_homeomorph.trans)
+  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
+localized "infixr (name := local_equiv.trans)
+  ` ≫ `:100 := local_equiv.trans" in manifold
 
 open set local_homeomorph
 

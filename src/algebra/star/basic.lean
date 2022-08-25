@@ -284,7 +284,7 @@ case for `(↑star_ring_aut : R →* R)`. -/
 def star_ring_end [comm_semiring R] [star_ring R] : R →+* R := @star_ring_aut R _ _
 variables {R}
 
-localized "notation `conj` := star_ring_end _" in complex_conjugate
+localized "notation (name := star_ring_end) `conj` := star_ring_end hole!" in complex_conjugate
 
 /-- This is not a simp lemma, since we usually want simp to keep `star_ring_end` bundled.
  For example, for complex conjugation, we don't want simp to turn `conj x`

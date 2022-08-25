@@ -41,8 +41,8 @@ structure elementary_embedding :=
 (map_formula' : ∀{n} (φ : L.formula (fin n)) (x : fin n → M),
   φ.realize (to_fun ∘ x) ↔ φ.realize x . obviously)
 
-localized "notation A ` ↪ₑ[`:25 L `] ` B := first_order.language.elementary_embedding L A B"
-  in first_order
+localized "notation (name := elementary_embedding)
+  A ` ↪ₑ[`:25 L `] ` B := first_order.language.elementary_embedding L A B" in first_order
 
 variables {L} {M} {N}
 

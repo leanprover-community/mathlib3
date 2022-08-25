@@ -48,7 +48,7 @@ range of `f`. -/
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (init : ∀ a b, s b (to_rel_embedding a) → ∃ a', to_rel_embedding a' = b)
 
-localized "infix ` ≼i `:25 := initial_seg" in initial_seg
+localized "infix (name := initial_seg) ` ≼i `:25 := initial_seg" in initial_seg
 
 namespace initial_seg
 
@@ -174,7 +174,7 @@ structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β 
 (top : β)
 (down' : ∀ b, s b top ↔ ∃ a, to_rel_embedding a = b)
 
-localized "infix ` ≺i `:25 := principal_seg" in initial_seg
+localized "infix (name := principal_seg) ` ≺i `:25 := principal_seg" in initial_seg
 
 namespace principal_seg
 

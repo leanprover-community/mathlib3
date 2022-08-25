@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebraic_geometry.sheafed_space
+import topology.sheaves.sheaf_condition.opens_le_cover
 import topology.sheaves.stalks
 import category_theory.preadditive.injective
-import algebra.category.Group.abelian
 
 /-!
 # Skyscraper (pre)sheaves
@@ -53,7 +53,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 { obj := λ U, if p₀ ∈ unop U then S else terminal C,
   map := λ U V i, if h : p₀ ∈ unop V
     then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
-    else (terminal_is_terminal.ite_not h).from _,
+    else (terminal_is_terminal.if_neg h).from _,
   map_id' := λ U,
   begin
     split_ifs,

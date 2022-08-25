@@ -61,7 +61,7 @@ is_limit.of_iso_limit hY
 { hom := { hom := i.hom },
   inv := { hom := i.inv } }
 
-def is_terminal.ite {Y Z : C} {P : Prop} [decidable P] (h : P) (hY : is_terminal Y) :
+def is_terminal.if_pos {Y Z : C} {P : Prop} [decidable P] (h : P) (hY : is_terminal Y) :
   is_terminal $ if P then Y else Z :=
 hY.of_iso $ eq_to_iso $ by rw [if_pos h]
 

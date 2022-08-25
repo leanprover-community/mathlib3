@@ -758,8 +758,6 @@ iff.intro
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
 
-variables [mul_one_class α]
-
 section left
 variables [covariant_class α α (*) (≤)] {a b : α}
 

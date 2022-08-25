@@ -881,10 +881,7 @@ begin
   rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
   rcases em' p.prime with pp | pp, { simp [pp] },
 
-  have : a - b ≠ 0, {
-    apply mt nat.sub_eq_zero_iff_le.1,
-    simp only [not_le],
-    exact hab },
+  have : a - b ≠ 0, { simp [hab] },
   rw ←pp.pow_dvd_iff_le_factorization this,
 
   rcases le_or_lt (a.factorization p) (b.factorization p) with h1 | h2,
@@ -892,12 +889,10 @@ begin
     rcases eq_or_lt_of_le h1 with h5 | h6, swap,
     { rw ←factorization_sub_of_lt' h6 hab.le, apply ord_proj_dvd },
     {
-      clear h1,
       refine pow_dvd_of_le_of_pow_dvd _ (ord_proj_dvd (a-b) p),
       rcases exists_eq_add_of_lt hab with ⟨k, hk⟩,
       rw add_assoc at hk,
       subst hk,
-      clear hab ha0 this,
       simp,
 
       rcases eq_or_ne (b.factorization p) ((k+1).factorization p) with H1 | H2,
@@ -912,7 +907,6 @@ begin
     rcases exists_eq_add_of_lt hab with ⟨k, hk⟩,
     rw add_assoc at hk,
     subst hk,
-    clear hab ha0 this,
     simp,
     rw factorization_eq_of_lt_factorization_add hb0 h2,
     apply ord_proj_dvd },

@@ -186,8 +186,8 @@ section has_mul
 variables {ι : Sort*} {κ : ι → Sort*} [has_mul α] {s s₁ s₂ t t₁ t₂ u : set α} {a b : α}
 
 /-- The pointwise multiplication of sets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}` in
-locale `pointwise`. -/
-@[to_additive "The pointwise addition of sets `s + t` is defined as `{x + y | x ∈ s, y ∈ t}` in
+locale `pointwise`. See note [reducible non-instances]. -/
+@[reducible, to_additive "The pointwise addition of sets `s + t` is defined as `{x + y | x ∈ s, y ∈ t}` in
 locale `pointwise`."]
 protected def has_mul : has_mul (set α) := ⟨image2 (*)⟩
 

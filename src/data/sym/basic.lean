@@ -71,6 +71,8 @@ The unique element in `sym α 0`.
 -/
 @[pattern] def nil : sym α 0 := ⟨0, multiset.card_zero⟩
 
+@[simp] lemma coe_nil : (coe (@sym.nil α)) = (0 : multiset α) := rfl
+
 /--
 Inserts an element into the term of `sym α n`, increasing the length by one.
 -/

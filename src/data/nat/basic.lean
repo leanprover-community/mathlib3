@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.order.ring
+import algebra.order.with_zero
 
 /-!
 # Basic operations on the natural numbers
@@ -230,9 +231,6 @@ add_right_eq_self.mp $ le_antisymm ((two_mul a).symm.trans_le h) le_add_self
 
 lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
-
-theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
-⟨nat.eq_zero_of_le_zero, λ h, h ▸ le_refl i⟩
 
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
@@ -871,7 +869,7 @@ attribute [simp] nat.div_self
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
 (nat.eq_zero_or_pos k).elim
   (λ k0, by rw [k0, nat.div_zero]; apply zero_le)
-  (λ k0, (_root_.mul_le_mul_left k0).1 $
+  (λ k0, (mul_le_mul_left k0).1 $
     calc k * (m / k)
         ≤ m % k + k * (m / k) : nat.le_add_left _ _
     ... = m                   : mod_add_div _ _

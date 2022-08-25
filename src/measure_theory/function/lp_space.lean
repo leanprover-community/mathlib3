@@ -2543,7 +2543,7 @@ begin
   by_cases hp_top : p = ∞,
   { simp_rw [hp_top] at *,
     have h_cau_ae : ∀ᵐ x ∂μ, ∀ N n m, N ≤ n → N ≤ m → (∥(f n - f m) x∥₊ : ℝ≥0∞) < B N,
-    { simp_rw [ae_all_iff, ae_imp_iff],
+    { simp_rw ae_all_iff,
       exact λ N n m hnN hmN, ae_lt_of_ess_sup_lt (h_cau N n m hnN hmN), },
     simp_rw [snorm_exponent_top, snorm_ess_sup] at h_cau,
     refine h_cau_ae.mono (λ x hx, cauchy_seq_tendsto_of_complete _),

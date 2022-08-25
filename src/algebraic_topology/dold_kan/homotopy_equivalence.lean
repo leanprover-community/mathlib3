@@ -45,7 +45,7 @@ noncomputable def homotopy_P_to_id : Π (q : ℕ),
 def homotopy_Q_to_zero (q : ℕ) : homotopy (Q q : K[X] ⟶ _) 0 :=
 homotopy.equiv_sub_zero.to_fun (homotopy_P_to_id X q).symm
 
-lemma homotopy_P_to_id_eventually_constant {q : ℕ} {n : ℕ} (hqn : n<q):
+lemma homotopy_P_to_id_eventually_constant {q n : ℕ} (hqn : n<q):
   ((homotopy_P_to_id X (q+1)).hom n (n+1) : X _[n] ⟶ X _[n+1]) =
   (homotopy_P_to_id X q).hom n (n+1) :=
 begin

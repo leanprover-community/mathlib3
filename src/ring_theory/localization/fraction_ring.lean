@@ -42,7 +42,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
   begin
     rintro ⟨x, hx⟩,
     rw mem_non_zero_divisors_iff_ne_zero at hx,
-    simpa only [ring_hom.eq_int_cast, is_unit_iff_ne_zero, int.cast_eq_zero,
+    simpa only [eq_int_cast, is_unit_iff_ne_zero, int.cast_eq_zero,
                 ne.def, subtype.coe_mk] using hx,
     end,
   surj :=
@@ -54,7 +54,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
   eq_iff_exists :=
   begin
     intros x y,
-    rw [ring_hom.eq_int_cast, ring_hom.eq_int_cast, int.cast_inj],
+    rw [eq_int_cast, eq_int_cast, int.cast_inj],
     refine ⟨by { rintro rfl, use 1 }, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
     apply int.eq_of_mul_eq_mul_right _ h,

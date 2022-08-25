@@ -893,3 +893,75 @@ begin
   rw [←E1.range_val, ←E2.range_val, ←algebra.tensor_product.product_map_range],
   exact (algebra.tensor_product.product_map E1.val E2.val).to_linear_map.finite_dimensional_range,
 end
+
+namespace tensor_product.algebra
+
+variables {R A B M : Type*}
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
+variables [semiring A] [semiring B] [module A M] [module B M]
+variables [algebra R A] [algebra R B]
+variables [is_scalar_tower R A M] [is_scalar_tower R B M]
+
+/-- An auxiliary definition, used for constructing the `module (A ⊗[R] B) M` in
+`tensor_product.algebra.module` below. -/
+def module_aux : A ⊗[R] B →ₗ[R] M →ₗ[R] M :=
+tensor_product.lift
+{ to_fun := λ a, a • (algebra.lsmul R M : B →ₐ[R] module.End R M).to_linear_map,
+  map_add' := λ r t, by { ext, simp only [add_smul, linear_map.add_apply] },
+  map_smul' := λ n r, by { ext, simp only [ring_hom.id_apply, linear_map.smul_apply, smul_assoc] } }
+
+lemma module_aux_apply (a : A) (b : B) (m : M) :
+  module_aux (a ⊗ₜ[R] b) m = a • b • m :=
+by simp [module_aux]
+
+variables [smul_comm_class A B M]
+
+/-- If `M` is a representation of two different `R`-algebras `A` and `B` whose actions commute,
+then it is a representation the `R`-algebra `A ⊗[R] B`.
+
+An important example arises from a semiring `S`; allowing `S` to act on itself via left and right
+multiplication, the roles of `R`, `A`, `B`, `M` are played by `ℕ`, `S`, `Sᵐᵒᵖ`, `S`. This example
+is important because a submodule of `S` as a `module` over `S ⊗[ℕ] Sᵐᵒᵖ` is a two-sided ideal.
+
+NB: This is not an instance because in the case `B = A` and `M = A ⊗[R] A` we would have a diamond
+of `smul` actions. Furthermore, this would not be a mere definitional diamond but a true
+mathematical diamond in which `A ⊗[R] A` had two distinct scalar actions on itself: one from its
+multiplication, and one from this would-be instance. Arguably we could live with this but in any
+case the real fix is to address the ambiguity in notation, probably along the lines outlined here:
+https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.234773.20base.20change/near/240929258
+-/
+protected def module : module (A ⊗[R] B) M :=
+{ smul := λ x m, module_aux x m,
+  zero_smul := λ m, by simp only [map_zero, linear_map.zero_apply],
+  smul_zero := λ x, by simp only [map_zero],
+  smul_add := λ x m₁ m₂, by simp only [map_add],
+  add_smul := λ x y m, by simp only [map_add, linear_map.add_apply],
+  one_smul := λ m, by simp only [module_aux_apply, algebra.tensor_product.one_def, one_smul],
+  mul_smul := λ x y m,
+  begin
+    apply tensor_product.induction_on x;
+    apply tensor_product.induction_on y,
+    { simp only [mul_zero, map_zero, linear_map.zero_apply], },
+    { intros a b, simp only [zero_mul, map_zero, linear_map.zero_apply], },
+    { intros z w hz hw, simp only [zero_mul, map_zero, linear_map.zero_apply], },
+    { intros a b, simp only [mul_zero, map_zero, linear_map.zero_apply], },
+    { intros a₁ b₁ a₂ b₂,
+      simp only [module_aux_apply, mul_smul, smul_comm a₁ b₂, algebra.tensor_product.tmul_mul_tmul,
+        linear_map.mul_apply], },
+    { intros z w hz hw a b,
+      simp only at hz hw,
+      simp only [mul_add, hz, hw, map_add, linear_map.add_apply], },
+    { intros z w hz hw, simp only [mul_zero, map_zero, linear_map.zero_apply], },
+    { intros a b z w hz hw,
+      simp only at hz hw,
+      simp only [map_add, add_mul, linear_map.add_apply, hz, hw], },
+    { intros u v hu hv z w hz hw,
+      simp only at hz hw,
+      simp only [add_mul, hz, hw, map_add, linear_map.add_apply], },
+  end }
+
+local attribute [instance] tensor_product.algebra.module
+
+lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := module_aux_apply a b m
+
+end tensor_product.algebra

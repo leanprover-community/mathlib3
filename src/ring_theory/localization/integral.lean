@@ -321,7 +321,7 @@ lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
   [finite_dimensional K L] : is_fraction_ring C L :=
 is_fraction_ring_of_algebraic A C
   (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite K L))
-  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
+  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((map_eq_zero $ algebra_map K L).mp $
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end is_integral_closure
@@ -426,7 +426,7 @@ begin
   suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
   { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
         ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,
-        div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
+        div_eq_mul_inv, ← mul_assoc, mul_comm, ← map_inv₀, ← algebra.smul_def,
         ← _root_.map_mul],
     exact (submodule.span K _).smul_mem _ hy },
   refine submodule.span_subset_span R K _ _,

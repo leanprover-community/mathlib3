@@ -833,7 +833,7 @@ lemma range_prod_le [module R₁ M₂] [module R₁ M₃] (f : M₁ →L[R₁] M
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M₁ →SL[σ₁₂] M₂) (p : submodule R₂ M₂) (h : ∀ x, f x ∈ p) :
   M₁ →SL[σ₁₂] p :=
-{ cont := continuous_subtype_mk h f.continuous,
+{ cont := f.continuous.subtype_mk _,
   to_linear_map := (f : M₁ →ₛₗ[σ₁₂] M₂).cod_restrict p h}
 
 @[norm_cast] lemma coe_cod_restrict (f : M₁ →SL[σ₁₂] M₂) (p : submodule R₂ M₂) (h : ∀ x, f x ∈ p) :
@@ -1022,15 +1022,15 @@ of `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
   (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
-⟨ linear_map.infi_ker_proj_equiv R φ hd hu,
-  continuous_pi (λ i, begin
+{ to_linear_equiv := linear_map.infi_ker_proj_equiv R φ hd hu,
+  continuous_to_fun := continuous_pi (λ i, begin
     have := @continuous_subtype_coe _ _ (λ x, x ∈ (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i))),
     have := continuous.comp (by exact continuous_apply i) this,
     exact this
   end),
-  continuous_subtype_mk _ (continuous_pi (λ i, begin
+  continuous_inv_fun := continuous.subtype_mk (continuous_pi (λ i, begin
     dsimp, split_ifs; [apply continuous_apply, exact continuous_zero]
-  end)) ⟩
+  end)) _ }
 
 end pi
 

@@ -61,6 +61,10 @@ def len (n : simplex_category) : ℕ := n
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
 @[simp] lemma mk_len (n : simplex_category) : [n.len] = n := rfl
 
+/-- A recursor for `simplex_category`. Use it as `induction Δ using simplex_category.rec`. -/
+protected def rec {F : Π (Δ : simplex_category), Sort*} (h : ∀ (n : ℕ), F [n]) :
+  Π X, F X := λ n, h n.len
+
 /-- Morphisms in the simplex_category. -/
 @[irreducible, nolint has_nonempty_instance]
 protected def hom (a b : simplex_category) := fin (a.len + 1) →o fin (b.len + 1)

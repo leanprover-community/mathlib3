@@ -477,6 +477,23 @@ linear_map.ker_smul _ _ ha
 
 end module
 
+namespace linear_map
+
+variables {R : Type*} {A : Type*} {B : Type*} [comm_semiring R] [semiring A] [semiring B]
+  [algebra R A] [algebra R B]
+
+/-- An alternate statement of `linear_map.map_smul` for when `algebra_map` is more convenient to
+work with than `•`. -/
+lemma map_algebra_map_mul (f : A →ₗ[R] B) (a : A) (r : R) :
+  f (algebra_map R A r * a) = algebra_map R B r * f a :=
+by rw [←algebra.smul_def, ←algebra.smul_def, map_smul]
+
+lemma map_mul_algebra_map (f : A →ₗ[R] B) (a : A) (r : R) :
+  f (a * algebra_map R A r) = f a * algebra_map R B r :=
+by rw [←algebra.commutes, ←algebra.commutes, map_algebra_map_mul]
+
+end linear_map
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 @[nolint has_nonempty_instance]
@@ -713,6 +730,8 @@ lemma map_list_prod (s : list A) :
 
 section prod
 
+variables (R A B)
+
 /-- First projection as `alg_hom`. -/
 def fst : A × B →ₐ[R] A :=
 { commutes' := λ r, rfl, .. ring_hom.fst A B}
@@ -720,6 +739,33 @@ def fst : A × B →ₐ[R] A :=
 /-- Second projection as `alg_hom`. -/
 def snd : A × B →ₐ[R] B :=
 { commutes' := λ r, rfl, .. ring_hom.snd A B}
+
+variables {R A B}
+
+/-- The `pi.prod` of two morphisms is a morphism. -/
+@[simps] def prod (f : A →ₐ[R] B) (g : A →ₐ[R] C) : (A →ₐ[R] B × C) :=
+{ commutes' := λ r, by simp only [to_ring_hom_eq_coe, ring_hom.to_fun_eq_coe, ring_hom.prod_apply,
+    coe_to_ring_hom, commutes, algebra.algebra_map_prod_apply],
+  .. (f.to_ring_hom.prod g.to_ring_hom) }
+
+lemma coe_prod (f : A →ₐ[R] B) (g : A →ₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
+
+@[simp] theorem fst_prod (f : A →ₐ[R] B) (g : A →ₐ[R] C) :
+  (fst R B C).comp (prod f g) = f := by ext; refl
+
+@[simp] theorem snd_prod (f : A →ₐ[R] B) (g : A →ₐ[R] C) :
+  (snd R B C).comp (prod f g) = g := by ext; refl
+
+@[simp] theorem prod_fst_snd : prod (fst R A B) (snd R A B) = 1 :=
+fun_like.coe_injective pi.prod_fst_snd
+
+/-- Taking the product of two maps with the same domain is equivalent to taking the product of
+their codomains. -/
+@[simps] def prod_equiv : ((A →ₐ[R] B) × (A →ₐ[R] C)) ≃ (A →ₐ[R] B × C) :=
+{ to_fun := λ f, f.1.prod f.2,
+  inv_fun := λ f, ((fst _ _ _).comp f, (snd _ _ _).comp f),
+  left_inv := λ f, by ext; refl,
+  right_inv := λ f, by ext; refl }
 
 end prod
 
@@ -753,29 +799,13 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 protected lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
 protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
-@[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
-φ.to_ring_hom.map_int_cast n
-
 end ring
-
-section division_ring
-
-variables [comm_semiring R] [division_ring A] [division_ring B]
-variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
-
-@[simp] lemma map_inv (x) : φ (x⁻¹) = (φ x)⁻¹ :=
-φ.to_ring_hom.map_inv x
-
-@[simp] lemma map_div (x y) : φ (x / y) = φ x / φ y :=
-φ.to_ring_hom.map_div x y
-
-end division_ring
 
 end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
   @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
-by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
+by rw [algebra.smul_def, mul_one, eq_rat_cast]
 
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
@@ -1220,19 +1250,6 @@ protected lemma map_sub (x y) : e (x - y) = e x - e y := map_sub e x y
 
 end ring
 
-section division_ring
-
-variables [comm_ring R] [division_ring A₁] [division_ring A₂]
-variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
-
-@[simp] lemma map_inv (x) : e (x⁻¹) = (e x)⁻¹ :=
-e.to_alg_hom.map_inv x
-
-@[simp] lemma map_div (x y) : e (x / y) = e x / e y :=
-e.to_alg_hom.map_div x y
-
-end division_ring
-
 end alg_equiv
 
 namespace mul_semiring_action
@@ -1363,8 +1380,7 @@ example : algebra_rat = algebra.id ℚ := rfl
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma algebra_rat_subsingleton {α} [semiring α] :
+instance algebra_rat_subsingleton {α} [semiring α] :
   subsingleton (algebra ℚ α) :=
 ⟨λ x y, algebra.algebra_ext x y $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
 
@@ -1399,7 +1415,7 @@ variables (R : Type*) [ring R]
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
 
-/-- A special case of `ring_hom.eq_int_cast'` that happens to be true definitionally -/
+/-- A special case of `eq_int_cast'` that happens to be true definitionally -/
 @[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
 
 variables {R}

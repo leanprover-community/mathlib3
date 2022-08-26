@@ -15,11 +15,10 @@ import analysis.inner_product_space.adjoint
 open continuous_linear_map filter
 
 namespace convex_cone
-section topological_ring
+section ordered_semiring
 section sequential_space
 
-variables {𝕜 : Type*} [topological_space 𝕜] [ordered_semiring 𝕜] [non_unital_non_assoc_ring 𝕜]
-  [topological_ring 𝕜]
+variables {𝕜 : Type*} [topological_space 𝕜] [ordered_semiring 𝕜]
 variables {E : Type*} [add_comm_monoid E] [topological_space E] [has_continuous_add E]
   [sequential_space E]
 variables [has_smul 𝕜 E] [has_continuous_const_smul 𝕜 E]
@@ -48,7 +47,7 @@ lemma mem_closure_iff_seq_limit {K : convex_cone 𝕜 E} {a : E} :
 by simp_rw [← set_like.mem_coe, coe_closure, mem_closure_iff_seq_limit]
 
 end sequential_space
-end topological_ring
+end ordered_semiring
 end convex_cone
 
 section definitions

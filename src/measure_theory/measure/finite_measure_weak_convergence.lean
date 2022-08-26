@@ -502,13 +502,13 @@ This formulation assumes:
 -/
 lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is_countably_generated]
   (μ : measure α) [is_finite_measure μ] {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
-  (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α → ℝ≥0}
-  (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α), tendsto (λ i, fs i a) L (𝓝 (f a))) :
+  (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂μ, fs i a ≤ c) {f : α → ℝ≥0}
+  (fs_lim : ∀ᵐ (a : α) ∂μ, tendsto (λ i, fs i a) L (𝓝 (f a))) :
   tendsto (λ i, (∫⁻ a, fs i a ∂μ)) L (𝓝 (∫⁻ a, (f a) ∂μ)) :=
 begin
   simpa only using tendsto_lintegral_filter_of_dominated_convergence (λ _, c)
     (eventually_of_forall ((λ i, (ennreal.continuous_coe.comp (fs i).continuous).measurable)))
-    _ ((@lintegral_const_lt_top _ _ (μ : measure α) _ _ (@ennreal.coe_ne_top c)).ne) _,
+    _ ((@lintegral_const_lt_top _ _ μ _ _ (@ennreal.coe_ne_top c)).ne) _,
   { simpa only [ennreal.coe_le_coe] using fs_le_const, },
   { simpa only [ennreal.tendsto_coe] using fs_lim, },
 end
@@ -1165,9 +1165,8 @@ variables {α : Type*} [measurable_space α]
 lemma tendsto_measure_of_le_liminf_measure_of_limsup_measure_le
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   {E₀ E E₁ : set α} (E₀_subset : E₀ ⊆ E) (subset_E₁ : E ⊆ E₁) (nulldiff : μ (E₁ \ E₀) = 0)
-  (h_E₀ : (μ : measure α) E₀ ≤ L.liminf (λ i, (μs i : measure α) E₀))
-  (h_E₁ : L.limsup (λ i, (μs i : measure α) E₁) ≤ (μ : measure α) E₁) :
-  L.tendsto (λ i, (μs i : measure α) E) (𝓝 (μ E)) :=
+  (h_E₀ : μ E₀ ≤ L.liminf (λ i, μs i E₀)) (h_E₁ : L.limsup (λ i, μs i E₁) ≤ μ E₁) :
+  L.tendsto (λ i, μs i E) (𝓝 (μ E)) :=
 begin
   apply tendsto_of_le_liminf_of_limsup_le,
   { have E₀_ae_eq_E : E₀ =ᵐ[μ] E,
@@ -1201,11 +1200,11 @@ sequence converge to its measure under the candidate limit measure.
 lemma tendsto_measure_of_null_frontier
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
   [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
-  (h_opens : ∀ G, is_open G → (μ : measure α) G ≤ L.liminf (λ i, (μs i : measure α) G))
+  (h_opens : ∀ G, is_open G → μ G ≤ L.liminf (λ i, μs i G))
   {E : set α} (E_nullbdry : μ (frontier E) = 0) :
-  L.tendsto (λ i, (μs i : measure α) E) (𝓝 (μ E)) :=
+  L.tendsto (λ i, μs i E) (𝓝 (μ E)) :=
 begin
-  have h_closeds : ∀ F, is_closed F → L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F,
+  have h_closeds : ∀ F, is_closed F → L.limsup (λ i, μs i F) ≤ μ F,
     from limsup_measure_closed_le_iff_liminf_measure_open_ge.mpr h_opens,
   exact tendsto_measure_of_le_liminf_measure_of_limsup_measure_le
         interior_subset subset_closure E_nullbdry

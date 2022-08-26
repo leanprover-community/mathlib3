@@ -110,28 +110,22 @@ begin
   generalize : n % 6 = r,
   intro r_lt,
   cases d,
-   {
-    interval_cases r,
+  { interval_cases r,
     all_goals { norm_num },
     all_goals { unfold prime_counting' count, },
     all_goals { simp [list.range_succ], },
     all_goals { simp [list.countp], },
-    all_goals { norm_num, },
-  },
+    all_goals { norm_num, }, },
   cases d,
-   {
-    interval_cases r,
+  { interval_cases r,
     all_goals { norm_num },
     all_goals { unfold prime_counting' count, },
     all_goals { simp [list.range_succ], },
     all_goals { simp [list.countp], },
-    all_goals { norm_num, },
-  },
-  {
-    simp_rw [nat.mul_succ, nat.add_assoc, add_comm (6 * d) _, mul_comm],
+    all_goals { norm_num, }, },
+  { simp_rw [nat.mul_succ, nat.add_assoc, add_comm (6 * d) _, mul_comm],
     apply le_trans (prime_counting'_add_mul_le _ _ _),
-    {
-      rw [foo, totient_six],
+    { rw [foo, totient_six],
       norm_num,
       rw mul_comm 2 d,
       simp_rw add_comm _ (d * 2),
@@ -142,13 +136,9 @@ begin
       all_goals { unfold prime_counting' count, },
       all_goals { simp [list.range_succ], },
       all_goals { simp [list.countp], },
-      all_goals { norm_num, },
-    },
-    {
-      norm_num,
-    },
-    linarith,
-  },
+      all_goals { norm_num, }, },
+    { norm_num, },
+    linarith, },
 end
 
 end nat

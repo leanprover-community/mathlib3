@@ -96,8 +96,6 @@ calc π' (k + m * a)
           exact h0,
         end
 
-set_option profiler true
-
 /-- An explicit instantiation of nat.prime_counting'_add_mul_le  -/
 lemma prime_counting'_le_div_3_add_2 (n : ℕ) :
   π' (n) ≤ n / 3 + 2 :=

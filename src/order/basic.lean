@@ -534,6 +534,18 @@ lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @mi
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
 
+lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+begin
+  rw [min_comm, min_def, ← ite_not],
+  simp only [not_le],
+end
+
+lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+begin
+  rw [max_comm, max_def, ← ite_not],
+  simp only [not_le],
+end
+
 end min_max_rec
 
 /-! ### `has_sup` and `has_inf` -/

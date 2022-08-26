@@ -644,6 +644,9 @@ end
 lemma add_eq_right_iff {a b : cardinal} : a + b = b ↔ (max ℵ₀ a ≤ b ∨ a = 0) :=
 by { rw [add_comm, add_eq_left_iff] }
 
+lemma add_nat_eq {a : cardinal} (n : ℕ) (ha : ℵ₀ ≤ a) : a + n = a :=
+add_eq_left ha ((nat_lt_aleph_0 _).le.trans ha)
+
 lemma add_one_eq {a : cardinal} (ha : ℵ₀ ≤ a) : a + 1 = a :=
 add_eq_left ha (one_le_aleph_0.trans ha)
 
@@ -699,6 +702,14 @@ begin
   rw [not_le, lt_iff_le_and_ne, ne] at h ⊢,
   exact ⟨add_le_add_right h.1 γ, mt (add_right_inj_of_lt_aleph_0 γ₀).1 h.2⟩,
 end
+
+@[simp] lemma add_nat_le_add_nat_iff_of_lt_aleph_0 {α β : cardinal} (n : ℕ) :
+  α + n ≤ β + n ↔ α ≤ β :=
+add_le_add_iff_of_lt_aleph_0 (nat_lt_aleph_0 n)
+
+@[simp] lemma add_one_le_add_one_iff_of_lt_aleph_0 {α β : cardinal} :
+  α + 1 ≤ β + 1 ↔ α ≤ β :=
+add_le_add_iff_of_lt_aleph_0 one_lt_aleph_0
 
 /-! ### Properties about power -/
 

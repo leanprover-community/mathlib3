@@ -60,11 +60,13 @@ structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E]
 
 end definitions
 
+namespace proper_cone
+
 section complete_space
+
 variables {E : Type*} [inner_product_space ℝ E] [complete_space E]
 variables {F : Type*} [inner_product_space ℝ F] [complete_space F]
 
-namespace proper_cone
 
 instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
 instance : has_mem E (proper_cone E) := ⟨λ e K, e ∈ (K : convex_cone ℝ E) ⟩
@@ -117,10 +119,8 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
 by simp_rw [mem_coe, coe_map, convex_cone.mem_closure_iff_seq_limit, convex_cone.mem_map,
   continuous_linear_map.coe_coe]
 
-end proper_cone
-
-theorem farkas_lemma_proper_cone {K : proper_cone E} {f : E →L[ℝ] F} {b : F} :
-b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
+theorem farkas_lemma (K : proper_cone E) {f : E →L[ℝ] F} {b : F} :
+  b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin
   -- suppose `b ∈ K.map f`
   simp_rw [proper_cone.mem_map, proper_cone.mem_star, adjoint_inner_right, proper_cone.mem_coe,
@@ -167,3 +167,5 @@ begin
 end
 
 end complete_space
+
+end proper_cone

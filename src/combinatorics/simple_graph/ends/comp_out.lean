@@ -76,8 +76,6 @@ def comp_out := (G.out K).connected_component
 @[reducible, simp] def comp_out.supp {G : simple_graph V} {K : set V} (C : G.comp_out K) :=
   {v : V | connected_component_mk (G.out K) v = C}
 
-
-
 instance {G : simple_graph V} {K : set V} : set_like (G.comp_out K) V :=
 ⟨ comp_out.supp
 , by
@@ -101,6 +99,13 @@ namespace comp_out
 variables {G}
 variables {K}  {L : set V} {KL : K ⊆ L}
 
+@[reducible]
+def inf (C : G.comp_out K) := (C : set V).infinite
+
+@[reducible]
+def dis (C : G.comp_out K) := disjoint K (C : set V)
+
+
 @[simp] lemma nempty (C : G.comp_out K) : (C : set V).nonempty := by
 { refine C.ind _,
   rintro v,
@@ -109,7 +114,6 @@ variables {K}  {L : set V} {KL : K ⊆ L}
 
 def of_vertex (G : simple_graph V) (K : set V)  (v : V) : G.comp_out K := connected_component_mk (out G K) v
 def of_vertex_mem (v : V) : v ∈ (of_vertex G K v : set V) := by {dsimp only [of_vertex], simp,}
-
 
 @[protected]
 lemma disjoint (C D : G.comp_out K) (ne : C ≠ D) : disjoint (C : set V) (D : set V) :=
@@ -133,7 +137,7 @@ begin
 end
 
 @[simp]
-lemma intersects_iff_singleton_in (C : G.comp_out K) : (¬ disjoint K C) ↔ (∃ (k ∈ K), {k} = (C : set V)) :=
+lemma not_dis_iff_singleton_in (C : G.comp_out K) : ¬ C.dis ↔ (∃ (k ∈ K), {k} = (C : set V)) :=
 begin
   split,
   { revert C,
@@ -152,7 +156,7 @@ begin
       { exfalso, dsimp only [out] at kx_h, exact kx_h.1 kK},
     },
   },
-  {rintro ⟨k,kK,e⟩, simp only [←e,kK, set.disjoint_singleton_right, not_true, not_false_iff], }
+  {rintro ⟨k,kK,e⟩, simp only [dis,←e,kK, set.disjoint_singleton_right, not_true, not_false_iff], }
 end
 
 lemma nonadj (C : G.comp_out K) : ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ c ∉ K ∧ d ∉ K ∧ G.adj c d) :=
@@ -237,12 +241,12 @@ def to_thickening_aux (G : simple_graph V) (K : set V) (Gpc : G.preconnected) (G
   (Kf : K.finite) (Kn : K.nonempty) : Π (C : G.comp_out K), { x : V | x ∈ (thicken G K) ∧ x ∈ C} :=
 begin
   rintro C,
-  by_cases h : disjoint K C,
+  by_cases h : C.dis,
   { let ck := (@adj V G K Gpc Kn C h).some,
     obtain ⟨cC,kK,ack⟩ := (@adj V G K Gpc Kn C h).some_spec,
     use ck.1, dsimp only [thicken],
     split, right,use ck.2, use kK, exact ack.symm, exact cC, },
-  { simp only [intersects_iff_singleton_in, exists_prop] at h,
+  { simp only [not_dis_iff_singleton_in, exists_prop] at h,
     use h.some, split, left, exact h.some_spec.left,
     rw ←set_like.mem_coe,
     let := h.some_spec.right,
@@ -322,16 +326,36 @@ by {refine C.ind _, rintro v, dsimp only [back], simp only [connected_component.
 
 end back
 
-@[reducible]
-def inf (C : G.comp_out K) := (C : set V).infinite
+section dis
+
+lemma back_of_dis {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : C.dis → (C.back h).dis :=
+begin
+  rintro Cdis,
+  dsimp only [dis] at Cdis ⊢,
+  by_contra h',
+  simp at h',
+  obtain ⟨k,kK,backk⟩ := h',
+  let c := C.nempty.some,
+  let cC := C.nempty.some_spec,
+  have cL : c ∈ L, by {
+    refine mem_of_mem_of_subset _ (by { simp, exact mem_of_mem_of_subset kK h } : {k} ⊆ L),
+    refine mem_of_mem_of_subset cC _,
+    rw backk,
+    apply C.back_sub h,},
+  rw set.disjoint_iff at Cdis,
+  exact Cdis ⟨cL,cC⟩,
+end
+
+end dis
+
 
 section infinite
 
-lemma disjoint_of_inf (C : G.comp_out K) : C.inf → disjoint K C :=
+lemma dis_of_inf (C : G.comp_out K) : C.inf → C.dis :=
 begin
   rintro Cinf,
   by_contra,
-  rw intersects_iff_singleton_in at h,
+  rw not_dis_iff_singleton_in at h,
   obtain ⟨k,_,e⟩ := h, unfold inf at Cinf, rw ←e at Cinf,
   exact Cinf (set.finite_singleton k),
 end
@@ -344,7 +368,8 @@ begin
   exact Cinf,
 end
 
-lemma in_all_ranges_of_inf (Kfin : K.finite) (C : G.comp_out K) (Cinf : C.inf) {L : set V} (Lfin : L.finite) (h : K ⊆ L) :
+lemma in_all_ranges_of_inf (Kfin : K.finite) (C : G.comp_out K) (Cinf : C.inf)
+  {L : set V} (Lfin : L.finite) (h : K ⊆ L) :
   C ∈ set.range (back h : (G.comp_out L) → (G.comp_out K)) :=
 begin
   suffices : ∃ v : V, v ∈ C ∧ v ∉ L,
@@ -360,18 +385,22 @@ begin
   exact this.nonempty.some_spec,
 end
 
-lemma inf_of_in_all_ranges (Kfin : K.finite) (C : G.comp_out K) (Cdis : disjoint K C)
-  (mem_ranges : ∀ {L : set V} (h : K ⊆ L), C ∈ set.range (back h : (G.comp_out L) → (G.comp_out K))) : C.inf :=
+lemma inf_of_in_all_ranges (Kfin : K.finite) (C : G.comp_out K)
+  (mem_ranges : ∀ {L : set V} (Lfin : L.finite) (h : K ⊆ L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C) : C.inf :=
 begin
   rintro Cfin,
   let L := K ∪ C,
   have Lfin : L.finite := set.finite.union Kfin Cfin,
   have : K ⊆ L := set.subset_union_left K C,
-  obtain ⟨D,e⟩ := mem_ranges ‹K⊆L›,
+  obtain ⟨D,dis,e⟩ := mem_ranges Lfin ‹K⊆L›,
   simp only [eq_back_iff_sub] at e,
   suffices : (D : set V) = ∅, { have : (D : set V).nonempty, by simp only [nempty], finish,},
-  sorry,
-  -- trouble here because of singletons…
+  have : disjoint (C : set V) D := disjoint.mono_left (set.subset_union_right K C) dis,
+  rw set.disjoint_iff_inter_eq_empty at this,
+  rw ←this,
+  symmetry,
+  rw set.inter_eq_right_iff_subset,
+  exact e,
 end
 
 end infinite

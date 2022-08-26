@@ -51,6 +51,8 @@ begin
   { simp, use v, }
 end
 
+
+-- Better since it uses fewer lemmas not in mathlib (I guess none at all)
 lemma connected_component.connected' (C : G.connected_component) :
 (G.induce {v : V | connected_component_mk G v = C}).connected :=
 begin
@@ -60,7 +62,7 @@ begin
   let C := {v_1 : V | G.connected_component_mk v_1 = G.connected_component_mk v},
   rw connected_iff,
   fsplit,
-  { suffices : ∀ u : C, (G.induce C).reachable u ⟨v,by {simp,}⟩,
+  { suffices : ∀ u : C, (G.induce C).reachable u ⟨v,by {simp only [mem_set_of_eq],}⟩,
     { exact λ u w, (this u).trans (this w).symm, },
     rintro ⟨u,uv⟩,
     simp only [mem_set_of_eq, connected_component.eq] at uv,
@@ -152,6 +154,13 @@ begin
   exact ne (uv.symm.trans uw),
 end
 
+lemma eq_of_not_disjoint (C D : G.comp_out K) (nd : ¬ disjoint (C : set V) (D : set V)) : C = D :=
+begin
+  rw set.not_disjoint_iff at nd,
+  simp only [set_like.mem_coe, mem_supp_iff] at nd,
+  obtain ⟨x,rfl,rfl⟩ := nd, refl,
+end
+
 @[simp]
 lemma intersects_iff_singleton_in (C : G.comp_out K) : (¬ disjoint K C) ↔ (∃ (k ∈ K), {k} = (C : set V)) :=
 begin
@@ -216,6 +225,43 @@ begin
   exact xy,
 end
 
+lemma connected (C : G.comp_out K) : (G.induce (C : set V)).connected :=
+begin
+  apply connected.mono,
+  show ((G.out K).induce (C : set V)) ≤ (G.induce (C : set V)), by
+  { rintro x y a, dsimp [out] at a, dsimp, tauto, },
+  show ((G.out K).induce (C : set V)).connected, by apply connected_component.connected',
+end
+
+def of_connected_disjoint (S : set V)
+  (conn : (G.induce S).connected) (dis : disjoint S K) : G.comp_out K :=
+begin
+  rw connected_iff at conn,
+  exact of_vertex G K conn.right.some,
+end
+
+lemma of_connected_disjoint_sub (S : set V)
+  (conn : (G.induce S).connected) (dis : disjoint S K) : S ⊆ of_connected_disjoint S conn dis :=
+begin
+  have : ∀ s t : S, (G.induce S).adj s t → (G.out K).adj s t, by
+  { rintro ⟨s,sS⟩ ⟨t,tS⟩ a,
+    simp only [subtype.coe_mk, comap_adj, embedding.coe_subtype,out] at a ⊢,
+    exact ⟨(λ sK, (set.disjoint_iff).mp dis ⟨sS,sK⟩),(λ tK, (set.disjoint_iff).mp dis ⟨tS,tK⟩),a⟩,},
+  have : ∀ s t : S, (G.induce S).reachable s t → (G.out K).reachable s t, by {
+    rintro ⟨s,hs⟩ ⟨t,ht⟩ ⟨r⟩,
+    constructor,
+    induction r,
+    { exact nil, },
+    { apply walk.cons (this r_u r_v r_h) r_ih,},},
+  rw connected_iff at conn,
+  rintro s sS,
+  dsimp only [of_connected_disjoint,of_vertex],
+  simp only [set_like.mem_coe, mem_supp_iff, connected_component.eq],
+  exact this ⟨s,sS⟩ conn.right.some (conn.left ⟨s,sS⟩ conn.right.some),
+end
+
+section back
+
 def back {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : G.comp_out K :=
 begin
   fapply @connected_component.lift V (G.out L) _ (λ v, connected_component_mk _ v), rotate,
@@ -226,7 +272,7 @@ begin
   exact (⟨p⟩: (G.out L).reachable v w),
 end
 
-lemma back_sub  {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : (C : set V) ⊆ (C.back h : set V) :=
+lemma back_sub {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : (C : set V) ⊆ (C.back h : set V) :=
 begin
   refine connected_component.ind _ C,
   rintro v u uv,
@@ -234,19 +280,29 @@ begin
   apply out.reachable_mono G K L h u v uv,
 end
 
-
-
-lemma connected (C : G.comp_out K) : (G.induce (C : set V)).connected :=
+@[simp]
+lemma eq_back_iff_sub {K L : set V} (h : K ⊆ L) (C : G.comp_out L) (D : G.comp_out K) :
+  C.back h = D ↔ (C : set V) ⊆ D :=
 begin
-  sorry,
-  /-
-  We have `G.out K ≤ G`, so that `(G.out K).induce C ≤ G.induce C`.
-  By `connected.mono` (in `.connected.lean`), it suffices to show that `(G.out K).induce C` is connected.
-  -- Might as well use `subgraph.connected.edges_mono`
-  But this follows from `connected_component.connected` at the top of the current file.
-  There is some conversion to be done with subgraphs and graphs and such though.
-  -/
+  split,
+  { rintro rfl, apply back_sub, },
+  { rintro sub,
+    apply eq_of_not_disjoint,
+    rw set.not_disjoint_iff,
+    obtain ⟨v,vC⟩ := C.nempty,
+    use v,
+    exact ⟨C.back_sub h vC ,sub vC⟩,}
 end
+
+lemma back_refl_apply {K : set V} (C : G.comp_out K) : C.back (subset_refl K) = C :=
+by {refine C.ind _, rintro v, dsimp only [back], refl,}
+
+lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.comp_out M) :
+  (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) :=
+by {refine C.ind _, rintro v, dsimp only [back], simp only [connected_component.lift_mk],}
+
+end back
+
 
 end comp_out
 

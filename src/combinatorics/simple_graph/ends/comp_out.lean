@@ -22,38 +22,9 @@ namespace simple_graph
 variables  {V : Type u}
 variables (G : simple_graph V)  (K : set V)
 
--- for mathlib?
--- Can probably be golfed heavily!!
+
+-- Some variation of this should surely be included in mathlib ?!
 lemma connected_component.connected (C : G.connected_component) :
-(G.induce {v : V | connected_component_mk G v = C}).connected :=
-begin
-  revert C,
-  refine connected_component.ind _,
-  rintro v,
-  let C := {v_1 : V | G.connected_component_mk v_1 = G.connected_component_mk v},
-  rw connected_iff,
-  fsplit,
-  { rintro ⟨u,uv⟩ ⟨w,wv⟩,
-    simp at uv wv,
-    obtain ⟨p⟩ := uv.trans wv.symm,
-    constructor,
-    suffices : ∀  x ∈ p.support, x ∈ C,
-    { apply walk.to_induced,
-      exact this, },
-    by_contra, push_neg at h,
-    obtain ⟨x,xsup,xnC⟩ := h,
-    rw walk.mem_support_iff_exists_append at xsup,
-    obtain ⟨ux,xw,rfl⟩ := xsup,
-    apply xnC,
-    let ux' : G.reachable u x := ⟨ux⟩,
-    simp,
-    exact ux'.symm.trans uv, },
-  { simp, use v, }
-end
-
-
--- Better since it uses fewer lemmas not in mathlib (I guess none at all)
-lemma connected_component.connected' (C : G.connected_component) :
 (G.induce {v : V | connected_component_mk G v = C}).connected :=
 begin
   revert C,
@@ -229,7 +200,7 @@ begin
   apply connected.mono,
   show ((G.out K).induce (C : set V)) ≤ (G.induce (C : set V)), by
   { rintro x y a, dsimp [out] at a, dsimp, tauto, },
-  show ((G.out K).induce (C : set V)).connected, by apply connected_component.connected',
+  show ((G.out K).induce (C : set V)).connected, by apply connected_component.connected,
 end
 
 def of_connected_disjoint (S : set V)
@@ -276,7 +247,7 @@ begin
     rw ←set_like.mem_coe,
     let := h.some_spec.right,
     have : h.some ∈ {h.some}, by apply set.mem_singleton, convert this, symmetry, assumption, -- that's dirty
-  },
+    },
 end
 
 def to_thickening (G : simple_graph V) (K : set V)  (Gpc : G.preconnected) (Glc : G.locally_finite)
@@ -307,8 +278,6 @@ begin
 end
 
 end finiteness
-
-
 
 section back
 
@@ -352,6 +321,60 @@ lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.comp
 by {refine C.ind _, rintro v, dsimp only [back], simp only [connected_component.lift_mk],}
 
 end back
+
+@[reducible]
+def inf (C : G.comp_out K) := (C : set V).infinite
+
+section infinite
+
+lemma disjoint_of_inf (C : G.comp_out K) : C.inf → disjoint K C :=
+begin
+  rintro Cinf,
+  by_contra,
+  rw intersects_iff_singleton_in at h,
+  obtain ⟨k,_,e⟩ := h, unfold inf at Cinf, rw ←e at Cinf,
+  exact Cinf (set.finite_singleton k),
+end
+
+lemma back_of_inf {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : C.inf → (C.back h).inf :=
+begin
+  rintro Cinf,
+  apply set.infinite.mono,
+  exact C.back_sub h,
+  exact Cinf,
+end
+
+lemma in_all_ranges_of_inf (Kfin : K.finite) (C : G.comp_out K) (Cinf : C.inf) {L : set V} (Lfin : L.finite) (h : K ⊆ L) :
+  C ∈ set.range (back h : (G.comp_out L) → (G.comp_out K)) :=
+begin
+  suffices : ∃ v : V, v ∈ C ∧ v ∉ L,
+  { obtain ⟨c,cC,cnL⟩ := this,
+    use of_vertex G L c,
+    apply eq_of_not_disjoint,
+    rw set.not_disjoint_iff, use c, split, rotate, exact cC,
+    apply mem_of_mem_of_subset,
+    apply @of_vertex_mem V G L,
+    apply back_sub,},
+  have : ((C : set V) \ L).infinite, by {exact infinite.diff Cinf Lfin,},
+  use this.nonempty.some,
+  exact this.nonempty.some_spec,
+end
+
+lemma inf_of_in_all_ranges (Kfin : K.finite) (C : G.comp_out K) (Cdis : disjoint K C)
+  (mem_ranges : ∀ {L : set V} (h : K ⊆ L), C ∈ set.range (back h : (G.comp_out L) → (G.comp_out K))) : C.inf :=
+begin
+  rintro Cfin,
+  let L := K ∪ C,
+  have Lfin : L.finite := set.finite.union Kfin Cfin,
+  have : K ⊆ L := set.subset_union_left K C,
+  obtain ⟨D,e⟩ := mem_ranges ‹K⊆L›,
+  simp only [eq_back_iff_sub] at e,
+  suffices : (D : set V) = ∅, { have : (D : set V).nonempty, by simp only [nempty], finish,},
+  sorry,
+  -- trouble here because of singletons…
+end
+
+end infinite
 
 
 end comp_out

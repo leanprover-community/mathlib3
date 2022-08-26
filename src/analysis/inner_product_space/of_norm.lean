@@ -369,9 +369,6 @@ begin
   ring,
 end
 
-lemma norm_I_of_nonzero {𝕜} [is_R_or_C 𝕜] (hI : (I : 𝕜) ≠ 0) : ∥(I : 𝕜)∥ = 1 :=
-by simpa only [is_R_or_C.norm_eq_abs] using abs_I_of_nonzero hI
-
 lemma inner_.conj_sym (x y : E') : conj (inner_ 𝕜 y x) = inner_ 𝕜 x y :=
 begin
   simp only [inner_],

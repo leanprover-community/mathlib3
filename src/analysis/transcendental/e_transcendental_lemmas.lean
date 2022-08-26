@@ -128,29 +128,20 @@ def f_bar (f : ℤ[X]) : ℤ[X] :=
 /-Theorem
 By our construction the $n$-th coefficient of $\bar{f}$ is the absolute value of $n$-th coefficient of $f$
 -/
-theorem bar_coeff (f : ℤ[X]) (n : ℕ) : (f_bar f).coeff n = abs (f.coeff n) :=
-begin
-    -- true by definition
-    dsimp [f_bar], refl,
-end
+theorem bar_coeff (f : ℤ[X]) (n : ℕ) : (f_bar f).coeff n = abs (f.coeff n) := rfl
 
 /-Theorem
 By our construction, $\bar{f}$ and $f$ has the same support
 -/
-theorem bar_supp (f : ℤ[X]) : (f_bar f).support = f.support :=
-begin
-    -- true by definition
-    dsimp [f_bar], refl,
-end
+theorem bar_supp (f : ℤ[X]) : (f_bar f).support = f.support := rfl
 
 /-Theorem
 Since $\bar{f}$ and $f$ has the same support, they have the same degree.
 -/
 theorem bar_same_deg (f : ℤ[X]) : (f_bar f).nat_degree = f.nat_degree :=
 begin
-    apply polynomial.nat_degree_eq_of_degree_eq,
-    -- degree is defined to be $\sup$ of support. Since support of $\bar{f}$ and $f$ are the same, their degree is the same.
-    rw polynomial.degree, rw polynomial.degree, rw bar_supp,
+  apply polynomial.nat_degree_eq_of_degree_eq,
+  rw [polynomial.degree, polynomial.degree, bar_supp],
 end
 
 /-Theorem
@@ -212,10 +203,12 @@ begin
     simp only [e_transcendental_lemmas.bar_coeff, finset.sum_congr, zsmul_eq_mul, int.cast_abs] }
 end
 
-theorem eval_f_bar_mul (f g : ℤ[X]) (k : ℕ) : polynomial.eval (k:ℤ) (f_bar (f * g)) ≤ (polynomial.eval (k:ℤ) (f_bar f)) * (polynomial.eval (k:ℤ) (f_bar g)) :=
+theorem eval_f_bar_mul (f g : ℤ[X]) (k : ℕ) :
+  polynomial.eval (k:ℤ) (f_bar (f * g)) ≤
+    (polynomial.eval (k:ℤ) (f_bar f)) * (polynomial.eval (k:ℤ) (f_bar g)) :=
 begin
-  by_cases (f=0 ∨ g=0),
-  { cases h, rw h, simp only [f_bar_0, zero_mul, polynomial.eval_zero], rw h, simp only [f_bar_0, mul_zero, polynomial.eval_zero] },
+  by_cases h : f = 0 ∨ g = 0,
+  { cases h; simp only [h, f_bar_0, zero_mul, mul_zero, polynomial.eval_zero], },
   replace h := not_or_distrib.1 h,
   rw [polynomial.as_sum_range (f_bar (f*g)), polynomial.eval_finset_sum, bar_same_deg,
     ←polynomial.eval_mul, polynomial.as_sum_range ((f_bar f)*(f_bar g))],
@@ -224,19 +217,21 @@ begin
   rw deg_eq,
   replace deg_eq : (f * g).nat_degree = f.nat_degree + g.nat_degree,
   { rw polynomial.nat_degree_mul h.1 h.2 },
-  rw [deg_eq, polynomial.eval_finset_sum], apply finset.sum_le_sum,
-  intros x hx, simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow, polynomial.eval_mul], rw coeff_f_bar_mul, rw polynomial.coeff_mul,
+  rw [deg_eq, polynomial.eval_finset_sum],
+  refine finset.sum_le_sum (λ x hx, _),
+  simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow, polynomial.eval_mul],
+  rw coeff_f_bar_mul, rw polynomial.coeff_mul,
   cases k,
   { cases x,
-    { simp only [mul_one, finset.nat.antidiagonal_zero, finset.sum_singleton, pow_zero],
-      rw bar_coeff, rw bar_coeff, rw abs_mul },
+    { simp only [mul_one, finset.nat.antidiagonal_zero, finset.sum_singleton, pow_zero, bar_coeff,
+        abs_mul] },
     { simp only [int.coe_nat_zero, polynomial.eval_monomial, linear_map.map_sum, mul_zero,
         zero_pow (nat.succ_pos x), polynomial.eval_finset_sum],
       exact finset.sum_nonneg (λ i hi, le_rfl), } },
 
   { simp only [polynomial.eval_monomial, bar_coeff, ←abs_mul],
-    refine mul_le_mul_of_nonneg_right (finset.abs_sum_le_sum_abs _ _) _,
-    { apply pow_nonneg, norm_cast, exact bot_le } }
+    exact mul_le_mul_of_nonneg_right (finset.abs_sum_le_sum_abs _ _)
+      (pow_nonneg (int.coe_nat_nonneg _) _) }
 end
 
 lemma f_bar_1 : f_bar 1 = 1 :=
@@ -244,38 +239,30 @@ begin
   ext, simp only [bar_coeff, polynomial.coeff_one, apply_ite abs, abs_zero, abs_one],
 end
 
-
-lemma eval_f_bar_nonneg (f : ℤ[X]) (i:ℕ) : 0 ≤ polynomial.eval (i:ℤ) (f_bar f) :=
+lemma eval_f_bar_nonneg (f : ℤ[X]) (i : ℕ) : 0 ≤ polynomial.eval (i : ℤ) (f_bar f) :=
 begin
   rw [f_bar_eq, polynomial.eval_finset_sum],
-  apply finset.sum_nonneg,
-  intros x hx,
+  refine finset.sum_nonneg (λ x hx, _),
   simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow, polynomial.eval_mul],
   exact mul_nonneg (abs_nonneg (polynomial.coeff f x)) (pow_nonneg (int.coe_nat_nonneg _) _),
 end
 
-theorem eval_f_bar_pow (f : ℤ[X]) (k n : ℕ) : polynomial.eval (k:ℤ) (f_bar (f^n)) ≤ (polynomial.eval (k:ℤ) (f_bar f))^n :=
-begin
-  induction n with n H,
-  {simp only [f_bar_1, polynomial.eval_one, pow_zero]},
-  rw pow_succ, have ineq := eval_f_bar_mul f (f^n) k,
-  have ineq2 : polynomial.eval ↑k (f_bar f) * polynomial.eval ↑k (f_bar (f ^ n)) ≤  polynomial.eval ↑k (f_bar f) * polynomial.eval ↑k (f_bar f) ^ n,
-  {apply mul_le_mul, exact le_refl (polynomial.eval ↑k (f_bar f)), exact H, exact eval_f_bar_nonneg (f ^ n) k, exact eval_f_bar_nonneg f k},
-  exact le_trans ineq ineq2,
-end
-
-theorem eval_f_bar_prod (f : ℕ -> (ℤ[X])) (k : ℕ) (s:finset ℕ): polynomial.eval (k:ℤ) (f_bar (∏ i in s, (f i))) ≤ (∏ i in s, polynomial.eval (k:ℤ) (f_bar (f i))) :=
+theorem eval_f_bar_prod (f : ℕ → (ℤ[X])) (k : ℕ) (s : finset ℕ) :
+  polynomial.eval (k : ℤ) (f_bar (∏ i in s, (f i))) ≤
+    (∏ i in s, polynomial.eval (k : ℤ) (f_bar (f i))) :=
 begin
   apply finset.induction_on s,
-  {simp only [f_bar_1, polynomial.eval_one, finset.prod_empty]},
-  intros a s ha H, rw finset.prod_insert, rw finset.prod_insert,
-  have ineq := eval_f_bar_mul (f a) (∏ (x : ℕ) in s, f x) k,
-  have ineq2 : polynomial.eval ↑k (f_bar (f a)) * polynomial.eval ↑k (f_bar (∏ (x : ℕ) in s, f x)) ≤
-    polynomial.eval ↑k (f_bar (f a)) * ∏ (i : ℕ) in s, polynomial.eval ↑k (f_bar (f i)),
-  { apply mul_le_mul, exact le_refl _, exact H, exact eval_f_bar_nonneg (∏ (x : ℕ) in s, f x) k, exact eval_f_bar_nonneg (f a) k },
-  exact le_trans ineq ineq2, exact ha, exact ha,
+  { simp only [f_bar_1, polynomial.eval_one, finset.prod_empty] },
+  intros a s ha H,
+  rw [finset.prod_insert ha, finset.prod_insert ha],
+  exact (eval_f_bar_mul (f a) (∏ (x : ℕ) in s, f x) k).trans
+    (mul_le_mul_of_nonneg_left H (eval_f_bar_nonneg _ _)),
 end
 
+theorem eval_f_bar_pow (f : ℤ[X]) (k n : ℕ) : polynomial.eval (k:ℤ) (f_bar (f^n)) ≤ (polynomial.eval (k:ℤ) (f_bar f))^n :=
+begin
+  convert eval_f_bar_prod (λ i, f) _ (finset.range n); rw [finset.pow_eq_prod_const],
+end
 
 /-Theorem
 $$|I(f,t)|\le te^t\bar{f}(t)$$
@@ -283,8 +270,7 @@ $$|I(f,t)|\le te^t\bar{f}(t)$$
 theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) :
   abs (II f t) ≤ t * t.exp * (polynomial.aeval t (f_bar f)) :=
 begin
-  rw II,
-  rw ←real.norm_eq_abs,
+  rw [II, ←real.norm_eq_abs],
   refine (interval_integral.norm_integral_le_of_norm_le_const _).trans_eq _,
   { exact real.exp t * polynomial.aeval t (f_bar f) },
   { intros x hx,

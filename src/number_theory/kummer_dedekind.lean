@@ -407,16 +407,55 @@ begin
   rw normalized_factors_equiv_multiplicity_eq_multiplicity,
 end
 
+@[simp] lemma multiset.attach_map_coe {α : Type*} (s : multiset α) :
+  multiset.map (coe : _ → α) s.attach = s :=
+s.attach_map_val
+
+@[simp] lemma multiset.attach_count_eq_count_coe {α : Type*} (s : multiset α) (x) :
+  s.attach.count x = s.count (x : α) :=
+calc s.attach.count x
+    = (s.attach.map (coe : _ → α)).count (x : α) :
+  (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
+... = s.count (x : α) : congr_arg _ s.attach_map_coe
+
 theorem kummer_dedekind.find_me_a_name  [is_domain R] [is_dedekind_domain R] [is_domain S]
   [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I)
-  (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) : 
-  normalized_factors (I.map (algebra_map R S)) = multiset.map (λ J, (factors_equiv' pb hI hI' hpb J) : ideal S)
-    (normalized_factors (map I^.quotient.mk (minpoly R pb.gen))) := 
-begin 
-  ext J, 
-  by_cases h : J ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)),
-end
+  (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) :
+  normalized_factors (I.map (algebra_map R S)) =
+    multiset.map (λ f, ((factors_equiv' pb hI hI' hpb).symm f : ideal S))
+      (normalized_factors (polynomial.map I^.quotient.mk (minpoly R pb.gen))).attach :=
+begin
+  ext J,
+  -- WLOG, assume J is a normalized factor
+  by_cases hJ : J ∈ normalized_factors (I.map (algebra_map R S)), swap,
+  { rw [multiset.count_eq_zero.mpr hJ, eq_comm, multiset.count_eq_zero, multiset.mem_map],
+    simp only [multiset.mem_attach, true_and, not_exists],
+    rintros J' rfl,
+    exact hJ ((factors_equiv' pb hI hI' hpb).symm J').prop },
 
+  -- Then we just have to compare the multiplicities, which we already proved are equal.
+  have := multiplicity_factors_equiv'_eq_multiplicity pb hI hI' hpb hJ,
+  rw [multiplicity_eq_count_normalized_factors, multiplicity_eq_count_normalized_factors,
+      unique_factorization_monoid.normalize_normalized_factor _ hJ,
+      unique_factorization_monoid.normalize_normalized_factor,
+      part_enat.coe_inj]
+    at this,
+  refine this.trans _,
+  -- Get rid of the `map` by applying the equiv to both sides.
+  generalize hJ' : (factors_equiv' pb hI hI' hpb) ⟨J, hJ⟩ = J',
+  have : ((factors_equiv' pb hI hI' hpb).symm J' : ideal S) = J,
+  { rw [← hJ', equiv.symm_apply_apply _ _, subtype.coe_mk] },
+  subst this,
+  -- Get rid of the `attach` by applying the subtype `coe` to both sides.
+  rw [multiset.count_map_eq_count' (λ f, ((factors_equiv' pb hI hI' hpb).symm f : ideal S)),
+      multiset.attach_count_eq_count_coe],
+  { exact subtype.coe_injective.comp (equiv.injective _) },
+  { exact (factors_equiv' pb hI hI' hpb _).prop },
+  { exact irreducible_of_normalized_factor _ (factors_equiv' pb hI hI' hpb _).prop },
+  { assumption },
+  { exact irreducible_of_normalized_factor _ hJ },
+  { assumption },
+end
 /-
 
 

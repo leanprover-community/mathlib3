@@ -582,13 +582,6 @@ lemma polynomial.quot_quot_equiv_comm_symm_mk_mk (p : R[X]) :
 by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_symm_mk,
   polynomial_quotient_equiv_quotient_polynomial_symm_mk]
 
-@[simp]
-lemma polynomial.quot_quot_equiv_comm_mk (p : R[X]) :
-  (polynomial.quot_quot_equiv_comm I f) (ideal.quotient.mk  _ (p.map I^.quotient.mk)) =
-  (ideal.quotient.mk _ (ideal.quotient.mk _ p)) :=
-by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_mk,
-  polynomial_quotient_equiv_quotient_polynomial_map_mk ]
-
 /-- The natural isomorphism `R[α]/I[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f : polynomial R`
   and `I : ideal R`-/
 def quot_adjoin_root_equiv_quot_polynomial_quot : (adjoin_root f) ⧸ (I.map (of f)) ≃+*

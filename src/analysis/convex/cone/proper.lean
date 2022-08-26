@@ -78,7 +78,7 @@ lemma nonempty (K : proper_cone E) : (K : set E).nonempty := K.nonempty'
 lemma is_closed (K : proper_cone E) : is_closed (K : set E) := K.is_closed'
 
 lemma pointed (K : proper_cone E) : (K : convex_cone ℝ E).pointed :=
-pointed_of_nonempty_closed_convex_cone K.nonempty K.is_closed
+K.pointed_of_nonempty_of_is_closed K.nonempty K.is_closed
 
 @[ext] lemma ext {S T : proper_cone E} (h : (S : convex_cone ℝ E) = T) : S = T :=
 by cases S; cases T; congr'
@@ -89,7 +89,7 @@ instance : has_star (proper_cone E) := ⟨ λ K,
 instance : has_involutive_star (proper_cone E) :=
 { star := has_star.star,
   star_involutive := λ K, proper_cone.ext $
-    inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed }
+    K.inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed }
 
 @[simp] lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone := rfl
 
@@ -150,7 +150,7 @@ begin
   contrapose! h,
 
   -- as `b ∉ K.map f`, there is a hyperplane `y` separating `b` from `K.map f`
-  obtain ⟨y, hxy, hyb⟩ := hyperplane_separation_point_nonempty_closed_convex_cone
+  obtain ⟨y, hxy, hyb⟩ := K.hyperplane_separation_of_nonempty_of_is_closed_of_nmem
     (K.map f).nonempty (K.map f).is_closed h,
   use y,
 

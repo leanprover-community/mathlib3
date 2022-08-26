@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
+import analysis.normed_space.completion
 import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.banach
 import linear_algebra.bilinear_form
@@ -2322,3 +2323,41 @@ lemma submodule.orthogonal_family_self :
 | ff ff := absurd rfl
 
 end orthogonal
+
+.
+
+namespace uniform_space.completion
+
+open uniform_space function
+
+#check continuous_map_class
+
+private def innerL [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [has_continuous_const_smul ℝ E] :
+  E →L[ℝ] E →L[ℝ] 𝕜 :=
+{ to_fun := λ x,
+  { to_fun := innerSL x,
+    map_add' := map_add _,
+    map_smul' := sorry,
+    cont := (innerSL x).cont },
+  map_add' := λ a b, by ext x; rw map_add innerSL a b; refl,
+  map_smul' := sorry,
+  cont := sorry }
+
+instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
+  has_inner 𝕜' (completion E') :=
+{ inner := curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (uncurry inner) }
+
+#check continuous_linear_map.le_op_norm₂
+
+--@[simp] lemma coe_inner (a b : E) :
+--  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
+--(dense_inducing_coe.prod dense_inducing_coe).extend_eq (innerSL.continuous₂) (a, b)
+
+
+instance : inner_product_space 𝕜 (completion E) :=
+{ norm_sq_eq_inner := λ x, completion.induction_on x _ (λ a, by simp only [completion.norm_coe]),
+  conj_sym := sorry,
+  add_left := sorry,
+  smul_left := sorry }
+
+end uniform_space.completion

@@ -838,9 +838,6 @@ end
 lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) : a * (b - c) = a * b - a * c :=
 by { simp only [mul_comm a], exact sub_mul h }
 
-lemma antitone_const_sub {c : ℝ≥0∞} : antitone (λ (x : ℝ≥0∞), c - x) :=
-λ x y hxy, tsub_le_tsub rfl.le hxy
-
 end sub
 
 section sum

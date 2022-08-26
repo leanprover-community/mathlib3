@@ -199,18 +199,18 @@ begin
 end
 
 
+@[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) :
+  conn_comp_outside G K := connected_component_mk _ v
 
 lemma of_vertex (G : simple_graph V) {K : set V} (v : V)
    (hv : v ∉ K) : {C  : conn_comp_outside G K | v ∈ C} :=
 begin
-  sorry
-  /-
-  let S := {v},
-  have Sconn : ((⊤ : G.subgraph).induce S).connected, by apply subgraph.induce_singleton_connected,
-  have Sdis : disjoint S K, by {simp only [set.disjoint_singleton_left], exact hv},
-  obtain ⟨C,hC⟩ := of_connected_disjoint S Sconn Sdis,
-  use C, simp only [set.singleton_subset_iff] at hC, exact hC,
-  -/
+  fsplit,
+  exact component_of ⟨v, outside_to_compl G hv⟩,
+  dsimp,
+  simp,
+  use hv,
+  apply reachable.rfl,
 end
 
 lemma of_connected_disjoint {G : simple_graph V} {K : set V} (S : set V)
@@ -233,11 +233,27 @@ begin
   sorry
 end
 
+def conn_graph_conn_comp {G : simple_graph V} (Gconn : connected G) : connected_component G :=
+begin
+  cases Gconn,
+  apply connected_component_mk,
+  exact Gconn_nonempty.some,
+end
 
-@[reducible, simp] def component_of {G : simple_graph V} {K : set V} (v : (G.compl K).verts) :
-  conn_comp_outside G K := connected_component_mk _ v
+lemma conn_graph_conn_comp_unique {G : simple_graph V} (Gconn : connected G) :
+∀ C : connected_component G, C = conn_graph_conn_comp Gconn :=
+begin
+  apply connected_component.ind,
+  intro v, cases Gconn,
+  show _ = G.connected_component_mk (Gconn_nonempty.some),
+  simp,
+  apply Gconn_preconnected,
+end
 
-lemma reachable_empty_compl {G : simple_graph V} {u v : V} (hreach : G.reachable u v) :
+
+
+
+lemma reachable_empty_compl {G : simple_graph V} {u v : V} : G.reachable u v ↔
   (G.compl ∅).coe.reachable ⟨u, G.outside_to_compl id⟩ ⟨v, G.outside_to_compl id⟩ := sorry
 
 lemma reachable_coe {G : simple_graph V} {K L : set V} (h : K ⊆ L)
@@ -258,6 +274,18 @@ lemma comp_sub_compl_rev_coe {G : simple_graph V} {K L : set V} (h : K ⊆ L) (v
 begin
   intros x h, simp [component_of] at *,
   apply reachable_coe, exact h,
+end
+
+lemma connected_in_conn_comp {G : simple_graph V} {K : set V} (S : set (G.compl K).verts) (Sconn : ((G.compl K).coe.induce S).connected) : conn_comp_outside G K :=
+begin
+  let C := conn_graph_conn_comp Sconn,
+  refine connected_component.lift _ _ C,
+  { rintro ⟨v, vS⟩, exact component_of v,},
+  {
+    rintros ⟨v, vS⟩ ⟨w, wS⟩ p hpath,
+    dsimp, simp,
+    sorry, -- this follows from the fact that a walk in a subgraph can be lifted to a walk in the graph
+  }
 end
 
 

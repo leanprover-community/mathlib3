@@ -11,16 +11,6 @@ open_locale polynomial
 
 namespace e_transcendental_lemmas
 
-/-Theorem
-$$
-\frac{\mathrm{d}-\exp(t-x)}{\mathrm{d}x}=\exp(t-x)
-$$
--/
-theorem deriv_exp_t_x' (t : ℝ) : (deriv (λ x, - (real.exp (t-x)))) = (λ x, real.exp (t-x)) :=
-begin
-    simp only [deriv_exp, differentiable_at_const, mul_one, zero_sub, deriv_sub, differentiable_at_id', deriv_id'', deriv.neg', deriv_const', mul_neg, differentiable_at.sub, neg_neg],
-end
-
 /--
 # about I
 -/
@@ -87,8 +77,8 @@ begin
     rw [←polynomial.aeval_deriv, has_deriv_at_deriv_iff],
     apply differentiable_aeval },
   { intros x hx,
-    rw [←deriv_exp_t_x', has_deriv_at_deriv_iff],
-    exact hd.neg.differentiable_at },
+    convert ((has_deriv_at_id' x).const_sub t).exp.neg,
+    rw [mul_neg, neg_neg, mul_one] },
   { exact (differentiable_aeval f.derivative).continuous.continuous_on.interval_integrable },
   { exact hd.continuous.continuous_on.interval_integrable },
 end

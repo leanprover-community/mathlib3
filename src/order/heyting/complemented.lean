@@ -6,23 +6,13 @@ Authors: Yaël Dillies
 import order.galois_connection
 
 /-!
-# Heyting regular elements
+# The boolean algebra of complemented elements
 
 This file defines Heyting regular elements, elements of an Heyting algebra that are their own double
 complement, and proves that they form a boolean algebra.
 
 From a logic standpoint, this means that we can perform classical logic within intuitionistic logic
 by simply double-negating all propositions. This is practical for synthetic computability theory.
-
-## Main declarations
-
-* `is_heyting_regular`: `a` is Heyting-regular if `aᶜᶜ = a`.
-* `heyting_regular`: The subtype of Heyting-regular elements.
-* `heyting_regular.boolean_algebra`: Heyting-regular elements form a boolean algebra.
-
-## References
-
-* [Francis Borceux, *Handbook of Categorical Algebra III*][borceux-vol3]
 -/
 
 open function
@@ -30,7 +20,7 @@ open function
 variables {α : Type*}
 
 section heyting_algebra
-variables [heyting_algebra α] {a b : α}
+variables [heyting_algebra α] {a a' b b' : α}
 
 /-- A Heyting algebra where the pseudo-complement is a true complement is a boolean algebra. -/
 @[reducible] -- See note [reducible non-instances]
@@ -41,91 +31,29 @@ def boolean_algebra.of_is_compl_compl (h : ∀ a : α, is_compl a aᶜ) : boolea
   top_le_sup_compl := λ a, (h _).2,
   ..‹heyting_algebra α›, ..generalized_heyting_algebra.to_distrib_lattice }
 
-/-- A Heyting algebra with regular excluded middle is a boolean algebra. -/
+/-- A complemented Heyting algebra is a boolean algebra. -/
 @[reducible] -- See note [reducible non-instances]
-def boolean_algebra.of_complemented [is_complemented α] : boolean_algebra α :=
-boolean_algebra.of_is_compl_compl $ λ a,
-begin
-  
-end
+def boolean_algebra.of_complemented [complemented_lattice α] : boolean_algebra α :=
+boolean_algebra.of_is_compl_compl $ λ a, let ⟨b, hb⟩ := exists_is_compl a in by rwa hb.compl_eq
 
-variables (α)
+lemma is_complemented.himp : is_complemented a → is_complemented b → is_complemented (a ⇨ b) :=
+by { rintro ⟨a', ha⟩ ⟨b', hb⟩, refine ⟨a' ⊓ b'ᶜ, sorry⟩ }
 
-/-- The boolean algebra of Heyting regular elements. -/
-def heyting_regular : Type* := {a : α // is_heyting_regular a}
+lemma is_complemented.compl : is_complemented a → is_complemented aᶜ :=
+by { rintro ⟨b, hb⟩, refine ⟨bᶜ, sorry⟩ }
 
-variables {α}
+namespace complementeds
 
-namespace heyting_regular
+instance : has_himp (complementeds α) := ⟨λ a b, ⟨a ⇨ b, a.2.himp b.2⟩⟩
+instance : has_compl (complementeds α) := ⟨λ a, ⟨aᶜ, a.2.compl⟩⟩
 
-instance : has_coe (heyting_regular α) α := coe_subtype
+@[simp, norm_cast] lemma coe_himp (a b : complementeds α) : (↑(a ⇨ b) : α) = a ⇨ b := rfl
+@[simp, norm_cast] lemma coe_compl (a : complementeds α) : (↑(aᶜ) : α) = aᶜ := rfl
 
-lemma coe_injective : injective (coe : heyting_regular α → α) := subtype.coe_injective
-@[simp] lemma coe_inj {a b : heyting_regular α} : (a : α) = b ↔ a = b := subtype.coe_inj
+instance : heyting_algebra (complementeds α) :=
+coe_injective.heyting_algebra _ coe_sup coe_inf coe_top coe_bot coe_compl coe_himp
 
-instance : has_top (heyting_regular α) := ⟨⟨⊤, is_heyting_regular_top⟩⟩
-instance : has_bot (heyting_regular α) := ⟨⟨⊥, is_heyting_regular_bot⟩⟩
-instance : has_inf (heyting_regular α) := ⟨λ a b, ⟨a ⊓ b, a.2.inf b.2⟩⟩
-instance : has_himp (heyting_regular α) := ⟨λ a b, ⟨a ⇨ b, a.2.himp b.2⟩⟩
-instance : has_compl (heyting_regular α) := ⟨λ a, ⟨aᶜ, is_heyting_regular_compl _⟩⟩
+instance : boolean_algebra (complementeds α) := boolean_algebra.of_complemented
 
-@[simp, norm_cast] lemma coe_top : ((⊤ : heyting_regular α) : α) = ⊤ := rfl
-@[simp, norm_cast] lemma coe_bot : ((⊥ : heyting_regular α) : α) = ⊥ := rfl
-@[simp, norm_cast] lemma coe_inf (a b : heyting_regular α) : (↑(a ⊓ b) : α) = a ⊓ b := rfl
-@[simp, norm_cast] lemma coe_himp (a b : heyting_regular α) : (↑(a ⇨ b) : α) = a ⇨ b := rfl
-@[simp, norm_cast] lemma coe_compl (a : heyting_regular α) : (↑(aᶜ) : α) = aᶜ := rfl
-
-instance : inhabited (heyting_regular α) := ⟨⊥⟩
-instance : semilattice_inf (heyting_regular α) := coe_injective.semilattice_inf _ coe_inf
-instance : bounded_order (heyting_regular α) := bounded_order.lift coe (λ _ _, id) coe_top coe_bot
-
-@[simp, norm_cast] lemma coe_le_coe {a b : heyting_regular α} : (a : α) ≤ b ↔ a ≤ b := iff.rfl
-@[simp, norm_cast] lemma coe_lt_coe {a b : heyting_regular α} : (a : α) < b ↔ a < b := iff.rfl
-
-/-- The smallest regular element greater than `a`. -/
-def to_heyting_regular : α →o heyting_regular α :=
-⟨λ a, ⟨aᶜᶜ, is_heyting_regular_compl _⟩, λ a b h, coe_le_coe.1 $ compl_le_compl $ compl_le_compl h⟩
-
-@[simp, norm_cast] lemma coe_to_heyting_regular (a : α) : (to_heyting_regular a : α) = aᶜᶜ := rfl
-@[simp] lemma to_heyting_regular_coe (a : heyting_regular α) : to_heyting_regular (a : α) = a :=
-coe_injective a.2
-
-/-- The Galois insertion between `heyting_regular.to_heyting_regular` and `coe`. -/
-def gi : galois_insertion to_heyting_regular (coe : heyting_regular α → α) :=
-{ choice := λ a ha, ⟨a, ha.antisymm le_compl_compl⟩,
-  gc := λ a b, coe_le_coe.symm.trans $
-    ⟨le_compl_compl.trans, λ h, (compl_anti $ compl_anti h).trans_eq b.2⟩,
-  le_l_u := λ _, le_compl_compl,
-  choice_eq := λ a ha, coe_injective $ le_compl_compl.antisymm ha }
-
-instance : lattice (heyting_regular α) := gi.lift_lattice
-
-@[simp, norm_cast] lemma coe_sup (a b : heyting_regular α) : (↑(a ⊔ b) : α) = (a ⊔ b)ᶜᶜ := rfl
-
-instance : boolean_algebra (heyting_regular α) :=
-{ le_sup_inf := λ a b c, coe_le_coe.1 $ by { dsimp, rw [sup_inf_left, compl_compl_inf_distrib] },
-  inf_compl_le_bot := λ a, coe_le_coe.1 disjoint_compl_right,
-  top_le_sup_compl := λ a, coe_le_coe.1 $
-    by { dsimp, rw [compl_sup, inf_compl_eq_bot, compl_bot], refl },
-  himp_eq := λ a b, coe_injective begin
-    dsimp,
-    rw [compl_sup, a.prop.eq],
-    refine eq_of_forall_le_iff (λ c, le_himp_iff.trans _),
-    rw [le_compl_iff_disjoint_right, disjoint_left_comm, b.prop.disjoint_compl_left_iff],
-  end,
-  ..heyting_regular.lattice, ..heyting_regular.bounded_order, ..heyting_regular.has_himp,
-  ..heyting_regular.has_compl }
-
-@[simp, norm_cast] lemma coe_sdiff (a b : heyting_regular α) : (↑(a \ b) : α) = a ⊓ bᶜ := rfl
-
-end heyting_regular
+end complementeds
 end heyting_algebra
-
-variables [boolean_algebra α]
-
-lemma is_heyting_regular_of_boolean : ∀ a : α, is_heyting_regular a := compl_compl
-
-/-- A decidable proposition is intuitionistically Heyting-regular. -/
-@[nolint decidable_classical]
-lemma is_heyting_regular_of_decidable (p : Prop) [decidable p] : is_heyting_regular p :=
-propext $ decidable.not_not_iff _

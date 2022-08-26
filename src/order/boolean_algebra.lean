@@ -579,12 +579,6 @@ instance boolean_algebra.to_biheyting_algebra : biheyting_algebra α :=
 
 @[simp] lemma hnot_eq_compl : ￢x = xᶜ := rfl
 
-theorem is_compl.eq_compl (h : is_compl x y) : x = yᶜ :=
-h.left_unique is_compl_compl.symm
-
-theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
-(h.right_unique is_compl_compl).symm
-
 theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
 ⟨λ h, by { rw h, exact is_compl_compl.symm }, is_compl.eq_compl⟩
 
@@ -600,8 +594,7 @@ by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
 theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
 (is_compl.of_eq i s).compl_eq
 
-@[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
-is_compl_compl.symm.compl_eq
+@[simp] theorem compl_compl (x : α) : xᶜᶜ = x := (@is_compl_compl _ x _).symm.compl_eq
 
 theorem compl_comp_compl : compl ∘ compl = @id α := funext compl_compl
 
@@ -628,8 +621,7 @@ is_compl_bot_top.compl_eq_iff
 @[simp] theorem compl_eq_bot : xᶜ = ⊥ ↔ x = ⊤ :=
 is_compl_top_bot.compl_eq_iff
 
-@[simp] theorem compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
-(is_compl_compl.inf_sup is_compl_compl).compl_eq
+@[simp] theorem compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ := hnot_inf_distrib _ _
 
 @[simp] theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
 ⟨assume h, by have h := compl_le_compl h; simp at h; assumption,

@@ -419,6 +419,12 @@ alias le_compl_iff_disjoint_left ↔ _ disjoint.le_compl_left
 lemma disjoint_compl_left : disjoint aᶜ a := le_himp_iff.1 (himp_bot _).ge
 lemma disjoint_compl_right : disjoint a aᶜ := disjoint_compl_left.symm
 
+lemma is_compl.compl_eq (h : is_compl a b) : aᶜ = b :=
+h.1.le_compl_left.antisymm' $ disjoint.le_of_codisjoint disjoint_compl_left h.2
+
+lemma is_compl.eq_compl (h : is_compl a b) : a = bᶜ :=
+h.1.le_compl_right.antisymm $ disjoint.le_of_codisjoint disjoint_compl_left h.2.symm
+
 @[simp] lemma inf_compl_self (a : α) : a ⊓ aᶜ = ⊥ := disjoint_compl_right.eq_bot
 @[simp] lemma compl_inf_self (a : α) : aᶜ ⊓ a = ⊥ := disjoint_compl_left.eq_bot
 lemma inf_compl_eq_bot : a ⊓ aᶜ = ⊥ := inf_compl_self _
@@ -522,6 +528,12 @@ alias hnot_le_iff_codisjoint_left ↔ _ codisjoint.hnot_le_left
 
 lemma codisjoint_hnot_right : codisjoint a (￢a) := sdiff_le_iff.1 (top_sdiff' _).le
 lemma codisjoint_hnot_left : codisjoint (￢a) a := codisjoint_hnot_right.symm
+
+lemma is_compl.hnot_eq (h : is_compl a b) : ￢a = b :=
+h.2.hnot_le_right.antisymm $ disjoint.le_of_codisjoint h.1.symm codisjoint_hnot_right
+
+lemma is_compl.eq_hnot (h : is_compl a b) : a = ￢b :=
+h.2.hnot_le_left.antisymm' $ disjoint.le_of_codisjoint h.1 codisjoint_hnot_right
 
 @[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := codisjoint_hnot_right.eq_top
 @[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := codisjoint_hnot_left.eq_top

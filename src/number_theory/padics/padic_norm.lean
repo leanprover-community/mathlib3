@@ -326,45 +326,54 @@ by simp only [←int.coe_nat_dvd, ←int_lt_one_iff, int.cast_coe_nat]
 
 open_locale big_operators
 
-lemma sum_lt {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
-  (hF : ∀ i, i < n → padic_norm p (F i) < t) (hn : 0 < n) :
-  padic_norm p (∑ i in finset.range n, F i) < t :=
+lemma sum_lt {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α} :
+  s.nonempty → (∀ i ∈ s, padic_norm p (F i) < t) →
+  padic_norm p (∑ i in s, F i) < t :=
 begin
-  induction n with d hd, {cases hn, },
-  cases d, {simp [hF], },
-  rw finset.sum_range_succ,
-  refine lt_of_le_of_lt (padic_norm.nonarchimedean p) _,
-  refine max_lt (hd (λ i hi, hF _ (hi.trans (nat.lt_succ_self _))) d.zero_lt_succ) _,
-  exact hF _ (nat.lt_succ_self _),
+  classical,
+  refine s.induction_on (by { rintro ⟨-, ⟨⟩⟩, }) _,
+  rintro a S haS IH - ht,
+  by_cases hs : S.nonempty,
+  { rw finset.sum_insert haS,
+    exact lt_of_le_of_lt (padic_norm.nonarchimedean p) (max_lt
+      (ht a (finset.mem_insert_self a S))
+      (IH hs (λ b hb, ht b (finset.mem_insert_of_mem hb)))),
+  },
+  { simp * at *, },
 end
 
-lemma sum_le {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
-  (hF : ∀ i, i < n → padic_norm p (F i) ≤ t) (hn : 0 < n) :
-  padic_norm p (∑ i in finset.range n, F i) ≤ t :=
+lemma sum_le {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α} :
+  s.nonempty → (∀ i ∈ s, padic_norm p (F i) ≤ t) →
+  padic_norm p (∑ i in s, F i) ≤ t :=
 begin
-  induction n with d hd, {cases hn, },
-  cases d, {simp [hF], },
-  rw finset.sum_range_succ,
-  refine (padic_norm.nonarchimedean p).trans _,
-  refine max_le (hd (λ i hi, hF _ (hi.trans (nat.lt_succ_self _))) d.zero_lt_succ) _,
-  exact hF _ (nat.lt_succ_self _),
+  classical,
+  refine s.induction_on (by { rintro ⟨-, ⟨⟩⟩, }) _,
+  rintro a S haS IH - ht,
+  by_cases hs : S.nonempty,
+  { rw finset.sum_insert haS,
+    exact (padic_norm.nonarchimedean p).trans (max_le
+      (ht a (finset.mem_insert_self a S))
+      (IH hs (λ b hb, ht b (finset.mem_insert_of_mem hb)))),
+  },
+  { simp * at *, },
 end
 
-lemma sum_lt' {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
-  (hF : ∀ i, i < n → padic_norm p (F i) < t) (ht : 0 < t) :
-  padic_norm p (∑ i in finset.range n, F i) < t :=
+lemma sum_lt' {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α}
+  (hF : ∀ i ∈ s, padic_norm p (F i) < t) (ht : 0 < t) :
+  padic_norm p (∑ i in s, F i) < t :=
 begin
-  obtain rfl | hn := @eq_zero_or_pos ℕ _ n,
+  obtain rfl | hs := finset.eq_empty_or_nonempty s,
   { simp [ht], },
-  { exact sum_lt hF hn, },
+  { exact sum_lt hs hF, },
 end
 
-lemma sum_le' {t : ℚ} {n : ℕ} {F : ℕ → ℚ}
-  (hF : ∀ i, i < n → padic_norm p (F i) ≤ t) (ht : 0 ≤ t) :
-  padic_norm p (∑ i in finset.range n, F i) ≤ t :=
+lemma sum_le' {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α}
+  (hF : ∀ i ∈ s, padic_norm p (F i) ≤ t) (ht : 0 ≤ t) :
+  padic_norm p (∑ i in s, F i) ≤ t :=
 begin
-  obtain rfl | hn := @eq_zero_or_pos ℕ _ n,
+  obtain rfl | hs := finset.eq_empty_or_nonempty s,
   { simp [ht], },
-  { exact sum_le hF hn, },
+  { exact sum_le hs hF, },
 end
+
 end padic_norm

@@ -7,8 +7,6 @@ Authors: Amelia Livingston
 import algebraic_topology.alternating_face_map_complex
 import representation_theory.basic
 import representation_theory.Rep
-import algebraic_topology.nerve
-import algebraic_topology.cech_nerve
 
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
@@ -22,6 +20,10 @@ In particular, we define an isomorphism of `k`-linear `G`-representations betwee
 
 This allows us to define a `k[G]`-basis on `k[Gⁿ⁺¹]`, by mapping the natural `k[G]`-basis of
 `k[G] ⊗ₖ k[Gⁿ]` along the isomorphism.
+
+We then define the standard resolution of `k` as a trivial representation, by
+taking the alternating face map complex associated with an appropriate simplicial `k`-linear
+`G`-representation.
 
 ## Main definitions
 

@@ -254,15 +254,10 @@ lemma inner_.int_prop (r : ℤ)
   inner_prop 𝕜 E' r :=
 begin
   intros x y,
-  have : r = r.sign * r.nat_abs := r.sign_mul_nat_abs.symm,
-  rw this,
-  simp only [int.cast_coe_nat, map_nat_cast, map_int_cast, int.cast_mul,
-    ring_hom.map_mul],
-  rw mul_smul,
+  rw ←r.sign_mul_nat_abs,
+  simp only [int.cast_coe_nat, map_nat_cast, map_int_cast, int.cast_mul, map_mul, mul_smul],
   obtain hr|rfl|hr := lt_trichotomy r 0,
-  { rw int.sign_eq_neg_one_of_neg hr,
-    have hnegone := inner_.neg_one ((r.nat_abs : 𝕜) • x) y,
-    rw [hnegone, inner_.nat h],
+  { rw [int.sign_eq_neg_one_of_neg hr, inner_.neg_one ((r.nat_abs : 𝕜) • x) y, inner_.nat h],
     simp only [map_neg, neg_mul, one_mul, mul_eq_mul_left_iff, true_or,
       int.nat_abs_eq_zero, eq_self_iff_true, int.cast_one, map_one, neg_inj, nat.cast_eq_zero,
       int.cast_neg] },
@@ -282,31 +277,9 @@ begin
   have : (r.denom : 𝕜) ≠ 0,
   { haveI : char_zero 𝕜 := is_R_or_C.char_zero_R_or_C,
     exact_mod_cast r.pos.ne' },
-  rw ←r.num_div_denom,
-  suffices hxxx :
-    (r.denom : 𝕜) * (inner_ 𝕜 (((r.num / r.denom : ℚ) : 𝕜) • x) y) =
-    (r.denom : 𝕜) * ((conj (r.num / r.denom : 𝕜)) * inner_ 𝕜 x y),
-  { rw ←(mul_right_inj' this),
-    convert hxxx,
-    rw [rat.num_div_denom],
-    norm_cast,
-    simp only [eq_self_iff_true, rat.num_denom], },
-  rw [←inner_.nat h r.denom, smul_smul],
-  have h₀ : (r.denom : ℚ) * ((r.num : ℚ) / (r.denom : ℚ)) = r.num,
-  { refine mul_div_cancel' _ _,
-    exact_mod_cast r.pos.ne' },
-  have h₁ : (r.denom : 𝕜) * ((r.num / r.denom : ℚ) : 𝕜) = r.num,
-  { convert mul_div_cancel' _ this using 1, norm_cast, },
-  have h₃ : (r.num / r.denom : 𝕜) = ((r.num / r.denom : ℚ) : 𝕜),
-  { norm_cast },
-  have h₂ : conj (r.num / r.denom : 𝕜) = (r.num / r.denom : 𝕜),
-  { rw h₃, rw map_rat_cast, },
-  rw h₁,
-  rw h₂,
-  rw inner_.int_prop _ h,
-  rw ←mul_assoc,
-  rw map_int_cast,
-  rw mul_div_cancel' _ this,
+  rw [←r.num_div_denom, ←mul_right_inj' this, ←inner_.nat h r.denom, smul_smul, rat.cast_div],
+  simp only [map_nat_cast, rat.cast_coe_nat, map_int_cast, rat.cast_coe_int, map_div₀],
+  rw [←mul_assoc, mul_div_cancel' _ this, inner_.int_prop _ h, map_int_cast],
 end
 
 lemma inner_.continuous {α} [topological_space α] (f : α → E') (g :  α → E')
@@ -314,43 +287,23 @@ lemma inner_.continuous {α} [topological_space α] (f : α → E') (g :  α →
   continuous (λ x, inner_ 𝕜 (f x) (g x)) :=
 begin
   simp only [inner_ ],
-  refine continuous_const.mul _,
-  refine continuous.sub _ _,
-  refine continuous.add _ _,
-  refine continuous.sub _ _,
-  refine continuous.mul _ _,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  apply continuous.add hf hg,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  apply continuous.add hf hg,
-
-  refine continuous.mul _ _,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  apply continuous.sub hf hg,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  apply continuous.sub hf hg,
-
-  refine continuous.mul _ _,
-  refine continuous_const.mul _,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  refine continuous.add (hf.const_smul _) hg,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  refine continuous.add (hf.const_smul _) hg,
-
-  refine continuous.mul _ _,
-  refine continuous_const.mul _,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  refine continuous.sub (hf.const_smul _) hg,
-  apply (continuous_algebra_map ℝ 𝕜).comp,
-  apply continuous_norm.comp,
-  refine continuous.sub (hf.const_smul _) hg,
+  refine continuous_const.mul (continuous.sub (continuous.add (continuous.sub _ _) _) _),
+  { refine continuous.mul _ _;
+    { apply (continuous_algebra_map ℝ 𝕜).comp,
+      apply continuous_norm.comp,
+      apply continuous.add hf hg } },
+  { refine continuous.mul _ _;
+    { apply (continuous_algebra_map ℝ 𝕜).comp,
+      apply continuous_norm.comp,
+      apply continuous.sub hf hg } },
+  { refine continuous.mul (continuous_const.mul _) _;
+    { apply (continuous_algebra_map ℝ 𝕜).comp,
+      apply continuous_norm.comp,
+      refine continuous.add (hf.const_smul _) hg } },
+  { refine continuous.mul (continuous_const.mul _) _;
+    { apply (continuous_algebra_map ℝ 𝕜).comp,
+      apply continuous_norm.comp,
+      refine continuous.sub (hf.const_smul _) hg } },
 end
 
 lemma inner_.real_prop (r : ℝ)
@@ -376,62 +329,40 @@ begin
   exact inner_.rat_prop _ h _ _,
 end
 
-lemma inner_.smul_left (h : ∀ (x y : E'),
-         ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ =
-           2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y : E')
-  (r : 𝕜) :
+lemma inner_.I_prop
+  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_prop 𝕜 E' (I : 𝕜 ) :=
+begin
+  by_cases hI : (I : 𝕜) = 0,
+  { rw [hI, ←nat.cast_zero], apply inner_.nat_prop _ h },
+  intros x y,
+  have hI' : (-I : 𝕜) * I = 1,
+  { rw [←inv_I, inv_mul_cancel hI], },
+  rw [conj_I, inner_, inner_, mul_left_comm],
+  congr' 1,
+  rw [smul_smul, I_mul_I_of_nonzero hI, neg_one_smul],
+  rw [mul_sub, mul_add, mul_sub,
+    mul_assoc I (𝓚 ∥I • x - y∥), ←mul_assoc (-I) I, hI', one_mul,
+    mul_assoc I (𝓚 ∥I • x + y∥), ←mul_assoc (-I) I, hI', one_mul],
+  have h₁ : ∥-x - y∥ = ∥x + y∥,
+  { rw [←neg_add', norm_neg], },
+  have h₂ : ∥-x + y∥ = ∥x - y∥,
+  { rw [←neg_sub, norm_neg, sub_eq_neg_add], },
+  rw [h₁, h₂],
+  simp only [sub_eq_add_neg, mul_assoc],
+  rw ←neg_mul_eq_neg_mul,
+  rw ←neg_mul_eq_neg_mul,
+  rw neg_neg,
+  abel
+end
+
+lemma inner_.smul_left
+  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y : E') (r : 𝕜) :
   inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y :=
 begin
-  set S := { r : 𝕜 | ∀ (x y : E'), inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y } with hS,
-  suffices : set.univ ⊆ S,
-  { have : r ∈ S,
-    { apply this, exact set.mem_univ _ },
-    rw set.mem_set_of at this,
-    apply this },
-  clear r x y,
-  have hℕ' : ∀ (r : ℕ) (x y : E'), inner_ 𝕜 ((r : 𝕜) • x) y = (r : 𝕜) * inner_ 𝕜 x y,
-  { apply inner_.nat h },
-  have hℕ : ∀ r : ℕ, (r : 𝕜) ∈ S,
-  { intros r,
-    apply inner_.nat_prop _ h },
-  have hnegone : ↑(-1 : ℤ) ∈ S,
-  { apply inner_.neg_one },
-  have hℤ : ∀ r : ℤ, (r : 𝕜) ∈ S,
-  { intros r,
-    apply inner_.int_prop _ h, },
-  have hℚ : ∀ r : ℚ, (r : 𝕜) ∈ S,
-  { intros r, apply inner_.rat_prop _ h },
-  have hℝ : ∀ r : ℝ, (r : 𝕜) ∈ S,
-  { intros r, apply inner_.real_prop _ h },
-  have hI : I ∈ S,
-  { by_cases hI : (I : 𝕜) = 0,
-    { rw [hI, ←nat.cast_zero], apply hℕ },
-    rw [hS, set.mem_set_of],
-    intros x y,
-    have hI' : (-I : 𝕜) * I = 1,
-    { rw [←inv_I, inv_mul_cancel hI], },
-    rw [conj_I, inner_, inner_, mul_left_comm],
-    congr' 1,
-    rw [smul_smul, I_mul_I_of_nonzero hI, neg_one_smul],
-    rw [mul_sub, mul_add, mul_sub,
-      mul_assoc I (𝓚 ∥I • x - y∥), ←mul_assoc (-I) I, hI', one_mul,
-      mul_assoc I (𝓚 ∥I • x + y∥), ←mul_assoc (-I) I, hI', one_mul],
-    have h₁ : ∥-x - y∥ = ∥x + y∥,
-    { rw [←neg_add', norm_neg], },
-    have h₂ : ∥-x + y∥ = ∥x - y∥,
-    { rw [←neg_sub, norm_neg, sub_eq_neg_add], },
-    rw [h₁, h₂],
-    simp only [sub_eq_add_neg, mul_assoc],
-    rw ←neg_mul_eq_neg_mul,
-    rw ←neg_mul_eq_neg_mul,
-    rw neg_neg,
-    abel },
-  rintros z -,
-  rw [←re_add_im z, hS, set.mem_set_of],
-  intros x y,
-  rw [add_smul, inner_.add_left h, hℝ, ←smul_smul, hℝ, hI],
-  simp only [conj_of_real, conj_I, map_add, map_mul],
+  rw [←re_add_im r, add_smul, inner_.add_left h, inner_.real_prop _ h, ←smul_smul,
+    inner_.real_prop _ h, inner_.I_prop h, map_add, map_mul, conj_of_real, conj_of_real, conj_I],
   ring,
 end
 

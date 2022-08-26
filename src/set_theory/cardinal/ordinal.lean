@@ -679,6 +679,27 @@ theorem principal_add_ord {c : cardinal} (hc : ℵ₀ ≤ c) : ordinal.principal
 theorem principal_add_aleph (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
 principal_add_ord $ aleph_0_le_aleph o
 
+lemma add_right_inj_of_lt_aleph_0 {α β γ : cardinal} (γ₀ : γ < aleph_0) :
+  α + γ = β + γ ↔ α = β :=
+⟨λ h, cardinal.eq_of_add_eq_add_right h γ₀, λ h, congr_fun (congr_arg (+) h) γ⟩
+
+@[simp] lemma add_nat_inj {α β : cardinal} (n : ℕ) :
+  α + n = β + n ↔ α = β :=
+add_right_inj_of_lt_aleph_0 (nat_lt_aleph_0 _)
+
+@[simp] lemma add_one_inj {α β : cardinal} :
+  α + 1 = β + 1 ↔ α = β :=
+add_right_inj_of_lt_aleph_0 one_lt_aleph_0
+
+lemma add_le_add_iff_of_lt_aleph_0 {α β γ : cardinal} (γ₀ : γ < cardinal.aleph_0) :
+  α + γ ≤ β + γ ↔ α ≤ β :=
+begin
+  refine ⟨λ h, _, λ h, add_le_add_right h γ⟩,
+  contrapose h,
+  rw [not_le, lt_iff_le_and_ne, ne] at h ⊢,
+  exact ⟨add_le_add_right h.1 γ, mt (add_right_inj_of_lt_aleph_0 γ₀).1 h.2⟩,
+end
+
 /-! ### Properties about power -/
 
 theorem pow_le {κ μ : cardinal.{u}} (H1 : ℵ₀ ≤ κ) (H2 : μ < ℵ₀) : κ ^ μ ≤ κ :=

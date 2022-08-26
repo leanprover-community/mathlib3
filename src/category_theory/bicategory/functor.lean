@@ -90,8 +90,7 @@ variables (F : prelax_functor B C)
 
 @[simp] lemma to_prefunctor_eq_coe : F.to_prefunctor = F := rfl
 @[simp] lemma to_prefunctor_obj : (F : prefunctor B C).obj = F.obj := rfl
-@[simp] lemma to_prefunctor_map {X Y : B} :
-  ((F : prefunctor B C).map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)) = F.map := rfl
+@[simp] lemma to_prefunctor_map : @prefunctor.map B _ C _ F = @map _ _ _ _ _ _ F := rfl
 
 /-- The identity prelax functor. -/
 @[simps]
@@ -188,10 +187,8 @@ variables (F : oplax_functor B C)
 
 @[simp] lemma to_prelax_eq_coe : F.to_prelax_functor = F := rfl
 @[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
-@[simp] lemma to_prelax_functor_map {X Y : B} :
-  ((F : prelax_functor B C).map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)) = F.map := rfl
-@[simp] lemma to_prelax_functor_map₂ {X Y : B} {f g : X ⟶ Y} :
-  ((F : prelax_functor B C).map₂ : (f ⟶ g) → (F.map f ⟶ F.map g)) = F.map₂ := rfl
+@[simp] lemma to_prelax_functor_map : @prelax_functor.map B _ _ C _ _ F = @map _ _ _ _ F := rfl
+@[simp] lemma to_prelax_functor_map₂ : @prelax_functor.map₂ B _ _ C _ _ F = @map₂ _ _ _ _ F := rfl
 
 /-- Function between 1-morphisms as a functor. -/
 @[simps]
@@ -337,10 +334,8 @@ variables (F : pseudofunctor B C)
 
 @[simp] lemma to_prelax_functor_eq_coe : F.to_prelax_functor = F := rfl
 @[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
-@[simp] lemma to_prelax_functor_map {X Y : B} :
-  ((F : prelax_functor B C).map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)) = F.map := rfl
-@[simp] lemma to_prelax_functor_map₂ {X Y : B} {f g : X ⟶ Y} :
-  ((F : prelax_functor B C).map₂ : (f ⟶ g) → (F.map f ⟶ F.map g)) = F.map₂ := rfl
+@[simp] lemma to_prelax_functor_map : @prelax_functor.map B _ _ C _ _ F = @map _ _ _ _ F := rfl
+@[simp] lemma to_prelax_functor_map₂ : @prelax_functor.map₂ B _ _ C _ _ F = @map₂ _ _ _ _ F := rfl
 
 /-- The oplax functor associated with a pseudofunctor. -/
 def to_oplax : oplax_functor B C :=
@@ -352,10 +347,8 @@ instance has_coe_to_oplax : has_coe (pseudofunctor B C) (oplax_functor B C) := �
 
 @[simp] lemma to_oplax_eq_coe : F.to_oplax = F := rfl
 @[simp] lemma to_oplax_obj : (F : oplax_functor B C).obj = F.obj := rfl
-@[simp] lemma to_oplax_map {X Y : B} :
-  ((F : oplax_functor B C).map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)) = F.map := rfl
-@[simp] lemma to_oplax_map₂ {X Y : B} {f g : X ⟶ Y} :
-  ((F : oplax_functor B C).map₂ : (f ⟶ g) → (F.map f ⟶ F.map g)) = F.map₂ := rfl
+@[simp] lemma to_oplax_map : @oplax_functor.map B _ C _ F = @map _ _ _ _ F := rfl
+@[simp] lemma to_oplax_map₂ : @oplax_functor.map₂ B _ C _ F = @map₂ _ _ _ _ F := rfl
 @[simp] lemma to_oplax_map_id (a : B) : (F : oplax_functor B C).map_id a = (F.map_id a).hom := rfl
 @[simp] lemma to_oplax_map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) :
   (F : oplax_functor B C).map_comp f g = (F.map_comp f g).hom := rfl

@@ -899,7 +899,7 @@ def submodule_of_smul_mem (W : submodule k V) (h : ∀ (g : G) (v : V), v ∈ W 
     rw [←finsupp.sum_single f, finsupp.sum, finset.sum_smul],
     simp_rw [←smul_of, smul_assoc],
     exact submodule.sum_smul_mem W _ (λ g _, h g v hv)
-  end  }
+  end }
 
 end submodule
 

@@ -63,7 +63,7 @@ section
 def measurable_set [measurable_space α] : set α → Prop := ‹measurable_space α›.measurable_set'
 
 localized "notation (name := measurable_set_of)
-  `measurable_set[` m `]` := @measurable_set _ m" in measure_theory
+  `measurable_set[` m `]` := @measurable_set hole! m" in measure_theory
 
 @[simp] lemma measurable_set.empty [measurable_space α] : measurable_set (∅ : set α) :=
 ‹measurable_space α›.measurable_set_empty

@@ -290,18 +290,18 @@ end
 /-- A substructure is elementary when every formula applied to a tuple in the subtructure
   agrees with its value in the overall structure. -/
 def is_elementary (S : L.substructure M) : Prop :=
-∀{n} (φ : L.formula (fin n)) (x : fin n → S), φ.realize ((coe : _ → M) ∘ x) ↔ φ.realize x
+∀ {{n}} (φ : L.formula (fin n)) (x : fin n → S), φ.realize ((coe : _ → M) ∘ x) ↔ φ.realize x
 
 end substructure
 
-variables (L) (M)
+variables (L M)
 /-- An elementary substructure is one in which every formula applied to a tuple in the subtructure
   agrees with its value in the overall structure. -/
 structure elementary_substructure :=
 (to_substructure : L.substructure M)
 (is_elementary' : to_substructure.is_elementary)
 
-variables {L} {M}
+variables {L M}
 
 namespace elementary_substructure
 
@@ -323,7 +323,7 @@ substructure.induced_Structure
 /-- The natural embedding of an `L.substructure` of `M` into `M`. -/
 def subtype (S : L.elementary_substructure M) : S ↪ₑ[L] M :=
 { to_fun := coe,
-  map_formula' := λ n, S.is_elementary }
+  map_formula' := S.is_elementary }
 
 @[simp] theorem coe_subtype {S : L.elementary_substructure M} : ⇑S.subtype = coe := rfl
 
@@ -372,7 +372,7 @@ theorem is_elementary_of_exists (S : L.substructure M)
     φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →
     ∃ b : S, φ.realize default (fin.snoc (coe ∘ x) b : _ → M)) :
   L.elementary_substructure M :=
-⟨S, λ _, S.is_elementary_of_exists htv⟩
+⟨S, S.is_elementary_of_exists htv⟩
 
 end substructure
 

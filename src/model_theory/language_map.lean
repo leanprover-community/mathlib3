@@ -168,8 +168,8 @@ end sum_map
 
 /-- A language homomorphism is injective when all the maps between symbol types are. -/
 protected structure injective : Prop :=
-(on_function {n} : function.injective (λ (f : L.functions n), ϕ.on_function f))
-(on_relation {n} : function.injective (λ (R : L.relations n), ϕ.on_relation R))
+(on_function {n} : function.injective (λ f : L.functions n, on_function ϕ f))
+(on_relation {n} : function.injective (λ R : L.relations n, on_relation ϕ R))
 
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/

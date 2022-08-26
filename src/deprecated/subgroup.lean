@@ -51,8 +51,8 @@ by simpa only [div_eq_mul_inv] using hs.mul_mem hx (hs.inv_mem hy)
 
 lemma additive.is_add_subgroup
   {s : set G} (hs : is_subgroup s) : @is_add_subgroup (additive G) _ s :=
-@is_add_subgroup.mk (additive G) _ _ (additive.is_add_submonoid hs.to_is_submonoid)
-  (λ _, hs.inv_mem)
+@is_add_subgroup.mk (additive G) _ _ (additive.is_add_submonoid hs.to_is_submonoid) $
+  λ _, hs.inv_mem
 
 theorem additive.is_add_subgroup_iff
   {s : set G} : @is_add_subgroup (additive G) _ s ↔ is_subgroup s :=
@@ -61,8 +61,8 @@ theorem additive.is_add_subgroup_iff
 
 lemma multiplicative.is_subgroup
   {s : set A} (hs : is_add_subgroup s) : @is_subgroup (multiplicative A) _ s :=
-@is_subgroup.mk (multiplicative A) _ _ (multiplicative.is_submonoid hs.to_is_add_submonoid)
-  (λ _, hs.neg_mem)
+@is_subgroup.mk (multiplicative A) _ _ (multiplicative.is_submonoid hs.to_is_add_submonoid) $
+  λ _, hs.neg_mem
 
 theorem multiplicative.is_subgroup_iff
   {s : set A} : @is_subgroup (multiplicative A) _ s ↔ is_add_subgroup s :=

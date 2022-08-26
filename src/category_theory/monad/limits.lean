@@ -339,7 +339,7 @@ lemma has_colimits_of_shape_of_reflective (R : D ⥤ C)
 { has_colimit := λ F,
 begin
   let c := (left_adjoint R).map_cocone (colimit.cocone (F ⋙ R)),
-  letI : preserves_colimits_of_shape J (left_adjoint R) :=
+  letI : preserves_colimits_of_shape J _ :=
     (adjunction.of_right_adjoint R).left_adjoint_preserves_colimits.1,
   let t : is_colimit c := is_colimit_of_preserves (left_adjoint R) (colimit.is_colimit _),
   apply has_colimit.mk ⟨_, (is_colimit.precompose_inv_equiv _ _).symm t⟩,

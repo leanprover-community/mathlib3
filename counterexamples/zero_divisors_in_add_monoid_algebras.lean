@@ -9,7 +9,7 @@ import algebra.monoid_algebra.basic
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
 
-This file contains an example of an easy source of zero-divisors in an `add_monoid_algebra`:
+This file contains an easy source of zero-divisors in an `add_monoid_algebra`:
 if `k` is a field and `G` is an additive group containing a non-zero torsion element, then
 `add_monoid_algebra k G` contains non-zero zero-divisors.  The elements are easy to write down:
 `[a]` and `[a] ^ (n - 1) - 1` are non-zero elements of `add_monoid_algebra R A` whose product is

@@ -212,6 +212,24 @@ psum
   },
 }
 
+
+def thicken  {V : Type*} (G : simple_graph V) (K : set V) :
+  set V := K ∪ {v : V | ∃ k : K, G.adj k v}
+
+lemma thicken.finite {V : Type*} (G : simple_graph V) [Glf : G.locally_finite]  (K : set V) [Kf : K.finite] :
+  (thicken G K).finite :=
+begin
+  have : G.thicken K = K ∪ (set.Union (λ x : K, G.neighbor_set x)), by {
+    simp only [thicken,neighbor_set], apply congr_arg (λx, K ∪ x),
+    ext, rw mem_Union, simp only [mem_set_of_eq],},
+  rw this,
+  apply set.finite_union.mpr, split, assumption,
+  haveI : finite (↥K), by {exact finite_coe_iff.mpr Kf,},
+  apply set.finite_Union, rintro ⟨x,xk⟩,
+  apply set.finite_def.mpr, constructor, exact Glf x,
+end
+
+
 @[reducible]
 def neighborhood  {V : Type*} (G : simple_graph V) [locally_finite G] [preconnected G]
   (S : set V) (n : ℕ) := {v : V | ∃ s ∈ S, G.dist s v ≤ n}

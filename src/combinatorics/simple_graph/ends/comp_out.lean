@@ -195,8 +195,8 @@ begin
   exact dnC (cC.symm.trans cd').symm,
 end
 
-lemma adj [Gc : G.preconnected] (hK : K.nonempty) (C : G.comp_out K) (dis : disjoint K C) :
-  ∃ (c ∈ C) (k ∈ K), G.adj c k :=
+lemma adj [Gc : G.preconnected] [hK : K.nonempty] (C : G.comp_out K) (dis : disjoint K C) :
+  ∃ (ck : V × V), ck.1 ∈ C ∧ ck.2 ∈ K ∧ G.adj ck.1 ck.2 :=
 begin
   revert C,
   refine connected_component.ind _,
@@ -216,12 +216,11 @@ begin
   by_contradiction unC,
   obtain ⟨p⟩ := Gc v u,
   obtain ⟨x,y,xy,xC,ynC⟩ := walk.pred_adj_non_pred v u p C (by {simp}) unC,
-  apply nonadj,
-  use [x,y],
-  use [xC,ynC],
+  refine @nonadj V G K C _,
   rw set.disjoint_iff at dis,
+  use [x,y,xC,ynC],
   use (λ xK, dis ⟨xK,xC⟩),
-  use (λ yK, h x xC y yK xy),
+  use (λ (yK : y ∈ K), h ⟨x,y⟩ xC yK xy),
   exact xy,
 end
 
@@ -259,6 +258,57 @@ begin
   simp only [set_like.mem_coe, mem_supp_iff, connected_component.eq],
   exact this ⟨s,sS⟩ conn.right.some (conn.left ⟨s,sS⟩ conn.right.some),
 end
+
+
+section finiteness
+
+def to_thickening_aux (G : simple_graph V) (K : set V) (Gpc : G.preconnected) (Glc : G.locally_finite)
+  (Kf : K.finite) (Kn : K.nonempty) : Π (C : G.comp_out K), { x : V | x ∈ (thicken G K) ∧ x ∈ C} :=
+begin
+  rintro C,
+  by_cases h : disjoint K C,
+  { let ck := (@adj V G K Gpc Kn C h).some,
+    obtain ⟨cC,kK,ack⟩ := (@adj V G K Gpc Kn C h).some_spec,
+    use ck.1, dsimp only [thicken],
+    split, right,use ck.2, use kK, exact ack.symm, exact cC, },
+  { simp only [intersects_iff_singleton_in, exists_prop] at h,
+    use h.some, split, left, exact h.some_spec.left,
+    rw ←set_like.mem_coe,
+    let := h.some_spec.right,
+    have : h.some ∈ {h.some}, by apply set.mem_singleton, convert this, symmetry, assumption, -- that's dirty
+  },
+end
+
+def to_thickening (G : simple_graph V) (K : set V)  (Gpc : G.preconnected) (Glc : G.locally_finite)
+  (Kf : K.finite) (Kn : K.nonempty) : G.comp_out K → (thicken G K) :=
+λ C, ⟨(to_thickening_aux G K Gpc Glc Kf Kn C).val,(to_thickening_aux G K Gpc Glc Kf Kn C).prop.left⟩
+
+lemma to_thickening_inj  (G : simple_graph V) (K : set V)  (Gpc : G.preconnected) (Glc : G.locally_finite)
+  (Kf : K.finite) (Kn : K.nonempty) : function.injective (to_thickening G K Gpc Glc Kf Kn) :=
+begin
+  rintro C D,
+  dsimp [to_thickening, thicken], simp,
+  obtain ⟨x,xK,xC⟩ := to_thickening_aux G K Gpc Glc Kf Kn C,
+  obtain ⟨y,yK,yD⟩ := to_thickening_aux G K Gpc Glc Kf Kn D,
+  simp only [subtype.coe_mk],
+  rintro rfl,
+  apply eq_of_not_disjoint,
+  rw set.not_disjoint_iff,
+  exact ⟨x,xC,yD⟩,
+end
+
+lemma comp_out_finite  (G : simple_graph V) (K : set V)  (Gpc : G.preconnected) (Glf : G.locally_finite)
+  (Kf : K.finite) (Kn : K.nonempty)  :
+  finite (G.comp_out K) :=
+begin
+  haveI : finite (G.thicken K), by {rw set.finite_coe_iff, apply @thicken.finite _ _ Glf _ Kf, },
+  apply finite.of_injective (to_thickening G K Gpc Glf Kf Kn),
+  apply to_thickening_inj,
+end
+
+end finiteness
+
+
 
 section back
 

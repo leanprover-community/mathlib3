@@ -107,7 +107,8 @@ local attribute [semireducible] mul_opposite
 /-- The multiplicative `v`-adic valuation on `Kˣ/(Kˣ)ⁿ`. -/
 def valuation_of_ne_zero_mod (n : ℕ) : K/n →* multiplicative (zmod n) :=
 (int.quotient_zmultiples_nat_equiv_zmod n).to_multiplicative.to_monoid_hom.comp $
-  quotient_group.map _ (add_subgroup.zmultiples (n : ℤ)).to_subgroup v.valuation_of_ne_zero
+  quotient_group.map (pow_monoid_hom n : Kˣ →* Kˣ).range
+  (add_subgroup.zmultiples (n : ℤ)).to_subgroup v.valuation_of_ne_zero
 begin
   rintro _ ⟨x, rfl⟩,
   exact ⟨v.valuation_of_ne_zero x, by simpa only [pow_monoid_hom_apply, map_pow, int.to_add_pow]⟩
@@ -126,7 +127,7 @@ def selmer_group : subgroup $ K/n :=
   mul_mem' := λ _ _ hx hy v hv, by rw [map_mul, hx v hv, hy v hv, one_mul],
   inv_mem' := λ _ hx v hv, by rw [map_inv, hx v hv, inv_one] }
 
-notation K`⟮`S, n`⟯` := @selmer_group _ _ _ _ K _ _ _ S n
+localized "notation K`⟮`S, n`⟯` := @selmer_group _ _ _ _ K _ _ _ S n" in selmer_group
 
 lemma selmer_group.monotone (hS : S ≤ S') : K⟮S, n⟯ ≤ (K⟮S', n⟯) := λ _ hx v, hx v ∘ mt (@hS v)
 

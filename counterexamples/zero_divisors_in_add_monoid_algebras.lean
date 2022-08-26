@@ -7,10 +7,23 @@ import data.finsupp.lex
 import algebra.monoid_algebra.basic
 
 /-!
-# Addition on `α →₀ N` need not be monotone, when it is monotone on `N`
+# Examples of zero-divisors in `add_monoid_algebra`s
 
-This example addresses a comment in `data.finsupp.lex` to the effect that the proof that addition
-is monotone on `α →₀ N` uses that it is *strictly* monotone on `N`.
+This file contains an example of an easy source of zero-divisors in an `add_monoid_algebra`:
+if `k` is a field and `G` is an additive group containing a non-zero torsion element, then
+`add_monoid_algebra k G` contains non-zero zero-divisors.  The elements are easy to write down:
+`[a]` and `[a] ^ (n - 1) - 1` are non-zero elements of `add_monoid_algebra R A` whose product is
+zero.
+
+The converse of this statement is
+[Kaplansky's zero divisor conjecture](https://en.wikipedia.org/wiki/Kaplansky%27s_conjectures).
+
+The formalized example generalizes in trivial ways the assumptions: the field `k` can be any
+nontrivial ring `R` and the additive group `G` with a torsion element can be any additive monoid
+`A` with a non-zero periodic element.
+
+Besides this example, we also address a comment in `data.finsupp.lex` to the effect that the proof
+that addition is monotone on `α →₀ N` uses that it is *strictly* monotone on `N`.
 
 The specific statement is about `finsupp.lex.covariant_class_le_left` and its analogue
 `finsupp.lex.covariant_class_le_right`.  We do not need two separate counterexamples, since the
@@ -24,6 +37,24 @@ finitely supported function is lexicographic, matching the list notation.  The i
 `[1, 1] > [1, 0]`.
 -/
 open finsupp
+
+/--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
+monoid with an element satisfying `n • a = a`, for some `2 ≤ n`, then `add_monoid_algebra R A`
+contains non-zero zero-divisors.  The elements are easy to write down: `[a]` and `[a] ^ (n - 1) - 1`
+are non-zero elements of `add_monoid_algebra R A` whose product is zero.
+
+In particular, this applies whenever the additive monoid `A` is an additive group with a non-zero
+torsion element. -/
+example {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} {a : A}
+  (n2 : 2 ≤ n) (na : n • a = a) (na1 : (n - 1) • a ≠ 0) :
+  ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
+begin
+  refine ⟨single a 1, single ((n - 1) • a) 1 - single 0 1, by simp, _, _⟩,
+  { exact sub_ne_zero.mpr (by simpa [single_eq_single_iff]) },
+  { rw [mul_sub, add_monoid_algebra.single_mul_single, add_monoid_algebra.single_mul_single,
+      sub_eq_zero, add_zero, ← succ_nsmul, nat.sub_add_cancel (one_le_two.trans n2), na] },
+end
+
 /--  `F` is the type with two elements `zero` and `one`.  We define the "obvious" linear order and
 absorbing addition on it to generate our counterexample. -/
 @[derive [decidable_eq, inhabited]] inductive F | zero | one
@@ -91,13 +122,14 @@ instance : add_comm_monoid F :=
   add_zero  := by boom,
   add_comm  := by boom }
 
+/--  The `covariant_class`es asserting monotonicity of addition hold for `F`. -/
 instance covariant_class_add_le : covariant_class F F (+) (≤) := ⟨by boom⟩
+example : covariant_class F F (function.swap (+)) (≤) := by apply_instance
 
 /--  The following examples show that `F` has all the typeclasses used by
 `finsupp.lex.covariant_class_le_left`... -/
 example : linear_order F := by apply_instance
 example : add_monoid F   := by apply_instance
-example : covariant_class F F (function.swap (+)) (≤) := by apply_instance
 
 /-- ... except for the strict monotonicity of addition, the crux of the matter. -/
 example : ¬ covariant_class F F (+) (<) := λ h, lt_irrefl 1 $ (h.elim : covariant F F (+) (<)) 1 z01
@@ -121,19 +153,7 @@ begin
       pi.add_apply, forall_eq, f010, f1, eq_self_iff_true, f011, f111, zero_add, and_self] },
 end
 
-/--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
-monoid with an element satisfying `n • a = a`, for some `2 ≤ n`, then `add_monoid_algebra R A`
-contains non-zero zero-divisors. -/
-example {R A} [nontrivial R] [ring R] [add_monoid A] (n : ℕ) (a : A) (n2 : 2 ≤ n) (na : n • a = a)
-  (na1 : (n - 1) • a ≠ 0) : ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
-begin
-  refine ⟨single a 1, single ((n - 1) • a) 1 - single 0 1, by simp, _, _⟩,
-  { exact sub_ne_zero.mpr (by simpa [single_eq_single_iff]) },
-  { rw [mul_sub, add_monoid_algebra.single_mul_single, add_monoid_algebra.single_mul_single,
-      sub_eq_zero, add_zero, ← succ_nsmul, nat.sub_add_cancel (one_le_two.trans n2), na] },
-end
-
-example : 2 • (single 0 1 : F →₀ F) = single 0 1 ∧ (single 0 1 : F →₀ F) ≠ 0 :=
+example {α} [has_zero α] : 2 • (single 0 1 : α →₀ F) = single 0 1 ∧ (single 0 1 : α →₀ F) ≠ 0 :=
 ⟨smul_single _ _ _, by simpa only [ne.def, single_eq_zero] using z01.ne⟩
 
 end F

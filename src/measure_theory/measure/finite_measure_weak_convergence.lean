@@ -65,10 +65,10 @@ TODO:
     measures.
   * `measure_theory.tendsto_measure_of_null_frontier` proves that the liminf condition for open
     sets (which is equivalent to the limsup condition for closed sets) implies the convergence of
-    probabilities of sets whose boundary carries no probability mass under the limit measure.
+    probabilities of sets whose boundary carries no mass under the limit measure.
   * `measure_theory.probability_measure.tendsto_measure_of_null_frontier_of_tendsto` is a
     combination of earlier implications, which shows that weak convergence of probability measures
-    implies the convergence of probabilities of sets whose boundary carries no probability mass
+    implies the convergence of probabilities of sets whose boundary carries no mass
     under the limit measure.
   * Prove the rest of the implications.
     (Where formulations are currently only provided for probability measures, one can obtain the

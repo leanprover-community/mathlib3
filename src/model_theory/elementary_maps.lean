@@ -38,7 +38,7 @@ variables [L.Structure M] [L.Structure N] [L.Structure P] [L.Structure Q]
   realizations of formulas. -/
 structure elementary_embedding :=
 (to_fun : M → N)
-(map_formula' : ∀{n} (φ : L.formula (fin n)) (x : fin n → M),
+(map_formula' : ∀ {{n}} (φ : L.formula (fin n)) (x : fin n → M),
   φ.realize (to_fun ∘ x) ↔ φ.realize x . obviously)
 
 localized "notation (name := elementary_embedding)
@@ -318,7 +318,7 @@ instance induced_Structure (S : L.elementary_substructure M) : L.Structure S :=
 substructure.induced_Structure
 
 @[simp] lemma is_elementary (S : L.elementary_substructure M) :
-  (S : L.substructure M).is_elementary := λ _, S.is_elementary'
+  (S : L.substructure M).is_elementary := S.is_elementary'
 
 /-- The natural embedding of an `L.substructure` of `M` into `M`. -/
 def subtype (S : L.elementary_substructure M) : S ↪ₑ[L] M :=

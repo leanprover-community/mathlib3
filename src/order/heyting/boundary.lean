@@ -58,26 +58,30 @@ begin
     (inf_le_inf_left _ $ hnot_anti le_sup_right),
 end
 
-example [decidable_eq α] (h : ∀ a : α, ￢a = if a = ⊤ then ⊥ else ⊤) (a : α) :
-  ∂ a = if a = ⊤ then ⊥ else a :=
+/- The intuitionistic version of `coheyting.boundary_le_boundary_sup_sup_boundary_inf_left`. Either
+proof can be obtained from the other using the equivalence of Heyting algebras and intuitionistic
+logic and duality between Heyting and co-Heyting algebras. It is crucial that the following proof be
+intuitionistic. -/
+example (a b : Prop) : ((a ∧ b) ∨ ¬(a ∧ b)) ∧ ((a ∨ b) ∨ ¬ (a ∨ b)) → a ∨ ¬ a :=
 begin
-  rw [boundary, h],
-  split_ifs,
-  { exact inf_bot_eq },
-  { exact inf_top_eq }
+  rintro ⟨⟨ha, hb⟩ | hnab, (ha | hb) | hnab⟩;
+    try { exact or.inl ha },
+  { exact or.inr (λ ha, hnab ⟨ha, hb⟩) },
+  { exact or.inr (λ ha, hnab $ or.inl ha) }
 end
 
 lemma boundary_le_boundary_sup_sup_boundary_inf_left : ∂ a ≤ ∂ (a ⊔ b) ⊔ ∂ (a ⊓ b) :=
 begin
-  rw [←@inf_top_eq _ _ _ (∂ a), ←hnot_sup_self b, inf_sup_left],
-  refine sup_le _ _,
-  rw [←inf_hnot_self (a ⊔ b), boundary, sup_inf_right],
-  refine le_inf _ _,
-  { rw [inf_assoc, sup_assoc],
-    exact inf_le_of_left_le le_sup_left },
-  { sorry },
-  rw boundary_inf,
-  exact le_sup_of_le_right le_sup_left,
+  simp only [boundary, sup_inf_left, sup_inf_right, sup_right_idem, le_inf_iff, sup_assoc,
+    @sup_comm _ _ _ a],
+  refine ⟨⟨⟨_, _⟩, _⟩, ⟨_, _⟩, _⟩;
+    try { exact le_sup_of_le_left inf_le_left };
+    refine inf_le_of_right_le _,
+  { rw [hnot_le_iff_codisjoint_right, codisjoint_left_comm],
+    exact codisjoint_hnot_left },
+  { refine le_sup_of_le_right _,
+    rw hnot_le_iff_codisjoint_right,
+    exact codisjoint_hnot_right.mono_right (hnot_anti inf_le_left) }
 end
 
 lemma boundary_le_boundary_sup_sup_boundary_inf_right : ∂ b ≤ ∂ (a ⊔ b) ⊔ ∂ (a ⊓ b) :=

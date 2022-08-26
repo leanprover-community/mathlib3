@@ -139,6 +139,9 @@ begin
       from supr_le_supr_of_subset (alg_hom.spectrum_apply_subset φ s)) }
 end
 
+/-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
+lemma norm_apply_le (a : A) : ∥(φ a : B)∥ ≤ ∥a∥ := nnnorm_apply_le φ a
+
 /-- Star algebra homomorphisms between C⋆-algebras are continuous linear maps.
 See note [lower instance priority] -/
 @[priority 100]

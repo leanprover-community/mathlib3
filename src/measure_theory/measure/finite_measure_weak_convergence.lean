@@ -1074,9 +1074,9 @@ begin
   have obs : L.liminf (λ (i : ι), 1 - μs i E) = L.liminf ((λ x, 1 - x) ∘ (λ (i : ι), μs i E)),
     by refl,
   rw obs,
-  simp_rw ← ennreal.antitone_const_sub.map_limsup_of_continuous_at (λ i, μs i E)
+  simp_rw ← antitone_const_tsub.map_limsup_of_continuous_at (λ i, μs i E)
             (ennreal.continuous_sub_left ennreal.one_ne_top).continuous_at,
-  exact ennreal.antitone_const_sub h,
+  exact antitone_const_tsub h,
 end
 
 lemma le_measure_liminf_of_limsup_measure_compl_le
@@ -1105,9 +1105,9 @@ begin
   have obs : L.limsup (λ (i : ι), 1 - μs i E) = L.limsup ((λ x, 1 - x) ∘ (λ (i : ι), μs i E)),
     by refl,
   rw obs,
-  simp_rw ← ennreal.antitone_const_sub.map_liminf_of_continuous_at (λ i, μs i E)
+  simp_rw ← antitone_const_tsub.map_liminf_of_continuous_at (λ i, μs i E)
             (ennreal.continuous_sub_left ennreal.one_ne_top).continuous_at,
-  exact ennreal.antitone_const_sub h,
+  exact antitone_const_tsub h,
 end
 
 lemma limsup_measure_le_of_le_liminf_measure_compl

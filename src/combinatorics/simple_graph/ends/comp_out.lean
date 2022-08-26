@@ -360,6 +360,24 @@ begin
   exact Cinf (set.finite_singleton k),
 end
 
+lemma exists_inf [infinite V] (G : simple_graph V) (K : set V)  (Gpc : G.preconnected)
+  (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty) : ∃ C : G.comp_out K, C.inf :=
+begin
+  by_contra h, push_neg at h,
+  have : set.univ = ⋃ (C : G.comp_out K), (C : set V), by {
+    symmetry,
+    rw set.eq_univ_iff_forall, rintro x, use of_vertex G K x,
+    simp only [of_vertex, mem_range_self, set_like.mem_coe, mem_supp_iff, true_and],},
+  have : (@set.univ V).finite, by {
+    rw this,
+    haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kf Kn,
+    apply set.finite_Union,
+    simp_rw set.not_infinite at h,
+    exact h,},
+    apply set.infinite_univ this,
+end
+
+
 lemma back_of_inf {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : C.inf → (C.back h).inf :=
 begin
   rintro Cinf,

@@ -91,7 +91,7 @@ end
 
 section
 
-variables {f g : M → G} {s : set M} {x : M} {n : with_top ℕ}
+variables {f g : M → G} {s : set M} {x : M} {n : ℕ∞}
 
 @[to_additive]
 lemma cont_mdiff_within_at.mul (hf : cont_mdiff_within_at I' I n f s x)
@@ -255,7 +255,7 @@ variables {ι 𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] {s : set M} {x : M}
-{t : finset ι} {f : ι → M → G} {n : with_top ℕ} {p : ι → Prop}
+{t : finset ι} {f : ι → M → G} {n : ℕ∞} {p : ι → Prop}
 
 @[to_additive]
 lemma cont_mdiff_within_at_finset_prod' (h : ∀ i ∈ t, cont_mdiff_within_at I' I n (f i) s x) :

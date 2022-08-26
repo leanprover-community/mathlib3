@@ -26,7 +26,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H'' : Type*} [topological_space H'']
 {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
-(n : with_top ℕ)
+(n : ℕ∞)
 
 /-- Bundled `n` times continuously differentiable maps. -/
 @[protect_proj]

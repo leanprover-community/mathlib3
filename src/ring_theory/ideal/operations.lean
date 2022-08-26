@@ -1763,6 +1763,10 @@ by apply_instance
 def quotient.mkₐ (I : ideal A) : A →ₐ[R₁] A ⧸ I :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
 
+lemma quotient.alg_hom_ext {I : ideal A} {S} [semiring S] [algebra R₁ S] ⦃f g : A ⧸ I →ₐ[R₁] S⦄
+  (h : f.comp (quotient.mkₐ R₁ I) = g.comp (quotient.mkₐ R₁ I)) : f = g :=
+alg_hom.ext $ λ x, quotient.induction_on' x $ alg_hom.congr_fun h
+
 lemma quotient.alg_map_eq (I : ideal A) :
   algebra_map R₁ (A ⧸ I) = (algebra_map A (A ⧸ I)).comp (algebra_map R₁ A) :=
 rfl

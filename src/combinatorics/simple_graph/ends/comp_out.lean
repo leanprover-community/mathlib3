@@ -103,6 +103,9 @@ variables {K}  {L : set V} {KL : K ⊆ L}
 def inf (C : G.comp_out K) := (C : set V).infinite
 
 @[reducible]
+def fin (C : G.comp_out K) := (C : set V).finite
+
+@[reducible]
 def dis (C : G.comp_out K) := disjoint K (C : set V)
 
 
@@ -374,9 +377,8 @@ begin
     apply set.finite_Union,
     simp_rw set.not_infinite at h,
     exact h,},
-    apply set.infinite_univ this,
+  apply set.infinite_univ this,
 end
-
 
 lemma back_of_inf {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : C.inf → (C.back h).inf :=
 begin
@@ -422,6 +424,28 @@ begin
 end
 
 end infinite
+
+section misc
+
+def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (⋃ (C : G.comp_out K) (h : C.fin), (C : set V))
+
+lemma extend_with_fin.finite (Gpc : G.preconnected) (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty):
+  (extend_with_fin G K).finite :=
+begin
+  apply set.finite.union Kf,
+  haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kf Kn,
+  apply set.finite_Union,
+  rintro C,
+  apply set.finite_Union, exact id,
+end
+
+lemma extend_with_fin.sub (G : simple_graph V) (K : set V) : K ⊆ extend_with_fin G K := by
+{ dsimp [extend_with_fin],exact subset_union_left K (⋃ (C : comp_out G K) (h : C.fin), ↑C), }
+
+lemma extend_with_fin.connected (G : simple_graph V) (K : set V) : (G.induce (extend_with_fin G K)).connected := sorry
+
+
+end misc
 
 
 end comp_out

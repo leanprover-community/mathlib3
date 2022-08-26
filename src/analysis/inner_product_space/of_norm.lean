@@ -203,13 +203,10 @@ def inner_prop (r : 𝕜) : Prop := ∀ x y : E', inner_ 𝕜 (r • x) y = conj
 end
 
 lemma inner_.nat
-  (h : ∀ (x y : E'),
-         ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ =
-           2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
-  ∀ (r : ℕ) (x y : E'),
-           inner_ 𝕜 ((r : 𝕜) • x) y = (r : 𝕜) * inner_ 𝕜 x y :=
+  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (r : ℕ) (x y : E') :
+  inner_ 𝕜 ((r : 𝕜) • x) y = (r : 𝕜) * inner_ 𝕜 x y :=
 begin
-  intros r x y,
   induction r with r ih,
   { simp only [inner_, nat.nat_zero_eq_zero, zero_sub, nat.cast_zero, zero_mul, eq_self_iff_true,
       zero_smul, zero_add, mul_zero, sub_self, norm_neg, smul_zero], },
@@ -218,9 +215,7 @@ begin
 end
 
 lemma inner_.nat_prop (r : ℕ)
-  (h : ∀ (x y : E'),
-         ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ =
-           2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
   inner_prop 𝕜 E' r :=
 begin
   intros x y,
@@ -248,9 +243,7 @@ begin
 end
 
 lemma inner_.int_prop (r : ℤ)
-  (h : ∀ (x y : E'),
-         ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ =
-           2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
   inner_prop 𝕜 E' r :=
 begin
   intros x y,
@@ -282,7 +275,7 @@ begin
   rw [←mul_assoc, mul_div_cancel' _ this, inner_.int_prop _ h, map_int_cast],
 end
 
-lemma inner_.continuous {α} [topological_space α] (f : α → E') (g :  α → E')
+lemma inner_.continuous {α} [topological_space α] {f : α → E'} {g : α → E'}
   (hf : continuous f) (hg : continuous g) :
   continuous (λ x, inner_ 𝕜 (f x) (g x)) :=
 begin
@@ -314,19 +307,11 @@ begin
   revert r,
   rw ←function.funext_iff,
   refine rat.dense_embedding_coe_real.dense.equalizer _ _ _,
-  { apply inner_.continuous,
-    apply continuous.smul,
-    exact continuous_of_real,
-    apply continuous_const,
-    apply continuous_const },
-  { apply continuous.mul,
-    exact continuous_conj.comp continuous_of_real,
-    apply inner_.continuous,
-    apply continuous_const,
-    apply continuous_const },
+  { exact inner_.continuous (continuous_of_real.smul continuous_const) continuous_const },
+  { exact (continuous_conj.comp continuous_of_real).mul
+      (inner_.continuous continuous_const continuous_const) },
   funext X,
-  simp only [function.comp_app, is_R_or_C.of_real_rat_cast],
-  exact inner_.rat_prop _ h _ _,
+  simp only [function.comp_app, is_R_or_C.of_real_rat_cast, inner_.rat_prop _ h _ _],
 end
 
 lemma inner_.I_prop
@@ -350,9 +335,7 @@ begin
   { rw [←neg_sub, norm_neg, sub_eq_neg_add], },
   rw [h₁, h₂],
   simp only [sub_eq_add_neg, mul_assoc],
-  rw ←neg_mul_eq_neg_mul,
-  rw ←neg_mul_eq_neg_mul,
-  rw neg_neg,
+  rw [←neg_mul_eq_neg_mul, ←neg_mul_eq_neg_mul],
   abel
 end
 
@@ -366,10 +349,10 @@ begin
   ring,
 end
 
-lemma inner_.norm_sq (x : E') :  ∥x∥ ^ 2 = re (inner_ 𝕜 x x) :=
+lemma inner_.norm_sq (x : E') : ∥x∥ ^ 2 = re (inner_ 𝕜 x x) :=
 begin
   simp only [inner_],
-  have h₁ : norm_sq (4:𝕜) = 16,
+  have h₁ : norm_sq (4 : 𝕜) = 16,
   { have : ((4 : ℝ) : 𝕜) = (4 : 𝕜),
     { simp only [of_real_one, of_real_bit0] },
     rw [←this, norm_sq_eq_def', is_R_or_C.norm_eq_abs,
@@ -397,21 +380,19 @@ begin
   rw [map_mul, h4],
   congr' 1,
   simp only [map_sub, map_add, algebra_map_eq_of_real, ←of_real_mul, conj_of_real, map_mul, conj_I],
-  have h₀ : ∥y - x∥ = ∥x - y∥,
-  { rw [←neg_sub, norm_neg] },
-  rw [add_comm y x, h₀],
+  rw [add_comm y x, norm_sub_rev],
   by_cases hI : (I : 𝕜) = 0,
   { simp only [hI, neg_zero, zero_mul] },
   have h₁ : ∥(I : 𝕜) • y - x∥ = ∥(I : 𝕜) • x + y∥,
   { transitivity ∥(I : 𝕜) • ((I : 𝕜) • y - x)∥,
-    rw [norm_smul, norm_I_of_nonzero hI, one_mul],
-    rw [smul_sub, smul_smul, I_mul_I_of_nonzero hI, neg_one_smul, ←neg_add', add_comm, norm_neg] },
+    { rw [norm_smul, norm_I_of_nonzero hI, one_mul] },
+    { rw [smul_sub, smul_smul, I_mul_I_of_nonzero hI, neg_one_smul, ←neg_add', add_comm,
+        norm_neg] } },
   have h₂ : ∥(I : 𝕜) • y + x∥ = ∥(I : 𝕜) • x - y∥,
   { transitivity ∥(I : 𝕜) • ((I : 𝕜) • y + x)∥,
-    rw [norm_smul, norm_I_of_nonzero hI, one_mul],
-    rw [smul_add, smul_smul, I_mul_I_of_nonzero hI, neg_one_smul, ←neg_add_eq_sub] },
-  rw [h₁, h₂],
-  rw ←sub_add_eq_add_sub,
+    { rw [norm_smul, norm_I_of_nonzero hI, one_mul] },
+    { rw [smul_add, smul_smul, I_mul_I_of_nonzero hI, neg_one_smul, ←neg_add_eq_sub]  }},
+  rw [h₁, h₂, ←sub_add_eq_add_sub],
   simp only [neg_mul, sub_eq_add_neg, neg_neg],
 end
 

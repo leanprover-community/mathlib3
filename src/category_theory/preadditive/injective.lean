@@ -205,7 +205,7 @@ lemma injective_iff_preserves_epimorphisms_preadditive_yoneda_obj' (J : C) :
 begin
   rw injective_iff_preserves_epimorphisms_yoneda_obj,
   refine ⟨λ (h : (preadditive_yoneda_obj J ⋙ (forget _)).preserves_epimorphisms), _, _⟩,
-  { exactI functor.preserves_epimorphisms_of_prerseves_of_reflects (preadditive_yoneda_obj J)
+  { exactI functor.preserves_epimorphisms_of_preserves_of_reflects (preadditive_yoneda_obj J)
       (forget _) },
   { introI,
     exact (infer_instance : (preadditive_yoneda_obj J ⋙ forget _).preserves_epimorphisms) }

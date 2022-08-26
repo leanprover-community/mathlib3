@@ -21,12 +21,12 @@ TODO:
 
 ## Main definitions
 
- * `is_dedekind_domain.S_integers`: the ring of `S`-integers.
- * `is_dedekind_domain.S_units`: the group of `S`-units.
+ * `is_dedekind_domain.S_integer`: the ring of `S`-integers.
+ * `is_dedekind_domain.S_unit`: the group of `S`-units.
 
 ## Main statements
 
- * `is_dedekind_domain.units_S_integers_equiv_S_units`: units of `S`-integers are `S`-units.
+ * `is_dedekind_domain.units_S_integer_equiv_S_unit`: units of `S`-integers are `S`-units.
 
 ## References
 
@@ -51,7 +51,7 @@ variables {R : Type u} [comm_ring R] [is_domain R] [is_dedekind_domain R] (K : T
   [algebra R K] [is_fraction_ring R K] (S : set $ height_one_spectrum R)
 
 /-- The subring of `S`-integers of `K`. -/
-@[simps] def S_integers : subring K :=
+@[simps] def S_integer : subring K :=
 { carrier   := {x : K | ∀ v ∉ S, (v : height_one_spectrum R).valuation x ≤ 1},
   mul_mem'  := λ _ _ hx hy v hv, by simp only [map_mul, mul_le_one₀ (hx v hv) (hy v hv)],
   one_mem'  := λ _ _, by simp only [map_one, le_refl],
@@ -60,14 +60,14 @@ variables {R : Type u} [comm_ring R] [is_domain R] [is_dedekind_domain R] (K : T
   neg_mem'  := λ _ hx v hv, by simp only [valuation.map_neg, hx v hv] }
 
 /-- The subgroup of `S`-units of `Kˣ`. -/
-@[simps] def S_units : subgroup Kˣ :=
+@[simps] def S_unit : subgroup Kˣ :=
 { carrier  := {x : Kˣ | ∀ v ∉ S, (v : height_one_spectrum R).valuation (x : K) = 1},
   mul_mem' := λ _ _ hx hy v hv, by rw [units.coe_mul, map_mul, hx v hv, hy v hv, one_mul],
   one_mem' := λ _ _, map_one _,
   inv_mem' := λ _ hx v hv, by rw [valuation.map_units_inv, hx v hv, inv_one] }
 
 /-- The subring of `S`-integers of `K` is an algebra over `R`. -/
-instance : algebra R (S_integers K S) :=
+instance : algebra R (S_integer K S) :=
 { smul      := λ x y, ⟨algebra_map R K x, λ v _, v.valuation_le_one x⟩ * y,
   to_fun    := λ x, ⟨algebra_map R K x, λ v _, v.valuation_le_one x⟩,
   map_one'  := by simpa only [map_one],
@@ -78,7 +78,7 @@ instance : algebra R (S_integers K S) :=
   smul_def' := λ _ _, rfl }
 
 /-- The group of units of the ring of `S`-integers is the group of `S`-units. -/
-@[simps] def units_S_integers_equiv_S_units : (S_integers K S)ˣ ≃* S_units K S :=
+@[simps] def units_S_integer_equiv_S_unit : (S_integer K S)ˣ ≃* S_unit K S :=
 { to_fun    := λ x, ⟨units.mk0 x $ λ hx, x.ne_zero ((subring.coe_eq_zero_iff _).mp hx),
   λ v hv, eq_one_of_mul_eq_one_left (x.val.property v hv) (x.inv.property v hv) $
     by { rw [← map_mul, ← v.valuation.map_one], congr' 1, exact subtype.mk_eq_mk.mp x.val_inv }⟩,

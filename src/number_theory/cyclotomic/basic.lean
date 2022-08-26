@@ -504,7 +504,8 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     subst a,
     haveI := ne_zero.of_no_zero_smul_divisors A K n,
     haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
-    obtain ⟨μ, hμ⟩ := (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root (mem_singleton n),
+    obtain ⟨μ, hμ⟩ :=
+      (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root (mem_singleton n),
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
     { apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
       refine ⟨n, nat.mem_divisors_self _ n.ne_zero, _⟩,

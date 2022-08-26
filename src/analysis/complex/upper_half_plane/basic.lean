@@ -132,7 +132,7 @@ begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
-  { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
+  { simp only [denom_ne_zero g z, map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux', -coe_coe],
   rw (matrix.det_fin_two (↑ₘg)),
   ring,

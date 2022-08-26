@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import data.fintype.basic
-import data.finite.defs
 
 /-!
 # Finite types
@@ -43,28 +42,6 @@ open_locale classical
 
 variables {α β γ : Type*}
 
-protected lemma fintype.finite {α : Type*} (h : fintype α) : finite α := ⟨fintype.equiv_fin α⟩
-
-/-- For efficiency reasons, we want `finite` instances to have higher
-priority than ones coming from `fintype` instances. -/
-@[priority 900]
-instance finite.of_fintype (α : Type*) [fintype α] : finite α := fintype.finite ‹_›
-
-lemma finite_iff_nonempty_fintype (α : Type*) :
-  finite α ↔ nonempty (fintype α) :=
-⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
-  λ ⟨_⟩, by exactI infer_instance⟩
-
-lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
-(finite_iff_nonempty_fintype α).mp ‹_›
-
-/-- Noncomputably get a `fintype` instance from a `finite` instance. This is not an
-instance because we want `fintype` instances to be useful for computations. -/
-def fintype.of_finite (α : Type*) [finite α] : fintype α := (nonempty_fintype α).some
-
-lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
-by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]
-
 lemma finite_or_infinite (α : Type*) :
   finite α ∨ infinite α :=
 begin
@@ -72,46 +49,14 @@ begin
   apply em
 end
 
-lemma not_finite (α : Type*) [h1 : infinite α] [h2 : finite α] : false :=
-not_finite_iff_infinite.mpr h1 h2
-
-lemma finite.of_not_infinite {α : Type*} (h : ¬ infinite α) : finite α :=
-by rwa [← not_finite_iff_infinite, not_not] at h
-
-lemma infinite.of_not_finite {α : Type*} (h : ¬ finite α) : infinite α :=
-not_finite_iff_infinite.mp h
-
-lemma not_infinite_iff_finite {α : Type*} : ¬ infinite α ↔ finite α :=
-not_finite_iff_infinite.not_right.symm
-
-lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
-
-@[nolint instance_priority]
-instance finite.prop (p : Prop) : finite p := of_subsingleton
-
 namespace finite
 
-lemma exists_max [finite α] [nonempty α] [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
-by { haveI := fintype.of_finite α, exact fintype.exists_max f }
-
-lemma exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
-by { haveI := fintype.of_finite α, exact fintype.exists_min f }
-
-lemma of_injective {α β : Sort*} [finite β] (f : α → β) (H : function.injective f) : finite α :=
-begin
-  haveI := fintype.of_finite (plift β),
-  rw [← equiv.injective_comp equiv.plift f, ← equiv.comp_injective _ equiv.plift.symm] at H,
-  haveI := fintype.of_injective _ H,
-  exact finite.of_equiv _ equiv.plift,
-end
-
-lemma of_surjective {α β : Sort*} [finite α] (f : α → β) (H : function.surjective f) : finite β :=
-of_injective _ $ function.injective_surj_inv H
-
 @[priority 100] -- see Note [lower instance priority]
-instance of_is_empty {α : Sort*} [is_empty α] : finite α := finite.of_equiv _ equiv.plift
+instance of_subsingleton {α : Sort*} [subsingleton α] : finite α :=
+of_injective (function.const α ()) $ function.injective_of_subsingleton _
+
+@[nolint instance_priority] -- Higher priority for `Prop`s
+instance prop (p : Prop) : finite p := finite.of_subsingleton
 
 instance [finite α] [finite β] : finite (α × β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }
@@ -139,6 +84,8 @@ by { letI := fintype.of_finite α, letI := λ a, fintype.of_finite (β a), apply
 
 instance {ι : Sort*} {π : ι → Sort*} [finite ι] [Π i, finite (π i)] : finite (Σ' i, π i) :=
 of_equiv _ (equiv.psigma_equiv_sigma_plift π).symm
+
+instance [finite α] : finite (set α) := by { casesI nonempty_fintype α, apply_instance }
 
 end finite
 

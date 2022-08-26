@@ -705,11 +705,22 @@ by rw [←diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff, not_lt]
 
 /-! #### Two infinite intervals -/
 
-@[simp] lemma Iic_union_Ici : Iic a ∪ Ici a = univ := eq_univ_of_forall (λ x, le_total x a)
+lemma Iic_union_Ioi_of_le (h : a ≤ b) : Iic b ∪ Ioi a = univ :=
+eq_univ_of_forall $ λ x, (h.lt_or_le x).symm
 
-@[simp] lemma Iio_union_Ici : Iio a ∪ Ici a = univ := eq_univ_of_forall (λ x, lt_or_le x a)
+lemma Iio_union_Ici_of_le (h : a ≤ b) : Iio b ∪ Ici a = univ :=
+eq_univ_of_forall $ λ x, (h.le_or_lt x).symm
 
-@[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = univ := eq_univ_of_forall (λ x, le_or_lt x a)
+lemma Iic_union_Ici_of_le (h : a ≤ b) : Iic b ∪ Ici a = univ :=
+eq_univ_of_forall $ λ x, (h.le_or_le x).symm
+
+lemma Iio_union_Ioi_of_lt (h : a < b) : Iio b ∪ Ioi a = univ :=
+eq_univ_of_forall $ λ x, (h.lt_or_lt x).symm
+
+@[simp] lemma Iic_union_Ici : Iic a ∪ Ici a = univ := Iic_union_Ici_of_le le_rfl
+@[simp] lemma Iio_union_Ici : Iio a ∪ Ici a = univ := Iio_union_Ici_of_le le_rfl
+@[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = univ := Iic_union_Ioi_of_le le_rfl
+@[simp] lemma Iio_union_Ioi : Iio a ∪ Ioi a = {a}ᶜ := ext $ λ x, lt_or_lt_iff_ne
 
 /-! #### A finite and an infinite interval -/
 

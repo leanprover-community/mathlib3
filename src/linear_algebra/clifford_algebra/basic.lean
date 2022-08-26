@@ -16,12 +16,12 @@ a quadratic_form `Q`.
 
 ## Notation
 
-The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is denoted as
-`clifford_algebra Q`.
+The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is
+an `R`-algebra denoted `clifford_algebra Q`.
 
 Given a linear morphism `f : M → A` from a module `M` to another `R`-algebra `A`, such that
 `cond : ∀ m, f m * f m = algebra_map _ _ (Q m)`, there is a (unique) lift of `f` to an `R`-algebra
-morphism, which is denoted `clifford_algebra.lift Q f cond`.
+morphism from `clifford_algebra Q` to `A`, which is denoted `clifford_algebra.lift Q f cond`.
 
 The canonical linear map `M → clifford_algebra Q` is denoted `clifford_algebra.ι Q`.
 
@@ -292,6 +292,30 @@ lemma equiv_of_isometry_refl :
 by { ext x, exact alg_hom.congr_fun (map_id Q₁) x }
 
 end map
+
+variables (Q)
+
+/-- If the quadratic form of a vector is invertible, then so is that vector. -/
+def invertible_ι_of_invertible (m : M) [invertible (Q m)] : invertible (ι Q m) :=
+{ inv_of := ι Q (⅟(Q m) • m),
+  inv_of_mul_self := by rw [map_smul, smul_mul_assoc, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one],
+  mul_inv_of_self := by rw [map_smul, mul_smul_comm, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one] }
+
+/-- For a vector with invertible quadratic form, $v^{-1} = \frac{v}{Q(v)}$ -/
+lemma inv_of_ι (m : M) [invertible (Q m)] [invertible (ι Q m)] : ⅟(ι Q m) = ι Q (⅟(Q m) • m) :=
+begin
+  letI := invertible_ι_of_invertible Q m,
+  convert (rfl : ⅟(ι Q m) = _),
+end
+
+lemma is_unit_ι_of_is_unit {m : M} (h : is_unit (Q m)) : is_unit (ι Q m) :=
+begin
+  casesI h.nonempty_invertible,
+  letI := invertible_ι_of_invertible Q m,
+  exactI is_unit_of_invertible (ι Q m),
+end
 
 end clifford_algebra
 

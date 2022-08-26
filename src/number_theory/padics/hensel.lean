@@ -164,12 +164,12 @@ have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) :
 have F.derivative.eval z * (-z1) = -F.eval z, from calc
   F.derivative.eval z * (-z1)
     = (F.derivative.eval z) * -⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩ : by rw [hzeq]
-... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) :
-  by simp [subtype.ext_iff_val]
+... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : mul_neg _ _
 ... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) :
-  subtype.ext $ by simp
-... = -(F.eval z) : by simp [mul_div_cancel' _ hdzne'],
-have heq : F.eval z' = q * z1^2, by simpa [sub_eq_add_neg, this, hz'] using hq,
+  subtype.ext $ by simp only [padic_int.coe_neg, padic_int.coe_mul, subtype.coe_mk]
+... = -(F.eval z) : by simp only [mul_div_cancel' _ hdzne', subtype.coe_eta],
+have heq : F.eval z' = q * z1^2, by simpa only [sub_eq_add_neg, this, hz', add_right_neg, neg_sq,
+  zero_add] using hq,
 ⟨q, heq⟩
 
 private def calc_eval_z'_norm {z z' z1 : ℤ_[p]} {n} (hz : ih n z) {q}

@@ -67,6 +67,16 @@ begin
     ((nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn),
 end
 
+/-- If `n % 4 = 1`, then `(-1)^(n/2) = 1`. -/
+lemma _root_.neg_one_pow_div_two_of_one_mod_four {n : ℕ} (hn : n % 4 = 1) :
+  (-1 : ℤ) ^ (n / 2) = 1 :=
+by { rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_one hn), ← nat_cast_mod, hn], refl }
+
+/-- If `n % 4 = 3`, then `(-1)^(n/2) = -1`. -/
+lemma _root_.neg_one_pow_div_two_of_three_mod_four {n : ℕ} (hn : n % 4 = 3) :
+  (-1 : ℤ) ^ (n / 2) = -1 :=
+by { rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_three hn), ← nat_cast_mod, hn], refl }
+
 /-- Define the first primitive quadratic character on `zmod 8`, `χ₈`.
 It corresponds to the extension `ℚ(√2)/ℚ`. -/
 @[simps] def χ₈ : mul_char (zmod 8) ℤ :=
@@ -120,13 +130,7 @@ lemma χ₈'_eq_χ₄_mul_χ₈ (a : zmod 8) : χ₈' a = χ₄ a * χ₈ a := b
 
 lemma χ₈'_int_eq_χ₄_mul_χ₈ (a : ℤ) : χ₈' a = χ₄ a * χ₈ a :=
 begin
-  have h : (a : zmod 4) = (a : zmod 8),
-  { have help : ∀ m : ℤ, 0 ≤ m → m < 8 → ((m % 4 : ℤ) : zmod 4) = (m : zmod 8) := dec_trivial,
-    rw [← zmod.int_cast_mod a 8, ← zmod.int_cast_mod a 4,
-        (by norm_cast : ((8 : ℕ) : ℤ) = 8), (by norm_cast : ((4 : ℕ) : ℤ) = 4),
-        ← int.mod_mod_of_dvd a (by norm_num : (4 : ℤ) ∣ 8)],
-    exact help (a % 8) (int.mod_nonneg a (by norm_num)) (int.mod_lt a (by norm_num)), },
-  rw h,
+  rw ← @cast_int_cast 8 (zmod 4) _ 4 _ (by norm_num) a,
   exact χ₈'_eq_χ₄_mul_χ₈ a,
 end
 

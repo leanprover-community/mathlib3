@@ -894,3 +894,50 @@ instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
 ⟨λ x, rfl⟩
 
 end ring_hom_isometric
+
+section induced
+
+variables {F : Type*} (R S : Type*)
+
+/-- A non-unital ring homomorphism from an `non_unital_ring` to a `non_unital_semi_normed_ring`
+induces a `non_unital_semi_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def non_unital_semi_normed_ring.induced [non_unital_ring R] [non_unital_semi_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) : non_unital_semi_normed_ring R :=
+{ norm_mul := λ x y, by { unfold norm, exact (map_mul f x y).symm ▸ norm_mul_le (f x) (f y) },
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An injective non-unital ring homomorphism from an `non_unital_ring` to a
+`non_unital_normed_ring` induces a `non_unital_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def non_unital_normed_ring.induced [non_unital_ring R] [non_unital_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) :
+  non_unital_normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- An ring homomorphism from an `ring` to a `semi_normed_ring` induces a `semi_normed_ring`
+structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def semi_normed_ring.induced [ring R] [semi_normed_ring S] [non_unital_ring_hom_class F R S]
+  (f : F) : semi_normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An ring homomorphism from an `ring` to a `normed_ring` induces a `normed_ring` structure on
+the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_ring.induced [ring R] [normed_ring S] [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.injective f) : normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+end induced

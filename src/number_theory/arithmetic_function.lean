@@ -605,9 +605,8 @@ end⟩
 /-- For any multiplicative function `f` and any `n > 0`,
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
 lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_function R)
-  (hf : f.is_multiplicative) :
-  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
-λ n hn, multiplicative_factorization f hf.2 hf.1 hn
+  (hf : f.is_multiplicative) {n : ℕ} (hn : n ≠ 0) : f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+multiplicative_factorization f (λ _ _, hf.2) hf.1 hn
 
 /-- A recapitulation of the definition of multiplicative that is simpler for proofs -/
 lemma iff_ne_zero [monoid_with_zero R] {f : arithmetic_function R} :

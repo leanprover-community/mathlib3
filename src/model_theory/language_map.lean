@@ -38,8 +38,8 @@ variables (L : language.{u v}) (L' : language.{u' v'}) {M : Type w} [L.Structure
 
 /-- A language homomorphism maps the symbols of one language to symbols of another. -/
 structure Lhom :=
-(on_function : ∀{n}, L.functions n → L'.functions n)
-(on_relation : ∀{n}, L.relations n → L'.relations n)
+(on_function : ∀ ⦃n⦄, L.functions n → L'.functions n)
+(on_relation : ∀ ⦃n⦄, L.relations n → L'.relations n)
 
 infix ` →ᴸ `:10 := Lhom -- \^L
 
@@ -168,8 +168,8 @@ end sum_map
 
 /-- A language homomorphism is injective when all the maps between symbol types are. -/
 protected structure injective : Prop :=
-(on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
-(on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
+(on_function {n} : function.injective (λ (f : L.functions n), ϕ.on_function f))
+(on_relation {n} : function.injective (λ (R : L.relations n), ϕ.on_relation R))
 
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/

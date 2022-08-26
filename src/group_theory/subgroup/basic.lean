@@ -373,10 +373,10 @@ section mul_add
 @[simps]
 def subgroup.to_add_subgroup : subgroup G ≃o add_subgroup (additive G) :=
 { to_fun := λ S,
-  { neg_mem' := S.inv_mem',
+  { neg_mem' := λ _, S.inv_mem',
     ..S.to_submonoid.to_add_submonoid },
   inv_fun := λ S,
-  { inv_mem' := S.neg_mem',
+  { inv_mem' := λ _, S.neg_mem',
     ..S.to_add_submonoid.to_submonoid' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
@@ -391,10 +391,10 @@ subgroup.to_add_subgroup.symm
 @[simps]
 def add_subgroup.to_subgroup : add_subgroup A ≃o subgroup (multiplicative A) :=
 { to_fun := λ S,
-  { inv_mem' := S.neg_mem',
+  { inv_mem' := λ _, S.neg_mem',
     ..S.to_add_submonoid.to_submonoid },
   inv_fun := λ S,
-  { neg_mem' := S.inv_mem',
+  { neg_mem' := λ _, S.inv_mem',
     ..S.to_submonoid.to_add_submonoid' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
@@ -418,8 +418,8 @@ Useful to fix definitional equalities"]
 protected def copy (K : subgroup G) (s : set G) (hs : s = K) : subgroup G :=
 { carrier := s,
   one_mem' := hs.symm ▸ K.one_mem',
-  mul_mem' := hs.symm ▸ K.mul_mem',
-  inv_mem' := hs.symm ▸ K.inv_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ K.mul_mem',
+  inv_mem' := λ _, hs.symm ▸ K.inv_mem' }
 
 @[simp, to_additive] lemma coe_copy (K : subgroup G) (s : set G) (hs : s = ↑K) :
   (K.copy s hs : set G) = s := rfl

@@ -161,7 +161,7 @@ by { cases e, cases e', cases h, refl }
 
 lemma eventually_left_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   ∀ᶠ y in 𝓝 x, e.symm (e y) = y :=
-(e.open_source.eventually_mem hx).mono e.left_inv'
+(e.open_source.eventually_mem hx).mono (λ _, e.left_inv')
 
 lemma eventually_left_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
   ∀ᶠ y in 𝓝 (e.symm x), e.symm (e y) = y :=
@@ -169,7 +169,7 @@ e.eventually_left_inverse (e.map_target hx)
 
 lemma eventually_right_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
   ∀ᶠ y in 𝓝 x, e (e.symm y) = y :=
-(e.open_target.eventually_mem hx).mono e.right_inv'
+(e.open_target.eventually_mem hx).mono (λ _, e.right_inv')
 
 lemma eventually_right_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   ∀ᶠ y in 𝓝 (e x), e (e.symm y) = y :=

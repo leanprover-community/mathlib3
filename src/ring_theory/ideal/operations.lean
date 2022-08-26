@@ -1298,7 +1298,7 @@ def rel_iso_of_bijective : ideal S ≃o ideal R :=
   left_inv := (rel_iso_of_surjective f hf.right).left_inv,
   right_inv := λ J, subtype.ext_iff.1
     ((rel_iso_of_surjective f hf.right).right_inv ⟨J, comap_bot_le_of_injective f hf.left⟩),
-  map_rel_iff' := (rel_iso_of_surjective f hf.right).map_rel_iff' }
+  map_rel_iff' := λ _ _, (rel_iso_of_surjective f hf.right).map_rel_iff' }
 
 lemma comap_le_iff_le_map {I : ideal R} {K : ideal S} : comap f K ≤ I ↔ K ≤ map f I :=
 ⟨λ h, le_map_of_comap_le_of_surjective f hf.right h,

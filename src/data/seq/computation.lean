@@ -53,7 +53,7 @@ def head (c : computation α) : option α := c.1.head
 /-- `tail c` is the remainder of computation, either `c` if `c = return a`
   or `c'` if `c = think c'`. -/
 def tail (c : computation α) : computation α :=
-⟨c.1.tail, λ n a, let t := c.2 in t⟩
+⟨c.1.tail, λ n a, c.2⟩
 
 /-- `empty α` is the computation that never returns, an infinite sequence of
   `think`s. -/

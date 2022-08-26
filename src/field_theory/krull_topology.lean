@@ -163,7 +163,7 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
   end⟩,
   inv' := λ U hU, ⟨U, hU, begin
     rcases hU with ⟨H, hH, rfl⟩,
-    exact H.inv_mem',
+    exact λ _, H.inv_mem',
   end⟩,
   conj' :=
   begin

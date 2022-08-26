@@ -145,10 +145,10 @@ protected def symm : local_equiv β α :=
   inv_fun    := e.to_fun,
   source     := e.target,
   target     := e.source,
-  map_source' := e.map_target',
-  map_target' := e.map_source',
-  left_inv'   := e.right_inv',
-  right_inv'  := e.left_inv' }
+  map_source' := λ _, e.map_target',
+  map_target' := λ _, e.map_source',
+  left_inv'   := λ _, e.right_inv',
+  right_inv'  := λ _, e.left_inv' }
 
 instance : has_coe_to_fun (local_equiv α β) (λ _, α → β) := ⟨local_equiv.to_fun⟩
 

@@ -776,7 +776,7 @@ has_groupoid.compatible G he he'
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid M G₂ :=
-⟨ λ e e' he he', hle ((h.compatible : _) he he') ⟩
+⟨λ e e' he he', hle (h.compatible he he')⟩
 
 lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M

@@ -318,7 +318,7 @@ instance induced_Structure (S : L.elementary_substructure M) : L.Structure S :=
 substructure.induced_Structure
 
 @[simp] lemma is_elementary (S : L.elementary_substructure M) :
-  (S : L.substructure M).is_elementary := S.is_elementary'
+  (S : L.substructure M).is_elementary := λ _, S.is_elementary'
 
 /-- The natural embedding of an `L.substructure` of `M` into `M`. -/
 def subtype (S : L.elementary_substructure M) : S ↪ₑ[L] M :=

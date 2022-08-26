@@ -115,12 +115,11 @@ section preserves
 variables (η : applicative_transformation F G)
 
 @[functor_norm]
-lemma preserves_pure : ∀ {α} (x : α), η (pure x) = pure x := η.preserves_pure'
+lemma preserves_pure {α} (x : α) : η (pure x) = pure x := η.preserves_pure' x
 
 @[functor_norm]
-lemma preserves_seq :
-  ∀ {α β : Type u} (x : F (α → β)) (y : F α), η (x <*> y) = η x <*> η y :=
-η.preserves_seq'
+lemma preserves_seq {α β : Type u} (x : F (α → β)) (y : F α) : η (x <*> y) = η x <*> η y :=
+η.preserves_seq' x y
 
 @[functor_norm]
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=

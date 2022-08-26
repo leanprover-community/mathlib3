@@ -475,7 +475,8 @@ instance is_atomistic_of_complemented_lattice [complemented_lattice α] : is_ato
 end, λ _, and.left⟩⟩
 
 /-- See Theorem 6.6, Călugăreanu -/
-theorem complemented_lattice_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) : complemented_lattice α :=
+theorem complemented_lattice_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) :
+  complemented_lattice α :=
 ⟨λ b, begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,

@@ -638,7 +638,8 @@ end is_compl
 
 variables [complemented_lattice α]
 
-lemma is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular [is_atomic α] : is_coatomic α :=
+lemma is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular [is_atomic α] :
+  is_coatomic α :=
 ⟨λ x, begin
   rcases exists_is_compl x with ⟨y, xy⟩,
   apply (eq_bot_or_exists_atom_le y).imp _ _,
@@ -651,7 +652,8 @@ lemma is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular [is_atomic 
     apply ha.Iic }
 end⟩
 
-lemma is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular [is_coatomic α] : is_atomic α :=
+lemma is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular [is_coatomic α] :
+  is_atomic α :=
 is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular
 
 theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=

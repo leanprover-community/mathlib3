@@ -284,7 +284,8 @@ begin
   {
     rintros ⟨v, vS⟩ ⟨w, wS⟩ p hpath,
     dsimp, simp,
-    sorry, -- this follows from the fact that a walk in a subgraph can be lifted to a walk in the graph
+    apply nonempty.intro,
+    exact simple_graph.walk.map (simple_graph.hom.comap _ _) p,
   }
 end
 

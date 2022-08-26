@@ -799,27 +799,72 @@ begin
     exact pow_dvd_of_le_of_pow_dvd h2.le (ord_proj_dvd a p) },
 end
 
+lemma factorization_add_iff {p b a : ℕ} (pp : p.prime)
+  (ha0 : a ≠ 0)
+  (hb0 : b ≠ 0)
+:
+  min (a.factorization p) (b.factorization p) < (a + b).factorization p ↔
+  (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a + ord_compl[p] b) :=
+begin
+    let a' := ord_compl[p] a,
+  let b' := ord_compl[p] b,
+  let α := a.factorization p,
+  let β := b.factorization p,
+  -- have h1 : a + b = p ^ α * (a' + p ^ (β - α) * b'),
+  -- {
+  --   -- rw [mul_add, ←mul_assoc, ←pow_add, add_tsub_cancel_of_le h.le],
+  --   -- simp_rw ord_proj_mul_ord_compl_eq_self
+  --   sorry,
+  --   },
+
+  refine ⟨λ h, _, λ h, _⟩,
+  {
+    refine ⟨_, _⟩,
+    {
+      -- by_contra h1,
+      -- exact h.ne.symm (factorization_add_min h1 ha0 hb0)
+      sorry,
+    },
+    {
+      have := min_lt_iff.1 h,
+      sorry },
+   },
+  {
+    cases h with h1 h2,
+    sorry },
+
+  -- let a' := ord_compl[p] a,
+  -- let b' := ord_compl[p] b,
+  -- let α := a.factorization p,
+  -- let β := b.factorization p,
+  -- have h1 : a + b = p ^ α * (a' + p ^ (β - α) * b'),
+  -- { rw [mul_add, ←mul_assoc, ←pow_add, add_tsub_cancel_of_le h.le],
+  --   simp_rw ord_proj_mul_ord_compl_eq_self },
+  -- have h2 : a' + p ^ (β - α) * b' ≠ 0, { intro H, simpa [H, ha0, hb0] using h1 },
+  -- rw [h1, factorization_mul (ord_proj_pos a p).ne' h2, finsupp.add_apply],
+  -- suffices : (a' + p ^ (β - α) * b').factorization p = 0,
+  -- { simp [this, add_zero, pp.factorization_pow]},
+  -- apply factorization_eq_zero_of_not_dvd,
+  -- rw nat.dvd_add_left (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt h).ne') b'),
+  -- exact not_dvd_ord_compl pp ha0,
+
+
+end
+
+
 lemma factorization_add_of_lt {p a b : ℕ} (h : a.factorization p < b.factorization p)
   (ha0 : a ≠ 0) :
   (a + b).factorization p = a.factorization p :=
 begin
   rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
   rcases em' p.prime with pp | pp, { simp [pp] },
-  let a' := ord_compl[p] a,
-  let b' := ord_compl[p] b,
-  let α := a.factorization p,
-  let β := b.factorization p,
-  have h1 : a + b = p ^ α * (a' + p ^ (β - α) * b'),
-  { rw [mul_add, ←mul_assoc, ←pow_add, add_tsub_cancel_of_le h.le],
-    simp_rw ord_proj_mul_ord_compl_eq_self },
-  have h2 : a' + p ^ (β - α) * b' ≠ 0, { intro H, simpa [H, ha0, hb0] using h1 },
-  rw [h1, factorization_mul (ord_proj_pos a p).ne' h2, finsupp.add_apply],
-  suffices : (a' + p ^ (β - α) * b').factorization p = 0,
-  { simp [this, add_zero, pp.factorization_pow]},
-  apply factorization_eq_zero_of_not_dvd,
-  rw nat.dvd_add_left (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt h).ne') b'),
-  exact not_dvd_ord_compl pp ha0,
+  rw ←min_eq_left_of_lt h,
+  refine le_antisymm _ factorization_add,
+  contrapose! h,
+  rw factorization_add_iff pp ha0 hb0 at h,
+  exact h.1.symm.le,
 end
+
 
 lemma factorization_add_min {p a b : ℕ} (h : a.factorization p ≠ b.factorization p)
   (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
@@ -904,6 +949,8 @@ begin
 end
 
 
-
+-- TODO: Prove `iff` versions of the above main lemmas:
+-- min (a.factorization p) (b.factorization p) < (a ± b).factorization p ↔
+-- (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a ± ord_compl[p] b)
 
 end nat

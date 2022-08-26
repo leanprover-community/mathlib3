@@ -112,6 +112,39 @@ subtype.ext norm_star_mul_self
 
 end non_unital
 
+section prod_pi
+
+variables (ι R₁ R₂ : Type*) {R : ι → Type*} [fintype ι]
+variables [non_unital_normed_ring R₁] [star_ring R₁] [cstar_ring R₁]
+variables [non_unital_normed_ring R₂] [star_ring R₂] [cstar_ring R₂]
+variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)] [Π i, cstar_ring (R i)]
+
+instance : cstar_ring (R₁ × R₂) :=
+{ norm_star_mul_self := λ x,
+  begin
+    unfold norm,
+    simp only [prod.fst_mul, prod.fst_star, prod.snd_mul, prod.snd_star, norm_star_mul_self, ←sq],
+    refine le_antisymm _ _,
+    { refine max_le _ _;
+      rw [sq_le_sq, abs_of_nonneg (norm_nonneg _)],
+      exact (le_max_left _ _).trans (le_abs_self _),
+      exact (le_max_right _ _).trans (le_abs_self _) },
+    { rw le_max_iff,
+      rcases le_total (∥x.fst∥) (∥x.snd∥) with (h | h);
+      simp [h] }
+  end }
+
+instance pi.cstar_ring : @cstar_ring (Π i, R i) _ (@pi.star_ring ι R _ _) :=
+{ norm_star_mul_self := λ x,
+  begin
+    simp only [norm, pi.mul_apply, pi.star_apply, nnnorm_star_mul_self, ←sq],
+    norm_cast,
+    exact (finset.comp_sup_eq_sup_comp_of_is_total (λ x : nnreal, x ^ 2)
+      (λ x y h, by simpa only [sq] using mul_le_mul' h h) (by simp)).symm,
+  end }
+
+end prod_pi
+
 section unital
 variables [normed_ring E] [star_ring E] [cstar_ring E]
 

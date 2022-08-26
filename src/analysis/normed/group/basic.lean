@@ -752,10 +752,10 @@ end antilipschitz_with
 
 See note [reducible non-instances] -/
 @[reducible]
-def seminormed_add_comm_group.induced {E} [add_comm_group E] (f : E →+ F) :
-  seminormed_add_comm_group E :=
+def seminormed_add_comm_group.induced {𝓕 E : Type*} [add_comm_group E] [add_monoid_hom_class 𝓕 E F]
+  (f : 𝓕) : seminormed_add_comm_group E :=
 { norm    := λ x, ∥f x∥,
-  dist_eq := λ x y, by simpa only [add_monoid_hom.map_sub, ← dist_eq_norm],
+  dist_eq := λ x y, by simpa only [map_sub, ← dist_eq_norm],
   .. pseudo_metric_space.induced f seminormed_add_comm_group.to_pseudo_metric_space, }
 
 /-- A subgroup of a seminormed group is also a seminormed group,
@@ -812,7 +812,7 @@ See note [implicit instance arguments]. -/
 rfl
 
 instance ulift.seminormed_add_comm_group : seminormed_add_comm_group (ulift E) :=
-seminormed_add_comm_group.induced ⟨ulift.down, rfl, λ _ _, rfl⟩
+seminormed_add_comm_group.induced (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →+ E)
 
 lemma ulift.norm_def (x : ulift E) : ∥x∥ = ∥x.down∥ := rfl
 lemma ulift.nnnorm_def (x : ulift E) : ∥x∥₊ = ∥x.down∥₊ := rfl
@@ -1161,8 +1161,8 @@ lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnn
 
 See note [reducible non-instances]. -/
 @[reducible]
-def normed_add_comm_group.induced {E} [add_comm_group E]
-  (f : E →+ F) (h : function.injective f) : normed_add_comm_group E :=
+def normed_add_comm_group.induced {𝓕 E : Type*} [add_comm_group E] [add_monoid_hom_class 𝓕 E F]
+  (f : 𝓕) (h : function.injective f) : normed_add_comm_group E :=
 { .. seminormed_add_comm_group.induced f,
   .. metric_space.induced f h normed_add_comm_group.to_metric_space, }
 

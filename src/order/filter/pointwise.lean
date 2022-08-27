@@ -480,7 +480,7 @@ by simp only [is_unit_iff, group.is_unit, and_true]
 
 include β
 
-@[to_additive] lemma map_inv' : f⁻¹.map m = (f.map m)⁻¹ := map_comm (funext $ map_inv m) _
+@[to_additive] lemma map_inv' : f⁻¹.map m = (f.map m)⁻¹ := semiconj.filter_map (map_inv m) f
 
 @[to_additive] lemma tendsto.inv_inv : tendsto m f₁ f₂ → tendsto m f₁⁻¹ f₂⁻¹ :=
 λ hf, (filter.map_inv' m).trans_le $ filter.inv_le_inv hf
@@ -636,18 +636,18 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
   smul_comm_class (filter α) (filter β) (filter γ) :=
 ⟨λ f g h, map₂_left_comm smul_comm⟩
 
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α β (filter γ) :=
 ⟨λ a b f, by simp only [←map_smul, map_map, smul_assoc]⟩
 
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (filter β) (filter γ) :=
 ⟨λ a f g, by { refine (map_map₂_distrib_left $ λ _ _, _).symm, exact (smul_assoc a _ _).symm }⟩
 
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (filter α) (filter β) (filter γ) :=
 ⟨λ f g h, map₂_assoc smul_assoc⟩
 

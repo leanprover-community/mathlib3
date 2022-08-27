@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import logic.equiv.nat
 import order.directed
+import data.countable.defs
 import order.rel_iso
 
 /-!
@@ -52,6 +53,10 @@ theorem encode_injective [encodable α] : function.injective (@encode α _)
 
 @[simp] lemma encode_inj [encodable α] {a b : α} : encode a = encode b ↔ a = b :=
 encode_injective.eq_iff
+
+-- The priority of the instance below is less than the priorities of `subtype.countable`
+-- and `quotient.countable`
+@[priority 400] instance [encodable α] : countable α := encode_injective.countable
 
 lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
   surjective (λ n, (encodable.decode α n).iget) :=
@@ -319,7 +324,16 @@ of_equiv _ equiv.plift
 noncomputable def of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
 of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
 
+/-- If `α` is countable, then it has a (non-canonical) `encodable` structure. -/
+noncomputable def of_countable (α : Type*) [countable α] : encodable α :=
+nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
+
+@[simp] lemma nonempty_encodable : nonempty (encodable α) ↔ countable α :=
+⟨λ ⟨h⟩, @encodable.countable α h, λ h, ⟨@of_countable _ h⟩⟩
+
 end encodable
+
+instance : countable ℕ+ := subtype.countable -- short-circuit instance search
 
 section ulower
 local attribute [instance, priority 100] encodable.decidable_range_encode

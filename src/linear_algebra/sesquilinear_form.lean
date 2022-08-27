@@ -102,7 +102,7 @@ begin
   { rw [map_smulₛₗ₂, H, smul_zero]},
   { rw [map_smulₛₗ₂, smul_eq_zero] at H,
     cases H,
-    { rw I₁.map_eq_zero at H, trivial },
+    { rw map_eq_zero I₁ at H, trivial },
     { exact H }}
 end
 
@@ -136,7 +136,7 @@ begin
     intros j hj hij,
     rw [is_Ortho_def.1 hv₁ _ _ hij, mul_zero], },
   simp_rw [B.map_sum₂, map_smulₛₗ₂, smul_eq_mul, hsum] at this,
-  apply I₁.map_eq_zero.mp,
+  apply (map_eq_zero I₁).mp,
   exact eq_zero_of_ne_zero_of_mul_right_eq_zero (hv₂ i) this,
 end
 
@@ -372,9 +372,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (submodule.orthogonal_bilin (K ∙ x) B) :=
-{ inf_le_bot := eq_bot_iff.1 $
-    (span_singleton_inf_orthogonal_eq_bot B x hx),
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot B x hx,
+  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 

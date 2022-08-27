@@ -93,7 +93,7 @@ lemma squarefree_iff_multiplicity_le_one (r : R) :
 begin
   refine forall_congr (λ a, _),
   rw [← sq, pow_dvd_iff_le_multiplicity, or_iff_not_imp_left, not_le, imp_congr _ iff.rfl],
-  simpa using enat.add_one_le_iff_lt (enat.coe_ne_top 1)
+  simpa using part_enat.add_one_le_iff_lt (part_enat.coe_ne_top 1)
 end
 
 end comm_monoid
@@ -110,10 +110,10 @@ begin
   refine wf_dvd_monoid.induction_on_irreducible b (by contradiction) (λ u hu hu', _)
     (λ b p hb hp ih hpb, _),
   { rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
-    exact enat.dom_coe 0, },
+    exact part_enat.dom_coe 0, },
   { refine multiplicity.finite_mul ha
-      (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
-      (ih hb),
+      (multiplicity.finite_iff_dom.mpr
+        (part_enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _))) (ih hb),
     norm_cast,
     exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
       .resolve_right ha.not_unit) }

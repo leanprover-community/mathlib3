@@ -67,7 +67,7 @@ variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} 
 /-! ### Paths -/
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)
@@ -799,7 +799,7 @@ begin
     induction n with n hn,
     { use path.refl (p' 0),
       { split,
-        { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
+        { rintros i hi, rw le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
         { rw range_subset_iff, rintros x, exact hp' 0 le_rfl } } },
     { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
       rcases h.joined_in (p' n) (hp' n n.le_succ) (p' $ n+1) (hp' (n+1) $ le_rfl) with ⟨γ₁, hγ₁⟩,

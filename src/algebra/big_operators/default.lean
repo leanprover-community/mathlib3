@@ -6,4 +6,4 @@ import algebra.big_operators.ring
 import algebra.big_operators.pi
 import algebra.big_operators.finsupp
 import algebra.big_operators.nat_antidiagonal
-import algebra.big_operators.enat
+import algebra.big_operators.part_enat

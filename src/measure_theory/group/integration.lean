@@ -20,7 +20,7 @@ open measure topological_space
 open_locale ennreal
 
 variables {𝕜 M α G E F : Type*} [measurable_space G]
-variables [normed_group E] [normed_space ℝ E] [complete_space E] [normed_group F]
+variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E] [normed_add_comm_group F]
 variables {μ : measure G} {f : G → E} {g : G}
 
 section measurable_inv

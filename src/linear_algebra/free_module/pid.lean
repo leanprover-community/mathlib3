@@ -59,7 +59,7 @@ open submodule.is_principal submodule
 
 lemma eq_bot_of_generator_maximal_map_eq_zero (b : basis ι R M) {N : submodule R M}
   {ϕ : M →ₗ[R] R} (hϕ : ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ)
-  [(N.map ϕ).is_principal] (hgen : generator (N.map ϕ) = 0) : N = ⊥ :=
+  [(N.map ϕ).is_principal] (hgen : generator (N.map ϕ) = (0 : R)) : N = ⊥ :=
 begin
   rw submodule.eq_bot_iff,
   intros x hx,
@@ -405,7 +405,7 @@ section smith_normal
 /-- A Smith normal form basis for a submodule `N` of a module `M` consists of
 bases for `M` and `N` such that the inclusion map `N → M` can be written as a
 (rectangular) matrix with `a` along the diagonal: in Smith normal form. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure basis.smith_normal_form (N : submodule R M) (ι : Type*) (n : ℕ) :=
 (bM : basis ι R M)
 (bN : basis (fin n) R N)

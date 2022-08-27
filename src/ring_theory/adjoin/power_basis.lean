@@ -41,8 +41,7 @@ begin
     (adjoin K {x}) (λ i, ⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ)),
   { have := hx'.linear_independent_pow,
     rwa minpoly_eq at this },
-  { rw _root_.eq_top_iff,
-    rintros ⟨y, hy⟩ _,
+  { rintros ⟨y, hy⟩ _,
     have := hx'.mem_span_pow,
     rw minpoly_eq at this,
     apply this,
@@ -54,7 +53,8 @@ begin
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
-where `d` is the degree of the minimal polynomial of `x`. -/
+where `d` is the degree of the minimal polynomial of `x`. See `algebra.adjoin.power_basis'` for
+a version over a more general base ring. -/
 @[simps gen dim] noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
@@ -66,7 +66,8 @@ end algebra
 
 open algebra
 
-/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. -/
+/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. See `power_basis.of_gen_mem_adjoin'`
+for a version over a more general base ring. -/
 @[simps] noncomputable def power_basis.of_gen_mem_adjoin {x : S} (B : power_basis K S)
   (hint : _root_.is_integral K x) (hx : B.gen ∈ adjoin K ({x} : set S)) : power_basis K S :=
 (algebra.adjoin.power_basis hint).map $

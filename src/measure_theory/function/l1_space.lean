@@ -20,15 +20,15 @@ classes of integrable functions, already defined as a special case of `L^p` spac
 
 ## Notation
 
-* `α →₁[μ] β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group`
-  with a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`. In comments, `[f]` is
-  also used to denote an `L¹` function.
+* `α →₁[μ] β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a
+  `normed_add_comm_group` with a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`.
+  In comments, `[f]` is also used to denote an `L¹` function.
 
   `₁` can be typed as `\1`.
 
 ## Main definitions
 
-* Let `f : α → β` be a function, where `α` is a `measure_space` and `β` a `normed_group`.
+* Let `f : α → β` be a function, where `α` is a `measure_space` and `β` a `normed_add_comm_group`.
   Then `has_finite_integral f` means `(∫⁻ a, ∥f a∥₊) < ∞`.
 
 * If `β` is moreover a `measurable_space` then `f` is called `integrable` if
@@ -52,8 +52,8 @@ open_locale classical topological_space big_operators ennreal measure_theory nnr
 open set filter topological_space ennreal emetric measure_theory
 
 variables {α β γ δ : Type*} {m : measurable_space α} {μ ν : measure α} [measurable_space δ]
-variables [normed_group β]
-variables [normed_group γ]
+variables [normed_add_comm_group β]
+variables [normed_add_comm_group γ]
 
 namespace measure_theory
 
@@ -498,7 +498,7 @@ by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.right_of_add_measure, 
 
 @[simp] lemma integrable_zero_measure {m : measurable_space α} {f : α → β} :
   integrable f (0 : measure α) :=
-⟨ae_measurable_zero_measure f, has_finite_integral_zero_measure f⟩
+⟨ae_strongly_measurable_zero_measure f, has_finite_integral_zero_measure f⟩
 
 theorem integrable_finset_sum_measure {ι} {m : measurable_space α} {f : α → β}
   {μ : ι → measure α} {s : finset ι} :
@@ -707,7 +707,7 @@ begin
 end
 
 section
-variables  {E : Type*} [normed_group E] [normed_space ℝ E]
+variables  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
 lemma integrable_with_density_iff_integrable_coe_smul
   {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
@@ -778,7 +778,7 @@ begin
 end
 
 section
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
 lemma mem_ℒ1_smul_of_L1_with_density {f : α → ℝ≥0} (f_meas : measurable f)
   (u : Lp E 1 (μ.with_density (λ x, f x))) :
@@ -903,11 +903,21 @@ lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x / c) μ :=
 by simp_rw [div_eq_mul_inv, h.mul_const]
 
+lemma integrable.bdd_mul' {f g : α → ℝ} {c : ℝ} (hg : integrable g μ)
+  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
+  filter_upwards [hf_bound] with x hx,
+  rw [pi.smul_apply, smul_eq_mul],
+  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
+end
+
 end normed_space
 
 section normed_space_over_complete_field
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 lemma integrable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   integrable (λ x, f x • c) μ ↔ integrable f μ :=
@@ -955,7 +965,8 @@ end inner_product
 
 section trim
 
-variables {H : Type*} [normed_group H] {m0 : measurable_space α} {μ' : measure α} {f : α → H}
+variables {H : Type*} [normed_add_comm_group H] {m0 : measurable_space α} {μ' : measure α}
+  {f : α → H}
 
 lemma integrable.trim (hm : m ≤ m0) (hf_int : integrable f μ') (hf : strongly_measurable[m] f) :
   integrable f (μ'.trim hm) :=
@@ -980,7 +991,7 @@ end trim
 
 section sigma_finite
 
-variables {E : Type*} {m0 : measurable_space α} [normed_group E]
+variables {E : Type*} {m0 : measurable_space α} [normed_add_comm_group E]
 
 lemma integrable_of_forall_fin_meas_le' {μ : measure α} (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_strongly_measurable f μ)
@@ -1186,9 +1197,9 @@ end measure_theory
 
 open measure_theory
 
-variables {E : Type*} [normed_group E]
-          {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
-          {H : Type*} [normed_group H] [normed_space 𝕜 H]
+variables {E : Type*} [normed_add_comm_group E]
+          {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
+          {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
 
 lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[𝕜] E}
   (φ_int : integrable φ μ) (v : H) : integrable (λ a, φ a v) μ :=

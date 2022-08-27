@@ -357,7 +357,7 @@ ordered_comm_monoid.to_covariant_class_left ℝ≥0
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 begin
-  rcases le_iff_exists_add.1 (le_of_lt hxb) with ⟨ε, rfl⟩,
+  rcases exists_add_of_le (le_of_lt hxb) with ⟨ε, rfl⟩,
   exact h _ ((lt_add_iff_pos_right b).1 hxb)
 end
 
@@ -599,7 +599,7 @@ by rw [← mul_lt_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
 
 lemma mul_le_iff_le_inv {a b r : ℝ≥0} (hr : r ≠ 0) : r * a ≤ b ↔ a ≤ r⁻¹ * b :=
 have 0 < r, from lt_of_le_of_ne (zero_le r) hr.symm,
-by rw [← @mul_le_mul_left _ _ a _ r this, ← mul_assoc, mul_inv_cancel hr, one_mul]
+by rw [← mul_le_mul_left (inv_pos.mpr this), ← mul_assoc, inv_mul_cancel hr, one_mul]
 
 lemma le_div_iff_mul_le {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
 by rw [div_eq_inv_mul, ← mul_le_iff_le_inv hr, mul_comm]
@@ -815,6 +815,35 @@ supr_mul_le $ λ i, mul_supr_le $ H _
 end csupr
 
 end nnreal
+
+namespace set
+namespace ord_connected
+
+variables {s : set ℝ} {t : set ℝ≥0}
+
+lemma preimage_coe_nnreal_real (h : s.ord_connected) : (coe ⁻¹' s : set ℝ≥0).ord_connected :=
+h.preimage_mono nnreal.coe_mono
+
+lemma image_coe_nnreal_real (h : t.ord_connected) : (coe '' t : set ℝ).ord_connected :=
+⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz,
+  ⟨⟨z, x.2.trans hz.1⟩, h.out hx hy hz, rfl⟩⟩
+
+lemma image_real_to_nnreal (h : s.ord_connected) : (real.to_nnreal '' s).ord_connected :=
+begin
+  refine ⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz, _⟩,
+  cases le_total y 0 with hy₀ hy₀,
+  { rw [mem_Icc, real.to_nnreal_of_nonpos hy₀, nonpos_iff_eq_zero] at hz,
+    exact ⟨y, hy, (to_nnreal_of_nonpos hy₀).trans hz.2.symm⟩ },
+  { lift y to ℝ≥0 using hy₀,
+    rw [to_nnreal_coe] at hz,
+    exact ⟨z, h.out hx hy ⟨to_nnreal_le_iff_le_coe.1 hz.1, hz.2⟩, to_nnreal_coe⟩ }
+end
+
+lemma preimage_real_to_nnreal (h : t.ord_connected) : (real.to_nnreal ⁻¹' t).ord_connected :=
+h.preimage_mono real.to_nnreal_mono
+
+end ord_connected
+end set
 
 namespace real
 

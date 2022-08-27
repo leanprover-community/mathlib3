@@ -26,7 +26,7 @@ The current definition is as general as possible and the assumption that we have
 fields or that the extension is finite is added to the lemmas as needed.
 
 We only define the norm for left multiplication (`algebra.left_mul_matrix`,
-i.e. `algebra.lmul_left`).
+i.e. `linear_map.mul_left`).
 For now, the definitions assume `S` is commutative, so the choice doesn't
 matter anyway.
 
@@ -73,7 +73,7 @@ variables {R}
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [decidable_eq ι] (b : basis ι R S) (s : S) :
   norm R s = matrix.det (algebra.left_mul_matrix b s) :=
-by rw [norm_apply, ← linear_map.det_to_matrix b, to_matrix_lmul_eq]
+by { rwa [norm_apply, ← linear_map.det_to_matrix b, ← to_matrix_lmul_eq], refl }
 
 /-- If `x` is in the base field `K`, then the norm is `x ^ [L : K]`. -/
 lemma norm_algebra_map_of_basis (b : basis ι R S) (x : R) :
@@ -163,7 +163,7 @@ algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
 /-- This is `algebra.norm_eq_zero_iff` composed with `algebra.norm_apply`. -/
 @[simp]
 lemma norm_eq_zero_iff' {K L : Type*} [field K] [comm_ring L] [algebra K L] [is_domain L]
-  [finite_dimensional K L] {x : L} : linear_map.det (algebra.lmul K L x) = 0 ↔ x = 0 :=
+  [finite_dimensional K L] {x : L} : linear_map.det (linear_map.mul K L x) = 0 ↔ x = 0 :=
 algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
 
 end eq_zero_iff

@@ -22,7 +22,7 @@ Provide the dual results.
 Show the analogous results for functors which reflect or create (co)limits.
 -/
 
-universes v u u'
+universes v v' u u'
 
 noncomputable theory
 open category_theory category_theory.category category_theory.limits
@@ -30,7 +30,7 @@ namespace category_theory
 
 variables {J : Type v} [small_category J]
 variables {C : Type u} [category.{v} C]
-variables {D : Type u'} [category.{v} D]
+variables {D : Type u'} [category.{v'} D]
 
 /--
 Given `n+1` objects of `C`, a fan for the last `n` with point `c₁.X` and a binary fan on `c₁.X` and
@@ -303,7 +303,7 @@ begin
 end }
 
 /-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
-lemma has_finite_coproducts_of_has_binary_and_terminal : has_finite_coproducts C :=
+lemma has_finite_coproducts_of_has_binary_and_initial : has_finite_coproducts C :=
 ⟨λ J 𝒥, begin
   resetI,
   apply has_colimits_of_shape_of_equivalence (discrete.equivalence (fintype.equiv_fin J)).symm,

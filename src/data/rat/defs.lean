@@ -891,4 +891,22 @@ protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, 
 protected lemma «exists» {p : ℚ → Prop} : (∃ r, p r) ↔ ∃ a b : ℤ, p (a / b) :=
 ⟨λ ⟨r, hr⟩, ⟨r.num, r.denom, by rwa [← mk_eq_div, num_denom]⟩, λ ⟨a, b, h⟩, ⟨_, h⟩⟩
 
+/-!
+### Denominator as `ℕ+`
+-/
+section pnat_denom
+
+/-- Denominator as `ℕ+`. -/
+def pnat_denom (x : ℚ) : ℕ+ := ⟨x.denom, x.pos⟩
+
+@[simp] lemma coe_pnat_denom (x : ℚ) : (x.pnat_denom : ℕ) = x.denom := rfl
+
+@[simp] lemma mk_pnat_pnat_denom_eq (x : ℚ) : mk_pnat x.num x.pnat_denom = x :=
+by rw [pnat_denom, mk_pnat_eq, num_denom]
+
+lemma pnat_denom_eq_iff_denom_eq {x : ℚ} {n : ℕ+} : x.pnat_denom = n ↔ x.denom = ↑n :=
+subtype.ext_iff
+
+end pnat_denom
+
 end rat

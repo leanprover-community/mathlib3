@@ -557,7 +557,7 @@ begin
       simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul],
       rw ennreal.mul_div_cancel',
       { simp only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
-      { exact ennreal.coe_nat_ne_top }
+      { exact (ennreal.nat_ne_top _) }
     end
     ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
   -- choose an index `i` of a subfamily covering at least a proportion `1/N` of `s`.
@@ -726,7 +726,7 @@ begin
   { assume n,
     induction n with n IH,
     { simp only [u, P, prod.forall, id.def, function.iterate_zero],
-      simp only [finset.not_mem_empty, forall_false_left, finset.coe_empty, forall_2_true_iff,
+      simp only [finset.not_mem_empty, is_empty.forall_iff, finset.coe_empty, forall_2_true_iff,
         and_self, pairwise_disjoint_empty] },
     { rw u_succ,
       exact (hF (u n) IH).2.1 } },

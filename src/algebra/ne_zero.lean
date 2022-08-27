@@ -3,8 +3,7 @@ Copyright (c) 2021 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import algebra.algebra.basic
-import algebra.char_p.basic
+import data.zmod.basic
 
 /-!
 # `ne_zero` typeclass
@@ -97,3 +96,10 @@ end ne_zero
 
 lemma eq_zero_or_ne_zero {α} [has_zero α] (a : α) : a = 0 ∨ ne_zero a :=
 (eq_or_ne a 0).imp_right ne_zero.mk
+
+namespace zmod
+
+instance fintype' (n : ℕ) [ne_zero n] : fintype (zmod n) :=
+@zmod.fintype n ⟨ne_zero.pos n⟩
+
+end zmod

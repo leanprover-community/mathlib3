@@ -70,6 +70,28 @@ above `k` has a finite subset with `Sup` above `k`.  Such an element is also cal
 def is_compact_element {α : Type*} [complete_lattice α] (k : α) :=
 ∀ s : set α, k ≤ Sup s → ∃ t : finset α, ↑t ⊆ s ∧ k ≤ t.sup id
 
+lemma {u} is_compact_element_iff {α : Type u} [complete_lattice α] (k : α) :
+  complete_lattice.is_compact_element k ↔
+    ∀ (ι : Type u) (s : ι → α), k ≤ supr s → ∃ t : finset ι, k ≤ t.sup s :=
+begin
+  classical,
+  split,
+  { intros H ι s hs,
+    obtain ⟨t, ht, ht'⟩ := H (set.range s) hs,
+    have : ∀ x : t, ∃ i, s i = x := λ x, ht x.prop,
+    choose f hf using this,
+    refine ⟨finset.univ.image f, ht'.trans _⟩,
+    { rw finset.sup_le_iff,
+      intros b hb,
+      rw ← (show s (f ⟨b, hb⟩) = id b, from hf _),
+      exact finset.le_sup (finset.mem_image_of_mem f $ finset.mem_univ ⟨b, hb⟩) } },
+  { intros H s hs,
+    obtain ⟨t, ht⟩ := H s coe (by { delta supr, rwa subtype.range_coe }),
+    refine ⟨t.image coe, by simp, ht.trans _⟩,
+    rw finset.sup_le_iff,
+    exact λ x hx, @finset.le_sup _ _ _ _ _ id _ (finset.mem_image_of_mem coe hx) }
+end
+
 /-- An element `k` is compact if and only if any directed set with `Sup` above
 `k` already got above `k` at some point in the set. -/
 theorem is_compact_element_iff_le_of_directed_Sup_le (k : α) :
@@ -111,6 +133,23 @@ begin
     obtain ⟨j, ⟨hjS, hjk⟩⟩ := hk S Sne dir_US (le_trans hsup sup_S),
     obtain ⟨t, ⟨htS, htsup⟩⟩ := hjS,
     use t, exact ⟨htS, by rwa ←htsup⟩, },
+end
+
+lemma is_compact_element.exists_finset_of_le_supr {k : α} (hk : is_compact_element k)
+  {ι : Type*} (f : ι → α) (h : k ≤ ⨆ i, f i) : ∃ s : finset ι, k ≤ ⨆ i ∈ s, f i :=
+begin
+  classical,
+  let g : finset ι → α := λ s, ⨆ i ∈ s, f i,
+  have h1 : directed_on (≤) (set.range g),
+  { rintros - ⟨s, rfl⟩ - ⟨t, rfl⟩,
+    exact ⟨g (s ∪ t), ⟨s ∪ t, rfl⟩, supr_le_supr_of_subset (finset.subset_union_left s t),
+      supr_le_supr_of_subset (finset.subset_union_right s t)⟩ },
+  have h2 : k ≤ Sup (set.range g),
+  { exact h.trans (supr_le (λ i, le_Sup_of_le ⟨{i}, rfl⟩ (le_supr_of_le i (le_supr_of_le
+      (finset.mem_singleton_self i) le_rfl)))) },
+  obtain ⟨-, ⟨s, rfl⟩, hs⟩ := (is_compact_element_iff_le_of_directed_Sup_le α k).mp hk
+    (set.range g) (set.range_nonempty g) h1 h2,
+  exact ⟨s, hs⟩,
 end
 
 /-- A compact element `k` has the property that any directed set lying strictly below `k` has
@@ -440,9 +479,7 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
 ⟨λ b, begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
-  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, _⟩,
-    rw [← h, Sup_le_iff],
-    intros a ha,
+  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, h.symm.trans_le $ Sup_le_iff.2 $ λ a ha, _⟩,
     rw ← inf_eq_left,
     refine (ha.le_iff.mp inf_le_left).resolve_left (λ con, ha.1 _),
     rw [eq_bot_iff, ← con],

@@ -158,7 +158,7 @@ begin
   { exact nat.le_pred_of_lt (nat_degree_derivative_lt p0) }
 end
 
-@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
+@[simp] lemma derivative_nat_cast {n : ℕ} : derivative (n : R[X]) = 0 :=
 begin
   rw ← map_nat_cast C n,
   exact derivative_C,
@@ -176,6 +176,15 @@ begin
   have := nat_degree_derivative_lt hp,
   exact ih _ this (this.trans_le $ nat.le_of_lt_succ hx) rfl
 end
+
+@[simp] lemma iterate_derivative_C {k} (h : 0 < k) : (derivative^[k] (C a : R[X])) = 0 :=
+iterate_derivative_eq_zero $ (nat_degree_C _).trans_lt h
+
+@[simp] lemma iterate_derivative_one {k} (h : 0 < k) : (derivative^[k] (1 : R[X])) = 0 :=
+iterate_derivative_C h
+
+@[simp] lemma iterate_derivative_X {k} (h : 1 < k) : (derivative^[k] (X : R[X])) = 0 :=
+iterate_derivative_eq_zero $ nat_degree_X_le.trans_lt h
 
 theorem nat_degree_eq_zero_of_derivative_eq_zero [no_zero_divisors R] [char_zero R] {f : R[X]}
   (h : f.derivative = 0) : f.nat_degree = 0 :=
@@ -248,7 +257,7 @@ begin
   { simp only [ih, function.iterate_succ, polynomial.derivative_map, function.comp_app], },
 end
 
-@[simp] lemma iterate_derivative_cast_nat_mul {n k : ℕ} {f : R[X]} :
+@[simp] lemma iterate_derivative_nat_cast_mul {n k : ℕ} {f : R[X]} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
 by induction k with k ih generalizing f; simp*
 
@@ -278,6 +287,87 @@ begin
       assume h, rw [h, nat_degree_zero] at hp,
       exact lt_irrefl 0 (lt_of_le_of_lt (zero_le _) hp), },
     exact hp }
+end
+
+lemma coeff_iterate_derivative_as_prod_Ico {k} (p : R[X]) :
+  ∀ m : ℕ, (derivative^[k] p).coeff m = (∏ i in Ico m.succ (m + k.succ), i) • (p.coeff (m + k)) :=
+begin
+  induction k with k ih,
+  { simp only [add_zero, forall_const, one_smul, Ico_self, eq_self_iff_true,
+      function.iterate_zero_apply, prod_empty] },
+  { intro m, rw [function.iterate_succ_apply', coeff_derivative, ih (m+1), ← nat.cast_add_one,
+      ← nsmul_eq_mul', smul_smul, mul_comm],
+    apply congr_arg2,
+    { have set_eq : (Ico m.succ (m + k.succ.succ)) = (Ico (m + 1).succ (m + 1 + k.succ)) ∪ {m+1},
+      { simp_rw [← nat.Ico_succ_singleton, union_comm, nat.succ_eq_add_one, add_comm (k + 1),
+          add_assoc],
+        rw [Ico_union_Ico_eq_Ico]; simp_rw [add_le_add_iff_left, le_add_self], },
+      rw [set_eq, prod_union, prod_singleton],
+      { rw [disjoint_singleton_right, mem_Ico],
+        exact λ h, (nat.lt_succ_self _).not_le h.1 } },
+    { exact congr_arg _ (nat.succ_add m k) } },
+end
+
+lemma coeff_iterate_derivative_as_prod_range {k} (p : R[X]) :
+  ∀ m : ℕ, (derivative^[k] p).coeff m = (∏ i in range k, (m + k - i)) • p.coeff (m + k) :=
+begin
+  induction k with k ih,
+  { simp },
+  intro m,
+  calc (derivative^[k + 1] p).coeff m
+      = (∏ i in range k, (m + k.succ - i)) • p.coeff (m + k.succ) * (m + 1) :
+    by rw [function.iterate_succ_apply', coeff_derivative, ih m.succ, nat.succ_add, nat.add_succ]
+  ... = ((∏ i in range k, (m + k.succ - i)) * (m + 1)) • p.coeff (m + k.succ) :
+    by rw [← nat.cast_add_one, ← nsmul_eq_mul', smul_smul, mul_comm]
+  ... = (∏ i in range k.succ, (m + k.succ - i)) • p.coeff (m + k.succ) :
+    by rw [prod_range_succ, add_tsub_assoc_of_le k.le_succ, nat.succ_sub le_rfl, tsub_self]
+end
+
+lemma iterate_derivative_mul {n} (p q : R[X]) :
+  derivative^[n] (p * q) =
+  ∑ k in range n.succ,
+    n.choose k • ((derivative^[n - k] p) * (derivative^[k] q)) :=
+begin
+  induction n with n IH,
+  { simp },
+
+  calc derivative^[n + 1] (p * q)
+      = (∑ (k : ℕ) in range n.succ,
+          (n.choose k) • ((derivative^[n - k] p) * (derivative^[k] q))).derivative :
+    by rw [function.iterate_succ_apply', IH]
+  ... = ∑ (k : ℕ) in range n.succ,
+          (n.choose k) • ((derivative^[n - k + 1] p) * (derivative^[k] q)) +
+        ∑ (k : ℕ) in range n.succ,
+          (n.choose k) • ((derivative^[n - k] p) * (derivative^[k + 1] q)) :
+    by simp_rw [derivative_sum, derivative_smul, derivative_mul, function.iterate_succ_apply',
+      smul_add, sum_add_distrib]
+  ... = (∑ (k : ℕ) in range n.succ,
+            (n.choose k.succ) • ((derivative^[n - k] p) * (derivative^[k + 1] q)) +
+          1 • ((derivative^[n + 1] p) * (derivative^[0] q))) +
+        ∑ (k : ℕ) in range n.succ,
+          (n.choose k) • ((derivative^[n - k] p) * (derivative^[k + 1] q)) : _
+  ... = ∑ (k : ℕ) in range n.succ,
+          (n.choose k) • ((derivative^[n - k] p) * (derivative^[k + 1] q)) +
+        ∑ (k : ℕ) in range n.succ,
+            (n.choose k.succ) • ((derivative^[n - k] p) * (derivative^[k + 1] q)) +
+        1 • ((derivative^[n + 1] p) * (derivative^[0] q)) :
+    by rw [add_comm, add_assoc]
+  ... = ∑ (i : ℕ) in range n.succ,
+          ((n+1).choose (i+1)) • ((derivative^[n + 1 - (i + 1)] p) * (derivative^[i + 1] q)) +
+        1 • ((derivative^[n + 1] p) * (derivative^[0] q)) :
+    by simp_rw [nat.choose_succ_succ, nat.succ_sub_succ, add_smul, sum_add_distrib]
+  ... = ∑ (k : ℕ) in range n.succ.succ,
+          (n.succ.choose k) • (derivative^[n.succ - k] p * (derivative^[k] q)) :
+    by rw [sum_range_succ' _ n.succ, nat.choose_zero_right, tsub_zero],
+
+  congr,
+  refine (sum_range_succ' _ _).trans (congr_arg2 (+) _ _),
+  { rw [sum_range_succ, nat.choose_succ_self, zero_smul, add_zero],
+    refine sum_congr rfl (λ k hk, _),
+    rw mem_range at hk,
+    congr,
+    rw [tsub_add_eq_add_tsub (nat.succ_le_of_lt hk), nat.succ_sub_succ] },
+  { rw [nat.choose_zero_right, tsub_zero] },
 end
 
 end semiring

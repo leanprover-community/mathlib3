@@ -33,67 +33,6 @@ lemma adapted.is_stopping_time_least_ge (r : ℝ) (n : ℕ) (hf : adapted ℱ f)
   is_stopping_time ℱ (least_ge f r n) :=
 hitting_is_stopping_time hf measurable_set_Ici
 
-section move
-
-lemma eventually_le.add_le_add {α β : Type*} [ordered_semiring β] {l : filter α}
-  {f₁ f₂ g₁ g₂ : α → β} (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) : f₁ + g₁ ≤ᶠ[l] f₂ + g₂ :=
-by filter_upwards [hf, hg] with x hfx hgx using add_le_add hfx hgx
-
-variables {β : Type*}
-variables {u : ℕ → α → β} {τ : α → ℕ}
-
-lemma stopped_process_eq' [add_comm_monoid β] (n : ℕ) :
-  stopped_process u τ n =
-  set.indicator {a | n + 1 ≤ τ a} (u n) +
-    ∑ i in finset.range (n + 1), set.indicator {a | τ a = i} (u i) :=
-begin
-  have : {a | n ≤ τ a}.indicator (u n) =
-    {a | n + 1 ≤ τ a}.indicator (u n) + {a | τ a = n}.indicator (u n),
-  { ext x,
-    rw [add_comm, pi.add_apply, ← set.indicator_union_of_not_mem_inter],
-    { simp_rw [@eq_comm _ _ n, @le_iff_eq_or_lt _ _ n, nat.succ_le_iff],
-      refl },
-    { rintro ⟨h₁, h₂⟩,
-      exact (nat.succ_le_iff.1 h₂).ne h₁.symm } },
-  rw [stopped_process_eq, this, finset.sum_range_succ_comm, ← add_assoc],
-end
-
-lemma not_mem_of_lt_hitting {ι : Type*} [conditionally_complete_linear_order ι]
-  {u : ι → α → β} {s : set β} {x : α} {n m k : ι}
-  (hk₁ : k < hitting u s n m x) (hk₂ : n ≤ k) :
-  u k x ∉ s :=
-begin
-  classical,
-  intro h,
-  have hexists : ∃ j ∈ set.Icc n m, u j x ∈ s,
-  refine ⟨k, ⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
-  refine not_le.2 hk₁ _,
-  simp_rw [hitting, if_pos hexists],
-  exact cInf_le bdd_below_Icc.inter_of_left ⟨⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
-end
-
-lemma hitting_eq_end_iff {ι : Type*} [conditionally_complete_linear_order ι]
-  {u : ι → α → β} {s : set β} {n m : ι} {x : α} :
-  hitting u s n m x = m ↔ (∃ j ∈ set.Icc n m, u j x ∈ s) →
-    Inf (set.Icc n m ∩ {i : ι | u i x ∈ s}) = m :=
-by rw [hitting, ite_eq_right_iff]
-
--- strictly stronger than `hitting_of_lt`
-lemma hitting_of_le {ι : Type*} [conditionally_complete_linear_order ι]
-  {u : ι → α → β} {s : set β} {n m : ι} {x : α} (hmn : m ≤ n) :
-  hitting u s n m x = m :=
-begin
-  obtain (rfl | h) := le_iff_eq_or_lt.1 hmn,
-  { simp only [hitting, set.Icc_self, ite_eq_right_iff, set.mem_Icc, exists_prop,
-      forall_exists_index, and_imp],
-    intros i hi₁ hi₂ hi,
-    rw [set.inter_eq_left_iff_subset.2, cInf_singleton],
-    exact set.singleton_subset_iff.2 (le_antisymm hi₂ hi₁ ▸ hi) },
-  { exact hitting_of_lt h }
-end
-
-end move
-
 lemma stopped_value_least_ge_eq (i : ℕ) (r : ℝ) :
   stopped_value f (least_ge f r i) = stopped_process f (least_ge f r i) i :=
 begin

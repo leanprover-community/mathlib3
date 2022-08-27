@@ -1470,6 +1470,10 @@ lemma eventually_le.le_sup_of_le_right [semilattice_sup β] {l : filter α} {f g
   h ≤ᶠ[l] f ⊔ g :=
 by filter_upwards [hg] with x hgx using le_sup_of_le_right hgx
 
+lemma eventually_le.add_le_add {α β : Type*} [ordered_semiring β] {l : filter α}
+  {f₁ f₂ g₁ g₂ : α → β} (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) : f₁ + g₁ ≤ᶠ[l] f₂ + g₂ :=
+by filter_upwards [hf, hg] with x hfx hgx using add_le_add hfx hgx
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 

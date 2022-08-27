@@ -51,6 +51,7 @@ section inequalities
 
 variables [conditionally_complete_linear_order ι] {u : ι → Ω → β} {s : set β} {n i : ι} {ω : Ω}
 
+/-- This lemma is strictly weaker than `hitting_of_le`. -/
 lemma hitting_of_lt {m : ι} (h : m < n) : hitting u s n m ω = m :=
 begin
   simp_rw [hitting],
@@ -72,6 +73,37 @@ begin
     { exact le_rfl }, },
   { rw hitting_of_lt h_lt, },
 end
+
+lemma not_mem_of_lt_hitting {m k : ι}
+  (hk₁ : k < hitting u s n m ω) (hk₂ : n ≤ k) :
+  u k ω ∉ s :=
+begin
+  classical,
+  intro h,
+  have hexists : ∃ j ∈ set.Icc n m, u j ω ∈ s,
+  refine ⟨k, ⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
+  refine not_le.2 hk₁ _,
+  simp_rw [hitting, if_pos hexists],
+  exact cInf_le bdd_below_Icc.inter_of_left ⟨⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
+end
+
+lemma hitting_eq_end_iff {m : ι} :
+  hitting u s n m ω = m ↔ (∃ j ∈ set.Icc n m, u j ω ∈ s) →
+    Inf (set.Icc n m ∩ {i : ι | u i ω ∈ s}) = m :=
+by rw [hitting, ite_eq_right_iff]
+
+lemma hitting_of_le {m : ι} (hmn : m ≤ n) :
+  hitting u s n m ω = m :=
+begin
+  obtain (rfl | h) := le_iff_eq_or_lt.1 hmn,
+  { simp only [hitting, set.Icc_self, ite_eq_right_iff, set.mem_Icc, exists_prop,
+      forall_exists_index, and_imp],
+    intros i hi₁ hi₂ hi,
+    rw [set.inter_eq_left_iff_subset.2, cInf_singleton],
+    exact set.singleton_subset_iff.2 (le_antisymm hi₂ hi₁ ▸ hi) },
+  { exact hitting_of_lt h }
+end
+
 
 lemma le_hitting {m : ι} (hnm : n ≤ m) (ω : Ω) : n ≤ hitting u s n m ω :=
 begin

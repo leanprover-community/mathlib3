@@ -89,8 +89,9 @@ instance : continuous_monoid_hom_class (continuous_monoid_hom α β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-@[to_additive] instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) :=
-fun_like.has_coe_to_fun
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
+instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) := fun_like.has_coe_to_fun
 
 @[to_additive] lemma ext {f g : continuous_monoid_hom A B} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext _ _ h

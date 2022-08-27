@@ -169,7 +169,7 @@ lemma ord_connected.interval_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s
   [x, y] ⊆ s :=
 hs.out (min_rec' (∈ s) hx hy) (max_rec' (∈ s) hx hy)
 
-lemma ord_interval.interval_oc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
+lemma ord_connected.interval_oc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
   Ι x y ⊆ s :=
 Ioc_subset_Icc_self.trans $ hs.interval_subset hx hy
 

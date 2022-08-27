@@ -1047,6 +1047,16 @@ lemma strict_anti_on.mul_antitone' (hf : strict_anti_on f s) (hg : antitone_on g
   strict_anti_on (λ x, f x * g x) s :=
 λ x hx y hy h, mul_lt_mul_of_lt_of_le (hf hx hy h) (hg hx hy h.le)
 
+@[simp, to_additive cmp_add_left]
+lemma cmp_mul_left' {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (*) (<)]
+  (a b c : α) : cmp (a * b) (a * c) = cmp b c :=
+(strict_mono_id.const_mul' a).cmp_map_eq b c
+
+@[simp, to_additive cmp_add_right]
+lemma cmp_mul_right' {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (swap (*)) (<)]
+  (a b c : α) : cmp (a * c) (b * c) = cmp a b :=
+(strict_mono_id.mul_const' c).cmp_map_eq a b
+
 end mono
 
 /--
@@ -1067,6 +1077,9 @@ def mul_le_cancellable [has_mul α] [has_le α] (a : α) : Prop :=
 lemma contravariant.mul_le_cancellable [has_mul α] [has_le α] [contravariant_class α α (*) (≤)]
   {a : α} : mul_le_cancellable a :=
 λ b c, le_of_mul_le_mul_left'
+
+@[to_additive] lemma mul_le_cancellable_one [monoid α] [has_le α] : mul_le_cancellable (1 : α) :=
+λ a b, by simpa only [one_mul] using id
 
 namespace mul_le_cancellable
 

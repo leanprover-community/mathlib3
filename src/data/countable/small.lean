@@ -7,9 +7,9 @@ import data.countable.basic
 import logic.small
 
 /-!
-# All encodable types are small.
+# All countable types are small.
 
-That is, any encodable type is equivalent to a type in any universe.
+That is, any countable type is equivalent to a type in any universe.
 -/
 
 universes w v

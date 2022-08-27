@@ -114,7 +114,7 @@ end non_unital
 
 section prod_pi
 
-variables {ι R₁ R₂ : Type*} {R : ι → Type*} [fintype ι]
+variables {ι R₁ R₂ : Type*} {R : ι → Type*}
 variables [non_unital_normed_ring R₁] [star_ring R₁] [cstar_ring R₁]
 variables [non_unital_normed_ring R₂] [star_ring R₂] [cstar_ring R₂]
 variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)]
@@ -123,7 +123,7 @@ variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)]
 inference involving Π-types. -/
 instance _root_.pi.star_ring' : star_ring (Π i, R i) := infer_instance
 
-variables [Π i, cstar_ring (R i)]
+variables [fintype ι] [Π i, cstar_ring (R i)]
 
 instance _root_.prod.cstar_ring : cstar_ring (R₁ × R₂) :=
 { norm_star_mul_self := λ x,

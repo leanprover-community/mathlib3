@@ -337,8 +337,7 @@ begin
   { rw finset.sum_insert haS,
     exact lt_of_le_of_lt (padic_norm.nonarchimedean p) (max_lt
       (ht a (finset.mem_insert_self a S))
-      (IH hs (λ b hb, ht b (finset.mem_insert_of_mem hb)))),
-  },
+      (IH hs (λ b hb, ht b (finset.mem_insert_of_mem hb)))), },
   { simp * at *, },
 end
 
@@ -353,8 +352,7 @@ begin
   { rw finset.sum_insert haS,
     exact (padic_norm.nonarchimedean p).trans (max_le
       (ht a (finset.mem_insert_self a S))
-      (IH hs (λ b hb, ht b (finset.mem_insert_of_mem hb)))),
-  },
+      (IH hs (λ b hb, ht b (finset.mem_insert_of_mem hb)))), },
   { simp * at *, },
 end
 

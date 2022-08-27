@@ -6,6 +6,8 @@ Authors: Damiano Testa
 import data.finsupp.lex
 import algebra.monoid_algebra.basic
 import algebra.geom_sum
+import algebra.char_p.basic
+import data.zmod.basic
 import group_theory.order_of_element
 
 /-!
@@ -13,9 +15,9 @@ import group_theory.order_of_element
 
 This file contains an easy source of zero-divisors in an `add_monoid_algebra`:
 if `k` is a field and `G` is an additive group containing a non-zero torsion element, then
-`add_monoid_algebra k G` contains non-zero zero-divisors.  The elements are easy to write down:
-`[a]` and `[a] ^ (n - 1) - 1` are non-zero elements of `add_monoid_algebra R A` whose product is
-zero.
+`add_monoid_algebra k G` contains non-zero zero-divisors: this is lemma `zero_divisors_of_torsion`.
+
+There is also a version for periodic elements of an additive monoid `zero_divisors_of_periodic`.
 
 The converse of this statement is
 [Kaplansky's zero divisor conjecture](https://en.wikipedia.org/wiki/Kaplansky%27s_conjectures).
@@ -41,12 +43,13 @@ finitely supported function is lexicographic, matching the list notation.  The i
 open finsupp add_monoid_algebra
 
 /--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
-monoid with an element satisfying `n • a = a`, for some `2 ≤ n`, then `add_monoid_algebra R A`
-contains non-zero zero-divisors.  The elements are easy to write down: `[a]` and `[a] ^ (n - 1) - 1`
-are non-zero elements of `add_monoid_algebra R A` whose product is zero.
+monoid with an element `a` satisfying `n • a = a` and `(n - 1) • a ≠ a`, for some `2 ≤ n`,
+then `add_monoid_algebra R A` contains non-zero zero-divisors.  The elements are easy to write down:
+`[a]` and `[a] ^ (n - 1) - 1` are non-zero elements of `add_monoid_algebra R A` whose product
+is zero.
 
-In particular, this applies whenever the additive monoid `A` is an additive group with a non-zero
-torsion element. -/
+Observe that such an element `a` *cannot* be invertible.  In particular, this lemma never applies
+if `A` is a group. -/
 lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} {a : A}
   (n2 : 2 ≤ n) (na : n • a = a) (na1 : (n - 1) • a ≠ 0) :
   ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
@@ -56,10 +59,20 @@ begin
   { rw [mul_sub, add_monoid_algebra.single_mul_single, add_monoid_algebra.single_mul_single,
       sub_eq_zero, add_zero, ← succ_nsmul, nat.sub_add_cancel (one_le_two.trans n2), na] },
 end
-#check @commute.geom_sum₂_mul
 
-lemma zero_divisors_of_torsion {R A} [nontrivial R] [ring R] [add_monoid A]
-  {a : A} (a0 : a ≠ 0) (o2 : 2 ≤ add_order_of a) :
+lemma single_zero_one {R A} [semiring R] [has_zero A] :
+  single (0 : A) (1 : R) = (1 : add_monoid_algebra R A) := rfl
+
+/--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
+monoid with a non-zero element `a` of finite order `oa`, then `add_monoid_algebra R A` contains
+non-zero zero-divisors.  The elements are easy to write down:
+`∑ i in finset.range oa, [a] ^ i` and `[a] - 1` are non-zero elements of `add_monoid_algebra R A`
+whose product is zero.
+
+In particular, this applies whenever the additive monoid `A` is an additive group with a non-zero
+torsion element. -/
+lemma zero_divisors_of_torsion {R A} [nontrivial R] [ring R] [add_monoid A] (a : A)
+  (o2 : 2 ≤ add_order_of a) :
   ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
 begin
   refine ⟨(finset.range (add_order_of a)).sum (λ (i : ℕ), (single a 1) ^ i),
@@ -76,13 +89,26 @@ begin
     { rw [single_pow, one_pow, zero_smul, single_eq_same] } },
   { apply_fun (λ x : add_monoid_algebra R A, x 0),
     refine sub_ne_zero.mpr (ne_of_eq_of_ne (_ : (_ : R) = 0) _),
-    { simp only [a0, single_eq_of_ne, ne.def, not_false_iff] },
+    { have a0 : a ≠ 0 := ne_of_eq_of_ne (one_nsmul a).symm
+        (nsmul_ne_zero_of_lt_add_order_of' one_ne_zero (nat.succ_le_iff.mp o2)),
+      simp only [a0, single_eq_of_ne, ne.def, not_false_iff] },
     { simpa only [single_eq_same] using zero_ne_one, } },
   { convert commute.geom_sum₂_mul _ (add_order_of a),
     { ext, rw [single_zero_one, one_pow, mul_one] },
     { rw [single_pow, one_pow, add_order_of_nsmul_eq_zero, single_zero_one, one_pow, sub_self] },
     { simp only [single_zero_one, commute.one_right] } },
 end
+
+lemma char_p_eq_add_order_of_one (R) [semiring R] : char_p R (add_order_of (1 : R)) :=
+⟨λ n, by rw [← nat.smul_one_eq_coe, add_order_of_dvd_iff_nsmul_eq_zero]⟩
+
+lemma zmod.add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
+char_p.eq _ (char_p_eq_add_order_of_one _) (zmod.char_p n)
+
+example {R} [ring R] [nontrivial R] (n : ℕ) (n0 : 2 ≤ n) :
+  ∃ f g : add_monoid_algebra R (zmod n), f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
+zero_divisors_of_torsion (1 : zmod n) (n0.trans_eq (zmod.add_order_of_one _).symm)
+
 
 /--  `F` is the type with two elements `zero` and `one`.  We define the "obvious" linear order and
 absorbing addition on it to generate our counterexample. -/
@@ -181,6 +207,10 @@ begin
   { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, coe_add, pi.to_lex_apply,
       pi.add_apply, forall_eq, f010, f1, eq_self_iff_true, f011, f111, zero_add, and_self] },
 end
+
+example {α} [ring α] [nontrivial α] :
+  ∃ f g : add_monoid_algebra α F, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
+zero_divisors_of_periodic le_rfl ((two_smul _ _).trans (by refl)) z01.ne'
 
 example {α} [has_zero α] : 2 • (single 0 1 : α →₀ F) = single 0 1 ∧ (single 0 1 : α →₀ F) ≠ 0 :=
 ⟨smul_single _ _ _, by simpa only [ne.def, single_eq_zero] using z01.ne⟩

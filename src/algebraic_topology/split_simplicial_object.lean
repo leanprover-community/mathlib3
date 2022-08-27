@@ -335,7 +335,7 @@ def eval_N (n : ℕ) : split C ⥤ C :=
   map := λ S₁ S₂ Φ, Φ.f n, }
 
 /-- The inclusion of each summand in the coproduct decomposition of simplices
-in split simplicial object is a natural transformation of functors
+in split simplicial objects is a natural transformation of functors
 `simplicial_object.split C ⥤ C` -/
 @[simps]
 def nat_trans_ι_summand {Δ : simplex_categoryᵒᵖ} (A : splitting.index_set Δ) :

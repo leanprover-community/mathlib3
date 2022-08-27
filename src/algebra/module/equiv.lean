@@ -200,9 +200,6 @@ end
 
 @[simp] lemma refl_apply [module R M] (x : M) : refl R M x = x := rfl
 
-@[simp] lemma refl_to_linear_map' [module R M] : (refl R M).to_linear_map = linear_map.id :=
-rfl
-
 include module_M module_S_M₂ re₁ re₂
 /-- Linear equivalences are symmetric. -/
 @[symm]

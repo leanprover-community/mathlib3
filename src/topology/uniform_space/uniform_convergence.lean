@@ -62,73 +62,6 @@ open_locale topological_space classical uniformity filter
 
 open set filter
 
-section generic
-
-variables {α β γ ι : Type*} {p : filter ι} {p' : filter α}
-
-lemma filter.eventually_swap_iff {f : (ι × α) → Prop} : (∀ᶠ (x : ι × α) in (p.prod p'), f x) ↔
-  ∀ᶠ (y : α × ι) in (p'.prod p), f y.swap :=
-begin
-  rw [eventually_prod_iff, eventually_prod_iff],
-  split,
-  { intros h,
-    obtain ⟨pa, hpa, pb, hpb, hpapb⟩ := h,
-    exact ⟨pb, hpb, pa, hpa, λ x hx y hy, hpapb hy hx⟩, },
-  { intros h,
-    obtain ⟨pa, hpa, pb, hpb, hpapb⟩ := h,
-    exact ⟨pb, hpb, pa, hpa, λ x hx y hy, hpapb hy hx⟩, },
-end
-
-lemma eventually_prod_principal_iff {f : ι × α → Prop} {s : set α} :
-  (∀ᶠ (x : ι × α) in (p.prod (𝓟 s)), f x) ↔ ∀ᶠ (n : ι) in p, ∀ (y : α), y ∈ s → f (n, y) :=
-begin
-  rw [eventually_prod_iff, eventually_iff_exists_mem],
-  split,
-  { rintros ⟨pa, hpa, pb, hpb, hpapb⟩,
-    exact ⟨_, hpa, (λ n hn y hy, hpapb hn ((eventually_principal.mp hpb) y hy))⟩, },
-  { rintros ⟨t, ht, htmem⟩,
-    exact ⟨_, ht, _, by simp, htmem⟩, },
-end
-
-lemma filter.prod_le_of_le_of_le {p₁ p₂ : filter ι} {q₁ q₂ : filter α} (hp : p₁ ≤ p₂)
-  (hq : q₁ ≤ q₂) :  p₁ ×ᶠ q₁ ≤ p₂ ×ᶠ q₂ :=
-begin
-  intros s hs,
-  rw mem_prod_iff at hs ⊢,
-  obtain ⟨t₁, ht₁, t₂, ht₂, ht⟩ := hs,
-  exact ⟨t₁, hp ht₁, t₂, hq ht₂, ht⟩,
-end
-
-lemma filter.prod_le_of_left_le (p' : filter α) {p'' : filter ι} (hp : p ≤ p'') :
-  p ×ᶠ p' ≤ p'' ×ᶠ p' :=
-filter.prod_le_of_le_of_le hp rfl.le
-
-lemma filter.prod_le_of_right_le (p : filter ι) {p'' : filter α} (hp : p' ≤ p'') :
-  p ×ᶠ p' ≤ p ×ᶠ p'' :=
-filter.prod_le_of_le_of_le rfl.le hp
-
-lemma filter.eventually.diag_of_prod_left {f : filter α} {g : filter γ}
-  {p : (α × α) × γ → Prop} :
-  (∀ᶠ x in (f ×ᶠ f ×ᶠ g), p x) →
-  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p ((x.1, x.1), x.2)) :=
-begin
-  intros h,
-  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
-  refine (ht.diag_of_prod.prod_mk hs).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
-end
-
-lemma filter.eventually.diag_of_prod_right {f : filter α} {g : filter γ}
-  {p : α × γ × γ → Prop} :
-  (∀ᶠ x in (f ×ᶠ (g ×ᶠ g)), p x) →
-  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p (x.1, x.2, x.2)) :=
-begin
-  intros h,
-  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
-  refine (ht.prod_mk hs.diag_of_prod).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
-end
-
-end generic
-
 universes u v w
 variables {α β γ ι : Type*} [uniform_space β]
 variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {p' : filter α}
@@ -365,7 +298,7 @@ lemma tendsto_uniformly.prod_map {ι' α' β' : Type*} [uniform_space β'] {F' :
   {f' : α' → β'} {p' : filter ι'} (h : tendsto_uniformly F f p) (h' : tendsto_uniformly F' f' p') :
   tendsto_uniformly (λ (i : ι × ι'), prod.map (F i.1) (F' i.2)) (prod.map f f') (p.prod p') :=
 begin
-  rw [-m iformly_on_univ, ←univ_prod_univ] at *,
+  rw [←tendsto_uniformly_on_univ, ←univ_prod_univ] at *,
   exact h.prod_map h',
 end
 
@@ -766,7 +699,6 @@ begin
   obtain ⟨t, ht⟩ := compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
   replace hU := λ (x : t), (hU x).2,
   rw ← eventually_all at hU,
-  -- rw [← principal_univ, eventually_prod_principal_iff],
   refine hU.mono (λ i hi x, _),
   specialize ht (mem_univ x),
   simp only [exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right,subtype.coe_mk] at ht,

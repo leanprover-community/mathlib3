@@ -1228,7 +1228,7 @@ lemma tendsto_tsum_compl_at_top_zero [t1_space α] (f : β → α) :
 begin
   by_cases H : summable f,
   { assume e he,
-    rcases nhds_is_closed he with ⟨o, ho, oe, o_closed⟩,
+    rcases exists_mem_nhds_is_closed_subset he with ⟨o, ho, o_closed, oe⟩,
     simp only [le_eq_subset, set.mem_preimage, mem_at_top_sets, filter.mem_map, ge_iff_le],
     obtain ⟨s, hs⟩ : ∃ (s : finset β), ∀ (t : finset β), disjoint t s → ∑ (b : β) in t, f b ∈ o :=
       cauchy_seq_finset_iff_vanishing.1 (tendsto.cauchy_seq H.has_sum) o ho,

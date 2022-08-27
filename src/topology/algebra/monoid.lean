@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import algebra.big_operators.finprod
 import data.set.pointwise
 import topology.algebra.mul_action
+import algebra.big_operators.pi
 
 /-!
 # Theory of topological monoids
@@ -511,6 +512,16 @@ begin
   refine ⟨hUf.to_finset, mem_of_superset hxU $ λ y hy i hi, _⟩,
   rw [hUf.coe_to_finset],
   exact ⟨y, hi, hy⟩
+end
+
+@[to_additive] lemma prod_eventually_eq
+  {s : finset ι} {l : filter X} {f g : ι → X → M} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :
+  ∏ i in s, f i =ᶠ[l] ∏ i in s, g i :=
+begin
+  replace hs: ∀ᶠ x in l, ∀ i ∈ s, f i x = g i x,
+  { rwa eventually_all_finset },
+  filter_upwards [hs] with x hx,
+  simp only [finset.prod_apply, finset.prod_congr rfl hx],
 end
 
 @[to_additive] lemma finprod_eventually_eq_prod {M : Type*} [comm_monoid M]

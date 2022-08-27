@@ -2083,6 +2083,21 @@ begin
     ((condexp_ae_eq_condexp_L1 hm _).symm.add (condexp_ae_eq_condexp_L1 hm _).symm),
 end
 
+lemma condexp_finset_sum {ι : Type*} {s : finset ι} {f : ι → α → F'}
+  (hf : ∀ i ∈ s, integrable (f i) μ) :
+  μ[∑ i in s, f i | m] =ᵐ[μ] ∑ i in s, μ[f i | m] :=
+begin
+  revert hf,
+  refine finset.induction_on s _ _,
+  { intro hf,
+    rw [finset.sum_empty, finset.sum_empty, condexp_zero] },
+  { intros i s his heq hf,
+    rw [finset.sum_insert his, finset.sum_insert his],
+    exact (condexp_add (hf i $ finset.mem_insert_self i s) $ integrable_finset_sum' _
+      (λ j hmem, hf j $ finset.mem_insert_of_mem hmem)).trans
+      ((eventually_eq.refl _ _).add (heq $ λ j hmem, hf j $ finset.mem_insert_of_mem hmem)) }
+end
+
 lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | m] =ᵐ[μ] c • μ[f|m] :=
 begin
   by_cases hm : m ≤ m0,
@@ -2140,6 +2155,13 @@ begin
   haveI : sigma_finite (μ.trim hm) := hμm,
   exact (condexp_ae_eq_condexp_L1 hm _).trans_le
     ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
+end
+
+lemma condexp_nonneg {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfint : integrable f μ) :
+  0 ≤ᵐ[μ] μ[f | m] :=
+begin
+  rw (condexp_zero.symm : (0 : α → ℝ) = μ[0 | m]),
+  exact condexp_mono (integrable_zero _ _ _) hfint hf,
 end
 
 /-- **Lebesgue dominated convergence theorem**: sufficient conditions under which almost

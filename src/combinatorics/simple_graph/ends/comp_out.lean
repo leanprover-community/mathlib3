@@ -50,7 +50,27 @@ begin
   { simp, use v, }
 end
 
+-- mathlib
+lemma connected_component.equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'}
+  (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+begin
+  fsplit,
+  { fapply connected_component.lift,
+    { rintro v, exact connected_component_mk G' (φ v),},
+    { rintro v w p pp, simp only [connected_component.eq], constructor, exact p.map φ.to_hom,}},
 
+  { fapply connected_component.lift,
+    { rintro v, exact connected_component_mk G (φ.symm v),},
+    { rintro v w p pp, simp only [connected_component.eq], constructor, exact p.map φ.symm.to_hom,}},
+  { dsimp only [function.right_inverse,function.left_inverse],
+    apply connected_component.ind,
+    simp only [connected_component.eq, connected_component.lift_mk, rel_iso.symm_apply_apply],
+    rintro v, refl},
+  { dsimp only [function.right_inverse,function.left_inverse],
+    apply connected_component.ind,
+    simp only [connected_component.eq, connected_component.lift_mk, rel_iso.symm_apply_apply],
+    rintro v, simp only [rel_iso.apply_symm_apply], }
+end
 
 def out : simple_graph V := {
   adj := λ u v, u ∉ K ∧ v ∉ K ∧ G.adj u v,
@@ -61,6 +81,13 @@ lemma out.sub (G : simple_graph V)  (K : set V) : out G K ≤ G := λ u v a, a.2
 
 lemma out.mono (G : simple_graph V)  (K L : set V) (h : K ⊆ L) : G.out L ≤ G.out K :=
 λ u v ⟨unL,vnL,uav⟩, ⟨(λ uK, unL (h uK)), (λ vK, (vnL (h vK))), uav⟩
+
+def out.iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') (K : set V) :
+  G.out K ≃g G'.out (φ '' K) :=
+begin
+  fsplit, exact φ.1, dsimp only [out],
+  rintro u v, sorry
+end
 
 lemma out.reachable_mono (G : simple_graph V)  (K L : set V) (h : K ⊆ L) (u v : V) :
   (G.out L).reachable u v → (G.out K).reachable u v :=
@@ -426,6 +453,23 @@ end infinite
 
 section misc
 
+def equiv_of_isom {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) : G.comp_out K ≃ G'.comp_out (φ '' K) :=
+begin
+  apply connected_component.equiv_of_iso,
+  apply out.iso,
+end
+
+lemma equiv_of_isom.dis {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) (C : G.comp_out K) : C.dis ↔ (equiv_of_isom φ K C).dis := sorry
+
+lemma equiv_of_isom.inf {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) (C : G.comp_out K) : C.inf ↔ (equiv_of_isom φ K C).inf := sorry
+
+lemma equiv_of_isom.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) (C : G.comp_out K) : (φ '' C) = (equiv_of_isom φ K C) := sorry
+
+
 def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (⋃ (C : G.comp_out K) (h : C.fin), (C : set V))
 
 lemma extend_with_fin.finite (Gpc : G.preconnected) (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty):
@@ -445,7 +489,7 @@ lemma extend_with_fin.connected (G : simple_graph V) (K : set V) (Kconn : (G.ind
   (G.induce (extend_with_fin G K)).connected := sorry
 
 lemma extend_with_fin.components_spec (G : simple_graph V) (K : set V) :
-  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (G.extend_fin K)), C = D) := sorry
+  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G K)), C = D) := sorry
 
 end misc
 

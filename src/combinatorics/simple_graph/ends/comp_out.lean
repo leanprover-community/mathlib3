@@ -22,9 +22,11 @@ namespace simple_graph
 variables  {V : Type u}
 variables (G : simple_graph V)  (K : set V)
 
+--mathlib
 @[reducible, simp] def connected_component.supp {G : simple_graph V} (C : G.connected_component) :=
   {v : V | connected_component_mk G v = C}
 
+--mathlib
 @[ext] lemma connected_component.eq_of_eq_supp (C D : G.connected_component) : C = D ↔ C.supp = D.supp :=
 begin
   split,
@@ -36,11 +38,13 @@ begin
     refl,}
 end
 
+--mathlib
 instance : set_like G.connected_component V := {
   coe := connected_component.supp,
   coe_injective' := by {intros C D, apply (connected_component.eq_of_eq_supp _ _ _).mpr, } }
 
 -- Some variation of this should surely be included in mathlib ?!
+--mathlib
 lemma connected_component.connected (C : G.connected_component) :
 (G.induce C.supp).connected :=
 begin
@@ -94,25 +98,9 @@ lemma out.empty (G : simple_graph V) : G.out ∅ = G := by {ext, obviously,}
 
 @[reducible] def comp_out := (G.out K).connected_component
 
-/-
-@[reducible, simp] def comp_out.supp {G : simple_graph V} {K : set V} (C : G.comp_out K) :=
-  C.supp
-
-instance {G : simple_graph V} {K : set V} : set_like (G.comp_out K) V :=
-⟨ comp_out.supp
-, by
-  { refine @connected_component.ind₂ _ _ (λ (C D : G.comp_out K), C.supp = D.supp → C = D) _,
-    rintros v w, simp only [comp_out.supp, connected_component.eq], rintro eq,
-    change v ∈ {u | (out G K).reachable u w}, rw ←eq, simp only [mem_set_of_eq],} ⟩
--/
-
 @[simp] lemma comp_out.mem_supp_iff {G : simple_graph V} {K : set V}
   {v : V} {C : comp_out G K} :
-(v ∈ C) ↔ connected_component_mk (out G K) v = C :=
-begin
-  simp only [set_like.has_mem,has_mem.mem,coe,coe_to_lift,lift_t,has_lift_t.lift,coe_t,has_coe_t.coe,set_like.coe],
-  refl,
-end
+(v ∈ C) ↔ connected_component_mk (out G K) v = C := by {refl,}
 
 namespace comp_out
 

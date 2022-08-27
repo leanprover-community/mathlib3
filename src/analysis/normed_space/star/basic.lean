@@ -121,11 +121,11 @@ variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)]
 
 /-- This instance exists to short circuit type class resolution because of problems with
 inference involving Π-types. -/
-instance : star_ring (Π i, R i) := infer_instance
+instance _root_.pi.star_ring' : star_ring (Π i, R i) := infer_instance
 
 variables [Π i, cstar_ring (R i)]
 
-instance : cstar_ring (R₁ × R₂) :=
+instance _root_.prod.cstar_ring : cstar_ring (R₁ × R₂) :=
 { norm_star_mul_self := λ x,
   begin
     unfold norm,
@@ -140,7 +140,7 @@ instance : cstar_ring (R₁ × R₂) :=
       simp [h] }
   end }
 
-instance pi.cstar_ring : cstar_ring (Π i, R i) :=
+instance _root_.pi.cstar_ring : cstar_ring (Π i, R i) :=
 { norm_star_mul_self := λ x,
   begin
     simp only [norm, pi.mul_apply, pi.star_apply, nnnorm_star_mul_self, ←sq],

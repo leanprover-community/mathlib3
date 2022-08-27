@@ -2157,11 +2157,24 @@ begin
     ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
 end
 
-lemma condexp_nonneg {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfint : integrable f μ) :
+lemma condexp_nonneg {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f : α → E} (hf : 0 ≤ᵐ[μ] f) :
   0 ≤ᵐ[μ] μ[f | m] :=
 begin
-  rw (condexp_zero.symm : (0 : α → ℝ) = μ[0 | m]),
-  exact condexp_mono (integrable_zero _ _ _) hfint hf,
+  by_cases hfint : integrable f μ,
+  { rw (condexp_zero.symm : (0 : α → E) = μ[0 | m]),
+    exact condexp_mono (integrable_zero _ _ _) hfint hf },
+  { exact eventually_eq.le (condexp_undef hfint).symm }
+end
+
+lemma condexp_nonpos {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f : α → E} (hf : f ≤ᵐ[μ] 0) :
+  μ[f | m] ≤ᵐ[μ] 0 :=
+begin
+  by_cases hfint : integrable f μ,
+  { rw (condexp_zero.symm : (0 : α → E) = μ[0 | m]),
+    exact condexp_mono hfint (integrable_zero _ _ _) hf },
+  { exact eventually_eq.le (condexp_undef hfint) }
 end
 
 /-- **Lebesgue dominated convergence theorem**: sufficient conditions under which almost

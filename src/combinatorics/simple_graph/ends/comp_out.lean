@@ -22,19 +22,37 @@ namespace simple_graph
 variables  {V : Type u}
 variables (G : simple_graph V)  (K : set V)
 
+@[reducible, simp] def connected_component.supp {G : simple_graph V} (C : G.connected_component) :=
+  {v : V | connected_component_mk G v = C}
+
+@[ext] lemma connected_component.eq_of_eq_supp (C D : G.connected_component) : C = D ↔ C.supp = D.supp :=
+begin
+  split,
+  { intro h, subst h, },
+  { refine connected_component.ind₂ _ C D,
+    intros v w h,
+    simp_rw [set.ext_iff] at h,
+    apply (h v).mp, dsimp [connected_component.supp],
+    refl,}
+end
+
+instance : set_like G.connected_component V := {
+  coe := connected_component.supp,
+  coe_injective' := by {intros C D, apply (connected_component.eq_of_eq_supp _ _ _).mpr, } }
 
 -- Some variation of this should surely be included in mathlib ?!
 lemma connected_component.connected (C : G.connected_component) :
-(G.induce {v : V | connected_component_mk G v = C}).connected :=
+(G.induce C.supp).connected :=
 begin
   revert C,
   refine connected_component.ind _,
   rintro v,
-  let C := {v_1 : V | G.connected_component_mk v_1 = G.connected_component_mk v},
+  let comp := (G.connected_component_mk v).supp,
   rw connected_iff,
   fsplit,
-  { suffices : ∀ u : C, (G.induce C).reachable u ⟨v,by {simp only [mem_set_of_eq],}⟩,
+  { suffices : ∀ u : comp, (G.induce comp).reachable u ⟨v, by {dsimp [comp], refl,}⟩,
     { exact λ u w, (this u).trans (this w).symm, },
+
     rintro ⟨u,uv⟩,
     simp only [mem_set_of_eq, connected_component.eq] at uv,
     obtain ⟨uv'⟩ := uv,
@@ -47,7 +65,7 @@ begin
       exact (g ⟨f⟩).some,
       simp only [comap_adj, embedding.coe_subtype, subtype.coe_mk],
       exact e,}},
-  { simp, use v, }
+  { simp [connected_component.supp], use v, }
 end
 
 
@@ -71,10 +89,14 @@ begin
   exact h,
 end
 
-def comp_out := (G.out K).connected_component
+lemma out.empty (G : simple_graph V) : G.out ∅ = G := by {ext, obviously,}
 
+
+@[reducible] def comp_out := (G.out K).connected_component
+
+/-
 @[reducible, simp] def comp_out.supp {G : simple_graph V} {K : set V} (C : G.comp_out K) :=
-  {v : V | connected_component_mk (G.out K) v = C}
+  C.supp
 
 instance {G : simple_graph V} {K : set V} : set_like (G.comp_out K) V :=
 ⟨ comp_out.supp
@@ -82,6 +104,7 @@ instance {G : simple_graph V} {K : set V} : set_like (G.comp_out K) V :=
   { refine @connected_component.ind₂ _ _ (λ (C D : G.comp_out K), C.supp = D.supp → C = D) _,
     rintros v w, simp only [comp_out.supp, connected_component.eq], rintro eq,
     change v ∈ {u | (out G K).reachable u w}, rw ←eq, simp only [mem_set_of_eq],} ⟩
+-/
 
 @[simp] lemma comp_out.mem_supp_iff {G : simple_graph V} {K : set V}
   {v : V} {C : comp_out G K} :

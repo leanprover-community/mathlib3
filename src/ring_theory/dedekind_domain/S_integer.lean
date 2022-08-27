@@ -87,6 +87,15 @@ instance : algebra R (S.integer K) :=
   one_mem' := λ _ _, map_one _,
   inv_mem' := λ _ hx v hv, by rw [map_units_inv, hx v hv, inv_one] }
 
+lemma unit_eq :
+  S.unit K = ⨅ v ∉ S, (v : height_one_spectrum R).valuation.valuation_subring.unit_group :=
+begin
+  ext,
+  simp only [subgroup.mem_infi],
+  exact forall₂_congr (λ _ _, (valuation.is_equiv_iff_val_eq_one _ _).mp $
+                        valuation.is_equiv_valuation_valuation_subring _)
+end
+
 /-- The group of units of the ring of `S`-integers is the group of `S`-units. -/
 @[simps] def units_integer_equiv_unit : (S.integer K)ˣ ≃* S.unit K :=
 { to_fun    := λ x, ⟨units.mk0 x $ λ hx, x.ne_zero ((subring.coe_eq_zero_iff _).mp hx),

@@ -114,7 +114,7 @@ rfl
 
 @[simp, norm_cast]
 protected lemma coe_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)]
-  (a : {x : α // 0 ≤ x}) (n : ℕ) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
+  (n : ℕ) (a : {x : α // 0 ≤ x}) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
 
 instance ordered_add_comm_monoid [ordered_add_comm_monoid α] :
   ordered_add_comm_monoid {x : α // 0 ≤ x} :=
@@ -270,7 +270,7 @@ instance has_zpow : has_pow {x : α // 0 ≤ x} ℤ := ⟨λ a n, ⟨a ^ n, zpow
 
 instance linear_ordered_semifield : linear_ordered_semifield {x : α // 0 ≤ x} :=
 subtype.coe_injective.linear_ordered_semifield _ nonneg.coe_zero nonneg.coe_one nonneg.coe_add
-    nonneg.coe_mul nonneg.coe_inv nonneg.coe_div nonneg.coe_nsmul nonneg.coe_pow nonneg.coe_zpow
+    nonneg.coe_mul nonneg.coe_inv nonneg.coe_div (λ _ _, rfl) nonneg.coe_pow nonneg.coe_zpow
     nonneg.coe_nat_cast (λ _ _, rfl) (λ _ _, rfl)
 
 end linear_ordered_semifield

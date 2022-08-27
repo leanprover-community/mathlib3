@@ -109,7 +109,7 @@ def out.iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G �
 begin
   fsplit, exact φ.1, dsimp only [out],
   rintro u v,
-  simp only [injective.mem_set_image (sorry : injective φ), rel_iso.coe_fn_to_equiv, and.congr_right_iff],
+  simp only [injective.mem_set_image (rel_iso.injective φ), rel_iso.coe_fn_to_equiv, and.congr_right_iff],
   rintro unK vnK, apply φ.2,
 end
 
@@ -507,7 +507,7 @@ begin
   simp only [←equiv_of_isom.image],
   symmetry,
   apply disjoint_image_iff,
-  sorry, -- how to get that φis injective ??
+  exact rel_iso.injective φ,
 end
 
 lemma equiv_of_isom.inf {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
@@ -517,13 +517,21 @@ begin
   simp only [←equiv_of_isom.image],
   symmetry,
   apply infinite_image_iff,
-  sorry, -- essentially same problem
+  refine injective.inj_on _ ↑C,
+  exact rel_iso.injective φ,
 end
 
 
 
-
+-- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
 def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (⋃ (C : G.comp_out K) (h : C.fin), (C : set V))
+
+lemma extend_with_fin.eq (G : simple_graph V) (K : set V) : G.comp_out (extend_with_fin G K) = (G.out K).comp_out (⋃ (C : G.comp_out K) (h : C.fin), (C : set V)) :=
+begin
+  dsimp [extend_with_fin, comp_out],
+  sorry -- maybe it should be an isomorphism
+end
+
 
 lemma extend_with_fin.finite (Gpc : G.preconnected) (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty):
   (extend_with_fin G K).finite :=
@@ -539,10 +547,41 @@ lemma extend_with_fin.sub (G : simple_graph V) (K : set V) : K ⊆ extend_with_f
 { dsimp [extend_with_fin],exact subset_union_left K (⋃ (C : comp_out G K) (h : C.fin), ↑C), }
 
 lemma extend_with_fin.connected (G : simple_graph V) (K : set V) (Kconn : (G.induce K).connected) :
-  (G.induce (extend_with_fin G K)).connected := sorry
+  (G.induce (extend_with_fin G K)).connected :=
+begin
+  dsimp [extend_with_fin],
+  sorry,
+end
 
 lemma extend_with_fin.components_spec (G : simple_graph V) (K : set V) :
   ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G K)), C = D) := sorry
+
+-- A restatement of the above lemma
+lemma extends_with_fin.inf_components_iso (G : simple_graph V) (K : set V) :
+  subtype (@comp_out.inf V G K) ≃ G.comp_out (extend_with_fin G K) := {
+  to_fun := λ ⟨C, Cinf⟩, C.lift (λ v, connected_component_mk _ v) (by {
+    intros v w p hpath,
+    simp, apply nonempty.intro,
+    sorry, -- the path is exactly `p`
+  }),
+  inv_fun := λ C, ⟨C.back (extend_with_fin.sub _ _), by {
+    apply infinite.mono,
+    apply back_sub,
+    intro Cfin,
+    sorry,
+  }⟩,
+  left_inv := by {
+    simp [left_inverse],
+    refine connected_component.ind _,
+    intros v hinf w,
+    simp,
+    sorry, -- this can be stated as a general lemma for any set and its superset
+  },
+  right_inv := by {
+    simp [function.right_inverse, left_inverse],
+    refine connected_component.ind _,
+    intro v, sorry,
+  }}
 
 end misc
 

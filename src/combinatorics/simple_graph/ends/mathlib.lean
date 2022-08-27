@@ -229,6 +229,35 @@ begin
   apply set.finite_def.mpr, constructor, exact Glf x,
 end
 
+lemma thicken.of_all_adj {V : Type*} (G : simple_graph V) (K : set V) (Kadj : ∀ k ∈ K, ∃ k' ∈ K, G.adj k k') : thicken G K = {v : V | ∃ k ∈ K, G.adj v k} :=
+begin
+  unfold thicken,
+  ext,
+  split,
+  {
+    intro h,
+    cases h,
+    { exact Kadj _ h,},
+    -- tidy
+    { cases h, cases h_w, dsimp at *, simp at *, fsplit, work_on_goal 2 { fsplit, work_on_goal 1 { assumption }, solve_by_elim }},
+  },
+  { intro h, right,
+    -- tidy
+    {cases h, cases h_h, dsimp at *, simp at *, fsplit, work_on_goal 2 { fsplit, work_on_goal 1 { assumption }, solve_by_elim }}}
+end
+
+#check nonempty.elim
+
+lemma thicken.of_connected {V : Type*} (G : simple_graph V) (K : set V) (Kconn : (G.induce K).connected) : thicken G K = {v : V | ∃ k ∈ K, G.adj v k} :=
+begin
+  refine thicken.of_all_adj G K _,
+  intros k hkK,
+  cases Kconn,
+  apply Kconn_nonempty.elim,
+  rintro k',
+  let p := (Kconn_preconnected ⟨k, hkK⟩ k').some,
+  sorry,
+end
 
 @[reducible]
 def neighborhood  {V : Type*} (G : simple_graph V) [locally_finite G] [preconnected G]

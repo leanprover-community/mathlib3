@@ -58,35 +58,6 @@ begin
 end
 #check @commute.geom_sum₂_mul
 
-@[simp] lemma single_zero_one {R A} [semiring R] [has_zero A] :
-  (single 0 1 : add_monoid_algebra R A) = (1 : add_monoid_algebra R A) := rfl
---single a 1 ^ i * single 0 1 ^ (add_order_of a - 1 - i)
-lemma zero_divisors_of_torsion {R A} [nontrivial R] [ring R] [add_monoid A]
-  {a : A} (a0 : a ≠ 0) (o2 : 2 ≤ add_order_of a) :
-  ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
-begin
-  refine ⟨(finset.range (add_order_of a)).sum (λ (i : ℕ), single a 1 ^ i * single 0 1 ^ (add_order_of a - 1 - i)),
-    single a 1 - single 0 1, _, _, _⟩,
-  { apply_fun (λ x : add_monoid_algebra R A, x 0),
-    refine ne_of_eq_of_ne (_ : (_ : R) = 1) one_ne_zero,
-    simp_rw finset.sum_apply',
-    refine (finset.sum_eq_single 0 _ _).trans _,
-    { intros b hb b0,
-      rw [single_zero_one, one_pow, mul_one, single_pow, one_pow, single_eq_of_ne],
-      exact nsmul_ne_zero_of_lt_add_order_of' b0 (finset.mem_range.mp hb) },
-    { simp only [(zero_lt_two.trans_le o2).ne', finset.mem_range, not_lt, le_zero_iff,
-        false_implies_iff] },
-    { simp only [single_pow, single_mul_single, one_pow, mul_one, smul_zero', zero_smul, zero_add,
-        single_eq_same] } },
-  { apply_fun (λ x : add_monoid_algebra R A, x 0),
-    refine sub_ne_zero.mpr (ne_of_eq_of_ne (_ : (_ : R) = 0) _),
-    { simp only [a0, single_eq_of_ne, ne.def, not_false_iff] },
-    { simpa only [single_eq_same] using zero_ne_one, } },
-  { convert commute.geom_sum₂_mul _ (add_order_of a),
-    { rw [single_pow, one_pow, add_order_of_nsmul_eq_zero, single_zero_one, one_pow, sub_self] },
-    { simp only [single_zero_one, commute.one_right] } },
-end
-
 lemma zero_divisors_of_torsion {R A} [nontrivial R] [ring R] [add_monoid A]
   {a : A} (a0 : a ≠ 0) (o2 : 2 ≤ add_order_of a) :
   ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=

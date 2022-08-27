@@ -514,7 +514,7 @@ begin
   exact ⟨y, hi, hy⟩
 end
 
-@[to_additive] lemma prod_eventually_eq
+@[to_additive] lemma prod_eventually_eq {X M : Type*} [comm_monoid M]
   {s : finset ι} {l : filter X} {f g : ι → X → M} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :
   ∏ i in s, f i =ᶠ[l] ∏ i in s, g i :=
 begin

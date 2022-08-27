@@ -91,9 +91,6 @@ begin
   refl,
 end
 
-def inf_comp_out := { C : comp_out G K // (C : set V).infinite }
-def fin_comp_out := { C : comp_out G K // (C : set V).finite }
-
 namespace comp_out
 
 variables {G}
@@ -320,9 +317,11 @@ begin
     exact ⟨C.back_sub h vC ,sub vC⟩,}
 end
 
+@[simp]
 lemma back_refl_apply {K : set V} (C : G.comp_out K) : C.back (subset_refl K) = C :=
 by {refine C.ind _, rintro v, dsimp only [back], refl,}
 
+@[simp]
 lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.comp_out M) :
   (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) :=
 by {refine C.ind _, rintro v, dsimp only [back], simp only [connected_component.lift_mk],}
@@ -442,12 +441,67 @@ end
 lemma extend_with_fin.sub (G : simple_graph V) (K : set V) : K ⊆ extend_with_fin G K := by
 { dsimp [extend_with_fin],exact subset_union_left K (⋃ (C : comp_out G K) (h : C.fin), ↑C), }
 
-lemma extend_with_fin.connected (G : simple_graph V) (K : set V) : (G.induce (extend_with_fin G K)).connected := sorry
+lemma extend_with_fin.connected (G : simple_graph V) (K : set V) (Kconn : (G.induce K).connected) :
+  (G.induce (extend_with_fin G K)).connected := sorry
 
+lemma extend_with_fin.components_spec (G : simple_graph V) (K : set V) :
+  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (G.extend_fin K)), C = D) := sorry
 
 end misc
 
-
 end comp_out
+
+
+def dis_comp_out := {C : G.comp_out K // disjoint K C}
+instance dis_comp_out_comp_out (G : simple_graph V) (K : set V) :
+  has_coe (G.dis_comp_out K) (G.comp_out K) := ⟨λ x, x.val⟩
+
+-- Here can refine most of the constructions for `comp_out`
+namespace dis_comp_out
+
+variables {G}
+variables {K}  {L : set V}
+
+-- Maybe todo: all the lemmas about disjointness and stuff, but maybe unneeded here.
+lemma dis (C : G.dis_comp_out K) : disjoint K C := C.prop
+
+section back
+
+def back {K L : set V} (h : K ⊆ L) : G.dis_comp_out L →  G.dis_comp_out K :=
+  set.maps_to.restrict (comp_out.back h) {C : G.comp_out L | C.dis} {C : G.comp_out K | C.dis}
+    (comp_out.back_of_dis h)
+
+@[simp]
+lemma back_iff {K L : set V} (h : K ⊆ L) (C : G.dis_comp_out L) (D : G.dis_comp_out K) :
+  C.back h = D ↔ (C.val.back h) = D.val := by
+{ dsimp only [back,maps_to.restrict,subtype.map],simp only [subtype.val_eq_coe],
+  have : D = ⟨D.val,D.prop⟩ := subtype.eq rfl,
+  rw [this, subtype.mk_eq_mk],
+  split,rintro e, exact e, rintro e, exact e,}
+
+@[simp]
+lemma back_refl_apply  (C : G.dis_comp_out K) : C.back (subset_refl K) = C :=
+by {ext,dsimp only [back], dsimp, simp only [comp_out.back_refl_apply],}
+
+@[simp]
+lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.dis_comp_out M) :
+  (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) :=
+by {ext, dsimp only [back], dsimp, simp only [comp_out.back_trans_apply],}
+
+end back
+
+end dis_comp_out
+
+def inf_comp_out := {C : G.dis_comp_out K // (C : G.comp_out K).inf}
+instance inf_comp_out_dis_comp_out (G : simple_graph V) (K : set V) :
+  has_coe (G.inf_comp_out K) (G.dis_comp_out K) := ⟨λ x, x.val⟩
+
+-- Here can refine most of the constructions for `comp_out`
+namespace inf_comp_out
+
+-- todo: define `back` once again similarly as above, plus properties.
+
+
+end inf_comp_out
 
 end simple_graph

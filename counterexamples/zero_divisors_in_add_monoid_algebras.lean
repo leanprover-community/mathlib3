@@ -5,6 +5,8 @@ Authors: Damiano Testa
 -/
 import data.finsupp.lex
 import algebra.monoid_algebra.basic
+import algebra.geom_sum
+import group_theory.order_of_element
 
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
@@ -36,7 +38,7 @@ finitely supported function is lexicographic, matching the list notation.  The i
 `[0, 1] ≤ [1, 0]` holds.  However, adding `[1, 0]` to both sides yields the *reversed* inequality
 `[1, 1] > [1, 0]`.
 -/
-open finsupp
+open finsupp add_monoid_algebra
 
 /--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
 monoid with an element satisfying `n • a = a`, for some `2 ≤ n`, then `add_monoid_algebra R A`
@@ -45,7 +47,7 @@ are non-zero elements of `add_monoid_algebra R A` whose product is zero.
 
 In particular, this applies whenever the additive monoid `A` is an additive group with a non-zero
 torsion element. -/
-example {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} {a : A}
+lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} {a : A}
   (n2 : 2 ≤ n) (na : n • a = a) (na1 : (n - 1) • a ≠ 0) :
   ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
 begin
@@ -53,6 +55,62 @@ begin
   { exact sub_ne_zero.mpr (by simpa [single_eq_single_iff]) },
   { rw [mul_sub, add_monoid_algebra.single_mul_single, add_monoid_algebra.single_mul_single,
       sub_eq_zero, add_zero, ← succ_nsmul, nat.sub_add_cancel (one_le_two.trans n2), na] },
+end
+#check @commute.geom_sum₂_mul
+
+@[simp] lemma single_zero_one {R A} [semiring R] [has_zero A] :
+  (single 0 1 : add_monoid_algebra R A) = (1 : add_monoid_algebra R A) := rfl
+--single a 1 ^ i * single 0 1 ^ (add_order_of a - 1 - i)
+lemma zero_divisors_of_torsion {R A} [nontrivial R] [ring R] [add_monoid A]
+  {a : A} (a0 : a ≠ 0) (o2 : 2 ≤ add_order_of a) :
+  ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
+begin
+  refine ⟨(finset.range (add_order_of a)).sum (λ (i : ℕ), single a 1 ^ i * single 0 1 ^ (add_order_of a - 1 - i)),
+    single a 1 - single 0 1, _, _, _⟩,
+  { apply_fun (λ x : add_monoid_algebra R A, x 0),
+    refine ne_of_eq_of_ne (_ : (_ : R) = 1) one_ne_zero,
+    simp_rw finset.sum_apply',
+    refine (finset.sum_eq_single 0 _ _).trans _,
+    { intros b hb b0,
+      rw [single_zero_one, one_pow, mul_one, single_pow, one_pow, single_eq_of_ne],
+      exact nsmul_ne_zero_of_lt_add_order_of' b0 (finset.mem_range.mp hb) },
+    { simp only [(zero_lt_two.trans_le o2).ne', finset.mem_range, not_lt, le_zero_iff,
+        false_implies_iff] },
+    { simp only [single_pow, single_mul_single, one_pow, mul_one, smul_zero', zero_smul, zero_add,
+        single_eq_same] } },
+  { apply_fun (λ x : add_monoid_algebra R A, x 0),
+    refine sub_ne_zero.mpr (ne_of_eq_of_ne (_ : (_ : R) = 0) _),
+    { simp only [a0, single_eq_of_ne, ne.def, not_false_iff] },
+    { simpa only [single_eq_same] using zero_ne_one, } },
+  { convert commute.geom_sum₂_mul _ (add_order_of a),
+    { rw [single_pow, one_pow, add_order_of_nsmul_eq_zero, single_zero_one, one_pow, sub_self] },
+    { simp only [single_zero_one, commute.one_right] } },
+end
+
+lemma zero_divisors_of_torsion {R A} [nontrivial R] [ring R] [add_monoid A]
+  {a : A} (a0 : a ≠ 0) (o2 : 2 ≤ add_order_of a) :
+  ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
+begin
+  refine ⟨(finset.range (add_order_of a)).sum (λ (i : ℕ), (single a 1) ^ i),
+    single a 1 - single 0 1, _, _, _⟩,
+  { apply_fun (λ x : add_monoid_algebra R A, x 0),
+    refine ne_of_eq_of_ne (_ : (_ : R) = 1) one_ne_zero,
+    simp_rw finset.sum_apply',
+    refine (finset.sum_eq_single 0 _ _).trans _,
+    { intros b hb b0,
+      rw [single_pow, one_pow, single_eq_of_ne],
+      exact nsmul_ne_zero_of_lt_add_order_of' b0 (finset.mem_range.mp hb) },
+    { simp only [(zero_lt_two.trans_le o2).ne', finset.mem_range, not_lt, le_zero_iff,
+        false_implies_iff] },
+    { rw [single_pow, one_pow, zero_smul, single_eq_same] } },
+  { apply_fun (λ x : add_monoid_algebra R A, x 0),
+    refine sub_ne_zero.mpr (ne_of_eq_of_ne (_ : (_ : R) = 0) _),
+    { simp only [a0, single_eq_of_ne, ne.def, not_false_iff] },
+    { simpa only [single_eq_same] using zero_ne_one, } },
+  { convert commute.geom_sum₂_mul _ (add_order_of a),
+    { ext, rw [single_zero_one, one_pow, mul_one] },
+    { rw [single_pow, one_pow, add_order_of_nsmul_eq_zero, single_zero_one, one_pow, sub_self] },
+    { simp only [single_zero_one, commute.one_right] } },
 end
 
 /--  `F` is the type with two elements `zero` and `one`.  We define the "obvious" linear order and

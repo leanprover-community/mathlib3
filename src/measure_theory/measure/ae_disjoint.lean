@@ -28,7 +28,7 @@ variables {μ} {s t u v : set α}
 family of measurable null sets `t i` such that `s i \ t i` are pairwise disjoint. -/
 lemma exists_null_pairwise_disjoint_diff [encodable ι] {s : ι → set α}
   (hd : pairwise (ae_disjoint μ on s)) :
-  ∃ t : ι → set α, (∀ i, measurable_set (t i)) ∧ (∀ i, μ (t i) = 0) ∧ 
+  ∃ t : ι → set α, (∀ i, measurable_set (t i)) ∧ (∀ i, μ (t i) = 0) ∧
     pairwise (disjoint on (λ i, s i \ t i)) :=
 begin
   refine ⟨λ i, to_measurable μ (s i ∩ ⋃ j ∈ ({i}ᶜ : set ι), s j),
@@ -115,7 +115,7 @@ lemma of_null_left (h : μ s = 0) : ae_disjoint μ s t := (of_null_right h).symm
 
 end ae_disjoint
 
-lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ s _).ae_disjoint
-lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ s _).ae_disjoint
+lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ _ s).ae_disjoint
+lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ _ s).ae_disjoint
 
 end measure_theory

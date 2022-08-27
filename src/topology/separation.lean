@@ -1284,6 +1284,10 @@ lemma regular_space.of_basis {ι : α → Sort*} {p : Π a, ι a → Prop} {s : 
   regular_space α :=
 regular_space.of_lift'_closure $ λ a, (h₁ a).lift'_closure_eq_self (h₂ a)
 
+lemma regular_space.of_exists_mem_nhds_is_closed_subset
+  (h : ∀ (a : α) (s ∈ 𝓝 a), ∃ t ∈ 𝓝 a, is_closed t ∧ t ⊆ s) : regular_space α :=
+iff.mpr ((regular_space_tfae α).out 0 3) h
+
 variables [regular_space α] {a : α} {s : set α}
 
 lemma disjoint_nhds_set_nhds : disjoint (𝓝ˢ s) (𝓝 a) ↔ a ∉ closure s :=

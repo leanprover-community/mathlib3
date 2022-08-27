@@ -459,11 +459,11 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
 
 section
 
-variables [decidable_eq α] (i : α)
+variables {I : Type*} [decidable_eq I] (i : I)
 
 /-- A product of topological spaces can be split as the binary product of one of the spaces and
   the product of all the remaining spaces. -/
-@[simps] def pi_split_at (β : α → Type*) [Π j, topological_space (β j)] :
+@[simps] def pi_split_at (β : I → Type*) [Π j, topological_space (β j)] :
   (Π j, β j) ≃ₜ β i × Π j : {j // j ≠ i}, β j :=
 { to_equiv := equiv.pi_split_at i β,
   continuous_to_fun := (continuous_apply i).prod_mk (continuous_pi $ λ j, continuous_apply j),
@@ -472,7 +472,7 @@ variables [decidable_eq α] (i : α)
 
 /-- A product of copies of a topological space can be split as the binary product of one copy and
   the product of all the remaining copies. -/
-@[simps] def fun_split_at : (α → β) ≃ₜ β × ({j // j ≠ i} → β) := pi_split_at i _
+@[simps] def fun_split_at : (I → β) ≃ₜ β × ({j // j ≠ i} → β) := pi_split_at i _
 
 end
 

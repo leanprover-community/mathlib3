@@ -334,19 +334,12 @@ add_group_norm.to_normed_add_comm_group
     have : ∥x + y∥ * ∥x + y∥ ≤ (∥x∥ + ∥y∥) * (∥x∥ + ∥y∥),
     { simp [←inner_self_eq_norm_mul_norm, inner_add_add_self, add_mul, mul_add, mul_comm],
       linarith },
-    exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this
+    exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this,
   end,
   eq_zero_of_map_eq_zero' := λ x hx, (inner_self_eq_zero : ⟪x, x⟫ = 0 ↔ x = 0).1 $ begin
-    split,
-    { intro H,
-      change sqrt (re ⟪x, x⟫) = 0 at H,
-      rw [sqrt_eq_zero inner_self_nonneg] at H,
-      apply (inner_self_eq_zero : ⟪x, x⟫ = 0 ↔ x = 0).mp,
-      rw ext_iff,
-      exact ⟨by simp [H], by simp [inner_self_im_zero]⟩ },
-    { rintro rfl,
-      change sqrt (re ⟪0, 0⟫) = 0,
-      simp only [sqrt_zero, inner_zero_right, add_monoid_hom.map_zero] }
+    change sqrt (re ⟪x, x⟫) = 0 at hx,
+    rw [sqrt_eq_zero inner_self_nonneg] at hx,
+    exact ext (by simp [hx]) (by simp [inner_self_im_zero]),
   end }
 
 local attribute [instance] to_normed_add_comm_group

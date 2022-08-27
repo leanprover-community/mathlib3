@@ -278,11 +278,11 @@ lemma pi_pi_aux [∀ i, sigma_finite (μ i)] (s : Π i, set (α i)) (hs : ∀ i,
   measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   refine le_antisymm _ _,
-  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi (to_countable _) (λ i _, hs i))],
+  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi countable_univ (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
   { haveI : encodable ι := fintype.to_encodable ι,
     rw [← pi'_pi μ s],
-    simp_rw [← pi'_pi μ s, measure.pi, to_measure_apply _ _ (measurable_set.pi (to_countable _)
+    simp_rw [← pi'_pi μ s, measure.pi, to_measure_apply _ _ (measurable_set.pi countable_univ
       (λ i _, hs i)), ← to_outer_measure_apply],
     suffices : (pi' μ).to_outer_measure ≤ outer_measure.pi (λ i, (μ i).to_outer_measure),
     { exact this _ },

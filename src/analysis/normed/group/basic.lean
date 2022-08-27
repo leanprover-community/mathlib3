@@ -479,8 +479,12 @@ begin
   simp [dist_eq_norm]
 end
 
-lemma normed_add_comm_group.tendsto_uniformly_on_zero {f : ι → E → G} {s : set E} {l : filter ι} :
-  tendsto_uniformly_on f 0 l s ↔ ∀ ε > 0, ∀ᶠ (N : ι) in l, ∀ x : E, x ∈ s → ∥f N x∥ < ε :=
+section tendsto_uniformly
+/-- The results in this section do not require `E'` to any particular structure -/
+variables {E' : Type*} {f : ι → E' → G} {s : set E'} {l : filter ι}
+
+lemma normed_add_comm_group.tendsto_uniformly_on_zero :
+  tendsto_uniformly_on f 0 l s ↔ ∀ ε > 0, ∀ᶠ (N : ι) in l, ∀ x : E', x ∈ s → ∥f N x∥ < ε :=
 begin
   rw metric.tendsto_uniformly_on_iff,
   split,
@@ -489,9 +493,8 @@ begin
 end
 
 lemma normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero
-  {f : ι → E → G} {l : filter ι} {l' : filter E} :
-  uniform_cauchy_seq_on_filter f l l' ↔
-  tendsto_uniformly_on_filter (λ n : ι × ι, λ z : E, f n.fst z - f n.snd z) 0 (l.prod l) l' :=
+  {l' : filter E'} : uniform_cauchy_seq_on_filter f l l' ↔
+  tendsto_uniformly_on_filter (λ n : ι × ι, λ z : E', f n.fst z - f n.snd z) 0 (l.prod l) l' :=
 begin
   split,
   { intros hf u hu,
@@ -513,15 +516,16 @@ begin
     simpa [dist_eq_norm, norm_sub_rev] using hx, },
 end
 
-lemma normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero
-  {f : ι → E → G} {s : set E} {l : filter ι} :
+lemma normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero :
   uniform_cauchy_seq_on f l s ↔
-  tendsto_uniformly_on (λ n : ι × ι, λ z : E, f n.fst z - f n.snd z) 0 (l.prod l) s :=
+  tendsto_uniformly_on (λ n : ι × ι, λ z : E', f n.fst z - f n.snd z) 0 (l.prod l) s :=
 begin
   rw tendsto_uniformly_on_iff_tendsto_uniformly_on_filter,
   rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
   exact normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
 end
+
+end tendsto_uniformly
 
 open finset
 

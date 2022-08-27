@@ -5,6 +5,7 @@ Authors: Kevin H. Wilson
 -/
 import analysis.calculus.mean_value
 import analysis.normed_space.is_R_or_C
+import order.filter.curry
 
 /-!
 # Swapping limits and derivatives via uniform convergence
@@ -91,58 +92,6 @@ continuous, then you can avoid the mean value theorem and much of the work aroun
 uniform convergence, limits of derivatives
 -/
 
-section filter_curry
-
-variables {α β γ : Type*}
-
-/-- This filter is characterized by `filter.eventually_curry_iff`:
-`(∀ᶠ (x : α × β) in f.curry g, p x) ↔ ∀ᶠ (x : α) in f, ∀ᶠ (y : β) in g, p (x, y)`. Useful
-in adding quantifiers to the middle of `tendsto`s. See
-`has_fderiv_at_of_tendsto_uniformly_on_filter`. -/
-def filter.curry (f : filter α) (g : filter β) : filter (α × β) :=
-{ sets := { s | ∀ᶠ (a : α) in f, ∀ᶠ (b : β) in g, (a, b) ∈ s },
-  univ_sets := (by simp only [set.mem_set_of_eq, set.mem_univ, filter.eventually_true]),
-  sets_of_superset := begin
-    intros x y hx hxy,
-    simp only [set.mem_set_of_eq] at hx ⊢,
-    exact hx.mono (λ a ha, ha.mono(λ b hb, set.mem_of_subset_of_mem hxy hb)),
-  end,
-  inter_sets := begin
-    intros x y hx hy,
-    simp only [set.mem_set_of_eq, set.mem_inter_eq] at hx hy ⊢,
-    exact (hx.and hy).mono (λ a ha, (ha.1.and ha.2).mono (λ b hb, hb)),
-  end, }
-
-lemma filter.eventually_curry_iff {f : filter α} {g : filter β} {p : α × β → Prop} :
-  (∀ᶠ (x : α × β) in f.curry g, p x) ↔ ∀ᶠ (x : α) in f, ∀ᶠ (y : β) in g, p (x, y) :=
-begin
-  simp only [filter.curry],
-  rw filter.eventually_iff,
-  simp only [filter.mem_mk, set.mem_set_of_eq],
-end
-
-lemma filter.curry_le_prod {f : filter α} {g : filter β} :
-  f.curry g ≤ f.prod g :=
-begin
-  intros u hu,
-  rw ←filter.eventually_mem_set at hu ⊢,
-  rw filter.eventually_curry_iff,
-  exact hu.curry,
-end
-
-lemma filter.tendsto.curry {f : α → β → γ} {la : filter α} {lb : filter β} {lc : filter γ} :
-  (∀ᶠ a in la, filter.tendsto (λ b : β, f a b) lb lc) → filter.tendsto ↿f (la.curry lb) lc :=
-begin
-  intros h,
-  rw filter.tendsto_def,
-  simp only [filter.curry, filter.mem_mk, set.mem_set_of_eq, set.mem_preimage],
-  simp_rw filter.tendsto_def at h,
-  refine (λ s hs, h.mono (λ a ha, filter.eventually_iff.mpr _)),
-  simpa [function.has_uncurry.uncurry, set.preimage] using ha s hs,
-end
-
-end filter_curry
-
 open filter
 open_locale uniformity filter topological_space
 
@@ -165,7 +114,8 @@ lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv
   (hfg' : uniform_cauchy_seq_on_filter f' l (𝓝 x)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at hfg' ⊢,
+  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
+    hfg' ⊢,
 
   suffices : tendsto_uniformly_on_filter
     (λ (n : ι × ι) (z : E), f n.fst z - f n.snd z - (f n.fst x - f n.snd x)) 0 (l ×ᶠ l) (𝓝 x) ∧
@@ -233,8 +183,10 @@ begin
   rw normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero at hfg' ⊢,
 
   suffices : tendsto_uniformly_on
-    (λ (n : ι × ι) (z : E), f n.fst z - f n.snd z - (f n.fst x - f n.snd x)) 0 (l ×ᶠ l) (metric.ball x r) ∧
-    tendsto_uniformly_on (λ (n : ι × ι) (z : E), f n.fst x - f n.snd x) 0 (l ×ᶠ l) (metric.ball x r),
+    (λ (n : ι × ι) (z : E), f n.fst z - f n.snd z - (f n.fst x - f n.snd x)) 0
+      (l ×ᶠ l) (metric.ball x r) ∧
+    tendsto_uniformly_on (λ (n : ι × ι) (z : E), f n.fst x - f n.snd x) 0
+      (l ×ᶠ l) (metric.ball x r),
   { have := this.1.add this.2,
     rw add_zero at this,
     refine this.congr _,
@@ -287,7 +239,8 @@ begin
   rw metric.tendsto_uniformly_on_filter_iff,
 
   have hfg'' := hfg'.uniform_cauchy_seq_on_filter,
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at hfg'',
+  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
+    hfg'',
   rw metric.tendsto_uniformly_on_filter_iff at hfg'',
   intros ε hε,
   obtain ⟨q, hqpos, hqε⟩ := exists_pos_rat_lt hε,

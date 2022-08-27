@@ -73,7 +73,7 @@ begin
 end
 
 -- mathlib
-lemma connected_component.equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'}
+def connected_component.equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'}
   (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
 begin
   fsplit,
@@ -108,8 +108,19 @@ def out.iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G �
   G.out K ≃g G'.out (φ '' K) :=
 begin
   fsplit, exact φ.1, dsimp only [out],
-  rintro u v, sorry
+  rintro u v,
+  simp only [injective.mem_set_image (sorry : injective φ), rel_iso.coe_fn_to_equiv, and.congr_right_iff],
+  rintro unK vnK, apply φ.2,
 end
+
+@[simp]
+lemma out.iso_eq_apply {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'}
+  (φ : G ≃g G') (K : set V) (v : V) : (out.iso φ K) v = φ v := rfl
+
+@[simp]
+lemma out.iso_eq_apply_symm {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'}
+  (φ : G ≃g G') (K : set V) (v : V') : (out.iso φ K).symm v = φ.symm v := rfl
+
 
 lemma out.reachable_mono (G : simple_graph V)  (K L : set V) (h : K ⊆ L) (u v : V) :
   (G.out L).reachable u v → (G.out K).reachable u v :=
@@ -464,21 +475,52 @@ end infinite
 
 section misc
 
-def equiv_of_isom {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+def equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) : G.comp_out K ≃ G'.comp_out (φ '' K) :=
 begin
   apply connected_component.equiv_of_iso,
   apply out.iso,
 end
 
+lemma equiv_of_isom.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) (C : G.comp_out K) : (φ '' C) = (equiv_of_iso φ K C) :=
+ begin
+    refine C.ind _,
+    rintro v,
+    dsimp only [equiv_of_iso, connected_component.equiv_of_iso,out.iso],
+    simp only [rel_iso.coe_fn_mk, rel_iso.coe_fn_to_equiv, equiv.coe_fn_mk, connected_component.lift_mk],
+    ext,
+    simp only [set.mem_image, set_like.mem_coe, mem_supp_iff, connected_component.eq],
+    split,
+    rintro ⟨y,⟨yv⟩,rfl⟩, exact ⟨yv.map ((out.iso φ K).to_hom)⟩,
+    rintro ⟨yv⟩, use φ.symm x, refine ⟨_,by simp only [rel_iso.apply_symm_apply]⟩,
+    constructor,
+    convert yv.map (out.iso φ K).symm.to_hom,
+    change v = (out.iso φ K).symm (φ v),
+    rw out.iso_eq_apply_symm φ K, simp only [rel_iso.symm_apply_apply],
+ end
+
 lemma equiv_of_isom.dis {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
- (K : set V) (C : G.comp_out K) : C.dis ↔ (equiv_of_isom φ K C).dis := sorry
+ (K : set V) (C : G.comp_out K) : C.dis ↔ (equiv_of_iso φ K C).dis :=
+begin
+  dsimp only [dis],
+  simp only [←equiv_of_isom.image],
+  symmetry,
+  apply disjoint_image_iff,
+  sorry, -- how to get that φis injective ??
+end
 
 lemma equiv_of_isom.inf {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
- (K : set V) (C : G.comp_out K) : C.inf ↔ (equiv_of_isom φ K C).inf := sorry
+ (K : set V) (C : G.comp_out K) : C.inf ↔ (equiv_of_iso φ K C).inf :=
+begin
+  dsimp only [inf],
+  simp only [←equiv_of_isom.image],
+  symmetry,
+  apply infinite_image_iff,
+  sorry, -- essentially same problem
+end
 
-lemma equiv_of_isom.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
- (K : set V) (C : G.comp_out K) : (φ '' C) = (equiv_of_isom φ K C) := sorry
+
 
 
 def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (⋃ (C : G.comp_out K) (h : C.fin), (C : set V))

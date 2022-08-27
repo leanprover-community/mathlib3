@@ -114,10 +114,16 @@ end non_unital
 
 section prod_pi
 
-variables (ι R₁ R₂ : Type*) {R : ι → Type*} [fintype ι]
+variables {ι R₁ R₂ : Type*} {R : ι → Type*} [fintype ι]
 variables [non_unital_normed_ring R₁] [star_ring R₁] [cstar_ring R₁]
 variables [non_unital_normed_ring R₂] [star_ring R₂] [cstar_ring R₂]
-variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)] [Π i, cstar_ring (R i)]
+variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)]
+
+/-- This instance exists to short circuit type class resolution because of problems with
+inference involving Π-types. -/
+instance : star_ring (Π i, R i) := infer_instance
+
+variables [Π i, cstar_ring (R i)]
 
 instance : cstar_ring (R₁ × R₂) :=
 { norm_star_mul_self := λ x,
@@ -134,7 +140,7 @@ instance : cstar_ring (R₁ × R₂) :=
       simp [h] }
   end }
 
-instance pi.cstar_ring : @cstar_ring (Π i, R i) _ (@pi.star_ring ι R _ _) :=
+instance pi.cstar_ring : cstar_ring (Π i, R i) :=
 { norm_star_mul_self := λ x,
   begin
     simp only [norm, pi.mul_apply, pi.star_apply, nnnorm_star_mul_self, ←sq],

@@ -61,7 +61,7 @@ variables {ι α β : Type*}
 
 /-- Syntax typeclass for Heyting negation `￢`.
 
-The difference between `has_hnot` and `has_compl` is that the former belongs to Heyting algebras,
+The difference between `has_compl` and `has_hnot` is that the former belongs to Heyting algebras,
 while the latter belongs to co-Heyting algebras. They are both pseudo-complements, but `compl`
 underestimates while `hnot` overestimates. In boolean algebras, they are equal. See `hnot_eq_compl`.
 -/

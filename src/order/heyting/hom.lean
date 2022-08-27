@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.hom.complete_lattice
+import order.hom.lattice
 
 /-!
 # Heyting algebra morphisms
@@ -137,8 +137,8 @@ instance order_iso_class.to_biheyting_hom_class [biheyting_algebra α] [biheytin
   ..order_iso_class.to_lattice_hom_class }
 
 /-- This can't be an instance because of typeclass loops. -/
-@[priority 100] -- See note [lower instance priority]
-def bounded_lattice_hom_class.to_heyting_hom_class [boolean_algebra α] [boolean_algebra β]
+@[reducible] -- See note [reducible non instances]
+def bounded_lattice_hom_class.to_biheyting_hom_class [boolean_algebra α] [boolean_algebra β]
   [bounded_lattice_hom_class F α β] :
   biheyting_hom_class F α β :=
 { map_himp := λ f a b, by rw [himp_eq, himp_eq, map_sup, (is_compl_compl.map _).compl_eq],

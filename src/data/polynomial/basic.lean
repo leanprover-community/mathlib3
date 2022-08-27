@@ -32,7 +32,7 @@ the polynomials. For instance,
 
 Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a semiring.
 The variable `X` commutes with every polynomial `p`: lemma `X_mul` proves the identity
-`X * p = `p * X`.  The relationship to `add_monoid_algebra R ℕ` is through a structure
+`X * p = p * X`.  The relationship to `add_monoid_algebra R ℕ` is through a structure
 to make polynomials irreducible from the point of view of the kernel. Most operations
 are irreducible since Lean can not compute anyway with `add_monoid_algebra`. There are two
 exceptions that we make semireducible:
@@ -480,6 +480,15 @@ lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 calc C a = 0 ↔ C a = C 0 : by rw C_0
          ... ↔ a = 0 : C_inj
 
+lemma subsingleton_iff_subsingleton :
+  subsingleton R[X] ↔ subsingleton R :=
+⟨λ h, subsingleton_iff.mpr (λ a b, C_inj.mp (subsingleton_iff.mp h _ _)),
+  by { introI, apply_instance } ⟩
+
+lemma forall_eq_iff_forall_eq :
+  (∀ f g : R[X], f = g) ↔ (∀ a b : R, a = b) :=
+by simpa only [← subsingleton_iff] using subsingleton_iff_subsingleton
+
 theorem ext_iff {p q : R[X]} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 
@@ -666,6 +675,12 @@ begin
   simpa [sum, support, coeff] using finsupp.sum_smul_index hf,
 end
 
+lemma sum_monomial_eq : ∀ p : R[X], p.sum (λ n a, monomial n a) = p
+| ⟨p⟩ := (of_finsupp_sum _ _).symm.trans (congr_arg _ $ finsupp.sum_single _)
+
+lemma sum_C_mul_X_eq (p : R[X]) : p.sum (λn a, C a * X^n) = p :=
+by simp_rw [←monomial_eq_C_mul_X, sum_monomial_eq]
+
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : R[X] → R[X]
 | ⟨p⟩ := ⟨p.erase n⟩
@@ -792,9 +807,7 @@ by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_righ
 @[simp] lemma support_neg {p : R[X]} : (-p).support = p.support :=
 by { rcases p, rw [←of_finsupp_neg, support, support, finsupp.support_neg] }
 
-@[simp]
-lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
-(C : R →+* _).map_int_cast n
+@[simp] lemma C_eq_int_cast (n : ℤ) : C (n : R) = n := map_int_cast C n
 
 end ring
 

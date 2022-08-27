@@ -5,7 +5,7 @@ Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import data.prod.pprod
 import data.set.countable
-import order.filter.basic
+import order.filter.prod
 
 /-!
 # Filter bases

@@ -45,7 +45,7 @@ We derive most of our initial results from an auxiliary definition `tendsto_unif
 This definition in and of itself can sometimes be useful, e.g., when studying the local behavior
 of the `Fₙ` near a point, which would typically look like `tendsto_uniformly_on_filter F f p (𝓝 x)`.
 Still, while this may be the "correct" definition (see
-`tendsto_uniformly_on_iff_tendtso_uniformly_on_filter`), it is somewhat unwieldy to work with in
+`tendsto_uniformly_on_iff_tendsto_uniformly_on_filter`), it is somewhat unwieldy to work with in
 practice. Thus, we provide the more traditional definition in `tendsto_uniformly_on`.
 
 Most results hold under weaker assumptions of locally uniform approximation. In a first section,
@@ -171,9 +171,8 @@ begin
   simp,
 end
 
-lemma tendsto_uniformly_on.tendsto_uniformly_on_filter
-  (h : tendsto_uniformly_on F f p s) : tendsto_uniformly_on_filter F f p (𝓟 s) :=
-by rwa ← tendsto_uniformly_on_iff_tendsto_uniformly_on_filter
+alias tendsto_uniformly_on_iff_tendsto_uniformly_on_filter ↔
+  tendsto_uniformly_on.tendsto_uniformly_on_filter tendsto_uniformly_on_filter.tendsto_uniformly_on
 
 /--
 A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` w.r.t.
@@ -249,12 +248,12 @@ by simp [tendsto_uniformly_on, tendsto_uniformly]
 lemma tendsto_uniformly_on_filter.mono_left {p'' : filter ι}
   (h : tendsto_uniformly_on_filter F f p p') (hp : p'' ≤ p) :
   tendsto_uniformly_on_filter F f p'' p' :=
-λ u hu, (h u hu).filter_mono (p'.prod_le_of_left_le hp)
+λ u hu, (h u hu).filter_mono (p'.prod_mono_left hp)
 
 lemma tendsto_uniformly_on_filter.mono_right {p'' : filter α}
   (h : tendsto_uniformly_on_filter F f p p') (hp : p'' ≤ p') :
   tendsto_uniformly_on_filter F f p p'' :=
-λ u hu, (h u hu).filter_mono (p.prod_le_of_right_le hp)
+λ u hu, (h u hu).filter_mono (p.prod_mono_right hp)
 
 lemma tendsto_uniformly_on.mono {s' : set α}
   (h : tendsto_uniformly_on F f p s) (h' : s' ⊆ s) : tendsto_uniformly_on F f p s' :=
@@ -366,14 +365,14 @@ lemma tendsto_uniformly.prod_map {ι' α' β' : Type*} [uniform_space β'] {F' :
   {f' : α' → β'} {p' : filter ι'} (h : tendsto_uniformly F f p) (h' : tendsto_uniformly F' f' p') :
   tendsto_uniformly (λ (i : ι × ι'), prod.map (F i.1) (F' i.2)) (prod.map f f') (p.prod p') :=
 begin
-  rw [←tendsto_uniformly_on_univ, ←univ_prod_univ] at *,
+  rw [-m iformly_on_univ, ←univ_prod_univ] at *,
   exact h.prod_map h',
 end
 
 lemma tendsto_uniformly_on_filter.prod {ι' β' : Type*} [uniform_space β']
   {F' : ι' → α → β'} {f' : α → β'} {q : filter ι'}
   (h : tendsto_uniformly_on_filter F f p p') (h' : tendsto_uniformly_on_filter F' f' q p') :
-  tendsto_uniformly_on_filter (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) 
+  tendsto_uniformly_on_filter (λ (i : ι × ι') a, (F i.1 a, F' i.2 a))
     (λ a, (f a, f' a)) (p.prod q) p' :=
 λ u hu, ((h.prod_map h') u hu).diag_of_prod_right
 
@@ -561,7 +560,7 @@ lemma uniform_cauchy_seq_on_filter.mono_left {p'' : filter ι}
   uniform_cauchy_seq_on_filter F p'' p' :=
 begin
   intros u hu,
-  have := (hf u hu).filter_mono (p'.prod_le_of_left_le (filter.prod_le_of_le_of_le hp hp)),
+  have := (hf u hu).filter_mono (p'.prod_mono_left (filter.prod_mono hp hp)),
   exact this.mono (by simp),
 end
 
@@ -570,7 +569,7 @@ lemma uniform_cauchy_seq_on_filter.mono_right {p'' : filter α}
   uniform_cauchy_seq_on_filter F p p'' :=
 begin
   intros u hu,
-  have := (hf u hu).filter_mono ((p ×ᶠ p).prod_le_of_right_le hp),
+  have := (hf u hu).filter_mono ((p ×ᶠ p).prod_mono_right hp),
   exact this.mono (by simp),
 end
 

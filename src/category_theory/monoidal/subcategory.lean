@@ -5,6 +5,7 @@ Authors: Antoine Labelle
 -/
 import category_theory.monoidal.braided
 import category_theory.concrete_category.basic
+import category_theory.closed.monoidal
 
 /-!
 # Full monoidal subcategories
@@ -33,7 +34,7 @@ variables {C : Type u} [category.{v} C] [monoidal_category C] (P : C → Prop)
 /--
 A property `C → Prop` is a monoidal predicate if it is closed under `𝟙_` and `⊗`.
 -/
-class monoidal_predicate :=
+class monoidal_predicate : Prop :=
 (prop_id' : P (𝟙_ C) . obviously)
 (prop_tensor' : ∀ {X Y}, P X → P Y → P (X ⊗ Y) . obviously)
 
@@ -148,6 +149,44 @@ instance full_symmetric_subcategory : symmetric_category (full_subcategory P) :=
 symmetric_category_of_faithful (full_braided_subcategory_inclusion P)
 
 end symmetric
+
+section closed
+
+variables (P) [monoidal_closed C]
+
+/--
+A property `C → Prop` is a closed predicate if it is closed under taking internal homs
+-/
+class closed_predicate : Prop :=
+(prop_ihom' : ∀ {X Y}, P X → P Y → P ((ihom X).obj Y) . obviously)
+
+restate_axiom closed_predicate.prop_ihom'
+
+open closed_predicate
+
+variable  [closed_predicate P]
+
+instance full_monoidal_closed_subcategory : monoidal_closed (full_subcategory P) :=
+{ closed' := λ X,
+  { is_adj :=
+    { right := full_subcategory.lift P (full_subcategory_inclusion P ⋙ (ihom X.1))
+        (λ Y, prop_ihom X.2 Y.2),
+      adj := adjunction.mk_of_unit_counit
+      { unit := { app := λ Y, (ihom.coev X.1).app Y.1,
+                  naturality' := λ Y Z f, ihom.coev_naturality X.1 f },
+        counit := { app := λ Y, (ihom.ev X.1).app Y.1,
+                    naturality' := λ Y Z f, ihom.ev_naturality X.1 f },
+        left_triangle' := by { ext Y, simp, exact ihom.ev_coev X.1 Y.1 },
+        right_triangle' := by { ext Y, simp, exact ihom.coev_ev X.1 Y.1 } } } } }
+
+@[simp] lemma full_monoidal_closed_subcategory_ihom_obj (X Y : full_subcategory P) :
+  ((ihom X).obj Y).obj = (ihom (X.obj)).obj Y.obj := rfl
+
+@[simp] lemma full_monoidal_closed_subcategory_ihom_map (X : full_subcategory P)
+  {Y Z : full_subcategory P}
+  (f : Y ⟶ Z) : (ihom X).map f = (ihom (X.obj)).map f := rfl
+
+end closed
 
 end monoidal_category
 

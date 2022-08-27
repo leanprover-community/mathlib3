@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.specific_limits.normed
+import topology.algebra.module.finite_dimension
 
 /-!
 # The group of units of a complete normed ring
@@ -288,3 +289,34 @@ lemma open_embedding_coe : open_embedding (coe : Rˣ → R) :=
 open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
 
 end units
+
+lemma ideal.is_maximal.is_closed {A : ideal R} (hA : A.is_maximal) : is_closed (A : set R) :=
+begin
+  have : (A : set R) ⊆ {x | is_unit x}ᶜ,
+  { rw set.subset_compl_comm,
+    exact λ x hx hxA, hA.ne_top (ideal.eq_top_of_is_unit_mem _ hxA hx) },
+  have : _root_.closure (A : set R) ⊆ {x | is_unit x}ᶜ := closure_minimal this
+    (is_closed_compl_iff.mpr units.is_open),
+  exact is_closed_of_closure_subset (show A.topological_closure ≤ A, from
+    ge_of_eq $ hA.eq_of_le ((ideal.ne_top_iff_one _).mpr $ λ h, this h is_unit_one) subset_closure)
+end
+
+open function finite_dimensional
+
+lemma alg_hom.continuous {𝕜 A : Type*} [nontrivially_normed_field 𝕜] [normed_ring A]
+  [normed_algebra 𝕜 A] [complete_space A] (f : A →ₐ[𝕜] 𝕜) : continuous f :=
+begin
+  change continuous f.to_linear_map,
+  by_cases H : finrank 𝕜 f.to_linear_map.range = 0,
+  { rw [finrank_eq_zero, linear_map.range_eq_bot] at H,
+    exact H.symm ▸ continuous_zero },
+  { have : finrank 𝕜 f.to_linear_map.range = 1,
+      from le_antisymm (finrank_self 𝕜 ▸ f.to_linear_map.range.finrank_le)
+        (zero_lt_iff.mpr H),
+    have hf : surjective f,
+    { change surjective f.to_linear_map,
+      rw [← linear_map.range_eq_top],
+      exact eq_top_of_finrank_eq ((finrank_self 𝕜).symm ▸ this) },
+    exact f.to_linear_map.continuous_of_is_closed_ker
+      (ring_hom.ker_is_maximal_of_surjective _ hf).is_closed }
+end

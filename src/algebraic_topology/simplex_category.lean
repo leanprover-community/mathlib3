@@ -33,7 +33,7 @@ We provide the following functions to work with these objects:
 
 universe v
 
-open category_theory
+open category_theory category_theory.limits
 
 /-- The simplex category:
 * objects are natural numbers `n : ℕ`
@@ -571,7 +571,7 @@ begin
   refl,
 end
 
-lemma eq_id_of_is_iso {x : simplex_category} {f : x ⟶ x} (hf : is_iso f) : f = 𝟙 _ :=
+lemma eq_id_of_is_iso {x : simplex_category} (f : x ⟶ x) [hf : is_iso f] : f = 𝟙 _ :=
 congr_arg (λ (φ : _ ≅ _), φ.hom) (iso_eq_iso_refl (as_iso f))
 
 lemma eq_σ_comp_of_not_injective' {n : ℕ} {Δ' : simplex_category} (θ : mk (n+1) ⟶ Δ')
@@ -690,7 +690,8 @@ end
 
 lemma eq_id_of_mono {x : simplex_category} (i : x ⟶ x) [mono i] : i = 𝟙 _ :=
 begin
-  apply eq_id_of_is_iso,
+  suffices : is_iso i,
+  { haveI := this, apply eq_id_of_is_iso, },
   apply is_iso_of_bijective,
   dsimp,
   rw [fintype.bijective_iff_injective_and_card i.to_order_hom, ← mono_iff_injective,
@@ -700,7 +701,8 @@ end
 
 lemma eq_id_of_epi {x : simplex_category} (i : x ⟶ x) [epi i] : i = 𝟙 _ :=
 begin
-  apply eq_id_of_is_iso,
+  suffices : is_iso i,
+  { haveI := this, apply eq_id_of_is_iso, },
   apply is_iso_of_bijective,
   dsimp,
   rw [fintype.bijective_iff_surjective_and_card i.to_order_hom, ← epi_iff_surjective,
@@ -731,6 +733,38 @@ begin
   haveI := category_theory.mono_of_mono θ' (δ i),
   rw [h, eq_id_of_mono θ', category.id_comp],
 end
+
+noncomputable instance : split_epi_category simplex_category :=
+skeletal_equivalence.{0}.inverse.split_epi_category_imp_of_is_equivalence
+
+instance : has_strong_epi_mono_factorisations simplex_category :=
+functor.has_strong_epi_mono_factorisations_imp_of_is_equivalence
+  simplex_category.skeletal_equivalence.{0}.inverse
+
+lemma image_eq {Δ Δ' Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
+  {e : Δ ⟶ Δ'} [epi e] {i : Δ' ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
+  image φ = Δ' :=
+begin
+  haveI := strong_epi_of_epi e,
+  let e := image.iso_strong_epi_mono e i fac,
+  ext,
+  exact le_antisymm (len_le_of_epi (infer_instance : epi e.hom))
+    (len_le_of_mono (infer_instance : mono e.hom)),
+end
+
+lemma image_ι_eq {Δ Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
+  {e : Δ ⟶ image φ} [epi e] {i : image φ ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
+  image.ι φ = i :=
+begin
+  haveI := strong_epi_of_epi e,
+  rw [← image.iso_strong_epi_mono_hom_comp_ι e i fac,
+    simplex_category.eq_id_of_is_iso (image.iso_strong_epi_mono e i fac).hom, category.id_comp],
+end
+
+lemma factor_thru_image_eq {Δ Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
+  {e : Δ ⟶ image φ} [epi e] {i : image φ ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
+  factor_thru_image φ = e :=
+by rw [← cancel_mono i, fac, ← image_ι_eq fac, image.fac]
 
 end epi_mono
 

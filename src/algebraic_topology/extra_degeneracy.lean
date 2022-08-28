@@ -149,14 +149,14 @@ def of_iso {X Y : simplicial_object.augmented C} (e : X ≅ Y) (ed : extra_degen
 /-- The augmented Čech nerve associated to a split epimorphism has an extra degeneracy. -/
 def for_cech_nerve_of_split_epi (f : arrow C)
   [∀ n : ℕ, has_wide_pullback f.right (λ i : fin (n+1), f.left) (λ i, f.hom)]
-  [split_epi f.hom] :
+  (S : split_epi f.hom) :
   extra_degeneracy (f.augmented_cech_nerve) :=
-{ s' := section_ f.hom ≫ wide_pullback.lift f.hom (λ i, 𝟙 _) (λ i, by rw id_comp),
+{ s' := S.section_ ≫ wide_pullback.lift f.hom (λ i, 𝟙 _) (λ i, by rw id_comp),
   s := λ n, wide_pullback.lift (wide_pullback.base _)
   begin
     rintro ⟨i⟩,
     by_cases i = 0,
-    { exact wide_pullback.base _ ≫ section_ f.hom, },
+    { exact wide_pullback.base _ ≫ S.section_, },
     { exact wide_pullback.π _ ((σ (0 : fin (n+1))).to_order_hom i), },
   end
   begin
@@ -183,7 +183,7 @@ def for_cech_nerve_of_split_epi (f : arrow C)
     sorry,
   end, }
 
-/-
+/- broken since the (is_)split_epi refactor
 ds₀ := begin
     sorry,
     ext; dsimp [simplicial_object.δ],
@@ -282,7 +282,7 @@ ds₀ := begin
       { dsimp [simplicial_object.σ],
         simp only [assoc, wide_pullback.lift_base], },
   end, } -/
-
+.
 namespace preadditive
 
 /-- In the (pre)additive case, if an augmented simplicial object `X` has an extra
@@ -309,42 +309,47 @@ def homotopy_equivalence [preadditive C] [has_zero_object C]
       { simp only [eq_self_iff_true], },
     end,
     comm := λ i, begin
-      sorry,
-/-      cases i,
-      { dsimp [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
-        simp only [preadditive.neg_comp, homotopy.d_next_zero_chain_complex,
-          homotopy.prev_d_chain_complex, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
-          dite_eq_ite, if_true, zero_add],
-        erw [chain_complex.of_d],
-        simp only [alternating_face_map_complex.obj_d, fin.sum_univ_two,
-          fin.coe_zero, pow_zero, one_zsmul, fin.coe_one, pow_one, neg_smul, add_assoc,
-          preadditive.comp_add, preadditive.comp_neg, neg_add_rev, neg_neg],
+      cases i,
+      { --dsimp only [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
+--        simp only [homological_complex.d_from_eq_zero, chain_complex.next_nat_zero,
+ --         complex_shape.down_rel, zero_add, nat.one_ne_zero, not_false_iff,
+  --        preadditive.neg_comp, zero_comp],
+        rw [homotopy.prev_d_chain_complex, homotopy.d_next_zero_chain_complex, zero_add],
+        simp only [alternating_face_map_complex.ε_app, equiv.inv_fun_as_coe,
+          homological_complex.comp_f, eq_self_iff_true, eq_to_hom_refl, preadditive.neg_comp,
+          comp_id, dite_eq_ite, if_true, alternating_face_map_complex.obj_d_eq,
+          fin.sum_univ_two, fin.coe_zero, pow_zero, one_zsmul, fin.coe_one, pow_one,
+          neg_smul, preadditive.comp_add, preadditive.comp_neg, neg_neg, homological_complex.id_f],
+        dsimp [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
         erw [ed.d₀s, ed.ds₀],
-        convert (add_zero _).symm,
-        apply neg_add_self, },
-      { dsimp [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
-        simp only [zero_comp, homotopy.d_next_succ_chain_complex, eq_self_iff_true,
-          eq_to_hom_refl, category.comp_id, dite_eq_ite, if_true, homotopy.prev_d_chain_complex],
-        erw [chain_complex.of_d, chain_complex.of_d],
-        simp only [alternating_face_map_complex.obj_d, preadditive.comp_sum,
-          preadditive.sum_comp, @fin.sum_univ_succ _ _ (i+2), fin.coe_zero, pow_zero,
-          one_smul, preadditive.comp_add],
+        rw add_assoc,
+        nth_rewrite 1 add_comm,
+        rw ← add_assoc,
+        erw neg_add_self,
+        rw zero_add, },
+      { rw [homotopy.prev_d_chain_complex, homotopy.d_next_succ_chain_complex],
+        simp only [alternating_face_map_complex.ε_app, equiv.inv_fun_as_coe,
+          homological_complex.comp_f, alternating_face_map_complex.obj_d_eq,
+          eq_self_iff_true, eq_to_hom_refl, preadditive.neg_comp, comp_id, dite_eq_ite,
+          if_true, preadditive.comp_neg, homological_complex.id_f],
+        dsimp [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
+        simp only [zero_comp, @fin.sum_univ_succ _ _ (i+2),
+          preadditive.comp_add, preadditive.sum_comp,
+          fin.coe_zero, pow_zero, one_zsmul, fin.coe_succ, neg_add_rev],
         have simplif : Π (a b c d : X.left _[i+1] ⟶ X.left _[i+1])
-          (h₁ : a + c = 0) (h₂ : b + d = 0), 0 = a + (b+c) + d,
+          (h₁ : a + b = 0) (h₂ : c = d), 0 = -a + (-b+-c) + d,
         { intros a b c d h₁ h₂,
-          rw [add_comm b, ← add_assoc a, h₁, zero_add, h₂], },
+          simp only [← add_eq_zero_iff_eq_neg.mp h₁, h₂, neg_add_cancel_left, add_left_neg], },
         apply simplif,
-        { simp only [← finset.sum_add_distrib],
+        { simp only [preadditive.comp_sum, ← finset.sum_add_distrib,
+            preadditive.zsmul_comp, preadditive.comp_zsmul, pow_succ],
           apply finset.sum_eq_zero,
           intros j hj,
-          simp only [preadditive.zsmul_comp, preadditive.comp_zsmul, fin.coe_succ, pow_succ,
-            preadditive.comp_neg, preadditive.neg_comp,
-            neg_mul, one_mul, neg_smul, neg_neg],
-          rw neg_add_eq_zero,
+          simp only [neg_mul, one_mul, neg_smul],
+          rw add_neg_eq_zero,
           congr' 1,
           exact (ed.ds i j).symm, },
-        { erw [preadditive.neg_comp, ed.d₀s i.succ],
-          apply neg_add_self, }, },-/
+        { exact ed.d₀s i.succ, }, },
     end, },
   homotopy_inv_hom_id := homotopy.of_eq begin
     ext n,

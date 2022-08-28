@@ -172,11 +172,11 @@ begin
       exact irrefl _ h } },
   { intro a,
     have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_order.wf).min _ this,
-    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
+    let b := (is_well_founded.wf).min _ this,
+    have ba : ¬r b a := (is_well_founded.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
     rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
+    exact (is_well_founded.wf).not_lt_min _ this
       (is_order_connected.neg_trans h ba) }
 end
 
@@ -498,9 +498,8 @@ end is_fundamental_sequence
 theorem exists_fundamental_sequence (a : ordinal.{u}) :
   ∃ f, is_fundamental_sequence a a.cof.ord f :=
 begin
-  suffices : ∃ o f, is_fundamental_sequence a o f,
-  { rcases this with ⟨o, f, hf⟩,
-    exact ⟨_, hf.ord_cof⟩ },
+  rsuffices ⟨o, f, hf⟩ : ∃ o f, is_fundamental_sequence a o f,
+  { exact ⟨_, hf.ord_cof⟩ },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
   rcases ord_eq ι with ⟨r, wo, hr⟩,
   haveI := wo,
@@ -514,9 +513,8 @@ begin
     rwa [hrr'.2, @enum_lt_enum _ r'] },
   { rw [←hf, lsub_le_iff],
     intro i,
-    suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
-    { rcases this with ⟨i', hi', hfg⟩,
-      exact hfg.trans_lt (lt_blsub _ _ _) },
+    rsuffices ⟨i', hi', hfg⟩ : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
+    { exact hfg.trans_lt (lt_blsub _ _ _) },
     by_cases h : ∀ j, r j i → f j < f i,
     { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
       rw bfamily_of_family'_typein,

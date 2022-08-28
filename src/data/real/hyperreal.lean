@@ -72,7 +72,7 @@ lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv _ _ ω
 lemma epsilon_pos : 0 < ε :=
 suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
 have h0' : {n : ℕ | ¬ 0 < n} = {0} :=
-by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact le_zero_iff,
+by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact le_bot_iff,
 begin
   simp only [inv_pos, nat.cast_pos],
   exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),

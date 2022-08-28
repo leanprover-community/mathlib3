@@ -191,12 +191,12 @@ at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
 
 lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_top_basis }
 
 lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [encodable α] :
   has_countable_basis (at_bot : filter α) (λ _, true) Iic :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_bot_basis }
 
 @[priority 200]
@@ -1391,9 +1391,8 @@ lemma has_antitone_basis.subbasis_with_rel {f : filter α} {s : ℕ → set α}
   (hs : f.has_antitone_basis s) {r : ℕ → ℕ → Prop} (hr : ∀ m, ∀ᶠ n in at_top, r m n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ (∀ ⦃m n⦄, m < n → r (φ m) (φ n)) ∧ f.has_antitone_basis (s ∘ φ) :=
 begin
-  suffices : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
-  { rcases this with ⟨φ, hφ, hrφ⟩,
-    exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
+  rsuffices ⟨φ, hφ, hrφ⟩ : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
+  { exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
   have : ∀ t : set ℕ, t.finite → ∀ᶠ n in at_top, ∀ m ∈ t, m < n ∧ r m n,
     from λ t ht, (eventually_all_finite ht).2 (λ m hm, (eventually_gt_at_top m).and (hr _)),
   rcases seq_of_forall_finite_exists (λ t ht, (this t ht).exists) with ⟨φ, hφ⟩,

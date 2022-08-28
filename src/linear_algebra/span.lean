@@ -505,11 +505,12 @@ lemma not_mem_span_of_apply_not_mem_span_image
    x ∉ submodule.span R s :=
 h.imp (apply_mem_span_image_of_mem_span f)
 
-lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
-  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
-le_antisymm
-  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
+lemma supr_span {ι : Sort*} (p : ι → set M) : (⨆ i, span R (p i)) = span R (⋃ i, p i) :=
+le_antisymm (supr_le $ λ i, span_mono $ subset_Union _ i) $
+  span_le.mpr $ Union_subset $ λ i m hm, mem_supr_of_mem i $ subset_span hm
+
+lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) : (⨆ i, p i) = span R (⋃ i, ↑(p i)) :=
+by simp_rw [← supr_span, span_eq]
 
 lemma supr_to_add_submonoid {ι : Sort*} (p : ι → submodule R M) :
   (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
@@ -596,6 +597,18 @@ instance : is_compactly_generated (submodule R M) :=
   apply singleton_span_is_compact_element,
 end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
 
+/-- A submodule is equal to the supremum of the spans of the submodule's nonzero elements. -/
+lemma submodule_eq_Sup_le_nonzero_spans (p : submodule R M) :
+  p = Sup {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}} :=
+begin
+  let S := {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}},
+  apply le_antisymm,
+  { intros m hm, by_cases h : m = 0,
+    { rw h, simp },
+    { exact @le_Sup _ _ S _ ⟨m, ⟨hm, ⟨h, rfl⟩⟩⟩ m (mem_span_singleton_self m) } },
+  { rw Sup_le_iff, rintros S ⟨_, ⟨_, ⟨_, rfl⟩⟩⟩, rwa span_singleton_le_iff_mem }
+end
+
 lemma lt_sup_iff_not_mem {I : submodule R M} {a : M} : I < I ⊔ (R ∙ a) ↔ a ∉ I :=
 begin
   split,
@@ -655,12 +668,11 @@ variables {M' : Type*} [add_comm_monoid M'] [module R M'] (q₁ q₁' : submodul
 
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M') :=
-{ carrier   := (p : set M) ×ˢ (q₁ : set M'),
+{ carrier   := p ×ˢ q₁,
   smul_mem' := by rintro a ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨smul_mem _ a hx, smul_mem _ a hy⟩,
   .. p.to_add_submonoid.prod q₁.to_add_submonoid }
 
-@[simp] lemma prod_coe :
-  (prod p q₁ : set (M × M')) = (p : set M) ×ˢ (q₁ : set M') := rfl
+@[simp] lemma prod_coe : (prod p q₁ : set (M × M')) = p ×ˢ q₁ := rfl
 
 @[simp] lemma mem_prod {p : submodule R M} {q : submodule R M'} {x : M × M'} :
   x ∈ prod p q ↔ x.1 ∈ p ∧ x.2 ∈ q := set.mem_prod
@@ -727,18 +739,21 @@ section add_comm_group
 variables [semiring R] [semiring R₂]
 variables [add_comm_group M] [module R M] [add_comm_group M₂] [module R₂ M₂]
 variables {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂]
+variables {F : Type*} [sc : semilinear_map_class F τ₁₂ M M₂]
 
-lemma comap_map_eq (f : M →ₛₗ[τ₁₂] M₂) (p : submodule R M) :
-  comap f (map f p) = p ⊔ f.ker :=
+include sc
+lemma comap_map_eq (f : F) (p : submodule R M) :
+  comap f (map f p) = p ⊔ (linear_map.ker f) :=
 begin
   refine le_antisymm _ (sup_le (le_comap_map _ _) (comap_mono bot_le)),
   rintro x ⟨y, hy, e⟩,
   exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
 end
 
-lemma comap_map_eq_self {f : M →ₛₗ[τ₁₂] M₂} {p : submodule R M} (h : f.ker ≤ p) :
+lemma comap_map_eq_self {f : F} {p : submodule R M} (h : linear_map.ker f ≤ p) :
   comap f (map f p) = p :=
 by rw [submodule.comap_map_eq, sup_of_le_left h]
+omit sc
 
 end add_comm_group
 
@@ -754,20 +769,22 @@ variables [semiring R] [semiring R₂]
 variables [add_comm_group M] [add_comm_group M₂]
 variables [module R M] [module R₂ M₂]
 variables {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂]
+variables {F : Type*} [sc : semilinear_map_class F τ₁₂ M M₂]
 include R
 
-protected lemma map_le_map_iff (f : M →ₛₗ[τ₁₂] M₂) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
+include sc
+protected lemma map_le_map_iff (f : F) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
 by rw [map_le_iff_le_comap, submodule.comap_map_eq]
 
-theorem map_le_map_iff' {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) {p p'} :
+theorem map_le_map_iff' {f : F} (hf : ker f = ⊥) {p p'} :
   map f p ≤ map f p' ↔ p ≤ p' :=
 by rw [linear_map.map_le_map_iff, hf, sup_bot_eq]
 
-theorem map_injective {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) : injective (map f) :=
+theorem map_injective {f : F} (hf : ker f = ⊥) : injective (map f) :=
 λ p p' h, le_antisymm ((map_le_map_iff' hf).1 (le_of_eq h)) ((map_le_map_iff' hf).1 (ge_of_eq h))
 
-theorem map_eq_top_iff {f : M →ₛₗ[τ₁₂] M₂} (hf : range f = ⊤) {p : submodule R M} :
-  p.map f = ⊤ ↔ p ⊔ f.ker = ⊤ :=
+theorem map_eq_top_iff {f : F} (hf : range f = ⊤) {p : submodule R M} :
+  p.map f = ⊤ ↔ p ⊔ linear_map.ker f = ⊤ :=
 by simp_rw [← top_le_iff, ← hf, range_eq_map, linear_map.map_le_map_iff]
 
 end add_comm_group

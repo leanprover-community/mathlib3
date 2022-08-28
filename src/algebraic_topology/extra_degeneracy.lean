@@ -32,6 +32,7 @@ simplicial objects in any category.
 functor `C ⥤ D`
 - `extra_degeneracy.for_cech_nerve_of_split_epi`: the augmented Čech nerve of a split
 epimorphism has an extra degeneracy
+- `sSet.augmented_cech.extra_degeneracy`...
 - `extra_degeneracy.preadditive.homotopy_equivalence`: when the category `C` is
 preadditive and has a zero object, and `X : simplicial_object.augmented C` has an extra
 degeneracy, then the augmentation `alternating_face_map_complex.ε.app X` is a homotopy
@@ -43,6 +44,8 @@ equivalence of chain complexes
 -/
 
 noncomputable theory
+
+attribute [reassoc] category_theory.simplicial_object.augmented.w₀
 
 open category_theory category_theory.category category_theory.limits
 open category_theory.simplicial_object.augmented
@@ -84,66 +87,66 @@ degeneray implies the augmentation is an homotopy equivalence. -/
 structure extra_degeneracy (X : simplicial_object.augmented C) :=
 (s' : point.obj X ⟶ (drop.obj X) _[0])
 (s : Π (n : ℕ), (drop.obj X) _[n] ⟶ (drop.obj X) _[n+1])
-(d₀s' : s' ≫ X.hom.app (op [0]) = 𝟙 _)
-(ds₀ : s 0 ≫ (drop.obj X).δ 1 = X.hom.app (op [0]) ≫ s')
-(d₀s : Π (n : ℕ), s n ≫ (drop.obj X).δ 0 = 𝟙 _)
-(ds : Π (n : ℕ) (i : fin (n+2)), s (n+1) ≫ (drop.obj X).δ i.succ =
+(s'_comp_ε' : s' ≫ X.hom.app (op [0]) = 𝟙 _)
+(s₀_comp_δ₁' : s 0 ≫ (drop.obj X).δ 1 = X.hom.app (op [0]) ≫ s')
+(s_comp_δ₀' : Π (n : ℕ), s n ≫ (drop.obj X).δ 0 = 𝟙 _)
+(s_comp_δ' : Π (n : ℕ) (i : fin (n+2)), s (n+1) ≫ (drop.obj X).δ i.succ =
   (drop.obj X).δ i ≫ s n)
-(ss : Π (n : ℕ) (i : fin (n+1)), s n ≫ (drop.obj X).σ i.succ =
+(s_comp_σ' : Π (n : ℕ) (i : fin (n+1)), s n ≫ (drop.obj X).σ i.succ =
   (drop.obj X).σ i ≫ s (n+1))
 
 namespace extra_degeneracy
 
+restate_axiom s'_comp_ε'
+restate_axiom s₀_comp_δ₁'
+restate_axiom s_comp_δ₀'
+restate_axiom s_comp_δ'
+restate_axiom s_comp_σ'
+attribute [reassoc] s'_comp_ε s₀_comp_δ₁ s_comp_δ₀ s_comp_δ s_comp_σ
+attribute [simp] s'_comp_ε s_comp_δ₀
+
 /-- If `ed` is an extra degeneracy for `X : simplicial_object.augmented C` and
-`F : C ⥤ D` is a functor, then `ed.map F` is an extra degeneracy for
-augmented simplical objects in `D` obtained by applying `F` to `X`. -/
+`F : C ⥤ D` is a functor, then `ed.map F` is an extra degeneracy for the
+augmented simplical object in `D` obtained by applying `F` to `X`. -/
 def map {D : Type*} [category D]
   {X : simplicial_object.augmented C} (ed : extra_degeneracy X) (F : C ⥤ D) :
   extra_degeneracy (((whiskering _ _).obj F).obj X) :=
 { s' := F.map ed.s',
   s := λ n, F.map (ed.s n),
-  d₀s' := by { dsimp, erw [comp_id, ← F.map_comp, ed.d₀s', F.map_id], },
-  ds₀ := by { dsimp, erw [comp_id, ← F.map_comp, ← F.map_comp, ed.ds₀], },
-  d₀s := λ n, by { dsimp, erw [← F.map_comp, ed.d₀s, F.map_id], },
-  ds := λ n i, by { dsimp, erw [← F.map_comp, ← F.map_comp, ed.ds], refl, },
-  ss := λ n i, by { dsimp, erw [← F.map_comp, ← F.map_comp, ed.ss], refl, }, }
+  s'_comp_ε' := by { dsimp, erw [comp_id, ← F.map_comp, ed.s'_comp_ε, F.map_id], },
+  s₀_comp_δ₁' := by { dsimp, erw [comp_id, ← F.map_comp, ← F.map_comp, ed.s₀_comp_δ₁], },
+  s_comp_δ₀' := λ n, by { dsimp, erw [← F.map_comp, ed.s_comp_δ₀, F.map_id], },
+  s_comp_δ' := λ n i, by { dsimp, erw [← F.map_comp, ← F.map_comp, ed.s_comp_δ], refl, },
+  s_comp_σ' := λ n i, by { dsimp, erw [← F.map_comp, ← F.map_comp, ed.s_comp_σ], refl, }, }
 
-/-- If `X` and `Y` are isomorphism augmented simplicial objects, then an extra
+/-- If `X` and `Y` are isomorphic augmented simplicial objects, then an extra
 degeneracy for `X` gives also an extra degeneracy for `Y` -/
 def of_iso {X Y : simplicial_object.augmented C} (e : X ≅ Y) (ed : extra_degeneracy X) :
   extra_degeneracy Y :=
 { s' := (point.map_iso e).inv ≫ ed.s' ≫ (drop.map_iso e).hom.app (op [0]),
   s := λ n, (drop.map_iso e).inv.app (op [n]) ≫ ed.s n ≫ (drop.map_iso e).hom.app (op [n+1]),
-  d₀s' := begin
-    simp only [assoc],
-    erw w₀,
-    slice_lhs 2 3 { rw ed.d₀s', },
-    rw id_comp,
-    exact (point.map_iso e).inv_hom_id,
+  s'_comp_ε' := by simpa only [functor.map_iso, assoc, w₀, ed.s'_comp_ε_assoc]
+    using (point.map_iso e).inv_hom_id,
+  s₀_comp_δ₁' := begin
+    simp only [functor.map_iso, assoc, ← w₀_assoc, ← ed.s₀_comp_δ₁_assoc],
+    congr' 2,
+    exact ((drop.map e.hom).naturality _).symm,
   end,
-  ds₀ := begin
-    slice_rhs 1 2 { erw [← w₀], },
-    slice_rhs 2 3 { rw [← ed.ds₀], },
-    slice_rhs 3 4 { erw (drop.map e.hom).naturality, },
-    simpa only [assoc],
+  s_comp_δ₀' := λ n, begin
+    simp only [functor.map_iso, assoc],
+    erw [← (drop.map e.hom).naturality (simplex_category.δ (0 : fin (n+2))).op,
+      ed.s_comp_δ₀_assoc],
+    exact congr_app (drop.map_iso e).inv_hom_id (op [n]),
   end,
-  d₀s := λ n, begin
-    slice_lhs 3 4 { erw ← (drop.map e.hom).naturality, },
-    slice_lhs 2 3 { erw ed.d₀s, },
-    rw id_comp,
-    convert congr_app (drop.map_iso e).inv_hom_id (op [n]),
+  s_comp_δ' := λ n i, begin
+    simp only [functor.map_iso, assoc],
+    erw [← (drop.map e.hom).naturality, ed.s_comp_δ_assoc, ← (drop.map e.inv).naturality_assoc],
+    refl,
   end,
-  ds := λ n i, begin
-    slice_lhs 3 4 { erw ← (drop.map e.hom).naturality, },
-    slice_lhs 2 3 { erw ed.ds, },
-    slice_lhs 1 2 { erw ← (drop.map e.inv).naturality, },
-    simpa only [assoc],
-  end,
-  ss := λ n i, begin
-    slice_lhs 3 4 { erw ← (drop.map e.hom).naturality, },
-    slice_lhs 2 3 { erw ed.ss, },
-    slice_lhs 1 2 { erw ← (drop.map e.inv).naturality, },
-    simpa only [assoc],
+  s_comp_σ' := λ n i, begin
+    simp only [functor.map_iso, assoc],
+    erw [← (drop.map e.hom).naturality, ed.s_comp_σ_assoc, ← (drop.map e.inv).naturality_assoc],
+    refl,
   end, }
 
 /-- The augmented Čech nerve associated to a split epimorphism has an extra degeneracy. -/
@@ -168,18 +171,18 @@ def for_cech_nerve_of_split_epi (f : arrow C)
       simp only [assoc, split_epi.id, comp_id], },
     { simp only [wide_pullback.π_arrow], },
   end,
-  d₀s' := by simp only [arrow.augmented_cech_nerve_hom_app, assoc,
+  s'_comp_ε' := by simp only [arrow.augmented_cech_nerve_hom_app, assoc,
     wide_pullback.lift_base, split_epi.id],
-  ds₀ := begin
+  s₀_comp_δ₁' := begin
     sorry,
   end,
-  d₀s := begin
+  s_comp_δ₀' := begin
     sorry,
   end,
-  ds := begin
+  s_comp_δ' := begin
     sorry,
   end,
-  ss := begin
+  s_comp_σ' := begin
     sorry,
   end, }
 
@@ -310,18 +313,14 @@ def homotopy_equivalence [preadditive C] [has_zero_object C]
     end,
     comm := λ i, begin
       cases i,
-      { --dsimp only [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
---        simp only [homological_complex.d_from_eq_zero, chain_complex.next_nat_zero,
- --         complex_shape.down_rel, zero_add, nat.one_ne_zero, not_false_iff,
-  --        preadditive.neg_comp, zero_comp],
-        rw [homotopy.prev_d_chain_complex, homotopy.d_next_zero_chain_complex, zero_add],
+      { rw [homotopy.prev_d_chain_complex, homotopy.d_next_zero_chain_complex, zero_add],
         simp only [alternating_face_map_complex.ε_app, equiv.inv_fun_as_coe,
           homological_complex.comp_f, eq_self_iff_true, eq_to_hom_refl, preadditive.neg_comp,
           comp_id, dite_eq_ite, if_true, alternating_face_map_complex.obj_d_eq,
           fin.sum_univ_two, fin.coe_zero, pow_zero, one_zsmul, fin.coe_one, pow_one,
           neg_smul, preadditive.comp_add, preadditive.comp_neg, neg_neg, homological_complex.id_f],
         dsimp [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
-        erw [ed.d₀s, ed.ds₀],
+        erw [ed.s_comp_δ₀, ed.s₀_comp_δ₁],
         rw add_assoc,
         nth_rewrite 1 add_comm,
         rw ← add_assoc,
@@ -348,13 +347,13 @@ def homotopy_equivalence [preadditive C] [has_zero_object C]
           simp only [neg_mul, one_mul, neg_smul],
           rw add_neg_eq_zero,
           congr' 1,
-          exact (ed.ds i j).symm, },
-        { exact ed.d₀s i.succ, }, },
+          exact (ed.s_comp_δ i j).symm, },
+        { exact ed.s_comp_δ₀ i.succ, }, },
     end, },
   homotopy_inv_hom_id := homotopy.of_eq begin
     ext n,
     cases n,
-    { exact ed.d₀s', },
+    { exact ed.s'_comp_ε, },
     { tidy, },
   end, }
 
@@ -434,15 +433,15 @@ def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
   extra_degeneracy (augmented_std_simplex Δ) :=
 { s' := λ x, simplex_category.hom.mk (order_hom.const _ 0),
   s := λ n f, shift f,
-  d₀s' := by { dsimp, apply subsingleton.elim, },
-  ds₀ := begin
+  s'_comp_ε' := by { dsimp, apply subsingleton.elim, },
+  s₀_comp_δ₁' := begin
     ext f x : 4,
     dsimp at x f ⊢,
     have eq : x = 0 := by { simp only [eq_iff_true_of_subsingleton], },
     subst eq,
     refl,
   end,
-  d₀s := λ n, begin
+  s_comp_δ₀' := λ n, begin
     ext f x : 4,
     dsimp [simplicial_object.δ] at x f ⊢,
     split_ifs,
@@ -451,7 +450,7 @@ def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
     { congr' 1,
       apply fin.pred_succ, },
   end,
-  ds := λ n i, begin
+  s_comp_δ' := λ n i, begin
     ext f x : 4,
     dsimp [simplicial_object.δ],
     split_ifs with h₁ h₂ h₂,
@@ -477,7 +476,7 @@ def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
       apply fin.succ_injective,
       simp only [fin.succ_succ_above_succ, fin.pred_succ], },
   end,
-  ss := λ n i, begin
+  s_comp_σ' := λ n i, begin
     ext f x : 4,
     dsimp [simplicial_object.σ] at x f ⊢,
     split_ifs with h₁ h₂ h₂,
@@ -542,14 +541,14 @@ end
 def extra_degeneracy (X : Type u) (x : X) : extra_degeneracy (augmented_cech X x) :=
 { s' := λ y i, x,
   s := λ n φ, extra_degeneracy_s X x φ,
-  d₀s' := is_terminal.hom_ext terminal_is_terminal _ _,
-  ds₀ := by { ext φ i, fin_cases i, refl, },
-  d₀s := λ n, begin
+  s'_comp_ε' := is_terminal.hom_ext terminal_is_terminal _ _,
+  s₀_comp_δ₁' := by { ext φ i, fin_cases i, refl, },
+  s_comp_δ₀' := λ n, begin
     ext φ i,
     dsimp [simplicial_object.δ, simplex_category.δ],
     rw extra_degeneracy_s_succ,
   end,
-  ds := λ n i, begin
+  s_comp_δ' := λ n i, begin
     ext φ j,
     dsimp [simplicial_object.δ, simplex_category.δ],
     by_cases j = 0,
@@ -560,7 +559,7 @@ def extra_degeneracy (X : Type u) (x : X) : extra_degeneracy (augmented_cech X x
       simp only [fin.succ_succ_above_succ, extra_degeneracy_s_succ,
         cech_map, quiver.hom.unop_op, hom.to_order_hom_mk, order_embedding.to_order_hom_coe], },
   end,
-  ss := λ n i, begin
+  s_comp_σ' := λ n i, begin
     ext φ j,
     dsimp [simplicial_object.σ, simplex_category.σ],
     by_cases j = 0,

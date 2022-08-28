@@ -577,21 +577,13 @@ lemma extend_with_fin.components_spec (G : simple_graph V) (K : set V) :
 -- A restatement of the above lemma
 lemma extends_with_fin.inf_components_iso (G : simple_graph V) (K : set V) :
   { C : G.comp_out K // C.inf } ≃ G.comp_out (extend_with_fin G K) := {
-  to_fun := λ ⟨C, Cinf⟩, C.lift (λ v, connected_component_mk _ v) (by {
-    intros v w p hpath,
-    simp, apply nonempty.intro,
-    apply out.walk_conv p,
-    intros x hxp hxKext,
-    cases hxKext,
-    {
-      sorry, -- should follow directly from `hxp`
-    },
-    {
-      rcases hxKext with ⟨_, ⟨⟨c, cfin⟩, rfl⟩, hxc⟩,
-      dsimp [extend_with_fin] at hxc,
-      sorry
-    }
-  }),
+  to_fun := by {
+    rintro ⟨C,Cinf⟩,
+    revert C,
+    apply @connected_component.lift V (G.out K) _ _ _ _,
+    sorry,
+
+  },
   inv_fun := λ C, ⟨C.back (extend_with_fin.sub _ _), by {
     apply infinite.mono,
     apply back_sub,

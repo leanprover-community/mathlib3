@@ -254,10 +254,8 @@ begin
   apply dvd_mul_of_dvd_left,
   rw [polynomial.iterate_derivative_nat_cast_mul, polynomial.eval_mul, polynomial.eval_nat_cast],
   rw ←nat.mul_factorial_pred (pos_of_gt h),
-  simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one, int.coe_nat_mul],
-  apply mul_dvd_mul, refl,
-  simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one] at IH ⊢,
-  rw finset.prod_pow at IH, exact IH,
+  simp only [int.cast_coe_nat, int.cast_add, int.cast_one, int.coe_nat_mul, ←finset.prod_pow],
+  exact mul_dvd_mul_left _ IH,
 end
 
 private lemma k_ge_1_case_when_j_ge_p (p : ℕ) (hp : nat.prime p) (n j : ℕ) (hj : p ≤ j) (k : ℕ)
@@ -383,23 +381,12 @@ end
 theorem abs_J_ineq1' (g : ℤ[X]) (p : ℕ) :
   abs (J g p) ≤ ∑ i in finset.range g.nat_degree.succ, (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * (polynomial.aeval (i : ℝ) (f_bar (f_p p g.nat_degree))) :=
 begin
-  have ineq1 : abs (J g p) ≤ (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ) * (II (f_p p g.nat_degree) i))) := finset.abs_sum_le_sum_abs _ _,
-  have triv :
-    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ) * (II (f_p p g.nat_degree) i))) =
-    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * abs((II (f_p p g.nat_degree) i))),
-    apply finset.sum_congr, refl, intros, rw abs_mul,
-  rw triv at ineq1,
-  have ineq2:
-    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * abs((II (f_p p g.nat_degree) i))) ≤
-    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * (i:ℝ)*(i:ℝ).exp * (polynomial.aeval (i : ℝ) (f_bar (f_p p g.nat_degree)))),
-  {
-    apply finset.sum_le_sum, intros x hx, replace triv : (x:ℝ) ≥ 0, {norm_cast, exact bot_le,},
-    have ineq3 := abs_II_le2 (f_p p g.nat_degree) (x:ℝ) triv,
-    have triv2 : (II (f_p p g.nat_degree) ↑x) = (II (f_p p g.nat_degree) ↑x) := by rw II,
-    rw triv2, rw mul_assoc, rw mul_assoc, apply mul_le_mul, exact le_refl (abs ↑(polynomial.coeff g x)),
-    rw <-mul_assoc, exact ineq3, exact abs_nonneg (II (f_p p (polynomial.nat_degree g)) ↑x), exact abs_nonneg _,
-  },
-  exact le_trans ineq1 ineq2,
+  refine (finset.abs_sum_le_sum_abs _ _).trans _,
+  refine finset.sum_le_sum (λ x hx, _),
+  rw [abs_mul, mul_assoc, mul_assoc],
+  refine mul_le_mul_of_nonneg_left _ (abs_nonneg _),
+  rw [←mul_assoc],
+  exact abs_II_le2 (f_p p g.nat_degree) (x:ℝ) x.cast_nonneg,
 end
 
 private lemma f_bar_X_pow {n : ℕ} : f_bar (polynomial.X ^ n) = polynomial.X^n :=

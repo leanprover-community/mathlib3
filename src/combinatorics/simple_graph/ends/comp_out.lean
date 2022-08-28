@@ -454,7 +454,7 @@ begin
   exact Cinf,
 end
 
-lemma in_all_ranges_of_inf (Kfin : K.finite) (C : G.comp_out K) (Cinf : C.inf)
+lemma in_all_ranges_of_inf [Kfin : K.finite] (C : G.comp_out K) (Cinf : C.inf)
   {L : set V} (Lfin : L.finite) (h : K ⊆ L) :
   C ∈ set.range (back h : (G.comp_out L) → (G.comp_out K)) :=
 begin

@@ -684,6 +684,9 @@ lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.dis_
   (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) :=
 by {ext, dsimp only [back], dsimp, simp only [comp_out.back_trans_apply],}
 
+lemma back_of_inf  {K L : set V} (h : K ⊆ L) (C : G.dis_comp_out L) (Cinf : C.val.inf) :
+  (C.back h).val.inf := by {dsimp [back], apply comp_out.back_of_inf, exact Cinf,}
+
 end back
 
 end dis_comp_out
@@ -695,8 +698,23 @@ instance inf_comp_out_dis_comp_out (G : simple_graph V) (K : set V) :
 -- Here can refine most of the constructions for `comp_out`
 namespace inf_comp_out
 
--- todo: define `back` once again similarly as above, plus properties.
 
+variables {G} {K} {L : set V}
+
+def back {K L : set V} (h : K ⊆ L) : G.inf_comp_out L →  G.inf_comp_out K :=
+  set.maps_to.restrict (dis_comp_out.back h) {C : G.dis_comp_out L | C.val.inf} {C : G.dis_comp_out K | C.val.inf}
+    (dis_comp_out.back_of_inf h)
+
+@[simp]
+lemma back_iff {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L) (D : G.inf_comp_out K) :
+  C.back h = D ↔ (C.val.back h) = D.val := sorry
+
+@[simp]
+lemma back_refl_apply  (C : G.dis_comp_out K) : C.back (subset_refl K) = C := sorry
+
+@[simp]
+lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.dis_comp_out M) :
+  (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) := sorry
 
 end inf_comp_out
 

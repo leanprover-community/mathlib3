@@ -5,8 +5,7 @@ import combinatorics.simple_graph.connectivity
 import topology.metric_space.basic
 import data.setoid.partition
 import .mathlib
-import .conn_comp_outside
-import .end_limit_construction
+import .comp_out
 import .mathlib_fintype_inverse_systems
 
 
@@ -27,9 +26,6 @@ local attribute [instance] prop_decidable
 namespace simple_graph
 
 
-namespace ends
-
-open conn_comp_outside
 
 variables  {V : Type u}
            (G : simple_graph V)
@@ -44,20 +40,20 @@ variables  {V : Type u}
 lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V)
-  (inf_comp_H_large : fin 3 ↪ (inf_conn_comp_outside G K)) :
+  (inf_comp_H_large : fin 3 ↪ (G.inf_comp_out K)) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),
-    ¬ injective (inf_conn_comp_outside_back ‹↑K' ⊆ ↑L› : G.inf_conn_comp_outside L → G.inf_conn_comp_outside K') :=
+    ¬ injective (inf_comp_out.back ‹↑K' ⊆ ↑L› : G.inf_comp_out L → G.inf_comp_out K') :=
 begin
-  have Knempty : K.nonempty, by
-  { rw nonempty_iff_ne_empty,
+  have Knempty : K.nonempty, by sorry,
+  /-{ rw nonempty_iff_ne_empty,
     by_contradiction h, rw h at inf_comp_H_large,
-    have e : fin 3 ↪ (conn_comp_outside G (∅ : finset V)), by
+    have e : fin 3 ↪ (G.dis_comp_out (∅ : finset V)), by
     { apply inf_comp_H_large.trans,
       fconstructor,
       exact subtype.val, exact subtype.val_injective,},
     haveI := conn_comp_outside.of_empty_is_subsingleton Gpc,
     have := e.inj' (subsingleton.elim (e 0) (e 1)),
-    finish,},
+    finish,},-/
   obtain ⟨Kp,⟨KKp,Kpconn⟩⟩ := conn_comp_outside.extend_to_connected G K Knempty,
   rcases conn_comp_outside.extend_connected_with_fin_components G Kp Kpconn  with ⟨K',KK',K'conn,finn⟩,
   rcases auts K' with ⟨φ,φgood⟩,
@@ -130,6 +126,5 @@ begin
   exact eq',
 end
 
-end ends
 
 end simple_graph

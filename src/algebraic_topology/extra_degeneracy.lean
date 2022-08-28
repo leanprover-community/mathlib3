@@ -80,7 +80,7 @@ augmented simplicial objects. The morphisms `s'` and `s n` of the
 structure formally behave like extra degeneracies `σ (-1)`. In
 the case of augmented simplicial sets, the existence of an extra
 degeneray implies the augmentation is an homotopy equivalence. -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_inhabited_instance]
 structure extra_degeneracy (X : simplicial_object.augmented C) :=
 (s' : point.obj X ⟶ (drop.obj X) _[0])
 (s : Π (n : ℕ), (drop.obj X) _[n] ⟶ (drop.obj X) _[n+1])
@@ -500,5 +500,79 @@ def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
       apply fin.succ_injective,
       simp only [fin.succ_pred, fin.succ_pred_above_succ], },
   end, }
+
+@[simps]
+def cech (X : Type u) : sSet.{u} :=
+{ obj := λ n, fin (n.unop.len + 1) → X,
+  map := λ m n f φ, φ ∘ f.unop.to_order_hom, }
+
+@[simps]
+def augmented_cech (X : Type u) (x : X) : sSet.augmented.{u} :=
+{ left := cech X,
+  right := terminal _,
+  hom := { app := λ Δ, terminal.from _ }, }
+
+namespace augmented_cech
+
+def extra_degeneracy_s (X : Type u) (x : X) {n : ℕ} (φ : (cech X).obj (op [n])) :
+  (cech X).obj (op [n+1]) :=
+λ i, begin
+  by_cases i = 0,
+  { exact x, },
+  { exact φ (i.pred h), }
+end
+
+@[simp]
+lemma extra_degeneracy_s_0 (X : Type u) (x : X) {n : ℕ}
+  (φ : (cech X).obj (op [n])) :
+  augmented_cech.extra_degeneracy_s X x φ 0 = x := rfl
+
+@[simp]
+lemma extra_degeneracy_s_succ (X : Type u) (x : X) {n : ℕ}
+  (φ : (cech X).obj (op [n])) (i : fin (n+1)):
+  augmented_cech.extra_degeneracy_s X x φ i.succ = φ i :=
+begin
+  dsimp [augmented_cech.extra_degeneracy_s],
+  split_ifs,
+  { exfalso,
+    simpa only [fin.ext_iff, fin.coe_succ, fin.coe_zero, nat.succ_ne_zero] using h, },
+  { simp only [fin.pred_succ], }
+end
+
+def extra_degeneracy (X : Type u) (x : X) : extra_degeneracy (augmented_cech X x) :=
+{ s' := λ y i, x,
+  s := λ n φ, extra_degeneracy_s X x φ,
+  d₀s' := is_terminal.hom_ext terminal_is_terminal _ _,
+  ds₀ := by { ext φ i, fin_cases i, refl, },
+  d₀s := λ n, begin
+    ext φ i,
+    dsimp [simplicial_object.δ, simplex_category.δ],
+    rw extra_degeneracy_s_succ,
+  end,
+  ds := λ n i, begin
+    ext φ j,
+    dsimp [simplicial_object.δ, simplex_category.δ],
+    by_cases j = 0,
+    { subst h,
+      simp only [fin.succ_succ_above_zero, extra_degeneracy_s_0], },
+    { cases fin.is_succ_of_ne_zero j h with k hk,
+      subst hk,
+      simp only [fin.succ_succ_above_succ, extra_degeneracy_s_succ,
+        cech_map, quiver.hom.unop_op, hom.to_order_hom_mk, order_embedding.to_order_hom_coe], },
+  end,
+  ss := λ n i, begin
+    ext φ j,
+    dsimp [simplicial_object.σ, simplex_category.σ],
+    by_cases j = 0,
+    { subst h,
+      simp only [extra_degeneracy_s_0],
+      apply augmented_cech.extra_degeneracy_s_0, },
+    { cases fin.is_succ_of_ne_zero j h with k hk,
+      subst hk,
+      simp only [fin.succ_pred_above_succ, extra_degeneracy_s_succ,
+        cech_map, quiver.hom.unop_op, hom.to_order_hom_mk, order_hom.coe_fun_mk], },
+  end, }
+
+end augmented_cech
 
 end sSet

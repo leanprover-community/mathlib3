@@ -81,10 +81,10 @@ instance (n : ℕ) : char_p (zmod n) n :=
     rw [val_nat_cast, val_zero, nat.dvd_iff_mod_eq_zero],
   end }
 
-lemma add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
+@[simp] lemma add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
 char_p.eq _ (char_p.eq_add_order_of_one _) (zmod.char_p n)
 
-lemma zmod.add_order_of_coe (a : ℕ) {n : ℕ} (n0 : n ≠ 0) :
+@[simp] lemma add_order_of_coe (a : ℕ) {n : ℕ} (n0 : n ≠ 0) :
   add_order_of (a : zmod n) = n / n.gcd a :=
 begin
   cases a,

@@ -385,7 +385,7 @@ section normed_space
 variables [normed_add_comm_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 noncomputable instance : normed_add_comm_group C₀(α, β) :=
-normed_add_comm_group.induced (⟨to_bcf, rfl, λ x y, rfl⟩ : C₀(α, β) →+ (α →ᵇ β))
+normed_add_comm_group.induced C₀(α, β) (α →ᵇ β) (⟨to_bcf, rfl, λ x y, rfl⟩ : C₀(α, β) →+ (α →ᵇ β))
   (to_bcf_injective α β)
 
 @[simp]

@@ -413,8 +413,8 @@ lemma compact_accumulate {K : ℕ → set α} (hK : ∀ n, is_compact (K n)) (n 
   is_compact (accumulate K n) :=
 (finite_le_nat n).compact_bUnion $ λ k _, hK k
 
-lemma compact_Union {f : ι → set α} [fintype ι]
-  (h : ∀ i, is_compact (f i)) : is_compact (⋃ i, f i) :=
+lemma compact_Union {f : ι → set α} [finite ι] (h : ∀ i, is_compact (f i)) :
+  is_compact (⋃ i, f i) :=
 by rw ← bUnion_univ; exact finite_univ.compact_bUnion (λ i _, h i)
 
 lemma set.finite.is_compact (hs : s.finite) : is_compact s :=
@@ -446,9 +446,8 @@ lemma exists_subset_nhd_of_compact' {ι : Type*} [nonempty ι] {V : ι → set �
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 begin
   obtain ⟨W, hsubW, W_op, hWU⟩ := exists_open_set_nhds hU,
-  suffices : ∃ i, V i ⊆ W,
-  { rcases this with ⟨i, hi⟩,
-    refine ⟨i, set.subset.trans hi hWU⟩ },
+  rsuffices ⟨i, hi⟩ : ∃ i, V i ⊆ W,
+  { exact ⟨i, hi.trans hWU⟩ },
   by_contra' H,
   replace H : ∀ i, (V i ∩ Wᶜ).nonempty := λ i, set.inter_compl_nonempty_iff.mpr (H i),
   have : (⋂ i, V i ∩ Wᶜ).nonempty,
@@ -751,11 +750,10 @@ lemma not_compact_space_iff : ¬compact_space α ↔ noncompact_space α :=
 instance : noncompact_space ℤ :=
 noncompact_space_of_ne_bot $ by simp only [filter.cocompact_eq_cofinite, filter.cofinite_ne_bot]
 
+-- Note: We can't make this into an instance because it loops with `finite.compact_space`.
 /-- A compact discrete space is finite. -/
-noncomputable
-def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
-  fintype α :=
-fintype_of_finite_univ $ compact_univ.finite_of_discrete
+lemma finite_of_compact_of_discrete [compact_space α] [discrete_topology α] : finite α :=
+finite.of_finite_univ $ compact_univ.finite_of_discrete
 
 lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
@@ -816,14 +814,13 @@ begin
   assume C (hC : is_closed C),
   rw is_closed_iff_cluster_pt at hC ⊢,
   assume y (y_closure : cluster_pt y $ 𝓟 (πY '' C)),
-  have : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
+  haveI : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
   { suffices : ne_bot (map πY (comap πY (𝓝 y) ⊓ 𝓟 C)),
       by simpa only [map_ne_bot_iff],
     convert y_closure,
     calc map πY (comap πY (𝓝 y) ⊓ 𝓟 C) =
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
       ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal },
-  resetI,
   obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
     from cluster_point_of_compact _,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
@@ -915,7 +912,7 @@ begin
 end
 
 /-- Finite topological spaces are compact. -/
-@[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
+@[priority 100] instance finite.compact_space [finite α] : compact_space α :=
 { compact_univ := finite_univ.is_compact }
 
 /-- The product of two compact spaces is compact. -/
@@ -929,7 +926,7 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (is_compact_range continuous_inl).union (is_compact_range continuous_inr)
 end⟩
 
-instance [fintype ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
+instance [finite ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
   compact_space (Σ i, π i) :=
 begin
   refine ⟨_⟩,
@@ -1418,8 +1415,8 @@ lemma is_clopen.prod {s : set α} {t : set β} (hs : is_clopen s) (ht : is_clope
   is_clopen (s ×ˢ t) :=
 ⟨hs.1.prod ht.1, hs.2.prod ht.2⟩
 
-lemma is_clopen_Union {β : Type*} [fintype β] {s : β → set α}
-  (h : ∀ i, is_clopen (s i)) : is_clopen (⋃ i, s i) :=
+lemma is_clopen_Union {β : Type*} [finite β] {s : β → set α} (h : ∀ i, is_clopen (s i)) :
+  is_clopen (⋃ i, s i) :=
 ⟨is_open_Union (forall_and_distrib.1 h).1, is_closed_Union (forall_and_distrib.1 h).2⟩
 
 lemma is_clopen_bUnion {β : Type*} {s : set β} {f : β → set α} (hs : s.finite)
@@ -1432,8 +1429,8 @@ lemma is_clopen_bUnion_finset {β : Type*} {s : finset β} {f : β → set α}
   is_clopen (⋃ i ∈ s, f i) :=
 is_clopen_bUnion s.finite_to_set h
 
-lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
-  (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
+lemma is_clopen_Inter {β : Type*} [finite β] {s : β → set α} (h : ∀ i, is_clopen (s i)) :
+  is_clopen (⋂ i, s i) :=
 ⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
 
 lemma is_clopen_bInter {β : Type*} {s : set β} (hs : s.finite) {f : β → set α}

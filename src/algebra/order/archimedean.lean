@@ -109,25 +109,12 @@ let ⟨n, h⟩ := archimedean.arch x hy in
                              (add_nonneg zero_le_two hy.le) _
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
-section linear_ordered_ring
-variables [linear_ordered_ring α] [archimedean α]
+section ordered_ring
+variables [ordered_ring α] [nontrivial α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
 sub_add_cancel y 1 ▸ add_one_pow_unbounded_of_pos _ (sub_pos.2 hy1)
-
-/-- Every x greater than or equal to 1 is between two successive
-natural-number powers of every y greater than one. -/
-lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
-  ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
-have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
-by classical; exact let n := nat.find h in
-  have hn  : x < y ^ n, from nat.find_spec h,
-  have hnp : 0 < n,     from pos_iff_ne_zero.2 (λ hn0,
-    by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
-  have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
-  have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
-  ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
 let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa int.cast_coe_nat⟩
@@ -148,6 +135,24 @@ begin
   cases h with h₁ h₂,
   exact ⟨λ h, le_trans (int.cast_le.2 h) h₁, h₂ z⟩,
 end
+
+end ordered_ring
+
+section linear_ordered_ring
+variables [linear_ordered_ring α] [archimedean α]
+
+/-- Every x greater than or equal to 1 is between two successive
+natural-number powers of every y greater than one. -/
+lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
+  ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
+by classical; exact let n := nat.find h in
+  have hn  : x < y ^ n, from nat.find_spec h,
+  have hnp : 0 < n,     from pos_iff_ne_zero.2 (λ hn0,
+    by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
+  have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
+  have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
+  ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
 
 end linear_ordered_ring
 
@@ -276,6 +281,22 @@ archimedean_iff_nat_lt.trans
  λ H x, let ⟨n, h⟩ := H x in ⟨n+1,
    lt_of_le_of_lt h (nat.cast_lt.2 (lt_add_one _))⟩⟩
 
+lemma archimedean_iff_int_lt : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x < n :=
+⟨@exists_int_gt α _ _,
+begin
+  rw archimedean_iff_nat_lt,
+  intros h x,
+  obtain ⟨n, h⟩ := h x,
+  refine ⟨n.to_nat, h.trans_le _⟩,
+  exact_mod_cast int.le_to_nat _,
+end⟩
+
+lemma archimedean_iff_int_le : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x ≤ n :=
+archimedean_iff_int_lt.trans
+⟨λ H x, (H x).imp $ λ _, le_of_lt,
+ λ H x, let ⟨n, h⟩ := H x in ⟨n+1,
+   lt_of_le_of_lt h (int.cast_lt.2 (lt_add_one _))⟩⟩
+
 lemma archimedean_iff_rat_lt : archimedean α ↔ ∀ x : α, ∃ q : ℚ, x < q :=
 ⟨@exists_rat_gt α _,
   λ H, archimedean_iff_nat_lt.2 $ λ x,
@@ -308,3 +329,10 @@ noncomputable def archimedean.floor_ring (α) [linear_ordered_ring α] [archimed
   floor_ring α :=
 floor_ring.of_floor α (λ a, classical.some (exists_floor a))
   (λ z a, (classical.some_spec (exists_floor a) z).symm)
+
+/-- A linear ordered field that is a floor ring is archimedean. -/
+lemma floor_ring.archimedean (α) [linear_ordered_field α] [floor_ring α] : archimedean α :=
+begin
+  rw archimedean_iff_int_le,
+  exact λ x, ⟨⌈x⌉, int.le_ceil x⟩
+end

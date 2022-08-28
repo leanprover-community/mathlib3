@@ -60,9 +60,6 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_add_comm_group.to_add_comm_group normed_space.to_module'
 
--- hack to speed up simp when dealing with complicated types
-local attribute [-instance] unique.subsingleton pi.subsingleton
-
 /-!
 ### Type variables
 
@@ -732,7 +729,7 @@ begin
   refine this _ _,
   intros m,
   simp only [continuous_multilinear_map.mk_pi_algebra_fin_apply, one_mul, list.of_fn_eq_map,
-    fin.univ_def, finset.fin_range, finset.prod, multiset.coe_map, multiset.coe_prod],
+    fin.prod_univ_def, multiset.coe_map, multiset.coe_prod],
   refine (list.norm_prod_le' _).trans_eq _,
   { rw [ne.def, list.map_eq_nil, list.fin_range_eq_nil],
     exact nat.succ_ne_zero _, },
@@ -955,6 +952,17 @@ lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
 linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
 end continuous_multilinear_map
+
+section smul
+
+variables {R : Type*} [semiring R] [module R G] [smul_comm_class 𝕜 R G]
+  [has_continuous_const_smul R G]
+
+instance : has_continuous_const_smul R (continuous_multilinear_map 𝕜 E G) :=
+⟨λ c, (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ G G
+  (c • continuous_linear_map.id 𝕜 G)).2⟩
+
+end smul
 
 section currying
 /-!
@@ -1229,7 +1237,6 @@ isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the con
 derivatives, we register this isomorphism. -/
 
 section
-local attribute [instance] unique.subsingleton
 
 variables {𝕜 G G'}
 

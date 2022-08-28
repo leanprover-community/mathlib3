@@ -86,9 +86,9 @@ by rw [sqrt_eq_iff_sq_eq, mul_mul_mul_comm, mul_self_sqrt, mul_self_sqrt]
 /-- `nnreal.sqrt` as a `monoid_with_zero_hom`. -/
 noncomputable def sqrt_hom : ℝ≥0 →*₀ ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
 
-lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv x
+lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := map_inv₀ sqrt_hom x
 
-lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := sqrt_hom.map_div x y
+lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := map_div₀ sqrt_hom x y
 
 lemma continuous_sqrt : continuous sqrt := sqrt.continuous
 
@@ -116,9 +116,8 @@ begin
   { exact this.imp (λ h e, ⟨x, x0, hx, e⟩) },
   apply of_near,
 
-  suffices : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
-  { rcases this with ⟨δ, δ0, hδ⟩,
-    intros }
+  rsuffices ⟨δ, δ0, hδ⟩ : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
+  { intros }
 end -/
 
 /-- The square root of a real number. This returns 0 for negative inputs. -/

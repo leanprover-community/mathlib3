@@ -90,7 +90,7 @@ variable (C)
 
 /-- Any category with pullbacks and terminal object has binary products. -/
 -- This is not an instance, as it is not always how one wants to construct binary products!
-lemma has_binary_products_of_terminal_and_pullbacks
+lemma has_binary_products_of_has_terminal_and_pullbacks
   [has_terminal C] [has_pullbacks C] :
   has_binary_products C :=
 { has_limit := λ F, has_limit.mk (limit_cone_of_terminal_and_pullbacks F) }
@@ -187,7 +187,7 @@ variable (C)
 
 /-- Any category with pushouts and initial object has binary coproducts. -/
 -- This is not an instance, as it is not always how one wants to construct binary coproducts!
-lemma has_binary_coproducts_of_initial_and_pushouts
+lemma has_binary_coproducts_of_has_initial_and_pushouts
   [has_initial C] [has_pushouts C] :
   has_binary_coproducts C :=
 { has_colimit := λ F, has_colimit.mk (colimit_cocone_of_initial_and_pushouts F) }

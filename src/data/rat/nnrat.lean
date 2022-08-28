@@ -26,8 +26,8 @@ open function
 open_locale big_operators
 
 /-- Nonnegative rational numbers. -/
-@[derive [canonically_ordered_comm_semiring, canonically_linear_ordered_add_monoid,
-  linear_ordered_comm_group_with_zero, linear_ordered_semifield, has_sub, has_ordered_sub,
+@[derive [canonically_ordered_comm_semiring, canonically_linear_ordered_semifield,
+  linear_ordered_comm_group_with_zero, has_sub, has_ordered_sub,
   densely_ordered, archimedean, inhabited]]
 def nnrat := {q : ℚ // 0 ≤ q}
 

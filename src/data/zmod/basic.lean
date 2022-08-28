@@ -84,6 +84,8 @@ instance (n : ℕ) : char_p (zmod n) n :=
 @[simp] lemma add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
 char_p.eq _ (char_p.add_order_of_one _) (zmod.char_p n)
 
+/--  This lemma works in the case in which `zmod n` is not infinite, i.e. `n ≠ 0`.  The version
+where `a ≠ 0` is `add_order_of_coe'`. -/
 @[simp] lemma add_order_of_coe (a : ℕ) {n : ℕ} (n0 : n ≠ 0) :
   add_order_of (a : zmod n) = n / n.gcd a :=
 begin
@@ -91,6 +93,12 @@ begin
   simp [nat.pos_of_ne_zero n0],
   rw [← nat.smul_one_eq_coe, add_order_of_nsmul' _ a.succ_ne_zero, zmod.add_order_of_one],
 end
+
+/--  This lemma works in the case in which `a ≠ 0`.  The version where
+ `zmod n` is not infinite, i.e. `n ≠ 0`, is `add_order_of_coe`. -/
+@[simp] lemma add_order_of_coe' {a : ℕ} (n : ℕ) (a0 : a ≠ 0) :
+  add_order_of (a : zmod n) = n / n.gcd a :=
+by rw [← nat.smul_one_eq_coe, add_order_of_nsmul' _ a0, zmod.add_order_of_one]
 
 /-- We have that `ring_char (zmod n) = n`. -/
 lemma ring_char_zmod_n (n : ℕ) : ring_char (zmod n) = n :=

@@ -282,4 +282,36 @@ begin
   { rw [sub_zero, abs_of_nonneg ht, mul_comm, mul_assoc] },
 end
 
+lemma f_bar_X_pow {n : ℕ} : f_bar (polynomial.X ^ n) = polynomial.X^n :=
+begin
+  ext, simp only [bar_coeff, polynomial.coeff_X_pow, apply_ite abs, abs_zero, abs_one],
+end
+
+lemma f_bar_X_sub_pow (n k : ℕ) (c:ℕ) : polynomial.eval (k:ℤ) (f_bar ((polynomial.X - polynomial.C (c:ℤ))^n)) ≤ polynomial.eval (k:ℤ) (polynomial.X + polynomial.C (c:ℤ))^n :=
+begin
+  induction n with n hn,
+  {simp only [pow_zero], rw f_bar_1, simp only [polynomial.eval_one]},
+  rw pow_succ,
+  have ineq1 := eval_f_bar_mul (polynomial.X - polynomial.C (c:ℤ)) ((polynomial.X - polynomial.C (c:ℤ)) ^ n) k,
+  have id1 : f_bar (polynomial.X - polynomial.C ↑c) = polynomial.X + polynomial.C (c:ℤ),
+  { ext, rw bar_coeff, simp only [polynomial.coeff_add, polynomial.coeff_sub],
+    rw polynomial.coeff_X,
+    split_ifs,
+    { rw <-h, rw polynomial.coeff_C, split_ifs,
+      { exfalso, linarith },
+      { simp only [add_zero, sub_zero, abs_one] } },
+    { simp only [zero_sub, abs_neg, zero_add], rw polynomial.coeff_C, split_ifs,
+      { apply abs_of_nonneg, apply int.coe_nat_nonneg },
+      { simp only [abs_zero] } } },
+  rw id1 at ineq1,
+  rw pow_succ,
+  have ineq2 : polynomial.eval ↑k (polynomial.X + polynomial.C ↑c) *
+      polynomial.eval ↑k (f_bar ((polynomial.X - polynomial.C ↑c) ^ n)) ≤
+      polynomial.eval ↑k (polynomial.X + polynomial.C ↑c) * polynomial.eval ↑k (polynomial.X + polynomial.C ↑c) ^ n,
+  { apply mul_le_mul_of_nonneg_left hn,
+    simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_add],
+    apply add_nonneg; apply int.coe_nat_nonneg },
+  exact le_trans ineq1 ineq2,
+end
+
 end e_transcendental_lemmas

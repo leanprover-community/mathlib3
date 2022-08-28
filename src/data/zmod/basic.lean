@@ -82,7 +82,7 @@ instance (n : ℕ) : char_p (zmod n) n :=
   end }
 
 @[simp] lemma add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
-char_p.eq _ (char_p.eq_add_order_of_one _) (zmod.char_p n)
+char_p.eq _ (char_p.add_order_of_one _) (zmod.char_p n)
 
 @[simp] lemma add_order_of_coe (a : ℕ) {n : ℕ} (n0 : n ≠ 0) :
   add_order_of (a : zmod n) = n / n.gcd a :=

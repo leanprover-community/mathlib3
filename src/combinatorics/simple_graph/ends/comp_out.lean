@@ -275,19 +275,19 @@ begin
 end
 
 def of_connected_disjoint (S : set V)
-  (conn : (G.induce S).connected) (dis : disjoint S K) : G.comp_out K :=
+  (conn : (G.induce S).connected) (dis : disjoint K S) : G.comp_out K :=
 begin
   rw connected_iff at conn,
   exact of_vertex G K conn.right.some,
 end
 
 lemma of_connected_disjoint_sub (S : set V)
-  (conn : (G.induce S).connected) (dis : disjoint S K) : S ⊆ of_connected_disjoint S conn dis :=
+  (conn : (G.induce S).connected) (dis : disjoint K S) : S ⊆ of_connected_disjoint S conn dis :=
 begin
   have : ∀ s t : S, (G.induce S).adj s t → (G.out K).adj s t, by
   { rintro ⟨s,sS⟩ ⟨t,tS⟩ a,
     simp only [subtype.coe_mk, comap_adj, embedding.coe_subtype,out] at a ⊢,
-    exact ⟨(λ sK, (set.disjoint_iff).mp dis ⟨sS,sK⟩),(λ tK, (set.disjoint_iff).mp dis ⟨tS,tK⟩),a⟩,},
+    exact ⟨(λ sK, (set.disjoint_iff).mp dis ⟨sK,sS⟩),(λ tK, (set.disjoint_iff).mp dis ⟨tK,tS⟩),a⟩,},
   have : ∀ s t : S, (G.induce S).reachable s t → (G.out K).reachable s t, by {
     rintro ⟨s,hs⟩ ⟨t,ht⟩ ⟨r⟩,
     constructor,
@@ -593,6 +593,55 @@ lemma extends_with_fin.inf_components_iso (G : simple_graph V) (K : set V) :
     refine connected_component.ind _,
     intro v, sorry,
   }}
+
+
+
+lemma nicely_arranged [locally_finite G] (Gpc : G.preconnected) (H K : set V)
+  [Hnempty : H.nonempty] [Knempty : K.nonempty]
+  (E E' : G.comp_out H) (Einf : E.inf) (Einf' : E'.inf) (En : E ≠ E')
+  (F : G.comp_out K) (Finf : F.inf)
+  (H_F : (H : set V) ⊆ F)
+  (K_E : (K : set V) ⊆ E) : (E' : set V) ⊆ F :=
+begin
+  by_cases KE' : (K ∩ E').nonempty,
+  { rcases KE' with ⟨v,v_in⟩,
+    have vE' : v ∈ E', from ((set.mem_inter_iff v K E').mp v_in).right,
+    have vE : v ∈ E, from  K_E ((set.mem_inter_iff v K E').mp v_in).left,
+    exfalso,
+    apply En,
+    apply eq_of_not_disjoint E E',
+    rw set.not_disjoint_iff, use [v,vE,vE'],},
+  { have KdisE': disjoint K E', by { rw set.disjoint_iff_inter_eq_empty,rw set.not_nonempty_iff_eq_empty at KE', exact KE', },
+    have : ∃ F' : comp_out G K, (E' : set V) ⊆ F' ∧ F'.inf, by {
+      let F' := of_connected_disjoint (E' : set V) (E'.connected) KdisE',
+      let sub := of_connected_disjoint_sub (E' : set V) (E'.connected) KdisE',
+      have F'inf : F'.inf, from set.infinite.mono sub Einf',
+      use [F',sub,F'inf],
+    },
+    rcases this with ⟨F',sub,inf⟩,
+    by_cases Fe : F' = F,
+    { exact Fe ▸ sub,},
+    { rcases @comp_out.adj V G H Gpc Hnempty E' (E'.dis_of_inf Einf') with ⟨⟨v,h⟩,vE',hH,a⟩,
+      have : h ∈ F, from H_F hH,
+      --nonadj (C : G.comp_out K) : ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ c ∉ K ∧ d ∉ K ∧ G.adj c d)
+      exfalso,
+      apply F.nonadj,
+      use [h, v],
+      refine ⟨this,_,_,_,a.symm⟩,
+      { rintro vF,
+        apply Fe,
+        apply eq_of_not_disjoint, rw set.not_disjoint_iff, use [v,sub vE', vF], },
+      { rintro hK,
+        have : ¬ disjoint K F, by {rw  set.not_disjoint_iff, use [h,hK,this],},
+        exact this (F.dis_of_inf Finf), },
+      { rintro vK, rw [set.not_nonempty_iff_eq_empty,←set.subset_empty_iff] at KE',
+        apply KE',
+        exact ⟨vK,vE'⟩, },
+    },
+  },
+end
+
+
 
 end misc
 

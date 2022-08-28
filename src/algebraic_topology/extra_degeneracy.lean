@@ -291,6 +291,7 @@ namespace preadditive
 /-- In the (pre)additive case, if an augmented simplicial object `X` has an extra
 degeneracy, then the augmentation `alternating_face_map_complex.ε.app X` is a
 homotopy equivalence of chain complexes. -/
+--@[simps]
 def homotopy_equivalence [preadditive C] [has_zero_object C]
   {X : simplicial_object.augmented C} (ed : extra_degeneracy X) :
   homotopy_equiv (algebraic_topology.alternating_face_map_complex.obj (drop.obj X))

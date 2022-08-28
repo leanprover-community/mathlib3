@@ -4,12 +4,22 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.algebra.basic
-import algebra.big_operators.order
-import algebra.indicator_function
 import algebra.order.nonneg
 
 /-!
 # Nonnegative rationals
+
+This file defines the nonnegative rationals as a subtype of `rat` and provides its algebraic order
+structure.
+
+We also define an instance `can_lift ℚ ℚ≥0`. This instance can be used by the `lift` tactic to
+replace `x : ℚ` and `hx : 0 ≤ x` in the proof context with `x : ℚ≥0` while replacing all occurences
+of `x` with `↑x`. This tactic also works for a function `f : α → ℚ` with a hypothesis
+`hf : ∀ x, 0 ≤ f x`.
+
+## Notation
+
+`ℚ≥0` is notation for `nnrat` in locale `nnrat`.
 -/
 
 open function

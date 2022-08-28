@@ -149,6 +149,8 @@ instance _root_.pi.cstar_ring : cstar_ring (Π i, R i) :=
       (λ x y h, by simpa only [sq] using mul_le_mul' h h) (by simp)).symm,
   end }
 
+instance _root_.pi.cstar_ring' : cstar_ring (ι → R₁) := pi.cstar_ring
+
 end prod_pi
 
 section unital

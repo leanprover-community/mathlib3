@@ -57,7 +57,7 @@ open measure
 /-- A shear mapping preserves the measure `μ.prod ν`.
 This condition is part of the definition of a measurable group in [Halmos, §59].
 There, the map in this lemma is called `S`. -/
-@[to_additive map_prod_sum_eq /-" An additive shear mapping preserves the measure `μ.prod ν`. "-/]
+@[to_additive map_prod_add_eq /-" An additive shear mapping preserves the measure `μ.prod ν`. "-/]
 lemma map_prod_mul_eq [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.1, z.1 * z.2)) (μ.prod ν) = μ.prod ν :=
 ((measure_preserving.id μ).skew_product measurable_mul
@@ -90,7 +90,7 @@ variables [has_measurable_inv G]
 /-- The function we are mapping along is `S⁻¹` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq`. -/
 @[to_additive map_prod_neg_add_eq "The function we are mapping along is `-S` in [Halmos, §59], where
-`S` is the map in `map_prod_mul_eq`."]
+`S` is the map in `map_prod_add_eq`."]
 lemma map_prod_inv_mul_eq [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.1, z.1⁻¹ * z.2)) (μ.prod ν) = μ.prod ν :=
 (measurable_equiv.shear_mul_right G).map_apply_eq_iff_map_symm_apply_eq.mp $ map_prod_mul_eq μ ν
@@ -110,7 +110,7 @@ variables [is_mul_left_invariant μ]
 /-- The function we are mapping along is `S⁻¹R` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
 @[to_additive map_prod_neg_add_eq_swap "The function we are mapping along is `-S + R` in
-[Halmos, §59], where `S` is the map in `map_prod_sum_eq` and `R` is `prod.swap`."]
+[Halmos, §59], where `S` is the map in `map_prod_add_eq` and `R` is `prod.swap`."]
 lemma map_prod_inv_mul_eq_swap : map (λ z : G × G, (z.2, z.2⁻¹ * z.1)) (μ.prod ν) = ν.prod μ :=
 begin
   rw [← prod_swap],
@@ -122,7 +122,7 @@ end
 /-- The function we are mapping along is `S⁻¹RSR` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
 @[to_additive map_prod_add_neg_eq "The function we are mapping along is `-S + R + S + R ` in
-[Halmos, §59], where `S` is the map in `map_prod_sum_eq` and `R` is `prod.swap`."]
+[Halmos, §59], where `S` is the map in `map_prod_add_eq` and `R` is `prod.swap`."]
 lemma map_prod_mul_inv_eq [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod ν) = μ.prod ν :=
 begin

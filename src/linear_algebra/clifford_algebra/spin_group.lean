@@ -28,8 +28,8 @@ The definition of the Lipschitz group `{𝑥 ∈ 𝐶𝑙(𝑉,𝑞) │ 𝑥 �
 • Fulton, W. and Harris, J., 2004. Representation theory. New York: Springer, p.chapter 20.
 • https://en.wikipedia.org/wiki/Clifford_algebra#Lipschitz_group
 But they presumably form a group only in finite dimensions. So we define `lipschitz` with closure of
-all the elements in the form of `ι Q m`. We show this definition is at least as large as the
-other definition (See `mem_lipschitz_conj_act_le` and `mem_lipschitz_involute_le`) and the reverse
+all the elements in the form of `ι Q m`, and we show this definition is at least as large as the
+other definition (See `mem_lipschitz_conj_act_le` and `mem_lipschitz_involute_le`). The reverse
 statement presumably being true only in finite dimensions.
 
 ## TODO
@@ -62,7 +62,8 @@ is the canonical linear map `M →ₗ[R] clifford_algebra Q`. -/
 def lipschitz (Q : quadratic_form R M) :=
 subgroup.closure (coe ⁻¹' set.range (ι Q) : set (clifford_algebra Q)ˣ)
 
-/-- If x is in `lipschitz Q`, then the twisted conjugation of x is closed -/
+/-- If x is in `lipschitz Q`, then `(ι Q).range` is closed under twisted conjugation. The reverse
+statement presumably being true only in finite dimensions.-/
 lemma mem_lipschitz_conj_act_le {x : (clifford_algebra Q)ˣ} [invertible (2 : R)]
   (hx : x ∈ lipschitz Q) : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range :=
 begin
@@ -122,6 +123,7 @@ begin
       rwa hb at hx1, }, },
 end
 
+/-- This is another version of `mem_lipschitz_conj_act_le` which uses `involute`.-/
 lemma mem_lipschitz_involute_le {x : (clifford_algebra Q)ˣ} [invertible (2 : R)]
   (hx : x ∈ lipschitz Q) (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range :=
 begin
@@ -200,9 +202,13 @@ by rw [mem_iff, coe_mem_lipschitz_iff_mem]
 lemma units_mem_lipschitz {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q) :
   x ∈ lipschitz Q := ((units_mem_iff).1 hx).1
 
+/-- If x is in `pin_group Q`, then `(ι Q).range` is closed under twisted conjugation. The reverse
+statement presumably being true only in finite dimensions.-/
 lemma units_mem_conj_act_le {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q)
   [invertible (2 : R)] : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range :=
 mem_lipschitz_conj_act_le (units_mem_lipschitz hx)
+
+/-- This is another version of `units_mem_conj_act_le` which uses `involute`. -/
 lemma units_mem_involute_act_le {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q)
   [invertible (2 : R)] (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range :=
 mem_lipschitz_involute_le (units_mem_lipschitz hx) y
@@ -303,6 +309,7 @@ lemma mem_even {x : clifford_algebra Q} (hx : x ∈ spin_group Q) : x ∈ even Q
 lemma units_mem_lipschitz {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ spin_group Q) :
   x ∈ lipschitz Q := pin_group.units_mem_lipschitz (mem_pin hx)
 
+/-- If x is in `spin_group Q`, then `involute x` is equal to x.-/
 lemma mem_involute_eq {x : clifford_algebra Q} (hx : x ∈ spin_group Q) : involute x = x :=
 involute_eq_of_mem_even (mem_even hx)
 
@@ -311,9 +318,13 @@ lemma units_involute_act_eq_conj_act {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈
 by simp_rw [has_smul.smul, conj_act.of_conj_act_to_conj_act, units.mul_left_inj,
   mem_involute_eq hx]
 
+/-- If x is in `spin_group Q`, then `(ι Q).range` is closed under twisted conjugation. The reverse
+statement presumably being true only in finite dimensions.-/
 lemma units_mem_conj_act_le {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ spin_group Q)
   [invertible (2 : R)] : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range :=
 mem_lipschitz_conj_act_le (units_mem_lipschitz hx)
+
+/-- This is another version of `units_mem_conj_act_le` which uses `involute`.-/
 lemma units_mem_involute_act_le {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ spin_group Q)
   [invertible (2 : R)] (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range :=
 mem_lipschitz_involute_le (units_mem_lipschitz hx) y

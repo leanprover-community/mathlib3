@@ -929,9 +929,4 @@ begin
   exact factorization_add_le_of_factorization_add_eq (succ_ne_zero k) h7,
 end
 
-
--- TODO: Prove `iff` versions of the above main lemmas:
--- min (a.factorization p) (b.factorization p) < (a ± b).factorization p ↔
--- (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a ± ord_compl[p] b)
-
 end nat

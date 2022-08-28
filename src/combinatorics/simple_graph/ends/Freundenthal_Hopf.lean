@@ -7,6 +7,7 @@ import data.setoid.partition
 import .mathlib
 import .comp_out
 import .mathlib_fintype_inverse_systems
+import .end_limit_construction
 
 
 open function

@@ -2,14 +2,14 @@ import category_theory.filtered
 import topology.category.Top.limits
 import data.finset.basic
 
-import .conn_comp_outside
+import .comp_out
 import .mathlib_fintype_inverse_systems
 
 open category_theory
 open opposite
 open simple_graph
 open classical
-open simple_graph.conn_comp_outside
+open simple_graph.comp_out
 
 /- Implementing Kyle Miller's suggestion:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/Geometric.20group.20theory/near/290624806 -/
@@ -39,42 +39,37 @@ instance finset_directed : is_directed (finset V) (≥) := {
 
 /-The functor assigning a finite set in `V` to the set of connected components in its complement-/
 def ComplComp : finset V ⥤ Type u := {
-  obj := λ A, conn_comp_outside G A,
-  map := λ _ _ f, conn_comp_outside_back (le_of_hom f),
-  map_id' := by {intro, funext, simp, apply conn_comp_outside_back.refl,},
-  map_comp' := by {intros, funext, simp, symmetry, apply conn_comp_outside_back.trans,},
+  obj := λ A, dis_comp_out G A,
+  map := λ _ _ f, dis_comp_out.back (le_of_hom f),
+  map_id' := by {intro, funext, simp only [types_id_apply],apply dis_comp_out.back_refl_apply, },
+  map_comp' := by {intros, funext, simp only [types_comp_apply], symmetry, apply dis_comp_out.back_trans_apply, },
 }
 
 def Ends := (ComplComp G).sections
 
-/-/-The functor assigning a finite set in `V` to the set of **infinite** connected components in its complement-/
-def ComplInfComp : finset V ⥤ Type u := {
-  obj := λ A, inf_conn_comp_outside G A,
-  map := λ _ _ f, inf_conn_comp_outside_back (le_of_hom f),
-  map_id' := by {intro, funext, simp, apply subtype.eq, rw [inf_conn_comp_outside_back.def], apply conn_comp_outside_back.refl, },
-  map_comp' := by {intros, funext, simp, symmetry, apply subtype.eq, repeat {rw [inf_conn_comp_outside_back.def]}, apply conn_comp_outside_back.trans, },
-}-/
-
 
 def ComplInfComp : finset V ⥤ Type u :=
   (ComplComp G).subfunctor
-    (λ K, {C : conn_comp_outside G K | C.verts.infinite})
-    (by {intros _ _ _, apply conn_comp_outside_back.inf_to_inf,})
+    (λ K, {C : G.dis_comp_out K | C.val.inf})
+    (by {intros _ _ _, apply dis_comp_out.back_of_inf,})
 
 def Endsinfty := (ComplInfComp G).sections
 
-lemma ComplInfComp.obj : ∀ K : finset V, (ComplInfComp G).obj K = inf_conn_comp_outside G K := by {intro, refl,}
+lemma ComplInfComp.obj : ∀ K : finset V, (ComplInfComp G).obj K = G.inf_comp_out K := by {intro, refl,}
 
-lemma ComplInfComp.map : ∀ {K L : finset V}, ∀ f : K ⟶ L, (ComplInfComp G).map f = inf_conn_comp_outside_back (le_of_hom f) := by {intros, ext ⟨_, _⟩, refl,}
+lemma ComplInfComp.map : ∀ {K L : finset V}, ∀ f : K ⟶ L, (ComplInfComp G).map f = inf_comp_out.back (le_of_hom f) := by {intros, ext ⟨_, _⟩, refl,}
 
 
 lemma ComplInfComp_eq_ComplComp_to_surjective : ComplInfComp G = inverse_system.to_surjective (ComplComp G) :=
 begin
   apply functor.subfunctor.ext,
   dsimp [ComplComp], intro K, ext C,
-  show C.verts.infinite ↔ C ∈ (⋂ (i : {L // K ⊆ L}), _),
-  rw [inf_conn_comp_outside.iff_in_all_range],
-  obviously,
+  show C.val.inf ↔ C ∈ (⋂ (i : {L // K ⊆ L}), _), split,
+  { rintro Cinf, simp, rintro L KL,
+    -- use in_all_ranges_of_inf
+    sorry },
+  { -- use inf_of_in_all_ranges
+    sorry },
 end
 
 lemma Ends_equiv_Endsinfty : Ends G ≃ Endsinfty G :=
@@ -84,7 +79,7 @@ begin
   apply inverse_system.to_surjective.sections_equiv,
 end
 
-
+/-
 instance ComplComp_nonempty [infinite V] :  ∀ (j : (finset V)), nonempty ((ComplComp G).obj j) := by {
   intro K, dsimp [ComplComp],
   refine nonempty.map subtype.val _,
@@ -163,3 +158,4 @@ begin
     { rintro x, exact (this L).elim x,},
     { rintro y, exact (this K).elim y,},}
 end
+-/

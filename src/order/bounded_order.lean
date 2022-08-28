@@ -1789,6 +1789,8 @@ instance : bounded_order (complementeds α) :=
 @[simp, norm_cast] lemma coe_bot : ((⊥ : complementeds α) : α) = ⊥ := rfl
 @[simp, norm_cast] lemma coe_top : ((⊤ : complementeds α) : α) = ⊤ := rfl
 
+instance : inhabited (complementeds α) := ⟨⊥⟩
+
 end lattice
 
 variables [distrib_lattice α] [bounded_order α] {a b : complementeds α}

@@ -94,6 +94,9 @@ begin
     rintro v, simp only [rel_iso.apply_symm_apply], }
 end
 
+--mathlib (it seems mathlib only has this for subgraph with subset of vertices ?)
+def is_subgraph.hom {G G' : simple_graph V} (h : G ≤ G') : G →g G' := ⟨id, h⟩
+
 def out : simple_graph V := {
   adj := λ u v, u ∉ K ∧ v ∉ K ∧ G.adj u v,
   symm := by {rintro u v a, tauto, },
@@ -101,7 +104,7 @@ def out : simple_graph V := {
 
 lemma out.sub (G : simple_graph V)  (K : set V) : out G K ≤ G := λ u v a, a.2.2
 
-lemma out.mono (G : simple_graph V)  (K L : set V) (h : K ⊆ L) : G.out L ≤ G.out K :=
+lemma out_mono (G : simple_graph V)  {K L : set V} (h : K ⊆ L) : G.out L ≤ G.out K :=
 λ u v ⟨unL,vnL,uav⟩, ⟨(λ uK, unL (h uK)), (λ vK, (vnL (h vK))), uav⟩
 
 def out.iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') (K : set V) :
@@ -127,12 +130,27 @@ lemma out.reachable_mono (G : simple_graph V)  (K L : set V) (h : K ⊆ L) (u v 
 begin
   rw [reachable_iff_refl_trans_gen,reachable_iff_refl_trans_gen],
   apply refl_trans_gen.mono,
-  apply out.mono,
+  apply out_mono,
   exact h,
 end
 
 lemma out.empty (G : simple_graph V) : G.out ∅ = G := by {ext, obviously,}
 
+def out.walk_conv {G : simple_graph V}  {K L : set V} {u v : V}
+  (p : (G.out K).walk u v) (pdis : ∀ x ∈ p.support, x ∉ L) : (G.out L).walk u v :=
+begin
+  induction p,
+  { exact walk.nil },
+  { apply walk.cons' p_u p_v p_w,
+    { split, apply pdis,
+      simp only [support_cons, list.mem_cons_iff, eq_self_iff_true, true_or],
+      split, apply pdis,
+      simp only [support_cons, list.mem_cons_iff, start_mem_support, or_true],
+      exact p_h.2.2, },
+    { apply p_ih,
+      rintro x xsup, apply pdis,
+      simp only [xsup, support_cons, list.mem_cons_iff, or_true], }, },
+end
 
 @[reducible] def comp_out := (G.out K).connected_component
 
@@ -526,13 +544,6 @@ end
 -- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
 def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (⋃ (C : G.comp_out K) (h : C.fin), (C : set V))
 
-lemma extend_with_fin.eq (G : simple_graph V) (K : set V) : G.comp_out (extend_with_fin G K) = (G.out K).comp_out (⋃ (C : G.comp_out K) (h : C.fin), (C : set V)) :=
-begin
-  dsimp [extend_with_fin, comp_out],
-  sorry -- maybe it should be an isomorphism
-end
-
-
 lemma extend_with_fin.finite (Gpc : G.preconnected) (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty):
   (extend_with_fin G K).finite :=
 begin
@@ -558,11 +569,11 @@ lemma extend_with_fin.components_spec (G : simple_graph V) (K : set V) :
 
 -- A restatement of the above lemma
 lemma extends_with_fin.inf_components_iso (G : simple_graph V) (K : set V) :
-  subtype (@comp_out.inf V G K) ≃ G.comp_out (extend_with_fin G K) := {
+  { C : G.comp_out K // C.inf } ≃ G.comp_out (extend_with_fin G K) := {
   to_fun := λ ⟨C, Cinf⟩, C.lift (λ v, connected_component_mk _ v) (by {
     intros v w p hpath,
     simp, apply nonempty.intro,
-    sorry, -- the path is exactly `p`
+    sorry,
   }),
   inv_fun := λ C, ⟨C.back (extend_with_fin.sub _ _), by {
     apply infinite.mono,

@@ -540,7 +540,15 @@ begin
 end
 
 
-#check @set.Union
+def inf_comp_out.ind {G : simple_graph V} {K : set V} {β : {C : G.comp_out K // C.inf} → Prop}
+  (ih : ∀ v hinf, β ⟨connected_component_mk _ v, hinf⟩) : ∀ (C : {C : G.comp_out K // C.inf}), β C :=
+begin
+  rintro ⟨C, Cinf⟩,
+  revert Cinf,
+  refine C.ind _,
+  exact ih,
+end
+
 
 -- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
 def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (@set.Union _ {C : G.comp_out K // C.fin} (λ ⟨C, Cfin⟩, (C : set V)))

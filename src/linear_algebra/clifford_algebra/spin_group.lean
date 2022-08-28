@@ -12,9 +12,9 @@ import linear_algebra.clifford_algebra.even
 # The Pin group and the Spin group
 
 In this file we define `lipschitz` consisting of all the elements in `(clifford_algebra)ˣ` closed
-under conjugation and construct `pin_group` based on `lipschitz` and `unitary`, and we construct
-`spin_group` based on `pin_group` and `clifford_algebra.even`. Also, we show `pin_group` and
-`spin_group` form a group where the inverse is `star`.
+under twisted conjugation and construct `pin_group` based on `lipschitz` and `unitary`, and we
+construct `spin_group` based on `pin_group` and `clifford_algebra.even`. Also, we show `pin_group`
+and `spin_group` form a group where the inverse is `star`.
 
 ## Main definitions
 
@@ -32,16 +32,22 @@ section pin
 open clifford_algebra mul_action
 open_locale pointwise
 
-/--
-`lipschitz Q` is the subgroup of `(clifford_algebra Q)ˣ` consisting of all the elements closed under
-conjugation. See `mem_lipschitz_iff`.
--/
-def lipschitz (Q : quadratic_form R M): subgroup (clifford_algebra Q)ˣ :=
-(stabilizer (conj_act (clifford_algebra Q)ˣ) (ι Q).range).comap
-  (conj_act.to_conj_act : (clifford_algebra Q)ˣ ≃* conj_act (clifford_algebra Q)ˣ)
+def lipschitz (Q : quadratic_form R M) :=
+subgroup.closure (coe ⁻¹' set.range (ι Q) : set (clifford_algebra Q)ˣ)
 
-lemma mem_lipschitz_iff {x : (clifford_algebra Q)ˣ} : x ∈ lipschitz Q
-  ↔ conj_act.to_conj_act x • (ι Q).range = (ι Q).range := iff.rfl
+lemma coe_mem_lipschitz_iff_mem {x : (clifford_algebra Q)ˣ} :
+  ↑x ∈ (lipschitz Q).to_submonoid.map (units.coe_hom $ clifford_algebra Q) ↔ x ∈ lipschitz Q :=
+begin
+  simp only [submonoid.mem_map, subgroup.mem_to_submonoid, units.coe_hom_apply, exists_prop],
+  norm_cast,
+  exact exists_eq_right,
+end
+
+lemma mem_lipschitz_conj_act_le {x : (clifford_algebra Q)ˣ} [invertible (2 : R)]
+  (hx : x ∈ lipschitz Q) : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range := sorry
+
+lemma mem_lipschitz_involute_le {x : (clifford_algebra Q)ˣ} [invertible (2 : R)]
+  (hx : x ∈ lipschitz Q) (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range := sorry
 
 /--
 `pin_group Q` is the submonoid of `clifford_algebra Q` and defined as the infimum of `lipschitz Q`
@@ -52,19 +58,37 @@ def pin_group (Q : quadratic_form R M) : submonoid (clifford_algebra Q) :=
 
 namespace pin_group
 
-/-- An element is in `pin_group Q` if and only if it is in `lipschitz Q` and `unitary _`. -/
-lemma mem_iff {x : clifford_algebra Q} : x ∈ pin_group Q ↔
-  x ∈ (lipschitz Q).to_submonoid.map (units.coe_hom $ clifford_algebra Q) ∧
+/-- An element is in `pin_group Q` if and only if it is in `lipschitz Q` and `unitary`. -/
+lemma mem_iff {x : clifford_algebra Q} :
+  x ∈ pin_group Q ↔ x ∈ (lipschitz Q).to_submonoid.map (units.coe_hom $ clifford_algebra Q) ∧
     x ∈ unitary (clifford_algebra Q) := iff.rfl
 lemma mem_lipschitz {x : clifford_algebra Q} (hx : x ∈ pin_group Q) :
   x ∈ (lipschitz Q).to_submonoid.map (units.coe_hom $ clifford_algebra Q) := hx.1
 lemma mem_unitary {x : clifford_algebra Q} (hx : x ∈ pin_group Q) :
   x ∈ unitary (clifford_algebra Q) := hx.2
 
-@[simp] lemma star_mul_self_of_mem {x : clifford_algebra Q}
-  (hx : x ∈ pin_group Q) : star x * x = 1 := (hx.2).1
-@[simp] lemma mul_star_self_of_mem {x : clifford_algebra Q}
-  (hx : x ∈ pin_group Q) : x * star x = 1 := (hx.2).2
+lemma units_mem_iff {x : (clifford_algebra Q)ˣ} :
+  ↑x ∈ pin_group Q ↔ x ∈ lipschitz Q ∧ ↑x ∈ unitary (clifford_algebra Q) :=
+by rw [mem_iff, coe_mem_lipschitz_iff_mem]
+lemma units_mem_lipschitz {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q) :
+  x ∈ lipschitz Q :=
+begin
+  rw units_mem_iff at hx,
+  exact hx.1,
+end
+
+lemma coe_conj_act_le {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q)
+  [invertible (2 : R)] : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range :=
+mem_lipschitz_conj_act_le (units_mem_lipschitz hx)
+
+lemma coe_involute_mem {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q) [invertible (2 : R)]
+  (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range :=
+mem_lipschitz_involute_le (units_mem_lipschitz hx) y
+
+@[simp] lemma star_mul_self_of_mem {x : clifford_algebra Q} (hx : x ∈ pin_group Q) :
+  star x * x = 1 := (hx.2).1
+@[simp] lemma mul_star_self_of_mem {x : clifford_algebra Q} (hx : x ∈ pin_group Q) :
+  x * star x = 1 := (hx.2).2
 
 /-- See `star_mem_iff` for both directions. -/
 lemma star_mem {x : clifford_algebra Q} (hx : x ∈ pin_group Q) :
@@ -156,12 +180,25 @@ pin_group Q ⊓ (clifford_algebra.even Q).to_subring.to_submonoid
 namespace spin_group
 
 /-- An element is in `spin_group Q` if and only if it is in `pin_group Q` and `even Q`. -/
-lemma mem_iff {x : clifford_algebra Q} : x ∈ spin_group Q ↔ x ∈ pin_group Q ∧
-  x ∈ clifford_algebra.even Q := iff.rfl
-lemma mem_pin {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :
-  x ∈ pin_group Q := hx.1
-lemma mem_clifford_even {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :
-  x ∈ clifford_algebra.even Q := hx.2
+lemma mem_iff {x : clifford_algebra Q} : x ∈ spin_group Q ↔ x ∈ pin_group Q ∧ x ∈ even Q := iff.rfl
+lemma mem_pin {x : clifford_algebra Q} (hx : x ∈ spin_group Q) : x ∈ pin_group Q := hx.1
+lemma mem_even {x : clifford_algebra Q} (hx : x ∈ spin_group Q) : x ∈ even Q := hx.2
+
+lemma units_mem_lipschitz {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ spin_group Q) :
+  x ∈ lipschitz Q := pin_group.units_mem_lipschitz (mem_pin hx)
+
+lemma units_involute_eq_conj_act {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ spin_group Q)
+  [invertible (2 : R)] (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ = conj_act.to_conj_act x • (ι Q y) :=
+by simp_rw [has_smul.smul, conj_act.of_conj_act_to_conj_act, units.mul_left_inj,
+  involute_eq_of_mem_even (mem_even hx)]
+
+lemma coe_conj_act_le {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ spin_group Q) [invertible (2 : R)] :
+  conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range :=
+mem_lipschitz_conj_act_le (units_mem_lipschitz hx)
+
+lemma coe_involute_mem {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ spin_group Q) [invertible (2 : R)]
+  (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range :=
+mem_lipschitz_involute_le (units_mem_lipschitz hx) y
 
 @[simp] lemma star_mul_self_of_mem {x : clifford_algebra Q} (hx : x ∈ spin_group Q) :
   star x * x = 1 := ((hx.1).2).1

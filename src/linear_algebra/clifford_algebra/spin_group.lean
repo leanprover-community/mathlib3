@@ -84,11 +84,7 @@ lemma units_mem_iff {x : (clifford_algebra Q)ˣ} :
   ↑x ∈ pin_group Q ↔ x ∈ lipschitz Q ∧ ↑x ∈ unitary (clifford_algebra Q) :=
 by rw [mem_iff, coe_mem_lipschitz_iff_mem]
 lemma units_mem_lipschitz {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q) :
-  x ∈ lipschitz Q :=
-begin
-  rw units_mem_iff at hx,
-  exact hx.1,
-end
+  x ∈ lipschitz Q := ((units_mem_iff).1 hx).1
 
 lemma units_mem_conj_act_le {x : (clifford_algebra Q)ˣ} (hx : ↑x ∈ pin_group Q)
   [invertible (2 : R)] : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range :=

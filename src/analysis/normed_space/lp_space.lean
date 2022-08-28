@@ -458,7 +458,7 @@ begin
 end
 
 instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
-add_group_seminorm.to_normed_add_comm_group
+add_group_norm.to_normed_add_comm_group
 { to_fun := norm,
   map_zero' := norm_zero,
   neg' := norm_neg,
@@ -485,7 +485,7 @@ add_group_seminorm.to_normed_add_comm_group
       intros i,
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
-  eq_zero_of_norm := λ f, norm_eq_zero_iff.1 }
+  eq_zero_of_map_eq_zero' := λ f, norm_eq_zero_iff.1 }
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.

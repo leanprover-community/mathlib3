@@ -2087,12 +2087,9 @@ lemma condexp_finset_sum {ι : Type*} {s : finset ι} {f : ι → α → F'}
   (hf : ∀ i ∈ s, integrable (f i) μ) :
   μ[∑ i in s, f i | m] =ᵐ[μ] ∑ i in s, μ[f i | m] :=
 begin
-  revert hf,
-  refine finset.induction_on s _ _,
-  { intro hf,
-    rw [finset.sum_empty, finset.sum_empty, condexp_zero] },
-  { intros i s his heq hf,
-    rw [finset.sum_insert his, finset.sum_insert his],
+  induction s using finset.induction_on with i s his heq hf,
+  { rw [finset.sum_empty, finset.sum_empty, condexp_zero] },
+  { rw [finset.sum_insert his, finset.sum_insert his],
     exact (condexp_add (hf i $ finset.mem_insert_self i s) $ integrable_finset_sum' _
       (λ j hmem, hf j $ finset.mem_insert_of_mem hmem)).trans
       ((eventually_eq.refl _ _).add (heq $ λ j hmem, hf j $ finset.mem_insert_of_mem hmem)) }

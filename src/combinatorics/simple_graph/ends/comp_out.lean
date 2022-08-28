@@ -540,9 +540,10 @@ begin
 end
 
 
+#check @set.Union
 
 -- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
-def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (⋃ (C : G.comp_out K) (h : C.fin), (C : set V))
+def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (@set.Union _ {C : G.comp_out K // C.fin} (λ ⟨C, Cfin⟩, (C : set V)))
 
 lemma extend_with_fin.finite (Gpc : G.preconnected) (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty):
   (extend_with_fin G K).finite :=
@@ -550,12 +551,12 @@ begin
   apply set.finite.union Kf,
   haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kf Kn,
   apply set.finite_Union,
-  rintro C,
-  apply set.finite_Union, exact id,
+  rintro ⟨C, Cfin⟩,
+  exact Cfin,
 end
 
 lemma extend_with_fin.sub (G : simple_graph V) (K : set V) : K ⊆ extend_with_fin G K := by
-{ dsimp [extend_with_fin],exact subset_union_left K (⋃ (C : comp_out G K) (h : C.fin), ↑C), }
+{ apply set.subset_union_left, }
 
 lemma extend_with_fin.connected (G : simple_graph V) (K : set V) (Kconn : (G.induce K).connected) :
   (G.induce (extend_with_fin G K)).connected :=
@@ -573,7 +574,17 @@ lemma extends_with_fin.inf_components_iso (G : simple_graph V) (K : set V) :
   to_fun := λ ⟨C, Cinf⟩, C.lift (λ v, connected_component_mk _ v) (by {
     intros v w p hpath,
     simp, apply nonempty.intro,
-    sorry,
+    apply out.walk_conv p,
+    intros x hxp hxKext,
+    cases hxKext,
+    {
+      sorry, -- should follow directly from `hxp`
+    },
+    {
+      rcases hxKext with ⟨_, ⟨⟨c, cfin⟩, rfl⟩, hxc⟩,
+      dsimp [extend_with_fin] at hxc,
+      sorry
+    }
   }),
   inv_fun := λ C, ⟨C.back (extend_with_fin.sub _ _), by {
     apply infinite.mono,

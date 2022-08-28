@@ -1618,8 +1618,8 @@ instance [hp : fact (1 ≤ p)] : normed_add_comm_group (Lp E p μ) :=
   edist_dist := λ f g, by
     rw [edist_def, dist_def, ←snorm_congr_ae (coe_fn_sub _ _),
       ennreal.of_real_to_real (snorm_ne_top (f - g))],
-  ..add_group_norm.normed_add_comm_group
-    { to_fun := norm,
+  ..add_group_norm.to_normed_add_comm_group
+    { to_fun := (norm : Lp E p μ → ℝ),
       map_zero' := norm_zero,
       neg' := by simp,
       add_le' := λ f g, begin
@@ -1631,7 +1631,7 @@ instance [hp : fact (1 ≤ p)] : normed_add_comm_group (Lp E p μ) :=
         rw [snorm_congr_ae (coe_fn_add _ _)],
         exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
       end,
-      eq_zero_of_map_eq_zero' := λ f, (norm_eq_zero_iff $ ennreal.zero_lt_one.trans_le hp.1).1 }
+      eq_zero_of_map_eq_zero' := λ f, (norm_eq_zero_iff $ ennreal.zero_lt_one.trans_le hp.1).1 } }
 
 -- check no diamond is created
 example [fact (1 ≤ p)] :

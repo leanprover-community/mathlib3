@@ -114,7 +114,7 @@ rfl
 
 @[simp, norm_cast]
 protected lemma coe_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)]
-  (a : {x : α // 0 ≤ x}) (n : ℕ) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
+  (n : ℕ) (a : {x : α // 0 ≤ x}) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
 
 instance ordered_add_comm_monoid [ordered_add_comm_monoid α] :
   ordered_add_comm_monoid {x : α // 0 ≤ x} :=

@@ -819,12 +819,6 @@ section densely_ordered
 variables [densely_ordered α] {a b c : α}
 
 @[to_additive]
-lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
-le_of_forall_le_of_dense $ λ c hc,
-calc a ≤ b * (b⁻¹ * c) : h _ (lt_inv_mul_iff_lt.mpr hc)
-   ... = c             : mul_inv_cancel_left b c
-
-@[to_additive]
 lemma le_of_forall_lt_one_mul_le (h : ∀ ε < 1, a * ε ≤ b) : a ≤ b :=
 @le_of_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _ h
 

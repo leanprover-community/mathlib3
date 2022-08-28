@@ -164,10 +164,10 @@ begin
     rw [ne.def, hc.ne'.is_unit.smul_left_cancel],
     exact hab.ne },
   refine { smul_lt_smul_of_pos := hlt', .. },
-  intros a b c h hc,
-  lift c to Rˣ using hc.ne'.is_unit,
-    rw [← inv_smul_smul c a, ← inv_smul_smul c b],
-  refine hlt' h (pos_of_mul_pos_right _ hc.le),
+  intros a b c hab hc,
+  obtain ⟨c, rfl⟩ := hc.ne'.is_unit,
+  rw [← inv_smul_smul c a, ← inv_smul_smul c b],
+  refine hlt' hab (pos_of_mul_pos_right _ hc.le),
   simp only [c.mul_inv, zero_lt_one]
 end
 

@@ -454,18 +454,25 @@ begin
   exact Cinf,
 end
 
-lemma in_all_ranges_of_inf [Kfin : K.finite] (C : G.comp_out K) (Cinf : C.inf)
-  {L : set V} (Lfin : L.finite) (h : K ⊆ L) :
-  C ∈ set.range (back h : (G.comp_out L) → (G.comp_out K)) :=
+lemma in_all_ranges_of_inf (Kfin : K.finite) (C : G.comp_out K) (Cinf : C.inf) :
+  ∀ {L : set V} (Lfin : L.finite) (h : K ⊆ L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C :=
 begin
+  rintro L Lfin h,
   suffices : ∃ v : V, v ∈ C ∧ v ∉ L,
   { obtain ⟨c,cC,cnL⟩ := this,
-    use of_vertex G L c,
-    apply eq_of_not_disjoint,
-    rw set.not_disjoint_iff, use c, split, rotate, exact cC,
-    apply mem_of_mem_of_subset,
-    apply @of_vertex_mem V G L,
-    apply back_sub,},
+    use of_vertex G L c, split,
+    { by_contra notdis,
+      rw not_dis_iff_singleton_in at notdis,
+      obtain ⟨k,l,r⟩ := notdis,
+      have ck : c ∈ {k}, by {rw r,apply of_vertex_mem,},
+      simp only [mem_singleton_iff] at ck,
+      rw ←ck at l,
+      exact cnL l,},
+    { apply eq_of_not_disjoint,
+      rw set.not_disjoint_iff, use c, split, rotate, exact cC,
+      apply mem_of_mem_of_subset,
+      apply @of_vertex_mem V G L,
+      apply back_sub,},},
   have : ((C : set V) \ L).infinite, by {exact infinite.diff Cinf Lfin,},
   use this.nonempty.some,
   exact this.nonempty.some_spec,
@@ -538,8 +545,6 @@ begin
   refine injective.inj_on _ ↑C,
   exact rel_iso.injective φ,
 end
-
-
 
 -- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
 def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (⋃ (C : G.comp_out K) (h : C.fin), (C : set V))
@@ -688,6 +693,13 @@ lemma back_of_inf  {K L : set V} (h : K ⊆ L) (C : G.dis_comp_out L) (Cinf : C.
   (C.back h).val.inf := by {dsimp [back], apply comp_out.back_of_inf, exact Cinf,}
 
 end back
+
+
+lemma inf_iff_in_all_ranges  {K : set V} (Kfin : K.finite)  (C : G.dis_comp_out K) :
+  C.val.inf ↔ ∀ (L : set V) (Lfin : L.finite) (h : K ⊆ L), C ∈ set.range (@back _ G _ _ h) :=
+begin
+  sorry,
+end
 
 end dis_comp_out
 

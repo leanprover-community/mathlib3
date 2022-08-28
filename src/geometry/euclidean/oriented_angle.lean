@@ -1639,7 +1639,7 @@ results in 0. -/
 (o).oangle_add_cyc3 (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂) (vsub_ne_zero.2 hp₃)
 
 /-- Pons asinorum, oriented angle-at-point form. -/
-lemma angle_eq_angle_of_dist_eq {p₁ p₂ p₃ : P} (h : dist p₁ p₂ = dist p₁ p₃) :
+lemma oangle_eq_oangle_of_dist_eq {p₁ p₂ p₃ : P} (h : dist p₁ p₂ = dist p₁ p₃) :
   ∡ p₁ p₂ p₃ = ∡ p₂ p₃ p₁ :=
 begin
   simp_rw dist_eq_norm_vsub at h,

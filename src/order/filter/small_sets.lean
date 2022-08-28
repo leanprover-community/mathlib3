@@ -106,6 +106,10 @@ begin
   exact λ u hu, (ht u hu).mp (hst.mono $ λ a hst ht, subset.trans hst ht)
 end
 
+lemma tendsto.of_small_sets {s : α → set β} {f : α → β} (hs : tendsto s la lb.small_sets)
+  (hf : ∀ᶠ x in la, f x ∈ s x) : tendsto f la lb :=
+λ t ht, hf.mp $ (tendsto_small_sets_iff.mp hs t ht).mono $ λ x h₁ h₂, h₁ h₂
+
 @[simp] lemma eventually_small_sets_eventually {p : α → Prop} :
   (∀ᶠ s in l.small_sets, ∀ᶠ x in l', x ∈ s → p x) ↔ ∀ᶠ x in l ⊓ l', p x :=
 calc _ ↔ ∃ s ∈ l, ∀ᶠ x in l', x ∈ s → p x :

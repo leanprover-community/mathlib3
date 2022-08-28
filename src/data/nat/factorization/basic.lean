@@ -799,56 +799,40 @@ begin
     exact pow_dvd_of_le_of_pow_dvd h2.le (ord_proj_dvd a p) },
 end
 
-lemma factorization_add_iff {p b a : ℕ} (pp : p.prime)
-  (ha0 : a ≠ 0)
-  (hb0 : b ≠ 0)
-:
+lemma factorization_add_iff {p b a : ℕ} (pp : p.prime) (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
   min (a.factorization p) (b.factorization p) < (a + b).factorization p ↔
   (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a + ord_compl[p] b) :=
 begin
-    let a' := ord_compl[p] a,
-  let b' := ord_compl[p] b,
-  let α := a.factorization p,
-  let β := b.factorization p,
-  -- have h1 : a + b = p ^ α * (a' + p ^ (β - α) * b'),
-  -- {
-  --   -- rw [mul_add, ←mul_assoc, ←pow_add, add_tsub_cancel_of_le h.le],
-  --   -- simp_rw ord_proj_mul_ord_compl_eq_self
-  --   sorry,
-  --   },
+  set a' := ord_compl[p] a,
+  set b' := ord_compl[p] b,
+  set α := a.factorization p,
+  set β := b.factorization p,
 
-  refine ⟨λ h, _, λ h, _⟩,
-  {
-    refine ⟨_, _⟩,
-    {
-      -- by_contra h1,
-      -- exact h.ne.symm (factorization_add_min h1 ha0 hb0)
-      sorry,
-    },
-    {
-      have := min_lt_iff.1 h,
-      sorry },
-   },
-  {
-    cases h with h1 h2,
-    sorry },
+  have H1 : p ^ (α - min α β) * a' + p ^ (β - min α β) * b' ≠ 0,
+    { rw ←pos_iff_ne_zero,
+      apply add_pos; { refine mul_pos (pow_pos pp.pos _) (ord_compl_pos p _), assumption } },
 
-  -- let a' := ord_compl[p] a,
-  -- let b' := ord_compl[p] b,
-  -- let α := a.factorization p,
-  -- let β := b.factorization p,
-  -- have h1 : a + b = p ^ α * (a' + p ^ (β - α) * b'),
-  -- { rw [mul_add, ←mul_assoc, ←pow_add, add_tsub_cancel_of_le h.le],
-  --   simp_rw ord_proj_mul_ord_compl_eq_self },
-  -- have h2 : a' + p ^ (β - α) * b' ≠ 0, { intro H, simpa [H, ha0, hb0] using h1 },
-  -- rw [h1, factorization_mul (ord_proj_pos a p).ne' h2, finsupp.add_apply],
-  -- suffices : (a' + p ^ (β - α) * b').factorization p = 0,
-  -- { simp [this, add_zero, pp.factorization_pow]},
-  -- apply factorization_eq_zero_of_not_dvd,
-  -- rw nat.dvd_add_left (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt h).ne') b'),
-  -- exact not_dvd_ord_compl pp ha0,
+  have H2 : a + b = p ^ min α β * (p ^ (α - min α β) * a' + p ^ (β - min α β) * b'),
+  { simp [mul_add, ←mul_assoc, ←pow_add, ord_proj_mul_ord_compl_eq_self] },
 
+  suffices : ¬p ∣ p ^ (α - min α β) * a' + p ^ (β - min α β) * b' ↔ ¬α = β ∨ ¬p ∣ a' + b',
+  { rw [H2, factorization_mul (pow_pos pp.pos _).ne' H1, finsupp.add_apply,
+        pp.factorization_pow, single_eq_same, lt_add_iff_pos_right, ←not_iff_not,
+        not_lt, le_zero_iff, not_and_distrib,
+        factorization_eq_zero_iff],
+    simpa [pp, H1] },
 
+  have : α < β ∨ α = β ∨ β < α, by apply trichotomous,
+  rcases this with hαβ | hαβ | hαβ,
+  { rw min_eq_left_of_lt hαβ,
+    simp only [hαβ.ne, tsub_self, pow_zero, one_mul, not_false_iff, true_or, iff_true],
+    rw nat.dvd_add_left (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt hαβ).ne') _),
+    exact not_dvd_ord_compl pp ha0 },
+  { simp [hαβ] },
+  { rw min_eq_right_of_lt hαβ,
+    simp only [hαβ.ne.symm, tsub_self, pow_zero, one_mul, not_false_iff, true_or, iff_true],
+    rw nat.dvd_add_right (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt hαβ).ne') _),
+    exact not_dvd_ord_compl pp hb0 },
 end
 
 

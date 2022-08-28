@@ -45,6 +45,18 @@ section pin
 open clifford_algebra mul_action
 open_locale pointwise
 
+section other_PR
+def invertible_of_invertible_ι (Q : quadratic_form R M) (m : M) [invertible (ι Q m)]
+  [invertible (2 : R)] : invertible (Q m) := sorry
+lemma ι_mul_ι_mul_inv_of_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
+  ι Q a * ι Q b * ⅟(ι Q a) = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) := sorry
+lemma inv_of_ι_mul_ι_mul_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
+  ⅟(ι Q a) * ι Q b * ι Q a = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) := sorry
+lemma map_inv_of {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [monoid S]
+  [monoid_hom_class F R S] (f : F) (r : R) [invertible r] [invertible (f r)] :
+    f (⅟r) = ⅟(f r) := sorry
+end other_PR
+
 /-- `lipschitz` is the subgroup closure of all the elements in the form of `ι Q m` where `ι`
 is the canonical linear map `M →ₗ[R] clifford_algebra Q`. -/
 def lipschitz (Q : quadratic_form R M) :=
@@ -52,9 +64,111 @@ subgroup.closure (coe ⁻¹' set.range (ι Q) : set (clifford_algebra Q)ˣ)
 
 /-- If x is in `lipschitz Q`, then the twisted conjugation of x is closed -/
 lemma mem_lipschitz_conj_act_le {x : (clifford_algebra Q)ˣ} [invertible (2 : R)]
-  (hx : x ∈ lipschitz Q) : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range := sorry
+  (hx : x ∈ lipschitz Q) : conj_act.to_conj_act x • (ι Q).range ≤ (ι Q).range :=
+begin
+  refine @subgroup.closure_induction'' _ _ _ _ _ hx _ _ _ _,
+  { rintros x ⟨z, hz⟩ y ⟨a, ha⟩,
+    simp only [has_smul.smul, set_like.mem_coe, linear_map.mem_range,
+      distrib_mul_action.to_linear_map_apply, conj_act.of_conj_act_to_conj_act] at ha,
+    rcases ha with ⟨⟨b, hb⟩, ha1⟩,
+    subst hb,
+    letI := x.invertible,
+    haveI : invertible (ι Q z) := by rwa hz,
+    rw [linear_map.mem_range, ← ha1, ← inv_of_units x],
+    suffices : ∃ (y : M), (ι Q) y = (ι Q z) * (ι Q) b * ⅟ (ι Q z),
+    { convert this,
+      ext1,
+      congr';
+      simp only [hz.symm, subsingleton.helim (congr_arg invertible hz.symm) _inst _inst_5], },
+    haveI := invertible_of_invertible_ι Q z,
+    refine ⟨(⅟(Q z) * quadratic_form.polar Q z b) • z - b, (ι_mul_ι_mul_inv_of_ι z b).symm⟩, },
+  { rintros x ⟨z, hz1⟩ y ⟨a, ⟨b, hb⟩, ha2⟩,
+    simp only [conj_act.to_conj_act_inv, distrib_mul_action.to_linear_map_apply,
+      has_smul.smul, conj_act.of_conj_act_inv, conj_act.of_conj_act_to_conj_act,
+        inv_inv] at ha2,
+    subst hb,
+    subst ha2,
+    letI := x.invertible,
+    haveI : invertible (ι Q z) := by rwa hz1,
+    rw [linear_map.mem_range, ← inv_of_units x],
+    suffices : ∃ (y : M), (ι Q) y = ⅟ (ι Q z) * (ι Q) b * (ι Q z),
+    { convert this,
+      ext1,
+      congr';
+      simp only [hz1.symm, subsingleton.helim (congr_arg invertible hz1.symm) _inst _inst_5], },
+    haveI := invertible_of_invertible_ι Q z,
+    refine ⟨(⅟(Q z) * quadratic_form.polar Q z b) • z - b, (inv_of_ι_mul_ι_mul_ι z b).symm⟩, },
+  { simp only [conj_act.to_conj_act_one, one_smul, le_refl], },
+  { intros x y hx1 hy1 z hz1,
+    simp only [conj_act.to_conj_act_mul] at hz1,
+    suffices : (conj_act.to_conj_act x * conj_act.to_conj_act y) • (ι Q).range ≤ (ι Q).range,
+    { exact this hz1, },
+    { rintros m ⟨a, ⟨b, hb⟩, ha⟩,
+      simp only [distrib_mul_action.to_linear_map_apply, has_smul.smul, conj_act.of_conj_act_mul,
+       conj_act.of_conj_act_to_conj_act, units.coe_mul, mul_inv_rev] at ha,
+      subst hb,
+      have hb : ↑x * (↑y * (ι Q) b * ↑y⁻¹) * ↑x⁻¹ = m := by simp_rw [← ha, mul_assoc],
+      have hy2 : ↑y * (ι Q) b * ↑y⁻¹ ∈ conj_act.to_conj_act y • (ι Q).range := by simp only
+        [has_smul.smul, exists_exists_eq_and, exists_apply_eq_apply, submodule.mem_map,
+          linear_map.mem_range, distrib_mul_action.to_linear_map_apply,
+            conj_act.of_conj_act_to_conj_act],
+      specialize hy1 hy2,
+      have hx2 : ↑x * (↑y * (ι Q) b * ↑y⁻¹) * ↑x⁻¹ ∈ conj_act.to_conj_act x • (ι Q).range,
+      { simp only [has_smul.smul, units.mul_left_inj, units.mul_right_inj, exists_exists_eq_and,
+          submodule.mem_map, linear_map.mem_range, distrib_mul_action.to_linear_map_apply,
+            conj_act.of_conj_act_to_conj_act],
+        exact hy1, },
+      specialize hx1 hx2,
+      rwa hb at hx1, }, },
+end
+
 lemma mem_lipschitz_involute_le {x : (clifford_algebra Q)ˣ} [invertible (2 : R)]
-  (hx : x ∈ lipschitz Q) (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range := sorry
+  (hx : x ∈ lipschitz Q) (y : M) : involute ↑x * (ι Q y) * ↑x⁻¹ ∈ (ι Q).range :=
+begin
+  revert y,
+  refine @subgroup.closure_induction'' _ _ _ _ _ hx _ _ _ _,
+  { rintros x ⟨z, hz⟩ y,
+    letI := x.invertible,
+    haveI : invertible (ι Q z) := by rwa hz,
+    rw [linear_map.mem_range, ← inv_of_units x],
+    suffices : ∃ (y_1 : M), (ι Q) y_1 = -(ι Q z) * (ι Q) y * ⅟ (ι Q z),
+    { convert this,
+      ext1,
+      congr',
+      { rw [← hz, involute_ι], },
+      { exact hz.symm, },
+      { exact subsingleton.helim (congr_arg invertible hz.symm) _inst _inst_5, }, },
+    haveI := invertible_of_invertible_ι Q z,
+    refine ⟨-((⅟(Q z) * quadratic_form.polar Q z y) • z - y), by simp only
+      [map_neg, neg_mul, ι_mul_ι_mul_inv_of_ι z y]⟩, },
+  { rintros x ⟨z, hz⟩ y,
+    letI := x.invertible,
+    haveI : invertible (ι Q z) := by rwa hz,
+    haveI := invertible_neg (ι Q z),
+    letI := invertible.map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q) ↑x,
+    rw [inv_inv, linear_map.mem_range, ← inv_of_units x, map_inv_of],
+    suffices : ∃ (y_1 : M), (ι Q) y_1 = -⅟ (ι Q z) * (ι Q) y * (ι Q z),
+    { convert this,
+      ext1,
+      congr',
+      { rw ← inv_of_neg,
+        apply invertible_unique,
+        rw [← hz, involute_ι], },
+      { exact hz.symm, }, },
+    haveI := invertible_of_invertible_ι Q z,
+    refine ⟨-((⅟(Q z) * quadratic_form.polar Q z y) • z - y), by simp only
+      [map_neg, neg_mul, inv_of_ι_mul_ι_mul_ι z y]⟩, },
+  { simp only [units.coe_one, map_one, one_mul, inv_one, mul_one,
+      linear_map.mem_range, exists_apply_eq_apply, forall_const], },
+  { intros a b ha hb y,
+    simp only [units.coe_mul, map_mul, mul_inv_rev, linear_map.mem_range],
+    cases hb y with c hc,
+    suffices : ∃ (y_1 : M), (ι Q) y_1 = involute ↑a * (involute ↑b * (ι Q) y * ↑b⁻¹) * ↑a⁻¹,
+    { cases this with p hp,
+      refine ⟨p, by simp only [hp, mul_assoc]⟩, },
+    rw ← hc,
+    exact ha c, },
+end
 
 lemma coe_mem_lipschitz_iff_mem {x : (clifford_algebra Q)ˣ} :
   ↑x ∈ (lipschitz Q).to_submonoid.map (units.coe_hom $ clifford_algebra Q) ↔ x ∈ lipschitz Q :=

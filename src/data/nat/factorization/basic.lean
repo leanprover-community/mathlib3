@@ -785,6 +785,7 @@ end
 
 /-! ### Lemmas about factorizations of sums -/
 
+/-- The multiplicity of `p` in `a + b` is no less than in `a` and `b`. -/
 lemma factorization_add {p a b : ℕ} :
   min (a.factorization p) (b.factorization p) ≤ (a + b).factorization p :=
 begin
@@ -799,6 +800,8 @@ begin
     exact pow_dvd_of_le_of_pow_dvd h2.le (ord_proj_dvd a p) },
 end
 
+/-- The multiplicity of `p` in `a + b` is greater than in `a` and `b` exactly when
+`a + b = p^k * (a' + b')` for `a'` and `b'` not divisible by `p`, and `p` divides the latter sum. -/
 lemma factorization_add_iff {p b a : ℕ} (pp : p.prime) (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
   min (a.factorization p) (b.factorization p) < (a + b).factorization p ↔
   (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a + ord_compl[p] b) :=
@@ -807,21 +810,17 @@ begin
   set b' := ord_compl[p] b,
   set α := a.factorization p,
   set β := b.factorization p,
-
   have H1 : p ^ (α - min α β) * a' + p ^ (β - min α β) * b' ≠ 0,
     { rw ←pos_iff_ne_zero,
       apply add_pos; { refine mul_pos (pow_pos pp.pos _) (ord_compl_pos p _), assumption } },
-
   have H2 : a + b = p ^ min α β * (p ^ (α - min α β) * a' + p ^ (β - min α β) * b'),
   { simp [mul_add, ←mul_assoc, ←pow_add, ord_proj_mul_ord_compl_eq_self] },
-
   suffices : ¬p ∣ p ^ (α - min α β) * a' + p ^ (β - min α β) * b' ↔ ¬α = β ∨ ¬p ∣ a' + b',
   { rw [H2, factorization_mul (pow_pos pp.pos _).ne' H1, finsupp.add_apply,
         pp.factorization_pow, single_eq_same, lt_add_iff_pos_right, ←not_iff_not,
         not_lt, le_zero_iff, not_and_distrib,
         factorization_eq_zero_iff],
     simpa [pp, H1] },
-
   have : α < β ∨ α = β ∨ β < α, by apply trichotomous,
   rcases this with hαβ | hαβ | hαβ,
   { rw min_eq_left_of_lt hαβ,
@@ -835,7 +834,6 @@ begin
     exact not_dvd_ord_compl pp hb0 },
 end
 
-
 lemma factorization_add_of_lt {p a b : ℕ} (h : a.factorization p < b.factorization p)
   (ha0 : a ≠ 0) :
   (a + b).factorization p = a.factorization p :=
@@ -848,7 +846,6 @@ begin
   rw factorization_add_iff pp ha0 hb0 at h,
   exact h.1.symm.le,
 end
-
 
 lemma factorization_add_min {p a b : ℕ} (h : a.factorization p ≠ b.factorization p)
   (ha0 : a ≠ 0) (hb0 : b ≠ 0) :

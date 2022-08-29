@@ -1253,7 +1253,7 @@ set.ext $ λ _, mem_sdiff
 lemma union_sdiff_left (s t : finset α) : (s ∪ t) \ s = t \ s := sup_sdiff_left_self
 lemma union_sdiff_right (s t : finset α) : (s ∪ t) \ t = s \ t := sup_sdiff_right_self
 
-lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := sup_sdiff_symm
+lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := by simp [union_comm]
 
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s := sup_sdiff_inf _ _
 

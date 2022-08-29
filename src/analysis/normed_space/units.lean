@@ -313,20 +313,17 @@ lemma ideal.subset_compl_ball_of_ne_top (I : ideal R) (hI : I ≠ ⊤) :
 (coe_subset_nonunits hI).trans $ nonunits.subset_compl_ball R
 
 /-- The `ideal.closure` of a proper `ideal` in a complete normed ring is proper. -/
-lemma ideal.closure_ne_top {R : Type*} [normed_comm_ring R] [complete_space R]
-  (I : ideal R) (hI : I ≠ ⊤) : I.closure ≠ ⊤ :=
+lemma ideal.closure_ne_top (I : ideal R) (hI : I ≠ ⊤) : I.closure ≠ ⊤ :=
 have h : _ := closure_minimal (I.subset_compl_ball_of_ne_top hI)
   metric.is_open_ball.is_closed_compl,
   by simpa only [I.closure.eq_top_iff_one, ne.def] using mt (@h 1) (by norm_num)
 
 /-- the `ideal.closure` of a maximal ideal in a complete normed ring is the ideal itself. -/
-lemma ideal.is_maximal.closure_eq {R : Type*} [normed_comm_ring R] [complete_space R]
-  {I : ideal R} (hI : I.is_maximal) : I.closure = I :=
+lemma ideal.is_maximal.closure_eq {I : ideal R} (hI : I.is_maximal) : I.closure = I :=
 (hI.eq_of_le (I.closure_ne_top hI.ne_top) subset_closure).symm
 
 /-- Maximal ideals in complete normed rings are closed. -/
-lemma ideal.is_maximal.is_closed {R : Type*} [normed_comm_ring R] [complete_space R]
-  {I : ideal R} (hI : I.is_maximal) : is_closed (I : set R) :=
+lemma ideal.is_maximal.is_closed {I : ideal R} (hI : I.is_maximal) : is_closed (I : set R) :=
 is_closed_of_closure_subset $ eq.subset $ congr_arg (coe : ideal R → set R) hI.closure_eq
 
 end ideal

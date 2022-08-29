@@ -214,6 +214,20 @@ lemma eq_zero_iff_gcd_ne_one {a : ℤ} {p : ℕ} [pp : fact p.prime] : (a : zmod
 
 end zmod
 
+namespace list
+
+lemma pmap_append {α β : Type*} {p : α → Prop} (f : Π (a : α), p a → β) (l₁ l₂ : list α)
+  (h : ∀ (a : α), a ∈ l₁ ++ l₂ → p a) :
+  (l₁ ++ l₂).pmap f h = l₁.pmap f (λ a ha, h a (mem_append_left l₂ ha))
+                         ++ l₂.pmap f (λ a ha, h a (mem_append_right l₁ ha)) :=
+begin
+  induction l₁ with _ _ ih,
+  { simp only [pmap, nil_append], },
+  { simp only [pmap, cons_append, eq_self_iff_true, true_and, ih], }
+end
+
+end list
+
 section jacobi
 
 /-!
@@ -233,7 +247,7 @@ open zmod nat
 
 /-- The Jacobi symbol of `a` and `b` -/
 def jacobi_sym (a : ℤ) (b : ℕ) : ℤ :=
-(b.prime_factors.map (λ (p : primes), @legendre_sym p.1 ⟨p.2⟩ a)).prod
+(b.factors.pmap (λ p pp, @legendre_sym p ⟨pp⟩ a) (λ p pf, prime_of_mem_factors pf)).prod
 
 -- Notation for the Jacobi symbol.
 localized "notation `[` a ` | ` b `]ⱼ` := jacobi_sym a b" in number_theory_symbols
@@ -246,26 +260,30 @@ open_locale number_theory_symbols
 
 /-- The Jacobi symbol `(a / 0)` has the value `1`. -/
 lemma jacobi_sym_zero_right (a : ℤ) : [a | 0]ⱼ = 1 :=
-by simp only [jacobi_sym, prime_factors_zero, list.map_nil, list.prod_nil]
+by simp only [jacobi_sym, factors_zero, list.prod_nil, list.pmap]
 
 /-- The Jacobi symbol `(a / 1)` has the value `1`. -/
 lemma jacobi_sym_one_right (a : ℤ) : [a | 1]ⱼ = 1 :=
-by simp only [jacobi_sym, prime_factors_one, list.map_nil, list.prod_nil]
+by simp only [jacobi_sym, factors_one, list.prod_nil, list.pmap]
 
 /-- The Legendre symbol `(a / p)` with an integer `a` and a prime number `p`
 is the same as the Jaocbi symbol `(a / p)`. -/
 lemma legendre_sym.to_jacobi_sym {p : ℕ} [fp : fact p.prime] {a : ℤ} :
   legendre_sym p a = [a | p]ⱼ :=
-by simp only [jacobi_sym, prime_factors_prime p, subtype.val_eq_coe, coe_to_primes_eq_self,
-              list.map, list.prod_cons, list.prod_nil, mul_one]
+by simp only [jacobi_sym, factors_prime fp.1, list.prod_cons, list.prod_nil, mul_one, list.pmap]
 
 /-- The Jacobi symbol is multiplicative in its second argument. -/
 lemma jacobi_sym_mul_right (a : ℤ) (b₁ b₂ : ℕ) [ne_zero b₁] [ne_zero b₂] :
   [a | b₁ * b₂]ⱼ = [a | b₁]ⱼ * [a | b₂]ⱼ :=
-by simp_rw [jacobi_sym,
-            list.perm.prod_eq (list.perm.map (λ p : primes, @legendre_sym p.1 ⟨p.2⟩ a)
-                                             (perm_prime_factors_mul b₁ b₂)),
-            list.map_append, list.prod_append]
+begin
+  simp_rw [jacobi_sym],
+  have h₁ : ∀ (p : ℕ), p ∈ b₁.factors → p.prime := (λ p pf, prime_of_mem_factors pf),
+  have h₂ : ∀ (p : ℕ), p ∈ b₂.factors → p.prime := (λ p pf, prime_of_mem_factors pf),
+  have h : ∀ (p : ℕ), p ∈ b₁.factors ++ b₂.factors → p.prime :=
+  λ p hp, (list.mem_append.mp hp).elim (λ hp₁, h₁ p hp₁) (λ hp₂, h₂ p hp₂),
+  rwa [list.perm.prod_eq (list.perm.pmap _ (perm_factors_mul (ne_zero.ne b₁) (ne_zero.ne b₂))),
+       list.pmap_append, list.prod_append],
+end
 
 /-- The Jacobi symbol `(1 / b)` has the value `1`. -/
 lemma jacobi_sym_one_left (b : ℕ) : [1 | b]ⱼ = 1 :=
@@ -284,9 +302,9 @@ end
 lemma jacobi_sym_mul_left (a₁ a₂ : ℤ) (b : ℕ) : [a₁ * a₂ | b]ⱼ = [a₁ | b]ⱼ * [a₂ | b]ⱼ :=
 begin
   have h0 : [a₁ * a₂ | 0]ⱼ = [a₁ | 0]ⱼ * [a₂ | 0]ⱼ :=
-  by simp_rw [jacobi_sym, prime_factors_zero, list.map_nil, list.prod_nil, one_mul],
+  by simp only [jacobi_sym, factors_zero, list.prod_nil, one_mul, list.pmap],
   refine rec_on_mul h0 _ (λ p pp, _) (λ m n hm hn, _) b,
-  { simp_rw [jacobi_sym, prime_factors_one, list.map_nil, list.prod_nil, one_mul], },
+  { simp only [jacobi_sym, factors_one, list.prod_nil, one_mul, list.pmap], },
   { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_mul p ⟨pp⟩], },
   { by_cases hmz : m = 0,
     { rw [hmz, zero_mul], exact h0, },

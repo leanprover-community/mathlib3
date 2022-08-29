@@ -763,16 +763,16 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 instance tendsto_Ioo_class_nhds (a : α) : tendsto_Ixx_class Ioo (𝓝 a) (𝓝 a) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-/-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
-eventually for the filter. -/
+/-- **Squeeze theorem** (also known as **sandwich theorem**). This version assumes that inequalities
+hold eventually for the filter. -/
 lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter β} {a : α}
   (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a))
   (hgf : ∀ᶠ b in b, g b ≤ f b) (hfh : ∀ᶠ b in b, f b ≤ h b) :
   tendsto f b (𝓝 a) :=
 (hg.Icc hh).of_small_sets $ hgf.and hfh
 
-/-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
-everywhere. -/
+/-- **Squeeze theorem** (also known as **sandwich theorem**). This version assumes that inequalities
+hold everywhere. -/
 lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α}
   (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a)) (hgf : g ≤ f) (hfh : f ≤ h) :
   tendsto f b (𝓝 a) :=

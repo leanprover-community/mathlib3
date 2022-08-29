@@ -213,19 +213,20 @@ begin
 
   have Einf : E.inf := inf E Edis,
   have Finf : F.inf, by {
-
-    dsimp only [comp_out.inf],
-    rw comp_out.of_connected_disjoint.eq G φK'eq.symm,
+    rw [comp_out.inf,
+        comp_out.of_connected_disjoint.eq G φK'eq.symm,
+        ←comp_out.inf],
 
     let e := (comp_out.equiv_of_iso φ K'),
-    let inv_iff := comp_out.equiv_of_iso.inf φ K' (e.inv_fun (comp_out.of_connected_disjoint ↑K' Kc' _)),
-    let dis_iff := comp_out.equiv_of_iso.dis φ K' (e.inv_fun (comp_out.of_connected_disjoint ↑K' Kc' _)),
-    dsimp only [comp_out.inf,←equiv.to_fun_as_coe] at inv_iff dis_iff,
-    rw [←e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _),←inv_iff],
+
+    rw [←e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _),
+        equiv.to_fun_as_coe,
+        ←comp_out.equiv_of_iso.inf φ K' (e.inv_fun (comp_out.of_connected_disjoint ↑K' Kc' _))],
     apply inf,
-    rw [dis_iff, e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _)],
-    apply comp_out.of_connected_disjoint_dis,
-  },
+    rw [comp_out.equiv_of_iso.dis φ K' (e.inv_fun (comp_out.of_connected_disjoint ↑K' Kc' _)),
+        ←equiv.to_fun_as_coe,
+        e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _)],
+    apply comp_out.of_connected_disjoint_dis, },
 
   apply inf_comp_out.nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'n) (K'n) ⟨⟨F,Fdis⟩,Finf⟩ _ ⟨⟨E,Edis⟩,Einf⟩ Esub Fsub,
   have e := (inf_comp_out.equiv_of_iso φ K'),

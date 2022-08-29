@@ -453,17 +453,11 @@ end
 properties of odd natural numbers. -/
 lemma mul_induction_odd {P : ℕ → Prop} (h1 : P 1) (hp : ∀ p : ℕ, p.prime → p ≠ 2 → P p)
   (h : ∀ m n : ℕ, odd m → odd n → P m → P n → P (m * n)) (b : ℕ) (hb : odd b) : P b :=
-begin
-  let P' : ℕ → Prop := λ n, odd n → P n,
-  have h0' : P' 0 := λ h, false.rec _ (even_iff_not_odd.mp even_zero h),
-  have h1' : P' 1 := λ _, h1,
-  have hp' : ∀ p : ℕ, p.prime → P' p :=
-  λ p pp p2, hp p pp ((@prime.mod_two_eq_one_iff_ne_two _ ⟨pp⟩).mp (odd_iff.mp p2)),
-  have h' : ∀ m n : ℕ, P' m → P' n → P' (m * n) :=
-  λ m n hm hn hmn, let hmo := odd.of_mul_left hmn in let hno := odd.of_mul_right hmn in
-                    h m n hmo hno (hm hmo) (hn hno),
-  exact rec_on_mul h0' h1' hp' h' b hb,
-end
+rec_on_mul (λ h, false.rec _ (even_iff_not_odd.mp even_zero h)) (λ _, h1)
+           (λ p pp p2, hp p pp ((@prime.mod_two_eq_one_iff_ne_two _ ⟨pp⟩).mp (odd_iff.mp p2)))
+           (λ m n hm hn hmn, let hmo := odd.of_mul_left hmn in let hno := odd.of_mul_right hmn in
+                             h m n hmo hno (hm hmo) (hn hno))
+           b hb
 
 /-- If `χ` is a multiplicative function such that `(a / p) = χ p` for all odd primes `p`,
 then the Jacobi symbol `(a / b)` equals `χ b` for all odd natural numbers `b`. -/

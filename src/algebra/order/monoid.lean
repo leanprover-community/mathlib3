@@ -483,6 +483,10 @@ end canonically_ordered_monoid
 lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
 lt_of_le_of_lt (zero_le _) h
 
+@[priority 100] instance canonically_ordered_add_monoid.zero_le_one_class {M : Type*}
+  [canonically_ordered_add_monoid M] [has_one M] : zero_le_one_class M :=
+⟨zero_le 1⟩
+
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/
 @[protect_proj, ancestor canonically_ordered_add_monoid linear_order]

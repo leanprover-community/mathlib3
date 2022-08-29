@@ -16,29 +16,24 @@ import algebra.order.pointwise
 /-!
 # Schwartz space
 
+This file defines the Schwartz space and the space of tempered distributions.
+
 ## Main definitions
 
-* `schwartz`
+* `schwartz`: The Schwartz space
 
 ## Main statements
 
-* `foo_bar_unique`
+* `schwartz.uniform_add_group` and `schwartz.locally_convex`: The Schwartz space is a locally
+convex topological vector space.
 
 ## Notation
 
-
-
-## Implementation details
-
-
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
+* `𝓢(E, F)`: The Schwartz space `schwartz E F`
 
 ## Tags
 
-Foobars, barfoos
+Schwartz space, tempered distributions
 -/
 
 open filter
@@ -47,155 +42,6 @@ open_locale big_operators ennreal nnreal topological_space
 noncomputable theory
 
 variables {R R' 𝕜 E F ι : Type*}
-
-
-section iterated_fderiv
-
-variables [nontrivially_normed_field 𝕜]
-variables [normed_add_comm_group E] [normed_space 𝕜 E]
-variables [normed_add_comm_group F] [normed_space 𝕜 F]
-
-@[simp] lemma iterated_fderiv_zero_map_apply {n : ℕ} {x : E} :
-  iterated_fderiv 𝕜 n (0 : E → F) x = 0 :=
-(congr_fun iterated_fderiv_within_zero_fun x).trans (pi.zero_apply _)
-
-lemma cont_diff.differentiable_at_iterated_fderiv {n k : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f)
-  (h : k < n):
-  differentiable 𝕜 (iterated_fderiv 𝕜 k f) :=
-(cont_diff_iff_continuous_differentiable.mp hf).2 k (by simp only [h, with_top.coe_lt_coe])
-
--- iterated_fderiv_add
-lemma iterated_fderiv_within_add {n : ℕ} {f g : E → F} {s : set E} (hs : is_open s)
-  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
-  ∀ (x : E) (hx : x ∈ s),
-  iterated_fderiv_within 𝕜 n (f + g) s x =
-  iterated_fderiv_within 𝕜 n f s x + iterated_fderiv_within 𝕜 n g s x :=
-begin
-  induction n with k hk,
-  { intros x hx, ext, simp },
-  specialize hk (hf.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
-  specialize hk (hg.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
-  intros x hx,
-  -- Using linearity of the multilinear map:
-  ext m,
-  rw [continuous_multilinear_map.add_apply],
-  simp_rw iterated_fderiv_within_succ_apply_left m,
-  rw [←continuous_multilinear_map.add_apply],
-  congr,
-  rw ←continuous_linear_map.add_apply,
-  congr,
-  -- Using linearity of `fderiv`:
-  have hf' : differentiable_within_at 𝕜 (iterated_fderiv_within 𝕜 k f s) s x :=
-  ((hf.differentiable_on_iterated_fderiv_within (by simp [lt_add_one k]) hs.unique_diff_on)
-    .differentiable_at (hs.mem_nhds hx))
-    .differentiable_within_at,
-  have hg' : differentiable_within_at 𝕜 (iterated_fderiv_within 𝕜 k g s) s x :=
-  ((hg.differentiable_on_iterated_fderiv_within (by simp [lt_add_one k]) hs.unique_diff_on)
-    .differentiable_at (hs.mem_nhds hx))
-    .differentiable_within_at,
-  let hs' : unique_diff_within_at 𝕜 s x := hs.unique_diff_on.unique_diff_within_at hx,
-  rw ←fderiv_within_add hs' hf' hg',
-  exact fderiv_within_congr hs' hk (hk x hx),
-end
-
--- iterated_fderiv_add
-lemma iterated_fderiv_add_apply {n : ℕ} {f g : E → F} {x : E} (hf : cont_diff 𝕜 n f)
-  (hg : cont_diff 𝕜 n g):
-  iterated_fderiv 𝕜 n (f + g) x = iterated_fderiv 𝕜 n f x + iterated_fderiv 𝕜 n g x :=
-begin
-  simp_rw [←cont_diff_on_univ, ←iterated_fderiv_within_univ] at *,
-  exact iterated_fderiv_within_add is_open_univ hf hg _ (set.mem_univ _),
-end
-
-lemma iterated_fderiv_add {n : ℕ} {f g : E → F} (hf : cont_diff 𝕜 n f)
-  (hg : cont_diff 𝕜 n g):
-  iterated_fderiv 𝕜 n (f + g) = iterated_fderiv 𝕜 n f + iterated_fderiv 𝕜 n g :=
-funext (λ _, iterated_fderiv_add_apply hf hg)
-
--- iterated_fderiv_add
-lemma iterated_fderiv_neg {n : ℕ} {f : E → F} :
-  iterated_fderiv 𝕜 n (-f) = -iterated_fderiv 𝕜 n f :=
-begin
-  induction n with k hk,
-  { ext, simp },
-  ext x m,
-  rw [pi.neg_apply, continuous_multilinear_map.neg_apply],
-  simp_rw iterated_fderiv_succ_apply_left m,
-  rw [←continuous_multilinear_map.neg_apply],
-  congr,
-  rw ←continuous_linear_map.neg_apply,
-  congr,
-  rw ←fderiv_neg,
-  congr,
-  ext,
-  rw hk,
-  rw pi.neg_apply,
-end
-
-lemma iterated_fderiv_neg_apply {n : ℕ} {f : E → F} {x : E}  :
-  iterated_fderiv 𝕜 n (-f) x = -iterated_fderiv 𝕜 n f x :=
-congr_fun iterated_fderiv_neg x
-
-variables [semiring R] [module R F] [smul_comm_class 𝕜 R F] [has_continuous_const_smul R F]
-
-lemma smul_continuous_multilinear_map {k : ℕ} {c : R}
-  (m : continuous_multilinear_map 𝕜 (λ (i : fin k), E) F):
-  (c • continuous_linear_map.id 𝕜 F).comp_continuous_multilinear_map m = c • m :=
-by { ext x, simp }
-
-instance {k : ℕ}: has_continuous_const_smul R (continuous_multilinear_map 𝕜 (λ (i : fin k), E) F) :=
-⟨λ c, begin
-  simp_rw ←smul_continuous_multilinear_map,
-  refine (continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 _ F F
-    (c • continuous_linear_map.id 𝕜 F)).2,
-end⟩
-
--- iterated_fderiv_const_smul
-lemma iterated_fderiv_const_smul {n : ℕ} {f : E → F} (hf : cont_diff 𝕜 n f) (c : R) :
-  iterated_fderiv 𝕜 n (λ y, c • f y) = c • iterated_fderiv 𝕜 n f :=
-begin
-  induction n with k hk,
-  { ext, simp },
-  specialize hk (hf.of_le $ with_top.coe_le_coe.mpr $ k.le_succ),
-  ext x m,
-  rw [pi.smul_apply, continuous_multilinear_map.smul_apply],
-  simp_rw iterated_fderiv_succ_apply_left m,
-  rw [←continuous_multilinear_map.smul_apply],
-  congr,
-  rw ←continuous_linear_map.smul_apply,
-  congr,
-  have hf' : differentiable_at 𝕜 (iterated_fderiv 𝕜 k f) x :=
-  (cont_diff.differentiable_at_iterated_fderiv hf (lt_add_one k)).differentiable_at,
-  rw ←fderiv_const_smul hf',
-  congr,
-  exact hk,
-end
-
-lemma iterated_fderiv_const_smul_apply {n : ℕ} {f : E → F} {x : E} (hf : cont_diff 𝕜 n f) (c : R) :
-  iterated_fderiv 𝕜 n (λ y, c • f y) x = c • iterated_fderiv 𝕜 n f x :=
-(congr_fun (iterated_fderiv_const_smul hf c) x)
-
-variables {n : with_top ℕ} (c : R)
-
-/- The scalar multiplication is smooth. -/
-lemma cont_diff_const_smul {c : R} : cont_diff 𝕜 n (λ p : F, c • p) :=
-(c • continuous_linear_map.id 𝕜 F).cont_diff
-
-lemma cont_diff_within_at.const_smul {n : with_top ℕ} {f : E → F} {s : set E} {x : E} (c : R)
-  (hf : cont_diff_within_at 𝕜 n f s x) : cont_diff_within_at 𝕜 n (λ y, c • f y) s x :=
-cont_diff_const_smul.cont_diff_within_at.comp x hf set.subset_preimage_univ
-
-lemma cont_diff.const_smul {n : with_top ℕ} {f : E → F} (c : R)
-  (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ y, c • f y) :=
-begin
-  rw cont_diff_iff_cont_diff_at at hf ⊢,
-  intro x,
-  specialize hf x,
-  rw ←cont_diff_within_at_univ at hf ⊢,
-  exact hf.const_smul _,
-end
-
-end iterated_fderiv
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables [normed_add_comm_group F] [normed_space ℝ F]
@@ -226,15 +72,23 @@ instance fun_like : fun_like 𝓢(E, F) E (λ _, F) :=
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun 𝓢(E, F) (λ _, E → F) := ⟨λ p, p.to_fun⟩
 
-def decay (f : 𝓢(E, F)) (k n : ℕ) : ∃ (C : ℝ) (hC : 0 < C),
+lemma decay (f : 𝓢(E, F)) (k n : ℕ) : ∃ (C : ℝ) (hC : 0 < C),
   ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ C :=
 f.decay' k n
 
-def smooth (f : 𝓢(E, F)) : cont_diff ℝ ⊤ f := f.smooth'
+lemma smooth (f : 𝓢(E, F)) : cont_diff ℝ ⊤ f := f.smooth'
 
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
 
 section aux
+
+lemma bounds_nonempty (k n : ℕ) (f : 𝓢(E, F)) :
+  ∃ (c : ℝ), c ∈ {c : ℝ | 0 ≤ c ∧ ∀ (x : E), ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c} :=
+let ⟨M, hMp, hMb⟩ := f.decay k n in ⟨M, le_of_lt hMp, hMb⟩
+
+lemma bounds_bdd_below (k n : ℕ) (f : 𝓢(E, F)) :
+  bdd_below { c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c } :=
+⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma seminorm_add_le_aux (k n : ℕ) (f g : 𝓢(E, F)) (x : E) :
   ∥x∥^k * ∥iterated_fderiv ℝ n (f+g) x∥ ≤
@@ -254,7 +108,7 @@ variables [semiring R] [module R 𝕜] [module R F] [smul_comm_class ℝ R F]
 variables [has_continuous_const_smul R F] [is_scalar_tower R 𝕜 F]
 
 lemma seminorm_smul_aux (k n : ℕ) (f : 𝓢(E, F)) (c : R) (x : E) :
-  ∥x∥ ^ k * ∥iterated_fderiv ℝ n (λ y, c • f y) x∥ =
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n (c • f) x∥ =
   ∥c • (1 : 𝕜)∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
 begin
   nth_rewrite 2 mul_comm,
@@ -278,7 +132,7 @@ end
 variables [normed_space ℂ F]
 
 lemma seminorm_smul_aux' (k n : ℕ) (f : 𝓢(E, F)) (c : ℂ) (x : E) :
-  ∥x∥ ^ k * ∥iterated_fderiv ℝ n (λ y, c • f y) x∥ =
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n (c • f) x∥ =
   ∥c∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
 begin
   nth_rewrite 2 mul_comm,
@@ -299,7 +153,6 @@ variables [has_continuous_const_smul R F] [is_scalar_tower R ℂ F]
 variables [semiring R'] [module R' ℂ] [module R' F] [smul_comm_class ℝ R' F]
 variables [has_continuous_const_smul R' F] [is_scalar_tower R' ℂ F]
 
---instance (𝕜 : Type*) [is_R_or_C 𝕜] [normed_space 𝕜 F] [module R 𝕜] [is_scalar_tower R 𝕜 F]:
 -- Note that we define the scalar multiplication only in the case that `F` is a vector space
 -- over `ℂ`. The reason for this is that the type-system cannot infer instances if we were to
 -- replace `ℂ` by `[is_R_or_C 𝕜]`. This is mathemically no problem, because the usual Schwartz
@@ -322,8 +175,6 @@ instance : has_smul R 𝓢(E, F) :=
     exact zero_le_one,
   end}⟩
 
-lemma coe_smul {f : 𝓢(E, F)} {c : R} : c • (f : E → F) = c • f := rfl
-
 @[simp] lemma smul_apply {f : 𝓢(E, F)} {c : R} {x : E} : (c • f) x = c • (f x) := rfl
 
 instance [has_smul R R'] [is_scalar_tower R R' F] : is_scalar_tower R R' 𝓢(E, F) :=
@@ -339,9 +190,9 @@ section zero
 instance : has_zero 𝓢(E, F) :=
 ⟨{ to_fun := λ _, 0,
   smooth' := cont_diff_const,
-  decay' := λ k n, ⟨1, zero_lt_one, λ _, by simp [iterated_fderiv_within_zero_fun]⟩ }⟩
--- todo: `iterated_fderiv_within_zero_fun` should be `simp`
--- (and be called `iterated_fderiv_zero_fun`)
+  decay' := λ k n, ⟨1, zero_lt_one, λ _, by simp⟩ }⟩
+
+instance : inhabited 𝓢(E, F) := ⟨0⟩
 
 lemma coe_zero : ↑(0 : 𝓢(E, F)) = (0 : E → F) := rfl
 
@@ -381,11 +232,11 @@ instance : has_add 𝓢(E, F) :=
     exact seminorm_add_le_aux k n f g x,
   end⟩ ⟩
 
-lemma coe_add (f g : 𝓢(E, F)) : (f : E → F) + g = f + g := rfl
-
 @[simp] lemma add_apply {f g : 𝓢(E, F)} {x : E} : (f + g) x = f x + g x := rfl
 
 end add
+
+section sub
 
 instance : has_sub 𝓢(E, F) :=
 ⟨λ f g, ⟨f - g, f.smooth.sub g.smooth,
@@ -404,6 +255,10 @@ instance : has_sub 𝓢(E, F) :=
 
 @[simp] lemma sub_apply {f g : 𝓢(E, F)} {x : E} : (f - g) x = f x - g x := rfl
 
+end sub
+
+section add_comm_group
+
 variables [normed_space ℂ F]
 
 instance : add_comm_group 𝓢(E, F) :=
@@ -414,7 +269,7 @@ variables (E F)
 
 /-- Coercion as an additive homomorphism. -/
 def coe_hom : 𝓢(E, F) →+ (E → F) :=
-{ to_fun := λ f, f, map_zero' := coe_zero, map_add' := coe_add }
+{ to_fun := λ f, f, map_zero' := coe_zero, map_add' := λ _ _, rfl }
 
 variables {E F}
 
@@ -423,14 +278,13 @@ lemma coe_coe_hom : (coe_hom E F : 𝓢(E, F) → (E → F)) = coe_fn := rfl
 lemma coe_hom_injective : function.injective (coe_hom E F) :=
 by { rw coe_coe_hom, exact fun_like.coe_injective }
 
+end add_comm_group
+
 section module
 
 variables [normed_space ℂ F]
 variables [semiring R] [module R ℂ] [module R F] [smul_comm_class ℝ R F]
 variables [has_continuous_const_smul R F] [is_scalar_tower R ℂ F]
-
---variables [semiring R] [module R ℝ] [module R F] [smul_comm_class ℝ R F]
---variables [has_continuous_const_smul R F] [is_scalar_tower R ℝ F]
 
 instance : module R 𝓢(E, F) :=
 coe_hom_injective.module R (coe_hom E F) (λ _ _, rfl)
@@ -439,19 +293,10 @@ end module
 
 section seminorms
 
-variables [has_smul ℝ F]
-
+/-- Helper definition for the seminorms of the Schwartz space. -/
 @[protected]
 def seminorm_aux (k n : ℕ) (f : 𝓢(E, F)) : ℝ :=
 Inf {c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c}
-
-lemma bounds_nonempty (k n : ℕ) (f : 𝓢(E, F)) :
-  ∃ (c : ℝ), c ∈ {c : ℝ | 0 ≤ c ∧ ∀ (x : E), ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c} :=
-let ⟨M, hMp, hMb⟩ := f.decay k n in ⟨M, le_of_lt hMp, hMb⟩
-
-lemma bounds_bdd_below (k n : ℕ) (f : 𝓢(E, F)) :
-  bdd_below { c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c } :=
-⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma seminorm_aux_nonneg (k n : ℕ) (f : 𝓢(E, F)) : 0 ≤ f.seminorm_aux k n :=
 le_cInf (bounds_nonempty k n f) (λ _ ⟨hx, _⟩, hx)
@@ -481,12 +326,14 @@ cInf_le (bounds_bdd_below k n f) ⟨hMp, hM⟩
 
 lemma seminorm_aux_zero (k n : ℕ) :
   (0 : 𝓢(E, F)).seminorm_aux k n = 0 :=
-le_antisymm (seminorm_aux_le_bound k n _ rfl.le (λ _, by simp)) (by positivity)
+le_antisymm (seminorm_aux_le_bound k n _ rfl.le (λ _, by simp [pi.zero_def])) (by positivity)
 
 lemma seminorm_aux_add_le (k n : ℕ) (f g : 𝓢(E, F)) :
   (f + g).seminorm_aux k n ≤ f.seminorm_aux k n + g.seminorm_aux k n :=
 (f + g).seminorm_aux_le_bound k n (by positivity) $ λ x, (seminorm_add_le_aux k n f g x).trans $
   add_le_add (f.le_seminorm_aux k n x) (g.le_seminorm_aux k n x)
+
+variables [normed_space ℂ F]
 
 lemma seminorm_aux_smul_le (k n : ℕ) (r : ℂ) (f : 𝓢(E, F)) :
   (r • f).seminorm_aux k n ≤ ∥r∥ * f.seminorm_aux k n :=
@@ -497,24 +344,11 @@ begin
   refine mul_le_mul_of_nonneg_left (f.le_seminorm_aux k n x) (norm_nonneg _),
 end
 
-lemma seminorm_aux_neg_le (k n : ℕ) (f : 𝓢(E, F)) :
-  (-f).seminorm_aux k n ≤ f.seminorm_aux k n :=
-seminorm_aux_le_bound k n (-f) (by positivity)
-  (λ x, (seminorm_neg_aux k n f x).le.trans (le_seminorm_aux k n f x))
-
-lemma seminorm_aux_neg (k n : ℕ) (f : 𝓢(E, F)) :
-  (-f).seminorm_aux k n = f.seminorm_aux k n :=
-begin
-  refine (f.seminorm_aux_neg_le k n).antisymm _,
-  nth_rewrite 0 ←neg_neg f,
-  exact (-f).seminorm_aux_neg_le k n,
-end
-
+/-- The seminorms of the Schwartz space -/
 @[protected]
-def seminorm (k n : ℕ) : seminorm ℂ 𝓢(E, F) := seminorm.of_le (schwartz.seminorm_aux k n)
+def seminorm (k n : ℕ) : seminorm ℂ 𝓢(E, F) := seminorm.of_smul_le (schwartz.seminorm_aux k n)
   (schwartz.seminorm_aux_zero k n)
   (schwartz.seminorm_aux_add_le k n)
-  (schwartz.seminorm_aux_neg k n)
   (schwartz.seminorm_aux_smul_le k n)
 
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
@@ -527,9 +361,15 @@ lemma le_seminorm (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
 
 end seminorms
 
-variables (E F)
+section topology
 
-def _root_.schwartz_seminorm_family : seminorm_family ℂ 𝓢(E, F) (ℕ × ℕ) := λ n, schwartz.seminorm n.1 n.2
+variables (E F)
+variables [normed_space ℂ F]
+
+
+/-- The family of Schwartz seminorms. -/
+def _root_.schwartz_seminorm_family : seminorm_family ℂ 𝓢(E, F) (ℕ × ℕ) :=
+λ n, schwartz.seminorm n.1 n.2
 
 variables {E F}
 
@@ -556,7 +396,6 @@ variables {E F}
 instance : locally_convex_space ℝ 𝓢(E, F) :=
   seminorm_family.to_locally_convex_space (schwartz_with_seminorms E F)
 
-variables (f g : 𝓢(E, F)) (x : E) (c : ℂ)
-variables (fi : ℕ → 𝓢(E, F)) (T : 𝓢(E, F) →L[ℝ] 𝓢(E, F)) (φ : 𝓢(E, F) →L[ℝ] ℂ)
+end topology
 
 end schwartz

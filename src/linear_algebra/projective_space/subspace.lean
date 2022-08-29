@@ -472,7 +472,7 @@ def equiv : subspace K V ≃o submodule K V :=
   inv_fun := projective_linear_subspace,
   left_inv := begin
     intros x,
-    rw [to_submodule_eq_to_submodule₂, projective_linear_subspace_eq_projective_linear_subspace_2],
+    rw [to_submodule_eq_to_submodule₂, projective_linear_subspace_eq_projective_linear_subspace₂],
     ext,
     simp only [mk_rep, exists_prop, set.mem_set_of_eq, mem_carrier_iff],
     refine ⟨λ hx, _, λ hx, _⟩,
@@ -481,7 +481,7 @@ def equiv : subspace K V ≃o submodule K V :=
   end,
   right_inv := begin
     intros x,
-    rw [to_submodule_eq_to_submodule₂, projective_linear_subspace_eq_projective_linear_subspace_2],
+    rw [to_submodule_eq_to_submodule₂, projective_linear_subspace_eq_projective_linear_subspace₂],
     ext v,
     refine ⟨λ hv, _, λ hv, _⟩,
     { cases hv, rw hv, exact submodule.zero_mem _, cases hv, rwa mem_submodule_iff_rep_mem },

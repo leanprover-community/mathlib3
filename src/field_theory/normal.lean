@@ -420,8 +420,6 @@ end
 instance normal [h : normal F L] : normal F (normal_closure F K L) :=
 let ϕ := algebra_map K L in begin
   rw [←intermediate_field.restrict_scalars_normal, restrict_scalars_eq_supr_adjoin],
-  apply (congr_arg (λ E : intermediate_field F L, normal F E)
-    (restrict_scalars_eq_supr_adjoin F K L)).mpr,
   apply intermediate_field.normal_supr F L _,
   intro x,
   apply normal.of_is_splitting_field (minpoly F x),

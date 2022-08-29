@@ -292,8 +292,8 @@ lemma zmod.eq_neg_one_of_eq_neg_one_modulus_dvd {d m : ℕ} (hpm : d ∣ m)
   (x : zmod d) = -1 :=
 begin
   have h' : (x : zmod m) + 1 = 0, { rw h, simp },
-  suffices : (x : zmod d) + 1 = 0, {
-    have : (x : zmod d) + 1 - 1 = -1, { rw this, simp },
+  suffices : (x : zmod d) + 1 = 0,
+  { have : (x : zmod d) + 1 - 1 = -1, { rw this, simp },
     simpa using this },
   norm_cast at *,
   rw zmod.nat_coe_zmod_eq_zero_iff_dvd at *,

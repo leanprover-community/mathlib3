@@ -378,12 +378,12 @@ end
 lemma mul_even_part (n m : ℕ) (hn0 : n ≠ 0) (hm0 : m ≠ 0) :
   even_part (n * m) = even_part(n) * even_part(m) :=
 begin
-  simp only [even_part, mul_ord_proj 2 hn0 hm0],
+  simp only [even_part, ord_proj_mul 2 hn0 hm0],
 end
 
 lemma mul_odd_part (n m : ℕ) : odd_part (n * m) = odd_part(n) * odd_part(m) :=
 begin
-  simp only [odd_part, mul_ord_compl n m 2],
+  simp only [odd_part, ord_compl_mul n m 2],
 end
 
 /-! ## Lemmas about Fermat witnesses and Fermat candidate-primes -/

@@ -1519,8 +1519,8 @@ let ⟨u', hu'⟩ := exists_gt a in mem_nhds_within_Ici_iff_exists_Ico_subset' h
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
 with `a < u`. -/
-lemma mem_nhds_within_Ici_iff_exists_Icc_subset' [no_max_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≥] a ↔ ∃u ∈ Ioi a, Icc a u ⊆ s :=
+lemma mem_nhds_within_Ici_iff_exists_Icc_subset [no_max_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ 𝓝[≥] a ↔ ∃ u, a < u ∧ Icc a u ⊆ s :=
 begin
   rw mem_nhds_within_Ici_iff_exists_Ico_subset,
   split,
@@ -1565,25 +1565,13 @@ let ⟨l', hl'⟩ := exists_lt a in mem_nhds_within_Iic_iff_exists_Ioc_subset' h
 
 /-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
 with `l < a`. -/
-lemma mem_nhds_within_Iic_iff_exists_Icc_subset' [no_min_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≤] a ↔ ∃l ∈ Iio a, Icc l a ⊆ s :=
+lemma mem_nhds_within_Iic_iff_exists_Icc_subset [no_min_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ 𝓝[≤] a ↔ ∃ l, l < a ∧ Icc l a ⊆ s :=
 begin
-  convert @mem_nhds_within_Ici_iff_exists_Icc_subset' αᵒᵈ _ _ _ _ _ _ _,
+  convert @mem_nhds_within_Ici_iff_exists_Icc_subset αᵒᵈ _ _ _ _ _ _ _,
   simp_rw (show ∀ u : αᵒᵈ, @Icc αᵒᵈ _ a u = @Icc α _ u a, from λ u, dual_Icc),
   refl,
 end
-
-/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
-with `a < u`. -/
-lemma mem_nhds_within_Ici_iff_exists_Icc_subset [no_max_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≥] a ↔ ∃u, a < u ∧ Icc a u ⊆ s :=
-mem_nhds_within_Ici_iff_exists_Icc_subset'.trans $ exists_congr $ λ u, exists_prop
-
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
-with `l < a`. -/
-lemma mem_nhds_within_Iic_iff_exists_Icc_subset [no_min_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≤] a ↔ ∃l, l < a ∧ Icc l a ⊆ s :=
-mem_nhds_within_Iic_iff_exists_Icc_subset'.trans $ exists_congr $ λ u, exists_prop
 
 end order_topology
 

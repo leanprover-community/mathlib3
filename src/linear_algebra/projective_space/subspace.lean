@@ -247,11 +247,12 @@ def mk_of_dependent (S : set (ℙ K V))
       convert dependent.mk ![u, v, u + v] _ _,
       { ext i, fin_cases i; simp },
       { intro i, fin_cases i; assumption },
-      { rw fintype.not_linear_independent_iff, refine ⟨![-1, -1, 1], _, ⟨2, by { simp }⟩⟩,
-        simp only [fin.sum_univ_succ, function.comp_app, matrix.cons_val_zero, matrix.cons_val_succ,
-          fin.succ_zero_eq_one, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
-          finset.sum_singleton, fin.succ_one_eq_two, ne.def, neg_smul, smul_add,
-          neg_add_cancel_comm_assoc, add_left_neg] } },
+      { rw fintype.not_linear_independent_iff,
+        refine ⟨![-1, -1, 1], _, ⟨2, by { simp }⟩⟩,
+        simp only [fin.sum_univ_three, matrix.cons_val_zero, neg_smul, one_smul,
+          matrix.cons_val_one, matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.cons_append,
+          matrix.empty_append, matrix.cons_vec_alt0],
+        abel } },
   end }
 
 /-- If a set of points in a projective space has the property that for any independent family of
@@ -272,6 +273,73 @@ begin
     { ext i, fin_cases i; refl },
     { intros m n _, fin_cases m; fin_cases n; tidy } },
   { simp_rw [ulift.forall, function.comp_app], intro x, fin_cases x; assumption },
+end
+
+/-- If a family of points in a projective space is independent, and adding a point to the family
+results in it becoming dependent, then the added point's representative is in the span
+of the representatives of the original family. -/
+lemma independent_sum_punit_dependent {ι : Type*} (f : ι → ℙ K V) (hf: independent f) (u : ℙ K V)
+  (hf' : dependent (λ t, sum.rec_on t f (λ _, u) : ι ⊕ punit → ℙ K V)) :
+  u.rep ∈ submodule.span K (set.range (projectivization.rep ∘ f)) :=
+begin
+  simp_rw [dependent_iff, independent_iff] at hf' hf,
+  have : ¬ linear_independent K (sum.elim (projectivization.rep ∘ f)
+    (projectivization.rep ∘ (λ t, u) : punit → V)), by { convert hf', ext, cases x; simp },
+  have hu : linear_independent K (λ (x : punit), u.rep) :=
+    linear_independent_unique (λ (x : punit), u.rep) (rep_nonzero u),
+  have hd : ¬ disjoint (submodule.span K (set.range (projectivization.rep ∘ f)))
+    (submodule.span K (set.range (projectivization.rep ∘ (λ t, u) : punit → V))), by
+    { by_contra, exact this (linear_independent.sum_type hf hu h) },
+  rw [disjoint_iff, ← ne.def, submodule.ne_bot_iff] at hd,
+  rcases hd with ⟨v, hv1, hv3⟩,
+  cases submodule.mem_inf.1 hv1 with hv1 hv2,
+  have hv : v ∈ submodule.span K {u.rep}, by { convert hv2, simp },
+  cases submodule.mem_span_singleton.1 hv with a ha,
+  rw [← ha] at hv1,
+  convert submodule.smul_mem _ a⁻¹ hv1,
+  have haz : a ≠ 0, by { by_contra haz, rw [haz, zero_smul] at ha, exact hv3 ha.symm },
+  rw [← smul_assoc, smul_eq_mul, inv_mul_cancel haz, one_smul],
+end
+
+/-- If a subspace of a projective space contains a family of independent points, and this family is
+dependent with another point in the projective space, then the point is contained in the
+subspace. -/
+lemma mem_of_dependent' {ι : Type*} (W : subspace K V) (f : ι → ℙ K V) (hf: independent f)
+  (u : ℙ K V) (hf' : dependent (λ t, sum.rec_on t f (λ _, u) : ι ⊕ punit → ℙ K V))
+  (h : ∀ i, f i ∈ W) : u ∈ W :=
+begin
+  let hu := independent_sum_punit_dependent f hf u hf',
+  rcases (submodule.mem_span_finite_of_mem_span hu) with ⟨s, ⟨h2, h3⟩⟩,
+  rcases mem_span_finset.1 h3 with ⟨g, hg⟩,
+  convert mk_sum_smul_mem s W (λ x, x : V → V) (g) _ _,
+  { rw [← mk_rep u, mk_eq_mk_iff'], use 1, rw one_smul, exact hg },
+  { intros i his, by_cases hi : i = 0,
+    { left, exact hi },
+    { right,
+      refine ⟨hi, _⟩,
+      cases h2 his with y hy,
+      rw function.comp_app at hy,
+      convert h y,
+      rw [← mk_rep (f y), mk_eq_mk_iff'],
+      exact ⟨1, by { rwa one_smul }⟩ } },
+  { rw hg, exact rep_nonzero u },
+end
+
+/-- If a subspace of a projective space contains two unique points, and a third point from the
+projective space is dependent with the two unique points, then the third point is contained in the
+subspace. -/
+lemma mem_of_dependent (W : subspace K V) (u v w : ℙ K V) (h: u ≠ v) (hu : u ∈ W) (hv : v ∈ W)
+  (hdep: dependent ![u, v, w]) : w ∈ W :=
+begin
+  refine mem_of_dependent' W ![u, v] _ w _ _,
+  { rwa independent_pair_iff_neq },
+  { rw [dependent_iff] at hdep ⊢,
+    by_contra,
+    apply hdep,
+    convert linear_independent.comp h (![sum.inl 0, sum.inl 1, sum.inr punit.star]) _,
+    { ext, fin_cases x; refl },
+    { intros m n; fin_cases m; fin_cases n; tidy } },
+  { intro i, fin_cases i; assumption },
 end
 
 /-- A nonzero vector v in V belongs to a submodule M of V if and only the representative of the

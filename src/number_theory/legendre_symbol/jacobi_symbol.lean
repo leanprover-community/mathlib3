@@ -185,7 +185,7 @@ lemma gcd_eq_one_of_gcd_mul_eq_one_left {a : ℤ} {m n : ℕ} (h : a.gcd (m * n)
 nat.dvd_one.mp $ trans_rel_left _ (int.gcd_dvd_gcd_mul_right_right a m n) h
 
 /-- If `gcd a (m * n) = 1`, then `gcd a n = 1`. -/
-lemma gcd_eq_one_of_gcd_mul_eq_one_rift {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd n = 1 :=
+lemma gcd_eq_one_of_gcd_mul_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd n = 1 :=
 nat.dvd_one.mp $ trans_rel_left _ (int.gcd_dvd_gcd_mul_left_right a n m) h
 
 end int
@@ -333,16 +333,12 @@ begin
     { rw [hn0, mul_zero],
       exact or.inl (jacobi_sym_zero_right a), },
     rw [nat.cast_mul] at hmng,
-    have hmg : a.gcd m = 1,
-    { have t := int.gcd_dvd_gcd_mul_right_right a m n, rw hmng at t, exact nat.dvd_one.mp t,},
-    have hng : a.gcd n = 1,
-    { have t := int.gcd_dvd_gcd_mul_left_right a n m, rw hmng at t, exact nat.dvd_one.mp t,},
+    have hng := hn (int.gcd_eq_one_of_gcd_mul_eq_one_right hmng),
     simp_rw [@jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩],
-    cases hm hmg with hl hr,
-    { rw [hl, one_mul],
-      exact hn hng, },
+    cases hm (int.gcd_eq_one_of_gcd_mul_eq_one_left hmng) with hl hr,
+    { rwa [hl, one_mul], },
     { rw [hr, neg_mul, one_mul, neg_inj, neg_eq_iff_neg_eq],
-      exact or.dcases_on (hn hng) or.inr (λ hr', or.inl hr'.symm), } },
+      exact or.dcases_on hng or.inr (λ hr', or.inl hr'.symm), } },
 end
 
 /-- The square of the Jacobi symbol `(a / b)` is `1` when `a` and `b` are coprime. -/

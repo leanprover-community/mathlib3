@@ -175,7 +175,20 @@ function.injective.of_comp_iff' f (equiv_like.bijective e)
   function.bijective (f ∘ e) ↔ function.bijective f :=
 (equiv_like.bijective e).of_comp_iff f
 
+/-- This lemma is only supposed to be used in the generic context, when working with instances
+of classes extending `equiv_like`.
+For concrete isomorphism types such as `equiv`, you should use `equiv.symm_apply_apply`
+or its equivalent.
+
+TODO: define a generic form of `equiv.symm`. -/
 @[simp] lemma inv_apply_apply (e : E) (a : α) : equiv_like.inv e (e a) = a := left_inv _ _
+
+/-- This lemma is only supposed to be used in the generic context, when working with instances
+of classes extending `equiv_like`.
+For concrete isomorphism types such as `equiv`, you should use `equiv.apply_symm_apply`
+or its equivalent.
+
+TODO: define a generic form of `equiv.symm`. -/
 @[simp] lemma apply_inv_apply (e : E) (b : β) : e (equiv_like.inv e b) = b := right_inv _ _
 
 omit iE

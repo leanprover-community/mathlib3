@@ -202,10 +202,9 @@ lemma ne_zero_of_gcd_eq_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p = 1)
 lemma eq_zero_of_gcd_ne_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p ≠ 1) :
   (a : zmod p) = 0 :=
 begin
-  rw int_coe_zmod_eq_zero_iff_dvd a p,
-  have hr := int.gcd_dvd_right a p, norm_cast at hr,
+  refine (int_coe_zmod_eq_zero_iff_dvd a p).mpr _,
   have hl := int.gcd_dvd_left a p,
-  rwa ← (nat.prime.dvd_iff_eq pp h).mp hr at hl,
+  rwa ← (nat.prime.dvd_iff_eq pp h).mp (int.coe_nat_dvd.mp (int.gcd_dvd_right a p)) at hl,
 end
 
 end zmod

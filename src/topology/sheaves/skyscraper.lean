@@ -151,7 +151,7 @@ by { contrapose! h, exact specializes_iff_forall_open.2 (λ s o h₁, h ⟨⟨s,
 
 variable [Π (U : opens X), decidable (p₀ ∈ U)]
 /--
-The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}`
+The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}`
 -/
 @[simps] def skyscraper_presheaf_cocone_of_specializes {y : X} (h : p₀ ⤳ y) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S) :=
@@ -190,7 +190,7 @@ noncomputable def skyscraper_presheaf_stalk_of_specializes [has_colimits C]
 colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ S h⟩
 
 /--
-The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}`
+The cocone at `*` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}`
 -/
 @[simps] def skyscraper_presheaf_cocone (y : X) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S) :=

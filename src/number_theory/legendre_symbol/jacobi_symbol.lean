@@ -262,26 +262,17 @@ end
 /-- The Jacobi symbol is multiplicative in its first argument. -/
 lemma jacobi_sym_mul_left (a₁ a₂ : ℤ) (b : ℕ) : [a₁ * a₂ | b]ⱼ = [a₁ | b]ⱼ * [a₂ | b]ⱼ :=
 begin
-  let P : ℕ → Prop := λ b, [a₁ * a₂ | b]ⱼ = [a₁ | b]ⱼ * [a₂ | b]ⱼ,
-  have h0 : P 0,
-  { simp_rw [P, jacobi_sym, prime_factors_zero, list.map_nil, list.prod_nil, one_mul], },
-  have h1 : P 1,
-  { simp_rw [P, jacobi_sym, prime_factors_one, list.map_nil, list.prod_nil, one_mul], },
-  have hp : ∀ p : ℕ, p.prime → P p,
-  { intros p pp,
-    haveI : fact p.prime := ⟨pp⟩,
-    simp_rw [P, ← legendre_sym.to_jacobi_sym, legendre_sym_mul], },
-  have h : ∀ m n : ℕ, P m → P n → P (m * n),
-  { intros m n hm hn,
-    simp_rw [P] at hm hn ⊢,
-    by_cases hmz : m = 0,
+  have h0 : [a₁ * a₂ | 0]ⱼ = [a₁ | 0]ⱼ * [a₂ | 0]ⱼ :=
+  by simp_rw [jacobi_sym, prime_factors_zero, list.map_nil, list.prod_nil, one_mul],
+  refine rec_on_mul h0 _ (λ p pp, _) (λ m n hm hn, _) b,
+  { simp_rw [jacobi_sym, prime_factors_one, list.map_nil, list.prod_nil, one_mul], },
+  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_mul p ⟨pp⟩], },
+  { by_cases hmz : m = 0,
     { rw [hmz, zero_mul], exact h0, },
     by_cases hnz : n = 0,
     { rw [hnz, mul_zero], exact h0, },
-    haveI : ne_zero m := ⟨hmz⟩,
-    haveI : ne_zero n := ⟨hnz⟩,
-    simp_rw [jacobi_sym_mul_right, hm, hn, mul_mul_mul_comm], },
-  exact rec_on_mul h0 h1 hp h b,
+    simp_rw [@jacobi_sym_mul_right _ _ _ ⟨hmz⟩ ⟨hnz⟩],
+    rw [hm, hn, mul_mul_mul_comm], },
 end
 
 /-- We have that `(a^e / b) = (a / b)^e` for the Jacobi symbol. -/

@@ -465,20 +465,11 @@ lemma jacobi_sym_value (a : ℤ) {R : Type*} [comm_semiring R] (χ : R →* ℤ)
   (hp : ∀ (p : ℕ) (pp : p.prime) (h2 : p ≠ 2), @legendre_sym p ⟨pp⟩ a = χ p) {b : ℕ} (hb : odd b) :
   [a | b]ⱼ = χ b :=
 begin
-  let P : ℕ → Prop := λ b, [a | b]ⱼ = χ b,
-  have h1 : P 1,
-  { simp_rw [P, jacobi_sym_one_right, nat.cast_one, map_one], },
-  have hp' : ∀ p : ℕ, p.prime → p ≠ 2 → P p,
-  { intros p pp p2,
-    haveI : fact p.prime := ⟨pp⟩,
-    simp_rw [P, ← legendre_sym.to_jacobi_sym, hp p pp p2], },
-  have hmul : ∀ m n : ℕ, odd m → odd n → P m → P n → P (m * n),
-  { intros m n hmo hno hm hn,
-    simp_rw [P] at hm hn ⊢,
-    haveI : ne_zero m := ⟨ne_zero_of_odd hmo⟩,
-    haveI : ne_zero n := ⟨ne_zero_of_odd hno⟩,
-    rw [nat.cast_mul, jacobi_sym_mul_right, hm, hn, map_mul], },
-  exact nat.mul_induction_odd h1 hp' hmul b hb,
+  refine nat.mul_induction_odd (by simp_rw [jacobi_sym_one_right, nat.cast_one, map_one]) _ _ b hb,
+  { exact λ p pp p2, by simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, hp p pp p2], },
+  { exact λ m n hmo hno hm hn,
+    by rw [nat.cast_mul, @jacobi_sym_mul_right _ _ _ ⟨ne_zero_of_odd hmo⟩ ⟨ne_zero_of_odd hno⟩,
+           hm, hn, map_mul], }
 end
 
 /-- If `b` is odd, then the Jacobi symbol `(-1 / b)` is given by `χ₄ b`. -/

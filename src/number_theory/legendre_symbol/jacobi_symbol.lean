@@ -9,6 +9,53 @@ import number_theory.legendre_symbol.quadratic_reciprocity
 # The Jacobi Symbol
 
 We define the Jacobi symbol and prove its main properties.
+
+## Main definitions
+
+We define the Jacobi symbol, `jacobi_sym a b` for integers `a` and natural numbers `b`
+as the product over the prime factors `p` of `b` of the Legendre symbols `zmod.legendre_sym p a`.
+This agrees with the mathematical definition when `b` is odd.
+
+The prime factors are obtained via a variant of `nat.factors`, `nat.prime_factors`,
+that includes the information that the factors are primes. Since `nat.factors 0 = []`,
+this implies in particular that `jacobi_sym a 0 = 1` for all `a`.
+
+## Main statements
+
+We prove the main properties of the Legendre symbol, including the following.
+
+* Multiplicativity in both arguments (`jacobi_sym_mul_left`, `jacobi_sym_mul_right`)
+
+* The value of the symbol is `1` or `-1` when the arguments are coprime
+  (`jacobi_sym_eq_one_or_neg_one`)
+
+* The symbol vanishes if and only if `b ≠ 0` and the arguments are not coprime
+  (`jacobi_sym_eq_zero_iff`)
+
+* If the symbol has the value `-1`, then `a : zmod b` is not a square (`jacobi_sym_eq_neg_one`)
+
+* Quadratic reciprocity (`jacobi_sym_quadratic_reciprocity`,
+  `jacobi_sym_quadratic_reciprocity_one_mod_four`,
+  `jacobi_sym_quadratic_reciprocity_threee_mod_four`)
+
+* The supplementary laws for `a = -1`, `a = 2`, `a = -2` (`jacobi_sym_neg_one`, `jacobi_sym_two`,
+  `jacobi_sym_neg_two`)
+
+* The symbol depends on `a` only via its residue class mod `b` (`jacobi_sym_mod_left`)
+  and on `b` only via its residue class mod `4*a` (`jacobi_sym_mod_right`)
+
+## Notations
+
+We define the notation `[a | b]ⱼ` for `legendre_sym a b`, localized to `number_theory_symbols`.
+
+## Implementation notes
+
+We implement a variant `nat.prime_factors` of `nat.factors` that returns a `list primes`
+and use this for the definition of the Jacobi symbol (we need the information that the
+factors are prime for the Legendre symbols in the product to be defined).
+
+## Tags
+Jacobi symbol, quadratic reciprocity
 -/
 
 section prime_factors

@@ -473,7 +473,7 @@ by rw [← qr_sign_neg_one_pow ha hb, qr_sign_symm ha hb, jacobi_sym_quadratic_r
 
 /-- The Law of Quadratic Reciprocity for the Jacobi symbol: if `a` and `b` are natural numbers
 with `a % 4 = 1` and `b` odd, then `(a / b) = (b / a)`. -/
-theorem jacobi_sym_quadratic_reciprocity_one_mod_four {a b : ℕ}  (ha : a % 4 = 1) (hb : odd b) :
+theorem jacobi_sym_quadratic_reciprocity_one_mod_four {a b : ℕ} (ha : a % 4 = 1) (hb : odd b) :
   [a | b]ⱼ = [b | a]ⱼ :=
 by rw [jacobi_sym_quadratic_reciprocity (odd_iff.mpr (odd_of_mod_four_eq_one ha)) hb,
        pow_mul, neg_one_pow_div_two_of_one_mod_four ha, one_pow, one_mul]

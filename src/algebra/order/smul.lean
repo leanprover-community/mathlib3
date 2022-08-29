@@ -142,8 +142,8 @@ lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) : bdd_above (c 
 
 end ordered_smul
 
-/-- To prove that a linear ordered module is ordered, it suffices to verify only the first axiom of
-`ordered_smul`. -/
+/-- To prove that a linear ordered monoid is an ordered module, it suffices to verify only the first
+axiom of `ordered_smul`. -/
 lemma ordered_smul.mk'' [ordered_semiring 𝕜] [linear_ordered_add_comm_monoid M] [smul_with_zero 𝕜 M]
   (h : ∀ ⦃c : 𝕜⦄, 0 < c → strict_mono (λ a : M, c • a)) :
   ordered_smul 𝕜 M :=

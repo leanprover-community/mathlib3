@@ -246,9 +246,7 @@ begin
   haveI := field.equal_char_zero K,
   rw ←rat_cast_eq_cast_coe K,
   change (algebra_map R K) (x.num /ₚ ↑(x.pnat_denom)) = (x.num /ₚ ↑(x.pnat_denom)),
-  simp_rw [divp],
-  simp only [map_mul, ring_hom.map_int_cast, ring_hom.map_units_inv,
-    coe_coe_eq_coe_coe, coe_coe, map_nat_cast, units.coe_inv]
+  simp [divp],
 end
 
 end field

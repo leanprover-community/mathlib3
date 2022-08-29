@@ -81,6 +81,8 @@ end no_covariant
 variables [no_zero_divisors R] [add_left_cancel_monoid A] [linear_order A]
   [covariant_class A A (function.swap (+)) (<)] {f g : add_monoid_algebra R A} {a b : A}
 
+/--  If `R` is a semiring with no non-trivial zero-divisors and `A` is a right-ordered add cancel
+monoid, then `add_monoid_algebra R A` also contains no non-zero zero-divisors. -/
 lemma no_zero_divisors.of_right_ordered : no_zero_divisors (add_monoid_algebra R A) :=
 ⟨λ f g fg, begin
   contrapose! fg,

@@ -888,11 +888,12 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} [infinite α] {s t : set α} (h
   (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
 by { rw [mk_compl_of_infinite s hs, mk_compl_of_infinite t ht] }
 
-lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [fintype α]
+lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [finite α]
   {s : set α} {t : set β} (h1 : lift.{max v w} (#α) = lift.{max u w} (#β))
   (h2 : lift.{max v w} (#s) = lift.{max u w} (#t)) :
   lift.{max v w} (#(sᶜ : set α)) = lift.{max u w} (#(tᶜ : set β)) :=
 begin
+  casesI nonempty_fintype α,
   rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
   replace h1 : fintype.card α = fintype.card β := (fintype.of_equiv_card _).symm,
   classical,
@@ -903,11 +904,11 @@ begin
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 
-lemma mk_compl_eq_mk_compl_finite {α β : Type u} [fintype α] {s : set α} {t : set β}
+lemma mk_compl_eq_mk_compl_finite {α β : Type u} [finite α] {s : set α} {t : set β}
   (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
 by { rw ← lift_inj, apply mk_compl_eq_mk_compl_finite_lift; rwa [lift_inj] }
 
-lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [fintype α] {s t : set α}
+lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [finite α] {s t : set α}
   (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
 mk_compl_eq_mk_compl_finite rfl h
 
@@ -924,7 +925,7 @@ begin
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end
 
-theorem extend_function_finite {α β : Type*} [fintype α] {s : set α} (f : s ↪ β)
+theorem extend_function_finite {α β : Type*} [finite α] {s : set α} (f : s ↪ β)
   (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   apply extend_function f,

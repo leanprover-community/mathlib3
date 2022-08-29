@@ -1424,7 +1424,8 @@ end
 /-- Hölder's inequality for the integral of a product of norms. The integral of the product of two
 norms of functions is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are
 conjugate exponents. -/
-theorem integral_mul_norm_le_Lp_mul_Lq {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+theorem integral_mul_norm_le_Lp_mul_Lq {E} [normed_add_comm_group E] {f g : α → E}
+  {p q : ℝ} (hpq : p.is_conjugate_exponent q)
   (hf : mem_ℒp f (ennreal.of_real p) μ) (hg : mem_ℒp g (ennreal.of_real q) μ) :
   ∫ a, ∥f a∥ * ∥g a∥ ∂μ ≤ (∫ a, ∥f a∥ ^ p ∂μ) ^ (1/p) * (∫ a, ∥g a∥ ^ q ∂μ) ^ (1/q) :=
 begin

@@ -147,6 +147,19 @@ lemma iso.induce_restrict {V V' : Type*} {G : simple_graph V} {G' : simple_graph
 lemma iso.connected {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') :
   G.connected ↔ G'.connected := sorry
 
+
+namespace comp_out
+
+lemma of_connected_disjoint.eq {K K' : set V} (KeK' : K = K') (S : set V)
+  (conn : (G.induce S).connected) (dis : disjoint K S) :
+  (of_connected_disjoint S conn dis : set V) = (of_connected_disjoint S conn (by {rw KeK' at dis, exact dis}) : set V) :=
+begin
+  induction KeK',
+  refl,
+end
+
+end comp_out
+
 /-
   This is the key part of Hopf-Freudenthal
   Assuming this is proved:
@@ -200,24 +213,21 @@ begin
 
   have Einf : E.inf := inf E Edis,
   have Finf : F.inf, by {
-    rw ←φK'eq at F,
-    let := ((comp_out.equiv_of_iso φ K').right_inv F),
-    let Fi := (comp_out.equiv_of_iso φ ↑K').inv_fun F,
-    have : Fi.inf, by
-    { apply inf,
-      apply (comp_out.equiv_of_iso.dis φ K' Fi).mpr,
-      dsimp only [coe_fn,has_coe_to_fun.coe],
-      rw this,
-      convert Fdis,
-      sorry,},
-    convert ((comp_out.equiv_of_iso.inf φ K' Fi).mp this),
-    exact φK'eq.symm,
-    sorry,
-    -- rewriting troubles :( due to finset↔set conversions
-    -- the idea is that all components of K' disjoint from K' are infinite
-    -- but we have a bijection between the components of K' and those of φK' preserving disjointness and
-    -- finiteness
-    -- since F is disjoint, it is infinite
+
+    dsimp only [comp_out.inf],
+    rw comp_out.of_connected_disjoint.eq G φK'eq.symm,
+
+    let e := (comp_out.equiv_of_iso φ K'),
+    rw ←e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _),
+    let inv_iff := comp_out.equiv_of_iso.inf φ K' (e.inv_fun (comp_out.of_connected_disjoint ↑K' Kc' _)),
+    dsimp only [comp_out.inf,←equiv.to_fun_as_coe] at inv_iff,
+    rw ←inv_iff,
+    apply inf,
+    let dis_iff := comp_out.equiv_of_iso.dis φ K' (e.inv_fun (comp_out.of_connected_disjoint ↑K' Kc' _)),
+    rw dis_iff,
+    dsimp only [←equiv.to_fun_as_coe],
+    rw e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _),
+    apply comp_out.of_connected_disjoint_dis,
   },
 
   apply inf_comp_out.nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'n) (K'n) ⟨⟨F,Fdis⟩,Finf⟩ _ ⟨⟨E,Edis⟩,Einf⟩ Esub Fsub,

@@ -518,21 +518,21 @@ end
 
 lemma equiv_of_iso.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) (C : G.comp_out K) : (φ '' C) = (equiv_of_iso φ K C) :=
- begin
-    refine C.ind _,
-    rintro v,
-    dsimp only [equiv_of_iso, connected_component.equiv_of_iso,out.iso],
-    simp only [rel_iso.coe_fn_mk, rel_iso.coe_fn_to_equiv, equiv.coe_fn_mk, connected_component.lift_mk],
-    ext,
-    simp only [set.mem_image, set_like.mem_coe, mem_supp_iff, connected_component.eq],
-    split,
-    rintro ⟨y,⟨yv⟩,rfl⟩, exact ⟨yv.map ((out.iso φ K).to_hom)⟩,
-    rintro ⟨yv⟩, use φ.symm x, refine ⟨_,by simp only [rel_iso.apply_symm_apply]⟩,
-    constructor,
-    convert yv.map (out.iso φ K).symm.to_hom,
-    change v = (out.iso φ K).symm (φ v),
-    rw out.iso_eq_apply_symm φ K, simp only [rel_iso.symm_apply_apply],
- end
+begin
+  refine C.ind _,
+  rintro v,
+  dsimp only [equiv_of_iso, connected_component.equiv_of_iso,out.iso],
+  simp only [rel_iso.coe_fn_mk, rel_iso.coe_fn_to_equiv, equiv.coe_fn_mk, connected_component.lift_mk],
+  ext,
+  simp only [set.mem_image, set_like.mem_coe, mem_supp_iff, connected_component.eq],
+  split,
+  rintro ⟨y,⟨yv⟩,rfl⟩, exact ⟨yv.map ((out.iso φ K).to_hom)⟩,
+  rintro ⟨yv⟩, use φ.symm x, refine ⟨_,by simp only [rel_iso.apply_symm_apply]⟩,
+  constructor,
+  convert yv.map (out.iso φ K).symm.to_hom,
+  change v = (out.iso φ K).symm (φ v),
+  rw out.iso_eq_apply_symm φ K, simp only [rel_iso.symm_apply_apply],
+end
 
 lemma equiv_of_iso.dis {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) (C : G.comp_out K) : C.dis ↔ (equiv_of_iso φ K C).dis :=

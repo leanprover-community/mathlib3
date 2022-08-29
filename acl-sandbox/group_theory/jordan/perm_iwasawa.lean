@@ -5,20 +5,26 @@ Authors: Antoine Chambert-Loir
 -/
 
 import tactic.basic tactic.group
+
 import group_theory.solvable
 import group_theory.group_action.sub_mul_action
--- import group_theory.perm.concrete_cycle
-
-import .for_mathlib.alternating
+import .for_mathlib.set
 import .for_mathlib.group_theory__subgroup__basic
-
-import .primitive
-import .multiple_transitivity
--- import .sub_mul_actions
+import .for_mathlib.alternating
+import .mul_action_finset
 
 import .jordan
 
-import .mul_action_finset
+
+/-
+-- import .for_mathlib.alternating
+
+import .primitive
+import .multiple_transitivity
+
+
+ -/
+
 
 open_locale pointwise
 
@@ -109,28 +115,27 @@ begin
   rw nat.sub_add_cancel,
   exact set_fintype_card_le_univ s,
 end
-/- -- smul_set_card_eq
-lemma card_smul_eq (s : set α) (g : G) :
-  fintype.card (g • s : set α)  = fintype.card s :=
-begin
-  rw ← set.coe_to_finset s,
-  simp only [← set.to_finset_card],
-  change ((λ x, g • x) '' ↑(s.to_finset)).to_finset.card = _,
-  simp_rw ← finset.coe_image ,
-  simp only [finset.to_finset_coe],
-  rw finset.card_image_of_injective _ (mul_action.injective g),
-end -/
 
-lemma moves_in (G : subgroup (equiv.perm α)) (t : set α) (hGt : stabilizer (equiv.perm α) t < G) :
-  ∀ (a ∈ t) (b ∈ t), ∃ (g : G), g • a = b :=
+
+lemma moves_in (t : set α) : ∀ (a ∈ t) (b ∈ t),
+  ∃ (g ∈ stabilizer (equiv.perm α) t), g • a = b :=
 begin
   intros a ha b hb,
   use equiv.swap a b,
-  { apply le_of_lt hGt,
-    apply swap_mem_stabilizer ha hb, },
+  split,
+  { apply swap_mem_stabilizer ha hb, },
   { change (equiv.swap a b) • a = b,
     simp only [equiv.perm.smul_def],
     rw equiv.swap_apply_left, },
+end
+
+lemma moves_in' (G : subgroup (equiv.perm α)) (t : set α)
+  (hGt : stabilizer (equiv.perm α) t ≤ G) :
+  ∀ (a ∈ t) (b ∈ t), ∃ (g : G), g • a = b :=
+begin
+  intros a ha b hb,
+  obtain ⟨g, hg, H⟩ := moves_in t a ha b hb,
+  use g, apply hGt,  exact hg, exact H,
 end
 
 example (s : finset α) (g : equiv.perm α) : (g • s).card  = s.card :=
@@ -143,8 +148,6 @@ example (s t : set α) (hst : s ⊆ t) : fintype.card s ≤ fintype.card t :=
 begin
   exact set.card_le_of_subset hst,
 end
-
-#check fixing_subgroup
 
 lemma fixing_subgroup_le_stabilizer (s : set α) :
   fixing_subgroup G s ≤ stabilizer G s :=
@@ -308,6 +311,119 @@ example (s : set α) (g : equiv.perm α) :
   apply mul_action.bijective,
 end
 
+example (s : set α) (g : equiv.perm α) : g • s ⊆ s ↔ g • s = s :=
+begin
+  rw ← mem_stabilizer_iff,
+  rw ← mem_stabilizer_of_finite_iff,
+end
+
+lemma equiv.perm.of_subtype.mem_stabilizer (s : set α) (g : equiv.perm s) :
+  equiv.perm.of_subtype g ∈ stabilizer (equiv.perm α) s :=
+begin
+  rw mem_stabilizer_of_finite_iff,
+  { intro x,
+    rw set.mem_smul_set ,
+    rintro ⟨y, hy, rfl⟩,
+    simp only [equiv.perm.smul_def],
+    rw equiv.perm.of_subtype_apply_of_mem g hy,
+    refine subtype.mem _, },
+/- -- Preuve plus longue qui marche sans [fintype s]
+  rw mem_stabilizer_iff,
+  apply set.subset.antisymm,
+  { intro x,
+    rw set.mem_smul_set ,
+    rintro ⟨y, hy, rfl⟩,
+    simp only [equiv.perm.smul_def],
+    rw equiv.perm.of_subtype_apply_of_mem g hy,
+    refine subtype.mem _, },
+  { intros x hx,
+    obtain ⟨y, hy⟩ := equiv.surjective g ⟨x, hx⟩,
+    rw set.mem_smul_set,
+    use y,
+    apply and.intro (y.prop),
+    simp only [hy, equiv.perm.smul_def, equiv.perm.of_subtype_apply_coe,
+      subtype.coe_mk], },
+      -/
+end
+
+
+lemma equiv.perm.of_subtype.mem_stabilizer' (s : set α) (g : equiv.perm (sᶜ : set α)) :
+  equiv.perm.of_subtype g ∈ stabilizer (equiv.perm α) s :=
+begin
+ -- The proof that does not work, for a reason I don't understand
+ -- stabilizer_compl adds a `classical.prop_decidable` instance, but
+ -- the lemma expects `set.compl_decidable`.
+ /-
+    rw ← stabilizer_compl,
+    let hz := @equiv.perm.of_subtype.mem_stabilizer α _ _ (sᶜ : set α) g,
+-/
+  rw mem_stabilizer_of_finite_iff,
+  { intro x,
+    rw set.mem_smul_set ,
+    rintro ⟨y, hy, rfl⟩,
+    simp only [equiv.perm.smul_def],
+    rw equiv.perm.of_subtype_apply_of_not_mem g (set.not_mem_compl_iff.mpr hy),
+    exact hy, },
+/- -- Une preuve plus longue qui marche sans [fintype s]
+  rw mem_stabilizer_iff,
+  apply set.subset.antisymm,
+  { intro x,
+    rw set.mem_smul_set ,
+    rintro ⟨y, hy, rfl⟩,
+    simp only [equiv.perm.smul_def],
+    rw equiv.perm.of_subtype_apply_of_not_mem g (set.not_mem_compl_iff.mpr hy),
+    exact hy, },
+  { intros x hx,
+    use x, apply and.intro hx,
+    simp only [equiv.perm.smul_def],
+    apply equiv.perm.of_subtype_apply_of_not_mem,
+    rw set.not_mem_compl_iff, exact hx, }, -/
+end
+
+lemma equiv.perm.stabilizer.is_preprimitive (s : set α) : is_preprimitive (stabilizer (equiv.perm α) s) s :=
+begin
+  let φ : stabilizer (equiv.perm α) s → equiv.perm s := mul_action.to_perm,
+  let f : s →ₑ[φ] s := {
+  to_fun := id,
+  map_smul' := λ g x,  by simp only [id.def, equiv.perm.smul_def, to_perm_apply], },
+  have hf : function.bijective f := function.bijective_id,
+  rw is_preprimitive_of_bijective_map_iff _ hf,
+  exact equiv.perm.is_preprimitive s,
+
+  -- function.surjective φ,
+  intro g, use equiv.perm.of_subtype g,
+  { -- ⇑equiv.perm.of_subtype g ∈ stabilizer (equiv.perm α) s
+    apply equiv.perm.of_subtype.mem_stabilizer,
+   },
+  { -- φ ⟨⇑equiv.perm.of_subtype g, _⟩ = g
+    ext ⟨x, hx⟩,
+    change (equiv.perm.of_subtype g) • x = _,
+    simp only [equiv.perm.smul_def],
+    rw equiv.perm.of_subtype_apply_of_mem, },
+end
+
+lemma equiv.perm.stabilizer.is_preprimitive' (s : set α) (G : subgroup (equiv.perm α))
+  (hG : stabilizer (equiv.perm α) s ≤ G) : is_preprimitive (stabilizer G s) s :=
+begin
+  let φ : stabilizer (equiv.perm α) s → stabilizer G s :=
+  begin
+    rintro ⟨g,hg⟩,
+    use g,
+    apply hG, exact hg,
+    simp only [mem_stabilizer_iff], change g • _ = _, exact hg,
+  end,
+  let f: s →ₑ[φ] s := {
+    to_fun := id,
+    map_smul' := λ ⟨m, hm⟩ x,
+    begin
+      simp only [id.def, φ, ← subtype.coe_inj],
+      simp only [has_smul.stabilizer_def, subgroup.coe_mk, equiv.perm.smul_def],
+      refl,
+    end, },
+  have : function.surjective f := function.surjective_id,
+  apply is_preprimitive_of_surjective_map this,
+  apply equiv.perm.stabilizer.is_preprimitive,
+end
 
 theorem equiv.perm.is_maximal_stab' (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
   (hα : fintype.card s < fintype.card (sᶜ : set α)) :
@@ -327,8 +443,13 @@ begin
   -- G acts transitively
   haveI : is_pretransitive G α,
   { apply is_pretransitive.of_partition G s,
-    { apply moves_in, exact hG, },
-    { apply moves_in, rw stabilizer_compl, exact hG, },
+    { intros a ha b hb,
+      obtain ⟨g, _, h⟩ := moves_in' G s (le_of_lt hG) a ha b hb,
+      use g, exact h, },
+    { intros a ha b hb,
+      rw ← stabilizer_compl at hG,
+      obtain ⟨g, hg, h⟩ := moves_in' G sᶜ (le_of_lt hG) a ha b hb,
+      use g, exact h, },
     { intro h,
       apply lt_irrefl G, apply lt_of_le_of_lt _ hG,
       --  G ≤ stabilizer (equiv.perm α) s,
@@ -357,7 +478,7 @@ begin
       { apply nat.lt_irrefl (fintype.card B),
         apply lt_of_le_of_lt this,
         simp_rw hBsc, exact hα, },
-      rw ← card_smul_eq B k,
+      rw ← set.smul_set_card_eq k B,
       apply set.card_le_of_subset ,
       change k • B ⊆ s,
       rw [← set.disjoint_compl_right_iff_subset, ← hBsc],
@@ -397,49 +518,8 @@ begin
           map_smul' := λ ⟨m, hm⟩ x, by simp only [has_smul.stabilizer_def], },
         apply mul_action.is_block_preimage f' hB,
 
-        -- is_preprimitive (stabilizer G (sᶜ : set α)) (sᶜ : set α)
-        let φ : stabilizer G (sᶜ : set α) → equiv.perm (sᶜ : set α) := mul_action.to_perm,
-        let f : (sᶜ : set α) →ₑ[φ] (sᶜ : set α) := {
-            to_fun := id,
-            map_smul' := λ g x,  by simp only [id.def, equiv.perm.smul_def, to_perm_apply], },
-        have hf : function.bijective f := function.bijective_id,
-        rw is_preprimitive_of_bijective_map_iff _ hf,
-        exact equiv.perm.is_preprimitive ↥sᶜ,
-
-        -- function.surjective φ,
-        -- will need to adjust for alternating_group
-
-        intro g,
-        suffices : equiv.perm.of_subtype g ∈ stabilizer (equiv.perm α) sᶜ,
-        use equiv.perm.of_subtype g,
-        { apply le_of_lt hG,
-          rw ← stabilizer_compl,
-          exact this, },
-        { rw mem_stabilizer_iff,
-          change (equiv.perm.of_subtype g) • sᶜ = sᶜ,
-          rw ← mem_stabilizer_iff,
-          exact this, },
-        { ext ⟨x, hx⟩,
-          change (equiv.perm.of_subtype g) • x = _,
-          simp only [equiv.perm.smul_def],
-          rw equiv.perm.of_subtype_apply_of_mem, },
-
-        { -- equiv.perm.of_subtype g ∈ stabilizer (equiv.perm α) sᶜ
-          rw mem_stabilizer_iff,
-          apply set.subset.antisymm,
-          { intro x,
-            rw set.mem_smul_set ,
-            rintro ⟨y, hy, rfl⟩,
-            simp only [equiv.perm.smul_def],
-            rw equiv.perm.of_subtype_apply_of_mem g hy,
-            refine subtype.mem _, },
-          { intros x hx,
-            obtain ⟨y, hy⟩ := equiv.surjective g ⟨x, hx⟩,
-            rw set.mem_smul_set,
-            use y,
-            apply and.intro (y.prop),
-            simp only [hy, equiv.perm.smul_def, equiv.perm.of_subtype_apply_coe,
-              subtype.coe_mk], }, }, },
+        apply equiv.perm.stabilizer.is_preprimitive',
+        rw ← stabilizer_compl at hG, exact le_of_lt hG, },
 
       { -- B = coe '' (coe ⁻¹' B : set (sᶜ : set α)),
         apply set.subset.antisymm,
@@ -564,47 +644,8 @@ begin
       map_smul' := λ ⟨m, hm⟩ x, by simp only [has_smul.stabilizer_def], },
       apply mul_action.is_block_preimage f' hB,
 
-      -- is_preprimitive (stabilizer G s) s
-      let φ : stabilizer G s → equiv.perm s := mul_action.to_perm,
-      let f : s →ₑ[φ] s := {
-          to_fun := id,
-          map_smul' := λ g x,  by simp only [id.def, equiv.perm.smul_def, to_perm_apply], },
-      have hf : function.bijective f := function.bijective_id,
-      rw is_preprimitive_of_bijective_map_iff _ hf,
-      exact equiv.perm.is_preprimitive s,
-
-      -- function.surjective φ,
-      -- will need to adjust for alternating_group
-
-      intro g,
-      suffices : equiv.perm.of_subtype g ∈ stabilizer (equiv.perm α) s,
-      use equiv.perm.of_subtype g,
-      { apply le_of_lt hG, exact this, },
-      { rw mem_stabilizer_iff,
-        change (equiv.perm.of_subtype g) • s = s,
-        rw ← mem_stabilizer_iff,
-        exact this, },
-      { ext ⟨x, hx⟩,
-        change (equiv.perm.of_subtype g) • x = _,
-        simp only [equiv.perm.smul_def],
-        rw equiv.perm.of_subtype_apply_of_mem, },
-
-      { -- equiv.perm.of_subtype g ∈ stabilizer (equiv.perm α) s
-        rw mem_stabilizer_iff,
-        apply set.subset.antisymm,
-        { intro x,
-          rw set.mem_smul_set ,
-          rintro ⟨y, hy, rfl⟩,
-          simp only [equiv.perm.smul_def],
-          rw equiv.perm.of_subtype_apply_of_mem g hy,
-          refine subtype.mem _, },
-        { intros x hx,
-          obtain ⟨y, hy⟩ := equiv.surjective g ⟨x, hx⟩,
-          rw set.mem_smul_set,
-          use y,
-          apply and.intro (y.prop),
-          simp only [hy, equiv.perm.smul_def, equiv.perm.of_subtype_apply_coe,
-            subtype.coe_mk], }, },
+      apply equiv.perm.stabilizer.is_preprimitive',
+      exact le_of_lt hG,
 
       { -- B = coe '' (coe ⁻¹' B : set ↥s),
         apply set.subset.antisymm,
@@ -646,7 +687,8 @@ begin
               exact ha, },
           { -- ↑k ∈ G
             apply le_of_lt hG,
-            exact fixing_subgroup_le_stabilizer s hk, } },
+            apply mul_action.fixing_subgroup_le_stabilizer,
+            exact hk, } },
         { -- ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
           suffices : is_pretransitive (fixing_subgroup (equiv.perm α) s)
             (sub_mul_action.of_fixing_subgroup (equiv.perm α) s),
@@ -724,7 +766,7 @@ end
 /-- The action of equiv.perm α on the n-element subsets of α is preprimitive
 provided 1 ≤ n < #α and #α ≠ 2*n -/
 theorem nat.finset_is_preprimitive_of (n : ℕ) (h_one_le : 1 ≤ n) (hn : n < fintype.card α)
-  (hα : fintype.card α ≠ 2 * n) : is_preprimitive (equiv.perm α) (n.finset α) :=
+  (hα : fintype.card α ≠ 2 * n) : is_preprimitive (equiv.perm α) (nat.finset α n) :=
 begin
   classical,
   cases nat.eq_or_lt_of_le h_one_le with h_one h_one_lt,

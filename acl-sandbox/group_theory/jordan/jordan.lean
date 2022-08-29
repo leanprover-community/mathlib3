@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
+import .for_mathlib.set
 import .primitive
 import .multiple_primitivity
 
@@ -252,16 +253,6 @@ begin
   exact subtype.mk_eq_mk.mp  (ha' ⟨x, hx⟩)
 end
 
-lemma smul_set_card_eq {G : Type*} [group G] [mul_action G α]
-  (g : G) (s : set α) :
-  fintype.card (g • s : set α) = fintype.card s :=
-begin
-  conv_lhs { simp only [fintype.card_of_finset] },
-  conv_rhs { simp only [← set.to_finset_card] },
-  apply finset.card_image_of_injective,
-  exact mul_action.injective g,
-end
-
 /-- A primitivity criterion -/
 theorem is_preprimitive_of_fixing_subgroup_inter {G : Type*} [group G] [mul_action G α]
   {s : set α}
@@ -313,20 +304,20 @@ begin
     rw fintype.card_pos_iff ,
     use a },
   { simp only [finset.card_compl, set.to_finset_card],
-    rw smul_set_card_eq, },
+    rw set.smul_set_card_eq, },
   apply_instance,
 end
 
 -- α = Ω, s = Δ, α \ s = Γ
 -- 1 ≤ #Δ < #Ω, 1 < #Γ < #Ω
---
+/- -- TODO : prove :
 theorem strong_jordan_of_pretransitive (hG : is_preprimitive G α)
     {s : set α} {n : ℕ } (hsn : fintype.card s = n.succ)
     (hsn' : 1 + n.succ < fintype.card α)
     (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action.of_fixing_subgroup G s)) :
   is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 :=
 sorry
-
+ -/
 
 lemma aux_pigeonhole {s t : set α} (h : fintype.card α < fintype.card s + fintype.card t) :
   (s ∩ t).nonempty :=
@@ -530,7 +521,7 @@ begin
         { refine subset_trans hst _,
           apply set.inter_subset_right },
         { apply le_of_eq,
-          apply smul_set_card_eq }  },
+          apply set.smul_set_card_eq }  },
 
       { -- aux_pigeonhole ne marche pas !
         rw ← set.ne_empty_iff_nonempty,
@@ -582,11 +573,12 @@ begin
 
 end
 
-
+/- -- TODO : prove
 theorem strong_jordan_of_preprimitive (hG : is_preprimitive G α)
   {s : set α} {n : ℕ} (hsn : fintype.card s = n.succ) (hsn' : 1 + n.succ < fintype.card α)
   (hs_prim : is_preprimitive (fixing_subgroup G s) (sub_mul_action.of_fixing_subgroup G s)) :
   is_multiply_preprimitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 := sorry
+ -/
 
 theorem is_two_preprimitive_weak_jordan {n : ℕ} :
   ∀ {α : Type*} [fintype α]
@@ -762,7 +754,7 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
         { refine subset_trans hst _,
           apply set.inter_subset_right },
         { apply le_of_eq,
-          apply smul_set_card_eq }  },
+          apply set.smul_set_card_eq }  },
 
       { -- aux_pigeonhole ne marche pas !
         rw ← set.ne_empty_iff_nonempty,
@@ -1175,11 +1167,12 @@ begin
   norm_num
 end
 
-
+/- -- TODO : prove
 theorem jordan_prime_cycle [decidable_eq α] (hG : is_preprimitive G α)
   {p : nat} (hp : prime p) (hp' : p + 3 ≤ fintype.card α)
   {g : equiv.perm α} (hgc : equiv.perm.is_cycle g) (hgp : fintype.card g.support = p)
   (hg : g ∈ G) : alternating_group α ≤ G := sorry
+ -/
 
 end Jordan'
 

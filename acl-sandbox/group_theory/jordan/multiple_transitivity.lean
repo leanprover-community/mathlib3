@@ -12,8 +12,6 @@ import .for_mathlib.partitions
 import .for_mathlib.set
 import .for_mathlib.cardinal
 
--- import .equivariant_map
--- import .maximal_subgroups
 import .primitive
 import .for_mathlib.extensions
 

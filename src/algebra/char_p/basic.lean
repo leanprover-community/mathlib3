@@ -42,6 +42,9 @@ theorem char_p.cast_eq_zero [add_monoid_with_one R] (p : ℕ) [char_p R p] :
   (fintype.card R : R) = 0 :=
 by rw [← nsmul_one, card_nsmul_eq_zero]
 
+lemma char_p.add_order_of_one (R) [semiring R] : char_p R (add_order_of (1 : R)) :=
+⟨λ n, by rw [← nat.smul_one_eq_coe, add_order_of_dvd_iff_nsmul_eq_zero]⟩
+
 lemma char_p.int_cast_eq_zero_iff [add_group_with_one R] (p : ℕ) [char_p R p]
   (a : ℤ) :
   (a : R) = 0 ↔ (p:ℤ) ∣ a :=
@@ -329,10 +332,10 @@ theorem frobenius_inj [comm_ring R] [is_reduced R]
 
 /-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
 then every `a : R` is a square. -/
-lemma is_square_of_char_two' {R : Type*} [fintype R] [comm_ring R] [is_reduced R] [char_p R 2]
+lemma is_square_of_char_two' {R : Type*} [finite R] [comm_ring R] [is_reduced R] [char_p R 2]
  (a : R) : is_square a :=
-exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
-  ((fintype.bijective_iff_injective_and_card _).mpr ⟨frobenius_inj R 2, rfl⟩).surjective a
+by { casesI nonempty_fintype R, exact exists_imp_exists (λ b h, pow_two b ▸ eq.symm h)
+  (((fintype.bijective_iff_injective_and_card _).mpr ⟨frobenius_inj R 2, rfl⟩).surjective a) }
 
 namespace char_p
 
@@ -354,7 +357,7 @@ begin
   unfreezingI { rintro rfl },
   haveI : char_zero R := char_p_to_char_zero R,
   casesI nonempty_fintype R,
-  exact absurd nat.cast_injective (not_injective_infinite_fintype (coe : ℕ → R))
+  exact absurd nat.cast_injective (not_injective_infinite_finite (coe : ℕ → R))
 end
 
 lemma ring_char_ne_zero_of_finite [finite R] : ring_char R ≠ 0 :=

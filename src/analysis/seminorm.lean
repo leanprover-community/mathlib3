@@ -61,8 +61,8 @@ def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : 
   smul'     := smul,
   neg'      := λ x, by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul] }
 
-/-- Alternative constructor for a `seminorm` over a normed field `𝕜` that only assumes an
-inequality for the scalar multiplication. -/
+/-- Alternative constructor for a `seminorm` over a normed field `𝕜` that only assumes `f 0 = 0`
+and an inequality for the scalar multiplication. -/
 def seminorm.of_smul_le [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
   (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=

@@ -249,22 +249,14 @@ by simp_rw [jacobi_sym,
 /-- The Jacobi symbol `(1 / b)` has the value `1`. -/
 lemma jacobi_sym_one_left (b : ℕ) : [1 | b]ⱼ = 1 :=
 begin
-  let P : ℕ → Prop := λ b, [1 | b]ⱼ = 1,
-  have hp : ∀ p : ℕ, p.prime → P p,
-  { intros p pp,
-    haveI : fact p.prime := ⟨pp⟩,
-    simp_rw [P, ← legendre_sym.to_jacobi_sym, legendre_sym_one], },
-  have hmul : ∀ m n : ℕ, P m → P n → P (m * n),
-  { intros m n hm hn,
-    simp_rw [P] at hm hn ⊢,
-    by_cases hm0 : m = 0,
+  refine rec_on_mul (jacobi_sym_zero_right 1) (jacobi_sym_one_right 1)
+                    (λ p pp, _) (λ m n hm hn, _) b,
+  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_one p ⟨pp⟩], },
+  { by_cases hm0 : m = 0,
     { rw [hm0, zero_mul, jacobi_sym_zero_right], },
     by_cases hn0 : n = 0,
     { rw [hn0, mul_zero, jacobi_sym_zero_right], },
-    haveI : ne_zero m := ⟨hm0⟩,
-    haveI : ne_zero n := ⟨hn0⟩,
-    rw [jacobi_sym_mul_right, hm, hn, one_mul], },
-  exact rec_on_mul (jacobi_sym_zero_right 1) (jacobi_sym_one_right 1) hp hmul b,
+    rw [@jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩, hm, hn, one_mul], },
 end
 
 /-- The Jacobi symbol is multiplicative in its first argument. -/

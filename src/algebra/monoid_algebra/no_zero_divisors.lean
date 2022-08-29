@@ -76,31 +76,6 @@ begin
   simpa only [finset.mem_map, exists_prop] using hx,
 end
 
-/--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
-somewhat weaker typeclass assumptions, but also proves a weaker result. -/
-lemma single_mul_apply' (r : R) :
-  (single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
-begin
-  convert mul_apply_add_eq_mul_of_forall_ne _,
-  { exact single_eq_same.symm },
-  { rintros x y hx hy (hnx | hny),
-    { simpa [mem_support_iff, ne.def, single_apply_eq_zero, hnx] using hx },
-    { simp only [mem_support_iff, single_apply_ne_zero] at hx,
-      rcases hx with ⟨rfl, hx⟩,
-      simpa } },
-/-
-  classical,
-  nth_rewrite 0 ← f.erase_add_single b,
-  rw [mul_add, single_mul_single, finsupp.add_apply, finsupp.single_eq_same],
-  convert zero_add _,
-  refine finsupp.not_mem_support_iff.mp (λ h, _),
-  refine not_not.mpr ((support_mul (finsupp.single a r) (f.erase b)) h) _,
-  simpa only [finsupp.mem_support_single, finset.mem_bUnion, ne.def, finset.mem_singleton,
-    exists_prop, not_exists, not_and, and_imp, forall_eq, finsupp.support_erase, add_right_inj]
-    using λ _ x xs, (finset.ne_of_mem_erase xs).symm,
--/
-end
-
 end no_covariant
 
 variables [no_zero_divisors R] [add_left_cancel_monoid A] [linear_order A]

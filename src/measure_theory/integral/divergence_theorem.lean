@@ -53,7 +53,7 @@ universes u
 
 namespace measure_theory
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 section
 variables {n : ℕ}
@@ -296,7 +296,7 @@ end
 /-- An auxiliary lemma that is used to specialize the general divergence theorem to spaces that do
 not have the form `fin n → ℝ`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv
-  {F : Type*} [normed_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
   [borel_space F] (eL : F ≃L[ℝ] ℝⁿ⁺¹) (he_ord : ∀ x y, eL x ≤ eL y ↔ x ≤ y)
   (he_vol : measure_preserving eL volume volume) (f : fin (n + 1) → F → E)
   (f' : fin (n + 1) → F → F →L[ℝ] E) (s : set F) (hs : s.countable)
@@ -332,9 +332,8 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
     { refine λ x hx i, (Hd (eL.symm x) ⟨_, hx.2⟩ i).comp x eL.symm.has_fderiv_at,
       rw ← hIcc,
       refine preimage_interior_subset_interior_preimage eL.continuous _,
-      simp only [set.mem_preimage, eL.apply_symm_apply, ← pi_univ_Icc,
-        interior_pi_set (finite.of_fintype _), interior_Icc],
-      exact hx.1 },
+      simpa only [set.mem_preimage, eL.apply_symm_apply, ← pi_univ_Icc, interior_pi_set finite_univ,
+        interior_Icc] using hx.1 },
     { rw [← he_vol.integrable_on_comp_preimage he_emb, hIcc],
       simp [← hDF, (∘), Hi] }
   end

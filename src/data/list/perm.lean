@@ -7,6 +7,7 @@ import data.list.dedup
 import data.list.lattice
 import data.list.permutation
 import data.list.zip
+import data.list.range
 import logic.relation
 
 /-!
@@ -546,7 +547,7 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, p.cons_inv, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, p.cons a, s.cons2 _ _ _⟩⟩
 
-alias subperm_cons ↔ list.subperm.of_cons list.subperm.cons
+alias subperm_cons ↔ subperm.of_cons subperm.cons
 
 attribute [protected] subperm.cons
 
@@ -891,6 +892,14 @@ suffices ∀ {l₁ l₂}, l₁ ~ l₂ → pairwise R l₁ → pairwise R l₂, f
     exact h _ (p'.symm.subset m) }
 end
 
+lemma pairwise.perm {R : α → α → Prop} {l l' : list α} (hR : l.pairwise R)
+  (hl : l ~ l') (hsymm : symmetric R) : l'.pairwise R :=
+(hl.pairwise_iff hsymm).mp hR
+
+lemma perm.pairwise {R : α → α → Prop} {l l' : list α}
+  (hl : l ~ l') (hR : l.pairwise R) (hsymm : symmetric R) : l'.pairwise R :=
+hR.perm hl hsymm
+
 theorem perm.nodup_iff {l₁ l₂ : list α} : l₁ ~ l₂ → (nodup l₁ ↔ nodup l₂) :=
 perm.pairwise_iff $ @ne.symm α
 
@@ -915,6 +924,10 @@ begin
   rw [← append_assoc, ← append_assoc],
   exact perm_append_comm.append_right _
 end
+
+theorem map_append_bind_perm (l : list α) (f : α → β) (g : α → list β) :
+  l.map f ++ l.bind g ~ l.bind (λ x, f x :: g x) :=
+by simpa [←map_eq_bind] using bind_append_perm l (λ x, [f x]) g
 
 theorem perm.product_right {l₁ l₂ : list α} (t₁ : list β) (p : l₁ ~ l₂) :
   product l₁ t₁ ~ product l₂ t₁ :=
@@ -973,6 +986,24 @@ begin
     rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', h, rfl⟩,
     { exact perm_middle.trans ((IH _ _ h).cons _) },
     { exact (IH _ _ h).cons _ } }
+end
+
+lemma range_bind_sublists_len_perm {α : Type*} (l : list α) :
+  (list.range (l.length + 1)).bind (λ n, sublists_len n l) ~ sublists' l :=
+begin
+  induction l with h tl,
+  { simp [range_succ] },
+  { simp_rw [range_succ_eq_map, length, cons_bind, map_bind, sublists_len_succ_cons,
+      sublists'_cons, list.sublists_len_zero, list.singleton_append],
+    refine ((bind_append_perm (range (tl.length + 1)) _ _).symm.cons _).trans _,
+    simp_rw [←list.bind_map, ←cons_append],
+    rw [←list.singleton_append, ←list.sublists_len_zero tl],
+    refine perm.append _ (l_ih.map _),
+    rw [list.range_succ, append_bind, bind_singleton,
+      sublists_len_of_length_lt (nat.lt_succ_self _), append_nil,
+      ←list.map_bind (λ n, sublists_len n tl) nat.succ, ←cons_bind 0 _ (λ n, sublists_len n tl),
+      ←range_succ_eq_map],
+    exact l_ih }
 end
 
 theorem perm_lookmap (f : α → option α) {l₁ l₂ : list α}

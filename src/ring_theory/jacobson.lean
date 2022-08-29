@@ -356,8 +356,7 @@ begin
   have hcomm: φ'.comp (algebra_map R Rₘ) = (algebra_map S Sₘ).comp φ := is_localization.map_comp _,
   let f := quotient_map (I.comap (algebra_map S Sₘ)) φ le_rfl,
   let g := quotient_map I (algebra_map S Sₘ) le_rfl,
-  have := is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I
-    (by convert hI; casesI _inst_4; refl),
+  have := is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI,
   have := ((is_maximal_iff_is_maximal_disjoint Rₘ x _).1 this).left,
   have : ((I.comap (algebra_map S Sₘ)).comap φ).is_maximal,
   { rwa [comap_comap, hcomm, ← comap_comap] at this },
@@ -475,8 +474,7 @@ begin
     is_localization.is_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
   suffices : (⊥ : ideal (localization M')).is_maximal,
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (is_localization.map_injective_of_injective
-      M (localization M) (localization M')
-      quotient_map_injective (le_non_zero_divisors_of_no_zero_divisors hM'))),
+      M (localization M) (localization M') quotient_map_injective )),
     refine is_maximal_comap_of_is_integral_of_is_maximal' _ _ ⊥ this,
     apply is_integral_is_localization_polynomial_quotient P _ (submodule.coe_mem m) },
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
@@ -633,12 +631,11 @@ lemma comp_C_integral_of_surjective_of_jacobson
   {σ : Type*} [fintype σ] {S : Type*} [field S] (f : mv_polynomial σ R →+* S)
   (hf : function.surjective f) : (f.comp C).is_integral :=
 begin
-  haveI := classical.dec_eq σ,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin σ,
+  have e := (fintype.equiv_fin σ).symm,
   let f' : mv_polynomial (fin _) R →+* S :=
-    f.comp (rename_equiv R e.symm).to_ring_equiv.to_ring_hom,
+    f.comp (rename_equiv R e).to_ring_equiv.to_ring_hom,
   have hf' : function.surjective f' :=
-    ((function.surjective.comp hf (rename_equiv R e.symm).surjective)),
+    ((function.surjective.comp hf (rename_equiv R e).surjective)),
   have : (f'.comp C).is_integral,
   { haveI : (f'.ker).is_maximal := ker_is_maximal_of_surjective f' hf',
     let g : mv_polynomial _ R ⧸ f'.ker →+* S := ideal.quotient.lift f'.ker f' (λ _ h, h),
@@ -651,7 +648,7 @@ begin
   rw ring_hom.comp_assoc at this,
   convert this,
   refine ring_hom.ext (λ x, _),
-  exact ((rename_equiv R e.symm).commutes' x).symm,
+  exact ((rename_equiv R e).commutes' x).symm,
 end
 
 end mv_polynomial

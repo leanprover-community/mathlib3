@@ -72,9 +72,6 @@ begin
               one_ne_zero, and_self] },
 end
 
-lemma odd_gt_zero (h : odd n) : 0 < n :=
-by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
-
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 even_iff_two_dvd.symm.not.trans not_even_iff
 
@@ -94,6 +91,9 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
 
 theorem even_add' : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
+
+@[parity_simps] theorem even_add_one : even (n + 1) ↔ ¬ even n :=
+by simp [even_add]
 
 @[simp] theorem not_even_bit1 (n : ℕ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
@@ -117,9 +117,6 @@ theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
   (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
-
-@[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
-by rw [succ_eq_add_one, even_add]; simp [not_even_one]
 
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
@@ -200,6 +197,18 @@ by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
 lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+lemma bit0_div_two : bit0 n / 2 = n :=
+by rw [←nat.bit0_eq_bit0, bit0_eq_two_mul, two_mul_div_two_of_even (even_bit0 n)]
+
+lemma bit1_div_two : bit1 n / 2 = n :=
+by rw [←nat.bit1_eq_bit1, bit1, bit0_eq_two_mul, nat.two_mul_div_two_add_one_of_odd (odd_bit1 n)]
+
+@[simp] lemma bit0_div_bit0 : bit0 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul m, ←nat.div_div_eq_div_mul, bit0_div_two]
+
+@[simp] lemma bit1_div_bit0 : bit1 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul, ←nat.div_div_eq_div_mul, bit1_div_two]
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 

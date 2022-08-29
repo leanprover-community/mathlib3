@@ -148,7 +148,7 @@ namespace graded_object
 -- If you're grading by things in higher universes, have fun!
 variables (β : Type)
 variables (C : Type u) [category.{v} C]
-variables [has_coproducts C]
+variables [has_coproducts.{0} C]
 
 section
 local attribute [tidy] tactic.discrete_cases
@@ -157,8 +157,8 @@ local attribute [tidy] tactic.discrete_cases
 The total object of a graded object is the coproduct of the graded components.
 -/
 noncomputable def total : graded_object β C ⥤ C :=
-{ obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
-  map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
+{ obj := λ X, ∐ (λ i : β, X i),
+  map := λ X Y f, limits.sigma.map (λ i, f i) }.
 
 end
 
@@ -174,8 +174,9 @@ instance : faithful (total β C) :=
   begin
     classical,
     ext i,
-    replace w := sigma.ι (λ i : ulift.{v} β, X i.down) ⟨i⟩ ≫= w,
+    replace w := sigma.ι (λ i : β, X i) i ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
+    simp at *,
     exact mono.right_cancellation _ _ w,
   end }
 
@@ -187,7 +188,7 @@ noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]
-  [has_coproducts C] [has_zero_morphisms C]
+  [has_coproducts.{0} C] [has_zero_morphisms C]
 
 instance : concrete_category (graded_object β C) :=
 { forget := total β C ⋙ forget C }

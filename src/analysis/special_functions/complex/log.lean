@@ -100,7 +100,7 @@ begin
     { push_neg at hne, simp [preimage, hne] } }
 end
 
-alias countable_preimage_exp ↔ _ set.countable.preimage_cexp
+alias countable_preimage_exp ↔ _ _root_.set.countable.preimage_cexp
 
 lemma tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero
   {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :

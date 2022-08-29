@@ -410,8 +410,8 @@ lemma integral_sin_pow_aux :
 begin
   let C := sin a ^ (n + 1) * cos a - sin b ^ (n + 1) * cos b,
   have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
-  have hu : ∀ x ∈ _, has_deriv_at (λ y, sin y ^ (n + 1 : ℕ)) ((n + 1 : ℕ) * cos x * sin x ^ n) x :=
-    λ x hx, by simpa only [mul_right_comm] using (has_deriv_at_sin x).pow,
+  have hu : ∀ x ∈ _, has_deriv_at (λ y, sin y ^ (n + 1)) ((n + 1 : ℕ) * cos x * sin x ^ n) x :=
+    λ x hx, by simpa only [mul_right_comm] using (has_deriv_at_sin x).pow (n+1),
   have hv : ∀ x ∈ [a, b], has_deriv_at (-cos) (sin x) x :=
     λ x hx, by simpa only [neg_neg] using (has_deriv_at_cos x).neg,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
@@ -484,7 +484,7 @@ begin
   have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
   have hu : ∀ x ∈ _, has_deriv_at (λ y, cos y ^ (n + 1)) (-(n + 1 : ℕ) * sin x * cos x ^ n) x :=
     λ x hx, by simpa only [mul_right_comm, neg_mul, mul_neg]
-      using (has_deriv_at_cos x).pow,
+      using (has_deriv_at_cos x).pow (n+1),
   have hv : ∀ x ∈ [a, b], has_deriv_at sin (cos x) x := λ x hx, has_deriv_at_sin x,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, cos x ^ (n + 2)

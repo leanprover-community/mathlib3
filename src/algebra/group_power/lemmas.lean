@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
+import algebra.group_power.ring
 import data.int.cast
 
 /-!
@@ -471,7 +472,7 @@ lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n
 begin
   have : 0 ≤ C, by simpa only [pow_zero, mul_one] using h 0,
   refine this.eq_or_lt.elim (λ h, or.inl h.symm) (λ hC, or.inr ⟨hC, _⟩),
-  refine nonneg_of_mul_nonneg_left _ hC,
+  refine nonneg_of_mul_nonneg_right _ hC,
   simpa only [pow_one] using h 1
 end
 
@@ -520,7 +521,7 @@ end linear_ordered_ring
 
 namespace int
 
-alias int.units_sq ← int.units_pow_two
+alias units_sq ← units_pow_two
 
 lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
@@ -528,16 +529,16 @@ by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, on
 @[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [sq, int.nat_abs_mul_self', sq]
 
-alias int.nat_abs_sq ← int.nat_abs_pow_two
+alias nat_abs_sq ← nat_abs_pow_two
 
 lemma abs_le_self_sq (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
 by { rw [← int.nat_abs_sq a, sq], norm_cast, apply nat.le_mul_self }
 
-alias int.abs_le_self_sq ← int.abs_le_self_pow_two
+alias abs_le_self_sq ← abs_le_self_pow_two
 
 lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_sq _)
 
-alias int.le_self_sq ← int.le_self_pow_two
+alias le_self_sq ← le_self_pow_two
 
 lemma pow_right_injective {x : ℤ} (h : 1 < x.nat_abs) : function.injective ((^) x : ℕ → ℤ) :=
 begin

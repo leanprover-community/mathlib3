@@ -95,12 +95,12 @@ lemma kronecker_map_add_right [has_add β] [has_add γ] (f : α → β → γ)
   kronecker_map f A (B₁ + B₂) = kronecker_map f A B₁ + kronecker_map f A B₂ :=
 ext $ λ i j, hf _ _ _
 
-lemma kronecker_map_smul_left [has_scalar R α] [has_scalar R γ] (f : α → β → γ)
+lemma kronecker_map_smul_left [has_smul R α] [has_smul R γ] (f : α → β → γ)
   (r : R) (hf : ∀ a b, f (r • a) b = r • f a b) (A : matrix l m α) (B : matrix n p β) :
   kronecker_map f (r • A) B = r • kronecker_map f A B :=
 ext $ λ i j, hf _ _
 
-lemma kronecker_map_smul_right [has_scalar R β] [has_scalar R γ] (f : α → β → γ)
+lemma kronecker_map_smul_right [has_smul R β] [has_smul R γ] (f : α → β → γ)
   (r : R) (hf : ∀ a b, f a (r • b) = r • f a b) (A : matrix l m α) (B : matrix n p β) :
   kronecker_map f A (r • B) = r • kronecker_map f A B :=
 ext $ λ i j, hf _ _
@@ -206,7 +206,7 @@ lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁
 /-- `matrix.kronecker` as a bilinear map. -/
 def kronecker_bilinear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
-kronecker_map_bilinear (algebra.lmul R α).to_linear_map
+kronecker_map_bilinear (algebra.lmul R α)
 
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
 hypotheses which can be filled by properties of `*`. -/

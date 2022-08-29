@@ -34,13 +34,14 @@ fails for a non-cancellative set see `counterexample/homogeneous_prime_not_prime
 homogeneous, radical
 -/
 
-open graded_algebra direct_sum set_like finset
+open graded_ring direct_sum set_like finset
 open_locale big_operators
 
-variables {ι R A : Type*}
-variables [comm_semiring R] [comm_ring A] [algebra R A]
+variables {ι σ A : Type*}
+variables [comm_ring A]
 variables [linear_ordered_cancel_add_comm_monoid ι]
-variables {𝒜 : ι → submodule R A} [graded_algebra 𝒜]
+variables [set_like σ A] [add_submonoid_class σ A] {𝒜 : ι → σ} [graded_ring 𝒜]
+include A
 
 lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   {I : ideal A} (hI : I.is_homogeneous 𝒜) (I_ne_top : I ≠ ⊤)
@@ -84,7 +85,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
 
   have mem_I : proj 𝒜 max₁ x * proj 𝒜 max₂ y ∈ I,
   { set antidiag :=
-      ((decompose 𝒜 x).support.product (decompose 𝒜 y).support)
+      ((decompose 𝒜 x).support ×ˢ (decompose 𝒜 y).support)
         .filter (λ z : ι × ι, z.1 + z.2 = max₁ + max₂) with ha,
     have mem_antidiag : (max₁, max₂) ∈ antidiag,
     { simp only [add_sum_erase, mem_filter, mem_product],
@@ -129,7 +130,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
     { rw mem_filter at mem_max₁ mem_max₂,
       exact ⟨mem_max₁.2, mem_max₂.2⟩, },
     intro rid,
-    cases homogeneous_mem_or_mem ⟨max₁, submodule.coe_mem _⟩ ⟨max₂, submodule.coe_mem _⟩ mem_I,
+    cases homogeneous_mem_or_mem ⟨max₁, set_like.coe_mem _⟩ ⟨max₂, set_like.coe_mem _⟩ mem_I,
     { apply neither_mem.1 h },
     { apply neither_mem.2 h }, },
 

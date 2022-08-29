@@ -177,19 +177,19 @@ instance [add_comm_group R] : add_comm_group (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_monoid,
   .. arithmetic_function.add_group }
 
-section has_scalar
-variables {M : Type*} [has_zero R] [add_comm_monoid M] [has_scalar R M]
+section has_smul
+variables {M : Type*} [has_zero R] [add_comm_monoid M] [has_smul R M]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-instance : has_scalar (arithmetic_function R) (arithmetic_function M) :=
+instance : has_smul (arithmetic_function R) (arithmetic_function M) :=
 ⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst • g x.snd, by simp⟩⟩
 
 @[simp]
 lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function M} {n : ℕ} :
   (f • g) n = ∑ x in divisors_antidiagonal n, f x.fst • g x.snd := rfl
 
-end has_scalar
+end has_smul
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/

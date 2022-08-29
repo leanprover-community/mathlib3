@@ -3,8 +3,8 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.zmod.basic
-import group_theory.quotient_group
+import algebra.ne_zero
+import group_theory.group_action.quotient
 import ring_theory.int.basic
 
 /-!
@@ -98,6 +98,8 @@ open add_action subgroup add_subgroup function
 
 variables {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
 
+local attribute [semireducible] mul_opposite
+
 /-- The quotient `(a ^ ℤ) ⧸ (stabilizer b)` is cyclic of order `minimal_period ((•) a) b`. -/
 noncomputable def zpowers_quotient_stabilizer_equiv :
   zpowers a ⧸ stabilizer (zpowers a) b ≃* multiplicative (zmod (minimal_period ((•) a) b)) :=
@@ -157,5 +159,13 @@ by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
   rw minimal_period_eq_card,
   exact fintype.card_ne_zero,
 end⟩
+
+/-- See also `order_eq_card_zpowers`. -/
+@[to_additive add_order_eq_card_zmultiples' "See also `add_order_eq_card_zmultiples`."]
+lemma _root_.order_eq_card_zpowers' : order_of a = nat.card (zpowers a) :=
+begin
+  have := nat.card_congr (mul_action.orbit_zpowers_equiv a (1 : α)),
+  rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
+end
 
 end mul_action

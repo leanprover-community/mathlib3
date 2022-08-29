@@ -83,7 +83,7 @@ definition to_GH_space (X : Type u) [metric_space X] [compact_space X] [nonempty
 instance : inhabited GH_space := ⟨quot.mk _ ⟨⟨{0}, is_compact_singleton⟩, singleton_nonempty _⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def GH_space.rep (p : GH_space) : Type := (quotient.out p : nonempty_compacts ℓ_infty_ℝ)
 
 lemma eq_to_GH_space_iff {X : Type u} [metric_space X] [compact_space X] [nonempty X]
@@ -534,8 +534,8 @@ begin
     glue_metric_approx (λ x:s, (x:X)) (λ x, Φ x) (ε₂/2 + δ) (by linarith) this,
   let Fl := @sum.inl X Y,
   let Fr := @sum.inr X Y,
-  have Il : isometry Fl := isometry_emetric_iff_metric.2 (λ x y, rfl),
-  have Ir : isometry Fr := isometry_emetric_iff_metric.2 (λ x y, rfl),
+  have Il : isometry Fl := isometry.of_dist_eq (λ x y, rfl),
+  have Ir : isometry Fr := isometry.of_dist_eq (λ x y, rfl),
   /- The proof goes as follows : the `GH_dist` is bounded by the Hausdorff distance of the images
   in the coupling, which is bounded (using the triangular inequality) by the sum of the Hausdorff
   distances of `X` and `s` (in the coupling or, equivalently in the original space), of `s` and

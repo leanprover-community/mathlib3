@@ -80,8 +80,8 @@ end
 
 theorem mem_degree_lt {n : ℕ} {f : R[X]} :
   f ∈ degree_lt R n ↔ degree f < n :=
-by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
-    finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff, with_bot.some_eq_coe,
+by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree, finset.max_eq_sup_coe,
+    finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
     with_bot.coe_lt_coe, lt_iff_not_le, ne, not_imp_not], refl }
 
 @[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
@@ -130,6 +130,17 @@ def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n 
     { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← subtype.ext_iff] },
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
+
+@[simp] theorem degree_lt_equiv_eq_zero_iff_eq_zero {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) :
+  degree_lt_equiv _ _ ⟨p, hp⟩ = 0 ↔ p = 0 :=
+by rw [linear_equiv.map_eq_zero_iff, submodule.mk_eq_zero]
+
+theorem eval_eq_sum_degree_lt_equiv {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) (x : R) :
+  p.eval x = ∑ i, degree_lt_equiv _ _ ⟨p, hp⟩ i * (x ^ (i : ℕ)) :=
+begin
+  simp_rw [eval_eq_sum],
+  exact (sum_fin _ (by simp_rw [zero_mul, forall_const]) (mem_degree_lt.mp hp)).symm
+end
 
 /-- The finset of nonzero coefficients of a polynomial. -/
 def frange (p : R[X]) : finset R :=
@@ -519,6 +530,28 @@ begin
     I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
 end
 
+/--
+If `I` is an ideal, and `pᵢ` is a finite family of polynomials each satisfying
+`∀ k, (pᵢ)ₖ ∈ Iⁿⁱ⁻ᵏ` for some `nᵢ`, then `p = ∏ pᵢ` also satisfies `∀ k, pₖ ∈ Iⁿ⁻ᵏ` with `n = ∑ nᵢ`.
+-/
+lemma _root_.polynomial.coeff_prod_mem_ideal_pow_tsub {ι : Type*} (s : finset ι) (f : ι → R[X])
+  (I : ideal R) (n : ι → ℕ) (h : ∀ (i ∈ s) k, (f i).coeff k ∈ I ^ (n i - k)) (k : ℕ) :
+  (s.prod f).coeff k ∈ I ^ (s.sum n - k) :=
+begin
+  classical,
+  induction s using finset.induction with a s ha hs generalizing k,
+  { rw [sum_empty, prod_empty, coeff_one, zero_tsub, pow_zero, ideal.one_eq_top],
+    exact submodule.mem_top },
+  { rw [sum_insert ha, prod_insert ha, coeff_mul],
+    apply sum_mem,
+    rintro ⟨i, j⟩ e,
+    obtain rfl : i + j = k := nat.mem_antidiagonal.mp e,
+    apply ideal.pow_le_pow add_tsub_add_le_tsub_add_tsub,
+    rw pow_add,
+    exact ideal.mul_mem_mul (h _ (finset.mem_insert.mpr $ or.inl rfl) _)
+      (hs (λ i hi k, h _ (finset.mem_insert.mpr $ or.inr hi) _) j) }
+end
+
 end comm_semiring
 
 section ring
@@ -663,7 +696,7 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, zero_mem_class.coe_zero,
     subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)

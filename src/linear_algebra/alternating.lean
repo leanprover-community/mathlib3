@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
+import group_theory.group_action.quotient
 import group_theory.perm.sign
 import group_theory.perm.subgroup
-import group_theory.quotient_group
 import linear_algebra.linear_independent
 import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
@@ -175,11 +175,11 @@ end
 as `multilinear_map`
 -/
 
-section has_scalar
+section has_smul
 
 variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
 
-instance : has_scalar S (alternating_map R M N ι) :=
+instance : has_smul S (alternating_map R M N ι) :=
 ⟨λ c f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
@@ -193,7 +193,11 @@ instance : has_scalar S (alternating_map R M N ι) :=
 lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
 rfl
 
-end has_scalar
+instance [distrib_mul_action Sᵐᵒᵖ N] [is_central_scalar S N] :
+  is_central_scalar S (alternating_map R M N ι) :=
+⟨λ c f, ext $ λ x, op_smul_eq_smul _ _⟩
+
+end has_smul
 
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
@@ -692,7 +696,7 @@ abbreviation mod_sum_congr (α β : Type*) :=
 _ ⧸ (equiv.perm.sum_congr_hom α β).range
 
 lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
-  function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
+  function.involutive (has_smul.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
 λ σ, begin
   apply σ.induction_on' (λ σ, _),
   exact _root_.congr_arg quotient.mk' (equiv.swap_mul_involutive i j σ)
@@ -712,11 +716,13 @@ quotient.lift_on' σ
   (λ σ,
     σ.sign •
       (multilinear_map.dom_coprod ↑a ↑b : multilinear_map R' (λ _, Mᵢ) (N₁ ⊗ N₂)).dom_dom_congr σ)
-  (λ σ₁ σ₂ ⟨⟨sl, sr⟩, h⟩, begin
+  (λ σ₁ σ₂ H, begin
+    rw quotient_group.left_rel_apply at H,
+    obtain ⟨⟨sl, sr⟩, h⟩ := H,
     ext v,
     simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
       coe_multilinear_map, multilinear_map.smul_apply],
-    replace h := inv_mul_eq_iff_eq_mul.mp h.symm,
+    replace h := inv_mul_eq_iff_eq_mul.mp (h.symm),
     have : (σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign = σ₁.sign * (sl.sign * sr.sign) :=
       by simp,
     rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff,
@@ -770,7 +776,7 @@ begin
       substs hi hj, },
   case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
   { -- the term pairs with and cancels another term
-    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
+    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient_group.left_rel_apply.mp (quotient.exact' hσ), },
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
@@ -802,7 +808,7 @@ Here, we generalize this by replacing:
 * the additions in the subscripts of $\sigma$ with an index of type `sum`
 
 The specialized version can be obtained by combining this definition with `fin_sum_fin_equiv` and
-`algebra.lmul'`.
+`linear_map.mul'`.
 -/
 @[simps]
 def dom_coprod
@@ -892,9 +898,7 @@ begin
   -- unfold the quotient mess left by `finset.sum_partition`
   conv in (_ = quotient.mk' _)
   { change quotient.mk' _ = quotient.mk' _,
-    rw quotient.eq',
-    rw [quotient_group.left_rel],
-    dsimp only [setoid.r] },
+    rw quotient_group.eq' },
 
   -- eliminate a multiplication
   have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) :=

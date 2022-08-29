@@ -192,7 +192,7 @@ begin
     dsimp,
     simp only [category.assoc],
     rw ι_colimit_limit_iso_limit_π_assoc,
-    simp only [nat_iso.of_components.inv_app,
+    simp only [nat_iso.of_components_inv_app,
       colimit_obj_iso_colimit_comp_evaluation_ι_app_hom, iso.symm_inv],
     dsimp [is_limit.cone_point_unique_up_to_iso],
     rw [← category.assoc, ← nat_trans.comp_app, limit.lift_π],
@@ -202,7 +202,8 @@ end
 instance [has_finite_limits D] [preserves_finite_limits (forget D)]
   [reflects_isomorphisms (forget D)] : preserves_finite_limits (J.plus_functor D) :=
 begin
-  constructor, introsI K _ _,
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{max v u},
+  introsI K _ _,
   haveI : reflects_limits_of_shape K (forget D) :=
     reflects_limits_of_shape_of_reflects_isomorphisms,
   apply_instance
@@ -241,6 +242,9 @@ begin
 end
 
 instance [has_finite_limits D] : preserves_finite_limits (presheaf_to_Sheaf J D) :=
-⟨λ K _ _, by { resetI, apply_instance }⟩
+begin
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{max v u},
+  intros, resetI, apply_instance
+end
 
 end category_theory

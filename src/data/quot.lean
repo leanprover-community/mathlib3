@@ -174,6 +174,11 @@ instance (s : setoid α) [inhabited α] : inhabited (quotient s) := ⟨⟦defaul
 instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
 quot.subsingleton
 
+instance {α : Type*} [setoid α] : is_equiv α (≈) :=
+{ refl := setoid.refl,
+  symm := λ a b, setoid.symm,
+  trans := λ a b c, setoid.trans }
+
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
   (c : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=

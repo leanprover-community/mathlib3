@@ -183,10 +183,10 @@ instance : has_neg (truncated_witt_vector p n R) :=
 instance : has_sub (truncated_witt_vector p n R) :=
 ⟨λ x y, truncate_fun n (x.out - y.out)⟩
 
-instance has_nat_scalar : has_scalar ℕ (truncated_witt_vector p n R) :=
+instance has_nat_scalar : has_smul ℕ (truncated_witt_vector p n R) :=
 ⟨λ m x, truncate_fun n (m • x.out)⟩
 
-instance has_int_scalar : has_scalar ℤ (truncated_witt_vector p n R) :=
+instance has_int_scalar : has_smul ℤ (truncated_witt_vector p n R) :=
 ⟨λ m x, truncate_fun n (m • x.out)⟩
 
 instance has_nat_pow : has_pow (truncated_witt_vector p n R) ℕ :=

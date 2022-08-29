@@ -165,10 +165,8 @@ def of : X → free_lie_algebra R X := λ x, quot.mk _ (lib.of R x)
 
 variables {L : Type w} [lie_ring L] [lie_algebra R L]
 
-local attribute [instance] lie_ring.to_non_unital_non_assoc_semiring
-
 /-- An auxiliary definition used to construct the equivalence `lift` below. -/
-def lift_aux (f : X → L) := lib.lift R f
+def lift_aux (f : X → commutator_ring L) := lib.lift R f
 
 lemma lift_aux_map_smul (f : X → L) (t : R) (a : lib R X) :
   lift_aux R f (t • a) = t • lift_aux R f a :=
@@ -201,7 +199,7 @@ begin
 end
 
 /-- The quotient map as a `non_unital_alg_hom`. -/
-def mk : lib R X →ₙₐ[R] free_lie_algebra R X :=
+def mk : lib R X →ₙₐ[R] commutator_ring (free_lie_algebra R X) :=
 { to_fun    := quot.mk (rel R X),
   map_smul' := λ t a, rfl,
   map_zero' := rfl,

@@ -100,7 +100,7 @@ instance : is_fraction_ring A K :=
   eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c, h⟩,
     congr_arg coe ((mul_eq_mul_right_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
 
-/-- The value group of the valuation associated to `A`. -/
+/-- The value group of the valuation associated to `A`. Note: it is actually a group with zero. -/
 @[derive linear_ordered_comm_group_with_zero]
 def value_group := valuation_ring.value_group A K
 

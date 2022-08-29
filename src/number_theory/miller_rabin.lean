@@ -286,9 +286,8 @@ begin
 end
 
 /-- If `x = -1 (mod m)` then `x = -1 (mod d)` for any `d ∣ m`. -/
-lemma zmod.eq_neg_one_of_eq_neg_one_modulus_dvd {d m : ℕ} (hpm : d ∣ m)
-  [fact (1 < d)] [fact (1 < m)]
-  {x : ℕ} (h : (x : zmod m) = -1) :
+lemma zmod.eq_neg_one_of_eq_neg_one_modulus_dvd {d m : ℕ} (hpm : d ∣ m) {x : ℕ}
+  (h : (x : zmod m) = -1) :
   (x : zmod d) = -1 :=
 begin
   have h' : (x : zmod m) + 1 = 0, { rw h, simp },
@@ -428,7 +427,7 @@ def nat.miller_rabin_witness (n : ℕ) (a : zmod n) : Prop :=
   a^odd_part (n-1) ≠ 1 ∧
   ∀ i ∈ range ((n-1).factorization 2), a^(2^i * odd_part (n-1)) ≠ -1
 
-instance decidable_witness (n : ℕ) (a : zmod n) : decidable_pred n.miller_rabin_witness :=
+instance decidable_witness (n : ℕ) : decidable_pred n.miller_rabin_witness :=
 λ a, and.decidable
 
 instance decidable_witness' (n : ℕ) : decidable_pred (λ a : ℕ, n.miller_rabin_witness ↑a) :=

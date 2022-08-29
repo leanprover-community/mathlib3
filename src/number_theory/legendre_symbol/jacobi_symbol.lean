@@ -202,10 +202,10 @@ We define the Jacobi symbol `(a / b)` for integers `a` and natural numbers `b` a
 product of the legendre symbols `(a / p)`, where `p` runs through the prime divisors
 (with multiplicity) of `b`, as provided by `b.factors`. This agrees with the Jacobi symbol
 when `b` is odd and gives less meaningful values when it is not (e.g., the symbol is `1`
-when `b = 0`). This is called `zmod.jacobi_sym a b`.
+when `b = 0`). This is called `jacobi_sym a b`.
 
 We define localized notation (locale `number_theory_symbols`) `[a | b]ⱼ` for the Jacobi
-symbol `zmod.jacobi_sym a b`. (Unfortunately, there is no subscript "J" in unicode.)
+symbol `jacobi_sym a b`. (Unfortunately, there is no subscript "J" in unicode.)
 -/
 
 open zmod nat

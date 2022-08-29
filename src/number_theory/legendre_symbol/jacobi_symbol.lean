@@ -207,6 +207,11 @@ begin
   rwa ← (nat.prime.dvd_iff_eq pp h).mp (int.coe_nat_dvd.mp (int.gcd_dvd_right a p)) at hl,
 end
 
+/-- If `p` is a prime and `a` is an integer, then `a : zmod p` is zero if and only if
+`gcd a p ≠ 1`. -/
+lemma eq_zero_iff_gcd_ne_one {a : ℤ} {p : ℕ} [pp : fact p.prime] : (a : zmod p) = 0 ↔ a.gcd p ≠ 1 :=
+⟨λ h₁ h₂, ne_zero_of_gcd_eq_one pp.1 h₂ h₁,  eq_zero_of_gcd_ne_one pp.1⟩
+
 end zmod
 
 section jacobi

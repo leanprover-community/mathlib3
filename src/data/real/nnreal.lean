@@ -351,8 +351,9 @@ ordered_cancel_add_comm_monoid.to_contravariant_class_left ℝ≥0
 instance covariant_mul : covariant_class ℝ≥0 ℝ≥0 (*) (≤) :=
 ordered_comm_monoid.to_covariant_class_left ℝ≥0
 
+-- Why isn't `nnreal.contravariant_add` inferred?
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
-le_of_forall_pos_le_add' h
+@le_of_forall_pos_le_add _ _ _ _ _ _ nnreal.contravariant_add _ _ h
 
 lemma lt_iff_exists_rat_btwn (a b : ℝ≥0) :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < real.to_nnreal q ∧ real.to_nnreal q < b) :=
@@ -653,7 +654,7 @@ lemma half_pos {a : ℝ≥0} (h : 0 < a) : 0 < a / 2 := half_pos h
 
 lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := add_halves _
 
-lemma half_le_self (a : ℝ≥0) : a / 2 ≤ a := half_le_self zero_le
+lemma half_le_self (a : ℝ≥0) : a / 2 ≤ a := half_le_self bot_le
 
 lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a := half_lt_self h.bot_lt
 

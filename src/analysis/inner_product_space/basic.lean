@@ -87,7 +87,7 @@ section notations
 
 localized "notation (name := inner.real)
   `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
-localized "notation (name := inner.conplex)
+localized "notation (name := inner.complex)
   `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space
 
 end notations

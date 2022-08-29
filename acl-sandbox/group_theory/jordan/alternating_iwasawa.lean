@@ -20,18 +20,16 @@ import .multiple_transitivity
 -- import .jordan
 import .perm_iwasawa
 
-#check mul_action.alternating_group_is_fully_minus_two_pretransitive
-
 open_locale pointwise classical
 
 open mul_action
 
-#exit
 section junk
 
 variables {α G H : Type*} [group G] [group H] [mul_action G α] {N : subgroup G}
 
 example (g : G) (s : set α) : g • s = s := sorry
+
 lemma subgroup.map_subgroup_of_eq {K : subgroup N} : (K.map N.subtype).subgroup_of N = K :=
 begin
   dsimp [subgroup.subgroup_of],
@@ -105,7 +103,8 @@ begin
   rw [nat.add_sub_assoc (le_of_lt h1'), add_le_add_iff_left,
     nat.le_sub_iff_right (le_of_lt h1')],
   exact h1' },
-  apply alternating_group_is_fully_minus_two_pretransitive,
+  -- Here, we needed to add an instance to the following lemma
+  exact mul_action.alternating_group_is_fully_minus_two_pretransitive α,
 end
 
 
@@ -592,75 +591,75 @@ begin
   rw ← set.mem_compl_iff at hb',
 
   have hsc_le_B : sᶜ ⊆ B,
-  {   intros x hx',
-      suffices : ∃ (k : fixing_subgroup (alternating_group α) s), k • b = x,
-      obtain ⟨⟨k, hk⟩, hkbx : k • b = x⟩ := this,
-      suffices : k • B = B,
-      rw [← hkbx, ← this, set.smul_mem_smul_set_iff],
-      exact hb,
-      { -- k • B = B,
-        apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨k, _⟩),
-        { rw set.not_disjoint_iff_nonempty_inter,
-          change (k • B ∩ B).nonempty,
-          use a,
-          split,
-            rw mem_fixing_subgroup_iff at hk,
-            rw ← hk a ha',
-            exact set.smul_mem_smul_set ha,
-            exact ha, },
-        { -- ↑k ∈ G
-          apply le_trans (le_of_lt hG), exact inf_le_left,
+  {  intros x hx',
+    suffices : ∃ (k : fixing_subgroup (alternating_group α) s), k • b = x,
+    obtain ⟨⟨k, hk⟩, hkbx : k • b = x⟩ := this,
+    suffices : k • B = B,
+    rw [← hkbx, ← this, set.smul_mem_smul_set_iff],
+    exact hb,
+    { -- k • B = B,
+      apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨k, _⟩),
+      { rw set.not_disjoint_iff_nonempty_inter,
+        change (k • B ∩ B).nonempty,
+        use a,
+        split,
+          rw mem_fixing_subgroup_iff at hk,
+          rw ← hk a ha',
+          exact set.smul_mem_smul_set ha,
+          exact ha, },
+      { -- ↑k ∈ G
+        apply le_trans (le_of_lt hG), exact inf_le_left,
 
-         rw subgroup.mem_inf, split,
+        rw subgroup.mem_inf, split,
 
-        suffices hk' : k ∈ stabilizer (alternating_group α) s,
-        { simpa [mem_stabilizer_iff] using hk', },
-        apply mul_action.fixing_subgroup_le_stabilizer, exact hk,
-        exact k.prop, }, },
-      { -- ∃ (k : fixing_subgroup (alternating_group α) s), k • b = x,
-        haveI : is_pretransitive (fixing_subgroup (alternating_group α) s)
-          (sub_mul_action.of_fixing_subgroup (alternating_group α) s) :=
-          is_pretransitive_of_fixing_subgroup s h0 hα,
-        obtain ⟨k, hk⟩ := exists_smul_eq (fixing_subgroup (alternating_group α) s)
-          (⟨b, hb'⟩ : sub_mul_action.of_fixing_subgroup (alternating_group α) s)
-          ⟨x, hx'⟩,
-        use k,
-        rw [← subtype.coe_inj, sub_mul_action.coe_smul] at hk,
-        exact hk,
-        }, },
+      suffices hk' : k ∈ stabilizer (alternating_group α) s,
+      { simpa [mem_stabilizer_iff] using hk', },
+      apply mul_action.fixing_subgroup_le_stabilizer, exact hk,
+      exact k.prop, }, },
+    { -- ∃ (k : fixing_subgroup (alternating_group α) s), k • b = x,
+      haveI : is_pretransitive (fixing_subgroup (alternating_group α) s)
+        (sub_mul_action.of_fixing_subgroup (alternating_group α) s) :=
+        is_pretransitive_of_fixing_subgroup s h0 hα,
+      obtain ⟨k, hk⟩ := exists_smul_eq (fixing_subgroup (alternating_group α) s)
+        (⟨b, hb'⟩ : sub_mul_action.of_fixing_subgroup (alternating_group α) s)
+        ⟨x, hx'⟩,
+      use k,
+      rw [← subtype.coe_inj, sub_mul_action.coe_smul] at hk,
+      exact hk,
+      }, },
 
-    -- Conclusion of the proof : B = ⊤
-    rw eq_top_iff,
-    intros x _,
-    obtain ⟨b, hb⟩ := h1,
-    obtain ⟨⟨g, hg⟩, hgbx : g • b = x⟩ := exists_smul_eq G b x,
-    suffices : g • B = B,
-    { rw [← hgbx, ← this, set.smul_mem_smul_set_iff],
-      exact hsc_le_B hb, },
-    -- g • B = B,
-    apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨g, hg⟩),
-    rw set.not_disjoint_iff_nonempty_inter,
-    change (g • B ∩ B).nonempty,
-    apply aux_pigeonhole,
+  -- Conclusion of the proof : B = ⊤
+  rw eq_top_iff,
+  intros x _,
+  obtain ⟨b, hb⟩ := h1,
+  obtain ⟨⟨g, hg⟩, hgbx : g • b = x⟩ := exists_smul_eq G b x,
+  suffices : g • B = B,
+  { rw [← hgbx, ← this, set.smul_mem_smul_set_iff],
+    exact hsc_le_B hb, },
+  -- g • B = B,
+  apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨g, hg⟩),
+  rw set.not_disjoint_iff_nonempty_inter,
+  change (g • B ∩ B).nonempty,
+  apply aux_pigeonhole,
 
-    -- card B + card (g • B) = card B + card B
-    -- ... ≥ card sᶜ + card sᶜ
-    -- ... > card s + card s ᶜ = card α
-    rw ← fintype.card_add_compl s,
-    apply nat.lt_of_lt_of_le,
-    { apply nat.add_lt_add_right _ (fintype.card (sᶜ : set α)),
-      use (fintype.card (sᶜ : set α)),
-      exact hα, },
-    apply nat.add_le_add,
-    { apply le_trans (set.card_le_of_subset hsc_le_B),
-      apply le_of_eq,
-      rw ← set.coe_to_finset B,
-      simp only [← set.to_finset_card],
-      change _ = ((λ x, g • x) '' ↑(B.to_finset)).to_finset.card,
-      simp_rw ← finset.coe_image ,
-      simp only [finset.to_finset_coe],
-      rw finset.card_image_of_injective _ (mul_action.injective g) },
-    exact set.card_le_of_subset hsc_le_B,
+  -- card B + card (g • B) = card B + card B
+  -- ... ≥ card sᶜ + card sᶜ
+  -- ... > card s + card s ᶜ = card α
+  rw ← fintype.card_add_compl s,
+  apply nat.lt_of_lt_of_le,
+  { apply nat.add_lt_add_right _ (fintype.card (sᶜ : set α)),
+    use (fintype.card (sᶜ : set α)),
+    exact hα, },
+  apply nat.add_le_add,
+  { apply le_trans (set.card_le_of_subset hsc_le_B),
+    apply le_of_eq,
+    rw ← set.coe_to_finset B,
+    simp only [← set.to_finset_card],
+    change _ = ((λ x, g • x) '' ↑(B.to_finset)).to_finset.card,
+    simp_rw ← finset.coe_image ,
+    simp only [finset.to_finset_coe],
+    rw finset.card_image_of_injective _ (mul_action.injective g) },
+  exact set.card_le_of_subset hsc_le_B,
 end
 
 example (a b : ℕ) (ha :  2 ≤ a) (hab : a < b) : a + 1 ≤ a + b - 2 :=

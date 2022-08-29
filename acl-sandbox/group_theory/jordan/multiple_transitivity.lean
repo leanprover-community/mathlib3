@@ -1020,6 +1020,11 @@ begin
 end
 
 variable (α)
+
+-- Cette instance n'était pas nécessaire,
+-- mais sans elle, Lean utilise des classical dont il ne se dépêtre plus après !
+-- (cf alternating_iwasawa)
+variable [decidable_eq α]
 /-- The alternating group on α is (fintype.card α - 2)-pretransitive -/
 theorem alternating_group_is_fully_minus_two_pretransitive :
   mul_action.is_multiply_pretransitive (alternating_group α) α (fintype.card α - 2) :=

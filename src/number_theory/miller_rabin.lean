@@ -883,78 +883,78 @@ def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=
 -- end
 
 
-lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]
-  (h : (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1))
-  (not_prime : ¬ n.prime) :
-  ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
-begin
-  rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
-  let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max'
-  ( by
-    { rw finset.filter_nonempty_iff,
-      use 0,
-      simp only [finset.mem_range, pow_zero, pow_one, exists_apply_eq_apply, and_true],
-      by_contra,
-      simp at h,
-      have hn' : n - 1 ≠ 0,
-      { rw [ne.def, tsub_eq_zero_iff_le, not_le, ← h_mul],
-        exact one_lt_mul hn0.le hn1 },
-      apply hn',
-      clear hn',
-      rw ← even_part_mul_odd_part (n - 1),
-      rw [h, mul_zero] } ),
-  have h_proper : ∃ x, x ∉ (pow_alt_subgroup n (i0 * odd_part(n - 1))),
-  { -- nat.chinese_remainder'_lt_lcm
-    -- nat.chinese_remainder_lt_mul
-    sorry },
-  rcases h_proper with ⟨x, hx⟩,
-  have hsubgroup :
-    (finset.filter (λ (a : zmod n), strong_probable_prime n a) (finset_units n)).card * 2
-    ≤ fintype.card ↥(pow_alt_subgroup n (i0 * odd_part (n - 1))) * 2,
-  { simp [mul_le_mul_right],
-    -- rw foocard,
-    sorry,  },
-  apply trans hsubgroup,
-  clear hsubgroup,
-  convert card_le_half_of_proper_subgroup x hx using 1,
-  { -- TODO(Bolton):
-    sorry, },
+-- lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]
+--   (h : (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1))
+--   (not_prime : ¬ n.prime) :
+--   ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
+-- begin
+--   rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
+--   let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max'
+--   ( by
+--     { rw finset.filter_nonempty_iff,
+--       use 0,
+--       simp only [finset.mem_range, pow_zero, pow_one, exists_apply_eq_apply, and_true],
+--       by_contra,
+--       simp at h,
+--       have hn' : n - 1 ≠ 0,
+--       { rw [ne.def, tsub_eq_zero_iff_le, not_le, ← h_mul],
+--         exact one_lt_mul hn0.le hn1 },
+--       apply hn',
+--       clear hn',
+--       rw ← even_part_mul_odd_part (n - 1),
+--       rw [h, mul_zero] } ),
+--   have h_proper : ∃ x, x ∉ (pow_alt_subgroup n (i0 * odd_part(n - 1))),
+--   { -- nat.chinese_remainder'_lt_lcm
+--     -- nat.chinese_remainder_lt_mul
+--     sorry },
+--   rcases h_proper with ⟨x, hx⟩,
+--   have hsubgroup :
+--     (finset.filter (λ (a : zmod n), strong_probable_prime n a) (finset_units n)).card * 2
+--     ≤ fintype.card ↥(pow_alt_subgroup n (i0 * odd_part (n - 1))) * 2,
+--   { simp [mul_le_mul_right],
+--     -- rw foocard,
+--     sorry,  },
+--   apply trans hsubgroup,
+--   clear hsubgroup,
+--   convert card_le_half_of_proper_subgroup x hx using 1,
+--   { -- TODO(Bolton):
+--     sorry, },
 
-end
+-- end
 
-lemma unlikely_strong_probable_prime_of_prime_power (n : ℕ) [hn_pos : fact (0 < n)] (h1 : 1 < n)
-  (h : (∃ (p k : ℕ), p.prime ∧ p^k = n)) (not_prime : ¬ n.prime) :
-  ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
-begin
-  rcases h with ⟨p, k, p_prime, n_pow⟩,
-  have n_pos : 0 < n, exact hn_pos.out,
-  have one_lt_k : 1 < k,
-  { by_contra,
-    simp at h,
-    interval_cases k,
-    simp at n_pow,
-    rw n_pow at h1,
-    exact nat.lt_asymm h1 h1,
-    { apply not_prime,-- TODO(Sean)
-      sorry } },
-  sorry,
-end
+-- lemma unlikely_strong_probable_prime_of_prime_power (n : ℕ) [hn_pos : fact (0 < n)] (h1 : 1 < n)
+--   (h : (∃ (p k : ℕ), p.prime ∧ p^k = n)) (not_prime : ¬ n.prime) :
+--   ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
+-- begin
+--   rcases h with ⟨p, k, p_prime, n_pow⟩,
+--   have n_pos : 0 < n, exact hn_pos.out,
+--   have one_lt_k : 1 < k,
+--   { by_contra,
+--     simp at h,
+--     interval_cases k,
+--     simp at n_pow,
+--     rw n_pow at h1,
+--     exact nat.lt_asymm h1 h1,
+--     { apply not_prime,-- TODO(Sean)
+--       sorry } },
+--   sorry,
+-- end
 
 
-lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (hn1 : 1 < n)
-  (not_prime : ¬ n.prime) :
-  ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
-begin
-  cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
-  { exfalso,
-    -- TODO(Sean)
-    sorry },
-  -- clear hn1,
-  cases h,
-  { apply unlikely_strong_probable_prime_of_coprime_mul,
-    exact h,
-    exact not_prime },
-  { -- n is a prime power
-    -- TODO(Sean): unlikely_strong_probable_prime_of_prime_power should be able to finish this
-    sorry },
-end
+-- lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (hn1 : 1 < n)
+--   (not_prime : ¬ n.prime) :
+--   ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
+-- begin
+--   cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
+--   { exfalso,
+--     -- TODO(Sean)
+--     sorry },
+--   -- clear hn1,
+--   cases h,
+--   { apply unlikely_strong_probable_prime_of_coprime_mul,
+--     exact h,
+--     exact not_prime },
+--   { -- n is a prime power
+--     -- TODO(Sean): unlikely_strong_probable_prime_of_prime_power should be able to finish this
+--     sorry },
+-- end

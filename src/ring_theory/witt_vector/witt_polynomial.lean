@@ -150,7 +150,7 @@ begin
 end
 
 section p_prime
--- in fact, `0 < p` would be sufficient
+
 variables [hp : ne_zero p]
 include hp
 

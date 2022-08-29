@@ -45,7 +45,7 @@ lemma boundary_hnot_le (a : α) : ∂ ￢a ≤ ∂ a := inf_comm.trans_le $ inf_
 @[simp] lemma boundary_hnot_hnot (a : α) : ∂ ￢￢a = ∂ ￢a :=
 by simp_rw [boundary, hnot_hnot_hnot, inf_comm]
 
-lemma hnot_boundary (a : α) : ￢ ∂ a = ￢a ⊔ ￢￢a := hnot_inf_distrib _ _
+@[simp] lemma hnot_boundary (a : α) : ￢ ∂ a = ⊤ := by rw [boundary, hnot_inf_distrib, sup_hnot_self]
 
 /-- **Leibniz rule** for the co-Heyting boundary. -/
 lemma boundary_inf (a b : α) : ∂ (a ⊓ b) = ∂ a ⊓ b ⊔ a ⊓ ∂ b :=
@@ -94,11 +94,13 @@ lemma boundary_sup_sup_boundary_inf (a b : α) : ∂ (a ⊔ b) ⊔ ∂ (a ⊓ b)
 le_antisymm (sup_le boundary_sup_le boundary_inf_le) $ sup_le
   boundary_le_boundary_sup_sup_boundary_inf_left boundary_le_boundary_sup_sup_boundary_inf_right
 
-lemma boundary_idem (a : α) : ∂ ∂ a = ∂ a :=
-by { rw [boundary, hnot_boundary, inf_eq_left], exact inf_le_right.trans le_sup_left }
+@[simp] lemma boundary_idem (a : α) : ∂ ∂ a = ∂ a := by rw [boundary, hnot_boundary, inf_top_eq]
 
 lemma hnot_hnot_sup_boundary (a : α) : ￢￢a ⊔ ∂ a = a :=
 by { rw [boundary, sup_inf_left, hnot_sup_self, inf_top_eq, sup_eq_right], exact hnot_hnot_le }
+
+lemma hnot_eq_top_iff_exists_boundary : ￢a = ⊤ ↔ ∃ b, ∂ b = a :=
+⟨λ h, ⟨a, by rw [boundary, h, inf_top_eq]⟩, by { rintro ⟨b, rfl⟩, exact hnot_boundary _ }⟩
 
 end coheyting
 
@@ -110,4 +112,3 @@ variables [boolean_algebra α]
 @[simp] lemma coheyting.boundary_eq_bot (a : α) : ∂ a = ⊥ := inf_compl_eq_bot
 
 end boolean_algebra
-#lint

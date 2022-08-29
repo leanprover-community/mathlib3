@@ -929,4 +929,27 @@ begin
   exact factorization_add_le_of_factorization_add_eq (succ_ne_zero k) h7,
 end
 
+lemma factorization_sub_iff {p a b : ℕ} (pp : p.prime) (hb0 : b ≠ 0) (hab : b < a) :
+  min (a.factorization p) (b.factorization p) < (a - b).factorization p ↔
+  (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a - ord_compl[p] b) :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha0, { cases hab },
+  set a' := ord_compl[p] a with ha',
+  set b' := ord_compl[p] b with hb',
+  set α := a.factorization p,
+  set β := b.factorization p,
+  rcases ne_or_eq α β with hαβ | hαβ, { simp [factorization_sub_min hαβ hab.le hb0, hαβ] },
+  simp only [hαβ, min_eq_right, eq_self_iff_true, true_and],
+  have H1 : a - b = p ^ β * (a' - b'),
+  { rw nat.mul_sub_left_distrib,
+    nth_rewrite 0 ←hαβ,
+    simp_rw [ord_proj_mul_ord_compl_eq_self] },
+  have H2 : a' - b' ≠ 0,
+  { rw [ha', hb', ne.def, tsub_eq_zero_iff_le, not_le, ←hαβ],
+    exact div_lt_div_of_lt_of_dvd (ord_proj_dvd a p) hab },
+  rw [H1, factorization_mul (pow_pos pp.pos β).ne' H2, finsupp.add_apply, pp.factorization_pow,
+      single_eq_same, lt_add_iff_pos_right],
+  exact ⟨λ h, dvd_of_factorization_pos h.ne', pp.factorization_pos_of_dvd H2⟩,
+end
+
 end nat

@@ -349,11 +349,11 @@ by rw [pow_two, jacobi_sym_mul_left, ← pow_two, jacobi_sym_sq_one h]
 lemma jacobi_sym_mod_left (a : ℤ) (b : ℕ) : [a | b]ⱼ = [a % b | b]ⱼ :=
 begin
   refine rec_on_mul (λ _, by simp_rw [jacobi_sym_zero_right])
-                    (λ _, by simp_rw [jacobi_sym_one_right]) (λ p pp a, _) (λ m n hm hn, _) b a,
+                    (λ _, by simp_rw [jacobi_sym_one_right]) (λ p pp a, _) (λ m n hm hn a, _) b a,
   { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_mod p ⟨pp⟩ a], },
   { by_cases hm0 : m = 0,
-    { intro a, simp_rw [hm0, zero_mul, jacobi_sym_zero_right], },
-    by_cases hn0 : n = 0; intro a,
+    { simp_rw [hm0, zero_mul, jacobi_sym_zero_right], },
+    by_cases hn0 : n = 0,
     { simp_rw [hn0, mul_zero, jacobi_sym_zero_right], },
     simp_rw [nat.cast_mul, @jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩,
              hm a, hn a, hm (a % (m * n)), hn (a % (m * n))],

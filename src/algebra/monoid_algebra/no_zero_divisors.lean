@@ -8,11 +8,17 @@ import algebra.monoid_algebra.basic
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
 
-This file proves that the `add_monoid_algebra R A` has no zero-divisors under the following
-assumptions
-* the semiring `R` itself has no zero-divisors;
-* the grading type `A` has an addition, a linear order and both addition on the left and addition
-  on the right are strictly monotone functions.
+This file proves that the `add_monoid_algebra R A` has no zero-divisors under two different
+sets of assumptions:
+* * the semiring `R` itself has no zero-divisors;
+* * the grading type `A` has an addition, a linear order and both addition on the left and addition
+  on the right are strictly monotone functions;
+or
+* * the semiring `R` itself has no zero-divisors;
+* * the grading type `A` is a linearly ordered, add left cancel semigroup with strictly monotone
+    right addition.
+
+The condition on `A` in the second case are sometimes referred to as `right-ordered`.
 
 The eventual goal is to weaken the assumptions on `A`.  For instance, can we trade `linear_order A`
 for some stronger monotonicity conditions?
@@ -51,9 +57,9 @@ variables {R A : Type*} [semiring R]
 section a_version_with_different_typeclass_assumptions
 
 section no_covariant
-variables [add_left_cancel_semigroup A] {a b : A} {f : add_monoid_algebra R A}
+variables [add_left_cancel_semigroup A] {f g : add_monoid_algebra R A}
 
-lemma mul_apply_add_eq_mul_of_forall_ne {f g : add_monoid_algebra R A} {a0 b0 : A}
+lemma mul_apply_add_eq_mul_of_forall_ne {a0 b0 : A}
   (h : ∀ a b : A, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
   (f * g) (a0 + b0) = f a0 * g b0 :=
 begin
@@ -68,7 +74,7 @@ begin
     { exact if_pos rfl } },
 end
 
-lemma exists_add_of_mem_support_single_mul {g : add_monoid_algebra R A} (a x : A)
+lemma exists_add_of_mem_support_single_mul (a x : A)
   (hx : x ∈ (single a 1 * g : add_monoid_algebra R A).support) :
   ∃ b, b ∈ g.support ∧ a + b = x :=
 begin
@@ -129,16 +135,16 @@ of the support of `f` (e.g. the product is `0` if "top" is not a maximum).
 The corresponding statement for a general product `f * g` is `add_monoid_algebra.mul_apply_of_le`.
 It is proved with a further `covariant_class` assumption. -/
 lemma single_mul_apply_of_le (r : R) (ft : ∀ a ∈ f.support, a ≤ t) :
-  (finsupp.single a r * f : add_monoid_algebra R A) (a + t) = r * f t :=
+  (single a r * f : add_monoid_algebra R A) (a + t) = r * f t :=
 begin
   classical,
   nth_rewrite 0 ← f.erase_add_single t,
-  rw [mul_add, single_mul_single, finsupp.add_apply, finsupp.single_eq_same],
+  rw [mul_add, single_mul_single, add_apply, single_eq_same],
   convert zero_add _,
-  refine finsupp.not_mem_support_iff.mp (λ h, _),
-  refine not_not.mpr ((support_mul (finsupp.single a r) (f.erase t)) h) _,
-  simp only [finsupp.mem_support_single, finset.mem_bUnion, ne.def, finset.mem_singleton,
-    exists_prop, not_exists, not_and, and_imp, forall_eq, finsupp.support_erase],
+  refine not_mem_support_iff.mp (λ h, _),
+  refine not_not.mpr ((support_mul (single a r) (f.erase t)) h) _,
+  simp only [mem_support_single, finset.mem_bUnion, ne.def, finset.mem_singleton,
+    exists_prop, not_exists, not_and, and_imp, forall_eq, support_erase],
   intros _ x xs,
   refine (add_lt_add_left (with_bot.coe_lt_coe.mp _) _).ne',
   refine with_bot.coe_lt_coe.mpr ((ft _ (finset.mem_of_mem_erase xs)).lt_of_ne _),
@@ -152,7 +158,7 @@ of the support of `f` (e.g. the product is `0` if "bottom" is not a minimum).
 The corresponding statement for a general product `f * g` is `add_monoid_algebra.mul_apply_of_le'`.
 It is proved with a further `covariant_class` assumption. -/
 lemma single_mul_apply_of_le' (r : R) (fb : ∀ a ∈ f.support, b ≤ a) :
-  (finsupp.single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
+  (single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
 @single_mul_apply_of_le _ Aᵒᵈ _ _ _ _ _ _ _ _ fb
 
 variables [covariant_class A A (function.swap (+)) (<)]
@@ -165,11 +171,11 @@ lemma mul_apply_of_le (fa : ∀ i ∈ f.support, i ≤ a) (gt : ∀ i ∈ g.supp
 begin
   classical,
   nth_rewrite 0 ← f.erase_add_single a,
-  rw [add_mul, finsupp.add_apply, single_mul_apply_of_le _ gt],
+  rw [add_mul, add_apply, single_mul_apply_of_le _ gt],
   convert zero_add _,
-  refine finsupp.not_mem_support_iff.mp (λ h, _),
+  refine not_mem_support_iff.mp (λ h, _),
   refine not_not.mpr ((support_mul _ g) h) _,
-  simp only [finsupp.support_erase, finset.mem_bUnion, finset.mem_erase, ne.def,
+  simp only [support_erase, finset.mem_bUnion, finset.mem_erase, ne.def,
     finset.mem_singleton, exists_prop, not_exists, not_and, and_imp],
   haveI : covariant_class A A (+) (≤) := has_add.to_covariant_class_left A,
   exact λ x xa xf y yg, (add_lt_add_of_lt_of_le ((fa _ xf).lt_of_ne xa) (gt _ yg)).ne',
@@ -187,7 +193,7 @@ lemma mul_apply_eq_zero_of_lt (fa : ∀ i ∈ f.support, a ≤ i) (gb : ∀ i �
 begin
   rw mul_apply_of_le' fa (λ x hx, (gb _ hx).le),
   convert mul_zero _,
-  exact finsupp.not_mem_support_iff.mp (λ bg, (lt_irrefl b (gb b bg)).elim),
+  exact not_mem_support_iff.mp (λ bg, (lt_irrefl b (gb b bg)).elim),
 end
 
 end covariant_lt
@@ -199,13 +205,13 @@ protected lemma no_zero_divisors : no_zero_divisors (add_monoid_algebra R A) :=
 begin
   refine ⟨λ f g fg, _⟩,
   contrapose! fg,
-  apply_fun (λ x : add_monoid_algebra R A, x (f.support.max' (finsupp.support_nonempty_iff.mpr fg.1)
-    + g.support.max' (finsupp.support_nonempty_iff.mpr fg.2))),
-  simp only [finsupp.coe_zero, pi.zero_apply],
+  apply_fun (λ x : add_monoid_algebra R A, x (f.support.max' (support_nonempty_iff.mpr fg.1)
+    + g.support.max' (support_nonempty_iff.mpr fg.2))),
+  simp only [coe_zero, pi.zero_apply],
   rw mul_apply_of_le;
   try { exact finset.le_max' _ },
   refine mul_ne_zero_iff.mpr ⟨_, _⟩;
-  exact finsupp.mem_support_iff.mp (finset.max'_mem _ _),
+  exact mem_support_iff.mp (finset.max'_mem _ _),
 end
 
 end add_monoid_algebra

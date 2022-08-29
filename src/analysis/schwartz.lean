@@ -190,7 +190,7 @@ section zero
 instance : has_zero 𝓢(E, F) :=
 ⟨{ to_fun := λ _, 0,
   smooth' := cont_diff_const,
-  decay' := λ k n, ⟨1, zero_lt_one, λ _, by simp⟩ }⟩
+  decay' := λ _ _, ⟨1, zero_lt_one, λ _, by simp⟩ }⟩
 
 instance : inhabited 𝓢(E, F) := ⟨0⟩
 
@@ -379,7 +379,8 @@ instance : has_continuous_smul ℂ 𝓢(E, F) :=
   (schwartz_seminorm_family E F).module_filter_basis.has_continuous_smul
 
 instance : topological_add_group 𝓢(E, F) :=
-  (schwartz_seminorm_family E F).module_filter_basis.to_add_group_filter_basis.is_topological_add_group
+  (schwartz_seminorm_family E F).module_filter_basis.to_add_group_filter_basis
+  .is_topological_add_group
 
 instance : uniform_space 𝓢(E, F) :=
   (schwartz_seminorm_family E F).module_filter_basis.to_add_group_filter_basis.uniform_space

@@ -516,7 +516,7 @@ begin
   apply out.iso,
 end
 
-lemma equiv_of_isom.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+lemma equiv_of_iso.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) (C : G.comp_out K) : (φ '' C) = (equiv_of_iso φ K C) :=
  begin
     refine C.ind _,
@@ -534,21 +534,21 @@ lemma equiv_of_isom.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph 
     rw out.iso_eq_apply_symm φ K, simp only [rel_iso.symm_apply_apply],
  end
 
-lemma equiv_of_isom.dis {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+lemma equiv_of_iso.dis {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) (C : G.comp_out K) : C.dis ↔ (equiv_of_iso φ K C).dis :=
 begin
   dsimp only [dis],
-  simp only [←equiv_of_isom.image],
+  simp only [←equiv_of_iso.image],
   symmetry,
   apply disjoint_image_iff,
   exact rel_iso.injective φ,
 end
 
-lemma equiv_of_isom.inf {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+lemma equiv_of_iso.inf {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) (C : G.comp_out K) : C.inf ↔ (equiv_of_iso φ K C).inf :=
 begin
   dsimp only [inf],
-  simp only [←equiv_of_isom.image],
+  simp only [←equiv_of_iso.image],
   symmetry,
   apply infinite_image_iff,
   refine injective.inj_on _ ↑C,
@@ -671,6 +671,15 @@ namespace inf_comp_out
 
 variables {G} {K} {L : set V}
 
+lemma of_empty_is_subsingleton (Gpc : G.preconnected) : subsingleton (G.inf_comp_out ∅) := sorry
+
+
+def equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) : G.inf_comp_out K ≃ G'.inf_comp_out (φ '' K) := sorry
+
+lemma equiv_of_iso.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) (C : G.inf_comp_out K) : (φ '' C) = (equiv_of_iso φ K C) := sorry
+
 def back {K L : set V} (h : K ⊆ L) : G.inf_comp_out L →  G.inf_comp_out K :=
   set.maps_to.restrict (dis_comp_out.back h) {C : G.dis_comp_out L | C.val.inf} {C : G.dis_comp_out K | C.val.inf}
     (dis_comp_out.back_of_inf h)
@@ -686,13 +695,11 @@ lemma eq_back_iff_sub {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L) (D : G.
 lemma back_sub {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L)  :
   (C : set V) ⊆ C.back h := sorry
 
-
+@[simp]
+lemma back_refl_apply  (C : G.inf_comp_out K) : C.back (subset_refl K) = C := sorry
 
 @[simp]
-lemma back_refl_apply  (C : G.dis_comp_out K) : C.back (subset_refl K) = C := sorry
-
-@[simp]
-lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.dis_comp_out M) :
+lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.inf_comp_out M) :
   (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) := sorry
 
 lemma back_surjective {K L : set V} (h : K ⊆ L) : function.surjective (@back V G K L h) := sorry

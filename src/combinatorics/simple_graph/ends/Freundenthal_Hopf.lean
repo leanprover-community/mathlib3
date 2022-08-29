@@ -140,6 +140,14 @@ end inf_comp_out
 
 
 
+--mathlib
+lemma iso.induce_restrict {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+  (s : set V) : (G.induce s) ≃g (G'.induce (φ '' s)) := sorry
+
+--mathlib
+lemma iso.connected {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') :
+  G.connected ↔ G'.connected := sorry
+
 /-
   This is the key part of Hopf-Freudenthal
   Assuming this is proved:
@@ -147,23 +155,21 @@ end inf_comp_out
   bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
 -/
 include Gpc Glf
-lemma good_autom_bwd_map_not_inj
+lemma good_autom_back_not_inj
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V)
   (inf_comp_H_large : fin 3 ↪ (G.inf_comp_out K)) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),
     ¬ injective (inf_comp_out.back ‹↑K' ⊆ ↑L› : G.inf_comp_out L → G.inf_comp_out K') :=
 begin
-  haveI Kn : K.nonempty, by sorry,
-  /-{ rw nonempty_iff_ne_empty,
+  haveI Kn : K.nonempty,
+  { rw nonempty_iff_ne_empty,
     by_contradiction h, rw h at inf_comp_H_large,
-    have e : fin 3 ↪ (G.dis_comp_out (∅ : finset V)), by
-    { apply inf_comp_H_large.trans,
-      fconstructor,
-      exact subtype.val, exact subtype.val_injective,},
-    haveI := comp_out.of_empty_is_subsingleton Gpc,
+    have e : fin 3 ↪ (G.inf_comp_out ∅), by
+    { apply inf_comp_H_large,},
+    haveI := inf_comp_out.of_empty_is_subsingleton Gpc,
     have := e.inj' (subsingleton.elim (e 0) (e 1)),
-    finish,},-/
+    finish,},
   let Kp := (finset.extend_to_connected G Gpc K Kn).val,
   obtain ⟨KKp,Kpc⟩ := (finset.extend_to_connected G Gpc K Kn).prop,
 
@@ -172,35 +178,43 @@ begin
   rcases auts K' with ⟨φ,φgood⟩,
 
   let φK' := finset.image φ K',
+  have φK'eq : φ '' (K' : set V) = φK', by {symmetry, apply finset.coe_image,},
+
   let K'n := finset.nonempty.mono (KKp.trans KK') Kn,
   let φK'n := finset.nonempty.image K'n φ,
   let L := K' ∪ φK',
   use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
 
-  have φK'c : (G.induce (φK' : set V)).connected := sorry,
+  have φK'c : (G.induce (φK' : set V)).connected, by
+  { rw ←φK'eq,
+    rw ←iso.connected (iso.induce_restrict φ K'),
+    exact Kc',},
 
   let E := comp_out.of_connected_disjoint (φK' : set V) φK'c (finset.disjoint_coe.mpr φgood),
   let Edis := comp_out.of_connected_disjoint_dis (φK' : set V) φK'c (finset.disjoint_coe.mpr φgood),
+  let Esub := comp_out.of_connected_disjoint_sub (φK' : set V) φK'c (finset.disjoint_coe.mpr φgood),
+
   let F := comp_out.of_connected_disjoint (K' : set V) Kc' (finset.disjoint_coe.mpr φgood.symm),
   let Fdis := comp_out.of_connected_disjoint_dis (K' : set V) Kc' (finset.disjoint_coe.mpr φgood.symm),
+  let Fsub := comp_out.of_connected_disjoint_sub (K' : set V) Kc' (finset.disjoint_coe.mpr φgood.symm),
 
 
-  have Einf : E.infinite := finn ⟨E,Ecomp⟩,
-  have Finf : F.infinite, by {
-    rcases  ro_component.bij_ro_components_of_isom G G K' φ with ⟨mapsto,inj,sur⟩,
-    rcases sur Fcomp with ⟨F₀,F₀comp,rfl⟩,
-    let F₀inf := finn ⟨F₀,F₀comp⟩,
-    rcases ro_component.bij_inf_ro_components_of_isom G G K' φ with ⟨infmapsto,_,_⟩,
-    exact (infmapsto ⟨F₀comp,F₀inf⟩).2,},
+  have Einf : E.inf := inf E Edis,
+  have Finf : F.inf, by {
+    sorry,
+    -- rewriting troubles :( due to finset↔set conversions
+    -- the idea is that all components of K' disjoint from K' are infinite
+    -- but we have a bijection between the components of K' and those of φK' preserving disjointness and
+    -- finiteness
+  },
 
-  apply nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'nempty) (K'nempty) ⟨⟨F,Fcomp⟩,Finf⟩ _ ⟨⟨E,Ecomp⟩,Einf⟩ Esub Fsub,
-  have := (inf_ro_components_equiv_of_isom' G G K' φ),
+  apply inf_comp_out.nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'n) (K'n) ⟨⟨F,Fdis⟩,Finf⟩ _ ⟨⟨E,Edis⟩,Einf⟩ Esub Fsub,
+  have e := (inf_comp_out.equiv_of_iso φ K'),
   apply inf_comp_H_large.trans,
-  refine function.embedding.trans _ (inf_ro_components_equiv_of_isom' G G K' φ).to_embedding,
+  rw φK'eq at e,
+  refine function.embedding.trans _ e.to_embedding,
   apply function.embedding.of_surjective,
-  exact inf_comp_out_back.surjective G Gpc (KKp.trans KK'),
-
-
+  exact inf_comp_out.back_surjective (KKp.trans KK'),
 end
 
 
@@ -213,10 +227,9 @@ begin
   intros many_ends finite_ends,
 
   -- Boring boilerplate
-  --have Vinf : (@set.univ V).infinite := sorry, -- from the assumption that at least three ends
   haveI : fintype (ComplInfComp G).sections := finite.fintype finite_ends,
-  haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := @ComplInfComp_fintype V _ G _ Gpc,
-  have surj : inverse_system.is_surjective (ComplInfComp G) := ComplInfComp.surjective G,
+  haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := sorry, -- @ComplInfComp_fintype V _ G _ Gpc,
+  have surj : inverse_system.is_surjective (ComplInfComp G) := sorry, -- ComplInfComp.surjective G,
 
   -- By finitely many ends, and since the system is nice, there is some K such that each inf_comp_out_back to K is injective
   obtain ⟨K,top⟩ := inverse_system.sections_fintype_to_injective (ComplInfComp G) surj,
@@ -225,15 +238,15 @@ begin
 
   -- Because we have at least three ends and enough automorphisms, we can apply `good_autom_bwd_map_not_inj`
   -- giving us K ⊆ K' ⊆ L with the inf_comp_out_back from L to K' not injective.
-  rcases (good_autom_bwd_map_not_inj G Gpc auts K (many_ends.trans ⟨_,inj'⟩)) with ⟨K',L,KK',K'L,bwd_K_not_inj⟩,
+  rcases (good_autom_back_not_inj G Glf Gpc auts K (many_ends.trans ⟨_,inj'⟩)) with ⟨K',L,KK',K'L,bwd_K_not_inj⟩,
   -- which is in contradiction with the fact that all inf_comp_out_back to K are injective
   apply bwd_K_not_inj,
   -- The following is just that if f ∘ g is injective, then so is g
   rintro x y eq,
   apply top ⟨L,by {exact KK'.trans K'L,}⟩,
   simp only [ComplInfComp.map],
-  have eq' := congr_arg (@inf_comp_out_back _ _ _ G KK') eq,
-  simp only [inf_comp_out_back.comp_apply] at eq',
+  have eq' := congr_arg (inf_comp_out.back KK') eq,
+  simp only [inf_comp_out.back_trans_apply] at eq',
   exact eq',
 end
 

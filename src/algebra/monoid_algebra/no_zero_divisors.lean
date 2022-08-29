@@ -44,17 +44,51 @@ in particular, it is cancellative).
 -/
 
 namespace add_monoid_algebra
+open finsupp
 
 variables {R A : Type*} [semiring R]
 
 section a_version_with_different_typeclass_assumptions
-variables [add_left_cancel_monoid A] {a b : A} {f : add_monoid_algebra R A}
+
+section no_covariant
+variables [add_left_cancel_semigroup A] {a b : A} {f : add_monoid_algebra R A}
+
+lemma mul_apply_add_eq_mul_of_forall_ne {f g : add_monoid_algebra R A} {a0 b0 : A}
+  (h : ∀ a b : A, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
+  (f * g) (a0 + b0) = f a0 * g b0 :=
+begin
+  classical,
+  rw mul_apply,
+  refine (finset.sum_eq_single a0 _ _).trans _,
+  { exact λ b H (hb : b ≠ a0), finset.sum_eq_zero (λ x H1, if_neg (h b x H H1 (or.inl hb))) },
+  { exact λ af0, by simp [not_mem_support_iff.mp af0] },
+  { refine (finset.sum_eq_single b0 _ _).trans _,
+    { exact λ _ _ _, if_neg (by simpa only [add_right_inj]) },
+    { exact λ bf0, by simp [not_mem_support_iff.mp bf0] },
+    { exact if_pos rfl } },
+end
+
+lemma exists_add_of_mem_support_single_mul {g : add_monoid_algebra R A} (a x : A)
+  (hx : x ∈ (single a 1 * g : add_monoid_algebra R A).support) :
+  ∃ b, b ∈ g.support ∧ a + b = x :=
+begin
+  rw support_single_mul _ _ (λ y, by rw one_mul : ∀ y : R, 1 * y = 0 ↔ _) at hx,
+  simpa only [finset.mem_map, exists_prop] using hx,
+end
 
 /--  This lemma is extracted from the proof of `add_monoid_algebra.mul_apply_of_le`.  It has
 somewhat weaker typeclass assumptions, but also proves a weaker result. -/
 lemma single_mul_apply' (r : R) :
-  (finsupp.single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
+  (single a r * f : add_monoid_algebra R A) (a + b) = r * f b :=
 begin
+  convert mul_apply_add_eq_mul_of_forall_ne _,
+  { exact single_eq_same.symm },
+  { rintros x y hx hy (hnx | hny),
+    { simpa [mem_support_iff, ne.def, single_apply_eq_zero, hnx] using hx },
+    { simp only [mem_support_iff, single_apply_ne_zero] at hx,
+      rcases hx with ⟨rfl, hx⟩,
+      simpa } },
+/-
   classical,
   nth_rewrite 0 ← f.erase_add_single b,
   rw [mul_add, single_mul_single, finsupp.add_apply, finsupp.single_eq_same],
@@ -64,7 +98,47 @@ begin
   simpa only [finsupp.mem_support_single, finset.mem_bUnion, ne.def, finset.mem_singleton,
     exists_prop, not_exists, not_and, and_imp, forall_eq, finsupp.support_erase, add_right_inj]
     using λ _ x xs, (finset.ne_of_mem_erase xs).symm,
+-/
 end
+
+end no_covariant
+
+variables [no_zero_divisors R] [add_left_cancel_monoid A] [linear_order A]
+  [covariant_class A A (function.swap (+)) (<)] {f g : add_monoid_algebra R A} {a b : A}
+
+lemma no_zero_divisors.of_right_ordered : no_zero_divisors (add_monoid_algebra R A) :=
+⟨λ f g fg, begin
+  contrapose! fg,
+  rw [← support_nonempty_iff, ← support_nonempty_iff] at fg,
+  cases fg with f0 g0,
+  refine support_nonempty_iff.mp _,
+  obtain ⟨a, ha, H⟩ := exists_add_of_mem_support_single_mul (f.support.min' f0)
+    ((single (f.support.min' f0) 1 * g : add_monoid_algebra R A).support.min'
+      (by rw support_single_mul; simp [g0])) (finset.min'_mem _ _),
+  refine ⟨f.support.min' f0 + a, mem_support_iff.mpr _⟩,
+  rw mul_apply_add_eq_mul_of_forall_ne _,
+  { simp only [ne.def, mul_eq_zero, not_or_distrib, mem_support_iff.mp ha, not_false_iff, and_true],
+    exact mem_support_iff.mp (finset.min'_mem _ _) },
+  { rw H,
+    rintro b c bf cg (hb | hc); refine ne_of_gt _,
+    { refine lt_of_le_of_lt (_ : _ ≤ f.support.min' f0 + c) _,
+      { apply finset.min'_le,
+        rw support_single_mul _ _ (λ y, by rw one_mul : ∀ y : R, 1 * y = 0 ↔ _),
+        simp only [cg, finset.mem_map, add_left_embedding_apply, add_right_inj, exists_prop,
+          exists_eq_right] },
+      { refine add_lt_add_right _ _,
+        exact finset.min'_lt_of_mem_erase_min' _ _ (finset.mem_erase.mpr ⟨hb, bf⟩) } },
+    { refine lt_of_lt_of_le (_ : _ < f.support.min' f0 + c) _,
+      { apply finset.min'_lt_of_mem_erase_min',
+        rw ← H,
+        apply finset.mem_erase_of_ne_of_mem,
+        { simpa only [ne.def, add_right_inj] },
+        { rw support_single_mul _ _ (λ y, by rw one_mul : ∀ y : R, 1 * y = 0 ↔ _),
+          simpa only [finset.mem_map, add_left_embedding_apply, add_right_inj, exists_prop,
+            exists_eq_right]} },
+      { haveI : covariant_class A A (function.swap (+)) (≤) := has_add.to_covariant_class_right A,
+        exact add_le_add_right (finset.min'_le _ _ bf) _ } } }
+end⟩
 
 end a_version_with_different_typeclass_assumptions
 

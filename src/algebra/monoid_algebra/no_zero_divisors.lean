@@ -78,11 +78,11 @@ end
 
 end no_covariant
 
-variables [no_zero_divisors R] [add_left_cancel_monoid A] [linear_order A]
+variables [no_zero_divisors R] [add_left_cancel_semigroup A] [linear_order A]
   [covariant_class A A (function.swap (+)) (<)] {f g : add_monoid_algebra R A} {a b : A}
 
 /--  If `R` is a semiring with no non-trivial zero-divisors and `A` is a right-ordered add cancel
-monoid, then `add_monoid_algebra R A` also contains no non-zero zero-divisors. -/
+semigroup, then `add_monoid_algebra R A` also contains no non-zero zero-divisors. -/
 lemma no_zero_divisors.of_right_ordered : no_zero_divisors (add_monoid_algebra R A) :=
 ⟨λ f g fg, begin
   contrapose! fg,
@@ -94,8 +94,8 @@ lemma no_zero_divisors.of_right_ordered : no_zero_divisors (add_monoid_algebra R
       (by rw support_single_mul; simp [g0])) (finset.min'_mem _ _),
   refine ⟨f.support.min' f0 + a, mem_support_iff.mpr _⟩,
   rw mul_apply_add_eq_mul_of_forall_ne _,
-  { simp only [ne.def, mul_eq_zero, not_or_distrib, mem_support_iff.mp ha, not_false_iff, and_true],
-    exact mem_support_iff.mp (finset.min'_mem _ _) },
+  { refine mul_ne_zero _ _,
+    exacts [mem_support_iff.mp (finset.min'_mem _ _), mem_support_iff.mp ha] },
   { rw H,
     rintro b c bf cg (hb | hc); refine ne_of_gt _,
     { refine lt_of_le_of_lt (_ : _ ≤ f.support.min' f0 + c) _,

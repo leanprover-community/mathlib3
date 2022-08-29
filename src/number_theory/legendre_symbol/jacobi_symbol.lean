@@ -16,8 +16,7 @@ We define the Jacobi symbol, `jacobi_sym a b` for integers `a` and natural numbe
 as the product over the prime factors `p` of `b` of the Legendre symbols `zmod.legendre_sym p a`.
 This agrees with the mathematical definition when `b` is odd.
 
-The prime factors are obtained via a variant of `nat.factors`, `nat.prime_factors`,
-that includes the information that the factors are primes. Since `nat.factors 0 = []`,
+The prime factors are obtained via `nat.factors`. Since `nat.factors 0 = []`,
 this implies in particular that `jacobi_sym a 0 = 1` for all `a`.
 
 ## Main statements

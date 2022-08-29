@@ -22,6 +22,10 @@ This file defines the multinomial coefficient and several small lemma's for mani
 
 - `nat.multinomial`: the multinomial coefficient
 
+## Main results
+
+- `nat.multinomial_theorem`: The expansion of `(s.sum x) ^ n` using multinomial coefficients
+
 -/
 
 open_locale nat
@@ -192,7 +196,12 @@ namespace nat
 
 variables {α : Type*} (s : finset α)
 
-def multinomial_theorem [decidable_eq α] {R : Type*} [comm_semiring R] (x : α → R) :
+/--
+  The multinomial theorem
+
+  Proof is by induction on the number of summands.
+-/
+theorem multinomial_theorem [decidable_eq α] {R : Type*} [comm_semiring R] (x : α → R) :
   ∀ n, (s.sum x) ^ n = ∑ k in s.sym n, k.val.multinomial * (k.val.map x).prod :=
 begin
   induction s using finset.induction with a s ha ih,

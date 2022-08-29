@@ -78,7 +78,7 @@ def homotopy_P_infty_to_id :
 /-- The inclusion of the Moore complex in the alternating face map complex
 is an homotopy equivalence -/
 @[simps]
-def inclusion_of_Moore_complex_map_is_homotopy_equiv {A : Type*} [category A] [abelian A]
+def homotopy_equiv_normalized_Moore_complex_alternating_face_map_complex {A : Type*} [category A] [abelian A]
   {Y : simplicial_object A} : homotopy_equiv ((normalized_Moore_complex A).obj Y)
   ((alternating_face_map_complex A).obj Y) :=
 { hom := inclusion_of_Moore_complex_map Y,

@@ -318,7 +318,7 @@ have h : _ := closure_minimal (I.subset_compl_ball_of_ne_top hI)
   metric.is_open_ball.is_closed_compl,
   by simpa only [I.closure.eq_top_iff_one, ne.def] using mt (@h 1) (by norm_num)
 
-/-- the `ideal.closure` of a maximal ideal in a complete normed ring is the ideal itself. -/
+/-- The `ideal.closure` of a maximal ideal in a complete normed ring is the ideal itself. -/
 lemma ideal.is_maximal.closure_eq {I : ideal R} (hI : I.is_maximal) : I.closure = I :=
 (hI.eq_of_le (I.closure_ne_top hI.ne_top) subset_closure).symm
 

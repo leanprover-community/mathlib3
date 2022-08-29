@@ -1750,7 +1750,7 @@ end is_complemented
 /-- A complemented bounded lattice is one where every element has a (not necessarily unique)
 complement. -/
 class complemented_lattice (α) [lattice α] [bounded_order α] : Prop :=
-(exists_is_compl : ∀ a : α, is_complemented a)
+(exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
 
 export complemented_lattice (exists_is_compl)
 

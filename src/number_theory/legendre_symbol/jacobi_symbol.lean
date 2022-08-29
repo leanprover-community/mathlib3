@@ -557,10 +557,8 @@ end
 lemma jacobi_sym_mod_right' (a : ℕ) {b : ℕ} (hb : odd b) : [a | b]ⱼ = [a | b % (4 * a)]ⱼ :=
 begin
   cases eq_or_ne a 0 with ha₀ ha₀,
-  { -- trivial case: `a = 0`
-    rw [ha₀, mul_zero, mod_zero], },
-  have hb' : odd (b % (4 * a)) :=
-  odd_mod_of_odd hb (even.mul_right (by norm_num) _),
+  { rw [ha₀, mul_zero, mod_zero], },
+  have hb' : odd (b % (4 * a)) := odd_mod_of_odd hb (even.mul_right (by norm_num) _),
   rcases two_pow_mul_odd ha₀ with ⟨e, a', ⟨ha₁, ha₂⟩⟩,
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,
@@ -575,12 +573,10 @@ begin
     rw [χ₄_nat_mod_four, χ₄_nat_mod_four (b % (4 * a)), mod_mod_of_dvd b (dvd_mul_right 4 a),
         jacobi_sym_mod_left b, jacobi_sym_mod_left (b % (4 * a)), int.mod_mod_of_dvd b ha'], },
   cases eq_or_ne e 0 with he he,
-  { rw [he, pow_zero, pow_zero, one_mul, one_mul],
-    exact H, },
-  { have he' : e = 1 + (e - 1) := (nat.add_sub_of_le (nat.pos_of_ne_zero he)).symm,
-    have h2 : 8 ∣ 4 * a,
-    { rw [ha₂, he', pow_add, pow_one, ← mul_assoc, ← mul_assoc, (by norm_num : 4 * 2 = 8),
-          mul_assoc],
+  { rwa [he, pow_zero, pow_zero, one_mul, one_mul], },
+  { have h2 : 8 ∣ 4 * a,
+    { rw [ha₂, ← nat.add_sub_of_le (nat.pos_of_ne_zero he), pow_add, pow_one,
+          ← mul_assoc, ← mul_assoc, (by norm_num : 4 * 2 = 8), mul_assoc],
       exact dvd_mul_right 8 _, },
     rw [H, χ₈_nat_mod_eight, χ₈_nat_mod_eight (b % (4 * a)), mod_mod_of_dvd b h2],
     refl, }

@@ -197,8 +197,7 @@ lemma jacobi_sym_mul_right (a : ℤ) (b₁ b₂ : ℕ) [ne_zero b₁] [ne_zero b
   [a | b₁ * b₂]ⱼ = [a | b₁]ⱼ * [a | b₂]ⱼ :=
 begin
   simp_rw [jacobi_sym],
-  have h :=
-  λ p hp, (list.mem_append.mp hp).elim prime_of_mem_factors prime_of_mem_factors,
+  have h := λ p hp, (list.mem_append.mp hp).elim prime_of_mem_factors prime_of_mem_factors,
   rwa [list.perm.prod_eq (list.perm.pmap _ (perm_factors_mul (ne_zero.ne b₁) (ne_zero.ne b₂))),
        list.pmap_append, list.prod_append],
 end

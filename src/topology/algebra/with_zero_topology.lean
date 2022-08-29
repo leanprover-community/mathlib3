@@ -100,8 +100,7 @@ lemma singleton_mem_nhds_of_units (γ : Γ₀ˣ) : ({γ} : set Γ₀) ∈ 𝓝 (
 
 /-- If `γ` is a nonzero element of a linearly ordered group with zero element adjoined, then `{γ}`
 is a neighbourhood of `γ`. -/
-lemma singleton_mem_nhds_of_ne_zero (γ : Γ₀) (h : γ ≠ 0) : ({γ} : set Γ₀) ∈ 𝓝 (γ : Γ₀) :=
-by simp [h]
+lemma singleton_mem_nhds_of_ne_zero (h : γ ≠ 0) : ({γ} : set Γ₀) ∈ 𝓝 (γ : Γ₀) := by simp [h]
 
 lemma has_basis_nhds_of_ne_zero {x : Γ₀} (h : x ≠ 0) :
   has_basis (𝓝 x) (λ i : unit, true) (λ i, {x}) :=

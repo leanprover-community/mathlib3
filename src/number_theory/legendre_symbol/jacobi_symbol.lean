@@ -589,8 +589,7 @@ begin
   { -- `a = a.nat_abs`
     exact jacobi_sym_mod_right' a.nat_abs hb, },
   { -- `a = - a.nat_abs`
-    have hb' : odd (b % (4 * a.nat_abs)) :=
-    odd_mod_of_odd hb (even.mul_right (by norm_num) _),
+    have hb' : odd (b % (4 * a.nat_abs)) := odd_mod_of_odd hb (even.mul_right (by norm_num) _),
     rw [jacobi_sym_neg _ hb, jacobi_sym_neg _ hb', jacobi_sym_mod_right' _ hb, χ₄_nat_mod_four,
         χ₄_nat_mod_four (b % (4 * _)), mod_mod_of_dvd b (dvd_mul_right 4 _)], }
 end

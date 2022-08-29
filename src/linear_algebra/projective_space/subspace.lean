@@ -367,7 +367,7 @@ def projective_linear_subspace (M : submodule K V) : subspace K V :=
 
 /-- This function associates to a submodule M of the vector space V the subspace of ℙ K V consisting
 of the points whose representative's are contained in M. -/
-def projective_linear_subspace_2 (M : submodule K V) : subspace K V :=
+def projective_linear_subspace₂ (M : submodule K V) : subspace K V :=
 { carrier := {v | v.rep ∈ M},
   mem_add' :=
   begin
@@ -377,12 +377,12 @@ def projective_linear_subspace_2 (M : submodule K V) : subspace K V :=
   end }
 
 /-- The subspaces of ℙ K V associated to a submodule of V by the above two functions are equal. -/
-lemma projective_linear_subspace_eq_projective_linear_subspace_2 (M : submodule K V) :
-  projective_linear_subspace M = projective_linear_subspace_2 M :=
+lemma projective_linear_subspace_eq_projective_linear_subspace₂ (M : submodule K V) :
+  projective_linear_subspace M = projective_linear_subspace₂ M :=
 begin
   ext,
   unfold projective_linear_subspace,
-  unfold projective_linear_subspace_2,
+  unfold projective_linear_subspace₂,
   simp_rw [set.mem_set_of_eq, projectivization.submodule_eq, submodule.span_singleton_le_iff_mem]
 end
 

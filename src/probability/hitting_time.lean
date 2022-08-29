@@ -51,6 +51,7 @@ section inequalities
 
 variables [conditionally_complete_linear_order ι] {u : ι → Ω → β} {s : set β} {n i : ι} {ω : Ω}
 
+/-- This lemma is strictly weaker than `hitting_of_le`. -/
 lemma hitting_of_lt {m : ι} (h : m < n) : hitting u s n m ω = m :=
 begin
   simp_rw [hitting],
@@ -71,6 +72,36 @@ begin
       exact (cInf_le (bdd_below.inter_of_left bdd_below_Icc) (set.mem_inter hj₁ hj₂)).trans hj₁.2 },
     { exact le_rfl }, },
   { rw hitting_of_lt h_lt, },
+end
+
+lemma not_mem_of_lt_hitting {m k : ι}
+  (hk₁ : k < hitting u s n m ω) (hk₂ : n ≤ k) :
+  u k ω ∉ s :=
+begin
+  classical,
+  intro h,
+  have hexists : ∃ j ∈ set.Icc n m, u j ω ∈ s,
+  refine ⟨k, ⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
+  refine not_le.2 hk₁ _,
+  simp_rw [hitting, if_pos hexists],
+  exact cInf_le bdd_below_Icc.inter_of_left ⟨⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
+end
+
+lemma hitting_eq_end_iff {m : ι} :
+  hitting u s n m ω = m ↔ (∃ j ∈ set.Icc n m, u j ω ∈ s) →
+    Inf (set.Icc n m ∩ {i : ι | u i ω ∈ s}) = m :=
+by rw [hitting, ite_eq_right_iff]
+
+lemma hitting_of_le {m : ι} (hmn : m ≤ n) :
+  hitting u s n m ω = m :=
+begin
+  obtain (rfl | h) := le_iff_eq_or_lt.1 hmn,
+  { simp only [hitting, set.Icc_self, ite_eq_right_iff, set.mem_Icc, exists_prop,
+      forall_exists_index, and_imp],
+    intros i hi₁ hi₂ hi,
+    rw [set.inter_eq_left_iff_subset.2, cInf_singleton],
+    exact set.singleton_subset_iff.2 (le_antisymm hi₂ hi₁ ▸ hi) },
+  { exact hitting_of_lt h }
 end
 
 lemma le_hitting {m : ι} (hnm : n ≤ m) (ω : Ω) : n ≤ hitting u s n m ω :=
@@ -107,6 +138,16 @@ begin
   have h_mem := Inf_mem h_nonempty,
   rw [set.mem_inter_iff] at h_mem,
   exact h_mem.2,
+end
+
+lemma hitting_mem_set_of_hitting_lt [is_well_order ι (<)] {m : ι}
+  (hl : hitting u s n m ω < m) :
+  u (hitting u s n m ω) ω ∈ s :=
+begin
+  by_cases h : ∃ j ∈ set.Icc n m, u j ω ∈ s,
+  { exact hitting_mem_set h },
+  { simp_rw [hitting, if_neg h] at hl,
+    exact false.elim (hl.ne rfl) }
 end
 
 lemma hitting_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i ω ∈ s) :
@@ -173,6 +214,21 @@ begin
     { exact ((cInf_le bdd_below_Icc.inter_of_left ⟨hj₁, hj₂⟩).trans (hj₁.2.trans le_rfl)).trans
         (le_of_lt (not_le.1 hi')) } },
   exact ⟨j, ⟨hj₁.1, hj₁.2.trans h⟩, hj₂⟩,
+end
+
+lemma hitting_mono {m₁ m₂ : ι} (hm : m₁ ≤ m₂) :
+  hitting u s n m₁ ω ≤ hitting u s n m₂ ω :=
+begin
+  by_cases h : ∃ j ∈ set.Icc n m₁, u j ω ∈ s,
+  { exact (hitting_eq_hitting_of_exists hm h).le },
+  { simp_rw [hitting, if_neg h],
+    split_ifs with h',
+    { obtain ⟨j, hj₁, hj₂⟩ := h',
+      refine le_cInf ⟨j, hj₁, hj₂⟩ _,
+      by_contra hneg, push_neg at hneg,
+      obtain ⟨i, hi₁, hi₂⟩ := hneg,
+      exact h ⟨i, ⟨hi₁.1.1, hi₂.le⟩, hi₁.2⟩ },
+    { exact hm } }
 end
 
 end inequalities

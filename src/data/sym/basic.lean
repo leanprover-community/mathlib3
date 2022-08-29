@@ -312,6 +312,30 @@ multiset.mem_attach _ _
   :=
 coe_injective $ multiset.attach_cons _ _
 
+/-- fill (n+1) elements of sym α (n - i) with copies of a to obtain an element of sym α n  -/
+def fill (a : α) (m : Σ i : fin (n + 1), sym α (n - i)) : sym α n :=
+sym.mk (m.1.1 • {a} + m.2) begin
+  erw [multiset.card_add, m.2.2, multiset.card_nsmul, multiset.card_singleton, mul_one],
+  exact nat.add_sub_of_le (nat.lt_succ_iff.1 m.1.2),
+end
+
+def filter_ne [decidable_eq α] (a : α) {n : ℕ}
+  (m : sym α n) : Σ i : fin (n + 1), sym α (n - i) :=
+⟨⟨m.1.count a, (multiset.count_le_card _ _).trans_lt $ by rw [m.2, nat.lt_succ_iff]⟩,
+  sym.mk (m.1.filter ((≠) a)) $ eq_tsub_of_add_eq begin
+    conv_rhs { rw [← m.2, multiset.card_eq_countp_add_countp ((=) a), add_comm] },
+    rw multiset.countp_eq_card_filter, refl,
+  end⟩
+
+lemma sigma_ext (m₁ m₂ : Σ i : fin (n + 1), sym α (n - i))
+  (h : m₁.2.1 = m₂.2.1) : m₁ = m₂ :=
+sigma.subtype_ext (fin.ext $ begin
+  have h₁ := nat.sub_sub_self (nat.lt_succ_iff.1 m₁.1.2),
+  have h₂ := nat.sub_sub_self (nat.lt_succ_iff.1 m₂.1.2),
+  dsimp only [fin.val_eq_coe] at h₁ h₂,
+  rw [← h₁, ← h₂, ← m₁.2.2, ← m₂.2.2, h],
+end) h
+
 end sym
 
 section equiv

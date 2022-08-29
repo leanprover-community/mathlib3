@@ -171,7 +171,7 @@ end nat
 
 namespace int
 
-/-- If the gcd of `a` with `m * n` is not one, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
+/-- If `gcd a (m * n) ≠ 1`, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
 lemma gcd_ne_one_of_gcd_mul_ne_one {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) ≠ 1) :
   a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=
 begin
@@ -179,6 +179,14 @@ begin
   exact h (gcd_eq_one_iff_coprime.mpr $
     is_coprime.mul_right (gcd_eq_one_iff_coprime.mp h₁.left) $ gcd_eq_one_iff_coprime.mp h₁.right)
 end
+
+/-- If `gcd a (m * n) = 1`, then `gcd a m = 1`. -/
+lemma gcd_eq_one_of_gcd_mul_eq_one_left {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd m = 1 :=
+nat.dvd_one.mp $ trans_rel_left _ (int.gcd_dvd_gcd_mul_right_right a m n) h
+
+/-- If `gcd a (m * n) = 1`, then `gcd a n = 1`. -/
+lemma gcd_eq_one_of_gcd_mul_eq_one_rift {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd n = 1 :=
+nat.dvd_one.mp $ trans_rel_left _ (int.gcd_dvd_gcd_mul_left_right a n m) h
 
 end int
 
@@ -314,8 +322,8 @@ end
 lemma jacobi_sym_eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :
   [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
 begin
-  refine rec_on_mul (λ _, (or.inl $ jacobi_sym_zero_right a))
-          (λ _, (or.inl $ jacobi_sym_one_right a)) (λ p pp hpg, _) (λ m n hm hn hmng, _) b h,
+  refine rec_on_mul (λ _, or.inl $ jacobi_sym_zero_right a)
+          (λ _, or.inl $ jacobi_sym_one_right a) (λ p pp hpg, _) (λ m n hm hn hmng, _) b h,
   { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩],
     exact @legendre_sym_eq_one_or_neg_one p ⟨pp⟩ _ (ne_zero_of_gcd_eq_one pp hpg), },
   { by_cases hm0 : m = 0,

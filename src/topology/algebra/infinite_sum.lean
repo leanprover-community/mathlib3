@@ -1223,7 +1223,7 @@ local attribute [instance] topological_add_group.t3_space
 
 /-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
 space. This does not need a summability assumption, as otherwise all sums are zero. -/
-lemma tendsto_tsum_compl_at_top_zero [t1_space α] (f : β → α) :
+lemma tendsto_tsum_compl_at_top_zero (f : β → α) :
   tendsto (λ (s : finset β), ∑' b : {x // x ∉ s}, f b) at_top (𝓝 0) :=
 begin
   by_cases H : summable f,

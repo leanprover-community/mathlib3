@@ -934,11 +934,11 @@ by { convert @nhds_within_Ici_basis' αᵒᵈ _ _ _ (to_dual a) ha,
      exact funext (λ x, (@dual_Ico _ _ _ _).symm) }
 
 lemma nhds_within_Ici_basis [topological_space α] [linear_order α] [order_topology α]
-  [no_max_order α] (a : α) (ha : ∃ u, a < u) : (𝓝[≥] a).has_basis (λ u, a < u) (λ u, Ico a u) :=
+  [no_max_order α] (a : α) : (𝓝[≥] a).has_basis (λ u, a < u) (λ u, Ico a u) :=
 nhds_within_Ici_basis' (exists_gt a)
 
 lemma nhds_within_Iic_basis [topological_space α] [linear_order α] [order_topology α]
-  [no_min_order α] (a : α) (ha : ∃ l, l < a) : (𝓝[≤] a).has_basis (λ l, l < a) (λ l, Ioc l a) :=
+  [no_min_order α] (a : α) : (𝓝[≤] a).has_basis (λ l, l < a) (λ l, Ioc l a) :=
 nhds_within_Iic_basis' (exists_lt a)
 
 lemma nhds_top_order [topological_space α] [partial_order α] [order_top α] [order_topology α] :

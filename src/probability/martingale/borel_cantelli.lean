@@ -557,45 +557,6 @@ integrable_finset_sum' _ (λ k hk,
   ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
   (integrable_const 1).integrable_on).sub integrable_condexp)
 
-section
-
-variables {ι F' : Type*} [normed_add_comm_group F'] [normed_space ℝ F'] [complete_space F']
-  {m n : measurable_space α}
-
-lemma finset.sum_eventually_eq {α β : Type*} [add_comm_monoid β]
-  {s : finset ι} {l : filter α} {f g : ι → α → β} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :
-  ∑ i in s, f i =ᶠ[l] ∑ i in s, g i :=
-begin
-  replace hs: ∀ᶠ x in l, ∀ i ∈ s, f i x = g i x,
-  { rwa eventually_all_finset },
-  filter_upwards [hs] with x hx,
-  simp only [finset.sum_apply, finset.sum_congr rfl hx],
-end
-
-lemma condexp_finset_sum {s : finset ι} {f : ι → α → F'} (hf : ∀ i ∈ s, integrable (f i) μ) :
-  μ[∑ i in s, f i | m] =ᵐ[μ] ∑ i in s, μ[f i | m] :=
-begin
-  classical,
-  revert hf,
-  refine finset.induction_on s _ _,
-  { intro hf,
-    rw [finset.sum_empty, finset.sum_empty, condexp_zero] },
-  { intros i s his heq hf,
-    rw [finset.sum_insert his, finset.sum_insert his],
-    exact (condexp_add (hf i $ finset.mem_insert_self i s) $ integrable_finset_sum' _
-      (λ j hmem, hf j $ finset.mem_insert_of_mem hmem)).trans
-      ((eventually_eq.refl _ _).add (heq $ λ j hmem, hf j $ finset.mem_insert_of_mem hmem)) }
-end
-
-lemma condexp_nonneg {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfint : integrable f μ) :
-  0 ≤ᵐ[μ] μ[f | m] :=
-begin
-  rw (condexp_zero.symm : (0 : α → ℝ) = μ[0 | m]),
-  exact condexp_mono (integrable_zero _ _ _) hfint hf,
-end
-
-end
-
 lemma martingale_mgale
   (μ : measure α) [is_finite_measure μ] (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   martingale (mgale ℱ μ s) ℱ μ :=

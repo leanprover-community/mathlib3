@@ -1138,6 +1138,19 @@ begin
     rw smul_add, exact submodule.add_mem _ hx hy },
 end
 
+@[simp] lemma coe_restrict_scalars {R S : Type*} [comm_semiring R] [semiring S] [algebra R S]
+  (I : ideal S) : ((I.restrict_scalars R) : set S) = ↑I :=
+rfl
+
+/-- The smallest `S`-submodule that contains all `x ∈ I * y ∈ J`
+is also the smallest `R`-submodule that does so. -/
+@[simp] lemma restrict_scalars_mul {R S : Type*} [comm_semiring R] [comm_semiring S] [algebra R S]
+  (I J : ideal S) : (I * J).restrict_scalars R = I.restrict_scalars R * J.restrict_scalars R :=
+le_antisymm (λ x hx, submodule.mul_induction_on hx
+    (λ x hx y hy, submodule.mul_mem_mul hx hy)
+    (λ x y, submodule.add_mem _))
+  (submodule.mul_le.mpr (λ x hx y hy, ideal.mul_mem_mul hx hy))
+
 section surjective
 variables (hf : function.surjective f)
 include hf

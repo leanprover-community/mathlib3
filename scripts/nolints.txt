@@ -658,10 +658,6 @@ apply_nolint is_cyclotomic_extension.number_field fintype_finite
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 
--- order/well_founded_set.lean
-apply_nolint pi.is_pwo fintype_finite
-apply_nolint set.fintype.is_pwo fintype_finite
-
 -- ring_theory/finiteness.lean
 apply_nolint algebra.finite_presentation.mv_polynomial fintype_finite
 apply_nolint algebra.finite_presentation.mv_polynomial_of_finite_presentation fintype_finite

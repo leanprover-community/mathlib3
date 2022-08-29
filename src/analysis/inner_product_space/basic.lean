@@ -2330,34 +2330,89 @@ namespace uniform_space.completion
 
 open uniform_space function
 
-#check continuous_map_class
-
-private def innerL [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [has_continuous_const_smul ℝ E] :
-  E →L[ℝ] E →L[ℝ] 𝕜 :=
+-- move me
+def _root_.innerₗ [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [has_continuous_const_smul ℝ E] :
+  E →ₗ[ℝ] E →ₗ[ℝ] 𝕜 :=
 { to_fun := λ x,
-  { to_fun := innerSL x,
-    map_add' := map_add _,
-    map_smul' := sorry,
-    cont := (innerSL x).cont },
-  map_add' := λ a b, by ext x; rw map_add innerSL a b; refl,
-  map_smul' := sorry,
-  cont := sorry }
+  { to_fun := inner x,
+    map_add' := λ a b, inner_add_right,
+    map_smul' := λ c a, by rw [real_smul_eq_coe_smul c _];
+      [exact inner_smul_real_right, apply_instance] },
+  map_add' := λ a b, by ext; exact inner_add_left,
+  map_smul' := λ c a, by ext; rw [real_smul_eq_coe_smul c _];
+    [exact inner_smul_real_left, apply_instance] }
+
+-- move me
+def _root_.innerL [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [has_continuous_const_smul ℝ E] :
+  E →L[ℝ] E →L[ℝ] 𝕜 :=
+linear_map.mk_continuous₂ innerₗ 1
+(λ x y, by change ∥inner x y∥ ≤ _; simp only [norm_inner_le_norm, one_mul])
+
+namespace old
+
+instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
+  has_inner 𝕜' (completion E') :=
+{ inner := dense_inducing_coe.extend (λ x, dense_inducing_coe.extend (inner x)) }
+
+@[simp] lemma coe_inner (a b : E) :
+  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
+begin
+  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
+  calc inner (a : completion E) (b : completion E)
+      = dense_inducing_coe.extend (inner a) b :
+        begin
+          refine congr_fun (dense_inducing_coe.extend_eq _ _) (b : completion E),
+          sorry
+        end
+  ... = inner a b : dense_inducing_coe.extend_eq _ _,
+  sorry
+end
+
+end old
 
 instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
   has_inner 𝕜' (completion E') :=
 { inner := curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (uncurry inner) }
 
-#check continuous_linear_map.le_op_norm₂
+@[simp] lemma coe_inner (a b : E) :
+  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
+begin
+  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
+  exact (dense_inducing_coe.prod dense_inducing_coe).extend_eq
+    (@continuous_linear_map.continuous₂ ℝ _ E _ _ E _ _ 𝕜 _ _ innerL) (a, b),
+end
 
---@[simp] lemma coe_inner (a b : E) :
---  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
---(dense_inducing_coe.prod dense_inducing_coe).extend_eq (innerSL.continuous₂) (a, b)
+protected lemma continuous_inner₂ :
+  continuous (uncurry inner : completion E × completion E → 𝕜) :=
+begin
+  rw completion.has_inner,
+  unfold_projs,
+  rw uncurry_curry _,
+  refine (dense_inducing_coe.prod dense_inducing_coe).continuous_extend (λ b, _),
+  haveI := (dense_inducing_coe.prod dense_inducing_coe).comap_nhds_ne_bot b,
+  rw ← cauchy_map_iff_exists_tendsto,
+  sorry
+end
 
+protected lemma continuous.inner₂ {α : Type*} [topological_space α]
+  {f g : α → completion E} (hf : continuous f) (hg : continuous g) :
+  continuous (λ x : α, inner (f x) (g x) : α → 𝕜) :=
+uniform_space.completion.continuous_inner₂.comp (hf.prod_mk hg : _)
+
+local attribute [continuity] uniform_space.completion.continuous.inner₂
 
 instance : inner_product_space 𝕜 (completion E) :=
-{ norm_sq_eq_inner := λ x, completion.induction_on x _ (λ a, by simp only [completion.norm_coe]),
-  conj_sym := sorry,
-  add_left := sorry,
-  smul_left := sorry }
+{ norm_sq_eq_inner := λ x, completion.induction_on x
+    (is_closed_eq (continuous_norm.pow 2) (by continuity))
+    (λ a, by simp only [norm_coe, coe_inner, inner_self_eq_norm_sq]),
+  conj_sym := λ x y, completion.induction_on₂ x y
+    (is_closed_eq (by continuity) (by continuity))
+    (λ a b, by simp only [coe_inner, inner_conj_sym]),
+  add_left := λ x y z, completion.induction_on₃ x y z
+    (is_closed_eq (by continuity) (by continuity))
+    (λ a b c, by simp only [← coe_add, coe_inner, inner_add_left]),
+  smul_left := λ x y c, completion.induction_on₂ x y
+    (is_closed_eq (by continuity) (by continuity; exact continuous_mul_left _))
+    (λ a b, by simp only [← coe_smul c a, coe_inner, inner_smul_left]) }
 
 end uniform_space.completion

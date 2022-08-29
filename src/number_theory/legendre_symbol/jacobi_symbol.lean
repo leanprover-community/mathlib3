@@ -299,35 +299,27 @@ end
 lemma jacobi_sym_eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :
   [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
 begin
-  let P := λ b : ℕ, a.gcd b = 1 → [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1,
-  have hp : ∀ p : ℕ, p.prime → P p,
-  { intros p pp hpg,
-    haveI : fact p.prime := ⟨pp⟩,
-    simp_rw [← legendre_sym.to_jacobi_sym],
-    exact legendre_sym_eq_one_or_neg_one p (ne_zero_of_gcd_eq_one pp hpg), },
-  have hmul : ∀ m n : ℕ, P m → P n → P (m * n),
-  { intros m n hm hn hmng,
-    rw [nat.cast_mul] at hmng,
-    by_cases hm0 : m = 0,
+  refine rec_on_mul (λ _, (or.inl $ jacobi_sym_zero_right a))
+          (λ _, (or.inl $ jacobi_sym_one_right a)) (λ p pp hpg, _) (λ m n hm hn hmng, _) b h,
+  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩],
+    exact @legendre_sym_eq_one_or_neg_one p ⟨pp⟩ _ (ne_zero_of_gcd_eq_one pp hpg), },
+  { by_cases hm0 : m = 0,
     { rw [hm0, zero_mul],
       exact or.inl (jacobi_sym_zero_right a), },
     by_cases hn0 : n = 0,
     { rw [hn0, mul_zero],
       exact or.inl (jacobi_sym_zero_right a), },
-    haveI : ne_zero m := ⟨hm0⟩,
-    haveI : ne_zero n := ⟨hn0⟩,
+    rw [nat.cast_mul] at hmng,
     have hmg : a.gcd m = 1,
     { have t := int.gcd_dvd_gcd_mul_right_right a m n, rw hmng at t, exact nat.dvd_one.mp t,},
     have hng : a.gcd n = 1,
     { have t := int.gcd_dvd_gcd_mul_left_right a n m, rw hmng at t, exact nat.dvd_one.mp t,},
-    simp_rw [jacobi_sym_mul_right],
+    simp_rw [@jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩],
     cases hm hmg with hl hr,
     { rw [hl, one_mul],
       exact hn hng, },
     { rw [hr, neg_mul, one_mul, neg_inj, neg_eq_iff_neg_eq],
       exact or.dcases_on (hn hng) or.inr (λ hr', or.inl hr'.symm), } },
-  exact rec_on_mul (λ _, (or.inl $ jacobi_sym_zero_right a))
-                   (λ _, (or.inl $ jacobi_sym_one_right a)) hp hmul b h,
 end
 
 /-- The square of the Jacobi symbol `(a / b)` is `1` when `a` and `b` are coprime. -/

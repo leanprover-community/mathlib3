@@ -64,7 +64,6 @@ begin
     { exact Fe ▸ sub,},
     { rcases @comp_out.adj V G H Gpc Hnempty E' (E'.dis_of_inf Einf') with ⟨⟨v,h⟩,vE',hH,a⟩,
       have : h ∈ F, from H_F hH,
-      --nonadj (C : G.comp_out K) : ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ c ∉ K ∧ d ∉ K ∧ G.adj c d)
       exfalso,
       apply F.nonadj,
       use [h, v],
@@ -201,11 +200,24 @@ begin
 
   have Einf : E.inf := inf E Edis,
   have Finf : F.inf, by {
+    rw ←φK'eq at F,
+    let := ((comp_out.equiv_of_iso φ K').right_inv F),
+    let Fi := (comp_out.equiv_of_iso φ ↑K').inv_fun F,
+    have : Fi.inf, by
+    { apply inf,
+      apply (comp_out.equiv_of_iso.dis φ K' Fi).mpr,
+      dsimp only [coe_fn,has_coe_to_fun.coe],
+      rw this,
+      convert Fdis,
+      sorry,},
+    convert ((comp_out.equiv_of_iso.inf φ K' Fi).mp this),
+    exact φK'eq.symm,
     sorry,
     -- rewriting troubles :( due to finset↔set conversions
     -- the idea is that all components of K' disjoint from K' are infinite
     -- but we have a bijection between the components of K' and those of φK' preserving disjointness and
     -- finiteness
+    -- since F is disjoint, it is infinite
   },
 
   apply inf_comp_out.nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'n) (K'n) ⟨⟨F,Fdis⟩,Finf⟩ _ ⟨⟨E,Edis⟩,Einf⟩ Esub Fsub,

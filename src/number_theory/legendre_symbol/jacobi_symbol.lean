@@ -394,11 +394,9 @@ end
 /-- The Jacobi symbol `(0 / b)` vanishes when `b > 1`. -/
 lemma jacobi_sym_zero_left {b : ℕ} (hb : 1 < b) : [0 | b]ⱼ = 0 :=
 begin
-  have h : (0 : ℤ).gcd b ≠ 1,
-  { rw [int.gcd_zero_left, int.nat_abs_of_nat],
-    exact (ne_of_lt hb).symm, },
-  haveI : ne_zero b := ⟨ne_zero_of_lt hb⟩,
-  exact jacobi_sym_eq_zero_if_not_coprime h,
+  refine @jacobi_sym_eq_zero_if_not_coprime 0 b ⟨ne_zero_of_lt hb⟩ _,
+  rw [int.gcd_zero_left, int.nat_abs_of_nat],
+  exact (ne_of_lt hb).symm,
 end
 
 /-- If the Jacobi symbol `(a / b)` is `-1`, then `a` is not a square modulo `b`. -/
@@ -475,10 +473,10 @@ def qr_sign (m n : ℕ) : ℤ := [χ₄ m | n]ⱼ
 lemma qr_sign_neg_one_pow {m n : ℕ} (hm : odd m) (hn : odd n) :
   qr_sign m n = (-1) ^ ((m / 2) * (n / 2)) :=
 begin
-  rw [qr_sign, pow_mul, ← χ₄_eq_neg_one_pow (nat.odd_iff.mp hm)],
+  rw [qr_sign, pow_mul, ← χ₄_eq_neg_one_pow (odd_iff.mp hm)],
   cases odd_mod_four_iff.mp (odd_iff.mp hm) with h h,
   { rw [χ₄_nat_one_mod_four h, jacobi_sym_one_left, one_pow], },
-  { rw [χ₄_nat_three_mod_four h, ← χ₄_eq_neg_one_pow (nat.odd_iff.mp hn), jacobi_sym_neg_one hn], }
+  { rw [χ₄_nat_three_mod_four h, ← χ₄_eq_neg_one_pow (odd_iff.mp hn), jacobi_sym_neg_one hn], }
 end
 
 /-- When `m` and `n` are odd, then the square of `qr_sign m n` is `1`. -/

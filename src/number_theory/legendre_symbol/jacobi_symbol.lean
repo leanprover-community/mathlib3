@@ -47,12 +47,6 @@ We prove the main properties of the Legendre symbol, including the following.
 
 We define the notation `[a | b]ⱼ` for `legendre_sym a b`, localized to `number_theory_symbols`.
 
-## Implementation notes
-
-We implement a variant `nat.prime_factors` of `nat.factors` that returns a `list primes`
-and use this for the definition of the Jacobi symbol (we need the information that the
-factors are prime for the Legendre symbols in the product to be defined).
-
 ## Tags
 Jacobi symbol, quadratic reciprocity
 -/

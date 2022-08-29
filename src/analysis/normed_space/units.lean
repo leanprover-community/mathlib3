@@ -288,3 +288,45 @@ lemma open_embedding_coe : open_embedding (coe : Rˣ → R) :=
 open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
 
 end units
+
+section ideal
+
+/-- An ideal which contains an element within `1` of `1 : R` is `⊤`-/
+lemma ideal.eq_top_of_norm_lt_one (I : ideal R) {x : R} (hxI : x ∈ I) (hx : ∥1 - x∥ < 1) : I = ⊤  :=
+let u := units.one_sub (1 - x) hx in (I.eq_top_iff_one.mpr $
+  by simpa only [show u.inv * x = 1, by simp] using I.mul_mem_left u.inv hxI)
+
+variable (R)
+
+/-- The `nonunits` in a complete normed ring are contained in the complement of the ball of radius
+`1` centered at `1 : R`. -/
+lemma nonunits.subset_compl_ball : nonunits R ⊆ (metric.ball (1 : R) 1)ᶜ :=
+set.subset_compl_comm.mp $ λ x hx, by simpa [sub_sub_self, units.coe_one_sub] using
+  (units.one_sub (1 - x) (by rwa [metric.mem_ball, dist_eq_norm, norm_sub_rev] at hx)).is_unit
+
+variable {R}
+
+/-- A proper `ideal` in a complete normed ring is contained in the complement of the ball of radius
+`1` centered at `1 : R`. -/
+lemma ideal.subset_compl_ball_of_ne_top (I : ideal R) (hI : I ≠ ⊤) :
+  (I : set R) ⊆ (metric.ball (1 : R) 1)ᶜ :=
+(coe_subset_nonunits hI).trans $ nonunits.subset_compl_ball R
+
+/-- The `ideal.closure` of a proper `ideal` in a complete normed ring is proper. -/
+lemma ideal.closure_ne_top {R : Type*} [normed_comm_ring R] [complete_space R]
+  (I : ideal R) (hI : I ≠ ⊤) : I.closure ≠ ⊤ :=
+have h : _ := closure_minimal (I.subset_compl_ball_of_ne_top hI)
+  metric.is_open_ball.is_closed_compl,
+  by simpa only [I.closure.eq_top_iff_one, ne.def] using mt (@h 1) (by norm_num)
+
+/-- the `ideal.closure` of a maximal ideal in a complete normed ring is the ideal itself. -/
+lemma ideal.is_maximal.closure_eq {R : Type*} [normed_comm_ring R] [complete_space R]
+  {I : ideal R} (hI : I.is_maximal) : I.closure = I :=
+(hI.eq_of_le (I.closure_ne_top hI.ne_top) subset_closure).symm
+
+/-- Maximal ideals in complete normed rings are closed. -/
+lemma ideal.is_maximal.is_closed {R : Type*} [normed_comm_ring R] [complete_space R]
+  {I : ideal R} (hI : I.is_maximal) : is_closed (I : set R) :=
+is_closed_of_closure_subset $ eq.subset $ congr_arg (coe : ideal R → set R) hI.closure_eq
+
+end ideal

@@ -158,7 +158,8 @@ begin
   by_cases a ∈ f.support,
   { rw [← finset.insert_erase h, nat.multinomial_insert _ f (finset.not_mem_erase a _),
       finset.add_sum_erase _ f h, support_update_zero], congr' 1,
-    exact nat.multinomial_congr _ (λ _ h, (function.update_noteq (finset.mem_erase.1 h).1 0 f).symm) },
+    exact nat.multinomial_congr _ (λ _ h, (function.update_noteq
+      (finset.mem_erase.1 h).1 0 f).symm) },
   rw not_mem_support_iff at h,
   rw [h, nat.choose_zero_right, one_mul, ← h, update_self],
 end

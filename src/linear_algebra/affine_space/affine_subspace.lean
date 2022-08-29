@@ -1241,6 +1241,13 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
 coe_injective $ image_empty f
 
+@[simp] lemma map_eq_bot_iff {s : affine_subspace k P₁} : s.map f = ⊥ ↔ s = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [←coe_eq_bot_iff, coe_map, image_eq_empty, coe_eq_bot_iff] at h },
+  { rw [h, map_bot] }
+end
+
 omit V₂
 
 @[simp] lemma map_id (s : affine_subspace k P₁) : s.map (affine_map.id k P₁) = s :=

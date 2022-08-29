@@ -383,29 +383,6 @@ end
 lemma jacobi_sym_mod_left' {a₁ a₂ : ℤ} {b : ℕ} (h : a₁ % b = a₂ % b) : [a₁ | b]ⱼ = [a₂ | b]ⱼ :=
 by rw [jacobi_sym_mod_left, h, ← jacobi_sym_mod_left]
 
-/-- If the Jacobi symbol `(a / b)` is `-1`, then `a` is not a square modulo `b`. -/
-lemma jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -1) : ¬ is_square (a : zmod b) :=
-begin
-  rintro ⟨x, hx⟩,
-  have hb : b ≠ 0,
-  { intro hf,
-    rw [hf, jacobi_sym_zero_right] at h,
-    revert h,
-    dec_trivial, },
-  haveI : fact (0 < b) := ⟨nat.pos_of_ne_zero hb⟩,
-  have hab : a % b = (x * x) % b,
-  { have h₁ : (a : zmod b) = (x.val * x.val : ℤ),
-    { simp only [hx, nat_cast_val, int.cast_mul, int_cast_cast, cast_id', id.def], },
-    have h₂ := (zmod.int_coe_eq_int_coe_iff' a (x.val * x.val) b).mp h₁,
-    rwa [zmod.nat_cast_val] at h₂, },
-  have hj := jacobi_sym_mod_left' hab,
-  rw [jacobi_sym_mul_left, h, ← pow_two] at hj,
-  have nn := sq_nonneg [x | b]ⱼ,
-  rw ← hj at nn,
-  revert nn,
-  exact (-1 : ℤ).lt_irrefl,
-end
-
 /-- The Jacobi symbol `(a / b)` vanishes when `a` and `b` are not coprime and `b ≠ 0`. -/
 lemma jacobi_sym_eq_zero_if_not_coprime {a : ℤ} {b : ℕ} [hb : ne_zero b] (h : a.gcd b ≠ 1) :
   [a | b]ⱼ = 0 :=
@@ -447,6 +424,25 @@ begin
     exact (ne_of_lt hb).symm, },
   haveI : ne_zero b := ⟨ne_zero_of_lt hb⟩,
   exact jacobi_sym_eq_zero_if_not_coprime h,
+end
+
+/-- If the Jacobi symbol `(a / b)` is `-1`, then `a` is not a square modulo `b`. -/
+lemma jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -1) : ¬ is_square (a : zmod b) :=
+begin
+  haveI : fact (0 < b),
+  { refine ⟨nat.pos_of_ne_zero (λ hf, _)⟩,
+    have h₁ : [a | b]ⱼ ≠ 1 := by {rw h, dec_trivial},
+    rw [hf, jacobi_sym_zero_right] at h₁,
+    exact h₁ rfl, },
+  rintro ⟨x, hx⟩,
+  have hab : a % b = (x * x) % b,
+  { have h₁ : (a : zmod b) = (x.val * x.val : ℤ),
+    { simp only [hx, nat_cast_val, int.cast_mul, int_cast_cast, cast_id', id.def], },
+    have h₂ := (zmod.int_coe_eq_int_coe_iff' a (x.val * x.val) b).mp h₁,
+    rwa [zmod.nat_cast_val] at h₂, },
+  have hj := jacobi_sym_mod_left' hab,
+  rw [jacobi_sym_mul_left, h, ← pow_two] at hj,
+  exact (-1 : ℤ).lt_irrefl (hj.substr (sq_nonneg [x | b]ⱼ)),
 end
 
 /-!

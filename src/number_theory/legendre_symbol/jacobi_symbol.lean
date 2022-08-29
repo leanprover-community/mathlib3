@@ -333,25 +333,16 @@ by rw [pow_two, jacobi_sym_mul_left, ← pow_two, jacobi_sym_sq_one h]
 /-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/
 lemma jacobi_sym_mod_left (a : ℤ) (b : ℕ) : [a | b]ⱼ = [a % b | b]ⱼ :=
 begin
-  -- we need to generalize over `a` here
-  let P : ℕ → Prop := λ b, ∀ a : ℤ, [a | b]ⱼ = [a % b | b]ⱼ,
-  have hp : ∀ p : ℕ, p.prime → P p,
-  { intros p pp a,
-    haveI : fact p.prime := ⟨pp⟩,
-    simp_rw [← legendre_sym.to_jacobi_sym, legendre_sym_mod p a], },
-  have hmul : ∀ m n : ℕ, P m → P n → P (m * n),
-  { intros m n hm hn,
-    by_cases hm0 : m = 0,
+  refine rec_on_mul (λ _, by simp_rw [jacobi_sym_zero_right])
+                    (λ _, by simp_rw [jacobi_sym_one_right]) (λ p pp a, _) (λ m n hm hn, _) b a,
+  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_mod p ⟨pp⟩ a], },
+  { by_cases hm0 : m = 0,
     { intro a, simp_rw [hm0, zero_mul, jacobi_sym_zero_right], },
-    by_cases hn0 : n = 0,
-    { intro a, simp_rw [hn0, mul_zero, jacobi_sym_zero_right], },
-    haveI : ne_zero m := ⟨hm0⟩,
-    haveI : ne_zero n := ⟨hn0⟩,
-    intro a,
-    simp_rw [nat.cast_mul, jacobi_sym_mul_right, hm a, hn a, hm (a % (m * n)), hn (a % (m * n))],
+    by_cases hn0 : n = 0; intro a,
+    { simp_rw [hn0, mul_zero, jacobi_sym_zero_right], },
+    simp_rw [nat.cast_mul, @jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩,
+             hm a, hn a, hm (a % (m * n)), hn (a % (m * n))],
     rw [int.mod_mod_of_dvd a (dvd_mul_right ↑m ↑n), int.mod_mod_of_dvd a (dvd_mul_left ↑n ↑m)] },
-  exact rec_on_mul (λ _, by simp_rw [jacobi_sym_zero_right])
-                   (λ _, by simp_rw [jacobi_sym_one_right]) hp hmul b a,
 end
 
 /-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/

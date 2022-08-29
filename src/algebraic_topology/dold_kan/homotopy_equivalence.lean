@@ -11,8 +11,8 @@ import algebraic_topology.dold_kan.normalized
 # The normalized Moore complex and the alternating face map complex are homotopy equivalent
 
 In this file, when the category `A` is abelian, we obtain the homotopy equivalence
-`inclusion_of_Moore_complex_map_is_homotopy_equiv` between the normalized Moore complex
-and the alternating face map complex of a simplicial object in `A`.
+`homotopy_equiv_normalized_Moore_complex_alternating_face_map_complex` between the
+normalized Moore complex and the alternating face map complex of a simplicial object in `A`.
 
 -/
 
@@ -78,9 +78,9 @@ def homotopy_P_infty_to_id :
 /-- The inclusion of the Moore complex in the alternating face map complex
 is an homotopy equivalence -/
 @[simps]
-def homotopy_equiv_normalized_Moore_complex_alternating_face_map_complex {A : Type*} [category A] [abelian A]
-  {Y : simplicial_object A} : homotopy_equiv ((normalized_Moore_complex A).obj Y)
-  ((alternating_face_map_complex A).obj Y) :=
+def homotopy_equiv_normalized_Moore_complex_alternating_face_map_complex {A : Type*}
+  [category A] [abelian A] {Y : simplicial_object A} :
+  homotopy_equiv ((normalized_Moore_complex A).obj Y) ((alternating_face_map_complex A).obj Y) :=
 { hom := inclusion_of_Moore_complex_map Y,
   inv := P_infty_to_normalized_Moore_complex Y,
   homotopy_hom_inv_id := homotopy.of_eq (split_mono_inclusion_of_Moore_complex_map Y).id,

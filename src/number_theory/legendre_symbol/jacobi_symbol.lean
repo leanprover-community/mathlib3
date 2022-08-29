@@ -152,6 +152,21 @@ begin
   exact (h hn).mpr (even.mul_right ha _),
 end
 
+/-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
+such that `a = 2^e * a'` and `a'` is odd. -/
+lemma two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a' :=
+begin
+  refine rec_on_mul (λ hf, false.rec _ (hf rfl)) (λ _, ⟨0, 1, odd_one, by rw [pow_zero, mul_one]⟩)
+                    (λ p pp _, _) (λ m n hm hn hmn, _) a ha,
+  { cases pp.eq_two_or_odd' with hp₂ hp₂,
+    { exact ⟨1, 1, odd_one, by rw [hp₂, pow_one, mul_one]⟩, },
+    { exact ⟨0, p, hp₂, by rw [pow_zero, one_mul]⟩, } },
+  { rcases hm (left_ne_zero_of_mul hmn) with ⟨em, m', hmo, hmm⟩,
+    rcases hn (right_ne_zero_of_mul hmn) with ⟨en, n', hno, hnn⟩,
+    refine ⟨em + en, m' * n', odd_mul.mpr ⟨hmo, hno⟩, _⟩,
+    rw [hmm, hnn, pow_add, mul_mul_mul_comm], },
+end
+
 end nat
 
 namespace int
@@ -546,22 +561,7 @@ begin
     rw [ha₀, mul_zero, mod_zero], },
   have hb' : odd (b % (4 * a)) :=
   odd_mod_of_odd hb (even.mul_right (by norm_num) _),
-  have ha : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a',
-  { let P : ℕ → Prop := λ n, n ≠ 0 → ∃ e n' : ℕ, odd n' ∧ n = 2 ^ e * n',
-    have hp : ∀ (p : ℕ), p.prime → P p,
-    { intros p pp _,
-      cases pp.eq_two_or_odd' with hp₂ hp₂,
-      { exact ⟨1, 1, odd_one, by rw [hp₂, pow_one, mul_one]⟩, },
-      { exact ⟨0, p, hp₂, by rw [pow_zero, one_mul]⟩, } },
-    have hmul : ∀ (m n : ℕ), P m → P n → P (m * n),
-    { intros m n hm hn hmn,
-      rcases hm (left_ne_zero_of_mul hmn) with ⟨em, m', hmo, hmm⟩,
-      rcases hn (right_ne_zero_of_mul hmn) with ⟨en, n', hno, hnn⟩,
-      refine ⟨em + en, m' * n', odd_mul.mpr ⟨hmo, hno⟩, _⟩,
-      rw [hmm, hnn, pow_add, mul_mul_mul_comm], },
-    exact rec_on_mul (λ hf, false.rec _ (hf rfl)) (λ _, ⟨0, 1, odd_one, by rw [pow_zero, mul_one]⟩)
-                     hp hmul a ha₀, },
-  rcases ha with ⟨e, a', ⟨ha₁, ha₂⟩⟩,
+  rcases two_pow_mul_odd ha₀ with ⟨e, a', ⟨ha₁, ha₂⟩⟩,
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,
       jacobi_sym_quadratic_reciprocity' ha₁ hb, jacobi_sym_quadratic_reciprocity' ha₁ hb',

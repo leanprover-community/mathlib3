@@ -3,14 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.heyting.basic
+import order.boolean_algebra
 
 /-!
 # Co-Heyting boundary
 
 The boundary of an element of a co-Heyting algebra is the intersection of its Heyting negation with
 itself. The boundary in the co-Heyting algebra of closed sets coincides with the topological
-boundary. s ∪ t s ∩ t
+boundary.
 
 ## Main declarations
 
@@ -21,10 +21,13 @@ boundary. s ∪ t s ∩ t
 `∂ a` is notation for `coheyting.boundary a` in locale `heyting`.
 -/
 
-variables {α : Type*} [coheyting_algebra α] {a b : α}
+variables {α : Type*}
 
 namespace coheyting
+variables [coheyting_algebra α] {a b : α}
 
+/-- The boundary of an element of a co-Heyting algebra is the intersection of its Heyting negation
+with itself. Note that this is always `⊥` for a boolean algebra. -/
 def boundary (a : α) : α := a ⊓ ￢a
 
 localized "prefix `∂ `:120 := coheyting.boundary" in heyting
@@ -98,3 +101,13 @@ lemma hnot_hnot_sup_boundary (a : α) : ￢￢a ⊔ ∂ a = a :=
 by { rw [boundary, sup_inf_left, hnot_sup_self, inf_top_eq, sup_eq_right], exact hnot_hnot_le }
 
 end coheyting
+
+open_locale heyting
+
+section boolean_algebra
+variables [boolean_algebra α]
+
+@[simp] lemma coheyting.boundary_eq_bot (a : α) : ∂ a = ⊥ := inf_compl_eq_bot
+
+end boolean_algebra
+#lint

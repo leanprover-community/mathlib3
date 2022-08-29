@@ -380,8 +380,8 @@ begin
   by_contra hc,
   simp only [not_exists, not_and, not_le] at hc,
   have lower_bound_infi : μ K + ε ≤ ⨅ (K' : topological_space.compacts G)
-    (h: (K : set G) ⊆ interior (K' : set G) ), μ K'
-   := le_infi (λ K', le_infi ( λ K'_hyp, le_of_lt (hc K' K'_hyp))),
+    (h: (K : set G) ⊆ interior (K' : set G) ), μ K' :=
+    le_infi (λ K', le_infi ( λ K'_hyp, le_of_lt (hc K' K'_hyp))),
   rw ← H at lower_bound_infi,
   exact (lt_self_iff_false (μ K)).mp (lt_of_le_of_lt' lower_bound_infi
     (ennreal.lt_add_right (ne_top_of_lt (μ.lt_top K)) (ennreal.coe_ne_zero.mpr hε))),

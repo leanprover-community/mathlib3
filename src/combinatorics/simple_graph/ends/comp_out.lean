@@ -287,6 +287,7 @@ begin
   by_contra h,
   rw not_dis_iff_singleton_in at h,
   obtain ⟨k,kK,e⟩ := h,
+  unfold of_connected_disjoint at e,
   sorry
 end
 
@@ -313,8 +314,8 @@ end
 
 section finiteness
 
-def to_thickening_aux (G : simple_graph V) (K : set V) (Gpc : G.preconnected) (Glc : G.locally_finite)
-  (Kf : K.finite) (Kn : K.nonempty) : Π (C : G.comp_out K), { x : V | x ∈ (thicken G K) ∧ x ∈ C} :=
+def to_thickening_aux (G : simple_graph V) (K : finset V) (Gpc : G.preconnected) (Glc : G.locally_finite)
+  (Kn : K.nonempty) : Π (C : G.comp_out K), { x : V | x ∈ (thicken G K) ∧ x ∈ C} :=
 begin
   rintro C,
   by_cases h : C.dis,
@@ -330,17 +331,17 @@ begin
     },
 end
 
-def to_thickening (G : simple_graph V) (K : set V)  (Gpc : G.preconnected) (Glc : G.locally_finite)
-  (Kf : K.finite) (Kn : K.nonempty) : G.comp_out K → (thicken G K) :=
-λ C, ⟨(to_thickening_aux G K Gpc Glc Kf Kn C).val,(to_thickening_aux G K Gpc Glc Kf Kn C).prop.left⟩
+def to_thickening (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glc : G.locally_finite)
+  (Kn : K.nonempty) : G.comp_out K → (thicken G K) :=
+λ C, ⟨(to_thickening_aux G K Gpc Glc Kn C).val,(to_thickening_aux G K Gpc Glc Kn C).prop.left⟩
 
-lemma to_thickening_inj  (G : simple_graph V) (K : set V)  (Gpc : G.preconnected) (Glc : G.locally_finite)
-  (Kf : K.finite) (Kn : K.nonempty) : function.injective (to_thickening G K Gpc Glc Kf Kn) :=
+lemma to_thickening_inj  (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glc : G.locally_finite)
+  (Kn : K.nonempty) : function.injective (to_thickening G K Gpc Glc Kn) :=
 begin
   rintro C D,
   dsimp [to_thickening, thicken], simp,
-  obtain ⟨x,xK,xC⟩ := to_thickening_aux G K Gpc Glc Kf Kn C,
-  obtain ⟨y,yK,yD⟩ := to_thickening_aux G K Gpc Glc Kf Kn D,
+  obtain ⟨x,xK,xC⟩ := to_thickening_aux G K Gpc Glc Kn C,
+  obtain ⟨y,yK,yD⟩ := to_thickening_aux G K Gpc Glc Kn D,
   simp only [subtype.coe_mk],
   rintro rfl,
   apply eq_of_not_disjoint,
@@ -348,12 +349,12 @@ begin
   exact ⟨x,xC,yD⟩,
 end
 
-lemma comp_out_finite  (G : simple_graph V) (K : set V)  (Gpc : G.preconnected) (Glf : G.locally_finite)
-  (Kf : K.finite) (Kn : K.nonempty)  :
+lemma comp_out_finite  (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glf : G.locally_finite)
+  (Kn : K.nonempty)  :
   finite (G.comp_out K) :=
 begin
-  haveI : finite (G.thicken K), by {rw set.finite_coe_iff, apply @thicken.finite _ _ Glf _ Kf, },
-  apply finite.of_injective (to_thickening G K Gpc Glf Kf Kn),
+  haveI : finite (G.thicken K), by {rw set.finite_coe_iff, apply @thicken.finite _ _ Glf _, },
+  apply finite.of_injective (to_thickening G K Gpc Glf Kn),
   apply to_thickening_inj,
 end
 
@@ -438,8 +439,8 @@ begin
   exact Cinf (set.finite_singleton k),
 end
 
-lemma exists_inf [infinite V] (G : simple_graph V) (K : set V)  (Gpc : G.preconnected)
-  (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty) : ∃ C : G.comp_out K, C.inf :=
+lemma exists_inf [infinite V] (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected)
+  (Glf : G.locally_finite) (Kn : K.nonempty) : ∃ C : G.comp_out K, C.inf :=
 begin
   by_contra h, push_neg at h,
   have : set.univ = ⋃ (C : G.comp_out K), (C : set V), by {
@@ -448,7 +449,7 @@ begin
     simp only [of_vertex, mem_range_self, set_like.mem_coe, mem_supp_iff, true_and],},
   have : (@set.univ V).finite, by {
     rw this,
-    haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kf Kn,
+    haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kn,
     apply set.finite_Union,
     simp_rw set.not_infinite at h,
     exact h,},
@@ -463,10 +464,10 @@ begin
   exact Cinf,
 end
 
-lemma in_all_ranges_of_inf (Kfin : K.finite) (C : G.comp_out K) (Cinf : C.inf) :
-  ∀ {L : set V} (Lfin : L.finite) (h : K ⊆ L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C :=
+lemma in_all_ranges_of_inf {K : finset V} (C : G.comp_out K) (Cinf : C.inf) :
+  ∀ {L : finset V} (h : K ⊆ L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C :=
 begin
-  rintro L Lfin h,
+  rintro L h,
   suffices : ∃ v : V, v ∈ C ∧ v ∉ L,
   { obtain ⟨c,cC,cnL⟩ := this,
     use of_vertex G L c, split,
@@ -482,22 +483,23 @@ begin
       apply mem_of_mem_of_subset,
       apply @of_vertex_mem V G L,
       apply back_sub,},},
-  have : ((C : set V) \ L).infinite, by {exact infinite.diff Cinf Lfin,},
+  have : ((C : set V) \ L).infinite, by {apply infinite.diff Cinf, exact to_finite L,},
   use this.nonempty.some,
   exact this.nonempty.some_spec,
 end
 
-lemma inf_of_in_all_ranges (Kfin : K.finite) (C : G.comp_out K)
-  (mem_ranges : ∀ {L : set V} (Lfin : L.finite) (h : K ⊆ L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C) : C.inf :=
+lemma inf_of_in_all_ranges {K : finset V} (C : G.comp_out K)
+  (mem_ranges : ∀ {L : finset V} (h : ↑K ⊆ ↑L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C) : C.inf :=
 begin
   rintro Cfin,
-  let L := K ∪ C,
-  have Lfin : L.finite := set.finite.union Kfin Cfin,
-  have : K ⊆ L := set.subset_union_left K C,
-  obtain ⟨D,dis,e⟩ := mem_ranges Lfin ‹K⊆L›,
+  let L_ := (K : set V) ∪ C,
+  have L_fin : L_.finite := set.finite.union (to_finite K) Cfin,
+  let L : finset V := set.finite.to_finset L_fin,
+  have : K ⊆ L := by {rw ← finset.coe_subset, simp only [finite.coe_to_finset, set.subset_union_left],},
+  obtain ⟨D,dis,e⟩ := mem_ranges ‹K ⊆ L›,
   simp only [eq_back_iff_sub] at e,
   suffices : (D : set V) = ∅, { have : (D : set V).nonempty, by simp only [nempty], finish,},
-  have : disjoint (C : set V) D := disjoint.mono_left (set.subset_union_right K C) dis,
+  have : disjoint (C : set V) D := disjoint.mono_left (by simp) dis,
   rw set.disjoint_iff_inter_eq_empty at this,
   rw ←this,
   symmetry,
@@ -558,12 +560,13 @@ end
 
 section extend
 
+#check @finset.bUnion
+
 variables (G) [Gpc : G.preconnected] [Glf : G.locally_finite]
           (k : finset V) [kn : k.nonempty] (Kc : (G.induce (k : set V)).connected)
 
-/-
 -- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
-def extend_with_fin : finset V := sorry --K ∪ (@set.Union _ {C : G.comp_out K // C.fin} (λ ⟨C, Cfin⟩, (C : set V)))
+def extend_with_fin : finset V := k ∪ (@set.Union _ {C : G.comp_out K // C.fin} (λ ⟨C, Cfin⟩, (C : set V)))
 
 
 
@@ -575,7 +578,7 @@ begin
   sorry,
 end
 
-include Kf Gpc Glf Kn
+include Gpc Glf
 lemma extend_with_fin.finite : (extend_with_fin G K).finite :=
 begin
   apply set.finite.union Kf,
@@ -588,12 +591,12 @@ end
 
 lemma extend_with_fin.components_spec :
   ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G K)), D.dis ∧ C = D) := sorry
--/
+
 lemma extend_connected_with_fin_bundled  :
   {k' : finset V | k ⊆ k'
                  ∧ (G.induce (k' : set V)).connected
                  ∧ ∀ C : (G.comp_out k'), C.dis → C.inf} := sorry
-/-begin
+begin
   have Kn : K.nonempty, by {rw ←set.nonempty_coe_sort, rw connected_iff at Kc, exact Kc.2,},
   use extend_with_fin G K,
   use extend_with_fin.sub G K,
@@ -602,7 +605,7 @@ lemma extend_connected_with_fin_bundled  :
   rintro C Cdis,
   obtain ⟨D,Dinf,e⟩ := (extend_with_fin.components_spec G K C).mpr ⟨C,Cdis,rfl⟩,
   unfold inf, rw e, exact Dinf,
-end-/
+end
 
 end extend
 

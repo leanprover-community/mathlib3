@@ -65,11 +65,24 @@ begin
   apply functor.subfunctor.ext,
   dsimp [ComplComp], intro K, ext C,
   show C.val.inf ↔ C ∈ (⋂ (i : {L // K ⊆ L}), _), split,
-  { rintro Cinf, simp, rintro L KL,
-    -- use in_all_ranges_of_inf
-    sorry },
+  { rintro Cinf, simp, rintro L KsubL,
+    obtain ⟨D, Ddis, hback⟩ := in_all_ranges_of_inf _ Cinf KsubL,
+    use D,
+    exact Ddis,
+    have := back_sub KsubL D,
+    rw [hback] at this,
+    exact this, },
   { -- use inf_of_in_all_ranges
-    sorry },
+    rintro h,
+    simp at h,
+    apply inf_of_in_all_ranges,
+    intros L KsubL,
+    obtain ⟨⟨D, Ddis⟩, hyp⟩ := h L KsubL,
+    use D,
+    split,
+    exact Ddis,
+    simp only [subtype.val_eq_coe, eq_back_iff_sub],
+    exact hyp,},
 end
 
 lemma Ends_equiv_Endsinfty : Ends G ≃ Endsinfty G :=

@@ -216,15 +216,15 @@ psum
 def thicken  {V : Type*} (G : simple_graph V) (K : set V) :
   set V := K ∪ {v : V | ∃ k : K, G.adj k v}
 
-lemma thicken.finite {V : Type*} (G : simple_graph V) [Glf : G.locally_finite]  (K : set V) [Kf : K.finite] :
+lemma thicken.finite {V : Type*} (G : simple_graph V) [Glf : G.locally_finite]  (K : finset V) :
   (thicken G K).finite :=
 begin
   have : G.thicken K = K ∪ (set.Union (λ x : K, G.neighbor_set x)), by {
-    simp only [thicken,neighbor_set], apply congr_arg (λx, K ∪ x),
-    ext, rw mem_Union, simp only [mem_set_of_eq],},
+    simp only [thicken,neighbor_set], apply congr_arg _,
+    ext, rw mem_Union, simp only [mem_set_of_eq], refl,},
   rw this,
-  apply set.finite_union.mpr, split, assumption,
-  haveI : finite (↥K), by {exact finite_coe_iff.mpr Kf,},
+  apply set.finite_union.mpr, split, exact set.to_finite K,
+  haveI : finite (↥K), by {apply finite_coe_iff.mpr, exact to_finite K,},
   apply set.finite_Union, rintro ⟨x,xk⟩,
   apply set.finite_def.mpr, constructor, exact Glf x,
 end

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Michael Stol. All rights reserved.
+Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Michael Stol
+Authors: Michael Stoll
 -/
 import number_theory.legendre_symbol.quadratic_reciprocity
 

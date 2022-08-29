@@ -8,6 +8,7 @@ import .mathlib
 import .comp_out
 import .mathlib_fintype_inverse_systems
 import .end_limit_construction
+import .connected
 
 
 open function
@@ -30,6 +31,113 @@ namespace simple_graph
 
 variables  {V : Type u}
            (G : simple_graph V)
+           (Glf : locally_finite G)
+           (Gpc : preconnected G)
+
+
+namespace comp_out
+
+include Gpc
+lemma nicely_arranged (H K : set V) (Hnempty : H.nonempty) (Knempty : K.nonempty)
+  (E E' : G.comp_out H) (Einf : E.inf) (Einf' : E'.inf) (En : E ≠ E')
+  (F : G.comp_out K) (Finf : F.inf)
+  (H_F : (H : set V) ⊆ F)
+  (K_E : (K : set V) ⊆ E) : (E' : set V) ⊆ F :=
+begin
+  by_cases KE' : (K ∩ E').nonempty,
+  { rcases KE' with ⟨v,v_in⟩,
+    have vE' : v ∈ E', from ((set.mem_inter_iff v K E').mp v_in).right,
+    have vE : v ∈ E, from  K_E ((set.mem_inter_iff v K E').mp v_in).left,
+    exfalso,
+    apply En,
+    apply eq_of_not_disjoint E E',
+    rw set.not_disjoint_iff, use [v,vE,vE'],},
+  { have KdisE': disjoint K E', by { rw set.disjoint_iff_inter_eq_empty,rw set.not_nonempty_iff_eq_empty at KE', exact KE', },
+    have : ∃ F' : comp_out G K, (E' : set V) ⊆ F' ∧ F'.inf, by {
+      let F' := of_connected_disjoint (E' : set V) (E'.connected) KdisE',
+      let sub := of_connected_disjoint_sub (E' : set V) (E'.connected) KdisE',
+      have F'inf : F'.inf, from set.infinite.mono sub Einf',
+      use [F',sub,F'inf],
+    },
+    rcases this with ⟨F',sub,inf⟩,
+    by_cases Fe : F' = F,
+    { exact Fe ▸ sub,},
+    { rcases @comp_out.adj V G H Gpc Hnempty E' (E'.dis_of_inf Einf') with ⟨⟨v,h⟩,vE',hH,a⟩,
+      have : h ∈ F, from H_F hH,
+      --nonadj (C : G.comp_out K) : ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ c ∉ K ∧ d ∉ K ∧ G.adj c d)
+      exfalso,
+      apply F.nonadj,
+      use [h, v],
+      refine ⟨this,_,_,_,a.symm⟩,
+      { rintro vF,
+        apply Fe,
+        apply eq_of_not_disjoint, rw set.not_disjoint_iff, use [v,sub vE', vF], },
+      { rintro hK,
+        have : ¬ disjoint K F, by {rw  set.not_disjoint_iff, use [h,hK,this],},
+        exact this (F.dis_of_inf Finf), },
+      { rintro vK, rw [set.not_nonempty_iff_eq_empty,←set.subset_empty_iff] at KE',
+        apply KE',
+        exact ⟨vK,vE'⟩, },
+    },
+  },
+end
+
+end comp_out
+
+namespace inf_comp_out
+
+
+
+
+lemma bwd_map_non_inj (H K : finset V) (C : G.inf_comp_out H)
+  (D D' : G.inf_comp_out K)
+  (Ddist : D ≠ D')
+  (h : (D : set V) ⊆ C) (h' : (D' : set V) ⊆ C) :
+  ¬ injective (@inf_comp_out.back _ G _ _ (finset.subset_union_left H K : H ⊆ H ∪ K)) :=
+begin
+  rcases back_surjective (finset.subset_union_right H K) D  with ⟨E,rfl⟩,
+  rcases back_surjective (finset.subset_union_right H K) D' with ⟨E',rfl⟩,
+  have Edist : E ≠ E', by {rintro Eeq, rw Eeq at Ddist,exact Ddist (refl _)},
+  have : E.back (finset.subset_union_left H K) = E'.back (finset.subset_union_left H K), by {
+    have EsubC : (E : set V) ⊆ C, by {refine  set.subset.trans _ h, apply back_sub,},
+    have E'subC : (E' : set V) ⊆ C, by {refine  set.subset.trans _ h', apply back_sub,},
+    rw ←eq_back_iff_sub (finset.subset_union_left H K) at EsubC,
+    rw ←eq_back_iff_sub (finset.subset_union_left H K) at E'subC,
+    rw [EsubC,E'subC],
+  },
+  rintro inj,
+  exact Edist (inj this),
+end
+
+
+include Gpc
+lemma nicely_arranged_bwd_map_not_inj (H K : finset V) (Hnempty : H.nonempty) (Knempty : K.nonempty)
+  (E : G.inf_comp_out H) (inf_comp_H_large : fin 3 ↪ (G.inf_comp_out H))
+  (F : G.inf_comp_out K)
+  (H_F : (H : set V) ⊆ F)
+  (K_E : (K : set V) ⊆ E) :
+  ¬ injective (@inf_comp_out.back _ G _ _ (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
+begin
+ have : ∃ E₁ E₂ : G.inf_comp_out H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
+  { let E₀ := inf_comp_H_large 0,
+    let E₁ := inf_comp_H_large 1,
+    let E₂ := inf_comp_H_large 2,
+    by_cases h : E = E₀,
+    { use [E₁,E₂], rw h, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
+    { by_cases k : E = E₁,
+      { use [E₀,E₂], rw k, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
+      { use [E₀,E₁], simp, exact ⟨h,k⟩,},
+    },
+  },
+  rcases this with ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
+  rw [ne.def,←subtype.coe_inj,←subtype.coe_inj,←ne.def] at h₀₁ h₀₂,
+  apply bwd_map_non_inj G K H F E₁ E₂ h₁₂ _ _,
+  {apply comp_out.nicely_arranged G Gpc H K Hnempty Knempty E E₁ E.prop E₁.prop h₀₁ F F.prop H_F K_E,},
+  {apply comp_out.nicely_arranged G Gpc H K Hnempty Knempty E E₂ E.prop E₂.prop h₀₂ F F.prop H_F K_E,},
+end
+
+end inf_comp_out
+
 
 
 /-
@@ -38,42 +146,44 @@ variables  {V : Type u}
   As long as K has at least three infinite connected components, then so does K', and
   bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
 -/
-lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
+include Gpc Glf
+lemma good_autom_bwd_map_not_inj
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V)
   (inf_comp_H_large : fin 3 ↪ (G.inf_comp_out K)) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),
     ¬ injective (inf_comp_out.back ‹↑K' ⊆ ↑L› : G.inf_comp_out L → G.inf_comp_out K') :=
 begin
-  have Knempty : K.nonempty, by sorry,
+  haveI Kn : K.nonempty, by sorry,
   /-{ rw nonempty_iff_ne_empty,
     by_contradiction h, rw h at inf_comp_H_large,
     have e : fin 3 ↪ (G.dis_comp_out (∅ : finset V)), by
     { apply inf_comp_H_large.trans,
       fconstructor,
       exact subtype.val, exact subtype.val_injective,},
-    haveI := conn_comp_outside.of_empty_is_subsingleton Gpc,
+    haveI := comp_out.of_empty_is_subsingleton Gpc,
     have := e.inj' (subsingleton.elim (e 0) (e 1)),
     finish,},-/
-  obtain ⟨Kp,⟨KKp,Kpconn⟩⟩ := conn_comp_outside.extend_to_connected G K Knempty,
-  rcases conn_comp_outside.extend_connected_with_fin_components G Kp Kpconn  with ⟨K',KK',K'conn,finn⟩,
+  let Kp := (finset.extend_to_connected G Gpc K Kn).val,
+  obtain ⟨KKp,Kpc⟩ := (finset.extend_to_connected G Gpc K Kn).prop,
+
+  haveI Kpn := set.nonempty.mono KKp Kn,
+  obtain ⟨K',KK',Kc',inf⟩ := comp_out.extend_connected_with_fin_bundled G Kp,
   rcases auts K' with ⟨φ,φgood⟩,
 
   let φK' := finset.image φ K',
-  let K'nempty := finset.nonempty.mono (KKp.trans KK') Knempty,
-  let φK'nempty := finset.nonempty.image K'nempty φ,
+  let K'n := finset.nonempty.mono (KKp.trans KK') Kn,
+  let φK'n := finset.nonempty.image K'n φ,
   let L := K' ∪ φK',
   use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
 
-  have φK'conn : subconnected G φK' := begin
-    have := simple_graph.subconnected.image G G φ K'conn,
-    simp only [coe_coe, rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, coe_image] at this,
-    simp only [coe_image],
-    exact this,
-  end,
+  have φK'c : (G.induce (φK' : set V)).connected := sorry,
 
-  rcases of_subconnected_disjoint G K' φK' φK'nempty (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
-  rcases of_subconnected_disjoint G φK' K' K'nempty (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
+  let E := comp_out.of_connected_disjoint (φK' : set V) φK'c (finset.disjoint_coe.mpr φgood),
+  let Edis := comp_out.of_connected_disjoint_dis (φK' : set V) φK'c (finset.disjoint_coe.mpr φgood),
+  let F := comp_out.of_connected_disjoint (K' : set V) Kc' (finset.disjoint_coe.mpr φgood.symm),
+  let Fdis := comp_out.of_connected_disjoint_dis (K' : set V) Kc' (finset.disjoint_coe.mpr φgood.symm),
+
 
   have Einf : E.infinite := finn ⟨E,Ecomp⟩,
   have Finf : F.infinite, by {
@@ -88,13 +198,13 @@ begin
   apply inf_comp_H_large.trans,
   refine function.embedding.trans _ (inf_ro_components_equiv_of_isom' G G K' φ).to_embedding,
   apply function.embedding.of_surjective,
-  exact inf_conn_comp_outside_back.surjective G Gpc (KKp.trans KK'),
+  exact inf_comp_out_back.surjective G Gpc (KKp.trans KK'),
 
 
 end
 
 
-lemma Freudenthal_Hopf [locally_finite G] [Gpc : G.preconnected]
+lemma Freudenthal_Hopf
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
   (fin 3 ↪ Endsinfty G) → (Endsinfty G).infinite :=
 begin
@@ -108,22 +218,22 @@ begin
   haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := @ComplInfComp_fintype V _ G _ Gpc,
   have surj : inverse_system.is_surjective (ComplInfComp G) := ComplInfComp.surjective G,
 
-  -- By finitely many ends, and since the system is nice, there is some K such that each inf_conn_comp_outside_back to K is injective
+  -- By finitely many ends, and since the system is nice, there is some K such that each inf_comp_out_back to K is injective
   obtain ⟨K,top⟩ := inverse_system.sections_fintype_to_injective (ComplInfComp G) surj,
-  -- Since each inf_conn_comp_outside_back to K is injective, the map from sections to K is also injective
+  -- Since each inf_comp_out_back to K is injective, the map from sections to K is also injective
   let inj' := inverse_system.sections_injective (ComplInfComp G) K top,
 
   -- Because we have at least three ends and enough automorphisms, we can apply `good_autom_bwd_map_not_inj`
-  -- giving us K ⊆ K' ⊆ L with the inf_conn_comp_outside_back from L to K' not injective.
+  -- giving us K ⊆ K' ⊆ L with the inf_comp_out_back from L to K' not injective.
   rcases (good_autom_bwd_map_not_inj G Gpc auts K (many_ends.trans ⟨_,inj'⟩)) with ⟨K',L,KK',K'L,bwd_K_not_inj⟩,
-  -- which is in contradiction with the fact that all inf_conn_comp_outside_back to K are injective
+  -- which is in contradiction with the fact that all inf_comp_out_back to K are injective
   apply bwd_K_not_inj,
   -- The following is just that if f ∘ g is injective, then so is g
   rintro x y eq,
   apply top ⟨L,by {exact KK'.trans K'L,}⟩,
   simp only [ComplInfComp.map],
-  have eq' := congr_arg (@inf_conn_comp_outside_back _ _ _ G KK') eq,
-  simp only [inf_conn_comp_outside_back.comp_apply] at eq',
+  have eq' := congr_arg (@inf_comp_out_back _ _ _ G KK') eq,
+  simp only [inf_comp_out_back.comp_apply] at eq',
   exact eq',
 end
 

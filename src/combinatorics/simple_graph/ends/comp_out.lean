@@ -281,6 +281,15 @@ begin
   exact of_vertex G K conn.right.some,
 end
 
+lemma of_connected_disjoint_dis (S : set V)
+  (conn : (G.induce S).connected) (dis : disjoint K S) : (of_connected_disjoint S conn dis).dis :=
+begin
+  by_contra h,
+  rw not_dis_iff_singleton_in at h,
+  obtain ⟨k,kK,e⟩ := h,
+  sorry
+end
+
 lemma of_connected_disjoint_sub (S : set V)
   (conn : (G.induce S).connected) (dis : disjoint K S) : S ⊆ of_connected_disjoint S conn dis :=
 begin
@@ -547,21 +556,27 @@ begin
 end
 
 
-def inf_comp_out.ind {G : simple_graph V} {K : set V} {β : {C : G.comp_out K // C.inf} → Prop}
-  (ih : ∀ v hinf, β ⟨connected_component_mk _ v, hinf⟩) : ∀ (C : {C : G.comp_out K // C.inf}), β C :=
+section extend
+
+variables (G) [Gpc : G.preconnected] [Glf : G.locally_finite]
+          (k : finset V) [kn : k.nonempty] (Kc : (G.induce (k : set V)).connected)
+
+/-
+-- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
+def extend_with_fin : finset V := sorry --K ∪ (@set.Union _ {C : G.comp_out K // C.fin} (λ ⟨C, Cfin⟩, (C : set V)))
+
+
+
+lemma extend_with_fin.sub : k ⊆ extend_with_fin G k := sorry
+lemma extend_with_fin.connected :
+  (G.induce (extend_with_fin G K)).connected :=
 begin
-  rintro ⟨C, Cinf⟩,
-  revert Cinf,
-  refine C.ind _,
-  exact ih,
+  dsimp [extend_with_fin],
+  sorry,
 end
 
-
--- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
-def extend_with_fin (G : simple_graph V) (K : set V) : set V := K ∪ (@set.Union _ {C : G.comp_out K // C.fin} (λ ⟨C, Cfin⟩, (C : set V)))
-
-lemma extend_with_fin.finite (Gpc : G.preconnected) (Glf : G.locally_finite) (Kf : K.finite) (Kn : K.nonempty):
-  (extend_with_fin G K).finite :=
+include Kf Gpc Glf Kn
+lemma extend_with_fin.finite : (extend_with_fin G K).finite :=
 begin
   apply set.finite.union Kf,
   haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kf Kn,
@@ -570,97 +585,26 @@ begin
   exact Cfin,
 end
 
-lemma extend_with_fin.sub (G : simple_graph V) (K : set V) : K ⊆ extend_with_fin G K := by
-{ apply set.subset_union_left, }
 
-lemma extend_with_fin.connected (G : simple_graph V) (K : set V) (Kconn : (G.induce K).connected) :
-  (G.induce (extend_with_fin G K)).connected :=
-begin
-  dsimp [extend_with_fin],
-  sorry,
-end
+lemma extend_with_fin.components_spec :
+  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G K)), D.dis ∧ C = D) := sorry
+-/
+lemma extend_connected_with_fin_bundled  :
+  {k' : finset V | k ⊆ k'
+                 ∧ (G.induce (k' : set V)).connected
+                 ∧ ∀ C : (G.comp_out k'), C.dis → C.inf} := sorry
+/-begin
+  have Kn : K.nonempty, by {rw ←set.nonempty_coe_sort, rw connected_iff at Kc, exact Kc.2,},
+  use extend_with_fin G K,
+  use extend_with_fin.sub G K,
+  use extend_with_fin.finite Gpc Glf Kf Kn,
+  use extend_with_fin.connected G K Kc,
+  rintro C Cdis,
+  obtain ⟨D,Dinf,e⟩ := (extend_with_fin.components_spec G K C).mpr ⟨C,Cdis,rfl⟩,
+  unfold inf, rw e, exact Dinf,
+end-/
 
-lemma extend_with_fin.components_spec (G : simple_graph V) (K : set V) :
-  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G K)), C = D) := sorry
-
--- A restatement of the above lemma
-lemma extends_with_fin.inf_components_iso (G : simple_graph V) (K : set V) :
-  { C : G.comp_out K // C.inf } ≃ G.comp_out (extend_with_fin G K) := {
-  to_fun := by {
-    rintro ⟨C,Cinf⟩,
-    revert C,
-    apply @connected_component.lift V (G.out K) _ _ _ _,
-    sorry,
-    sorry,
-    sorry,
-  },
-  inv_fun := λ C, ⟨C.back (extend_with_fin.sub _ _), by {
-    apply infinite.mono,
-    apply back_sub,
-    intro Cfin,
-    sorry,
-  }⟩,
-  left_inv := by {
-    simp [left_inverse],
-    refine connected_component.ind _,
-    intros v hinf w,
-    simp,
-    sorry, -- this can be stated as a general lemma for any set and its superset
-  },
-  right_inv := by {
-    simp [function.right_inverse, left_inverse],
-    refine connected_component.ind _,
-    intro v, sorry,
-  }}
-
-
-
-lemma nicely_arranged [locally_finite G] (Gpc : G.preconnected) (H K : set V)
-  [Hnempty : H.nonempty] [Knempty : K.nonempty]
-  (E E' : G.comp_out H) (Einf : E.inf) (Einf' : E'.inf) (En : E ≠ E')
-  (F : G.comp_out K) (Finf : F.inf)
-  (H_F : (H : set V) ⊆ F)
-  (K_E : (K : set V) ⊆ E) : (E' : set V) ⊆ F :=
-begin
-  by_cases KE' : (K ∩ E').nonempty,
-  { rcases KE' with ⟨v,v_in⟩,
-    have vE' : v ∈ E', from ((set.mem_inter_iff v K E').mp v_in).right,
-    have vE : v ∈ E, from  K_E ((set.mem_inter_iff v K E').mp v_in).left,
-    exfalso,
-    apply En,
-    apply eq_of_not_disjoint E E',
-    rw set.not_disjoint_iff, use [v,vE,vE'],},
-  { have KdisE': disjoint K E', by { rw set.disjoint_iff_inter_eq_empty,rw set.not_nonempty_iff_eq_empty at KE', exact KE', },
-    have : ∃ F' : comp_out G K, (E' : set V) ⊆ F' ∧ F'.inf, by {
-      let F' := of_connected_disjoint (E' : set V) (E'.connected) KdisE',
-      let sub := of_connected_disjoint_sub (E' : set V) (E'.connected) KdisE',
-      have F'inf : F'.inf, from set.infinite.mono sub Einf',
-      use [F',sub,F'inf],
-    },
-    rcases this with ⟨F',sub,inf⟩,
-    by_cases Fe : F' = F,
-    { exact Fe ▸ sub,},
-    { rcases @comp_out.adj V G H Gpc Hnempty E' (E'.dis_of_inf Einf') with ⟨⟨v,h⟩,vE',hH,a⟩,
-      have : h ∈ F, from H_F hH,
-      --nonadj (C : G.comp_out K) : ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ c ∉ K ∧ d ∉ K ∧ G.adj c d)
-      exfalso,
-      apply F.nonadj,
-      use [h, v],
-      refine ⟨this,_,_,_,a.symm⟩,
-      { rintro vF,
-        apply Fe,
-        apply eq_of_not_disjoint, rw set.not_disjoint_iff, use [v,sub vE', vF], },
-      { rintro hK,
-        have : ¬ disjoint K F, by {rw  set.not_disjoint_iff, use [h,hK,this],},
-        exact this (F.dis_of_inf Finf), },
-      { rintro vK, rw [set.not_nonempty_iff_eq_empty,←set.subset_empty_iff] at KE',
-        apply KE',
-        exact ⟨vK,vE'⟩, },
-    },
-  },
-end
-
-
+end extend
 
 end misc
 
@@ -735,12 +679,23 @@ def back {K L : set V} (h : K ⊆ L) : G.inf_comp_out L →  G.inf_comp_out K :=
 lemma back_iff {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L) (D : G.inf_comp_out K) :
   C.back h = D ↔ (C.val.back h) = D.val := sorry
 
+lemma eq_back_iff_sub {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L) (D : G.inf_comp_out K) :
+  C.back h = D ↔ (C : set V) ⊆ D := sorry
+
+
+lemma back_sub {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L)  :
+  (C : set V) ⊆ C.back h := sorry
+
+
+
 @[simp]
 lemma back_refl_apply  (C : G.dis_comp_out K) : C.back (subset_refl K) = C := sorry
 
 @[simp]
 lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.dis_comp_out M) :
   (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) := sorry
+
+lemma back_surjective {K L : set V} (h : K ⊆ L) : function.surjective (@back V G K L h) := sorry
 
 end inf_comp_out
 

@@ -210,50 +210,7 @@ def bwd_map_inf.iff  (Gpc : G.preconnected) {K L : finset V} (K_sub_L : K ⊆ L)
 
 -- Towards Hopf-Freudenthal
 
-lemma bwd_map_non_inj [locally_finite G] (Gpc : G.preconnected) (H K : finset V) (C : inf_ro_components' G H)
-  (D D' : inf_ro_components' G K)
-  (Ddist : D ≠ D')
-  (h : D.val.val ⊆ C.val.val) (h' : D'.val.val ⊆ C.val.val) :
-  ¬ injective (bwd_map_inf G Gpc (finset.subset_union_left H K : H ⊆ H ∪ K)) :=
-begin
-  rcases bwd_map_inf.surjective G Gpc (finset.subset_union_right H K) D  with ⟨E,rfl⟩,
-  rcases bwd_map_inf.surjective G Gpc (finset.subset_union_right H K) D' with ⟨E',rfl⟩,
-  have Edist : E ≠ E', by {rintro Eeq, rw Eeq at Ddist,exact Ddist (refl _)},
-  have : bwd_map_inf G Gpc (finset.subset_union_left H K) E = bwd_map_inf G Gpc (finset.subset_union_left H K) E', by {
-    have EsubC : E.val.val ⊆ C.val.val, by {apply set.subset.trans (bwd_map_inf.sub G Gpc _ E) h,},
-    have E'subC : E'.val.val ⊆ C.val.val, by {apply set.subset.trans (bwd_map_inf.sub G Gpc _ E') h',},
-    rw (bwd_map_inf.def G Gpc (finset.subset_union_left H K) E C).mpr EsubC,
-    rw ←(bwd_map_inf.def G Gpc (finset.subset_union_left H K) E' C).mpr E'subC,
-  },
-  rintro inj,
-  exact Edist (inj this),
-end
 
-
-
-lemma nicely_arranged_bwd_map_not_inj[locally_finite G] (Gpc : G.preconnected) (H K : finset V)
-  (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E : inf_ro_components' G H) (inf_comp_H_large : fin 3 ↪ (inf_ro_components' G H))
-  (F : inf_ro_components' G K)
-  (H_F : (H : set V) ⊆ F.val)
-  (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map_inf G Gpc (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
-begin
- have : ∃ E₁ E₂ : inf_ro_components' G H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
-  { let E₀ := inf_comp_H_large 0,
-    let E₁ := inf_comp_H_large 1,
-    let E₂ := inf_comp_H_large 2,
-    by_cases h : E = E₀,
-    { use [E₁,E₂], rw h, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
-    { by_cases k : E = E₁,
-      { use [E₀,E₂], rw k, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
-      { use [E₀,E₁], simp, exact ⟨h,k⟩,},
-    },
-  },
-  rcases this with ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
-  apply bwd_map_non_inj G Gpc K H F E₁ E₂ h₁₂ _ _,
-  {apply nicely_arranged G Gpc H K Hnempty Knempty E E₁ h₀₁ F H_F K_E,},
-  {apply nicely_arranged G Gpc H K Hnempty Knempty E E₂ h₀₂ F H_F K_E,},
-end
 
 
 end bwd_map

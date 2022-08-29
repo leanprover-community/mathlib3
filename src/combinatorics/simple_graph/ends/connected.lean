@@ -269,5 +269,10 @@ begin
   exact walk.to_induced (p.support.to_finset) q this,
 end
 
+def finset.extend_to_connected (G : simple_graph V) (Gpc : G.preconnected) (K : finset V) (Kn : K.nonempty) :
+  {K' : finset V | K ⊆ K' ∧ (G.induce (K' : set V)).connected } := sorry
+
+
+
 
 end simple_graph
